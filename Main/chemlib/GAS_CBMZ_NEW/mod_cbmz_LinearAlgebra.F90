@@ -1432,3 +1432,4 @@ col:  DO k = 1, n-1
 
 END MODULE mod_cbmz_LinearAlgebra
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

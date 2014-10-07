@@ -239,3 +239,4 @@ program cumclouds
     end subroutine getsigma
 
 end program cumclouds
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

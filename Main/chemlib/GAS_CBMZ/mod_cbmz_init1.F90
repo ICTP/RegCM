@@ -3628,3 +3628,4 @@ module mod_cbmz_init1
     end subroutine analyze
 
 end module mod_cbmz_init1
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

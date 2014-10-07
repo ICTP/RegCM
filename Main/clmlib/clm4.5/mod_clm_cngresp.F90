@@ -196,3 +196,4 @@ module mod_clm_cngresp
 #endif
 
 end module mod_clm_cngresp
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

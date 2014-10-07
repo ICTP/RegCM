@@ -316,3 +316,4 @@ module mod_clm_varcon
   end subroutine clm_varcon_init
 
 end module mod_clm_varcon
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -110,3 +110,4 @@ REAL(kind=dp) :: deptha,depthb,altabove,altbelow
 
 END MODULE mod_cbmz_Global
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

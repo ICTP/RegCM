@@ -143,3 +143,4 @@ module mod_mkfmax
   end subroutine mkfmax
 
 end module mod_mkfmax
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

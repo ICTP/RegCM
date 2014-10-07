@@ -1005,3 +1005,4 @@ module mod_che_ncio
     end subroutine check_ok
 
 end module mod_che_ncio
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

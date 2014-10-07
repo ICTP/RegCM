@@ -163,3 +163,4 @@ module mod_clm_decomp
     end function get_clmlevel_gsize
 
 end module mod_clm_decomp
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

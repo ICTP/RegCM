@@ -152,3 +152,4 @@ module mod_clm_slakecon
   real(rk8) , public :: lake_melt_icealb(numrad) = (/ 0.10D0, 0.10D0/)
 
 end module mod_clm_slakecon
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -167,3 +167,4 @@ program sst
   write (stdout,*) 'Successfully generated SST'
 
 end program sst
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

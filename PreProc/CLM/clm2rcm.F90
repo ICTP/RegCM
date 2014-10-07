@@ -509,3 +509,4 @@ program clm2rcm
   write(stdout,*) 'Successfully completed CLM preprocessing.'
 
 end program clm2rcm
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -12379,3 +12379,4 @@ end program testgate
   182.9  991.3  24.27 17.18   -.57   6.01 -.007   .92  -1.74  -.74  -.12  .155E-07
      .0 1012.0  25.84 17.65   -.54   5.83  .000  2.68  -3.19 -2.66  -.15  .162E-07
 #endif
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

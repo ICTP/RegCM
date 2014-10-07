@@ -1842,3 +1842,4 @@ end subroutine decomp_domg2l
 !------------------------------------------------------------------------------
 
 end module decompMod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

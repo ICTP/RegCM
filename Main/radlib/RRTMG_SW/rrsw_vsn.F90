@@ -54,3 +54,4 @@
 
       end module rrsw_vsn
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

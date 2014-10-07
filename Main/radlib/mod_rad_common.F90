@@ -43,3 +43,4 @@ module mod_rad_common
   real(rk8) :: chfrovrradfr ! chfrq/rafrq
 
 end module mod_rad_common
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

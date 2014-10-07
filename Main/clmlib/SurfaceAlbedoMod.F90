@@ -932,3 +932,4 @@ contains
   end subroutine SnowAge
 
 end module SurfaceAlbedoMod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

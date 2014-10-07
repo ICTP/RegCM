@@ -800,3 +800,4 @@ module mod_clm_initslake
   end subroutine initTimeConst
 
 end module mod_clm_initslake
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

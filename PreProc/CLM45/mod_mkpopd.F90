@@ -143,3 +143,4 @@ module mod_mkpopd
 #endif
 
 end module mod_mkpopd
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

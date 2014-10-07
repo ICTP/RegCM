@@ -454,3 +454,4 @@ module mod_ncep
   end subroutine headernc
 !
 end module mod_ncep
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

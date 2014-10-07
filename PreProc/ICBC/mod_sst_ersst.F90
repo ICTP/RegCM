@@ -247,3 +247,4 @@ module mod_sst_ersst
   end subroutine sst_erain
 
 end module mod_sst_ersst
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

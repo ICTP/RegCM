@@ -518,3 +518,4 @@
       end subroutine ice
 !
       end module mod_lake
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

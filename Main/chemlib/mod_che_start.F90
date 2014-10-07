@@ -363,3 +363,4 @@ module mod_che_start
   end subroutine start_chem
 
 end module mod_che_start
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -2030,3 +2030,4 @@ module mod_clm_soilhydrology
   end subroutine Drainage
 
 end module mod_clm_soilhydrology
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

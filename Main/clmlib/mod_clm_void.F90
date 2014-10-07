@@ -20,3 +20,4 @@
 module mod_clm_void
 
 end module mod_clm_void
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

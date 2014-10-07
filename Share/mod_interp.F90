@@ -1160,3 +1160,4 @@ module mod_interp
   end function gcdist
 
 end module mod_interp
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

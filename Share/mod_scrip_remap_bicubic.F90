@@ -814,3 +814,4 @@ module mod_scrip_remap_bicubic
     end subroutine store_link_bicub
 
 end module mod_scrip_remap_bicubic
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

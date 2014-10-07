@@ -697,3 +697,4 @@ module mod_clm_surfrd
   end subroutine surfrd_wtxy_veg_dgvm
 
 end module mod_clm_surfrd
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

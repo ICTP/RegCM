@@ -1481,3 +1481,4 @@ module mod_clm_mkarbinit
   end subroutine snow_depth2lev
 
 end module mod_clm_mkarbinit
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

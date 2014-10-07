@@ -149,3 +149,4 @@ contains
   end subroutine spmd_init
 
 end module spmdMod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

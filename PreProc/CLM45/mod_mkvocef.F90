@@ -167,3 +167,4 @@ module mod_mkvocef
   end subroutine mkvocef
 
 end module mod_mkvocef
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

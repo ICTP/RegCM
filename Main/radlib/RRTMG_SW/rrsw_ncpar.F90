@@ -103,3 +103,4 @@ module rrsw_ncpar
   end subroutine getAbsorberIndex
 
 end module rrsw_ncpar
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

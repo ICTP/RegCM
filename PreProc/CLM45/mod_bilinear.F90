@@ -224,3 +224,4 @@ module mod_bilinear
   end subroutine bilinear2d_5d_in
 
 end module mod_bilinear
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

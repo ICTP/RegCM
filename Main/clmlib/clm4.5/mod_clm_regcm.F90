@@ -377,3 +377,4 @@ module mod_clm_regcm
   end subroutine land_to_atmosphere
 
 end module mod_clm_regcm
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

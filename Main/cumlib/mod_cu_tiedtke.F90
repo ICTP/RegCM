@@ -4617,3 +4617,4 @@ module mod_cu_tiedtke
   end subroutine cuadjtq
 
 end module mod_cu_tiedtke
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

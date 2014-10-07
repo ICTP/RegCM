@@ -395,3 +395,4 @@ module mod_che_sox
    end subroutine chemrate
 
 end module mod_che_sox
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

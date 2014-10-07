@@ -1661,3 +1661,4 @@ module mod_clm_slaketemperature
   end subroutine PhaseChange_Lake
 
 end module mod_clm_slaketemperature
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

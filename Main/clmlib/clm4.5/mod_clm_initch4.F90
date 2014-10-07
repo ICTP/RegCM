@@ -521,3 +521,4 @@ module mod_clm_initch4
 #endif
 
 end module mod_clm_initch4
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

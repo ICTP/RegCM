@@ -400,3 +400,4 @@ module mod_clm_staticecosysdyn
   end subroutine readMonthlyVegetation
 
 end module mod_clm_staticecosysdyn
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

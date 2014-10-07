@@ -656,3 +656,4 @@ END SUBROUTINE shr_orb_print
 !===============================================================================
 
 END MODULE shr_orb_mod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

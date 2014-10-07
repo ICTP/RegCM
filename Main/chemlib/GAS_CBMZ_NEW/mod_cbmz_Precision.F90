@@ -14,3 +14,4 @@ MODULE mod_cbmz_Precision
 
 END MODULE mod_cbmz_Precision
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

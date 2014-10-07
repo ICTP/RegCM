@@ -1970,3 +1970,4 @@ character(len=8), parameter, public :: allrof = 'allrof'    ! name of river rout
 !EOP
 !-----------------------------------------------------------------------
 end module clmtype
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

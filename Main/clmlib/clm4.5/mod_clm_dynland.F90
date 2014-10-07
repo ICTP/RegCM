@@ -263,3 +263,4 @@ module mod_clm_dynland
   end subroutine dynland_hwcontent
 
 end module mod_clm_dynland
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

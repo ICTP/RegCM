@@ -209,3 +209,4 @@ module mod_che_indices
   integer(ik4) , parameter :: jvPAN = 26
 
 end module mod_che_indices
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

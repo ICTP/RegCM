@@ -1088,3 +1088,4 @@ module mod_clm_slakehydrology
   end subroutine SLakeHydrology
 
 end module mod_clm_slakehydrology
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

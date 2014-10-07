@@ -223,3 +223,4 @@ module mod_clm_subgridrest
   end subroutine subgridRest
 
 end module mod_clm_subgridrest
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

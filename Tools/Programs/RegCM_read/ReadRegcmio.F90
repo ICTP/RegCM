@@ -439,3 +439,4 @@ program readregcm
   end function rounder
 
 end program readregcm
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -4577,3 +4577,4 @@ module lapack_dgbsv
 
 end module lapack_dgbsv
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

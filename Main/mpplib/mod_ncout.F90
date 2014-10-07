@@ -3225,3 +3225,4 @@ module mod_ncout
   end subroutine writevar4d_output_stream
 
 end module mod_ncout
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

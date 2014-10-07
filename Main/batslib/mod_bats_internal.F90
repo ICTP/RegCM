@@ -376,3 +376,4 @@ module mod_bats_internal
   end subroutine allocate_mod_bats_internal
 !
 end module mod_bats_internal
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

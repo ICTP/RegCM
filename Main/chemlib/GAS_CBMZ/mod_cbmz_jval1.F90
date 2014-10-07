@@ -882,3 +882,4 @@ module mod_cbmz_jval1
     end subroutine readhv
 
 end module mod_cbmz_jval1
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

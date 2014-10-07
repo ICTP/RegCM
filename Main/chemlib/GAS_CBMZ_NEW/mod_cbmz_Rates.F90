@@ -503,3 +503,4 @@ END SUBROUTINE Update_PHOTO
 
 END MODULE mod_cbmz_Rates
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

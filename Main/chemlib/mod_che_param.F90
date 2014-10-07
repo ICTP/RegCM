@@ -63,3 +63,4 @@ module mod_che_param
      0.56D0 , 1.0D0 , 1.0D0 /
 !
 end module mod_che_param
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

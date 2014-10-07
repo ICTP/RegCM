@@ -366,3 +366,4 @@ module mod_scrip_remap_distwgt
     end subroutine store_link_nbr
 
 end module mod_scrip_remap_distwgt
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

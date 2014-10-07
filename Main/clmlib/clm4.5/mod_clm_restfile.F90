@@ -339,3 +339,4 @@ module mod_clm_restfile
   end subroutine restFile_close
 
 end module mod_clm_restfile
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

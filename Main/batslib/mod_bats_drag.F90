@@ -207,3 +207,4 @@ module mod_bats_drag
   end subroutine depth
 !
 end module mod_bats_drag
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

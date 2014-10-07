@@ -821,3 +821,4 @@ contains
   end function do_restread
 
 end module initializeMod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

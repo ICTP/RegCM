@@ -439,3 +439,4 @@ module mod_clm_cnsoillittverttransp
 #endif
 
 end module mod_clm_cnsoillittverttransp
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

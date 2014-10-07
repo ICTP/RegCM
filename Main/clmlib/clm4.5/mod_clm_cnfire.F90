@@ -1682,3 +1682,4 @@ module mod_clm_cnfire
 #endif
 
 end module mod_clm_cnfire
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

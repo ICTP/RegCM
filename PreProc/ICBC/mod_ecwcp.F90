@@ -300,3 +300,4 @@ module mod_ecwcp
   end subroutine headerec
 
 end module mod_ecwcp
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

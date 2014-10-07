@@ -920,3 +920,4 @@ subroutine iniTimeConst
    if (masterproc) write (6,*) 'Successfully initialized time invariant variables'
 
 end subroutine iniTimeConst
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

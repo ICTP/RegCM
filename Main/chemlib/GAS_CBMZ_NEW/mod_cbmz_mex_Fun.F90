@@ -43,3 +43,4 @@
       CALL mxCopyReal8ToPtr(Vdot, VdotPtr, 58)
 
  END SUBROUTINE mexFunction
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

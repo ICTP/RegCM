@@ -726,3 +726,4 @@ program ncplot
   call unlink(tmpcoord)
 
 end program ncplot
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

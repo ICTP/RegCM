@@ -163,3 +163,4 @@ module mod_che_output
     end subroutine fill_chem_outvars
 
 end module mod_che_output
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

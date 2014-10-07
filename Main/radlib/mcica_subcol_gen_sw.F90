@@ -564,3 +564,4 @@ module mcica_subcol_gen_sw
       end subroutine kissvec
 
 end module mcica_subcol_gen_sw
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

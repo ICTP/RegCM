@@ -244,3 +244,4 @@ module mod_ae_icbc
   end subroutine close_ae_icbc
 
 end module mod_ae_icbc
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

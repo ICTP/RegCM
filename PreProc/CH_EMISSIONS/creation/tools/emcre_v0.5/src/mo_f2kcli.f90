@@ -203,3 +203,4 @@
       END SUBROUTINE GET_COMMAND_ARGUMENT
 !
     END MODULE MO_F2KCLI
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

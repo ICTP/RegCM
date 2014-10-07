@@ -371,3 +371,4 @@ module mod_cbmz_chemlocal
 !  ncsol(c_cdim)      Species list passed in call to chemsolve
 
 end module mod_cbmz_chemlocal
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

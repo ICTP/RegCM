@@ -1539,3 +1539,4 @@
 
       end module rrtmg_sw_taumol
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

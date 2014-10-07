@@ -955,3 +955,4 @@ module mod_lm_interface
   end subroutine collect_output
 
 end module mod_lm_interface
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

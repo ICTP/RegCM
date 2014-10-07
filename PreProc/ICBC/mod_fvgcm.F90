@@ -396,3 +396,4 @@ module mod_fvgcm
   end subroutine headerfv
 
 end module mod_fvgcm
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

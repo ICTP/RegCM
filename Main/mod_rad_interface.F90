@@ -133,3 +133,4 @@ module mod_rad_interface
   end subroutine radiation
 
 end module mod_rad_interface
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

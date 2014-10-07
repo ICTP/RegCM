@@ -92,3 +92,4 @@ module mod_che_mppio
     end subroutine allocate_mod_che_mppio
 !
 end module mod_che_mppio
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

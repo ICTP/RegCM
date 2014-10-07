@@ -265,3 +265,4 @@ module mod_clm_subgrid
   end subroutine subgrid_get_gcellinfo
 
 end module mod_clm_subgrid
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

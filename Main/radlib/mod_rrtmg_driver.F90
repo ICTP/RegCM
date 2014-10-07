@@ -937,3 +937,4 @@ module mod_rrtmg_driver
   end subroutine cldefr_rrtm
 
 end module mod_rrtmg_driver
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

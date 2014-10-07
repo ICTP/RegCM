@@ -574,3 +574,4 @@ module mod_advection
     end subroutine vadv4d
 !
 end module mod_advection
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

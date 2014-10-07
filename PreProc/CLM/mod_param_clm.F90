@@ -227,3 +227,4 @@ module mod_param_clm
   end subroutine comp
 
 end module mod_param_clm
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -1540,3 +1540,4 @@ module mod_clm_subgridave
   end subroutine create_scale_l2g_lookup
 
 end module mod_clm_subgridave
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

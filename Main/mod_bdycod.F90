@@ -2265,3 +2265,4 @@ module mod_bdycod
   end subroutine nudge2d
 !
 end module mod_bdycod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

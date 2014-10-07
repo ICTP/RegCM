@@ -1534,3 +1534,4 @@ module mod_clm_cnallocation
 #endif
 
 end module mod_clm_cnallocation
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

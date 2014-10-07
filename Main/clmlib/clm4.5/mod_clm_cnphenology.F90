@@ -2537,3 +2537,4 @@ module mod_clm_cnphenology
 #endif
 
 end module mod_clm_cnphenology
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

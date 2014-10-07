@@ -748,3 +748,4 @@ module mod_bats_leaftemp
   end subroutine fseas
 !
 end module mod_bats_leaftemp
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

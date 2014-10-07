@@ -793,3 +793,4 @@ module mod_clm_balancecheck
   end subroutine BalanceCheck
 
 end module mod_clm_balancecheck
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

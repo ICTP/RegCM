@@ -3997,3 +3997,4 @@ module mod_clm_type
   character(len=16) , parameter , public :: namep  = 'pft'
 
 end module mod_clm_type
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

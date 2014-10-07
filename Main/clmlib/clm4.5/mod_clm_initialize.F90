@@ -445,3 +445,4 @@ module mod_clm_initialize
   end subroutine initialize2
 
 end module mod_clm_initialize
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

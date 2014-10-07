@@ -1238,3 +1238,4 @@ module mod_cu_grell
   end subroutine cup
 
 end module mod_cu_grell
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

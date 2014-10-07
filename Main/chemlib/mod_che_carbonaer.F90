@@ -97,3 +97,4 @@ module mod_che_carbonaer
     end subroutine aging_carb
 !
 end module mod_che_carbonaer
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

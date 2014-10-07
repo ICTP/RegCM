@@ -404,3 +404,4 @@ module mod_clm_cnnstateupdate2
 #endif
 
 end module mod_clm_cnnstateupdate2
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -158,3 +158,4 @@ module mod_mkorganic
   end subroutine mkorganic
 
 end module mod_mkorganic
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

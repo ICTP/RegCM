@@ -184,3 +184,4 @@ module mod_mkharvest
 #endif
 
 end module mod_mkharvest
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -380,3 +380,4 @@ module mod_rad_outrad
   end subroutine copy4d_add
 
 end module mod_rad_outrad
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

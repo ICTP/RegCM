@@ -430,3 +430,4 @@ module mod_era40
   end subroutine headerera
 
 end module mod_era40
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

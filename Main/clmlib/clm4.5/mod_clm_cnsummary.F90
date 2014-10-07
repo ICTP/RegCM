@@ -2129,3 +2129,4 @@ module mod_clm_cnsummary
 #endif
 
 end module mod_clm_cnsummary
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

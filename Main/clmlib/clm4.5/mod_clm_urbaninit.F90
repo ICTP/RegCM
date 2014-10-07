@@ -424,3 +424,4 @@ module mod_clm_urbaninit
   end subroutine UrbanInitTimeVar
 
 end module mod_clm_urbaninit
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

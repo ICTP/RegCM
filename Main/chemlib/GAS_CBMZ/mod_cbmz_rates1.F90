@@ -645,3 +645,4 @@ module mod_cbmz_rates1
     end function ytn
 !
 end module mod_cbmz_rates1
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -502,3 +502,4 @@ module mod_scrip_grids
     end subroutine scrip_grid_init
 
 end module mod_scrip_grids
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

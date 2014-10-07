@@ -500,3 +500,4 @@ module mod_intldtr
   end subroutine filter1plakes
 
 end module mod_intldtr
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

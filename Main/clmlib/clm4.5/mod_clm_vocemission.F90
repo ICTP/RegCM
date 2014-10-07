@@ -846,3 +846,4 @@ module mod_clm_vocemission
   end function get_gamma_C
 
 end module mod_clm_vocemission
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

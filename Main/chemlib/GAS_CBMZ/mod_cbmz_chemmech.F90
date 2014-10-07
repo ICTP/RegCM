@@ -358,3 +358,4 @@ module mod_cbmz_chemmech
    integer(ik4) :: c_nrro2(c_rdim)       ! nr for special RO2-RO2 reactions
 
 end module mod_cbmz_chemmech
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

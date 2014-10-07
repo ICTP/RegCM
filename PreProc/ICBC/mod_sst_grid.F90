@@ -137,3 +137,4 @@ module mod_sst_grid
   end subroutine writerec
 
 end module mod_sst_grid
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

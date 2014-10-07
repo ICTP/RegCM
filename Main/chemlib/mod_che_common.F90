@@ -325,3 +325,4 @@ module mod_che_common
   end subroutine chem_config
 
 end module mod_che_common
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

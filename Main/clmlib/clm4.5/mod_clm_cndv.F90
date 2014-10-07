@@ -401,3 +401,4 @@ module mod_clm_cndv
 #endif
 
 end module mod_clm_cndv
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -765,3 +765,4 @@ module mod_clm_surfaceradiation
   end subroutine SurfaceRadiation
 
 end module mod_clm_surfaceradiation
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

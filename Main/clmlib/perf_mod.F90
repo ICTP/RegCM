@@ -858,3 +858,4 @@ contains
    end subroutine t_finalizef
 
 end module perf_mod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

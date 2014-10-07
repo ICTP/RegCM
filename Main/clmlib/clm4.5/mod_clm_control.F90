@@ -643,3 +643,4 @@ module mod_clm_control
   end subroutine control_print
 
 end module mod_clm_control
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

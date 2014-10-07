@@ -355,3 +355,4 @@ module mod_clm_megan
   end subroutine add_megan_comp_to_list
 
 end module mod_clm_megan
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

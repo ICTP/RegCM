@@ -262,3 +262,4 @@ module mod_mksst
   end subroutine closesst
 !
 end module mod_mksst
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

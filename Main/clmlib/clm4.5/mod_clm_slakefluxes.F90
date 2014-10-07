@@ -801,3 +801,4 @@ module mod_clm_slakefluxes
   end subroutine SLakeFluxes
 
 end module mod_clm_slakefluxes
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -2906,3 +2906,4 @@ program test
 
 end program test
 #endif
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -359,3 +359,4 @@ module mod_sun
   end function solar_irradiance
 !
 end module mod_sun
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

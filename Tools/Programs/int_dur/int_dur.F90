@@ -513,3 +513,4 @@ program int_dur
   write(6,*) 'Done.'
 
 end program int_dur
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

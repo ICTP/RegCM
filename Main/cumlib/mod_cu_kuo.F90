@@ -367,3 +367,4 @@ module mod_cu_kuo
   end subroutine htdiff
 !
 end module mod_cu_kuo
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

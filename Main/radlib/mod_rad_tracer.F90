@@ -1000,3 +1000,4 @@ module mod_rad_tracer
   end function func
 !
 end module mod_rad_tracer
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

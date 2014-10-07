@@ -21,3 +21,4 @@ module mod_clm_varsur
   real(rk8) , public , allocatable , dimension(:,:) , target :: wtxy
 
 end module mod_clm_varsur
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

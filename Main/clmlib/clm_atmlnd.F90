@@ -1541,3 +1541,4 @@ end subroutine clm2rcm
 !------------------------------------------------------------------------
 end module clm_atmlnd
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

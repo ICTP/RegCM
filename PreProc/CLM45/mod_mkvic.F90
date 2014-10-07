@@ -160,3 +160,4 @@ module mod_mkvic
 #endif
 
 end module mod_mkvic
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

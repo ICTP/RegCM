@@ -83,3 +83,4 @@ module mod_che_cumtran
   end subroutine cumtran
 !
 end module mod_che_cumtran
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -4033,3 +4033,4 @@ module mod_clm_cnrest
 #endif
 
 end module mod_clm_cnrest
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

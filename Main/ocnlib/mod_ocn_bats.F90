@@ -291,3 +291,4 @@ module mod_ocn_bats
   end subroutine seaice
 
 end module mod_ocn_bats
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

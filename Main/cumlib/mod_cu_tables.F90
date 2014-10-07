@@ -112,3 +112,4 @@ module mod_cu_tables
   end subroutine init_convect_tables
 
 end module mod_cu_tables
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

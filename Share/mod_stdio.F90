@@ -94,3 +94,4 @@ module mod_stdio
     end subroutine file_freeunit
 
 end module mod_stdio
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

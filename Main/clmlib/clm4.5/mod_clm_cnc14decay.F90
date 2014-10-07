@@ -289,3 +289,4 @@ module mod_clm_cnc14decay
 #endif
 
 end module mod_clm_cnc14decay
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

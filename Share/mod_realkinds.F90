@@ -53,3 +53,4 @@ module mod_realkinds
   end function is_inf
 
 end module mod_realkinds
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

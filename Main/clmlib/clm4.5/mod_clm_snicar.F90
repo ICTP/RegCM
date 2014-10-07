@@ -1634,3 +1634,4 @@ module mod_clm_snicar
   end subroutine SnowAge_init
 
 end module mod_clm_snicar
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

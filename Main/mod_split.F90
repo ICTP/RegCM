@@ -692,3 +692,4 @@ module mod_split
   end subroutine spstep
 
 end module mod_split
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

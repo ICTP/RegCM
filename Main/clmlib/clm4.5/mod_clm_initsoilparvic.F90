@@ -186,3 +186,4 @@ module mod_clm_initsoilparvic
 #endif
 
 end module mod_clm_initsoilparvic
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

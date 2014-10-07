@@ -576,3 +576,4 @@ Module mod_clm_drydepvelocity
   end subroutine depvel_compute
 
 end Module mod_clm_drydepvelocity
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

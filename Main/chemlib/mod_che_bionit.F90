@@ -306,3 +306,4 @@ contains
   end subroutine soilnitro_emissions
 
 end module mod_che_bionit
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -439,3 +439,4 @@ program trend
    end subroutine linear_regression_coefficients
 
 end program trend
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

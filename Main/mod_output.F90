@@ -865,3 +865,4 @@ module mod_output
   end subroutine output
 !
 end module mod_output
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

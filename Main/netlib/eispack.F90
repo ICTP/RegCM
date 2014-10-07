@@ -17419,3 +17419,4 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 end subroutine tsturm
 
 end module eispack
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

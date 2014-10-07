@@ -371,3 +371,4 @@ module mod_diffusion
   end subroutine diffu_x4d
 
 end module mod_diffusion
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

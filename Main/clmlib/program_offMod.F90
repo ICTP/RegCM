@@ -270,3 +270,4 @@ end subroutine program_off_stub
 !! #endif
 
 end module program_offMod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

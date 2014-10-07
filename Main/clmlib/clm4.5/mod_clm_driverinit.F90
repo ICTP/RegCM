@@ -143,3 +143,4 @@ module mod_clm_driverinit
   end subroutine clm_driverInit
 
 end module mod_clm_driverinit
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

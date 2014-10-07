@@ -78,3 +78,4 @@ module mod_maps
   end subroutine prepare_subgrid
 
 end module mod_maps
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

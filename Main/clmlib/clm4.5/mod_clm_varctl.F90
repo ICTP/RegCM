@@ -238,3 +238,4 @@ module mod_clm_varctl
   end subroutine clmvarctl_init
 
 end module mod_clm_varctl
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

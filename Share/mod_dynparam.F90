@@ -672,3 +672,4 @@ module mod_dynparam
   end subroutine init_globwindow
 
 end module mod_dynparam
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

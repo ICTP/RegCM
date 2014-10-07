@@ -1038,3 +1038,4 @@ module mod_che_wetdep
   end subroutine cas
 !
 end module mod_che_wetdep
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

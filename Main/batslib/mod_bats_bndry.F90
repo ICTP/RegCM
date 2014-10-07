@@ -880,3 +880,4 @@ module mod_bats_bndry
   end subroutine tgrund
 !
 end module mod_bats_bndry
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

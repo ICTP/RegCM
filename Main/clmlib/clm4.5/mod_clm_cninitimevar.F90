@@ -1168,3 +1168,4 @@ module mod_clm_cninitimevar
   end subroutine CNiniTimeVar
 
 end module mod_clm_cninitimevar
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

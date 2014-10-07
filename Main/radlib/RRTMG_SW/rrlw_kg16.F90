@@ -68,3 +68,4 @@
 
       end module rrlw_kg16
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

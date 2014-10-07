@@ -191,3 +191,4 @@ module mod_ox_icbc
   end subroutine close_ox_icbc
 
 end module mod_ox_icbc
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

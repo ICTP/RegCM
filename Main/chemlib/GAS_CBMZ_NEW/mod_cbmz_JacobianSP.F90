@@ -158,3 +158,4 @@ MODULE mod_cbmz_JacobianSP
 
 END MODULE mod_cbmz_JacobianSP
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

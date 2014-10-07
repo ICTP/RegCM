@@ -1773,3 +1773,4 @@ module mod_date
   end subroutine split_rcm_time_and_date
 
 end module mod_date
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

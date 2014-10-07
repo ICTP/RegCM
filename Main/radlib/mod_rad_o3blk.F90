@@ -387,3 +387,4 @@ module mod_rad_o3blk
   end subroutine readvar1d
 !
 end module mod_rad_o3blk
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

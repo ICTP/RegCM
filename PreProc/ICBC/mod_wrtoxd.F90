@@ -401,3 +401,4 @@ module mod_wrtoxd
   end subroutine write_ae_icbc
 
 end module mod_wrtoxd
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

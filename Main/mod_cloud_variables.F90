@@ -78,3 +78,4 @@ module mod_cloud_variables
   real(rk8), parameter :: riceinit = 1.D-12
 
 end module mod_cloud_variables
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

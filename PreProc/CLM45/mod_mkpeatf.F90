@@ -143,3 +143,4 @@ module mod_mkpeatf
   end subroutine mkpeatf
 
 end module mod_mkpeatf
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

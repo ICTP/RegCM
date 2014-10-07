@@ -115,3 +115,4 @@ module mod_header
   end subroutine finaltime
 
 end module mod_header
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -313,3 +313,4 @@ contains
   end subroutine initSurfalb
 
 end module mod_clm_initsurfalb
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

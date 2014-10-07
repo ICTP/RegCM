@@ -401,3 +401,4 @@ module mod_clm_cnnitrifdenitrif
 #endif
 
 end module mod_clm_cnnitrifdenitrif
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -258,3 +258,4 @@ module mod_ocn_common
   end subroutine albedoocn
 
 end module mod_ocn_common
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

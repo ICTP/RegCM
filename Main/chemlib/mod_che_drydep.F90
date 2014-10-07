@@ -1305,3 +1305,4 @@ module mod_che_drydep
     end subroutine stomtresis
 
 end module mod_che_drydep
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

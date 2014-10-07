@@ -442,3 +442,4 @@ module mod_clm_reweight
   end function weightsOkay
 
 end module mod_clm_reweight
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

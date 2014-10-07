@@ -1990,3 +1990,4 @@
       end subroutine lwavplankderiv
 
       end module rrtmg_lw_setcoef
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

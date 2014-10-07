@@ -238,3 +238,4 @@ module mod_bats_albedo
   end subroutine albedo
 
 end module mod_bats_albedo
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

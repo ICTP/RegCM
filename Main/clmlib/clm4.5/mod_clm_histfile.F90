@@ -3753,3 +3753,4 @@ module mod_clm_histfile
   end subroutine hist_do_disp
 
 end module mod_clm_histfile
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

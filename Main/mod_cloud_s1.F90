@@ -2422,3 +2422,4 @@ module mod_cloud_s1
   end subroutine addpath_real
 
 end module mod_cloud_s1
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -279,3 +279,4 @@
       real(8) , parameter :: icetemp = 271.38D0
 
       end module mod_constants
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

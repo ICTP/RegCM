@@ -228,3 +228,4 @@ module mod_clm_meganfactors
   end function gen_hashkey
 
 end module mod_clm_meganfactors
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

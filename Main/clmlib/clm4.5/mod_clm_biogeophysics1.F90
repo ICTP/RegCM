@@ -646,3 +646,4 @@ module mod_clm_biogeophysics1
   end subroutine Biogeophysics1
 
 end module mod_clm_biogeophysics1
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

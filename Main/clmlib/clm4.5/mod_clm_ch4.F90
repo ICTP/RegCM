@@ -2837,3 +2837,4 @@ module mod_clm_ch4
 !defined LCH4
 
 end module mod_clm_ch4
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -797,3 +797,4 @@ module mod_ocn_lake
   end subroutine lake_fillvar_real8_2d
 !
 end module mod_ocn_lake
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

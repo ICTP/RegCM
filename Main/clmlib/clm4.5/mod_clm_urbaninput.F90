@@ -264,3 +264,4 @@ module mod_clm_urbaninput
   end subroutine UrbanInput
 
 end module mod_clm_urbaninput
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

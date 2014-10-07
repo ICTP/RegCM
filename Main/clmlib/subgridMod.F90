@@ -346,3 +346,4 @@ end subroutine subgrid_get_indexes
 !-----------------------------------------------------------------------
 
 end module subgridMod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

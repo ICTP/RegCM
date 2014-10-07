@@ -162,3 +162,4 @@ module mod_clm_cnwoodproducts
 #endif
 
 end module mod_clm_cnwoodproducts
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

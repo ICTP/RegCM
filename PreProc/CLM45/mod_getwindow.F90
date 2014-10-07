@@ -160,3 +160,4 @@ module mod_getwindow
   end subroutine get_window
 
 end module mod_getwindow
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

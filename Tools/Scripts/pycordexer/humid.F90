@@ -317,3 +317,4 @@ module mod_humid
   end function wlh
 
 end module mod_humid
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

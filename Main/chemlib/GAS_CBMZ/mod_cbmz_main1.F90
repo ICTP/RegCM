@@ -435,3 +435,4 @@ module mod_cbmz_main1
     end subroutine chemmain
 
 end module mod_cbmz_main1
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

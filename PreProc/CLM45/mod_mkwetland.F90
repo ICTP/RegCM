@@ -152,3 +152,4 @@ module mod_mkwetland
   end subroutine mkwetland
 
 end module mod_mkwetland
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

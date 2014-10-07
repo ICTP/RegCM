@@ -174,3 +174,4 @@ module mod_cbmz_chemvars
   integer(ik4) :: c_iter      ! chem. number of iterations
 
 end module mod_cbmz_chemvars
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

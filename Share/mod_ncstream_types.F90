@@ -378,3 +378,4 @@ module mod_ncstream_types
   end type nc_varlist
 
 end module mod_ncstream_types
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

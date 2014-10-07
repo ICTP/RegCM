@@ -392,3 +392,4 @@ module mod_fudge
   end subroutine lakfudge
 
 end module mod_fudge
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

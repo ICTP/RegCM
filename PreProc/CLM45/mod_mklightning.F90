@@ -143,3 +143,4 @@ module mod_mklightning
 #endif
 
 end module mod_mklightning
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -783,3 +783,4 @@ module mod_clm_cndecompcascadebgc
 #endif
 
 end module mod_clm_cndecompcascadebgc
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

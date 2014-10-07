@@ -981,3 +981,4 @@ end function do_restwrite
   end function do_inicwrite
 
 end module driver
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

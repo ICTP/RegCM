@@ -163,3 +163,4 @@ module mod_che_chemistry
     end subroutine chemistry
 
 end module mod_che_chemistry
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

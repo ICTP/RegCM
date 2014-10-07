@@ -439,3 +439,4 @@ module mod_che_seasalt
   end subroutine seasalt_emit
 
 end module mod_che_seasalt
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

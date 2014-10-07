@@ -207,3 +207,4 @@ module mod_mklaisai
   end subroutine mklaisai
 
 end module mod_mklaisai
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

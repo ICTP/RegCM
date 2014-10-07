@@ -254,3 +254,4 @@
       end subroutine cldprmc
 
       end module rrtmg_lw_cldprmc
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

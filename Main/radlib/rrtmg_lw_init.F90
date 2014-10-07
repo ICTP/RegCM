@@ -2656,3 +2656,4 @@
 
       end module rrtmg_lw_init
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

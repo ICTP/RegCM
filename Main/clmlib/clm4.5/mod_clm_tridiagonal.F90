@@ -107,3 +107,4 @@ module mod_clm_tridiagonal
   end subroutine Tridiagonal
 
 end module mod_clm_tridiagonal
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

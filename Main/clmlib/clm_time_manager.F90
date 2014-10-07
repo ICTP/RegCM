@@ -506,3 +506,4 @@ subroutine timemgr_datediff(ymd1, tod1, ymd2, tod2, days)
 end subroutine timemgr_datediff
 
 end module clm_time_manager
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

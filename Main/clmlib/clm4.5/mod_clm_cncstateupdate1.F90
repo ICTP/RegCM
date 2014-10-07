@@ -660,3 +660,4 @@ module mod_clm_cncstateupdate1
 #endif
 
 end module mod_clm_cncstateupdate1
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

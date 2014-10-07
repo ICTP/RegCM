@@ -2231,3 +2231,4 @@ module mod_clm_snowhydrology
   end subroutine DivideSnowLayers_Lake
 
 end module mod_clm_snowhydrology
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

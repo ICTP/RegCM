@@ -271,3 +271,4 @@ END SUBROUTINE Fun
 
 END MODULE mod_cbmz_Function
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

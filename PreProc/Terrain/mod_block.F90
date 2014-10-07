@@ -94,3 +94,4 @@ module mod_block
   end subroutine mxmnll
 
 end module mod_block
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

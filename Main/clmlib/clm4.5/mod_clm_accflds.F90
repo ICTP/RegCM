@@ -1071,3 +1071,4 @@ module mod_clm_accflds
   end subroutine initAccClmtype
 
 end module mod_clm_accflds
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

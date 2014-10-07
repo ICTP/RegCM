@@ -100,3 +100,4 @@ program changeland
   end if
 
 end program changeland
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

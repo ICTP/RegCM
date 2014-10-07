@@ -815,3 +815,4 @@ module mod_clm_cnprecisioncontrol
 #endif
 
 end module mod_clm_cnprecisioncontrol
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

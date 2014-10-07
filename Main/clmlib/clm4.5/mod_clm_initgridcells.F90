@@ -950,3 +950,4 @@ module mod_clm_initgridcells
   end subroutine set_landunit_urban
 
 end module mod_clm_initgridcells
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

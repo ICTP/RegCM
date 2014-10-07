@@ -322,3 +322,4 @@ contains
   end subroutine clm_run2
 
 end module clm_comp
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

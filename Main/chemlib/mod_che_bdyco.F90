@@ -628,3 +628,4 @@ module mod_che_bdyco
   end function xfune
 !
 end module mod_che_bdyco
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

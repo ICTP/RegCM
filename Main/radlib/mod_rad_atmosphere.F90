@@ -325,3 +325,4 @@ module mod_rad_atmosphere
      end function plev_wgt
 
 end module mod_rad_atmosphere
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -398,3 +398,4 @@ contains
   end subroutine mkarbinit
 
 end module mkarbinitMod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

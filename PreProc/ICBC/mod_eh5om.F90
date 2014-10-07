@@ -491,3 +491,4 @@ module mod_eh5om
   end subroutine headermpi
 
 end module mod_eh5om
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

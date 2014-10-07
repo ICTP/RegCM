@@ -1259,3 +1259,4 @@ module mod_nclib
   end subroutine readcdfr4_iso
 
 end module mod_nclib
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

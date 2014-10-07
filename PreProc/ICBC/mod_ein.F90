@@ -432,3 +432,4 @@ module mod_ein
   end subroutine headerein
 
 end module mod_ein
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

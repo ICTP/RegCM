@@ -662,3 +662,4 @@ module mod_vmodes
   end subroutine invmtrx
 
 end module mod_vmodes
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

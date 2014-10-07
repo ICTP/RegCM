@@ -84,3 +84,4 @@ module mod_clm_fracwet
   end subroutine FracWet
 
 end module mod_clm_fracwet
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

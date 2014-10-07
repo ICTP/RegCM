@@ -77,3 +77,4 @@ module mod_che_species
   integer(ik4) , parameter :: iox_h2o2     = 5
 
 end module mod_che_species
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

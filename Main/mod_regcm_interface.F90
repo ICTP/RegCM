@@ -339,3 +339,4 @@ module mod_regcm_interface
   end subroutine RCM_finalize
 !
 end module mod_regcm_interface
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

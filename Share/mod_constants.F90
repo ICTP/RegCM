@@ -497,3 +497,4 @@ module mod_constants
   end function wlh
 
 end module mod_constants
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

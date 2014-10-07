@@ -113,3 +113,4 @@ module mod_sldepparam
   end subroutine allocate_mod_sldepparam
 
 end module mod_sldepparam
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

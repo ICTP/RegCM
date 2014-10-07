@@ -175,3 +175,4 @@ program nearpoint
   end subroutine usage
 
 end program nearpoint
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

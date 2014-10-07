@@ -143,3 +143,4 @@ module mod_mkabm
   end subroutine mkabm
 
 end module mod_mkabm
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

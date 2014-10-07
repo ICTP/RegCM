@@ -2764,3 +2764,4 @@ module mod_clm_biogeophysrest
   end function weights_tooDifferent
 
 end module mod_clm_biogeophysrest
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

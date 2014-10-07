@@ -422,3 +422,4 @@ end function shr_sys_ioUnit
 !===============================================================================
 
 END MODULE shr_sys_mod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

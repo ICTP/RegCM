@@ -119,3 +119,4 @@ module mod_che_pollen
     end subroutine pollen_emission
 !
 end module mod_che_pollen
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

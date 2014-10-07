@@ -60,3 +60,4 @@ subroutine mpi_cart_rank(comm,coords,rank,ierror)
   integer , dimension(:) :: coords
 end subroutine mpi_cart_rank
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

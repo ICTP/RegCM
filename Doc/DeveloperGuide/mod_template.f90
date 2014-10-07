@@ -93,3 +93,4 @@ module mod_template
   end subroutine meaningful_subroutine
 
 end module mod_template
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

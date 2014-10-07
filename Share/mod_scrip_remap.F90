@@ -127,3 +127,4 @@ module mod_scrip_remap
     end subroutine remap
 
 end module mod_scrip_remap
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

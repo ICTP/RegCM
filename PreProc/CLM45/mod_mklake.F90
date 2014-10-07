@@ -143,3 +143,4 @@ module mod_mklake
   end subroutine mklake
 
 end module mod_mklake
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

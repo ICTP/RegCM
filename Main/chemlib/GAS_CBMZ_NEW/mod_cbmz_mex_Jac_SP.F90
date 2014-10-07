@@ -42,3 +42,4 @@
       CALL mxCopyReal8ToPtr(JVS, JVSPtr, 600)
 
  END SUBROUTINE mexFunction
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

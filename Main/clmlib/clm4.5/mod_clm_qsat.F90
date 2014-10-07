@@ -110,3 +110,4 @@ module mod_clm_qsat
   end subroutine qsat
 
 end module mod_clm_qsat
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

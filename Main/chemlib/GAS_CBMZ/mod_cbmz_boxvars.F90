@@ -175,3 +175,4 @@ integer(ik4) , parameter :: nnb = 2010
   real(rk8) :: altbelow   ! Cloud below weighted altitude
 !
 end module mod_cbmz_boxvars
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

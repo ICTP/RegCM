@@ -120,3 +120,4 @@ module mod_clm_h2osfc
   end subroutine FracH2oSfc
 
 end module mod_clm_h2osfc
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

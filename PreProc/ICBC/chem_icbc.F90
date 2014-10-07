@@ -162,3 +162,4 @@ program chem_icbc
   call finaltime(0)
   write(stdout,*) 'Successfully completed CHEM ICBC'
 end program chem_icbc
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

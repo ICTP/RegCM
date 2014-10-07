@@ -220,3 +220,4 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: slab_qflx_out => null()
 
 end module mod_outvars
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

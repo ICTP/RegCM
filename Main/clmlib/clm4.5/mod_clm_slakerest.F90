@@ -107,3 +107,4 @@ module mod_clm_slakerest
   end subroutine SLakeRest
 
 end module mod_clm_slakerest
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

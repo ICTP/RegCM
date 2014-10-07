@@ -120,3 +120,4 @@ module mod_vectutil
   end subroutine top2btm
 !
 end module mod_vectutil
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

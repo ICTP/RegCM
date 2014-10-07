@@ -194,3 +194,4 @@ module mod_cu_common
   end subroutine model_cumulus_cloud
 !
 end module mod_cu_common
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

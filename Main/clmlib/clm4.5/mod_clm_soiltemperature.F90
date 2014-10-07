@@ -1756,3 +1756,4 @@ module mod_clm_soiltemperature
   end subroutine Phasechange_beta
 
 end module mod_clm_soiltemperature
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

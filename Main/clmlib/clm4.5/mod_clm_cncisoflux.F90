@@ -1469,3 +1469,4 @@ module mod_clm_cncisoflux
 #endif
 
 end module mod_clm_cncisoflux
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -154,3 +154,4 @@
       end subroutine vrtqdr_sw
 
       end module rrtmg_sw_vrtqdr
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

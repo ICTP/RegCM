@@ -149,3 +149,4 @@ module mod_ocn_albedo
   end subroutine ocn_albedo
 
 end module mod_ocn_albedo
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

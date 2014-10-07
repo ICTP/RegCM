@@ -346,3 +346,4 @@ module mod_clm_cnbalancecheck
 #endif
 
 end module mod_clm_cnbalancecheck
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

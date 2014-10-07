@@ -69,3 +69,4 @@ program regcm
   call mpi_finalize(ierr)
 !
 end program regcm
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

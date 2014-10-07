@@ -101,3 +101,4 @@ module mod_scrip_interpolate
     end subroutine release_scrip_library
 
 end module mod_scrip_interpolate
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

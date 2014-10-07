@@ -532,3 +532,4 @@ module mod_clm_baregroundfluxes
   end subroutine BareGroundFluxes
 
 end module mod_clm_baregroundfluxes
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

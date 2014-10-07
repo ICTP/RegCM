@@ -1695,3 +1695,4 @@ program mksurfdata
 
 #endif
 end program mksurfdata
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

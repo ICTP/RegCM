@@ -187,3 +187,4 @@ module mod_mkdynpft
 #endif
 
 end module mod_mkdynpft
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

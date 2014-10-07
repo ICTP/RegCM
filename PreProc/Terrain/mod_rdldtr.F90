@@ -323,3 +323,4 @@ module mod_rdldtr
   end subroutine partition
 
 end module mod_rdldtr
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

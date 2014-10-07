@@ -28,3 +28,4 @@
       integer, parameter :: kind_rn = kind(1.0)              ! native real
 
       end module parkind
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

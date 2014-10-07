@@ -568,3 +568,4 @@ module mod_erahi
   end subroutine headerehi
 
 end module mod_erahi
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

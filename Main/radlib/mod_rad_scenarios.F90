@@ -1770,3 +1770,4 @@ module mod_rad_scenarios
   end subroutine set_scenario
 !
 end module mod_rad_scenarios
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

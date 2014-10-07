@@ -4023,3 +4023,4 @@ module mod_clm_typeinit
   end subroutine initClmtype
 
 end module mod_clm_typeinit
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -670,3 +670,4 @@ module mod_sladvection
   end subroutine hdvg_d
 
 end module mod_sladvection
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

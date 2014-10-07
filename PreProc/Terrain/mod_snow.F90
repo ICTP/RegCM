@@ -130,3 +130,4 @@ module mod_snow
 !
 !
 end module mod_snow
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

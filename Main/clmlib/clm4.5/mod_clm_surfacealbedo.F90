@@ -1719,3 +1719,4 @@ module mod_clm_surfacealbedo
   end subroutine TwoStream
 
 end module mod_clm_surfacealbedo
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

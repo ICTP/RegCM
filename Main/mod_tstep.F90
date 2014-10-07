@@ -70,3 +70,4 @@ module mod_tstep
   end subroutine tstep
 !
 end module mod_tstep
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

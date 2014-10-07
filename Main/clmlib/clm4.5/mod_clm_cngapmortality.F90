@@ -666,3 +666,4 @@ module mod_clm_cngapmortality
 #endif
 
 end module mod_clm_cngapmortality
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

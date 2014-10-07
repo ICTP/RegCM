@@ -132,3 +132,4 @@ module mod_clm_pft2col
   end subroutine pft2col
 
 end module mod_clm_pft2col
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -626,3 +626,4 @@
       end module rrtmg_sw_spcvrt
 
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

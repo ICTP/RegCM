@@ -194,3 +194,4 @@ module mod_che_interface
   end subroutine init_chem
 !
 end module mod_che_interface
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

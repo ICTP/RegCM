@@ -5809,3 +5809,4 @@ module mod_clm_nchelper
   end subroutine test_clmhelper
 
 end module mod_clm_nchelper
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -206,3 +206,4 @@ module mod_clm_banddiagonal
   end subroutine BandDiagonal
 
 end module mod_clm_banddiagonal
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

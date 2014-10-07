@@ -220,3 +220,4 @@ module mod_ch_param
 
 
 end module mod_ch_param
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

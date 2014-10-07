@@ -374,3 +374,4 @@ chv4(:,:,:,cb_CH3OH) = chv4_3(:,:,:,mz_CH3OH)*w_ch3oh/amd
   end function iprevmon
 
 end module mod_ch_icbc_clim
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -841,3 +841,4 @@ module mod_che_dust
     end subroutine emission
 !
 end module mod_che_dust
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

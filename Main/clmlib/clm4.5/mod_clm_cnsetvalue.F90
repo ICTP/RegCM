@@ -1156,3 +1156,4 @@ module mod_clm_cnsetvalue
 #endif
 
 end module mod_clm_cnsetvalue
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

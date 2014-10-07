@@ -673,3 +673,4 @@ program sigma2z
     end subroutine getsigma
 
 end program sigma2z
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

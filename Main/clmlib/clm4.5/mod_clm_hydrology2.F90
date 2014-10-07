@@ -836,3 +836,4 @@ module mod_clm_hydrology2
   end subroutine Hydrology2
 
 end module mod_clm_hydrology2
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

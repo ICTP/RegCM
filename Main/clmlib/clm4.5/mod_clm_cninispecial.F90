@@ -269,3 +269,4 @@ module mod_clm_cninispecial
   end subroutine CNiniSpecial
 
 end module mod_clm_cninispecial
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

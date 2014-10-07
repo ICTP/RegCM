@@ -143,3 +143,4 @@ module mod_mkgdp
   end subroutine mkgdp
 
 end module mod_mkgdp
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

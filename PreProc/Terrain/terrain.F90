@@ -713,3 +713,4 @@ program terrain
 99002 format (a,a,a,a)
 
 end program terrain
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

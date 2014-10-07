@@ -143,3 +143,4 @@ module mod_mksoilcol
   end subroutine mksoilcol
 
 end module mod_mksoilcol
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

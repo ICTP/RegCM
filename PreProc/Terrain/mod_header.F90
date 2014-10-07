@@ -65,3 +65,4 @@ module mod_header
   end subroutine header
 
 end module mod_header
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

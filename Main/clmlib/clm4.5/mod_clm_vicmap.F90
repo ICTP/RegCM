@@ -191,3 +191,4 @@ module mod_clm_vicmap
 #endif
 
 end module mod_clm_vicmap
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

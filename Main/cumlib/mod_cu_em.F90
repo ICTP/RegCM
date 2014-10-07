@@ -1206,3 +1206,4 @@ module mod_cu_em
   end subroutine cupeman
 !
 end module mod_cu_em
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

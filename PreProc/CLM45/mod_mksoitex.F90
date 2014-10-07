@@ -225,3 +225,4 @@ module mod_mksoitex
   end subroutine mksoitex
 
 end module mod_mksoitex
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

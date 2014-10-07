@@ -614,3 +614,4 @@ program sigma2p
           'Error close output file '//trim(ncpfile))
 
 end program sigma2p
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

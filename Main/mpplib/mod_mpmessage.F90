@@ -118,3 +118,4 @@ module mod_mpmessage
   end subroutine vprntm
 !
 end module mod_mpmessage
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

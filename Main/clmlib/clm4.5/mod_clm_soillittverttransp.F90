@@ -418,3 +418,4 @@ module mod_clm_soillittverttransp
 #endif
 
 end module mod_clm_soillittverttransp
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -212,3 +212,4 @@ module mod_cu_interface
   end subroutine cumulus
 
 end module mod_cu_interface
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

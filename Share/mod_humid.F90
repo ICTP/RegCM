@@ -174,3 +174,4 @@ module mod_humid
   end subroutine humid2
 !
 end module mod_humid
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

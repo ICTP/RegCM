@@ -417,3 +417,4 @@ module mod_space
   end subroutine getspc5d_r8arr
 
 end module mod_space
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

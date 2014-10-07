@@ -345,3 +345,4 @@
       end module rrtmg_sw_setcoef
 
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

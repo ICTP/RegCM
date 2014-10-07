@@ -875,3 +875,4 @@ module mod_rad_aerosol
   end subroutine aeroppt
 
 end module mod_rad_aerosol
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -3527,3 +3527,4 @@ module mod_clm_pftdyn
 #endif
 
 end module mod_clm_pftdyn
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

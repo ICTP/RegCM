@@ -288,3 +288,4 @@ module mod_domain
   end subroutine check_domain
 
 end module mod_domain
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

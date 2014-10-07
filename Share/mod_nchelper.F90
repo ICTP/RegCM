@@ -1451,3 +1451,4 @@ module mod_nchelper
   end subroutine checkncerr
 !
 end module mod_nchelper
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

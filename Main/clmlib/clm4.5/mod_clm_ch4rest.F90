@@ -480,3 +480,4 @@ module mod_clm_ch4rest
 #endif
 
 end module mod_clm_ch4rest
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

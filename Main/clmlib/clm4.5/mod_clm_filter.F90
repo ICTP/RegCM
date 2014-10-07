@@ -372,3 +372,4 @@ module mod_clm_filter
   end subroutine setFilters
 
 end module mod_clm_filter
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

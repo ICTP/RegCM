@@ -2918,3 +2918,4 @@ module mod_memutil
   end subroutine assignp5d_d
 
 end module mod_memutil
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

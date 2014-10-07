@@ -204,3 +204,4 @@ module mod_update
   end subroutine RCM_Put
 !
 end module mod_update
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

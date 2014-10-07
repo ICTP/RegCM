@@ -130,3 +130,4 @@ module mod_clm_time_manager
   end subroutine getdatetime
 
 end module mod_clm_time_manager
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

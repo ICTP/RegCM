@@ -258,3 +258,4 @@ module mod_che_emission
   end subroutine emis_tend
 !
 end module mod_che_emission
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

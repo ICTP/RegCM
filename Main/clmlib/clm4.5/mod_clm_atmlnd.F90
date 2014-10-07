@@ -618,3 +618,4 @@ end subroutine init_atm2lnd_type
   end subroutine clm_map2gcell
 
 end module mod_clm_atmlnd
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

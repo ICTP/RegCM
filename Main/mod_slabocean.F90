@@ -186,3 +186,4 @@ module mod_slabocean
     end subroutine fill_slaboc_outvars
 !
 end module mod_slabocean
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

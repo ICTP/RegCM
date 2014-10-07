@@ -547,3 +547,4 @@ module mod_init
   end subroutine init
 !
 end module mod_init
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

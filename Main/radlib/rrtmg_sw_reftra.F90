@@ -306,3 +306,4 @@
 
       end module rrtmg_sw_reftra
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -229,3 +229,4 @@ module mod_clm3grid
   end subroutine maskme
 
 end module mod_clm3grid
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -283,3 +283,4 @@ module mod_message
   end subroutine viz_plot
 
 end module mod_message
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -267,3 +267,4 @@ module mod_che_common_caseo
   real(rk8) :: psi6 , psi7 , psi8 , psi9 , a1 , a2 , a3 , a4
   real(rk8) :: a5 , a6 , a7 , a8 , a9
 end module mod_che_common_caseo
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

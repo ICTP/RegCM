@@ -199,3 +199,4 @@ module mod_clm_varpar
   end subroutine clm_varpar_init
 
 end module mod_clm_varpar
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

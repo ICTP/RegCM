@@ -160,3 +160,4 @@ contains
   end function is_restart
 
 end module VOCRestMod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

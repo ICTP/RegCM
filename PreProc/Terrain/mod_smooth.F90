@@ -159,3 +159,4 @@ module mod_smooth
   end subroutine smthtr
 
 end module mod_smooth
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

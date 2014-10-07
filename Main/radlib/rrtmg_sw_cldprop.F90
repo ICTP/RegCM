@@ -348,3 +348,4 @@
       end module rrtmg_sw_cldprop
 
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

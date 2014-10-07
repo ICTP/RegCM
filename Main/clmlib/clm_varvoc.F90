@@ -98,3 +98,4 @@ module clm_varvoc
 !-----------------------------------------------------------------------
 
 end module clm_varvoc
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

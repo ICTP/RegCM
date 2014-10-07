@@ -861,3 +861,4 @@ module mod_clm_dust
   end subroutine Dustini
 
 end module mod_clm_dust
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

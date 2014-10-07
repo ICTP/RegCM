@@ -69,3 +69,4 @@ module clm_varsur
 !-----------------------------------------------------------------------
 
 end module clm_varsur
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

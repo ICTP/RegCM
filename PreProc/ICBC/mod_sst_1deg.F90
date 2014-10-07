@@ -531,3 +531,4 @@ module mod_sst_1deg
   end subroutine ice_wk
 
 end module mod_sst_1deg
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

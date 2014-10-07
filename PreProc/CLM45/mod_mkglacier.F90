@@ -143,3 +143,4 @@ module mod_mkglacier
   end subroutine mkglacier
 
 end module mod_mkglacier
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

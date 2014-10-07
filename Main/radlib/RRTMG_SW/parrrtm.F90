@@ -110,3 +110,4 @@
 !      integer(kind=im), parameter :: ngs16 = 256
 
       end module parrrtm
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

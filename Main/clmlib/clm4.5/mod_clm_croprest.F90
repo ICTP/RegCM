@@ -778,3 +778,4 @@ module mod_clm_croprest
 #endif
 
 end module mod_clm_croprest
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

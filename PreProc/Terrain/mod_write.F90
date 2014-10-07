@@ -264,3 +264,4 @@ module mod_write
   end subroutine write_domain
 
 end module mod_write
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

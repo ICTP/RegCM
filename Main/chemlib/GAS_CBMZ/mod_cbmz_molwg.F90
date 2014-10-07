@@ -105,3 +105,4 @@ module mod_cbmz_molwg
 
 
 end module mod_cbmz_molwg
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

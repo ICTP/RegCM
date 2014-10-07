@@ -233,3 +233,4 @@ module mod_clm_cnecosystemdyn
 #endif
 
 end module mod_clm_cnecosystemdyn
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -78,3 +78,4 @@ module mod_grid
   end subroutine read_domain_info
 !
 end module mod_grid
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

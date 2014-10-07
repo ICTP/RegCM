@@ -4331,3 +4331,4 @@ module mod_rad_radiation
   end function fo3
 !
 end module mod_rad_radiation
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

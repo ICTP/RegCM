@@ -8847,3 +8847,4 @@ subroutine strsl ( t, ldt, n, b, job, info )
 end subroutine strsl
 
 end module linpack
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -452,3 +452,4 @@ module mod_bats_common
   end subroutine albedobats
 
 end module mod_bats_common
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

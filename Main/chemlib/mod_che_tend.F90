@@ -470,3 +470,4 @@
     end subroutine tractend2
 !
 end module mod_che_tend
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -144,3 +144,4 @@ module mod_clm_activelayer
   end subroutine alt_calc
 
 end module mod_clm_activelayer
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

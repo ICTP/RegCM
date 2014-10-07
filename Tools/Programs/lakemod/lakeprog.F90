@@ -118,3 +118,4 @@ program lakeprog
   end subroutine writeout
 
 end program lakeprog
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

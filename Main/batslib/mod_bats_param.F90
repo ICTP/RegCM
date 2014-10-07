@@ -273,3 +273,4 @@ module mod_bats_param
   !
 
 end module mod_bats_param
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

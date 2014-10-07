@@ -762,3 +762,4 @@ module mod_ncio
   end subroutine check_ok
 
 end module mod_ncio
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

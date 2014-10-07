@@ -192,3 +192,4 @@ MODULE mod_cbmz_Monitor
 
 
 END MODULE mod_cbmz_Monitor
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

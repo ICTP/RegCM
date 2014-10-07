@@ -689,3 +689,4 @@ module mod_clm_frictionvelocity
   end subroutine MoninObukIni
 
 end module mod_clm_frictionvelocity
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

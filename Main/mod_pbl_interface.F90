@@ -151,3 +151,4 @@ module mod_pbl_interface
   end subroutine pblscheme
 
 end module mod_pbl_interface
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

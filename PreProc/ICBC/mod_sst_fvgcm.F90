@@ -136,3 +136,4 @@ module mod_sst_fvgcm
   end subroutine sst_fvgcm
 
 end module mod_sst_fvgcm
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

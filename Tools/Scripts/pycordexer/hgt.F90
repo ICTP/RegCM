@@ -488,3 +488,4 @@ module mod_hgt
   end subroutine gs_filter
 
 end module mod_hgt
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

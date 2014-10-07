@@ -105,3 +105,4 @@ module mod_ccsm3_helper
   end subroutine getbackoneday
 
 end module mod_ccsm3_helper
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

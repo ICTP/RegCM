@@ -160,3 +160,4 @@ module mod_cbmz_linslv
     end subroutine resolv
 
 end module mod_cbmz_linslv
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -402,3 +402,4 @@ module mod_ocn_coare
     end function psit
 
 end module mod_ocn_coare
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

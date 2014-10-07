@@ -175,3 +175,4 @@ module mod_clm_domain
   end subroutine domain_check
 
 end module mod_clm_domain
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

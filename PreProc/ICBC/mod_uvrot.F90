@@ -224,3 +224,4 @@ module mod_uvrot
   end subroutine uvrot4nx
 !
 end module mod_uvrot
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

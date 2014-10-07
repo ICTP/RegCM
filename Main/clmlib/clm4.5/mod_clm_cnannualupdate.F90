@@ -145,3 +145,4 @@ module mod_clm_cnannualupdate
 #endif
 
 end module mod_clm_cnannualupdate
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

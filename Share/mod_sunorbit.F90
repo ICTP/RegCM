@@ -531,3 +531,4 @@ module mod_sunorbit
   end subroutine orb_decl
 
 end module mod_sunorbit
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -159,3 +159,4 @@ module mod_spline
     end subroutine splint
 
 end module mod_spline
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

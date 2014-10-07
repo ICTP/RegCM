@@ -1915,3 +1915,4 @@ end subroutine rcmdrv_init
 
 end module atmdrvMod
 
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

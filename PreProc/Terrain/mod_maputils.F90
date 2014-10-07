@@ -165,3 +165,4 @@ module mod_maputils
   end subroutine rotmer
 !
 end module mod_maputils
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -664,3 +664,4 @@ module mod_precip
   end subroutine condtq
 
 end module mod_precip
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

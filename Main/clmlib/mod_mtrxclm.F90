@@ -778,3 +778,4 @@ module mod_mtrxclm
 end module mod_mtrxclm
 
 #endif
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

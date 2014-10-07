@@ -2462,3 +2462,4 @@ module mod_cu_kf
   end subroutine kf_lutab
 
 end module mod_cu_kf
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

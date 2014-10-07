@@ -6597,3 +6597,4 @@ module mod_clm_histflds
   end subroutine hist_addfld_decomp
 
 end module mod_clm_histflds
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

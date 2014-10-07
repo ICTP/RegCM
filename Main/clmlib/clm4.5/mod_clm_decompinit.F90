@@ -234,3 +234,4 @@ module mod_clm_decompinit
   end subroutine decompInit_glcp
 
 end module mod_clm_decompinit
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

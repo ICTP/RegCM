@@ -1988,3 +1988,4 @@ contains
   end subroutine scam_field_offsets
 
 end module ncdio
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -208,3 +208,4 @@ module mod_grid
   end subroutine pack_real8
 
 end module mod_grid
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
