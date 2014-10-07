@@ -33,6 +33,8 @@ module mod_atm_interface
 
   private
 
+  public :: allocate_reference_atmosphere
+
   logical , public , parameter :: cross = .false.
   logical , public , parameter :: dot = .true.
 
@@ -737,9 +739,11 @@ module mod_atm_interface
     subroutine allocate_reference_atmosphere(atm)
       implicit none
       type(reference_atmosphere) , intent(out) :: atm
-        call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'atmstate:t')
-        call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
-        call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
+      call getmem2d(atm%ps,jce1-ma%jbl1,jce2+ma%jbr1, &
+                           ice1-ma%ibb1,ice2+ma%ibt1,'reference:ps')
+      call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'reference:t')
+      call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'reference:pr')
+      call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'reference:rho')
     end subroutine allocate_reference_atmosphere
 
     subroutine allocate_tendiag(dia)
@@ -822,10 +826,6 @@ module mod_atm_interface
     subroutine allocate_surfstate(sfs)
       implicit none
       type(surfstate) , intent(out) :: sfs
-      if ( idynamic == 2 ) then
-        call getmem2d(sfs%ps0,jce1-ma%jbl1,jce2+ma%jbr1, &
-                              ice1-ma%ibb1,ice2+ma%ibt1,'surf:ps0')
-      end if
       call getmem2d(sfs%psa,jce1-ma%jbl1,jce2+ma%jbr1, &
                             ice1-ma%ibb1,ice2+ma%ibt1,'surf:psa')
       call getmem2d(sfs%psb,jce1-ma%jbl1,jce2+ma%jbr1, &

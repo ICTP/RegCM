@@ -32,7 +32,7 @@ module mod_nhinterp
 
   contains
     !
-    !  Compute the nonhydrostatic base state.
+    ! Compute the nonhydrostatic base state.
     !
     subroutine nhbase(i1,i2,j1,j2,kx,a,ter,ptop,p0,tlp,ts0,ps0,pr0,t0,rho0)
       implicit none
@@ -46,19 +46,18 @@ module mod_nhinterp
       real(rk8) , intent(out) , dimension(:,:,:) :: rho0
       integer(ik4) :: i , j , k
       real(rk8) :: ac , alnp , b , piso , ziso , pt
-
+      !
+      ! Define ps0 from terrain heights and t0 profile.
+      !
       pt = ptop * d_1000
-
-      !  Define ps0 from terrain heights and t0 profile.
-
       do i = i1 , i2
         do j = j1 , j2
-          !  Height is already multiplied by g.
+          ! Height is already multiplied by g.
           ac = ter(i,j) / (d_two * tlp * rgas)
           b = ts0 / tlp
           alnp = -b + sqrt(b*b - d_four * ac)
           ps0(j,i) = p0 * exp(alnp) - pt
-          !  Define reference state temperature at model points.
+          ! Define reference state temperature at model points.
           do k = 1 , kx
             pr0(j,i,k) = ps0(j,i) * a(k) + pt
             t0(j,i,k) = max(ts0 + tlp*log(pr0(j,i,k)/p0), tiso)
@@ -174,16 +173,16 @@ module mod_nhinterp
       real(rk8) , intent(out) , dimension(:,:,:) :: pp
       real(rk8) :: aa , bb , cc , check , checkl , checkr , delp0 , p0surf
       real(rk8) :: psp , tk , tkp1 , tvk , tvkp1 , tvpot , wtl , wtu
-
+      !
       !  Calculate p' at bottom and integrate upwards (hydrostatic balance).
-
+      !
       do i = i1 , i2
         do j = j1 , j2
-
+          !
           !  Correct pressure perturbation field (mass) to be consistent
           !  with psa assuming density perturbation remains constant in
           !  lowest half-layer.   Start with pp at surface.
-
+          !
           p0surf = ps0(j,i) + pt
           psp = ps(j,i) - ps0(i,j)
           delp0 = p0surf - pr0(j,i,kxs)
@@ -191,7 +190,6 @@ module mod_nhinterp
           tk = t(j,i,kxs)
           tvpot = (tvk - t0(j,i,kxs)) / tk
           pp(j,i,kxs) = (tvpot*delp0 + psp) / (d_one + delp0/pr0(j,i,kxs))
-
           do k = kxs - 1 , 1 , -1
             tvkp1 = tvk
             tvk = tv(j,i,k)
@@ -209,9 +207,9 @@ module mod_nhinterp
           end do
         end do
       end do
-
+      !
       !  Do vertical gradient check
-
+      !
       do k = 1 , kxs - 1
         do i = i1 , i2
           do j = j1 , j2
@@ -248,7 +246,7 @@ module mod_nhinterp
       real(rk8) , intent(in) :: ds , p0 , ptop , tiso , tlp , ts0
       real(rk8) , intent(out) , dimension(:,:,:) :: w
       real(rk8) , intent(out) , dimension(:,:) :: wtop
-      integer(ik4) :: i , j , k , km , kp
+      integer(ik4) :: i , j , k , km
       integer(ik4) :: l , ll , lm , lp
       real(rk8) :: pt , alnpq , dx2 , omegal , omegau , ubar , vbar
       real(rk8) :: piso , pr0 , rh0 , ziso , zl , zu , rho
@@ -259,7 +257,6 @@ module mod_nhinterp
       pt = ptop * d_1000
       dx2 = d_two * ds
       piso = p0 * exp( (tiso-ts0) / tlp )
-
       do i = i1 , i2
         do j = j1 , j2
           qdt(kxs+1) = d_zero
@@ -286,6 +283,8 @@ module mod_nhinterp
           zq(kxs+1) = ter(j,i)
           qdt(kxs+1) = d_zero
           do l = kxs , 1 , -1
+            lp = min(l,kxs)
+            lm = max(l-1,1)
             zq(l) = zq(l+1) - rdry / egrav * tv(j,i,l) * &
               log((sigma(l) *   ps(j,i) + pt ) / &
                   (sigma(l+1) * ps(j,i) + pt ))
@@ -299,9 +298,6 @@ module mod_nhinterp
                      v(j+1,i  ,l) * psdot(j+1,i  ) - &
                      v(j  ,i  ,l) * psdot(j  ,i  )) / &
                  dx2 * xmsfx(j,i) * xmsfx(j,i)  * dsigma(l) / ps(j,i)
-            lp = min(l,kxs)
-            lm = max(l-1,1)
-
             ubar = 0.125 * (u(j  ,i  ,lp) + u(j  ,i  ,lm) + &
                             u(j  ,i+1,lp) + u(j  ,i+1,lm) + &
                             u(j+1,i  ,lp) + u(j+1,i  ,lm) + &
@@ -310,43 +306,35 @@ module mod_nhinterp
                             v(j  ,i+1,lp) + v(j  ,i+1,lm) + &
                             v(j+1,i  ,lp) + v(j+1,i  ,lm) + &
                             v(j+1,i+1,lp) + v(j+1,i+1,lm))
-
             !  Calculate omega (msfx not inverted).
-
             omega(l) = ps(j,i) * qdt(l) + sigma(l) * &
                        ((ps(j+1,i  ) - ps(j-1,i  )) * ubar +  &
                         (ps(j  ,i+1) - ps(j  ,i-1)) * vbar) / dx2 * xmsfx(j,i)
           end do
-
+          !
           !  Vertical velocity from interpolated omega, zero at top.
-
+          !
           do k = 2 , kxs + 1
-            kp = MIN(k,kxs)
-            km = MAX(k-1,1)
+            km = max(k-1,1)
             if ( k == kxs+1 ) km = kxs - 1
             do ll = 1 , kxs
               l = ll
               if ( zq(l+1) < z0q(k) )  exit
             end do
-
             zu = zq(l)
             zl = zq(l+1)
             omegau = omega(l)
             omegal = omega(l+1)
             omegan(k) = (omegau * (z0q(k) - zl ) + &
               omegal * (zu - z0q(k))) / (zu - zl)
-
             !  W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
-
-            rho = (rho0(j,i,km) * (a(kp) - sigma(k)) + &
-                   rho0(j,i,kp) * (sigma(k) - a(km) )) / (a(kp) - a(km))
+            rho = (rho0(j,i,km) * (a(k) - sigma(k)) + &
+                   rho0(j,i,k) * (sigma(k) - a(km) )) / (a(k) - a(km))
             wtmp(j,i,k) = - omegan(k) / rho / egrav
           end do
-
           wtmp(j,i,1) = d_zero
         end do
       end do
-
       do i = i1 , i2
         do j = j1 , j2
           wtop(j,i) = wtmp(j,i,1)

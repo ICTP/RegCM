@@ -96,6 +96,7 @@ module mod_regcm_types
   end type domain_subgrid
 
   type reference_atmosphere
+    real(rk8) , pointer , dimension(:,:) :: ps
     real(rk8) , pointer , dimension(:,:,:) :: t
     real(rk8) , pointer , dimension(:,:,:) :: pr
     real(rk8) , pointer , dimension(:,:,:) :: rho
@@ -201,7 +202,6 @@ module mod_regcm_types
   end type qendiag
 
   type surfstate
-    real(rk8) , pointer , dimension(:,:) :: ps0
     real(rk8) , pointer , dimension(:,:) :: psa
     real(rk8) , pointer , dimension(:,:) :: psb
     real(rk8) , pointer , dimension(:,:) :: psc
