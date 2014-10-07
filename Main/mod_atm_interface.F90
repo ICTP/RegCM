@@ -822,6 +822,10 @@ module mod_atm_interface
     subroutine allocate_surfstate(sfs)
       implicit none
       type(surfstate) , intent(out) :: sfs
+      if ( idynamic == 2 ) then
+        call getmem2d(sfs%ps0,jce1-ma%jbl1,jce2+ma%jbr1, &
+                              ice1-ma%ibb1,ice2+ma%ibt1,'surf:ps0')
+      end if
       call getmem2d(sfs%psa,jce1-ma%jbl1,jce2+ma%jbr1, &
                             ice1-ma%ibb1,ice2+ma%ibt1,'surf:psa')
       call getmem2d(sfs%psb,jce1-ma%jbl1,jce2+ma%jbr1, &

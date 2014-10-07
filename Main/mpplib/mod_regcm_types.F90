@@ -201,6 +201,7 @@ module mod_regcm_types
   end type qendiag
 
   type surfstate
+    real(rk8) , pointer , dimension(:,:) :: ps0
     real(rk8) , pointer , dimension(:,:) :: psa
     real(rk8) , pointer , dimension(:,:) :: psb
     real(rk8) , pointer , dimension(:,:) :: psc

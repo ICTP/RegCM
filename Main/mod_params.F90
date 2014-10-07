@@ -45,6 +45,7 @@ module mod_params
   use mod_savefile
   use mod_slabocean
   use mod_sldepparam
+  use mod_nhinterp
 
   implicit none
 
@@ -2123,22 +2124,9 @@ module mod_params
         implicit none
         integer(ik4) :: i , j , k
         real(rk8) , dimension(jce1:jce2,ice1:ice2) :: ps0
-        real(rk8) :: hgt
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            ps0(j,i) = stdp * exp( - mddom%ht(j,i)/(stdt*rdry) )
-          end do
-        end do
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              atm0%pr(j,i,k) = ps0(j,i) * sigma(k) + ptop * 1000.0
-              atm0%t(j,i,k) = max(stdt + logp_lrate*log(atm0%pr(j,i,k)/stdp), &
-                                   218.0D0)
-              atm0%rho(j,i,k) = atm0%pr(j,i,k)/(rdry*atm0%t(j,i,k))
-            end do
-          end do
-        end do
+        real(rk8) :: ac , b , alnp , pt
+        call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,mddom%ht,ptop, &
+          stdp,logp_lrate,stdt,sfs%ps0,atm0%pr,atm0%t,atm0%rho)
       end subroutine make_reference_atmosphere
 
       subroutine compute_full_coriolis_coefficients

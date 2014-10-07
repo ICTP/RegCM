@@ -159,6 +159,7 @@ module mod_constants
   real(rk8) , parameter :: rhosnow = 330.0D+00
   real(rk8) , parameter :: rhoice = 917.0D+00
   real(rk8) , parameter :: tzero = 273.15D+00
+  real(rk8) , parameter :: tiso = 218.00D+00
   real(rk8) , parameter :: rtzero = d_one/tzero
   real(rk8) , parameter :: wattp = 273.16D+00
   real(rk8) , parameter :: tboil = 373.1339D+00
