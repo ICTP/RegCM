@@ -18,10 +18,10 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_bdycod
-!
-! Subroutines for input of boundary values and tendencies
-! Relaxation and Sponge Boundary Conditions routines
-!
+  !
+  ! Subroutines for input of boundary values and tendencies
+  ! Relaxation and Sponge Boundary Conditions routines
+  !
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
@@ -55,10 +55,10 @@ module mod_bdycod
   public :: wve , wvi , eve , evi
   public :: sue , sui , nue , nui
   public :: sve , svi , nve , nvi
-! fnudge : are the coefficients for the newtonian term.
-! gnydge : are the coefficients for the diffusion term.
+  ! fnudge : are the coefficients for the newtonian term.
+  ! gnydge : are the coefficients for the diffusion term.
   public :: fnudge , gnudge
-!
+  !
   real(rk8) , pointer , dimension(:,:) :: sue , sui , nue , nui , &
                                          sve , svi , nve , nvi
   real(rk8) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
@@ -73,19 +73,19 @@ module mod_bdycod
   real(rk8) :: fnudge , gnudge
   integer(ik4) :: nbdm
   integer(ik4) :: som_month
-!
+
   interface nudge
     module procedure nudge4d , nudge3d , nudge2d
   end interface nudge
-!
+
   interface sponge
     module procedure sponge4d , sponge3d , sponge2d
   end interface sponge
-!
+
   public :: sponge , nudge , setup_bdycon
-!
+
   contains
-!
+
   subroutine allocate_mod_bdycon(iboudy)
     implicit none
     integer(ik4) , intent(in) :: iboudy
@@ -102,7 +102,7 @@ module mod_bdycod
       call getmem2d(efc,1,nbdm,1,kz,'bdycon:fcx')
       call getmem2d(egc,1,nbdm,1,kz,'bdycon:fcx')
     end if
-!
+
     if ( ma%has_bdytop ) then
       call getmem2d(nue,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nue')
       call getmem2d(nui,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nui')
@@ -130,7 +130,7 @@ module mod_bdycod
     call getmem2d(psdot,jde1,jde2,ide1,ide2,'bdycon:psdot')
     call getmem2d(rpsdot,jde1,jde2,ide1,ide2,'bdycon:rpsdot')
   end subroutine allocate_mod_bdycon
-!
+
   subroutine setup_bdycon(hlev)
     implicit none
     real(rk8) , pointer , dimension(:) , intent(in) :: hlev
@@ -190,6 +190,25 @@ module mod_bdycod
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+    contains
+
+      pure real(rk8) function xfun(mm,ldot)
+        implicit none
+        integer(ik4) , intent(in) :: mm
+        logical , intent(in) :: ldot
+        if ( ldot ) then
+          xfun = dble(nspgd-mm)/dble(nspgd-2)
+        else
+          xfun = dble(nspgx-mm)/dble(nspgx-2)
+        end if
+      end function xfun
+
+      pure real(rk8) function xfune(mm,kk)
+        implicit none
+        integer(ik4) , intent(in) :: mm , kk
+        xfune = dexp(-dble(mm-2)/anudg(kk))
+      end function xfune
+
   end subroutine setup_bdycon
 
   subroutine init_bdy
@@ -312,7 +331,7 @@ module mod_bdycod
     end do
     call exchange(xub%b0,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%b0,1,jde1,jde2,ide1,ide2,1,kz)
-!
+
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -385,13 +404,9 @@ module mod_bdycod
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine init_bdy
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-! this subroutine reads in the boundary conditions.
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
+  !
+  ! this subroutine reads in the boundary conditions.
+  !
   subroutine bdyin
     implicit none
     integer(ik4) :: i , j , k , n , datefound
@@ -425,7 +440,7 @@ module mod_bdycod
       tdif = bdydate1-monfirst(bdydate1)
       xslabtime = tohours(tdif)*secph
     end if
-!
+
     bdydate2 = bdydate2 + intbdy
     if ( myid == italk ) then
       write(stdout,*) 'SEARCH BC data for ', toint10(bdydate2)
@@ -472,7 +487,7 @@ module mod_bdycod
     end do
     call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
-!
+
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -483,7 +498,7 @@ module mod_bdycod
     end do
     call exchange(xtb%b1,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%b1,1,jce1,jce2,ice1,ice2,1,kz)
-!
+
     do i = ice1 , ice2
       do j = jce1 , jce2
         xpsb%bt(j,i) = (xpsb%b1(j,i)-xpsb%b0(j,i))/dtbdys
@@ -581,19 +596,19 @@ module mod_bdycod
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine bdyin
-!
-! This subroutine sets the boundary values of u and v according
-! to the boundary conditions specified.
-!
-!     iboudy = 0 : fixed
-!            = 1 : relaxation, linear technique
-!            = 2 : time dependent
-!            = 3 : time dependent and inflow/outflow dependent
-!            = 4 : sponge
-!            = 5 : relaxation, exponential technique
-!
-!     dtb        : elapsed time from the initial boundary values.
-!
+  !
+  ! This subroutine sets the boundary values of u and v according
+  ! to the boundary conditions specified.
+  !
+  !     iboudy = 0 : fixed
+  !            = 1 : relaxation, linear technique
+  !            = 2 : time dependent
+  !            = 3 : time dependent and inflow/outflow dependent
+  !            = 4 : sponge
+  !            = 5 : relaxation, exponential technique
+  !
+  !     dtb        : elapsed time from the initial boundary values.
+  !
   subroutine bdyuv(iboudy,dtb)
     implicit none
     real(rk8) , intent(in) :: dtb
@@ -694,9 +709,7 @@ module mod_bdycod
           end do
         end do
       end if
-!
     else ! NOT Fixed
-!
       !
       !     time-dependent boundary conditions:
       !
@@ -806,26 +819,23 @@ module mod_bdycod
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine bdyuv
-!
-! This subroutine sets the boundary values for p*, p*u, p*v,
-! p*t, p*qv, p*qc, and p*qr.
-!
-!     ---the boundary values of p*u and p*v are extrapolated from
-!        the interior points.
-!
-!     ---the boundary values of p* and p*t are specified.
-!
-!     ---the boundary values of p*qv, p*qc, and p*qr depend on
-!        inflow/outflow conditions, if iboudy = 3 or 4.
-!
-!     xt     : is the time in seconds the variables xxa represent.
-!
+  !
+  ! This subroutine sets the boundary values for p*, p*u, p*v,
+  ! p*t, p*qv, p*qc, and p*qr.
+  !
+  !     ---the boundary values of p*u and p*v are extrapolated from
+  !        the interior points.
+  !
+  !     ---the boundary values of p* and p*t are specified.
+  !
+  !     ---the boundary values of p*qv, p*qc, and p*qr depend on
+  !        inflow/outflow conditions, if iboudy = 3 or 4.
+  !
+  !     xt     : is the time in seconds the variables xxa represent.
+  !
   subroutine bdyval(xt)
-!
     implicit none
-!
     real(rk8) , intent(in) :: xt
-!
     real(rk8) :: qcx , qcint , tkeint , tkex , qvx , qext , qint
     integer(ik4) :: i , j , k , n
     real(rk8) :: windavg
@@ -1073,9 +1083,9 @@ module mod_bdycod
         end do
       end if
     end if
-!
+
     call bdyuv(iboudy,xt)
-!
+
     !
     ! Set boundary values for p*t:
     ! Set boundary values for p*qv:
@@ -1153,7 +1163,7 @@ module mod_bdycod
         end do
       end if
     end if
-!
+
     if ( iboudy == 3 .or. iboudy == 4 ) then
       !
       ! determine QV boundary values depends on inflow/outflow:
@@ -1230,7 +1240,7 @@ module mod_bdycod
         end do
       end if
     end if
-!
+    !
     ! set boundary values for p*qc and p*qr:
     ! *** note ***
     ! for large domain, we assume the boundary tendencies are not available.
@@ -1511,7 +1521,7 @@ module mod_bdycod
         end if
       end if
     end if
-!
+
     if ( ichem == 1 ) then
       call chem_bdyval(xt)
     end if
@@ -1519,34 +1529,32 @@ module mod_bdycod
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine bdyval
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                 c
-! this subroutine applies sponge boundary condition to the        c
-! tendency term - ften.                                           c
-!                                                                 c
-! nk    : is the number of vertical level to be adjusted.         c
-!                                                                 c
-! ba    : is the boundary index structure                         c
-!                                                                 c
-! wg    : are the weightings.                                     c
-!                                                                 c
-! bnd   : Boundary condition data structure                       c
-!         2D or 3D (managed by interface declaration)             c
-!                                                                 c
-! ften  : is the tendency calculated from the model.              c
-!                                                                 c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
+  !
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !                                                                 c
+  ! this subroutine applies sponge boundary condition to the        c
+  ! tendency term - ften.                                           c
+  !                                                                 c
+  ! nk    : is the number of vertical level to be adjusted.         c
+  !                                                                 c
+  ! ba    : is the boundary index structure                         c
+  !                                                                 c
+  ! wg    : are the weightings.                                     c
+  !                                                                 c
+  ! bnd   : Boundary condition data structure                       c
+  !         2D or 3D (managed by interface declaration)             c
+  !                                                                 c
+  ! ften  : is the tendency calculated from the model.              c
+  !                                                                 c
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !
   subroutine sponge4d(nk,m,ba,bnd,ften)
-!
     implicit none
-!
     integer(ik4) , intent(in) :: nk , m
     type(bound_area) , intent(in) :: ba
     type(v3dbound) , intent(in) :: bnd
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-!
+
     integer(ik4) :: i , j , k
     integer(ik4) :: ib , i1 , i2 , j1 , j2
     real(rk8) , pointer , dimension(:) :: wg
@@ -1555,14 +1563,14 @@ module mod_bdycod
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
+
     if ( .not. ba%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
       return
     end if
-!
+
     if ( ba%dotflag ) then
       wg => wgtd
       i1 = idi1
@@ -1576,9 +1584,7 @@ module mod_bdycod
       j1 = jci1
       j2 = jci2
     end if
-!
-!----------------------------------------------------------------------
-!
+
     if ( ba%ns /= 0 ) then
       do k = 1 , nk
         do i = i1 , i2
@@ -1627,16 +1633,13 @@ module mod_bdycod
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine sponge4d
-!
+
   subroutine sponge3d(nk,ba,bnd,ften)
-!
     implicit none
-!
     integer(ik4) , intent(in) :: nk
     type(bound_area) , intent(in) :: ba
     type(v3dbound) , intent(in) :: bnd
     real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ften
-!
     integer(ik4) :: i , j , k
     integer(ik4) :: ib , i1 , i2 , j1 , j2
     real(rk8) , pointer , dimension(:) :: wg
@@ -1645,14 +1648,14 @@ module mod_bdycod
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
+
     if ( .not. ba%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
       return
     end if
-!
+
     if ( ba%dotflag ) then
       wg => wgtd
       i1 = idi1
@@ -1666,9 +1669,7 @@ module mod_bdycod
       j1 = jci1
       j2 = jci2
     end if
-!
-!----------------------------------------------------------------------
-!
+
     if ( ba%ns /= 0 ) then
       do k = 1 , nk
         do i = i1 , i2
@@ -1717,13 +1718,12 @@ module mod_bdycod
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine sponge3d
-!
+
   subroutine sponge2d(ba,bnd,ften)
     implicit none
     type(bound_area) , intent(in) :: ba
     type(v2dbound) , intent(in) :: bnd
     real(rk8) , pointer , intent(inout) , dimension(:,:) :: ften
-!
     integer(ik4) :: i , j , i1 , i2 , j1 , j2
     integer(ik4) :: ib
     real(rk8) , pointer , dimension(:) :: wg
@@ -1738,7 +1738,7 @@ module mod_bdycod
 #endif
       return
     end if
-!
+
     if ( ba%dotflag ) then
       wg => wgtd
       i1 = idi1
@@ -1752,7 +1752,7 @@ module mod_bdycod
       j1 = jci1
       j2 = jci2
     end if
-!
+
     if ( ba%ns /= 0 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -1793,65 +1793,38 @@ module mod_bdycod
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine sponge2d
-!
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-!
-  function xfun(mm,ldot)
-    implicit none
-    real(rk8) :: xfun
-    integer(ik4) , intent(in) :: mm
-    logical , intent(in) :: ldot
-    if ( ldot ) then
-      xfun = dble(nspgd-mm)/dble(nspgd-2)
-    else
-      xfun = dble(nspgx-mm)/dble(nspgx-2)
-    end if
-  end function xfun
-!
-  function xfune(mm,kk)
-    implicit none
-    real(rk8) :: xfune
-    integer(ik4) , intent(in) :: mm , kk
-    xfune = dexp(-dble(mm-2)/anudg(kk))
-  end function xfune
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                 c
-! These subroutines apply relaxation boundary conditions to the   c
-! tendency term - ften - of variable f                            c
-!                                                                 c
-! ldot  : logical dot (u,v) / cross (t,q,p) flag                  c
-!                                                                 c
-! ip    : is the number of slices affected by nudging.            c
-!                                                                 c
-! xt    : is the time in seconds for variable f                   c
-!                                                                 c
-! ften  : is the tendency calculated from the model.              c
-!                                                                 c
-! j     : is the j'th slice of the tendency to be adjusted.       c
-!                                                                 c
-! nk    : is the number of vertical level to be adjusted.         c
-!                                                                 c
-! ibdy  : type of boundary condition relaxation, 1=linear         c
-!         5 = exponential                                         c
-!                                                                 c
-! bnd   : Boundary condition data structure                       c
-!         2D or 3D (managed by interface declaration)             c
-!                                                                 c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
+  !
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !                                                                 c
+  ! These subroutines apply relaxation boundary conditions to the   c
+  ! tendency term - ften - of variable f                            c
+  !                                                                 c
+  ! ldot  : logical dot (u,v) / cross (t,q,p) flag                  c
+  !                                                                 c
+  ! ip    : is the number of slices affected by nudging.            c
+  !                                                                 c
+  ! xt    : is the time in seconds for variable f                   c
+  !                                                                 c
+  ! ften  : is the tendency calculated from the model.              c
+  !                                                                 c
+  ! nk    : is the number of vertical level to be adjusted.         c
+  !                                                                 c
+  ! ibdy  : type of boundary condition relaxation, 1=linear         c
+  !         5 = exponential                                         c
+  !                                                                 c
+  ! bnd   : Boundary condition data structure                       c
+  !         2D or 3D (managed by interface declaration)             c
+  !                                                                 c
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !
   subroutine nudge4d(nk,m,ba,xt,f,ibdy,bnd,ften)
     implicit none
-!
     integer(ik4) , intent(in) :: ibdy , nk , m
     real(rk8) , intent(in) :: xt
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
     type(bound_area) , intent(in) :: ba
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-!
     real(rk8) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
     integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
 #ifdef DEBUG
@@ -1865,7 +1838,7 @@ module mod_bdycod
 #endif
       return
     end if
-!
+
     if ( ba%dotflag ) then
       lfc => fcd
       lgc => gcd
@@ -1881,7 +1854,7 @@ module mod_bdycod
       j1 = jci1
       j2 = jci2
     end if
-!
+
     if ( ba%ns /= 0 ) then
       do k = 1 , nk
         do i = i1 , i2
@@ -1982,18 +1955,15 @@ module mod_bdycod
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine nudge4d
-!
+
   subroutine nudge3d(nk,ba,xt,f,ibdy,bnd,ften)
-!
     implicit none
-!
     integer(ik4) , intent(in) :: ibdy , nk
     real(rk8) , intent(in) :: xt
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
     type(bound_area) , intent(in) :: ba
     real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ften
-!
     real(rk8) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
     integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
 #ifdef DEBUG
@@ -2001,14 +1971,14 @@ module mod_bdycod
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
+
     if ( .not. ba%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
       return
     end if
-!
+
     if ( ba%dotflag ) then
       lfc => fcd
       lgc => gcd
@@ -2024,7 +1994,7 @@ module mod_bdycod
       j1 = jci1
       j2 = jci2
     end if
-!
+
     if ( ba%ns /= 0 ) then
       do k = 1 , nk
         do i = i1 , i2
@@ -2125,20 +2095,15 @@ module mod_bdycod
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine nudge3d
-!
-! ###################################################################
-!
+
   subroutine nudge2d(ba,xt,f,ibdy,bnd,ften)
-!
     implicit none
-!
     integer(ik4) , intent(in) :: ibdy
     real(rk8) , intent(in) :: xt
     real(rk8) , pointer , intent(in) , dimension(:,:) :: f
     type(v2dbound) , intent(in) :: bnd
     type(bound_area) , intent(in) :: ba
     real(rk8) , pointer , intent(inout) , dimension(:,:) :: ften
-!
     real(rk8) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
     integer(ik4) :: i , j , ib , i1 , i2 , j1 , j2
 #ifdef DEBUG
@@ -2146,14 +2111,14 @@ module mod_bdycod
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
+
     if ( .not. ba%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
       return
     end if
-!
+
     if ( ba%dotflag ) then
       lfc => fcd
       lgc => gcd
@@ -2263,6 +2228,7 @@ module mod_bdycod
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine nudge2d
-!
+
 end module mod_bdycod
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
