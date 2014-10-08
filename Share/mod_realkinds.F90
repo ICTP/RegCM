@@ -38,19 +38,42 @@ module mod_realkinds
   real(rk8), parameter :: nan = O'0777610000000000000000'
 #endif
 
+  interface is_nan
+    module procedure is_nan_single
+    module procedure is_nan_double
+  end interface
+
+  interface is_inf
+    module procedure is_inf_single
+    module procedure is_inf_double
+  end interface
+
   contains
 
-  logical elemental function is_nan(x)
+  logical elemental function is_nan_double(x)
     implicit none
     real(rk8) , intent(in) :: x
-    is_nan = ( (x /= x) .or. ((x > 0.0D0) .eqv. (x <= 0.0D0)) )
-  end function is_nan
+    is_nan_double = ( (x /= x) .or. ((x > 0.0D0) .eqv. (x <= 0.0D0)) )
+  end function is_nan_double
 
-  logical elemental function is_inf(x)
+  logical elemental function is_inf_double(x)
     implicit none
     real(rk8) , intent(in) :: x
-    is_inf = ( x > huge(x) )
-  end function is_inf
+    is_inf_double = ( x > huge(x) )
+  end function is_inf_double
+
+  logical elemental function is_nan_single(x)
+    implicit none
+    real(rk4) , intent(in) :: x
+    is_nan_single = ( (x /= x) .or. ((x > 0.0) .eqv. (x <= 0.0)) )
+  end function is_nan_single
+
+  logical elemental function is_inf_single(x)
+    implicit none
+    real(rk4) , intent(in) :: x
+    is_inf_single = ( x > huge(x) )
+  end function is_inf_single
 
 end module mod_realkinds
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
