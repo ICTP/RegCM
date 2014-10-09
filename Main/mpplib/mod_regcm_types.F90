@@ -506,10 +506,13 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: udatm     ! atms%ubd3d
     real(rk8) , pointer , dimension(:,:,:) :: vdatm     ! atms%vbd3d
     real(rk8) , pointer , dimension(:,:,:) :: tatm      ! atms%tb3d
+    real(rk8) , pointer , dimension(:,:,:) :: patm      ! atms%pb3d
+    real(rk8) , pointer , dimension(:,:,:) :: patmf     ! atms%pf3d
     real(rk8) , pointer , dimension(:,:,:,:) :: qxatm   ! atms%qx
     real(rk8) , pointer , dimension(:,:,:) :: tkests    ! atms%tke
     real(rk8) , pointer , dimension(:,:,:) :: thxatm    ! atms%thx3d
     real(rk8) , pointer , dimension(:,:,:) :: za        ! atms%za
+    real(rk8) , pointer , dimension(:,:,:) :: zq        ! atms%zq
     real(rk8) , pointer , dimension(:,:,:) :: dzq       ! atms%dzq
     real(rk8) , pointer , dimension(:,:,:) :: heatrt    ! heatrt
     real(rk8) , pointer , dimension(:,:,:,:) :: chib    ! chib

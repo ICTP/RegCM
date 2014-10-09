@@ -142,7 +142,6 @@ module mod_pbl_uwtcm
   public :: get_data_from_tcm
   public :: hadvtke
   public :: vadvtke
-  public :: check_conserve_qt
 
   contains
 
@@ -371,38 +370,6 @@ module mod_pbl_uwtcm
 #endif
   end subroutine vadvtke
 
-  subroutine check_conserve_qt(m2p,p2m)
-    implicit none
-    type(mod_2_pbl) , intent(in) :: m2p
-    type(pbl_2_mod) , intent(in) :: p2m
-    real(rk8) , dimension(kz) :: rho1d , rhobydpdz1d
-    real(rk8) :: qwtcm , qwrcm , qwanom , dtops , xps , ps2 , dza
-    integer(ik4) :: i , j , k
-    do j = jci1 , jci2
-      do i = ici1 , ici2
-        do k = 1 , kzm1
-          xps = (hsigma(k)*m2p%psb(j,i)+ptop)
-          ps2 = (hsigma(k+1)*m2p%psb(j,i)+ptop)
-          dza = m2p%za(j,i,k) - m2p%za(j,i,k+1)
-          rhobydpdz1d(k) = d_1000*(ps2-xps)/(egrav*dza)
-        end do
-        rhobydpdz1d(kz) = m2p%rhox2d(j,i)
-        dtops = dt/m2p%psb(j,i)
-        rho1d = d_1000*(hsigma*m2p%psb(j,i) + ptop) / &
-                 ( rgas * m2p%tatm(j,i,:) *  &
-                 (d_one + ep1* m2p%qxatm(j,i,:,iqv) - m2p%qxatm(j,i,:,iqc)) )
-        qwtcm = sum((p2m%qxuwten(j,i,:,iqv) + p2m%qxuwten(j,i,:,iqc))  &
-                      *rho1d*m2p%dzq(j,i,:))*dtops
-        qwrcm = sum((p2m%qxten(j,i,:,iqv) + p2m%qxten(j,i,:,iqc))   &
-                      *rho1d*m2p%dzq(j,i,:))*dtops
-!       qwanom = qwtcm - qwrcm
-!       qwanom = qwrcm-qfx(j,i)*dt
-        qwanom = qwtcm - dt*m2p%qfx(j,i)
-        uwstateb%kzm(j,i,1) = qwanom
-      end do
-    end do
-  end subroutine check_conserve_qt
-
   subroutine init_mod_pbl_uwtcm
     implicit none
 
@@ -527,17 +494,18 @@ module mod_pbl_uwtcm
         if ( ichem == 1 ) chifxx(:) = m2p%chifxuw(j,i,:)
 
         ! Integrate the hydrostatic equation to calculate the level height
-        zqx(kzp1) = d_zero
-        zqx(kzp1+1) = d_zero
+        ! Set variables that are on full levels
+        do k = 1 , kzp1
+          presfl(k) = m2p%patmf(j,i,k)
+          zqx(k) = m2p%zq(j,i,k)
+        end do
+
         tke(kzp1) = m2p%tkests(j,i,kzp1)
 
         kinitloop: &
         do k = kz , 1 , -1
           rttenx(k) = m2p%heatrt(j,i,k)
-          cell = ptop/psbx
-          zqx(k) = zqx(k+1) + rgas*regrav*m2p%tatm(j,i,k)*   &
-                   log((sigma(k+1)+cell)/(sigma(k)+cell))
-          zax(k) = d_half*(zqx(k)+zqx(k+1))
+          zax(k) = m2p%za(j,i,k)
           tke(k) = m2p%tkests(j,i,k)
           tx(k)  = m2p%tatm(j,i,k)
           if ( ipptls == 2 ) then
@@ -565,12 +533,12 @@ module mod_pbl_uwtcm
         khalfloop: &
         do k = 1 , kz
           ! pressure at half levels
-          preshl(k) = hsigma(k)*psbx + ptop
+          preshl(k) = m2p%patm(j,i,k)
           ! Level spacing
-          udzq(k) = zqx(k)-zqx(k+1)
+          udzq(k) = m2p%dzq(j,i,k)
           rdzq(k) = d_one/udzq(k)
           ! Exner function
-          exnerhl(k)=(preshl(k)/d_100)**rovcp
+          exnerhl(k)=(preshl(k)/1.0D5)**rovcp
           rexnerhl(k) = d_one/exnerhl(k)
           ! Potential temperature
           thx(k) = tx(k)*rexnerhl(k)
@@ -599,22 +567,19 @@ module mod_pbl_uwtcm
           if ( ichem == 1 ) chixs(:,k) = chix(:,k)
 
           ! density at half levels
-          rhoxhl(k)=preshl(k)*d_1000/(rgas*tvx(k))
+          rhoxhl(k) = preshl(k)/(rgas*tvx(k))
           rrhoxhl(k) = d_one/rhoxhl(k)
         end do khalfloop
 
-        ! Set variables that are on full levels
-        presfl(1) = ptop
         kfullloop: &
         do k = 2 , kz
           ! pressure at full levels
-          presfl(k) = sigma(k)*psbx + ptop
           epop(k) = ep2/presfl(k)
           ! Level spacing
           dza(k) = zax(k-1)-zax(k)
           rdza(k) = d_one/dza(k)
           ! Exner function
-          exnerfl(k)=(presfl(k)/d_100)**rovcp
+          exnerfl(k)=(presfl(k)/1.0D5)**rovcp
           rexnerfl(k) = d_one/exnerfl(k)
           ! Density
           fracz = (zqx(k)-zax(k))*rdza(k)
@@ -626,13 +591,11 @@ module mod_pbl_uwtcm
           svs(k) = dudz*dudz + dvdz*dvdz
         end do kfullloop
 
-        ! pressure at the surface (in centibars)
-        presfl(kzp1) = psbx + ptop
         ! Surface exner function
-        rexnerfl(kzp1) = (d_100/presfl(kzp1))**rovcp
-        exnerfl(kzp1) = d_one/rexnerfl(kzp1)
+        exnerfl(kzp1)=(presfl(kzp1)/1.0D5)**rovcp
+        rexnerfl(kzp1) = d_one/exnerfl(kzp1)
         ! density at the surface
-        rhoxsf = (presfl(kzp1)*d_1000)/(rgas*tvx(kz))
+        rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
 
 !*******************************************************************************
 !*******************************************************************************
@@ -648,8 +611,7 @@ module mod_pbl_uwtcm
         ! This assumption will tend to cause an over-estimation of the surface
         ! virtual heat flux over land, which should cause an overestimation
         ! of boundary layer height over land.
-        !q0s = ep2/(presfl(kzp1)/esatw(presfl(kzp1),tgbx) - d_one)
-        q0s = ep2/(presfl(kzp1)/(pfesat(tgbx)*d_r1000) - d_one)
+        q0s = ep2/(presfl(kzp1)/pfesat(tgbx) - d_one)
         ! Calculate the virtual temperature right above the surface
         thv0 = thgb*(d_one+ep1*q0s)
         ! Calculate the change in virtual potential temperature from
@@ -904,8 +866,7 @@ module mod_pbl_uwtcm
         do ilay = 1 , kpbconv
           k = ktop(ilay)
           if ( qcx(k) > 1.0D-8 .and. k > 1 ) then
-            bouyan(k) = bouyan(k) - &
-                        rttenx(k)*(presfl(k+1)-presfl(k))*d_1000 * &
+            bouyan(k) = bouyan(k) - rttenx(k)*(presfl(k+1)-presfl(k)) * &
                         rrhoxfl(k) * rexnerfl(k) / uthvx(k)
           end if
         end do radib
@@ -1051,24 +1012,20 @@ module mod_pbl_uwtcm
         ! buoyancy is jump in thetav across flux level/dza
         ! first, layer below, go up and see if anything condenses.
         templ = thlxin(k)*exnerfl(k)
-        !rvls = esatw(presfl(k),templ)*epop(k)
-        rvls = pfesat(templ)*d_r1000*epop(k)
+        rvls = pfesat(templ)*epop(k)
         temps = templ + (qwxin(k)-rvls)/(cpowlhv +    &
                          ep2*wlhv*rvls/(rgas*templ**2))
-        !rvls = esatw(presfl(k),temps)*epop(k)
-        rvls = pfesat(temps)*d_r1000*epop(k)
+        rvls = pfesat(temps)*epop(k)
         rcldb(k) = dmax1(qwxin(k)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcldb(k)) *    &
                 (d_one + ep1*(qwxin(k)-rcldb(k)) - rcldb(k))
         tvbl = tempv*rexnerfl(k)
         ! now do layer above; go down to see how much evaporates
         templ = thlxin(k-1)*exnerfl(k)
-        !rvls = esatw(presfl(k),templ)*epop(k)
-        rvls = pfesat(templ)*d_r1000*epop(k)
+        rvls = pfesat(templ)*epop(k)
         temps = templ+(qwxin(k-1)-rvls) / &
                        (cpowlhv+ep2*wlhv*rvls/(rgas*templ**2))
-        !rvls = esatw(presfl(k),temps)*epop(k)
-        rvls = pfesat(temps)*d_r1000*epop(k)
+        rvls = pfesat(temps)*epop(k)
         rcld = dmax1(qwxin(k-1)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcld) *    &
                 (d_one + ep1*(qwxin(k-1)-rcld) - rcld)
@@ -1258,7 +1215,7 @@ module mod_pbl_uwtcm
           k = ktop(ilay)
           radnnll = d_zero
           if ( qcx(k) > 1.0D-8 ) then
-            radnnll = rttenx(k)*(presfl(k+1)-presfl(k))*d_1000/    &
+            radnnll = rttenx(k)*(presfl(k+1)-presfl(k)) /  &
                       (rhoxfl(k)*uthvx(k)*exnerfl(k))
           end if
           entnnll = d_zero
@@ -1412,7 +1369,7 @@ module mod_pbl_uwtcm
       where ( richnum > rcrit )
         isStable1D = .true.
       end where
-      where ( presfl >= 70.0D0 )
+      where ( presfl >= 70000.0D0 )
         isBelow7001D = .true.
       end where
       ! First see if there is a cloud-topped boundary layer: its top will be

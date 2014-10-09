@@ -26,8 +26,7 @@ module mod_pbl_holtbl
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : iqv , iqc , dt , rdt , ichem , ichdrdepo ,    &
-          sigma , hsigma , dsigma , zhnew_fac , ifaholtth10 , ifaholtmax , &
-          ifaholtmin
+          dsigma , zhnew_fac , ifaholtth10 , ifaholtmax , ifaholtmin
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -169,8 +168,8 @@ module mod_pbl_holtbl
     do i = ici1 , ici2
       do j = jci1 , jci2
         dza(j,i,k) = m2p%za(j,i,k) - m2p%za(j,i,k+1)
-        xps = (hsigma(k)*m2p%psb(j,i)+ptop)*d_1000
-        ps2 = (hsigma(k+1)*m2p%psb(j,i)+ptop)*d_1000
+        xps = m2p%patm(j,i,k)
+        ps2 = m2p%patm(j,i,k+1)
         rhohf(j,i,k) = (ps2-xps)/(egrav*dza(j,i,k))
       end do
     end do

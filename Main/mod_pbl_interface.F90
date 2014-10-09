@@ -32,7 +32,6 @@ module mod_pbl_interface
   use mod_pbl_uwtcm , only : nuk , allocate_tcm_state
   use mod_pbl_uwtcm , only : hadvtke , vadvtke , uwtcm , get_data_from_tcm
   use mod_pbl_uwtcm , only : init_mod_pbl_uwtcm , tkemin
-  use mod_pbl_uwtcm , only : check_conserve_qt
   use mod_runparams , only : ibltyp
   use mod_runparams , only : iqc , iqv , dt , rdt , ichem , hsigma , dsigma
 
@@ -98,10 +97,13 @@ module mod_pbl_interface
     call assignpnt(atms%ubd3d,m2p%udatm)
     call assignpnt(atms%vbd3d,m2p%vdatm)
     call assignpnt(atms%tb3d,m2p%tatm)
+    call assignpnt(atms%pb3d,m2p%patm)
+    call assignpnt(atms%pf3d,m2p%patmf)
     call assignpnt(atms%qxb3d,m2p%qxatm)
     call assignpnt(atms%chib3d,m2p%chib)
     call assignpnt(atms%thx3d,m2p%thxatm)
     call assignpnt(atms%za,m2p%za)
+    call assignpnt(atms%zq,m2p%zq)
     call assignpnt(atms%dzq,m2p%dzq)
     call assignpnt(atms%rhox2d,m2p%rhox2d)
     call assignpnt(atm2%tke,m2p%tkests)
@@ -139,12 +141,6 @@ module mod_pbl_interface
         call uwtcm(m2p,p2m)
         call uvcross2dot(uwten%u,uwten%v,aten%u,aten%v,1,kz)
         call get_data_from_tcm(p2m,atm1,atm2,.true.)
-      case (99)
-        call uwtcm(m2p,p2m)
-        call uvcross2dot(uwten%u,uwten%v,aten%u,aten%v,1,kz)
-        call get_data_from_tcm(p2m,atm1,atm2,.true.)
-        call holtbl(m2p,p2m)
-        call check_conserve_qt(m2p,p2m)
       case default
         return
     end select

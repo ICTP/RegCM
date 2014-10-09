@@ -48,12 +48,10 @@ module mod_pbl_thetal
     real(rk8) :: qc , qv , locp , es
     integer(ik4) , intent(in) :: isice
 
-    es = pfesat(t)*d_r1000
+    es = pfesat(t)
     if ( isice == 0 ) then
-      ! es = esatw(myp,t)
       locp = wlhvocp
     else
-      ! es = esati(myp,t)
       locp = wlhsocp
     end if
     qv = dmax1(ep2/(myp/es-d_one),d_zero)
@@ -101,7 +99,7 @@ module mod_pbl_thetal
     mythetal = thetal
     myqt = max(qt,minqx)
     myp = p
-    myexner = (myp/d_100)**rovcp
+    myexner = (myp/1.0D5)**rovcp
 
 
 !*******************************************************************************
@@ -292,8 +290,7 @@ module mod_pbl_thetal
 
           ! calculate the saturation mixing ratio
 
-          ! rvls = ep2/(myp/esatw(myp,temps)-d_one)
-          rvls = ep2/(myp/(pfesat(temps)*d_r1000)-d_one)
+          rvls = ep2/(myp/pfesat(temps)-d_one)
 
           ! go through 3 iterations of calculating the saturation
           ! humidity and updating the temperature
@@ -310,8 +307,7 @@ module mod_pbl_thetal
             temps = temps  + ((templ-temps)*cpowlhv + myqt-rvls)/   &
                               (cpowlhv+ep2*wlhv*rvls/rgas/temps/temps)
             ! re-calculate the saturation mixing ratio
-            ! rvls = ep2/(myp/esatw(myp,temps)-d_one)
-            rvls = ep2/(myp/(pfesat(temps)*d_r1000)-d_one)
+            rvls = ep2/(myp/pfesat(temps)-d_one)
           end do ! condenseliquid
           ! cloud water is the total minus the saturation
           outqc = dmax1(myqt-rvls,d_zero)
@@ -323,8 +319,7 @@ module mod_pbl_thetal
         else
           mylovcp = wlhsocp
           ! calculate the saturation mixing ratio (wrt ice)
-          ! rvls = ep2/(myp/esati(myp,temps)-d_one)
-          rvls = ep2/(myp/(pfesat(temps)*d_r1000)-d_one)
+          rvls = ep2/(myp/pfesat(temps)-d_one)
           itqt = max(min(int(d_two*(dble(itmax)+log(myqt))),itmax),itmin) + &
                  itqtsupp
           do iteration = 1, itqt ! condenseice
@@ -333,8 +328,7 @@ module mod_pbl_thetal
                     ((templ-temps)*cpowlhs + myqt -rvls)/   &
                      (cpowlhs +ep2*wlhs*rvls/rgas/temps/temps)
             ! re-calculate the saturation mixing ratio
-            ! rvls = ep2/(myp/esati(myp,temps)-d_one)
-            rvls = ep2/(myp/(pfesat(temps)*d_r1000)-d_one)
+            rvls = ep2/(myp/pfesat(temps)-d_one)
           end do ! condenseice
           if ( ipptls == 2 ) then
             outqc = d_zero
@@ -347,12 +341,7 @@ module mod_pbl_thetal
 
         ! if there is cloud, check that qv is consistent with t
         if (outqc > d_zero ) then
-          dum = pfesat(solve_for_t)*d_r1000
-          !if ( isice == 0 ) then
-          !  dum = esatw(myp,solve_for_t)
-          !else
-          !  dum = esati(myp,solve_for_t)
-          !end if
+          dum = pfesat(solve_for_t)
           rvls = ep2/(myp/dum-d_one)
           dum = rvls-outqv
           ! if the solution did not converge, add three more iterations
@@ -507,12 +496,10 @@ module mod_pbl_thetal
     real(rk8) , intent(in) :: t
     real(rk8) , intent(out) :: es , qv , qc
     integer(ik4) , intent(in) :: isice
-    es = pfesat(t)*d_r1000
+    es = pfesat(t)
     if ( isice == 0 ) then
-      !es = esatw(myp,t)
       mylovcp = wlhvocp
     else
-      !es = esati(myp,t)
       mylovcp = wlhsocp
     end if
     qv = dmax1(ep2/(myp/es-d_one),d_zero)
