@@ -313,7 +313,7 @@ module mod_cu_bm
         ip300(j,i) = 0
         cell = ptop/m2c%psb(j,i)
         do k = 1 , kz
-          ddzq(k) = rovg*tbase(j,i,k)*dlog((sigma(k+1)+cell)/(sigma(k)+cell))
+          ddzq(k) = m2c%dzq(j,i,k)
         end do
         z0(j,i,kz) = d_half*ddzq(kz)
         do k = kz - 1 , 1 , -1
