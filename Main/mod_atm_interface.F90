@@ -849,7 +849,9 @@ module mod_atm_interface
     subroutine allocate_slice(ax)
       implicit none
       type(slice) , intent(out) :: ax
-      call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kz+1,'slice:pb3d')
+      call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kz+1,'slice:pf3d')
+      call getmem3d(ax%pb3d,jce1,jce2,ice1,ice2,1,kz,'slice:pb3d')
+      call getmem3d(ax%rhob3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhob3d')
       call getmem3d(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')
       call getmem3d(ax%rhb3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhb3d')
       call getmem3d(ax%thx3d,jce1,jce2,ice1,ice2,1,kz,'slice:thx3d')
@@ -980,9 +982,6 @@ module mod_atm_interface
       call getmem2d(sinc,jci1,jci2,ici1,ici2,'storage:sinc')
       call getmem2d(sdelq,jci1,jci2,ici1,ici2,'storage:sdelq')
       call getmem2d(sdelt,jci1,jci2,ici1,ici2,'storage:sdelt')
-
-      call assignpnt(atm2%pr,atms%pb3d)
-      call assignpnt(atm2%rho,atms%rhob3d)
       call getmem2d(zpbl,jci1,jci2,ici1,ici2,'storage:zpbl')
       call getmem2d(kpbl,jci1,jci2,ici1,ici2,'storage:kpbl')
 

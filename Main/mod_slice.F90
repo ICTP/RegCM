@@ -130,10 +130,10 @@ module mod_slice
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%pb3d(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
+          atms%pb3d(j,i,k) = atm2%pr(j,i,k)
+          atms%rhob3d(j,i,k) = atm2%rho(j,i,k)
           atms%thx3d(j,i,k) = atms%tb3d(j,i,k) * &
-                  (atms%ps2d(j,i)/atm2%pr(j,i,k))**rovcp
-
+                  (atms%ps2d(j,i)/atms%pb3d(j,i,k))**rovcp
         end do
       end do
     end do
@@ -144,7 +144,7 @@ module mod_slice
     do i = ici1 , ici2
       do j = jci1 , jci2
         do k = kz , 1 , -1
-          if ( atm2%pr(j,i,k) < ptrop(j,i) ) then
+          if ( atms%pb3d(j,i,k) < ptrop(j,i) ) then
             ktrop(j,i) = k
             exit
           end if
@@ -210,7 +210,7 @@ module mod_slice
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%qsb3d(j,i,k) = pfqsat(atms%tb3d(j,i,k),atm2%pr(j,i,k))
+          atms%qsb3d(j,i,k) = pfqsat(atms%tb3d(j,i,k),atms%pb3d(j,i,k))
           if ( atms%qsb3d(j,i,k) > d_zero ) then
             atms%rhb3d(j,i,k) = atms%qxb3d(j,i,k,iqv)/atms%qsb3d(j,i,k)
           end if
