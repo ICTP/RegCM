@@ -65,7 +65,7 @@ module mod_cu_tiedtke_38r2
   real(rk8) , parameter :: rdepths = 2.0D4
 
   ! Fractional massflux for downdrafts at lfs
-  real(rk8) , parameter :: cmfdeps = 0.3D0
+  real(rk8) , parameter :: rmfdeps = 0.3D0
 
   contains
 !
@@ -2049,7 +2049,7 @@ module mod_cu_tiedtke_38r2
             zbuo = zttest*(d_one+retv*zqtest) - &
                    ptenh(jl,jk)*(d_one+retv*pqenh(jl,jk))
             zcond(jl) = pqenh(jl,jk) - zqenwb(jl,jk)
-            zmftop = -cmfdeps*pmfub(jl)
+            zmftop = -rmfdeps*pmfub(jl)
             if ( zbuo < d_zero .and. prfl(jl) > 10.0D0*zmftop*zcond(jl) ) then
               kdtop(jl) = jk
               lddraf(jl) = .true.

@@ -90,25 +90,25 @@ module mod_cu_em
         if ( cuscheme(j,i) /= 4 ) cycle
         do k = 1 , kz
           kk = kzp1 - k
-          tcup(k) = m2c%tas(j,i,kk)                         ! [k]
+          tcup(k) = m2c%tas(j,i,kk)                                   ! [k]
           ! Model wants specific humidities
           qcup(k) = m2c%qxas(j,i,kk,iqv)/(d_one+m2c%qxas(j,i,kk,iqv)) ! [kg/kg]
-          qscup(k) = m2c%qsas(j,i,kk)/(d_one+m2c%qsas(j,i,kk))  ! [kg/kg]
-          ucup(k) = m2c%uas(j,i,kk)                         ! [m/s]
-          vcup(k) = m2c%vas(j,i,kk)                         ! [m/s]
-          pcup(k) = m2c%pas(j,i,kk)*d_r100                  ! [hPa]
+          qscup(k) = m2c%qsas(j,i,kk)/(d_one+m2c%qsas(j,i,kk))        ! [kg/kg]
+          ucup(k) = m2c%uas(j,i,kk)                                   ! [m/s]
+          vcup(k) = m2c%vas(j,i,kk)                                   ! [m/s]
+          pcup(k) = m2c%pas(j,i,kk)*d_r100                            ! [hPa]
         end do
         if (ichem == 1 ) then
           do k=1, kz
             kk = kzp1 - k
-            tra(k,:) = m2c%chias(j,i,kk,:)                  ! [kg/kg]
+            tra(k,:) = m2c%chias(j,i,kk,:)                            ! [kg/kg]
           end do
         end if
         do k = 1 , kzp1
           kk = kzp1 - k + 1
-          phcup(k) = (sigma(kk)*m2c%psb(j,i)+ptop)*d_10 ! [hPa]
+          phcup(k) = m2c%pasf(j,i,kk) * d_r100                        ! [hPa]
         end do
-        cbmf = cbmf2d(j,i)                              ! [(kg/m**2)/s]
+        cbmf = cbmf2d(j,i)                                       ! [(kg/m**2)/s]
         elcrit = elcrit2d(j,i)
         epmax = epmax2d(j,i)
 

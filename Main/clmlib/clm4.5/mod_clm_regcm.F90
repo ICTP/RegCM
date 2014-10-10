@@ -218,6 +218,7 @@ module mod_clm_regcm
     clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
     clm_a2l%forc_psrf = (clm_a2l%forc_psrf+ptop)*d_1000
+
     do i = begg , endg
       satp = pfesat(clm_a2l%forc_t(i))
       satq = pfqsat(clm_a2l%forc_t(i),clm_a2l%forc_pbot(i),satp)
@@ -284,8 +285,6 @@ module mod_clm_regcm
     if ( iemiss == 1 ) then
       call glb_l2c_ss(lndcomm,clm_l2a%emg,lms%emisv)
     end if
-    !clm_l2a%notused = clm_l2a%eflx_lwrad_out/(sb*clm_l2a%t_rad**4)
-    !call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%emisv)
 
     ! CLM gives just wind speed, assume directions are same as input.
     clm_a2l%notused = atan(clm_a2l%forc_v/clm_a2l%forc_u)

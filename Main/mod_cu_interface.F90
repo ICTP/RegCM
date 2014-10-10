@@ -141,6 +141,7 @@ module mod_cu_interface
     call assignpnt(atms%zq,m2c%zfs)
     call assignpnt(atms%dzq,m2c%dzq)
     call assignpnt(atms%pb3d,m2c%pas)
+    call assignpnt(atms%pf3d,m2c%pasf)
     call assignpnt(atms%tb3d,m2c%tas)
     call assignpnt(atms%ubx3d,m2c%uas)
     call assignpnt(atms%vbx3d,m2c%vas)

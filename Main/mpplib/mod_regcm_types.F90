@@ -459,9 +459,10 @@ module mod_regcm_types
   type mod_2_cum
     real(rk8) , pointer , dimension(:,:) :: ht        ! mddom%ht
     real(rk8) , pointer , dimension(:,:) :: psb       ! sfs%psb
-    real(rk8) , pointer , dimension(:,:,:) :: pas     ! atms%tb3d
+    real(rk8) , pointer , dimension(:,:,:) :: pas     ! atms%pb3d
+    real(rk8) , pointer , dimension(:,:,:) :: pasf    ! atms%pf3d
     real(rk8) , pointer , dimension(:,:,:) :: zas     ! atms%za
-    real(rk8) , pointer , dimension(:,:,:) :: tas     ! atms%pb3d
+    real(rk8) , pointer , dimension(:,:,:) :: tas     ! atms%tb3d
     real(rk8) , pointer , dimension(:,:,:) :: uas     ! atms%ubx3d
     real(rk8) , pointer , dimension(:,:,:) :: vas     ! atms%vbx3d
     real(rk8) , pointer , dimension(:,:,:) :: wpas    ! atms%wpx3d
