@@ -1113,7 +1113,7 @@ module mod_pbl_uwtcm
         ! over the time step; this implies that the entrainment rate
         ! can only be so large that the BL height would change by
         ! one grid level over one time step -- TAO
-        kthmax = min((zax(k-1)-zax(k))**2/dt,1.0D4)
+        kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.0D4),1.0D3)
         ! kthmax = 1.0D4
 
         ! Calculate the diffusion coefficients
@@ -1144,7 +1144,7 @@ module mod_pbl_uwtcm
           ! over the time step; this implies that the entrainment rate
           ! can only be so large that the BL height would change by
           ! one grid level over one time step -- TAO
-          kthmax = min((zax(k-1)-zax(k))**2/dt,1.D4)
+          kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.D4),1.0D3)
           ! kthmax = 10000.0D0
           kth(k) = biga * dsqrt(TKE(k)**3)/nsquar(k) /    &
                    max(bbls(k),bbls(k+1))
