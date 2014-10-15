@@ -119,10 +119,10 @@ module mod_tendency
   subroutine tend
     implicit none
     real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,  &
-               psasum , pt2bar , pt2tot , ptnbar , maxv , lowq ,     &
-               ptntot , qxas , qxbs , rovcpm , rtbar , sigpsa , tv , &
-               tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,     &
-               rho0s , cpm , scr
+               psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot ,   &
+               qxas , qxbs , rovcpm , rtbar , sigpsa , tv , tv1 ,    &
+               tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc , rho0s ,   &
+               cpm , scr
     real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
@@ -897,19 +897,19 @@ module mod_tendency
     end if
     !
     ! compute the condensation and precipitation terms for explicit
-    ! moisture scheme:
+    ! moisture schemes
     !
     if ( ipptls > 0 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            aten%qx(j,i,k,iqc) = aten%qx(j,i,k,iqc) + adf%diffqx(j,i,k,iqc)
+      do n = iqc , nqx
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%diffqx(j,i,k,n)
+            end do
           end do
         end do
       end do
-      if ( ipptls == 2 ) then
-        !dummystatement
-      else
+      if ( ipptls == 1 ) then
         call condtq(sfs%psc)
       end if
       if ( idiag > 0 ) then
@@ -960,6 +960,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
+            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),d_zero)
           end do
         end do
       end do
@@ -1408,22 +1409,6 @@ module mod_tendency
               qxas = atmc%qx(j,i,k,n)
               qxbs = omuhf*atm1%qx(j,i,k,n) + &
                      gnuhf*(atm2%qx(j,i,k,n)+atmc%qx(j,i,k,n))
-              lowq = minqx*sfs%psa(j,i)
-              if ( qxas < lowq ) then
-                if ( n == iqv ) then
-                  qxas = lowq
-                else
-                  qxas = d_zero
-                end if
-              end if
-              lowq = minqx*sfs%psb(j,i)
-              if ( qxbs < lowq ) then
-                if ( n == iqv ) then
-                  qxbs = lowq
-                else
-                  qxbs = d_zero
-                end if
-              end if
               atm1%qx(j,i,k,n) = qxas
               atm2%qx(j,i,k,n) = qxbs
             end do

@@ -113,6 +113,7 @@ module mod_pbl_interface
     call assignpnt(ktrop,m2p%ktrop)
 
     ! OUTPUT FROM PBL
+    call assignpnt(aten%t,p2m%tten)
     call assignpnt(aten%u,p2m%uten)
     call assignpnt(aten%v,p2m%vten)
     call assignpnt(aten%qx,p2m%qxten)

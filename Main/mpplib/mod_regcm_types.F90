@@ -524,6 +524,7 @@ module mod_regcm_types
   end type mod_2_pbl
 
   type pbl_2_mod
+    real(rk8) , pointer , dimension(:,:,:) :: tten       ! aten%t
     real(rk8) , pointer , dimension(:,:,:) :: uten       ! aten%u
     real(rk8) , pointer , dimension(:,:,:) :: vten       ! aten%v
     real(rk8) , pointer , dimension(:,:,:,:) :: qxten    ! aten%qx

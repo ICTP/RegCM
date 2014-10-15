@@ -74,8 +74,8 @@ module mod_pbl_uwtcm
   use mod_mppparam
   use mod_pbl_common
   use mod_pbl_thetal
-  use mod_runparams , only : iqv , iqc , iuwvadv , atwo , rstbl , &
-          ilenparam , czero , dt , rdt , ichem , sigma , hsigma , &
+  use mod_runparams , only : iqv , iqc , iqi , iuwvadv , atwo , rstbl , &
+          ilenparam , czero , dt , rdt , ichem , sigma , hsigma ,       &
           dsigma , ipptls
   use mod_regcm_types
   use mod_service
@@ -96,6 +96,7 @@ module mod_pbl_uwtcm
   ! b1/2**(3/2) from Mellor and Yamada (1982)
   real(rk8) , parameter :: rcrit = 0.3D0
   real(rk8) , parameter :: etal =  0.085D0
+  real(rk8) , parameter :: minn2 =  1.0D-8
 
   ! Variables that hold frequently-done calculations
   real(rk8) :: rczero
@@ -107,13 +108,13 @@ module mod_pbl_uwtcm
                  shear , rexnerfl , rcldb , epop , sm , sh, xkchi
 
   ! local variables on half levels
-  real(rk8) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,    &
+  real(rk8) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,   &
                  zax , kethl , thlx , thlxs, thxs , tx , tvx ,         &
                  rttenx , preshl , qcx , qwx , qwxs , udzq , rrhoxhl , &
                  uxs , qxs , rhoxhl , exnerhl , rexnerhl , rdzq ,      &
                  vxs , qcxs , aimp , bimp , cimp , uimp1 , rimp1 ,     &
-                 uimp2 , rimp2
-  real(rk8) , pointer , dimension(:,:) :: chix, chixs
+                 uimp2 , rimp2 , qix , qixs , qct
+  real(rk8) , pointer , dimension(:,:) :: chix , chixs
 
   integer(ik4) , pointer , dimension(:) :: isice , ktop , kbot
 
@@ -128,7 +129,7 @@ module mod_pbl_uwtcm
   integer(ik4) :: kmix2dx  ! Top of mixed layer (decoupled layer)
 
   ! imethod = 1     ! Use the Brent 1973 method to solve for T
-  ! imethod = 2       ! Use Bretherton's iterative method to solve for T
+  ! imethod = 2     ! Use Bretherton's iterative method to solve for T
   ! imethod = 3     ! Use a finite difference method to solve for T
   integer(ik4) , parameter :: imethod = 2
   ! Do a maximum of 100 iterations (usually are no more than about 30)
@@ -194,6 +195,17 @@ module mod_pbl_uwtcm
         end do
       end do
     end do
+    if ( ipptls == 2 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
+               p2m%qxuwten(j,i,k,iqi)
+          end do
+        end do
+      end do
+    end if
+
 
     ! Put the tracer tendencies in chiuwten
     ! TODO: may want to calcuate rmdr here following holtbl
@@ -266,10 +278,10 @@ module mod_pbl_uwtcm
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-   !
-   ! Interpoalte the winds to the full sigma levels
-   ! while the advection term is calculated
-   !
+    !
+    ! Interpolate the winds to the full sigma levels
+    ! while the advection term is calculated
+    !
     do k = 2 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -415,6 +427,8 @@ module mod_pbl_uwtcm
     call getmem1d(rttenx,1,kz,'mod_uwtcm:rttenx')
     call getmem1d(preshl,1,kz,'mod_uwtcm:preshl')
     call getmem1d(qcx,1,kz,'mod_uwtcm:qcx')
+    call getmem1d(qix,1,kz,'mod_uwtcm:qix')
+    call getmem1d(qct,1,kz,'mod_uwtcm:qct')
     call getmem1d(qwx,1,kz,'mod_uwtcm:qwx')
     call getmem1d(qwxs,1,kz,'mod_uwtcm:qwxs')
     call getmem1d(udzq,1,kz,'mod_uwtcm:udzq')
@@ -427,6 +441,7 @@ module mod_pbl_uwtcm
     call getmem1d(rdzq,1,kz,'mod_uwtcm:rdzq')
     call getmem1d(vxs,1,kz,'mod_uwtcm:vxs')
     call getmem1d(qcxs,1,kz,'mod_uwtcm:qcxs')
+    call getmem1d(qixs,1,kz,'mod_uwtcm:qixs')
     call getmem1d(aimp,1,kz,'mod_uwtcm:aimp')
     call getmem1d(bimp,1,kz,'mod_uwtcm:bimp')
     call getmem1d(cimp,1,kz,'mod_uwtcm:cimp')
@@ -437,8 +452,8 @@ module mod_pbl_uwtcm
 
     if ( ichem == 1 ) then
       call getmem1d(xkchi,1,kzp1,'mod_uwtcm:xkchi')
-      call getmem2d(chix,1,ntr,1,kz,'mod_uwtcm:chix')
-      call getmem2d(chixs,1,ntr,1,kz,'mod_uwtcm:chixs')
+      call getmem2d(chix,1,kz,1,ntr,'mod_uwtcm:chix')
+      call getmem2d(chixs,1,kz,1,ntr,'mod_uwtcm:chixs')
       call getmem1d(chifxx,1,ntr,'mod_uwtcm:chifxx')
     end if
 
@@ -469,14 +484,10 @@ module mod_pbl_uwtcm
     p2m%tkeuwten(:,:,:) = d_zero
     p2m%tuwten(:,:,:) = d_zero
     p2m%qxuwten(:,:,:,:) = d_zero
-    uwstateb%kzm(:,:,:) = 0
-    uwstateb%kth(:,:,:) = 0
     if ( ichem == 1 ) chiuwten(:,:,:,:) = d_zero
 
     !Main do loop
-    iloop: &
     do i = ici1 , ici2
-      jloop: &
       do j = jci1 , jci2
 
 !*******************************************************************************
@@ -491,7 +502,6 @@ module mod_pbl_uwtcm
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
         uvdragx = m2p%uvdrag(j,i)
-        if ( ichem == 1 ) chifxx(:) = m2p%chifxuw(j,i,:)
 
         ! Integrate the hydrostatic equation to calculate the level height
         ! Set variables that are on full levels
@@ -501,32 +511,47 @@ module mod_pbl_uwtcm
         end do
 
         tke(kzp1) = m2p%tkests(j,i,kzp1)
+        if ( ipptls == 2 ) then
+          do k = 1 , kz
+            tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k) / psbx
+            qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv) / psbx
+            qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc) / psbx
+            !qix(k) = m2p%qxatm(j,i,k,iqi) + p2m%qxten(j,i,k,iqi) / psbx
+            qix(k) = d_zero
+            isice(k) = 0
+            !if ( tx(k) > tzero ) then
+            !  isice(k) = 0
+            !else
+            !  isice(k) = 1
+            !end if
+          end do
+        else
+          do k = 1 , kz
+            tx(k)  = m2p%tatm(j,i,k)
+            qx(k)  = m2p%qxatm(j,i,k,iqv)
+            qcx(k) = m2p%qxatm(j,i,k,iqc)
+            qix(k) = d_zero
+            isice(k) = 0
+          end do
+        end if
 
-        kinitloop: &
-        do k = kz , 1 , -1
+        do k = 1 , kz
           rttenx(k) = m2p%heatrt(j,i,k)
           zax(k) = m2p%za(j,i,k)
           tke(k) = m2p%tkests(j,i,k)
-          tx(k)  = m2p%tatm(j,i,k)
-          if ( ipptls == 2 ) then
-            qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv) / psbx
-            qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc) / psbx
-          else
-            qx(k)  = m2p%qxatm(j,i,k,iqv)
-            qcx(k) = m2p%qxatm(j,i,k,iqc)
-          end if
           ux(k)  = m2p%uxatm(j,i,k)
           vx(k)  = m2p%vxatm(j,i,k)
-          if ( ichem == 1 ) chix(:,k) = m2p%chib(j,i,k,:)
-          isice(k) = 0
-          if ( ipptls == 2 ) then
-            if ( tx(k) > tzero ) then
-              isice(k) = 0
-            else
-              isice(k) = 1
-            end if
-          end if
-        end do kinitloop
+          qct(k) = qcx(k) + qix(k)
+        end do
+
+        if ( ichem == 1 ) then
+          do itr = 1 , ntr
+            chifxx(itr) = m2p%chifxuw(j,i,itr)
+            do k = 1 , kz
+              chix(k,itr) = m2p%chib(j,i,k,itr)
+            end do
+          end do
+        end if
 
         ! Set all the save variables (used for determining the tendencies)
         tkes(kzp1) = tke(kzp1)
@@ -543,17 +568,17 @@ module mod_pbl_uwtcm
           ! Potential temperature
           thx(k) = tx(k)*rexnerhl(k)
           ! Total water specific humidity
-          qwx(k) = qx(k) + qcx(k)
-          qwxs(k) = qwx(k)
+          qwx(k) = qx(k) + qct(k)
+          qwxs(k) = qx(k) + qct(k)
           ! Virtual temperature and potential temperature
-          tvcon = (d_one + ep1*qx(k)-qcx(k))
+          tvcon = (d_one + ep1*qx(k)-qct(k))
           tvx(k) = tx(k)*tvcon ! virtual temperature
           uthvx(k) = thx(k)*tvcon
           ! Liquid water potential temperature (accounting for ice)
           if ( isice(k) == 0 ) then
-            thlx(k) = thx(k) - wlhvocp * rexnerhl(k) * qcx(k)
+            thlx(k) = thx(k) - wlhvocp * rexnerhl(k) * qct(k)
           else
-            thlx(k) = thx(k) - wlhsocp * rexnerhl(k) * qcx(k)
+            thlx(k) = thx(k) - wlhsocp * rexnerhl(k) * qct(k)
           end if
           thlxs(k) = thlx(k)
           ! save initial values of winds, thx, and qx
@@ -563,15 +588,20 @@ module mod_pbl_uwtcm
           thxs(k) = thx(k)
           qxs(k) = qx(k)
           qcxs(k) = qcx(k)
-
-          if ( ichem == 1 ) chixs(:,k) = chix(:,k)
-
+          qixs(k) = qix(k)
           ! density at half levels
           rhoxhl(k) = preshl(k)/(rgas*tvx(k))
           rrhoxhl(k) = d_one/rhoxhl(k)
         end do khalfloop
 
-        kfullloop: &
+        if ( ichem == 1 ) then
+          do itr = 1 , ntr
+            do k = 1 , kz
+              chixs(k,itr) = chix(k,itr)
+            end do
+          end do
+        end if
+
         do k = 2 , kz
           ! pressure at full levels
           epop(k) = ep2/presfl(k)
@@ -579,20 +609,20 @@ module mod_pbl_uwtcm
           dza(k) = zax(k-1)-zax(k)
           rdza(k) = d_one/dza(k)
           ! Exner function
-          exnerfl(k)=(presfl(k)/1.0D5)**rovcp
+          exnerfl(k) = (presfl(k)/1.0D5)**rovcp
           rexnerfl(k) = d_one/exnerfl(k)
           ! Density
           fracz = (zqx(k)-zax(k))*rdza(k)
-          rhoxfl(k) = rhoxhl(k)+(rhoxhl(k-1)-rhoxhl(k))*fracz
+          rhoxfl(k) = rhoxhl(k) + (rhoxhl(k-1)-rhoxhl(k))*fracz
           rrhoxfl(k) = d_one/rhoxfl(k)
           ! Wind gradient and shear
-          dudz =  (ux(k-1)  - ux(k)) * rdza(k)
-          dvdz =  (vx(k-1)  - vx(k)) * rdza(k)
+          dudz =  (ux(k-1) - ux(k)) * rdza(k)
+          dvdz =  (vx(k-1) - vx(k)) * rdza(k)
           svs(k) = dudz*dudz + dvdz*dvdz
-        end do kfullloop
+        end do
 
         ! Surface exner function
-        exnerfl(kzp1)=(presfl(kzp1)/1.0D5)**rovcp
+        exnerfl(kzp1) = (presfl(kzp1)/1.0D5)**rovcp
         rexnerfl(kzp1) = d_one/exnerfl(kzp1)
         ! density at the surface
         rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
@@ -611,12 +641,12 @@ module mod_pbl_uwtcm
         ! This assumption will tend to cause an over-estimation of the surface
         ! virtual heat flux over land, which should cause an overestimation
         ! of boundary layer height over land.
-        q0s = ep2/(presfl(kzp1)/pfesat(tgbx) - d_one)
+        q0s = ep2/(psbx/pfesat(tgbx) - d_one)
         ! Calculate the virtual temperature right above the surface
-        thv0 = thgb*(d_one+ep1*q0s)
+        thv0 = thgb * (d_one + ep1*q0s)
         ! Calculate the change in virtual potential temperature from
         ! the surface to the first interface
-        dthv = uthvx(kz)-thv0
+        dthv = uthvx(kz) - thv0
         ! Calculate the change in potential temperature from the surface
         ! to the first interface
         dth = thx(kz) - thgb
@@ -630,7 +660,7 @@ module mod_pbl_uwtcm
         thvflx = hfxx/rhoxsf*rcpd*(d_one+ep1*q0s) + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
-        kh0 = vonkar*d_one*dsqrt(dmax1(tkemin,3.25D0 * ustxsq))
+        kh0 = vonkar*d_one*dsqrt(max(tkemin,3.25D0 * ustxsq))
 
 !*******************************************************************************
 !*******************************************************************************
@@ -646,7 +676,7 @@ module mod_pbl_uwtcm
         nsquar(kzp1) = -egrav/thgb*thvflx/kh0
 
         ! Calculate the bulk richardson number
-        richnum = nsquar/dmax1(svs,1.0D-8)
+        richnum = nsquar/max(svs,1.0D-8)
 
         ! Calculate the boundary layer height
         call pblhgt(kzp1,m2p%ktrop(j,i),kpbconv)
@@ -684,8 +714,8 @@ module mod_pbl_uwtcm
             if ( k == kz ) then
               cimp(k) = d_zero
             else
-              cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))* &
-                          kth(k+1) * dt *rdzq(k)*rdza(k+1)
+              cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k)) * &
+                kth(k+1)*dt*rdzq(k)*rdza(k+1)
             end if
             bimp(k) = d_one - aimp(k) - cimp(k)
             ! now find right side for various scalars:
@@ -715,22 +745,18 @@ module mod_pbl_uwtcm
         !************ Re-calculate thx, qx, and qcx ******************
         !*************************************************************
 
-        recalcscalar: &
         do k = 1 , kz
           ! Set thlx and qwx to their updated values
           thlx(k) = uimp1(k)
           qwx(k) = uimp2(k)
           ! Determine the temperature and qc and qv
-          ibnd = itbound
           temps = solve_for_t(thlx(k),qwx(k),preshl(k),thxs(k)*exnerhl(k), &
-                              qwxs(k),qcxs(k),thlxs(k),ibnd,imethod,       &
-                              isice(k),qcx(k),qx(k))
-          if ( ibnd == -999 ) then
-            call fatal(__FILE__,__LINE__,'UW PBL SCHEME ALGO ERROR')
-          end if
+                              qwxs(k),qcxs(k),qixs(k),thlxs(k),itbound,    &
+                              imethod,isice(k),qx(k),qcx(k),qix(k))
           thx(k) = temps*rexnerhl(k)
-          uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
-        end do recalcscalar
+          qct(k) = qcx(k) + qix(k)
+          uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qct(k))
+        end do
 
         !*************************************************************
         !****** Implicit Diffusion of U and V ************************
@@ -751,8 +777,7 @@ module mod_pbl_uwtcm
           ! now find right side
           ! no flux out top, so no (k == 1)
           if ( k == kz ) then
-            ! at surface
-            ! include surface momentum fluxes
+            ! at surface include surface momentum fluxes
             rimp1(k) = ux(k) + dt * uflxp * (rhoxsf*rrhoxhl(k)) *rdzq(kz)
             rimp2(k) = vx(k) + dt * vflxp * (rhoxsf*rrhoxhl(k)) *rdzq(kz)
           else
@@ -771,8 +796,8 @@ module mod_pbl_uwtcm
           ! Recalculate the shear and the squared
           ! magnitude of the shear
           if ( k >= 2 ) then
-            dudz =  (ux(k-1)  - ux(k))  *rdza(k)
-            dvdz =  (vx(k-1)  - vx(k))  *rdza(k)
+            dudz =  (ux(k-1) - ux(k)) * rdza(k)
+            dvdz =  (vx(k-1) - vx(k)) * rdza(k)
             svs(k) = dudz*dudz + dvdz*dvdz
           end if
         end do updatewind
@@ -787,7 +812,7 @@ module mod_pbl_uwtcm
 !
 !       !Estimate of surface eddy diffusivity, for estimating the
 !       !surface N^2 from the surface virtual heat flux
-!       kh0 = vonkar*2*dsqrt(dmax1(tkemin,3.25 * ustxsq))
+!       kh0 = vonkar*2*dsqrt(max(tkemin,3.25 * ustxsq))
 !
 !       !Estimate the surface N^2 from the surface virtual heat flux
 !       nsquar(kzp1) = -egrav/thgb*thvflx/kh0
@@ -801,7 +826,6 @@ module mod_pbl_uwtcm
           xkchi = kth
 
           !Set the tridiagonal coefficients that apply to all of the tracers
-          diffchi: &
           do k = 1 , kz
             if ( k == 1 ) then
               aimp(k) = d_zero
@@ -816,19 +840,19 @@ module mod_pbl_uwtcm
                           xkchi(k+1) * dt *rdzq(k)*rdza(k+1)
             end if
             bimp(k) = d_one - aimp(k) - cimp(k)
-          end do diffchi
+          end do
 
           !Loop through all of the tracers
           ! set the tridiagonal coefficients that are tracer-specific
           ! and solve the tridiagonal matrix for each tracer to get
           ! the tracer value implied for the next timestep
-          chiloop: &
           do itr = 1 , ntr
             ! set the right side
-            rimp1(:) = chix(itr,:)
+            do k = 1 , kz
+              rimp1(k) = chix(k,itr)
+            end do
             ! at surface include surface momentum fluxes
-            rimp1(kz) = chix(itr,kz) + dt *              &
-                       chifxx(itr) * rrhoxhl(kz) *rdzq(kz)
+            rimp1(kz) = chix(kz,itr) + dt*chifxx(itr)*rrhoxhl(kz)*rdzq(kz)
             ! no flux out top, so no (k == 1)
             rimp1(1) = d_zero
 
@@ -836,8 +860,10 @@ module mod_pbl_uwtcm
             call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
 
             !Get the chi value implied for the next timestep
-            chix(itr,:) = uimp1(:)
-          end do chiloop
+            do k = 1 , kz
+              chix(k,itr) = uimp1(k)
+            end do
+          end do
         end if !End tracer diffusion
 
 !*******************************************************************************
@@ -865,7 +891,7 @@ module mod_pbl_uwtcm
         radib:&
         do ilay = 1 , kpbconv
           k = ktop(ilay)
-          if ( qcx(k) > 1.0D-8 .and. k > 1 ) then
+          if ( qct(k) > minqx .and. k > 1 ) then
             bouyan(k) = bouyan(k) - rttenx(k)*(presfl(k+1)-presfl(k)) * &
                         rrhoxfl(k) * rexnerfl(k) / uthvx(k)
           end if
@@ -896,7 +922,7 @@ module mod_pbl_uwtcm
             cimp(k-1) = -(rhoxhl(k)*rrhoxfl(k))*    &
                           kethl(k)*dt*rdzq(k)*rdza(k)
             bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *   &
-                        dsqrt(tke(k))*rczero/dmax1(bbls(k),bbls(k+1))
+                        dsqrt(tke(k))*rczero/max(bbls(k),bbls(k+1))
           end if
           ! now find right side
           if ( k == kz ) then
@@ -910,10 +936,9 @@ module mod_pbl_uwtcm
         end do imptkeflux
         call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kzm1)
         ! update the tke
-        updatetke: &
         do  k = 2 , kz
-          tke(k) = dmax1(uimp1(k-1),tkemin) ! background tke .001
-        end do updatetke
+          tke(k) = max(uimp1(k-1),tkemin) ! background tke .001
+        end do
 
 !*******************************************************************************
 !*******************************************************************************
@@ -925,29 +950,38 @@ module mod_pbl_uwtcm
         ! For everything but TKE, couple the tendency (multiply by p0-ptop)
         ibnd = 1
         if ( update_only_in_pbl ) ibnd = kpbl2dx
-        tcmtend: &
         do k = ibnd , kz
           ! Zonal wind tendency
-          p2m%uuwten(j,i,k)= psbx*(ux(k)-uxs(k))*rdt
+          p2m%uuwten(j,i,k) = psbx*(ux(k)-uxs(k))*rdt
           ! Meridional wind tendency
-          p2m%vuwten(j,i,k)= psbx*(vx(k)-vxs(k))*rdt
+          p2m%vuwten(j,i,k) = psbx*(vx(k)-vxs(k))*rdt
           ! TKE tendency
           p2m%tkeuwten(j,i,k) = (tke(k)-tkes(k))*rdt
           ! Temperature tendency
-          p2m%tuwten(j,i,k)= psbx*(thx(k)-thxs(k))*exnerhl(k)*rdt
+          p2m%tuwten(j,i,k) = psbx*(thx(k)-thxs(k))*exnerhl(k)*rdt
           ! Water vapor tendency
           p2m%qxuwten(j,i,k,iqv) = psbx*(qx(k)-qxs(k))*rdt
           ! Cloud water tendency
           p2m%qxuwten(j,i,k,iqc) = psbx*(qcx(k)-qcxs(k))*rdt
-          ! Tracer tendency
-          if ( ichem == 1 ) then
-            chiuwten(j,i,k,:) = psbx*(chix(:,k) - chixs(:,k))*rdt
-          end if
           ! Momentum diffusivity
           uwstateb%kzm(j,i,k) = kzm(k)
           ! Scalar diffusivity
           uwstateb%kth(j,i,k) = kth(k)
-        end do tcmtend
+        end do
+
+        if ( ipptls == 2 ) then
+          do k = ibnd , kz
+            p2m%qxuwten(j,i,k,iqi) = psbx*(qix(k)-qixs(k))*rdt
+          end do
+        end if
+
+        if ( ichem == 1 ) then
+          do itr = 1 , ntr
+            do k = ibnd , kz
+              chiuwten(j,i,k,itr) = psbx*(chix(k,itr)-chixs(k,itr))*rdt
+            end do
+          end do
+        end if
 
         ! Output the diagnosed TKE
         uwstatea%srftke(j,i) = tke(kzp1)
@@ -955,9 +989,8 @@ module mod_pbl_uwtcm
 
         p2m%kpbl(j,i) = kpbl2dx
         p2m%zpbl(j,i) = pblx
-
-      end do jloop
-    end do iloop
+      end do
+    end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -985,18 +1018,16 @@ module mod_pbl_uwtcm
       bp(1) = b(1)
       vp(1) = v(1)
       ! The first pass (setting coefficients):
-      firstpass: &
       do i = 2 , n
         m = a(i)/bp(i-1)
         bp(i) = b(i) - m*c(i-1)
         vp(i) = v(i) - m*vp(i-1)
-      end do firstpass
+      end do
       x(n) = vp(n)/bp(n)
       ! The second pass (back-substition)
-      backsub: &
       do i = n-1, 1, -1
         x(i) = (vp(i) - c(i)*x(i+1))/bp(i)
-      end do backsub
+      end do
     end subroutine solve_tridiag
 
     subroutine n2(thlxin,qwxin,ktmax)
@@ -1014,9 +1045,9 @@ module mod_pbl_uwtcm
         templ = thlxin(k)*exnerfl(k)
         rvls = pfesat(templ)*epop(k)
         temps = templ + (qwxin(k)-rvls)/(cpowlhv +    &
-                         ep2*wlhv*rvls/(rgas*templ**2))
+                         ep2*wlhv*rvls/(rgas*templ*templ))
         rvls = pfesat(temps)*epop(k)
-        rcldb(k) = dmax1(qwxin(k)-rvls,d_zero)
+        rcldb(k) = max(qwxin(k)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcldb(k)) *    &
                 (d_one + ep1*(qwxin(k)-rcldb(k)) - rcldb(k))
         tvbl = tempv*rexnerfl(k)
@@ -1024,9 +1055,9 @@ module mod_pbl_uwtcm
         templ = thlxin(k-1)*exnerfl(k)
         rvls = pfesat(templ)*epop(k)
         temps = templ+(qwxin(k-1)-rvls) / &
-                       (cpowlhv+ep2*wlhv*rvls/(rgas*templ**2))
+                       (cpowlhv+ep2*wlhv*rvls/(rgas*templ*templ))
         rvls = pfesat(temps)*epop(k)
-        rcld = dmax1(qwxin(k-1)-rvls,d_zero)
+        rcld = max(qwxin(k-1)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcld) *    &
                 (d_one + ep1*(qwxin(k-1)-rcld) - rcld)
         tvab = tempv*rexnerfl(k)
@@ -1043,7 +1074,7 @@ module mod_pbl_uwtcm
       integer(ik4) , intent(in) :: ktmax , kpbconv
       real(rk8) :: gh , a1ob1 , delthvl , elambda , bige , biga
       real(rk8) , parameter :: a1 = 0.92D0 , b1 = 16.6D0 , c1 = 0.08D0 , &
-                              a2 = 0.74D0 , b2 = 10.1D0
+                               a2 = 0.74D0 , b2 = 10.1D0
       integer(ik4) :: k , ilay
       real(rk8) :: kthmax
 
@@ -1063,10 +1094,10 @@ module mod_pbl_uwtcm
       kloop: &
       do k = ktmax - 1, 2, -1
         gh = -bbls(k)*bbls(k)*nsquar(k)/(d_two*tke(k)+1.0D-9)
-        ! gh = dmin1(gh,0.0233D0)
+        ! gh = min(gh,0.0233D0)
         ! TAO: Added the -0.28 minimum for the G function, as stated
         ! in Galperin (1988), eq 30
-        gh = dmax1(dmin1(gh,0.0233D0),-0.28D0)
+        gh = max(min(gh,0.0233D0),-0.28D0)
 
         sm(k) = a1 * (d_one - d_three*c1 - d_six*a1ob1 - d_three*a2*gh*   &
                      ((b2-d_three*a2)*(d_one - d_six*a1ob1) -             &
@@ -1075,16 +1106,15 @@ module mod_pbl_uwtcm
                       (d_one - d_nine*a1*a2*gh))
         sh(k) = a2 * (d_one-d_six*a1ob1) / (d_one-d_three*a2*gh*(d_six*a1+b2))
 
-        ! kzm(k) = dmin1(bbls(k)*dsqrt(2*tke(k))*sm(k),10000.0D0)
-        ! kth(k) = dmin1(bbls(k)*dsqrt(2*tke(k))*sh(k),10000.0D0)
+        ! kzm(k) = min(bbls(k)*dsqrt(2*tke(k))*sm(k),10000.0D0)
+        ! kth(k) = min(bbls(k)*dsqrt(2*tke(k))*sh(k),10000.0D0)
 
         ! Limit the diffusivity to be the vertical grid spacing squared
         ! over the time step; this implies that the entrainment rate
         ! can only be so large that the BL height would change by
         ! one grid level over one time step -- TAO
-        ! kthmax = dmin1((zax(k-1)-zax(k))**2/dt,1.d4)
-
-        kthmax = 10000.0D0
+        kthmax = min((zax(k-1)-zax(k))**2/dt,1.0D4)
+        ! kthmax = 1.0D4
 
         ! Calculate the diffusion coefficients
         kzm(k) = bbls(k)*dsqrt(d_two*tke(k))*sm(k)
@@ -1092,8 +1122,7 @@ module mod_pbl_uwtcm
         ! Smoothly limit kth to a maximum value
         kth(k) = d_two/mathpi*kthmax*atan(kth(k)/kthmax)
         kzm(k) = d_two/mathpi*kthmax*atan(kzm(k)/kthmax)
-
-        kethl(k)=nuk*dsqrt(kzm(k)*kzm(k+1))
+        kethl(k) = nuk*dsqrt(kzm(k)*kzm(k+1))
       end do kloop
 
       ! special case for tops of convective layers
@@ -1101,24 +1130,24 @@ module mod_pbl_uwtcm
       do ilay = 1 , kpbconv
         k = ktop(ilay)
         kethl(k) = nuk*kzm(k+1)
-        if ( k >= 3 .and. nsquar(k) > 1.D-8 ) then
-          kethl(k-1)=0.0D0
+        if ( k >= 3 .and. nsquar(k) > minn2 ) then
+          kethl(k-1) = 0.0D0
           delthvl = (thlx(k-2)+thx(k-2)*ep1*qwx(k-2)) -   &
                     (thlx(k) + thx(k) * ep1 * qwx(k))
-          elambda = wlhvocp*rcldb(k)*rexnerhl(k)/dmax1(delthvl,0.1D0)
+          elambda = wlhvocp*rcldb(k)*rexnerhl(k)/max(delthvl,0.1D0)
           bige = 0.8D0 * elambda
           biga = aone * (d_one + atwo * bige)
 
-          ! kth(k) = dmin1(10000.0D0, biga * dsqrt(tke(k)**3)/nsquar(k)/    &
-          !          dmax1(bbls(k),bbls(k+1)))
+          ! kth(k) = min(10000.0D0, biga * dsqrt(tke(k)**3)/nsquar(k)/    &
+          !          max(bbls(k),bbls(k+1)))
           ! Limit the diffusivity to be the vertical grid spacing squared
           ! over the time step; this implies that the entrainment rate
           ! can only be so large that the BL height would change by
           ! one grid level over one time step -- TAO
-          kthmax = dmin1((zax(k-1)-zax(k))**2/dt,1.D4)
+          kthmax = min((zax(k-1)-zax(k))**2/dt,1.D4)
           ! kthmax = 10000.0D0
           kth(k) = biga * dsqrt(TKE(k)**3)/nsquar(k) /    &
-                   dmax1(bbls(k),bbls(k+1))
+                   max(bbls(k),bbls(k+1))
           ! Smoothly limit kth to a maximum value
           kth(k) = 2*kthmax/mathpi*atan(kth(k)/kthmax)
           kzm(k) = kth(k) / sh(k+1) * sm(k+1) ! prandtl number from layer below
@@ -1153,8 +1182,8 @@ module mod_pbl_uwtcm
           kbot(kpbconv) = k
         else
           istabl = 1
-          bbls(k) = dmin1(rstbl*dsqrt(tke(k)/nsquar(k)),vonkar*zqx(k))
-          ! bbls(k) = dmax1(dmin1(rstbl*dsqrt(tke(k)/nsquar(k)), &
+          bbls(k) = min(rstbl*dsqrt(tke(k)/nsquar(k)),vonkar*zqx(k))
+          ! bbls(k) = max(min(rstbl*dsqrt(tke(k)/nsquar(k)), &
           !           vonkar*zqx(k)),1.0D-8)
         end if
       end do findconv
@@ -1173,7 +1202,7 @@ module mod_pbl_uwtcm
           nlev = kbot(ilay)-ktop(ilay)+1
           avglay1: &
           do k = ktop(ilay) , kbot(ilay)
-            bbls(k) = dmin1(blinf,vonkar*zqx(k))
+            bbls(k) = min(blinf,vonkar*zqx(k))
             if ( ilenparam == 1 ) then
               bbls(k) = bbls(k)/(d_one + bbls(k)/lambdal)
             end if
@@ -1185,7 +1214,7 @@ module mod_pbl_uwtcm
           do k = ktop(ilay)-1 , 2 , -1
             ! we always go up at least one, for the entrainment interface
             ktop(ilay) = k
-            bbls(k) = dmin1(vonkar * zqx(k),blinf)
+            bbls(k) = min(vonkar * zqx(k),blinf)
             if ( ilenparam == 1 ) then
               bbls(k) = bbls(k)/(d_one + bbls(k)/lambdal)
             end if
@@ -1214,7 +1243,7 @@ module mod_pbl_uwtcm
           ! add radiative/entrainment contribution to total
           k = ktop(ilay)
           radnnll = d_zero
-          if ( qcx(k) > 1.0D-8 ) then
+          if ( qct(k) > minqx ) then
             radnnll = rttenx(k)*(presfl(k+1)-presfl(k)) /  &
                       (rhoxfl(k)*uthvx(k)*exnerfl(k))
           end if
@@ -1222,18 +1251,18 @@ module mod_pbl_uwtcm
           if ( k >= 3 ) then
             delthvl = (thlx(k-2)+thx(k-2)*ep1*qwx(k-2))   &
                     - (thlx(k) + thx(k)*ep1*qwx(k))
-            elambda = wlhvocp*rcldb(k)*rexnerhl(k)/dmax1(delthvl,0.1D0)
+            elambda = wlhvocp*rcldb(k)*rexnerhl(k)/max(delthvl,0.1D0)
             bige = 0.8D0 * elambda
             biga = aone * (d_one + atwo * bige)
             entnnll = biga * dsqrt(tkeavg**3) / bbls(k)
           end if
-          rnnll = rnnll + dmin1(d_zero,bbls(k)/dsqrt(dmax1(tkeavg,1.0D-8)) * &
+          rnnll = rnnll + min(d_zero,bbls(k)/dsqrt(max(tkeavg,1.0D-8)) * &
                                               (radnnll + entnnll) )
           nlev = nlev + 1
           ! now extend down
           searchdown1: &
           do k = kbot(ilay)+1 , ktmax
-            tbbls = dmin1(vonkar * zqx(k),blinf)
+            tbbls = min(vonkar * zqx(k),blinf)
             if ( ilenparam == 1 ) then
               tbbls = tbbls/(1 + tbbls/lambdal)
             end if
@@ -1268,7 +1297,7 @@ module mod_pbl_uwtcm
         lambdal = etal*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
         convkloop: &
         do k = ktop(ilay) , kbot(ilay)
-          bbls(k) = dmin1(vonkar * zqx(k),blinf)
+          bbls(k) = min(vonkar * zqx(k),blinf)
           if ( ilenparam == 1 ) then
             bbls(k) = bbls(k)/(d_one + bbls(k)/lambdal)
           end if
@@ -1324,7 +1353,7 @@ module mod_pbl_uwtcm
       ! in the iterative calculation of T and QV from the liquid water
       ! temperature, the temperature can take on some crazy values before it
       ! converges. --TAO 01/05/2011
-      tdum = dmax1(100.0D0,dmin1(399.99D0,t))
+      tdum = max(100.0D0,min(399.99D0,t))
       dum = 1.0007D0 + 3.46D-5*p
       ! arg = 17.502D0*(t-tzero)/(t-32.18D0)
       arg = 17.502D0*(tdum-tzero)/(tdum-32.18D0)
@@ -1343,7 +1372,7 @@ module mod_pbl_uwtcm
       ! in the iterative calculation of T and QV from the liquid water
       ! temperature, the temperature can take on some crazy values before it
       ! converges. --TAO 01/05/2011
-      tdum = dmax1(100.0D0,dmin1(399.99D0,t))
+      tdum = max(100.0D0,min(399.99D0,t))
       dum = 1.0003D0 + 4.18D-5*p
       ! arg = 22.452D0*(t-tzero)/(t-0.6D0)
       arg = 22.452D0*(tdum-tzero)/(tdum-0.6D0)
@@ -1374,25 +1403,23 @@ module mod_pbl_uwtcm
       end where
       ! First see if there is a cloud-topped boundary layer: its top will be
       ! stable, saturated, and below 700 mb
-      ctsearch: &
       do k = ktmax-1 , 1 , -1
         if ( isSaturated1D(k) .and. isStable1D(k) .and. isBelow7001D(k) ) then
           kmix2dx = k
           foundlayer = .true.
-          exit ctsearch
+          exit
         end if
-      end do ctsearch
+      end do
       ! If we didn't find a cloud-topped boundary layer, then find the first
       ! layer where the richardson number exceeds its threshold
       if ( .not. foundlayer ) then
-        drysearch: &
         do k = ktmax-1 , 1 , -1
           if ( isStable1D(k) ) then
             kmix2dx = k
             foundlayer = .true.
-            exit drysearch
+            exit
           end if
-        end do drysearch
+        end do
       end if
       ! If we still didn't find a cloud-topped boundary layer, then
       ! set the top to be the first interface layer
@@ -1409,9 +1436,8 @@ module mod_pbl_uwtcm
       ! Set the boundary layer height
       pblx = zqx(ktop(kpbconv))
       ! Smoothly interpolate the boundary layer height
-      if ( (richnum(kmix2dx) >= rcrit) .and.   &
+      if ( (richnum(kmix2dx) >= rcrit) .and. &
            (richnum(kmix2dx+1) < rcrit) ) then
-
         pblx = zqx(kmix2dx+1) + (zqx(kmix2dx) - zqx(kmix2dx+1)) * &
                ( (rcrit - richnum(kmix2dx + 1)) /                 &
                  (richnum(kmix2dx) - richnum(kmix2dx + 1)) )
@@ -1424,8 +1450,7 @@ module mod_pbl_uwtcm
       ! Otherwise use a Stability-related length scale
       do k = kmix2dx-1 , 1 , -1
         if ( nsquar(k) > d_zero ) then
-          bbls(k) = dmax1(dmin1(rstbl*dsqrt(tke(k) / &
-                    nsquar(k)),ktimesz(k)),1.0D-8)
+          bbls(k) = max(min(rstbl*dsqrt(tke(k)/nsquar(k)),ktimesz(k)),1.0D-8)
         else
           bbls(k) = ktimesz(k) - ktimesz(k+1)
         end if

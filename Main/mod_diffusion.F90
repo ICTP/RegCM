@@ -276,7 +276,7 @@ module mod_diffusion
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: f
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
-!
+
     integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_x4d'

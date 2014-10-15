@@ -62,7 +62,7 @@ module mod_output
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
+
     lstartup = .false.
     if ( ktau == 0 .or. doing_restart ) then
       !
@@ -102,7 +102,7 @@ module mod_output
         return
       end if
     end if
-!
+
     ldoatm = .false.
     ldosrf = .false.
     ldolak = .false.
@@ -144,13 +144,13 @@ module mod_output
         ldoslab = .true.
       end if
     end if
-!
+
     if ( ktau == 0 ) then
       if ( debug_level > 2 ) then
         ldoatm = .true.
       end if
     end if
-!
+
     if ( atm_stream > 0 ) then
       if ( ldoatm ) then
         ps_out = sfs%psa(jci1:jci2,ici1:ici2)
@@ -179,6 +179,7 @@ module mod_output
           do k = 1 , kz
             atm_qv_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqv)/ps_out
           end do
+          ! Specific humidity in the output, not mixing ratio
           atm_qv_out = atm_qv_out/(d_one+atm_qv_out)
         end if
         if ( associated(atm_qc_out) ) then
@@ -186,7 +187,6 @@ module mod_output
             atm_qc_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqc)/ps_out
           end do
         end if
-
         if ( associated(atm_qr_out) ) then
           do k = 1 , kz
             atm_qr_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqr)/ps_out
@@ -863,6 +863,7 @@ module mod_output
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine output
-!
+
 end module mod_output
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

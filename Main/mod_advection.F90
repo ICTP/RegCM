@@ -51,15 +51,15 @@ module mod_advection
   real(rk8) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
   real(rk8) , pointer , dimension(:,:,:) :: vsv  ! Vertical Sigma Velocity
   integer(ik4) , pointer , dimension(:,:) :: kpbl   ! Top of PBL
-!
-! working space used to store the interlated values in vadv.
-!
+
+  ! working space used to store the interlated values in vadv.
+
   real(rk8) , pointer , dimension(:,:,:) :: fg
 
   real(rk8) , parameter :: c287 = 0.287D+00
-!
+
   real(rk8) , parameter :: falow = 1.0D-8
-!
+
   contains
 
     subroutine init_advection(dom,sfs,atm,vertvel,kpbltop)
@@ -78,31 +78,27 @@ module mod_advection
       call assignpnt(kpbltop,kpbl)
       call getmem3d(fg,jde1,jde2,ide1,ide2,1,kz,'mod_advection:fg')
     end subroutine init_advection
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!  HADV                                                               c
-!                                                                     c
-!     This subroutines computes the horizontal flux-divergence terms. c
-!     second-order difference is used.                                c
-!                                                                     c
-!     ldot   : cross/dot variable flag                                c
-!                                                                     c
-!     ften   : is the tendency for variable 'f'.                      c
-!                                                                     c
-!     f      : is p*f.                                                c
-!                                                                     c
-!     nk     : is the number of vertical levels to work (kz/kzp1)     c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
+    !
+    !  HADV
+    !
+    !     This subroutines computes the horizontal flux-divergence terms.
+    !     second-order difference is used.
+    !
+    !     ldot   : cross/dot variable flag
+    !
+    !     ften   : is the tendency for variable 'f'.
+    !
+    !     f      : is p*f.
+    !
+    !     nk     : is the number of vertical levels to work (kz/kzp1)
+    !
     subroutine hadv3d(ldot,ften,f,nk)
       implicit none
       logical , intent(in) :: ldot ! Cross/dot flag
       integer(ik4) , intent (in) :: nk
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
-!
+
       real(rk8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
       integer(ik4) :: i , j , k
 #ifdef DEBUG
@@ -158,14 +154,14 @@ module mod_advection
       call time_end(subroutine_name,idindx)
 #endif
     end subroutine hadv3d
-!
+
     subroutine hadv4d(ften,f,nk,m,p)
       implicit none
       integer(ik4) , intent (in) :: nk
       integer(ik4) , optional , intent (in) :: m , p
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
-!
+
       integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv4d'
@@ -205,35 +201,31 @@ module mod_advection
       call time_end(subroutine_name,idindx)
 #endif
     end subroutine hadv4d
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-! VADV                                                                c
-!                                                                     c
-!     This subroutine computes the vertical flux-divergence terms.    c
-!                                                                     c
-!     ften   : is the tendency of variable 'f'.                       c
-!                                                                     c
-!     f      : is p*f.                                                c
-!                                                                     c
-!     jstart : is the j'th slice of f anf ften to start               c
-!                                                                     c
-!     jsstop : is the j'th slice of f anf ften to stop                c
-!                                                                     c
-!     ind = 1 : for t.                                                c
-!           2 : for qv.                                               c
-!           3 : for qc and qr.                                        c
-!           4 : for u and v.                                          c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
+    !
+    ! VADV
+    !
+    !     This subroutine computes the vertical flux-divergence terms.
+    !
+    !     ften   : is the tendency of variable 'f'.
+    !
+    !     f      : is p*f.
+    !
+    !     jstart : is the j'th slice of f anf ften to start
+    !
+    !     jsstop : is the j'th slice of f anf ften to stop
+    !
+    !     ind = 1 : for t.
+    !           2 : for qv.
+    !           3 : for qc and qr.
+    !           4 : for u and v.
+    !
     subroutine vadv3d(ldot,ften,f,nk,ind)
       implicit none
       logical , intent(in) :: ldot
       integer(ik4) , intent(in) :: ind , nk
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
-!
+
       real(rk8) :: slope
       integer(ik4) :: i , j , k
 #ifdef DEBUG
@@ -398,14 +390,14 @@ module mod_advection
       call time_end(subroutine_name,idindx)
 #endif
     end subroutine vadv3d
-!
+
     subroutine vadv4d(ften,f,nk,ind,m,p)
       implicit none
       integer(ik4) , intent(in) :: ind , nk
       integer(ik4) , optional , intent(in) :: m , p
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
-!
+
       real(rk8) :: slope
       integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
@@ -475,7 +467,11 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
+                if ( f(j,i,k,n) > falow .and. f(j,i,k-1,n) > falow ) then
+                  fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
+                else
+                  fg(j,i,k) = d_zero
+                end if
               end do
             end do
           end do
@@ -508,7 +504,11 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                fg(j,i,k)= twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
+                if ( f(j,i,k,n) > falow .and. f(j,i,k-1,n) > falow ) then
+                  fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
+                else
+                  fg(j,i,k) = d_zero
+                end if
               end do
             end do
           end do
@@ -572,6 +572,7 @@ module mod_advection
       call time_end(subroutine_name,idindx)
 #endif
     end subroutine vadv4d
-!
+
 end module mod_advection
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
