@@ -955,7 +955,15 @@ module mod_tendency
         end do
       end do
     end do
-    do n = 1 , nqx
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv)
+          atmc%qx(j,i,k,iqv) = max(atmc%qx(j,i,k,iqv),minqx)
+        end do
+      end do
+    end do
+    do n = iqc , nqx
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
