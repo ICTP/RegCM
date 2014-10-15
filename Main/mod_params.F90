@@ -365,7 +365,7 @@ module mod_params
     kf_trigger = 3
     kf_entrate = 0.03D0 ! Kain Fritsch entrainment rate
     !------namelist uwparam ;
-    iuwvadv = 1
+    iuwvadv = 0
     ilenparam = 0
     atwo = 15.0D0
     rstbl = 1.5D0

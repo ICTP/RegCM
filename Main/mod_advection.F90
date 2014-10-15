@@ -514,10 +514,10 @@ module mod_advection
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              if ( kpbl(j,i).gt.nk ) then
+              if ( kpbl(j,i) > nk ) then
                 call fatal(__FILE__,__LINE__,'kpbl is greater than nk')
               end if
-              if ( kpbl(j,i).ge.4 ) then
+              if ( kpbl(j,i) > 4 ) then
                 ! Calculate slope of scalar in layer above ambiguous layer
                 k = kpbl(j,i)-2
                 if ( (f(j,i,k+1,n)-f(j,i,k,n)) > d_zero .and. &
