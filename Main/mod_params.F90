@@ -137,7 +137,7 @@ module mod_params
            ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,      &
            ichdiag , ichsursrc , ichebdy , rdstemfac, ichjphcld, ichbion
 
-    namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl , czero
+    namelist /uwparam/ iuwvadv , atwo , rstbl , czero
 
     namelist /holtslagparam/ ricr_ocn , ricr_lnd , zhnew_fac , &
            ifaholtth10 , ifaholtmax , ifaholtmin
@@ -257,7 +257,7 @@ module mod_params
     qck1oce = 0.00025D0  ! Autoconversion Rate for Ocean
     gulland = 0.4D0      ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
     guloce = 0.4D0       ! Fract of Gultepe eqn (qcth) for ocean
-    rhmax = 1.01D0       ! RH at whicn FCC = 1.0
+    rhmax = 1.10D0       ! RH at whicn FCC = 1.0
     rh0oce = 0.90D0      ! Relative humidity threshold for ocean
     rh0land = 0.80D0     ! Relative humidity threshold for land
     tc0 = 238.0D0        ! Below this temp, rh0 begins to approach unity
@@ -366,8 +366,7 @@ module mod_params
     kf_entrate = 0.03D0 ! Kain Fritsch entrainment rate
     !------namelist uwparam ;
     iuwvadv = 0
-    ilenparam = 0
-    atwo = 15.0D0
+    atwo = 10.0D0
     rstbl = 1.5D0
     czero = 5.869D0
     !
@@ -1034,7 +1033,6 @@ module mod_params
     end if
     if ( ibltyp == 2 ) then
       call bcast(iuwvadv)
-      call bcast(ilenparam)
       call bcast(atwo)
       call bcast(rstbl)
       call bcast(czero)
@@ -1546,7 +1544,6 @@ module mod_params
         write(stdout,'(a,f11.6)') '  atwo      = ', atwo
         write(stdout,'(a,f11.6)') '  czero     = ', czero
         write(stdout,'(a,i3)')    '  iuwvadv   = ', iuwvadv
-        write(stdout,'(a,i3)')    '  ilenparam = ', ilenparam
       end if
       if ( ipptls > 0 ) then
         write(stdout,*) 'SUBEX large scale precipitation parameters'

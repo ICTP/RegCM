@@ -491,11 +491,7 @@ module mod_precip
             !--------
             ! Cloud Water Volume
             ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc /  m3
-            if ( qcld > minqx ) then
-              exlwc = qcld*rho3(j,i,k)*d_1000
-            else
-              exlwc = 0.001D0
-            end if
+            exlwc = qcld*rho3(j,i,k)*d_1000
             !------------
           else if ( iconvlwp == 1 .or. iconvlwp == 0 ) then
             !------------
@@ -523,26 +519,22 @@ module mod_precip
             end if
             !------------------- end hanzhenyu
             !--------
-            if ( totc(j,i,k) > minqx ) then
-              if ( iconvlwp == 1 ) then
-                ! Apply the parameterisation based on temperature to the
-                ! the large scale clouds.
-                tcel = t3(j,i,k)-tzero
-                if ( tcel < -50D0 ) then
-                  exlwc = 0.001D0
-                else
-                  exlwc = 0.127D+00 + 6.78D-03 * tcel + &
-                          1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
-                  if ( exlwc > 0.300D0) exlwc = 0.300D0
-                  if ( exlwc < 0.001D0) exlwc = 0.001D0
-                end if
+            if ( iconvlwp == 1 ) then
+              ! Apply the parameterisation based on temperature to the
+              ! the large scale clouds.
+              tcel = t3(j,i,k)-tzero
+              if ( tcel < -50D0 ) then
+                exlwc = 0.001D0
               else
-                ! Cloud Water Volume
-                ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-                exlwc = totc(j,i,k)*rho3(j,i,k)*d_1000
+                exlwc = 0.127D+00 + 6.78D-03 * tcel + &
+                        1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
+                if ( exlwc > 0.300D0) exlwc = 0.300D0
+                if ( exlwc < 0.001D0) exlwc = 0.001D0
               end if
             else
-              exlwc = 0.001D0
+              ! Cloud Water Volume
+              ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+              exlwc = totc(j,i,k)*rho3(j,i,k)*d_1000
             end if
           end if   ! end if of iconvlwp , hanzy
           radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + excld*exlwc) / &

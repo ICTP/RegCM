@@ -75,8 +75,7 @@ module mod_pbl_uwtcm
   use mod_pbl_common
   use mod_pbl_thetal
   use mod_runparams , only : iqv , iqc , iqi , iuwvadv , atwo , rstbl , &
-          ilenparam , czero , dt , rdt , ichem , sigma , hsigma ,       &
-          dsigma , ipptls
+          czero , dt , rdt , ichem , sigma , hsigma , dsigma , ipptls
   use mod_regcm_types
   use mod_service
 
@@ -84,7 +83,7 @@ module mod_pbl_uwtcm
 
   private
 
-  real(rk8) , public , parameter :: tkemin = 1.0D-8
+  real(rk8) , public , parameter :: tkemin = 1.0D-3
 
   real(rk8) , public , parameter :: nuk = 5.0D0 ! multiplier for kethl
 
@@ -96,7 +95,7 @@ module mod_pbl_uwtcm
   ! b1/2**(3/2) from Mellor and Yamada (1982)
   real(rk8) , parameter :: rcrit = 0.3D0
   real(rk8) , parameter :: etal =  0.085D0
-  real(rk8) , parameter :: minn2 =  1.0D-8
+  real(rk8) , parameter :: minn2 =  1.0D-7
 
   ! Variables that hold frequently-done calculations
   real(rk8) :: rczero
@@ -113,7 +112,7 @@ module mod_pbl_uwtcm
                  rttenx , preshl , qcx , qwx , qwxs , udzq , rrhoxhl , &
                  uxs , qxs , rhoxhl , exnerhl , rexnerhl , rdzq ,      &
                  vxs , qcxs , aimp , bimp , cimp , uimp1 , rimp1 ,     &
-                 uimp2 , rimp2 , qix , qixs , qct
+                 uimp2 , rimp2 , qix , qixs
   real(rk8) , pointer , dimension(:,:) :: chix , chixs
 
   integer(ik4) , pointer , dimension(:) :: isice , ktop , kbot
@@ -428,7 +427,6 @@ module mod_pbl_uwtcm
     call getmem1d(preshl,1,kz,'mod_uwtcm:preshl')
     call getmem1d(qcx,1,kz,'mod_uwtcm:qcx')
     call getmem1d(qix,1,kz,'mod_uwtcm:qix')
-    call getmem1d(qct,1,kz,'mod_uwtcm:qct')
     call getmem1d(qwx,1,kz,'mod_uwtcm:qwx')
     call getmem1d(qwxs,1,kz,'mod_uwtcm:qwxs')
     call getmem1d(udzq,1,kz,'mod_uwtcm:udzq')
@@ -469,8 +467,8 @@ module mod_pbl_uwtcm
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
-    integer(ik4) :: ilay ! layer index
-    integer(ik4) :: kpbconv , iteration
+    integer(ik4) :: ilay , kpbconv , iteration
+    real(rk8) :: temps , templ , deltat , rvls
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
@@ -516,14 +514,8 @@ module mod_pbl_uwtcm
             tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k) / psbx
             qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv) / psbx
             qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc) / psbx
-            !qix(k) = m2p%qxatm(j,i,k,iqi) + p2m%qxten(j,i,k,iqi) / psbx
+            qix(k) = m2p%qxatm(j,i,k,iqi) + p2m%qxten(j,i,k,iqi) / psbx
             qix(k) = d_zero
-            isice(k) = 0
-            !if ( tx(k) > tzero ) then
-            !  isice(k) = 0
-            !else
-            !  isice(k) = 1
-            !end if
           end do
         else
           do k = 1 , kz
@@ -531,7 +523,6 @@ module mod_pbl_uwtcm
             qx(k)  = m2p%qxatm(j,i,k,iqv)
             qcx(k) = m2p%qxatm(j,i,k,iqc)
             qix(k) = d_zero
-            isice(k) = 0
           end do
         end if
 
@@ -541,7 +532,6 @@ module mod_pbl_uwtcm
           tke(k) = m2p%tkests(j,i,k)
           ux(k)  = m2p%uxatm(j,i,k)
           vx(k)  = m2p%vxatm(j,i,k)
-          qct(k) = qcx(k) + qix(k)
         end do
 
         if ( ichem == 1 ) then
@@ -563,23 +553,19 @@ module mod_pbl_uwtcm
           udzq(k) = m2p%dzq(j,i,k)
           rdzq(k) = d_one/udzq(k)
           ! Exner function
-          exnerhl(k)=(preshl(k)/1.0D5)**rovcp
+          exnerhl(k) = (preshl(k)/1.0D5)**rovcp
           rexnerhl(k) = d_one/exnerhl(k)
           ! Potential temperature
           thx(k) = tx(k)*rexnerhl(k)
           ! Total water specific humidity
-          qwx(k) = qx(k) + qct(k)
-          qwxs(k) = qx(k) + qct(k)
+          qwx(k) = qx(k) + qcx(k)
+          qwxs(k) = qwx(k)
           ! Virtual temperature and potential temperature
-          tvcon = (d_one + ep1*qx(k)-qct(k))
+          tvcon = (d_one + ep1*qx(k)-qcx(k))
           tvx(k) = tx(k)*tvcon ! virtual temperature
           uthvx(k) = thx(k)*tvcon
           ! Liquid water potential temperature (accounting for ice)
-          if ( isice(k) == 0 ) then
-            thlx(k) = thx(k) - wlhvocp * rexnerhl(k) * qct(k)
-          else
-            thlx(k) = thx(k) - wlhsocp * rexnerhl(k) * qct(k)
-          end if
+          thlx(k) = thx(k) - wlhvocp * rexnerhl(k) * qcx(k)
           thlxs(k) = thlx(k)
           ! save initial values of winds, thx, and qx
           tkes(k) = tke(k)
@@ -654,13 +640,13 @@ module mod_pbl_uwtcm
         ! Calculate surface momentum fluxes
         uflxp = -uvdragx*ux(kz)/rhoxsf
         vflxp = -uvdragx*vx(kz)/rhoxsf
-        ustxsq = dsqrt(uflxp*uflxp + vflxp*vflxp)
+        ustxsq = sqrt(uflxp*uflxp + vflxp*vflxp)
 
         ! Estimate of the surface virtual heat flux
         thvflx = hfxx/rhoxsf*rcpd*(d_one+ep1*q0s) + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
-        kh0 = vonkar*d_one*dsqrt(max(tkemin,3.25D0 * ustxsq))
+        kh0 = vonkar*d_one*sqrt(max(tkemin,3.25D0 * ustxsq))
 
 !*******************************************************************************
 !*******************************************************************************
@@ -749,13 +735,25 @@ module mod_pbl_uwtcm
           ! Set thlx and qwx to their updated values
           thlx(k) = uimp1(k)
           qwx(k) = uimp2(k)
+          templ = thlx(k)*exnerhl(k)
+          temps = templ
+          rvls = ep2/(preshl(k)/pfesat(temps)-d_one)
+          do iteration = 1 , 3
+            deltat = ((templ-temps)*cpowlhv + qwx(k)-rvls)/   &
+                      (cpowlhv+ep2*wlhv*rvls/rgas/temps/temps)
+            temps = temps + deltat
+            rvls = ep2/(preshl(k)/pfesat(temps)-d_one)
+          end do
+          qcx(k) = max(qwx(k)-rvls, d_zero)
+          qx(k) = qwx(k) - qcx(k)
+          thx(k) = (templ + qcx(k)*wlhvocp) *rexnerhl(k)
+          uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
           ! Determine the temperature and qc and qv
-          temps = solve_for_t(thlx(k),qwx(k),preshl(k),thxs(k)*exnerhl(k), &
-                              qwxs(k),qcxs(k),qixs(k),thlxs(k),itbound,    &
-                              imethod,isice(k),qx(k),qcx(k),qix(k))
-          thx(k) = temps*rexnerhl(k)
-          qct(k) = qcx(k) + qix(k)
-          uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qct(k))
+          !temps = solve_for_t(thlx(k),qwx(k),preshl(k),thxs(k)*exnerhl(k), &
+          !                    qwxs(k),qcxs(k),thlxs(k),itbound,imethod,    &
+          !                    qx(k),qcx(k))
+          ! thx(k) = temps*rexnerhl(k)
+          ! uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
         end do
 
         !*************************************************************
@@ -801,6 +799,28 @@ module mod_pbl_uwtcm
             svs(k) = dudz*dudz + dvdz*dvdz
           end if
         end do updatewind
+
+        if ( ipptls == 2 ) then
+          !
+          ! Implicit diffusion of cloud ice
+          !
+          do  k = 1 , kz
+            if ( k == 1 ) then
+              aimp(k) = d_zero
+            else
+              aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
+            end if
+            if ( k == kz ) then
+              cimp(k) = d_zero
+            else
+              cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))* &
+                         kth(k+1) * dt*rdzq(k)*rdza(k+1)
+            end if
+            bimp(k) = d_one - aimp(k) - cimp(k)
+            rimp1(k) = qix(k)
+          end do
+          call solve_tridiag(aimp,bimp,cimp,rimp1,qix,kz)
+        end if
 !
 !       !Re-update N^2 at the surface; this requires recalculation
 !       !of the surface momentum fluxes
@@ -808,11 +828,11 @@ module mod_pbl_uwtcm
 !       !Calculate surface momentum fluxes
 !       uflxp = -uvdragx*ux(kz)/rhoxsf
 !       vflxp = -uvdragx*vx(kz)/rhoxsf
-!       ustxsq = dsqrt(uflxp*uflxp + vflxp*vflxp)
+!       ustxsq = sqrt(uflxp*uflxp + vflxp*vflxp)
 !
 !       !Estimate of surface eddy diffusivity, for estimating the
 !       !surface N^2 from the surface virtual heat flux
-!       kh0 = vonkar*2*dsqrt(max(tkemin,3.25 * ustxsq))
+!       kh0 = vonkar*2*sqrt(max(tkemin,3.25 * ustxsq))
 !
 !       !Estimate the surface N^2 from the surface virtual heat flux
 !       nsquar(kzp1) = -egrav/thgb*thvflx/kh0
@@ -891,7 +911,7 @@ module mod_pbl_uwtcm
         radib:&
         do ilay = 1 , kpbconv
           k = ktop(ilay)
-          if ( qct(k) > minqx .and. k > 1 ) then
+          if ( qcx(k) > minqx .and. k > 1 ) then
             bouyan(k) = bouyan(k) - rttenx(k)*(presfl(k+1)-presfl(k)) * &
                         rrhoxfl(k) * rexnerfl(k) / uthvx(k)
           end if
@@ -916,13 +936,13 @@ module mod_pbl_uwtcm
             cimp(k-1) = d_zero
             ! account for implicit part of flux between level kz and surface
             bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *    &
-                        ( dsqrt(tke(k))*rczero/bbls(k) +        &
+                        ( sqrt(tke(k))*rczero/bbls(k) +        &
                         (rhoxhl(k)*rrhoxfl(k))*kethl(k)*rdzq(k)*rdza(k) )
           else
             cimp(k-1) = -(rhoxhl(k)*rrhoxfl(k))*    &
                           kethl(k)*dt*rdzq(k)*rdza(k)
             bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *   &
-                        dsqrt(tke(k))*rczero/max(bbls(k),bbls(k+1))
+                        sqrt(tke(k))*rczero/max(bbls(k),bbls(k+1))
           end if
           ! now find right side
           if ( k == kz ) then
@@ -1038,7 +1058,6 @@ module mod_pbl_uwtcm
       real(rk8) :: tempv , tvbl , rcld , tvab , thvxfl , dtvdz
       integer(ik4) :: k
 
-      kloop: &
       do k = 2 , ktmax
         ! buoyancy is jump in thetav across flux level/dza
         ! first, layer below, go up and see if anything condenses.
@@ -1065,7 +1084,7 @@ module mod_pbl_uwtcm
         thvxfl = d_half * (tvab+tvbl)
         dtvdz = (tvab - tvbl) *rdza(k)
         nsquar(k) = egrav/thvxfl * dtvdz
-      end do kloop
+      end do
       nsquar(1) = nsquar(2)
     end subroutine n2
 
@@ -1076,7 +1095,7 @@ module mod_pbl_uwtcm
       real(rk8) , parameter :: a1 = 0.92D0 , b1 = 16.6D0 , c1 = 0.08D0 , &
                                a2 = 0.74D0 , b2 = 10.1D0
       integer(ik4) :: k , ilay
-      real(rk8) :: kthmax
+      real(rk8) , parameter :: kthmax = 1.0D3
 
       a1ob1 = a1/b1
 
@@ -1106,51 +1125,57 @@ module mod_pbl_uwtcm
                       (d_one - d_nine*a1*a2*gh))
         sh(k) = a2 * (d_one-d_six*a1ob1) / (d_one-d_three*a2*gh*(d_six*a1+b2))
 
-        ! kzm(k) = min(bbls(k)*dsqrt(2*tke(k))*sm(k),10000.0D0)
-        ! kth(k) = min(bbls(k)*dsqrt(2*tke(k))*sh(k),10000.0D0)
+        ! kzm(k) = min(bbls(k)*sqrt(2*tke(k))*sm(k),10000.0D0)
+        ! kth(k) = min(bbls(k)*sqrt(2*tke(k))*sh(k),10000.0D0)
 
         ! Limit the diffusivity to be the vertical grid spacing squared
         ! over the time step; this implies that the entrainment rate
         ! can only be so large that the BL height would change by
         ! one grid level over one time step -- TAO
-        kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.0D4),1.0D3)
+        ! kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.0D4),1.0D3)
         ! kthmax = 1.0D4
 
         ! Calculate the diffusion coefficients
-        kzm(k) = bbls(k)*dsqrt(d_two*tke(k))*sm(k)
-        kth(k) = bbls(k)*dsqrt(d_two*tke(k))*sh(k)
+        kzm(k) = min(bbls(k)*sqrt(d_two*tke(k))*sm(k),kthmax)
+        kth(k) = min(bbls(k)*sqrt(d_two*tke(k))*sh(k),kthmax)
         ! Smoothly limit kth to a maximum value
-        kth(k) = d_two/mathpi*kthmax*atan(kth(k)/kthmax)
-        kzm(k) = d_two/mathpi*kthmax*atan(kzm(k)/kthmax)
-        kethl(k) = nuk*dsqrt(kzm(k)*kzm(k+1))
+        !kth(k) = d_two/mathpi*kthmax*atan(kth(k)/kthmax)
+        !kzm(k) = d_two/mathpi*kthmax*atan(kzm(k)/kthmax)
+        kethl(k) = nuk*sqrt(kzm(k)*kzm(k+1))
+        kethl(k) = min(kethl(k),kthmax)
       end do kloop
 
       ! special case for tops of convective layers
       conv: &
       do ilay = 1 , kpbconv
         k = ktop(ilay)
-        kethl(k) = nuk*kzm(k+1)
-        if ( k >= 3 .and. nsquar(k) > minn2 ) then
-          kethl(k-1) = 0.0D0
-          delthvl = (thlx(k-2)+thx(k-2)*ep1*qwx(k-2)) -   &
-                    (thlx(k) + thx(k) * ep1 * qwx(k))
-          elambda = wlhvocp*rcldb(k)*rexnerhl(k)/max(delthvl,0.1D0)
-          bige = 0.8D0 * elambda
-          biga = aone * (d_one + atwo * bige)
+        if ( nsquar(k) > minn2 ) then
+          kethl(k) = nuk*kzm(k+1)
+          if ( k >= 3 ) then
+            kethl(k-1) = 0.0D0
+            delthvl = (thlx(k-2)+thx(k-2)*ep1*qwx(k-2)) -   &
+                      (thlx(k) + thx(k) * ep1 * qwx(k))
+            elambda = wlhvocp*rcldb(k)*rexnerhl(k)/max(delthvl,0.1D0)
+            bige = 0.8D0 * elambda
+            biga = aone * (d_one + atwo * bige)
 
-          ! kth(k) = min(10000.0D0, biga * dsqrt(tke(k)**3)/nsquar(k)/    &
-          !          max(bbls(k),bbls(k+1)))
-          ! Limit the diffusivity to be the vertical grid spacing squared
-          ! over the time step; this implies that the entrainment rate
-          ! can only be so large that the BL height would change by
-          ! one grid level over one time step -- TAO
-          kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.D4),1.0D3)
-          ! kthmax = 10000.0D0
-          kth(k) = biga * dsqrt(TKE(k)**3)/nsquar(k) /    &
-                   max(bbls(k),bbls(k+1))
-          ! Smoothly limit kth to a maximum value
-          kth(k) = 2*kthmax/mathpi*atan(kth(k)/kthmax)
-          kzm(k) = kth(k) / sh(k+1) * sm(k+1) ! prandtl number from layer below
+            ! kth(k) = min(10000.0D0, biga * sqrt(tke(k)**3)/nsquar(k)/    &
+            !          max(bbls(k),bbls(k+1)))
+            ! Limit the diffusivity to be the vertical grid spacing squared
+            ! over the time step; this implies that the entrainment rate
+            ! can only be so large that the BL height would change by
+            ! one grid level over one time step -- TAO
+            ! kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.0D4),1.0D3)
+            ! kthmax = 1.0D4
+            kth(k) = min(kth(k), biga*sqrt(tke(k)**3)/nsquar(k)/ &
+                     max(bbls(k),bbls(k+1)))
+            ! kth(k) = biga * sqrt(tke(k)**3)/nsquar(k)/max(bbls(k),bbls(k+1))
+            ! Smoothly limit kth to a maximum value
+            !kth(k) = d_two/mathpi*kthmax*atan(kth(k)/kthmax)
+            ! prandtl number from layer below
+            ! kzm(k) = kth(k) / sh(k+1) * sm(k+1)
+            kzm(k) = min(kzm(k),kth(k)/sh(k+1)*sm(k+1))
+          end if
         end if
       end do conv
 
@@ -1164,14 +1189,14 @@ module mod_pbl_uwtcm
       implicit none
       integer(ik4) , intent(in) :: ktmax , ktmin
       integer(ik4) , intent(out) :: kpbconv
-      integer(ik4) :: istabl , ibeg , ilay , nlev , k , itemp
+      integer(ik4) , dimension(kz) :: ktop_save
+      integer(ik4) :: istabl , ibeg , ilay , nlev , k , itemp , kstart
       real(rk8) :: blinf , rnnll , tkeavg , trnnll , radnnll , delthvl , &
-                  elambda , bige , biga , entnnll , tbbls , lambdal
+                  elambda , bige , biga , entnnll , tbbls
 
       ! find noncontiguous convectively unstable layers
       kpbconv = 0
       istabl = 1
-      findconv: &
       do k = 2 , ktmax
         if ( nsquar(k) <= d_zero ) then
           if ( istabl == 1 ) then
@@ -1182,125 +1207,117 @@ module mod_pbl_uwtcm
           kbot(kpbconv) = k
         else
           istabl = 1
-          bbls(k) = min(rstbl*dsqrt(tke(k)/nsquar(k)),vonkar*zqx(k))
-          ! bbls(k) = max(min(rstbl*dsqrt(tke(k)/nsquar(k)), &
+          bbls(k) = min(rstbl*sqrt(tke(k)/nsquar(k)),vonkar*zqx(k))
+          ! bbls(k) = max(min(rstbl*sqrt(tke(k)/nsquar(k)), &
           !           vonkar*zqx(k)),1.0D-8)
         end if
-      end do findconv
+      end do
 
       ! now see if they have sufficient buoyant convection to connect
+      ktop_save = ktop
       ibeg = 1
-      bigloop: &
-      do
-        convlayerloop: &
-        do ilay = ibeg , kpbconv
-          blinf = xfr*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
-          lambdal = etal*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
-          ! find average n*n*l*l for layer
-          rnnll = d_zero
-          tkeavg = d_zero
-          nlev = kbot(ilay)-ktop(ilay)+1
-          avglay1: &
-          do k = ktop(ilay) , kbot(ilay)
-            bbls(k) = min(blinf,vonkar*zqx(k))
-            if ( ilenparam == 1 ) then
-              bbls(k) = bbls(k)/(d_one + bbls(k)/lambdal)
+      if ( kpbconv >= 1 ) then
+        bigloop: &
+        do
+          convlayerloop: &
+          do ilay = ibeg , kpbconv
+            blinf = xfr*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
+            ! find average n*n*l*l for layer
+            rnnll = d_zero
+            tkeavg = d_zero
+            nlev = kbot(ilay)-ktop(ilay)+1
+            ! Average layer
+            do k = ktop(ilay) , kbot(ilay)
+              bbls(k) = min(blinf,vonkar*zqx(k))
+              rnnll = rnnll + nsquar(k)*bbls(k)*bbls(k)
+              tkeavg = tkeavg + tke(k) / nlev
+            end do
+            ! first extend up
+            kstart = ktop(ilay) - 1
+            searchup1: &
+            do k = kstart , 2 , -1
+              ! we always go up at least one, for the entrainment interface
+              ktop(ilay) = k
+              bbls(k) = min(vonkar * zqx(k),blinf)
+              trnnll = nsquar(k)*bbls(k)*bbls(k)
+              ! If this is the top of the layer, stop searching upward
+              if ( trnnll*nlev >= -d_half*rnnll ) exit searchup1
+              if ( ilay > 1 ) then
+                ! did we merge with layer above?
+                if ( ktop(ilay) == kbot(ilay-1) ) then
+                  ibeg = ilay - 1
+                  ktop(ibeg) = ktop_save(ibeg)+1
+                  kbot(ibeg) = kbot(ibeg+1)
+                  kpbconv = kpbconv - 1
+                  do itemp = ibeg+1 , kpbconv
+                    ktop(itemp) = ktop(itemp+1)
+                    kbot(itemp) = kbot(itemp+1)
+                    ktop_save(itemp) = ktop_save(itemp+1)
+                  end do
+                  cycle bigloop ! recompute for the new, deeper layer
+                                ! (restart the do loop)
+                end if
+              end if
+              rnnll = rnnll + trnnll
+              nlev = nlev + 1
+            end do searchup1
+            ! add radiative/entrainment contribution to total
+            k = ktop(ilay)
+            radnnll = d_zero
+            if ( qcx(k) > minqx ) then
+              radnnll = rttenx(k)*(presfl(k+1)-presfl(k)) /  &
+                        (rhoxfl(k)*uthvx(k)*exnerfl(k))
             end if
-            rnnll = rnnll + nsquar(k)*bbls(k)*bbls(k)
-            tkeavg = tkeavg + tke(k) / nlev
-          end do avglay1
-          ! first extend up
-          searchup1: &
-          do k = ktop(ilay)-1 , 2 , -1
-            ! we always go up at least one, for the entrainment interface
-            ktop(ilay) = k
-            bbls(k) = min(vonkar * zqx(k),blinf)
-            if ( ilenparam == 1 ) then
-              bbls(k) = bbls(k)/(d_one + bbls(k)/lambdal)
+            entnnll = d_zero
+            if ( k >= 3 ) then
+              delthvl = (thlx(k-2)+thx(k-2)*ep1*qwx(k-2))   &
+                      - (thlx(k) + thx(k)*ep1*qwx(k))
+              elambda = wlhvocp*rcldb(k)*rexnerhl(k)/max(delthvl,0.1D0)
+              bige = 0.8D0 * elambda
+              biga = aone * (d_one + atwo * bige)
+              entnnll = biga * sqrt(tkeavg**3) / bbls(k)
             end if
-            trnnll = nsquar(k)*bbls(k)*bbls(k)
-            ! If this is the top of the layer, stop searching upward
-            if ( trnnll*nlev >= -d_half*rnnll ) exit searchup1
-            if ( ilay > 1 ) then
-              ! did we merge with layer above?
-              if ( ktop(ilay) == kbot(ilay-1) ) then
-                ibeg = ilay - 1
-                ktop(ibeg) = ktop(ibeg)+1
-                kbot(ibeg) = kbot(ibeg+1)
+            if ( tkeavg > d_zero ) then
+              rnnll = rnnll + min(d_zero,bbls(k)/sqrt(tkeavg)*(radnnll+entnnll))
+            end if
+            ! now extend down
+            searchdown1: &
+            do k = kbot(ilay)+1 , ktmax
+              tbbls = min(vonkar * zqx(k),blinf)
+              trnnll = nsquar(k)*tbbls*tbbls
+              ! is it the bottom?
+              if ( trnnll*nlev >= -d_half*rnnll ) cycle convlayerloop
+              ! (skip the rest of this iteration of the do loop)
+              kbot(ilay) = k
+              if ( ilay < kpbconv .and. &
+                   kbot(ilay) == ktop(ilay+1) ) then
+                ! did we merge with layer below?
+                ktop(ilay) = ktop(ilay)+1
+                kbot(ilay) = kbot(ilay+1)
                 kpbconv = kpbconv - 1
-                shiftarray1: &
-                do itemp = ibeg+1 , kpbconv
-                  ktop(itemp)=ktop(itemp+1)
-                  kbot(itemp)=kbot(itemp+1)
-                end do shiftarray1
+                shiftarray2: &
+                do itemp = ilay+1 , kpbconv
+                  ktop(itemp) = ktop(itemp+1)
+                  kbot(itemp) = kbot(itemp+1)
+                  ktop_save(itemp) = ktop_save(itemp+1)
+                end do shiftarray2
                 cycle bigloop ! recompute for the new, deeper layer
                               ! (restart the do loop)
               end if
-            end if
-            rnnll = rnnll + trnnll
-            nlev = nlev + 1
-          end do searchup1
-          ! add radiative/entrainment contribution to total
-          k = ktop(ilay)
-          radnnll = d_zero
-          if ( qct(k) > minqx ) then
-            radnnll = rttenx(k)*(presfl(k+1)-presfl(k)) /  &
-                      (rhoxfl(k)*uthvx(k)*exnerfl(k))
-          end if
-          entnnll = d_zero
-          if ( k >= 3 ) then
-            delthvl = (thlx(k-2)+thx(k-2)*ep1*qwx(k-2))   &
-                    - (thlx(k) + thx(k)*ep1*qwx(k))
-            elambda = wlhvocp*rcldb(k)*rexnerhl(k)/max(delthvl,0.1D0)
-            bige = 0.8D0 * elambda
-            biga = aone * (d_one + atwo * bige)
-            entnnll = biga * dsqrt(tkeavg**3) / bbls(k)
-          end if
-          rnnll = rnnll + min(d_zero,bbls(k)/dsqrt(max(tkeavg,1.0D-8)) * &
-                                              (radnnll + entnnll) )
-          nlev = nlev + 1
-          ! now extend down
-          searchdown1: &
-          do k = kbot(ilay)+1 , ktmax
-            tbbls = min(vonkar * zqx(k),blinf)
-            if ( ilenparam == 1 ) then
-              tbbls = tbbls/(1 + tbbls/lambdal)
-            end if
-            trnnll = nsquar(k)*tbbls*tbbls
-            ! is it the bottom?
-            if ( trnnll*nlev >= -d_half*rnnll ) cycle convlayerloop
-            ! (skip the rest of this iteration of the do loop)
-            kbot(ilay) = k
-            if ( ilay < kpbconv .and. kbot(ilay) == ktop(ilay+1) ) then
-              ! did we merge with layer below?
-              ktop(ilay) = ktop(ilay)+1
-              kbot(ilay) = kbot(ilay+1)
-              kpbconv = kpbconv - 1
-              shiftarray2: &
-              do itemp = ilay+1 , kpbconv
-                ktop(itemp) = ktop(itemp+1)
-                kbot(itemp) = kbot(itemp+1)
-              end do shiftarray2
-              cycle bigloop ! recompute for the new, deeper layer
-                            ! (restart the do loop)
-            end if
-            rnnll = rnnll + trnnll
-            bbls(k) = tbbls
-            nlev = nlev + 1
-          end do searchdown1
-        end do convlayerloop
-        exit bigloop
-      end do bigloop
+              rnnll = rnnll + trnnll
+              bbls(k) = tbbls
+              nlev = nlev + 1
+            end do searchdown1
+          end do convlayerloop
+          exit bigloop
+        end do bigloop
+      end if
       setbbls: &
       do ilay = 1 , kpbconv
         blinf = xfr*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
-        lambdal = etal*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
         convkloop: &
         do k = ktop(ilay) , kbot(ilay)
           bbls(k) = min(vonkar * zqx(k),blinf)
-          if ( ilenparam == 1 ) then
-            bbls(k) = bbls(k)/(d_one + bbls(k)/lambdal)
-          end if
         end do convkloop
       end do setbbls
       ! we should now have tops and bottoms for kpbconv layers
@@ -1450,7 +1467,7 @@ module mod_pbl_uwtcm
       ! Otherwise use a Stability-related length scale
       do k = kmix2dx-1 , 1 , -1
         if ( nsquar(k) > d_zero ) then
-          bbls(k) = max(min(rstbl*dsqrt(tke(k)/nsquar(k)),ktimesz(k)),1.0D-8)
+          bbls(k) = max(min(rstbl*sqrt(tke(k)/nsquar(k)),ktimesz(k)),1.0D-8)
         else
           bbls(k) = ktimesz(k) - ktimesz(k+1)
         end if

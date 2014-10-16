@@ -299,7 +299,7 @@ module mod_cu_tiedtke
         end if
       end if
     end do
-
+    !
     ! update tendencies - note that rate were ADDED in cudtdq
     !                     thus here we must reset the rates.
     do k = 1 , kz
@@ -312,12 +312,41 @@ module mod_cu_tiedtke
           c2m%vten(j,i,k) = pvol(ii,k) * m2c%psb(j,i)
           c2m%qxten(j,i,k,iqv) = pqte(ii,k)  * m2c%psb(j,i)
           c2m%qxten(j,i,k,iqc) = pxlte(ii,k) * m2c%psb(j,i)
-          if (ipptls == 2 ) then
-            c2m%qxten(j,i,k,iqi) = pxite(ii,k) * m2c%psb(j,i)
-          end if
           q_detr(j,i,k) = zlude(ii,k)
           rain_cc(j,i,k) = pmflxr(ii,k)
-          if ( ichem == 1 ) then
+        end if
+      end do
+    end do
+
+    if ( ipptls == 2 ) then
+      do k = 1 , kz
+        do ii = 1 , nipoi
+          if (ktype(ii) > 0) then
+            i = imap(ii)
+            j = jmap(ii)
+            c2m%qxten(j,i,k,iqi) = pxite(ii,k) * m2c%psb(j,i)
+          end if
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do ii = 1 , nipoi
+          if (ktype(ii) > 0) then
+            i = imap(ii)
+            j = jmap(ii)
+            c2m%qxten(j,i,k,iqc) = c2m%qxten(j,i,k,iqc) + &
+              pxite(ii,k) * m2c%psb(j,i)
+          end if
+        end do
+      end do
+    end if
+
+    if ( ichem == 1 ) then
+      do k = 1 , kz
+        do ii = 1 , nipoi
+          if (ktype(ii) > 0) then
+            i = imap(ii)
+            j = jmap(ii)
             c2m%chiten(j,i,k,:) = pxtte(ii,k,:) * m2c%psb(j,i)
             ! build for chemistry 3d table of constant precipitation rate
             ! from the surface to the top of the convection
@@ -325,9 +354,9 @@ module mod_cu_tiedtke
               c2m%convpr(j,i,k) = (prsfc(ii)+pssfc(ii))
             end if
           end if
-        end if
+        end do
       end do
-    end do
+    end if
 
     c2m%kcumtop(:,:) = 0
     c2m%kcumbot(:,:) = 0
@@ -542,8 +571,8 @@ module mod_cu_tiedtke
                   zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
                   pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &
                   locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &
-                  zlu,pmflxr,pmflxs,zrain,zmfu,zmfd,pmfude_rate, &
-                  pmfdde_rate,pcape,ktrac,pxtm1,pxtte)
+                  zlu,pmflxr,pmflxs,zrain,zmfu,zmfd,zlude,       &
+                  pmfude_rate,pmfdde_rate,pcape,ktrac,pxtm1,pxtte)
     paprc(:) = pmflxr(:,klev+1)*d_half
     paprs(:) = pmflxs(:,klev+1)*d_half
     prsfc = zrain*d_half

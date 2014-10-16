@@ -4164,7 +4164,7 @@ module mod_cu_tiedtke_38r2
                       puen,pven,plitot,pvervel,pqhfl,pahfs,pap,paph,   &
                       pgeo,pgeoh,ptent,ptenq,ptenu,ptenv,ptenl,pteni,  &
                       ldcum,ktype,kcbot,kctop,kbotsc,ldsc,ptu,pqu,plu, &
-                      pmflxr,pmflxs,prain,pmfu,pmfd,pmfude_rate,       &
+                      pmflxr,pmflxs,prain,pmfu,pmfd,plude,pmfude_rate, &
                       pmfdde_rate,pcape,ktrac,pcen,ptenc)
     implicit none
     integer(ik4) , intent(in) :: klon
@@ -4193,6 +4193,7 @@ module mod_cu_tiedtke_38r2
     real(rk8) , dimension(klon,klev) , intent(out) :: pteni
     real(rk8) , dimension(klon,klev) , intent(inout) :: ptenu
     real(rk8) , dimension(klon,klev) , intent(inout) :: ptenv
+    real(rk8) , dimension(klon,klev) , intent(inout) :: plude
     real(rk8) , dimension(klon,klev,ktrac) , intent(inout) :: ptenc
     logical , dimension(klon) , intent(inout) :: ldcum
     integer(ik4) , dimension(klon) , intent(inout) :: ktype
@@ -4212,7 +4213,6 @@ module mod_cu_tiedtke_38r2
     real(rk8) , dimension(klon,klev) , intent(inout) :: pmfdde_rate
     real(rk8) , dimension(klon) , intent(out) :: pcape
     real(rk8) , dimension(klon) :: pwmean
-    real(rk8) , dimension(klon,klev) :: plude ! only local variable
     real(rk8) , dimension(klon,klev) :: penth ! only local variable
     real(rk8) , dimension(klon,klev) :: pqsen ! only local variable
     real(rk8) , dimension(klon,klev) :: ztenh , zqenh , zqsenh ,   &

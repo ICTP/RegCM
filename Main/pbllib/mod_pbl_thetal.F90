@@ -29,7 +29,7 @@ module mod_pbl_thetal
 
   private
 
-  real(rk8) :: myp , mythetal , myqt , myexner , mylovcp
+  real(rk8) :: myp , mythetal , myqt , myexner
 
   real(rk8) , parameter :: delta = 1.0D-8
   real(rk8) , parameter :: mindt = 1.0D-3
@@ -53,11 +53,11 @@ module mod_pbl_thetal
       qv = myqt
       qc = d_zero
     end if
-    zerofunc = myexner*mythetal + mylovcp*qc - t
+    zerofunc = myexner*mythetal + wlhvocp*qc - t
     ! If necessary, find the minimum of the zerofuncion, which should be
     ! the place where it equals zero if no solution is available otherwise
     if ( bderiv ) then
-      zerofunc = -(cpd/rwat)*(myp/es)*(mylovcp*qv/t)**2 - d_one
+      zerofunc = -(cpd/rwat)*(myp/es)*(wlhvocp*qv/t)**2 - d_one
     end if
   end function zerofunc
 
@@ -65,20 +65,19 @@ module mod_pbl_thetal
   ! total water, and pressure.
 
   real(rk8) function solve_for_t(thetal,qt,p,tprev,qtprev,   &
-                                 qcprev,qiprev,thlprev,imax, &
-                                 imethod,isice,outqv,outqc,  &
-                                 outqi)
+                                 qcprev,thlprev,imax,imethod, &
+                                 outqv,outqc)
     implicit none
     real(rk8) , intent(in) :: thetal , qt , p , tprev , qtprev , &
-                              qcprev , qiprev , thlprev
-    integer(ik4) , intent(in) :: imethod , isice , imax
-    real(rk8) , intent(out) :: outqc , outqv , outqi
+                              qcprev , thlprev
+    integer(ik4) , intent(in) :: imethod , imax
+    real(rk8) , intent(out) :: outqc , outqv
     real(rk8) :: a , b , c , d , s , dum
     real(rk8) :: fa , fb , fc , fs
     real(rk8) :: smb , bmc , cmd
     real(rk8) :: temps , templ , rvls
     real(rk8) :: dthetal , dqt , qvprev , deltat , es , qcthresh
-    real(rk8) :: tempqv , tempqc , tempqi , tempt , tempes , ddq
+    real(rk8) :: tempqv , tempqc , tempt , tempes , ddq
     logical :: mflag
     integer(ik4) :: i , iteration , itqt
     integer(ik4) , parameter :: itmax = 6
@@ -88,11 +87,6 @@ module mod_pbl_thetal
     myqt = qt
     myp = p
     myexner = (myp/1.0D5)**rovcp
-    if ( isice == 0 ) then
-      mylovcp = wlhvocp
-    else
-      mylovcp = wlhsocp
-    end if
 
     ! Use the Brent 1973 method to determine t from liquid water pot.
     ! temp., pressure, and total water
@@ -105,14 +99,14 @@ module mod_pbl_thetal
       ! cloud water at one end, and none of the change in qw goes in to it
       ! in the other
       a = tprev + myexner*(mythetal - thlprev)
-      b = a + mylovcp*(myqt-qtprev)
+      b = a + wlhvocp*(myqt-qtprev)
 
       ! if a and b are essentially the same, then the total water did not
       ! change, and so t is given only by the change in liquid water
       ! potential temperature; return with this as the solution
       if ( abs(a-b) <= delta ) then
         solve_for_t = b
-        call getqvqc(solve_for_t,es,outqv,outqc,outqi,isice)
+        call getqvqc(solve_for_t,es,outqv,outqc)
         return
       end if
 
@@ -121,7 +115,7 @@ module mod_pbl_thetal
       if ( a > b ) call swap(a,b)
       dum = myexner*mythetal
       a = max(a, dum)
-      b = min(b, dum + mylovcp*myqt)
+      b = min(b, dum + wlhvocp*myqt)
       ! run these through the solution-finder
       fa = zerofunc(a,.false.)
       fb = zerofunc(b,.false.)
@@ -139,7 +133,7 @@ module mod_pbl_thetal
       end if
       if ( dabs(fb) < dlowval ) then
         solve_for_t = b
-        call getqvqc(solve_for_t,es,outqv,outqc,outqi,isice)
+        call getqvqc(solve_for_t,es,outqv,outqc)
         return
       end if
 
@@ -148,7 +142,7 @@ module mod_pbl_thetal
       if ( fa*fb >= d_zero ) then
         solve_for_t = dum
         solve_for_t = tprev
-        call getqvqc(solve_for_t,es,outqv,outqc,outqi,isice)
+        call getqvqc(solve_for_t,es,outqv,outqc)
       end if
 
       ! put a and b in the proper order
@@ -210,7 +204,7 @@ module mod_pbl_thetal
 
         if ( (abs(fa-fb) < mindq) .or. (abs(fb) < dlowval) ) then
           solve_for_t = b
-          call getqvqc(solve_for_t,es,outqv,outqc,outqi,isice)
+          call getqvqc(solve_for_t,es,outqv,outqc)
           return
         end if
         if ( abs(fa) < abs(fb) ) call swap(a,b)
@@ -222,10 +216,10 @@ module mod_pbl_thetal
       ! if we ran out of iterations, return what we have and hope for the best.
       if ( fb <= fs ) then
         solve_for_t = b
-        call getqvqc(solve_for_t,es,outqv,outqc,outqi,isice)
+        call getqvqc(solve_for_t,es,outqv,outqc)
       else
         solve_for_t = s
-        call getqvqc(solve_for_t,es,outqv,outqc,outqi,isice)
+        call getqvqc(solve_for_t,es,outqv,outqc)
       end if
 
     else if ( imethod == 2 ) then
@@ -243,52 +237,33 @@ module mod_pbl_thetal
       itqt = 0
       bigloop : &
       do
-        if ( isice == 0 ) then
-          ! calculate the saturation mixing ratio
+        ! calculate the saturation mixing ratio
+        rvls = ep2/(myp/pfesat(temps)-d_one)
+        ! go through 3 iterations of calculating the saturation
+        ! humidity and updating the temperature
+
+        ! increase the number of iterations for high total water
+        ! content; the algorithm takes longer to converge for high liquid
+        ! water content.  for too few iterations, really high liquid water
+        ! contents (and correspondingly high temperatures) result.
+
+        do iteration = 1 , itmax ! condenseliquid
+          ! update the dummy temperature
+          deltat = ((templ-temps)*cpowlhv + myqt-rvls)/   &
+                    (cpowlhv+ep2*wlhv*rvls/rgas/temps/temps)
+          temps = temps + deltat
+          ! re-calculate the saturation mixing ratio
           rvls = ep2/(myp/pfesat(temps)-d_one)
-          ! go through 3 iterations of calculating the saturation
-          ! humidity and updating the temperature
-
-          ! increase the number of iterations for high total water
-          ! content; the algorithm takes longer to converge for high liquid
-          ! water content.  for too few iterations, really high liquid water
-          ! contents (and correspondingly high temperatures) result.
-
-          do iteration = 1 , itmax ! condenseliquid
-            ! update the dummy temperature
-            deltat = ((templ-temps)*cpowlhv + myqt-rvls)/   &
-                      (cpowlhv+ep2*wlhv*rvls/rgas/temps/temps)
-            temps = temps + deltat
-            ! re-calculate the saturation mixing ratio
-            rvls = ep2/(myp/pfesat(temps)-d_one)
-            if ( dabs(deltat) < mindt ) exit
-          end do ! condenseliquid
-          ! cloud water is the total minus the saturation
-          ddq = max(myqt-rvls,d_zero)
-          outqc = ddq
-          ! water vapor is anything left over (should be =rvls)
-          outqv = myqt - ddq
-          ! add the enthalpy of condensation to templ and
-          ! convert to potential temperature
-          solve_for_t = templ + ddq*wlhvocp
-        else
-          ! calculate the saturation mixing ratio (wrt ice)
-          rvls = ep2/(myp/pfesat(temps)-d_one)
-          do iteration = 1 , itmax ! condenseice
-            ! update the dummy temperature
-            deltat = ((templ-temps)*cpowlhs + myqt -rvls) /   &
-                      (cpowlhs +ep2*wlhs*rvls/rgas/temps/temps)
-            temps = temps + deltat
-            ! re-calculate the saturation mixing ratio
-            rvls = ep2/(myp/pfesat(temps)-d_one)
-            if ( dabs(deltat) < mindt ) exit
-          end do ! condenseice
-          ddq = max(myqt-rvls,d_zero)
-          outqi = ddq
-          outqv = myqt - ddq
-          solve_for_t = templ + ddq*wlhsocp
-        end if
-
+          if ( dabs(deltat) < mindt ) exit
+        end do ! condenseliquid
+        ! cloud water is the total minus the saturation
+        ddq = max(myqt-rvls,d_zero)
+        outqc = ddq
+        ! water vapor is anything left over (should be =rvls)
+        outqv = myqt - ddq
+        ! add the enthalpy of condensation to templ and
+        ! convert to potential temperature
+        solve_for_t = templ + ddq*wlhvocp
         ! if there is cloud, check that qv is consistent with t
         if ( ddq > d_zero ) then
           dum = pfesat(solve_for_t)
@@ -316,19 +291,18 @@ module mod_pbl_thetal
       myqt = qt
       dthetal = thetal - thlprev
       dqt = qt - qtprev
-      qvprev = myqt - qcprev - qiprev
+      qvprev = myqt - qcprev
       tempt = tprev
       temps = templ
       tempqv = qvprev
       tempqc = qcprev
-      tempqi = qiprev
       myqt = qtprev
-      call getqvqc(temps,tempes,tempqv,tempqc,tempqi,isice)
+      call getqvqc(temps,tempes,tempqv,tempqc)
 
       ! set the threshold for (approximately) zero cloud water
       ! have it be consistent with the threshold for determining
       ! when tprev+deltat is consistent enough with thetal
-      ! qcthresh = mindt*myexner/mylovcp
+      ! qcthresh = mindt*myexner/wlhvocp
       qcthresh = minqx
 
       do iteration = 1 , imax
@@ -340,24 +314,23 @@ module mod_pbl_thetal
           ! otherwise, add a contribution from the change in cloud water.
         else
           dum = (myp/ep2/tempes)*(cpd/rwat)*      &
-                (mylovcp*tempqv/(cpd*tempt))**2 + d_one
-          deltat = (myexner*dthetal + mylovcp*dqt)/dum
+                (wlhvocp*tempqv/(cpd*tempt))**2 + d_one
+          deltat = (myexner*dthetal + wlhvocp*dqt)/dum
         end if
 
         if ( abs(deltat) < mindt ) then
           tempt = tprev
           tempqv = qvprev
           tempqc = qcprev
-          tempqi = qiprev
           exit
         end if
 
         ! update the dummy temperature
         tempt = tprev + deltat
         ! and get qc and qv from it
-        call getqvqc(tempt,tempes,tempqv,tempqc,tempqi,isice)
+        call getqvqc(tempt,tempes,tempqv,tempqc)
         ! check if the solution has converged
-        dum = thetal - (tempt - mylovcp*tempqc)/myexner
+        dum = thetal - (tempt - wlhvocp*tempqc)/myexner
         if (abs(dum) < mindt ) exit
       end do
 
@@ -366,7 +339,6 @@ module mod_pbl_thetal
       solve_for_t = tempt
       outqv = tempqv
       outqc = tempqc
-      outqi = tempqi
     end if
 
   end function solve_for_t
@@ -418,19 +390,14 @@ module mod_pbl_thetal
     b = c
   end subroutine swap
 
-  subroutine getqvqc(t,es,qv,qc,qi,isice)
+  subroutine getqvqc(t,es,qv,qc)
     implicit none
     real(rk8) , intent(in) :: t
-    real(rk8) , intent(out) :: es , qv , qc , qi
-    integer(ik4) , intent(in) :: isice
+    real(rk8) , intent(out) :: es , qv , qc
     es = pfesat(t)
     qv = max(ep2/(myp/es-d_one),d_zero)
     if ( myqt > qv ) then
-      if ( isice == 0 ) then
-        qc = myqt - qv
-      else
-        qi = myqt - qv
-      end if
+      qc = myqt - qv
     else
       qv = myqt
     end if
