@@ -93,6 +93,8 @@ module mod_clm_varctl
   !
   ! Physics
   !
+  ! Use (1) or not Lawrence 2007 Albedoes
+  integer(ik4) , public :: ialblawr = 0
   !use subgrid fluxes
   integer(ik4) , public :: subgridflag = 1
   ! true => write global average diagnostics to std out

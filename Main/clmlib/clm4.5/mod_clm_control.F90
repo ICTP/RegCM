@@ -24,7 +24,7 @@ module mod_clm_control
           pertlim , username , fsnowaging , fsnowoptics ,         &
           subgridflag , use_c13 , use_c14 , irrigate ,            &
           spinup_state , override_bgc_restart_mismatch_dump ,     &
-          source
+          source , ialblawr
   use mod_clm_varpar, only : numrad
   use mod_clm_varctl , only : ctitle , caseid , nsrest
   use mod_clm_varcon , only : secspday
@@ -156,8 +156,9 @@ module mod_clm_control
          spinup_state, override_bgc_restart_mismatch_dump
 #endif
 
-    namelist /clm_inparm / &
-         co2_type
+    namelist /clm_inparm / co2_type
+
+    namelist /clm_inparm / ialblawr
 
     namelist /clm_inparm / perchroot, perchroot_alt
 #ifdef LCH4
@@ -353,6 +354,11 @@ module mod_clm_control
     ! BGC
 
     call bcast(co2_type,len(co2_type))
+
+    ! Albedo mod.
+
+    call bcast(ialblawr)
+
 #ifdef CN
     call bcast(suplnitro,len(suplnitro))
     call bcast(nfix_timeconst)

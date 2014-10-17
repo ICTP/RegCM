@@ -165,7 +165,6 @@ module mod_clm_varcon
   real(rk8) , public , parameter :: frac_minrlztn_to_no3 = 0.2D0
 #endif
 
-
   !------------------------------------------------------------------
   ! Initialize water type constants
   !------------------------------------------------------------------
