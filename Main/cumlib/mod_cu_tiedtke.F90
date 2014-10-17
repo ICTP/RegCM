@@ -312,7 +312,7 @@ module mod_cu_tiedtke
           c2m%vten(j,i,k) = pvol(ii,k) * m2c%psb(j,i)
           c2m%qxten(j,i,k,iqv) = pqte(ii,k)  * m2c%psb(j,i)
           c2m%qxten(j,i,k,iqc) = pxlte(ii,k) * m2c%psb(j,i)
-          q_detr(j,i,k) = zlude(ii,k)
+          q_detr(j,i,k) = max(zlude(ii,k),dlowval)
           rain_cc(j,i,k) = pmflxr(ii,k)
         end if
       end do

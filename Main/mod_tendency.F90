@@ -118,11 +118,10 @@ module mod_tendency
   !
   subroutine tend
     implicit none
-    real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,  &
-               psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot ,   &
-               qxas , qxbs , rovcpm , rtbar , sigpsa , tv , tv1 ,    &
-               tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc , rho0s ,   &
-               cpm , scr
+    real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,   &
+               psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot ,    &
+               rovcpm , rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , &
+               tva , tvavg , tvb , tvc , rho0s , cpm , scr
     real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
@@ -1410,15 +1409,22 @@ module mod_tendency
           end do
         end do
       end do
-      do n = 1 , nqx
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            atm1%qx(j,i,k,iqv) = max(atmc%qx(j,i,k,iqv),minqx)
+            atm2%qx(j,i,k,iqv) = omuhf*max(atm1%qx(j,i,k,iqv),minqx) + &
+              gnuhf*max(atm2%qx(j,i,k,iqv)+atmc%qx(j,i,k,iqv),minqx)
+          end do
+        end do
+      end do
+      do n = iqc , nqx
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              qxas = atmc%qx(j,i,k,n)
-              qxbs = omuhf*atm1%qx(j,i,k,n) + &
-                     gnuhf*(atm2%qx(j,i,k,n)+atmc%qx(j,i,k,n))
-              atm1%qx(j,i,k,n) = qxas
-              atm2%qx(j,i,k,n) = qxbs
+              atm1%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),dlowval)
+              atm2%qx(j,i,k,n) = omuhf*max(omuhf*atm1%qx(j,i,k,n),dlowval) + &
+                gnuhf*max(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n),dlowval)
             end do
           end do
         end do

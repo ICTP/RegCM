@@ -2018,7 +2018,7 @@ module mod_params
 
       subroutine compute_full_coriolis_coefficients
         implicit none
-        integer(ik4) :: i , j , k
+        integer(ik4) :: i , j
         real(rk8) :: rotang , dlat , dlatdy , dlondy
         do i = idi1 , idi2
           do j = jdi1 , jdi2
