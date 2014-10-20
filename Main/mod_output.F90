@@ -224,7 +224,7 @@ module mod_output
         end if
         if ( associated(atm_ph_out) ) then
           do k = 1 , kz
-            atm_ph_out(:,:,k) = papf(jci1:jci2,ici1:ici2,k)
+            atm_ph_out(:,:,k) = atms%pf3d(jci1:jci2,ici1:ici2,k)
           end do
         end if
         if ( associated(atm_rainls_out) ) then

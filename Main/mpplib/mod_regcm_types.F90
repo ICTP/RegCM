@@ -490,6 +490,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: convpr
     real(rk8) , pointer , dimension(:,:,:) :: cldfrc
     real(rk8) , pointer , dimension(:,:,:) :: cldlwc
+    real(rk8) , pointer , dimension(:,:,:) :: q_detr
     integer(ik4) , pointer , dimension(:,:) :: kcumtop
     integer(ik4) , pointer , dimension(:,:) :: kcumbot
   end type cum_2_mod

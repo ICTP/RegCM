@@ -82,8 +82,8 @@ module mod_bats_common
       tlef  = tgrd
       taf   = tgrd
       if ( snowhack ) then
-        where ( hts > 2000.0D0 )
-          sncv = 0.01D0
+        where ( tgrd < 263.0D0 )
+          sncv = hts/10.0D0
         end where
       end if
 

@@ -168,7 +168,7 @@ module mod_cu_tiedtke
     total_precip_points = 0
     ilab(:,:) = 2
     cevapcu(:) = cevapu
-    q_detr(:,:,:) = d_zero
+    c2m%q_detr(:,:,:) = d_zero
 
     if ( ichem == 1 ) then
       c2m%convpr(:,:,:) = d_zero
@@ -312,7 +312,7 @@ module mod_cu_tiedtke
           c2m%vten(j,i,k) = pvol(ii,k) * m2c%psb(j,i)
           c2m%qxten(j,i,k,iqv) = pqte(ii,k)  * m2c%psb(j,i)
           c2m%qxten(j,i,k,iqc) = pxlte(ii,k) * m2c%psb(j,i)
-          q_detr(j,i,k) = max(zlude(ii,k),dlowval)
+          c2m%q_detr(j,i,k) = max(zlude(ii,k),dlowval)
           rain_cc(j,i,k) = pmflxr(ii,k)
         end if
       end do

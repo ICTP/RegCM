@@ -122,6 +122,9 @@ module mod_atm_interface
   integer(ik4) , public , pointer , dimension(:,:) :: kpbl
   real(rk8) , public , pointer , dimension(:,:) :: zpbl
 
+  ! Cumulus
+  real(rk8) , public , pointer , dimension(:,:,:) :: q_detr
+
   integer(ik4) , public , parameter :: zero_exchange_point = 0
   integer(ik4) , public , parameter :: one_exchange_point = 1
   integer(ik4) , public , parameter :: two_exchange_point = 2
@@ -984,6 +987,7 @@ module mod_atm_interface
       call getmem2d(sdelt,jci1,jci2,ici1,ici2,'storage:sdelt')
       call getmem2d(zpbl,jci1,jci2,ici1,ici2,'storage:zpbl')
       call getmem2d(kpbl,jci1,jci2,ici1,ici2,'storage:kpbl')
+      call getmem3d(q_detr,jci1,jci2,ici1,ici2,1,kz,'storage:q_detr')
 
       if ( idynamic == 2 ) then
         call allocate_reference_atmosphere(atm0)

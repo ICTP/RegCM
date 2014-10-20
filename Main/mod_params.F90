@@ -1793,7 +1793,7 @@ module mod_params
     end if
 
     if ( ipptls == 2 ) then
-      call init_cloud_s1(atms,aten,heatrt,sfs,q_detr,pptnc)
+      call init_cloud_s1
     end if
 
     call init_pblscheme
