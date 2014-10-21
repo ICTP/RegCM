@@ -115,18 +115,7 @@ module mod_init
         sfs%tgb(j,i) = ts0(j,i)
       end do
     end do
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
-          atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atm1%t(j,i,k)/sfs%psa(j,i))
-          atm2%pr(j,i,k) = atm1%pr(j,i,k)
-          atm2%rho(j,i,k) = atm1%rho(j,i,k)
-        end do
-      end do
-    end do
     !
-
     ! If we have activated SeaIce scheme, on ocean point we consider
     ! the temperature as the signal to cover with ice the sea, changing
     ! the tipe of soil to permanent ice. The landmask is:
@@ -486,6 +475,17 @@ module mod_init
     ! End of restart phase
     !
   end if
+  !
+  do k = 1 , kz
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
+        atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atm1%t(j,i,k)/sfs%psa(j,i))
+        atm2%pr(j,i,k) = atm1%pr(j,i,k)
+        atm2%rho(j,i,k) = atm1%rho(j,i,k)
+      end do
+    end do
+  end do
   !
   ! The following allows to change landuse on restart.
   !
