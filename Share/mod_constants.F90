@@ -54,7 +54,7 @@ module mod_constants
   real(rk8) , parameter :: deg360 = 360.0D+00
 
   ! Low/Hi values
-  real(rk8) , parameter :: minqx   = 1.0D-14
+  real(rk8) , parameter :: minqx   = 1.0D-8
   real(rk8) , parameter :: dlowval = 1.0D-30
   real(rk8) , parameter :: dhival  = 1.0D+30
   real(rk4) , parameter :: slowval = 1.0E-30
