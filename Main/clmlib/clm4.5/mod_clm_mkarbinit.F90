@@ -945,7 +945,6 @@ module mod_clm_mkarbinit
     ! initialize h2osfc, frac_h2osfc, t_h2osfc, qflx_snow_melt
     do c = begc , endc
       g = cgridcell(c)
-
       h2osfc(c)           = 0.D0
       frac_h2osfc(c)      = 0.D0
       t_h2osfc(c)         = adomain%tgrd(g)
@@ -981,6 +980,8 @@ module mod_clm_mkarbinit
             end if
           end if
         end if
+      else
+        h2osno(c) = 0.0D0
       end if
 
       ! initialize int_snow, int_melt

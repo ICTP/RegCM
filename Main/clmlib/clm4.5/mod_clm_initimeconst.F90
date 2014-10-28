@@ -1185,6 +1185,7 @@ module mod_clm_initimeconst
               cellsand(c,lev) = sand
               cellclay(c,lev) = clay
               cellorg(c,lev)  = om_frac*organic_max
+              watsat(c,lev) = 1.0D0
             end if
           else if (ltype(l) /= istdlak) then
             ! soil columns of both urban and non-urban types

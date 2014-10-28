@@ -692,7 +692,7 @@ module mod_clm_canopyfluxes
    ! Filter pfts where frac_veg_nosno is non-zero
 
    fn = 0
-   do fp = 1,num_nolakep
+   do fp = 1 , num_nolakep
      p = filter_nolakep(fp)
      if (frac_veg_nosno(p) /= 0) then
        fn = fn + 1
@@ -791,8 +791,8 @@ module mod_clm_canopyfluxes
    ! Effective porosity of soil, partial volume of ice and liquid
    ! (needed for btran) and root resistance factors
 
-   do j = 1,nlevgrnd
-     do f = 1, fn
+   do j = 1 , nlevgrnd
+     do f = 1 , fn
        p = filterp(f)
        c = pcolumn(p)
        l = plandunit(p)
@@ -802,7 +802,7 @@ module mod_clm_canopyfluxes
        vol_ice = min(watsat(c,j), h2osoi_ice(c,j)/(dz(c,j)*denice))
        eff_porosity = watsat(c,j)-vol_ice
        vol_liq = min(eff_porosity, h2osoi_liq(c,j)/(dz(c,j)*denh2o))
-       if (vol_liq .le. 0.D0 .or. t_soisno(c,j) .le. tfrz-2.D0) then
+       if ( vol_liq <= 0.D0 .or. t_soisno(c,j) <= tfrz-2.D0 ) then
          rootr(p,j) = 0.D0
        else
          s_node = max(vol_liq/eff_porosity,0.01D0)
@@ -828,10 +828,10 @@ module mod_clm_canopyfluxes
 
    ! Normalize root resistances to get layer contribution to ET
 
-   do j = 1,nlevgrnd
+   do j = 1 , nlevgrnd
      do f = 1, fn
        p = filterp(f)
-       if (btran(p) .gt. btran0) then
+       if ( btran(p) > btran0 ) then
          rootr(p,j) = rootr(p,j)/btran(p)
        else
          rootr(p,j) = 0.D0
@@ -901,7 +901,7 @@ module mod_clm_canopyfluxes
            ! Add deficit to irrig_rate, converting units from mm to mm/sec
            irrig_rate(c) = irrig_rate(c)+deficit/(dtsrf*irrig_nsteps_per_day)
 
-         end if  ! else if (rootfr(p,j) .gt. 0)
+         end if  ! else if (rootfr(p,j) > 0)
        end if    ! if (check_for_irrig(p) .and. .not. frozen_soil(c))
      end do      ! do f
    end do        ! do j
@@ -1073,7 +1073,7 @@ module mod_clm_canopyfluxes
        ! Done each iteration to account for differences in eah, tv.
 
        svpts(p) = el(p)                         ! pa
-       eah(p) = forc_pbot(g) * qaf(p) / 0.622D0   ! pa
+       eah(p) = forc_pbot(g) * qaf(p) / 0.622D0 ! pa
 !KO
        rhaf(p) = eah(p)/svpts(p)
 !KO
@@ -1113,7 +1113,7 @@ module mod_clm_canopyfluxes
 
        ! Fraction of potential evaporation from leaf
 
-       if (fdry(p) .gt. 0.0D0) then
+       if (fdry(p) > 0.0D0) then
          rppdry  = fdry(p)*rb(p)*(laisun(p)/(rb(p)+rssun(p)) + &
                                   laisha(p)/(rb(p)+rssha(p)))/elai(p)
        else
@@ -1164,7 +1164,7 @@ module mod_clm_canopyfluxes
        rdl = ( 1.D0 - exp(-elai_dl) ) / ( 0.004D0*uaf(p))
 
        ! add litter resistance and Lee and Pielke 1992 beta
-       if (delq(p) .lt. 0.D0) then
+       if (delq(p) < 0.D0) then
          !dew. Do not apply beta for negative flux (follow old rsoil)
          wtgq(p) = frac_veg_nosno(p)/(raw(p,2)+rdl)
        else
@@ -1190,7 +1190,7 @@ module mod_clm_canopyfluxes
 
        erre = 0.D0
 
-       if ( abs(efe(p))  < 1.D-20 ) efe(p)  = 0.0D0
+       if ( abs(efe(p)) < 1.D-20 ) efe(p)  = 0.0D0
        if ( abs(efeb(p)) < 1.D-20 ) efeb(p) = 0.0D0
        if (efe(p)*efeb(p) < 0.D0) then
          efeold = efe(p)

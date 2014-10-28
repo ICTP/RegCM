@@ -214,6 +214,7 @@ module mod_clm_regcm
 
     ! Compute or alias
     clm_a2l%forc_wind = sqrt(clm_a2l%forc_u**2 + clm_a2l%forc_v**2)
+    !clm_a2l%forc_th = clm_a2l%forc_t*(1.0D5/clm_a2l%forc_pbot)**rovcp
     clm_a2l%forc_hgt_u = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
@@ -241,7 +242,7 @@ module mod_clm_regcm
 
     if ( ichem /= 1 ) then
       clm_a2l%forc_pco2 = co2_ppmv*1.D-6*clm_a2l%forc_psrf
-      clm_a2l%forc_ndep = 6.34D-5 ! ?
+      clm_a2l%forc_ndep = 6.34D-5
       if ( use_c13 ) then
         clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
       end if
@@ -295,6 +296,8 @@ module mod_clm_regcm
 
     call glb_l2c_ss(lndcomm,clm_l2a%eflx_sh_tot,lms%sent)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_evap_tot,lms%evpr)
+    call glb_l2c_ss(lndcomm,clm_l2a%eflx_lh_tot,lms%evpr)
+    lms%evpr = lms%evpr / wlhv
     clm_l2a%notused = sqrt(clm_l2a%taux**2+clm_l2a%tauy**2) / &
                       sqrt(clm_a2l%forc_u**2+clm_a2l%forc_v**2)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%drag)
