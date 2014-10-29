@@ -312,7 +312,7 @@ module mod_ocn_zeng
       end if ! dcsst
 
       sent(i)  = sh
-      evpr(i)  = lh/wlhv
+      evpr(i)  = lh*rwlhv
       ! Back out Drag Coefficient
       facttq = dlog(z995*d_half)/dlog(z995/zo)
       drag(i) = ustar**2*rhox(i)/uv995

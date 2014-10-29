@@ -344,7 +344,7 @@ module mod_cu_bm
           if ( pkl >= psfck-pbm ) then
             tthbt(j,i) = t(j,i,kb)*ape(j,i,kb)
             ee = pkl*q(j,i,kb)/(ep2+q(j,i,kb))
-            tdpt = d_one/(rtzero-rwat/wlhv*dlog(ee/611.D0))
+            tdpt = d_one/(rtzero-rwat*rwlhv*dlog(ee/611.D0))
             tdpt = dmin1(tdpt,t(j,i,kb))
             tlcl = tdpt - (0.212D0+1.571D-3*(tdpt-tzero) - &
                            4.36D-4*(t(j,i,kb)-tzero))*(t(j,i,kb)-tdpt)
@@ -850,7 +850,7 @@ module mod_cu_bm
       thtpk = t(j,i,ltp1)*ape(j,i,ltp1)
       pkl = m2c%pas(j,i,ltp1)
       ee = pkl*q(j,i,ltp1)/(ep2+q(j,i,ltp1))
-      tdpt = d_one/(rtzero-rwat/wlhv*dlog(ee/611.D0))
+      tdpt = d_one/(rtzero-rwat*rwlhv*dlog(ee/611.D0))
       tdpt = dmin1(tdpt,t(j,i,ltp1))
       tlcl = tdpt - (0.212D0+1.571D-3*(tdpt-tzero) - &
              4.36D-4*(t(j,i,ltp1)-tzero))*(t(j,i,ltp1)-tdpt)
@@ -909,7 +909,7 @@ module mod_cu_bm
       rotsum = d_one/otsum
       potsum = potsum*rotsum
       qotsum = qotsum*rotsum
-      dst = dst*rotsum*cpd/wlhv
+      dst = dst*rotsum*cpowlhv
       !
       ! ensure positive entropy change
       !

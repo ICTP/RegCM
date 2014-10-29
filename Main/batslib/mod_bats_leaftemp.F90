@@ -245,7 +245,7 @@ module mod_bats_leaftemp
         !=========================================
         ! 4.   update dew accumulation (kg/m**2/s)
         !=========================================
-        ldew(i) = ldew(i) + (etr(i) - efe(i)/wlhv)*dtbat
+        ldew(i) = ldew(i) + (etr(i) - efe(i)*rwlhv)*dtbat
         !===========================================
         ! 5.   collect parameters needed to evaluate
         !      sensible and latent fluxes

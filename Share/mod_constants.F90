@@ -144,6 +144,9 @@ module mod_constants
   real(rk8) , parameter :: wlhf = 0.33355D+06
   real(rk8) , parameter :: wlhv = 2.50080D+06
   real(rk8) , parameter :: wlhs = wlhv + wlhf
+  real(rk8) , parameter :: rwlhv = d_one/wlhv
+  real(rk8) , parameter :: rwlhf = d_one/wlhf
+  real(rk8) , parameter :: rwlhs = d_one/wlhs
 
   ! Various utility terms used in calculations
   real(rk8) , parameter :: regrav = d_one/egrav
@@ -176,9 +179,9 @@ module mod_constants
   real(rk8) , parameter :: wlhvocp = wlhv*rcpd
   real(rk8) , parameter :: wlhsocp = wlhs*rcpd
   real(rk8) , parameter :: wlhfocp = wlhf*rcpd
-  real(rk8) , parameter :: cpowlhv = cpd/wlhv
-  real(rk8) , parameter :: cpowlhs = cpd/wlhs
-  real(rk8) , parameter :: cpowlhf = cpd/wlhf
+  real(rk8) , parameter :: cpowlhv = cpd*rwlhv
+  real(rk8) , parameter :: cpowlhs = cpd*rwlhs
+  real(rk8) , parameter :: cpowlhf = cpd*rwlhf
   real(rk8) , parameter :: rtber = tzero-5.0D0
   real(rk8) , parameter :: rtice = tzero-23.0D+00
   real(rk8) , parameter :: rtwat = tzero
