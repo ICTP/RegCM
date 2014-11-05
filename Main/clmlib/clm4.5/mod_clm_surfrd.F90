@@ -605,6 +605,9 @@ module mod_clm_surfrd
       end if
     end do
 
+#ifdef CROP
+    crop = .true.
+#endif
     call sumall(ier,tot_ier)
     if ( tot_ier /= 0 ) then
       write(stderr,*) 'Total errors = ', tot_ier
