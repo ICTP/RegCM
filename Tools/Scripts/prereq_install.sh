@@ -26,7 +26,7 @@
 
 netcdf_c_ver=4.3.2
 netcdf_f_ver=4.2
-hdf5_ver=1.8.13
+hdf5_ver=1.8.12
 zlib_ver=1.2.8
 ompi_ver=1.8.3
 ompi_major=`echo $ompi_ver | cut -d "." -f 1-2`
