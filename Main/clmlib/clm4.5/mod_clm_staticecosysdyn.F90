@@ -213,11 +213,9 @@ module mod_clm_staticecosysdyn
     real(rk8) :: t        ! a fraction: kda/ndaypm
     integer(ik4) , dimension(2) :: it     ! month 1 and month 2 (step 1)
     integer(ik4) , dimension(2) :: months ! months to be interpolated (1 to 12)
-    integer(ik4) , dimension(12) :: ndaypm= &
-         (/31,28,31,30,31,30,31,31,30,31,30,31/) !days per month
 
     call curr_date(idatex,kyr,kmo,kda,ksec,offset=int(dtsrf))
-    t = (kda-0.5D0) / ndaypm(kmo)
+    t = (kda-0.5D0) / ndaypm(kyr,kmo,idatex%calendar)
     it(1) = int(t + 0.5D0)
     it(2) = it(1) + 1
     months(1) = kmo + it(1) - 1

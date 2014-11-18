@@ -232,7 +232,7 @@ module mod_clm_cnphenology
       else
         if ( kmo == 1 .and. &
              kda == 1 .and. &
-             mcsec == 0 ) call CropRestIncYear( nyrs )
+             mcsec <= dtsrf ) call CropRestIncYear( nyrs )
       end if
     end if
 
@@ -247,7 +247,7 @@ module mod_clm_cnphenology
       end if
       if ( kmo == 1 .and. &
            kda == 1 .and. &
-           mcsec == 0)  then      ! <-- END of EVERY YR:
+           mcsec <= dtsrf )  then      ! <-- END of EVERY YR:
         if ( nyrs  == 1 ) then    ! <-- END of YR 1
           gdd020(p)  = gdd0(p)    ! <-- END of YR 1
           gdd820(p)  = gdd8(p)    ! <-- END of YR 1
@@ -1352,7 +1352,7 @@ module mod_clm_cnphenology
       ! initialize other variables that are calculated for crops
       ! on an annual basis in cropresidue subroutine
 
-      if ( jday == jdayyrstart(h) .and. mcsec == 0 ) then
+      if ( jday == jdayyrstart(h) .and. mcsec <= dtsrf ) then
 
         ! make sure variables aren't changed at beginning of the year
         ! for a crop that is currently planted (e.g. winter temperate cereal)

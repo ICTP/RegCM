@@ -619,13 +619,17 @@ module mod_clm_accflds
 
     ! Accumulate and extract AGDDTW (gdd base twmax, which is 23 deg C
     ! for boreal woody pfts)
+    if (month == 1 .and. day == 1 .and. secs <= int(dtsrf)) then
+      do p = begp , endp
+        rbufslp(p) = -99999.D0
+      end do
+    else
+      do p = begp , endp
+        rbufslp(p) = max(0.D0, (t10(p) - tfrz - twmax(ndllf_dcd_brl_tree)) &
+                     * dtsrf/secspday)
+      end do
+    end if
 
-    do p = begp , endp
-      rbufslp(p) = max(0.D0, (t10(p) - tfrz - twmax(ndllf_dcd_brl_tree)) &
-                    * dtsrf/secspday)
-      if (month == 1 .and. day == 1 .and. &
-              secs==int(dtsrf)) rbufslp(p) = -99999.D0
-    end do
     call update_accum_field  ('AGDDTW', rbufslp, kkincr)
     call extract_accum_field ('AGDDTW', agddtw, kkincr)
 
@@ -676,59 +680,67 @@ module mod_clm_accflds
 
       ! Accumulate and extract GDD0
 
-      do p = begp , endp
-        itypveg = itype(p)
-        g = pgridcell(p)
-        if ( month == 1 .and. day == 1 .and. &
-                secs==int(dtsrf) ) then
-          rbufslp(p) = -99999.D0 ! reset gdd
-        else if (( month > 3 .and. month < 10 .and. latdeg(g) >= 0.D0) .or. &
-          ((month > 9 .or.  month < 4) .and. latdeg(g) <  0.D0)     ) then
-          rbufslp(p) = max(0.D0, min(26.D0, t_ref2m(p)-tfrz)) &
-                          * dtsrf/secspday
-        else
-          ! keeps gdd unchanged at other times (eg, through Dec in NH)
-          rbufslp(p) = 0.D0
-        end if
-      end do
+      if (month == 1 .and. day == 1 .and. secs <= int(dtsrf)) then
+        do p = begp , endp
+          rbufslp(p) = -99999.D0
+        end do
+      else
+        do p = begp , endp
+          g = pgridcell(p)
+          if ( ( month > 3 .and. month < 10 .and. latdeg(g) >= 0.D0) .or. &
+               ( (month > 9 .or.  month < 4) .and. latdeg(g) < 0.D0) ) then
+            rbufslp(p) = max(0.D0, min(26.D0, t_ref2m(p)-tfrz)) &
+                             * dtsrf/secspday
+          else
+            ! keeps gdd unchanged at other times (eg, through Dec in NH)
+            rbufslp(p) = 0.D0
+          end if
+        end do
+      end if
       call update_accum_field  ('GDD0', rbufslp, kkincr)
       call extract_accum_field ('GDD0', gdd0, kkincr)
 
       ! Accumulate and extract GDD8
 
-      do p = begp , endp
-        itypveg = itype(p)
-        g = pgridcell(p)
-        if ( month == 1 .and. day == 1 .and. secs==int(dtsrf) ) then
-          rbufslp(p) = -99999.D0 ! reset gdd
-        else if (( month > 3 .and. month < 10 .and. latdeg(g) >= 0.D0) .or. &
-                ((month > 9 .or.  month < 4) .and. latdeg(g) <  0.D0) ) then
-          rbufslp(p) = max(0.D0, min(30.D0, &
-                       t_ref2m(p)-(tfrz + 8.D0))) * dtsrf/secspday
-        else
-          ! keeps gdd unchanged at other times (eg, through Dec in NH)
-          rbufslp(p) = 0.D0
-        end if
-      end do
+      if (month == 1 .and. day == 1 .and. secs <= int(dtsrf)) then
+        do p = begp , endp
+          rbufslp(p) = -99999.D0
+        end do
+      else
+        do p = begp , endp
+          g = pgridcell(p)
+          if ( ( month > 3 .and. month < 10 .and. latdeg(g) >= 0.D0) .or. &
+               ( (month > 9 .or.  month < 4) .and. latdeg(g) < 0.D0) ) then
+            rbufslp(p) = max(0.D0, min(30.D0, &
+                         t_ref2m(p)-(tfrz + 8.D0))) * dtsrf/secspday
+          else
+            ! keeps gdd unchanged at other times (eg, through Dec in NH)
+            rbufslp(p) = 0.D0
+          end if
+        end do
+      end if
       call update_accum_field  ('GDD8', rbufslp, kkincr)
       call extract_accum_field ('GDD8', gdd8, kkincr)
 
       ! Accumulate and extract GDD10
 
-      do p = begp , endp
-        itypveg = itype(p)
-        g = pgridcell(p)
-        if ( month == 1 .and. day == 1 .and. secs==int(dtsrf) ) then
-          rbufslp(p) = -99999.D0 ! reset gdd
-        else if (( month > 3 .and. month < 10 .and. latdeg(g) >= 0.D0) .or. &
-               ((month > 9 .or.  month < 4) .and. latdeg(g) <  0.D0)) then
-          rbufslp(p) = max(0.D0, min(30.D0, &
-                       t_ref2m(p)-(tfrz + 10.D0))) * dtsrf/secspday
-        else
-          ! keeps gdd unchanged at other times (eg, through Dec in NH)
-          rbufslp(p) = 0.D0
-        end if
-      end do
+      if (month == 1 .and. day == 1 .and. secs <= int(dtsrf)) then
+        do p = begp , endp
+          rbufslp(p) = -99999.D0
+        end do
+      else
+        do p = begp , endp
+          g = pgridcell(p)
+          if ( ( month > 3 .and. month < 10 .and. latdeg(g) >= 0.D0) .or. &
+               ( (month > 9 .or.  month < 4) .and. latdeg(g) < 0.D0) ) then
+            rbufslp(p) = max(0.D0, min(30.D0, &
+                         t_ref2m(p)-(tfrz + 10.D0))) * dtsrf/secspday
+          else
+            ! keeps gdd unchanged at other times (eg, through Dec in NH)
+            rbufslp(p) = 0.D0
+          end if
+        end do
+      end if
       call update_accum_field  ('GDD10', rbufslp, kkincr)
       call extract_accum_field ('GDD10', gdd10, kkincr)
 

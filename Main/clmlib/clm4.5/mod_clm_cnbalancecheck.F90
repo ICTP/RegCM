@@ -118,6 +118,8 @@ module mod_clm_cnbalancecheck
     real(rk8), pointer :: product_closs(:)
     ! total SOM C loss from vertical transport (gC/m^2/s)
     real(rk8), pointer :: som_c_leached(:)
+    ! grid pointer
+    integer(ik4), pointer :: gridcell(:)
 
     ! (gC/m2/s) total column-level carbon inputs (for balance check)
     real(rk8), pointer :: col_cinputs(:)
@@ -130,7 +132,7 @@ module mod_clm_cnbalancecheck
     ! carbon balance error for the timestep (gC/m**2)
     real(rk8), pointer :: col_errcb(:)
 
-    integer(ik4) :: c,err_index  ! indices
+    integer(ik4) :: c,err_index,g  ! indices
     integer(ik4) :: fc   ! lake filter indices
     logical :: err_found ! error flag
     real(rk8):: dt       ! radiation time step (seconds)
@@ -143,6 +145,7 @@ module mod_clm_cnbalancecheck
     col_hrv_xsmrpool_to_atm  => clm3%g%l%c%ccf%pcf_a%hrv_xsmrpool_to_atm
     dwt_closs                => clm3%g%l%c%ccf%dwt_closs
     product_closs            => clm3%g%l%c%ccf%product_closs
+    gridcell                 => clm3%g%l%c%gridcell
 
     col_cinputs              => clm3%g%l%c%ccf%col_cinputs
     col_coutputs             => clm3%g%l%c%ccf%col_coutputs
@@ -173,7 +176,7 @@ module mod_clm_cnbalancecheck
       col_errcb(c) = (col_cinputs(c) - col_coutputs(c))*dt - &
            (col_endcb(c) - col_begcb(c))
       ! check for significant errors
-      if ( abs(col_errcb(c)) > 1D-3 ) then
+      if ( abs(col_errcb(c)) > 1.0D-3 ) then
         err_found = .true.
         err_index = c
       end if
@@ -181,13 +184,21 @@ module mod_clm_cnbalancecheck
 
     if (err_found) then
       c = err_index
-      write(stderr,*) 'column cbalance error = ', col_errcb(c), c
-      write(stderr,*) 'Latdeg,Londeg=', &
-        clm3%g%latdeg(clm3%g%l%c%gridcell(c)), &
-        clm3%g%londeg(clm3%g%l%c%gridcell(c))
-      write(stderr,*)'begcb       = ',col_begcb(c)
-      write(stderr,*)'endcb       = ',col_endcb(c)
-      write(stderr,*)'delta store = ',col_endcb(c)-col_begcb(c)
+      g = gridcell(c)
+      write(stderr,*) 'Latdeg, Londeg =', clm3%g%latdeg(g), clm3%g%londeg(g)
+      write(stderr,*) 'Column = ', c
+      write(stderr,*) 'column cbalance error = ', col_errcb(c)
+      write(stderr,*) 'delta store = ',col_endcb(c)-col_begcb(c)
+      write(stderr,*) 'begcb       = ',col_begcb(c)
+      write(stderr,*) 'endcb       = ',col_endcb(c)
+      write(stderr,*) 'inputs      = ',col_cinputs(c)*dt
+      write(stderr,*) 'outputs     = ',col_coutputs(c)*dt
+      write(stderr,*) 'ER          = ',er(c)*dt
+      write(stderr,*) 'Fire Loss   = ',col_fire_closs(c)*dt
+      write(stderr,*) 'DWT Loss    = ',dwt_closs(c)*dt
+      write(stderr,*) 'Product CL  = ',product_closs(c)*dt
+      write(stderr,*) 'To Atm      = ',col_hrv_xsmrpool_to_atm(c)*dt
+      write(stderr,*) 'Leached     = ',som_c_leached(c)*dt
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
   end subroutine CBalanceCheck
@@ -247,8 +258,10 @@ module mod_clm_cnbalancecheck
     real(rk8), pointer :: col_endnb(:)
     ! nitrogen balance error for the timestep (gN/m**2)
     real(rk8), pointer :: col_errnb(:)
+    ! grid pointer
+    integer(ik4), pointer :: gridcell(:)
 
-    integer(ik4) :: c,err_index    ! indices
+    integer(ik4) :: c,err_index,g    ! indices
     integer(ik4) :: fc   ! lake filter indices
     logical :: err_found ! error flag
     real(rk8):: dt       ! radiation time step (seconds)
@@ -273,6 +286,7 @@ module mod_clm_cnbalancecheck
     dwt_nloss             => clm3%g%l%c%cnf%dwt_nloss
     product_nloss         => clm3%g%l%c%cnf%product_nloss
     som_n_leached         => clm3%g%l%c%cnf%som_n_leached
+    gridcell              => clm3%g%l%c%gridcell
 
     col_ninputs           => clm3%g%l%c%cnf%col_ninputs
     col_noutputs          => clm3%g%l%c%cnf%col_noutputs
@@ -329,10 +343,9 @@ module mod_clm_cnbalancecheck
 
     if (err_found) then
       c = err_index
+      g = gridcell(c)
       write(stderr,*) 'column nbalance error = ', col_errnb(c), c
-      write(stderr,*) 'Latdeg,Londeg=', &
-        clm3%g%latdeg(clm3%g%l%c%gridcell(c)),&
-        clm3%g%londeg(clm3%g%l%c%gridcell(c))
+      write(stderr,*) 'Latdeg,Londeg=', clm3%g%latdeg(g), clm3%g%londeg(g)
       write(stderr,*) 'begnb       = ',col_begnb(c)
       write(stderr,*) 'endnb       = ',col_endnb(c)
       write(stderr,*) 'delta store = ',col_endnb(c)-col_begnb(c)

@@ -167,7 +167,6 @@ module mod_clm_driver
     integer(ik4)  :: yr       ! year (0, ...)
     integer(ik4)  :: mon      ! month (1, ..., 12)
     integer(ik4)  :: day      ! day of month (1, ..., 31)
-    integer(ik4)  :: sec      ! seconds of the day
     integer(ik4)  :: ncdate   ! current date
     integer(ik4)  :: nbdate   ! base date (reference date)
     integer(ik4)  :: kyr      ! thousand years, equals 2 at end of first year
@@ -646,16 +645,19 @@ module mod_clm_driver
     ! =======================================================================
 
 #if (defined CNDV)
-    tdif = dtsrf
+    if ( ktau > 0 ) then
+      tdif = int(dtsrf + dt/2.0D0)
+    else
+      tdif = int(dtsrf)
+    end if
     nextdate = idatex + tdif
-    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0,dtsrf) .and. &
-         ktau > 0 )  then
+    if ( date_is(nextdate,1,1) .and. &
+         time_is(nextdate,0,dtsrf) .and. ktau > 0 ) then
       call split_idate(idatex,yr,mon,day)
       ncdate = yr*10000 + mon*100 + day
       call split_idate(idate0,yr,mon,day)
       nbdate = yr*10000 + mon*100 + day
       kyr = ncdate/10000 - nbdate/10000 + 1
-
       if ( myid == italk ) then
         write(stdout,*) 'End of year. CNDV called now: ncdate=', &
                        ncdate,' nbdate=',nbdate,' kyr=',kyr,' ktau=', ktau

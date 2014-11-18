@@ -930,7 +930,7 @@ module mod_clm_mkarbinit
     ! canopy water (pft level)
 
     do p = begp, endp
-       h2ocan_pft(p) = 0.D0
+       h2ocan_pft(p) = 0.0D0
 
        ! added for canopy water mass balance under dynamic pft weights
        !clm3%g%l%c%p%pps%tlai(p) = 0.D0
@@ -957,7 +957,7 @@ module mod_clm_mkarbinit
       l = clandunit(c)
 
       ! canopy water (column level)
-      h2ocan_col(c) = 0.D0
+      h2ocan_col(c) = 0.0D0
 
       if ( .not. lakpoi(l) ) then  !not lake
         if ( ltype(l) == istice ) then
@@ -1126,7 +1126,6 @@ module mod_clm_mkarbinit
       g = cgridcell(c)
       l = clandunit(c)
       if ( .not. lakpoi(l) ) then  !not lake
-
         ! volumetric water
         if ( ltype(l) == istsoil .or. ltype(l) == istcrop ) then
           nlevs = nlevgrnd

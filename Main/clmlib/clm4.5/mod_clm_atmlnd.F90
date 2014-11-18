@@ -4,7 +4,7 @@ module mod_clm_atmlnd
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_clm_varpar , only : numrad , ndst , nlevgrnd
+  use mod_clm_varpar , only : numrad , ndst , nlevsoi
   use mod_clm_varcon , only : rair , grav , cpair , hfus , tfrz
   use mod_clm_varctl , only : use_c13
   use mod_clm_decomp , only : get_proc_bounds
@@ -293,10 +293,10 @@ end subroutine init_atm2lnd_type
     allocate(l2a%ram1(ibeg:iend))
     allocate(l2a%fv(ibeg:iend))
     allocate(l2a%emg(ibeg:iend))
-    allocate(l2a%h2osoi_vol(ibeg:iend,1:nlevgrnd))
-    allocate(l2a%soidpth(ibeg:iend,1:nlevgrnd))
-    allocate(l2a%dzsoi(ibeg:iend,1:nlevgrnd))
-    allocate(l2a%rootfr(ibeg:iend,1:nlevgrnd))
+    allocate(l2a%h2osoi_vol(ibeg:iend,1:nlevsoi))
+    allocate(l2a%soidpth(ibeg:iend,1:nlevsoi))
+    allocate(l2a%dzsoi(ibeg:iend,1:nlevsoi))
+    allocate(l2a%rootfr(ibeg:iend,1:nlevsoi))
     allocate(l2a%qflx_surf(ibeg:iend))
     allocate(l2a%qflx_tot(ibeg:iend))
     allocate(l2a%qflx_snomelt(ibeg:iend))
@@ -335,10 +335,10 @@ end subroutine init_atm2lnd_type
     l2a%nee(ibeg:iend) = ival
     l2a%ram1(ibeg:iend) = ival
     l2a%fv(ibeg:iend) = ival
-    l2a%h2osoi_vol(ibeg:iend,1:nlevgrnd) = ival
-    l2a%soidpth(ibeg:iend,1:nlevgrnd) = ival
-    l2a%dzsoi(ibeg:iend,1:nlevgrnd) = ival
-    l2a%rootfr(ibeg:iend,1:nlevgrnd) = ival
+    l2a%h2osoi_vol(ibeg:iend,1:nlevsoi) = ival
+    l2a%soidpth(ibeg:iend,1:nlevsoi) = ival
+    l2a%dzsoi(ibeg:iend,1:nlevsoi) = ival
+    l2a%rootfr(ibeg:iend,1:nlevsoi) = ival
     l2a%qflx_surf(ibeg:iend) = ival
     l2a%qflx_tot(ibeg:iend) = ival
     l2a%qflx_snomelt(ibeg:iend) = ival
@@ -411,22 +411,22 @@ end subroutine init_atm2lnd_type
       do g = begg,endg
         clm_l2a%h2osno(g) = clm_l2a%h2osno(g)/1000.D0
       end do
-      call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
-               cptr%cps%z,clm_l2a%soidpth,             &
-               c2l_scale_type='unity',                 &
+      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
+               cptr%cps%z(:,1:nlevsoi),clm_l2a%soidpth, &
+               c2l_scale_type='unity',                &
                l2g_scale_type='unity')
-      call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
-               cptr%cps%dz,clm_l2a%dzsoi,              &
-               c2l_scale_type='unity',                 &
+      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
+               cptr%cps%dz(:,1:nlevsoi),clm_l2a%dzsoi,  &
+               c2l_scale_type='unity',                &
                l2g_scale_type='unity')
-      call p2g(begp,endp,begc,endc,begl,endl,begg,endg,nlevgrnd, &
-               pptr%pps%rootfr,clm_l2a%rootfr,                   &
-               p2c_scale_type='unity',                           &
-               c2l_scale_type='urbanf',                          &
+      call p2g(begp,endp,begc,endc,begl,endl,begg,endg,nlevsoi, &
+               pptr%pps%rootfr(:,1:nlevsoi),clm_l2a%rootfr,       &
+               p2c_scale_type='unity',                          &
+               c2l_scale_type='urbanf',                         &
                l2g_scale_type='unity')
-      call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
-               cptr%cws%h2osoi_vol(:,1:nlevgrnd),clm_l2a%h2osoi_vol, &
-               c2l_scale_type='unity',                 &
+      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi,               &
+               cptr%cws%h2osoi_vol(:,1:nlevsoi),clm_l2a%h2osoi_vol, &
+               c2l_scale_type='unity',                              &
                l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,numrad,  &
                pptr%pps%albd,clm_l2a%albd,                      &
@@ -454,16 +454,16 @@ end subroutine init_atm2lnd_type
       do g = begg , endg
         clm_l2a%h2osno(g) = clm_l2a%h2osno(g)/1000.D0
       end do
-      call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
-               cptr%cws%h2osoi_vol(:,1:nlevgrnd),clm_l2a%h2osoi_vol, &
-               c2l_scale_type='unity',                 &
+      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi,               &
+               cptr%cws%h2osoi_vol(:,1:nlevsoi),clm_l2a%h2osoi_vol, &
+               c2l_scale_type='unity',                              &
                l2g_scale_type='unity')
-      call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
-               cptr%cps%z,clm_l2a%soidpth,             &
-               c2l_scale_type='unity',                 &
+      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi,   &
+               cptr%cps%z(:,1:nlevsoi),clm_l2a%soidpth, &
+               c2l_scale_type='unity',                  &
                l2g_scale_type='unity')
-      call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
-               cptr%cps%dz,clm_l2a%dzsoi,              &
+      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi,  &
+               cptr%cps%dz(:,1:nlevsoi),clm_l2a%dzsoi, &
                c2l_scale_type='unity',                 &
                l2g_scale_type='unity')
       call c2g(begc,endc,begl,endl,begg,endg, &

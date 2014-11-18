@@ -550,10 +550,11 @@ module mod_clm_cnfire
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
       if ( dtrotr_col(c) .gt. 0.D0 ) then
-        if ( date_is(idatex,1,1) .and. time_is(idatex,0) ) then
+        if ( date_is(idatex,1,1) .and. time_is(idatex,0,dtsrf) ) then
           lfc(c) = 0.D0
         end if
-        if ( date_is(idatex,1,1) .and. time_is(idatex,int(dt,ik4)) ) then
+        if ( date_is(idatex,1,1) .and. &
+             time_is(idatex,int(dtsrf+dt/2.0D0)) ) then
           lfc(c) = dtrotr_col(c)*dayspy*secspday/dt
         end if
       else
@@ -571,7 +572,7 @@ module mod_clm_cnfire
 
     do fp = 1 , num_soilp
       p = filter_soilp(fp)
-      if ( date_is(idatex,1,1) .and. time_is(idatex,0) ) then
+      if ( date_is(idatex,1,1) .and. time_is(idatex,0,dtsrf) ) then
         burndate(p) = 10000 ! init. value; actual range [0 365]
       end if
     end do
@@ -686,7 +687,7 @@ module mod_clm_cnfire
         !
 #ifdef DYNPFT
         if ( trotr1_col(c)+trotr2_col(c) > 0.6D0 ) then
-          if ( (date_is(idatex,1,1) .and. time_is(idatex,0)) .or. &
+          if ( (date_is(idatex,1,1) .and. time_is(idatex,0,dtsrf)) .or. &
                 dtrotr_col(c) <=0.D0 ) then
             fbac1(c)        = 0.D0
             farea_burned(c) = baf_crop(c)+baf_peatf(c)
@@ -1548,7 +1549,7 @@ module mod_clm_cnfire
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
       lfc2(c)=0.D0
-      if ( date_is(idatex,1,1) .and. time_is(idatex,0) ) then
+      if ( date_is(idatex,1,1) .and. time_is(idatex,0,dtsrf) ) then
         if ( trotr1_col(c)+trotr2_col(c) > 0.6D0 .and. &
              dtrotr_col(c) > 0.D0 .and. &
              lfc(c) > 0.D0 .and. fbac1(c) == 0.D0 ) then

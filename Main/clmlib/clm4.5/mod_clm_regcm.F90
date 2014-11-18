@@ -14,7 +14,7 @@ module mod_clm_regcm
   use mod_clm_initialize
   use mod_clm_driver
   use mod_clm_varctl , only : use_c13 , co2_ppmv
-  use mod_clm_varpar , only : nlevgrnd
+  use mod_clm_varpar , only : nlevsoi
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , &
                               tcrit , denh2o , sb
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
@@ -288,16 +288,14 @@ module mod_clm_regcm
     end if
 
     ! CLM gives just wind speed, assume directions are same as input.
-    clm_a2l%notused = atan(clm_a2l%forc_v/clm_a2l%forc_u)
-    clm_l2a%notused = clm_l2a%u_ref10m*cos(clm_a2l%notused)
+    clm_a2l%notused = clm_l2a%u_ref10m/clm_a2l%forc_wind
+    clm_l2a%notused = clm_a2l%forc_u*clm_a2l%notused
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%u10m)
-    clm_l2a%notused = clm_l2a%u_ref10m*sin(clm_a2l%notused)
+    clm_l2a%notused = clm_a2l%forc_v*clm_a2l%notused
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%v10m)
 
     call glb_l2c_ss(lndcomm,clm_l2a%eflx_sh_tot,lms%sent)
-    !call glb_l2c_ss(lndcomm,clm_l2a%qflx_evap_tot,lms%evpr)
-    call glb_l2c_ss(lndcomm,clm_l2a%eflx_lh_tot,lms%evpr)
-    lms%evpr = lms%evpr * rwlhv
+    call glb_l2c_ss(lndcomm,clm_l2a%qflx_evap_tot,lms%evpr)
     clm_l2a%notused = sqrt(clm_l2a%taux**2+clm_l2a%tauy**2) / &
                       sqrt(clm_a2l%forc_u**2+clm_a2l%forc_v**2)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%drag)
@@ -311,7 +309,7 @@ module mod_clm_regcm
     lms%tgbrd = lms%tgbb
 
     clm_l2a%notused = 0.0D0
-    do k = 1 , nlevgrnd
+    do k = 1 , nlevsoi
       do g = begg , endg
         if ( clm_l2a%soidpth(g,k) < 0.10D0 ) then
           clm_l2a%notused(g) = clm_l2a%notused(g) + &
@@ -322,7 +320,7 @@ module mod_clm_regcm
     end do
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%ssw)
     clm_l2a%notused = 0.0D0
-    do k = 1 , nlevgrnd
+    do k = 1 , nlevsoi
       do g = begg , endg
         if ( clm_l2a%rootfr(g,k) > 0.0D0 ) then
           clm_l2a%notused(g) = clm_l2a%notused(g) + &
@@ -333,7 +331,7 @@ module mod_clm_regcm
     end do
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%rsw)
     clm_l2a%notused = 0.0D0
-    do k = 1 , nlevgrnd
+    do k = 1 , nlevsoi
       do g = begg , endg
         clm_l2a%notused(g) = clm_l2a%notused(g) + &
            max(clm_l2a%h2osoi_vol(g,k),0.0D0) * &

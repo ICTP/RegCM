@@ -75,7 +75,7 @@ module mod_clm_activelayer
 
     ! on a set annual timestep, update annual maxima
     ! make this 1 January for NH columns, 1 July for SH columns
-    if ( date_is(idatex,1,1) .and. time_is(idatex,1,dtsrf) ) then
+    if ( date_is(idatex,1,1) .and. time_is(idatex,0,dtsrf) ) then
       do fc = 1 , num_soilc
         c = filter_soilc(fc)
         g = cgridcell(c)
@@ -87,8 +87,8 @@ module mod_clm_activelayer
         end if
       end do
     end if
-    if ( date_is(idatex,7,1) .and. time_is(idatex,1,dtsrf) ) then
-      do fc = 1,num_soilc
+    if ( date_is(idatex,7,1) .and. time_is(idatex,0,dtsrf) ) then
+      do fc = 1 , num_soilc
         c = filter_soilc(fc)
         g = cgridcell(c)
         if ( lat(g) <= d_zero ) then

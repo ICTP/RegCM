@@ -38,10 +38,9 @@ module mod_clm_canopyfluxes
   ! false => btran is based on currently unfrozen levels
   logical,  public :: perchroot_alt = .false.
 
-  private :: Photosynthesis !Leaf stomatal resistance and leaf photosynthesis
-  private :: hybrid      !hybrid solver for ci
-  private :: ci_func     !ci function
-  private :: brent       !brent solver for root of a single variable function
+  private :: Photosynthesis ! Leaf stomatal resistance and leaf photosynthesis
+  private :: hybrid         ! hybrid solver for ci
+  private :: ci_func        ! ci function
 
   contains
   !
@@ -754,7 +753,6 @@ module mod_clm_canopyfluxes
          do f = 1, fn
            p = filterp(f)
            c = pcolumn(p)
-
            if (t_soisno(c,j) >= tfrz) then
              rootfr_unf(p,j) = rootfr(p,j)
            else
@@ -769,7 +767,6 @@ module mod_clm_canopyfluxes
        do f = 1, fn
          p = filterp(f)
          c = pcolumn(p)
-
          if (j == 1) rootsum(p) = 0.D0
          rootsum(p) = rootsum(p) + rootfr_unf(p,j)
        end do
@@ -780,7 +777,6 @@ module mod_clm_canopyfluxes
        do f = 1, fn
          p = filterp(f)
          c = pcolumn(p)
-
          if (rootsum(p) > 0.D0) then
            rootfr_unf(p,j) = rootfr_unf(p,j) / rootsum(p)
          end if
@@ -877,11 +873,11 @@ module mod_clm_canopyfluxes
      do f = 1, fn
        p = filterp(f)
        c = pcolumn(p)
-       if (check_for_irrig(p) .and. .not. frozen_soil(c)) then
+       if ( check_for_irrig(p) .and. .not. frozen_soil(c) ) then
          ! if level L was frozen, then we don't look at any levels below L
-         if (t_soisno(c,j) <= tfrz) then
+         if ( t_soisno(c,j) <= tfrz ) then
            frozen_soil(c) = .true.
-         else if (rootfr(p,j) > 0.D0) then
+         else if ( rootfr(p,j) > 0.0D0 ) then
            ! determine soil water deficit in this layer:
            ! Calculate vol_liq_so - i.e., vol_liq at which smp_node = smpso
            ! - by inverting the above equations for the root resistance factors
@@ -890,7 +886,7 @@ module mod_clm_canopyfluxes
            ! this duplicates the above equation for eff_porosity
            eff_porosity = watsat(c,j)-vol_ice
            vol_liq_so   = eff_porosity * &
-                   (-smpso(ivt(p))/sucsat(c,j))**(-1/bsw(c,j))
+                   (-smpso(ivt(p))/sucsat(c,j))**(-1.0D0/bsw(c,j))
            ! Translate vol_liq_so and eff_porosity into h2osoi_liq_so and
            ! h2osoi_liq_sat and calculate deficit
            h2osoi_liq_so  = vol_liq_so * denh2o * dz(c,j)
@@ -951,12 +947,12 @@ module mod_clm_canopyfluxes
 
      nmozsgn(p) = 0
 
-     taf(p) = (t_grnd(c) + thm(p))/2.D0
-     qaf(p) = (forc_q(g)+qg(c))/2.D0
+     taf(p) = (t_grnd(c) + thm(p)) / 2.D0
+     qaf(p) = (forc_q(g) + qg(c)) / 2.D0
 
      ur(p) = max(1.0D0,sqrt(forc_u(g)*forc_u(g)+forc_v(g)*forc_v(g)))
-     dth(p) = thm(p)-taf(p)
-     dqh(p) = forc_q(g)-qaf(p)
+     dth(p) = thm(p) - taf(p)
+     dqh(p) = forc_q(g) - qaf(p)
      delq(p) = qg(c) - qaf(p)
      dthv(p) = dth(p)*(1.D0+0.61D0*forc_q(g))+0.61D0*forc_th(g)*dqh(p)
      zldis(p) = forc_hgt_u_pft(p) - displa(p)
@@ -1113,31 +1109,31 @@ module mod_clm_canopyfluxes
 
        ! Fraction of potential evaporation from leaf
 
-       if (fdry(p) > 0.0D0) then
+       if ( fdry(p) > 0.0D0 ) then
          rppdry  = fdry(p)*rb(p)*(laisun(p)/(rb(p)+rssun(p)) + &
                                   laisha(p)/(rb(p)+rssha(p)))/elai(p)
        else
          rppdry = 0.0D0
        end if
+
 #if (defined LCH4)
        ! Calculate canopy conductance for methane / oxygen
        ! (e.g. stomatal conductance & leaf bdy cond)
        canopy_cond(p) = (laisun(p)/(rb(p)+rssun(p)) + &
                laisha(p)/(rb(p)+rssha(p)))/max(elai(p), 0.01D0)
 #endif
-
        efpot = forc_rho(g)*wtl*(qsatl(p)-qaf(p))
 
-       if (efpot > 0.D0) then
-         if (btran(p) > btran0) then
-           qflx_tran_veg(p) = efpot*rppdry
+       if ( efpot > 0.D0 ) then
+         if ( btran(p) > btran0 ) then
+           qflx_tran_veg(p) = efpot * rppdry
            rpp = rppdry + fwet(p)
          else
-           !No transpiration if btran below 1.e-10
+           ! No transpiration if btran below 1.e-10
            rpp = fwet(p)
            qflx_tran_veg(p) = 0.D0
          end if
-         !Check total evapotranspiration from leaves
+         ! Check total evapotranspiration from leaves
          rpp = min(rpp, (qflx_tran_veg(p)+h2ocan(p)/dtsrf)/efpot)
        else
          !No transpiration if potential evaporation less than zero
@@ -1194,11 +1190,11 @@ module mod_clm_canopyfluxes
        if ( abs(efeb(p)) < 1.D-20 ) efeb(p) = 0.0D0
        if (efe(p)*efeb(p) < 0.D0) then
          efeold = efe(p)
-         efe(p)  = 0.1D0*efeold
+         efe(p) = 0.1D0*efeold
          erre = efe(p) - efeold
        end if
        ! fractionate ground emitted longwave
-       lw_grnd=(frac_sno(c)*t_soisno(c,snl(c)+1)**4 &
+       lw_grnd = (frac_sno(c)*t_soisno(c,snl(c)+1)**4 &
               +(1.D0-frac_sno(c)-frac_h2osfc(c))*t_soisno(c,1)**4 &
               +frac_h2osfc(c)*t_h2osfc(c)**4)
 
@@ -1444,6 +1440,82 @@ module mod_clm_canopyfluxes
      write(stderr,*) 'energy balance in canopy ',p,', err=',err(p)
    end do
 
+   contains
+    !
+    ! C13 fractionation during photosynthesis is calculated here
+    ! after the nitrogen limitation is taken into account in the
+    ! CNAllocation module.
+    !
+    subroutine Fractionation(lbp, ubp, fn, filterp, phase)
+      implicit none
+      integer(ik4), intent(in) :: lbp, ubp    ! pft bounds
+      integer(ik4), intent(in) :: fn          ! size of pft filter
+      integer(ik4), intent(in) :: filterp(fn) ! pft filter
+      character(len=*), intent(in) :: phase   ! 'sun' or 'sha'
+
+      integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell index
+      integer(ik4) , pointer :: ivt(:)        ! pft vegetation type
+      ! photosynthetic pathway: 0. = c4, 1. = c3
+      real(rk8), pointer :: c3psn(:)
+      ! number of canopy layers, above snow for radiative transfer
+      integer(ik4) , pointer :: nrad(:)
+      ! par absorbed per unit lai for canopy layer (w/m**2)
+      real(rk8), pointer :: par_z(:,:)
+      ! partial pressure co2 (Pa)
+      real(rk8), pointer :: forc_pco2(:)
+      ! fractional reduction in GPP due to N limitation (DIM)
+      real(rk8), pointer :: downreg(:)
+      real(rk8), pointer :: alphapsn(:)
+      real(rk8), pointer :: forc_pbot(:) ! atmospheric pressure (Pa)
+      ! net leaf photosynthesis (umol CO2/m**2/s)
+      real(rk8), pointer :: an(:,:)
+      ! leaf stomatal conductance (umol H2O/m**2/s)
+      real(rk8), pointer :: gs_mol(:,:)
+      ! leaf boundary layer conductance (umol H2O/m**2/s)
+      real(rk8), pointer :: gb_mol(:)
+
+      integer(ik4) :: f,p,g,iv  ! indices
+      real(rk8) :: co2(lbp:ubp) ! atmospheric co2 partial pressure (pa)
+      real(rk8) :: ci
+
+      pgridcell      => clm3%g%l%c%p%gridcell
+      nrad           => clm3%g%l%c%p%pps%nrad
+      forc_pbot      => clm_a2l%forc_pbot
+      forc_pco2      => clm_a2l%forc_pco2
+      c3psn          => pftcon%c3psn
+      ivt            => clm3%g%l%c%p%itype
+      downreg        => clm3%g%l%c%p%pepv%downreg
+      an             => clm3%g%l%c%p%ppsyns%an
+      gb_mol         => clm3%g%l%c%p%ppsyns%gb_mol
+      gs_mol         => clm3%g%l%c%p%ppsyns%gs_mol
+
+      if (phase == 'sun') then
+        par_z       => clm3%g%l%c%p%pef%parsun_z
+        alphapsn    => clm3%g%l%c%p%pps%alphapsnsun
+      else if (phase == 'sha') then
+        par_z       => clm3%g%l%c%p%pef%parsha_z
+        alphapsn    => clm3%g%l%c%p%pps%alphapsnsha
+      end if
+
+      do f = 1, fn
+        p = filterp(f)
+        g= pgridcell(p)
+        co2(p) = forc_pco2(g)
+        do iv = 1,nrad(p)
+          if ( par_z(p,iv) <= 0.D0 ) then           ! night time
+            alphapsn(p) = 1.D0
+          else                                      ! day time
+            ci = co2(p) - ((an(p,iv) * (1.D0-downreg(p)) )* &
+                   forc_pbot(g) * (1.4D0*gs_mol(p,iv)+1.6D0*gb_mol(p)) / &
+                   (gb_mol(p)*gs_mol(p,iv)))
+            alphapsn(p) = 1.D0 + (((c3psn(ivt(p)) * (4.4D0 + &
+                 (22.6D0*(ci/co2(p))))) + ((1.D0 - c3psn(ivt(p))) * &
+                 4.4D0))/1000.D0)
+          end if
+        end do
+      end do
+    end subroutine Fractionation
+
   end subroutine CanopyFluxes
   !
   ! Leaf photosynthesis and stomatal conductance calculation as described by
@@ -1625,7 +1697,6 @@ module mod_clm_canopyfluxes
     real(rk8) :: hs       ! fractional humidity at leaf surface (dimensionless)
     real(rk8) :: sco      ! relative specificity of rubisco
     ! scaling factor for high temperature inhibition (25 C = 1.0)
-    real(rk8) :: ciold       ! previous value of Ci for convergence check
     real(rk8) :: gs_mol_err  ! gs_mol for error check
     real(rk8) :: je          ! electron transport rate (umol electrons/m**2/s)
     real(rk8) :: qabs        ! PAR absorbed by PS II (umol photons/m**2/s)
@@ -1634,7 +1705,6 @@ module mod_clm_canopyfluxes
     real(rk8) :: ceair         ! vapor pressure of air, constrained (Pa)
     real(rk8) :: fnr           ! (gRubisco/gN in Rubisco)
     real(rk8) :: act25         ! (umol/mgRubisco/min) Rubisco activity at 25 C
-    integer(ik4)  :: niter     ! iteration loop index
     real(rk8) :: nscaler       ! leaf nitrogen scaling coefficient
 
     ! Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
@@ -1808,7 +1878,7 @@ module mod_clm_canopyfluxes
     theta_psii = 0.7D0
     theta_ip = 0.95D0
 
-    do f = 1, fn
+    do f = 1 , fn
       p = filterp(f)
       g = pgridcell(p)
 
@@ -2057,7 +2127,7 @@ module mod_clm_canopyfluxes
       ! Leaf boundary layer conductance, umol/m**2/s
 
       cf = forc_pbot(g)/(rgas*1.D-3*tgcm(p))*1.D06
-      gb = 1.D0/rb(p)
+      gb = 1.D0 / rb(p)
       gb_mol(p) = gb * cf
 
       ! Loop through canopy layers (above snow).
@@ -2106,28 +2176,19 @@ module mod_clm_canopyfluxes
             ci_z(p,iv) = 0.4D0 * cair(p)
           end if
 
-          niter = 0
-
-          ! Increment iteration counter. Stop if too many iterations
-
-          niter = niter + 1
-
-          ! Save old ci
-
-          ciold = ci_z(p,iv)
           !find ci and stomatal conductance
-          call hybrid(ciold, p, iv, g, gb_mol(p), je, cair(p), oair(p), &
-                lmr_z(p,iv), par_z(p,iv), rh_can, gs_mol(p,iv), niter)
+          call hybrid(ci_z(p,iv), p, iv, g, gb_mol(p), je, cair(p), oair(p), &
+                lmr_z(p,iv), par_z(p,iv), rh_can, gs_mol(p,iv))
 
           ! End of ci iteration.  Check for an < 0, in which case gs_mol = bbb
 
-          if (an(p,iv) < 0.D0) gs_mol(p,iv) = bbb(p)
+          if ( an(p,iv) < 0.D0 ) gs_mol(p,iv) = bbb(p)
 
           ! Final estimates for cs and ci
           ! (needed for early exit of ci iteration when an < 0)
 
           cs = cair(p) - 1.4D0/gb_mol(p) * an(p,iv) * forc_pbot(g)
-          cs = max(cs,1.D-06)
+          cs = max(cs, 1.D-06)
           ci_z(p,iv) = cair(p) - an(p,iv) * forc_pbot(g) * &
             (1.4D0*gs_mol(p,iv)+1.6D0*gb_mol(p)) / (gb_mol(p)*gs_mol(p,iv))
 
@@ -2221,30 +2282,53 @@ module mod_clm_canopyfluxes
     end do
 
     contains
-
+    !
     ! Temperature and soil water response functions
-    real(rk8) function ft(tl,ha)
+    !
+    ! photosynthesis temperature response
+    !
+    pure real(rk8) function ft(tl,ha)
       use mod_clm_varcon , only : rgas , tfrz
       implicit none
-      real(rk8) , intent(in) :: tl , ha
+      ! leaf temperature in photosynthesis temperature function (K)
+      real(rk8), intent(in) :: tl
+      ! activation energy in photosynthesis temperature function (J/mol)
+      real(rk8), intent(in) :: ha
       ft = exp( ha / (rgas*1.D-3*(tfrz+25.D0)) * (1.D0 - (tfrz+25.D0)/tl) )
     end function ft
-    real(rk8) function fth(tl,hd,se,cc)
+    !
+    ! photosynthesis temperature inhibition
+    !
+    pure real(rk8) function fth(tl,hd,se,cc)
       use mod_clm_varcon , only : rgas
       implicit none
-      real(rk8) , intent(in) :: tl , hd , se , cc
+      ! leaf temperature in photosynthesis temperature function (K)
+      real(rk8), intent(in) :: tl
+      ! deactivation energy in photosynthesis temperature function (J/mol)
+      real(rk8), intent(in) :: hd
+      ! entropy term in photosynthesis temperature function (J/mol/K)
+      real(rk8), intent(in) :: se
+      ! scaling factor for high temperature inhibition (25 C = 1.0)
+      real(rk8), intent(in) :: cc
       fth = cc / ( 1.D0 + exp( (-hd+se*tl) / (rgas*1.D-3*tl) ) )
     end function fth
-    real(rk8) function fth25(hd,se)
+    !
+    ! scaling factor for photosynthesis temperature inhibition
+    !
+    pure real(rk8) function fth25(hd,se)
       use mod_clm_varcon , only : rgas , tfrz
       implicit none
-      real(rk8) , intent(in) :: hd , se
+      ! deactivation energy in photosynthesis temperature function (J/mol)
+      real(rk8), intent(in) :: hd
+      ! entropy term in photosynthesis temperature function (J/mol/K)
+      real(rk8), intent(in) :: se
       fth25 = 1.D0 + exp( (-hd+se*(tfrz+25.D0)) / (rgas*1.D-3*(tfrz+25.D0)))
     end function fth25
+
   end subroutine Photosynthesis
   !
   ! Evaluate the function
-  ! f(ci)=ci - (ca - (1.37rb+1.65rs))*patm*an
+  ! f(ci) = ci - (ca - (1.37rb+1.65rs))*patm*an
   !
   ! remark:  I am attempting to maintain the original code structure, also
   ! considering one may be interested to output relevant variables for the
@@ -2344,7 +2428,8 @@ module mod_clm_canopyfluxes
     theta_psii = 0.7D0
     theta_ip = 0.95D0
 
-    if (c3flag(p)) then
+    if ( c3flag(p) ) then
+
       ! C3: Rubisco-limited photosynthesis
       ac(p,iv) = vcmax_z(p,iv) * &
         max(ci-cp(p), 0.D0) / (ci+kc(p)*(1.D0+oair/ko(p)))
@@ -2419,147 +2504,34 @@ module mod_clm_canopyfluxes
     real(rk8), intent(out) :: r1,r2  ! Roots of quadratic equation
     real(rk8) :: q                   ! Temporary term for quadratic solution
 
-    if (a == 0.D0) then
+    if ( abs(a) < 1.D-20 ) then
       write (stderr,*) 'Quadratic solution error: a = ',a
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
 
-    if (b >= 0.D0) then
+    if ( b >= 0.D0 ) then
       q = -0.5D0 * (b + sqrt(b*b - 4.D0*a*c))
     else
       q = -0.5D0 * (b - sqrt(b*b - 4.D0*a*c))
     end if
 
     r1 = q / a
-    if (q /= 0.D0) then
+    if ( q /= 0.D0 ) then
       r2 = c / q
     else
       r2 = 1.D36
     end if
   end subroutine quadratic
   !
-  ! Use Brent's method to find the root of a single variable function
-  ! ci_func, which is known to exist between x1 and x2.
-  ! The found root will be updated until its accuracy is tol.
-  !
-  subroutine brent(x,x1,x2,f1,f2,tol,ip,iv,ig,gb_mol,je,cair,oair, &
-                   lmr_z,par_z,rh_can,gs_mol)
-    implicit none
-    ! indepedent variable of the single value function ci_func(x)
-    real(rk8), intent(out) :: x
-    ! minimum and maximum of the variable domain to search for the
-    ! solution ci_func(x1) = f1, ci_func(x2)=f2
-    real(rk8), intent(in) :: x1, x2, f1, f2
-    real(rk8), intent(in) :: tol    !the error tolerance
-
-    ! canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
-    real(rk8), intent(in) :: lmr_z
-    ! par absorbed per unit lai for canopy layer (w/m**2)
-    real(rk8), intent(in) :: par_z
-    ! leaf boundary layer conductance (umol H2O/m**2/s)
-    real(rk8), intent(in) :: gb_mol
-    ! electron transport rate (umol electrons/m**2/s)
-    real(rk8), intent(in) :: je
-    real(rk8), intent(in) :: cair   ! Atmospheric CO2 partial pressure (Pa)
-    real(rk8), intent(in) :: oair   ! Atmospheric O2 partial pressure (Pa)
-    real(rk8), intent(in) :: rh_can ! inside canopy relative humidity
-    ! pft, c3/c4, and column index
-    integer(ik4),  intent(in) :: ip, iv, ig
-    ! leaf stomatal conductance (umol H2O/m**2/s)
-    real(rk8), intent(out) :: gs_mol
-
-    integer(ik4), parameter :: ITMAX = 20  !maximum number of iterations
-    real(rk8), parameter :: EPS = 1.D-2    !relative error tolerance
-
-    integer(ik4) :: iter
-    real(rk8) :: a,b,c,d,e,fa,fb,fc,p,q,r,s,tol1,xm
-
-    a = x1
-    b = x2
-    fa = f1
-    fb = f2
-    if ( (fa > 0.D0 .and. fb > 0.D0) .or. &
-         (fa < 0.D0 .and. fb < 0.D0) ) then
-      write(stderr,*) 'root must be bracketed for brent'
-      call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
-    c = b
-    fc = fb
-    iter = 0
-    do
-      if ( iter == ITMAX ) exit
-      iter = iter+1
-      if ( (fb > 0.D0 .and. fc > 0.D0) .or. &
-           (fb < 0.D0 .and. fc < 0.D0) ) then
-        c = a   !Rename a, b, c and adjust bounding interval d.
-        fc = fa
-        d = b-a
-        e = d
-      end if
-      if ( abs(fc) < abs(fb) ) then
-        a = b
-        b = c
-        c = a
-        fa = fb
-        fb = fc
-        fc = fa
-      end if
-      tol1 = 2.D0*EPS*abs(b)+0.5D0*tol  !Convergence check.
-      xm = 0.5D0*(c-b)
-      if ( abs(xm) <= tol1 .or. fb == 0.0D0 ) then
-        x = b
-        return
-      end if
-      if ( abs(e) >= tol1 .and. abs(fa) > abs(fb) ) then
-        s = fb/fa !Attempt inverse quadratic interpolation.
-        if ( a == c ) then
-          p = 2.D0*xm*s
-          q = 1.D0-s
-        else
-          q = fa/fc
-          r = fb/fc
-          p = s*(2.D0*xm*q*(q-r)-(b-a)*(r-1.D0))
-          q = (q-1.D0)*(r-1.D0)*(s-1.D0)
-        end if
-        if ( p > 0.D0 ) q = -q !Check whether in bounds.
-        p = abs(p)
-        if ( 2.D0*p < min(3.D0*xm*q-abs(tol1*q),abs(e*q)) ) then
-          e = d !Accept interpolation.
-          d = p/q
-        else
-          d = xm  !Interpolation failed, use bisection.
-          e = d
-        end if
-      else !Bounds decreasing too slowly, use bisection.
-        d = xm
-        e = d
-      end if
-      a = b !Move last best guess to a.
-      fa = fb
-      if ( abs(d) > tol1 ) then !Evaluate new trial root.
-        b = b+d
-      else
-        b = b+sign(tol1,xm)
-      end if
-      call ci_func(b, fb, ip, iv, ig, gb_mol, je, cair, &
-                   oair, lmr_z, par_z, rh_can, gs_mol)
-      if ( fb == 0.D0 ) exit
-    end do
-    if ( iter==ITMAX ) then
-      write(stderr,*) 'brent exceeding maximum iterations', b, fb
-    end if
-    x = b
-  end subroutine brent
-  !
   ! use a hybrid solver to find the root of equation
-  ! f(x) = x- h(x),
+  ! f(x) = x - h(x),
   ! we want to find x, s.t. f(x) = 0.
   ! the hybrid approach combines the strength of the newton secant
   ! approach (find the solution domain) and the bisection approach
   ! implemented with the Brent's method to guarrantee convergence.
   !
   subroutine hybrid(x0, p, iv, g, gb_mol, je, cair, oair, lmr_z, par_z,&
-                    rh_can, gs_mol,iter)
+                    rh_can, gs_mol)
     implicit none
     !initial guess and final value of the solution
     real(rk8), intent(inout) :: x0
@@ -2582,32 +2554,32 @@ module mod_clm_canopyfluxes
     ! leaf stomatal conductance (umol H2O/m**2/s)
     real(rk8), intent(out) :: gs_mol
     !number of iterations used, for record only
-    integer(ik4),  intent(out) :: iter
+    integer(ik4) :: iter
 
     real(rk8) :: x1, f0, f1
     real(rk8) :: x, dx
-    real(rk8), parameter :: eps = 1.D-2 !relative accuracy
-    real(rk8), parameter :: eps1= 1.D-4
+    real(rk8) , parameter :: eps = 1.D-2 !relative accuracy
+    real(rk8) , parameter :: eps1= 1.D-4
     integer(ik4),  parameter :: itmax = 40 !maximum number of iterations
     real(rk8) :: tol,minx,minf
 
     call ci_func(x0, f0, p, iv, g, gb_mol, je, cair, &
                  oair, lmr_z, par_z, rh_can, gs_mol)
-    if ( f0 == 0.D0 ) return
+    if ( abs(f0) < 1.D-20 ) return
 
     minx = x0
     minf = f0
     x1 = x0 * 0.99D0
-    call ci_func(x1,f1, p, iv, g, gb_mol, je, cair, &
+    call ci_func(x1, f1, p, iv, g, gb_mol, je, cair, &
                  oair, lmr_z, par_z, rh_can, gs_mol)
 
-    if ( f1 == 0.D0 ) then
+    if ( abs(f1) < 1.D-20 ) then
       x0 = x1
       return
     end if
     if ( f1 < minf ) then
-      minx=x1
-      minf=f1
+      minx = x1
+      minf = f1
     end if
 
     !first use the secant approach, then use the brent approach as a backup
@@ -2624,7 +2596,7 @@ module mod_clm_canopyfluxes
       x0 = x1
       f0 = f1
       x1 = x
-      call ci_func(x1,f1, p, iv, g, gb_mol, je, cair, oair, &
+      call ci_func(x1, f1, p, iv, g, gb_mol, je, cair, oair, &
                    lmr_z, par_z, rh_can, gs_mol)
       if ( f1 < minf ) then
         minx = x1
@@ -2634,11 +2606,12 @@ module mod_clm_canopyfluxes
         x0 = x1
         exit
       end if
-
+      !
       ! if a root zone is found, use the brent method for a
       ! robust backup strategy
+      !
       if ( f1 * f0 < 0.D0 ) then
-        call brent(x, x0,x1,f0,f1, tol, p, iv, g, gb_mol, je, cair, oair, &
+        call brent(x, x0, x1, f0, f1, tol, p, iv, g, gb_mol, je, cair, oair, &
                    lmr_z, par_z, rh_can, gs_mol)
         x0 = x
         exit
@@ -2649,132 +2622,128 @@ module mod_clm_canopyfluxes
         ! this happens because of some other issues besides the
         ! stomatal conductance calculation and it happens usually
         ! in very dry places and more likely with c4 plants.
-        call ci_func(minx,f1, p, iv, g, gb_mol, je, cair, oair, &
+        call ci_func(minx, f1, p, iv, g, gb_mol, je, cair, oair, &
                      lmr_z, par_z, rh_can, gs_mol)
         exit
       end if
     end do
-  end subroutine hybrid
-  !
-  ! photosynthesis temperature response
-  !
-  ! Jinyun Tang separated it out from Photosynthesis, Feb. 07/2013
-  !
-  real(8) function ft(tl, ha) result(ans)
-    use mod_clm_varcon , only : rgas , tfrz
-    implicit none
-    ! leaf temperature in photosynthesis temperature function (K)
-    real(rk8), intent(in) :: tl
-    ! activation energy in photosynthesis temperature function (J/mol)
-    real(rk8), intent(in) :: ha
-    ans = exp( ha / (rgas*1.D-3*(tfrz+25.D0)) * (1.D0 - (tfrz+25.D0)/tl) )
-  end function ft
-  !
-  !photosynthesis temperature inhibition
-  !
-  ! Jinyun Tang separated it out from Photosynthesis, Feb. 07/2013
-  !
-  real(8) function fth(tl,hd,se,cc) result(ans)
-    use mod_clm_varcon , only : rgas
-    implicit none
-    ! leaf temperature in photosynthesis temperature function (K)
-    real(rk8), intent(in) :: tl
-    ! deactivation energy in photosynthesis temperature function (J/mol)
-    real(rk8), intent(in) :: hd
-    ! entropy term in photosynthesis temperature function (J/mol/K)
-    real(rk8), intent(in) :: se
-    ! scaling factor for high temperature inhibition (25 C = 1.0)
-    real(rk8), intent(in) :: cc
-    ans = cc / ( 1.D0 + exp( (-hd+se*tl) / (rgas*1.D-3*tl) ) )
-  end function fth
-  !
-  ! scaling factor for photosynthesis temperature inhibition
-  !
-  ! Jinyun Tang separated it out from Photosynthesis, Feb. 07/2013
-  !
-  real(8) function fth25(hd,se) result(ans)
-    use mod_clm_varcon , only : rgas , tfrz
-    implicit none
-    ! deactivation energy in photosynthesis temperature function (J/mol)
-    real(rk8), intent(in) :: hd
-    ! entropy term in photosynthesis temperature function (J/mol/K)
-    real(rk8), intent(in) :: se
-    ans = 1.D0 + exp( (-hd+se*(tfrz+25.D0)) / (rgas*1.D-3*(tfrz+25.D0)) )
-  end function fth25
-  !
-  ! C13 fractionation during photosynthesis is calculated here
-  ! after the nitrogen limitation is taken into account in the
-  ! CNAllocation module.
-  !
-  subroutine Fractionation(lbp, ubp, fn, filterp, phase)
-    implicit none
-    integer(ik4), intent(in) :: lbp, ubp    ! pft bounds
-    integer(ik4), intent(in) :: fn          ! size of pft filter
-    integer(ik4), intent(in) :: filterp(fn) ! pft filter
-    character(len=*), intent(in) :: phase   ! 'sun' or 'sha'
 
-    integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell index
-    integer(ik4) , pointer :: ivt(:)        ! pft vegetation type
-    ! photosynthetic pathway: 0. = c4, 1. = c3
-    real(rk8), pointer :: c3psn(:)
-    ! number of canopy layers, above snow for radiative transfer
-    integer(ik4) , pointer :: nrad(:)
-    ! par absorbed per unit lai for canopy layer (w/m**2)
-    real(rk8), pointer :: par_z(:,:)
-    ! partial pressure co2 (Pa)
-    real(rk8), pointer :: forc_pco2(:)
-    ! fractional reduction in GPP due to N limitation (DIM)
-    real(rk8), pointer :: downreg(:)
-    real(rk8), pointer :: alphapsn(:)
-    real(rk8), pointer :: forc_pbot(:) ! atmospheric pressure (Pa)
-    ! net leaf photosynthesis (umol CO2/m**2/s)
-    real(rk8), pointer :: an(:,:)
-    ! leaf stomatal conductance (umol H2O/m**2/s)
-    real(rk8), pointer :: gs_mol(:,:)
-    ! leaf boundary layer conductance (umol H2O/m**2/s)
-    real(rk8), pointer :: gb_mol(:)
+    contains
+    !
+    ! Use Brent's method to find the root of a single variable function
+    ! ci_func, which is known to exist between x1 and x2.
+    ! The found root will be updated until its accuracy is tol.
+    !
+    subroutine brent(x,x1,x2,f1,f2,tol,ip,iv,ig,gb_mol,je,cair,oair, &
+                     lmr_z,par_z,rh_can,gs_mol)
+      implicit none
+      ! indepedent variable of the single value function ci_func(x)
+      real(rk8), intent(out) :: x
+      ! minimum and maximum of the variable domain to search for the
+      ! solution ci_func(x1) = f1, ci_func(x2)=f2
+      real(rk8), intent(in) :: x1, x2, f1, f2
+      real(rk8), intent(in) :: tol    !the error tolerance
 
-    integer(ik4) :: f,p,g,iv  ! indices
-    real(rk8) :: co2(lbp:ubp) ! atmospheric co2 partial pressure (pa)
-    real(rk8) :: ci
+      ! canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
+      real(rk8), intent(in) :: lmr_z
+      ! par absorbed per unit lai for canopy layer (w/m**2)
+      real(rk8), intent(in) :: par_z
+      ! leaf boundary layer conductance (umol H2O/m**2/s)
+      real(rk8), intent(in) :: gb_mol
+      ! electron transport rate (umol electrons/m**2/s)
+      real(rk8), intent(in) :: je
+      real(rk8), intent(in) :: cair   ! Atmospheric CO2 partial pressure (Pa)
+      real(rk8), intent(in) :: oair   ! Atmospheric O2 partial pressure (Pa)
+      real(rk8), intent(in) :: rh_can ! inside canopy relative humidity
+      ! pft, c3/c4, and column index
+      integer(ik4),  intent(in) :: ip, iv, ig
+      ! leaf stomatal conductance (umol H2O/m**2/s)
+      real(rk8), intent(out) :: gs_mol
 
-    pgridcell      => clm3%g%l%c%p%gridcell
-    nrad           => clm3%g%l%c%p%pps%nrad
-    forc_pbot      => clm_a2l%forc_pbot
-    forc_pco2      => clm_a2l%forc_pco2
-    c3psn          => pftcon%c3psn
-    ivt            => clm3%g%l%c%p%itype
-    downreg        => clm3%g%l%c%p%pepv%downreg
-    an             => clm3%g%l%c%p%ppsyns%an
-    gb_mol         => clm3%g%l%c%p%ppsyns%gb_mol
-    gs_mol         => clm3%g%l%c%p%ppsyns%gs_mol
+      integer(ik4), parameter :: itmax = 20  !maximum number of iterations
+      real(rk8), parameter :: eps = 1.D-2    !relative error tolerance
 
-    if (phase == 'sun') then
-      par_z       => clm3%g%l%c%p%pef%parsun_z
-      alphapsn    => clm3%g%l%c%p%pps%alphapsnsun
-    else if (phase == 'sha') then
-      par_z       => clm3%g%l%c%p%pef%parsha_z
-      alphapsn    => clm3%g%l%c%p%pps%alphapsnsha
-    end if
+      integer(ik4) :: iter
+      real(rk8) :: a,b,c,d,e,fa,fb,fc,p,q,r,s,tol1,xm
 
-    do f = 1, fn
-      p = filterp(f)
-      g= pgridcell(p)
-      co2(p) = forc_pco2(g)
-      do iv = 1,nrad(p)
-        if (par_z(p,iv) <= 0.D0) then           ! night time
-          alphapsn(p) = 1.D0
-        else                                     ! day time
-          ci = co2(p) - ((an(p,iv) * (1.D0-downreg(p)) )* &
-                 forc_pbot(g) * (1.4D0*gs_mol(p,iv)+1.6D0*gb_mol(p)) / &
-                 (gb_mol(p)*gs_mol(p,iv)))
-          alphapsn(p) = 1.D0 + (((c3psn(ivt(p)) * (4.4D0 + &
-               (22.6D0*(ci/co2(p))))) + ((1.D0 - c3psn(ivt(p))) * &
-               4.4D0))/1000.D0)
+      a = x1
+      b = x2
+      fa = f1
+      fb = f2
+      if ( (fa > 0.D0 .and. fb > 0.D0) .or. &
+           (fa < 0.D0 .and. fb < 0.D0) ) then
+        write(stderr,*) 'root must be bracketed for brent'
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      end if
+      c = b
+      fc = fb
+      iter = 0
+      do
+        if ( iter == itmax ) exit
+        iter = iter + 1
+        if ( (fb > 0.D0 .and. fc > 0.D0) .or. &
+             (fb < 0.D0 .and. fc < 0.D0) ) then
+          c = a   !Rename a, b, c and adjust bounding interval d.
+          fc = fa
+          d = b-a
+          e = d
         end if
+        if ( abs(fc) < abs(fb) ) then
+          a = b
+          b = c
+          c = a
+          fa = fb
+          fb = fc
+          fc = fa
+        end if
+        tol1 = 2.D0*eps*abs(b)+0.5D0*tol  !Convergence check.
+        xm = 0.5D0*(c-b)
+        if ( abs(xm) <= tol1 .or. fb == 0.0D0 ) then
+          x = b
+          return
+        end if
+        if ( abs(e) >= tol1 .and. abs(fa) > abs(fb) ) then
+          s = fb/fa !Attempt inverse quadratic interpolation.
+          if ( a == c ) then
+            p = 2.D0*xm*s
+            q = 1.D0-s
+          else
+            q = fa/fc
+            r = fb/fc
+            p = s*(2.D0*xm*q*(q-r)-(b-a)*(r-1.D0))
+            q = (q-1.D0)*(r-1.D0)*(s-1.D0)
+          end if
+          if ( p > 0.D0 ) q = -q !Check whether in bounds.
+          p = abs(p)
+          if ( 2.D0*p < min(3.D0*xm*q-abs(tol1*q),abs(e*q)) ) then
+            e = d !Accept interpolation.
+            d = p/q
+          else
+            d = xm  !Interpolation failed, use bisection.
+            e = d
+          end if
+        else !Bounds decreasing too slowly, use bisection.
+          d = xm
+          e = d
+        end if
+        a = b !Move last best guess to a.
+        fa = fb
+        if ( abs(d) > tol1 ) then !Evaluate new trial root.
+          b = b+d
+        else
+          b = b+sign(tol1,xm)
+        end if
+        call ci_func(b, fb, ip, iv, ig, gb_mol, je, cair, &
+                     oair, lmr_z, par_z, rh_can, gs_mol)
+        if ( fb == 0.D0 ) exit
       end do
-    end do
-  end subroutine Fractionation
+      if ( iter == itmax ) then
+        write(stderr,*) 'brent exceeding maximum iterations', b, fb
+      end if
+      x = b
+    end subroutine brent
+
+  end subroutine hybrid
 
 end module mod_clm_canopyfluxes
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
