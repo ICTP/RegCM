@@ -968,6 +968,10 @@ program mksurfdata
       end if
     end do
   end do
+  !var3d(:,:,15) = var3d(:,:,15) + var3d(:,:,5)
+  !var3d(:,:,5) = 0.0D0
+  !var3d(:,:,15) = var3d(:,:,15) + var3d(:,:,7)
+  !var3d(:,:,7) = 0.0D0
   do ip = 1 , npft
     istart(1) = 1
     icount(1) = ngcells
@@ -1006,10 +1010,10 @@ program mksurfdata
       istart(3) = it
       icount(3) = 1
       call mypack(var5d(:,:,ip,it,1),gcvar)
-      istatus = nf90_put_var(ncid, isaivar, gcvar,istart,icount)
+      istatus = nf90_put_var(ncid, ilaivar, gcvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_lai')
       call mypack(var5d(:,:,ip,it,2),gcvar)
-      istatus = nf90_put_var(ncid, ilaivar, gcvar,istart,icount)
+      istatus = nf90_put_var(ncid, isaivar, gcvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_sai')
       call mypack(var5d(:,:,ip,it,3),gcvar)
       istatus = nf90_put_var(ncid, ivgtopvar, gcvar,istart,icount)
