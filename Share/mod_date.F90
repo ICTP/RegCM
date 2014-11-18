@@ -155,6 +155,7 @@ module mod_date
   public :: date_is , time_is
   public :: curr_date , ref_date , curr_time , calendar_str
   public :: date_in_scenario
+  public :: ndaypm
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
   data calstr /'gregorian','noleap','360_day'/
@@ -163,9 +164,21 @@ module mod_date
 
   contains
 
-  function lleap(iyear)
+  pure integer(ik4) function ndaypm(y,m,cal)
     implicit none
-    logical :: lleap
+    integer(ik4) , intent(in) :: y , m , cal
+    select case (cal)
+      case (gregorian)
+        ndaypm = mdays_leap(y, m)
+      case (noleap)
+        ndaypm = mlen(m)
+      case (y360)
+        ndaypm = 30
+    end select
+  end function ndaypm
+
+  pure logical function lleap(iyear)
+    implicit none
     integer(ik4) , intent(in) :: iyear
     if ( mod(iyear,400) == 0 .or.  &
         ( mod(iyear,4) == 0 .and. mod(iyear,100) /= 0 ) ) then
@@ -175,7 +188,7 @@ module mod_date
     end if
   end function lleap
 
-  integer(ik4) function mdays_leap(iyear, imon) result(mdays)
+  pure integer(ik4) function mdays_leap(iyear, imon) result(mdays)
     implicit none
     integer(ik4) , intent(in) :: iyear , imon
     if (imon /= 2) then
@@ -1911,7 +1924,7 @@ module mod_date
     t%second = s
     call time_to_second_of_day(t,y)
     if ( present(delta) ) then
-      time_complete_is = (( y%second_of_day - x%second_of_day ) / delta == 1 )
+      time_complete_is = ( abs(y%second_of_day - x%second_of_day) < delta )
     else
       time_complete_is = ( y%second_of_day == x%second_of_day )
     end if
@@ -1923,7 +1936,7 @@ module mod_date
     integer(ik4) , intent(in) :: s
     real(rk8) , optional , intent(in) :: delta
     if ( present(delta) ) then
-      time_of_day_is = (( s - x%second_of_day ) / delta == 1 )
+      time_of_day_is = ( abs(s - x%second_of_day) < delta )
     else
       time_of_day_is = ( s == x%second_of_day )
     end if
