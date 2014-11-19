@@ -70,7 +70,6 @@ module mod_clm_cnannualupdate
 
     integer(ik4) :: c,p     ! indices
     integer(ik4) :: fp,fc   ! lake filter indices
-    real(rk8):: dt          ! radiation time step (seconds)
 
     ! assign local pointers to derived type arrays
     annsum_counter        => clm3%g%l%c%cps%annsum_counter
@@ -90,13 +89,10 @@ module mod_clm_cnannualupdate
 #endif
     pcolumn               => clm3%g%l%c%p%column
 
-    ! set time steps
-    dt = dtsrf
-
     ! column loop
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
-      annsum_counter(c) = annsum_counter(c) + dt
+      annsum_counter(c) = annsum_counter(c) + dtsrf
     end do
 
     if ( num_soilc > 0 ) then
@@ -118,12 +114,12 @@ module mod_clm_cnannualupdate
           tempavg_t2m(p) = 0.D0
 
           ! update annual NPP accumulator, convert to annual total
-          annsum_npp(p) = tempsum_npp(p) * dt
+          annsum_npp(p) = tempsum_npp(p) * dtsrf
           tempsum_npp(p) = 0.D0
 
 #if (defined CNDV)
           ! update annual litfall accumulator, convert to annual total
-          annsum_litfall(p) = tempsum_litfall(p) * dt
+          annsum_litfall(p) = tempsum_litfall(p) * dtsrf
           tempsum_litfall(p) = 0.D0
 #endif
         end do
@@ -145,4 +141,5 @@ module mod_clm_cnannualupdate
 #endif
 
 end module mod_clm_cnannualupdate
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

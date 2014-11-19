@@ -90,7 +90,7 @@ module mod_clm_cnecosystemdyn
 
     call CNNFixation(num_soilc,filter_soilc)
 
-    if (crop_prog) then
+    if ( crop_prog ) then
       call CNNFert(num_soilc,filter_soilc)
       call CNSoyfix(num_soilc, filter_soilc, num_soilp, filter_soilp)
     end if
@@ -105,7 +105,7 @@ module mod_clm_cnecosystemdyn
     ! litterfall timestep in deciduous systems
 
     call CNPhenology(num_soilc, filter_soilc, num_soilp, filter_soilp, &
-                        num_pcropp, filter_pcropp, doalb)
+                     num_pcropp, filter_pcropp, doalb)
 
     call CNGResp(num_soilp, filter_soilp)
 
@@ -119,8 +119,9 @@ module mod_clm_cnecosystemdyn
     if ( use_c14 ) then
       call CStateUpdate0(num_soilp, filter_soilp, 'c14')
       call CIsoFlux1(num_soilc,filter_soilc,num_soilp,filter_soilp,'c14')
-      call CStateUpdate1(num_soilc,filter_soilc,num_soilp,filter_soilp,'bulk')
     end if
+
+    call CStateUpdate1(num_soilc,filter_soilc,num_soilp,filter_soilp,'bulk')
 
     if ( use_c13 ) then
       call CStateUpdate1(num_soilc,filter_soilc,num_soilp,filter_soilp,'c13')
@@ -214,8 +215,6 @@ module mod_clm_cnecosystemdyn
     if (doalb) then
       call CNVegStructUpdate(num_soilp, filter_soilp)
     end if
-
-!   call CNAnnualUpdate(num_soilc, filter_soilc, num_soilp, filter_soilp)
 
     call CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, 'bulk')
 
