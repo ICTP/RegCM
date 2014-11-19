@@ -647,7 +647,7 @@ module mod_clm_cninitimevar
         ! column carbon state variable initialization
         do j = 1, nlevdecomp
           do k = 1, ndecomp_pools
-            if (zsoi(j) .lt. 0.3 ) then  !! only initialize upper soil column
+            if (zsoi(j) < 0.3 ) then  !! only initialize upper soil column
               decomp_cpools_vr(c,j,k) = initial_stock(k)
             else
               decomp_cpools_vr(c,j,k) = 0.D0
@@ -655,7 +655,7 @@ module mod_clm_cninitimevar
           end do
           col_ctrunc_vr(c,j) = 0.D0
         end do
-        if ( nlevdecomp .gt. 1 ) then
+        if ( nlevdecomp > 1 ) then
           do j = nlevdecomp+1, nlevdecomp_full
             do k = 1, ndecomp_pools
               decomp_cpools_vr(c,j,k) = 0.D0
@@ -703,7 +703,7 @@ module mod_clm_cninitimevar
             end do
             c13_col_ctrunc_vr(c,j) = col_ctrunc_vr(c,j) * c13ratio
           end do
-          if ( nlevdecomp .gt. 1 ) then
+          if ( nlevdecomp > 1 ) then
             do j = nlevdecomp+1, nlevdecomp_full
               do k = 1, ndecomp_pools
                 decomp_c13pools_vr(c,j,k) = 0.D0
@@ -725,7 +725,7 @@ module mod_clm_cninitimevar
             end do
             c14_col_ctrunc_vr(c,j) = col_ctrunc_vr(c,j) * c14ratio
           end do
-          if ( nlevdecomp .gt. 1 ) then
+          if ( nlevdecomp > 1 ) then
             do j = nlevdecomp+1, nlevdecomp_full
               do k = 1, ndecomp_pools
                 decomp_c14pools_vr(c,j,k) = 0.D0
@@ -750,7 +750,7 @@ module mod_clm_cninitimevar
           sminn_vr(c,j) = 0.D0
           col_ntrunc_vr(c,j) = 0.D0
         end do
-        if ( nlevdecomp .gt. 1 ) then
+        if ( nlevdecomp > 1 ) then
           do j = nlevdecomp+1, nlevdecomp_full
             do k = 1, ndecomp_pools
               decomp_npools_vr(c,j,k) = 0.D0

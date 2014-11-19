@@ -193,7 +193,7 @@ module mod_clm_frictionvelocity
       ! then set 10-m wind to um
       if (present(landunit_index)) then
         do pp = pfti(n),pftf(n)
-          if (zldis(n)-z0m(n) .le. 10.D0) then
+          if (zldis(n)-z0m(n) <= 10.D0) then
             u10_clm(pp) = um(n)
           else
             if (zeta(n) < -zetam) then
@@ -222,7 +222,7 @@ module mod_clm_frictionvelocity
           va(pp) = um(n)
         end do
       else
-        if (zldis(n)-z0m(n) .le. 10.D0) then
+        if (zldis(n)-z0m(n) <= 10.D0) then
           u10_clm(n) = um(n)
         else
           if (zeta(n) < -zetam) then
@@ -465,7 +465,7 @@ module mod_clm_frictionvelocity
       ! set 10-m wind to um
       if (present(landunit_index)) then
         do pp = pfti(n),pftf(n)
-          if (zldis(n)-z0m(n) .le. 10.D0) then
+          if (zldis(n)-z0m(n) <= 10.D0) then
             u10_clm(pp) = um(n)
           else
             if (zeta(n) < -zetam) then
@@ -485,7 +485,7 @@ module mod_clm_frictionvelocity
           va(pp) = um(n)
         end do
       else
-        if (zldis(n)-z0m(n) .le. 10.D0) then
+        if (zldis(n)-z0m(n) <= 10.D0) then
           u10_clm(n) = um(n)
         else
           if (zeta(n) < -zetam) then

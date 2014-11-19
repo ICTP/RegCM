@@ -712,7 +712,7 @@ module mod_clm_initslake
           ! "nonpercolating" organic soil
           uncon_frac = (1.D0-om_frac)+(1.D0-perc_frac)*om_frac
           ! uncon_hksat is series addition of mineral/organic conductivites
-          if ( om_frac .lt. 1.D0 ) then
+          if ( om_frac < 1.D0 ) then
             uncon_hksat=uncon_frac/((1.D0-om_frac)/xksat &
                    +((1.D0-perc_frac)*om_frac)/om_hksat)
           else
@@ -725,7 +725,7 @@ module mod_clm_initslake
                   (2.7D3 - 0.947D0*bd))*(1.D0-om_frac) + om_tkd*om_frac
           csol(c,lev) = ((1.D0-om_frac)*(2.128D0*sand+2.385D0*clay) / &
                   (sand+clay) + om_csol*om_frac)*1.D6  ! J/(m3 K)
-          if ( lev .gt. nlevsoi ) then
+          if ( lev > nlevsoi ) then
             csol(c,lev) = csol_bedrock
           end if
           watdry(c,lev) = watsat(c,lev) * &

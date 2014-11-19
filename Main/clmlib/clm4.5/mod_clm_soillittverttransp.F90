@@ -131,12 +131,12 @@ module mod_clm_soillittverttransp
     do fc = 1, num_soilc
       c = filter_soilc (fc)
       if  ( (max(altmax(c),altmax_lastyear(c)) <= max_altdepth_cryoturbation) &
-              .and. ( max(altmax(c), altmax_lastyear(c)) .gt. 0.D0) ) then
+              .and. ( max(altmax(c), altmax_lastyear(c)) > 0.D0) ) then
         ! use mixing profile modified slightly from Koven et al. (2009):
         !   constant through active layer, linear decrease from base of
         !   active layer to zero at a fixed depth
         do j = 1,nlevdecomp+1
-          if ( zisoi(j) .lt. max(altmax(c), altmax_lastyear(c)) ) then
+          if ( zisoi(j) < max(altmax(c), altmax_lastyear(c)) ) then
             som_diffus_coef(c,j) = cryoturb_diffusion_k
             som_adv_coef(c,j) = 0.D0
           else
@@ -147,7 +147,7 @@ module mod_clm_soillittverttransp
             som_adv_coef(c,j) = 0.D0
           end if
         end do
-      else if (  max(altmax(c), altmax_lastyear(c)) .gt. 0.D0 ) then
+      else if (  max(altmax(c), altmax_lastyear(c)) > 0.D0 ) then
         ! constant advection, constant diffusion
         do j = 1,nlevdecomp+1
           som_adv_coef(c,j) = som_adv_flux
@@ -211,7 +211,7 @@ module mod_clm_soillittverttransp
 
 #ifdef VERTSOILC
       do s = 1, ndecomp_pools
-        if ( spinup_state .eq. 1 ) then
+        if ( spinup_state == 1 ) then
           ! increase transport (both advection and diffusion)
           ! by the same factor as accelerated decomposition for a given pool
           spinup_term = spinup_factor(s)
@@ -222,12 +222,12 @@ module mod_clm_soillittverttransp
           do j = 1,nlevdecomp+1
             do fc = 1, num_soilc
               c = filter_soilc (fc)
-              if ( abs(som_adv_coef(c,j)) * spinup_term .lt. epsilon ) then
+              if ( abs(som_adv_coef(c,j)) * spinup_term < epsilon ) then
                 adv_flux(c,j) = epsilon
               else
                 adv_flux(c,j) = som_adv_coef(c,j) * spinup_term
               end if
-              if ( abs(som_diffus_coef(c,j)) * spinup_term .lt. epsilon ) then
+              if ( abs(som_diffus_coef(c,j)) * spinup_term < epsilon ) then
                 diffus(c,j) = epsilon
               else
                 diffus(c,j) = som_diffus_coef(c,j) * spinup_term
@@ -253,7 +253,7 @@ module mod_clm_soillittverttransp
               if (j == 1) then
                 d_m1_zm1(c,j) = 0.D0
                 w_p1 = (zsoi(j+1) - zisoi(j)) / dz_node(j+1)
-                if ( diffus(c,j+1) .gt. 0.D0 .and. diffus(c,j) .gt. 0.D0) then
+                if ( diffus(c,j+1) > 0.D0 .and. diffus(c,j) > 0.D0) then
                   d_p1 = 1.D0 / ((1.D0 - w_p1) / diffus(c,j) + &
                           w_p1 / diffus(c,j+1)) ! Harmonic mean of diffus
                 else
@@ -268,7 +268,7 @@ module mod_clm_soillittverttransp
                 ! At the bottom, assume no gradient in d_z
                 ! (i.e., they're the same)
                 w_m1 = (zisoi(j-1) - zsoi(j-1)) / dz_node(j)
-                if ( diffus(c,j) .gt. 0.D0 .and. diffus(c,j-1) .gt. 0.D0) then
+                if ( diffus(c,j) > 0.D0 .and. diffus(c,j-1) > 0.D0) then
                   d_m1 = 1.D0 / ((1.D0 - w_m1) / diffus(c,j) + &
                           w_m1 / diffus(c,j-1)) ! Harmonic mean of diffus
                 else
@@ -285,14 +285,14 @@ module mod_clm_soillittverttransp
                 ! Use distance from j-1 node to interface with j divided
                 ! by distance between nodes
                 w_m1 = (zisoi(j-1) - zsoi(j-1)) / dz_node(j)
-                if ( diffus(c,j-1) .gt. 0.D0 .and. diffus(c,j) .gt. 0.D0) then
+                if ( diffus(c,j-1) > 0.D0 .and. diffus(c,j) > 0.D0) then
                   d_m1 = 1.D0 / ((1.D0 - w_m1) / diffus(c,j) + &
                           w_m1 / diffus(c,j-1)) ! Harmonic mean of diffus
                 else
                   d_m1 = 0.D0
                 end if
                 w_p1 = (zsoi(j+1) - zisoi(j)) / dz_node(j+1)
-                if ( diffus(c,j+1) .gt. 0.D0 .and. diffus(c,j) .gt. 0.D0) then
+                if ( diffus(c,j+1) > 0.D0 .and. diffus(c,j) > 0.D0) then
                   d_p1 = 1.D0 / ((1.D0 - w_p1) / diffus(c,j) + &
                           w_p1 / diffus(c,j+1)) ! Harmonic mean of diffus
                 else
@@ -331,7 +331,7 @@ module mod_clm_soillittverttransp
                 b_tri(c,j) = -a_tri(c,j) - c_tri(c,j) + a_p_0
                 r_tri(c,j) = source(c,j,s) * dzsoi_decomp(j) /dtsrf + &
                         (a_p_0 - adv_flux(c,j)) * conc_trcr(c,j)
-              else if (j .lt. nlevdecomp+1) then
+              else if (j < nlevdecomp+1) then
                 a_tri(c,j) = -(d_m1_zm1(c,j) * aaa(pe_m1(c,j)) + &
                         max( f_m1(c,j), 0.D0)) ! Eqn 5.47 Patankar
                 c_tri(c,j) = -(d_p1_zp1(c,j) * aaa(pe_p1(c,j)) + &

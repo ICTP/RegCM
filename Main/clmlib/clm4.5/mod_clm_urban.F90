@@ -2166,7 +2166,7 @@ module mod_clm_urban
       ! radiation for roof
 
       do fl = 1 , num_urbanl
-        if (coszen(fl) .gt. 0.D0) then
+        if (coszen(fl) > 0.D0) then
           l = filter_urbanl(fl)
           sref_roof_dir(fl,ib) = alb_roof_dir(fl,ib) * sdir(fl,ib)
           sref_roof_dif(fl,ib) = alb_roof_dif(fl,ib) * sdif(fl,ib)
@@ -3703,7 +3703,7 @@ module mod_clm_urban
         ! Evaporation assigned to soil term if dew or snow
         ! or if no liquid water available in soil column
         if (dqh(l) > 0.D0 .or. frac_sno(c) > 0.D0 .or. &
-            soilalpha_u(c) .le. 0.D0) then
+            soilalpha_u(c) <= 0.D0) then
           qflx_evap_soi(p) = -forc_rho(g)*wtuq_road_perv(l)*dqh(l)
           qflx_tran_veg(p) = 0.D0
           ! Otherwise, evaporation assigned to transpiration term

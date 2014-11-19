@@ -178,7 +178,7 @@ module mod_clm_cnvegstructupdate
 
         ! tsai formula from Zeng et. al. 2002,
         ! Journal of Climate, p1835 (see notes)
-        ! Assumes doalb time step .eq. CLM time step,
+        ! Assumes doalb time step == CLM time step,
         ! SAI min and monthly decay factor
         ! alpha are set by PFT, and alpha is scaled to CLM
         ! time step by multiplying by dt and dividing by dtsmonth

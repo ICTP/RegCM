@@ -964,7 +964,7 @@ module mod_clm_initimeconst
       ! +/- 23.4667 degrees = +/- 0.409571 radians, use negative value
       ! for S. Hem
       max_decl = 0.409571
-      if (lat(g) .lt. 0.D0) max_decl = -max_decl
+      if (lat(g) < 0.D0) max_decl = -max_decl
       temp = -(sin(lat(g))*sin(max_decl))/(cos(lat(g)) * cos(max_decl))
       temp = min(1.D0,max(-1.D0,temp))
       max_dayl(c) = 2.0D0 * 13750.9871D0 * acos(temp)
@@ -1150,14 +1150,14 @@ module mod_clm_initimeconst
         do lev = 1 , nlevgrnd
           ! duplicate clay and sand values from last soil layer
           if ( more_vertlayers ) then
-            if ( lev .eq. 1 ) then
+            if ( lev == 1 ) then
               clay    = clay3d(g,1)
               sand    = sand3d(g,1)
               om_frac = organic3d(g,1)/organic_max
-            else if ( lev .le. nlevsoi ) then
+            else if ( lev <= nlevsoi ) then
               do j = 1 , nlevsoifl-1
-                if (zisoi(lev) .ge. zisoifl(j) .AND. &
-                    zisoi(lev) .lt. zisoifl(j+1)) then
+                if (zisoi(lev) >= zisoifl(j) .AND. &
+                    zisoi(lev) < zisoifl(j+1)) then
                   clay    = clay3d(g,j+1)
                   sand    = sand3d(g,j+1)
                   om_frac = organic3d(g,j+1)/organic_max
@@ -1170,7 +1170,7 @@ module mod_clm_initimeconst
             end if
           else
             ! duplicate clay and sand values from 10th soil layer
-            if (lev .le. nlevsoi) then
+            if (lev <= nlevsoi) then
               clay    = clay3d(g,lev)
               sand    = sand3d(g,lev)
               om_frac = (organic3d(g,lev)/organic_max)**2.D0
@@ -1235,7 +1235,7 @@ module mod_clm_initimeconst
             ! "nonpercolating" organic soil
             uncon_frac=(1.D0-om_frac)+(1.D0-perc_frac)*om_frac
             ! uncon_hksat is series addition of mineral/organic conductivites
-            if (om_frac .lt. 1.D0) then
+            if (om_frac < 1.D0) then
               uncon_hksat=uncon_frac/((1.D0-om_frac)/xksat &
                    +((1.D0-perc_frac)*om_frac)/om_hksat)
             else
@@ -1250,7 +1250,7 @@ module mod_clm_initimeconst
                       om_tkd*om_frac
             csol(c,lev) = ((1.D0-om_frac)*(2.128D0*sand+2.385D0*clay) / &
                     (sand+clay) + om_csol*om_frac)*1.D6  ! J/(m3 K)
-            if (lev .gt. nlevsoi) then
+            if (lev > nlevsoi) then
               csol(c,lev) = csol_bedrock
             end if
             watdry(c,lev) = watsat(c,lev) * &

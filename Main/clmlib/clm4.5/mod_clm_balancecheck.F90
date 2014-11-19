@@ -461,9 +461,9 @@ module mod_clm_balancecheck
       write(stderr,*) 'WARNING:  indexc       : ', indexc
       write(stderr,*) 'WARNING:  ctype(indexc): ', ctype(indexc)
       write(stderr,*) 'WARNING:  water balance error ', errh2o(indexc)
-      if ( (ctype(indexc) .eq. icol_roof .or.        &
-            ctype(indexc) .eq. icol_road_imperv .or. &
-            ctype(indexc) .eq. icol_road_perv) .and. &
+      if ( (ctype(indexc) == icol_roof .or.        &
+            ctype(indexc) == icol_road_imperv .or. &
+            ctype(indexc) == icol_road_perv) .and. &
             abs(errh2o(indexc)) > 0.10D0 .and. (ktau > 2) ) then
         write(stderr,*) &
               'clm urban model is stopping - error is greater than .10'

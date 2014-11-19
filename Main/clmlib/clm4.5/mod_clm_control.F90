@@ -504,9 +504,9 @@ module mod_clm_control
     write(stdout,*) &
         '   spinup_state, (0 = normal mode; 1 = AD spinup)         : ', &
         spinup_state
-    if ( spinup_state .eq. 0 ) then
+    if ( spinup_state == 0 ) then
       write(stdout,*) '   model is currently NOT in AD spinup mode.'
-    else if ( spinup_state .eq. 1 ) then
+    else if ( spinup_state == 1 ) then
       write(stdout,*) '   model is currently in AD spinup mode.'
     else
       call fatal(__FILE__,__LINE__, &

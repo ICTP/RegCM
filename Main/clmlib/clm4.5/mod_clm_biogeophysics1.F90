@@ -429,7 +429,7 @@ module mod_clm_biogeophysics1
           qred = (1.0D0-frac_sno(c))*hr_road_perv + frac_sno(c)
 
           ! Normalize root resistances to get layer contribution to total ET
-          if (hr_road_perv .gt. 0.D0) then
+          if (hr_road_perv > 0.D0) then
             do j = 1, nlevsoi
               rootr_road_perv(c,j) = rootr_road_perv(c,j)/hr_road_perv
             end do

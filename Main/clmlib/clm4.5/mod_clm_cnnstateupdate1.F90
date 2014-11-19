@@ -381,7 +381,7 @@ module mod_clm_cnnstateupdate1
       end do
     end do
     do k = 1 , ndecomp_cascade_transitions
-      if ( cascade_receiver_pool(k) .ne. 0 ) then  ! skip terminal transitions
+      if ( cascade_receiver_pool(k) /= 0 ) then  ! skip terminal transitions
         do j = 1, nlevdecomp
           ! column loop
           do fc = 1 , num_soilc
@@ -409,7 +409,7 @@ module mod_clm_cnnstateupdate1
     ! immobilization/mineralization in litter-to-SOM and SOM-to-SOM fluxes
     ! and denitrification fluxes
     do k = 1 , ndecomp_cascade_transitions
-      if ( cascade_receiver_pool(k) .ne. 0 ) then  ! skip terminal transitions
+      if ( cascade_receiver_pool(k) /= 0 ) then  ! skip terminal transitions
         do j = 1 , nlevdecomp
           ! column loop
           do fc = 1 , num_soilc

@@ -171,8 +171,8 @@ module mod_clm_cnverticalprofile
         rootfr_tot = rootfr_tot + cinput_rootfr(p,j) * dzsoi_decomp(j)
         surface_prof_tot = surface_prof_tot + surface_prof(j)  * dzsoi_decomp(j)
       end do
-      if ( (altmax_lastyear_indx(c) .gt. 0) .and. &
-           (rootfr_tot .gt. 0.D0) .and. (surface_prof_tot .gt. 0.D0) ) then
+      if ( (altmax_lastyear_indx(c) > 0) .and. &
+           (rootfr_tot > 0.D0) .and. (surface_prof_tot > 0.D0) ) then
         ! where there is not permafrost extending to the surface, integrate
         ! the profiles over the active layer
         ! this is equivalent to integrating over all soil layers outside
@@ -221,8 +221,8 @@ module mod_clm_cnverticalprofile
         rootfr_tot = rootfr_tot + col_cinput_rootfr(c,j) * dzsoi_decomp(j)
         surface_prof_tot = surface_prof_tot + surface_prof(j) * dzsoi_decomp(j)
       end do
-      if ( (altmax_lastyear_indx(c) .gt. 0) .and. &
-           (rootfr_tot .gt. 0.D0) .and. (surface_prof_tot .gt. 0.D0) ) then
+      if ( (altmax_lastyear_indx(c) > 0) .and. &
+           (rootfr_tot > 0.D0) .and. (surface_prof_tot > 0.D0) ) then
         do j = 1,  min(max(altmax_lastyear_indx(c), 1), nlevdecomp)
           nfixation_prof(c,j) = col_cinput_rootfr(c,j) / rootfr_tot
           ndep_prof(c,j) = surface_prof(j)/ surface_prof_tot
@@ -252,8 +252,8 @@ module mod_clm_cnverticalprofile
         nfixation_prof_sum = nfixation_prof_sum + &
                 nfixation_prof(c,j) *  dzsoi_decomp(j)
       end do
-      if ( ( abs(ndep_prof_sum - 1.D0) .gt. delta ) .or. &
-           ( abs(nfixation_prof_sum - 1.D0) .gt. delta ) ) then
+      if ( ( abs(ndep_prof_sum - 1.D0) > delta ) .or. &
+           ( abs(nfixation_prof_sum - 1.D0) > delta ) ) then
         write(stderr, *) 'profile sums: ', ndep_prof_sum, nfixation_prof_sum
         write(stderr, *) 'c: ', c
         write(stderr, *) 'altmax_lastyear_indx: ', altmax_lastyear_indx(c)
@@ -284,10 +284,10 @@ module mod_clm_cnverticalprofile
         leaf_prof_sum = leaf_prof_sum + leaf_prof(p,j) *  dzsoi_decomp(j)
         stem_prof_sum = stem_prof_sum + stem_prof(p,j) *  dzsoi_decomp(j)
       end do
-      if ( ( abs(froot_prof_sum - 1.D0) .gt. delta ) .or. &
-           ( abs(croot_prof_sum - 1.D0) .gt. delta ) .or. &
-           ( abs(stem_prof_sum - 1.D0) .gt. delta ) .or.  &
-           ( abs(leaf_prof_sum - 1.D0) .gt. delta ) ) then
+      if ( ( abs(froot_prof_sum - 1.D0) > delta ) .or. &
+           ( abs(croot_prof_sum - 1.D0) > delta ) .or. &
+           ( abs(stem_prof_sum - 1.D0) > delta ) .or.  &
+           ( abs(leaf_prof_sum - 1.D0) > delta ) ) then
         write(stderr, *) 'profile sums: ', froot_prof_sum, &
                 croot_prof_sum, leaf_prof_sum, stem_prof_sum
         call fatal(__FILE__,__LINE__, &

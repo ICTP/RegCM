@@ -1844,7 +1844,7 @@ module mod_clm_histflds
           ptr_col=clm3%g%l%c%ccs%totlitc)
 
     do l  = 1, ndecomp_pools
-      if ( nlevdecomp_full .gt. 1 ) then
+      if ( nlevdecomp_full > 1 ) then
         data2dptr => clm3%g%l%c%ccs%decomp_cpools_vr(:,:,l)
         fieldname = trim(decomp_cascade_con%decomp_pool_name_history(l))//'C_vr'
         longname =  trim(decomp_cascade_con%decomp_pool_name_history(l))// &
@@ -1862,7 +1862,7 @@ module mod_clm_histflds
             avgflag='A', long_name=longname, &
             ptr_col=data1dptr)
 
-      if ( nlevdecomp_full .gt. 1 ) then
+      if ( nlevdecomp_full > 1 ) then
         data1dptr => clm3%g%l%c%ccs%decomp_cpools_1m(:,l)
         fieldname = trim(decomp_cascade_con%decomp_pool_name_history(l))//'C_1m'
         longname =  trim(decomp_cascade_con%decomp_pool_name_history(l))// &
@@ -1874,7 +1874,7 @@ module mod_clm_histflds
 
     end do
 
-    if ( nlevdecomp_full .gt. 1 ) then
+    if ( nlevdecomp_full > 1 ) then
       call hist_addfld1d (fname='TOTLITC_1m', units='gC/m^2', &
             avgflag='A', long_name='total litter carbon to 1 meter depth', &
             ptr_col=clm3%g%l%c%ccs%totlitc_1m)
@@ -1963,7 +1963,7 @@ module mod_clm_histflds
       !-------------------------------
 
       do l = 1 , ndecomp_pools
-        if ( nlevdecomp_full .gt. 1 ) then
+        if ( nlevdecomp_full > 1 ) then
           data2dptr => clm3%g%l%c%cc13s%decomp_cpools_vr(:,:,l)
           fieldname = 'C13_'// &
                   trim(decomp_cascade_con%decomp_pool_name_history(l))//'C_vr'
@@ -1999,7 +1999,7 @@ module mod_clm_histflds
             avgflag='A', long_name='C13 total soil organic matter carbon', &
             ptr_col=clm3%g%l%c%cc13s%totsomc)
 
-      if ( nlevdecomp_full .gt. 1 ) then
+      if ( nlevdecomp_full > 1 ) then
         call hist_addfld1d (fname='C13_TOTLITC_1m', units='gC13/m^2', &
                avgflag='A', long_name='C13 total litter carbon to 1 meter', &
                ptr_col=clm3%g%l%c%cc13s%totlitc_1m)
@@ -2039,7 +2039,7 @@ module mod_clm_histflds
       !-------------------------------
 
       do l = 1, ndecomp_pools
-        if ( nlevdecomp_full .gt. 1 ) then
+        if ( nlevdecomp_full > 1 ) then
           data2dptr => clm3%g%l%c%cc14s%decomp_cpools_vr(:,:,l)
           fieldname = 'C14_'// &
                   trim(decomp_cascade_con%decomp_pool_name_history(l))//'C_vr'
@@ -2059,7 +2059,7 @@ module mod_clm_histflds
         call hist_addfld1d (fname=fieldname, units='gC14/m^2', &
                avgflag='A', long_name=longname, ptr_col=data1dptr)
 
-        if ( nlevdecomp_full .gt. 1 ) then
+        if ( nlevdecomp_full > 1 ) then
           data1dptr => clm3%g%l%c%cc14s%decomp_cpools_1m(:,l)
           fieldname = 'C14_'// &
                   trim(decomp_cascade_con%decomp_pool_name_history(l))//'C_1m'
@@ -2089,7 +2089,7 @@ module mod_clm_histflds
             avgflag='A', long_name='C14 total soil organic matter carbon', &
             ptr_col=clm3%g%l%c%cc14s%totsomc)
 
-      if ( nlevdecomp_full .gt. 1 ) then
+      if ( nlevdecomp_full > 1 ) then
         call hist_addfld1d (fname='C14_TOTLITC_1m', units='gC14/m^2', &
                avgflag='A', long_name='C14 total litter carbon to 1 meter', &
                ptr_col=clm3%g%l%c%cc14s%totlitc_1m)
@@ -2238,7 +2238,7 @@ module mod_clm_histflds
     !-------------------------------
 
     do l  = 1 , ndecomp_pools
-      if ( nlevdecomp_full .gt. 1 ) then
+      if ( nlevdecomp_full > 1 ) then
         data2dptr => clm3%g%l%c%cns%decomp_npools_vr(:,:,l)
         fieldname = trim(decomp_cascade_con%decomp_pool_name_history(l))//'N_vr'
         longname =  trim(decomp_cascade_con%decomp_pool_name_history(l))// &
@@ -2252,7 +2252,7 @@ module mod_clm_histflds
       call hist_addfld1d (fname=fieldname, units='gN/m^2', &
             avgflag='A', long_name=longname, ptr_col=data1dptr)
 
-      if ( nlevdecomp_full .gt. 1 ) then
+      if ( nlevdecomp_full > 1 ) then
         data1dptr => clm3%g%l%c%cns%decomp_npools_1m(:,l)
         fieldname = trim(decomp_cascade_con%decomp_pool_name_history(l))//'N_1m'
         longname =  trim(decomp_cascade_con%decomp_pool_name_history(l))// &
@@ -2263,7 +2263,7 @@ module mod_clm_histflds
       end if
     end do
 
-    if ( nlevdecomp_full .gt. 1 ) then
+    if ( nlevdecomp_full > 1 ) then
       call hist_addfld1d (fname='SMINN', units='gN/m^2', &
             avgflag='A', long_name='soil mineral N', &
             ptr_col=clm3%g%l%c%cns%sminn)
@@ -2293,7 +2293,7 @@ module mod_clm_histflds
          avgflag='A', long_name='soil mineral NH4 (vert. res.)', &
          ptr_col=clm3%g%l%c%cns%smin_nh4_vr)
 
-    if ( nlevdecomp_full .gt. 1 ) then
+    if ( nlevdecomp_full > 1 ) then
       call hist_addfld1d (fname='SMIN_NO3', units='gN/m^2', &
             avgflag='A', long_name='soil mineral NO3', &
             ptr_col=clm3%g%l%c%cns%smin_no3)
@@ -4248,7 +4248,7 @@ module mod_clm_histflds
                avgflag='A', long_name=longname, &
                ptr_col=data1dptr, default='inactive')
 
-        if ( nlevdecomp_full .gt. 1 ) then
+        if ( nlevdecomp_full > 1 ) then
           data2dptr => clm3%g%l%c%ccf%m_decomp_cpools_to_fire_vr(:,:,k)
           fieldname = 'M_'//&
              trim(decomp_cascade_con%decomp_pool_name_history(k))//&
@@ -4284,7 +4284,7 @@ module mod_clm_histflds
           if ( decomp_cascade_con%cascade_donor_pool(jj) == &
                   decomp_cascade_con%cascade_donor_pool(l) ) ii = ii+1
         end do
-        if ( ii .eq. 1 ) then
+        if ( ii == 1 ) then
           fieldname = trim(decomp_cascade_con%decomp_pool_name_history(&
                   decomp_cascade_con%cascade_donor_pool(l)))//'_HR'
         else
@@ -4301,7 +4301,7 @@ module mod_clm_histflds
                ptr_col=data1dptr)
       end if
       !-- transfer fluxes (none from terminal pool, if present)
-      if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
+      if ( decomp_cascade_con%cascade_receiver_pool(l) /= 0 ) then
         data1dptr => clm3%g%l%c%ccf%decomp_cascade_ctransfer(:,l)
         fieldname = trim(decomp_cascade_con%decomp_pool_name_history(&
                 decomp_cascade_con%cascade_donor_pool(l)))//'C_TO_'//&
@@ -4318,7 +4318,7 @@ module mod_clm_histflds
       end if
 
       ! output the vertically resolved fluxes
-      if ( nlevdecomp_full .gt. 1 ) then
+      if ( nlevdecomp_full > 1 ) then
         !-- HR fluxes (none from CWD)
         if ( .not. decomp_cascade_con%is_cwd(&
                 decomp_cascade_con%cascade_donor_pool(l)) ) then
@@ -4330,7 +4330,7 @@ module mod_clm_histflds
             if ( decomp_cascade_con%cascade_donor_pool(jj) == &
                     decomp_cascade_con%cascade_donor_pool(l) ) ii = ii+1
           end do
-          if ( ii .eq. 1 ) then
+          if ( ii == 1 ) then
             fieldname = trim(decomp_cascade_con%decomp_pool_name_history(&
                     decomp_cascade_con%cascade_donor_pool(l)))//'_HR'//&
                     trim(vr_suffix)
@@ -4348,7 +4348,7 @@ module mod_clm_histflds
                   ptr_col=data2dptr, default='inactive')
         end if
         !-- transfer fluxes (none from terminal pool, if present)
-        if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
+        if ( decomp_cascade_con%cascade_receiver_pool(l) /= 0 ) then
           data2dptr => clm3%g%l%c%ccf%decomp_cascade_ctransfer_vr(:,:,l)
           fieldname = trim(decomp_cascade_con%decomp_pool_name_history(&
                   decomp_cascade_con%cascade_donor_pool(l)))//'C_TO_'//&
@@ -4419,7 +4419,7 @@ module mod_clm_histflds
          long_name='soil organic matter heterotrophic respiration', &
          ptr_col=clm3%g%l%c%ccf%somhr)
 
-    if ( nlevdecomp_full .gt. 1 ) then
+    if ( nlevdecomp_full > 1 ) then
       call hist_addfld2d (fname='HR_vr', units='gC/m^3/s', type2d='levdcmp', &
            avgflag='A', &
            long_name='total vertically resolved heterotrophic respiration', &
@@ -4566,7 +4566,7 @@ module mod_clm_histflds
                   avgflag='A', long_name=longname, &
                   ptr_col=data1dptr, default='inactive')
 
-          if ( nlevdecomp_full .gt. 1 ) then
+          if ( nlevdecomp_full > 1 ) then
             data2dptr => clm3%g%l%c%cc13f%m_decomp_cpools_to_fire_vr(:,:,k)
             fieldname = 'C13_M_'//&
                 trim(decomp_cascade_con%decomp_pool_name_history(k))//&
@@ -4593,7 +4593,7 @@ module mod_clm_histflds
             if ( decomp_cascade_con%cascade_donor_pool(jj) == &
                  decomp_cascade_con%cascade_donor_pool(l) ) ii = ii+1
           end do
-          if ( ii .eq. 1 ) then
+          if ( ii == 1 ) then
             fieldname = 'C13_'//&
                trim(decomp_cascade_con%decomp_pool_name_history(&
                decomp_cascade_con%cascade_donor_pool(l)))//'_HR'//&
@@ -4613,7 +4613,7 @@ module mod_clm_histflds
                   ptr_col=data2dptr, default='inactive')
         end if
         !-- transfer fluxes (none from terminal pool, if present)
-        if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
+        if ( decomp_cascade_con%cascade_receiver_pool(l) /= 0 ) then
           data2dptr => clm3%g%l%c%cc13f%decomp_cascade_ctransfer_vr(:,:,l)
           fieldname = 'C13_'//&
                trim(decomp_cascade_con%decomp_pool_name_history(&
@@ -4767,7 +4767,7 @@ module mod_clm_histflds
                   avgflag='A', long_name=longname, &
                   ptr_col=data1dptr, default='inactive')
 
-          if ( nlevdecomp_full .gt. 1 ) then
+          if ( nlevdecomp_full > 1 ) then
             data2dptr => clm3%g%l%c%cc14f%m_decomp_cpools_to_fire_vr(:,:,k)
             fieldname = 'C14_M_'//&
                 trim(decomp_cascade_con%decomp_pool_name_history(k))//&
@@ -4794,7 +4794,7 @@ module mod_clm_histflds
             if ( decomp_cascade_con%cascade_donor_pool(jj) == &
                     decomp_cascade_con%cascade_donor_pool(l) ) ii = ii+1
           end do
-          if ( ii .eq. 1 ) then
+          if ( ii == 1 ) then
             fieldname = 'C14_'//&
                 trim(decomp_cascade_con%decomp_pool_name_history(&
                 decomp_cascade_con%cascade_donor_pool(l)))//'_HR'//&
@@ -4814,7 +4814,7 @@ module mod_clm_histflds
                   ptr_col=data2dptr, default='inactive')
         end if
         !-- transfer fluxes (none from terminal pool, if present)
-        if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
+        if ( decomp_cascade_con%cascade_receiver_pool(l) /= 0 ) then
           data2dptr => clm3%g%l%c%cc14f%decomp_cascade_ctransfer_vr(:,:,l)
           fieldname = 'C14_'//&
               trim(decomp_cascade_con%decomp_pool_name_history(&
@@ -5327,7 +5327,7 @@ module mod_clm_histflds
                avgflag='A', long_name=longname, &
                ptr_col=data1dptr, default='inactive')
 
-        if ( nlevdecomp_full .gt. 1 ) then
+        if ( nlevdecomp_full > 1 ) then
           data2dptr => clm3%g%l%c%cnf%m_decomp_npools_to_fire_vr(:,:,k)
           fieldname = 'M_'//&
               trim(decomp_cascade_con%decomp_pool_name_history(k))//&
@@ -5347,7 +5347,7 @@ module mod_clm_histflds
       if ( .not. decomp_cascade_con%is_cwd(&
               decomp_cascade_con%cascade_donor_pool(l)) ) then
         data1dptr => clm3%g%l%c%cnf%decomp_cascade_sminn_flux(:,l)
-        if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
+        if ( decomp_cascade_con%cascade_receiver_pool(l) /= 0 ) then
           fieldname = 'SMINN_TO_'//&
               trim(decomp_cascade_con%decomp_pool_name_history(&
               decomp_cascade_con%cascade_receiver_pool(l)))//'N_'//&
@@ -5369,7 +5369,7 @@ module mod_clm_histflds
                avgflag='A', long_name=longname, ptr_col=data1dptr)
       end if
       !-- transfer fluxes (none from terminal pool, if present)
-      if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
+      if ( decomp_cascade_con%cascade_receiver_pool(l) /= 0 ) then
         data1dptr => clm3%g%l%c%cnf%decomp_cascade_ntransfer(:,l)
         fieldname = trim(decomp_cascade_con%decomp_pool_name_history(&
                decomp_cascade_con%cascade_donor_pool(l)))//'N_TO_'//&
@@ -5385,12 +5385,12 @@ module mod_clm_histflds
       end if
 
       ! vertically resolved fluxes
-      if ( nlevdecomp_full .gt. 1 ) then
+      if ( nlevdecomp_full > 1 ) then
         !-- mineralization/immobilization fluxes (none from CWD)
         if ( .not. decomp_cascade_con%is_cwd(&
                 decomp_cascade_con%cascade_donor_pool(l)) ) then
           data2dptr => clm3%g%l%c%cnf%decomp_cascade_sminn_flux_vr(:,:,l)
-          if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
+          if ( decomp_cascade_con%cascade_receiver_pool(l) /= 0 ) then
             fieldname = 'SMINN_TO_'//&
                   trim(decomp_cascade_con%decomp_pool_name_history(&
                   decomp_cascade_con%cascade_receiver_pool(l)))//'N_'//&
@@ -5414,7 +5414,7 @@ module mod_clm_histflds
                   ptr_col=data2dptr, default='inactive')
         end if
         !-- transfer fluxes (none from terminal pool, if present)
-        if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
+        if ( decomp_cascade_con%cascade_receiver_pool(l) /= 0 ) then
           data2dptr => clm3%g%l%c%cnf%decomp_cascade_ntransfer_vr(:,:,l)
           fieldname = trim(decomp_cascade_con%decomp_pool_name_history(&
                   decomp_cascade_con%cascade_donor_pool(l)))//'N_TO_'//&
@@ -5482,7 +5482,7 @@ module mod_clm_histflds
                ptr_col=data1dptr)
       end if
 
-      if ( nlevdecomp_full .gt. 1 ) then
+      if ( nlevdecomp_full > 1 ) then
         !-- denitrification fluxes (none from CWD)
         if ( .not. decomp_cascade_con%is_cwd(&
                 decomp_cascade_con%cascade_donor_pool(l)) ) then
@@ -5509,7 +5509,7 @@ module mod_clm_histflds
          avgflag='A', long_name='soil mineral N pool loss to leaching', &
          ptr_col=clm3%g%l%c%cnf%sminn_leached)
 
-    if ( nlevdecomp_full .gt. 1 ) then
+    if ( nlevdecomp_full > 1 ) then
       call hist_addfld_decomp (fname='SMINN_TO_DENIT_EXCESS'//&
             trim(vr_suffix), units='gN/m^3/s',  type2d='levdcmp', &
             avgflag='A', &
@@ -5548,7 +5548,7 @@ module mod_clm_histflds
          avgflag='A', long_name='soil NO3 pool loss to runoff', &
          ptr_col=clm3%g%l%c%cnf%smin_no3_runoff)
 
-    if ( nlevdecomp_full .gt. 1 ) then
+    if ( nlevdecomp_full > 1 ) then
       call hist_addfld_decomp (fname='F_NIT'//trim(vr_suffix), &
             units='gN/m^3/s', type2d='levdcmp', &
             avgflag='A', long_name='nitrification flux', &
@@ -5692,7 +5692,7 @@ module mod_clm_histflds
 #endif
 #endif
 
-    if (nlevdecomp_full .gt. 1 ) then
+    if (nlevdecomp_full > 1 ) then
       call hist_addfld_decomp (fname='POTENTIAL_IMMOB'//trim(vr_suffix), &
             units='gN/m^3/s',  type2d='levdcmp', &
             avgflag='A', long_name='potential N immobilization', &
@@ -6213,7 +6213,7 @@ module mod_clm_histflds
          long_name='conversion area fraction of BET and BDT that '// &
           'burned in this timestep', ptr_col=clm3%g%l%c%cps%lfc2)
 
-    if ( nlevdecomp_full .gt. 1 ) then
+    if ( nlevdecomp_full > 1 ) then
       call hist_addfld1d (fname='FPI', units='proportion', &
             avgflag='A', long_name='fraction of potential immobilization', &
             ptr_col=clm3%g%l%c%cps%fpi)
@@ -6541,7 +6541,7 @@ module mod_clm_histflds
     if ( present(ptr_col) ) then
       ! column-level data
       if ( present(default) ) then
-        if ( nlevdecomp_full .gt. 1 ) then
+        if ( nlevdecomp_full > 1 ) then
           call hist_addfld2d (fname=trim(fname), units=units, type2d=type2d, &
                   avgflag=avgflag, long_name=long_name, &
                   ptr_col=ptr_col, default=default)
@@ -6552,7 +6552,7 @@ module mod_clm_histflds
                   ptr_col=ptr_1d, default=default)
         end if
       else
-        if ( nlevdecomp_full .gt. 1 ) then
+        if ( nlevdecomp_full > 1 ) then
           call hist_addfld2d (fname=trim(fname), units=units, type2d=type2d, &
                   avgflag=avgflag, long_name=long_name, &
                   ptr_col=ptr_col)
@@ -6566,7 +6566,7 @@ module mod_clm_histflds
     else if (present(ptr_pft)) then
        ! pft-level data
       if (present(default)) then
-        if ( nlevdecomp_full .gt. 1 ) then
+        if ( nlevdecomp_full > 1 ) then
           call hist_addfld2d (fname=trim(fname), units=units, type2d=type2d, &
                   avgflag=avgflag, long_name=long_name, &
                   ptr_pft=ptr_pft, default=default)
@@ -6577,7 +6577,7 @@ module mod_clm_histflds
                   ptr_pft=ptr_1d, default=default)
         end if
       else
-        if ( nlevdecomp_full .gt. 1 ) then
+        if ( nlevdecomp_full > 1 ) then
           call hist_addfld2d (fname=trim(fname), units=units, type2d=type2d, &
                 avgflag=avgflag, long_name=long_name, &
                 ptr_pft=ptr_pft)

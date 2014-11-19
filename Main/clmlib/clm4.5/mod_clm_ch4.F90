@@ -1024,7 +1024,7 @@ module mod_clm_ch4
         ! If switched on, use pH factor for production based on spatial
         ! pH data defined in surface data.
         if (.not. lake .and. usephfact .and. &
-             pH(c).gt. pHmin .and.pH(c).lt. pHmax) then
+             pH(c)> pHmin .and.pH(c)< pHmax) then
           pH_fact_ch4 = 10.D0**(-0.2235D0*pH(c)*pH(c) + 2.7727D0*pH(c) - 8.6D0)
           ! fitted function using data from Dunfield et al. 1993
           ! Strictly less than one, with optimum at 6.5
@@ -1092,7 +1092,7 @@ module mod_clm_ch4
                   pot_f_nit_vr(c,j) * 2.0D0/14.0D0 ! g N/m^3/s  mol O2 / g N
         end if
 #endif
-        if (j .gt. jwt(c)) then
+        if (j > jwt(c)) then
           ! Below the water table so anaerobic CH4 production can occur
           ! partition decomposition to layer
           ! turn into per volume-total by dz
@@ -1221,7 +1221,7 @@ module mod_clm_ch4
           smp_fact = 1.D0
         end if
 
-        if (j .le. jwt(c)) then ! Above the water table
+        if (j <= jwt(c)) then ! Above the water table
           k_h_inv = exp(-c_h_inv(1) * (1.D0 / t_soisno(c,j) - &
                   1.D0 / kh_tbase) + log (kh_theta(1)))
           ! (4.21) Wania [(mol/m3w) / (mol/m3g)]
@@ -1648,7 +1648,7 @@ module mod_clm_ch4
         c = filter_methc (fc)
         g = cgridcell(c)
 
-        if (j .gt. jwt(c) .and. t_soisno(c,j) > tfrz) then
+        if (j > jwt(c) .and. t_soisno(c,j) > tfrz) then
           ! Ebullition occurs only below the water table
           ! (4.12 Wania) (atm.L/mol)
           k_h_inv = exp(-c_h_inv(1) * (1.D0 / &

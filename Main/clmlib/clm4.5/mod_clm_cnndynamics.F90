@@ -23,11 +23,11 @@ module mod_clm_cnndynamics
 
 #ifndef NITRIF_DENITRIF
   ! (days) time over which to exponentially relax the npp flux for N
-  ! fixation term (if .le. 0. or .ge. 365; use old annual method)
+  ! fixation term (if <= 0. or >= 365; use old annual method)
   real(rk8), public :: nfix_timeconst = 0.D0
 #else
   ! (days) time over which to exponentially relax the npp flux for N
-  ! fixation term (if .le. 0. or .ge. 365; use old annual method)
+  ! fixation term (if <= 0. or >= 365; use old annual method)
   real(rk8), public :: nfix_timeconst = 10.D0
 #endif
 
@@ -213,12 +213,12 @@ module mod_clm_cnndynamics
     ! for runoff calculation; calculate total water to a given depth
     surface_water(lbc:ubc) = 0.D0
     do j = 1,nlevsoi
-      if ( zisoi(j) .le. depth_runoff_Nloss)  then
+      if ( zisoi(j) <= depth_runoff_Nloss)  then
         do fc = 1 , num_soilc
           c = filter_soilc(fc)
           surface_water(c) = surface_water(c) + h2osoi_liq(c,j)
         end do
-      else if ( zisoi(j-1) .lt. depth_runoff_Nloss)  then
+      else if ( zisoi(j-1) < depth_runoff_Nloss)  then
         do fc = 1 , num_soilc
           c = filter_soilc(fc)
           surface_water(c) = surface_water(c) + h2osoi_liq(c,j) * &
@@ -319,10 +319,10 @@ module mod_clm_cnndynamics
         !
         ! calculate the N loss from surface runoff, assuming a shallow
         ! mixing of surface waters into soil and removal based on runoff
-        if ( zisoi(j) .le. depth_runoff_Nloss )  then
+        if ( zisoi(j) <= depth_runoff_Nloss )  then
           smin_no3_runoff_vr(c,j) = disn_conc * qflx_surf(c) * &
                   h2osoi_liq(c,j) / ( surface_water(c) * dz(c,j) )
-        else if ( zisoi(j-1) .lt. depth_runoff_Nloss )  then
+        else if ( zisoi(j-1) < depth_runoff_Nloss )  then
           smin_no3_runoff_vr(c,j) = disn_conc * qflx_surf(c) * &
              h2osoi_liq(c,j) * ((depth_runoff_Nloss - zisoi(j-1)) / &
              dz(c,j)) / ( surface_water(c) * (depth_runoff_Nloss-zisoi(j-1) ))

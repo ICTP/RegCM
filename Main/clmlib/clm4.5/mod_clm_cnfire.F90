@@ -451,9 +451,9 @@ module mod_clm_cnfire
       btran_col(c) = 0.D0
       wtlf(c)      = 0.D0
 #ifdef DYNPFT
-      trotr1_col(c)=0.D0
-      trotr2_col(c)=0.D0
-      dtrotr_col(c)=0.D0
+      trotr1_col(c) = 0.D0
+      trotr2_col(c) = 0.D0
+      dtrotr_col(c) = 0.D0
 #endif
     end do
     do pi = 1 , max_pft_per_col
@@ -463,23 +463,23 @@ module mod_clm_cnfire
         if ( pi <= npfts(c) ) then
           p = pfti(c) + pi - 1
           ! For non-crop -- natural vegetation and bare-soil
-          if ( ivt(p) .lt. nc3crop .and. cropf_col(c) .lt. 1.0D0 ) then
+          if ( ivt(p) < nc3crop .and. cropf_col(c) < 1.0D0 ) then
             if ( .not. is_nan(btran2(p)) .and. &
-                    btran2(p) .le. 1.D0 ) then
+                    btran2(p) <= 1.D0 ) then
               btran_col(c) = btran_col(c)+btran2(p)*wtcol(p)
               wtlf(c)      = wtlf(c)+wtcol(p)
             end if
 #ifdef DYNPFT
-            if ( ivt(p) == nbrdlf_evr_trp_tree .and. wtcol(p) .gt. 0.D0 ) then
-              trotr1_col(c)=trotr1_col(c)+wtcol(p)*cwtgcell(c)
+            if ( ivt(p) == nbrdlf_evr_trp_tree .and. wtcol(p) > 0.D0 ) then
+              trotr1_col(c) = trotr1_col(c) + wtcol(p)*cwtgcell(c)
             end if
-            if ( ivt(p) == nbrdlf_dcd_trp_tree .and. wtcol(p) .gt. 0.D0 ) then
-              trotr2_col(c)=trotr2_col(c)+wtcol(p)*cwtgcell(c)
+            if ( ivt(p) == nbrdlf_dcd_trp_tree .and. wtcol(p) > 0.D0 ) then
+              trotr2_col(c) = trotr2_col(c) + wtcol(p)*cwtgcell(c)
             end if
             if ( ivt(p) == nbrdlf_evr_trp_tree .or. &
                  ivt(p) == nbrdlf_dcd_trp_tree ) then
-              if ( lfpftd(p).gt.0.D0 ) then
-                dtrotr_col(c)=dtrotr_col(c)+lfpftd(p)*cwtgcell(c)
+              if ( lfpftd(p) > 0.D0 ) then
+                dtrotr_col(c) = dtrotr_col(c)+lfpftd(p)*cwtgcell(c)
               end if
             end if
 #endif
@@ -492,16 +492,16 @@ module mod_clm_cnfire
             fsr_col(c) = fsr_col(c) + &
                     fsr_pft(ivt(p))*wtcol(p)/(1.0D0-cropf_col(c))
 
-            if ( lfwt(c) .ne. 0.0D0 ) then
+            if ( lfwt(c) /= 0.0D0 ) then
               hdmlf = forc_hdm(g)
 
               ! all these constants are in Li et al. BG (2012a,b;2013)
 
-              if ( hdmlf .gt. 0.1D0 ) then
+              if ( hdmlf > 0.1D0 ) then
                 ! For NOT bare-soil
-                if ( ivt(p) .ne. noveg ) then
+                if ( ivt(p) /= noveg ) then
                   ! For shrub and grass (crop already excluded above)
-                  if ( ivt(p) .ge. nbrdlf_evr_shrub ) then !for shurb and grass
+                  if ( ivt(p) >= nbrdlf_evr_shrub ) then !for shurb and grass
                     lgdp_col(c)  = lgdp_col(c) + (0.1D0 + 0.9D0*    &
                                       exp(-1.D0*rpi* &
                                       (gdp_lf(c)/8.D0)**0.5D0))*wtcol(p) &
@@ -513,16 +513,16 @@ module mod_clm_cnfire
                                      exp(-1.D0*rpi* &
                                    (hdmlf/450.D0)**0.5D0))*wtcol(p)/lfwt(c)
                   else   ! for trees
-                    if ( gdp_lf(c) .gt. 20.D0 ) then
+                    if ( gdp_lf(c) > 20.D0 ) then
                       lgdp_col(c) = lgdp_col(c) + &
                               0.39D0*wtcol(p)/(1.0D0 - cropf_col(c))
                     else
                       lgdp_col(c) = lgdp_col(c)+wtcol(p)/(1.0D0 - cropf_col(c))
                     end if
-                    if ( gdp_lf(c) .gt. 20.D0 ) then
+                    if ( gdp_lf(c) > 20.D0 ) then
                       lgdp1_col(c) = lgdp1_col(c)+0.62D0*wtcol(p)/lfwt(c)
                     else
-                      if ( gdp_lf(c) .gt. 8.D0 ) then
+                      if ( gdp_lf(c) > 8.D0 ) then
                         lgdp1_col(c)=lgdp1_col(c)+0.83D0*wtcol(p)/lfwt(c)
                       else
                         lgdp1_col(c)=lgdp1_col(c)+wtcol(p)/lfwt(c)
@@ -549,7 +549,7 @@ module mod_clm_cnfire
 #ifdef DYNPFT
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
-      if ( dtrotr_col(c) .gt. 0.D0 ) then
+      if ( dtrotr_col(c) > 0.D0 ) then
         if ( date_is(idatex,1,1) .and. time_is(idatex,0,dtsrf) ) then
           lfc(c) = 0.D0
         end if
@@ -558,7 +558,7 @@ module mod_clm_cnfire
           lfc(c) = dtrotr_col(c)*dayspy*secspday/dt
         end if
       else
-        lfc(c)=0.D0
+        lfc(c) = 0.D0
       end if
     end do
 #endif
@@ -567,7 +567,7 @@ module mod_clm_cnfire
     !
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
-      baf_crop(c)=0.D0
+      baf_crop(c) = 0.D0
     end do
 
     do fp = 1 , num_soilp
@@ -586,12 +586,12 @@ module mod_clm_cnfire
         if ( pi <=  npfts(c) ) then
           p = pfti(c) + pi - 1
           ! For crop
-          if ( forc_t(g) .ge. tfrz .and. &
-               ivt(p) .gt. nc4_grass .and.  &
+          if ( forc_t(g) >= tfrz .and. &
+               ivt(p) > nc4_grass .and.  &
                kmo == abm_lf(c) .and. &
-               forc_rain(g)+forc_snow(g) .eq. 0.D0  .and. &
+               forc_rain(g)+forc_snow(g) == 0.D0  .and. &
                burndate(p) >= 999 .and. &
-               wtcol(p) .gt. 0.D0 ) then ! catch  crop burn time
+               wtcol(p) > 0.D0 ) then ! catch  crop burn time
             ! calculate human density impact on ag. fire
             fhd = 0.04D0+0.96D0*exp(-1.D0*rpi*(hdmlf/350.D0)**0.5D0)
             ! calculate impact of GDP on ag. fire
@@ -604,7 +604,7 @@ module mod_clm_cnfire
             ! CURRENTLY DOES NOT!
             !  As such results are only valid for a time-step of a half-hour.
             baf_crop(c) = baf_crop(c) + cropfire_a1*fb*fhd*fgdp*wtcol(p)
-            if ( fb*fhd*fgdp*wtcol(p) .gt. 0.D0 ) then
+            if ( fb*fhd*fgdp*wtcol(p) > 0.D0 ) then
               burndate(p) = kda
             end if
           end if
@@ -620,7 +620,7 @@ module mod_clm_cnfire
       ! NOTE: THIS SHOULD TAKE INTO ACCOUNT THE TIME-STEP AND
       ! CURRENTLY DOES NOT!
       ! As such results are only valid for a time-step of a half-hour.
-      if ( latdeg(g).lt.borealat ) then
+      if ( latdeg(g)<borealat ) then
         baf_peatf(c) = non_boreal_peatfire_c*max(0.D0, &
                        min(1.D0,(4.0D0-prec60_col(c)*secspday)/ &
                        4.0D0))**2*peatf_lf(c)*(1.D0-fsat(c))
@@ -653,7 +653,7 @@ module mod_clm_cnfire
       c = filter_soilc(fc)
       g = cgridcell(c)
       hdmlf = forc_hdm(g)
-      if ( cropf_col(c) .lt. 1.0 ) then
+      if ( cropf_col(c) < 1.0 ) then
         fuelc(c) = totlitc(c)+totvegc_col(c) - &
                    rootc_col(c)-fuelc_crop(c)*cropf_col(c)
         do j = 1 , nlevdecomp
@@ -1272,7 +1272,7 @@ module mod_clm_cnfire
       ! get the column-level fractional area burned for this timestep
       ! and convert to a rate per second
       ! For non-crop (bare-soil and natural vegetation)
-      if ( ivt(p) .lt. nc3crop ) then
+      if ( ivt(p) < nc3crop ) then
 #ifdef DYNPFT
         f = (fbac(c)-baf_crop(c))/ dt
 #else
@@ -1571,7 +1571,7 @@ module mod_clm_cnfire
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
       g = cgridcell(c)
-      if ( latdeg(g) .lt. borealat) then
+      if ( latdeg(g) < borealat) then
         somc_fire(c)= totsomc(c)*baf_peatf(c)/dt*6.0D0/33.9D0
       else
         somc_fire(c)= baf_peatf(c)/dt*2.2D3

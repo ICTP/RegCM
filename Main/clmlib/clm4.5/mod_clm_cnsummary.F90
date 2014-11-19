@@ -399,7 +399,7 @@ module mod_clm_cnsummary
     ! C tendency due to vertical transport in decomposing C pools (gC/m^3/s)
     real(rk8), pointer :: decomp_cpools_transport_tendency(:,:,:)
     ! temp variables for making lagged npp
-    real(rk8) :: nfixlags, dtime
+    real(rk8) :: nfixlags
 
     type(pft_cflux_type), pointer :: pcisof
     type(pft_cstate_type), pointer :: pcisos
@@ -708,7 +708,7 @@ module mod_clm_cnsummary
     decomp_cpools_transport_tendency => ccisof%decomp_cpools_transport_tendency
 
     ! pft loop
-    do fp = 1,num_soilp
+    do fp = 1 , num_soilp
       p = filter_soilp(fp)
 
       ! calculate pft-level summary carbon fluxes and states
@@ -717,7 +717,7 @@ module mod_clm_cnsummary
       gpp(p) = psnsun_to_cpool(p) + psnshade_to_cpool(p)
 
       ! maintenance respiration (MR)
-      if ( isotope .eq. 'c13' .or. isotope .eq. 'c14') then
+      if ( isotope == 'c13' .or. isotope == 'c14') then
         leaf_mr(p)      = leaf_curmr(p)      + leaf_xsmr(p)
         froot_mr(p)     = froot_curmr(p)     + froot_xsmr(p)
         livestem_mr(p)  = livestem_curmr(p)  + livestem_xsmr(p)
@@ -752,7 +752,7 @@ module mod_clm_cnsummary
          cpool_livecroot_storage_gr(p) + &
          cpool_deadcroot_storage_gr(p)
 
-      if ( crop_prog .and. ivt(p) >= npcropmin )then
+      if ( crop_prog .and. ivt(p) >= npcropmin ) then
         mr(p) = mr(p) + grain_mr(p)
         current_gr(p) = current_gr(p) + cpool_grain_gr(p)
         transfer_gr(p) = transfer_gr(p) + transfer_grain_gr(p)
@@ -763,7 +763,7 @@ module mod_clm_cnsummary
       gr(p) = current_gr(p) + transfer_gr(p) + storage_gr(p)
 
       ! autotrophic respiration (AR)
-      if ( crop_prog .and. ivt(p) >= npcropmin )then
+      if ( crop_prog .and. ivt(p) >= npcropmin ) then
         ar(p) = mr(p) + gr(p) + xsmrpool_to_atm(p) ! xsmr... is -ve (slevis)
       else
         ar(p) = mr(p) + gr(p)
@@ -927,7 +927,7 @@ module mod_clm_cnsummary
 
       ! stored vegetation carbon, excluding cpool (STORVEGC)
       storvegc(p) = &
-        cpool(p)              + &
+         cpool(p)              + &
          leafc_storage(p)      + &
          frootc_storage(p)     + &
          livestemc_storage(p)  + &
@@ -943,7 +943,7 @@ module mod_clm_cnsummary
          gresp_storage(p)      + &
          gresp_xfer(p)
 
-      if ( crop_prog .and. ivt(p) >= npcropmin )then
+      if ( crop_prog .and. ivt(p) >= npcropmin ) then
         storvegc(p) = storvegc(p) + grainc_storage(p) + grainc_xfer(p)
         agnpp(p) = agnpp(p) + cpool_to_grainc(p) + grainc_xfer_to_grainc(p)
         litfall(p) = litfall(p) + livestemc_to_litter(p) + grainc_to_food(p)
@@ -959,9 +959,7 @@ module mod_clm_cnsummary
       ! new summary variables for CLAMP
 
       ! (FROOTC_ALLOC) - fine root C allocation
-      frootc_alloc(p) = &
-        frootc_xfer_to_frootc(p)    + &
-        cpool_to_frootc(p)
+      frootc_alloc(p) = frootc_xfer_to_frootc(p) + cpool_to_frootc(p)
 
       ! (FROOTC_LOSS) - fine root C loss changed by F. Li and S. Levis
       frootc_loss(p) = &
@@ -972,9 +970,7 @@ module mod_clm_cnsummary
         frootc_to_litter(p)
 
       ! (LEAFC_ALLOC) - leaf C allocation
-      leafc_alloc(p) = &
-        leafc_xfer_to_leafc(p)    + &
-        cpool_to_leafc(p)
+      leafc_alloc(p) = leafc_xfer_to_leafc(p) + cpool_to_leafc(p)
 
       ! (LEAFC_LOSS) - leaf C loss changed by F. Li and S. Levis
       leafc_loss(p) = &
@@ -1041,19 +1037,18 @@ module mod_clm_cnsummary
     call p2c(num_soilc,filter_soilc,litfall,col_litfall)
     call p2c(num_soilc,filter_soilc,hrv_xsmrpool_to_atm,col_hrv_xsmrpool_to_atm)
 
-    if ( isotope .eq. 'bulk') then
-      if (nfix_timeconst .gt. 0.D0 .and. nfix_timeconst .lt. 500.D0 ) then
+    if ( isotope == 'bulk') then
+      if (nfix_timeconst > 0.D0 .and. nfix_timeconst < 500.D0 ) then
         ! this code is to calculate an exponentially-relaxed npp value
         ! for use in NDynamics code
         col_lag_npp => clm3%g%l%c%cps%col_lag_npp
-        dtime = dtsrf
         nfixlags = nfix_timeconst * secspday
         ! column loop
         do fc = 1 , num_soilc
           c = filter_soilc(fc)
-          if ( col_lag_npp(c) .ne. spval ) then
-            col_lag_npp(c) = col_lag_npp(c) * exp(-dtime/nfixlags) &
-                           + col_npp(c) * (1.D0 - exp(-dtime/nfixlags))
+          if ( col_lag_npp(c) /= spval ) then
+            col_lag_npp(c) = col_lag_npp(c) * exp(-dtsrf/nfixlags) &
+                           + col_npp(c) * (1.D0 - exp(-dtsrf/nfixlags))
           else
             ! first timestep
             col_lag_npp(c) = col_npp(c)
@@ -1183,8 +1178,7 @@ module mod_clm_cnsummary
       end do
 
       ! column-level carbon losses due to landcover change
-      dwt_closs(c) = &
-         dwt_conv_cflux(c)
+      dwt_closs(c) = dwt_conv_cflux(c)
 
       ! net ecosystem production, excludes fire flux, landcover change,
       ! and loss from wood products, positive for sink (NEP)
@@ -1232,13 +1226,13 @@ module mod_clm_cnsummary
       maxdepth = 1.D0
       do l = 1 , ndecomp_pools
         do j = 1 , nlevdecomp
-          if ( zisoi(j) .le. maxdepth ) then
+          if ( zisoi(j) <= maxdepth ) then
             do fc = 1 , num_soilc
               c = filter_soilc(fc)
               decomp_cpools_1m(c,l) = decomp_cpools_1m(c,l) + &
                       decomp_cpools_vr(c,j,l) * dzsoi_decomp(j)
             end do
-          else if ( zisoi(j-1) .lt. maxdepth ) then
+          else if ( zisoi(j-1) < maxdepth ) then
             do fc = 1 , num_soilc
               c = filter_soilc(fc)
               decomp_cpools_1m(c,l) = decomp_cpools_1m(c,l) + &
@@ -1796,7 +1790,7 @@ module mod_clm_cnsummary
          npool(p)              + &
          retransn(p)
 
-      if ( crop_prog .and. ivt(p) >= npcropmin )then
+      if ( crop_prog .and. ivt(p) >= npcropmin ) then
         dispvegn(p) = dispvegn(p) + &
             grainn(p)
         storvegn(p) = storvegn(p) + &
@@ -1978,13 +1972,13 @@ module mod_clm_cnsummary
       maxdepth = 1.D0
       do l = 1 , ndecomp_pools
         do j = 1 , nlevdecomp
-          if ( zisoi(j) .le. maxdepth ) then
+          if ( zisoi(j) <= maxdepth ) then
             do fc = 1 , num_soilc
               c = filter_soilc(fc)
               decomp_npools_1m(c,l) = decomp_npools_1m(c,l) + &
                        decomp_npools_vr(c,j,l) * dzsoi_decomp(j)
             end do
-          else if ( zisoi(j-1) .lt. maxdepth ) then
+          else if ( zisoi(j-1) < maxdepth ) then
             do fc = 1 , num_soilc
               c = filter_soilc(fc)
               decomp_npools_1m(c,l) = decomp_npools_1m(c,l) + &

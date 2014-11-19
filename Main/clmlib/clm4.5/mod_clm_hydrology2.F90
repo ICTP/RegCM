@@ -471,7 +471,7 @@ module mod_clm_hydrology2
             fracl = 1.D0
             tsoi17(c) = tsoi17(c) + t_soisno(c,j)*dz(c,j)*fracl
           else
-            if (zi(c,j) > 0.17D0 .and. zi(c,j-1) .lt. 0.17D0) then
+            if (zi(c,j) > 0.17D0 .and. zi(c,j-1) < 0.17D0) then
               fracl = (0.17D0 - zi(c,j-1))/dz(c,j)
               tsoi17(c) = tsoi17(c) + t_soisno(c,j)*dz(c,j)*fracl
             end if
@@ -483,7 +483,7 @@ module mod_clm_hydrology2
             h2osoi_liqice_10cm(c) = h2osoi_liqice_10cm(c) + &
                   (h2osoi_liq(c,j)+h2osoi_ice(c,j))*fracl
           else
-            if (zi(c,j) > 0.1D0 .and. zi(c,j-1) .lt. 0.1D0) then
+            if (zi(c,j) > 0.1D0 .and. zi(c,j-1) < 0.1D0) then
               fracl = (0.1D0 - zi(c,j-1))/dz(c,j)
               t_soi_10cm(c) = t_soi_10cm(c) + t_soisno(c,j)*dz(c,j)*fracl
               h2osoi_liqice_10cm(c) = h2osoi_liqice_10cm(c) + &

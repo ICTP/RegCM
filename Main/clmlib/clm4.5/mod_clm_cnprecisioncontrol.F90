@@ -794,14 +794,14 @@ module mod_clm_cnprecisioncontrol
       c = filter_soilc(fc)
       do j = 1 , nlevdecomp
         if (abs(smin_no3_vr(c,j)) < ncrit/1D4) then
-          if ( smin_no3_vr(c,j) .lt. 0.D0 ) then
+          if ( smin_no3_vr(c,j) < 0.D0 ) then
             write(stderr, *) '-10^-12 < smin_no3 < 0. resetting to zero.'
             write(stderr, *) 'smin_no3_vr(c,j), c, j: ', smin_no3_vr(c,j), c, j
             smin_no3_vr(c,j) = 0.D0
           end if
         end if
         if (abs(smin_nh4_vr(c,j)) < ncrit/1D4) then
-          if ( smin_nh4_vr(c,j) .lt. 0.D0 ) then
+          if ( smin_nh4_vr(c,j) < 0.D0 ) then
             write(stderr, *) '-10^-12 < smin_nh4 < 0. resetting to zero.'
             write(stderr, *) 'smin_nh4_vr(c,j), c, j: ', smin_nh4_vr(c,j), c, j
             smin_nh4_vr(c,j) = 0.D0

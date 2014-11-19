@@ -1003,14 +1003,14 @@ module mod_clm_soilhydrology
     do j = 1 , nlevsoi
       do fc = 1 , num_hydrologyc
         c = filter_hydrologyc(fc)
-        if ( (zwtmm(c) .le. zimm(c,j-1)) ) then
+        if ( (zwtmm(c) <= zimm(c,j-1)) ) then
           vol_eq(c,j) = watsat(c,j)
 
         ! use the weighted average from the saturated part (depth > wtd)
         ! and the equilibrium solution for the rest of the layer
 
-        else if ( (zwtmm(c) .lt. zimm(c,j)) .and. &
-                  (zwtmm(c) .gt. zimm(c,j-1)) ) then
+        else if ( (zwtmm(c) < zimm(c,j)) .and. &
+                  (zwtmm(c) > zimm(c,j-1)) ) then
           tempi = 1.0D0
           temp0 = (((sucsat(c,j)+zwtmm(c)-zimm(c,j-1)) / &
                   sucsat(c,j)))**(1.D0-1.D0/bsw(c,j))

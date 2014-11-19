@@ -217,7 +217,7 @@ contains
       else
         frac_sno(c) = 0.D0
         ! snow cover fraction as in Niu and Yang 2007
-        if ( snow_depth(c) .gt. 0.0 ) then
+        if ( snow_depth(c) > 0.0 ) then
           !bulk density of snow (kg/m3)
           snowbd = min(400.D0,h2osno(c)/snow_depth(c))
           fmelt    = (snowbd/100.)**1.

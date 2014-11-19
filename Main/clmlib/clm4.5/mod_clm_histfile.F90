@@ -1158,7 +1158,7 @@ module mod_clm_histfile
         case ('A') ! Time average
           ! create mappings for array slice pointers (which go from
           ! 1 to size(field) rather than beg1d to end1d)
-          if ( end1d .eq. ubound(field,1) ) then
+          if ( end1d == ubound(field,1) ) then
             k_offset = 0
           else
             k_offset = 1 - beg1d

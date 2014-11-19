@@ -138,7 +138,7 @@ module mod_clm_cnc14decay
     end do ! end of columns loop
 
     do l = 1 , ndecomp_pools
-      if ( spinup_state .eq. 1) then
+      if ( spinup_state == 1) then
         ! speed up radioactive decay by the same factor as decomposition
         ! so tat SOM ages prematurely in all respects
         spinup_term = spinup_factor(l)
@@ -215,7 +215,7 @@ module mod_clm_cnc14decay
       ntim_atm_ts = size(atm_c14file_time)
       ind_below = 0
       do nt = 1, ntim_atm_ts
-        if (dateyear .ge. atm_c14file_time(nt) ) then
+        if (dateyear >= atm_c14file_time(nt) ) then
           ind_below = ind_below+1
         end if
       end do

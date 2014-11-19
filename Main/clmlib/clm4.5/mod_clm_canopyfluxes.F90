@@ -1988,7 +1988,7 @@ module mod_clm_canopyfluxes
       ! But not used as defined here if using sun/shade big leaf code. Instead,
       ! will use canopy integrated scaling factors from SurfaceAlbedo.
 
-      if (dayl_factor(p) .eq. 0.D0) then
+      if (dayl_factor(p) == 0.D0) then
         kn(p) =  0.D0
       else
         kn(p) = exp(0.00963D0 * vcmax25top/dayl_factor(p) - 2.43D0)

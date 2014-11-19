@@ -499,7 +499,7 @@ module mod_clm_cndecompcascadebgc
     ! The following code implements the acceleration part of the AD spinup
     ! algorithm, by multiplying all of the SOM decomposition base rates by 10.0.
 
-    if ( spinup_state .eq. 1 ) then
+    if ( spinup_state == 1 ) then
       k_s1 = k_s1 * spinup_vector(1)
       k_s2 = k_s2 * spinup_vector(2)
       k_s3 = k_s3 * spinup_vector(3)
@@ -658,7 +658,7 @@ module mod_clm_cndecompcascadebgc
           !! use separate (possibly equal) t funcs above and below
           !! freezing point
           !! t_scalar(c,j)= (1.5**((t_soisno(c,j)-(tfrz+25.D0))/10.D0))
-          if (t_soisno(c,j) .ge. tfrz) then
+          if (t_soisno(c,j) >= tfrz) then
             t_scalar(c,j)= (1.5D0**((t_soisno(c,j)-(tfrz+25.D0))/10.D0))
           else
             t_scalar(c,j)= (1.5D0**(-25.D0/10.D0)) * &

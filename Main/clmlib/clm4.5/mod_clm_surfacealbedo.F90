@@ -1521,7 +1521,7 @@ module mod_clm_surfacealbedo
               vcmaxcintsha(p) = (1.D0 - exp(-extkn*elai(p))) / &
                       extkn - vcmaxcintsun(p)
             end if
-            if ( elai(p) .gt. 0.D0 ) then
+            if ( elai(p) > 0.D0 ) then
               vcmaxcintsun(p) = vcmaxcintsun(p) / (fsun_z(p,1)*elai(p))
               vcmaxcintsha(p) = vcmaxcintsha(p) / ((1.D0 - fsun_z(p,1))*elai(p))
             else

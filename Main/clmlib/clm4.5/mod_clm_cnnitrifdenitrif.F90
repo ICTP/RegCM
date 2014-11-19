@@ -251,9 +251,9 @@ module mod_clm_cnnitrifdenitrif
               ((d_con_w(2,1) + d_con_w(2,2)*t_soisno(c,j) + &
               d_con_w(2,3)*t_soisno(c,j)**2) * 1.D-9)
 
-        if ( o2_decomp_depth_unsat(c,j) .ne. spval .and. &
-             conc_o2_unsat(c,j) .ne. spval .and. &
-             o2_decomp_depth_unsat(c,j) .gt. 0.D0 ) then
+        if ( o2_decomp_depth_unsat(c,j) /= spval .and. &
+             conc_o2_unsat(c,j) /= spval .and. &
+             o2_decomp_depth_unsat(c,j) > 0.D0 ) then
           anaerobic_frac(c,j) = exp(-rij_kro_a * &
               r_psi(c,j)**(-rij_kro_alpha) * &
               o2_decomp_depth_unsat(c,j)**(-rij_kro_beta) * &
@@ -268,9 +268,9 @@ module mod_clm_cnnitrifdenitrif
           r_min_sat = 2.D0 * surface_tension_water / &
                  (rho_w * grav * abs(grav * 1.D-6 * sucsat(c,j)))
           r_psi_sat = sqrt(r_min_sat * r_max)
-          if (o2_decomp_depth_sat(c,j) .ne. spval .and. &
-             conc_o2_sat(c,j) .ne. spval .and. &
-             o2_decomp_depth_sat(c,j) .gt. 0.D0) then
+          if (o2_decomp_depth_sat(c,j) /= spval .and. &
+             conc_o2_sat(c,j) /= spval .and. &
+             o2_decomp_depth_sat(c,j) > 0.D0) then
             anaerobic_frac_sat = exp(-rij_kro_a * &
                    r_psi_sat**(-rij_kro_alpha) * &
                    o2_decomp_depth_sat(c,j)**(-rij_kro_beta) * &
@@ -371,7 +371,7 @@ module mod_clm_cnnitrifdenitrif
         ratio_k1(c,j) = max(1.7D0, 38.4D0 - 350.D0 * diffus(c,j))
 
         ! ratio function (figure 7c)
-        if ( soil_co2_prod(c,j) .gt. 0 ) then
+        if ( soil_co2_prod(c,j) > 0 ) then
           ratio_no3_co2(c,j) = smin_no3_massdens_vr(c,j) / soil_co2_prod(c,j)
         else
           ! fucntion saturates at large no3/co2 ratios, so set as some
