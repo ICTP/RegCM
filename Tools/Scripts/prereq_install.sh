@@ -199,7 +199,7 @@ tar zxvf netcdf-fortran-${netcdf_f_ver}.tar.gz >> $DEST/logs/extract.log
 cd netcdf-fortran-${netcdf_f_ver}
 echo ./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" \
      CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
-     >> $DEST/logs/configure.log 2>&1
+     >> $DEST/logs/configure.log
 ./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" \
      CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
      >> $DEST/logs/configure.log 2>&1
