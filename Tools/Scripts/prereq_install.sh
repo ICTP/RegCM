@@ -36,6 +36,8 @@ OPENMPI=http://www.open-mpi.org/software/ompi/v${ompi_major}/downloads
 HDFGROUP=http://www.hdfgroup.org/ftp/HDF5/current/src
 ZLIB=http://zlib.net
 
+export LD_LIBRARY_PATH=$DEST/lib:$LD_LIBRARY_PATH
+
 if [ -z "$DEST" ]
 then
   echo "SCRIPT TO INSTALL NETCDF V4 and MPICH LIBRARIES."
