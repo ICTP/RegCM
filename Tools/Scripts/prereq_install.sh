@@ -142,7 +142,7 @@ echo ./configure CC="$CC" FC="$FC" F77="$FC" CXX="$CXX" \
       --prefix=$DEST --disable-cxx >> $DEST/logs/configure.log
 ./configure CC="$CC" FC="$FC" F77="$FC" CXX="$CXX" \
 	--prefix=$DEST >> $DEST/logs/configure.log 2>&1
-$MAKE > $DEST/logs/compile.log 2>&1 && \
+$MAKE >> $DEST/logs/compile.log 2>&1 && \
   $MAKE install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
@@ -161,7 +161,7 @@ echo ./configure CC="$CC" CXX="$CXX" FC="$FC" \
 ./configure CC="$CC" CXX="$CXX" FC="$FC" \
 	--prefix=$DEST --with-zlib=$DEST \
         --disable-cxx --disable-fortran >> $DEST/logs/configure.log 2>&1
-$MAKE > $DEST/logs/compile.log 2>&1 && \
+$MAKE >> $DEST/logs/compile.log 2>&1 && \
   $MAKE install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
@@ -179,10 +179,13 @@ if [ "X$FC" == "Xgfortran" ]
 then
   H5LIBS="$H5LIBS -lm -ldl"
 fi
+echo ./configure CC="$CC" FC="$FC" --prefix=$DEST --enable-netcdf-4 \
+  CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib LIBS="$H5LIBS" \
+  --disable-dap >> $DEST/logs/configure.log
 ./configure CC="$CC" FC="$FC" --prefix=$DEST --enable-netcdf-4 \
   CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib LIBS="$H5LIBS" \
   --disable-dap >> $DEST/logs/configure.log 2>&1
-$MAKE > $DEST/logs/compile.log 2>&1 && \
+$MAKE >> $DEST/logs/compile.log 2>&1 && \
   $MAKE install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
@@ -194,6 +197,9 @@ rm -fr netcdf-${netcdf_c_ver}
 echo "Compiled netCDF C library."
 tar zxvf netcdf-fortran-${netcdf_f_ver}.tar.gz >> $DEST/logs/extract.log
 cd netcdf-fortran-${netcdf_f_ver}
+echo ./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" \
+     CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
+     >> $DEST/logs/configure.log 2>&1
 ./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" \
      CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
      >> $DEST/logs/configure.log 2>&1
