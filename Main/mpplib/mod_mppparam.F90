@@ -958,7 +958,7 @@ module mod_mppparam
           global_dot_jstart = global_dot_jstart + ma%location(1)
           jxp = jxp + 1
         else
-          jxp = jxp + imiss
+          global_dot_jstart = global_dot_jstart + imiss
         end if
       end if
       if ( iyp * cpus_per_dim(2) < iy ) then
@@ -967,7 +967,7 @@ module mod_mppparam
           global_dot_istart = global_dot_istart + ma%location(2)
           iyp = iyp + 1
         else
-          iyp = iyp + imiss
+          global_dot_istart = global_dot_istart + imiss
         end if
       end if
       global_dot_jend = global_dot_jstart+jxp-1
