@@ -718,7 +718,7 @@ module mod_mppparam
     integer(ik4) , dimension(2) :: cpus_per_dim
     logical , dimension(2) :: dim_period
     integer(ik4) , dimension(2) :: isearch
-    integer(ik4) :: imaxcpus , imax1 , imax2
+    integer(ik4) :: imaxcpus , imax1 , imax2 , imiss
     data dim_period /.false.,.false./
 
     ma%bandflag    = (i_band == 1)
@@ -952,19 +952,22 @@ module mod_mppparam
 
       global_dot_jstart = ma%location(1)*jxp+1
       global_dot_istart = ma%location(2)*iyp+1
-      !
-      ! Topmost and rightmost processors are doing what's left
-      !
-      if ( ma%location(2)+1 == cpus_per_dim(2) ) then
-        global_dot_iend = global_dot_istart+iyp-1
-        if ( global_dot_iend < iy ) then
-          iyp = iy-global_dot_istart+1
+      if ( jxp * cpus_per_dim(1) < jx ) then
+        imiss = jx - jxp * cpus_per_dim(1)
+        if ( ma%location(1) < imiss ) then
+          global_dot_jstart = global_dot_jstart + ma%location(1)
+          jxp = jxp + 1
+        else
+          jxp = jxp + imiss
         end if
       end if
-      if ( ma%location(1)+1 == cpus_per_dim(1) ) then
-        global_dot_jend = global_dot_jstart+jxp-1
-        if ( global_dot_jend < jx ) then
-          jxp = jx-global_dot_jstart+1
+      if ( iyp * cpus_per_dim(2) < iy ) then
+        imiss = iy - iyp * cpus_per_dim(2)
+        if ( ma%location(2) < imiss ) then
+          global_dot_istart = global_dot_istart + ma%location(2)
+          iyp = iyp + 1
+        else
+          iyp = iyp + imiss
         end if
       end if
       global_dot_jend = global_dot_jstart+jxp-1
