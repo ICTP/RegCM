@@ -257,7 +257,7 @@ module mod_params
     qck1oce = 0.00025D0  ! Autoconversion Rate for Ocean
     gulland = 0.4D0      ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
     guloce = 0.4D0       ! Fract of Gultepe eqn (qcth) for ocean
-    rhmax = 1.10D0       ! RH at whicn FCC = 1.0
+    rhmax = 1.01D0       ! RH at whicn FCC = 1.0
     rh0oce = 0.90D0      ! Relative humidity threshold for ocean
     rh0land = 0.80D0     ! Relative humidity threshold for land
     tc0 = 238.0D0        ! Below this temp, rh0 begins to approach unity
