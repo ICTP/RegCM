@@ -599,7 +599,7 @@ module mod_tendency
           do i = ici1 , ici2
             do j = jci1 , jci2
               aten%w(j,i,k) = aten%w(j,i,k) - egrav * &
-                (twt(k,2)*qcd(i,j,k-1) + twt(k,1)*qcd(i,j,k))
+                (twt(k,2)*qcd(j,i,k-1) + twt(k,1)*qcd(j,i,k))
             end do
           end do
         end do
@@ -965,7 +965,7 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv)
-          atmc%qx(j,i,k,iqv) = max(atmc%qx(j,i,k,iqv),minqx)
+          atmc%qx(j,i,k,iqv) = max(atmc%qx(j,i,k,iqv),minqx*sfs%psc(j,i))
         end do
       end do
     end do
@@ -1419,9 +1419,10 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            atm1%qx(j,i,k,iqv) = max(atmc%qx(j,i,k,iqv),minqx)
-            atm2%qx(j,i,k,iqv) = omuhf*max(atm1%qx(j,i,k,iqv),minqx) + &
-              gnuhf*max(atm2%qx(j,i,k,iqv)+atmc%qx(j,i,k,iqv),minqx)
+            atm1%qx(j,i,k,iqv) = atmc%qx(j,i,k,iqv)
+            atm2%qx(j,i,k,iqv) = omuhf*atm1%qx(j,i,k,iqv) + &
+              gnuhf*(atm2%qx(j,i,k,iqv)+atmc%qx(j,i,k,iqv))
+            atm2%qx(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv),minqx*sfs%psb(j,i))
           end do
         end do
       end do
@@ -1429,9 +1430,10 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              atm1%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),dlowval)
-              atm2%qx(j,i,k,n) = omuhf*max(omuhf*atm1%qx(j,i,k,n),dlowval) + &
-                gnuhf*max(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n),dlowval)
+              atm1%qx(j,i,k,n) = atmc%qx(j,i,k,n)
+              atm2%qx(j,i,k,n) = omuhf*atm1%qx(j,i,k,n) + &
+                gnuhf*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
+              atm2%qx(j,i,k,n) = max(atm2%qx(j,i,k,n),d_zero)
             end do
           end do
         end do

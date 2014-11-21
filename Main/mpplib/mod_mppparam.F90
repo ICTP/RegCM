@@ -952,6 +952,22 @@ module mod_mppparam
 
       global_dot_jstart = ma%location(1)*jxp+1
       global_dot_istart = ma%location(2)*iyp+1
+
+      !
+      ! Topmost and rightmost processors are doing what's left
+      !
+      !if ( ma%location(2)+1 == cpus_per_dim(2) ) then
+      !  global_dot_iend = global_dot_istart+iyp-1
+      !  if ( global_dot_iend < iy ) then
+      !    iyp = iy-global_dot_istart+1
+      !  end if
+      !end if
+      !if ( ma%location(1)+1 == cpus_per_dim(1) ) then
+      !  global_dot_jend = global_dot_jstart+jxp-1
+      !  if ( global_dot_jend < jx ) then
+      !    jxp = jx-global_dot_jstart+1
+      !  end if
+      !end if
       if ( jxp * cpus_per_dim(1) < jx ) then
         imiss = jx - jxp * cpus_per_dim(1)
         if ( ma%location(1) < imiss ) then
@@ -970,6 +986,7 @@ module mod_mppparam
           global_dot_istart = global_dot_istart + imiss
         end if
       end if
+
       global_dot_jend = global_dot_jstart+jxp-1
       global_dot_iend = global_dot_istart+iyp-1
       if ( global_dot_iend > iy .or. global_dot_jend > jx ) then

@@ -119,7 +119,7 @@ module mod_sound
 !                      ' BETA = ' , bet , ' XKD = ' , xkd
 !      do j = -6 , 6
 !        do i = -6 , 6
-!          tmask(i,j) = d_zero
+!          tmask(j,i) = d_zero
 !        end do
 !      end do
 !      if ( ifupr == 1 ) then
@@ -236,8 +236,8 @@ module mod_sound
       do k = 1 , kz
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-            u3d(i,j,k) = u3d(i,j,k) + aten%u(i,j,k)
-            v3d(i,j,k) = v3d(i,j,k) + aten%v(i,j,k)
+            u3d(j,i,k) = u3d(j,i,k) + aten%u(j,i,k)
+            v3d(j,i,k) = v3d(j,i,k) + aten%v(j,i,k)
           end do
         end do
       end do
@@ -376,7 +376,7 @@ module mod_sound
                               u3d(j,i,k) * mddom%msfd(j,i) +          &
                               u3d(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
                               u3d(j+1,i,k) * mddom%msfd(j+1,i) ) /    &
-                          mddom%msfx(i,j) - &
+                          mddom%msfx(j,i) - &
                           d_two*( pyvp(j,i,k) + pxup(j,i,k) ) )
             rhs(j,i,k) = w3d(j,i,k) + aten%w(j,i,k) + ca(j,i,k) * ( bpxbm *   &
                        ( (cdd(j,i,k-1) - cj(j,i,k-1))*g2(j,i,k)*wo(j,i,k-1) - &

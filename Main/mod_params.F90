@@ -2023,10 +2023,10 @@ module mod_params
         do i = idi1 , idi2
           do j = jdi1 , jdi2
             dlat = mddom%dlat(j,i)
-            dlatdy = d_half * (mddom%xlat(j-1,i)   + mddom%xlat(i,j) - &
+            dlatdy = d_half * (mddom%xlat(j-1,i)   + mddom%xlat(j,i) - &
                                mddom%xlat(j-1,i-1) - mddom%xlat(j,i-1))
             if ( abs(dlatdy) < 1.0D-5 ) dlatdy = 1.0D-5
-            dlondy = d_half * (mddom%xlon(j-1,i)   + mddom%xlon(i,j) - &
+            dlondy = d_half * (mddom%xlon(j-1,i)   + mddom%xlon(j,i) - &
                                mddom%xlon(j-1,i-1) - mddom%xlon(j,i-1))
             if ( dlondy >  180.0D0 ) dlondy = dlondy - 360.0D0
             if ( dlondy < -180.0D0 ) dlondy = dlondy + 360.0D0
