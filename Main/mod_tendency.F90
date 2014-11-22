@@ -146,25 +146,6 @@ module mod_tendency
     !
     call surface_pressures
     !
-    ! Prepare fields to be used in physical parametrizations.
-    !
-    call mkslice
-    !
-    ! Fill ghost points for those
-    !
-    call exchange(atms%ubd3d,2,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atms%vbd3d,2,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atms%tb3d,2,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(atms%ubx3d,2,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(atms%vbx3d,2,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(atms%qxb3d,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    if ( ibltyp == 2 ) then
-      call exchange(atms%tkeb3d,2,jce1,jce2,ice1,ice2,1,kzp1)
-    end if
-    if ( ichem == 1 ) then
-      call exchange(atms%chib3d,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-    end if
-    !
     ! Decoupling on atmx and apply bdy conditions to U,V
     !
     call decouple
@@ -353,6 +334,25 @@ module mod_tendency
         end do
       end do
     end do
+    !
+    ! Prepare fields to be used in physical parametrizations.
+    !
+    call mkslice
+    !
+    ! Fill ghost points for those
+    !
+    call exchange(atms%ubd3d,2,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atms%vbd3d,2,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atms%tb3d,2,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atms%ubx3d,2,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atms%vbx3d,2,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atms%qxb3d,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    if ( ibltyp == 2 ) then
+      call exchange(atms%tkeb3d,2,jce1,jce2,ice1,ice2,1,kzp1)
+    end if
+    if ( ichem == 1 ) then
+      call exchange(atms%chib3d,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+    end if
 
     if ( iboudy == 4 ) then
       call sponge(ba_cr,xpsb,pten)
