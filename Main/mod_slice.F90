@@ -122,8 +122,8 @@ module mod_slice
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%pb3d(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
-          atms%rhob3d(j,i,k)= atms%pb3d(j,i,k) / (rgas*atm2%t(j,i,k)*rpsb(j,i))
+          atms%pb3d(j,i,k) = atm2%pr(j,i,k)
+          atms%rhob3d(j,i,k)= atm2%rho(j,i,k)
           atms%thx3d(j,i,k) = atms%tb3d(j,i,k) * &
                   (atms%ps2d(j,i)/atms%pb3d(j,i,k))**rovcp
         end do
@@ -203,6 +203,14 @@ module mod_slice
           atms%qsb3d(j,i,k) = pfqsat(atms%tb3d(j,i,k),atms%pb3d(j,i,k))
           atms%rhb3d(j,i,k) = atms%qxb3d(j,i,k,iqv)/atms%qsb3d(j,i,k)
           atms%rhb3d(j,i,k) = min(max(atms%rhb3d(j,i,k),1.D-3),rhmax)
+        end do
+      end do
+    end do
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          atms%wpx3d(j,i,k) = omega(j,i,k) * d_1000 ! Pa/s
         end do
       end do
     end do

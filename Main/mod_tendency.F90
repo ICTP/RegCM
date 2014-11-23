@@ -327,13 +327,6 @@ module mod_tendency
         end do
       end do
     end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atms%wpx3d(j,i,k) = omega(j,i,k) * d_1000 ! Pa/s
-        end do
-      end do
-    end do
     !
     ! Prepare fields to be used in physical parametrizations.
     !
