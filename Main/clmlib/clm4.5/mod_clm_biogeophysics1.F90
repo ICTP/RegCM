@@ -7,6 +7,7 @@ module mod_clm_biogeophysics1
   !
   use mod_intkinds
   use mod_realkinds
+  use mod_runparams , only : iemiss
   use mod_clm_type
   use mod_clm_atmlnd , only : clm_a2l
   use mod_clm_varcon , only : denh2o, denice, roverg, hvap, hsub, &
@@ -511,12 +512,16 @@ module mod_clm_biogeophysics1
       ! Ground emissivity - only calculate for non-urban landunits
       ! Urban emissivities are currently read in from data file
 
-      if ( ityplun(l) /= isturb ) then
-        if ( ityplun(l)==istice ) then
-          emg(c) = 0.97D0
-        else
-          emg(c) = (1.D0-frac_sno(c))*0.96D0 + frac_sno(c)*0.97D0
+      if ( iemiss == 1 ) then
+        if ( ityplun(l) /= isturb ) then
+          if ( ityplun(l)==istice ) then
+            emg(c) = 0.97D0
+          else
+            emg(c) = (1.D0-frac_sno(c))*0.96D0 + frac_sno(c)*0.97D0
+          end if
         end if
+      else
+        emg(c) = 1.0D0
       end if
 
       ! Latent heat. We arbitrarily assume that the sublimation occurs
