@@ -744,7 +744,11 @@ module mod_pbl_uwtcm
             temps = temps + deltat
             rvls = ep2/(preshl(k)/pfesat(temps)-d_one)
           end do
-          qcx(k) = max(qwx(k)-rvls, d_zero)
+          if ( ipptls == 2 ) then
+            qcx(k) = min(1.0D-3,max(qwx(k)-rvls, d_zero))
+          else
+            qcx(k) = max(qwx(k)-rvls, d_zero)
+          end if
           qx(k) = qwx(k) - qcx(k)
           thx(k) = (templ + qcx(k)*wlhvocp) *rexnerhl(k)
           uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
