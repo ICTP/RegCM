@@ -24,7 +24,7 @@ module mod_rad_radiation
   use mod_dynparam
   use mod_mpmessage
   use mod_service
-  use mod_runparams , only : iemiss , idirect , scon , ichem , cftotmax
+  use mod_runparams , only : idirect , scon , ichem , cftotmax
   use mod_memutil
 
 ! Used by this module only
@@ -2029,11 +2029,7 @@ module mod_rad_radiation
       ! Computation of clear sky fluxes always set first level of fsul
       !
       do n = n1 , n2
-        if ( iemiss == 1 ) then
-          fsul(n,kzp1) = emiss(n) * stebol * ts(n)**4
-        else
-          fsul(n,kzp1) = stebol * ts(n)**4
-        end if
+        fsul(n,kzp1) = emiss(n) * stebol * ts(n)**4
       end do
       !
       ! Downward clear sky fluxes store intermediate quantities in down

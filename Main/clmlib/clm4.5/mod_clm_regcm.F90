@@ -70,7 +70,7 @@ module mod_clm_regcm
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( lm%ldmsk1(n,j,i) == 1 ) then
-            lms%emisv(n,j,i) = d_one
+            lms%emisv(n,j,i) = lnd_sfcemiss
           end if
         end do
       end do

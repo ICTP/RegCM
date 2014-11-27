@@ -797,19 +797,15 @@ module mod_rrtmg_driver
     fsfc  =  0.725D0
 
     ! provisoire similar ti default std
-    if ( iemiss == 1 ) then
-      do k = 1 , nbndlw
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            emis_surf(n,k) = m2r%emiss(j,i)
-            n = n + 1
-          end do
+    do k = 1 , nbndlw
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          emis_surf(n,k) = m2r%emiss(j,i)
+          n = n + 1
         end do
       end do
-    else
-      emis_surf(:,:) = 1.D0
-    end if
+    end do
 
     outtaucl(:,:,:) = d_zero
     outtauci(:,:,:) = d_zero

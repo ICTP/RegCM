@@ -61,8 +61,11 @@ module mod_scrip_interpolate
       real(rk8) , allocatable , dimension(:,:) :: a2dlat , a2dlon
       integer(ik4) , allocatable , dimension(:) :: a1mask , a2mask
 
+      map_type = map
       call scrip_dims_init(g1sn*g1we,2,(/g1we,g1sn/),4, &
                            g2sn*g2we,2,(/g2we,g2sn/),4)
+
+!      call scrip_grid_init()
 
     end subroutine init_scrip_library
 

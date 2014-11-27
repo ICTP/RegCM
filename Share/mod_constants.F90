@@ -283,8 +283,9 @@ module mod_constants
   ! Cumulous parameters
   real(rk8) , parameter :: tauht = 7200.0D+00
 
-  ! Aerosol densities
-  ! now defined in chemistry modules since they are not constant
+  ! Constant surface Long Wave emissivity
+  real(rk8) , parameter :: lnd_sfcemiss = 0.985D0
+  real(rk8) , parameter :: ocn_sfcemiss = 0.984D0
 
   ! Constants used in Kain-Fritsch
   real(rk8) , parameter :: aliq = 613.3D0

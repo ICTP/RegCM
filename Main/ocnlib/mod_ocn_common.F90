@@ -103,14 +103,14 @@ module mod_ocn_common
       if ( llake .or. lseaice ) then
         call c2l_gs(ocncomm,lm%snowam,sncv)
       end if
-      if ( iemiss == 1 ) then
-        where ( mask == 1 .or. mask == 3 )
-          emiss = 0.955D0
+      if ( iemiss == 1 .and. (llake .or. lseaice) ) then
+        where ( xmask == 0 )
+          emiss = ocn_sfcemiss
         else where
           emiss = 0.97D0
         end where
       else
-        emiss = 0.9995D0
+        emiss(:) = ocn_sfcemiss
       end if
       call l2c_ss(ocncomm,emiss,lms%emisv)
     else
@@ -235,7 +235,7 @@ module mod_ocn_common
         ! Emissivity for surface ice
         if ( iemiss == 1 ) then
           where ( xmask == 0 )
-            emiss = 0.955D0
+            emiss = ocn_sfcemiss
           else where
             emiss = 0.97D0
           end where

@@ -14,7 +14,8 @@ module mod_clm_biogeophysics1
                        istice, istwet, istsoil, isturb, istdlak,  &
                        zlnd, zsno, tfrz, icol_roof, icol_sunwall, &
                        icol_shadewall, icol_road_imperv,          &
-                       icol_road_perv, tfrz, spval, istdlak
+                       icol_road_perv, tfrz, spval, istdlak,      &
+                       const_lnd_sfcemiss
   use mod_clm_varcon , only : istcrop
   use mod_clm_varpar , only : nlevgrnd, nlevurb, nlevsno, nlevsoi
   use mod_clm_varpar , only : max_pft_per_gcell
@@ -521,7 +522,7 @@ module mod_clm_biogeophysics1
           end if
         end if
       else
-        emg(c) = 1.0D0
+        emg(c) = const_lnd_sfcemiss
       end if
 
       ! Latent heat. We arbitrarily assume that the sublimation occurs

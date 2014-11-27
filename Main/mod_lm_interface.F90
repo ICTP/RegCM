@@ -426,6 +426,7 @@ module mod_lm_interface
     lm%tgbb = sum(lms%tgbb,1)*rdnnsg
     lm%tground1 = sum(lms%tgrd,1)*rdnnsg
     lm%tground2 = sum(lms%tgrd,1)*rdnnsg
+    lm%emissivity = sum(lms%emisv,1) * rdnnsg
     if ( iseaice == 1 .or. lakemod == 1 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -466,9 +467,6 @@ module mod_lm_interface
       lm%sfracs2d = sum((lms%lncl*lms%wt+(d_one-lms%lncl)*lms%scvk),1)*rdnnsg
       lm%ssw2da = sum(lms%ssw,1)*rdnnsg
 #endif
-    end if
-    if ( iemiss == 1 ) then
-      lm%emissivity = sum(lms%emisv,1) * rdnnsg
     end if
     call collect_output
 #ifdef DEBUG

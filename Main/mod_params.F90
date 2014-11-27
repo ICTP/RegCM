@@ -829,7 +829,7 @@ module mod_params
     end if
     if ( iemiss /= 0 ) then
       if ( myid == italk ) then
-        write(stderr,*) 'Disabling Surface Emissivity, this is a CLM run'
+        write(stderr,*) 'Using constant Surface Emissivity, this is a CLM run'
       end if
       iemiss = 0
     end if
