@@ -2028,9 +2028,16 @@ module mod_rad_radiation
       !
       ! Computation of clear sky fluxes always set first level of fsul
       !
+#if defined(CLM45) || defined(CLM)
+      ! TS is the Radiant Temperature
+      do n = n1 , n2
+        fsul(n,kzp1) = stebol * ts(n)**4
+      end do
+#else
       do n = n1 , n2
         fsul(n,kzp1) = emiss(n) * stebol * ts(n)**4
       end do
+#endif
       !
       ! Downward clear sky fluxes store intermediate quantities in down
       ! flux Initialize fluxes to clear sky values.

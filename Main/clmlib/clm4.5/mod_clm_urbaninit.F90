@@ -4,7 +4,6 @@ module mod_clm_urbaninit
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : iemiss
   use mod_clm_urban , only : urban_traffic , urban_hac , urban_hac_off
 
   implicit none
@@ -109,8 +108,7 @@ module mod_clm_urbaninit
   subroutine UrbanInitTimeConst()
     use mod_clm_type , only : clm3
     use mod_clm_varcon , only : isturb, icol_roof, icol_sunwall, &
-            icol_shadewall, icol_road_perv, icol_road_imperv, spval, &
-            udens_base , const_lnd_sfcemiss
+            icol_shadewall, icol_road_perv, icol_road_imperv, spval, udens_base
     use mod_clm_decomp , only : get_proc_bounds
     use mod_clm_urbaninput , only : urbinp
     implicit none
@@ -214,27 +212,15 @@ module mod_clm_urbaninit
         t_building_min(l)     = urbinp%t_building_min(g,dindx)
         t_building_max(l)     = urbinp%t_building_max(g,dindx)
 
-        if ( iemiss == 1 ) then
-          do c = coli(l) , colf(l)
-            if ( ctype(c) == icol_roof ) emg(c) = urbinp%em_roof(g,dindx)
-            if ( ctype(c) == icol_sunwall ) emg(c) = urbinp%em_wall(g,dindx)
-            if ( ctype(c) == icol_shadewall ) emg(c) = urbinp%em_wall(g,dindx)
-            if ( ctype(c) == icol_road_imperv ) &
-              emg(c) = urbinp%em_improad(g,dindx)
-            if ( ctype(c) == icol_road_perv ) &
-              emg(c) = urbinp%em_perroad(g,dindx)
-          end do
-        else
-          do c = coli(l) , colf(l)
-            if ( ctype(c) == icol_roof .or. &
-                 ctype(c) == icol_sunwall .or. &
-                 ctype(c) == icol_shadewall .or. &
-                 ctype(c) == icol_road_imperv .or. &
-                 ctype(c) == icol_road_perv ) then
-              emg(c) = const_lnd_sfcemiss
-            end if
-          end do
-        end if
+        do c = coli(l) , colf(l)
+          if ( ctype(c) == icol_roof ) emg(c) = urbinp%em_roof(g,dindx)
+          if ( ctype(c) == icol_sunwall ) emg(c) = urbinp%em_wall(g,dindx)
+          if ( ctype(c) == icol_shadewall ) emg(c) = urbinp%em_wall(g,dindx)
+          if ( ctype(c) == icol_road_imperv ) &
+            emg(c) = urbinp%em_improad(g,dindx)
+          if ( ctype(c) == icol_road_perv ) &
+            emg(c) = urbinp%em_perroad(g,dindx)
+        end do
 
         ! Inferred from Sailor and Lu 2004
         if (urban_traffic) then

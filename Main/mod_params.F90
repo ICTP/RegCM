@@ -827,9 +827,11 @@ module mod_params
       end if
       lakemod = 0
     end if
+#endif
+#if defined(CLM45) || defined(CLM)
     if ( iemiss /= 0 ) then
       if ( myid == italk ) then
-        write(stderr,*) 'Using constant Surface Emissivity, this is a CLM run'
+        write(stderr,*) 'Using CLM Radiant Temperature'
       end if
       iemiss = 0
     end if

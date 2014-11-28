@@ -78,9 +78,6 @@ module mod_clm_varcon
   real(rk8) , public , parameter :: tcrit  = 2.5D0
   ! Constant atmospheric O2 molar ratio (mol/mol)
   real(rk8) , public , parameter :: o2_molar_const = 0.209D0
-  ! Constant value for surface emissivity
-  real(rk8) , public , parameter :: const_lnd_sfcemiss = lnd_sfcemiss
-  real(rk8) , public , parameter :: const_ocn_sfcemiss = ocn_sfcemiss
 
   ! Bulk density snow (kg/m**3)
   real(rk8) , public , parameter :: bdsno = 250.D0

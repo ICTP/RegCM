@@ -796,7 +796,10 @@ module mod_rrtmg_driver
     asmc  =  0.850D0
     fsfc  =  0.725D0
 
-    ! provisoire similar ti default std
+#if defined(CLM45) || defined(CLM)
+    ! TS is the radiant temeprature
+    emis_surf(n,k) = d_one
+#else
     do k = 1 , nbndlw
       n = 1
       do i = ici1 , ici2
@@ -806,6 +809,7 @@ module mod_rrtmg_driver
         end do
       end do
     end do
+#endif
 
     outtaucl(:,:,:) = d_zero
     outtauci(:,:,:) = d_zero

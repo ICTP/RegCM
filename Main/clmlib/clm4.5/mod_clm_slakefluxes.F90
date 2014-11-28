@@ -4,8 +4,6 @@ module mod_clm_slakefluxes
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : iemiss
-  use mod_clm_varcon , only : const_ocn_sfcemiss
 
   implicit none
 
@@ -534,11 +532,7 @@ module mod_clm_slakefluxes
 
         ! Get derivative of fluxes with respect to ground temperature
 
-        if ( iemiss == 1 ) then
-          emg(c) = emg_lake
-        else
-          emg(c) = const_ocn_sfcemiss
-        end if
+        emg(c) = emg_lake
         stftg3(p) = emg(c)*sb*tgbef(c)*tgbef(c)*tgbef(c)
 
         ! Changed surface temperature from t_lake(c,1) to tsur(c).

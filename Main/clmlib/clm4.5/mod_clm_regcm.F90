@@ -65,7 +65,10 @@ module mod_clm_regcm
     write(rdate,'(i10)') toint10(idatex)
     call initialize2(rdate)
 
-    ! Start with constant emissivity for first time step.
+    ! If CLM45, the surface emissivity is not used.
+    ! The CLM outputs directly to RegCM the radiant Temperature.
+    ! We fill it here the output not to leave it empy, but it is not
+    ! used in computing the surface Long Wave Radiation
     do n = 1 , nnsg
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -282,10 +285,6 @@ module mod_clm_regcm
 
     call glb_l2c_ss(lndcomm,clm_l2a%t_ref2m,lms%t2m)
     call glb_l2c_ss(lndcomm,clm_l2a%q_ref2m,lms%q2m)
-
-    if ( iemiss == 1 ) then
-      call glb_l2c_ss(lndcomm,clm_l2a%emg,lms%emisv)
-    end if
 
     ! CLM gives just wind speed, assume directions are same as input.
     clm_a2l%notused = clm_l2a%u_ref10m/clm_a2l%forc_wind
