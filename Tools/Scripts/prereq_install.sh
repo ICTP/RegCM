@@ -199,10 +199,10 @@ rm -fr netcdf-${netcdf_c_ver}
 echo "Compiled netCDF C library."
 tar zxvf netcdf-fortran-${netcdf_f_ver}.tar.gz >> $DEST/logs/extract.log
 cd netcdf-fortran-${netcdf_f_ver}
-echo ./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" \
+echo ./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" F77="$FC" \
      CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
      --enable-shared >> $DEST/logs/configure.log
-./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" \
+./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" F77="$FC" \
      CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
      --enable-shared >> $DEST/logs/configure.log 2>&1
 $MAKE >> $DEST/logs/compile.log 2>&1 && \
