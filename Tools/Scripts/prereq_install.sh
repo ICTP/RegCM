@@ -232,14 +232,14 @@ echo  "            CPPFLAGS=-I$DEST/include \\"
 echo  "            LDFLAGS=-L$DEST/lib \\"
 echo  "            LIBS=\"-lnetcdff -lnetcdf $H5LIBS\""
 echo
-echo "To run the model use these PATH and LD_LIBRARY_FLAG variable:"
+echo "To run the model use these PATH and LD_LIBRARY_PATH variable:"
 echo
-echo "export LD_LIBRARY_FLAG=$DEST/lib:\$LD_LIBRARY_FLAG"
+echo "export LD_LIBRARY_PATH=$DEST/lib:\$LD_LIBRARY_PATH"
 echo "export PATH=$DEST/bin:\$PATH"
 echo
 echo or
 echo
-echo "setenv LD_LIBRARY_FLAG $DEST/lib:\$LD_LIBRARY_FLAG"
+echo "setenv LD_LIBRARY_PATH $DEST/lib:\$LD_LIBRARY_PATH"
 echo "setenv PATH $DEST/bin:\$PATH"
 echo "rehash"
 echo
