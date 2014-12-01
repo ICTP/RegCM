@@ -158,10 +158,10 @@ echo "Compiling HDF5 library."
 tar zxvf hdf5-${hdf5_ver}.tar.gz >> $DEST/logs/extract.log
 cd hdf5-${hdf5_ver}
 echo ./configure CC="$CC" CXX="$CXX" FC="$FC" \
-        --prefix=$DEST --with-zlib=$DEST \
+        --prefix=$DEST --with-zlib=$DEST --enable-shared \
         --disable-cxx --disable-fortran >> $DEST/logs/configure.log
 ./configure CC="$CC" CXX="$CXX" FC="$FC" \
-	--prefix=$DEST --with-zlib=$DEST \
+	--prefix=$DEST --with-zlib=$DEST --enable-shared \
         --disable-cxx --disable-fortran >> $DEST/logs/configure.log 2>&1
 $MAKE >> $DEST/logs/compile.log 2>&1 && \
   $MAKE install >> $DEST/logs/install.log 2>&1
@@ -183,10 +183,10 @@ then
 fi
 echo ./configure CC="$CC" FC="$FC" --prefix=$DEST --enable-netcdf-4 \
   CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib LIBS="$H5LIBS" \
-  --disable-dap >> $DEST/logs/configure.log
+  --disable-dap --enable-shared >> $DEST/logs/configure.log
 ./configure CC="$CC" FC="$FC" --prefix=$DEST --enable-netcdf-4 \
   CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib LIBS="$H5LIBS" \
-  --disable-dap >> $DEST/logs/configure.log 2>&1
+  --disable-dap --enable-shared >> $DEST/logs/configure.log 2>&1
 $MAKE >> $DEST/logs/compile.log 2>&1 && \
   $MAKE install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
@@ -201,10 +201,10 @@ tar zxvf netcdf-fortran-${netcdf_f_ver}.tar.gz >> $DEST/logs/extract.log
 cd netcdf-fortran-${netcdf_f_ver}
 echo ./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" \
      CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
-     >> $DEST/logs/configure.log
+     --enable-shared >> $DEST/logs/configure.log
 ./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" \
      CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
-     >> $DEST/logs/configure.log 2>&1
+     --enable-shared >> $DEST/logs/configure.log 2>&1
 $MAKE >> $DEST/logs/compile.log 2>&1 && \
   $MAKE install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
