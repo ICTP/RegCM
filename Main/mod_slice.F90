@@ -90,7 +90,7 @@ module mod_slice
             if ( atm2%qx(j,i,k,n) > dlowval ) then
               atms%qxb3d(j,i,k,n) = max(atm2%qx(j,i,k,n)*rpsb(j,i),1.D-10)
             else
-              atms%qxb3d(j,i,k,n) = dlowval
+              atms%qxb3d(j,i,k,n) = 1.D-10
             end if
           end do
         end do
