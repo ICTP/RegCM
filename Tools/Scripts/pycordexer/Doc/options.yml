@@ -1,0 +1,90 @@
+# -----------------------------------------------------------------------------
+# General: http://sphinx.pocoo.org/config.html#general-configuration
+# -----------------------------------------------------------------------------
+
+project: PyCordexer
+author: International Centre for Theoretical Physics (ICTP)
+release: December 2014
+
+master_doc: content
+source_suffix: .rst
+
+rst_prolog: |
+    .. role:: latex(raw)
+       :format: latex
+    .. role:: html(raw)
+       :format: html
+
+# -----------------------------------------------------------------------------
+# HTML: http://sphinx.pocoo.org/config.html#options-for-html-output
+# -----------------------------------------------------------------------------
+
+html_theme: default
+html_static_path: [_static]
+htmlhelp_basename: sourcedoc
+
+# -----------------------------------------------------------------------------
+# LaTex: http://sphinx.pocoo.org/config.html#options-for-latex-output
+# -----------------------------------------------------------------------------
+#       \\bigskip\\textsc{${author}}\\\\
+
+latex_elements:
+    papersize: letterpaper ## letterpaper or a4paper
+    pointsize: 12pt ## 10pt, 11pt or 12pt
+
+    inputenc: |
+        \\usepackage[utf8]{inputenc}
+    fontenc: |
+        \\usepackage[T1]{fontenc}
+    fontpkg: |
+        \\usepackage{libertine}
+    preamble: |
+        \\pagestyle{myheadings}
+        \\pagenumbering{arabic}
+        \\markboth{${project}}{${author}}
+        \\onecolumn
+        \\usepackage{tcolorbox}
+    maketitle: |
+        \\begin{titlepage}
+        \\begin{center}
+        \\begin{minipage}[t][0.550\\textheight]{\\linewidth}
+        \\rule{\\textwidth}{2pt}
+        \\begin{center}
+        \\huge\\textsc{${project}}
+        \\end{center}
+        \\rule{\\textwidth}{2pt}
+        \\vfill
+        \\begin{center}
+        \\textbf{\Huge A RegCM output format converter}\\\\
+        \\medskip
+        \\textbf{\huge according to}\\\\
+        \\medskip
+        \\textbf{\Huge CORDEX archive specifications}
+        \\vfill
+        \\Large\oldstylenums{${release}}
+        \\end{center}
+        \\end{minipage}
+        \\begin{minipage}[b][0.425\\textheight]{\\linewidth}
+        \\begin{center}
+        \\includegraphics[scale=0.50]{The_new_ICTP_Logo.jpg}\\\\
+        \\end{center}
+        \\rule{\\textwidth}{2pt}
+        \\end{minipage}
+        \\end{center}
+        \\end{titlepage}
+    tableofcontents: 
+    footer: |
+        \\rule{\\linewidth}{2pt}
+    printindex: 
+
+latex_documents:
+ - [content, source.tex, '${project}', '${author}', howto]
+
+latex_additional_files: [The_new_ICTP_Logo.jpg] ## list of file names
+latex_show_urls: no ## no, footnote or inline
+
+# -----------------------------------------------------------------------------
+# LaTex: http://github.com/hsk81/notex/wiki/LaTex-Backend:-pdflatex-vs-xelatex
+# -----------------------------------------------------------------------------
+
+latex_backend: pdflatex
