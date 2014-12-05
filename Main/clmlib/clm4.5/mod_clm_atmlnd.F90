@@ -24,6 +24,7 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: topo
     integer(ik4) , pointer , dimension(:) :: luse
     real(rk8) , pointer , dimension(:) :: snow
+    real(rk8) , pointer , dimension(:) :: smoist
     real(rk8) , pointer , dimension(:) :: tgrd
   end type atm_domain
 

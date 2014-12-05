@@ -81,6 +81,7 @@ program terrain
   character(len=256) :: char_lnd , char_tex , char_lak
   character(len=256) :: namelistfile , prgname , outname
   integer(ik4) :: i , j , k , ierr , ism
+  integer(ik4) :: year , month , day , hour
   logical :: ibndry
   real(rk8) :: clong , dsinm
   integer(ik4) :: ntypec , ntypec_s
@@ -111,6 +112,7 @@ program terrain
   end if
 
   call memory_init
+  call split_idate(globidate1,year,month,day,hour)
 !
   call prepare_grid(jx,iy,kz,ntex)
 
@@ -357,6 +359,25 @@ program terrain
     call relmem2d(values)
     write(stdout,*)'Interpolated landcover on SUBGRID'
 !
+    if ( lsmoist ) then
+      call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                       pthsep//'ESACCI-SOILMOISTURE.nc', &
+                       'sm',900,15,.true.,2,month)
+      write(stdout,*)'Satellite soil moisture data successfully read in'
+      do i = 1 , nlatin
+        do j = 1 , nlonin
+          if ( values(j,i) < 0 ) then
+            call findaround(values,i,j,nlatin,nlonin)
+          end if
+        end do
+      end do
+      call interp(jxsg,iysg,xlat_s,xlon_s,smoist_s,  &
+                  nlatin,nlonin,grdltmn,grdlnmn,values, &
+                  15,1,lonwrap,lcrosstime)
+      call relmem2d(values)
+      write(stdout,*)'Interpolated soil moisture on SUBGRID'
+    end if
+!
     if ( ltexture ) then
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GLZB_SOIL_30s.nc',       &
@@ -529,6 +550,25 @@ program terrain
   call relmem2d(values)
   write(stdout,*)'Interpolated landcover on model GRID'
 !
+  if ( lsmoist ) then
+    call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                     pthsep//'ESACCI-SOILMOISTURE.nc', &
+                     'sm',900,15,.true.,2,month)
+    write(stdout,*)'Satellite soil moisture data successfully read in'
+    do i = 1 , nlatin
+      do j = 1 , nlonin
+        if ( values(j,i) < 0 ) then
+          call findaround(values,i,j,nlatin,nlonin)
+        end if
+      end do
+    end do
+    call interp(jx,iy,xlat,xlon,smoist,               &
+                nlatin,nlonin,grdltmn,grdlnmn,values, &
+                15,1,lonwrap,lcrosstime)
+    call relmem2d(values)
+    write(stdout,*)'Interpolated soil moisture on model GRID'
+  end if
+!
   if ( ltexture ) then
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                      pthsep//'GLZB_SOIL_30s.nc',       &
@@ -646,6 +686,15 @@ program terrain
       dpth = 2.0
     end where
   end if
+  if ( lsmoist ) then
+    where ( mask == 0 )
+      smoist = smissval
+    else where
+      smoist = smoist * 0.0001
+    end where
+  else
+    smoist = smissval
+  end if
 
   if ( lakedpth ) then
     write (char_lak,99002) trim(dirter), pthsep, trim(domname), &
@@ -679,13 +728,22 @@ program terrain
       call lakfudge(fudge_lak_s,dpth_s,lndout_s,jxsg,iysg, &
                     trim(char_lak))
     end if
+    if ( lsmoist ) then
+      where ( mask_s == 0 )
+        smoist_s = smissval
+      else where
+        smoist_s = smoist_s * 0.0001
+      end where
+    else
+      smoist_s = smissval
+    end if
 
     write (outname,'(a,i0.3,a)') &
        trim(dirter)//pthsep//trim(domname)//'_DOMAIN',nsg,'.nc'
-    call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s,  &
-                      ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s, &
-                      dmap_s,coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,   &
-                      dpth_s,texout_s,frac_tex_s)
+    call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s, &
+                      ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s,  &
+                      dmap_s,coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,  &
+                      smoist_s,dpth_s,texout_s,frac_tex_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
@@ -695,7 +753,7 @@ program terrain
      trim(dirter)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
   call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
                     sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,    &
-                    htgrid,lndout,snowam,dpth,texout,frac_tex)
+                    htgrid,lndout,snowam,smoist,dpth,texout,frac_tex)
   write(stdout,*) 'Grid data written to output file'
 
   if ( debug_level > 2 ) then
@@ -711,6 +769,48 @@ program terrain
 !
 99001 format (a,a,a,a,i0.3)
 99002 format (a,a,a,a)
+
+  contains
+
+  subroutine findaround(xx,i,j,imax,jmax)
+    implicit none
+    real(rk8) , dimension(:,:) , intent(inout) :: xx
+    integer(ik4) , intent(in) :: i , j , imax , jmax
+    real(rk8) , dimension ((2*minval(shape(xx(:,:)))/2+1)**2) :: vals
+    integer(ik4) :: ii , jj , js , is , ip , il , maxil
+    il = 1
+    maxil = minval(shape(xx(:,:)))/2
+    do
+      ip = 0
+      vals(:) = 0.0D0
+      do ii = i - il , i + il
+        do jj = j - il , j + il
+          is = ii
+          js = jj
+          if ( js < 1 ) js = 1-js
+          if ( js > jmax ) js = 2*jmax - js
+          if ( is < 1 ) is = 1-is
+          if ( is > imax ) is = 2*imax - is
+          if ( xx(js,is) > 0.0 ) then
+            ip = ip + 1
+            vals(ip) = vals(ip) + xx(js,is)
+          end if
+        end do
+      end do
+      if ( ip > 0 ) then
+        xx(j,i) = sum(vals(:))/real(ip)
+        exit
+      else
+        il = il + 1
+        if ( il == maxil ) then
+          write(stderr,*) 'At point lat = ',xlat(j,i)
+          write(stderr,*) '         lon = ',xlon(j,i)
+          call die(__FILE__,'Not finding anything around !',__LINE__)
+          exit
+        end if
+      end if
+    end do
+  end subroutine findaround
 
 end program terrain
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -87,14 +87,26 @@ module mod_bats_common
         end where
       end if
 
-      do i = ilndbeg , ilndend
-        itex  = iexsol(lveg(i))
-        ! Initialize soil moisture in the 3 layers
-        tsw(i) = deptv(lveg(i))*xmopor(itex)*slmo(lveg(i))
-        rsw(i) = deprv(lveg(i))*xmopor(itex)*slmo(lveg(i))
-        ssw(i) = depuv(lveg(i))*xmopor(itex)*slmo(lveg(i))
-        gwet(i) = d_half
-      end do
+      if ( lsmoist ) then
+        call c2l_gs(lndcomm,lm%smoist,gwet)
+        do i = ilndbeg , ilndend
+          itex  = iexsol(lveg(i))
+          ! Initialize soil moisture in the 3 layers
+          tsw(i) = gwet(i)*deptv(lveg(i))
+          rsw(i) = gwet(i)*deprv(lveg(i))
+          ssw(i) = gwet(i)*depuv(lveg(i))
+          gwet(i) = d_half
+        end do
+      else
+        do i = ilndbeg , ilndend
+          itex  = iexsol(lveg(i))
+          ! Initialize soil moisture in the 3 layers
+          tsw(i) = deptv(lveg(i))*xmopor(itex)*slmo(lveg(i))
+          rsw(i) = deprv(lveg(i))*xmopor(itex)*slmo(lveg(i))
+          ssw(i) = depuv(lveg(i))*xmopor(itex)*slmo(lveg(i))
+          gwet(i) = d_half
+        end do
+      end if
       !
       ! Calculate emission coefficients
       !

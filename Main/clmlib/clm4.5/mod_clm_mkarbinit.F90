@@ -1135,8 +1135,12 @@ module mod_clm_mkarbinit
             else
               ! h2osoi_vol(c,j) = 0.15D0
               ! h2osoi_vol(c,j) = watsat(c,j)*0.10D0
-              h2osoi_vol(c,j) = slmo(adomain%luse(g)) * &
-                            xmopor(iexsol(adomain%luse(g)))
+              if ( lsmoist ) then
+                h2osoi_vol(c,j) = adomain%smoist(g)
+              else
+                h2osoi_vol(c,j) = slmo(adomain%luse(g)) * &
+                              xmopor(iexsol(adomain%luse(g)))
+              end if
             end if
           end do
         else if ( ltype(l) == isturb ) then

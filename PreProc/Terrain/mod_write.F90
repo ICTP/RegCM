@@ -29,7 +29,7 @@ module mod_write
 
   public :: setup_outvars , write_domain
 
-  integer(ik4) , parameter :: nvar2d = 11
+  integer(ik4) , parameter :: nvar2d = 12
   type(ncvariable2d_real) , save, dimension(nvar2d) :: v2dvar_base
   integer(ik4) :: idlnd ! The position of landuse in the v2dvar_base
   type(ncvariable2d_real) , save :: v2dvar_lake
@@ -130,6 +130,11 @@ module mod_write
     v2dvar_base(11)%long_name = 'Snow initial LWE in mm'
     v2dvar_base(11)%standard_name = 'snowfall_amount'
     v2dvar_base(11)%lfillvalue = .true.
+    v2dvar_base(12)%vname = 'smoist'
+    v2dvar_base(12)%vunit = '1'
+    v2dvar_base(12)%long_name = 'Soil Moisture'
+    v2dvar_base(12)%standard_name = 'volume_fraction_of_water_in_soil'
+    v2dvar_base(12)%lfillvalue = .true.
 
     v2dvar_lake%vname = 'dhlake'
     v2dvar_lake%vunit = 'm'
@@ -149,8 +154,8 @@ module mod_write
   end subroutine setup_outvars
 
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
-                          xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,    &
-                          htgrid,lndout,snowam,dpth,texout,frac_tex)
+                          xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,htgrid,  &
+                          lndout,snowam,smoist,dpth,texout,frac_tex)
     implicit none
     character (len=*) , intent(in) :: fname
     logical , intent(in) :: lsub , lndfudge , texfudge , lakfudge
@@ -162,6 +167,7 @@ module mod_write
     real(rk8) , dimension(:,:) , pointer , intent(in) :: mask
     real(rk8) , dimension(:,:) , pointer , intent(in) :: htgrid , lndout
     real(rk8) , dimension(:,:) , pointer , intent(in) :: snowam
+    real(rk8) , dimension(:,:) , pointer , intent(in) :: smoist
     real(rk8) , dimension(:,:) , pointer , intent(in) :: dpth
     real(rk8) , dimension(:,:) , pointer , intent(in) :: texout
     real(rk8) , dimension(:,:,:) , pointer , intent(in) :: frac_tex
@@ -219,6 +225,7 @@ module mod_write
     v2dvar_base(9)%rval => htgrid
     v2dvar_base(10)%rval => lndout
     v2dvar_base(11)%rval => snowam
+    v2dvar_base(12)%rval => smoist
 
     if ( lakedpth ) then
       v2dvar_lake%j1 = -1

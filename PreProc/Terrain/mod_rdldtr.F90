@@ -51,16 +51,18 @@ module mod_rdldtr
 !  values = allocated space by the sub containing data: the caller is
 !           in charge of the deallocate
 !
-  subroutine read_ncglob(cfile,cvar,iires,iores,lreg,imeth)
+  subroutine read_ncglob(cfile,cvar,iires,iores,lreg,imeth,isel)
     use netcdf
     implicit none
     character(len=*) , intent(in) :: cfile , cvar
     integer(ik4) , intent(in) :: iires , iores , imeth
+    integer(ik4) , optional , intent(in) :: isel
     logical , intent(in) :: lreg
+    logical :: l3d
     integer(ik4) :: ncid , ivar , istatus
     integer(ik4) :: nlat , nlon , itl
     integer(ik4) :: i , j , iosec , inpsec , iopsec , ifrac , ireg
-    integer(ik4) , dimension(2) :: istart, icount
+    integer(ik4) , dimension(3) :: istart, icount
     integer(ik4) :: nlogb , nlagb , hnlogb , hnlagb , nfrac
     integer(ik4) , parameter :: secpd = 3600
     integer(ik4) , parameter :: secpm = 60
@@ -74,7 +76,7 @@ module mod_rdldtr
     inpsec = secpd/iires
     nlogb = 360*inpsec
     nlagb = 180*inpsec
-    if (mod(nlogb,iosec) /= 0) then
+    if (mod(nlogb*secpd,iosec) /= 0) then
       write(stderr,*) 'Subroutine read_ncglob do not support iores = ',iores
       call die('read_ncglob')
     end if
@@ -88,7 +90,7 @@ module mod_rdldtr
 #endif
 
     ireg = 0
-    if (lreg) ireg = 1
+    if ( lreg ) ireg = 1
     delta = ((dble(iires)/d_two)/dble(secpd))*dble(ireg)
 
     grdltmn = floor(xminlat)  -delta
@@ -140,6 +142,16 @@ module mod_rdldtr
     istatus = nf90_inq_varid(ncid, cvar, ivar)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
 
+    if ( present(isel) ) then
+      l3d = .true.
+      istart(3) = isel
+      icount(3) = 1
+#ifdef DEBUG
+      write(stderr,*) 'WILL READ MONTH ',isel
+#endif
+    else
+      l3d = .false.
+    end if
     istart(2) = hnlagb+idnint(grdltmn*dble(inpsec))+1
     if (lonwrap) then
       istart(1) = 1
@@ -151,20 +163,34 @@ module mod_rdldtr
       icount(2) = nlat
       if (icount(2)+istart(2) > nlagb) icount(2) = icount(2) - 1
       icount(1) = nlon
-      istatus = nf90_get_var(ncid, ivar, readbuf, istart, icount)
+      if ( l3d ) then
+        istatus = nf90_get_var(ncid, ivar, readbuf, istart, icount)
+      else
+        istatus = nf90_get_var(ncid, ivar, readbuf, istart(1:2), icount(1:2))
+      end if
       call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
     else
       ! Crossing timeline
       itl = nlogb - istart(1)
       icount(2) = nlat
       icount(1) = itl
-      istatus = nf90_get_var(ncid, ivar, readbuf(1:itl,:), &
-                             istart, icount)
+      if ( l3d ) then
+        istatus = nf90_get_var(ncid, ivar, readbuf(1:itl,:), &
+                               istart, icount)
+      else
+        istatus = nf90_get_var(ncid, ivar, readbuf(1:itl,:), &
+                               istart(1:2), icount(1:2))
+      end if
       call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
       istart(1) = 1
       icount(1) = nlon-itl
-      istatus = nf90_get_var(ncid, ivar, readbuf(itl+1:nlon,:), &
-                             istart, icount)
+      if ( l3d ) then
+        istatus = nf90_get_var(ncid, ivar, readbuf(itl+1:nlon,:), &
+                               istart, icount)
+      else
+        istatus = nf90_get_var(ncid, ivar, readbuf(itl+1:nlon,:), &
+                               istart(1:2), icount(1:2))
+      end if
       call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
     end if
 
@@ -180,50 +206,57 @@ module mod_rdldtr
       readbuf(:,nlat) = readbuf(:,nlat-1)
     end if
 
-    write(stdout,'(a)',advance='no') ' Resampling'
-    nfrac = ifrac*ifrac
-    call getmem1d(copybuf,1,nfrac,'rdldtr:copybuf')
-    select case (imeth)
-      case (1)
-        do i = 1 , nlatin
-          if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-          do j = 1 , nlonin
-            call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
-                         (i-1)*ifrac+1,ifrac,lcrosstime)
-            values(j,i) = sum(copybuf)/dble(size(copybuf))
+    if ( ifrac > 1 ) then
+      write(stdout,'(a)',advance='no') ' Resampling'
+      nfrac = ifrac*ifrac
+      call getmem1d(copybuf,1,nfrac,'rdldtr:copybuf')
+      select case (imeth)
+        case (1)
+          do i = 1 , nlatin
+            if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+            do j = 1 , nlonin
+              call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
+                           (i-1)*ifrac+1,ifrac,lcrosstime)
+              values(j,i) = sum(copybuf)/dble(size(copybuf))
+            end do
           end do
-        end do
-      case (2)
-        do i = 1 , nlatin
-          if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-          do j = 1 , nlonin
-            call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
-                         (i-1)*ifrac+1,ifrac,lcrosstime)
-            call qsort(copybuf)
-            values(j,i) = 0.5*(copybuf(nfrac/2)+copybuf(nfrac/2+1))
+        case (2)
+          do i = 1 , nlatin
+            if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+            do j = 1 , nlonin
+              call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
+                           (i-1)*ifrac+1,ifrac,lcrosstime)
+              call qsort(copybuf)
+              values(j,i) = 0.5*(copybuf(nfrac/2)+copybuf(nfrac/2+1))
+            end do
           end do
-        end do
-      case (3)
-        do i = 1 , nlatin
-          if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-          do j = 1 , nlonin
-            call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
-                         (i-1)*ifrac+1,ifrac,lcrosstime)
-            values(j,i) = dble(mpindex(copybuf))
+        case (3)
+          do i = 1 , nlatin
+            if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+            do j = 1 , nlonin
+              call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
+                           (i-1)*ifrac+1,ifrac,lcrosstime)
+              values(j,i) = dble(mpindex(copybuf))
+            end do
           end do
-        end do
-      case default
-        do i = 1 , nlatin
-          if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-          do j = 1 , nlonin
-            values(j,i) = readbuf((j-1)*ifrac+1,(i-1)*ifrac+1)
+        case default
+          do i = 1 , nlatin
+            if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+            do j = 1 , nlonin
+              values(j,i) = readbuf((j-1)*ifrac+1,(i-1)*ifrac+1)
+            end do
           end do
+      end select
+      call relmem1d(copybuf)
+    else
+      do i = 1 , nlatin
+        do j = 1 , nlonin
+          values(j,i) = readbuf(j,i)
         end do
-    end select
+      end do
+    end if
     call relmem2d(readbuf)
-    call relmem1d(copybuf)
-    write(stdout,'(a)') 'Done.'
-
+    write(stdout,'(a)') ' Done.'
   end subroutine read_ncglob
 !
   subroutine fillbuf(copybuf,readbuf,ni,nj,i,j,isize,lwrap)

@@ -747,6 +747,7 @@ module mod_params
     !
     ! communicate to all processors
     !
+    call bcast(lsmoist)
     call bcast(ifrest)
     call bcast(hspan)
     call bcast(idate0)
@@ -1268,7 +1269,7 @@ module mod_params
     call read_domain_info(mddom%ht,mddom%lndcat,mddom%mask, &
                           mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon, &
                           mddom%msfx,mddom%msfd,mddom%coriol, &
-                          mddom%snowam,mddom%dhlake)
+                          mddom%snowam,mddom%satmoist,mddom%dhlake)
     call bcast(ds)
     call bcast(ptop)
 

@@ -792,6 +792,7 @@ module mod_atm_interface
                              ide1-ma%ibb2,ide2+ma%ibt2,'storage:msfd')
       call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
       call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'storage:snowam')
+      call getmem2d(dom%satmoist,jde1,jde2,ide1,ide2,'storage:satmoist')
       call getmem2d(dom%ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
       call getmem2d(dom%iveg,jci1,jci2,ici1,ici2,'storage:iveg')
       if ( lakemod == 1 ) then

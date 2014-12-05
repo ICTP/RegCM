@@ -55,6 +55,8 @@
                          ! terrain program the domain bathymetry
  ltexture    = .false.,  ! If using DUST tracers (see below), produce from
                          ! terrain program the domain soil texture dataset
+ lsmoist     = .false.,  ! Use Satellite Soil Moisture Dataset for
+                         ! initialization of soil moisture.
  fudge_lnd   = .false.,  ! Fudging Control flag, for landuse of grid 
  fudge_lnd_s = .false.,  ! Fudging Control flag, for landuse of subgrid
  fudge_tex   = .false.,  ! Fudging Control flag, for texture of grid

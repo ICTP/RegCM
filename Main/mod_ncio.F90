@@ -59,7 +59,7 @@ module mod_ncio
   contains
 
   subroutine read_domain_info(ht,lnd,mask,xlat,xlon,dlat,dlon, &
-                              msfx,msfd,coriol,snowam,hlake)
+                              msfx,msfd,coriol,snowam,smoist,hlake)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ht
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: lnd
@@ -72,6 +72,7 @@ module mod_ncio
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: msfd
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: coriol
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: snowam
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: smoist
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: hlake
     character(len=256) :: dname
     integer(ik4) :: idmin
@@ -126,6 +127,8 @@ module mod_ncio
       msfd(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'coriol',rspace,istart=istart,icount=icount)
       coriol(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'smoist',rspace,istart=istart,icount=icount)
+      smoist(jde1:jde2,ide1:ide2) = rspace
       rspace = d_zero
       call read_var2d_static(idmin,'snowam',rspace,has_snow, &
            istart=istart,icount=icount)
@@ -178,6 +181,9 @@ module mod_ncio
         call read_var2d_static(idmin,'coriol',rspace, &
                 istart=istart,icount=icount)
         call grid_distribute(rspace,coriol,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'smoist',rspace, &
+                istart=istart,icount=icount)
+        call grid_distribute(rspace,smoist,jde1,jde2,ide1,ide2)
         rspace = d_zero
         call read_var2d_static(idmin,'snowam',rspace,has_snow, &
                 istart=istart,icount=icount)
@@ -201,6 +207,7 @@ module mod_ncio
         call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,coriol,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,smoist,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,snowam,jde1,jde2,ide1,ide2)
         if ( lakemod == 1 ) then
           call grid_distribute(rspace,hlake,jde1,jde2,ide1,ide2)
@@ -487,7 +494,7 @@ module mod_ncio
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: qv
     integer(ik4) , dimension(4) :: istart , icount
     integer(ik4) :: i , j , k
-    real(rk8) :: told , pold , rhold , hl , satvp , tnew , pnew
+    real(rk8) :: told , pold , rhold , satvp , tnew , pnew
 
     if ( do_parallel_netcdf_in ) then
       istart(1) = global_dot_jstart

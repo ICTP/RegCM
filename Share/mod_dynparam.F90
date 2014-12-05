@@ -80,6 +80,11 @@ module mod_dynparam
 
   logical :: ltexture = .false.
 
+! Control flag for crating initial soil moisture dataset
+!
+
+  logical :: lsmoist = .false.
+
 ! Grid point horizontal resolution in km
 
   real(rk8) :: ds
@@ -385,9 +390,9 @@ module mod_dynparam
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
       plon , truelatl, truelath , i_band
-    namelist /terrainparam/ domname , smthbdy , ltexture , lakedpth,  &
-      fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s , fudge_lak,  &
-      fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , inpter
+    namelist /terrainparam/ domname , smthbdy , ltexture , lakedpth, &
+      lsmoist , fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,  &
+      fudge_lak , fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , inpter
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
       medium_nudge , low_nudge

@@ -53,10 +53,12 @@ module mod_clm_regcm
     call get_proc_bounds(begg,endg)
     deallocate(adomain%topo)
     allocate(adomain%snow(begg:endg))
+    allocate(adomain%smoist(begg:endg))
     allocate(adomain%tgrd(begg:endg))
     allocate(adomain%luse(begg:endg))
     allocate(adomain%topo(begg:endg))
     call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
+    call glb_c2l_gs(lndcomm,lm%smoist,adomain%smoist)
     call glb_c2l_gs(lndcomm,lm%tground2,adomain%tgrd)
     call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
     adomain%topo = adomain%topo*regrav

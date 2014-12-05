@@ -79,6 +79,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: dmdy
     real(rk8) , pointer , dimension(:,:) :: dmdx
     real(rk8) , pointer , dimension(:,:) :: snowam
+    real(rk8) , pointer , dimension(:,:) :: satmoist
     real(rk8) , pointer , dimension(:,:) :: dhlake
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
     integer(ik4) , pointer , dimension(:,:) :: iveg
@@ -368,6 +369,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: lndcat      ! mddom%lndcat
     real(rk8) , pointer , dimension(:,:) :: ht          ! mddom%ht
     real(rk8) , pointer , dimension(:,:) :: snowam      ! mddom%snowam
+    real(rk8) , pointer , dimension(:,:) :: smoist      ! mddom%satmoist
     integer(ik4) , pointer , dimension(:,:) :: iveg     ! mddom%iveg
     integer(ik4) , pointer , dimension(:,:) :: ldmsk    ! mddom%ldmsk
     real(rk8) , pointer , dimension(:,:,:) :: ht1       ! mdsub%ht
