@@ -573,10 +573,10 @@ module mod_cu_tiedtke
                   locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &
                   zlu,pmflxr,pmflxs,zrain,zmfu,zmfd,zlude,       &
                   pmfude_rate,pmfdde_rate,pcape,ktrac,pxtm1,pxtte)
-    paprc(:) = pmflxr(:,klev+1)*d_half
-    paprs(:) = pmflxs(:,klev+1)*d_half
-    prsfc = zrain
-    pssfc = 0.0D0
+    paprc(:) = pmflxr(:,klev+1)*1.D3*dtsec
+    paprs(:) = pmflxs(:,klev+1)*1.D3*dtsec
+    prsfc = pmflxr(:,klev+1)*1.D3
+    pssfc = pmflxr(:,klev+1)*1.D3
   case default
     call fatal(__FILE__,__LINE__,'ICONV must be in the range 1-4')
   end select
