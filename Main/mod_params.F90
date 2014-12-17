@@ -1077,6 +1077,7 @@ module mod_params
       call bcast(ichsursrc)
       call chem_config
       call bcast(ntr)
+      call bcast(nbin)
       call bcast(iaerosol)
       call bcast(ioxclim)
       call bcast(igaschem)

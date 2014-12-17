@@ -260,7 +260,6 @@
 ! ------------------------------------------------------------------
 
 ! Initializations
-
       ib1 = istart
       ib2 = iend
       klev = nlayers
@@ -402,7 +401,6 @@
 !               zgco (jk) = (ptaucmc(ikl,iw) * pomgcmc(ikl,iw) * pasycmc(ikl,iw) + &
 !                           ztaur(ikl,iw) * 0.0001_rb) / zomco(jk)
 !               zomco(jk) = zomco(jk) / ztauo(jk)
-
 ! Clear-sky optical parameters including aerosols
                ztauc(jk) = ztaur(ikl,iw) + ztaug(ikl,iw) + ptaua(ikl,ibm)
                zomcc(jk) = ztaur(ikl,iw) * 1.0_rb + ptaua(ikl,ibm) * pomga(ikl,ibm)
@@ -418,7 +416,6 @@
 
 ! Clear
 !                   zdbtmc = exp(-ztauc(jk) / prmu0)
-
 ! Use exponential lookup table for transmittance, or expansion of exponential for low tau
                   ze1 = ztauc(jk) / prmu0
                   if (ze1 .le. od_lo) then
@@ -451,7 +448,6 @@
 
                endif
 !   /\/\/\ Above code only needed for unscaled direct beam calculation
-
 
 ! Delta scaling - clear
                zf = zgcc(jk) * zgcc(jk)
@@ -517,7 +513,6 @@
 
 ! Clear
 !                zdbtmc = exp(-ztauc(jk) / prmu0)
-
 ! Use exponential lookup table for transmittance, or expansion of
 ! exponential for low tau
                ze1 = ztauc(jk) / prmu0

@@ -36,18 +36,41 @@ module mod_che_dust
 
   private
 
-  real(rk8) , dimension(nbin,2) ::  dustbsiz
+  
+  real(rk8) , dimension(4,2) ::  dustbsiz1
+  real(rk8) , dimension(12,2) ::  dustbsiz2
+
   ! Fix the actual dust aerosol bin size: diameter in microm
-  data  dustbsiz / 0.01D0,  1.00D0,  2.50D0,  5.00D0,  1.00D0, &
-                   2.50D0,  5.00D0, 20.00D0 /
-  ! dust effective diameter
-  real(rk8) , dimension(nbin) :: dustbed
-  ! has to be calculated from an assumed sub-bin distribution
-  data dustbed /0.82D0 , 1.8D0 , 3.7D0 , 12.5D0 /
+
+  data  dustbsiz1 / 0.01D0,  1.00D0,  2.50D0,  5.00D0,  1.00D0, &
+                   2.50D0,  5.00D0, 20.00D0/  
+  ! new option defined from LISA optimized distribution
+  data  dustbsiz2 /0.09D0,0.18D0, 0.60D0, 1.55D0, 2.50D0, 3.75D0, 4.70D0, 5.70D0, 7.50D0, 14.50D0, 26.0D0, 41.0D0, &
+                   0.18D0,0.60D0, 1.55D0, 2.50D0, 3.75D0, 4.70D0, 5.70D0, 7.50D0, 14.50D0, 26.0D0, 41.0D0, 63.0D0 /
+
+! dust effective diameter
+ 
+  real(rk8) , dimension(4)    ::  dustbed1
+  real(rk8) , dimension(12)   ::  dustbed2
+
+! has to be calculated from an assumed sub-bin distribution
+  data dustbed1 /0.82D0 , 1.8D0 , 3.7D0 , 12.5D0 /
+  ! 12 bins option calculated from Kok Distibution
+  data dustbed2 / 0.14062217D0,   0.4300415D0,    1.10404692D0,   2.02166018D0,   3.10952699D0,&
+   4.21185749D0,   5.18438211D0,   6.55182088D0,   9.96016755D0, 16.19150734D0,&
+  26.74151275D0,  41.32554485D0 /
+
+
 
   ! solubility of od dust aer for param of giorgi and chameides
-  real(rk8) , dimension(nbin) ::  soldust
-  data  soldust /0.1D0 , 0.1D0 , 0.1D0 , 0.1D0 /
+  
+  real(rk8) , dimension(4) ::  soldust1
+  real(rk8) , dimension(12) ::  soldust2
+
+  data  soldust1 /0.1D0 , 0.1D0 , 0.1D0 , 0.1D0 /
+  data  soldust2 /0.1D0 , 0.1D0 , 0.1D0 , 0.1D0,&
+                  0.1D0 , 0.1D0 , 0.1D0 , 0.1D0,&
+                  0.1D0 , 0.1D0 , 0.1D0 , 0.1D0/
 
   ! Basic dust aerosol density (ACE-2 ) in kg/m3
   real(rk8) , parameter :: rhodust = 2650.0D0
@@ -67,7 +90,7 @@ module mod_che_dust
 ! define the aerosol distribution at the emission and the corresponding
 ! weighting factors in fuction of bin sizes
 !
-  integer(ik4) , parameter :: isize = 12
+ 
   real(rk8) , parameter :: d1 = 1.5D0
   real(rk8) , parameter :: d2 = 6.7D0
   real(rk8) , parameter :: d3 = 14.2D0
@@ -80,9 +103,6 @@ module mod_che_dust
   real(rk8) , parameter  :: e2 = 3.52D0
   real(rk8) , parameter  :: e3 = 3.46D0
   !
-  real(rk8) , dimension(isize) :: frac1 , frac2 , frac3 , frac
-  real(rk8) , dimension(2,isize) :: aerosize
-
   ! parameter for alternative Kok emission distribution
   real(rk8), parameter :: d = 3.4D0
   real(rk8), parameter :: sigmas = 3.0D0
@@ -90,29 +110,36 @@ module mod_che_dust
   real(rk8), parameter :: cv = 12.62D0
   real(rk8), parameter :: lambda = 12.0D0
 
+  !FENNEC distribution parameters(Ryder et. al. 2013)
+  real(rk8), parameter :: d1F=0.05
+  real(rk8), parameter :: d2F=0.71
+  real(rk8), parameter :: d3F=2.04
+  real(rk8), parameter :: d4F=5.28
+
+  real(rk8), parameter :: sigma1F=2.5
+  real(rk8), parameter :: sigma2F=1.33
+  real(rk8), parameter :: sigma3F=1.45
+  real(rk8), parameter :: sigma4F=2.0
+
+  real(rk8), parameter :: N1=508.27
+  real(rk8), parameter :: N2=8.84
+  real(rk8), parameter :: N3=1.89
+  real(rk8), parameter :: N4=0.54
   ! soil variable, srel 2 d corresponds to the soil aggregate size distribution
   ! in each texture type.
-
+  real(rk8) , pointer,  dimension(:) ::  dustbed,soldust,frac1 , frac2 , frac3 , frac
   real(rk8) , pointer , dimension(:,:,:) :: clay2row2 , sand2row2 , silt2row2
-  real(rk8) , pointer , dimension(:,:) :: clayrow2 , sandrow2
+  real(rk8) , pointer , dimension(:,:) :: clayrow2 , sandrow2, dustbsiz
   real(rk8) , pointer , dimension(:,:,:,:) :: srel2d
   real(rk8) , pointer , dimension(:,:,:) :: dustsotex
   ! Name of variable changed ! SC. 06.10.2010
   real(rk8) , dimension(nsoil) :: dp_array
 
   public :: sandrow2
-  public :: dustbed , dustbsiz
   public :: rhodust
-  public :: soldust
+  public :: soldust,dustbed,dustbsiz
   !
-  ! Initialise sub bin aerosol distribution
-  !
-  data  aerosize/1.0D-08 , 2.0D-08 , 2.0D-08 , 4.0D-08 , 4.0D-08 ,  &
-       8.0D-08 , 8.0D-08 , 1.6D-07 , 1.6D-07 , 3.2D-07 , 3.2D-07 ,  &
-       6.4D-07 , 6.4D-07 , 1.28D-06 , 1.28D-06 , 2.56D-06 ,         &
-       2.56D-06 , 5.12D-06 , 5.12D-06 , 10.4D-06 , 10.24D-06 ,      &
-       20.48D-06 , 20.48D-06 , 40.6D-06/
-!
+ !
   integer(ik4) :: ilg
 
   public :: allocate_mod_che_dust , inidust , sfflux
@@ -130,7 +157,14 @@ module mod_che_dust
         call getmem2d(sandrow2,ici1,ici2,jci1,jci2,'che_dust:sandrow2')
         call getmem4d(srel2d,ici1,ici2,jci1,jci2,1,nsoil,1,nats, &
                       'che_dust:srel2d')
-      end if
+        call getmem2d(dustbsiz,1,nbin,1,2,'che_dust:dustbsiz')
+        call getmem1d(dustbed,1,nbin,'che_dust:dustbed')
+        call getmem1d(soldust,1,nbin,'che_dust:soldust')
+        call getmem1d(frac1,1,nbin,'che_dust:frac1')
+        call getmem1d(frac2,1,nbin,'che_dust:frac2')
+        call getmem1d(frac3,1,nbin,'che_dust:frac3')
+        call getmem1d(frac,1,nbin,'che_dust:frac')          
+    end if
       ilg = ici2-ici1+1
     end subroutine allocate_mod_che_dust
 !
@@ -164,7 +198,7 @@ module mod_che_dust
       real(rk8) , dimension(mode,nats) :: mmd , pcent , sigma
       real(rk8) , dimension(iy,nsoil,nats) :: srel
       real(rk8) , dimension(nsoil) :: ss
-
+      real(rk8) , dimension(6500) :: di
       ! modif new distribution
       ! for each category, this is the percent of Coarse sand,
       ! Fine mode sand, silt , clay and salt ( cf Menut et al. ,2012)
@@ -174,7 +208,10 @@ module mod_che_dust
       logical :: rd_tex
       character(6) :: aerctl
       real(rk8) :: alogdi , amean1 , amean2 , amean3 , asigma1 , amean , &
-             asigma , asigma2 , asigma3 , rwi , totv1 , totv2 , totv3 , totv
+             asigma , asigma2 , asigma3 , rwi , totv1 , totv2 , totv3 , totv  
+   !Fennec
+    real(rk8) :: amean1F , amean2F , amean3F , amean4F , asigma1F  &
+             , asigma2F , asigma3F , asigma4F, totvF, mass_dist
 #ifdef __PGI
       real(rk8) , external :: derf
 #endif
@@ -318,6 +355,11 @@ module mod_che_dust
         deldp = dp_array(ns) - dp_array(ns-1)
       end do
 
+      di(1) = 0.01 !microm
+      do ns =2 ,6500
+        di(ns) = di(ns-1) + 0.01D0 
+      end do
+
       do j = jci1 , jci2
         srel(:,:,:) = d_zero
         do i = ici1 , ici2
@@ -361,52 +403,64 @@ module mod_che_dust
 
       end do  ! end J loop
 !
-! Finally calculate the emission stribution weights in function of Alfaro
-! lognormal distribution parameters
+! Finally calculate the emission stribution weights in function of
+! distribution parameters:(Alfaro, Kok) 
 !
-      totv  = d_zero
-      totv1 = d_zero
-      totv2 = d_zero
-      totv3 = d_zero
+     if( chemsimtype == 'DUST') then
+       dustbsiz(:,:) = dustbsiz1(:,:) 
+       dustbed(:)  = dustbed1(:) 
+       soldust(:)  = soldust1(:)
+     else if (chemsimtype == 'DU12') then
+       dustbsiz(:,:) = dustbsiz2(:,:) 
+       dustbed(:)  = dustbed2(:) 
+       soldust(:)  = soldust2(:)
+     end if
 
-      do n = 1 , isize
+    if (ichdustemd == 1) then
+    totv1 = d_zero
+    totv2 = d_zero
+    totv3 = d_zero
+    amean1 = dlog10(d1)
+    amean2 = dlog10(d2)
+    amean3 = dlog10(d3)
+    asigma1 = dlog10(sigma1)
+    asigma2 = dlog10(sigma2)
+    asigma3 = dlog10(sigma3)
+    do ns = 1, 6500
+     alogdi = dlog10(di(ns))
+     do n = 1 , nbin
+       if ( di(ns) > dustbsiz(n,1) .and. di(ns) <= dustbsiz(n,2) ) then       
+! the independant variable is diameter so going from dV/dlog10D to dV/dD implies a factor 1/(2.303)D
+        frac1(n) = frac1(n) + (1/di(ns)) * dexp(-(alogdi-amean1)**2/(d_two*asigma1**2))
+        frac2(n) = frac2(n) + (1/di(ns)) * dexp(-(alogdi-amean2)**2/(d_two*asigma2**2))
+        frac3(n) = frac3(n) + (1/di(ns)) * dexp(-(alogdi-amean3)**2/(d_two*asigma3**2))
+       end if
+      end do  
+        totv1 = totv1 +   (1/di(ns)) *dexp(-(alogdi-amean1)**2/(d_two*asigma1**2))
+        totv2 = totv2 +   (1/di(ns)) *dexp(-(alogdi-amean2)**2/(d_two*asigma2**2))
+        totv3 = totv3 +   (1/di(ns)) *dexp(-(alogdi-amean3)**2/(d_two*asigma3**2))
+    end do
+    frac1(:) = frac1(:) /totv1
+    frac2(:) = frac2(:) /totv2 
+    frac3(:) = frac3(:) /totv3   
 
-        rwi = (aerosize(1,n)+aerosize(2,n))*d_half*1.0D6
-        alogdi = dlog10(rwi)
-        amean1 = dlog10(d1)
-        amean2 = dlog10(d2)
-        amean3 = dlog10(d3)
-
-        asigma1 = dlog10(sigma1)
-        asigma2 = dlog10(sigma2)
-        asigma3 = dlog10(sigma3)
-
-        frac1(n) = dexp(-(alogdi-amean1)**2/(d_two*asigma1**2))
-        frac2(n) = dexp(-(alogdi-amean2)**2/(d_two*asigma2**2))
-        frac3(n) = dexp(-(alogdi-amean3)**2/(d_two*asigma3**2))
-
-        totv1 = totv1 + frac1(n)
-        totv2 = totv2 + frac2(n)
-        totv3 = totv3 + frac3(n)
-
-        ! if Kok is used
-        amean = log10(d)
-        asigma = log10(sigmas)
-        frac(n) = rwi / cv * (d_one+derf(log(rwi/d)/sqrt(d_two)/ &
-                  log(sigmas)))*exp(-(rwi/lambda)**3)  !see Kok (2011)
-        totv = totv + frac(n)
+   else if  (ichdustemd == 2) then
+! calculate the bin mass fraction to the total mass from Kok et al. distribution ( mass distribution).
+! the independant variable is diameter so going from dV/dlnD to dV/dD implies a factor 1/D
+      frac = 0.D0
+      totv = 0.D0
+      do ns = 1, 6500
+       do n = 1, nbin
+        if ( di(ns) > dustbsiz(n,1) .and. di(ns) <= dustbsiz(n,2) ) then
+        frac(n) = frac(n) + 1 / cv * (d_one+derf(log(di(ns)/d)/sqrt(d_two)/ &
+                  log(sigmas)))*exp(-(di(ns)/lambda)**3)  !see Kok (2011)
+        end if 
+       end do 
+       totv = totv +   1 / cv * (d_one+derf(log(di(ns)/d)/sqrt(d_two)/ &
+                  log(sigmas)))*exp(-(di(ns)/lambda)**3)
       end do
-
-      do n = 1 , isize
-        frac1(n) = frac1(n)/totv1
-        frac2(n) = frac2(n)/totv2
-        frac3(n) = frac3(n)/totv3
-        if ( frac1(n) < 1.0D-9 ) frac1(n) = d_zero
-        if ( frac2(n) < 1.0D-9 ) frac2(n) = d_zero
-        if ( frac3(n) < 1.0D-9 ) frac3(n) = d_zero
-        frac(n) = frac(n)/totv
-        if ( frac(n) < 1.D-9 ) frac(n) = d_zero
-      end do
+      frac(:) = frac(:) /totv
+    end if 
 
     end subroutine inidust
 !
@@ -715,7 +769,7 @@ module mod_che_dust
       real(rk8) :: beta , p1 , p2 , p3 , rwi , dec , ec , fdp1 , fdp2
       real(rk8) , dimension(ilg,nats) :: fsoil , fsoil1 , fsoil2 , fsoil3
       integer(ik4) :: i , k , n , nt , ns
-      real(rk8) , dimension(ilg,isize,nats) :: rsfrowsub
+     
       real(rk8), dimension(ilg,nbin,nats):: rsfrowt
 
       data beta  /16300.0D0/
@@ -792,27 +846,30 @@ module mod_che_dust
       ! calculate fluxes for each of transport bins
       !
       rsfrowt(:,:,:) = d_zero
-      do nt = 1 , nats
-        do n = 1 , isize
-          do i = il1 , il2
-            ! discretisation of the modal emission in isize emission sub bin
+
+
             if ( ichdustemd == 1 ) then
-              rsfrowsub(i,n,nt) = fsoil1(i,nt)*frac1(n) + &
+             do nt = 1 , nats
+              do n = 1 , nbin
+               do i = il1 , il2
+                  rsfrowt (i,n,nt) = fsoil1(i,nt)*frac1(n) + &
                                   fsoil2(i,nt)*frac2(n) + &
                                   fsoil3(i,nt)*frac3(n)
+               end do
+              end do
+             end do
             else if ( ichdustemd == 2 ) then
-              rsfrowsub(i,n,nt) = fsoil(i,nt)*frac(n)
-            end if
-            ! and in tranport bins (nbin)
-            rwi = (aerosize(1,n)+aerosize(2,n))*d_half*1.0D6
-            do k = 1 , nbin
-              if ( rwi >= trsize(k,1) .and. rwi < trsize(k,2) ) then
-                rsfrowt(i,k,nt) = rsfrowt(i,k,nt) + rsfrowsub(i,n,nt)
-              end if
+             do nt = 1 , nats
+              do n = 1 , nbin
+               do i = il1 , il2
+                rsfrowt (i,n,nt) = fsoil(i,nt)*frac(n)
+              end do
+             end do
             end do
-          end do
-        end do
-      end do
+            
+            end if
+
+
       !
       ! Finally, aggregation of the dust flux at the grid cell level =
       ! weighted sum over soil texture

@@ -1746,11 +1746,12 @@ module mod_rad_radiation
     end do
 
     ! FAB calculation of TOA aerosol radiative forcing
+    ! convert from cgs to MKS
     if ( ichem == 1 .and. idirect > 0 ) then
       do n = n1 , n2
         if ( czengt0(n) ) then
-          aeradfo(n) = -(x0fsntc(n)-fsntc(n))
-          aeradfos(n) = -(x0fsnsc(n)-fsnsc(n))
+          aeradfo(n) = -(x0fsntc(n)-fsntc(n)) * d_r1000 
+          aeradfos(n) = -(x0fsnsc(n)-fsnsc(n)) *d_r1000
         end if
       end do
     end if
@@ -2086,11 +2087,11 @@ module mod_rad_radiation
     !
     ! FAB after this DO loop fsul account for dust LW effect
     ! which is OK in case of idirect=2
-    !
+    ! also convert rad for to MKSA
     if ( ichem == 1 .and. idirect > 0 ) then
-      aerlwfo(:) = fsul0(:,1) - fsul(:,1)
-      aerlwfos(:) = (fsul0(:,kzp1) - fsdl0(:,kzp1)) - &
-                    (fsul(:,kzp1)  - fsdl(:,kzp1) )
+      aerlwfo(:) = (fsul0(:,1) - fsul(:,1) ) * d_r1000
+      aerlwfos(:) = ( (fsul0(:,kzp1) - fsdl0(:,kzp1)) - &
+                    (fsul(:,kzp1)  - fsdl(:,kzp1) ) ) * d_r1000
       ! return to no aerosol LW effect situation if idirect ==1
       if ( idirect == 1 ) then
         fsul(:,:) = fsul0(:,:)

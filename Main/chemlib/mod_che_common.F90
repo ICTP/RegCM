@@ -34,7 +34,7 @@ module mod_che_common
 
   public
 
-  integer(ik4) , parameter :: nbin = 4
+!  integer(ik4) :: nbin 
   integer(ik4) , parameter :: sbin = 2
   integer(ik4) , parameter :: maxntr = 50
 
@@ -223,11 +223,23 @@ module mod_che_common
     iaerosol = 0
     iisoropia = 0
     if ( chemsimtype(1:4) == 'DUST' ) then
+      nbin = 4 
       ntr = nbin
       allocate(chtrname(nbin))
       chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04'/)
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'DUST simulation'
+
+    else if ( chemsimtype(1:4) == 'DU12' ) then
+      nbin = 12
+      ntr = nbin
+      allocate(chtrname(nbin))
+      chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04',&
+                               'DUST05','DUST06','DUST07','DUST08',&
+                               'DUST09','DUST10','DUST11','DUST12' /)
+      iaerosol = 1
+      if ( myid == italk ) write(stdout,*) 'DUST 12 bins simulation'
+
     else if ( chemsimtype(1:4) == 'SSLT' ) then
       ntr = sbin
       allocate(chtrname(ntr))

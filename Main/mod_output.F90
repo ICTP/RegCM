@@ -605,13 +605,22 @@ module mod_output
       if ( ldoche ) then
         ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         if ( associated(opt_acstoarf_out) ) &
-          opt_acstoarf_out = (opt_acstoarf_out * rnrad_for_chem) * d_r1000
+          opt_acstoarf_out = opt_acstoarf_out * rnrad_for_chem 
         if ( associated(opt_acstsrrf_out) ) &
-          opt_acstsrrf_out = (opt_acstsrrf_out * rnrad_for_chem) * d_r1000
+          opt_acstsrrf_out = opt_acstsrrf_out * rnrad_for_chem
         if ( associated(opt_acstalrf_out) ) &
-          opt_acstalrf_out = (opt_acstalrf_out * rnrad_for_chem) * d_r1000
+          opt_acstalrf_out = opt_acstalrf_out * rnrad_for_chem
         if ( associated(opt_acssrlrf_out) ) &
-          opt_acssrlrf_out = (opt_acssrlrf_out * rnrad_for_chem) * d_r1000
+          opt_acssrlrf_out = opt_acssrlrf_out * rnrad_for_chem
+        if ( associated(opt_aastoarf_out) ) &
+          opt_aastoarf_out = opt_aastoarf_out * rnrad_for_chem
+        if ( associated(opt_aastsrrf_out) ) &
+          opt_aastsrrf_out = opt_aastsrrf_out * rnrad_for_chem
+        if ( associated(opt_aastalrf_out) ) &
+          opt_aastalrf_out = opt_aastalrf_out * rnrad_for_chem 
+        if ( associated(opt_aassrlrf_out) ) &
+          opt_aassrlrf_out = opt_aassrlrf_out * rnrad_for_chem
+
         call write_record_output_stream(opt_stream,idatex)
         if ( myid == italk ) &
           write(stdout,*) 'OPT variables written at ' , tochar(idatex)
@@ -619,6 +628,10 @@ module mod_output
         if ( associated(opt_acstsrrf_out) ) opt_acstsrrf_out = d_zero
         if ( associated(opt_acstalrf_out) ) opt_acstalrf_out = d_zero
         if ( associated(opt_acssrlrf_out) ) opt_acssrlrf_out = d_zero
+        if ( associated(opt_aastoarf_out) ) opt_acstoarf_out = d_zero
+        if ( associated(opt_aastsrrf_out) ) opt_acstsrrf_out = d_zero
+        if ( associated(opt_aastalrf_out) ) opt_aastalrf_out = d_zero
+        if ( associated(opt_aassrlrf_out) ) opt_aassrlrf_out = d_zero
       end if
     end if
 

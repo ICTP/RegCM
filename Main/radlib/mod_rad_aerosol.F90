@@ -27,14 +27,15 @@ module mod_rad_aerosol
   use mod_memutil
   use mod_mpmessage
   use mod_rad_common
-
+  use parrrsw, only : nbndsw
+  use parrrtm, only : nbndlw
   implicit none
 
   private
 
   public :: tauxar3d , tauasc3d , gtota3d , ftota3d
   public :: tauxar , tauasc , gtota , ftota
-  public :: aertrlw
+  public :: aertrlw,tauxar3d_lw
   public :: allocate_mod_rad_aerosol , aermix , aeroppt
 !
 ! MODIF 16/09/2005 IBRAH Internal mixing
@@ -63,12 +64,30 @@ module mod_rad_aerosol
 !
   integer(ik4) , private :: ii , jj ! coefficient index
 !
-  real(rk8) , dimension(nspi) :: gsbase , gsbc_hb , gsbc_hl , gsoc_hb , &
-            gsoc_hl , ksbase , ksbc_hb , ksbc_hl , ksoc_hb , ksoc_hl , &
-            wsbase , wsbc_hb , wsbc_hl , wsoc_hb , wsoc_hl
+
+!sulfate param for standard scheme / works only with rad standard (Brieglieb et al.) 
+  real(rk8) , dimension(nspi) :: gsbase  , ksbase , wsbase 
   real(rk8) , dimension(nspi,ncoefs) :: gscoef , kscoef , wscoef
+
+! optical properties for dust and org / for rrtm and standard scheme
+  real(rk8) , dimension(nspi) ::  gsbc_hb_stand  , gsbc_hl_stand  , gsoc_hb_stand  , &
+              gsoc_hl_stand , ksbc_hb_stand  , ksbc_hl_stand , ksoc_hb_stand  , ksoc_hl_stand  , &
+              wsbc_hb_stand  , wsbc_hl_stand  , wsoc_hb_stand  , wsoc_hl_stand 
+
+  real(rk8) , dimension(nbndsw) :: gsbc_hb_rrtm  , gsbc_hl_rrtm  , gsoc_hb_rrtm  , &
+              gsoc_hl_rrtm, ksbc_hb_rrtm  , ksbc_hl_rrtm , ksoc_hb_rrtm  , ksoc_hl_rrtm  , &
+              wsbc_hb_rrtm  , wsbc_hl_rrtm  , wsoc_hb_rrtm  , wsoc_hl_rrtm 
+ 
+  
+  real(rk8) , dimension(nspi,4) :: gsdust_stand , ksdust_stand  , wsdust_stand 
+  real(rk8), dimension(nspi,12) :: gsdust12_stand  , ksdust12_stand  , wsdust12_stand 
+
+  real(rk8) , dimension(nbndsw,4) :: gsdust_rrtm , ksdust_rrtm  , wsdust_rrtm 
+  real(rk8), dimension(nbndsw,12) :: gsdust12_rrtm  , ksdust12_rrtm  , wsdust12_rrtm 
+ real(rk8), dimension(nbndlw,12) ::  ksdust12_rrtm_lw  
+
+! sea salt oppt  param for standard scheme
   real(rk8) , dimension(nwav,2,nih) :: ksslt , wsslt , gsslt
-  real(rk8) , dimension(nspi,4) :: gsdust , ksdust , wsdust
   real(rk8) , dimension(nspi,2) :: gssslt , kssslt , wssslt
   !
   real(rk8) , dimension(8) :: rhp
@@ -83,8 +102,16 @@ module mod_rad_aerosol
 !
 ! Aerosol optical properties (for the mixing)
 !
+  real(rk8) , pointer , dimension(:) ::    gsbc_hb  , gsbc_hl  , gsoc_hb  , &
+            gsoc_hl  , ksbc_hb  , ksbc_hl , ksoc_hb  , ksoc_hl  , &
+            wsbc_hb  , wsbc_hl  , wsoc_hb  , wsoc_hl 
+
+  real(rk8) , pointer,  dimension(:,:) :: gsdust , ksdust , wsdust, ksdust_lw  
+                                          
+                                               
+
   real(rk8) , pointer , dimension(:,:,:) :: ftota3d ,   &
-                 gtota3d , tauasc3d , tauxar3d
+                 gtota3d , tauasc3d , tauxar3d, tauxar3d_lw
 !
   real(rk8) , pointer , dimension(:,:) :: ftota ,  &
          gtota , tauasc , tauxar
@@ -116,7 +143,7 @@ module mod_rad_aerosol
 !                  DATA SECTION
 !------------------------------------------------------------------------------
 !
-  data ksbase/5.206D0 , 5.206D0 , 5.206D0 , 5.206D0 , 5.206D0 ,    &
+  data ksbase /5.206D0 , 5.206D0 , 5.206D0 , 5.206D0 , 5.206D0 ,    &
       5.206D0 , 5.206D0 , 3.203D0 , 3.203D0 , 1.302D0 , 5.992D-01 ,&
       2.948D-01 , 1.475D-01 , 7.387D-02 , 1.683D-01 , 2.655D-01 ,  &
       5.770D-02 , 2.290D-01 , 2.270D-01/
@@ -211,19 +238,19 @@ module mod_rad_aerosol
 !
 !-----------------------------------------------------------------------
 !
-  data ksbc_hb /20.7830D0 , 17.2120D0 , 15.8640D0 , 15.0530D0 , &
+  data ksbc_hb_stand /20.7830D0 , 17.2120D0 , 15.8640D0 , 15.0530D0 , &
                 14.3040D0 , 13.6130D0 , 11.9660D0 ,  6.5782D0 , &
                  4.3961D0 ,  4.3800D0 ,  2.1100D0 ,  2.1100D0 , &
                  2.1100D0 ,  2.1100D0 ,  1.4000D0 ,  1.4000D0 , &
                  1.4000D0 ,  1.4000D0 ,  1.4000D0/
 
-  data wsbc_hb /0.245240D0 , 0.209620D0 , 0.195000D0 , 0.185860D0 , &
+  data wsbc_hb_stand  /0.245240D0 , 0.209620D0 , 0.195000D0 , 0.185860D0 , &
                 0.177190D0 , 0.168970D0 , 0.148490D0 , 0.071748D0 , &
                 0.037536D0 , 0.089000D0 , 0.025000D0 , 0.025000D0 , &
                 0.025000D0 , 0.025000D0 , 0.009000D0 , 0.009000D0 , &
                 0.009000D0 , 0.009000D0 , 0.009000D0/
 
-  data gsbc_hb /0.213870D0 , 0.171540D0 , 0.155640D0 , 0.146100D0 , &
+  data gsbc_hb_stand /0.213870D0 , 0.171540D0 , 0.155640D0 , 0.146100D0 , &
                 0.137320D0 , 0.129230D0 , 0.110060D0 , 0.049175D0 , &
                 0.026638D0 , 0.220000D0 , 0.123000D0 , 0.123000D0 , &
                 0.123000D0 , 0.123000D0 , 0.073000D0 , 0.073000D0 , &
@@ -231,19 +258,19 @@ module mod_rad_aerosol
 !
 !----------------------------------------------------------------------
 !
-  data ksbc_hl /14.8510D0 , 14.2580D0 , 13.9430D0 , 13.7240D0 , &
+  data ksbc_hl_stand  /14.8510D0 , 14.2580D0 , 13.9430D0 , 13.7240D0 , &
                 13.5070D0 , 13.2950D0 , 12.7220D0 ,  9.4434D0 , &
                  6.9653D0 ,  4.3800D0 ,  2.1100D0 ,  2.1100D0 , &
                  2.1100D0 ,  2.1100D0 ,  1.4000D0 ,  1.4000D0 , &
                  1.4000D0 ,  1.4000D0 ,  1.4000D0/
 
-  data wsbc_hl /0.46081D0 , 0.44933D0 , 0.44397D0 , 0.44065D0 , &
+  data wsbc_hl_stand  /0.46081D0 , 0.44933D0 , 0.44397D0 , 0.44065D0 , &
                 0.43737D0 , 0.43394D0 , 0.42346D0 , 0.35913D0 , &
                 0.29579D0 , 0.08900D0 , 0.02500D0 , 0.02500D0 , &
                 0.02500D0 , 0.02500D0 , 0.00900D0 , 0.00900D0 , &
                 0.00900D0 , 0.00900D0 , 0.00900D0/
 
-  data gsbc_hl /0.69038D0 , 0.65449D0 , 0.63711D0 , 0.62542D0 , &
+  data gsbc_hl_stand /0.69038D0 , 0.65449D0 , 0.63711D0 , 0.62542D0 , &
                 0.61407D0 , 0.60319D0 , 0.57467D0 , 0.42050D0 , &
                 0.30660D0 , 0.22000D0 , 0.12300D0 , 0.12300D0 , &
                 0.12300D0 , 0.12300D0 , 0.07300D0 , 0.07300D0 , &
@@ -251,19 +278,19 @@ module mod_rad_aerosol
 !
 !---------------------------------------------------------------------
 !
-  data ksoc_hb /6.0584D0 ,  6.0654D0 ,  6.1179D0 ,  6.0102D0 ,  &
+  data ksoc_hb_stand  /6.0584D0 ,  6.0654D0 ,  6.1179D0 ,  6.0102D0 ,  &
                 5.8000D0 ,  5.6957D0 ,  5.6494D0 ,  4.3283D0 ,  &
                 3.1485D0 ,  1.3020D0 ,  5.992D-01 , 2.948D-01 , &
                 1.475D-01 , 7.387D-02 , 1.683D-01 , 2.655D-01 , &
                 5.770D-02 , 2.290D-01 , 2.270D-01/
 
-  data wsoc_hb /0.91735D0 , 0.92365D0 , 0.92941D0 , 0.93067D0 , &
+  data wsoc_hb_stand  /0.91735D0 , 0.92365D0 , 0.92941D0 , 0.93067D0 , &
                 0.93311D0 , 0.93766D0 , 0.94042D0 , 0.95343D0 , &
                 0.95480D0 , 0.70566D0 , 0.70566D0 , 0.70566D0 , &
                 0.70566D0 , 0.70566D0 , 0.70566D0 , 0.70566D0 , &
                 0.70566D0 , 0.70566D0 , 0.70566D0/
 
-  data gsoc_hb /0.67489D0 ,  0.67003D0 ,  0.67725D0 ,  0.65487D0 ,  &
+  data gsoc_hb_stand  /0.67489D0 ,  0.67003D0 ,  0.67725D0 ,  0.65487D0 ,  &
                 0.65117D0 ,  0.66116D0 ,  0.64547D0 ,  0.60033D0 ,  &
                 0.55389D0 ,  5.9120D-01 , 5.1110D-01 , 4.2690D-01 , &
                 3.3210D-01 , 2.1970D-01 , 1.3050D-01 , 7.3560D-02 , &
@@ -271,19 +298,19 @@ module mod_rad_aerosol
 !
 !---------------------------------------------------------------------
 !
-  data ksoc_hl / 3.5430D0 ,  3.6230D0 ,  3.7155D0  , 3.7120D0 ,  &
+  data ksoc_hl_stand  / 3.5430D0 ,  3.6230D0 ,  3.7155D0  , 3.7120D0 ,  &
                  3.6451D0 ,  3.6376D0 ,  3.6844D0  , 3.4588D0 ,  &
                  2.9846D0 ,  1.3020D0 ,  5.992D-01 , 2.948D-01 , &
                  1.475D-01 , 7.387D-02 , 1.683D-01 , 2.655D-01 , &
                  5.770D-02 , 2.290D-01 , 2.270D-01/
 !
-  data wsoc_hl /0.87931D0 , 0.88292D0 , 0.89214D0 , 0.89631D0 , &
+  data wsoc_hl_stand  /0.87931D0 , 0.88292D0 , 0.89214D0 , 0.89631D0 , &
                 0.89996D0 , 0.90540D0 , 0.90805D0 , 0.93423D0 , &
                 0.95012D0 , 0.85546D0 , 0.85546D0 , 0.85546D0 , &
                 0.85546D0 , 0.85546D0 , 0.85546D0 , 0.85546D0 , &
                 0.85546D0 , 0.85546D0 , 0.85546D0/
 !
-  data gsoc_hl /0.73126D0 , 0.71089D0 , 0.72042D0 , 0.69924D0 , &
+  data gsoc_hl_stand  /0.73126D0 , 0.71089D0 , 0.72042D0 , 0.69924D0 , &
                 0.69908D0 , 0.70696D0 , 0.68479D0 , 0.64879D0 , &
                 0.63433D0 , 5.912D-01 , 5.111D-01 , 4.269D-01 , &
                 3.321D-01 , 2.197D-01 , 1.305D-01 , 7.356D-02 , &
@@ -292,7 +319,7 @@ module mod_rad_aerosol
 !     DUST OP data base for external mixing : maximum of 4 bin for the
 !     momeent , determined from Zender et al.
 !
-  data ((ksdust(ii,jj),jj=1,4),ii=1,nspi) / 1.88010D0 , 0.76017D0 , &
+  data ((ksdust_stand (ii,jj),jj=1,4),ii=1,nspi) / 1.88010D0 , 0.76017D0 , &
         0.36681D0 , 0.16933D0 , 2.02540D0 , 0.78378D0 , 0.36845D0 , &
         0.17002D0 , 1.95470D0 , 0.76389D0 , 0.37119D0 , 0.17032D0 , &
         1.89960D0 , 0.74916D0 , 0.37220D0 , 0.17052D0 , 1.79460D0 , &
@@ -308,8 +335,8 @@ module mod_rad_aerosol
         0.53605D0 , 0.20599D0 , 0.50391D0 , 0.67245D0 , 0.53605D0 , &
         0.20599D0 , 0.50391D0 , 0.67245D0 , 0.53605D0 , 0.20599D0 , &
         0.50391D0 , 0.67245D0 , 0.53605D0 , 0.20599D0/
-!
-  data ((wsdust(ii,jj),jj=1,4),ii=1,nspi) / 0.64328D0 , 0.55196D0 , &
+
+  data ((wsdust_stand (ii,jj),jj=1,4),ii=1,nspi) / 0.64328D0 , 0.55196D0 , &
         0.53748D0 , 0.54342D0 , 0.67757D0 , 0.56909D0 , 0.53639D0 , &
         0.54232D0 , 0.67316D0 , 0.56027D0 , 0.53875D0 , 0.54181D0 , &
         0.66245D0 , 0.55338D0 , 0.53947D0 , 0.54149D0 , 0.68132D0 , &
@@ -326,7 +353,7 @@ module mod_rad_aerosol
         0.89293D0 , 0.89568D0 , 0.96322D0 , 0.95008D0 , 0.89293D0 , &
         0.89568D0 , 0.96322D0 , 0.95008D0 , 0.89293D0/
 !
-  data ((gsdust(ii,jj),jj=1,4),ii=1,nspi) / 0.87114D0 , 0.92556D0 , &
+  data ((gsdust_stand (ii,jj),jj=1,4),ii=1,nspi) / 0.87114D0 , 0.92556D0 , &
         0.94542D0 , 0.94831D0 , 0.86127D0 , 0.92100D0 , 0.94355D0 , &
         0.94813D0 , 0.83800D0 , 0.91194D0 , 0.94304D0 , 0.94803D0 , &
         0.81760D0 , 0.90442D0 , 0.94239D0 , 0.94796D0 , 0.77088D0 , &
@@ -342,7 +369,121 @@ module mod_rad_aerosol
         0.68897D0 , 0.68174D0 , 0.26761D0 , 0.56045D0 , 0.68897D0 , &
         0.68174D0 , 0.26761D0 , 0.56045D0 , 0.68897D0 , 0.68174D0 , &
         0.26761D0 , 0.56045D0 , 0.68897D0 , 0.68174D0/
+
+
+data ((ksdust12_rrtm (ii,jj),jj=1,12),ii=1,nbndsw) / &
+2.72948D-03, 1.05097D-02, 1.28690D-01, 4.58140D-01, 6.25384D-01, 5.67730D-01,4.20692D-01, 2.20517D-01, 1.46855D-01, 8.05498D-02, 4.74997D-02, 3.00359D-02,&
+3.96960D-03, 2.23419D-02, 2.57957D-01, 6.75648D-01, 7.47434D-01, 5.12739D-01,2.88169D-01, 1.64365D-01, 1.49056D-01, 7.84490D-02, 4.71086D-02, 2.93560D-02,&
+5.58669D-03, 4.28785D-02, 4.33757D-01, 9.39034D-01, 7.62785D-01, 3.76847D-01,2.09533D-01, 2.15889D-01, 1.16729D-01, 8.28706D-02, 4.62397D-02, 2.92904D-02,&
+7.26846D-03, 6.86183D-02, 6.46740D-01, 1.02583D+00, 6.83835D-01, 2.85331D-01,2.19521D-01, 2.52894D-01, 1.40686D-01, 7.36198D-02, 4.62776D-02, 2.90049D-02,&
+1.00291D-02, 1.17021D-01, 9.61487D-01, 1.16843D+00, 5.61863D-01, 2.53167D-01,2.86868D-01, 2.16731D-01, 1.33201D-01, 7.83249D-02, 4.55693D-02, 2.89160D-02,&
+1.69911D-02, 2.47432D-01, 1.32737D+00, 1.13745D+00, 3.72238D-01, 3.47236D-01,2.88531D-01, 1.89873D-01, 1.29320D-01, 7.61732D-02, 4.52760D-02, 2.88026D-02,&
+2.49299D-02, 3.93107D-01, 1.74189D+00, 1.05356D+00, 3.33502D-01, 3.96214D-01,2.23144D-01, 2.26244D-01, 1.18460D-01, 7.90690D-02, 4.42922D-02, 2.85342D-02,&
+6.09426D-02, 8.91504D-01, 2.03876D+00, 6.82357D-01, 4.62954D-01, 3.20372D-01,2.47584D-01, 1.95196D-01, 1.25126D-01, 7.48942D-02, 4.45527D-02, 2.84688D-02,&
+2.01171D-01, 2.39732D+00, 1.86163D+00, 7.22278D-01, 3.93826D-01, 2.96730D-01,2.49322D-01, 1.92359D-01, 1.22366D-01, 7.37752D-02, 4.40550D-02, 2.82308D-02,&
+6.22058D-01, 3.83522D+00, 1.17175D+00, 6.87013D-01, 4.27299D-01, 3.06369D-01,2.42542D-01, 1.89225D-01, 1.21452D-01, 7.32786D-02, 4.37889D-02, 2.80936D-02,&
+1.77007D+00, 5.17408D+00, 1.25537D+00, 6.72982D-01, 4.10053D-01, 2.92894D-01,2.36534D-01, 1.85151D-01, 1.19775D-01, 7.26544D-02, 4.35189D-02, 2.79676D-02,&
+3.85513D+00, 5.04019D+00, 1.30027D+00, 6.30313D-01, 4.01259D-01, 2.91139D-01,2.33807D-01, 1.83256D-01, 1.18858D-01, 7.22256D-02, 4.33345D-02, 1.00000D-20,&
+7.61601D+00, 3.65543D+00, 1.19341D+00, 6.21575D-01, 3.94794D-01, 2.87308D-01,2.31411D-01, 1.81592D-01, 1.18014D-01, 7.18499D-02, 4.31715D-02, 1.00000D-20,&
+9.97750D-04, 1.76373D-03, 1.43158D-02, 6.47129D-02, 1.47315D-01, 2.11338D-01,2.42352D-01, 2.51536D-01, 1.94438D-01, 1.00233D-01, 4.90044D-02, 3.17719D-02 /
+
+data ((wsdust12_rrtm (ii,jj),jj=1,12),ii=1,nbndsw) / &
+1.09340D-01, 7.44437D-01, 9.71476D-01, 9.87375D-01, 9.90051D-01, 9.88374D-01,9.83892D-01, 9.67989D-01, 9.54207D-01, 9.28060D-01, 8.96477D-01, 8.58330D-01,&
+1.78006D-01, 8.32865D-01, 9.78937D-01, 9.88943D-01, 9.88544D-01, 9.82510D-01,9.67867D-01, 9.45076D-01, 9.41136D-01, 9.10361D-01, 8.72626D-01, 8.23501D-01,&
+2.59037D-01, 8.86310D-01, 9.81759D-01, 9.88627D-01, 9.85287D-01, 9.69910D-01,9.45027D-01, 9.47820D-01, 9.14237D-01, 8.99370D-01, 8.47013D-01, 7.93639D-01,&
+3.30266D-01, 9.14146D-01, 9.83361D-01, 9.88473D-01, 9.80679D-01, 9.52761D-01,9.39744D-01, 9.49006D-01, 9.22952D-01, 8.73460D-01, 8.30465D-01, 7.70237D-01,&
+4.19588D-01, 9.36441D-01, 9.86080D-01, 9.87200D-01, 9.71644D-01, 9.38151D-01,9.46501D-01, 9.32188D-01, 9.08616D-01, 8.67375D-01, 8.08301D-01, 7.46269D-01,&
+5.56481D-01, 9.58262D-01, 9.87344D-01, 9.83070D-01, 9.46494D-01, 9.44305D-01,9.34754D-01, 9.11477D-01, 8.89347D-01, 8.40595D-01, 7.77415D-01, 7.11804D-01,&
+6.48767D-01, 9.68363D-01, 9.87373D-01, 9.76232D-01, 9.37328D-01, 9.42950D-01,9.07787D-01, 9.20349D-01, 8.65349D-01, 8.30818D-01, 7.50775D-01, 6.86180D-01,&
+7.74388D-01, 9.76674D-01, 9.86210D-01, 9.53073D-01, 9.36816D-01, 9.18098D-01,9.04123D-01, 8.87840D-01, 8.48355D-01, 7.88857D-01, 7.15187D-01, 6.49858D-01,&
+9.02079D-01, 9.84543D-01, 9.77098D-01, 9.41579D-01, 9.07323D-01, 8.90279D-01,8.76244D-01, 8.53588D-01, 8.02472D-01, 7.32884D-01, 6.57070D-01, 6.01391D-01,&
+9.01246D-01, 9.72366D-01, 8.91438D-01, 8.50295D-01, 8.12766D-01, 7.76625D-01,7.48010D-01, 7.16036D-01, 6.59625D-01, 6.05375D-01, 5.69713D-01, 5.54799D-01,&
+8.69690D-01, 9.32847D-01, 7.63443D-01, 7.01149D-01, 6.31386D-01, 5.92917D-01,5.76659D-01, 5.61551D-01, 5.47911D-01, 5.45667D-01, 5.47216D-01, 5.48324D-01,&
+8.42400D-01, 8.58172D-01, 6.57181D-01, 5.72085D-01, 5.48832D-01, 5.41316D-01,5.39378D-01, 5.40216D-01, 5.43356D-01, 5.46259D-01, 5.47985D-01, 5.00000D-01,&
+8.48520D-01, 7.09509D-01, 5.70206D-01, 5.35622D-01, 5.34532D-01, 5.37518D-01,5.39774D-01, 5.42083D-01, 5.45190D-01, 5.47380D-01, 5.48590D-01, 5.00000D-01,&
+2.09253D-02, 2.91017D-01, 8.11386D-01, 9.53685D-01, 9.81216D-01, 9.87701D-01,9.89537D-01, 9.90139D-01, 9.83821D-01, 9.69371D-01, 9.48524D-01, 9.28404D-01/
+
+data ((gsdust12_rrtm (ii,jj),jj=1,12),ii=1,nbndsw) / &
+3.46379E-03, 2.99321E-02, 2.02337E-01, 6.16252E-01, 7.21069E-01, 7.35882E-01,7.00282E-01, 5.57231E-01, 6.99890E-01, 7.50332E-01, 7.94881E-01, 8.23712E-01,&
+5.32454E-03, 4.58652E-02, 3.30338E-01, 6.41233E-01, 7.35060E-01, 6.99022E-01,5.71750E-01, 4.98460E-01, 7.67045E-01, 7.60635E-01, 8.10746E-01, 8.37959E-01,&
+7.60988E-03, 6.54008E-02, 4.95852E-01, 7.22164E-01, 7.24757E-01, 6.03182E-01,4.73265E-01, 6.86063E-01, 7.21469E-01, 8.01505E-01, 8.24644E-01, 8.53110E-01,&
+9.78847E-03, 8.40745E-02, 6.01693E-01, 7.18575E-01, 6.95022E-01, 4.89171E-01,5.58598E-01, 7.72881E-01, 7.75748E-01, 7.87758E-01, 8.35258E-01, 8.61751E-01,&
+1.29334E-02, 1.11347E-01, 6.19352E-01, 7.38646E-01, 6.30267E-01, 4.94111E-01,7.14231E-01, 7.65081E-01, 7.69894E-01, 8.11382E-01, 8.44376E-01, 8.72182E-01,&
+1.92973E-02, 1.68701E-01, 6.58747E-01, 7.18152E-01, 4.90052E-01, 7.02517E-01,7.71167E-01, 7.40547E-01, 7.91408E-01, 8.24420E-01, 8.59087E-01, 8.86589E-01,&
+2.52011E-02, 2.25066E-01, 7.26645E-01, 6.79960E-01, 5.29683E-01, 7.76974E-01,7.17543E-01, 7.93729E-01, 7.84479E-01, 8.42833E-01, 8.66250E-01, 8.95115E-01,&
+4.19456E-02, 4.02610E-01, 7.29282E-01, 5.52694E-01, 7.13001E-01, 7.58849E-01,7.60124E-01, 7.82627E-01, 8.17454E-01, 8.51547E-01, 8.84484E-01, 9.09941E-01,&
+8.28151E-02, 6.19089E-01, 6.85932E-01, 7.02482E-01, 7.39448E-01, 7.66561E-01,8.02612E-01, 8.15096E-01, 8.44005E-01, 8.76250E-01, 9.06868E-01, 9.28012E-01,&
+1.47716E-01, 6.85494E-01, 5.44204E-01, 7.79828E-01, 8.07462E-01, 8.40093E-01,8.53897E-01, 8.72429E-01, 8.99659E-01, 9.23888E-01, 9.39399E-01, 9.45923E-01,&
+2.84132E-01, 7.44738E-01, 7.33322E-01, 8.50731E-01, 8.92127E-01, 9.12016E-01,9.24673E-01, 9.34774E-01, 9.44573E-01, 9.48195E-01, 9.48839E-01, 9.48915E-01,&
+5.04929E-01, 7.52464E-01, 8.65095E-01, 9.05884E-01, 9.33183E-01, 9.42013E-01,9.45047E-01, 9.46979E-01, 9.48268E-01, 9.48695E-01, 9.48832E-01, 9.90000E-01,&
+6.32938E-01, 6.96838E-01, 8.93021E-01, 9.34684E-01, 9.44583E-01, 9.46880E-01,9.47578E-01, 9.48038E-01, 9.48490E-01, 9.48714E-01, 9.48767E-01, 9.90000E-01,&
+8.87657E-04, 7.71129E-03, 5.06849E-02, 1.80875E-01, 3.66911E-01, 5.23451E-01,6.19055E-01, 6.74429E-01, 6.73365E-01, 6.39275E-01, 6.80069E-01, 7.61202E-01/
+
 !
+data ((ksdust12_stand (ii,jj),jj=1,12),ii=1,nspi) / &
+5.82605D+00, 5.30982D+00, 1.44072D+00, 6.46088D-01, 4.06936D-01, 2.89033D-01, 2.33752D-01, 1.84485D-01, 1.25724D-01, 7.30034D-02, 1.00000D-20, 1.00000D-20,&
+3.92185D+00, 5.44157D+00, 1.42496D+00, 6.51380D-01, 4.09548D-01, 2.90722D-01, 2.34956D-01, 1.85304D-01, 1.26168D-01, 7.31844D-02, 1.00000D-20, 1.00000D-20,&
+3.34761D+00, 5.44018D+00, 1.41674D+00, 6.50973D-01, 4.10955D-01, 2.91565D-01, 2.35470D-01, 1.85664D-01, 1.26366D-01, 7.32652D-02, 1.00000D-20, 1.00000D-20,&
+3.02282D+00, 5.43838D+00, 1.41367D+00, 6.52048D-01, 4.12576D-01, 2.91860D-01, 2.35824D-01, 1.85914D-01, 1.26495D-01, 7.33181D-02, 1.00000D-20, 1.00000D-20,&
+2.73157D+00, 5.39746D+00, 1.41976D+00, 6.55378D-01, 4.13786D-01, 2.92314D-01, 2.36243D-01, 1.86151D-01, 1.26625D-01, 7.33705D-02, 4.34019D-02, 1.00000D-20,&
+2.46940D+00, 5.37280D+00, 1.42070D+00, 6.60716D-01, 4.14107D-01, 2.93162D-01, 2.36530D-01, 1.86366D-01, 1.26751D-01, 7.34223D-02, 4.34237D-02, 1.00000D-20,&
+1.88028D+00, 5.27157D+00, 1.44707D+00, 6.72827D-01, 4.15358D-01, 2.94211D-01, 2.37435D-01, 1.87021D-01, 1.27096D-01, 7.35618D-02, 4.34826D-02, 1.00000D-20,&
+5.47130D-01, 3.57883D+00, 1.81699D+00, 7.07262D-01, 4.28308D-01, 3.02019D-01, 2.42130D-01, 1.90466D-01, 1.29002D-01, 7.43120D-02, 4.38195D-02, 1.00000D-20,&
+1.13816D-01, 1.95724D+00, 2.10074D+00, 7.13763D-01, 4.29890D-01, 2.97812D-01, 2.48246D-01, 1.95955D-01, 1.30571D-01, 7.50355D-02, 4.41201D-02, 2.82240D-02,&
+1.43850D-02, 2.38501D-01, 5.81777D-01, 6.12041D-01, 5.34167D-01, 4.29108D-01, 3.43648D-01, 2.49103D-01, 1.44168D-01, 8.34307D-02, 4.71212D-02, 2.90008D-02,&
+1.43301D-02, 2.37798D-01, 5.81505D-01, 6.11995D-01, 5.34208D-01, 4.29167D-01, 3.43706D-01, 2.49093D-01, 1.44179D-01, 8.34394D-02, 4.71195D-02, 2.90007D-02,&
+1.43301D-02, 2.37798D-01, 5.81505D-01, 6.11995D-01, 5.34208D-01, 4.29167D-01, 3.43706D-01, 2.49093D-01, 1.44179D-01, 8.34394D-02, 4.71195D-02, 2.90007D-02,&
+1.43301D-02, 2.37798D-01, 5.81505D-01, 6.11995D-01, 5.34208D-01, 4.29167D-01, 3.43706D-01, 2.49093D-01, 1.44179D-01, 8.34394D-02, 4.71195D-02, 2.90007D-02,&
+1.43301D-02, 2.37798D-01, 5.81505D-01, 6.11995D-01, 5.34208D-01, 4.29167D-01, 3.43706D-01, 2.49093D-01, 1.44179D-01, 8.34394D-02, 4.71195D-02, 2.90007D-02,&
+1.42754D-02, 2.37098D-01, 5.81236D-01, 6.11932D-01, 5.34250D-01, 4.29172D-01, 3.43731D-01, 2.49061D-01, 1.44196D-01, 8.34493D-02, 4.71169D-02, 2.90011D-02,&
+1.42754D-02, 2.37098D-01, 5.81236D-01, 6.11932D-01, 5.34250D-01, 4.29172D-01, 3.43731D-01, 2.49061D-01, 1.44196D-01, 8.34493D-02, 4.71169D-02, 2.90011D-02,&
+3.61802D-03, 1.96700D-02, 2.40837D-01, 6.90188D-01, 7.42462D-01, 5.11023D-01, 2.91703D-01, 1.73126D-01, 1.56436D-01, 8.23404D-02, 4.55453D-02, 2.95979D-02,&
+1.78064D-03, 4.31951D-03, 5.18355D-02, 2.20056D-01, 4.25718D-01, 4.93497D-01, 4.62575D-01, 3.40392D-01, 1.43665D-01, 9.15974D-02, 4.41742D-02, 3.00372D-02,&
+1.78064D-03, 4.31951D-03, 5.18355D-02, 2.20056D-01, 4.25718D-01, 4.93497D-01, 4.62575D-01, 3.40392D-01, 1.43665D-01, 9.15974D-02, 4.41742D-02, 3.00372D-02 / 
+
+data ((wsdust12_stand (ii,jj),jj=1,12),ii=1,nspi) / &
+8.03780D-01, 7.36897D-01, 5.78261D-01, 5.36202D-01, 5.34536D-01, 5.37743D-01, 5.40048D-01, 5.42302D-01, 5.45056D-01, 5.47463D-01, 5.00000D-01, 5.00000D-01,&
+7.99301D-01, 7.94829D-01, 6.00564D-01, 5.45354D-01, 5.35369D-01, 5.36572D-01, 5.38641D-01, 5.41019D-01, 5.44150D-01, 5.46961D-01, 5.00000D-01, 5.00000D-01,&
+7.97433D-01, 8.20288D-01, 6.13124D-01, 5.50490D-01, 5.37324D-01, 5.36678D-01, 5.38149D-01, 5.40465D-01, 5.43734D-01, 5.46725D-01, 5.00000D-01, 5.00000D-01,&
+7.95686D-01, 8.33319D-01, 6.23304D-01, 5.55428D-01, 5.40009D-01, 5.36671D-01, 5.37987D-01, 5.40171D-01, 5.43458D-01, 5.46566D-01, 5.00000D-01, 5.00000D-01,&
+7.93633D-01, 8.47253D-01, 6.33117D-01, 5.62435D-01, 5.42884D-01, 5.37174D-01, 5.38106D-01, 5.39910D-01, 5.43194D-01, 5.46407D-01, 5.48104D-01, 5.00000D-01,&
+7.91376D-01, 8.60061D-01, 6.43199D-01, 5.71515D-01, 5.45557D-01, 5.38667D-01, 5.38213D-01, 5.39690D-01, 5.42933D-01, 5.46247D-01, 5.48018D-01, 5.00000D-01,&
+7.91539D-01, 8.85778D-01, 6.82406D-01, 6.05722D-01, 5.61734D-01, 5.46270D-01, 5.42012D-01, 5.40825D-01, 5.42557D-01, 5.45805D-01, 5.47773D-01, 5.00000D-01,&
+8.16759D-01, 9.52989D-01, 8.76231D-01, 8.07373D-01, 7.59934D-01, 7.23814D-01, 7.00613D-01, 6.75834D-01, 6.38271D-01, 5.95887D-01, 5.68268D-01, 5.00000D-01,&
+8.33502D-01, 9.78783D-01, 9.71464D-01, 9.37056D-01, 9.09948D-01, 8.85800D-01, 8.70473D-01, 8.49436D-01, 8.00642D-01, 7.26096D-01, 6.48635D-01, 5.94727D-01,&
+2.08783D-01, 7.06520D-01, 9.57579D-01, 9.79975D-01, 9.73860D-01, 9.64989D-01, 9.57201D-01, 9.46153D-01, 9.24151D-01, 8.90923D-01, 8.46069D-01, 7.95945D-01,&
+2.08637D-01, 7.06464D-01, 9.57584D-01, 9.79988D-01, 9.73911D-01, 9.65026D-01, 9.57130D-01, 9.46201D-01, 9.24183D-01, 8.90979D-01, 8.46132D-01, 7.96001D-01,&
+2.08637D-01, 7.06464D-01, 9.57584D-01, 9.79988D-01, 9.73911D-01, 9.65026D-01, 9.57130D-01, 9.46201D-01, 9.24183D-01, 8.90979D-01, 8.46132D-01, 7.96001D-01,&
+2.08637D-01, 7.06464D-01, 9.57584D-01, 9.79988D-01, 9.73911D-01, 9.65026D-01, 9.57130D-01, 9.46201D-01, 9.24183D-01, 8.90979D-01, 8.46132D-01, 7.96001D-01,&
+2.08637D-01, 7.06464D-01, 9.57584D-01, 9.79988D-01, 9.73911D-01, 9.65026D-01, 9.57130D-01, 9.46201D-01, 9.24183D-01, 8.90979D-01, 8.46132D-01, 7.96001D-01,&
+2.08492D-01, 7.06408D-01, 9.57590D-01, 9.79998D-01, 9.73929D-01, 9.65149D-01, 9.57123D-01, 9.46308D-01, 9.24198D-01, 8.91029D-01, 8.46194D-01, 7.96056D-01,&
+2.08492D-01, 7.06408D-01, 9.57590D-01, 9.79998D-01, 9.73929D-01, 9.65149D-01, 9.57123D-01, 9.46308D-01, 9.24198D-01, 8.91029D-01, 8.46194D-01, 7.96056D-01,&
+9.14436D-02, 7.18841D-01, 9.69097D-01, 9.88435D-01, 9.88239D-01, 9.82017D-01, 9.67379D-01, 9.46405D-01, 9.41366D-01, 9.12332D-01, 8.66683D-01, 8.22320D-01,&
+2.93192D-02, 4.95389D-01, 9.28109D-01, 9.84462D-01, 9.90160D-01, 9.90949D-01, 9.89883D-01, 9.85447D-01, 9.63209D-01, 9.47218D-01, 9.14608D-01, 8.88785D-01,&
+2.93192D-02, 4.95389D-01, 9.28109D-01, 9.84462D-01, 9.90160D-01, 9.90949D-01, 9.89883D-01, 9.85447D-01, 9.63209D-01, 9.47218D-01, 9.14608D-01, 8.88785D-01 /
+
+data ((gsdust12_stand (ii,jj),jj=1,12),ii=1,nspi) / &
+5.46546E-01, 7.19875E-01, 8.86115E-01, 9.36182E-01, 9.44853E-01, 9.47046E-01, 9.47651E-01, 9.48064E-01, 9.48455E-01, 9.48708E-01, 9.90000E-01, 9.90000E-01,&
+4.15561E-01, 7.20841E-01, 8.50893E-01, 9.27581E-01, 9.42077E-01, 9.46199E-01, 9.47249E-01, 9.47862E-01, 9.48376E-01, 9.48709E-01, 9.90000E-01, 9.90000E-01,&
+3.61926E-01, 7.26308E-01, 8.31440E-01, 9.21453E-01, 9.40080E-01, 9.45564E-01, 9.46937E-01, 9.47729E-01, 9.48332E-01, 9.48704E-01, 9.90000E-01, 9.90000E-01,&
+3.31551E-01, 7.21714E-01, 8.22061E-01, 9.17115E-01, 9.38567E-01, 9.44893E-01, 9.46655E-01, 9.47619E-01, 9.48297E-01, 9.48700E-01, 9.90000E-01, 9.90000E-01,&
+3.04818E-01, 7.16225E-01, 8.10844E-01, 9.12670E-01, 9.36667E-01, 9.44115E-01, 9.46317E-01, 9.47471E-01, 9.48258E-01, 9.48695E-01, 9.48823E-01, 9.90000E-01,&
+2.81297E-01, 7.16554E-01, 7.95068E-01, 9.08398E-01, 9.34233E-01, 9.43280E-01, 9.45823E-01, 9.47269E-01, 9.48210E-01, 9.48688E-01, 9.48829E-01, 9.90000E-01,&
+2.31473E-01, 7.18668E-01, 7.66308E-01, 8.91809E-01, 9.23936E-01, 9.38002E-01, 9.42902E-01, 9.45948E-01, 9.47904E-01, 9.48668E-01, 9.48848E-01, 9.90000E-01,&
+1.08432E-01, 6.28714E-01, 6.66552E-01, 7.91368E-01, 8.27524E-01, 8.57309E-01, 8.71887E-01, 8.87280E-01, 9.07566E-01, 9.27961E-01, 9.40308E-01, 9.90000E-01,&
+5.28125E-02, 5.06675E-01, 6.50917E-01, 6.86444E-01, 7.56116E-01, 7.71482E-01, 8.02731E-01, 8.19214E-01, 8.44326E-01, 8.79297E-01, 9.10074E-01, 9.30485E-01,&
+9.10449E-03, 1.01909E-01, 3.45008E-01, 5.86731E-01, 6.70752E-01, 6.91530E-01, 6.88915E-01, 6.80801E-01, 6.94185E-01, 7.86935E-01, 8.16865E-01, 8.42174E-01,&
+9.08684E-03, 1.01787E-01, 3.44985E-01, 5.86594E-01, 6.70696E-01, 6.91508E-01, 6.88807E-01, 6.80825E-01, 6.94119E-01, 7.86899E-01, 8.16810E-01, 8.42163E-01,&
+9.08684E-03, 1.01787E-01, 3.44985E-01, 5.86594E-01, 6.70696E-01, 6.91508E-01, 6.88807E-01, 6.80825E-01, 6.94119E-01, 7.86899E-01, 8.16810E-01, 8.42163E-01,&
+9.08684E-03, 1.01787E-01, 3.44985E-01, 5.86594E-01, 6.70696E-01, 6.91508E-01, 6.88807E-01, 6.80825E-01, 6.94119E-01, 7.86899E-01, 8.16810E-01, 8.42163E-01,&
+9.08684E-03, 1.01787E-01, 3.44985E-01, 5.86594E-01, 6.70696E-01, 6.91508E-01, 6.88807E-01, 6.80825E-01, 6.94119E-01, 7.86899E-01, 8.16810E-01, 8.42163E-01,&
+9.06926E-03, 1.01666E-01, 3.44961E-01, 5.86444E-01, 6.70656E-01, 6.91547E-01, 6.88747E-01, 6.80876E-01, 6.94035E-01, 7.86855E-01, 8.16755E-01, 8.42159E-01,&
+9.06926E-03, 1.01666E-01, 3.44961E-01, 5.86444E-01, 6.70656E-01, 6.91547E-01, 6.88747E-01, 6.80876E-01, 6.94035E-01, 7.86855E-01, 8.16755E-01, 8.42159E-01,&
+3.19155E-03, 3.86167E-02, 3.12532E-01, 6.54273E-01, 7.29345E-01, 6.94262E-01, 5.71069E-01, 5.11984E-01, 7.42725E-01, 7.68741E-01, 8.04314E-01, 8.40731E-01,&
+1.26936E-03, 1.54572E-02, 1.16778E-01, 4.51257E-01, 6.45941E-01, 7.22575E-01, 7.37631E-01, 6.98317E-01, 5.61306E-01, 7.59343E-01, 7.44671E-01, 8.01060E-01,&
+1.26936E-03, 1.54572E-02, 1.16778E-01, 4.51257E-01, 6.45941E-01, 7.22575E-01, 7.37631E-01, 6.98317E-01, 5.61306E-01, 7.59343E-01, 7.44671E-01, 8.01060E-01 /
+
+
   data (((ksslt(nn,ll,mm),ll=1,2),nn=1,nwav),mm=1,nih) /                    &
     1.10670D0 , 0.24350D0 , 1.13470D0 , 0.24490D0 , 1.14490D0 , 0.24530D0 , &
     1.15360D0 , 0.24570D0 , 1.16140D0 , 0.24610D0 , 1.16810D0 , 0.24640D0 , &
@@ -504,36 +645,144 @@ module mod_rad_aerosol
 !
   data rhp /0.0D0,0.5D0,0.7D0,0.8D0,0.9D0,0.95D0,0.98D0,0.99D0/
 !
+!
+!DATA section for optical properties relative to  RRTM LW
+
+data ((ksdust12_rrtm_lw (ii,jj),jj=1,12),ii=1,nbndlw) / &
+9.43320D-10, 2.42747D-08, 4.12358D-07, 2.49960D-06, 8.67040D-06, 2.00439D-05, 3.48134D-05, 6.39697D-05, 1.80706D-04, 3.62353D-04, 6.48472D-04, 1.00623D-03 , &
+5.49405D-07, 1.41745D-05, 2.44980D-04, 1.56266D-03, 5.98433D-03, 1.56573D-02, 2.99434D-02, 5.76057D-02, 9.57461D-02, 5.27134D-02, 2.81645D-02, 1.83919D-02 , &
+1.06979D-06, 2.76003D-05, 4.76715D-04, 3.02346D-03, 1.12907D-02, 2.76508D-02, 4.74603D-02, 7.34485D-02, 8.13079D-02, 5.00051D-02, 2.66968D-02, 1.72178D-02 , &
+1.19006D-06, 3.06811D-05, 5.27223D-04, 3.28672D-03, 1.17650D-02, 2.67074D-02, 4.19379D-02, 5.92327D-02, 7.56272D-02, 5.56937D-02, 2.53841D-02, 1.62879D-02 , &
+2.52349D-06, 6.50768D-05, 1.11702D-03, 6.90405D-03, 2.43645D-02, 5.34150D-02, 8.02288D-02, 1.12439D-01, 1.17072D-01, 5.53413D-02, 2.55754D-02, 1.65092D-02 , &
+5.96784D-06, 1.54341D-04, 2.69697D-03, 1.72493D-02, 5.96038D-02, 1.13530D-01, 1.49212D-01, 1.61819D-01, 1.13926D-01, 4.20387D-02, 2.70152D-02, 1.68667D-02 , &
+1.21514D-05, 3.14708D-04, 5.53147D-03, 3.49294D-02, 1.04488D-01, 1.52373D-01, 1.54806D-01, 1.36628D-01, 7.82340D-02, 4.33355D-02, 2.64115D-02, 1.70195D-02 , &
+1.61361D-05, 4.17667D-04, 7.27898D-03, 4.36492D-02, 1.11867D-01, 1.39808D-01, 1.35289D-01, 1.18753D-01, 7.34595D-02, 4.31202D-02, 2.61331D-02, 1.68656D-02 , &
+7.48894D-06, 1.92223D-04, 3.17285D-03, 1.67118D-02, 3.90610D-02, 5.42006D-02, 6.33148D-02, 6.91587D-02, 6.40591D-02, 4.16369D-02, 2.36985D-02, 1.53070D-02 , &
+1.48517D-05, 3.82566D-04, 6.45799D-03, 3.51449D-02, 8.00462D-02, 1.15857D-01, 1.31083D-01, 1.35583D-01, 1.00870D-01, 4.19620D-02, 2.46062D-02, 1.57179D-02 , &
+2.66658D-05, 6.86078D-04, 1.13876D-02, 5.71044D-02, 1.16591D-01, 1.56714D-01, 1.68116D-01, 1.59980D-01, 9.71746D-02, 3.96648D-02, 2.44858D-02, 1.57377D-02 , &
+6.92718D-05, 1.77937D-03, 2.90183D-02, 1.33955D-01, 2.70079D-01, 3.10977D-01, 2.91058D-01, 2.25479D-01, 7.58939D-02, 4.71680D-02, 2.51570D-02, 1.59894D-02 , &
+9.92866D-05, 2.57410D-03, 4.38245D-02, 1.86049D-01, 3.42407D-01, 3.74026D-01, 3.37175D-01, 2.28502D-01, 6.60027D-02, 4.75567D-02, 2.45834D-02, 1.60022D-02 , &
+1.21841D-04, 3.15727D-03, 5.28732D-02, 2.07183D-01, 3.53059D-01, 3.73059D-01, 3.26846D-01, 2.15787D-01, 6.47597D-02, 4.54902D-02, 2.44727D-02, 1.58424D-02 , &
+1.52949D-04, 3.96055D-03, 6.48010D-02, 2.34767D-01, 3.73278D-01, 3.82935D-01, 3.20989D-01, 2.07929D-01, 6.50166D-02, 4.32298D-02, 2.46475D-02, 1.57455D-02 , &
+2.74053D-04, 7.09637D-03, 1.07272D-01, 3.26611D-01, 4.23478D-01, 3.71831D-01, 2.75473D-01, 1.50134D-01, 7.01898D-02, 4.08139D-02, 2.46670D-02, 1.57207D-02 /
+
+
+
+
+
   contains
 !
-  subroutine allocate_mod_rad_aerosol
-    implicit none
-    npoints = (jci2-jci1+1)*(ici2-ici1+1)
-    call getmem2d(aermmb,1,npoints,1,kz,'aerosol:aermmb')
-    call getmem3d(ftota3d,1,npoints,0,kz,1,nspi,'aerosol:ftota3d')
-    call getmem3d(gtota3d,1,npoints,0,kz,1,nspi,'aerosol:gtota3d')
-    call getmem3d(tauasc3d,1,npoints,0,kz,1,nspi,'aerosol:tauasc3d')
-    call getmem3d(tauxar3d,1,npoints,0,kz,1,nspi,'aerosol:tauxar3d')
-    call getmem2d(ftota,1,npoints,1,nspi,'aerosol:ftota')
-    call getmem2d(gtota,1,npoints,1,nspi,'aerosol:gtota')
-    call getmem2d(tauasc,1,npoints,1,nspi,'aerosol:tauasc')
-    call getmem2d(tauxar,1,npoints,1,nspi,'aerosol:tauxar')
-    call getmem2d(aermtot,1,npoints,1,kz,'aerosol:aermtot')
-    call getmem2d(aervtot,1,npoints,1,kz,'aerosol:aervtot')
-    call getmem3d(aertrlw,1,npoints,1,kzp1,1,kzp1,'aerosol:aertrlw')
-    if ( ichem == 1 ) then
-      call getmem3d(fa,1,npoints,0,kz,1,ntr,'aerosol:fa')
-      call getmem3d(ga,1,npoints,0,kz,1,ntr,'aerosol:ga')
-      call getmem3d(tx,1,npoints,0,kz,1,ntr,'aerosol:tx')
-      call getmem3d(uaer,1,npoints,0,kz,1,ntr,'aerosol:uaer')
-      call getmem3d(wa,1,npoints,0,kz,1,ntr,'aerosol:wa')
-      call getmem2d(faer,1,npoints,1,ntr,'aerosol:faer')
-      call getmem2d(gaer,1,npoints,1,ntr,'aerosol:gaer')
-      call getmem2d(tauaer,1,npoints,1,ntr,'aerosol:tauaer')
-      call getmem2d(utaer,1,npoints,1,ntr,'aerosol:utaer')
-      call getmem2d(waer,1,npoints,1,ntr,'aerosol:waer')
-    end if
-  end subroutine allocate_mod_rad_aerosol
+    subroutine allocate_mod_rad_aerosol
+      implicit none
+      integer(ik4) :: nband
+
+      if (irrtm ==1) then 
+         nband = nbndsw
+      else 
+         nband = nspi
+      end if
+
+      npoints = (jci2-jci1+1)*(ici2-ici1+1)
+
+
+
+      call getmem1d(gsbc_hb,1,nband,'aerosol:gsbc_hb')
+      call getmem1d(gsbc_hl,1,nband,'aerosol:gsbc_hl')
+      call getmem1d(gsoc_hb,1,nband,'aerosol:gsoc_hb')
+      call getmem1d(gsoc_hl,1,nband,'aerosol:gsoc_hl')
+
+      call getmem1d(ksbc_hb,1,nband,'aerosol:ksbc_hb')
+      call getmem1d(ksbc_hl,1,nband,'aerosol:ksbc_hl')
+      call getmem1d(ksoc_hb,1,nband,'aerosol:ksoc_hb')
+      call getmem1d(ksoc_hl,1,nband,'aerosol:ksoc_hl')
+
+      call getmem1d(wsbc_hb,1,nband,'aerosol:wsbc_hb')
+      call getmem1d(wsbc_hl,1,nband,'aerosol:wsbc_hl')
+      call getmem1d(wsoc_hb,1,nband,'aerosol:wsoc_hl')
+      call getmem1d(wsoc_hl,1,nband,'aerosol:wsoc_hl')
+
+      call getmem2d(gsdust,1,nband,1,nbin,'aerosol:gsdust')
+      call getmem2d(ksdust,1,nband,1,nbin,'aerosol:ksdust')
+      call getmem2d(wsdust,1,nband,1,nbin,'aerosol:wsdust')
+     ! op propert lw for rrtm 
+      call getmem2d(ksdust_lw,1,nbndlw,1,nbin,'aerosol:ksdust_lw')
+
+      call getmem2d(aermmb,1,npoints,1,kz,'aerosol:aermmb')
+      call getmem3d(ftota3d,1,npoints,0,kz,1,nband,'aerosol:ftota3d')
+      call getmem3d(gtota3d,1,npoints,0,kz,1,nband,'aerosol:gtota3d')
+      call getmem3d(tauasc3d,1,npoints,0,kz,1,nband,'aerosol:tauasc3d')
+      call getmem3d(tauxar3d,1,npoints,0,kz,1,nband,'aerosol:tauxar3d')
+      call getmem3d(tauxar3d_lw,1,npoints,0,kz,1,nbndlw,'aerosol:tauxar3d_lw')
+      call getmem2d(ftota,1,npoints,1,nband,'aerosol:ftota')
+      call getmem2d(gtota,1,npoints,1,nband,'aerosol:gtota')
+      call getmem2d(tauasc,1,npoints,1,nband,'aerosol:tauasc')
+      call getmem2d(tauxar,1,npoints,1,nspi,'aerosol:tauxar')
+      call getmem2d(aermtot,1,npoints,1,kz,'aerosol:aermtot')
+      call getmem2d(aervtot,1,npoints,1,kz,'aerosol:aervtot')
+      call getmem3d(aertrlw,1,npoints,1,kzp1,1,kzp1,'aerosol:aertrlw')
+      if ( ichem == 1 ) then
+         call getmem3d(fa,1,npoints,0,kz,1,ntr,'aerosol:fa')
+         call getmem3d(ga,1,npoints,0,kz,1,ntr,'aerosol:ga')
+         call getmem3d(tx,1,npoints,0,kz,1,ntr,'aerosol:tx')
+         call getmem3d(uaer,1,npoints,0,kz,1,ntr,'aerosol:uaer')
+         call getmem3d(wa,1,npoints,0,kz,1,ntr,'aerosol:wa')
+         call getmem2d(faer,1,npoints,1,ntr,'aerosol:faer')
+         call getmem2d(gaer,1,npoints,1,ntr,'aerosol:gaer')
+         call getmem2d(tauaer,1,npoints,1,ntr,'aerosol:tauaer')
+         call getmem2d(utaer,1,npoints,1,ntr,'aerosol:utaer')
+         call getmem2d(waer,1,npoints,1,ntr,'aerosol:waer')
+      end if
+
+      ! initialise aerosol properties in function of the radiation  and dust scheme option
+      if (irrtm==1) then 
+         gsbc_hb = gsbc_hb_rrtm
+         gsbc_hl = gsbc_hl_rrtm
+         gsoc_hb = gsoc_hb_rrtm
+         gsoc_hl = gsoc_hl_rrtm 
+         ksbc_hb = ksbc_hb_rrtm
+         ksbc_hl = ksbc_hl_rrtm
+         ksoc_hb = ksoc_hb_rrtm 
+         ksoc_hl = ksoc_hl_rrtm 
+         wsbc_hb = wsbc_hb_rrtm
+         wsbc_hl = wsbc_hl_rrtm
+         wsoc_hb = wsoc_hb_rrtm
+         wsoc_hl = wsoc_hl_rrtm 
+         if (nbin == 4) then 
+            gsdust =  gsdust_rrtm
+            ksdust =  ksdust_rrtm
+            wsdust =  wsdust_rrtm 
+         else if (nbin == 12) then
+            gsdust =  gsdust12_rrtm
+            ksdust =  ksdust12_rrtm
+            wsdust =  wsdust12_rrtm
+            ksdust_lw = ksdust12_rrtm_lw
+         end if
+
+      else if (irrtm==0) then 
+         gsbc_hb = gsbc_hb_stand
+         gsbc_hl = gsbc_hl_stand
+         gsoc_hb = gsoc_hb_stand
+         gsoc_hl = gsoc_hl_stand 
+         ksbc_hb = ksbc_hb_stand
+         ksbc_hl = ksbc_hl_stand
+         ksoc_hb = ksoc_hb_stand 
+         ksoc_hl = ksoc_hl_stand 
+         wsbc_hb = wsbc_hb_stand
+         wsbc_hl = wsbc_hl_stand
+         wsoc_hb = wsoc_hb_stand
+         wsoc_hl = wsoc_hl_stand 
+         if (nbin == 4) then 
+            gsdust =  gsdust_stand
+            ksdust =  ksdust_stand
+            wsdust =  wsdust_stand 
+         else if (nbin == 12) then
+            gsdust =  gsdust12_stand
+            ksdust =  ksdust12_stand
+            wsdust =  wsdust12_stand
+         end if
+      end if
+
+    end subroutine allocate_mod_rad_aerosol
 !
 !-----------------------------------------------------------------------
 !
@@ -633,7 +882,7 @@ module mod_rad_aerosol
     real(rk8) , intent(in) , pointer , dimension(:,:,:) :: aermmr
     real(rk8) , intent(in) , pointer , dimension(:,:) :: rh
 !
-    integer(ik4) :: n , l , ibin , jbin , itr , k , k1, k2 , ns
+    integer(ik4) :: n , l , ibin , jbin , itr , k , k1, k2 , ns,nband
     real(rk8) :: path , uaerdust , qabslw , rh0
 !
     if ( ichem /= 1 ) then
@@ -646,6 +895,7 @@ module mod_rad_aerosol
       gtota3d(:,:,:) = d_zero
       ftota3d(:,:,:) = d_zero
       aertrlw (:,:,:) = d_one
+      tauxar3d_lw(:,:,:) = d_zero
       return
     end if
 !
@@ -662,7 +912,13 @@ module mod_rad_aerosol
 !
 !   Spectral loop
 !
-    do ns = 1 , nspi
+    if (irrtm==1) then
+      nband = nbndsw
+    else 
+      nband = nspi
+    end if
+
+    do ns = 1 , nband
 
       tauxar(:,ns) = d_zero
       tauasc(:,ns) = d_zero
@@ -688,7 +944,7 @@ module mod_rad_aerosol
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
 !     calculate optical properties of each aerosol component
-!
+!     correct for rh if needed
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
       do k = 1 , kz
@@ -704,16 +960,14 @@ module mod_rad_aerosol
             if ( chtrname(itr) == 'XXXXX') then
               continue
             end if
-            if ( chtrname(itr)(1:4) == 'DUST' ) then
+            if ( chtrname(itr)(1:4) == 'DUST') then
               uaer(n,k,itr) = aermmr(n,k,itr)*path
               ibin = ibin + 1
-              if ( ibin > 4 ) then
-                call fatal(__FILE__,__LINE__,'DUST BINS MAX is 4')
-              end if
               tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksdust(ns,ibin)
               wa(n,k,itr) = wsdust(ns,ibin)
               ga(n,k,itr) = gsdust(ns,ibin)
               fa(n,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
+           
             else if ( chtrname(itr) == 'SO4' .or.     &
                       chtrname(itr) == 'ANO3' .or.    &
                       chtrname(itr) == 'ANH4' ) then
@@ -782,9 +1036,12 @@ module mod_rad_aerosol
           end do  ! end tracer loop
         end do
       end do
-!
-!     optical properties for the clear sky diagnostic
-!
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!     calculate optical properties of the aerosol mixture : passed to radiation scheme
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
+
+!     optical properties for the clear sky diagnostic standard scheme
       do itr = 1 , ntr
         do k = 1 , kz
           do n = n1 , n2
@@ -841,10 +1098,28 @@ module mod_rad_aerosol
         end do
       end do
 !
+    
+! in the case RRTM expect the layer extinction, and effective SSA and asym relative to the mixture 
+       if (irrtm == 1) then 
+         do k = 0 , kz
+          do n = n1 , n2
+            if (tauxar3d(n,k,ns) > d_zero) then
+            tauasc3d(n,k,ns) = tauasc3d(n,k,ns) / tauxar3d(n,k,ns)
+            gtota3d(n,k,ns) = gtota3d(n,k,ns) / (tauasc3d(n,k,ns)*tauxar3d(n,k,ns))
+            else
+            tauasc3d(n,k,ns) = 0.999999D0
+            gtota3d(n,k,ns) = 0.5D0
+            end if
+          end do
+        end do
+       end if 
+
     end do ! end spectral loop
 !
-!   FAB
+!   
 !   DUST LW emissivity
+
+    if (irrtm == 0) then 
 !   qabslw = absorption coefficient between k1 and  k2 (m2.g-1) in the LW :
     qabslw = d_r10
 !   initialisation à 1 = perfect transmittivity
@@ -872,6 +1147,31 @@ module mod_rad_aerosol
         end do
       end do
     end do
+
+    else if (irrtm ==1) then 
+    ! in this case use directly the LW extinction.
+     do ns= 1, nbndlw
+      tauxar3d_lw(:,:,ns) = d_zero
+      do k = 1 , kz
+        do n = n1 , n2
+          path = (pint(n,k+1)-pint(n,k))*regravgts
+          ibin = 0
+          do itr = 1 , ntr
+            uaer(n,k,itr) = d_zero
+            if ( chtrname(itr)(1:4) == 'DUST') then
+              uaer(n,k,itr) = aermmr(n,k,itr)*path
+              ibin = ibin + 1
+              tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksdust_lw(ns,ibin)
+              ! add the extinction for every bins
+              tauxar3d_lw(n,k,ns) = tauxar3d_lw(n,k,ns) +  tx(n,k,itr)
+            end if
+          end do
+         end do
+       end do  
+      end do    
+    end if
+          
+
   end subroutine aeroppt
 
 end module mod_rad_aerosol

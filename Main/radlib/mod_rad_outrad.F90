@@ -47,7 +47,9 @@ module mod_rad_outrad
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
                     totcf,totcl,totci,cld,clwp,abv,sol,aeradfo,aeradfos, &
                     aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d,deltaz,   &
-                    outtaucl,outtauci,r2m)
+                    outtaucl,outtauci,r2m, & 
+                       asaeradfo ,asaeradfos,asaerlwfo,asaerlwfos)
+
 !
 ! copy radiation output quantities to model buffer
 !
@@ -88,15 +90,17 @@ module mod_rad_outrad
     real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
     real(rk8) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
     real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos
+    real(rk8) , optional, pointer , dimension(:) :: asaeradfo ,asaeradfos,asaerlwfo,asaerlwfos
     real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
     intent (in) cld , clrls , clrlt , clrss , clrst ,             &
                 clwp , firtp , frla , frsa , qrl , qrs , sabtp ,  &
                 slwd , solin , soll , solld , sols , solsd ,      &
-                totcf , totcl , totci , aeradfo , aeradfos,       &
-                aerlwfo , aerlwfos , deltaz , outtaucl , outtauci
+                totcf , totcl , totci , aeradfo , aeradfos,asaeradfo , asaeradfos,       &
+                aerlwfo , aerlwfos , asaerlwfo , asaerlwfos ,deltaz , outtaucl , outtauci
     type(rad_2_mod) , intent(inout) :: r2m
 !
     integer(ik4) :: i , j , k , n
+    integer(ik4) :: visband
     !
     ! total heating rate in deg/s
     !
@@ -147,15 +151,25 @@ module mod_rad_outrad
     if ( ktau == 0 ) return
 
     if ( ifchem .and. iaerosol == 1 ) then
-      call copy4d_div(tauxar3d,opt_aext8_out,8,deltaz)
-      call copy4d_div(tauasc3d,opt_assa8_out,8,deltaz)
-      call copy4d_div(gtota3d,opt_agfu8_out,8,deltaz)
-      call copy2d_integrate_from3(tauxar3d,opt_aod_out,8)
+      if(irrtm == 1) then 
+        visband = 9
+      else
+        visband =8
+      endif
+      call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz)
+      call copy4d_div(tauasc3d,opt_assa8_out,visband,deltaz)
+      call copy4d_div(gtota3d,opt_agfu8_out,visband,deltaz)
+      call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband)
       if ( idirect > 0 ) then
         call copy2d_add(aeradfo,opt_acstoarf_out)
         call copy2d_add(aeradfos,opt_acstsrrf_out)
+        if (present(asaeradfo))  call copy2d_add(asaeradfo,opt_aastoarf_out)
+        if (present(asaeradfos)) call copy2d_add(asaeradfos,opt_aastsrrf_out)
         call copy2d_add(aerlwfo,opt_acstalrf_out)
-        call copy2d_add(aerlwfos,opt_acssrlrf_out)
+        call copy2d_add(aerlwfos,opt_acssrlrf_out)        
+        if (present(asaerlwfo))  call copy2d_add(asaerlwfo,opt_aastalrf_out)
+        if (present(asaerlwfos)) call copy2d_add(asaerlwfos,opt_aassrlrf_out)
+
       end if
     end if
 !

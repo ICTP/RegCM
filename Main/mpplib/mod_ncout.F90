@@ -81,7 +81,7 @@ module mod_ncout
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
-  integer(ik4) , parameter :: nopt2dvars = 5 + nbase
+  integer(ik4) , parameter :: nopt2dvars = 9 + nbase
   integer(ik4) , parameter :: nopt3dvars = 3
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
@@ -349,6 +349,11 @@ module mod_ncout
   integer(ik4) , parameter :: opt_acstalrf = 8
   integer(ik4) , parameter :: opt_acssrlrf = 9
   integer(ik4) , parameter :: opt_aod      = 10
+  integer(ik4) , parameter :: opt_aastoarf = 11 
+  integer(ik4) , parameter :: opt_aastsrrf = 12
+  integer(ik4) , parameter :: opt_aastalrf = 13
+  integer(ik4) , parameter :: opt_aassrlrf = 14
+
 
   integer(ik4) , parameter :: opt_aext8    = 1
   integer(ik4) , parameter :: opt_assa8    = 2
@@ -1765,11 +1770,23 @@ module mod_ncout
               'toa_shortwave_radiative_forcing',.true.,'time: mean')
             opt_acstoarf_out => v2dvar_opt(opt_acstoarf)%rval
           end if
+          if ( enable_opt2d_vars(opt_aastoarf) ) then
+            call setup_var(v2dvar_opt,opt_aastoarf,vsize,'aastoarf','W m-2', &
+              'All sky top of atmosphere shortwave radiative forcing', &
+              'All sky toa_shortwave_radiative_forcing',.true.,'time: mean')
+            opt_aastoarf_out => v2dvar_opt(opt_aastoarf)%rval
+          end if
           if ( enable_opt2d_vars(opt_acstsrrf) ) then
             call setup_var(v2dvar_opt,opt_acstsrrf,vsize,'acstsrrf','W m-2', &
               'Surface shortwave radiative forcing', &
               'surface_shortwave_radiative_forcing',.true.,'time: mean')
             opt_acstsrrf_out => v2dvar_opt(opt_acstsrrf)%rval
+          end if
+          if ( enable_opt2d_vars(opt_aastsrrf) ) then
+            call setup_var(v2dvar_opt,opt_aastsrrf,vsize,'aastsrrf','W m-2', &
+              'All sky surface shortwave radiative forcing', &
+              'All sky surface_shortwave_radiative_forcing',.true.,'time: mean')
+            opt_aastsrrf_out => v2dvar_opt(opt_aastsrrf)%rval
           end if
           if ( enable_opt2d_vars(opt_acstalrf) ) then
             call setup_var(v2dvar_opt,opt_acstalrf,vsize,'acstalrf','W m-2', &
@@ -1783,6 +1800,21 @@ module mod_ncout
               'surface_longwave_radiative_forcing',.true.,'time: mean')
             opt_acssrlrf_out => v2dvar_opt(opt_acssrlrf)%rval
           end if
+          if ( enable_opt2d_vars(opt_aastalrf) ) then
+            call setup_var(v2dvar_opt,opt_aastalrf,vsize,'aastalrf','W m-2', &
+              'Top of Atmosphere All sky longwave radiative forcing' , &
+              'TOS_allsky_longwave_radiative_forcing',.true.,'time: mean')
+            opt_aastalrf_out => v2dvar_opt(opt_aastalrf)%rval
+          end if
+          if ( enable_opt2d_vars(opt_aassrlrf) ) then
+            call setup_var(v2dvar_opt,opt_aassrlrf,vsize,'aassrlrf','W m-2', &
+              'Surface  All sky longwave radiative forcing' , &
+              'Surface_allsky_longwave_radiative_forcing',.true.,'time: mean')
+            opt_aassrlrf_out => v2dvar_opt(opt_aassrlrf)%rval
+          end if
+
+
+
         else
           enable_opt2d_vars(opt_acstoarf:opt_acssrlrf) = .false.
         end if
