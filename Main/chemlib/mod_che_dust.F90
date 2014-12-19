@@ -317,7 +317,7 @@ module mod_che_dust
       rd_tex = .false.
       do itr = 1 , ntr
         aerctl = chtrname(itr)
-        if ( aerctl(1:4) == 'DUST' ) then
+        if ( aerctl(1:2) == 'DU' ) then
           rd_tex = .true.
           exit
         end if

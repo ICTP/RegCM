@@ -579,8 +579,11 @@ module mod_che_drydep
         do i = ici1 , ici2
           do k = 2 , kz - 1
             ! do not apply to the first level
-            settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,indsp(ib)) - &
-                            wk(i,k)*pdepv(i,k,indsp(ib))) / cdzq(j,i,k)
+            !settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,indsp(ib)) - &
+            !                wk(i,k)*pdepv(i,k,indsp(ib))) / cdzq(j,i,k)
+            ! use exponential form for stability
+            settend(i,k) =  wk(i,k+1)*(d_one - dexp (- ddepv(i,indsp(ib))/cdzq(j,i,k)*dt )) /dt  - &
+                            wk(i,k)  *(d_one - dexp (- ddepv(i,indsp(ib))/cdzq(j,i,k)*dt )) /dt
 
             chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
             if ( ichdiag == 1 ) then
@@ -599,8 +602,10 @@ module mod_che_drydep
           !
           if ( ichdrdepo == 1 ) then
 
-            settend(i,kz) =  (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
-                              wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
+           ! settend(i,kz) =  (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
+           !                   wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
+            settend(i,kz) =  chib(j,i,kz,indsp(ib)) * (d_one - dexp (- ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt )) /dt -  &
+                                          wk(i,kz)  * (d_one - dexp (- pdepv(i,kz,indsp(ib))/cdzq(j,i,kz)*dt )) /dt 
 
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
 
@@ -610,9 +615,14 @@ module mod_che_drydep
                                              settend(i,kz) * cfdout
             end if
             ! diagnostic for dry deposition flux (in kg .m2.s-1) accumulated
+            !remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
+            !     chib3d(j,i,kz,indsp(ib)) *crhob3d(j,i,kz)* &
+            !     ddepv(i,indsp(ib)) * cfdout
             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-                 chib3d(j,i,kz,indsp(ib)) *crhob3d(j,i,kz)* &
-                 ddepv(i,indsp(ib)) * cfdout
+            chib3d(j,i,kz,indsp(ib))*crhob3d(j,i,kz) *ddepv(i,indsp(ib))*  &
+            (d_one - dexp (- pdepv(i,kz,indsp(ib))/cdzq(j,i,kz)*dt )) /dt  *cfdout
+
+
             ! no net flux is passed to BL schemes in this case
             chifxuw(j,i,indsp(ib)) = d_zero
             drydepv(j,i,indsp(ib)) = d_zero

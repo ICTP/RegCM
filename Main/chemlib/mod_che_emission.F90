@@ -60,7 +60,7 @@ module mod_che_emission
     !
     ! read the aerosol emission files
     !
-    if ( chemsimtype(1:4) == 'DUST' .or. &
+    if ( chemsimtype(1:2) == 'DU' .or. &
          chemsimtype(1:4) == 'SSLT' .or. &
          chemsimtype(1:4) == 'DUSS' ) return
     if ( ifreq == ifrqmon ) then
@@ -205,7 +205,7 @@ module mod_che_emission
     if ( ichdrdepo /= 2 ) then
       do itr = 1 , ntr
         do i = ici1 , ici2
-          if ( chtrname(itr)(1:4) == 'DUST' .or. &
+          if ( chtrname(itr)(1:2) == 'DU' .or. &
                chtrname(itr)(1:4) == 'SSLT' .or. &
                chtrname(itr)(1:6) == 'POLLEN' ) cycle
           chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
@@ -221,7 +221,7 @@ module mod_che_emission
     else if ( ichdrdepo == 2 ) then
       do itr = 1 , ntr
         do i = ici1 , ici2
-          if ( chtrname(itr)(1:4).ne.'DUST' .or. &
+          if ( chtrname(itr)(1:2).ne.'DU' .or. &
                chtrname(itr)(1:4).ne.'SSLT' .or. &
                chtrname(itr)(1:6).ne.'POLLEN' ) then
             ! if PBL scheme is not UW then calculate emission tendency
