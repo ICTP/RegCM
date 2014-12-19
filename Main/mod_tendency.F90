@@ -123,7 +123,8 @@ module mod_tendency
                rovcpm , rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , &
                tva , tvavg , tvb , tvc , rho0s , cpm , scr
     real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
-    integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
+    integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , &
+                 iconvec , icvadv , idvadv , iqxvadv , itrvadv
     logical :: loutrad , labsem
     character (len=32) :: appdat
     integer(ik4) :: nexchange_adv
@@ -139,6 +140,17 @@ module mod_tendency
       nexchange_adv = 4
     else
       nexchange_adv = 1
+    end if
+    icvadv = 1
+    idvadv = 2
+    iqxvadv = 3
+    itrvadv = 2
+    if ( ibltyp == 2 ) then
+      if ( iuwvadv == 1 ) then
+        icvadv = 4
+        itrvadv = 4
+        iqxvadv = 4
+      end if
     end if
     !
     ! Prepare pressures on two timesteps, on both cross and dot
@@ -490,18 +502,8 @@ module mod_tendency
     if ( idynamic == 2 ) then
       call hadv(cross,aten%pp,atmx%pp,kz)
       call hadv(cross,aten%w,atmx%w,kzp1)
-      if ( ibltyp == 1 ) then
-        call vadv(cross,aten%pp,atmx%pp,kz,1)
-        call vadv(cross,aten%w,atmx%w,kzp1,1)
-      else if ( ibltyp == 2 ) then
-        if ( iuwvadv == 1 ) then
-          call vadv(cross,aten%pp,atm1%pp,kz,3)
-          call vadv(cross,aten%w,atmx%w,kzp1,3)
-        else
-          call vadv(cross,aten%pp,atmx%pp,kz,1)
-          call vadv(cross,aten%w,atmx%w,kzp1,1)
-        end if
-      end if
+      call vadv(cross,aten%pp,atmx%pp,kz,icvadv)
+      call vadv(cross,aten%w,atmx%w,kzp1,icvadv)
     end if
     !
     ! Initialize diffusion terms
@@ -522,15 +524,7 @@ module mod_tendency
     !
     ! compute the vertical advection term:
     !
-    if ( ibltyp == 1 ) then
-      call vadv(cross,aten%t,atm1%t,kz,1)
-    else if ( ibltyp == 2 ) then
-      if ( iuwvadv == 1 ) then
-        call vadv(cross,aten%t,atm1%t,kz,3)
-      else
-        call vadv(cross,aten%t,atm1%t,kz,1)
-      end if
-    end if
+    call vadv(cross,aten%t,atm1%t,kz,icvadv)
     if ( idiag > 0 ) then
       tdiag%adv = tdiag%adv + (aten%t - ten0) * afdout
       ten0 = aten%t
@@ -635,15 +629,7 @@ module mod_tendency
       qen0 = aten%qx(:,:,:,iqv)
     end if
     if ( all(icup /= 1) ) then
-      if ( ibltyp == 1 ) then
-        call vadv(aten%qx,atm1%qx,kz,1,iqv)
-      else if ( ibltyp == 2 ) then
-        if ( iuwvadv == 1 ) then
-          call vadv(aten%qx,atm1%qx,kz,3,iqv)
-        else
-          call vadv(aten%qx,atm1%qx,kz,1,iqv)
-        end if
-      end if
+      call vadv(aten%qx,atm1%qx,kz,icvadv,iqv)
     end if
     if ( idiag > 0 ) then
       qdiag%adv = qdiag%adv + (aten%qx(:,:,:,iqv) - qen0) * afdout
@@ -700,15 +686,7 @@ module mod_tendency
       else
         call hadv(aten%qx,atmx%qx,kz,iqfrst,iqlst)
       end if
-      if ( ibltyp == 1 ) then
-        call vadv(aten%qx,atm1%qx,kz,2,iqfrst,iqlst)
-      else if ( ibltyp == 2 ) then
-        if ( iuwvadv == 1 ) then
-          call vadv(aten%qx,atm1%qx,kz,3,iqfrst,iqlst)
-        else
-          call vadv(aten%qx,atm1%qx,kz,2,iqfrst,iqlst)
-        end if
-      end if
+      call vadv(aten%qx,atm1%qx,kz,iqxvadv,iqfrst,iqlst)
       if ( ipptls == 2 ) then
         call cldfrac
         call microphys
@@ -763,15 +741,7 @@ module mod_tendency
         chiten0 = chiten
       end if
       if ( all(icup /= 1) ) then
-        if ( ibltyp == 1 ) then
-          call vadv(chiten,chia,kz,2)
-        else if ( ibltyp == 2 ) then
-          if ( iuwvadv == 1 ) then
-            call vadv(chiten,chia,kz,3)
-          else
-            call vadv(chiten,chia,kz,2)
-          end if
-        end if
+        call vadv(chiten,chia,kz,itrvadv)
       end if
       if ( ichdiag == 1 ) then
         cadvvdiag = cadvvdiag + (chiten - chiten0) * cfdout
@@ -1293,8 +1263,8 @@ module mod_tendency
     !
     ! compute the vertical advection terms:
     !
-    call vadv(dot,aten%u,atm1%u,kz,2)
-    call vadv(dot,aten%v,atm1%v,kz,2)
+    call vadv(dot,aten%u,atm1%u,kz,idvadv)
+    call vadv(dot,aten%v,atm1%v,kz,idvadv)
 #ifdef DEBUG
     call check_wind_tendency('VADV')
 #endif
@@ -1355,7 +1325,7 @@ module mod_tendency
       ! Calculate the horizontal advective tendency for TKE
       call hadvtke(uwstatea,atm1,twt,mddom%msfx,dx4)
       ! Calculate the vertical advective tendency for TKE
-      call vadvtke(uwstatea,qdot,2)
+      call vadvtke(uwstatea,qdot,1)
       ! Calculate the horizontal, diffusive tendency for TKE
       call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kz)
     end if

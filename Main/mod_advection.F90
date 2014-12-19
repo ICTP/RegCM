@@ -467,7 +467,8 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
+                fg(j,i,k) = twt(k,1)*max(f(j,i,k,n),1.D-10) + &
+                            twt(k,2)*max(f(j,i,k-1,n),1.D-10)
               end do
             end do
           end do
@@ -491,6 +492,39 @@ module mod_advection
           end do
         end do
       else if ( ind == 3 ) then
+        do n = n1 , n2
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              fg(j,i,1) = d_zero
+            end do
+          end do
+          do k = 2 , nk
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
+              end do
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ften(j,i,1,n) = ften(j,i,1,n) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
+            end do
+          end do
+          do k = 2 , nk-1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ften(j,i,k,n) = ften(j,i,k,n) - &
+                       (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
+              end do
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ften(j,i,nk,n) = ften(j,i,nk,n)+vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+            end do
+          end do
+        end do
+      else if ( ind == 4 ) then
         do n = n1 , n2
           do i = ici1 , ici2
             do j = jci1 , jci2
