@@ -19,7 +19,8 @@ module mod_clm_canopyfluxes
   use mod_clm_qsat , only : QSat
   use mod_clm_frictionvelocity , only : FrictionVelocity , MoninObukIni
   use mod_clm_pftvarcon , only : nbrdlf_dcd_tmp_shrub , irrigated
-  use mod_clm_pftvarcon , only : nsoybean, nsoybeanirrig, npcropmin
+  use mod_clm_pftvarcon , only : nsoybean, nsoybeanirrig, npcropmin , &
+    nbrdlf_evr_trp_tree
 #if (defined CN)
   use mod_clm_cnallocation , only : CNAllocation_Carbon_only
 #endif
@@ -1908,7 +1909,11 @@ module mod_clm_canopyfluxes
       if (c3flag(p)) then
         qe(p) = 0.D0
         theta_cj(p) = 0.98D0
-        bbbopt(p) = 10000.D0
+        if ( ivt(p) == nbrdlf_evr_trp_tree ) then
+          bbbopt(p) = 80000.D0
+        else
+          bbbopt(p) = 10000.D0
+        end if
         mbbopt(p) = 9.D0
       else
         qe(p) = 0.05D0

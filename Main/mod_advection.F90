@@ -467,11 +467,7 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) > falow .and. f(j,i,k-1,n) > falow ) then
-                  fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
-                else
-                  fg(j,i,k) = d_zero
-                end if
+                fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
               end do
             end do
           end do
@@ -504,11 +500,7 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) > falow .and. f(j,i,k-1,n) > falow ) then
-                  fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
-                else
-                  fg(j,i,k) = d_zero
-                end if
+                fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
               end do
             end do
           end do
