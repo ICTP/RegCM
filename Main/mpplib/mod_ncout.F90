@@ -349,11 +349,10 @@ module mod_ncout
   integer(ik4) , parameter :: opt_acstalrf = 8
   integer(ik4) , parameter :: opt_acssrlrf = 9
   integer(ik4) , parameter :: opt_aod      = 10
-  integer(ik4) , parameter :: opt_aastoarf = 11 
+  integer(ik4) , parameter :: opt_aastoarf = 11
   integer(ik4) , parameter :: opt_aastsrrf = 12
   integer(ik4) , parameter :: opt_aastalrf = 13
   integer(ik4) , parameter :: opt_aassrlrf = 14
-
 
   integer(ik4) , parameter :: opt_aext8    = 1
   integer(ik4) , parameter :: opt_assa8    = 2
@@ -1812,9 +1811,6 @@ module mod_ncout
               'Surface_allsky_longwave_radiative_forcing',.true.,'time: mean')
             opt_aassrlrf_out => v2dvar_opt(opt_aassrlrf)%rval
           end if
-
-
-
         else
           enable_opt2d_vars(opt_acstoarf:opt_acssrlrf) = .false.
         end if

@@ -54,24 +54,25 @@ module mod_rrtmg_driver
          asdif , aldir , aldif , czen , dlat , xptrop , totcf ,       &
          totcl , totci
 
-  real(rk8) , pointer , dimension(:,:) :: qrs , qrl , clwp_int ,pint,rh,     &
-         cld_int , empty2 , play , tlay , h2ovmr , o3vmr , co2vmr , &
-         ch4vmr , n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  &
-         ccl4vmr , reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , &
-         rei , rel,cldf , lwhr , lwhrc , duflx_dt , duflxc_dt
+  real(rk8) , pointer , dimension(:,:) :: qrs , qrl , clwp_int , pint,   &
+    rh , cld_int , empty2 , play , tlay , h2ovmr , o3vmr , co2vmr ,      &
+    ch4vmr , n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  ccl4vmr , &
+    reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , rei , rel,cldf ,    &
+    lwhr , lwhrc , duflx_dt , duflxc_dt
 
   real(rk8) , pointer , dimension(:,:) :: plev , tlev , swuflx , swdflx , &
-         swuflxc , swdflxc , lwuflx , lwdflx , lwuflxc , lwdflxc ,       &
-         swddiruviflx , swddifuviflx , swddirpirflx , swddifpirflx ,     &
-         swdvisflx
+    swuflxc , swdflxc , lwuflx , lwdflx , lwuflxc , lwdflxc ,             &
+    swddiruviflx , swddifuviflx , swddirpirflx , swddifpirflx , swdvisflx
 
   real(rk8) , pointer , dimension(:,:,:) :: cldfmcl , taucmcl , ssacmcl , &
          asmcmcl , fsfcmcl , ciwpmcl , clwpmcl
   real(rk8) , pointer , dimension(:,:,:) :: cldfmcl_lw , taucmcl_lw , &
-         ciwpmcl_lw , clwpmcl_lw, aermmr
+         ciwpmcl_lw , clwpmcl_lw , aermmr
 
-  real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos,asaeradfo, asaeradfos
-  real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos,asaerlwfo,asaerlwfos
+  real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos , &
+    asaeradfo , asaeradfos
+  real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos , &
+    asaerlwfo , asaerlwfos
   real(rk8) , pointer , dimension(:,:) :: fice , wcl , wci , gcl , gci , &
          fcl , fci , tauxcl , tauxci , h2ommr , n2ommr , ch4mmr ,       &
          cfc11mmr , cfc12mmr , deltaz
@@ -293,13 +294,6 @@ module mod_rrtmg_driver
                            cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc,fsfc, &
                            cldfmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,    &
                            taucmcl,ssacmcl,asmcmcl,fsfcmcl)
-
-      ! for now initialise aerosol OP to zero:0
-!!$      tauaer = d_zero
-!!$      ssaaer = d_one
-!!$      asmaer = 0.85D0
-!!$      ecaer  = 0.78D0
-
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -311,7 +305,6 @@ module mod_rrtmg_driver
           n = n + 1
         end do
       end do
-
       call rrtmg_sw(npr,kth,icld,idirect, play,plev,tlay,tlev,tsfc,   &
                     h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr, &
                     asdir,asdif,aldir,aldif,czen,adjes,      &
@@ -344,7 +337,6 @@ module mod_rrtmg_driver
                          cldf,ciwp,clwp,rei,rel,tauc_lw,cldfmcl_lw, &
                          ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
                          taucmcl_lw)
-    ! tauaer_lw = d_zero
     idrv = 0
 
     call rrtmg_lw(npr,kth,icld,idrv,idirect, play,plev,tlay,tlev,tsfc,  &
@@ -353,8 +345,8 @@ module mod_rrtmg_driver
                   inflglw,iceflglw,liqflglw,cldfmcl_lw,         &
                   taucmcl_lw,ciwpmcl_lw,clwpmcl_lw,reicmcl,     &
                   relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc, &
-                  lwdflxc,lwhrc,duflx_dt,duflxc_dt,      &
-                  aerlwfo , aerlwfos,asaerlwfo,asaerlwfos )
+                  lwdflxc,lwhrc,duflx_dt,duflxc_dt,aerlwfo,     &
+                  aerlwfos,asaerlwfo,asaerlwfos)
 
     ! Output and interface
     !
@@ -424,7 +416,7 @@ module mod_rrtmg_driver
     call radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,            &
                 firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,  &
                 solld,totcf,totcl,totci,cld_int,clwp_int,abv,     &
-                sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,   &  
+                sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,   &
                 tauasc3d,gtota3d,deltaz,outtaucl,outtauci,r2a, &
                  asaeradfo,asaeradfos,asaerlwfo,asaerlwfos)
   end subroutine rrtmg_driver
@@ -434,7 +426,7 @@ module mod_rrtmg_driver
     type(mod_2_rad) , intent(in) :: m2r
     integer(ik4) , intent(in) :: iyear , inflagsw
     real(rk8) :: ccvtem , clwtem , w1 , w2
-    integer(ik4) :: i , j , k , kj , ncldm1 , ns , n,itr
+    integer(ik4) :: i , j , k , kj , ncldm1 , ns , n , itr
     real(rk8) , parameter :: lowcld = 1.0D-30
     real(rk8) , parameter :: verynearone = 0.999999D0
     real(rk8) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
@@ -501,7 +493,6 @@ module mod_rrtmg_driver
     ! for eachRRTM SW band
     !
     data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
-    npr = (jci2-jci1+1)*(ici2-ici1+1)
     ! CONVENTION : RRTMG driver takes layering form botom to TOA.
     ! regcm consider Top to bottom
 
@@ -700,7 +691,7 @@ module mod_rrtmg_driver
       end do
     end do
     !
-    ! aerosols 
+    ! aerosols
     ! no stratospheric background for now
     !care : Tracers mixing ratios are on regcm grid
     !
@@ -736,7 +727,7 @@ module mod_rrtmg_driver
       end do
     end do
     call aeroppt(rh,aermmr,pint,1,npr)
-   ! adapt reverse the vertical grid for RRTM
+    ! adapt reverse the vertical grid for RRTM
     do k = 1 , kz
       kj = kzp1 - k
       do n = 1 , npr
@@ -755,7 +746,7 @@ module mod_rrtmg_driver
                       plev(n,k+1))/(egrav*play(n,k))
       end do
     end do
-
+    !
     ! cloud fraction and cloud liquid waterpath calculation:
     ! as in STANDARD SCHEME for now (getdat) : We need to improve this
     ! according to new cloud microphysics!

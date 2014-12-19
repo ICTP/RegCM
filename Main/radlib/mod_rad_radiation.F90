@@ -1750,8 +1750,8 @@ module mod_rad_radiation
     if ( ichem == 1 .and. idirect > 0 ) then
       do n = n1 , n2
         if ( czengt0(n) ) then
-          aeradfo(n) = -(x0fsntc(n)-fsntc(n)) * d_r1000 
-          aeradfos(n) = -(x0fsnsc(n)-fsnsc(n)) *d_r1000
+          aeradfo(n) = -(x0fsntc(n)-fsntc(n)) * d_r1000
+          aeradfos(n) = -(x0fsnsc(n)-fsnsc(n)) * d_r1000
         end if
       end do
     end if

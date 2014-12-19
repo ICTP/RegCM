@@ -47,9 +47,9 @@ module mod_rad_outrad
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
                     totcf,totcl,totci,cld,clwp,abv,sol,aeradfo,aeradfos, &
                     aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d,deltaz,   &
-                    outtaucl,outtauci,r2m, & 
-                       asaeradfo ,asaeradfos,asaerlwfo,asaerlwfos)
-
+                    outtaucl,outtauci,r2m,asaeradfo,asaeradfos,asaerlwfo,&
+                    asaerlwfos)
+    implicit none
 !
 ! copy radiation output quantities to model buffer
 !
@@ -57,8 +57,6 @@ module mod_rad_outrad
 !
 ! compute the total radiative heat flux at the surface for
 ! the surface temperature computation
-!
-    implicit none
 !
 !     input/output arguments
 !
@@ -90,15 +88,18 @@ module mod_rad_outrad
     real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
     real(rk8) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
     real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos
-    real(rk8) , optional, pointer , dimension(:) :: asaeradfo ,asaeradfos,asaerlwfo,asaerlwfos
+    real(rk8) , optional, pointer , dimension(:) :: asaeradfo , &
+      asaeradfos , asaerlwfo , asaerlwfos
     real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
-    intent (in) cld , clrls , clrlt , clrss , clrst ,             &
-                clwp , firtp , frla , frsa , qrl , qrs , sabtp ,  &
-                slwd , solin , soll , solld , sols , solsd ,      &
-                totcf , totcl , totci , aeradfo , aeradfos,asaeradfo , asaeradfos,       &
-                aerlwfo , aerlwfos , asaerlwfo , asaerlwfos ,deltaz , outtaucl , outtauci
+    intent (in) cld , clrls , clrlt , clrss , clrst ,            &
+                clwp , firtp , frla , frsa , qrl , qrs , sabtp , &
+                slwd , solin , soll , solld , sols , solsd ,     &
+                totcf , totcl , totci , aeradfo , aeradfos,      &
+                asaeradfo , asaeradfos , aerlwfo , aerlwfos ,    &
+                asaerlwfo , asaerlwfos , deltaz , outtaucl ,     &
+                outtauci
     type(rad_2_mod) , intent(inout) :: r2m
-!
+
     integer(ik4) :: i , j , k , n
     integer(ik4) :: visband
     !
@@ -113,10 +114,10 @@ module mod_rad_outrad
         end do
       end do
     end do
-!
-!   surface absorbed solar flux in watts/m2
-!   net up longwave flux at the surface
-!
+    !
+    ! surface absorbed solar flux in watts/m2
+    ! net up longwave flux at the surface
+    !
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -127,14 +128,14 @@ module mod_rad_outrad
         n = n + 1
       end do
     end do
-!
-!   for coupling with bats
-!
-!   for now assume sabveg (solar absorbed by vegetation) is equal
-!   to frsa (solar absorbed by surface). possible problems are
-!   over sparsely vegetated areas in which vegetation and ground
-!   albedo are significantly different
-!
+    !
+    ! for coupling with bats
+    !
+    ! for now assume sabveg (solar absorbed by vegetation) is equal
+    ! to frsa (solar absorbed by surface). possible problems are
+    ! over sparsely vegetated areas in which vegetation and ground
+    ! albedo are significantly different
+    !
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -151,10 +152,10 @@ module mod_rad_outrad
     if ( ktau == 0 ) return
 
     if ( ifchem .and. iaerosol == 1 ) then
-      if(irrtm == 1) then 
+      if ( irrtm == 1 ) then
         visband = 9
       else
-        visband =8
+        visband = 8
       endif
       call copy4d_div(tauxar3d,opt_aext8_out,visband,deltaz)
       call copy4d_div(tauasc3d,opt_assa8_out,visband,deltaz)
@@ -166,13 +167,13 @@ module mod_rad_outrad
         if (present(asaeradfo))  call copy2d_add(asaeradfo,opt_aastoarf_out)
         if (present(asaeradfos)) call copy2d_add(asaeradfos,opt_aastsrrf_out)
         call copy2d_add(aerlwfo,opt_acstalrf_out)
-        call copy2d_add(aerlwfos,opt_acssrlrf_out)        
+        call copy2d_add(aerlwfos,opt_acssrlrf_out)
         if (present(asaerlwfo))  call copy2d_add(asaerlwfo,opt_aastalrf_out)
         if (present(asaerlwfos)) call copy2d_add(asaerlwfos,opt_aassrlrf_out)
 
       end if
     end if
-!
+
     if ( ifrad ) then
       if ( lout ) then
         call copy3d(cld,rad_cld_out)

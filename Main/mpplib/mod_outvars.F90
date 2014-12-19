@@ -196,7 +196,6 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: opt_acssrlrf_out => null()
   real(rk8) , dimension(:,:) , pointer :: opt_aastalrf_out => null()
   real(rk8) , dimension(:,:) , pointer :: opt_aassrlrf_out => null()
-
   real(rk8) , dimension(:,:) , pointer :: opt_aod_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: opt_aext8_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: opt_assa8_out => null()
