@@ -16,7 +16,7 @@ ICTP_Model_Version = 'v4'
 
 def wspeed(u,v):
   spd = np.zeros(np.shape(u))
-  spd = u*u+v*v
+  spd = np.sqrt(u*u+v*v)
   return spd
 
 def integrate(x,r):
@@ -97,6 +97,10 @@ def copyvar(nc,name,ovar,nnvar=None,bnds=True,stsf=False,ds=0.0,
         xvar.setncattr(attr,getattr(ovar,attr))
       else:
         pass
+    elif nnvar == 'lat' and attr == 'grid_mapping':
+      pass
+    elif nnvar == 'lon' and attr == 'grid_mapping':
+      pass
     else:
       if name.find('time') >= 0 and getattr(ovar,attr) == 'gregorian':
         xvar.setncattr(attr,'proleptic_gregorian')
@@ -575,7 +579,8 @@ newattr = {
   'driving_experiment_name' : experiment.replace('.',''),
   'institution' : 'International Centre for Theoretical Physics',
   'model_id' : ICTP_Model,
-  'creation_date' : time.asctime(time.localtime(time.time()-4000000)),
+  'creation_date' : time.strftime("%Y-%m-%d-T%H:%M:%SZ",
+                                  time.localtime(time.time())),
   'CORDEX_domain' : domain,
   'rcm_version_id' : ICTP_Model_Version,
   'ICTP_version_note' : notes,

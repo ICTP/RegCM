@@ -5,7 +5,7 @@ This small program is computing time means of netcdf file variables
 of the RegCM output file and writing a netcdf file with the means.
 """
 
-def compute_mean(datafile,window='day'):
+def compute_mean(datafile,window='mon'):
   """
 Make the mean of an input regcm data output file.
 Output file will be created in the current directory, and its name 
@@ -20,6 +20,9 @@ compressed in disk.
   from netcdftime import datetime , num2date , utime
   import os
   from string import join
+
+  names = { 'day' : 'day',
+            'mon' : 'month' }
 
   ncf = Dataset(datafile)
 
@@ -37,6 +40,9 @@ compressed in disk.
         repr(dates[0].day).zfill(2))
   f2 = (repr(dates[-1].year).zfill(4)+repr(dates[-1].month).zfill(2)+
         repr(dates[-1].day).zfill(2))
+
+  creation_date = time.strftime("%Y-%m-%d-T%H:%M:%SZ",
+                                time.localtime(time.time())),
 
   pieces = os.path.basename(os.path.splitext(datafile)[0]).split('_')
  
@@ -69,6 +75,8 @@ compressed in disk.
   for attr in ncf.ncattrs():
     if attr == 'frequency':
       nco.setncattr(attr,window)
+    elif attr == 'creation_date':
+      nco.setncattr(attr,creation_date)
     else:
       nco.setncattr(attr,getattr(ncf,attr))
 
@@ -113,13 +121,13 @@ compressed in disk.
       pass
     else:
       if 'time' in ncf.variables[var].dimensions:
-        if 'cell_methods' in ncf.variables[var].ncattrs():
-          attvalue = (getattr(ncf.variables[var],'cell_methods') +
-                ' within '+ncf.frequency+' time: mean over '+window)
-          nco.variables[var].setncattr('cell_methods',attvalue)
-        else:
-          nco.variables[var].setncattr('cell_methods',
-                                 'time: mean over '+window)
+        #if 'cell_methods' in ncf.variables[var].ncattrs():
+        #  attvalue = (getattr(ncf.variables[var],'cell_methods') +
+        #        ' within '+ncf.frequency+' time: mean over '+window)
+        #  nco.variables[var].setncattr('cell_methods',attvalue)
+        #else:
+        nco.variables[var].setncattr('cell_methods',
+                                     'time: mean over '+names[window])
       for attr in ncf.variables[var].ncattrs():
         if attr != 'cell_methods':
           nco.variables[var].setncattr(attr,getattr(ncf.variables[var],attr))
