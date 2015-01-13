@@ -41,7 +41,7 @@ compressed in disk.
   f2 = (repr(dates[-1].year).zfill(4)+repr(dates[-1].month).zfill(2)+
         repr(dates[-1].day).zfill(2))
 
-  creation_date = time.strftime("%Y-%m-%d-T%H:%M:%SZ",
+  creation_date = time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                 time.localtime(time.time())),
 
   pieces = os.path.basename(os.path.splitext(datafile)[0]).split('_')

@@ -579,7 +579,7 @@ newattr = {
   'driving_experiment_name' : experiment.replace('.',''),
   'institution' : 'International Centre for Theoretical Physics',
   'model_id' : ICTP_Model,
-  'creation_date' : time.strftime("%Y-%m-%d-T%H:%M:%SZ",
+  'creation_date' : time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                   time.localtime(time.time())),
   'CORDEX_domain' : domain,
   'rcm_version_id' : ICTP_Model_Version,
