@@ -244,6 +244,7 @@ module mod_che_common
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'SSLT simulation'
     else if ( chemsimtype(1:4) == 'DUSS' ) then
+      nbin = 4
       ntr = sbin + nbin
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04', &
@@ -272,6 +273,7 @@ module mod_che_common
       ioxclim  = 1
       if ( myid == italk ) write(stdout,*) 'SUCA simulation'
     else if ( chemsimtype(1:4) == 'AERO' ) then
+      nbin = 4
       ntr = 12
       allocate(chtrname(ntr))
       iaerosol = 1
@@ -281,6 +283,7 @@ module mod_che_common
                                'DUST03','DUST04','SSLT01','SSLT02' /)
       if ( myid == italk ) write(stdout,*) 'AERO simulation'
     else if ( chemsimtype(1:4) == 'DCCB' ) then
+      nbin = 4
       ntr = 50
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = (/'NO    ','NO2   ','N2O5  ','HNO2  ',&
@@ -326,7 +329,7 @@ module mod_che_common
       if ( myid == italk ) then
         write (stderr,*) 'Not a valid chemtype simulation : STOP !'
         write (stderr,*) 'Valid simulations are : ' , &
-           'DUST SSLT DUSS CARB SULF SUCA AERO CBMZ DCCB POLLEN'
+           'DUST DU12 SSLT DUSS CARB SULF SUCA AERO CBMZ DCCB POLLEN'
       end if
       call fatal(__FILE__,__LINE__,'INVALID CHEM CONFIGURATION')
     end if
