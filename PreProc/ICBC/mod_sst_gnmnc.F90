@@ -92,6 +92,10 @@ module mod_sst_gnmnc
          '/SST/sst_HadOIBl_bc_0.9x1.25_1870_2008_c091020.nc'
       varname(2) = 'SST_cpl'
       ufac = 273.15
+    else if ( ssttyp == 'JRA55' ) then
+      inpfile = trim(inpglob)//'/SST/sstCOBE.monmean.nc'
+      varname(2) = 'sst'
+      ufac = 273.15
     else if ( ssttyp == 'CCSST' ) then
       inpfile = trim(inpglob)//'/SST/ccsm_mn.sst.nc'
       varname(2) = 'SST'
@@ -225,9 +229,9 @@ module mod_sst_gnmnc
       else
         call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,jx,iy,1)
       end if
-      do i = 2 , iy-1
-        do j = 2 , jx-1
-          sstmm(j,i) = sstmm(j,i) + ufac
+      do i = 1 , iy
+        do j = 1 , jx
+          if ( sstmm(j,i) > -999.0 ) sstmm(j,i) = sstmm(j,i) + ufac
         end do
       end do
       call writerec(idate)
@@ -377,9 +381,13 @@ module mod_sst_gnmnc
     istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(1)//' units')
-    istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error read var '//varname(1)//' calendar')
+    if ( ssttyp == 'JRA55' ) then
+      ccal = 'gregorian'
+    else
+      istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(1)//' calendar')
+    end if
     fidate1 = timeval2date(work1(1),cunit,ccal)
 
   end subroutine open_input
