@@ -60,7 +60,7 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 55
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nsrf2dvars = 18 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 19 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 7
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -223,29 +223,30 @@ module mod_ncout
   integer(ik4) , parameter :: atm_stats_rainev = 54
   integer(ik4) , parameter :: atm_stats_snowev = 55
 
-  integer(ik4) , parameter :: srf_xlon   = 1
-  integer(ik4) , parameter :: srf_xlat   = 2
-  integer(ik4) , parameter :: srf_mask   = 3
-  integer(ik4) , parameter :: srf_topo   = 4
-  integer(ik4) , parameter :: srf_ps     = 5
-  integer(ik4) , parameter :: srf_uvdrag = 6
-  integer(ik4) , parameter :: srf_tg     = 7
-  integer(ik4) , parameter :: srf_tlef   = 8
-  integer(ik4) , parameter :: srf_tpr    = 9
-  integer(ik4) , parameter :: srf_evp    = 10
-  integer(ik4) , parameter :: srf_scv    = 11
-  integer(ik4) , parameter :: srf_sena   = 12
-  integer(ik4) , parameter :: srf_flw    = 13
-  integer(ik4) , parameter :: srf_fsw    = 14
-  integer(ik4) , parameter :: srf_fld    = 15
-  integer(ik4) , parameter :: srf_sina   = 16
-  integer(ik4) , parameter :: srf_prcv   = 17
-  integer(ik4) , parameter :: srf_zpbl   = 18
-  integer(ik4) , parameter :: srf_aldirs = 19
-  integer(ik4) , parameter :: srf_aldifs = 20
-  integer(ik4) , parameter :: srf_sund   = 21
-  integer(ik4) , parameter :: srf_seaice = 22
+  integer(ik4) , parameter :: srf_xlon     = 1
+  integer(ik4) , parameter :: srf_xlat     = 2
+  integer(ik4) , parameter :: srf_mask     = 3
+  integer(ik4) , parameter :: srf_topo     = 4
+  integer(ik4) , parameter :: srf_ps       = 5
+  integer(ik4) , parameter :: srf_uvdrag   = 6
+  integer(ik4) , parameter :: srf_tg       = 7
+  integer(ik4) , parameter :: srf_tlef     = 8
+  integer(ik4) , parameter :: srf_tpr      = 9
+  integer(ik4) , parameter :: srf_evp      = 10
+  integer(ik4) , parameter :: srf_scv      = 11
+  integer(ik4) , parameter :: srf_sena     = 12
+  integer(ik4) , parameter :: srf_flw      = 13
+  integer(ik4) , parameter :: srf_fsw      = 14
+  integer(ik4) , parameter :: srf_fld      = 15
+  integer(ik4) , parameter :: srf_sina     = 16
+  integer(ik4) , parameter :: srf_prcv     = 17
+  integer(ik4) , parameter :: srf_zpbl     = 18
+  integer(ik4) , parameter :: srf_aldirs   = 19
+  integer(ik4) , parameter :: srf_aldifs   = 20
+  integer(ik4) , parameter :: srf_sund     = 21
+  integer(ik4) , parameter :: srf_seaice   = 22
   integer(ik4) , parameter :: srf_snowmelt = 23
+  integer(ik4) , parameter :: srf_dew      = 24
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -1051,6 +1052,17 @@ module mod_ncout
             'Snow Melt','surface_snow_melt_amount',.true.,'time: mean')
           srf_snowmelt_out => v2dvar_srf(srf_snowmelt)%rval
         end if
+        if ( idiag > 0 ) then
+          if ( enable_srf2d_vars(srf_evp) ) then
+            if ( enable_srf2d_vars(srf_dew) ) then
+              call setup_var(v2dvar_srf,srf_dew,vsize,'mdew','kg m-2 s-1', &
+                'Surface deposition','surface_deposition_flux', &
+                .true.,'time: mean')
+              srf_dew_out => v2dvar_srf(srf_dew)%rval
+            end if
+          end if
+        end if
+
 
         vsize%k2 = 1
         v3dvar_srf(srf_u10m)%axis = 'xyw'

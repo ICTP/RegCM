@@ -475,8 +475,14 @@ module mod_output
           srf_prcv_out = srf_prcv_out*rnsrf_for_srffrq
         if ( associated(srf_zpbl_out) ) &
           srf_zpbl_out = srf_zpbl_out*rnsrf_for_srffrq
-        if ( associated(srf_evp_out) ) &
+        if ( associated(srf_dew_out) .and. associated(srf_evp_out) ) then
+          srf_dew_out = -(srf_evp_out*rnsrf_for_srffrq)
+          srf_dew_out = max(srf_dew_out, d_zero)
+        end if
+        if ( associated(srf_evp_out) ) then
           srf_evp_out = srf_evp_out*rnsrf_for_srffrq
+          srf_evp_out = max(srf_evp_out, d_zero)
+        end if
         if ( associated(srf_scv_out) ) then
           where ( mddom%ldmsk > 0 )
             srf_scv_out = srf_scv_out*rnsrf_for_srffrq
@@ -532,8 +538,10 @@ module mod_output
 
         sub_ps_out = (sub_ps_out*rnsrf_for_subfrq)/d_100
 
-        if ( associated(sub_evp_out) ) &
+        if ( associated(sub_evp_out) ) then
           sub_evp_out = sub_evp_out*rnsrf_for_subfrq
+          sub_evp_out = max(sub_evp_out, d_zero)
+        end if
         if ( associated(sub_scv_out) ) then
           where ( sub_scv_out < dmissval )
             sub_scv_out = sub_scv_out*rnsrf_for_subfrq
@@ -583,8 +591,10 @@ module mod_output
           lak_fld_out = lak_fld_out*rnsrf_for_lakfrq
         if ( associated(lak_sina_out) ) &
           lak_sina_out = lak_sina_out*rnsrf_for_lakfrq
-        if ( associated(lak_evp_out) ) &
+        if ( associated(lak_evp_out) ) then
           lak_evp_out = lak_evp_out*rnsrf_for_lakfrq
+          lak_evp_out = max(lak_evp_out, d_zero)
+        end if
 
         call write_record_output_stream(lak_stream,idatex)
         if ( myid == italk ) &
@@ -605,7 +615,7 @@ module mod_output
       if ( ldoche ) then
         ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         if ( associated(opt_acstoarf_out) ) &
-          opt_acstoarf_out = opt_acstoarf_out * rnrad_for_chem 
+          opt_acstoarf_out = opt_acstoarf_out * rnrad_for_chem
         if ( associated(opt_acstsrrf_out) ) &
           opt_acstsrrf_out = opt_acstsrrf_out * rnrad_for_chem
         if ( associated(opt_acstalrf_out) ) &
@@ -617,7 +627,7 @@ module mod_output
         if ( associated(opt_aastsrrf_out) ) &
           opt_aastsrrf_out = opt_aastsrrf_out * rnrad_for_chem
         if ( associated(opt_aastalrf_out) ) &
-          opt_aastalrf_out = opt_aastalrf_out * rnrad_for_chem 
+          opt_aastalrf_out = opt_aastalrf_out * rnrad_for_chem
         if ( associated(opt_aassrlrf_out) ) &
           opt_aassrlrf_out = opt_aassrlrf_out * rnrad_for_chem
 

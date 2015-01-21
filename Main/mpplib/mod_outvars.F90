@@ -103,6 +103,7 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: srf_tg_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_tlef_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_evp_out => null()
+  real(rk8) , dimension(:,:) , pointer :: srf_dew_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_scv_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_sena_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_flw_out => null()
