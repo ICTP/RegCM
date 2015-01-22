@@ -1060,7 +1060,11 @@ module mod_ncout
                 .true.,'time: mean')
               srf_dew_out => v2dvar_srf(srf_dew)%rval
             end if
+          else
+            enable_srf2d_vars(srf_dew) = .false.
           end if
+        else
+          enable_srf2d_vars(srf_dew) = .false.
         end if
 
 
