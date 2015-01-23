@@ -404,10 +404,10 @@ module mod_che_dust
       ! Finally calculate the emission stribution weights in function of
       ! distribution parameters:(Alfaro, Kok)
       !
-        dustbsiz(:,:) = dustbsiz1(:,:)
-        dustbed(:) = dustbed1(:)
-        soldust(:) = soldust1(:)
-      if (chemsimtype == 'DU12') then
+      dustbsiz(:,:) = dustbsiz1(:,:)
+      dustbed(:) = dustbed1(:)
+      soldust(:) = soldust1(:)
+      if ( chemsimtype == 'DU12' ) then
         dustbsiz(:,:) = dustbsiz2(:,:)
         dustbed(:) = dustbed2(:)
         soldust(:) = soldust2(:)
