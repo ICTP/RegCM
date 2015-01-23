@@ -121,13 +121,22 @@ compressed in disk.
       pass
     else:
       if 'time' in ncf.variables[var].dimensions:
-        #if 'cell_methods' in ncf.variables[var].ncattrs():
-        #  attvalue = (getattr(ncf.variables[var],'cell_methods') +
-        #        ' within '+ncf.frequency+' time: mean over '+window)
-        #  nco.variables[var].setncattr('cell_methods',attvalue)
-        #else:
-        nco.variables[var].setncattr('cell_methods',
-                                     'time: mean over '+names[window])
+        if 'max' in var:
+          if window == 'day':
+            nco.variables[var].setncattr('cell_methods', 'time: maximum')
+          else:
+            nco.variables[var].setncattr('cell_methods',
+                                         'time: maximum within days '+
+                                         'time: mean over days')
+        elif 'min' in var:
+          if window == 'day':
+            nco.variables[var].setncattr('cell_methods', 'time: minimum')
+          else:
+            nco.variables[var].setncattr('cell_methods',
+                                         'time: minimum within days '+
+                                         'time: mean over days')
+        else:
+          nco.variables[var].setncattr('cell_methods', 'time: mean')
       for attr in ncf.variables[var].ncattrs():
         if attr != 'cell_methods':
           nco.variables[var].setncattr(attr,getattr(ncf.variables[var],attr))

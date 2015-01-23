@@ -550,7 +550,16 @@ if corrflag == 1:
   correct_time = correct_time + lookup[variable]['timecorr'][ftype]
 dates = num2date(correct_time, units=times.units, calendar=times.calendar)
 
-ff = correct_time[1]-correct_time[0]
+try:
+  ff = correct_time[1]-correct_time[0]
+except:
+  if ftype == 'SRF':
+    ff = 3
+  elif ftype == 'STS':
+    ff = 24
+  else:
+    ff = 6
+
 if ff == 24:
   frequency = 'day'
   needbound = True
