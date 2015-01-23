@@ -1666,7 +1666,7 @@ module mod_ncout
           lak_evp_out => v2dvar_lak(lak_evp)%rval
         end if
         if ( enable_lak2d_vars(lak_ice) ) then
-          call setup_var(v2dvar_lak,lak_ice,vsize,'lakice','mm', &
+          call setup_var(v2dvar_lak,lak_ice,vsize,'lakice','m', &
             'Lake Ice depth', 'seaice_depth',.true.)
           lak_ice_out => v2dvar_lak(lak_ice)%rval
         end if
