@@ -618,13 +618,16 @@ module mod_che_drydep
                                              settend(i,kz) * cfdout
             end if
             ! diagnostic for dry deposition flux (in kg .m2.s-1) accumulated
-            !remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-            !     chib3d(j,i,kz,indsp(ib)) *crhob3d(j,i,kz)* &
-            !     ddepv(i,indsp(ib)) * cfdout
+            ! consider ddflux = Cav . Vd where Cav would be the average
+            ! concentration within the time step Cav = 0.5 (C + (C+deltaC))
+            ! care  chib and settend have to be corrected for pressure 
+
             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-                chib3d(j,i,kz,indsp(ib))*crhob3d(j,i,kz)*ddepv(i,indsp(ib)) * &
-                (d_one - dexp(- pdepv(i,kz,indsp(ib))/cdzq(j,i,kz)*dt ))/dt * &
-                cfdout
+                (chib(j,i,kz,indsp(ib))-settend(i,kz)*dt/d_two) / cpsb(j,i) *  &
+                 crhob3d(j,i,kz)* ddepv(i,indsp(ib)) * cfdout
+! 
+!            remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
+!                 chib3d(j,i,kz,indsp(ib)) *crhob3d(j,i,kz)* &
 
             ! no net flux is passed to BL schemes in this case
             chifxuw(j,i,indsp(ib)) = d_zero
