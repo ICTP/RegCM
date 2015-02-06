@@ -47,6 +47,7 @@ module mod_precip
   real(rk8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
 
   real(rk8) :: qcth
+  real(rk8) :: maxlat
 
   real(rk8) , parameter :: uch = d_1000*regrav*secph
   real(rk8) , parameter :: alphaice = d_four
@@ -56,6 +57,7 @@ module mod_precip
     cevap , caccr
   logical :: lchem = .false.
 
+  logical :: l_lat_hack = .false.
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
 
   contains
@@ -81,6 +83,7 @@ module mod_precip
   end subroutine allocate_mod_precip
 
   subroutine init_precip(atmslice,atm,aten,sfs,pptnc,cldfra,cldlwc)
+    use mod_atm_interface , only : mddom
     implicit none
     type(slice) , intent(in) :: atmslice
     type(atmstate_b) , intent(in) :: atm
@@ -89,6 +92,7 @@ module mod_precip
     real(rk8) , pointer , dimension(:,:) :: pptnc
     real(rk8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
 
+    maxlat = maxval(mddom%xlat)
     call assignpnt(atmslice%tb3d,t3)
     call assignpnt(atmslice%pb3d,p3)
     call assignpnt(atmslice%qxb3d,qx3)
@@ -230,8 +234,12 @@ module mod_precip
             rhcs = (rh-afc*rhmax)/(d_one-afc)                ![frac][clr]
             rhcs = dmax1(dmin1(rhcs,rhmax),d_zero)           ![frac][clr]
             ! 2bcb. Raindrop evaporation [kg/kg/s]
-            rdevap = cevap(j,i)*(rhmax-rhcs)*dsqrt(pptsum(j,i))*(d_one-afc)
-                                                           ![kg/kg/s][avg]
+            if ( l_lat_hack ) then
+              rdevap = sun_cevap(j,i)*(rhmax-rhcs) * &
+                dsqrt(pptsum(j,i))*(d_one-afc)
+            else
+              rdevap = cevap(j,i)*(rhmax-rhcs)*dsqrt(pptsum(j,i))*(d_one-afc)
+            end if
             rdevap = dmin1((qs-qx3(j,i,k,iqv))/dt,rdevap)  ![kg/kg/s][avg]
             rdevap = dmin1(dmax1(rdevap,d_zero),pptkm1)    ![kg/kg/s][avg]
             ! 2bcc. Update the precipitation accounting for the raindrop
@@ -334,6 +342,29 @@ module mod_precip
         end if
       end do
     end do
+
+  contains
+
+    pure real(rk8) function sun_cevap(j,i) result(sc)
+      use mod_atm_interface , only : mddom
+      implicit none
+      integer , intent(in) :: i , j
+      real(rk8) :: theta , xxlat
+      ! Maximum abs value for the declination angle
+      real(rk8) , parameter :: dmax = 0.40910517666747085282D0
+      ! cevap minimum seasonal paraneter
+      real(rk8) , parameter :: mincevap = 1.0D-5
+      xxlat = mddom%xlat(j,i)
+      if ( xxlat > d_zero ) then
+        theta = twopi*mod(calday+(dayspy*d_half),dayspy)/dayspy
+      else
+        theta = twopi*calday/dayspy
+      end if
+      sc = max(cevap(j,i) * (d_one - &
+        (sin(abs(xxlat*90.0D0/maxlat)*degrad) * &
+         (d_one + declin/dmax)/d_two)), mincevap)
+    end function sun_cevap
+
   end subroutine pcp
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
