@@ -576,7 +576,7 @@ module mod_cu_tiedtke
     paprc(:) = pmflxr(:,klev+1)*1.D3*dtsec
     paprs(:) = pmflxs(:,klev+1)*1.D3*dtsec
     prsfc = pmflxr(:,klev+1)*1.D3
-    pssfc = pmflxr(:,klev+1)*1.D3
+    pssfc = pmflxs(:,klev+1)*1.D3
   case default
     call fatal(__FILE__,__LINE__,'ICONV must be in the range 1-4')
   end select
