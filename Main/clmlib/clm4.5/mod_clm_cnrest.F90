@@ -3040,6 +3040,76 @@ module mod_clm_cnrest
       call clm_writevar(ncid,'btran2',pptr%pps%btran2,gcomm_pft)
     end if
 
+    !farea_burned
+    if (flag == 'define') then
+      call clm_addvar(clmvar_double,ncid,'farea_burned',(/'column'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'farea_burned') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'farea_burned',cptr%cps%farea_burned,gcomm_column)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'farea_burned',cptr%cps%farea_burned,gcomm_column)
+    end if
+
+    !baf_crop
+    if (flag == 'define') then
+      call clm_addvar(clmvar_double,ncid,'baf_crop',(/'column'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'baf_crop') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'baf_crop',cptr%cps%baf_crop,gcomm_column)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'baf_crop',cptr%cps%baf_crop,gcomm_column)
+    end if
+
+    !baf_peatf
+    if (flag == 'define') then
+      call clm_addvar(clmvar_double,ncid,'baf_peatf',(/'column'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'baf_peatf') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'baf_peatf',cptr%cps%baf_peatf,gcomm_column)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'baf_peatf',cptr%cps%baf_peatf,gcomm_column)
+    end if
+
+    !fbac
+    if (flag == 'define') then
+      call clm_addvar(clmvar_double,ncid,'fbac',(/'column'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fbac') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'fbac',cptr%cps%fbac,gcomm_column)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'fbac',cptr%cps%fbac,gcomm_column)
+    end if
+
+    !fbac1
+    if (flag == 'define') then
+      call clm_addvar(clmvar_double,ncid,'fbac1',(/'column'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fbac1') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'fbac1',cptr%cps%fbac1,gcomm_column)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'fbac1',cptr%cps%fbac1,gcomm_column)
+    end if
+
     !--------------------------------
     ! column carbon state variables
     !--------------------------------
