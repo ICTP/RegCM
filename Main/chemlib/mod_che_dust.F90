@@ -41,8 +41,13 @@ module mod_che_dust
 
   ! Fix the actual dust aerosol bin size: diameter in microm
 
-  data  dustbsiz1 / 0.01D0,  1.00D0,  2.50D0,  5.00D0,  1.00D0, &
-                   2.50D0,  5.00D0, 20.00D0/
+!  data  dustbsiz1 / 0.01D0,  1.00D0,  2.50D0,  5.00D0,  1.00D0, &
+!                   2.50D0,  5.00D0, 20.00D0/
+
+  data  dustbsiz1 / 0.09D0,  1.00D0,  2.50D0,  5.00D0,  1.00D0, &
+                   2.50D0,  5.00D0, 63.00D0/
+
+
   ! new option defined from LISA optimized distribution
   data  dustbsiz2 /0.09D0,0.18D0, 0.60D0, 1.55D0, 2.50D0, 3.75D0,   &
                    4.70D0, 5.70D0, 7.50D0, 14.50D0, 26.0D0, 41.0D0, &
@@ -55,7 +60,12 @@ module mod_che_dust
   real(rk8) , dimension(12)   ::  dustbed2
 
   ! has to be calculated from an assumed sub-bin distribution
-  data dustbed1 /0.82D0 , 1.8D0 , 3.7D0 , 12.5D0 /
+!  data dustbed1 /0.82D0 , 1.8D0 , 3.7D0 , 12.5D0 /
+
+!FAB
+! if calculated from Kok distribution 
+  data dustbed1 /0.658184, 1.75093D0, 3.67936D0, 8.46347D0 /
+
   ! 12 bins option calculated from Kok Distibution
   data dustbed2 / 0.14062217D0, 0.4300415D0,  1.10404692D0,   &
                   2.02166018D0, 3.10952699D0, 4.21185749D0,   &

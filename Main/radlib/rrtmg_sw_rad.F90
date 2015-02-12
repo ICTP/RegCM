@@ -185,6 +185,7 @@ module rrtmg_sw_rad
 
     !ICTP/REGCM modification (fsolmon)
     !-include diffuse/direct - uv-vis-Pir fuxes in the interface
+    !- + aerosol radiative forcing calculation
     ! --------- Modules ---------
 
     use parrrsw, only : nbndsw, ngptsw, naerec, nstr, nmol, mxmol, &

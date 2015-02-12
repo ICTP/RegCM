@@ -327,6 +327,10 @@ module mod_rrtmg_driver
       swddifuviflx(:,:) = d_zero
       swddirpirflx(:,:) = d_zero
       swddifpirflx(:,:) = d_zero
+      aeradfo(:) = d_zero
+      aeradfos(:) = d_zero
+      asaeradfo(:) = d_zero
+      asaeradfos(:) = d_zero
     end if ! end shortwave call
 
     ! LW call :
