@@ -53,7 +53,7 @@ module mod_clm_ch4rest
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'CONC_CH4_SAT', &
               cdims=(/'column ','levgrnd'/), &
-              long_name='methane soil concentration', units='mol/m^3')
+              long_name='methane soil concentration', units='mol/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'CONC_CH4_SAT') ) then
         if ( ktau > 0 ) then
@@ -61,11 +61,11 @@ module mod_clm_ch4rest
         end if
       else
         call clm_readvar(ncid,'CONC_CH4_SAT', &
-                cptr%cch4%conc_ch4_sat,gcomm_column)
+                cptr%cch4%conc_ch4_sat,gcomm_column, switchdim=.true.)
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'CONC_CH4_SAT', &
-              cptr%cch4%conc_ch4_sat,gcomm_column)
+              cptr%cch4%conc_ch4_sat,gcomm_column, switchdim=.true.)
     end if
 
     ! column ch4 state variable - conc_ch4_unsat
@@ -73,7 +73,7 @@ module mod_clm_ch4rest
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'CONC_CH4_UNSAT', &
               cdims=(/'column ','levgrnd'/), &
-              long_name='methane soil concentration', units='mol/m^3')
+              long_name='methane soil concentration', units='mol/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'CONC_CH4_UNSAT') ) then
         if ( ktau > 0 ) then
@@ -81,11 +81,11 @@ module mod_clm_ch4rest
         end if
       else
         call clm_readvar(ncid,'CONC_CH4_UNSAT', &
-                cptr%cch4%conc_ch4_unsat,gcomm_column)
+                cptr%cch4%conc_ch4_unsat,gcomm_column, switchdim=.true.)
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'CONC_CH4_UNSAT', &
-              cptr%cch4%conc_ch4_unsat,gcomm_column)
+              cptr%cch4%conc_ch4_unsat,gcomm_column, switchdim=.true.)
     end if
 
     ! column ch4 state variable - conc_o2_sat
@@ -93,7 +93,7 @@ module mod_clm_ch4rest
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'CONC_O2_SAT', &
               cdims=(/'column ','levgrnd'/), &
-              long_name='oxygen soil concentration', units='mol/m^3')
+              long_name='oxygen soil concentration', units='mol/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'CONC_O2_SAT') ) then
         if ( ktau > 0 ) then
@@ -101,11 +101,11 @@ module mod_clm_ch4rest
         end if
       else
         call clm_readvar(ncid,'CONC_O2_SAT', &
-                cptr%cch4%conc_o2_sat,gcomm_column)
+                cptr%cch4%conc_o2_sat,gcomm_column, switchdim=.true.)
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'CONC_O2_SAT', &
-              cptr%cch4%conc_o2_sat,gcomm_column)
+              cptr%cch4%conc_o2_sat,gcomm_column, switchdim=.true.)
     end if
 
     ! column ch4 state variable - conc_o2_unsat
@@ -113,7 +113,7 @@ module mod_clm_ch4rest
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'CONC_O2_UNSAT', &
               cdims=(/'column ','levgrnd'/), &
-              long_name='oxygen soil concentration', units='mol/m^3')
+              long_name='oxygen soil concentration', units='mol/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'CONC_O2_UNSAT') ) then
         if ( ktau > 0 ) then
@@ -121,11 +121,11 @@ module mod_clm_ch4rest
         end if
       else
         call clm_readvar(ncid,'CONC_O2_UNSAT', &
-                cptr%cch4%conc_o2_unsat,gcomm_column)
+                cptr%cch4%conc_o2_unsat,gcomm_column, switchdim=.true.)
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'CONC_O2_UNSAT', &
-              cptr%cch4%conc_o2_unsat,gcomm_column)
+              cptr%cch4%conc_o2_unsat,gcomm_column, switchdim=.true.)
     end if
 
     ! column ch4 flux variable - o2stress_sat (used in CNDecompCascade)
@@ -133,7 +133,7 @@ module mod_clm_ch4rest
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'O2STRESS_SAT', &
               cdims=(/'column ','levgrnd'/), &
-              long_name='oxygen stress fraction')
+              long_name='oxygen stress fraction', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'O2STRESS_SAT') ) then
         if ( ktau > 0 ) then
@@ -141,11 +141,11 @@ module mod_clm_ch4rest
         end if
       else
         call clm_readvar(ncid,'O2STRESS_SAT', &
-                cptr%cch4%o2stress_sat,gcomm_column)
+                cptr%cch4%o2stress_sat,gcomm_column, switchdim=.true.)
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'O2STRESS_SAT', &
-              cptr%cch4%o2stress_sat,gcomm_column)
+              cptr%cch4%o2stress_sat,gcomm_column, switchdim=.true.)
     end if
 
     ! column ch4 flux variable - o2stress_unsat (used in CNDecompCascade)
@@ -153,7 +153,7 @@ module mod_clm_ch4rest
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'O2STRESS_UNSAT', &
               cdims=(/'column ','levgrnd'/), &
-              long_name='oxygen stress fraction')
+              long_name='oxygen stress fraction', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'O2STRESS_UNSAT') ) then
         if ( ktau > 0 ) then
@@ -161,11 +161,11 @@ module mod_clm_ch4rest
         end if
       else
         call clm_readvar(ncid,'O2STRESS_UNSAT', &
-                cptr%cch4%o2stress_unsat,gcomm_column)
+                cptr%cch4%o2stress_unsat,gcomm_column, switchdim=.true.)
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'O2STRESS_UNSAT', &
-              cptr%cch4%o2stress_unsat,gcomm_column)
+              cptr%cch4%o2stress_unsat,gcomm_column, switchdim=.true.)
     end if
 
     ! column ch4 state variable - layer_sat_lag
@@ -173,7 +173,7 @@ module mod_clm_ch4rest
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'LAYER_SAT_LAG', &
               cdims=(/'column ','levgrnd'/), &
-              long_name='lagged saturation status of layer in unsat. zone')
+              long_name='lagged saturation status of layer in unsat. zone', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'LAYER_SAT_LAG') ) then
         if ( ktau > 0 ) then
@@ -181,11 +181,11 @@ module mod_clm_ch4rest
         end if
       else
         call clm_readvar(ncid,'LAYER_SAT_LAG', &
-                cptr%cch4%layer_sat_lag,gcomm_column)
+                cptr%cch4%layer_sat_lag,gcomm_column, switchdim=.true.)
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'LAYER_SAT_LAG', &
-              cptr%cch4%layer_sat_lag,gcomm_column)
+              cptr%cch4%layer_sat_lag,gcomm_column, switchdim=.true.)
     end if
 
     ! column ch4 state variable - qflx_surf_lag
@@ -417,7 +417,7 @@ module mod_clm_ch4rest
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'O2_DECOMP_DEPTH_SAT', &
               cdims=(/'column ','levgrnd'/), &
-              long_name='O2 consumption during decomposition',units='mol/m3/s')
+              long_name='O2 consumption during decomposition',units='mol/m3/s', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'O2_DECOMP_DEPTH_SAT') ) then
         if ( ktau > 0 ) then
@@ -425,11 +425,11 @@ module mod_clm_ch4rest
         end if
       else
         call clm_readvar(ncid,'O2_DECOMP_DEPTH_SAT', &
-                cptr%cch4%o2_decomp_depth_sat,gcomm_column)
+                cptr%cch4%o2_decomp_depth_sat,gcomm_column, switchdim=.true.)
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'O2_DECOMP_DEPTH_SAT', &
-              cptr%cch4%o2_decomp_depth_sat,gcomm_column)
+              cptr%cch4%o2_decomp_depth_sat,gcomm_column, switchdim=.true.)
     end if
 
     ! column ch4 flux variable - o2_decomp_depth_unsat
@@ -438,7 +438,7 @@ module mod_clm_ch4rest
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'O2_DECOMP_DEPTH_UNSAT', &
               cdims=(/'column ','levgrnd'/), &
-              long_name='O2 consumption during decomposition',units='mol/m3/s')
+              long_name='O2 consumption during decomposition',units='mol/m3/s', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'O2_DECOMP_DEPTH_UNSAT') ) then
         if ( ktau > 0 ) then
@@ -446,11 +446,11 @@ module mod_clm_ch4rest
         end if
       else
         call clm_readvar(ncid,'O2_DECOMP_DEPTH_UNSAT', &
-                cptr%cch4%o2_decomp_depth_unsat,gcomm_column)
+                cptr%cch4%o2_decomp_depth_unsat,gcomm_column, switchdim=.true.)
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'O2_DECOMP_DEPTH_UNSAT', &
-              cptr%cch4%o2_decomp_depth_unsat,gcomm_column)
+              cptr%cch4%o2_decomp_depth_unsat,gcomm_column, switchdim=.true.)
     end if
 
 #endif
@@ -460,7 +460,7 @@ module mod_clm_ch4rest
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'LAKE_SOILC', &
               cdims=(/'column ','levgrnd'/), &
-              long_name='lake soil carbon concentration', units='g/m^3')
+              long_name='lake soil carbon concentration', units='g/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'LAKE_SOILC') ) then
         if ( ktau > 0 ) then
@@ -468,11 +468,11 @@ module mod_clm_ch4rest
         end if
       else
         call clm_readvar(ncid,'LAKE_SOILC', &
-                cptr%cch4%lake_soilc,gcomm_column)
+                cptr%cch4%lake_soilc,gcomm_column, switchdim=.true.)
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'LAKE_SOILC', &
-                cptr%cch4%lake_soilc,gcomm_column)
+                cptr%cch4%lake_soilc,gcomm_column, switchdim=.true.)
     end if
 
   end subroutine ch4Rest

@@ -4055,7 +4055,7 @@ module mod_clm_cnrest
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,name_vr,         &
               (/'column ','levgrnd'/), long_name=longname, &
-              units=units,fill_value=1)
+              units=units,fill_value=1, switchdim=.true.)
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,name_vr) ) then
         if ( present(lstop) ) then
@@ -4068,10 +4068,10 @@ module mod_clm_cnrest
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
-        call clm_readvar(ncid,name_vr,data_rl,gcomm_column)
+        call clm_readvar(ncid,name_vr,data_rl,gcomm_column, switchdim=.true.)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,name_vr,data_rl,gcomm_column)
+      call clm_writevar(ncid,name_vr,data_rl,gcomm_column, switchdim=.true.)
     end if
 #else
     !! nlevdecomp = 1; so treat as 1D variable
