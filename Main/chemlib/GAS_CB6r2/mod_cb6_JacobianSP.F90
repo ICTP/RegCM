@@ -22,7 +22,7 @@
 
 
 
-MODULE cb6_JacobianSP
+MODULE mod_cb6_JacobianSP
 
   PUBLIC
   SAVE
@@ -240,5 +240,5 @@ MODULE cb6_JacobianSP
      956,981,1011,1061,1062 /)
 
 
-END MODULE cb6_JacobianSP
+END MODULE mod_cb6_JacobianSP
 

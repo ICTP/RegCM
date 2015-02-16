@@ -22,9 +22,9 @@
 
 
 
-MODULE cb6_Util
+MODULE mod_cb6_Util
 
-  USE cb6_Parameters
+  USE mod_cb6_Parameters
   IMPLICIT NONE
 
 CONTAINS
@@ -52,7 +52,7 @@ CONTAINS
 
       SUBROUTINE InitSaveData ()
 
-      USE cb6_Parameters
+      USE mod_cb6_Parameters
 
       open(10, file='cb6.dat')
 
@@ -70,8 +70,8 @@ CONTAINS
 
       SUBROUTINE SaveData ()
 
-      USE cb6_Global
-      USE cb6_Monitor
+      USE mod_cb6_Global
+      USE mod_cb6_Monitor
 
       INTEGER i
 
@@ -93,7 +93,7 @@ CONTAINS
 
       SUBROUTINE CloseSaveData ()
 
-      USE cb6_Parameters
+      USE mod_cb6_Parameters
 
       CLOSE(10)
 
@@ -113,9 +113,9 @@ CONTAINS
 
       SUBROUTINE GenerateMatlab ( PREFIX )
 
-      USE cb6_Parameters
-      USE cb6_Global
-      USE cb6_Monitor
+      USE mod_cb6_Parameters
+      USE mod_cb6_Global
+      USE mod_cb6_Monitor
 
       
       CHARACTER(LEN=8) PREFIX 
@@ -371,5 +371,5 @@ END SUBROUTINE GetMass
 
 
 
-END MODULE cb6_Util
+END MODULE mod_cb6_Util
 

@@ -22,9 +22,9 @@
 
 
 
-MODULE cb6_Function
+MODULE mod_cb6_Function
 
-  USE cb6_Parameters
+  USE mod_cb6_Parameters
   IMPLICIT NONE
 
 ! A - Rate for each equation
@@ -426,5 +426,5 @@ END SUBROUTINE Fun
 
 
 
-END MODULE cb6_Function
+END MODULE mod_cb6_Function
 

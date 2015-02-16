@@ -5,7 +5,7 @@
 !                 Matlab Gateway for the Derivative Function Fun
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- USE cb6_Model
+ USE mod_cb6_Model
 
       INTEGER nlhs, nrhs
       INTEGER plhs(*), prhs(*)

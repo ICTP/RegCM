@@ -1,5 +1,5 @@
 
-MODULE cb6_Precision
+MODULE mod_cb6_Precision
 
 !
 ! Definition of different levels of accuracy
@@ -12,6 +12,6 @@ MODULE cb6_Precision
 ! KPP QP - Quadruple precision kind
   INTEGER, PARAMETER :: qp = SELECTED_REAL_KIND(18,400)
 
-END MODULE cb6_Precision
+END MODULE mod_cb6_Precision
 
 

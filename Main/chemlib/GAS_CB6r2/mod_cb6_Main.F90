@@ -28,17 +28,17 @@
 !   Arguments :
 ! 
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-module cb6_main1
-  USE cb6_Model
-  USE cb6_Global
-  USE cb6_Parameters
+module mod_cb6_main1
+  USE mod_cb6_Model
+  USE mod_cb6_Global
+  USE mod_cb6_Parameters
 public :: chemmain
 contains
   subroutine chemmain
-  USE cb6_Model
-  USE cb6_Global
-  USE cb6_Parameters
-  USE cb6_jval1
+  USE mod_cb6_Model
+  USE mod_cb6_Global
+  USE mod_cb6_Parameters
+  USE mod_cb6_jval1
   implicit none
 
 !!!!!!  USE cb6_Initialize, ONLY: Initialize
@@ -401,7 +401,7 @@ kron: DO WHILE (T < TEND)
 
      end subroutine chemmain
 
-end module  mod_cbmz_main1
+end module  mod_cb6_main1
 
 ! End of MAIN function
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

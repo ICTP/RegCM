@@ -22,10 +22,10 @@
 
 
 
-MODULE cb6_LinearAlgebra
+MODULE mod_cb6_LinearAlgebra
 
-  USE cb6_Parameters
-  USE cb6_JacobianSP
+  USE mod_cb6_Parameters
+  USE mod_cb6_JacobianSP
 
   IMPLICIT NONE
 
@@ -46,8 +46,8 @@ SUBROUTINE KppDecomp( JVS, IER )
 !        Sparse LU factorization
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  USE cb6_Parameters
-  USE cb6_JacobianSP
+  USE mod_cb6_Parameters
+  USE mod_cb6_JacobianSP
 
       INTEGER  :: IER
       REAL(kind=dp) :: JVS(LU_NONZERO), W(NVAR), a
@@ -87,8 +87,8 @@ SUBROUTINE KppDecompCmplx( JVS, IER )
 !        Sparse LU factorization, complex
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  USE cb6_Parameters
-  USE cb6_JacobianSP
+  USE mod_cb6_Parameters
+  USE mod_cb6_JacobianSP
 
       INTEGER        :: IER
       DOUBLE COMPLEX :: JVS(LU_NONZERO), W(NVAR), a
@@ -127,8 +127,8 @@ SUBROUTINE KppDecompCmplxR( JVSR, JVSI, IER )
 !   (Real and Imaginary parts are used instead of complex data type)     
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  USE cb6_Parameters
-  USE cb6_JacobianSP
+  USE mod_cb6_Parameters
+  USE mod_cb6_JacobianSP
 
       INTEGER       :: IER
       REAL(kind=dp) :: JVSR(LU_NONZERO), JVSI(LU_NONZERO) 
@@ -174,8 +174,8 @@ SUBROUTINE KppSolveIndirect( JVS, X )
 !        Sparse solve subroutine using indirect addressing
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  USE cb6_Parameters
-  USE cb6_JacobianSP
+  USE mod_cb6_Parameters
+  USE mod_cb6_JacobianSP
 
       INTEGER  :: i, j
       REAL(kind=dp) :: JVS(LU_NONZERO), X(NVAR), sum
@@ -203,8 +203,8 @@ SUBROUTINE KppSolveTRIndirect( JVS, X )
 !        Complex sparse solve transpose subroutine using indirect addressing
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  USE cb6_Parameters
-  USE cb6_JacobianSP
+  USE mod_cb6_Parameters
+  USE mod_cb6_JacobianSP
 
       INTEGER       :: i, j
       REAL(kind=dp) :: JVS(LU_NONZERO), X(NVAR)
@@ -233,8 +233,8 @@ SUBROUTINE KppSolveCmplx( JVS, X )
 !        Complex sparse solve subroutine using indirect addressing
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  USE cb6_Parameters
-  USE cb6_JacobianSP
+  USE mod_cb6_Parameters
+  USE mod_cb6_JacobianSP
 
       INTEGER        :: i, j
       DOUBLE COMPLEX :: JVS(LU_NONZERO), X(NVAR), sum
@@ -262,8 +262,8 @@ SUBROUTINE KppSolveCmplxR( JVSR, JVSI, XR, XI )
 !   (Real and Imaginary parts are used instead of complex data type)     
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  USE cb6_Parameters
-  USE cb6_JacobianSP
+  USE mod_cb6_Parameters
+  USE mod_cb6_JacobianSP
 
       INTEGER       ::  i, j
       REAL(kind=dp) ::  JVSR(LU_NONZERO), JVSI(LU_NONZERO), XR(NVAR), XI(NVAR), sumr, sumi, den
@@ -295,8 +295,8 @@ SUBROUTINE KppSolveTRCmplx( JVS, X )
 !        Complex sparse solve transpose subroutine using indirect addressing
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  USE cb6_Parameters
-  USE cb6_JacobianSP
+  USE mod_cb6_Parameters
+  USE mod_cb6_JacobianSP
 
       INTEGER        :: i, j
       DOUBLE COMPLEX :: JVS(LU_NONZERO), X(NVAR)
@@ -326,8 +326,8 @@ SUBROUTINE KppSolveTRCmplxR( JVSR, JVSI, XR, XI )
 !   (Real and Imaginary parts are used instead of complex data type)     
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  USE cb6_Parameters
-  USE cb6_JacobianSP
+  USE mod_cb6_Parameters
+  USE mod_cb6_JacobianSP
 
       INTEGER       ::  i, j
       REAL(kind=dp) ::  JVSR(LU_NONZERO), JVSI(LU_NONZERO), XR(NVAR), XI(NVAR), den
@@ -1600,5 +1600,5 @@ col:  DO k = 1, n-1
 
 
 
-END MODULE cb6_LinearAlgebra
+END MODULE mod_cb6_LinearAlgebra
 

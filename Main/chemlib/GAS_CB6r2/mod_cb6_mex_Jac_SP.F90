@@ -4,7 +4,7 @@
 !          Matlab Gateway for the Sparse Jacobian Function Jac_SP
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- USE cb6_Model
+ USE mod_cb6_Model
 
       INTEGER nlhs, nrhs
       INTEGER plhs(*), prhs(*)

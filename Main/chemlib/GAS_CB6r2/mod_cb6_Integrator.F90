@@ -38,13 +38,13 @@
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 ! A. Sandu - version of July 2005
 
-MODULE cb6_Integrator
+MODULE mod_cb6_Integrator
 
-  USE cb6_Precision
-  USE cb6_Global, ONLY: FIX, RCONST, TIME, ATOL, RTOL
-  USE cb6_Parameters, ONLY: NVAR, NSPEC, NFIX, LU_NONZERO
-  USE cb6_JacobianSP, ONLY: LU_DIAG
-  USE cb6_LinearAlgebra, ONLY: KppDecomp, KppSolve, &
+  USE mod_cb6_Precision
+  USE mod_cb6_Global, ONLY: FIX, RCONST, TIME, ATOL, RTOL
+  USE mod_cb6_Parameters, ONLY: NVAR, NSPEC, NFIX, LU_NONZERO
+  USE mod_cb6_JacobianSP, ONLY: LU_DIAG
+  USE mod_cb6_LinearAlgebra, ONLY: KppDecomp, KppSolve, &
                Set2zero, WLAMCH
   
   IMPLICIT NONE
@@ -78,8 +78,8 @@ CONTAINS
 SUBROUTINE INTEGRATE( TIN, TOUT, &
   ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
 
-   USE cb6_Parameters
-   USE cb6_Global
+   USE mod_cb6_Parameters
+   USE mod_cb6_Global
    IMPLICIT NONE
 
    REAL(kind=dp), INTENT(IN) :: TIN  ! Start Time
@@ -3391,10 +3391,10 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       SUBROUTINE FUN_CHEM(N, T, V, FCT)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      USE cb6_Parameters
-      USE cb6_Global
-      USE cb6_Function, ONLY: Fun
-      USE cb6_Rates
+      USE mod_cb6_Parameters
+      USE mod_cb6_Global
+      USE mod_cb6_Function, ONLY: Fun
+      USE mod_cb6_Rates
 
       IMPLICIT NONE
 
@@ -3419,11 +3419,11 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       SUBROUTINE JAC_CHEM (N, T, V, JF)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      USE cb6_Parameters
-      USE cb6_Global
-      USE cb6_JacobianSP
-      USE cb6_Jacobian, ONLY: Jac_SP
-      USE cb6_Rates
+      USE mod_cb6_Parameters
+      USE mod_cb6_Global
+      USE mod_cb6_JacobianSP
+      USE mod_cb6_Jacobian, ONLY: Jac_SP
+      USE mod_cb6_Rates
 
       IMPLICIT NONE
 
@@ -3461,7 +3461,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       END SUBROUTINE JAC_CHEM
 
 
-END MODULE cb6_Integrator
+END MODULE mod_cb6_Integrator
 ! End of INTEGRATE function
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

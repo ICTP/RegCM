@@ -22,10 +22,10 @@
 
 
 
-MODULE cb6_Rates
+MODULE mod_cb6_Rates
 
-  USE cb6_Parameters
-  USE cb6_Global
+  USE mod_cb6_Parameters
+  USE mod_cb6_Global
   IMPLICIT NONE
 
 CONTAINS
@@ -558,7 +558,7 @@ END SUBROUTINE Update_RCONST
 SUBROUTINE Update_PHOTO ( )
 
 
-   USE cb6_Global
+   USE mod_cb6_Global
 
   RCONST(1) = (jval_NO2)
   RCONST(8) = (jval_O33P) !!
@@ -597,5 +597,5 @@ END SUBROUTINE Update_PHOTO
 
 
 
-END MODULE cb6_Rates
+END MODULE mod_cb6_Rates
 

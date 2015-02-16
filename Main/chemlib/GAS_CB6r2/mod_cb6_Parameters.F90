@@ -22,9 +22,9 @@
 
 
 
-MODULE cb6_Parameters
+MODULE mod_cb6_Parameters
 
-  USE cb6_Precision
+  USE mod_cb6_Precision
   PUBLIC
   SAVE
 
@@ -156,5 +156,5 @@ MODULE cb6_Parameters
   INTEGER, PARAMETER :: indf_M = 5 
   INTEGER, PARAMETER :: indf_DUMMY = 6 
 
-END MODULE cb6_Parameters
+END MODULE mod_cb6_Parameters
 

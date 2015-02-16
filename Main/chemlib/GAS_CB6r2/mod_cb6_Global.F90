@@ -22,9 +22,9 @@
 
 
 
-MODULE cb6_Global
+MODULE mod_cb6_Global
 
-  USE cb6_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT
+  USE mod_cb6_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT
   PUBLIC
   SAVE
 
@@ -112,5 +112,5 @@ REAL(kind=dp) :: deptha,depthb,altabove,altbelow
 ! INLINED global variable declarations
 
 
-END MODULE cb6_Global
+END MODULE mod_cb6_Global
 

@@ -22,12 +22,12 @@ include $(REGCM_ROOT)/makeinc
 vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 
 noinst_LIBRARIES = libcbmz.a
-libcbmz_a_SOURCES = cb6_Precision.F90 cb6_Parameters.F90 \
-   cb6_Global.F90 cb6_Function.F90 cb6_JacobianSP.F90 \
-   cb6_Jacobian.F90  cb6_jval1.F90 mod_che_hvread.F90 \
-   cb6_Rates.F90 cb6_Util.F90 cb6_Monitor.F90  \
-   cb6_LinearAlgebra.F90 cb6_Main.F90  cb6_Integrator.F90 \
-   cb6_Model.F90
+libcbmz_a_SOURCES = mod_cb6_Precision.F90 mod_cb6_Parameters.F90 \
+   mod_cb6_Global.F90 mod_cb6_Function.F90 mod_cb6_JacobianSP.F90 \
+   mod_cb6_Jacobian.F90  mod_cb6_jval1.F90 mod_che_hvread.F90 \
+   mod_cb6_Rates.F90 mod_cb6_Util.F90 mod_cb6_Monitor.F90  \
+   mod_cb6_LinearAlgebra.F90 mod_cb6_Main.F90  mod_cb6_Integrator.F90 \
+   mod_cb6_Model.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -49,28 +49,28 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-cb6_Precision.o: cb6_Precision.F90
-cb6_Parameters.o: cb6_Parameters.F90 \
-                    cb6_Precision.o
-cb6_Monitor.o: cb6_Monitor.F90 \
-                     cb6_Precision.o
-cb6_Global.o: cb6_Global.F90 \
-                    cb6_Parameters.o cb6_Precision.o
-cb6_Initialize.o: cb6_Initialize.F90  
-cb6_Function.o: cb6_Function.F90  
-cb6_Stochastic.o: cb6_Stochastic.F90  
-cb6_JacobianSP.o: cb6_JacobianSP.F90 
-cb6_Jacobian.o: cb6_Jacobian.F90   cb6_JacobianSP.o
-cb6_LinearAlgebra.o: cb6_LinearAlgebra.F90  cb6_JacobianSP.o
-cb6_Rates.o: cb6_Rates.F90  
-cb6_HessianSP.o: cb6_HessianSP.F90  
-cb6_Hessian.o:  cb6_Hessian.F90  cb6_HessianSP.o
-cb6_StoichiomSP.o: cb6_StoichiomSP.F90 
-cb6_Stoichiom.o: cb6_Stoichiom.F90   cb6_StoichiomSP.o
-cb6_Util.o: cb6_Util.F90   cb6_Monitor.o
-cb6_Main.o: cb6_Main.F90   cb6_Global.o cb6_Parameters.o  cb6_Model.o cb6_Integrator.o
-cb6_Model.o: cb6_Model.F90   cb6_Integrator.o
-cb6_Integrator.o: cb6_Integrator.F90  
+mod_cb6_Precision.o: mod_cb6_Precision.F90
+mod_cb6_Parameters.o: mod_cb6_Parameters.F90 \
+                    mod_cb6_Precision.o
+mod_cb6_Monitor.o: mod_cb6_Monitor.F90 \
+                     mod_cb6_Precision.o
+mod_cb6_Global.o: mod_cb6_Global.F90 \
+                    mod_cb6_Parameters.o mod_cb6_Precision.o
+mod_cb6_Initialize.o: mod_cb6_Initialize.F90  
+mod_cb6_Function.o: mod_cb6_Function.F90  
+mod_cb6_Stochastic.o: mod_cb6_Stochastic.F90  
+mod_cb6_JacobianSP.o: mod_cb6_JacobianSP.F90 
+mod_cb6_Jacobian.o: mod_cb6_Jacobian.F90   mod_cb6_JacobianSP.o
+mod_cb6_LinearAlgebra.o: mod_cb6_LinearAlgebra.F90  mod_cb6_JacobianSP.o
+mod_cb6_Rates.o: mod_cb6_Rates.F90  
+mod_cb6_HessianSP.o: mod_cb6_HessianSP.F90  
+mod_cb6_Hessian.o:  mod_cb6_Hessian.F90  mod_cb6_HessianSP.o
+mod_cb6_StoichiomSP.o: mod_cb6_StoichiomSP.F90 
+mod_cb6_Stoichiom.o: mod_cb6_Stoichiom.F90   mod_cb6_StoichiomSP.o
+mod_cb6_Util.o: mod_cb6_Util.F90   mod_cb6_Monitor.o
+mod_cb6_Main.o: mod_cb6_Main.F90   mod_cb6_Global.o mod_cb6_Parameters.o  mod_cb6_Model.o mod_cb6_Integrator.o
+mod_cb6_Model.o: mod_cb6_Model.F90   mod_cb6_Integrator.o
+mod_cb6_Integrator.o: mod_cb6_Integrator.F90  
 
-cb6_jval1.o : cb6_jval1.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_mppparam.o mod_stdio.o
-mod_che_hvread.o: mod_che_hvread.F90 cb6_jval1.o 
+mod_cb6_jval1.o : mod_cb6_jval1.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_mppparam.o mod_stdio.o
+mod_che_hvread.o: mod_che_hvread.F90 mod_cb6_jval1.o 

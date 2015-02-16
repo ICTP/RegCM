@@ -22,7 +22,7 @@
 
 
 
-MODULE cb6_Monitor
+MODULE mod_cb6_Monitor
 
 
   CHARACTER(LEN=15), PARAMETER, DIMENSION(82) :: SPC_NAMES = (/ &
@@ -294,4 +294,4 @@ MODULE cb6_Monitor
 ! End INLINED global variables
 
 
-END MODULE cb6_Monitor
+END MODULE mod_cb6_Monitor

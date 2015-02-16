@@ -22,10 +22,10 @@
 
 
 
-MODULE cb6_Jacobian
+MODULE mod_cb6_Jacobian
 
-  USE cb6_Parameters
-  USE cb6_JacobianSP
+  USE mod_cb6_Parameters
+  USE mod_cb6_JacobianSP
 
   IMPLICIT NONE
 
@@ -3372,5 +3372,5 @@ END SUBROUTINE JacTR_SP_Vec
 
 
 
-END MODULE cb6_Jacobian
+END MODULE mod_cb6_Jacobian
 
