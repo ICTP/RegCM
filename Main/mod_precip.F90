@@ -84,6 +84,7 @@ module mod_precip
 
   subroutine init_precip(atmslice,atm,aten,sfs,pptnc,cldfra,cldlwc)
     use mod_atm_interface , only : mddom
+    use mod_mppparam , only : maxall
     implicit none
     type(slice) , intent(in) :: atmslice
     type(atmstate_b) , intent(in) :: atm
@@ -92,7 +93,7 @@ module mod_precip
     real(rk8) , pointer , dimension(:,:) :: pptnc
     real(rk8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
 
-    maxlat = maxval(mddom%xlat)
+    call maxall(maxval(mddom%xlat),maxlat)
     call assignpnt(atmslice%tb3d,t3)
     call assignpnt(atmslice%pb3d,p3)
     call assignpnt(atmslice%qxb3d,qx3)
