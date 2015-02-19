@@ -928,7 +928,7 @@ module mod_rad_aerosol
       call getmem2d(gsdust,1,nband,1,nbin,'aerosol:gsdust')
       call getmem2d(ksdust,1,nband,1,nbin,'aerosol:ksdust')
       call getmem2d(wsdust,1,nband,1,nbin,'aerosol:wsdust')
-     ! op propert lw for rrtm
+      ! op propert lw for rrtm
       call getmem2d(ksdust_lw,1,nbndlw,1,nbin,'aerosol:ksdust_lw')
 
       call getmem2d(aermmb,1,npoints,1,kz,'aerosol:aermmb')
@@ -945,16 +945,16 @@ module mod_rad_aerosol
       call getmem2d(aervtot,1,npoints,1,kz,'aerosol:aervtot')
       call getmem3d(aertrlw,1,npoints,1,kzp1,1,kzp1,'aerosol:aertrlw')
       if ( ichem == 1 ) then
-         call getmem3d(fa,1,npoints,0,kz,1,ntr,'aerosol:fa')
-         call getmem3d(ga,1,npoints,0,kz,1,ntr,'aerosol:ga')
-         call getmem3d(tx,1,npoints,0,kz,1,ntr,'aerosol:tx')
-         call getmem3d(uaer,1,npoints,0,kz,1,ntr,'aerosol:uaer')
-         call getmem3d(wa,1,npoints,0,kz,1,ntr,'aerosol:wa')
-         call getmem2d(faer,1,npoints,1,ntr,'aerosol:faer')
-         call getmem2d(gaer,1,npoints,1,ntr,'aerosol:gaer')
-         call getmem2d(tauaer,1,npoints,1,ntr,'aerosol:tauaer')
-         call getmem2d(utaer,1,npoints,1,ntr,'aerosol:utaer')
-         call getmem2d(waer,1,npoints,1,ntr,'aerosol:waer')
+        call getmem3d(fa,1,npoints,0,kz,1,ntr,'aerosol:fa')
+        call getmem3d(ga,1,npoints,0,kz,1,ntr,'aerosol:ga')
+        call getmem3d(tx,1,npoints,0,kz,1,ntr,'aerosol:tx')
+        call getmem3d(uaer,1,npoints,0,kz,1,ntr,'aerosol:uaer')
+        call getmem3d(wa,1,npoints,0,kz,1,ntr,'aerosol:wa')
+        call getmem2d(faer,1,npoints,1,ntr,'aerosol:faer')
+        call getmem2d(gaer,1,npoints,1,ntr,'aerosol:gaer')
+        call getmem2d(tauaer,1,npoints,1,ntr,'aerosol:tauaer')
+        call getmem2d(utaer,1,npoints,1,ntr,'aerosol:utaer')
+        call getmem2d(waer,1,npoints,1,ntr,'aerosol:waer')
       end if
 
       ! initialise aerosol properties in function of the radiation
