@@ -297,6 +297,10 @@ module mod_tendency
       do k = 2 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
+            !
+            ! The coordinate vertical velocity: Eq. 2.2.7 & Eq. 2.3.6 in the MM5
+            ! manual
+            !
             rho0s = twt(k,1)*atm0%rho(j,i,k)+twt(k,2)*atm0%rho(j,i,k-1)
             qdot(j,i,k) = -rho0s*egrav*atm1%w(j,i,k)*rpsa(j,i) * 0.001D0 - &
               sigma(k) * (dpsdxm(j,i) * (twt(k,1)*ucc(j,i,k) +             &
@@ -309,6 +313,10 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
+            !
+            ! The mass divergence term        : Eq. 2.2.6 & Eq. 2.3.5 in the MM5
+            ! manual
+            !
             divl(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
                            atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
                           (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
