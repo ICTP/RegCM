@@ -218,9 +218,13 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm1%pp(j,i,k)
+          !
+          ! Constant reference state and perturbations are defined
+          ! for the nonhydrostatic model.
+          !
+            atm2%pr(j,i,k)  = atm0%pr(j,i,k) + atm1%pp(j,i,k)
             atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
-              (rgas*atm2%t(j,i,k)*rpsb(j,i)* &
+              (rgas*atm2%t(j,i,k)*rpsb(j,i)*   &
               (d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
           end do
         end do
