@@ -488,6 +488,10 @@ module mod_tendency
     aten%t(:,:,:) = d_zero
     aten%qx(:,:,:,:) = d_zero
     if ( idynamic == 2 ) then
+      !
+      ! Pressure perturbations and vertical velocity tendencies in the nonhydrostatic
+      ! model     
+      !
       aten%pp(:,:,:) = d_zero
       aten%w(:,:,:) = d_zero
     end if
@@ -512,6 +516,11 @@ module mod_tendency
     ! Compute Horizontal advection terms
     !
     if ( idynamic == 2 ) then
+      !
+      ! Horizontal and vertical advection of pressure perturbations and vertical
+      ! velocity in the nonhydrostatic model: 1st and 2nd term on the RHS of the 
+      ! Eq. 2.2.3, Eq. 2.2.4, Eq. 2.3.7 and Eq. 2.3.8 in the MM5 manual.
+      !
       call hadv(cross,aten%pp,atmx%pp,kz)
       call hadv(cross,aten%w,atmx%w,kzp1)
       call vadv(cross,aten%pp,atmx%pp,kz,icvadv)
