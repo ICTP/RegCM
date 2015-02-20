@@ -519,7 +519,8 @@ module mod_tendency
       !
       ! Horizontal and vertical advection of pressure perturbations and vertical
       ! velocity in the nonhydrostatic model: 1st and 2nd term on the RHS of the 
-      ! Eq. 2.2.3, Eq. 2.2.4, Eq. 2.3.7 and Eq. 2.3.8 in the MM5 manual.
+      ! Eq. 2.2.3, Eq. 2.2.4, Eq. 2.3.7 and Eq. 2.3.8 in the MM5 manual. 
+      ! Also, cf. Eq. 2.2.11 of the vertical velocity tendeny in the MM5 manual.
       !
       call hadv(cross,aten%pp,atmx%pp,kz)
       call hadv(cross,aten%w,atmx%w,kzp1)
@@ -568,6 +569,10 @@ module mod_tendency
         end do
       end do
     else if ( idynamic == 2 ) then
+      !
+      ! Adiabatic term in the temperature tendency equation in the
+      ! nonhydrostatic model: 3rd and 4th term in Eq. 2.2.5 and Eq.2.3.9.
+      !
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -579,6 +584,13 @@ module mod_tendency
           end do
         end do
       end do
+     !
+     ! Vertical velocity tendency. Following terms are included here: 
+     ! (1) [TO DO] 
+     ! (2) Coriolis        term (cf. Eq. 2.2.11)
+     ! (3) curvature       term (not explicity mentioned in the MM5 1994 manual)
+     ! (4) mass divergence term (3rd term in Eq. 2.2.3 and Eq. 2.3.7)
+     !
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -590,16 +602,16 @@ module mod_tendency
                    twt(k,2) * atms%ubx3d(j,i,k-1))
             vaq = (twt(k,1) * atms%vbx3d(j,i,k) +          &
                    twt(k,2) * atms%vbx3d(j,i,k-1))
-            aten%w(j,i,k) = aten%w(j,i,k) +               &
-                  (twt(k,2)*atmx%pr(j,i,k-1) +            &
-                   twt(k,1)*atmx%pr(j,i,k)) *             &
-                   rofac * egrav * sfs%psa(j,i) +         &
-                   mddom%ex(j,i)*(uaq*mddom%crx(j,i) -    &
-                                  vaq*mddom%cry(j,i)) +   &
+            aten%w(j,i,k) = aten%w(j,i,k)       +          &
+                  (twt(k,2)*atmx%pr(j,i,k-1)    +          &
+                   twt(k,1)*atmx%pr(j,i,k))     *          &
+                   rofac * egrav * sfs%psa(j,i)       +    &
+                   mddom%ex(j,i)*(uaq*mddom%crx(j,i)  -    &
+                                  vaq*mddom%cry(j,i))   + &
                    (uaq*uaq+vaq*vaq)*earthrad*rpsa(j,i) + &
-                   atmx%w(j,i,k)*(twt(k,1)*divl(j,i,k) +  &
+                   atmx%w(j,i,k)*(twt(k,1)*divl(j,i,k)  + &
                                   twt(k,2)*divl(j,i,k-1))
-          end do
+          end do 
         end do
       end do
       if ( ipptls == 2 ) then
