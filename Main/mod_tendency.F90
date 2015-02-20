@@ -266,6 +266,10 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
+            !
+            ! The surface pressure tendency in the   hydrostatic model:
+            ! Eq. 2.1.5 & Eq. 2.4.2 in the MM5 manual
+            !
             divl(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
                            atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
                           (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
@@ -277,6 +281,10 @@ module mod_tendency
       do k = 2 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
+            !
+            ! The coordinate vertical velocity in the   hydrostatic model:
+            ! Eq. 2.1.6 & Eq. 2.4.6 in the MM5 manual
+            !
             qdot(j,i,k) = qdot(j,i,k-1) - (pten(j,i) + &
               divl(j,i,k-1)*dummy(j,i)) * dsigma(k-1) * rpsa(j,i)
            end do
@@ -298,8 +306,8 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             !
-            ! The coordinate vertical velocity: Eq. 2.2.7 & Eq. 2.3.6 in the MM5
-            ! manual
+            ! The coordinate vertical velocity in the nonhydrostatic model:
+            ! Eq. 2.2.7 & Eq. 2.3.6 in the MM5 manual
             !
             rho0s = twt(k,1)*atm0%rho(j,i,k)+twt(k,2)*atm0%rho(j,i,k-1)
             qdot(j,i,k) = -rho0s*egrav*atm1%w(j,i,k)*rpsa(j,i) * 0.001D0 - &
@@ -314,8 +322,8 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             !
-            ! The mass divergence term        : Eq. 2.2.6 & Eq. 2.3.5 in the MM5
-            ! manual
+            ! The mass divergence term in the nonhydrostatic model: 
+            ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
             !
             divl(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
                            atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
@@ -340,6 +348,9 @@ module mod_tendency
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
+          !
+          ! omega in the hydrostatic model: Eqs. 2.1.7, 2.1.8 & 2.4.4
+          !
           omega(j,i,k) = d_half*sfs%psa(j,i)*(qdot(j,i,k+1)+qdot(j,i,k)) + &
                       hsigma(k)*(pten(j,i)+                         &
                      ((atmx%u(j,i,k)    +atmx%u(j,i+1,k)+           &
@@ -517,10 +528,11 @@ module mod_tendency
     !
     if ( idynamic == 2 ) then
       !
-      ! Horizontal and vertical advection of pressure perturbations and vertical
+      ! Horizontal and vertical advection of pressure perturbation  and vertical
       ! velocity in the nonhydrostatic model: 1st and 2nd term on the RHS of the 
       ! Eq. 2.2.3, Eq. 2.2.4, Eq. 2.3.7 and Eq. 2.3.8 in the MM5 manual. 
-      ! Also, cf. Eq. 2.2.11 of the vertical velocity tendeny in the MM5 manual.
+      !
+      ! Also, cf. Eq. 2.2.11 of the vertical velocity tendecny in the MM5 manual.
       !
       call hadv(cross,aten%pp,atmx%pp,kz)
       call hadv(cross,aten%w,atmx%w,kzp1)
@@ -533,7 +545,8 @@ module mod_tendency
     adf%difft(:,:,:) = d_zero
     adf%diffqx(:,:,:,:) = d_zero
     !
-    ! compute the horizontal advection term:
+    ! compute the horizontal advection term in temperature tendency:
+    ! same for hydrostatic and nonhydrostatic models: in Eqs. 2.1.3, 2.2.5, 2.3.9 (2nd and 3rh RHS terms)
     !
     call hadv(cross,aten%t,atmx%t,kz)
     if ( idiag > 0 ) then
@@ -545,6 +558,7 @@ module mod_tendency
 #endif
     !
     ! compute the vertical advection term:
+    ! same for hydrostatic and nonhydrostatic models: in Eqs. 2.1.3, 2.2.5, 2.3.9 (2nd and 3rh RHS terms)
     !
     call vadv(cross,aten%t,atm1%t,kz,icvadv)
     if ( idiag > 0 ) then
@@ -558,6 +572,10 @@ module mod_tendency
     ! compute the adiabatic term:
     !
     if ( idynamic == 1 ) then
+      !
+      ! Adiabatic term in the temperature tendency equation in the
+      ! hydrostatic model:    3rd Eq. 2.1.3
+      !
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -587,7 +605,7 @@ module mod_tendency
      !
      ! Vertical velocity tendency. Following terms are included here: 
      ! (1) [TO DO] 
-     ! (2) Coriolis        term (cf. Eq. 2.2.11)
+     ! (2) Coriolis        term (cf. 6th RHS term in Eq. 2.2.11)
      ! (3) curvature       term (not explicity mentioned in the MM5 1994 manual)
      ! (4) mass divergence term (3rd term in Eq. 2.2.3 and Eq. 2.3.7)
      !
@@ -618,6 +636,10 @@ module mod_tendency
         do k = 2 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
+              !
+              ! Vertical velocity tendency: water loading term 
+              ! 5th RHS term in Eq. 2.2.3 & 6th RHS term in Eq. 2.3.7
+              ! 
               aten%w(j,i,k) = aten%w(j,i,k) - egrav * &
                 (twt(k,2)*qcd(j,i,k-1) + twt(k,1)*qcd(j,i,k))
             end do
