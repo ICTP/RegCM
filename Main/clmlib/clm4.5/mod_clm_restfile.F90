@@ -190,7 +190,7 @@ module mod_clm_restfile
     character(len=*) , intent(in) :: rdate ! input date for restart file name
 
     ! Continue run:
-    rfile = trim(dirout)//trim(caseid)//".clm."//trim(inst_suffix)//&
+    rfile = trim(dirout)//pthsep//trim(caseid)//".clm."//trim(inst_suffix)//&
             ".r."//trim(rdate)//".nc"
   end subroutine restFile_getfile
   !

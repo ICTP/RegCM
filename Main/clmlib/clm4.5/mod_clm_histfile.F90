@@ -2620,8 +2620,8 @@ module mod_clm_histfile
         ! Create the restart history filename and open it
         !
         write(hnum,'(i1.1)') t-1
-        locfnhr(t) = trim(dirout)//trim(caseid)//".clm."//trim(inst_suffix) &
-                        // ".rh" // hnum //"."// trim(rdate) //".nc"
+        locfnhr(t) = trim(dirout)//pthsep//trim(caseid)//".clm."// &
+                     trim(inst_suffix)// ".rh"// hnum//"."//trim(rdate)//".nc"
 
         call htape_create( t, histrest=.true. )
 
@@ -3662,7 +3662,7 @@ module mod_clm_histfile
       write(cdate,'(i4.4,i2.2,i2.2,"_",i5.5)') yr,mon,day,(sec+int(dtsec))
     end if
     write(hist_index,'(i1.1)') hist_file - 1
-    set_hist_filename = trim(dirout)//trim(caseid)//".clm."// &
+    set_hist_filename = trim(dirout)//pthsep//trim(caseid)//".clm."// &
                         trim(inst_suffix)//".h"//hist_index// &
                         "."//trim(cdate)//".nc"
   end function set_hist_filename

@@ -148,7 +148,7 @@ module mod_clm_cndv
     character(len=  8) :: curtime      ! current time
     character(len= 10) :: basedate     ! base date (yyyymmdd)
     character(len=  8) :: basesec      ! base seconds
-    real(rk8), pointer :: rbuf2dg(:,:)  ! temporary
+    real(rk8), pointer :: rbuf2dg(:)  ! temporary
     character(len=32) :: subname='histCNDV'
     integer(ik4) :: hostnm
     character (len=32) :: hostname='?'
@@ -174,7 +174,7 @@ module mod_clm_cndv
 
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
 
-    allocate(rbuf2dg(begg:endg,maxpatch_pft), stat=ier)
+    allocate(rbuf2dg(begp,endp), stat=ier)
     if (ier /= 0) call fatal(__FILE__,__LINE__,&
       'histCNDV: allocation error for rbuf2dg')
 
@@ -249,10 +249,8 @@ module mod_clm_cndv
     hours   = nbsec / 3600
     minutes = (nbsec - hours*3600) / 60
     secs    = (nbsec - hours*3600 - minutes*60)
-    write(basedate,80) yr,mon,day
-80  format(i4.4,'-',i2.2,'-',i2.2)
-    write(basesec ,90) hours, minutes, secs
-90  format(i2.2,':',i2.2,':',i2.2)
+    write(basedate,'(i4.4,'-',i2.2,'-',i2.2)') yr,mon,day
+    write(basesec ,'(i2.2,':',i2.2,':',i2.2)') hours, minutes, secs
     str = 'days since ' // basedate // " " // basesec
     time = mdcur + mscur/secspday
 
@@ -283,13 +281,11 @@ module mod_clm_cndv
 
     ! Define time dependent variables
 
-     call clm_addvar(clmvar_double,ncid,'FPCGRID',&
-          (/'gridcell','pft     ','time    '/), &
+     call clm_addvar(clmvar_double,ncid,'FPCGRID', (/'pft ','time'/), &
           long_name='plant functional type cover', &
           units='fraction of vegetated area', &
           missing_value=1,fill_value=1)
-     call clm_addvar(clmvar_double,ncid,'NIND', &
-          (/'gridcell','pft     ','time    '/), &
+     call clm_addvar(clmvar_double,ncid,'NIND', (/'pft ','time'/), &
           long_name='number of individuals', &
           units='individuals/m2 vegetated land', &
           missing_value=1,fill_value=1)
@@ -303,9 +299,9 @@ module mod_clm_cndv
     ! Write surface grid (coordinate variables, latitude,
     ! longitude, surface type).
 
-    call clm_writevar(ncid,'longxy',ldomain%lonc)
-    call clm_writevar(ncid,'latixy',ldomain%latc)
-    call clm_writevar(ncid,'landmask',ldomain%mask)
+    call clm_writevar(ncid,'longxy',ldomain%lonc,gcomm_gridcell)
+    call clm_writevar(ncid,'latixy',ldomain%latc,gcomm_gridcell)
+    call clm_writevar(ncid,'landmask',ldomain%mask,gcomm_gridcell)
 
     ! Write current date, current seconds, current day, current nstep
 
@@ -325,21 +321,19 @@ module mod_clm_cndv
     ! The if .not. ifspecial statment below guarantees that the m index will
     ! always lie between 1 and maxpatch_pft
 
-    rbuf2dg(:,:) = 0.D0
-    do p = begp,endp
-       g = pgridcell(p)
+    rbuf2dg(:) = 0.D0
+    do p = begp , endp
        l = plandunit(p)
-       if (.not. ifspecial(l)) rbuf2dg(g,mxy(p)) = fpcgrid(p)*100.D0
+       if (.not. ifspecial(l)) rbuf2dg(p) = fpcgrid(p)*100.D0
     end do
-    call clm_writevar(ncid,'FPCGRID',rbuf2dg,nt=1)
+    call clm_writevar(ncid,'FPCGRID',rbuf2dg,gcomm_pft,nt=1)
 
-    rbuf2dg(:,:) = 0.D0
-    do p = begp,endp
-       g = pgridcell(p)
+    rbuf2dg(:) = 0.D0
+    do p = begp , endp
        l = plandunit(p)
-       if (.not. ifspecial(l)) rbuf2dg(g,mxy(p)) = nind(p)
+       if (.not. ifspecial(l)) rbuf2dg(p) = nind(p)
     end do
-    call clm_writevar(ncid,'NIND',rbuf2dg,nt=1)
+    call clm_writevar(ncid,'NIND',rbuf2dg,gcomm_pft,nt=1)
 
     ! Deallocate dynamic memory
 
@@ -369,8 +363,9 @@ module mod_clm_cndv
     integer(ik4) :: sec                    !seconds into current day
     call curr_date(idatex,yr,mon,day,sec)
     write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
-    set_dgvm_filename = "./"//trim(caseid)//".clm2"//trim(inst_suffix)//&
-                        ".hv."//trim(cdate)//".nc"
+    set_dgvm_filename = trim(dirout)//pthsep//trim(caseid)//  &
+                              ".clm."//trim(inst_suffix)// &
+                              ".hv."// trim(cdate) //".nc"
   end function set_dgvm_filename
   !
   ! Reconstruct a filter of naturally-vegetated PFTs for use in DGVM
