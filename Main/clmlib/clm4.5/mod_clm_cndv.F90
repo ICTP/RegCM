@@ -21,7 +21,8 @@ module mod_clm_cndv
   use mod_clm_cnvegstructupdate , only : CNVegStructUpdate
   use mod_clm_cndvestablishment , only : Establishment
   use mod_clm_cndvlight , only : Light
-  use mod_clm_decomp , only : get_proc_bounds , get_proc_global
+  use mod_clm_decomp , only : get_proc_bounds , get_proc_global , &
+                gcomm_gridcell , gcomm_pft
   use mod_clm_varpar , only : maxpatch_pft
   use mod_clm_domain , only : ldomain
   use mod_clm_varcon , only : spval
@@ -174,7 +175,7 @@ module mod_clm_cndv
 
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
 
-    allocate(rbuf2dg(begp,endp), stat=ier)
+    allocate(rbuf2dg(begp:endp), stat=ier)
     if (ier /= 0) call fatal(__FILE__,__LINE__,&
       'histCNDV: allocation error for rbuf2dg')
 
@@ -249,8 +250,8 @@ module mod_clm_cndv
     hours   = nbsec / 3600
     minutes = (nbsec - hours*3600) / 60
     secs    = (nbsec - hours*3600 - minutes*60)
-    write(basedate,'(i4.4,'-',i2.2,'-',i2.2)') yr,mon,day
-    write(basesec ,'(i2.2,':',i2.2,':',i2.2)') hours, minutes, secs
+    write(basedate,'(i4.4,"-",i2.2,"-",i2.2)') yr,mon,day
+    write(basesec ,'(i2.2,":",i2.2,":",i2.2)') hours, minutes, secs
     str = 'days since ' // basedate // " " // basesec
     time = mdcur + mscur/secspday
 
