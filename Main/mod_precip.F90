@@ -356,11 +356,6 @@ module mod_precip
       ! cevap minimum seasonal paraneter
       real(rk8) , parameter :: mincevap = 1.0D-5
       xxlat = mddom%xlat(j,i)
-      if ( xxlat > d_zero ) then
-        theta = twopi*mod(calday+(dayspy*d_half),dayspy)/dayspy
-      else
-        theta = twopi*calday/dayspy
-      end if
       sc = max(cevap(j,i) * (d_one - &
         (sin(abs(xxlat*90.0D0/maxlat)*degrad) * &
          (d_one + declin/dmax)/d_two)), mincevap)
