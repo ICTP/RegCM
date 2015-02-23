@@ -230,7 +230,7 @@ module mod_clm_initialize
     ! Initialize Ecosystem Dynamics
 
 #if (defined CNDV)
-    call CNDVEcosystemDynini()
+    call CNDVEcosystemDynini(adomain)
 #elif (!defined CN)
     call EcosystemDynini()
 #endif

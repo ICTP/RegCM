@@ -15,11 +15,13 @@ module mod_clm_cndvecosystemdynini
   !
   ! CNDV related initializations
   !
-  subroutine CNDVEcosystemDynini()
+  subroutine CNDVEcosystemDynini(adomain)
     use mod_clm_type
     use mod_clm_decomp , only : get_proc_bounds , get_proc_global
     use mod_constants , only : tzero
+    use mod_clm_atmlnd , only : atm_domain
     implicit none
+    type(atm_domain) , intent(in) :: adomain
     integer(ik4) :: g , p , n   ! indices
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc !              "                column indices
@@ -50,7 +52,7 @@ module mod_clm_cndvecosystemdynini
     do g = begg , endg
       gptr%gdgvs%agdd20(g)   = 0.D0
       !initialize this way for Phenology code
-      gptr%gdgvs%tmomin20(g) = tzero - 5.D0
+      gptr%gdgvs%tmomin20(g) = adomain%tgrd(g) - 5.D0
     end do
   end subroutine CNDVEcosystemDynini
 

@@ -138,6 +138,7 @@ module mod_clm_cndv
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
     integer(ik4) :: ihost , iktau
+    integer(ik4) :: numg , numl , numc , nump
     integer(ik4) :: ier                     ! error status
     integer(ik4) :: mdcur, mscur, mcdate    ! outputs from curr_time
     integer(ik4) :: yr,mon,day,mcsec        ! outputs from curr_date
@@ -174,6 +175,7 @@ module mod_clm_cndv
     ! Determine subgrid bounds for this processor and allocate dynamic memory
 
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
+    call get_proc_global(numg,numl,numc,nump)
 
     allocate(rbuf2dg(begp:endp), stat=ier)
     if (ier /= 0) call fatal(__FILE__,__LINE__,&
@@ -236,8 +238,7 @@ module mod_clm_cndv
     ! Define dimensions.
     ! -----------------------------------------------------------------------
 
-    call clm_adddim(ncid,'gridcell',ldomain%ns)
-    call clm_adddim(ncid,'pft',maxpatch_pft)
+    call clm_adddim(ncid,'pft',nump)
     call clm_adddim(ncid,'time',clmvar_unlim)
     call clm_adddim(ncid,'string_length',80)
 
