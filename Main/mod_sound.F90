@@ -156,8 +156,8 @@ module mod_sound
         do j = jde1 , jde2
           aten%u(j,i,k) = aten%u(j,i,k)*dts
           aten%v(j,i,k) = aten%v(j,i,k)*dts
-          u3d(j,i,k) = atm2%u(j,i,k)/sfs%psdota(j,i)
-          v3d(j,i,k) = atm2%v(j,i,k)/sfs%psdota(j,i)
+          u3d(j,i,k)    = atm2%u(j,i,k)/sfs%psdota(j,i)
+          v3d(j,i,k)    = atm2%v(j,i,k)/sfs%psdota(j,i)
           atm2%u(j,i,k) = omuhf*atm1%u(j,i,k)/mddom%msfd(j,i) + &
             gnuhf*atm2%u(j,i,k)
           atm2%v(j,i,k) = omuhf*atm1%v(j,i,k)/mddom%msfd(j,i) + &
@@ -169,8 +169,8 @@ module mod_sound
       do i = ice1 , ice2
         do j = jce1 , jce2
           aten%pp(j,i,k) = aten%pp(j,i,k)*dts
-          qv3d(j,i,k) = atm1%qx(j,i,k,iqv)/sfs%psa(j,i)
-          pp3d(j,i,k) = atm2%pp(j,i,k)/sfs%psa(j,i)
+          qv3d(j,i,k)    = atm1%qx(j,i,k,iqv)/sfs%psa(j,i)
+          pp3d(j,i,k)    = atm2%pp(j,i,k)/sfs%psa(j,i)
           atm2%pp(j,i,k) = omuhf*atm1%pp(j,i,k) + gnuhf*atm2%pp(j,i,k)
         end do
       end do
@@ -179,7 +179,7 @@ module mod_sound
       do i = ice1 , ice2
         do j = jce1 , jce2
           aten%w(j,i,k) = aten%w(j,i,k)*dts
-          w3d(j,i,k) = atm2%w(j,i,k)/sfs%psa(j,i)
+          w3d(j,i,k)    = atm2%w(j,i,k)/sfs%psa(j,i)
           atm2%w(j,i,k) = omuhf*atm1%w(j,i,k) + gnuhf*atm2%w(j,i,k)
         end do
       end do
@@ -214,21 +214,26 @@ module mod_sound
         do i = idi1 , idi2
           do j = jdi1 , jdi2
             ! PREDICT U AND V
-            rho = d_rfour * (atm2%rho(j,i,k) + atm2%rho(j,i-1,k) + &
-                             atm2%rho(j-1,i,k) + atm2%rho(j-1,i-1,k))
-            dppdp0 = d_rfour * (t3d(j,i,k) + t3d(j,i-1,k) + &
+            rho    = d_rfour * (atm2%rho(j,i,k)   + atm2%rho(j,i-1,k) + &
+                                atm2%rho(j-1,i,k) + atm2%rho(j-1,i-1,k))
+            dppdp0 = d_rfour * (t3d(j,i,k)   + t3d(j,i-1,k) + &
                                 t3d(j-1,i,k) + t3d(j-1,i-1,k))
             ! DIVIDE BY MAP SCALE FACTOR
             chh = d_half * dts / (rho*dx) / mddom%msfd(j,i)
+            !
+            ! Nonhydrostatic model: pressure gradient term in sigma vertical
+            ! coordinanate: 4th RHS term in Eqs. 2.2.1, 2.2.2, 2.2.9, 2.2.10,
+            ! 2.3.3, 2.3.4 in the MM5 manual.
+            !
             u3d(j,i,k) = u3d(j,i,k) - &
-                      chh * (pp3d(j,i,k) - pp3d(j,i-1,k) + &
+                      chh * (pp3d(j,i,k)   - pp3d(j,i-1,k)   + &
                              pp3d(j-1,i,k) - pp3d(j-1,i-1,k) - &
-                      ( atm0%pr(j,i,k) - atm0%pr(j,i-1,k) + &
+                      ( atm0%pr(j,i,k)   - atm0%pr(j,i-1,k)  + &
                         atm0%pr(j-1,i,k) - atm0%pr(j-1,i-1,k)) * dppdp0)
             v3d(j,i,k) = v3d(j,i,k) - &
-                      chh * (pp3d(j,i,k) - pp3d(j-1,i,k) + &
+                      chh * (pp3d(j,i,k)   - pp3d(j-1,i,k)   + &
                              pp3d(j,i-1,k) - pp3d(j-1,i-1,k) - &
-                      ( atm0%pr(j,i,k) - atm0%pr(j-1,i,k) + &
+                      ( atm0%pr(j,i,k)   - atm0%pr(j-1,i,k)  + &
                         atm0%pr(j,i-1,k) - atm0%pr(j-1,i-1,k))*dppdp0)
           end do
         end do
@@ -252,6 +257,12 @@ module mod_sound
       end if
       !
       !  SEMI-IMPLICIT SOLUTION FOR W AND P
+      !
+      !
+      !  Nonhydrostatic model. 
+      !  Presure perturbation tendency: 4th, 5th and 6th RHS terms in Eq.2.2.4. 4th and 5th RHS terms in Eq.2.3.8
+      !  Vertical momentum    tendency: 1st subterm and part of the 3rd subterm of the 4th RHS term in Eq.2.2.3 and 2.2.11 (see Hint below). This is joined into the 4th RHS term in Eq. 2.3.7.
+      !                           Hint: R=Cp-Cv, gamma=Cp/Cv -> 1/gamma+R/Cp=1
       !
       do k = 1 , kz
         do i = ici1 , ici2

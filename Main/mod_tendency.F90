@@ -294,6 +294,9 @@ module mod_tendency
       do k = 2 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
+            !
+            ! Calculate wind components at cross points
+            !
             ucc(j,i,k) = atmx%u(j,i,k)+atmx%u(j,i+1,k) + &
                          atmx%u(j+1,i,k)+atmx%u(j+1,i+1,k)
             vcc(j,i,k) = atmx%v(j,i,k)+atmx%v(j,i+1,k) + &
@@ -596,9 +599,9 @@ module mod_tendency
           do j = jci1 , jci2
             scr = d_half*egrav*atm0%rho(j,i,k)*(atm1%w(j,i,k)+atm1%w(j,i,k+1))
             cpm = cpd*(d_one + 0.8D0*qvd(j,i,k))
-            aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*divl(j,i,k) - &
-              (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divl(j,i,k)) / &
-              (atm1%rho(j,i,k)*cpm)
+            aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*divl(j,i,k)       - &
+                            (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divl(j,i,k)) / &
+                            (atm1%rho(j,i,k)*cpm)
           end do
         end do
       end do
