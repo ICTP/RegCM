@@ -350,7 +350,7 @@ module mod_precip
       use mod_atm_interface , only : mddom
       implicit none
       integer , intent(in) :: i , j
-      real(rk8) :: theta , xxlat
+      real(rk8) :: xxlat
       ! Maximum abs value for the declination angle
       real(rk8) , parameter :: dmax = 0.40910517666747085282D0
       ! cevap minimum seasonal paraneter
