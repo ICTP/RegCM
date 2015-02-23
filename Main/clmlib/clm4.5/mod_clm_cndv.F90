@@ -238,6 +238,7 @@ module mod_clm_cndv
     ! Define dimensions.
     ! -----------------------------------------------------------------------
 
+    call clm_adddim(ncid,'gridcell',numg)
     call clm_adddim(ncid,'pft',nump)
     call clm_adddim(ncid,'time',clmvar_unlim)
     call clm_adddim(ncid,'string_length',80)
