@@ -286,7 +286,7 @@ module mod_clm_cndv
 
      call clm_addvar(clmvar_double,ncid,'FPCGRID', (/'pft ','time'/), &
           long_name='plant functional type cover', &
-          units='fraction of vegetated area', &
+          units='% of vegetated area', &
           missing_value=1,fill_value=1)
      call clm_addvar(clmvar_double,ncid,'NIND', (/'pft ','time'/), &
           long_name='number of individuals', &

@@ -485,7 +485,7 @@ module mod_clm_cndvestablishment
     ! Check for error in establishment
     fn = 0
     do g = lbg, ubg
-      if (abs(fpc_total(g) - 1.D0) > 1.e-6) then
+      if (abs(fpc_total(g) - 1.D0) > 1.D-6) then
         fn = fn + 1
         filterg(fn) = g
       end if

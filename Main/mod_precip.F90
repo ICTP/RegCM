@@ -346,19 +346,38 @@ module mod_precip
 
   contains
 
+    pure real(rk8) function season_factor(lat) result(sf)
+      implicit none
+      real(rk8) , intent(in) :: lat
+      real(rk8) :: theta , delta
+      ! Maximum abs value for the declination angle
+      real(rk8) , parameter :: dmax = 0.40910517666747085282D0
+      ! Different phase in the two emispheres
+      if ( lat > d_zero ) then
+        theta = twopi*mod(calday+(dayspy*d_half),dayspy)/dayspy
+      else
+        theta = twopi*calday/dayspy
+      end if
+      delta = 0.006918D0 - 0.399912D0*dcos(theta) + &
+              0.070257D0*dsin(theta) -              &
+              0.006758D0*dcos(2.0D0*theta) +        &
+              0.000907D0*dsin(2.0D0*theta) -        &
+              0.002697D0*dcos(3.0D0*theta) +        &
+              0.001480D0*dsin(3.0D0*theta)
+      sf = (d_one + delta/dmax)/d_two
+    end function season_factor
+
     pure real(rk8) function sun_cevap(j,i) result(sc)
       use mod_atm_interface , only : mddom
       implicit none
       integer , intent(in) :: i , j
       real(rk8) :: xxlat
-      ! Maximum abs value for the declination angle
-      real(rk8) , parameter :: dmax = 0.40910517666747085282D0
       ! cevap minimum seasonal paraneter
       real(rk8) , parameter :: mincevap = 1.0D-5
       xxlat = mddom%xlat(j,i)
       sc = max(cevap(j,i) * (d_one - &
         (sin(abs(xxlat*90.0D0/maxlat)*degrad) * &
-         (d_one + declin/dmax)/d_two)), mincevap)
+         season_factor(xxlat))), mincevap)
     end function sun_cevap
 
   end subroutine pcp
