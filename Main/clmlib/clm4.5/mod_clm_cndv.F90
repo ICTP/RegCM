@@ -59,9 +59,13 @@ module mod_clm_cndv
     real(rk8), pointer :: agdd(:)
     ! annual min of t_mo (Kelvin)
     real(rk8), pointer :: t_mo_min(:)
+    real(rk8), pointer :: temp_tmomin(:)
+    real(rk8), pointer :: temp_agdd(:)
+    real(rk8), pointer :: temp_count(:)
     real(rk8), pointer :: tmomin20(:) ! 20-yr running mean of tmomin
     real(rk8), pointer :: agdd20(:)   ! 20-yr running mean of agdd
-    integer(ik4)  :: g , p            ! indices
+    integer(ik4) :: g , p             ! indices
+    integer(ik4) :: ier
 
     ! Assign local pointers to derived type members (gridcell-level)
 
@@ -83,15 +87,40 @@ module mod_clm_cndv
     ! use 20-yr running mean of minimum 10-day running mean
     ! *************************************************************************
 
-    do p = lbp,ubp
+    allocate(temp_tmomin(lbg:ubg), temp_agdd(lbg:ubg), &
+             temp_count(lbg:ubg), stat=ier)
+    if (ier /= 0) call fatal(__FILE__,__LINE__,&
+      'DV: allocation error for temp_tmomin,temp_agdd,temp_count')
+
+    temp_tmomin(:) = 0.0D0
+    temp_agdd(:) = 0.0D0
+    temp_count(:) = 0.0D0
+    do p = lbp , ubp
        g = pgridcell(p)
-       if (kyr == 2) then ! slevis: add ".and. start_type==arb_ic" here?
-          tmomin20(g) = t_mo_min(p) ! NO, b/c want to be able to start dgvm
-          agdd20(g) = agdd(p)       ! w/ clmi file from non-dgvm simulation
-       end if
-       tmomin20(g) = (19.D0 * tmomin20(g) + t_mo_min(p)) / 20.D0
-       agdd20(g)   = (19.D0 * agdd20(g)   + agdd(p)    ) / 20.D0
+       temp_tmomin(g) = temp_tmomin(g) + t_mo_min(p)
+       temp_agdd(g)   = temp_agdd(g)   + agdd(p)
+       temp_count(g)  = temp_count(g) + 1.0D0
     end do
+
+    if ( kyr == 1 ) then
+      do g = lbg , ubg
+        if ( temp_count(g) > 0.0D0 ) then
+          tmomin20(g) = temp_tmomin(g)/temp_count(g)
+          agdd20(g)   = temp_agdd(g)/temp_count(g)
+        end if
+      end do
+    else
+      do g = lbg , ubg
+        if ( temp_count(g) > 0.0D0 ) then
+          tmomin20(g) = (19.D0 * tmomin20(g) + &
+            temp_tmomin(g)/temp_count(g)) / 20.D0
+          agdd20(g)   = (19.D0 * agdd20(g) +   &
+            temp_agdd(g)/temp_count(g)) / 20.D0
+        end if
+      end do
+    end if
+
+    deallocate(temp_tmomin,temp_agdd,temp_count)
 
     ! Rebuild filter of present natually-vegetated pfts after Kill()
 
@@ -350,7 +379,7 @@ module mod_clm_cndv
 
     if (myid == italk) then
        write(stdout,*)'(histCNDV): Finished writing CNDV history dataset ',&
-            trim(dgvm_fn), 'at nstep = ',ktau
+            trim(dgvm_fn), ' at nstep = ',ktau
     end if
 
   end subroutine histCNDV

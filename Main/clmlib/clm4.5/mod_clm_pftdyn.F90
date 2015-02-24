@@ -196,7 +196,7 @@ module mod_clm_pftdyn
     ! summation of pft weights for renormalization
     real(rk8) , pointer , dimension(:) :: wtpfttot2
     ! tolerance for pft weight renormalization
-    real(rk8) , parameter :: wtpfttol = 1.e-10
+    real(rk8) , parameter :: wtpfttol = 1.D-10
     type(gridcell_type) , pointer :: gptr ! pointer to gridcell derived subtype
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
@@ -2818,7 +2818,7 @@ module mod_clm_pftdyn
              subname//'::ERROR: pftwt_init allocation error for wtcol_old')
     end if
 
-    if (nsrest == nsrStartup) then
+    if ( nsrest == nsrStartup ) then
       do p = begp,endp
         pptr%pdgvs%fpcgrid(p) = pptr%wtcol(p)
         pptr%pdgvs%fpcgridold(p) = pptr%wtcol(p)
@@ -2860,7 +2860,7 @@ module mod_clm_pftdyn
     ! assumes maxpatch_pft = numpft + 1, each landunit has 1 column,
     ! SCAM not defined and create_croplandunit = .false.
 
-    cday          = get_curr_calday(offset=-int(dtsrf))
+    cday = get_curr_calday( )
 
     wt1 = ((dayspy + 1.D0) - cday)/dayspy
 
@@ -2878,7 +2878,7 @@ module mod_clm_pftdyn
         pptr%wtlunit(p) = pptr%wtcol(p)
         pptr%wtgcell(p) = pptr%wtcol(p) * lptr%wtgcell(l)
 
-        if (mon==1 .and. day==1 .and. sec==dtsrf .and. ktau>0) then
+        if ( mon==1 .and. day==1 .and. sec<=dtsrf .and. ktau > 0 ) then
           pptr%pdgvs%fpcgridold(p) = pptr%pdgvs%fpcgrid(p)
         end if
       end if
