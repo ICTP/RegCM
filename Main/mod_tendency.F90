@@ -607,10 +607,10 @@ module mod_tendency
       end do
      !
      ! Vertical velocity tendency. Following terms are included here: 
-     ! (1) [TO DO] 
+     ! (1) bouyancy terms: 2nd subterm and part of the 3rd subterm of the 4th RHS term in Eq.2.2.3 and 2.2.11. This is joined into the 5th RHS term in Eq. 2.3.7.
      ! (2) part of the vertical component of the Coriolis force due to the horizontal movement (cf. 6th RHS term in Eq. 2.2.11)
      ! (3) vertical curvature term (not explicitly mentioned in the MM5 1994 manual)
-     ! (4) mass divergence term (3rd RHS term in Eq. 2.2.3 and Eq. 2.3.7)
+     ! (4) mass divergence term (3rd RHS term in Eq. 2.2.3, 2.2.11 and Eq. 2.3.7)
      !
       do k = 2 , kz
         do i = ici1 , ici2
@@ -635,7 +635,7 @@ module mod_tendency
           end do 
         end do
       end do
-      if ( ipptls == 2 ) then
+      if ( ipptls > 0 ) then
         do k = 2 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -901,6 +901,7 @@ module mod_tendency
     end if
     !
     ! add horizontal diffusion and pbl tendencies for t and qv
+    ! This is the last RHS term in Eqs. 2.1.3 and 2.2.5, 2.3.9
     !
     do k = 1 , kz
       do i = ici1 , ici2
@@ -1132,8 +1133,8 @@ module mod_tendency
     aten%v(:,:,:) = d_zero
     !
     ! compute the horizontal advection term in x and y momentum tendency:
-    ! same for hydrostatic and nonhydrostatic models: 2nd RHS term in
-    ! Eqs. 2.1.1, 2.1.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
+    ! same for hydrostatic and nonhydrostatic models: 1st RHS term in
+    ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
     !
     call hadv(dot,aten%u,atmx%u,kz)
     call hadv(dot,aten%v,atmx%v,kz)
@@ -1372,8 +1373,8 @@ module mod_tendency
     !
     !
     ! compute the vertical advection term in x and y momentum tendency:
-    ! same for hydrostatic and nonhydrostatic models: 3rd RHS term in 
-    ! Eqs. 2.1.1, 2.1.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
+    ! same for hydrostatic and nonhydrostatic models: 2nd RHS term in 
+    ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
     !
     call vadv(dot,aten%u,atm1%u,kz,idvadv)
     call vadv(dot,aten%v,atm1%v,kz,idvadv)
@@ -1399,6 +1400,8 @@ module mod_tendency
 #endif
     !
     ! add the diffusion and pbl tendencies to aten%u and aten%v:
+    ! Last RHS terms in Eq. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3,
+    ! 2.3.4
     !
     do k = 1 , kz
       do i = idi1 , idi2
