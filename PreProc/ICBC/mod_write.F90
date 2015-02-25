@@ -41,14 +41,15 @@ module mod_write
   type(nc_output_stream) , save :: ncout
   integer(ik4) , parameter :: nvar2d = 8
   integer(ik4) , parameter :: nvar2d_static = 6
-  integer(ik4) , parameter :: nvar3d = 4
-  type(ncvariable2d_real) , save , dimension(nvar2d) :: v2dvar_icbc
-  type(ncvariable3d_real) , save , dimension(nvar3d) :: v3dvar_icbc
+  integer(ik4) :: nvar3d
+  type(ncvariable2d_real) , allocatable , save , dimension(:) :: v2dvar_icbc
+  type(ncvariable3d_real) , allocatable , save , dimension(:) :: v3dvar_icbc
 
   contains
 
   subroutine init_output
   implicit none
+    integer(ik4) :: ierr
     call getmem2d(ps4,1,jx,1,iy,'mod_write:ps4')
     call getmem2d(ts4,1,jx,1,iy,'mod_write:ts4')
     call getmem3d(h4,1,jx,1,iy,1,kz,'mod_write:h4')
@@ -57,8 +58,16 @@ module mod_write
     call getmem3d(u4,1,jx,1,iy,1,kz,'mod_write:u4')
     call getmem3d(v4,1,jx,1,iy,1,kz,'mod_write:v4')
     if ( idynamic == 2 ) then
+      nvar3d = 6
       call getmem3d(pp4,1,jx,1,iy,1,kz,'mod_write:pp4')
       call getmem3d(ww4,1,jx,1,iy,1,kz,'mod_write:ww4')
+    else
+      nvar3d = 4
+    end if
+    allocate(v2dvar_icbc(nvar2d), v3dvar_icbc(nvar3d), stat=ierr)
+    if ( ierr /= 0 ) then
+      write(stderr,*) 'Allocation error in init_output'
+      call die('icbc','Allocation error',1)
     end if
     v2dvar_icbc(1)%vname = 'xlon'
     v2dvar_icbc(1)%vunit = 'degrees_east'
@@ -114,11 +123,25 @@ module mod_write
     v3dvar_icbc(4)%long_name = 'Meridional component (southerly) of wind'
     v3dvar_icbc(4)%standard_name = 'northward_wind'
     v3dvar_icbc(4)%lrecords = .true.
+    if ( idynamic == 2 ) then
+      v3dvar_icbc(5)%vname = 'w'
+      v3dvar_icbc(5)%vunit = 'm s-1'
+      v3dvar_icbc(5)%long_name = 'Vertical wind'
+      v3dvar_icbc(5)%standard_name = 'upward_air_velocity'
+      v3dvar_icbc(5)%lrecords = .true.
+      v3dvar_icbc(6)%vname = 'pp'
+      v3dvar_icbc(6)%vunit = 'Pa'
+      v3dvar_icbc(6)%long_name = 'Pressure perturbation'
+      v3dvar_icbc(6)%standard_name = &
+        'difference_of_air_pressure_from_model_reference'
+      v3dvar_icbc(6)%lrecords = .true.
+    end if
   end subroutine init_output
 
   subroutine close_output
     implicit none
     call outstream_dispose(ncout)
+    deallocate(v2dvar_icbc,v3dvar_icbc)
   end subroutine close_output
 
   subroutine newfile(idate1)
@@ -150,6 +173,10 @@ module mod_write
     v3dvar_icbc(2)%rval => q4
     v3dvar_icbc(3)%rval => u4
     v3dvar_icbc(4)%rval => v4
+    if ( idynamic == 2 ) then
+      v3dvar_icbc(5)%rval => ww4
+      v3dvar_icbc(6)%rval => pp4
+    end if
     do ivar = 1 , nvar2d
       call outstream_addvar(ncout,v2dvar_icbc(ivar))
     end do
