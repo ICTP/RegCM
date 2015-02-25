@@ -106,6 +106,8 @@ program icbc
 !          For present day run: 1960 - 1990;                           !
 !          For A2          run: 2070 - 2100.                           !
 !          1x1.25L18, 4 times daily, direct-access binary.             !
+!   JRA55: The Japan Meteorological Agency (JMA) JRA-55, the second    !
+!          Japanese global atmospheric reanalysis project.             !
 !   FNEST: do Further oneway NESTing from previous RegCM run.          !
 !                                                                      !
 !   The code need NetCDF library to access ERA40, ERAIN (EIN75/15/25), !
@@ -231,7 +233,7 @@ program icbc
   else if ( dattyp == 'FNEST' ) then
     call headernest
   else if ( dattyp == 'CAM4N'    .or. dattyp == 'CCSMN'    .or. &
-            dattyp == 'CCSM3'    .or.                           &
+            dattyp == 'CCSM3'    .or. dattyp == 'JRA55'    .or. &
             dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
             dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' .or. &
             dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
@@ -272,7 +274,7 @@ program icbc
     else if ( dattyp == 'FNEST' ) then
       call get_nest(idate)
     else if ( dattyp == 'CAM4N'    .or. dattyp == 'CCSMN'    .or. &
-              dattyp == 'CCSM3'    .or.                           &
+              dattyp == 'CCSM3'    .or. dattyp == 'JRA55'    .or. &
               dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
               dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' .or. &
               dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &

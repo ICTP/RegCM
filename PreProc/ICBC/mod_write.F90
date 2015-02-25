@@ -33,8 +33,9 @@ module mod_write
   real(rk8) , pointer , dimension(:,:) :: ps4 , ts4
   real(rk8) , pointer , dimension(:,:,:) :: h4 , q4
   real(rk8) , pointer , dimension(:,:,:) :: t4 , u4 , v4
+  real(rk8) , pointer , dimension(:,:,:) :: pp4 , ww4
 
-  public :: ps4 , ts4 , h4 , q4 , t4 , u4 , v4
+  public :: ps4 , ts4 , h4 , q4 , t4 , u4 , v4 , pp4 , ww4
   public :: init_output , close_output , newfile , writef
 
   type(nc_output_stream) , save :: ncout
@@ -55,6 +56,10 @@ module mod_write
     call getmem3d(t4,1,jx,1,iy,1,kz,'mod_write:t4')
     call getmem3d(u4,1,jx,1,iy,1,kz,'mod_write:u4')
     call getmem3d(v4,1,jx,1,iy,1,kz,'mod_write:v4')
+    if ( idynamic == 2 ) then
+      call getmem3d(pp4,1,jx,1,iy,1,kz,'mod_write:pp4')
+      call getmem3d(ww4,1,jx,1,iy,1,kz,'mod_write:ww4')
+    end if
     v2dvar_icbc(1)%vname = 'xlon'
     v2dvar_icbc(1)%vunit = 'degrees_east'
     v2dvar_icbc(1)%long_name = 'Longitude on Cross Points'

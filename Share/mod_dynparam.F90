@@ -57,6 +57,10 @@ module mod_dynparam
 
   integer(ik4) :: nsg
 
+! Dynamical core
+
+  integer(ik4) :: idynamic
+
 ! Projection
 !
 ! One in : 'LAMCON', Lambert conformal
@@ -388,6 +392,7 @@ module mod_dynparam
     integer(ik4) :: gdate1 , gdate2 , iresult
 
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
+    namelist /coreparam/ idynamic
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
       plon , truelatl, truelath , i_band
     namelist /terrainparam/ domname , smthbdy , ltexture , lakedpth, &
@@ -438,8 +443,11 @@ module mod_dynparam
       nsg = 1
     end if
 
-    i_band = 0
+    idynamic = 1
+    rewind(ipunit)
+    read(ipunit, nml=coreparam, iostat=iresult)
 
+    i_band = 0
     rewind(ipunit)
     read(ipunit, nml=geoparam, iostat=iresult)
     if ( iresult /= 0 ) then

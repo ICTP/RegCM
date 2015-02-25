@@ -1082,6 +1082,9 @@ module mod_mppparam
     call bcast(njxcpus)
     call bcast(niycpus)
     call bcast(nveg)
+
+    call bcast(idynamic)
+
     call bcast(iproj,6)
     call bcast(ds)
     call bcast(ptop)

@@ -23,6 +23,14 @@
                 ! decomposition.
  /
 !
+! Choice of the dynamical core
+!
+ &coreparam
+ idynamic = 1,  ! Choice of dynamical core
+                ! 1 = MM4 hydrostatical core
+                ! 2 = MM5 NON hydrostatical core
+ /
+!
 ! DOMAIN geolocation Stanza
 !
  &geoparam

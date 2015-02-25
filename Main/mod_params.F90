@@ -97,7 +97,7 @@ module mod_params
       enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
       do_parallel_netcdf_out , idiag
 
-    namelist /physicsparam/ idynamic , ibltyp , iboudy , isladvec ,      &
+    namelist /physicsparam/ ibltyp , iboudy , isladvec ,      &
       icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls ,    &
       iocnflx , iocncpl , iocnrough , ichem , scenario , idcsst ,        &
       iseaice , idesseas , iconvlwp , irrtm , iclimao3 , isolconst ,     &
@@ -208,7 +208,6 @@ module mod_params
     idiag = 0
     !-----namelist physicsparam:
     !
-    idynamic = 1
     ibltyp = 1
     iboudy = 5
     isladvec = 0
