@@ -36,7 +36,7 @@ module mod_write
   real(rk8) , pointer , dimension(:,:,:) :: pp4 , ww4
 
   public :: ps4 , ts4 , h4 , q4 , t4 , u4 , v4 , pp4 , ww4
-  public :: init_output , close_output , newfile , writef
+  public :: init_output , close_output , dispose_output , newfile , writef
 
   type(nc_output_stream) , save :: ncout
   integer(ik4) , parameter :: nvar2d = 8
@@ -141,8 +141,12 @@ module mod_write
   subroutine close_output
     implicit none
     call outstream_dispose(ncout)
-    deallocate(v2dvar_icbc,v3dvar_icbc)
   end subroutine close_output
+
+  subroutine dispose_output
+    implicit none
+    deallocate(v2dvar_icbc,v3dvar_icbc)
+  end subroutine dispose_output
 
   subroutine newfile(idate1)
     implicit none

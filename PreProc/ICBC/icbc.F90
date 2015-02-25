@@ -292,6 +292,7 @@ program icbc
   call close_output
   call closesst
 
+  call dispose_output
   call memory_destroy
 
   call finaltime(0)
