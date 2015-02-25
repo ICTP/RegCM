@@ -785,7 +785,6 @@ module mod_params
     do_parallel_netcdf_out = .false.
 #endif
 
-    call bcast(idynamic)
     call bcast(iboudy)
     call bcast(isladvec)
     call bcast(ibltyp)
