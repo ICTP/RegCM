@@ -388,13 +388,13 @@ module mod_clm_cndv
   !
   character(len=256) function set_dgvm_filename ()
     implicit none
-    character(len=256) :: cdate       !date char string
-    integer(ik4) :: day                    !day (1 -> 31)
-    integer(ik4) :: mon                    !month (1 -> 12)
-    integer(ik4) :: yr                     !year (0 -> ...)
-    integer(ik4) :: sec                    !seconds into current day
+    character(len=4) :: cdate  !date char string
+    integer(ik4) :: day        !day (1 -> 31)
+    integer(ik4) :: mon        !month (1 -> 12)
+    integer(ik4) :: yr         !year (0 -> ...)
+    integer(ik4) :: sec        !seconds into current day
     call curr_date(idatex,yr,mon,day,sec)
-    write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
+    write(cdate,'(i4.4)') yr+1
     set_dgvm_filename = trim(dirout)//pthsep//trim(caseid)//  &
                               ".clm."//trim(inst_suffix)// &
                               ".hv."// trim(cdate) //".nc"
