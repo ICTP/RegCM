@@ -1940,7 +1940,7 @@ module mod_clm_histfile
                      varname='levlak',cdims=(/'levlak'/) , &
                      long_name='coordinate lake levels', units='m')
         call clm_addvar(clmvar_double,ncid=nfid(t), &
-                     varname='levdcmp',cdims=(/'levlak'/) , &
+                     varname='levdcmp',cdims=(/'levdcmp'/) , &
                      long_name='coordinate soil levels', units='m')
       else if ( mode == 'write' ) then
         call clm_writevar(nfid(t),'levgrnd',zsoi)
