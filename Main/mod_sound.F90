@@ -378,6 +378,10 @@ module mod_sound
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
+            !
+            !  Nonhydrostatic model. 
+            !  Presure perturbation tendency: 5th RHS terms in Eq.2.3.8
+            !
             ptend(j,i,k) = aten%pp(j,i,k) - d_half * cc(j,i,k) *      &
                            ( (v3d(j+1,i,k) * mddom%msfd(j+1,i) -      &
                               v3d(j,i,k) * mddom%msfd(j,i) +          &
@@ -405,6 +409,10 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             pi(j,i,k) = pp3d(j,i,k)
+            !
+            !  Nonhydrostatic model. 
+            !  Presure perturbation tendency: 4th RHS term and last subterm in 5th RHS term in Eq. 2.3.8
+            !
             pp3d(j,i,k) = pp3d(j,i,k) + ptend(j,i,k) +              &
                           ( cj(j,i,k) * (wo(j,i,k+1) + wo(j,i,k)) + &
                             cdd(j,i,k) * (wo(j,i,k+1) - wo(j,i,k)) ) * bm
