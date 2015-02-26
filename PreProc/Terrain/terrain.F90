@@ -75,9 +75,8 @@ program terrain
   use mod_message
   use mod_memutil
   use mod_snow
-
+  use mod_sigma
   implicit none
-!
   character(len=256) :: char_lnd , char_tex , char_lak
   character(len=256) :: namelistfile , prgname , outname
   integer(ik4) :: i , j , k , ierr , ism
@@ -85,20 +84,13 @@ program terrain
   logical :: ibndry
   real(rk8) :: clong , dsinm
   integer(ik4) :: ntypec , ntypec_s
-!
-  data ibndry /.true./
-  real(rk8) :: jumpsize , apara , bpara , func , funcprev
-  real(rk8) , pointer , dimension(:) :: alph , dsig
   real(rk8) , allocatable , dimension(:,:) :: tmptex
   real(rk8) :: psig , zsig , pstar , tswap
-  integer(ik4) :: icount
-  integer(ik4) , parameter :: maxiter = 1000000
-  real(rk8) , parameter :: conv_crit = 0.00001D0
-!
+  data ibndry /.true./
   call header(1)
-!
-!     Read input global namelist
-!
+  !
+  ! Read input global namelist
+  !
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
   call initparam(namelistfile, ierr)
@@ -120,174 +112,34 @@ program terrain
     call prepare_subgrid(jxsg,iysg,ntex)
   end if
   call setup_outvars
-!
-!  Setup hardcoded sigma levels
-!
-  if ( kz==14 ) then                      ! RegCM2
-    sigma(1) = 0.0D0
-    sigma(2) = 0.04D0
-    sigma(3) = 0.10D0
-    sigma(4) = 0.17D0
-    sigma(5) = 0.25D0
-    sigma(6) = 0.35D0
-    sigma(7) = 0.46D0
-    sigma(8) = 0.56D0
-    sigma(9) = 0.67D0
-    sigma(10) = 0.77D0
-    sigma(11) = 0.86D0
-    sigma(12) = 0.93D0
-    sigma(13) = 0.97D0
-    sigma(14) = 0.99D0
-    sigma(15) = 1.0D0
-  else if ( kz==18 ) then                 ! RegCM3, default
-    sigma(1) = 0.0D0
-    sigma(2) = 0.05D0
-    sigma(3) = 0.10D0
-    sigma(4) = 0.16D0
-    sigma(5) = 0.23D0
-    sigma(6) = 0.31D0
-    sigma(7) = 0.39D0
-    sigma(8) = 0.47D0
-    sigma(9) = 0.55D0
-    sigma(10) = 0.63D0
-    sigma(11) = 0.71D0
-    sigma(12) = 0.78D0
-    sigma(13) = 0.84D0
-    sigma(14) = 0.89D0
-    sigma(15) = 0.93D0
-    sigma(16) = 0.96D0
-    sigma(17) = 0.98D0
-    sigma(18) = 0.99D0
-    sigma(19) = 1.0D0
-  else if ( kz==23 ) then                 ! MM5V3
-    sigma(1) = 0.0D0
-    sigma(2) = 0.05D0
-    sigma(3) = 0.1D0
-    sigma(4) = 0.15D0
-    sigma(5) = 0.2D0
-    sigma(6) = 0.25D0
-    sigma(7) = 0.3D0
-    sigma(8) = 0.35D0
-    sigma(9) = 0.4D0
-    sigma(10) = 0.45D0
-    sigma(11) = 0.5D0
-    sigma(12) = 0.55D0
-    sigma(13) = 0.6D0
-    sigma(14) = 0.65D0
-    sigma(15) = 0.7D0
-    sigma(16) = 0.75D0
-    sigma(17) = 0.8D0
-    sigma(18) = 0.85D0
-    sigma(19) = 0.89D0
-    sigma(20) = 0.93D0
-    sigma(21) = 0.96D0
-    sigma(22) = 0.98D0
-    sigma(23) = 0.99D0
-    sigma(24) = 1.0D0
-  else
-    call getmem1d(alph,1,kz,'terrain:alph')
-    call getmem1d(dsig,1,kz,'terrain:dsig')
-    write (stdout,*) 'Creating a custom set of sigma levels : '
-    if ( (dsmax*dble(kz)) < d_one ) then
-      write (stderr,*) 'dsmax must be greater than ', d_one/dble(kz)
-      write (stderr,*) 'or kz must be less than ', d_one/dsmax
-      call die('terrain','Maximum resolution, dsmax, is too low.',1)
-    end if
-    if ( (dsmin*dble(kz)) >= d_one ) then
-      write (stderr,*) 'dsmin must be less than ', d_one/dble(kz)
-      write (stderr,*) 'or kz must be greater than ', d_one/dsmax
-      call die('terrain','Minimum resolution, dsmin, is too large.',1)
-    end if
-    ! Do a function minimization to determine the a,b coefficients for the
-    ! following equation:
-    !
-    !        dsig(i) = dsmax*a^(i-1)*b^(0.5*(i-2)*(i-1))
-    !
-    ! which is derived from the recursive relation:
-    !
-    !        dsig(i) = a(i)*dsig(i-1) with a(i) = b*a(i-1)
-    !
-    ! The function provides level spacings between dsmin and dsmax such that
-    ! level thicknesses vary approximately exponentially up to the TOA and gives
-    ! more levels toward the surface.
-    !
-    ! Set the initial conditions for the function minimization
-    !
-    jumpsize = 0.0015D0
-    bpara = 0.99573D0
-    apara = ((dsmin/dsmax)**(d_one/dble(kz-1)))*(bpara**(-d_half*dble(kz-2)))
-    alph(1) = apara/bpara
-    dsig(1) = dsmax
-    do k = 2 , kz
-      alph(k) = bpara*alph(k-1)
-      dsig(k) = alph(k)*dsig(k-1)
-    end do
-    func = sum(dsig)-d_one
 
-    ! Loop through the minimization until the convergence criterion is satisfied
-    do icount = 1 , maxiter
-      funcprev = func
-      bpara = bpara + jumpsize
-      if ( bpara < d_zero ) bpara = 1D-10
-      apara = ((dsmin/dsmax)**(d_one/dble(kz-1)))*(bpara**(-d_half*dble(kz-2)))
-      alph(1) = apara/bpara
-      dsig(1) = dsmax
-      do k = 2 , kz
-        alph(k) = bpara*alph(k-1)
-        dsig(k) = alph(k)*dsig(k-1)
-      end do
-      func = sum(dsig)-d_one
-      ! If we overshot 0, then reduce the jump size and reverse course
-      if ( func*funcprev < d_zero ) then
-        jumpsize = -jumpsize/d_two
-      else if ( abs(func) > abs(funcprev) ) then
-        jumpsize = -jumpsize
-      end if
-      ! If we converged, then jump out of the loop
-      if ( abs(func) < conv_crit ) then
-        write (stdout,*) 'Convergence reached.'
-        write (stdout,*) '#', apara, bpara, icount
-        write (stdout,*) '#', dsmax, dsmin, sum(dsig)
-        exit
-      end if
-      if ( icount == maxiter-1 ) then
-        write (stderr,*) 'Failed to converge.'
-        write (stderr,*) 'b,a,jumpsize,func,funcprev:', bpara, apara, &
-                         jumpsize,func,funcprev
-        call die('terrain','Error setting up custom sigma levels')
-      end if
-    end do
-    sigma(1) = 0.0D0
-    pstar = stdpmb - d_10*ptop
-    do k = 1 , kz-1
-      sigma(k+1) = sigma(k)+dsig(k)
-    end do
-    sigma(kz+1) = 1.0D0
-    ! Write the levels out to the screen
-    zsig = d_zero
-    psig = pstar*sigma(kz+1) + d_10*ptop
-    write (stdout,*) 'k        sigma       p(mb)           z(m)'
-    write (stdout,*) '-----------------------------------------'
-    write (stdout,5925) kz+1, sigma(kz+1), psig, zsig
-    do k = kz, 1, -1
-      psig = pstar*sigma(k) + d_10*ptop
-      zsig = zsig+rgas*stdt*pstar*dsig(k)/(psig*egrav)
-      write (stdout,5925) k, sigma(k), psig, zsig
-    end do
-5925  format(i3,5x,f8.3,5x,f8.2,5x,f10.2)
-    call relmem1d(dsig)
-    call relmem1d(alph)
-  end if
+  call init_sigma(kz,dsmax,dsmin)
+  sigma(:) = sigma_coordinate(:)
 
-!---------------------------------------------------------------------
-!
+  ! Write the levels out to the screen
+  write (stdout,*) 'Vertical Grid Description'
+  write (stdout,*) ''
+  pstar = stdpmb - d_10*ptop
+  zsig = d_zero
+  psig = pstar*sigma(kz+1) + d_10*ptop
+  write (stdout,*) '-----------------------------------------'
+  write (stdout,*) 'k        sigma       p(mb)           z(m)'
+  write (stdout,*) '-----------------------------------------'
+  write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2)') kz+1, sigma(kz+1), psig, zsig
+  do k = kz, 1, -1
+    psig = pstar*sigma(k) + d_10*ptop
+    zsig = zsig+rgas*stdt*pstar*sigma_delta(k)/(psig*egrav)
+    write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2)') k, sigma(k), psig, zsig
+  end do
+
   clong = clon
   if ( clong>180. ) clong = clong - 360.
   if ( clong<=-180. ) clong = clong + 360.
 
   if ( nsg>1 ) then
 
-    write (stdout,*) 'Doing Subgrid with following parameters'
+    write (stdout,*) ''
+    write (stdout,*) 'Doing Horizontal Subgrid with following parameters'
     write (stdout,*) 'iy     = ' , iysg
     write (stdout,*) 'jx     = ' , jxsg
     write (stdout,*) 'ds     = ' , ds/nsg
@@ -481,7 +333,8 @@ program terrain
 !
 !     set up the parameters and constants
 !
-  write (stdout,*) 'Doing Grid with following parameters'
+  write (stdout,*) ''
+  write (stdout,*) 'Doing Horizontal Grid with following parameters'
   write (stdout,*) 'iy     = ' , iysg
   write (stdout,*) 'jx     = ' , jxsg
   write (stdout,*) 'ds     = ' , ds
