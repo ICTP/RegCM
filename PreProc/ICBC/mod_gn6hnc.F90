@@ -159,12 +159,15 @@ module mod_gn6hnc
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: mpievars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'aps'/)
+  character(len=5) , target , dimension(nvars) :: jra55vars = &
+               (/'var11' , 'var7 ' , 'var52' , 'var33' , 'var34' , 'XXX  '/)
 
   character(len=4) , dimension(nvars) :: ccsmfname = &
-                         (/'air ', 'hgt ', 'shum', 'uwnd', 'vwnd', 'pres'/)
+               (/'air ' , 'hgt ' , 'shum' , 'uwnd' , 'vwnd' , 'pres'/)
   character(len=6) , target , dimension(nvars) :: ec5name = &
-                         (/'STP   ' , 'GPH   ' , 'RELHUM' , &
-                           'U     ' , 'V     ' , 'XXX   '/)
+    (/'STP   ' , 'GPH   ' , 'RELHUM' , 'U     ' , 'V     ' , 'XXX   '/)
+  character(len=8) , target , dimension(nvars) :: jra55name = &
+    (/'011_tmp ','007_hgt ','052_rh  ','033_ugrd','034_vgrd','XXXXXXXX'/)
 
   character(len=3) , dimension(12) :: mname = &
                          (/'JAN','FEB','MAR','APR','MAY','JUN', &
@@ -242,6 +245,8 @@ module mod_gn6hnc
       pathaddname = trim(inpglob)//'/EC-EARTH/fixed/ecearth.nc'
     else if ( dattyp == 'CCSM3' ) then
       call find_ccsm3_topo(pathaddname)
+    else if ( dattyp == 'JRA55' ) then
+      pathaddname = trim(inpglob)//'/JRA55/fixed/ll125.006_gp.nc'
     else
       call die('Unknown dattyp in generic 6h NetCDF driver.')
     end if
@@ -301,7 +306,7 @@ module mod_gn6hnc
     call getmem2d(psvar,1,nlon,1,nlat,'mod_gn6hnc:psvar')
 
     if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
-         dattyp(1:2) /= 'E5' ) then
+         dattyp(1:2) /= 'E5' .and. dattyp /= 'JRA55' ) then
       call getmem3d(qvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:qvar')
       call getmem3d(tvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:tvar')
       call getmem3d(hvar,1,nlon,1,nlat,1,klev,'mod_gn6hnc:hvar')
@@ -314,7 +319,7 @@ module mod_gn6hnc
       call getmem1d(ak,1,klev,'mod_gn6hnc:ak')
       call getmem1d(bk,1,klev,'mod_gn6hnc:bk')
     else
-      if ( dattyp == 'GFS11' ) then
+      if ( dattyp == 'GFS11' .or. dattyp == 'JRA55' ) then
         call getmem1d(gltemp,1,nlat,'mod_gn6hnc:gltemp')
         call getmem3d(vwork,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vwork')
       end if
@@ -388,8 +393,26 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error find PHIS var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__,'Error read PHYS var')
-      zsvar = zsvar/real(egrav)
+      zsvar(:,:) = zsvar(:,:)*real(regrav)
       where (zsvar < 0.0) zsvar = 0.0
+    else if ( dattyp == 'JRA55' ) then
+      npl = klev ! Data are on pressure levels
+      call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
+      istatus = nf90_inq_varid(inet1,'lev',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find lev var')
+      istatus = nf90_get_var(inet1,ivar1,pplev)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read lev var')
+      istatus = nf90_inq_varid(inet1,'var6',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find var6 var')
+      istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var6 var')
+      zsvar(:,:) = zsvar(:,:)*real(regrav)
+      where (zsvar < 0.0) zsvar = 0.0
+      do j = 1 , nlat
+        gltemp(nlat-j+1) = glat(j)
+      end do
+      glat(:) = gltemp(:)
+      call relmem1d(gltemp)
     else if ( dattyp(1:3) == 'HA_' ) then
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find lev var')
@@ -747,7 +770,7 @@ module mod_gn6hnc
     call getmem3d(d3,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3')
 
     if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
-         dattyp(1:2) /= 'E5') then
+         dattyp(1:2) /= 'E5' .and. dattyp /= 'JRA55' ) then
       call getmem3d(b2,1,nlon,1,nlat,1,npl*3,'mod_gn6hnc:b2')
       call getmem3d(d2,1,nlon,1,nlat,1,npl*2,'mod_gn6hnc:d2')
       up => d2(:,:,1:npl)
@@ -758,7 +781,7 @@ module mod_gn6hnc
       pplev => fplev
     end if
 
-!   Set up pointers
+    ! Set up pointers
 
     u3 => d3(:,:,1:npl)
     v3 => d3(:,:,npl+1:2*npl)
@@ -803,13 +826,13 @@ module mod_gn6hnc
       call setcal(ipstimes(1), noleap)
     else if ( dattyp(1:3) == 'GFS' .or. dattyp(1:3) == 'EC_' .or. &
               dattyp(1:3) == 'CN_' .or. dattyp(1:3) == 'MP_' .or. &
-              dattyp(1:2) == 'E5' ) then
+              dattyp(1:2) == 'E5' .or. dattyp == 'JRA55' ) then
       call setcal(itimes(1), gregorian)
     else
       call setcal(itimes(1), noleap)
     end if
 
-    if ( dattyp(1:3) == 'EC_' ) then
+    if ( dattyp(1:3) == 'EC_' .or. dattyp == 'JRA55') then
       do k = 1 , klev
         sigmar(k) = pplev(klev-k+1)*0.00001
       end do
@@ -836,9 +859,9 @@ module mod_gn6hnc
     call readgn6hnc(idate)
     write (stdout,*) 'Read in fields at Date: ', tochar(idate)
 
-    ! GFS and EC-EARTH and ECHAM5 grids are already on pressure levels.
+    ! JRA55, GFS, EC-EARTH and ECHAM5 grids are already on pressure levels.
     if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
-         dattyp(1:2) /= 'E5' ) then
+         dattyp(1:2) /= 'E5' .and. dattyp /= 'JRA55' ) then
 
       ! All processing assumes dataset in top -> bottom
       ! HadGEM is read bottom -> top
@@ -879,12 +902,21 @@ module mod_gn6hnc
       call intlin(qp,qvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
     end if
 
+    if ( dattyp == 'JRA55' ) then
+      call top2btm(tvar,nlon,nlat,klev)
+      call top2btm(qvar,nlon,nlat,klev)
+      call top2btm(uvar,nlon,nlat,klev)
+      call top2btm(vvar,nlon,nlat,klev)
+      call top2btm(pp3d,nlon,nlat,klev)
+      call top2btm(hvar,nlon,nlat,klev)
+    end if
+
     ! Horizontal interpolation on RegCM grid
     if ( dattyp(1:3) /= 'MP_' .and. dattyp(1:3) /= 'CA_' .and. &
          dattyp(1:3) /= 'CN_' .and. dattyp(1:3) /= 'CS_' .and. &
          dattyp(1:3) /= 'GF_' .and. dattyp(1:3) /= 'IP_' .and. &
          dattyp(1:3) /= 'EC_' .and. dattyp(1:3) /= 'MI_' .and. &
-         dattyp(1:2) /= 'E5') then
+         dattyp(1:2) /= 'E5' ) then
       call bilinx2(b3,b2,xlon,xlat,glon,glat,nlon,nlat,jx,iy,npl*3)
       call bilinx2(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
     else ! Gaussian grid
@@ -1009,6 +1041,92 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
       do j = 1 , nlat
         vvar(:,nlat-j+1,:) = vwork(:,j,:)
+      end do
+    else if ( dattyp == 'JRA55' ) then
+      varname => ec5vars
+      if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
+        do kkrec = 1 , 5
+          if ( inet(kkrec) > 0 ) then
+            istatus = nf90_close(inet(kkrec))
+            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+          end if
+        end do
+        ! monthly files, one for each variable
+        do i = 1 , nfiles
+          y1 = year
+          m1 = month
+          if ( jra55vars(i) /= 'XXX' ) then
+            write (inname,99010) dattyp,pthsep,y1,pthsep, &
+               'anl_p125.',trim(jra55name(i)), '.', &
+               y1, m1,'0100_',y1,m1,ndaypm(y1,m1,gregorian),'18.nc'
+            pathaddname = trim(inpglob)//pthsep//inname
+            istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error open '//trim(pathaddname))
+            istatus = nf90_inq_varid(inet(i),trim(jra55vars(i)),ivar(i))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error find var '//trim(jra55vars(i)))
+            write (stdout,*) inet(i), trim(pathaddname)
+          end if
+        end do
+        istatus = nf90_inq_dimid(inet(1),'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+        istatus = nf90_inquire_dimension(inet(1),timid, len=timlen)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+        istatus = nf90_inq_varid(inet(1),'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+        istatus = nf90_get_att(inet(1),timid,'units',cunit)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+        istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
+        call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
+        call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
+        istatus = nf90_get_var(inet(1),timid,xtimes)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+        do it = 1 , timlen
+          itimes(it) = timeval2date(xtimes(it),cunit,ccal)
+        end do
+      end if
+      tdif = idate - itimes(1)
+      it = idnint(tohours(tdif))/6 + 1
+      icount(1) = nlon
+      icount(2) = nlat
+      icount(3) = klev
+      icount(4) = 1
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = 1
+      istart(4) = it
+      istatus = nf90_get_var(inet(1),ivar(1),vwork,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//jra55vars(1))
+      do j = 1 , nlat
+        tvar(:,nlat-j+1,:) = vwork(:,j,:)
+      end do
+      istatus = nf90_get_var(inet(2),ivar(2),vwork,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//jra55vars(2))
+      do j = 1 , nlat
+        hvar(:,nlat-j+1,:) = vwork(:,j,:)
+      end do
+      istatus = nf90_get_var(inet(4),ivar(4),vwork,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//jra55vars(4))
+      do j = 1 , nlat
+        uvar(:,nlat-j+1,:) = vwork(:,j,:)
+      end do
+      istatus = nf90_get_var(inet(5),ivar(5),vwork,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//jra55vars(5))
+      do j = 1 , nlat
+        vvar(:,nlat-j+1,:) = vwork(:,j,:)
+      end do
+      do k = 1, klev
+        pp3d(:,:,k) = pplev(k)*0.01 ! Get in hPa
+      end do
+      ! Less levels for relative humidity !
+      icount(3) = 27
+      vwork = 0.0D0
+      istatus = nf90_get_var(inet(3),ivar(3),vwork,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//jra55vars(3))
+      do j = 1 , nlat
+        qvar(:,nlat-j+1,:) = vwork(:,j,:)*0.01D0
       end do
     else if ( dattyp(1:2) == 'E5' ) then
       varname => ec5vars
@@ -1873,6 +1991,7 @@ module mod_gn6hnc
 99007   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
 99008   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
 99009   format (a,a,a,a,a,i0.4,a,i0.4,a)
+99010   format (a,a,i0.4,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,i0.2,a)
 
   end subroutine readgn6hnc
 
