@@ -259,7 +259,7 @@ module mod_sound
       !  SEMI-IMPLICIT SOLUTION FOR W AND P
       !
       !
-      !  Nonhydrostatic model. 
+      !  Nonhydrostatic model.
       !  Presure perturbation tendency: 4th, 5th and 6th RHS terms in Eq.2.2.4. 4th and 5th RHS terms in Eq.2.3.8
       !  Vertical momentum    tendency: 1st subterm and part of the 3rd subterm of the 4th RHS term in Eq.2.2.3 and 2.2.11 (see Hint below). This is joined into the 4th RHS term in Eq. 2.3.7.
       !                           Hint: R=Cp-Cv, gamma=Cp/Cv -> 1/gamma+R/Cp=1
@@ -379,7 +379,7 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             !
-            !  Nonhydrostatic model. 
+            !  Nonhydrostatic model.
             !  Presure perturbation tendency: 5th RHS terms in Eq.2.3.8
             !
             ptend(j,i,k) = aten%pp(j,i,k) - d_half * cc(j,i,k) *      &
@@ -410,7 +410,7 @@ module mod_sound
           do j = jci1 , jci2
             pi(j,i,k) = pp3d(j,i,k)
             !
-            !  Nonhydrostatic model. 
+            !  Nonhydrostatic model.
             !  Presure perturbation tendency: 4th RHS term and last subterm in 5th RHS term in Eq. 2.3.8
             !
             pp3d(j,i,k) = pp3d(j,i,k) + ptend(j,i,k) +              &

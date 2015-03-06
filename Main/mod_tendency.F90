@@ -325,7 +325,7 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             !
-            ! The mass divergence term in the nonhydrostatic model: 
+            ! The mass divergence term in the nonhydrostatic model:
             ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
             !
             divl(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
@@ -504,7 +504,7 @@ module mod_tendency
     if ( idynamic == 2 ) then
       !
       ! Pressure perturbations and vertical velocity tendencies in the nonhydrostatic
-      ! model     
+      ! model
       !
       aten%pp(:,:,:) = d_zero
       aten%w(:,:,:) = d_zero
@@ -532,8 +532,8 @@ module mod_tendency
     if ( idynamic == 2 ) then
       !
       ! Horizontal and vertical advection of pressure perturbation  and vertical
-      ! velocity in the nonhydrostatic model: 1st and 2nd term on the RHS of the 
-      ! Eq. 2.2.3, Eq. 2.2.4, Eq. 2.3.7 and Eq. 2.3.8 in the MM5 manual. 
+      ! velocity in the nonhydrostatic model: 1st and 2nd term on the RHS of the
+      ! Eq. 2.2.3, Eq. 2.2.4, Eq. 2.3.7 and Eq. 2.3.8 in the MM5 manual.
       !
       ! Also, cf. Eq. 2.2.11 of the vertical velocity tendency in the MM5 manual.
       !
@@ -606,7 +606,7 @@ module mod_tendency
         end do
       end do
      !
-     ! Vertical velocity tendency. Following terms are included here: 
+     ! Vertical velocity tendency. Following terms are included here:
      ! (1) bouyancy terms: 2nd subterm and part of the 3rd subterm of the 4th RHS term in Eq.2.2.3 and 2.2.11. This is joined into the 5th RHS term in Eq. 2.3.7.
      ! (2) part of the vertical component of the Coriolis force due to the horizontal movement (cf. 6th RHS term in Eq. 2.2.11)
      ! (3) vertical curvature term (not explicitly mentioned in the MM5 1994 manual)
@@ -632,7 +632,7 @@ module mod_tendency
                    (uaq*uaq+vaq*vaq)*earthrad*rpsa(j,i) + &
                    atmx%w(j,i,k)*(twt(k,1)*divl(j,i,k)  + &
                                   twt(k,2)*divl(j,i,k-1))
-          end do 
+          end do
         end do
       end do
       if ( ipptls > 0 ) then
@@ -640,9 +640,9 @@ module mod_tendency
           do i = ici1 , ici2
             do j = jci1 , jci2
               !
-              ! Vertical velocity tendency: water loading term 
+              ! Vertical velocity tendency: water loading term
               ! 5th RHS term in Eq. 2.2.3 & 6th RHS term in Eq. 2.3.7
-              ! 
+              !
               aten%w(j,i,k) = aten%w(j,i,k) - egrav * &
                 (twt(k,2)*qcd(j,i,k-1) + twt(k,1)*qcd(j,i,k))
             end do
@@ -746,8 +746,8 @@ module mod_tendency
       end if
       call vadv(aten%qx,atm1%qx,kz,iqxvadv,iqfrst,iqlst)
       if ( ipptls == 2 ) then
-        call cldfrac
         call microphys
+        call cldfrac
       else
         call pcp
         call cldfrac
@@ -1149,7 +1149,7 @@ module mod_tendency
         do i = idi1 , idi2
           do j = jdi1 , jdi2
             !
-            ! Hydrostatic model: 
+            ! Hydrostatic model:
             ! (1) part of the horizontal component of the Coriolis force due to the horizontal movement (4th RHS term in Eq.2.1.1, Eq.2.1.2)
             !
             aten%u(j,i,k) = aten%u(j,i,k) + &
@@ -1215,7 +1215,7 @@ module mod_tendency
             !
             ! Hydrostatic model. The first part of the pressure gradient term:
             ! (1) 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
-            ! (2) 2nd     term in Eq.2.4.1. 
+            ! (2) 2nd     term in Eq.2.4.1.
             ! (2a) Warning: there is missing sigma in the denominator in the MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6 in MM4 manual)
             ! (2b)    Hint: 1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx. This second form is discretized here.
             !
@@ -1247,7 +1247,7 @@ module mod_tendency
             !
             ! Hydrostatic model. The first part of the pressure gradient term:
             ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
-            ! (2)    the 2nd     term in Eq.2.4.1. 
+            ! (2)    the 2nd     term in Eq.2.4.1.
             ! (2a) Warning: there is missing sigma in the denominator in the MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6 in MM4 manual)
             ! (2b)    Hint: 1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx. This second form is discretized here.
             !
@@ -1276,7 +1276,7 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             !
-            ! Hydrostatic model: the 2nd part of the Eq.2.4.5 
+            ! Hydrostatic model: the 2nd part of the Eq.2.4.5
             !
             tvfac(j,i,k) = d_one / (d_one+qcd(j,i,k)/(d_one+qvd(j,i,k)))
           end do
@@ -1286,7 +1286,7 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             !
-            ! Hydrostatic model: the 1st part of the Eq.2.4.5 
+            ! Hydrostatic model: the 1st part of the Eq.2.4.5
             !
             tv = ttld(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
             phi(j,i,kz) = mddom%ht(j,i) + &
@@ -1373,7 +1373,7 @@ module mod_tendency
     !
     !
     ! compute the vertical advection term in x and y momentum tendency:
-    ! same for hydrostatic and nonhydrostatic models: 2nd RHS term in 
+    ! same for hydrostatic and nonhydrostatic models: 2nd RHS term in
     ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
     !
     call vadv(dot,aten%u,atm1%u,kz,idvadv)
