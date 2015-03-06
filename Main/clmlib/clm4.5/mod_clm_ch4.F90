@@ -290,7 +290,7 @@ module mod_clm_ch4
     redoxlags_vertical = redoxlag_vertical*secspday ! days --> s
     rgasm = rgas / 1000.D0
 
-    jwt(:)            = bigint
+    jwt(:)            = huge(1)
     totcolch4_bef(:)  = nan
 
     ! Initialize local fluxes to zero: necessary for columns outside

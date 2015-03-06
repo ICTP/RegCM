@@ -266,9 +266,6 @@ module mod_clm_soilhydrology
       A(c)           = 1.D0 - (1.D0 - top_moist(c) / top_max_moist(c))**ex(c)
       i_0(c)         = max_infil(c) * (1.D0 - (1.D0 - A(c))**(1.D0/b_infil(c)))
       fsat(c)        = A(c)  !for output
-      top_icefrac    = min(1.D0,top_ice(c)/top_moist(c))
-      top_fracice    = max(0.D0,exp(-3.D0*(1.D0-top_icefrac))- &
-                       exp(-3.D0))/(1.0D0-exp(-3.D0))
 #else
       fsat(c) = wtfact(c) * exp(-0.5D0*fff(c)*zwt(c))
 #endif
@@ -566,7 +563,7 @@ module mod_clm_soilhydrology
           top_moist(c) =  top_moist(c) + moist(c,j) + ice(c,j)
           top_max_moist(c) = top_max_moist(c) + max_moist(c,j)
         end do
-        top_icefrac = min(1.D0,top_ice(c)/top_moist(c))
+        top_icefrac = min(1.D0,top_ice(c)/top_max_moist(c))
         if ( qflx_in_soil(c) <= 0.D0 ) then
           rsurf_vic = 0.D0
         else if ( max_infil(c) <= 0.D0 ) then
@@ -1074,7 +1071,8 @@ module mod_clm_soilhydrology
 
         ! replace fracice with impedance factor, as in zhao 97,99
         if ( origflag == 1 ) then
-          imped(c,j)=(1.D0-0.5D0*(fracice(c,j)+fracice(c,min(nlevsoi, j+1))))
+          imped(c,j) = (1.D0 - 0.5D0*(fracice(c,j) + &
+            fracice(c,min(nlevsoi, j+1))))
         else
           imped(c,j) = 10.D0**(-e_ice*(0.5D0*(icefrac(c,j) + &
                   icefrac(c,min(nlevsoi, j+1)))))
@@ -1626,7 +1624,7 @@ module mod_clm_soilhydrology
         wtsub = 0.D0
         q_perch = 0.D0
         do k = jwt(c)+1 , k_frz
-          imped=10.D0**(-e_ice*(0.5D0*(icefrac(c,k) + &
+          imped = 10.D0**(-e_ice*(0.5D0*(icefrac(c,k) + &
                   icefrac(c,min(nlevsoi, k+1)))))
           q_perch = q_perch + imped*hksat(c,k)*dzmm(c,k)
           wtsub = wtsub + dzmm(c,k)
@@ -1761,16 +1759,16 @@ module mod_clm_soilhydrology
 #else
           fracice_rsub(c) = max(0.D0,exp(-3.D0*(1.D0-(icefracsum/dzsum))) &
                - exp(-3.D0))/(1.0D0-exp(-3.D0))
-          imped=(1.D0 - fracice_rsub(c))
+          imped = (1.D0 - fracice_rsub(c))
           rsub_top_max = 5.5D-3
 #endif
         else
 #if (defined VICHYDRO)
-          imped=10.D0**(-e_ice*ice(c,nlayer)/(depth(c,nlayer)*1000.0D0))
+          imped = 10.D0**(-e_ice*min(1.0D0,ice(c,nlayer)/max_moist(c,nlayer)))
           dsmax_tmp(c) = Dsmax(c) * dtsrf/ secspday !mm/day->mm/dtsrf
           rsub_top_max = dsmax_tmp(c)
 #else
-          imped=10.D0**(-e_ice*(icefracsum/dzsum))
+          imped = 10.D0**(-e_ice*(icefracsum/dzsum))
           rsub_top_max = 10.D0 * sin((rpi/180.) * topo_slope(c))
 #endif
         end if
@@ -1784,17 +1782,18 @@ module mod_clm_soilhydrology
         rsub_tmp = (frac * rel_moist)/dtsrf
         if ( rel_moist > Wsvic(c) ) then
           frac = (rel_moist - Wsvic(c))/(1.0D0 - Wsvic(c))
-          rsub_top(c) = imped * (rsub_tmp + (rsub_top_max * &
-                  (1.0D0 - Ds(c)/Wsvic(c)) *frac**c_param(c))/dtsrf)
+          rsub_tmp = rsub_tmp + (rsub_top_max * &
+            (1.0D0 - Ds(c)/Wsvic(c)) *frac**c_param(c))/dtsrf
         end if
+        rsub_top(c) = imped * rsub_tmp
         ! make sure baseflow isn't negative
         rsub_top(c) = max(0.D0, rsub_top(c))
 #else
-        rsub_top(c)    = imped * rsub_top_max* exp(-fff(c)*zwt(c))
+        rsub_top(c) = imped * rsub_top_max* exp(-fff(c)*zwt(c))
 #endif
         ! use analytical expression for aquifer specific yield
-        rous = watsat(c,nlevsoi) &
-            * ( 1. - (1.+1.e3*zwt(c)/sucsat(c,nlevsoi))**(-1./bsw(c,nlevsoi)))
+        rous = watsat(c,nlevsoi) * ( 1.0D0 - &
+          (1.0D0+1.D3*zwt(c)/sucsat(c,nlevsoi))**(-1.0D0/bsw(c,nlevsoi)))
         rous = max(rous,0.02D0)
 
         ! water table is below the soil column
@@ -1823,21 +1822,21 @@ module mod_clm_soilhydrology
             end do
 
             do j = (nlvic(1)+nlvic(2)+1) , nlevsoi
-              rsub_top_layer=max(rsub_top_tot, &
+              rsub_top_layer = max(rsub_top_tot, &
                       rsub_top_tot*hk_l(c,j)*dzmm(c,j)/wtsub_vic)
-              rsub_top_layer=min(rsub_top_layer,0.D0)
+              rsub_top_layer = min(rsub_top_layer,0.D0)
               h2osoi_liq(c,j) = h2osoi_liq(c,j) + rsub_top_layer
               rsub_top_tot = rsub_top_tot - rsub_top_layer
             end do
 #else
             do j = jwt(c)+1 , nlevsoi
               ! use analytical expression for specific yield
-              s_y = watsat(c,j) &
-                        * ( 1. - (1.+1.e3*zwt(c)/sucsat(c,j))**(-1./bsw(c,j)))
+              s_y = watsat(c,j) * ( 1.0D0 - &
+                (1.0D0+1.D3*zwt(c)/sucsat(c,j))**(-1.0D0/bsw(c,j)))
               s_y=max(s_y,0.02D0)
 
-              rsub_top_layer=max(rsub_top_tot,-(s_y*(zi(c,j) - zwt(c))*1.e3))
-              rsub_top_layer=min(rsub_top_layer,0.D0)
+              rsub_top_layer = max(rsub_top_tot,-(s_y*(zi(c,j) - zwt(c))*1.D3))
+              rsub_top_layer = min(rsub_top_layer,0.D0)
               h2osoi_liq(c,j) = h2osoi_liq(c,j) + rsub_top_layer
 
               rsub_top_tot = rsub_top_tot - rsub_top_layer

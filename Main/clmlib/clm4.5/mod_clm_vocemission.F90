@@ -286,9 +286,6 @@ module mod_clm_vocemission
     topt_out(lbp:ubp) = spval
     Eopt_out(lbp:ubp) = spval
 
-    ! initalize to zero since this might not alway get set
-    vocflx_meg(:) = 0.D0
-
     ! Begin loop over points
     !
     do fp = 1,num_soilp
@@ -298,6 +295,9 @@ module mod_clm_vocemission
 
       ! initialize EF
       xepsilon = 0.D0
+
+      ! initalize to zero since this might not alway get set
+      vocflx_meg(:) = 0.D0
 
       ! calculate VOC emissions for non-bare ground PFTs
       if (ivt(p) > 0) then
