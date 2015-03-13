@@ -1187,6 +1187,7 @@ module mod_tendency
             !   (2) part of the horizontal component of the Coriolis force due to the   vertical movement (6th RHS term in Eq.2.2.9, Eq.2.2.10)
             !   (3) horizontal   curvature term                                                           (not explicitly mentioned in the MM5 1994 manual)
             !   (4) vertical     curvature term                                                           (not explicitly mentioned in the MM5 1994 manual)
+            !   (5) divergence             term                                                           (3rd RHS term in Eq.2.2.1, Eq.2.2.2, Eq.2.2.9, Eq.2.2.10, Eq.2.3.3, Eq.2.3.4)
             !
             wadot   = 0.125D0 * (atm1%w(j-1,i-1,k) + atm1%w(j-1,i,k)     + &
                                  atm1%w(j,i-1,k)   + atm1%w(j,i,k))
@@ -1200,12 +1201,14 @@ module mod_tendency
                          mddom%coriol(j,i)*atm1%v(j,i,k)/mddom%msfd(j,i) - &
                          mddom%ef(j,i)*mddom%ddx(j,i)*wabar              + &
                          atmx%v(j,i,k)*duv                               - &
-                         atm1%u(j,i,k)*amfac
+                         atm1%u(j,i,k)*amfac                             + &
+                         divd(j,i,k)*atm1%u(j,i,k)/mddom%msfd(j,i)
             aten%v(j,i,k) = aten%v(j,i,k)                                - &
                          mddom%coriol(j,i)*atm1%u(j,i,k)/mddom%msfd(j,i) + &
                          mddom%ef(j,i)*mddom%ddy(j,i)*wabar              - &
                          atmx%u(j,i,k)*duv                               - &
-                         atm1%v(j,i,k)*amfac
+                         atm1%v(j,i,k)*amfac                             + &
+                         divd(j,i,k)*atm1%v(j,i,k)/mddom%msfd(j,i)
           end do
         end do
       end do
