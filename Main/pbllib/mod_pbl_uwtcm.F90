@@ -509,30 +509,25 @@ module mod_pbl_uwtcm
         end do
 
         tke(kzp1) = m2p%tkests(j,i,kzp1)
-        if ( ipptls == 2 ) then
-          do k = 1 , kz
-            tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k) / psbx
-            qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv) / psbx
-            qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc) / psbx
-            qix(k) = m2p%qxatm(j,i,k,iqi) + p2m%qxten(j,i,k,iqi) / psbx
-            qix(k) = d_zero
-          end do
-        else
-          do k = 1 , kz
-            tx(k)  = m2p%tatm(j,i,k)
-            qx(k)  = m2p%qxatm(j,i,k,iqv)
-            qcx(k) = m2p%qxatm(j,i,k,iqc)
-            qix(k) = d_zero
-          end do
-        end if
-
         do k = 1 , kz
-          rttenx(k) = m2p%heatrt(j,i,k)
+          tx(k)  = m2p%tatm(j,i,k)
+          qx(k)  = m2p%qxatm(j,i,k,iqv)
+          qcx(k) = m2p%qxatm(j,i,k,iqc)
           zax(k) = m2p%za(j,i,k)
           tke(k) = m2p%tkests(j,i,k)
           ux(k)  = m2p%uxatm(j,i,k)
           vx(k)  = m2p%vxatm(j,i,k)
+          rttenx(k) = m2p%heatrt(j,i,k)
         end do
+        if ( ipptls == 2 ) then
+          do k = 1 , kz
+            qix(k) = m2p%qxatm(j,i,k,iqi)
+          end do
+        else
+          do k = 1 , kz
+            qix(k) = d_zero
+          end do
+        end if
 
         if ( ichem == 1 ) then
           do itr = 1 , ntr
