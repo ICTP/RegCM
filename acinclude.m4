@@ -16,8 +16,8 @@ AC_DEFUN([AX_PROG_NF_CONFIG], [
   AC_REQUIRE([AC_PROG_EGREP])
 
   AC_CACHE_CHECK([if nf-config program is present],[ax_cv_prog_nf_config],[
-  AS_IF([nf-config --version 2>/dev/null | egrep -q '^netCDF '],
-        [ax_cv_prog_fc_config=yes], [ax_cv_prog_nf_config=no])
+  AS_IF([nf-config --version 2>/dev/null | egrep -q '^netCDF-Fortran'],
+        [ax_cv_prog_nf_config=yes], [ax_cv_prog_nf_config=no])
       ])
   AS_IF([test "$ax_cv_prog_nf_config" = "yes"], [[$1]], [[$2]])
 ])
@@ -116,6 +116,7 @@ AC_DEFUN([RR_PATH_NETCDF_F90],[
   AC_CHECKING([for NetCDF module file])
   save_FCFLAGS="$FCFLAGS"
 
+  if test -z "$NC_INCLUDES"; then
   for flag in "-I" "-M" "-p"; do
     FCFLAGS="$flag$NC_PREFIX/include $save_FCFLAGS"
     AC_COMPILE_IFELSE(
@@ -127,13 +128,28 @@ AC_DEFUN([RR_PATH_NETCDF_F90],[
       break
     fi
   done
-
   if test "x$netcdf" = xno; then
     AC_MSG_ERROR([NetCDF module not found])
   fi
 
   FCFLAGS="$save_FCFLAGS"
   AM_CPPFLAGS="$NC_FCFLAGS$NC_PREFIX/include $AM_CPPFLAGS"
+  else
+    FCFLAGS="$NC_INCLUDES $save_FCFLAGS"
+    AC_COMPILE_IFELSE(
+      [AC_LANG_PROGRAM([[ ]],
+                       [[      use netcdf]])],
+                       [netcdf=yes],
+                       [netcdf=no])
+
+    if test "x$netcdf" = xno; then
+      AC_MSG_ERROR([NetCDF module not found])
+    fi
+
+    FCFLAGS="$save_FCFLAGS"
+    AM_CPPFLAGS="$NC_INCLUDES $AM_CPPFLAGS"
+  fi
+
   AC_SUBST([AM_CPPFLAGS])
 ])
 

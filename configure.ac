@@ -33,11 +33,12 @@ AC_PROG_FC
 
 AC_LANG([Fortran])
 
-AX_PROG_NF_CONFIG([NC_PREFIX=`nf-config --prefix` && NFAUTO="yes"],
-                  [NC_PREFIX="${NETCDF}" && NFAUTO="no"])
+AX_PROG_NF_CONFIG([NC_PREFIX=`nf-config --prefix`; NFAUTO="yes"],
+                  [NC_PREFIX="${NETCDF}"; NFAUTO="no"])
+
 if eval "test x$NFAUTO = xno"; then
-  AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix` && NCAUTO="yes"],
-                    [NC_PREFIX="${NETCDF}" && NCAUTO="no"])
+  AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix`; NCAUTO="yes"],
+                    [NC_PREFIX="${NETCDF}"; NCAUTO="no"])
 fi
 
 AC_ARG_WITH([netcdf],
@@ -172,8 +173,12 @@ if eval "test x$DEBUG = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
+NC_INCLUDES=""
+NC_LDFLAGS=""
+ NC_LIBS=""
+
 if eval "test x$NFAUTO = xyes"; then
-  NC_INCLUDES="-I`nf-config --includedir`"
+  NC_INCLUDES="`nf-config --fflags`"
   NC_LDFLAGS=""
   NC_LIBS="`nf-config --flibs`"
 else
@@ -195,6 +200,9 @@ else
 fi
 
 AC_SUBST(NC_PREFIX)
+AC_SUBST(NC_INCLUDES)
+AC_SUBST(NC_LIBS)
+AC_SUBST(NC_LDFLAGS)
 
 AC_LANG_PUSH([C])
 AC_C_BIGENDIAN
