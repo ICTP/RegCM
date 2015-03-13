@@ -53,13 +53,13 @@ module mod_tendency
   private
 
   public :: allocate_mod_tend , tend
-  !------------------------------------
-  ! Mass divergence in cross (x) points
-  !------------------------------------
+  !--------------------------------------------
+  ! Mass divergence         in cross (x) points
+  !--------------------------------------------
   real(rk8) , pointer , dimension(:,:,:) :: divx
-  !------------------------------------
-  ! Mass divergence in   dot (d) points
-  !------------------------------------
+  !--------------------------------------------
+  ! Mass divergence averaged in  dot (d) points
+  !--------------------------------------------
   real(rk8) , pointer , dimension(:,:,:) :: divd
   real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , &
                ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc
@@ -81,7 +81,7 @@ module mod_tendency
     implicit none
     call getmem3d(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
     call getmem3d(divx,jce1,jce2,ice1,ice2,1,kz,'tendency:divx')
-    call getmem3d(divd,jce1,jce2,ice1,ice2,1,kz,'tendency:divd')
+    call getmem3d(divd,jdi1,jdi2,idi1,idi2,1,kz,'tendency:divd')
     call getmem3d(ttld,jce1,jce2,ice1,ice2,1,kz,'tend:ttld')
     call getmem3d(xkc,jdi1,jdi2,idi1,idi2,1,kz,'tendency:xkc')
     call getmem3d(xkcf,jdi1,jdi2,idi1,idi2,1,kzp1,'tendency:xkcf')
@@ -332,7 +332,7 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             !
-            ! The mass divergence term in the nonhydrostatic model:
+            ! The mass divergence term (in cross points) in the nonhydrostatic model:
             ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
             !
             divx(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
@@ -341,6 +341,17 @@ module mod_tendency
                            atm1%v(j+1,i,k)  -atm1%v(j,i,k))
             divx(j,i,k) = divx(j,i,k) * dummy(j,i) + &
               (qdot(j,i,k+1) - qdot(j,i,k)) * sfs%psa(j,i)/dsigma(k)
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            !
+            ! The mass divergence term (averaged in dot points) in the nonhydrostatic model:
+            ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
+            !
+            divd(j,i,k) = 0.25*(divx(j,i,k)+divx(j-1,i,k)+divx(j,i-1,k)+divx(j-1,i-1,k)) 
           end do
         end do
       end do
