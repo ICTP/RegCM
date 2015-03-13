@@ -53,8 +53,14 @@ module mod_tendency
   private
 
   public :: allocate_mod_tend , tend
-
-  real(rk8) , pointer , dimension(:,:,:) :: divl
+  !------------------------------------
+  ! Mass divergence in cross (x) points
+  !------------------------------------
+  real(rk8) , pointer , dimension(:,:,:) :: divx
+  !------------------------------------
+  ! Mass divergence in   dot (d) points
+  !------------------------------------
+  real(rk8) , pointer , dimension(:,:,:) :: divd
   real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , &
                ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc
   real(rk8) , pointer , dimension(:,:,:) :: ps4
@@ -74,7 +80,8 @@ module mod_tendency
   subroutine allocate_mod_tend
     implicit none
     call getmem3d(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
-    call getmem3d(divl,jce1,jce2,ice1,ice2,1,kz,'tendency:divl')
+    call getmem3d(divx,jce1,jce2,ice1,ice2,1,kz,'tendency:divx')
+    call getmem3d(divd,jce1,jce2,ice1,ice2,1,kz,'tendency:divd')
     call getmem3d(ttld,jce1,jce2,ice1,ice2,1,kz,'tend:ttld')
     call getmem3d(xkc,jdi1,jdi2,idi1,idi2,1,kz,'tendency:xkc')
     call getmem3d(xkcf,jdi1,jdi2,idi1,idi2,1,kzp1,'tendency:xkcf')
@@ -270,11 +277,11 @@ module mod_tendency
             ! The surface pressure tendency in the   hydrostatic model:
             ! Eq. 2.1.5 & Eq. 2.4.2 in the MM5 manual
             !
-            divl(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
+            divx(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
                            atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
                           (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
                            atm1%v(j+1,i,k)  -atm1%v(j,i,k))
-            pten(j,i) = pten(j,i) - divl(j,i,k)*dsigma(k) * dummy(j,i)
+            pten(j,i) = pten(j,i) - divx(j,i,k)*dsigma(k) * dummy(j,i)
           end do
         end do
       end do
@@ -286,7 +293,7 @@ module mod_tendency
             ! Eq. 2.1.6 & Eq. 2.4.3 in the MM5 manual
             !
             qdot(j,i,k) = qdot(j,i,k-1) - (pten(j,i) + &
-              divl(j,i,k-1)*dummy(j,i)) * dsigma(k-1) * rpsa(j,i)
+              divx(j,i,k-1)*dummy(j,i)) * dsigma(k-1) * rpsa(j,i)
            end do
         end do
       end do
@@ -328,11 +335,11 @@ module mod_tendency
             ! The mass divergence term in the nonhydrostatic model:
             ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
             !
-            divl(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
+            divx(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
                            atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
                           (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
                            atm1%v(j+1,i,k)  -atm1%v(j,i,k))
-            divl(j,i,k) = divl(j,i,k) * dummy(j,i) + &
+            divx(j,i,k) = divx(j,i,k) * dummy(j,i) + &
               (qdot(j,i,k+1) - qdot(j,i,k)) * sfs%psa(j,i)/dsigma(k)
           end do
         end do
@@ -599,8 +606,8 @@ module mod_tendency
           do j = jci1 , jci2
             scr = d_half*egrav*atm0%rho(j,i,k)*(atm1%w(j,i,k)+atm1%w(j,i,k+1))
             cpm = cpd*(d_one + 0.8D0*qvd(j,i,k))
-            aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*divl(j,i,k)       - &
-                            (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divl(j,i,k)) / &
+            aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*divx(j,i,k)       - &
+                            (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divx(j,i,k)) / &
                             (atm1%rho(j,i,k)*cpm)
           end do
         end do
@@ -630,8 +637,8 @@ module mod_tendency
                    mddom%ex(j,i)*(uaq*mddom%crx(j,i)  -    &
                                   vaq*mddom%cry(j,i))   + &
                    (uaq*uaq+vaq*vaq)*earthrad*rpsa(j,i) + &
-                   atmx%w(j,i,k)*(twt(k,1)*divl(j,i,k)  + &
-                                  twt(k,2)*divl(j,i,k-1))
+                   atmx%w(j,i,k)*(twt(k,1)*divx(j,i,k)  + &
+                                  twt(k,2)*divx(j,i,k-1))
           end do
         end do
       end do
