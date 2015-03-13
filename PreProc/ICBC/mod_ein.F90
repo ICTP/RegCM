@@ -201,7 +201,11 @@ module mod_ein
             istatus = nf90_inquire_dimension(inet5(1,1),timid,len=timlen)
             call checkncerr(istatus,__FILE__,__LINE__,'Error inquire time')
             istatus = nf90_inq_varid(inet5(1,1),'time',timid)
-            call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+            if ( istatus /= nf90_noerr ) then
+              istatus = nf90_inq_varid(inet5(1,1),'date',timid)
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var time/date')
+            end if
             cunit = 'hours since 1900-01-01 00:00:00'
             ccal = 'noleap'
             call getmem1d(itimes,1,timlen,'mod_ein:itimes')
@@ -363,8 +367,11 @@ module mod_ein
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error reading longitude dimelen in file '//trim(pathaddname))
     istatus = nf90_inq_dimid(ncid,'levelist',idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Missing levelist dimension in file '//trim(pathaddname))
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_dimid(ncid,'level',idimid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+            'Missing level/levelist dimension in file '//trim(pathaddname))
+    end if
     istatus = nf90_inquire_dimension(ncid,idimid,len=klev)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error reading levelist dimelen in file '//trim(pathaddname))
@@ -400,8 +407,11 @@ module mod_ein
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error reading longitude variable in file '//trim(pathaddname))
     istatus = nf90_inq_varid(ncid,'levelist',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Missing levelist variable in file '//trim(pathaddname))
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(ncid,'level',ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+            'Missing level/levelist variable in file '//trim(pathaddname))
+    end if
     istatus = nf90_get_var(ncid,ivarid,plevs)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error reading levelist variable in file '//trim(pathaddname))
