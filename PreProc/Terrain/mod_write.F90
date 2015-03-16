@@ -29,8 +29,10 @@ module mod_write
 
   public :: setup_outvars , write_domain
 
-  integer(ik4) , parameter :: nvar2d = 12
-  type(ncvariable2d_real) , save, dimension(nvar2d) :: v2dvar_base
+  integer(ik4) :: nvar2d
+  integer(ik4) :: nvar3d
+  type(ncvariable2d_real) , save, dimension(:), allocatable :: v2dvar_base
+  type(ncvariable3d_real) , save, dimension(:), allocatable :: v3dvar_base
   integer(ik4) :: idlnd ! The position of landuse in the v2dvar_base
   type(ncvariable2d_real) , save :: v2dvar_lake
   type(ncvariable2d_real) , save :: v2dvar_texture
@@ -84,6 +86,16 @@ module mod_write
   subroutine setup_outvars
     implicit none
 
+    if ( idynamic == 1 ) then
+      nvar2d = 12
+      allocate(v2dvar_base(nvar2d))
+      nvar3d = 0
+    else
+      nvar2d = 13
+      nvar3d = 3
+      allocate(v2dvar_base(nvar2d))
+      allocate(v3dvar_base(nvar3d))
+    end if
     v2dvar_base(1)%vname = 'xlon'
     v2dvar_base(1)%vunit = 'degrees_east'
     v2dvar_base(1)%long_name = 'Longitude on Cross Points'
@@ -151,11 +163,34 @@ module mod_write
     v3dvar_texture%standard_name = 'soil_type_fraction'
     v3dvar_texture%axis = 'xyT'
     v3dvar_texture%lfillvalue = .true.
+
+    if ( idynamic == 2 ) then
+      v2dvar_base(13)%vname = 'ps0'
+      v2dvar_base(13)%vunit = 'Pa'
+      v2dvar_base(13)%long_name = 'Reference State Surface Pressure'
+      v2dvar_base(13)%standard_name = 'air_pressure'
+      v3dvar_base(1)%vname = 'pr0'
+      v3dvar_base(1)%vunit = 'Pa'
+      v3dvar_base(1)%long_name = 'Reference State Pressure'
+      v3dvar_base(1)%standard_name = 'air_pressure'
+      v3dvar_base(1)%axis = 'xyz'
+      v3dvar_base(2)%vname = 't0'
+      v3dvar_base(2)%vunit = 'K'
+      v3dvar_base(2)%long_name = 'Reference State Temperature'
+      v3dvar_base(2)%standard_name = 'air_temperature'
+      v3dvar_base(2)%axis = 'xyz'
+      v3dvar_base(3)%vname = 'rho0'
+      v3dvar_base(3)%vunit = 'kg m-3'
+      v3dvar_base(3)%long_name = 'Reference State Density'
+      v3dvar_base(3)%standard_name = 'air_density'
+      v3dvar_base(3)%axis = 'xyz'
+    end if
   end subroutine setup_outvars
 
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
                           xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,htgrid,  &
-                          lndout,snowam,smoist,dpth,texout,frac_tex)
+                          lndout,snowam,smoist,dpth,texout,frac_tex,ps0,pr0, &
+                          t0,rho0)
     implicit none
     character (len=*) , intent(in) :: fname
     logical , intent(in) :: lsub , lndfudge , texfudge , lakfudge
@@ -170,7 +205,11 @@ module mod_write
     real(rk8) , dimension(:,:) , pointer , intent(in) :: smoist
     real(rk8) , dimension(:,:) , pointer , intent(in) :: dpth
     real(rk8) , dimension(:,:) , pointer , intent(in) :: texout
+    real(rk8) , dimension(:,:) , pointer , intent(in) :: ps0
     real(rk8) , dimension(:,:,:) , pointer , intent(in) :: frac_tex
+    real(rk8) , dimension(:,:,:) , pointer , intent(in) :: pr0
+    real(rk8) , dimension(:,:,:) , pointer , intent(in) :: t0
+    real(rk8) , dimension(:,:,:) , pointer , intent(in) :: rho0
 
     type(nc_output_stream) :: ncout
     type(ncoutstream_params) :: opar
@@ -253,6 +292,22 @@ module mod_write
       v3dvar_texture%rval => frac_tex
     end if
 
+    if ( idynamic == 2 ) then
+      do ivar = 1 , nvar3d
+        v3dvar_base(ivar)%j1 = -1
+        v3dvar_base(ivar)%j2 = -1
+        v3dvar_base(ivar)%i1 = -1
+        v3dvar_base(ivar)%i2 = -1
+        v3dvar_base(ivar)%k1 = -1
+        v3dvar_base(ivar)%k2 = -1
+        call outstream_addvar(ncout,v3dvar_base(ivar))
+      end do
+      v2dvar_base(13)%rval => ps0
+      v3dvar_base(1)%rval => pr0
+      v3dvar_base(2)%rval => t0
+      v3dvar_base(3)%rval => rho0
+    end if
+
     call outstream_enable(ncout,sigma)
 
     do ivar = 1 , nvar2d
@@ -264,6 +319,12 @@ module mod_write
     if ( ltexture ) then
       call outstream_writevar(ncout,v2dvar_texture)
       call outstream_writevar(ncout,v3dvar_texture)
+    end if
+
+    if ( idynamic == 2 ) then
+      do ivar = 1 , nvar3d
+        call outstream_writevar(ncout,v3dvar_base(ivar))
+      end do
     end if
 
     call outstream_dispose(ncout)

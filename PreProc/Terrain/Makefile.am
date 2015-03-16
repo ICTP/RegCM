@@ -29,4 +29,4 @@ mod_rdldtr.o : mod_rdldtr.F90 mod_block.o mod_stdio.o mod_constants.o mod_memuti
 mod_smooth.o : mod_smooth.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_write.o : mod_write.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_ncstream_types.o mod_ncstream.o
 mod_snow.o: mod_snow.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_interp.o mod_stdio.o
-terrain.o : terrain.F90 mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o mod_date.o mod_dynparam.o mod_space.o mod_memutil.o mod_maps.o mod_block.o mod_smooth.o mod_projections.o mod_maputils.o mod_intldtr.o mod_fudge.o mod_nchelper.o mod_rdldtr.o mod_ncstream_types.o mod_ncstream.o mod_write.o mod_header.o mod_interp.o mod_snow.o mod_sigma.o
+terrain.o : terrain.F90 mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o mod_date.o mod_dynparam.o mod_space.o mod_memutil.o mod_maps.o mod_block.o mod_smooth.o mod_projections.o mod_maputils.o mod_intldtr.o mod_fudge.o mod_nchelper.o mod_rdldtr.o mod_ncstream_types.o mod_ncstream.o mod_write.o mod_header.o mod_interp.o mod_snow.o mod_sigma.o mod_nhinterp.o

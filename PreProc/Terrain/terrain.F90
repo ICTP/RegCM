@@ -76,6 +76,8 @@ program terrain
   use mod_memutil
   use mod_snow
   use mod_sigma
+  use mod_nhinterp
+
   implicit none
   character(len=256) :: char_lnd , char_tex , char_lak
   character(len=256) :: namelistfile , prgname , outname
@@ -86,7 +88,12 @@ program terrain
   integer(ik4) :: ntypec , ntypec_s
   real(rk8) , allocatable , dimension(:,:) :: tmptex
   real(rk8) :: psig , zsig , pstar , tswap
+  integer(ik4) :: ifupr
+  real(rk8) :: logp_lrate = 50.0D0
   data ibndry /.true./
+
+  namelist /nonhydroparam/ ifupr , logp_lrate
+
   call header(1)
   !
   ! Read input global namelist
@@ -106,31 +113,39 @@ program terrain
   call memory_init
   call split_idate(globidate1,year,month,day,hour)
 !
-  call prepare_grid(jx,iy,kz,ntex)
+  call prepare_grid(jx,iy,kz,ntex,idynamic)
 
   if ( nsg>1 ) then
-    call prepare_subgrid(jxsg,iysg,ntex)
+    call prepare_subgrid(jxsg,iysg,kz,ntex,idynamic)
   end if
   call setup_outvars
 
   call init_sigma(kz,dsmax,dsmin)
   sigma(:) = sigma_coordinate(:)
 
-  ! Write the levels out to the screen
-  write (stdout,*) 'Vertical Grid Description'
-  write (stdout,*) ''
-  pstar = stdpmb - d_10*ptop
-  zsig = d_zero
-  psig = pstar*sigma(kz+1) + d_10*ptop
-  write (stdout,*) '-----------------------------------------'
-  write (stdout,*) 'k        sigma       p(mb)           z(m)'
-  write (stdout,*) '-----------------------------------------'
-  write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2)') kz+1, sigma(kz+1), psig, zsig
-  do k = kz, 1, -1
-    psig = pstar*sigma(k) + d_10*ptop
-    zsig = zsig+rgas*stdt*pstar*sigma_delta(k)/(psig*egrav)
-    write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2)') k, sigma(k), psig, zsig
-  end do
+  if ( idynamic == 1 ) then
+    ! Write the levels out to the screen
+    write (stdout,*) 'Vertical Grid Description'
+    write (stdout,*) ''
+    pstar = stdpmb - d_10*ptop
+    zsig = d_zero
+    psig = pstar*sigma(kz+1) + d_10*ptop
+    write (stdout,*) '-----------------------------------------'
+    write (stdout,*) 'k        sigma       p(mb)           z(m)'
+    write (stdout,*) '-----------------------------------------'
+    write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2)') kz+1, sigma(kz+1), psig, zsig
+    do k = kz, 1, -1
+      psig = pstar*sigma(k) + d_10*ptop
+      zsig = zsig+rgas*stdt*pstar*sigma_delta(k)/(psig*egrav)
+      write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2)') k, sigma(k), psig, zsig
+    end do
+  else if ( idynamic == 2 ) then
+    open(ipunit, file=namelistfile, status='old', &
+         action='read', iostat=ierr)
+    rewind(ipunit)
+    read(ipunit, nml=nonhydroparam, iostat=ierr)
+    close(ipunit)
+  end if
 
   clong = clon
   if ( clong>180. ) clong = clong - 360.
@@ -591,22 +606,34 @@ program terrain
       smoist_s = smissval
     end if
 
+    if ( idynamic == 2 ) then
+      call nhsetup(ptop,stdp,stdt,logp_lrate,htgrid_s,.false.)
+      call nhbase(1,iysg,1,jxsg,sigma,ps0_s,pr0_s,t0_s,rho0_s)
+    end if
+
     write (outname,'(a,i0.3,a)') &
        trim(dirter)//pthsep//trim(domname)//'_DOMAIN',nsg,'.nc'
     call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s, &
                       ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s,  &
                       dmap_s,coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,  &
-                      smoist_s,dpth_s,texout_s,frac_tex_s)
+                      smoist_s,dpth_s,texout_s,frac_tex_s,ps0_s,pr0_s,    &
+                      t0_s,rho0_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
   call read_snow(snowam,jx,iy)
 
+  if ( idynamic == 2 ) then
+    call nhsetup(ptop,stdp,stdt,logp_lrate,htgrid,.false.)
+    call nhbase(1,jx,1,iy,sigma,ps0,pr0,t0,rho0)
+  end if
+
   write (outname,'(a,i0.3,a)') &
      trim(dirter)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
   call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
-                    sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,    &
-                    htgrid,lndout,snowam,smoist,dpth,texout,frac_tex)
+                    sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,      &
+                    htgrid,lndout,snowam,smoist,dpth,texout,frac_tex,ps0, &
+                    pr0,t0,rho0)
   write(stdout,*) 'Grid data written to output file'
 
   if ( debug_level > 2 ) then

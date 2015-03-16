@@ -28,32 +28,54 @@ module mod_nhinterp
 
   private
 
-  public :: nhbase , nhinterp , nhpp , nhw
+  public :: nhsetup , nhbase , nhinterp , nhpp , nhw
+
+  real(rk8) :: ptop = 50.0D0
+  real(rk8) :: p0 = stdp
+  real(rk8) :: ts0 = stdt
+  real(rk8) :: tlp = 50.0D0
+
+  ! Is the terrain elevation or geopotential ?
+  logical :: lgeo = .true.
+
+  real(rk8) , pointer , dimension(:,:) :: ter
 
   contains
+
+    subroutine nhsetup(pt,p,ts,lp,topo,lg)
+      implicit none
+      real(rk8) , intent(in) :: pt , p , ts , lp
+      real(rk8) , pointer , intent(in) , dimension(:,:) :: topo
+      logical , intent(in) :: lg
+      ptop = pt
+      p0 = p
+      ts0 = ts
+      tlp = lp
+      lgeo = lg
+      ter => topo
+    end subroutine nhsetup
     !
     ! Compute the nonhydrostatic base state.
     !
-    subroutine nhbase(i1,i2,j1,j2,kx,a,ter,ptop,p0,tlp,ts0,ps0,pr0,t0,rho0)
+    subroutine nhbase(j1,j2,i1,i2,a,ps0,pr0,t0,rho0)
       implicit none
-      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kx
+      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2
       real(rk8) , intent(in) , dimension(:) :: a
-      real(rk8) , intent(in) , dimension(:,:) :: ter
-      real(rk8) , intent(in) :: ptop , p0 , tlp , ts0
       real(rk8) , intent(out) , dimension(:,:) :: ps0
       real(rk8) , intent(out) , dimension(:,:,:) :: pr0
       real(rk8) , intent(out) , dimension(:,:,:) :: t0
       real(rk8) , intent(out) , dimension(:,:,:) :: rho0
-      integer(ik4) :: i , j , k
-      real(rk8) :: ac , alnp , b , piso , ziso , pt
+      integer(ik4) :: i , j , k , kx
+      real(rk8) :: ac , alnp , b , pt
       !
       ! Define ps0 from terrain heights and t0 profile.
       !
+      kx = size(a)
       pt = ptop * d_1000
       do i = i1 , i2
         do j = j1 , j2
-          ! Height is already multiplied by g.
-          ac = ter(i,j) / (d_two * tlp * rgas)
+          ac = ter(j,i) / (d_two * tlp * rgas)
+          if ( .not. lgeo ) ac = ac * egrav
           b = ts0 / tlp
           alnp = -b + sqrt(b*b - d_four * ac)
           ps0(j,i) = p0 * exp(alnp) - pt
@@ -69,25 +91,22 @@ module mod_nhinterp
     !
     ! Interpolate the hydrostatic input to nonhydrostatic coordinate.
     !
-    subroutine nhinterp(i1,i2,j1,j2,kxs,f,tv,ter,ps,ps0,sigma,intmeth,a, &
-                        ptop,p0,tlp,ts0,tiso)
+    subroutine nhinterp(i1,i2,j1,j2,kxs,f,tv,ps,ps0,sigma,intmeth,a,tiso)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , intmeth
       real(rk8) , intent(in) , dimension(:) :: a
       real(rk8) , intent(in) , dimension(:) :: sigma
-      real(rk8) , intent(in) , dimension(:,:) :: ter
       real(rk8) , intent(in) , dimension(:,:,:) :: tv
-      real(rk8) , intent(in) :: ptop , tlp , tiso , p0 , ts0
+      real(rk8) , intent(in) :: tiso
       real(rk8) , intent(in) , dimension(:,:) :: ps
       real(rk8) , intent(in) , dimension(:,:) :: ps0
       real(rk8) , intent(inout) , dimension(:,:,:) :: f
       integer(ik4) :: i , j , k , l , ll
-      integer(ik4) :: im , ip , jm , jp
       real(rk8) :: fl , fu , pt , piso , pr0 , alnp , alnqvn
-      real(rk8) :: tvav , ziso , zl , zu
+      real(rk8) :: ziso , zl , zu
       real(rk8) , dimension(j1:j2,i1:i2,1:kxs) :: fn
       real(rk8) , dimension(j1:j2,i1:i2,1:kxs) :: z , z0
-      real(rk8) , dimension(1:kxs+1) :: z0q , zq
+      real(rk8) , dimension(1:kxs+1) :: zq
 
       piso = p0 * exp((tiso - ts0)/tlp)
       pt = ptop * d_1000
@@ -111,7 +130,11 @@ module mod_nhinterp
       !  Calculate heights of input temperature sounding for interpolation
       !  to nonhydrostatic model levels.
       !
-      zq(kxs+1) = ter(j,i)/egrav
+      if ( lgeo ) then
+        zq(kxs+1) = ter(j,i)*regrav
+      else
+        zq(kxs+1) = ter(j,i)
+      end if
       do k = kxs , 1 , -1
         do i = i1 , i2
           do j = j1 , j2
@@ -161,7 +184,7 @@ module mod_nhinterp
     !
     ! Compute the pressure perturbation pp.
     !
-    subroutine nhpp(i1,i2,j1,j2,kxs,t,pr0,t0,tv,ps,ps0,sigma,pt,pp)
+    subroutine nhpp(i1,i2,j1,j2,kxs,t,pr0,t0,tv,ps,ps0,sigma,pp)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs
       integer(ik4) :: i , j , k
@@ -169,7 +192,6 @@ module mod_nhinterp
       real(rk8) , intent(in) , dimension(:,:,:) :: t , t0 , tv
       real(rk8) , intent(in) , dimension(:,:,:) :: pr0
       real(rk8) , intent(in) , dimension(:,:) :: ps , ps0
-      real(rk8) , intent(in) :: pt
       real(rk8) , intent(out) , dimension(:,:,:) :: pp
       real(rk8) :: aa , bb , cc , check , checkl , checkr , delp0 , p0surf
       real(rk8) :: psp , tk , tkp1 , tvk , tvkp1 , tvpot , wtl , wtu
@@ -183,7 +205,7 @@ module mod_nhinterp
           !  with psa assuming density perturbation remains constant in
           !  lowest half-layer.   Start with pp at surface.
           !
-          p0surf = ps0(j,i) + pt
+          p0surf = ps0(j,i) + ptop
           psp = ps(j,i) - ps0(i,j)
           delp0 = p0surf - pr0(j,i,kxs)
           tvk = tv(j,i,kxs)
@@ -234,22 +256,22 @@ module mod_nhinterp
     ! Compute the nonhydrostatic initial vertical velocity (w) from the
     ! horizontal wind fields (u and v).
     !
-    subroutine nhw(i1,i2,j1,j2,kxs,u,v,tv,rho0,ps,psdot,ps0,xmsfx,ter,sigma, &
-                   w,wtop,ds,a,dsigma,ptop,p0,tlp,ts0,tiso)
+    subroutine nhw(i1,i2,j1,j2,kxs,u,v,tv,rho0,ps,psdot,ps0,xmsfx,sigma, &
+                   w,wtop,ds,a,dsigma,tiso)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs
       real(rk8) , intent(in) , dimension(:) :: a , sigma , dsigma
-      real(rk8) , intent(in) , dimension(:,:) :: ter , xmsfx
+      real(rk8) , intent(in) , dimension(:,:) :: xmsfx
       real(rk8) , intent(in) , dimension(:,:) :: ps , ps0 , psdot
       real(rk8) , intent(in) , dimension(:,:,:) :: rho0 , tv
       real(rk8) , intent(in) , dimension(:,:,:) :: u , v
-      real(rk8) , intent(in) :: ds , p0 , ptop , tiso , tlp , ts0
+      real(rk8) , intent(in) :: ds , tiso
       real(rk8) , intent(out) , dimension(:,:,:) :: w
       real(rk8) , intent(out) , dimension(:,:) :: wtop
       integer(ik4) :: i , j , k , km
       integer(ik4) :: l , ll , lm , lp
       real(rk8) :: pt , alnpq , dx2 , omegal , omegau , ubar , vbar
-      real(rk8) :: piso , pr0 , rh0 , ziso , zl , zu , rho
+      real(rk8) :: piso , pr0 , ziso , zl , zu , rho
       real(rk8) , dimension(kxs+1) :: omega , omegan , qdt
       real(rk8) , dimension(kxs+1) :: z0q , zq
       real(rk8) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
@@ -260,7 +282,11 @@ module mod_nhinterp
       do i = i1 , i2
         do j = j1 , j2
           qdt(kxs+1) = d_zero
-          z0q(kxs+1) = ter(j,i)/egrav
+          if ( lgeo ) then
+            z0q(kxs+1) = ter(j,i)*regrav
+          else
+            z0q(kxs+1) = ter(j,i)
+          end if
           if ( ps0(j,i) + pt < piso ) THEN
             write(stderr,'(a,f5.1,a,f6.1,a)') &
               'The chosen value of Tiso, ',tiso,' K occurs at ',piso,' hPa.'
@@ -280,7 +306,11 @@ module mod_nhinterp
                 rdry * ts0 / egrav * alnpq)
             end if
           end do
-          zq(kxs+1) = ter(j,i)
+          if ( lgeo ) then
+            zq(kxs+1) = ter(j,i)
+          else
+            zq(kxs+1) = ter(j,i)*egrav
+          end if
           qdt(kxs+1) = d_zero
           do l = kxs , 1 , -1
             lp = min(l,kxs)

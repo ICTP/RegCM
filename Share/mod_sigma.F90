@@ -31,14 +31,40 @@ module mod_sigma
   private
 
   real(rk8) , pointer , dimension(:) :: sigma_coordinate
-  real(rk8) , pointer , dimension(:) :: sigma_delta
   real(rk8) , pointer , dimension(:) :: half_sigma_coordinate
+  real(rk8) , pointer , dimension(:) :: sigma_delta
+
+  real(rk8) :: ptop
+  logical :: is_pstar = .true.
+  real(rk8) , pointer , dimension(:,:) :: ps => null()
+
+  real(rk8) , pointer , dimension(:,:,:) :: pprime => null()
 
   public :: sigma_coordinate
   public :: sigma_delta
   public :: half_sigma_coordinate
   public :: init_sigma
 
+  public :: init_hydrostatic
+  public :: hydrostatic_pressure_full_sigma
+  public :: hydrostatic_pressure_half_sigma
+  public :: hydrostatic_deltap_full_sigma
+
+  public :: init_non_hydrostatic
+  public :: non_hydrostatic_pressure_full_sigma
+  public :: non_hydrostatic_pressure_half_sigma
+  public :: non_hydrostatic_deltap_full_sigma
+
+  !
+  ! Notation:
+  !            surface_pressure is the measured surface pressure
+  !            pstar = surface_pressure - ptop
+  !
+  ! Hydrostatic:
+  !
+  !     pressure = sigma * pstar + ptop =
+  !                surface_pressure * sigma + ( 1.0 - sigma ) * ptop
+  !
   contains
     !
     ! For the RegCM the sigma coordinate is terrain following
@@ -216,6 +242,100 @@ module mod_sigma
                                     sigma_coordinate(k+1)) * d_half
       end do
     end subroutine init_sigma
+
+    subroutine init_hydrostatic(ptin,psin,lpstar)
+      implicit none
+      real(rk8) , intent(in) :: ptin
+      real(rk8) , pointer , dimension(:,:) :: psin
+      logical , optional , intent(in) :: lpstar
+      if ( present(lpstar) ) is_pstar = lpstar
+      ptop = ptin
+      ps => psin
+    end subroutine init_hydrostatic
+
+    pure real(rk8) elemental function pstar(surface_pressure)
+      implicit none
+      real(rk8) , intent(in) :: surface_pressure
+      pstar = surface_pressure - ptop
+    end function pstar
+
+    pure real(rk8) function hydrostatic_pressure_full_sigma(j,i,k) result(p)
+      implicit none
+      integer(ik4) , intent(in) :: j , i , k
+      if ( is_pstar ) then
+        p = ps(j,i) * sigma_coordinate(k) + ptop
+      else
+        p = pstar(ps(j,i)) * sigma_coordinate(k) + ptop
+      end if
+    end function hydrostatic_pressure_full_sigma
+
+    pure real(rk8) function hydrostatic_pressure_half_sigma(j,i,k) result(p)
+      implicit none
+      integer(ik4) , intent(in) :: j , i , k
+      if ( is_pstar ) then
+        p = ps(j,i) * half_sigma_coordinate(k) + ptop
+      else
+        p = pstar(ps(j,i)) * half_sigma_coordinate(k) + ptop
+      end if
+    end function hydrostatic_pressure_half_sigma
+
+    pure real(rk8) function hydrostatic_deltap_full_sigma(j,i,k) result(p)
+      implicit none
+      integer(ik4) , intent(in) :: j , i , k
+      if ( is_pstar ) then
+        p = ps(j,i) * sigma_delta(k)
+      else
+        p = pstar(ps(j,i)) * sigma_delta(k)
+      end if
+    end function hydrostatic_deltap_full_sigma
+
+    subroutine init_non_hydrostatic(ptin,psin,ppin,lpstar)
+      implicit none
+      real(rk8) , intent(in) :: ptin
+      real(rk8) , pointer , dimension(:,:) :: psin
+      real(rk8) , pointer , dimension(:,:,:) :: ppin
+      logical , optional , intent(in) :: lpstar
+      if ( present(lpstar) ) is_pstar = lpstar
+      ptop = ptin
+      ps => psin
+      pprime => ppin
+    end subroutine init_non_hydrostatic
+
+    pure real(rk8) function non_hydrostatic_pressure_full_sigma(j,i,k) result(p)
+      implicit none
+      integer(ik4) , intent(in) :: j , i , k
+      if ( k == 1 ) then
+         p = ptop
+      else
+        if ( is_pstar ) then
+          p = ps(j,i) * sigma_coordinate(k) + ptop + &
+                    d_half * (pprime(j,i,k-1) - pprime(j,i,k))
+        else
+          p = pstar(ps(j,i)) * sigma_coordinate(k) + ptop + &
+                    d_half * (pprime(j,i,k-1) - pprime(j,i,k))
+        end if
+      end if
+    end function non_hydrostatic_pressure_full_sigma
+
+    pure real(rk8) function non_hydrostatic_pressure_half_sigma(j,i,k) result(p)
+      implicit none
+      integer(ik4) , intent(in) :: j , i , k
+      if ( is_pstar ) then
+        p = ps(j,i) * half_sigma_coordinate(k) + ptop + pprime(j,i,k)
+      else
+        p = pstar(ps(j,i)) * half_sigma_coordinate(k) + ptop + pprime(j,i,k)
+      end if
+    end function non_hydrostatic_pressure_half_sigma
+
+    pure real(rk8) function non_hydrostatic_deltap_full_sigma(j,i,k) result(p)
+      implicit none
+      integer(ik4) , intent(in) :: j , i , k
+      if ( is_pstar ) then
+        p = ps(j,i) * sigma_delta(k) + pprime(j,i,k)
+      else
+        p = pstar(ps(j,i)) * sigma_delta(k) + pprime(j,i,k)
+      end if
+    end function non_hydrostatic_deltap_full_sigma
 
 end module mod_sigma
 

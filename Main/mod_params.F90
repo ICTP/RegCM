@@ -2013,8 +2013,8 @@ module mod_params
       subroutine make_reference_atmosphere
         use mod_nhinterp
         implicit none
-        call nhbase(jce1,jce2,ice1,ice2,kz,hsigma,mddom%ht,ptop, &
-          stdp,logp_lrate,stdt,atm0%ps,atm0%pr,atm0%t,atm0%rho)
+        call nhsetup(ptop,stdp,stdt,logp_lrate,mddom%ht,.true.)
+        call nhbase(jce1,jce2,ice1,ice2,hsigma,atm0%ps,atm0%pr,atm0%t,atm0%rho)
         call exchange(atm0%ps,1,jce1,jce2,ice1,ice2)
       end subroutine make_reference_atmosphere
 
