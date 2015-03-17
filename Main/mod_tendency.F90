@@ -612,14 +612,18 @@ module mod_tendency
       ! Adiabatic term in the temperature tendency equation in the
       ! nonhydrostatic model: 3rd and 4th RHS term in Eq. 2.2.5 and Eq.2.3.9.
       !
+      ! Divergence term in the pressure perturbation tendency equation in the
+      ! nonhydrostatic model: 4th RHS term in Eq. 2.2.4 and Eq. 2.3.8
+      !
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
             scr = d_half*egrav*atm0%rho(j,i,k)*(atm1%w(j,i,k)+atm1%w(j,i,k+1))
             cpm = cpd*(d_one + 0.8D0*qvd(j,i,k))
-            aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*divx(j,i,k)       - &
-                            (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divx(j,i,k)) / &
-                            (atm1%rho(j,i,k)*cpm)
+            aten%t(j,i,k)  = aten%t(j,i,k) + atm1%t(j,i,k)*divx(j,i,k)       - &
+                             (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divx(j,i,k)) / &
+                             (atm1%rho(j,i,k)*cpm)
+            aten%pp(j,i,k) = aten%pp(j,i,k) + atm1%pp*divx(j,i,k)
           end do
         end do
       end do
