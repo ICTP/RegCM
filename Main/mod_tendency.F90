@@ -561,9 +561,10 @@ module mod_tendency
       call vadv(cross,aten%w,atmx%w,kzp1,icvadv)
     end if
     !
-    ! Initialize diffusion terms
+    ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
     !
-    adf%difft(:,:,:) = d_zero
+    adf%difft(:,:,:)    = d_zero
+    adf%diffw(:,:,:)    = d_zero
     adf%diffqx(:,:,:,:) = d_zero
     !
     ! compute the horizontal advection term in temperature tendency:
@@ -695,6 +696,10 @@ module mod_tendency
       ! reset ten0 to aten%t
       ten0 = aten%t
     end if
+    !
+    ! compute the diffusion term for vertical velocity w and store in diffw:
+    !
+    call diffu_x(adf%diffw,atm1%w,sfs%psb,xkc,kz+1)
     !
     ! compute the moisture tendencies for convection
     !
@@ -936,6 +941,17 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           aten%qx(j,i,k,iqv) = aten%qx(j,i,k,iqv) + adf%diffqx(j,i,k,iqv)
+        end do
+      end do
+    end do
+    !
+    ! add horizontal diffusion for vertical velocity w
+    ! This is the last RHS term in Eqs. 2.2.3, 2.2.11, 2.3.7
+    !
+    do k = 1 , kz+1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          aten%w(j,i,k) = aten%w(j,i,k) + adf%diffw(j,i,k)
         end do
       end do
     end do
