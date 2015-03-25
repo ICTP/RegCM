@@ -82,32 +82,39 @@ module mod_sst_ersst
     ! SET UP LONGITUDES AND LATITUDES FOR SST DATA
 
     call split_idate(globidate1,year,month,day,hour)
-    if ( year > 1978 .and. year < 1989 ) then
-      isyear = 1979
-      ierastart = 1979010100
-      if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
-        inpfile=trim(inpglob)//'/SST/sstERAIN.1979-1989.nc'
-      else if ( ssttyp == 'ERSKT' ) then
-        inpfile=trim(inpglob)//'/SST/tskinERAIN.1979-1989.nc'
-      end if
-    else if ( year > 1988 .and. year < 2009 ) then
-      isyear = 1989
-      ierastart = 1989010100
-      if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
-        inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
-      else if ( ssttyp == 'ERSKT' ) then
-        inpfile=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
-      end if
-    else if ( year > 2008 ) then
-      isyear = 2009
-      ierastart = 2009010100
-      if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
-        inpfile=trim(inpglob)//'/SST/sstERAIN.2009-present.nc'
-      else if ( ssttyp == 'ERSKT' ) then
-        inpfile=trim(inpglob)//'/SST/tskinERAIN.2009-present.nc'
-      end if
+    if ( ssttyp == 'EIN75' ) then
+      write (inpfile,'(a,i0.4,a)') trim(inpglob)//'/EIN75/SST/sst.', &
+        year, '.nc'
+      isyear = year
+      ierastart = year*1000000 + 10100
     else
-      call die('sst_ersst','The dataset is prepared only for 1979-present',1)
+      if ( year > 1978 .and. year < 1989 ) then
+        isyear = 1979
+        ierastart = 1979010100
+        if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
+          inpfile=trim(inpglob)//'/SST/sstERAIN.1979-1989.nc'
+        else if ( ssttyp == 'ERSKT' ) then
+          inpfile=trim(inpglob)//'/SST/tskinERAIN.1979-1989.nc'
+        end if
+      else if ( year > 1988 .and. year < 2009 ) then
+        isyear = 1989
+        ierastart = 1989010100
+        if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
+          inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
+        else if ( ssttyp == 'ERSKT' ) then
+          inpfile=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
+        end if
+      else if ( year > 2008 ) then
+        isyear = 2009
+        ierastart = 2009010100
+        if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
+          inpfile=trim(inpglob)//'/SST/sstERAIN.2009-present.nc'
+        else if ( ssttyp == 'ERSKT' ) then
+          inpfile=trim(inpglob)//'/SST/tskinERAIN.2009-present.nc'
+       end if
+      else
+        call die('sst_ersst','The dataset is prepared only for 1979-present',1)
+      end if
     end if
 
     istatus = nf90_open(inpfile,nf90_nowrite,inet)
@@ -141,45 +148,61 @@ module mod_sst_ersst
     do it = 1 , nsteps
 
       call split_idate(idate,year,month,day,hour)
-      if ( year > 1988 .and. isyear == 1979 ) then
-        ierastart = 1989010100
-        isyear = 1989
-        if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
-          inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
-        else if ( ssttyp == 'ERSKT' ) then
-          inpfile=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
+      if ( ssttyp == 'EIN75' ) then
+        if ( year /= isyear ) then
+          write (inpfile,'(a,i0.4,a)') trim(inpglob)//'/EIN75/SST/sst.', &
+              year, '.nc'
+          istatus = nf90_close(inet)
+          call checkncerr(istatus,__FILE__,__LINE__,'Cannot close file')
+          istatus = nf90_open(inpfile,nf90_nowrite,inet)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Cannot open file '//trim(inpfile))
+          write (stdout,*) 'Opened ', trim(inpfile)
+          isyear = year
+          ierastart = year*1000000 + 10100
+          lfirst = .true.
         end if
-        istatus = nf90_close(inet)
-        call checkncerr(istatus,__FILE__,__LINE__,'Cannot close 1979 file')
-        istatus = nf90_open(inpfile,nf90_nowrite,inet)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Cannot open file '//trim(inpfile))
-        write (stdout,*) 'Opened ', trim(inpfile)
-        lfirst = .true.
-      else if ( year > 2008 .and. isyear == 1989 ) then
-        ierastart = 2009010100
-        isyear = 2009
-        if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
-          inpfile=trim(inpglob)//'/SST/sstERAIN.2009-present.nc'
-        else if ( ssttyp == 'ERSKT' ) then
-          inpfile=trim(inpglob)//'/SST/tskinERAIN.2009-present.nc'
+      else
+        if ( year > 1988 .and. isyear == 1979 ) then
+          ierastart = 1989010100
+          isyear = 1989
+          if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
+            inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
+          else if ( ssttyp == 'ERSKT' ) then
+            inpfile=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
+          end if
+          istatus = nf90_close(inet)
+          call checkncerr(istatus,__FILE__,__LINE__,'Cannot close 1979 file')
+          istatus = nf90_open(inpfile,nf90_nowrite,inet)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Cannot open file '//trim(inpfile))
+          write (stdout,*) 'Opened ', trim(inpfile)
+          lfirst = .true.
+        else if ( year > 2008 .and. isyear == 1989 ) then
+          ierastart = 2009010100
+          isyear = 2009
+          if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
+            inpfile=trim(inpglob)//'/SST/sstERAIN.2009-present.nc'
+          else if ( ssttyp == 'ERSKT' ) then
+            inpfile=trim(inpglob)//'/SST/tskinERAIN.2009-present.nc'
+          end if
+          istatus = nf90_close(inet)
+          call checkncerr(istatus,__FILE__,__LINE__,'Cannot close 1989 file')
+          istatus = nf90_open(inpfile,nf90_nowrite,inet)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Cannot open file '//trim(inpfile))
+          write (stdout,*) 'Opened ', trim(inpfile)
+          lfirst = .true.
         end if
-        istatus = nf90_close(inet)
-        call checkncerr(istatus,__FILE__,__LINE__,'Cannot close 1989 file')
-        istatus = nf90_open(inpfile,nf90_nowrite,inet)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Cannot open file '//trim(inpfile))
-        write (stdout,*) 'Opened ', trim(inpfile)
-        lfirst = .true.
       end if
 
       tdiff = idate-ierastart
       ierrec = idnint(tohours(tdiff))/idtbc+1
 
-      if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
-        call sst_erain(ierrec,lfirst,1)
-      else if ( ssttyp == 'ERSKT' ) then
+      if ( ssttyp == 'ERSKT' ) then
         call sst_erain(ierrec,lfirst,2)
+      else
+        call sst_erain(ierrec,lfirst,1)
       end if
 
       call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
