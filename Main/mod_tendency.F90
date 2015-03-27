@@ -351,7 +351,7 @@ module mod_tendency
             ! The mass divergence term (averaged in dot points) in the nonhydrostatic model:
             ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
             !
-            divd(j,i,k) = 0.25*(divx(j,i,k)+divx(j-1,i,k)+divx(j,i-1,k)+divx(j-1,i-1,k)) 
+            divd(j,i,k) = 0.25*(divx(j,i,k)+divx(j-1,i,k)+divx(j,i-1,k)+divx(j-1,i-1,k))
           end do
         end do
       end do
@@ -624,7 +624,7 @@ module mod_tendency
             aten%t(j,i,k)  = aten%t(j,i,k) + atm1%t(j,i,k)*divx(j,i,k)       - &
                              (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divx(j,i,k)) / &
                              (atm1%rho(j,i,k)*cpm)
-            aten%pp(j,i,k) = aten%pp(j,i,k) + atm1%pp*divx(j,i,k)
+            aten%pp(j,i,k) = aten%pp(j,i,k) + atm1%pp(j,i,k)*divx(j,i,k)
           end do
         end do
       end do

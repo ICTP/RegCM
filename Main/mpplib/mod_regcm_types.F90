@@ -246,6 +246,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: difft
     real(rk8) , pointer , dimension(:,:,:) :: difuu
     real(rk8) , pointer , dimension(:,:,:) :: difuv
+    real(rk8) , pointer , dimension(:,:,:) :: diffw
     real(rk8) , pointer , dimension(:,:,:,:) :: diffqx
   end type diffx
 
