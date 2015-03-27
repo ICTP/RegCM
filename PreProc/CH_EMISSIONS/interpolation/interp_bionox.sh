@@ -28,12 +28,13 @@ then
 fi
 
 INPFILE=$1
-DOMNAME=`cat $INPFILE | grep domname | cut -d "=" -f 2 | tr "'" " " | \
-           sed -e 's/ //g' -e 's/,//'`
+DOMNAME=`cat $INPFILE | grep domname | grep -v coarse_domname | \
+	 cut -d "=" -f 2 | tr "'" " " | sed -e 's/ //g' -e 's/,//'`
 RCMINPDIR=`cat $INPFILE | grep dirter | cut -d "=" -f 2 | tr "'" " " | \
            sed -e 's/ //g' -e 's/,//'`
 EMISSDIR=`cat $INPFILE | grep inpglob | cut -d "=" -f 2 | tr "'" " " | \
            sed -e 's/ //g' -e 's/,//'`
+
 ## global emissions file locations / output of creation ##
 data_dir="$EMISSDIR/BIONOX"
 ## grid of RCPs location
