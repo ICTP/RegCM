@@ -474,7 +474,7 @@ module mod_tendency
     !
     ! No diffusion of TKE on lower boundary (kzp1)
     !
-    xkc(:,:,:) = d_zero
+    xkc(:,:,:)  = d_zero
     xkcf(:,:,:) = d_zero
     !
     ! compute the horizontal diffusion coefficient and stored in xkc:
@@ -701,7 +701,9 @@ module mod_tendency
     !
     ! compute the diffusion term for vertical velocity w and store in diffw:
     !
+    if ( idynamic == 2 ) then
     call diffu_x(adf%diffw,atm1%w,sfs%psb,xkc,kz+1)
+    end if
     !
     ! compute the moisture tendencies for convection
     !
