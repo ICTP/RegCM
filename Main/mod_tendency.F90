@@ -81,7 +81,6 @@ module mod_tendency
     implicit none
     call getmem3d(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
     call getmem3d(divx,jce1,jce2,ice1,ice2,1,kz,'tendency:divx')
-    call getmem3d(divd,jdi1,jdi2,idi1,idi2,1,kz,'tendency:divd')
     call getmem3d(ttld,jce1,jce2,ice1,ice2,1,kz,'tend:ttld')
     call getmem3d(xkc,jdi1,jdi2,idi1,idi2,1,kz,'tendency:xkc')
     call getmem3d(xkcf,jdi1,jdi2,idi1,idi2,1,kzp1,'tendency:xkcf')
@@ -105,6 +104,7 @@ module mod_tendency
     else if ( idynamic == 2 ) then
       call getmem3d(ucc,jce1,jce2,ice1,ice2,1,kz,'tendency:ucc')
       call getmem3d(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
+      call getmem3d(divd,jdi1,jdi2,idi1,idi2,1,kz,'tendency:divd')
     end if
     if ( idiag > 0 ) then
       call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
@@ -119,7 +119,7 @@ module mod_tendency
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !                                                                     c
   ! This subroutine computes the tendencies of the prognostic           c
-  ! variables p*, u, v, and t.                                          c
+  ! variables                                                           c
   !                                                                     c
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
@@ -216,7 +216,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
+            atm2%pr(j,i,k)  = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
             atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)*rpsb(j,i))
           end do
         end do
@@ -564,8 +564,10 @@ module mod_tendency
     ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
     !
     adf%difft(:,:,:)    = d_zero
-    adf%diffw(:,:,:)    = d_zero
     adf%diffqx(:,:,:,:) = d_zero
+    if ( idynamic == 2 ) then
+    adf%diffw(:,:,:)    = d_zero
+    end if
     !
     ! compute the horizontal advection term in temperature tendency:
     ! same for hydrostatic and nonhydrostatic models: in Eqs. 2.1.3, 2.2.5, 2.3.9 (1st RHS term)
