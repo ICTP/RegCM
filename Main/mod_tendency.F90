@@ -948,6 +948,7 @@ module mod_tendency
     ! add horizontal diffusion for vertical velocity w
     ! This is the last RHS term in Eqs. 2.2.3, 2.2.11, 2.3.7
     !
+    if ( idynamic == 2 ) then
     do k = 1 , kz+1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -955,6 +956,7 @@ module mod_tendency
         end do
       end do
     end do
+    end if
     ! Rq: the temp tendency diagnostics have been already
     !     saved for tbl and hor. diff but :
     if ( idiag > 0 ) then
