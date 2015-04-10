@@ -81,7 +81,7 @@ program terrain
   implicit none
   character(len=256) :: char_lnd , char_tex , char_lak
   character(len=256) :: namelistfile , prgname , outname
-  integer(ik4) :: i , j , k , ierr , ism
+  integer(ik4) :: i , j , k , ierr , ism , mmx
   integer(ik4) :: year , month , day , hour
   logical :: ibndry
   real(rk8) :: clong , dsinm
@@ -144,6 +144,10 @@ program terrain
          action='read', iostat=ierr)
     rewind(ipunit)
     read(ipunit, nml=nonhydroparam, iostat=ierr)
+    if ( ierr /= 0 ) then
+      write(stdout, *) 'Using default non hydrostatic parameters'
+      ierr = 0
+    end if
     close(ipunit)
   end if
 
@@ -231,10 +235,11 @@ program terrain
                        pthsep//'ESACCI-SOILMOISTURE.nc', &
                        'sm',900,15,.true.,2,month)
       write(stdout,*)'Satellite soil moisture data successfully read in'
+      mmx = (2*minval(shape(values))/2+1)**2
       do i = 1 , nlatin
         do j = 1 , nlonin
           if ( values(j,i) < 0 ) then
-            call findaround(values,i,j,nlatin,nlonin)
+            call findaround(values,i,j,nlatin,nlonin,mmx)
           end if
         end do
       end do
@@ -423,10 +428,11 @@ program terrain
                      pthsep//'ESACCI-SOILMOISTURE.nc', &
                      'sm',900,15,.true.,2,month)
     write(stdout,*)'Satellite soil moisture data successfully read in'
+    mmx = (2*minval(shape(values))/2+1)**2
     do i = 1 , nlatin
       do j = 1 , nlonin
         if ( values(j,i) < 0 ) then
-          call findaround(values,i,j,nlatin,nlonin)
+          call findaround(values,i,j,nlatin,nlonin,mmx)
         end if
       end do
     end do
@@ -652,14 +658,14 @@ program terrain
 
   contains
 
-  subroutine findaround(xx,i,j,imax,jmax)
+  subroutine findaround(xx,i,j,imax,jmax,mmx)
     implicit none
+    integer(ik4) , intent(in) :: i , j , imax , jmax , mmx
     real(rk8) , dimension(:,:) , intent(inout) :: xx
-    integer(ik4) , intent(in) :: i , j , imax , jmax
-    real(rk8) , dimension ((2*minval(shape(xx(:,:)))/2+1)**2) :: vals
+    real(rk8) , dimension (mmx) :: vals
     integer(ik4) :: ii , jj , js , is , ip , il , maxil
     il = 1
-    maxil = minval(shape(xx(:,:)))/2
+    maxil = minval(shape(xx))/2
     do
       ip = 0
       vals(:) = 0.0D0
