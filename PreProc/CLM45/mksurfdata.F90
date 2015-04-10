@@ -139,7 +139,7 @@ program mksurfdata
   real(rk8) :: operat , diff
   integer(ik4) :: ierr
   integer(ik4) :: i , j , n , ip , il , ir , iu , np , nm , it , ipnt , iurbmax
-  integer(ik4) :: jgstart , jgstop , igstart , igstop
+  integer(ik4) :: jgstart , jgstop , igstart , igstop , mmx
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
   character(len=64) :: csdate , pftfile , laifile
@@ -880,6 +880,7 @@ program mksurfdata
   end do
 
   ! Here adjustment !
+  mmx = (2*minval(shape(var3d(:,:,1)))/2+1)**2
   do i = igstart , igstop
     do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5D0 ) then
@@ -894,7 +895,7 @@ program mksurfdata
           end do
           if ( spft < smallnum ) then
             ! Substitute with something around it
-            call bestaround_pft(var3d,i,j)
+            call bestaround_pft(var3d,i,j,mmx)
             spft = 0.0D0
             do np = 1 , npft
               if ( var3d(j,i,np) > 0.0D0 ) then
@@ -1455,6 +1456,7 @@ program mksurfdata
     end do
 
     ! Here adjustment !
+    mmx = (2*minval(shape(var3d(:,:,1)))/2+1)**2
     do i = igstart , igstop
       do j = jgstart , jgstop
         if ( xmask(j,i) > 0.5D0 ) then
@@ -1469,7 +1471,7 @@ program mksurfdata
             end do
             if ( spft < smallnum ) then
               ! Substitute with something around it
-              call bestaround_pft(var3d,i,j)
+              call bestaround_pft(var3d,i,j,mmx)
               spft = 0.0D0
               do np = 1 , npft
                 if ( var3d(j,i,np) > 0.0D0 ) then
@@ -1626,11 +1628,11 @@ program mksurfdata
     end do
   end subroutine fillvar
 
-  subroutine bestaround_pft(pft,i,j)
+  subroutine bestaround_pft(pft,i,j,mmx)
     implicit none
+    integer(ik4) , intent(in) :: i , j , mmx
     real(rk8) , dimension(:,:,:) , intent(inout) :: pft
-    integer(ik4) , intent(in) :: i , j
-    real(rk8) , dimension (npft,(2*minval(shape(pft(:,:,1)))/2+1)**2) :: vals
+    real(rk8) , dimension (npft,mmx) :: vals
     integer(ik4) :: ii , jj , js , is , ip , n , il , maxil
     il = 1
     maxil = minval(shape(pft(:,:,1)))/2
