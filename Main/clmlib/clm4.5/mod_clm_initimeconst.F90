@@ -283,6 +283,9 @@ module mod_clm_initimeconst
     real(rk8) :: maxslope , slopemax , minslope , d , fd
     real(rk8) :: dfdd , slope0 , slopebeta
 
+#ifdef __PGI
+    real(rk8) , external :: derf
+#endif
     if ( myid == italk ) then
       write(stdout,*) 'Attempting to initialize time invariant variables'
     end if
@@ -1037,13 +1040,13 @@ module mod_clm_initimeconst
       if ( micro_sigma(c) > 1.D-6 ) then
         d = 0.0D0
         do p=1,4
-          fd = 0.5D0*(1.0D0+erf(d/(micro_sigma(c)*sqrt(2.0D0)))) - pc
+          fd = 0.5D0*(1.0D0+derf(d/(micro_sigma(c)*sqrt(2.0D0)))) - pc
           dfdd = exp(-d**2/(2.0D0*micro_sigma(c)**2)) / &
                   (micro_sigma(c)*sqrt(2.0D0*rpi))
           d = d - fd/dfdd
         end do
         h2osfc_thresh(c) = 0.5D0*d*(1.0D0 + &
-                erf(d/(micro_sigma(c)*sqrt(2.0D0)))) + &
+                derf(d/(micro_sigma(c)*sqrt(2.0D0)))) + &
                 micro_sigma(c)/sqrt(2.0D0*rpi) * &
                 exp(-d**2/(2.0D0*micro_sigma(c)**2))
         h2osfc_thresh(c) = 1.D3 * h2osfc_thresh(c) !convert to mm from meters

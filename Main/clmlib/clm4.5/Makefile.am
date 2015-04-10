@@ -83,10 +83,10 @@ FCFLAGS += -I$(MPP_INCLUDE) -I$(NET_INCLUDE) -I$(BATS_INCLUDE)
 endif
 
 %.o: %.f90
-	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
+	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(MPIFC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod
@@ -150,7 +150,6 @@ mod_clm_control.o : mod_clm_control.F90 mod_clm_canopyfluxes.o mod_clm_cnallocat
 mod_clm_croprest.o : mod_clm_croprest.F90 mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_nchelper.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_decomp.o : mod_clm_decomp.F90 mod_clm_domain.o mod_clm_type.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_regcm_types.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_decompinit.o : mod_clm_decompinit.F90 mod_clm_decomp.o mod_clm_subgrid.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_service.o mod_stdio.o $(REGCM_ROOT)/makeinc
-	$(MPIFC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 mod_clm_domain.o : mod_clm_domain.F90 mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_driver.o : mod_clm_driver.F90 mod_clm_accflds.o mod_clm_activelayer.o mod_clm_atmlnd.o mod_clm_balancecheck.o mod_clm_baregroundfluxes.o mod_clm_biogeophysics1.o mod_clm_biogeophysics2.o mod_clm_canopyfluxes.o mod_clm_ch4.o mod_clm_cnannualupdate.o mod_clm_cnbalancecheck.o mod_clm_cndv.o mod_clm_cnecosystemdyn.o mod_clm_cnfire.o mod_clm_cnsetvalue.o mod_clm_cnverticalprofile.o mod_clm_decomp.o mod_clm_driverinit.o mod_clm_drydep.o mod_clm_drydepvelocity.o mod_clm_dust.o mod_clm_dynland.o mod_clm_filter.o mod_clm_histfile.o mod_clm_hydrology1.o mod_clm_hydrology2.o mod_clm_pft2col.o mod_clm_pftdyn.o mod_clm_restfile.o mod_clm_reweight.o mod_clm_slakefluxes.o mod_clm_slakehydrology.o mod_clm_slaketemperature.o mod_clm_snicar.o mod_clm_staticecosysdyn.o mod_clm_surfacealbedo.o mod_clm_surfaceradiation.o mod_clm_type.o mod_clm_urban.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_vocemission.o mod_date.o mod_intkinds.o mod_mppparam.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
 mod_clm_driverinit.o : mod_clm_driverinit.F90 mod_clm_atmlnd.o mod_clm_domain.o mod_clm_qsat.o mod_clm_subgridave.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
@@ -177,7 +176,6 @@ mod_clm_megan.o : mod_clm_megan.F90 mod_dynparam.o mod_intkinds.o mod_mpmessage.
 mod_clm_meganfactors.o : mod_clm_meganfactors.F90 mod_clm_nchelper.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_mkarbinit.o : mod_clm_mkarbinit.F90 mod_bats_param.o mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_snicar.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mppparam.o mod_realkinds.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_nchelper.o : mod_clm_nchelper.F90 mod_clm_decomp.o mod_clm_varcon.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_message.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_stdio.o $(REGCM_ROOT)/makeinc
-	$(MPIFC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 mod_clm_organicfile.o : mod_clm_organicfile.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_nchelper.o mod_clm_type.o mod_clm_varctl.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_pft2col.o : mod_clm_pft2col.F90 mod_clm_subgridave.o mod_clm_type.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_pftdyn.o : mod_clm_pftdyn.F90 mod_clm_decomp.o mod_clm_nchelper.o mod_clm_pftvarcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_clm_varsur.o mod_constants.o mod_date.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc

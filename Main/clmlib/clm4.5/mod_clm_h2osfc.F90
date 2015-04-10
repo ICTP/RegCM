@@ -52,6 +52,9 @@ module mod_clm_h2osfc
     real(rk8):: sigma          ! microtopography pdf sigma in mm
     real(rk8):: min_h2osfc
 
+#ifdef __PGI
+    real(rk8) , external :: derf
+#endif
     ! Assign local pointers to derived subtypes components (column-level)
 
     h2osoi_liq          => clm3%g%l%c%cws%h2osoi_liq
@@ -85,14 +88,14 @@ module mod_clm_h2osfc
           d = 0.0D0
           sigma = 1.0D3 * micro_sigma(c) ! convert to mm
           do l = 1 , 10
-            fd = 0.5D0*d*(1.0D0+erf(d/(sigma*sqrt(2.0D0)))) + &
+            fd = 0.5D0*d*(1.0D0+derf(d/(sigma*sqrt(2.0D0)))) + &
                     sigma/sqrt(2.0D0*rpi)*exp(-d**2/(2.0D0*sigma**2)) - &
                     h2osfc(c)
-            dfdd = 0.5D0*(1.0D0+erf(d/(sigma*sqrt(2.0D0))))
+            dfdd = 0.5D0*(1.0D0+derf(d/(sigma*sqrt(2.0D0))))
             d = d - fd/dfdd
           end do
           !--  update the submerged areal fraction using the new d value
-          frac_h2osfc(c) = 0.5D0*(1.0D0+erf(d/(sigma*sqrt(2.0D0))))
+          frac_h2osfc(c) = 0.5D0*(1.0D0+derf(d/(sigma*sqrt(2.0D0))))
         else
           frac_h2osfc(c) = 0.D0
           h2osoi_liq(c,1) = h2osoi_liq(c,1) + h2osfc(c)

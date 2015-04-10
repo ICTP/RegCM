@@ -607,21 +607,24 @@ module mod_clm_dust
     integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
 
+#ifdef __PGI
+    real(rk8) , external :: derf
+#endif
     ! Assign local pointers to derived type scalar members (column-level)
 
     mbl_bsn_fct => clm3%g%l%c%cps%mbl_bsn_fct
 
-    ! Sanity check on erf: erf() in SGI /usr/lib64/mips4/libftn.so is bogus
+    ! Sanity check on erf: derf() in SGI /usr/lib64/mips4/libftn.so is bogus
 
     dum = 1.0D0
-    if (abs(0.8427D0-erf(dum))/0.8427D0>0.001D0) then
-       write(stderr,*) 'erf(1.0) = ',erf(dum)
+    if (abs(0.8427D0-derf(dum))/0.8427D0>0.001D0) then
+       write(stderr,*) 'derf(1.0) = ',derf(dum)
        write(stderr,*) 'Dustini: Error function error'
        call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
     dum = 0.0D0
-    if (erf(dum) /= 0.0D0) then
-       write(stderr,*) 'erf(0.0) = ',erf(dum)
+    if (derf(dum) /= 0.0D0) then
+       write(stderr,*) 'derf(0.0) = ',derf(dum)
        write(stderr,*) 'Dustini: Error function error'
        call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
@@ -638,8 +641,8 @@ module mod_clm_dust
       do n = 1, ndst
         lndmaxjovrdmdni = log(dmt_grd(n+1)/dmt_vma_src(m))
         lndminjovrdmdni = log(dmt_grd(n  )/dmt_vma_src(m))
-        ovr_src_snk_frc = 0.5D0 * (erf(lndmaxjovrdmdni/sqrt2lngsdi) - &
-                                   erf(lndminjovrdmdni/sqrt2lngsdi))
+        ovr_src_snk_frc = 0.5D0 * (derf(lndmaxjovrdmdni/sqrt2lngsdi) - &
+                                   derf(lndminjovrdmdni/sqrt2lngsdi))
         ovr_src_snk_mss(m,n) = ovr_src_snk_frc * mss_frc_src(m)
       end do
     end do
