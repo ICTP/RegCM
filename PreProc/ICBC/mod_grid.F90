@@ -26,24 +26,33 @@ module mod_grid
   use mod_message
   use mod_nchelper
   use mod_domain
+  use mod_nhinterp
 
   private
 
   real(rk8) , public , pointer , dimension(:,:) :: xlat , xlon , dlat , dlon
   real(rk8) , public , pointer , dimension(:,:) :: topogm , mask , landuse
+  real(rk8) , public , pointer , dimension(:,:) :: msfx
   real(rk8) , public , pointer , dimension(:,:) :: pa , tlayer , za
   real(rk8) , public , pointer , dimension(:,:) :: b3pd
-  real(rk8) , public , pointer , dimension(:) :: sigma2
+  real(rk8) , public , pointer , dimension(:) :: sigmah
   real(rk8) , public , pointer , dimension(:) :: sigmaf
+  real(rk8) , public , pointer , dimension(:) :: dsigma
+  real(rk8) , public , pointer , dimension(:,:,:) :: pr0, t0, rho0
+  real(rk8) , public , pointer , dimension(:,:) :: ps0
+
   real(rk8) , public :: delx
   integer(ik4) , public :: i0 , i1 , j0 , j1
   real(rk8) , public :: lat0 , lat1 , lon0 , lon1
+
+  real(rk8) , public :: logp_lrate = 50.0D0
 
   public :: init_grid
 
   contains
 
   subroutine init_grid(nx,ny,nz)
+    use mod_dynparam
     implicit none
     integer(ik4) , intent(in) :: nx , ny , nz
     call getmem2d(xlat,1,nx,1,ny,'mod_grid:xlat')
@@ -57,8 +66,16 @@ module mod_grid
     call getmem2d(tlayer,1,nx,1,ny,'mod_grid:tlayer')
     call getmem2d(za,1,nx,1,ny,'mod_grid:za')
     call getmem2d(b3pd,1,nx,1,ny,'mod_grid:b3pd')
-    call getmem1d(sigma2,1,nz,'mod_grid:sigma2')
+    call getmem1d(sigmah,1,nz,'mod_grid:sigmah')
     call getmem1d(sigmaf,1,nz+1,'mod_grid:sigmaf')
+    call getmem1d(dsigma,1,nz,'mod_write:dsigma')
+    if ( idynamic == 2 ) then
+      call getmem2d(msfx,1,nx,1,ny,'mod_write:msfx')
+      call getmem2d(ps0,1,nx,1,ny,'mod_write:ps0')
+      call getmem3d(pr0,1,nx,1,ny,1,nz,'mod_write:pr0')
+      call getmem3d(rho0,1,nx,1,ny,1,nz,'mod_write:rho0')
+      call getmem3d(t0,1,nx,1,ny,1,nz,'mod_write:t0')
+    end if
     call read_domain_info
   end subroutine init_grid
 
@@ -70,12 +87,24 @@ module mod_grid
     integer(ik4) :: k
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
-    call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm,mask,landuse)
+    if ( idynamic == 2 ) then
+      call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm, &
+                       mask,landuse,msfx)
+      call nhsetup(ptop,stdp,stdt,logp_lrate,topogm,.false.)
+      ! call read_reference_state(incin,ps0,pr0,t0,rho0)
+    else
+      call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm, &
+                       mask,landuse)
+    end if
     call closefile(incin)
     do k = 1 , kz
-      sigma2(k) = d_half*(sigmaf(k+1)+sigmaf(k))
+      sigmah(k) = d_half*(sigmaf(k+1)+sigmaf(k))
+      dsigma(k) = (sigmaf(k+1)-sigmaf(k))
     end do
+    if ( idynamic == 2 ) then
+      call nhbase(1,iy,1,jx,kz,sigmah,ps0,pr0,t0,rho0)
+    end if
   end subroutine read_domain_info
-!
+
 end module mod_grid
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

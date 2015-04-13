@@ -58,9 +58,9 @@ module mod_hgt
     real(rk8) , intent(in) :: ptop
     real(rk8) , intent(in) , dimension(nk) :: sigmah
     real(rk8) , intent(in) , dimension(ni,nj,nk) :: t
-    real(rk8) , intent(out) , dimension(ni,nj,nk) :: h
     real(rk8) , intent(in) , dimension(ni,nj) :: topo , ps
-!
+    real(rk8) , intent(out) , dimension(ni,nj,nk) :: h
+
     integer(ik4) :: i , j , k
     real(rk8) , dimension(nk+1) :: sigmaf
     real(rk8) , dimension(nk) :: dsigma

@@ -56,6 +56,7 @@ module mod_domain
   end interface read_domain
 
   public :: domain_io , mddom_io , read_domain , check_domain
+  public :: read_reference_state
 
   contains
 
@@ -156,6 +157,19 @@ module mod_domain
     if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,has_snow)
     if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,has_dhlake)
   end subroutine read_domain_array_single
+
+  subroutine read_reference_state(ncid,ps0,pr0,t0,rho0)
+    implicit none
+    integer , intent(in) :: ncid
+    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: ps0
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) , optional :: pr0
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) , optional :: t0
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) , optional :: rho0
+    call read_var2d_static(ncid,'ps0',ps0)
+    call read_var3d_static(ncid,'pr0',pr0)
+    call read_var3d_static(ncid,'t0',t0)
+    call read_var3d_static(ncid,'rho0',rho0)
+  end subroutine read_reference_state
 
   subroutine allocate_domain
     implicit none

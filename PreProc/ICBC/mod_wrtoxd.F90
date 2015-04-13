@@ -264,7 +264,7 @@ module mod_wrtoxd
       v3dvar_ch(ivar)%rval_slice => chv4
       call outstream_addvar(ncoutch,v3dvar_ch(ivar))
     end do
-    call outstream_enable(ncoutch,sigma2)
+    call outstream_enable(ncoutch,sigmah)
     call outstream_writevar(ncoutch,v2dvar_base(1))
     call outstream_writevar(ncoutch,v2dvar_base(2))
   end subroutine newfile_ch_icbc
@@ -298,7 +298,7 @@ module mod_wrtoxd
       v3dvar_ox(ivar)%rval_slice => oxv4
       call outstream_addvar(ncoutox,v3dvar_ox(ivar))
     end do
-    call outstream_enable(ncoutox,sigma2)
+    call outstream_enable(ncoutox,sigmah)
     call outstream_writevar(ncoutox,v2dvar_base(1))
     call outstream_writevar(ncoutox,v2dvar_base(2))
   end subroutine newfile_ox_icbc
@@ -349,7 +349,7 @@ module mod_wrtoxd
       v3dvar_ae(ivar)%rval_slice => aev4
       call outstream_addvar(ncoutae,v3dvar_ae(ivar))
     end do
-    call outstream_enable(ncoutae,sigma2)
+    call outstream_enable(ncoutae,sigmah)
     call outstream_writevar(ncoutae,v2dvar_base(1))
     call outstream_writevar(ncoutae,v2dvar_base(2))
   end subroutine newfile_ae_icbc

@@ -149,7 +149,7 @@ module mod_ox_icbc
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
-          prcm=((poxid_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.
+          prcm=((poxid_3(j,i)*0.1-r4pt)*sigmah(l)+r4pt)*10.
           k0 = -1
           do k = oxilev , 1 , -1
             pmpi = oxt42hyam(k)*p0+poxid_3(j,i)*oxt42hybm(k)

@@ -27,21 +27,23 @@ module mod_write
   use mod_message
   use mod_ncstream_types
   use mod_ncstream
+  use mod_nhinterp
+  use mod_vectutil
 
   private
 
-  real(rk8) , pointer , dimension(:,:) :: ps4 , ts4
+  real(rk8) , pointer , dimension(:,:) :: ps4 , pd4 , ts4 , wtop4
   real(rk8) , pointer , dimension(:,:,:) :: h4 , q4
   real(rk8) , pointer , dimension(:,:,:) :: t4 , u4 , v4
-  real(rk8) , pointer , dimension(:,:,:) :: pp4 , ww4
+  real(rk8) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4
 
   public :: ps4 , ts4 , h4 , q4 , t4 , u4 , v4 , pp4 , ww4
   public :: init_output , close_output , dispose_output , newfile , writef
 
   type(nc_output_stream) , save :: ncout
-  integer(ik4) , parameter :: nvar2d = 8
   integer(ik4) , parameter :: nvar2d_static = 6
   integer(ik4) :: nvar3d
+  integer(ik4) :: nvar2d
   type(ncvariable2d_real) , allocatable , save , dimension(:) :: v2dvar_icbc
   type(ncvariable3d_real) , allocatable , save , dimension(:) :: v3dvar_icbc
 
@@ -59,9 +61,14 @@ module mod_write
     call getmem3d(v4,1,jx,1,iy,1,kz,'mod_write:v4')
     if ( idynamic == 2 ) then
       nvar3d = 6
+      nvar2d = 9
+      call getmem2d(wtop4,1,jx,1,iy,'mod_write:wtop4')
+      call getmem2d(pd4,1,jx,1,iy,'mod_write:pd4')
       call getmem3d(pp4,1,jx,1,iy,1,kz,'mod_write:pp4')
       call getmem3d(ww4,1,jx,1,iy,1,kz,'mod_write:ww4')
+      call getmem3d(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
     else
+      nvar2d = 8
       nvar3d = 4
     end if
     allocate(v2dvar_icbc(nvar2d), v3dvar_icbc(nvar3d), stat=ierr)
@@ -124,6 +131,11 @@ module mod_write
     v3dvar_icbc(4)%standard_name = 'northward_wind'
     v3dvar_icbc(4)%lrecords = .true.
     if ( idynamic == 2 ) then
+      v2dvar_icbc(9)%vname = 'wtop'
+      v2dvar_icbc(9)%vunit = 'm s-1'
+      v2dvar_icbc(9)%long_name = 'Model top vertical velocity'
+      v2dvar_icbc(9)%standard_name = 'upward_air_velocity'
+      v2dvar_icbc(9)%lrecords = .true.
       v3dvar_icbc(5)%vname = 'w'
       v3dvar_icbc(5)%vunit = 'm s-1'
       v3dvar_icbc(5)%long_name = 'Vertical wind'
@@ -178,6 +190,7 @@ module mod_write
     v3dvar_icbc(3)%rval => u4
     v3dvar_icbc(4)%rval => v4
     if ( idynamic == 2 ) then
+      v2dvar_icbc(9)%rval => wtop4
       v3dvar_icbc(5)%rval => ww4
       v3dvar_icbc(6)%rval => pp4
     end if
@@ -187,7 +200,7 @@ module mod_write
     do ivar = 1 , nvar3d
       call outstream_addvar(ncout,v3dvar_icbc(ivar))
     end do
-    call outstream_enable(ncout,sigma2)
+    call outstream_enable(ncout,sigmah)
     do ivar = 1 , nvar2d_static
       call outstream_writevar(ncout,v2dvar_icbc(ivar))
     end do
@@ -197,6 +210,24 @@ module mod_write
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: ivar
+
+    if ( idynamic == 2 ) then
+      ! Compute hydrostatic pstar on dot points.
+      pd4 = ps4
+      call crs2dot(pd4,jx,iy)
+      tv4 = t4 * (d_one + retv * q4)
+      ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
+      call nhw(1,iy,1,jx,kz,u4,v4,tv4,rho0,ps4,pd4,ps0,msfx,sigmaf, &
+               ww4,wtop4,ds,sigmah,dsigma,tiso)
+      call nhinterp(1,iy,1,jx,kz,u4,tv4,pd4,ps0,sigmaf,1,sigmah,tiso,.true.)
+      call nhinterp(1,iy,1,jx,kz,v4,tv4,pd4,ps0,sigmaf,1,sigmah,tiso,.true.)
+      call nhinterp(1,iy,1,jx,kz,t4,tv4,ps4,ps0,sigmaf,1,sigmah,tiso)
+      call nhinterp(1,iy,1,jx,kz,q4,tv4,ps4,ps0,sigmaf,2,sigmah,tiso)
+      ! Recompute virtual temperature on non hydrostatic sigma.
+      tv4 = t4 * (d_one + retv * q4)
+      ! Compute the nonhydrostatic perturbation pressure field (pp).
+      call nhpp(1,iy,1,jx,kz,t4,pr0,t0,tv4,ps4,ps0,sigmaf,pp4)
+    end if
 
     ps4 = (ps4+ptop)*d_10
     call outstream_addrec(ncout,idate)

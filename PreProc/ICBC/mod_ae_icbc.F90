@@ -202,7 +202,7 @@ module mod_ae_icbc
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
-          prcm=((paeid_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.
+          prcm=((paeid_3(j,i)*0.1-r4pt)*sigmah(l)+r4pt)*10.
           k0 = -1
           do k = aeilev , 1 , -1
             pmpi = aet42hyam(k)*p0+paeid_3(j,i)*aet42hybm(k)

@@ -208,16 +208,16 @@ module mod_erahi
   call readsst(ts4,idate)
 
 !     F3     INTERPOLATE U, V, T, AND Q.
-  call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
-  call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
+  call intv1(u4,u3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,nlev2)
+  call intv1(v4,v3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,nlev2)
 !
-  call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
+  call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,nlev2)
 
-  call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
-  call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+  call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,nlev2)
+  call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
 !
 !     F4     DETERMINE H
-  call hydrost(h4,t4,topogm,ps4,ptop,sigma2,jx,iy,kz)
+  call hydrost(h4,t4,topogm,ps4,ptop,sigmah,jx,iy,kz)
 !
 !
 99001 format (a,a,a,a,'EHI_',i10)

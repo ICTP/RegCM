@@ -1267,14 +1267,14 @@ module mod_tendency
             ! (2b)    Hint: 1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx. This second form is discretized here.
             !
             aten%u(j,i,k) = aten%u(j,i,k) - rtbar *               &
-                  (dlog(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*     &
+                  (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
                         hsigma(k)+ptop) -                         &
-                   dlog(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))* &
+                   log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
                         hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
             aten%v(j,i,k) = aten%v(j,i,k) - rtbar *               &
-                  (dlog(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*     &
+                  (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
                         hsigma(k)+ptop) -                         &
-                   dlog(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))* &
+                   log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
                         hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
           end do
         end do
@@ -1299,14 +1299,14 @@ module mod_tendency
             ! (2b)    Hint: 1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx. This second form is discretized here.
             !
             aten%u(j,i,k) = aten%u(j,i,k) - rtbar *                &
-                   (dlog(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*     &
+                   (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
                          hsigma(k)+ptop) -                         &
-                    dlog(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))* &
+                    log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
                          hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
             aten%v(j,i,k) = aten%v(j,i,k) - rtbar *                &
-                   (dlog(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*     &
+                   (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
                          hsigma(k)+ptop) -                         &
-                    dlog(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))* &
+                    log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
                          hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
           end do
         end do
@@ -1339,7 +1339,7 @@ module mod_tendency
             phi(j,i,kz) = mddom%ht(j,i) + &
                      rgas*t00pg/pgfaa1*((sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
             phi(j,i,kz) = phi(j,i,kz) - rgas * tv * &
-                    dlog((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
+                    log((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
           end do
         end do
         do k = 1 , kzm1
@@ -1352,8 +1352,8 @@ module mod_tendency
               tvavg = ((ttld(j,i,lev)*dsigma(lev)+ttld(j,i,lev+1)*   &
                       dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+     &
                       dsigma(lev+1))))*tvfac(j,i,lev)
-              phi(j,i,lev) = phi(j,i,lev+1) - rgas *             &
-                     tvavg*dlog((hsigma(lev) + ptop*rpsa(j,i)) / &
+              phi(j,i,lev) = phi(j,i,lev+1) - rgas *                 &
+                     tvavg*log((hsigma(lev) + ptop*rpsa(j,i)) /      &
                                (hsigma(lev+1) + ptop*rpsa(j,i)))
             end do
           end do
@@ -1366,7 +1366,7 @@ module mod_tendency
             !
             tv = td(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
             phi(j,i,kz) = mddom%ht(j,i) - rgas * tv * &
-                 dlog((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
+                 log((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
           end do
         end do
         do k = 1 , kzm1
@@ -1379,8 +1379,8 @@ module mod_tendency
               tvavg = ((td(j,i,lev)*dsigma(lev)+td(j,i,lev+1)*       &
                       dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+     &
                       dsigma(lev+1))))*tvfac(j,i,lev)
-              phi(j,i,lev) = phi(j,i,lev+1) - rgas *              &
-                     tvavg*dlog((hsigma(lev)+ptop*rpsa(j,i)) / &
+              phi(j,i,lev) = phi(j,i,lev+1) - rgas *                 &
+                     tvavg*log((hsigma(lev)+ptop*rpsa(j,i)) /        &
                                 (hsigma(lev+1)+ptop*rpsa(j,i)))
             end do
           end do

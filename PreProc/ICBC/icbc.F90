@@ -150,7 +150,10 @@ program icbc
   type(rcm_time_interval) :: tdiff , tbdy
   integer(ik4) :: nsteps
   integer(ik4) :: ierr
+  integer(ik4) :: ifupr
   character(len=256) :: namelistfile, prgname
+
+  namelist /nonhydroparam/ ifupr , logp_lrate
 
   call header('icbc')
   !
@@ -159,6 +162,18 @@ program icbc
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
   call initparam(namelistfile, ierr)
+  if ( idynamic == 2 ) then
+    open(ipunit, file=namelistfile, status='old', &
+         action='read', iostat=ierr)
+    rewind(ipunit)
+    read(ipunit, nml=nonhydroparam, iostat=ierr)
+    if ( ierr /= 0 ) then
+      write(stdout, *) 'Using default non hydrostatic parameters'
+      ierr = 0
+    end if
+    close(ipunit)
+  end if
+
   if ( dattyp == 'FVGCM' .or. dattyp == 'EH5RF' .or. &
        dattyp == 'EH5A2' .or. dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
     call init_globwindow(namelistfile,lat0,lon0,lat1,lon1)

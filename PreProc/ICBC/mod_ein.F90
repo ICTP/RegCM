@@ -72,35 +72,30 @@ module mod_ein
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     !
-    ! READ DATA AT IDATE
+    ! Read data at idate
     !
     call ein6hour(dattyp,idate,globidate1)
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
     !
-    ! HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
+    ! Horizontal interpolation of both the scalar and vector fields
     !
     call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
     call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
     !
-    ! ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
+    ! Rotate u-v fields after horizontal interpolation
     !
     call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,klev,plon,plat,iproj)
     !
-    ! X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+    ! Invert vertical order top -> bottom for RegCM convention
     !
-    ! V E R T I C A L   I N T E R P O L A T I O N
-    !
-    ! X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
-    !
-    !HH:  CHANGE THE VERTICAL ORDER.
     call top2btm(t3,jx,iy,klev)
     call top2btm(q3,jx,iy,klev)
     call top2btm(h3,jx,iy,klev)
     call top2btm(u3,jx,iy,klev)
     call top2btm(v3,jx,iy,klev)
-    !HH:OVER
     !
-    ! NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
+    ! Vertical interpolation
+    ! New calculation of p* on rcm topography.
     !
     call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
@@ -110,35 +105,29 @@ module mod_ein
       call p1p2(b3pd,ps4,jx,iy)
     end if
     !
-    ! INTERPOLATION FROM PRESSURE LEVELS
+    ! Interpolation from pressure levels
     !
     call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
-
     call readsst(ts4,idate)
     !
-    ! F3  INTERPOLATE U, V, T, AND Q.
+    ! Interpolate U, V, T, and Q.
     !
-    call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
-    call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
-    call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
-    call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(u4,u3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(v4,v3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,klev)
+    call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,klev)
     !
-    call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
+    ! Get back to mixing ratio
     !
-    ! F4  DETERMINE H
-    !
-    call hydrost(h4,t4,topogm,ps4,ptop,sigma2,jx,iy,kz)
-!
+    call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine getein
 !
 !-----------------------------------------------------------------------
 !
   subroutine ein6hour(dattyp,idate,idate0)
     implicit none
-!
     character(len=5) , intent(in) :: dattyp
     type(rcm_time_and_date) , intent(in) :: idate , idate0
-!
     integer(ik4) :: i , inet , it , j , k , k4 , kkrec , istatus , ivar
     integer(ik4) :: timid
     character(len=64) :: inname
@@ -164,7 +153,7 @@ module mod_ein
     data varname /'t' , 'z' , 'r' , 'u' , 'v'/
     data fname   /'air','hgt','rhum','uwnd','vwnd'/
     data hname   /'.00.','.06.','.12.','.18.'/
-!
+
     k4 = 1
     call split_idate(idate,year,month,day,hour)
 
