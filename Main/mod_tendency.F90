@@ -1239,7 +1239,7 @@ module mod_tendency
             wadotp1 = 0.125D0 * (atm1%w(j-1,i-1,k+1) + atm1%w(j-1,i,k+1) + &
                                  atm1%w(j,i-1,k+1)   + atm1%w(j,i,k+1))
             wabar = wadot + wadotp1
-            amfac = wabar * rpsda(j,i) * earthrad
+            amfac = wabar * rpsda(j,i) / earthrad
             duv = atm1%u(j,i,k)*mddom%dmdy(j,i) - &
                   atm1%v(j,i,k)*mddom%dmdx(j,i)
             aten%u(j,i,k) = aten%u(j,i,k)                                + &
