@@ -42,7 +42,7 @@ module mod_ncio
   integer(ik4) :: ibcrec , ibcnrec
   integer(ik4) :: somrec
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
-  integer(ik4) , dimension(7) :: icbc_ivar
+  integer(ik4) , dimension(8) :: icbc_ivar
   integer(ik4) , dimension(1) :: som_ivar
 
   data ibcin   /-1/
@@ -448,6 +448,18 @@ module mod_ncio
     call check_ok(__FILE__,__LINE__,'variable t miss', 'ICBC FILE')
     istatus = nf90_inq_varid(ibcin, 'qv', icbc_ivar(6))
     call check_ok(__FILE__,__LINE__,'variable qv miss', 'ICBC FILE')
+    if ( idynamic == 2 ) then
+      istatus = nf90_inq_varid(ibcin, 'pp', icbc_ivar(7))
+      call check_ok(__FILE__,__LINE__,'variable pp miss', 'ICBC FILE')
+      istatus = nf90_inq_varid(ibcin, 'w', icbc_ivar(8))
+      call check_ok(__FILE__,__LINE__,'variable w miss', 'ICBC FILE')
+    else
+      istatus = nf90_inq_varid(ibcin, 'pp', icbc_ivar(7))
+      if ( istatus == nf90_noerr ) then
+        write(stderr,*) 'ERROR: Hydrostatic core and non-hydrostatic ICBC !'
+        call fatal(__FILE__,__LINE__,'ICBC READ')
+      end if
+    end if
     if ( do_parallel_netcdf_in ) then
       nnj = global_dot_jend-global_dot_jstart+1
       nni = global_dot_iend-global_dot_istart+1
@@ -484,7 +496,7 @@ module mod_ncio
     allocate(rspacesom_io(nnj,nni))
   end subroutine open_som
 
-  subroutine read_icbc(ps,ts,u,v,t,qv)
+  subroutine read_icbc(ps,ts,u,v,t,qv,pp,ww)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ps
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ts
@@ -492,6 +504,9 @@ module mod_ncio
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: v
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: t
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: qv
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) , optional :: pp
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) , optional :: ww
+
     integer(ik4) , dimension(4) :: istart , icount
     integer(ik4) :: i , j , k
     real(rk8) :: told , pold , rhold , satvp , tnew , pnew
@@ -580,6 +595,14 @@ module mod_ncio
         end if
       end if
       qv(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+      if ( idynamic == 2 ) then
+        istatus = nf90_get_var(ibcin,icbc_ivar(7),rspace3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable pp read error', 'ICBC FILE')
+        pp(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+        istatus = nf90_get_var(ibcin,icbc_ivar(8),rspace3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable w read error', 'ICBC FILE')
+        ww(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+      end if
     else
       if ( myid == iocpu ) then
         istart(1) = 1
@@ -655,6 +678,14 @@ module mod_ncio
           end if
         end if
         call grid_distribute(rspace3,qv,jce1,jce2,ice1,ice2,1,kz)
+        if ( idynamic == 2 ) then
+          istatus = nf90_get_var(ibcin,icbc_ivar(7),rspace3,istart,icount)
+          call check_ok(__FILE__,__LINE__,'variable pp read error', 'ICBC FILE')
+          call grid_distribute(rspace3,pp,jce1,jce2,ice1,ice2,1,kz)
+          istatus = nf90_get_var(ibcin,icbc_ivar(8),rspace3,istart,icount)
+          call check_ok(__FILE__,__LINE__,'variable w read error', 'ICBC FILE')
+          call grid_distribute(rspace3,ww,jce1,jce2,ice1,ice2,1,kz)
+        end if
       else
         call grid_distribute(rspace2,ps,jce1,jce2,ice1,ice2)
         call grid_distribute(rspace2,ts,jce1,jce2,ice1,ice2)
@@ -662,6 +693,10 @@ module mod_ncio
         call grid_distribute(rspace3,v,jde1,jde2,ide1,ide2,1,kz)
         call grid_distribute(rspace3,t,jce1,jce2,ice1,ice2,1,kz)
         call grid_distribute(rspace3,qv,jce1,jce2,ice1,ice2,1,kz)
+        if ( idynamic == 2 ) then
+          call grid_distribute(rspace3,pp,jce1,jce2,ice1,ice2,1,kz)
+          call grid_distribute(rspace3,ww,jce1,jce2,ice1,ice2,1,kz)
+        end if
       end if
     end if
     if ( itweak == 1 ) then

@@ -225,11 +225,11 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-          !
-          ! Constant reference state and perturbations are defined
-          ! for the nonhydrostatic model.
-          !
-            atm2%pr(j,i,k)  = atm0%pr(j,i,k) + atm1%pp(j,i,k)
+            !
+            ! Constant reference state and perturbations are defined
+            ! for the nonhydrostatic model.
+            !
+            atm2%pr(j,i,k)  = atm0%pr(j,i,k) + atmx%pp(j,i,k)
             atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
               (rgas*atm2%t(j,i,k)*rpsb(j,i)*   &
               (d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
@@ -556,9 +556,9 @@ module mod_tendency
       ! Also, cf. Eq. 2.2.11 of the vertical velocity tendency in the MM5 manual.
       !
       call hadv(cross,aten%pp,atmx%pp,kz)
-      call hadv(cross,aten%w,atmx%w,kzp1)
+      call hadv(cross,aten%w,atmx%w,kz)
       call vadv(cross,aten%pp,atmx%pp,kz,icvadv)
-      call vadv(cross,aten%w,atmx%w,kzp1,icvadv)
+      call vadv(cross,aten%w,atmx%w,kz,icvadv)
     end if
     !
     ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
@@ -702,7 +702,7 @@ module mod_tendency
     ! compute the diffusion term for vertical velocity w and store in diffw:
     !
     if ( idynamic == 2 ) then
-    call diffu_x(adf%diffw,atm1%w,sfs%psb,xkc,kz+1)
+      call diffu_x(adf%diffw,atm1%w,sfs%psb,xkc,kz)
     end if
     !
     ! compute the moisture tendencies for convection
@@ -1595,7 +1595,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atm2%pr(j,i,k) = atm1%pr(j,i,k) + atm1%pp(j,i,k)
+            atm2%pr(j,i,k) = atm1%pr(j,i,k) + atmx%pp(j,i,k)
             atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
                     (rgas*(atm2%t(j,i,k)*rpsb(j,i)) * &
                     (d_one + ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))

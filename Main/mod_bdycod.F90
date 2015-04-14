@@ -248,7 +248,11 @@ module mod_bdycod
       call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
     end if
 
-    call read_icbc(xpsb%b0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0)
+    if ( idynamic == 2 ) then
+      call read_icbc(xpsb%b0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0,xppb%b0,xwwb%b0)
+    else
+      call read_icbc(xpsb%b0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0)
+    end if
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
       som_month = xmonth
@@ -286,7 +290,12 @@ module mod_bdycod
       end if
     end if
 
-    call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+
+    if ( idynamic == 2 ) then
+      call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
+    else
+      call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+    end if
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
       datefound = som_search(som_month+1)
@@ -319,7 +328,7 @@ module mod_bdycod
     call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
     call psc2psd(xpsb%b0,psdot)
     !
-    ! Couple pressure u,v,t,q
+    ! Couple pressure u,v,t,q (pp,ww)
     !
     do k = 1 , kz
       do i = ide1 , ide2
@@ -342,6 +351,18 @@ module mod_bdycod
     end do
     call exchange(xtb%b0,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+    if ( idynamic == 2 ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            xppb%b0(j,i,k) = xppb%b0(j,i,k)*xpsb%b0(j,i)
+            xwwb%b0(j,i,k) = xwwb%b0(j,i,k)*xpsb%b0(j,i)
+          end do
+        end do
+      end do
+      call exchange(xppb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xwwb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
     !
     ! Repeat for T2
     !
@@ -371,6 +392,18 @@ module mod_bdycod
     end do
     call exchange(xtb%b1,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+    if ( idynamic == 2 ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            xppb%b1(j,i,k) = xppb%b1(j,i,k)*xpsb%b1(j,i)
+            xwwb%b1(j,i,k) = xwwb%b1(j,i,k)*xpsb%b1(j,i)
+          end do
+        end do
+      end do
+      call exchange(xppb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
     !
     ! Calculate time varying component
     !
@@ -400,6 +433,18 @@ module mod_bdycod
     end do
     call exchange(xtb%bt,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%bt,1,jce1,jce2,ice1,ice2,1,kz)
+    if ( idynamic == 2 ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            xppb%bt(j,i,k) = (xppb%b1(j,i,k)-xppb%b0(j,i,k))/dtbdys
+            xwwb%bt(j,i,k) = (xwwb%b1(j,i,k)-xwwb%b0(j,i,k))/dtbdys
+          end do
+        end do
+      end do
+      call exchange(xppb%bt,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -430,6 +475,10 @@ module mod_bdycod
     xvb%b0(:,:,:) = xvb%b1(:,:,:)
     xtb%b0(:,:,:) = xtb%b1(:,:,:)
     xqb%b0(:,:,:) = xqb%b1(:,:,:)
+    if ( idynamic == 2 ) then
+      xppb%b0(:,:,:) = xppb%b1(:,:,:)
+      xwwb%b0(:,:,:) = xwwb%b1(:,:,:)
+    end if
     xpsb%b0(:,:) = xpsb%b1(:,:)
     ts0(:,:) = ts1(:,:)
 
@@ -454,7 +503,11 @@ module mod_bdycod
         call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
       end if
     end if
-    call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+    if ( idynamic == 2 ) then
+      call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
+    else
+      call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+    end if
 
     if ( update_slabocn ) then
       datefound = som_search(som_month)
@@ -499,6 +552,19 @@ module mod_bdycod
     call exchange(xtb%b1,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%b1,1,jce1,jce2,ice1,ice2,1,kz)
 
+    if ( idynamic == 2 ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            xppb%b1(j,i,k) = xppb%b1(j,i,k)*xpsb%b1(j,i)
+            xwwb%b1(j,i,k) = xwwb%b1(j,i,k)*xpsb%b1(j,i)
+          end do
+        end do
+      end do
+      call exchange(xppb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
+
     do i = ice1 , ice2
       do j = jce1 , jce2
         xpsb%bt(j,i) = (xpsb%b1(j,i)-xpsb%b0(j,i))/dtbdys
@@ -525,6 +591,18 @@ module mod_bdycod
     end do
     call exchange(xtb%bt,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%bt,1,jce1,jce2,ice1,ice2,1,kz)
+    if ( idynamic == 2 ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            xppb%bt(j,i,k) = (xppb%b1(j,i,k)-xppb%b0(j,i,k))/dtbdys
+            xwwb%bt(j,i,k) = (xwwb%b1(j,i,k)-xwwb%b0(j,i,k))/dtbdys
+          end do
+        end do
+      end do
+      call exchange(xppb%bt,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
     !
     ! Update ground temperature on Ocean/Lakes
     !
@@ -875,6 +953,14 @@ module mod_bdycod
             end do
           end do
         end do
+        if ( idynamic == 2 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm2%pp(jce1,i,k) = atm1%pp(jce1,i,k)
+              atm2%w(jce1,i,k) = atm1%w(jce1,i,k)
+            end do
+          end do
+        end if
         if ( ibltyp == 2 ) then
           do k = 1 , kzp1
             do i = ici1 , ici2
@@ -908,6 +994,14 @@ module mod_bdycod
             end do
           end do
         end do
+        if ( idynamic == 2 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm2%pp(jce2,i,k) = atm1%pp(jce2,i,k)
+              atm2%w(jce2,i,k) = atm1%w(jce2,i,k)
+            end do
+          end do
+        end if
         if ( ibltyp == 2 ) then
           do k = 1 , kzp1
             do i = ici1 , ici2
@@ -941,6 +1035,14 @@ module mod_bdycod
             end do
           end do
         end do
+        if ( idynamic == 2 ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm2%pp(j,ice1,k) = atm1%pp(j,ice1,k)
+              atm2%w(j,ice1,k) = atm1%w(j,ice1,k)
+            end do
+          end do
+        end if
         if ( ibltyp == 2 ) then
           do k = 1 , kzp1
             do j = jce1 , jce2
@@ -971,6 +1073,14 @@ module mod_bdycod
             end do
           end do
         end do
+        if ( idynamic == 2 ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm2%pp(j,ice2,k) = atm1%pp(j,ice2,k)
+              atm2%w(j,ice2,k) = atm1%w(j,ice2,k)
+            end do
+          end do
+        end if
         if ( ibltyp == 2 ) then
           do k = 1 , kzp1
             do j = jce1 , jce2
@@ -1101,6 +1211,14 @@ module mod_bdycod
             atm1%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k)
           end do
         end do
+        if ( idynamic == 2 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k)
+              atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k)
+            end do
+          end do
+        end if
       end if
       if ( ma%has_bdyright ) then
         do k = 1 , kz
@@ -1109,6 +1227,14 @@ module mod_bdycod
             atm1%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k)
           end do
         end do
+        if ( idynamic == 2 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k)
+              atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k)
+            end do
+          end do
+        end if
       end if
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
@@ -1117,6 +1243,14 @@ module mod_bdycod
             atm1%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k)
           end do
         end do
+        if ( idynamic == 2 ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k)
+              atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k)
+            end do
+          end do
+        end if
       end if
       if ( ma%has_bdytop ) then
         do k = 1 , kz
@@ -1125,6 +1259,14 @@ module mod_bdycod
             atm1%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k)
           end do
         end do
+        if ( idynamic == 2 ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k)
+              atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k)
+            end do
+          end do
+        end if
       end if
     else
       !
@@ -1137,6 +1279,14 @@ module mod_bdycod
             atm1%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
           end do
         end do
+        if ( idynamic == 2 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm1%pp(jce1,i,k)   = xppb%b0(jce1,i,k) + xt*xppb%bt(jce1,i,k)
+              atm1%w(jce1,i,k)    = xwwb%b0(jce1,i,k) + xt*xwwb%bt(jce1,i,k)
+            end do
+          end do
+        end if
       end if
       if ( ma%has_bdyright ) then
         do k = 1 , kz
@@ -1145,6 +1295,14 @@ module mod_bdycod
             atm1%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
           end do
         end do
+        if ( idynamic == 2 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm1%pp(jce2,i,k)   = xppb%b0(jce2,i,k) + xt*xppb%bt(jce2,i,k)
+              atm1%w(jce2,i,k)    = xwwb%b0(jce2,i,k) + xt*xwwb%bt(jce2,i,k)
+            end do
+          end do
+        end if
       end if
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
@@ -1153,6 +1311,14 @@ module mod_bdycod
             atm1%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
           end do
         end do
+        if ( idynamic == 2 ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm1%pp(j,ice1,k)   = xppb%b0(j,ice1,k) + xt*xppb%bt(j,ice1,k)
+              atm1%w(j,ice1,k)    = xwwb%b0(j,ice1,k) + xt*xwwb%bt(j,ice1,k)
+            end do
+          end do
+        end if
       end if
       if ( ma%has_bdytop ) then
         do k = 1 , kz
@@ -1161,6 +1327,14 @@ module mod_bdycod
             atm1%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
           end do
         end do
+        if ( idynamic == 2 ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm1%pp(j,ice2,k)   = xppb%b0(j,ice2,k) + xt*xppb%bt(j,ice2,k)
+              atm1%w(j,ice2,k)    = xwwb%b0(j,ice2,k) + xt*xwwb%bt(j,ice2,k)
+            end do
+          end do
+        end if
       end if
     end if
 

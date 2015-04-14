@@ -237,6 +237,8 @@ module mod_slice
     end if
 
     if ( idynamic == 2 ) then
+      dpsdxm(:,:) = d_zero
+      dpsdym(:,:) = d_zero
       do i = ici1 , ici2
         do j = jci1 , jci2
           dpsdxm(j,i) = (sfs%psb(j+1,i) - sfs%psb(j-1,i)) / &

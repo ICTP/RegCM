@@ -115,6 +115,18 @@ module mod_init
         sfs%tgb(j,i) = ts0(j,i)
       end do
     end do
+    if ( idynamic == 2 ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atm1%pp(j,i,k) = xppb%b0(j,i,k)
+            atm1%w(j,i,k) = xwwb%b0(j,i,k)
+            atm2%pp(j,i,k) = xppb%b0(j,i,k)
+            atm2%w(j,i,k) = xwwb%b0(j,i,k)
+          end do
+        end do
+      end do
+    end if
     !
     ! If we have activated SeaIce scheme, on ocean point we consider
     ! the temperature as the signal to cover with ice the sea, changing
@@ -476,16 +488,33 @@ module mod_init
     !
   end if
   !
-  do k = 1 , kz
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
-        atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atm1%t(j,i,k)/sfs%psa(j,i))
-        atm2%pr(j,i,k) = atm1%pr(j,i,k)
-        atm2%rho(j,i,k) = atm1%rho(j,i,k)
+  if ( idynamic == 2 ) then
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atm1%pr(j,i,k) = atm0%pr(j,i,k) + atm1%pp(j,i,k)
+          atm1%rho(j,i,k) = atm1%pr(j,i,k) /        &
+              (rgas*atm1%t(j,i,k)/sfs%psa(j,i) *    &
+              (d_one+ep1*atm1%qx(j,i,k,iqv)/sfs%psa(j,i)))
+          atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)
+          atm2%rho(j,i,k) = atm2%pr(j,i,k) /        &
+              (rgas*atm2%t(j,i,k)/sfs%psb(j,i) *    &
+              (d_one+ep1*atm2%qx(j,i,k,iqv)/sfs%psb(j,i)))
+        end do
       end do
     end do
-  end do
+  else
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
+          atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atm1%t(j,i,k)/sfs%psa(j,i))
+          atm2%pr(j,i,k) = atm1%pr(j,i,k)
+          atm2%rho(j,i,k) = atm1%rho(j,i,k)
+        end do
+      end do
+    end do
+  end if
   !
   ! The following allows to change landuse on restart.
   !

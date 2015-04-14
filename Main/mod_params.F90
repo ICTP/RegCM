@@ -507,20 +507,12 @@ module mod_params
         rewind(ipunit)
         read (ipunit, nml=nonhydroparam, iostat=iretval, err=104)
         if ( iretval /= 0 ) then
-          write(stderr,*) 'Error reading nonhydroparam namelist'
-          call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
+          write(stdout,*) 'Using default non-hydrostatc parameters.'
 #ifdef DEBUG
         else
           write(stdout,*) 'Read nonhydroparam OK'
 #endif
         end if
-      end if
-
-      if ( idynamic /= 1 ) then
-        write(stderr,*) 'Not implemented in this version.'
-        write(stderr,*) 'Please keep the hydrostatic core for now.'
-        write(stderr,*) 'Set IDYNAMIC = 1'
-        call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
       end if
 
       ! Hack. permanently disable seasonal albedo.
@@ -1304,6 +1296,10 @@ module mod_params
     call allocate_v3dbound(xqb,kz,cross)
     call allocate_v3dbound(xub,kz,dot)
     call allocate_v3dbound(xvb,kz,dot)
+    if ( idynamic == 2 ) then
+      call allocate_v3dbound(xppb,kz,cross)
+      call allocate_v3dbound(xwwb,kz,cross)
+    end if
 
     if ( myid == italk ) write(stdout,*) 'Setting IPCC scenario to ', scenario
     call set_scenario(scenario)
@@ -2040,7 +2036,7 @@ module mod_params
             mddom%ddy(j,i) = sin(rotang)
             mddom%dmdx(j,i) = -d_half * &
               (mddom%msfx(j,i) + mddom%msfx(j,i-1) - &
-               mddom%msfx(j-1,i) - mddom%msfx(j-i,i-1)) / &
+               mddom%msfx(j-1,i) - mddom%msfx(j-1,i-1)) / &
                (dx*mddom%msfd(j,i)*mddom%msfd(j,i))
             mddom%dmdy(j,i) = -d_half * &
               (mddom%msfx(j,i) + mddom%msfx(j-1,i) - &

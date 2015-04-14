@@ -48,7 +48,7 @@ module mod_atm_interface
   type(surfstate) , public :: sfs
   type(slice) , public :: atms
   type(diffx) , public :: adf
-  type(v3dbound) , public :: xtb , xqb , xub , xvb
+  type(v3dbound) , public :: xtb , xqb , xub , xvb , xppb , xwwb
   type(v2dbound) , public :: xpsb
   type(bound_area) , public :: ba_cr , ba_dt
   type(reference_atmosphere) , public :: atm0
@@ -993,8 +993,8 @@ module mod_atm_interface
 
       if ( idynamic == 2 ) then
         call allocate_reference_atmosphere(atm0)
-        call getmem2d(dpsdxm,jci1,jci2,ici1,ici2,'storage:dpsdxm')
-        call getmem2d(dpsdym,jci1,jci2,ici1,ici2,'storage:dpsdym')
+        call getmem2d(dpsdxm,jce1,jce2,ice1,ice2,'storage:dpsdxm')
+        call getmem2d(dpsdym,jce1,jce2,ice1,ice2,'storage:dpsdym')
       end if
 
     end subroutine allocate_mod_atm_interface
