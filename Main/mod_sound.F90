@@ -113,7 +113,7 @@ module mod_sound
     if ( ktau >= 1 ) istep = max(4,istep)
     dts = dtl/istep
     !
-    ! CALCULATE THE LOOP BOUNDARIES
+    ! Calculate the loop boundaries
     !
 !    if ( ktau == 0 ) then
 !      write(stdout,*) 'SHORT TIME STEP ' , dts , istep , &
@@ -146,11 +146,11 @@ module mod_sound
 !      end if
 !    end if
     !
-    !  PREMULTIPLY THE TENDENCY ARRAYS BY DTS
+    !  Premultiply the tendency arrays by dts
     !
-    !  CALCULATE INITIAL ARRAYS FOR SHORT TIMESTEP
-    !  XXB STORES FILTERED OLD XXA WITHOUT XXC TERM
-    !  NO ASSELIN FILTER ON BOUNDARY
+    !  Calculate initial arrays for short timestep
+    !  xxb stores filtered old xxa without xxc term
+    !  no asselin filter on boundary
     !
     do k = 1 , kz
       do i = idi1 , idi2
@@ -160,9 +160,9 @@ module mod_sound
           u3d(j,i,k)    = atm2%u(j,i,k)/sfs%psdota(j,i)
           v3d(j,i,k)    = atm2%v(j,i,k)/sfs%psdota(j,i)
           atm2%u(j,i,k) = omuhf*atm1%u(j,i,k)/mddom%msfd(j,i) + &
-            gnuhf*atm2%u(j,i,k)
+                          gnuhf*atm2%u(j,i,k)
           atm2%v(j,i,k) = omuhf*atm1%v(j,i,k)/mddom%msfd(j,i) + &
-            gnuhf*atm2%v(j,i,k)
+                          gnuhf*atm2%v(j,i,k)
         end do
       end do
     end do
@@ -209,17 +209,17 @@ module mod_sound
         end do
       end do
       !
-      ! ADVANCE U AND V
+      ! Advance u and v
       !
       do k = 1 , kz
         do i = idii1 , idii2
           do j = jdii1 , jdii2
-            ! PREDICT U AND V
+            ! Predict u and v
             rho    = d_rfour * (atm2%rho(j,i,k)   + atm2%rho(j,i-1,k) + &
                                 atm2%rho(j-1,i,k) + atm2%rho(j-1,i-1,k))
             dppdp0 = d_rfour * (t3d(j,i,k)   + t3d(j,i-1,k) + &
                                 t3d(j-1,i,k) + t3d(j-1,i-1,k))
-            ! DIVIDE BY MAP SCALE FACTOR
+            ! Divide by map scale factor
             chh = d_half * dts / (rho*dx) / mddom%msfd(j,i)
             !
             ! Nonhydrostatic model: pressure gradient term in sigma vertical
@@ -257,13 +257,15 @@ module mod_sound
         end do
       end if
       !
-      !  SEMI-IMPLICIT SOLUTION FOR W AND P
-      !
+      !  Semi-implicit solution for w and p
       !
       !  Nonhydrostatic model.
-      !  Presure perturbation tendency: 4th, 5th and 6th RHS terms in Eq.2.2.4. 4th and 5th RHS terms in Eq.2.3.8
-      !  Vertical momentum    tendency: 1st subterm and part of the 3rd subterm of the 4th RHS term in Eq.2.2.3 and 2.2.11 (see Hint below). This is joined into the 4th RHS term in Eq. 2.3.7.
-      !                           Hint: R=Cp-Cv, gamma=Cp/Cv -> 1/gamma+R/Cp=1
+      !  Presure perturbation tendency: 4th, 5th and 6th RHS terms
+      !  in Eq.2.2.4. 4th and 5th RHS terms in Eq.2.3.8
+      !  Vertical momentum    tendency: 1st subterm and part of the
+      !  3rd subterm of the 4th RHS term in Eq.2.2.3 and 2.2.11
+      !  (see Hint below). This is joined into the 4th RHS term in Eq. 2.3.7.
+      !  Hint: R=Cp-Cv, gamma=Cp/Cv -> 1/gamma+R/Cp=1
       !
       do k = 1 , kz
         do i = ici1 , ici2
@@ -273,7 +275,7 @@ module mod_sound
         end do
       end do
       !
-      ! VERTICAL BOUNDARY CONDITIONS, W=V.DH/DY AT BOTTOM, LID AT TOP
+      ! Vertical boundary conditions, w=v.dh/dy at bottom, lid at top
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -305,7 +307,7 @@ module mod_sound
                         v3d(j,i+1,2) - v3d(j+1,i+1,2) ) /       &
                       ( atm0%pr(j,i,1) - atm0%pr(j,i,2) )
           !
-          ! ZERO GRADIENT (FREE SLIP) B.C.S ON V AT TOP AND BOTTOM
+          ! Zero gradient (free slip) b.c.s on v at top and bottom
           !
           ptend(j,i,1) = aten%pp(j,i,1) - d_half * cc(j,i,1) *      &
                        ( ( v3d(j+1,i,1) * mddom%msfd(j+1,i) -       &
@@ -335,7 +337,7 @@ module mod_sound
                     (dsigma(k-1)*atm2%rho(j,i,k) + &
                      dsigma(k)*atm2%rho(j,i,k-1))
             !
-            ! SET FACTORS FOR DIFFERENCING
+            ! Set factors for differencing
             !
             cc(j,i,k) = xgamma * atm2%pr(j,i,k) * dts / (dx*mddom%msfx(j,i))
             cdd(j,i,k) = xgamma * atm2%pr(j,i,k) * atm0%rho(j,i,k) * &
@@ -345,7 +347,7 @@ module mod_sound
             g1(j,i,k) = d_one - dsigma(km1) * tk(j,i,k)
             g2(j,i,k) = d_one + dsigma(k) * tk(j,i,km1)
             !
-            ! IMPLICIT W EQUATION COEFFICIENT ARRAYS AND RHS (IKAWA METHOD)
+            ! Implicit w equation coefficient arrays and rhs (ikawa method)
             !
             c(j,i,k) = -ca(j,i,k) * (cdd(j,i,k-1)-cj(j,i,k-1))*g2(j,i,k)*bpxbp
             b(j,i,k) = d_one + ca(j,i,k) * ( g1(j,i,k) *      &
@@ -368,7 +370,7 @@ module mod_sound
         end do
       end do
       !
-      ! ZERO GRADIENT (FREE SLIP) B.C.S ON V AT TOP AND BOTTOM
+      ! Zero gradient (free slip) b.c.s on v at top and bottom
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -380,8 +382,8 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             !
-            !  Nonhydrostatic model.
-            !  Presure perturbation tendency: 5th RHS terms in Eq.2.3.8
+            ! Nonhydrostatic model.
+            ! Presure perturbation tendency: 5th RHS terms in Eq.2.3.8
             !
             ptend(j,i,k) = aten%pp(j,i,k) - d_half * cc(j,i,k) *      &
                            ( (v3d(j+1,i,k) * mddom%msfd(j+1,i) -      &
@@ -411,8 +413,9 @@ module mod_sound
           do j = jci1 , jci2
             pi(j,i,k) = pp3d(j,i,k)
             !
-            !  Nonhydrostatic model.
-            !  Presure perturbation tendency: 4th RHS term and last subterm in 5th RHS term in Eq. 2.3.8
+            ! Nonhydrostatic model.
+            ! Presure perturbation tendency: 4th RHS term and last subterm
+            ! in 5th RHS term in Eq. 2.3.8
             !
             pp3d(j,i,k) = pp3d(j,i,k) + ptend(j,i,k) +              &
                           ( cj(j,i,k) * (wo(j,i,k+1) + wo(j,i,k)) + &
@@ -421,7 +424,7 @@ module mod_sound
         end do
       end do
       !
-      ! UPWARD CALCULATION OF COEFFICIENTS
+      ! Upward calculation of coefficients
       !
       do k = kz , 2 , -1
         do i = ici1 , ici2
@@ -440,8 +443,8 @@ module mod_sound
         end do
       end do
       !
-      ! IF FIRST TIME THROUGH AND UPPER RADIATION B.C`S ARE USED
-      ! NEED TO CALC SOME COEFFICIENTS
+      ! If first time through and upper radiation b.c`s are used
+      ! Need to calc some coefficients
       !
 !      if ( ifupr == 1 .and. ktau == 0 .and. it == 1 ) then
 !        ! CALCULATING MEANS FOR UP. RAD. B.C.
@@ -480,10 +483,10 @@ module mod_sound
 !        end do
 !      end if
       !
-      !  FINISHED INITIAL COEFFICIENT COMPUTE
-      !  NOW DO DOWNWARD SWEEP FOR W
+      !  Finished initial coefficient compute
+      !  Now do downward sweep for w
       !
-      ! FIRST, SET UPPER BOUNDARY CONDITION, EITHER W=0 OR RADIATION
+      ! First, set upper boundary condition, either w=0 or radiation
       !
 !      do i = ici1 , ici2
 !        do j = jci1 , jci2
@@ -492,7 +495,7 @@ module mod_sound
 !      end do
 !      if ( ifupr == 1 ) then
 !        !
-!        ! APPLY UPPER RAD COND. NO W3D(TOP) IN LATERAL SPONGE
+!        ! Apply upper rad cond. no w3d(top) in lateral sponge
 !        !
 !        do i = ici1+3 , ici2-3
 !          inn = insi(i,nsi)
@@ -508,7 +511,7 @@ module mod_sound
 !        end do
 !      end if
 !      !
-!      ! FINISHED CALC OF RADIATION W
+!      ! Finished calc of radiation w
 !      !
 !      do i = ici1 , ici2
 !        do j = jci1 , jci2
@@ -521,7 +524,7 @@ module mod_sound
         end do
       end do
       !
-      ! DOWNWARD CALCULATION OF W
+      ! Downward calculation of w
       !
       do k = 1 , kz
         do i = ici1 , ici2
@@ -535,12 +538,11 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             rho0s = twt(k,1)*atm0%rho(j,i,k) + twt(k,2)*atm0%rho(j,i,k-1)
-            sigdot(j,i,k) = -rho0s * egrav * w3d(j,i,k) /             &
-                   sfs%psa(j,i)*0.001D0 - sigma(k) *                  &
-                   ( dpsdxm(j,i) * ( twt(k,1)*atms%ubx3d(j,i,k) +     &
-                                     twt(k,2)*atms%ubx3d(j,i,k-1) ) + &
-                     dpsdym(j,i) * ( twt(k,1)*atms%vbx3d(j,i,k) +     &
-                                     twt(k,2)*atms%vbx3d(j,i,k-1) ) )
+            sigdot(j,i,k) = -rho0s*egrav*w3d(j,i,k)/sfs%psa(j,i)*d_r1000 -   &
+               sigma(k) * ( dpsdxm(j,i) * ( twt(k,1)*atms%ubx3d(j,i,k) +     &
+                                            twt(k,2)*atms%ubx3d(j,i,k-1) ) + &
+                            dpsdym(j,i) * ( twt(k,1)*atms%vbx3d(j,i,k) +     &
+                                            twt(k,2)*atms%vbx3d(j,i,k-1) ) )
             check = abs(sigdot(j,i,k)) * dtl / (dsigma(k) + dsigma(k-1))
             cfl = max(check,cfl)
           end do
@@ -572,7 +574,7 @@ module mod_sound
         end do
       end if
       !
-      ! NOW COMPUTE THE NEW PRESSURE
+      ! Now compute the new pressure
       !
       do k =  1 , kz
         do i = ici1 , ici2
@@ -586,7 +588,7 @@ module mod_sound
                             cddtmp * (w3d(j,i,k+1) - w3d(j,i,k)) )*bp
             pi(j,i,k) = pp3d(j,i,k) - ppold - aten%pp(j,i,k)
             !
-            ! COMPUTE PRESSURE DP`/DT CORRECTION TO THE TEMPERATURE
+            ! Compute pressure dp`/dt correction to the temperature
             !
             cpm = cpd * (d_one + 0.8D0*qv3d(j,i,k))
             dpterm = sfs%psa(j,i)*(pp3d(j,i,k)-ppold) / (cpm*atm2%rho(j,i,k))
@@ -596,7 +598,7 @@ module mod_sound
         end do
       end do
       !
-      ! ZERO GRADIENT CONDITIONS ON W,  SPECIFIED ON PP
+      ! Zero gradient conditions on w,  specified on pp
       !
       do k =  1 , kz
         do i = ici1 , ici2
@@ -640,10 +642,10 @@ module mod_sound
           end do
         end do
       end if
-      ! END OF TIME LOOP
+      ! End of time loop
     end do
     !
-    !     TRANSFER XXA TO XXB, NEW VALUES TO XXA AND APPLY TIME FILTER
+    ! Transfer xxa to xxb, new values to xxa and apply time filter
     !
     do k = 1 , kz
       do i = idi1 , idi1

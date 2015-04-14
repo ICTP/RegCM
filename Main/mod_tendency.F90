@@ -320,10 +320,10 @@ module mod_tendency
             ! Eq. 2.2.7 & Eq. 2.3.6 in the MM5 manual
             !
             rho0s = twt(k,1)*atm0%rho(j,i,k)+twt(k,2)*atm0%rho(j,i,k-1)
-            qdot(j,i,k) = -rho0s*egrav*atmx%w(j,i,k)*rpsa(j,i)*0.001D0 -  &
-              sigma(k) * (dpsdxm(j,i) * (twt(k,1)*ucc(j,i,k) +            &
-                                         twt(k,2)*ucc(j,i,k-1)) +         &
-                          dpsdym(j,i) * (twt(k,1)*vcc(j,i,k) +            &
+            qdot(j,i,k) = -rho0s*egrav*atmx%w(j,i,k)*rpsa(j,i)*d_r1000 - &
+              sigma(k) * (dpsdxm(j,i) * (twt(k,1)*ucc(j,i,k) +           &
+                                         twt(k,2)*ucc(j,i,k-1)) +        &
+                          dpsdym(j,i) * (twt(k,1)*vcc(j,i,k) +           &
                                          twt(k,2)*vcc(j,i,k-1)))
            end do
         end do
@@ -1841,8 +1841,8 @@ module mod_tendency
       wten = sqrt(aten%u**2+aten%v**2)
       mean_ww = (maxval(wten)+minval(wten))/d_two
       do k = 1 , kz
-        do i = idi1, idi2
-          do j = jdi1 , jdi2
+        do i = ici1, ici2
+          do j = jci1 , jci2
             check_ww = (wten(j,i,k)-mean_ww)/sfs%psdotb(j,i)
             if ( dabs(check_ww) > wind_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at ktau = ', ktau
