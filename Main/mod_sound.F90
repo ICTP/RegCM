@@ -62,8 +62,9 @@ module mod_sound
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: pi , pp3d
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: qv3d
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) ::t3d
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) ::u3d , v3d
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: w3d , e , f
+    real(rk8) , dimension(jdi1:jdi2,idi1:idi2,1:kz) ::u3d , v3d
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: e , f
+    real(rk8) , dimension(jce1:jce2,ice1:ice2,1:kzp1) :: w3d
     character (len=32) :: appdat
     !
     ! Graziano:
@@ -152,8 +153,8 @@ module mod_sound
     !  NO ASSELIN FILTER ON BOUNDARY
     !
     do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
           aten%u(j,i,k) = aten%u(j,i,k)*dts
           aten%v(j,i,k) = aten%v(j,i,k)*dts
           u3d(j,i,k)    = atm2%u(j,i,k)/sfs%psdota(j,i)
@@ -166,8 +167,8 @@ module mod_sound
       end do
     end do
     do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           aten%pp(j,i,k) = aten%pp(j,i,k)*dts
           qv3d(j,i,k)    = atm1%qx(j,i,k,iqv)/sfs%psa(j,i)
           pp3d(j,i,k)    = atm2%pp(j,i,k)/sfs%psa(j,i)
@@ -176,8 +177,8 @@ module mod_sound
       end do
     end do
     do k = 1 , kzp1
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           aten%w(j,i,k) = aten%w(j,i,k)*dts
           w3d(j,i,k)    = atm2%w(j,i,k)/sfs%psa(j,i)
           atm2%w(j,i,k) = omuhf*atm1%w(j,i,k) + gnuhf*atm2%w(j,i,k)
@@ -211,8 +212,8 @@ module mod_sound
       ! ADVANCE U AND V
       !
       do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
+        do i = idii1 , idii2
+          do j = jdii1 , jdii2
             ! PREDICT U AND V
             rho    = d_rfour * (atm2%rho(j,i,k)   + atm2%rho(j,i-1,k) + &
                                 atm2%rho(j-1,i,k) + atm2%rho(j-1,i-1,k))
@@ -322,8 +323,8 @@ module mod_sound
         end do
       end do
       do k = 2 , kz
-        kp1 = k + 1
-        km1 = k - 1
+        kp1 = min(k+1,kz)
+        km1 = k-1
         do i = ici1 , ici2
           do j = jci1 , jci2
             tk(j,i,k) = sfs%psa(j,i) * atm0%t(j,i,k) / &
@@ -563,8 +564,8 @@ module mod_sound
               cfl = abs(sigdot(j,i,k)) * dtl / (dsigma(k)+dsigma(k-1))
               if ( cfl > d_one ) then
                 write(stderr,99003) cfl , w3d(j,i,k) , i , j , k
-    99003       format ('CFL>1: CFL = ',f7.4,' W = ',f8.4,'  I = ',i5, &
-                        '  J = ',i5,'  K = ',i5,'  INEST = ',i3)
+    99003       format ('CFL>1: CFL = ',f12.4,' W = ',f12.4,'  I = ',i5, &
+                        '  J = ',i5,'  K = ',i5 )
               end if
             end do
           end do
@@ -598,8 +599,8 @@ module mod_sound
       ! ZERO GRADIENT CONDITIONS ON W,  SPECIFIED ON PP
       !
       do k =  1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             pp3d(j,i,k) = pp3d(j,i,k) + aten%pp(j,i,k)
           end do
         end do
@@ -621,7 +622,7 @@ module mod_sound
       if ( ma%has_bdyright ) then
         do k = 1 , kzp1
           do i = ice1 , ice2
-            w3d(jce2,j,k) = w3d(jci2,j,k)
+            w3d(jce2,i,k) = w3d(jci2,i,k)
           end do
         end do
       end if
