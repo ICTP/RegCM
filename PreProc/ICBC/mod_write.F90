@@ -215,7 +215,7 @@ module mod_write
       ! Compute hydrostatic pstar on dot points.
       pd4 = ps4
       call crs2dot(pd4,jx,iy)
-      tv4 = t4 * (d_one + retv * q4)
+      tv4 = t4 * (d_one + ep1 * q4)
       ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
       call nhw(1,iy,1,jx,kz,u4,v4,tv4,rho0,ps4,pd4,ps0,msfx,sigmaf, &
                ww4,wtop4,ds,sigmah,dsigma,tiso)
@@ -224,7 +224,7 @@ module mod_write
       call nhinterp(1,iy,1,jx,kz,t4,tv4,ps4,ps0,sigmaf,1,sigmah,tiso)
       call nhinterp(1,iy,1,jx,kz,q4,tv4,ps4,ps0,sigmaf,2,sigmah,tiso)
       ! Recompute virtual temperature on non hydrostatic sigma.
-      tv4 = t4 * (d_one + retv * q4)
+      tv4 = t4 * (d_one + ep1 * q4)
       ! Compute the nonhydrostatic perturbation pressure field (pp).
       call nhpp(1,iy,1,jx,kz,t4,pr0,t0,tv4,ps4,ps0,sigmaf,pp4)
     end if

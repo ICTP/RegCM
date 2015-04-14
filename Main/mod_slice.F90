@@ -206,6 +206,13 @@ module mod_slice
           end do
         end do
       end do
+      do k = kz , 1 , -1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atms%za(j,i,k) = d_half*(atms%zq(j,i,k)+atms%zq(j,i,k+1))
+          end do
+        end do
+      end do
     end if
 
     do k = 1 , kz

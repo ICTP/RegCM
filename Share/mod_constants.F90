@@ -114,8 +114,6 @@ module mod_constants
   real(rk8) , parameter :: rgow = rgas/rwat
   ! Reverse of the above
   real(rk8) , parameter :: rgowi = rwat/rgas
-  ! Helper value to ease calculations
-  real(rk8) , parameter :: retv = rwat/rgas - d_one
 
   ! Specific heat at constant pressure for dry air J/kg/K
   real(rk8) , parameter :: cpd = 3.5D+00*rgas
