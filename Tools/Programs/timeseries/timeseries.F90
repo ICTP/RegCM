@@ -1,6 +1,4 @@
-!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
-!    This file is part of ICTP RegCM.
+!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: !  !    This file is part of ICTP RegCM.
 !
 !    ICTP RegCM is free software: you can redistribute it and/or modify
 !    it under the terms of the GNU General Public License as published by
@@ -34,6 +32,7 @@ program timeseries
 
   implicit none
 
+  character(len=8) , parameter :: hgtname = 'topo    '
   character(len=8) , parameter :: tasname = 'tas     '
   character(len=8) , parameter :: prname  = 'pr      '
   character(len=8) , parameter :: prcname = 'prc     '
@@ -45,7 +44,7 @@ program timeseries
   integer , parameter :: outunit = 100
   character(len=256) :: charatt
   character(len=64) :: timeunit , timecal
-  character(len=8) :: c1 , c2
+  character(len=8) :: c1 , c2 , c3
   real(rk8) :: lat , lon , iiy , jjx , centeri , centerj
   real(rk8) , dimension(2) :: trlat
   real(rk8) , dimension(:) , allocatable :: xtimes
@@ -53,9 +52,9 @@ program timeseries
   integer(ik4) :: ncid , ivarid
   integer(ik4) :: jxdimid , iydimid , itdimid , it , nt
   integer(ik4) , dimension(4) :: istart , icount
-  integer(ik4) :: itempid , iprecid , icprid
+  integer(ik4) :: itopoid , itempid , iprecid , icprid
   real(rk8) , dimension(2,2) :: xbuf
-  real(rk8) :: temp , precip , cprc
+  real(rk8) :: topo , temp , precip , cprc
   real(rk8) :: wt1 , wt2
   type(rcm_time_and_date) :: idate
   !
@@ -114,6 +113,8 @@ program timeseries
     call checkncerr(istat,__FILE__,__LINE__, 'Read time variable')
   end if
 
+  istat = nf90_inq_varid(ncid, hgtname, itopoid)
+  call checkncerr(istat,__FILE__,__LINE__, hgtname//' variable not present')
   istat = nf90_inq_varid(ncid, tasname, itempid)
   call checkncerr(istat,__FILE__,__LINE__, tasname//' variable not present')
   istat = nf90_inq_varid(ncid, prname, iprecid)
@@ -150,11 +151,6 @@ program timeseries
     write (stderr,*) 'LATITUDE NOT IN RANGE -90,90'
     call usage
   end if
-
-  write(c1,'(f8.3)') lon
-  write(c2,'(f8.3)') lat
-  write(outname,'(a)') infile(ifpd+1:iext-1)//'_'//trim(adjustl(c1))// &
-            '_'//trim(adjustl(c2))//'.dat'
 
   if ( imodel == 1 ) then
     centeri = dble(iy)/2.0D0+0.5
@@ -201,13 +197,6 @@ program timeseries
   write(stdout,*) 'LAT = ', lat, ', LON = ', lon
   write(stdout,*) 'JX  = ', jjx, ', IY  = ', iiy
 
-  open(unit=outunit, file=outname, form='formatted', status='replace', &
-       action='write', iostat=istat)
-  if ( istat /= 0 ) then
-    write (stderr,*) 'Cannot open output file !'
-    stop
-  end if
-
   istart(1) = int(floor(jjx))
   istart(2) = int(floor(iiy))
 
@@ -216,6 +205,24 @@ program timeseries
 
   icount(1) = 2
   icount(2) = 2
+
+  istat = nf90_get_var(ncid, itopoid, xbuf, istart(1:2), icount(1:2))
+  call checkncerr(istat,__FILE__,__LINE__, 'Read '//tasname//' variable')
+  topo = bilinear()
+
+  write(c1,'(f8.3)') lon
+  write(c2,'(f8.3)') lat
+  write(c3,'(f5.0)') topo
+  write(outname,'(a)') infile(ifpd+1:iext-1)//'_'//trim(adjustl(c1))// &
+            '_'//trim(adjustl(c2))//'_'//trim(adjustl(c3))//'.dat'
+
+  open(unit=outunit, file=outname, form='formatted', status='replace', &
+       action='write', iostat=istat)
+  if ( istat /= 0 ) then
+    write (stderr,*) 'Cannot open output file !'
+    stop
+  end if
+
   do it = 1 , nt
     istart(3) = 1
     icount(3) = 1
