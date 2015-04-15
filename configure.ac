@@ -36,10 +36,8 @@ AC_LANG([Fortran])
 AX_PROG_NF_CONFIG([NC_PREFIX=`nf-config --prefix`; NFAUTO="yes"],
                   [NC_PREFIX="${NETCDF}"; NFAUTO="no"])
 
-if eval "test x$NFAUTO = xno"; then
-  AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix`; NCAUTO="yes"],
-                    [NC_PREFIX="${NETCDF}"; NCAUTO="no"])
-fi
+AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix`; NCAUTO="yes"],
+                  [NC_PREFIX="${NETCDF}"; NCAUTO="no"])
 
 AC_ARG_WITH([netcdf],
   AC_HELP_STRING([--with-netcdf],
@@ -178,9 +176,15 @@ NC_LDFLAGS=""
  NC_LIBS=""
 
 if eval "test x$NFAUTO = xyes"; then
-  NC_INCLUDES="`nf-config --fflags`"
-  NC_LDFLAGS=""
-  NC_LIBS="`nf-config --flibs`"
+  if eval "test x$NCAUTO = xyes"; then
+    NC_INCLUDES="`nc-config --cflags` `nf-config --fflags`"
+    NC_LDFLAGS=""
+    NC_LIBS="`nc-config --libs` `nf-config --flibs`"
+  else
+    NC_INCLUDES="`nf-config --fflags`"
+    NC_LDFLAGS=""
+    NC_LIBS="`nf-config --flibs`"
+  fi
 else
   if eval "test x$NCAUTO = xno"; then
     NC_INCLUDES="-I$NC_PREFIX/include"
