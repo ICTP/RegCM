@@ -34,20 +34,28 @@ program timeseries
 
   implicit none
 
+  character(len=8) , parameter :: tasname = 'tas     '
+  character(len=8) , parameter :: prname  = 'pr      '
+  character(len=8) , parameter :: prcname = 'prc     '
+  !character(len=8) , parameter :: tasname = 't2m     '
+  !character(len=8) , parameter :: prname  = 'pr      '
+  !character(len=8) , parameter :: prcname = 'prc     '
+
   character(len=256) :: infile , prgname , outname , line
   integer , parameter :: outunit = 100
   character(len=256) :: charatt
   character(len=64) :: timeunit , timecal
-  real(rk8) :: lat , lon , iiy , jjx , jmax , imax , centeri , centerj
+  character(len=8) :: c1 , c2
+  real(rk8) :: lat , lon , iiy , jjx , centeri , centerj
   real(rk8) , dimension(2) :: trlat
   real(rk8) , dimension(:) , allocatable :: xtimes
   integer(ik4) :: istat , imodel , ifpd , iext
   integer(ik4) :: ncid , ivarid
   integer(ik4) :: jxdimid , iydimid , itdimid , it , nt
   integer(ik4) , dimension(4) :: istart , icount
-  integer(ik4) :: itempid , iprecid
+  integer(ik4) :: itempid , iprecid , icprid
   real(rk8) , dimension(2,2) :: xbuf
-  real(rk8) :: temperature , precipitation
+  real(rk8) :: temp , precip , cprc
   real(rk8) :: wt1 , wt2
   type(rcm_time_and_date) :: idate
   !
@@ -62,8 +70,6 @@ program timeseries
   call checkncerr(istat,__FILE__,__LINE__,'Error Open file '//trim(infile))
   ifpd = scan(infile, '/', .true.)
   iext = scan(infile, '.', .true.)
-
-  outname = infile(ifpd+1:iext-1)//'.dat'
 
   istat = nf90_get_att(ncid, nf90_global, 'ipcc_scenario_code', charatt)
   if ( istat == nf90_noerr ) then
@@ -108,10 +114,12 @@ program timeseries
     call checkncerr(istat,__FILE__,__LINE__, 'Read time variable')
   end if
 
-  istat = nf90_inq_varid(ncid, "tas", itempid)
-  call checkncerr(istat,__FILE__,__LINE__, 'tas variable not present')
-  istat = nf90_inq_varid(ncid, "pr", iprecid)
-  call checkncerr(istat,__FILE__,__LINE__, 'pr variable not present')
+  istat = nf90_inq_varid(ncid, tasname, itempid)
+  call checkncerr(istat,__FILE__,__LINE__, tasname//' variable not present')
+  istat = nf90_inq_varid(ncid, prname, iprecid)
+  call checkncerr(istat,__FILE__,__LINE__, prname//' variable not present')
+  istat = nf90_inq_varid(ncid, prcname, icprid)
+  call checkncerr(istat,__FILE__,__LINE__, prcname//' variable not present')
 
   istat = nf90_get_att(ncid, nf90_global, 'projection', iproj)
   call checkncerr(istat,__FILE__,__LINE__,'Error read attribute projection')
@@ -143,16 +151,17 @@ program timeseries
     call usage
   end if
 
+  write(c1,'(f8.3)') lon
+  write(c2,'(f8.3)') lat
+  write(outname,'(a)') infile(ifpd+1:iext-1)//'_'//trim(adjustl(c1))// &
+            '_'//trim(adjustl(c2))//'.dat'
+
   if ( imodel == 1 ) then
-    imax = iy - 3
-    jmax = jx - 3
-    centeri = dble(imax)/2.0D0+0.5
-    centerj = dble(jmax)/2.0D0+0.5
+    centeri = dble(iy)/2.0D0+0.5
+    centerj = dble(jx)/2.0D0+0.5
   else
-    jmax = jx
-    imax = iy
-    centeri = dble(imax)/2.0D0
-    centerj = dble(jmax)/2.0D0
+    centeri = dble(iy)/2.0D0
+    centerj = dble(jx)/2.0D0
   end if
   !
   ! calling the map projection subroutine
@@ -213,15 +222,19 @@ program timeseries
     istart(4) = it
     icount(4) = 1
     istat = nf90_get_var(ncid, itempid, xbuf, istart, icount)
-    call checkncerr(istat,__FILE__,__LINE__, 'Read tas variable')
-    temperature = bilinear()
+    call checkncerr(istat,__FILE__,__LINE__, 'Read '//tasname//' variable')
+    temp = bilinear()
     istart(3) = it
     icount(3) = 1
     istat = nf90_get_var(ncid, iprecid, xbuf, istart(1:3), icount(1:3))
-    call checkncerr(istat,__FILE__,__LINE__, 'Read pr variable')
-    precipitation = bilinear() * 3600.0D0 ! Change in mm/h
+    call checkncerr(istat,__FILE__,__LINE__, 'Read '//prname//' variable')
+    precip = bilinear() * 3600.0D0 ! Change in mm/h
+    istat = nf90_get_var(ncid, icprid, xbuf, istart(1:3), icount(1:3))
+    call checkncerr(istat,__FILE__,__LINE__, 'Read '//prcname//' variable')
+    cprc = bilinear() * 3600.0D0 ! Change in mm/h
     idate = timeval2date(xtimes(it), timeunit, timecal)
-    write(outunit,'(a,2f9.3)') toiso8601(idate) , temperature , precipitation
+    write(outunit,'(a,4f9.3)') toiso8601(idate) , temp , precip , cprc , &
+      precip-cprc
   end do
 
   close(outunit)
@@ -240,7 +253,7 @@ program timeseries
 
   subroutine usage
     implicit none
-    write(stdout,*) 'Extracts temperature and precipitation timeseries'
+    write(stdout,*) 'Extracts temp and precip timeseries from SRF files'
     write(stdout,*) ''
     write(stdout,*) 'Usage:'
     write(stdout,*) ''
