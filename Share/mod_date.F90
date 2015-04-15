@@ -144,7 +144,7 @@ module mod_date
             operator(<=) , operator(/=)
   public :: print_rcm_time_and_date , print_rcm_time_interval
   public :: setcal
-  public :: tochar , toint10 , tohours
+  public :: tochar , toint10 , tohours , toiso8601
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
   public :: hourdiff , nextmon , prevmon , yrfirst , nextwk , prevwk
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek
@@ -538,6 +538,17 @@ module mod_date
     write (cdat,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2," UTC")') &
        d%year, d%month, d%day, t%hour, t%minute, t%second
   end function tochar
+
+  function toiso8601(x) result(cdat)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    character (len=20) :: cdat
+    type (iadate) :: d
+    type (iatime) :: t
+    call internal_to_date_time(x,d,t)
+    write (cdat,'(i0.4,"-",i0.2,"-",i0.2,"T",i0.2,":",i0.2,":",i0.2,"Z")') &
+       d%year, d%month, d%day, t%hour, t%minute, t%second
+  end function toiso8601
 
   subroutine print_rcm_time_and_date(x)
     implicit none
