@@ -678,14 +678,14 @@ module mod_tendency
                    twt(k,2) * atms%ubx3d(j,i,k-1))
             vaq = (twt(k,1) * atms%vbx3d(j,i,k) +          &
                    twt(k,2) * atms%vbx3d(j,i,k-1))
-            aten%w(j,i,k) = aten%w(j,i,k)       +          &
-                  (twt(k,2)*atmx%pr(j,i,k-1)    +          &
-                   twt(k,1)*atmx%pr(j,i,k))     *          &
-                   rofac * egrav * sfs%psa(j,i)       +    &
-                   mddom%ex(j,i)*(uaq*mddom%crx(j,i)  -    &
-                                  vaq*mddom%cry(j,i))   +  &
+            aten%w(j,i,k) = aten%w(j,i,k) +                &
+                  (twt(k,2)*atmx%pr(j,i,k-1) +             &
+                   twt(k,1)*atmx%pr(j,i,k)) *              &
+                   rofac * egrav * sfs%psa(j,i) +          &
+                   mddom%ex(j,i)*(uaq*mddom%crx(j,i) -     &
+                                  vaq*mddom%cry(j,i)) +    &
                    (uaq*uaq+vaq*vaq)*rearthrad*rpsa(j,i) + &
-                   atmx%w(j,i,k)*(twt(k,1)*divx(j,i,k)  +  &
+                   atmx%w(j,i,k)*(twt(k,1)*divx(j,i,k) +   &
                                   twt(k,2)*divx(j,i,k-1))
           end do
         end do
@@ -732,7 +732,7 @@ module mod_tendency
     ! compute the diffusion term for vertical velocity w and store in diffw:
     !
     if ( idynamic == 2 ) then
-      call diffu_x(adf%diffw,atm1%w,sfs%psb,xkc,kz)
+      call diffu_x(adf%diffw,atmx%w,sfs%psb,xkc,kz)
     end if
     !
     ! compute the moisture tendencies for convection
@@ -824,7 +824,7 @@ module mod_tendency
       if ( idiag > 0 ) then
         ! save the h diff diag here
         qdiag%dif(jci1:jci2,ici1:ici2,:) = qdiag%dif(jci1:jci2,ici1:ici2,:) + &
-                     (adf%diffqx(jci1:jci2,ici1:ici2,:,iqv) - &
+                     (adf%diffqx(jci1:jci2,ici1:ici2,:,iqv) -                 &
                       qen0(jci1:jci2,ici1:ici2,:)) * afdout
         ! reset qen0 to aten%t
         qen0 = aten%qx(:,:,:,iqv)
@@ -983,13 +983,13 @@ module mod_tendency
     ! This is the last RHS term in Eqs. 2.2.3, 2.2.11, 2.3.7
     !
     if ( idynamic == 2 ) then
-    do k = 1 , kz+1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          aten%w(j,i,k) = aten%w(j,i,k) + adf%diffw(j,i,k)
+      do k = 1 , kz+1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            aten%w(j,i,k) = aten%w(j,i,k) + adf%diffw(j,i,k)
+          end do
         end do
       end do
-    end do
     end if
     ! Rq: the temp tendency diagnostics have been already
     !     saved for tbl and hor. diff but :
@@ -1644,10 +1644,10 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atm2%pr(j,i,k) = atm1%pr(j,i,k) + atmx%pp(j,i,k)
+            atm2%pr(j,i,k)  = atm0%pr(j,i,k) + atm2%pp(j,i,k)*rpsb(j,i)
             atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
-                    (rgas*(atm2%t(j,i,k)*rpsb(j,i)) * &
-                    (d_one + ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
+              (rgas*atm2%t(j,i,k)*rpsb(j,i) *  &
+              (d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
           end do
         end do
       end do
