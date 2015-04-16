@@ -590,7 +590,7 @@ module mod_sound
             !
             ! Compute pressure dp`/dt correction to the temperature
             !
-            cpm = cpd * (d_one + 0.8D0*qv3d(j,i,k))
+            cpm = cpd * (d_one + 0.856D0*qv3d(j,i,k))
             dpterm = sfs%psa(j,i)*(pp3d(j,i,k)-ppold) / (cpm*atm2%rho(j,i,k))
             atm2%t(j,i,k) = atm2%t(j,i,k) + gnuhf*dpterm
             atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm

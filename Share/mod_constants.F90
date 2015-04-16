@@ -237,6 +237,7 @@ module mod_constants
   ! Earth radius in meters
   real(rk8) , parameter :: earthrad = 6.371229D+06
   real(rk8) , parameter :: erkm = earthrad/d_1000
+  real(rk8) , parameter :: rearthrad = d_one/earthrad
   ! Angular velocity of rotation of Earth
   real(rk8) , parameter :: eomeg = 7.2921159D-05
   real(rk8) , parameter :: eomeg2 = d_two*eomeg

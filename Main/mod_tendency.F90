@@ -138,7 +138,10 @@ module mod_tendency
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tend'
     integer(ik4) , save :: idindx = 0
+    integer(ik4) :: mijx , miiy
     call time_begin(subroutine_name,idindx)
+    mijx = (jci2-jci1)/2+1
+    miiy = (ici2-ici1)/2+1
 #endif
     !
     ! Set number of ghost points for advection for the two schemes
@@ -198,6 +201,19 @@ module mod_tendency
         end do
       end do
     else if ( idynamic == 2 ) then
+      !
+      ! Constant reference state and perturbations are defined
+      ! for the nonhydrostatic model.
+      !
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atm1%pr(j,i,k)  = atm0%pr(j,i,k) + atmx%pp(j,i,k)
+            atm1%rho(j,i,k) = atm1%pr(j,i,k) / &
+              (rgas*atmx%t(j,i,k)*(d_one+ep1*atmx%qx(j,i,k,iqv)))
+          end do
+        end do
+      end do
       call exchange(atm1%pp,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%pr,1,jce1,jce2,ice1,ice2,1,kz)
@@ -222,16 +238,16 @@ module mod_tendency
         end do
       end do
     else if ( idynamic == 2 ) then
+      !
+      ! Constant reference state and perturbations are defined
+      ! for the nonhydrostatic model.
+      !
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            !
-            ! Constant reference state and perturbations are defined
-            ! for the nonhydrostatic model.
-            !
-            atm2%pr(j,i,k)  = atm0%pr(j,i,k) + atmx%pp(j,i,k)
+            atm2%pr(j,i,k)  = atm0%pr(j,i,k) + atm2%pp(j,i,k)*rpsb(j,i)
             atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
-              (rgas*atm2%t(j,i,k)*rpsb(j,i)*   &
+              (rgas*atm2%t(j,i,k)*rpsb(j,i) *  &
               (d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
           end do
         end do
@@ -249,6 +265,10 @@ module mod_tendency
     if ( ichem == 1 ) then
       call exchange(chi,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call exchange(chib,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+    end if
+    if ( idynamic == 2 ) then
+      call exchange(atmx%pp,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atmx%w,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
     end if
     if ( ipptls == 2 ) then
       qcd(:,:,:) = atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqc) + &
@@ -304,10 +324,10 @@ module mod_tendency
             !
             ! Calculate wind components at cross points
             !
-            ucc(j,i,k) = atmx%u(j,i,k)+atmx%u(j,i+1,k) + &
-                         atmx%u(j+1,i,k)+atmx%u(j+1,i+1,k)
-            vcc(j,i,k) = atmx%v(j,i,k)+atmx%v(j,i+1,k) + &
-                         atmx%v(j+1,i,k)+atmx%v(j+1,i+1,k)
+            ucc(j,i,k) = d_rfour * (atmx%u(j,i,k)+atmx%u(j,i+1,k) + &
+                                    atmx%u(j+1,i,k)+atmx%u(j+1,i+1,k))
+            vcc(j,i,k) = d_rfour * (atmx%v(j,i,k)+atmx%v(j,i+1,k) + &
+                                    atmx%v(j+1,i,k)+atmx%v(j+1,i+1,k))
 
           end do
         end do
@@ -420,31 +440,6 @@ module mod_tendency
           sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
         end do
       end do
-      if ( ma%has_bdyleft ) then
-        do i = ici1 , ici2
-          sfs%psc(jce1,i) = sfs%psb(jce1,i) + xpsb%bt(jce1,i)*dt
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do i = ici1 , ici2
-          sfs%psc(jce2,i) = sfs%psb(jce2,i) + xpsb%bt(jce2,i)*dt
-        end do
-      end if
-      if ( ma%has_bdybottom ) then
-        do j = jce1 , jce2
-          sfs%psc(j,ice1) = sfs%psb(j,ice1) + xpsb%bt(j,ice1)*dt
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do j = jce1 , jce2
-          sfs%psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
-        end do
-      end if
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          rpsc(j,i) = d_one/sfs%psc(j,i)
-        end do
-      end do
     else if ( idynamic == 2 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -452,6 +447,31 @@ module mod_tendency
         end do
       end do
     end if
+    if ( ma%has_bdyleft ) then
+      do i = ici1 , ici2
+        sfs%psc(jce1,i) = sfs%psb(jce1,i) + xpsb%bt(jce1,i)*dt
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do i = ici1 , ici2
+        sfs%psc(jce2,i) = sfs%psb(jce2,i) + xpsb%bt(jce2,i)*dt
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+      do j = jce1 , jce2
+        sfs%psc(j,ice1) = sfs%psb(j,ice1) + xpsb%bt(j,ice1)*dt
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do j = jce1 , jce2
+        sfs%psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
+      end do
+    end if
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        rpsc(j,i) = d_one/sfs%psc(j,i)
+      end do
+    end do
     !
     ! compute bleck (1977) noise parameters:
     !
@@ -608,7 +628,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rovcpm = rgas/(cpd*(d_one + 0.8D0*qvd(j,i,k)))
+            rovcpm = rgas/(cpd*(d_one + 0.856D0*qvd(j,i,k)))
             tv = atmx%t(j,i,k)*(d_one + ep1*qvd(j,i,k))
             aten%t(j,i,k) = aten%t(j,i,k) + (omega(j,i,k)*rovcpm*tv) / &
                             (ptop*rpsa(j,i)+hsigma(k))
@@ -627,7 +647,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             scr = d_half*egrav*atm0%rho(j,i,k)*(atm1%w(j,i,k)+atm1%w(j,i,k+1))
-            cpm = cpd*(d_one + 0.8D0*qvd(j,i,k))
+            cpm = cpd*(d_one + 0.856D0*qvd(j,i,k))
             aten%t(j,i,k)  = aten%t(j,i,k) + atm1%t(j,i,k)*divx(j,i,k)       - &
                              (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divx(j,i,k)) / &
                              (atm1%rho(j,i,k)*cpm)
@@ -635,18 +655,18 @@ module mod_tendency
           end do
         end do
       end do
-     !
-     ! Vertical velocity tendency. Following terms are included here:
-     ! (1) bouyancy terms: 2nd subterm and part of the 3rd subterm of the
-     !     4th RHS term in Eq.2.2.3 and 2.2.11. This is joined into the 5th
-     !     RHS term in Eq. 2.3.7.
-     ! (2) part of the vertical component of the Coriolis force due to the
-     !     horizontal movement (cf. 6th RHS term in Eq. 2.2.11)
-     ! (3) vertical curvature term (not explicitly mentioned in the MM5 1994
-     !     manual)
-     ! (4) mass divergence term (3rd RHS term in Eq. 2.2.3, 2.2.11 and
-     !     Eq. 2.3.7)
-     !
+      !
+      ! Vertical velocity tendency. Following terms are included here:
+      ! (1) bouyancy terms: 2nd subterm and part of the 3rd subterm of the
+      !     4th RHS term in Eq.2.2.3 and 2.2.11. This is joined into the 5th
+      !     RHS term in Eq. 2.3.7.
+      ! (2) part of the vertical component of the Coriolis force due to the
+      !     horizontal movement (cf. 6th RHS term in Eq. 2.2.11)
+      ! (3) vertical curvature term (not explicitly mentioned in the MM5 1994
+      !     manual)
+      ! (4) mass divergence term (3rd RHS term in Eq. 2.2.3, 2.2.11 and
+      !     Eq. 2.3.7)
+      !
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -663,9 +683,9 @@ module mod_tendency
                    twt(k,1)*atmx%pr(j,i,k))     *          &
                    rofac * egrav * sfs%psa(j,i)       +    &
                    mddom%ex(j,i)*(uaq*mddom%crx(j,i)  -    &
-                                  vaq*mddom%cry(j,i))   + &
-                   (uaq*uaq+vaq*vaq)*earthrad*rpsa(j,i) + &
-                   atmx%w(j,i,k)*(twt(k,1)*divx(j,i,k)  + &
+                                  vaq*mddom%cry(j,i))   +  &
+                   (uaq*uaq+vaq*vaq)*rearthrad*rpsa(j,i) + &
+                   atmx%w(j,i,k)*(twt(k,1)*divx(j,i,k)  +  &
                                   twt(k,2)*divx(j,i,k-1))
           end do
         end do
@@ -1239,7 +1259,7 @@ module mod_tendency
             wadotp1 = 0.125D0 * (atm1%w(j-1,i-1,k+1) + atm1%w(j-1,i,k+1) + &
                                  atm1%w(j,i-1,k+1)   + atm1%w(j,i,k+1))
             wabar = wadot + wadotp1
-            amfac = wabar * rpsda(j,i) / earthrad
+            amfac = wabar * rpsda(j,i) * rearthrad
             duv = atm1%u(j,i,k)*mddom%dmdy(j,i) - &
                   atm1%v(j,i,k)*mddom%dmdx(j,i)
             aten%u(j,i,k) = aten%u(j,i,k)                                + &
