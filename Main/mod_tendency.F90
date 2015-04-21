@@ -383,29 +383,43 @@ module mod_tendency
     !
     ! compute omega
     !
-    omega(:,:,:) = d_zero
     do i = ice1 , ice2
       do j = jce1 , jce2
         dummy(j,i) = d_one/(dx8*mddom%msfx(j,i))
       end do
     end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          !
-          ! omega in the hydrostatic model: Eqs. 2.1.7, 2.1.8 & 2.4.4
-          !
-          omega(j,i,k) = d_half*sfs%psa(j,i)*(qdot(j,i,k+1)+qdot(j,i,k)) + &
-                      hsigma(k)*(pten(j,i)+                         &
-                     ((atmx%u(j,i,k)    +atmx%u(j,i+1,k)+           &
-                       atmx%u(j+1,i+1,k)+atmx%u(j+1,i,k))*          &
-                     (sfs%psa(j+1,i)-sfs%psa(j-1,i))+               &
-                     (atmx%v(j,i,k)    +atmx%v(j,i+1,k)+            &
-                      atmx%v(j+1,i+1,k)+atmx%v(j+1,i,k))*           &
-                     (sfs%psa(j,i+1)-sfs%psa(j,i-1)))*dummy(j,i))
+    omega(:,:,:) = d_zero
+    if ( idynamic == 1 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            !
+            ! omega in the hydrostatic model: Eqs. 2.1.7, 2.1.8 & 2.4.4
+            !
+            omega(j,i,k) = d_half*sfs%psa(j,i)*(qdot(j,i,k+1)+qdot(j,i,k)) + &
+                        hsigma(k)*(pten(j,i)+                         &
+                       ((atmx%u(j,i,k)    +atmx%u(j,i+1,k)+           &
+                         atmx%u(j+1,i+1,k)+atmx%u(j+1,i,k))*          &
+                       (sfs%psa(j+1,i)-sfs%psa(j-1,i))+               &
+                       (atmx%v(j,i,k)    +atmx%v(j,i+1,k)+            &
+                        atmx%v(j+1,i+1,k)+atmx%v(j+1,i,k))*           &
+                       (sfs%psa(j,i+1)-sfs%psa(j,i-1)))*dummy(j,i))
+          end do
         end do
       end do
-    end do
+    else if ( idynamic == 2 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            !
+            ! omega in the non-hydrostatic model: ??????????????????
+            !
+            omega(j,i,k) = d_half*sfs%psa(j,i)*(qdot(j,i,k+1)+qdot(j,i,k)) ! + &
+                ! dp'/dt ????????????????
+          end do
+        end do
+      end do
+    end if
     !
     ! Prepare fields to be used in physical parametrizations.
     !
@@ -432,7 +446,7 @@ module mod_tendency
       call nudge(ba_cr,xbctime,sfs%psb,iboudy,xpsb,pten)
     end if
     !
-    ! psc : forecast pressure
+    ! psc : forecast pressure ?????? Non-hydrostatic ??????
     !
     if ( idynamic == 1 ) then
       do i = ici1 , ici2
@@ -440,49 +454,50 @@ module mod_tendency
           sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
         end do
       end do
-    else if ( idynamic == 2 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          sfs%psc(j,i) = sfs%psb(j,i)
+      if ( ma%has_bdyleft ) then
+        do i = ici1 , ici2
+          sfs%psc(jce1,i) = sfs%psb(jce1,i) + xpsb%bt(jce1,i)*dt
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do i = ici1 , ici2
+          sfs%psc(jce2,i) = sfs%psb(jce2,i) + xpsb%bt(jce2,i)*dt
+        end do
+      end if
+      if ( ma%has_bdybottom ) then
+        do j = jce1 , jce2
+          sfs%psc(j,ice1) = sfs%psb(j,ice1) + xpsb%bt(j,ice1)*dt
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do j = jce1 , jce2
+          sfs%psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
+        end do
+      end if
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          rpsc(j,i) = d_one/sfs%psc(j,i)
         end do
       end do
-    end if
-    if ( ma%has_bdyleft ) then
-      do i = ici1 , ici2
-        sfs%psc(jce1,i) = sfs%psb(jce1,i) + xpsb%bt(jce1,i)*dt
-      end do
-    end if
-    if ( ma%has_bdyright ) then
-      do i = ici1 , ici2
-        sfs%psc(jce2,i) = sfs%psb(jce2,i) + xpsb%bt(jce2,i)*dt
-      end do
-    end if
-    if ( ma%has_bdybottom ) then
-      do j = jce1 , jce2
-        sfs%psc(j,ice1) = sfs%psb(j,ice1) + xpsb%bt(j,ice1)*dt
-      end do
-    end if
-    if ( ma%has_bdytop ) then
-      do j = jce1 , jce2
-        sfs%psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
-      end do
-    end if
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        rpsc(j,i) = d_one/sfs%psc(j,i)
-      end do
-    end do
-    !
-    ! compute bleck (1977) noise parameters:
-    !
-    if ( idynamic == 1 .and. ktau /= 0 ) then
-      ptntot = d_zero
-      pt2tot = d_zero
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ptntot = ptntot + dabs(pten(j,i))
-          pt2tot = pt2tot + dabs((sfs%psc(j,i)+sfs%psb(j,i)- &
-                   d_two*sfs%psa(j,i))/(dt*dt*d_rfour))
+      !
+      ! compute bleck (1977) noise parameters:
+      !
+      if ( ktau /= 0 ) then
+        ptntot = d_zero
+        pt2tot = d_zero
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ptntot = ptntot + dabs(pten(j,i))
+            pt2tot = pt2tot + dabs((sfs%psc(j,i)+sfs%psb(j,i)- &
+                     d_two*sfs%psa(j,i))/(dt*dt*d_rfour))
+          end do
+        end do
+      end if
+    else if ( idynamic == 2 ) then
+      ! ???????????????????????????
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          sfs%psc(j,i) = sfs%psb(j,i)
         end do
       end do
     end if

@@ -157,12 +157,12 @@ module mod_slice
     !
     ! compute the height at full (za) and half (zq) sigma levels:
     !
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        atms%zq(j,i,kzp1) = d_zero
-      end do
-    end do
     if ( idynamic == 1 ) then
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atms%zq(j,i,kzp1) = d_zero
+        end do
+      end do
       do k = kz , 1 , -1
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -181,36 +181,14 @@ module mod_slice
         end do
       end do
     else
-      do k = 1 , kz-1
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atms%dzq(j,i,k) = log(atm0%pr(j,i,k+1)/atm0%pr(j,i,k)) * &
-              rovg*d_half*(atm0%t(j,i,k)+atm0%t(j,i,k+1))
-          end do
-        end do
-      end do
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atms%dzq(j,i,kz) = atms%dzq(j,i,kz-1)
-        end do
-      end do
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atms%zq(j,i,kzp1) = d_zero
-        end do
-      end do
-      do k = kz , 1 , -1
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atms%zq(j,i,k) = atms%zq(j,i,k+1) + atms%dzq(j,i,k)
-          end do
-        end do
-      end do
-      do k = kz , 1 , -1
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atms%za(j,i,k) = d_half*(atms%zq(j,i,k)+atms%zq(j,i,k+1))
-          end do
+      dpsdxm(:,:) = d_zero
+      dpsdym(:,:) = d_zero
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          dpsdxm(j,i) = (sfs%psb(j+1,i) - sfs%psb(j-1,i)) / &
+                        (sfs%psb(j,i)*dx8*mddom%msfx(j,i))
+          dpsdym(j,i) = (sfs%psb(j,i+1) - sfs%psb(j,i-1)) / &
+                        (sfs%psb(j,i)*dx8*mddom%msfx(j,i))
         end do
       end do
     end if
@@ -239,19 +217,6 @@ module mod_slice
           do j = jce1 , jce2
             atms%tkeb3d(j,i,k) = atm2%tke(j,i,k)*rpsb(j,i)
           end do
-        end do
-      end do
-    end if
-
-    if ( idynamic == 2 ) then
-      dpsdxm(:,:) = d_zero
-      dpsdym(:,:) = d_zero
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          dpsdxm(j,i) = (sfs%psb(j+1,i) - sfs%psb(j-1,i)) / &
-                        (sfs%psb(j,i)*dx8*mddom%msfx(j,i))
-          dpsdym(j,i) = (sfs%psb(j,i+1) - sfs%psb(j,i-1)) / &
-                        (sfs%psb(j,i)*dx8*mddom%msfx(j,i))
         end do
       end do
     end if

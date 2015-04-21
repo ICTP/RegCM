@@ -2009,10 +2009,43 @@ module mod_params
       subroutine make_reference_atmosphere
         use mod_nhinterp
         implicit none
+        integer(ik4) :: i , j , k
         call nhsetup(ptop,stdp,stdt,logp_lrate,mddom%ht,.true.)
         call nhbase(ice1,ice2,jce1,jce2,kz,hsigma, &
                     atm0%ps,atm0%pr,atm0%t,atm0%rho)
         call exchange(atm0%ps,1,jce1,jce2,ice1,ice2)
+        do k = 1 , kz-1
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              atms%dzq(j,i,k) = log(atm0%pr(j,i,k+1)/atm0%pr(j,i,k)) * &
+                rovg*d_half*(atm0%t(j,i,k)+atm0%t(j,i,k+1))
+            end do
+          end do
+        end do
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atms%dzq(j,i,kz) = atms%dzq(j,i,kz-1)
+          end do
+        end do
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atms%zq(j,i,kzp1) = d_zero
+          end do
+        end do
+        do k = kz , 1 , -1
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              atms%zq(j,i,k) = atms%zq(j,i,k+1) + atms%dzq(j,i,k)
+            end do
+          end do
+        end do
+        do k = kz , 1 , -1
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              atms%za(j,i,k) = d_half*(atms%zq(j,i,k)+atms%zq(j,i,k+1))
+            end do
+          end do
+        end do
       end subroutine make_reference_atmosphere
 
       subroutine compute_full_coriolis_coefficients
