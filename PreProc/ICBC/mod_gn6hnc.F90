@@ -1671,7 +1671,7 @@ module mod_gn6hnc
                     trim(gfdlvars(i)), trim(gfdlbase1)//trim(gfdlbase3), &
                     2001, '010100-', 2005, '123123.nc'
                 else
-                  write (inname,99005) ('RCP'//dattyp(4:4)//'.'//dattyp(5:5)), &
+                  write (inname,99005) ('RCP'//dattyp(4:5)), &
                     pthsep, trim(gfdlvars(i)), pthsep, trim(gfdlvars(i)), &
                     trim(gfdlbase2)//dattyp(4:5)//trim(gfdlbase3), &
                     y1, '010100-', y2, '123123.nc'
