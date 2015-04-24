@@ -99,11 +99,7 @@ module mod_ein
     !
     call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    if ( i_band == 1 ) then
-      call p1p2_band(b3pd,ps4,jx,iy)
-    else
-      call p1p2(b3pd,ps4,jx,iy)
-    end if
+    call crs2dot(pd4,ps4,jx,iy,i_band)
     !
     ! Interpolation from pressure levels
     !
@@ -112,8 +108,8 @@ module mod_ein
     !
     ! Interpolate U, V, T, and Q.
     !
-    call intv1(u4,u3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,klev)
-    call intv1(v4,v3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,klev)
     call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,klev)
     call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,klev)
     !

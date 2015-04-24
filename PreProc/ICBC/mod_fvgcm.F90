@@ -261,24 +261,17 @@ module mod_fvgcm
     call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,nlev)
 
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    if(i_band == 1) then
-      call p1p2_band(b3pd,ps4,jx,iy)
-    else
-      call p1p2(b3pd,ps4,jx,iy)
-    endif
+    call crs2dot(pd4,ps4,jx,iy,i_band)
 
     call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nlev)
 
     call readsst(ts4,idate)
 
-    call intv1(u4,u3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,nlev)
-    call intv1(v4,v3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,nlev)
-
+    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,nlev)
+    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,nlev)
     call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,nlev)
-
     call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,nlev)
     call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
-    call hydrost(h4,t4,topogm,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine getfvgcm
 
   subroutine headerfv

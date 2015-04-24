@@ -34,7 +34,7 @@ module mod_grid
   real(rk8) , public , pointer , dimension(:,:) :: topogm , mask , landuse
   real(rk8) , public , pointer , dimension(:,:) :: msfx
   real(rk8) , public , pointer , dimension(:,:) :: pa , tlayer , za
-  real(rk8) , public , pointer , dimension(:,:) :: b3pd
+  real(rk8) , public , pointer , dimension(:,:) :: pd4
   real(rk8) , public , pointer , dimension(:) :: sigmah
   real(rk8) , public , pointer , dimension(:) :: sigmaf
   real(rk8) , public , pointer , dimension(:) :: dsigma
@@ -65,7 +65,7 @@ module mod_grid
     call getmem2d(pa,1,nx,1,ny,'mod_grid:pa')
     call getmem2d(tlayer,1,nx,1,ny,'mod_grid:tlayer')
     call getmem2d(za,1,nx,1,ny,'mod_grid:za')
-    call getmem2d(b3pd,1,nx,1,ny,'mod_grid:b3pd')
+    call getmem2d(pd4,1,nx,1,ny,'mod_grid:pd4')
     call getmem1d(sigmah,1,nz,'mod_grid:sigmah')
     call getmem1d(sigmaf,1,nz+1,'mod_grid:sigmaf')
     call getmem1d(dsigma,1,nz,'mod_write:dsigma')

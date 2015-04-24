@@ -39,21 +39,22 @@ module mod_interp
 
   integer(ik4) :: imxmn = 0
   integer(ik4) :: lcross = 0
-  integer(ik4) , dimension(2) :: ldot = (/0,0/)
+  integer(ik4) :: ldot = 0
 
   real(rk8) , parameter :: deg720 = d_two*deg360
   real(rk8) , parameter :: missl = -9999.0D0
   real(rk8) , parameter :: missc = -9990.0D0
-  real(rk8) , parameter :: mindist = 0.01D0
-  real(rk8) , parameter :: p_factor = 2.0D0
+  real(rk8) , parameter :: mindist = 1.0D-6
+  real(rk8) , parameter :: p_factor = 2.00D0
 
   real(rk8) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
-  real(rk8) , pointer , dimension(:,:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
-  integer(ik4) , pointer, dimension(:,:) :: ic1dl , ic1dr , ic1ul , ic1ur , &
+  real(rk8) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
+  integer(ik4) , pointer , dimension(:,:) :: ic1dl , ic1dr , ic1ul , ic1ur , &
                                        jc1dl , jc1dr , jc1ul , jc1ur
-  integer(ik4) , pointer, dimension(:,:,:) :: id1dl , id1dr , id1ul , id1ur , &
+  integer(ik4) , pointer , dimension(:,:) :: id1dl , id1dr , id1ul , id1ur , &
                                        jd1dl , jd1dr , jd1ul , jd1ur
-  logical :: lonwrap = .false. , latpole = .false.
+  logical :: lonwrap = .false.
+  logical :: latpole = .false.
 
   interface bilinx2
     module procedure bilinx2_2d
@@ -446,6 +447,221 @@ module mod_interp
     end do
   end subroutine bilinx2_2d
 
+  subroutine compwgt(alon,alat,glon,glat,d1xa,d1xb,d1xc,d1xd, &
+                     i1dl,i1dr,i1ul,i1ur,j1dl,j1dr,j1ul,j1ur, &
+                     jx,iy,nlon,nlat)
+    integer(ik4) , intent(in) :: iy , jx , nlat , nlon
+    real(rk8) , dimension(jx,iy) , intent(in) :: alat , alon
+    real(rk8) , dimension(nlon,nlat) , intent(in) :: glat , glon
+    real(rk8) , dimension(jx,iy) , intent(out) :: d1xa , d1xb , d1xc , d1xd
+    integer(ik4) , dimension(jx,iy) , intent(out) :: i1dl , i1dr , &
+      i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
+    real(rk8) :: dist , wa , wb , wc , wd , distx
+    real(rk8) , dimension(2) :: dists
+    integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
+               ndr , nul , nur , mx , nx , mm , nn
+    logical , dimension(4) :: q
+    do i = 1 , iy
+      do j = 1 , jx
+        ! Find nearest point
+        distx = 1.0D+20
+        mx = -1
+        nx = -1
+        do n = 1 , nlat
+          do m = 1 , nlon
+            dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
+            if ( dist < distx ) then
+              distx = dist
+              mx = m
+              nx = n
+            end if
+          end do
+        end do
+        ! Find dists from 4 points around this
+        !        2 | 1
+        !      ---------
+        !        3 | 4
+        q(:) = .true.
+        nn = nx
+        mm = mx + 1
+        if ( lonwrap ) then
+          if ( mm > nlon ) mm = mm - nlon
+        else
+          if ( mm > nlon ) then
+            write (stderr,*) 'EXCEEDING NLON'
+            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+            write (stderr,*) i , j , mm , nn
+            write (stderr,*) alon(j,i)
+            write (stderr,*) alat(j,i)
+            call die('compwgt')
+          end if
+        end if
+        dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+        mm = mx - 1
+        if ( lonwrap ) then
+          if ( mm < 1 ) mm = nlon - mm
+        else
+          if ( mm < 1 ) then
+            write (stderr,*) 'NLON < 1'
+            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+            write (stderr,*) i , j , mm , nn
+            write (stderr,*) alon(j,i)
+            write (stderr,*) alat(j,i)
+            call die('compwgt')
+          end if
+        end if
+        dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+        if ( dists(1) > dists(2) ) then
+          q(1) = .false.
+          q(4) = .false.
+        else
+          q(2) = .false.
+          q(3) = .false.
+        end if
+        mm = mx
+        nn = nx + 1
+        if ( latpole ) then
+          if ( nn > nlat ) nn = nlat
+        else
+          if ( nn > nlat ) then
+            write (stderr,*) 'EXCEEDING NLAT'
+            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+            write (stderr,*) i , j , mm , nn
+            write (stderr,*) alon(j,i)
+            write (stderr,*) alat(j,i)
+            call die('compwgt')
+          end if
+        end if
+        dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+        nn = nx - 1
+        if ( latpole ) then
+          if ( nn < 1 ) nn = 1
+        else
+          if ( nn < 1 ) then
+            write (stderr,*) 'NLAT < 1'
+            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+            write (stderr,*) i , j , mm , nn
+            write (stderr,*) alon(j,i)
+            write (stderr,*) alat(j,i)
+            call die('compwgt')
+          end if
+        end if
+        dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+        if ( dists(1) > dists(2) ) then
+          q(1) = .false.
+          q(2) = .false.
+        else
+          q(3) = .false.
+          q(4) = .false.
+        end if
+        if ( q(1) ) then
+          mur = mx+1
+          nur = nx+1
+          mul = mx
+          nul = nx+1
+          mdr = mx+1
+          ndr = nx
+          mdl = mx
+          ndl = nx
+        else if ( q(2) ) then
+          mur = mx
+          nur = nx+1
+          mul = mx-1
+          nul = nx+1
+          mdr = mx
+          ndr = nx
+          mdl = mx-1
+          ndl = nx
+        else if ( q(3) ) then
+          mur = mx
+          nur = nx
+          mul = mx-1
+          nul = nx
+          mdr = mx
+          ndr = nx-1
+          mdl = mx-1
+          ndl = nx-1
+        else if ( q(4) ) then
+          mur = mx+1
+          nur = nx
+          mul = mx
+          nul = nx
+          mdr = mx+1
+          ndr = nx-1
+          mdl = mx
+          ndl = nx-1
+        else
+          write (stderr,*) 'LOGIC ERROR in locating point'
+          write (stderr,*) i , j , mx , nx
+          write (stderr,*) alon(j,i)
+          write (stderr,*) alat(j,i)
+          call die('compwgt')
+        end if
+        ! Check if in a global window again
+        if ( lonwrap ) then
+          if ( mur > nlon ) mur = nlon
+          if ( mdr > nlon ) mdr = nlon
+          if ( mul < 1 ) mul = 1
+          if ( mdl < 1 ) mdl = 1
+        end if
+        if ( latpole ) then
+          if ( nur > nlat ) nur = nlat
+          if ( nul > nlat ) nul = nlat
+          if ( ndr < 1 ) ndr = 1
+          if ( ndr < 1 ) ndr = 1
+        end if
+        i1ur(j,i) = mur
+        j1ur(j,i) = nur
+        i1ul(j,i) = mul
+        j1ul(j,i) = nul
+        i1dr(j,i) = mdr
+        j1dr(j,i) = ndr
+        i1dl(j,i) = mdl
+        j1dl(j,i) = ndl
+        wa = gcdist(glat(mur,nur),glon(mur,nur),alat(j,i),alon(j,i))
+        if ( wa > mindist ) then
+          d1xa(j,i) = d_one/(wa**p_factor)
+        else
+          d1xa(j,i) = d_one
+          d1xb(j,i) = d_zero
+          d1xc(j,i) = d_zero
+          d1xd(j,i) = d_zero
+          cycle
+        end if
+        wb = gcdist(glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
+        if ( wb > mindist ) then
+          d1xb(j,i) = d_one/(wb**p_factor)
+        else
+          d1xa(j,i) = d_zero
+          d1xb(j,i) = d_one
+          d1xc(j,i) = d_zero
+          d1xd(j,i) = d_zero
+          cycle
+        end if
+        wc = gcdist(glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
+        if ( wc > mindist ) then
+          d1xc(j,i) = d_one/(wc**p_factor)
+        else
+          d1xa(j,i) = d_zero
+          d1xb(j,i) = d_zero
+          d1xc(j,i) = d_one
+          d1xd(j,i) = d_zero
+          cycle
+        end if
+        wd = gcdist(glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
+        if ( wd > mindist ) then
+          d1xd(j,i) = d_one/(wd**p_factor)
+        else
+          d1xa(j,i) = d_zero
+          d1xb(j,i) = d_zero
+          d1xc(j,i) = d_zero
+          d1xd(j,i) = d_one
+          cycle
+        end if
+      end do
+    end do
+  end subroutine compwgt
+
   subroutine distwgtcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlon
@@ -455,12 +671,10 @@ module mod_interp
     real(rk8) , dimension(nlon,nlat) :: b2
     intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
     intent (out) b3
-    real(rk8) :: dist , dista , distb , distc , distd , distx , wg
-    real(rk8) , dimension(2) :: dists
+    real(rk8) :: wa , wb , wc , wd , wg
     real(rk8) , dimension(4) :: vv
-    integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
-               ndr , nul , nur , ifound , mx , nx , mm , nn
-    logical , dimension(4) :: q
+    integer(ik4) :: i , j , mdl , mdr , mul , mur , ndl , ndr , nul , nur
+    integer(ik4) :: ifound
     !
     ! FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
     ! THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.
@@ -487,224 +701,28 @@ module mod_interp
       write (stdout,*) glonmn , alonmn , alonmx , glonmx
       write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX= '
       write (stdout,*) glatmn , alatmn , alatmx , glatmx
-      if ( glonmx - glonmn > 350.0D0 ) lonwrap   = .true.
+      if ( glonmx - glonmn > 350.0D0 ) lonwrap = .true.
       if ( glatmx - glatmn > 170.0D0 ) latpole = .true.
       imxmn = 1
     end if
     if ( lcross == 0 ) then
       write (stdout,*) 'FIRST TIME in CRESSMCR'
       write (stdout,*) 'Calculating weights.... (will take long time)'
-      if (.not. associated(ic1dl)) call getmem2d(ic1dl,1,jx,1,iy,'interp:ic1dl')
-      if (.not. associated(ic1dr)) call getmem2d(ic1dr,1,jx,1,iy,'interp:ic1dr')
-      if (.not. associated(ic1ul)) call getmem2d(ic1ul,1,jx,1,iy,'interp:ic1ul')
-      if (.not. associated(ic1ur)) call getmem2d(ic1ur,1,jx,1,iy,'interp:ic1ur')
-      if (.not. associated(jc1dl)) call getmem2d(jc1dl,1,jx,1,iy,'interp:jc1dl')
-      if (.not. associated(jc1dr)) call getmem2d(jc1dr,1,jx,1,iy,'interp:jc1dr')
-      if (.not. associated(jc1ul)) call getmem2d(jc1ul,1,jx,1,iy,'interp:jc1ul')
-      if (.not. associated(jc1ur)) call getmem2d(jc1ur,1,jx,1,iy,'interp:jc1ur')
-      if (.not. associated(dc1xa)) call getmem2d(dc1xa,1,jx,1,iy,'interp:dc1xa')
-      if (.not. associated(dc1xb)) call getmem2d(dc1xb,1,jx,1,iy,'interp:dc1xb')
-      if (.not. associated(dc1xc)) call getmem2d(dc1xc,1,jx,1,iy,'interp:dc1xc')
-      if (.not. associated(dc1xd)) call getmem2d(dc1xd,1,jx,1,iy,'interp:dc1xd')
-      do i = 1 , iy
-        do j = 1 , jx
-          ! Find nearest point
-          distx = 1.0D+20
-          mx = -1
-          nx = -1
-          do n = 1 , nlat
-            do m = 1 , nlon
-              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
-              if ( dist < distx ) then
-                distx = dist
-                mx = m
-                nx = n
-              end if
-            end do
-          end do
-          ! Find dists from 4 points around this
-          !        2 | 1
-          !      ---------
-          !        3 | 4
-          q(:) = .true.
-          nn = nx
-          mm = mx + 1
-          if ( lonwrap ) then
-            if ( mm > nlon ) mm = mm - nlon
-          else
-            if ( mm > nlon ) then
-              write (stderr,*) 'EXCEEDING NLON'
-              write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-              write (stderr,*) i , j , mm , nn
-              write (stderr,*) alon(j,i)
-              write (stderr,*) alat(j,i)
-              call die('cressmcr')
-            end if
-          end if
-          dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-          mm = mx - 1
-          if ( lonwrap ) then
-            if ( mm < 1 ) mm = nlon - mm
-          else
-            if ( mm < 1 ) then
-              write (stderr,*) 'NLON < 1'
-              write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-              write (stderr,*) i , j , mm , nn
-              write (stderr,*) alon(j,i)
-              write (stderr,*) alat(j,i)
-              call die('cressmcr')
-            end if
-          end if
-          dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-          if ( dists(1) > dists(2) ) then
-            q(1) = .false.
-            q(4) = .false.
-          else
-            q(2) = .false.
-            q(3) = .false.
-          end if
-          mm = mx
-          nn = nx + 1
-          if ( latpole ) then
-            if ( nn > nlat ) nn = nlat
-          else
-            if ( nn > nlat ) then
-              write (stderr,*) 'EXCEEDING NLAT'
-              write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-              write (stderr,*) i , j , mm , nn
-              write (stderr,*) alon(j,i)
-              write (stderr,*) alat(j,i)
-              call die('cressmcr')
-            end if
-          end if
-          dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-          nn = nx - 1
-          if ( latpole ) then
-            if ( nn < 1 ) nn = 1
-          else
-            if ( nn < 1 ) then
-              write (stderr,*) 'NLAT < 1'
-              write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-              write (stderr,*) i , j , mm , nn
-              write (stderr,*) alon(j,i)
-              write (stderr,*) alat(j,i)
-              call die('cressmcr')
-            end if
-          end if
-          dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-          if ( dists(1) > dists(2) ) then
-            q(1) = .false.
-            q(2) = .false.
-          else
-            q(3) = .false.
-            q(4) = .false.
-          end if
-          if ( q(1) ) then
-            mur = mx+1
-            nur = nx+1
-            mul = mx
-            nul = nx+1
-            mdr = mx+1
-            ndr = nx
-            mdl = mx
-            ndl = nx
-          else if ( q(2) ) then
-            mur = mx
-            nur = nx+1
-            mul = mx-1
-            nul = nx+1
-            mdr = mx
-            ndr = nx
-            mdl = mx-1
-            ndl = nx
-          else if ( q(3) ) then
-            mur = mx
-            nur = nx
-            mul = mx-1
-            nul = nx
-            mdr = mx
-            ndr = nx-1
-            mdl = mx-1
-            ndl = nx-1
-          else if ( q(4) ) then
-            mur = mx+1
-            nur = nx
-            mul = mx
-            nul = nx
-            mdr = mx+1
-            ndr = nx-1
-            mdl = mx
-            ndl = nx-1
-          else
-            write (stderr,*) 'LOGIC ERROR in locating point'
-            write (stderr,*) i , j , mx , nx
-            write (stderr,*) alon(j,i)
-            write (stderr,*) alat(j,i)
-            call die('cressmcr')
-          end if
-          ! Check if in a global window again
-          if ( lonwrap ) then
-            if ( mur > nlon ) mur = nlon
-            if ( mdr > nlon ) mdr = nlon
-            if ( mul < 1 ) mul = 1
-            if ( mdl < 1 ) mdl = 1
-          end if
-          if ( latpole ) then
-            if ( nur > nlat ) nur = nlat
-            if ( nul > nlat ) nul = nlat
-            if ( ndr < 1 ) ndr = 1
-            if ( ndr < 1 ) ndr = 1
-          end if
-          ic1ur(j,i) = mur
-          jc1ur(j,i) = nur
-          ic1ul(j,i) = mul
-          jc1ul(j,i) = nul
-          ic1dr(j,i) = mdr
-          jc1dr(j,i) = ndr
-          ic1dl(j,i) = mdl
-          jc1dl(j,i) = ndl
-          dista = gcdist(glat(mur,nur),glon(mur,nur),alat(j,i),alon(j,i))
-          if ( dista > mindist ) then
-            dc1xa(j,i) = d_one/(dista**p_factor)
-          else
-            dc1xa(j,i) = -d_one
-            dc1xb(j,i) = d_zero
-            dc1xc(j,i) = d_zero
-            dc1xd(j,i) = d_zero
-            cycle
-          end if
-          distb = gcdist(glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
-          if ( distb > mindist ) then
-            dc1xb(j,i) = d_one/(distb**p_factor)
-          else
-            dc1xa(j,i) = d_zero
-            dc1xb(j,i) = -d_one
-            dc1xc(j,i) = d_zero
-            dc1xd(j,i) = d_zero
-            cycle
-          end if
-          distc = gcdist(glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
-          if ( distc > mindist ) then
-            dc1xc(j,i) = d_one/(distc**p_factor)
-          else
-            dc1xa(j,i) = d_zero
-            dc1xb(j,i) = d_zero
-            dc1xc(j,i) = -d_one
-            dc1xd(j,i) = d_zero
-            cycle
-          end if
-          distd = gcdist(glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
-          if ( distd > mindist ) then
-            dc1xd(j,i) = d_one/(distd**p_factor)
-          else
-            dc1xa(j,i) = d_zero
-            dc1xb(j,i) = d_zero
-            dc1xc(j,i) = d_zero
-            dc1xd(j,i) = -d_one
-            cycle
-          end if
-        end do
-      end do
+      if (.not. associated(ic1dl)) call getmem2d(ic1dl,1,jx,1,iy,'ic1dl')
+      if (.not. associated(ic1dr)) call getmem2d(ic1dr,1,jx,1,iy,'ic1dr')
+      if (.not. associated(ic1ul)) call getmem2d(ic1ul,1,jx,1,iy,'ic1ul')
+      if (.not. associated(ic1ur)) call getmem2d(ic1ur,1,jx,1,iy,'ic1ur')
+      if (.not. associated(jc1dl)) call getmem2d(jc1dl,1,jx,1,iy,'jc1dl')
+      if (.not. associated(jc1dr)) call getmem2d(jc1dr,1,jx,1,iy,'jc1dr')
+      if (.not. associated(jc1ul)) call getmem2d(jc1ul,1,jx,1,iy,'jc1ul')
+      if (.not. associated(jc1ur)) call getmem2d(jc1ur,1,jx,1,iy,'jc1ur')
+      if (.not. associated(dc1xa)) call getmem2d(dc1xa,1,jx,1,iy,'dc1xa')
+      if (.not. associated(dc1xb)) call getmem2d(dc1xb,1,jx,1,iy,'dc1xb')
+      if (.not. associated(dc1xc)) call getmem2d(dc1xc,1,jx,1,iy,'dc1xc')
+      if (.not. associated(dc1xd)) call getmem2d(dc1xd,1,jx,1,iy,'dc1xd')
+      call compwgt(alon,alat,glon,glat,dc1xa,dc1xb,dc1xc,dc1xd, &
+                   ic1dl,ic1dr,ic1ul,ic1ur,jc1dl,jc1dr,jc1ul,jc1ur, &
+                   jx,iy,nlon,nlat)
       write (stdout,*) 'Done.'
       lcross = 1
     end if
@@ -719,52 +737,32 @@ module mod_interp
         ndr = jc1dr(j,i)
         mdl = ic1dl(j,i)
         ndl = jc1dl(j,i)
-        dista = dc1xa(j,i)
-        if ( dista < 0.0D0 ) then
-          if ( b2(mur,nur) <= missc ) cycle
-          b3(j,i) = b2(mur,nur)
-          cycle
-        end if
-        distb = dc1xb(j,i)
-        if ( distb < 0.0D0 ) then
-          if ( b2(mul,nul) <= missc ) cycle
-          b3(j,i) = b2(mul,nul)
-          cycle
-        end if
-        distc = dc1xc(j,i)
-        if ( distc < 0.0D0 ) then
-          if ( b2(mdr,ndr) <= missc ) cycle
-          b3(j,i) = b2(mdr,ndr)
-          cycle
-        end if
-        distd = dc1xd(j,i)
-        if ( distd < 0.0D0 ) then
-          if ( b2(mdl,ndl) <= missc ) cycle
-          b3(j,i) = b2(mdl,ndl)
-          cycle
-        end if
+        wa = dc1xa(j,i)
+        wb = dc1xb(j,i)
+        wc = dc1xc(j,i)
+        wd = dc1xd(j,i)
         ifound = 0
         wg = d_zero
         vv(:) = d_zero
         if ( b2(mur,nur) > missc ) then
           ifound = ifound + 1
-          vv(ifound) = b2(mur,nur)*dista
-          wg = wg + dista
+          vv(ifound) = b2(mur,nur)*wa
+          wg = wg + wa
         end if
         if ( b2(mul,nul) > missc ) then
           ifound = ifound + 1
-          vv(ifound) = b2(mul,nul)*distb
-          wg = wg + distb
+          vv(ifound) = b2(mul,nul)*wb
+          wg = wg + wb
         end if
         if ( b2(mdr,ndr) > missc ) then
           ifound = ifound + 1
-          vv(ifound) = b2(mdr,ndr)*distc
-          wg = wg + distc
+          vv(ifound) = b2(mdr,ndr)*wc
+          wg = wg + wc
         end if
         if ( b2(mdl,ndl) > missc ) then
           ifound = ifound + 1
-          vv(ifound) = b2(mdl,ndl)*distd
-          wg = wg + distd
+          vv(ifound) = b2(mdl,ndl)*wd
+          wg = wg + wd
         end if
         if ( ifound /= 0 ) then
           b3(j,i) = sum(vv(1:ifound))/wg
@@ -773,22 +771,19 @@ module mod_interp
     end do
   end subroutine distwgtcr
 
-  subroutine distwgtdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,idd)
+  subroutine distwgtdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlon
     real(rk8) , dimension(jx,iy) :: alat , alon
     real(rk8) , dimension(jx,iy) :: b3
     real(rk8) , dimension(nlon,nlat) :: glat , glon
     real(rk8) , dimension(nlon,nlat) :: b2
-    integer , intent(in) , optional :: idd
     intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
     intent (out) b3
-    real(rk8) :: dist , dista , distb , distc , distd , distx , wg
-    real(rk8) , dimension(2) :: dists
+    real(rk8) :: wa , wb , wc , wd , wg
     real(rk8) , dimension(4) :: vv
-    integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
-               ndr , nul , nur , ifound , mx , nx , mm , nn , idx
-    logical , dimension(4) :: q
+    integer(ik4) :: i , j , mdl , mdr , mul , mur , ndl , ndr , nul , nur
+    integer(ik4) :: ifound
     !
     ! FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
     ! THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.
@@ -802,8 +797,6 @@ module mod_interp
     !
     ! Find the Minimum and Maximum of GLON, GLAT, ALON and ALAT
     !
-    idx = 1
-    if ( present(idd) ) idx = idd
     if ( imxmn == 0 ) then
       glonmx = maxval(glon)
       glonmn = minval(glon)
@@ -817,286 +810,68 @@ module mod_interp
       write (stdout,*) glonmn , alonmn , alonmx , glonmx
       write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX= '
       write (stdout,*) glatmn , alatmn , alatmx , glatmx
-      if ( glonmx - glonmn > 350.0D0 ) lonwrap   = .true.
+      if ( glonmx - glonmn > 350.0D0 ) lonwrap = .true.
       if ( glatmx - glatmn > 170.0D0 ) latpole = .true.
       imxmn = 1
     end if
-    if ( ldot(idx) == 0 ) then
+    if ( ldot == 0 ) then
       write (stdout,*) 'FIRST TIME in CRESSMDT'
       write (stdout,*) 'Calculating weights.... (will take long time)'
-      if (.not. associated(id1dl)) call getmem3d(id1dl,1,jx,1,iy,1,2,'id1dl')
-      if (.not. associated(id1dr)) call getmem3d(id1dr,1,jx,1,iy,1,2,'id1dr')
-      if (.not. associated(id1ul)) call getmem3d(id1ul,1,jx,1,iy,1,2,'id1ul')
-      if (.not. associated(id1ur)) call getmem3d(id1ur,1,jx,1,iy,1,2,'id1ur')
-      if (.not. associated(jd1dl)) call getmem3d(jd1dl,1,jx,1,iy,1,2,'jd1dl')
-      if (.not. associated(jd1dr)) call getmem3d(jd1dr,1,jx,1,iy,1,2,'jd1dr')
-      if (.not. associated(jd1ul)) call getmem3d(jd1ul,1,jx,1,iy,1,2,'jd1ul')
-      if (.not. associated(jd1ur)) call getmem3d(jd1ur,1,jx,1,iy,1,2,'jd1ur')
-      if (.not. associated(dd1xa)) call getmem3d(dd1xa,1,jx,1,iy,1,2,'dd1xa')
-      if (.not. associated(dd1xb)) call getmem3d(dd1xb,1,jx,1,iy,1,2,'dd1xb')
-      if (.not. associated(dd1xc)) call getmem3d(dd1xc,1,jx,1,iy,1,2,'dd1xc')
-      if (.not. associated(dd1xd)) call getmem3d(dd1xd,1,jx,1,iy,1,2,'dd1xd')
-      do i = 1 , iy
-        do j = 1 , jx
-          ! Find nearest point
-          distx = 1.0D+20
-          mx = -1
-          nx = -1
-          do n = 1 , nlat
-            do m = 1 , nlon
-              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
-              if ( dist < distx ) then
-                distx = dist
-                mx = m
-                nx = n
-              end if
-            end do
-          end do
-          ! Find dists from 4 points around this
-          !        2 | 1
-          !      ---------
-          !        3 | 4
-          q(:) = .true.
-          mm = mx + 1
-          nn = nx
-          if ( lonwrap ) then
-            if ( mm > nlon ) mm = mm - nlon
-          else
-            if ( mm > nlon ) then
-              write (stderr,*) 'EXCEEDING NLON'
-              write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-              write (stderr,*) i , j , mm , nn
-              write (stderr,*) alon(j,i)
-              write (stderr,*) alat(j,i)
-              call die('cressmcr')
-            end if
-          end if
-          dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-          mm = mx - 1
-          nn = nx
-          if ( lonwrap ) then
-            if ( mm < 1 ) mm = nlon - mm
-          else
-            if ( mm < 1 ) then
-              write (stderr,*) 'NLON < 1'
-              write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-              write (stderr,*) i , j , mm , nn
-              write (stderr,*) alon(j,i)
-              write (stderr,*) alat(j,i)
-              call die('cressmcr')
-            end if
-          end if
-          dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-          if ( dists(1) >= dists(2) ) then
-            q(1) = .false.
-            q(4) = .false.
-          else
-            q(2) = .false.
-            q(3) = .false.
-          end if
-          mm = mx
-          nn = nx + 1
-          if ( latpole ) then
-            if ( nn > nlat ) nn = nlat
-          else
-            if ( nn > nlat ) then
-              write (stderr,*) 'EXCEEDING NLAT'
-              write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-              write (stderr,*) i , j , mm , nn
-              write (stderr,*) alon(j,i)
-              write (stderr,*) alat(j,i)
-              call die('cressmcr')
-            end if
-          end if
-          dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-          mm = mx
-          nn = nx - 1
-          if ( latpole ) then
-            if ( nn < 1 ) nn = 1
-          else
-            if ( nn < 1 ) then
-              write (stderr,*) 'NLAT < 1'
-              write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-              write (stderr,*) i , j , mm , nn
-              write (stderr,*) alon(j,i)
-              write (stderr,*) alat(j,i)
-              call die('cressmcr')
-            end if
-          end if
-          dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-          if ( dists(1) >= dists(2) ) then
-            q(1) = .false.
-            q(2) = .false.
-          else
-            q(3) = .false.
-            q(4) = .false.
-          end if
-          if ( q(1) ) then
-            mur = mx+1
-            nur = nx+1
-            mul = mx
-            nul = nx+1
-            mdr = mx+1
-            ndr = nx
-            mdl = mx
-            ndl = nx
-          else if ( q(2) ) then
-            mur = mx
-            nur = nx+1
-            mul = mx-1
-            nul = nx+1
-            mdr = mx
-            ndr = nx
-            mdl = mx-1
-            ndl = nx
-          else if ( q(3) ) then
-            mur = mx
-            nur = nx
-            mul = mx-1
-            nul = nx
-            mdr = mx
-            ndr = nx-1
-            mdl = mx-1
-            ndl = nx-1
-          else if ( q(4) ) then
-            mur = mx+1
-            nur = nx
-            mul = mx
-            nul = nx
-            mdr = mx+1
-            ndr = nx-1
-            mdl = mx
-            ndl = nx-1
-          else
-            write (stderr,*) 'LOGIC ERROR in locating point'
-            write (stderr,*) i , j , mx , nx
-            write (stderr,*) alon(j,i)
-            write (stderr,*) alat(j,i)
-            call die('cressmdt')
-          end if
-          ! Check if in a global window again
-          if ( lonwrap ) then
-            if ( mur > nlon ) mur = nlon
-            if ( mdr > nlon ) mdr = nlon
-            if ( mul < 1 ) mul = 1
-            if ( mdl < 1 ) mdl = 1
-          end if
-          if ( latpole ) then
-            if ( nur > nlat ) nur = nlat
-            if ( nul > nlat ) nul = nlat
-            if ( ndr < 1 ) ndr = 1
-            if ( ndr < 1 ) ndr = 1
-          end if
-          id1ur(j,i,idx) = mur
-          jd1ur(j,i,idx) = nur
-          id1ul(j,i,idx) = mul
-          jd1ul(j,i,idx) = nul
-          id1dr(j,i,idx) = mdr
-          jd1dr(j,i,idx) = ndr
-          id1dl(j,i,idx) = mdl
-          jd1dl(j,i,idx) = ndl
-          dista = gcdist(glat(mur,nur),glon(mur,nur),alat(j,i),alon(j,i))
-          if ( dista > mindist ) then
-            dd1xa(j,i,idx) = d_one/(dista**p_factor)
-          else
-            dd1xa(j,i,idx) = -d_one
-            dd1xb(j,i,idx) = d_zero
-            dd1xc(j,i,idx) = d_zero
-            dd1xd(j,i,idx) = d_zero
-            cycle
-          end if
-          distb = gcdist(glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
-          if ( distb > mindist ) then
-            dd1xb(j,i,idx) = d_one/(distb**p_factor)
-          else
-            dd1xa(j,i,idx) = d_zero
-            dd1xb(j,i,idx) = -d_one
-            dd1xc(j,i,idx) = d_zero
-            dd1xd(j,i,idx) = d_zero
-            cycle
-          end if
-          distc = gcdist(glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
-          if ( distc > mindist ) then
-            dd1xc(j,i,idx) = d_one/(distc**p_factor)
-          else
-            dd1xa(j,i,idx) = d_zero
-            dd1xb(j,i,idx) = d_zero
-            dd1xc(j,i,idx) = -d_one
-            dd1xd(j,i,idx) = d_zero
-            cycle
-          end if
-          distd = gcdist(glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
-          if ( distd > mindist ) then
-            dd1xd(j,i,idx) = d_one/(distd**p_factor)
-          else
-            dd1xa(j,i,idx) = d_zero
-            dd1xb(j,i,idx) = d_zero
-            dd1xc(j,i,idx) = d_zero
-            dd1xd(j,i,idx) = -d_one
-            cycle
-          end if
-        end do
-      end do
+      if (.not. associated(id1dl)) call getmem2d(id1dl,1,jx,1,iy,'id1dl')
+      if (.not. associated(id1dr)) call getmem2d(id1dr,1,jx,1,iy,'id1dr')
+      if (.not. associated(id1ul)) call getmem2d(id1ul,1,jx,1,iy,'id1ul')
+      if (.not. associated(id1ur)) call getmem2d(id1ur,1,jx,1,iy,'id1ur')
+      if (.not. associated(jd1dl)) call getmem2d(jd1dl,1,jx,1,iy,'jd1dl')
+      if (.not. associated(jd1dr)) call getmem2d(jd1dr,1,jx,1,iy,'jd1dr')
+      if (.not. associated(jd1ul)) call getmem2d(jd1ul,1,jx,1,iy,'jd1ul')
+      if (.not. associated(jd1ur)) call getmem2d(jd1ur,1,jx,1,iy,'jd1ur')
+      if (.not. associated(dd1xa)) call getmem2d(dd1xa,1,jx,1,iy,'dd1xa')
+      if (.not. associated(dd1xb)) call getmem2d(dd1xb,1,jx,1,iy,'dd1xb')
+      if (.not. associated(dd1xc)) call getmem2d(dd1xc,1,jx,1,iy,'dd1xc')
+      if (.not. associated(dd1xd)) call getmem2d(dd1xd,1,jx,1,iy,'dd1xd')
+      call compwgt(alon,alat,glon,glat,dd1xa,dd1xb,dd1xc,dd1xd, &
+                   id1dl,id1dr,id1ul,id1ur,jd1dl,jd1dr,jd1ul,jd1ur, &
+                   jx,iy,nlon,nlat)
       write (stdout,*) 'Done.'
       ldot = 1
     end if
     b3(:,:) = missl
     do i = 1 , iy
       do j = 1 , jx
-        mur = id1ur(j,i,idx)
-        nur = jd1ur(j,i,idx)
-        mul = id1ul(j,i,idx)
-        nul = jd1ul(j,i,idx)
-        mdr = id1dr(j,i,idx)
-        ndr = jd1dr(j,i,idx)
-        mdl = id1dl(j,i,idx)
-        ndl = jd1dl(j,i,idx)
-        dista = dd1xa(j,i,idx)
-        if ( dista < 0.0 ) then
-          if ( b2(mur,nur) <= missc ) cycle
-          b3(j,i) = b2(mur,nur)
-          cycle
-        end if
-        distb = dd1xb(j,i,idx)
-        if ( distb < 0.0 ) then
-          if ( b2(mul,nul) <= missc ) cycle
-          b3(j,i) = b2(mul,nul)
-          cycle
-        end if
-        distc = dd1xc(j,i,idx)
-        if ( distc < 0.0 ) then
-          if ( b2(mdr,ndr) <= missc ) cycle
-          b3(j,i) = b2(mdr,ndr)
-          cycle
-        end if
-        distd = dd1xd(j,i,idx)
-        if ( distd < 0.0 ) then
-          if ( b2(mdl,ndl) <= missc ) cycle
-          b3(j,i) = b2(mdl,ndl)
-          cycle
-        end if
+        mur = id1ur(j,i)
+        nur = jd1ur(j,i)
+        mul = id1ul(j,i)
+        nul = jd1ul(j,i)
+        mdr = id1dr(j,i)
+        ndr = jd1dr(j,i)
+        mdl = id1dl(j,i)
+        ndl = jd1dl(j,i)
+        wa = dd1xa(j,i)
+        wb = dd1xb(j,i)
+        wc = dd1xc(j,i)
+        wd = dd1xd(j,i)
         ifound = 0
         wg = d_zero
         vv(:) = d_zero
         if ( b2(mur,nur) > missc ) then
           ifound = ifound + 1
-          vv(ifound) = b2(mur,nur)*dista
-          wg = wg + dista
+          vv(ifound) = b2(mur,nur)*wa
+          wg = wg + wa
         end if
         if ( b2(mul,nul) > missc ) then
           ifound = ifound + 1
-          vv(ifound) = b2(mul,nul)*distb
-          wg = wg + distb
+          vv(ifound) = b2(mul,nul)*wb
+          wg = wg + wb
         end if
         if ( b2(mdr,ndr) > missc ) then
           ifound = ifound + 1
-          vv(ifound) = b2(mdr,ndr)*distc
-          wg = wg + distc
+          vv(ifound) = b2(mdr,ndr)*wc
+          wg = wg + wc
         end if
         if ( b2(mdl,ndl) > missc ) then
           ifound = ifound + 1
-          vv(ifound) = b2(mdl,ndl)*distd
-          wg = wg + distd
+          vv(ifound) = b2(mdl,ndl)*wd
+          wg = wg + wd
         end if
         if ( ifound /= 0 ) then
           b3(j,i) = sum(vv(1:ifound))/wg
@@ -1145,7 +920,7 @@ module mod_interp
     end do
   end subroutine cressmdt
 
-  real(rk8) function gcdist(lat1,lon1,lat2,lon2)
+  real(rk8) function gcdist_simple(lat1,lon1,lat2,lon2)
     implicit none
     real(rk8) , intent(in) :: lat1 , lon1 , lat2, lon2
     real(rk8) :: clat1 , slat1 , clat2 , slat2 , cdlon , crd
@@ -1156,8 +931,26 @@ module mod_interp
     cdlon = cos((lon1-lon2)*degrad)
     crd   = slat1*slat2+clat1*clat2*cdlon
     ! Have it in km to avoid numerical problems :)
-    gcdist = earthrad*acos(crd)*d_r1000
+    gcdist_simple = earthrad*acos(crd)*d_r1000
+  end function gcdist_simple
+
+  real(rk8) function gcdist(lat1,lon1,lat2,lon2)
+    implicit none
+    real(rk8) , intent(in) :: lat1 , lon1 , lat2, lon2
+    real(rk8) :: clat1 , slat1 , clat2 , slat2 , cdlon , sdlon
+    real(rk8) :: y , x
+    clat1 = cos(lat1*degrad)
+    slat1 = sin(lat1*degrad)
+    clat2 = cos(lat2*degrad)
+    slat2 = sin(lat2*degrad)
+    cdlon = cos((lon1-lon2)*degrad)
+    sdlon = sin((lon1-lon2)*degrad)
+    y = sqrt((clat2*sdlon)**2+(clat1*slat2-slat1*clat2*cdlon)**2)
+    x = slat1*slat2+clat1*clat2*cdlon
+    ! Have it in km to avoid numerical problems :)
+    gcdist = earthrad*atan2(y,x)*d_r1000
   end function gcdist
 
 end module mod_interp
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

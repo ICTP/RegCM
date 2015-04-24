@@ -81,7 +81,7 @@ module mod_nest
   type(rcm_time_and_date) , dimension(:) , pointer :: itimes
   real(rk8) , dimension(:) , pointer :: xtimes
   character(len=64) :: timeunits , timecal
-!
+
   contains
 
   subroutine get_nest(idate)
@@ -217,18 +217,16 @@ module mod_nest
     call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in, &
                   xcone_in,jx_in,iy_in,np,plon_in,plat_in,iproj_in)
     !
-    ! HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
+    ! Horizontal interpolation of both the scalar and vector fields
     !
     call cressmcr(b3,b2,xlon,xlat,xlon_in,xlat_in,jx,iy,jx_in,iy_in,np,3)
     call cressmdt(d3,d2,dlon,dlat,xlon_in,xlat_in,jx,iy,jx_in,iy_in,np,2)
     !
-    ! ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
+    ! Rotate U-V fields after horizontal interpolation
     !
     call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,np,plon,plat,iproj)
     !
-    ! X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
-    ! V E R T I C A L   I N T E R P O L A T I O N
-    ! X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X
+    ! Vertical interpolation
     !
     call top2btm(t3,jx,iy,np)
     call top2btm(q3,jx,iy,np)
@@ -236,46 +234,37 @@ module mod_nest
     call top2btm(u3,jx,iy,np)
     call top2btm(v3,jx,iy,np)
     !
-    ! NEW CALCULATION OF P* ON RegCM TOPOGRAPHY.
+    ! New calculation of P* on RegCM topography.
     !
     call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,np)
-
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    if(i_band == 1) then
-       call p1p2_band(b3pd,ps4,jx,iy)
-    else
-       call p1p2(b3pd,ps4,jx,iy)
-    endif
+    call crs2dot(pd4,ps4,jx,iy,i_band)
     !
-    ! F0    DETERMINE SURFACE TEMPS ON RegCM TOPOGRAPHY.
-    ! INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
+    ! Determine surface temps on RegCM topography.
+    ! Interpolation from pressure levels
     !
     call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,np)
     call readsst(ts4,idate)
     !
-    ! F3    INTERPOLATE U, V, T, AND Q.
+    ! Interpolate U, V, T, and Q.
     !
-    call intv1(u4,u3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,np)
-    call intv1(v4,v3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,np)
+    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,np)
+    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,np)
     call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,np)
     call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,np)
     call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
-    !
-    ! F4    DETERMINE H
-    !
-    call hydrost(h4,t4,topogm,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_nest
-!
+
   subroutine headernest
     use netcdf
     implicit none
-!
+
     real(rk8) :: xsign
     integer(ik4) :: i , k , istatus , idimid , ivarid
     type(rcm_time_and_date) :: imf
     real(rk8) , dimension(2) :: trlat
     real(rk8) , dimension(:) , allocatable :: sigfix
-!
+
     plev(1) = 50.
     plev(2) = 70.
     plev(3) = 100.
@@ -442,8 +431,7 @@ module mod_nest
     h3 => b3(:,:,2*np+1:3*np)
     u3 => d3(:,:,1:np)
     v3 => d3(:,:,np+1:2*np)
-
   end subroutine headernest
-!
+
 end module mod_nest
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

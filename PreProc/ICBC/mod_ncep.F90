@@ -81,48 +81,37 @@ module mod_ncep
 
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
     !
-    ! HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
+    ! Horizontal interpolation of both the scalar and vector fields
     !
     call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
     call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
     !
-    ! ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
+    ! Rotate U-V fields after horizontal interpolation
     !
     call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,klev,plon,plat,iproj)
     !
-    ! X X X X X X X X X X X X X X X X X X X X X X
-    ! V E R T I C A L   I N T E R P O L A T I O N
-    ! X X X X X X X X X X X X X X X X X X X X X X
+    ! Vertical interpolation
     !
-    ! NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
+    ! New calculation of P* on rcm topography.
     !
     call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    if ( i_band == 1 ) then
-      call p1p2_band(b3pd,ps4,jx,iy)
-    else
-      call p1p2(b3pd,ps4,jx,iy)
-    endif
+    call crs2dot(pd4,ps4,jx,iy,i_band)
     !
-    ! F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
-    !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
+    ! Determine surface temps on rcm topography.
+    ! Interpolation from pressure levels
     !
     call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
 
     call readsst(ts4,idate)
     !
-    ! F3  INTERPOLATE U, V, T, AND Q.
+    ! Interpolate U, V, T, and Q.
     !
-    call intv1(u4,u3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,klev)
-    call intv1(v4,v3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,klev)
     call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,klev)
     call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,klev)
     call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
-    !
-    ! F4  DETERMINE H
-    !
-    call hydrost(h4,t4,topogm,ps4,ptop,sigmah,jx,iy,kz)
-
   end subroutine getncep
 
   subroutine cfs6hour
@@ -354,7 +343,7 @@ module mod_ncep
   subroutine headernc
     use netcdf
     implicit none
-!
+
     integer(ik4) :: j , k , year , month , day , hour
     integer(ik4) :: istatus , inet , iddim , idv
     character(len=256) :: inpfile
@@ -452,6 +441,6 @@ module mod_ncep
     hvar => b2(:,:,klev+1:2*klev)
     rhvar => b2(:,:,2*klev+1:3*klev)
   end subroutine headernc
-!
+
 end module mod_ncep
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

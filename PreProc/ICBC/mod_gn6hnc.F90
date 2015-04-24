@@ -764,7 +764,7 @@ module mod_gn6hnc
     istatus = nf90_close(inet1)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error close file '//trim(pathaddname))
-!
+
     call getmem1d(sigmar,1,npl,'mod_gn6hnc:sigmar')
     call getmem3d(b3,1,jx,1,iy,1,npl*3,'mod_gn6hnc:b3')
     call getmem3d(d3,1,jx,1,iy,1,npl*2,'mod_gn6hnc:d3')
@@ -845,17 +845,14 @@ module mod_gn6hnc
     write (stdout,*) 'Read in Static fields OK'
 
   end subroutine headgn6hnc
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine get_gn6hnc(idate)
-
     use netcdf
-
     implicit none
-!
     type(rcm_time_and_date) , intent(in) :: idate
-!
+
     call readgn6hnc(idate)
     write (stdout,*) 'Read in fields at Date: ', tochar(idate)
 
@@ -939,12 +936,7 @@ module mod_gn6hnc
     ! Recalculate pressure on RegCM orography
     call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-
-    if ( i_band == 1 ) then
-       call p1p2_band(b3pd,ps4,jx,iy)
-    else
-       call p1p2(b3pd,ps4,jx,iy)
-    endif
+    call crs2dot(pd4,ps4,jx,iy,i_band)
 
     ! Recalculate temperature on RegCM orography
     call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
@@ -952,29 +944,22 @@ module mod_gn6hnc
     call readsst(ts4,idate)
 
     ! Vertically interpolate on RegCM sigma levels
-    call intv1(u4,u3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,npl)
-    call intv1(v4,v3,b3pd,sigmah,sigmar,ptop,jx,iy,kz,npl)
+    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,npl)
+    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,npl)
     call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,npl)
     call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,npl)
 
     ! Get back to specific humidity
     call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
 
-    ! Calculate geopotential for RegCM using internal formula
-    call hydrost(h4,t4,topogm,ps4,ptop,sigmah,jx,iy,kz)
-
   end subroutine get_gn6hnc
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine readgn6hnc(idate)
-!
     use netcdf
-!
     implicit none
-!
     type(rcm_time_and_date) , intent(in) :: idate
-!
     integer(ik4) :: istatus
     integer(ik4) :: i , it , itps , j , k , timid , imon1
     integer(ik4) :: iyear1 , imon2 , iyear2
@@ -986,13 +971,12 @@ module mod_gn6hnc
     type(rcm_time_and_date) :: pdate
     integer(ik4) :: year , month , day , hour , y1 , y2 , m1 , m2
     integer(ik4) :: fyear , fmonth , fday , fhour
-!
-!
+
     call split_idate(idate,year,month,day,hour)
-!
-!   This is simpler case: just one file for each timestep with
-!   all variables already on pressure levels.
-!
+    !
+    ! This is simpler case: just one file for each timestep with
+    ! all variables already on pressure levels.
+    !
     if ( dattyp == 'GFS11' ) then
       if ( inet(1) > 0 ) then
         istatus = nf90_close(inet(1))

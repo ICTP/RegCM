@@ -32,12 +32,12 @@ module mod_write
 
   private
 
-  real(rk8) , pointer , dimension(:,:) :: ps4 , pd4 , ts4 , wtop4
-  real(rk8) , pointer , dimension(:,:,:) :: h4 , q4
+  real(rk8) , pointer , dimension(:,:) :: ps4 , ts4 , wtop4
+  real(rk8) , pointer , dimension(:,:,:) :: q4
   real(rk8) , pointer , dimension(:,:,:) :: t4 , u4 , v4
   real(rk8) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4
 
-  public :: ps4 , ts4 , h4 , q4 , t4 , u4 , v4 , pp4 , ww4
+  public :: ps4 , ts4 , q4 , t4 , u4 , v4 , pp4 , ww4
   public :: init_output , close_output , dispose_output , newfile , writef
 
   type(nc_output_stream) , save :: ncout
@@ -54,7 +54,6 @@ module mod_write
     integer(ik4) :: ierr
     call getmem2d(ps4,1,jx,1,iy,'mod_write:ps4')
     call getmem2d(ts4,1,jx,1,iy,'mod_write:ts4')
-    call getmem3d(h4,1,jx,1,iy,1,kz,'mod_write:h4')
     call getmem3d(q4,1,jx,1,iy,1,kz,'mod_write:q4')
     call getmem3d(t4,1,jx,1,iy,1,kz,'mod_write:t4')
     call getmem3d(u4,1,jx,1,iy,1,kz,'mod_write:u4')
@@ -63,7 +62,6 @@ module mod_write
       nvar3d = 6
       nvar2d = 9
       call getmem2d(wtop4,1,jx,1,iy,'mod_write:wtop4')
-      call getmem2d(pd4,1,jx,1,iy,'mod_write:pd4')
       call getmem3d(pp4,1,jx,1,iy,1,kz,'mod_write:pp4')
       call getmem3d(ww4,1,jx,1,iy,1,kz,'mod_write:ww4')
       call getmem3d(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
@@ -213,8 +211,6 @@ module mod_write
 
     if ( idynamic == 2 ) then
       ! Compute hydrostatic pstar on dot points.
-      pd4 = ps4
-      call crs2dot(pd4,jx,iy)
       tv4 = t4 * (d_one + ep1 * q4)
       ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
       call nhw(1,iy,1,jx,kz,u4,v4,tv4,rho0,ps4,pd4,ps0,msfx,sigmaf, &
