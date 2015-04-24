@@ -48,7 +48,7 @@ module mod_vertint
 
   public :: intlin , intlin_o , intgtb , intlog , intlog_o
   public :: intpsn , intv0 , intv1 , intv2 , intv3
-!
+
   contains
 
   subroutine intlin(fp,f,ps,p3d,im,jm,km,p,kp)
@@ -60,7 +60,7 @@ module mod_vertint
     real(rk8) , dimension(im,jm) :: ps
     intent (in) f , im , jm , km , kp , p , ps , p3d
     intent (out) fp
-!
+
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk8) , dimension(km) :: sig
     real(rk8) , dimension(kp) :: pp1
@@ -210,12 +210,12 @@ module mod_vertint
       end do
     end if
   end subroutine intlin
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine intlin_o_double(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
     implicit none
-!
+
     integer(ik4) :: im , jm , km , kp
     real(rk8) :: ptop
     real(rk8) , dimension(im,jm,km) :: f
@@ -225,7 +225,7 @@ module mod_vertint
     real(rk8) , dimension(km) :: sig
     intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
     intent (out) fp
-!
+
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk8) :: sigp , w1 , wp
     !
@@ -329,7 +329,7 @@ module mod_vertint
 
   subroutine intlin_o_single(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
     implicit none
-!
+
     integer(ik4) :: im , jm , km , kp
     real(rk8) :: ptop
     real(rk4) , dimension(im,jm,km) :: f
@@ -339,7 +339,7 @@ module mod_vertint
     real(rk4) , dimension(km) :: sig
     intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
     intent (out) fp
-!
+
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk4) :: sigp , w1 , wp , pt
     !
@@ -440,10 +440,10 @@ module mod_vertint
       end do
     end if
   end subroutine intlin_o_single
-!
+
   subroutine intlin_z_o_single(fz,f,hz,sig,im,jm,km,z,kz)
     implicit none
-!
+
     integer(ik4) :: im , jm , km , kz
     real(rk4) , dimension(im,jm,km) :: f , hz
     real(rk4) , dimension(im,jm,kz) :: fz
@@ -451,7 +451,7 @@ module mod_vertint
     real(rk4) , dimension(km) :: sig
     intent (in) f , im , jm , km , kz , z , hz , sig
     intent (out) fz
-!
+
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk4) :: w1 , wz
     !
@@ -543,12 +543,12 @@ module mod_vertint
       end do
     end if
   end subroutine intlin_z_o_single
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,sccm,ni,nj,nlev1)
     implicit none
-!
+
     integer(ik4) :: ni , nj , nlev1
     real(rk8) , dimension(ni,nj) :: pa , tlayer , za , zrcm
     real(rk8) , dimension(nlev1) :: sccm
@@ -556,7 +556,7 @@ module mod_vertint
     intent (in) ni , nj , nlev1 , sccm , tp , zp , zrcm
     intent (out) pa , za
     intent (inout) tlayer
-!
+
     integer(ik4) :: i , j , k , kb , kt
     !
     !     INTGTB CALCULATES ALL VARIABLES NEEDED TO COMPUTE P* ON THE RCM
@@ -596,12 +596,12 @@ module mod_vertint
       end do
     end do
   end subroutine intgtb
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine intlog(fp,f,ps,p3d,im,jm,km,p,kp)
     implicit none
-!
+
     integer(ik4) :: im , jm , km , kp
     real(rk8) , dimension(im,jm,km) :: f , p3d
     real(rk8) , dimension(im,jm,kp) :: fp
@@ -609,7 +609,7 @@ module mod_vertint
     real(rk8) , dimension(im,jm) :: ps
     intent (in) f , im , jm , km , kp , p , p3d , ps
     intent (out) fp
-!
+
     real(rk8) :: sigp , w1 , wp
     integer(ik4) :: i , j , k , kx , knx , n , kbc
     real(rk8) , dimension(km) :: sig
@@ -780,12 +780,12 @@ module mod_vertint
       end do
     end if
   end subroutine intlog
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine intlog_o_double(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
     implicit none
-!
+
     integer(ik4) :: im , jm , km , kp
     real(rk8) :: ptop
     real(rk8) , dimension(im,jm,km) :: f
@@ -795,7 +795,7 @@ module mod_vertint
     real(rk8) , dimension(km) :: sig
     intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
     intent (out) fp
-!
+
     real(rk8) :: sigp , w1 , wp
     integer(ik4) :: i , j , k , kx , knx , kbc , n
     !
@@ -931,7 +931,7 @@ module mod_vertint
 
   subroutine intlog_o_single(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
     implicit none
-!
+
     integer(ik4) :: im , jm , km , kp
     real(rk8) :: ptop
     real(rk4) , dimension(im,jm,km) :: f
@@ -941,7 +941,7 @@ module mod_vertint
     real(rk4) , dimension(km) :: sig
     intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
     intent (out) fp
-!
+
     real(rk4) :: sigp , w1 , wp , pt
     integer(ik4) :: i , j , k , kx , knx , kbc , n
     !
@@ -1074,9 +1074,9 @@ module mod_vertint
       end do
     end if
   end subroutine intlog_o_single
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine intpsn(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
     implicit none
     integer(ik4) :: ni , nj
@@ -1084,7 +1084,7 @@ module mod_vertint
     real(rk8) , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
     intent (in) ni , nj , pa , pt , tlayer , za , zrcm
     intent (out) psrcm
-!
+
     real(rk8) :: tb
     integer(ik4) :: i , j
     !
@@ -1099,12 +1099,12 @@ module mod_vertint
       end do
     end do
   end subroutine intpsn
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine intv0(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
     implicit none
-!
+
     integer(ik4) :: kccm , krcm , ni , nj
     real(rk8) :: pt
     real(rk8) , dimension(ni,nj,kccm) :: fccm
@@ -1114,16 +1114,15 @@ module mod_vertint
     real(rk8) , dimension(krcm) :: srcm
     intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
     intent (out) frcm
-!
+
     real(rk8) :: dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
-
-!
-!   INTV0 IS FOR VERTICAL INTERPOLATION OF TRACER WHERE THE TRACER HAS
-!   THE SAME VERTICAL ORDERING OF REGCM.
-!   THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
-!   IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!
+    !
+    ! INTV0 is for vertical interpolation of tracer where the tracer has
+    ! the same vertical ordering of regcm.
+    ! The interpolation is linear in p.  Where extrapolation
+    ! is necessary, fields are considered to have 0 vertical derivative.
+    !
     pt1 = pt/psccm
     do i = 1 , ni
       do j = 1 , nj
@@ -1153,7 +1152,7 @@ module mod_vertint
 
   subroutine intv1(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
     implicit none
-!
+
     integer(ik4) :: kccm , krcm , ni , nj
     real(rk8) :: pt
     real(rk8) , dimension(ni,nj,kccm) :: fccm
@@ -1163,15 +1162,14 @@ module mod_vertint
     real(rk8) , dimension(krcm) :: srcm
     intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
     intent (out) frcm
-!
+
     real(rk8) :: dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
-
-!
-!   INTV1 IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
-!   HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
-!   IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!
+    !
+    ! INTV1 is for vertical interpolation of U, V, and RH
+    ! The interpolation is linear in P.  Where extrapolation
+    ! is necessary, fields are considered to have 0 vertical derivative.
+    !
     pt1 = pt/psccm
     do i = 1 , ni
       do j = 1 , nj
@@ -1198,12 +1196,12 @@ module mod_vertint
       end do
     end do
   end subroutine intv1
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine intv2(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
     implicit none
-!
+
     integer(ik4) :: kccm , krcm , ni , nj
     real(rk8) :: pt
     real(rk8) , dimension(ni,nj,kccm) :: fccm
@@ -1213,18 +1211,18 @@ module mod_vertint
     real(rk8) , dimension(krcm) :: srcm
     intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
     intent (out) frcm
-!
+
     real(rk8) :: a1 , dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
-!
-!   INTV2 IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
-!   LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
-!   THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!   WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
-!   CONSIDERED TO HAVE A LAPSE RATE OF RLAPSE (K/M), AND THE
-!   THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
-!   TWO EXTREME TEMPERATUES IN THE LAYER.
-!
+    !
+    ! INTV2 is for vertical interpolation of T.  The interpolation is
+    ! linear in log P.  Where extrapolation upward is necessary,
+    ! the T field is considered to have 0 vertical derivative.
+    ! Where extrapolation downward is necessary, the T field is
+    ! considered to have a lapse rate of rlapse (k/m), and the
+    ! thickness is determined hydrostatically from the mean of the
+    ! two extreme temperatues in the layer.
+    !
     pt1 = pt/psccm
     do i = 1 , ni
       do j = 1 , nj
@@ -1250,12 +1248,12 @@ module mod_vertint
       end do
     end do
   end subroutine intv2
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine intv3(fsccm,fccm,psrccm,sccm,ptop,ni,nj,kccm)
     implicit none
-!
+
     integer(ik4) :: kccm , ni , nj
     real(rk8) :: ptop
     real(rk8) , dimension(ni,nj,kccm) :: fccm
@@ -1263,18 +1261,18 @@ module mod_vertint
     real(rk8) , dimension(kccm) :: sccm
     intent (in) fccm , kccm , ni , nj , psrccm , ptop , sccm
     intent (out) fsccm
-!
+
     real(rk8) :: a1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1
-!
-!   INTV3 IS FOR VERTICAL INTERPOLATION OF TSCCM.  THE INTERPOLATION
-!   IS LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
-!   THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-!   WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
-!   CONSIDERED TO HAVE A LAPSE RATE OF RLAPSE (K/M), AND THE
-!   THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
-!   TWO EXTREME TEMPERATUES IN THE LAYER.
-!
+    !
+    ! INTV3 is for vertical interpolation of tsccm.  The interpolation
+    ! is linear in log P.  Where extrapolation upward is necessary,
+    ! the T field is considered to have 0 vertical derivative.
+    ! Where extrapolation downward is necessary, the T field is
+    ! considered to have a lapse rate of rlapse (k/m), and the
+    ! thickness is determined hydrostatically from the mean of the
+    ! two extreme temperatues in the layer.
+    !
     do i = 1 , ni
       do j = 1 , nj
         sc = (psrccm(i,j)+ptop)*d_r100
@@ -1300,6 +1298,6 @@ module mod_vertint
       end do
     end do
   end subroutine intv3
-!
+
 end module mod_vertint
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
