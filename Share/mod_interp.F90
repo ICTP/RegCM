@@ -662,6 +662,66 @@ module mod_interp
     end do
   end subroutine compwgt
 
+  subroutine dwgt(jx,iy,nlon,nlat,b2,b3,d1xa,d1xb,d1xc,d1xd, &
+                  i1dl,i1dr,i1ul,i1ur,j1dl,j1dr,j1ul,j1ur)
+    implicit none
+    integer(ik4) , intent(in) :: nlon , nlat , jx , iy
+    real(rk8) , dimension(nlon,nlat) , intent(in) :: b2
+    real(rk8) , dimension(jx,iy) , intent(out) :: b3
+    real(rk8) , dimension(jx,iy) , intent(in) :: d1xa , d1xb , d1xc , d1xd
+    integer(ik4) , dimension(jx,iy) , intent(in) :: i1dl , i1dr , &
+      i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
+    real(rk8) :: wa , wb , wc , wd , wg
+    real(rk8) , dimension(4) :: vv
+    integer(ik4) :: ifound
+    integer(ik4) :: i , j , mdl , mdr , mul , mur , ndl , ndr , nul , nur
+
+    do i = 1 , iy
+      do j = 1 , jx
+        mur = i1ur(j,i)
+        nur = j1ur(j,i)
+        mul = i1ul(j,i)
+        nul = j1ul(j,i)
+        mdr = i1dr(j,i)
+        ndr = j1dr(j,i)
+        mdl = i1dl(j,i)
+        ndl = j1dl(j,i)
+        wa = d1xa(j,i)
+        wb = d1xb(j,i)
+        wc = d1xc(j,i)
+        wd = d1xd(j,i)
+        ifound = 0
+        wg = d_zero
+        vv(:) = d_zero
+        if ( b2(mur,nur) > missc ) then
+          ifound = ifound + 1
+          vv(ifound) = b2(mur,nur)*wa
+          wg = wg + wa
+        end if
+        if ( b2(mul,nul) > missc ) then
+          ifound = ifound + 1
+          vv(ifound) = b2(mul,nul)*wb
+          wg = wg + wb
+        end if
+        if ( b2(mdr,ndr) > missc ) then
+          ifound = ifound + 1
+          vv(ifound) = b2(mdr,ndr)*wc
+          wg = wg + wc
+        end if
+        if ( b2(mdl,ndl) > missc ) then
+          ifound = ifound + 1
+          vv(ifound) = b2(mdl,ndl)*wd
+          wg = wg + wd
+        end if
+        if ( ifound /= 0 ) then
+          b3(j,i) = sum(vv(1:ifound))/wg
+        else
+          b3(j,i) = missl
+        end if
+      end do
+    end do
+  end subroutine dwgt
+
   subroutine distwgtcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlon
@@ -671,10 +731,6 @@ module mod_interp
     real(rk8) , dimension(nlon,nlat) :: b2
     intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
     intent (out) b3
-    real(rk8) :: wa , wb , wc , wd , wg
-    real(rk8) , dimension(4) :: vv
-    integer(ik4) :: i , j , mdl , mdr , mul , mur , ndl , ndr , nul , nur
-    integer(ik4) :: ifound
     !
     ! FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
     ! THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.
@@ -726,49 +782,8 @@ module mod_interp
       write (stdout,*) 'Done.'
       lcross = 1
     end if
-    b3(:,:) = missl
-    do i = 1 , iy
-      do j = 1 , jx
-        mur = ic1ur(j,i)
-        nur = jc1ur(j,i)
-        mul = ic1ul(j,i)
-        nul = jc1ul(j,i)
-        mdr = ic1dr(j,i)
-        ndr = jc1dr(j,i)
-        mdl = ic1dl(j,i)
-        ndl = jc1dl(j,i)
-        wa = dc1xa(j,i)
-        wb = dc1xb(j,i)
-        wc = dc1xc(j,i)
-        wd = dc1xd(j,i)
-        ifound = 0
-        wg = d_zero
-        vv(:) = d_zero
-        if ( b2(mur,nur) > missc ) then
-          ifound = ifound + 1
-          vv(ifound) = b2(mur,nur)*wa
-          wg = wg + wa
-        end if
-        if ( b2(mul,nul) > missc ) then
-          ifound = ifound + 1
-          vv(ifound) = b2(mul,nul)*wb
-          wg = wg + wb
-        end if
-        if ( b2(mdr,ndr) > missc ) then
-          ifound = ifound + 1
-          vv(ifound) = b2(mdr,ndr)*wc
-          wg = wg + wc
-        end if
-        if ( b2(mdl,ndl) > missc ) then
-          ifound = ifound + 1
-          vv(ifound) = b2(mdl,ndl)*wd
-          wg = wg + wd
-        end if
-        if ( ifound /= 0 ) then
-          b3(j,i) = sum(vv(1:ifound))/wg
-        end if
-      end do
-    end do
+    call dwgt(jx,iy,nlon,nlat,b2,b3,dc1xa,dc1xb,dc1xc,dc1xd, &
+              ic1dl,ic1dr,ic1ul,ic1ur,jc1dl,jc1dr,jc1ul,jc1ur)
   end subroutine distwgtcr
 
   subroutine distwgtdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
@@ -780,10 +795,6 @@ module mod_interp
     real(rk8) , dimension(nlon,nlat) :: b2
     intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
     intent (out) b3
-    real(rk8) :: wa , wb , wc , wd , wg
-    real(rk8) , dimension(4) :: vv
-    integer(ik4) :: i , j , mdl , mdr , mul , mur , ndl , ndr , nul , nur
-    integer(ik4) :: ifound
     !
     ! FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
     ! THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.
@@ -835,49 +846,8 @@ module mod_interp
       write (stdout,*) 'Done.'
       ldot = 1
     end if
-    b3(:,:) = missl
-    do i = 1 , iy
-      do j = 1 , jx
-        mur = id1ur(j,i)
-        nur = jd1ur(j,i)
-        mul = id1ul(j,i)
-        nul = jd1ul(j,i)
-        mdr = id1dr(j,i)
-        ndr = jd1dr(j,i)
-        mdl = id1dl(j,i)
-        ndl = jd1dl(j,i)
-        wa = dd1xa(j,i)
-        wb = dd1xb(j,i)
-        wc = dd1xc(j,i)
-        wd = dd1xd(j,i)
-        ifound = 0
-        wg = d_zero
-        vv(:) = d_zero
-        if ( b2(mur,nur) > missc ) then
-          ifound = ifound + 1
-          vv(ifound) = b2(mur,nur)*wa
-          wg = wg + wa
-        end if
-        if ( b2(mul,nul) > missc ) then
-          ifound = ifound + 1
-          vv(ifound) = b2(mul,nul)*wb
-          wg = wg + wb
-        end if
-        if ( b2(mdr,ndr) > missc ) then
-          ifound = ifound + 1
-          vv(ifound) = b2(mdr,ndr)*wc
-          wg = wg + wc
-        end if
-        if ( b2(mdl,ndl) > missc ) then
-          ifound = ifound + 1
-          vv(ifound) = b2(mdl,ndl)*wd
-          wg = wg + wd
-        end if
-        if ( ifound /= 0 ) then
-          b3(j,i) = sum(vv(1:ifound))/wg
-        end if
-      end do
-    end do
+    call dwgt(jx,iy,nlon,nlat,b2,b3,dd1xa,dd1xb,dd1xc,dd1xd, &
+              id1dl,id1dr,id1ul,id1ur,jd1dl,jd1dr,jd1ul,jd1ur)
   end subroutine distwgtdt
 
   subroutine cressmcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
