@@ -111,8 +111,12 @@
  /
  &holtslagparam
  /
- &clmparam
- dirclm = '/set/this/to/where/your/input/clm/data/are',
- imask  = 1,
- clmfrq = 12.,
+ &clm_inparm
+ fpftcon = 'pft-physiology.c130503.nc',
+ fsnowoptics = 'snicar_optics_5bnd_c090915.nc',
+ fsnowaging = 'snicar_drdt_bst_fit_60_c070416.nc',
+ /
+ &clm_soilhydrology_inparm
+ /
+ &clm_hydrology1_inparm
  /
