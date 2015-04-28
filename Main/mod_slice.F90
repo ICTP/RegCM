@@ -136,7 +136,7 @@ module mod_slice
           atms%pb3d(j,i,k) = atm2%pr(j,i,k)
           atms%rhob3d(j,i,k)= atm2%rho(j,i,k)
           atms%thx3d(j,i,k) = atms%tb3d(j,i,k) * &
-                  (atms%ps2d(j,i)/atms%pb3d(j,i,k))**rovcp
+                  (1.0D5/atms%pb3d(j,i,k))**rovcp
         end do
       end do
     end do

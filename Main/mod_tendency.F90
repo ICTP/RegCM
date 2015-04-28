@@ -66,9 +66,11 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4
   real(rk8) , pointer , dimension(:,:) :: pten
+  real(rk8) , pointer , dimension(:,:,:) :: thten
   real(rk8) , pointer , dimension(:,:) :: dummy , rpsa , rpsb , rpsc
   real(rk8) , pointer , dimension(:,:) :: rpsda
 
+  integer :: ithadv = 1
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
 #endif
@@ -100,11 +102,15 @@ module mod_tendency
     call getmem2d(rpsc,jce1,jce2,ice1,ice2,'tendency:rpsc')
     call getmem2d(rpsda,jde1,jde2,ide1,ide2,'tendency:rpsda')
     if ( idynamic == 1 ) then
+      ithadv = 0
       call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
     else if ( idynamic == 2 ) then
       call getmem3d(ucc,jce1,jce2,ice1,ice2,1,kz,'tendency:ucc')
       call getmem3d(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
       call getmem3d(divd,jdi1,jdi2,idi1,idi2,1,kz,'tendency:divd')
+      if ( ithadv == 1 ) then
+        call getmem3d(thten,jce1,jce2,ice1,ice2,1,kz,'tendency:thten')
+      end if
     end if
     if ( idiag > 0 ) then
       call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
@@ -610,27 +616,33 @@ module mod_tendency
     ! same for hydrostatic and nonhydrostatic models:
     ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (1st RHS term)
     !
-    call hadv(cross,aten%t,atmx%t,kz)
-    if ( idiag > 0 ) then
-      tdiag%adh = tdiag%adh + (aten%t - ten0) * afdout
-      ten0 = aten%t
-    end if
+    if ( ithadv /= 1 ) then
+      call hadv(cross,aten%t,atmx%t,kz)
+      if ( idiag > 0 ) then
+        tdiag%adh = tdiag%adh + (aten%t - ten0) * afdout
+        ten0 = aten%t
+      end if
 #ifdef DEBUG
-    call check_temperature_tendency('HADV')
+      call check_temperature_tendency('HADV')
 #endif
-    !
-    ! compute the vertical advection term:
-    ! same for hydrostatic and nonhydrostatic models:
-    ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (2nd RHS term)
-    !
-    call vadv(cross,aten%t,atm1%t,kz,icvadv)
-    if ( idiag > 0 ) then
-      tdiag%adv = tdiag%adv + (aten%t - ten0) * afdout
-      ten0 = aten%t
-    end if
+      !
+      ! compute the vertical advection term:
+      ! same for hydrostatic and nonhydrostatic models:
+      ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (2nd RHS term)
+      !
+      call vadv(cross,aten%t,atm1%t,kz,icvadv)
+      if ( idiag > 0 ) then
+        tdiag%adv = tdiag%adv + (aten%t - ten0) * afdout
+        ten0 = aten%t
+      end if
 #ifdef DEBUG
-    call check_temperature_tendency('VADV')
+      call check_temperature_tendency('VADV')
 #endif
+    else
+      thten(:,:,:) = d_zero
+      call hadv(cross,thten,atms%thx3d,kz)
+      call vadv(cross,thten,atms%thx3d,kz,icvadv)
+    end if
     !
     ! compute the adiabatic term:
     !
@@ -654,17 +666,37 @@ module mod_tendency
       ! Adiabatic term in the temperature tendency equation in the
       ! nonhydrostatic model: 3rd and 4th RHS term in Eq. 2.2.5 and Eq.2.3.9.
       !
+      if ( ithadv /= 1 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              scr = d_half*egrav*atm0%rho(j,i,k) * &
+                         (atm1%w(j,i,k)+atm1%w(j,i,k+1))
+              cpm = cpd*(d_one + 0.856D0*qvd(j,i,k))
+              aten%t(j,i,k) = aten%t(j,i,k) + atmx%t(j,i,k)*divx(j,i,k) - &
+                            (scr+aten%pp(j,i,k)+atmx%pp(j,i,k)*divx(j,i,k)) / &
+                            (atm1%rho(j,i,k)*cpm)
+            end do
+          end do
+        end do
+      else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              thten(j,i,k) = thten(j,i,k) + atms%thx3d(j,i,k) * divx(j,i,k)
+              aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*thten(j,i,k) / &
+                              atms%thx3d(j,i,k)
+            end do
+          end do
+        end do
+      end if
+      !
       ! Divergence term in the pressure perturbation tendency equation in the
       ! nonhydrostatic model: 4th RHS term in Eq. 2.2.4 and Eq. 2.3.8
       !
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            scr = d_half*egrav*atm0%rho(j,i,k)*(atm1%w(j,i,k)+atm1%w(j,i,k+1))
-            cpm = cpd*(d_one + 0.856D0*qvd(j,i,k))
-            aten%t(j,i,k)  = aten%t(j,i,k) + atmx%t(j,i,k)*divx(j,i,k)       - &
-                             (scr+aten%pp(j,i,k)+atmx%pp(j,i,k)*divx(j,i,k)) / &
-                             (atm1%rho(j,i,k)*cpm)
             aten%pp(j,i,k) = aten%pp(j,i,k) + atm1%pp(j,i,k)*divx(j,i,k)
           end do
         end do
