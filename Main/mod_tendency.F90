@@ -2097,8 +2097,9 @@ module mod_tendency
           do i = ici1 , ici2
             do j = jci1 , jci2
               tv = atmx%t(j,i,k)*(d_one + ep1*atmx%qx(j,i,k,iqv))
-              atmx%pr = (tv-atm0%t(j,i,k) - atmx%pp(j,i,k) / &
-                (cpd*atm0%rho(j,i,k)))/atmx%t(j,i,k)
+              atmx%pr(j,i,k) = (tv - atm0%t(j,i,k) - &
+                atmx%pp(j,i,k)/(cpd*atm0%rho(j,i,k))) / &
+                atmx%t(j,i,k)
             end do
           end do
         end do
