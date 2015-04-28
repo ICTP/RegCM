@@ -59,8 +59,9 @@ module mod_sound
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: tk
     integer(ik4) :: i , istep , it , j , k , km1 , kp1 , iconvec
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: cc , cdd , cj
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: pi , pp3d
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: pp3d
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: qv3d
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: pi
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) ::t3d
     real(rk8) , dimension(jdi1:jdi2,idi1:idi2,1:kz) ::u3d , v3d
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: e , f
@@ -157,8 +158,8 @@ module mod_sound
         do j = jdi1 , jdi2
           aten%u(j,i,k) = aten%u(j,i,k)*dts
           aten%v(j,i,k) = aten%v(j,i,k)*dts
-          u3d(j,i,k)    = atm2%u(j,i,k)/sfs%psdota(j,i)
-          v3d(j,i,k)    = atm2%v(j,i,k)/sfs%psdota(j,i)
+          u3d(j,i,k)    = atm2%u(j,i,k)/sfs%psdotb(j,i)
+          v3d(j,i,k)    = atm2%v(j,i,k)/sfs%psdotb(j,i)
           atm2%u(j,i,k) = omuhf*atm1%u(j,i,k)/mddom%msfd(j,i) + &
                           gnuhf*atm2%u(j,i,k)
           atm2%v(j,i,k) = omuhf*atm1%v(j,i,k)/mddom%msfd(j,i) + &
@@ -170,7 +171,7 @@ module mod_sound
       do i = ici1 , ici2
         do j = jci1 , jci2
           aten%pp(j,i,k) = aten%pp(j,i,k)*dts
-          qv3d(j,i,k)    = atm1%qx(j,i,k,iqv)/sfs%psa(j,i)
+          qv3d(j,i,k)    = atm2%qx(j,i,k,iqv)/sfs%psa(j,i)
           pp3d(j,i,k)    = atm2%pp(j,i,k)/sfs%psa(j,i)
           atm2%pp(j,i,k) = omuhf*atm1%pp(j,i,k) + gnuhf*atm2%pp(j,i,k)
         end do
@@ -319,7 +320,7 @@ module mod_sound
                            u3d(j+1,i+1,1) * mddom%msfd(j+1,i+1) -   &
                            u3d(j+1,i,1) * mddom%msfd(j+1,i) ) /     &
                        mddom%msfx(j,i) - d_two * (pyvp(j,i,1) + pxup(j,i,1)) )
-          tk(j,i,1) = sfs%psa(j,i) * atm0%t(j,i,1) / &
+          tk(j,i,1) = atm0%ps(j,i) * atm0%t(j,i,1) / &
                       (d_two * xgamma * atm0%pr(j,i,1) * &
                       atm2%t(j,i,1) / sfs%psa(j,i))
         end do
@@ -329,7 +330,7 @@ module mod_sound
         km1 = k-1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tk(j,i,k) = sfs%psa(j,i) * atm0%t(j,i,k) / &
+            tk(j,i,k) = atm0%ps(j,i) * atm0%t(j,i,k) / &
                         (d_two * xgamma * atm0%pr(j,i,k) * &
                         atm2%t(j,i,k) / sfs%psa(j,i))
             rofac = (dsigma(k-1)*atm0%rho(j,i,k) + &
@@ -404,7 +405,7 @@ module mod_sound
                        ( pp3d(j,i,k) * g1(j,i,k) -                            &
                          pp3d(j,i,k-1) * g2(j,i,k) ) +                        &
                        ( g1(j,i,k)*ptend(j,i,k) -                             &
-                         g2(j,i,k)*ptend(j,i,k-1) ) *bp )
+                         g2(j,i,k)*ptend(j,i,k-1) ) * bp )
           end do
         end do
       end do
