@@ -214,10 +214,10 @@ module mod_tendency
           end do
         end do
       end do
-      call exchange(atm1%pp,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%pr,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%rho,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm1%pp,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kz)
     end if
 
     call exchange(atm2%u,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
@@ -445,10 +445,10 @@ module mod_tendency
     else if ( iboudy == 1 .or. iboudy == 5 ) then
       call nudge(ba_cr,xbctime,sfs%psb,iboudy,xpsb,pten)
     end if
-    !
-    ! psc : forecast pressure ?????? Non-hydrostatic ??????
-    !
     if ( idynamic == 1 ) then
+      !
+      ! psc : forecast pressure
+      !
       do i = ici1 , ici2
         do j = jci1 , jci2
           sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
@@ -494,10 +494,9 @@ module mod_tendency
         end do
       end if
     else if ( idynamic == 2 ) then
-      ! ???????????????????????????
       do i = ice1 , ice2
         do j = jce1 , jce2
-          sfs%psc(j,i) = sfs%psb(j,i)
+          sfs%psc(j,i) = sfs%psa(j,i)
         end do
       end do
     end if
@@ -663,8 +662,8 @@ module mod_tendency
           do j = jci1 , jci2
             scr = d_half*egrav*atm0%rho(j,i,k)*(atm1%w(j,i,k)+atm1%w(j,i,k+1))
             cpm = cpd*(d_one + 0.856D0*qvd(j,i,k))
-            aten%t(j,i,k)  = aten%t(j,i,k) + atm1%t(j,i,k)*divx(j,i,k)       - &
-                             (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divx(j,i,k)) / &
+            aten%t(j,i,k)  = aten%t(j,i,k) + atmx%t(j,i,k)*divx(j,i,k)       - &
+                             (scr+aten%pp(j,i,k)+atmx%pp(j,i,k)*divx(j,i,k)) / &
                              (atm1%rho(j,i,k)*cpm)
             aten%pp(j,i,k) = aten%pp(j,i,k) + atm1%pp(j,i,k)*divx(j,i,k)
           end do
@@ -1649,6 +1648,30 @@ module mod_tendency
       ! Next timestep ready
       !
     else if ( idynamic == 2 ) then
+      !
+      ! Decouple before calling sound
+      !
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            aten%u(j,i,k) = aten%u(j,i,k) * rpsda(j,i)
+            aten%v(j,i,k) = aten%v(j,i,k) * rpsda(j,i)
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            aten%pp(j,i,k) = aten%pp(j,i,k) * rpsa(j,i)
+            aten%w(j,i,k) = aten%w(j,i,k) * rpsa(j,i)
+          end do
+        end do
+      end do
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          aten%w(j,i,kz+1) = aten%w(j,i,kz+1) * rpsa(j,i)
+        end do
+      end do
       !
       ! Compute u,v,w,pp at ktau+1
       !
