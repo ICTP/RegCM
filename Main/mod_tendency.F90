@@ -1116,7 +1116,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
-            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),1D-10*sfs%psc(j,i))
+            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),minqx*sfs%psc(j,i))
           end do
         end do
       end do
@@ -1327,88 +1327,88 @@ module mod_tendency
 #ifdef DEBUG
     call check_wind_tendency('CORI')
 #endif
-    !
-    ! compute pressure gradient terms:
-    !
-    if ( ipgf == 1 ) then
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            psasum = sfs%psa(j,i)   + sfs%psa(j,i-1)  + &
-                     sfs%psa(j-1,i) + sfs%psa(j-1,i-1)
-            sigpsa = psasum
-            tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*qvd(j-1,i-1,k))
-            tv2 = atmx%t(j-1,i,k)*(  d_one+ep1*qvd(j-1,i,k))
-            tv3 = atmx%t(j,i-1,k)*(  d_one+ep1*qvd(j,i-1,k))
-            tv4 = atmx%t(j,i,k)*(    d_one+ep1*qvd(j,i,k))
-            rtbar = tv1 + tv2 + tv3 + tv4 - d_four*t00pg*             &
-                    ((hsigma(k)*psasum*d_rfour+ptop)/p00pg)**pgfaa1
-            rtbar = rgas*rtbar*sigpsa/16.0D0
-            !
-            ! Hydrostatic model. The first part of the pressure gradient term:
-            ! (1) 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
-            ! (2) 2nd     term in Eq.2.4.1.
-            ! (2a) Warning: there is missing sigma in the denominator in the
-            !      MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6
-            !      in MM4 manual)
-            ! (2b) Hint:
-            !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
-            !      This second form is discretized here.
-            !
-            aten%u(j,i,k) = aten%u(j,i,k) - rtbar *               &
-                  (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
-                        hsigma(k)+ptop) -                         &
-                   log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
-                        hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
-            aten%v(j,i,k) = aten%v(j,i,k) - rtbar *               &
-                  (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
-                        hsigma(k)+ptop) -                         &
-                   log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
-                        hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
-          end do
-        end do
-      end do
-    else if ( ipgf == 0 ) then
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            psasum = sfs%psa(j,i)   + sfs%psa(j,i-1)  + &
-                     sfs%psa(j-1,i) + sfs%psa(j-1,i-1)
-            sigpsa = psasum
-            tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*qvd(j-1,i-1,k))
-            tv2 = atmx%t(j-1,i,k)*(  d_one+ep1*qvd(j-1,i,k))
-            tv3 = atmx%t(j,i-1,k)*(  d_one+ep1*qvd(j,i-1,k))
-            tv4 = atmx%t(j,i,k)*(    d_one+ep1*qvd(j,i,k))
-            rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.0D0
-            !
-            ! Hydrostatic model. The first part of the pressure gradient term:
-            ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
-            ! (2)    the 2nd     term in Eq.2.4.1.
-            ! (2a) Warning: there is missing sigma in the denominator in
-            !      the MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6
-            !      in MM4 manual)
-            ! (2b) Hint:
-            !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
-            !      This second form is discretized here.
-            !
-            aten%u(j,i,k) = aten%u(j,i,k) - rtbar *                &
-                   (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
-                         hsigma(k)+ptop) -                         &
-                    log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
-                         hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
-            aten%v(j,i,k) = aten%v(j,i,k) - rtbar *                &
-                   (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
-                         hsigma(k)+ptop) -                         &
-                    log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
-                         hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
-          end do
-        end do
-      end do
-    end if
-#ifdef DEBUG
-    call check_wind_tendency('PRGR')
-#endif
     if ( idynamic == 1 ) then
+      !
+      ! compute pressure gradient terms:
+      !
+      if ( ipgf == 1 ) then
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              psasum = sfs%psa(j,i)   + sfs%psa(j,i-1)  + &
+                       sfs%psa(j-1,i) + sfs%psa(j-1,i-1)
+              sigpsa = psasum
+              tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*qvd(j-1,i-1,k))
+              tv2 = atmx%t(j-1,i,k)*(  d_one+ep1*qvd(j-1,i,k))
+              tv3 = atmx%t(j,i-1,k)*(  d_one+ep1*qvd(j,i-1,k))
+              tv4 = atmx%t(j,i,k)*(    d_one+ep1*qvd(j,i,k))
+              rtbar = tv1 + tv2 + tv3 + tv4 - d_four*t00pg*             &
+                      ((hsigma(k)*psasum*d_rfour+ptop)/p00pg)**pgfaa1
+              rtbar = rgas*rtbar*sigpsa/16.0D0
+              !
+              ! Hydrostatic model. The first part of the pressure gradient term:
+              ! (1) 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
+              ! (2) 2nd     term in Eq.2.4.1.
+              ! (2a) Warning: there is missing sigma in the denominator in the
+              !      MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6
+              !      in MM4 manual)
+              ! (2b) Hint:
+              !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
+              !      This second form is discretized here.
+              !
+              aten%u(j,i,k) = aten%u(j,i,k) - rtbar *               &
+                    (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
+                          hsigma(k)+ptop) -                         &
+                     log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
+                          hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+              aten%v(j,i,k) = aten%v(j,i,k) - rtbar *               &
+                    (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
+                          hsigma(k)+ptop) -                         &
+                     log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
+                          hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+            end do
+          end do
+        end do
+      else if ( ipgf == 0 ) then
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              psasum = sfs%psa(j,i)   + sfs%psa(j,i-1)  + &
+                       sfs%psa(j-1,i) + sfs%psa(j-1,i-1)
+              sigpsa = psasum
+              tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*qvd(j-1,i-1,k))
+              tv2 = atmx%t(j-1,i,k)*(  d_one+ep1*qvd(j-1,i,k))
+              tv3 = atmx%t(j,i-1,k)*(  d_one+ep1*qvd(j,i-1,k))
+              tv4 = atmx%t(j,i,k)*(    d_one+ep1*qvd(j,i,k))
+              rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.0D0
+              !
+              ! Hydrostatic model. The first part of the pressure gradient term:
+              ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
+              ! (2)    the 2nd     term in Eq.2.4.1.
+              ! (2a) Warning: there is missing sigma in the denominator in
+              !      the MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6
+              !      in MM4 manual)
+              ! (2b) Hint:
+              !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
+              !      This second form is discretized here.
+              !
+              aten%u(j,i,k) = aten%u(j,i,k) - rtbar *                &
+                     (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
+                           hsigma(k)+ptop) -                         &
+                      log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
+                           hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+              aten%v(j,i,k) = aten%v(j,i,k) - rtbar *                &
+                     (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
+                           hsigma(k)+ptop) -                         &
+                      log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
+                           hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+            end do
+          end do
+        end do
+      end if
+#ifdef DEBUG
+      call check_wind_tendency('PRGR')
+#endif
       !
       ! compute geopotential height at half-k levels, cross points:
       !
@@ -1586,28 +1586,36 @@ module mod_tendency
       ! Calculate the horizontal, diffusive tendency for TKE
       call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kz)
     end if
-    !
-    !   store the xxa variables in xxb and xxc in xxa:
-    !   perform time smoothing operations.
-    !
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          atm2%u(j,i,k) = omuhf*atm1%u(j,i,k)/mddom%msfd(j,i) + &
-                          gnuhf*(atm2%u(j,i,k)+atmc%u(j,i,k))
-          atm2%v(j,i,k) = omuhf*atm1%v(j,i,k)/mddom%msfd(j,i) + &
-                          gnuhf*(atm2%v(j,i,k)+atmc%v(j,i,k))
-          atm1%u(j,i,k) = atmc%u(j,i,k)
-          atm1%v(j,i,k) = atmc%v(j,i,k)
-          ! TAO: Once the full loop above is completed, update the TKE
-          ! tendency if the UW PBL is running.  NOTE!!! Do not try to
-          ! combine these loops with the above loop Advection MUST be
-          ! done in a loop separate from the updates.  (I lost 3 days
-          ! of working to disocover that this is a problem because I
-          ! thought it would be clever to combine loops--TAO)
-          if ( ibltyp == 2 ) then
-            ! Add the advective tendency to the TKE tendency calculated
-            ! by the UW TKE routine
+    if ( idynamic == 1 ) then
+      !
+      ! store the xxa variables in xxb and xxc in xxa:
+      ! perform time smoothing operations.
+      !
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            atm2%u(j,i,k) = omuhf*atm1%u(j,i,k)/mddom%msfd(j,i) + &
+                            gnuhf*(atm2%u(j,i,k)+atmc%u(j,i,k))
+            atm2%v(j,i,k) = omuhf*atm1%v(j,i,k)/mddom%msfd(j,i) + &
+                            gnuhf*(atm2%v(j,i,k)+atmc%v(j,i,k))
+            atm1%u(j,i,k) = atmc%u(j,i,k)
+            atm1%v(j,i,k) = atmc%v(j,i,k)
+          end do
+        end do
+      end do
+    end if
+    if ( ibltyp == 2 ) then
+      ! TAO: Once the full loop above is completed, update the TKE
+      ! tendency if the UW PBL is running.  NOTE!!! Do not try to
+      ! combine these loops with the above loop Advection MUST be
+      ! done in a loop separate from the updates.  (I lost 3 days
+      ! of working to disocover that this is a problem because I
+      ! thought it would be clever to combine loops--TAO)
+      ! Add the advective tendency to the TKE tendency calculated
+      ! by the UW TKE routine
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
              aten%tke(j,i,k) = aten%tke(j,i,k) + &
                                uwstatea%advtke(j,i,k)*rpsa(j,i)
              ! Do a filtered time integration
@@ -1616,10 +1624,10 @@ module mod_tendency
              atm2%tke(j,i,k) = max(tkemin,omuhf*atm1%tke(j,i,k) + &
                                gnuhf*(atm2%tke(j,i,k) + atmc%tke(j,i,k)))
              atm1%tke(j,i,k) = atmc%tke(j,i,k)
-          end if ! TKE tendency update
+          end do
         end do
       end do
-    end do
+    end if ! TKE tendency update
 
     do i = ice1 , ice2
       do j = jce1 , jce2
