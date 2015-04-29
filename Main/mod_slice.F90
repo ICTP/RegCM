@@ -116,20 +116,43 @@ module mod_slice
       end do
     end do
 
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        atms%ps2d(j,i) = (sfs%psb(j,i)+ptop)*d_1000
-        atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
-      end do
-    end do
-
-    do k = 1 , kz+1
+    if ( idynamic == 2 ) then
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%pf3d(j,i,k) = (sigma(k)*sfs%psb(j,i) + ptop)*d_1000
+          atms%ps2d(j,i) = (sfs%psb(j,i)+ptop)*d_1000 + atm2%pp(j,i,kz)
+          atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
         end do
       end do
-    end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atms%pf3d(j,i,1) = ptop*d_1000
+          atms%pf3d(j,i,kz+1) = atms%ps2d(j,i)
+        end do
+      end do
+      do k = 2 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atms%pf3d(j,i,k) = (sigma(k)*sfs%psb(j,i) + ptop)*d_1000 + &
+                     d_half*(atm2%pp(j,i,k-1)+atm2%pp(j,i,k))
+          end do
+        end do
+      end do
+    else
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atms%ps2d(j,i) = (sfs%psb(j,i)+ptop)*d_1000
+          atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
+        end do
+      end do
+      do k = 1 , kz+1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atms%pf3d(j,i,k) = (sigma(k)*sfs%psb(j,i) + ptop)*d_1000
+          end do
+        end do
+      end do
+    end if
+
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2

@@ -1430,8 +1430,8 @@ module mod_params
     call exchange(mddom%msfx,2,jde1,jde2,ide1,ide2)
     call exchange(mddom%msfd,2,jde1,jde2,ide1,ide2)
 
-    call init_advection(mddom,sfs,atm1,qdot,kpbl)
-    call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
+    call init_advection
+    call init_precip
     call init_surface_model
     call init_cumulus
 

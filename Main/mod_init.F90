@@ -194,7 +194,7 @@ module mod_init
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tbase(j,i,k) = ts00 + tlp*dlog((sfs%psa(j,i)*hsigma(k)+ptop)*d_r100)
+            tbase(j,i,k) = ts00 + tlp*dlog(atm1%pr(j,i,k))
           end do
         end do
       end do

@@ -49,8 +49,10 @@ module mod_advection
   real(rk8) , pointer , dimension(:,:) :: ps     ! Surface pressure
   real(rk8) , pointer , dimension(:,:) :: mapfx  ! Map factor Cross
   real(rk8) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
-  real(rk8) , pointer , dimension(:,:,:) :: vsv  ! Vertical Sigma Velocity
-  integer(ik4) , pointer , dimension(:,:) :: kpbl   ! Top of PBL
+  real(rk8) , pointer , dimension(:,:,:) :: svv  ! Sigma Vertical Velocity
+  real(rk8) , pointer , dimension(:,:,:) :: pfs  ! Pressure full sigma levels
+  real(rk8) , pointer , dimension(:,:,:) :: phs  ! Pressure half sigma levels
+  integer(ik4) , pointer , dimension(:,:) :: kpb ! Top of PBL
 
   ! working space used to store the interlated values in vadv.
 
@@ -62,20 +64,18 @@ module mod_advection
 
   contains
 
-    subroutine init_advection(dom,sfs,atm,vertvel,kpbltop)
+    subroutine init_advection
+      use mod_atm_interface , only : mddom , sfs , atms , atm1 , qdot , kpbl
       implicit none
-      type(domain) , intent(in) :: dom
-      type(surfstate), intent(in) :: sfs
-      type(atmstate_a) , intent(in) :: atm
-      real(rk8) , pointer , dimension(:,:,:) :: vertvel
-      integer(ik4) , pointer , dimension(:,:) :: kpbltop
-      call assignpnt(atm%u,ua)
-      call assignpnt(atm%v,va)
+      call assignpnt(atm1%u,ua)
+      call assignpnt(atm1%v,va)
       call assignpnt(sfs%psa,ps)
-      call assignpnt(dom%msfx,mapfx)
-      call assignpnt(dom%msfd,mapfd)
-      call assignpnt(vertvel,vsv)
-      call assignpnt(kpbltop,kpbl)
+      call assignpnt(mddom%msfx,mapfx)
+      call assignpnt(mddom%msfd,mapfd)
+      call assignpnt(atms%pf3d,pfs)
+      call assignpnt(atms%pb3d,phs)
+      call assignpnt(qdot,svv)
+      call assignpnt(kpbl,kpb)
       call getmem3d(fg,jde1,jde2,ide1,ide2,1,kz,'mod_advection:fg')
     end subroutine init_advection
     !
@@ -226,7 +226,7 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
 
-      real(rk8) :: slope
+      real(rk8) :: slope , rdphf , rdplf
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv3d'
@@ -252,29 +252,28 @@ module mod_advection
         do k = 2 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
-              fg(j,i,k) = twt(k,1)*f(j,i,k) *                                 &
-                   ((ps(j,i)*sigma(k)+ptop)/(ps(j,i)*hsigma(k)+ptop))**c287 + &
-                        twt(k,2)*f(j,i,k-1) *                                 &
-                   ((ps(j,i)*sigma(k)+ptop)/(ps(j,i)*hsigma(k-1)+ptop))**c287
+              rdphf = (pfs(j,i,k)/phs(j,i,k))**c287
+              rdplf = (pfs(j,i,k)/phs(j,i,k-1))**c287
+              fg(j,i,k) = twt(k,1)*f(j,i,k)*rdphf + twt(k,2)*f(j,i,k-1)*rdplf
             end do
           end do
         end do
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ften(j,i,1) = ften(j,i,1) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
+            ften(j,i,1) = ften(j,i,1) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
           end do
         end do
         do k = 2 , nk-1
           do i = ici1 , ici2
             do j = jci1 , jci2
               ften(j,i,k) = ften(j,i,k) - &
-                   (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
+                   (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
             end do
           end do
         end do
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ften(j,i,nk) = ften(j,i,nk) + vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+            ften(j,i,nk) = ften(j,i,nk) + svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
           end do
         end do
       else if ( ind == 2 ) then
@@ -296,8 +295,8 @@ module mod_advection
         do i = idi1 , idi2
           do j = jdi1 , jdi2
             ften(j,i,1) = ften(j,i,1) -                &
-                        (vsv(j-1,i-1,2)+vsv(j-1,i,2) + &
-                         vsv(j,i,2)+vsv(j,i-1,2))    * &
+                        (svv(j-1,i-1,2)+svv(j-1,i,2) + &
+                         svv(j,i,2)+svv(j,i-1,2))    * &
                          fg(j,i,2)/(d_four*dsigma(1))
           end do
         end do
@@ -305,10 +304,10 @@ module mod_advection
           do i = idi1 , idi2
             do j = jdi1 , jdi2
               ften(j,i,k) = ften(j,i,k) -                                &
-                          ((vsv(j-1,i,k+1)+vsv(j-1,i-1,k+1)+             &
-                            vsv(j,i,k+1)  +vsv(j,i-1,k+1))*fg(j,i,k+1) - &
-                           (vsv(j-1,i,k)  +vsv(j-1,i-1,k)+               &
-                            vsv(j,i,k)    +vsv(j,i-1,k))*fg(j,i,k)) /    &
+                          ((svv(j-1,i,k+1)+svv(j-1,i-1,k+1)+             &
+                            svv(j,i,k+1)  +svv(j,i-1,k+1))*fg(j,i,k+1) - &
+                           (svv(j-1,i,k)  +svv(j-1,i-1,k)+               &
+                            svv(j,i,k)    +svv(j,i-1,k))*fg(j,i,k)) /    &
                           (d_four*dsigma(k))
             end do
           end do
@@ -316,8 +315,8 @@ module mod_advection
         do i = idi1 , idi2
           do j = jdi1 , jdi2
             ften(j,i,nk) = ften(j,i,nk) +                 &
-                         (vsv(j-1,i,nk)+vsv(j-1,i-1,nk) + &
-                          vsv(j,i,nk)+vsv(j,i-1,nk)) *    &
+                         (svv(j-1,i,nk)+svv(j-1,i-1,nk) + &
+                          svv(j,i,nk)+svv(j,i-1,nk)) *    &
                           fg(j,i,nk)/(d_four*dsigma(nk))
           end do
         end do
@@ -336,12 +335,12 @@ module mod_advection
         end do
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( kpbl(j,i).gt.nk ) then
+            if ( kpb(j,i) > nk ) then
               call fatal(__FILE__,__LINE__,'kpbl is greater than nk')
             end if
-            if ( kpbl(j,i).ge.4 ) then
+            if ( kpb(j,i) >= 4 ) then
               ! Calculate slope of scalar in layer above ambiguous layer
-              k = kpbl(j,i)-2
+              k = kpb(j,i)-2
               if ( (f(j,i,k+1)-f(j,i,k)) > d_zero .and. &
                    (f(j,i,k)-f(j,i,k-1)) > d_zero ) then
                 slope = min((f(j,i,k+1)-f(j,i,k))/(hsigma(k+1)-hsigma(k)), &
@@ -355,7 +354,7 @@ module mod_advection
               end if
               ! Replace the values of scalar at top and bottom of ambiguous
               ! layer as long as inversion is actually in the ambiguous layer
-              k = kpbl(j,i)
+              k = kpb(j,i)
               fg(j,i,k-1) = f(j,i,k-2) + slope*(sigma(k-1)-hsigma(k-2))
               if (abs(f(j,i,k-2) + slope*(hsigma(k-1)-hsigma(k-2))-f(j,i,k)) > &
                   abs(f(j,i,k-1)-f(j,i,k)) ) then
@@ -368,21 +367,21 @@ module mod_advection
         end do
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ften(j,i,1) = ften(j,i,1) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
+            ften(j,i,1) = ften(j,i,1) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
           end do
         end do
         do k = 2 , nk-1
           do i = ici1 , ici2
             do j = jci1 , jci2
               ften(j,i,k) = ften(j,i,k) - &
-                  (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
+                  (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
             end do
           end do
         end do
         do i = ici1 , ici2
           do j = jci1 , jci2
             ften(j,i,nk) = ften(j,i,nk) + &
-                   vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+                   svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
           end do
         end do
       end if
@@ -440,20 +439,20 @@ module mod_advection
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,1,n) = ften(j,i,1,n) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
+              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
             end do
           end do
           do k = 2 , nk-1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ften(j,i,k,n) = ften(j,i,k,n) - &
-                       (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
+                       (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
               end do
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,nk,n) = ften(j,i,nk,n)+vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+              ften(j,i,nk,n) = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
             end do
           end do
         end do
@@ -474,20 +473,20 @@ module mod_advection
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,1,n) = ften(j,i,1,n) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
+              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
             end do
           end do
           do k = 2 , nk-1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ften(j,i,k,n) = ften(j,i,k,n) - &
-                       (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
+                       (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
               end do
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,nk,n) = ften(j,i,nk,n)+vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+              ften(j,i,nk,n) = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
             end do
           end do
         end do
@@ -507,20 +506,20 @@ module mod_advection
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,1,n) = ften(j,i,1,n) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
+              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
             end do
           end do
           do k = 2 , nk-1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ften(j,i,k,n) = ften(j,i,k,n) - &
-                       (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
+                       (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
               end do
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,nk,n) = ften(j,i,nk,n)+vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+              ften(j,i,nk,n) = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
             end do
           end do
         end do
@@ -540,12 +539,12 @@ module mod_advection
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              if ( kpbl(j,i) > nk ) then
+              if ( kpb(j,i) > nk ) then
                 call fatal(__FILE__,__LINE__,'kpbl is greater than nk')
               end if
-              if ( kpbl(j,i) >= 4 ) then
+              if ( kpb(j,i) >= 4 ) then
                 ! Calculate slope of scalar in layer above ambiguous layer
-                k = kpbl(j,i)-2
+                k = kpb(j,i)-2
                 if ( (f(j,i,k+1,n)-f(j,i,k,n)) > d_zero .and. &
                      (f(j,i,k,n)-f(j,i,k-1,n)) > d_zero ) then
                   slope = min((f(j,i,k+1,n)-f(j,i,k,n)) / &
@@ -561,7 +560,7 @@ module mod_advection
                 end if
                 ! Replace the values of scalar at top and bottom of ambiguous
                 ! layer as long as inversion is actually in the ambiguous layer
-                k = kpbl(j,i)
+                k = kpb(j,i)
                 fg(j,i,k-1) = f(j,i,k-2,n) + slope*(sigma(k-1)-hsigma(k-2))
                 if (abs(f(j,i,k-2,n) + &
                         slope*(hsigma(k-1)-hsigma(k-2))-f(j,i,k,n)) > &
@@ -575,21 +574,21 @@ module mod_advection
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,1,n) = ften(j,i,1,n) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
+              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
             end do
           end do
           do k = 2 , nk-1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ften(j,i,k,n) = ften(j,i,k,n) - &
-                    (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
+                    (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
               end do
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
               ften(j,i,nk,n) = ften(j,i,nk,n) + &
-                     vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+                     svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
             end do
           end do
         end do

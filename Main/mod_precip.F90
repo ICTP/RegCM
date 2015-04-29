@@ -82,26 +82,20 @@ module mod_precip
     end if
   end subroutine allocate_mod_precip
 
-  subroutine init_precip(atmslice,atm,aten,sfs,pptnc,cldfra,cldlwc)
-    use mod_atm_interface , only : mddom
+  subroutine init_precip
+    use mod_atm_interface , only : mddom , atms , atm2 , aten , sfs , &
+                                   pptnc , cldfra , cldlwc
     use mod_mppparam , only : maxall
     implicit none
-    type(slice) , intent(in) :: atmslice
-    type(atmstate_b) , intent(in) :: atm
-    type(atmstate_tendency) , intent(in) :: aten
-    type(surfstate) , intent(in) :: sfs
-    real(rk8) , pointer , dimension(:,:) :: pptnc
-    real(rk8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
-
     call maxall(maxval(mddom%xlat),maxlat)
-    call assignpnt(atmslice%tb3d,t3)
-    call assignpnt(atmslice%pb3d,p3)
-    call assignpnt(atmslice%qxb3d,qx3)
-    call assignpnt(atmslice%qsb3d,qs3)
-    call assignpnt(atmslice%rhb3d,rh3)
-    call assignpnt(atmslice%rhob3d,rho3)
-    call assignpnt(atm%t,t2)
-    call assignpnt(atm%qx,qx2)
+    call assignpnt(atms%tb3d,t3)
+    call assignpnt(atms%pb3d,p3)
+    call assignpnt(atms%qxb3d,qx3)
+    call assignpnt(atms%qsb3d,qs3)
+    call assignpnt(atms%rhb3d,rh3)
+    call assignpnt(atms%rhob3d,rho3)
+    call assignpnt(atm2%t,t2)
+    call assignpnt(atm2%qx,qx2)
     call assignpnt(aten%t,tten)
     call assignpnt(aten%qx,qxten)
     call assignpnt(sfs%psb,psf)
@@ -651,7 +645,7 @@ module mod_precip
           !     2.  Compute the cloud condensation/evaporation term.
           !-----------------------------------------------------------
           ! 2a. Calculate the saturation mixing ratio and relative humidity
-          pres = (psc(j,i)*hsigma(k)+ptop)*1000.0D0
+          pres = p3(j,i,k)
           qvs = pfqsat(tmp3,pres)
           rhc = dmax1(qvcs/qvs,dlowval)
 
