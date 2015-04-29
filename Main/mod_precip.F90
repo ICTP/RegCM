@@ -40,10 +40,10 @@ module mod_precip
   ! Precip sum beginning from top
   !
   real(rk8) , pointer , dimension(:,:) :: pptsum
-  real(rk8) , pointer , dimension(:,:) :: psf , rainnc , lsmrnc
+  real(rk8) , pointer , dimension(:,:) :: psb , psc , rainnc , lsmrnc
   real(rk8) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten
   real(rk8) , pointer , dimension(:,:,:) :: t3 , t2 , tten
-  real(rk8) , pointer , dimension(:,:,:) :: p3 , qs3 , rh3 , rho3
+  real(rk8) , pointer , dimension(:,:,:) :: p3 , p2 , qs3 , rh3 , rho3
   real(rk8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
 
   real(rk8) :: qcth
@@ -96,9 +96,11 @@ module mod_precip
     call assignpnt(atms%rhob3d,rho3)
     call assignpnt(atm2%t,t2)
     call assignpnt(atm2%qx,qx2)
+    call assignpnt(atm2%pr,p2)
     call assignpnt(aten%t,tten)
     call assignpnt(aten%qx,qxten)
-    call assignpnt(sfs%psb,psf)
+    call assignpnt(sfs%psb,psb)
+    call assignpnt(sfs%psc,psc)
     call assignpnt(sfs%rainnc,rainnc)
     call assignpnt(pptnc,lsmrnc)
     call assignpnt(cldfra,radcldf)
@@ -186,11 +188,11 @@ module mod_precip
             !       accretion [kg/kg/s]
             pptnew = dmin1(pptmax,pptacc+pptnew) ![kg/kg/s][avg]
             ! 1ah. Accumulate precipitation and convert to kg/m2/s
-            dpovg = dsigma(1)*psf(j,i)*thog                  ![kg/m2]
+            dpovg = dsigma(1)*psb(j,i)*thog                  ![kg/m2]
             pptsum(j,i) = pptnew*dpovg ![kg/m2/s][avg]
             ! 1ai. Compute the cloud water tendency [kg/kg/s*cb]
             ! [kg/kg/s*cb][avg]
-            qxten(j,i,1,iqc) = qxten(j,i,1,iqc) - pptnew*psf(j,i)
+            qxten(j,i,1,iqc) = qxten(j,i,1,iqc) - pptnew*psb(j,i)
           else  !   Cloud but no new precipitation
             pptsum(j,i) = d_zero ![kg/m2/s][avg]
           end if
@@ -217,7 +219,7 @@ module mod_precip
           rh = dmin1(dmax1(qx3(j,i,k,iqv)/qs,d_zero),rhmax)  ![frac][avg]
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
-          dpovg = dsigma(k)*psf(j,i)*thog                    ![kg/m2][avg]
+          dpovg = dsigma(k)*psb(j,i)*thog                    ![kg/m2][avg]
           pptkm1 = pptsum(j,i)/dpovg                         ![kg/kg/s][avg]
           ! 1bc. Compute the raindrop evaporation in the clear portion of
           !      the gridcell.
@@ -242,10 +244,10 @@ module mod_precip
             pptsum(j,i) = pptsum(j,i) - rdevap*dpovg       ![kg/m2/s][avg]
             ! 2bcf. Compute the water vapor tendency [kg/kg/s*cb]
             ![kg/kg/s*cb][avg]
-            qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + rdevap*psf(j,i)
+            qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + rdevap*psb(j,i)
             ! 2bcf. Compute the temperature tendency [K/s*cb]
             ![k/s*cb][avg]
-            tten(j,i,k) = tten(j,i,k) - wlhvocp*rdevap*psf(j,i)
+            tten(j,i,k) = tten(j,i,k) - wlhvocp*rdevap*psb(j,i)
           else
             !   no precipitation from above
             rdevap = d_zero                                  ![kg/kg/s][avg]
@@ -285,7 +287,7 @@ module mod_precip
             pptsum(j,i) = pptsum(j,i) + pptnew*dpovg        ![kg/m2/s][avg]
             ! 1bh. Compute the cloud water tendency [kg/kg/s*cb]
             ![kg/kg/s*cb][avg]
-            qxten(j,i,k,iqc) = qxten(j,i,k,iqc) - pptnew*psf(j,i)
+            qxten(j,i,k,iqc) = qxten(j,i,k,iqc) - pptnew*psb(j,i)
           else
             pptnew = d_zero ![kg/kg/s][avg]
           end if
@@ -312,7 +314,7 @@ module mod_precip
             if ( remrat(j,i,k) > d_zero ) then
               do kk = 1 , k - 1
                 rembc(j,i,k) = rembc(j,i,k) + remrat(j,i,kk)*qx3(j,i,kk,iqc) * &
-                             psf(j,i)*dsigma(kk)*uch          ![mm/hr]
+                             psb(j,i)*dsigma(kk)*uch          ![mm/hr]
               end do
               ! the below cloud precipitation rate is now used
               ! directly in chemistry
@@ -610,9 +612,8 @@ module mod_precip
   !                                                                 c
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
-  subroutine condtq(psc)
+  subroutine condtq
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: psc
     !
     ! rhc    - Relative humidity at ktau+1
     ! rh0adj - Adjusted relative humidity threshold at ktau+1
@@ -645,7 +646,7 @@ module mod_precip
           !     2.  Compute the cloud condensation/evaporation term.
           !-----------------------------------------------------------
           ! 2a. Calculate the saturation mixing ratio and relative humidity
-          pres = p3(j,i,k)
+          pres = p2(j,i,k)
           qvs = pfqsat(tmp3,pres)
           rhc = dmax1(qvcs/qvs,dlowval)
 

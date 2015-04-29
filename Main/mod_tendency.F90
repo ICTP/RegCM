@@ -480,6 +480,13 @@ module mod_tendency
           sfs%psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
         end do
       end if
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atm2%pr(j,i,k) = (hsigma(k)*sfs%psc(j,i) + ptop)*d_1000
+          end do
+        end do
+      end do
       do i = ice1 , ice2
         do j = jce1 , jce2
           rpsc(j,i) = d_one/sfs%psc(j,i)
@@ -1058,7 +1065,7 @@ module mod_tendency
         end do
       end do
       if ( ipptls == 1 ) then
-        call condtq(sfs%psc)
+        call condtq
       end if
       if ( idiag > 0 ) then
         ! rq : temp condensation tend is added the evap temp tend
