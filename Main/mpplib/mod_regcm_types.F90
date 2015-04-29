@@ -427,6 +427,9 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: cldlwc
     real(rk8) , pointer , dimension(:,:,:) :: tatms         ! atms%tb3d
     real(rk8) , pointer , dimension(:,:,:) :: rhatms        ! atms%rhb3d
+    real(rk8) , pointer , dimension(:,:,:) :: phatms        ! atms%pb3d
+    real(rk8) , pointer , dimension(:,:,:) :: pfatms        ! atms%pf3d
+    real(rk8) , pointer , dimension(:,:) :: psatms          ! atms%ps2d
     real(rk8) , pointer , dimension(:,:,:,:) :: qxatms      ! atms%qxb3d
     real(rk8) , pointer , dimension(:,:,:,:) :: chiatms     ! atms%chib3d
     real(rk8) , pointer , dimension(:,:) :: tg              ! sfs%tgbb

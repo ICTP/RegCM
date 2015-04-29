@@ -32,6 +32,7 @@ module mod_rad_o3blk
   use mod_memutil
   use mod_rad_common
   use mod_stdio
+  use mod_regcm_types
   use netcdf
 
   implicit none
@@ -101,9 +102,9 @@ module mod_rad_o3blk
 !
 !----------------------------------------------------------------------
 !
-  subroutine o3data(psb)
+  subroutine o3data(m2r)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: psb
+    type(mod_2_rad) , intent(in) :: m2r
     integer(ik4) :: i , j , jj , k , kj
     real(rk8) :: pb1 , pb2 , pt1 , pt2
     do k = 1 , 31
@@ -128,7 +129,7 @@ module mod_rad_o3blk
       do j = jci1 , jci2
         do k = kzp1 , 1 , -1
           kj = kzp1 - k + 1
-          prlevh(kj) = (sigma(k)*psb(j,i)+ptop)*d_10
+          prlevh(kj) = m2r%pfatms(j,i,k) * d_r100
         end do
         ppwrkh(1) = 1100.0D0
         do k = 2 , 31

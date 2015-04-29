@@ -42,10 +42,10 @@ module mod_rad_interface
   public :: allocate_radiation
   public :: init_radiation
   public :: radiation
+  public :: inito3
 
   ! Procedures exported from internal modules
   public :: set_scenario
-  public :: o3data
   public :: read_o3data
 
   ! Data
@@ -91,6 +91,9 @@ module mod_rad_interface
     call assignpnt(atms%qxb3d,m2r%qxatms)
     call assignpnt(atms%rhb3d,m2r%rhatms)
     call assignpnt(atms%chib3d,m2r%chiatms)
+    call assignpnt(atms%pb3d,m2r%phatms)
+    call assignpnt(atms%pf3d,m2r%pfatms)
+    call assignpnt(atms%ps2d,m2r%psatms)
     call assignpnt(sfs%tgbb,m2r%tg)
     call assignpnt(sfs%psb,m2r%psb)
     call assignpnt(mddom%xlat,m2r%xlat)
@@ -119,7 +122,7 @@ module mod_rad_interface
     call assignpnt(flwd,r2m%flwd)
     call assignpnt(heatrt,r2m%heatrt)
   end subroutine init_radiation
-!
+
   subroutine radiation(iyear,loutrad,labsem)
     implicit none
     integer(ik4) , intent(in) :: iyear
@@ -131,6 +134,10 @@ module mod_rad_interface
       call colmod3(iyear,loutrad,labsem,m2r,r2m)
     end if
   end subroutine radiation
+
+  subroutine inito3
+    call o3data(m2r)
+  end subroutine inito3
 
 end module mod_rad_interface
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

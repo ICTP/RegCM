@@ -30,8 +30,8 @@ module mod_init
   use mod_atm_interface
   use mod_che_interface
   use mod_cu_interface
-  use mod_rad_interface
   use mod_pbl_interface
+  use mod_rad_interface
   use mod_slabocean
   use rrtmg_sw_init
   use rrtmg_lw_init
@@ -68,8 +68,8 @@ module mod_init
 !
   integer(ik4) :: i , j , k , n
   real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
-  real(rk8) , dimension(kzp1) :: ozprnt
   character(len=32) :: appdat
+  real(rk8) , dimension(kzp1) :: ozprnt
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'init'
   integer(ik4) , save :: idindx = 0
@@ -235,14 +235,6 @@ module mod_init
       lms%tskin(:,:,:) = lms%sst
       lms%deltas(:,:,:) = 0.001D0
       lms%tdeltas(:,:,:) = lms%sst(:,:,:) - lms%deltas(:,:,:)
-    end if
-    !
-    ! Inizialize Ozone profiles
-    !
-    call o3data(sfs%psb)
-    if ( myid == italk ) then
-      ozprnt = o3prof(3,3,:)
-      call vprntv(ozprnt,kzp1,'Ozone profile at (3,3)')
     end if
     !
     ! End of initial run case

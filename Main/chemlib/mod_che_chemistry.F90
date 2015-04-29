@@ -54,7 +54,7 @@ module mod_che_chemistry
       ! heightk   is the approximated height at level k
       ! heightkp1 is the approximated height at level k+1
       ! heightkm1 is the approximated height at level k-1
-      real(rk8) :: cfactor , pfact , pss
+      real(rk8) :: cfactor , pfact , pss , sfp
       real(rk8) :: pressk , presskp1 , presskm1
       real(rk8) :: heightk , heightkp1 , heightkm1
       real(rk8) , parameter :: scaleH = 7.6 !km
@@ -68,8 +68,8 @@ module mod_che_chemistry
       do k = 2 , kz
         do i = ici1 , ici2
           ! care here pressure4 is considered ???
-          altmid = (cpsb(j,i)*hsigma(k)+ptop)
-
+          altmid = cpb3d(j,i,k)
+          sfp    = cps2d(j,i)
           temp   = ctb3d(j,i,k)
           zenith = dacos(czen(j,i))*raddeg
           dens   = crhob3d(j,i,k) * 1.D-03 * navgdr / 28.97D0
@@ -82,18 +82,18 @@ module mod_che_chemistry
 
           if ( ichjphcld == 1 ) then
             if ( k == kz ) then
-              pressk    = (cpsb(j,i)*hsigma(k)+ptop)
-              heightk   = -1.0*scaleH*log(pressk/(cpsb(j,i)+ptop))
+              pressk    = cpb3d(j,i,k)
+              heightk   = -1.0*scaleH*log(pressk/sfp)
             end if
             if ( k > 2 ) then
               if ( ctaucld(j,i,k-1,8) > 0.0 ) then
                 do kab = k-1 , 2 , -1
                   deptha    = deptha + ctaucld(j,i,kab,8)
-                  pressk    = (cpsb(j,i)*hsigma(kab)+ptop)
-                  presskp1  = (cpsb(j,i)*hsigma(kab+1)+ptop)
-                  heightkp1 = -1.0*scaleH*log(presskp1/(cpsb(j,i)+ptop))
-                  presskm1  = (cpsb(j,i)*hsigma(kab-1)+ptop)
-                  heightkm1 = -1.0*scaleH*log(presskm1/(cpsb(j,i)+ptop))
+                  pressk    = cpb3d(j,i,kab)
+                  presskp1  = cpb3d(j,i,kab+1)
+                  heightkp1 = -1.0*scaleH*log(presskp1/sfp)
+                  presskm1  = cpb3d(j,i,kab-1)
+                  heightkm1 = -1.0*scaleH*log(presskm1/sfp)
                   heightk   = 0.5*(heightkp1+heightkm1)
                   altabove  = altabove + heightk*ctaucld(j,i,kab,8)
                 end do
@@ -104,11 +104,11 @@ module mod_che_chemistry
               if ( ctaucld(j,i,k+1,8) > 0.0 ) then
                 do kbl = kz , k+1 , -1
                   depthb    = depthb + ctaucld(j,i,kbl,8)
-                  pressk    = (cpsb(j,i)*hsigma(kbl)+ptop)
-                  presskp1  = (cpsb(j,i)*hsigma(kbl+1)+ptop)
-                  heightkp1 = -1.0*scaleH*log(presskp1/(cpsb(j,i)+ptop))
-                  presskm1  = (cpsb(j,i)*hsigma(kbl-1)+ptop)
-                  heightkm1 = -1.0*scaleH*log(presskm1/(cpsb(j,i)+ptop))
+                  pressk    = cpb3d(j,i,kbl)
+                  presskp1  = cpb3d(j,i,kbl+1)
+                  heightkp1 = -1.0*scaleH*log(presskp1/sfp)
+                  presskm1  = cpb3d(j,i,kbl-1)
+                  heightkm1 = -1.0*scaleH*log(presskm1/sfp)
                   heightk   = 0.5*(heightkp1+heightkm1)
                   altbelow  = altbelow + heightk*ctaucld(j,i,kbl,8)
                 end do

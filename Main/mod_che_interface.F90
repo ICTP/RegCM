@@ -127,6 +127,8 @@ module mod_che_interface
     call assignpnt(atms%tb3d,ctb3d)
     call assignpnt(atms%qxb3d,cqxb3d)
     call assignpnt(atms%rhob3d,crhob3d)
+    call assignpnt(atms%pb3d,cpb3d)
+    call assignpnt(atms%ps2d,cps2d)
     ! wind at cell center
     call assignpnt(atms%ubx3d,cubx3d)
     call assignpnt(atms%vbx3d,cvbx3d)

@@ -701,7 +701,7 @@ module mod_rad_colmod3
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        ps(n) = (m2r%psb(j,i)+ptop)*d_1000
+        ps(n) = m2r%psatms(j,i)
         n = n + 1
       end do
     end do
@@ -712,7 +712,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pmidm1(n,k) = (m2r%psb(j,i)*hsigma(k)+ptop)*d_1000
+          pmidm1(n,k) = m2r%phatms(j,i,k)
           n = n + 1
         end do
       end do
@@ -722,7 +722,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pintm1(n,k) = (m2r%psb(j,i)*sigma(k)+ptop)*d_1000
+          pintm1(n,k) = m2r%pfatms(j,i,k)
           n = n + 1
         end do
       end do

@@ -506,7 +506,7 @@ module mod_rrtmg_driver
     do i = ici1 , ici2
       do j = jci1 , jci2
         dlat(n) = dabs(m2r%xlat(j,i))
-        xptrop(n) = m2r%ptrop(j,i)/100.0D0
+        xptrop(n) = m2r%ptrop(j,i) * d_r100
         n = n + 1
       end do
     end do
@@ -514,7 +514,7 @@ module mod_rrtmg_driver
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        psfc(n) = (m2r%psb(j,i)+ptop)*d_10
+        psfc(n) = m2r%psatms(j,i) * d_r100
         n = n + 1
       end do
     end do
@@ -524,7 +524,7 @@ module mod_rrtmg_driver
       kj = kzp1-k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          play(n,kj) = (m2r%psb(j,i)*hsigma(k)+ptop)*d_10
+          play(n,kj) = m2r%phatms(j,i,k)*d_r100
           n = n + 1
         end do
       end do
@@ -533,14 +533,14 @@ module mod_rrtmg_driver
       play(:,k) = stdplevh(kclimh+k-kzp1)
     end do
     !
-    ! convert pressures from cb to mb and define interface pressures:
+    ! convert pressures from Pa to mb and define interface pressures:
     !
     do k = 1 , kzp1
       n = 1
       kj = kzp1-k+1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          plev(n,kj) = (m2r%psb(j,i)*sigma(k)+ptop)*d_10
+          plev(n,kj) = m2r%pfatms(j,i,k)*d_r100
           n = n + 1
         end do
       end do
@@ -725,7 +725,7 @@ module mod_rrtmg_driver
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pint(n,k) = (m2r%psb(j,i)*sigma(k)+ptop)*d_1000
+          pint(n,k) = m2r%phatms(j,i,k)
           n = n + 1
         end do
       end do
