@@ -295,12 +295,12 @@ module mod_lm_interface
     call assignpnt(atms%qxb3d,lm%qvatm,kz,iqv)
     call assignpnt(atms%thx3d,lm%thatm,kz)
     call assignpnt(atms%rhox2d,lm%rhox)
+    call assignpnt(atms%ps2d,lm%sfps)
     call assignpnt(atms%za,lm%hgt,kz)
     call assignpnt(sfs%hfx,lm%hfx)
     call assignpnt(sfs%qfx,lm%qfx)
     call assignpnt(sfs%uvdrag,lm%uvdrag)
     call assignpnt(sfs%tgbb,lm%tgbb)
-    call assignpnt(sfs%psb,lm%sfps)
     call assignpnt(sfs%tga,lm%tground1)
     call assignpnt(sfs%tgb,lm%tground2)
     call assignpnt(zpbl,lm%hpbl)
@@ -525,7 +525,7 @@ module mod_lm_interface
     integer(ik4) :: j , i
     do i = ici1 , ici2
       do j = jci1 , jci2
-        expfie%psfc(j,i) = (lm%sfps(j,i)+ptop)*d_10
+        expfie%psfc(j,i) = lm%sfps(j,i)*d_r100
         expfie%tsfc(j,i) = sum(lms%t2m(:,j,i))*rdnnsg
         expfie%qsfc(j,i) = sum(lms%q2m(:,j,i))*rdnnsg
         expfie%swrd(j,i) = lm%rswf(j,i)
@@ -807,11 +807,9 @@ module mod_lm_interface
         if ( associated(sts_pcpavg_out) ) &
           sts_pcpavg_out = sts_pcpavg_out + lms%prcp(1,:,:)
         if ( associated(sts_psmin_out) ) &
-          sts_psmin_out = min(sts_psmin_out, &
-            (lm%sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
+          sts_psmin_out = min(sts_psmin_out,lm%sfps(jci1:jci2,ici1:ici2))
         if ( associated(sts_psavg_out) ) &
-          sts_psavg_out = sts_psavg_out + &
-            (lm%sfps(jci1:jci2,ici1:ici2)+ptop)*d_10
+          sts_psavg_out = sts_psavg_out + lm%sfps(jci1:jci2,ici1:ici2)
         if ( associated(sts_sund_out) ) then
           where( lm%rswf > 120.0D0 )
             sts_sund_out = sts_sund_out + dtbat

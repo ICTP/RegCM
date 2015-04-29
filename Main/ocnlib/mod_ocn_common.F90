@@ -180,7 +180,6 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%cprate,cprate)
       call c2l_gs(ocncomm,lm%ncprate,ncprate)
       prcp = (cprate+ncprate) * rtsrf
-      sfps = (sfps+ptop)*d_1000
       if ( ldcsst ) then
         call c2l_ss(ocncomm,lms%deltas,deltas)
         call c2l_ss(ocncomm,lms%tdeltas,tdeltas)

@@ -223,7 +223,6 @@ module mod_clm_regcm
     clm_a2l%forc_hgt_u = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
-    clm_a2l%forc_psrf = (clm_a2l%forc_psrf+ptop)*d_1000
 
     do i = begg , endg
       satp = pfesat(clm_a2l%forc_t(i))

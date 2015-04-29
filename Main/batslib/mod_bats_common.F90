@@ -330,7 +330,6 @@ module mod_bats_common
       zlgsno = dlog(zh/zsno)
 
       do i = ilndbeg , ilndend
-        p0(i) = (p0(i)+ptop)*d_1000
         xqs0 = pfqsat(ts0(i),p0(i))
         rh0 = max(qs0(i)/xqs0,d_zero)
         solvt = swd0(i) + swf0(i)

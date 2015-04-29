@@ -116,9 +116,10 @@ module mod_sound
     !
     ! Calculate the loop boundaries
     !
-!    if ( ktau == 0 ) then
-!      write(stdout,*) 'SHORT TIME STEP ' , dts , istep , &
-!                      ' BETA = ' , bet , ' XKD = ' , xkd
+    if ( ktau == 0 ) then
+      write(stdout,'(a,f7.2,i3,a,f4.1,a,f4.1)') &
+            ' SHORT TIME STEP ' , dts , istep , &
+            ' BETA = ' , bet , ' XKD = ' , xkd
 !      do j = -6 , 6
 !        do i = -6 , 6
 !          tmask(j,i) = d_zero
@@ -145,7 +146,7 @@ module mod_sound
 !        fi(6) = d_half
 !        fj(6) = d_half
 !      end if
-!    end if
+    end if
     !
     !  Premultiply the tendency arrays by dts
     !
@@ -549,7 +550,7 @@ module mod_sound
           end do
         end do
       end do
-      if ( mod(ktau,krep) == 0 ) then
+      if ( mod(ktau,krep) == 0 .and. ktau > 0 ) then
         call sumall(total_precip_points,iconvec)
         call sumall(cfl,sumcfl)
         if ( myid == italk ) then

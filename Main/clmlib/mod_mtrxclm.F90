@@ -262,7 +262,6 @@ module mod_mtrxclm
       call fill_frame(lm%uatm,r2cuxb)
       call fill_frame(lm%vatm,r2cvxb)
       call fill_frame(lm%sfps,r2cpsb)
-      r2cpsb = (r2cpsb+ptop)*d_1000
       call fill_frame(lm%cprate,r2crnc)
       call fill_frame(lm%ncprate,r2crnnc)
       r2crnc = r2crnc * rtsrf
@@ -520,7 +519,6 @@ module mod_mtrxclm
       call fill_frame(lm%uatm,r2cuxb)
       call fill_frame(lm%vatm,r2cvxb)
       call fill_frame(lm%sfps,r2cpsb)
-      r2cpsb = (r2cpsb+ptop)*d_1000
       call fill_frame(lm%cprate,r2crnc)
       call fill_frame(lm%ncprate,r2crnnc)
       r2crnc = r2crnc * rtsrf
@@ -636,7 +634,7 @@ module mod_mtrxclm
               lms%t2m(n,j,i)    = c2r2mt(jg,ig)
               lms%u10m(n,j,i)   = lm%uatm(j,i)/dlog(lm%hgt(j,i)*d_r10)
               lms%v10m(n,j,i)   = lm%vatm(j,i)/dlog(lm%hgt(j,i)*d_r10)
-              lms%sfcp(n,j,i)   = (lm%sfps(j,i)+ptop)*1000.0
+              lms%sfcp(n,j,i)   = lm%sfps(j,i)
               lms%tlef(n,j,i)   = c2rtlef(jg,ig)
               lms%tsw(n,j,i)    = c2rsmtot(jg,ig)
               lms%rsw(n,j,i)    = c2rsm1m(jg,ig)
