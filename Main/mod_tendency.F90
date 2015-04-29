@@ -1564,17 +1564,6 @@ module mod_tendency
     call check_wind_tendency('DIFF')
 #endif
     !
-    ! forecast p*u and p*v at tau+1:
-    !
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          atmc%u(j,i,k) = atm2%u(j,i,k) + dt*aten%u(j,i,k)
-          atmc%v(j,i,k) = atm2%v(j,i,k) + dt*aten%v(j,i,k)
-        end do
-      end do
-    end do
-    !
     !  Couple TKE to ps for use in vertical advection
     !
     if ( ibltyp == 2 ) then
@@ -1593,7 +1582,52 @@ module mod_tendency
       ! Calculate the horizontal, diffusive tendency for TKE
       call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kz)
     end if
+    !
+    ! Compute future values of t and moisture variables at tau+1:
+    !
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          atm2%t(j,i,k) = omuhf*atm1%t(j,i,k) + &
+                          gnuhf*(atm2%t(j,i,k)+atmc%t(j,i,k))
+          atm1%t(j,i,k) = atmc%t(j,i,k)
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          atm1%qx(j,i,k,iqv) = atmc%qx(j,i,k,iqv)
+          atm2%qx(j,i,k,iqv) = omuhf*atm1%qx(j,i,k,iqv) + &
+            gnuhf*(atm2%qx(j,i,k,iqv)+atmc%qx(j,i,k,iqv))
+          atm2%qx(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv),minqx*sfs%psb(j,i))
+        end do
+      end do
+    end do
+    do n = iqc , nqx
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            atm1%qx(j,i,k,n) = atmc%qx(j,i,k,n)
+            atm2%qx(j,i,k,n) = omuhf*atm1%qx(j,i,k,n) + &
+              gnuhf*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
+            atm2%qx(j,i,k,n) = max(atm2%qx(j,i,k,n),1D-10*sfs%psb(j,i))
+          end do
+        end do
+      end do
+    end do
     if ( idynamic == 1 ) then
+      !
+      ! forecast p*u and p*v at tau+1:
+      !
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            atmc%u(j,i,k) = atm2%u(j,i,k) + dt*aten%u(j,i,k)
+            atmc%v(j,i,k) = atm2%v(j,i,k) + dt*aten%v(j,i,k)
+          end do
+        end do
+      end do
       !
       ! store the xxa variables in xxb and xxc in xxa:
       ! perform time smoothing operations.
@@ -1610,73 +1644,15 @@ module mod_tendency
           end do
         end do
       end do
-    end if
-    if ( ibltyp == 2 ) then
-      ! TAO: Once the full loop above is completed, update the TKE
-      ! tendency if the UW PBL is running.  NOTE!!! Do not try to
-      ! combine these loops with the above loop Advection MUST be
-      ! done in a loop separate from the updates.  (I lost 3 days
-      ! of working to disocover that this is a problem because I
-      ! thought it would be clever to combine loops--TAO)
-      ! Add the advective tendency to the TKE tendency calculated
-      ! by the UW TKE routine
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-             aten%tke(j,i,k) = aten%tke(j,i,k) + &
-                               uwstatea%advtke(j,i,k)*rpsa(j,i)
-             ! Do a filtered time integration
-             atmc%tke(j,i,k) = max(tkemin,atm2%tke(j,i,k) + &
-                               dt*aten%tke(j,i,k))
-             atm2%tke(j,i,k) = max(tkemin,omuhf*atm1%tke(j,i,k) + &
-                               gnuhf*(atm2%tke(j,i,k) + atmc%tke(j,i,k)))
-             atm1%tke(j,i,k) = atmc%tke(j,i,k)
-          end do
-        end do
-      end do
-    end if ! TKE tendency update
-
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        rpsb(j,i) = d_one/sfs%psb(j,i)
-      end do
-    end do
-    if ( idynamic == 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            atm2%t(j,i,k) = omuhf*atm1%t(j,i,k) + &
-                            gnuhf*(atm2%t(j,i,k)+atmc%t(j,i,k))
-            atm1%t(j,i,k) = atmc%t(j,i,k)
-          end do
-        end do
-      end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            atm1%qx(j,i,k,iqv) = atmc%qx(j,i,k,iqv)
-            atm2%qx(j,i,k,iqv) = omuhf*atm1%qx(j,i,k,iqv) + &
-              gnuhf*(atm2%qx(j,i,k,iqv)+atmc%qx(j,i,k,iqv))
-            atm2%qx(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv),minqx*sfs%psb(j,i))
-          end do
-        end do
-      end do
-      do n = iqc , nqx
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              atm1%qx(j,i,k,n) = atmc%qx(j,i,k,n)
-              atm2%qx(j,i,k,n) = omuhf*atm1%qx(j,i,k,n) + &
-                gnuhf*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
-              atm2%qx(j,i,k,n) = max(atm2%qx(j,i,k,n),1D-10*sfs%psb(j,i))
-            end do
-          end do
-        end do
-      end do
       do i = ici1 , ici2
         do j = jci1 , jci2
           sfs%psb(j,i) = omuhf*sfs%psa(j,i) + gnuhf*(sfs%psb(j,i)+sfs%psc(j,i))
           sfs%psa(j,i) = sfs%psc(j,i)
+        end do
+      end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          rpsb(j,i) = d_one/sfs%psb(j,i)
         end do
       end do
       do k = 1 , kz
@@ -1691,9 +1667,6 @@ module mod_tendency
       ! Hydrostatic split explicit scheme
       !
       call splitf
-      !
-      ! Next timestep ready
-      !
     else if ( idynamic == 2 ) then
       !
       ! Decouple before calling sound
@@ -1723,9 +1696,6 @@ module mod_tendency
       ! Compute u,v,w,pp at ktau+1
       !
       call sound(dt,ktau)
-      !
-      ! Done
-      !
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -1737,6 +1707,30 @@ module mod_tendency
         end do
       end do
     end if
+    if ( ibltyp == 2 ) then
+      ! TAO: Once the full loop above is completed, update the TKE
+      ! tendency if the UW PBL is running.  NOTE!!! Do not try to
+      ! combine these loops with the above loop Advection MUST be
+      ! done in a loop separate from the updates.  (I lost 3 days
+      ! of working to disocover that this is a problem because I
+      ! thought it would be clever to combine loops--TAO)
+      ! Add the advective tendency to the TKE tendency calculated
+      ! by the UW TKE routine
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+             aten%tke(j,i,k) = aten%tke(j,i,k) + &
+                               uwstatea%advtke(j,i,k)*rpsa(j,i)
+             ! Do a filtered time integration
+             atmc%tke(j,i,k) = max(tkemin,atm2%tke(j,i,k) + &
+                               dt*aten%tke(j,i,k))
+             atm2%tke(j,i,k) = max(tkemin,omuhf*atm1%tke(j,i,k) + &
+                               gnuhf*(atm2%tke(j,i,k) + atmc%tke(j,i,k)))
+             atm1%tke(j,i,k) = atmc%tke(j,i,k)
+          end do
+        end do
+      end do
+    end if ! TKE tendency update
     if ( ichem == 1 ) then
       do itr = 1 , ntr
         do k = 1 , kz
@@ -1761,7 +1755,7 @@ module mod_tendency
       end if
     end if
     !
-    ! increment elapsed forecast time:
+    ! Next timestep ready : increment elapsed forecast time
     !
     ktau = ktau + 1
     xbctime = xbctime + dtsec
