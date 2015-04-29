@@ -291,7 +291,7 @@ module mod_sound
           f(j,i,kz) = w3d(j,i,kzp1)
           cc(j,i,1) = xgamma * atm2%pr(j,i,1) * dts/ (dx*mddom%msfx(j,i))
           cdd(j,i,1) = xgamma * atm2%pr(j,i,1) * atm0%rho(j,i,1) * &
-                       egrav * dts / (sfs%psa(j,i)*dsigma(1))
+                       egrav * dts / (atm0%ps(j,i)*dsigma(1))
           cj(j,i,1) = atm0%rho(j,i,1) * egrav * dts / d_two
           pxup(j,i,1) = 0.0625D0 *                              &
                       ( atm0%pr(j,i+1,1) - atm0%pr(j,i-1,1) ) * &
@@ -342,7 +342,7 @@ module mod_sound
             !
             cc(j,i,k) = xgamma * atm2%pr(j,i,k) * dts / (dx*mddom%msfx(j,i))
             cdd(j,i,k) = xgamma * atm2%pr(j,i,k) * atm0%rho(j,i,k) * &
-                         egrav * dts / (sfs%psa(j,i)*dsigma(k))
+                         egrav * dts / (atm0%ps(j,i)*dsigma(k))
             cj(j,i,k) = atm0%rho(j,i,k) * egrav * dts/d_two
             ca(j,i,k) = egrav * dts / (atm0%pr(j,i,k)-atm0%pr(j,i,km1)) * rofac
             g1(j,i,k) = d_one - dsigma(km1) * tk(j,i,k)
@@ -582,7 +582,7 @@ module mod_sound
           do j = jci1 , jci2
             ppold = pi(j,i,k)
             cddtmp = xgamma * atm2%pr(j,i,k) * atm0%rho(j,i,k) * &
-                     egrav * dts / (sfs%psa(j,i)*dsigma(k))
+                     egrav * dts / (atm0%ps(j,i)*dsigma(k))
             cjtmp = atm0%rho(j,i,k) * egrav * dts/d_two
             pp3d(j,i,k) = pp3d(j,i,k) + &
                           ( cjtmp * (w3d(j,i,k+1) + w3d(j,i,k)) + &
