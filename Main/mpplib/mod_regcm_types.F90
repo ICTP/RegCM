@@ -100,6 +100,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: ps
     real(rk8) , pointer , dimension(:,:,:) :: t
     real(rk8) , pointer , dimension(:,:,:) :: pr
+    real(rk8) , pointer , dimension(:,:,:) :: pf
     real(rk8) , pointer , dimension(:,:,:) :: rho
   end type reference_atmosphere
 

@@ -2014,6 +2014,13 @@ module mod_params
         call nhbase(ice1,ice2,jce1,jce2,kz,hsigma, &
                     atm0%ps,atm0%pr,atm0%t,atm0%rho)
         call exchange(atm0%ps,1,jce1,jce2,ice1,ice2)
+        do k = 1 , kz+1
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              atm0%pf(j,i,k) = sigma(k) * atm0%ps(j,i) + ptop*d_1000
+            end do
+          end do
+        end do
         do k = 1 , kz-1
           do i = ice1 , ice2
             do j = jce1 , jce2

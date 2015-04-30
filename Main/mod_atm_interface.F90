@@ -744,6 +744,7 @@ module mod_atm_interface
                            ice1-ma%ibb1,ice2+ma%ibt1,'reference:ps')
       call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'reference:t')
       call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'reference:pr')
+      call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kz+1,'reference:pf')
       call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'reference:rho')
     end subroutine allocate_reference_atmosphere
 

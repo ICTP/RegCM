@@ -119,7 +119,7 @@ module mod_slice
     if ( idynamic == 2 ) then
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%ps2d(j,i) = (sfs%psb(j,i)+ptop)*d_1000 + atm2%pp(j,i,kz)
+          atms%ps2d(j,i) = atm0%ps(j,i)+ptop*d_1000 + atm2%pp(j,i,kz)*rpsb(j,i)
           atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
         end do
       end do
@@ -132,8 +132,8 @@ module mod_slice
       do k = 2 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atms%pf3d(j,i,k) = (sigma(k)*sfs%psb(j,i) + ptop)*d_1000 + &
-                     d_half*(atm2%pp(j,i,k-1)+atm2%pp(j,i,k))
+            atms%pf3d(j,i,k) = atm0%pf(j,i,k) + &
+                     d_half*(atm2%pp(j,i,k-1)+atm2%pp(j,i,k))*rpsb(j,i)
           end do
         end do
       end do

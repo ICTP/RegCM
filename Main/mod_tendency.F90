@@ -214,7 +214,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atm1%pr(j,i,k)  = atm0%pr(j,i,k) + atmx%pp(j,i,k)
+            atm1%pr(j,i,k) = atm0%pr(j,i,k) + atmx%pp(j,i,k)
             atm1%rho(j,i,k) = atm1%pr(j,i,k) / &
               (rgas*atmx%t(j,i,k)*(d_one+ep1*atmx%qx(j,i,k,iqv)))
           end do
@@ -251,7 +251,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atm2%pr(j,i,k)  = atm0%pr(j,i,k) + atm2%pp(j,i,k)*rpsb(j,i)
+            atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)*rpsb(j,i)
             atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
               (rgas*atm2%t(j,i,k)*rpsb(j,i) *  &
               (d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
@@ -1701,7 +1701,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atm2%pr(j,i,k)  = atm0%pr(j,i,k) + atm2%pp(j,i,k)*rpsb(j,i)
+            atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)*rpsb(j,i)
             atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
               (rgas*atm2%t(j,i,k)*rpsb(j,i) *  &
               (d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
