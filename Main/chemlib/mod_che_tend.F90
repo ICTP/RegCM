@@ -161,7 +161,7 @@
           else
             ivegcov(i,j) = cveg2d(j,i)
           end if
-          psurf(i,j) = (cpsb(j,i) + ptop) * d_1000
+          psurf(i,j) = cps2d(j,i)
           !
           ! method based on bats diagnostic in routine interf.
           !

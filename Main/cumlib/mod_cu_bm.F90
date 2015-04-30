@@ -311,7 +311,7 @@ module mod_cu_bm
         ! p300 is the highest model level in the lowest 300 mb...
         ifbuoy(j,i) = 0
         ip300(j,i) = 0
-        cell = ptop/m2c%psb(j,i)
+        cell = (ptop*d_1000)/m2c%psf(j,i)
         do k = 1 , kz
           ddzq(k) = m2c%dzq(j,i,k)
         end do

@@ -309,7 +309,7 @@ module mod_cu_grell
           vsp(j,i,k) = dsqrt(us**2+vs**2)
           if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
           po(j,i,k) = p(j,i,k)
-          psur(j,i) = (m2c%psb(j,i)+ptop)*d_10
+          psur(j,i) = m2c%psf(j,i) * d_r100
           pkk = psur(j,i) - po(j,i,k)
           if ( pkk <= pkdcut ) kdet(j,i) = kdet(j,i) + 1
           ter11(j,i) = m2c%ht(j,i)*regrav

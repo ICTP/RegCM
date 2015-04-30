@@ -966,7 +966,7 @@ module mod_pbl_uwtcm
 !*******************************************************************************
 
         ! Calculate the TCM tendencies for the model's prognostic variables
-        ! For everything but TKE, couple the tendency (multiply by p0-ptop)
+        ! For everything but TKE, couple the tendency (multiply by pstar)
         ibnd = 1
         if ( update_only_in_pbl ) ibnd = kpbl2dx
         do k = ibnd , kz
