@@ -712,12 +712,13 @@ module mod_ncio
           do i = ice1 , ice2
             do j = jce1 , jce2
               told = t(j,i,k)
-              pold = 10.0D0*(sigma(k)*ps(j,i)+ptop)
-              satvp = pfesat(told)*d_r100 ! in mb
+              ! The below is not correct for non-hydro !
+              pold = sigma(k)*ps(j,i)*d_100
+              satvp = pfesat(told)
               rhold = max((qv(j,i,k)/(ep2*satvp/(pold-satvp))),d_zero)
               tnew = t(j,i,k) + temperature_tweak
               pnew = pold*(tnew/told)
-              satvp = pfesat(tnew)*d_r100 ! in mb
+              satvp = pfesat(tnew)
               qv(j,i,k) = max(rhold*ep2*satvp/(pnew-satvp),d_zero)
               t(j,i,k) = tnew
             end do
