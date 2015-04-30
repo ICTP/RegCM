@@ -43,10 +43,10 @@ module mod_rad_interface
   public :: init_radiation
   public :: radiation
   public :: inito3
+  public :: updateo3
 
   ! Procedures exported from internal modules
   public :: set_scenario
-  public :: read_o3data
 
   ! Data
   public :: o3prof
@@ -97,6 +97,7 @@ module mod_rad_interface
     call assignpnt(sfs%tgbb,m2r%tg)
     call assignpnt(sfs%psb,m2r%psb)
     call assignpnt(mddom%xlat,m2r%xlat)
+    call assignpnt(mddom%xlon,m2r%xlon)
     call assignpnt(mddom%ldmsk,m2r%ldmsk)
     call assignpnt(coszrs,m2r%coszrs)
     call assignpnt(aldirs,m2r%aldirs)
@@ -136,8 +137,16 @@ module mod_rad_interface
   end subroutine radiation
 
   subroutine inito3
+    implicit none
     call o3data(m2r)
   end subroutine inito3
+
+  subroutine updateo3(idatex,scenario)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: idatex
+    character(len=8) , intent(in) :: scenario
+    call read_o3data(idatex,scenario,m2r)
+  end subroutine updateo3
 
 end module mod_rad_interface
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

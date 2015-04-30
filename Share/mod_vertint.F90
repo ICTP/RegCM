@@ -48,30 +48,305 @@ module mod_vertint
 
   public :: intlin , intlin_o , intgtb , intlog , intlog_o
   public :: intpsn , intv0 , intv1 , intv2 , intv3
+  public :: intlinreg , intlinprof
 
   contains
 
-  subroutine intlin(fp,f,ps,p3d,im,jm,km,p,kp)
+  subroutine intlinreg(fp,f,ps,p3d,im,jm,km,p,kp)
     implicit none
-    integer(ik4) :: im , jm , km , kp
-    real(rk8) , dimension(im,jm,km) :: f , p3d
-    real(rk8) , dimension(im,jm,kp) :: fp
-    real(rk8) , dimension(kp) :: p
-    real(rk8) , dimension(im,jm) :: ps
-    intent (in) f , im , jm , km , kp , p , ps , p3d
-    intent (out) fp
-
+    integer(ik4) , intent(in) :: im , jm , km , kp
+    real(rk8) , dimension(im,jm,kp) , intent(in) :: f
+    real(rk8) , dimension(im,jm) , intent(in) :: ps
+    real(rk8) , dimension(kp) , intent(in) :: p
+    real(rk8) , dimension(im,jm,km) , intent(in) :: p3d
+    real(rk8) , dimension(im,jm,km) , intent(out) :: fp
     integer(ik4) :: i , j , k , kx , knx , n
-    real(rk8) , dimension(km) :: sig
-    real(rk8) , dimension(kp) :: pp1
+    real(rk8) , dimension(im,jm,kp) :: ff
+    real(rk8) , dimension(kp) :: pp
+    real(rk8) , dimension(kp) :: sig
     real(rk8) :: sigp , w1 , wp
-
+    logical :: same_order
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
     ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
     ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
     !
+    same_order = .true.
+    if ( (p(1) > p(kp) .and. p3d(1,1,1) < p3d(1,1,km)) .or. &
+         (p(1) < p(kp) .and. p3d(1,1,1) > p3d(1,1,km)) ) then
+      same_order = .false.
+    end if
+    if ( same_order ) then
+      ff(:,:,:) = f(:,:,:)
+      pp(:) = p(:)
+    else
+      do k = 1 , kp
+        ff(:,:,kp-k+1) = f(:,:,k)
+        pp(kp-k+1) = p(k)
+      end do
+    end if
+    !
+    ! HERE BOTTOM TO TOP
+    !
+    if ( pp(1) > pp(kp) ) then
+      !
+      ! Loop over points
+      !
+      do j = 1 , jm
+        do i = 1 , im
+          if ( ps(i,j) < 1.0D0 ) cycle
+          !
+          ! Sigma values in this point
+          !
+          do k = 1 , kp
+            sig(k) = pp(k)/ps(i,j)
+          end do
+          !
+          ! For each of the requested levels
+          !
+          do n = 1 , km
+            !
+            ! The searched sigma value
+            !
+            sigp = p3d(i,j,n)/ps(i,j)
+            !
+            ! Over the top or below bottom level
+            !
+            if ( sigp <= sig(kp) ) then
+              fp(i,j,n) = ff(i,j,kp)
+              cycle
+            else if ( sigp >= sig(1) ) then
+              fp(i,j,n) = ff(i,j,1)
+              cycle
+            end if
+            !
+            ! Search k level below the requested one
+            !
+            kx = 0
+            do k = 1 , kp-1
+              if ( sigp > sig(k) ) exit
+              kx = k
+            end do
+            !
+            ! This is the above level
+            !
+            knx = kx + 1
+            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*ff(i,j,kx) + wp*ff(i,j,knx)
+          end do
+        end do
+      end do
+    !
+    ! HERE TOP TO BOTTOM
+    !
+    else
+      !
+      ! Loop over points
+      !
+      do j = 1 , jm
+        do i = 1 , im
+          if ( ps(i,j) < 1.0D0 ) cycle
+          !
+          ! Sigma values in this point
+          !
+          do k = 1 , kp
+            sig(k) = pp(k)/ps(i,j)
+          end do
+          !
+          ! For each of the requested levels
+          !
+          do n = 1 , km
+            !
+            ! The searched sigma value
+            !
+            sigp = p3d(i,j,n)/ps(i,j)
+            !
+            ! Over the top or below bottom level
+            !
+            if ( sigp <= sig(1) ) then
+              fp(i,j,n) = ff(i,j,1)
+              cycle
+            else if ( sigp >= sig(kp) ) then
+              fp(i,j,n) = ff(i,j,kp)
+              cycle
+            end if
+            !
+            ! Search k level below the requested one
+            !
+            kx = kp + 1
+            do k = kp , 2 , -1
+              if ( sigp > sig(k) ) exit
+              kx = k
+            end do
+            !
+            ! This is the above level
+            !
+            knx = kx - 1
+            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*ff(i,j,kx) + wp*ff(i,j,knx)
+          end do
+        end do
+      end do
+    end if
+  end subroutine intlinreg
 
+  subroutine intlinprof(fp,f,ps,p3d,im,jm,km,p,kp)
+    implicit none
+    integer(ik4) , intent(in) :: im , jm , km , kp
+    real(rk8) , dimension(kp) , intent(in) :: f
+    real(rk8) , dimension(im,jm) , intent(in) :: ps
+    real(rk8) , dimension(kp) , intent(in) :: p
+    real(rk8) , dimension(im,jm,km) , intent(in) :: p3d
+    real(rk8) , dimension(im,jm,km) , intent(out) :: fp
+    integer(ik4) :: i , j , k , kx , knx , n
+    real(rk8) , dimension(kp) :: ff
+    real(rk8) , dimension(kp) :: pp
+    real(rk8) , dimension(kp) :: sig
+    real(rk8) :: sigp , w1 , wp
+    logical :: same_order
+    !
+    ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
+    ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
+    ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    !
+    same_order = .true.
+    if ( (p(1) > p(kp) .and. p3d(1,1,1) < p3d(1,1,km)) .or. &
+         (p(1) < p(kp) .and. p3d(1,1,1) > p3d(1,1,km)) ) then
+      same_order = .false.
+    end if
+    if ( same_order ) then
+      ff(:) = f(:)
+      pp(:) = p(:)
+    else
+      do k = 1 , kp
+        ff(kp-k+1) = f(k)
+        pp(kp-k+1) = p(k)
+      end do
+    end if
+    !
+    ! HERE BOTTOM TO TOP
+    !
+    if ( pp(1) > pp(kp) ) then
+      !
+      ! Loop over points
+      !
+      do j = 1 , jm
+        do i = 1 , im
+          if ( ps(i,j) < 1.0D0 ) cycle
+          !
+          ! Sigma values in this point
+          !
+          do k = 1 , kp
+            sig(k) = pp(k)/ps(i,j)
+          end do
+          !
+          ! For each of the requested levels
+          !
+          do n = 1 , km
+            !
+            ! The searched sigma value
+            !
+            sigp = p3d(i,j,n)/ps(i,j)
+            !
+            ! Over the top or below bottom level
+            !
+            if ( sigp <= sig(kp) ) then
+              fp(i,j,n) = ff(kp)
+              cycle
+            else if ( sigp >= sig(1) ) then
+              fp(i,j,n) = ff(1)
+              cycle
+            end if
+            !
+            ! Search k level below the requested one
+            !
+            kx = 0
+            do k = 1 , kp-1
+              if ( sigp > sig(k) ) exit
+              kx = k
+            end do
+            !
+            ! This is the above level
+            !
+            knx = kx + 1
+            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*ff(kx) + wp*ff(knx)
+          end do
+        end do
+      end do
+    !
+    ! HERE TOP TO BOTTOM
+    !
+    else
+      !
+      ! Loop over points
+      !
+      do j = 1 , jm
+        do i = 1 , im
+          if ( ps(i,j) < 1.0D0 ) cycle
+          !
+          ! Sigma values in this point
+          !
+          do k = 1 , kp
+            sig(k) = pp(k)/ps(i,j)
+          end do
+          !
+          ! For each of the requested levels
+          !
+          do n = 1 , km
+            !
+            ! The searched sigma value
+            !
+            sigp = p3d(i,j,n)/ps(i,j)
+            !
+            ! Over the top or below bottom level
+            !
+            if ( sigp <= sig(1) ) then
+              fp(i,j,n) = ff(1)
+              cycle
+            else if ( sigp >= sig(kp) ) then
+              fp(i,j,n) = ff(kp)
+              cycle
+            end if
+            !
+            ! Search k level below the requested one
+            !
+            kx = kp + 1
+            do k = kp , 2 , -1
+              if ( sigp > sig(k) ) exit
+              kx = k
+            end do
+            !
+            ! This is the above level
+            !
+            knx = kx - 1
+            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*ff(kx) + wp*ff(knx)
+          end do
+        end do
+      end do
+    end if
+  end subroutine intlinprof
+
+  subroutine intlin(fp,f,ps,p3d,im,jm,km,p,kp)
+    implicit none
+    integer(ik4) , intent(in) :: im , jm , km , kp
+    real(rk8) , dimension(im,jm,km) , intent(in) :: f , p3d
+    real(rk8) , dimension(im,jm,kp) , intent(out) :: fp
+    real(rk8) , dimension(kp) , intent(in) :: p
+    real(rk8) , dimension(im,jm) , intent(in) :: ps
+    integer(ik4) :: i , j , k , kx , knx , n
+    real(rk8) , dimension(km) :: sig
+    real(rk8) , dimension(kp) :: pp1
+    real(rk8) :: sigp , w1 , wp
+    !
+    ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
+    ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
+    ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
     !
     ! HERE BOTTOM TO TOP
     !
@@ -215,25 +490,19 @@ module mod_vertint
   !
   subroutine intlin_o_double(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
     implicit none
-
-    integer(ik4) :: im , jm , km , kp
-    real(rk8) :: ptop
-    real(rk8) , dimension(im,jm,km) :: f
-    real(rk8) , dimension(im,jm,kp) :: fp
-    real(rk8) , dimension(kp) :: p
-    real(rk8) , dimension(im,jm) :: pstar
-    real(rk8) , dimension(km) :: sig
-    intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
-    intent (out) fp
-
+    integer(ik4) , intent(in) :: im , jm , km , kp
+    real(rk8) , intent(in) :: ptop
+    real(rk8) , dimension(im,jm,km) , intent(in) :: f
+    real(rk8) , dimension(kp) , intent(in) :: p
+    real(rk8) , dimension(im,jm) , intent(in) :: pstar
+    real(rk8) , dimension(km) , intent(in) :: sig
+    real(rk8) , dimension(im,jm,kp) , intent(out) :: fp
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk8) :: sigp , w1 , wp
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
     ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
     ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-    !
-
     !
     ! HERE BOTTOM TO TOP
     !
@@ -329,17 +598,13 @@ module mod_vertint
 
   subroutine intlin_o_single(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
     implicit none
-
-    integer(ik4) :: im , jm , km , kp
-    real(rk8) :: ptop
-    real(rk4) , dimension(im,jm,km) :: f
-    real(rk4) , dimension(im,jm,kp) :: fp
-    real(rk4) , dimension(kp) :: p
-    real(rk4) , dimension(im,jm) :: pstar
-    real(rk4) , dimension(km) :: sig
-    intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
-    intent (out) fp
-
+    integer(ik4) , intent(in) :: im , jm , km , kp
+    real(rk8) , intent(in) :: ptop
+    real(rk4) , dimension(im,jm,km) , intent(in) :: f
+    real(rk4) , dimension(kp) , intent(in) :: p
+    real(rk4) , dimension(im,jm) , intent(in) :: pstar
+    real(rk4) , dimension(km) , intent(in) :: sig
+    real(rk4) , dimension(im,jm,kp) , intent(out) :: fp
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk4) :: sigp , w1 , wp , pt
     !
@@ -443,22 +708,17 @@ module mod_vertint
 
   subroutine intlin_z_o_single(fz,f,hz,sig,im,jm,km,z,kz)
     implicit none
-
-    integer(ik4) :: im , jm , km , kz
-    real(rk4) , dimension(im,jm,km) :: f , hz
-    real(rk4) , dimension(im,jm,kz) :: fz
-    real(rk4) , dimension(kz) :: z
-    real(rk4) , dimension(km) :: sig
-    intent (in) f , im , jm , km , kz , z , hz , sig
-    intent (out) fz
-
+    integer(ik4) , intent(in) :: im , jm , km , kz
+    real(rk4) , dimension(im,jm,km) , intent(in) :: f , hz
+    real(rk4) , dimension(kz) , intent(in) :: z
+    real(rk4) , dimension(km) , intent(in) :: sig
+    real(rk4) , dimension(im,jm,kz) , intent(out) :: fz
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk4) :: w1 , wz
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
     ! HUMIDITY. THE INTERPOLATION IS LINEAR IN Z.  WHERE EXTRAPOLATION
     ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-    !
     !
     ! HERE BOTTOM TO TOP
     !
@@ -548,15 +808,11 @@ module mod_vertint
   !
   subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,sccm,ni,nj,nlev1)
     implicit none
-
-    integer(ik4) :: ni , nj , nlev1
-    real(rk8) , dimension(ni,nj) :: pa , tlayer , za , zrcm
-    real(rk8) , dimension(nlev1) :: sccm
-    real(rk8) , dimension(ni,nj,nlev1) :: tp , zp
-    intent (in) ni , nj , nlev1 , sccm , tp , zp , zrcm
-    intent (out) pa , za
-    intent (inout) tlayer
-
+    integer(ik4) , intent(in) :: ni , nj , nlev1
+    real(rk8) , dimension(ni,nj) , intent(in) :: zrcm
+    real(rk8) , dimension(nlev1) , intent(in) :: sccm
+    real(rk8) , dimension(ni,nj,nlev1) , intent(in) :: tp , zp
+    real(rk8) , dimension(ni,nj) , intent(out) :: tlayer , pa , za
     integer(ik4) :: i , j , k , kb , kt
     !
     !     INTGTB CALCULATES ALL VARIABLES NEEDED TO COMPUTE P* ON THE RCM
@@ -601,15 +857,11 @@ module mod_vertint
   !
   subroutine intlog(fp,f,ps,p3d,im,jm,km,p,kp)
     implicit none
-
-    integer(ik4) :: im , jm , km , kp
-    real(rk8) , dimension(im,jm,km) :: f , p3d
-    real(rk8) , dimension(im,jm,kp) :: fp
-    real(rk8) , dimension(kp) :: p
-    real(rk8) , dimension(im,jm) :: ps
-    intent (in) f , im , jm , km , kp , p , p3d , ps
-    intent (out) fp
-
+    integer(ik4) , intent(in) :: im , jm , km , kp
+    real(rk8) , dimension(im,jm,km) , intent(in) :: f , p3d
+    real(rk8) , dimension(kp) , intent(in) :: p
+    real(rk8) , dimension(im,jm) , intent(in) :: ps
+    real(rk8) , dimension(im,jm,kp) , intent(out) :: fp
     real(rk8) :: sigp , w1 , wp
     integer(ik4) :: i , j , k , kx , knx , n , kbc
     real(rk8) , dimension(km) :: sig
@@ -622,8 +874,6 @@ module mod_vertint
     ! CONSIDERED TO HAVE A LAPSE RATE OF TLAPSE (K/M), AND THE
     ! THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
     ! TWO EXTREME TEMPERATURES IN THE LAYER.
-    !
-
     !
     ! HERE BOTTOM TO TOP
     !
@@ -785,17 +1035,13 @@ module mod_vertint
   !
   subroutine intlog_o_double(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
     implicit none
-
-    integer(ik4) :: im , jm , km , kp
-    real(rk8) :: ptop
-    real(rk8) , dimension(im,jm,km) :: f
-    real(rk8) , dimension(im,jm,kp) :: fp
-    real(rk8) , dimension(kp) :: p
-    real(rk8) , dimension(im,jm) :: pstar
-    real(rk8) , dimension(km) :: sig
-    intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
-    intent (out) fp
-
+    integer(ik4) , intent(in) :: im , jm , km , kp
+    real(rk8) , intent(in) :: ptop
+    real(rk8) , dimension(im,jm,km) , intent(in) :: f
+    real(rk8) , dimension(kp) , intent(in) :: p
+    real(rk8) , dimension(im,jm) , intent(in) :: pstar
+    real(rk8) , dimension(km) , intent(in) :: sig
+    real(rk8) , dimension(im,jm,kp) , intent(out) :: fp
     real(rk8) :: sigp , w1 , wp
     integer(ik4) :: i , j , k , kx , knx , kbc , n
     !
@@ -931,17 +1177,13 @@ module mod_vertint
 
   subroutine intlog_o_single(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
     implicit none
-
-    integer(ik4) :: im , jm , km , kp
-    real(rk8) :: ptop
-    real(rk4) , dimension(im,jm,km) :: f
-    real(rk4) , dimension(im,jm,kp) :: fp
-    real(rk4) , dimension(kp) :: p
-    real(rk4) , dimension(im,jm) :: pstar
-    real(rk4) , dimension(km) :: sig
-    intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
-    intent (out) fp
-
+    integer(ik4) , intent(in) :: im , jm , km , kp
+    real(rk8) , intent(in) :: ptop
+    real(rk4) , dimension(im,jm,km) , intent(in) :: f
+    real(rk4) , dimension(kp) , intent(in) :: p
+    real(rk4) , dimension(im,jm) , intent(in) :: pstar
+    real(rk4) , dimension(km) , intent(in) :: sig
+    real(rk4) , dimension(im,jm,kp) , intent(out) :: fp
     real(rk4) :: sigp , w1 , wp , pt
     integer(ik4) :: i , j , k , kx , knx , kbc , n
     !
@@ -1079,12 +1321,10 @@ module mod_vertint
   !
   subroutine intpsn(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
     implicit none
-    integer(ik4) :: ni , nj
-    real(rk8) :: pt
-    real(rk8) , dimension(ni,nj) :: pa , psrcm , tlayer , za , zrcm
-    intent (in) ni , nj , pa , pt , tlayer , za , zrcm
-    intent (out) psrcm
-
+    integer(ik4) , intent(in) :: ni , nj
+    real(rk8) , intent(in) :: pt
+    real(rk8) , dimension(ni,nj) , intent(in) :: pa , tlayer , za , zrcm
+    real(rk8) , dimension(ni,nj) , intent(out) :: psrcm
     real(rk8) :: tb
     integer(ik4) :: i , j
     !
@@ -1104,17 +1344,13 @@ module mod_vertint
   !
   subroutine intv0(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
     implicit none
-
-    integer(ik4) :: kccm , krcm , ni , nj
-    real(rk8) :: pt
-    real(rk8) , dimension(ni,nj,kccm) :: fccm
-    real(rk8) , dimension(ni,nj,krcm) :: frcm
-    real(rk8) , dimension(ni,nj) :: psrcm
-    real(rk8) , dimension(kccm) :: sccm
-    real(rk8) , dimension(krcm) :: srcm
-    intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
-    intent (out) frcm
-
+    integer(ik4) , intent(in) :: kccm , krcm , ni , nj
+    real(rk8) , intent(in) :: pt
+    real(rk8) , dimension(ni,nj,kccm) , intent(in) :: fccm
+    real(rk8) , dimension(ni,nj) , intent(in) :: psrcm
+    real(rk8) , dimension(kccm) , intent(in) :: sccm
+    real(rk8) , dimension(krcm) , intent(in) :: srcm
+    real(rk8) , dimension(ni,nj,krcm) , intent(out) :: frcm
     real(rk8) :: dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
     !
@@ -1152,17 +1388,13 @@ module mod_vertint
 
   subroutine intv1(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
     implicit none
-
-    integer(ik4) :: kccm , krcm , ni , nj
-    real(rk8) :: pt
-    real(rk8) , dimension(ni,nj,kccm) :: fccm
-    real(rk8) , dimension(ni,nj,krcm) :: frcm
-    real(rk8) , dimension(ni,nj) :: psrcm
-    real(rk8) , dimension(kccm) :: sccm
-    real(rk8) , dimension(krcm) :: srcm
-    intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
-    intent (out) frcm
-
+    integer(ik4) , intent(in) :: kccm , krcm , ni , nj
+    real(rk8) , intent(in) :: pt
+    real(rk8) , dimension(ni,nj,kccm) , intent(in) :: fccm
+    real(rk8) , dimension(ni,nj) , intent(in) :: psrcm
+    real(rk8) , dimension(kccm) , intent(in) :: sccm
+    real(rk8) , dimension(krcm) , intent(in) :: srcm
+    real(rk8) , dimension(ni,nj,krcm) , intent(out) :: frcm
     real(rk8) :: dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
     !
@@ -1201,17 +1433,13 @@ module mod_vertint
   !
   subroutine intv2(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
     implicit none
-
-    integer(ik4) :: kccm , krcm , ni , nj
-    real(rk8) :: pt
-    real(rk8) , dimension(ni,nj,kccm) :: fccm
-    real(rk8) , dimension(ni,nj,krcm) :: frcm
-    real(rk8) , dimension(ni,nj) :: psrcm
-    real(rk8) , dimension(kccm) :: sccm
-    real(rk8) , dimension(krcm) :: srcm
-    intent (in) fccm , kccm , krcm , ni , nj , psrcm , pt , sccm , srcm
-    intent (out) frcm
-
+    integer(ik4) , intent(in) :: kccm , krcm , ni , nj
+    real(rk8) , intent(in) :: pt
+    real(rk8) , dimension(ni,nj,kccm) , intent(in) :: fccm
+    real(rk8) , dimension(ni,nj) , intent(in) :: psrcm
+    real(rk8) , dimension(kccm) , intent(in) :: sccm
+    real(rk8) , dimension(krcm) , intent(in) :: srcm
+    real(rk8) , dimension(ni,nj,krcm) , intent(out) :: frcm
     real(rk8) :: a1 , dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
     !
@@ -1253,15 +1481,12 @@ module mod_vertint
   !
   subroutine intv3(fsccm,fccm,psrccm,sccm,ptop,ni,nj,kccm)
     implicit none
-
-    integer(ik4) :: kccm , ni , nj
-    real(rk8) :: ptop
-    real(rk8) , dimension(ni,nj,kccm) :: fccm
-    real(rk8) , dimension(ni,nj) :: fsccm , psrccm
-    real(rk8) , dimension(kccm) :: sccm
-    intent (in) fccm , kccm , ni , nj , psrccm , ptop , sccm
-    intent (out) fsccm
-
+    integer(ik4) , intent(in) :: kccm , ni , nj
+    real(rk8) , intent(in) :: ptop
+    real(rk8) , dimension(ni,nj,kccm) , intent(in) :: fccm
+    real(rk8) , dimension(ni,nj) , intent(in) :: psrccm
+    real(rk8) , dimension(ni,nj) , intent(out) :: fsccm
+    real(rk8) , dimension(kccm) , intent(in) :: sccm
     real(rk8) :: a1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1
     !
@@ -1300,4 +1525,5 @@ module mod_vertint
   end subroutine intv3
 
 end module mod_vertint
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

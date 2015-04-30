@@ -138,7 +138,6 @@ module mod_tendency
     real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , &
                  iconvec , icvadv , idvadv , iqxvadv , itrvadv
-    real(rk8) , dimension(kzp1) :: ozprnt
     logical :: loutrad , labsem
     character (len=32) :: appdat
     integer(ik4) :: nexchange_adv
@@ -937,23 +936,15 @@ module mod_tendency
     ! call radiative transfer package
     !
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-      if ( ktau == 0 ) then
-        !
-        ! Inizialize Ozone profiles
-        !
-        call inito3
-        if ( myid == italk ) then
-          ozprnt = o3prof(3,3,:)
-          call vprntv(ozprnt,kzp1,'Ozone profile at (3,3)')
-        end if
-      end if
       !
       ! calculate albedo
       !
       call surface_albedo
+      ! Update / init Ozone profiles
       if ( iclimao3 == 1 ) then
-        call read_o3data(idatex,scenario,mddom%xlat,mddom%xlon, &
-                         sfs%psa,ptop,sigma)
+        call updateo3(idatex,scenario)
+      else
+        if ( ktau == 0 ) call inito3
       end if
       loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
       labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )

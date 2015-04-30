@@ -43,12 +43,10 @@ module mod_rad_o3blk
 
   real(rk8) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
                               ppsum , ppwin , ppwrk
-  real(rk8) , dimension(32) :: ppwrkh
-  real(rk8) , pointer , dimension(:) :: prlevh
 
   real(rk8) , pointer , dimension(:,:) :: alon , alat , aps
   real(rk8) , pointer , dimension(:,:,:) :: ozone1 , ozone2
-  real(rk8) , pointer , dimension(:,:,:) :: ozone
+  real(rk8) , pointer , dimension(:,:,:) :: ozone , pp3d
 !
   data o3sum/5.297D-8 , 5.852D-8 , 6.579D-8 , 7.505D-8 , 8.577D-8 , &
              9.895D-8 , 1.175D-7 , 1.399D-7 , 1.677D-7 , 2.003D-7 , &
@@ -84,7 +82,6 @@ module mod_rad_o3blk
 
   subroutine allocate_mod_rad_o3blk
     implicit none
-    call getmem1d(prlevh,1,kzp2,'mod_o3blk:prlevh')
     if ( iclimao3 == 1 ) then
       if ( myid == iocpu ) then
         call getmem2d(alon,jcross1,jcross2,icross1,icross2,'mod_o3blk:alon')
@@ -96,6 +93,8 @@ module mod_rad_o3blk
                              icross1,icross2,1,kzp1,'mod_o3blk:ozone2')
         call getmem3d(ozone,jcross1,jcross2, &
                             icross1,icross2,1,kzp1,'mod_o3blk:ozone')
+        call getmem3d(pp3d,jcross1,jcross2, &
+                           icross1,icross2,1,kzp1,'mod_o3blk:pp3d')
       end if
     end if
   end subroutine allocate_mod_rad_o3blk
@@ -105,8 +104,8 @@ module mod_rad_o3blk
   subroutine o3data(m2r)
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
-    integer(ik4) :: i , j , jj , k , kj
-    real(rk8) :: pb1 , pb2 , pt1 , pt2
+    integer(ik4) :: k
+    real(rk8) , dimension(kzp1) :: ozprnt
     do k = 1 , 31
       ppann(k) = ppsum(k)
     end do
@@ -122,61 +121,24 @@ module mod_rad_o3blk
       o3wrk(k) = o3ann(k)
       ppwrk(k) = ppann(k)
     end do
-    !
-    ! calculate half pressure levels for model and data levels
-    !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do k = kzp1 , 1 , -1
-          kj = kzp1 - k + 1
-          prlevh(kj) = m2r%pfatms(j,i,k) * d_r100
-        end do
-        ppwrkh(1) = 1100.0D0
-        do k = 2 , 31
-          ppwrkh(k) = (ppwrk(k)+ppwrk(k-1))*d_half
-        end do
-        ppwrkh(32) = d_zero
-        do k = 1 , kz
-          o3prof(j,i,k) = d_zero
-          do jj = 1 , 31
-            if ( (-(prlevh(k)-ppwrkh(jj))) >= d_zero ) then
-              pb1 = d_zero
-            else
-              pb1 = prlevh(k) - ppwrkh(jj)
-            end if
-            if ( (-(prlevh(k)-ppwrkh(jj+1))) >= d_zero ) then
-              pb2 = d_zero
-            else
-              pb2 = prlevh(k) - ppwrkh(jj+1)
-            end if
-            if ( (-(prlevh(k+1)-ppwrkh(jj))) >= d_zero ) then
-              pt1 = d_zero
-            else
-              pt1 = prlevh(k+1) - ppwrkh(jj)
-            end if
-            if ( (-(prlevh(k+1)-ppwrkh(jj+1))) >= d_zero ) then
-              pt2 = d_zero
-            else
-              pt2 = prlevh(k+1) - ppwrkh(jj+1)
-            end if
-            o3prof(j,i,k) = o3prof(j,i,k) + (pb2-pb1-pt2+pt1)*o3wrk(jj)
-          end do
-          o3prof(j,i,k) = o3prof(j,i,k)/(prlevh(k)-prlevh(k+1))
-        end do
-      end do
-    end do
+    ppwrk(:) = ppwrk(:) * d_100
+    call intlinprof(o3prof,o3wrk,m2r%psatms,m2r%pfatms,jci2-jci1+1, &
+                    ici2-ici1+1,kzp1,ppwrk,31)
+    if ( myid == italk ) then
+      ozprnt = o3prof(3,3,:)
+      call vprntv(ozprnt,kzp1,'Ozone profile at (3,3)')
+    end if
   end subroutine o3data
-!
-  subroutine read_o3data(idatex,scenario,xlat,xlon,ps,ptop,sigma)
+
+  subroutine read_o3data(idatex,scenario,m2r)
     implicit none
     type (rcm_time_and_date) , intent(in) :: idatex
-    real(rk8) , pointer , dimension(:,:) :: xlat , xlon , ps
-    real(rk8) , pointer , dimension(:) :: sigma
-    real(rk8) , intent(in) :: ptop
+    type(mod_2_rad) , intent(in) :: m2r
     character(len=8) , intent(in) :: scenario
     character(len=64) :: infile
     logical , save :: ifirst
     logical :: dointerp
+    real(rk8) , dimension(kzp1) :: ozprnt
     real(rk8) , dimension(72,37,24) :: xozone1 , xozone2
     real(rk8) , dimension(njcross,nicross,24) :: yozone
     real(rk8) , save , dimension(37) :: lat
@@ -188,11 +150,10 @@ module mod_rad_o3blk
     integer(ik4) , save :: ncid = -1
     integer(ik4) :: im1 , iy1 , im2 , iy2
     integer(ik4) , save :: ism , isy
-    real(rk8) , dimension(kzp1) :: printarr
     type (rcm_time_and_date) :: iref1 , iref2
     type (rcm_time_interval) :: tdif
     data ifirst /.true./
-!
+
     call split_idate(idatex,iyear,imon,iday,ihour)
     imonmidd = monmiddle(idatex)
 
@@ -204,8 +165,8 @@ module mod_rad_o3blk
     end if
 
     if ( ifirst ) then
-      call grid_collect(xlon,alon,jci1,jci2,ici1,ici2)
-      call grid_collect(xlat,alat,jci1,jci2,ici1,ici2)
+      call grid_collect(m2r%xlon,alon,jci1,jci2,ici1,ici2)
+      call grid_collect(m2r%xlat,alat,jci1,jci2,ici1,ici2)
       ifirst = .false.
     end if
 
@@ -260,15 +221,16 @@ module mod_rad_o3blk
 
     if ( dointerp ) then
       ! We need pressure
-      call grid_collect(ps,aps,jci1,jci2,ici1,ici2)
+      call grid_collect(m2r%psatms,aps,jci1,jci2,ici1,ici2)
+      call grid_collect(m2r%pfatms,pp3d,jci1,jci2,ici1,ici2,1,kzp1)
       if ( myid == iocpu ) then
         write (stdout,*) 'Reading Ozone Data...'
         call readvar3d_pack(ncid,iy1,im1,'ozone',xozone1)
         call readvar3d_pack(ncid,iy2,im2,'ozone',xozone2)
         call bilinx2(yozone,xozone1,alon,alat,lon,lat,72,37,njcross,nicross,24)
-        call intv0(ozone1,yozone,aps,sigma,plev,ptop,njcross,nicross,kzp1,24)
+        call intlinreg(ozone1,yozone,aps,pp3d,njcross,nicross,kzp1,plev,24)
         call bilinx2(yozone,xozone2,alon,alat,lon,lat,72,37,njcross,nicross,24)
-        call intv0(ozone2,yozone,aps,sigma,plev,ptop,njcross,nicross,kzp1,24)
+        call intlinreg(ozone2,yozone,aps,pp3d,njcross,nicross,kzp1,plev,24)
       end if
     end if
 
@@ -283,12 +245,12 @@ module mod_rad_o3blk
       ozone = (ozone1*xfac2+ozone2*xfac1)*1.0D-06
     end if
     call grid_distribute(ozone,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
-    if ( dointerp .and. myid == italk ) then
-      printarr = o3prof(3,3,:)
-      call vprntv(printarr,kzp1,'Ozone profile at (3,3)')
+    if ( myid == italk .and. dointerp ) then
+      ozprnt = o3prof(3,3,:)
+      call vprntv(ozprnt,kzp1,'Updated ozone profile at (3,3)')
     end if
   end subroutine read_o3data
-!
+
   subroutine inextmon(iyear,imon)
     implicit none
     integer(ik4) , intent(inout) :: iyear , imon
@@ -298,7 +260,7 @@ module mod_rad_o3blk
       iyear = iyear + 1
     end if
   end subroutine inextmon
-!
+
   subroutine iprevmon(iyear,imon)
     implicit none
     integer(ik4) , intent(inout) :: iyear , imon
@@ -308,7 +270,7 @@ module mod_rad_o3blk
       iyear = iyear - 1
     end if
   end subroutine iprevmon
-!
+
   subroutine init_o3data(o3file,ncid,lat,lon,plev)
     implicit none
     character(len=*) , intent(in) :: o3file
@@ -323,7 +285,7 @@ module mod_rad_o3blk
     call readvar1d(ncid,'latitude',lat)
     call readvar1d(ncid,'longitude',lon)
     call readvar1d(ncid,'level',plev)
-    plev(:) = plev(:) * 0.001
+    plev(:) = plev(:) * d_100 ! Put it in Pa
   end subroutine init_o3data
 
   subroutine readvar3d_pack(ncid,iyear,imon,vname,val)
@@ -386,6 +348,7 @@ module mod_rad_o3blk
       call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
     end if
   end subroutine readvar1d
-!
+
 end module mod_rad_o3blk
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

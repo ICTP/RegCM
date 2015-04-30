@@ -434,6 +434,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:,:) :: chiatms     ! atms%chib3d
     real(rk8) , pointer , dimension(:,:) :: tg              ! sfs%tgbb
     real(rk8) , pointer , dimension(:,:) :: xlat            ! mddom%xlat
+    real(rk8) , pointer , dimension(:,:) :: xlon            ! mddom%xlon
     real(rk8) , pointer , dimension(:,:) :: ptrop
     real(rk8) , pointer , dimension(:,:) :: coszrs
     real(rk8) , pointer , dimension(:,:) :: albvs
