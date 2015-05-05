@@ -210,15 +210,16 @@ module mod_write
     integer(ik4) :: ivar
 
     if ( idynamic == 2 ) then
+      call meandiv(u4,v4,pd4,msfd,sigmah,jx,iy,kz,ds,jx-1,iy-1)
       ! Compute hydrostatic pstar on dot points.
       tv4 = t4 * (d_one + ep1 * q4)
       ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
       call nhw(1,iy,1,jx,kz,u4,v4,tv4,rho0,ps4,pd4,ps0,msfx,sigmaf, &
-               ww4,wtop4,ds,sigmah,dsigma,tiso)
-      call nhinterp(1,iy,1,jx,kz,u4,tv4,pd4,ps0,sigmaf,1,sigmah,tiso,.true.)
-      call nhinterp(1,iy,1,jx,kz,v4,tv4,pd4,ps0,sigmaf,1,sigmah,tiso,.true.)
-      call nhinterp(1,iy,1,jx,kz,t4,tv4,ps4,ps0,sigmaf,1,sigmah,tiso)
-      call nhinterp(1,iy,1,jx,kz,q4,tv4,ps4,ps0,sigmaf,2,sigmah,tiso)
+               ww4,wtop4,ds,sigmah,dsigma)
+      call nhinterp(1,iy,1,jx,kz,u4,tv4,pd4,ps0,sigmaf,1,sigmah,.true.)
+      call nhinterp(1,iy,1,jx,kz,v4,tv4,pd4,ps0,sigmaf,1,sigmah,.true.)
+      call nhinterp(1,iy,1,jx,kz,t4,tv4,ps4,ps0,sigmaf,1,sigmah)
+      call nhinterp(1,iy,1,jx,kz,q4,tv4,ps4,ps0,sigmaf,2,sigmah)
       ! Recompute virtual temperature on non hydrostatic sigma.
       tv4 = t4 * (d_one + ep1 * q4)
       ! Compute the nonhydrostatic perturbation pressure field (pp).

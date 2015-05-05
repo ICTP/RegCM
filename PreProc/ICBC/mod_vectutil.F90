@@ -22,10 +22,11 @@ module mod_vectutil
   use mod_intkinds
   use mod_realkinds
   use mod_constants
+  use mod_message
 
   private
 
-  public :: crs2dot , dot2crs , top2btm , btm2top
+  public :: crs2dot , dot2crs , top2btm , btm2top , meandiv
 
   contains
 
@@ -139,6 +140,196 @@ module mod_vectutil
     real(rk8) , intent(inout) , dimension(nlon1,nlat1,nlev1) :: x
     call top2btm(x,nlon1,nlat1,nlev1)
   end subroutine btm2top
+  !
+  !-----------------------------------------------------------------------
+  !
+  subroutine relax(chi,ff,rd,imx,jmx,ie,je,ds)
+    implicit none
+    integer(ik4) , intent(in) :: imx , jmx , ie , je
+    real(rk8) , intent(inout) , dimension(imx,jmx) :: chi
+    real(rk8) , intent(inout) , dimension(imx,jmx) :: rd
+    real(rk8) , intent(inout) , dimension(imx,jmx) :: ff
+    real(rk8) , intent(in) :: ds
+    real(rk8) , parameter :: smallres = 1.0D-9
+    integer(ik4) , parameter :: mm = 20000
+    real(rk8) , parameter :: alpha = 1.8D0
+    real(rk8) , parameter :: alphaov4 = alpha * d_rfour
+    integer(ik4) :: i , j , iter , mi
+    real(rk8) , dimension(jmx) :: chimx
+    real(rk8) , dimension(jmx) :: rdmax
+    real(rk8) :: epx , fac
+    logical :: converged
+    converged = .false.
+    fac = d_two * ds * ds
+    rd = d_zero
+    do j = 1 , je + 1
+      do i = 1 , ie + 1
+        ff(i,j) = fac * ff(i,j)
+      end do
+    end do
+    iter_loop : do iter = 1 , mm
+      mi = iter
+      chimx = d_zero
+      do j = 2 , je
+        do i = 2 , ie
+          chimx(j) = max(abs(chi(i,j)),chimx(j))
+        end do
+      end do
+      epx = maxval(chimx) * smallres * d_four / alpha
+      do j = 2 , je
+        do i = 2 , ie
+          rd(i,j) = chi(i+1,j+1) + chi(i-1,j+1) + &
+                    chi(i+1,j-1) + chi(i-1,j-1) - &
+                    4.0 * chi(i,j) - ff(i,j)
+          chi(i,j) = chi(i,j) + rd(i,j) * alphaov4
+        end do
+      end do
+      rdmax = d_zero
+      do j = 2 , je
+        do i = 2 , ie
+          rdmax(j) = max(abs(rd(i,j)),rdmax(j))
+        end do
+      end do
+      if ( maxval(rdmax) < epx) then
+        converged = .true.
+        exit iter_loop
+      end if
+    end do iter_loop
+    if ( .not. converged ) then
+      call fatal(__FILE__,__LINE__,'Relaxation did not converge !')
+    end if
+  end subroutine relax
+  !
+  !-----------------------------------------------------------------------
+  !
+  subroutine fill(f,ix,jx,imx,jmx,ifirst,ilast,jfirst,jlast)
+    implicit none
+    integer(ik4) , intent(in) :: ix , jx , imx , jmx , &
+                                 ifirst , ilast , jfirst , jlast
+    real(rk8) , intent(inout) , dimension(ix,jx) :: f
+    integer(ik4) :: i , j
+    do j = jfirst , jlast
+      do i = 1 , ifirst - 1
+        f(i,j) = f(ifirst,j)
+      end do
+      do i = ilast + 1 , imx
+        f(i,j) = f(ilast,j)
+      end do
+    end do
+    do j = 1 , jfirst - 1
+      f(:,j) = f(:,jfirst)
+    end do
+    do j = jlast + 1 , jmx
+      f(:,j) = f(:,jlast)
+    end do
+  end subroutine fill
+  !
+  !-----------------------------------------------------------------------
+  !
+  subroutine meandiv(u,v,psd,dm,sigh,imx,jmx,kxs,ds,imxm,jmxm)
+    implicit none
+    integer(ik4) , intent(in) :: imx , jmx , kxs , imxm , jmxm
+    real(rk8) , intent(inout) , dimension(imx,jmx,kxs) :: u , v
+    real(rk8) , intent(in) , dimension(imx,jmx) :: psd
+    real(rk8) , intent(in) , dimension(imx,jmx) :: dm
+    real(rk8) , intent(in) , dimension(kxs) :: sigh
+    real(rk8) , intent(in) :: ds
+    integer(ik4) :: i , j , k
+    real(rk8) , dimension(imx,jmx) :: chi , div , f
+    real(rk8) , dimension(imx,jmx) :: dudx , dvdy
+    real(rk8) , dimension(imx,jmx) :: udiverg , vdiverg
+    real(rk8) , dimension(imx,jmx) :: uslb , vslb
+    real(rk8) , dimension(kxs) :: dsg , weight
+    real(rk8) , dimension(kxs+1) :: sigf
+    real(rk8) :: oneov2ds
+
+    oneov2ds = d_one / (d_two * ds)
+    !
+    ! Integrate p* v/m, compute div, to dot point, to (x,y) format
+    !
+    sigf(1) = d_zero
+    do k = 1, kxs
+      sigf(k+1) = d_two * sigh(k) - sigf(k)
+      dsg(k) = sigf(k+1) - sigf(k)
+    end do
+    do j = 1 , jmx
+      do i = 1 , imx
+        uslb(i,j) = d_zero
+        vslb(i,j) = d_zero
+      end do
+    end do
+    do j = 1 , jmx
+      do i = 1 , imx
+        do k = 1 , kxs
+          uslb(i,j) = uslb(i,j) + u(i,j,k) * dsg(k)
+          vslb(i,j) = vslb(i,j) + v(i,j,k) * dsg(k)
+        end do
+      end do
+    end do
+    do j = 1 , jmx
+      do i = 1 , imx
+        uslb(i,j) = uslb(i,j) * psd(i,j) / dm(i,j)
+        vslb(i,j) = vslb(i,j) * psd(i,j) / dm(i,j)
+      end do
+    end do
+    do j = 1 , jmxm
+      do i = 1 , imxm
+        dudx(i,j) = uslb(i+1,j+1) - uslb(i+1,j) + uslb(i,j+1) - uslb(i,j)
+        dvdy(i,j) = vslb(i+1,j+1) - vslb(i,j+1) + vslb(i+1,j) - vslb(i,j)
+      end do
+    end do
+    do j = 1 , jmxm
+      do i = 1 , imxm
+        div(i,j) = oneov2ds * (dudx(i,j) + dvdy(i,j))
+      end do
+    end do
+    !
+    ! Iteratively solve laplacian from good first guess.
+    !
+    do j = 1 , jmx
+      do i = 1 , imx
+        chi(i,j) = d_zero
+      end do
+    end do
+    call relax(chi,div,f,imx,jmx,imx-2,jmx-2,ds)
+    !
+    ! Get divergent component of wind, 2d field on dot points.
+    !
+    do j = 2 , jmxm
+      do i = 2 , imxm
+         udiverg(i,j) = (chi(i,j) - chi(i,j-1) + &
+                         chi(i-1,j) - chi(i-1,j-1)) * oneov2ds
+      end do
+    end do
+    do j = 2 , jmxm
+      do i = 2 , imxm
+        vdiverg(i,j) = (chi(i,j) - chi(i-1,j) + &
+                        chi(i,j-1) - chi(i-1,j-1)) * oneov2ds
+      end do
+    end do
+    call fill(udiverg,imx,jmx,imx,jmx,2,imxm,2,jmxm)
+    call fill(vdiverg,imx,jmx,imx,jmx,2,imxm,2,jmxm)
+    !
+    ! Remove mean divergent component
+    !
+    do j = 1 , jmx
+      do i = 1 , imx
+        udiverg(i,j) = udiverg(i,j) * dm(i,j) / psd(i,j)
+        vdiverg(i,j) = vdiverg(i,j) * dm(i,j) / psd(i,j)
+      end do
+    end do
+    do k = 1 , kxs
+      weight(k) = d_two * (d_one - sigh(k))
+    end do
+    do j = 1 , jmx
+      do i = 1 , imx
+        do k = 1 , kxs
+          u(i,j,k) = u(i,j,k) - weight(k) * udiverg(i,j)
+          v(i,j,k) = v(i,j,k) - weight(k) * vdiverg(i,j)
+        end do
+      end do
+    end do
+  end subroutine meandiv
 
 end module mod_vectutil
 

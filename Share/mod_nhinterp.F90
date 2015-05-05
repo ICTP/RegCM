@@ -90,13 +90,12 @@ module mod_nhinterp
     !
     ! Interpolate the hydrostatic input to nonhydrostatic coordinate.
     !
-    subroutine nhinterp(i1,i2,j1,j2,kxs,f,tv,ps,ps0,sigma,intmeth,a,tiso,ldot)
+    subroutine nhinterp(i1,i2,j1,j2,kxs,f,tv,ps,ps0,sigma,intmeth,a,ldot)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , intmeth
       real(rk8) , intent(in) , dimension(:) :: a
       real(rk8) , intent(in) , dimension(:) :: sigma
       real(rk8) , intent(in) , dimension(:,:,:) :: tv
-      real(rk8) , intent(in) :: tiso
       real(rk8) , intent(in) , dimension(:,:) :: ps
       real(rk8) , intent(in) , dimension(:,:) :: ps0
       real(rk8) , intent(inout) , dimension(:,:,:) :: f
@@ -267,7 +266,7 @@ module mod_nhinterp
     ! horizontal wind fields (u and v).
     !
     subroutine nhw(i1,i2,j1,j2,kxs,u,v,tv,rho0,ps,psdot,ps0,xmsfx,sigma, &
-                   w,wtop,ds,a,dsigma,tiso)
+                   w,wtop,ds,a,dsigma)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs
       real(rk8) , intent(in) , dimension(:) :: a , sigma , dsigma
@@ -275,7 +274,7 @@ module mod_nhinterp
       real(rk8) , intent(in) , dimension(:,:) :: ps , ps0 , psdot
       real(rk8) , intent(in) , dimension(:,:,:) :: rho0 , tv
       real(rk8) , intent(in) , dimension(:,:,:) :: u , v
-      real(rk8) , intent(in) :: ds , tiso
+      real(rk8) , intent(in) :: ds
       real(rk8) , intent(out) , dimension(:,:,:) :: w
       real(rk8) , intent(out) , dimension(:,:) :: wtop
       integer(ik4) :: i , j , k , km , kp
@@ -285,11 +284,15 @@ module mod_nhinterp
       real(rk8) , dimension(kxs+1) :: omega , omegan , qdt
       real(rk8) , dimension(kxs+1) :: z0q , zq
       real(rk8) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
+      real(rk8) , dimension(j1:j2,i1:i2) :: pspa
+      real(rk8) , dimension(j1:j2,i1:i2) :: psdotpa
 
       wtmp(:,:,:) = d_zero
       pt = ptop * d_1000
       dx2 = d_two * ds * d_1000
       piso = p0 * exp((tiso-ts0) / tlp)
+      psdotpa = psdot * d_1000
+      pspa = ps * d_1000
       do i = i1 , i2-1
         do j = j1 , j2-1
           qdt(kxs+1) = d_zero
@@ -322,26 +325,28 @@ module mod_nhinterp
             zq(kxs+1) = ter(j,i)*egrav
           end if
           qdt(kxs+1) = d_zero
-          do l = kxs , 1 , -1
+          do l = kxs + 1 , 1 , -1
             lp = min(l,kxs)
             lm = max(l-1,1)
             ip = min(i+1,i2-1)
             im = max(i-1,i1)
             jp = min(j+1,j2-1)
             jm = max(j-1,j1)
-            zq(l) = zq(l+1) - rovg*tv(j,i,l) * &
-              log((sigma(l) *   ps(j,i) + ptop ) / &
-                  (sigma(l+1) * ps(j,i) + ptop ))
-            qdt(l) = qdt(l+1) + &
-                    (u(j+1,i+1,l) * psdot(j+1,i+1) + &
-                     u(j+1,i  ,l) * psdot(j+1,i  ) - &
-                     u(j  ,i+1,l) * psdot(j  ,i+1) - &
-                     u(j  ,i  ,l) * psdot(j  ,i  ) + &
-                     v(j+1,i+1,l) * psdot(j+1,i+1) + &
-                     v(j  ,i+1,l) * psdot(j  ,i+1) - &
-                     v(j+1,i  ,l) * psdot(j+1,i  ) - &
-                     v(j  ,i  ,l) * psdot(j  ,i  )) / &
-                 dx2 * xmsfx(j,i) * xmsfx(j,i) * dsigma(l) / ps(j,i)
+            if ( l /= kxs + 1 ) then
+              zq(l) = zq(l+1) - rovg*tv(j,i,l) * &
+                log((sigma(l) *   pspa(j,i) + pt ) / &
+                    (sigma(l+1) * pspa(j,i) + pt ))
+              qdt(l) = qdt(l+1) + &
+                      (u(j+1,i+1,l) * psdotpa(j+1,i+1) + &
+                       u(j+1,i  ,l) * psdotpa(j+1,i  ) - &
+                       u(j  ,i+1,l) * psdotpa(j  ,i+1) - &
+                       u(j  ,i  ,l) * psdotpa(j  ,i  ) + &
+                       v(j+1,i+1,l) * psdotpa(j+1,i+1) + &
+                       v(j  ,i+1,l) * psdotpa(j  ,i+1) - &
+                       v(j+1,i  ,l) * psdotpa(j+1,i  ) - &
+                       v(j  ,i  ,l) * psdotpa(j  ,i  )) / &
+                   dx2 * xmsfx(j,i) * xmsfx(j,i) * dsigma(l) / pspa(j,i)
+            end if
             ubar = 0.125 * (u(j  ,i  ,lp) + u(j  ,i  ,lm) + &
                             u(j  ,i+1,lp) + u(j  ,i+1,lm) + &
                             u(j+1,i  ,lp) + u(j+1,i  ,lm) + &
@@ -351,9 +356,9 @@ module mod_nhinterp
                             v(j+1,i  ,lp) + v(j+1,i  ,lm) + &
                             v(j+1,i+1,lp) + v(j+1,i+1,lm))
             !  Calculate omega (msfx not inverted).
-            omega(l) = ps(j,i) * qdt(l) + sigma(l) * &
-                       ((ps(jp,i  ) - ps(jm,i  )) * ubar +  &
-                        (ps(j  ,ip) - ps(j  ,im)) * vbar) / dx2 * xmsfx(j,i)
+            omega(l) = pspa(j,i) * qdt(l) + sigma(l) * &
+                       ((pspa(jp,i  ) - pspa(jm,i  )) * ubar +  &
+                        (pspa(j  ,ip) - pspa(j  ,im)) * vbar) / dx2 * xmsfx(j,i)
           end do
           !
           !  Vertical velocity from interpolated omega, zero at top.

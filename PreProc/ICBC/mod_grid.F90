@@ -32,7 +32,7 @@ module mod_grid
 
   real(rk8) , public , pointer , dimension(:,:) :: xlat , xlon , dlat , dlon
   real(rk8) , public , pointer , dimension(:,:) :: topogm , mask , landuse
-  real(rk8) , public , pointer , dimension(:,:) :: msfx
+  real(rk8) , public , pointer , dimension(:,:) :: msfx , msfd
   real(rk8) , public , pointer , dimension(:,:) :: pa , tlayer , za
   real(rk8) , public , pointer , dimension(:,:) :: pd4
   real(rk8) , public , pointer , dimension(:) :: sigmah
@@ -71,6 +71,7 @@ module mod_grid
     call getmem1d(dsigma,1,nz,'mod_write:dsigma')
     if ( idynamic == 2 ) then
       call getmem2d(msfx,1,nx,1,ny,'mod_write:msfx')
+      call getmem2d(msfd,1,nx,1,ny,'mod_write:msfd')
       call getmem2d(ps0,1,nx,1,ny,'mod_write:ps0')
       call getmem3d(pr0,1,nx,1,ny,1,nz,'mod_write:pr0')
       call getmem3d(rho0,1,nx,1,ny,1,nz,'mod_write:rho0')
@@ -89,7 +90,7 @@ module mod_grid
     call openfile_withname(fname,incin)
     if ( idynamic == 2 ) then
       call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm, &
-                       mask,landuse,msfx)
+                       mask,landuse,msfx,msfd)
       call nhsetup(ptop,stdp,stdt,logp_lrate,topogm,.false.)
       ! call read_reference_state(incin,ps0,pr0,t0,rho0)
     else
