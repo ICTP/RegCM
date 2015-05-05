@@ -55,7 +55,7 @@ mod_sst_gnmnc.o : mod_sst_gnmnc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o m
 mod_sst_gnhnc.o : mod_sst_gnhnc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_sst_grid.o mod_interp.o mod_message.o mod_nchelper.o mod_ccsm3_helper.o
 mod_sst_grid.o : mod_sst_grid.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_message.o mod_nchelper.o mod_ncstream_types.o mod_ncstream.o mod_domain.o
 mod_uvrot.o : mod_uvrot.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
-mod_vectutil.o : mod_vectutil.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
+mod_vectutil.o : mod_vectutil.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_message.o
 mod_write.o : mod_write.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_grid.o mod_memutil.o mod_message.o mod_ncstream_types.o mod_ncstream.o mod_nhinterp.o mod_vectutil.o 
 mod_wrtoxd.o : mod_wrtoxd.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o mod_grid.o mod_memutil.o mod_message.o mod_stdio.o mod_nchelper.o mod_ncstream.o
 sst.o : sst.F90 mod_intkinds.o mod_realkinds.o mod_header.o mod_dynparam.o mod_memutil.o mod_stdio.o mod_message.o mod_sst_grid.o mod_sst_1deg.o mod_sst_eh5om.o mod_sst_ersst.o mod_sst_fvgcm.o mod_sst_gnmnc.o mod_sst_gnhnc.o
