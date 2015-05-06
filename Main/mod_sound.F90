@@ -374,9 +374,9 @@ module mod_sound
                             v3d(j,i+1,kp1) - v3d(j+1,i+1,kp1) ) /   &
                           ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
             pxup(j,i,k) = 0.125D0 * (atm0%pr(j,i+1,k) - atm0%pr(j,i-1,k)) * &
-                          ( u3d(j,i,km1)   + u3d(j+1,i,km1) +       &
+                          ( u3d(j,i,km1)   + u3d(j+1,i,km1)   +     &
                             u3d(j,i+1,km1) + u3d(j+1,i+1,km1) -     &
-                            u3d(j,i,kp1)   - u3d(j+1,i,kp1) -       &
+                            u3d(j,i,kp1)   - u3d(j+1,i,kp1)   -     &
                             u3d(j,i+1,kp1) - u3d(j+1,i+1,kp1) ) /   &
                           ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
           end do
@@ -384,6 +384,9 @@ module mod_sound
       end do
       !
       ! Zero gradient (free slip) b.c.s on v at top and bottom
+      !
+      ! IG: at the bottom (k=kz), w(x,y,kz)=0, dw(x,y,kz)/dsigma=0 so 
+      ! 3rd and 4th LHS in Eq. 2.5.1.4 vanish.
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -399,14 +402,14 @@ module mod_sound
             ! Presure perturbation tendency: 5th RHS terms in Eq.2.3.8
             !
             ptend(j,i,k) = aten%pp(j,i,k) - d_half * cc(j,i,k) *      &
-                           ( (v3d(j+1,i,k) * mddom%msfd(j+1,i) -      &
-                              v3d(j,i,k) * mddom%msfd(j,i) +          &
+                           ( (v3d(j+1,i,k)   * mddom%msfd(j+1,i)   -  &
+                              v3d(j,i,k)     * mddom%msfd(j,i)     +  &
                               v3d(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
-                              v3d(j,i+1,k) * mddom%msfd(j,i+1) +      &
-                              u3d(j,i+1,k) * mddom%msfd(j,i+1) -      &
-                              u3d(j,i,k) * mddom%msfd(j,i) +          &
+                              v3d(j,i+1,k)   * mddom%msfd(j,i+1)   +  &
+                              u3d(j,i+1,k)   * mddom%msfd(j,i+1)   -  &
+                              u3d(j,i,k)     * mddom%msfd(j,i)     +  &
                               u3d(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
-                              u3d(j+1,i,k) * mddom%msfd(j+1,i) ) /    &
+                              u3d(j+1,i,k)   * mddom%msfd(j+1,i) ) /  &
                           mddom%msfx(j,i) - &
                           d_two*( pyvp(j,i,k) + pxup(j,i,k) ) )
             rhs(j,i,k) = w3d(j,i,k) + aten%w(j,i,k) + ca(j,i,k) * ( bpxbm *   &
@@ -414,7 +417,7 @@ module mod_sound
                         ( (cdd(j,i,k-1) + cj(j,i,k-1))*g2(j,i,k) +            &
                           (cdd(j,i,k) - cj(j,i,k))*g1(j,i,k) ) * wo(j,i,k) +  &
                           (cdd(j,i,k) + cj(j,i,k))*g1(j,i,k)*wo(j,i,k+1) ) +  &
-                       ( pp3d(j,i,k) * g1(j,i,k) -                            &
+                       ( pp3d(j,i,k)   * g1(j,i,k)   -                        &
                          pp3d(j,i,k-1) * g2(j,i,k) ) +                        &
                        ( g1(j,i,k)*ptend(j,i,k) -                             &
                          g2(j,i,k)*ptend(j,i,k-1) ) * bp )
@@ -428,10 +431,10 @@ module mod_sound
             !
             ! Nonhydrostatic model.
             ! Presure perturbation tendency: 4th RHS term and last subterm
-            ! in 5th RHS term in Eq. 2.3.8
+            ! in 5th RHS term in Eq. 2.3.8. Also, cf. Eq. 2.5.1.4
             !
-            pp3d(j,i,k) = pp3d(j,i,k) + ptend(j,i,k) +              &
-                          ( cj(j,i,k) * (wo(j,i,k+1) + wo(j,i,k)) + &
+            pp3d(j,i,k) = pp3d(j,i,k) + ptend(j,i,k) +               &
+                          ( cj(j,i,k)  * (wo(j,i,k+1) + wo(j,i,k)) + &
                             cdd(j,i,k) * (wo(j,i,k+1) - wo(j,i,k)) ) * bm
           end do
         end do
@@ -606,7 +609,7 @@ module mod_sound
         end do
       end do
       !
-      ! Zero gradient conditions on w,  specified on pp
+      ! Zero horizontal gradient conditions on w,  specified on pp
       !
       do k =  1 , kz
         do i = ici1 , ici2
