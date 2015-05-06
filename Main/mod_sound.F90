@@ -77,7 +77,7 @@ module mod_sound
     !   xkleff , xleff , xmsfbar , xmsftot
     ! real(rk8) , dimension(-6:6) :: fi , fj
     ! real(rk8) , dimension(0:6) :: fk , fl
-    ! real(rk8) , dimension(jci1:jci2,ici1:ici2) :: wpval
+      real(rk8) , dimension(jci1:jci2,ici1:ici2) :: wpval
     ! integer(ik4) :: icut , inn , jnn , ll , lp1 , mp1 , npts , nsi , nsj
     ! real(rk8) , dimension(-6:6,-6:6) :: tmask
     !
