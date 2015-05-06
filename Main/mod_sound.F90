@@ -97,6 +97,14 @@ module mod_sound
     !   TIME-STEPS(ISTEP)
     !
     ! BET IS IKAWA BETA PARAMETER (0.=CENTERED, 1.=BACKWARD)
+    !  The parameter BET determines the time-weighting, where zero gives a 
+    !  time-centered average and positive values give a bias towards the
+    !  future time step that can be used for acoustic damping. In practice, 
+    !  values of BET = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1). This 
+    !  time-weighting is applied on w and pp:
+    !
+    !  pp(BET)=0.5(1+BET)*pp(t+1)+0.5(1-BET)*pp(t)
+    !   w(BET)=0.5(1+BET)* w(t+1)+0.5(1-BET)* w(t)
     !
     bet = 0.4D0
     bp = (d_one+bet)*d_half
@@ -261,7 +269,6 @@ module mod_sound
       !
       !  Semi-implicit solution for w and p
       !
-      !  Nonhydrostatic model.
       !  Presure perturbation tendency: 4th, 5th and 6th RHS terms
       !  in Eq.2.2.4. 4th and 5th RHS terms in Eq.2.3.8
       !  Vertical momentum    tendency: 1st subterm and part of the
@@ -281,45 +288,49 @@ module mod_sound
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          w3d(j,i,kzp1) = d_rfour * ((v3d(j+1,i,kz) + v3d(j,i,kz) +          &
+          w3d(j,i,kzp1) = d_rfour * ((v3d(j+1,i,kz)   + v3d(j,i,kz) +        &
                                       v3d(j+1,i+1,kz) + v3d(j,i+1,kz)) *     &
                                      ( mddom%ht(j+1,i) - mddom%ht(j-1,i) ) + &
-                                     (u3d(j+1,i,kz) + u3d(j,i,kz) +          &
+                                     (u3d(j+1,i,kz)   + u3d(j,i,kz) +        &
                                       u3d(j+1,i+1,kz) + u3d(j,i+1,kz)) *     &
                                      ( mddom%ht(j,i+1) - mddom%ht(j,i-1))) / &
                            ( d_two * dx * mddom%msfx(j,i) * egrav )
           e(j,i,kz) = d_zero
           f(j,i,kz) = w3d(j,i,kzp1)
-          cc(j,i,1) = xgamma * atm2%pr(j,i,1) * dts/ (dx*mddom%msfx(j,i))
+
+          cc(j,i,1)  = xgamma * atm2%pr(j,i,1) * dts/ (dx*mddom%msfx(j,i))
           cdd(j,i,1) = xgamma * atm2%pr(j,i,1) * atm0%rho(j,i,1) * &
                        egrav * dts / (atm0%ps(j,i)*dsigma(1))
-          cj(j,i,1) = atm0%rho(j,i,1) * egrav * dts / d_two
+          cj(j,i,1)  = atm0%rho(j,i,1) * egrav * dts / d_two
           pxup(j,i,1) = 0.0625D0 *                              &
                       ( atm0%pr(j,i+1,1) - atm0%pr(j,i-1,1) ) * &
-                      ( u3d(j,i,1) + u3d(j+1,i,1) +             &
+                      ( u3d(j,i,1)   + u3d(j+1,i,1)   +         &
                         u3d(j,i+1,1) + u3d(j+1,i+1,1) -         &
-                        u3d(j,i,2) - u3d(j+1,i,2) -             &
+                        u3d(j,i,2)   - u3d(j+1,i,2)   -         &
                         u3d(j,i+1,2) - u3d(j+1,i+1,2) ) /       &
                       ( atm0%pr(j,i,1) - atm0%pr(j,i,2))
           pyvp(j,i,1) = 0.0625D0 *                              &
                       ( atm0%pr(j+1,i,1) - atm0%pr(j-1,i,1) ) * &
-                      ( v3d(j,i,1) + v3d(j+1,i,1) +             &
+                      ( v3d(j,i,1)   + v3d(j+1,i,1)   +         &
                         v3d(j,i+1,1) + v3d(j+1,i+1,1) -         &
-                        v3d(j,i,2) - v3d(j+1,i,2) -             &
+                        v3d(j,i,2)   - v3d(j+1,i,2)   -         &
                         v3d(j,i+1,2) - v3d(j+1,i+1,2) ) /       &
                       ( atm0%pr(j,i,1) - atm0%pr(j,i,2) )
           !
           ! Zero gradient (free slip) b.c.s on v at top and bottom
           !
+          ! IG: at the top (k=1), w(x,y,1)=0, dw(x,y,1)/dsigma=0 so 
+          ! 3rd and 4th LHS in Eq. 2.5.1.4 vanish.
+          !
           ptend(j,i,1) = aten%pp(j,i,1) - d_half * cc(j,i,1) *      &
-                       ( ( v3d(j+1,i,1) * mddom%msfd(j+1,i) -       &
-                           v3d(j,i,1) * mddom%msfd(j,i) +           &
+                       ( ( v3d(j+1,i,1)   * mddom%msfd(j+1,i)   -   &
+                           v3d(j,i,1)     * mddom%msfd(j,i)     +   &
                            v3d(j+1,i+1,1) * mddom%msfd(j+1,i+1) -   &
-                           v3d(j,i+1,1) * mddom%msfd(j,i+1) +       &
-                           u3d(j,i+1,1) * mddom%msfd(j,i+1) -       &
-                           u3d(j,i,1) * mddom%msfd(j,i) +           &
+                           v3d(j,i+1,1)   * mddom%msfd(j,i+1)   +   &
+                           u3d(j,i+1,1)   * mddom%msfd(j,i+1)   -   &
+                           u3d(j,i,1)     * mddom%msfd(j,i)     +   &
                            u3d(j+1,i+1,1) * mddom%msfd(j+1,i+1) -   &
-                           u3d(j+1,i,1) * mddom%msfd(j+1,i) ) /     &
+                           u3d(j+1,i,1)   * mddom%msfd(j+1,i) ) /   &
                        mddom%msfx(j,i) - d_two * (pyvp(j,i,1) + pxup(j,i,1)) )
           tk(j,i,1) = atm0%ps(j,i) * atm0%t(j,i,1) / &
                       (d_two * xgamma * atm0%pr(j,i,1) * &
@@ -341,7 +352,7 @@ module mod_sound
             !
             ! Set factors for differencing
             !
-            cc(j,i,k) = xgamma * atm2%pr(j,i,k) * dts / (dx*mddom%msfx(j,i))
+            cc(j,i,k)  = xgamma * atm2%pr(j,i,k) * dts / (dx*mddom%msfx(j,i))
             cdd(j,i,k) = xgamma * atm2%pr(j,i,k) * atm0%rho(j,i,k) * &
                          egrav * dts / (atm0%ps(j,i)*dsigma(k))
             cj(j,i,k) = atm0%rho(j,i,k) * egrav * dts/d_two
@@ -357,15 +368,15 @@ module mod_sound
                        (cdd(j,i,k-1) + cj(j,i,k-1)) ) * bpxbp
             aa(j,i,k) = -ca(j,i,k) * (cdd(j,i,k)+cj(j,i,k))*g1(j,i,k)*bpxbp
             pyvp(j,i,k) = 0.125D0 * (atm0%pr(j+1,i,k) - atm0%pr(j-1,i,k)) * &
-                          ( v3d(j,i,km1) + v3d(j+1,i,km1) +         &
+                          ( v3d(j,i,km1)   + v3d(j+1,i,km1)   +     &
                             v3d(j,i+1,km1) + v3d(j+1,i+1,km1) -     &
-                            v3d(j,i,kp1) - v3d(j+1,i,kp1) -         &
+                            v3d(j,i,kp1)   - v3d(j+1,i,kp1)   -     &
                             v3d(j,i+1,kp1) - v3d(j+1,i+1,kp1) ) /   &
                           ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
             pxup(j,i,k) = 0.125D0 * (atm0%pr(j,i+1,k) - atm0%pr(j,i-1,k)) * &
-                          ( u3d(j,i,km1) + u3d(j+1,i,km1) +         &
+                          ( u3d(j,i,km1)   + u3d(j+1,i,km1) +       &
                             u3d(j,i+1,km1) + u3d(j+1,i+1,km1) -     &
-                            u3d(j,i,kp1) - u3d(j+1,i,kp1) -         &
+                            u3d(j,i,kp1)   - u3d(j+1,i,kp1) -       &
                             u3d(j,i+1,kp1) - u3d(j+1,i+1,kp1) ) /   &
                           ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
           end do
