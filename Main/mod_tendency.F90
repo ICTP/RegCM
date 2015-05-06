@@ -446,12 +446,12 @@ module mod_tendency
       call exchange(atms%chib3d,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
 
-    if ( iboudy == 4 ) then
-      call sponge(ba_cr,xpsb,pten)
-    else if ( iboudy == 1 .or. iboudy == 5 ) then
-      call nudge(ba_cr,xbctime,sfs%psb,iboudy,xpsb,pten)
-    end if
     if ( idynamic == 1 ) then
+      if ( iboudy == 4 ) then
+        call sponge(ba_cr,xpsb,pten)
+      else if ( iboudy == 1 .or. iboudy == 5 ) then
+        call nudge(ba_cr,xbctime,sfs%psb,iboudy,xpsb,pten)
+      end if
       !
       ! psc : forecast pressure
       !

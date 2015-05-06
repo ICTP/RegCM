@@ -113,8 +113,8 @@ module mod_init
     else
       do i = ice1 , ice2
         do j = jce1 , jce2
-          sfs%psa(j,i) = atm0%ps(j,i)*d_r1000
-          sfs%psb(j,i) = atm0%ps(j,i)*d_r1000
+          sfs%psa(j,i) = atm0%ps(j,i) * d_r1000
+          sfs%psb(j,i) = sfs%psa(j,i)
         end do
       end do
     end if

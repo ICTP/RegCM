@@ -53,6 +53,7 @@ module mod_sound
       chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
       ppold , rho , rho0s , rofac , xgamma , xkd , sumcfl
     real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore , estore
+    real(rk8) , dimension(jci1:jci2,ici1:ici2) :: wpval
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ca
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: g1 , g2
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ptend , pxup , pyvp
@@ -77,7 +78,6 @@ module mod_sound
     !   xkleff , xleff , xmsfbar , xmsftot
     ! real(rk8) , dimension(-6:6) :: fi , fj
     ! real(rk8) , dimension(0:6) :: fk , fl
-      real(rk8) , dimension(jci1:jci2,ici1:ici2) :: wpval
     ! integer(ik4) :: icut , inn , jnn , ll , lp1 , mp1 , npts , nsi , nsj
     ! real(rk8) , dimension(-6:6,-6:6) :: tmask
     !
@@ -97,10 +97,10 @@ module mod_sound
     !   TIME-STEPS(ISTEP)
     !
     ! BET IS IKAWA BETA PARAMETER (0.=CENTERED, 1.=BACKWARD)
-    !  The parameter BET determines the time-weighting, where zero gives a 
+    !  The parameter BET determines the time-weighting, where zero gives a
     !  time-centered average and positive values give a bias towards the
-    !  future time step that can be used for acoustic damping. In practice, 
-    !  values of BET = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1). This 
+    !  future time step that can be used for acoustic damping. In practice,
+    !  values of BET = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1). This
     !  time-weighting is applied on w and pp:
     !
     !  pp(BET)=0.5(1+BET)*pp(t+1)+0.5(1-BET)*pp(t)
@@ -319,7 +319,7 @@ module mod_sound
           !
           ! Zero gradient (free slip) b.c.s on v at top and bottom
           !
-          ! IG: at the top (k=1), w(x,y,1)=0, dw(x,y,1)/dsigma=0 so 
+          ! IG: at the top (k=1), w(x,y,1)=0, dw(x,y,1)/dsigma=0 so
           ! 3rd and 4th LHS in Eq. 2.5.1.4 vanish.
           !
           ptend(j,i,1) = aten%pp(j,i,1) - d_half * cc(j,i,1) *      &
@@ -385,7 +385,7 @@ module mod_sound
       !
       ! Zero gradient (free slip) b.c.s on v at top and bottom
       !
-      ! IG: at the bottom (k=kz), w(x,y,kz)=0, dw(x,y,kz)/dsigma=0 so 
+      ! IG: at the bottom (k=kz), w(x,y,kz)=0, dw(x,y,kz)/dsigma=0 so
       ! 3rd and 4th LHS in Eq. 2.5.1.4 vanish.
       !
       do i = ici1 , ici2

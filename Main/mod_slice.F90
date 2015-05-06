@@ -119,7 +119,8 @@ module mod_slice
     if ( idynamic == 2 ) then
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%ps2d(j,i) = atm0%ps(j,i)+ptop*d_1000 + atm2%pp(j,i,kz)*rpsb(j,i)
+          atms%ps2d(j,i) = (sfs%psb(j,i)+ptop)*d_1000 + &
+                            atm2%pp(j,i,kz)*rpsb(j,i)
           atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
         end do
       end do
@@ -180,41 +181,28 @@ module mod_slice
     !
     ! compute the height at full (za) and half (zq) sigma levels:
     !
-    if ( idynamic == 1 ) then
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        atms%zq(j,i,kzp1) = d_zero
+      end do
+    end do
+    do k = kz , 1 , -1
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%zq(j,i,kzp1) = d_zero
+          cell = ptop/sfs%psb(j,i)
+          atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg*atms%tb3d(j,i,k) *  &
+                    log((sigma(k+1)+cell)/(sigma(k)+cell))
         end do
       end do
-      do k = kz , 1 , -1
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            cell = ptop/sfs%psb(j,i)
-            atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg*atms%tb3d(j,i,k) *  &
-                      log((sigma(k+1)+cell)/(sigma(k)+cell))
-          end do
+    end do
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atms%za(j,i,k) = d_half*(atms%zq(j,i,k)+atms%zq(j,i,k+1))
+          atms%dzq(j,i,k) = atms%zq(j,i,k) - atms%zq(j,i,k+1)
         end do
       end do
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atms%za(j,i,k) = d_half*(atms%zq(j,i,k)+atms%zq(j,i,k+1))
-            atms%dzq(j,i,k) = atms%zq(j,i,k) - atms%zq(j,i,k+1)
-          end do
-        end do
-      end do
-    else
-      dpsdxm(:,:) = d_zero
-      dpsdym(:,:) = d_zero
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          dpsdxm(j,i) = (sfs%psb(j+1,i) - sfs%psb(j-1,i)) / &
-                        (sfs%psb(j,i)*dx8*mddom%msfx(j,i))
-          dpsdym(j,i) = (sfs%psb(j,i+1) - sfs%psb(j,i-1)) / &
-                        (sfs%psb(j,i)*dx8*mddom%msfx(j,i))
-        end do
-      end do
-    end if
+    end do
 
     do k = 1 , kz
       do i = ice1 , ice2

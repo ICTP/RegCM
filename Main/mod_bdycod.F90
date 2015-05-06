@@ -319,9 +319,13 @@ module mod_bdycod
 
     bdydate1 = bdydate2
 
-    xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
-    xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
-
+    if ( idynamic == 2 ) then
+      xpsb%b0(:,:) = atm0%ps(:,:) * d_r1000 ! Cb
+      xpsb%b1(:,:) = atm0%ps(:,:) * d_r1000
+    else
+      xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
+      xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
+    end if
     !
     ! Calculate P* on dot points
     !
@@ -523,7 +527,11 @@ module mod_bdycod
     !
     ! Convert surface pressure to pstar
     !
-    xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
+    if ( idynamic == 2 ) then
+      xpsb%b1(:,:) = atm0%ps(:,:) * d_r1000
+    else
+      xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
+    end if
 
     call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
     call psc2psd(xpsb%b1,psdot)

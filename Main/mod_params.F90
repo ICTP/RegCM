@@ -2023,36 +2023,14 @@ module mod_params
             end do
           end do
         end do
-        do k = 1 , kz-1
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              atms%dzq(j,i,k) = log(atm0%pr(j,i,k+1)/atm0%pr(j,i,k)) * &
-                rovg*d_half*(atm0%t(j,i,k)+atm0%t(j,i,k+1))
-            end do
-          end do
-        end do
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atms%dzq(j,i,kz) = atms%dzq(j,i,kz-1)
-          end do
-        end do
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atms%zq(j,i,kzp1) = d_zero
-          end do
-        end do
-        do k = kz , 1 , -1
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              atms%zq(j,i,k) = atms%zq(j,i,k+1) + atms%dzq(j,i,k)
-            end do
-          end do
-        end do
-        do k = kz , 1 , -1
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              atms%za(j,i,k) = d_half*(atms%zq(j,i,k)+atms%zq(j,i,k+1))
-            end do
+        dpsdxm(:,:) = d_zero
+        dpsdym(:,:) = d_zero
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            dpsdxm(j,i) = (atm0%ps(j+1,i) - atm0%ps(j-1,i)) / &
+                          (atm0%ps(j,i)*dx8*mddom%msfx(j,i))
+            dpsdym(j,i) = (atm0%ps(j,i+1) - atm0%ps(j,i-1)) / &
+                          (atm0%ps(j,i)*dx8*mddom%msfx(j,i))
           end do
         end do
       end subroutine make_reference_atmosphere
