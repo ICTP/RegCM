@@ -490,11 +490,11 @@ module mod_sound
       !
       ! First, set upper boundary condition, either w=0 or radiation
       !
-!      do i = ici1 , ici2
-!        do j = jci1 , jci2
-!          wpval(j,i) = d_zero
-!        end do
-!      end do
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          wpval(j,i) = d_zero
+        end do
+      end do
 !      if ( ifupr == 1 ) then
 !        !
 !        ! Apply upper rad cond. no w3d(top) in lateral sponge
@@ -512,17 +512,12 @@ module mod_sound
 !          end do
 !        end do
 !      end if
-!      !
-!      ! Finished calc of radiation w
-!      !
-!      do i = ici1 , ici2
-!        do j = jci1 , jci2
-!          w3d(j,i,1) = wpval(j,i)
-!        end do
-!      end do
+      !
+      ! Finished calc of radiation w
+      !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          w3d(j,i,1) = d_zero
+          w3d(j,i,1) = wpval(j,i)
         end do
       end do
       !
