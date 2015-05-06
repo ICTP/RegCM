@@ -143,33 +143,33 @@ module mod_vectutil
   !
   !-----------------------------------------------------------------------
   !
-  subroutine relax(chi,ff,rd,imx,jmx,ie,je,ds)
+  subroutine relax(chi,ff,imx,jmx,ie,je,ds)
     implicit none
     integer(ik4) , intent(in) :: imx , jmx , ie , je
-    real(rk8) , intent(inout) , dimension(imx,jmx) :: chi
-    real(rk8) , intent(inout) , dimension(imx,jmx) :: rd
+    real(rk8) , intent(out) , dimension(imx,jmx) :: chi
     real(rk8) , intent(inout) , dimension(imx,jmx) :: ff
     real(rk8) , intent(in) :: ds
-    real(rk8) , parameter :: smallres = 1.0D-9
+    real(rk8) , parameter :: smallres = 1.0D-6
     integer(ik4) , parameter :: mm = 20000
     real(rk8) , parameter :: alpha = 1.8D0
     real(rk8) , parameter :: alphaov4 = alpha * d_rfour
-    integer(ik4) :: i , j , iter , mi
+    integer(ik4) :: i , j , iter
     real(rk8) , dimension(jmx) :: chimx
     real(rk8) , dimension(jmx) :: rdmax
+    real(rk8) , dimension(imx,jmx) :: rd
     real(rk8) :: epx , fac
     logical :: converged
     converged = .false.
     fac = d_two * ds * ds
-    rd = d_zero
+    rd(:,:) = d_zero
+    chi(:,:) = d_zero
     do j = 1 , je + 1
       do i = 1 , ie + 1
         ff(i,j) = fac * ff(i,j)
       end do
     end do
     iter_loop : do iter = 1 , mm
-      mi = iter
-      chimx = d_zero
+      chimx(:) = d_zero
       do j = 2 , je
         do i = 2 , ie
           chimx(j) = max(abs(chi(i,j)),chimx(j))
@@ -184,7 +184,7 @@ module mod_vectutil
           chi(i,j) = chi(i,j) + rd(i,j) * alphaov4
         end do
       end do
-      rdmax = d_zero
+      rdmax(:) = d_zero
       do j = 2 , je
         do i = 2 , ie
           rdmax(j) = max(abs(rd(i,j)),rdmax(j))
@@ -226,32 +226,29 @@ module mod_vectutil
   !
   !-----------------------------------------------------------------------
   !
-  subroutine meandiv(u,v,psd,dm,sigh,imx,jmx,kxs,ds,imxm,jmxm)
+  subroutine meandiv(u,v,psd,dm,sigh,dsg,imx,jmx,kxs,ds,imxm,jmxm)
     implicit none
     integer(ik4) , intent(in) :: imx , jmx , kxs , imxm , jmxm
     real(rk8) , intent(inout) , dimension(imx,jmx,kxs) :: u , v
     real(rk8) , intent(in) , dimension(imx,jmx) :: psd
     real(rk8) , intent(in) , dimension(imx,jmx) :: dm
-    real(rk8) , intent(in) , dimension(kxs) :: sigh
+    real(rk8) , intent(in) , dimension(kxs) :: sigh , dsg
     real(rk8) , intent(in) :: ds
     integer(ik4) :: i , j , k
-    real(rk8) , dimension(imx,jmx) :: chi , div , f
+    real(rk8) , dimension(imx,jmx) :: chi , div
     real(rk8) , dimension(imx,jmx) :: dudx , dvdy
     real(rk8) , dimension(imx,jmx) :: udiverg , vdiverg
     real(rk8) , dimension(imx,jmx) :: uslb , vslb
-    real(rk8) , dimension(kxs) :: dsg , weight
-    real(rk8) , dimension(kxs+1) :: sigf
+    real(rk8) , dimension(kxs) :: weight
     real(rk8) :: oneov2ds
 
     oneov2ds = d_one / (d_two * ds)
+    do k = 1 , kxs
+      weight(k) = d_two * (d_one - sigh(k))
+    end do
     !
     ! Integrate p* v/m, compute div, to dot point, to (x,y) format
     !
-    sigf(1) = d_zero
-    do k = 1, kxs
-      sigf(k+1) = d_two * sigh(k) - sigf(k)
-      dsg(k) = sigf(k+1) - sigf(k)
-    end do
     do j = 1 , jmx
       do i = 1 , imx
         uslb(i,j) = d_zero
@@ -278,6 +275,7 @@ module mod_vectutil
         dvdy(i,j) = vslb(i+1,j+1) - vslb(i,j+1) + vslb(i+1,j) - vslb(i,j)
       end do
     end do
+    div(:,:) = d_zero
     do j = 1 , jmxm
       do i = 1 , imxm
         div(i,j) = oneov2ds * (dudx(i,j) + dvdy(i,j))
@@ -286,12 +284,7 @@ module mod_vectutil
     !
     ! Iteratively solve laplacian from good first guess.
     !
-    do j = 1 , jmx
-      do i = 1 , imx
-        chi(i,j) = d_zero
-      end do
-    end do
-    call relax(chi,div,f,imx,jmx,imx-2,jmx-2,ds)
+    call relax(chi,div,imx,jmx,imx-2,jmx-2,ds)
     !
     ! Get divergent component of wind, 2d field on dot points.
     !
@@ -317,9 +310,6 @@ module mod_vectutil
         udiverg(i,j) = udiverg(i,j) * dm(i,j) / psd(i,j)
         vdiverg(i,j) = vdiverg(i,j) * dm(i,j) / psd(i,j)
       end do
-    end do
-    do k = 1 , kxs
-      weight(k) = d_two * (d_one - sigh(k))
     end do
     do j = 1 , jmx
       do i = 1 , imx

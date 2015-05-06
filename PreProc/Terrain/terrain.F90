@@ -613,8 +613,8 @@ program terrain
     end if
 
     if ( idynamic == 2 ) then
-      call nhsetup(ptop,stdp,stdt,logp_lrate,htgrid_s,.false.)
-      call nhbase(1,iysg,1,jxsg,kz+1,sigma,ps0_s,pr0_s,t0_s,rho0_s)
+      call nhsetup(ptop,stdp,stdt,logp_lrate)
+      call nhbase(1,iysg,1,jxsg,kz+1,sigma,htgrid_s,ps0_s,pr0_s,t0_s,rho0_s)
     end if
 
     write (outname,'(a,i0.3,a)') &
@@ -630,8 +630,8 @@ program terrain
   call read_snow(snowam,jx,iy)
 
   if ( idynamic == 2 ) then
-    call nhsetup(ptop,stdp,stdt,logp_lrate,htgrid,.false.)
-    call nhbase(1,iy,1,jx,kz+1,sigma,ps0,pr0,t0,rho0)
+    call nhsetup(ptop,stdp,stdt,logp_lrate)
+    call nhbase(1,iy,1,jx,kz+1,sigma,htgrid,ps0,pr0,t0,rho0)
   end if
 
   write (outname,'(a,i0.3,a)') &

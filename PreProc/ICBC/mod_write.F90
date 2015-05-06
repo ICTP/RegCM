@@ -32,10 +32,10 @@ module mod_write
 
   private
 
-  real(rk8) , pointer , dimension(:,:) :: ps4 , ts4 , wtop4
+  real(rk8) , pointer , dimension(:,:) :: ps4 , ts4 , wtop4 , psd0 , topod
   real(rk8) , pointer , dimension(:,:,:) :: q4
   real(rk8) , pointer , dimension(:,:,:) :: t4 , u4 , v4
-  real(rk8) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4
+  real(rk8) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4 , tvd4
 
   public :: ps4 , ts4 , q4 , t4 , u4 , v4 , pp4 , ww4
   public :: init_output , close_output , dispose_output , newfile , writef
@@ -62,9 +62,12 @@ module mod_write
       nvar3d = 6
       nvar2d = 9
       call getmem2d(wtop4,1,jx,1,iy,'mod_write:wtop4')
+      call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
+      call getmem2d(topod,1,jx,1,iy,'mod_write:topod')
       call getmem3d(pp4,1,jx,1,iy,1,kz,'mod_write:pp4')
       call getmem3d(ww4,1,jx,1,iy,1,kz,'mod_write:ww4')
       call getmem3d(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
+      call getmem3d(tvd4,1,jx,1,iy,1,kz,'mod_write:tvd4')
     else
       nvar2d = 8
       nvar3d = 4
@@ -202,28 +205,33 @@ module mod_write
     do ivar = 1 , nvar2d_static
       call outstream_writevar(ncout,v2dvar_icbc(ivar))
     end do
+    call crs2dot(psd0,ps0,jx,iy,i_band)
+    call crs2dot(topod,topogm,jx,iy,i_band)
   end subroutine newfile
 
   subroutine writef(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: ivar
+    integer(ik4) :: ivar , k
 
     if ( idynamic == 2 ) then
-      call meandiv(u4,v4,pd4,msfd,sigmah,jx,iy,kz,ds,jx-1,iy-1)
+      call meandiv(u4,v4,pd4,msfd,sigmah,dsigma,jx,iy,kz,ds,jx-1,iy-1)
       ! Compute hydrostatic pstar on dot points.
       tv4 = t4 * (d_one + ep1 * q4)
+      do k = 1 , kz
+        call crs2dot(tvd4(:,:,k),t4(:,:,k),jx,iy,i_band)
+      end do
       ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
-      call nhw(1,iy,1,jx,kz,u4,v4,tv4,rho0,ps4,pd4,ps0,msfx,sigmaf, &
-               ww4,wtop4,ds,sigmah,dsigma)
-      call nhinterp(1,iy,1,jx,kz,u4,tv4,pd4,ps0,sigmaf,1,sigmah,.true.)
-      call nhinterp(1,iy,1,jx,kz,v4,tv4,pd4,ps0,sigmaf,1,sigmah,.true.)
-      call nhinterp(1,iy,1,jx,kz,t4,tv4,ps4,ps0,sigmaf,1,sigmah)
-      call nhinterp(1,iy,1,jx,kz,q4,tv4,ps4,ps0,sigmaf,2,sigmah)
+      call nhw(1,iy,1,jx,kz,sigmah,sigmaf,dsigma,topogm,u4,v4,tv4, &
+               rho0,ps4,pd4,ps0,msfx,ww4,wtop4,ds)
+      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,topod,u4,tvd4,pd4,psd0,1)
+      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,topod,v4,tvd4,pd4,psd0,1)
+      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,topogm,t4,tv4,ps4,ps0,1)
+      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,topogm,q4,tv4,ps4,ps0,2)
       ! Recompute virtual temperature on non hydrostatic sigma.
       tv4 = t4 * (d_one + ep1 * q4)
       ! Compute the nonhydrostatic perturbation pressure field (pp).
-      call nhpp(1,iy,1,jx,kz,t4,pr0,t0,tv4,ps4,ps0,sigmaf,pp4)
+      call nhpp(1,iy,1,jx,kz,sigmaf,t4,pr0,t0,tv4,ps4,ps0,pp4)
     end if
 
     ps4 = (ps4+ptop)*d_10

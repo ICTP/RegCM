@@ -118,9 +118,7 @@ module mod_humid
       end do
     end do
   end subroutine humid1_o_single
-!
-!-----------------------------------------------------------------------
-!
+
   subroutine humid1fv(t,q,p3d,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
@@ -145,9 +143,7 @@ module mod_humid
       end do
     end do
   end subroutine humid1fv
-!
-!-----------------------------------------------------------------------
-!
+
   subroutine humid2(t,q,ps,ptop,sigma,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
@@ -172,6 +168,7 @@ module mod_humid
       end do
     end do
   end subroutine humid2
-!
+
 end module mod_humid
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

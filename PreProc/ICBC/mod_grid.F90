@@ -91,8 +91,7 @@ module mod_grid
     if ( idynamic == 2 ) then
       call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm, &
                        mask,landuse,msfx,msfd)
-      call nhsetup(ptop,stdp,stdt,logp_lrate,topogm,.false.)
-      ! call read_reference_state(incin,ps0,pr0,t0,rho0)
+      call nhsetup(ptop,stdp,stdt,logp_lrate)
     else
       call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm, &
                        mask,landuse)
@@ -103,7 +102,7 @@ module mod_grid
       dsigma(k) = (sigmaf(k+1)-sigmaf(k))
     end do
     if ( idynamic == 2 ) then
-      call nhbase(1,iy,1,jx,kz,sigmah,ps0,pr0,t0,rho0)
+      call nhbase(1,iy,1,jx,kz,sigmah,topogm,ps0,pr0,t0,rho0)
     end if
   end subroutine read_domain_info
 
