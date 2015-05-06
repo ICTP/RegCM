@@ -99,11 +99,11 @@ module mod_tendency
     call getmem2d(dummy,jde1,jde2,ide1,ide2,'tendency:dummy')
     call getmem2d(rpsa,jce1,jce2,ice1,ice2,'tendency:rpsa')
     call getmem2d(rpsb,jce1,jce2,ice1,ice2,'tendency:rpsb')
-    call getmem2d(rpsc,jce1,jce2,ice1,ice2,'tendency:rpsc')
     call getmem2d(rpsda,jde1,jde2,ide1,ide2,'tendency:rpsda')
     if ( idynamic == 1 ) then
       ithadv = 0
       call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
+      call getmem2d(rpsc,jce1,jce2,ice1,ice2,'tendency:rpsc')
     else if ( idynamic == 2 ) then
       call getmem3d(ucc,jce1,jce2,ice1,ice2,1,kz,'tendency:ucc')
       call getmem3d(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
@@ -1906,7 +1906,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1, ici2
           do j = jci1 , jci2
-            check_tt = (aten%t(j,i,k)-mean_tt)*rpsc(j,i)
+            check_tt = (aten%t(j,i,k)-mean_tt)*rpsb(j,i)
             if ( dabs(check_tt) > temp_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at ktau = ', ktau
               write(stderr,*) 'TEMP tendency out of order : ', check_tt
