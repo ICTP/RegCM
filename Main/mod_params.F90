@@ -2010,8 +2010,10 @@ module mod_params
         use mod_nhinterp
         implicit none
         integer(ik4) :: i , j , k
-        call nhsetup(ptop,stdp,stdt,logp_lrate,mddom%ht,.true.)
-        call nhbase(ice1,ice2,jce1,jce2,kz,hsigma, &
+        real(rk8) , dimension(jce1:jce2,ice1:ice2) :: hgt
+        hgt(jce1:jce2,ice1:ice2) = mddom%ht(jce1:jce2,ice1:ice2) * regrav
+        call nhsetup(ptop,stdp,stdt,logp_lrate)
+        call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,hgt, &
                     atm0%ps,atm0%pr,atm0%t,atm0%rho)
         call exchange(atm0%ps,1,jce1,jce2,ice1,ice2)
         do k = 1 , kz+1
