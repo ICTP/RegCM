@@ -1298,7 +1298,7 @@ module mod_params
     call allocate_v3dbound(xvb,kz,dot)
     if ( idynamic == 2 ) then
       call allocate_v3dbound(xppb,kz,cross)
-      call allocate_v3dbound(xwwb,kz,cross)
+      call allocate_v3dbound(xwwb,kzp1,cross)
     end if
 
     if ( myid == italk ) write(stdout,*) 'Setting IPCC scenario to ', scenario
@@ -1900,7 +1900,7 @@ module mod_params
     !
     ! Setup Boundary condition routines.
     !
-    call setup_bdycon(hsigma)
+    call setup_bdycon(sigma)
     if ( ichem == 1 ) call setup_che_bdycon
 
     if ( any(icup == 3) ) call lutbl(ptop)

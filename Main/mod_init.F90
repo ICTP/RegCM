@@ -134,6 +134,12 @@ module mod_init
           end do
         end do
       end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atm1%w(j,i,kzp1) = xwwb%b0(j,i,kzp1)
+          atm2%w(j,i,kzp1) = xwwb%b0(j,i,kzp1)
+        end do
+      end do
     end if
     !
     ! If we have activated SeaIce scheme, on ocean point we consider

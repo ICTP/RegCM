@@ -42,7 +42,7 @@ module mod_ncio
   integer(ik4) :: ibcrec , ibcnrec
   integer(ik4) :: somrec
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
-  integer(ik4) , dimension(8) :: icbc_ivar
+  integer(ik4) , dimension(9) :: icbc_ivar
   integer(ik4) , dimension(1) :: som_ivar
 
   data ibcin   /-1/
@@ -55,6 +55,9 @@ module mod_ncio
   real(rk8) , dimension(:,:) , pointer :: rspacesom_io => null()
   real(rk8) , dimension(:,:) , pointer :: rspace2 => null()
   real(rk8) , dimension(:,:,:) , pointer :: rspace3 => null()
+
+  real(rk8) , dimension(:,:,:) , pointer :: tempw => null()
+  real(rk8) , dimension(:,:) , pointer :: tempwtop => null()
 
   contains
 
@@ -213,6 +216,10 @@ module mod_ncio
           call grid_distribute(rspace,hlake,jde1,jde2,ide1,ide2)
         end if
       end if
+    end if
+    if ( idynamic == 2 ) then
+      call getmem3d(tempw,jce1,jce2,ice1,ice2,1,kz,'read_domain:tempw')
+      call getmem2d(tempwtop,jce1,jce2,ice1,ice2,'read_domain:tempwtop')
     end if
   end subroutine read_domain_info
 
@@ -453,6 +460,8 @@ module mod_ncio
       call check_ok(__FILE__,__LINE__,'variable pp miss', 'ICBC FILE')
       istatus = nf90_inq_varid(ibcin, 'w', icbc_ivar(8))
       call check_ok(__FILE__,__LINE__,'variable w miss', 'ICBC FILE')
+      istatus = nf90_inq_varid(ibcin, 'wtop', icbc_ivar(9))
+      call check_ok(__FILE__,__LINE__,'variable wtop miss', 'ICBC FILE')
     else
       istatus = nf90_inq_varid(ibcin, 'pp', icbc_ivar(7))
       if ( istatus == nf90_noerr ) then
@@ -601,7 +610,17 @@ module mod_ncio
         pp(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
         istatus = nf90_get_var(ibcin,icbc_ivar(8),rspace3,istart,icount)
         call check_ok(__FILE__,__LINE__,'variable w read error', 'ICBC FILE')
-        ww(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+        ww(jce1:jce2,ice1:ice2,2:kzp1) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+        istart(1) = global_dot_jstart
+        istart(2) = global_dot_istart
+        istart(3) = ibcrec
+        icount(1) = global_dot_jend-global_dot_jstart+1
+        icount(2) = global_dot_iend-global_dot_istart+1
+        icount(3) = 1
+        istatus = nf90_get_var(ibcin,icbc_ivar(9),rspace2, &
+                               istart(1:3),icount(1:3))
+        call check_ok(__FILE__,__LINE__,'variable wtop read error', 'ICBC FILE')
+        ww(jce1:jce2,ice1:ice2,1) = rspace2(jce1:jce2,ice1:ice2)
       end if
     else
       if ( myid == iocpu ) then
@@ -684,7 +703,20 @@ module mod_ncio
           call grid_distribute(rspace3,pp,jce1,jce2,ice1,ice2,1,kz)
           istatus = nf90_get_var(ibcin,icbc_ivar(8),rspace3,istart,icount)
           call check_ok(__FILE__,__LINE__,'variable w read error', 'ICBC FILE')
-          call grid_distribute(rspace3,ww,jce1,jce2,ice1,ice2,1,kz)
+          call grid_distribute(rspace3,tempw,jce1,jce2,ice1,ice2,1,kz)
+          ww(:,:,2:kzp1) = tempw(:,:,:)
+          istart(1) = 1
+          istart(2) = 1
+          istart(3) = ibcrec
+          icount(1) = jx
+          icount(2) = iy
+          icount(3) = 1
+          istatus = nf90_get_var(ibcin,icbc_ivar(9),rspace2, &
+                                 istart(1:3),icount(1:3))
+          call check_ok(__FILE__,__LINE__, &
+                        'variable wtop read error', 'ICBC FILE')
+          call grid_distribute(rspace2,tempwtop,jce1,jce2,ice1,ice2)
+          ww(:,:,1) = tempwtop(:,:)
         end if
       else
         call grid_distribute(rspace2,ps,jce1,jce2,ice1,ice2)
@@ -695,7 +727,10 @@ module mod_ncio
         call grid_distribute(rspace3,qv,jce1,jce2,ice1,ice2,1,kz)
         if ( idynamic == 2 ) then
           call grid_distribute(rspace3,pp,jce1,jce2,ice1,ice2,1,kz)
-          call grid_distribute(rspace3,ww,jce1,jce2,ice1,ice2,1,kz)
+          call grid_distribute(rspace3,tempw,jce1,jce2,ice1,ice2,1,kz)
+          ww(:,:,2:kzp1) = tempw(:,:,:)
+          call grid_distribute(rspace2,tempwtop,jce1,jce2,ice1,ice2)
+          ww(:,:,1) = tempwtop(:,:)
         end if
       end if
     end if

@@ -607,9 +607,13 @@ module mod_tendency
       ! Also, cf. Eq. 2.2.11 of vertical velocity tendency in the MM5 manual.
       !
       call hadv(cross,aten%pp,atmx%pp,kz)
-      call hadv(cross,aten%w,atmx%w,kz)
       call vadv(cross,aten%pp,atmx%pp,kz,icvadv)
+      ! !!!!
+      ! The following must be corrected ! W is on full sigma levels.
+      ! Need to look at tke, and generalize that.
+      call hadv(cross,aten%w,atmx%w,kz)
       call vadv(cross,aten%w,atmx%w,kz,icvadv)
+      ! !!!!
     end if
     !
     ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
@@ -1021,7 +1025,7 @@ module mod_tendency
       call sponge(kz,iqv,ba_cr,xqb,aten%qx)
       if ( idynamic == 2 ) then
         call sponge(kz,ba_cr,xppb,aten%pp)
-        call sponge(kz,ba_cr,xwwb,aten%w)
+        call sponge(kzp1,ba_cr,xwwb,aten%w)
       end if
       if ( idiag > 0 ) then
         ! rq : temp condensation tend is added the evap temp tend
@@ -1108,7 +1112,7 @@ module mod_tendency
       call nudge(kz,iqv,ba_cr,xbctime,atm2%qx,iboudy,xqb,aten%qx)
       if ( idynamic == 2 ) then
         call nudge(kz,ba_cr,xbctime,atm2%pp,iboudy,xppb,aten%pp)
-        call nudge(kz,ba_cr,xbctime,atm2%w,iboudy,xwwb,aten%w)
+        call nudge(kzp1,ba_cr,xbctime,atm2%w,iboudy,xwwb,aten%w)
       end if
     end if
     if ( ichem == 1 ) then
