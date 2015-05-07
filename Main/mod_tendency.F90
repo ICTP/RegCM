@@ -224,7 +224,7 @@ module mod_tendency
       call exchange(atm1%pr,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%rho,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%pp,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
     call exchange(atm2%u,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
@@ -262,7 +262,7 @@ module mod_tendency
       call exchange(atm2%pr,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm2%rho,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm2%pp,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atm2%w,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm2%w,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
     call exchange(atmx%u,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
@@ -275,7 +275,7 @@ module mod_tendency
     end if
     if ( idynamic == 2 ) then
       call exchange(atmx%pp,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atmx%w,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atmx%w,nexchange_adv,jce1,jce2,ice1,ice2,1,kzp1)
     end if
     if ( ipptls == 2 ) then
       qcd(:,:,:) = atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqc) + &
@@ -1723,7 +1723,7 @@ module mod_tendency
       end do
       do i = ici1 , ici2
         do j = jci1 , jci2
-          aten%w(j,i,kz+1) = aten%w(j,i,kz+1) * rpsa(j,i)
+          aten%w(j,i,kzp1) = aten%w(j,i,kzp1) * rpsa(j,i)
         end do
       end do
       !
@@ -2189,6 +2189,11 @@ module mod_tendency
               atmx%pp(j,i,k) = atm1%pp(j,i,k)*rpsa(j,i)
               atmx%w(j,i,k) = atm1%w(j,i,k)*rpsa(j,i)
             end do
+          end do
+        end do
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atmx%w(j,i,kzp1) = atm1%w(j,i,kzp1)*rpsa(j,i)
           end do
         end do
         do k = 1 , kz
