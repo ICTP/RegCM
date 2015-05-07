@@ -362,11 +362,10 @@ module mod_tendency
             ! nonhydrostatic model:
             ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
             !
-            divx(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
-                           atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
-                          (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
-                           atm1%v(j+1,i,k)  -atm1%v(j,i,k))
-            divx(j,i,k) = divx(j,i,k) * dummy(j,i) + &
+            divx(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)-              &
+                           atm1%u(j,i+1,k)  -atm1%u(j,i,k)) +              &
+                          (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)-              &
+                           atm1%v(j+1,i,k)  -atm1%v(j,i,k)) * dummy(j,i) + &
               (qdot(j,i,k+1) - qdot(j,i,k)) * sfs%psa(j,i)/dsigma(k)
           end do
         end do
@@ -1008,6 +1007,10 @@ module mod_tendency
     if ( iboudy == 4 ) then
       call sponge(kz,ba_cr,xtb,aten%t)
       call sponge(kz,iqv,ba_cr,xqb,aten%qx)
+      if ( idynamic == 2 ) then
+        call sponge(kz,ba_cr,xppb,aten%pp)
+        call sponge(kz,ba_cr,xwwb,aten%w)
+      end if
       if ( idiag > 0 ) then
         ! rq : temp condensation tend is added the evap temp tend
         !      calculated in pcp
@@ -1084,6 +1087,10 @@ module mod_tendency
     if ( iboudy == 1 .or. iboudy == 5 ) then
       call nudge(kz,ba_cr,xbctime,atm2%t,iboudy,xtb,aten%t)
       call nudge(kz,iqv,ba_cr,xbctime,atm2%qx,iboudy,xqb,aten%qx)
+      if ( idynamic == 2 ) then
+        call nudge(kz,ba_cr,xbctime,atm2%pp,iboudy,xppb,aten%pp)
+        call nudge(kz,ba_cr,xbctime,atm2%w,iboudy,xwwb,aten%w)
+      end if
     end if
     if ( ichem == 1 ) then
       if ( ichdiag == 1 ) chiten0 = chiten
