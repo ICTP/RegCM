@@ -205,8 +205,10 @@ module mod_write
     do ivar = 1 , nvar2d_static
       call outstream_writevar(ncout,v2dvar_icbc(ivar))
     end do
-    call crs2dot(psd0,ps0,jx,iy,i_band)
-    call crs2dot(topod,topogm,jx,iy,i_band)
+    if ( idynamic == 2 ) then
+      call crs2dot(psd0,ps0,jx,iy,i_band)
+      call crs2dot(topod,topogm,jx,iy,i_band)
+    end if
   end subroutine newfile
 
   subroutine writef(idate)

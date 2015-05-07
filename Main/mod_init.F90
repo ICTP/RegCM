@@ -18,9 +18,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_init
-!
-! RegCM Init module
-!
+  !
+  ! RegCM Init module
+  !
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
@@ -54,18 +54,17 @@ module mod_init
 
   real(rk8) , parameter :: tlp = 50.0D0
   real(rk8) , parameter :: ts00 = 288.0D0
-!
+
   contains
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine reads in the initial and boundary conditions.   c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
+  !
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !                                                                   c
+  !  This subroutine reads in the initial and boundary conditions.    c
+  !                                                                   c
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !
   subroutine init
   implicit none
-!
   integer(ik4) :: i , j , k , n
   real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
   character(len=32) :: appdat
@@ -197,18 +196,6 @@ module mod_init
     end if
 #endif
     !
-    ! Initialize the tbase for BM cumulus scheme
-    !
-    if ( any(icup == 3) ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tbase(j,i,k) = ts00 + tlp*dlog(atm1%pr(j,i,k))
-          end do
-        end do
-      end do
-    end if
-    !
     ! Initialize PBL Hgt
     !
     zpbl(:,:) = 500.0D0
@@ -258,9 +245,9 @@ module mod_init
     !
     call bcast(ktau)
     call bcast(idatex)
-!
+
     mtau = mtau + ktau
-!
+
     call grid_distribute(atm1_u_io,atm1%u,jde1,jde2,ide1,ide2,1,kz)
     call grid_distribute(atm1_v_io,atm1%v,jde1,jde2,ide1,ide2,1,kz)
     call grid_distribute(atm1_t_io,atm1%t,jce1,jce2,ice1,ice2,1,kz)
@@ -275,6 +262,13 @@ module mod_init
       call grid_distribute(atm1_tke_io,atm1%tke,jce1,jce2,ice1,ice2,1,kzp1)
       call grid_distribute(atm2_tke_io,atm2%tke,jce1,jce2,ice1,ice2,1,kzp1)
       call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
+    end if
+
+    if ( idynamic == 2 ) then
+      call grid_distribute(atm1_w_io,atm1%w,jce1,jce2,ice1,ice2,1,kzp1)
+      call grid_distribute(atm2_w_io,atm2%w,jce1,jce2,ice1,ice2,1,kzp1)
+      call grid_distribute(atm1_pp_io,atm1%pp,jce1,jce2,ice1,ice2,1,kz)
+      call grid_distribute(atm2_pp_io,atm2%pp,jce1,jce2,ice1,ice2,1,kz)
     end if
 
     call grid_distribute(psa_io,sfs%psa,jce1,jce2,ice1,ice2)
@@ -300,12 +294,12 @@ module mod_init
     end if
     call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
     call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
-!
+
     if ( myid == italk ) then
       ozprnt = o3prof(3,3,:)
       call vprntv(ozprnt,kzp1,'Ozone profiles restart')
     end if
-!
+
     if ( iocnflx == 2 ) then
       call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici2)
     end if
@@ -380,7 +374,7 @@ module mod_init
     call subgrid_distribute(lwdiralb_io,lms%lwdiralb,jci1,jci2,ici1,ici2)
     call subgrid_distribute(lwdifalb_io,lms%lwdifalb,jci1,jci2,ici1,ici2)
 #endif
-!
+
     if ( idcsst == 1 ) then
       call subgrid_distribute(sst_io,lms%sst,jci1,jci2,ici1,ici2)
       call subgrid_distribute(tskin_io,lms%tskin,jci1,jci2,ici1,ici2)
@@ -516,6 +510,20 @@ module mod_init
       end do
     end do
   end if
+  if ( .not. ifrest ) then
+    !
+    ! Initialize the tbase for BM cumulus scheme
+    !
+    if ( any(icup == 3) ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tbase(j,i,k) = ts00 + tlp*dlog(atm1%pr(j,i,k))
+          end do
+        end do
+      end do
+    end if
+  end if
   !
   ! The following allows to change landuse on restart.
   !
@@ -564,17 +572,18 @@ module mod_init
     call rrtmg_sw_ini(cpd)
     call rrtmg_lw_ini(cpd)
   end if
-!
-! chemistry initialisation
-!
+  !
+  ! chemistry initialisation
+  !
   if ( ichem == 1 ) then
     call start_chem
   end if
-!
+
 #ifdef DEBUG
   call time_end(subroutine_name,idindx)
 #endif
   end subroutine init
-!
+
 end module mod_init
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
