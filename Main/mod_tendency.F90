@@ -62,7 +62,7 @@ module mod_tendency
   !--------------------------------------------
   real(rk8) , pointer , dimension(:,:,:) :: divd
   real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , &
-               ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc
+               ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc , th
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4
   real(rk8) , pointer , dimension(:,:) :: pten
@@ -108,6 +108,7 @@ module mod_tendency
     else if ( idynamic == 2 ) then
       call getmem3d(ucc,jce1,jce2,ice1,ice2,1,kz,'tendency:ucc')
       call getmem3d(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
+      call getmem3d(th,jce1,jce2,ice1,ice2,1,kz,'tendency:th')
       call getmem3d(divd,jdi1,jdi2,idi1,idi2,1,kz,'tendency:divd')
       if ( ithadv == 1 ) then
         call getmem3d(thten,jce1,jce2,ice1,ice2,1,kz,'tendency:thten')
@@ -330,10 +331,10 @@ module mod_tendency
             !
             ! Calculate wind components at cross points
             !
-            ucc(j,i,k) = (atmx%u(j,i,k)+atmx%u(j,i+1,k) + &
-                          atmx%u(j+1,i,k)+atmx%u(j+1,i+1,k))
-            vcc(j,i,k) = (atmx%v(j,i,k)+atmx%v(j,i+1,k) + &
-                          atmx%v(j+1,i,k)+atmx%v(j+1,i+1,k))
+            ucc(j,i,k) = (atmx%u(j,i,k)  + atmx%u(j,i+1,k) + &
+                          atmx%u(j+1,i,k)+ atmx%u(j+1,i+1,k))
+            vcc(j,i,k) = (atmx%v(j,i,k)  + atmx%v(j,i+1,k) + &
+                          atmx%v(j+1,i,k)+ atmx%v(j+1,i+1,k))
 
           end do
         end do
@@ -647,8 +648,15 @@ module mod_tendency
 #endif
     else
       thten(:,:,:) = d_zero
-      call hadv(cross,thten,atms%thx3d,kz)
-      call vadv(cross,thten,atms%thx3d,kz,icvadv)
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            th(j,i,k) = atmx%t(j,i,k) * (1.0D5/atm1%pr(j,i,k))**rovcp
+          end do
+        end do
+      end do
+      call hadv(cross,thten,th,kz)
+      call vadv(cross,thten,th,kz,icvadv)
     end if
     !
     ! compute the adiabatic term:
@@ -690,9 +698,9 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              thten(j,i,k) = thten(j,i,k) + atms%thx3d(j,i,k) * divx(j,i,k)
+              thten(j,i,k) = thten(j,i,k) + th(j,i,k) * divx(j,i,k)
               aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*thten(j,i,k) / &
-                              (atms%thx3d(j,i,k) * sfs%psa(j,i))
+                              (th(j,i,k) * sfs%psa(j,i))
             end do
           end do
         end do
@@ -727,10 +735,10 @@ module mod_tendency
                       dsigma(k)   * atm0%rho(j,i,k-1) ) /  &
                     ( dsigma(k-1) * atm1%rho(j,i,k) +      &
                       dsigma(k)   * atm1%rho(j,i,k-1) )
-            uaq = (twt(k,1) * atms%ubx3d(j,i,k) +          &
-                   twt(k,2) * atms%ubx3d(j,i,k-1))
-            vaq = (twt(k,1) * atms%vbx3d(j,i,k) +          &
-                   twt(k,2) * atms%vbx3d(j,i,k-1))
+            uaq = d_rfour * (twt(k,1) * ucc(j,i,k) +       &
+                             twt(k,2) * ucc(j,i,k-1))
+            vaq = d_rfour * (twt(k,1) * vcc(j,i,k) +       &
+                             twt(k,2) * vcc(j,i,k-1))
             aten%w(j,i,k) = aten%w(j,i,k) +                &
                   (twt(k,2)*atmx%pr(j,i,k-1) +             &
                    twt(k,1)*atmx%pr(j,i,k)) *              &
@@ -751,7 +759,7 @@ module mod_tendency
               ! Vertical velocity tendency: water loading term
               ! 5th RHS term in Eq. 2.2.3 & 6th RHS term in Eq. 2.3.7
               !
-              aten%w(j,i,k) = aten%w(j,i,k) - egrav * &
+              aten%w(j,i,k) = aten%w(j,i,k) - egrav * sfs%psa(j,i) * &
                 (twt(k,2)*qcd(j,i,k-1) + twt(k,1)*qcd(j,i,k))
             end do
           end do
