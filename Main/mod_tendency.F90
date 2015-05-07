@@ -704,7 +704,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%pp(j,i,k) = aten%pp(j,i,k) + atm1%pp(j,i,k)*divx(j,i,k)
+            aten%pp(j,i,k) = aten%pp(j,i,k) + atmx%pp(j,i,k)*divx(j,i,k)
           end do
         end do
       end do
