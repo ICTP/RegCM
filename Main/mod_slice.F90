@@ -214,6 +214,14 @@ module mod_slice
       end do
     end do
 
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          atms%wpx3d(j,i,k) = omega(j,i,k) * d_1000 ! Pa/s
+        end do
+      end do
+    end do
+
     if ( idynamic == 2 ) then
       do k = 1 , kzp1
         do i = ici1 , ici2
