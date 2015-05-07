@@ -71,6 +71,7 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:) :: rpsda
 
   integer :: ithadv = 1
+  integer(ik4) :: nexchange_adv , icvadv , idvadv , iqxvadv , itrvadv
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
 #endif
@@ -83,11 +84,9 @@ module mod_tendency
     implicit none
     call getmem3d(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
     call getmem3d(divx,jce1,jce2,ice1,ice2,1,kz,'tendency:divx')
-    call getmem3d(ttld,jce1,jce2,ice1,ice2,1,kz,'tend:ttld')
     call getmem3d(xkc,jdi1,jdi2,idi1,idi2,1,kz,'tendency:xkc')
     call getmem3d(xkcf,jdi1,jdi2,idi1,idi2,1,kzp1,'tendency:xkcf')
     call getmem3d(ps4,jci1,jci2,ici1,ici2,1,4,'tendency:ps4')
-    call getmem3d(td,jce1,jce2,ice1,ice2,1,kz,'tendency:td')
     if ( ipptls == 2 ) then
       call getmem3d(qcd,jce1,jce2,ice1,ice2,1,kz,'tendency:qcd')
     else
@@ -102,6 +101,8 @@ module mod_tendency
     call getmem2d(rpsda,jde1,jde2,ide1,ide2,'tendency:rpsda')
     if ( idynamic == 1 ) then
       ithadv = 0
+      call getmem3d(ttld,jce1,jce2,ice1,ice2,1,kz,'tend:ttld')
+      call getmem3d(td,jce1,jce2,ice1,ice2,1,kz,'tendency:td')
       call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
       call getmem2d(rpsc,jce1,jce2,ice1,ice2,'tendency:rpsc')
     else if ( idynamic == 2 ) then
@@ -120,37 +121,9 @@ module mod_tendency
     call getmem3d(wten,jde1,jde2,ide1,ide2,1,kz,'tendency:wten')
 #endif
     rptn = d_one/dble((jout2-jout1+1)*(iout2-iout1+1))
-  end subroutine allocate_mod_tend
-  !
-  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  !                                                                     c
-  ! This subroutine computes the tendencies of the prognostic           c
-  ! variables                                                           c
-  !                                                                     c
-  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  !
-  subroutine tend
-    implicit none
-    real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,   &
-               psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot ,    &
-               rovcpm , rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , &
-               tva , tvavg , tvb , tvc , rho0s , cpm , scr
-    real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
-    integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , &
-                 iconvec , icvadv , idvadv , iqxvadv , itrvadv
-    logical :: loutrad , labsem
-    character (len=32) :: appdat
-    integer(ik4) :: nexchange_adv
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'tend'
-    integer(ik4) , save :: idindx = 0
-    integer(ik4) :: mijx , miiy
-    call time_begin(subroutine_name,idindx)
-    mijx = (jci2-jci1)/2+1
-    miiy = (ici2-ici1)/2+1
-#endif
     !
     ! Set number of ghost points for advection for the two schemes
+    ! Select advection scheme
     !
     if ( isladvec == 1 ) then
       nexchange_adv = 4
@@ -168,6 +141,33 @@ module mod_tendency
         iqxvadv = 4
       end if
     end if
+  end subroutine allocate_mod_tend
+  !
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !                                                                     c
+  ! This subroutine computes the tendencies of the prognostic           c
+  ! variables                                                           c
+  !                                                                     c
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !
+  subroutine tend
+    implicit none
+    real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,   &
+               psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot ,    &
+               rovcpm , rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , &
+               tva , tvavg , tvb , tvc , rho0s , cpm , scr
+    real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
+    integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
+    logical :: loutrad , labsem
+    character (len=32) :: appdat
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'tend'
+    integer(ik4) , save :: idindx = 0
+    integer(ik4) :: mijx , miiy
+    call time_begin(subroutine_name,idindx)
+    mijx = (jci2-jci1)/2+1
+    miiy = (ici2-ici1)/2+1
+#endif
     !
     ! Prepare pressures on two timesteps, on both cross and dot
     ! points, and compute 1/ps.
@@ -330,10 +330,10 @@ module mod_tendency
             !
             ! Calculate wind components at cross points
             !
-            ucc(j,i,k) = d_rfour * (atmx%u(j,i,k)+atmx%u(j,i+1,k) + &
-                                    atmx%u(j+1,i,k)+atmx%u(j+1,i+1,k))
-            vcc(j,i,k) = d_rfour * (atmx%v(j,i,k)+atmx%v(j,i+1,k) + &
-                                    atmx%v(j+1,i,k)+atmx%v(j+1,i+1,k))
+            ucc(j,i,k) = (atmx%u(j,i,k)+atmx%u(j,i+1,k) + &
+                          atmx%u(j+1,i,k)+atmx%u(j+1,i+1,k))
+            vcc(j,i,k) = (atmx%v(j,i,k)+atmx%v(j,i+1,k) + &
+                          atmx%v(j+1,i,k)+atmx%v(j+1,i+1,k))
 
           end do
         end do
@@ -365,7 +365,8 @@ module mod_tendency
             divx(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)-              &
                            atm1%u(j,i+1,k)  -atm1%u(j,i,k)) +              &
                           (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)-              &
-                           atm1%v(j+1,i,k)  -atm1%v(j,i,k)) * dummy(j,i) + &
+                           atm1%v(j+1,i,k)  -atm1%v(j,i,k))
+            divx(j,i,k) = divx(j,i,k) * dummy(j,i) + &
               (qdot(j,i,k+1) - qdot(j,i,k)) * sfs%psa(j,i)/dsigma(k)
           end do
         end do
@@ -691,7 +692,7 @@ module mod_tendency
             do j = jci1 , jci2
               thten(j,i,k) = thten(j,i,k) + atms%thx3d(j,i,k) * divx(j,i,k)
               aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*thten(j,i,k) / &
-                              atms%thx3d(j,i,k)
+                              (atms%thx3d(j,i,k) * sfs%psa(j,i))
             end do
           end do
         end do
@@ -1151,96 +1152,98 @@ module mod_tendency
         end do
       end do
     end if
-    !
-    ! compute weighted p*t (td) for use in ssi:
-    !
-    if ( ipgf == 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
-            tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
-            tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
-            td(j,i,k) = alpha*(tvc+tvb) + beta*tva
-            ttld(j,i,k) = td(j,i,k) - sfs%psa(j,i) * &
-                      t00pg*((hsigma(k)*sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
-          end do
-        end do
-      end do
-      if ( ma%has_bdyleft ) then
+    if ( idynamic == 1 ) then
+      !
+      ! compute weighted p*t (td) for use in ssi:
+      !
+      if ( ipgf == 1 ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one + ep1*qvd(jce1,i,k))
-            ttld(jce1,i,k) = td(jce1,i,k) - sfs%psa(jce1,i) * &
-                        t00pg*((hsigma(k)*sfs%psa(jce1,i)+ptop)/p00pg)**pgfaa1
+            do j = jci1 , jci2
+              tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
+              tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
+              tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
+              td(j,i,k) = alpha*(tvc+tvb) + beta*tva
+              ttld(j,i,k) = td(j,i,k) - sfs%psa(j,i) * &
+                        t00pg*((hsigma(k)*sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
+            end do
           end do
         end do
-      end if
-      if ( ma%has_bdyright ) then
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one + ep1*qvd(jce1,i,k))
+              ttld(jce1,i,k) = td(jce1,i,k) - sfs%psa(jce1,i) * &
+                          t00pg*((hsigma(k)*sfs%psa(jce1,i)+ptop)/p00pg)**pgfaa1
+            end do
+        end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one + ep1*qvd(jce2,i,k))
+              ttld(jce2,i,k) = td(jce2,i,k) - sfs%psa(jce2,i) * &
+                       t00pg*((hsigma(k)*sfs%psa(jce2,i)+ptop)/p00pg)**pgfaa1
+            end do
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one + ep1*qvd(j,ice1,k))
+              ttld(j,ice1,k) = td(j,ice1,k) - sfs%psa(j,ice1) * &
+                       t00pg*((hsigma(k)*sfs%psa(j,ice1)+ptop)/p00pg)**pgfaa1
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one + ep1*qvd(j,ice2,k))
+              ttld(j,ice2,k) = td(j,ice2,k) - sfs%psa(j,ice2) * &
+                       t00pg*((hsigma(k)*sfs%psa(j,ice2)+ptop)/p00pg)**pgfaa1
+            end do
+          end do
+        end if
+      else if ( ipgf == 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one + ep1*qvd(jce2,i,k))
-            ttld(jce2,i,k) = td(jce2,i,k) - sfs%psa(jce2,i) * &
-                     t00pg*((hsigma(k)*sfs%psa(jce2,i)+ptop)/p00pg)**pgfaa1
+            do j = jci1 , jci2
+              tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
+              tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
+              tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
+              td(j,i,k) = alpha*(tvc+tvb) + beta*tva
+            end do
           end do
         end do
-      end if
-      if ( ma%has_bdybottom ) then
-        do k = 1 , kz
-          do j = jce1 , jce2
-            td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one + ep1*qvd(j,ice1,k))
-            ttld(j,ice1,k) = td(j,ice1,k) - sfs%psa(j,ice1) * &
-                     t00pg*((hsigma(k)*sfs%psa(j,ice1)+ptop)/p00pg)**pgfaa1
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one + ep1*qvd(jce1,i,k))
+            end do
           end do
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do k = 1 , kz
-          do j = jce1 , jce2
-            td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one + ep1*qvd(j,ice2,k))
-            ttld(j,ice2,k) = td(j,ice2,k) - sfs%psa(j,ice2) * &
-                     t00pg*((hsigma(k)*sfs%psa(j,ice2)+ptop)/p00pg)**pgfaa1
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*qvd(jce2,i,k))
+            end do
           end do
-        end do
-      end if
-    else if ( ipgf == 0 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
-            tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
-            tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
-            td(j,i,k) = alpha*(tvc+tvb) + beta*tva
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*qvd(j,ice1,k))
+            end do
           end do
-        end do
-      end do
-      if ( ma%has_bdyleft ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one + ep1*qvd(jce1,i,k))
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*qvd(j,ice2,k))
+            end do
           end do
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*qvd(jce2,i,k))
-          end do
-        end do
-      end if
-      if ( ma%has_bdybottom ) then
-        do k = 1 , kz
-          do j = jce1 , jce2
-            td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*qvd(j,ice1,k))
-          end do
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do k = 1 , kz
-          do j = jce1 , jce2
-            td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*qvd(j,ice2,k))
-          end do
-        end do
+        end if
       end if
     end if
     !

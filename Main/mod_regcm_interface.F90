@@ -162,7 +162,7 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-!   Initialize split explicit scheme
+!   Initialize split explicit scheme ( hydrostatic )
 !
 !**********************************************************************
 !
