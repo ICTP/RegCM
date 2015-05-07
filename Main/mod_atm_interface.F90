@@ -860,6 +860,10 @@ module mod_atm_interface
       call getmem3d(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')
       call getmem3d(ax%rhb3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhb3d')
       call getmem3d(ax%thx3d,jce1,jce2,ice1,ice2,1,kz,'slice:thx3d')
+      if ( idynamic == 2 ) then
+        call getmem3d(ax%wb3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:wb3d')
+        call getmem3d(ax%ppb3d,jce1,jce2,ice1,ice2,1,kz,'slice:ppb3d')
+      end if
       call getmem3d(ax%ubx3d,jce1-ma%jbl2,jce2+ma%jbr2, &
                              ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:ubx3d')
       call getmem3d(ax%vbx3d,jce1-ma%jbl2,jce2+ma%jbr2, &
@@ -892,11 +896,14 @@ module mod_atm_interface
     subroutine allocate_diffx(dx)
       implicit none
       type(diffx) , intent(out) :: dx
-      call getmem3d(dx%difuu,jdi1,jdi2,idi1,idi2,1,kz,'diffx:difuu')
-      call getmem3d(dx%difuv,jdi1,jdi2,idi1,idi2,1,kz,'diffx:difuv')
-      call getmem3d(dx%difft,jci1,jci2,ici1,ici2,1,kz,'diffx:difft')
-      call getmem3d(dx%diffw,jci1,jci2,ici1,ici2,1,kz+1,'diffx:diffw')
-      call getmem4d(dx%diffqx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'diffx:diffqx')
+      call getmem3d(dx%u,jdi1,jdi2,idi1,idi2,1,kz,'diffx:u')
+      call getmem3d(dx%v,jdi1,jdi2,idi1,idi2,1,kz,'diffx:v')
+      call getmem3d(dx%t,jci1,jci2,ici1,ici2,1,kz,'diffx:t')
+      call getmem4d(dx%qx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'diffx:qx')
+      if ( idynamic == 2 ) then
+        call getmem3d(dx%w,jci1,jci2,ici1,ici2,1,kzp1,'diffx:w')
+        call getmem3d(dx%pp,jci1,jci2,ici1,ici2,1,kz,'diffx:pp')
+      end if
     end subroutine allocate_diffx
 
     subroutine allocate_mod_atm_interface

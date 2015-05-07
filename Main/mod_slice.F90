@@ -214,13 +214,22 @@ module mod_slice
       end do
     end do
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atms%wpx3d(j,i,k) = omega(j,i,k) * d_1000 ! Pa/s
+    if ( idynamic == 2 ) then
+      do k = 1 , kzp1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
+          end do
         end do
       end do
-    end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            atms%ppb3d(j,i,k) = atm2%pp(j,i,k)*rpsb(j,i)
+          end do
+        end do
+      end do
+    end if
 
     if ( ibltyp == 2 ) then
       do k = 1 , kzp1

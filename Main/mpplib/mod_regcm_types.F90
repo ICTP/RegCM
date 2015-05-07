@@ -228,6 +228,8 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: rhob3d
     real(rk8) , pointer , dimension(:,:,:) :: ubx3d
     real(rk8) , pointer , dimension(:,:,:) :: vbx3d
+    real(rk8) , pointer , dimension(:,:,:) :: wb3d
+    real(rk8) , pointer , dimension(:,:,:) :: ppb3d
     real(rk8) , pointer , dimension(:,:,:) :: wpx3d
     real(rk8) , pointer , dimension(:,:,:) :: ubd3d
     real(rk8) , pointer , dimension(:,:,:) :: vbd3d
@@ -244,11 +246,12 @@ module mod_regcm_types
   end type slice
 
   type diffx
-    real(rk8) , pointer , dimension(:,:,:) :: difft
-    real(rk8) , pointer , dimension(:,:,:) :: difuu
-    real(rk8) , pointer , dimension(:,:,:) :: difuv
-    real(rk8) , pointer , dimension(:,:,:) :: diffw
-    real(rk8) , pointer , dimension(:,:,:,:) :: diffqx
+    real(rk8) , pointer , dimension(:,:,:) :: t
+    real(rk8) , pointer , dimension(:,:,:) :: u
+    real(rk8) , pointer , dimension(:,:,:) :: v
+    real(rk8) , pointer , dimension(:,:,:) :: w
+    real(rk8) , pointer , dimension(:,:,:) :: pp
+    real(rk8) , pointer , dimension(:,:,:,:) :: qx
   end type diffx
 
   type v3dbound

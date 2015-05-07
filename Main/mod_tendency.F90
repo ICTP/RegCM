@@ -614,10 +614,11 @@ module mod_tendency
     !
     ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
     !
-    adf%difft(:,:,:)    = d_zero
-    adf%diffqx(:,:,:,:) = d_zero
+    adf%t(:,:,:)    = d_zero
+    adf%qx(:,:,:,:) = d_zero
     if ( idynamic == 2 ) then
-      adf%diffw(:,:,:)    = d_zero
+      adf%w(:,:,:)    = d_zero
+      adf%pp(:,:,:)   = d_zero
     end if
     !
     ! compute the horizontal advection term in temperature tendency:
@@ -780,20 +781,22 @@ module mod_tendency
     !
     ! compute the diffusion term for t and store in difft:
     !
-    if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%difft
-    call diffu_x(adf%difft,atms%tb3d,sfs%psb,xkc,kz)
+    if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%t
+    call diffu_x(adf%t,atms%tb3d,sfs%psb,xkc,kz)
     if ( idiag > 0 ) then
       ! save the h diff diag here
       tdiag%dif(jci1:jci2,ici1:ici2,:) = tdiag%dif(jci1:jci2,ici1:ici2,:) + &
-        (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * afdout
+        (adf%t - ten0(jci1:jci2,ici1:ici2,:)) * afdout
       ! reset ten0 to aten%t
       ten0 = aten%t
     end if
     !
     ! compute the diffusion term for vertical velocity w and store in diffw:
+    ! compute the diffusion term for perturb pressure pp and store in diffpp:
     !
     if ( idynamic == 2 ) then
-      call diffu_x(adf%diffw,atmx%w,sfs%psb,xkc,kz)
+      call diffu_x(adf%w,atms%wb3d,sfs%psb,xkcf,kzp1)
+      call diffu_x(adf%pp,atms%ppb3d,sfs%psb,xkc,kz)
     end if
     !
     ! compute the moisture tendencies for convection
@@ -879,13 +882,13 @@ module mod_tendency
       ! the diffusion term for qx is stored in diffqx.
       !
       if ( idiag > 0 ) then
-        qen0(jci1:jci2,ici1:ici2,:) = adf%diffqx(jci1:jci2,ici1:ici2,:,iqv)
+        qen0(jci1:jci2,ici1:ici2,:) = adf%qx(jci1:jci2,ici1:ici2,:,iqv)
       end if
-      call diffu_x(adf%diffqx,atms%qxb3d,sfs%psb,xkc,kz)
+      call diffu_x(adf%qx,atms%qxb3d,sfs%psb,xkc,kz)
       if ( idiag > 0 ) then
         ! save the h diff diag here
         qdiag%dif(jci1:jci2,ici1:ici2,:) = qdiag%dif(jci1:jci2,ici1:ici2,:) + &
-                     (adf%diffqx(jci1:jci2,ici1:ici2,:,iqv) -                 &
+                     (adf%qx(jci1:jci2,ici1:ici2,:,iqv) -                 &
                       qen0(jci1:jci2,ici1:ici2,:)) * afdout
         ! reset qen0 to aten%t
         qen0 = aten%qx(:,:,:,iqv)
@@ -972,17 +975,17 @@ module mod_tendency
     !
     if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
     ! care : pbl update the difft table at this level
-    if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%difft
+    if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%t
     call pblscheme
     if ( ichem == 1 .and. ichdiag == 1 ) then
       ctbldiag = ctbldiag + (chiten - chiten0) * cfdout
     end if
     if ( idiag > 0 ) then
       tdiag%tbl(jci1:jci2,ici1:ici2,:) = tdiag%tbl(jci1:jci2,ici1:ici2,:) + &
-                     (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * afdout
+                     (adf%t - ten0(jci1:jci2,ici1:ici2,:)) * afdout
       ten0 = aten%t
       qdiag%tbl(jci1:jci2,ici1:ici2,:) = qdiag%tbl(jci1:jci2,ici1:ici2,:) + &
-                (adf%diffqx(jci1:jci2,ici1:ici2,:,iqv) - &
+                (adf%qx(jci1:jci2,ici1:ici2,:,iqv) - &
             qen0(jci1:jci2,ici1:ici2,:)) * afdout
       qen0 = aten%qx(:,:,:,iqv)
     end if
@@ -1034,14 +1037,14 @@ module mod_tendency
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          aten%t(j,i,k) = aten%t(j,i,k) + adf%difft(j,i,k)
+          aten%t(j,i,k) = aten%t(j,i,k) + adf%t(j,i,k)
         end do
       end do
     end do
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          aten%qx(j,i,k,iqv) = aten%qx(j,i,k,iqv) + adf%diffqx(j,i,k,iqv)
+          aten%qx(j,i,k,iqv) = aten%qx(j,i,k,iqv) + adf%qx(j,i,k,iqv)
         end do
       end do
     end do
@@ -1050,10 +1053,17 @@ module mod_tendency
     ! This is the last RHS term in Eqs. 2.2.3, 2.2.11, 2.3.7
     !
     if ( idynamic == 2 ) then
-      do k = 1 , kz+1
+      do k = 1 , kzp1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%w(j,i,k) = aten%w(j,i,k) + adf%diffw(j,i,k)
+            aten%w(j,i,k) = aten%w(j,i,k) + adf%w(j,i,k)
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            aten%pp(j,i,k) = aten%pp(j,i,k) + adf%pp(j,i,k)
           end do
         end do
       end do
@@ -1073,7 +1083,7 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%diffqx(j,i,k,n)
+              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%qx(j,i,k,n)
             end do
           end do
         end do
@@ -1263,14 +1273,14 @@ module mod_tendency
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          adf%difuu(j,i,k) = aten%u(j,i,k)
-          adf%difuv(j,i,k) = aten%v(j,i,k)
+          adf%u(j,i,k) = aten%u(j,i,k)
+          adf%v(j,i,k) = aten%v(j,i,k)
         end do
       end do
     end do
     !
-    call diffu_d(adf%difuu,atms%ubd3d,sfs%psdotb,mddom%msfd,xkc,1)
-    call diffu_d(adf%difuv,atms%vbd3d,sfs%psdotb,mddom%msfd,xkc,1)
+    call diffu_d(adf%u,atms%ubd3d,sfs%psdotb,mddom%msfd,xkc,1)
+    call diffu_d(adf%v,atms%vbd3d,sfs%psdotb,mddom%msfd,xkc,1)
     !
     ! compute the horizontal advection terms for u and v:
     !
@@ -1575,8 +1585,8 @@ module mod_tendency
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          aten%u(j,i,k) = aten%u(j,i,k) + adf%difuu(j,i,k)
-          aten%v(j,i,k) = aten%v(j,i,k) + adf%difuv(j,i,k)
+          aten%u(j,i,k) = aten%u(j,i,k) + adf%u(j,i,k)
+          aten%v(j,i,k) = aten%v(j,i,k) + adf%v(j,i,k)
         end do
       end do
     end do
