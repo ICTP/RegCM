@@ -1610,7 +1610,7 @@ module mod_tendency
       ! Calculate the vertical advective tendency for TKE
       call vadv(cross,uwstatea%advtke,atmx%tke,kzp1,1)
       ! Calculate the horizontal, diffusive tendency for TKE
-      call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kz)
+      call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kzp1)
     end if
     !
     ! Compute future values of t and moisture variables at tau+1:
