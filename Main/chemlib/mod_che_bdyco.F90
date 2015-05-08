@@ -624,7 +624,7 @@ module mod_che_bdyco
     implicit none
     real(rk8) :: xfune
     integer(ik4) , intent(in) :: mm , kk
-    xfune = dexp(-dble(mm-2)/anudg(kk))
+    xfune = dexp(-dble(mm-2)/anudgh(kk))
   end function xfune
 !
 end module mod_che_bdyco

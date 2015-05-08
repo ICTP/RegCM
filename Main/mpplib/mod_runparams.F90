@@ -144,7 +144,7 @@ module mod_runparams
   real(rk8) , pointer , dimension(:) , public :: dtau
   real(rk8) , pointer , dimension(:) , public :: hsigma , dsigma , qcon
   real(rk8) , pointer , dimension(:) , public :: sigma
-  real(rk8) , pointer , dimension(:) , public :: anudg
+  real(rk8) , pointer , dimension(:) , public :: anudgh , anudgf
   real(rk8) , pointer , dimension(:,:) , public :: twt
 
   real(rk8) , public :: clfrcv ! Cloud fractional cover for convective precip
@@ -385,7 +385,8 @@ module mod_runparams
     call getmem1d(qcon,1,kz,'mod_runparams:qcon')
     call getmem1d(sigma,1,kzp1,'mod_runparams:sigma')
     call getmem2d(twt,1,kz,1,2,'mod_runparams:twt')
-    call getmem1d(anudg,1,kzp1,'mod_runparams:anudg')
+    call getmem1d(anudgh,1,kz,'mod_runparams:anudgh')
+    call getmem1d(anudgf,1,kzp1,'mod_runparams:anudgf')
     call getmem1d(dtau,1,nsplit,'mod_runparams:nsplit')
   end subroutine allocate_mod_runparams
 

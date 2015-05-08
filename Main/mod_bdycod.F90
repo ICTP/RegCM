@@ -67,6 +67,8 @@ module mod_bdycod
   real(rk8) , pointer , dimension(:) :: fcx , gcx
   real(rk8) , pointer , dimension(:) :: fcd , gcd
   real(rk8) , pointer , dimension(:) :: lfc , lgc
+  real(rk8) , pointer , dimension(:,:) :: hefc , hegc
+  real(rk8) , pointer , dimension(:,:) :: fefc , fegc
   real(rk8) , pointer , dimension(:,:) :: efc , egc
   real(rk8) , pointer , dimension(:) :: wgtd
   real(rk8) , pointer , dimension(:) :: wgtx
@@ -99,8 +101,10 @@ module mod_bdycod
       call getmem1d(wgtx,1,nspgx,'bdycon:wgtx')
     else if ( iboudy == 5 ) then
       nbdm = max(nspgx,nspgd)
-      call getmem2d(efc,1,nbdm,1,kzp1,'bdycon:fcx')
-      call getmem2d(egc,1,nbdm,1,kzp1,'bdycon:fcx')
+      call getmem2d(fefc,1,nbdm,1,kzp1,'bdycon:fefc')
+      call getmem2d(fegc,1,nbdm,1,kzp1,'bdycon:fegc')
+      call getmem2d(hefc,1,nbdm,1,kz,'bdycon:hefc')
+      call getmem2d(hegc,1,nbdm,1,kz,'bdycon:hegc')
     end if
 
     if ( ma%has_bdytop ) then
@@ -175,15 +179,28 @@ module mod_bdycod
     else if ( iboudy == 5 ) then
       do k = 1 , kzp1
         if ( hlev(k) < 0.4D0 ) then
-          anudg(k) = high_nudge
+          anudgf(k) = high_nudge
         else if ( hlev(k) < 0.8D0 ) then
-          anudg(k) = medium_nudge
+          anudgf(k) = medium_nudge
         else
-          anudg(k) = low_nudge
+          anudgf(k) = low_nudge
         end if
         do n = 2 , nbdm-1
-          efc(n,k) = fnudge*xfune(n,k)
-          egc(n,k) = gnudge*xfune(n,k)
+          fefc(n,k) = fnudge*xfune(n,k,anudgf)
+          fegc(n,k) = gnudge*xfune(n,k,anudgf)
+        end do
+      end do
+      do k = 1 , kz
+        if ( hlev(k) < 0.4D0 ) then
+          anudgh(k) = high_nudge
+        else if ( hlev(k) < 0.8D0 ) then
+          anudgh(k) = medium_nudge
+        else
+          anudgh(k) = low_nudge
+        end if
+        do n = 2 , nbdm-1
+          hefc(n,k) = fnudge*xfune(n,k,anudgh)
+          hegc(n,k) = gnudge*xfune(n,k,anudgh)
         end do
       end do
     end if
@@ -203,10 +220,11 @@ module mod_bdycod
         end if
       end function xfun
 
-      pure real(rk8) function xfune(mm,kk)
+      pure real(rk8) function xfune(mm,kk,an)
         implicit none
         integer(ik4) , intent(in) :: mm , kk
-        xfune = dexp(-dble(mm-2)/anudg(kk))
+        real(rk8) , dimension(:) , intent(in) :: an
+        xfune = dexp(-dble(mm-2)/an(kk))
       end function xfune
 
   end subroutine setup_bdycon
@@ -2084,6 +2102,13 @@ module mod_bdycod
       j1 = jci1
       j2 = jci2
     end if
+    if ( nk == size(hefc) ) then
+      efc => hefc
+      egc => hegc
+    else
+      efc => fefc
+      egc => fegc
+    end if
 
     if ( ba%ns /= 0 ) then
       do k = 1 , nk
@@ -2223,6 +2248,13 @@ module mod_bdycod
       i2 = ici2
       j1 = jci1
       j2 = jci2
+    end if
+    if ( nk == size(hefc) ) then
+      efc => hefc
+      egc => hegc
+    else
+      efc => fefc
+      egc => fegc
     end if
 
     if ( ba%ns /= 0 ) then
@@ -2374,8 +2406,8 @@ module mod_bdycod
             xf = lfc(ib)
             xg = lgc(ib)
           else
-            xf = efc(ib,kz)
-            xg = egc(ib,kz)
+            xf = hefc(ib,kz)
+            xg = hegc(ib,kz)
           end if
           fls0 = (bnd%b0(j,i)  +xt*bnd%bt(j,i))   - f(j,i)
           fls1 = (bnd%b0(j-1,i)+xt*bnd%bt(j-1,i)) - f(j-1,i)
@@ -2396,8 +2428,8 @@ module mod_bdycod
             xf = lfc(ib)
             xg = lgc(ib)
           else
-            xf = efc(ib,kz)
-            xg = egc(ib,kz)
+            xf = hefc(ib,kz)
+            xg = hegc(ib,kz)
           end if
           fls0 = (bnd%b0(j,i)  +xt*bnd%bt(j,i))   - f(j,i)
           fls1 = (bnd%b0(j-1,i)+xt*bnd%bt(j-1,i)) - f(j-1,i)
@@ -2418,8 +2450,8 @@ module mod_bdycod
             xf = lfc(ib)
             xg = lgc(ib)
           else
-            xf = efc(ib,kz)
-            xg = egc(ib,kz)
+            xf = hefc(ib,kz)
+            xg = hegc(ib,kz)
           end if
           fls0 = (bnd%b0(j,i)  +xt*bnd%bt(j,i))   - f(j,i)
           fls1 = (bnd%b0(j,i-1)+xt*bnd%bt(j,i-1)) - f(j,i-1)
@@ -2440,8 +2472,8 @@ module mod_bdycod
             xf = lfc(ib)
             xg = lgc(ib)
           else
-            xf = efc(ib,kz)
-            xg = egc(ib,kz)
+            xf = hefc(ib,kz)
+            xg = hegc(ib,kz)
           end if
           fls0 = (bnd%b0(j,i)  +xt*bnd%bt(j,i))   - f(j,i)
           fls1 = (bnd%b0(j,i-1)+xt*bnd%bt(j,i-1)) - f(j,i-1)
