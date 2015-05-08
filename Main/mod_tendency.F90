@@ -608,12 +608,8 @@ module mod_tendency
       !
       call hadv(cross,aten%pp,atmx%pp,kz)
       call vadv(cross,aten%pp,atmx%pp,kz,icvadv)
-      ! !!!!
-      ! The following must be corrected ! W is on full sigma levels.
-      ! Need to look at tke, and generalize that.
-      call hadv(cross,aten%w,atmx%w,kz)
-      call vadv(cross,aten%w,atmx%w,kz,icvadv)
-      ! !!!!
+      call hadv(cross,aten%w,atmx%w,kzp1)
+      call vadv(cross,aten%w,atmx%w,kzp1,1)
     end if
     !
     ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
@@ -1610,9 +1606,9 @@ module mod_tendency
         end do
       end do
       ! Calculate the horizontal advective tendency for TKE
-      call hadvtke(uwstatea,atm1,twt,mddom%msfx,dx4)
+      call hadv(cross,uwstatea%advtke,atmx%tke,kzp1)
       ! Calculate the vertical advective tendency for TKE
-      call vadvtke(uwstatea,qdot,1)
+      call vadv(cross,uwstatea%advtke,atmx%tke,kzp1,1)
       ! Calculate the horizontal, diffusive tendency for TKE
       call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kz)
     end if
@@ -2168,6 +2164,15 @@ module mod_tendency
           end do
         end do
       end do
+      if ( ibltyp == 2 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              atmx%tke(j,i,k) = atm1%tke(j,i,k) ! Here is already decoupled.
+            end do
+          end do
+        end do
+      end if
       !
       ! call tracer decoupling routine for multiple (ntr) species
       !

@@ -37,9 +37,8 @@ module mod_pbl_common
   ! Pointers to the TCM state variables
   !
   type(tcm_state) , public :: uwstatea , uwstateb
-
-  real(rk8) , public , pointer , dimension(:,:,:) :: dotqdot , ftmp
   real(rk8) , public , pointer , dimension(:,:,:,:) :: chiuwten
-!
+
 end module mod_pbl_common
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

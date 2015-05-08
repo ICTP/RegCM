@@ -26,11 +26,10 @@ module mod_pbl_interface
   use mod_memutil
   use mod_mppparam
   use mod_regcm_types
-  use mod_pbl_common , only : ricr , chiuwten , uwstatea , uwstateb
-  use mod_pbl_common , only : dotqdot , ftmp , kmxpbl
+  use mod_pbl_common , only : ricr , chiuwten , uwstatea , uwstateb , kmxpbl
   use mod_pbl_holtbl , only : holtbl , allocate_mod_pbl_holtbl
   use mod_pbl_uwtcm , only : nuk , allocate_tcm_state
-  use mod_pbl_uwtcm , only : hadvtke , vadvtke , uwtcm , get_data_from_tcm
+  use mod_pbl_uwtcm , only : uwtcm , get_data_from_tcm
   use mod_pbl_uwtcm , only : init_mod_pbl_uwtcm , tkemin
   use mod_runparams , only : ibltyp
   use mod_runparams , only : iqc , iqv , dt , rdt , ichem , hsigma , dsigma
@@ -53,9 +52,6 @@ module mod_pbl_interface
   public :: ricr
   public :: tkemin
 
-  public :: hadvtke
-  public :: vadvtke
-
   contains
 
   subroutine allocate_pblscheme
@@ -67,12 +63,9 @@ module mod_pbl_interface
     if ( ibltyp == 2 ) then
       call allocate_tcm_state(uwstatea)
       call allocate_tcm_state(uwstateb)
-      ! To be used in vertical advection scheme
-      call getmem3d(dotqdot,jci1,jci2,ici1,ici2,1,kz,'mod_uwtcm:dotqdot')
-      call getmem3d(ftmp,jci1,jci2,ici1,ici2,1,kz,'mod_uwtcm:ftmp')
       if ( ichem == 1 ) then
         call getmem4d(chiuwten,jci1,jci2,ici1,ici2, &
-                               1,kz,1,ntr,'pbl_common:chiuwten')
+                      1,kz,1,ntr,'pbl_common:chiuwten')
       end if
       call init_mod_pbl_uwtcm
     end if

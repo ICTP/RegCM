@@ -74,7 +74,7 @@ module mod_pbl_uwtcm
   use mod_mppparam
   use mod_pbl_common
   use mod_pbl_thetal
-  use mod_runparams , only : iqv , iqc , iqi , iuwvadv , atwo , rstbl , &
+  use mod_runparams , only : iqv , iqc , iqi , atwo , rstbl , &
           czero , dt , rdt , ichem , sigma , hsigma , dsigma , ipptls
   use mod_regcm_types
   use mod_service
@@ -140,8 +140,6 @@ module mod_pbl_uwtcm
   public :: init_mod_pbl_uwtcm
   public :: uwtcm
   public :: get_data_from_tcm
-  public :: hadvtke
-  public :: vadvtke
 
   contains
 
@@ -149,7 +147,8 @@ module mod_pbl_uwtcm
     implicit none
     type(tcm_state) , intent(out) :: tcmstate
     call getmem3d(tcmstate%tkeps,jce1,jce2,ice1,ice2,1,kzp1,'pbl_common:tkeps')
-    call getmem3d(tcmstate%advtke,jce1,jce2,ice1,ice2,1,kz,'pbl_common:advtke')
+    call getmem3d(tcmstate%advtke,jce1,jce2, &
+                  ice1,ice2,1,kzp1,'pbl_common:advtke')
     call getmem3d(tcmstate%kzm,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kzm')
     call getmem3d(tcmstate%kth,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kth')
     call getmem2d(tcmstate%srftke,jci1,jci2,ici1,ici2,'pbl_common:srftke')
@@ -253,133 +252,6 @@ module mod_pbl_uwtcm
       end do
     end do
   end subroutine get_data_from_tcm
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     This subroutine computes the horizontal flux-divergence terms   c
-!     for tke.  Second-order difference is used.                      c
-!                                                                     c
-!     dxx    : is the horizontal distance.                            c
-!     j      : is the j'th slice of f anf ften.                       c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-  subroutine hadvtke(tcmstate,atm,twt,mapfcx,dxx)
-    implicit none
-    real(rk8) , intent(in) :: dxx
-    type(atmstate_a) , intent(in) :: atm
-    type(tcm_state) , intent(inout) :: tcmstate
-    real(rk8) , pointer , dimension(:,:) :: twt
-    real(rk8) , pointer , dimension(:,:) :: mapfcx
-    integer(ik4) :: i , k , j
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'hadvtke'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
-    !
-    ! Interpolate the winds to the full sigma levels
-    ! while the advection term is calculated
-    !
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tcmstate%advtke(j,i,k) = tcmstate%advtke(j,i,k)  &
-           -(((atm%u(j+1,i+1,k-1)+atm%u(j+1,i,k-1))*twt(k,2)  &
-             +(atm%u(j+1,i+1,k)  +atm%u(j+1,i,k))*twt(k,1)) &
-             *( atm%tke(j,i,k)+atm%tke(j+1,i,k))  &
-            -((atm%u(j,i+1,k-1)+atm%u(j,i,k-1))*twt(k,2)  &
-             +(atm%u(j,i+1,k)  +atm%u(j,i,k))*twt(k,1)) &
-             *( atm%tke(j,i,k)+atm%tke(j-1,i,k))  &
-            +((atm%v(j,i+1,k-1)+atm%v(j+1,i+1,k-1))*twt(k,2)  &
-             +(atm%v(j,i+1,k)  +atm%v(j+1,i+1,k))*twt(k,1)) &
-             *( atm%tke(j,i,k)+atm%tke(j,i+1,k))  &
-            -((atm%v(j,i,k-1)+atm%v(j+1,i,k-1))*twt(k,2)  &
-             +(atm%v(j,i,k)  +atm%v(j+1,i,k))*twt(k,1)) &
-             *( atm%tke(j,i,k)+atm%tke(j,i-1,k))) &
-             /(dxx*mapfcx(j,i)*mapfcx(j,i))
-        end do
-      end do
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
-  end subroutine hadvtke
-
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine computes the vertical flux-divergence terms.    c
-!                                                                     c
-!     j      : jth slice of variable fa.                              c
-!                                                                     c
-!     ind = 1 : Bretherton's vertical advection method                c
-!           2 : Alternate vertical advection method (unknown origin)  c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-  subroutine vadvtke(tcmstate,qdot,ind)
-    implicit none
-    integer(ik4) , intent(in) :: ind
-    type(tcm_state) :: tcmstate
-    real(rk8) , dimension(:,:,:) , pointer , intent(in) :: qdot
-    integer(ik4) :: i , j , k
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'vadvtke'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
-    !
-    ! Use Bretherton's method for tke advection
-    !
-    if ( ind == 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            dotqdot(j,i,k) = (qdot(j,i,k)+qdot(j,i,k+1))
-            ftmp(j,i,k) = 0.5D0*(tcmstate%tkeps(j,i,k)+tcmstate%tkeps(j,i,k+1))
-          end do
-        end do
-      end do
-      do k = 2 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tcmstate%advtke(j,i,k) = tcmstate%advtke(j,i,k) - &
-                         (dotqdot(j,i,k)*ftmp(j,i,k) -  &
-                         dotqdot(j,i,k-1)*ftmp(j,i,k-1))/ &
-                         (dsigma(k)+dsigma(k-1))
-          end do
-        end do
-      end do
-    !
-    ! Use an alternative method (this came from where?)
-    !
-    else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tcmstate%advtke(j,i,1) = tcmstate%advtke(j,i,1)-  &
-                         qdot(j,i,2)*tcmstate%tkeps(j,i,2)/dsigma(1)
-        end do
-      end do
-      do k = 2 , kzm1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tcmstate%advtke(j,i,k) = tcmstate%advtke(j,i,k) &
-                         -(qdot(j,i,k+1)*tcmstate%tkeps(j,i,k+1)   &
-                         - qdot(j,i,k)*tcmstate%tkeps(j,i,k))/dsigma(k)
-          end do
-        end do
-      end do
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tcmstate%advtke(j,i,kz) = tcmstate%advtke(j,i,kz)+  &
-                         qdot(j,i,kz)*tcmstate%tkeps(j,i,kz)/dsigma(kz)
-        end do
-      end do
-    end if
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
-  end subroutine vadvtke
 
   subroutine init_mod_pbl_uwtcm
     implicit none

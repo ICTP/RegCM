@@ -1425,6 +1425,13 @@ module mod_params
         mddom%msfx(j,i) = d_one/mddom%msfx(j,i)
       end do
     end do
+    !
+    !-----compute dsigma and half sigma levels.
+    !
+    do k = 1 , kz
+      dsigma(k) = (sigma(k+1) - sigma(k))
+      hsigma(k) = (sigma(k+1) + sigma(k))*d_half
+    end do
 
     call exchange(mddom%ht,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%msfx,2,jde1,jde2,ide1,ide2)
@@ -1502,13 +1509,6 @@ module mod_params
           end if
         end do
       end do
-    end do
-    !
-    !-----compute dsigma and half sigma levels.
-    !
-    do k = 1 , kz
-      dsigma(k) = (sigma(k+1) - sigma(k))
-      hsigma(k) = (sigma(k+1) + sigma(k))*d_half
     end do
     !
     !----calculate max no of pbl levels: kmxpbl=k at highest allowed pbl level

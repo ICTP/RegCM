@@ -57,6 +57,7 @@ module mod_advection
   ! working space used to store the interlated values in vadv.
 
   real(rk8) , pointer , dimension(:,:,:) :: fg
+  real(rk8) , pointer , dimension(:) :: dds
 
   real(rk8) , parameter :: c287 = 0.287D+00
 
@@ -67,6 +68,7 @@ module mod_advection
     subroutine init_advection
       use mod_atm_interface , only : mddom , sfs , atms , atm1 , qdot , kpbl
       implicit none
+      integer(ik4) :: k
       call assignpnt(atm1%u,ua)
       call assignpnt(atm1%v,va)
       call assignpnt(sfs%psa,ps)
@@ -76,6 +78,12 @@ module mod_advection
       call assignpnt(atms%pb3d,phs)
       call assignpnt(qdot,svv)
       call assignpnt(kpbl,kpb)
+      call getmem1d(dds,1,kzp1,'mod_advection:dds')
+      dds(1) = d_zero
+      dds(kzp1) = d_zero
+      do k = 2 , kz
+        dds(k) = d_one / (dsigma(k) + dsigma(k-1))
+      end do
       call getmem3d(fg,jde1,jde2,ide1,ide2,1,kz,'mod_advection:fg')
     end subroutine init_advection
     !
@@ -137,18 +145,45 @@ module mod_advection
         !
         ! for t
         !
-        do k = 1 , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,k) = ften(j,i,k) -                               &
-                  ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k)+f(j,i,k)) -  &
-                   (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k)+f(j-1,i,k)) +  &
-                   (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k)+f(j,i,k)) -  &
-                   (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k)+f(j,i,k))) / &
-                   (dx4*mapfx(j,i)*mapfx(j,i))
+        if ( nk == kz ) then
+          do k = 1 , nk
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ften(j,i,k) = ften(j,i,k) -                               &
+                    ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k)+f(j,i,k)) -  &
+                     (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k)+f(j-1,i,k)) +  &
+                     (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k)+f(j,i,k)) -  &
+                     (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k)+f(j,i,k))) / &
+                     (dx4*mapfx(j,i)*mapfx(j,i))
+              end do
             end do
           end do
-        end do
+        else
+          !
+          ! Interpolate the winds to the full sigma levels
+          ! while the advection term is calculated
+          !
+          do k = 2 , nk - 1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ften(j,i,k) = ften(j,i,k) -                     &
+                  (((ua(j+1,i+1,k-1)+ua(j+1,i,k-1))*twt(k,2) +  &
+                    (ua(j+1,i+1,k)  +ua(j+1,i,k))*twt(k,1)) *   &
+                    (f(j+1,i,k)+f(j,i,k)) -                     &
+                   ((ua(j,i+1,k-1)+ua(j,i,k-1))*twt(k,2) +      &
+                    (ua(j,i+1,k)  +ua(j,i,k))*twt(k,1)) *       &
+                    (f(j,i,k)+f(j-1,i,k)) +                     &
+                   ((va(j,i+1,k-1)+va(j+1,i+1,k-1))*twt(k,2) +  &
+                    (va(j,i+1,k)  +va(j+1,i+1,k))*twt(k,1)) *   &
+                    (f(j,i+1,k)+f(j,i,k)) -                     &
+                   ((va(j,i,k-1)+va(j+1,i,k-1))*twt(k,2) +      &
+                    (va(j,i,k)  +va(j+1,i,k))*twt(k,1)) *       &
+                    (f(j,i-1,k)+f(j,i,k))) /                    &
+                    (dx4*mapfx(j,i)*mapfx(j,i))
+              end do
+            end do
+          end do
+        end if
       end if
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
@@ -241,41 +276,60 @@ module mod_advection
       end if
 
       if ( ind == 1 ) then
-        !
-        ! vertical advection terms : interpolate t to full sigma levels
-        !
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            fg(j,i,1) = d_zero
-          end do
-        end do
-        do k = 2 , nk
+        if ( nk == kz ) then
+          !
+          ! vertical advection terms : interpolate to full sigma levels
+          !
           do i = ici1 , ici2
             do j = jci1 , jci2
-              rdphf = (pfs(j,i,k)/phs(j,i,k))**c287
-              rdplf = (pfs(j,i,k)/phs(j,i,k-1))**c287
-              fg(j,i,k) = twt(k,1)*f(j,i,k)*rdphf + twt(k,2)*f(j,i,k-1)*rdplf
+              fg(j,i,1) = d_zero
             end do
           end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,1) = ften(j,i,1) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
+          do k = 2 , nk
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                rdphf = (pfs(j,i,k)/phs(j,i,k))**c287
+                rdplf = (pfs(j,i,k)/phs(j,i,k-1))**c287
+                fg(j,i,k) = twt(k,1)*f(j,i,k)*rdphf + twt(k,2)*f(j,i,k-1)*rdplf
+              end do
+            end do
           end do
-        end do
-        do k = 2 , nk-1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,k) = ften(j,i,k) - &
-                   (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
+              ften(j,i,1) = ften(j,i,1) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
             end do
           end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,nk) = ften(j,i,nk) + svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+          do k = 2 , nk-1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ften(j,i,k) = ften(j,i,k) - &
+                     (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
+              end do
+            end do
           end do
-        end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ften(j,i,nk) = ften(j,i,nk) + svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+            end do
+          end do
+        else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                fg(j,i,k) = d_half*(svv(j,i,k)+svv(j,i,k+1)) * &
+                                   (f(j,i,k)+f(j,i,k+1))
+              end do
+            end do
+          end do
+          do k = 1 , nk - 1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ften(j,i,k+1) = ften(j,i,k+1) + fg(j,i,k)*dds(k+1)
+                ften(j,i,k) = ften(j,i,k) - fg(j,i,k)*dds(k)
+              end do
+            end do
+          end do
+        end if
       else if ( ind == 2 ) then
         !
         ! vertical advection terms : interpolate ua or va to full sigma levels
