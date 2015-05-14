@@ -14,10 +14,10 @@ will follow the following convention:
 Its format will be NETCDF4_CLASSIC, and all 2D+ variables will be
 compressed in disk.
   """
-  from netCDF4 import Dataset
+  from netCDF4 import Dataset , num2date
   import numpy as np
   import time
-  from netcdftime import datetime , num2date , utime
+  from netcdftime import datetime , utime
   import os
   from string import join
 
