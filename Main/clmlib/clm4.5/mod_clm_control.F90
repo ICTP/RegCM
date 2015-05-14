@@ -349,6 +349,14 @@ module mod_clm_control
     ! Landunit generation
 
     call bcast(create_crop_landunit)
+
+#ifdef CNDV
+    if ( create_crop_landunit ) then
+      call fatal(__FILE__,__LINE__,  &
+        'create_crop_landunit must be false for CNDV in clm_inparam!')
+    end if
+#endif
+
     call bcast(allocate_all_vegpfts)
 
     ! BGC
