@@ -62,7 +62,7 @@ module mod_tendency
   !--------------------------------------------
   real(rk8) , pointer , dimension(:,:,:) :: divd
   real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , &
-               ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc , th
+               ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc , th , tha
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4
   real(rk8) , pointer , dimension(:,:) :: pten
@@ -108,10 +108,11 @@ module mod_tendency
     else if ( idynamic == 2 ) then
       call getmem3d(ucc,jce1,jce2,ice1,ice2,1,kz,'tendency:ucc')
       call getmem3d(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
-      call getmem3d(th,jce1,jce2,ice1,ice2,1,kz,'tendency:th')
       call getmem3d(divd,jdi1,jdi2,idi1,idi2,1,kz,'tendency:divd')
       if ( ithadv == 1 ) then
         call getmem3d(thten,jce1,jce2,ice1,ice2,1,kz,'tendency:thten')
+        call getmem3d(tha,jce1,jce2,ice1,ice2,1,kz,'tendency:tha')
+        call getmem3d(th,jce1,jce2,ice1,ice2,1,kz,'tendency:th')
       end if
     end if
     if ( idiag > 0 ) then
@@ -607,9 +608,9 @@ module mod_tendency
       ! Also, cf. Eq. 2.2.11 of vertical velocity tendency in the MM5 manual.
       !
       call hadv(cross,aten%pp,atmx%pp,kz)
-      call vadv(cross,aten%pp,atmx%pp,kz,icvadv)
+      call vadv(cross,aten%pp,atm1%pp,kz,icvadv)
       call hadv(cross,aten%w,atmx%w,kzp1)
-      call vadv(cross,aten%w,atmx%w,kzp1,1)
+      call vadv(cross,aten%w,atm1%w,kzp1,1)
     end if
     !
     ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
@@ -653,11 +654,12 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             th(j,i,k) = atmx%t(j,i,k) * (1.0D5/atm1%pr(j,i,k))**rovcp
+            tha(j,i,k) = th(j,i,k) * sfs%psa(j,i)
           end do
         end do
       end do
       call hadv(cross,thten,th,kz)
-      call vadv(cross,thten,th,kz,icvadv)
+      call vadv(cross,thten,tha,kz,icvadv)
     end if
     !
     ! compute the adiabatic term:
@@ -700,8 +702,8 @@ module mod_tendency
           do i = ici1 , ici2
             do j = jci1 , jci2
               thten(j,i,k) = thten(j,i,k) + th(j,i,k) * divx(j,i,k)
-              aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*thten(j,i,k) / &
-                              (th(j,i,k) * sfs%psa(j,i))
+              aten%t(j,i,k) = aten%t(j,i,k) + &
+                   atm1%t(j,i,k)*thten(j,i,k)/tha(j,i,k)
             end do
           end do
         end do
