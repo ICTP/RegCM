@@ -272,7 +272,7 @@ module mod_nhinterp
 
       wtmp(:,:,:) = d_zero
       pt = ptop * d_1000
-      dx2 = d_two * ds * d_1000
+      dx2 = d_two * ds
       piso = p0 * exp((tiso-ts0) / tlp)
       psdotpa = psdot * d_1000
       pspa = ps * d_1000

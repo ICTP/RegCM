@@ -265,14 +265,14 @@ module mod_vectutil
     end do
     do j = 1 , jmx
       do i = 1 , imx
-        uslb(i,j) = uslb(i,j) * psd(i,j) / dm(i,j)
-        vslb(i,j) = vslb(i,j) * psd(i,j) / dm(i,j)
+        uslb(i,j) = uslb(i,j) * psd(i,j) * d_1000 / dm(i,j)
+        vslb(i,j) = vslb(i,j) * psd(i,j) * d_1000 / dm(i,j)
       end do
     end do
     do j = 1 , jmxm
       do i = 1 , imxm
-        dudx(i,j) = uslb(i+1,j+1) - uslb(i+1,j) + uslb(i,j+1) - uslb(i,j)
-        dvdy(i,j) = vslb(i+1,j+1) - vslb(i,j+1) + vslb(i+1,j) - vslb(i,j)
+        dudx(i,j) = uslb(i+1,j+1) - uslb(i,j+1) + uslb(i+1,j) - uslb(i,j)
+        dvdy(i,j) = vslb(i+1,j+1) - vslb(i+1,j) + vslb(i,j+1) - vslb(i,j)
       end do
     end do
     div(:,:) = d_zero
@@ -307,8 +307,8 @@ module mod_vectutil
     !
     do j = 1 , jmx
       do i = 1 , imx
-        udiverg(i,j) = udiverg(i,j) * dm(i,j) / psd(i,j)
-        vdiverg(i,j) = vdiverg(i,j) * dm(i,j) / psd(i,j)
+        udiverg(i,j) = udiverg(i,j) * dm(i,j) / psd(i,j) * d_r1000
+        vdiverg(i,j) = vdiverg(i,j) * dm(i,j) / psd(i,j) * d_r1000
       end do
     end do
     do j = 1 , jmx

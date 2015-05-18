@@ -215,9 +215,11 @@ module mod_write
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: ivar , k
+    real(rk8) :: dx
 
     if ( idynamic == 2 ) then
-      call meandiv(u4,v4,pd4,msfd,sigmah,dsigma,jx,iy,kz,ds,jx-1,iy-1)
+      dx = ds * d_1000
+      call meandiv(u4,v4,pd4,msfd,sigmah,dsigma,jx,iy,kz,dx,jx-1,iy-1)
       ! Compute hydrostatic pstar on dot points.
       tv4 = t4 * (d_one + ep1 * q4)
       do k = 1 , kz
@@ -225,7 +227,7 @@ module mod_write
       end do
       ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
       call nhw(1,iy,1,jx,kz,sigmah,sigmaf,dsigma,topogm,u4,v4,tv4, &
-               rho0,ps4,pd4,ps0,msfx,ww4,wtop4,ds)
+               rho0,ps4,pd4,ps0,msfx,ww4,wtop4,dx)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,topod,u4,tvd4,pd4,psd0,1)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,topod,v4,tvd4,pd4,psd0,1)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,topogm,t4,tv4,ps4,ps0,1)
