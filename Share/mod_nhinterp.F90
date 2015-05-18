@@ -68,7 +68,7 @@ module mod_nhinterp
       !
       do i = i1 , i2
         do j = j1 , j2
-          ac = ter(j,i) / (d_two * tlp * rgas)
+          ac = egrav * ter(j,i) / (d_two * tlp * rgas)
           b = ts0 / tlp
           alnp = -b + sqrt(b*b - d_four * ac)
           ps0(j,i) = p0 * exp(alnp) - pt
