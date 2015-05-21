@@ -642,9 +642,10 @@ module mod_rrtmg_driver
     !
     do k = 1 , kz
       n = 1
+      kj = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          o3vmr(n,k) = o3prof(j,i,k) * amo/amd
+          o3vmr(n,k) = d_half*(o3prof(j,i,kj+1)+o3prof(j,i,kj)) * amo/amd
           n = n + 1
         end do
       end do

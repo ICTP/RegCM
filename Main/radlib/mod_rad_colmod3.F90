@@ -610,7 +610,7 @@ module mod_rad_colmod3
   subroutine getdat(m2r)
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
-    integer(ik4) :: n , m , i , j , k , k2 , itr , krev , kmincld , kmaxcld
+    integer(ik4) :: n , m , i , j , k , k2 , itr , kmincld , kmaxcld
     real(rk8) , parameter :: amd = 28.9644D0
     real(rk8) , parameter :: amo = 48.0000D0
     real(rk8) , parameter :: vmmr = amo/amd
@@ -831,11 +831,10 @@ module mod_rad_colmod3
     ! O3 mass and volume mixing ratios
     !
     do k = 1 , kz
-      krev = kzp1 - k
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          o3mmr(n,k) = o3prof(j,i,krev)
+          o3mmr(n,k) = d_half*(o3prof(j,i,k+1)+o3prof(j,i,k))
           n = n + 1
         end do
       end do
