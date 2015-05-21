@@ -726,7 +726,7 @@ module mod_rrtmg_driver
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pint(n,k) = m2r%phatms(j,i,k)
+          pint(n,k) = m2r%pfatms(j,i,k)
           n = n + 1
         end do
       end do
