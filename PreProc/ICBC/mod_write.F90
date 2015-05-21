@@ -221,10 +221,10 @@ module mod_write
       dx = ds * d_1000
       call meandiv(u4,v4,pd4,msfd,sigmah,dsigma,jx,iy,kz,dx,jx-1,iy-1)
       ! Compute hydrostatic pstar on dot points.
-      tv4 = t4 * (d_one + ep1 * q4)
       do k = 1 , kz
         call crs2dot(tvd4(:,:,k),t4(:,:,k),jx,iy,i_band)
       end do
+      tv4 = t4 * (d_one + ep1 * q4)
       ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
       call nhw(1,iy,1,jx,kz,sigmah,sigmaf,dsigma,topogm,u4,v4,tv4, &
                rho0,ps4,pd4,ps0,msfx,ww4,wtop4,dx)

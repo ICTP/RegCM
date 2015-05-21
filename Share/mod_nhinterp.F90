@@ -32,7 +32,7 @@ module mod_nhinterp
 
   real(rk8) :: ptop = 50.0D0  ! Centibars
   real(rk8) :: piso           ! Pascal
-  real(rk8) :: pt             ! Pascal
+  real(rk8) :: ptoppa         ! Pascal
   real(rk8) :: p0 = stdp      ! Pascal
   real(rk8) :: ts0 = stdt     ! Kelvin
   real(rk8) :: tlp = 50.0D0
@@ -46,7 +46,7 @@ module mod_nhinterp
       p0 = p
       ts0 = ts
       tlp = lp
-      pt = ptop * d_1000
+      ptoppa = ptop * d_1000
       piso = p0 * exp((tiso - ts0)/tlp)
     end subroutine nhsetup
     !
@@ -71,10 +71,10 @@ module mod_nhinterp
           ac = egrav * ter(j,i) / (d_two * tlp * rgas)
           b = ts0 / tlp
           alnp = -b + sqrt(b*b - d_four * ac)
-          ps0(j,i) = p0 * exp(alnp) - pt
+          ps0(j,i) = p0 * exp(alnp) - ptoppa
           ! Define reference state temperature at model points.
           do k = 1 , kx
-            pr0(j,i,k) = ps0(j,i) * a(k) + pt
+            pr0(j,i,k) = ps0(j,i) * a(k) + ptoppa
             t0(j,i,k) = max(ts0 + tlp*log(pr0(j,i,k)/p0), tiso)
             rho0(j,i,k) = pr0(j,i,k) / rgas / t0(j,i,k)
           end do
@@ -106,7 +106,7 @@ module mod_nhinterp
       do k = 1 , kxs
         do i = i1 , i2
           do j = j1 , j2
-            pr0 = ps0(j,i) * a(k) + pt
+            pr0 = ps0(j,i) * a(k) + ptoppa
             if ( pr0 < piso ) then
               alnp = log(piso/p0)
               ziso = -(d_half*rovg*tlp*alnp*alnp + rovg*ts0*alnp)
@@ -197,7 +197,7 @@ module mod_nhinterp
           !  with psa assuming density perturbation remains constant in
           !  lowest half-layer.   Start with pp at surface.
           !
-          p0surf = ps0(j,i) + pt
+          p0surf = ps0(j,i) + ptoppa
           psp = ps(j,i) * d_1000 - ps0(j,i)
           delp0 = p0surf - pr0(j,i,kxs)
           tvk = tv(j,i,kxs)
@@ -262,16 +262,15 @@ module mod_nhinterp
       real(rk8) , intent(out) , dimension(:,:) :: wtop
       integer(ik4) :: i , j , k , km , kp
       integer(ik4) :: l , ll , lm , lp , ip , im , jp , jm
-      real(rk8) :: pt , alnpq , dx2 , omegal , omegau , ubar , vbar
-      real(rk8) :: piso , pr0 , ziso , zl , zu , rho
-      real(rk8) , dimension(kxs+1) :: omega , omegan , qdt
+      real(rk8) :: alnpq , dx2 , omegal , omegau , ubar , vbar
+      real(rk8) :: piso , pr0 , ziso , zl , zu , rho , omegan
+      real(rk8) , dimension(kxs+1) :: omega , qdt
       real(rk8) , dimension(kxs+1) :: z0q , zq
       real(rk8) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
       real(rk8) , dimension(j1:j2,i1:i2) :: pspa
       real(rk8) , dimension(j1:j2,i1:i2) :: psdotpa
 
       wtmp(:,:,:) = d_zero
-      pt = ptop * d_1000
       dx2 = d_two * ds
       piso = p0 * exp((tiso-ts0) / tlp)
       psdotpa = psdot * d_1000
@@ -281,34 +280,34 @@ module mod_nhinterp
           qdt(kxs+1) = d_zero
           z0q(kxs+1) = ter(j,i)
           zq(kxs+1) = ter(j,i)
-          if ( ps0(j,i) + pt < piso ) THEN
+          if ( ps0(j,i) + ptoppa < piso ) THEN
             write(stderr,'(a,f5.1,a,f6.1,a)') &
               'The chosen value of Tiso, ',tiso,' K occurs at ',piso,' hPa.'
             write(stderr,'(A)') &
               'This value of pressure is greater than ref. surface pressure.'
           end if
           do k = 1 , kxs
-            pr0 = ps0(j,i) * sigma(k) + pt
+            pr0 = ps0(j,i) * sigma(k) + ptoppa
             if ( pr0 < piso ) then
               alnpq = log(piso/p0)
               ziso = -(d_half*rovg*tlp*alnpq*alnpq + rovg*ts0*alnpq)
               z0q(k) = ziso - rovg*tiso*log(pr0/piso)
             else
-              alnpq = log((ps0(j,i) * sigma(k) + pt) / p0)
+              alnpq = log((ps0(j,i) * sigma(k) + ptoppa) / p0)
               z0q(k) = -(d_half*rovg*tlp*alnpq*alnpq + rovg*ts0*alnpq)
             end if
           end do
           do l = kxs + 1 , 1 , -1
             lp = min(l,kxs)
             lm = max(l-1,1)
-            ip = min(i+1,i2-1)
+            ip = min(i+1,i2)
             im = max(i-1,i1)
-            jp = min(j+1,j2-1)
+            jp = min(j+1,j2)
             jm = max(j-1,j1)
             if ( l /= kxs + 1 ) then
               zq(l) = zq(l+1) - rovg*tv(j,i,l) * &
-                log((sigma(l) *   pspa(j,i) + pt ) / &
-                    (sigma(l+1) * pspa(j,i) + pt ))
+                log((sigma(l) *   pspa(j,i) + ptoppa ) / &
+                    (sigma(l+1) * pspa(j,i) + ptoppa ))
               qdt(l) = qdt(l+1) + &
                       (u(j+1,i+1,l) * psdotpa(j+1,i+1) + &
                        u(j+1,i  ,l) * psdotpa(j+1,i  ) - &
@@ -330,8 +329,8 @@ module mod_nhinterp
                               v(j+1,i+1,lp) + v(j+1,i+1,lm))
             ! Calculate omega (msfx not inverted)
             omega(l) = pspa(j,i) * qdt(l) + sigma(l) * &
-                       ((pspa(jp,i  ) - pspa(jm,i  )) * ubar +  &
-                        (pspa(j  ,ip) - pspa(j  ,im)) * vbar) / dx2 * xmsfx(j,i)
+                       ((pspa(jp,i ) - pspa(jm,i )) * ubar +  &
+                        (pspa(j ,ip) - pspa(j ,im)) * vbar) / dx2 * xmsfx(j,i)
           end do
           !
           !  Vertical velocity from interpolated omega, zero at top.
@@ -348,19 +347,19 @@ module mod_nhinterp
             zl = zq(l+1)
             omegau = omega(l)
             omegal = omega(l+1)
-            omegan(k) = (omegau * (z0q(k) - zl ) + &
-                         omegal * (zu - z0q(k))) / (zu - zl)
+            omegan = (omegau * (z0q(k) - zl ) + &
+                      omegal * (zu - z0q(k))) / (zu - zl)
             !  W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
             rho = (rho0(j,i,km) * (a(kp) - sigma(k)) + &
-                   rho0(j,i,kp) * (sigma(k) - a(km) )) / (a(kp) - a(km))
-            wtmp(j,i,k) = - omegan(k) / rho * regrav
+                   rho0(j,i,kp) * (sigma(k) - a(km))) / (a(kp)-a(km))
+            wtmp(j,i,k) = -omegan/rho * regrav
           end do
         end do
       end do
-      do i = i1 , i2
-        do j = j1 , j2
-          wtop(j,i) = wtmp(j,i,1)
-          do k = 2 , kxs + 1
+      wtop(j1:j2,i1:i2) = wtmp(j1:j2,i1:i2,1)
+      do k = 2 , kxs + 1
+        do i = i1 , i2
+          do j = j1 , j2
             w(j,i,k-1) = wtmp(j,i,k)
           end do
         end do
