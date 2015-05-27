@@ -1260,7 +1260,7 @@ module mod_params
     call read_domain_info(mddom%ht,mddom%lndcat,mddom%mask, &
                           mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon, &
                           mddom%msfx,mddom%msfd,mddom%coriol, &
-                          mddom%snowam,mddom%satmoist,mddom%dhlake)
+                          mddom%snowam,mddom%smoist,mddom%rmoist,mddom%dhlake)
     call bcast(ds)
     call bcast(ptop)
 

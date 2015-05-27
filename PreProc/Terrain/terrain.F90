@@ -75,6 +75,7 @@ program terrain
   use mod_message
   use mod_memutil
   use mod_snow
+  use mod_moist
   use mod_sigma
   use mod_nhinterp
 
@@ -321,6 +322,7 @@ program terrain
     do i = 1 , iysg
       do j = 1 , jxsg
         snowam_s(j,i) = 0.0
+        rmoist_s(j,i) = -1.0
       end do
     end do
 
@@ -517,6 +519,7 @@ program terrain
   do i = 1 , iy
     do j = 1 , jx
       snowam(j,i) = 0.0
+      rmoist(j,i) = -1.0
     end do
   end do
 
@@ -622,12 +625,13 @@ program terrain
     call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s, &
                       ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s,  &
                       dmap_s,coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,  &
-                      smoist_s,dpth_s,texout_s,frac_tex_s,ps0_s,pr0_s,    &
-                      t0_s,rho0_s)
+                      smoist_s,rmoist_s,dpth_s,texout_s,frac_tex_s,ps0_s, &
+                      pr0_s,t0_s,rho0_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
   call read_snow(snowam,jx,iy)
+  call read_moist(rmoist,smoist,jx,iy)
 
   if ( idynamic == 2 ) then
     call nhsetup(ptop,stdp,stdt,logp_lrate)
@@ -638,8 +642,8 @@ program terrain
      trim(dirter)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
   call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
                     sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,      &
-                    htgrid,lndout,snowam,smoist,dpth,texout,frac_tex,ps0, &
-                    pr0,t0,rho0)
+                    htgrid,lndout,snowam,smoist,rmoist,dpth,texout,       &
+                    frac_tex,ps0,pr0,t0,rho0)
   write(stdout,*) 'Grid data written to output file'
 
   if ( debug_level > 2 ) then

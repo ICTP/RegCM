@@ -25,14 +25,14 @@ module mod_maps
 
   real(rk8) , pointer , dimension(:,:) :: coriol , dlat , dlon ,   &
                    dmap , htgrid , lndout , mask , dpth , snowam , &
-                   smoist , texout , xlat , xlon , xmap , ps0
+                   smoist , rmoist, texout , xlat , xlon , xmap , ps0
   real(rk8) , pointer , dimension(:,:,:) :: frac_tex
   real(rk8) , pointer , dimension(:,:,:) :: pr0 , t0 , rho0
 
   real(rk8) , pointer , dimension(:,:) :: coriol_s , dlat_s , &
                       dlon_s , dmap_s , htgrid_s , lndout_s , &
                       mask_s , dpth_s , snowam_s , smoist_s , &
-                      texout_s , xlat_s , xlon_s , xmap_s , ps0_s
+                      rmoist_s , texout_s , xlat_s , xlon_s , xmap_s , ps0_s
   real(rk8) , pointer , dimension(:,:,:) :: frac_tex_s
   real(rk8) , pointer , dimension(:,:,:) :: pr0_s , t0_s , rho0_s
 
@@ -57,6 +57,7 @@ module mod_maps
     call getmem2d(mask,1,jx,1,iy,'maps:mask')
     call getmem2d(snowam,1,jx,1,iy,'maps:snowam')
     call getmem2d(smoist,1,jx,1,iy,'maps:smoist')
+    call getmem2d(rmoist,1,jx,1,iy,'maps:rmoist')
     call getmem2d(texout,1,jx,1,iy,'maps:texout')
     call getmem3d(frac_tex,1,jx,1,iy,1,ntex,'maps:frac_tex')
     if ( idyn == 2 ) then
@@ -83,6 +84,7 @@ module mod_maps
     call getmem2d(mask_s,1,jxsg,1,iysg,'maps:mask_s')
     call getmem2d(snowam_s,1,jxsg,1,iysg,'maps:snowam_s')
     call getmem2d(smoist_s,1,jxsg,1,iysg,'maps:smoist_s')
+    call getmem2d(rmoist_s,1,jxsg,1,iysg,'maps:rmoist_s')
     call getmem2d(texout_s,1,jxsg,1,iysg,'maps:texout_s')
     call getmem3d(frac_tex_s,1,jxsg,1,iysg,1,ntex,'maps:frac_tex_s')
     if ( idyn == 2 ) then

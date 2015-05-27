@@ -149,6 +149,10 @@ module mod_runparams
 
   real(rk8) , public :: clfrcv ! Cloud fractional cover for convective precip
 
+  ! Moisture from previous run
+
+  logical , public :: replacemoist = .false.
+
   ! Non hydrostatic core parameters
 
   real(rk8) , public :: logp_lrate

@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_snow
+module mod_moist
 !
   use mod_intkinds
   use mod_realkinds
@@ -28,23 +28,24 @@ module mod_snow
 !
   private
 !
-  public :: read_snow
+  public :: read_moist
 
   contains
 
-  subroutine read_snow(snow,jx,iy)
+  subroutine read_moist(rmoist,smoist,jx,iy)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: snow
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: rmoist
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: smoist
     integer(ik4) , intent(in) :: jx , iy
     integer(ik4) :: ncid , istat
     integer(ik4) :: dimid , njx , niy , ntime
     integer(ik4) :: varid
-    integer(ik4) :: istart(3) , icount(3)
-    real(rk8) , dimension(:,:) , allocatable :: snow_in
+    integer(ik4) :: istart(4) , icount(4)
+    real(rk8) , dimension(:,:,:) , allocatable :: moist_in
 
-    istat = nf90_open('snow.nc',nf90_nowrite,ncid)
+    istat = nf90_open('moist.nc',nf90_nowrite,ncid)
     if ( istat /= nf90_noerr ) then
-      write(stdout,*) 'Skip moisture creation, no snow.nc file to read'
+      write(stdout,*) 'Skip moisture creation, no moist.nc file to read'
       return
     end if
 
@@ -53,17 +54,17 @@ module mod_snow
       ! Check if coming from cdo
       istat = nf90_inq_dimid(ncid,'x',dimid)
       if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'No jx dimension in file snow.nc'
+        write(stderr,*) 'No jx dimension in file moist.nc'
         return
       end if
     end if
     istat = nf90_inquire_dimension(ncid,dimid,len=njx)
     if ( istat /= nf90_noerr ) then
-      write(stderr,*) 'Error reading dimension x in file snow.nc'
+      write(stderr,*) 'Error reading dimension x in file moist.nc'
       return
     end if
     if ( njx /= jx-3 ) then
-      write(stderr,*) 'File snow.nc is not coming from a previous run'
+      write(stderr,*) 'File moist.nc is not coming from a previous run'
       write(stderr,*) 'JX : ', jx , njx+3
       return
     end if
@@ -72,62 +73,65 @@ module mod_snow
       ! Check if coming from cdo
       istat = nf90_inq_dimid(ncid,'y',dimid)
       if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'No iy dimension in file snow.nc'
+        write(stderr,*) 'No iy dimension in file moist.nc'
         return
       end if
     end if
     istat = nf90_inquire_dimension(ncid,dimid,len=niy)
     if ( istat /= nf90_noerr ) then
-      write(stderr,*) 'Error reading dimension y in file snow.nc'
+      write(stderr,*) 'Error reading dimension y in file moist.nc'
       return
     end if
     if ( niy /= iy-3 ) then
-      write(stderr,*) 'File snow.nc is not coming from a previous run'
+      write(stderr,*) 'File moist.nc is not coming from a previous run'
       write(stderr,*) 'IY : ', iy , niy+3
       return
     end if
 
-    allocate(snow_in(njx,niy))
-    istat = nf90_inq_varid(ncid,'snv',varid)
+    allocate(moist_in(njx,niy,2))
+    istat = nf90_inq_varid(ncid,'mrso',varid)
     if ( istat /= nf90_noerr ) then
-      write(stderr,*) 'Error finding variable snv in file snow.nc'
+      write(stderr,*) 'Error finding variable mrso in file moist.nc'
       return
     end if
 
     istat = nf90_inq_dimid(ncid,'time',dimid)
     if ( istat /= nf90_noerr ) then
-      istat = nf90_get_var(ncid,varid,snow_in)
+      istat = nf90_get_var(ncid,varid,moist_in)
       if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'Error reading variable snv in file snow.nc'
+        write(stderr,*) 'Error reading variable mrso in file moist.nc'
         return
       end if
     else
       ! Read last timestep
       istat = nf90_inquire_dimension(ncid,dimid,len=ntime)
       if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'Error reading dimension time in file snow.nc'
+        write(stderr,*) 'Error reading dimension time in file moist.nc'
         return
       end if
       istart(1) = 1
       icount(1) = njx
       istart(2) = 1
       icount(2) = niy
-      istart(3) = ntime
-      icount(3) = 1
-      istat = nf90_get_var(ncid,varid,snow_in,istart,icount)
+      istart(3) = 1
+      icount(3) = 2
+      istart(4) = ntime
+      icount(4) = 1
+      istat = nf90_get_var(ncid,varid,moist_in,istart,icount)
       if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'Error reading variable snv in file snow.nc'
+        write(stderr,*) 'Error reading variable moist in file moist.nc'
         return
       end if
     end if
 
-    snow(2:jx-2,2:iy-2) = snow_in
+    smoist(2:jx-2,2:iy-2) = moist_in(:,:,1)
+    rmoist(2:jx-2,2:iy-2) = moist_in(:,:,2)
 
-    write(stdout,*) 'Read initial snow from previous run SRF file'
-    deallocate(snow_in)
+    write(stdout,*) 'Read initial soil moisture from previous run SRF file'
+    deallocate(moist_in)
 
-  end subroutine read_snow
+  end subroutine read_moist
 !
 !
-end module mod_snow
+end module mod_moist
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -24,7 +24,7 @@ module mod_bats_common
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : ichem , iemiss , rtsrf , ktau
+  use mod_runparams , only : ichem , iemiss , rtsrf , ktau , replacemoist
   use mod_mppparam
   use mod_mpmessage
   use mod_constants
@@ -106,6 +106,12 @@ module mod_bats_common
           ssw(i) = depuv(lveg(i))*xmopor(itex)*slmo(lveg(i))
           gwet(i) = d_half
         end do
+      end if
+      if ( replacemoist ) then
+        ! Replace soil moisture
+        call c2l_gs(lndcomm,lm%rmoist,rsw)
+        call c2l_gs(lndcomm,lm%smoist,ssw)
+        tsw = rsw + ssw
       end if
       !
       ! Calculate emission coefficients

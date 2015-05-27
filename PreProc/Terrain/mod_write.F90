@@ -87,11 +87,11 @@ module mod_write
     implicit none
 
     if ( idynamic == 1 ) then
-      nvar2d = 12
+      nvar2d = 13
       allocate(v2dvar_base(nvar2d))
       nvar3d = 0
     else
-      nvar2d = 13
+      nvar2d = 14
       nvar3d = 3
       allocate(v2dvar_base(nvar2d))
       allocate(v3dvar_base(nvar3d))
@@ -147,6 +147,11 @@ module mod_write
     v2dvar_base(12)%long_name = 'Soil Moisture'
     v2dvar_base(12)%standard_name = 'volume_fraction_of_water_in_soil'
     v2dvar_base(12)%lfillvalue = .true.
+    v2dvar_base(13)%vname = 'rmoist'
+    v2dvar_base(13)%vunit = '1'
+    v2dvar_base(13)%long_name = 'Root Soil Moisture'
+    v2dvar_base(13)%standard_name = 'volume_fraction_of_water_in_soil'
+    v2dvar_base(13)%lfillvalue = .true.
 
     v2dvar_lake%vname = 'dhlake'
     v2dvar_lake%vunit = 'm'
@@ -165,10 +170,10 @@ module mod_write
     v3dvar_texture%lfillvalue = .true.
 
     if ( idynamic == 2 ) then
-      v2dvar_base(13)%vname = 'ps0'
-      v2dvar_base(13)%vunit = 'Pa'
-      v2dvar_base(13)%long_name = 'Reference State Surface Pressure'
-      v2dvar_base(13)%standard_name = 'air_pressure'
+      v2dvar_base(14)%vname = 'ps0'
+      v2dvar_base(14)%vunit = 'Pa'
+      v2dvar_base(14)%long_name = 'Reference State Surface Pressure'
+      v2dvar_base(14)%standard_name = 'air_pressure'
       v3dvar_base(1)%vname = 'pr0'
       v3dvar_base(1)%vunit = 'Pa'
       v3dvar_base(1)%long_name = 'Reference State Pressure'
@@ -189,8 +194,8 @@ module mod_write
 
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
                           xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,htgrid,  &
-                          lndout,snowam,smoist,dpth,texout,frac_tex,ps0,pr0, &
-                          t0,rho0)
+                          lndout,snowam,smoist,rmoist,dpth,texout,frac_tex,  &
+                          ps0,pr0,t0,rho0)
     implicit none
     character (len=*) , intent(in) :: fname
     logical , intent(in) :: lsub , lndfudge , texfudge , lakfudge
@@ -202,7 +207,7 @@ module mod_write
     real(rk8) , dimension(:,:) , pointer , intent(in) :: mask
     real(rk8) , dimension(:,:) , pointer , intent(in) :: htgrid , lndout
     real(rk8) , dimension(:,:) , pointer , intent(in) :: snowam
-    real(rk8) , dimension(:,:) , pointer , intent(in) :: smoist
+    real(rk8) , dimension(:,:) , pointer , intent(in) :: smoist , rmoist
     real(rk8) , dimension(:,:) , pointer , intent(in) :: dpth
     real(rk8) , dimension(:,:) , pointer , intent(in) :: texout
     real(rk8) , dimension(:,:) , pointer , intent(in) :: ps0
@@ -265,6 +270,7 @@ module mod_write
     v2dvar_base(10)%rval => lndout
     v2dvar_base(11)%rval => snowam
     v2dvar_base(12)%rval => smoist
+    v2dvar_base(13)%rval => rmoist
 
     if ( lakedpth ) then
       v2dvar_lake%j1 = -1
@@ -302,7 +308,7 @@ module mod_write
         v3dvar_base(ivar)%k2 = -1
         call outstream_addvar(ncout,v3dvar_base(ivar))
       end do
-      v2dvar_base(13)%rval => ps0
+      v2dvar_base(14)%rval => ps0
       v3dvar_base(1)%rval => pr0
       v3dvar_base(2)%rval => t0
       v3dvar_base(3)%rval => rho0
