@@ -38,7 +38,7 @@ module mod_moist
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: smoist
     integer(ik4) , intent(in) :: jx , iy
     integer(ik4) :: ncid , istat
-    integer(ik4) :: dimid , njx , niy , ntime
+    integer(ik4) :: dimid , njx , niy , nlev , ntime
     integer(ik4) :: varid
     integer(ik4) :: istart(4) , icount(4)
     real(rk8) , dimension(:,:,:) , allocatable :: moist_in
@@ -88,7 +88,18 @@ module mod_moist
       return
     end if
 
-    allocate(moist_in(njx,niy,2))
+    istat = nf90_inq_dimid(ncid,'soil_layer',dimid)
+    if ( istat /= nf90_noerr ) then
+      write(stderr,*) 'No soil_layer dimension in file moist.nc'
+      return
+    end if
+    istat = nf90_inquire_dimension(ncid,dimid,len=nlev)
+    if ( istat /= nf90_noerr ) then
+      write(stderr,*) 'Error reading dimension soil_layer in file moist.nc'
+      return
+    end if
+
+    allocate(moist_in(njx,niy,nlev))
     istat = nf90_inq_varid(ncid,'mrso',varid)
     if ( istat /= nf90_noerr ) then
       write(stderr,*) 'Error finding variable mrso in file moist.nc'
@@ -114,7 +125,7 @@ module mod_moist
       istart(2) = 1
       icount(2) = niy
       istart(3) = 1
-      icount(3) = 2
+      icount(3) = nlev
       istart(4) = ntime
       icount(4) = 1
       istat = nf90_get_var(ncid,varid,moist_in,istart,icount)
