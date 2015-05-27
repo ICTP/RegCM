@@ -310,6 +310,7 @@ module mod_regcm_types
 
   type lm_state
     real(rk8) , pointer , dimension(:,:,:) :: gwet
+    real(rk8) , pointer , dimension(:,:,:,:) :: sw
     real(rk8) , pointer , dimension(:,:,:) :: ssw
     real(rk8) , pointer , dimension(:,:,:) :: rsw
     real(rk8) , pointer , dimension(:,:,:) :: tsw

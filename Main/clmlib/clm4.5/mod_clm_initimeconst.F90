@@ -193,7 +193,6 @@ module mod_clm_initimeconst
     integer(ik4)  :: m                         ! vegetation type index
     real(rk8) :: tkm     ! mineral conductivity
     real(rk8) :: xksat   ! maximum hydraulic conductivity of soil [mm/s]
-    real(rk8) :: scalez = 0.025D0  ! Soil layer thickness discretization (m)
     real(rk8) :: thick_equal = 0.2D0
     real(rk8), pointer :: zsoifl(:)   ! original soil midpoint
     real(rk8), pointer :: zisoifl(:)  ! original soil interface depth

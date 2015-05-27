@@ -4,6 +4,7 @@ module mod_clm_varpar
   !
   use mod_intkinds
   use mod_realkinds
+  use mod_dynparam , only : num_soil_layers
 
   implicit none
 
@@ -176,7 +177,7 @@ module mod_clm_varpar
     max_pft_per_lu    = max(numpft+1, numcft, maxpatch_urb)
     max_pft_per_col   = max(numpft+1, numcft, maxpatch_urb)
 
-    nlevsoifl   =  10
+    nlevsoifl   =  num_soil_layers
     nlevurb     =  5
     if ( .not. more_vertlayers ) then
       nlevsoi     =  nlevsoifl

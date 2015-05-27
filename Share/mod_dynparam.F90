@@ -326,6 +326,14 @@ module mod_dynparam
 
   integer(ik4) , parameter :: nspi = 19
 
+#ifdef CLM45
+  ! Soil layer thickness discretization (m)
+  real(rk8) , parameter :: scalez = 0.025D0
+  integer(ik4) , parameter :: num_soil_layers = 10
+#else
+  integer(ik4) , parameter :: num_soil_layers = 2
+#endif
+
 ! Shall we use this to port?
 
   character(len=1), parameter :: pthsep = '/'

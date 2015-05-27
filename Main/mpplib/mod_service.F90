@@ -48,8 +48,6 @@ module mod_service
   real(rk8) , dimension(maxnsubs) :: time_et , time_bt
   integer(ik4) :: n_of_nsubs = 0
 
-  character(len=120) :: errmsg   !! a string where to compose an error message
-
   !! some global variable for debugging purposes
   !! set by prepare_debug, start_debug and stop_debug subroutines
 

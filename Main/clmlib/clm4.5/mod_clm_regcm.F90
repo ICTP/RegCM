@@ -311,34 +311,13 @@ module mod_clm_regcm
     clm_l2a%notused = 0.0D0
     do k = 1 , nlevsoi
       do g = begg , endg
-        if ( clm_l2a%soidpth(g,k) < 0.10D0 ) then
-          clm_l2a%notused(g) = clm_l2a%notused(g) + &
-             max(clm_l2a%h2osoi_vol(g,k),0.0D0) * &
+        clm_l2a%notused(g) = max(clm_l2a%h2osoi_vol(g,k),0.0D0) * &
              max(clm_l2a%dzsoi(g,k),0.0D0)*denh2o
-        end if
       end do
+      call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
+      lms%sw(:,:,:,k) = lms%tsw(:,:,:)
     end do
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%ssw)
-    clm_l2a%notused = 0.0D0
-    do k = 1 , nlevsoi
-      do g = begg , endg
-        if ( clm_l2a%rootfr(g,k) > 0.0D0 ) then
-          clm_l2a%notused(g) = clm_l2a%notused(g) + &
-             max(clm_l2a%h2osoi_vol(g,k),0.0D0) * &
-             max(clm_l2a%dzsoi(g,k),0.0D0)*denh2o
-        end if
-      end do
-    end do
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%rsw)
-    clm_l2a%notused = 0.0D0
-    do k = 1 , nlevsoi
-      do g = begg , endg
-        clm_l2a%notused(g) = clm_l2a%notused(g) + &
-           max(clm_l2a%h2osoi_vol(g,k),0.0D0) * &
-           max(clm_l2a%dzsoi(g,k),0.0D0)*denh2o
-      end do
-    end do
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
+    lms%tsw(:,:,:) = sum(lms%sw,4)
 
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)

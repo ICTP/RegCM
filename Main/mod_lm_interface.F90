@@ -123,8 +123,9 @@ module mod_lm_interface
 
     call getmem3d(lms%gwet,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet')
     call getmem3d(lms%ldew,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldew')
-    call getmem3d(lms%ssw,1,nnsg,jci1,jci2,ici1,ici2,'bats:ssw')
-    call getmem3d(lms%rsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:rsw')
+    call getmem4d(lms%sw,1,nnsg,jci1,jci2,ici1,ici2,1,num_soil_layers,'bats:sw')
+    call assignpnt(lms%sw,lms%ssw,1)
+    call assignpnt(lms%sw,lms%rsw,2)
     call getmem3d(lms%tsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:tsw')
     call getmem3d(lms%tgbb,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgbb')
     call getmem3d(lms%tgrd,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgrd')
@@ -758,9 +759,11 @@ module mod_lm_interface
             srf_sund_out = srf_sund_out + dtbat
           end where
         end if
-        if ( associated(srf_runoff_out) ) then
-          srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1)+sum(lms%srnof,1)*rdnnsg
-          srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2)+sum(lms%trnof,1)*rdnnsg
+        if ( associated(srf_srunoff_out) ) then
+          srf_srunoff_out = srf_srunoff_out+sum(lms%srnof,1)*rdnnsg
+        end if
+        if ( associated(srf_trunoff_out) ) then
+          srf_trunoff_out = srf_trunoff_out+sum(lms%trnof,1)*rdnnsg
         end if
         if ( associated(srf_sena_out) ) then
           srf_sena_out = srf_sena_out + sum(lms%sent,1)*rdnnsg
@@ -784,10 +787,10 @@ module mod_lm_interface
           call reorder_add_subgrid(lms%sncv,sub_scv_out,mask=lm%ldmsk1)
         if ( associated(sub_sena_out) ) &
           call reorder_add_subgrid(lms%sent,sub_sena_out)
-        if ( associated(sub_runoff_out) ) then
-          call reorder_add_subgrid(lms%srnof,sub_runoff_out,1,lm%ldmsk1)
-          call reorder_add_subgrid(lms%trnof,sub_runoff_out,2,lm%ldmsk1)
-        end if
+        if ( associated(sub_srunoff_out) ) &
+          call reorder_add_subgrid(lms%srnof,sub_srunoff_out,lm%ldmsk1)
+        if ( associated(sub_trunoff_out) ) &
+          call reorder_add_subgrid(lms%trnof,sub_trunoff_out,lm%ldmsk1)
       end if
       if ( ifsts ) then
         if ( associated(sts_tgmax_out) ) &
@@ -811,14 +814,14 @@ module mod_lm_interface
           sts_psmin_out = min(sts_psmin_out,lm%sfps(jci1:jci2,ici1:ici2))
         if ( associated(sts_psavg_out) ) &
           sts_psavg_out = sts_psavg_out + lm%sfps(jci1:jci2,ici1:ici2)
+        if ( associated(sts_srunoff_out) ) &
+          sts_srunoff_out = sts_srunoff_out+sum(lms%srnof,1)*rdnnsg
+        if ( associated(sts_trunoff_out) ) &
+          sts_trunoff_out = sts_trunoff_out+sum(lms%trnof,1)*rdnnsg
         if ( associated(sts_sund_out) ) then
           where( lm%rswf > 120.0D0 )
             sts_sund_out = sts_sund_out + dtbat
           end where
-        end if
-        if ( associated(sts_runoff_out) ) then
-          sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1)+sum(lms%srnof,1)*rdnnsg
-          sts_runoff_out(:,:,2) = sts_runoff_out(:,:,2)+sum(lms%trnof,1)*rdnnsg
         end if
       end if
       if ( iflak ) then
@@ -887,8 +890,9 @@ module mod_lm_interface
         if ( associated(srf_v10m_out) ) &
           srf_v10m_out(:,:,1) = sum(lms%v10m,1)*rdnnsg
         if ( associated(srf_smw_out) ) then
-          srf_smw_out(:,:,1) = sum(lms%ssw,1)*rdnnsg
-          srf_smw_out(:,:,2) = sum(lms%rsw,1)*rdnnsg
+          do n = 1 , num_soil_layers
+            srf_smw_out(:,:,n) = sum(lms%sw(:,:,:,n),1)*rdnnsg
+          end do
         end if
       end if
 

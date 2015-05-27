@@ -490,14 +490,18 @@ module mod_output
             srf_scv_out = dmissval
           end where
         end if
-        if ( associated(srf_runoff_out) ) then
+        if ( associated(srf_srunoff_out) ) then
           where ( mddom%ldmsk > 0 )
-            srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1)*rnsrf_for_srffrq
-            srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2)*rnsrf_for_srffrq - &
-              srf_runoff_out(:,:,1)
+            srf_srunoff_out = srf_srunoff_out*rnsrf_for_srffrq
           elsewhere
-            srf_runoff_out(:,:,1) = dmissval
-            srf_runoff_out(:,:,2) = dmissval
+            srf_srunoff_out = dmissval
+          end where
+        end if
+        if ( associated(srf_trunoff_out) ) then
+          where ( mddom%ldmsk > 0 )
+            srf_trunoff_out = srf_trunoff_out*rnsrf_for_srffrq
+          elsewhere
+            srf_trunoff_out = dmissval
           end where
         end if
         if ( associated(srf_sena_out) ) &
@@ -522,7 +526,8 @@ module mod_output
         if ( associated(srf_zpbl_out) ) srf_zpbl_out = d_zero
         if ( associated(srf_evp_out) ) srf_evp_out = d_zero
         if ( associated(srf_scv_out) ) srf_scv_out = d_zero
-        if ( associated(srf_runoff_out) ) srf_runoff_out = d_zero
+        if ( associated(srf_srunoff_out) ) srf_srunoff_out = d_zero
+        if ( associated(srf_trunoff_out) ) srf_trunoff_out = d_zero
         if ( associated(srf_sena_out) ) srf_sena_out = d_zero
         if ( associated(srf_flw_out) ) srf_flw_out = d_zero
         if ( associated(srf_fsw_out) ) srf_fsw_out = d_zero
@@ -549,11 +554,14 @@ module mod_output
         end if
         if ( associated(sub_sena_out) ) &
           sub_sena_out = sub_sena_out*rnsrf_for_subfrq
-        if ( associated(sub_runoff_out) ) then
-          where ( sub_runoff_out(:,:,1) < dmissval )
-            sub_runoff_out(:,:,2) = sub_runoff_out(:,:,2)-sub_runoff_out(:,:,1)
-            sub_runoff_out(:,:,1) = sub_runoff_out(:,:,1)*rnsrf_for_subfrq
-            sub_runoff_out(:,:,2) = sub_runoff_out(:,:,2)*rnsrf_for_subfrq
+        if ( associated(sub_srunoff_out) ) then
+          where ( sub_srunoff_out < dmissval )
+            sub_srunoff_out = sub_srunoff_out*rnsrf_for_subfrq
+          end where
+        end if
+        if ( associated(sub_trunoff_out) ) then
+          where ( sub_trunoff_out < dmissval )
+            sub_trunoff_out = sub_trunoff_out*rnsrf_for_subfrq
           end where
         end if
 
@@ -564,7 +572,8 @@ module mod_output
         if ( associated(sub_evp_out) ) sub_evp_out = d_zero
         if ( associated(sub_scv_out) ) sub_scv_out = d_zero
         if ( associated(sub_sena_out) ) sub_sena_out = d_zero
-        if ( associated(sub_runoff_out) ) sub_runoff_out = d_zero
+        if ( associated(sub_srunoff_out) ) sub_srunoff_out = d_zero
+        if ( associated(sub_trunoff_out) ) sub_trunoff_out = d_zero
       end if
     end if
 
@@ -667,14 +676,18 @@ module mod_output
           sts_t2avg_out = sts_t2avg_out*rnsrf_for_day
         if ( associated(sts_psavg_out) ) &
           sts_psavg_out = sts_psavg_out*rnsrf_for_day
-        if ( associated(sts_runoff_out) ) then
+        if ( associated(sts_srunoff_out) ) then
           where ( mddom%ldmsk > 0 )
-            sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1)*rnsrf_for_day
-            sts_runoff_out(:,:,2) = sts_runoff_out(:,:,2)*rnsrf_for_day - &
-                                    sts_runoff_out(:,:,1)
+            sts_srunoff_out = sts_srunoff_out*rnsrf_for_day
           elsewhere
-            sts_runoff_out(:,:,1) = dmissval
-            sts_runoff_out(:,:,2) = dmissval
+            sts_srunoff_out = dmissval
+          end where
+        end if
+        if ( associated(sts_trunoff_out) ) then
+          where ( mddom%ldmsk > 0 )
+            sts_trunoff_out = sts_trunoff_out*rnsrf_for_day
+          elsewhere
+            sts_trunoff_out = dmissval
           end where
         end if
 
@@ -682,18 +695,19 @@ module mod_output
         if ( myid == italk ) &
           write(stdout,*) 'STS variables written at ' , tochar(idatex)
 
-        if ( associated(sts_pcpavg_out) ) sts_pcpavg_out = d_zero
-        if ( associated(sts_t2avg_out) )  sts_t2avg_out  = d_zero
-        if ( associated(sts_psavg_out) )  sts_psavg_out  = d_zero
-        if ( associated(sts_tgmax_out) )  sts_tgmax_out  = -1.D30
-        if ( associated(sts_tgmin_out) )  sts_tgmin_out  =  1.D30
-        if ( associated(sts_t2max_out) )  sts_t2max_out  = -1.D30
-        if ( associated(sts_t2min_out) )  sts_t2min_out  =  1.D30
-        if ( associated(sts_w10max_out) ) sts_w10max_out = -1.D30
-        if ( associated(sts_psmin_out) )  sts_psmin_out  =  1.D30
-        if ( associated(sts_pcpmax_out) ) sts_pcpmax_out = -1.D30
-        if ( associated(sts_sund_out) )   sts_sund_out   = d_zero
-        if ( associated(sts_runoff_out) ) sts_runoff_out = d_zero
+        if ( associated(sts_pcpavg_out) )  sts_pcpavg_out  = d_zero
+        if ( associated(sts_t2avg_out) )   sts_t2avg_out   = d_zero
+        if ( associated(sts_psavg_out) )   sts_psavg_out   = d_zero
+        if ( associated(sts_tgmax_out) )   sts_tgmax_out   = -1.D30
+        if ( associated(sts_tgmin_out) )   sts_tgmin_out   =  1.D30
+        if ( associated(sts_t2max_out) )   sts_t2max_out   = -1.D30
+        if ( associated(sts_t2min_out) )   sts_t2min_out   =  1.D30
+        if ( associated(sts_w10max_out) )  sts_w10max_out  = -1.D30
+        if ( associated(sts_psmin_out) )   sts_psmin_out   =  1.D30
+        if ( associated(sts_pcpmax_out) )  sts_pcpmax_out  = -1.D30
+        if ( associated(sts_sund_out) )    sts_sund_out    = d_zero
+        if ( associated(sts_srunoff_out) ) sts_srunoff_out = d_zero
+        if ( associated(sts_trunoff_out) ) sts_trunoff_out = d_zero
 
       end if
     end if

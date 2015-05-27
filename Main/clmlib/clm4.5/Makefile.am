@@ -210,7 +210,7 @@ mod_clm_urbaninit.o : mod_clm_urbaninit.F90 mod_clm_decomp.o mod_clm_type.o mod_
 mod_clm_urbaninput.o : mod_clm_urbaninput.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_nchelper.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_varcon.o : mod_clm_varcon.F90 mod_clm_varpar.o mod_constants.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_varctl.o : mod_clm_varctl.F90 mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
-mod_clm_varpar.o : mod_clm_varpar.F90 mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
+mod_clm_varpar.o : mod_clm_varpar.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o $(REGCM_ROOT)/makeinc
 mod_clm_varsur.o : mod_clm_varsur.F90 mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_vicmap.o : mod_clm_vicmap.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_vocemission.o : mod_clm_vocemission.F90 mod_clm_atmlnd.o mod_clm_domain.o mod_clm_meganfactors.o mod_clm_megan.o mod_clm_pftvarcon.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o $(REGCM_ROOT)/makeinc

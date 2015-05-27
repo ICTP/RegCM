@@ -118,6 +118,8 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: srf_sund_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_snowmelt_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_seaice_out => null()
+  real(rk8) , dimension(:,:) , pointer :: srf_srunoff_out => null()
+  real(rk8) , dimension(:,:) , pointer :: srf_trunoff_out => null()
 
   real(rk8) , dimension(:,:,:) , pointer :: srf_u10m_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: srf_v10m_out => null()
@@ -125,7 +127,6 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: srf_q2m_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: srf_rh2m_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: srf_smw_out => null()
-  real(rk8) , dimension(:,:,:) , pointer :: srf_runoff_out => null()
 
   real(rk8) , dimension(:,:) , pointer :: sts_tgmax_out => null()
   real(rk8) , dimension(:,:) , pointer :: sts_tgmin_out => null()
@@ -134,12 +135,13 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: sts_sund_out => null()
   real(rk8) , dimension(:,:) , pointer :: sts_psavg_out => null()
   real(rk8) , dimension(:,:) , pointer :: sts_psmin_out => null()
+  real(rk8) , dimension(:,:) , pointer :: sts_srunoff_out => null()
+  real(rk8) , dimension(:,:) , pointer :: sts_trunoff_out => null()
 
   real(rk8) , dimension(:,:,:) , pointer :: sts_t2max_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: sts_t2min_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: sts_t2avg_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: sts_w10max_out => null()
-  real(rk8) , dimension(:,:,:) , pointer :: sts_runoff_out => null()
 
   real(rk8) , dimension(:,:) , pointer :: sub_uvdrag_out => null()
   real(rk8) , dimension(:,:) , pointer :: sub_tg_out => null()
@@ -147,13 +149,14 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: sub_evp_out => null()
   real(rk8) , dimension(:,:) , pointer :: sub_scv_out => null()
   real(rk8) , dimension(:,:) , pointer :: sub_sena_out => null()
+  real(rk8) , dimension(:,:) , pointer :: sub_srunoff_out => null()
+  real(rk8) , dimension(:,:) , pointer :: sub_trunoff_out => null()
 
   real(rk8) , dimension(:,:,:) , pointer :: sub_u10m_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: sub_v10m_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: sub_t2m_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: sub_q2m_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: sub_smw_out => null()
-  real(rk8) , dimension(:,:,:) , pointer :: sub_runoff_out => null()
 
   real(rk8) , dimension(:,:) , pointer :: rad_frsa_out => null()
   real(rk8) , dimension(:,:) , pointer :: rad_frla_out => null()

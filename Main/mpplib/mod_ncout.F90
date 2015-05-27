@@ -60,16 +60,16 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 55
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nsrf2dvars = 19 + nbase
-  integer(ik4) , parameter :: nsrf3dvars = 7
+  integer(ik4) , parameter :: nsrf2dvars = 21 + nbase
+  integer(ik4) , parameter :: nsrf3dvars = 6
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
-  integer(ik4) , parameter :: nsts2dvars = 7 + nbase
-  integer(ik4) , parameter :: nsts3dvars = 5
+  integer(ik4) , parameter :: nsts2dvars = 9 + nbase
+  integer(ik4) , parameter :: nsts3dvars = 4
   integer(ik4) , parameter :: nstsvars = nsts2dvars+nsts3dvars
 
-  integer(ik4) , parameter :: nsub2dvars = 6 + nbase
-  integer(ik4) , parameter :: nsub3dvars = 6
+  integer(ik4) , parameter :: nsub2dvars = 8 + nbase
+  integer(ik4) , parameter :: nsub3dvars = 5
   integer(ik4) , parameter :: nsubvars = nsub2dvars+nsub3dvars
 
   integer(ik4) , parameter :: nlak2dvars = 12 + nbase
@@ -247,6 +247,8 @@ module mod_ncout
   integer(ik4) , parameter :: srf_seaice   = 22
   integer(ik4) , parameter :: srf_snowmelt = 23
   integer(ik4) , parameter :: srf_dew      = 24
+  integer(ik4) , parameter :: srf_srunoff  = 25
+  integer(ik4) , parameter :: srf_trunoff  = 26
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -254,45 +256,46 @@ module mod_ncout
   integer(ik4) , parameter :: srf_q2m    = 4
   integer(ik4) , parameter :: srf_rh2m   = 5
   integer(ik4) , parameter :: srf_smw    = 6
-  integer(ik4) , parameter :: srf_runoff = 7
 
-  integer(ik4) , parameter :: sts_xlon   = 1
-  integer(ik4) , parameter :: sts_xlat   = 2
-  integer(ik4) , parameter :: sts_mask   = 3
-  integer(ik4) , parameter :: sts_topo   = 4
-  integer(ik4) , parameter :: sts_ps     = 5
-  integer(ik4) , parameter :: sts_tgmax  = 6
-  integer(ik4) , parameter :: sts_tgmin  = 7
-  integer(ik4) , parameter :: sts_pcpmax = 8
-  integer(ik4) , parameter :: sts_pcpavg = 9
-  integer(ik4) , parameter :: sts_sund   = 10
-  integer(ik4) , parameter :: sts_psmin  = 11
-  integer(ik4) , parameter :: sts_psavg  = 12
+  integer(ik4) , parameter :: sts_xlon    = 1
+  integer(ik4) , parameter :: sts_xlat    = 2
+  integer(ik4) , parameter :: sts_mask    = 3
+  integer(ik4) , parameter :: sts_topo    = 4
+  integer(ik4) , parameter :: sts_ps      = 5
+  integer(ik4) , parameter :: sts_tgmax   = 6
+  integer(ik4) , parameter :: sts_tgmin   = 7
+  integer(ik4) , parameter :: sts_pcpmax  = 8
+  integer(ik4) , parameter :: sts_pcpavg  = 9
+  integer(ik4) , parameter :: sts_sund    = 10
+  integer(ik4) , parameter :: sts_psmin   = 11
+  integer(ik4) , parameter :: sts_psavg   = 12
+  integer(ik4) , parameter :: sts_srunoff = 13
+  integer(ik4) , parameter :: sts_trunoff = 14
 
   integer(ik4) , parameter :: sts_t2max  = 1
   integer(ik4) , parameter :: sts_t2min  = 2
   integer(ik4) , parameter :: sts_t2avg  = 3
   integer(ik4) , parameter :: sts_w10max = 4
-  integer(ik4) , parameter :: sts_runoff = 5
 
-  integer(ik4) , parameter :: sub_xlon   = 1
-  integer(ik4) , parameter :: sub_xlat   = 2
-  integer(ik4) , parameter :: sub_mask   = 3
-  integer(ik4) , parameter :: sub_topo   = 4
-  integer(ik4) , parameter :: sub_ps     = 5
-  integer(ik4) , parameter :: sub_uvdrag = 6
-  integer(ik4) , parameter :: sub_tg     = 7
-  integer(ik4) , parameter :: sub_tlef   = 8
-  integer(ik4) , parameter :: sub_evp    = 9
-  integer(ik4) , parameter :: sub_scv    = 10
-  integer(ik4) , parameter :: sub_sena   = 11
+  integer(ik4) , parameter :: sub_xlon    = 1
+  integer(ik4) , parameter :: sub_xlat    = 2
+  integer(ik4) , parameter :: sub_mask    = 3
+  integer(ik4) , parameter :: sub_topo    = 4
+  integer(ik4) , parameter :: sub_ps      = 5
+  integer(ik4) , parameter :: sub_uvdrag  = 6
+  integer(ik4) , parameter :: sub_tg      = 7
+  integer(ik4) , parameter :: sub_tlef    = 8
+  integer(ik4) , parameter :: sub_evp     = 9
+  integer(ik4) , parameter :: sub_scv     = 10
+  integer(ik4) , parameter :: sub_sena    = 11
+  integer(ik4) , parameter :: sub_srunoff = 12
+  integer(ik4) , parameter :: sub_trunoff = 13
 
   integer(ik4) , parameter :: sub_u10m   = 1
   integer(ik4) , parameter :: sub_v10m   = 2
   integer(ik4) , parameter :: sub_t2m    = 3
   integer(ik4) , parameter :: sub_q2m    = 4
   integer(ik4) , parameter :: sub_smw    = 5
-  integer(ik4) , parameter :: sub_runoff = 6
 
   integer(ik4) , parameter :: rad_xlon   = 1
   integer(ik4) , parameter :: rad_xlat   = 2
@@ -1066,7 +1069,18 @@ module mod_ncout
         else
           enable_srf2d_vars(srf_dew) = .false.
         end if
-
+        if ( enable_srf2d_vars(srf_srunoff) ) then
+          call setup_var(v2dvar_srf,srf_srunoff,vsize,'mrros','kg m-2 s-1', &
+            'Surface Runoff flux','runoff_flux',.true.,'time: mean', &
+            l_fill=.true.)
+          srf_srunoff_out => v2dvar_srf(srf_srunoff)%rval
+        end if
+        if ( enable_srf2d_vars(srf_trunoff) ) then
+          call setup_var(v2dvar_srf,srf_trunoff,vsize,'mrro','kg m-2 s-1', &
+            'Total Runoff flux','runoff_flux',.true.,'time: mean', &
+            l_fill=.true.)
+          srf_trunoff_out => v2dvar_srf(srf_trunoff)%rval
+        end if
 
         vsize%k2 = 1
         v3dvar_srf(srf_u10m)%axis = 'xyw'
@@ -1102,19 +1116,13 @@ module mod_ncout
           srf_rh2m_out => v3dvar_srf(srf_rh2m)%rval
         end if
 
-        vsize%k2 = 2
+        vsize%k2 = num_soil_layers
         v3dvar_srf(srf_smw)%axis = 'xys'
-        v3dvar_srf(srf_runoff)%axis = 'xys'
         if ( enable_srf3d_vars(srf_smw) ) then
           call setup_var(v3dvar_srf,srf_smw,vsize,'mrso','kg m-2', &
             'Moisture content of the soil layers', &
             'soil_moisture_content_in_layers',.true.,l_fill=.true.)
           srf_smw_out => v3dvar_srf(srf_smw)%rval
-        end if
-        if ( enable_srf3d_vars(srf_runoff) ) then
-          call setup_var(v3dvar_srf,srf_runoff,vsize,'mrro','kg m-2 s-1', &
-            'Runoff flux','runoff_flux',.true.,'time: mean',l_fill=.true.)
-          srf_runoff_out => v3dvar_srf(srf_runoff)%rval
         end if
 
         enable_srf_vars(1:nsrf2dvars) = enable_srf2d_vars
@@ -1202,6 +1210,18 @@ module mod_ncout
             'Mean surface pressure','air_pressure',.true.,'time: mean')
           sts_psavg_out => v2dvar_sts(sts_psavg)%rval
         end if
+        if ( enable_sts2d_vars(sts_srunoff) ) then
+          call setup_var(v2dvar_sts,sts_srunoff,vsize,'mrros','kg m-2 s-1', &
+            'Surface Runoff flux','runoff_flux',.true.,'time: mean', &
+            l_fill=.true.)
+          sts_srunoff_out => v2dvar_sts(sts_srunoff)%rval
+        end if
+        if ( enable_sts2d_vars(sts_trunoff) ) then
+          call setup_var(v2dvar_sts,sts_trunoff,vsize,'mrro','kg m-2 s-1', &
+            'Bottom Runoff flux','runoff_flux',.true.,'time: mean', &
+            l_fill=.true.)
+          sts_trunoff_out => v2dvar_sts(sts_trunoff)%rval
+        end if
 
         vsize%k2 = 1
         v3dvar_sts(sts_t2max)%axis = 'xy2'
@@ -1230,13 +1250,6 @@ module mod_ncout
           call setup_var(v3dvar_sts,sts_w10max,vsize,'sfcWindmax','m s-1', &
             'Maximum speed of 10m wind','wind_speed',.true.,'time: maximum')
           sts_w10max_out => v3dvar_sts(sts_w10max)%rval
-        end if
-        vsize%k2 = 2
-        v3dvar_sts(sts_runoff)%axis = 'xys'
-        if ( enable_sts3d_vars(sts_runoff) ) then
-          call setup_var(v3dvar_sts,sts_runoff,vsize,'mrro','kg m-2 s-1', &
-            'Runoff flux','runoff_flux',.true.,'time: mean',l_fill=.true.)
-          sts_runoff_out => v3dvar_sts(sts_runoff)%rval
         end if
 
         enable_sts_vars(1:nsts2dvars) = enable_sts2d_vars
@@ -1342,6 +1355,18 @@ module mod_ncout
             .true.,'time: mean')
           sub_sena_out => v2dvar_sub(sub_sena)%rval
         end if
+        if ( enable_sub2d_vars(sub_srunoff) ) then
+          call setup_var(v2dvar_sub,sub_srunoff,vsize,'mrros','kg m-2 day-1', &
+            'Surface Runoff flux','runoff_flux',.true.,'time: mean', &
+            l_fill=.true.)
+          sub_srunoff_out => v2dvar_sub(sub_srunoff)%rval
+        end if
+        if ( enable_sub2d_vars(sub_trunoff) ) then
+          call setup_var(v2dvar_sub,sub_trunoff,vsize,'mrro','kg m-2 day-1', &
+            'Total Runoff flux','runoff_flux',.true.,'time: mean', &
+            l_fill=.true.)
+          sub_trunoff_out => v2dvar_sub(sub_trunoff)%rval
+        end if
 
         vsize%k2 = 1
         v3dvar_sub(sub_u10m)%axis = 'xyw'
@@ -1370,19 +1395,13 @@ module mod_ncout
             '2 meter air specific humidity','specific_humidity',.true.)
           sub_q2m_out => v3dvar_sub(sub_q2m)%rval
         end if
-        vsize%k2 = 2
+        vsize%k2 = num_soil_layers
         v3dvar_sub(sub_smw)%axis = 'xys'
-        v3dvar_sub(sub_runoff)%axis = 'xys'
         if ( enable_sub3d_vars(sub_smw) ) then
           call setup_var(v3dvar_sub,sub_smw,vsize,'mrso','kg m-2', &
             'Soil moisture content','soil_moisture_content', &
             .true.,l_fill=.true.)
           sub_smw_out => v3dvar_sub(sub_smw)%rval
-        end if
-        if ( enable_sub3d_vars(sub_runoff) ) then
-          call setup_var(v3dvar_sub,sub_runoff,vsize,'mrro','kg m-2 day-1', &
-            'Runoff flux','runoff_flux',.true.,'time: mean',l_fill=.true.)
-          sub_runoff_out => v3dvar_sub(sub_runoff)%rval
         end if
 
         enable_sub_vars(1:nsub2dvars) = enable_sub2d_vars

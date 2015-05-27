@@ -350,6 +350,9 @@ module mod_ncstream
       type(internal_obuffer) , pointer :: buffer
       type(basic_variables) , pointer :: stvar
       integer(ik4) :: maxnum_int , maxnum_real , i
+#ifdef CLM45
+      integer(ik4) :: nl
+#endif
       character(len=16) , dimension(8) :: tempstr
       real(rk8) :: xds , x0
       type(ncattribute_string) :: attc
@@ -641,8 +644,14 @@ module mod_ncstream
         call outstream_writevar(ncout,stvar%lev10m_var,nocopy)
       end if
       if ( stream%l_hassoillev ) then
+#ifdef CLM45
+        do nl = 1 , num_soil_layers
+          buffer%realbuff(nl) = real(scalez*(exp(0.5D0*(nl-0.5D0))-1.D0))
+        end do
+#else
         buffer%realbuff(1) = 0.10
         buffer%realbuff(2) = 1.00
+#endif
         call outstream_writevar(ncout,stvar%levsoil_var,nocopy)
       end if
       if ( stream%l_hasspectral ) then
@@ -791,7 +800,7 @@ module mod_ncstream
           pdim = h10m_level_dim
           stream%l_has10mlev = .true.
         case ('NSOIL','nsoil','n_soil_layer','nlay','layers')
-          num = 2
+          num = num_soil_layers
           the_name = 'soil_layer'
           pdim = soil_layer_dim
           stream%l_hassoillev = .true.
