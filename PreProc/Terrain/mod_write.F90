@@ -82,7 +82,7 @@ module mod_write
                 '17 => No data'
 
   contains
-!
+
   subroutine setup_outvars
     implicit none
 

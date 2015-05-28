@@ -29,161 +29,160 @@ module mod_dynparam
   implicit none
 
   public
-!
-! PARAMETER definitions
-!
+  !
+  ! PARAMETER definitions
+  !
   integer(ik4) , parameter :: ipunit = 255
-!
-!################### GRID DIMENSION ####################################
-!
+  !
+  !################### GRID DIMENSION ####################################
+  !
 
-! Point in Y (latitude) direction
+  ! Point in Y (latitude) direction
 
   integer(ik4) :: iy
 
-! Point in X (longitude) direction
+  ! Point in X (longitude) direction
 
   integer(ik4) :: jx
 
-! Point in vertical
+  ! Point in vertical
 
   integer(ik4) :: kz
 
-! If not 14 , 18 or 23 (precalculated), hint for custom calculation
+  ! If not 14 , 18 or 23 (precalculated), hint for custom calculation
 
   real(rk8) :: dsmax , dsmin
 
-! Sub grid decomposition
+  ! Sub grid decomposition
 
   integer(ik4) :: nsg
 
-! Dynamical core
+  ! Dynamical core
 
   integer(ik4) :: idynamic
 
-! Projection
-!
-! One in : 'LAMCON', Lambert conformal
-!          'POLSTR', Polar stereographic
-!          'NORMER', Normal  Mercator (ROTMER w/ plat = clat
-!          'ROTMER', Rotated Mercator
-!
+  ! Projection
+  !
+  ! One in : 'LAMCON', Lambert conformal
+  !          'POLSTR', Polar stereographic
+  !          'NORMER', Normal  Mercator (ROTMER w/ plat = clat
+  !          'ROTMER', Rotated Mercator
+  !
   character(len=6) :: iproj
 
-! Control flag for tropical band option.
+  ! Control flag for tropical band option.
 
   integer(ik4) :: i_band
 
-! Control flag for creating bathymetry for lake model
-!    (Hostetler, etal. 1991, 1993a,b, 1995)
+  ! Control flag for creating bathymetry for lake model
+  !    (Hostetler, etal. 1991, 1993a,b, 1995)
 
   logical :: lakedpth = .false.
 
-! Control flag for crating teture dataset for aerosol dust
-!
+  ! Control flag for crating teture dataset for aerosol dust
 
   logical :: ltexture = .false.
 
-! Control flag for crating initial soil moisture dataset
-!
+  ! Control flag for crating initial soil moisture dataset
 
   logical :: lsmoist = .false.
 
-! Grid point horizontal resolution in km
+  ! Grid point horizontal resolution in km
 
   real(rk8) :: ds
 
-! Pressure of model top in cbar
+  ! Pressure of model top in cbar
 
   real(rk8) :: ptop
 
-! Central latitude  of model domain in degrees, north hem. is positive
+  ! Central latitude  of model domain in degrees, north hem. is positive
 
   real(rk8) :: clat
 
-! Central longitude of model domain in degrees, west is negative
+  ! Central longitude of model domain in degrees, west is negative
 
   real(rk8) :: clon
 
-! Pole latitude (only for rotated Mercator Proj, else set = clat)
+  ! Pole latitude (only for rotated Mercator Proj, else set = clat)
 
   real(rk8) :: plat
 
-! Pole longitude (only for rotated Mercator Proj, else set = clon)
+  ! Pole longitude (only for rotated Mercator Proj, else set = clon)
 
   real(rk8) :: plon
 
-! Lambert / Polar Cone factor
+  ! Lambert / Polar Cone factor
 
   real(rk8) :: xcone
 
-! Lambert true latitude (low latitude side)
+  ! Lambert true latitude (low latitude side)
 
   real(rk8) :: truelatl
 
-! Lambert true latitude (high latitude side)
+  ! Lambert true latitude (high latitude side)
 
   real(rk8) :: truelath
 
-! Smoothness level
+  ! Smoothness level
 
   integer(ik4) :: ismthlev
 
-!###################### DEBUG I/O control flag #########################
+  !###################### DEBUG I/O control flag #########################
 
-! Set amount of printout (still unused, sorry)
+  ! Set amount of printout (still unused, sorry)
 
   integer(ik4) :: debug_level = 0
   integer(ik4) :: dbgfrq = 3600
 
-!###################### I/O control flag ###############################
+  !###################### I/O control flag ###############################
 
-! Buffer Zone Depth
-! nspgx-1,nspgd-1 represent the number of cross/dot point slices
-! on the boundary sponge or relaxation boundary conditions.
-!
+  ! Buffer Zone Depth
+  ! nspgx-1,nspgd-1 represent the number of cross/dot point slices
+  ! on the boundary sponge or relaxation boundary conditions.
+
   integer(ik4) :: nspgx = 12
   integer(ik4) :: nspgd = 12
 
-! Nudge control coefficients
+  ! Nudge control coefficients
+
   real(rk8) :: high_nudge   = 3.0D0
   real(rk8) :: medium_nudge = 2.0D0
   real(rk8) :: low_nudge    = 1.0D0
 
-! Number od split exp modes
+  ! Number od split exp modes
 
   integer(ik4) :: nsplit
 
-! Type of global analysis datasets used in Pre processing
-!
-! One in: ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
-!         NRP2W,GFS11,FVGCM,FNEST,EH5OM
-!
+  ! Type of global analysis datasets used in Pre processing
+  ! One in: ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
+  !         NRP2W,GFS11,FVGCM,FNEST,EH5OM
+
   character(len=5) :: dattyp
-!Type of Global chemistry boundary conditions
-!MZ6HR is for MOZART 6 hourly boundary conditions
-!MZCLM is for MOZART climatology
+
+  !Type of Global chemistry boundary conditions
+  !      MZ6HR is for MOZART 6 hourly boundary conditions
+  !      MZCLM is for MOZART climatology
+
   character(len=5) :: chemtyp
 
-! Type of Sea Surface Temperature used
-!
-! One in: GISST,OISST,OI2ST,OI_WK,OI2WK,FV_RF,FV_A2,FV_B2,EH5RF,
-!         EH5A2,EH5B1,EHA1B,ERSST,ERSKT
-!
+  ! Type of Sea Surface Temperature used
+  ! One in: GISST,OISST,OI2ST,OI_WK,OI2WK,FV_RF,FV_A2,FV_B2,EH5RF,
+  !         EH5A2,EH5B1,EHA1B,ERSST,ERSKT
+
   character(len=5) :: ssttyp
 
-! Land Surface Legend number
+  ! Land Surface Legend number
 
   integer(ik4) :: nveg
-!
-! Tracer parameters: number of tracers
+
+  ! Tracer parameters: number of tracers
 
   integer(ik4) :: ntr = 0  ! Total number of chemical tracers
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! End of configureation. Below this point things are
-!    calculated from above or should be considered as fixed
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! End of configureation. Below this point things are
+  !    calculated from above or should be considered as fixed
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   integer(ik4) :: iym1
   integer(ik4) :: iym2
@@ -253,7 +252,7 @@ module mod_dynparam
   integer(ik4) :: global_out_istart
   integer(ik4) :: global_out_iend
 
-!####################### MPI parameters ################################
+  !####################### MPI parameters ################################
 
   integer(ik4) :: mycomm
   integer(ik4) :: nproc
@@ -262,23 +261,22 @@ module mod_dynparam
   integer(ik4) :: iyp , jxp
   integer(ik4) :: iypsg , jxpsg
 
-!####################### MPI parameters ################################
+  !####################### MPI parameters ################################
 
-! Surface minimum H2O percent to be considered water
+  ! Surface minimum H2O percent to be considered water
 
   real(rk8) :: h2opct
 
-! Allow water pixels to have an elevation
+  ! Allow water pixels to have an elevation
 
   logical :: h2ohgt
-!
-! Smoothing Control flag
-!
-!     true  -> Perform extra smoothing in boundaries
+
+  ! Smoothing Control flag
+  !     true  -> Perform extra smoothing in boundaries
 
   logical :: smthbdy
 
-! Fudging for landuse and texture for grid and subgrid
+  ! Fudging for landuse and texture for grid and subgrid
 
   logical :: fudge_lnd
   logical :: fudge_lnd_s
@@ -287,16 +285,16 @@ module mod_dynparam
   logical :: fudge_lak
   logical :: fudge_lak_s
 
-! Terrain output files
+  ! Terrain output files
 
   character(len=64) :: domname
 
-! Global Begin and End date for Input Pre processing
+  ! Global Begin and End date for Input Pre processing
 
   type(rcm_time_and_date) , save :: globidate1 ! BEGIN
   type(rcm_time_and_date) , save :: globidate2 ! END
 
-! Days per year and degrees per day
+  ! Days per year and degrees per day
 
   character(len=12) :: calendar
   integer(ik4) :: ical
@@ -305,24 +303,20 @@ module mod_dynparam
   real(rk8) :: sixteenth_dayspy
   real(rk8) :: dpd
 
-! Fixed dimensions
-
-  integer(ik4) , parameter :: numsts = 10
-  integer(ik4) , parameter :: numbat = 24 + numsts
-  integer(ik4) , parameter :: numsub = 16
+  ! Fixed dimensions
 
   integer(ik4) , parameter :: mpy = 12         ! Months per Year
 
-! Number of Soil texture categories, leave it to 17
+  ! Number of Soil texture categories, leave it to 17
 
   integer(ik4) , parameter :: ntex = 17
   integer(ik4) , parameter :: nats = 12 ! Should be ntex-5. Soil classes.
 
-! Maximum number of depths in lake model
+  ! Maximum number of depths in lake model
 
   integer(ik4) , parameter :: ndpmax = 200
 
-! Number of bins in solar spectra
+  ! Number of bins in solar spectra
 
   integer(ik4) , parameter :: nspi = 19
 
@@ -334,18 +328,19 @@ module mod_dynparam
   integer(ik4) , parameter :: num_soil_layers = 2
 #endif
 
-! Shall we use this to port?
+  ! Shall we use this to port?
 
   character(len=1), parameter :: pthsep = '/'
 
-! Paths
+  ! Paths
 
   character(len=256) :: dirter , inpter
   character(len=256) :: dirglob , inpglob
   character(len=256) :: dirout
+  character(len=256) :: smoist_filename
   integer(ik4) :: iomode
 
-! Model output control parameters
+  ! Model output control parameters
 
   logical :: ifsave
   logical :: ifatm
@@ -403,9 +398,10 @@ module mod_dynparam
     namelist /coreparam/ idynamic
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
       plon , truelatl, truelath , i_band
-    namelist /terrainparam/ domname , smthbdy , ltexture , lakedpth, &
-      lsmoist , fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,  &
-      fudge_lak , fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , inpter
+    namelist /terrainparam/ domname , smthbdy , ltexture , lakedpth,  &
+      lsmoist , fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,   &
+      fudge_lak , fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , &
+      inpter , smoist_filename
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
       medium_nudge , low_nudge
@@ -534,6 +530,7 @@ module mod_dynparam
     inpglob = '../DATA'
     dirter  = '../../Input'
     dirglob = '../../Input'
+    smoist_filename = 'moist.nc'
 
     h2ohgt = .true.
     h2opct = 50.0D0

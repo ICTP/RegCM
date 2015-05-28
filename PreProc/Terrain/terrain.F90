@@ -74,7 +74,6 @@ program terrain
   use mod_stdio
   use mod_message
   use mod_memutil
-  use mod_snow
   use mod_moist
   use mod_sigma
   use mod_nhinterp
@@ -630,8 +629,7 @@ program terrain
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
-  call read_snow(snowam,jx,iy)
-  call read_moist(rmoist,smoist,jx,iy)
+  call read_moist(smoist_filename,rmoist,smoist,snowam,jx,iy)
 
   if ( idynamic == 2 ) then
     call nhsetup(ptop,stdp,stdt,logp_lrate)
