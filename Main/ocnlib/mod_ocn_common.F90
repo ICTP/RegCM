@@ -113,11 +113,13 @@ module mod_ocn_common
         emiss(:) = ocn_sfcemiss
       end if
       call l2c_ss(ocncomm,emiss,lms%emisv)
+      um10 = 1.0D0 ! Assume a mean of 1m/s wind for init.
     else
       call c2l_ss(ocncomm,lm%xlat1,lat)
       call c2l_ss(ocncomm,lms%tgrd,tgrd)
       call c2l_ss(ocncomm,lms%tgbrd,tgbrd)
       call c2l_ss(ocncomm,lms%emisv,emiss)
+      call c2l_ss(ocncomm,lms%um10,um10)
       call c2l_gs(ocncomm,lm%qfx,evpr)
       call c2l_gs(ocncomm,lm%hfx,sent)
       if ( ldcsst ) then
@@ -208,6 +210,7 @@ module mod_ocn_common
       call l2c_ss(ocncomm,q2m,lms%q2m)
       call l2c_ss(ocncomm,sfps,lms%sfcp)
       call l2c_ss(ocncomm,prcp,lms%prcp)
+      call l2c_ss(ocncomm,um10,lms%um10)
       if ( ldcsst ) then
         call l2c_ss(ocncomm,deltas,lms%deltas)
         call l2c_ss(ocncomm,tdeltas,lms%tdeltas)

@@ -343,6 +343,7 @@ module mod_init
     call subgrid_distribute(sfice_io,lms%sfice,jci1,jci2,ici1,ici2)
     call subgrid_distribute(emisv_io,lms%emisv,jci1,jci2,ici1,ici2)
     call subgrid_distribute(scvk_io,lms%scvk,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(um10_io,lms%um10,jci1,jci2,ici1,ici2)
     call subgrid_distribute(ldmsk1_io,mdsub%ldmsk,jci1,jci2,ici1,ici2)
 
     call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)

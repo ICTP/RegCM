@@ -79,6 +79,7 @@ module mod_ocn_internal
   real(rk8) , pointer , dimension(:) :: tgrd
   real(rk8) , pointer , dimension(:) :: u10m
   real(rk8) , pointer , dimension(:) :: v10m
+  real(rk8) , pointer , dimension(:) :: um10
   real(rk8) , pointer , dimension(:) :: usw     ! uatm
   real(rk8) , pointer , dimension(:) :: vsw     ! vatm
 
@@ -137,6 +138,7 @@ module mod_ocn_internal
     call getmem1d(cprate,1,nocnp,'ocn_internal:cprate')
     call getmem1d(ncprate,1,nocnp,'ocn_internal:ncprate')
     call getmem1d(prcp,1,nocnp,'ocn_internal:prcp')
+    call getmem1d(um10,1,nocnp,'ocn_internal:um10')
     if ( lakemod == 1 ) llake = .true.
     if ( idcsst == 1 ) ldcsst = .true.
     if ( iseaice == 1 ) lseaice = .true.

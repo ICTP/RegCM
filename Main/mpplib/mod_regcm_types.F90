@@ -354,6 +354,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: eta
     real(rk8) , pointer , dimension(:,:,:) :: hi
     real(rk8) , pointer , dimension(:,:,:) :: hsnow
+    real(rk8) , pointer , dimension(:,:,:) :: um10
     real(rk8) , pointer , dimension(:,:,:,:) :: tlake
     logical , pointer , dimension(:,:,:) :: lakmsk
     real(rk8) , pointer , dimension(:,:,:) :: deltas

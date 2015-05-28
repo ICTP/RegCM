@@ -137,6 +137,7 @@ module mod_lm_interface
     call getmem3d(lms%snag,1,nnsg,jci1,jci2,ici1,ici2,'bats:snag')
     call getmem3d(lms%sncv,1,nnsg,jci1,jci2,ici1,ici2,'bats:sncv')
     call getmem3d(lms%scvk,1,nnsg,jci1,jci2,ici1,ici2,'bats:scvk')
+    call getmem3d(lms%um10,1,nnsg,jci1,jci2,ici1,ici2,'bats:um10')
     call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'bats:emisv')
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,1,'bats:vocemiss')
 

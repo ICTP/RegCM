@@ -18,46 +18,47 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_ocn_zeng
-!
-! Ocean flux model
-! Implement Zeng and Beljaars, GRL , 2005, ZB2005
-!
-    use mod_intkinds
-    use mod_realkinds
-    use mod_dynparam
-    use mod_service
-    use mod_ocn_internal
-    use mod_runparams , only : iocnrough , iocncpl
+  !
+  ! Ocean flux model
+  !
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
+  use mod_service
+  use mod_ocn_internal
+  use mod_runparams , only : iocnrough , iocncpl
 
-    implicit none
+  implicit none
 
-    private
+  private
 
-    public :: zengocndrv
+  public :: zengocndrv
 
-    ! Module Constants
+  ! Module Constants
 
-    real(rk8) , parameter :: r1e6 = 1.0D-6
-    real(rk8) , parameter :: a1 = 0.28D+00
-    real(rk8) , parameter :: a2 = 0.27D+00
-    real(rk8) , parameter :: a3 = 0.45D+00
-    real(rk8) , parameter :: b1 = 71.5D+00
-    real(rk8) , parameter :: b2 = 2.8D+00
-    real(rk8) , parameter :: b3 = 0.07D+00
-    real(rk8) , parameter :: alphaw = 0.207D-06
-    real(rk8) , parameter :: nuw = 1.004D-06
-    real(rk8) , parameter :: kw = 0.60D0
-    real(rk8) , parameter :: nu = 0.3D0
-    real(rk8) , parameter :: d = 3.0D0 ! reference depth for bulk SST
+  real(rk8) , parameter :: r1e6 = 1.0D-6
+  real(rk8) , parameter :: a1 = 0.28D+00
+  real(rk8) , parameter :: a2 = 0.27D+00
+  real(rk8) , parameter :: a3 = 0.45D+00
+  real(rk8) , parameter :: b1 = 71.5D+00
+  real(rk8) , parameter :: b2 = 2.8D+00
+  real(rk8) , parameter :: b3 = 0.07D+00
+  real(rk8) , parameter :: alphaw = 0.207D-06
+  real(rk8) , parameter :: nuw = 1.004D-06
+  real(rk8) , parameter :: kw = 0.60D0
+  real(rk8) , parameter :: nu = 0.3D0
+  real(rk8) , parameter :: d = 3.0D0 ! reference depth for bulk SST
 
-    ! nu / thermal diffusivity
-    real(rk8) , parameter :: pr = 0.71D0   ! Prandtl number
+  ! nu / thermal diffusivity
+  real(rk8) , parameter :: pr = 0.71D0   ! Prandtl number
 
-    real(rk8) , parameter :: z10 = d_10    ! m  (reference height)
-    real(rk8) , parameter :: zbeta = d_one ! -  (in computing W_*)
+  real(rk8) , parameter :: z10 = d_10    ! m  (reference height)
+  real(rk8) , parameter :: zbeta = d_one ! -  (in computing W_*)
 
-    real(rk8) , parameter :: zetat = 0.465D0
-    real(rk8) , parameter :: zetam = 1.574D0
+  real(rk8) , parameter :: zetat = 0.465D0
+  real(rk8) , parameter :: zetam = 1.574D0
+
+  real(rk8) , parameter :: threedays = 86400.0D0*3.0D0  ! 3 days
 
   contains
   !
@@ -67,21 +68,24 @@ module mod_ocn_zeng
   subroutine zengocndrv
     implicit none
     real(rk8) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
-                t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
+                 t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
     real(rk8) :: dthv , hq , zh , hu , obu , qstar , rb , xdens , &
-                th , thv , thvstar , tstar , um , visa , zot , wc , &
-                xlv , zeta , zoq
+                 th , thv , thvstar , tstar , um , visa , zot ,   &
+                 xlv , wc , zeta , zoq , wt1 , wt2
     integer(ik4) :: i , nconv
 !   real(rk8) :: lwds , lwus
     real(rk8) :: rs , rd , td , tdelta , delta
     real(rk8) :: q , ustarw , fd , l , phidl , aa , bb , lamb
     real(rk8) :: dtstend , dts , fs , tskin_new
-!
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'zengocndrv'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+
+    wt1 = (threedays-dtocn)/threedays
+    wt2 = dtocn/threedays
+
     do i = iocnbeg , iocnend
       if ( mask(i) /= 1 ) cycle
 
@@ -136,7 +140,7 @@ module mod_ocn_zeng
       ! loop to obtain initial and good ustar and zo
       !
       do nconv = 1 , 5
-        call ocnrough(zo,zot,zoq,ustar,visa)
+        call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
         ustar = vonkar*um/dlog(hu/zo)
       end do
       rb = egrav*hu*dthv/(thv*um*um)
@@ -148,11 +152,12 @@ module mod_ocn_zeng
         zeta = dmax1(-d_100,dmin1(zeta,-r1e6))
       end if
       obu = hu/zeta
+      wc = ustar * (-zi*vonkar/obu)**onet
       !
       ! main iterations (2-10 iterations would be fine)
       !
       do nconv = 1 , 10
-        call ocnrough(zo,zot,zoq,ustar,visa)
+        call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
         !
         ! wind
         !
@@ -324,6 +329,7 @@ module mod_ocn_zeng
       q2m(i)  = q995 - dqh*facttq
       ! We need specific humidity in output
       q2m(i) = q2m(i)/(d_one+q2m(i))
+      um10(i) = um10(i) * wt1 + sqrt(u10m(i)**2+v10m(i)**2) * wt2
     end do
 
 #ifdef DEBUG
@@ -350,17 +356,32 @@ module mod_ocn_zeng
     !
     ! our formulation for zo,zot,zoq
     !
-    subroutine ocnrough(zo,zot,zoq,ustar,visa)
+    subroutine ocnrough(zo,zot,zoq,ustar,um10,wc,visa)
       implicit none
-      real(rk8) , intent (in) :: ustar , visa
-      real(rk8) , intent (out) :: zoq , zot
-      real(rk8) , intent (inout) :: zo
-      real(rk8) :: re , xtq
-      if ( iocnrough == 2 ) then
-        zo = (0.013D0*ustar*ustar)*regrav + 0.11D0*visa/ustar
+      real(rk8) , intent (in) :: ustar , um10 , wc , visa
+      real(rk8) , intent (out) :: zo , zoq , zot
+      real(rk8) :: cp , charnockog , re , xtq
+      ! Wave age. The wind here is the mean last N days wind
+      cp = 1.2D0*um10
+      ! Smith et al. (1992), Carlsson et al. (2009)
+      ! Charnock parameter as power function of the wave age
+      ! We consider here dominant wind sea waves
+      ! Swell dominated sea would require a wave model...
+      charnockog = regrav*0.063D0*(cp/ustar)**(-0.4D0)
+      if ( iocnrough == 1 ) then
+        zo = 0.0065D0*regrav*ustar*ustar
+      else if ( iocnrough == 2 ) then
+        zo = 0.013D0*regrav*ustar*ustar + 0.11D0*visa/ustar
+      else if ( iocnrough == 3 ) then
+        zo = 0.017D0*regrav*ustar*ustar
+      else if ( iocnrough == 4 ) then
+        ! C.H. Huang, 2012
+        ! Modification of the Charnock Wind Stress Formula
+        ! to Include the Effects of Free Convection and Swell
+        ! Advanced Methods for Practical Applications in Fluid Mechanics
+        zo = charnockog*(ustar*ustar*ustar+0.11D0*wc*wc*wc)**twot
       else
-        zo = (0.0065D0*ustar*ustar)*regrav
-!       zo = (0.013D0*ustar*ustar)*regrav
+        zo = charnockog*ustar*ustar
       end if
       re = (ustar*zo)/visa
       xtq = 2.67D0*(re**d_rfour) - 2.57D0
@@ -371,4 +392,5 @@ module mod_ocn_zeng
   end subroutine zengocndrv
 
 end module mod_ocn_zeng
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

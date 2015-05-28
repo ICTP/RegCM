@@ -807,6 +807,7 @@ module mod_output
         call subgrid_collect(lms%sfice,sfice_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%emisv,emisv_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%scvk,scvk_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%um10,um10_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(mdsub%ldmsk,ldmsk1_io,jci1,jci2,ici1,ici2)
 
         call grid_collect(solis,solis_io,jci1,jci2,ici1,ici2)
