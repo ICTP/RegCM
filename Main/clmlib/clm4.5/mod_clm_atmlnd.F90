@@ -379,7 +379,7 @@ end subroutine init_atm2lnd_type
     integer(ik4) :: begl , endl
     ! per-proc gridcell ending gridcell indices
     integer(ik4) :: begg , endg
-    integer(ik4) :: g  ! indices
+    integer(ik4) :: g , imeg ! indices
     type(gridcell_type) , pointer :: gptr  ! pointer to gridcell derived subtype
     type(landunit_type) , pointer :: lptr  ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr    ! pointer to column derived subtype
@@ -594,12 +594,13 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='unity',                       &
                l2g_scale_type='unity')
       if ( shr_megan_mechcomps_n > 0 ) then
-        call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
-                 shr_megan_mechcomps_n,                   &
-                 pptr%pvf%vocflx,clm_l2a%flxvoc,          &
-                 p2c_scale_type='unity',                  &
-                 c2l_scale_type='unity',                  &
-                 l2g_scale_type='unity')
+        do imeg = 1 , shr_megan_mechcomps_n
+          call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
+                   pptr%pvf%meg(imeg)%flux_out,clm_l2a%flxvoc(:,imeg), &
+                   p2c_scale_type='unity',                  &
+                   c2l_scale_type='unity',                  &
+                   l2g_scale_type='unity')
+        end do
       end if
       if ( n_drydep > 0 .and. drydep_method == DD_XLND ) then
         call p2g(begp,endp,begc,endc,begl,endl,begg,endg,n_drydep, &
