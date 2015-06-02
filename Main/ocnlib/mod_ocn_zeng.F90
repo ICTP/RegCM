@@ -36,7 +36,7 @@ module mod_ocn_zeng
 
   ! Module Constants
 
-  real(rk8) , parameter :: r1e6 = 1.0D-6
+  real(rk8) , parameter :: minz = 1.0D-6
   real(rk8) , parameter :: a1 = 0.28D+00
   real(rk8) , parameter :: a2 = 0.27D+00
   real(rk8) , parameter :: a3 = 0.45D+00
@@ -146,13 +146,13 @@ module mod_ocn_zeng
       rb = egrav*hu*dthv/(thv*um*um)
       if ( rb >= d_zero ) then       ! neutral or stable
         zeta = rb*dlog(hu/zo)/(d_one-d_five*dmin1(rb,0.19D0))
-        zeta = dmin1(d_two,dmax1(zeta,r1e6))
+        zeta = dmin1(d_two,dmax1(zeta,minz))
       else                           ! unstable
         zeta = rb*dlog(hu/zo)
-        zeta = dmax1(-d_100,dmin1(zeta,-r1e6))
+        zeta = dmax1(-d_100,dmin1(zeta,-minz))
       end if
       obu = hu/zeta
-      wc = ustar * (-zi*vonkar/obu)**onet
+      wc = ustar * (max(-zi*vonkar/obu,d_zero))**onet
       !
       ! main iterations (2-10 iterations would be fine)
       !
@@ -209,11 +209,11 @@ module mod_ocn_zeng
         zeta = vonkar*egrav*thvstar*hu/(ustar**2*thv)
         if ( zeta >= d_zero ) then   !neutral or stable
           um = dmax1(uv995,0.1D0)
-          zeta = dmin1(d_two,dmax1(zeta,r1e6))
+          zeta = dmin1(d_two,dmax1(zeta,minz))
         else                   !unstable
           wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**onet
           um = dsqrt(uv995*uv995+wc*wc)
-          zeta = dmax1(-d_100,dmin1(zeta,-r1e6))
+          zeta = dmax1(-d_100,dmin1(zeta,-minz))
         end if
         obu = hu/zeta
       end do
