@@ -152,7 +152,6 @@ module mod_ocn_zeng
         zeta = dmax1(-d_100,dmin1(zeta,-r1e6))
       end if
       obu = hu/zeta
-      print *, zi , obu , -zi*vonkar/obu
       wc = ustar * (-zi*vonkar/obu)**onet
       !
       ! main iterations (2-10 iterations would be fine)
