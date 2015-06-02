@@ -67,7 +67,7 @@ module mod_clm_vocemission
   !
   ! Input: <filename> to be read in with EFs and some parameters.
   !        Currently these are set in procedure init_EF_params
-  ! Output: vocflx(shr_megan_mechcomps_n) !VOC flux [moles/m2/sec]
+  ! Output: vocflx(shr_megan_mechcomps_n) !VOC flux [kg/m2/sec]
   !
   subroutine VOCEmission (lbp, ubp, num_soilp, filter_soilp )
     implicit none
@@ -118,8 +118,8 @@ module mod_clm_vocemission
     real(rk8), pointer :: cisha_z(:,:) ! shaded intracellular CO2 (Pa)
     real(rk8), pointer :: forc_pbot(:) ! atmospheric pressure (Pa)
 
-    real(rk8), pointer :: vocflx(:,:)   ! VOC flux [moles/m2/sec]
-    real(rk8), pointer :: vocflx_tot(:) ! VOC flux [moles/m2/sec]
+    real(rk8), pointer :: vocflx(:,:)   ! VOC flux [kg/m2/sec]
+    real(rk8), pointer :: vocflx_tot(:) ! VOC flux [kg/m2/sec]
 
     type(megan_out_type), pointer :: meg_out(:) ! fluxes for CLM history
 
@@ -372,8 +372,11 @@ module mod_clm_vocemission
 
           if ( ( gamma_x >= 0.0D0 ) .and. ( gamma_x < 100.D0 ) ) then
 
+            !vocflx_meg(imeg) = xepsilon * gamma_x * &
+            !        megemis_units_factor / meg_cmp%molec_weight ! moles/m2/sec
+            ! ICTP - Change to Kg/m2/sec
             vocflx_meg(imeg) = xepsilon * gamma_x * &
-                    megemis_units_factor / meg_cmp%molec_weight ! moles/m2/sec
+                     megemis_units_factor * 1.D-3 ! Kg/m2/sec
 
             ! assign to arrays for history file output
             ! (not weighted by landfrac)
@@ -421,7 +424,7 @@ module mod_clm_vocemission
             ii = shr_megan_mechcomps(imech)%megan_comps(imeg)%ptr%index
             vocflx(p,imech) = vocflx(p,imech) + vocflx_meg(ii)
           end do
-          vocflx_tot(p) = vocflx_tot(p) + vocflx(p,imech) ! moles/m2/sec
+          vocflx_tot(p) = vocflx_tot(p) + vocflx(p,imech) ! Kg/m2/sec
         end do
       end if ! ivt(1:15 only)
     end do ! fp

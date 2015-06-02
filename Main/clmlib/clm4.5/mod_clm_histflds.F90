@@ -705,7 +705,7 @@ module mod_clm_histflds
           meg_cmp => meg_cmp%next_megcomp
        enddo
 
-       call hist_addfld1d (fname='VOCFLXT', units='moles/m2/sec',  &
+       call hist_addfld1d (fname='VOCFLXT', units='kg/m2/sec',  &
             avgflag='A', long_name='total VOC flux into atmosphere', &
             ptr_pft=clm3%g%l%c%p%pvf%vocflx_tot, set_lake=0.D0, set_urb=0.D0)
 
