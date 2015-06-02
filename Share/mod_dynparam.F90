@@ -337,7 +337,7 @@ module mod_dynparam
   character(len=256) :: dirter , inpter
   character(len=256) :: dirglob , inpglob
   character(len=256) :: dirout
-  character(len=256) :: smoist_filename
+  character(len=256) :: moist_filename
   integer(ik4) :: iomode
 
   ! Model output control parameters
@@ -401,7 +401,7 @@ module mod_dynparam
     namelist /terrainparam/ domname , smthbdy , ltexture , lakedpth,  &
       lsmoist , fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,   &
       fudge_lak , fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , &
-      inpter , smoist_filename
+      inpter , moist_filename
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
       medium_nudge , low_nudge
@@ -530,7 +530,7 @@ module mod_dynparam
     inpglob = '../DATA'
     dirter  = '../../Input'
     dirglob = '../../Input'
-    smoist_filename = 'moist.nc'
+    moist_filename = 'moist.nc'
 
     h2ohgt = .true.
     h2opct = 50.0D0

@@ -32,19 +32,21 @@ module mod_moist
 
   contains
 
-  subroutine read_moist(fname,rmoist,smoist,snow,jx,iy)
+  subroutine read_moist(fname,rmoist,snow,jx,iy,ns,lrmoist)
     implicit none
     character(len=256) , intent(in) :: fname
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: rmoist
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: smoist
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: rmoist
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: snow
-    integer(ik4) , intent(in) :: jx , iy
+    integer(ik4) , intent(in) :: jx , iy , ns
+    logical , intent(out) :: lrmoist
     integer(ik4) :: ncid , istat
     integer(ik4) :: dimid , njx , niy , nlev , ntime
     integer(ik4) :: idmoist , idsnow
     integer(ik4) :: istart(4) , icount(4)
     real(rk8) , dimension(:,:,:) , allocatable :: moist_in
     real(rk8) , dimension(:,:) , allocatable :: snow_in
+
+    lrmoist = .false.
 
     istat = nf90_open(fname,nf90_nowrite,ncid)
     if ( istat /= nf90_noerr ) then
@@ -102,6 +104,12 @@ module mod_moist
       return
     end if
 
+    if ( ns /= nlev ) then
+      write(stderr,*) 'Number of soil layers in moisture file inconsistent!'
+      write(stderr,*) nlev, ' /= ', ns
+      return
+    end if
+
     allocate(moist_in(njx,niy,nlev))
     allocate(snow_in(njx,niy))
 
@@ -122,8 +130,7 @@ module mod_moist
       if ( istat /= nf90_noerr ) then
         write(stderr,*) 'Error reading variable mrso in moisture file'
       else
-        smoist(2:jx-2,2:iy-2) = moist_in(:,:,1)
-        rmoist(2:jx-2,2:iy-2) = moist_in(:,:,2)
+        rmoist(2:jx-2,2:iy-2,:) = moist_in(:,:,:)
       end if
       istat = nf90_get_var(ncid,idsnow,snow_in)
       if ( istat /= nf90_noerr ) then
@@ -150,8 +157,7 @@ module mod_moist
       if ( istat /= nf90_noerr ) then
         write(stderr,*) 'Error reading variable mrso in moisture file'
       else
-        smoist(2:jx-2,2:iy-2) = moist_in(:,:,1)
-        rmoist(2:jx-2,2:iy-2) = moist_in(:,:,2)
+        rmoist(2:jx-2,2:iy-2,:) = moist_in(:,:,:)
       end if
       istart(1) = 1
       icount(1) = njx
@@ -169,6 +175,8 @@ module mod_moist
 
     deallocate(moist_in)
     deallocate(snow_in)
+
+    lrmoist = .true.
 
   end subroutine read_moist
 

@@ -794,7 +794,8 @@ module mod_atm_interface
       call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
       call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'storage:snowam')
       call getmem2d(dom%smoist,jde1,jde2,ide1,ide2,'storage:smoist')
-      call getmem2d(dom%rmoist,jde1,jde2,ide1,ide2,'storage:rmoist')
+      call getmem3d(dom%rmoist,jde1,jde2,ide1,ide2, &
+                    1,num_soil_layers,'storage:rmoist')
       call getmem2d(dom%ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
       call getmem2d(dom%iveg,jci1,jci2,ici1,ici2,'storage:iveg')
       if ( lakemod == 1 ) then

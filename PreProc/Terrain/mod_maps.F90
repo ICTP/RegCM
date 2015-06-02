@@ -25,24 +25,24 @@ module mod_maps
 
   real(rk8) , pointer , dimension(:,:) :: coriol , dlat , dlon ,   &
                    dmap , htgrid , lndout , mask , dpth , snowam , &
-                   smoist , rmoist, texout , xlat , xlon , xmap , ps0
-  real(rk8) , pointer , dimension(:,:,:) :: frac_tex
+                   smoist , texout , xlat , xlon , xmap , ps0
+  real(rk8) , pointer , dimension(:,:,:) :: frac_tex , rmoist
   real(rk8) , pointer , dimension(:,:,:) :: pr0 , t0 , rho0
 
   real(rk8) , pointer , dimension(:,:) :: coriol_s , dlat_s , &
                       dlon_s , dmap_s , htgrid_s , lndout_s , &
                       mask_s , dpth_s , snowam_s , smoist_s , &
-                      rmoist_s , texout_s , xlat_s , xlon_s , xmap_s , ps0_s
-  real(rk8) , pointer , dimension(:,:,:) :: frac_tex_s
+                      texout_s , xlat_s , xlon_s , xmap_s , ps0_s
+  real(rk8) , pointer , dimension(:,:,:) :: frac_tex_s , rmoist_s
   real(rk8) , pointer , dimension(:,:,:) :: pr0_s , t0_s , rho0_s
 
   real(rk8) , pointer , dimension(:) :: sigma
 
   contains
 
-  subroutine prepare_grid(jx,iy,kz,ntex,idyn)
+  subroutine prepare_grid(jx,iy,kz,ntex,nsoil,idyn)
     implicit none
-    integer(ik4) , intent(in) :: jx , iy , kz , ntex , idyn
+    integer(ik4) , intent(in) :: jx , iy , kz , ntex , nsoil , idyn
     call getmem1d(sigma,1,kz+1,'maps:sigma')
     call getmem2d(coriol,1,jx,1,iy,'maps:coriol')
     call getmem2d(xlat,1,jx,1,iy,'maps:xlat')
@@ -57,9 +57,9 @@ module mod_maps
     call getmem2d(mask,1,jx,1,iy,'maps:mask')
     call getmem2d(snowam,1,jx,1,iy,'maps:snowam')
     call getmem2d(smoist,1,jx,1,iy,'maps:smoist')
-    call getmem2d(rmoist,1,jx,1,iy,'maps:rmoist')
     call getmem2d(texout,1,jx,1,iy,'maps:texout')
     call getmem3d(frac_tex,1,jx,1,iy,1,ntex,'maps:frac_tex')
+    call getmem3d(rmoist,1,jx,1,iy,1,nsoil,'maps:rmoist')
     if ( idyn == 2 ) then
       call getmem2d(ps0,1,jx,1,iy,'maps:ps0')
       call getmem3d(pr0,1,jx,1,iy,1,kz+1,'maps:pr0')
@@ -68,9 +68,9 @@ module mod_maps
     end if
   end subroutine prepare_grid
 
-  subroutine prepare_subgrid(jxsg,iysg,kz,ntex,idyn)
+  subroutine prepare_subgrid(jxsg,iysg,kz,ntex,nsoil,idyn)
     implicit none
-    integer(ik4) , intent(in) :: jxsg , iysg , kz , ntex , idyn
+    integer(ik4) , intent(in) :: jxsg , iysg , kz , ntex , nsoil , idyn
     call getmem2d(coriol_s,1,jxsg,1,iysg,'maps:coriol_s')
     call getmem2d(xlat_s,1,jxsg,1,iysg,'maps:xlat_s')
     call getmem2d(xlon_s,1,jxsg,1,iysg,'maps:xlon_s')
@@ -84,9 +84,9 @@ module mod_maps
     call getmem2d(mask_s,1,jxsg,1,iysg,'maps:mask_s')
     call getmem2d(snowam_s,1,jxsg,1,iysg,'maps:snowam_s')
     call getmem2d(smoist_s,1,jxsg,1,iysg,'maps:smoist_s')
-    call getmem2d(rmoist_s,1,jxsg,1,iysg,'maps:rmoist_s')
     call getmem2d(texout_s,1,jxsg,1,iysg,'maps:texout_s')
     call getmem3d(frac_tex_s,1,jxsg,1,iysg,1,ntex,'maps:frac_tex_s')
+    call getmem3d(rmoist_s,1,jxsg,1,iysg,1,nsoil,'maps:rmoist_s')
     if ( idyn == 2 ) then
       call getmem2d(ps0_s,1,jxsg,1,iysg,'maps:ps0_s')
       call getmem3d(pr0_s,1,jxsg,1,iysg,1,kz+1,'maps:pr0_s')

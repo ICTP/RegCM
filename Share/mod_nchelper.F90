@@ -56,6 +56,7 @@ module mod_nchelper
   public :: add_dimension
   public :: add_variable
   public :: add_attribute
+  public :: get_attribute
   public :: check_dimlen
   public :: checkncerr
 
@@ -1341,6 +1342,21 @@ module mod_nchelper
     end if
     call checkncerr(istat,__FILE__,__LINE__,'Error adding attribute '//aname)
   end subroutine add_attribute
+
+  subroutine get_attribute(ncid,aname,aval,ivar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: aname
+    character(len=*) , intent(out) :: aval
+    integer(ik4) , intent(in) , optional :: ivar
+    integer :: istat
+    if ( present(ivar) ) then
+      istat = nf90_get_att(ncid,ivar,aname,aval)
+    else
+      istat = nf90_get_att(ncid,nf90_global,aname,aval)
+    end if
+    call checkncerr(istat,__FILE__,__LINE__,'Error reading attribute '//aname)
+  end subroutine get_attribute
 
   logical function check_dimlen(ncid,dname,ival)
     implicit none

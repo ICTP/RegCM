@@ -76,11 +76,14 @@ module mod_ncio
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: coriol
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: snowam
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: smoist
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: rmoist
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: rmoist
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: hlake
+    real(rk8) , dimension(:,:) , pointer :: tempmoist
     character(len=256) :: dname
-    integer(ik4) :: idmin
+    character(len=8) :: csmoist
+    integer(ik4) :: idmin , ilev
     integer(ik4) , dimension(2) :: istart , icount
+    integer(ik4) , dimension(3) :: istart3 , icount3
     real(rk8) , dimension(:,:) , pointer :: rspace
     logical :: has_snow = .true.
     logical :: has_dhlake = .true.
@@ -98,6 +101,12 @@ module mod_ncio
       allocate(rspace(icount(1),icount(2)))
       call openfile_withname(dname,idmin)
       call check_domain(idmin)
+      call get_attribute(idmin,'initialized_soil_moisture',csmoist)
+      if ( csmoist == 'Yes' ) then
+        replacemoist = .true.
+      else
+        replacemoist = .false.
+      end if
       call read_var1d_static(idmin,'sigma',sigma)
       call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
       xlat(jde1:jde2,ide1:ide2) = rspace
@@ -133,11 +142,15 @@ module mod_ncio
       coriol(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'smoist',rspace,istart=istart,icount=icount)
       smoist(jde1:jde2,ide1:ide2) = rspace
-      call read_var2d_static(idmin,'rmoist',rspace,istart=istart,icount=icount)
-      rmoist(jde1:jde2,ide1:ide2) = rspace
-      if ( maxval(rspace) > d_zero ) then
-        replacemoist = .true.
-      end if
+      istart3(1:2) = istart
+      icount3(1:2) = icount
+      icount3(3) = 1
+      do ilev = 1 , num_soil_layers
+        istart3(3) = ilev
+        call read_var2d_static(idmin,'rmoist',rspace, &
+                               istart=istart3,icount=icount3)
+        rmoist(jde1:jde2,ide1:ide2,ilev) = rspace
+      end do
       rspace = d_zero
       call read_var2d_static(idmin,'snowam',rspace,has_snow, &
            istart=istart,icount=icount)
@@ -150,6 +163,7 @@ module mod_ncio
       call closefile(idmin)
       deallocate(rspace)
     else
+      allocate(tempmoist(jde1:jde2,ide1:ide2))
       if ( myid == iocpu ) then
         istart(1) = 1
         istart(2) = 1
@@ -158,8 +172,13 @@ module mod_ncio
         allocate(rspace(icount(1),icount(2)))
         call openfile_withname(dname,idmin)
         call check_domain(idmin)
+        call get_attribute(idmin,'initialized_soil_moisture',csmoist)
+        if ( csmoist == 'Yes' ) then
+          replacemoist = .true.
+        else
+          replacemoist = .false.
+        end if
         call read_var1d_static(idmin,'sigma',sigma)
-        call bcast(sigma)
         call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
@@ -193,12 +212,16 @@ module mod_ncio
         call read_var2d_static(idmin,'smoist',rspace, &
                 istart=istart,icount=icount)
         call grid_distribute(rspace,smoist,jde1,jde2,ide1,ide2)
-        call read_var2d_static(idmin,'rmoist',rspace, &
-                istart=istart,icount=icount)
-        if ( maxval(rspace) > d_zero ) then
-          replacemoist = .true.
-        end if
-        call grid_distribute(rspace,rmoist,jde1,jde2,ide1,ide2)
+        istart3(1:2) = istart
+        icount3(1:2) = icount
+        icount3(3) = 1
+        do ilev = 1 , num_soil_layers
+          istart3(3) = ilev
+          call read_var2d_static(idmin,'rmoist',rspace, &
+                  istart=istart3,icount=icount3)
+          call grid_distribute(rspace,tempmoist,jde1,jde2,ide1,ide2)
+          rmoist(jde1:jde2,ide1:ide2,ilev) = tempmoist
+        end do
         rspace = d_zero
         call read_var2d_static(idmin,'snowam',rspace,has_snow, &
                 istart=istart,icount=icount)
@@ -211,7 +234,6 @@ module mod_ncio
         call closefile(idmin)
         deallocate(rspace)
       else
-        call bcast(sigma)
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,xlon,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
@@ -223,18 +245,23 @@ module mod_ncio
         call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,coriol,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,smoist,jde1,jde2,ide1,ide2)
-        call grid_distribute(rspace,rmoist,jde1,jde2,ide1,ide2)
+        do ilev = 1 , num_soil_layers
+          call grid_distribute(rspace,tempmoist,jde1,jde2,ide1,ide2)
+          rmoist(jde1:jde2,ide1:ide2,ilev) = tempmoist
+        end do
         call grid_distribute(rspace,snowam,jde1,jde2,ide1,ide2)
         if ( lakemod == 1 ) then
           call grid_distribute(rspace,hlake,jde1,jde2,ide1,ide2)
         end if
       end if
+      call bcast(sigma)
+      call bcast(replacemoist)
+      deallocate(tempmoist)
     end if
     if ( idynamic == 2 ) then
       call getmem3d(tempw,jce1,jce2,ice1,ice2,1,kz,'read_domain:tempw')
       call getmem2d(tempwtop,jce1,jce2,ice1,ice2,'read_domain:tempwtop')
     end if
-    call bcast(replacemoist)
   end subroutine read_domain_info
 
   subroutine read_subdomain_info(ht,lnd,mask,xlat,xlon,hlake)

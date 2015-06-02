@@ -112,11 +112,10 @@ program terrain
 
   call memory_init
   call split_idate(globidate1,year,month,day,hour)
-!
-  call prepare_grid(jx,iy,kz,ntex,idynamic)
 
+  call prepare_grid(jx,iy,kz,ntex,num_soil_layers,idynamic)
   if ( nsg>1 ) then
-    call prepare_subgrid(jxsg,iysg,kz,ntex,idynamic)
+    call prepare_subgrid(jxsg,iysg,kz,ntex,num_soil_layers,idynamic)
   end if
   call setup_outvars
 
@@ -321,7 +320,7 @@ program terrain
     do i = 1 , iysg
       do j = 1 , jxsg
         snowam_s(j,i) = 0.0
-        rmoist_s(j,i) = -1.0
+        rmoist_s(j,i,:) = -1.0
       end do
     end do
 
@@ -518,7 +517,7 @@ program terrain
   do i = 1 , iy
     do j = 1 , jx
       snowam(j,i) = 0.0
-      rmoist(j,i) = -1.0
+      rmoist(j,i,:) = -1.0
     end do
   end do
 
@@ -629,7 +628,7 @@ program terrain
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
-  call read_moist(smoist_filename,rmoist,smoist,snowam,jx,iy)
+  call read_moist(moist_filename,rmoist,snowam,jx,iy,num_soil_layers,lrmoist)
 
   if ( idynamic == 2 ) then
     call nhsetup(ptop,stdp,stdt,logp_lrate)

@@ -108,8 +108,13 @@ module mod_bats_common
         end do
       end if
       if ( replacemoist ) then
+        if ( myid == italk ) then
+          write(stdout,*) 'Initializing moisture from DOMAIN file'
+        end if
         ! Replace soil moisture
-        call c2l_gs(lndcomm,lm%rmoist,rsw)
+        lm%smoist = lm%rmoist(:,:,2)
+        call c2l_gs(lndcomm,lm%smoist,rsw)
+        lm%smoist = lm%rmoist(:,:,1)
         call c2l_gs(lndcomm,lm%smoist,ssw)
         tsw = rsw + ssw
       end if

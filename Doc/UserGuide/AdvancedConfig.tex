@@ -181,28 +181,28 @@ later when the model calculates climatic parameters.
 {\footnotesize
 \begin{Verbatim}
  &terrainparam
- domname  = 'AQWA',            ! Name of the domain/experiment.
-                               ! Controls naming of input files
- smthbdy = .false.,            ! Smoothing Control flag
-                               !  true -> Perform extra smoothing in boundaries
- lakedpth    = .false.,        ! If using lakemod (see below), produce from
-                               ! terrain program the domain bathymetry
- ltexture    = .false.,        ! If using DUST tracers (see below), produce
-                               ! the domain soil texture dataset
- lsmoist     = .false.,        ! Use Satellite Soil Moisture Dataset for
-                               ! initialization of soil moisture.
- fudge_lnd   = .false.,        ! Fudging Control flag, for landuse of grid 
- fudge_lnd_s = .false.,        ! Fudging Control flag, for landuse of subgrid
- fudge_tex   = .false.,        ! Fudging Control flag, for texture of grid
- fudge_tex_s = .false.,        ! Fudging Control flag, for texture of subgrid
- fudge_lak   = .false.,        ! Fudging Control flag, for lake of grid
- fudge_lak_s = .false.,        ! Fudging Control flag, for lake of subgrid
- h2opct = 50.,                 ! Surface min H2O percent to be considered water
- h2ohgt = .false.,             ! Allow water points to have hgt greater than 0
- ismthlev = 1,                 ! How many times apply the 121 smoothing
- dirter = 'input/',            ! Output directory for terrain files
- inpter = 'globdata/',         ! Input directory for SURFACE dataset
- smoist_filename = 'moist.nc', ! Read initial moisture and snow from this file
+ domname  = 'AQWA',           ! Name of the domain/experiment.
+                              ! Controls naming of input files
+ smthbdy = .false.,           ! Smoothing Control flag
+                              !  true -> Perform extra smoothing in boundaries
+ lakedpth    = .false.,       ! If using lakemod (see below), produce from
+                              ! terrain program the domain bathymetry
+ ltexture    = .false.,       ! If using DUST tracers (see below), produce
+                              ! the domain soil texture dataset
+ lsmoist     = .false.,       ! Use Satellite Soil Moisture Dataset for
+                              ! initialization of soil moisture.
+ fudge_lnd   = .false.,       ! Fudging Control flag, for landuse of grid 
+ fudge_lnd_s = .false.,       ! Fudging Control flag, for landuse of subgrid
+ fudge_tex   = .false.,       ! Fudging Control flag, for texture of grid
+ fudge_tex_s = .false.,       ! Fudging Control flag, for texture of subgrid
+ fudge_lak   = .false.,       ! Fudging Control flag, for lake of grid
+ fudge_lak_s = .false.,       ! Fudging Control flag, for lake of subgrid
+ h2opct = 50.,                ! Surface min H2O percent to be considered water
+ h2ohgt = .false.,            ! Allow water points to have hgt greater than 0
+ ismthlev = 1,                ! How many times apply the 121 smoothing
+ dirter = 'input/',           ! Output directory for terrain files
+ inpter = 'globdata/',        ! Input directory for SURFACE dataset
+ moist_filename = 'moist.nc', ! Read initial moisture and snow from this file
  /
 \end{Verbatim}
 }
