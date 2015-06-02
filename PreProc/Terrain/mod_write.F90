@@ -330,6 +330,11 @@ module mod_write
     do ivar = 1 , nvar2d
       call outstream_writevar(ncout,v2dvar_base(ivar))
     end do
+
+    do ivar = 1 , nvar3d
+      call outstream_writevar(ncout,v3dvar_base(ivar))
+    end do
+
     if ( lakedpth ) then
       call outstream_writevar(ncout,v2dvar_lake)
     end if
@@ -337,15 +342,7 @@ module mod_write
       call outstream_writevar(ncout,v2dvar_texture)
       call outstream_writevar(ncout,v3dvar_texture)
     end if
-
-    if ( idynamic == 2 ) then
-      do ivar = 1 , nvar3d
-        call outstream_writevar(ncout,v3dvar_base(ivar))
-      end do
-    end if
-
     call outstream_dispose(ncout)
-
   end subroutine write_domain
 
 end module mod_write
