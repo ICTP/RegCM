@@ -34,8 +34,10 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: i , j , n , begg , endg
+    integer(ik4) :: i , j , n , begg , endg , ilev
     character(len=64) :: rdate
+    real(rk8) , pointer , dimension(:,:) :: p2
+    real(rk8) , pointer , dimension(:) :: p1
 
     call getmem2d(rprec,jci1,jci2,ici1,ici2,'initclm45:rprec')
 
@@ -52,17 +54,29 @@ module mod_clm_regcm
 
     call get_proc_bounds(begg,endg)
     deallocate(adomain%topo)
+    deallocate(adomain%xlon)
+    deallocate(adomain%xlat)
     allocate(adomain%snow(begg:endg))
     allocate(adomain%smoist(begg:endg))
     allocate(adomain%tgrd(begg:endg))
     allocate(adomain%luse(begg:endg))
     allocate(adomain%topo(begg:endg))
+    allocate(adomain%xlon(begg:endg))
+    allocate(adomain%xlat(begg:endg))
+    allocate(adomain%rmoist(begg:endg,num_soil_layers))
     call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
     call glb_c2l_gs(lndcomm,lm%smoist,adomain%smoist)
     call glb_c2l_gs(lndcomm,lm%tground2,adomain%tgrd)
     call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
+    call glb_c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
+    call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
     adomain%topo = adomain%topo*regrav
     call glb_c2l_ss(lndcomm,lm%iveg1,adomain%luse)
+    do ilev = 1 , num_soil_layers
+      call assignpnt(lm%rmoist,p2,ilev)
+      call assignpnt(adomain%rmoist,p1,ilev)
+      call glb_c2l_gs(lndcomm,p2,p1)
+    end do
 
     write(rdate,'(i10)') toint10(idatex)
     call initialize2(rdate)
@@ -202,7 +216,7 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     integer(ik4) :: begg , endg , i
-    real(rk8) :: hl , satq , satp
+    real(rk8) :: satq , satp
 
     rprec = (lm%cprate+lm%ncprate) * rtsrf
 

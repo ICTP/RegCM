@@ -4,6 +4,7 @@ module mod_clm_mkarbinit
   use mod_stdio
   use mod_mppparam
   use mod_dynparam
+  use mod_runparams , only : replacemoist
   use mod_clm_atmlnd
   use mod_clm_type
   use mod_clm_varpar , only : nlevsoi , nlevgrnd , nlevsno , nlevlak , nlevurb
@@ -190,7 +191,9 @@ module mod_clm_mkarbinit
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+#if (defined CN)
     real(rk8) :: vwc , psi      ! for calculating soilpsi
+#endif
 
     if ( myid == italk )then
       write(stdout,*) 'Setting initial data to non-spun up values'
@@ -535,7 +538,6 @@ module mod_clm_mkarbinit
     do c = begc , endc
       l = clandunit(c)
       if ( .not. lakpoi(l) ) then  !not lake
-
         ! volumetric water
         if ( ltype(l) == istsoil .or. ltype(l) == istcrop ) then
           nlevs = nlevgrnd
@@ -581,7 +583,7 @@ module mod_clm_mkarbinit
           do j = 1 , nlevs
             h2osoi_vol(c,j) = 1.0D0
           end do
-        endif
+        end if
         do j = 1 , nlevs
           h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
           ! soil layers
@@ -823,6 +825,8 @@ module mod_clm_mkarbinit
     real(rk8) , pointer , dimension(:) :: tsoi17
     !fractional area with water table at surface
     real(rk8) , pointer , dimension(:) :: fsat
+    ! dz soil
+    real(rk8) , pointer , dimension(:,:) :: dzsoi
     ! number of time steps for which we still need to irrigate today
     ! (if 0, ignore irrig_rate)
     integer(ik4) ,  pointer , dimension(:) :: n_irrig_steps_left
@@ -833,7 +837,9 @@ module mod_clm_mkarbinit
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+#if (defined CN)
     real(rk8) :: vwc , psi      ! for calculating soilpsi
+#endif
 
     if ( myid == italk )then
       write(stdout,*) 'Setting initial data to non-spun up values'
@@ -910,6 +916,7 @@ module mod_clm_mkarbinit
     mss_cnc_dst4     => clm3%g%l%c%cps%mss_cnc_dst4
     n_irrig_steps_left => clm3%g%l%c%cps%n_irrig_steps_left
     irrig_rate       => clm3%g%l%c%cps%irrig_rate
+    dzsoi            => clm3%g%l%c%cps%dz
 
     ! Assign local pointers to derived subtypes components (pft-level)
 
@@ -1179,7 +1186,34 @@ module mod_clm_mkarbinit
           do j = 1 , nlevs
             h2osoi_vol(c,j) = 1.0D0
           end do
-        endif
+        end if
+      end if
+    end do
+
+    if ( replacemoist ) then
+      if ( myid == italk ) then
+         write(stdout,*) 'Initializing moisture from DOMAIN file'
+      end if
+      do c = begc , endc
+        g = cgridcell(c)
+        l = clandunit(c)
+        if ( .not. lakpoi(l) ) then  !not lake
+          do j = 1 , nlevs
+            if ( j > nlevsoi ) then
+              h2osoi_vol(c,j) = 0.0D0
+            else
+              h2osoi_vol(c,j) = adomain%rmoist(g,j) / &
+                (max(dzsoi(c,j),0.0D0)*denh2o)
+            end if
+          end do
+        end if
+      end do
+    end if
+
+    do c = begc , endc
+      g = cgridcell(c)
+      l = clandunit(c)
+      if ( .not. lakpoi(l) ) then  !not lake
         do j = 1 , nlevs
           h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
           ! soil layers

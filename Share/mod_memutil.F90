@@ -44,6 +44,7 @@ module mod_memutil
     module procedure assignp1d_i
     module procedure assignp1d_r
     module procedure assignp1d_d
+    module procedure assignp1d2_d
     module procedure assignp1d_t
     module procedure assignp2d_l
     module procedure assignp2d_s
@@ -2395,6 +2396,25 @@ module mod_memutil
     end if
     b => remap_bound(lbound(a,1),a)
   end subroutine assignp1d_d
+
+  subroutine assignp1d2_d(a,b,k)
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
+    real(rk8) , pointer , dimension(:) , intent(out) :: b
+    integer , intent(in) :: k
+    integer , dimension(1) :: theshape
+    real(rk8) , pointer , dimension(:) :: x
+    type(c_ptr) :: pntr
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,1))
+    pntr = c_loc(a(lbound(a,1),k))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),x)
+  end subroutine assignp1d2_d
 
   subroutine assignp1d_t(a,b)
     implicit none

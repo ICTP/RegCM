@@ -132,7 +132,7 @@ module mod_ocn_zeng
       ustar = 0.06D0
       wc = d_half
       if ( dthv >= d_zero ) then
-        um = dmax1(uv995,0.1D0)
+        um = max(uv995,0.1D0)
       else
         um = dsqrt(uv995*uv995+wc*wc)
       end if
@@ -141,15 +141,15 @@ module mod_ocn_zeng
       !
       do nconv = 1 , 5
         call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
-        ustar = vonkar*um/dlog(hu/zo)
+        ustar = vonkar*um/log(hu/zo)
       end do
       rb = egrav*hu*dthv/(thv*um*um)
       if ( rb >= d_zero ) then       ! neutral or stable
-        zeta = rb*dlog(hu/zo)/(d_one-d_five*dmin1(rb,0.19D0))
-        zeta = dmin1(d_two,dmax1(zeta,minz))
+        zeta = rb*log(hu/zo)/(d_one-d_five*min(rb,0.19D0))
+        zeta = min(d_two,max(zeta,minz))
       else                           ! unstable
-        zeta = rb*dlog(hu/zo)
-        zeta = dmax1(-d_100,dmin1(zeta,-minz))
+        zeta = rb*log(hu/zo)
+        zeta = max(-d_100,min(zeta,-minz))
       end if
       obu = hu/zeta
       wc = ustar * (max(-zi*vonkar/obu,d_zero))**onet
@@ -163,15 +163,15 @@ module mod_ocn_zeng
         !
         zeta = hu/obu
         if ( zeta < -zetam ) then      ! zeta < -1
-          ustar = vonkar*um/(dlog(-zetam*obu/zo)-psi(1,-zetam)+ &
+          ustar = vonkar*um/(log(-zetam*obu/zo)-psi(1,-zetam)+ &
                   psi(1,zo/obu)+1.14D0*((-zeta)**onet-(zetam)**onet))
         else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-          ustar = vonkar*um/(dlog(hu/zo) - psi(1,zeta)+psi(1,zo/obu))
+          ustar = vonkar*um/(log(hu/zo) - psi(1,zeta)+psi(1,zo/obu))
         else if ( zeta <= d_one ) then !  0 <= zeta <= 1
-          ustar = vonkar*um/(dlog(hu/zo) + d_five*zeta-d_five*zo/obu)
+          ustar = vonkar*um/(log(hu/zo) + d_five*zeta-d_five*zo/obu)
         else                           !  1 < zeta, phi=5+zeta
-          ustar = vonkar*um/(dlog(obu/zo)+d_five-d_five*zo/obu+  &
-                  (d_five*dlog(zeta)+zeta-d_one))
+          ustar = vonkar*um/(log(obu/zo)+d_five-d_five*zo/obu+  &
+                  (d_five*log(zeta)+zeta-d_one))
         end if
         !
         ! temperature
@@ -179,15 +179,15 @@ module mod_ocn_zeng
         zeta = zh/obu
         if ( zeta < -zetat ) then      ! zeta < -1
           tstar = vonkar*dth/ &
-                  (dlog(-zetat*obu/zot)-psi(2,-zetat)+psi(2,zot/obu)+ &
+                  (log(-zetat*obu/zot)-psi(2,-zetat)+psi(2,zot/obu)+ &
                     0.8D0*((zetat)**(-onet)-(-zeta)**(-onet)))
         else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-          tstar = vonkar*dth/(dlog(zh/zot) - psi(2,zeta)+psi(2,zot/obu))
+          tstar = vonkar*dth/(log(zh/zot) - psi(2,zeta)+psi(2,zot/obu))
         else if ( zeta <= d_one ) then !  0 <= ztea <= 1
-          tstar = vonkar*dth/(dlog(zh/zot) + d_five*zeta-d_five*zot/obu)
+          tstar = vonkar*dth/(log(zh/zot) + d_five*zeta-d_five*zot/obu)
         else                           !  1 < zeta, phi=5+zeta
-          tstar = vonkar*dth/(dlog(obu/zot) + d_five-d_five*zot/obu+ &
-                  (d_five*dlog(zeta)+zeta-d_one))
+          tstar = vonkar*dth/(log(obu/zot) + d_five-d_five*zot/obu+ &
+                  (d_five*log(zeta)+zeta-d_one))
         end if
         !
         ! humidity
@@ -195,25 +195,25 @@ module mod_ocn_zeng
         zeta = hq/obu
         if ( zeta < -zetat ) then      ! zeta < -1
           qstar = vonkar*dqh/ &
-                 (dlog(-zetat*obu/zoq)-psi(2,-zetat)+psi(2,zoq/obu)+ &
+                 (log(-zetat*obu/zoq)-psi(2,-zetat)+psi(2,zoq/obu)+ &
                        0.8D0*((zetat)**(-onet)-(-zeta)**(-onet)))
         else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-          qstar = vonkar*dqh/(dlog(hq/zoq) - psi(2,zeta)+psi(2,zoq/obu))
+          qstar = vonkar*dqh/(log(hq/zoq) - psi(2,zeta)+psi(2,zoq/obu))
         else if ( zeta <= d_one ) then !  0 <= ztea <= 1
-          qstar = vonkar*dqh/(dlog(hq/zoq) + d_five*zeta-d_five*zoq/obu)
+          qstar = vonkar*dqh/(log(hq/zoq) + d_five*zeta-d_five*zoq/obu)
         else                           !  1 < zeta, phi=5+zeta
-          qstar = vonkar*dqh/(dlog(obu/zoq) + d_five-d_five*zoq/obu+ &
-                  (d_five*dlog(zeta)+zeta-d_one))
+          qstar = vonkar*dqh/(log(obu/zoq) + d_five-d_five*zoq/obu+ &
+                  (d_five*log(zeta)+zeta-d_one))
         end if
         thvstar = tstar*(d_one+0.61D0*q995) + 0.61D0*th*qstar
         zeta = vonkar*egrav*thvstar*hu/(ustar**2*thv)
         if ( zeta >= d_zero ) then   !neutral or stable
-          um = dmax1(uv995,0.1D0)
-          zeta = dmin1(d_two,dmax1(zeta,minz))
+          um = max(uv995,0.1D0)
+          zeta = min(d_two,max(zeta,minz))
         else                   !unstable
           wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**onet
           um = dsqrt(uv995*uv995+wc*wc)
-          zeta = dmax1(-d_100,dmin1(zeta,-minz))
+          zeta = max(-d_100,min(zeta,-minz))
         end if
         obu = hu/zeta
       end do
@@ -228,11 +228,11 @@ module mod_ocn_zeng
       !
       zeta = z10/obu
       if ( zeta < d_zero ) then
-        uv10 = uv995 + (ustar/vonkar)*(dlog(z10/hu)- &
+        uv10 = uv995 + (ustar/vonkar)*(log(z10/hu)- &
                         (psi(1,zeta)-psi(1,hu/obu)))
       else
         uv10 = uv995 + (ustar/vonkar)* &
-                       (dlog(z10/hu)+d_five*zeta-d_five*hu/obu)
+                       (log(z10/hu)+d_five*zeta-d_five*hu/obu)
       end if
       if ( ldcsst .and. iocncpl == 0 ) then
         ! time step considered for the integration of prognostic skin
@@ -253,7 +253,7 @@ module mod_ocn_zeng
         ! rs is the net surface sw flux (sw energy absorbed)
         rs = rswf(i)
         ! rd is sw flux at 3m
-        rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
+        rd = rs*(a1*exp(-d*b1) + a2*exp(-d*b2) + a3*exp(-d*b3))
         ! ustar water (with air density == 1)
         ustarw = d_half*ustar*dsqrt(rhox(i)/rhoh2o)
         ! lwds =  dwrlwf(i)
@@ -264,7 +264,7 @@ module mod_ocn_zeng
         q = -(lh+sh+rlwf(i))
         ! fraction of solar radiation abosrbed in the sublayer
         fs = 0.065D0+11.0D0*delta-(6.6D-5/delta) * &
-             (d_one-dexp(-delta/8.0D-4))
+             (d_one-exp(-delta/8.0D-4))
         ! dts= temperature difference between bulk level and skin level
         ! determined from previous time step (via tdelta and td)
         dts = tdelta-td
@@ -288,7 +288,7 @@ module mod_ocn_zeng
         aa = (q + rs - rd) / (d * cpw0 * rhoh2o * nu/(nu+d_one))
         bb = (nu+d_one) * vonkar * ustarw / (d*phidl)
         ! exponential solution
-        dtstend = aa - dts*(d_one-dexp(-bb*dtsst))/dtsst
+        dtstend = aa - dts*(d_one-exp(-bb*dtsst))/dtsst
         ! update dts
         dts = dts + dtstend * dtsst
         ! update tdelta
@@ -319,7 +319,7 @@ module mod_ocn_zeng
       sent(i)  = sh
       evpr(i)  = lh*rwlhv
       ! Back out Drag Coefficient
-      facttq = dlog(z995*d_half)/dlog(z995/zo)
+      facttq = log(z995*d_half)/log(z995/zo)
       drag(i) = ustar**2*rhox(i)/uv995
       u10m(i) = usw(i)*uv10/uv995
       v10m(i) = vsw(i)*uv10/uv995
@@ -346,11 +346,11 @@ module mod_ocn_zeng
       real(rk8) :: chik
       chik = (d_one-16.0D0*zeta)**d_rfour
       if ( k == 1 ) then
-        psi = d_two*dlog((d_one+chik)*d_half) +       &
-                    dlog((d_one+chik*chik)*d_half) -  &
-              d_two*datan(chik) + d_two*datan(d_one)
+        psi = d_two*log((d_one+chik)*d_half) +       &
+                    log((d_one+chik*chik)*d_half) -  &
+              d_two*atan(chik) + d_two*atan(d_one)
       else
-        psi = d_two*dlog((d_one+chik*chik)*d_half)
+        psi = d_two*log((d_one+chik*chik)*d_half)
       end if
     end function psi
     !
@@ -385,7 +385,7 @@ module mod_ocn_zeng
       end if
       re = (ustar*zo)/visa
       xtq = 2.67D0*(re**d_rfour) - 2.57D0
-      zoq = zo/dexp(xtq)
+      zoq = zo/exp(xtq)
       zot = zoq
      end subroutine ocnrough
 
