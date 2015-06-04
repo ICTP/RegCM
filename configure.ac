@@ -409,7 +409,7 @@ else
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
-    FCFLAGS="-O3 -fp-model fast=2 -ip $FCFLAGS"
+    FCFLAGS="-O3 -fp-model precise -ip $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_IBM_TRUE"; then

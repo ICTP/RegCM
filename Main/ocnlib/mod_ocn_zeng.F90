@@ -360,7 +360,7 @@ module mod_ocn_zeng
       implicit none
       real(rk8) , intent (in) :: ustar , um10 , wc , visa
       real(rk8) , intent (out) :: zo , zoq , zot
-      real(rk8) :: cp , charnockog , re , xtq
+      real(rk8) :: cp , charnockog , re , xtq , rt , rq
       ! Wave age. The wind here is the mean last N days wind
       cp = 1.2D0*um10
       ! Smith et al. (1992), Carlsson et al. (2009)
@@ -386,11 +386,40 @@ module mod_ocn_zeng
       re = (ustar*zo)/visa
       if ( iocnzoq == 2 ) then
         zoq = min(4.0D-4, 2.0D-4*re**(-3.3D0))
+        zot = zoq
+      else if ( iocnzoq == 3 ) then
+        if ( re <= 0.11D0 ) then
+          rt = 0.177D0
+          rq = 0.292D0
+        else if ( re <= 0.8D0 ) then
+          rt = 1.376D0*re**0.929D0
+          rq = 1.808D0*re**0.826D0
+        else if ( re <= 3.0D0 ) then
+          rt = 1.026D0*re**(-0.599D0)
+          rq = 1.393D0*re**(-0.528D0)
+        else if ( re <= 10.0D0 ) then
+          rt = 1.625D0*re**(-1.018D0)
+          rq = 1.956D0*re**(-0.870D0)
+        else if ( re <= 30.0D0 ) then
+          rt = 4.661D0*re**(-1.475D0)
+          rq = 4.994D0*re**(-1.297D0)
+        else if (re <= 100.0D0) then
+          rt = 34.904D0*re**(-2.067D0)
+          rq = 30.709D0*re**(-1.845D0)
+        else if ( re <= 300.0D0 ) then
+          rt = 1667.19D0*re**(-2.907D0)
+          rq = 1448.68D0*re**(-2.682D0)
+        else if ( re <= 1000.0D0 ) then
+          rt = 5.88d5*re**(-3.935D0)
+          rq = 2.98d5*re**(-3.616D0)
+        end if
+        zot = rt*visa/ustar
+        zoq = rq*visa/ustar
       else
         xtq = 2.67D0*(re**d_rfour) - 2.57D0
         zoq = zo/exp(xtq)
+        zot = zoq
       end if
-      zot = zoq
      end subroutine ocnrough
 
   end subroutine zengocndrv

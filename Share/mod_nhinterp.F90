@@ -68,7 +68,7 @@ module mod_nhinterp
       !
       do i = i1 , i2
         do j = j1 , j2
-          ac = egrav * ter(j,i) / (d_two * tlp * rgas)
+          ac = d_half * govr * ter(j,i) / tlp
           b = ts0 / tlp
           alnp = -b + sqrt(b*b - d_four * ac)
           ps0(j,i) = p0 * exp(alnp) - ptoppa
@@ -248,12 +248,12 @@ module mod_nhinterp
     ! horizontal wind fields (u and v).
     !
     subroutine nhw(i1,i2,j1,j2,kxs,a,sigma,dsigma,ter,u,v,tv,rho0, &
-                   ps,psdot,ps0,xmsfx,w,wtop,ds)
+                   ps,psdot,ps0,xmsfx,xmsfd,w,wtop,ds)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs
       real(rk8) , intent(in) , dimension(:) :: a , sigma , dsigma
       real(rk8) , intent(in) , dimension(:,:) :: ter  ! Meters
-      real(rk8) , intent(in) , dimension(:,:) :: xmsfx
+      real(rk8) , intent(in) , dimension(:,:) :: xmsfx , xmsfd
       real(rk8) , intent(in) , dimension(:,:) :: ps , ps0 , psdot
       real(rk8) , intent(in) , dimension(:,:,:) :: rho0 , tv
       real(rk8) , intent(in) , dimension(:,:,:) :: u , v
@@ -263,7 +263,7 @@ module mod_nhinterp
       integer(ik4) :: i , j , k , km , kp
       integer(ik4) :: l , ll , lm , lp , ip , im , jp , jm
       real(rk8) :: alnpq , dx2 , omegal , omegau , ubar , vbar
-      real(rk8) :: piso , pr0 , ziso , zl , zu , rho , omegan
+      real(rk8) :: pr0 , ziso , zl , zu , rho , omegan
       real(rk8) , dimension(kxs+1) :: omega , qdt
       real(rk8) , dimension(kxs+1) :: z0q , zq
       real(rk8) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
@@ -272,14 +272,14 @@ module mod_nhinterp
 
       wtmp(:,:,:) = d_zero
       dx2 = d_two * ds
-      piso = p0 * exp((tiso-ts0) / tlp)
       psdotpa = psdot * d_1000
       pspa = ps * d_1000
-      do i = i1 , i2-1
-        do j = j1 , j2-1
-          qdt(kxs+1) = d_zero
-          z0q(kxs+1) = ter(j,i)
-          zq(kxs+1) = ter(j,i)
+      do i = i1 , i2
+        do j = j1 , j2
+          ip = min(i+1,i2)
+          im = max(i-1,i1)
+          jp = min(j+1,j2)
+          jm = max(j-1,j1)
           if ( ps0(j,i) + ptoppa < piso ) THEN
             write(stderr,'(a,f5.1,a,f6.1,a)') &
               'The chosen value of Tiso, ',tiso,' K occurs at ',piso,' hPa.'
@@ -293,41 +293,44 @@ module mod_nhinterp
               ziso = -(d_half*rovg*tlp*alnpq*alnpq + rovg*ts0*alnpq)
               z0q(k) = ziso - rovg*tiso*log(pr0/piso)
             else
-              alnpq = log((ps0(j,i) * sigma(k) + ptoppa) / p0)
+              alnpq = log(pr0/p0)
               z0q(k) = -(d_half*rovg*tlp*alnpq*alnpq + rovg*ts0*alnpq)
             end if
           end do
-          do l = kxs + 1 , 1 , -1
+          z0q(kxs+1) = ter(j,i)
+          zq(kxs+1) = ter(j,i)
+          do l = kxs , 1 , -1
+            zq(l) = zq(l+1) - rovg*tv(j,i,l) * &
+              log((sigma(l)   * pspa(j,i) + ptoppa) / &
+                  (sigma(l+1) * pspa(j,i) + ptoppa))
+          end do
+          qdt(1) = d_zero
+          do l = 2 , kxs
+            qdt(l) = qdt(l-1) - &
+                      (u(jp,ip,l) * psdotpa(jp,ip) / xmsfd(jp,ip) +  &
+                       u(jp,i ,l) * psdotpa(jp,i ) / xmsfd(jp,i ) -  &
+                       u(j ,ip,l) * psdotpa(j ,ip) / xmsfd(j ,ip) -  &
+                       u(j ,i ,l) * psdotpa(j ,i ) / xmsfd(j ,i ) +  &
+                       v(jp,ip,l) * psdotpa(jp,ip) / xmsfd(jp,ip) +  &
+                       v(j ,ip,l) * psdotpa(j ,ip) / xmsfd(j ,ip) -  &
+                       v(jp,i ,l) * psdotpa(jp,i ) / xmsfd(jp,i ) -  &
+                       v(j ,i ,l) * psdotpa(j ,i ) / xmsfd(j ,i )) / &
+                   dx2 * xmsfx(j,i) * xmsfx(j,i) * dsigma(l) / pspa(j,i)
+          end do
+          qdt(kxs+1) = d_zero
+          omega(1) = d_zero
+          do l = 2 , kxs+1
             lp = min(l,kxs)
             lm = max(l-1,1)
-            ip = min(i+1,i2)
-            im = max(i-1,i1)
-            jp = min(j+1,j2)
-            jm = max(j-1,j1)
-            if ( l /= kxs + 1 ) then
-              zq(l) = zq(l+1) - rovg*tv(j,i,l) * &
-                log((sigma(l) *   pspa(j,i) + ptoppa ) / &
-                    (sigma(l+1) * pspa(j,i) + ptoppa ))
-              qdt(l) = qdt(l+1) + &
-                      (u(j+1,i+1,l) * psdotpa(j+1,i+1) + &
-                       u(j+1,i  ,l) * psdotpa(j+1,i  ) - &
-                       u(j  ,i+1,l) * psdotpa(j  ,i+1) - &
-                       u(j  ,i  ,l) * psdotpa(j  ,i  ) + &
-                       v(j+1,i+1,l) * psdotpa(j+1,i+1) + &
-                       v(j  ,i+1,l) * psdotpa(j  ,i+1) - &
-                       v(j+1,i  ,l) * psdotpa(j+1,i  ) - &
-                       v(j  ,i  ,l) * psdotpa(j  ,i  )) / &
-                   dx2 * xmsfx(j,i) * xmsfx(j,i) * dsigma(l) / pspa(j,i)
-            end if
-            ubar = 0.125D0 * (u(j  ,i  ,lp) + u(j  ,i  ,lm) + &
-                              u(j  ,i+1,lp) + u(j  ,i+1,lm) + &
-                              u(j+1,i  ,lp) + u(j+1,i  ,lm) + &
-                              u(j+1,i+1,lp) + u(j+1,i+1,lm))
-            vbar = 0.125D0 * (v(j  ,i  ,lp) + v(j  ,i  ,lm) + &
-                              v(j  ,i+1,lp) + v(j  ,i+1,lm) + &
-                              v(j+1,i  ,lp) + v(j+1,i  ,lm) + &
-                              v(j+1,i+1,lp) + v(j+1,i+1,lm))
-            ! Calculate omega (msfx not inverted)
+            ubar = 0.125D0 * (u(j ,i ,lp) + u(j ,i ,lm) + &
+                              u(j ,ip,lp) + u(j ,ip,lm) + &
+                              u(jp,i ,lp) + u(jp,i ,lm) + &
+                              u(jp,ip,lp) + u(jp,ip,lm))
+            vbar = 0.125D0 * (v(j ,i ,lp) + v(j ,i ,lm) + &
+                              v(j ,ip,lp) + v(j ,ip,lm) + &
+                              v(jp,i ,lp) + v(jp,i ,lm) + &
+                              v(jp,ip,lp) + v(jp,ip,lm))
+            ! Calculate omega
             omega(l) = pspa(j,i) * qdt(l) + sigma(l) * &
                        ((pspa(jp,i ) - pspa(jm,i )) * ubar +  &
                         (pspa(j ,ip) - pspa(j ,im)) * vbar) / dx2 * xmsfx(j,i)
@@ -337,16 +340,15 @@ module mod_nhinterp
           !
           do k = 2 , kxs + 1
             kp = min(k,kxs)
-            km = max(k-1,1)
-            if ( k == kxs+1 ) km = kxs - 1
-            do ll = 1 , kxs
+            km = min(max(k-1,1),kxs-1)
+            do ll = 2 , kxs + 1
               l = ll
-              if ( zq(l+1) < z0q(k) ) exit
+              if ( zq(l) < z0q(k) ) exit
             end do
-            zu = zq(l)
-            zl = zq(l+1)
-            omegau = omega(l)
-            omegal = omega(l+1)
+            zu = zq(l-1)
+            zl = zq(l)
+            omegau = omega(l-1)
+            omegal = omega(l)
             omegan = (omegau * (z0q(k) - zl ) + &
                       omegal * (zu - z0q(k))) / (zu - zl)
             !  W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
@@ -364,6 +366,8 @@ module mod_nhinterp
           end do
         end do
       end do
+      w(j2,:,:) = w(j2-1,:,:)
+      w(:,i2,:) = w(:,i2-1,:)
     end subroutine nhw
 
 end module mod_nhinterp
