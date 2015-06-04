@@ -111,7 +111,7 @@ module mod_runparams
   ! Seasonal albedo for desert index
   integer(ik4) , public :: idesseas
   ! Ocean model switch indexes
-  integer(ik4) , public :: iocnrough , iocnflx , iocncpl
+  integer(ik4) , public :: iocnrough , iocnflx , iocncpl , iocnzoq
   ! Radiation switch controls
   integer(ik4) , public :: idirect , iindirect , iemiss , isolconst
   ! Semi-Langrangian advection for tracers

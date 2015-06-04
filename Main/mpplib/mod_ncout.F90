@@ -2316,6 +2316,8 @@ module mod_ncout
         if ( iocnflx == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('zeng_ocean_roughness_formula',iocnrough))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('zeng_ocean_roughness_method',iocnzoq))
         end if
         if ( iocncpl == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

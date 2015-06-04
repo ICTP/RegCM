@@ -98,10 +98,11 @@ module mod_params
       do_parallel_netcdf_out , idiag
 
     namelist /physicsparam/ ibltyp , iboudy , isladvec ,      &
-      icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls ,    &
-      iocnflx , iocncpl , iocnrough , ichem , scenario , idcsst ,        &
-      iseaice , idesseas , iconvlwp , irrtm , iclimao3 , isolconst ,     &
-      icumcloud , islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval
+      icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls ,   &
+      iocnflx , iocncpl , iocnrough , iocnzoq , ichem , scenario ,      &
+      idcsst , iseaice , idesseas , iconvlwp , irrtm , iclimao3 ,       &
+      isolconst , icumcloud , islab_ocean , itweak , temp_tend_maxval , &
+      wind_tend_maxval
 
     namelist /nonhydroparam/ ifupr , logp_lrate
 
@@ -218,6 +219,7 @@ module mod_params
     ipgf = 1
     iemiss = 0
     iocnflx = 2
+    iocnzoq = 1
     iocncpl = 0
     iocnrough = 1
     lakemod = 0
@@ -788,6 +790,7 @@ module mod_params
     call bcast(iocnflx)
     call bcast(iocncpl)
     call bcast(iocnrough)
+    call bcast(iocnzoq)
     call bcast(ipgf)
     call bcast(iemiss)
     call bcast(lakemod)
@@ -1361,6 +1364,7 @@ module mod_params
       write(stdout,'(a,i2)') '  Ocean Flux scheme           : ' , iocnflx
       if ( iocnflx == 2 ) then
         write(stdout,'(a,i2)') '  Zeng roughness formula      : ' , iocnrough
+        write(stdout,'(a,i2)') '  Zeng roughness method       : ' , iocnzoq
       end if
       write(stdout,'(a,i2)') '  Coupling with ROMS ocean    : ' , iocncpl
       write(stdout,'(a,i2)') '  Pressure gradient force     : ' , ipgf

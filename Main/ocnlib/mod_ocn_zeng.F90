@@ -26,7 +26,7 @@ module mod_ocn_zeng
   use mod_dynparam
   use mod_service
   use mod_ocn_internal
-  use mod_runparams , only : iocnrough , iocncpl
+  use mod_runparams , only : iocnrough , iocncpl , iocnzoq
 
   implicit none
 
@@ -384,8 +384,12 @@ module mod_ocn_zeng
         zo = charnockog*ustar*ustar
       end if
       re = (ustar*zo)/visa
-      xtq = 2.67D0*(re**d_rfour) - 2.57D0
-      zoq = zo/exp(xtq)
+      if ( iocnzoq == 2 ) then
+        zoq = min(4.0D-4, 2.0D-4*re**(-3.3D0))
+      else
+        xtq = 2.67D0*(re**d_rfour) - 2.57D0
+        zoq = zo/exp(xtq)
+      end if
       zot = zoq
      end subroutine ocnrough
 
