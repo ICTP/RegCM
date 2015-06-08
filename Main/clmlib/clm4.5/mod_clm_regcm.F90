@@ -145,16 +145,16 @@ module mod_clm_regcm
           write (stdout,*) 'Write restart file for CLM at ', tochar(nextr)
         end if
       end if
-      ! Restart frequency
-      if ( mod(ktau,ksav) == 0 ) then
-        if ( .not. rstwr ) then
-          rstwr = .true.
-          write(rdate,'(i10)') toint10(nextr)
-          if ( myid == italk ) then
-            write (stdout,*) 'Write restart file for CLM at ', tochar(nextr)
-          end if
-        end if
-      end if
+      ! Restart frequency - needs more thinkering here...
+      !if ( mod(ktau,ksav) == 0 ) then
+      !  if ( .not. rstwr ) then
+      !    rstwr = .true.
+      !    write(rdate,'(i10)') toint10(nextr)
+      !    if ( myid == italk ) then
+      !      write (stdout,*) 'Write restart file for CLM at ', tochar(nextr)
+      !    end if
+      !  end if
+      !end if
       ! End of the month
       if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
         nlomon = .true.
