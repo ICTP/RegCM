@@ -309,7 +309,8 @@ module mod_advection
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,nk) = ften(j,i,nk) + svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+              ften(j,i,nk) = ften(j,i,nk) + svv(j,i,nk) * &
+                (fg(j,i,nk) - f(j,i,nk))/dsigma(nk)
             end do
           end do
         else
