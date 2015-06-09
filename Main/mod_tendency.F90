@@ -326,7 +326,7 @@ module mod_tendency
         end do
       end do
     else if ( idynamic == 2 ) then
-      do k = 2 , kz
+      do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
             !
@@ -364,12 +364,11 @@ module mod_tendency
             ! nonhydrostatic model:
             ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
             !
-            divx(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)-              &
-                           atm1%u(j,i+1,k)  -atm1%u(j,i,k)) +              &
-                          (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)-              &
-                           atm1%v(j+1,i,k)  -atm1%v(j,i,k))
-            divx(j,i,k) = divx(j,i,k) * dummy(j,i) + &
-              (qdot(j,i,k+1) - qdot(j,i,k)) * sfs%psa(j,i)/dsigma(k)
+            divx(j,i,k) = ((atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k) -              &
+                            atm1%u(j,i+1,k)  -atm1%u(j,i,k))  +              &
+                           (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k) -              &
+                            atm1%v(j+1,i,k)  -atm1%v(j,i,k))) * dummy(j,i) + &
+               (qdot(j,i,k+1) - qdot(j,i,k)) * sfs%psa(j,i)/dsigma(k)
           end do
         end do
       end do
