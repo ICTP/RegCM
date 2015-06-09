@@ -1115,7 +1115,6 @@ module mod_ncout
             'Near surface relative humidity','relative_humidity',.true.)
           srf_rh2m_out => v3dvar_srf(srf_rh2m)%rval
         end if
-
         vsize%k2 = num_soil_layers
         v3dvar_srf(srf_smw)%axis = 'xys'
         if ( enable_srf3d_vars(srf_smw) ) then
@@ -1124,7 +1123,6 @@ module mod_ncout
             'soil_moisture_content_in_layers',.true.,l_fill=.true.)
           srf_smw_out => v3dvar_srf(srf_smw)%rval
         end if
-
         enable_srf_vars(1:nsrf2dvars) = enable_srf2d_vars
         enable_srf_vars(nsrf2dvars+1:nsrfvars) = enable_srf3d_vars
         outstream(srf_stream)%nvar = countvars(enable_srf_vars,nsrfvars)
@@ -2120,7 +2118,7 @@ module mod_ncout
 
     if ( .not. parallel_out ) then
       if ( myid == iocpu ) then
-        kkz = 2
+        kkz = num_soil_layers
         n4dd = 4
         if ( atm_stream > 0 .or. rad_stream > 0 ) then
           kkz = max(kz,kkz)
