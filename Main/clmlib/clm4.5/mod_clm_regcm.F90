@@ -72,11 +72,13 @@ module mod_clm_regcm
     call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
     adomain%topo = adomain%topo*regrav
     call glb_c2l_ss(lndcomm,lm%iveg1,adomain%luse)
-    do ilev = 1 , num_soil_layers
-      call assignpnt(lm%rmoist,p2,ilev)
-      call assignpnt(adomain%rmoist,p1,ilev)
-      call glb_c2l_gs(lndcomm,p2,p1)
-    end do
+    if ( replacemoist ) then
+      do ilev = 1 , num_soil_layers
+        call assignpnt(lm%rmoist,p2,ilev)
+        call assignpnt(adomain%rmoist,p1,ilev)
+        call glb_c2l_gs(lndcomm,p2,p1)
+      end do
+    end if
 
     write(rdate,'(i10)') toint10(idatex)
     call initialize2(rdate)
@@ -146,15 +148,15 @@ module mod_clm_regcm
         end if
       end if
       ! Restart frequency - needs more thinkering here...
-      !if ( mod(ktau,ksav) == 0 ) then
-      !  if ( .not. rstwr ) then
-      !    rstwr = .true.
-      !    write(rdate,'(i10)') toint10(nextr)
-      !    if ( myid == italk ) then
-      !      write (stdout,*) 'Write restart file for CLM at ', tochar(nextr)
-      !    end if
-      !  end if
-      !end if
+      if ( mod(ktau+1,ksav) == 0 ) then
+        if ( .not. rstwr ) then
+          rstwr = .true.
+          write(rdate,'(i10)') toint10(nextr)
+          if ( myid == italk ) then
+            write (stdout,*) 'Write restart file for CLM at ', tochar(nextr)
+          end if
+        end if
+      end if
       ! End of the month
       if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
         nlomon = .true.
