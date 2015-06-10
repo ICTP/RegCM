@@ -50,10 +50,10 @@ program terrain
 !
 !  This program reads terrain height data from :
 !
-!      GTOPO 30s DEM in NetCDF format
-!      GLCC V2 BATS  in NetCDF format
-!      SOIL ZOBLER   in NetCDF format
-!      ETOPO BATHYM  in NetCDF format
+!      GTOPO or GMTED 30s DEM in NetCDF format
+!      GLCC V2 BATS           in NetCDF format
+!      SOIL ZOBLER            in NetCDF format
+!      ETOPO BATHYM           in NetCDF format
 !
 !  and analyzes heights and landuse values to a given grid.
 !
@@ -208,7 +208,7 @@ program terrain
     end do
     write(stdout,*) 'Using resampling at ', ntypec_s, ' minutes.'
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                     pthsep//'GTOPO_DEM_30s.nc','z',   &
+                     pthsep//trim(tersrc)//'_DEM_30s.nc','z',   &
                      30,ntypec_s,.true.,2)
     write(stdout,*)'Static DEM data successfully read in'
     call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s, &
@@ -402,7 +402,7 @@ program terrain
   end do
   write(stdout,*) 'Using resampling at ', ntypec, ' minutes.'
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                   pthsep//'GTOPO_DEM_30s.nc','z',   &
+                   pthsep//trim(tersrc)//'_DEM_30s.nc','z',   &
                    30,ntypec,.true.,2)
   write(stdout,*)'Static DEM data successfully read in'
   call interp(jx,iy,xlat,xlon,htgrid,           &
