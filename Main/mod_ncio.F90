@@ -258,7 +258,7 @@ module mod_ncio
       call bcast(replacemoist)
       deallocate(tempmoist)
     end if
-    if ( idynamic == 2 ) then
+    if ( idynamic == 2 .and. .not. do_parallel_netcdf_in ) then
       call getmem3d(tempw,jce1,jce2,ice1,ice2,1,kz,'read_domain:tempw')
       call getmem2d(tempwtop,jce1,jce2,ice1,ice2,'read_domain:tempwtop')
     end if
@@ -745,7 +745,7 @@ module mod_ncio
           istatus = nf90_get_var(ibcin,icbc_ivar(8),rspace3,istart,icount)
           call check_ok(__FILE__,__LINE__,'variable w read error', 'ICBC FILE')
           call grid_distribute(rspace3,tempw,jce1,jce2,ice1,ice2,1,kz)
-          ww(:,:,2:kzp1) = tempw(:,:,:)
+          ww(jce1:jce2,ice1:ice2,2:kzp1) = tempw(jce1:jce2,ice1:ice2,1:kz)
           istart(1) = 1
           istart(2) = 1
           istart(3) = ibcrec
@@ -757,7 +757,7 @@ module mod_ncio
           call check_ok(__FILE__,__LINE__, &
                         'variable wtop read error', 'ICBC FILE')
           call grid_distribute(rspace2,tempwtop,jce1,jce2,ice1,ice2)
-          ww(:,:,1) = tempwtop(:,:)
+          ww(jce1:jce2,ice1:ice2,1) = tempwtop(jce1:jce2,ice1:ice2)
         end if
       else
         call grid_distribute(rspace2,ps,jce1,jce2,ice1,ice2)
@@ -769,9 +769,9 @@ module mod_ncio
         if ( idynamic == 2 ) then
           call grid_distribute(rspace3,pp,jce1,jce2,ice1,ice2,1,kz)
           call grid_distribute(rspace3,tempw,jce1,jce2,ice1,ice2,1,kz)
-          ww(:,:,2:kzp1) = tempw(:,:,:)
+          ww(jce1:jce2,ice1:ice2,2:kzp1) = tempw(jce1:jce2,ice1:ice2,1:kz)
           call grid_distribute(rspace2,tempwtop,jce1,jce2,ice1,ice2)
-          ww(:,:,1) = tempwtop(:,:)
+          ww(jce1:jce2,ice1:ice2,1) = tempwtop(jce1:jce2,ice1:ice2)
         end if
       end if
     end if

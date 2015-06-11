@@ -382,8 +382,13 @@ module mod_bdycod
           end do
         end do
       end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          xwwb%b0(j,i,kzp1) = xwwb%b0(j,i,kzp1)*xpsb%b0(j,i)
+        end do
+      end do
       call exchange(xppb%b0,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xwwb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xwwb%b0,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
     !
     ! Repeat for T2
@@ -423,8 +428,13 @@ module mod_bdycod
           end do
         end do
       end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          xwwb%b1(j,i,kzp1) = xwwb%b1(j,i,kzp1)*xpsb%b1(j,i)
+        end do
+      end do
       call exchange(xppb%b1,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
     !
     ! Calculate time varying component
@@ -464,8 +474,13 @@ module mod_bdycod
           end do
         end do
       end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          xwwb%bt(j,i,kzp1) = (xwwb%b1(j,i,kzp1)-xwwb%b0(j,i,kzp1))/dtbdys
+        end do
+      end do
       call exchange(xppb%bt,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -587,8 +602,13 @@ module mod_bdycod
           end do
         end do
       end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          xwwb%b1(j,i,kzp1) = xwwb%b1(j,i,kzp1)*xpsb%b1(j,i)
+        end do
+      end do
       call exchange(xppb%b1,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
     do i = ice1 , ice2
@@ -626,8 +646,13 @@ module mod_bdycod
           end do
         end do
       end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          xwwb%bt(j,i,kzp1) = (xwwb%b1(j,i,kzp1)-xwwb%b0(j,i,kzp1))/dtbdys
+        end do
+      end do
       call exchange(xppb%bt,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
     !
     ! Update ground temperature on Ocean/Lakes
