@@ -57,11 +57,9 @@ module mod_advection
   ! working space used to store the interlated values in vadv.
 
   real(rk8) , pointer , dimension(:,:,:) :: fg
-  real(rk8) , pointer , dimension(:) :: dds
+  real(rk8) , pointer , dimension(:) :: dds , xds , xds4
 
   real(rk8) , parameter :: c287 = 0.287D+00
-
-  real(rk8) , parameter :: falow = 1.0D-8
 
   contains
 
@@ -79,6 +77,10 @@ module mod_advection
       call assignpnt(qdot,svv)
       call assignpnt(kpbl,kpb)
       call getmem1d(dds,1,kzp1,'mod_advection:dds')
+      call getmem1d(xds,1,kz,'mod_advection:xds')
+      call getmem1d(xds4,1,kz,'mod_advection:xds4')
+      xds(:) =  d_one / dsigma(:)
+      xds4(:) =  xds(:) * d_rfour
       dds(1) = d_zero
       dds(kzp1) = d_zero
       do k = 2 , kz
@@ -88,16 +90,11 @@ module mod_advection
     end subroutine init_advection
     !
     !  HADV
-    !
     !     This subroutines computes the horizontal flux-divergence terms.
     !     second-order difference is used.
-    !
     !     ldot   : cross/dot variable flag
-    !
     !     ften   : is the tendency for variable 'f'.
-    !
     !     f      : is p*f.
-    !
     !     nk     : is the number of vertical levels to work (kz/kzp1)
     !
     subroutine hadv3d(ldot,ften,f,nk)
@@ -238,21 +235,13 @@ module mod_advection
     end subroutine hadv4d
     !
     ! VADV
-    !
     !     This subroutine computes the vertical flux-divergence terms.
-    !
     !     ften   : is the tendency of variable 'f'.
-    !
     !     f      : is p*f.
-    !
-    !     jstart : is the j'th slice of f anf ften to start
-    !
-    !     jsstop : is the j'th slice of f anf ften to stop
-    !
-    !     ind = 1 : for t.
-    !           2 : for qv.
-    !           3 : for qc and qr.
-    !           4 : for u and v.
+    !     ind = 0 : for pp, w
+    !           1 : for t.
+    !           2 : for u and v
+    !           3 : Use pbl information
     !
     subroutine vadv3d(ldot,ften,f,nk,ind)
       implicit none
@@ -261,7 +250,7 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
 
-      real(rk8) :: slope , rdphf , rdplf
+      real(rk8) :: slope , rdphf , rdplf , ff , qq
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv3d'
@@ -275,70 +264,67 @@ module mod_advection
         end if
       end if
 
-      if ( ind == 1 ) then
+      fg(:,:,:) = d_zero
+
+      if ( ind == 0 ) then
         if ( nk == kz ) then
-          !
-          ! vertical advection terms : interpolate to full sigma levels
-          !
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              fg(j,i,1) = d_zero
-            end do
-          end do
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                rdphf = (pfs(j,i,k)/phs(j,i,k))**c287
-                rdplf = (pfs(j,i,k)/phs(j,i,k-1))**c287
-                fg(j,i,k) = twt(k,1)*f(j,i,k)*rdphf + twt(k,2)*f(j,i,k-1)*rdplf
+                ff = twt(k,1)*f(j,i,k)+twt(k,2)*f(j,i,k-1)
+                ff = svv(j,i,k)*ff
+                ften(j,i,k-1) = ften(j,i,k-1) - ff*xds(k-1)
+                ften(j,i,k)   = ften(j,i,k)   + ff*xds(k)
               end do
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,1) = ften(j,i,1) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
-            end do
-          end do
-          do k = 2 , nk-1
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                ften(j,i,k) = ften(j,i,k) - &
-                     (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
-              end do
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,nk) = ften(j,i,nk) + svv(j,i,nk) * fg(j,i,nk)/dsigma(nk)
             end do
           end do
         else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                fg(j,i,k) = d_half*(svv(j,i,k)+svv(j,i,k+1)) * &
-                                   (f(j,i,k)+f(j,i,k+1))
-              end do
-            end do
-          end do
           do k = 1 , nk - 1
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ften(j,i,k+1) = ften(j,i,k+1) + fg(j,i,k)*dds(k+1)
-                ften(j,i,k) = ften(j,i,k) - fg(j,i,k)*dds(k)
+                qq = d_half * (svv(j,i,k) + svv(j,i,k+1))
+                ff = qq * (f(j,i,k) + f(j,i,k+1))
+                ften(j,i,k+1) = ften(j,i,k+1) + ff*dds(k+1)
+                ften(j,i,k)   = ften(j,i,k)   - ff*dds(k)
               end do
             end do
           end do
         end if
+      else if ( ind == 1 ) then
+        !
+        ! vertical advection terms : interpolate to full sigma levels
+        !
+        do k = 2 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              rdphf = (pfs(j,i,k)/phs(j,i,k))**c287
+              rdplf = (pfs(j,i,k)/phs(j,i,k-1))**c287
+              fg(j,i,k) = twt(k,1)*f(j,i,k)*rdphf + twt(k,2)*f(j,i,k-1)*rdplf
+            end do
+          end do
+        end do
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ften(j,i,1) = ften(j,i,1) - svv(j,i,2)*fg(j,i,2)*xds(1)
+          end do
+        end do
+        do k = 2 , nk-1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ften(j,i,k) = ften(j,i,k) - &
+                   (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))*xds(k)
+            end do
+          end do
+        end do
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ften(j,i,nk) = ften(j,i,nk) + svv(j,i,nk) * fg(j,i,nk)*xds(nk)
+          end do
+        end do
       else if ( ind == 2 ) then
         !
         ! vertical advection terms : interpolate ua or va to full sigma levels
         !
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            fg(j,i,1) = d_zero
-          end do
-        end do
         do k = 2 , nk
           do i = idi1 , idi2
             do j = jdi1 , jdi2
@@ -351,7 +337,7 @@ module mod_advection
             ften(j,i,1) = ften(j,i,1) -                &
                         (svv(j-1,i-1,2)+svv(j-1,i,2) + &
                          svv(j,i,2)+svv(j,i-1,2))    * &
-                         fg(j,i,2)/(d_four*dsigma(1))
+                         fg(j,i,2)*xds4(1)
           end do
         end do
         do k = 2 , nk-1
@@ -361,8 +347,7 @@ module mod_advection
                           ((svv(j-1,i,k+1)+svv(j-1,i-1,k+1)+             &
                             svv(j,i,k+1)  +svv(j,i-1,k+1))*fg(j,i,k+1) - &
                            (svv(j-1,i,k)  +svv(j-1,i-1,k)+               &
-                            svv(j,i,k)    +svv(j,i-1,k))*fg(j,i,k)) /    &
-                          (d_four*dsigma(k))
+                            svv(j,i,k)    +svv(j,i-1,k))*fg(j,i,k)) * xds4(k)
             end do
           end do
         end do
@@ -371,15 +356,10 @@ module mod_advection
             ften(j,i,nk) = ften(j,i,nk) +                 &
                          (svv(j-1,i,nk)+svv(j-1,i-1,nk) + &
                           svv(j,i,nk)+svv(j,i-1,nk)) *    &
-                          fg(j,i,nk)/(d_four*dsigma(nk))
+                          fg(j,i,nk)*xds4(nk)
           end do
         end do
       else if ( ind == 3 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            fg(j,i,1) = d_zero
-          end do
-        end do
         do k = 2 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -421,21 +401,21 @@ module mod_advection
         end do
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ften(j,i,1) = ften(j,i,1) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
+            ften(j,i,1) = ften(j,i,1) - svv(j,i,2)*fg(j,i,2)*xds(1)
           end do
         end do
         do k = 2 , nk-1
           do i = ici1 , ici2
             do j = jci1 , jci2
               ften(j,i,k) = ften(j,i,k) - &
-                  (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
+                  (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))*xds(k)
             end do
           end do
         end do
         do i = ici1 , ici2
           do j = jci1 , jci2
             ften(j,i,nk) = ften(j,i,nk) + &
-                   svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+                   svv(j,i,nk)*fg(j,i,nk)*xds(nk)
           end do
         end do
       end if
@@ -443,7 +423,16 @@ module mod_advection
       call time_end(subroutine_name,idindx)
 #endif
     end subroutine vadv3d
-
+    !
+    ! VADV
+    !     This subroutine computes the vertical flux-divergence terms.
+    !     ften   : is the tendency of variable 'f'.
+    !     f      : is p*f.
+    !     ind = 1 : for qv
+    !           2 : for hydometeors
+    !           3 : for chemical tracers
+    !           4 : use pbl information
+    !
     subroutine vadv4d(ften,f,nk,ind,m,p)
       implicit none
       integer(ik4) , intent(in) :: ind , nk
@@ -472,9 +461,6 @@ module mod_advection
       end if
       if ( ind == 1 ) then
         do n = n1 , n2
-          !
-          ! vertical advection term : interpolate qv to full sigma levels
-          !
           do i = ici1 , ici2
             do j = jci1 , jci2
               fg(j,i,1) = d_zero
@@ -483,7 +469,7 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) > falow .and. f(j,i,k-1,n) > falow ) then
+                if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
                   fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
                 else
                   fg(j,i,k) = d_zero
@@ -493,20 +479,20 @@ module mod_advection
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
+              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)*xds(1)
             end do
           end do
           do k = 2 , nk-1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ften(j,i,k,n) = ften(j,i,k,n) - &
-                       (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
+                       (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))*xds(k)
               end do
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,nk,n) = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+              ften(j,i,nk,n) = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)*xds(nk)
             end do
           end do
         end do
@@ -520,27 +506,27 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                fg(j,i,k) = twt(k,1)*max(f(j,i,k,n),1.D-10) + &
-                            twt(k,2)*max(f(j,i,k-1,n),1.D-10)
+                fg(j,i,k) = twt(k,1)*max(f(j,i,k,n),  d_zero) + &
+                            twt(k,2)*max(f(j,i,k-1,n),d_zero)
               end do
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
+              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)*xds(1)
             end do
           end do
           do k = 2 , nk-1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ften(j,i,k,n) = ften(j,i,k,n) - &
-                       (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
+                       (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))*xds(k)
               end do
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,nk,n) = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+              ften(j,i,nk,n) = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)*xds(nk)
             end do
           end do
         end do
@@ -560,20 +546,20 @@ module mod_advection
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
+              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)*xds(1)
             end do
           end do
           do k = 2 , nk-1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ften(j,i,k,n) = ften(j,i,k,n) - &
-                       (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
+                       (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))*xds(k)
               end do
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,nk,n) = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+              ften(j,i,nk,n) = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)*xds(nk)
             end do
           end do
         end do
@@ -628,21 +614,21 @@ module mod_advection
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)/dsigma(1)
+              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)*xds(1)
             end do
           end do
           do k = 2 , nk-1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ften(j,i,k,n) = ften(j,i,k,n) - &
-                    (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))/dsigma(k)
+                    (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))*xds(k)
               end do
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
               ften(j,i,nk,n) = ften(j,i,nk,n) + &
-                     svv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+                     svv(j,i,nk)*fg(j,i,nk)*xds(nk)
             end do
           end do
         end do

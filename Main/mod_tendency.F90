@@ -176,10 +176,6 @@ module mod_tendency
     !
     call surface_pressures
     !
-    ! Decoupling on atmx and apply bdy conditions to U,V
-    !
-    call decouple
-    !
     ! multiply ua and va by inverse of mapscale factor at dot point:
     !
     do k = 1 , kz
@@ -190,7 +186,11 @@ module mod_tendency
         end do
       end do
     end do
-
+    !
+    ! Decoupling on atmx and apply bdy conditions to U,V
+    !
+    call decouple
+    !
     call exchange(atm1%u,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm1%v,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm1%t,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
@@ -607,9 +607,9 @@ module mod_tendency
       ! Also, cf. Eq. 2.2.11 of vertical velocity tendency in the MM5 manual.
       !
       call hadv(cross,aten%pp,atmx%pp,kz)
-      call vadv(cross,aten%pp,atm1%pp,kz,icvadv)
+      call vadv(cross,aten%pp,atm1%pp,kz,0)
       call hadv(cross,aten%w,atmx%w,kzp1)
-      call vadv(cross,aten%w,atm1%w,kzp1,1)
+      call vadv(cross,aten%w,atm1%w,kzp1,0)
     end if
     !
     ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
@@ -658,7 +658,7 @@ module mod_tendency
         end do
       end do
       call hadv(cross,thten,th,kz)
-      call vadv(cross,thten,tha,kz,icvadv)
+      call vadv(cross,thten,tha,kz,0)
     end if
     !
     ! compute the adiabatic term:

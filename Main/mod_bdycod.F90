@@ -76,6 +76,10 @@ module mod_bdycod
   integer(ik4) :: nbdm
   integer(ik4) :: som_month
 
+  interface timeint
+    module procedure timeint2 , timeint3
+  end interface timeint
+
   interface nudge
     module procedure nudge4d , nudge3d , nudge2d
   end interface nudge
@@ -231,10 +235,11 @@ module mod_bdycod
 
   subroutine init_bdy
     implicit none
-    integer(ik4) :: datefound , i , j , k
+    integer(ik4) :: datefound
     character(len=32) :: appdat
     type (rcm_time_and_date) :: icbc_date
     type (rcm_time_interval) :: tdif
+    real(rk8) :: xtt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init_bdy'
     integer(ik4) , save :: idindx = 0
@@ -352,41 +357,17 @@ module mod_bdycod
     !
     ! Couple pressure u,v,t,q (pp,ww)
     !
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          xub%b0(j,i,k) = xub%b0(j,i,k)*psdot(j,i)
-          xvb%b0(j,i,k) = xvb%b0(j,i,k)*psdot(j,i)
-        end do
-      end do
-    end do
+    call couple(xub%b0,psdot,jde1,jde2,ide1,ide2,1,kz)
+    call couple(xvb%b0,psdot,jde1,jde2,ide1,ide2,1,kz)
+    call couple(xtb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
+    call couple(xqb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xub%b0,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%b0,1,jde1,jde2,ide1,ide2,1,kz)
-
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          xtb%b0(j,i,k) = xtb%b0(j,i,k)*xpsb%b0(j,i)
-          xqb%b0(j,i,k) = xqb%b0(j,i,k)*xpsb%b0(j,i)
-        end do
-      end do
-    end do
     call exchange(xtb%b0,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%b0,1,jce1,jce2,ice1,ice2,1,kz)
     if ( idynamic == 2 ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            xppb%b0(j,i,k) = xppb%b0(j,i,k)*xpsb%b0(j,i)
-            xwwb%b0(j,i,k) = xwwb%b0(j,i,k)*xpsb%b0(j,i)
-          end do
-        end do
-      end do
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          xwwb%b0(j,i,kzp1) = xwwb%b0(j,i,kzp1)*xpsb%b0(j,i)
-        end do
-      end do
+      call couple(xppb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
+      call couple(xwwb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kzp1)
       call exchange(xppb%b0,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%b0,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
@@ -398,87 +379,37 @@ module mod_bdycod
     !
     ! Couple pressure u,v,t,q
     !
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          xub%b1(j,i,k) = xub%b1(j,i,k)*psdot(j,i)
-          xvb%b1(j,i,k) = xvb%b1(j,i,k)*psdot(j,i)
-        end do
-      end do
-    end do
+    call couple(xub%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
+    call couple(xvb%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
+    call couple(xtb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+    call couple(xqb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
-
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          xtb%b1(j,i,k) = xtb%b1(j,i,k)*xpsb%b1(j,i)
-          xqb%b1(j,i,k) = xqb%b1(j,i,k)*xpsb%b1(j,i)
-        end do
-      end do
-    end do
     call exchange(xtb%b1,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%b1,1,jce1,jce2,ice1,ice2,1,kz)
     if ( idynamic == 2 ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            xppb%b1(j,i,k) = xppb%b1(j,i,k)*xpsb%b1(j,i)
-            xwwb%b1(j,i,k) = xwwb%b1(j,i,k)*xpsb%b1(j,i)
-          end do
-        end do
-      end do
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          xwwb%b1(j,i,kzp1) = xwwb%b1(j,i,kzp1)*xpsb%b1(j,i)
-        end do
-      end do
+      call couple(xppb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+      call couple(xwwb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kzp1)
       call exchange(xppb%b1,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
     !
     ! Calculate time varying component
     !
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        xpsb%bt(j,i) = (xpsb%b1(j,i)-xpsb%b0(j,i))/dtbdys
-      end do
-    end do
+    xtt = d_one / dtbdys
+    call timeint(xpsb%b1,xpsb%b0,xpsb%bt,xtt,jce1,jce2,ice1,ice2)
     call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          xub%bt(j,i,k) = (xub%b1(j,i,k)-xub%b0(j,i,k))/dtbdys
-          xvb%bt(j,i,k) = (xvb%b1(j,i,k)-xvb%b0(j,i,k))/dtbdys
-        end do
-      end do
-    end do
+    call timeint(xub%b1,xub%b0,xub%bt,xtt,jde1,jde2,ide1,ide2,1,kz)
+    call timeint(xvb%b1,xvb%b0,xvb%bt,xtt,jde1,jde2,ide1,ide2,1,kz)
+    call timeint(xtb%b1,xtb%b0,xtb%bt,xtt,jce1,jce2,ice1,ice2,1,kz)
+    call timeint(xqb%b1,xqb%b0,xqb%bt,xtt,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          xtb%bt(j,i,k) = (xtb%b1(j,i,k)-xtb%b0(j,i,k))/dtbdys
-          xqb%bt(j,i,k) = (xqb%b1(j,i,k)-xqb%b0(j,i,k))/dtbdys
-        end do
-      end do
-    end do
     call exchange(xtb%bt,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%bt,1,jce1,jce2,ice1,ice2,1,kz)
     if ( idynamic == 2 ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            xppb%bt(j,i,k) = (xppb%b1(j,i,k)-xppb%b0(j,i,k))/dtbdys
-            xwwb%bt(j,i,k) = (xwwb%b1(j,i,k)-xwwb%b0(j,i,k))/dtbdys
-          end do
-        end do
-      end do
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          xwwb%bt(j,i,kzp1) = (xwwb%b1(j,i,kzp1)-xwwb%b0(j,i,kzp1))/dtbdys
-        end do
-      end do
+      call timeint(xppb%b1,xppb%b0,xppb%bt,xtt,jce1,jce2,ice1,ice2,1,kz)
+      call timeint(xwwb%b1,xwwb%b0,xwwb%bt,xtt,jce1,jce2,ice1,ice2,1,kzp1)
       call exchange(xppb%bt,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
@@ -491,10 +422,10 @@ module mod_bdycod
   !
   subroutine bdyin
     implicit none
-    integer(ik4) :: i , j , k , n , datefound
+    integer(ik4) :: i , j , n , datefound
     character(len=32) :: appdat
     logical :: update_slabocn
-    real(rk8) :: sfice_temp
+    real(rk8) :: sfice_temp , xtt
     type (rcm_time_interval) :: tdif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
@@ -571,86 +502,35 @@ module mod_bdycod
     !
     ! Couple pressure u,v,t,q
     !
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          xub%b1(j,i,k) = xub%b1(j,i,k)*psdot(j,i)
-          xvb%b1(j,i,k) = xvb%b1(j,i,k)*psdot(j,i)
-        end do
-      end do
-    end do
+    call couple(xub%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
+    call couple(xvb%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
+    call couple(xtb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+    call couple(xqb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
-
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          xtb%b1(j,i,k) = xtb%b1(j,i,k)*xpsb%b1(j,i)
-          xqb%b1(j,i,k) = xqb%b1(j,i,k)*xpsb%b1(j,i)
-        end do
-      end do
-    end do
     call exchange(xtb%b1,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%b1,1,jce1,jce2,ice1,ice2,1,kz)
-
     if ( idynamic == 2 ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            xppb%b1(j,i,k) = xppb%b1(j,i,k)*xpsb%b1(j,i)
-            xwwb%b1(j,i,k) = xwwb%b1(j,i,k)*xpsb%b1(j,i)
-          end do
-        end do
-      end do
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          xwwb%b1(j,i,kzp1) = xwwb%b1(j,i,kzp1)*xpsb%b1(j,i)
-        end do
-      end do
+      call couple(xppb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+      call couple(xwwb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kzp1)
       call exchange(xppb%b1,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        xpsb%bt(j,i) = (xpsb%b1(j,i)-xpsb%b0(j,i))/dtbdys
-      end do
-    end do
+    xtt = d_one / dtbdys
+    call timeint(xpsb%b1,xpsb%b0,xpsb%bt,xtt,jce1,jce2,ice1,ice2)
     call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          xub%bt(j,i,k) = (xub%b1(j,i,k)-xub%b0(j,i,k))/dtbdys
-          xvb%bt(j,i,k) = (xvb%b1(j,i,k)-xvb%b0(j,i,k))/dtbdys
-        end do
-      end do
-    end do
+    call timeint(xub%b1,xub%b0,xub%bt,xtt,jde1,jde2,ide1,ide2,1,kz)
+    call timeint(xvb%b1,xvb%b0,xvb%bt,xtt,jde1,jde2,ide1,ide2,1,kz)
+    call timeint(xtb%b1,xtb%b0,xtb%bt,xtt,jce1,jce2,ice1,ice2,1,kz)
+    call timeint(xqb%b1,xqb%b0,xqb%bt,xtt,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          xtb%bt(j,i,k) = (xtb%b1(j,i,k)-xtb%b0(j,i,k))/dtbdys
-          xqb%bt(j,i,k) = (xqb%b1(j,i,k)-xqb%b0(j,i,k))/dtbdys
-        end do
-      end do
-    end do
     call exchange(xtb%bt,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%bt,1,jce1,jce2,ice1,ice2,1,kz)
     if ( idynamic == 2 ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            xppb%bt(j,i,k) = (xppb%b1(j,i,k)-xppb%b0(j,i,k))/dtbdys
-            xwwb%bt(j,i,k) = (xwwb%b1(j,i,k)-xwwb%b0(j,i,k))/dtbdys
-          end do
-        end do
-      end do
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          xwwb%bt(j,i,kzp1) = (xwwb%b1(j,i,kzp1)-xwwb%b0(j,i,kzp1))/dtbdys
-        end do
-      end do
+      call timeint(xppb%b1,xppb%b0,xppb%bt,xtt,jce1,jce2,ice1,ice2,1,kz)
+      call timeint(xwwb%b1,xwwb%b0,xwwb%bt,xtt,jce1,jce2,ice1,ice2,1,kzp1)
       call exchange(xppb%bt,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
@@ -2515,6 +2395,51 @@ module mod_bdycod
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine nudge2d
+
+  subroutine couple(a,c,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk8) , dimension(:,:,:) , intent(inout) :: a
+    real(rk8) , dimension(:,:) , intent(in) :: c
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: i , j , k
+    do k = k1 , k2
+      do i = i1 , i2
+        do j = j1 , j2
+          a(j,i,k) = a(j,i,k) * c(j,i)
+        end do
+      end do
+    end do
+  end subroutine couple
+
+  subroutine timeint2(a,b,c,tt,j1,j2,i1,i2)
+    implicit none
+    real(rk8) , dimension(:,:) , intent(in) :: a , b
+    real(rk8) , dimension(:,:) , intent(out) :: c
+    real(rk8) , intent(in) :: tt
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: i , j
+    do i = i1 , i2
+      do j = j1 , j2
+        c(j,i) = (a(j,i)-b(j,i))*tt
+      end do
+    end do
+  end subroutine timeint2
+
+  subroutine timeint3(a,b,c,tt,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk8) , dimension(:,:,:) , intent(in) :: a , b
+    real(rk8) , dimension(:,:,:) , intent(out) :: c
+    real(rk8) , intent(in) :: tt
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: i , j , k
+    do k = k1 , k2
+      do i = i1 , i2
+        do j = j1 , j2
+          c(j,i,k) = (a(j,i,k)-b(j,i,k))*tt
+        end do
+      end do
+    end do
+  end subroutine timeint3
 
 end module mod_bdycod
 
