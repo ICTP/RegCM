@@ -2,7 +2,7 @@
 !       NASA/GSFC, Data Assimilation Office, Code 910.3, GEOS/DAS      !
 !-----------------------------------------------------------------------
 ! CVS $Id: m_mpif.F90 18 2005-12-12 17:49:42Z mvr $
-! CVS $Name$  
+! CVS $Name$
 !-----------------------------------------------------------------------
 !BOP
 !
@@ -15,7 +15,7 @@
 !   By combining module \verb"m_mpif" and \verb"m_mpif90", it may be
 !   possible to build a Fortran 90 MPI binding module graduately.
 !
-!   Although it is possible to use \verb'use mpi' directly
+!   Although it is possible to use \verb'include "mpif.h"' directly
 !   in individual modules, it has several problems:
 !   \begin{itemize}
 !   \item It may conflict with either the source code of a {\sl fixed}
@@ -57,7 +57,7 @@
 	  public :: MPIPRIV	! the common block name
 #endif
 
-	  use mpi
+	  include "mpif.h"
 
 ! !REVISION HISTORY:
 ! 	01Apr98 - Jing Guo <guo@thunder> - initial prototype/prolog/code

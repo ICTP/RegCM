@@ -2,7 +2,7 @@
 !       NASA/GSFC, Data Assimilation Office, Code 910.3, GEOS/DAS      !
 !-----------------------------------------------------------------------
 ! CVS $Id: m_mpif90.F90 18 2005-12-12 17:49:42Z mvr $
-! CVS $Name$  
+! CVS $Name$
 !-----------------------------------------------------------------------
 !BOP
 !
@@ -10,7 +10,7 @@
 !
 ! !DESCRIPTION:
 !
-!   By wrapping \verb'use mpi' into a module, \verb"m_mpif()"
+!   By wrapping \verb'include "mpif.h"' into a module, \verb"m_mpif()"
 !   provides an easy way to
 !\begin{itemize}
 !  \item avoid the problem with {\sl fixed} or {\sl free} formatted
@@ -103,7 +103,7 @@
 !		  declaration.
 !		. Then limited to only variables current expected to
 !		  be used.
-!	
+!
 !EOP
 !_______________________________________________________________________
 
