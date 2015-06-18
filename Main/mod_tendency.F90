@@ -158,7 +158,8 @@ module mod_tendency
                psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot ,    &
                rovcpm , rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , &
                tva , tvavg , tvb , tvc , rho0s , cpm , scr
-    real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
+    real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , ucd , vcd , &
+                 wadot , wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -1344,20 +1345,17 @@ module mod_tendency
                                  atm1%w(j,i-1,k+1)   + atm1%w(j,i,k+1))
             wabar = wadot + wadotp1
             amfac = wabar * rpsda(j,i) * rearthrad
-            duv = atm1%u(j,i,k)*mddom%dmdy(j,i) - &
-                  atm1%v(j,i,k)*mddom%dmdx(j,i)
-            aten%u(j,i,k) = aten%u(j,i,k)                                + &
-                         mddom%coriol(j,i)*atm1%v(j,i,k)/mddom%msfd(j,i) - &
-                         mddom%ef(j,i)*mddom%ddx(j,i)*wabar              + &
-                         atmx%v(j,i,k)*duv                               - &
-                         atm1%u(j,i,k)*amfac                             + &
-                         divd(j,i,k)*atm1%u(j,i,k)/mddom%msfd(j,i)
-            aten%v(j,i,k) = aten%v(j,i,k)                                - &
-                         mddom%coriol(j,i)*atm1%u(j,i,k)/mddom%msfd(j,i) + &
-                         mddom%ef(j,i)*mddom%ddy(j,i)*wabar              - &
-                         atmx%u(j,i,k)*duv                               - &
-                         atm1%v(j,i,k)*amfac                             + &
-                         divd(j,i,k)*atm1%v(j,i,k)/mddom%msfd(j,i)
+            ucd = atm1%u(j,i,k)/mddom%msfd(j,i)
+            vcd = atm1%v(j,i,k)/mddom%msfd(j,i)
+            duv = ucd*mddom%dmdy(j,i) - vcd*mddom%dmdx(j,i)
+            aten%u(j,i,k) = aten%u(j,i,k) + mddom%coriol(j,i)*vcd - &
+                         mddom%ef(j,i)*mddom%ddx(j,i)*wabar +       &
+                         atmx%v(j,i,k)*duv - vcd*amfac +            &
+                         divd(j,i,k)*ucd
+            aten%v(j,i,k) = aten%v(j,i,k) - mddom%coriol(j,i)*ucd + &
+                         mddom%ef(j,i)*mddom%ddy(j,i)*wabar -       &
+                         atmx%u(j,i,k)*duv - ucd*amfac +            &
+                         divd(j,i,k)*vcd
           end do
         end do
       end do
@@ -1609,7 +1607,7 @@ module mod_tendency
       ! Calculate the horizontal advective tendency for TKE
       call hadv(cross,uwstatea%advtke,atmx%tke,kzp1)
       ! Calculate the vertical advective tendency for TKE
-      call vadv(cross,uwstatea%advtke,atmx%tke,kzp1,1)
+      call vadv(cross,uwstatea%advtke,atmx%tke,kzp1,0)
       ! Calculate the horizontal, diffusive tendency for TKE
       call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kzp1)
     end if

@@ -15,7 +15,7 @@
 !   By combining module \verb"m_mpif" and \verb"m_mpif90", it may be
 !   possible to build a Fortran 90 MPI binding module graduately.
 !
-!   Although it is possible to use \verb'include "mpif.h"' directly
+!   Although it is possible to use \verb'use mpi' directly
 !   in individual modules, it has several problems:
 !   \begin{itemize}
 !   \item It may conflict with either the source code of a {\sl fixed}
@@ -57,7 +57,7 @@
 	  public :: MPIPRIV	! the common block name
 #endif
 
-	  include "mpif.h"
+	  use mpi
 
 ! !REVISION HISTORY:
 ! 	01Apr98 - Jing Guo <guo@thunder> - initial prototype/prolog/code

@@ -20,8 +20,8 @@
   subroutine myabort
     use mod_dynparam , only : mycomm
     use mod_intkinds
+    use mpi
     implicit none
-    include 'mpif.h'
     integer(ik4) :: ierr , myid
     character(len=8) :: date
     character(len=10) :: time

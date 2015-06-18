@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 module mpi
 
-  include 'mpif.h'
+  use mpi
 
   integer mpi_status_ignore(mpi_status_size)
   integer , parameter :: mpi_proc_null = -2
@@ -30,7 +30,7 @@ subroutine mpi_sendrecv(sendbuf, sendcount, sendtype, dest, sendtag, &
              comm, status, ierror)
   implicit none
 
-  include 'mpif.h'
+  use mpi
 
   real(8) , dimension(:) :: sendbuf , recvbuf
   integer :: sendcount , sendtype , dest , sendtag

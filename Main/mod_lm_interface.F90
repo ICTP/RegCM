@@ -892,7 +892,11 @@ module mod_lm_interface
           srf_v10m_out(:,:,1) = sum(lms%v10m,1)*rdnnsg
         if ( associated(srf_smw_out) ) then
           do n = 1 , num_soil_layers
-            srf_smw_out(:,:,n) = sum(lms%sw(:,:,:,n),1)*rdnnsg
+            where ( lm%ldmsk > 0 )
+              srf_smw_out(:,:,n) = sum(lms%sw(:,:,:,n),1)*rdnnsg
+            elsewhere
+              srf_smw_out(:,:,n) = dmissval
+            end where
           end do
         end if
       end if
@@ -913,8 +917,7 @@ module mod_lm_interface
         if ( associated(sub_q2m_out) ) &
           call reorder_subgrid(lms%q2m,sub_q2m_out)
         if ( associated(sub_smw_out) ) then
-          call reorder_subgrid(lms%ssw,sub_smw_out,1,lm%ldmsk1)
-          call reorder_subgrid(lms%rsw,sub_smw_out,2,lm%ldmsk1)
+          call reorder_subgrid(lms%sw,sub_smw_out,lm%ldmsk1)
         end if
       end if
 

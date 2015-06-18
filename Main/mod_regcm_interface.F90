@@ -44,8 +44,8 @@ module mod_regcm_interface
 #ifdef CPL
   use mod_update, only: rcm_get, rcm_put
 #endif
+  use mpi
   implicit none
-  include 'mpif.h'
 !
   private
   public :: RCM_initialize

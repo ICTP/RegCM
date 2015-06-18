@@ -287,6 +287,7 @@ module mod_mppparam
     module procedure reorder_subgrid_2d ,        &
                      reorder_subgrid_2d3d ,      &
                      reorder_subgrid_3d ,        &
+                     reorder_subgrid_4d ,        &
                      reorder_subgrid_2d_logical
   end interface reorder_subgrid
 
@@ -6213,6 +6214,47 @@ module mod_mppparam
       end do
     end if
   end subroutine reorder_subgrid_3d
+
+  subroutine reorder_subgrid_4d(var4,var3,mask)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var4
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: var3
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , l , ii , jj , n1 , n2
+    if ( present(mask) ) then
+      do l = 1 , size(var4,4)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            do n2 = 1 , nsg
+              ii = (i-1) * nsg + n2
+              do n1 = 1 , nsg
+                jj = (j-1) * nsg + n1
+                if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                  var3(jj,ii,l) = var4((n2-1)*nsg+n1,j,i,l)
+                else
+                  var3(jj,ii,l) = dmissval
+                end if
+              end do
+            end do
+          end do
+        end do
+      end do
+    else
+      do l = 1 , size(var4,4)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            do n2 = 1 , nsg
+              ii = (i-1) * nsg + n2
+              do n1 = 1 , nsg
+                jj = (j-1) * nsg + n1
+                var3(jj,ii,l) = var4((n2-1)*nsg+n1,j,i,l)
+              end do
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_subgrid_4d
 
   subroutine input_reorder(m1,m2,j1,j2,i1,i2)
     implicit none

@@ -10,7 +10,7 @@
 !
 ! !DESCRIPTION:
 !
-!   By wrapping \verb'include "mpif.h"' into a module, \verb"m_mpif()"
+!   By wrapping \verb'use mpi' into a module, \verb"m_mpif()"
 !   provides an easy way to
 !\begin{itemize}
 !  \item avoid the problem with {\sl fixed} or {\sl free} formatted

@@ -1,7 +1,7 @@
 
 	program test
 	implicit none
-	include "mpif.h"
+	use mpi
 
 	integer ier
 

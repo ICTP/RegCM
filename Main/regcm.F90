@@ -30,9 +30,9 @@ program regcm
   use mod_dynparam
   use mod_regcm_interface
   use mod_runparams
+  use mpi
 
   implicit none
-  include 'mpif.h'
 
   real(rk8) :: timestr, timeend
   type(rcm_time_interval) :: tdif

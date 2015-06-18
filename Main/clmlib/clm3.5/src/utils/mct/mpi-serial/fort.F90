@@ -3,7 +3,7 @@
 	subroutine mpi_init(ierror)
 
         implicit none
-        include "mpif.h"
+        use mpi
 
 	integer fint(2)
 	logical flog(2)
