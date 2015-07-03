@@ -45,11 +45,11 @@ program sst
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile
 
-!     call and print header
+  ! call and print header
   call header('sst')
-!
-!     Read input global namelist
-!
+  !
+  ! Read input global namelist
+  !
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
   call initparam(namelistfile, ierr)
@@ -173,4 +173,5 @@ program sst
   write (stdout,*) 'Successfully generated SST'
 
 end program sst
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

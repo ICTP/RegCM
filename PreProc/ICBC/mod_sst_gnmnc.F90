@@ -112,8 +112,15 @@ module mod_sst_gnmnc
       varname(2) = 'ts'
     else if ( ssttyp(1:3) == 'HA_' ) then
       if ( .not. date_in_scenario(imm1,5) ) then
-        inpfile = trim(inpglob)// &
-             '/SST/tos_Omon_HadGEM2-ES_historical_r1i1p1_195912-200512.nc'
+        if ( idate > 1959110100 ) then
+          inpfile = trim(inpglob)// &
+             '/HadGEM2/SST/tos_Omon_HadGEM2-ES_historical'// &
+             '_r1i1p1_195912-200512.nc'
+        else
+          inpfile = trim(inpglob)// &
+             '/HadGEM2/SST/tos_Omon_HadGEM2-ES_historical'// &
+             '_r1i1p1_185912-195911.nc'
+        end if
       else
         inpfile = trim(inpglob)//'/SST/tos_Omon_HadGEM2-ES_rcp'// &
           ssttyp(4:5)//'_r1i1p1_200512-209912.nc'
@@ -417,8 +424,14 @@ module mod_sst_gnmnc
             lswitch = .true.
           end if
         else if ( ssttyp(1:3) == 'HA_' ) then
-          if ( date_in_scenario(idate,5,.false.) ) then
-            inpfile = trim(inpglob)//'/SST/tos_Omon_HadGEM2-ES_rcp'// &
+          if ( idate < 2000010100 ) then
+            inpfile = trim(inpglob)// &
+             '/HadGEM2/SST/tos_Omon_HadGEM2-ES_historical'// &
+             '_r1i1p1_195912-200512.nc'
+            lswitch = .true.
+            lref = .false.
+          else if ( date_in_scenario(idate,5,.false.) ) then
+            inpfile = trim(inpglob)//'/HadGEM2/SST/tos_Omon_HadGEM2-ES_rcp'// &
               ssttyp(4:5)//'_r1i1p1_200512-209912.nc'
             lswitch = .true.
             lref = .false.
