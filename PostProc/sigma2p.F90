@@ -27,7 +27,10 @@ program sigma2p
   use mod_intkinds
   use mod_realkinds
   use mod_constants
-  use mod_dynparam , only : iomode, deflate_level
+  use mod_dynparam , only : iomode
+#ifdef NETCDF4_HDF5
+  use mod_dynparam , only : deflate_level
+#endif
   use mod_message
   use mod_vertint
   use mod_hgt
