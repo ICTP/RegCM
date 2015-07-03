@@ -339,7 +339,13 @@ module mod_dynparam
   character(len=256) :: dirout
   character(len=256) :: moist_filename
   character(len=8)   :: tersrc
-  integer(ik4) :: iomode
+#ifdef NETCDF4_HDF5
+  integer(ik4) :: iomode = ior(nf90_clobber, &
+                               ior(nf90_netcdf4,nf90_classic_model))
+  integer(ik4) :: deflate_level = 3
+#else
+  integer(ik4) :: iomode = ior(nf90_clobber, nf90_64bit_offset)
+#endif
 
   ! Model output control parameters
 
@@ -416,12 +422,6 @@ module mod_dynparam
 #ifdef CLM45
     namelist /clm_regcm/ enable_megan_emission , enable_urban_landunit, &
       enable_more_crop_pft
-#endif
-
-#ifdef NETCDF4_HDF5
-    iomode = ior(nf90_clobber,ior(nf90_netcdf4,nf90_classic_model))
-#else
-    iomode = ior(nf90_clobber, nf90_64bit_offset)
 #endif
 
     open(ipunit, file=filename, status='old', &

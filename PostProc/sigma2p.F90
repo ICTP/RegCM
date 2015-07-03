@@ -27,7 +27,7 @@ program sigma2p
   use mod_intkinds
   use mod_realkinds
   use mod_constants
-  use mod_dynparam , only : iomode
+  use mod_dynparam , only : iomode, deflate_level
   use mod_message
   use mod_vertint
   use mod_hgt
@@ -254,7 +254,7 @@ program sigma2p
             'Error define variable '//trim(varname))
 #ifdef NETCDF4_HDF5
     if (nvdims(i) > 2) then
-      istatus = nf90_def_var_deflate(ncout, ivarid, 1, 1, 9)
+      istatus = nf90_def_var_deflate(ncout, ivarid, 1, 1, deflate_level)
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error set deflate for '//trim(varname))
     end if
@@ -305,7 +305,7 @@ program sigma2p
     istatus = nf90_def_var(ncout, 'hgt', nf90_float, tdimids, ihgvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable hgt')
 #ifdef NETCDF4_HDF5
-    istatus = nf90_def_var_deflate(ncout, ihgvar, 1, 1, 9)
+    istatus = nf90_def_var_deflate(ncout, ihgvar, 1, 1, deflate_level)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for hgt')
 #endif
     istatus = nf90_put_att(ncout, ihgvar, 'standard_name', 'height')
@@ -324,7 +324,7 @@ program sigma2p
     istatus = nf90_def_var(ncout, 'mslp', nf90_float, psdimids, imslpvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable mslp')
 #ifdef NETCDF4_HDF5
-    istatus = nf90_def_var_deflate(ncout, imslpvar, 1, 1, 9)
+    istatus = nf90_def_var_deflate(ncout, imslpvar, 1, 1, deflate_level)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for mslp')
 #endif
     istatus = nf90_put_att(ncout, imslpvar, 'standard_name', &
@@ -347,7 +347,7 @@ program sigma2p
     istatus = nf90_def_var(ncout, 'rh', nf90_float, tdimids, irhvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
 #ifdef NETCDF4_HDF5
-    istatus = nf90_def_var_deflate(ncout, irhvar, 1, 1, 9)
+    istatus = nf90_def_var_deflate(ncout, irhvar, 1, 1, deflate_level)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for rh')
 #endif
     istatus = nf90_put_att(ncout, irhvar, 'standard_name', 'relative_humidity')

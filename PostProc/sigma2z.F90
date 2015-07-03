@@ -29,7 +29,7 @@ program sigma2z
   use mod_message
   use mod_vertint
   use mod_nchelper
-  use mod_dynparam , only : iomode
+  use mod_dynparam , only : iomode, deflate_level
   use mod_hgt
   use mod_humid
   use mod_stdio
@@ -259,7 +259,7 @@ program sigma2z
             'Error define variable '//trim(varname))
 #ifdef NETCDF4_HDF5
     if (nvdims(i) > 2) then
-      istatus = nf90_def_var_deflate(ncout, ivarid, 1, 1, 9)
+      istatus = nf90_def_var_deflate(ncout, ivarid, 1, 1, deflate_level)
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error set deflate for '//trim(varname))
     end if
@@ -304,7 +304,7 @@ program sigma2z
     istatus = nf90_def_var(ncout, 'mslp', nf90_float, psdimids, imslzvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable mslp')
 #ifdef NETCDF4_HDF5
-    istatus = nf90_def_var_deflate(ncout, imslzvar, 1, 1, 9)
+    istatus = nf90_def_var_deflate(ncout, imslzvar, 1, 1, deflate_level)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for mslp')
 #endif
     istatus = nf90_put_att(ncout, imslzvar, 'standard_name', &
@@ -327,7 +327,7 @@ program sigma2z
     istatus = nf90_def_var(ncout, 'rh', nf90_float, tdimids, irhvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
 #ifdef NETCDF4_HDF5
-    istatus = nf90_def_var_deflate(ncout, irhvar, 1, 1, 9)
+    istatus = nf90_def_var_deflate(ncout, irhvar, 1, 1, deflate_level)
     call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for rh')
 #endif
     istatus = nf90_put_att(ncout, irhvar, 'standard_name', 'relative_humidity')
