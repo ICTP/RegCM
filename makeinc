@@ -45,6 +45,8 @@ SVNDEF := $(DEFINE)'SVN_REV="$(shell svnversion -n .)"'
 
 space :=
 space +=
-flagsuffix := $(subst $(space),_,$(subst $(DEFINE),,$(filter $(DEFINE)% , $(CPPFLAGS))))
+fortflag := -D_FORTIFY_SOURCE=2
+scppfla := $(filter-out $(fortflag),$(CPPFLAGS))
+flagsuffix := $(subst $(space),_,$(subst $(DEFINE),,$(filter $(DEFINE)% , $(scppfla))))
 
 program_transform_name := s&$$&$(rcsuffix)$(flagsuffix)&

@@ -366,8 +366,6 @@ module mod_nhinterp
           end do
         end do
       end do
-      w(j2,:,:) = w(j2-1,:,:)
-      w(:,i2,:) = w(:,i2-1,:)
     end subroutine nhw
 
 end module mod_nhinterp
