@@ -54,6 +54,7 @@ module mod_wrtoxd
 
   character(len=8) , pointer , dimension(:) :: aespec
   character(len=8) , target , dimension(4) :: aedust
+  character(len=8) , target , dimension(12) :: aedu12
   character(len=8) , target , dimension(8) :: aedccb
   character(len=8) , target , dimension(4) :: aesslt
   character(len=8) , target , dimension(8) :: aeduss
@@ -90,6 +91,9 @@ module mod_wrtoxd
   integer , parameter :: maxaeout = 16
 
   data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
+  data aedu12 / 'D1201', 'D1202', 'D1203', 'D1204', &
+                'D1205', 'D1206', 'D1207', 'D1208', &
+                'D1209', 'D1210', 'D1211', 'D1212' /
   data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
   data aeduss / 'DST01', 'DST02', 'DST03', 'DST04', &
                 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
@@ -135,6 +139,10 @@ module mod_wrtoxd
       case ( 'DUST' )
         naesp = 4
         aespec => aedust
+        doaero = .true.
+      case ( 'DU12' )
+        naesp = 12
+        aespec => aedu12
         doaero = .true.
       case ( 'SSLT' )
         naesp = 4
@@ -327,6 +335,8 @@ module mod_wrtoxd
       if ( aespec(ivar) == 'SSLT03' ) cycle
       if ( aespec(ivar) == 'SSLT04' ) cycle
       if ( aespec(ivar)(1:3) == 'DST' ) then
+        specname = 'DUST'//aespec(ivar)(4:5)
+      else if ( aespec(ivar)(1:3) == 'D12' ) then
         specname = 'DUST'//aespec(ivar)(4:5)
       else if ( aespec(ivar)(1:3) == 'OC1' ) then
         specname = 'OC_HB'

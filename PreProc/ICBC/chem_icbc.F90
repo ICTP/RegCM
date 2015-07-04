@@ -94,7 +94,7 @@ program chem_icbc
   select case (chemsimtype)
     case ( 'CBMZ' )
       dochem = .true.
-    case ( 'DUST', 'SSLT', 'DUSS' )
+    case ( 'DUST', 'DU12', 'SSLT', 'DUSS' )
       doaero = .true.
     case ( 'CARB' , 'SULF' , 'SUCA' , 'AERO' )
       doaero = .true.

@@ -38,7 +38,7 @@ module mod_che_ncio
   public :: init_mod_che_ncio
   public :: open_chbc , close_chbc , chbc_search , read_chbc,read_bionem
 
-  public :: chbc_ivar , n_chbcvar , n_aebcvar, chbcname,aeaero
+  public :: chbc_ivar , n_chbcvar , n_aebcvar, chbcname, aeaero, aedu12
 
   integer(ik4) :: istatus
   integer(ik4) :: recc
@@ -54,6 +54,7 @@ module mod_che_ncio
   character(len=8) , dimension(n_chbcvar) :: chbcname
   character(len=8) , dimension(n_oxbcvar) :: oxbcname
   character(len=8) , target , dimension(4) :: aedust
+  character(len=8) , target , dimension(12) :: aedu12
   character(len=8) , target , dimension(2) :: aesslt
   character(len=8) , target , dimension(4) :: aecarb
   character(len=8) , target , dimension(2) :: aesulf
@@ -98,13 +99,15 @@ module mod_che_ncio
 
   data oxbcname /'OH      ','HO2     ','O3      ', 'NO3    ','H2O2   ' /
   data aedust / 'DUST01' , 'DUST02' , 'DUST03', 'DUST04' /
+  data aedu12 / 'DUST01', 'DUST02', 'DUST03', 'DUST04',  &
+                'DUST05', 'DUST06', 'DUST07', 'DUST08',  &
+                'DUST09', 'DUST10', 'DUST11', 'DUST12' /
   data aesslt / 'SSLT01' , 'SSLT02' /
   data aecarb / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL' /
   data aesulf / 'SO2' , 'SO4' /
   data aesuca / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL' , 'SO2' , 'SO4' /
   data aeaero / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL' , 'SO2' , 'SO4' , &
-                'SSLT01' , 'SSLT02', 'DUST01', 'DUST02', 'DUST03' , &
-                'DUST04' /
+                'SSLT01' , 'SSLT02', 'DUST01', 'DUST02', 'DUST03' , 'DUST04' /
 
   contains
 
@@ -117,6 +120,9 @@ module mod_che_ncio
         case ( 'DUST' )
           n_aebcvar = 4
           aebcname => aedust
+        case ( 'DU12' )
+          n_aebcvar = 12
+          aebcname => aedu12
         case ( 'SSLT' )
           n_aebcvar = 2
           aebcname => aesslt
