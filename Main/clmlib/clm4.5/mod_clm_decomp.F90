@@ -78,6 +78,16 @@ module mod_clm_decomp
   type(subgrid_type) , public , target :: gcomm_column
   type(subgrid_type) , public , target :: gcomm_pft
 
+  type decomp_type
+    integer , pointer , dimension(:) :: lunxgdc ! Number of luns per gridcell
+    integer , pointer , dimension(:) :: colxgdc ! Number of cols per gridcell
+    integer , pointer , dimension(:) :: pftxgdc ! Number of pfts per gridcell
+  end type decomp_type
+
+  public decomp_type
+
+  type(decomp_type) , public , target :: ldecomp
+
   contains
     !
     ! Retrieve gridcell, landunit, column, and pft bounds for process.

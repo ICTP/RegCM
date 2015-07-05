@@ -125,8 +125,10 @@ module mod_clm_time_manager
     implicit none
     character(len=8) , intent(out) :: currdate
     character(len=8) , intent(out) :: currtime
-    currdate = '0000000'
-    currtime = '0000000'
+    integer(ik4) , dimension(8) :: tval
+    call date_and_time(values=tval)
+    write(currdate,'(i0.4,i0.2,i0.2)') tval(1), tval(2), tval(3)
+    write(currtime,'(i0.2,i0.2,i0.2,i0.2)') tval(5), tval(6), tval(7), 0
   end subroutine getdatetime
 
 end module mod_clm_time_manager

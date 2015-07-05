@@ -188,14 +188,16 @@ program clm45_1dto2d
   integer(ik4) , allocatable , dimension(:) :: vtype , vndims
   integer(ik4) , allocatable , dimension(:,:) :: vshape
   integer(ik4) :: iy , jx
-  integer(ik4) :: id , iv , ia , iid1 , iid2
-  integer(ik4) :: n , m
-  integer(ik4) :: lndgrid , iydim , jxdim
+  integer(ik4) :: id , iv , iid1 , iid2
+  integer(ik4) :: n , m , npft , ngridcell , ig , ip , ia
+  integer(ik4) :: lndgrid , iydim , jxdim , pftgrid
   integer(ik4) , allocatable , dimension(:,:) :: mask
   real(rk4) , allocatable , dimension(:, :) :: var2d_single
   real(rk8) , allocatable , dimension(:, :) :: var2d_double
   integer(ik4) , allocatable , dimension(:, :) :: var2d_int
-  logical , allocatable , dimension(:) :: lexpand
+  integer(ik4) :: npftlun
+  integer(ik4) , allocatable , dimension(:) :: ngpft , ityplun , itypveg
+  logical , allocatable , dimension(:) :: lexpand , lpftexpand
   character(len=32) :: vname , dname
   character(len=64) :: aname
   real(rk8) , allocatable , dimension(:) :: double_var_1d
@@ -246,6 +248,7 @@ program clm45_1dto2d
   allocate(outdimids(ndims))
   allocate(mapids(ndims))
   allocate(lexpand(nvars))
+  allocate(lpftexpand(nvars))
   allocate(varids(nvars))
   allocate(vndims(nvars))
   allocate(vtype(nvars))
@@ -276,15 +279,19 @@ program clm45_1dto2d
   istatus = nf90_get_var(ncid, varid, mask)
   call checkncerr(istatus,__FILE__,__LINE__,'Error read variable regcm_mask')
 
+  lndgrid = -1
+  pftgrid = -1
+  npft = -1
+  ngridcell = -1
   do id = 1 , ndims
     istatus = nf90_inquire_dimension(ncid, id, dname, dsize(id))
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension')
 
-    if ( dname == 'gridcell' .or. dname == 'landunit' .or. &
-         dname == 'column' .or. dname == 'pft' .or. &
-         dname == 'string_length') cycle
-
-    if ( dname /= 'lndgrid' ) then
+    if ( dname /= 'lndgrid' .and. dname /= 'gridcell' ) then
+      if ( dname == 'pft' ) then
+        pftgrid = id
+        npft = dsize(id)
+      end if
       if ( id == udimid ) then
         istatus = nf90_def_dim(ncoutid, dname, nf90_unlimited, outdimids(id))
       else
@@ -293,13 +300,21 @@ program clm45_1dto2d
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error define dimension '//trim(dname))
     else
-      lndgrid = id
+      if ( dname == 'lndgrid' ) then
+        lndgrid = id
+        ngridcell = dsize(id)
+      else if ( dname == 'gridcell' .and. lndgrid < 0 ) then
+        lndgrid = id
+        ngridcell = dsize(id)
+      end if
     end if
   end do
 
   vshape(:,:) = -1
+  idtime = -1
   do iv = 1 , nvars
     lexpand(iv) = .false.
+    lpftexpand(iv) = .false.
     istatus = nf90_inquire_variable(ncid,iv,name=vname,xtype=vtype(iv), &
                                     ndims=vndims(iv),dimids=dimids,natts=natts)
     ndims = vndims(iv)
@@ -310,6 +325,15 @@ program clm45_1dto2d
     do id = 1 , vndims(iv)
       if ( dimids(id) == lndgrid ) then
         lexpand(iv) = .true.
+        mapids(id) = outdimids(jxdim)
+        mapids(id+1) = outdimids(iydim)
+        if ( vndims(iv) > id ) then
+          mapids(id+2:vndims(iv)+1) = outdimids(dimids(id+1:ndims))
+        end if
+        ndims = ndims + 1
+        exit
+      else if ( dimids(id) == pftgrid ) then
+        lpftexpand(iv) = .true.
         mapids(id) = outdimids(jxdim)
         mapids(id+1) = outdimids(iydim)
         if ( vndims(iv) > id ) then
@@ -331,16 +355,31 @@ program clm45_1dto2d
       istatus = nf90_copy_att(ncid, iv, aname, ncoutid, varids(iv))
       call checkncerr(istatus,__FILE__,__LINE__,'Error copy attribute')
     end do
-    if ( vname == 'topo' .or. vname == 'lon' .or. &
-         vname == 'lat' .or. vname == 'landmask' .or. &
-         vname == 'landfrac' .or. vname == 'pftmask' .or. &
-         vname == 'area' ) then
+    if ( vname == 'topo' .or. vname == 'lon' .or. vname == 'longxy' .or. &
+         vname == 'lat' .or.  vname == 'latixy' .or. vname == 'landfrac' .or. &
+         vname == 'pftmask' .or. vname == 'area' ) then
       istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', 1.D+36)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error set attribute')
+    else if ( vname == 'landmask' ) then
+      istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', bigint)
       call checkncerr(istatus,__FILE__,__LINE__,'Error set attribute')
     end if
   end do
 
+  allocate(ngpft(ngridcell))
+  allocate(ityplun(npft),itypveg(npft))
+  ! Long road....
+  istatus = nf90_inq_varid(ncid,'pfts1d_ityplun',npftlun)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error search pfts1d_ityplun')
+  istatus = nf90_get_var(ncid,npftlun,ityplun)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error read pfts1d_ityplun')
+  istatus = nf90_inq_varid(ncid,'pfts1d_itypveg',npftlun)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error search pfts1d_itypveg')
+  istatus = nf90_get_var(ncid,npftlun,itypveg)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error read pfts1d_itypveg')
+
   istatus = nf90_enddef(ncoutid)
+  call checkncerr(istatus,__FILE__,__LINE__,'Exit define mode')
 
   ! Put times
   allocate(double_var_1d(vshape(idtime,1)))
@@ -353,84 +392,7 @@ program clm45_1dto2d
   writeloop: &
   do iv = 1 , nvars
     if ( iv == idtime ) cycle writeloop
-    if ( .not. lexpand(iv) ) then
-      select case (vtype(iv))
-        case (nf90_real)
-          select case (vndims(iv))
-            case(1)
-              allocate(single_var_1d(vshape(iv,1)))
-              istatus = nf90_get_var(ncid,iv,single_var_1d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              istatus = nf90_put_var(ncoutid,iv,single_var_1d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
-              deallocate(single_var_1d)
-            case(2)
-              allocate(single_var_2d(vshape(iv,1),vshape(iv,2)))
-              istatus = nf90_get_var(ncid,iv,single_var_2d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              istatus = nf90_put_var(ncoutid,iv,single_var_2d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
-              deallocate(single_var_2d)
-            case(3)
-              allocate(single_var_3d(vshape(iv,1),vshape(iv,2),vshape(iv,3)))
-              istatus = nf90_get_var(ncid,iv,single_var_3d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              istatus = nf90_put_var(ncoutid,iv,single_var_3d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
-              deallocate(single_var_3d)
-          end select
-        case (nf90_double)
-          select case (vndims(iv))
-            case(1)
-              allocate(double_var_1d(vshape(iv,1)))
-              istatus = nf90_get_var(ncid,iv,double_var_1d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              istatus = nf90_put_var(ncoutid,iv,double_var_1d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
-              deallocate(double_var_1d)
-            case(2)
-              allocate(double_var_2d(vshape(iv,1),vshape(iv,2)))
-              istatus = nf90_get_var(ncid,iv,double_var_2d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              istatus = nf90_put_var(ncoutid,iv,double_var_2d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
-              deallocate(double_var_2d)
-            case(3)
-              allocate(double_var_3d(vshape(iv,1),vshape(iv,2),vshape(iv,3)))
-              istatus = nf90_get_var(ncid,iv,double_var_3d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              istatus = nf90_put_var(ncoutid,iv,double_var_3d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
-              deallocate(double_var_3d)
-          end select
-        case (nf90_int)
-          select case (vndims(iv))
-            case(1)
-              allocate(int_var_1d(vshape(iv,1)))
-              istatus = nf90_get_var(ncid,iv,int_var_1d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              istatus = nf90_put_var(ncoutid,iv,int_var_1d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
-              deallocate(int_var_1d)
-            case(2)
-              allocate(int_var_2d(vshape(iv,1),vshape(iv,2)))
-              istatus = nf90_get_var(ncid,iv,int_var_2d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              istatus = nf90_put_var(ncoutid,iv,int_var_2d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
-              deallocate(int_var_2d)
-            case(3)
-              allocate(int_var_3d(vshape(iv,1),vshape(iv,2),vshape(iv,3)))
-              istatus = nf90_get_var(ncid,iv,int_var_3d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              istatus = nf90_put_var(ncoutid,iv,int_var_3d)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
-              deallocate(int_var_3d)
-          end select
-        case default
-          cycle writeloop
-      end select
-    else
+    if ( lexpand(iv) ) then
       select case (vtype(iv))
         case (nf90_real)
           select case (vndims(iv))
@@ -540,8 +502,89 @@ program clm45_1dto2d
         case default
           cycle writeloop
       end select
+    else if ( lpftexpand(iv) ) then
+      ! Needs to be written
+    else
+      select case (vtype(iv))
+        case (nf90_real)
+          select case (vndims(iv))
+            case(1)
+              allocate(single_var_1d(vshape(iv,1)))
+              istatus = nf90_get_var(ncid,iv,single_var_1d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
+              istatus = nf90_put_var(ncoutid,iv,single_var_1d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
+              deallocate(single_var_1d)
+            case(2)
+              allocate(single_var_2d(vshape(iv,1),vshape(iv,2)))
+              istatus = nf90_get_var(ncid,iv,single_var_2d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
+              istatus = nf90_put_var(ncoutid,iv,single_var_2d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
+              deallocate(single_var_2d)
+            case(3)
+              allocate(single_var_3d(vshape(iv,1),vshape(iv,2),vshape(iv,3)))
+              istatus = nf90_get_var(ncid,iv,single_var_3d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
+              istatus = nf90_put_var(ncoutid,iv,single_var_3d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
+              deallocate(single_var_3d)
+          end select
+        case (nf90_double)
+          select case (vndims(iv))
+            case(1)
+              allocate(double_var_1d(vshape(iv,1)))
+              istatus = nf90_get_var(ncid,iv,double_var_1d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
+              istatus = nf90_put_var(ncoutid,iv,double_var_1d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
+              deallocate(double_var_1d)
+            case(2)
+              allocate(double_var_2d(vshape(iv,1),vshape(iv,2)))
+              istatus = nf90_get_var(ncid,iv,double_var_2d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
+              istatus = nf90_put_var(ncoutid,iv,double_var_2d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
+              deallocate(double_var_2d)
+            case(3)
+              allocate(double_var_3d(vshape(iv,1),vshape(iv,2),vshape(iv,3)))
+              istatus = nf90_get_var(ncid,iv,double_var_3d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
+              istatus = nf90_put_var(ncoutid,iv,double_var_3d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
+              deallocate(double_var_3d)
+          end select
+        case (nf90_int)
+          select case (vndims(iv))
+            case(1)
+              allocate(int_var_1d(vshape(iv,1)))
+              istatus = nf90_get_var(ncid,iv,int_var_1d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
+              istatus = nf90_put_var(ncoutid,iv,int_var_1d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
+              deallocate(int_var_1d)
+            case(2)
+              allocate(int_var_2d(vshape(iv,1),vshape(iv,2)))
+              istatus = nf90_get_var(ncid,iv,int_var_2d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
+              istatus = nf90_put_var(ncoutid,iv,int_var_2d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
+              deallocate(int_var_2d)
+            case(3)
+              allocate(int_var_3d(vshape(iv,1),vshape(iv,2),vshape(iv,3)))
+              istatus = nf90_get_var(ncid,iv,int_var_3d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
+              istatus = nf90_put_var(ncoutid,iv,int_var_3d)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
+              deallocate(int_var_3d)
+          end select
+        case default
+          cycle writeloop
+      end select
     end if
   end do writeloop
+
+  deallocate(ngpft)
 
   istatus = nf90_close(ncid)
   istatus = nf90_close(ncoutid)

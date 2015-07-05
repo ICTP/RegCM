@@ -178,6 +178,15 @@ module mod_clm_decompinit
       procinfo%pd(np) = sum(procinfo%pc(1:np-1))
     end do
 
+    allocate(ldecomp%lunxgdc(procinfo%endg:procinfo%endg))
+    allocate(ldecomp%colxgdc(procinfo%endg:procinfo%endg))
+    allocate(ldecomp%pftxgdc(procinfo%endg:procinfo%endg))
+    do ln = begg , endg
+      ldecomp%lunxgdc(ln) = lcount(ln)
+      ldecomp%colxgdc(ln) = ccount(ln)
+      ldecomp%pftxgdc(ln) = pcount(ln)
+    end do
+
     deallocate(lcount)
     deallocate(ccount)
     deallocate(pcount)

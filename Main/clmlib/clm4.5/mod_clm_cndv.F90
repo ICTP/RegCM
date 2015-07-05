@@ -22,7 +22,7 @@ module mod_clm_cndv
   use mod_clm_cndvestablishment , only : Establishment
   use mod_clm_cndvlight , only : Light
   use mod_clm_decomp , only : get_proc_bounds , get_proc_global , &
-                gcomm_gridcell , gcomm_pft
+         gcomm_gridcell , gcomm_landunit , gcomm_column , gcomm_pft , ldecomp
   use mod_clm_varpar , only : maxpatch_pft
   use mod_clm_domain , only : ldomain
   use mod_clm_varcon , only : spval
@@ -161,7 +161,7 @@ module mod_clm_cndv
     real(rk8), pointer :: nind(:)
     character(len=256) :: dgvm_fn   ! dgvm history filename
     type(clm_filetype) :: ncid      ! netcdf file id
-    integer(ik4) :: g,p,l           ! indices
+    integer(ik4) :: g,p,l,c         ! indices
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
@@ -174,12 +174,15 @@ module mod_clm_cndv
     integer(ik4) :: hours,minutes,secs      ! hours,minutes,seconds of hh:mm:ss
     integer(ik4) :: nbsec                   ! seconds components of a date
     real(rk8):: time                   ! current time
+    real(rk8) , pointer , dimension(:) :: rparr     ! temporary
+    integer(ik4) , pointer , dimension(:) :: ilarr  ! temporary
+    integer(ik4) , pointer , dimension(:) :: icarr  ! temporary
+    integer(ik4) , pointer , dimension(:) :: iparr  ! temporary
     character(len=256) :: str          ! temporary string
     character(len=  8) :: curdate      ! current date
     character(len=  8) :: curtime      ! current time
     character(len= 10) :: basedate     ! base date (yyyymmdd)
     character(len=  8) :: basesec      ! base seconds
-    real(rk8), pointer :: rbuf2dg(:)  ! temporary
     character(len=32) :: subname='histCNDV'
     integer(ik4) :: hostnm
     character (len=32) :: hostname='?'
@@ -206,9 +209,14 @@ module mod_clm_cndv
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
     call get_proc_global(numg,numl,numc,nump)
 
-    allocate(rbuf2dg(begp:endp), stat=ier)
+    allocate(rparr(begp:endp), stat=ier)
     if (ier /= 0) call fatal(__FILE__,__LINE__,&
-      'histCNDV: allocation error for rbuf2dg')
+      'histCNDV: allocation error for real rparr')
+    allocate(ilarr(begl:endl), &
+             icarr(begc:endc), &
+             iparr(begp:endp), stat=ier)
+    if (ier /= 0) call fatal(__FILE__,__LINE__,&
+      'histCNDV: allocation error for integer arrays')
 
     ! -----------------------------------------------------------------------
     ! Create new netCDF file. File will be in define mode
@@ -268,7 +276,11 @@ module mod_clm_cndv
     ! -----------------------------------------------------------------------
 
     call clm_adddim(ncid,'gridcell',numg)
+    call clm_adddim(ncid,'landunit',numl)
+    call clm_adddim(ncid,'column',numc)
     call clm_adddim(ncid,'pft',nump)
+    call clm_adddim(ncid,'jx',njoutsg)
+    call clm_adddim(ncid,'iy',nioutsg)
     call clm_adddim(ncid,'time',clmvar_unlim)
     call clm_adddim(ncid,'string_length',80)
 
@@ -297,6 +309,14 @@ module mod_clm_cndv
           long_name='latitude', units='degrees_north')
     call clm_addvar(clmvar_integer,ncid,'landmask',(/'gridcell'/), &
           long_name='land/ocean mask (0.=ocean and 1.=land)')
+    call clm_addvar(clmvar_integer,ncid,'lunxgdc',(/'gridcell'/), &
+            long_name='Number of luns per gridcell')
+    call clm_addvar(clmvar_integer,ncid,'colxgdc',(/'gridcell'/), &
+            long_name='Number of cols per gridcell')
+    call clm_addvar(clmvar_integer,ncid,'pftxgdc',(/'gridcell'/), &
+            long_name='Number of pfts per gridcell')
+    call clm_addvar(clmvar_logical,ncid,'regcm_mask',(/'jx','iy'/), &
+          long_name='regcm land mask', units='1')
 
     ! Define time information
 
@@ -310,6 +330,21 @@ module mod_clm_cndv
          long_name='current seconds of current day', units='s')
     call clm_addvar(clmvar_integer,ncid,'nstep',(/'time'/), &
          long_name='time step', units='s')
+
+    call clm_addvar(clmvar_double,ncid,'pfts1d_lon', &
+            (/'pft'/),long_name='pft longitude', units='degrees_east')
+    call clm_addvar(clmvar_double,ncid,'pfts1d_lat', &
+            (/'pft'/),long_name='pft latitude', units='degrees_north')
+    call clm_addvar(clmvar_double,ncid,'pfts1d_wtxy', &
+            (/'pft'/),long_name='pft weight relative to corresponding gridcell')
+    call clm_addvar(clmvar_integer,ncid,'pfts1d_itypveg', &
+            (/'pft'/),long_name='pft vegetation type')
+    call clm_addvar(clmvar_integer,ncid,'luns1d_ityplun',(/'landunit'/), &
+            long_name='landunit type (vegetated,urban,lake,wetland,glacier)')
+    call clm_addvar(clmvar_integer,ncid,'cols1d_ityplun',(/'column'/), &
+            long_name='column type (vegetated,urban,lake,wetland,glacier)')
+    call clm_addvar(clmvar_integer,ncid,'pfts1d_ityplun',(/'pft'/), &
+            long_name='pft landunit type (vegetated,urban,lake,wetland,glacier)')
 
     ! Define time dependent variables
 
@@ -334,6 +369,35 @@ module mod_clm_cndv
     call clm_writevar(ncid,'longxy',ldomain%lonc,gcomm_gridcell)
     call clm_writevar(ncid,'latixy',ldomain%latc,gcomm_gridcell)
     call clm_writevar(ncid,'landmask',ldomain%mask,gcomm_gridcell)
+    call clm_writevar(ncid,'lunxgdc',ldecomp%lunxgdc,gcomm_gridcell)
+    call clm_writevar(ncid,'colxgdc',ldecomp%colxgdc,gcomm_gridcell)
+    call clm_writevar(ncid,'lunxgdc',ldecomp%lunxgdc,gcomm_gridcell)
+    call clm_writevar(ncid,'colxgdc',ldecomp%colxgdc,gcomm_gridcell)
+    call clm_writevar(ncid,'pftxgdc',ldecomp%pftxgdc,gcomm_gridcell)
+    call clm_writevar(ncid,'regcm_mask',lndcomm%global_out_sgmask)
+
+    do p = begp , endp
+      rparr(p) = clm3%g%londeg(clm3%g%l%c%p%gridcell(p))
+    end do
+    call clm_writevar(ncid,'pfts1d_lon',rparr,gcomm_pft)
+    do p = begp , endp
+      rparr(p) = clm3%g%latdeg(clm3%g%l%c%p%gridcell(p))
+    end do
+    call clm_writevar(ncid,'pfts1d_lat',rparr,gcomm_pft)
+    call clm_writevar(ncid,'pfts1d_wtxy',clm3%g%l%c%p%wtgcell,gcomm_pft)
+    call clm_writevar(ncid,'pfts1d_itypveg',clm3%g%l%c%p%itype,gcomm_pft)
+    do p = begp , endp
+      iparr(p) = clm3%g%l%itype(clm3%g%l%c%p%landunit(p))
+    end do
+    call clm_writevar(ncid,'pfts1d_ityplun',iparr,gcomm_pft)
+    do c = begc , endc
+      icarr(c) = clm3%g%l%itype(clm3%g%l%c%landunit(c))
+    end do
+    call clm_writevar(ncid,'cols1d_ityplun',icarr,gcomm_column)
+    do l = begl , endl
+      ilarr(l) = clm3%g%l%itype(l)
+    end do
+    call clm_writevar(ncid,'luns1d_ityplun',ilarr,gcomm_landunit)
 
     ! Write current date, current seconds, current day, current nstep
 
@@ -353,23 +417,24 @@ module mod_clm_cndv
     ! The if .not. ifspecial statment below guarantees that the m index will
     ! always lie between 1 and maxpatch_pft
 
-    rbuf2dg(:) = 0.D0
+    rparr(:) = 0.D0
     do p = begp , endp
        l = plandunit(p)
-       if (.not. ifspecial(l)) rbuf2dg(p) = fpcgrid(p)*100.D0
+       if (.not. ifspecial(l)) rparr(p) = fpcgrid(p)*100.D0
     end do
-    call clm_writevar(ncid,'FPCGRID',rbuf2dg,gcomm_pft,nt=1)
+    call clm_writevar(ncid,'FPCGRID',rparr,gcomm_pft,nt=1)
 
-    rbuf2dg(:) = 0.D0
+    rparr(:) = 0.D0
     do p = begp , endp
        l = plandunit(p)
-       if (.not. ifspecial(l)) rbuf2dg(p) = nind(p)
+       if (.not. ifspecial(l)) rparr(p) = nind(p)
     end do
-    call clm_writevar(ncid,'NIND',rbuf2dg,gcomm_pft,nt=1)
+    call clm_writevar(ncid,'NIND',rparr,gcomm_pft,nt=1)
 
     ! Deallocate dynamic memory
 
-    deallocate(rbuf2dg)
+    deallocate(rparr)
+    deallocate(iparr)
 
     !------------------------------------------------------------------
     ! Close and archive netcdf CNDV history file

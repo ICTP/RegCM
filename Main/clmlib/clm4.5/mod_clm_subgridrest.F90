@@ -108,9 +108,18 @@ module mod_clm_subgridrest
       call clm_addvar(clmvar_double,ncid,'grid1d_lat', &
               (/'gridcell'/),long_name='gridcell latitude', &
               units='degrees_north')
+      call clm_addvar(clmvar_integer,ncid,'lunxgdc',(/'gridcell'/), &
+             long_name='Number of luns per gridcell')
+      call clm_addvar(clmvar_integer,ncid,'colxgdc',(/'gridcell'/), &
+             long_name='Number of cols per gridcell')
+      call clm_addvar(clmvar_integer,ncid,'pftxgdc',(/'gridcell'/), &
+             long_name='Number of pfts per gridcell')
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'grid1d_lon',gptr%londeg)
       call clm_writevar(ncid,'grid1d_lat',gptr%latdeg)
+      call clm_writevar(ncid,'lunxgdc',ldecomp%lunxgdc,gcomm_gridcell)
+      call clm_writevar(ncid,'colxgdc',ldecomp%colxgdc,gcomm_gridcell)
+      call clm_writevar(ncid,'pftxgdc',ldecomp%pftxgdc,gcomm_gridcell)
     end if
 
     ! Write landunit info
@@ -124,7 +133,7 @@ module mod_clm_subgridrest
               units='degrees_north')
       call clm_addvar(clmvar_double,ncid,'land1d_wtxy',(/'landunit'/), &
               long_name='landunit weight relative to corresponding gridcell')
-      call clm_addvar(clmvar_double,ncid,'land1d_ityplun',(/'landunit'/), &
+      call clm_addvar(clmvar_integer,ncid,'land1d_ityplun',(/'landunit'/), &
            long_name='landunit type (vegetated,urban,lake,wetland or glacier)')
     else if (flag == 'write') then
       do l = begl , endl
