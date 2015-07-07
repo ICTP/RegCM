@@ -407,12 +407,14 @@ module mod_rrtmg_driver
     end do
     totcf(:) = d_one - totcf(:)
     totcf(:) = d_half * ( totcf(:) + maxval(cld_int(:,:),2) )
-    where ( totcf > cftotmax )
-      totcf = cftotmax
-    end where
-    where ( totcf < d_zero )
-      totcf = d_zero
-    end where
+    if ( lsrfhack ) then
+      where ( totcf > cftotmax )
+        totcf = cftotmax
+      end where
+      where ( totcf < d_zero )
+        totcf = d_zero
+      end where
+    end if
 
     totci(:) = sum(clwp_int*fice,2)*d_r1000
     totcl(:) = sum(clwp_int,2)*d_r1000

@@ -493,7 +493,7 @@ module mod_rad_radiation
            0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
            0.000D0 , 0.000D0 , 0.000D0 , 0.000D0/
 
-  logical :: luse_max_rnovl = .false.
+  logical :: luse_max_rnovl = .true.
 
   contains
 
