@@ -58,9 +58,9 @@ module mod_rad_colmod3
   real(rk8) , pointer , dimension(:) :: asw , alw
   real(rk8) , pointer , dimension(:) :: abv , sol
   real(rk8) , pointer , dimension(:,:) :: cld , effcld , pilnm1 , pintm1
-  real(rk8) , pointer , dimension(:,:) :: clwp , emis , fice , h2ommr , &
-    o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , qrl , qrs , rei , rel ,    &
-    deltaz , tm1 , rh1
+  real(rk8) , pointer , dimension(:,:) :: clwp , emis , fice , &
+    o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , ql1 , qi1 , qrl ,  &
+    qrs , rei , rel , deltaz , tm1 , rh1
   real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
   real(rk8) , pointer , dimension(:,:,:) :: aermmr
   real(rk8) , pointer , dimension(:,:,:) :: absgasnxt
@@ -123,12 +123,13 @@ module mod_rad_colmod3
       call getmem2d(clwp,1,npr,1,kz,'colmod3:clwp')
       call getmem2d(emis,1,npr,1,kz,'colmod3:emis')
       call getmem2d(fice,1,npr,1,kz,'colmod3:fice')
-      call getmem2d(h2ommr,1,npr,1,kz,'colmod3:h2ommr')
       call getmem2d(o3mmr,1,npr,1,kz,'colmod3:o3mmr')
       call getmem2d(o3vmr,1,npr,1,kz,'colmod3:o3vmr')
       call getmem2d(pmidm1,1,npr,1,kz,'colmod3:pmidm1')
       call getmem2d(pmlnm1,1,npr,1,kz,'colmod3:pmlnm1')
       call getmem2d(qm1,1,npr,1,kz,'colmod3:qm1')
+      call getmem2d(ql1,1,npr,1,kz,'colmod3:ql1')
+      call getmem2d(qi1,1,npr,1,kz,'colmod3:qi1')
       call getmem2d(qrl,1,npr,1,kz,'colmod3:qrl')
       call getmem2d(qrs,1,npr,1,kz,'colmod3:qrs')
       call getmem2d(rei,1,npr,1,kz,'colmod3:rei')
@@ -342,12 +343,13 @@ module mod_rad_colmod3
     clwp(:,:) = d_zero
     emis(:,:) = d_zero
     fice(:,:) = d_zero
-    h2ommr(:,:) = d_zero
     o3mmr(:,:) = d_zero
     o3vmr(:,:) = d_zero
     pmidm1(:,:) = d_zero
     pmlnm1(:,:) = d_zero
     qm1(:,:) = d_zero
+    ql1(:,:) = d_zero
+    qi1(:,:) = d_zero
     qrl(:,:) = d_zero
     qrs(:,:) = d_zero
     rei(:,:) = d_zero
@@ -513,15 +515,19 @@ module mod_rad_colmod3
         rei(n,k) = reimax - rirnge*weight
         ! Define fractional amount of cloud that is ice
         ! if warmer than -10 degrees C then water phase
-        if ( tm1(n,k) > minus10 ) then
-          fice(n,k) = d_zero
-        else if ( tm1(n,k) <= minus10 .and. tm1(n,k) >= minus30 ) then
-        ! if colder than -10 degrees C but warmer than -30 C mixed phase
-        ! fice : fractional ice content within cloud
-          fice(n,k) = (minus10-tm1(n,k))/20.0D0
-        !  if colder than -30 degrees C then ice phase
+        if ( ipptls == 2 ) then
+          fice(n,k) = qi1(n,k) / ql1(n,k)
         else
-          fice(n,k) = d_one
+          if ( tm1(n,k) > minus10 ) then
+            fice(n,k) = d_zero
+          else if ( tm1(n,k) <= minus10 .and. tm1(n,k) >= minus30 ) then
+          ! if colder than -10 degrees C but warmer than -30 C mixed phase
+          ! fice : fractional ice content within cloud
+            fice(n,k) = (minus10-tm1(n,k))/20.0D0
+          !  if colder than -30 degrees C then ice phase
+          else
+            fice(n,k) = d_one
+          end if
         end if
         !  Turn off ice radiative properties by setting fice = 0.0
 !
@@ -748,12 +754,13 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          h2ommr(n,k) = dmax1(minqx,m2r%qxatms(j,i,k,iqv))
+          qm1(n,k) = dmax1(minqx,m2r%qxatms(j,i,k,iqv))
+          ql1(n,k) = m2r%qxatms(j,i,k,iqc)
+          qi1(n,k) = m2r%qxatms(j,i,k,iqi)
           n = n + 1
         end do
       end do
     end do
-    qm1(:,:) = h2ommr(:,:)
     !
     ! deltaz
     !
