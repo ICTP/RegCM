@@ -24,10 +24,10 @@ module mod_rad_radiation
   use mod_dynparam
   use mod_mpmessage
   use mod_service
-  use mod_runparams , only : idirect , scon , ichem , cftotmax
+  use mod_runparams , only : idirect , scon , ichem , cftotmax , lsrfhack
   use mod_memutil
 
-! Used by this module only
+  ! Used by this module only
 
   use mod_rad_common
   use mod_rad_tracer
@@ -492,12 +492,14 @@ module mod_rad_radiation
            0.000D0 , 0.000D0 , 0.000D0 , 1.000D0 , 1.000D0 , &
            0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
            0.000D0 , 0.000D0 , 0.000D0 , 0.000D0/
-!
+
+  logical :: luse_max_rnovl = .false.
+
   contains
 
   subroutine allocate_mod_rad_radiation
     implicit none
-!
+
     npoints = (jci2-jci1+1)*(ici2-ici1+1)
     call getmem3d(absnxt,1,npoints,1,kz,1,4,'rad:absnxt')
     call getmem3d(xuinpl,1,npoints,1,kz,1,4,'rad:xuinpl')
@@ -644,7 +646,7 @@ module mod_rad_radiation
     call getmem2d(plh2o,1,npoints,1,kzp1,'rad:plh2o')
     call getmem2d(pnm,1,npoints,1,kzp1,'rad:pnm')
     call getmem2d(tclrsf,1,npoints,1,kzp1,'rad:tclrsf')
-!
+
   end subroutine allocate_mod_rad_radiation
 !
 !-----------------------------------------------------------------------
@@ -661,12 +663,12 @@ module mod_rad_radiation
 !-----------------------------------------------------------------------
 !
   subroutine radini(iyear)
-!
+
     implicit none
     integer(ik4) , intent(in) :: iyear
-!
-!   iband  - H2O band index
-!
+    !
+    ! iband  - H2O band index
+    !
     integer(ik4) :: iband
 
 #ifdef DEBUG
@@ -913,9 +915,16 @@ module mod_rad_radiation
         !        really in energy balance !
         !
         totcf(n) = d_one
-        do k = 1 , kzp1
-          totcf(n) = totcf(n) * (d_one - cld(n,k))
-        end do
+        if ( luse_max_rnovl ) then
+          do k = 2 , kzp1
+            totcf(n) = totcf(n) * (d_one - max(cld(n,k-1),cld(n,k)))/ &
+                                  (d_one - cld(n,k-1))
+          end do
+        else
+          do k = 1 , kzp1
+            totcf(n) = totcf(n) * (d_one - cld(n,k))
+          end do
+        end if
         totcf(n) = d_one - totcf(n)
         !
         ! maximum cld cover considered
@@ -932,9 +941,11 @@ module mod_rad_radiation
         end if
         ! Fil suggestion of putting a max on column cloud fraction
         ! TAO: implement a user-specified CF maximum (default of 1.0)
-        if ( totcf(n) > cftotmax ) totcf(n) = cftotmax
-        if ( totcf(n) < d_zero ) totcf(n) = d_zero
-        fsns(n) = fsns(n) * totcf(n) + fsnsc(n) * (d_one-totcf(n))
+        if ( lsrfhack ) then
+          if ( totcf(n) > cftotmax ) totcf(n) = cftotmax
+          if ( totcf(n) < d_zero ) totcf(n) = d_zero
+          fsns(n) = fsns(n) * totcf(n) + fsnsc(n) * (d_one-totcf(n))
+        end if
         ! Apply the clear-sky / cloudy-sky also to abv using the beta factor
         abv(n) = betafac * fsns(n)
         fsds(n) = fsds(n)*1.0D-3
@@ -995,10 +1006,12 @@ module mod_rad_radiation
 !
 !       totcf(n) has been calculated for the SW, dolw is always true
 !
-        flwds(n) = flwds(n) * totcf(n) + &
-                   fslwdcs(n) * (d_one - totcf(n))
-        flns(n) = flns(n) * totcf(n) + &
-                  flnsc(n) * (d_one - totcf(n))
+        if ( lsrfhack ) then
+          flwds(n) = flwds(n) * totcf(n) + &
+                     fslwdcs(n) * (d_one - totcf(n))
+          flns(n) = flns(n) * totcf(n) + &
+                    flnsc(n) * (d_one - totcf(n))
+        end if
       end do
     end if
 #ifdef DEBUG

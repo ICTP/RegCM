@@ -305,6 +305,7 @@ module mod_runparams
   ! Large scale SUBEX parameters
 
   integer(ik4) , public :: ncld ! # of bottom model levels with no clouds
+  logical , public :: lsrfhack ! Surface radiation hack
   real(rk8) , public :: qck1land
   real(rk8) , public :: qck1oce
   real(rk8) , public :: gulland
@@ -317,7 +318,8 @@ module mod_runparams
   real(rk8) , public :: caccroce
   real(rk8) , public :: cevapoce
   real(rk8) , public :: tc0
-  real(rk8) , public :: cllwcv   ! Cloud liquid water content for convective precip.
+  real(rk8) , public :: cllwcv   ! Cloud liquid water content
+                                 ! for convective precip.
   real(rk8) , public :: clfrcvmax
   real(rk8) , public :: cftotmax ! Maximum total cloud fraction for radiation
   real(rk8) , public :: conf     ! Condensation threshold.

@@ -111,7 +111,7 @@ module mod_params
 
     namelist /subexparam/ ncld , qck1land , qck1oce , gulland , guloce ,     &
       rhmax , rh0oce , rh0land , cevaplnd , cevapoce , caccrlnd , caccroce , &
-      tc0 , cllwcv , clfrcvmax , cftotmax , conf
+      tc0 , cllwcv , clfrcvmax , cftotmax , conf , lsrfhack
 
     namelist /microparam/ stats , budget_compute , nssopt , kautoconv ,  &
       ksemi , vqxr , vqxi , vqxs , zauto_rate_khair , zauto_rate_kessl , &
@@ -269,7 +269,8 @@ module mod_params
     cllwcv = 0.3D-3      ! Cloud liquid water content for convective precip.
     clfrcvmax = 1.00D0   ! Max cloud fractional cover for convective precip.
     cftotmax = 0.75D0    ! Max total cover cloud fraction for radiation
-    conf = d_one         !   Condensation threshold
+    conf = d_one         ! Condensation threshold
+    lsrfhack = .false.   ! Surface radiation hack
     !
     ! namelist microparam
     stats = .false.
@@ -915,6 +916,7 @@ module mod_params
       call bcast(caccroce)
       call bcast(cftotmax)
       call bcast(conf)
+      call bcast(lsrfhack)
       if ( ipptls == 2 ) then
         call bcast(stats)
         call bcast(budget_compute)
@@ -1591,6 +1593,8 @@ module mod_params
             '  Maximum total cloud cover for rad : ', cftotmax
         write(stdout,'(a,f11.6)') &
             '  Condensation threshold            : ', conf
+        write(stdout,'(a,l)') &
+            '  Surface radiation hack            : ', lsrfhack
       end if
     end if
 
