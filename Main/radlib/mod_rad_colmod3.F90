@@ -129,7 +129,7 @@ module mod_rad_colmod3
       call getmem2d(pmlnm1,1,npr,1,kz,'colmod3:pmlnm1')
       call getmem2d(qm1,1,npr,1,kz,'colmod3:qm1')
       call getmem2d(ql1,1,npr,1,kz,'colmod3:ql1')
-      call getmem2d(qi1,1,npr,1,kz,'colmod3:qi1')
+      if ( ipptls == 2 ) call getmem2d(qi1,1,npr,1,kz,'colmod3:qi1')
       call getmem2d(qrl,1,npr,1,kz,'colmod3:qrl')
       call getmem2d(qrs,1,npr,1,kz,'colmod3:qrs')
       call getmem2d(rei,1,npr,1,kz,'colmod3:rei')
@@ -349,7 +349,7 @@ module mod_rad_colmod3
     pmlnm1(:,:) = d_zero
     qm1(:,:) = d_zero
     ql1(:,:) = d_zero
-    qi1(:,:) = d_zero
+    if ( ipptls == 2 ) qi1(:,:) = d_zero
     qrl(:,:) = d_zero
     qrs(:,:) = d_zero
     rei(:,:) = d_zero
@@ -756,11 +756,21 @@ module mod_rad_colmod3
         do j = jci1 , jci2
           qm1(n,k) = dmax1(minqx,m2r%qxatms(j,i,k,iqv))
           ql1(n,k) = m2r%qxatms(j,i,k,iqc)
-          qi1(n,k) = m2r%qxatms(j,i,k,iqi)
           n = n + 1
         end do
       end do
     end do
+    if ( ipptls == 2 ) then
+      do k = 1 , kz
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            qi1(n,k) = m2r%qxatms(j,i,k,iqi)
+            n = n + 1
+          end do
+        end do
+      end do
+    end if
     !
     ! deltaz
     !
