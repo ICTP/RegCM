@@ -1350,11 +1350,11 @@ module mod_tendency
             duv = ucd*mddom%dmdy(j,i) - vcd*mddom%dmdx(j,i)
             aten%u(j,i,k) = aten%u(j,i,k) + mddom%coriol(j,i)*vcd - &
                          mddom%ef(j,i)*mddom%ddx(j,i)*wabar +       &
-                         atmx%v(j,i,k)*duv - vcd*amfac +            &
+                         atmx%v(j,i,k)*duv - ucd*amfac +            &
                          divd(j,i,k)*ucd
             aten%v(j,i,k) = aten%v(j,i,k) - mddom%coriol(j,i)*ucd + &
                          mddom%ef(j,i)*mddom%ddy(j,i)*wabar -       &
-                         atmx%u(j,i,k)*duv - ucd*amfac +            &
+                         atmx%u(j,i,k)*duv - vcd*amfac +            &
                          divd(j,i,k)*vcd
           end do
         end do

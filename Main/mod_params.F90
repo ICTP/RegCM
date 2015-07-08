@@ -1593,7 +1593,7 @@ module mod_params
             '  Maximum total cloud cover for rad : ', cftotmax
         write(stdout,'(a,f11.6)') &
             '  Condensation threshold            : ', conf
-        write(stdout,'(a,l)') &
+        write(stdout,'(a,l11)') &
             '  Surface radiation hack            : ', lsrfhack
       end if
     end if
