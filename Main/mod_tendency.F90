@@ -53,14 +53,6 @@ module mod_tendency
   private
 
   public :: allocate_mod_tend , tend
-  !--------------------------------------------
-  ! Mass divergence         in cross (x) points
-  !--------------------------------------------
-  real(rk8) , pointer , dimension(:,:,:) :: divx
-  !--------------------------------------------
-  ! Mass divergence averaged in  dot (d) points
-  !--------------------------------------------
-  real(rk8) , pointer , dimension(:,:,:) :: divd
   real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , &
                ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc , th , tha
   real(rk8) , pointer , dimension(:,:,:) :: ps4
@@ -83,7 +75,6 @@ module mod_tendency
   subroutine allocate_mod_tend
     implicit none
     call getmem3d(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
-    call getmem3d(divx,jce1,jce2,ice1,ice2,1,kz,'tendency:divx')
     call getmem3d(xkc,jdi1,jdi2,idi1,idi2,1,kz,'tendency:xkc')
     call getmem3d(xkcf,jdi1,jdi2,idi1,idi2,1,kzp1,'tendency:xkcf')
     call getmem3d(ps4,jci1,jci2,ici1,ici2,1,4,'tendency:ps4')
@@ -108,7 +99,6 @@ module mod_tendency
     else if ( idynamic == 2 ) then
       call getmem3d(ucc,jce1,jce2,ice1,ice2,1,kz,'tendency:ucc')
       call getmem3d(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
-      call getmem3d(divd,jdi1,jdi2,idi1,idi2,1,kz,'tendency:divd')
       if ( ithadv == 1 ) then
         call getmem3d(thten,jce1,jce2,ice1,ice2,1,kz,'tendency:thten')
         call getmem3d(tha,jce1,jce2,ice1,ice2,1,kz,'tendency:tha')
@@ -306,11 +296,11 @@ module mod_tendency
             ! The surface pressure tendency in the   hydrostatic model:
             ! Eq. 2.1.5 & Eq. 2.4.2 in the MM5 manual
             !
-            divx(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
-                           atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
-                          (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
-                           atm1%v(j+1,i,k)  -atm1%v(j,i,k))
-            pten(j,i) = pten(j,i) - divx(j,i,k)*dsigma(k) * dummy(j,i)
+            mdv%cr(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
+                             atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
+                            (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
+                             atm1%v(j+1,i,k)  -atm1%v(j,i,k))
+            pten(j,i) = pten(j,i) - mdv%cr(j,i,k)*dsigma(k) * dummy(j,i)
           end do
         end do
       end do
@@ -322,7 +312,7 @@ module mod_tendency
             ! Eq. 2.1.6 & Eq. 2.4.3 in the MM5 manual
             !
             qdot(j,i,k) = qdot(j,i,k-1) - (pten(j,i) + &
-              divx(j,i,k-1)*dummy(j,i)) * dsigma(k-1) * rpsa(j,i)
+              mdv%cr(j,i,k-1)*dummy(j,i)) * dsigma(k-1) * rpsa(j,i)
            end do
         end do
       end do
@@ -365,10 +355,10 @@ module mod_tendency
             ! nonhydrostatic model:
             ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
             !
-            divx(j,i,k) = ((atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k) -              &
-                            atm1%u(j,i+1,k)  -atm1%u(j,i,k))  +              &
-                           (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k) -              &
-                            atm1%v(j+1,i,k)  -atm1%v(j,i,k))) * dummy(j,i) + &
+            mdv%cr(j,i,k) = ((atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k) -              &
+                              atm1%u(j,i+1,k)  -atm1%u(j,i,k))  +              &
+                             (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k) -              &
+                              atm1%v(j+1,i,k)  -atm1%v(j,i,k))) * dummy(j,i) + &
                (qdot(j,i,k+1) - qdot(j,i,k)) * sfs%psa(j,i)/dsigma(k)
           end do
         end do
@@ -381,8 +371,8 @@ module mod_tendency
             ! nonhydrostatic model:
             ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
             !
-            divd(j,i,k) = d_rfour * (divx(j,i,k)   + divx(j-1,i,k) + &
-                                     divx(j,i-1,k) + divx(j-1,i-1,k))
+            mdv%dt(j,i,k) = d_rfour*(mdv%cr(j,i,k)  +mdv%cr(j-1,i,k) + &
+                                     mdv%cr(j,i-1,k)+mdv%cr(j-1,i-1,k))
           end do
         end do
       end do
@@ -691,8 +681,8 @@ module mod_tendency
               scr = d_half*egrav*atm0%rho(j,i,k) * &
                          (atm1%w(j,i,k)+atm1%w(j,i,k+1))
               cpm = cpd*(d_one + 0.856D0*qvd(j,i,k))
-              aten%t(j,i,k) = aten%t(j,i,k) + atmx%t(j,i,k)*divx(j,i,k) - &
-                            (scr+aten%pp(j,i,k)+atmx%pp(j,i,k)*divx(j,i,k)) / &
+              aten%t(j,i,k) = aten%t(j,i,k) + atmx%t(j,i,k)*mdv%cr(j,i,k) - &
+                            (scr+aten%pp(j,i,k)+atmx%pp(j,i,k)*mdv%cr(j,i,k)) / &
                             (atm1%rho(j,i,k)*cpm)
             end do
           end do
@@ -701,7 +691,7 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              thten(j,i,k) = thten(j,i,k) + th(j,i,k) * divx(j,i,k)
+              thten(j,i,k) = thten(j,i,k) + th(j,i,k) * mdv%cr(j,i,k)
               aten%t(j,i,k) = aten%t(j,i,k) + &
                    atm1%t(j,i,k)*thten(j,i,k)/tha(j,i,k)
             end do
@@ -715,7 +705,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%pp(j,i,k) = aten%pp(j,i,k) + atmx%pp(j,i,k)*divx(j,i,k)
+            aten%pp(j,i,k) = aten%pp(j,i,k) + atmx%pp(j,i,k)*mdv%cr(j,i,k)
           end do
         end do
       end do
@@ -749,8 +739,8 @@ module mod_tendency
                    mddom%ex(j,i)*(uaq*mddom%crx(j,i) -     &
                                   vaq*mddom%cry(j,i)) +    &
                    (uaq*uaq+vaq*vaq)*rearthrad*rpsa(j,i) + &
-                   atmx%w(j,i,k)*(twt(k,1)*divx(j,i,k) +   &
-                                  twt(k,2)*divx(j,i,k-1))
+                   atmx%w(j,i,k)*(twt(k,1)*mdv%cr(j,i,k) +   &
+                                  twt(k,2)*mdv%cr(j,i,k-1))
           end do
         end do
       end do
@@ -1351,11 +1341,11 @@ module mod_tendency
             aten%u(j,i,k) = aten%u(j,i,k) + mddom%coriol(j,i)*vcd - &
                          mddom%ef(j,i)*mddom%ddx(j,i)*wabar +       &
                          atmx%v(j,i,k)*duv - ucd*amfac +            &
-                         divd(j,i,k)*ucd
+                         mdv%diag(j,i,k) * ucd
             aten%v(j,i,k) = aten%v(j,i,k) - mddom%coriol(j,i)*ucd + &
                          mddom%ef(j,i)*mddom%ddy(j,i)*wabar -       &
                          atmx%u(j,i,k)*duv - vcd*amfac +            &
-                         divd(j,i,k)*vcd
+                         mdv%diag(j,i,k) * vcd
           end do
         end do
       end do

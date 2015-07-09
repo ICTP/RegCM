@@ -78,6 +78,8 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: cry
     real(rk8) , pointer , dimension(:,:) :: dmdy
     real(rk8) , pointer , dimension(:,:) :: dmdx
+    real(rk8) , pointer , dimension(:,:) :: xmsf
+    real(rk8) , pointer , dimension(:,:) :: dmsf
     real(rk8) , pointer , dimension(:,:) :: snowam
     real(rk8) , pointer , dimension(:,:) :: smoist
     real(rk8) , pointer , dimension(:,:,:) :: rmoist
@@ -96,6 +98,12 @@ module mod_regcm_types
     integer(ik4) , pointer , dimension(:,:,:) :: ldmsk
     integer(ik4) , pointer , dimension(:,:,:) :: iveg
   end type domain_subgrid
+
+  type mass_divergence
+    real(rk8) , pointer , dimension(:,:,:) :: cr ! cross points
+    real(rk8) , pointer , dimension(:,:,:) :: dt ! dot points
+    real(rk8) , pointer , dimension(:,:,:) :: diag !
+  end type mass_divergence
 
   type reference_atmosphere
     real(rk8) , pointer , dimension(:,:) :: ps

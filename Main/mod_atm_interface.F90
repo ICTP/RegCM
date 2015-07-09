@@ -52,6 +52,7 @@ module mod_atm_interface
   type(v2dbound) , public :: xpsb
   type(bound_area) , public :: ba_cr , ba_dt
   type(reference_atmosphere) , public :: atm0
+  type(mass_divergence) , public :: mdv
 
   public :: allocate_mod_atm_interface
   public :: allocate_v3dbound , allocate_v2dbound
@@ -748,6 +749,14 @@ module mod_atm_interface
       call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'reference:rho')
     end subroutine allocate_reference_atmosphere
 
+    subroutine allocate_mass_divergence(div)
+      implicit none
+      type(mass_divergence) , intent(out) :: div
+      call getmem3d(div%cr,jce1,jce2,ice1,ice2,1,kz,'massdiv:cr')
+      call getmem3d(div%dt,jdi1,jdi2,idi1,idi2,1,kz,'massdiv:dt')
+      call getmem3d(div%diag,jdi1,jdi2,idi1,idi2,1,kz,'massdiv:diag')
+    end subroutine allocate_mass_divergence
+
     subroutine allocate_tendiag(dia)
       implicit none
       type(tendiag) , intent(out) :: dia
@@ -798,6 +807,8 @@ module mod_atm_interface
                     1,num_soil_layers,'storage:rmoist')
       call getmem2d(dom%ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
       call getmem2d(dom%iveg,jci1,jci2,ici1,ici2,'storage:iveg')
+      call getmem2d(dom%xmsf,jdi1,jdi2,idi1,idi2,'storage:xmsf')
+      call getmem2d(dom%dmsf,jdi1,jdi2,idi1,idi2,'storage:dmsf')
       if ( lakemod == 1 ) then
         call getmem2d(dom%dhlake,jde1,jde2,ide1,ide2,'storage:dhlake')
       end if
@@ -934,6 +945,8 @@ module mod_atm_interface
       call allocate_slice(atms)
 
       call allocate_diffx(adf)
+
+      call allocate_mass_divergence(mdv)
 
       ! FAB:
       !    complete for diag on water quantitiies idiag = 2, 3 etc

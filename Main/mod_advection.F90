@@ -49,14 +49,19 @@ module mod_advection
   real(rk8) , pointer , dimension(:,:) :: ps     ! Surface pressure
   real(rk8) , pointer , dimension(:,:) :: mapfx  ! Map factor Cross
   real(rk8) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
+  real(rk8) , pointer , dimension(:,:) :: xmapf  ! 1/(mapfx**2)
+  real(rk8) , pointer , dimension(:,:) :: dmapf  ! 1/(mapfd**2)
   real(rk8) , pointer , dimension(:,:,:) :: svv  ! Sigma Vertical Velocity
   real(rk8) , pointer , dimension(:,:,:) :: pfs  ! Pressure full sigma levels
   real(rk8) , pointer , dimension(:,:,:) :: phs  ! Pressure half sigma levels
+  real(rk8) , pointer , dimension(:,:,:) :: mdvd ! Mass divergence dot points
+  real(rk8) , pointer , dimension(:,:,:) :: diag !
   integer(ik4) , pointer , dimension(:,:) :: kpb ! Top of PBL
 
   ! working space used to store the interlated values in vadv.
 
   real(rk8) , pointer , dimension(:,:,:) :: fg
+  real(rk8) , pointer , dimension(:,:) :: dxdmsf , dxxmsf
   real(rk8) , pointer , dimension(:) :: dds , xds , xds4
 
   real(rk8) , parameter :: c287 = 0.287D+00
@@ -64,7 +69,8 @@ module mod_advection
   contains
 
     subroutine init_advection
-      use mod_atm_interface , only : mddom , sfs , atms , atm1 , qdot , kpbl
+      use mod_atm_interface , only : mddom , sfs , atms , atm1
+      use mod_atm_interface , only : mdv , qdot , kpbl
       implicit none
       integer(ik4) :: k
       call assignpnt(atm1%u,ua)
@@ -72,8 +78,12 @@ module mod_advection
       call assignpnt(sfs%psa,ps)
       call assignpnt(mddom%msfx,mapfx)
       call assignpnt(mddom%msfd,mapfd)
+      call assignpnt(mddom%xmsf,xmapf)
+      call assignpnt(mddom%dmsf,dmapf)
       call assignpnt(atms%pf3d,pfs)
       call assignpnt(atms%pb3d,phs)
+      call assignpnt(mdv%dt,mdvd)
+      call assignpnt(mdv%diag,diag)
       call assignpnt(qdot,svv)
       call assignpnt(kpbl,kpb)
       call getmem1d(dds,1,kzp1,'mod_advection:dds')
@@ -116,28 +126,53 @@ module mod_advection
         ! ua, va : are p*u and p*v.
         ! msfd   : is the map scale factor at dot points.
         !
-        do k = 1 , nk
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              ucmona = ua(j,i+1,k)+d_two*ua(j,i,k)+ua(j,i-1,k)
-              vcmona = va(j+1,i,k)+d_two*va(j,i,k)+va(j-1,i,k)
-              ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + &
-                       ua(j+1,i-1,k) + ucmona
-              vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + &
-                       va(j-1,i+1,k) + vcmona
-              ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + &
-                       ua(j-1,i-1,k) + ucmona
-              vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
-                       va(j-1,i-1,k) + vcmona
-              ften(j,i,k) = ften(j,i,k) -                  &
-                          ((f(j+1,i,k)+f(j,i,k))*ucmonb -  &
-                           (f(j,i,k)+f(j-1,i,k))*ucmonc +  &
-                           (f(j,i+1,k)+f(j,i,k))*vcmonb -  &
-                           (f(j,i,k)+f(j,i-1,k))*vcmonc) / &
-                           (dx16*mapfd(j,i)*mapfd(j,i))
+        if ( ipptls == 1 ) then
+          do k = 1 , nk
+            do i = idi1 , idi2
+              do j = jdi1 , jdi2
+                ucmona = ua(j,i+1,k)+d_two*ua(j,i,k)+ua(j,i-1,k)
+                vcmona = va(j+1,i,k)+d_two*va(j,i,k)+va(j-1,i,k)
+                ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + &
+                         ua(j+1,i-1,k) + ucmona
+                vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + &
+                         va(j-1,i+1,k) + vcmona
+                ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + &
+                         ua(j-1,i-1,k) + ucmona
+                vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
+                         va(j-1,i-1,k) + vcmona
+                ften(j,i,k) = ften(j,i,k) - dmapf(j,i) / dx16 * &
+                            ((f(j+1,i,k)+f(j,i,k))*ucmonb -     &
+                             (f(j,i,k)+f(j-1,i,k))*ucmonc +     &
+                             (f(j,i+1,k)+f(j,i,k))*vcmonb -     &
+                             (f(j,i,k)+f(j,i-1,k))*vcmonc)
+              end do
             end do
           end do
-        end do
+        else
+          do k = 1 , nk
+            do i = idi1 , idi2
+              do j = jdi1 , jdi2
+                ucmona = ua(j,i+1,k)+d_two*ua(j,i,k)+ua(j,i-1,k)
+                vcmona = va(j+1,i,k)+d_two*va(j,i,k)+va(j-1,i,k)
+                ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + &
+                         ua(j+1,i-1,k) + ucmona
+                vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + &
+                         va(j-1,i+1,k) + vcmona
+                ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + &
+                         ua(j-1,i-1,k) + ucmona
+                vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
+                         va(j-1,i-1,k) + vcmona
+                diag(j,i,k) = mdvd(j,i,k) - dmapf(j,i) * &
+                   ( (ucmonb - ucmonc) + (vcmonb - vcmonc) )
+                ften(j,i,k) = ften(j,i,k) - dmapf(j,i) / dx16 * &
+                            ((f(j+1,i,k)+f(j,i,k))*ucmonb -     &
+                             (f(j,i,k)+f(j-1,i,k))*ucmonc +     &
+                             (f(j,i+1,k)+f(j,i,k))*vcmonb -     &
+                             (f(j,i,k)+f(j,i-1,k))*vcmonc)
+              end do
+            end do
+          end do
+        end if
       else
         !
         ! for t
@@ -146,12 +181,11 @@ module mod_advection
           do k = 1 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ften(j,i,k) = ften(j,i,k) -                               &
+                ften(j,i,k) = ften(j,i,k) - xmapf(j,i) / dx4 *            &
                     ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k)+f(j,i,k)) -  &
                      (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k)+f(j-1,i,k)) +  &
                      (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k)+f(j,i,k)) -  &
-                     (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k)+f(j,i,k))) / &
-                     (dx4*mapfx(j,i)*mapfx(j,i))
+                     (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k)+f(j,i,k)))
               end do
             end do
           end do
@@ -163,7 +197,7 @@ module mod_advection
           do k = 2 , nk - 1
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ften(j,i,k) = ften(j,i,k) -                     &
+                ften(j,i,k) = ften(j,i,k) - xmapf(j,i) / dx4 *  &
                   (((ua(j+1,i+1,k-1)+ua(j+1,i,k-1))*twt(k,2) +  &
                     (ua(j+1,i+1,k)  +ua(j+1,i,k))*twt(k,1)) *   &
                     (f(j+1,i,k)+f(j,i,k)) -                     &
@@ -175,8 +209,7 @@ module mod_advection
                     (f(j,i+1,k)+f(j,i,k)) -                     &
                    ((va(j,i,k-1)+va(j+1,i,k-1))*twt(k,2) +      &
                     (va(j,i,k)  +va(j+1,i,k))*twt(k,1)) *       &
-                    (f(j,i-1,k)+f(j,i,k))) /                    &
-                    (dx4*mapfx(j,i)*mapfx(j,i))
+                    (f(j,i-1,k)+f(j,i,k)))
               end do
             end do
           end do
@@ -219,12 +252,11 @@ module mod_advection
         do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,k,n) = ften(j,i,k,n) -                               &
+              ften(j,i,k,n) = ften(j,i,k,n) - xmapf(j,i) / dx4 *            &
                   ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,n)+f(j,i,k,n)) -  &
                    (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k,n)+f(j-1,i,k,n)) +  &
                    (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,n)+f(j,i,k,n)) -  &
-                   (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,n)+f(j,i,k,n))) / &
-                   (dx4*mapfx(j,i)*mapfx(j,i))
+                   (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,n)+f(j,i,k,n)))
             end do
           end do
         end do

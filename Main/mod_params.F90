@@ -1431,6 +1431,12 @@ module mod_params
         mddom%msfx(j,i) = d_one/mddom%msfx(j,i)
       end do
     end do
+    do i = idi1 , idi2
+      do j = jdi1 , jdi2
+        mddom%dmsf(j,i) = d_one/(mddom%msfd(j,i)*mddom%msfd(j,i))
+        mddom%xmsf(j,i) = d_one/(mddom%msfx(j,i)*mddom%msfx(j,i))
+      end do
+    end do
     !
     !-----compute dsigma and half sigma levels.
     !
