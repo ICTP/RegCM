@@ -340,11 +340,11 @@ module mod_clm_cndv
     call clm_addvar(clmvar_integer,ncid,'pfts1d_itypveg', &
             (/'pft'/),long_name='pft vegetation type')
     call clm_addvar(clmvar_integer,ncid,'luns1d_ityplun',(/'landunit'/), &
-            long_name='landunit type (vegetated,urban,lake,wetland,glacier)')
+           long_name='landunit type (vegetated,urban,lake,wetland,glacier)')
     call clm_addvar(clmvar_integer,ncid,'cols1d_ityplun',(/'column'/), &
-            long_name='column type (vegetated,urban,lake,wetland,glacier)')
+           long_name='column type (vegetated,urban,lake,wetland,glacier)')
     call clm_addvar(clmvar_integer,ncid,'pfts1d_ityplun',(/'pft'/), &
-            long_name='pft landunit type (vegetated,urban,lake,wetland,glacier)')
+           long_name='pft landunit type (vegetated,urban,lake,wetland,glacier)')
 
     ! Define time dependent variables
 

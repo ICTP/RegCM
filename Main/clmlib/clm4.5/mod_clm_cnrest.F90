@@ -12,6 +12,7 @@ module mod_clm_cnrest
   use mod_clm_nchelper
   use mod_clm_type
   use mod_clm_decomp
+  use mod_clm_surfrd , only : crop_prog
   use mod_clm_atmlnd, only : clm_a2l
   use mod_clm_varpar, only : numrad , ndecomp_pools , nlevdecomp
   use mod_clm_varpar , only : nlevgrnd
@@ -66,7 +67,7 @@ module mod_clm_cnrest
     type(pft_type)     , pointer :: pptr  ! pointer to pft derived subtype
 #if (defined CNDV)
     integer(ik4) , pointer :: iptemp(:) ! pointer to memory to be allocated
-    integer(ik4) :: l , p , ier! indices
+    integer(ik4) :: p , ier! indices
 #endif
     !temporary arrays for slicing larger arrays
     real(rk8) , pointer :: ptr2d(:,:)
@@ -292,18 +293,20 @@ module mod_clm_cnrest
       call clm_writevar(ncid,'fert_counter',pptr%pepv%fert_counter,gcomm_pft)
     end if
 
-   ! fert
-    if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'fert',(/'pft'/), &
-            long_name='',units='')
-    else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fert') ) then
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-      else
-        call clm_readvar(ncid,'fert',pptr%pnf%fert,gcomm_pft)
+    ! fert
+    if ( crop_prog ) then
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'fert',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fert') ) then
+          call fatal(__FILE__,__LINE__,'clm now stopping')
+        else
+          call clm_readvar(ncid,'fert',pptr%pnf%fert,gcomm_pft)
+        end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'fert',pptr%pnf%fert,gcomm_pft)
       end if
-    else if (flag == 'write') then
-      call clm_writevar(ncid,'fert',pptr%pnf%fert,gcomm_pft)
     end if
 #endif
 
@@ -4036,8 +4039,6 @@ module mod_clm_cnrest
   !
   subroutine cnrest_addfld_decomp(ncid,varname,longname,units,flag,data_rl, &
                                   lstop)
-    use mod_clm_varpar , only : nlevgrnd
-    use mod_clm_type , only : namec
     implicit none
     type(clm_filetype)  :: ncid   ! netcdf id
     character(len=*), intent(in) :: varname
