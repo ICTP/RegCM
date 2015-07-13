@@ -2526,13 +2526,13 @@ module mod_clm_urban
         road_r(fl)    = 0.0D0
         if ( wtroad_imperv(fl) > 0.0D0 ) then
           improad_r(fl) = (1.D0-em_improad(fl)) * lwtot(fl)
-          improad_a(fl) =     em_improad(fl)  * lwtot(fl)
+          improad_a(fl) = em_improad(fl)  * lwtot(fl)
           road_a(fl)    = road_a(fl) + improad_a(fl)*wtroad_imperv(fl)
           road_r(fl)    = road_r(fl) + improad_r(fl)*wtroad_imperv(fl)
         end if
         if ( wtroad_perv(fl)   > 0.0D0 ) then
           perroad_r(fl) = (1.D0-em_perroad(fl)) * lwtot(fl)
-          perroad_a(fl) =     em_perroad(fl)  * lwtot(fl)
+          perroad_a(fl) = em_perroad(fl)  * lwtot(fl)
           road_a(fl)    = road_a(fl) + perroad_a(fl)*wtroad_perv(fl)
           road_r(fl)    = road_r(fl) + perroad_r(fl)*wtroad_perv(fl)
         end if
@@ -2558,10 +2558,10 @@ module mod_clm_urban
         ! step (2)
 
         if ( wtroad_imperv(fl) > 0.0D0 ) then
-          lwnet_improad(fl)   = lwnet_improad(fl)   - improad_a(fl)
+          lwnet_improad(fl) = lwnet_improad(fl)   - improad_a(fl)
         end if
         if ( wtroad_perv(fl)   > 0.0D0 ) then
-          lwnet_perroad(fl)   = lwnet_perroad(fl)   - perroad_a(fl)
+          lwnet_perroad(fl) = lwnet_perroad(fl)   - perroad_a(fl)
         end if
         lwnet_sunwall(fl)   = lwnet_sunwall(fl)   - sunwall_a(fl)
         lwnet_shadewall(fl) = lwnet_shadewall(fl) - shadewall_a(fl)
@@ -2595,10 +2595,10 @@ module mod_clm_urban
         ! step (4)
 
         if ( wtroad_imperv(fl) > 0.0D0 ) then
-          lwup_improad(fl)   = lwup_improad(fl)   + improad_r_sky(fl)
+          lwup_improad(fl) = lwup_improad(fl) + improad_r_sky(fl)
         end if
         if ( wtroad_perv(fl)   > 0.0D0 ) then
-          lwup_perroad(fl)   = lwup_perroad(fl)   + perroad_r_sky(fl)
+          lwup_perroad(fl) = lwup_perroad(fl) + perroad_r_sky(fl)
         end if
         lwup_sunwall(fl)   = lwup_sunwall(fl)   + sunwall_r_sky(fl)
         lwup_shadewall(fl) = lwup_shadewall(fl) + shadewall_r_sky(fl)
@@ -2610,6 +2610,7 @@ module mod_clm_urban
       end do
       if (iter >= n) then
         write (stderr,*) 'urban net longwave radiation error: no convergence'
+        write (stderr,*) 'Critical = ',crit, ' > 0.001 !'
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
 
