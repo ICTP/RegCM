@@ -313,7 +313,6 @@ module mod_bdycod
       end if
     end if
 
-
     if ( idynamic == 2 ) then
       call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
     else

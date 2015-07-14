@@ -121,7 +121,7 @@ module mod_bats_common
       !
       ! Calculate emission coefficients
       !
-      call fseas(tgrd)
+      call fseas(tgbrd,aseas)
       if ( iemiss == 1 ) then
         do i = ilndbeg , ilndend
           emiss(i) = lndemiss(lveg(i)) - seasemi(lveg(i)) * aseas(i)
@@ -150,7 +150,12 @@ module mod_bats_common
       call c2l_ss(lndcomm,lms%ssw,ssw)
       call c2l_ss(lndcomm,lms%rsw,rsw)
       call c2l_ss(lndcomm,lms%tsw,tsw)
+      call c2l_gs(lndcomm,lm%zencos,czenith)
+      call fseas(tgbrd,aseas)
     end if
+    do i = ilndbeg , ilndend
+      lncl(i) = mfcv(lveg(i)) - seasf(lveg(i))*aseas(i)
+    end do
     dzh = hts - ht
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -333,12 +338,13 @@ module mod_bats_common
       call c2l_gs(lndcomm,lm%rlwf,lwflx)
       call c2l_gs(lndcomm,lm%vegswab,abswveg)
 
-      call fseas(tgbrd)
       z1log  = dlog(zh)
       z2fra  = dlog(zh*d_half)
       z10fra = dlog(zh*d_r10)
       zlglnd = dlog(zh/zlnd)
       zlgsno = dlog(zh/zsno)
+
+      call fseas(tgbrd,aseas)
 
       do i = ilndbeg , ilndend
         xqs0 = pfqsat(ts0(i),p0(i))
@@ -391,7 +397,7 @@ module mod_bats_common
 
     else if ( ivers == 2 ) then ! bats --> regcm2d
 
-      call fseas(tgbrd)
+      call fseas(tgbrd,aseas)
       if ( iemiss == 1 ) then
         do i = ilndbeg , ilndend
           fracs = lncl(i)*wt(i) + (d_one-lncl(i))*scvk(i)

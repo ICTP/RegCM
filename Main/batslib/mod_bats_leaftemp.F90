@@ -301,8 +301,8 @@ module mod_bats_leaftemp
 !             under conditions of no moisture stress
 !
 !     standard lai from xla=max & xlai0=min lai
-!     seasb = fseas(tgbrd) is a seasonal factor for reduced winter lai
-!             and root water uptake
+!     fseas is a seasonal factor for reduced winter lai
+!           and root water uptake
 !        fc = light sensitivity for crops and grasses and has inverse
 !             radiation units (m**2/watt)
 !      rlai = sum of leaf and stem area indices
@@ -348,7 +348,7 @@ module mod_bats_leaftemp
     difzen = d_two
     ilmax = 4
     rilmax = d_four
-    call fseas(tlef)
+    call fseas(tlef,bseas)
     do i = ilndbeg , ilndend
       if ( sigf(i) > 0.001D0 ) then
         ! zenith angle set in zenitm
@@ -372,7 +372,7 @@ module mod_bats_leaftemp
           end do
           radf = rilmax/radfi
           vpdf = d_one/dmax1(0.3D0,d_one-vpdc(i)*0.025D0)
-          seas = d_one/(rmini+aseas(i))
+          seas = d_one/(rmini+bseas(i))
           lftrs(i) = rsmin(lveg(i))*radf*seas*vpdf
           lftrs(i) = dmin1(lftrs(i),rmax0)
         else
@@ -707,13 +707,14 @@ module mod_bats_leaftemp
 #endif
   end subroutine deriv
 !
-  subroutine fseas(temp)
+  subroutine fseas(temp,ffsea)
     ! The seasonal function is a number between 0 and 1
     ! If the temperature is greater than 298.0, it is 1
     ! If the temperature is less than 298.0, it is less than 1
     ! If the temperature is less than 273.0, it is zero
     implicit none
-    real(rk8) , pointer , dimension(:) :: temp
+    real(rk8) , pointer , dimension(:) , intent(in) :: temp
+    real(rk8) , pointer , dimension(:) , intent(out) :: ffsea
     integer(ik4) :: i
     logical , parameter :: lcrop_cutoff = .false.
 #ifdef DEBUG
@@ -721,25 +722,20 @@ module mod_bats_leaftemp
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    aseas = d_zero
     if ( lcrop_cutoff ) then
       do i = ilndbeg , ilndend
-        if ( sigf(i) > minsigf ) then
-          if ( lveg(i) == 1 ) then
-            aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
-                       dmax1(298.0D0-temp(i),d_zero)**4)
-          else
-            aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
-                       dmax1(298.0D0-temp(i),d_zero)**2)
-          end if
+        if ( lveg(i) == 1 ) then
+          ffsea(i) = dmax1(d_zero,d_one-0.0016D0* &
+                     dmax1(298.0D0-temp(i),d_zero)**4)
+        else
+          ffsea(i) = dmax1(d_zero,d_one-0.0016D0* &
+                     dmax1(298.0D0-temp(i),d_zero)**2)
         end if
       end do
     else
       do i = ilndbeg , ilndend
-        if ( sigf(i) > minsigf ) then
-          aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
-                     dmax1(298.0D0-temp(i),d_zero)**2)
-        end if
+        ffsea(i) = dmax1(d_zero,d_one-0.0016D0* &
+                   dmax1(298.0D0-temp(i),d_zero)**2)
       end do
     end if
 #ifdef DEBUG

@@ -291,8 +291,7 @@ module mod_bats_bndry
     call time_begin(subroutine_name,idindx)
 #endif
 
-    call fseas(tgbrd)
-
+    call fseas(tgbrd,aseas)
     do i = ilndbeg , ilndend
       if ( sigf(i) > minsigf ) then
         xlai(i) = xla(lveg(i))

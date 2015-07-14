@@ -36,6 +36,7 @@ module mod_bats_internal
 
   real(rk8) , pointer , dimension(:) :: abswveg
   real(rk8) , pointer , dimension(:) :: aseas
+  real(rk8) , pointer , dimension(:) :: bseas
   real(rk8) , pointer , dimension(:) :: bb
   real(rk8) , pointer , dimension(:) :: bcoef
   real(rk8) , pointer , dimension(:) :: bfc
@@ -211,6 +212,7 @@ module mod_bats_internal
     ilndend = nlandp
     call getmem1d(abswveg,1,nlandp,'bats_internal:abswveg')
     call getmem1d(aseas,1,nlandp,'bats_internal:aseas')
+    call getmem1d(bseas,1,nlandp,'bats_internal:bseas')
     call getmem1d(bb,1,nlandp,'bats_internal:bb')
     call getmem1d(bcoef,1,nlandp,'bats_internal:bcoef')
     call getmem1d(bfc,1,nlandp,'bats_internal:bfc')
