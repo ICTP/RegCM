@@ -1077,7 +1077,7 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot write ssw')
       ncstatus = nf90_put_var(ncid,varids(44),rsw_io)
       call check_ok(__FILE__,__LINE__,'Cannot write rsw')
-      ncstatus = nf90_put_var(ncid,varids(46),tsw_io)
+      ncstatus = nf90_put_var(ncid,varids(45),tsw_io)
       call check_ok(__FILE__,__LINE__,'Cannot write tsw')
       ncstatus = nf90_put_var(ncid,varids(46),tgrd_io)
       call check_ok(__FILE__,__LINE__,'Cannot write tgrd')

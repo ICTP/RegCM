@@ -543,7 +543,11 @@ module mod_init
     end do
   end do
   !
-  ! Initialize the BATS variable (Used also by CLM)
+  ! Initialize solar elevation (zenith angle)
+  !
+  call zenitm(coszrs)
+  !
+  ! Initialize the Surface Model
   !
   call initialize_surface_model
   !

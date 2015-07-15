@@ -152,7 +152,7 @@ mod_rad_interface.o : mod_rad_interface.F90 mod_atm_interface.o mod_che_interfac
 if DO_COMPILE_CPL
 mod_regcm_interface.o : mod_regcm_interface.F90 mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_cloud_s1.o mod_header.o mod_init.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_ncout.o mod_output.o mod_params.o mod_pbl_interface.o mod_runparams.o mod_service.o mod_split.o mod_sun.o mod_tendency.o mod_tstep.o mod_update.o
 else
-mod_regcm_interface.o : mod_regcm_interface.F90 mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_cloud_s1.o mod_header.o mod_init.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_ncout.o mod_output.o mod_params.o mod_pbl_interface.o mod_runparams.o mod_service.o mod_split.o mod_sun.o mod_tendency.o mod_tstep.o
+mod_regcm_interface.o : mod_regcm_interface.F90 mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_cloud_s1.o mod_header.o mod_init.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_ncout.o mod_output.o mod_params.o mod_pbl_interface.o mod_runparams.o mod_service.o mod_split.o mod_tendency.o mod_tstep.o
 endif
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_savefile.o : mod_savefile.F90 mod_che_interface.o mod_che_mppio.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o
@@ -162,7 +162,7 @@ mod_sldepparam.o : mod_sldepparam.F90 mod_dynparam.o mod_intkinds.o mod_memutil.
 mod_slice.o : mod_slice.F90 mod_atm_interface.o mod_che_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_pbl_interface.o mod_rad_interface.o mod_realkinds.o mod_runparams.o
 mod_sound.o : mod_sound.F90 mod_atm_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_stdio.o
 mod_split.o : mod_split.F90 mod_atm_interface.o mod_bdycod.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_runparams.o mod_service.o mod_vmodes.o
-mod_sun.o : mod_sun.F90 mod_atm_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_service.o mod_sunorbit.o
+mod_sun.o : mod_sun.F90 mod_atm_interface.o mod_constants.o mod_date.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_service.o mod_sunorbit.o
 mod_tendency.o : mod_tendency.F90 mod_advection.o mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_cloud_s1.o mod_constants.o mod_cu_interface.o mod_diffusion.o mod_domain.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_pbl_interface.o mod_precip.o mod_rad_interface.o mod_realkinds.o mod_runparams.o mod_service.o mod_slabocean.o mod_sladvection.o mod_slice.o mod_sound.o mod_stdio.o mod_sun.o
 mod_tstep.o : mod_tstep.F90 mod_constants.o mod_intkinds.o mod_realkinds.o mod_runparams.o
 mod_vmodes.o : mod_vmodes.F90 eispack.o linpack.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_service.o

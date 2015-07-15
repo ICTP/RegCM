@@ -40,7 +40,6 @@ module mod_regcm_interface
   use mod_tstep
   use mod_service
   use mod_cloud_s1
-  use mod_sun
 #ifdef CPL
   use mod_update, only: rcm_get, rcm_put
 #endif
@@ -61,15 +60,10 @@ module mod_regcm_interface
   subroutine RCM_initialize(mpiCommunicator)
     implicit none
     integer, intent(in), optional :: mpiCommunicator
-!
     integer(ik4) :: ierr
-!
-!**********************************************************************
-!
-!   MPI Initialization
-!
-!**********************************************************************
-!
+    !
+    ! MPI Initialization
+    !
     if (present(mpiCommunicator)) then
       mycomm = mpiCommunicator
     else
@@ -92,20 +86,16 @@ module mod_regcm_interface
       call fatal(__FILE__,__LINE__,'mpi_comm_set_errhandler Failure!')
     end if
 #endif
-!
+
     call whoami(myid)
     call setup_mesg(myid)
-!
+
 #ifdef DEBUG
     call activate_debug()
 #endif
-!
-!**********************************************************************
-!
-!   Read input global namelist
-!
-!**********************************************************************
-!
+    !
+    ! Read input global namelist
+    !
     if ( myid == iocpu ) then
       call get_command_argument(0,value=prgname)
       call get_command_argument(1,value=namelistfile)
@@ -119,46 +109,26 @@ module mod_regcm_interface
         stop
       end if
     end if
-!
+
     call broadcast_params
 
     call memory_init
-!
+
     call header(myid,nproc)
     call set_nproc
     call setup_model_indexes
-!
+
 #ifdef DEBUG
     call start_debug()
 #endif
-!
-!**********************************************************************
-!
-!   Parameter Setup
-!
-!**********************************************************************
-!
+    !
+    ! Parameter Setup
+    !
     call param
     dtinc = dt
-!
-!**********************************************************************
-!
-!   Calculate Zenital Angle
-!
-!**********************************************************************
-!
-    ! Update solar constant from TSI dataset
-    solcon = solar_irradiance( )
-    scon = solcon*d_1000
-    call solar1(mute=.true.)
-    call zenitm(coszrs)
-!
-!**********************************************************************
-!
-!   Read initial data and boundary conditions
-!
-!**********************************************************************
-!
+    !
+    ! Read initial data and boundary conditions
+    !
     call init_bdy
 !
 !**********************************************************************
@@ -227,10 +197,6 @@ module mod_regcm_interface
 #ifdef DEBUG
       ! call grid_nc_write(nc_4d)
 #endif
-      if ( mod(ktau,kday) == 0 ) then
-        solcon = solar_irradiance( )
-        scon = solcon*d_1000
-      end if
       !
       ! Refined start
       !
@@ -304,7 +270,7 @@ module mod_regcm_interface
     ! call grid_nc_destroy(nc_4d)
     call time_print(6,'evolution phase')
 #endif
-!
+
 99001 format (6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,       &
         & ' dt = ',f7.1,' dt2 = ',f7.1,' dtsec = ',f6.1,' ktau = ', &
         & i7,' in year ',i4)
@@ -314,29 +280,29 @@ module mod_regcm_interface
   subroutine RCM_finalize
     implicit none
     character(len=32) :: appdat
-!
+
     if ( myid == italk ) then
       appdat = tochar(idate2)
       write(stdout,*) 'Restart file for next run is written at time ',appdat
     end if
-!
+
     call close_icbc
     if ( ichem == 1 ) call close_chbc
     call dispose_output_streams
-!
+
 #ifdef CLM
     call t_prf('timing_all',mpicom)
     call t_finalizef()
 #endif
-!
+
     call memory_destroy
     call finaltime(myid)
-!
+
     if ( myid == italk ) then
       write(stdout,*) 'RegCM V4 simulation successfully reached end'
     end if
-!
+
   end subroutine RCM_finalize
-!
+
 end module mod_regcm_interface
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

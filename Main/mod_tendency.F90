@@ -508,11 +508,7 @@ module mod_tendency
     !
     ! calculate solar zenith angle
     !
-    if ( ktau == 0 .or. ichem == 1 .or. &
-         mod(ktau+1,ntsrf) == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-      call solar1
-      call zenitm(coszrs)
-    end if
+    call zenitm(coszrs)
     !
     ! No diffusion of TKE on lower boundary (kzp1)
     !
@@ -682,8 +678,8 @@ module mod_tendency
                          (atm1%w(j,i,k)+atm1%w(j,i,k+1))
               cpm = cpd*(d_one + 0.856D0*qvd(j,i,k))
               aten%t(j,i,k) = aten%t(j,i,k) + atmx%t(j,i,k)*mdv%cr(j,i,k) - &
-                            (scr+aten%pp(j,i,k)+atmx%pp(j,i,k)*mdv%cr(j,i,k)) / &
-                            (atm1%rho(j,i,k)*cpm)
+                        (scr+aten%pp(j,i,k)+atmx%pp(j,i,k)*mdv%cr(j,i,k)) / &
+                        (atm1%rho(j,i,k)*cpm)
             end do
           end do
         end do
@@ -1714,7 +1710,31 @@ module mod_tendency
       !
       ! Compute u,v,w,pp at ktau+1
       !
+      !do k = 1 , kz
+      !  print *, k , 'U  ', real(maxval(aten%u(:,:,k))), &
+      !                      real(minval(aten%u(:,:,k)))
+      !  print *, k , 'V  ', real(maxval(aten%v(:,:,k))), &
+      !                      real(minval(aten%v(:,:,k)))
+      !  print *, k , 'PP ', real(maxval(aten%pp(:,:,k))), &
+      !                      real(minval(aten%pp(:,:,k)))
+      !  print *, k , 'W  ', real(maxval(aten%w(:,:,k))), &
+      !                      real(minval(aten%w(:,:,k)))
+      !end do
+      !print *, kzp1 , 'W  ', real(maxval(aten%w(:,:,kzp1))), &
+      !                       real(minval(aten%w(:,:,kzp1)))
       call sound(dt,ktau)
+      !do k = 1 , kz
+      !  print *, k , 'U  ', real(maxval(aten%u(:,:,k))), &
+      !                      real(minval(aten%u(:,:,k)))
+      !  print *, k , 'V  ', real(maxval(aten%v(:,:,k))), &
+      !                      real(minval(aten%v(:,:,k)))
+      !  print *, k , 'PP ', real(maxval(aten%pp(:,:,k))), &
+      !                      real(minval(aten%pp(:,:,k)))
+      !  print *, k , 'W  ', real(maxval(aten%w(:,:,k))), &
+      !                      real(minval(aten%w(:,:,k)))
+      !end do
+      !print *, kzp1 , 'W  ', real(maxval(aten%w(:,:,kzp1))), &
+      !                       real(minval(aten%w(:,:,kzp1)))
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2

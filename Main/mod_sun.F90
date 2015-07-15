@@ -30,6 +30,7 @@ module mod_sun
    use mod_mpmessage
    use mod_mppparam
    use mod_service
+   use mod_date
    use mod_sunorbit
 
    implicit none
@@ -40,7 +41,7 @@ module mod_sun
    real(rk8) , parameter :: tsifac = 0.9965D0
    integer(ik4) :: ii , jj
 
-   public :: solar1 , zenitm , solar_irradiance
+   public :: zenitm
    !
    ! ANNUAL MEAN TSI
    ! Lean (GRL 2000) with Wang Lean Sheeley (ApJ 2005) background
@@ -255,31 +256,25 @@ module mod_sun
   ! This subroutine computes the solar declination angle
   ! from the julian date.
   !
-  subroutine solar1(mute)
+  subroutine solar1
     implicit none
     real(rk8) :: decdeg , obliq , mvelp
-    logical , optional , intent(in) :: mute
-    logical :: quiet
+    integer :: iyear , imonth , iday , ihour
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'solar1'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    quiet = .false.
-    if ( present(mute) ) then
-      quiet = mute
-    end if
     calday = yeardayfrac(idatex)
-    call orb_params(xyear,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
+    call split_idate(idatex,iyear,imonth,iday,ihour)
+    call orb_params(iyear,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
     call orb_decl(calday,eccen,mvelpp,lambm0,obliqr,declin,eccf)
     decdeg = declin/degrad
-    if ( .not. quiet ) then
-      if ( myid == italk .and. (ktau == 0 .or. mod(ktau+1,kday) == 0) ) then
-        write (stdout,'(a,f12.2,a,f12.8,a)') ' JDay ', calday , &
-          ' solar declination angle = ', decdeg , ' degrees'
-        write(stdout, '(18x,a,f12.4,a)') ' solar TSI irradiance    = ' , &
-          solcon, ' W/m^2'
-      end if
+    if ( myid == italk .and. mod(ktau,kday) == 0 ) then
+      write (stdout,'(a,f12.5,a,f12.8,a)') ' JDay ', calday , &
+        ' solar declination angle = ', decdeg , ' degrees'
+      write(stdout, '(18x,a,f12.4,a)') ' solar TSI irradiance    = ' , &
+        solcon, ' W/m^2'
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -302,7 +297,14 @@ module mod_sun
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    calday = yeardayfrac(idatex)
+    !
+    ! Update solar constant for today
+    !
+    if ( mod(ktau,kday) == 0 ) then
+      solcon = solar_irradiance( )
+      scon = solcon*d_1000
+    end if
+    call solar1
     do i = ici1 , ici2
       do j = jci1 , jci2
         xxlat = mddom%xlat(j,i)*degrad
@@ -316,7 +318,7 @@ module mod_sun
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine zenitm
-!
+
   real(rk8) function solar_irradiance( )
     implicit none
     integer(ik4) :: iyear , iidate
@@ -357,6 +359,6 @@ module mod_sun
     call time_end(subroutine_name,idindx)
 #endif
   end function solar_irradiance
-!
+
 end module mod_sun
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

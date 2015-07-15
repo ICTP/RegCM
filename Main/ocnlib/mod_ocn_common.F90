@@ -98,6 +98,7 @@ module mod_ocn_common
     if ( ktau == 0 ) then
       call c2l_ss(ocncomm,lm%xlat1,lat)
       call c2l_gs(ocncomm,lm%tground2,tgb)
+      call c2l_gs(ocncomm,lm%zencos,czenith)
       tgrd = tgb
       tgbrd = tgb
       if ( llake .or. lseaice ) then
@@ -122,6 +123,7 @@ module mod_ocn_common
       call c2l_ss(ocncomm,lms%um10,um10)
       call c2l_gs(ocncomm,lm%qfx,evpr)
       call c2l_gs(ocncomm,lm%hfx,sent)
+      call c2l_gs(ocncomm,lm%zencos,czenith)
       if ( ldcsst ) then
         call c2l_ss(ocncomm,lms%deltas,deltas)
         call c2l_ss(ocncomm,lms%tdeltas,tdeltas)
