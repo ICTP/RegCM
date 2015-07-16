@@ -366,17 +366,17 @@ program clm45_1dto2d
     end if
   end do
 
-  allocate(ngpft(ngridcell))
-  allocate(ityplun(npft),itypveg(npft))
-  ! Long road....
-  istatus = nf90_inq_varid(ncid,'pfts1d_ityplun',npftlun)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error search pfts1d_ityplun')
-  istatus = nf90_get_var(ncid,npftlun,ityplun)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error read pfts1d_ityplun')
-  istatus = nf90_inq_varid(ncid,'pfts1d_itypveg',npftlun)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error search pfts1d_itypveg')
-  istatus = nf90_get_var(ncid,npftlun,itypveg)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error read pfts1d_itypveg')
+  !allocate(ngpft(ngridcell))
+  !allocate(ityplun(npft),itypveg(npft))
+  !! Long road....
+  !istatus = nf90_inq_varid(ncid,'pfts1d_ityplun',npftlun)
+  !call checkncerr(istatus,__FILE__,__LINE__,'Error search pfts1d_ityplun')
+  !istatus = nf90_get_var(ncid,npftlun,ityplun)
+  !call checkncerr(istatus,__FILE__,__LINE__,'Error read pfts1d_ityplun')
+  !istatus = nf90_inq_varid(ncid,'pfts1d_itypveg',npftlun)
+  !call checkncerr(istatus,__FILE__,__LINE__,'Error search pfts1d_itypveg')
+  !istatus = nf90_get_var(ncid,npftlun,itypveg)
+  !call checkncerr(istatus,__FILE__,__LINE__,'Error read pfts1d_itypveg')
 
   istatus = nf90_enddef(ncoutid)
   call checkncerr(istatus,__FILE__,__LINE__,'Exit define mode')
