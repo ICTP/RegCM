@@ -1,18 +1,20 @@
 #!/bin/bash
 
-LEVEL=levgrnd
 if [ $# -lt 2 ]
 then
-  echo "Usage : $0 domain.clm.file_2d.nc domain_SRF.file.nc.ctl"
+  echo "Usage : $0 domain.clm.file_2d.nc domain_SRF.file.nc.ctl [zlev]"
+  echo
+  echo "zlev defaults to levgrnd"
   exit -1
 fi
 
 file=$1
 srfctl=$2
+zlev=levgrnd
 if [ $# -eq 3 ]
 then
-  LEVEL=$3
-  echo "Selecting levels $LEVEL"
+  zlev=$3
+  echo "Selecting levels $zlev"
 fi
 xdefstr=`cat $srfctl | grep "^xdef"`
 ydefstr=`cat $srfctl | grep "^ydef"`
@@ -20,7 +22,7 @@ pdefstr=`cat $srfctl | grep "^pdef"`
 ctlfile=${file}.ctl
 domain=`echo $file | cut -d '.' -f 1`
 ncdump -h $file > hdump
-level=(`ncks -H -C -s "%g " -v $LEVEL ${file}`)
+level=(`ncks -H -C -s "%g " -v $zlev ${file}`)
 months=( jan feb mar apr may jun jul aug sep oct nov dec )
 yearmon=`echo $file | cut -d '.' -f 5 | cut -d '_' -f 1`
 year=`echo $yearmon | cut -b 1-4`
@@ -29,7 +31,7 @@ vars=(`cat hdump | grep "(iy, jx)" | \
        awk '{print $2}' | sed -e 's/(iy,//'`)
 timevars=(`cat hdump | grep "time, iy, jx)" | grep time | \
            awk '{print $2}' | sed -e 's/(time,//'`)
-groundvars=(`cat hdump | grep "time, $LEVEL, iy, jx)" | \
+groundvars=(`cat hdump | grep "time, $zlev, iy, jx)" | \
              grep time | awk '{print $2}' | sed -e 's/(time,//'`)
 nvars=$(( ${#vars[@]} + ${#timevars[@]} + ${#groundvars[@]} ))
 nlevs=${#level[@]}
