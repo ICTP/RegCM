@@ -584,7 +584,7 @@ program clm45_1dto2d
     end if
   end do writeloop
 
-  deallocate(ngpft)
+  ! deallocate(ngpft)
 
   istatus = nf90_close(ncid)
   istatus = nf90_close(ncoutid)
