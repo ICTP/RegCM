@@ -1710,18 +1710,6 @@ module mod_tendency
       !
       ! Compute u,v,w,pp at ktau+1
       !
-      !do k = 1 , kz
-      !  print *, k , 'U  ', real(maxval(aten%u(:,:,k))), &
-      !                      real(minval(aten%u(:,:,k)))
-      !  print *, k , 'V  ', real(maxval(aten%v(:,:,k))), &
-      !                      real(minval(aten%v(:,:,k)))
-      !  print *, k , 'PP ', real(maxval(aten%pp(:,:,k))), &
-      !                      real(minval(aten%pp(:,:,k)))
-      !  print *, k , 'W  ', real(maxval(aten%w(:,:,k))), &
-      !                      real(minval(aten%w(:,:,k)))
-      !end do
-      !print *, kzp1 , 'W  ', real(maxval(aten%w(:,:,kzp1))), &
-      !                       real(minval(aten%w(:,:,kzp1)))
       call sound(dt,ktau)
       do k = 1 , kz
         do i = ice1 , ice2

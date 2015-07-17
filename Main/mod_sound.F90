@@ -51,7 +51,8 @@ module mod_sound
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wo
     real(rk8) :: bet , bm , bp , bpxbm , bpxbp , cddtmp ,  cfl , check , &
       chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
-      ppold , rho , rho0s , rofac , xgamma , xkd , sumcfl
+      ppold , rho , rho0s , rofac , xgamma , xkd , sumcfl , ucrsk ,      &
+      vcrsk , ucrskm1 , vcrskm1
     real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore , estore
     real(rk8) , dimension(jci1:jci2,ici1:ici2) :: wpval
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ca
@@ -112,6 +113,9 @@ module mod_sound
     bpxbp = bp*bp
     bpxbm = bp*bm
     xkd = 0.1D0
+    c(:,:,:) = d_zero
+    b(:,:,:) = d_zero
+    aa(:,:,:) = d_zero
 
     xgamma = d_one/(d_one-rovcp)
     ! CALCULATE SHORT TIME-STEP
@@ -303,14 +307,14 @@ module mod_sound
                        egrav * dts / (atm0%ps(j,i)*dsigma(1))
           cj(j,i,1)  = atm0%rho(j,i,1) * egrav * dts / d_two
           pxup(j,i,1) = 0.0625D0 *                              &
-                      ( atm0%pr(j,i+1,1) - atm0%pr(j,i-1,1) ) * &
+                      ( atm0%pr(j+1,i,1) - atm0%pr(j-1,i,1) ) * &
                       ( u3d(j,i,1)   + u3d(j+1,i,1)   +         &
                         u3d(j,i+1,1) + u3d(j+1,i+1,1) -         &
                         u3d(j,i,2)   - u3d(j+1,i,2)   -         &
                         u3d(j,i+1,2) - u3d(j+1,i+1,2) ) /       &
                       ( atm0%pr(j,i,1) - atm0%pr(j,i,2))
           pyvp(j,i,1) = 0.0625D0 *                              &
-                      ( atm0%pr(j+1,i,1) - atm0%pr(j-1,i,1) ) * &
+                      ( atm0%pr(j,i+1,1) - atm0%pr(j,i-1,1) ) * &
                       ( v3d(j,i,1)   + v3d(j+1,i,1)   +         &
                         v3d(j,i+1,1) + v3d(j+1,i+1,1) -         &
                         v3d(j,i,2)   - v3d(j+1,i,2)   -         &
@@ -323,14 +327,14 @@ module mod_sound
           ! 3rd and 4th LHS in Eq. 2.5.1.4 vanish.
           !
           ptend(j,i,1) = aten%pp(j,i,1) - d_half * cc(j,i,1) *      &
-                       ( ( v3d(j+1,i,1)   * mddom%msfd(j+1,i)   -   &
+                       ( ( v3d(j,i+1,1)   * mddom%msfd(j,i+1)   -   &
                            v3d(j,i,1)     * mddom%msfd(j,i)     +   &
                            v3d(j+1,i+1,1) * mddom%msfd(j+1,i+1) -   &
-                           v3d(j,i+1,1)   * mddom%msfd(j,i+1)   +   &
-                           u3d(j,i+1,1)   * mddom%msfd(j,i+1)   -   &
+                           v3d(j+1,i,1)   * mddom%msfd(j+1,i)   +   &
+                           u3d(j+1,i,1)   * mddom%msfd(j+1,i)   -   &
                            u3d(j,i,1)     * mddom%msfd(j,i)     +   &
                            u3d(j+1,i+1,1) * mddom%msfd(j+1,i+1) -   &
-                           u3d(j+1,i,1)   * mddom%msfd(j+1,i) ) /   &
+                           u3d(j,i+1,1)   * mddom%msfd(j,i+1) ) /   &
                        mddom%msfx(j,i) - d_two * (pyvp(j,i,1) + pxup(j,i,1)) )
           tk(j,i,1) = atm0%ps(j,i) * atm0%t(j,i,1) / &
                       (d_two * xgamma * atm0%pr(j,i,1) * &
@@ -362,18 +366,18 @@ module mod_sound
             !
             ! Implicit w equation coefficient arrays and rhs (ikawa method)
             !
-            c(j,i,k) = -ca(j,i,k) * (cdd(j,i,k-1)-cj(j,i,k-1))*g2(j,i,k)*bpxbp
+            c(j,i,k) = -ca(j,i,k) * (cdd(j,i,km1)-cj(j,i,km1))*g2(j,i,k)*bpxbp
             b(j,i,k) = d_one + ca(j,i,k) * ( g1(j,i,k) *      &
                        (cdd(j,i,k) - cj(j,i,k)) + g2(j,i,k) * &
-                       (cdd(j,i,k-1) + cj(j,i,k-1)) ) * bpxbp
+                       (cdd(j,i,km1) + cj(j,i,km1)) ) * bpxbp
             aa(j,i,k) = -ca(j,i,k) * (cdd(j,i,k)+cj(j,i,k))*g1(j,i,k)*bpxbp
-            pyvp(j,i,k) = 0.125D0 * (atm0%pr(j+1,i,k) - atm0%pr(j-1,i,k)) * &
+            pyvp(j,i,k) = 0.125D0 * (atm0%pr(j,i+1,k) - atm0%pr(j,i-1,k)) * &
                           ( v3d(j,i,km1)   + v3d(j+1,i,km1)   +     &
                             v3d(j,i+1,km1) + v3d(j+1,i+1,km1) -     &
                             v3d(j,i,kp1)   - v3d(j+1,i,kp1)   -     &
                             v3d(j,i+1,kp1) - v3d(j+1,i+1,kp1) ) /   &
                           ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
-            pxup(j,i,k) = 0.125D0 * (atm0%pr(j,i+1,k) - atm0%pr(j,i-1,k)) * &
+            pxup(j,i,k) = 0.125D0 * (atm0%pr(j+1,i,k) - atm0%pr(j-1,i,k)) * &
                           ( u3d(j,i,km1)   + u3d(j+1,i,km1)   +     &
                             u3d(j,i+1,km1) + u3d(j+1,i+1,km1) -     &
                             u3d(j,i,kp1)   - u3d(j+1,i,kp1)   -     &
@@ -402,14 +406,14 @@ module mod_sound
             ! Presure perturbation tendency: 5th RHS terms in Eq.2.3.8
             !
             ptend(j,i,k) = aten%pp(j,i,k) - d_half * cc(j,i,k) *      &
-                           ( (v3d(j+1,i,k)   * mddom%msfd(j+1,i)   -  &
+                           ( (v3d(j,i+1,k)   * mddom%msfd(j,i+1)   -  &
                               v3d(j,i,k)     * mddom%msfd(j,i)     +  &
                               v3d(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
-                              v3d(j,i+1,k)   * mddom%msfd(j,i+1)   +  &
-                              u3d(j,i+1,k)   * mddom%msfd(j,i+1)   -  &
+                              v3d(j+1,i,k)   * mddom%msfd(j+1,i)   +  &
+                              u3d(j+1,i,k)   * mddom%msfd(j+1,i)   -  &
                               u3d(j,i,k)     * mddom%msfd(j,i)     +  &
                               u3d(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
-                              u3d(j+1,i,k)   * mddom%msfd(j+1,i) ) /  &
+                              u3d(j,i+1,k)   * mddom%msfd(j,i+1) ) /  &
                           mddom%msfx(j,i) - &
                           d_two*( pyvp(j,i,k) + pxup(j,i,k) ) )
             rhs(j,i,k) = w3d(j,i,k) + aten%w(j,i,k) + ca(j,i,k) * ( bpxbm *   &
@@ -548,12 +552,18 @@ module mod_sound
       do k = kz , 2 , -1
         do i = ici1 , ici2
           do j = jci1 , jci2
+            ucrsk = u3d(j,i,k) + u3d(j,i+1,k) + u3d(j+1,i,k) + u3d(j+1,i+1,k)
+            vcrsk = v3d(j,i,k) + v3d(j,i+1,k) + v3d(j+1,i,k) + v3d(j+1,i+1,k)
+            ucrskm1 = u3d(j,i,k-1) + u3d(j,i+1,k-1) + &
+                      u3d(j+1,i,k-1) + u3d(j+1,i+1,k-1)
+            vcrskm1 = v3d(j,i,k-1) + v3d(j,i+1,k-1)+ &
+                      v3d(j+1,i,k-1) + v3d(j+1,i+1,k-1)
             rho0s = twt(k,1)*atm0%rho(j,i,k) + twt(k,2)*atm0%rho(j,i,k-1)
             sigdot(j,i,k) = -rho0s*egrav*w3d(j,i,k)/sfs%psb(j,i)*d_r1000 -   &
-               sigma(k) * ( dpsdxm(j,i) * ( twt(k,1)*atms%ubx3d(j,i,k) +     &
-                                            twt(k,2)*atms%ubx3d(j,i,k-1) ) + &
-                            dpsdym(j,i) * ( twt(k,1)*atms%vbx3d(j,i,k) +     &
-                                            twt(k,2)*atms%vbx3d(j,i,k-1) ) )
+               sigma(k) * ( dpsdxm(j,i) * ( twt(k,1)*ucrsk +       &
+                                            twt(k,2)*ucrskm1 ) +   &
+                            dpsdym(j,i) * ( twt(k,1)*vcrsk +       &
+                                            twt(k,2)*vcrskm1 ) )
             check = abs(sigdot(j,i,k)) * dtl / (dsigma(k) + dsigma(k-1))
             cfl = max(check,cfl)
           end do
