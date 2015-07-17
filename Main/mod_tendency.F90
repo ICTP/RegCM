@@ -442,7 +442,7 @@ module mod_tendency
       if ( iboudy == 4 ) then
         call sponge(ba_cr,xpsb,pten)
       else if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(ba_cr,xbctime,sfs%psb,iboudy,xpsb,pten)
+        call nudge(ba_cr,sfs%psb,iboudy,xpsb,pten)
       end if
       !
       ! psc : forecast pressure
@@ -1092,18 +1092,18 @@ module mod_tendency
     ! apply the nudging boundary conditions:
     !
     if ( iboudy == 1 .or. iboudy == 5 ) then
-      call nudge(kz,ba_cr,xbctime,atm2%t,iboudy,xtb,aten%t)
-      call nudge(kz,iqv,ba_cr,xbctime,atm2%qx,iboudy,xqb,aten%qx)
+      call nudge(kz,ba_cr,atm2%t,iboudy,xtb,aten%t)
+      call nudge(kz,iqv,ba_cr,atm2%qx,iboudy,xqb,aten%qx)
       if ( idynamic == 2 ) then
-        call nudge(kz,ba_cr,xbctime,atm2%pp,iboudy,xppb,aten%pp)
-        call nudge(kzp1,ba_cr,xbctime,atm2%w,iboudy,xwwb,aten%w)
+        call nudge(kz,ba_cr,atm2%pp,iboudy,xppb,aten%pp)
+        call nudge(kzp1,ba_cr,atm2%w,iboudy,xwwb,aten%w)
       end if
     end if
     if ( ichem == 1 ) then
       if ( ichdiag == 1 ) chiten0 = chiten
       ! keep nudge_chi for now
       if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge_chi(kz,xbctime,chib,chiten)
+        call nudge_chi(kz,chib,chiten)
       end if
       if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
     end if
@@ -1556,8 +1556,8 @@ module mod_tendency
     ! apply the nudging boundary conditions:
     !
     if ( iboudy == 1 .or. iboudy == 5 ) then
-      call nudge(kz,ba_dt,xbctime,atm2%u,iboudy,xub,aten%u)
-      call nudge(kz,ba_dt,xbctime,atm2%v,iboudy,xvb,aten%v)
+      call nudge(kz,ba_dt,atm2%u,iboudy,xub,aten%u)
+      call nudge(kz,ba_dt,atm2%v,iboudy,xvb,aten%v)
     end if
 #ifdef DEBUG
     call check_wind_tendency('BDYC')
@@ -1723,18 +1723,6 @@ module mod_tendency
       !print *, kzp1 , 'W  ', real(maxval(aten%w(:,:,kzp1))), &
       !                       real(minval(aten%w(:,:,kzp1)))
       call sound(dt,ktau)
-      !do k = 1 , kz
-      !  print *, k , 'U  ', real(maxval(aten%u(:,:,k))), &
-      !                      real(minval(aten%u(:,:,k)))
-      !  print *, k , 'V  ', real(maxval(aten%v(:,:,k))), &
-      !                      real(minval(aten%v(:,:,k)))
-      !  print *, k , 'PP ', real(maxval(aten%pp(:,:,k))), &
-      !                      real(minval(aten%pp(:,:,k)))
-      !  print *, k , 'W  ', real(maxval(aten%w(:,:,k))), &
-      !                      real(minval(aten%w(:,:,k)))
-      !end do
-      !print *, kzp1 , 'W  ', real(maxval(aten%w(:,:,kzp1))), &
-      !                       real(minval(aten%w(:,:,kzp1)))
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -1797,7 +1785,6 @@ module mod_tendency
     ! Next timestep ready : increment elapsed forecast time
     !
     ktau = ktau + 1
-    xbctime = xbctime + dtsec
     if ( islab_ocean == 1 ) xslabtime = xslabtime + dtsec
     nbdytime = nbdytime + 1
     idatex = idatex + intmdl

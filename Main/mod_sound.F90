@@ -165,8 +165,8 @@ module mod_sound
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          aten%u(j,i,k) = aten%u(j,i,k)*dts
-          aten%v(j,i,k) = aten%v(j,i,k)*dts
+          aten%u(j,i,k) = aten%u(j,i,k) * dts
+          aten%v(j,i,k) = aten%v(j,i,k) * dts
           u3d(j,i,k)    = atm2%u(j,i,k)/sfs%psdotb(j,i)
           v3d(j,i,k)    = atm2%v(j,i,k)/sfs%psdotb(j,i)
           atm2%u(j,i,k) = omuhf*atm1%u(j,i,k)/mddom%msfd(j,i) + &
@@ -179,9 +179,9 @@ module mod_sound
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          aten%pp(j,i,k) = aten%pp(j,i,k)*dts
-          qv3d(j,i,k)    = atm2%qx(j,i,k,iqv)/sfs%psa(j,i)
-          pp3d(j,i,k)    = atm2%pp(j,i,k)/sfs%psa(j,i)
+          qv3d(j,i,k)    = atm2%qx(j,i,k,iqv)/sfs%psb(j,i)
+          aten%pp(j,i,k) = aten%pp(j,i,k) * dts
+          pp3d(j,i,k)    = atm2%pp(j,i,k)/sfs%psb(j,i)
           atm2%pp(j,i,k) = omuhf*atm1%pp(j,i,k) + gnuhf*atm2%pp(j,i,k)
         end do
       end do
@@ -189,8 +189,8 @@ module mod_sound
     do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          aten%w(j,i,k) = aten%w(j,i,k)*dts
-          w3d(j,i,k)    = atm2%w(j,i,k)/sfs%psa(j,i)
+          aten%w(j,i,k) = aten%w(j,i,k) * dts
+          w3d(j,i,k)    = atm2%w(j,i,k)/sfs%psb(j,i)
           atm2%w(j,i,k) = omuhf*atm1%w(j,i,k) + gnuhf*atm2%w(j,i,k)
         end do
       end do
@@ -334,7 +334,7 @@ module mod_sound
                        mddom%msfx(j,i) - d_two * (pyvp(j,i,1) + pxup(j,i,1)) )
           tk(j,i,1) = atm0%ps(j,i) * atm0%t(j,i,1) / &
                       (d_two * xgamma * atm0%pr(j,i,1) * &
-                      atm2%t(j,i,1) / sfs%psa(j,i))
+                      atm2%t(j,i,1) / sfs%psb(j,i))
         end do
       end do
       do k = 2 , kz
@@ -344,7 +344,7 @@ module mod_sound
           do j = jci1 , jci2
             tk(j,i,k) = atm0%ps(j,i) * atm0%t(j,i,k) / &
                         (d_two * xgamma * atm0%pr(j,i,k) * &
-                        atm2%t(j,i,k) / sfs%psa(j,i))
+                        atm2%t(j,i,k) / sfs%psb(j,i))
             rofac = (dsigma(k-1)*atm0%rho(j,i,k) + &
                      dsigma(k)*atm0%rho(j,i,k-1)) / &
                     (dsigma(k-1)*atm2%rho(j,i,k) + &
@@ -471,7 +471,7 @@ module mod_sound
 !        do i = ici1 , ici2
 !          do j = jci1 , jci2
 !            atot = atot + astore(j,i)
-!            ensq = egrav*egrav/cpd/(atm2%t(j,i,1)/sfs%psa(j,i))
+!            ensq = egrav*egrav/cpd/(atm2%t(j,i,1)/sfs%psb(j,i))
 !            rhontot = rhontot + atm2%rho(j,i,1)*sqrt(ensq)
 !            xmsftot = xmsftot + mddom%msfx(j,i)
 !          end do
@@ -549,7 +549,7 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             rho0s = twt(k,1)*atm0%rho(j,i,k) + twt(k,2)*atm0%rho(j,i,k-1)
-            sigdot(j,i,k) = -rho0s*egrav*w3d(j,i,k)/sfs%psa(j,i)*d_r1000 -   &
+            sigdot(j,i,k) = -rho0s*egrav*w3d(j,i,k)/sfs%psb(j,i)*d_r1000 -   &
                sigma(k) * ( dpsdxm(j,i) * ( twt(k,1)*atms%ubx3d(j,i,k) +     &
                                             twt(k,2)*atms%ubx3d(j,i,k-1) ) + &
                             dpsdym(j,i) * ( twt(k,1)*atms%vbx3d(j,i,k) +     &
@@ -671,7 +671,7 @@ module mod_sound
     do k = 1 , kz
       do i = ici1 , ici1
         do j = jci1 , jci1
-          atm1%pp(j,i,k) = sfs%psa(j,i)*pp3d(j,i,k)
+          atm1%pp(j,i,k) = sfs%psb(j,i)*pp3d(j,i,k)
           atm2%pp(j,i,k) = atm2%pp(j,i,k) + gnuhf*atm1%pp(j,i,k)
         end do
       end do
@@ -679,7 +679,7 @@ module mod_sound
     do k = 1 , kzp1
       do i = ici1 , ici1
         do j = jci1 , jci1
-          atm1%w(j,i,k) = sfs%psa(j,i)*w3d(j,i,k)
+          atm1%w(j,i,k) = sfs%psb(j,i)*w3d(j,i,k)
           atm2%w(j,i,k) = atm2%w(j,i,k) + gnuhf*atm1%w(j,i,k)
         end do
       end do

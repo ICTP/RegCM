@@ -45,13 +45,12 @@ module mod_regcm_interface
 #endif
   use mpi
   implicit none
-!
+
   private
   public :: RCM_initialize
   public :: RCM_run
   public :: RCM_finalize
 
-  real(rk8) :: dtinc
   real(rk8) :: extime
 
   data extime /d_zero/
@@ -125,75 +124,54 @@ module mod_regcm_interface
     ! Parameter Setup
     !
     call param
-    dtinc = dt
     !
-    ! Read initial data and boundary conditions
+    ! Read IC and BC data.
     !
-    call init_bdy
-!
-!**********************************************************************
-!
-!   Initialize data (from IC or restart)
-!
-!**********************************************************************
-!
+    if ( .not. ifrest ) call init_bdy
+    !
+    ! Initialize data (from IC or restart)
+    !
     call init
-!
-!**********************************************************************
-!
-!   Initialize split explicit scheme ( hydrostatic )
-!
-!**********************************************************************
-!
+    !
+    ! Initialize split explicit scheme ( hydrostatic )
+    !
     if ( idynamic == 1 ) call spinit
-!
-!**********************************************************************
-!
-!   Setup the output files
-!
-!**********************************************************************
-!
+    !
+    ! Setup the output files
+    !
     call init_output_streams(do_parallel_netcdf_out)
     call output
-!
-!**********************************************************************
-!
-!   Set the boundary conditions for this timestep
-!
-!**********************************************************************
-!
-    call bdyval(xbctime)
-!
-!**********************************************************************
-!
-!   Clean up and logging
-!
-!**********************************************************************
-!
+    !
+    ! Setup valid BC's
+    !
+    call bdyval
+    !
+    ! Clean up and logging
+    !
 #ifdef DEBUG
     call time_print(6,'inizialization phase')
     call time_reset()
 #endif
   end subroutine RCM_initialize
-!
-!=======================================================================
-!                                                                      !
-!     This routine runs RegCM model from specified starting (TimeStr)  !
-!     to ending (TimeEnd) time-steps.                                  !
-!                                                                      !
-!=======================================================================
-!
+  !
+  !=======================================================================
+  !                                                                      !
+  !     This routine runs RegCM model from specified starting (TimeStr)  !
+  !     to ending (TimeEnd) time-steps.                                  !
+  !                                                                      !
+  !=======================================================================
+  !
   subroutine RCM_run(timestr, timeend)
     implicit none
     real(rk8) , intent(in) :: timestr   ! starting time-step
     real(rk8) , intent(in) :: timeend   ! ending   time-step
     character(len=32) :: appdat
-!
+
 #ifdef DEBUG
     ! if ( ipptls == 2 ) call grid_nc_create('qqxp',cross,zqxn,qqxp)
     ! call grid_nc_create('qxatm',cross,atm1%qx,nc_4d)
 #endif
-    do while ( extime >= timestr .and. extime < timeend)
+    do while ( extime >= timestr .and. extime < timeend )
 #ifdef DEBUG
       ! call grid_nc_write(nc_4d)
 #endif
@@ -202,10 +180,10 @@ module mod_regcm_interface
       !
       if ( .not. ifrest ) then
         if ( rfstrt ) then
-          if ( (ktau == 0) .or. dtinc /= deltmx ) then
-            call tstep(extime,dtinc)
+          if ( (ktau == 0) .or. dtsec /= deltmx ) then
+            call tstep(extime,dtsec)
             if ( myid == italk ) then
-              write(stdout, 99001) extime , dtinc , dt , dt2 , &
+              write(stdout, 99001) extime , dtsec , dt , dt2 , &
                                    dtsec , ktau , xyear
             end if
           end if
@@ -226,7 +204,7 @@ module mod_regcm_interface
       !
       call tend
       !
-      ! Boundary code (do not execute at the end of run)
+      ! Boundary code
       !
       if ( ktau /= mtau ) then
         if ( nbdytime == kbdy ) then
@@ -234,11 +212,13 @@ module mod_regcm_interface
           ! Read in new boundary conditions
           !
           call bdyin
+        else
+          xbctime = xbctime + dtsec
         end if
         !
         ! fill up the boundary values for xxb and xxa variables:
         !
-        call bdyval(xbctime)
+        call bdyval
       end if
       !
       ! Write output for this timestep if requested
@@ -253,9 +233,9 @@ module mod_regcm_interface
       end if
 #endif
       !
-      ! Increment execution time
+      ! Increment execution time and boundary time
       !
-      extime = extime + dtinc
+      extime = extime + dtsec
       if ( debug_level > 3 ) then
         if ( myid == italk ) then
           appdat = tochar(idatex)
@@ -271,7 +251,7 @@ module mod_regcm_interface
     call time_print(6,'evolution phase')
 #endif
 
-99001 format (6x,'large domain: extime = ',f7.1,' dtinc = ',f7.1,       &
+99001 format (6x,'large domain: extime = ',f7.1,' dtsec = ',f7.1,       &
         & ' dt = ',f7.1,' dt2 = ',f7.1,' dtsec = ',f6.1,' ktau = ', &
         & i7,' in year ',i4)
 
@@ -301,7 +281,6 @@ module mod_regcm_interface
     if ( myid == italk ) then
       write(stdout,*) 'RegCM V4 simulation successfully reached end'
     end if
-
   end subroutine RCM_finalize
 
 end module mod_regcm_interface

@@ -371,16 +371,16 @@ module mod_che_bdyco
 #endif
   end subroutine chem_bdyin
 
-  subroutine chem_bdyval(xt)
+  subroutine chem_bdyval
     implicit none
-    real(rk8) , intent(in) :: xt
-!
+    real(rk8) :: xt
     integer(ik4) :: itr , j , k , i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_bdyval'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+    xt = xbctime + dt
     if ( ktau > 1 ) then
       !
       ! West boundary
@@ -505,14 +505,13 @@ module mod_che_bdyco
   !                                                                     c
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
-  subroutine nudge_chi(nk,xt,f,ften)
+  subroutine nudge_chi(nk,f,ften)
     implicit none
     integer(ik4) , intent(in) :: nk
-    real(rk8) , intent(in) :: xt
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: f
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-!
-    real(rk8) :: xf , xg
+
+    real(rk8) :: xt , xf , xg
     real(rk8), dimension(ntr) :: fls0 , fls1 , fls2 , fls3 , fls4
 
     integer(ik4) :: i , j , k , ib
@@ -521,7 +520,8 @@ module mod_che_bdyco
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
+
+    xt = xbctime + dt
     if ( cba%ns /= 0 ) then
       do k = 1 , nk
         do i = ici1 , ici2

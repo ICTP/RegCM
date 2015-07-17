@@ -1088,7 +1088,7 @@ module mod_params
 
     call allocate_mod_tend
 
-    call allocate_mod_bdycon(iboudy)
+    call allocate_mod_bdycon
 
     call allocate_pblscheme
 

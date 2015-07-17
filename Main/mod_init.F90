@@ -66,7 +66,7 @@ module mod_init
   subroutine init
   implicit none
   integer(ik4) :: i , j , k , n
-  real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
+  real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax , sfice_temp
   character(len=32) :: appdat
   real(rk8) , dimension(kzp1) :: ozprnt
 #ifdef DEBUG
@@ -251,6 +251,7 @@ module mod_init
     !
     call bcast(ktau)
     call bcast(idatex)
+    call split_idate(idatex,xyear,xmonth,xday,xhour)
 
     mtau = mtau + ktau
 
@@ -420,9 +421,14 @@ module mod_init
       call bcast(stepcount)
     end if
     !
-    ! Restore ground temperature on Ocean/Lakes
+    ! Init boundary
+    !
+    call init_bdy
+    !
+    ! Update ground temperature on Ocean/Lakes
     !
     if ( islab_ocean == 0 ) then
+      sfice_temp = icetemp
       if ( idcsst == 1 ) then
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -436,6 +442,9 @@ module mod_init
         do j = jci1 , jci2
           ! Update temperatures over water
           if ( mddom%ldmsk(j,i) == 0 ) then
+            if ( iocncpl == 1 ) then
+              if ( cplmsk(j,i) /= 0 ) cycle
+            end if
             sfs%tga(j,i) = ts1(j,i)
             sfs%tgb(j,i) = ts1(j,i)
           end if
@@ -446,21 +455,21 @@ module mod_init
               if ( cplmsk(j,i) /= 0 ) cycle
             end if
             if ( ts1(j,i) <= icetemp .and. mddom%ldmsk(j,i) == 0 ) then
-              sfs%tga(j,i) = icetemp
-              sfs%tgb(j,i) = icetemp
+              sfs%tga(j,i) = sfice_temp
+              sfs%tgb(j,i) = sfice_temp
               ts1(j,i) = icetemp
               mddom%ldmsk(j,i) = 2
-              do n = 1, nnsg
+              do n = 1 , nnsg
                 if ( mdsub%ldmsk(n,j,i) == 0 ) then
                   mdsub%ldmsk(n,j,i) = 2
-                  lms%sfice(n,j,i) = 0.50D0 ! in m
+                  lms%sfice(n,j,i) = 0.50D0 ! 10 cm
                 end if
               end do
             else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then
+              ! Decrease the surface ice to melt it
               sfs%tga(j,i) = ts1(j,i)
               sfs%tgb(j,i) = ts1(j,i)
-              ! Decrease the surface ice to melt it
-              do n = 1, nnsg
+              do n = 1 , nnsg
                 if ( mdsub%ldmsk(n,j,i) == 2 ) then
                   lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
                 end if
@@ -471,6 +480,13 @@ module mod_init
       end do
     end if
     !
+    ! Report success
+    !
+    if ( myid == italk ) then
+      appdat = tochar(idatex)
+      write(stdout,*) 'Successfully read restart file at time = ', appdat
+    end if
+    !
     ! Setup all timeseps for a restart
     !
     dtbat = dt*dble(ntsrf)
@@ -479,17 +495,10 @@ module mod_init
     dtsq = dt*dt
     dtcb = dt*dt*dt
     !
-    ! Report success
-    !
-    if ( myid == italk ) then
-      appdat = tochar(idatex)
-      write(stdout,*) 'Successfully read restart file at time = ', appdat
-    end if
-    !
     ! End of restart phase
     !
   end if
-  !
+
   if ( idynamic == 2 ) then
     do k = 1 , kz
       do i = ice1 , ice2

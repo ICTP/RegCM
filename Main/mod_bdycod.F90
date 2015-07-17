@@ -92,9 +92,8 @@ module mod_bdycod
 
   contains
 
-  subroutine allocate_mod_bdycon(iboudy)
+  subroutine allocate_mod_bdycon
     implicit none
-    integer(ik4) , intent(in) :: iboudy
     if ( iboudy == 1 ) then
       call getmem1d(fcx,1,nspgx,'bdycon:fcx')
       call getmem1d(gcx,1,nspgx,'bdycon:gcx')
@@ -301,13 +300,14 @@ module mod_bdycod
 
     bdydate2 = bdydate2 + intbdy
     if ( myid == italk ) then
-      write(stdout,*) 'SEARCH BC data for ', toint10(bdydate2)
+      write(stdout,'(a,i10,a,i8)') ' SEARCH BC data for ', toint10(bdydate2), &
+                      ', ktau = ', ktau
     end if
     datefound = icbc_search(bdydate2)
-    if (datefound < 0) then
+    if ( datefound < 0 ) then
       call open_icbc(monfirst(bdydate2))
       datefound = icbc_search(bdydate2)
-      if (datefound < 0) then
+      if ( datefound < 0 ) then
         appdat = tochar(bdydate2)
         call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
       end if
@@ -411,6 +411,7 @@ module mod_bdycod
       call exchange(xppb%bt,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -458,7 +459,8 @@ module mod_bdycod
 
     bdydate2 = bdydate2 + intbdy
     if ( myid == italk ) then
-      write(stdout,*) 'SEARCH BC data for ', toint10(bdydate2)
+      write(stdout,'(a,i10,a,i8)') ' SEARCH BC data for ', toint10(bdydate2), &
+                      ', ktau = ', ktau
     end if
     datefound = icbc_search(bdydate2)
     if ( datefound < 0 ) then
@@ -566,7 +568,7 @@ module mod_bdycod
               sfs%tgb(j,i) = sfice_temp
               ts1(j,i) = icetemp
               mddom%ldmsk(j,i) = 2
-              do n = 1, nnsg
+              do n = 1 , nnsg
                 if ( mdsub%ldmsk(n,j,i) == 0 ) then
                   mdsub%ldmsk(n,j,i) = 2
                   lms%sfice(n,j,i) = 0.50D0 ! 10 cm
@@ -576,7 +578,7 @@ module mod_bdycod
               ! Decrease the surface ice to melt it
               sfs%tga(j,i) = ts1(j,i)
               sfs%tgb(j,i) = ts1(j,i)
-              do n = 1, nnsg
+              do n = 1 , nnsg
                 if ( mdsub%ldmsk(n,j,i) == 2 ) then
                   lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
                 end if
@@ -606,19 +608,11 @@ module mod_bdycod
   ! This subroutine sets the boundary values of u and v according
   ! to the boundary conditions specified.
   !
-  !     iboudy = 0 : fixed
-  !            = 1 : relaxation, linear technique
-  !            = 2 : time dependent
-  !            = 3 : time dependent and inflow/outflow dependent
-  !            = 4 : sponge
-  !            = 5 : relaxation, exponential technique
+  !     xt : elapsed time from the initial boundary values.
   !
-  !     dtb        : elapsed time from the initial boundary values.
-  !
-  subroutine bdyuv(iboudy,dtb)
+  subroutine bdyuv(xt)
     implicit none
-    real(rk8) , intent(in) :: dtb
-    integer(ik4) , intent(in) :: iboudy
+    real(rk8) , intent(in) :: xt
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyuv'
@@ -724,16 +718,16 @@ module mod_bdycod
       if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            wue(i,k) = (xub%b0(jde1,i,k) + dtb*xub%bt(jde1,i,k))*rpsdot(jde1,i)
-            wve(i,k) = (xvb%b0(jde1,i,k) + dtb*xvb%bt(jde1,i,k))*rpsdot(jde1,i)
+            wue(i,k) = (xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k))*rpsdot(jde1,i)
+            wve(i,k) = (xvb%b0(jde1,i,k) + xt*xvb%bt(jde1,i,k))*rpsdot(jde1,i)
           end do
         end do
       end if
       if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            eue(i,k) = (xub%b0(jde2,i,k) + dtb*xub%bt(jde2,i,k))*rpsdot(jde2,i)
-            eve(i,k) = (xvb%b0(jde2,i,k) + dtb*xvb%bt(jde2,i,k))*rpsdot(jde2,i)
+            eue(i,k) = (xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k))*rpsdot(jde2,i)
+            eve(i,k) = (xvb%b0(jde2,i,k) + xt*xvb%bt(jde2,i,k))*rpsdot(jde2,i)
           end do
         end do
       end if
@@ -743,16 +737,16 @@ module mod_bdycod
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jde1 , jde2
-            sue(j,k) = (xub%b0(j,ide1,k) + dtb*xub%bt(j,ide1,k))*rpsdot(j,ide1)
-            sve(j,k) = (xvb%b0(j,ide1,k) + dtb*xvb%bt(j,ide1,k))*rpsdot(j,ide1)
+            sue(j,k) = (xub%b0(j,ide1,k) + xt*xub%bt(j,ide1,k))*rpsdot(j,ide1)
+            sve(j,k) = (xvb%b0(j,ide1,k) + xt*xvb%bt(j,ide1,k))*rpsdot(j,ide1)
           end do
         end do
       end if
       if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jde1 , jde2
-            nue(j,k) = (xub%b0(j,ide2,k) + dtb*xub%bt(j,ide2,k))*rpsdot(j,ide2)
-            nve(j,k) = (xvb%b0(j,ide2,k) + dtb*xvb%bt(j,ide2,k))*rpsdot(j,ide2)
+            nue(j,k) = (xub%b0(j,ide2,k) + xt*xub%bt(j,ide2,k))*rpsdot(j,ide2)
+            nve(j,k) = (xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k))*rpsdot(j,ide2)
           end do
         end do
       end if
@@ -839,12 +833,12 @@ module mod_bdycod
   !
   !     xt     : is the time in seconds the variables xxa represent.
   !
-  subroutine bdyval(xt)
+  subroutine bdyval
     implicit none
-    real(rk8) , intent(in) :: xt
     real(rk8) :: qcx , qcint , tkeint , tkex , qvx , qext , qint
     integer(ik4) :: i , j , k , n
     real(rk8) :: windavg
+    real(rk8) :: xt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyval'
     integer(ik4) , save :: idindx = 0
@@ -855,6 +849,7 @@ module mod_bdycod
     ! if this subroutine is called for the first time, this part
     ! shall be skipped.
     !
+    xt = xbctime + dt
     if ( ktau > 1 ) then
       !
       ! West boundary
@@ -1138,7 +1133,7 @@ module mod_bdycod
       end if
     end if
 
-    call bdyuv(iboudy,xt)
+    call bdyuv(xt)
 
     !
     ! Set boundary values for p*t:
@@ -1673,7 +1668,7 @@ module mod_bdycod
     end if
 
     if ( ichem == 1 ) then
-      call chem_bdyval(xt)
+      call chem_bdyval
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -1967,15 +1962,14 @@ module mod_bdycod
   !                                                                 c
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
-  subroutine nudge4d(nk,m,ba,xt,f,ibdy,bnd,ften)
+  subroutine nudge4d(nk,m,ba,f,ibdy,bnd,ften)
     implicit none
     integer(ik4) , intent(in) :: ibdy , nk , m
-    real(rk8) , intent(in) :: xt
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
     type(bound_area) , intent(in) :: ba
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-    real(rk8) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
+    real(rk8) :: xt , xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
     integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge4d'
@@ -1989,6 +1983,7 @@ module mod_bdycod
       return
     end if
 
+    xt = xbctime + dt
     if ( ba%dotflag ) then
       lfc => fcd
       lgc => gcd
@@ -2113,15 +2108,14 @@ module mod_bdycod
 #endif
   end subroutine nudge4d
 
-  subroutine nudge3d(nk,ba,xt,f,ibdy,bnd,ften)
+  subroutine nudge3d(nk,ba,f,ibdy,bnd,ften)
     implicit none
     integer(ik4) , intent(in) :: ibdy , nk
-    real(rk8) , intent(in) :: xt
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
     type(bound_area) , intent(in) :: ba
     real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ften
-    real(rk8) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
+    real(rk8) :: xt , xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
     integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge3d'
@@ -2129,6 +2123,7 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 #endif
 
+    xt = xbctime + dt
     if ( .not. ba%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
@@ -2260,15 +2255,14 @@ module mod_bdycod
 #endif
   end subroutine nudge3d
 
-  subroutine nudge2d(ba,xt,f,ibdy,bnd,ften)
+  subroutine nudge2d(ba,f,ibdy,bnd,ften)
     implicit none
     integer(ik4) , intent(in) :: ibdy
-    real(rk8) , intent(in) :: xt
     real(rk8) , pointer , intent(in) , dimension(:,:) :: f
     type(v2dbound) , intent(in) :: bnd
     type(bound_area) , intent(in) :: ba
     real(rk8) , pointer , intent(inout) , dimension(:,:) :: ften
-    real(rk8) :: xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
+    real(rk8) :: xt , xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
     integer(ik4) :: i , j , ib , i1 , i2 , j1 , j2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge2d'
@@ -2276,6 +2270,7 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 #endif
 
+    xt = xbctime + dt
     if ( .not. ba%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
