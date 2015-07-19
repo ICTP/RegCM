@@ -360,9 +360,9 @@ program clm45_1dto2d
          vname == 'pftmask' .or. vname == 'area' ) then
       istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', 1.D+36)
       call checkncerr(istatus,__FILE__,__LINE__,'Error set attribute')
-    else if ( vname == 'landmask' ) then
-      istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', bigint)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error set attribute')
+!    else if ( vname == 'landmask' ) then
+!      istatus = nf90_put_att(ncoutid, varids(iv), '_FillValue', bigint)
+!      call checkncerr(istatus,__FILE__,__LINE__,'Error set attribute')
     end if
   end do
 
