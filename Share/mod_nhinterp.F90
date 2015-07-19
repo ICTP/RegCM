@@ -236,7 +236,7 @@ module mod_nhinterp
                  wtu * t0(j,i,k)  /t(j,i,k)   * pp(j,i,k)  /pr0(j,i,k)
             check = checkl + checkr
             if ( abs(check) > 1.D-2 ) then
-              write(stderr,'(A,3I4,3g12.6)') &
+              write(stderr,'(A,3I4,3g14.6)') &
                 'NHPP vert gradient check ',i,j,k,check,checkl,checkr
             end if
           end do
