@@ -555,9 +555,9 @@ module mod_sound
           do j = jci1 , jci2
             ucrsk = u3d(j,i,k) + u3d(j,i+1,k) + u3d(j+1,i,k) + u3d(j+1,i+1,k)
             vcrsk = v3d(j,i,k) + v3d(j,i+1,k) + v3d(j+1,i,k) + v3d(j+1,i+1,k)
-            ucrskm1 = u3d(j,i,k-1) + u3d(j,i+1,k-1) + &
+            ucrskm1 = u3d(j,i,k-1)   + u3d(j,i+1,k-1) + &
                       u3d(j+1,i,k-1) + u3d(j+1,i+1,k-1)
-            vcrskm1 = v3d(j,i,k-1) + v3d(j,i+1,k-1)+ &
+            vcrskm1 = v3d(j,i,k-1)   + v3d(j,i+1,k-1) + &
                       v3d(j+1,i,k-1) + v3d(j+1,i+1,k-1)
             rho0s = twt(k,1)*atm0%rho(j,i,k) + twt(k,2)*atm0%rho(j,i,k-1)
             sigdot(j,i,k) = -rho0s*egrav*w3d(j,i,k)/sfs%psb(j,i)*d_r1000 -   &
@@ -615,56 +615,11 @@ module mod_sound
             !
             cpm = cpd * (d_one + 0.856D0*qv3d(j,i,k))
             dpterm = sfs%psa(j,i)*(pp3d(j,i,k)-ppold) / (cpm*atm2%rho(j,i,k))
-            atm2%t(j,i,k) = atm2%t(j,i,k) + gnuhf*dpterm
             atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
+            atm2%t(j,i,k) = atm2%t(j,i,k) + gnuhf*dpterm
           end do
         end do
       end do
-      !
-      ! Zero horizontal gradient conditions on w,  specified on pp
-      !
-      !do k =  1 , kz
-      !  do i = ici1 , ici2
-      !    do j = jci1 , jci2
-      !      pp3d(j,i,k) = pp3d(j,i,k) + aten%pp(j,i,k)
-      !    end do
-      !  end do
-      !end do
-      !do k =  1 , kzp1
-      !  do i = ici1 , ici2
-      !    do j = jci1 , jci2
-      !      w3d(j,i,k) = w3d(j,i,k) + aten%w(j,i,k)
-      !    end do
-      !  end do
-      !end do
-      !if ( ma%has_bdyleft ) then
-      !  do k = 1 , kzp1
-      !    do i = ice1 , ice2
-      !      w3d(jce1,i,k) = w3d(jci1,i,k)
-      !    end do
-      !  end do
-      !end if
-      !if ( ma%has_bdyright ) then
-      !  do k = 1 , kzp1
-      !    do i = ice1 , ice2
-      !      w3d(jce2,i,k) = w3d(jci2,i,k)
-      !    end do
-      !  end do
-      !end if
-      !if ( ma%has_bdybottom ) then
-      !  do k = 1 , kzp1
-      !    do j = jce1 , jce2
-      !      w3d(j,ice1,k) = w3d(j,ici1,k)
-      !    end do
-      !  end do
-      !end if
-      !if ( ma%has_bdytop ) then
-      !  do k = 1 , kzp1
-      !    do j = jce1 , jce2
-      !      w3d(j,ice2,k) = w3d(j,ici2,k)
-      !    end do
-      !  end do
-      !end if
       ! End of time loop
     end do
     !
@@ -673,8 +628,8 @@ module mod_sound
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          atm1%u(j,i,k) = sfs%psdotb(j,i)*u3d(j,i,k)
-          atm1%v(j,i,k) = sfs%psdotb(j,i)*v3d(j,i,k)
+          atm1%u(j,i,k) = sfs%psdotb(j,i) * u3d(j,i,k)
+          atm1%v(j,i,k) = sfs%psdotb(j,i) * v3d(j,i,k)
           atm2%u(j,i,k) = atm2%u(j,i,k) + gnuhf*atm1%u(j,i,k)
           atm2%v(j,i,k) = atm2%v(j,i,k) + gnuhf*atm1%v(j,i,k)
         end do
@@ -683,7 +638,7 @@ module mod_sound
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atm1%pp(j,i,k) = sfs%psb(j,i)*pp3d(j,i,k)
+          atm1%pp(j,i,k) = sfs%psb(j,i) * pp3d(j,i,k)
           atm2%pp(j,i,k) = atm2%pp(j,i,k) + gnuhf*atm1%pp(j,i,k)
         end do
       end do
@@ -691,7 +646,7 @@ module mod_sound
     do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atm1%w(j,i,k) = sfs%psb(j,i)*w3d(j,i,k)
+          atm1%w(j,i,k) = sfs%psb(j,i) * w3d(j,i,k)
           atm2%w(j,i,k) = atm2%w(j,i,k) + gnuhf*atm1%w(j,i,k)
         end do
       end do
