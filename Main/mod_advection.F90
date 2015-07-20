@@ -49,8 +49,8 @@ module mod_advection
   real(rk8) , pointer , dimension(:,:) :: ps     ! Surface pressure
   real(rk8) , pointer , dimension(:,:) :: mapfx  ! Map factor Cross
   real(rk8) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
-  real(rk8) , pointer , dimension(:,:) :: xmapf  ! 1/(mapfx**2)
-  real(rk8) , pointer , dimension(:,:) :: dmapf  ! 1/(mapfd**2)
+  real(rk8) , pointer , dimension(:,:) :: xmapf  ! 1/(mapfx**2*dx4)
+  real(rk8) , pointer , dimension(:,:) :: dmapf  ! 1/(mapfd**2*dx16)
   real(rk8) , pointer , dimension(:,:,:) :: svv  ! Sigma Vertical Velocity
   real(rk8) , pointer , dimension(:,:,:) :: pfs  ! Pressure full sigma levels
   real(rk8) , pointer , dimension(:,:,:) :: phs  ! Pressure half sigma levels
@@ -139,7 +139,7 @@ module mod_advection
                          ua(j-1,i-1,k) + ucmona
                 vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
                          va(j-1,i-1,k) + vcmona
-                ften(j,i,k) = ften(j,i,k) - dmapf(j,i) / dx16 * &
+                ften(j,i,k) = ften(j,i,k) - dmapf(j,i) * &
                             ((f(j+1,i,k)+f(j,i,k))*ucmonb -     &
                              (f(j,i,k)+f(j-1,i,k))*ucmonc +     &
                              (f(j,i+1,k)+f(j,i,k))*vcmonb -     &
@@ -161,9 +161,9 @@ module mod_advection
                          ua(j-1,i-1,k) + ucmona
                 vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
                          va(j-1,i-1,k) + vcmona
-                diag(j,i,k) = mdvd(j,i,k) - dmapf(j,i) / dx16 * &
+                diag(j,i,k) = mdvd(j,i,k) - dmapf(j,i)        * &
                    ( (ucmonb - ucmonc) + (vcmonb - vcmonc) )
-                ften(j,i,k) = ften(j,i,k) - dmapf(j,i) / dx16 * &
+                ften(j,i,k) = ften(j,i,k) - dmapf(j,i)        * &
                             ((f(j+1,i,k)+f(j,i,k))*ucmonb -     &
                              (f(j,i,k)+f(j-1,i,k))*ucmonc +     &
                              (f(j,i+1,k)+f(j,i,k))*vcmonb -     &
@@ -180,7 +180,7 @@ module mod_advection
           do k = 1 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ften(j,i,k) = ften(j,i,k) - xmapf(j,i) / dx4 *            &
+                ften(j,i,k) = ften(j,i,k) - xmapf(j,i) *                  &
                     ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k)+f(j,i,k)) -  &
                      (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k)+f(j-1,i,k)) +  &
                      (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k)+f(j,i,k)) -  &
@@ -196,7 +196,7 @@ module mod_advection
           do k = 2 , nk - 1
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ften(j,i,k) = ften(j,i,k) - xmapf(j,i) / dx4 *  &
+                ften(j,i,k) = ften(j,i,k) - xmapf(j,i)       *  &
                   (((ua(j+1,i+1,k-1)+ua(j+1,i,k-1))*twt(k,2) +  &
                     (ua(j+1,i+1,k)  +ua(j+1,i,k))*twt(k,1)) *   &
                     (f(j+1,i,k)+f(j,i,k)) -                     &
@@ -251,7 +251,7 @@ module mod_advection
         do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,k,n) = ften(j,i,k,n) - xmapf(j,i) / dx4 *            &
+              ften(j,i,k,n) = ften(j,i,k,n) - xmapf(j,i)       *            &
                   ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,n)+f(j,i,k,n)) -  &
                    (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k,n)+f(j-1,i,k,n)) +  &
                    (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,n)+f(j,i,k,n)) -  &

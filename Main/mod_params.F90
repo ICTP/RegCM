@@ -1433,8 +1433,8 @@ module mod_params
     end do
     do i = idi1 , idi2
       do j = jdi1 , jdi2
-        mddom%dmsf(j,i) = d_one/(mddom%msfd(j,i)*mddom%msfd(j,i))
-        mddom%xmsf(j,i) = d_one/(mddom%msfx(j,i)*mddom%msfx(j,i))
+        mddom%dmsf(j,i) = d_one/(mddom%msfd(j,i)*mddom%msfd(j,i)*dx16)
+        mddom%xmsf(j,i) = d_one/(mddom%msfx(j,i)*mddom%msfx(j,i)*dx4)
       end do
     end do
     !
