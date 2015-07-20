@@ -2047,6 +2047,30 @@ module mod_params
                           (atm0%ps(j,i)*dx8*mddom%msfx(j,i))
           end do
         end do
+        if ( ma%has_bdybottom ) then
+          do j = jci1 , jci2
+            dpsdxm(j,ice1) = (atm0%ps(j+1,ice1) - atm0%ps(j,ice1)) / &
+                             (atm0%ps(j,ice1)*dx8*mddom%msfx(j,ice1))
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do j = jci1 , jci2
+            dpsdxm(j,ice2) = (atm0%ps(j,ice2) - atm0%ps(j-1,ice2)) / &
+                             (atm0%ps(j,ice2)*dx8*mddom%msfx(j,ice2))
+          end do
+        end if
+        if ( ma%has_bdyleft ) then
+          do i = ici1 , ici2
+            dpsdym(jce1,i) = (atm0%ps(jce1,i+1) - atm0%ps(jce1,i)) / &
+                             (atm0%ps(jce1,i)*dx8*mddom%msfx(jce1,i))
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do i = ici1 , ici2
+            dpsdym(jce2,i) = (atm0%ps(jce2,i) - atm0%ps(jce2,i-1)) / &
+                             (atm0%ps(jce2,i)*dx8*mddom%msfx(jce2,i))
+          end do
+        end if
       end subroutine make_reference_atmosphere
 
       subroutine compute_full_coriolis_coefficients

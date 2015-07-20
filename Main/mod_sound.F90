@@ -23,6 +23,7 @@ module mod_sound
   use mod_intkinds
   use mod_dynparam
   use mod_runparams
+  use mod_mpmessage
   use mod_constants
   use mod_stdio
   use mod_mppparam
@@ -203,7 +204,7 @@ module mod_sound
     ! Time Step loop
     !
     do it = 1 , istep
-      if ( it /= 1 ) then
+      if ( it > 1 ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -261,7 +262,7 @@ module mod_sound
           end do
         end do
       end do
-      if ( it /= 1 ) then
+      if ( it > 1 ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -589,6 +590,7 @@ module mod_sound
                 write(stderr,99003) cfl , w3d(j,i,k) , i , j , k
     99003       format ('CFL>1: CFL = ',f12.4,' W = ',f12.4,'  I = ',i5, &
                         '  J = ',i5,'  K = ',i5 )
+                call fatal(__FILE__,__LINE__,'CFL violation')
               end if
             end do
           end do

@@ -61,7 +61,6 @@ module mod_advection
   ! working space used to store the interlated values in vadv.
 
   real(rk8) , pointer , dimension(:,:,:) :: fg
-  real(rk8) , pointer , dimension(:,:) :: dxdmsf , dxxmsf
   real(rk8) , pointer , dimension(:) :: dds , xds , xds4
 
   real(rk8) , parameter :: c287 = 0.287D+00
@@ -126,7 +125,7 @@ module mod_advection
         ! ua, va : are p*u and p*v.
         ! msfd   : is the map scale factor at dot points.
         !
-        if ( ipptls == 1 ) then
+        if ( idynamic == 1 ) then
           do k = 1 , nk
             do i = idi1 , idi2
               do j = jdi1 , jdi2
@@ -162,7 +161,7 @@ module mod_advection
                          ua(j-1,i-1,k) + ucmona
                 vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
                          va(j-1,i-1,k) + vcmona
-                diag(j,i,k) = mdvd(j,i,k) - dmapf(j,i) * &
+                diag(j,i,k) = mdvd(j,i,k) - dmapf(j,i) / dx16 * &
                    ( (ucmonb - ucmonc) + (vcmonb - vcmonc) )
                 ften(j,i,k) = ften(j,i,k) - dmapf(j,i) / dx16 * &
                             ((f(j+1,i,k)+f(j,i,k))*ucmonb -     &

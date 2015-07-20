@@ -147,7 +147,7 @@ module mod_tendency
     real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,   &
                psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot ,    &
                rovcpm , rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , &
-               tva , tvavg , tvb , tvc , rho0s , cpm , scr
+               tva , tvavg , tvb , tvc , rho0s , cpm , scr , dpterm
     real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , ucd , vcd , &
                  wadot , wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
@@ -412,8 +412,11 @@ module mod_tendency
             !
             ! omega in the non-hydrostatic model: ??????????????????
             !
-            omega(j,i,k) = d_half*sfs%psa(j,i)*(qdot(j,i,k+1)+qdot(j,i,k)) ! + &
-                ! dp'/dt ????????????????
+            ! Compute pressure dp`/dt correction to the temperature
+            !
+            dpterm = d_zero
+            omega(j,i,k) = d_half*sfs%psa(j,i)*(qdot(j,i,k+1)+qdot(j,i,k)) + &
+              dpterm
           end do
         end do
       end do
@@ -1337,11 +1340,11 @@ module mod_tendency
             aten%u(j,i,k) = aten%u(j,i,k) + mddom%coriol(j,i)*vcd - &
                          mddom%ef(j,i)*mddom%ddx(j,i)*wabar +       &
                          atmx%v(j,i,k)*duv - ucd*amfac +            &
-                         mdv%diag(j,i,k) * ucd
+                         mdv%diag(j,i,k) * atmx%u(j,i,k)
             aten%v(j,i,k) = aten%v(j,i,k) - mddom%coriol(j,i)*ucd + &
                          mddom%ef(j,i)*mddom%ddy(j,i)*wabar -       &
                          atmx%u(j,i,k)*duv - vcd*amfac +            &
-                         mdv%diag(j,i,k) * vcd
+                         mdv%diag(j,i,k) * atmx%v(j,i,k)
           end do
         end do
       end do
@@ -1869,12 +1872,12 @@ module mod_tendency
             end do
           end do
         end if
-        write (*,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
-        write (*,*) 'No more atmosphere here....'
-        write (*,*) 'CFL violation detected, so model STOP'
-        write (*,*) '#####################################'
-        write (*,*) '#            DECREASE DT !!!!       #'
-        write (*,*) '#####################################'
+        write (stderr,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
+        write (stderr,*) 'No more atmosphere here....'
+        write (stderr,*) 'CFL violation detected, so model STOP'
+        write (stderr,*) '#####################################'
+        write (stderr,*) '#            DECREASE DT !!!!       #'
+        write (stderr,*) '#####################################'
         call fatal(__FILE__,__LINE__,'CFL VIOLATION')
       end if
 
