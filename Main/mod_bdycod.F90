@@ -855,9 +855,6 @@ module mod_bdycod
       ! West boundary
       !
       if ( ma%has_bdyleft ) then
-        do i = ici1 , ici2
-          sfs%psb(jce1,i) = sfs%psa(jce1,i)
-        end do
         do k = 1 , kz
           do i = idi1 , idi2
             atm2%u(jde1,i,k) = atm1%u(jde1,i,k)/mddom%msfd(jde1,i)
@@ -887,6 +884,10 @@ module mod_bdycod
               atm2%w(jce1,i,k) = atm1%w(jce1,i,k)
             end do
           end do
+        else
+          do i = ici1 , ici2
+            sfs%psb(jce1,i) = sfs%psa(jce1,i)
+          end do
         end if
         if ( ibltyp == 2 ) then
           do k = 1 , kzp1
@@ -900,9 +901,6 @@ module mod_bdycod
       ! East boundary
       !
       if ( ma%has_bdyright ) then
-        do i = ici1 , ici2
-          sfs%psb(jce2,i) = sfs%psa(jce2,i)
-        end do
         do k = 1 , kz
           do i = idi1 , idi2
             atm2%u(jde2,i,k) = atm1%u(jde2,i,k)/mddom%msfd(jde2,i)
@@ -932,6 +930,10 @@ module mod_bdycod
               atm2%w(jce2,i,k) = atm1%w(jce2,i,k)
             end do
           end do
+        else
+          do i = ici1 , ici2
+            sfs%psb(jce2,i) = sfs%psa(jce2,i)
+          end do
         end if
         if ( ibltyp == 2 ) then
           do k = 1 , kzp1
@@ -945,9 +947,6 @@ module mod_bdycod
       ! North and South boundaries
       !
       if ( ma%has_bdybottom ) then
-        do j = jce1 , jce2
-          sfs%psb(j,ice1) = sfs%psa(j,ice1)
-        end do
         do k = 1 , kz
           do j = jde1 , jde2
             atm2%u(j,ide1,k) = atm1%u(j,ide1,k)/mddom%msfd(j,ide1)
@@ -977,6 +976,10 @@ module mod_bdycod
               atm2%w(j,ice1,k) = atm1%w(j,ice1,k)
             end do
           end do
+        else
+          do j = jce1 , jce2
+            sfs%psb(j,ice1) = sfs%psa(j,ice1)
+          end do
         end if
         if ( ibltyp == 2 ) then
           do k = 1 , kzp1
@@ -987,9 +990,6 @@ module mod_bdycod
         end if
       end if
       if ( ma%has_bdytop ) then
-        do j = jce1 , jce2
-          sfs%psb(j,ice2) = sfs%psa(j,ice2)
-        end do
         do k = 1 , kz
           do j = jde1 , jde2
             atm2%u(j,ide2,k) = atm1%u(j,ide2,k)/mddom%msfd(j,ide2)
@@ -1019,6 +1019,10 @@ module mod_bdycod
               atm2%w(j,ice2,k) = atm1%w(j,ice2,k)
             end do
           end do
+        else
+          do j = jce1 , jce2
+            sfs%psb(j,ice2) = sfs%psa(j,ice2)
+          end do
         end if
         if ( ibltyp == 2 ) then
           do k = 1 , kzp1
@@ -1039,10 +1043,29 @@ module mod_bdycod
       !
       ! fixed boundary conditions:
       !
+      if ( idynamic == 1 ) then
+        if ( ma%has_bdyleft ) then
+          do i = ici1 , ici2
+            sfs%psa(jce1,i) = xpsb%b0(jce1,i)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do i = ici1 , ici2
+            sfs%psa(jce2,i) = xpsb%b0(jce2,i)
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do j = jce1 , jce2
+            sfs%psa(j,ice1) = xpsb%b0(j,ice1)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do j = jce1 , jce2
+            sfs%psa(j,ice2) = xpsb%b0(j,ice2)
+          end do
+        end if
+      end if
       if ( ma%has_bdyleft ) then
-        do i = ici1 , ici2
-          sfs%psa(jce1,i) = xpsb%b0(jce1,i)
-        end do
         do k = 1 , kz
           do i = idi1 , idi2
             atm1%u(jde1,i,k) = xub%b0(jde1,i,k)
@@ -1051,9 +1074,6 @@ module mod_bdycod
         end do
       end if
       if ( ma%has_bdyright ) then
-        do i = ici1 , ici2
-          sfs%psa(jce2,i) = xpsb%b0(jce2,i)
-        end do
         do k = 1 , kz
           do i = idi1 , idi2
             atm1%u(jde2,i,k) = xub%b0(jde2,i,k)
@@ -1062,9 +1082,6 @@ module mod_bdycod
         end do
       end if
       if ( ma%has_bdybottom ) then
-        do j = jce1 , jce2
-          sfs%psa(j,ice1) = xpsb%b0(j,ice1)
-        end do
         do k = 1 , kz
           do j = jde1 , jde2
             atm1%u(j,ide1,k) = xub%b0(j,ide1,k)
@@ -1073,9 +1090,6 @@ module mod_bdycod
         end do
       end if
       if ( ma%has_bdytop ) then
-        do j = jce1 , jce2
-          sfs%psa(j,ice2) = xpsb%b0(j,ice2)
-        end do
         do k = 1 , kz
           do j = jde1 , jde2
             atm1%u(j,ide2,k) = xub%b0(j,ide2,k)
@@ -1087,10 +1101,29 @@ module mod_bdycod
       !
       ! time-dependent boundary conditions:
       !
+      if ( idynamic == 1 ) then
+        if ( ma%has_bdyleft ) then
+          do i = ici1 , ici2
+            sfs%psa(jce1,i) = xpsb%b0(jce1,i) + xt*xpsb%bt(jce1,i)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do i = ici1 , ici2
+            sfs%psa(jce2,i) = xpsb%b0(jce2,i) + xt*xpsb%bt(jce2,i)
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do j = jce1 , jce2
+            sfs%psa(j,ice1) = xpsb%b0(j,ice1) + xt*xpsb%bt(j,ice1)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do j = jce1 , jce2
+            sfs%psa(j,ice2) = xpsb%b0(j,ice2) + xt*xpsb%bt(j,ice2)
+          end do
+        end if
+      end if
       if ( ma%has_bdyleft ) then
-        do i = ici1 , ici2
-          sfs%psa(jce1,i) = xpsb%b0(jce1,i) + xt*xpsb%bt(jce1,i)
-        end do
         do k = 1 , kz
           do i = idi1 , idi2
             atm1%u(jde1,i,k) = xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k)
@@ -1099,9 +1132,6 @@ module mod_bdycod
         end do
       end if
       if ( ma%has_bdyright ) then
-        do i = ici1 , ici2
-          sfs%psa(jce2,i) = xpsb%b0(jce2,i) + xt*xpsb%bt(jce2,i)
-        end do
         do k = 1 , kz
           do i = idi1 , idi2
             atm1%u(jde2,i,k) = xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k)
@@ -1110,9 +1140,6 @@ module mod_bdycod
         end do
       end if
       if ( ma%has_bdybottom ) then
-        do j = jce1 , jce2
-          sfs%psa(j,ice1) = xpsb%b0(j,ice1) + xt*xpsb%bt(j,ice1)
-        end do
         do k = 1 , kz
           do j = jde1 , jde2
             atm1%u(j,ide1,k) = xub%b0(j,ide1,k) + xt*xub%bt(j,ide1,k)
@@ -1121,9 +1148,6 @@ module mod_bdycod
         end do
       end if
       if ( ma%has_bdytop ) then
-        do j = jce1 , jce2
-          sfs%psa(j,ice2) = xpsb%b0(j,ice2) + xt*xpsb%bt(j,ice2)
-        end do
         do k = 1 , kz
           do j = jde1 , jde2
             atm1%u(j,ide2,k) = xub%b0(j,ide2,k) + xt*xub%bt(j,ide2,k)
