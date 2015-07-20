@@ -640,8 +640,8 @@ module mod_tendency
     else
       thten(:,:,:) = d_zero
       do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ice1 , ice2
+          do j = jce1 , jce2
             th(j,i,k) = atmx%t(j,i,k) * (1.0D5/atm1%pr(j,i,k))**rovcp
             tha(j,i,k) = th(j,i,k) * sfs%psa(j,i)
           end do

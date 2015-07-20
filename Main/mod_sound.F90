@@ -623,56 +623,56 @@ module mod_sound
       !
       ! Zero horizontal gradient conditions on w,  specified on pp
       !
-      do k =  1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            pp3d(j,i,k) = pp3d(j,i,k) + aten%pp(j,i,k)
-          end do
-        end do
-      end do
-      do k =  1 , kzp1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            w3d(j,i,k) = w3d(j,i,k) + aten%w(j,i,k)
-          end do
-        end do
-      end do
-      if ( ma%has_bdyleft ) then
-        do k = 1 , kzp1
-          do i = ice1 , ice2
-            w3d(jce1,i,k) = w3d(jci1,i,k)
-          end do
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do k = 1 , kzp1
-          do i = ice1 , ice2
-            w3d(jce2,i,k) = w3d(jci2,i,k)
-          end do
-        end do
-      end if
-      if ( ma%has_bdybottom ) then
-        do k = 1 , kzp1
-          do j = jce1 , jce2
-            w3d(j,ice1,k) = w3d(j,ici1,k)
-          end do
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do k = 1 , kzp1
-          do j = jce1 , jce2
-            w3d(j,ice2,k) = w3d(j,ici2,k)
-          end do
-        end do
-      end if
+      !do k =  1 , kz
+      !  do i = ici1 , ici2
+      !    do j = jci1 , jci2
+      !      pp3d(j,i,k) = pp3d(j,i,k) + aten%pp(j,i,k)
+      !    end do
+      !  end do
+      !end do
+      !do k =  1 , kzp1
+      !  do i = ici1 , ici2
+      !    do j = jci1 , jci2
+      !      w3d(j,i,k) = w3d(j,i,k) + aten%w(j,i,k)
+      !    end do
+      !  end do
+      !end do
+      !if ( ma%has_bdyleft ) then
+      !  do k = 1 , kzp1
+      !    do i = ice1 , ice2
+      !      w3d(jce1,i,k) = w3d(jci1,i,k)
+      !    end do
+      !  end do
+      !end if
+      !if ( ma%has_bdyright ) then
+      !  do k = 1 , kzp1
+      !    do i = ice1 , ice2
+      !      w3d(jce2,i,k) = w3d(jci2,i,k)
+      !    end do
+      !  end do
+      !end if
+      !if ( ma%has_bdybottom ) then
+      !  do k = 1 , kzp1
+      !    do j = jce1 , jce2
+      !      w3d(j,ice1,k) = w3d(j,ici1,k)
+      !    end do
+      !  end do
+      !end if
+      !if ( ma%has_bdytop ) then
+      !  do k = 1 , kzp1
+      !    do j = jce1 , jce2
+      !      w3d(j,ice2,k) = w3d(j,ici2,k)
+      !    end do
+      !  end do
+      !end if
       ! End of time loop
     end do
     !
     ! Transfer xxa to xxb, new values to xxa and apply time filter
     !
     do k = 1 , kz
-      do i = idi1 , idi1
-        do j = jdi1 , jdi1
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
           atm1%u(j,i,k) = sfs%psdotb(j,i)*u3d(j,i,k)
           atm1%v(j,i,k) = sfs%psdotb(j,i)*v3d(j,i,k)
           atm2%u(j,i,k) = atm2%u(j,i,k) + gnuhf*atm1%u(j,i,k)
@@ -681,16 +681,16 @@ module mod_sound
       end do
     end do
     do k = 1 , kz
-      do i = ici1 , ici1
-        do j = jci1 , jci1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           atm1%pp(j,i,k) = sfs%psb(j,i)*pp3d(j,i,k)
           atm2%pp(j,i,k) = atm2%pp(j,i,k) + gnuhf*atm1%pp(j,i,k)
         end do
       end do
     end do
     do k = 1 , kzp1
-      do i = ici1 , ici1
-        do j = jci1 , jci1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           atm1%w(j,i,k) = sfs%psb(j,i)*w3d(j,i,k)
           atm2%w(j,i,k) = atm2%w(j,i,k) + gnuhf*atm1%w(j,i,k)
         end do
