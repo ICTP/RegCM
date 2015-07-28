@@ -192,6 +192,9 @@ module mod_clm_restfile
     ! Continue run:
     rfile = trim(dirout)//pthsep//trim(caseid)//".clm."//trim(inst_suffix)//&
             ".r."//trim(rdate)//".nc"
+    if ( finidat /= ' ' )
+      rfile = finidat
+    end if
   end subroutine restFile_getfile
   !
   ! Close restart file and write restart pointer file if
