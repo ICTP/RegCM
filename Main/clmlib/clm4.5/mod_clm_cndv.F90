@@ -175,8 +175,6 @@ module mod_clm_cndv
     integer(ik4) :: nbsec                   ! seconds components of a date
     real(rk8):: time                   ! current time
     real(rk8) , pointer , dimension(:) :: rparr     ! temporary
-    integer(ik4) , pointer , dimension(:) :: ilarr  ! temporary
-    integer(ik4) , pointer , dimension(:) :: icarr  ! temporary
     integer(ik4) , pointer , dimension(:) :: iparr  ! temporary
     character(len=256) :: str          ! temporary string
     character(len=  8) :: curdate      ! current date
@@ -211,9 +209,7 @@ module mod_clm_cndv
     allocate(rparr(begp:endp), stat=ier)
     if (ier /= 0) call fatal(__FILE__,__LINE__,&
       'histCNDV: allocation error for real rparr')
-    allocate(ilarr(begl:endl), &
-             icarr(begc:endc), &
-             iparr(begp:endp), stat=ier)
+    allocate(iparr(begp:endp), stat=ier)
     if (ier /= 0) call fatal(__FILE__,__LINE__,&
       'histCNDV: allocation error for integer arrays')
 
@@ -311,12 +307,6 @@ module mod_clm_cndv
     call clm_addvar(clmvar_integer,ncid,'landmask',(/'gridcell'/), &
           long_name='land/ocean mask (0.=ocean and 1.=land)', &
           missing_value=1,fill_value=1)
-    call clm_addvar(clmvar_integer,ncid,'lunxgdc',(/'gridcell'/), &
-            long_name='Number of luns per gridcell', &
-            missing_value=1,fill_value=1)
-    call clm_addvar(clmvar_integer,ncid,'colxgdc',(/'gridcell'/), &
-            long_name='Number of cols per gridcell', &
-            missing_value=1,fill_value=1)
     call clm_addvar(clmvar_integer,ncid,'pftxgdc',(/'gridcell'/), &
             long_name='Number of pfts per gridcell', &
             missing_value=1,fill_value=1)
@@ -336,12 +326,6 @@ module mod_clm_cndv
     call clm_addvar(clmvar_integer,ncid,'nstep',(/'time'/), &
          long_name='time step', units='s')
 
-    call clm_addvar(clmvar_double,ncid,'pfts1d_lon', &
-            (/'pft'/),long_name='pft longitude', units='degrees_east', &
-            missing_value=1,fill_value=1)
-    call clm_addvar(clmvar_double,ncid,'pfts1d_lat', &
-            (/'pft'/),long_name='pft latitude', units='degrees_north', &
-            missing_value=1,fill_value=1)
     call clm_addvar(clmvar_double,ncid,'pfts1d_wtxy',(/'pft'/), &
             long_name='pft weight relative to corresponding gridcell', &
             missing_value=1,fill_value=1)
@@ -351,12 +335,6 @@ module mod_clm_cndv
     call clm_addvar(clmvar_integer,ncid,'pfts1d_itypveg', &
             (/'pft'/),long_name='pft vegetation type', &
             missing_value=1,fill_value=1)
-    call clm_addvar(clmvar_integer,ncid,'luns1d_ityplun',(/'landunit'/), &
-           long_name='landunit type (vegetated,urban,lake,wetland,glacier)', &
-           missing_value=1,fill_value=1)
-    call clm_addvar(clmvar_integer,ncid,'cols1d_ityplun',(/'column'/), &
-           long_name='column type (vegetated,urban,lake,wetland,glacier)', &
-           missing_value=1,fill_value=1)
     call clm_addvar(clmvar_integer,ncid,'pfts1d_ityplun',(/'pft'/), &
          long_name='pft landunit type (vegetated,urban,lake,wetland,glacier)', &
          missing_value=1,fill_value=1)
@@ -386,21 +364,8 @@ module mod_clm_cndv
     call clm_writevar(ncid,'longxy',ldomain%lonc,gcomm_gridcell)
     call clm_writevar(ncid,'latixy',ldomain%latc,gcomm_gridcell)
     call clm_writevar(ncid,'landmask',ldomain%mask,gcomm_gridcell)
-    call clm_writevar(ncid,'lunxgdc',ldecomp%lunxgdc,gcomm_gridcell)
-    call clm_writevar(ncid,'colxgdc',ldecomp%colxgdc,gcomm_gridcell)
-    call clm_writevar(ncid,'lunxgdc',ldecomp%lunxgdc,gcomm_gridcell)
-    call clm_writevar(ncid,'colxgdc',ldecomp%colxgdc,gcomm_gridcell)
     call clm_writevar(ncid,'pftxgdc',ldecomp%pftxgdc,gcomm_gridcell)
     call clm_writevar(ncid,'regcm_mask',lndcomm%global_out_sgmask)
-
-    do p = begp , endp
-      rparr(p) = clm3%g%londeg(clm3%g%l%c%p%gridcell(p))
-    end do
-    call clm_writevar(ncid,'pfts1d_lon',rparr,gcomm_pft)
-    do p = begp , endp
-      rparr(p) = clm3%g%latdeg(clm3%g%l%c%p%gridcell(p))
-    end do
-    call clm_writevar(ncid,'pfts1d_lat',rparr,gcomm_pft)
     call clm_writevar(ncid,'pfts1d_wtxy',clm3%g%l%c%p%wtgcell,gcomm_pft)
     do p = begp , endp
       iparr(p) = clm3%g%l%c%p%gridcell(p)
@@ -411,14 +376,6 @@ module mod_clm_cndv
       iparr(p) = clm3%g%l%itype(clm3%g%l%c%p%landunit(p))
     end do
     call clm_writevar(ncid,'pfts1d_ityplun',iparr,gcomm_pft)
-    do c = begc , endc
-      icarr(c) = clm3%g%l%itype(clm3%g%l%c%landunit(c))
-    end do
-    call clm_writevar(ncid,'cols1d_ityplun',icarr,gcomm_column)
-    do l = begl , endl
-      ilarr(l) = clm3%g%l%itype(l)
-    end do
-    call clm_writevar(ncid,'luns1d_ityplun',ilarr,gcomm_landunit)
 
     ! Write current date, current seconds, current day, current nstep
 
