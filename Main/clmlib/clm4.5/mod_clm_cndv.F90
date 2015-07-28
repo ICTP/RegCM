@@ -161,7 +161,7 @@ module mod_clm_cndv
     real(rk8), pointer :: nind(:)
     character(len=256) :: dgvm_fn   ! dgvm history filename
     type(clm_filetype) :: ncid      ! netcdf file id
-    integer(ik4) :: g,p,l,c         ! indices
+    integer(ik4) :: p,l,c         ! indices
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
@@ -183,7 +183,6 @@ module mod_clm_cndv
     character(len=  8) :: curtime      ! current time
     character(len= 10) :: basedate     ! base date (yyyymmdd)
     character(len=  8) :: basesec      ! base seconds
-    character(len=32) :: subname='histCNDV'
     integer(ik4) :: hostnm
     character (len=32) :: hostname='?'
     character (len=32) :: user='?'
@@ -288,6 +287,8 @@ module mod_clm_cndv
     ! Define variables
     ! -----------------------------------------------------------------------
 
+    call clm_addvar(clmvar_integer,ncid,'numpft')
+
     call curr_time(idatex,mdcur, mscur)
     call ref_date(yr,mon,day,nbsec)
     hours   = nbsec / 3600
@@ -308,13 +309,17 @@ module mod_clm_cndv
     call clm_addvar(clmvar_double,ncid,'latixy',(/'gridcell'/), &
           long_name='latitude', units='degrees_north')
     call clm_addvar(clmvar_integer,ncid,'landmask',(/'gridcell'/), &
-          long_name='land/ocean mask (0.=ocean and 1.=land)')
+          long_name='land/ocean mask (0.=ocean and 1.=land)', &
+          missing_value=1,fill_value=1)
     call clm_addvar(clmvar_integer,ncid,'lunxgdc',(/'gridcell'/), &
-            long_name='Number of luns per gridcell')
+            long_name='Number of luns per gridcell', &
+            missing_value=1,fill_value=1)
     call clm_addvar(clmvar_integer,ncid,'colxgdc',(/'gridcell'/), &
-            long_name='Number of cols per gridcell')
+            long_name='Number of cols per gridcell', &
+            missing_value=1,fill_value=1)
     call clm_addvar(clmvar_integer,ncid,'pftxgdc',(/'gridcell'/), &
-            long_name='Number of pfts per gridcell')
+            long_name='Number of pfts per gridcell', &
+            missing_value=1,fill_value=1)
     call clm_addvar(clmvar_logical,ncid,'regcm_mask',(/'jx','iy'/), &
           long_name='regcm land mask', units='1')
 
@@ -332,19 +337,29 @@ module mod_clm_cndv
          long_name='time step', units='s')
 
     call clm_addvar(clmvar_double,ncid,'pfts1d_lon', &
-            (/'pft'/),long_name='pft longitude', units='degrees_east')
+            (/'pft'/),long_name='pft longitude', units='degrees_east', &
+            missing_value=1,fill_value=1)
     call clm_addvar(clmvar_double,ncid,'pfts1d_lat', &
-            (/'pft'/),long_name='pft latitude', units='degrees_north')
-    call clm_addvar(clmvar_double,ncid,'pfts1d_wtxy', &
-            (/'pft'/),long_name='pft weight relative to corresponding gridcell')
+            (/'pft'/),long_name='pft latitude', units='degrees_north', &
+            missing_value=1,fill_value=1)
+    call clm_addvar(clmvar_double,ncid,'pfts1d_wtxy',(/'pft'/), &
+            long_name='pft weight relative to corresponding gridcell', &
+            missing_value=1,fill_value=1)
+    call clm_addvar(clmvar_integer,ncid,'pfts1d_gridcell', &
+            (/'pft'/),long_name='pft gridcell index', &
+            missing_value=1,fill_value=1)
     call clm_addvar(clmvar_integer,ncid,'pfts1d_itypveg', &
-            (/'pft'/),long_name='pft vegetation type')
+            (/'pft'/),long_name='pft vegetation type', &
+            missing_value=1,fill_value=1)
     call clm_addvar(clmvar_integer,ncid,'luns1d_ityplun',(/'landunit'/), &
-           long_name='landunit type (vegetated,urban,lake,wetland,glacier)')
+           long_name='landunit type (vegetated,urban,lake,wetland,glacier)', &
+           missing_value=1,fill_value=1)
     call clm_addvar(clmvar_integer,ncid,'cols1d_ityplun',(/'column'/), &
-           long_name='column type (vegetated,urban,lake,wetland,glacier)')
+           long_name='column type (vegetated,urban,lake,wetland,glacier)', &
+           missing_value=1,fill_value=1)
     call clm_addvar(clmvar_integer,ncid,'pfts1d_ityplun',(/'pft'/), &
-           long_name='pft landunit type (vegetated,urban,lake,wetland,glacier)')
+         long_name='pft landunit type (vegetated,urban,lake,wetland,glacier)', &
+         missing_value=1,fill_value=1)
 
     ! Define time dependent variables
 
@@ -362,6 +377,8 @@ module mod_clm_cndv
     ! -----------------------------------------------------------------------
     ! Write variables
     ! -----------------------------------------------------------------------
+
+    call clm_writevar(ncid,'numpft',maxpatch_pft)
 
     ! Write surface grid (coordinate variables, latitude,
     ! longitude, surface type).
@@ -385,6 +402,10 @@ module mod_clm_cndv
     end do
     call clm_writevar(ncid,'pfts1d_lat',rparr,gcomm_pft)
     call clm_writevar(ncid,'pfts1d_wtxy',clm3%g%l%c%p%wtgcell,gcomm_pft)
+    do p = begp , endp
+      iparr(p) = clm3%g%l%c%p%gridcell(p)
+    end do
+    call clm_writevar(ncid,'pfts1d_gridcell',iparr,gcomm_pft)
     call clm_writevar(ncid,'pfts1d_itypveg',clm3%g%l%c%p%itype,gcomm_pft)
     do p = begp , endp
       iparr(p) = clm3%g%l%itype(clm3%g%l%c%p%landunit(p))
