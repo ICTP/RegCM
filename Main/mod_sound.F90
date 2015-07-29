@@ -62,13 +62,9 @@ module mod_sound
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: tk
     integer(ik4) :: i , istep , it , j , k , km1 , kp1 , iconvec
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: cc , cdd , cj
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: pp3d
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: qv3d
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: pi
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) ::t3d
-    real(rk8) , dimension(jdi1:jdi2,idi1:idi2,1:kz) ::u3d , v3d
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: e , f
-    real(rk8) , dimension(jce1:jce2,ice1:ice2,1:kzp1) :: w3d
     character (len=32) :: appdat
     !
     ! Graziano:
@@ -130,7 +126,7 @@ module mod_sound
     ! Calculate the loop boundaries
     !
     if ( ktau == 0 ) then
-      write(stdout,'(a,f7.2,i3,a,f4.1,a,f4.1)') &
+      if ( myid == italk ) write(stdout,'(a,f7.2,i3,a,f4.1,a,f4.1)') &
             ' SHORT TIME STEP ' , dts , istep , &
             ' BETA = ' , bet , ' XKD = ' , xkd
 !      do j = -6 , 6
@@ -172,8 +168,8 @@ module mod_sound
         do j = jdi1 , jdi2
           aten%u(j,i,k) = aten%u(j,i,k) * dts
           aten%v(j,i,k) = aten%v(j,i,k) * dts
-          u3d(j,i,k)    = atm2%u(j,i,k)/sfs%psdotb(j,i)
-          v3d(j,i,k)    = atm2%v(j,i,k)/sfs%psdotb(j,i)
+          atmc%u(j,i,k) = atm2%u(j,i,k)/sfs%psdotb(j,i)
+          atmc%v(j,i,k) = atm2%v(j,i,k)/sfs%psdotb(j,i)
           atm2%u(j,i,k) = omuhf*atm1%u(j,i,k)/mddom%msfd(j,i) + &
                           gnuhf*atm2%u(j,i,k)
           atm2%v(j,i,k) = omuhf*atm1%v(j,i,k)/mddom%msfd(j,i) + &
@@ -186,7 +182,7 @@ module mod_sound
         do j = jci1 , jci2
           qv3d(j,i,k)    = atm2%qx(j,i,k,iqv)/sfs%psb(j,i)
           aten%pp(j,i,k) = aten%pp(j,i,k) * dts
-          pp3d(j,i,k)    = atm2%pp(j,i,k)/sfs%psb(j,i)
+          atmc%pp(j,i,k) = atm2%pp(j,i,k)/sfs%psb(j,i)
           atm2%pp(j,i,k) = omuhf*atm1%pp(j,i,k) + gnuhf*atm2%pp(j,i,k)
         end do
       end do
@@ -195,7 +191,7 @@ module mod_sound
       do i = ici1 , ici2
         do j = jci1 , jci2
           aten%w(j,i,k) = aten%w(j,i,k) * dts
-          w3d(j,i,k)    = atm2%w(j,i,k)/sfs%psb(j,i)
+          atmc%w(j,i,k) = atm2%w(j,i,k)/sfs%psb(j,i)
           atm2%w(j,i,k) = omuhf*atm1%w(j,i,k) + gnuhf*atm2%w(j,i,k)
         end do
       end do
@@ -208,7 +204,7 @@ module mod_sound
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              pp3d(j,i,k) = pp3d(j,i,k) + xkd*pi(j,i,k)
+              atmc%pp(j,i,k) = atmc%pp(j,i,k) + xkd*pi(j,i,k)
             end do
           end do
         end do
@@ -218,11 +214,13 @@ module mod_sound
         km1 = max(1,k-1)
         do i = ici1 , ici2
           do j = jci1 , jci2
-            t3d(j,i,k) = (pp3d(j,i,km1)-pp3d(j,i,kp1)) / &
-                         (atm0%pr(j,i,km1)-atm0%pr(j,i,kp1))
+            atmc%t(j,i,k) = (atmc%pp(j,i,km1)-atmc%pp(j,i,kp1)) / &
+                            (atm0%pr(j,i,km1)-atm0%pr(j,i,kp1))
           end do
         end do
       end do
+      call exchange(atmc%t,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atmc%pp,1,jce1,jce2,ice1,ice2,1,kz)
       !
       ! Advance u and v
       !
@@ -232,8 +230,8 @@ module mod_sound
             ! Predict u and v
             rho    = d_rfour * (atm2%rho(j,i,k)   + atm2%rho(j,i-1,k) + &
                                 atm2%rho(j-1,i,k) + atm2%rho(j-1,i-1,k))
-            dppdp0 = d_rfour * (t3d(j,i,k)   + t3d(j,i-1,k) + &
-                                t3d(j-1,i,k) + t3d(j-1,i-1,k))
+            dppdp0 = d_rfour * (atmc%t(j,i,k)   + atmc%t(j,i-1,k) + &
+                                atmc%t(j-1,i,k) + atmc%t(j-1,i-1,k))
             ! Divide by map scale factor
             chh = d_half * dts / (rho*dx) / mddom%msfd(j,i)
             !
@@ -241,14 +239,14 @@ module mod_sound
             ! coordinanate: 4th RHS term in Eqs. 2.2.1, 2.2.2, 2.2.9, 2.2.10,
             ! 2.3.3, 2.3.4 in the MM5 manual.
             !
-            u3d(j,i,k) = u3d(j,i,k) - &
-                      chh * (pp3d(j,i,k)   - pp3d(j,i-1,k)   + &
-                             pp3d(j-1,i,k) - pp3d(j-1,i-1,k) - &
+            atmc%u(j,i,k) = atmc%u(j,i,k) - &
+                      chh * (atmc%pp(j,i,k)   - atmc%pp(j,i-1,k)   + &
+                             atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
                       ( atm0%pr(j,i,k)   - atm0%pr(j,i-1,k)  + &
                         atm0%pr(j-1,i,k) - atm0%pr(j-1,i-1,k)) * dppdp0)
-            v3d(j,i,k) = v3d(j,i,k) - &
-                      chh * (pp3d(j,i,k)   - pp3d(j-1,i,k)   + &
-                             pp3d(j,i-1,k) - pp3d(j-1,i-1,k) - &
+            atmc%v(j,i,k) = atmc%v(j,i,k) - &
+                      chh * (atmc%pp(j,i,k)   - atmc%pp(j-1,i,k)   + &
+                             atmc%pp(j,i-1,k) - atmc%pp(j-1,i-1,k) - &
                       ( atm0%pr(j,i,k)   - atm0%pr(j-1,i,k)  + &
                         atm0%pr(j,i-1,k) - atm0%pr(j-1,i-1,k))*dppdp0)
           end do
@@ -257,8 +255,8 @@ module mod_sound
       do k = 1 , kz
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-            u3d(j,i,k) = u3d(j,i,k) + aten%u(j,i,k)
-            v3d(j,i,k) = v3d(j,i,k) + aten%v(j,i,k)
+            atmc%u(j,i,k) = atmc%u(j,i,k) + aten%u(j,i,k)
+            atmc%v(j,i,k) = atmc%v(j,i,k) + aten%v(j,i,k)
           end do
         end do
       end do
@@ -266,11 +264,13 @@ module mod_sound
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              pp3d(j,i,k) = pp3d(j,i,k) - xkd*pi(j,i,k)
+              atmc%pp(j,i,k) = atmc%pp(j,i,k) - xkd*pi(j,i,k)
             end do
           end do
         end do
       end if
+      call exchange(atmc%u,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atmc%v,1,jde1,jde2,ide1,ide2,1,kz)
       !
       !  Semi-implicit solution for w and p
       !
@@ -284,7 +284,7 @@ module mod_sound
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            wo(j,i,k) = w3d(j,i,k)
+            wo(j,i,k) = atmc%w(j,i,k)
           end do
         end do
       end do
@@ -293,15 +293,16 @@ module mod_sound
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          w3d(j,i,kzp1) = d_rfour * ((v3d(j+1,i,kz)   + v3d(j,i,kz) +        &
-                                      v3d(j+1,i+1,kz) + v3d(j,i+1,kz)) *     &
-                                     ( mddom%ht(j+1,i) - mddom%ht(j-1,i) ) + &
-                                     (u3d(j+1,i,kz)   + u3d(j,i,kz) +        &
-                                      u3d(j+1,i+1,kz) + u3d(j,i+1,kz)) *     &
-                                     ( mddom%ht(j,i+1) - mddom%ht(j,i-1))) / &
-                           ( d_two * dx * mddom%msfx(j,i) * egrav )
+          atmc%w(j,i,kzp1) = d_rfour * &
+                     ((atmc%v(j+1,i,kz)   + atmc%v(j,i,kz) +    &
+                       atmc%v(j+1,i+1,kz) + atmc%v(j,i+1,kz)) * &
+                      ( mddom%ht(j+1,i) - mddom%ht(j-1,i) ) +   &
+                      (atmc%u(j+1,i,kz)   + atmc%u(j,i,kz) +    &
+                       atmc%u(j+1,i+1,kz) + atmc%u(j,i+1,kz)) * &
+                      ( mddom%ht(j,i+1) - mddom%ht(j,i-1))) /   &
+                      ( d_two * dx * mddom%msfx(j,i) * egrav )
           e(j,i,kz) = d_zero
-          f(j,i,kz) = w3d(j,i,kzp1)
+          f(j,i,kz) = atmc%w(j,i,kzp1)
 
           cc(j,i,1)  = xgamma * atm2%pr(j,i,1) * dts/ (dx*mddom%msfx(j,i))
           cdd(j,i,1) = xgamma * atm2%pr(j,i,1) * atm0%rho(j,i,1) * &
@@ -309,17 +310,17 @@ module mod_sound
           cj(j,i,1)  = atm0%rho(j,i,1) * egrav * dts / d_two
           pxup(j,i,1) = 0.0625D0 *                              &
                       ( atm0%pr(j+1,i,1) - atm0%pr(j-1,i,1) ) * &
-                      ( u3d(j,i,1)   + u3d(j+1,i,1)   +         &
-                        u3d(j,i+1,1) + u3d(j+1,i+1,1) -         &
-                        u3d(j,i,2)   - u3d(j+1,i,2)   -         &
-                        u3d(j,i+1,2) - u3d(j+1,i+1,2) ) /       &
+                      ( atmc%u(j,i,1)   + atmc%u(j+1,i,1)   +   &
+                        atmc%u(j,i+1,1) + atmc%u(j+1,i+1,1) -   &
+                        atmc%u(j,i,2)   - atmc%u(j+1,i,2)   -   &
+                        atmc%u(j,i+1,2) - atmc%u(j+1,i+1,2) ) / &
                       ( atm0%pr(j,i,1) - atm0%pr(j,i,2))
           pyvp(j,i,1) = 0.0625D0 *                              &
                       ( atm0%pr(j,i+1,1) - atm0%pr(j,i-1,1) ) * &
-                      ( v3d(j,i,1)   + v3d(j+1,i,1)   +         &
-                        v3d(j,i+1,1) + v3d(j+1,i+1,1) -         &
-                        v3d(j,i,2)   - v3d(j+1,i,2)   -         &
-                        v3d(j,i+1,2) - v3d(j+1,i+1,2) ) /       &
+                      ( atmc%v(j,i,1)   + atmc%v(j+1,i,1)   +   &
+                        atmc%v(j,i+1,1) + atmc%v(j+1,i+1,1) -   &
+                        atmc%v(j,i,2)   - atmc%v(j+1,i,2)   -   &
+                        atmc%v(j,i+1,2) - atmc%v(j+1,i+1,2) ) / &
                       ( atm0%pr(j,i,1) - atm0%pr(j,i,2) )
           !
           ! Zero gradient (free slip) b.c.s on v at top and bottom
@@ -327,15 +328,15 @@ module mod_sound
           ! IG: at the top (k=1), w(x,y,1)=0, dw(x,y,1)/dsigma=0 so
           ! 3rd and 4th LHS in Eq. 2.5.1.4 vanish.
           !
-          ptend(j,i,1) = aten%pp(j,i,1) - d_half * cc(j,i,1) *      &
-                       ( ( v3d(j,i+1,1)   * mddom%msfd(j,i+1)   -   &
-                           v3d(j,i,1)     * mddom%msfd(j,i)     +   &
-                           v3d(j+1,i+1,1) * mddom%msfd(j+1,i+1) -   &
-                           v3d(j+1,i,1)   * mddom%msfd(j+1,i)   +   &
-                           u3d(j+1,i,1)   * mddom%msfd(j+1,i)   -   &
-                           u3d(j,i,1)     * mddom%msfd(j,i)     +   &
-                           u3d(j+1,i+1,1) * mddom%msfd(j+1,i+1) -   &
-                           u3d(j,i+1,1)   * mddom%msfd(j,i+1) ) /   &
+          ptend(j,i,1) = aten%pp(j,i,1) - d_half * cc(j,i,1) *       &
+                       ( ( atmc%v(j,i+1,1)   * mddom%msfd(j,i+1)   - &
+                           atmc%v(j,i,1)     * mddom%msfd(j,i)     + &
+                           atmc%v(j+1,i+1,1) * mddom%msfd(j+1,i+1) - &
+                           atmc%v(j+1,i,1)   * mddom%msfd(j+1,i)   + &
+                           atmc%u(j+1,i,1)   * mddom%msfd(j+1,i)   - &
+                           atmc%u(j,i,1)     * mddom%msfd(j,i)     + &
+                           atmc%u(j+1,i+1,1) * mddom%msfd(j+1,i+1) - &
+                           atmc%u(j,i+1,1)   * mddom%msfd(j,i+1) ) / &
                        mddom%msfx(j,i) - d_two * (pyvp(j,i,1) + pxup(j,i,1)) )
           tk(j,i,1) = atm0%ps(j,i) * atm0%t(j,i,1) / &
                       (d_two * xgamma * atm0%pr(j,i,1) * &
@@ -373,16 +374,16 @@ module mod_sound
                        (cdd(j,i,km1) + cj(j,i,km1)) ) * bpxbp
             aa(j,i,k) = -ca(j,i,k) * (cdd(j,i,k)+cj(j,i,k))*g1(j,i,k)*bpxbp
             pyvp(j,i,k) = 0.125D0 * (atm0%pr(j,i+1,k) - atm0%pr(j,i-1,k)) * &
-                          ( v3d(j,i,km1)   + v3d(j+1,i,km1)   +     &
-                            v3d(j,i+1,km1) + v3d(j+1,i+1,km1) -     &
-                            v3d(j,i,kp1)   - v3d(j+1,i,kp1)   -     &
-                            v3d(j,i+1,kp1) - v3d(j+1,i+1,kp1) ) /   &
+                          ( atmc%v(j,i,km1)   + atmc%v(j+1,i,km1)   +       &
+                            atmc%v(j,i+1,km1) + atmc%v(j+1,i+1,km1) -       &
+                            atmc%v(j,i,kp1)   - atmc%v(j+1,i,kp1)   -       &
+                            atmc%v(j,i+1,kp1) - atmc%v(j+1,i+1,kp1) ) /     &
                           ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
             pxup(j,i,k) = 0.125D0 * (atm0%pr(j+1,i,k) - atm0%pr(j-1,i,k)) * &
-                          ( u3d(j,i,km1)   + u3d(j+1,i,km1)   +     &
-                            u3d(j,i+1,km1) + u3d(j+1,i+1,km1) -     &
-                            u3d(j,i,kp1)   - u3d(j+1,i,kp1)   -     &
-                            u3d(j,i+1,kp1) - u3d(j+1,i+1,kp1) ) /   &
+                          ( atmc%u(j,i,km1)   + atmc%u(j+1,i,km1)   +       &
+                            atmc%u(j,i+1,km1) + atmc%u(j+1,i+1,km1) -       &
+                            atmc%u(j,i,kp1)   - atmc%u(j+1,i,kp1)   -       &
+                            atmc%u(j,i+1,kp1) - atmc%u(j+1,i+1,kp1) ) /     &
                           ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
           end do
         end do
@@ -406,39 +407,40 @@ module mod_sound
             ! Nonhydrostatic model.
             ! Presure perturbation tendency: 5th RHS terms in Eq.2.3.8
             !
-            ptend(j,i,k) = aten%pp(j,i,k) - d_half * cc(j,i,k) *      &
-                           ( (v3d(j,i+1,k)   * mddom%msfd(j,i+1)   -  &
-                              v3d(j,i,k)     * mddom%msfd(j,i)     +  &
-                              v3d(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
-                              v3d(j+1,i,k)   * mddom%msfd(j+1,i)   +  &
-                              u3d(j+1,i,k)   * mddom%msfd(j+1,i)   -  &
-                              u3d(j,i,k)     * mddom%msfd(j,i)     +  &
-                              u3d(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
-                              u3d(j,i+1,k)   * mddom%msfd(j,i+1) ) /  &
+            ptend(j,i,k) = aten%pp(j,i,k) - d_half * cc(j,i,k) *         &
+                           ( (atmc%v(j,i+1,k)   * mddom%msfd(j,i+1)   -  &
+                              atmc%v(j,i,k)     * mddom%msfd(j,i)     +  &
+                              atmc%v(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
+                              atmc%v(j+1,i,k)   * mddom%msfd(j+1,i)   +  &
+                              atmc%u(j+1,i,k)   * mddom%msfd(j+1,i)   -  &
+                              atmc%u(j,i,k)     * mddom%msfd(j,i)     +  &
+                              atmc%u(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
+                              atmc%u(j,i+1,k)   * mddom%msfd(j,i+1) ) /  &
                           mddom%msfx(j,i) - &
                           d_two*( pyvp(j,i,k) + pxup(j,i,k) ) )
-            rhs(j,i,k) = w3d(j,i,k) + aten%w(j,i,k) + ca(j,i,k) * ( bpxbm *   &
-                       ( (cdd(j,i,k-1) - cj(j,i,k-1))*g2(j,i,k)*wo(j,i,k-1) - &
-                        ( (cdd(j,i,k-1) + cj(j,i,k-1))*g2(j,i,k) +            &
-                          (cdd(j,i,k) - cj(j,i,k))*g1(j,i,k) ) * wo(j,i,k) +  &
-                          (cdd(j,i,k) + cj(j,i,k))*g1(j,i,k)*wo(j,i,k+1) ) +  &
-                       ( pp3d(j,i,k)   * g1(j,i,k)   -                        &
-                         pp3d(j,i,k-1) * g2(j,i,k) ) +                        &
-                       ( g1(j,i,k)*ptend(j,i,k) -                             &
-                         g2(j,i,k)*ptend(j,i,k-1) ) * bp )
+            rhs(j,i,k) = atmc%w(j,i,k) + &
+                    aten%w(j,i,k) + ca(j,i,k) * ( bpxbm *   &
+                     ( (cdd(j,i,k-1) - cj(j,i,k-1))*g2(j,i,k)*wo(j,i,k-1) - &
+                      ( (cdd(j,i,k-1) + cj(j,i,k-1))*g2(j,i,k) +            &
+                        (cdd(j,i,k) - cj(j,i,k))*g1(j,i,k) ) * wo(j,i,k) +  &
+                        (cdd(j,i,k) + cj(j,i,k))*g1(j,i,k)*wo(j,i,k+1) ) +  &
+                     ( atmc%pp(j,i,k)   * g1(j,i,k)   -                     &
+                       atmc%pp(j,i,k-1) * g2(j,i,k) ) +                     &
+                     ( g1(j,i,k)*ptend(j,i,k) -                             &
+                       g2(j,i,k)*ptend(j,i,k-1) ) * bp )
           end do
         end do
       end do
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            pi(j,i,k) = pp3d(j,i,k)
+            pi(j,i,k) = atmc%pp(j,i,k)
             !
             ! Nonhydrostatic model.
             ! Presure perturbation tendency: 4th RHS term and last subterm
             ! in 5th RHS term in Eq. 2.3.8. Also, cf. Eq. 2.5.1.4
             !
-            pp3d(j,i,k) = pp3d(j,i,k) + ptend(j,i,k) +               &
+            atmc%pp(j,i,k) = atmc%pp(j,i,k) + ptend(j,i,k) +         &
                           ( cj(j,i,k)  * (wo(j,i,k+1) + wo(j,i,k)) + &
                             cdd(j,i,k) * (wo(j,i,k+1) - wo(j,i,k)) ) * bm
           end do
@@ -459,7 +461,7 @@ module mod_sound
       do i = ici1 , ici2
         do j = jci1 , jci2
           denom = (cdd(j,i,1)+cj(j,i,1))*bp
-          estore(j,i) = pp3d(j,i,1) + f(j,i,1)*denom
+          estore(j,i) = atmc%pp(j,i,1) + f(j,i,1)*denom
           astore(j,i) = denom*e(j,i,1) + (cj(j,i,1)-cdd(j,i,1))*bp
         end do
       end do
@@ -516,7 +518,7 @@ module mod_sound
       end do
 !      if ( ifupr == 1 ) then
 !        !
-!        ! Apply upper rad cond. no w3d(top) in lateral sponge
+!        ! Apply upper rad cond. no atmc%w(top) in lateral sponge
 !        !
 !        do i = ici1+3 , ici2-3
 !          inn = insi(i,nsi)
@@ -536,7 +538,7 @@ module mod_sound
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          w3d(j,i,1) = wpval(j,i)
+          atmc%w(j,i,1) = wpval(j,i)
         end do
       end do
       !
@@ -545,7 +547,7 @@ module mod_sound
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            w3d(j,i,k+1) = e(j,i,k)*w3d(j,i,k) + f(j,i,k)
+            atmc%w(j,i,k+1) = e(j,i,k)*atmc%w(j,i,k) + f(j,i,k)
           end do
         end do
       end do
@@ -553,14 +555,16 @@ module mod_sound
       do k = kz , 2 , -1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ucrsk = u3d(j,i,k) + u3d(j,i+1,k) + u3d(j+1,i,k) + u3d(j+1,i+1,k)
-            vcrsk = v3d(j,i,k) + v3d(j,i+1,k) + v3d(j+1,i,k) + v3d(j+1,i+1,k)
-            ucrskm1 = u3d(j,i,k-1)   + u3d(j,i+1,k-1) + &
-                      u3d(j+1,i,k-1) + u3d(j+1,i+1,k-1)
-            vcrskm1 = v3d(j,i,k-1)   + v3d(j,i+1,k-1) + &
-                      v3d(j+1,i,k-1) + v3d(j+1,i+1,k-1)
+            ucrsk = atmc%u(j,i,k) + atmc%u(j,i+1,k) + &
+                    atmc%u(j+1,i,k) + atmc%u(j+1,i+1,k)
+            vcrsk = atmc%v(j,i,k) + atmc%v(j,i+1,k) + &
+                    atmc%v(j+1,i,k) + atmc%v(j+1,i+1,k)
+            ucrskm1 = atmc%u(j,i,k-1)   + atmc%u(j,i+1,k-1) + &
+                      atmc%u(j+1,i,k-1) + atmc%u(j+1,i+1,k-1)
+            vcrskm1 = atmc%v(j,i,k-1)   + atmc%v(j,i+1,k-1) + &
+                      atmc%v(j+1,i,k-1) + atmc%v(j+1,i+1,k-1)
             rho0s = twt(k,1)*atm0%rho(j,i,k) + twt(k,2)*atm0%rho(j,i,k-1)
-            sigdot(j,i,k) = -rho0s*egrav*w3d(j,i,k)/sfs%psb(j,i)*d_r1000 -   &
+            sigdot(j,i,k) = -rho0s*egrav*atmc%w(j,i,k)/sfs%psb(j,i)*d_r1000 - &
                sigma(k) * ( dpsdxm(j,i) * ( twt(k,1)*ucrsk +       &
                                             twt(k,2)*ucrskm1 ) +   &
                             dpsdym(j,i) * ( twt(k,1)*vcrsk +       &
@@ -587,7 +591,7 @@ module mod_sound
             do j = jci1 , jci2
               cfl = abs(sigdot(j,i,k)) * dtl / (dsigma(k)+dsigma(k-1))
               if ( cfl > d_one ) then
-                write(stderr,99003) cfl , w3d(j,i,k) , i , j , k
+                write(stderr,99003) cfl , atmc%w(j,i,k) , i , j , k
     99003       format ('CFL>1: CFL = ',f12.4,' W = ',f12.4,'  I = ',i5, &
                         '  J = ',i5,'  K = ',i5 )
                 call fatal(__FILE__,__LINE__,'CFL violation')
@@ -606,15 +610,15 @@ module mod_sound
             cddtmp = xgamma * atm2%pr(j,i,k) * atm0%rho(j,i,k) * &
                      egrav * dts / (atm0%ps(j,i)*dsigma(k))
             cjtmp = atm0%rho(j,i,k) * egrav * dts/d_two
-            pp3d(j,i,k) = pp3d(j,i,k) + &
-                          ( cjtmp * (w3d(j,i,k+1) + w3d(j,i,k)) + &
-                            cddtmp * (w3d(j,i,k+1) - w3d(j,i,k)) )*bp
-            pi(j,i,k) = pp3d(j,i,k) - ppold - aten%pp(j,i,k)
+            atmc%pp(j,i,k) = atmc%pp(j,i,k) + &
+                          ( cjtmp * (atmc%w(j,i,k+1) + atmc%w(j,i,k)) + &
+                            cddtmp * (atmc%w(j,i,k+1) - atmc%w(j,i,k)) )*bp
+            pi(j,i,k) = atmc%pp(j,i,k) - ppold - aten%pp(j,i,k)
             !
             ! Compute pressure dp`/dt correction to the temperature
             !
             cpm = cpd * (d_one + 0.856D0*qv3d(j,i,k))
-            dpterm = sfs%psa(j,i)*(pp3d(j,i,k)-ppold) / (cpm*atm2%rho(j,i,k))
+            dpterm = sfs%psa(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm2%rho(j,i,k))
             atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
             atm2%t(j,i,k) = atm2%t(j,i,k) + gnuhf*dpterm
           end do
@@ -628,8 +632,8 @@ module mod_sound
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          atm1%u(j,i,k) = sfs%psdotb(j,i) * u3d(j,i,k)
-          atm1%v(j,i,k) = sfs%psdotb(j,i) * v3d(j,i,k)
+          atm1%u(j,i,k) = sfs%psdotb(j,i) * atmc%u(j,i,k)
+          atm1%v(j,i,k) = sfs%psdotb(j,i) * atmc%v(j,i,k)
           atm2%u(j,i,k) = atm2%u(j,i,k) + gnuhf*atm1%u(j,i,k)
           atm2%v(j,i,k) = atm2%v(j,i,k) + gnuhf*atm1%v(j,i,k)
         end do
@@ -638,7 +642,7 @@ module mod_sound
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atm1%pp(j,i,k) = sfs%psb(j,i) * pp3d(j,i,k)
+          atm1%pp(j,i,k) = sfs%psb(j,i) * atmc%pp(j,i,k)
           atm2%pp(j,i,k) = atm2%pp(j,i,k) + gnuhf*atm1%pp(j,i,k)
         end do
       end do
@@ -646,7 +650,7 @@ module mod_sound
     do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atm1%w(j,i,k) = sfs%psb(j,i) * w3d(j,i,k)
+          atm1%w(j,i,k) = sfs%psb(j,i) * atmc%w(j,i,k)
           atm2%w(j,i,k) = atm2%w(j,i,k) + gnuhf*atm1%w(j,i,k)
         end do
       end do

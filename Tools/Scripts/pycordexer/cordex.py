@@ -19,9 +19,9 @@ def wspeed(u,v):
   spd = np.sqrt(u*u+v*v)
   return spd
 
-def integrate(x,r):
+def integrate(x,r,a):
   inr = np.zeros(np.shape(x))
-  inr = np.sum(r,axis=0)
+  inr = np.sum(r,axis=a)
   return inr
 
 def mrtosph(x,oname):
@@ -201,7 +201,7 @@ lookup = { 'tas' : { 'name' : ['t2m','t2avg'],
                      'needbound' : False,
                      'timecorr' : { 'SRF' : 0.0,
                                     'STS' : -12.0,
-                                  }
+                                  },
                    },
            'pr' :  { 'name' : ['tpr','pcpavg'],
                      'units' : 'kg m-2 s-1',
@@ -232,11 +232,15 @@ lookup = { 'tas' : { 'name' : ['t2m','t2avg'],
                      'needbound' : True,
                      'timecorr' : { 'SRF' : -1.5 },
                    },
-           'mrros' :  { 'name' : ['runoff'],
+           'mrros' :  { 'name' : ['mrros','runoff','mrro'],
                      'units' : 'kg m-2 s-1',
                      'long_name' : 'Surface Runoff',
                      'needbound' : True,
                      'timecorr' : { 'SRF' : -1.5 },
+                     'formula' : [['mrro','runoff'],],
+                     'tocall' : { 'method' : 'level' ,
+                                  'dimension' : 2,
+                                  'level' : 0, } ,
                    },
            'ps' :  { 'name' : ['ps'],
                      'units' : 'Pa',
@@ -284,9 +288,10 @@ lookup = { 'tas' : { 'name' : ['t2m','t2avg'],
                      'standard_name' : 'runoff_flux',
                      'needbound' : True,
                      'timecorr' : { 'SRF' : -1.5, },
-                     'formula' : [['ps',],['mrro',]],
-                     'tocall' : { 'method' : integrate ,
-                                  'dimension' : 2, } ,
+                     'formula' : [['mrro',],],
+                     'tocall' : { 'method' : 'level' ,
+                                  'dimension' : 2,
+                                  'level' : -1, } ,
                    },
            'sfcWind' :  { 'name' : ['sfcWind'],
                      'units' : 'm s-1',
@@ -737,6 +742,9 @@ for attr in var.ncattrs():
     else:
       newvar.setncattr(attr,getattr(var,attr))
 
+if '_FillValue' in lookup[variable]:
+  newvar.setncattr('_FillValue',np.float32(lookup[variable]['_FillValue']))
+
 # Search for dimension variables to be added
 
 if lookup[variable].has_key('vertint'):
@@ -811,6 +819,8 @@ else:
 xfac = unitcorrect(oldunits,lookup[variable]['units'])
 
 for it in range(0,np.size(correct_time)):
+  func = lookup[variable]['tocall']['method']
+  print(func,len(var.dimensions),lookup[variable].has_key('formula'),use_formula)
   if lookup[variable].has_key('vertint'):
     if 'plev' in var.dimensions:
       intvar = var[it,mask[0],Ellipsis]
@@ -831,21 +841,29 @@ for it in range(0,np.size(correct_time)):
         if not lookup[variable].has_key('formula'):
           raise RuntimeError('Cannot compute without formula!')
         func = lookup[variable]['tocall']['method']
-        if lookup[variable]['tocall']['dimension'] == 2:
-          newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
+        if ( func == 'level' ):
+          lvl = lookup[variable]['tocall']['level']
+          newvar[it,Ellipsis] = var[it,lvl,:,:]
         else:
           newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
       else:
         raise RuntimeError('Unknow vertical interpolation method!')
   elif lookup[variable].has_key('formula') and use_formula:
     func = lookup[variable]['tocall']['method']
+    print(func,len(var.dimensions))
     if lookup[variable]['tocall']['dimension'] == 2:
       if variable == 'mslp':
         tmp = wrapper(func,compvars,it) * xfac
         mod_hgt.gs_filter(tmp,compvars[0][it,Ellipsis])
         newvar[it,Ellipsis] = tmp
       else:
-        newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
+        print(func,len(var.dimensions))
+        if ( func == 'level' and len(var.dimensions) == 4 ):
+          print ('here !')
+          lvl = lookup[variable]['tocall']['level']
+          newvar[it,Ellipsis] = var[it,lvl,:,:]
+        else:
+          newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
     else:
       newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
   else:

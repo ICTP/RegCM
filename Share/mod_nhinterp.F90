@@ -55,12 +55,12 @@ module mod_nhinterp
     subroutine nhbase(i1,i2,j1,j2,kx,a,ter,ps0,pr0,t0,rho0)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kx
-      real(rk8) , intent(in) , dimension(:) :: a          ! Adimensional
-      real(rk8) , intent(in) , dimension(:,:) :: ter      ! Meters
-      real(rk8) , intent(out) , dimension(:,:) :: ps0     ! Pascal
-      real(rk8) , intent(out) , dimension(:,:,:) :: pr0   ! Pascal
-      real(rk8) , intent(out) , dimension(:,:,:) :: t0    ! Kelvin
-      real(rk8) , intent(out) , dimension(:,:,:) :: rho0  ! Adimensional 0-1
+      real(rk8) , pointer , intent(in) , dimension(:) :: a         ! Adim 0-1
+      real(rk8) , pointer , intent(in) , dimension(:,:) :: ter     ! Meters
+      real(rk8) , pointer , intent(out) , dimension(:,:) :: ps0    ! Pascal
+      real(rk8) , pointer , intent(out) , dimension(:,:,:) :: pr0  ! Pascal
+      real(rk8) , pointer , intent(out) , dimension(:,:,:) :: t0   ! Kelvin
+      real(rk8) , pointer , intent(out) , dimension(:,:,:) :: rho0 ! kg/kg
       integer(ik4) :: i , j , k
       real(rk8) :: ac , alnp , b
       !
@@ -87,13 +87,13 @@ module mod_nhinterp
     subroutine nhinterp(i1,i2,j1,j2,kxs,a,sigma,ter,f,tv,ps,ps0,intmeth)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , intmeth
-      real(rk8) , intent(in) , dimension(:) :: a
-      real(rk8) , intent(in) , dimension(:,:) :: ter  ! Meters
-      real(rk8) , intent(in) , dimension(:) :: sigma
-      real(rk8) , intent(in) , dimension(:,:,:) :: tv
-      real(rk8) , intent(in) , dimension(:,:) :: ps
-      real(rk8) , intent(in) , dimension(:,:) :: ps0
-      real(rk8) , intent(inout) , dimension(:,:,:) :: f
+      real(rk8) , pointer , intent(in) , dimension(:) :: a
+      real(rk8) , pointer , intent(in) , dimension(:,:) :: ter  ! Meters
+      real(rk8) , pointer , intent(in) , dimension(:) :: sigma
+      real(rk8) , pointer , intent(in) , dimension(:,:,:) :: tv
+      real(rk8) , pointer , intent(in) , dimension(:,:) :: ps
+      real(rk8) , pointer , intent(in) , dimension(:,:) :: ps0
+      real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: f
       integer(ik4) :: i , j , k , l , ll , ip , im , jp , jm
       real(rk8) :: fl , fu , pr0 , alnp , alnqvn
       real(rk8) :: ziso , zl , zu
@@ -180,11 +180,11 @@ module mod_nhinterp
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs
       integer(ik4) :: i , j , k
-      real(rk8) , intent(in) , dimension(:) :: sigma
-      real(rk8) , intent(in) , dimension(:,:,:) :: t , t0 , tv
-      real(rk8) , intent(in) , dimension(:,:,:) :: pr0
-      real(rk8) , intent(in) , dimension(:,:) :: ps , ps0
-      real(rk8) , intent(out) , dimension(:,:,:) :: pp
+      real(rk8) , pointer , intent(in) , dimension(:) :: sigma
+      real(rk8) , pointer , intent(in) , dimension(:,:,:) :: t , t0 , tv
+      real(rk8) , pointer , intent(in) , dimension(:,:,:) :: pr0
+      real(rk8) , pointer , intent(in) , dimension(:,:) :: ps , ps0
+      real(rk8) , pointer , intent(out) , dimension(:,:,:) :: pp
       real(rk8) :: aa , bb , cc , check , checkl , checkr , delp0 , p0surf
       real(rk8) :: psp , tk , tkp1 , tvk , tvkp1 , tvpot , wtl , wtu
       !
@@ -251,15 +251,15 @@ module mod_nhinterp
                    ps,psdot,ps0,xmsfx,xmsfd,w,wtop,ds)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs
-      real(rk8) , intent(in) , dimension(:) :: a , sigma , dsigma
-      real(rk8) , intent(in) , dimension(:,:) :: ter  ! Meters
-      real(rk8) , intent(in) , dimension(:,:) :: xmsfx , xmsfd
-      real(rk8) , intent(in) , dimension(:,:) :: ps , ps0 , psdot
-      real(rk8) , intent(in) , dimension(:,:,:) :: rho0 , tv
-      real(rk8) , intent(in) , dimension(:,:,:) :: u , v
+      real(rk8) , pointer , intent(in) , dimension(:) :: a , sigma , dsigma
+      real(rk8) , pointer , intent(in) , dimension(:,:) :: ter  ! Meters
+      real(rk8) , pointer , intent(in) , dimension(:,:) :: xmsfx , xmsfd
+      real(rk8) , pointer , intent(in) , dimension(:,:) :: ps , ps0 , psdot
+      real(rk8) , pointer , intent(in) , dimension(:,:,:) :: rho0 , tv
+      real(rk8) , pointer , intent(in) , dimension(:,:,:) :: u , v
       real(rk8) , intent(in) :: ds                    ! Kilometers
-      real(rk8) , intent(out) , dimension(:,:,:) :: w
-      real(rk8) , intent(out) , dimension(:,:) :: wtop
+      real(rk8) , pointer , intent(out) , dimension(:,:,:) :: w
+      real(rk8) , pointer , intent(out) , dimension(:,:) :: wtop
       integer(ik4) :: i , j , k , km , kp
       integer(ik4) :: l , ll , lm , lp , ip , im , jp , jm
       real(rk8) :: alnpq , dx2 , omegal , omegau , ubar , vbar

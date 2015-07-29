@@ -36,6 +36,7 @@ module mod_advection
 
   interface hadv
     module procedure hadv3d
+    module procedure hadvuv
     module procedure hadv4d
   end interface hadv
 
@@ -54,8 +55,8 @@ module mod_advection
   real(rk8) , pointer , dimension(:,:,:) :: svv  ! Sigma Vertical Velocity
   real(rk8) , pointer , dimension(:,:,:) :: pfs  ! Pressure full sigma levels
   real(rk8) , pointer , dimension(:,:,:) :: phs  ! Pressure half sigma levels
-  real(rk8) , pointer , dimension(:,:,:) :: mdvd ! Mass divergence dot points
-  real(rk8) , pointer , dimension(:,:,:) :: diag !
+  real(rk8) , pointer , dimension(:,:,:) :: divx ! Mass divergence
+  real(rk8) , pointer , dimension(:,:,:) :: diag ! Mass divergence
   integer(ik4) , pointer , dimension(:,:) :: kpb ! Top of PBL
 
   ! working space used to store the interlated values in vadv.
@@ -81,8 +82,8 @@ module mod_advection
       call assignpnt(mddom%dmsf,dmapf)
       call assignpnt(atms%pf3d,pfs)
       call assignpnt(atms%pb3d,phs)
-      call assignpnt(mdv%dt,mdvd)
-      call assignpnt(mdv%diag,diag)
+      call assignpnt(mdv%cr,divx)
+      call assignpnt(mdv%dt,diag)
       call assignpnt(qdot,svv)
       call assignpnt(kpbl,kpb)
       call getmem1d(dds,1,kzp1,'mod_advection:dds')
@@ -98,6 +99,88 @@ module mod_advection
       call getmem3d(fg,jde1,jde2,ide1,ide2,1,kz,'mod_advection:fg')
     end subroutine init_advection
     !
+    ! UV advection
+    !
+    subroutine hadvuv(uten,vten,u,v)
+      implicit none
+      real(rk8) , pointer , intent (in) , dimension(:,:,:) :: u , v
+      real(rk8) , pointer , intent (inout), dimension(:,:,:) :: uten , vten
+
+      real(rk8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc , divd
+      integer(ik4) :: i , j , k
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'hadvuv'
+      integer(ik4) , save :: idindx = 0
+      call time_begin(subroutine_name,idindx)
+#endif
+      !
+      ! ua, va : are p*u and p*v.
+      ! msfd   : is the map scale factor at dot points.
+      !
+      if ( idynamic == 2 ) then
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              ucmona = ua(j,i+1,k)+d_two*ua(j,i,k)+ua(j,i-1,k)
+              vcmona = va(j+1,i,k)+d_two*va(j,i,k)+va(j-1,i,k)
+              ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + &
+                       ua(j+1,i-1,k) + ucmona
+              vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + &
+                       va(j-1,i+1,k) + vcmona
+              ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + &
+                       ua(j-1,i-1,k) + ucmona
+              vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
+                       va(j-1,i-1,k) + vcmona
+              divd = d_rfour * ( divx(j,i,k) + divx(j,i-1,k) + &
+                                 divx(j-1,i,k) + divx(j-1,i-1,k) )
+              diag(j,i,k) = divd - dmapf(j,i)*( ( ucmonb - ucmonc ) + &
+                                                ( vcmonb - vcmonc ) )
+              uten(j,i,k) = uten(j,i,k) - dmapf(j,i) *      &
+                          ((u(j+1,i,k)+u(j,i,k))  *ucmonb - &
+                           (u(j,i,k)  +u(j-1,i,k))*ucmonc + &
+                           (u(j,i+1,k)+u(j,i,k))  *vcmonb - &
+                           (u(j,i,k)  +u(j,i-1,k))*vcmonc)
+              vten(j,i,k) = vten(j,i,k) - dmapf(j,i) *      &
+                          ((v(j+1,i,k)+v(j,i,k))  *ucmonb - &
+                           (v(j,i,k)  +v(j-1,i,k))*ucmonc + &
+                           (v(j,i+1,k)+v(j,i,k))  *vcmonb - &
+                           (v(j,i,k)  +v(j,i-1,k))*vcmonc)
+            end do
+          end do
+        end do
+      else
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              ucmona = ua(j,i+1,k)+d_two*ua(j,i,k)+ua(j,i-1,k)
+              vcmona = va(j+1,i,k)+d_two*va(j,i,k)+va(j-1,i,k)
+              ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + &
+                       ua(j+1,i-1,k) + ucmona
+              vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + &
+                       va(j-1,i+1,k) + vcmona
+              ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + &
+                       ua(j-1,i-1,k) + ucmona
+              vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
+                       va(j-1,i-1,k) + vcmona
+              uten(j,i,k) = uten(j,i,k) - dmapf(j,i) *      &
+                          ((u(j+1,i,k)+u(j,i,k))  *ucmonb - &
+                           (u(j,i,k)  +u(j-1,i,k))*ucmonc + &
+                           (u(j,i+1,k)+u(j,i,k))  *vcmonb - &
+                           (u(j,i,k)  +u(j,i-1,k))*vcmonc)
+              vten(j,i,k) = vten(j,i,k) - dmapf(j,i) *      &
+                          ((v(j+1,i,k)+v(j,i,k))  *ucmonb - &
+                           (v(j,i,k)  +v(j-1,i,k))*ucmonc + &
+                           (v(j,i+1,k)+v(j,i,k))  *vcmonb - &
+                           (v(j,i,k)  +v(j,i-1,k))*vcmonc)
+            end do
+          end do
+        end do
+      end if
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+    end subroutine hadvuv
+    !
     !  HADV
     !     This subroutines computes the horizontal flux-divergence terms.
     !     second-order difference is used.
@@ -106,113 +189,57 @@ module mod_advection
     !     f      : is p*f.
     !     nk     : is the number of vertical levels to work (kz/kzp1)
     !
-    subroutine hadv3d(ldot,ften,f,nk)
+    subroutine hadv3d(ften,f,nk)
       implicit none
-      logical , intent(in) :: ldot ! Cross/dot flag
       integer(ik4) , intent (in) :: nk
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
 
-      real(rk8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv3d'
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
-      if ( ldot ) then
-        !
-        ! ua, va : are p*u and p*v.
-        ! msfd   : is the map scale factor at dot points.
-        !
-        if ( idynamic == 1 ) then
-          do k = 1 , nk
-            do i = idi1 , idi2
-              do j = jdi1 , jdi2
-                ucmona = ua(j,i+1,k)+d_two*ua(j,i,k)+ua(j,i-1,k)
-                vcmona = va(j+1,i,k)+d_two*va(j,i,k)+va(j-1,i,k)
-                ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + &
-                         ua(j+1,i-1,k) + ucmona
-                vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + &
-                         va(j-1,i+1,k) + vcmona
-                ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + &
-                         ua(j-1,i-1,k) + ucmona
-                vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
-                         va(j-1,i-1,k) + vcmona
-                ften(j,i,k) = ften(j,i,k) - dmapf(j,i) * &
-                            ((f(j+1,i,k)+f(j,i,k))*ucmonb -     &
-                             (f(j,i,k)+f(j-1,i,k))*ucmonc +     &
-                             (f(j,i+1,k)+f(j,i,k))*vcmonb -     &
-                             (f(j,i,k)+f(j,i-1,k))*vcmonc)
-              end do
+      !
+      ! for cross point variables on half sigma levels
+      !
+      if ( nk == kz ) then
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ften(j,i,k) = ften(j,i,k) - xmapf(j,i) *                  &
+                  ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k)+f(j,i,k)) -  &
+                   (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k)+f(j-1,i,k)) +  &
+                   (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k)+f(j,i,k)) -  &
+                   (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k)+f(j,i,k)))
             end do
           end do
-        else
-          do k = 1 , nk
-            do i = idi1 , idi2
-              do j = jdi1 , jdi2
-                ucmona = ua(j,i+1,k)+d_two*ua(j,i,k)+ua(j,i-1,k)
-                vcmona = va(j+1,i,k)+d_two*va(j,i,k)+va(j-1,i,k)
-                ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + &
-                         ua(j+1,i-1,k) + ucmona
-                vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + &
-                         va(j-1,i+1,k) + vcmona
-                ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + &
-                         ua(j-1,i-1,k) + ucmona
-                vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
-                         va(j-1,i-1,k) + vcmona
-                diag(j,i,k) = mdvd(j,i,k) - dmapf(j,i)        * &
-                   ( (ucmonb - ucmonc) + (vcmonb - vcmonc) )
-                ften(j,i,k) = ften(j,i,k) - dmapf(j,i)        * &
-                            ((f(j+1,i,k)+f(j,i,k))*ucmonb -     &
-                             (f(j,i,k)+f(j-1,i,k))*ucmonc +     &
-                             (f(j,i+1,k)+f(j,i,k))*vcmonb -     &
-                             (f(j,i,k)+f(j,i-1,k))*vcmonc)
-              end do
-            end do
-          end do
-        end if
+        end do
       else
         !
-        ! for t
+        ! Interpolate the winds to the full sigma levels
+        ! while the advection term is calculated
         !
-        if ( nk == kz ) then
-          do k = 1 , nk
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                ften(j,i,k) = ften(j,i,k) - xmapf(j,i) *                  &
-                    ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k)+f(j,i,k)) -  &
-                     (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k)+f(j-1,i,k)) +  &
-                     (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k)+f(j,i,k)) -  &
-                     (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k)+f(j,i,k)))
-              end do
+        do k = 2 , nk - 1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ften(j,i,k) = ften(j,i,k) - xmapf(j,i)       *  &
+                (((ua(j+1,i+1,k-1)+ua(j+1,i,k-1))*twt(k,2) +  &
+                  (ua(j+1,i+1,k)  +ua(j+1,i,k))*twt(k,1)) *   &
+                  (f(j+1,i,k)+f(j,i,k)) -                     &
+                 ((ua(j,i+1,k-1)+ua(j,i,k-1))*twt(k,2) +      &
+                  (ua(j,i+1,k)  +ua(j,i,k))*twt(k,1)) *       &
+                  (f(j,i,k)+f(j-1,i,k)) +                     &
+                 ((va(j,i+1,k-1)+va(j+1,i+1,k-1))*twt(k,2) +  &
+                  (va(j,i+1,k)  +va(j+1,i+1,k))*twt(k,1)) *   &
+                  (f(j,i+1,k)+f(j,i,k)) -                     &
+                 ((va(j,i,k-1)+va(j+1,i,k-1))*twt(k,2) +      &
+                  (va(j,i,k)  +va(j+1,i,k))*twt(k,1)) *       &
+                  (f(j,i-1,k)+f(j,i,k)))
             end do
           end do
-        else
-          !
-          ! Interpolate the winds to the full sigma levels
-          ! while the advection term is calculated
-          !
-          do k = 2 , nk - 1
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                ften(j,i,k) = ften(j,i,k) - xmapf(j,i)       *  &
-                  (((ua(j+1,i+1,k-1)+ua(j+1,i,k-1))*twt(k,2) +  &
-                    (ua(j+1,i+1,k)  +ua(j+1,i,k))*twt(k,1)) *   &
-                    (f(j+1,i,k)+f(j,i,k)) -                     &
-                   ((ua(j,i+1,k-1)+ua(j,i,k-1))*twt(k,2) +      &
-                    (ua(j,i+1,k)  +ua(j,i,k))*twt(k,1)) *       &
-                    (f(j,i,k)+f(j-1,i,k)) +                     &
-                   ((va(j,i+1,k-1)+va(j+1,i+1,k-1))*twt(k,2) +  &
-                    (va(j,i+1,k)  +va(j+1,i+1,k))*twt(k,1)) *   &
-                    (f(j,i+1,k)+f(j,i,k)) -                     &
-                   ((va(j,i,k-1)+va(j+1,i,k-1))*twt(k,2) +      &
-                    (va(j,i,k)  +va(j+1,i,k))*twt(k,1)) *       &
-                    (f(j,i-1,k)+f(j,i,k)))
-              end do
-            end do
-          end do
-        end if
+        end do
       end if
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)

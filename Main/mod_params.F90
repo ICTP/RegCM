@@ -1837,11 +1837,6 @@ module mod_params
       qcon(k) = (sigma(k)-hsigma(k))/(hsigma(k-1)-hsigma(k))
     end do
 
-    if ( idynamic == 2 ) then
-      call make_reference_atmosphere
-      call compute_full_coriolis_coefficients
-    end if
-
     chibot = 450.0D0
     ptmb = d_10*ptop
     pz = hsigma(1)*(d_1000-ptmb) + ptmb
@@ -1916,6 +1911,11 @@ module mod_params
     !
     call setup_bdycon(sigma)
     if ( ichem == 1 ) call setup_che_bdycon
+
+    if ( idynamic == 2 ) then
+      call make_reference_atmosphere
+      call compute_full_coriolis_coefficients
+    end if
 
     if ( any(icup == 3) ) call lutbl(ptop)
 
@@ -2024,12 +2024,13 @@ module mod_params
         use mod_nhinterp
         implicit none
         integer(ik4) :: i , j , k
-        real(rk8) , dimension(jce1:jce2,ice1:ice2) :: hgt
-        hgt(jce1:jce2,ice1:ice2) = mddom%ht(jce1:jce2,ice1:ice2) * regrav
         call nhsetup(ptop,stdp,stdt,logp_lrate)
-        call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,hgt, &
+        mddom%ht = mddom%ht * regrav
+        call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,mddom%ht, &
                     atm0%ps,atm0%pr,atm0%t,atm0%rho)
+        mddom%ht = mddom%ht * egrav
         call exchange(atm0%ps,1,jce1,jce2,ice1,ice2)
+        call exchange(atm0%pr,1,jce1,jce2,ice1,ice2,1,kz)
         do k = 1 , kz+1
           do i = ice1 , ice2
             do j = jce1 , jce2
@@ -2102,6 +2103,9 @@ module mod_params
                (dx*mddom%msfd(j,i)*mddom%msfd(j,i))
           end do
         end do
+        call exchange(mddom%ef,1,jdi1,jdi2,idi1,idi2)
+        call exchange(mddom%ddx,1,jdi1,jdi2,idi1,idi2)
+        call exchange(mddom%ddy,1,jdi1,jdi2,idi1,idi2)
         do i = ici1 , ici2
           do j = jci1 , jci2
             mddom%ex(j,i) = d_rfour*(mddom%ef(j,i)   + mddom%ef(j,i+1) + &

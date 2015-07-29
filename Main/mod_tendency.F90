@@ -101,8 +101,9 @@ module mod_tendency
       call getmem3d(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
       if ( ithadv == 1 ) then
         call getmem3d(thten,jce1,jce2,ice1,ice2,1,kz,'tendency:thten')
+        call getmem3d(th,jce1-ma%jbl1,jce2+ma%jbr1, &
+                         ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'tendency:th')
         call getmem3d(tha,jce1,jce2,ice1,ice2,1,kz,'tendency:tha')
-        call getmem3d(th,jce1,jce2,ice1,ice2,1,kz,'tendency:th')
       end if
     end if
     if ( idiag > 0 ) then
@@ -304,6 +305,7 @@ module mod_tendency
           end do
         end do
       end do
+      call exchange(mdv%cr,1,jce1,jce2,ice1,ice2,1,kz)
       do k = 2 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -360,19 +362,6 @@ module mod_tendency
                              (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k) -              &
                               atm1%v(j+1,i,k)  -atm1%v(j,i,k))) * dummy(j,i) + &
                (qdot(j,i,k+1) - qdot(j,i,k)) * sfs%psa(j,i)/dsigma(k)
-          end do
-        end do
-      end do
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            !
-            ! The mass divergence term (averaged in dot points) in the
-            ! nonhydrostatic model:
-            ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
-            !
-            mdv%dt(j,i,k) = d_rfour*(mdv%cr(j,i,k)  +mdv%cr(j-1,i,k) + &
-                                     mdv%cr(j,i-1,k)+mdv%cr(j-1,i-1,k))
           end do
         end do
       end do
@@ -434,6 +423,10 @@ module mod_tendency
     call exchange(atms%ubx3d,2,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atms%vbx3d,2,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atms%qxb3d,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    if ( idynamic == 2 ) then
+      call exchange(atms%ppb3d,2,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atms%wb3d,2,jce1,jce2,ice1,ice2,1,kzp1)
+    end if
     if ( ibltyp == 2 ) then
       call exchange(atms%tkeb3d,2,jce1,jce2,ice1,ice2,1,kzp1)
     end if
@@ -596,9 +589,9 @@ module mod_tendency
       !
       ! Also, cf. Eq. 2.2.11 of vertical velocity tendency in the MM5 manual.
       !
-      call hadv(cross,aten%pp,atmx%pp,kz)
+      call hadv(aten%pp,atmx%pp,kz)
       call vadv(cross,aten%pp,atm1%pp,kz,0)
-      call hadv(cross,aten%w,atmx%w,kzp1)
+      call hadv(aten%w,atmx%w,kzp1)
       call vadv(cross,aten%w,atm1%w,kzp1,0)
     end if
     !
@@ -616,7 +609,7 @@ module mod_tendency
     ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (1st RHS term)
     !
     if ( ithadv /= 1 ) then
-      call hadv(cross,aten%t,atmx%t,kz)
+      call hadv(aten%t,atmx%t,kz)
       if ( idiag > 0 ) then
         tdiag%adh = tdiag%adh + (aten%t - ten0) * afdout
         ten0 = aten%t
@@ -647,7 +640,8 @@ module mod_tendency
           end do
         end do
       end do
-      call hadv(cross,thten,th,kz)
+      call exchange(th,1,jce1,jce2,ice1,ice2,1,kz)
+      call hadv(thten,th,kz)
       call vadv(cross,thten,tha,kz,0)
     end if
     !
@@ -786,8 +780,8 @@ module mod_tendency
     ! compute the diffusion term for perturb pressure pp and store in diffpp:
     !
     if ( idynamic == 2 ) then
-      call diffu_x(adf%w,atms%wb3d,sfs%psb,xkcf,kzp1)
       call diffu_x(adf%pp,atms%ppb3d,sfs%psb,xkc,kz)
+      call diffu_x(adf%w,atms%wb3d,sfs%psb,xkcf,kzp1)
     end if
     !
     ! compute the moisture tendencies for convection
@@ -1284,8 +1278,7 @@ module mod_tendency
     ! same for hydrostatic and nonhydrostatic models: 1st RHS term in
     ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
     !
-    call hadv(dot,aten%u,atmx%u,kz)
-    call hadv(dot,aten%v,atmx%v,kz)
+    call hadv(aten%u,aten%v,atmx%u,atmx%v)
 #ifdef DEBUG
     call check_wind_tendency('HADV')
 #endif
@@ -1340,11 +1333,11 @@ module mod_tendency
             aten%u(j,i,k) = aten%u(j,i,k) + mddom%coriol(j,i)*vcd - &
                          mddom%ef(j,i)*mddom%ddx(j,i)*wabar +       &
                          atmx%v(j,i,k)*duv - ucd*amfac +            &
-                         mdv%diag(j,i,k) * atmx%u(j,i,k)
+                         mdv%dt(j,i,k) * atmx%u(j,i,k)
             aten%v(j,i,k) = aten%v(j,i,k) - mddom%coriol(j,i)*ucd + &
                          mddom%ef(j,i)*mddom%ddy(j,i)*wabar -       &
                          atmx%u(j,i,k)*duv - vcd*amfac +            &
-                         mdv%diag(j,i,k) * atmx%v(j,i,k)
+                         mdv%dt(j,i,k) * atmx%v(j,i,k)
           end do
         end do
       end do
@@ -1594,7 +1587,7 @@ module mod_tendency
         end do
       end do
       ! Calculate the horizontal advective tendency for TKE
-      call hadv(cross,uwstatea%advtke,atmx%tke,kzp1)
+      call hadv(uwstatea%advtke,atmx%tke,kzp1)
       ! Calculate the vertical advective tendency for TKE
       call vadv(cross,uwstatea%advtke,atmx%tke,kzp1,0)
       ! Calculate the horizontal, diffusive tendency for TKE
