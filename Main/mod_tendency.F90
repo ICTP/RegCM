@@ -305,7 +305,6 @@ module mod_tendency
           end do
         end do
       end do
-      call exchange(mdv%cr,1,jce1,jce2,ice1,ice2,1,kz)
       do k = 2 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -366,6 +365,7 @@ module mod_tendency
         end do
       end do
     end if
+    call exchange(mdv%cr,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(qdot,1,jce1,jce2,ice1,ice2,1,kzp1)
     !
     ! compute omega

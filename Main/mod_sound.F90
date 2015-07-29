@@ -228,8 +228,8 @@ module mod_sound
         do i = idii1 , idii2
           do j = jdii1 , jdii2
             ! Predict u and v
-            rho    = d_rfour * (atm2%rho(j,i,k)   + atm2%rho(j,i-1,k) + &
-                                atm2%rho(j-1,i,k) + atm2%rho(j-1,i-1,k))
+            rho    = d_rfour * (atm1%rho(j,i,k)   + atm1%rho(j,i-1,k) + &
+                                atm1%rho(j-1,i,k) + atm1%rho(j-1,i-1,k))
             dppdp0 = d_rfour * (atmc%t(j,i,k)   + atmc%t(j,i-1,k) + &
                                 atmc%t(j-1,i,k) + atmc%t(j-1,i-1,k))
             ! Divide by map scale factor
@@ -304,8 +304,8 @@ module mod_sound
           e(j,i,kz) = d_zero
           f(j,i,kz) = atmc%w(j,i,kzp1)
 
-          cc(j,i,1)  = xgamma * atm2%pr(j,i,1) * dts/ (dx*mddom%msfx(j,i))
-          cdd(j,i,1) = xgamma * atm2%pr(j,i,1) * atm0%rho(j,i,1) * &
+          cc(j,i,1)  = xgamma * atm1%pr(j,i,1) * dts/ (dx*mddom%msfx(j,i))
+          cdd(j,i,1) = xgamma * atm1%pr(j,i,1) * atm0%rho(j,i,1) * &
                        egrav * dts / (atm0%ps(j,i)*dsigma(1))
           cj(j,i,1)  = atm0%rho(j,i,1) * egrav * dts / d_two
           pxup(j,i,1) = 0.0625D0 *                              &
@@ -353,13 +353,13 @@ module mod_sound
                         atm2%t(j,i,k) / sfs%psb(j,i))
             rofac = (dsigma(k-1)*atm0%rho(j,i,k) + &
                      dsigma(k)*atm0%rho(j,i,k-1)) / &
-                    (dsigma(k-1)*atm2%rho(j,i,k) + &
-                     dsigma(k)*atm2%rho(j,i,k-1))
+                    (dsigma(k-1)*atm1%rho(j,i,k) + &
+                     dsigma(k)*atm1%rho(j,i,k-1))
             !
             ! Set factors for differencing
             !
-            cc(j,i,k)  = xgamma * atm2%pr(j,i,k) * dts / (dx*mddom%msfx(j,i))
-            cdd(j,i,k) = xgamma * atm2%pr(j,i,k) * atm0%rho(j,i,k) * &
+            cc(j,i,k)  = xgamma * atm1%pr(j,i,k) * dts / (dx*mddom%msfx(j,i))
+            cdd(j,i,k) = xgamma * atm1%pr(j,i,k) * atm0%rho(j,i,k) * &
                          egrav * dts / (atm0%ps(j,i)*dsigma(k))
             cj(j,i,k) = atm0%rho(j,i,k) * egrav * dts/d_two
             ca(j,i,k) = egrav * dts / (atm0%pr(j,i,k)-atm0%pr(j,i,km1)) * rofac
@@ -479,7 +479,7 @@ module mod_sound
 !          do j = jci1 , jci2
 !            atot = atot + astore(j,i)
 !            ensq = egrav*egrav/cpd/(atm2%t(j,i,1)/sfs%psb(j,i))
-!            rhontot = rhontot + atm2%rho(j,i,1)*sqrt(ensq)
+!            rhontot = rhontot + atm1%rho(j,i,1)*sqrt(ensq)
 !            xmsftot = xmsftot + mddom%msfx(j,i)
 !          end do
 !        end do
@@ -607,7 +607,7 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             ppold = pi(j,i,k)
-            cddtmp = xgamma * atm2%pr(j,i,k) * atm0%rho(j,i,k) * &
+            cddtmp = xgamma * atm1%pr(j,i,k) * atm0%rho(j,i,k) * &
                      egrav * dts / (atm0%ps(j,i)*dsigma(k))
             cjtmp = atm0%rho(j,i,k) * egrav * dts/d_two
             atmc%pp(j,i,k) = atmc%pp(j,i,k) + &
@@ -618,7 +618,7 @@ module mod_sound
             ! Compute pressure dp`/dt correction to the temperature
             !
             cpm = cpd * (d_one + 0.856D0*qv3d(j,i,k))
-            dpterm = sfs%psa(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm2%rho(j,i,k))
+            dpterm = sfs%psa(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm1%rho(j,i,k))
             atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
             atm2%t(j,i,k) = atm2%t(j,i,k) + gnuhf*dpterm
           end do
