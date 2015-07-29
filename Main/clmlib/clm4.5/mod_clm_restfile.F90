@@ -192,7 +192,7 @@ module mod_clm_restfile
     ! Continue run:
     rfile = trim(dirout)//pthsep//trim(caseid)//".clm."//trim(inst_suffix)//&
             ".r."//trim(rdate)//".nc"
-    if ( finidat /= ' ' )
+    if ( finidat /= ' ' ) then
       rfile = finidat
     end if
   end subroutine restFile_getfile
