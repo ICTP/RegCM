@@ -54,7 +54,7 @@ module mod_sound
       chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
       ppold , rho , rho0s , rofac , xgamma , xkd , sumcfl , ucrsk ,      &
       vcrsk , ucrskm1 , vcrskm1
-    real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore , estore
+    !real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore , estore
     real(rk8) , dimension(jci1:jci2,ici1:ici2) :: wpval
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ca
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: g1 , g2
@@ -62,7 +62,6 @@ module mod_sound
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: tk
     integer(ik4) :: i , istep , it , j , k , km1 , kp1 , iconvec
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: cc , cdd , cj
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: qv3d
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: pi
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: e , f
     character (len=32) :: appdat
@@ -180,7 +179,7 @@ module mod_sound
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          qv3d(j,i,k)    = atm2%qx(j,i,k,iqv)/sfs%psb(j,i)
+          atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv)/sfs%psb(j,i)
           aten%pp(j,i,k) = aten%pp(j,i,k) * dts
           atmc%pp(j,i,k) = atm2%pp(j,i,k)/sfs%psb(j,i)
           atm2%pp(j,i,k) = omuhf*atm1%pp(j,i,k) + gnuhf*atm2%pp(j,i,k)
@@ -219,14 +218,14 @@ module mod_sound
           end do
         end do
       end do
-      call exchange(atmc%t,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atmc%pp,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atmc%t,1,jce1,jce2,ice1,ice2,1,kz)
       !
       ! Advance u and v
       !
       do k = 1 , kz
-        do i = idii1 , idii2
-          do j = jdii1 , jdii2
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
             ! Predict u and v
             rho    = d_rfour * (atm1%rho(j,i,k)   + atm1%rho(j,i-1,k) + &
                                 atm1%rho(j-1,i,k) + atm1%rho(j-1,i-1,k))
@@ -260,6 +259,8 @@ module mod_sound
           end do
         end do
       end do
+      call exchange(atmc%u,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atmc%v,1,jde1,jde2,ide1,ide2,1,kz)
       if ( it > 1 ) then
         do k = 1 , kz
           do i = ici1 , ici2
@@ -269,8 +270,6 @@ module mod_sound
           end do
         end do
       end if
-      call exchange(atmc%u,1,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atmc%v,1,jde1,jde2,ide1,ide2,1,kz)
       !
       !  Semi-implicit solution for w and p
       !
@@ -294,12 +293,12 @@ module mod_sound
       do i = ici1 , ici2
         do j = jci1 , jci2
           atmc%w(j,i,kzp1) = d_rfour * &
-                     ((atmc%v(j+1,i,kz)   + atmc%v(j,i,kz) +    &
-                       atmc%v(j+1,i+1,kz) + atmc%v(j,i+1,kz)) * &
-                      ( mddom%ht(j+1,i) - mddom%ht(j-1,i) ) +   &
-                      (atmc%u(j+1,i,kz)   + atmc%u(j,i,kz) +    &
-                       atmc%u(j+1,i+1,kz) + atmc%u(j,i+1,kz)) * &
-                      ( mddom%ht(j,i+1) - mddom%ht(j,i-1))) /   &
+                     ((atmc%v(j,i+1,kz)   + atmc%v(j,i,kz) +    &
+                       atmc%v(j+1,i+1,kz) + atmc%v(j+1,i,kz)) * &
+                      ( mddom%ht(j,i+1) - mddom%ht(j,i-1) ) +   &
+                      (atmc%u(j,i+1,kz)   + atmc%u(j,i,kz) +    &
+                       atmc%u(j+1,i+1,kz) + atmc%u(j+1,i,kz)) * &
+                      ( mddom%ht(j+1,i) - mddom%ht(j-1,i))) /   &
                       ( d_two * dx * mddom%msfx(j,i) * egrav )
           e(j,i,kz) = d_zero
           f(j,i,kz) = atmc%w(j,i,kzp1)
@@ -458,13 +457,13 @@ module mod_sound
           end do
         end do
       end do
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          denom = (cdd(j,i,1)+cj(j,i,1))*bp
-          estore(j,i) = atmc%pp(j,i,1) + f(j,i,1)*denom
-          astore(j,i) = denom*e(j,i,1) + (cj(j,i,1)-cdd(j,i,1))*bp
-        end do
-      end do
+      !do i = ici1 , ici2
+      !  do j = jci1 , jci2
+          !denom = (cdd(j,i,1)+cj(j,i,1))*bp
+          !estore(j,i) = atmc%pp(j,i,1) + f(j,i,1)*denom
+          !astore(j,i) = denom*e(j,i,1) + (cj(j,i,1)-cdd(j,i,1))*bp
+      !  end do
+      !end do
       !
       ! If first time through and upper radiation b.c`s are used
       ! Need to calc some coefficients
@@ -617,7 +616,7 @@ module mod_sound
             !
             ! Compute pressure dp`/dt correction to the temperature
             !
-            cpm = cpd * (d_one + 0.856D0*qv3d(j,i,k))
+            cpm = cpd * (d_one + 0.856D0*atmc%qx(j,i,k,iqv))
             dpterm = sfs%psa(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm1%rho(j,i,k))
             atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
             atm2%t(j,i,k) = atm2%t(j,i,k) + gnuhf*dpterm
