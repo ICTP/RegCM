@@ -1162,7 +1162,7 @@ module mod_clm_soilhydrology
     ! Node j=nlevsoi (bottom)
 
     j = nlevsoi
-    do fc = 1, num_hydrologyc
+    do fc = 1 , num_hydrologyc
       c = filter_hydrologyc(fc)
       if ( j > jwt(c) ) then !water table is in soil column
         den    = (zmm(c,j) - zmm(c,j-1))
@@ -1239,10 +1239,10 @@ module mod_clm_soilhydrology
                      num_hydrologyc, filter_hydrologyc, &
                      amx, bmx, cmx, rmx, dwat2 )
     ! set dwat
-    do fc = 1,num_hydrologyc
+    do fc = 1 , num_hydrologyc
       c = filter_hydrologyc(fc)
-      do j = 1, nlevsoi
-        dwat(c,j)=dwat2(c,j)
+      do j = 1 , nlevsoi
+        dwat(c,j) = dwat2(c,j)
       end do
     end do
 

@@ -109,9 +109,6 @@ module mod_sound
     bpxbp = bp*bp
     bpxbm = bp*bm
     xkd = 0.1D0
-    c(:,:,:) = d_zero
-    b(:,:,:) = d_zero
-    aa(:,:,:) = d_zero
 
     xgamma = d_one/(d_one-rovcp)
     ! CALCULATE SHORT TIME-STEP
@@ -163,8 +160,8 @@ module mod_sound
     !  no asselin filter on boundary
     !
     do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
+      do i = ide1 , ide2
+        do j = jde1 , jde2
           aten%u(j,i,k) = aten%u(j,i,k) * dts
           aten%v(j,i,k) = aten%v(j,i,k) * dts
           atmc%u(j,i,k) = atm2%u(j,i,k)/sfs%psdotb(j,i)
@@ -177,8 +174,8 @@ module mod_sound
       end do
     end do
     do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ice1 , ice2
+        do j = jce1 , jce2
           atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv)/sfs%psb(j,i)
           aten%pp(j,i,k) = aten%pp(j,i,k) * dts
           atmc%pp(j,i,k) = atm2%pp(j,i,k)/sfs%psb(j,i)
@@ -187,8 +184,8 @@ module mod_sound
       end do
     end do
     do k = 1 , kzp1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ice1 , ice2
+        do j = jce1 , jce2
           aten%w(j,i,k) = aten%w(j,i,k) * dts
           atmc%w(j,i,k) = atm2%w(j,i,k)/sfs%psb(j,i)
           atm2%w(j,i,k) = omuhf*atm1%w(j,i,k) + gnuhf*atm2%w(j,i,k)
@@ -211,8 +208,8 @@ module mod_sound
       do k = 1 , kz
         kp1 = min(kz,k+1)
         km1 = max(1,k-1)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ice1 , ice2
+          do j = jce1 , jce2
             atmc%t(j,i,k) = (atmc%pp(j,i,km1)-atmc%pp(j,i,kp1)) / &
                             (atm0%pr(j,i,km1)-atm0%pr(j,i,kp1))
           end do
@@ -252,8 +249,8 @@ module mod_sound
         end do
       end do
       do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
+        do i = ide1 , ide2
+          do j = jde1 , jde2
             atmc%u(j,i,k) = atmc%u(j,i,k) + aten%u(j,i,k)
             atmc%v(j,i,k) = atmc%v(j,i,k) + aten%v(j,i,k)
           end do
@@ -573,7 +570,7 @@ module mod_sound
           end do
         end do
       end do
-      if ( mod(ktau,krep) == 0 .and. ktau > 0 ) then
+      if ( mod(ktau,krep) == 0 .and. ktau > 0 .and. it == istep ) then
         call sumall(total_precip_points,iconvec)
         call sumall(cfl,sumcfl)
         if ( myid == italk ) then
