@@ -10,7 +10,7 @@ module mod_clm_decomp
   use mod_intkinds
   use mod_mpmessage
   use mod_regcm_types
-  use mod_clm_type , only : grlnd , nameg , namel , namec , namep
+  use mod_clm_type , only : nameg , namel , namec , namep
   use mod_clm_domain , only : ldomain
 
   implicit none
@@ -155,8 +155,6 @@ module mod_clm_decomp
       implicit none
       character(len=*) , intent(in) :: clmlevel ! type of clm 1d array
       select case (clmlevel)
-        case(grlnd)
-          get_clmlevel_gsize = numg
         case(nameg)
           get_clmlevel_gsize = numg
         case(namel)

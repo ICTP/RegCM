@@ -3983,10 +3983,6 @@ module mod_clm_type
   type(pft_dgvepc_type) , public , target :: dgv_pftcon
 #endif
 
-  ! name of lndgrid
-  character(len=16) , parameter , public :: grlnd  = 'lndgrid'
-  ! name of atmgrid
-  character(len=16) , parameter , public :: namea  = 'gridcellatm'
   ! name of gridcells
   character(len=16) , parameter , public :: nameg  = 'gridcell'
   ! name of landunits

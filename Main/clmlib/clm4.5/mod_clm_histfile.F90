@@ -419,11 +419,6 @@ module mod_clm_histfile
     masterlist(f)%field%l2g_scale_type = l2g_scale_type
 
     select case (type1d)
-      case (grlnd)
-        masterlist(f)%field%beg1d = begg
-        masterlist(f)%field%end1d = endg
-        masterlist(f)%field%num1d = numg
-        masterlist(f)%field%gcomm => gcomm_gridcell
       case (nameg)
         masterlist(f)%field%beg1d = begg
         masterlist(f)%field%end1d = endg
@@ -859,7 +854,7 @@ module mod_clm_histfile
 
     if ( hist_dov2xy(t) ) then
 
-      ! If xy output averaging is requested, set output 1d type to grlnd
+      ! If xy output averaging is requested, set output 1d type to nameg
       ! ***NOTE- the following logic is what permits non lat/lon grids to
       ! be written to clm history file
 
@@ -869,11 +864,7 @@ module mod_clm_histfile
            type1d == namel .or. &
            type1d == namec .or. &
            type1d == namep) then
-        tape(t)%hlist(n)%field%type1d_out = grlnd(1:8)
-        tape(t)%hlist(n)%field%gcomm => gcomm_gridcell
-      end if
-      if ( type1d == grlnd ) then
-        tape(t)%hlist(n)%field%type1d_out = grlnd(1:8)
+        tape(t)%hlist(n)%field%type1d_out = nameg(1:8)
         tape(t)%hlist(n)%field%gcomm => gcomm_gridcell
       end if
 
@@ -908,11 +899,7 @@ module mod_clm_histfile
     ! Determine output 1d dimensions
 
     type1d_out = tape(t)%hlist(n)%field%type1d_out
-    if ( type1d_out == grlnd ) then
-      beg1d_out = begg
-      end1d_out = endg
-      num1d_out = numg
-    else if ( type1d_out == nameg ) then
+    if ( type1d_out == nameg ) then
       beg1d_out = begg
       end1d_out = endg
       num1d_out = numg
@@ -1056,7 +1043,7 @@ module mod_clm_histfile
     ! set variables to check weights when allocate all pfts
 
     map2gcell = .false.
-    if ( type1d_out == nameg .or. type1d_out == grlnd ) then
+    if ( type1d_out == nameg ) then
       if (type1d == namep ) then
         call p2g(begp,endp,begc,endc,begl,endl,begg,endg,field,field_gcell, &
                p2c_scale_type,c2l_scale_type,l2g_scale_type)
@@ -1290,7 +1277,7 @@ module mod_clm_histfile
     ! set variables to check weights when allocate all pfts
 
     map2gcell = .false.
-    if ( type1d_out == nameg .or. type1d_out == grlnd ) then
+    if ( type1d_out == nameg ) then
       if ( type1d == namep ) then
         call p2g(begp,endp,begc,endc,begl,endl,begg,endg,num2d,   &
                  field,field_gcell,p2c_scale_type,c2l_scale_type, &
@@ -1617,9 +1604,6 @@ module mod_clm_histfile
     ! Time is an unlimited dimension. Character string is treated as
     ! an array of characters.
 
-    ! Global uncompressed dimensions (not including non-land points)
-    call clm_adddim(lnfid, trim(grlnd), numg)
-
     ! Global compressed dimensions (not including non-land points)
     call clm_adddim(lnfid, trim(nameg), numg)
     call clm_adddim(lnfid, trim(namel), numl)
@@ -1732,7 +1716,7 @@ module mod_clm_histfile
         if ( tape(t)%dov2xy ) then
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                    varname=trim(varnames(ifld)),      &
-                   cdims=(/grlnd,tmpchar/),   &
+                   cdims=(/nameg,tmpchar/),   &
                    long_name=long_name, units=units,  &
                    missing_value=1, fill_value=1)
         else
@@ -1840,7 +1824,7 @@ module mod_clm_histfile
         if ( tape(t)%dov2xy ) then
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                    varname=trim(varnamesl(ifld)),     &
-                   cdims=(/grlnd,tmpchar/),   &
+                   cdims=(/nameg,tmpchar/),   &
                    long_name=long_name, units=units,  &
                    missing_value=1, fill_value=1)
         else
@@ -1993,25 +1977,25 @@ module mod_clm_histfile
 
     if ( mode == 'define' .and. tape(t)%ntimes == 1 ) then
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='lon',cdims=(/grlnd/), &
+                    varname='lon',cdims=(/nameg/), &
                     long_name='coordinate longitude', units='degrees_east')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='lat',cdims=(/grlnd/), &
+                    varname='lat',cdims=(/nameg/), &
                     long_name='coordinate latitude', units='degrees_north')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='area',cdims=(/grlnd/), &
+                    varname='area',cdims=(/nameg/), &
                     long_name='grid cell areas', units='km^2')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='topo',cdims=(/grlnd/), &
+                    varname='topo',cdims=(/nameg/), &
                     long_name='grid cell topography', units='m')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='landfrac',cdims=(/grlnd/), &
+                    varname='landfrac',cdims=(/nameg/), &
                     long_name='land fraction', units='1')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='landmask',cdims=(/grlnd/), &
+                    varname='landmask',cdims=(/nameg/), &
                     long_name='land/ocean mask', units='1')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='pftmask',cdims=(/grlnd/), &
+                    varname='pftmask',cdims=(/nameg/), &
                     long_name='pft real/fake mask', units='1')
       call clm_addvar(clmvar_logical,ncid=nfid(t), &
                     varname='regcm_mask',cdims=(/'jx','iy'/), &
@@ -2116,13 +2100,8 @@ module mod_clm_histfile
             call fatal(__FILE__,__LINE__,'clm now stopping.')
         end select
 
-        if ( type1d_out == grlnd ) then
-          dim1name = trim(grlnd)
-          dim2name = 'undefined'
-        else
-          dim1name = type1d_out
-          dim2name = 'undefined'
-        end if
+        dim1name = type1d_out
+        dim2name = 'undefined'
 
         tmpchar = 'time'
         if ( dim2name == 'undefined' ) then
@@ -2651,13 +2630,8 @@ module mod_clm_histfile
             nacs          => tape(t)%hlist(f)%nacs
             hbuf          => tape(t)%hlist(f)%hbuf
 
-            if (type1d_out == grlnd) then
-              dim1name = trim(grlnd)
-              dim2name = 'undefined'
-            else
-              dim1name = type1d_out
-              dim2name = 'undefined'
-            end if
+            dim1name = type1d_out
+            dim2name = 'undefined'
 
             if ( dim2name == 'undefined' ) then
               if ( num2d == 1 ) then
@@ -2954,10 +2928,6 @@ module mod_clm_histfile
             call strip_null(tape(t)%hlist(f)%avgflag)
             type1d_out = trim(tape(t)%hlist(f)%field%type1d_out)
             select case (trim(type1d_out))
-              case (grlnd)
-                num1d_out = numg
-                beg1d_out = begg
-                end1d_out = endg
               case (nameg)
                 num1d_out = numg
                 beg1d_out = begg
@@ -2998,10 +2968,6 @@ module mod_clm_histfile
 
             type1d = tape(t)%hlist(f)%field%type1d
             select case (type1d)
-              case (grlnd)
-                num1d = numg
-                beg1d = begg
-                end1d = endg
               case (nameg)
                 num1d = numg
                 beg1d = begg
@@ -3209,8 +3175,8 @@ module mod_clm_histfile
     hpindex = pointer_index()
 
     if ( present(ptr_lnd) ) then
-      l_type1d = grlnd(1:8)
-      l_type1d_out = grlnd(1:8)
+      l_type1d = nameg(1:8)
+      l_type1d_out = nameg(1:8)
       clmptr_rs(hpindex)%ptr => ptr_lnd
     else if ( present(ptr_gcell) ) then
       l_type1d = nameg(1:8)
@@ -3432,9 +3398,9 @@ module mod_clm_histfile
     hpindex = pointer_index()
 
     if ( present(ptr_lnd) ) then
-      l_type1d = grlnd(1:8)
-      l_type1d_out = grlnd(1:8)
-      clmptr_ra(hpindex)%ptr => ptr_lnd
+      l_type1d = nameg(1:8)
+      l_type1d_out = nameg(1:8)
+      clmptr_ra(hpindex)%ptr => ptr_gcell
     else if ( present(ptr_gcell) ) then
       l_type1d = nameg(1:8)
       l_type1d_out = nameg(1:8)

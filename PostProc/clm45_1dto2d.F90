@@ -484,7 +484,7 @@ program clm45_1dto2d
     istatus = nf90_inquire_dimension(ncid, id, dname, dsize(id))
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension')
 
-    if ( dname /= 'lndgrid' .and. dname /= 'gridcell' ) then
+    if ( dname /= 'gridcell' ) then
       if ( dname == 'pft' ) then
         istatus = nf90_inq_varid(ncid,'numpft',npftlun)
         if ( istatus == nf90_noerr ) then
@@ -506,10 +506,7 @@ program clm45_1dto2d
                         'Error define dimension '//trim(dname))
       end if
     else
-      if ( dname == 'lndgrid' ) then
-        lndgrid = id
-        ngridcell = dsize(id)
-      else if ( dname == 'gridcell' .and. lndgrid < 0 ) then
+      if ( dname == 'gridcell' ) then
         lndgrid = id
         ngridcell = dsize(id)
       end if

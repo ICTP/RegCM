@@ -7,7 +7,6 @@ module mod_clm_organicfile
   use mod_mpmessage
   use mod_clm_nchelper
   use mod_clm_domain , only : ldomain
-  use mod_clm_type , only : grlnd
   use mod_clm_varctl , only : fsurdat
   use mod_clm_decomp , only : gcomm_gridcell
 
