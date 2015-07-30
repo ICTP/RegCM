@@ -227,10 +227,10 @@ module mod_sound
         do i = idi1 , idi2
           do j = jdi1 , jdi2
             ! Predict u and v
-            rho    = d_rfour * (atm1%rho(j,i,k)   + atm1%rho(j,i-1,k) + &
-                                atm1%rho(j-1,i,k) + atm1%rho(j-1,i-1,k))
-            dppdp0 = d_rfour * (atmc%t(j,i,k)   + atmc%t(j,i-1,k) + &
-                                atmc%t(j-1,i,k) + atmc%t(j-1,i-1,k))
+            rho    = d_rfour * (atm1%rho(j,i,k)   + atm1%rho(j-1,i,k) + &
+                                atm1%rho(j,i-1,k) + atm1%rho(j-1,i-1,k))
+            dppdp0 = d_rfour * (atmc%t(j,i,k)   + atmc%t(j-1,i,k) + &
+                                atmc%t(j,i-1,k) + atmc%t(j-1,i-1,k))
             ! Divide by map scale factor
             chh = d_half * dts / (rho*dx) / mddom%msfd(j,i)
             !
@@ -239,15 +239,15 @@ module mod_sound
             ! 2.3.3, 2.3.4 in the MM5 manual.
             !
             atmc%u(j,i,k) = atmc%u(j,i,k) - &
-                      chh * (atmc%pp(j,i,k)   - atmc%pp(j,i-1,k)   + &
-                             atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
-                      ( atm0%pr(j,i,k)   - atm0%pr(j,i-1,k)  + &
-                        atm0%pr(j-1,i,k) - atm0%pr(j-1,i-1,k)) * dppdp0)
-            atmc%v(j,i,k) = atmc%v(j,i,k) - &
                       chh * (atmc%pp(j,i,k)   - atmc%pp(j-1,i,k)   + &
                              atmc%pp(j,i-1,k) - atmc%pp(j-1,i-1,k) - &
                       ( atm0%pr(j,i,k)   - atm0%pr(j-1,i,k)  + &
-                        atm0%pr(j,i-1,k) - atm0%pr(j-1,i-1,k))*dppdp0)
+                        atm0%pr(j,i-1,k) - atm0%pr(j-1,i-1,k)) * dppdp0)
+            atmc%v(j,i,k) = atmc%v(j,i,k) - &
+                      chh * (atmc%pp(j,i,k)   - atmc%pp(j,i-1,k)   + &
+                             atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
+                      ( atm0%pr(j,i,k)   - atm0%pr(j,i-1,k)  + &
+                        atm0%pr(j-1,i,k) - atm0%pr(j-1,i-1,k))*dppdp0)
           end do
         end do
       end do

@@ -742,6 +742,8 @@ module mod_atm_interface
       type(reference_atmosphere) , intent(out) :: atm
       call getmem2d(atm%ps,jce1-ma%jbl1,jce2+ma%jbr1, &
                            ice1-ma%ibb1,ice2+ma%ibt1,'reference:ps')
+      call getmem2d(atm%psdot,jde1-ma%jbl1,jde2+ma%jbr1, &
+                              ide1-ma%ibb1,ide2+ma%ibt1,'reference:psdot')
       call getmem3d(atm%pr,jce1-ma%jbl1,jce2+ma%jbr1, &
                            ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'reference:pr')
       call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'reference:t')

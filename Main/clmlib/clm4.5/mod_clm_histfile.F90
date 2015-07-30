@@ -19,7 +19,7 @@ module mod_clm_histfile
   use mod_clm_varcon , only : zsoi , zlak
   use mod_clm_varcon , only : secspday
   use mod_clm_varpar , only : nlevgrnd , nlevlak , nlevurb , numrad , &
-         nlevdecomp_full
+         nlevdecomp_full , maxpatch_pft
   use mod_clm_varctl , only : caseid , ctitle , fsurdat , finidat , fpftcon , &
          version , hostname , username , conventions , source , inst_suffix , &
          nsrest , nsrStartup
@@ -1933,6 +1933,7 @@ module mod_clm_histfile
 
     if ( tape(t)%ntimes == 1 ) then
       if (mode == 'define') then
+        call clm_addvar(clmvar_integer,ncid=nfid(t),varname='numpft')
         call clm_addvar(clmvar_double,ncid=nfid(t), &
                      varname='levgrnd',cdims=(/'levgrnd'/) , &
                      long_name='coordinate soil levels', units='m')
@@ -1943,6 +1944,7 @@ module mod_clm_histfile
                      varname='levdcmp',cdims=(/'levdcmp'/) , &
                      long_name='coordinate soil levels', units='m')
       else if ( mode == 'write' ) then
+        call clm_writevar(nfid(t),'numpft',maxpatch_pft)
         call clm_writevar(nfid(t),'levgrnd',zsoi)
         call clm_writevar(nfid(t),'levlak',zlak)
 #ifdef VERTSOILC
@@ -2246,9 +2248,12 @@ module mod_clm_histfile
               long_name='pft weight relative to corresponding gridcell')
       call clm_addvar(clmvar_double,nfid(t),'pfts1d_wtlunit',cdims=(/namep/), &
               long_name='pft weight relative to corresponding landunit')
+      call clm_addvar(clmvar_integer,nfid(t),'pfts1d_gridcell', &
+              cdims=(/namep/),long_name='pft gridcell index', &
+              missing_value=1,fill_value=1)
       call clm_addvar(clmvar_double,nfid(t),'pfts1d_wtcol',cdims=(/namep/), &
               long_name='pft weight relative to corresponding column')
-      call clm_addvar(clmvar_integer,nfid(t),'pfts1d_itype_veg', &
+      call clm_addvar(clmvar_integer,nfid(t),'pfts1d_itypveg', &
         cdims=(/namep/),long_name='pft vegetation type')
       call clm_addvar(clmvar_integer,nfid(t),'pfts1d_itype_lunit', &
         cdims=(/namep/), &
@@ -2332,11 +2337,15 @@ module mod_clm_histfile
       call clm_writevar(nfid(t),'pfts1d_wtgcell',pptr%wtgcell,gcomm_pft)
       call clm_writevar(nfid(t),'pfts1d_wtlunit',pptr%wtlunit,gcomm_pft)
       call clm_writevar(nfid(t),'pfts1d_wtcol',pptr%wtcol,gcomm_pft)
-      call clm_writevar(nfid(t),'pfts1d_itype_veg',pptr%itype,gcomm_pft)
+      call clm_writevar(nfid(t),'pfts1d_itypveg',pptr%itype,gcomm_pft)
       do p = begp , endp
         iparr(p) = lptr%itype(pptr%landunit(p))
       end do
       call clm_writevar(nfid(t),'pfts1d_itype_lunit',iparr,gcomm_pft)
+      do p = begp , endp
+        iparr(p) = clm3%g%l%c%p%gridcell(p)
+      end do
+      call clm_writevar(nfid(t),'pfts1d_gridcell',iparr,gcomm_pft)
       call clm_writevar(nfid(t),'pfts1d_active',pptr%active,gcomm_pft)
 
       deallocate(rgarr,rlarr,rcarr,rparr)

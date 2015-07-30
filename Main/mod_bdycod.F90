@@ -343,16 +343,18 @@ module mod_bdycod
 
     if ( idynamic == 2 ) then
       xpsb%b0(:,:) = atm0%ps(:,:) * d_r1000 ! Cb
-      xpsb%b1(:,:) = atm0%ps(:,:) * d_r1000
+      psdot(:,:) = atm0%psdot(:,:) * d_r1000
+      xpsb%b1(:,:) = xpsb%b0(:,:)
+      rpsdot(:,:) = d_one/psdot(:,:)
     else
       xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
       xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
+      call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
+      call psc2psd(xpsb%b0,psdot)
     end if
     !
     ! Calculate P* on dot points
     !
-    call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
-    call psc2psd(xpsb%b0,psdot)
     !
     ! Couple pressure u,v,t,q (pp,ww)
     !
@@ -373,8 +375,10 @@ module mod_bdycod
     !
     ! Repeat for T2
     !
-    call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
-    call psc2psd(xpsb%b1,psdot)
+    if ( idynamic == 1 ) then
+      call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
+      call psc2psd(xpsb%b1,psdot)
+    end if
     !
     ! Couple pressure u,v,t,q
     !
@@ -395,8 +399,6 @@ module mod_bdycod
     !
     ! Calculate time varying component
     !
-    call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
-    call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
     call timeint(xub%b1,xub%b0,xub%bt,jde1,jde2,ide1,ide2,1,kz)
     call timeint(xvb%b1,xvb%b0,xvb%bt,jde1,jde2,ide1,ide2,1,kz)
     call timeint(xtb%b1,xtb%b0,xtb%bt,jce1,jce2,ice1,ice2,1,kz)
@@ -410,6 +412,9 @@ module mod_bdycod
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1,jce2,ice1,ice2,1,kzp1)
       call exchange(xppb%bt,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kzp1)
+    else
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
+      call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
     end if
 
 #ifdef DEBUG
@@ -442,12 +447,13 @@ module mod_bdycod
     xvb%b0(:,:,:) = xvb%b1(:,:,:)
     xtb%b0(:,:,:) = xtb%b1(:,:,:)
     xqb%b0(:,:,:) = xqb%b1(:,:,:)
+    ts0(:,:) = ts1(:,:)
     if ( idynamic == 2 ) then
       xppb%b0(:,:,:) = xppb%b1(:,:,:)
       xwwb%b0(:,:,:) = xwwb%b1(:,:,:)
+    else
+      xpsb%b0(:,:) = xpsb%b1(:,:)
     end if
-    xpsb%b0(:,:) = xpsb%b1(:,:)
-    ts0(:,:) = ts1(:,:)
 
     ! Data are monthly
     if ( update_slabocn ) then
@@ -491,14 +497,11 @@ module mod_bdycod
     !
     ! Convert surface pressure to pstar
     !
-    if ( idynamic == 2 ) then
-      xpsb%b1(:,:) = atm0%ps(:,:) * d_r1000
-    else
+    if ( idynamic == 1 ) then
       xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
+      call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
+      call psc2psd(xpsb%b1,psdot)
     end if
-
-    call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
-    call psc2psd(xpsb%b1,psdot)
     !
     ! Couple pressure u,v,t,q
     !
@@ -515,10 +518,10 @@ module mod_bdycod
       call couple(xwwb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kzp1)
       call exchange(xppb%b1,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kzp1)
+    else
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
+      call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
     end if
-
-    call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
-    call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
     call timeint(xub%b1,xub%b0,xub%bt,jde1,jde2,ide1,ide2,1,kz)
     call timeint(xvb%b1,xvb%b0,xvb%bt,jde1,jde2,ide1,ide2,1,kz)
     call timeint(xtb%b1,xtb%b0,xtb%bt,jce1,jce2,ice1,ice2,1,kz)
@@ -622,13 +625,15 @@ module mod_bdycod
     !
     ! First compute the p* at dot points to decouple U,V:
     !
-    call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-    call psc2psd(sfs%psa,psdot)
-    do i = ide1 , ide2
-      do j = jde1 , jde2
-        rpsdot(j,i) = d_one/psdot(j,i)
+    if ( idynamic == 1 ) then
+      call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
+      call psc2psd(sfs%psa,psdot)
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          rpsdot(j,i) = d_one/psdot(j,i)
+        end do
       end do
-    end do
+    end if
     !
     ! Now compute last two points values in U and V
     ! Internal points
