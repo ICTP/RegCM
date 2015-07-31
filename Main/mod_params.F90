@@ -2032,6 +2032,7 @@ module mod_params
         call exchange(atm0%ps,1,jce1,jce2,ice1,ice2)
         call exchange(atm0%pr,1,jce1,jce2,ice1,ice2,1,kz)
         call psc2psd(atm0%ps,atm0%psdot)
+        call exchange(atm0%psdot,1,jde1,jde2,ide1,ide2)
         do k = 1 , kz+1
           do i = ice1 , ice2
             do j = jce1 , jce2

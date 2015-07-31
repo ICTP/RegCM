@@ -343,7 +343,7 @@ module mod_bdycod
 
     if ( idynamic == 2 ) then
       xpsb%b0(:,:) = atm0%ps(:,:) * d_r1000 ! Cb
-      psdot(:,:) = atm0%psdot(:,:) * d_r1000
+      psdot(:,:) = atm0%psdot(jde1:jde2,ide1:ide2) * d_r1000
       xpsb%b1(:,:) = xpsb%b0(:,:)
       rpsdot(:,:) = d_one/psdot(:,:)
     else
@@ -501,6 +501,8 @@ module mod_bdycod
       xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b1,psdot)
+    else
+      xpsb%b1(:,:) = xpsb%b0(:,:)
     end if
     !
     ! Couple pressure u,v,t,q

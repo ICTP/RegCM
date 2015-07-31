@@ -116,6 +116,10 @@ module mod_init
           sfs%psb(j,i) = sfs%psa(j,i)
         end do
       end do
+      call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
+      call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
+      call psc2psd(sfs%psa,sfs%psdota)
+      call psc2psd(sfs%psb,sfs%psdotb)
     end if
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -552,6 +556,14 @@ module mod_init
     end do
   end do
   !
+  ! pressure of tropopause
+  !
+  do i = ici1 , ici2
+    do j = jci1 , jci2
+      ptrop(j,i) = 250.0D2 - 150.0D2*dcos(mddom%xlat(j,i)*degrad)**2
+    end do
+  end do
+  !
   ! Initialize solar elevation (zenith angle)
   !
   call zenitm(coszrs)
@@ -575,14 +587,6 @@ module mod_init
       hg4 = dabs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
       hgmax = dmax1(hg1,hg2,hg3,hg4)*regrav
       hgfact(j,i) = d_one/(d_one+(hgmax/0.001D0)**2)
-    end do
-  end do
-  !
-  ! pressure of tropopause
-  !
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      ptrop(j,i) = 250.0D2 - 150.0D2*dcos(mddom%xlat(j,i)*degrad)**2
     end do
   end do
   !

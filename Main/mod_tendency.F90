@@ -183,9 +183,9 @@ module mod_tendency
     !
     call decouple
     !
-    call exchange(atm1%u,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atm1%v,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atm1%t,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atm1%t,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atm1%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     if ( ibltyp == 2 ) then
       call exchange(atm1%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
@@ -220,9 +220,9 @@ module mod_tendency
       call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
-    call exchange(atm2%u,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atm2%v,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atm2%t,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atm2%u,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atm2%v,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atm2%t,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atm2%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     if ( ibltyp == 2 ) then
       call exchange(atm2%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
@@ -258,17 +258,17 @@ module mod_tendency
       call exchange(atm2%w,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
-    call exchange(atmx%u,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%v,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%t,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atmx%u,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%v,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%t,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atmx%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     if ( ichem == 1 ) then
       call exchange(chi,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call exchange(chib,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
     if ( idynamic == 2 ) then
-      call exchange(atmx%pp,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atmx%w,nexchange_adv,jce1,jce2,ice1,ice2,1,kzp1)
+      call exchange(atmx%pp,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atmx%w,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
     if ( ipptls == 2 ) then
       qcd(:,:,:) = atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqc) + &
@@ -324,10 +324,10 @@ module mod_tendency
             !
             ! Calculate wind components at cross points
             !
-            ucc(j,i,k) = (atmx%u(j,i,k)  + atmx%u(j,i+1,k) + &
-                          atmx%u(j+1,i,k)+ atmx%u(j+1,i+1,k))
-            vcc(j,i,k) = (atmx%v(j,i,k)  + atmx%v(j,i+1,k) + &
-                          atmx%v(j+1,i,k)+ atmx%v(j+1,i+1,k))
+            ucc(j,i,k) = (atm1%u(j,i,k)  + atm1%u(j,i+1,k) + &
+                          atm1%u(j+1,i,k)+ atm1%u(j+1,i+1,k)) * rpsa(j,i)
+            vcc(j,i,k) = (atm1%v(j,i,k)  + atm1%v(j,i+1,k) + &
+                          atm1%v(j+1,i,k)+ atm1%v(j+1,i+1,k)) * rpsa(j,i)
 
           end do
         end do
@@ -642,7 +642,21 @@ module mod_tendency
       end do
       call exchange(th,1,jce1,jce2,ice1,ice2,1,kz)
       call hadv(thten,th,kz)
+      if ( idiag > 0 ) then
+        tdiag%adh = tdiag%adh + (thten - ten0) * afdout
+        ten0 = thten
+      end if
+#ifdef DEBUG
+      call check_temperature_tendency('HADV')
+#endif
       call vadv(cross,thten,tha,kz,0)
+      if ( idiag > 0 ) then
+        tdiag%adv = tdiag%adv + (thten - ten0) * afdout
+        ten0 = thten
+      end if
+#ifdef DEBUG
+      call check_temperature_tendency('VADV')
+#endif
     end if
     !
     ! compute the adiabatic term:
@@ -1981,23 +1995,45 @@ module mod_tendency
     subroutine surface_pressures( )
       implicit none
       integer(ik4) :: i , j
+      logical , save :: linit = .false.
       !
       ! Compute surface pressure on dot points
       !
-      call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-      call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          rpsa(j,i) = d_one/sfs%psa(j,i)
+      if ( idynamic == 1 ) then
+        call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
+        call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            rpsa(j,i) = d_one/sfs%psa(j,i)
+          end do
         end do
-      end do
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          rpsb(j,i) = d_one/sfs%psb(j,i)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            rpsb(j,i) = d_one/sfs%psb(j,i)
+          end do
         end do
-      end do
-      call psc2psd(sfs%psa,sfs%psdota)
-      call psc2psd(sfs%psb,sfs%psdotb)
+        call psc2psd(sfs%psa,sfs%psdota)
+        call psc2psd(sfs%psb,sfs%psdotb)
+      else
+        if ( .not. linit ) then
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              rpsa(j,i) = d_one/sfs%psa(j,i)
+            end do
+          end do
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              rpsb(j,i) = d_one/sfs%psb(j,i)
+            end do
+          end do
+          do i = ide1 , ide2
+            do j = jde1 , jde2
+              rpsda(j,i) = d_one/sfs%psdota(j,i)
+            end do
+          end do
+          linit = .true.
+        end if
+      end if
     end subroutine surface_pressures
 
     subroutine decouple( )
@@ -2006,11 +2042,13 @@ module mod_tendency
       !
       ! Helper
       !
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          rpsda(j,i) = d_one/sfs%psdota(j,i)
+      if ( idynamic == 1 ) then
+        do i = ide1 , ide2
+          do j = jde1 , jde2
+            rpsda(j,i) = d_one/sfs%psdota(j,i)
+          end do
         end do
-      end do
+      end if
       !
       ! Internal U,V points
       !
