@@ -114,6 +114,7 @@ module mod_init
         do j = jce1 , jce2
           sfs%psa(j,i) = atm0%ps(j,i) * d_r1000
           sfs%psb(j,i) = sfs%psa(j,i)
+          sfs%psc(j,i) = sfs%psa(j,i)
         end do
       end do
       call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)

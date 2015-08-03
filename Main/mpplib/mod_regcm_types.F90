@@ -438,7 +438,6 @@ module mod_regcm_types
   end type lm_exchange
 
   type mod_2_rad
-    real(rk8) , pointer , dimension(:,:) :: psb             ! sfs%psb
     real(rk8) , pointer , dimension(:,:,:) :: cldfrc
     real(rk8) , pointer , dimension(:,:,:) :: cldlwc
     real(rk8) , pointer , dimension(:,:,:) :: tatms         ! atms%tb3d

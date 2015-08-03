@@ -204,6 +204,27 @@ module mod_sound
             end do
           end do
         end do
+      else
+        if ( ma%has_bdyleft ) then
+          do i = ice1 , ice2
+            atmc%pp(jce1,i,:) = atmc%pp(jce1,i,:) + aten%pp(jce1,i,:)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do i = ice1 , ice2
+            atmc%pp(jce2,i,:) = atmc%pp(jce2,i,:) + aten%pp(jce2,i,:)
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do j = jce1 , jce2
+            atmc%pp(j,ice1,:) = atmc%pp(j,ice1,:) + aten%pp(j,ice1,:)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do j = jce1 , jce2
+            atmc%pp(j,ice2,:) = atmc%pp(j,ice2,:) + aten%pp(j,ice2,:)
+          end do
+        end if
       end if
       do k = 1 , kz
         kp1 = min(kz,k+1)
@@ -347,17 +368,17 @@ module mod_sound
             tk(j,i,k) = atm0%ps(j,i) * atm0%t(j,i,k) / &
                         (d_two * xgamma * atm0%pr(j,i,k) * &
                         atm2%t(j,i,k) / sfs%psb(j,i))
-            rofac = (dsigma(k-1)*atm0%rho(j,i,k) + &
-                     dsigma(k)*atm0%rho(j,i,k-1)) / &
-                    (dsigma(k-1)*atm1%rho(j,i,k) + &
-                     dsigma(k)*atm1%rho(j,i,k-1))
+            rofac = (dsigma(km1)*atm0%rho(j,i,k) + &
+                     dsigma(k)*atm0%rho(j,i,km1)) / &
+                    (dsigma(km1)*atm1%rho(j,i,k) + &
+                     dsigma(k)*atm1%rho(j,i,km1))
             !
             ! Set factors for differencing
             !
             cc(j,i,k)  = xgamma * atm1%pr(j,i,k) * dts / (dx*mddom%msfx(j,i))
             cdd(j,i,k) = xgamma * atm1%pr(j,i,k) * atm0%rho(j,i,k) * &
                          egrav * dts / (atm0%ps(j,i)*dsigma(k))
-            cj(j,i,k) = atm0%rho(j,i,k) * egrav * dts/d_two
+            cj(j,i,k) = atm0%rho(j,i,k) * egrav * dts * d_half
             ca(j,i,k) = egrav * dts / (atm0%pr(j,i,k)-atm0%pr(j,i,km1)) * rofac
             g1(j,i,k) = d_one - dsigma(km1) * tk(j,i,k)
             g2(j,i,k) = d_one + dsigma(k) * tk(j,i,km1)
@@ -560,10 +581,10 @@ module mod_sound
             vcrskm1 = atmc%v(j,i,k-1)   + atmc%v(j,i+1,k-1) + &
                       atmc%v(j+1,i,k-1) + atmc%v(j+1,i+1,k-1)
             rho0s = twt(k,1)*atm0%rho(j,i,k) + twt(k,2)*atm0%rho(j,i,k-1)
-            sigdot(j,i,k) = -rho0s*egrav*atmc%w(j,i,k)/sfs%psb(j,i)*d_r1000 - &
-               sigma(k) * ( dpsdxm(j,i) * ( twt(k,1)*ucrsk +       &
-                                            twt(k,2)*ucrskm1 ) +   &
-                            dpsdym(j,i) * ( twt(k,1)*vcrsk +       &
+            sigdot(j,i,k) = -rho0s*egrav*atmc%w(j,i,k)/atm0%ps(j,i) - &
+               sigma(k) * ( dpsdxm(j,i) * ( twt(k,1)*ucrsk +          &
+                                            twt(k,2)*ucrskm1 ) +      &
+                            dpsdym(j,i) * ( twt(k,1)*vcrsk +          &
                                             twt(k,2)*vcrskm1 ) )
             check = abs(sigdot(j,i,k)) * dtl / (dsigma(k) + dsigma(k-1))
             cfl = max(check,cfl)
@@ -605,21 +626,54 @@ module mod_sound
             ppold = pi(j,i,k)
             cddtmp = xgamma * atm1%pr(j,i,k) * atm0%rho(j,i,k) * &
                      egrav * dts / (atm0%ps(j,i)*dsigma(k))
-            cjtmp = atm0%rho(j,i,k) * egrav * dts/d_two
+            cjtmp = atm0%rho(j,i,k) * egrav * dts * d_half
             atmc%pp(j,i,k) = atmc%pp(j,i,k) + &
                           ( cjtmp * (atmc%w(j,i,k+1) + atmc%w(j,i,k)) + &
-                            cddtmp * (atmc%w(j,i,k+1) - atmc%w(j,i,k)) )*bp
+                            cddtmp * (atmc%w(j,i,k+1) - atmc%w(j,i,k)) ) * bp
             pi(j,i,k) = atmc%pp(j,i,k) - ppold - aten%pp(j,i,k)
             !
             ! Compute pressure dp`/dt correction to the temperature
             !
             cpm = cpd * (d_one + 0.856D0*atmc%qx(j,i,k,iqv))
-            dpterm = sfs%psa(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm1%rho(j,i,k))
+            dpterm = sfs%psb(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm1%rho(j,i,k))
             atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
             atm2%t(j,i,k) = atm2%t(j,i,k) + gnuhf*dpterm
           end do
         end do
       end do
+      ! Zero gradient conditions on w
+      if ( ma%has_bdyleft ) then
+        do i = ici1 , ici2
+          atmc%w(jce1,i,:) = atmc%w(jci1,i,:)
+        end do
+        if ( ma%has_bdytop ) then
+          atmc%w(jce1,ice2,:) = atmc%w(jci1,ici2,:)
+        end if
+        if ( ma%has_bdybottom ) then
+          atmc%w(jce1,ice1,:) = atmc%w(jci1,ici1,:)
+        end if
+      end if
+      if ( ma%has_bdyright ) then
+        do i = ici1 , ici2
+          atmc%w(jce2,i,:) = atmc%w(jci2,i,:)
+        end do
+        if ( ma%has_bdytop ) then
+          atmc%w(jce2,ice2,:) = atmc%w(jci2,ici2,:)
+        end if
+        if ( ma%has_bdybottom ) then
+          atmc%w(jce2,ice1,:) = atmc%w(jci2,ici1,:)
+        end if
+      end if
+      if ( ma%has_bdytop ) then
+        do j = jci1 , jci2
+          atmc%w(j,ice2,:) = atmc%w(j,ici2,:)
+        end do
+      end if
+      if ( ma%has_bdybottom ) then
+        do j = jci1 , jci2
+          atmc%w(j,ice1,:) = atmc%w(j,ici1,:)
+        end do
+      end if
       ! End of time loop
     end do
     !

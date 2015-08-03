@@ -62,7 +62,7 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:) :: dummy , rpsa , rpsb , rpsc
   real(rk8) , pointer , dimension(:,:) :: rpsda
 
-  integer :: ithadv = 1
+  integer :: ithadv = 0
   integer(ik4) :: nexchange_adv , icvadv , idvadv , iqxvadv , itrvadv
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
@@ -340,10 +340,10 @@ module mod_tendency
             ! Eq. 2.2.7 & Eq. 2.3.6 in the MM5 manual
             !
             rho0s = twt(k,1)*atm0%rho(j,i,k)+twt(k,2)*atm0%rho(j,i,k-1)
-            qdot(j,i,k) = -rho0s*egrav*atmx%w(j,i,k)*rpsa(j,i)*d_r1000 - &
-              sigma(k) * (dpsdxm(j,i) * (twt(k,1)*ucc(j,i,k) +           &
-                                         twt(k,2)*ucc(j,i,k-1)) +        &
-                          dpsdym(j,i) * (twt(k,1)*vcc(j,i,k) +           &
+            qdot(j,i,k) = -rho0s*egrav*atmx%w(j,i,k)/atm0%ps(j,i) -  &
+              sigma(k) * (dpsdxm(j,i) * (twt(k,1)*ucc(j,i,k) +       &
+                                         twt(k,2)*ucc(j,i,k-1)) +    &
+                          dpsdym(j,i) * (twt(k,1)*vcc(j,i,k) +       &
                                          twt(k,2)*vcc(j,i,k-1)))
            end do
         end do
@@ -494,12 +494,6 @@ module mod_tendency
           end do
         end do
       end if
-    else if ( idynamic == 2 ) then
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          sfs%psc(j,i) = sfs%psa(j,i)
-        end do
-      end do
     end if
     !
     ! calculate solar zenith angle
@@ -735,10 +729,10 @@ module mod_tendency
                       dsigma(k)   * atm0%rho(j,i,k-1) ) /  &
                     ( dsigma(k-1) * atm1%rho(j,i,k) +      &
                       dsigma(k)   * atm1%rho(j,i,k-1) )
-            uaq = d_rfour * (twt(k,1) * ucc(j,i,k) +       &
-                             twt(k,2) * ucc(j,i,k-1))
-            vaq = d_rfour * (twt(k,1) * vcc(j,i,k) +       &
-                             twt(k,2) * vcc(j,i,k-1))
+            uaq = d_rfour * (twt(k,1) * ucc(j,i,k)/mddom%msfx(j,i) + &
+                             twt(k,2) * ucc(j,i,k-1)/mddom%msfx(j,i))
+            vaq = d_rfour * (twt(k,1) * vcc(j,i,k)/mddom%msfx(j,i) + &
+                             twt(k,2) * vcc(j,i,k-1))/mddom%msfx(j,i)
             aten%w(j,i,k) = aten%w(j,i,k) +                &
                   (twt(k,2)*atmx%pr(j,i,k-1) +             &
                    twt(k,1)*atmx%pr(j,i,k)) *              &
@@ -1697,24 +1691,25 @@ module mod_tendency
       ! Decouple before calling sound
       !
       do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
+        do i = ide1 , ide2
+          do j = jde1 , jde2
             aten%u(j,i,k) = aten%u(j,i,k) * rpsda(j,i)
             aten%v(j,i,k) = aten%v(j,i,k) * rpsda(j,i)
           end do
         end do
       end do
       do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ice1 , ice2
+          do j = jce1 , jce2
             aten%pp(j,i,k) = aten%pp(j,i,k) * rpsa(j,i)
-            aten%w(j,i,k) = aten%w(j,i,k) * rpsa(j,i)
           end do
         end do
       end do
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          aten%w(j,i,kzp1) = aten%w(j,i,kzp1) * rpsa(j,i)
+      do k = 1 , kzp1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            aten%w(j,i,k) = aten%w(j,i,k) * rpsa(j,i)
+          end do
         end do
       end do
       !
@@ -2224,8 +2219,7 @@ module mod_tendency
             do j = jci1 , jci2
               tv = atmx%t(j,i,k)*(d_one + ep1*atmx%qx(j,i,k,iqv))
               atmx%pr(j,i,k) = (tv - atm0%t(j,i,k) - &
-                atmx%pp(j,i,k)/(cpd*atm0%rho(j,i,k))) / &
-                atmx%t(j,i,k)
+                atmx%pp(j,i,k)/(cpd*atm0%rho(j,i,k))) / atmx%t(j,i,k)
             end do
           end do
         end do

@@ -58,6 +58,14 @@ module mod_slice
     end do
 
     do k = 1 , kz
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          atms%ubd3d(j,i,k) = atm2%u(j,i,k)*rpsdotb(j,i)
+          atms%vbd3d(j,i,k) = atm2%v(j,i,k)*rpsdotb(j,i)
+        end do
+      end do
+    end do
+    do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
           atms%ubx3d(j,i,k) = d_rfour*             &
@@ -88,9 +96,9 @@ module mod_slice
         do i = ice1 , ice2
           do j = jce1 , jce2
             if ( atm2%qx(j,i,k,n) > dlowval ) then
-              atms%qxb3d(j,i,k,n) = max(atm2%qx(j,i,k,n)*rpsb(j,i),1.D-10)
+              atms%qxb3d(j,i,k,n) = max(atm2%qx(j,i,k,n)*rpsb(j,i),minqx)
             else
-              atms%qxb3d(j,i,k,n) = 1.D-10
+              atms%qxb3d(j,i,k,n) = d_zero
             end if
           end do
         end do
@@ -107,14 +115,6 @@ module mod_slice
         end do
       end do
     end if
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          atms%ubd3d(j,i,k) = atm2%u(j,i,k)*rpsdotb(j,i)
-          atms%vbd3d(j,i,k) = atm2%v(j,i,k)*rpsdotb(j,i)
-        end do
-      end do
-    end do
 
     if ( idynamic == 2 ) then
       do k = 1 , kzp1
@@ -133,8 +133,7 @@ module mod_slice
       end do
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%ps2d(j,i) = (sfs%psb(j,i)+ptop)*d_1000 + atms%ppb3d(j,i,kz)
-          atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
+          atms%ps2d(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
         end do
       end do
       do i = ice1 , ice2
@@ -155,7 +154,6 @@ module mod_slice
       do i = ice1 , ice2
         do j = jce1 , jce2
           atms%ps2d(j,i) = (sfs%psb(j,i)+ptop)*d_1000
-          atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
         end do
       end do
       do k = 1 , kzp1
@@ -167,11 +165,17 @@ module mod_slice
       end do
     end if
 
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
+      end do
+    end do
+
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
           atms%pb3d(j,i,k) = atm2%pr(j,i,k)
-          atms%rhob3d(j,i,k)= atm2%rho(j,i,k)
+          atms%rhob3d(j,i,k) = atm2%rho(j,i,k)
           atms%thx3d(j,i,k) = atms%tb3d(j,i,k)*(1.0D5/atms%pb3d(j,i,k))**rovcp
         end do
       end do
@@ -198,19 +202,53 @@ module mod_slice
         atms%zq(j,i,kzp1) = d_zero
       end do
     end do
-    do k = kz , 1 , -1
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          cell = ptop/sfs%psb(j,i)
-          atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg*atms%tb3d(j,i,k) *  &
-                    log((sigma(k+1)+cell)/(sigma(k)+cell))
+    if ( idynamic == 2 ) then
+      do k = kz , 1 , -1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            cell = ptop * rpsb(j,i)
+            atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atm0%t(j,i,k) *  &
+                      log((sigma(k+1)+cell)/(sigma(k)+cell))
+          end do
         end do
       end do
-    end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          cell = ptop * rpsb(j,i)
+          atms%za(j,i,kz) = rovg * atm0%t(j,i,kz) * &
+                   log((sigma(kzp1)+cell)/(hsigma(kz)+cell))
+        end do
+      end do
+      do k = kz-1 , 1 , -1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            cell = ptop * rpsb(j,i)
+            atms%za(j,i,k) = atms%za(j,i,k+1) + rovg * atm0%t(j,i,k) * &
+                     log((hsigma(k+1)+cell)/(hsigma(k)+cell))
+          end do
+        end do
+      end do
+    else
+      do k = kz , 1 , -1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            cell = ptop * rpsb(j,i)
+            atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atms%tb3d(j,i,k) *  &
+                      log((sigma(k+1)+cell)/(sigma(k)+cell))
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atms%za(j,i,k) = d_half*(atms%zq(j,i,k) + atms%zq(j,i,k+1))
+          end do
+        end do
+      end do
+    end if
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%za(j,i,k) = d_half*(atms%zq(j,i,k)+atms%zq(j,i,k+1))
           atms%dzq(j,i,k) = atms%zq(j,i,k) - atms%zq(j,i,k+1)
         end do
       end do

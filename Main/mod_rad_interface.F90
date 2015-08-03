@@ -95,7 +95,6 @@ module mod_rad_interface
     call assignpnt(atms%pf3d,m2r%pfatms)
     call assignpnt(atms%ps2d,m2r%psatms)
     call assignpnt(sfs%tgbb,m2r%tg)
-    call assignpnt(sfs%psb,m2r%psb)
     call assignpnt(mddom%xlat,m2r%xlat)
     call assignpnt(mddom%xlon,m2r%xlon)
     call assignpnt(mddom%ldmsk,m2r%ldmsk)
