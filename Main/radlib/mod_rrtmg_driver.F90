@@ -58,7 +58,7 @@ module mod_rrtmg_driver
     rh , cld_int , empty2 , play , tlay , h2ovmr , o3vmr , co2vmr ,      &
     ch4vmr , n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  ccl4vmr , &
     reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , rei , rel,cldf ,    &
-    lwhr , lwhrc , duflx_dt , duflxc_dt
+    lwhr , lwhrc , duflx_dt , duflxc_dt , ql1 , qi1
 
   real(rk8) , pointer , dimension(:,:) :: plev , tlev , swuflx , swdflx , &
     swuflxc , swdflxc , lwuflx , lwdflx , lwuflxc , lwdflxc ,             &
@@ -173,6 +173,10 @@ module mod_rrtmg_driver
     call getmem2d(rh,1,npr,1,kzp1,'rrtmg:rh')
     call getmem2d(play,1,npr,1,kth,'rrtmg:play')
     call getmem2d(tlay,1,npr,1,kth,'rrtmg:tlay')
+    if ( ipptls == 2 ) then
+      call getmem2d(ql1,1,npr,1,kth,'rrtmg:ql1')
+      call getmem2d(qi1,1,npr,1,kth,'rrtmg:qi1')
+    end if
     call getmem2d(h2ovmr,1,npr,1,kth,'rrtmg:h2ovmr')
     call getmem2d(o3vmr,1,npr,1,kth,'rrtmg:o3vmr')
     call getmem2d(co2vmr,1,npr,1,kth,'rrtmg:co2vmr')
@@ -305,7 +309,7 @@ module mod_rrtmg_driver
           n = n + 1
         end do
       end do
-      call rrtmg_sw(npr,kth,icld,idirect, play,plev,tlay,tlev,tsfc,   &
+      call rrtmg_sw(npr,kth,icld,idirect,play,plev,tlay,tlev,tsfc,   &
                     h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr, &
                     asdir,asdif,aldir,aldif,czen,adjes,      &
                     dyofyr,solcon,inflgsw,iceflgsw,liqflgsw, &
@@ -343,7 +347,7 @@ module mod_rrtmg_driver
                          taucmcl_lw)
     idrv = 0
 
-    call rrtmg_lw(npr,kth,icld,idrv,idirect, play,plev,tlay,tlev,tsfc,  &
+    call rrtmg_lw(npr,kth,icld,idrv,idirect,play,plev,tlay,tlev,tsfc,  &
                   h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,      &
                   cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf, &
                   inflglw,iceflglw,liqflglw,cldfmcl_lw,         &
@@ -612,6 +616,19 @@ module mod_rrtmg_driver
         end do
       end do
     end do
+    if ( ipptls == 2 ) then
+      do k = 1 , kz
+        kj = kzp1 - k
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ql1(n,kj) = m2r%qxatms(j,i,k,iqc)
+            qi1(n,kj) = m2r%qxatms(j,i,k,iqi)
+            n = n + 1
+          end do
+        end do
+      end do
+    end if
     !
     ! h2o volume mixing ratio
     !
@@ -827,8 +844,7 @@ module mod_rrtmg_driver
     !
     call cldefr_rrtm(tlay,rel,rei,fice,play)
     !
-    !  partition of total  water path betwwen liquide and ice.
-    ! ( waiting for prognostic ice !)
+    !  partition of total water path betwwen liquide and ice.
     !
     do k = 1 , kth
       do n = 1 , npr
@@ -977,23 +993,26 @@ module mod_rrtmg_driver
         !
         ! Define fractional amount of cloud that is ice
         !
-        ! if warmer than -10 degrees C then water phase
-        !
-        if ( t(n,k) > minus10 ) fice(n,k) = d_zero
-        !
-        ! if colder than -10 degrees C but warmer than -30 C mixed phase
-        !
-        if ( t(n,k) <= minus10 .and. t(n,k) >= minus30 ) then
-          fice(n,k) = (minus10-t(n,k))/20.0D0
+        if ( ipptls == 2 ) then
+          if ( ql1(n,k)+qi1(n,k) > minqx ) then
+            fice(n,k) = qi1(n,k) / (ql1(n,k)+qi1(n,k))
+          else
+            fice(n,k) = d_zero
+          end if
+        else
+          if ( t(n,k) > minus10 ) then
+            ! if warmer than -10 degrees C then water phase
+            fice(n,k) = d_zero
+          else if ( t(n,k) <= minus10 .and. t(n,k) >= minus30 ) then
+            ! if colder than -10 degrees C but warmer than -30 C mixed phase
+            fice(n,k) = (minus10-t(n,k))/20.0D0
+          else
+            ! if colder than -30 degrees C then ice phase
+            fice(n,k) = d_one
+          end if
+          !
         end if
-        !
-        ! if colder than -30 degrees C then ice phase
-        !
-        if ( t(n,k) < minus30 ) fice(n,k) = d_one
-        !
         ! Turn off ice radiative properties by setting fice = 0.0
-        !
-        !fil    no-ice test
         ! fice(n,k) = d_zero
         !
       end do

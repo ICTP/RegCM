@@ -516,10 +516,10 @@ module mod_rad_colmod3
         ! Define fractional amount of cloud that is ice
         ! if warmer than -10 degrees C then water phase
         if ( ipptls == 2 ) then
-          if (ql1(n,k).ne.d_zero.and.qi1(n,k).ne.d_zero) then 
-             fice(n,k) = qi1(n,k) / (ql1(n,k)+qi1(n,k))
-          else 
-            fice(n,k) = d_zero 
+          if ( ql1(n,k)+qi1(n,k) > minqx ) then
+            fice(n,k) = qi1(n,k) / (ql1(n,k)+qi1(n,k))
+          else
+            fice(n,k) = d_zero
           end if
         else
           if ( tm1(n,k) > minus10 ) then
