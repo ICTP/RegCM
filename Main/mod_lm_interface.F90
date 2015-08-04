@@ -338,6 +338,9 @@ module mod_lm_interface
       call assignpnt(sfracs2d,lm%sfracs2d)
       call assignpnt(svegfrac2d,lm%svegfrac2d)
       call assignpnt(sxlai2d,lm%sxlai2d)
+      call assignpnt(wetdepflx,lm%wetdepflx)
+      call assignpnt(drydepflx,lm%drydepflx)
+      call assignpnt(idusts,lm%idust)
     end if
     call assignpnt(dailyrnf,lm%dailyrnf)
 #ifdef CLM
@@ -952,6 +955,12 @@ module mod_lm_interface
     ! Reset accumulation from precip and cumulus
     lm%ncprate = d_zero
     lm%cprate  = d_zero
+
+    !Reset also accumulation for deposition fluxes
+    if (ichem == 1) then 
+    lm%wetdepflx = d_zero
+    lm%drydepflx = d_zero
+    end if
 
   end subroutine collect_output
 

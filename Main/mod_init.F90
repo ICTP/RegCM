@@ -401,8 +401,8 @@ module mod_init
     if ( ichem == 1 ) then
       call grid_distribute(chia_io,chia,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call grid_distribute(chib_io,chib,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-      call grid_distribute(remlsc_io,remlsc,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-      call grid_distribute(remcvc_io,remcvc,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      call grid_distribute(rainout_io,rainout,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      call grid_distribute(washout_io,washout,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call grid_distribute(remdrd_io,remdrd,jce1,jce2,ice1,ice2,1,ntr)
       if ( igaschem == 1 .and. ichsolver > 0 ) then
         call grid_distribute(chemall_io,chemall,jci1,jci2,ici1,ici2, &

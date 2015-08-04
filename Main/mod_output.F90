@@ -846,8 +846,8 @@ module mod_output
         if ( ichem == 1 ) then
           call grid_collect(chia,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
           call grid_collect(chib,chib_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-          call grid_collect(remlsc,remlsc_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-          call grid_collect(remcvc,remcvc_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          call grid_collect(rainout,rainout_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          call grid_collect(washout,washout_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
           call grid_collect(remdrd,remdrd_io,jce1,jce2,ice1,ice2,1,ntr)
           if ( igaschem == 1 .and. ichsolver > 0 ) then
             call grid_collect(chemall,chemall_io,jci1,jci2,ici1,ici2, &

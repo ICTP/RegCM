@@ -582,8 +582,8 @@ module mod_che_wetdep
           chiten(j,i,k,itr) = chiten(j,i,k,itr) - temp_dep(i)/delt
 
           ! Disagnostic
-          ! remlsc: rainout
-          ! remcvc washout
+          ! rainout: rainout
+          ! washout washout
 
           if ( itr == ih2o2 ) then
             temp_rain(i) = (d_one- &
@@ -599,8 +599,8 @@ module mod_che_wetdep
             temp_rain(i) = temp_dep(i)
             temp_wash(i) = d_zero
           end if
-          remlsc(j,i,k,itr) = remlsc(j,i,k,itr) - temp_rain(i)*cfdout
-          remcvc(j,i,k,itr) = remcvc(j,i,k,itr) - temp_wash(i)*cfdout
+          rainout(j,i,k,itr) = rainout(j,i,k,itr) - temp_rain(i)*cfdout
+          washout(j,i,k,itr) = washout(j,i,k,itr) - temp_wash(i)*cfdout
         end do
       end do
     end do
@@ -608,17 +608,17 @@ module mod_che_wetdep
     ! diagnostic for durface fluxes
     do itr = 1 , ntr
       do i = ici1 , ici2
-        wdlsc(j,i,itr) = d_zero
-        wdcvc(j,i,itr) = d_zero
+        wdrout(j,i,itr) = d_zero
+        wdwout(j,i,itr) = d_zero
         do k = 1 , kz
           ! sum on the vertical to get total surface flux diag fo rain out
           ! and washout (already weighted for time average cfdout !),
           ! also change sign convention normalise by psb to get the right
           ! flux unit
-          wdlsc(j,i,itr) = wdlsc(j,i,itr) - &
-            remlsc(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
-          wdcvc(j,i,itr) = wdcvc(j,i,itr) - &
-            remcvc(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
+          wdrout(j,i,itr) = wdrout(j,i,itr) - &
+            rainout(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
+          wdwout(j,i,itr) = wdwout(j,i,itr) - &
+            washout(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
         end do
       end do
     end do
@@ -656,6 +656,9 @@ module mod_che_wetdep
     ! cloud scavenging (s-1)
     real(rk8) , parameter :: remcum = 1.0D-3
 
+
+    
+
     do n = 1 , mbin
       ! wet deposition term
       ! Wet removal at resolvable scale (fcc)
@@ -666,11 +669,20 @@ module mod_che_wetdep
       ! level average removal rates
       ! here remrat is divided by fracloud (large scale cloud fraction)
       ! to get the correct in cloud removal rate
+    
+      ! Notes :  
+      ! For the CLM interface, 
+      ! We calculate now  an instantaneous surface wet depoistion fluxcwet dep
+      ! representing the sum of convective and large scale washout and rainout. 
+      !  
+      ! For the diag, convective and large scale rainout ( washout) are 
+      ! added
 
-      ! IMPORTANT NOTE : for the diag, we use now rmlsc and remcvc arrays
-      ! to output rainout and wahout instead of the large scale vs convective
-      ! removal. In each arry convective and large scale rainout ( washout)
-      ! added. The name of the array is thus a bit misleading
+      ! Important: ! convective, large scale, washout and rainout fluxes of every vertical
+      ! level are summed for surface flux calculation.     
+      !  cwetdepflx(:,:,indp(n)) is also a time accumulated array which is set to 0
+      !  when the surface (CLM45)  scheme is called . The average between
+      !  surface time steps is calculated in the atm to surface interface  
 
       if ( ichremlsc == 1 ) then
         do k = 1 , kz
@@ -683,8 +695,16 @@ module mod_che_wetdep
                    (dexp(-cremrat(j,i,k)/fracloud(i,k)*dt)-d_one)
                 chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
                    wetrem(indp(n))/dt
-                ! save the tendency as a diag
-                remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) + &
+
+                ! sum up the flux on the vertical to get instantaneous surface
+                ! deposition flux
+                ! in (Kg/m2/s) passed to CLM surface scheme ( change sign
+                ! convention to get a positive deposition flux) 
+                cwetdepflx(j,i,indp(n))  = cwetdepflx(j,i,indp(n)) - wetrem(indp(n))/ dt *cdzq(j,i,k)*crhob3d(j,i,k) /cpsb(j,i)
+
+                ! save the tendency as a diag (accumulated for average at output
+                ! time step)
+                rainout(j,i,k,indp(n)) = rainout(j,i,k,indp(n)) + &
                    wetrem(indp(n))/dt  *cfdout
               end if
             end if
@@ -692,7 +712,7 @@ module mod_che_wetdep
         end do
       end if
 
-      if ( ichremcvc == 1 ) then
+      if ( ichremcvc== 1 ) then
         ! sub-scale wet removal, cumulus cloud (fracum)
         ! remcum = in cloud removal rate for cumulus cloud scavenging (s-1)
         ! remcum = 1.e-3
@@ -703,8 +723,14 @@ module mod_che_wetdep
                    chib(j,i,k,indp(n))*(dexp(-remcum*dt)-d_one)
               chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
                    wetrem_cvc(indp(n))/dt
-         !add the concvetive rainout to large scale save the tendency as a diag
-              remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) + &
+
+              ! add to large scale and sum up the flux on the vertical to get instantaneous surface flux
+              !in (Kg/m2/s) passed to CLM surface scheme ( change sign
+              !convention to get a positive flux) 
+              cwetdepflx(j,i,indp(n))  = cwetdepflx(j,i,indp(n)) -  wetrem_cvc(indp(n))/ dt *cdzq(j,i,k)*crhob3d(j,i,k) /cpsb(j,i)
+
+              !add the concvetive rainout to large scale save the tendency as a diag
+              rainout(j,i,k,indp(n)) = rainout(j,i,k,indp(n)) + &
                    wetrem_cvc(indp(n))/ dt *cfdout
             end do
           end if
@@ -760,25 +786,29 @@ module mod_che_wetdep
         do i = ici1 , ici2
           wtend = chib(j,i,k,indp(n))*(d_one-dexp(-wetdep(i,k,n)*dt))/dt
           chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend
+
+          ! add to rainout flux  and sum up on the vertical to get instantaneous surface flux (
+          ! in Kg/m2/s) passed to CLM surface scheme. 
+          cwetdepflx(j,i,indp(n))  = cwetdepflx(j,i,indp(n))+ wtend *cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
           ! wet deposition washout diagnostic ( both from conv and large scale)
-          remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - wtend * cfdout
+          washout(j,i,k,indp(n)) = washout(j,i,k,indp(n)) - wtend * cfdout
         end do
       end do
     end do
 
     do n = 1, mbin
       do i = ici1 , ici2
-        wdlsc(j,i,indp(n)) = d_zero
-        wdcvc(j,i,indp(n)) = d_zero
+        wdrout(j,i,indp(n)) = d_zero
+        wdwout(j,i,indp(n)) = d_zero
         do k = 1 , kz
-          ! sum on the vertical to get total surface flux diag fo rain out
+          ! sum on the vertical to get total surface flux diag for rain out
           ! and washout (already weighted for time average cfdout !),
           ! also change sign convention
           ! normalise by psb to get the right flux unit
-          wdlsc(j,i,indp(n)) = wdlsc(j,i,indp(n)) - &
-            remlsc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
-          wdcvc(j,i,indp(n)) = wdcvc(j,i,indp(n)) - &
-            remcvc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
+          wdrout(j,i,indp(n)) = wdrout(j,i,indp(n)) - &
+            rainout(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
+          wdwout(j,i,indp(n)) = wdwout(j,i,indp(n)) - &
+            washout(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
         end do
       end do
     end do

@@ -43,13 +43,13 @@ module mod_che_output
       integer(ik4) :: k
 
       if ( associated(che_wdrflx_out) ) then
-        che_wdrflx_out = wdlsc(jci1:jci2,ici1:ici2,itr)*cfd
+        che_wdrflx_out = wdrout(jci1:jci2,ici1:ici2,itr)*cfd
       end if
-      wdlsc(:,:,itr) = d_zero
+      wdrout(:,:,itr) = d_zero
       if ( associated(che_wdcflx_out) ) then
-        che_wdcflx_out = wdcvc(jci1:jci2,ici1:ici2,itr)*cfd
+        che_wdcflx_out = wdwout(jci1:jci2,ici1:ici2,itr)*cfd
       end if
-      wdcvc(:,:,itr) = d_zero
+      wdwout(:,:,itr) = d_zero
       if ( associated(che_ddflx_out) ) then
         che_ddflx_out = remdrd(jci1:jci2,ici1:ici2,itr)*cfd
       end if
@@ -116,13 +116,13 @@ module mod_che_output
         ctbldiag(:,:,:,itr) = d_zero
         if ( associated(che_raiten_out) ) then
           do k = 1 , kz
-            che_raiten_out(:,:,k) = remcvc(jci1:jci2,ici1:ici2,k,itr) / &
+            che_raiten_out(:,:,k) = washout(jci1:jci2,ici1:ici2,k,itr) / &
                              cpsb(jci1:jci2,ici1:ici2)
           end do
         end if
         if ( associated(che_wasten_out) ) then
           do k = 1 , kz
-            che_wasten_out(:,:,k) = remlsc(jci1:jci2,ici1:ici2,k,itr) / &
+            che_wasten_out(:,:,k) = rainout(jci1:jci2,ici1:ici2,k,itr) / &
                              cpsb(jci1:jci2,ici1:ici2)
           end do
         end if
@@ -152,8 +152,8 @@ module mod_che_output
         cemisdiag(:,:,:,itr) = d_zero
       endif
 
-      remlsc(:,:,:,itr) = d_zero
-      remcvc(:,:,:,itr) = d_zero
+      rainout(:,:,:,itr) = d_zero
+      washout(:,:,:,itr) = d_zero
       rxsg(:,:,:,itr) = d_zero
       rxsaq1(:,:,:,itr) = d_zero
       rxsaq2(:,:,:,itr) = d_zero

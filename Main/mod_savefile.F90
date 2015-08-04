@@ -537,10 +537,10 @@ module mod_savefile
           ncstatus = nf90_get_var(ncid,get_varid(ncid,'taucldsp'),taucldsp_io)
           call check_ok(__FILE__,__LINE__,'Cannot read taucldsp')
         end if
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'remlsc'),remlsc_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read remlsc')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'remcvc'),remcvc_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read remcvc')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'rainout'),rainout_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read rainout')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'washout'),washout_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read washout')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'remdrd'),remdrd_io)
         call check_ok(__FILE__,__LINE__,'Cannot read remdrd')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'ssw2da'),ssw2da_io)
@@ -884,12 +884,12 @@ module mod_savefile
         end if
         wrkdim(3) = dimids(idkh)
         wrkdim(4) = dimids(idntr)
-        ncstatus = nf90_def_var(ncid,'remlsc',nf90_double, &
+        ncstatus = nf90_def_var(ncid,'rainout',nf90_double, &
                                 wrkdim(1:4),varids(77))
-        call check_ok(__FILE__,__LINE__,'Cannot create var remlsc')
-        ncstatus = nf90_def_var(ncid,'remcvc',nf90_double, &
+        call check_ok(__FILE__,__LINE__,'Cannot create var rainout')
+        ncstatus = nf90_def_var(ncid,'washout',nf90_double, &
                                 wrkdim(1:4),varids(78))
-        call check_ok(__FILE__,__LINE__,'Cannot create var remcvc')
+        call check_ok(__FILE__,__LINE__,'Cannot create var washout')
         wrkdim(3) = dimids(idntr)
         ncstatus = nf90_def_var(ncid,'remdrd',nf90_double, &
                                 wrkdim(1:3),varids(79))
@@ -1152,10 +1152,10 @@ module mod_savefile
           ncstatus = nf90_put_var(ncid,varids(76),taucldsp_io)
           call check_ok(__FILE__,__LINE__,'Cannot write taucldsp')
         end if
-        ncstatus = nf90_put_var(ncid,varids(77),remlsc_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write remlsc')
-        ncstatus = nf90_put_var(ncid,varids(78),remcvc_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write remcvc')
+        ncstatus = nf90_put_var(ncid,varids(77),rainout_io)
+        call check_ok(__FILE__,__LINE__,'Cannot write rainout')
+        ncstatus = nf90_put_var(ncid,varids(78),washout_io)
+        call check_ok(__FILE__,__LINE__,'Cannot write washout')
         ncstatus = nf90_put_var(ncid,varids(79),remdrd_io)
         call check_ok(__FILE__,__LINE__,'Cannot write remdrd')
         ncstatus = nf90_put_var(ncid,varids(80),ssw2da_io)

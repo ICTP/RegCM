@@ -54,8 +54,8 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
   real(rk8) , pointer , dimension(:,:,:,:) :: chia , chib
   real(rk8) , pointer , dimension(:,:,:) :: srclp2
-  real(rk8) , pointer , dimension(:,:,:) :: dtrace , wdcvc , &
-                                           wdlsc , wxaq , wxsg , ddv_out
+  real(rk8) , pointer , dimension(:,:,:) :: dtrace , wdwout , &
+                                           wdrout , wxaq , wxsg , ddv_out
   real(rk8) , pointer , dimension(:,:,:) :: drydepv
 
   real(rk8) , pointer , dimension(:,:,:,:) :: chemall , jphoto
@@ -72,7 +72,7 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:,:) :: convcldfra , cemtrac , remdrd
 
   ! diagnostic
-  real(rk8) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
+  real(rk8) , pointer , dimension(:,:,:,:) :: washout , rainout , &
                                              rxsaq1 , rxsaq2 , rxsg
   real(rk8) , pointer , dimension(:,:,:,:) :: chemdiag , cadvhdiag , &
           cadvvdiag , cdifhdiag , cconvdiag , cbdydiag , ctbldiag ,  &
@@ -88,7 +88,7 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:,:,:) :: cqxb3d
   real(rk8) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d , &
          crhob3d , cpb3d , cfcc , cza , cdzq , ccldfra , crembc , cremrat ,  &
-         cconvpr , crhb3d
+         cconvpr , crhb3d, cdrydepflx, cwetdepflx
   real(rk8) , pointer , dimension(:,:) :: cpsb , ctg , ctga , clndcat , cht , &
          cssw2da , cvegfrac , cxlai2d , csol2d , csdeltk2d , csdelqk2d , &
          cuvdrag , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc , cps2d
@@ -105,9 +105,10 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:) :: cvoc_em1
   real(rk8) , pointer , dimension(:,:) :: cvoc_em2
 #endif
-#if defined CLM
+#if defined CLM 
   real(rk8) , pointer , dimension(:,:,:) :: cdep_vels
 #endif
+
 
   contains
 
@@ -158,10 +159,10 @@ module mod_che_common
                     'che_common:rxsaq1')
       call getmem4d(rxsaq2,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
                     'che_common:rxsaq2')
-      call getmem4d(remlsc,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
-                    'che_common:remlsc')
-      call getmem4d(remcvc,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
-                    'che_common:remcvc')
+      call getmem4d(rainout,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
+                    'che_common:rainout')
+      call getmem4d(washout,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
+                    'che_common:washout')
       call getmem3d(remdrd,jce1,jce2,ice1,ice2,1,ntr,'che_common:remdrd')
 
       call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
@@ -177,14 +178,16 @@ module mod_che_common
                     1,nphoto,'che_common:jphoto')
 
       call getmem3d(dtrace,jce1,jce2,ice1,ice2,1,ntr,'che_common:dtrace')
-      call getmem3d(wdlsc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdlsc')
-      call getmem3d(wdcvc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdcvc')
+      call getmem3d(wdrout,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdrout')
+      call getmem3d(wdwout,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdwout')
 
       call getmem3d(wxsg,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxsg')
       call getmem3d(wxaq,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxaq')
       call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
       call getmem3d(drydepv,jce1,jce2,ice1,ice2,1,ntr,'che_common:drydepv')
       call getmem3d(ddv_out,jce1,jce2,ice1,ice2,1,ntr,'che_common:ddv_out')
+
+
 
       if ( ichdiag > 0 ) then
         call getmem4d(chiten0,jce1,jce2, &

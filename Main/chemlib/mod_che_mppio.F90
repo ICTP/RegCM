@@ -34,7 +34,7 @@ module mod_che_mppio
 
   private
 
-  real(rk8) , pointer , public , dimension(:,:,:,:) :: remlsc_io , remcvc_io
+  real(rk8) , pointer , public , dimension(:,:,:,:) :: rainout_io , washout_io
   real(rk8) , pointer , public , dimension(:,:,:) :: remdrd_io
   real(rk8) , pointer , public , dimension(:,:) :: ssw2da_io , sdelt_io ,   &
                                          sdelq_io , sfracv2d_io , &
@@ -55,10 +55,10 @@ module mod_che_mppio
 
       if ( ichem == 1 ) then
         if ( myid == iocpu ) then
-          call getmem4d(remlsc_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,1,ntr,'che_mppio:remlsc_io')
-          call getmem4d(remcvc_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,1,ntr,'che_mppio:remcvc_io')
+          call getmem4d(rainout_io,jcross1,jcross2,icross1,icross2, &
+                        1,kz,1,ntr,'che_mppio:rainout_io')
+          call getmem4d(washout_io,jcross1,jcross2,icross1,icross2, &
+                        1,kz,1,ntr,'che_mppio:washout_io')
           call getmem3d(remdrd_io,jcross1,jcross2,icross1,icross2, &
                         1,ntr,'che_mppio:remdrd_io')
 

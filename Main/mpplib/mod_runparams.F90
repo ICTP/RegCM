@@ -302,6 +302,11 @@ module mod_runparams
   integer(ik4) , public :: ichbion
   real(rk8) , public :: rdstemfac
 
+  ! chemistry species indices that are used not only in chemlib but also in
+  ! other interface ( e.g CLM4.5)/ other species are delcared in
+  ! chemlib/mod_che_indices
+  integer(ik4) , public :: ibchb,ibchl,iochl,iochb,ianh4,iano3
+
   ! Large scale SUBEX parameters
 
   integer(ik4) , public :: ncld ! # of bottom model levels with no clouds

@@ -66,29 +66,30 @@ module mod_che_interface
   public :: cdifhdiag , ctbldiag
   public :: chem_bdyin , chem_bdyval
   public :: chemall , chemall_io
-  public :: remcvc , remcvc_io
+  public :: washout , washout_io
   public :: remdrd , remdrd_io
-  public :: remlsc , remlsc_io
+  public :: rainout , rainout_io
   public :: sdelq_io , sdelt_io , sfracb2d_io , sfracs2d_io , ssw2da_io
   public :: sfracv2d_io , svegfrac2d_io , taucldsp_io
 
   contains
 
 #if (defined CLM45)
-  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,       &
-                       rembc,remrat,coszrs,svegfrac2d,sxlai2d,     &
-                       sfracv2d,sfracb2d,sfracs2d,solis,sdelt,     &
-                       sdelq,ssw2da,convpr,icutop,icubot,taucldsp, &
-                       lms)
+  subroutine init_chem()
+!(fcc,cldfra,       &
+!                       rembc,remrat,coszrs,svegfrac2d,sxlai2d,     &
+!                       sfracv2d,sfracb2d,sfracs2d,solis,sdelt,     &
+!                       sdelq,ssw2da,convpr,icutop,icubot,taucldsp &
+!                       )
 #else
 #if defined CLM
-  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,       &
+  subroutine init_chem(fcc,cldfra,       &
                        rembc,remrat,coszrs,svegfrac2d,sxlai2d,     &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdelt,     &
                        sdelq,ssw2da,convpr,icutop,icubot,taucldsp, &
                        voc_em,voc_em1,voc_em2,dep_vels)
 #else
-  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,   &
+  subroutine init_chem(fcc,cldfra,   &
                        rembc,remrat,coszrs,svegfrac2d,sxlai2d, &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdelt, &
                        sdelq,ssw2da,convpr,icutop,icubot,      &
@@ -100,30 +101,30 @@ module mod_che_interface
     ! the rest of the model
     ! It also call startchem which is the chemistry initialisation routine
 
+     use mod_atm_interface
+     use mod_rad_interface
+     use mod_precip
     implicit none
 
-    real(rk8), pointer, dimension(:,:,:),intent(in) :: fcc
-    real(rk8), pointer, dimension(:,:) :: svegfrac2d , solis , sdelt , &
-             sdelq , ssw2da , sfracv2d , sfracb2d , sfracs2d , sxlai2d
-    real(rk8), pointer, dimension(:,:,:) :: cldfra , rembc , remrat , convpr
-    real(rk8), pointer, dimension(:,:,:,:) :: taucldsp
-    integer(ik4) , pointer , dimension(:,:)  :: icutop , icubot
-    type(slice) , intent(in) :: atms
-    type(domain) , intent(in) :: mddom
-    type(surfstate) , intent(in) :: sfs
-    type(v2dbound) , intent(in) :: xpsb
-    type(bound_area) , intent(in) :: ba_cr
-    real(rk8) , pointer , dimension(:,:) :: coszrs
+
+!    real(rk8), pointer, dimension(:,:,:),intent(in) :: fcc
+!    real(rk8), pointer, dimension(:,:) :: svegfrac2d , solis , sdelt , &
+!             sdelq , ssw2da , sfracv2d , sfracb2d , sfracs2d , sxlai2d
+!    real(rk8), pointer, dimension(:,:,:) :: cldfra , rembc , remrat , convpr
+!    real(rk8), pointer, dimension(:,:,:,:) :: taucldsp
+!    integer(ik4) , pointer , dimension(:,:)  :: icutop , icubot
+!    real(rk8) , pointer , dimension(:,:) :: coszrs
+
 #if (defined CLM45)
-    type(lm_state),intent(in) :: lms
+  !  type(lm_exchange) :: lm
 #endif
 #if defined CLM
     real(rk8), pointer :: voc_em(:,:), voc_em1(:,:), voc_em2(:,:)
     real(rk8), pointer :: dep_vels(:,:,:)
 #endif
 
-    call assignpnt(icutop,kcumtop)
-    call assignpnt(icubot,kcumbot)
+    call assignpnt(icumtop,kcumtop)
+    call assignpnt(icumbot,kcumbot)
     call assignpnt(atms%tb3d,ctb3d)
     call assignpnt(atms%qxb3d,cqxb3d)
     call assignpnt(atms%rhob3d,crhob3d)
@@ -183,6 +184,11 @@ module mod_che_interface
 #if (defined CLM45)
     call getmem2d(voc_em,jci1,jci2,ici1,ici2,'clm:voc_em')
     call assignpnt(voc_em,cvoc_em)
+
+    call assignpnt(wetdepflx,cwetdepflx)
+    call assignpnt(drydepflx,cdrydepflx)
+    call assignpnt(idusts,idust)
+
 #endif
 #if defined CLM
 #if defined VOC

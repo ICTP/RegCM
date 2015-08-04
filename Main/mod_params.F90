@@ -1451,31 +1451,14 @@ module mod_params
 
     call init_advection
     call init_precip
-    call init_surface_model
-    call init_cumulus
-
     if ( ichem == 1 ) then
-#if defined CLM45
-      call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat,    &
-                     coszrs,svegfrac2d,sxlai2d,sfracv2d,sfracb2d,sfracs2d, &
-                     solis,sdelt,sdelq,ssw2da,convpr,icumtop,              &
-                     icumbot,taucldsp,lms)
-#else
-#if defined CLM
-      call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat,    &
-                     coszrs,svegfrac2d,sxlai2d,sfracv2d,sfracb2d,sfracs2d, &
-                     solis,sdelt,sdelq,ssw2da,convpr,icumtop,              &
-                     icumbot,taucldsp,voc_em,voc_em1,voc_em2,dep_vels)
-#else
-      call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat,    &
-                     coszrs,svegfrac2d,sxlai2d,sfracv2d,sfracb2d,sfracs2d, &
-                     solis,sdelt,sdelq,ssw2da,convpr,icumtop,icumbot,taucldsp)
-#endif
-#endif
+      call init_chem
       do n = 1 , ntr
         call bcast(chtrname(n),6)
       end do
     end if
+    call init_surface_model
+    call init_cumulus
     call init_radiation
     if ( islab_ocean == 1 ) then
       call allocate_mod_slabocean

@@ -29,7 +29,9 @@ module mod_che_indices
   !ah   some of them correspond to the same compounds like isulf, ih2so4
   !ah   we did this just for flexibility
 
-  integer(ik4) :: iso2 , iso4 , idms , ibchl , ibchb , iochl , iochb
+  integer(ik4) :: iso2 , iso4 , idms
+!    ibchl , ibchb , iochl , iochb : now declared in mod_runparam for surface
+!    interface compatibility
 
   integer(ik4) :: imsa
   integer(ik4) :: io3 , ino , ino2 , ino3 , ioh , iho2 , ih2o2
@@ -43,7 +45,7 @@ module mod_che_indices
   integer(ik4) :: iethooh , ixo2 , iro2
   integer(ik4) :: iapin , ilimo
   integer(ik4) :: ialk4, ialk7
-  integer(ik4) :: ianh4, iano3
+!   integer(ik4) :: ianh4, iano3 : now declared in mod_runparam
 
   !*** abt added from wetdep scheme
   integer(ik4) :: iisopno3 , ich3ooh , ihydrald , ihyac , ipooh

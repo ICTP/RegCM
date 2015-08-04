@@ -612,22 +612,26 @@ module mod_che_drydep
               (d_one - dexp(-pdepv(i,kz,indsp(ib))/cdzq(j,i,kz)*dt ))/dt
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
 
+            ! save the dry deposition flux for coupling with
+            ! landsurface scheme (Kg.m2.s-1)
+            ! consider ddflux = Cav . Vd where Cav would be the average
+            ! concentration within the time step Cav = 0.5 (C + (C+deltaC))
+            ! care  chib and settend have to be corrected for pressure
+            ! cdrydepflux is a time accumulated array set to zero when surface
+            ! scheme is called (cf atm to surf interface)  
+
+            cdrydepflx(j,i,indsp(ib)) = cdrydepflx(j,i,indsp(ib)) + (chib(j,i,kz,indsp(ib))-settend(i,kz)*dt/d_two) / cpsb(j,i) *  &
+                                        crhob3d(j,i,kz)* ddepv(i,indsp(ib))
+
             !diagnostic for settling and drydeposition removal
             if ( ichdiag == 1 ) then
               cseddpdiag(j,i,kz,indsp(ib)) = cseddpdiag(j,i,kz,indsp(ib)) - &
                                              settend(i,kz) * cfdout
             end if
-            ! diagnostic for dry deposition flux (in kg .m2.s-1) accumulated
-            ! consider ddflux = Cav . Vd where Cav would be the average
-            ! concentration within the time step Cav = 0.5 (C + (C+deltaC))
-            ! care  chib and settend have to be corrected for pressure 
+            ! accumulated diagnostic for dry deposition flux average (in kg .m2.s-1)
 
             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-                (chib(j,i,kz,indsp(ib))-settend(i,kz)*dt/d_two) / cpsb(j,i) *  &
-                 crhob3d(j,i,kz)* ddepv(i,indsp(ib)) * cfdout
-! 
-!            remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-!                 chib3d(j,i,kz,indsp(ib)) *crhob3d(j,i,kz)* &
+                                    cdrydepflx(j,i,indsp(ib)) * cfdout
 
             ! no net flux is passed to BL schemes in this case
             chifxuw(j,i,indsp(ib)) = d_zero

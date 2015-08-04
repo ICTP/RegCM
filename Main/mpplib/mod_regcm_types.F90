@@ -435,6 +435,9 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: emissivity  ! emiss
     real(rk8) , pointer , dimension(:,:) :: deltaq      ! sdelq
     real(rk8) , pointer , dimension(:,:) :: deltat      ! sdelt
+    real(rk8) , pointer , dimension(:,:,:) :: drydepflx   ! drydepflx
+    real(rk8) , pointer , dimension(:,:,:) :: wetdepflx   ! wetdepflx
+    integer(ik4) , pointer , dimension(:) :: idust        ! dust indices 
   end type lm_exchange
 
   type mod_2_rad

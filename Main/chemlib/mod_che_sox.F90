@@ -197,10 +197,10 @@ module mod_che_sox
                               wetrem(iso4)/dt
 
          ! and wetdep diagnostics
-         ! just for iso2 washout (remcvc) here.
+         ! just for iso2 washout (washout) here.
          ! only the contribution of large scale cloud is accounted for
-         remcvc(j,i,k,iso2) = remcvc(j,i,k,iso2) - wetrem(iso2)/dt *cfdout
-         ! remlsc(j,i,k,iso4) = remlsc(j,i,k,iso4) - wetrem(iso4)/d_two
+         washout(j,i,k,iso2) = washout(j,i,k,iso2) - wetrem(iso2)/dt *cfdout
+         ! rainout(j,i,k,iso4) = rainout(j,i,k,iso4) - wetrem(iso4)/d_two
 
          ! chemical aqueous conversion diagnostic
 
@@ -240,8 +240,8 @@ module mod_che_sox
 
            ! diagnostic of wet deposition: NOT relevant here
            ! only SO2 below large scale cloud washout is considered above
-           ! remcvc(j,i,k,1) = remcvc(j,i,k,1) - wetrem_cvc(iso2)/2.
-           ! remcvc(j,i,k,iso2) = remcvc(j,i,k,iso4) - wetrem_cvc(iso4)/d_two
+           ! washout(j,i,k,1) = washout(j,i,k,1) - wetrem_cvc(iso2)/2.
+           ! washout(j,i,k,iso2) = washout(j,i,k,iso4) - wetrem_cvc(iso4)/d_two
 
            ! chemical aquesous conversion diagnostic
            ! ( add the contribution of gas + wet lsc + wet cum conversions)
@@ -256,15 +256,15 @@ module mod_che_sox
      ! diagnostic for SO2 durface fluxes
 
      do i = ici1 , ici2
-       wdlsc(j,i,iso2) = d_zero
-       wdcvc(j,i,iso2) = d_zero
+       wdrout(j,i,iso2) = d_zero
+       wdwout(j,i,iso2) = d_zero
        do k = 1 , kz
          ! sum on the vertical to get total surface flux diag fo rain out
          ! and washout (already weighted for time average cfdout !),
          ! also change sign convention normalise by psb to get the right
          ! flux unit
-         wdcvc(j,i,iso2) = wdcvc(j,i,iso2) - &
-            remcvc(j,i,k,iso2)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
+         wdwout(j,i,iso2) = wdwout(j,i,iso2) - &
+            washout(j,i,k,iso2)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
        end do
      end do
 
