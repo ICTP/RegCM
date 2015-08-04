@@ -710,6 +710,16 @@ module mod_tendency
           end do
         end do
       end do
+      do n = 1 , nqx
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + &
+                        atmx%qx(j,i,k,n)*mdv%cr(j,i,k)
+            end do
+          end do
+        end do
+      end do
       !
       ! Vertical velocity tendency. Following terms are included here:
       ! (1) bouyancy terms: 2nd subterm and part of the 3rd subterm of the
