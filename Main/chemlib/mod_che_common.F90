@@ -88,7 +88,7 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:,:,:) :: cqxb3d
   real(rk8) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d , &
          crhob3d , cpb3d , cfcc , cza , cdzq , ccldfra , crembc , cremrat ,  &
-         cconvpr , crhb3d, cdrydepflx, cwetdepflx
+         cconvpr , crhb3d , cdrydepflx , cwetdepflx
   real(rk8) , pointer , dimension(:,:) :: cpsb , ctg , ctga , clndcat , cht , &
          cssw2da , cvegfrac , cxlai2d , csol2d , csdeltk2d , csdelqk2d , &
          cuvdrag , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc , cps2d
@@ -105,10 +105,9 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:) :: cvoc_em1
   real(rk8) , pointer , dimension(:,:) :: cvoc_em2
 #endif
-#if defined CLM 
+#if defined CLM
   real(rk8) , pointer , dimension(:,:,:) :: cdep_vels
 #endif
-
 
   contains
 
@@ -186,8 +185,6 @@ module mod_che_common
       call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
       call getmem3d(drydepv,jce1,jce2,ice1,ice2,1,ntr,'che_common:drydepv')
       call getmem3d(ddv_out,jce1,jce2,ice1,ice2,1,ntr,'che_common:ddv_out')
-
-
 
       if ( ichdiag > 0 ) then
         call getmem4d(chiten0,jce1,jce2, &

@@ -42,7 +42,6 @@ module mod_cloud_s1
                              zauto_rate_klepi
   use mod_runparams , only : rkconv , rcovpmin , rpecons
   use mod_runparams , only : ktau
-  use mod_precip    , only : fcc
   use mod_runparams , only : rtsrf
 
   implicit none
@@ -54,6 +53,7 @@ module mod_cloud_s1
   real(rk8) :: zfall                                   ! constant fall speed
   real(rk8) :: zqtmst                                  ! 1/dt
   real(rk8) , pointer , dimension(:,:)   :: psf , rainnc, lsmrnc, snownc
+  real(rk8) , pointer , dimension(:,:,:) :: pfcc       ! from atm
   integer(ik4) , pointer , dimension(:,:) :: ldmsk
   real(rk8) , pointer , dimension(:,:,:) :: paph       ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: papf       ! from atms
@@ -380,6 +380,7 @@ module mod_cloud_s1
     call assignpnt(sfs%psb,psf)
     call assignpnt(sfs%rainnc,rainnc)
     call assignpnt(sfs%snownc,snownc)
+    call assignpnt(fcc,pfcc)
     call assignpnt(pptnc,lsmrnc)
     call assignpnt(heatrt,radheatrt)
     call assignpnt(q_detr,qdetr)
@@ -732,7 +733,7 @@ module mod_cloud_s1
           !--------------------------------
           ! in-cloud consensate amount
           !--------------------------------
-          ztmpa = d_one/max(fcc(j,i,k),zepsec)
+          ztmpa = d_one/max(pfcc(j,i,k),zepsec)
           zliqcld(j,i) = zqxx(j,i,k,iqql)*ztmpa
           zicecld(j,i) = zqxx(j,i,k,iqqi)*ztmpa
           zlicld(j,i)  = zliqcld(j,i) + zicecld(j,i)
@@ -779,7 +780,7 @@ module mod_cloud_s1
       ! Note also that the KOOP factor automatically clips the supersaturation
       ! to a maximum set by the liquid water saturation mixing ratio
       ! important for temperatures near to but below 0C
-      !qv_max = qs * (fcc + (1-fcc) *RH_homo ) if T < 0C
+      !qv_max = qs * (pfcc + (1-pfcc) *RH_homo ) if T < 0C
       !qv_max = qs                             if T > 0C
       !-----------------------------------------------------------------------
       do i = ici1 , ici2
@@ -792,7 +793,7 @@ module mod_cloud_s1
             zfac  = d_one
             zfaci = d_one
           else
-            zfac  = fcc(j,i,k) + zfokoop*(d_one-fcc(j,i,k))
+            zfac  = pfcc(j,i,k) + zfokoop*(d_one-pfcc(j,i,k))
           end if
 
           !-------------------------------------------------------------------
@@ -803,7 +804,7 @@ module mod_cloud_s1
           ! However, if the temperature is below the threshold for homogeneous
           ! freezing then the supersaturation is turned instantly to ice.
           ! Moreover the RH is clipped to the limit of
-          ! qv_max = qs * (fcc + (1-fcc) *RH_homo )
+          ! qv_max = qs * (pfcc + (1-pfcc) *RH_homo )
           !--------------------------------------------------------------------
           ! zqsmix?
           ! zcorqslsliq? shouldn't it be zcorqsmix?
@@ -832,7 +833,7 @@ module mod_cloud_s1
               end if
             end if
           else if ( zsubsat(j,i) < d_zero .and. &
-                    fcc(j,i,k) == d_zero .and. zli(j,i,k) > zepsec ) then
+                    pfcc(j,i,k) == d_zero .and. zli(j,i,k) > zepsec ) then
             ! turn subsaturation into vapor, where there is no cloud
             excess = zli(j,i,k)+zsubsat(j,i)
             if ( excess < d_zero ) then
@@ -891,7 +892,7 @@ module mod_cloud_s1
       ! each of these is a parametrization for a microphysical process.
       do i = ici1 , ici2
         do j = jci1 , jci2
-          fccfg(j,i,k) = fcc(j,i,k)
+          fccfg(j,i,k) = pfcc(j,i,k)
         end do
       end do
       !------------------------------------------------------------------
@@ -916,8 +917,8 @@ module mod_cloud_s1
 
               ! adjustment of the cloud fraction, that increases when qdetr
               ! adds liquid to the scheme
-              ! zqe = (zqxx(j,i,k,iqqv)-fcc(j,i,k)*zqsmix(j,i,k)) / &
-              !        zqsice(j,i,k)) / max(zepsec,d_one-fcc(j,i,k))
+              ! zqe = (zqxx(j,i,k,iqqv)-pfcc(j,i,k)*zqsmix(j,i,k)) / &
+              !        zqsice(j,i,k)) / max(zepsec,d_one-pfcc(j,i,k))
               ! zqe = max(d_zero,min(zqe,zqsmix(j,i,k))) !zqsice(j,i,k)))
               ! define the new cloud
               ! fccfg(j,i,k) = (relh(j,i,k)**0.25D0)* &
@@ -926,13 +927,13 @@ module mod_cloud_s1
               !                sqrt((d_one-relh(j,i,k))*zqsice(j,i,k)))))
               ! fccfg(j,i,k) = dmin1(dmax1(fccfg(j,i,k),0.01D0),0.99D0)
               ! zevap = min(zqdetr(j,i,k),(fccfg(j,i,k) - &
-              !                            fcc(j,i,k))*(zqsice(j,i,k)-zqe))
+              !                            pfcc(j,i,k))*(zqsice(j,i,k)-zqe))
               ! zevap = max(zevap,d_zero)
               ! zqdetr2(j,i,k) = zqdetr2(j,i,k) - zevap
               ! if (zqdetr2(j,i,k) > d_zero) then
               !    fccfg(j,i,k) = fccfg(j,i,k)
               ! else
-              !    fccfg(j,i,k) = fcc(j,i,k)
+              !    fccfg(j,i,k) = pfcc(j,i,k)
               ! end if
               ! zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql) + zevap
               ! zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv) - zevap

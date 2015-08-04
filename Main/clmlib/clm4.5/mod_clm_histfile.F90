@@ -2020,6 +2020,7 @@ module mod_clm_histfile
       call clm_writevar(nfid(t),'landmask',ldomain%mask,gcomm_gridcell)
       call clm_writevar(nfid(t),'pftmask',ldomain%pftm,gcomm_gridcell)
       call clm_writevar(nfid(t),'regcm_mask',lndcomm%global_out_sgmask)
+      call clm_syncfile(nfid(t))
 
     end if  ! (define/write mode
 
@@ -2153,6 +2154,9 @@ module mod_clm_histfile
         end if
       end if
     end do
+    if ( mode == 'write' ) then
+      call clm_syncfile(nfid(t))
+    end if
   end subroutine hfields_write
   !
   ! Write/define 1d info for history tape.

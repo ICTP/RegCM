@@ -956,12 +956,11 @@ module mod_lm_interface
     lm%ncprate = d_zero
     lm%cprate  = d_zero
 
-    !Reset also accumulation for deposition fluxes
-    if (ichem == 1) then 
-    lm%wetdepflx = d_zero
-    lm%drydepflx = d_zero
+    ! Reset also accumulation for deposition fluxes
+    if ( ichem == 1 ) then
+      lm%wetdepflx = d_zero
+      lm%drydepflx = d_zero
     end if
-
   end subroutine collect_output
 
 end module mod_lm_interface

@@ -1452,7 +1452,11 @@ module mod_params
     call init_advection
     call init_precip
     if ( ichem == 1 ) then
+#ifdef CLM
+      call init_chem(voc_em,voc_em1,voc_em2,dep_vels)
+#else
       call init_chem
+#endif
       do n = 1 , ntr
         call bcast(chtrname(n),6)
       end do

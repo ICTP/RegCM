@@ -74,46 +74,18 @@ module mod_che_interface
 
   contains
 
-#if (defined CLM45)
-  subroutine init_chem()
-!(fcc,cldfra,       &
-!                       rembc,remrat,coszrs,svegfrac2d,sxlai2d,     &
-!                       sfracv2d,sfracb2d,sfracs2d,solis,sdelt,     &
-!                       sdelq,ssw2da,convpr,icutop,icubot,taucldsp &
-!                       )
-#else
 #if defined CLM
-  subroutine init_chem(fcc,cldfra,       &
-                       rembc,remrat,coszrs,svegfrac2d,sxlai2d,     &
-                       sfracv2d,sfracb2d,sfracs2d,solis,sdelt,     &
-                       sdelq,ssw2da,convpr,icutop,icubot,taucldsp, &
-                       voc_em,voc_em1,voc_em2,dep_vels)
+  subroutine init_chem(voc_em,voc_em1,voc_em2,dep_vels)
 #else
-  subroutine init_chem(fcc,cldfra,   &
-                       rembc,remrat,coszrs,svegfrac2d,sxlai2d, &
-                       sfracv2d,sfracb2d,sfracs2d,solis,sdelt, &
-                       sdelq,ssw2da,convpr,icutop,icubot,      &
-                       taucldsp)
+  subroutine init_chem
 #endif
-#endif
-
     ! this routine define the pointer interface between the chem module and
     ! the rest of the model
     ! It also call startchem which is the chemistry initialisation routine
 
-     use mod_atm_interface
-     use mod_rad_interface
-     use mod_precip
+    use mod_atm_interface
+    use mod_rad_interface
     implicit none
-
-
-!    real(rk8), pointer, dimension(:,:,:),intent(in) :: fcc
-!    real(rk8), pointer, dimension(:,:) :: svegfrac2d , solis , sdelt , &
-!             sdelq , ssw2da , sfracv2d , sfracb2d , sfracs2d , sxlai2d
-!    real(rk8), pointer, dimension(:,:,:) :: cldfra , rembc , remrat , convpr
-!    real(rk8), pointer, dimension(:,:,:,:) :: taucldsp
-!    integer(ik4) , pointer , dimension(:,:)  :: icutop , icubot
-!    real(rk8) , pointer , dimension(:,:) :: coszrs
 
 #if (defined CLM45)
   !  type(lm_exchange) :: lm
@@ -135,7 +107,7 @@ module mod_che_interface
     call assignpnt(atms%vbx3d,cvbx3d)
     call assignpnt(atms%chib3d,chib3d)
     call assignpnt(atms%rhb3d,crhb3d)
-!
+
     call assignpnt(mddom%lndcat,clndcat)
     call assignpnt(mddom%xlat,cxlat)
     call assignpnt(mddom%ht,cht)

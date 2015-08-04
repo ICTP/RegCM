@@ -82,7 +82,6 @@ module mod_rad_interface
 
   subroutine init_radiation
     use mod_atm_interface
-    use mod_che_interface
     implicit none
     ! Set pipings from atm_interface to radiation I/O data types
 

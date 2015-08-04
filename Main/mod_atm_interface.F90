@@ -118,6 +118,10 @@ module mod_atm_interface
   ! Precip
   real(rk8) , pointer , public , dimension(:,:) :: pptnc
   real(rk8) , pointer , public , dimension(:,:) :: prnca
+  real(rk8) , pointer , public , dimension(:,:,:) :: fcc
+  real(rk8) , pointer , public , dimension(:,:,:) :: remrat
+  real(rk8) , pointer , public , dimension(:,:,:) :: rembc
+  real(rk8) , pointer , public , dimension(:,:,:) :: totc
 
   ! PBL
   integer(ik4) , public , pointer , dimension(:,:) :: kpbl
@@ -984,7 +988,13 @@ module mod_atm_interface
       call getmem2d(prca,jci1,jci2,ici1,ici2,'storage:prca')
       call getmem2d(icumbot,jci1,jci2,ici1,ici2,'storage:icumbot')
       call getmem2d(icumtop,jci1,jci2,ici1,ici2,'storage:icumtop')
+
+      ! This needs to be saved in SAV file
+      call getmem3d(fcc,jci1,jci2,ici1,ici2,1,kz,'storage:fcc')
+      call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'storage:totc')
       if ( ichem == 1 ) then
+        call getmem3d(rembc,jci1,jci2,ici1,ici2,1,kz,'storage:rembc')
+        call getmem3d(remrat,jci1,jci2,ici1,ici2,1,kz,'storage:remrat')
         call getmem3d(convpr,jci1,jci2,ici1,ici2,1,kz,'storage:convpr')
         call getmem2d(ssw2da,jci1,jci2,ici1,ici2,'storage:ssw2da')
         call getmem2d(sfracv2d,jci1,jci2,ici1,ici2,'storage:sfracv2d')
@@ -994,8 +1004,7 @@ module mod_atm_interface
         call getmem2d(sxlai2d,jci1,jci2,ici1,ici2,'storage:sxlai2d')
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
-        call getmem1d(idusts, 1,nbin,'storage:idusts')
-
+        call getmem1d(idusts,1,nbin,'storage:idusts')
       end if
       if ( iocncpl == 1 ) then
         call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'storage:cplmsk')

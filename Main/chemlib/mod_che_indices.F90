@@ -45,7 +45,7 @@ module mod_che_indices
   integer(ik4) :: iethooh , ixo2 , iro2
   integer(ik4) :: iapin , ilimo
   integer(ik4) :: ialk4, ialk7
-!   integer(ik4) :: ianh4, iano3 : now declared in mod_runparam
+! integer(ik4) :: ianh4, iano3 : now declared in mod_runparam
 
   !*** abt added from wetdep scheme
   integer(ik4) :: iisopno3 , ich3ooh , ihydrald , ihyac , ipooh

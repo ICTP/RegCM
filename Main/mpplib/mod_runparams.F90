@@ -305,7 +305,7 @@ module mod_runparams
   ! chemistry species indices that are used not only in chemlib but also in
   ! other interface ( e.g CLM4.5)/ other species are delcared in
   ! chemlib/mod_che_indices
-  integer(ik4) , public :: ibchb,ibchl,iochl,iochb,ianh4,iano3
+  integer(ik4) , public :: ibchb , ibchl , iochl , iochb , ianh4 , iano3
 
   ! Large scale SUBEX parameters
 

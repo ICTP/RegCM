@@ -19,7 +19,6 @@ module mod_clm_regcm
                               tcrit , denh2o , sb
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
- 
 
   private
 
@@ -29,6 +28,7 @@ module mod_clm_regcm
 
   real(rk8) , dimension(:,:) , pointer :: rprec , rsnow
   real(rk8) , dimension(:,:) , pointer :: chemdepflx
+
   contains
 
   subroutine initclm45(lm,lms)
@@ -276,7 +276,7 @@ module mod_clm_regcm
     clm_a2l%forc_q = clm_a2l%forc_q/(1.0D0+clm_a2l%forc_q)
     clm_a2l%rainf = clm_a2l%forc_rain+clm_a2l%forc_snow
 
-    ! interfae chemistry / surface 
+    ! interface chemistry / surface
 
     if ( ichem /= 1 ) then
       clm_a2l%forc_pco2 = co2_ppmv*1.D-6*clm_a2l%forc_psrf
@@ -285,100 +285,99 @@ module mod_clm_regcm
         clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
       end if
       clm_a2l%forc_po2 = o2_molar_const*clm_a2l%forc_psrf
-      ! deposition of aerosol == zero 
+      ! deposition of aerosol == zero
       clm_a2l%forc_aer(:,:) = d_zero !
-     
     else
       !
       ! interface with atmospheric chemistry
-      clm_a2l%forc_pco2 = co2_ppmv*1.D-6*clm_a2l%forc_psrf   ! CO2 partial pressure (Pa)
+      ! CO2 partial pressure (Pa)
+      clm_a2l%forc_pco2 = co2_ppmv*1.D-6*clm_a2l%forc_psrf
       if ( use_c13 ) then
-       clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2      ! C13O2 partial pressure (Pa)
+       ! C13O2 partial pressure (Pa)
+       clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
       end if
-      clm_a2l%forc_po2  =    o2_molar_const*clm_a2l%forc_psrf! O2 partial pressure (Pa)
-      ! FAB: this is the interactive part 
-      ! a) snow ageing 
-      ! flux of species have to be consistent with snowhydrology use of indices unit is kg/m2/s
-      ! drydeposition BC HL  
-      ! flux arriving through lm interface are accumulated between two surface call
-      ! : needs to average with rtsrf    
-      ! dry deposition BC HL 
+      ! O2 partial pressure (Pa)
+      clm_a2l%forc_po2 = o2_molar_const*clm_a2l%forc_psrf
+      ! FAB: this is the interactive part
+      ! a) snow ageing
+      !    flux of species have to be consistent with snowhydrology use
+      !    of indices unit is kg/m2/s
+      ! b) drydeposition BC HL
+      !    flux arriving through lm interface are accumulated between
+      !    two surface call : needs to average with rtsrf
+      ! c) dry deposition BC HL
       chemdepflx(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,ibchl) * rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-      clm_a2l%forc_aer(:,1) = clm_a2l%notused      
-      ! drydeposition BCHB      
+      clm_a2l%forc_aer(:,1) = clm_a2l%notused
+      ! drydeposition BCHB
       chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,ibchb) * rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-      clm_a2l%forc_aer(:,2) = clm_a2l%notused      
+      clm_a2l%forc_aer(:,2) = clm_a2l%notused
       ! wet dep BC (sum rainout and washout fluxes, sum hb amd hl)
       chemdepflx(:,:) =  (lm%wetdepflx(jci1:jci2,ici1:ici2,ibchb)  &
                        +  lm%wetdepflx(jci1:jci2,ici1:ici2,ibchl)) * rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-      clm_a2l%forc_aer(:,3) = clm_a2l%notused      
-      
-      ! drydeposition OC HL      
+      clm_a2l%forc_aer(:,3) = clm_a2l%notused
+
+      ! drydeposition OC HL
        chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,iochl)*  rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-      clm_a2l%forc_aer(:,4) = clm_a2l%notused      
-      ! drydeposition OC HB      
+      clm_a2l%forc_aer(:,4) = clm_a2l%notused
+      ! drydeposition OC HB
       chemdepflx(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,iochb) *  rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-      clm_a2l%forc_aer(:,5) = clm_a2l%notused      
+      clm_a2l%forc_aer(:,5) = clm_a2l%notused
       ! wet dep OC (sum rainout and washout fluxes, sum hb and hl)
       chemdepflx(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,iochb)   &
                        +  lm%wetdepflx(jci1:jci2,ici1:ici2,iochl)) * rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-      clm_a2l%forc_aer(:,6) = clm_a2l%notused      
+      clm_a2l%forc_aer(:,6) = clm_a2l%notused
 
-
-      if (size(lm%idust) == 4 ) then 
-       ! wet dep dust 1 
+      if (size(lm%idust) == 4 ) then
+       ! wet dep dust 1
        chemdepflx(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1)) &
                       +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1))) * rtsrf
        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-       clm_a2l%forc_aer(:,7) = clm_a2l%notused    
-       ! dry dep dust 1  
-       chemdepflx(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(1))  * rtsrf     
+       clm_a2l%forc_aer(:,7) = clm_a2l%notused
+       ! dry dep dust 1
+       chemdepflx(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(1))  * rtsrf
        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-       clm_a2l%forc_aer(:,8) = clm_a2l%notused    
+       clm_a2l%forc_aer(:,8) = clm_a2l%notused
 
-       ! wet dep dust 2 
+       ! wet dep dust 2
        chemdepflx(:,:) =(lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2)) &
                       +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2))) * rtsrf
        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-       clm_a2l%forc_aer(:,9) = clm_a2l%notused    
-       ! dry dep dust 2  
-       chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(2))  * rtsrf         
+       clm_a2l%forc_aer(:,9) = clm_a2l%notused
+       ! dry dep dust 2
+       chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(2))  * rtsrf
        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-       clm_a2l%forc_aer(:,10) = clm_a2l%notused    
+       clm_a2l%forc_aer(:,10) = clm_a2l%notused
 
-       ! wet dep dust 3 
+       ! wet dep dust 3
        chemdepflx(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3)) &
                       +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3))) * rtsrf
        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-       clm_a2l%forc_aer(:,11) = clm_a2l%notused    
-       ! dry dep dust 3  
-       chemdepflx(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(3))  * rtsrf            
+       clm_a2l%forc_aer(:,11) = clm_a2l%notused
+       ! dry dep dust 3
+       chemdepflx(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(3))  * rtsrf
        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-       clm_a2l%forc_aer(:,12) = clm_a2l%notused    
+       clm_a2l%forc_aer(:,12) = clm_a2l%notused
 
-       ! wet dep dust 4 
+       ! wet dep dust 4
        chemdepflx(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4)) &
                       +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4))) * rtsrf
        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-       clm_a2l%forc_aer(:,13) = clm_a2l%notused    
-       ! dry dep dust 4  
-       chemdepflx(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,lm%idust(4))  * rtsrf        
+       clm_a2l%forc_aer(:,13) = clm_a2l%notused
+       ! dry dep dust 4
+       chemdepflx(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,lm%idust(4))  * rtsrf
        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-       clm_a2l%forc_aer(:,14) = clm_a2l%notused    
+       clm_a2l%forc_aer(:,14) = clm_a2l%notused
 
       end if
-      ! FAB to do :treat the 12 bins case .. 
-      !b:pass the nitrogen deposition flux  
+      ! FAB to do : treat the 12 bins case ..
+      ! b : pass the nitrogen deposition flux
 
-     
-
-        
     end if ! end test on ichem
 
     if ( .true. ) then

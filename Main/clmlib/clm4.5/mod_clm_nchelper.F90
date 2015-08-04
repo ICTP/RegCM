@@ -27,6 +27,7 @@ module mod_clm_nchelper
   use mod_message
   use mod_mppparam
   use mod_dynparam
+  use mod_runparams , only : lsync
   use mod_regcm_types
   use mod_clm_decomp
   use mod_clm_varcon
@@ -77,6 +78,7 @@ module mod_clm_nchelper
   public :: clm_closefile
   public :: clm_enddef
   public :: clm_checkncerr
+  public :: clm_syncfile
 
   public :: clm_inqdim
   public :: clm_check_dim
@@ -5781,6 +5783,17 @@ module mod_clm_nchelper
     if ( myid /= iocpu ) return
     deallocate(ival)
   end subroutine clm_writerec_real8_3d_par_gg
+
+  subroutine clm_syncfile(ncid)
+    implicit none
+    type(clm_filetype) , intent(inout) :: ncid
+    if ( myid == iocpu ) then
+      if ( lsync ) then
+        incstat = nf90_sync(ncid%ncid)
+        call clm_checkncerr(__FILE__,__LINE__,'Error sync '//trim(ncid%fname))
+      end if
+    end if
+  end subroutine clm_syncfile
 
   subroutine test_clmhelper
     implicit none

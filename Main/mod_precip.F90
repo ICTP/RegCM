@@ -45,6 +45,10 @@ module mod_precip
   real(rk8) , pointer , dimension(:,:,:) :: t3 , t2 , tten
   real(rk8) , pointer , dimension(:,:,:) :: p3 , p2 , qs3 , rh3 , rho3
   real(rk8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
+  real(rk8) , pointer , dimension(:,:,:) :: pfcc
+  real(rk8) , pointer , dimension(:,:,:) :: premrat
+  real(rk8) , pointer , dimension(:,:,:) :: prembc
+  real(rk8) , pointer , dimension(:,:,:) :: ptotc
 
   real(rk8) :: qcth
   real(rk8) :: maxlat
@@ -52,10 +56,8 @@ module mod_precip
   real(rk8) , parameter :: uch = d_1000*regrav*secph
   real(rk8) , parameter :: alphaice = d_four
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: fcc , remrat , rembc , totc
   real(rk8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
     cevap , caccr
-  logical :: lchem = .false.
 
   logical :: l_lat_hack = .false.
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
@@ -65,9 +67,6 @@ module mod_precip
   subroutine allocate_mod_precip(ichem)
     implicit none
     integer(ik4) , intent(in) :: ichem
-    ! This needs to be saved in SAV file
-    call getmem3d(fcc,jci1,jci2,ici1,ici2,1,kz,'pcp:fcc')
-    call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'pcp:totc')
     ! Those not. Note the external, internal change.
     call getmem2d(qck1,jci1,jci2,ici1,ici2,'pcp:qck1')
     call getmem2d(cgul,jci1,jci2,ici1,ici2,'pcp:cgul')
@@ -75,16 +74,12 @@ module mod_precip
     call getmem2d(cevap,jci1,jci2,ici1,ici2,'pcp:cevap')
     call getmem2d(caccr,jci1,jci2,ici1,ici2,'pcp:caccr')
     call getmem2d(pptsum,jci1,jci2,ici1,ici2,'pcp:pptsum')
-    if ( ichem == 1 ) then
-      lchem = .true.
-      call getmem3d(rembc,jci1,jci2,ici1,ici2,1,kz,'pcp:rembc')
-      call getmem3d(remrat,jci1,jci2,ici1,ici2,1,kz,'pcp:remrat')
-    end if
   end subroutine allocate_mod_precip
 
   subroutine init_precip
     use mod_atm_interface , only : mddom , atms , atm2 , aten , sfs , &
-                                   pptnc , cldfra , cldlwc
+                                   pptnc , cldfra , cldlwc , fcc ,    &
+                                   remrat , rembc , totc
     use mod_mppparam , only : maxall
     implicit none
     call maxall(maxval(mddom%xlat),maxlat)
@@ -105,6 +100,12 @@ module mod_precip
     call assignpnt(pptnc,lsmrnc)
     call assignpnt(cldfra,radcldf)
     call assignpnt(cldlwc,radlqwc)
+    call assignpnt(fcc,pfcc)
+    call assignpnt(totc,ptotc)
+    if ( ichem == 1 ) then
+      call assignpnt(remrat,premrat)
+      call assignpnt(rembc,prembc)
+    end if
   end subroutine init_precip
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -142,11 +143,11 @@ module mod_precip
     thog = d_1000*regrav
     ! precipation accumulated from above
     pptsum(:,:) = d_zero
-    if ( lchem ) remrat(:,:,:) = d_zero
+    if ( ichem == 1 ) premrat(:,:,:) = d_zero
 
     do i = ici1 , ici2
       do j = jci1 , jci2
-        afc = fcc(j,i,1)                                     ![frac][avg]
+        afc = pfcc(j,i,1)                                    ![frac][avg]
         if ( afc > 0.01D0 ) then !   if there is a cloud
           ! 1aa. Compute temperature and humidities with the adjustments
           !      due to convection.
@@ -173,7 +174,7 @@ module mod_precip
           if ( pptnew < dlowval ) pptnew = d_zero
           if ( pptnew > d_zero ) then !   New precipitation
             ! 1af. Compute the cloud removal rate (for chemistry) [1/s]
-            if (lchem) remrat(j,i,1) = pptnew/qcw
+            if ( ichem == 1 ) premrat(j,i,1) = pptnew/qcw
             ! 1ag. Compute the amount of cloud water removed by raindrop
             !      accretion [kg/kg/s].  In the layer where the precipitation
             !      is formed, only half of the precipitation is assumed to
@@ -214,7 +215,7 @@ module mod_precip
           ppa = p3(j,i,k)                                    ![Pa][avg]
           rho = ppa/(rgas*tk)                                ![kg/m3][avg]
           qcw = qx3(j,i,k,iqc)                               ![kg/kg][avg]
-          afc = fcc(j,i,k)                                   ![frac][avg]
+          afc = pfcc(j,i,k)                                  ![frac][avg]
           qs = pfqsat(tk,ppa)                                ![kg/kg][avg]
           rh = dmin1(dmax1(qx3(j,i,k,iqv)/qs,d_zero),rhmax)  ![frac][avg]
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
@@ -267,7 +268,9 @@ module mod_precip
             pptnew = dmin1(dmax1(pptnew,d_zero),pptmax)      ![kg/kg/s][avg]
             if ( pptnew < dlowval ) pptnew = d_zero
             ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
-            if ( lchem .and. pptnew > d_zero ) remrat(j,i,k) = pptnew/qcw
+            if ( ichem == 1  .and. pptnew > d_zero ) then
+              premrat(j,i,k) = pptnew/qcw
+            end if
             ! 1bf. Compute the amount of cloud water removed by raindrop
             !      accretion [kg/kg/s].  In the layer where the precipitation
             !      is formed, only half of the precipitation can accrete.
@@ -304,21 +307,22 @@ module mod_precip
     if ( ichem == 1 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rembc(j,i,1) = d_zero
+          prembc(j,i,1) = d_zero
         end do
       end do
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rembc(j,i,k) = d_zero
-            if ( remrat(j,i,k) > d_zero ) then
+            prembc(j,i,k) = d_zero
+            if ( premrat(j,i,k) > d_zero ) then
               do kk = 1 , k - 1
-                rembc(j,i,k) = rembc(j,i,k) + remrat(j,i,kk)*qx3(j,i,kk,iqc) * &
+                prembc(j,i,k) = prembc(j,i,k) + &
+                  premrat(j,i,kk)*qx3(j,i,kk,iqc) * &
                              psb(j,i)*dsigma(kk)*uch          ![mm/hr]
               end do
               ! the below cloud precipitation rate is now used
               ! directly in chemistry
-!             rembc(j,i,k) = 6.5D0*1.0D-5*rembc(j,i,k)**0.68D0   ![s^-1]
+!             prembc(j,i,k) = 6.5D0*1.0D-5*prembc(j,i,k)**0.68D0   ![s^-1]
             end if
           end do
         end do
@@ -435,30 +439,30 @@ module mod_precip
           end if
 !         if (ipptls == 1) then
             if ( rh3(j,i,k) >= rhmax) then        ! full cloud cover
-              fcc(j,i,k) = d_one
+              pfcc(j,i,k) = d_one
             else if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
-              fcc(j,i,k) = d_zero
+              pfcc(j,i,k) = d_zero
             else                                         ! partial cloud cover
-              fcc(j,i,k) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
+              pfcc(j,i,k) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
                            (rhmax-rh0adj))
-              ! if (ipptls == 1) totc(j,i,k) = qx3(j,i,k,iqc)
-              ! if (ipptls > 1)  totc(j,i,k) = qx3(j,i,k,iqc) + qx3(j,i,k,iqi)
-              fcc(j,i,k) = dmin1(dmax1(fcc(j,i,k),0.01D0),0.99D0)
+              ! if (ipptls == 1) ptotc(j,i,k) = qx3(j,i,k,iqc)
+              ! if (ipptls > 1)  ptotc(j,i,k) = qx3(j,i,k,iqc) + qx3(j,i,k,iqi)
+              pfcc(j,i,k) = dmin1(dmax1(pfcc(j,i,k),0.01D0),0.99D0)
              end if
 !         else
 !           if ( rh3(j,i,k) >= d_one) then        ! full cloud cover
-!             fcc(j,i,k) = d_one
+!             pfcc(j,i,k) = d_one
 !           else
-!             fcc(j,i,k) = (rh3(j,i,k)**0.25D0)* &
+!             pfcc(j,i,k) = (rh3(j,i,k)**0.25D0)* &
 !                   (d_one-dexp((-100.0D0*(qx3(j,i,k,iqc)+qx3(j,i,k,iqi))/ &
 !                   ((d_one-rh3(j,i,k))*qs3(j,i,k))**0.49D0)))
-!             fcc(j,i,k) = dmin1(dmax1(fcc(j,i,k),0.01D0),0.99D0)
+!             pfcc(j,i,k) = dmin1(dmax1(pfcc(j,i,k),0.01D0),0.99D0)
 !           end if !  rh0 threshold
 !           Test CF either 1 or 0
 !           if (qx3(j,i,k,iqc)+qx3(j,i,k,iqi)>minqx) then
-!             fcc(j,i,k)=d_one
+!             pfcc(j,i,k)=d_one
 !           else
-!             fcc(j,i,k)=d_zero
+!             pfcc(j,i,k)=d_zero
 !           end if
 !         end if
           !----------------------------------------------------------------
@@ -471,12 +475,12 @@ module mod_precip
           if ( p3(j,i,k) >= 75000.0D0 ) then
             ! Clouds below 750hPa
             if ( qx3(j,i,k,iqv) <= 0.003D0 ) then
-              fcc(j,i,k) = fcc(j,i,k) * &
+              pfcc(j,i,k) = pfcc(j,i,k) * &
                      dmax1(0.15D0,dmin1(d_one,qx3(j,i,k,iqv)/0.003D0))
               !
               ! Tuğba Öztürk mod for Siberia
               !
-              ! fcc(j,i,k) = (rh3(j,i,k)**0.25D0)* &
+              ! pfcc(j,i,k) = (rh3(j,i,k)**0.25D0)* &
               !      (d_one-dexp((-100.0D0*qx3(j,i,k,iqc)) / &
               !     ((d_one-rh3(j,i,k))*qs3(j,i,k))**0.49D0))
               !
@@ -499,15 +503,15 @@ module mod_precip
           ! Calculate total condensate, in ipptls = 1 it is given by the
           ! liquid only, in ipptls = 2 it is given by liquid and ice
           if ( ipptls == 1 ) then
-            totc(j,i,k) = qx3(j,i,k,iqc)
+            ptotc(j,i,k) = qx3(j,i,k,iqc)
           else if ( ipptls == 2 ) then
-            totc(j,i,k) = qx3(j,i,k,iqc) + alphaice*qx3(j,i,k,iqi)
+            ptotc(j,i,k) = qx3(j,i,k,iqc) + alphaice*qx3(j,i,k,iqi)
           end if
           !-------- add hanzhenyu 20140520
           if ( iconvlwp == 2 ) then
             ! To calculate cloud fraction using the semi-empirical formula
             ! of Xu and Randall (1996, JAS)
-            qcld = totc(j,i,k)
+            qcld = ptotc(j,i,k)
             if ( qcld < 1.0D-12 ) then    ! no cloud cover
               excld = d_zero
             else if ( rh3(j,i,k) >= d_one ) then  ! full cloud cover
@@ -528,7 +532,7 @@ module mod_precip
             !     when no cld microphy
             if ( ipptls == 1 .and. p3(j,i,k) >= 75000.0D0 .and. &
                     qx3(j,i,k,iqv) <= 0.003D0 ) then
-              excld = fcc(j,i,k)   ! reduced rh-cld
+              excld = pfcc(j,i,k)   ! reduced rh-cld
             end if
             !--------
             ! Cloud Water Volume
@@ -576,18 +580,18 @@ module mod_precip
             else
               ! Cloud Water Volume
               ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-              exlwc = totc(j,i,k)*rho3(j,i,k)*d_1000
+              exlwc = ptotc(j,i,k)*rho3(j,i,k)*d_1000
             end if
           end if   ! end if of iconvlwp , hanzy
           radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + excld*exlwc) / &
                dmax1(radcldf(j,i,k)+excld,0.01D0)
           radcldf(j,i,k) = dmin1(dmax1(radcldf(j,i,k),excld),cftotmax)
           if ( iconvlwp == 2 .and. ipptls == 2 ) then
-            fcc(j,i,k) = excld
+            pfcc(j,i,k) = excld
           end if
 !hanzy    radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + &
-!hanzy    fcc(j,i,k)*exlwc) / max(radcldf(j,i,k)+fcc(j,i,k),0.01D0)
-!hanzy    radcldf(j,i,k) = min(max(fcc(j,i,k),radcldf(j,i,k)),cftotmax)
+!hanzy    pfcc(j,i,k)*exlwc) / max(radcldf(j,i,k)+pfcc(j,i,k),0.01D0)
+!hanzy    radcldf(j,i,k) = min(max(pfcc(j,i,k),radcldf(j,i,k)),cftotmax)
         end do
       end do
     end do
