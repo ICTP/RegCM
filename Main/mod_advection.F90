@@ -43,6 +43,7 @@ module mod_advection
   interface vadv
     module procedure vadv3d
     module procedure vadv4d
+    module procedure vadvuv
   end interface vadv
 
   real(rk8) , pointer , dimension(:,:,:) :: ua   ! U wind * ps
@@ -61,7 +62,6 @@ module mod_advection
 
   ! working space used to store the interlated values in vadv.
 
-  real(rk8) , pointer , dimension(:,:,:) :: fg
   real(rk8) , pointer , dimension(:) :: dds , xds , xds4
 
   real(rk8) , parameter :: c287 = 0.287D+00
@@ -96,7 +96,6 @@ module mod_advection
       do k = 2 , kz
         dds(k) = d_one / (dsigma(k) + dsigma(k-1))
       end do
-      call getmem3d(fg,jde1,jde2,ide1,ide2,1,kz,'mod_advection:fg')
     end subroutine init_advection
     !
     ! UV advection
@@ -131,7 +130,7 @@ module mod_advection
                        ua(j-1,i-1,k) + ucmona
               vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
                        va(j-1,i-1,k) + vcmona
-              divd = d_rfour * ( divx(j,i,k) + divx(j,i-1,k) + &
+              divd = d_rfour * ( divx(j,i,k)   + divx(j,i-1,k)   + &
                                  divx(j-1,i,k) + divx(j-1,i-1,k) )
               diag(j,i,k) = divd - dmapf(j,i)*( ( ucmonb - ucmonc ) + &
                                                 ( vcmonb - vcmonc ) )
@@ -180,6 +179,66 @@ module mod_advection
       call time_end(subroutine_name,idindx)
 #endif
     end subroutine hadvuv
+
+    subroutine vadvuv(uten,vten,uu,vv)
+      implicit none
+      real(rk8) , pointer , intent (in) , dimension(:,:,:) :: uu , vv
+      real(rk8) , pointer , intent (inout), dimension(:,:,:) :: uten , vten
+
+      real(rk8) , dimension(jdi1:jdi2,idi1:idi2,1:kz) :: ug , vg
+      integer(ik4) :: i , j , k
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'vadvuv'
+      integer(ik4) , save :: idindx = 0
+      call time_begin(subroutine_name,idindx)
+#endif
+      !
+      ! vertical advection terms : interpolate ua or va to full sigma levels
+      !
+      do k = 2 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            ug(j,i,k) = d_half * (uu(j,i,k) + uu(j,i,k-1)) / mapfd(j,i)
+            vg(j,i,k) = d_half * (vv(j,i,k) + vv(j,i,k-1)) / mapfd(j,i)
+          end do
+        end do
+      end do
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          uten(j,i,1) = uten(j,i,1) - ug(j,i,2) * xds4(1) * &
+            (svv(j-1,i-1,2) + svv(j-1,i,2) + svv(j,i,2) + svv(j,i-1,2))
+          vten(j,i,1) = vten(j,i,1) - vg(j,i,2) * xds4(1) * &
+            (svv(j-1,i-1,2) + svv(j-1,i,2) + svv(j,i,2) + svv(j,i-1,2))
+        end do
+      end do
+      do k = 2 , kz-1
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            uten(j,i,k) = uten(j,i,k) - &
+              (ug(j,i,k+1) * (svv(j-1,i,k+1) + svv(j-1,i-1,k+1) + &
+                              svv(j,i,k+1)   + svv(j,i-1,k+1))  - &
+               ug(j,i,k)   * (svv(j-1,i,k)   + svv(j-1,i-1,k)   + &
+                              svv(j,i,k)     + svv(j,i-1,k))) * xds4(k)
+            vten(j,i,k) = vten(j,i,k) - &
+              (vg(j,i,k+1) * (svv(j-1,i,k+1) + svv(j-1,i-1,k+1) + &
+                              svv(j,i,k+1)   + svv(j,i-1,k+1))  - &
+               vg(j,i,k)   * (svv(j-1,i,k)   + svv(j-1,i-1,k)   + &
+                              svv(j,i,k)     + svv(j,i-1,k))) * xds4(k)
+          end do
+        end do
+      end do
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          uten(j,i,kz) = uten(j,i,kz) + ug(j,i,kz) * xds4(kz) * &
+            (svv(j-1,i,kz) + svv(j-1,i-1,kz) + svv(j,i,kz) + svv(j,i-1,kz))
+          vten(j,i,kz) = vten(j,i,kz) + vg(j,i,kz) * xds4(kz) * &
+            (svv(j-1,i,kz) + svv(j-1,i-1,kz) + svv(j,i,kz) + svv(j,i-1,kz))
+        end do
+      end do
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+    end subroutine vadvuv
     !
     !  HADV
     !     This subroutines computes the horizontal flux-divergence terms.
@@ -298,15 +357,14 @@ module mod_advection
     !     f      : is p*f.
     !     ind = 0 : for pp, w
     !           1 : for t.
-    !           2 : for u and v
-    !           3 : Use pbl information
+    !           2 : Use pbl information
     !
-    subroutine vadv3d(ldot,ften,f,nk,ind)
+    subroutine vadv3d(ften,f,nk,ind)
       implicit none
-      logical , intent(in) :: ldot
       integer(ik4) , intent(in) :: ind , nk
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
+      real(rk8) , dimension(jci1:jci2,ici1:ici2,1:nk) :: fg
 
       real(rk8) :: slope , rdphf , rdplf , ff , qq
       integer(ik4) :: i , j , k
@@ -315,13 +373,6 @@ module mod_advection
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
-      if ( ldot ) then
-        if ( ind /= 2 ) then
-          call fatal(__FILE__,__LINE__, &
-                     'The advection scheme you required is not available.')
-        end if
-      end if
-
       fg(:,:,:) = d_zero
 
       if ( ind == 0 ) then
@@ -380,44 +431,6 @@ module mod_advection
           end do
         end do
       else if ( ind == 2 ) then
-        !
-        ! vertical advection terms : interpolate ua or va to full sigma levels
-        !
-        do k = 2 , nk
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              fg(j,i,k) = d_half*(f(j,i,k)+f(j,i,k-1))/mapfd(j,i)
-            end do
-          end do
-        end do
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            ften(j,i,1) = ften(j,i,1) -                &
-                        (svv(j-1,i-1,2)+svv(j-1,i,2) + &
-                         svv(j,i,2)+svv(j,i-1,2))    * &
-                         fg(j,i,2)*xds4(1)
-          end do
-        end do
-        do k = 2 , nk-1
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              ften(j,i,k) = ften(j,i,k) -                                &
-                          ((svv(j-1,i,k+1)+svv(j-1,i-1,k+1)+             &
-                            svv(j,i,k+1)  +svv(j,i-1,k+1))*fg(j,i,k+1) - &
-                           (svv(j-1,i,k)  +svv(j-1,i-1,k)+               &
-                            svv(j,i,k)    +svv(j,i-1,k))*fg(j,i,k)) * xds4(k)
-            end do
-          end do
-        end do
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            ften(j,i,nk) = ften(j,i,nk) +                 &
-                         (svv(j-1,i,nk)+svv(j-1,i-1,nk) + &
-                          svv(j,i,nk)+svv(j,i-1,nk)) *    &
-                          fg(j,i,nk)*xds4(nk)
-          end do
-        end do
-      else if ( ind == 3 ) then
         do k = 2 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -499,6 +512,7 @@ module mod_advection
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
       real(rk8) :: slope
+      real(rk8) , dimension(jci1:jci2,ici1:ici2,1:nk) :: fg
       integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv4d'

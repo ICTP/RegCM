@@ -63,7 +63,7 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:) :: rpsda
 
   integer :: ithadv = 0
-  integer(ik4) :: nexchange_adv , icvadv , idvadv , iqxvadv , itrvadv
+  integer(ik4) :: nexchange_adv , icvadv , iqxvadv , itrvadv
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
 #endif
@@ -124,9 +124,8 @@ module mod_tendency
       nexchange_adv = 1
     end if
     icvadv = 1
-    idvadv = 2
-    iqxvadv = 3
     itrvadv = 2
+    iqxvadv = 3
     if ( ibltyp == 2 ) then
       if ( iuwvadv == 1 ) then
         icvadv = 4
@@ -584,9 +583,9 @@ module mod_tendency
       ! Also, cf. Eq. 2.2.11 of vertical velocity tendency in the MM5 manual.
       !
       call hadv(aten%pp,atmx%pp,kz)
-      call vadv(cross,aten%pp,atm1%pp,kz,0)
+      call vadv(aten%pp,atm1%pp,kz,0)
       call hadv(aten%w,atmx%w,kzp1)
-      call vadv(cross,aten%w,atm1%w,kzp1,0)
+      call vadv(aten%w,atm1%w,kzp1,0)
     end if
     !
     ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
@@ -616,7 +615,7 @@ module mod_tendency
       ! same for hydrostatic and nonhydrostatic models:
       ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (2nd RHS term)
       !
-      call vadv(cross,aten%t,atm1%t,kz,icvadv)
+      call vadv(aten%t,atm1%t,kz,icvadv)
       if ( idiag > 0 ) then
         tdiag%adv = tdiag%adv + (aten%t - ten0) * afdout
         ten0 = aten%t
@@ -643,7 +642,7 @@ module mod_tendency
 #ifdef DEBUG
       call check_temperature_tendency('HADV')
 #endif
-      call vadv(cross,thten,tha,kz,0)
+      call vadv(thten,tha,kz,0)
       if ( idiag > 0 ) then
         tdiag%adv = tdiag%adv + (thten - ten0) * afdout
         ten0 = thten
@@ -1554,8 +1553,7 @@ module mod_tendency
     ! same for hydrostatic and nonhydrostatic models: 2nd RHS term in
     ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
     !
-    call vadv(dot,aten%u,atm1%u,kz,idvadv)
-    call vadv(dot,aten%v,atm1%v,kz,idvadv)
+    call vadv(aten%u,aten%v,atm1%u,atm1%v)
 #ifdef DEBUG
     call check_wind_tendency('VADV')
 #endif
@@ -1607,7 +1605,7 @@ module mod_tendency
       ! Calculate the horizontal advective tendency for TKE
       call hadv(uwstatea%advtke,atmx%tke,kzp1)
       ! Calculate the vertical advective tendency for TKE
-      call vadv(cross,uwstatea%advtke,atmx%tke,kzp1,0)
+      call vadv(uwstatea%advtke,atmx%tke,kzp1,0)
       ! Calculate the horizontal, diffusive tendency for TKE
       call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kzp1)
     end if
