@@ -155,7 +155,7 @@ else
 mod_regcm_interface.o : mod_regcm_interface.F90 mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_cloud_s1.o mod_header.o mod_init.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_ncout.o mod_output.o mod_params.o mod_pbl_interface.o mod_runparams.o mod_service.o mod_split.o mod_tendency.o mod_tstep.o
 endif
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
-mod_savefile.o : mod_savefile.F90 mod_che_interface.o mod_che_mppio.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o
+mod_savefile.o : mod_savefile.F90 mod_atm_interface.o mod_che_interface.o mod_che_mppio.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o
 mod_slabocean.o : mod_slabocean.F90 mod_atm_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mppparam.o mod_outvars.o mod_realkinds.o mod_regcm_types.o mod_runparams.o
 mod_sladvection.o : mod_sladvection.F90 mod_atm_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_service.o mod_sldepparam.o
 mod_sldepparam.o : mod_sldepparam.F90 mod_dynparam.o mod_intkinds.o mod_memutil.o mod_realkinds.o

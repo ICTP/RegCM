@@ -216,6 +216,7 @@ module mod_mppparam
                      bcast_arr_int8,      &
                      bcast_arr_real4,     &
                      bcast_arr_real8,     &
+                     bcast_matr_real8,    &
                      bcast_rcm_time_and_date
   end interface bcast
 
@@ -535,6 +536,16 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
   end subroutine bcast_arr_real8
+
+  subroutine bcast_matr_real8(rval)
+    implicit none
+    real(rk8) , dimension(:,:) , intent(inout) :: rval
+    call mpi_bcast(rval,size(rval,1)*size(rval,2), &
+                   mpi_real8,iocpu,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    end if
+  end subroutine bcast_matr_real8
 
   subroutine bcast_rcm_time_and_date(x)
     implicit none

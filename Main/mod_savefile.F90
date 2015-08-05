@@ -26,6 +26,7 @@ module mod_savefile
   use mod_mpmessage
   use mod_mppparam
   use mod_memutil
+  use mod_atm_interface , only : tmask
   use mod_lm_interface
   use mod_che_interface
   use mod_che_mppio
@@ -57,6 +58,7 @@ module mod_savefile
   integer(ik4) , parameter :: idntr = 13
   integer(ik4) , parameter :: idtotsp = 14
   integer(ik4) , parameter :: iddpt = 15
+  integer(ik4) , parameter :: ikern = 16
 
   integer(ik4) :: isavlast
 
@@ -585,6 +587,10 @@ module mod_savefile
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'lwdifalb'),lwdifalb_io)
       call check_ok(__FILE__,__LINE__,'Cannot read lwdifalb')
 #endif
+      if ( idynamic == 2 .and. ifupr == 1 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'tmask'),tmask)
+        call check_ok(__FILE__,__LINE__,'Cannot read tmask')
+      end if
       ncstatus = nf90_close(ncid)
       call check_ok(__FILE__,__LINE__,'Cannot close savefile '//trim(ffin))
     end if
@@ -655,6 +661,10 @@ module mod_savefile
       if ( lakemod == 1 ) then
         ncstatus = nf90_def_dim(ncid,'dpt',ndpmax,dimids(iddpt))
         call check_ok(__FILE__,__LINE__,'Cannot create dimension dpt')
+      end if
+      if ( idynamic == 2 .and. ifupr == 1 ) then
+        ncstatus = nf90_def_dim(ncid,'ikern',13,dimids(ikern))
+        call check_ok(__FILE__,__LINE__,'Cannot create dimension ikern')
       end if
 
       wrkdim(1) = dimids(idjdot)
@@ -960,6 +970,13 @@ module mod_savefile
                               varids(95))
       call check_ok(__FILE__,__LINE__,'Cannot create var lwdifalb')
 #endif
+      if ( idynamic == 2 .and. ifupr == 1 ) then
+        wrkdim(1) = dimids(ikern)
+        wrkdim(2) = dimids(ikern)
+        ncstatus = nf90_def_var(ncid,'tmask',nf90_double,wrkdim(1:2), &
+                                varids(96))
+        call check_ok(__FILE__,__LINE__,'Cannot create var tmask')
+      end if
 
       ncstatus = nf90_put_att(ncid,nf90_global,'ktau',ktau)
       call check_ok(__FILE__,__LINE__,'Cannot save ktau')
@@ -1199,6 +1216,10 @@ module mod_savefile
       ncstatus = nf90_put_var(ncid,varids(95),lwdifalb_io)
       call check_ok(__FILE__,__LINE__,'Cannot write swdifalb')
 #endif
+      if ( idynamic == 2 .and. ifupr == 1 ) then
+        ncstatus = nf90_put_var(ncid,varids(96),tmask)
+        call check_ok(__FILE__,__LINE__,'Cannot write tmask')
+      end if
       ncstatus = nf90_close(ncid)
       call check_ok(__FILE__,__LINE__,'Cannot close savefile '//trim(ffout))
     end if

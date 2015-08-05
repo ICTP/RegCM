@@ -96,6 +96,8 @@ module mod_atm_interface
 
   ! Dynamic 2
   real(rk8) , pointer , public , dimension(:,:) :: dpsdxm , dpsdym
+  real(rk8) , pointer , public , dimension(:,:) :: estore
+  real(rk8) , public , dimension(-6:6,-6:6) :: tmask
 
   ! Surface
   ! Total Long wave albedo (0.7-5.0 micro-meter)
@@ -165,34 +167,42 @@ module mod_atm_interface
       ma%jbl1 = 1
       ma%jbl2 = 2
       ma%jbl4 = 4
+      ma%jbl6 = 6
       ma%jbr1 = 1
       ma%jbr2 = 2
       ma%jbr4 = 4
+      ma%jbr6 = 6
       ma%ibt1 = 1
       ma%ibt2 = 2
       ma%ibt4 = 4
+      ma%ibt6 = 6
       ma%ibb1 = 1
       ma%ibb2 = 2
       ma%ibb4 = 4
+      ma%ibb6 = 6
       if ( ma%has_bdyleft ) then
         ma%jbl1 = 0
         ma%jbl2 = 0
         ma%jbl4 = 0
+        ma%jbl6 = 0
       end if
       if ( ma%has_bdyright ) then
         ma%jbr1 = 0
         ma%jbr2 = 0
         ma%jbr4 = 0
+        ma%jbr6 = 0
       end if
       if ( ma%has_bdytop ) then
         ma%ibt1 = 0
         ma%ibt2 = 0
         ma%ibt4 = 0
+        ma%ibt6 = 0
       end if
       if ( ma%has_bdybottom ) then
         ma%ibb1 = 0
         ma%ibb2 = 0
         ma%ibb4 = 0
+        ma%ibb6 = 0
       end if
       jde1  = 1
       jdi1  = 1
@@ -1044,6 +1054,8 @@ module mod_atm_interface
         call allocate_reference_atmosphere(atm0)
         call getmem2d(dpsdxm,jce1,jce2,ice1,ice2,'storage:dpsdxm')
         call getmem2d(dpsdym,jce1,jce2,ice1,ice2,'storage:dpsdym')
+        call getmem2d(estore,jci1-ma%jbl6,jci2+ma%jbr6, &
+                             ici1-ma%ibb6,ici2+ma%ibt6,'storage:estore')
       end if
 
     end subroutine allocate_mod_atm_interface

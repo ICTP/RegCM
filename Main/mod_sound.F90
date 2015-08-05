@@ -54,7 +54,7 @@ module mod_sound
       chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
       ppold , rho , rho0s , rofac , xgamma , xkd , sumcfl , ucrsk ,      &
       vcrsk , ucrskm1 , vcrskm1
-    !real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore , estore
+    real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore
     real(rk8) , dimension(jci1:jci2,ici1:ici2) :: wpval
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ca
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: g1 , g2
@@ -71,12 +71,12 @@ module mod_sound
     ! Variables to implement upper radiative bc, for now disabled.
     ! Need deeper knowledge of this stuff...
     !
-    ! real(rk8) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
-    !   xkleff , xleff , xmsfbar , xmsftot
-    ! real(rk8) , dimension(-6:6) :: fi , fj
-    ! real(rk8) , dimension(0:6) :: fk , fl
-    ! integer(ik4) :: icut , inn , jnn , ll , lp1 , mp1 , npts , nsi , nsj
-    ! real(rk8) , dimension(-6:6,-6:6) :: tmask
+    real(rk8) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
+                 xkleff , xleff , xmsfbar , xmsftot
+    real(rk8) :: loc_abar , loc_rhon , loc_dxmsfb
+    real(rk8) , dimension(-6:6) :: fi , fj
+    real(rk8) , dimension(0:6) :: fk , fl
+    integer(ik4) :: inn , jnn , ll , npts , nsi , nsj
     !
     ! HT IS G*(TERR. HT.)
     ! UTENS, VTENS, PPTENS AND WTENS ARE SUPPLIED TO THIS ROUTINE
@@ -125,32 +125,32 @@ module mod_sound
       if ( myid == italk ) write(stdout,'(a,f7.2,i3,a,f4.1,a,f4.1)') &
             ' SHORT TIME STEP ' , dts , istep , &
             ' BETA = ' , bet , ' XKD = ' , xkd
-!      do j = -6 , 6
-!        do i = -6 , 6
-!          tmask(j,i) = d_zero
-!        end do
-!      end do
-!      if ( ifupr == 1 ) then
-!        !
-!        ! DEFINE VALUES OF FK, FL, FI & FJ FOR UPPER RADIATIVE BC
-!        !
-!        do i = 1 , 5
-!          fk(i) = d_two
-!          fl(i) = d_two
-!        end do
-!        fk(0) = d_one
-!        fl(0) = d_one
-!        fk(6) = d_one
-!        fl(6) = d_one
-!        do i = -5 , 5
-!          fi(i) = d_one
-!          fj(i) = d_one
-!        end do
-!        fi(-6) = d_half
-!        fj(-6) = d_half
-!        fi(6) = d_half
-!        fj(6) = d_half
-!      end if
+      do i = -6 , 6
+        do j = -6 , 6
+          tmask(j,i) = d_zero
+        end do
+      end do
+      if ( ifupr == 1 ) then
+        !
+        ! DEFINE VALUES OF FK, FL, FI & FJ FOR UPPER RADIATIVE BC
+        !
+        do i = 1 , 5
+          fk(i) = d_two
+          fl(i) = d_two
+        end do
+        fk(0) = d_one
+        fl(0) = d_one
+        fk(6) = d_one
+        fl(6) = d_one
+        do i = -5 , 5
+          fi(i) = d_one
+          fj(i) = d_one
+        end do
+        fi(-6) = d_half
+        fj(-6) = d_half
+        fi(6) = d_half
+        fj(6) = d_half
+      end if
     end if
     !
     !  Premultiply the tendency arrays by dts
@@ -475,53 +475,57 @@ module mod_sound
           end do
         end do
       end do
-      !do i = ici1 , ici2
-      !  do j = jci1 , jci2
-          !denom = (cdd(j,i,1)+cj(j,i,1))*bp
-          !estore(j,i) = atmc%pp(j,i,1) + f(j,i,1)*denom
-          !astore(j,i) = denom*e(j,i,1) + (cj(j,i,1)-cdd(j,i,1))*bp
-      !  end do
-      !end do
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          denom = (cdd(j,i,1) + cj(j,i,1)) * bp
+          estore(j,i) = atmc%pp(j,i,1) + f(j,i,1) * denom
+          astore(j,i) = denom * e(j,i,1) + (cj(j,i,1) - cdd(j,i,1)) * bp
+        end do
+      end do
+      call exchange(estore,6,jci1,jci2,ici1,ici2)
       !
       ! If first time through and upper radiation b.c`s are used
       ! Need to calc some coefficients
       !
-!      if ( ifupr == 1 .and. ktau == 0 .and. it == 1 ) then
-!        ! CALCULATING MEANS FOR UP. RAD. B.C.
-!        atot = d_zero
-!        rhontot = d_zero
-!        xmsftot = d_zero
-!        npts = 0
-!        do i = ici1 , ici2
-!          do j = jci1 , jci2
-!            atot = atot + astore(j,i)
-!            ensq = egrav*egrav/cpd/(atm2%t(j,i,1)/sfs%psb(j,i))
-!            rhontot = rhontot + atm1%rho(j,i,1)*sqrt(ensq)
-!            xmsftot = xmsftot + mddom%msfx(j,i)
-!          end do
-!        end do
-!        npts = (jci2-jci1+1)*(ici2-ici1+1)
-!        abar = atot/npts
-!        rhon = rhontot/npts
-!        xmsfbar = xmsftot/npts
-!        dxmsfb = d_two/dx/xmsfbar
-!        do ll = 0 , 6
-!          do k = 0 , 6
-!            xkeff = dxmsfb * sin(mathpi*k/12.0D0)*cos(mathpi*ll/12.0D0)
-!            xleff = dxmsfb * sin(mathpi*ll/12.0D0)*cos(mathpi*k/12.0D0)
-!            xkleff = sqrt(xkeff*xkeff + xleff*xleff)
-!            do j = -6 , 6
-!              do i = -6 , 6
-!                tmask(j,i) = tmask(j,i) + &
-!                             fi(i)*fj(j)*fk(k)*fl(ll)/144.0D0 * &
-!                             cos(2.0D0*mathpi*k*i/12.0D0) *     &
-!                             cos(2.0D0*mathpi*ll*j/12.0D0) *    &
-!                             xkleff / (rhon-abar*xkleff)
-!              end do
-!            end do
-!          end do
-!        end do
-!      end if
+      if ( ktau == 0 .and. ifupr == 1 .and. it == 1 ) then
+        ! CALCULATING MEANS FOR UP. RAD. B.C.
+        atot = d_zero
+        rhontot = d_zero
+        xmsftot = d_zero
+        npts = 0
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            atot = atot + astore(j,i)
+            ensq = egrav*egrav/cpd/atm2%t(j,i,1)/sfs%psb(j,i)
+            rhontot = rhontot + atm1%rho(j,i,1)*sqrt(ensq)
+            xmsftot = xmsftot + mddom%msfx(j,i)
+          end do
+        end do
+        npts = (jci2-jci1+1)*(ici2-ici1+1)
+        loc_abar = atot/npts
+        loc_rhon = rhontot/npts
+        xmsfbar = xmsftot/npts
+        loc_dxmsfb = d_two/dx/xmsfbar
+        call sumall(loc_abar,abar)
+        call sumall(loc_rhon,rhon)
+        call sumall(loc_dxmsfb,dxmsfb)
+        do k = 0 , 6
+          do ll = 0 , 6
+            xkeff = dxmsfb * sin(mathpi*k/12.0D0)*cos(mathpi*ll/12.0D0)
+            xleff = dxmsfb * sin(mathpi*ll/12.0D0)*cos(mathpi*k/12.0D0)
+            xkleff = sqrt(xkeff*xkeff + xleff*xleff)
+            do i = -6 , 6
+              do j = -6 , 6
+                tmask(j,i) = tmask(j,i) + &
+                             fi(i)*fj(j)*fk(k)*fl(ll)/144.0D0 * &
+                             cos(2.0D0*mathpi*k*i/12.0D0) *     &
+                             cos(2.0D0*mathpi*ll*j/12.0D0) *    &
+                             xkleff / (rhon-abar*xkleff)
+              end do
+            end do
+          end do
+        end do
+      end if
       !
       !  Finished initial coefficient compute
       !  Now do downward sweep for w
@@ -533,23 +537,28 @@ module mod_sound
           wpval(j,i) = d_zero
         end do
       end do
-!      if ( ifupr == 1 ) then
-!        !
-!        ! Apply upper rad cond. no atmc%w(top) in lateral sponge
-!        !
-!        do i = ici1+3 , ici2-3
-!          inn = insi(i,nsi)
-!          do j = jci1+3 , jci2-3
-!            do nsj = -6 , 6
-!              jnn = jnsj(j,nsj)
-!              do nsi = -6 , 6
-!                wpval(j,i) = wpval(j,i) + &
-!                      estore(inn,jnn)*tmask(nsi,nsj)*wtij(j,i)
-!              end do
-!            end do
-!          end do
-!        end do
-!      end if
+      if ( ifupr == 1 ) then
+        !
+        ! Apply upper rad cond. no atmc%w(top) in lateral boundary
+        !
+        do i = ici1 , ici2
+          if ( global_cross_istart+i < 9 .or. &
+               global_cross_istart+i > nicross - 9 ) cycle
+          do j = jci1 , jci2
+            if ( global_cross_jstart+j < 9 .or. &
+                 global_cross_jstart+j > njcross - 9 ) cycle
+            if ( ba_cr%bsouth(j,i) .or. ba_cr%bnorth(j,i) .or. &
+                 ba_cr%bwest(j,i)  .or. ba_cr%beast(j,i) ) cycle
+            do nsi = -6 , 6
+              inn = i + nsi
+              do nsj = -6 , 6
+                jnn = j + nsj
+                wpval(j,i) = wpval(j,i) + estore(jnn,inn)*tmask(nsj,nsi)
+              end do
+            end do
+          end do
+        end do
+      end if
       !
       ! Finished calc of radiation w
       !

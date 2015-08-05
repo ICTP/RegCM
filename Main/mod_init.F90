@@ -425,6 +425,9 @@ module mod_init
         jci1,jci2,ici1,ici2,1,12)
       call bcast(stepcount)
     end if
+    if ( idynamic == 2 .and. ifupr == 1 ) then
+      call bcast(tmask)
+    end if
     !
     ! Init boundary
     !
