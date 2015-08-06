@@ -139,7 +139,7 @@ module mod_lm_interface
     call getmem3d(lms%scvk,1,nnsg,jci1,jci2,ici1,ici2,'bats:scvk')
     call getmem3d(lms%um10,1,nnsg,jci1,jci2,ici1,ici2,'bats:um10')
     call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'bats:emisv')
-    call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,1,'bats:vocemiss')
+    call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'bats:vocemiss')
 
 #ifdef CLM
     call getmem2d(r2ctb,1,jxp,1,iyp,'clm:r2ctb')
@@ -411,11 +411,13 @@ module mod_lm_interface
     call runclm45(lm,lms)
     !coupling of biogenic VOC from CLM45 to chemistry
     if ( ichem == 1 ) then
+     do n=1,ntr 
       do i = ici1 , ici2
         do j = jci1 , jci2
-          cvoc_em(j,i) = lms%vocemiss(1,j,i,1)
+          cvoc_em(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
         end do
       end do
+     end do
     end if
 #else
     call vecbats(lm,lms)

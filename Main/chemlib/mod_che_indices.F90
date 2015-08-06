@@ -24,21 +24,17 @@ module mod_che_indices
   implicit none
 
   public
-
-  !ah   gas_phase chemistry indecies for potential transported species
-  !ah   some of them correspond to the same compounds like isulf, ih2so4
-  !ah   we did this just for flexibility
-
+! declarartoin of usefull chemical indices for species
+! IMPORTANT : "INTERFACE SPECIES" indices  
+!    ibchl , ibchb , iochl , iochb , iisop, ianh4, iano3 
+!    now declared in mod_runparam for surface/chem  interface compatibility !!
   integer(ik4) :: iso2 , iso4 , idms
-!    ibchl , ibchb , iochl , iochb : now declared in mod_runparam for surface
-!    interface compatibility
-
   integer(ik4) :: imsa
   integer(ik4) :: io3 , ino , ino2 , ino3 , ioh , iho2 , ih2o2
   integer(ik4) :: ihno2 , ihno3 , ihno4
   integer(ik4) :: isulf , ih2so4 , ihono , in2o5 , ihc , ihcr , ic2h4
   integer(ik4) :: ico , ihcho , iald2 , ieth , ic2h6 , ic3h8,ic3h6
-  integer(ik4) :: iisop , itol , ixyl , inh3 , ipan , in2o
+  integer(ik4) :: itol , ixyl , inh3 , ipan , in2o
   integer(ik4) :: irooh , iaone , ibenz , ich4 , ico2
   integer(ik4) :: inox , ihox , isox , ieoh , ich3oh , iaco2 , ircooh,ihcooh
   integer(ik4) :: ipar , iolet , iolei , imgly , icres , iopen , iisoprd,iisopn

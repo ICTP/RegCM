@@ -146,9 +146,14 @@ module mod_atm_interface
   real(rk8) , public , pointer , dimension(:,:) :: sfracs2d
   real(rk8) , public , pointer , dimension(:,:) :: svegfrac2d
   real(rk8) , public , pointer , dimension(:,:) :: sxlai2d
+  real(rk8) , public , pointer , dimension(:,:,:) :: voc_em 
+ 
+  !chemistry for surface
   real(rk8) , public , pointer , dimension(:,:,:) :: wetdepflx
   real(rk8) , public , pointer , dimension(:,:,:) :: drydepflx
   integer (ik4), public, pointer, dimension(:) :: idusts
+  
+
   ! Coupling
   real(rk8) , public , pointer , dimension(:,:,:) :: dailyrnf
   integer(ik4) , public , pointer , dimension(:,:) :: cplmsk
@@ -1012,9 +1017,11 @@ module mod_atm_interface
         call getmem2d(sfracs2d,jci1,jci2,ici1,ici2,'storage:sfracs2d')
         call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'storage:svegfrac2d')
         call getmem2d(sxlai2d,jci1,jci2,ici1,ici2,'storage:sxlai2d')
+        call getmem3d(voc_em,jci1,jci2,ici1,ici2,1,ntr,'storage:voc_em')
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
         call getmem1d(idusts,1,nbin,'storage:idusts')
+
       end if
       if ( iocncpl == 1 ) then
         call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'storage:cplmsk')

@@ -39,9 +39,6 @@ module mod_che_interface
 
   private
 
-#ifdef CLM45
-  real(rk8) , pointer , public , dimension(:,:) :: voc_em
-#endif
   public :: start_chem
   public :: init_chem
   public :: cumtran
@@ -154,7 +151,6 @@ module mod_che_interface
     cba%nsp = ba_cr%nsp
 
 #if (defined CLM45)
-    call getmem2d(voc_em,jci1,jci2,ici1,ici2,'clm:voc_em')
     call assignpnt(voc_em,cvoc_em)
 
     call assignpnt(wetdepflx,cwetdepflx)

@@ -129,7 +129,7 @@ module mod_che_emission
       ! zero when using BATS
       if ( bvoc_trmask(iisop) /= 0 ) then
         do i = ici1, ici2
-          chemsrc(j,i,iisop) = cvoc_em(j,i)
+          chemsrc(j,i,iisop) = cvoc_em(j,i,iisop)
         end do
       end if
 #else

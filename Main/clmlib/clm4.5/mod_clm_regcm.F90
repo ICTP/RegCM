@@ -19,7 +19,7 @@ module mod_clm_regcm
                               tcrit , denh2o , sb
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
-
+  use mod_clm_megan
   private
 
   save
@@ -219,7 +219,7 @@ module mod_clm_regcm
   subroutine atmosphere_to_land(lm)
     implicit none
     type(lm_exchange) , intent(inout) :: lm
-    integer(ik4) :: begg , endg , i
+    integer(ik4) :: begg , endg , i,n 
     real(rk8) :: satq , satp
 
     rprec = (lm%cprate+lm%ncprate) * rtsrf
@@ -306,32 +306,43 @@ module mod_clm_regcm
       !    flux arriving through lm interface are accumulated between
       !    two surface call : needs to average with rtsrf
       ! c) dry deposition BC HL
+      if(ibchl >0) then
       chemdepflx(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,ibchl) * rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
       clm_a2l%forc_aer(:,1) = clm_a2l%notused
+      end if
       ! drydeposition BCHB
+      if(ibchb >0) then
       chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,ibchb) * rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
       clm_a2l%forc_aer(:,2) = clm_a2l%notused
+      end if
       ! wet dep BC (sum rainout and washout fluxes, sum hb amd hl)
+      if(ibchb >0 .and. ibchl >0 ) then
       chemdepflx(:,:) =  (lm%wetdepflx(jci1:jci2,ici1:ici2,ibchb)  &
                        +  lm%wetdepflx(jci1:jci2,ici1:ici2,ibchl)) * rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
       clm_a2l%forc_aer(:,3) = clm_a2l%notused
-
+      end if
       ! drydeposition OC HL
-       chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,iochl)*  rtsrf
+      if(iochl >0) then
+      chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,iochl)*  rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
       clm_a2l%forc_aer(:,4) = clm_a2l%notused
+      end if
       ! drydeposition OC HB
+      if(iochb >0) then
       chemdepflx(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,iochb) *  rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
       clm_a2l%forc_aer(:,5) = clm_a2l%notused
+      end if
       ! wet dep OC (sum rainout and washout fluxes, sum hb and hl)
+      if(iochb >0 .and. iochl >0 ) then
       chemdepflx(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,iochb)   &
                        +  lm%wetdepflx(jci1:jci2,ici1:ici2,iochl)) * rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
       clm_a2l%forc_aer(:,6) = clm_a2l%notused
+      end if 
 
       if (size(lm%idust) == 4 ) then
        ! wet dep dust 1
@@ -394,7 +405,7 @@ module mod_clm_regcm
     implicit none
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: k , g , begg , endg
-    real(rk8) , pointer , dimension(:,:) :: vocemis2d
+    real(rk8) , pointer , dimension(:,:,:) :: vocemis2d
 
     call get_proc_bounds(begg,endg)
 
@@ -448,10 +459,22 @@ module mod_clm_regcm
     !--------------------------------------------------
     ! From land to chemistry
     ! only for Isoprene , and in kg/m^2/sec
+    ! FAB add compatibility for other biogenic species / 
+    ! TO BE UPDATED IF THE CHEM MECHANISM CHANGES (e.g add limonene, pinene etc)
+    ! passed to the chemistry scheme for the right  mechanism tracer index
+    ! use temporary table vocemis2d for calling glb_l2c_ss
+  
     if ( ichem == 1 .and. enable_megan_emission ) then
-      allocate(vocemis2d(begg:endg,1))
-      vocemis2d(:,1) = clm_l2a%flxvoc(:,1)
-      call glb_l2c_ss(lndcomm,vocemis2d,lms%vocemiss)
+      allocate(vocemis2d(1:nnsg,jci1:jci2,ici1:ici2))
+      do k = 1, shr_megan_mechcomps_n
+       if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0) then 
+        clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
+        call glb_l2c_ss(lndcomm, clm_l2a%notused,vocemis2d)
+        lms%vocemiss(:,:,:,iisop) =  vocemis2d
+       end if
+    ! add compatibility for other biogenic species !! / 
+    ! 
+      end do
       deallocate(vocemis2d)
     end if
     !--------------------------------------------------
