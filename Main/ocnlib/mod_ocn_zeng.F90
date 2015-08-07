@@ -26,7 +26,7 @@ module mod_ocn_zeng
   use mod_dynparam
   use mod_service
   use mod_ocn_internal
-  use mod_runparams , only : iocnrough , iocncpl , iocnzoq
+  use mod_runparams , only : iocnrough , iocnzoq
 
   implicit none
 
@@ -234,7 +234,7 @@ module mod_ocn_zeng
         uv10 = uv995 + (ustar/vonkar)* &
                        (log(z10/hu)+d_five*zeta-d_five*hu/obu)
       end if
-      if ( ldcsst .and. iocncpl == 0 ) then
+      if ( ldcsst ) then
         ! time step considered for the integration of prognostic skin
         ! temperature , equal to BATS time step
         ! Init local variables

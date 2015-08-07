@@ -869,6 +869,10 @@ module mod_params
       end if
     end if
 
+    if (iocncpl == 1) then
+      call bcast(cpldt)
+    end if
+
     call bcast(scenario,8)
     call bcast(idcsst)
     call bcast(iseaice)
@@ -887,6 +891,13 @@ module mod_params
         write(stderr,*) 'Disabling idcsst.'
       end if
       idcsst = 0
+    else if ( idcsst == 1 .and. iocncpl == 1 ) then
+      if ( myid == italk ) then
+        write(stderr,*) &
+          'Cannot enable diurnal cycle sst with coupled ocean'
+        write(stderr,*) 'Disabling idcsst.'
+      end if
+      idcsst = 0
     end if
 
 #ifdef CLM
@@ -895,10 +906,6 @@ module mod_params
     call bcast(clmfrq)
     call bcast(ilawrence_albedo)
 #endif
-
-    if (iocncpl == 1) then
-      call bcast(cpldt)
-    end if
 
     if ( ipptls > 0 ) then
       call bcast(ncld)
