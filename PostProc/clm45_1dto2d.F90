@@ -490,9 +490,15 @@ program clm45_1dto2d
         if ( istatus == nf90_noerr ) then
           istatus = nf90_get_var(ncid,npftlun,numpft)
           call checkncerr(istatus,__FILE__,__LINE__,'Error read numpft')
-          pftgrid = id
-          npft = dsize(id)
-          istatus = nf90_def_dim(ncoutid, dname, numpft, outdimids(id))
+          istatus = nf90_inq_varid(ncid,'pfts1d_gridcell',npftlun)
+          if ( istatus == nf90_noerr ) then
+            pftgrid = id
+            npft = dsize(id)
+            istatus = nf90_def_dim(ncoutid, dname, numpft, outdimids(id))
+          else
+            numpft = -1
+            istatus = nf90_def_dim(ncoutid, dname, dsize(id), outdimids(id))
+          end if
         else
           istatus = nf90_def_dim(ncoutid, dname, dsize(id), outdimids(id))
         end if
