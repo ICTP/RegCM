@@ -219,7 +219,7 @@ module mod_clm_regcm
   subroutine atmosphere_to_land(lm)
     implicit none
     type(lm_exchange) , intent(inout) :: lm
-    integer(ik4) :: begg , endg , i,n 
+    integer(ik4) :: begg , endg , i,n
     real(rk8) :: satq , satp
 
     rprec = (lm%cprate+lm%ncprate) * rtsrf
@@ -342,7 +342,7 @@ module mod_clm_regcm
                        +  lm%wetdepflx(jci1:jci2,ici1:ici2,iochl)) * rtsrf
       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
       clm_a2l%forc_aer(:,6) = clm_a2l%notused
-      end if 
+      end if
 
       if (size(lm%idust) == 4 ) then
        ! wet dep dust 1
@@ -459,21 +459,22 @@ module mod_clm_regcm
     !--------------------------------------------------
     ! From land to chemistry
     ! only for Isoprene , and in kg/m^2/sec
-    ! FAB add compatibility for other biogenic species / 
+    ! FAB add compatibility for other biogenic species /
     ! TO BE UPDATED IF THE CHEM MECHANISM CHANGES (e.g add limonene, pinene etc)
     ! passed to the chemistry scheme for the right  mechanism tracer index
     ! use temporary table vocemis2d for calling glb_l2c_ss
-  
+
     if ( ichem == 1 .and. enable_megan_emission ) then
       allocate(vocemis2d(1:nnsg,jci1:jci2,ici1:ici2))
+      vocemis2d = 0.0D0
       do k = 1, shr_megan_mechcomps_n
-       if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0) then 
+       if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0) then
         clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
         call glb_l2c_ss(lndcomm, clm_l2a%notused,vocemis2d)
         lms%vocemiss(:,:,:,iisop) =  vocemis2d
        end if
-    ! add compatibility for other biogenic species !! / 
-    ! 
+    ! add compatibility for other biogenic species !! /
+    !
       end do
       deallocate(vocemis2d)
     end if
