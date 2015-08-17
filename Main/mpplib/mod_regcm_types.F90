@@ -231,7 +231,7 @@ module mod_regcm_types
 
   type slice
     real(rk8) , pointer , dimension(:,:,:) :: tb3d
-    real(rk8) , pointer , dimension(:,:,:) :: thx3d
+    real(rk8) , pointer , dimension(:,:,:) :: th3d
     real(rk8) , pointer , dimension(:,:,:) :: pb3d
     real(rk8) , pointer , dimension(:,:,:) :: pf3d
     real(rk8) , pointer , dimension(:,:,:) :: rhob3d
@@ -250,6 +250,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: dzq
     real(rk8) , pointer , dimension(:,:) :: rhox2d
     real(rk8) , pointer , dimension(:,:) :: ps2d
+    real(rk8) , pointer , dimension(:,:) :: ts2d
     real(rk8) , pointer , dimension(:,:,:) :: tkeb3d
     real(rk8) , pointer , dimension(:,:,:,:) :: chib3d
   end type slice
@@ -400,8 +401,8 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: patm        ! atms%pb3d(:,:,kz)
     real(rk8) , pointer , dimension(:,:) :: uatm        ! atms%ubx3d(:,:,kz)
     real(rk8) , pointer , dimension(:,:) :: vatm        ! atms%vbx3d(:,:,kz)
-    real(rk8) , pointer , dimension(:,:) :: tatm        ! atms%tb3d(:,:,kz)
-    real(rk8) , pointer , dimension(:,:) :: thatm       ! atms%thx3d(:,:,kz)
+    real(rk8) , pointer , dimension(:,:) :: tatm        ! atms%ts2d(:,:)
+    real(rk8) , pointer , dimension(:,:) :: thatm       ! atms%th3d(:,:,kz)
     real(rk8) , pointer , dimension(:,:) :: qvatm       ! atms%qxb3d(:,:,kz,iqv)
     real(rk8) , pointer , dimension(:,:) :: hgt         ! za(:,:,kz)
     real(rk8) , pointer , dimension(:,:) :: hpbl        ! zpbl
@@ -538,7 +539,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: patmf     ! atms%pf3d
     real(rk8) , pointer , dimension(:,:,:,:) :: qxatm   ! atms%qx
     real(rk8) , pointer , dimension(:,:,:) :: tkests    ! atms%tke
-    real(rk8) , pointer , dimension(:,:,:) :: thxatm    ! atms%thx3d
+    real(rk8) , pointer , dimension(:,:,:) :: thatm     ! atms%th3d
     real(rk8) , pointer , dimension(:,:,:) :: za        ! atms%za
     real(rk8) , pointer , dimension(:,:,:) :: zq        ! atms%zq
     real(rk8) , pointer , dimension(:,:,:) :: dzq       ! atms%dzq

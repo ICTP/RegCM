@@ -543,10 +543,10 @@ module mod_sound
         !
         do i = ici1 , ici2
           if ( global_cross_istart+i < 9 .or. &
-               global_cross_istart+i > nicross - 9 ) cycle
+               global_cross_istart+i > nicross - 7 ) cycle
           do j = jci1 , jci2
             if ( global_cross_jstart+j < 9 .or. &
-                 global_cross_jstart+j > njcross - 9 ) cycle
+                 global_cross_jstart+j > njcross - 7 ) cycle
             if ( ba_cr%bsouth(j,i) .or. ba_cr%bnorth(j,i) .or. &
                  ba_cr%bwest(j,i)  .or. ba_cr%beast(j,i) ) cycle
             do nsi = -6 , 6

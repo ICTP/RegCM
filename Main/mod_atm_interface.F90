@@ -146,13 +146,13 @@ module mod_atm_interface
   real(rk8) , public , pointer , dimension(:,:) :: sfracs2d
   real(rk8) , public , pointer , dimension(:,:) :: svegfrac2d
   real(rk8) , public , pointer , dimension(:,:) :: sxlai2d
-  real(rk8) , public , pointer , dimension(:,:,:) :: voc_em 
- 
+  real(rk8) , public , pointer , dimension(:,:,:) :: voc_em
+
   !chemistry for surface
   real(rk8) , public , pointer , dimension(:,:,:) :: wetdepflx
   real(rk8) , public , pointer , dimension(:,:,:) :: drydepflx
   integer (ik4), public, pointer, dimension(:) :: idusts
-  
+
 
   ! Coupling
   real(rk8) , public , pointer , dimension(:,:,:) :: dailyrnf
@@ -898,7 +898,7 @@ module mod_atm_interface
       call getmem3d(ax%rhob3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhob3d')
       call getmem3d(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')
       call getmem3d(ax%rhb3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhb3d')
-      call getmem3d(ax%thx3d,jce1,jce2,ice1,ice2,1,kz,'slice:thx3d')
+      call getmem3d(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
       call getmem3d(ax%ubx3d,jce1-ma%jbl2,jce2+ma%jbr2, &
                              ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:ubx3d')
       call getmem3d(ax%vbx3d,jce1-ma%jbl2,jce2+ma%jbr2, &
@@ -922,6 +922,7 @@ module mod_atm_interface
       call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
       call getmem2d(ax%rhox2d,jce1,jce2,ice1,ice2,'slice:rhox2d')
       call getmem2d(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
+      call getmem2d(ax%ts2d,jce1,jce2,ice1,ice2,'slice:ts2d')
       call getmem3d(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
       if ( ichem == 1 ) then
         call getmem4d(ax%chib3d,jce1-ma%jbl2,jce2+ma%jbr2, &

@@ -157,7 +157,7 @@ module mod_pbl_holtbl
   do k = 1 , kz
     do i = ici1 , ici2
       do j = jci1 , jci2
-        thvx(j,i,k) = m2p%thxatm(j,i,k)*(d_one+ep1*m2p%qxatm(j,i,k,iqv))
+        thvx(j,i,k) = m2p%thatm(j,i,k)*(d_one+ep1*m2p%qxatm(j,i,k,iqv))
       end do
     end do
   end do
@@ -176,7 +176,7 @@ module mod_pbl_holtbl
   end do
   do i = ici1 , ici2
     do j = jci1 , jci2
-      govrth(j,i) = egrav/m2p%thxatm(j,i,kz)
+      govrth(j,i) = egrav/m2p%thatm(j,i,kz)
     end do
   end do
 !
@@ -251,7 +251,7 @@ module mod_pbl_holtbl
       xhfx(j,i) = m2p%hfx(j,i)/(cpd*m2p%rhox2d(j,i))
       xqfx(j,i) = m2p%qfx(j,i)/m2p%rhox2d(j,i)
       ! compute virtual heat flux at surface
-      hfxv(j,i) = xhfx(j,i) + mult*m2p%thxatm(j,i,kz)*xqfx(j,i)
+      hfxv(j,i) = xhfx(j,i) + mult*m2p%thatm(j,i,kz)*xqfx(j,i)
       ! limit coriolis parameter to value at 10 deg. latitude
       pfcor(j,i) = dmax1(dabs(m2p%coriol(j,i)),2.546D-5)
     end do
@@ -271,13 +271,13 @@ module mod_pbl_holtbl
       else
         ! first approximation for obhukov length
         if ( ifaholtth10 == 2 ) then
-          th10(j,i) = (0.25*m2p%thxatm(j,i,kz) + &
-                       0.75*m2p%tgb(j,i))*(d_one+mult*sh10)
+          th10(j,i) = (0.25D0*m2p%thatm(j,i,kz) + &
+                       0.75D0*m2p%tgb(j,i))*(d_one+mult*sh10)
         else if ( ifaholtth10 == 3 ) then
           th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
                       dlog(m2p%za(j,i,kz)*d_r10))
         else
-          th10(j,i) = ((m2p%thxatm(j,i,kz) + &
+          th10(j,i) = ((m2p%thatm(j,i,kz) + &
                   m2p%tgb(j,i))*d_half)*(d_one+mult*sh10)
         end if
         oblen = -th10(j,i)*ustr(j,i)**3 /  &
@@ -474,7 +474,7 @@ module mod_pbl_holtbl
       coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
       coef3(j,i,1) = d_zero
       coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-      coeff1(j,i,1) = m2p%thxatm(j,i,1)/coef2(j,i,1)
+      coeff1(j,i,1) = m2p%thatm(j,i,1)/coef2(j,i,1)
     end do
   end do
 
@@ -485,7 +485,7 @@ module mod_pbl_holtbl
         coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
         coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
         coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        coeff1(j,i,k) = (m2p%thxatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
+        coeff1(j,i,k) = (m2p%thatm(j,i,k)+coef3(j,i,k)*coeff1(j,i,k-1)) / &
                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
       end do
     end do
@@ -497,7 +497,7 @@ module mod_pbl_holtbl
       coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
       coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
       coefe(j,i,kz) = d_zero
-      coeff1(j,i,kz) = (m2p%thxatm(j,i,kz) + &
+      coeff1(j,i,kz) = (m2p%thatm(j,i,kz) + &
               dt*alphak(j,i,kz)*m2p%hfx(j,i)*rcpd + &
               coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
               (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
@@ -527,9 +527,9 @@ module mod_pbl_holtbl
   do k = 1 , kz
     do i = ici1 , ici2
       do j = jci1 , jci2
-        sf = (m2p%tatm(j,i,k)*m2p%psb(j,i))/m2p%thxatm(j,i,k)
+        sf = (m2p%tatm(j,i,k)*m2p%psb(j,i))/m2p%thatm(j,i,k)
         p2m%difft(j,i,k) = p2m%difft(j,i,k) + &
-                       (tpred1(j,i,k)-m2p%thxatm(j,i,k))*rdt*sf
+                       (tpred1(j,i,k)-m2p%thatm(j,i,k))*rdt*sf
       end do
     end do
   end do
@@ -691,7 +691,7 @@ module mod_pbl_holtbl
   do k = 2 , kz
     do i = ici1 , ici2
       do j = jci1 , jci2
-        sf = m2p%tatm(j,i,k)/m2p%thxatm(j,i,k)
+        sf = m2p%tatm(j,i,k)/m2p%thatm(j,i,k)
         ttnp(j,i,k) = sf*cpd*rhohf(j,i,k-1)*kvh(j,i,k)*cgh(j,i,k)
       end do
     end do
@@ -827,7 +827,7 @@ module mod_pbl_holtbl
 ! input arguments :  j       longitudinal position index
 !                    ubx3d   u wind component
 !                    vbx3d   v wind component
-!                    thx3d   potential temperature
+!                    th3d    potential temperature
 !                    thvx    virtual potential temperature
 !                    za      height of half sigma levels
 !                    f       coriolis parameter
@@ -913,7 +913,7 @@ module mod_pbl_holtbl
         xfmt = (d_one-(binm*p2m%zpbl(j,i)/obklen(j,i)))**onet
         wsc = ustr(j,i)*xfmt
         ! thermal temperature excess
-        therm(j,i) = (xhfx(j,i)+mult*m2p%thxatm(j,i,kz)*xqfx(j,i))*fak/wsc
+        therm(j,i) = (xhfx(j,i)+mult*m2p%thatm(j,i,kz)*xqfx(j,i))*fak/wsc
         ri(j,i,kz) = -egrav*therm(j,i)*m2p%za(j,i,kz)/(th10(j,i)*vv(j,i,kz))
       else
         therm(j,i) = d_zero
@@ -926,7 +926,7 @@ module mod_pbl_holtbl
       do j = jci1 , jci2
         if ( hfxv(j,i) > d_zero ) then
           tlv = th10(j,i) + therm(j,i)
-          tkv = m2p%thxatm(j,i,k)*(d_one+mult* &
+          tkv = m2p%thatm(j,i,k)*(d_one+mult* &
                       (m2p%qxatm(j,i,k,iqv)/(m2p%qxatm(j,i,k,iqv)+d_one)))
           ri(j,i,k) = egrav*(tkv-tlv)*m2p%za(j,i,k)/(th10(j,i)*vv(j,i,k))
         end if

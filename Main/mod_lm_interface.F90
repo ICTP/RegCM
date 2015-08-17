@@ -293,12 +293,13 @@ module mod_lm_interface
     call assignpnt(cplmsk,lm%icplmsk)
     call assignpnt(atms%ubx3d,lm%uatm,kz)
     call assignpnt(atms%vbx3d,lm%vatm,kz)
+    call assignpnt(atms%th3d,lm%thatm,kz)
     call assignpnt(atms%tb3d,lm%tatm,kz)
     call assignpnt(atms%pb3d,lm%patm,kz)
     call assignpnt(atms%qxb3d,lm%qvatm,kz,iqv)
-    call assignpnt(atms%thx3d,lm%thatm,kz)
     call assignpnt(atms%rhox2d,lm%rhox)
     call assignpnt(atms%ps2d,lm%sfps)
+    call assignpnt(atms%ts2d,lm%tatm)
     call assignpnt(atms%za,lm%hgt,kz)
     call assignpnt(sfs%hfx,lm%hfx)
     call assignpnt(sfs%qfx,lm%qfx)
@@ -411,7 +412,7 @@ module mod_lm_interface
     call runclm45(lm,lms)
     !coupling of biogenic VOC from CLM45 to chemistry
     if ( ichem == 1 ) then
-     do n=1,ntr 
+     do n=1,ntr
       do i = ici1 , ici2
         do j = jci1 , jci2
           cvoc_em(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
