@@ -322,7 +322,7 @@ module mod_bats_common
 
       call c2l_gs(lndcomm,lm%hgt,zh)
       call c2l_gs(lndcomm,lm%sfps,p0)
-      call c2l_gs(lndcomm,lm%tatm,ts0)
+      call c2l_gs(lndcomm,lm%sfta,ts0)
       call c2l_gs(lndcomm,lm%qvatm,qs0)
       call c2l_gs(lndcomm,lm%swdir,swd0)
       call c2l_gs(lndcomm,lm%swdif,swf0)

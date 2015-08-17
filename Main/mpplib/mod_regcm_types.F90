@@ -401,7 +401,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: patm        ! atms%pb3d(:,:,kz)
     real(rk8) , pointer , dimension(:,:) :: uatm        ! atms%ubx3d(:,:,kz)
     real(rk8) , pointer , dimension(:,:) :: vatm        ! atms%vbx3d(:,:,kz)
-    real(rk8) , pointer , dimension(:,:) :: tatm        ! atms%ts2d(:,:)
+    real(rk8) , pointer , dimension(:,:) :: tatm        ! atms%tb3d(:,:,kz)
     real(rk8) , pointer , dimension(:,:) :: thatm       ! atms%th3d(:,:,kz)
     real(rk8) , pointer , dimension(:,:) :: qvatm       ! atms%qxb3d(:,:,kz,iqv)
     real(rk8) , pointer , dimension(:,:) :: hgt         ! za(:,:,kz)
@@ -411,6 +411,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: tground1    ! sfs%tga
     real(rk8) , pointer , dimension(:,:) :: tground2    ! sfs%tgb
     real(rk8) , pointer , dimension(:,:) :: sfps        ! sfs%psb
+    real(rk8) , pointer , dimension(:,:) :: sfta        ! atms%ts2d
     real(rk8) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
     real(rk8) , pointer , dimension(:,:) :: tgbb        ! sfs%tgbb
     real(rk8) , pointer , dimension(:,:) :: rhox        ! rhox2d
