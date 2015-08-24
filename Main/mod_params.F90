@@ -405,7 +405,7 @@ module mod_params
     ichcumtra = 1     ! tracer convective transport
     ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
     ichjphcld = 1     ! impact of cloud aod on photolysis coef
-    idirect = 1       ! tracer direct effect
+    idirect = 0       ! tracer direct effect
     iindirect = 0
     ichdiag = 0       ! chem tend outputs
     ichsursrc = 1

@@ -674,7 +674,9 @@ module rrtmg_sw_rad
       !FAB add aerosol radforcing / refine with idirect criteria
       if ( idirect > 0 ) then
         nsswcall = 2
-      end if
+      elseif (idirect == 0) then
+        nsswcall = 1
+      end if 
 
       ! Call the 2-stream radiation transfer model
       do n = 1, nsswcall
@@ -693,7 +695,7 @@ module rrtmg_sw_rad
             zasya(:,:) = 0._rb
             zomga(:,:) = 1._rb
           end if
-        else if ( idirect == 2 ) then
+        else if (idirect == 0 .or.  idirect == 2 ) then
           if ( n == 1 ) then
             ztaua(:,:) = 0._rb
             zasya(:,:) = 0._rb

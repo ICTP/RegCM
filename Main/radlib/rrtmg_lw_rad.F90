@@ -535,6 +535,8 @@ module rrtmg_lw_rad
         ! FAB : double call to rad scheme forcomputing radiative forcing
         if (idirect > 0 ) then
           nlwcall = 2
+        elseif (idirect == 0) then 
+          nlwcall = 1
         end if
         do n = 1, nlwcall
           !
@@ -552,7 +554,7 @@ module rrtmg_lw_rad
                 end do
               end do
             end if
-          else if ( idirect == 2 ) then
+          else if ( idirect == 0 .or. idirect == 2 ) then
             if ( n == 1 ) then
               do k = 1, nlayers
                 do ig = 1, ngptlw
