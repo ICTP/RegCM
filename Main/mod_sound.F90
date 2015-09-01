@@ -265,7 +265,7 @@ module mod_sound
                       chh * (atmc%pp(j,i,k)   - atmc%pp(j,i-1,k)   + &
                              atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
                       ( atm0%pr(j,i,k)   - atm0%pr(j,i-1,k)  + &
-                        atm0%pr(j-1,i,k) - atm0%pr(j-1,i-1,k))*dppdp0)
+                        atm0%pr(j-1,i,k) - atm0%pr(j-1,i-1,k)) * dppdp0)
           end do
         end do
       end do
@@ -540,9 +540,9 @@ module mod_sound
         ! Apply upper rad cond. no atmc%w(top) in lateral boundary
         !
         do i = ici1 , ici2
-          if ( i < 8 .or. i > nicross - 7 ) cycle
+          if ( i < 8 .or. i > iy - 8 ) cycle
           do j = jci1 , jci2
-            if ( j < 8 .or. j > njcross - 7 ) cycle
+            if ( j < 8 .or. j > jx - 8 ) cycle
             do nsi = -6 , 6
               inn = i + nsi
               do nsj = -6 , 6
