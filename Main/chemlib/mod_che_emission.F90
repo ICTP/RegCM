@@ -102,10 +102,6 @@ module mod_che_emission
 
     real(rk8) , intent(in) ::declin
     integer(ik4)  :: i , itr
-
-#if (defined VOC && defined CLM)
-    integer(ik4)  :: jglob, iglob  ! Full grid i- j-component
-#endif
     real(rk8) :: daylen , fact , maxelev , amp,dayhr
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'emis_tend'
@@ -141,13 +137,11 @@ module mod_che_emission
       ! NOTE:  ibvoc=1 means used MEGAN emissions.
       ! ibvoc is forced to
       ! zero when using BATS
-      jglob = global_dot_jstart+j-1
       if ( bvoc_trmask(iisop) /= 0 ) then
         do i = ici1, ici2
           chemsrc(j,i,iisop) = cvoc_em(j,i)
-          iglob = global_dot_istart+i-1
-          if ( ktau == 0 ) cvoc_em(jglob,iglob) = d_zero
-          chemsrc(j,i,iisop) = cvoc_em(jglob,iglob)
+          if ( ktau == 0 ) cvoc_em(j,i) = d_zero
+          chemsrc(j,i,iisop) = cvoc_em(j,i)
         end do
       end if
 #else
@@ -176,12 +170,10 @@ module mod_che_emission
 
     if ( iapin > 0 ) then
 #if (defined VOC && defined CLM)
-      jglob = global_dot_jstart+j-1
       if ( bvoc_trmask(iapin) /= 0 ) then
         do i = ici1, ici2
-          iglob = global_dot_istart+i-1
-          if ( ktau == 0 ) cvoc_em1(jglob,iglob) = d_zero
-          chemsrc(j,i,iapin) = cvoc_em1(jglob,iglob)
+          if ( ktau == 0 ) cvoc_em1(j,i) = d_zero
+          chemsrc(j,i,iapin) = cvoc_em1(j,i)
         end do
       end if
 #endif
@@ -189,12 +181,10 @@ module mod_che_emission
 
     if ( ilimo > 0 ) then
 #if (defined VOC && defined CLM)
-      jglob = global_dot_jstart+j-1
       if ( bvoc_trmask(ilimo) /= 0 ) then
         do i = ici1, ici2
-          iglob = global_dot_istart+i-1
-          if ( ktau == 0 ) cvoc_em2(jglob,iglob) = d_zero
-          chemsrc(j,i,ilimo) = cvoc_em2(jglob,iglob)
+          if ( ktau == 0 ) cvoc_em2(j,i) = d_zero
+          chemsrc(j,i,ilimo) = cvoc_em2(j,i)
         end do
       end if
 #endif

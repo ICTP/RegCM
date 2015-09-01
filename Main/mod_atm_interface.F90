@@ -147,12 +147,16 @@ module mod_atm_interface
   real(rk8) , public , pointer , dimension(:,:) :: svegfrac2d
   real(rk8) , public , pointer , dimension(:,:) :: sxlai2d
   real(rk8) , public , pointer , dimension(:,:,:) :: voc_em
+#if (defined CLM && defined VOC)
+  real(rk8) , public , pointer , dimension(:,:) :: voc_em1
+  real(rk8) , public , pointer , dimension(:,:) :: voc_em2
+#endif
+  real(rk8) , public , pointer , dimension(:,:,:) :: dep_vels
 
   !chemistry for surface
   real(rk8) , public , pointer , dimension(:,:,:) :: wetdepflx
   real(rk8) , public , pointer , dimension(:,:,:) :: drydepflx
   integer (ik4), public, pointer, dimension(:) :: idusts
-
 
   ! Coupling
   real(rk8) , public , pointer , dimension(:,:,:) :: dailyrnf
@@ -209,63 +213,61 @@ module mod_atm_interface
         ma%ibb4 = 0
         ma%ibb6 = 0
       end if
-      jde1  = 1
-      jdi1  = 1
-      jdii1 = 1
-      jde2  = jxp
-      jdi2  = jxp
-      jdii2 = jxp
-      ide1  = 1
-      idi1  = 1
-      idii1 = 1
-      ide2  = iyp
-      idi2  = iyp
-      idii2 = iyp
+      jde1  = global_dot_jstart
+      jdi1  = global_dot_jstart
+      jdii1 = global_dot_jstart
+      jde2  = global_dot_jend
+      jdi2  = global_dot_jend
+      jdii2 = global_dot_jend
+      ide1  = global_dot_istart
+      idi1  = global_dot_istart
+      idii1 = global_dot_istart
+      ide2  = global_dot_iend
+      idi2  = global_dot_iend
+      idii2 = global_dot_iend
       if ( ma%has_bdyleft ) then
-        jdi1 = 2
-        jdii1 = 3
+        jdi1 = jde1 + 1
+        jdii1 = jde1 + 2
       end if
       if ( ma%has_bdyright ) then
-        jdi2 = jxp-1
-        jdii2 = jxp-2
+        jdi2 = jde2 - 1
+        jdii2 = jde2 - 2
       end if
       if ( ma%has_bdybottom ) then
-        idi1 = 2
-        idii1 = 3
+        idi1 = ide1 + 1
+        idii1 = ide1 + 2
       end if
       if ( ma%has_bdytop ) then
-        idi2 = iyp-1
-        idii2 = iyp-2
+        idi2 = ide2 - 1
+        idii2 = ide2 - 2
       end if
-      jce1  = 1
-      jci1  = 1
-      jcii1 = 1
-      jce2  = jxp
-      jci2  = jxp
-      jcii2 = jxp
-      ice1  = 1
-      ici1  = 1
-      icii1 = 1
-      ice2  = iyp
-      ici2  = iyp
-      icii2 = iyp
+      jce1  = global_cross_jstart
+      jci1  = global_cross_jstart
+      jcii1 = global_cross_jstart
+      jce2  = global_cross_jend
+      jci2  = global_cross_jend
+      jcii2 = global_cross_jend
+      ice1  = global_cross_istart
+      ici1  = global_cross_istart
+      icii1 = global_cross_istart
+      ice2  = global_cross_iend
+      ici2  = global_cross_iend
+      icii2 = global_cross_iend
       if ( ma%has_bdyleft ) then
-        jci1 = 2
-        jcii1 = 3
+        jci1 = jce1 + 1
+        jcii1 = jce1 + 2
       end if
       if ( ma%has_bdyright ) then
-        jce2 = jxp-1
-        jci2 = jxp-2
-        jcii2 = jxp-3
+        jci2 = jce2 - 1
+        jcii2 = jce2 - 2
       end if
       if ( ma%has_bdybottom ) then
-        ici1 = 2
-        icii1 = 3
+        ici1 = ice1 + 1
+        icii1 = ice1 + 2
       end if
       if ( ma%has_bdytop ) then
-        ice2 = iyp-1
-        ici2 = iyp-2
-        icii2 = iyp-3
+        ici2 = ice2 - 1
+        icii2 = ice2 - 2
       end if
 #ifdef DEBUG
       write(ndebug+myid,*) 'TOPLEFT     = ', ma%topleft
@@ -276,8 +278,6 @@ module mod_atm_interface
       write(ndebug+myid,*) 'BOTTOM      = ', ma%bottom
       write(ndebug+myid,*) 'BOTTOMLEFT  = ', ma%bottomleft
       write(ndebug+myid,*) 'LEFT        = ', ma%left
-      write(ndebug+myid,*) 'GLOBAL J = ', global_dot_jstart , global_dot_jend
-      write(ndebug+myid,*) 'GLOBAL I = ', global_dot_istart , global_dot_iend
       write(ndebug+myid,*) 'DOTPEXTJI1 : ', jde1 , jde2 , ide1 , ide2
       write(ndebug+myid,*) 'DOTPINTJI1 : ', jdi1 , jdi2 , idi1 , idi2
       write(ndebug+myid,*) 'DOTPINTJI2 : ', jdii1 , jdii2 , idii1 , idii2
@@ -299,7 +299,7 @@ module mod_atm_interface
       integer(ik4) :: ic
       integer(ik4) :: igbb1 , igbb2 , igbt1 , igbt2
       integer(ik4) :: jgbl1 , jgbl2 , jgbr1 , jgbr2
-      integer(ik4) :: i , j , i1 , i2 , j1 , j2 , iglob , jglob
+      integer(ik4) :: i , j , i1 , i2 , j1 , j2
 
       ba%dotflag = ldot
       call getmem2d(ba%ibnd,jde1,jde2,ide1,ide2,'setup_boundaries:ibnd')
@@ -323,10 +323,10 @@ module mod_atm_interface
       igbt2 = iy-ic-1
       jgbr1 = jx-ic-ba%nsp+2
       jgbr2 = jx-ic-1
-      i1 = 1
-      i2 = iyp
-      j1 = 1
-      j2 = jxp
+      i1 = ide1
+      i2 = ide2
+      j1 = jde1
+      j2 = jde2
       ba%ns = 0
       ba%nn = 0
       ba%nw = 0
@@ -338,12 +338,10 @@ module mod_atm_interface
       if ( ma%bandflag ) then
         ! Check for South boundary
         do i = i1 , i2
-          iglob = global_dot_istart+i-1
-          if ( iglob >= igbb1 .and. iglob <= igbb2 ) then
+          if ( i >= igbb1 .and. i <= igbb2 ) then
             do j = j1 , j2
-              jglob = global_dot_jstart+j-1
-              if ( jglob < jgbl1 .and. jglob > jgbr2 ) cycle
-              ba%ibnd(j,i) = iglob-igbb1+2
+              if ( j < jgbl1 .and. j > jgbr2 ) cycle
+              ba%ibnd(j,i) = i-igbb1+2
               ba%bsouth(j,i) = .true.
               ba%ns = ba%ns+1
             end do
@@ -351,12 +349,10 @@ module mod_atm_interface
         end do
         ! North Boundary
         do i = i1 , i2
-          iglob = global_dot_istart+i-1
-          if ( iglob >= igbt1 .and. iglob <= igbt2 ) then
+          if ( i >= igbt1 .and. i <= igbt2 ) then
             do j = j1 , j2
-              jglob = global_dot_jstart+j-1
-              if ( jglob < jgbl1 .and. jglob > jgbr2 ) cycle
-              ba%ibnd(j,i) = igbt2-iglob+2
+              if ( j < jgbl1 .and. j > jgbr2 ) cycle
+              ba%ibnd(j,i) = igbt2-i+2
               ba%bnorth(j,i) = .true.
               ba%nn = ba%nn+1
             end do
@@ -365,14 +361,12 @@ module mod_atm_interface
       else
         ! Check for South boundary
         do i = i1 , i2
-          iglob = global_dot_istart+i-1
-          if ( iglob >= igbb1 .and. iglob <= igbb2 ) then
+          if ( i >= igbb1 .and. i <= igbb2 ) then
             do j = j1 , j2
-              jglob = global_dot_jstart+j-1
-              if ( jglob >= jgbl1 .and. jglob <= jgbr2 ) then
-                if ( jglob <= jgbl2 .and. iglob >= jglob ) cycle
-                if ( jglob >= jgbr1 .and. iglob >= (jgbr2-jglob+2) ) cycle
-                ba%ibnd(j,i) = iglob-igbb1+2
+              if ( j >= jgbl1 .and. j <= jgbr2 ) then
+                if ( j <= jgbl2 .and. i >= j ) cycle
+                if ( j >= jgbr1 .and. i >= (jgbr2-j+2) ) cycle
+                ba%ibnd(j,i) = i-igbb1+2
                 ba%bsouth(j,i) = .true.
                 ba%ns = ba%ns+1
               end if
@@ -381,14 +375,12 @@ module mod_atm_interface
         end do
         ! North Boundary
         do i = i1 , i2
-          iglob = global_dot_istart+i-1
-          if ( iglob >= igbt1 .and. iglob <= igbt2 ) then
+          if ( i >= igbt1 .and. i <= igbt2 ) then
             do j = j1 , j2
-              jglob = global_dot_jstart+j-1
-              if ( jglob >= jgbl1 .and. jglob <= jgbr2 ) then
-                if ( jglob <= jgbl2 .and. (igbt2-iglob+2) >= jglob ) cycle
-                if ( jglob >= jgbr1 .and. (igbt2-iglob) >= (jgbr2-jglob) ) cycle
-                ba%ibnd(j,i) = igbt2-iglob+2
+              if ( j >= jgbl1 .and. j <= jgbr2 ) then
+                if ( j <= jgbl2 .and. (igbt2-i+2) >= j ) cycle
+                if ( j >= jgbr1 .and. (igbt2-i) >= (jgbr2-j) ) cycle
+                ba%ibnd(j,i) = igbt2-i+2
                 ba%bnorth(j,i) = .true.
                 ba%nn = ba%nn+1
               end if
@@ -397,14 +389,12 @@ module mod_atm_interface
         end do
         ! West boundary
         do i = i1 , i2
-          iglob = global_dot_istart+i-1
-          if ( iglob < igbb1 .or. iglob > igbt2 ) cycle
+          if ( i < igbb1 .or. i > igbt2 ) cycle
           do j = j1 , j2
-            jglob = global_dot_jstart+j-1
-            if ( jglob >= jgbl1 .and. jglob <= jgbl2 ) then
-              if ( iglob < igbb2 .and. jglob > iglob ) cycle
-              if ( iglob > igbt1 .and. jglob > (igbt2-iglob+2) ) cycle
-              ba%ibnd(j,i) = jglob-jgbl1+2
+            if ( j >= jgbl1 .and. j <= jgbl2 ) then
+              if ( i < igbb2 .and. j > i ) cycle
+              if ( i > igbt1 .and. j > (igbt2-i+2) ) cycle
+              ba%ibnd(j,i) = j-jgbl1+2
               ba%bwest(j,i) = .true.
               ba%nw = ba%nw+1
             end if
@@ -412,14 +402,12 @@ module mod_atm_interface
         end do
         ! East boundary
         do i = i1 , i2
-          iglob = global_dot_istart+i-1
-          if ( iglob < igbb1 .or. iglob > igbt2 ) cycle
+          if ( i < igbb1 .or. i > igbt2 ) cycle
           do j = j1 , j2
-            jglob = global_dot_jstart+j-1
-            if ( jglob >= jgbr1 .and. jglob <= jgbr2 ) then
-              if ( iglob < igbb2 .and. (jgbr2-jglob+2) > iglob ) cycle
-              if ( iglob > igbt1 .and. (jgbr2-jglob) > (igbt2-iglob) ) cycle
-              ba%ibnd(j,i) = jgbr2-jglob+2
+            if ( j >= jgbr1 .and. j <= jgbr2 ) then
+              if ( i < igbb2 .and. (jgbr2-j+2) > i ) cycle
+              if ( i > igbt1 .and. (jgbr2-j) > (igbt2-i) ) cycle
+              ba%ibnd(j,i) = jgbr2-j+2
               ba%beast(j,i) = .true.
               ba%ne = ba%ne+1
             end if
@@ -1022,7 +1010,13 @@ module mod_atm_interface
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
         call getmem1d(idusts,1,nbin,'storage:idusts')
-
+#if (defined CLM && defined VOC)
+        call getmem2d(voc_em1,1,jx,1,iy,'storage:voc_em1')
+        call getmem2d(voc_em2,1,jx,1,iy,'storage:voc_em2')
+        if ( igaschem == 1 .or. ioxclim == 1 ) then
+          call getmem3d(dep_vels,1,jx,1,iy,1,ntr,'storage:dep_vels')
+        end if
+#endif
       end if
       if ( iocncpl == 1 ) then
         call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'storage:cplmsk')

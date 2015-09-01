@@ -682,9 +682,6 @@ module mod_che_drydep
       real(rk8) , dimension(ici1:ici2) :: icz , ddrem
       real(rk8) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
       real(rk8) :: kd
-#ifdef CLM
-      integer(ik4) :: jj, ii
-#endif
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_gas'
       integer(ik4) , save :: idindx = 0
@@ -747,9 +744,6 @@ module mod_che_drydep
        end if
 
        ! Finally : gas phase dry dep tendency calculation
-#ifdef CLM
-       jj = global_cross_jstart+j-1
-#endif
        if ( ichdrdepo == 1 ) then
          do i = ici1 , ici2
 
@@ -757,8 +751,7 @@ module mod_che_drydep
            ! from internal CLM calculations
 #ifdef CLM
            if ( ivegcov(i) == 0 ) then
-              ii = global_cross_istart+i-1
-              drydepvg(i,:)  =  cdep_vels(jj,ii,:)
+             drydepvg(i,:)  =  cdep_vels(j,i,:)
            end if
 #endif
            do n = 1 , ntr
@@ -792,8 +785,7 @@ module mod_che_drydep
            ! from internal CLM calculations
 #ifdef CLM
            if ( ivegcov(i) == 0 ) then
-              ii = global_cross_istart+i-1
-              drydepvg(i,:)  =  cdep_vels(jj,ii,:)
+              drydepvg(i,:)  =  cdep_vels(j,i,:)
            end if
 #endif
            do n = 1 , ntr

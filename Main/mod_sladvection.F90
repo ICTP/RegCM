@@ -135,8 +135,8 @@ module mod_sladvection
           xnp = int(xn)
           if ( abs(xnp) >= 3 ) then
             write(stderr,*) 'SL Advection problem in WE direction !'
-            write(stderr,*) 'Cannot compute DP at J = ',global_dot_jstart+j
-            write(stderr,*) '                     I = ',global_dot_istart+i
+            write(stderr,*) 'Cannot compute DP at J = ',j
+            write(stderr,*) '                     I = ',i
             call fatal(__FILE__,__LINE__,'SLADVECTION')
           end if
           alfax = dabs((xnp*ddx - xdis)/ddx)
@@ -170,8 +170,8 @@ module mod_sladvection
           ynp = int(yn)
           if ( abs(ynp) >= 3 ) then
             write(stderr,*) 'SL Advection problem in SN direction !'
-            write(stderr,*) 'Cannot compute DP at J = ',global_dot_jstart+j
-            write(stderr,*) '                     I = ',global_dot_istart+i
+            write(stderr,*) 'Cannot compute DP at J = ',j
+            write(stderr,*) '                     I = ',i
             call fatal(__FILE__,__LINE__,'SLADVECTION')
           end if
           betay = dabs((ynp*ddy - ydis)/ddy)

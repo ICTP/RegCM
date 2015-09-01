@@ -52,16 +52,16 @@ module mod_vertint
 
   contains
 
-  subroutine intlinreg(fp,f,ps,p3d,im,jm,km,p,kp)
+  subroutine intlinreg(fp,f,ps,p3d,im1,im2,jm1,jm2,km,p,kp)
     implicit none
-    integer(ik4) , intent(in) :: im , jm , km , kp
-    real(rk8) , dimension(im,jm,kp) , intent(in) :: f
-    real(rk8) , dimension(im,jm) , intent(in) :: ps
-    real(rk8) , dimension(kp) , intent(in) :: p
-    real(rk8) , dimension(im,jm,km) , intent(in) :: p3d
-    real(rk8) , dimension(im,jm,km) , intent(out) :: fp
+    integer(ik4) , intent(in) :: im1 , im2 , jm1 , jm2 , km , kp
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: f
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: ps
+    real(rk8) , pointer , dimension(:) , intent(in) :: p
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: p3d
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: fp
     integer(ik4) :: i , j , k , kx , knx , n
-    real(rk8) , dimension(im,jm,kp) :: ff
+    real(rk8) , dimension(im1:im2,jm1:jm2,kp) :: ff
     real(rk8) , dimension(kp) :: pp
     real(rk8) , dimension(kp) :: sig
     real(rk8) :: sigp , w1 , wp
@@ -72,8 +72,8 @@ module mod_vertint
     ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
     !
     same_order = .true.
-    if ( (p(1) > p(kp) .and. p3d(1,1,1) < p3d(1,1,km)) .or. &
-         (p(1) < p(kp) .and. p3d(1,1,1) > p3d(1,1,km)) ) then
+    if ( (p(1) > p(kp) .and. p3d(im1,jm1,1) < p3d(im1,jm1,km)) .or. &
+         (p(1) < p(kp) .and. p3d(im1,jm1,1) > p3d(im1,jm1,km)) ) then
       same_order = .false.
     end if
     if ( same_order ) then
@@ -92,8 +92,8 @@ module mod_vertint
       !
       ! Loop over points
       !
-      do j = 1 , jm
-        do i = 1 , im
+      do j = jm1 , jm2
+        do i = im1 , im2
           if ( ps(i,j) < 1.0D0 ) cycle
           !
           ! Sigma values in this point
@@ -144,8 +144,8 @@ module mod_vertint
       !
       ! Loop over points
       !
-      do j = 1 , jm
-        do i = 1 , im
+      do j = jm1 , jm2
+        do i = im1 , im2
           if ( ps(i,j) < 1.0D0 ) cycle
           !
           ! Sigma values in this point
@@ -192,14 +192,14 @@ module mod_vertint
     end if
   end subroutine intlinreg
 
-  subroutine intlinprof(fp,f,ps,p3d,im,jm,km,p,kp)
+  subroutine intlinprof(fp,f,ps,p3d,im1,im2,jm1,jm2,km,p,kp)
     implicit none
-    integer(ik4) , intent(in) :: im , jm , km , kp
-    real(rk8) , dimension(kp) , intent(in) :: f
-    real(rk8) , dimension(im,jm) , intent(in) :: ps
-    real(rk8) , dimension(kp) , intent(in) :: p
-    real(rk8) , dimension(im,jm,km) , intent(in) :: p3d
-    real(rk8) , dimension(im,jm,km) , intent(out) :: fp
+    integer(ik4) , intent(in) :: im1 , im2 , jm1 , jm2 , km , kp
+    real(rk8) , pointer , dimension(:) , intent(in) :: f
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: ps
+    real(rk8) , pointer , dimension(:) , intent(in) :: p
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: p3d
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: fp
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk8) , dimension(kp) :: ff
     real(rk8) , dimension(kp) :: pp
@@ -212,8 +212,8 @@ module mod_vertint
     ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
     !
     same_order = .true.
-    if ( (p(1) > p(kp) .and. p3d(1,1,1) < p3d(1,1,km)) .or. &
-         (p(1) < p(kp) .and. p3d(1,1,1) > p3d(1,1,km)) ) then
+    if ( (p(1) > p(kp) .and. p3d(im1,jm1,1) < p3d(im1,jm1,km)) .or. &
+         (p(1) < p(kp) .and. p3d(im1,jm1,1) > p3d(im1,jm1,km)) ) then
       same_order = .false.
     end if
     if ( same_order ) then
@@ -232,8 +232,8 @@ module mod_vertint
       !
       ! Loop over points
       !
-      do j = 1 , jm
-        do i = 1 , im
+      do j = jm1 , jm2
+        do i = im1 , im2
           if ( ps(i,j) < 1.0D0 ) cycle
           !
           ! Sigma values in this point
@@ -284,8 +284,8 @@ module mod_vertint
       !
       ! Loop over points
       !
-      do j = 1 , jm
-        do i = 1 , im
+      do j = jm1 , jm2
+        do i = im1 , im2
           if ( ps(i,j) < 1.0D0 ) cycle
           !
           ! Sigma values in this point

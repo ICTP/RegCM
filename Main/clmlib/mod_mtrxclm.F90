@@ -157,7 +157,7 @@ module mod_mtrxclm
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
 !
-    integer(ik4) :: i , j , ig , jg , n
+    integer(ik4) :: i , j , n
     integer(ik4) :: year , month , day , hour
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initclm'
@@ -222,7 +222,7 @@ module mod_mtrxclm
     clm_fracveg(:,:) = d_zero
 
 #if (defined VOC)
-    voc_em(:,:) = d_zero
+    voc_em(:,:,:) = d_zero
     voc_em1(:,:) = d_zero
     voc_em2(:,:) = d_zero
 #endif
@@ -346,12 +346,10 @@ module mod_mtrxclm
     end if
 
     do i = ici1 , ici2
-      ig = global_cross_istart+i-1
       do j = jci1 , jci2
-        jg = global_cross_jstart+j-1
         do n = 1 , nnsg
           if ( ichem == 1 ) then
-            lm%svegfrac2d(j,i) = clm_fracveg(jg,ig)
+            lm%svegfrac2d(j,i) = clm_fracveg(j,i)
           end if
           if ( ktau == 0 ) then
             ! Set initial albedos to clm dry soil values for mid-colored soils
@@ -360,9 +358,9 @@ module mod_mtrxclm
             lms%lwdiralb(n,j,i) = 0.32D0
             lms%lwdifalb(n,j,i) = 0.32D0
             lms%swalb(n,j,i) = (lms%swdiralb(n,j,i)+lms%swdifalb(n,j,i)) * &
-                clm_fracveg(jg,ig)
+                clm_fracveg(j,i)
             lms%lwalb(n,j,i) = (lms%lwdiralb(n,j,i)+lms%lwdifalb(n,j,i)) * &
-                clm_fracveg(jg,ig)
+                clm_fracveg(j,i)
           end if
         end do
       end do
@@ -383,14 +381,12 @@ module mod_mtrxclm
 
     if ( ktau == 0 ) then
       do i = ici1 , ici2
-        ig = global_cross_istart+i-1
         do j = jci1 , jci2
-          jg = global_cross_jstart+j-1
           do n = 1 , nnsg
-            if ( landmask(jg,ig) == 3 ) then
+            if ( landmask(j,i) == 3 ) then
               lm%ldmsk1(n,j,i) = 5
             else
-              lm%ldmsk1(n,j,i) = landmask(jg,ig)
+              lm%ldmsk1(n,j,i) = landmask(j,i)
             end if
             lms%tgbrd(n,j,i) = lm%tground2(j,i)
             lms%taf(n,j,i)   = lm%tground2(j,i)
@@ -404,18 +400,16 @@ module mod_mtrxclm
         end do
       end do
       do i = ici1 , ici2
-        ig = global_cross_istart+i-1
         do j = jci1 , jci2
-          jg = global_cross_jstart+j-1
           !
           ! Set some clm land surface/vegetation variables to the ones
           ! used in RegCM.  Make sure all are consistent
           !
-          lm%lndcat(j,i) = clm2bats_veg(jg,ig)
-          if ( clm2bats_veg(jg,ig) < 0.1D0 ) lm%lndcat(j,i) = 15.0D0
+          lm%lndcat(j,i) = clm2bats_veg(j,i)
+          if ( clm2bats_veg(j,i) < 0.1D0 ) lm%lndcat(j,i) = 15.0D0
           do n = 1 , nnsg
-            lm%lndcat1(n,j,i) = clm2bats_veg(jg,ig)
-            if ( clm2bats_veg(jg,ig) < 0.1D0 ) lm%lndcat1(n,j,i) = 15.0D0
+            lm%lndcat1(n,j,i) = clm2bats_veg(j,i)
+            if ( clm2bats_veg(j,i) < 0.1D0 ) lm%lndcat1(n,j,i) = 15.0D0
           end do
         end do
       end do
@@ -437,7 +431,7 @@ module mod_mtrxclm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: i , j , n , ig , jg
+    integer(ik4) :: i , j , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'albedoclm'
     integer(ik4) , save :: idindx = 0
@@ -451,29 +445,27 @@ module mod_mtrxclm
     ! use albedo calculated with BATS method when albedo=1
     !
     do i = ici1 , ici2
-      ig = global_cross_istart+i-1
       do j = jci1 , jci2
-        jg = global_cross_jstart+j-1
         do n = 1 , nnsg
           !
           ! Use over land CLM calculated albedo (good when < 1)
           !
-          if ( (d_one-c2ralbdirs(jg,ig)) > dlowval ) then
-            lms%swdiralb(n,j,i) = c2ralbdirs(jg,ig)
+          if ( (d_one-c2ralbdirs(j,i)) > dlowval ) then
+            lms%swdiralb(n,j,i) = c2ralbdirs(j,i)
           end if
-          if ( (d_one-c2ralbdirl(jg,ig)) > dlowval ) then
-            lms%lwdiralb(n,j,i) = c2ralbdirl(jg,ig)
+          if ( (d_one-c2ralbdirl(j,i)) > dlowval ) then
+            lms%lwdiralb(n,j,i) = c2ralbdirl(j,i)
           end if
-          if ( (d_one-c2ralbdifs(jg,ig)) > dlowval ) then
-            lms%swdifalb(n,j,i) = c2ralbdifs(jg,ig)
+          if ( (d_one-c2ralbdifs(j,i)) > dlowval ) then
+            lms%swdifalb(n,j,i) = c2ralbdifs(j,i)
           end if
-          if ( (d_one-c2ralbdifl(jg,ig)) > dlowval ) then
-            lms%lwdifalb(n,j,i) = c2ralbdifl(jg,ig)
+          if ( (d_one-c2ralbdifl(j,i)) > dlowval ) then
+            lms%lwdifalb(n,j,i) = c2ralbdifl(j,i)
           end if
           lms%swalb(n,j,i) = (lms%swdiralb(n,j,i)+lms%swdifalb(n,j,i)) * &
-                  clm_fracveg(jg,ig)
+                  clm_fracveg(j,i)
           lms%lwalb(n,j,i) = (lms%lwdiralb(n,j,i)+lms%lwdifalb(n,j,i)) * &
-                  clm_fracveg(jg,ig)
+                  clm_fracveg(j,i)
         end do
       end do
     end do
@@ -502,7 +494,7 @@ module mod_mtrxclm
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
 
-    integer(ik4) :: i , j , ic , jc , ib , jg , ig , kk , n
+    integer(ik4) :: i , j , ic , jc , ib , kk , n
     integer(ik4) :: idep , icpu , nout
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interfclm'
@@ -556,8 +548,8 @@ module mod_mtrxclm
         if ( caerosol == 1 ) nout = nout + 2
       end if
       do icpu = 1 , nproc
-        do ib = 1 , c2rngc(icpu)
-          kk = c2rngc(icpu)
+        kk = c2rngc(icpu)
+        do ib = 1 , kk
           j = omap_i(jc)
           i = omap_j(jc)
           c2rtgb(j,i)     = c2r_allout(ib+( 0*kk)+ic)
@@ -582,27 +574,27 @@ module mod_mtrxclm
           c2rro_sub(j,i)  = c2r_allout(ib+(19*kk)+ic)
           if ( ichem == 1 ) then
             if ( cgaschem == 1 .and. caerosol == 1 ) then
-              !**** Dry deposition velocities from CLM4
-              do n = 1 , ntr
-                dep_vels(j,i,n) = c2r_depout(ib+(kk*(n-1))+idep)
-              end do
               c2rfracsno(j,i)   = c2r_allout(ib+(20*kk)+ic)
               c2rfvegnosno(j,i) = c2r_allout(ib+(21*kk)+ic)
+              !**** Dry deposition velocities from CLM4
 #if (defined VOC)
-              voc_em(j,i)       = c2r_allout(ib+(22*kk)+ic)
+              voc_em(j,i,:)     = c2r_allout(ib+(22*kk)+ic)
               voc_em1(j,i)      = c2r_allout(ib+(23*kk)+ic)
               voc_em2(j,i)      = c2r_allout(ib+(24*kk)+ic)
 #endif
-            else if ( cgaschem == 1 .and. caerosol /= 1 ) then
-              !**** Dry deposition velocities from CLM4
               do n = 1 , ntr
-                dep_vels(j,i,n) = c2r_depout(ib+(kk*(n-1))+idep)
+                dep_vels(j,i,n) = c2r_depout(ib+(kk*(nout-1))+idep)
               end do
+            else if ( cgaschem == 1 .and. caerosol /= 1 ) then
+              !**** Dry deposition velocities from CLM
 #if (defined VOC)
-              voc_em(j,i)    = c2r_allout(ib+(20*kk)+ic)
+              voc_em(j,i,:)  = c2r_allout(ib+(20*kk)+ic)
               voc_em1(j,i)   = c2r_allout(ib+(21*kk)+ic)
               voc_em2(j,i)   = c2r_allout(ib+(22*kk)+ic)
 #endif
+              do n = 1 , ntr
+                dep_vels(j,i,n) = c2r_depout(ib+(kk*(nout-1))+idep)
+              end do
             else if ( cgaschem /= 1 .and. caerosol == 1 ) then
               c2rfracsno(j,i)   = c2r_allout(ib+(20*kk)+ic)
               c2rfvegnosno(j,i) = c2r_allout(ib+(21*kk)+ic)
@@ -616,37 +608,33 @@ module mod_mtrxclm
         end if
       end do
 
-      ib = 1
       do i = ici1 , ici2
-        ig = global_cross_istart+i-1
         do j = jci1 , jci2
-          jg = global_cross_jstart+j-1
-          if ( landmask(jg,ig) == 1 .or. landmask(jg,ig) == 3 ) then
+          if ( landmask(j,i) == 1 .or. landmask(j,i) == 3 ) then
             do n = 1 , nnsg
-              lms%tgbb(n,j,i)   = c2rtgbb(jg,ig)
-              lms%drag(n,j,i)   = c2ruvdrag(jg,ig)
+              lms%tgbb(n,j,i)   = c2rtgbb(j,i)
+              lms%drag(n,j,i)   = c2ruvdrag(j,i)
               lms%prcp(n,j,i)   = r2crnc(j,i) + r2crnnc(j,i)
-              lms%tgrd(n,j,i)   = c2rtgb(jg,ig)
-              lms%tgbrd(n,j,i)  = c2rtgb(jg,ig)
-              lms%evpr(n,j,i)   = c2rlatht(jg,ig)
-              lms%sent(n,j,i)   = c2rsenht(jg,ig)
-              lms%taf(n,j,i)    = c2r2mt(jg,ig)
-              lms%t2m(n,j,i)    = c2r2mt(jg,ig)
+              lms%tgrd(n,j,i)   = c2rtgb(j,i)
+              lms%tgbrd(n,j,i)  = c2rtgb(j,i)
+              lms%evpr(n,j,i)   = c2rlatht(j,i)
+              lms%sent(n,j,i)   = c2rsenht(j,i)
+              lms%taf(n,j,i)    = c2r2mt(j,i)
+              lms%t2m(n,j,i)    = c2r2mt(j,i)
               lms%u10m(n,j,i)   = lm%uatm(j,i)/dlog(lm%hgt(j,i)*d_r10)
               lms%v10m(n,j,i)   = lm%vatm(j,i)/dlog(lm%hgt(j,i)*d_r10)
               lms%sfcp(n,j,i)   = lm%sfps(j,i)
-              lms%tlef(n,j,i)   = c2rtlef(jg,ig)
-              lms%tsw(n,j,i)    = c2rsmtot(jg,ig)
-              lms%rsw(n,j,i)    = c2rsm1m(jg,ig)
-              lms%ssw(n,j,i)    = c2rsm10cm(jg,ig)
-              lms%sncv(n,j,i)   = c2rsnowc(jg,ig)
-              lms%srnof(n,j,i)  = c2rro_sur(jg,ig)*dtsrf
-              lms%trnof(n,j,i)  = (c2rro_sub(jg,ig)+c2rro_sur(jg,ig))*dtsrf
-              lms%q2m(n,j,i)    = c2r2mq(jg,ig)
+              lms%tlef(n,j,i)   = c2rtlef(j,i)
+              lms%tsw(n,j,i)    = c2rsmtot(j,i)
+              lms%rsw(n,j,i)    = c2rsm1m(j,i)
+              lms%ssw(n,j,i)    = c2rsm10cm(j,i)
+              lms%sncv(n,j,i)   = c2rsnowc(j,i)
+              lms%srnof(n,j,i)  = c2rro_sur(j,i)*dtsrf
+              lms%trnof(n,j,i)  = (c2rro_sub(j,i)+c2rro_sur(j,i))*dtsrf
+              lms%q2m(n,j,i)    = c2r2mq(j,i)
               lms%deltat(n,j,i) = lms%tgbrd(n,j,i)-lm%tatm(j,i)
               lms%deltaq(n,j,i) = (lm%qvatm(j,i)/(d_one+lm%qvatm(j,i))) - &
-                      c2r2mq(jg,ig)
-              ib = ib + 1
+                      c2r2mq(j,i)
             end do
           end if
         end do

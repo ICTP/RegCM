@@ -117,11 +117,11 @@ module mod_init
           sfs%psc(j,i) = sfs%psa(j,i)
         end do
       end do
-      call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-      call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
-      call psc2psd(sfs%psa,sfs%psdota)
-      call psc2psd(sfs%psb,sfs%psdotb)
     end if
+    call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
+    call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
+    call psc2psd(sfs%psa,sfs%psdota)
+    call psc2psd(sfs%psb,sfs%psdotb)
     do i = ici1 , ici2
       do j = jci1 , jci2
         sfs%tga(j,i) = ts0(j,i)

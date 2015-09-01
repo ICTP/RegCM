@@ -34,7 +34,7 @@ module mod_che_interface
   use mod_che_tend
   use mod_che_start
   use mod_che_bionit
-!
+
   implicit none
 
   private
@@ -71,11 +71,7 @@ module mod_che_interface
 
   contains
 
-#if defined CLM
-  subroutine init_chem(voc_em,voc_em1,voc_em2,dep_vels)
-#else
   subroutine init_chem
-#endif
     ! this routine define the pointer interface between the chem module and
     ! the rest of the model
     ! It also call startchem which is the chemistry initialisation routine
@@ -83,14 +79,6 @@ module mod_che_interface
     use mod_atm_interface
     use mod_rad_interface
     implicit none
-
-#if (defined CLM45)
-  !  type(lm_exchange) :: lm
-#endif
-#if defined CLM
-    real(rk8), pointer :: voc_em(:,:), voc_em1(:,:), voc_em2(:,:)
-    real(rk8), pointer :: dep_vels(:,:,:)
-#endif
 
     call assignpnt(icumtop,kcumtop)
     call assignpnt(icumbot,kcumbot)

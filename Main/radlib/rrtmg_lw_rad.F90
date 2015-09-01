@@ -328,7 +328,7 @@ module rrtmg_lw_rad
       integer(kind=im) :: ims                 ! value for changing mcica permute seed
       integer(kind=im) :: k                   ! layer loop index
       integer(kind=im) :: ig                  ! g-point loop index
-      integer(kind=im) :: n,nlwcall           ! added for rad calculation double call in regcm
+      integer(kind=im) :: n, nlwcall          ! added for rad calculation double call in regcm
       ! Atmosphere
       real(kind=rb) :: pavel(nlay+1)          ! layer pressures (mb)
       real(kind=rb) :: tavel(nlay+1)          ! layer temperatures (K)
@@ -533,12 +533,12 @@ module rrtmg_lw_rad
         end if
 
         ! FAB : double call to rad scheme forcomputing radiative forcing
-        if (idirect > 0 ) then
-          nlwcall = 2
-        elseif (idirect == 0) then 
+        if ( idirect == 0 ) then
           nlwcall = 1
+        else
+          nlwcall = 2
         end if
-        do n = 1, nlwcall
+        do n = 1 , nlwcall
           !
           if ( idirect == 1 ) then
             if ( n == 1 )  then

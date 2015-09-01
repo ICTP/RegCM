@@ -72,7 +72,7 @@ module mod_sound
     ! Need deeper knowledge of this stuff...
     !
     real(rk8) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
-                 xkleff , xleff , xmsfbar , xmsftot
+                 xkleff , xleff , xmsftot
     real(rk8) :: loc_abar , loc_rhon , loc_dxmsfb
     real(rk8) , dimension(-6:6) :: fi , fj
     real(rk8) , dimension(0:6) :: fk , fl
@@ -492,7 +492,7 @@ module mod_sound
         atot = d_zero
         rhontot = d_zero
         xmsftot = d_zero
-        npts = 0
+        npts = (jci2-jci1+1)*(ici2-ici1+1)
         do i = ici1 , ici2
           do j = jci1 , jci2
             atot = atot + astore(j,i)
@@ -501,11 +501,9 @@ module mod_sound
             xmsftot = xmsftot + mddom%msfx(j,i)
           end do
         end do
-        npts = (jci2-jci1+1)*(ici2-ici1+1)
         loc_abar = atot/npts
         loc_rhon = rhontot/npts
-        xmsfbar = xmsftot/npts
-        loc_dxmsfb = d_two/dx/xmsfbar
+        loc_dxmsfb = d_two/dx/(xmsftot/npts)
         call sumall(loc_abar,abar)
         call sumall(loc_rhon,rhon)
         call sumall(loc_dxmsfb,dxmsfb)
@@ -542,13 +540,9 @@ module mod_sound
         ! Apply upper rad cond. no atmc%w(top) in lateral boundary
         !
         do i = ici1 , ici2
-          if ( global_cross_istart+i < 9 .or. &
-               global_cross_istart+i > nicross - 7 ) cycle
+          if ( i < 7 .or. i > nicross - 7 ) cycle
           do j = jci1 , jci2
-            if ( global_cross_jstart+j < 9 .or. &
-                 global_cross_jstart+j > njcross - 7 ) cycle
-            if ( ba_cr%bsouth(j,i) .or. ba_cr%bnorth(j,i) .or. &
-                 ba_cr%bwest(j,i)  .or. ba_cr%beast(j,i) ) cycle
+            if ( j < 7 .or. j > njcross - 7 ) cycle
             do nsi = -6 , 6
               inn = i + nsi
               do nsj = -6 , 6

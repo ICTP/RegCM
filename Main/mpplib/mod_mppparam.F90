@@ -965,21 +965,6 @@ module mod_mppparam
       global_dot_jstart = ma%location(1)*jxp+1
       global_dot_istart = ma%location(2)*iyp+1
 
-      !
-      ! Topmost and rightmost processors are doing what's left
-      !
-      !if ( ma%location(2)+1 == cpus_per_dim(2) ) then
-      !  global_dot_iend = global_dot_istart+iyp-1
-      !  if ( global_dot_iend < iy ) then
-      !    iyp = iy-global_dot_istart+1
-      !  end if
-      !end if
-      !if ( ma%location(1)+1 == cpus_per_dim(1) ) then
-      !  global_dot_jend = global_dot_jstart+jxp-1
-      !  if ( global_dot_jend < jx ) then
-      !    jxp = jx-global_dot_jstart+1
-      !  end if
-      !end if
       if ( jxp * cpus_per_dim(1) < jx ) then
         imiss = jx - jxp * cpus_per_dim(1)
         if ( ma%location(1) < imiss ) then
@@ -1198,7 +1183,7 @@ module mod_mppparam
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
-          ml(j,i) = mg(global_dot_jstart+j-1,global_dot_istart+i-1)
+          ml(j,i) = mg(j,i)
         end do
       end do
       ! Send to other nodes the piece they request.
@@ -1227,9 +1212,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_2d_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(r8vector2,lsize,ccio,tag_base)
@@ -1254,7 +1239,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
-            ml(j,i,k) = mg(global_dot_jstart+j-1,global_dot_istart+i-1,k)
+            ml(j,i,k) = mg(j,i,k)
           end do
         end do
       end do
@@ -1288,9 +1273,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_3d_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(r8vector2,lsize,ccio,tag_base)
@@ -1319,7 +1304,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = i1 , i2
             do j = j1 , j2
-              ml(j,i,k,n) = mg(global_dot_jstart+j-1,global_dot_istart+i-1,k,n)
+              ml(j,i,k,n) = mg(j,i,k,n)
             end do
           end do
         end do
@@ -1358,9 +1343,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_4d_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(r8vector2,lsize,ccio,tag_base)
@@ -1388,7 +1373,7 @@ module mod_mppparam
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
-          ml(j,i) = mg(global_dot_jstart+j-1,global_dot_istart+i-1)
+          ml(j,i) = mg(j,i)
         end do
       end do
       ! Send to other nodes the piece they request.
@@ -1417,9 +1402,9 @@ module mod_mppparam
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_2d_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(r4vector2,lsize,ccio,tag_base)
@@ -1444,7 +1429,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
-            ml(j,i,k) = mg(global_dot_jstart+j-1,global_dot_istart+i-1,k)
+            ml(j,i,k) = mg(j,i,k)
           end do
         end do
       end do
@@ -1478,9 +1463,9 @@ module mod_mppparam
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_3d_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(r4vector2,lsize,ccio,tag_base)
@@ -1509,7 +1494,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = i1 , i2
             do j = j1 , j2
-              ml(j,i,k,n) = mg(global_dot_jstart+j-1,global_dot_istart+i-1,k,n)
+              ml(j,i,k,n) = mg(j,i,k,n)
             end do
           end do
         end do
@@ -1548,9 +1533,9 @@ module mod_mppparam
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_4d_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(r4vector2,lsize,ccio,tag_base)
@@ -1578,7 +1563,7 @@ module mod_mppparam
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
-          ml(j,i) = mg(global_dot_jstart+j-1,global_dot_istart+i-1)
+          ml(j,i) = mg(j,i)
         end do
       end do
       ! Send to other nodes the piece they request.
@@ -1607,9 +1592,9 @@ module mod_mppparam
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_2d_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(i4vector2,lsize,ccio,tag_base)
@@ -1634,7 +1619,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
-            ml(j,i,k) = mg(global_dot_jstart+j-1,global_dot_istart+i-1,k)
+            ml(j,i,k) = mg(j,i,k)
           end do
         end do
       end do
@@ -1668,9 +1653,9 @@ module mod_mppparam
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_3d_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(i4vector2,lsize,ccio,tag_base)
@@ -1699,7 +1684,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = i1 , i2
             do j = j1 , j2
-              ml(j,i,k,n) = mg(global_dot_jstart+j-1,global_dot_istart+i-1,k,n)
+              ml(j,i,k,n) = mg(j,i,k,n)
             end do
           end do
         end do
@@ -1738,9 +1723,9 @@ module mod_mppparam
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_4d_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(i4vector2,lsize,ccio,tag_base)
@@ -1771,8 +1756,7 @@ module mod_mppparam
         do i = i1 , i2
           do j = j1 , j2
             do n = 1 , nnsg
-              if ( mask(n,j,i) ) &
-                ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+              if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
             end do
           end do
         end do
@@ -1780,7 +1764,7 @@ module mod_mppparam
         do i = i1 , i2
           do j = j1 , j2
             do n = 1 , nnsg
-              ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+              ml(n,j,i) = mg(n,j,i)
             end do
           end do
         end do
@@ -1813,9 +1797,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_2d_sub_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(r8vector2,lsize,ccio,tag_base)
@@ -1856,8 +1840,7 @@ module mod_mppparam
           do i = i1 , i2
             do j = j1 , j2
               do n = 1 , nnsg
-                if (mask(n,j,i) ) ml(n,j,i,k) = &
-                        mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k)
+                if (mask(n,j,i) ) ml(n,j,i,k) = mg(n,j,i,k)
               end do
             end do
           end do
@@ -1868,7 +1851,7 @@ module mod_mppparam
             do j = j1 , j2
               do n = 1 , nnsg
                 ml(n,j,i,k) = &
-                        mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k)
+                        mg(n,j,i,k)
               end do
             end do
           end do
@@ -1906,9 +1889,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_3d_sub_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(r8vector2,lsize,ccio,tag_base)
@@ -1950,7 +1933,7 @@ module mod_mppparam
       do i = i1 , i2
         do j = j1 , j2
           do n = 1 , nnsg
-            ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+            ml(n,j,i) = mg(n,j,i)
           end do
         end do
       end do
@@ -1982,9 +1965,9 @@ module mod_mppparam
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_2d_sub_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(r4vector2,lsize,ccio,tag_base)
@@ -2012,7 +1995,7 @@ module mod_mppparam
         do i = i1 , i2
           do j = j1 , j2
             do n = 1 , nnsg
-              ml(n,j,i,k) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k)
+              ml(n,j,i,k) = mg(n,j,i,k)
             end do
           end do
         end do
@@ -2049,9 +2032,9 @@ module mod_mppparam
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_3d_sub_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(r4vector2,lsize,ccio,tag_base)
@@ -2082,8 +2065,7 @@ module mod_mppparam
         do i = i1 , i2
           do j = j1 , j2
             do n = 1 , nnsg
-              if ( mask(n,j,i) ) &
-                ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+              if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
             end do
           end do
         end do
@@ -2091,7 +2073,7 @@ module mod_mppparam
         do i = i1 , i2
           do j = j1 , j2
             do n = 1 , nnsg
-              ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+              ml(n,j,i) = mg(n,j,i)
             end do
           end do
         end do
@@ -2124,9 +2106,9 @@ module mod_mppparam
       if ( size(lvector2) < lsize ) then
         call getmem1d(lvector2,1,lsize,'logical_2d_sub_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(lvector2,lsize,ccio,tag_base)
@@ -2166,8 +2148,7 @@ module mod_mppparam
         do i = i1 , i2
           do j = j1 , j2
             do n = 1 , nnsg
-            if ( mask(n,j,i) ) &
-              ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+            if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
             end do
           end do
         end do
@@ -2175,7 +2156,7 @@ module mod_mppparam
         do i = i1 , i2
           do j = j1 , j2
             do n = 1 , nnsg
-              ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+              ml(n,j,i) = mg(n,j,i)
             end do
           end do
         end do
@@ -2208,9 +2189,9 @@ module mod_mppparam
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_2d_sub_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(i4vector2,lsize,ccio,tag_base)
@@ -2251,8 +2232,7 @@ module mod_mppparam
           do i = i1 , i2
             do j = j1 , j2
               do n = 1 , nnsg
-                if (mask(n,j,i) ) ml(n,j,i,k) = &
-                   mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k)
+                if (mask(n,j,i) ) ml(n,j,i,k) = mg(n,j,i,k)
               end do
             end do
           end do
@@ -2262,8 +2242,7 @@ module mod_mppparam
           do i = i1 , i2
             do j = j1 , j2
               do n = 1 , nnsg
-                ml(n,j,i,k) = &
-                   mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k)
+                ml(n,j,i,k) = mg(n,j,i,k)
               end do
             end do
           end do
@@ -2301,9 +2280,9 @@ module mod_mppparam
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_3d_sub_distribute')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       call recv_array(i4vector2,lsize,ccio,tag_base)
@@ -2334,30 +2313,20 @@ module mod_mppparam
     end if
   end subroutine integer_3d_sub_distribute
 !
-  subroutine real8_2d_3d_collect(ml,mg,j1,j2,i1,i2,k,lsub)
+  subroutine real8_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    logical , intent(in) , optional :: lsub
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) , intent(in) , optional :: k
     integer(ik4) :: ib , i , j , kk , isize , jsize , lsize , icpu
-    integer(ik4) :: jsub1 , isub1
-    jsub1 = global_dot_jstart
-    isub1 = global_dot_istart
-    if ( present(lsub) ) then
-      if ( lsub ) then
-        jsub1 = (global_dot_jstart-1)*nsg+1
-        isub1 = (global_dot_istart-1)*nsg+1
-      end if
-    end if
     if ( ccid == ccio ) then
       kk = 1
       if ( present(k) ) kk = k
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
-          mg(jsub1+j-1,isub1+i-1,kk) = ml(j,i)
+          mg(j,i,kk) = ml(j,i)
         end do
       end do
       ! Receive from other nodes the piece they have
@@ -2386,9 +2355,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_2d_3d_collect')
       end if
-      window(1) = isub1+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = jsub1+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -2402,27 +2371,17 @@ module mod_mppparam
     end if
   end subroutine real8_2d_3d_collect
 !
-  subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2,lsub)
+  subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
-    logical , intent(in) , optional :: lsub
-    integer(ik4) :: jsub1 , isub1
-    jsub1 = global_dot_jstart
-    isub1 = global_dot_istart
-    if ( present(lsub) ) then
-      if ( lsub ) then
-        jsub1 = (global_dot_jstart-1)*nsg+1
-        isub1 = (global_dot_istart-1)*nsg+1
-      end if
-    end if
     if ( ccid == ccio ) then
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
-          mg(jsub1+j-1,isub1+i-1) = ml(j,i)
+          mg(j,i) = ml(j,i)
         end do
       end do
       ! Receive from other nodes the piece they have
@@ -2451,9 +2410,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_2d_collect')
       end if
-      window(1) = isub1+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = jsub1+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -2467,28 +2426,18 @@ module mod_mppparam
     end if
   end subroutine real8_2d_collect
 !
-  subroutine real8_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2,lsub)
+  subroutine real8_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    logical , intent(in) , optional :: lsub
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: isub1 , jsub1
-    jsub1 = global_dot_jstart
-    isub1 = global_dot_istart
-    if ( present(lsub) ) then
-      if ( lsub ) then
-        jsub1 = (global_dot_jstart-1)*nsg+1
-        isub1 = (global_dot_istart-1)*nsg+1
-      end if
-    end if
     if ( ccid == ccio ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
-            mg(jsub1+j-1,isub1+i-1,k) = ml(j,i,k)
+            mg(j,i,k) = ml(j,i,k)
           end do
         end do
       end do
@@ -2522,9 +2471,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_3d_collect')
       end if
-      window(1) = isub1+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = jsub1+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -2550,7 +2499,7 @@ module mod_mppparam
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
-          mg(global_dot_jstart+j-1,global_dot_istart+i-1) = ml(j,i,k)
+          mg(j,i) = ml(j,i,k)
         end do
       end do
       ! Receive from other nodes the piece they have
@@ -2579,9 +2528,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_3d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -2608,7 +2557,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = i1 , i2
             do j = j1 , j2
-              mg(global_dot_jstart+j-1,global_dot_istart+i-1,k,n) = ml(j,i,k,n)
+              mg(j,i,k,n) = ml(j,i,k,n)
             end do
           end do
         end do
@@ -2647,9 +2596,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_4d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -2677,7 +2626,7 @@ module mod_mppparam
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
-          mg(global_dot_jstart+j-1,global_dot_istart+i-1) = ml(j,i,k,n)
+          mg(j,i) = ml(j,i,k,n)
         end do
       end do
       ! Receive from other nodes the piece they have
@@ -2706,9 +2655,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_4d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -2732,7 +2681,7 @@ module mod_mppparam
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
-          mg(global_dot_jstart+j-1,global_dot_istart+i-1) = ml(j,i)
+          mg(j,i) = ml(j,i)
         end do
       end do
       ! Receive from other nodes the piece they have
@@ -2761,9 +2710,9 @@ module mod_mppparam
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_2d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -2788,7 +2737,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
-            mg(global_dot_jstart+j-1,global_dot_istart+i-1,k) = ml(j,i,k)
+            mg(j,i,k) = ml(j,i,k)
           end do
         end do
       end do
@@ -2822,9 +2771,9 @@ module mod_mppparam
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_3d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -2853,7 +2802,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = i1 , i2
             do j = j1 , j2
-              mg(global_dot_jstart+j-1,global_dot_istart+i-1,k,n) = ml(j,i,k,n)
+              mg(j,i,k,n) = ml(j,i,k,n)
             end do
           end do
         end do
@@ -2892,9 +2841,9 @@ module mod_mppparam
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_4d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -2922,7 +2871,7 @@ module mod_mppparam
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
-          mg(global_dot_jstart+j-1,global_dot_istart+i-1) = ml(j,i)
+          mg(j,i) = ml(j,i)
         end do
       end do
       ! Receive from other nodes the piece they have
@@ -2951,9 +2900,9 @@ module mod_mppparam
       if ( size(lvector2) < lsize ) then
         call getmem1d(lvector2,1,lsize,'logical_2d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -2977,7 +2926,7 @@ module mod_mppparam
       ! Copy in memory my piece.
       do i = i1 , i2
         do j = j1 , j2
-          mg(global_dot_jstart+j-1,global_dot_istart+i-1) = ml(j,i)
+          mg(j,i) = ml(j,i)
         end do
       end do
       ! Receive from other nodes the piece they have
@@ -3006,9 +2955,9 @@ module mod_mppparam
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_2d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -3033,7 +2982,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
-            mg(global_dot_jstart+j-1,global_dot_istart+i-1,k) = ml(j,i,k)
+            mg(j,i,k) = ml(j,i,k)
           end do
         end do
       end do
@@ -3067,9 +3016,9 @@ module mod_mppparam
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_3d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -3098,7 +3047,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = i1 , i2
             do j = j1 , j2
-              mg(global_dot_jstart+j-1,global_dot_istart+i-1,k,n) = ml(j,i,k,n)
+              mg(j,i,k,n) = ml(j,i,k,n)
             end do
           end do
         end do
@@ -3137,9 +3086,9 @@ module mod_mppparam
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_4d_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -3168,7 +3117,7 @@ module mod_mppparam
       do i = i1 , i2
         do j = j1 , j2
           do n = 1 , nnsg
-            mg(n,global_dot_jstart+j-1,global_dot_istart+i-1) = ml(n,j,i)
+            mg(n,j,i) = ml(n,j,i)
           end do
         end do
       end do
@@ -3200,9 +3149,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_2d_sub_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -3230,7 +3179,7 @@ module mod_mppparam
         do i = i1 , i2
           do j = j1 , j2
             do n = 1 , nnsg
-              mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k) = ml(n,j,i,k)
+              mg(n,j,i,k) = ml(n,j,i,k)
             end do
           end do
         end do
@@ -3267,9 +3216,9 @@ module mod_mppparam
       if ( size(r8vector2) < lsize ) then
         call getmem1d(r8vector2,1,lsize,'real8_3d_sub_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -3298,7 +3247,7 @@ module mod_mppparam
       do i = i1 , i2
         do j = j1 , j2
           do n = 1 , nnsg
-            mg(n,global_dot_jstart+j-1,global_dot_istart+i-1) = ml(n,j,i)
+            mg(n,j,i) = ml(n,j,i)
           end do
         end do
       end do
@@ -3330,9 +3279,9 @@ module mod_mppparam
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_2d_sub_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -3360,7 +3309,7 @@ module mod_mppparam
         do i = i1 , i2
           do j = j1 , j2
             do n = 1 , nnsg
-              mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k) = ml(n,j,i,k)
+              mg(n,j,i,k) = ml(n,j,i,k)
             end do
           end do
         end do
@@ -3397,9 +3346,9 @@ module mod_mppparam
       if ( size(r4vector2) < lsize ) then
         call getmem1d(r4vector2,1,lsize,'real4_3d_sub_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -3428,7 +3377,7 @@ module mod_mppparam
       do i = i1 , i2
         do j = j1 , j2
           do n = 1 , nnsg
-            mg(n,global_dot_jstart+j-1,global_dot_istart+i-1) = ml(n,j,i)
+            mg(n,j,i) = ml(n,j,i)
           end do
         end do
       end do
@@ -3460,9 +3409,9 @@ module mod_mppparam
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_2d_sub_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -3490,7 +3439,7 @@ module mod_mppparam
         do i = i1 , i2
           do j = j1 , j2
             do n = 1 , nnsg
-              mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k) = ml(n,j,i,k)
+              mg(n,j,i,k) = ml(n,j,i,k)
             end do
           end do
         end do
@@ -3527,9 +3476,9 @@ module mod_mppparam
       if ( size(i4vector2) < lsize ) then
         call getmem1d(i4vector2,1,lsize,'integer_3d_sub_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -3558,7 +3507,7 @@ module mod_mppparam
       do i = i1 , i2
         do j = j1 , j2
           do n = 1 , nnsg
-            mg(n,global_dot_jstart+j-1,global_dot_istart+i-1) = ml(n,j,i)
+            mg(n,j,i) = ml(n,j,i)
           end do
         end do
       end do
@@ -3590,9 +3539,9 @@ module mod_mppparam
       if ( size(lvector2) < lsize ) then
         call getmem1d(lvector2,1,lsize,'logical_2d_sub_collect')
       end if
-      window(1) = global_dot_istart+i1-1
+      window(1) = i1
       window(2) = window(1)+isize-1
-      window(3) = global_dot_jstart+j1-1
+      window(3) = j1
       window(4) = window(3)+jsize-1
       call send_array(window,4,ccio,tag_w)
       ib = 1
@@ -3641,7 +3590,7 @@ module mod_mppparam
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
-          r8vector1(ib) = ml(j,i)
+          r8vector1(ib) = ml(j1+j-1,i)
           ib = ib + 1
         end do
       end do
@@ -3689,7 +3638,7 @@ module mod_mppparam
         ib = 1
         do i = i1 , i2
           do j = 1 , nex
-            r8vector1(ib) = ml(j,i)
+            r8vector1(ib) = ml(j1+j-1,i)
             ib = ib + 1
           end do
         end do
@@ -3738,7 +3687,7 @@ module mod_mppparam
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
-          r8vector1(ib) = ml(j,i)
+          r8vector1(ib) = ml(j,i1+i-1)
           ib = ib + 1
         end do
       end do
@@ -3762,7 +3711,7 @@ module mod_mppparam
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
-          r8vector1(ib) = ml(j,i2-i+1)
+          r8vector1(ib) = ml(j1+j-1,i2-i+1)
           ib = ib + 1
         end do
       end do
@@ -3786,7 +3735,7 @@ module mod_mppparam
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
-          r8vector1(ib) = ml(j2-j+1,i)
+          r8vector1(ib) = ml(j2-j+1,i1+i-1)
           ib = ib + 1
         end do
       end do
@@ -3834,7 +3783,7 @@ module mod_mppparam
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
-          r8vector1(ib) = ml(j,i)
+          r8vector1(ib) = ml(j1+j-1,i1+i-1)
           ib = ib + 1
         end do
       end do
@@ -3888,7 +3837,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
-            r8vector1(ib) = ml(j,i,k)
+            r8vector1(ib) = ml(j1+j-1,i,k)
             ib = ib + 1
           end do
         end do
@@ -3944,7 +3893,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
-              r8vector1(ib) = ml(j,i,k)
+              r8vector1(ib) = ml(j1+j-1,i,k)
               ib = ib + 1
             end do
           end do
@@ -4001,7 +3950,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
-            r8vector1(ib) = ml(j,i,k)
+            r8vector1(ib) = ml(j,i1+i-1,k)
             ib = ib + 1
           end do
         end do
@@ -4029,7 +3978,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = 1 , nex
           do j = 1 , nex
-            r8vector1(ib) = ml(j,i2-i+1,k)
+            r8vector1(ib) = ml(j1+j-1,i2-i+1,k)
             ib = ib + 1
           end do
         end do
@@ -4057,7 +4006,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = 1 , nex
           do j = 1 , nex
-            r8vector1(ib) = ml(j2-j+1,i,k)
+            r8vector1(ib) = ml(j2-j+1,i1+i-1,k)
             ib = ib + 1
           end do
         end do
@@ -4113,7 +4062,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = 1 , nex
           do j = 1 , nex
-            r8vector1(ib) = ml(j,i,k)
+            r8vector1(ib) = ml(j1+j-1,i1+i-1,k)
             ib = ib + 1
           end do
         end do
@@ -4177,7 +4126,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
-              r8vector1(ib) = ml(j,i,k,n)
+              r8vector1(ib) = ml(j1+j-1,i,k,n)
               ib = ib + 1
             end do
           end do
@@ -4241,7 +4190,7 @@ module mod_mppparam
           do k = k1 , k2
             do i = i1 , i2
               do j = 1 , nex
-                r8vector1(ib) = ml(j,i,k,n)
+                r8vector1(ib) = ml(j1+j-1,i,k,n)
                 ib = ib + 1
               end do
             end do
@@ -4306,7 +4255,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
-              r8vector1(ib) = ml(j,i,k,n)
+              r8vector1(ib) = ml(j,i1+i-1,k,n)
               ib = ib + 1
             end do
           end do
@@ -4338,7 +4287,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
-              r8vector1(ib) = ml(j,i2-i+1,k,n)
+              r8vector1(ib) = ml(j1+j-1,i2-i+1,k,n)
               ib = ib + 1
             end do
           end do
@@ -4370,7 +4319,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
-              r8vector1(ib) = ml(j2-j+1,i,k,n)
+              r8vector1(ib) = ml(j2-j+1,i1+i-1,k,n)
               ib = ib + 1
             end do
           end do
@@ -4434,7 +4383,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
-              r8vector1(ib) = ml(j,i,k,n)
+              r8vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
               ib = ib + 1
             end do
           end do
@@ -4878,7 +4827,7 @@ module mod_mppparam
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
-          r8vector1(ib) = ml(j,i)
+          r8vector1(ib) = ml(j1+j-1,i)
           ib = ib + 1
         end do
       end do
@@ -4899,7 +4848,7 @@ module mod_mppparam
         ib = 1
         do i = i1 , i2
           do j = 1 , nex
-            r8vector1(ib) = ml(j,i)
+            r8vector1(ib) = ml(j1+j-1,i)
             ib = ib + 1
           end do
         end do
@@ -4928,7 +4877,7 @@ module mod_mppparam
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
-          r8vector1(ib) = ml(j,i)
+          r8vector1(ib) = ml(j,i1+i-1)
           ib = ib + 1
         end do
       end do
@@ -4956,7 +4905,7 @@ module mod_mppparam
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
-          r8vector1(ib) = ml(j,i)
+          r8vector1(ib) = ml(j1+j-1,i1+i-1)
           ib = ib + 1
         end do
       end do
@@ -4998,7 +4947,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = i1 , i2
           do j = 1 , nex
-            r8vector1(ib) = ml(j,i,k)
+            r8vector1(ib) = ml(j1+j-1,i,k)
             ib = ib + 1
           end do
         end do
@@ -5023,7 +4972,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
-              r8vector1(ib) = ml(j,i,k)
+              r8vector1(ib) = ml(j1+j-1,i,k)
               ib = ib + 1
             end do
           end do
@@ -5056,7 +5005,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = 1 , nex
           do j = j1 , j2
-            r8vector1(ib) = ml(j,i,k)
+            r8vector1(ib) = ml(j,i1+i-1,k)
             ib = ib + 1
           end do
         end do
@@ -5088,7 +5037,7 @@ module mod_mppparam
       do k = k1 , k2
         do i = 1 , nex
           do j = 1 , nex
-            r8vector1(ib) = ml(j,i,k)
+            r8vector1(ib) = ml(j1+j-1,i1+i-1,k)
             ib = ib + 1
           end do
         end do
@@ -5135,7 +5084,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
-              r8vector1(ib) = ml(j,i,k,n)
+              r8vector1(ib) = ml(j1+j-1,i,k,n)
               ib = ib + 1
             end do
           end do
@@ -5164,7 +5113,7 @@ module mod_mppparam
           do k = k1 , k2
             do i = i1 , i2
               do j = 1 , nex
-                r8vector1(ib) = ml(j,i,k,n)
+                r8vector1(ib) = ml(j1+j-1,i,k,n)
                 ib = ib + 1
               end do
             end do
@@ -5201,7 +5150,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
-              r8vector1(ib) = ml(j,i,k,n)
+              r8vector1(ib) = ml(j,i1+i-1,k,n)
               ib = ib + 1
             end do
           end do
@@ -5237,7 +5186,7 @@ module mod_mppparam
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
-              r8vector1(ib) = ml(j,i,k,n)
+              r8vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
               ib = ib + 1
             end do
           end do
@@ -5280,24 +5229,24 @@ module mod_mppparam
       end if
       ib = 1
       do k = k1 , k2
-        r8vector1(ib) = ml(jxp,k)
+        r8vector1(ib) = ml(jde2,k)
         ib = ib + 1
       end do
       call cyclic_exchange_array(ksize,ma%left,ma%right,tag_lr)
       ib = 1
       do k = k1 , k2
-        ml(0,k) = r8vector2(ib)
+        ml(jde1-1,k) = r8vector2(ib)
         ib = ib + 1
       end do
       ib = 1
       do k = k1 , k2
-        r8vector1(ib) = ml(1,k)
+        r8vector1(ib) = ml(jde1,k)
         ib = ib + 1
       end do
       call cyclic_exchange_array(ksize,ma%right,ma%left,tag_rl)
       ib = 1
       do k = k1 , k2
-        ml(jxp+1,k) = r8vector2(ib)
+        ml(jde2+1,k) = r8vector2(ib)
         ib = ib + 1
       end do
     else
@@ -5310,13 +5259,13 @@ module mod_mppparam
         end if
         ib = 1
         do k = k1 , k2
-          r8vector1(ib) = ml(jxp,k)
+          r8vector1(ib) = ml(jde2,k)
           ib = ib + 1
         end do
         call exchange_array(ksize,ma%right,tag_rl,tag_lr)
         ib = 1
         do k = k1 , k2
-          ml(jxp+1,k) = r8vector2(ib)
+          ml(jde2+1,k) = r8vector2(ib)
           ib = ib + 1
         end do
       end if
@@ -5329,13 +5278,13 @@ module mod_mppparam
         end if
         ib = 1
         do k = k1 , k2
-          r8vector1(ib) = ml(1,k)
+          r8vector1(ib) = ml(jde1,k)
           ib = ib + 1
         end do
         call exchange_array(ksize,ma%left,tag_lr,tag_rl)
         ib = 1
         do k = k1 , k2
-          ml(0,k) = r8vector2(ib)
+          ml(jde1-1,k) = r8vector2(ib)
           ib = ib + 1
         end do
       end if
@@ -5357,13 +5306,13 @@ module mod_mppparam
       end if
       ib = 1
       do k = k1 , k2
-        r8vector1(ib) = ml(iyp,k)
+        r8vector1(ib) = ml(ide2,k)
         ib = ib + 1
       end do
       call exchange_array(ksize,ma%top,tag_tb,tag_bt)
       ib = 1
       do k = k1 , k2
-        ml(iyp+1,k) = r8vector2(ib)
+        ml(ide2+1,k) = r8vector2(ib)
         ib = ib + 1
       end do
     end if
@@ -5376,13 +5325,13 @@ module mod_mppparam
       end if
       ib = 1
       do k = k1 , k2
-        r8vector1(ib) = ml(1,k)
+        r8vector1(ib) = ml(ide1,k)
         ib = ib + 1
       end do
       call exchange_array(ksize,ma%bottom,tag_bt,tag_tb)
       ib = 1
       do k = k1 , k2
-        ml(0,k) = r8vector2(ib)
+        ml(ide1-1,k) = r8vector2(ib)
         ib = ib + 1
       end do
     end if

@@ -2072,15 +2072,15 @@ module mod_cloud_s1
                  abs(zerrorh(j,i,kz)) > 1.D-12) then
               if ( abs(zerrorq(j,i,kz)) > 1.D-12 ) then
                 write(stderr,*) 'WATER NON CONSERVED AT '
-                write(stderr,*) 'J = ',global_dot_jstart+j
-                write(stderr,*) 'I = ',global_dot_istart+i
+                write(stderr,*) 'J = ',j
+                write(stderr,*) 'I = ',i
                 write(stderr,*) 'K = ',k
                 write(stderr,*) 'ERROR IS : ',zerrorq(j,i,kz)
               end if
               if ( abs(zerrorh(j,i,kz)) > 1.D-12 ) then
                 write(stderr,*) 'ENTHALPY NON CONSERVED AT '
-                write(stderr,*) 'J = ',global_dot_jstart+j
-                write(stderr,*) 'I = ',global_dot_istart+i
+                write(stderr,*) 'J = ',j
+                write(stderr,*) 'I = ',i
                 write(stderr,*) 'K = ',k
                 write(stderr,*) 'ERROR IS : ',zerrorh(j,i,kz)
               end if

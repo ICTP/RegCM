@@ -41,13 +41,15 @@ module mod_rad_o3blk
 
   public :: allocate_mod_rad_o3blk , o3data , read_o3data
 
-  real(rk8) , dimension(31) :: o3ann , o3sum , o3win , o3wrk , ppann ,&
-                              ppsum , ppwin , ppwrk
+  real(rk8) , dimension(31) :: o3ann , o3sum , o3win , ppann ,&
+                              ppsum , ppwin
 
+  real(rk8) , pointer , dimension(:) :: plev
   real(rk8) , pointer , dimension(:,:) :: alon , alat , aps
   real(rk8) , pointer , dimension(:,:,:) :: ozone1 , ozone2
   real(rk8) , pointer , dimension(:,:,:) :: ozone , pp3d
-!
+  real(rk8) , pointer , dimension(:,:,:) :: yozone
+
   data o3sum/5.297D-8 , 5.852D-8 , 6.579D-8 , 7.505D-8 , 8.577D-8 , &
              9.895D-8 , 1.175D-7 , 1.399D-7 , 1.677D-7 , 2.003D-7 , &
              2.571D-7 , 3.325D-7 , 4.438D-7 , 6.255D-7 , 8.168D-7 , &
@@ -62,7 +64,7 @@ module mod_rad_o3blk
         64.306D0 ,  55.086D0 ,  47.209D0 ,  40.535D0 ,  34.795D0 , &
         29.865D0 ,  19.122D0 ,   9.277D0 ,   4.660D0 ,   2.421D0 , &
          1.294D0 ,   0.647D0/
-!
+
   data o3win/4.629D-8 , 4.686D-8 , 5.017D-8 , 5.613D-8 , 6.871D-8 , &
              8.751D-8 , 1.138D-7 , 1.516D-7 , 2.161D-7 , 3.264D-7 , &
              4.968D-7 , 7.338D-7 , 1.017D-6 , 1.308D-6 , 1.625D-6 , &
@@ -106,6 +108,8 @@ module mod_rad_o3blk
     type(mod_2_rad) , intent(in) :: m2r
     integer(ik4) :: k
     real(rk8) , dimension(kzp1) :: ozprnt
+    real(rk8) , pointer , dimension(:) :: o3wrk , ppwrk
+    allocate(o3wrk(31),ppwrk(31))
     do k = 1 , 31
       ppann(k) = ppsum(k)
     end do
@@ -122,12 +126,13 @@ module mod_rad_o3blk
       ppwrk(k) = ppann(k)
     end do
     ppwrk(:) = ppwrk(:) * d_100
-    call intlinprof(o3prof,o3wrk,m2r%psatms,m2r%pfatms,jci2-jci1+1, &
-                    ici2-ici1+1,kzp1,ppwrk,31)
+    call intlinprof(o3prof,o3wrk,m2r%psatms,m2r%pfatms,jci1,jci2, &
+                    ici1,ici2,kzp1,ppwrk,31)
     if ( myid == italk ) then
       ozprnt = o3prof(3,3,:)
       call vprntv(ozprnt,kzp1,'Ozone profile at (3,3)')
     end if
+    deallocate(o3wrk,ppwrk)
   end subroutine o3data
 
   subroutine read_o3data(idatex,scenario,m2r)
@@ -140,10 +145,8 @@ module mod_rad_o3blk
     logical :: dointerp
     real(rk8) , dimension(kzp1) :: ozprnt
     real(rk8) , dimension(72,37,24) :: xozone1 , xozone2
-    real(rk8) , dimension(njcross,nicross,24) :: yozone
     real(rk8) , save , dimension(37) :: lat
     real(rk8) , save , dimension(72) :: lon
-    real(rk8) , save , dimension(24) :: plev
     real(rk8) :: xfac1 , xfac2 , odist
     type (rcm_time_and_date) :: imonmidd
     integer(ik4) :: iyear , imon , iday , ihour
@@ -204,7 +207,9 @@ module mod_rad_o3blk
     dointerp = .false.
     if ( ncid < 0 ) then
       if ( myid == iocpu ) then
-        call init_o3data(infile,ncid,lat,lon,plev)
+        call getmem1d(plev,1,24,'ozone:plev')
+        call getmem3d(yozone,1,njcross,1,nicross,1,24,'ozone:yozone')
+        call init_o3data(infile,ncid,lat,lon)
       else
         ncid = 0
       end if
@@ -228,9 +233,9 @@ module mod_rad_o3blk
         call readvar3d_pack(ncid,iy1,im1,'ozone',xozone1)
         call readvar3d_pack(ncid,iy2,im2,'ozone',xozone2)
         call bilinx2(yozone,xozone1,alon,alat,lon,lat,72,37,njcross,nicross,24)
-        call intlinreg(ozone1,yozone,aps,pp3d,njcross,nicross,kzp1,plev,24)
+        call intlinreg(ozone1,yozone,aps,pp3d,1,njcross,1,nicross,kzp1,plev,24)
         call bilinx2(yozone,xozone2,alon,alat,lon,lat,72,37,njcross,nicross,24)
-        call intlinreg(ozone2,yozone,aps,pp3d,njcross,nicross,kzp1,plev,24)
+        call intlinreg(ozone2,yozone,aps,pp3d,1,njcross,1,nicross,kzp1,plev,24)
       end if
     end if
 
@@ -271,11 +276,11 @@ module mod_rad_o3blk
     end if
   end subroutine iprevmon
 
-  subroutine init_o3data(o3file,ncid,lat,lon,plev)
+  subroutine init_o3data(o3file,ncid,lat,lon)
     implicit none
     character(len=*) , intent(in) :: o3file
     integer(ik4) , intent(out) :: ncid
-    real(rk8) , intent(out) , dimension(:) :: lat , lon , plev
+    real(rk8) , intent(out) , dimension(:) :: lat , lon
     integer(ik4) :: iret
     iret = nf90_open(o3file,nf90_nowrite,ncid)
     if ( iret /= nf90_noerr ) then

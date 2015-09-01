@@ -2172,8 +2172,7 @@ module mod_ncout
             select type(vp)
               type is (ncvariable2d_real)
                 if ( vp%lrecords ) cycle var_loop
-                call grid_collect(vp%rval,pnt2d, &
-                                  vp%j1,vp%j2,vp%i1,vp%i2,outstream(i)%l_sub)
+                call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
               class default
                 cycle var_loop
             end select
@@ -2694,8 +2693,7 @@ module mod_ncout
             select type(vp)
               type is (ncvariable2d_real)
                 if ( vp%lrecords ) cycle var_loop_par
-                call grid_collect(vp%rval,pnt2d, &
-                                  vp%j1,vp%j2,vp%i1,vp%i2,outstream(i)%l_sub)
+                call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
                 vp%j1 = outstream(i)%jg1
                 vp%j2 = outstream(i)%jg2
                 vp%i1 = outstream(i)%ig1
@@ -2959,12 +2957,10 @@ module mod_ncout
         select type(vp)
           type is (ncvariable2d_real)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,pnt2d, &
-                              vp%j1,vp%j2,vp%i1,vp%i2,outstream(istream)%l_sub)
+            call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
           type is (ncvariable3d_real)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2, &
-                              vp%i1,vp%i2,vp%k1,vp%k2,outstream(istream)%l_sub)
+            call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
           type is (ncvariable4d_real)
             if ( .not. vp%lrecords ) cycle
             call grid_collect(vp%rval,pnt4d,vp%j1,vp%j2, &
@@ -3009,8 +3005,7 @@ module mod_ncout
         select type(vp)
           type is (ncvariable2d_real)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,pnt2d, &
-                              vp%j1,vp%j2,vp%i1,vp%i2,outstream(istream)%l_sub)
+            call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
             vp%j1 = outstream(istream)%jg1
             vp%j2 = outstream(istream)%jg2
             vp%i1 = outstream(istream)%ig1
@@ -3019,8 +3014,7 @@ module mod_ncout
             vp%rval => pnt2d
           type is (ncvariable3d_real)
             if ( .not. vp%lrecords ) cycle
-            call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2, &
-                              vp%i1,vp%i2,vp%k1,vp%k2,outstream(istream)%l_sub)
+            call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
             vp%j1 = outstream(istream)%jg1
             vp%j2 = outstream(istream)%jg2
             vp%i1 = outstream(istream)%ig1
@@ -3114,8 +3108,7 @@ module mod_ncout
     integer(ik4) :: jfile
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
-      call grid_collect(vp%rval,pnt2d, &
-                        vp%j1,vp%j2,vp%i1,vp%i2,outstream(istream)%l_sub)
+      call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
       ! If not parallel output, only the master proc writes output files
       return
     end if
@@ -3138,8 +3131,7 @@ module mod_ncout
     ! If not parallel output, collect data
 
     if ( .not. parallel_out ) then
-      call grid_collect(vp%rval,pnt2d, &
-                        vp%j1,vp%j2,vp%i1,vp%i2,outstream(istream)%l_sub)
+      call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
       vp%j1 = outstream(istream)%jg1
       vp%j2 = outstream(istream)%jg2
       vp%i1 = outstream(istream)%ig1
@@ -3177,8 +3169,7 @@ module mod_ncout
     integer(ik4) :: jfile
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
-      call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2, &
-                        vp%i1,vp%i2,vp%k1,vp%k2,outstream(istream)%l_sub)
+      call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
       ! If not parallel output, only the master proc writes output files
       return
     end if
@@ -3201,8 +3192,7 @@ module mod_ncout
     ! If not parallel output, collect data
 
     if ( .not. parallel_out ) then
-      call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2, &
-                        vp%i1,vp%i2,vp%k1,vp%k2,outstream(istream)%l_sub)
+      call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
       vp%j1 = outstream(istream)%jg1
       vp%j2 = outstream(istream)%jg2
       vp%i1 = outstream(istream)%ig1

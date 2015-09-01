@@ -69,10 +69,6 @@ module mod_lm_interface
   public :: init_surface_model
   public :: initialize_surface_model
 #ifdef CLM
-  public :: voc_em
-  public :: voc_em1
-  public :: voc_em2
-  public :: dep_vels
   public :: get_step_size
   public :: filer_rest
   public :: restFile_write
@@ -142,23 +138,23 @@ module mod_lm_interface
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'bats:vocemiss')
 
 #ifdef CLM
-    call getmem2d(r2ctb,1,jxp,1,iyp,'clm:r2ctb')
-    call getmem2d(r2cqb,1,jxp,1,iyp,'clm:r2cqb')
-    call getmem2d(r2czga,1,jxp,1,iyp,'clm:r2czga')
-    call getmem2d(r2cpsb,1,jxp,1,iyp,'clm:r2cpsb')
-    call getmem2d(r2cuxb,1,jxp,1,iyp,'clm:r2cuxb')
-    call getmem2d(r2cvxb,1,jxp,1,iyp,'clm:r2cvxb')
-    call getmem2d(r2crnc,1,jxp,1,iyp,'clm:r2crnc')
-    call getmem2d(r2crnnc,1,jxp,1,iyp,'clm:r2crnnc')
-    call getmem2d(r2csols,1,jxp,1,iyp,'clm:r2csols')
-    call getmem2d(r2csoll,1,jxp,1,iyp,'clm:r2csoll')
-    call getmem2d(r2csolsd,1,jxp,1,iyp,'clm:r2csolsd')
-    call getmem2d(r2csolld,1,jxp,1,iyp,'clm:r2csolld')
-    call getmem2d(r2cflwd,1,jxp,1,iyp,'clm:r2cflwd')
-    call getmem2d(r2cxlat,1,jxp,1,iyp,'clm:r2cxlat')
-    call getmem2d(r2cxlon,1,jxp,1,iyp,'clm:r2cxlon')
-    call getmem2d(r2cxlatd,1,jxp,1,iyp,'clm:r2cxlatd')
-    call getmem2d(r2cxlond,1,jxp,1,iyp,'clm:r2cxlond')
+    call getmem2d(r2ctb,jde1,jde2,ide1,ide2,'clm:r2ctb')
+    call getmem2d(r2cqb,jde1,jde2,ide1,ide2,'clm:r2cqb')
+    call getmem2d(r2czga,jde1,jde2,ide1,ide2,'clm:r2czga')
+    call getmem2d(r2cpsb,jde1,jde2,ide1,ide2,'clm:r2cpsb')
+    call getmem2d(r2cuxb,jde1,jde2,ide1,ide2,'clm:r2cuxb')
+    call getmem2d(r2cvxb,jde1,jde2,ide1,ide2,'clm:r2cvxb')
+    call getmem2d(r2crnc,jde1,jde2,ide1,ide2,'clm:r2crnc')
+    call getmem2d(r2crnnc,jde1,jde2,ide1,ide2,'clm:r2crnnc')
+    call getmem2d(r2csols,jde1,jde2,ide1,ide2,'clm:r2csols')
+    call getmem2d(r2csoll,jde1,jde2,ide1,ide2,'clm:r2csoll')
+    call getmem2d(r2csolsd,jde1,jde2,ide1,ide2,'clm:r2csolsd')
+    call getmem2d(r2csolld,jde1,jde2,ide1,ide2,'clm:r2csolld')
+    call getmem2d(r2cflwd,jde1,jde2,ide1,ide2,'clm:r2cflwd')
+    call getmem2d(r2cxlat,jde1,jde2,ide1,ide2,'clm:r2cxlat')
+    call getmem2d(r2cxlon,jde1,jde2,ide1,ide2,'clm:r2cxlon')
+    call getmem2d(r2cxlatd,jde1,jde2,ide1,ide2,'clm:r2cxlatd')
+    call getmem2d(r2cxlond,jde1,jde2,ide1,ide2,'clm:r2cxlond')
 
     call getmem2d(r2ctb_all,1,jx,1,iy,'clm:r2ctb_all')
     call getmem2d(r2cqb_all,1,jx,1,iy,'clm:r2cqb_all')
@@ -206,14 +202,6 @@ module mod_lm_interface
     call getmem2d(c2rfracsno,1,jx,1,iy,'clm:c2rfracsno')
     call getmem2d(c2rfvegnosno,1,jx,1,iy,'clm:c2rfvegnosno')
     call getmem2d(c2rprocmap,1,jx,1,iy,'clm:c2rprocmap')
-#if (defined VOC)
-    call getmem2d(voc_em,1,jx,1,iy,'clm:voc_em')
-    call getmem2d(voc_em1,1,jx,1,iy,'clm:voc_em1')
-    call getmem2d(voc_em2,1,jx,1,iy,'clm:voc_em2')
-#endif
-    if ( igaschem == 1 .or. ioxclim == 1 ) then
-      call getmem3d(dep_vels,1,jx,1,iy,1,ntr,'clm:dep_vels')
-    end if
     call getmem1d(c2rngc,1,nproc,'clm:c2rngc')
     call getmem1d(c2rdisps,1,nproc,'clm:c2rdisps')
     call getmem2d(rs2d,jci1,jci2,ici1,ici2,'clm:rs2d')
@@ -392,9 +380,6 @@ module mod_lm_interface
     implicit none
     integer(ik4) :: i , j , n , nn , ierr , i1 , i2
 #ifdef CLM
-    integer(ik4) :: ig , jg
-#endif
-#ifdef CLM
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
       r2cdoalb = .true.
     else
@@ -404,7 +389,7 @@ module mod_lm_interface
     if ( ktau == 0 ) then
       r2cnstep = 0
     else
-      r2cnstep = (ktau+1)/ntsrf
+      r2cnstep = int((ktau+1)/ntsrf,ik4)
     end if
     call mtrxclm(lm,lms)
 #else
@@ -412,13 +397,13 @@ module mod_lm_interface
     call runclm45(lm,lms)
     !coupling of biogenic VOC from CLM45 to chemistry
     if ( ichem == 1 ) then
-     do n=1,ntr
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          cvoc_em(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
+      do n = 1 , ntr
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            cvoc_em(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
+          end do
         end do
       end do
-     end do
     end if
 #else
     call vecbats(lm,lms)
@@ -450,14 +435,12 @@ module mod_lm_interface
     if ( ichem == 1 ) then
 #ifdef CLM
       do i = ici1 , ici2
-        ig = global_cross_istart+i-1
         do j = jci1 , jci2
-          jg = global_cross_jstart+j-1
           lm%deltat(j,i) = sum(lms%deltat(:,j,i))*rdnnsg
           lm%deltaq(j,i) = sum(lms%deltaq(:,j,i))*rdnnsg
-          lm%sfracv2d(j,i) = c2rfvegnosno(jg,ig)
-          lm%sfracb2d(j,i) = d_one - (c2rfvegnosno(jg,ig)+c2rfracsno(jg,ig))
-          lm%sfracs2d(j,i) = c2rfracsno(jg,ig)
+          lm%sfracv2d(j,i) = c2rfvegnosno(j,i)
+          lm%sfracb2d(j,i) = d_one - (c2rfvegnosno(j,i)+c2rfracsno(j,i))
+          lm%sfracs2d(j,i) = c2rfracsno(j,i)
           lm%ssw2da = sum(lms%ssw,1)*rdnnsg
           lm%sxlai2d = 0.0D0
         end do
@@ -483,8 +466,8 @@ module mod_lm_interface
           if ( lms%tgrd(n,j,i) < 150.0D0 ) then
             write(stderr,*) 'Likely error: Surface temperature too low'
             write(stderr,*) 'MYID = ', myid
-            write(stderr,*) 'J    = ',global_dot_jstart+j
-            write(stderr,*) 'I    = ',global_dot_istart+i
+            write(stderr,*) 'J    = ',j
+            write(stderr,*) 'I    = ',i
             do nn = 1 , nnsg
               write(stderr,*) 'N    = ',nn
               write(stderr,*) 'VAL  = ',lms%tgrd(nn,j,i)
@@ -578,7 +561,7 @@ module mod_lm_interface
     type(imp_data) , intent(in) :: impfie
     real(rk8) , intent(in) :: tol
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmskb , wetdry
-    integer :: i , j , ii , jj , n
+    integer :: i , j , n
     logical :: flag = .false.
     ! real(rk8) :: toth
     ! real(rk8) , parameter :: href = d_two * iceminh
@@ -590,9 +573,7 @@ module mod_lm_interface
     !-----------------------------------------------------------------------
     !
     do i = ici1, ici2
-      ii = global_cross_istart + i - 1
       do j = jci1, jci2
-        jj = global_cross_jstart + j - 1
         if ( lm%iveg(j,i) == 14 .or. lm%iveg(j,i) == 15 ) then
           !
           !--------------------------------------
@@ -650,7 +631,7 @@ module mod_lm_interface
 !             wetdry(j,i) = 1
 !             ! write debug info
 !             if (flag) then
-!               write(*,20) jj, ii, 'water', 'land ', lm%ldmsk(j,i)
+!               write(*,20) j, i, 'water', 'land ', lm%ldmsk(j,i)
 !             end if
 !           else
 !             if (lm%ldmsk(j,i) == 1 .and. wetdry(j,i) == 1) then
@@ -665,7 +646,7 @@ module mod_lm_interface
 !               wetdry(j,i) = 0
 !               ! write debug info
 !               if (flag) then
-!                 write(*,20) jj, ii, 'land ', 'water', lm%ldmsk(j,i)
+!                 write(*,20) j, i, 'land ', 'water', lm%ldmsk(j,i)
 !               end if
 !             end if
 !           end if
@@ -688,7 +669,7 @@ module mod_lm_interface
               end do
               ! write debug info
               if ( flag ) then
-                write(*,30) jj, ii, 'water', 'ice  ', &
+                write(*,30) j, i, 'water', 'ice  ', &
                    lm%ldmsk(j,i), lms%sfice(1,j,i)
               end if
             else
@@ -711,7 +692,7 @@ module mod_lm_interface
                 end do
                 ! write debug info
                 if ( flag ) then
-                  write(*,40) jj, ii, 'ice  ', 'water',  &
+                  write(*,40) j, i, 'ice  ', 'water',  &
                     lm%ldmsk(j,i), lms%sfice(1,j,i)
                 end if
               end if

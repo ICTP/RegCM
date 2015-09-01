@@ -334,7 +334,7 @@ module rrtmg_sw_rad
     integer(kind=im) :: k                   ! layer loop index
     integer(kind=im) :: ims                 ! value for changing mcica permute seed
     integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
-    integer(kind=im) :: n,nsswcall          ! number of sw call for rad for. calculation (RegCM option)
+    integer(kind=im) :: n , nsswcall        ! number of sw call for rad for. calculation (RegCM option)
     real(kind=rb) :: zepsec, zepzen         ! epsilon
     real(kind=rb) :: zdpgcp                 ! flux to heating conversion ratio
 
@@ -672,14 +672,14 @@ module rrtmg_sw_rad
       end if
 
       !FAB add aerosol radforcing / refine with idirect criteria
-      if ( idirect > 0 ) then
-        nsswcall = 2
-      elseif (idirect == 0) then
+      if ( idirect == 0 ) then
         nsswcall = 1
-      end if 
+      else
+        nsswcall = 2
+      end if
 
       ! Call the 2-stream radiation transfer model
-      do n = 1, nsswcall
+      do n = 1 , nsswcall
         !
         if ( idirect == 1 ) then
           if ( n == 1 ) then
@@ -695,7 +695,7 @@ module rrtmg_sw_rad
             zasya(:,:) = 0._rb
             zomga(:,:) = 1._rb
           end if
-        else if (idirect == 0 .or.  idirect == 2 ) then
+        else if ( idirect == 0 .or.  idirect == 2 ) then
           if ( n == 1 ) then
             ztaua(:,:) = 0._rb
             zasya(:,:) = 0._rb

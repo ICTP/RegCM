@@ -639,8 +639,8 @@ module mod_precip
           if ( tmp3 < d_zero ) then
             write(stderr,*) 'Time ktau = ', ktau
             write(stderr,*) 'Consistency TEMPERATURE ERROR in condtq (T < 0K)'
-            write(stderr,*) 'At global J : ',global_dot_jstart+j
-            write(stderr,*) 'At global I : ',global_dot_istart+i
+            write(stderr,*) 'At global J : ',j
+            write(stderr,*) 'At global I : ',i
             write(stderr,*) 'At global K : ',k
           end if
 #endif
