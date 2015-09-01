@@ -298,7 +298,7 @@ module mod_sound
       !  (see Hint below). This is joined into the 4th RHS term in Eq. 2.3.7.
       !  Hint: R=Cp-Cv, gamma=Cp/Cv -> 1/gamma+R/Cp=1
       !
-      do k = 1 , kz
+      do k = 1 , kzp1
         do i = ici1 , ici2
           do j = jci1 , jci2
             wo(j,i,k) = atmc%w(j,i,k)
@@ -438,9 +438,9 @@ module mod_sound
             rhs(j,i,k) = atmc%w(j,i,k) + &
                     aten%w(j,i,k) + ca(j,i,k) * ( bpxbm *   &
                      ( (cdd(j,i,k-1) - cj(j,i,k-1))*g2(j,i,k)*wo(j,i,k-1) - &
-                      ( (cdd(j,i,k-1) + cj(j,i,k-1))*g2(j,i,k) +            &
-                        (cdd(j,i,k) - cj(j,i,k))*g1(j,i,k) ) * wo(j,i,k) +  &
-                        (cdd(j,i,k) + cj(j,i,k))*g1(j,i,k)*wo(j,i,k+1) ) +  &
+                     ( (cdd(j,i,k-1) + cj(j,i,k-1))*g2(j,i,k) +             &
+                       (cdd(j,i,k) - cj(j,i,k))*g1(j,i,k) ) * wo(j,i,k) +   &
+                       (cdd(j,i,k) + cj(j,i,k))*g1(j,i,k)*wo(j,i,k+1) ) +   &
                      ( atmc%pp(j,i,k)   * g1(j,i,k)   -                     &
                        atmc%pp(j,i,k-1) * g2(j,i,k) ) +                     &
                      ( g1(j,i,k)*ptend(j,i,k) -                             &
@@ -708,6 +708,12 @@ module mod_sound
         end do
       end do
     end do
+    where (abs(atm2%w) < dlowval)
+      atm2%w = d_zero
+    end where
+    where (abs(atm1%w) < dlowval)
+      atm1%w = d_zero
+    end where
   end subroutine sound
 
 end module mod_sound
