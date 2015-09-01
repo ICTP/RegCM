@@ -540,9 +540,9 @@ module mod_sound
         ! Apply upper rad cond. no atmc%w(top) in lateral boundary
         !
         do i = ici1 , ici2
-          if ( i < 7 .or. i > nicross - 7 ) cycle
+          if ( i < 8 .or. i > nicross - 7 ) cycle
           do j = jci1 , jci2
-            if ( j < 7 .or. j > njcross - 7 ) cycle
+            if ( j < 8 .or. j > njcross - 7 ) cycle
             do nsi = -6 , 6
               inn = i + nsi
               do nsj = -6 , 6
