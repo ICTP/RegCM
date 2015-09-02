@@ -1056,8 +1056,10 @@ module mod_atm_interface
         call allocate_reference_atmosphere(atm0)
         call getmem2d(dpsdxm,jce1,jce2,ice1,ice2,'storage:dpsdxm')
         call getmem2d(dpsdym,jce1,jce2,ice1,ice2,'storage:dpsdym')
-        call getmem2d(estore,jci1-ma%jbl6,jci2+ma%jbr6, &
-                             ici1-ma%ibb6,ici2+ma%ibt6,'storage:estore')
+        if ( ifupr == 1 ) then
+          call getmem2d(estore,jci1-ma%jbl6,jci2+ma%jbr6, &
+                               ici1-ma%ibb6,ici2+ma%ibt6,'storage:estore')
+        end if
       end if
 
     end subroutine allocate_mod_atm_interface

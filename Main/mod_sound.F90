@@ -72,8 +72,8 @@ module mod_sound
     ! Need deeper knowledge of this stuff...
     !
     real(rk8) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
-                 xkleff , xleff , xmsftot
-    real(rk8) :: loc_abar , loc_rhon , loc_dxmsfb
+                 xkleff , xleff , xmsftot , xmsf
+    real(rk8) :: loc_abar , loc_rhon , loc_xmsf
     real(rk8) , dimension(-6:6) :: fi , fj
     real(rk8) , dimension(0:6) :: fk , fl
     integer(ik4) :: inn , jnn , ll , npts , nsi , nsj
@@ -204,27 +204,6 @@ module mod_sound
             end do
           end do
         end do
-      else
-        if ( ma%has_bdyleft ) then
-          do i = ice1 , ice2
-            atmc%pp(jce1,i,:) = atmc%pp(jce1,i,:) + aten%pp(jce1,i,:)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do i = ice1 , ice2
-            atmc%pp(jce2,i,:) = atmc%pp(jce2,i,:) + aten%pp(jce2,i,:)
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do j = jce1 , jce2
-            atmc%pp(j,ice1,:) = atmc%pp(j,ice1,:) + aten%pp(j,ice1,:)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do j = jce1 , jce2
-            atmc%pp(j,ice2,:) = atmc%pp(j,ice2,:) + aten%pp(j,ice2,:)
-          end do
-        end if
       end if
       do k = 1 , kz
         kp1 = min(kz,k+1)
@@ -475,14 +454,16 @@ module mod_sound
           end do
         end do
       end do
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          denom = (cdd(j,i,1) + cj(j,i,1)) * bp
-          estore(j,i) = atmc%pp(j,i,1) + f(j,i,1) * denom
-          astore(j,i) = denom * e(j,i,1) + (cj(j,i,1) - cdd(j,i,1)) * bp
+      if ( ifupr == 1 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            denom = (cdd(j,i,1) + cj(j,i,1)) * bp
+            astore(j,i) = denom * e(j,i,1) + (cj(j,i,1) - cdd(j,i,1)) * bp
+            estore(j,i) = atmc%pp(j,i,1) + f(j,i,1) * denom
+          end do
         end do
-      end do
-      call exchange(estore,6,jci1,jci2,ici1,ici2)
+        call exchange(estore,6,jci1,jci2,ici1,ici2)
+      end if
       !
       ! If first time through and upper radiation b.c`s are used
       ! Need to calc some coefficients
@@ -492,23 +473,24 @@ module mod_sound
         atot = d_zero
         rhontot = d_zero
         xmsftot = d_zero
-        npts = (jci2-jci1+1)*(ici2-ici1+1)
+        npts = (nicross-2)*(njcross-2)
         do i = ici1 , ici2
           do j = jci1 , jci2
             atot = atot + astore(j,i)
-            ensq = egrav*egrav/cpd/atm2%t(j,i,1)/sfs%psb(j,i)
+            ensq = egrav*egrav/cpd/(atm2%t(j,i,1)/sfs%psb(j,i))
             rhontot = rhontot + atm1%rho(j,i,1)*sqrt(ensq)
             xmsftot = xmsftot + mddom%msfx(j,i)
           end do
         end do
         loc_abar = atot/npts
         loc_rhon = rhontot/npts
-        loc_dxmsfb = d_two/dx/(xmsftot/npts)
+        loc_xmsf = xmsftot/npts
         call sumall(loc_abar,abar)
         call sumall(loc_rhon,rhon)
-        call sumall(loc_dxmsfb,dxmsfb)
-        do k = 0 , 6
-          do ll = 0 , 6
+        call sumall(loc_xmsf,xmsf)
+        dxmsfb = d_two/dx/xmsf
+        do ll = 0 , 6
+          do k = 0 , 6
             xkeff = dxmsfb * sin(mathpi*k/12.0D0)*cos(mathpi*ll/12.0D0)
             xleff = dxmsfb * sin(mathpi*ll/12.0D0)*cos(mathpi*k/12.0D0)
             xkleff = sqrt(xkeff*xkeff + xleff*xleff)
@@ -540,13 +522,17 @@ module mod_sound
         ! Apply upper rad cond. no atmc%w(top) in lateral boundary
         !
         do i = ici1 , ici2
-          if ( i < 8 .or. i > iy - 8 ) cycle
+          if ( i < nspgx-1 .or. i > iy-nspgx+1 ) cycle
           do j = jci1 , jci2
-            if ( j < 8 .or. j > jx - 8 ) cycle
+            if ( j < nspgx-1 .or. j > jx-nspgx+1 ) cycle
             do nsi = -6 , 6
               inn = i + nsi
+              if ( inn < 2 ) inn = 2
+              if ( inn > iy-2 ) inn = iy-2
               do nsj = -6 , 6
                 jnn = j + nsj
+                if ( jnn < 2 ) jnn = 2
+                if ( jnn > jx-2 ) jnn = jx-2
                 wpval(j,i) = wpval(j,i) + estore(jnn,inn)*tmask(nsj,nsi)
               end do
             end do
@@ -644,6 +630,27 @@ module mod_sound
           end do
         end do
       end do
+      ! Fix bdy pn pp
+      if ( ma%has_bdyleft ) then
+        do i = ice1 , ice2
+          atmc%pp(jce1,i,:) = atmc%pp(jce1,i,:) + aten%pp(jce1,i,:)
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do i = ice1 , ice2
+          atmc%pp(jce2,i,:) = atmc%pp(jce2,i,:) + aten%pp(jce2,i,:)
+        end do
+      end if
+      if ( ma%has_bdybottom ) then
+        do j = jce1 , jce2
+          atmc%pp(j,ice1,:) = atmc%pp(j,ice1,:) + aten%pp(j,ice1,:)
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do j = jce1 , jce2
+          atmc%pp(j,ice2,:) = atmc%pp(j,ice2,:) + aten%pp(j,ice2,:)
+        end do
+      end if
       ! Zero gradient conditions on w
       if ( ma%has_bdyleft ) then
         do i = ici1 , ici2
