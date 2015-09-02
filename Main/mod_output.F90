@@ -750,6 +750,13 @@ module mod_output
           call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
         end if
 
+        if ( idynamic == 2 ) then
+          call grid_collect(atm1%pp,atm1_pp_io,jce1,jce2,ice1,ice2,1,kz)
+          call grid_collect(atm2%pp,atm2_pp_io,jce1,jce2,ice1,ice2,1,kz)
+          call grid_collect(atm1%w,atm1_w_io,jce1,jce2,ice1,ice2,1,kzp1)
+          call grid_collect(atm2%w,atm2_w_io,jce1,jce2,ice1,ice2,1,kzp1)
+        end if
+
         call grid_collect(sfs%psa,psa_io,jce1,jce2,ice1,ice2)
         call grid_collect(sfs%psb,psb_io,jce1,jce2,ice1,ice2)
         call grid_collect(sfs%tga,tga_io,jci1,jci2,ici1,ici2)

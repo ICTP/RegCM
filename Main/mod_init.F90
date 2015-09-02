@@ -297,6 +297,8 @@ module mod_init
 
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
+    call psc2psd(sfs%psa,sfs%psdota)
+    call psc2psd(sfs%psb,sfs%psdotb)
 
     if ( ipptls > 0 ) then
       call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici2,1,kz)
