@@ -238,7 +238,7 @@ module mod_params
     wind_tend_maxval = 0.5D0*(dt/secpm)
     !-----Non hydrostatic namelist param:
     !
-    ifupr = 1
+    ifupr = 0
     logp_lrate = 50.0D0
     !-----rrtm radiation namelist param:
     !
@@ -1255,14 +1255,16 @@ module mod_params
 
     if ( myid == italk ) then
       appdat = tochar(idate0)
-      write(stdout,*) 'Initial date of the global simulation: ',appdat
+      write(stdout,*) 'Initial date of the global simulation: ', appdat
       appdat = tochar(idate1)
-      write(stdout,*) 'Initial date of this run             : ',appdat
+      write(stdout,*) 'Initial date of this run             : ', appdat
       appdat = tochar(idate2)
-      write(stdout,*) 'Final date of this run               : ',appdat
-      write(stdout,*) 'Total simulation lenght              : ',hspan,' hours'
-      write(stdout,'(a,f11.6)') ' Timestep in seconds = ',dtsec
-      write(stdout,'(a,2f11.6)') ' Split explicit dtau = ',dtau
+      write(stdout,*) 'Final date of this run               : ', appdat
+      write(stdout,*) 'Total simulation lenght              : ', hspan, ' hours'
+      write(stdout,'(a,f11.6)') ' Timestep in seconds = ', dtsec
+      if ( idynamic == 1 ) then
+        write(stdout,'(a,2f11.6)') ' Split explicit dtau = ', dtau
+      end if
     end if
 
     call bcast(dirter,256)
