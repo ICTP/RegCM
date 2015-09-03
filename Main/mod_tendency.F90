@@ -62,7 +62,7 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:) :: dummy , rpsa , rpsb , rpsc
   real(rk8) , pointer , dimension(:,:) :: rpsda
 
-  integer :: ithadv = 0
+  integer :: ithadv = 1
   integer(ik4) :: nexchange_adv , icvadv , iqxvadv , itrvadv
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
@@ -213,6 +213,7 @@ module mod_tendency
           end do
         end do
       end do
+      call exchange(atm1%rho,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%pp,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
@@ -597,7 +598,7 @@ module mod_tendency
     ! same for hydrostatic and nonhydrostatic models:
     ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (1st RHS term)
     !
-    if ( ithadv /= 1 ) then
+    if ( ithadv == 0 ) then
       call hadv(aten%t,atmx%t,kz)
       if ( idiag > 0 ) then
         tdiag%adh = tdiag%adh + (aten%t - ten0) * afdout
@@ -670,7 +671,7 @@ module mod_tendency
       ! Adiabatic term in the temperature tendency equation in the
       ! nonhydrostatic model: 3rd and 4th RHS term in Eq. 2.2.5 and Eq.2.3.9.
       !
-      if ( ithadv /= 1 ) then
+      if ( ithadv == 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -1483,7 +1484,7 @@ module mod_tendency
             end do
           end do
         end do
-     else if ( ipgf == 0 ) then
+      else if ( ipgf == 0 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
             !
@@ -1541,7 +1542,7 @@ module mod_tendency
 #ifdef DEBUG
       call check_wind_tendency('GEOP')
 #endif
-    end if
+    end if ! idynamic == 1
     !
     ! compute the vertical advection terms:
     !

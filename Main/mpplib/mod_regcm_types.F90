@@ -145,7 +145,6 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:,:) :: qx
     real(rk8) , pointer , dimension(:,:,:) :: tke
     real(rk8) , pointer , dimension(:,:,:) :: pp
-    real(rk8) , pointer , dimension(:,:,:) :: pr
     real(rk8) , pointer , dimension(:,:,:) :: rho
   end type atmstate_c
 
@@ -157,8 +156,6 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:,:) :: qx
     real(rk8) , pointer , dimension(:,:,:) :: tke
     real(rk8) , pointer , dimension(:,:,:) :: pp
-    real(rk8) , pointer , dimension(:,:,:) :: pr
-    real(rk8) , pointer , dimension(:,:,:) :: rho
   end type atmstate_tendency
 
   type atmstate_decoupled

@@ -626,7 +626,6 @@ module mod_atm_interface
         call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
                       1,kzp1,'atmstate:tke')
       end if
-      call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
       call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       if ( idynamic == 2 ) then
         call getmem3d(atm%pp,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:pp')
@@ -724,14 +723,8 @@ module mod_atm_interface
                       1,kzp1,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
-        call getmem3d(atm%pr,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:pr')
-        call getmem3d(atm%rho,jce1-jl,jce2+jr, &
-                ice1-ib,ice2+it,1,kz,'atmstate:rho')
         call getmem3d(atm%pp,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:pp')
         call getmem3d(atm%w,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kzp1,'atmstate:w')
-      else
-        call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
-        call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       end if
     end subroutine allocate_atmstate_tendency
 

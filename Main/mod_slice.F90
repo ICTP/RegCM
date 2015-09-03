@@ -118,15 +118,15 @@ module mod_slice
 
     if ( idynamic == 2 ) then
       do k = 1 , kzp1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ice1 , ice2
+          do j = jce1 , jce2
             atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
           end do
         end do
       end do
       do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ice1 , ice2
+          do j = jce1 , jce2
             atms%ppb3d(j,i,k) = atm2%pp(j,i,k)*rpsb(j,i)
           end do
         end do

@@ -210,8 +210,8 @@ module mod_sound
           end do
         end do
       end do
-      call exchange(atmc%pp,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atmc%t,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atmc%pp,1,jce1,jce2,ice1,ice2,1,kz)
       !
       ! Advance u and v
       !
@@ -706,15 +706,15 @@ module mod_sound
         do j = jci1 , jci2
           atm1%w(j,i,k) = sfs%psb(j,i) * atmc%w(j,i,k)
           atm2%w(j,i,k) = atm2%w(j,i,k) + gnuhf*atm1%w(j,i,k)
+          if ( abs(atm1%w(j,i,k)) < dlowval) then
+            atm1%w(j,i,k) = d_zero
+          end if
+          if ( abs(atm2%w(j,i,k)) < dlowval) then
+            atm2%w(j,i,k) = d_zero
+          end if
         end do
       end do
     end do
-    where (abs(atm2%w) < dlowval)
-      atm2%w = d_zero
-    end where
-    where (abs(atm1%w) < dlowval)
-      atm1%w = d_zero
-    end where
   end subroutine sound
 
 end module mod_sound

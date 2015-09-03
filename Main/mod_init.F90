@@ -133,16 +133,16 @@ module mod_init
         do i = ice1 , ice2
           do j = jce1 , jce2
             atm1%pp(j,i,k) = xppb%b0(j,i,k)
-            atm1%w(j,i,k) = xwwb%b0(j,i,k)
             atm2%pp(j,i,k) = xppb%b0(j,i,k)
-            atm2%w(j,i,k) = xwwb%b0(j,i,k)
           end do
         end do
       end do
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atm1%w(j,i,kzp1) = xwwb%b0(j,i,kzp1)
-          atm2%w(j,i,kzp1) = xwwb%b0(j,i,kzp1)
+      do k = 1 , kzp1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atm1%w(j,i,k) = xwwb%b0(j,i,k)
+            atm2%w(j,i,k) = xwwb%b0(j,i,k)
+          end do
         end do
       end do
     end if
@@ -509,7 +509,18 @@ module mod_init
     !
   end if
 
-  if ( idynamic == 2 ) then
+  if ( idynamic == 1 ) then
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
+          atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atm1%t(j,i,k)/sfs%psa(j,i))
+          atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
+          atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)/sfs%psb(j,i))
+        end do
+      end do
+    end do
+  else
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -521,17 +532,6 @@ module mod_init
           atm2%rho(j,i,k) = atm2%pr(j,i,k) /        &
               (rgas*atm2%t(j,i,k)/sfs%psb(j,i) *    &
               (d_one+ep1*atm2%qx(j,i,k,iqv)/sfs%psb(j,i)))
-        end do
-      end do
-    end do
-  else
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
-          atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atm1%t(j,i,k)/sfs%psa(j,i))
-          atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
-          atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)/sfs%psb(j,i))
         end do
       end do
     end do
