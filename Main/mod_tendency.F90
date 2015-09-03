@@ -96,6 +96,7 @@ module mod_tendency
       call getmem3d(td,jce1,jce2,ice1,ice2,1,kz,'tendency:td')
       call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
       call getmem2d(rpsc,jce1,jce2,ice1,ice2,'tendency:rpsc')
+      rptn = d_one/dble((jout2-jout1+1)*(iout2-iout1+1))
     else if ( idynamic == 2 ) then
       call getmem3d(ucc,jce1,jce2,ice1,ice2,1,kz,'tendency:ucc')
       call getmem3d(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
@@ -113,7 +114,6 @@ module mod_tendency
 #ifdef DEBUG
     call getmem3d(wten,jde1,jde2,ide1,ide2,1,kz,'tendency:wten')
 #endif
-    rptn = d_one/dble((jout2-jout1+1)*(iout2-iout1+1))
     !
     ! Set number of ghost points for advection for the two schemes
     ! Select advection scheme
@@ -1720,7 +1720,7 @@ module mod_tendency
       !
       ! Compute u,v,w,pp at ktau+1
       !
-      call sound(dt,ktau)
+      call sound
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2

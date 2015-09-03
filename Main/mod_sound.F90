@@ -38,10 +38,8 @@ module mod_sound
 
   contains
 
-  subroutine sound(dtl,ktau)
+  subroutine sound
     implicit none
-    real(rk8) , intent(in) :: dtl
-    integer(ik8) , intent(in) :: ktau
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: aa
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: b
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: c
@@ -110,9 +108,9 @@ module mod_sound
     cs = sqrt(xgamma*rgas*stdt)
     dtsmax = dx/cs/(d_one+xkd)
     ! DTL LONG TIME-STEP (XXB-XXC)
-    istep = int(dtl/dtsmax) + 1
+    istep = int(dt/dtsmax) + 1
     if ( ktau >= 1 ) istep = max(4,istep)
-    dts = dtl/istep
+    dts = dt/istep
     !
     ! Calculate the loop boundaries
     !
@@ -569,7 +567,7 @@ module mod_sound
                                             twt(k,2)*ucrskm1 ) +      &
                             dpsdym(j,i) * ( twt(k,1)*vcrsk +          &
                                             twt(k,2)*vcrskm1 ) )
-            check = abs(sigdot(j,i,k)) * dtl / (dsigma(k) + dsigma(k-1))
+            check = abs(sigdot(j,i,k)) * dt / (dsigma(k) + dsigma(k-1))
             cfl = max(check,cfl)
           end do
         end do
@@ -589,7 +587,7 @@ module mod_sound
         do k = kz , 2 , -1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              cfl = abs(sigdot(j,i,k)) * dtl / (dsigma(k)+dsigma(k-1))
+              cfl = abs(sigdot(j,i,k)) * dt / (dsigma(k)+dsigma(k-1))
               if ( cfl > d_one ) then
                 write(stderr,99003) cfl , atmc%w(j,i,k) , i , j , k
     99003       format ('CFL>1: CFL = ',f12.4,' W = ',f12.4,'  I = ',i5, &
@@ -611,7 +609,7 @@ module mod_sound
                      egrav * dts / (atm0%ps(j,i)*dsigma(k))
             cjtmp = atm0%rho(j,i,k) * egrav * dts * d_half
             atmc%pp(j,i,k) = atmc%pp(j,i,k) + &
-                          ( cjtmp * (atmc%w(j,i,k+1) + atmc%w(j,i,k)) + &
+                          ( cjtmp  * (atmc%w(j,i,k+1) + atmc%w(j,i,k)) + &
                             cddtmp * (atmc%w(j,i,k+1) - atmc%w(j,i,k)) ) * bp
             pi(j,i,k) = atmc%pp(j,i,k) - ppold - aten%pp(j,i,k)
             !
