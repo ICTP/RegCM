@@ -213,8 +213,6 @@ module mod_tendency
           end do
         end do
       end do
-      call exchange(atm1%pr,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atm1%rho,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%pp,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
@@ -251,8 +249,6 @@ module mod_tendency
           end do
         end do
       end do
-      call exchange(atm2%pr,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atm2%rho,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm2%pp,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm2%w,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
@@ -2205,13 +2201,14 @@ module mod_tendency
           do i = ice1 , ice2
             do j = jce1 , jce2
               atmx%pp(j,i,k) = atm1%pp(j,i,k)*rpsa(j,i)
-              atmx%w(j,i,k) = atm1%w(j,i,k)*rpsa(j,i)
             end do
           end do
         end do
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atmx%w(j,i,kzp1) = atm1%w(j,i,kzp1)*rpsa(j,i)
+        do k = 1 , kzp1
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              atmx%w(j,i,k) = atm1%w(j,i,k)*rpsa(j,i)
+            end do
           end do
         end do
         do k = 1 , kz

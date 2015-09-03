@@ -40,36 +40,31 @@ module mod_sound
 
   subroutine sound(dtl,ktau)
     implicit none
-
     real(rk8) , intent(in) :: dtl
     integer(ik8) , intent(in) :: ktau
-
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: aa
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: b
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: c
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: rhs
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: sigdot
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wo
-    real(rk8) :: bet , bm , bp , bpxbm , bpxbp , cddtmp ,  cfl , check , &
-      chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
-      ppold , rho , rho0s , rofac , xgamma , xkd , sumcfl , ucrsk ,      &
-      vcrsk , ucrskm1 , vcrskm1
-    real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore
-    real(rk8) , dimension(jci1:jci2,ici1:ici2) :: wpval
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ca
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: g1 , g2
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ptend , pxup , pyvp
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: tk
-    integer(ik4) :: i , istep , it , j , k , km1 , kp1 , iconvec
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: cc , cdd , cj
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: pi
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: e , f
+    real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore
+    real(rk8) , dimension(jci1:jci2,ici1:ici2) :: wpval
+    real(rk8) :: bet , bm , bp , bpxbm , bpxbp , cddtmp ,  cfl , check , &
+      chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
+      ppold , rho , rho0s , rofac , xgamma , xkd , sumcfl , ucrsk ,      &
+      vcrsk , ucrskm1 , vcrskm1
+    integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
     character (len=32) :: appdat
     !
-    ! Graziano:
-    !
-    ! Variables to implement upper radiative bc, for now disabled.
-    ! Need deeper knowledge of this stuff...
+    ! Variables to implement upper radiative bc
     !
     real(rk8) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
                  xkleff , xleff , xmsftot , xmsf
@@ -125,12 +120,12 @@ module mod_sound
       if ( myid == italk ) write(stdout,'(a,f7.2,i3,a,f4.1,a,f4.1)') &
             ' SHORT TIME STEP ' , dts , istep , &
             ' BETA = ' , bet , ' XKD = ' , xkd
-      do i = -6 , 6
-        do j = -6 , 6
-          tmask(j,i) = d_zero
-        end do
-      end do
       if ( ifupr == 1 ) then
+        do i = -6 , 6
+          do j = -6 , 6
+            tmask(j,i) = d_zero
+          end do
+        end do
         !
         ! DEFINE VALUES OF FK, FL, FI & FJ FOR UPPER RADIATIVE BC
         !
@@ -454,6 +449,17 @@ module mod_sound
           end do
         end do
       end do
+      !
+      ! First, set upper boundary condition, either w=0 or radiation
+      !
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          wpval(j,i) = d_zero
+        end do
+      end do
+      !
+      ! Upper radiative BC, compute the wpval here as in 2.7
+      !
       if ( ifupr == 1 ) then
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -463,63 +469,51 @@ module mod_sound
           end do
         end do
         call exchange(estore,6,jci1,jci2,ici1,ici2)
-      end if
-      !
-      ! If first time through and upper radiation b.c`s are used
-      ! Need to calc some coefficients
-      !
-      if ( ktau == 0 .and. ifupr == 1 .and. it == 1 ) then
-        ! CALCULATING MEANS FOR UP. RAD. B.C.
-        atot = d_zero
-        rhontot = d_zero
-        xmsftot = d_zero
-        npts = (nicross-2)*(njcross-2)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            atot = atot + astore(j,i)
-            ensq = egrav*egrav/cpd/(atm2%t(j,i,1)/sfs%psb(j,i))
-            rhontot = rhontot + atm1%rho(j,i,1)*sqrt(ensq)
-            xmsftot = xmsftot + mddom%msfx(j,i)
+        !
+        ! If first time through and upper radiation b.c`s are used
+        ! Need to calc some coefficients
+        !
+        if ( ktau == 0 .and. it == 1 ) then
+          ! Calculating means for upper radiative boundary conditions
+          atot = d_zero
+          rhontot = d_zero
+          xmsftot = d_zero
+          npts = (nicross-2)*(njcross-2)
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              atot = atot + astore(j,i)
+              ensq = egrav*egrav/cpd/(atm2%t(j,i,1)/sfs%psb(j,i))
+              rhontot = rhontot + atm1%rho(j,i,1)*sqrt(ensq)
+              xmsftot = xmsftot + mddom%msfx(j,i)
+            end do
           end do
-        end do
-        loc_abar = atot/npts
-        loc_rhon = rhontot/npts
-        loc_xmsf = xmsftot/npts
-        call sumall(loc_abar,abar)
-        call sumall(loc_rhon,rhon)
-        call sumall(loc_xmsf,xmsf)
-        dxmsfb = d_two/dx/xmsf
-        do ll = 0 , 6
-          do k = 0 , 6
-            xkeff = dxmsfb * sin(mathpi*k/12.0D0)*cos(mathpi*ll/12.0D0)
-            xleff = dxmsfb * sin(mathpi*ll/12.0D0)*cos(mathpi*k/12.0D0)
-            xkleff = sqrt(xkeff*xkeff + xleff*xleff)
-            do i = -6 , 6
-              do j = -6 , 6
-                tmask(j,i) = tmask(j,i) + &
-                             fi(i)*fj(j)*fk(k)*fl(ll)/144.0D0 * &
-                             cos(2.0D0*mathpi*k*i/12.0D0) *     &
-                             cos(2.0D0*mathpi*ll*j/12.0D0) *    &
-                             xkleff / (rhon-abar*xkleff)
+          loc_abar = atot/npts
+          loc_rhon = rhontot/npts
+          loc_xmsf = xmsftot/npts
+          call sumall(loc_abar,abar)
+          call sumall(loc_rhon,rhon)
+          call sumall(loc_xmsf,xmsf)
+          dxmsfb = d_two/dx/xmsf
+          do ll = 0 , 6
+            do k = 0 , 6
+              xkeff = dxmsfb * sin(mathpi*k/12.0D0)*cos(mathpi*ll/12.0D0)
+              xleff = dxmsfb * sin(mathpi*ll/12.0D0)*cos(mathpi*k/12.0D0)
+              xkleff = sqrt(xkeff*xkeff + xleff*xleff)
+              do i = -6 , 6
+                do j = -6 , 6
+                  tmask(j,i) = tmask(j,i) + &
+                               fi(i)*fj(j)*fk(k)*fl(ll)/144.0D0 * &
+                               cos(2.0D0*mathpi*k*i/12.0D0) *     &
+                               cos(2.0D0*mathpi*ll*j/12.0D0) *    &
+                               xkleff / (rhon-abar*xkleff)
+                end do
               end do
             end do
           end do
-        end do
-      end if
-      !
-      !  Finished initial coefficient compute
-      !  Now do downward sweep for w
-      !
-      ! First, set upper boundary condition, either w=0 or radiation
-      !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          wpval(j,i) = d_zero
-        end do
-      end do
-      if ( ifupr == 1 ) then
+        end if
         !
-        ! Apply upper rad cond. no atmc%w(top) in lateral boundary
+        ! Finished initial coefficient compute (goes in SAV file)
+        ! Apply upper rad cond. (not in the lateral boundary)
         !
         do i = ici1 , ici2
           if ( i < nspgx-1 .or. i > iy-nspgx+1 ) cycle
@@ -540,7 +534,7 @@ module mod_sound
         end do
       end if
       !
-      ! Finished calc of radiation w
+      ! Finished calc of radiation w, apply whichever
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -548,7 +542,7 @@ module mod_sound
         end do
       end do
       !
-      ! Downward calculation of w
+      ! Downward sweep calculation of w
       !
       do k = 1 , kz
         do i = ici1 , ici2

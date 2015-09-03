@@ -576,6 +576,10 @@ module mod_init
   !
   ! Initialize the Surface Model
   !
+#ifdef CLM
+  call exchange(atm2%u,1,jde1,jde2,ide1,ide2,1,kz)
+  call exchange(atm2%v,1,jde1,jde2,ide1,ide2,1,kz)
+#endif
   call initialize_surface_model
   !
   ! Calculate topographical correction to diffusion coefficient
