@@ -101,7 +101,6 @@ module mod_regcm_types
 
   type mass_divergence
     real(rk8) , pointer , dimension(:,:,:) :: cr ! cross points
-    real(rk8) , pointer , dimension(:,:,:) :: dt ! dot points
   end type mass_divergence
 
   type reference_atmosphere

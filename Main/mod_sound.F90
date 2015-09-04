@@ -159,10 +159,8 @@ module mod_sound
           aten%v(j,i,k) = aten%v(j,i,k) * dts
           atmc%u(j,i,k) = atm2%u(j,i,k)/sfs%psdotb(j,i)
           atmc%v(j,i,k) = atm2%v(j,i,k)/sfs%psdotb(j,i)
-          atm2%u(j,i,k) = omuhf*atm1%u(j,i,k)/mddom%msfd(j,i) + &
-                          gnuhf*atm2%u(j,i,k)
-          atm2%v(j,i,k) = omuhf*atm1%v(j,i,k)/mddom%msfd(j,i) + &
-                          gnuhf*atm2%v(j,i,k)
+          atm2%u(j,i,k) = omuhf*atm1%u(j,i,k) + gnuhf*atm2%u(j,i,k)
+          atm2%v(j,i,k) = omuhf*atm1%v(j,i,k) + gnuhf*atm2%v(j,i,k)
         end do
       end do
     end do

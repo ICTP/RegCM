@@ -148,8 +148,7 @@ module mod_tendency
                psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot ,    &
                rovcpm , rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , &
                tva , tvavg , tvb , tvc , rho0s , cpm , scr , dpterm
-    real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , ucd , vcd , &
-                 wadot , wadotp1
+    real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -172,8 +171,8 @@ module mod_tendency
     do k = 1 , kz
       do i = ide1 , ide2
         do j = jde1 , jde2
-          atm1%u(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
-          atm1%v(j,i,k) = atm1%v(j,i,k)*mddom%msfd(j,i)
+          atmc%u(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
+          atmc%v(j,i,k) = atm1%v(j,i,k)*mddom%msfd(j,i)
         end do
       end do
     end do
@@ -182,6 +181,8 @@ module mod_tendency
     !
     call decouple
     !
+    call exchange(atmc%u,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmc%v,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm1%t,1,jce1,jce2,ice1,ice2,1,kz)
@@ -293,10 +294,10 @@ module mod_tendency
             ! The surface pressure tendency in the   hydrostatic model:
             ! Eq. 2.1.5 & Eq. 2.4.2 in the MM5 manual
             !
-            mdv%cr(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
-                             atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
-                            (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
-                             atm1%v(j+1,i,k)  -atm1%v(j,i,k))
+            mdv%cr(j,i,k) = (atmc%u(j+1,i+1,k)+atmc%u(j+1,i,k)- &
+                             atmc%u(j,i+1,k)  -atmc%u(j,i,k)) + &
+                            (atmc%v(j+1,i+1,k)+atmc%v(j,i+1,k)- &
+                             atmc%v(j+1,i,k)  -atmc%v(j,i,k))
             pten(j,i) = pten(j,i) - mdv%cr(j,i,k)*dsigma(k) * dummy(j,i)
           end do
         end do
@@ -352,10 +353,10 @@ module mod_tendency
             ! nonhydrostatic model:
             ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
             !
-            mdv%cr(j,i,k) = ((atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k) -              &
-                              atm1%u(j,i+1,k)  -atm1%u(j,i,k))  +              &
-                             (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k) -              &
-                              atm1%v(j+1,i,k)  -atm1%v(j,i,k))) * dummy(j,i) + &
+            mdv%cr(j,i,k) = ((atmc%u(j+1,i+1,k)+atmc%u(j+1,i,k) -              &
+                              atmc%u(j,i+1,k)  -atmc%u(j,i,k))  +              &
+                             (atmc%v(j+1,i+1,k)+atmc%v(j,i+1,k) -              &
+                              atmc%v(j+1,i,k)  -atmc%v(j,i,k))) * dummy(j,i) + &
                (qdot(j,i,k+1) - qdot(j,i,k)) * sfs%psa(j,i)/dsigma(k)
           end do
         end do
@@ -735,10 +736,10 @@ module mod_tendency
                       dsigma(k)   * atm0%rho(j,i,k-1) ) /  &
                     ( dsigma(k-1) * atm1%rho(j,i,k) +      &
                       dsigma(k)   * atm1%rho(j,i,k-1) )
-            uaq = d_rfour * (twt(k,1) * ucc(j,i,k)/mddom%msfx(j,i) + &
-                             twt(k,2) * ucc(j,i,k-1)/mddom%msfx(j,i))
-            vaq = d_rfour * (twt(k,1) * vcc(j,i,k)/mddom%msfx(j,i) + &
-                             twt(k,2) * vcc(j,i,k-1))/mddom%msfx(j,i)
+            uaq = d_rfour * (twt(k,1) * ucc(j,i,k) + &
+                             twt(k,2) * ucc(j,i,k-1))
+            vaq = d_rfour * (twt(k,1) * vcc(j,i,k) + &
+                             twt(k,2) * vcc(j,i,k-1))
             aten%w(j,i,k) = aten%w(j,i,k) +                &
                   (twt(k,2)*atmx%pr(j,i,k-1) +             &
                    twt(k,1)*atmx%pr(j,i,k)) *              &
@@ -1308,10 +1309,8 @@ module mod_tendency
             ! (1) part of the horizontal component of the Coriolis force due
             ! to the horizontal movement (4th RHS term in Eq.2.1.1, Eq.2.1.2)
             !
-            aten%u(j,i,k) = aten%u(j,i,k) + &
-                         mddom%coriol(j,i)*atm1%v(j,i,k)/mddom%msfd(j,i)
-            aten%v(j,i,k) = aten%v(j,i,k) - &
-                         mddom%coriol(j,i)*atm1%u(j,i,k)/mddom%msfd(j,i)
+            aten%u(j,i,k) = aten%u(j,i,k) + mddom%coriol(j,i)*atm1%v(j,i,k)
+            aten%v(j,i,k) = aten%v(j,i,k) - mddom%coriol(j,i)*atm1%u(j,i,k)
           end do
         end do
       end do
@@ -1341,17 +1340,13 @@ module mod_tendency
                                  atm1%w(j,i-1,k+1)   + atm1%w(j,i,k+1))
             wabar = wadot + wadotp1
             amfac = wabar * rpsda(j,i) * rearthrad
-            ucd = atm1%u(j,i,k)/mddom%msfd(j,i)
-            vcd = atm1%v(j,i,k)/mddom%msfd(j,i)
-            duv = ucd*mddom%dmdy(j,i) - vcd*mddom%dmdx(j,i)
-            aten%u(j,i,k) = aten%u(j,i,k) + mddom%coriol(j,i)*vcd - &
-                         mddom%ef(j,i)*mddom%ddx(j,i)*wabar +       &
-                         atmx%v(j,i,k)*duv - ucd*amfac +            &
-                         mdv%dt(j,i,k) * atmx%u(j,i,k)
-            aten%v(j,i,k) = aten%v(j,i,k) - mddom%coriol(j,i)*ucd + &
-                         mddom%ef(j,i)*mddom%ddy(j,i)*wabar -       &
-                         atmx%u(j,i,k)*duv - vcd*amfac +            &
-                         mdv%dt(j,i,k) * atmx%v(j,i,k)
+            duv = atm1%u(j,i,k)*mddom%dmdy(j,i) - atm1%v(j,i,k)*mddom%dmdx(j,i)
+            aten%u(j,i,k) = aten%u(j,i,k) + mddom%coriol(j,i)*atm1%v(j,i,k) - &
+                         mddom%ef(j,i)*mddom%ddx(j,i)*wabar +      &
+                         atmx%v(j,i,k)*duv - atm1%u(j,i,k)*amfac
+            aten%v(j,i,k) = aten%v(j,i,k) - mddom%coriol(j,i)*atm1%u(j,i,k) + &
+                         mddom%ef(j,i)*mddom%ddy(j,i)*wabar -      &
+                         atmx%u(j,i,k)*duv - atm1%v(j,i,k)*amfac
           end do
         end do
       end do
@@ -1659,9 +1654,9 @@ module mod_tendency
       do k = 1 , kz
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-            atm2%u(j,i,k) = omuhf*atm1%u(j,i,k)/mddom%msfd(j,i) + &
+            atm2%u(j,i,k) = omuhf*atm1%u(j,i,k) + &
                             gnuhf*(atm2%u(j,i,k)+atmc%u(j,i,k))
-            atm2%v(j,i,k) = omuhf*atm1%v(j,i,k)/mddom%msfd(j,i) + &
+            atm2%v(j,i,k) = omuhf*atm1%v(j,i,k) + &
                             gnuhf*(atm2%v(j,i,k)+atmc%v(j,i,k))
             atm1%u(j,i,k) = atmc%u(j,i,k)
             atm1%v(j,i,k) = atmc%v(j,i,k)
@@ -2047,8 +2042,8 @@ module mod_tendency
       do k = 1 , kz
         do i = idii1 , idii2
           do j = jdii1 , jdii2
-            atmx%u(j,i,k) = atm1%u(j,i,k)*rpsda(j,i)
-            atmx%v(j,i,k) = atm1%v(j,i,k)*rpsda(j,i)
+            atmx%u(j,i,k) = atmc%u(j,i,k)*rpsda(j,i)
+            atmx%v(j,i,k) = atmc%v(j,i,k)*rpsda(j,i)
           end do
         end do
       end do

@@ -864,8 +864,8 @@ module mod_bdycod
       if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            atm2%u(jde1,i,k) = atm1%u(jde1,i,k)/mddom%msfd(jde1,i)
-            atm2%v(jde1,i,k) = atm1%v(jde1,i,k)/mddom%msfd(jde1,i)
+            atm2%u(jde1,i,k) = atm1%u(jde1,i,k)
+            atm2%v(jde1,i,k) = atm1%v(jde1,i,k)
           end do
         end do
         do k = 1 , kz
@@ -910,8 +910,8 @@ module mod_bdycod
       if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            atm2%u(jde2,i,k) = atm1%u(jde2,i,k)/mddom%msfd(jde2,i)
-            atm2%v(jde2,i,k) = atm1%v(jde2,i,k)/mddom%msfd(jde2,i)
+            atm2%u(jde2,i,k) = atm1%u(jde2,i,k)
+            atm2%v(jde2,i,k) = atm1%v(jde2,i,k)
           end do
         end do
         do k = 1 , kz
@@ -956,8 +956,8 @@ module mod_bdycod
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jde1 , jde2
-            atm2%u(j,ide1,k) = atm1%u(j,ide1,k)/mddom%msfd(j,ide1)
-            atm2%v(j,ide1,k) = atm1%v(j,ide1,k)/mddom%msfd(j,ide1)
+            atm2%u(j,ide1,k) = atm1%u(j,ide1,k)
+            atm2%v(j,ide1,k) = atm1%v(j,ide1,k)
           end do
         end do
         do k = 1 , kz
@@ -999,8 +999,8 @@ module mod_bdycod
       if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jde1 , jde2
-            atm2%u(j,ide2,k) = atm1%u(j,ide2,k)/mddom%msfd(j,ide2)
-            atm2%v(j,ide2,k) = atm1%v(j,ide2,k)/mddom%msfd(j,ide2)
+            atm2%u(j,ide2,k) = atm1%u(j,ide2,k)
+            atm2%v(j,ide2,k) = atm1%v(j,ide2,k)
           end do
         end do
         do k = 1 , kz

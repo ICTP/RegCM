@@ -57,24 +57,23 @@ module mod_advection
   real(rk8) , pointer , dimension(:,:,:) :: pfs  ! Pressure full sigma levels
   real(rk8) , pointer , dimension(:,:,:) :: phs  ! Pressure half sigma levels
   real(rk8) , pointer , dimension(:,:,:) :: divx ! Mass divergence
-  real(rk8) , pointer , dimension(:,:,:) :: diag ! Mass divergence
   integer(ik4) , pointer , dimension(:,:) :: kpb ! Top of PBL
 
   ! working space used to store the interlated values in vadv.
 
-  real(rk8) , pointer , dimension(:) :: dds , xds , xds4
+  real(rk8) , pointer , dimension(:) :: dds , xds
 
   real(rk8) , parameter :: c287 = 0.287D+00
 
   contains
 
     subroutine init_advection
-      use mod_atm_interface , only : mddom , sfs , atms , atm1
+      use mod_atm_interface , only : mddom , sfs , atms , atmc
       use mod_atm_interface , only : mdv , qdot , kpbl
       implicit none
       integer(ik4) :: k
-      call assignpnt(atm1%u,ua)
-      call assignpnt(atm1%v,va)
+      call assignpnt(atmc%u,ua)
+      call assignpnt(atmc%v,va)
       call assignpnt(sfs%psa,ps)
       call assignpnt(mddom%msfx,mapfx)
       call assignpnt(mddom%msfd,mapfd)
@@ -83,14 +82,11 @@ module mod_advection
       call assignpnt(atms%pf3d,pfs)
       call assignpnt(atms%pb3d,phs)
       call assignpnt(mdv%cr,divx)
-      call assignpnt(mdv%dt,diag)
       call assignpnt(qdot,svv)
       call assignpnt(kpbl,kpb)
       call getmem1d(dds,1,kzp1,'mod_advection:dds')
       call getmem1d(xds,1,kz,'mod_advection:xds')
-      call getmem1d(xds4,1,kz,'mod_advection:xds4')
       xds(:) =  d_one / dsigma(:)
-      xds4(:) =  xds(:) * d_rfour
       dds(1) = d_zero
       dds(kzp1) = d_zero
       do k = 2 , kz
@@ -105,7 +101,8 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: u , v
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: uten , vten
 
-      real(rk8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc , divd
+      real(rk8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
+      real(rk8) :: divd , diag
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvuv'
@@ -132,18 +129,18 @@ module mod_advection
                        va(j-1,i-1,k) + vcmona
               divd = d_rfour * ( divx(j,i,k)   + divx(j,i-1,k)   + &
                                  divx(j-1,i,k) + divx(j-1,i-1,k) )
-              diag(j,i,k) = divd - dmapf(j,i)*( ( ucmonb - ucmonc ) + &
-                                                ( vcmonb - vcmonc ) )
-              uten(j,i,k) = uten(j,i,k) - dmapf(j,i) *      &
-                          ((u(j+1,i,k)+u(j,i,k))  *ucmonb - &
-                           (u(j,i,k)  +u(j-1,i,k))*ucmonc + &
-                           (u(j,i+1,k)+u(j,i,k))  *vcmonb - &
-                           (u(j,i,k)  +u(j,i-1,k))*vcmonc)
-              vten(j,i,k) = vten(j,i,k) - dmapf(j,i) *      &
-                          ((v(j+1,i,k)+v(j,i,k))  *ucmonb - &
-                           (v(j,i,k)  +v(j-1,i,k))*ucmonc + &
-                           (v(j,i+1,k)+v(j,i,k))  *vcmonb - &
-                           (v(j,i,k)  +v(j,i-1,k))*vcmonc)
+              diag = divd - dmapf(j,i)*( ( ucmonb - ucmonc ) + &
+                                         ( vcmonb - vcmonc ) )
+              uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag -    &
+                dmapf(j,i) * ((u(j+1,i,k)+u(j,i,k))  *ucmonb - &
+                              (u(j,i,k)  +u(j-1,i,k))*ucmonc + &
+                              (u(j,i+1,k)+u(j,i,k))  *vcmonb - &
+                              (u(j,i,k)  +u(j,i-1,k))*vcmonc)
+              vten(j,i,k) = vten(j,i,k) + v(j,i,k) * diag -    &
+                dmapf(j,i) * ((v(j+1,i,k)+v(j,i,k))  *ucmonb - &
+                              (v(j,i,k)  +v(j-1,i,k))*ucmonc + &
+                              (v(j,i+1,k)+v(j,i,k))  *vcmonb - &
+                              (v(j,i,k)  +v(j,i-1,k))*vcmonc)
             end do
           end do
         end do
@@ -180,12 +177,12 @@ module mod_advection
 #endif
     end subroutine hadvuv
 
-    subroutine vadvuv(uten,vten,uu,vv)
+    subroutine vadvuv(uten,vten,ud,vd)
       implicit none
-      real(rk8) , pointer , intent (in) , dimension(:,:,:) :: uu , vv
+      real(rk8) , pointer , intent (in) , dimension(:,:,:) :: ud , vd
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: uten , vten
 
-      real(rk8) , dimension(jdi1:jdi2,idi1:idi2,1:kz) :: ug , vg
+      real(rk8) :: qq , uu , vv
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadvuv'
@@ -198,41 +195,15 @@ module mod_advection
       do k = 2 , kz
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-            ug(j,i,k) = d_half * (uu(j,i,k) + uu(j,i,k-1)) / mapfd(j,i)
-            vg(j,i,k) = d_half * (vv(j,i,k) + vv(j,i,k-1)) / mapfd(j,i)
+            qq = d_rfour * (svv(j,i,k) + svv(j,i-1,k) + &
+                            svv(j-1,i,k) + svv(j-1,i-1,k))
+            uu = qq * (twt(k,1)*ud(j,i,k) + twt(k,2)*ud(j,i,k-1))
+            vv = qq * (twt(k,1)*vd(j,i,k) + twt(k,2)*vd(j,i,k-1))
+            uten(j,i,k-1) = uten(j,i,k-1) - uu*xds(k-1)
+            uten(j,i,k)   = uten(j,i,k)   + uu*xds(k)
+            vten(j,i,k-1) = vten(j,i,k-1) - vv*xds(k-1)
+            vten(j,i,k)   = vten(j,i,k)   + vv*xds(k)
           end do
-        end do
-      end do
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          uten(j,i,1) = uten(j,i,1) - ug(j,i,2) * xds4(1) * &
-            (svv(j-1,i-1,2) + svv(j-1,i,2) + svv(j,i,2) + svv(j,i-1,2))
-          vten(j,i,1) = vten(j,i,1) - vg(j,i,2) * xds4(1) * &
-            (svv(j-1,i-1,2) + svv(j-1,i,2) + svv(j,i,2) + svv(j,i-1,2))
-        end do
-      end do
-      do k = 2 , kz-1
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            uten(j,i,k) = uten(j,i,k) - &
-              (ug(j,i,k+1) * (svv(j-1,i,k+1) + svv(j-1,i-1,k+1) + &
-                              svv(j,i,k+1)   + svv(j,i-1,k+1))  - &
-               ug(j,i,k)   * (svv(j-1,i,k)   + svv(j-1,i-1,k)   + &
-                              svv(j,i,k)     + svv(j,i-1,k))) * xds4(k)
-            vten(j,i,k) = vten(j,i,k) - &
-              (vg(j,i,k+1) * (svv(j-1,i,k+1) + svv(j-1,i-1,k+1) + &
-                              svv(j,i,k+1)   + svv(j,i-1,k+1))  - &
-               vg(j,i,k)   * (svv(j-1,i,k)   + svv(j-1,i-1,k)   + &
-                              svv(j,i,k)     + svv(j,i-1,k))) * xds4(k)
-          end do
-        end do
-      end do
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          uten(j,i,kz) = uten(j,i,kz) + ug(j,i,kz) * xds4(kz) * &
-            (svv(j-1,i,kz) + svv(j-1,i-1,kz) + svv(j,i,kz) + svv(j,i-1,kz))
-          vten(j,i,kz) = vten(j,i,kz) + vg(j,i,kz) * xds4(kz) * &
-            (svv(j-1,i,kz) + svv(j-1,i-1,kz) + svv(j,i,kz) + svv(j,i-1,kz))
         end do
       end do
 #ifdef DEBUG

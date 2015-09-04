@@ -620,16 +620,18 @@ module mod_atm_interface
       end if
       call getmem3d(atm%u,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:u')
       call getmem3d(atm%v,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:v')
-      call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
-      call getmem4d(atm%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atmstate:qx')
       if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
                       1,kzp1,'atmstate:tke')
       end if
+      call getmem4d(atm%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atmstate:qx')
       call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       if ( idynamic == 2 ) then
         call getmem3d(atm%pp,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:pp')
+        call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
         call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
+      else
+        call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'atmstate:t')
       end if
     end subroutine allocate_atmstate_c
 
@@ -747,7 +749,6 @@ module mod_atm_interface
       type(mass_divergence) , intent(out) :: div
       call getmem3d(div%cr,jce1-ma%jbl1,jce2+ma%jbr1, &
                            ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'massdiv:cr')
-      call getmem3d(div%dt,jdi1,jdi2,idi1,idi2,1,kz,'massdiv:dt')
     end subroutine allocate_mass_divergence
 
     subroutine allocate_tendiag(dia)
@@ -933,11 +934,7 @@ module mod_atm_interface
         call allocate_atmstate_b(atm2,one_exchange_point)
         call allocate_atmstate_decoupled(atmx,one_exchange_point)
       end if
-      if ( idynamic == 2 ) then
-        call allocate_atmstate_c(atmc,one_exchange_point)
-      else
-        call allocate_atmstate_c(atmc,zero_exchange_point)
-      end if
+      call allocate_atmstate_c(atmc,one_exchange_point)
       call allocate_atmstate_tendency(aten,zero_exchange_point)
       if ( ibltyp == 2 ) then
         call allocate_atmstate_tendency(uwten,one_exchange_point)
