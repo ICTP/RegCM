@@ -1630,7 +1630,7 @@ module mod_tendency
             atm1%qx(j,i,k,n) = atmc%qx(j,i,k,n)
             atm2%qx(j,i,k,n) = omuhf*atm1%qx(j,i,k,n) + &
               gnuhf*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
-            atm2%qx(j,i,k,n) = max(atm2%qx(j,i,k,n),1D-10*sfs%psb(j,i))
+            atm2%qx(j,i,k,n) = max(atm2%qx(j,i,k,n),minqx*sfs%psb(j,i))
           end do
         end do
       end do
