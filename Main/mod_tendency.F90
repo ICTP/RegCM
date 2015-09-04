@@ -1279,8 +1279,8 @@ module mod_tendency
       end do
     end do
     !
-    call diffu_d(adf%u,atms%ubd3d,sfs%psdotb,mddom%msfd,xkc,0)
-    call diffu_d(adf%v,atms%vbd3d,sfs%psdotb,mddom%msfd,xkc,0)
+    call diffu_d(adf%u,atms%ubd3d,sfs%psdotb,xkc)
+    call diffu_d(adf%v,atms%vbd3d,sfs%psdotb,xkc)
     !
     ! compute the horizontal advection terms for u and v:
     !

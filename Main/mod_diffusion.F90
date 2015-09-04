@@ -53,22 +53,14 @@ module mod_diffusion
 !                                                                     c
 !     f       : variable f on cross/dot points                        c
 !                                                                     c
-!     ind = 1 : var is already multiplied by map scale factor         c
-!         = 0 : var is "not"   multiplied by map scale factor         c
-!                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine diffu_d(ften,f,press,mapf,xkc,ind)
-!
+  subroutine diffu_d(ften,f,press,xkc)
     implicit none
-!
-    integer(ik4) , intent(in) :: ind
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: f
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: mapf
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ften
-!
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_d'
@@ -81,19 +73,10 @@ module mod_diffusion
     do k = 1 , kz
       do i = idii1 , idii2
         do j = jdii1 , jdii2
-          if ( ind == 0 ) then
-            ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) *      &
-                  rdxsq*(f(j+2,i,k)+f(j-2,i,k)+f(j,i+2,k)+f(j,i-2,k)  - &
-                 d_four*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
-                d_twelve*f(j,i,k))*press(j,i)
-          else
-            ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) *        &
-                  rdxsq*(f(j+2,i,k)/mapf(j+2,i)+f(j-2,i,k)/mapf(j-2,i) +  &
-                         f(j,i+2,k)/mapf(j,i+2)+f(j,i-2,k)/mapf(j,i-2) -  &
-                 d_four*(f(j+1,i,k)/mapf(j+1,i)+f(j-1,i,k)/mapf(j-1,i) +  &
-                         f(j,i+1,k)/mapf(j,i+1)+f(j,i-1,k)/mapf(j,i-1)) + &
-                d_twelve*f(j,i,k)/mapf(j,i))*press(j,i)
-          end if
+          ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) *      &
+                rdxsq*(f(j+2,i,k)+f(j-2,i,k)+f(j,i+2,k)+f(j,i-2,k)  - &
+               d_four*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
+              d_twelve*f(j,i,k))*press(j,i)
         end do
       end do
     end do
@@ -104,19 +87,10 @@ module mod_diffusion
       j = jdi1
       do k = 1 , kz
         do i = idi1 , idi2
-          if ( ind == 0 ) then
-            ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *    &
-                          rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
-                                 f(j,i+1,k)+f(j,i-1,k) - &
-                          d_four*f(j,i,k))*press(j,i)
-          else
-            ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *     &
-                          rdxsq*(f(j+1,i,k)/mapf(j+1,i) + &
-                                 f(j-1,i,k)/mapf(j-1,i) + &
-                                 f(j,i+1,k)/mapf(j,i+1) + &
-                                 f(j,i-1,k)/mapf(j,i-1) - &
-                          d_four*f(j,i,k)/mapf(j,i))*press(j,i)
-          end if
+          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *    &
+                        rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
+                               f(j,i+1,k)+f(j,i-1,k) - &
+                        d_four*f(j,i,k))*press(j,i)
         end do
       end do
     end if
@@ -124,19 +98,10 @@ module mod_diffusion
       j = jdi2
       do k = 1 , kz
         do i = idi1 , idi2
-          if ( ind == 0 ) then
-            ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *    &
-                          rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
-                                 f(j,i+1,k)+f(j,i-1,k) - &
-                          d_four*f(j,i,k))*press(j,i)
-          else
-            ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *     &
-                          rdxsq*(f(j+1,i,k)/mapf(j+1,i) + &
-                                 f(j-1,i,k)/mapf(j-1,i) + &
-                                 f(j,i+1,k)/mapf(j,i+1) + &
-                                 f(j,i-1,k)/mapf(j,i-1) - &
-                          d_four*f(j,i,k)/mapf(j,i))*press(j,i)
-          end if
+          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *    &
+                        rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
+                               f(j,i+1,k)+f(j,i-1,k) - &
+                        d_four*f(j,i,k))*press(j,i)
         end do
       end do
     end if
@@ -147,16 +112,9 @@ module mod_diffusion
       i = idi1
       do k = 1 , kz
         do j = jdi1 , jdi2
-          if ( ind == 0 ) then
-            ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *         &
-                  rdxsq*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k) - &
-                  d_four*f(j,i,k))*press(j,i)
-          else
-            ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *         &
-                  rdxsq*(f(j+1,i,k)/mapf(j+1,i)+f(j-1,i,k)/mapf(j-1,i) + &
-                         f(j,i+1,k)/mapf(j,i+1)+f(j,i-1,k)/mapf(j,i-1) - &
-                  d_four*f(j,i,k)/mapf(j,i))*press(j,i)
-          end if
+          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *         &
+                rdxsq*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k) - &
+                d_four*f(j,i,k))*press(j,i)
         end do
       end do
     end if
@@ -164,16 +122,9 @@ module mod_diffusion
       i = idi2
       do k = 1 , kz
         do j = jdi1 , jdi2
-          if ( ind == 0 ) then
-            ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *         &
-                  rdxsq*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k) - &
-                  d_four*f(j,i,k))*press(j,i)
-          else
-            ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *         &
-                  rdxsq*(f(j+1,i,k)/mapf(j+1,i)+f(j-1,i,k)/mapf(j-1,i) + &
-                         f(j,i+1,k)/mapf(j,i+1)+f(j,i-1,k)/mapf(j,i-1) - &
-                  d_four*f(j,i,k)/mapf(j,i))*press(j,i)
-          end if
+          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *         &
+                rdxsq*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k) - &
+                d_four*f(j,i,k))*press(j,i)
         end do
       end do
     end if
