@@ -1279,15 +1279,15 @@ module mod_tendency
       end do
     end do
     !
-    call diffu_d(adf%u,atms%ubd3d,sfs%psdotb,xkc)
-    call diffu_d(adf%v,atms%vbd3d,sfs%psdotb,xkc)
-    !
-    ! compute the horizontal advection terms for u and v:
-    !
     ! Zero again tendencies
     !
     aten%u(:,:,:) = d_zero
     aten%v(:,:,:) = d_zero
+    !
+    call diffu_d(adf%u,atms%ubd3d,sfs%psdotb,xkc)
+    call diffu_d(adf%v,atms%vbd3d,sfs%psdotb,xkc)
+    !
+    ! compute the horizontal advection terms for u and v:
     !
     ! compute the horizontal advection term in x and y momentum tendency:
     ! same for hydrostatic and nonhydrostatic models: 1st RHS term in

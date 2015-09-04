@@ -1463,6 +1463,8 @@ module mod_params
     end do
 
     call exchange(mddom%ht,1,jde1,jde2,ide1,ide2)
+    call exchange(mddom%xlat,1,jde1,jde2,ide1,ide2)
+    call exchange(mddom%xlon,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%msfx,2,jde1,jde2,ide1,ide2)
     call exchange(mddom%msfd,2,jde1,jde2,ide1,ide2)
 
