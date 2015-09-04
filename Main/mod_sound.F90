@@ -156,10 +156,10 @@ module mod_sound
       do i = ide1 , ide2
         do j = jde1 , jde2
           aten%u(j,i,k) = aten%u(j,i,k) * dts
-          aten%v(j,i,k) = aten%v(j,i,k) * dts
           atmc%u(j,i,k) = atm2%u(j,i,k)/sfs%psdotb(j,i)
-          atmc%v(j,i,k) = atm2%v(j,i,k)/sfs%psdotb(j,i)
           atm2%u(j,i,k) = omuhf*atm1%u(j,i,k) + gnuhf*atm2%u(j,i,k)
+          aten%v(j,i,k) = aten%v(j,i,k) * dts
+          atmc%v(j,i,k) = atm2%v(j,i,k)/sfs%psdotb(j,i)
           atm2%v(j,i,k) = omuhf*atm1%v(j,i,k) + gnuhf*atm2%v(j,i,k)
         end do
       end do
@@ -168,6 +168,12 @@ module mod_sound
       do i = ice1 , ice2
         do j = jce1 , jce2
           atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv)/sfs%psb(j,i)
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
           aten%pp(j,i,k) = aten%pp(j,i,k) * dts
           atmc%pp(j,i,k) = atm2%pp(j,i,k)/sfs%psb(j,i)
           atm2%pp(j,i,k) = omuhf*atm1%pp(j,i,k) + gnuhf*atm2%pp(j,i,k)
