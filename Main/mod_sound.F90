@@ -57,7 +57,7 @@ module mod_sound
     real(rk8) , dimension(jci1:jci2,ici1:ici2) :: wpval
     real(rk8) :: bet , bm , bp , bpxbm , bpxbp , cddtmp ,  cfl , check , &
       chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
-      ppold , rho , rho0s , rofac , xgamma , xkd , sumcfl , ucrsk ,      &
+      ppold , rho , rho0s , rofac , xgamma , xkd , maxcfl , ucrsk ,      &
       vcrsk , ucrskm1 , vcrskm1
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
     character (len=32) :: appdat
@@ -578,12 +578,11 @@ module mod_sound
       end do
       if ( mod(ktau,krep) == 0 .and. ktau > 0 .and. it == istep ) then
         call sumall(total_precip_points,iconvec)
-        call sumall(cfl,sumcfl)
+        call maxall(cfl,maxcfl)
         if ( myid == italk ) then
           appdat = tochar(idatex)
-          sumcfl = sumcfl/nproc
           write(stdout,'(a,a23,a,i16)') ' $$$ ', appdat , ', ktau   = ', ktau
-          write(stdout,'(a,e12.5)') ' $$$ mean value of CFL = ',sumcfl
+          write(stdout,'(a,e12.5)') ' $$$ max value of CFL = ',maxcfl
           write(stdout,'(a,i7)') ' $$$  no. of points w/convection = ', iconvec
         end if
       end if
