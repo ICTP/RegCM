@@ -801,14 +801,6 @@ module mod_params
     if ( idynamic == 2 ) then
       call bcast(ifupr)
       call bcast(logp_lrate)
-      if ( ifupr == 1 ) then
-        ! Dimension sanity check
-        if ( jxp < 6 .or. iyp < 6 ) then
-          call fatal(__FILE__,__LINE__, &
-                     'FOR UPPER RADIATIVE BC THE SINGLE PATCH CANNOT BE'// &
-                     ' SMALLER THAN 6x6 ON EACH PROCESSOR')
-        end if
-      end if
     end if
 
     if ( ipptls == 2 ) then

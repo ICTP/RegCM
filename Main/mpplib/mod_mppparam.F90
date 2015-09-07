@@ -200,7 +200,8 @@ module mod_mppparam
   end interface exchange_bdy_tb
 
   interface grid_fill
-    module procedure real8_2d_grid_fill
+    module procedure real8_2d_grid_fill_extend1
+    module procedure real8_2d_grid_fill_extend2
   end interface grid_fill
 
   interface bcast
@@ -5337,7 +5338,7 @@ module mod_mppparam
     end if
   end subroutine real8_bdy_exchange_top_bottom
 !
-  subroutine real8_2d_grid_fill(a,b)
+  subroutine real8_2d_grid_fill_extend1(a,b)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: a
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: b
@@ -5361,7 +5362,33 @@ module mod_mppparam
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
-  end subroutine real8_2d_grid_fill
+  end subroutine real8_2d_grid_fill_extend1
+!
+  subroutine real8_2d_grid_fill_extend2(a,b,i1,i2,j1,j2)
+    implicit none
+    integer , intent(in) :: i1 , i2 , j1 , j2
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: b
+    integer :: i , j
+    call grid_collect(a,b,i1,i2,j1,j2)
+    ! Extrapolate out
+    do i = -1 , 4
+      do j = -4 , jx+4
+        b(j,-i) = b(j,4+i)
+        b(j,iy+i) = b(j,iy-4-i)
+      end do
+    end do
+    do i = -4 , iy+4
+      do j = -1 , 4
+        b(-j,i) = b(4+j,i)
+        b(jx+j,i) = b(jx-4+j,i)
+      end do
+    end do
+    call mpi_bcast(b,product(shape(b)),mpi_real8,iocpu,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    end if
+  end subroutine real8_2d_grid_fill_extend2
 !
 ! Takes u and v on the cross grid (the same grid as t, qv, qc, etc.)
 ! and interpolates the u and v to the dot grid.

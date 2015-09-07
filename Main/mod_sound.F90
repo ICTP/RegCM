@@ -58,7 +58,7 @@ module mod_sound
     real(rk8) :: bet , bm , bp , bpxbm , bpxbp , cddtmp ,  cfl , check , &
       chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
       ppold , rho , rho0s , rofac , xgamma , xkd , maxcfl , ucrsk ,      &
-      vcrsk , ucrskm1 , vcrskm1
+      vcrsk , ucrskm1 , vcrskm1 , rll , rk , ri , rj , npts
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
     character (len=32) :: appdat
     !
@@ -69,7 +69,7 @@ module mod_sound
     real(rk8) :: loc_abar , loc_rhon , loc_xmsf
     real(rk8) , dimension(-6:6) :: fi , fj
     real(rk8) , dimension(0:6) :: fk , fl
-    integer(ik4) :: inn , jnn , ll , npts , nsi , nsj
+    integer(ik4) :: inn , jnn , ll , nsi , nsj
     !
     ! HT IS G*(TERR. HT.)
     ! UTENS, VTENS, PPTENS AND WTENS ARE SUPPLIED TO THIS ROUTINE
@@ -470,7 +470,7 @@ module mod_sound
             estore(j,i) = atmc%pp(j,i,1) + f(j,i,1) * denom
           end do
         end do
-        call exchange(estore,6,jci1,jci2,ici1,ici2)
+        call grid_fill(estore,estore_g,jci1,jci2,ici1,ici2)
         !
         ! If first time through and upper radiation b.c`s are used
         ! Need to calc some coefficients
@@ -480,7 +480,7 @@ module mod_sound
           atot = d_zero
           rhontot = d_zero
           xmsftot = d_zero
-          npts = (nicross-2)*(njcross-2)
+          npts = dble((nicross-2)*(njcross-2))
           do i = ici1 , ici2
             do j = jci1 , jci2
               atot = atot + astore(j,i)
@@ -496,17 +496,21 @@ module mod_sound
           call sumall(loc_rhon,rhon)
           call sumall(loc_xmsf,xmsf)
           dxmsfb = d_two/dx/xmsf
-          do ll = 0 , 6
-            do k = 0 , 6
-              xkeff = dxmsfb * sin(mathpi*k/12.0D0)*cos(mathpi*ll/12.0D0)
-              xleff = dxmsfb * sin(mathpi*ll/12.0D0)*cos(mathpi*k/12.0D0)
+          do k = 0 , 6
+            rk = dble(k)
+            do ll = 0 , 6
+              rll = dble(ll)
+              xkeff = dxmsfb * sin(mathpi*rk/12.0D0)*cos(mathpi*rll/12.0D0)
+              xleff = dxmsfb * sin(mathpi*rll/12.0D0)*cos(mathpi*rk/12.0D0)
               xkleff = sqrt(xkeff*xkeff + xleff*xleff)
               do i = -6 , 6
+                ri = dble(i)
                 do j = -6 , 6
+                  rj = dble(j)
                   tmask(j,i) = tmask(j,i) + &
                                fi(i)*fj(j)*fk(k)*fl(ll)/144.0D0 * &
-                               cos(2.0D0*mathpi*k*i/12.0D0) *     &
-                               cos(2.0D0*mathpi*ll*j/12.0D0) *    &
+                               cos(2.0D0*mathpi*rk*ri/12.0D0) *     &
+                               cos(2.0D0*mathpi*rll*rj/12.0D0) *    &
                                xkleff / (rhon-abar*xkleff)
                 end do
               end do
@@ -518,20 +522,17 @@ module mod_sound
         ! Apply upper rad cond. (not in the lateral boundary)
         !
         do i = ici1 , ici2
-          if ( i < nspgx-1 .or. i > iy-nspgx+1 ) cycle
+          if ( i < nspgx+1 .or. i > iy-nspgx-1 ) cycle
           do j = jci1 , jci2
-            if ( j < nspgx-1 .or. j > jx-nspgx+1 ) cycle
+            if ( j < nspgx+1 .or. j > jx-nspgx-1 ) cycle
             do nsi = -6 , 6
               inn = i + nsi
-              if ( inn < 2 ) inn = 2
-              if ( inn > iy-2 ) inn = iy-2
               do nsj = -6 , 6
                 jnn = j + nsj
-                if ( jnn < 2 ) jnn = 2
-                if ( jnn > jx-2 ) jnn = jx-2
-                wpval(j,i) = wpval(j,i) + estore(jnn,inn)*tmask(nsj,nsi)
+                wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do
             end do
+            if ( abs(wpval(j,i)) < dlowval ) wpval(j,i) = d_zero
           end do
         end do
       end if
