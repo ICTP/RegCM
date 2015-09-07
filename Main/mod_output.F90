@@ -453,7 +453,15 @@ module mod_output
           qdiag%lsc = d_zero
         end if
 
-        ps_out = d_10*(ps_out+ptop)
+        if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+            end do
+          end do
+        else
+          ps_out = d_10*(ps_out+ptop)
+        end if
 
         call write_record_output_stream(atm_stream,idatex)
         if ( myid == italk ) &
@@ -467,7 +475,15 @@ module mod_output
     if ( srf_stream > 0 ) then
       if ( ldosrf ) then
 
-        ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+            end do
+          end do
+        else
+          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        end if
         ! Averaged values
         if ( associated(srf_tpr_out) ) &
           srf_tpr_out = srf_tpr_out*rnsrf_for_srffrq
@@ -541,7 +557,7 @@ module mod_output
     if ( sub_stream > 0 ) then
       if ( ldosub ) then
 
-        sub_ps_out = (sub_ps_out*rnsrf_for_subfrq)/d_100
+        sub_ps_out = sub_ps_out*rnsrf_for_subfrq
 
         if ( associated(sub_evp_out) ) then
           sub_evp_out = sub_evp_out*rnsrf_for_subfrq
@@ -580,7 +596,15 @@ module mod_output
     if ( lak_stream > 0 ) then
       if ( ldolak ) then
 
-        ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+            end do
+          end do
+        else
+          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        end if
         if ( associated(lak_tpr_out) ) &
           lak_tpr_out = lak_tpr_out*rnsrf_for_lakfrq
         if ( associated(lak_scv_out) ) then
@@ -622,7 +646,15 @@ module mod_output
 
     if ( opt_stream > 0 ) then
       if ( ldoche ) then
-        ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+            end do
+          end do
+        else
+          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        end if
         if ( associated(opt_acstoarf_out) ) &
           opt_acstoarf_out = opt_acstoarf_out * rnrad_for_chem
         if ( associated(opt_acstsrrf_out) ) &
@@ -656,7 +688,15 @@ module mod_output
 
     if ( che_stream > 0 ) then
       if ( ldoche ) then
-        ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+            end do
+          end do
+        else
+          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        end if
         do itr = 1 , ntr
           call fill_chem_outvars(itr)
           call write_record_output_stream(che_stream,idatex,itr)
@@ -669,7 +709,15 @@ module mod_output
     if ( sts_stream > 0 ) then
       if ( mod(ktau+kstsoff,ksts) == 0 .and. ktau > kstsoff+2 ) then
 
-        ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+            end do
+          end do
+        else
+          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        end if
         if ( associated(sts_pcpavg_out) ) &
           sts_pcpavg_out = sts_pcpavg_out*rnsrf_for_day
         if ( associated(sts_t2avg_out) ) &
@@ -714,7 +762,15 @@ module mod_output
 
     if ( rad_stream > 0 ) then
       if ( ldorad ) then
-        ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+            end do
+          end do
+        else
+          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        end if
         call write_record_output_stream(rad_stream,idatex)
         if ( myid == italk ) &
           write(stdout,*) 'RAD variables written at ' , tochar(idatex)
@@ -723,7 +779,15 @@ module mod_output
 
     if ( slaboc_stream > 0 ) then
       if ( ldoslab ) then
-        ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+            end do
+          end do
+        else
+          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        end if
         call fill_slaboc_outvars
         call writevar_output_stream(slaboc_stream,v3dvar_slaboc(slab_qflx))
         if ( myid == italk ) then
