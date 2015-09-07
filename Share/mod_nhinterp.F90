@@ -75,7 +75,16 @@ module mod_nhinterp
           ! Define reference state temperature at model points.
           do k = 1 , kx
             pr0(j,i,k) = ps0(j,i) * a(k) + ptoppa
-            t0(j,i,k) = max(ts0 + tlp*log(pr0(j,i,k)/p0), tiso)
+            if ( pr0(j,i,k) > 5474.9 ) then
+              t0(j,i,k) = max(ts0 + tlp*log(pr0(j,i,k)/p0), tiso)
+            else
+              if ( pr0(j,i,k) > 5474.9 ) then
+                t0(j,i,k) = tiso + min(log(5474.9/pr0(j,i,k)),228.65D0)
+              else
+                t0(j,i,k) = 228.65D0 + &
+                        2.0D0*min(log(5474.9/pr0(j,i,k)),271.15D0)
+              end if
+            end if
             rho0(j,i,k) = pr0(j,i,k) / rgas / t0(j,i,k)
           end do
         end do
