@@ -42,6 +42,7 @@ module mod_init
   use mod_sun
   use mod_ncio
   use mod_savefile
+  use mod_slice
   use mod_constants
   use mod_outvars
   use mod_service
@@ -287,6 +288,14 @@ module mod_init
     call grid_distribute(psb_io,sfs%psb,jce1,jce2,ice1,ice2)
     call grid_distribute(tga_io,sfs%tga,jci1,jci2,ici1,ici2)
     call grid_distribute(tgb_io,sfs%tgb,jci1,jci2,ici1,ici2)
+
+    if ( idynamic == 2 ) then
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          sfs%psc(j,i) = sfs%psa(j,i)
+        end do
+      end do
+    end if
 
     call grid_distribute(hfx_io,sfs%hfx,jci1,jci2,ici1,ici2)
     call grid_distribute(qfx_io,sfs%qfx,jci1,jci2,ici1,ici2)
@@ -576,10 +585,9 @@ module mod_init
   !
   ! Initialize the Surface Model
   !
-#ifdef CLM
   call exchange(atm2%u,1,jde1,jde2,ide1,ide2,1,kz)
   call exchange(atm2%v,1,jde1,jde2,ide1,ide2,1,kz)
-#endif
+  call mkslice
   call initialize_surface_model
   !
   ! Calculate topographical correction to diffusion coefficient

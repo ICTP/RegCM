@@ -2042,6 +2042,9 @@ module mod_params
                           (atm0%ps(j,i)*dx4*mddom%msfx(j,i))
           end do
         end do
+        if ( myid == italk ) then
+          write(stdout,*) 'Reference atmosphere calculated.'
+        end if
       end subroutine make_reference_atmosphere
 
       subroutine compute_full_coriolis_coefficients
@@ -2086,6 +2089,9 @@ module mod_params
                                       mddom%ddy(j+1,i) + mddom%ddy(j+1,i+1))
           end do
         end do
+        if ( myid == italk ) then
+          write(stdout,*) 'Full Coriolis coefficients computed.'
+        end if
       end subroutine compute_full_coriolis_coefficients
 
   end subroutine param

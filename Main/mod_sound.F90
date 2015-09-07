@@ -115,9 +115,9 @@ module mod_sound
     ! Calculate the loop boundaries
     !
     if ( ktau == 0 ) then
-      if ( myid == italk ) write(stdout,'(a,f7.2,i3,a,f4.1,a,f4.1)') &
-            ' SHORT TIME STEP ' , dts , istep , &
-            ' BETA = ' , bet , ' XKD = ' , xkd
+      if ( myid == italk ) write(stdout,'(a,f7.2,a,i3,a,f4.1,a,f4.1)') &
+            ' Short time step ' , dts , ', nstep = ', istep , &
+            ', beta = ' , bet , ', xkd = ' , xkd
       if ( ifupr == 1 ) then
         do i = -6 , 6
           do j = -6 , 6
