@@ -333,6 +333,16 @@ module mod_lm_interface
     call assignpnt(dailyrnf,lm%dailyrnf)
 #ifdef CLM
     allocate(landmask(jx,iy))
+    if ( ichem == 1 ) then
+      if ( igaschem == 1 .or. ioxclim == 1 ) then
+        call assignpnt(dep_vels,lm%dep_vels)
+      end if
+#ifdef VOC
+      call assignpnt(voc_em0,lm%voc_em0)
+      call assignpnt(voc_em1,lm%voc_em1)
+      call assignpnt(voc_em2,lm%voc_em2)
+#endif
+    end if
 #endif
   end subroutine init_surface_model
 

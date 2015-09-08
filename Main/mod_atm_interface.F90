@@ -147,11 +147,14 @@ module mod_atm_interface
   real(rk8) , public , pointer , dimension(:,:) :: svegfrac2d
   real(rk8) , public , pointer , dimension(:,:) :: sxlai2d
   real(rk8) , public , pointer , dimension(:,:,:) :: voc_em
-#if (defined CLM && defined VOC)
+#ifdef CLM
+  real(rk8) , public , pointer , dimension(:,:,:) :: dep_vels
+#ifdef VOC
+  real(rk8) , public , pointer , dimension(:,:) :: voc_em0
   real(rk8) , public , pointer , dimension(:,:) :: voc_em1
   real(rk8) , public , pointer , dimension(:,:) :: voc_em2
 #endif
-  real(rk8) , public , pointer , dimension(:,:,:) :: dep_vels
+#endif
 
   !chemistry for surface
   real(rk8) , public , pointer , dimension(:,:,:) :: wetdepflx
@@ -991,9 +994,12 @@ module mod_atm_interface
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
         call getmem1d(idusts,1,nbin,'storage:idusts')
-#if (defined CLM && defined VOC)
+#ifdef CLM
+#ifdef VOC
+        call getmem2d(voc_em0,1,jx,1,iy,'storage:voc_em0')
         call getmem2d(voc_em1,1,jx,1,iy,'storage:voc_em1')
         call getmem2d(voc_em2,1,jx,1,iy,'storage:voc_em2')
+#endif
         if ( igaschem == 1 .or. ioxclim == 1 ) then
           call getmem3d(dep_vels,1,jx,1,iy,1,ntr,'storage:dep_vels')
         end if

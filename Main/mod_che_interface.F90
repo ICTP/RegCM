@@ -147,7 +147,7 @@ module mod_che_interface
 #endif
 #if defined CLM
 #if defined VOC
-    call assignpnt(voc_em,cvoc_em)
+    call assignpnt(voc_em0,cvoc_em0)
     call assignpnt(voc_em1,cvoc_em1)
     call assignpnt(voc_em2,cvoc_em2)
 #endif

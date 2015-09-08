@@ -134,10 +134,6 @@ module mod_clm
   real(rk8) , pointer , dimension(:,:) :: c2rro_sub
   real(rk8) , pointer , dimension(:,:) :: c2rfracsno
   real(rk8) , pointer , dimension(:,:) :: c2rfvegnosno
-  real(rk8) , pointer , dimension(:,:) :: voc_em
-  real(rk8) , pointer , dimension(:,:) :: voc_em1
-  real(rk8) , pointer , dimension(:,:) :: voc_em2
-  real(rk8) , pointer , dimension(:,:,:) :: dep_vels
 
   integer(ik4) , pointer , dimension(:,:) :: c2rprocmap
   integer(ik4) , pointer , dimension(:) :: c2rngc

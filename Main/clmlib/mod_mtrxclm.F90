@@ -221,13 +221,13 @@ module mod_mtrxclm
     allocate(clm2bats_veg(jx,iy))
     clm_fracveg(:,:) = d_zero
 
-#if (defined VOC)
-    voc_em(:,:,:) = d_zero
-    voc_em1(:,:) = d_zero
-    voc_em2(:,:) = d_zero
-#endif
     if ( igaschem == 1 ) then
-      dep_vels(:,:,:) = d_zero
+#if (defined VOC)
+      lm%voc_em0(:,:) = d_zero
+      lm%voc_em1(:,:) = d_zero
+      lm%voc_em2(:,:) = d_zero
+#endif
+      lm%dep_vels(:,:,:) = d_zero
     end if
 
     call grid_fill(lm%ht,ht_rcm)
@@ -578,22 +578,22 @@ module mod_mtrxclm
               c2rfvegnosno(j,i) = c2r_allout(ib+(21*kk)+ic)
               !**** Dry deposition velocities from CLM4
 #if (defined VOC)
-              voc_em(j,i,:)     = c2r_allout(ib+(22*kk)+ic)
-              voc_em1(j,i)      = c2r_allout(ib+(23*kk)+ic)
-              voc_em2(j,i)      = c2r_allout(ib+(24*kk)+ic)
+              lm%voc_em0(j,i)    = c2r_allout(ib+(22*kk)+ic)
+              lm%voc_em1(j,i)    = c2r_allout(ib+(23*kk)+ic)
+              lm%voc_em2(j,i)    = c2r_allout(ib+(24*kk)+ic)
 #endif
               do n = 1 , ntr
-                dep_vels(j,i,n) = c2r_depout(ib+(kk*(nout-1))+idep)
+                lm%dep_vels(j,i,n) = c2r_depout(ib+(kk*(nout-1))+idep)
               end do
             else if ( cgaschem == 1 .and. caerosol /= 1 ) then
               !**** Dry deposition velocities from CLM
 #if (defined VOC)
-              voc_em(j,i,:)  = c2r_allout(ib+(20*kk)+ic)
-              voc_em1(j,i)   = c2r_allout(ib+(21*kk)+ic)
-              voc_em2(j,i)   = c2r_allout(ib+(22*kk)+ic)
+              lm%voc_em0(j,i)  = c2r_allout(ib+(20*kk)+ic)
+              lm%voc_em1(j,i)   = c2r_allout(ib+(21*kk)+ic)
+              lm%voc_em2(j,i)   = c2r_allout(ib+(22*kk)+ic)
 #endif
               do n = 1 , ntr
-                dep_vels(j,i,n) = c2r_depout(ib+(kk*(nout-1))+idep)
+                lm%dep_vels(j,i,n) = c2r_depout(ib+(kk*(nout-1))+idep)
               end do
             else if ( cgaschem /= 1 .and. caerosol == 1 ) then
               c2rfracsno(j,i)   = c2r_allout(ib+(20*kk)+ic)

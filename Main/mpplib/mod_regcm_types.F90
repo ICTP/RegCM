@@ -436,6 +436,12 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: drydepflx   ! drydepflx
     real(rk8) , pointer , dimension(:,:,:) :: wetdepflx   ! wetdepflx
     integer(ik4) , pointer , dimension(:) :: idust        ! dust indices
+#ifdef CLM
+    real(rk8) , pointer , dimension(:,:,:) :: dep_vels
+    real(rk8) , pointer , dimension(:,:) :: voc_em0
+    real(rk8) , pointer , dimension(:,:) :: voc_em1
+    real(rk8) , pointer , dimension(:,:) :: voc_em2
+#endif
   end type lm_exchange
 
   type mod_2_rad
