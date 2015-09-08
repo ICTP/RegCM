@@ -138,13 +138,12 @@ module mod_che_interface
     cba%nw = ba_cr%nw
     cba%nsp = ba_cr%nsp
 
-#if (defined CLM45)
-    call assignpnt(voc_em,cvoc_em)
-
     call assignpnt(wetdepflx,cwetdepflx)
     call assignpnt(drydepflx,cdrydepflx)
-    call assignpnt(idusts,idust)
 
+#if (defined CLM45)
+    call assignpnt(voc_em,cvoc_em)
+    call assignpnt(idusts,idust)
 #endif
 #if defined CLM
 #if defined VOC
