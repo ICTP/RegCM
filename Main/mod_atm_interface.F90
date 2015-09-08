@@ -958,8 +958,10 @@ module mod_atm_interface
       call getmem2d(ts0,jce1,jce2,ice1,ice2,'storage:ts0')
       call getmem2d(ts1,jce1,jce2,ice1,ice2,'storage:ts1')
 
-      call getmem3d(dstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:dstor')
-      call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:hstor')
+      if ( idynamic == 1 ) then
+        call getmem3d(dstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:dstor')
+        call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:hstor')
+      end if
 
       call getmem2d(hgfact,jde1,jde2,ide1,ide2,'storage:hgfact')
       call getmem3d(omega,jci1,jci2,ici1,ici2,1,kz,'storage:omega')

@@ -911,8 +911,10 @@ module mod_output
           call subgrid_collect(lms%tdeltas,tdeltas_io,jci1,jci2,ici1,ici2)
         end if
 
-        call grid_collect(dstor,dstor_io,jde1,jde2,ide1,ide2,1,nsplit)
-        call grid_collect(hstor,hstor_io,jde1,jde2,ide1,ide2,1,nsplit)
+        if ( idynamic == 1 ) then
+          call grid_collect(dstor,dstor_io,jde1,jde2,ide1,ide2,1,nsplit)
+          call grid_collect(hstor,hstor_io,jde1,jde2,ide1,ide2,1,nsplit)
+        end if
 
         if ( ichem == 1 ) then
           call grid_collect(chia,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)

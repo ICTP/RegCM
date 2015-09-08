@@ -269,8 +269,10 @@ module mod_savefile
         call getmem3d(rswat_io,jcross1,jcross2,icross1,icross2,1,kz,'rswat_io')
       end if
 
-      call getmem3d(dstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'dstor_io')
-      call getmem3d(hstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'hstor_io')
+      if ( idynamic == 1 ) then
+        call getmem3d(dstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'dstor_io')
+        call getmem3d(hstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'hstor_io')
+      end if
 
       if ( irrtm == 0 ) then
         call getmem4d(gasabsnxt_io,jcross1,jcross2, &
@@ -560,10 +562,12 @@ module mod_savefile
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'svegfrac2d'),svegfrac2d_io)
         call check_ok(__FILE__,__LINE__,'Cannot read svegfrac2d')
       end if
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'dstor'),dstor_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read dstor')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'hstor'),hstor_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read hstor')
+      if ( idynamic == 1 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'dstor'),dstor_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read dstor')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'hstor'),hstor_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read hstor')
+      end if
       if ( islab_ocean == 1 .and. do_restore_sst ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'qflux_restore_sst'), &
                                 qflux_restore_sst_io)
@@ -636,8 +640,10 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot create dimension khalf')
       ncstatus = nf90_def_dim(ncid,'kfull',kz+1,dimids(idkf))
       call check_ok(__FILE__,__LINE__,'Cannot create dimension kfull')
-      ncstatus = nf90_def_dim(ncid,'nsplit',nsplit,dimids(idnsplit))
-      call check_ok(__FILE__,__LINE__,'Cannot create dimension nsplit')
+      if ( idynamic == 1 ) then
+        ncstatus = nf90_def_dim(ncid,'nsplit',nsplit,dimids(idnsplit))
+        call check_ok(__FILE__,__LINE__,'Cannot create dimension nsplit')
+      end if
       ncstatus = nf90_def_dim(ncid,'nnsg',nnsg,dimids(idnnsg))
       call check_ok(__FILE__,__LINE__,'Cannot create dimension nnsg')
       ncstatus = nf90_def_dim(ncid,'month',12,dimids(idmonth))
@@ -926,13 +932,15 @@ module mod_savefile
                                 wrkdim(1:2),varids(86))
         call check_ok(__FILE__,__LINE__,'Cannot create var svegfrac2d')
       end if
-      wrkdim(1) = dimids(idjdot)
-      wrkdim(2) = dimids(ididot)
-      wrkdim(3) = dimids(idnsplit)
-      ncstatus = nf90_def_var(ncid,'dstor',nf90_double,wrkdim(1:3),varids(87))
-      call check_ok(__FILE__,__LINE__,'Cannot create var dstor')
-      ncstatus = nf90_def_var(ncid,'hstor',nf90_double,wrkdim(1:3),varids(88))
-      call check_ok(__FILE__,__LINE__,'Cannot create var hstor')
+      if ( idynamic == 1 ) then
+        wrkdim(1) = dimids(idjdot)
+        wrkdim(2) = dimids(ididot)
+        wrkdim(3) = dimids(idnsplit)
+        ncstatus = nf90_def_var(ncid,'dstor',nf90_double,wrkdim(1:3),varids(87))
+        call check_ok(__FILE__,__LINE__,'Cannot create var dstor')
+        ncstatus = nf90_def_var(ncid,'hstor',nf90_double,wrkdim(1:3),varids(88))
+        call check_ok(__FILE__,__LINE__,'Cannot create var hstor')
+      end if
       if ( islab_ocean == 1 .and. do_restore_sst ) then
         wrkdim(1) = dimids(idjcross)
         wrkdim(2) = dimids(idicross)
@@ -1190,10 +1198,12 @@ module mod_savefile
         ncstatus = nf90_put_var(ncid,varids(86),svegfrac2d_io)
         call check_ok(__FILE__,__LINE__,'Cannot write svegfrac2d')
       end if
-      ncstatus = nf90_put_var(ncid,varids(87),dstor_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write dstor')
-      ncstatus = nf90_put_var(ncid,varids(88),hstor_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write hstor')
+      if ( idynamic == 1 ) then
+        ncstatus = nf90_put_var(ncid,varids(87),dstor_io)
+        call check_ok(__FILE__,__LINE__,'Cannot write dstor')
+        ncstatus = nf90_put_var(ncid,varids(88),hstor_io)
+        call check_ok(__FILE__,__LINE__,'Cannot write hstor')
+      end if
       if ( islab_ocean == 1 .and. do_restore_sst ) then
         ncstatus = nf90_put_var(ncid,varids(89),qflux_restore_sst_io)
         call check_ok(__FILE__,__LINE__,'Cannot write qflux_restore_sst')

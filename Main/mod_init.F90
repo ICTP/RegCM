@@ -406,8 +406,10 @@ module mod_init
       call subgrid_distribute(tdeltas_io,lms%tdeltas,jci1,jci2,ici1,ici2)
     end if
 
-    call grid_distribute(dstor_io,dstor,jde1,jde2,ide1,ide2,1,nsplit)
-    call grid_distribute(hstor_io,hstor,jde1,jde2,ide1,ide2,1,nsplit)
+    if ( idynamic == 1 ) then
+      call grid_distribute(dstor_io,dstor,jde1,jde2,ide1,ide2,1,nsplit)
+      call grid_distribute(hstor_io,hstor,jde1,jde2,ide1,ide2,1,nsplit)
+    end if
 
     if ( ichem == 1 ) then
       call grid_distribute(chia_io,chia,jce1,jce2,ice1,ice2,1,kz,1,ntr)
