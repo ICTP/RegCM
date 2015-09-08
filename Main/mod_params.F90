@@ -187,13 +187,13 @@ module mod_params
     iflak  = .false.
     ifopt  = .false.
     ifchem = .false.
-    savfrq  = 240.0D0 ! time interval for disposing sav output (hrs)
-    atmfrq  = 6.0D0   ! time interval for disposing atm output (hrs)
-    radfrq  = 6.0D0   ! time interval for disposing rad output (hrs)
-    srffrq  = 3.0D0   ! time interval for disposing srf output (hrs)
-    lakfrq  = 6.0D0   ! time interval for disposing lake output (hrs)
-    subfrq  = 6.0D0   ! time interval for disposing lake output (hrs)
-    chemfrq = 6.0D0   ! time interval for disposing chem output (hrs)
+    savfrq  = 0.0D0 ! time interval for disposing sav output (hrs)
+    atmfrq  = 6.0D0 ! time interval for disposing atm output (hrs)
+    radfrq  = 6.0D0 ! time interval for disposing rad output (hrs)
+    srffrq  = 3.0D0 ! time interval for disposing srf output (hrs)
+    lakfrq  = 6.0D0 ! time interval for disposing lake output (hrs)
+    subfrq  = 6.0D0 ! time interval for disposing lake output (hrs)
+    chemfrq = 6.0D0 ! time interval for disposing chem output (hrs)
     enable_atm_vars(:) = .true.
     enable_srf_vars(:) = .true.
     enable_sts_vars(:) = .true.
@@ -1225,7 +1225,7 @@ module mod_params
     krad  = nradfrq/idnint(dtsec)
     kche  = nchefrq/idnint(dtsec)
     kdbg  = ndbgfrq/idnint(dtsec)
-    if ( nsavfrq >= 0 ) then
+    if ( nsavfrq > 0 ) then
       ksav = nsavfrq/idnint(dtsec)
     else
       ksav = -1

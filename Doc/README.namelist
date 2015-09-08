@@ -179,7 +179,7 @@
 !
  &outparam
  ifsave  = .true. ,           ! Create SAV files for restart
- savfrq  =    48.,            ! Frequency in hours to create them
+ savfrq  =     0.,            ! Frequency in hours to create them (0 = monthly)
  ifatm   = .true. ,           ! Output ATM ?
  atmfrq  =     6.,            ! Frequency in hours to write to ATM
  ifrad   = .true. ,           ! Output RAD ?
