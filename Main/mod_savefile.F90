@@ -60,15 +60,6 @@ module mod_savefile
   integer(ik4) , parameter :: iddpt = 15
   integer(ik4) , parameter :: ikern = 16
 
-  integer(ik4) :: isavlast
-
-#ifdef CLM
-  character(len=256) :: thisclmrest
-  character(len=256) :: lastclmrest
-#endif
-
-  data isavlast /-1/
-
   integer(ik4) , public , pointer , dimension(:,:,:) :: ldmsk1_io
   integer(ik4) , public , pointer , dimension(:,:) :: ldmsk_io
 
@@ -600,11 +591,10 @@ module mod_savefile
     end if
   end subroutine read_savefile
 
-  subroutine write_savefile(idate,ltmp)
+  subroutine write_savefile(idate)
     use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    logical , intent(in) :: ltmp
     integer(ik4) :: ncid
     integer(ik4) , dimension(maxdims) :: dimids
     integer(ik4) , dimension(maxdims) :: wrkdim
@@ -616,11 +606,7 @@ module mod_savefile
 #endif
 
     if ( myid == iocpu ) then
-      if (ltmp) then
-        write (fbname, '(a,i10)') 'TMPSAV.', toint10(idate)
-      else
-        write (fbname, '(a,i10)') 'SAV.', toint10(idate)
-      end if
+      write (fbname, '(a,i10)') 'SAV.', toint10(idate)
       ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
 
       ! Use 64-bit offset format file, instead of a netCDF classic format file.
@@ -1240,28 +1226,10 @@ module mod_savefile
     call restFile_write(filer_rest)
     filer_rest = restFile_filename(type='binary',offset=ioff)
     call restFile_write_binary(filer_rest)
-    thisclmrest = filer_rest(1:256)
 #endif
 
     if ( myid == iocpu ) then
       write(stdout,*) 'SAV variables written at ', tochar(idate)
-      if ( isavlast > 0 ) then
-        write (fbname, '(a,i10)') 'TMPSAV.', isavlast
-        ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
-        call unlink(ffout)
-#ifdef CLM
-        call unlink(trim(lastclmrest))
-        call unlink((trim(lastclmrest)//'.nc'))
-#endif
-      end if
-      if (ltmp) then
-        isavlast = toint10(idate)
-      else
-        isavlast = 0
-      end if
-#ifdef CLM
-      lastclmrest = thisclmrest
-#endif
     end if
   end subroutine write_savefile
 

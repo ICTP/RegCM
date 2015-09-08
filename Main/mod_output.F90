@@ -53,7 +53,7 @@ module mod_output
   subroutine output
     implicit none
     logical :: ldoatm , ldosrf , ldorad , ldoche
-    logical :: ldosav , ldolak , ldosub , ldotmp
+    logical :: ldosav , ldolak , ldosub
     logical :: ldoslab
     logical :: lstartup
     integer(ik4) :: i , j , k , itr
@@ -110,17 +110,15 @@ module mod_output
     ldorad = .false.
     ldoche = .false.
     ldosav = .false.
-    ldotmp = .false.
     ldoslab = .false.
 
     if ( ktau > 0 ) then
-      if ( mod(ktau,ksav) == 0 ) then
-        ldotmp = .true.
+      if ( ksav > 0 .and. mod(ktau,ksav) == 0 ) then
+        ldosav = .true.
       end if
       if ( ( idatex == idate2 .or. &
            (lfdomonth(idatex) .and. lmidnight(idatex))) ) then
         ldosav = .true.
-        ldotmp = .false.
       end if
       if ( mod(ktau,katm) == 0 ) then
         ldoatm = .true.
@@ -797,7 +795,7 @@ module mod_output
     end if
 
     if ( ifsave ) then
-      if ( ldosav .or. ldotmp ) then
+      if ( ldosav ) then
         call grid_collect(atm1%u,atm1_u_io,jde1,jde2,ide1,ide2,1,kz)
         call grid_collect(atm1%v,atm1_v_io,jde1,jde2,ide1,ide2,1,kz)
         call grid_collect(atm1%t,atm1_t_io,jce1,jce2,ice1,ice2,1,kz)
@@ -948,7 +946,7 @@ module mod_output
         call subgrid_collect(lms%lwdiralb,lwdiralb_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%lwdifalb,lwdifalb_io,jci1,jci2,ici1,ici2)
 #endif
-        call write_savefile(idatex,ldotmp)
+        call write_savefile(idatex)
       end if
     end if
 
