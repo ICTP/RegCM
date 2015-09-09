@@ -251,10 +251,17 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding sigma axis')
     incstat = nf90_put_att(ncid, izvar(1), 'positive', 'down')
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding sigma positive')
-    incstat = nf90_put_att(ncid, izvar(1), 'formula_terms', &
-                           'sigma: sigma ps: ps ptop: ptop')
-    call checkncerr(incstat,__FILE__,__LINE__, &
-                           'Error adding sigma formula_terms')
+    if ( idynamic == 2 ) then
+      incstat = nf90_put_att(ncid, izvar(1), 'formula', &
+             'p(n,k,j,i) = ptop + sigma(k)*(p0(j,i)-ptop) + ppa(n,k,j,i)')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                             'Error adding sigma formula')
+    else
+      incstat = nf90_put_att(ncid, izvar(1), 'formula_terms', &
+                             'sigma: sigma ps: ps ptop: ptop')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                             'Error adding sigma formula_terms')
+    end if
     incstat = nf90_def_var(ncid, 'ptop', nf90_float, varid=izvar(2))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable ptop')
     incstat = nf90_put_att(ncid, izvar(2), 'standard_name', &

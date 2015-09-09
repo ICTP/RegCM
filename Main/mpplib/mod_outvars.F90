@@ -30,6 +30,7 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: topo_out => null()
   real(rk8) , dimension(:,:) , pointer :: mask_out => null()
   real(rk8) , dimension(:,:) , pointer :: ps_out => null()
+  real(rk8) , dimension(:,:) , pointer :: p0_out => null()
 
   real(rk8) , dimension(:,:) , pointer :: sub_xlon_out => null()
   real(rk8) , dimension(:,:) , pointer :: sub_xlat_out => null()

@@ -56,7 +56,7 @@ module mod_ncout
 
   integer(ik4) , parameter :: nbase = 5
 
-  integer(ik4) , parameter :: natm2dvars = 4 + nbase
+  integer(ik4) , parameter :: natm2dvars = 5 + nbase
   integer(ik4) , parameter :: natm3dvars = 57
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
@@ -76,16 +76,16 @@ module mod_ncout
   integer(ik4) , parameter :: nlak3dvars = 1
   integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
 
-  integer(ik4) , parameter :: nrad2dvars = 12 + nbase
+  integer(ik4) , parameter :: nrad2dvars = 13 + nbase
   integer(ik4) , parameter :: nrad3dvars = 5
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
-  integer(ik4) , parameter :: nopt2dvars = 9 + nbase
+  integer(ik4) , parameter :: nopt2dvars = 10 + nbase
   integer(ik4) , parameter :: nopt3dvars = 4
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
-  integer(ik4) , parameter :: nche2dvars = 7 + nbase
+  integer(ik4) , parameter :: nche2dvars = 8 + nbase
   integer(ik4) , parameter :: nche3dvars = 13
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
@@ -162,10 +162,11 @@ module mod_ncout
   integer(ik4) , parameter :: atm_mask  = 3
   integer(ik4) , parameter :: atm_topo  = 4
   integer(ik4) , parameter :: atm_ps    = 5
-  integer(ik4) , parameter :: atm_tpr   = 6
-  integer(ik4) , parameter :: atm_tsn   = 7
-  integer(ik4) , parameter :: atm_tgb   = 8
-  integer(ik4) , parameter :: atm_tsw   = 9
+  integer(ik4) , parameter :: atm_p0    = 6
+  integer(ik4) , parameter :: atm_tpr   = 7
+  integer(ik4) , parameter :: atm_tsn   = 8
+  integer(ik4) , parameter :: atm_tgb   = 9
+  integer(ik4) , parameter :: atm_tsw   = 10
 
   integer(ik4) , parameter :: atm_u            = 1
   integer(ik4) , parameter :: atm_v            = 2
@@ -304,18 +305,19 @@ module mod_ncout
   integer(ik4) , parameter :: rad_mask   = 3
   integer(ik4) , parameter :: rad_topo   = 4
   integer(ik4) , parameter :: rad_ps     = 5
-  integer(ik4) , parameter :: rad_frsa   = 6
-  integer(ik4) , parameter :: rad_frla   = 7
-  integer(ik4) , parameter :: rad_clrst  = 8
-  integer(ik4) , parameter :: rad_clrss  = 9
-  integer(ik4) , parameter :: rad_clrlt  = 10
-  integer(ik4) , parameter :: rad_clrls  = 11
-  integer(ik4) , parameter :: rad_solin  = 12
-  integer(ik4) , parameter :: rad_sabtp  = 13
-  integer(ik4) , parameter :: rad_totcf  = 14
-  integer(ik4) , parameter :: rad_totcl  = 15
-  integer(ik4) , parameter :: rad_totci  = 16
-  integer(ik4) , parameter :: rad_firtp  = 17
+  integer(ik4) , parameter :: rad_p0     = 6
+  integer(ik4) , parameter :: rad_frsa   = 7
+  integer(ik4) , parameter :: rad_frla   = 8
+  integer(ik4) , parameter :: rad_clrst  = 9
+  integer(ik4) , parameter :: rad_clrss  = 10
+  integer(ik4) , parameter :: rad_clrlt  = 11
+  integer(ik4) , parameter :: rad_clrls  = 12
+  integer(ik4) , parameter :: rad_solin  = 13
+  integer(ik4) , parameter :: rad_sabtp  = 14
+  integer(ik4) , parameter :: rad_totcf  = 15
+  integer(ik4) , parameter :: rad_totcl  = 16
+  integer(ik4) , parameter :: rad_totci  = 17
+  integer(ik4) , parameter :: rad_firtp  = 18
 
   integer(ik4) , parameter :: rad_pp     = 1
   integer(ik4) , parameter :: rad_cld    = 2
@@ -351,15 +353,16 @@ module mod_ncout
   integer(ik4) , parameter :: opt_mask     = 3
   integer(ik4) , parameter :: opt_topo     = 4
   integer(ik4) , parameter :: opt_ps       = 5
-  integer(ik4) , parameter :: opt_acstoarf = 6
-  integer(ik4) , parameter :: opt_acstsrrf = 7
-  integer(ik4) , parameter :: opt_acstalrf = 8
-  integer(ik4) , parameter :: opt_acssrlrf = 9
-  integer(ik4) , parameter :: opt_aod      = 10
-  integer(ik4) , parameter :: opt_aastoarf = 11
-  integer(ik4) , parameter :: opt_aastsrrf = 12
-  integer(ik4) , parameter :: opt_aastalrf = 13
-  integer(ik4) , parameter :: opt_aassrlrf = 14
+  integer(ik4) , parameter :: opt_p0       = 6
+  integer(ik4) , parameter :: opt_acstoarf = 7
+  integer(ik4) , parameter :: opt_acstsrrf = 8
+  integer(ik4) , parameter :: opt_acstalrf = 9
+  integer(ik4) , parameter :: opt_acssrlrf = 10
+  integer(ik4) , parameter :: opt_aod      = 11
+  integer(ik4) , parameter :: opt_aastoarf = 12
+  integer(ik4) , parameter :: opt_aastsrrf = 13
+  integer(ik4) , parameter :: opt_aastalrf = 14
+  integer(ik4) , parameter :: opt_aassrlrf = 15
 
   integer(ik4) , parameter :: opt_pp       = 1
   integer(ik4) , parameter :: opt_aext8    = 2
@@ -371,13 +374,14 @@ module mod_ncout
   integer(ik4) , parameter :: che_mask     = 3
   integer(ik4) , parameter :: che_topo     = 4
   integer(ik4) , parameter :: che_ps       = 5
-  integer(ik4) , parameter :: che_wdrflx   = 6
-  integer(ik4) , parameter :: che_wdcflx   = 7
-  integer(ik4) , parameter :: che_ddflx    = 8
-  integer(ik4) , parameter :: che_emflx    = 9
-  integer(ik4) , parameter :: che_ddvel    = 10
-  integer(ik4) , parameter :: che_burden   = 11
-  integer(ik4) , parameter :: che_pblten   = 12
+  integer(ik4) , parameter :: che_p0       = 6
+  integer(ik4) , parameter :: che_wdrflx   = 7
+  integer(ik4) , parameter :: che_wdcflx   = 8
+  integer(ik4) , parameter :: che_ddflx    = 9
+  integer(ik4) , parameter :: che_emflx    = 10
+  integer(ik4) , parameter :: che_ddvel    = 11
+  integer(ik4) , parameter :: che_burden   = 12
+  integer(ik4) , parameter :: che_pblten   = 13
 
   integer(ik4) , parameter :: che_pp       = 1
   integer(ik4) , parameter :: che_mixrat   = 2
@@ -513,7 +517,8 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_atm,atm_xlon, &
-                  atm_xlat,atm_topo,atm_mask,atm_ps)
+                  atm_xlat,atm_topo,atm_mask,atm_ps,atm_p0)
+        if ( idynamic /= 2 ) enable_atm2d_vars(atm_p0) = .false.
 
         ! The following may be enabled/disabled
 
@@ -965,7 +970,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_srf,srf_xlon, &
-                  srf_xlat,srf_topo,srf_mask,srf_ps)
+                  srf_xlat,srf_topo,srf_mask,srf_ps,-1)
 
         ! The following may be enabled/disabled
 
@@ -1187,7 +1192,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_sts,sts_xlon, &
-                  sts_xlat,sts_topo,sts_mask,sts_ps)
+                  sts_xlat,sts_topo,sts_mask,sts_ps,-1)
 
         ! The following may be enabled/disabled
 
@@ -1467,7 +1472,8 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_rad,rad_xlon, &
-                  rad_xlat,rad_topo,rad_mask,rad_ps)
+                  rad_xlat,rad_topo,rad_mask,rad_ps,rad_p0)
+        if ( idynamic /= 2 ) enable_rad2d_vars(rad_p0) = .false.
 
         ! The following may be enabled/disabled
 
@@ -1647,7 +1653,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_lak,lak_xlon, &
-                  lak_xlat,lak_topo,lak_mask,lak_ps)
+                  lak_xlat,lak_topo,lak_mask,lak_ps,-1)
 
         ! The following may be enabled/disabled
 
@@ -1769,7 +1775,7 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_slaboc,slab_xlon, &
-                  slab_xlat,slab_topo,slab_mask,slab_ps)
+                  slab_xlat,slab_topo,slab_mask,slab_ps,-1)
 
         vsize%k2 = 12
         v3dvar_slaboc(slab_qflx)%axis = 'xyM'
@@ -1823,7 +1829,8 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_opt,opt_xlon, &
-                  opt_xlat,opt_topo,opt_mask,opt_ps)
+                  opt_xlat,opt_topo,opt_mask,opt_ps,opt_p0)
+        if ( idynamic /= 2 ) enable_opt2d_vars(opt_p0) = .false.
 
         ! The following may be enabled/disabled
 
@@ -1959,7 +1966,8 @@ module mod_ncout
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_che,che_xlon, &
-                  che_xlat,che_topo,che_mask,che_ps)
+                  che_xlat,che_topo,che_mask,che_ps,che_p0)
+        if ( idynamic /= 2 ) enable_che2d_vars(che_p0) = .false.
 
         ! The following may be enabled/disabled
 
@@ -2785,11 +2793,11 @@ module mod_ncout
     end do stream_loop_par
   end subroutine newoutfiles
 
-  subroutine setup_common_vars(vsize,var,xlon,xlat,topo,mask,ps)
+  subroutine setup_common_vars(vsize,var,xlon,xlat,topo,mask,ps,ps0)
     implicit none
     type(varspan) , intent(in) :: vsize
     type(ncvariable2d_real) , dimension(:) , intent(inout) :: var
-    integer(ik4), intent(in) :: xlon , xlat , topo , mask , ps
+    integer(ik4), intent(in) :: xlon , xlat , topo , mask , ps , ps0
     if ( associated(xlon_out) ) then
       call setup_var(var,xlon,vsize,'xlon','degrees_east', &
         'Longitude on Cross Points','longitude',lgetspace=.false.)
@@ -2806,6 +2814,12 @@ module mod_ncout
       var(mask)%rval => mask_out
       var(topo)%rval => topo_out
       var(ps)%rval => ps_out
+      if ( idynamic == 2 .and. ps0 > 0 ) then
+        call setup_var(var,ps0,vsize,'p0','Pa', &
+          'Model reference pressure', 'model_reference_surface_air_pressure', &
+          lgetspace=.false.)
+        var(ps0)%rval => p0_out
+      end if
     else
       call setup_var(var,xlon,vsize,'xlon','degrees_east', &
         'Longitude on Cross Points','longitude')
@@ -2822,6 +2836,11 @@ module mod_ncout
       mask_out => var(mask)%rval
       topo_out => var(topo)%rval
       ps_out => var(ps)%rval
+      if ( idynamic == 2 .and. ps0 > 0 ) then
+        call setup_var(var,ps0,vsize,'p0','Pa', &
+          'Model reference pressure', 'model_reference_surface_air_pressure')
+        p0_out => var(ps0)%rval
+      end if
     end if
   end subroutine setup_common_vars
 

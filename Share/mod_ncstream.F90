@@ -2003,8 +2003,13 @@ module mod_ncstream
       attc%aname = 'positive'
       attc%theval = 'down'
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
-      attc%aname = 'formula_terms'
-      attc%theval = 'sigma: sigma ps: ps ptop: ptop'
+      if ( idynamic == 2 ) then
+        attc%aname = 'formula'
+        attc%theval = 'p(n,k,j,i) = ptop+sigma(k)*(p0(j,i)-ptop)+ppa(n,k,j,i)'
+      else
+        attc%aname = 'formula_terms'
+        attc%theval = 'sigma: sigma ps: ps ptop: ptop'
+      end if
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
       attc%aname = '_CoordinateAxisType'
       attc%theval = 'GeoZ'

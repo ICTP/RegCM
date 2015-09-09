@@ -82,6 +82,9 @@ module mod_output
         call reorder_subgrid(mdsub%ht,sub_topo_out)
         sub_topo_out = sub_topo_out*regrav
       end if
+      if ( idynamic == 2 ) then
+        p0_out = atm0%ps(jci1:jci2,ici1:ici2)
+      end if
       !
       ! Reset the accumulation arrays
       !
