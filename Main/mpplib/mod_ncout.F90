@@ -57,7 +57,7 @@ module mod_ncout
   integer(ik4) , parameter :: nbase = 5
 
   integer(ik4) , parameter :: natm2dvars = 4 + nbase
-  integer(ik4) , parameter :: natm3dvars = 55
+  integer(ik4) , parameter :: natm3dvars = 57
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 21 + nbase
@@ -77,16 +77,16 @@ module mod_ncout
   integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
 
   integer(ik4) , parameter :: nrad2dvars = 12 + nbase
-  integer(ik4) , parameter :: nrad3dvars = 4
+  integer(ik4) , parameter :: nrad3dvars = 5
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
   integer(ik4) , parameter :: nopt2dvars = 9 + nbase
-  integer(ik4) , parameter :: nopt3dvars = 3
+  integer(ik4) , parameter :: nopt3dvars = 4
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
   integer(ik4) , parameter :: nche2dvars = 7 + nbase
-  integer(ik4) , parameter :: nche3dvars = 12
+  integer(ik4) , parameter :: nche3dvars = 13
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
   integer(ik4) , parameter :: nslaboc2dvars = nbase
@@ -169,59 +169,61 @@ module mod_ncout
 
   integer(ik4) , parameter :: atm_u            = 1
   integer(ik4) , parameter :: atm_v            = 2
-  integer(ik4) , parameter :: atm_t            = 3
-  integer(ik4) , parameter :: atm_omega        = 4
-  integer(ik4) , parameter :: atm_qv           = 5
-  integer(ik4) , parameter :: atm_qc           = 6
-  integer(ik4) , parameter :: atm_rh           = 7
-  integer(ik4) , parameter :: atm_qr           = 8
-  integer(ik4) , parameter :: atm_qi           = 9
-  integer(ik4) , parameter :: atm_qs           = 10
-  integer(ik4) , parameter :: atm_zf           = 11
-  integer(ik4) , parameter :: atm_zh           = 12
-  integer(ik4) , parameter :: atm_pf           = 13
-  integer(ik4) , parameter :: atm_ph           = 14
-  integer(ik4) , parameter :: atm_q_detr       = 15
-  integer(ik4) , parameter :: atm_rainls       = 16
-  integer(ik4) , parameter :: atm_raincc       = 17
-  integer(ik4) , parameter :: atm_tke          = 18
-  integer(ik4) , parameter :: atm_kth          = 19
-  integer(ik4) , parameter :: atm_kzm          = 20
-  integer(ik4) , parameter :: atm_tten_adh     = 21
-  integer(ik4) , parameter :: atm_tten_adv     = 22
-  integer(ik4) , parameter :: atm_tten_tbl     = 23
-  integer(ik4) , parameter :: atm_tten_dif     = 24
-  integer(ik4) , parameter :: atm_tten_bdy     = 25
-  integer(ik4) , parameter :: atm_tten_con     = 26
-  integer(ik4) , parameter :: atm_tten_adi     = 27
-  integer(ik4) , parameter :: atm_tten_rad     = 28
-  integer(ik4) , parameter :: atm_tten_lsc     = 29
-  integer(ik4) , parameter :: atm_qten_adh     = 30
-  integer(ik4) , parameter :: atm_qten_adv     = 31
-  integer(ik4) , parameter :: atm_qten_tbl     = 32
-  integer(ik4) , parameter :: atm_qten_dif     = 33
-  integer(ik4) , parameter :: atm_qten_bdy     = 34
-  integer(ik4) , parameter :: atm_qten_con     = 35
-  integer(ik4) , parameter :: atm_qten_adi     = 36
-  integer(ik4) , parameter :: atm_qten_rad     = 37
-  integer(ik4) , parameter :: atm_qten_lsc     = 38
-  integer(ik4) , parameter :: atm_stats_supw   = 39
-  integer(ik4) , parameter :: atm_stats_supc   = 40
-  integer(ik4) , parameter :: atm_stats_detw   = 41
-  integer(ik4) , parameter :: atm_stats_detc   = 42
-  integer(ik4) , parameter :: atm_stats_erow   = 43
-  integer(ik4) , parameter :: atm_stats_eroc   = 44
-  integer(ik4) , parameter :: atm_stats_evw    = 45
-  integer(ik4) , parameter :: atm_stats_evc    = 46
-  integer(ik4) , parameter :: atm_stats_con1w  = 47
-  integer(ik4) , parameter :: atm_stats_con1c  = 48
-  integer(ik4) , parameter :: atm_stats_con2w  = 49
-  integer(ik4) , parameter :: atm_stats_con2c  = 50
-  integer(ik4) , parameter :: atm_stats_dep    = 51
-  integer(ik4) , parameter :: atm_stats_melt   = 52
-  integer(ik4) , parameter :: atm_stats_frz    = 53
-  integer(ik4) , parameter :: atm_stats_rainev = 54
-  integer(ik4) , parameter :: atm_stats_snowev = 55
+  integer(ik4) , parameter :: atm_w            = 3
+  integer(ik4) , parameter :: atm_t            = 4
+  integer(ik4) , parameter :: atm_pp           = 5
+  integer(ik4) , parameter :: atm_omega        = 6
+  integer(ik4) , parameter :: atm_qv           = 7
+  integer(ik4) , parameter :: atm_qc           = 8
+  integer(ik4) , parameter :: atm_rh           = 9
+  integer(ik4) , parameter :: atm_qr           = 10
+  integer(ik4) , parameter :: atm_qi           = 11
+  integer(ik4) , parameter :: atm_qs           = 12
+  integer(ik4) , parameter :: atm_zf           = 13
+  integer(ik4) , parameter :: atm_zh           = 14
+  integer(ik4) , parameter :: atm_pf           = 15
+  integer(ik4) , parameter :: atm_ph           = 16
+  integer(ik4) , parameter :: atm_q_detr       = 17
+  integer(ik4) , parameter :: atm_rainls       = 18
+  integer(ik4) , parameter :: atm_raincc       = 19
+  integer(ik4) , parameter :: atm_tke          = 20
+  integer(ik4) , parameter :: atm_kth          = 21
+  integer(ik4) , parameter :: atm_kzm          = 22
+  integer(ik4) , parameter :: atm_tten_adh     = 23
+  integer(ik4) , parameter :: atm_tten_adv     = 24
+  integer(ik4) , parameter :: atm_tten_tbl     = 25
+  integer(ik4) , parameter :: atm_tten_dif     = 26
+  integer(ik4) , parameter :: atm_tten_bdy     = 27
+  integer(ik4) , parameter :: atm_tten_con     = 28
+  integer(ik4) , parameter :: atm_tten_adi     = 29
+  integer(ik4) , parameter :: atm_tten_rad     = 30
+  integer(ik4) , parameter :: atm_tten_lsc     = 31
+  integer(ik4) , parameter :: atm_qten_adh     = 32
+  integer(ik4) , parameter :: atm_qten_adv     = 33
+  integer(ik4) , parameter :: atm_qten_tbl     = 34
+  integer(ik4) , parameter :: atm_qten_dif     = 35
+  integer(ik4) , parameter :: atm_qten_bdy     = 36
+  integer(ik4) , parameter :: atm_qten_con     = 37
+  integer(ik4) , parameter :: atm_qten_adi     = 38
+  integer(ik4) , parameter :: atm_qten_rad     = 39
+  integer(ik4) , parameter :: atm_qten_lsc     = 40
+  integer(ik4) , parameter :: atm_stats_supw   = 41
+  integer(ik4) , parameter :: atm_stats_supc   = 42
+  integer(ik4) , parameter :: atm_stats_detw   = 43
+  integer(ik4) , parameter :: atm_stats_detc   = 44
+  integer(ik4) , parameter :: atm_stats_erow   = 45
+  integer(ik4) , parameter :: atm_stats_eroc   = 46
+  integer(ik4) , parameter :: atm_stats_evw    = 47
+  integer(ik4) , parameter :: atm_stats_evc    = 48
+  integer(ik4) , parameter :: atm_stats_con1w  = 49
+  integer(ik4) , parameter :: atm_stats_con1c  = 50
+  integer(ik4) , parameter :: atm_stats_con2w  = 51
+  integer(ik4) , parameter :: atm_stats_con2c  = 52
+  integer(ik4) , parameter :: atm_stats_dep    = 53
+  integer(ik4) , parameter :: atm_stats_melt   = 54
+  integer(ik4) , parameter :: atm_stats_frz    = 55
+  integer(ik4) , parameter :: atm_stats_rainev = 56
+  integer(ik4) , parameter :: atm_stats_snowev = 57
 
   integer(ik4) , parameter :: srf_xlon     = 1
   integer(ik4) , parameter :: srf_xlat     = 2
@@ -315,10 +317,11 @@ module mod_ncout
   integer(ik4) , parameter :: rad_totci  = 16
   integer(ik4) , parameter :: rad_firtp  = 17
 
-  integer(ik4) , parameter :: rad_cld    = 1
-  integer(ik4) , parameter :: rad_clwp   = 2
-  integer(ik4) , parameter :: rad_qrs    = 3
-  integer(ik4) , parameter :: rad_qrl    = 4
+  integer(ik4) , parameter :: rad_pp     = 1
+  integer(ik4) , parameter :: rad_cld    = 2
+  integer(ik4) , parameter :: rad_clwp   = 3
+  integer(ik4) , parameter :: rad_qrs    = 4
+  integer(ik4) , parameter :: rad_qrl    = 5
 
   integer(ik4) , parameter :: rad_taucl  = 1
   integer(ik4) , parameter :: rad_tauci  = 2
@@ -358,9 +361,10 @@ module mod_ncout
   integer(ik4) , parameter :: opt_aastalrf = 13
   integer(ik4) , parameter :: opt_aassrlrf = 14
 
-  integer(ik4) , parameter :: opt_aext8    = 1
-  integer(ik4) , parameter :: opt_assa8    = 2
-  integer(ik4) , parameter :: opt_agfu8    = 3
+  integer(ik4) , parameter :: opt_pp       = 1
+  integer(ik4) , parameter :: opt_aext8    = 2
+  integer(ik4) , parameter :: opt_assa8    = 3
+  integer(ik4) , parameter :: opt_agfu8    = 4
 
   integer(ik4) , parameter :: che_xlon     = 1
   integer(ik4) , parameter :: che_xlat     = 2
@@ -375,18 +379,19 @@ module mod_ncout
   integer(ik4) , parameter :: che_burden   = 11
   integer(ik4) , parameter :: che_pblten   = 12
 
-  integer(ik4) , parameter :: che_mixrat   = 1
-  integer(ik4) , parameter :: che_cheten   = 2
-  integer(ik4) , parameter :: che_advhten  = 3
-  integer(ik4) , parameter :: che_advvten  = 4
-  integer(ik4) , parameter :: che_difhten  = 5
-  integer(ik4) , parameter :: che_cuten    = 6
-  integer(ik4) , parameter :: che_tuten    = 7
-  integer(ik4) , parameter :: che_raiten   = 8
-  integer(ik4) , parameter :: che_wasten   = 9
-  integer(ik4) , parameter :: che_bdyten   = 10
-  integer(ik4) , parameter :: che_sedten   = 11
-  integer(ik4) , parameter :: che_emten    = 12
+  integer(ik4) , parameter :: che_pp       = 1
+  integer(ik4) , parameter :: che_mixrat   = 2
+  integer(ik4) , parameter :: che_cheten   = 3
+  integer(ik4) , parameter :: che_advhten  = 4
+  integer(ik4) , parameter :: che_advvten  = 5
+  integer(ik4) , parameter :: che_difhten  = 6
+  integer(ik4) , parameter :: che_cuten    = 7
+  integer(ik4) , parameter :: che_tuten    = 8
+  integer(ik4) , parameter :: che_raiten   = 9
+  integer(ik4) , parameter :: che_wasten   = 10
+  integer(ik4) , parameter :: che_bdyten   = 11
+  integer(ik4) , parameter :: che_sedten   = 12
+  integer(ik4) , parameter :: che_emten    = 13
 
   integer(ik4) , parameter :: slab_xlon    = 1
   integer(ik4) , parameter :: slab_xlat    = 2
@@ -556,10 +561,27 @@ module mod_ncout
             'Air Temperature','air_temperature',.true.)
           atm_t_out => v3dvar_atm(atm_t)%rval
         end if
-        if ( enable_atm3d_vars(atm_omega) ) then
-          call setup_var(v3dvar_atm,atm_omega,vsize,'omega','hPa s-1', &
-            'Pressure velocity','lagrangian_tendency_of_air_pressure',.true.)
-          atm_omega_out => v3dvar_atm(atm_omega)%rval
+        if ( idynamic == 2 ) then
+          if ( enable_atm3d_vars(atm_w) ) then
+            call setup_var(v3dvar_atm,atm_w,vsize,'wa','m s-1', &
+              'Vertical component of wind','upward_wind',.true.)
+            atm_w_out => v3dvar_atm(atm_w)%rval
+          end if
+          if ( enable_atm3d_vars(atm_pp) ) then
+            call setup_var(v3dvar_atm,atm_pp,vsize,'ppa','Pa', &
+              'Pressure perturbation', &
+              'difference_of_air_pressure_from_model_reference',.true.)
+            atm_pp_out => v3dvar_atm(atm_pp)%rval
+          end if
+          enable_atm3d_vars(atm_omega) = .false.
+        else
+          if ( enable_atm3d_vars(atm_omega) ) then
+            call setup_var(v3dvar_atm,atm_omega,vsize,'omega','hPa s-1', &
+              'Pressure velocity','lagrangian_tendency_of_air_pressure',.true.)
+            atm_omega_out => v3dvar_atm(atm_omega)%rval
+          end if
+          enable_atm3d_vars(atm_w) = .false.
+          enable_atm3d_vars(atm_pp) = .false.
         end if
         if ( enable_atm3d_vars(atm_qv) ) then
           call setup_var(v3dvar_atm,atm_qv,vsize,'qas','kg kg-1', &
@@ -1522,6 +1544,16 @@ module mod_ncout
         end if
 
         vsize%k2 = kz
+        if ( idynamic == 2 ) then
+          if ( enable_rad3d_vars(rad_pp) ) then
+            call setup_var(v3dvar_rad,rad_pp,vsize,'ppa','Pa', &
+              'Pressure perturbation', &
+              'difference_of_air_pressure_from_model_reference',.true.)
+            rad_pp_out => v3dvar_rad(rad_pp)%rval
+          end if
+        else
+          enable_rad3d_vars(rad_pp) = .false.
+        end if
         if ( enable_rad3d_vars(rad_cld) ) then
           call setup_var(v3dvar_rad,rad_cld,vsize,'cl','1', &
             'Cloud fractional cover', &
@@ -1855,6 +1887,16 @@ module mod_ncout
         end if
 
         vsize%k2 = kz
+        if ( idynamic == 2 ) then
+          if ( enable_opt3d_vars(opt_pp) ) then
+            call setup_var(v3dvar_opt,opt_pp,vsize,'ppa','Pa', &
+              'Pressure perturbation', &
+              'difference_of_air_pressure_from_model_reference',.true.)
+            opt_pp_out => v3dvar_opt(opt_pp)%rval
+          end if
+        else
+          enable_opt3d_vars(opt_pp) = .false.
+        end if
         if ( enable_opt3d_vars(opt_aext8) ) then
           call setup_var(v3dvar_opt,opt_aext8,vsize,'aext8','1', &
             'Aerosol optical depth', &
@@ -1959,6 +2001,16 @@ module mod_ncout
         end if
 
         vsize%k2 = kz
+        if ( idynamic == 2 ) then
+          if ( enable_che3d_vars(che_pp) ) then
+            call setup_var(v3dvar_che,che_pp,vsize,'ppa','Pa', &
+              'Pressure perturbation', &
+              'difference_of_air_pressure_from_model_reference',.true.)
+            che_pp_out => v3dvar_che(che_pp)%rval
+          end if
+        else
+          enable_che3d_vars(che_pp) = .false.
+        end if
         if ( enable_che3d_vars(che_mixrat) ) then
           call setup_var(v3dvar_che,che_mixrat,vsize,'mixrat','1', &
             'Atmosphere tracer mixing ratio', &

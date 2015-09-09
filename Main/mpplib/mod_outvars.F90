@@ -40,7 +40,9 @@ module mod_outvars
 
   real(rk8) , dimension(:,:,:) , pointer :: atm_u_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_v_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: atm_w_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_t_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: atm_pp_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_omega_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_qv_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_qc_out => null()
@@ -80,7 +82,7 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: atm_tpr_out => null()
   real(rk8) , dimension(:,:) , pointer :: atm_tsn_out => null()
   real(rk8) , dimension(:,:) , pointer :: atm_tsw_out => null()
-! stats
+  ! stats
   real(rk8) , dimension(:,:,:) , pointer :: atm_stats_supw_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_stats_supc_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_stats_detw_out => null()
@@ -171,6 +173,7 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: rad_totci_out => null()
   real(rk8) , dimension(:,:) , pointer :: rad_firtp_out => null()
 
+  real(rk8) , dimension(:,:,:) , pointer :: rad_pp_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: rad_cld_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: rad_clwp_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: rad_qrs_out => null()
@@ -201,6 +204,7 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: opt_aastalrf_out => null()
   real(rk8) , dimension(:,:) , pointer :: opt_aassrlrf_out => null()
   real(rk8) , dimension(:,:) , pointer :: opt_aod_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: opt_pp_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: opt_aext8_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: opt_assa8_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: opt_agfu8_out => null()
@@ -212,6 +216,7 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: che_ddvel_out => null()
   real(rk8) , dimension(:,:) , pointer :: che_burden_out => null()
   real(rk8) , dimension(:,:) , pointer :: che_pblten_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: che_pp_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: che_mixrat_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: che_cheten_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: che_advhten_out => null()

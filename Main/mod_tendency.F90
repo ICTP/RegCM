@@ -147,7 +147,7 @@ module mod_tendency
     real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,   &
                psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot ,    &
                rovcpm , rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , &
-               tva , tvavg , tvb , tvc , rho0s , cpm , scr , dpterm
+               tva , tvavg , tvb , tvc , rho0s , cpm , dpterm
     real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
@@ -367,13 +367,13 @@ module mod_tendency
     !
     ! compute omega
     !
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        dummy(j,i) = d_one/(dx8*mddom%msfx(j,i))
-      end do
-    end do
     omega(:,:,:) = d_zero
     if ( idynamic == 1 ) then
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          dummy(j,i) = d_one/(dx8*mddom%msfx(j,i))
+        end do
+      end do
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -396,13 +396,10 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             !
-            ! omega in the non-hydrostatic model: ??????????????????
+            ! omega in the non-hydrostatic model: compute from w
             !
-            ! Compute pressure dp`/dt correction to the temperature
-            !
-            dpterm = d_zero
-            omega(j,i,k) = d_half*sfs%psa(j,i)*(qdot(j,i,k+1)+qdot(j,i,k)) + &
-              dpterm
+            omega(j,i,k) = d_half*egrav*atm0%rho(j,i,k)*rpsa(j,i) * &
+                         (atm1%w(j,i,k)+atm1%w(j,i,k+1))
           end do
         end do
       end do
@@ -676,12 +673,10 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              scr = d_half*egrav*atm0%rho(j,i,k) * &
-                         (atm1%w(j,i,k)+atm1%w(j,i,k+1))
               cpm = cpd*(d_one + 0.856D0*qvd(j,i,k))
               aten%t(j,i,k) = aten%t(j,i,k) + atmx%t(j,i,k)*mdv%cr(j,i,k) - &
-                        (scr+aten%pp(j,i,k)+atmx%pp(j,i,k)*mdv%cr(j,i,k)) / &
-                        (atm1%rho(j,i,k)*cpm)
+                        (omega(j,i,k)*sfs%psa(j,i) + aten%pp(j,i,k) + &
+                         atmx%pp(j,i,k)*mdv%cr(j,i,k)) / (atm1%rho(j,i,k)*cpm)
             end do
           end do
         end do

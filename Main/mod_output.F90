@@ -173,6 +173,21 @@ module mod_output
         end if
         if ( associated(atm_omega_out) ) &
           atm_omega_out = omega(jci1:jci2,ici1:ici2,:)*d_10
+        if ( associated(atm_w_out) ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                atm_w_out(j,i,k) = (twt(k,1) * atm1%w(j,i,k+1) + &
+                                    twt(k,2) * atm1%w(j,i,k)) / ps_out(j,i)
+              end do
+            end do
+          end do
+        end if
+        if ( associated(atm_pp_out) ) then
+          do k = 1 , kz
+            atm_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k)/ps_out
+          end do
+        end if
         if ( associated(atm_qv_out) ) then
           do k = 1 , kz
             atm_qv_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqv)/ps_out
@@ -653,6 +668,11 @@ module mod_output
         else
           ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         end if
+        if ( associated(opt_pp_out) ) then
+          do k = 1 , kz
+            opt_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k)/ps_out
+          end do
+        end if
         if ( associated(opt_acstoarf_out) ) &
           opt_acstoarf_out = opt_acstoarf_out * rnrad_for_chem
         if ( associated(opt_acstsrrf_out) ) &
@@ -694,6 +714,11 @@ module mod_output
           end do
         else
           ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        end if
+        if ( associated(che_pp_out) ) then
+          do k = 1 , kz
+            che_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k)/ps_out
+          end do
         end if
         do itr = 1 , ntr
           call fill_chem_outvars(itr)
@@ -768,6 +793,11 @@ module mod_output
           end do
         else
           ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        end if
+        if ( associated(rad_pp_out) ) then
+          do k = 1 , kz
+            rad_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k)/ps_out
+          end do
         end if
         call write_record_output_stream(rad_stream,idatex)
         if ( myid == italk ) &
