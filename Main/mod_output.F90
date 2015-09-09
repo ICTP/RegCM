@@ -83,7 +83,7 @@ module mod_output
         sub_topo_out = sub_topo_out*regrav
       end if
       if ( idynamic == 2 ) then
-        p0_out = atm0%ps(jci1:jci2,ici1:ici2)
+        if ( associated(p0_out) ) p0_out = atm0%ps(jci1:jci2,ici1:ici2)
       end if
       !
       ! Reset the accumulation arrays
