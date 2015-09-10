@@ -36,7 +36,7 @@ module mod_che_ncio
 
   public :: read_texture , read_emission , recc
   public :: init_mod_che_ncio
-  public :: open_chbc , close_chbc , chbc_search , read_chbc,read_bionem
+  public :: open_chbc , close_chbc , chbc_search , read_chbc , read_bionem
 
   public :: chbc_ivar , n_chbcvar , n_aebcvar, chbcname, aeaero, aedu12
 
@@ -819,7 +819,7 @@ module mod_che_ncio
 
     subroutine read_chbc(chebdio)
       implicit none
-      real(rk8) , dimension (:,:,:,:), intent(out) :: chebdio
+      real(rk8) , dimension (:,:,:,:) , pointer , intent(out) :: chebdio
       integer(ik4) , dimension(4) :: istart , icount
       integer(ik4) :: i , j , k, n , iafter
 

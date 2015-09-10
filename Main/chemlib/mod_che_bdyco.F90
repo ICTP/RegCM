@@ -29,6 +29,7 @@ module mod_che_bdyco
   use mod_realkinds
   use mod_dynparam
   use mod_memutil
+  use mod_nhinterp
   use mod_mppparam
   use mod_runparams
   use mod_service
@@ -141,6 +142,20 @@ module mod_che_bdyco
 
       call read_chbc(chebdy)
 
+      if ( idynamic == 2 ) then
+        ! Interpolate to non-hydrostatic levels
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              tvirt(j,i,k) = bndt0(j,i,k) / (cps0(j,i) * d_r100) * &
+                (d_one + ep1 * bndq0(j,i,k) / (cps0(j,i) * d_r100))
+            end do
+          end do
+        end do
+        call nhinterp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
+                      hsigma,sigma,cht,chebdy,tvirt,bndp0,cps0)
+      end if
+
       chib0 = d_zero
       after = 0
       do n = 1 , size(ichbdy2trac)
@@ -195,6 +210,19 @@ module mod_che_bdyco
       end if
 
       call read_chbc(chebdy)
+
+      if ( idynamic == 2 ) then
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              tvirt(j,i,k) = bndt1(j,i,k) / (cps0(j,i) * d_r100) * &
+                (d_one + ep1 * bndq1(j,i,k) / (cps0(j,i) * d_r100))
+            end do
+          end do
+        end do
+        call nhinterp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
+                      hsigma,sigma,cht,chebdy,tvirt,bndp1,cps0)
+      end if
 
       chib1 = d_zero
       do n = 1 , size(ichbdy2trac)
@@ -306,6 +334,19 @@ module mod_che_bdyco
       end if
 
       call read_chbc(chebdy)
+
+      if ( idynamic == 2 ) then
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              tvirt(j,i,k) = bndt1(j,i,k) / (cps0(j,i) * d_r100) * &
+                (d_one + ep1 * bndq1(j,i,k) / (cps0(j,i) * d_r100))
+            end do
+          end do
+        end do
+        call nhinterp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
+                      hsigma,sigma,cht,chebdy,tvirt,bndp1,cps0)
+      end if
 
       chib1 = d_zero
       after = 0

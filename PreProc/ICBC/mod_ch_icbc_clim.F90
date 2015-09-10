@@ -86,7 +86,6 @@ module mod_ch_icbc_clim
     end if
     ism = im1
 
-    write(*,*)'SSSSSS',im1,im2,month
     write(chfilename,'(a,i0.2,a)') &
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
        'mz4_19990401.nc'
@@ -239,8 +238,6 @@ chv4(:,:,:,cb_CH3OH) = chv4_3(:,:,:,mz_CH3OH)*w_ch3oh/amd
     character(len=256) :: chfilename
     real(rk8) :: wt1 , wt2
     integer(ik4) :: ncid , istatus , ivarid
-
-    write(*,*)'iiiiiiiiiiiiii',im1,im2
 
     write(chfilename,'(a,i0.2,a)') &
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &

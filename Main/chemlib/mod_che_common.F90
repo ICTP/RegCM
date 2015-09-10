@@ -86,12 +86,16 @@ module mod_che_common
 
   real(rk8) , pointer , dimension(:,:,:,:) ::chib3d
   real(rk8) , pointer , dimension(:,:,:,:) :: cqxb3d
+  real(rk8) , pointer , dimension(:,:,:) :: bndt0 , bndt1 , bndq0 , bndq1
+  real(rk8) , pointer , dimension(:,:) :: bndp0 , bndp1
+  real(rk8) , pointer , dimension(:,:) :: sp0 , sp1
   real(rk8) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d , &
          crhob3d , cpb3d , cfcc , cza , cdzq , ccldfra , crembc , cremrat ,  &
-         cconvpr , crhb3d , cdrydepflx , cwetdepflx
+         cconvpr , crhb3d , cdrydepflx , cwetdepflx , tvirt
   real(rk8) , pointer , dimension(:,:) :: cpsb , ctg , ctga , clndcat , cht , &
          cssw2da , cvegfrac , cxlai2d , csol2d , csdeltk2d , csdelqk2d , &
-         cuvdrag , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc , cps2d
+         cuvdrag , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc ,  &
+         cps2d , cps0
   real(rk8) , pointer , dimension(:,:) :: psbb0 , psbb1
   real(rk8) , pointer , dimension(:,:) :: czen
   real(rk8) , pointer , dimension(:,:,:,:) :: ctaucld
@@ -136,6 +140,11 @@ module mod_che_common
                       ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chib')
         call getmem4d(chi,jce1-ma%jbl1,jce2+ma%jbr1, &
                       ice1-ma%ibb1,ice2+ma%ibt1,1,kz,1,ntr,'che_common:chi')
+      end if
+      if ( idynamic == 2 ) then
+        call getmem3d(tvirt,jce1,jce2,ice1,ice2,1,kz,'che_common:tvirt')
+        call getmem2d(sp0,jce1,jce2,ice1,ice2,'che_common:sp0')
+        call getmem2d(sp1,jce1,jce2,ice1,ice2,'che_common:sp1')
       end if
       call getmem4d(chic,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chic')
       call getmem4d(chiten,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chiten')

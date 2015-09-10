@@ -147,7 +147,7 @@ module mod_tendency
     real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,   &
                psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot ,    &
                rovcpm , rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , &
-               tva , tvavg , tvb , tvc , rho0s , cpm , dpterm
+               tva , tvavg , tvb , tvc , rho0s , cpm
     real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem

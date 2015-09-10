@@ -62,6 +62,7 @@ module mod_atm_interface
   real(rk8) , public , pointer , dimension(:,:,:) :: dstor
   real(rk8) , public , pointer , dimension(:,:,:) :: hstor
   real(rk8) , public , pointer , dimension(:,:) :: ts0 , ts1
+  real(rk8) , public , pointer , dimension(:,:) :: hyps0 , hyps1
 
   real(rk8) , public , pointer , dimension(:,:,:) :: qdot , omega
 
@@ -1047,6 +1048,8 @@ module mod_atm_interface
           call getmem2d(estore,jci1,jci2,ici1,ici2,'storage:estore')
           call getmem2d(estore_g,-4,jx+4,-4,iy+4,'storage:estore_g')
         end if
+        call getmem2d(hyps0,jce1,jce2,ice1,ice2,'storage:hyps0')
+        call getmem2d(hyps1,jce1,jce2,ice1,ice2,'storage:hyps1')
       end if
 
     end subroutine allocate_mod_atm_interface

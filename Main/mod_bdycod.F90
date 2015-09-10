@@ -271,7 +271,8 @@ module mod_bdycod
     end if
 
     if ( idynamic == 2 ) then
-      call read_icbc(xpsb%b0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0,xppb%b0,xwwb%b0)
+      call read_icbc(hyps0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0,xppb%b0,xwwb%b0)
+      hyps0 = hyps0 * d_r10 - ptop
     else
       call read_icbc(xpsb%b0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0)
     end if
@@ -314,7 +315,8 @@ module mod_bdycod
     end if
 
     if ( idynamic == 2 ) then
-      call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
+      call read_icbc(hyps1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
+      hyps1 = hyps1 * d_r10 - ptop
     else
       call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
     end if
@@ -478,7 +480,8 @@ module mod_bdycod
       end if
     end if
     if ( idynamic == 2 ) then
-      call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
+      call read_icbc(hyps1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
+      hyps1 = hyps1 * d_r10 - ptop
     else
       call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
     end if

@@ -37,6 +37,11 @@ module mod_nhinterp
   real(rk8) :: ts0 = stdt     ! Kelvin
   real(rk8) :: tlp = 50.0D0
 
+  interface nhinterp
+    module procedure nhinterp3d
+    module procedure nhinterp4d
+  end interface nhinterp
+
   contains
 
     subroutine nhsetup(ptp,p,ts,lp)
@@ -93,7 +98,7 @@ module mod_nhinterp
     !
     ! Interpolate the hydrostatic input to nonhydrostatic coordinate.
     !
-    subroutine nhinterp(i1,i2,j1,j2,kxs,a,sigma,ter,f,tv,ps,ps0,intmeth)
+    subroutine nhinterp3d(i1,i2,j1,j2,kxs,a,sigma,ter,f,tv,ps,ps0,intmeth)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , intmeth
       real(rk8) , pointer , intent(in) , dimension(:) :: a
@@ -106,7 +111,7 @@ module mod_nhinterp
       integer(ik4) :: i , j , k , l , ll , ip , im , jp , jm
       real(rk8) :: fl , fu , pr0 , alnp , alnqvn
       real(rk8) :: ziso , zl , zu
-      real(rk8) , dimension(j1:j2,i1:i2,1:kxs) :: fn
+      real(rk8) , dimension(1:kxs) :: fn
       real(rk8) , dimension(j1:j2,i1:i2,1:kxs) :: z , z0
       real(rk8) , dimension(1:kxs+1) :: zq
       !
@@ -160,28 +165,113 @@ module mod_nhinterp
             if ( intmeth == 1 ) then
               fu = f(j,i,l)
               fl = f(j,i,l+1)
-              fn(j,i,k) = (fu * (z0(j,i,k) - zl ) + &
-                           fl * (zu - z0(j,i,k))) / (zu - zl)
+              fn(k) = (fu * (z0(j,i,k) - zl ) + &
+                       fl * (zu - z0(j,i,k))) / (zu - zl)
             else if ( intmeth == 2 ) then
               f(j,i,l) = max(f(j,i,l), minqx)
               f(j,i,l+1) = max(f(j,i,l+1), minqx)
               if ( z0(j,i,k) > zu ) then
-                fn(j,i,k) = f(j,i,l)
+                fn(k) = f(j,i,l)
               else
                 fu = log(f(j,i,l  ))
                 fl = log(f(j,i,l+1))
                 alnqvn = (fu * (z0(j,i,k) - zl ) + &
                           fl * (zu - z0(j,i,k))) / (zu - zl)
-                fn(j,i,k) = exp(alnqvn)
+                fn(k) = exp(alnqvn)
               end if
             end if
           end do
           do k = 1 , kxs
-            f(j,i,k) = fn(j,i,k)
+            f(j,i,k) = fn(k)
           end do
         end do
       end do
-    end subroutine nhinterp
+    end subroutine nhinterp3d
+
+    subroutine nhinterp4d(i1,i2,j1,j2,kxs,nn,a,sigma,geo,f,tv,ps,ps0)
+      implicit none
+      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , nn
+      real(rk8) , pointer , intent(in) , dimension(:) :: a
+      real(rk8) , pointer , intent(in) , dimension(:,:) :: geo  ! Geopotential
+      real(rk8) , pointer , intent(in) , dimension(:) :: sigma
+      real(rk8) , pointer , intent(in) , dimension(:,:,:) :: tv
+      real(rk8) , pointer , intent(in) , dimension(:,:) :: ps
+      real(rk8) , pointer , intent(in) , dimension(:,:) :: ps0
+      real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: f
+      integer(ik4) :: i , j , k , n , l , ll , ip , im , jp , jm
+      real(rk8) :: fl , fu , pr0 , alnp , alnqvn
+      real(rk8) :: ziso , zl , zu
+      real(rk8) , dimension(1:kxs) :: fn
+      real(rk8) , dimension(j1:j2,i1:i2,1:kxs) :: z , z0
+      real(rk8) , dimension(1:kxs+1) :: zq
+      !
+      ! We expect ps and ps0 to be already interpolated on dot points
+      !
+      do k = 1 , kxs
+        do i = i1 , i2
+          do j = j1 , j2
+            pr0 = ps0(j,i) * a(k) + ptoppa
+            if ( pr0 < piso ) then
+              alnp = log(piso/p0)
+              ziso = -(d_half*rovg*tlp*alnp*alnp + rovg*ts0*alnp)
+              z0(j,i,k) = ziso - rovg * tiso * log(pr0/piso)
+            else
+              alnp = log(pr0/p0)
+              z0(j,i,k) = -(d_half*rovg*tlp*alnp*alnp + rovg*ts0*alnp)
+            end if
+          end do
+        end do
+      end do
+      !
+      !  Calculate heights of input temperature sounding for interpolation
+      !  to nonhydrostatic model levels.
+      !
+      do i = i1 , i2
+        do j = j1 , j2
+          ip = min(i2-1,i)
+          jp = min(j2-1,j)
+          im = max(i1,i-1)
+          jm = max(j1,j-1)
+          zq(kxs+1) = geo(j,i)*regrav
+          do k = kxs , 1 , -1
+            zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
+              log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
+            z(j,i,k) = d_half * (zq(k) + zq(k+1))
+          end do
+        end do
+      end do
+      !
+      ! Interpolate from z to z0 levels.
+      !
+      do n = 1 , nn
+        do i = i1 , i2
+          do j = j1 , j2
+            do k = 1 , kxs
+              do ll = 1 , kxs - 1
+                l = ll
+                if (z(j,i,l+1) < z0(j,i,k)) exit
+              end do
+              zu = z(j,i,l)
+              zl = z(j,i,l+1)
+              f(j,i,l,  n) = max(f(j,i,l,  n), dlowval)
+              f(j,i,l+1,n) = max(f(j,i,l+1,n), dlowval)
+              if ( z0(j,i,k) > zu ) then
+                fn(k) = f(j,i,l,n)
+              else
+                fu = log(f(j,i,l  ,n))
+                fl = log(f(j,i,l+1,n))
+                alnqvn = (fu * (z0(j,i,k) - zl ) + &
+                          fl * (zu - z0(j,i,k))) / (zu - zl)
+                fn(k) = max(exp(alnqvn),dlowval)
+              end if
+            end do
+            do k = 1 , kxs
+              f(j,i,k,n) = fn(k)
+            end do
+          end do
+        end do
+      end do
+    end subroutine nhinterp4d
     !
     ! Compute the pressure perturbation pp.
     !
