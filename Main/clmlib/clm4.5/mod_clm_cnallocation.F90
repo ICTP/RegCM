@@ -519,7 +519,8 @@ module mod_clm_cnallocation
     n2_n2o_ratio_denit_vr  => clm3%g%l%c%cnf%n2_n2o_ratio_denit_vr
     f_n2o_denit_vr         => clm3%g%l%c%cnf%f_n2o_denit_vr
     f_n2o_nit_vr           => clm3%g%l%c%cnf%f_n2o_nit_vr
-    smin_no3_vr            => clm3%g%l%c%cns%smin_no3_v
+    smin_no3_vr            => clm3%g%l%c%cns%smin_no3_vr
+    smin_nh4_vr            => clm3%g%l%c%cns%smin_nh4_vr
 #endif
     supplement_to_sminn_vr => clm3%g%l%c%cnf%supplement_to_sminn_vr
     sminn_to_plant_vr      => clm3%g%l%c%cnf%sminn_to_plant_vr
