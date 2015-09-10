@@ -889,6 +889,9 @@ module mod_output
         if ( any(icup == 4) ) then
           call grid_collect(cbmf2d,cbmf2d_io,jci1,jci2,ici1,ici2)
         end if
+        if ( any(icup == 6) ) then
+          call grid_collect(kfwavg,kfwavg_io,jci1,jci2,ici1,ici2,1,kz)
+        end if
 
         if ( irrtm == 0 ) then
           call grid_collect(gasabsnxt,gasabsnxt_io,jci1,jci2,ici1,ici2,1,kz,1,4)

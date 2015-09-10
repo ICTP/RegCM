@@ -61,6 +61,7 @@ module mod_cu_interface
   public :: rsheat
   public :: rswat
   public :: tbase
+  public :: kfwavg
   public :: rain_cc
   public :: twght
   public :: vqflx

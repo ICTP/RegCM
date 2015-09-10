@@ -326,6 +326,7 @@ module mod_init
     if ( iocnflx == 2 ) then
       call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici2)
     end if
+
     if ( any(icup == 1) ) then
       call grid_distribute(rsheat_io,rsheat,jci1,jci2,ici1,ici2,1,kz)
       call grid_distribute(rswat_io,rswat,jci1,jci2,ici1,ici2,1,kz)
@@ -336,6 +337,9 @@ module mod_init
     end if
     if ( any(icup == 4) ) then
       call grid_distribute(cbmf2d_io,cbmf2d,jci1,jci2,ici1,ici2)
+    end if
+    if ( any(icup == 6) ) then
+      call grid_distribute(kfwavg_io,kfwavg,jci1,jci2,ici1,ici2,1,kz)
     end if
 
     if ( irrtm == 0 ) then
@@ -556,6 +560,15 @@ module mod_init
         do i = ici1 , ici2
           do j = jci1 , jci2
             tbase(j,i,k) = ts00 + tlp*dlog(atm1%pr(j,i,k))
+          end do
+        end do
+      end do
+    end if
+    if ( any(icup == 6) ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            kfwavg(j,i,k) = atm1%w(j,i,k) / sfs%psb(j,i)
           end do
         end do
       end do

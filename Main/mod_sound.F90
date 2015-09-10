@@ -60,6 +60,7 @@ module mod_sound
       ppold , rho , rho0s , rofac , xgamma , xkd , maxcfl , ucrsk ,      &
       vcrsk , ucrskm1 , vcrskm1 , rll , rk , ri , rj , npts
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
+    logical , save :: cfl_error = .false.
     character (len=32) :: appdat
     !
     ! Variables to implement upper radiative bc
@@ -522,9 +523,9 @@ module mod_sound
         ! Apply upper rad cond. (not in the lateral boundary)
         !
         do i = ici1 , ici2
-          if ( i < nspgx+1 .or. i > iy-nspgx-1 ) cycle
+          if ( i < nspgx-1 .or. i > iy-nspgx-2 ) cycle
           do j = jci1 , jci2
-            if ( j < nspgx+1 .or. j > jx-nspgx-1 ) cycle
+            if ( j < nspgx-1 .or. j > jx-nspgx-2 ) cycle
             do nsi = -6 , 6
               inn = i + nsi
               do nsj = -6 , 6
@@ -596,11 +597,16 @@ module mod_sound
                 write(stderr,99003) cfl , atmc%w(j,i,k) , i , j , k
     99003       format ('CFL>1: CFL = ',f12.4,' W = ',f12.4,'  I = ',i5, &
                         '  J = ',i5,'  K = ',i5 )
-                call fatal(__FILE__,__LINE__,'CFL violation')
+                if ( cfl_error ) then
+                  call fatal(__FILE__,__LINE__,'CFL violation')
+                end if
+                cfl_error = .true.
               end if
             end do
           end do
         end do
+      else
+        cfl_error = .false.
       end if
       !
       ! Now compute the new pressure

@@ -44,7 +44,7 @@ module mod_cu_kf
   !
   !             Graziano Giuliani
   !
-  public :: allocate_mod_cu_kf , kfdrv , kf_lutab
+  public :: allocate_mod_cu_kf , kfdrv , kf_lutab , kfwavg
   !
   !  V3.3: A new trigger function is added based Ma and Tan (2009):
   !   Ma, L.-M. and Z.-M. Tan, 2009: Improving the behavior of
@@ -76,6 +76,8 @@ module mod_cu_kf
 
   real(rk8) , dimension(:,:) , pointer :: dqdt , dtdt , dqcdt
   real(rk8) , dimension(:,:) , pointer :: tpart_h , tpart_v
+
+  real(rk8) , dimension(:,:,:) , pointer :: kfwavg
 
   ! IPPTLS == 2
   real(rk8) , dimension(:,:) , pointer :: dqidt , dqrdt , dqsdt
@@ -147,6 +149,7 @@ module mod_cu_kf
       call getmem2d(tpart_v,1,nipoi,1,kz,'mod_cu_kf:tpart_v')
       call getmem2d(tpart_h,1,nipoi,1,kz,'mod_cu_kf:tpart_h')
     end if
+    call getmem3d(kfwavg,jci1,jci2,ici1,ici2,1,kz,'mod_cu_kf:kfwavg')
   end subroutine allocate_mod_cu_kf
 
   subroutine kfdrv(m2c,c2m)
@@ -178,7 +181,7 @@ module mod_cu_kf
         dzq(np,k) = m2c%dzq(j,i,kk)
         w0 = m2c%wpas(j,i,kk) / (egrav*rho(np,k)) ! m/s
         ! Average over four timesteps.
-        w0avg(np,k) = (w0avg(np,k)*3.0D0+w0)*d_rfour
+        w0avg(np,k) = (kfwavg(j,i,kk)*3.0D0+w0)*d_rfour
       end do
     end do
 
@@ -232,6 +235,7 @@ module mod_cu_kf
                   dqidt(np,k)*m2c%psb(j,i)
           c2m%qxten(j,i,kk,iqs) = c2m%qxten(j,i,kk,iqs) + &
                   dqsdt(np,k)*m2c%psb(j,i)
+          kfwavg(j,i,kk) = w0avg(np,k)
         end do
       end do
     end if
