@@ -75,7 +75,7 @@ module mod_rrtmg_driver
     asaerlwfo , asaerlwfos
   real(rk8) , pointer , dimension(:,:) :: fice , wcl , wci , gcl , gci , &
          fcl , fci , tauxcl , tauxci , h2ommr , n2ommr , ch4mmr ,       &
-         cfc11mmr , cfc12mmr , deltaz
+         cfc11mmr , cfc12mmr , deltaz , dzr
   real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
 
   integer(ik4) , pointer , dimension(:) :: ioro
@@ -254,6 +254,7 @@ module mod_rrtmg_driver
     call getmem2d(cfc11mmr,1,npr,1,kth,'rrtmg:cfc11mmr')
     call getmem2d(cfc12mmr,1,npr,1,kth,'rrtmg:cfc12mmr')
     call getmem2d(deltaz,1,npr,1,kth,'rrtmg:deltaz')
+    call getmem2d(dzr,1,npr,1,kth,'rrtmg:dzr')
 
 #if defined ( IBM )
     mypid = getpid_()
@@ -396,6 +397,7 @@ module mod_rrtmg_driver
       qrl(:,kj) = lwhr(:,k) / secpd
       cld_int(:,kj) = cldf(:,k) !ouptut : these are in cloud diagnostics
       clwp_int(:,kj) = clwp(:,k)
+      dzr(:,kj) = deltaz(:,k)
     end do
 
     ! Finally call radout for coupling to BATS/CLM/ATM and outputing fields
@@ -427,7 +429,7 @@ module mod_rrtmg_driver
                 firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,  &
                 solld,totcf,totcl,totci,cld_int,clwp_int,abv,     &
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,   &
-                tauasc3d,gtota3d,deltaz,outtaucl,outtauci,r2a, &
+                tauasc3d,gtota3d,dzr,outtaucl,outtauci,r2a, &
                  asaeradfo,asaeradfos,asaerlwfo,asaerlwfos)
   end subroutine rrtmg_driver
 
