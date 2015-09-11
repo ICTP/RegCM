@@ -45,7 +45,7 @@ module mod_hgt
     module procedure height_o_single
   end interface height_o
 
-  public :: hydrost , mslp2ps
+  public :: hydrost , nonhydrost , mslp2ps
   public :: height , height_o
   public :: htsig , htsig_o
   public :: psig , mslp , gs_filter
@@ -94,6 +94,40 @@ module mod_hgt
       end do
     end do
   end subroutine hydrost
+
+  subroutine nonhydrost(h,t0,topo,p0,ptop,sigmah,ni,nj,nk)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj , nk
+    real(rk8) , intent(in) :: ptop
+    real(rk8) , intent(in) , dimension(nk) :: sigmah
+    real(rk8) , intent(in) , dimension(ni,nj,nk) :: t0
+    real(rk8) , intent(in) , dimension(ni,nj) :: topo , p0
+    real(rk8) , intent(out) , dimension(ni,nj,nk) :: h
+
+    integer(ik4) :: i , j , k
+    real(rk8) :: cell
+    !
+    ! ROUTINE TO COMPUTE HEIGHT FOR THE NON-HYDROSTATIC CORE
+    ! THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
+    ! HEIGHT IS COMPUTED IN THE RCM MODEL.
+    !
+    do j = 1 , nj
+      do i = 1 , ni
+        cell = (ptop * d_1000) / p0(i,j)
+        h(i,j,nk) = topo(i,j) + rovg * t0(i,j,nk) * &
+                 log((d_one+cell)/(sigmah(nk)+cell))
+      end do
+    end do
+    do k = nk-1 , 1 , -1
+      do j = 1 , nj
+        do i = 1 , ni
+          cell = (ptop * d_1000) / p0(i,j)
+          h(i,j,k) = h(i,j,k+1) + rovg * t0(i,j,k) * &
+                   log((sigmah(k+1)+cell)/(sigmah(k)+cell))
+        end do
+      end do
+    end do
+  end subroutine nonhydrost
 
   subroutine height(hp,h,t,ps,p3d,ht,im,jm,km,p,kp)
     implicit none
