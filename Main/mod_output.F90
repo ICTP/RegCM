@@ -478,7 +478,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_10*(ps_out+ptop)
+          ps_out = d_1000*(ps_out+ptop)
         end if
 
         call write_record_output_stream(atm_stream,idatex)
@@ -500,7 +500,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         end if
         ! Averaged values
         if ( associated(srf_tpr_out) ) &
@@ -621,7 +621,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         end if
         if ( associated(lak_tpr_out) ) &
           lak_tpr_out = lak_tpr_out*rnsrf_for_lakfrq
@@ -671,11 +671,12 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         end if
         if ( associated(opt_pp_out) ) then
           do k = 1 , kz
-            opt_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k)/ps_out
+            opt_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k) / &
+                                  sfs%psa(jci1:jci2,ici1:ici2)
           end do
         end if
         if ( associated(opt_acstoarf_out) ) &
@@ -718,11 +719,12 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         end if
         if ( associated(che_pp_out) ) then
           do k = 1 , kz
-            che_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k)/ps_out
+            che_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k) / &
+                                 sfs%psa(jci1:jci2,ici1:ici2)
           end do
         end if
         do itr = 1 , ntr
@@ -744,7 +746,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         end if
         if ( associated(sts_pcpavg_out) ) &
           sts_pcpavg_out = sts_pcpavg_out*rnsrf_for_day
@@ -797,11 +799,12 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         end if
         if ( associated(rad_pp_out) ) then
           do k = 1 , kz
-            rad_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k)/ps_out
+            rad_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k)/ &
+                             sfs%psa(jci1:jci2,ici1:ici2)
           end do
         end if
         call write_record_output_stream(rad_stream,idatex)
@@ -819,7 +822,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         end if
         call fill_slaboc_outvars
         call writevar_output_stream(slaboc_stream,v3dvar_slaboc(slab_qflx))
