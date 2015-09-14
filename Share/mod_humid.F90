@@ -30,6 +30,7 @@ module mod_humid
   interface humid1_o
     module procedure humid1_o_double
     module procedure humid1_o_single
+    module procedure humid1_o_nonhydro
   end interface humid1_o
 
   public :: humid1 , humid1_o , humid1fv , humid2
@@ -143,6 +144,27 @@ module mod_humid
       end do
     end do
   end subroutine humid1fv
+
+  subroutine humid1_o_nonhydro(t,q,p3d,ni,nj,nk)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj , nk
+    real(rk8) , intent(in) , dimension(ni,nj,nk) :: p3d , t
+    real(rk8) , intent(inout) , dimension(ni,nj,nk) :: q
+
+    real(rk8) :: qs
+    integer(ik4) :: i , j , k
+    !
+    ! THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
+    !
+    do k = 1 , nk
+      do j = 1 , nj
+        do i = 1 , ni
+          qs = pfqsat(t(i,j,k),p3d(i,j,k))
+          q(i,j,k) = max(q(i,j,k)/qs,d_zero)
+        end do
+      end do
+    end do
+  end subroutine humid1_o_nonhydro
 
   subroutine humid2(t,q,ps,ptop,sigma,ni,nj,nk)
     implicit none

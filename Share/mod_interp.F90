@@ -44,7 +44,7 @@ module mod_interp
   real(rk8) , parameter :: deg720 = d_two*deg360
   real(rk8) , parameter :: missl = -9999.0D0
   real(rk8) , parameter :: missc = -9990.0D0
-  real(rk8) , parameter :: mindist = 1.0D-6
+  real(rk8) , parameter :: mindist = 0.001D0 ! 1 meter
   real(rk8) , parameter :: p_factor = 2.00D0
 
   real(rk8) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
@@ -866,6 +866,7 @@ module mod_interp
          kin = (l-1)*nlev+k
          call distwgtcr(b3(:,:,kin),b2(:,:,kin),alon,alat, &
                            glon,glat,jx,iy,nlon,nlat)
+         call kernsmooth(b3(:,:,kin),jx,iy,2)
       end do
     end do
   end subroutine cressmcr
@@ -886,6 +887,7 @@ module mod_interp
          kin = (l-1)*nlev+k
          call distwgtdt(b3(:,:,kin),b2(:,:,kin),alon,alat, &
                            glon,glat,jx,iy,nlon,nlat)
+         call kernsmooth(b3(:,:,kin),jx,iy,2)
       end do
     end do
   end subroutine cressmdt
@@ -920,6 +922,40 @@ module mod_interp
     ! Have it in km to avoid numerical problems :)
     gcdist = earthrad*atan2(y,x)*d_r1000
   end function gcdist
+
+  subroutine kernsmooth(f,nx,ny,npass)
+    implicit none
+    integer(ik4) , intent(in) :: nx , ny , npass
+    real(rk8) , dimension(nx,ny) , intent(inout) :: f
+    integer(ik4) :: i , j , n
+    real(rk8) , dimension(nx,ny) :: newf
+    do n = 1 , npass
+      do j = 2 , ny - 1
+        do i = 2 , nx - 1
+          newf(i,j) = (f(i+1,j-1) + f(i+1,j) + f(i+1,j+1) + &
+            f(i,j-1) + f(i,j) * 4.0D0 + f(i,j+1) + &
+            f(i-1,j-1) + f(i-1,j) + f(i-1,j+1)) / 12.0D0
+        end do
+      end do
+      do j = 2 , ny-1
+        newf(1,j) = (f(1,j-1) + f(1,j) * 7.0D0 + f(1,j+1) + &
+          f(2,j-1) + f(2,j) + f(2,j+1)) / 12.0D0
+        newf(nx,j) = (f(nx,j-1) + f(nx,j) * 7.0D0 + f(nx,j+1) + &
+          f(nx-1,j-1) + f(nx-1,j) + f(nx-1,j+1)) / 12.0D0
+      end do
+      do i = 2 , nx-1
+        newf(i,1) = (f(i-1,1) + f(i,1) * 7.0D0 + f(i+1,1) + &
+          f(i-1,2) + f(i,2) + f(i+1,2)) / 12.0D0
+        newf(i,ny) = (f(i-1,ny) + f(i,ny) * 7.0D0 + f(i+1,ny) + &
+          f(i-1,ny-1) + f(i,ny-1) + f(i+1,ny-1)) / 12.0D0
+      end do
+      newf(1,1) = f(1,1)
+      newf(nx,1) = f(nx,1)
+      newf(1,ny) = f(1,ny)
+      newf(nx,ny) = f(nx,ny)
+      f(:,:) = newf(:,:)
+    end do
+  end subroutine kernsmooth
 
 end module mod_interp
 

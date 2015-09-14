@@ -44,8 +44,6 @@ module mod_nest
 
   character(len=256) , public :: coarsedir , coarsedom
 
-  integer(ik4) , parameter :: np = 15
-
   integer(ik4) :: nrec
 
   real(rk8) , pointer , dimension(:,:,:) :: b3
@@ -57,7 +55,8 @@ module mod_nest
 
   real(rk8) , pointer , dimension(:,:,:) :: q , t
   real(rk8) , pointer , dimension(:,:,:) :: u , v
-  real(rk8) , pointer , dimension(:,:) :: ps
+  real(rk8) , pointer , dimension(:,:,:) :: pp3d , p3d , t0_in
+  real(rk8) , pointer , dimension(:,:) :: ps , p0_in , pstar0
   real(rk8) , pointer , dimension(:,:) :: ht_in
   real(rk8) , pointer , dimension(:,:) :: xlat_in , xlon_in
 
@@ -67,16 +66,19 @@ module mod_nest
   real(rk8) , pointer , dimension(:,:,:) :: hp , qp , tp
   real(rk8) , pointer , dimension(:,:,:) :: up , vp
 
-  real(rk8) , dimension(np) :: plev , sigmar
-  real(rk8) , pointer , dimension(:) :: sig
+  real(rk8) , pointer , dimension(:) :: plev , sigmar
+  real(rk8) , pointer , dimension(:) :: sigma_in
 
   integer(ik4) :: iy_in , jx_in , kz_in
+  integer(ik4) :: np
+
+  integer(ik4) :: oidyn
   character(len=6) :: iproj_in
   real(rk8) :: clat_in , clon_in , plat_in , plon_in , ptop_in , xcone_in
-!
+
   character(len=14) :: fillin
   character(len=256) :: inpfile
-!
+
   integer(ik4) :: ncinp
   type(rcm_time_and_date) , dimension(:) , pointer :: itimes
   real(rk8) , dimension(:) , pointer :: xtimes
@@ -90,7 +92,7 @@ module mod_nest
 
     type(rcm_time_and_date) , intent(in) :: idate
 
-    integer(ik4) :: i , istatus , ivarid , idimid , irec
+    integer(ik4) :: i , j , k , istatus , ivarid , idimid , irec
     integer(ik4) , dimension(4) :: istart , icount
     type(rcm_time_and_date) :: imf
     logical :: lspch
@@ -139,8 +141,47 @@ module mod_nest
       end if
     end do
     if (irec < 0) then
-      write (stderr,*) 'Error : time ', tochar(idate), ' not in file'
-      call die('get_nest')
+      ! Try previous month !
+      istatus = nf90_close(ncinp)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error close '//trim(inpfile))
+      imf = prevmon(idate)
+      write (fillin,'(a,i10)') 'ATM.', toint10(imf)
+      if ( coarsedir(1:5) == '     ' ) then
+        inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep
+      else
+        inpfile = trim(coarsedir)//pthsep
+      end if
+      if ( coarsedom(1:5) == '     ' ) then
+        inpfile = trim(inpfile)//fillin//'.nc'
+      else
+        inpfile = trim(inpfile)//trim(coarsedom)//'_'//fillin//'.nc'
+      end if
+      istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))
+      istatus = nf90_inq_dimid(ncinp, 'time', idimid)
+      call checkncerr(istatus,__FILE__,__LINE__,'Dimension time missing')
+      istatus = nf90_inquire_dimension(ncinp, idimid, len=nrec)
+      call checkncerr(istatus,__FILE__,__LINE__,'Dimension time read error')
+      istatus = nf90_inq_varid(ncinp, 'time', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__,'variable time missing')
+      call getmem1d(itimes,1,nrec,'mod_nest:itimes')
+      call getmem1d(xtimes,1,nrec,'mod_nest:xtimes')
+      istatus = nf90_get_var(ncinp, ivarid, xtimes)
+      call checkncerr(istatus,__FILE__,__LINE__,'variable time read error')
+      do i = 1 , nrec
+        itimes(i) = timeval2date(xtimes(i), timeunits,timecal)
+      end do
+      irec = -1
+      do i = 1 , nrec
+        if (idate == itimes(i)) then
+          irec = i
+          exit
+        end if
+      end do
+      if ( irec < 0 ) then
+        write (stderr,*) 'Error : time ', tochar(idate), ' not in file'
+        call die('get_nest')
+      end if
     end if
 
     istart(4) = irec
@@ -185,6 +226,20 @@ module mod_nest
     if ( lspch ) then
       q = q/(d_one-q)
     end if
+    if ( oidyn == 2 ) then
+      istatus = nf90_inq_varid(ncinp, 'ppa', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__,'variable ppa missing')
+      istatus = nf90_get_var(ncinp, ivarid, pp3d, istart, icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'variable ppa read error')
+      do k = 1 , kz_in
+        do i = 1 , iy_in
+          do j = 1 , jx_in
+            p3d(j,i,k) = pstar0(j,i) * sigma_in(k) + &
+                         ptop_in*d_100 + pp3d(j,i,k)
+          end do
+        end do
+      end do
+    end if
     istart(3) = irec
     istart(2) = 1
     istart(1) = 1
@@ -200,20 +255,25 @@ module mod_nest
     !
     ! Calculate Heights on sigma surfaces.
     !
-    call htsig_o(t,z1,ps,ht_in,sig,ptop_in,jx_in,iy_in,kz_in)
-    !
     ! Interpolate H,U,V,T,Q
     !
-    ! 1. For Heights
-    call height_o(hp,z1,t,ps,ht_in,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
-    ! 2. For Zonal and Meridional Winds
-    call intlin_o(up,u,ps,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
-    call intlin_o(vp,v,ps,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
-    ! 3. For Temperatures
-    call intlog_o(tp,t,ps,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
-    ! 4. For Moisture qva
-    call humid1_o(t,q,ps,sig,ptop_in,jx_in,iy_in,kz_in)
-    call intlin_o(qp,q,ps,sig,ptop_in,jx_in,iy_in,kz_in,plev,np)
+    if ( oidyn == 1 ) then
+      call htsig_o(t,z1,ps,ht_in,sigma_in,ptop_in,jx_in,iy_in,kz_in)
+      call humid1_o(t,q,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in)
+      call intlog_o(tp,t,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call height_o(hp,z1,t,ps,ht_in,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlin_o(up,u,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlin_o(vp,v,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlin_o(qp,q,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+    else
+      call nonhydrost(z1,t0_in,p0_in,ptop_in,ht_in,sigma_in,jx_in,iy_in,kz_in)
+      call humid1_o(t,q,p3d,jx_in,iy_in,kz_in)
+      call intlog(tp,t,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+      call height_o(hp,z1,t,ps,ht_in,p3d,jx_in,iy_in,kz_in,plev,np)
+      call intlin(up,u,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+      call intlin(vp,v,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+      call intlin(qp,q,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+    end if
     call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in, &
                   xcone_in,jx_in,iy_in,np,plon_in,plat_in,iproj_in)
     !
@@ -260,30 +320,11 @@ module mod_nest
     implicit none
 
     real(rk8) :: xsign
-    integer(ik4) :: i , k , istatus , idimid , ivarid
+    integer(ik4) :: i , j , k , ip , istatus , idimid , ivarid
     type(rcm_time_and_date) :: imf
     real(rk8) , dimension(2) :: trlat
     real(rk8) , dimension(:) , allocatable :: sigfix
-
-    plev(1) = 50.
-    plev(2) = 70.
-    plev(3) = 100.
-    plev(4) = 150.
-    plev(5) = 200.
-    plev(6) = 250.
-    plev(7) = 300.
-    plev(8) = 400.
-    plev(9) = 500.
-    plev(10) = 600.
-    plev(11) = 700.
-    plev(12) = 775.
-    plev(13) = 850.
-    plev(14) = 925.
-    plev(15) = 1000.
-
-    do k = 1 , np
-      sigmar(k) = plev(k)*0.001
-    end do
+    real(rk8) :: tlp , pr0_in
 
     imf = monfirst(globidate1)
     write (fillin,'(a,i10)') 'ATM.', toint10(imf)
@@ -334,9 +375,7 @@ module mod_nest
 
     ! Reserve space for I/O
 
-    call getmem1d(sig,1,kz_in,'mod_nest:sig')
-    call getmem3d(b2,1,jx_in,1,iy_in,1,np*3,'mod_nest:b2')
-    call getmem3d(d2,1,jx_in,1,iy_in,1,np*2,'mod_nest:d2')
+    call getmem1d(sigma_in,1,kz_in,'mod_nest:sigma_in')
     call getmem3d(q,1,jx_in,1,iy_in,1,kz_in,'mod_nest:q')
     call getmem3d(t,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t')
     call getmem3d(u,1,jx_in,1,iy_in,1,kz_in,'mod_nest:u')
@@ -346,20 +385,18 @@ module mod_nest
     call getmem2d(xlat_in,1,jx_in,1,iy_in,'mod_nest:xlat_in')
     call getmem2d(xlon_in,1,jx_in,1,iy_in,'mod_nest:xlon_in')
     call getmem2d(ht_in,1,jx_in,1,iy_in,'mod_nest:ht_in')
-    call getmem3d(b3,1,iy,1,jx,1,np*3,'mod_nest:b3')
-    call getmem3d(d3,1,iy,1,jx,1,np*2,'mod_nest:d3')
 
     istatus = nf90_inq_varid(ncinp, 'sigma', ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'variable sigma error')
-    istatus = nf90_get_var(ncinp, ivarid, sig)
+    istatus = nf90_get_var(ncinp, ivarid, sigma_in)
     call checkncerr(istatus,__FILE__,__LINE__,'variable sigma read error')
-    if ( sig(1) < dlowval ) then
+    if ( sigma_in(1) < dlowval ) then
       ! Fix V. 4.3.x bug in sigma levels
       allocate(sigfix(kz_in+1))
-      sigfix(1:kz_in) = sig(:)
+      sigfix(1:kz_in) = sigma_in(:)
       sigfix(kz_in+1) = d_one
       do k = 1 , kz_in
-        sig(k) = d_half*(sigfix(k)+sigfix(k+1))
+        sigma_in(k) = d_half*(sigfix(k)+sigfix(k+1))
       end do
       deallocate(sigfix)
     end if
@@ -388,6 +425,10 @@ module mod_nest
     istatus = nf90_get_att(ncinp, nf90_global, &
                       'longitude_of_projection_origin', clon_in)
     call checkncerr(istatus,__FILE__,__LINE__,'attribure clat read error')
+    istatus = nf90_get_att(ncinp, nf90_global, 'dynamical_core', oidyn)
+    if ( istatus /= nf90_noerr ) then
+      oidyn = 1 ! Assume non-hydrostatic
+    end if
 
     if ( iproj_in == 'LAMCON' ) then
       istatus = nf90_get_att(ncinp, nf90_global, 'standard_parallel', trlat)
@@ -419,8 +460,65 @@ module mod_nest
       xcone_in = 0.0D0
     end if
 
+    if ( ptop_in > ptop*10.0D0 ) then
+      write(stderr,*) 'WARNING : top pressure higher than PTOP detected.'
+      write(stderr,*) 'WARNING : Extrapolation will be performed.'
+    end if
+
+    np = kz_in - 1
+    call getmem1d(plev,1,np,'mod_nest:plev')
+    call getmem1d(sigmar,1,np,'mod_nest:sigmar')
+
+    call getmem2d(p0_in,1,jx_in,1,iy_in,'mod_nest:p0_in')
+
+    if ( oidyn == 2 ) then
+      istatus = nf90_get_att(ncinp, nf90_global, 'logp_lapse_rate', tlp)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'attribure logp_lapse_rate read error')
+      call getmem3d(pp3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pp3d')
+      call getmem3d(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
+      call getmem3d(t0_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t0_in')
+      call getmem2d(pstar0,1,jx_in,1,iy_in,'mod_nest:pstar0')
+      istatus = nf90_inq_varid(ncinp, 'p0', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__,'variable p0 error')
+      istatus = nf90_get_var(ncinp, ivarid, p0_in)
+      call checkncerr(istatus,__FILE__,__LINE__,'variable p0 read error')
+      pstar0 = p0_in - ptop_in * d_100
+      do k = 1 , kz_in
+        do i = 1 , iy_in
+          do j = 1 , jx_in
+            pr0_in = pstar0(j,i) * sigma_in(k) + ptop_in * d_100
+            if ( pr0_in > 5474.9 ) then
+              t0_in(j,i,k) = max(stdt + tlp*log(pr0_in/stdp), tiso)
+            else
+              if ( pr0_in > 5474.9 ) then
+                t0_in(j,i,k) = tiso + min(log(5474.9/pr0_in),228.65D0)
+              else
+                t0_in(j,i,k) = 228.65D0 + 2.0D0*min(log(5474.9/pr0_in),271.15D0)
+              end if
+            end if
+          end do
+        end do
+      end do
+    else
+      istatus = nf90_inq_varid(ncinp, 'ps', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__,'variable ps error')
+      istatus = nf90_get_var(ncinp, ivarid, p0_in)
+      call checkncerr(istatus,__FILE__,__LINE__,'variable ps read error')
+      pstar0 = p0_in - ptop_in * d_100
+    end if
+
+    do ip = 1 , np
+      plev(ip) = d_half * (maxval(pstar0*sigma_in(ip+1)) + &
+                           maxval(pstar0*sigma_in(ip))) + ptop_in * d_100
+    end do
+
     ! Set up pointers
 
+    call getmem3d(b2,1,jx_in,1,iy_in,1,np*3,'mod_nest:b2')
+    call getmem3d(d2,1,jx_in,1,iy_in,1,np*2,'mod_nest:d2')
+    call getmem3d(b3,1,iy,1,jx,1,np*3,'mod_nest:b3')
+    call getmem3d(d3,1,iy,1,jx,1,np*2,'mod_nest:d3')
     tp => b2(:,:,1:np)
     qp => b2(:,:,np+1:2*np)
     hp => b2(:,:,2*np+1:3*np)
@@ -431,6 +529,11 @@ module mod_nest
     h3 => b3(:,:,2*np+1:3*np)
     u3 => d3(:,:,1:np)
     v3 => d3(:,:,np+1:2*np)
+
+    do k = 1 , np
+      sigmar(k) = plev(k)/plev(np)
+    end do
+
   end subroutine headernest
 
 end module mod_nest
