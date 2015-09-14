@@ -2807,7 +2807,7 @@ module mod_ncout
         'Land Mask','land_binary_mask',lgetspace=.false.)
       call setup_var(var,topo,vsize,'topo','m', &
         'Surface Model Elevation','surface_altitude',lgetspace=.false.)
-      call setup_var(var,ps,vsize,'ps','hPa', &
+      call setup_var(var,ps,vsize,'ps','Pa', &
         'Surface Pressure','surface_air_pressure',.true.,lgetspace=.false.)
       var(xlon)%rval => xlon_out
       var(xlat)%rval => xlat_out
@@ -2829,7 +2829,7 @@ module mod_ncout
         'Land Mask','land_binary_mask')
       call setup_var(var,topo,vsize,'topo','m', &
         'Surface Model Elevation','surface_altitude')
-      call setup_var(var,ps,vsize,'ps','hPa', &
+      call setup_var(var,ps,vsize,'ps','Pa', &
         'Surface Pressure','surface_air_pressure',.true.)
       xlon_out => var(xlon)%rval
       xlat_out => var(xlat)%rval
