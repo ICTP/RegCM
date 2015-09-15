@@ -40,7 +40,7 @@ program sigma2p
 
   implicit none
 
-  integer(ik4) , parameter :: np = 11
+  integer(ik4) , parameter :: np = 12
   real(rk4) , dimension(np) :: plevs
 
   character(256) :: prgname , ncsfile , ncpfile
@@ -83,7 +83,7 @@ program sigma2p
   data make_rh /.false./
   data make_hgt /.false./
 
-  data plevs /1000.,925.,850.,700.,500.,400.,300.,250.,200.,150.,100./
+  data plevs /1000.,925.,850.,700.,600.,500.,400.,300.,250.,200.,150.,100./
 
   call get_command_argument(0,value=prgname)
   numarg = command_argument_count()
