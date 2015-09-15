@@ -46,6 +46,16 @@ module mod_vertint
     module procedure intlog_o_single
   end interface intlog_o
 
+  interface intlin
+    module procedure intlin_double
+    module procedure intlin_single
+  end interface intlin
+
+  interface intlog
+    module procedure intlog_double
+    module procedure intlog_single
+  end interface intlog
+
   public :: intlin , intlin_o , intgtb , intlog , intlog_o
   public :: intpsn , intv0 , intv1 , intv2 , intv3
   public :: intlinreg , intlinprof
@@ -332,7 +342,7 @@ module mod_vertint
     end if
   end subroutine intlinprof
 
-  subroutine intlin(fp,f,ps,p3d,im,jm,km,p,kp)
+  subroutine intlin_double(fp,f,ps,p3d,im,jm,km,p,kp)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km , kp
     real(rk8) , dimension(im,jm,km) , intent(in) :: f , p3d
@@ -484,7 +494,161 @@ module mod_vertint
         end do
       end do
     end if
-  end subroutine intlin
+  end subroutine intlin_double
+
+  subroutine intlin_single(fp,f,ps,p3d,im,jm,km,p,kp)
+    implicit none
+    integer(ik4) , intent(in) :: im , jm , km , kp
+    real(rk4) , dimension(im,jm,km) , intent(in) :: f , p3d
+    real(rk4) , dimension(im,jm,kp) , intent(out) :: fp
+    real(rk4) , dimension(kp) , intent(in) :: p
+    real(rk4) , dimension(im,jm) , intent(in) :: ps
+    integer(ik4) :: i , j , k , kx , knx , n
+    real(rk4) , dimension(km) :: sig
+    real(rk4) , dimension(kp) :: pp1
+    real(rk4) :: sigp , w1 , wp
+    !
+    ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
+    ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
+    ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    !
+    ! HERE BOTTOM TO TOP
+    !
+    if ( p3d(1,1,1) > p3d(1,1,km) ) then
+      !
+      ! Assure same order requested in output
+      !
+      if ( p(1) > p(kp) ) then
+        pp1 = p
+      else
+        do k = 1 , kp
+          pp1(k) = p(kp-k+1)
+        end do
+      end if
+      !
+      ! Loop over points
+      !
+      do j = 1 , jm
+        do i = 1 , im
+          !
+          ! Discard missing values
+          !
+          if ( ps(i,j) > -9995.0 ) then
+            !
+            ! Sigma values in this point
+            !
+            do k = 1 , km
+              sig(k) = p3d(i,j,k)/ps(i,j)
+            end do
+            !
+            ! For each of the requested levels
+            !
+            do n = 1 , kp
+              !
+              ! The searched sigma value
+              !
+              sigp = pp1(n)/ps(i,j)
+              !
+              ! Over the top or below bottom level
+              !
+              if ( sigp <= sig(km) ) then
+                fp(i,j,n) = f(i,j,km)
+                cycle
+              else if ( sigp >= sig(1) ) then
+                fp(i,j,n) = f(i,j,1)
+                cycle
+              end if
+              !
+              ! Search k level below the requested one
+              !
+              kx = 0
+              do k = 1 , km-1
+                if ( sigp > sig(k) ) exit
+                kx = k
+              end do
+              !
+              ! This is the above level
+              !
+              knx = kx + 1
+              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+              w1 = 1.0 - wp
+              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+            end do
+          else
+            call die('intlin','Missing value in surface pressure',1)
+          end if
+        end do
+      end do
+    !
+    ! HERE TOP TO BOTTOM
+    !
+    else
+      !
+      ! Assure same order requested in output
+      !
+      if ( p(1) > p(kp) ) then
+        do k = 1 , kp
+          pp1(k) = p(kp-k+1)
+        end do
+      else
+        pp1 = p
+      end if
+      !
+      ! Loop over points
+      !
+      do j = 1 , jm
+        do i = 1 , im
+          !
+          ! Discard missing values
+          !
+          if ( ps(i,j) > -9995.0 ) then
+            !
+            ! Sigma values in this point
+            !
+            do k = 1 , km
+              sig(k) = p3d(i,j,k)/ps(i,j)
+            end do
+            !
+            ! For each of the requested levels
+            !
+            do n = 1 , kp
+              !
+              ! The searched sigma value
+              !
+              sigp = pp1(n)/ps(i,j)
+              !
+              ! Over the top or below bottom level
+              !
+              if ( sigp <= sig(1) ) then
+                fp(i,j,n) = f(i,j,1)
+                cycle
+              else if ( sigp >= sig(km) ) then
+                fp(i,j,n) = f(i,j,km)
+                cycle
+              end if
+              !
+              ! Search k level below the requested one
+              !
+              kx = km + 1
+              do k = km , 2 , -1
+                if ( sigp > sig(k) ) exit
+                kx = k
+              end do
+              !
+              ! This is the above level
+              !
+              knx = kx - 1
+              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+              w1 = 1.0 - wp
+              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+            end do
+          else
+            call die('intlin','Missing value in surface pressure',1)
+          end if
+        end do
+      end do
+    end if
+  end subroutine intlin_single
   !
   !-----------------------------------------------------------------------
   !
@@ -855,7 +1019,7 @@ module mod_vertint
   !
   !-----------------------------------------------------------------------
   !
-  subroutine intlog(fp,f,ps,p3d,im,jm,km,p,kp)
+  subroutine intlog_double(fp,f,ps,p3d,im,jm,km,p,kp)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km , kp
     real(rk8) , dimension(im,jm,km) , intent(in) :: f , p3d
@@ -1029,7 +1193,183 @@ module mod_vertint
         end do
       end do
     end if
-  end subroutine intlog
+  end subroutine intlog_double
+
+  subroutine intlog_single(fp,f,ps,p3d,im,jm,km,p,kp)
+    implicit none
+    integer(ik4) , intent(in) :: im , jm , km , kp
+    real(rk4) , dimension(im,jm,km) , intent(in) :: f , p3d
+    real(rk4) , dimension(kp) , intent(in) :: p
+    real(rk4) , dimension(im,jm) , intent(in) :: ps
+    real(rk4) , dimension(im,jm,kp) , intent(out) :: fp
+    real(rk4) :: sigp , w1 , wp
+    integer(ik4) :: i , j , k , kx , knx , n , kbc
+    real(rk4) , dimension(km) :: sig
+    real(rk4) , dimension(kp) :: pp1
+    !
+    ! INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
+    ! LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
+    ! THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    ! WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, THE T FIELD IS
+    ! CONSIDERED TO HAVE A LAPSE RATE OF TLAPSE (K/M), AND THE
+    ! THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
+    ! TWO EXTREME TEMPERATURES IN THE LAYER.
+    !
+    ! HERE BOTTOM TO TOP
+    !
+    if ( p3d(1,1,1) > p3d(1,1,km) ) then
+      !
+      ! Assure same order requested in output
+      !
+      if ( p(1) > p(kp) ) then
+        pp1 = p
+      else
+        do k = 1 , kp
+          pp1(k) = p(kp-k+1)
+        end do
+      end if
+      !
+      ! Loop over points
+      !
+      do j = 1 , jm
+        do i = 1 , im
+          !
+          ! Discard missing values
+          !
+          if ( ps(i,j) > -9995.0 ) then
+            !
+            ! Sigma values in this point , and find boundary layer
+            !
+            kbc = 1
+            do k = 1 , km
+              sig(k) = p3d(i,j,k)/ps(i,j)
+              if ( sig(k) >= bltop ) kbc = k
+            end do
+            !
+            ! For each of the requested levels
+            !
+            do n = 1 , kp
+              !
+              ! The searched sigma value
+              !
+              sigp = pp1(n)/ps(i,j)
+              !
+              ! Extrapolation
+              !
+              if ( sigp > 1.0 ) then
+                fp(i,j,n) = f(i,j,kbc)*exp(real(rglrog)*log(sigp/sig(kbc)))
+                cycle
+              end if
+              !
+              ! Over the top or below bottom level
+              !
+              if ( sigp <= sig(km) ) then
+                fp(i,j,n) = f(i,j,km)
+                cycle
+              else if ( sigp >= sig(1) ) then
+                fp(i,j,n) = f(i,j,1)
+                cycle
+              end if
+              !
+              ! Search k level below the requested one
+              !
+              kx = 0
+              do k = 1 , km
+                if ( sigp > sig(k) ) exit
+                kx = k
+              end do
+              !
+              ! This is the above level
+              !
+              knx = kx + 1
+              wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
+              w1 = 1.0 - wp
+              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+            end do
+          else
+            call die('intlog','Missing value in surface pressure',1)
+          end if
+        end do
+      end do
+    !
+    ! HERE TOP TO BOTTOM
+    !
+    else
+      !
+      ! Assure same order requested in output
+      !
+      if ( p(1) > p(kp) ) then
+        do k = 1 , kp
+          pp1(k) = p(kp-k+1)
+        end do
+      else
+        pp1 = p
+      end if
+      !
+      ! Loop over points
+      !
+      do j = 1 , jm
+        do i = 1 , im
+          !
+          ! Discard missing values
+          !
+          if ( ps(i,j) > -9995.0 ) then
+            !
+            ! Sigma values in this point , and find boundary layer
+            !
+            kbc = km
+            do k = km , 1 , -1
+              sig(k) = p3d(i,j,k)/ps(i,j)
+              if ( sig(k) >= bltop ) kbc = k
+            end do
+            !
+            ! For each of the requested levels
+            !
+            do n = 1 , kp
+              !
+              ! The searched sigma value
+              !
+              sigp = pp1(n)/ps(i,j)
+              !
+              ! Extrapolation
+              !
+              if ( sigp > 1.0 ) then
+                fp(i,j,n) = f(i,j,kbc)*exp(real(rglrog)*log(sigp/sig(kbc)))
+                cycle
+              end if
+              !
+              ! Over the top or below bottom level
+              !
+              if ( sigp <= sig(1) ) then
+                fp(i,j,n) = f(i,j,1)
+                cycle
+              else if ( sigp >= sig(km) ) then
+                fp(i,j,n) = f(i,j,km)
+                cycle
+              end if
+              !
+              ! Search k level below the requested one
+              !
+              kx = km + 1
+              do k = km , 2 , -1
+                if ( sigp > sig(k) ) exit
+                kx = k
+              end do
+              !
+              ! This is the above level
+              !
+              knx = kx - 1
+              wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
+              w1 = 1.0 - wp
+              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
+            end do
+          else
+            call die('intlog','Missing value in surface pressure',1)
+          end if
+        end do
+      end do
+    end if
+  end subroutine intlog_single
   !
   !-----------------------------------------------------------------------
   !

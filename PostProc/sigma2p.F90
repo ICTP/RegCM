@@ -50,8 +50,8 @@ program sigma2p
   integer(ik4) , allocatable , dimension(:) :: dimids , dimlen
   real(rk4) , allocatable , dimension(:) :: sigma
   real(rk4) , allocatable , dimension(:,:,:) :: xvar , tmpvar , qvar , hzvar
-  real(rk4) , allocatable , dimension(:,:,:) :: pvar
-  real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslpr
+  real(rk4) , allocatable , dimension(:,:,:) :: pvar , pp , press
+  real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslpr , ps0
   real(rk4) , allocatable , dimension(:) :: avar
   character , allocatable , dimension(:) :: tvar
   real(rk4) , allocatable , dimension(:) :: apvar
@@ -66,7 +66,7 @@ program sigma2p
   integer(ik4) :: ndims , nvars , natts , udimid , nvatts
   integer(ik4) :: ivarid , idimid , xtype
   integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , itvarid , ikvarid
-  integer(ik4) :: ipsvarid , ishvarid
+  integer(ik4) :: ipsvarid , ishvarid , ippvarid , ip0varid
   integer(ik4) :: jx , iy , kz , nt
   real(rk8) :: ptop
   integer(ik4) , dimension(4) :: tdimids
@@ -75,7 +75,7 @@ program sigma2p
   integer(ik4) :: tvarid , qvarid , irhvar , ihgvar , imslpvar , ircm_map
   logical :: has_t , has_q , has_rh
   logical :: make_rh , make_hgt
-  integer(ik4) :: n3d , ip3d
+  integer(ik4) :: n3d , ip3d , iodyn
 
   data has_t /.false./
   data has_q /.false./
@@ -127,6 +127,11 @@ program sigma2p
     call checkncerr(istatus,__FILE__,__LINE__, &
             'Error copy attribute '//trim(attname))
   end do
+
+  istatus = nf90_get_att(ncid, nf90_global, 'dynamical_core', iodyn)
+  if ( istatus /= nf90_noerr ) then
+    iodyn = 1
+  end if
 
   allocate(dimlen(ndims), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'dimlen')
@@ -200,7 +205,18 @@ program sigma2p
   allocate(sigma(kz), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'sigma')
 
-  itvarid = 0
+  if ( iodyn == 2 ) then
+    allocate(ps0(jx,iy), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'ps0')
+    allocate(pp(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'pp')
+    allocate(press(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'press')
+  end if
+
+  ippvarid = -1
+  ip0varid = -1
+
   do i = 1 , nvars
     lkvarflag(i) = .false.
     ltvarflag(i) = .false.
@@ -224,6 +240,10 @@ program sigma2p
     else if (varname == 'ps') then
       ipsvarid = i
       psdimids = dimids(1:3)
+    else if (varname == 'ppa') then
+      ippvarid = i
+    else if (varname == 'p0') then
+      ip0varid = i
     else if (varname == 'topo') then
       ishvarid = i
     else if (varname == 'rh') then
@@ -383,6 +403,12 @@ program sigma2p
     deallocate(sigfix)
   end if
 
+  if ( iodyn == 2 ) then
+    istatus = nf90_get_var(ncid, ip0varid, ps0)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable p0.')
+    ps0 = ps0 - ptop * d_100
+  end if
+
   istatus = nf90_inq_varid(ncid, "time", ivarid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable time.')
   istatus = nf90_get_var(ncid, ivarid, times)
@@ -429,6 +455,10 @@ program sigma2p
     end if
   end do
 
+  if ( iodyn == 2 ) then
+    plevs = plevs * 100.0
+  end if
+
   ! Write time dependent variables
 
   do it = 1 , nt
@@ -437,6 +467,22 @@ program sigma2p
     istatus = nf90_put_var(ncout, itvarid, times(it:it), &
                            istart(1:1), icount(1:1))
     call checkncerr(istatus,__FILE__,__LINE__,'Error writing time.')
+    if ( iodyn == 2 .and. ippvarid >= 0 ) then
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = 1
+      istart(4) = it
+      icount(1) = jx
+      icount(2) = iy
+      icount(3) = kz
+      icount(4) = 1
+      istatus = nf90_get_var(ncid, ippvarid, pp, istart(1:4), icount(1:4))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error reading pp.')
+      do k = 1 , kz
+        press(:,:,k) = ps0(:,:) * real(sigma(k)) + &
+                       real(ptop * 100.0) + pp(:,:,k)
+      end do
+    end if
     istart(1) = 1
     istart(2) = 1
     istart(3) = it
@@ -447,6 +493,9 @@ program sigma2p
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
     istatus = nf90_put_var(ncout, ipsvarid, ps, istart(1:3), icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__,'Error writing ps.')
+    if ( iodyn == 1 ) then
+      ps = ps / 100.0
+    end if
     do i = 1 , nvars
       if (.not. ltvarflag(i)) cycle
       if (i == itvarid) cycle
@@ -454,7 +503,7 @@ program sigma2p
 
       if (lkvarflag(i)) then
 
-!       Do interpolation
+        ! Do interpolation
 
         iv = nvdims(i)
         if ( iv == 4 ) then
@@ -473,10 +522,19 @@ program sigma2p
           call checkalloc(istatus,__FILE__,__LINE__,'apvar')
           do ii = 1 , n3d
             xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),(/jx,iy,kz/))
-            if (intscheme(i) == 1) then
-              call intlin_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
-            else if (intscheme(i) == 2) then
-              call intlog_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+            if ( iodyn == 2 ) then
+              if (intscheme(i) == 1) then
+                call intlin(pvar,xvar,ps,press,jx,iy,kz,plevs,np)
+              else if (intscheme(i) == 2) then
+                call intlog(pvar,xvar,ps,press,jx,iy,kz,plevs,np)
+              end if
+              call top2btm(pvar,jx,iy,np)
+            else
+              if (intscheme(i) == 1) then
+                call intlin_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+              else if (intscheme(i) == 2) then
+                call intlog_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+              end if
             end if
             apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
           end do
@@ -516,10 +574,19 @@ program sigma2p
             do ii = 1 , n3d
               xvar = reshape(avar((ii-1)*i3d+(ich-1)*i3d+1:(ii+ich-1)*i3d), &
                              (/jx,iy,kz/))
-              if (intscheme(i) == 1) then
-                call intlin_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
-              else if (intscheme(i) == 2) then
-                call intlog_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+              if ( iodyn == 2 ) then
+                if (intscheme(i) == 1) then
+                  call intlin(pvar,xvar,ps,press,jx,iy,kz,plevs,np)
+                else if (intscheme(i) == 2) then
+                  call intlog(pvar,xvar,ps,press,jx,iy,kz,plevs,np)
+                end if
+                call top2btm(pvar,jx,iy,np)
+              else
+                if (intscheme(i) == 1) then
+                  call intlin_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+                else if (intscheme(i) == 2) then
+                  call intlog_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+                end if
               end if
               apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
             end do
@@ -551,8 +618,14 @@ program sigma2p
     end do
 
     if ( make_rh ) then
-      call humid1_o(tmpvar,qvar,ps,sigma,ptop,jx,iy,kz)
-      call intlin_o(pvar,qvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+      if ( iodyn == 2 ) then
+        call humid1_o(tmpvar,qvar,press,jx,iy,kz)
+        call intlin(pvar,qvar,ps,press,jx,iy,kz,plevs,np)
+        call top2btm(pvar,jx,iy,np)
+      else
+        call humid1_o(tmpvar,qvar,ps,sigma,ptop,jx,iy,kz)
+        call intlin_o(pvar,qvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+      end if
       pvar = pvar * 100.0 ! Put in %
       iv = 4
       istart(iv) = it
@@ -564,8 +637,14 @@ program sigma2p
       call checkncerr(istatus,__FILE__,__LINE__,'Error writing rh variable.')
     end if
     if ( make_hgt ) then
-      call htsig_o(tmpvar,hzvar,ps,topo,sigma,ptop,jx,iy,kz)
-      call height_o(pvar,hzvar,tmpvar,ps,topo,sigma,ptop,jx,iy,kz,plevs,np)
+      if ( iodyn == 2 ) then
+        call nonhydrost(hzvar,tmpvar,ps0,ptop,topo,sigma,jx,iy,kz)
+        call height_o(pvar,hzvar,tmpvar,ps,topo,press,jx,iy,kz,plevs,np)
+        call top2btm(pvar,jx,iy,np)
+      else
+        call htsig_o(tmpvar,hzvar,ps,topo,sigma,ptop,jx,iy,kz)
+        call height_o(pvar,hzvar,tmpvar,ps,topo,sigma,ptop,jx,iy,kz,plevs,np)
+      end if
       iv = 4
       istart(iv) = it
       icount(iv) = 1
@@ -609,12 +688,41 @@ program sigma2p
     deallocate(mslpr)
   end if
 
+  if ( iodyn == 2 ) then
+    deallocate(ps0)
+    deallocate(pp)
+    deallocate(press)
+  end if
+
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close input file '//trim(ncsfile))
   istatus = nf90_close(ncout)
   call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close output file '//trim(ncpfile))
+
+  contains
+
+  subroutine top2btm(x,nlon1,nlat1,nlev1)
+    implicit none
+    integer(ik4) , intent(in) :: nlat1 , nlev1 , nlon1
+    real(rk4) , intent(inout) , dimension(nlon1,nlat1,nlev1) :: x
+
+    integer(ik4) :: i , j , k , kr
+    real(rk4) , dimension(nlev1) :: work
+
+    do j = 1 , nlat1
+      do i = 1 , nlon1
+        do k = 1 , nlev1
+          work(k) = x(i,j,k)
+        end do
+        do k = 1 , nlev1
+          kr = nlev1 - k + 1
+          x(i,j,k) = work(kr)
+        end do
+      end do
+    end do
+  end subroutine top2btm
 
 end program sigma2p
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

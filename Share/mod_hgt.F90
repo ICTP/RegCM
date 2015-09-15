@@ -44,7 +44,13 @@ module mod_hgt
     module procedure height_o_double
     module procedure height_o_double_nonhy
     module procedure height_o_single
+    module procedure height_o_single_nonhy
   end interface height_o
+
+  interface nonhydrost
+    module procedure nonhydrost_double
+    module procedure nonhydrost_single
+  end interface nonhydrost
 
   public :: hydrost , nonhydrost , mslp2ps
   public :: height , height_o
@@ -96,7 +102,7 @@ module mod_hgt
     end do
   end subroutine hydrost
 
-  subroutine nonhydrost(h,t0,p0,ptop,topo,sigmah,ni,nj,nk)
+  subroutine nonhydrost_double(h,t0,p0,ptop,topo,sigmah,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
     real(rk8) , intent(in) :: ptop
@@ -128,7 +134,42 @@ module mod_hgt
         end do
       end do
     end do
-  end subroutine nonhydrost
+  end subroutine nonhydrost_double
+
+  subroutine nonhydrost_single(h,t0,p0,ptop,topo,sigmah,ni,nj,nk)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj , nk
+    real(rk8) , intent(in) :: ptop
+    real(rk4) , intent(in) , dimension(nk) :: sigmah
+    real(rk4) , intent(in) , dimension(ni,nj,nk) :: t0
+    real(rk4) , intent(in) , dimension(ni,nj) :: p0 , topo
+    real(rk4) , intent(out) , dimension(ni,nj,nk) :: h
+
+    integer(ik4) :: i , j , k
+    real(rk4) :: cell , ptp
+    !
+    ! ROUTINE TO COMPUTE HEIGHT FOR THE NON-HYDROSTATIC CORE
+    ! THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
+    ! HEIGHT IS COMPUTED IN THE RCM MODEL.
+    !
+    ptp = real(ptop)
+    do j = 1 , nj
+      do i = 1 , ni
+        cell = (ptp * 100.0) / p0(i,j)
+        h(i,j,nk) = srovg * t0(i,j,nk) * &
+                 log((1.0+cell)/(sigmah(nk)+cell)) + topo(i,j)
+      end do
+    end do
+    do k = nk-1 , 1 , -1
+      do j = 1 , nj
+        do i = 1 , ni
+          cell = (ptp * 100.0) / p0(i,j)
+          h(i,j,k) = h(i,j,k+1) + srovg * t0(i,j,k) * &
+                   log((sigmah(k+1)+cell)/(sigmah(k)+cell))
+        end do
+      end do
+    end do
+  end subroutine nonhydrost_single
 
   subroutine height(hp,h,t,ps,p3d,ht,im,jm,km,p,kp)
     implicit none
@@ -311,7 +352,7 @@ module mod_hgt
         psfc = ps(i,j)
         kbc = 1
         do k = 1 , km
-           if ( p3(i,j,k) < 96000.0 ) kbc = k
+           if ( p3(i,j,k) < 96000.0D0 ) kbc = k
         end do
         do n = 1 , kp
           kt = 1
@@ -411,6 +452,70 @@ module mod_hgt
       end do
     end do
   end subroutine height_o_single
+
+  subroutine height_o_single_nonhy(hp,h,t,ps,ht,p3,im,jm,km,p,kp)
+    implicit none
+    integer(ik4) , intent(in) :: im , jm , km , kp
+    real(rk4) , intent(in) , dimension(im,jm,km) :: h , t , p3
+    real(rk4) , intent(out) , dimension(im,jm,kp) :: hp
+    real(rk4) , intent(in) , dimension(im,jm) :: ht , ps
+    real(rk4) , intent(in) , dimension(kp) :: p
+
+    real(rk4) :: psfc , temp , wb , wt
+    integer(ik4) :: i , j , k , kb , kbc , kt , n
+    !
+    !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
+    !     ON INPUT:
+    !        H AND T ARE HEIGHT AND TEMPERATURE ON SIGMA, RESPECTIVELY.
+    !        PSTAR = SURFACE PRESSURE - MODEL TOP PRESSURE.
+    !        SIG = SIGMA LEVELS.
+    !        P = PRESSURE LEVELS DESIRED.
+    !     ON OUTPUT:
+    !        ALL FIELDS EXCEPT H ARE UNCHANGED.
+    !        H HAS HEIGHT FIELDS AT KP PRESSURE LEVELS.
+    !
+    !  FOR UPWARD EXTRAPOLATION, T IS CONSIDERED TO HAVE 0 VERITCAL DERIV.
+    !  FOR DOWNWARD EXTRAPOLATION, T HAS LAPSE RATE OF TLAPSE (K/KM)
+    !     AND EXTRAPOLATION IS DONE FROM THE LOWEST SIGMA LEVEL ABOVE
+    !     THE BOUNDARY LAYER (TOP ARBITRARILY TAKEN AT SIGMA = BLTOP).
+    !     EQUATION USED IS EXACT SOLUTION TO HYDROSTATIC RELATION,
+    !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
+    !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
+    !
+    do j = 1 , jm
+      do i = 1 , im
+        psfc = ps(i,j)
+        kbc = 1
+        do k = 1 , km
+           if ( p3(i,j,k) < 96000.0 ) kbc = k
+        end do
+        do n = 1 , kp
+          kt = 1
+          do k = 1 , km
+            if ( p3(i,j,k) < p(n) ) kt = k
+          end do
+          kb = kt + 1
+          if ( p(n) <= p3(i,j,1) ) then
+            temp = t(i,j,1)
+            hp(i,j,n) = h(i,j,1) + srovg*temp*log(p3(i,j,1)/p(n))
+          else if ( (p(n) > p3(i,j,1)) .and. (p(n) < p3(i,j,km)) ) then
+            wt = log(p3(i,j,kb)/p(n))/log(p3(i,j,kb)/p3(i,j,kt))
+            wb = log(p(n)/p3(i,j,kt))/log(p3(i,j,kb)/p3(i,j,kt))
+            temp = wt*t(i,j,kt) + wb*t(i,j,kb)
+            temp = (temp+t(i,j,kb))/d_two
+            hp(i,j,n) = h(i,j,kb) + srovg*temp*log(p3(i,j,kb)/p(n))
+          else if ( (p(n) >= p3(i,j,km)) .and. (p(n) <= psfc) ) then
+            temp = t(i,j,km)
+            hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
+          else if ( p(n) > psfc ) then
+            temp = t(i,j,kbc) + slrate*(h(i,j,kbc)-ht(i,j))
+            hp(i,j,n) = ht(i,j) + &
+                  (temp/slrate)*(d_one-exp(+srovg*slrate*log(p(n)/psfc)))
+          end if
+        end do
+      end do
+    end do
+  end subroutine height_o_single_nonhy
 !
 !-----------------------------------------------------------------------
 !
