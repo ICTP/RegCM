@@ -211,17 +211,17 @@ SUBROUTINE KppSolveTRIndirect( JVS, X )
 
       DO i=1,NVAR
         X(i) = X(i)/JVS(LU_DIAG(i))
-	! subtract all nonzero elements in row i of JVS from X
+        ! subtract all nonzero elements in row i of JVS from X
         DO j=LU_DIAG(i)+1,LU_CROW(i+1)-1
-	  X(LU_ICOL(j)) = X(LU_ICOL(j))-JVS(j)*X(i)
-	END DO
+          X(LU_ICOL(j)) = X(LU_ICOL(j))-JVS(j)*X(i)
+        END DO
       END DO
 
       DO i=NVAR, 1, -1
-	! subtract all nonzero elements in row i of JVS from X
+        ! subtract all nonzero elements in row i of JVS from X
         DO j=LU_CROW(i),LU_DIAG(i)-1
-	  X(LU_ICOL(j)) = X(LU_ICOL(j))-JVS(j)*X(i)
-	END DO
+          X(LU_ICOL(j)) = X(LU_ICOL(j))-JVS(j)*X(i)
+        END DO
       END DO
 
 END SUBROUTINE KppSolveTRIndirect
@@ -303,17 +303,17 @@ SUBROUTINE KppSolveTRCmplx( JVS, X )
 
       DO i=1,NVAR
         X(i) = X(i)/JVS(LU_DIAG(i))
-	! subtract all nonzero elements in row i of JVS from X
+        ! subtract all nonzero elements in row i of JVS from X
         DO j=LU_DIAG(i)+1,LU_CROW(i+1)-1
-	  X(LU_ICOL(j)) = X(LU_ICOL(j))-JVS(j)*X(i)
-	END DO
+          X(LU_ICOL(j)) = X(LU_ICOL(j))-JVS(j)*X(i)
+        END DO
       END DO
 
       DO i=NVAR, 1, -1
-	! subtract all nonzero elements in row i of JVS from X
+        ! subtract all nonzero elements in row i of JVS from X
         DO j=LU_CROW(i),LU_DIAG(i)-1
-	  X(LU_ICOL(j)) = X(LU_ICOL(j))-JVS(j)*X(i)
-	END DO
+          X(LU_ICOL(j)) = X(LU_ICOL(j))-JVS(j)*X(i)
+        END DO
       END DO
 
 END SUBROUTINE KppSolveTRCmplx
@@ -336,19 +336,19 @@ SUBROUTINE KppSolveTRCmplxR( JVSR, JVSI, XR, XI )
         den   = JVSR(LU_DIAG(i))**2 + JVSI(LU_DIAG(i))**2
         XR(i) = (XR(i)*JVSR(LU_DIAG(i)) + XI(i)*JVSI(LU_DIAG(i)))/den
         XI(i) = (XI(i)*JVSR(LU_DIAG(i)) - XR(i)*JVSI(LU_DIAG(i)))/den
-	! subtract all nonzero elements in row i of JVS from X
+        ! subtract all nonzero elements in row i of JVS from X
         DO j=LU_DIAG(i)+1,LU_CROW(i+1)-1
-	  XR(LU_ICOL(j)) = XR(LU_ICOL(j))-(JVSR(j)*XR(i) - JVSI(j)*XI(i))
-	  XI(LU_ICOL(j)) = XI(LU_ICOL(j))-(JVSI(j)*XR(i) + JVSR(j)*XI(i))
-	END DO
+          XR(LU_ICOL(j)) = XR(LU_ICOL(j))-(JVSR(j)*XR(i) - JVSI(j)*XI(i))
+          XI(LU_ICOL(j)) = XI(LU_ICOL(j))-(JVSI(j)*XR(i) + JVSR(j)*XI(i))
+        END DO
       END DO
 
       DO i=NVAR, 1, -1
-	! subtract all nonzero elements in row i of JVS from X
+        ! subtract all nonzero elements in row i of JVS from X
         DO j=LU_CROW(i),LU_DIAG(i)-1
-	  XR(LU_ICOL(j)) = XR(LU_ICOL(j))-(JVSR(j)*XR(i) - JVSI(j)*XI(i))
-	  XI(LU_ICOL(j)) = XI(LU_ICOL(j))-(JVSI(j)*XR(i) + JVSR(j)*XI(i))
-	END DO
+          XR(LU_ICOL(j)) = XR(LU_ICOL(j))-(JVSR(j)*XR(i) - JVSI(j)*XI(i))
+          XI(LU_ICOL(j)) = XI(LU_ICOL(j))-(JVSI(j)*XR(i) + JVSR(j)*XI(i))
+        END DO
       END DO
 
 END SUBROUTINE KppSolveTRCmplxR
@@ -428,7 +428,7 @@ END SUBROUTINE KppSolveTRCmplxR
 !          !X(1:3,i) = X(1:3,i) - MATMUL(JVS(1:3,1:3,j),X(1:3,LU_ICOL(j)));
 !          DO k=1,3
 !            DO m=1,3
-!	       X(k,i) = X(k,i) - JVS(k,m,j)*X(m,LU_ICOL(j))
+!               X(k,i) = X(k,i) - JVS(k,m,j)*X(m,LU_ICOL(j))
 !            END DO
 !          END DO
 !        END DO
@@ -440,7 +440,7 @@ END SUBROUTINE KppSolveTRCmplxR
 !          !sum(1:3) = sum(1:3) - MATMUL(JVS(1:3,1:3,j),X(1:3,LU_ICOL(j)));
 !          DO k=1,3
 !            DO m=1,3
-!	       sum(k) = sum(k) - JVS(k,m,j)*X(m,LU_ICOL(j))
+!               sum(k) = sum(k) - JVS(k,m,j)*X(m,LU_ICOL(j))
 !            END DO
 !          END DO
 !        END DO
@@ -470,26 +470,26 @@ END SUBROUTINE KppSolveTRCmplxR
 !        ! X(i) = X(i)/JVS(LU_DIAG(i))
 !        CALL SOL3('T',JVS(1,1,LU_DIAG(i)),IP(1,i),X(1,i))
 !        DO j=LU_DIAG(i)+1,LU_CROW(i+1)-1
-!	  !X(1:3,LU_ICOL(j)) = X(1:3,LU_ICOL(j)) &
+!          !X(1:3,LU_ICOL(j)) = X(1:3,LU_ICOL(j)) &
 !          !    - MATMUL( TRANSPOSE(JVS(1:3,1:3,j)), X(1:3,i) )
 !          DO k=1,3
 !            DO m=1,3
-!	       X(k,LU_ICOL(j)) = X(k,LU_ICOL(j)) - JVS(m,k,j)*X(m,i)
+!               X(k,LU_ICOL(j)) = X(k,LU_ICOL(j)) - JVS(m,k,j)*X(m,i)
 !            END DO
 !          END DO
-!	END DO
+!        END DO
 !      END DO
 !
 !      DO i=NVAR, 1, -1
 !        DO j=LU_CROW(i),LU_DIAG(i)-1
-!	  !X(1:3,LU_ICOL(j)) = X(1:3,LU_ICOL(j)) &
+!          !X(1:3,LU_ICOL(j)) = X(1:3,LU_ICOL(j)) &
 !          !   - MATMUL( TRANSPOSE(JVS(1:3,1:3,j)), X(1:3,i) )
 !          DO k=1,3
 !            DO m=1,3
-!	       X(k,LU_ICOL(j)) = X(k,LU_ICOL(j)) - JVS(m,k,j)*X(m,i)
+!               X(k,LU_ICOL(j)) = X(k,LU_ICOL(j)) - JVS(m,k,j)*X(m,i)
 !            END DO
 !          END DO
-!	END DO
+!        END DO
 !      END DO
 !
 !END SUBROUTINE KppSolveBigTR
@@ -1143,6 +1143,7 @@ END SUBROUTINE KppSolveTR
       REAL(kind=dp), PARAMETER  ::  ONE=1.0_dp, HALF=0.5_dp
       LOGICAL, SAVE   ::  First=.TRUE.
 
+      WLAMCH = 1E-15
       IF (First) THEN
         First = .FALSE.
         Eps = HALF**(16)
@@ -1225,7 +1226,15 @@ END SUBROUTINE KppSolveTR
 
       WDOT = 0.0D0
       IF (N .LE. 0) RETURN
-      IF (incX .EQ. incY) IF (incX-1) 5,20,60
+      IF (incX .EQ. incY) then
+        IF (incX-1 < 0) then
+          GOTO 5
+        else if (incX-1 == 0) then
+          GOTO 20
+        else
+          GOTO 60
+        END IF
+      END IF
 !
 !     Code for unequal or nonpositive increments.
 !

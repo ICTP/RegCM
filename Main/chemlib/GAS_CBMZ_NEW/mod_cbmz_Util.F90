@@ -308,31 +308,6 @@ END SUBROUTINE Shuffle_kpp2user
 ! End of Shuffle_kpp2user function
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!
-! GetMass - compute total mass of selected atoms
-!   Arguments :
-!      CL        - Concentration of all species (local)
-!      Mass      - value of mass balance
-!
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-SUBROUTINE GetMass ( CL, Mass )
-
-! CL - Concentration of all species (local)
-  REAL(kind=dp) :: CL(NSPEC)
-! Mass - value of mass balance
-  REAL(kind=dp) :: Mass(1)
-
-
-END SUBROUTINE GetMass
-
-! End of GetMass function
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
 END MODULE mod_cbmz_Util
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

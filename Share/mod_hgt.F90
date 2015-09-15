@@ -502,7 +502,7 @@ module mod_hgt
             wt = log(p3(i,j,kb)/p(n))/log(p3(i,j,kb)/p3(i,j,kt))
             wb = log(p(n)/p3(i,j,kt))/log(p3(i,j,kb)/p3(i,j,kt))
             temp = wt*t(i,j,kt) + wb*t(i,j,kb)
-            temp = (temp+t(i,j,kb))/d_two
+            temp = (temp+t(i,j,kb))/2.0
             hp(i,j,n) = h(i,j,kb) + srovg*temp*log(p3(i,j,kb)/p(n))
           else if ( (p(n) >= p3(i,j,km)) .and. (p(n) <= psfc) ) then
             temp = t(i,j,km)
@@ -510,7 +510,7 @@ module mod_hgt
           else if ( p(n) > psfc ) then
             temp = t(i,j,kbc) + slrate*(h(i,j,kbc)-ht(i,j))
             hp(i,j,n) = ht(i,j) + &
-                  (temp/slrate)*(d_one-exp(+srovg*slrate*log(p(n)/psfc)))
+                  (temp/slrate)*(1.0-exp(+srovg*slrate*log(p(n)/psfc)))
           end if
         end do
       end do

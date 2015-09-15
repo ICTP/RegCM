@@ -1,3 +1,1326 @@
+module spline
+
+  public
+
+  contains
+
+subroutine r8vec_order_type ( n, a, order )
+
+!*****************************************************************************80
+!
+!! R8VEC_ORDER_TYPE determines the order type of an R8VEC.
+!
+!  Discussion:
+!
+!    An R8VEC is an array of double precision real values.
+!
+!    We assume the array is increasing or decreasing, and we want to
+!    verify that.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    20 July 2000
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, integer ( kind = 4 ) N, the number of entries of the array.
+!
+!    Input, real ( kind = 8 ) A(N), the array to be checked.
+!
+!    Output, integer ( kind = 4 ) ORDER, order indicator:
+!    -1, no discernable order;
+!    0, all entries are equal;
+!    1, ascending order;
+!    2, strictly ascending order;
+!    3, descending order;
+!    4, strictly descending order.
+!
+  implicit none
+
+  integer ( kind = 4 ) n
+
+  real    ( kind = 8 ) a(n)
+  integer ( kind = 4 ) i
+  integer ( kind = 4 ) order
+!
+!  Search for the first value not equal to A(1).
+!
+  i = 1
+
+  do
+
+    i = i + 1
+
+    if ( n < i ) then
+      order = 0
+      return
+    end if
+
+    if ( a(1) < a(i) ) then
+
+      if ( i == 2 ) then
+        order = 2
+      else
+        order = 1
+      end if
+
+      exit
+
+    else if ( a(i) < a(1) ) then
+
+      if ( i == 2 ) then
+        order = 4
+      else
+        order = 3
+      end if
+
+      exit
+
+    end if
+
+  end do
+!
+!  Now we have a "direction".  Examine subsequent entries.
+!
+  do
+
+    i = i + 1
+    if ( n < i ) then
+      exit
+    end if
+
+    if ( order == 1 ) then
+
+      if ( a(i) < a(i-1) ) then
+        order = -1
+        exit
+      end if
+
+    else if ( order == 2 ) then
+
+      if ( a(i) < a(i-1) ) then
+        order = -1
+        exit
+      else if ( a(i) == a(i-1) ) then
+        order = 1
+      end if
+
+    else if ( order == 3 ) then
+
+      if ( a(i-1) < a(i) ) then
+        order = -1
+        exit
+      end if
+
+    else if ( order == 4 ) then
+
+      if ( a(i-1) < a(i) ) then
+        order = -1
+        exit
+      else if ( a(i) == a(i-1) ) then
+        order = 3
+      end if
+
+    end if
+
+  end do
+
+  return
+end subroutine r8vec_order_type
+
+subroutine r8vec_bracket ( n, x, xval, left, right )
+
+!*****************************************************************************80
+!
+!! R8VEC_BRACKET searches a sorted R8VEC for successive brackets of a value.
+!
+!  Discussion:
+!
+!    An R8VEC is an array of double precision real values.
+!
+!    If the values in the vector are thought of as defining intervals
+!    on the real line, then this routine searches for the interval
+!    nearest to or containing the given value.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    06 April 1999
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, integer ( kind = 4 ) N, length of input array.
+!
+!    Input, real ( kind = 8 ) X(N), an array sorted into ascending order.
+!
+!    Input, real ( kind = 8 ) XVAL, a value to be bracketed.
+!
+!    Output, integer ( kind = 4 ) LEFT, RIGHT, the results of the search.
+!    Either:
+!      XVAL < X(1), when LEFT = 1, RIGHT = 2;
+!      X(N) < XVAL, when LEFT = N-1, RIGHT = N;
+!    or
+!      X(LEFT) <= XVAL <= X(RIGHT).
+!
+  implicit none
+
+  integer ( kind = 4 ) n
+
+  integer ( kind = 4 ) i
+  integer ( kind = 4 ) left
+  integer ( kind = 4 ) right
+  real    ( kind = 8 ) x(n)
+  real    ( kind = 8 ) xval
+
+  do i = 2, n - 1
+
+    if ( xval < x(i) ) then
+      left = i - 1
+      right = i
+      return
+    end if
+
+   end do
+
+  left = n - 1
+  right = n
+
+  return
+end subroutine r8vec_bracket
+
+subroutine r8vec_bracket3 ( n, t, tval, left )
+
+!*****************************************************************************80
+!
+!! R8VEC_BRACKET3 finds the interval containing or nearest a given value.
+!
+!  Discussion:
+!
+!    An R8VEC is an array of double precision real values.
+!
+!    The routine always returns the index LEFT of the sorted array
+!    T with the property that either
+!    *  T is contained in the interval [ T(LEFT), T(LEFT+1) ], or
+!    *  T < T(LEFT) = T(1), or
+!    *  T > T(LEFT+1) = T(N).
+!
+!    The routine is useful for interpolation problems, where
+!    the abscissa must be located within an interval of data
+!    abscissas for interpolation, or the "nearest" interval
+!    to the (extreme) abscissa must be found so that extrapolation
+!    can be carried out.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    05 April 1999
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, integer ( kind = 4 ) N, length of the input array.
+!
+!    Input, real ( kind = 8 ) T(N), an array sorted into ascending order.
+!
+!    Input, real ( kind = 8 ) TVAL, a value to be bracketed by entries of T.
+!
+!    Input/output, integer ( kind = 4 ) LEFT.
+!
+!    On input, if 1 <= LEFT <= N-1, LEFT is taken as a suggestion for the
+!    interval [ T(LEFT), T(LEFT+1) ] in which TVAL lies.  This interval
+!    is searched first, followed by the appropriate interval to the left
+!    or right.  After that, a binary search is used.
+!
+!    On output, LEFT is set so that the interval [ T(LEFT), T(LEFT+1) ]
+!    is the closest to TVAL; it either contains TVAL, or else TVAL
+!    lies outside the interval [ T(1), T(N) ].
+!
+  implicit none
+
+  integer ( kind = 4 ) n
+
+  integer ( kind = 4 ) high
+  integer ( kind = 4 ) left
+  integer ( kind = 4 ) low
+  integer ( kind = 4 ) mid
+  real    ( kind = 8 ) t(n)
+  real    ( kind = 8 ) tval
+!
+!  Check the input data.
+!
+  if ( n < 2 ) then
+    write ( *, '(a)' ) ' '
+    write ( *, '(a)' ) 'R8VEC_BRACKET3 - Fatal error!'
+    write ( *, '(a)' ) '  N must be at least 2.'
+    stop
+  end if
+!
+!  If LEFT is not between 1 and N-1, set it to the middle value.
+!
+  if ( left < 1 .or. n - 1 < left ) then
+    left = ( n + 1 ) / 2
+  end if
+!
+!  CASE 1: TVAL < T(LEFT):
+!  Search for TVAL in [T(I), T(I+1)] for intervals I = 1 to LEFT-1.
+!
+  if ( tval < t(left) ) then
+
+    if ( left == 1 ) then
+      return
+    else if ( left == 2 ) then
+      left = 1
+      return
+    else if ( t(left-1) <= tval ) then
+      left = left - 1
+      return
+    else if ( tval <= t(2) ) then
+      left = 1
+      return
+    end if
+!
+!  ...Binary search for TVAL in [T(I), T(I+1)] for intervals I = 2 to LEFT-2.
+!
+    low = 2
+    high = left - 2
+
+    do
+
+      if ( low == high ) then
+        left = low
+        return
+      end if
+
+      mid = ( low + high + 1 ) / 2
+
+      if ( t(mid) <= tval ) then
+        low = mid
+      else
+        high = mid - 1
+      end if
+
+    end do
+!
+!  CASE2: T(LEFT+1) < TVAL:
+!  Search for TVAL in {T(I),T(I+1)] for intervals I = LEFT+1 to N-1.
+!
+  else if ( t(left+1) < tval ) then
+
+    if ( left == n - 1 ) then
+      return
+    else if ( left == n - 2 ) then
+      left = left + 1
+      return
+    else if ( tval <= t(left+2) ) then
+      left = left + 1
+      return
+    else if ( t(n-1) <= tval ) then
+      left = n - 1
+      return
+    end if
+!
+!  ...Binary search for TVAL in [T(I), T(I+1)] for intervals I = LEFT+2 to N-2.
+!
+    low = left + 2
+    high = n - 2
+
+    do
+
+      if ( low == high ) then
+        left = low
+        return
+      end if
+
+      mid = ( low + high + 1 ) / 2
+
+      if ( t(mid) <= tval ) then
+        low = mid
+      else
+        high = mid - 1
+      end if
+
+    end do
+!
+!  CASE3: T(LEFT) <= TVAL <= T(LEFT+1):
+!  T is in [T(LEFT), T(LEFT+1)], as the user said it might be.
+!
+  else
+
+  end if
+
+  return
+end subroutine r8vec_bracket3
+
+subroutine bp01 ( n, x, bern )
+
+!*****************************************************************************80
+!
+!! BP01 evaluates the Bernstein basis polynomials for [0,1] at a point.
+!
+!  Discussion:
+!
+!    For any N greater than or equal to 0, there is a set of N+1 Bernstein
+!    basis polynomials, each of degree N, which form a basis for
+!    all polynomials of degree N on [0,1].
+!
+!    BERN(N,I,X) = [N!/(I!*(N-I)!)] * (1-X)**(N-I) * X**I
+!
+!    N is the degree;
+!
+!    0 <= I <= N indicates which of the N+1 basis polynomials
+!    of degree N to choose;
+!
+!    X is a point in [0,1] at which to evaluate the basis polynomial.
+!
+!  First values:
+!
+!    B(0,0,X) = 1
+!
+!    B(1,0,X) =      1-X
+!    B(1,1,X) =                X
+!
+!    B(2,0,X) =     (1-X)**2
+!    B(2,1,X) = 2 * (1-X)    * X
+!    B(2,2,X) =                X**2
+!
+!    B(3,0,X) =     (1-X)**3
+!    B(3,1,X) = 3 * (1-X)**2 * X
+!    B(3,2,X) = 3 * (1-X)    * X**2
+!    B(3,3,X) =                X**3
+!
+!    B(4,0,X) =     (1-X)**4
+!    B(4,1,X) = 4 * (1-X)**3 * X
+!    B(4,2,X) = 6 * (1-X)**2 * X**2
+!    B(4,3,X) = 4 * (1-X)    * X**3
+!    B(4,4,X) =                X**4
+!
+!  Special values:
+!
+!    B(N,I,1/2) = C(N,K) / 2**N
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    12 February 2004
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Reference:
+!
+!    David Kahaner, Cleve Moler, Steven Nash,
+!    Numerical Methods and Software,
+!    Prentice Hall, 1989,
+!    ISBN: 0-13-627258-4,
+!    LC: TA345.K34.
+!
+!  Parameters:
+!
+!    Input, integer ( kind = 4 ) N, the degree of the Bernstein basis
+!    polynomials.  N must be at least 0.
+!
+!    Input, real ( kind = 8 ) X, the evaluation point.
+!
+!    Output, real ( kind = 8 ) BERN(0:N), the values of the N+1 Bernstein basis
+!    polynomials at X.
+!
+  implicit none
+
+  integer ( kind = 4 ) n
+
+  real    ( kind = 8 ) bern(0:n)
+  integer ( kind = 4 ) i
+  integer ( kind = 4 ) j
+  real    ( kind = 8 ) x
+
+  if ( n == 0 ) then
+
+    bern(0) = 1.0D+00
+
+  else if ( 0 < n ) then
+
+    bern(0) = 1.0D+00 - x
+    bern(1) = x
+
+    do i = 2, n
+      bern(i) = x * bern(i-1)
+      do j = i-1, 1, -1
+        bern(j) = x * bern(j-1) + ( 1.0D+00 - x ) * bern(j)
+      end do
+      bern(0) = ( 1.0D+00 - x ) * bern(0)
+    end do
+
+  end if
+
+  return
+end subroutine bp01
+
+subroutine bpab ( n, a, b, x, bern )
+
+!*****************************************************************************80
+!
+!! BPAB evaluates the Bernstein basis polynomials for [A,B] at a point.
+!
+!  Discussion:
+!
+!    BERN(N,I,X) = [N!/(I!*(N-I)!)] * (B-X)**(N-I) * (X-A)**I / (B-A)**N
+!
+!    B(0,0,X) =   1
+!
+!    B(1,0,X) = (      B-X                ) / (B-A)
+!    B(1,1,X) = (                 X-A     ) / (B-A)
+!
+!    B(2,0,X) = (     (B-X)**2            ) / (B-A)**2
+!    B(2,1,X) = ( 2 * (B-X)    * (X-A)    ) / (B-A)**2
+!    B(2,2,X) = (                (X-A)**2 ) / (B-A)**2
+!
+!    B(3,0,X) = (     (B-X)**3            ) / (B-A)**3
+!    B(3,1,X) = ( 3 * (B-X)**2 * (X-A)    ) / (B-A)**3
+!    B(3,2,X) = ( 3 * (B-X)    * (X-A)**2 ) / (B-A)**3
+!    B(3,3,X) = (                (X-A)**3 ) / (B-A)**3
+!
+!    B(4,0,X) = (     (B-X)**4            ) / (B-A)**4
+!    B(4,1,X) = ( 4 * (B-X)**3 * (X-A)    ) / (B-A)**4
+!    B(4,2,X) = ( 6 * (B-X)**2 * (X-A)**2 ) / (B-A)**4
+!    B(4,3,X) = ( 4 * (B-X)    * (X-A)**3 ) / (B-A)**4
+!    B(4,4,X) = (                (X-A)**4 ) / (B-A)**4
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    12 February 2004
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Reference:
+!
+!    David Kahaner, Cleve Moler, Steven Nash,
+!    Numerical Methods and Software,
+!    Prentice Hall, 1989,
+!    ISBN: 0-13-627258-4,
+!    LC: TA345.K34.
+!
+!  Parameters:
+!
+!    Input, integer ( kind = 4 ) N, the degree of the Bernstein basis
+!    polynomials.  There is a set of N+1 Bernstein basis polynomials, each
+!    of degree N, which form a basis for polynomials of degree N on [A,B].
+!    N must be at least 0.
+!
+!    Input, real ( kind = 8 ) A, B, the endpoints of the interval on which the
+!    polynomials are to be based.  A and B should not be equal.
+!    Input, real ( kind = 8 ) X, the point at which the polynomials are to be
+!    evaluated.  X need not lie in the interval [A,B].
+!
+!    Output, real ( kind = 8 ) BERN(0:N), the values of the N+1 Bernstein basis
+!    polynomials at X.
+!
+  implicit none
+
+  integer ( kind = 4 ) n
+
+  real    ( kind = 8 ) a
+  real    ( kind = 8 ) b
+  real    ( kind = 8 ) bern(0:n)
+  integer ( kind = 4 ) i
+  integer ( kind = 4 ) j
+  real    ( kind = 8 ) x
+
+  if ( b == a ) then
+    write ( *, '(a)' ) ' '
+    write ( *, '(a)' ) 'BPAB - Fatal error!'
+    write ( *, '(a,g14.6)' ) '  A = B = ', a
+    stop
+  end if
+
+  if ( n == 0 ) then
+
+    bern(0) = 1.0D+00
+
+  else if ( 0 < n ) then
+
+    bern(0) = ( b - x ) / ( b - a )
+    bern(1) = ( x - a ) / ( b - a )
+
+    do i = 2, n
+      bern(i) = ( x - a ) * bern(i-1) / ( b - a )
+      do j = i-1, 1, -1
+        bern(j) = ( ( b - x ) * bern(j) + ( x - a ) * bern(j-1) ) / ( b - a )
+      end do
+      bern(0) = ( b - x ) * bern(0) / ( b - a )
+    end do
+
+  end if
+
+  return
+end subroutine bpab
+
+logical function r8vec_distinct ( n, x )
+
+!*****************************************************************************80
+!
+!! R8VEC_DISTINCT is true if the entries in an R8VEC are distinct.
+!
+!  Discussion:
+!
+!    An R8VEC is an array of double precision real values.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    16 September 1999
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, integer ( kind = 4 ) N, the number of entries in the vector.
+!
+!    Input, real ( kind = 8 ) X(N), the vector to be checked.
+!
+!    Output, logical R8VEC_DISTINCT is TRUE if all N elements of X
+!    are distinct.
+!
+  implicit none
+
+  integer ( kind = 4 ) n
+
+  integer ( kind = 4 ) i
+  integer ( kind = 4 ) j
+  real    ( kind = 8 ) x(n)
+
+  r8vec_distinct = .false.
+
+  do i = 2, n
+    do j = 1, i - 1
+      if ( x(i) == x(j) ) then
+        return
+      end if
+    end do
+  end do
+
+  r8vec_distinct = .true.
+
+  return
+end function r8vec_distinct
+
+subroutine r8vec_unique_count ( n, a, tol, unique_num )
+
+!*****************************************************************************80
+!
+!! R8VEC_UNIQUE_COUNT counts the unique elements in an unsorted R8VEC.
+!
+!  Discussion:
+!
+!    An R8VEC is an array of double precision real values.
+!
+!    Because the array is unsorted, this algorithm is O(N^2).
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    08 December 2004
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, integer ( kind = 4 ) N, the number of elements of A.
+!
+!    Input, real ( kind = 8 ) A(N), the unsorted array to examine.
+!
+!    Input, real ( kind = 8 ) TOL, a nonnegative tolerance for equality.
+!    Set it to 0.0 for the strictest test.
+!
+!    Output, integer ( kind = 4 ) UNIQUE_NUM, the number of unique elements.
+!
+  implicit none
+
+  integer ( kind = 4 ) n
+
+  real    ( kind = 8 ) a(n)
+  integer ( kind = 4 ) i
+  integer ( kind = 4 ) j
+  integer ( kind = 4 ) unique_num
+  real    ( kind = 8 ) tol
+
+  unique_num = 0
+
+  do i = 1, n
+
+    unique_num = unique_num + 1
+
+    do j = 1, i - 1
+
+      if ( abs ( a(i) - a(j) ) <= tol ) then
+        unique_num = unique_num - 1
+        exit
+      end if
+
+    end do
+
+  end do
+
+  return
+end subroutine r8vec_unique_count
+
+subroutine r8vec_uniform_01 ( n, seed, r )
+
+!*****************************************************************************80
+!
+!! R8VEC_UNIFORM_01 returns a unit pseudorandom R8VEC.
+!
+!  Discussion:
+!
+!    An R8VEC is an array of double precision real values.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    19 August 2004
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Reference:
+!
+!    Paul Bratley, Bennett Fox, Linus Schrage,
+!    A Guide to Simulation,
+!    Springer Verlag, pages 201-202, 1983.
+!
+!    Bennett Fox,
+!    Algorithm 647:
+!    Implementation and Relative Efficiency of Quasirandom
+!    Sequence Generators,
+!    ACM Transactions on Mathematical Software,
+!    Volume 12, Number 4, pages 362-376, 1986.
+!
+!    Peter Lewis, Allen Goodman, James Miller,
+!    A Pseudo-Random Number Generator for the System/360,
+!    IBM Systems Journal,
+!    Volume 8, pages 136-143, 1969.
+!
+!  Parameters:
+!
+!    Input, integer ( kind = 4 ) M, the number of entries in the vector.
+!
+!    Input/output, integer ( kind = 4 ) SEED, the "seed" value, which should
+!    NOT be 0.  On output, SEED has been updated.
+!
+!    Output, real ( kind = 8 ) R(N), the vector of pseudorandom values.
+!
+  implicit none
+
+  integer ( kind = 4 ) n
+
+  integer ( kind = 4 ) i
+  integer ( kind = 4 ) k
+  integer ( kind = 4 ) seed
+  real    ( kind = 8 ) r(n)
+
+  do i = 1, n
+
+    k = seed / 127773
+
+    seed = 16807 * ( seed - k * 127773 ) - k * 2836
+
+    if ( seed < 0 ) then
+      seed = seed + 2147483647
+    end if
+
+    r(i) = real ( seed, kind = 8 ) * 4.656612875D-10
+
+  end do
+
+  return
+end subroutine r8vec_uniform_01
+
+subroutine r8_swap ( x, y )
+
+!*****************************************************************************80
+!
+!! R8_SWAP swaps two real values.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    01 May 2000
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input/output, real ( kind = 8 ) X, Y.  On output, the values of X and
+!    Y have been interchanged.
+!
+  implicit none
+
+  real    ( kind = 8 ) x
+  real    ( kind = 8 ) y
+  real    ( kind = 8 ) z
+
+  z = x
+  x = y
+  y = z
+
+  return
+end subroutine r8_swap
+
+subroutine r83_np_fs ( n, a, b, x )
+
+!*****************************************************************************80
+!
+!! R83_NP_FS factors and solves an R83 system.
+!
+!  Discussion:
+!
+!    The R83 storage format is used for a tridiagonal matrix.
+!    The superdiagonal is stored in entries (1,2:N), the diagonal in
+!    entries (2,1:N), and the subdiagonal in (3,1:N-1).  Thus, the
+!    original matrix is "collapsed" vertically into the array.
+!
+!    This algorithm requires that each diagonal entry be nonzero.
+!    It does not use pivoting, and so can fail on systems that
+!    are actually nonsingular.
+!
+!    Here is how an R83 matrix of order 5 would be stored:
+!
+!       *  A12 A23 A34 A45
+!      A11 A22 A33 A44 A55
+!      A21 A32 A43 A54  *
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    02 November 2003
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, integer ( kind = 4 ) N, the order of the linear system.
+!
+!    Input/output, real ( kind = 8 ) A(3,N).
+!    On input, the tridiagonal matrix.
+!    On output, the data in these vectors has been overwritten
+!    by factorization information.
+!
+!    Input, real ( kind = 8 ) B(N), the right hand side of the linear system.
+!
+!    Output, real ( kind = 8 ) X(N), the solution of the linear system.
+!
+  implicit none
+
+  integer ( kind = 4 ) n
+
+  real    ( kind = 8 ) a(3,n)
+  real    ( kind = 8 ) b(n)
+  integer ( kind = 4 ) i
+  real    ( kind = 8 ) x(n)
+  real    ( kind = 8 ) xmult
+!
+!  The diagonal entries can't be zero.
+!
+  do i = 1, n
+    if ( a(2,i) == 0.0D+00 ) then
+      write ( *, '(a)' ) ' '
+      write ( *, '(a)' ) 'R83_NP_FS - Fatal error!'
+      write ( *, '(a,i8,a)' ) '  A(2,', i, ') = 0.'
+      return
+    end if
+  end do
+
+  x(1:n) = b(1:n)
+
+  do i = 2, n
+    xmult = a(3,i-1) / a(2,i-1)
+    a(2,i) = a(2,i) - xmult * a(1,i)
+    x(i)   = x(i)   - xmult * x(i-1)
+  end do
+
+  x(n) = x(n) / a(2,n)
+  do i = n-1, 1, -1
+    x(i) = ( x(i) - a(1,i+1) * x(i+1) ) / a(2,i)
+  end do
+
+  return
+end subroutine r83_np_fs
+
+subroutine basis_matrix_overhauser_nul ( alpha, mbasis )
+
+!*****************************************************************************80
+!
+!! BASIS_MATRIX_OVERHAUSER_NUL sets the nonuniform left Overhauser basis matrix.
+!
+!  Discussion:
+!
+!    This basis matrix assumes that the data points P1, P2, and
+!    P3 are not uniformly spaced in T, and that P1 corresponds to T = 0,
+!    and P2 to T = 1.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    27 August 1999
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, real ( kind = 8 ) ALPHA.
+!    ALPHA = || P2 - P1 || / ( || P3 - P2 || + || P2 - P1 || )
+!
+!    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
+!
+  implicit none
+
+  real    ( kind = 8 ) alpha
+  real    ( kind = 8 ) mbasis(3,3)
+
+  mbasis(1,1) =   1.0D+00 / alpha
+  mbasis(1,2) = - 1.0D+00 / ( alpha * ( 1.0D+00 - alpha ) )
+  mbasis(1,3) =   1.0D+00 / ( 1.0D+00 - alpha )
+
+  mbasis(2,1) = - ( 1.0D+00 + alpha ) / alpha
+  mbasis(2,2) =   1.0D+00 / ( alpha * ( 1.0D+00 - alpha ) )
+  mbasis(2,3) = - alpha / ( 1.0D+00 - alpha )
+
+  mbasis(3,1) =   1.0D+00
+  mbasis(3,2) =   0.0D+00
+  mbasis(3,3) =   0.0D+00
+
+  return
+end subroutine basis_matrix_overhauser_nul
+
+subroutine basis_matrix_overhauser_nonuni ( alpha, beta, mbasis )
+
+!*****************************************************************************80
+!
+!! BASIS_MATRIX_OVERHAUSER_NONUNI: nonuniform Overhauser spline basis matrix.
+!
+!  Discussion:
+!
+!    This basis matrix assumes that the data points P1, P2, P3 and
+!    P4 are not uniformly spaced in T, and that P2 corresponds to T = 0,
+!    and P3 to T = 1.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    05 April 1999
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, real ( kind = 8 ) ALPHA, BETA.
+!    ALPHA = || P2 - P1 || / ( || P3 - P2 || + || P2 - P1 || )
+!    BETA  = || P3 - P2 || / ( || P4 - P3 || + || P3 - P2 || ).
+!
+!    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
+!
+  implicit none
+
+  real    ( kind = 8 ) alpha
+  real    ( kind = 8 ) beta
+  real    ( kind = 8 ) mbasis(4,4)
+
+  mbasis(1,1) = - ( 1.0D+00 - alpha ) * ( 1.0D+00 - alpha ) / alpha
+  mbasis(1,2) =   beta + ( 1.0D+00 - alpha ) / alpha
+  mbasis(1,3) =   alpha - 1.0D+00 / ( 1.0D+00 - beta )
+  mbasis(1,4) =   beta * beta / ( 1.0D+00 - beta )
+
+  mbasis(2,1) =   2.0D+00 * ( 1.0D+00 - alpha ) * ( 1.0D+00 - alpha ) / alpha
+  mbasis(2,2) = ( - 2.0D+00 * ( 1.0D+00 - alpha ) - alpha * beta ) / alpha
+  mbasis(2,3) = ( 2.0D+00 * ( 1.0D+00 - alpha ) &
+    - beta * ( 1.0D+00 - 2.0D+00 * alpha ) ) / ( 1.0D+00 - beta )
+  mbasis(2,4) = - beta * beta / ( 1.0D+00 - beta )
+
+  mbasis(3,1) = - ( 1.0D+00 - alpha ) * ( 1.0D+00 - alpha ) / alpha
+  mbasis(3,2) =   ( 1.0D+00 - 2.0D+00 * alpha ) / alpha
+  mbasis(3,3) =   alpha
+  mbasis(3,4) =   0.0D+00
+
+  mbasis(4,1) =   0.0D+00
+  mbasis(4,2) =   1.0D+00
+  mbasis(4,3) =   0.0D+00
+  mbasis(4,4) =   0.0D+00
+
+  return
+end subroutine basis_matrix_overhauser_nonuni
+
+subroutine basis_matrix_overhauser_nur ( beta, mbasis )
+
+!*****************************************************************************80
+!
+!! BASIS_MATRIX_OVERHAUSER_NUR: the nonuniform right Overhauser basis matrix.
+!
+!  Discussion:
+!
+!    This basis matrix assumes that the data points PN-2, PN-1, and
+!    PN are not uniformly spaced in T, and that PN-1 corresponds to T = 0,
+!    and PN to T = 1.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    27 August 1999
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, real ( kind = 8 ) BETA.
+!    BETA = || P(N) - P(N-1) ||
+!         / ( || P(N) - P(N-1) || + || P(N-1) - P(N-2) || )
+!
+!    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
+!
+  implicit none
+
+  real    ( kind = 8 ) beta
+  real    ( kind = 8 ) mbasis(3,3)
+
+  mbasis(1,1) =   1.0D+00 / beta
+  mbasis(1,2) = - 1.0D+00 / ( beta * ( 1.0D+00 - beta ) )
+  mbasis(1,3) =   1.0D+00 / ( 1.0D+00 - beta )
+
+  mbasis(2,1) = - ( 1.0D+00 + beta ) / beta
+  mbasis(2,2) =   1.0D+00 / ( beta * ( 1.0D+00 - beta ) )
+  mbasis(2,3) = - beta / ( 1.0D+00 - beta )
+
+  mbasis(3,1) =   1.0D+00
+  mbasis(3,2) =   0.0D+00
+  mbasis(3,3) =   0.0D+00
+
+  return
+end subroutine basis_matrix_overhauser_nur
+
+subroutine basis_matrix_overhauser_uni ( mbasis )
+
+!*****************************************************************************80
+!
+!! BASIS_MATRIX_OVERHAUSER_UNI sets the uniform Overhauser spline basis matrix.
+!
+!  Discussion:
+!
+!    This basis matrix assumes that the data points P1, P2, P3 and
+!    P4 are uniformly spaced in T, and that P2 corresponds to T = 0,
+!    and P3 to T = 1.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    05 April 1999
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Reference:
+!
+!    James Foley, Andries vanDam, Steven Feiner, John Hughes,
+!    Computer Graphics, Principles and Practice,
+!    Second Edition,
+!    Addison Wesley, 1995,
+!    ISBN: 0201848406,
+!    LC: T385.C5735.
+!
+!  Parameters:
+!
+!    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
+!
+  implicit none
+
+  real    ( kind = 8 ) mbasis(4,4)
+
+  mbasis(1,1) = - 1.0D+00 / 2.0D+00
+  mbasis(1,2) =   3.0D+00 / 2.0D+00
+  mbasis(1,3) = - 3.0D+00 / 2.0D+00
+  mbasis(1,4) =   1.0D+00 / 2.0D+00
+
+  mbasis(2,1) =   2.0D+00 / 2.0D+00
+  mbasis(2,2) = - 5.0D+00 / 2.0D+00
+  mbasis(2,3) =   4.0D+00 / 2.0D+00
+  mbasis(2,4) = - 1.0D+00 / 2.0D+00
+
+  mbasis(3,1) = - 1.0D+00 / 2.0D+00
+  mbasis(3,2) =   0.0D+00
+  mbasis(3,3) =   1.0D+00 / 2.0D+00
+  mbasis(3,4) =   0.0D+00
+
+  mbasis(4,1) =   0.0D+00
+  mbasis(4,2) =   2.0D+00 / 2.0D+00
+  mbasis(4,3) =   0.0D+00
+  mbasis(4,4) =   0.0D+00
+
+  return
+end subroutine basis_matrix_overhauser_uni
+
+subroutine basis_matrix_overhauser_uni_l ( mbasis )
+
+!*****************************************************************************80
+!
+!! BASIS_MATRIX_OVERHAUSER_UNI_L sets the left uniform Overhauser basis matrix.
+!
+!  Discussion:
+!
+!    This basis matrix assumes that the data points P1, P2, and P3
+!    are not uniformly spaced in T, and that P1 corresponds to T = 0,
+!    and P2 to T = 1.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    05 April 1999
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
+!
+  implicit none
+
+  real    ( kind = 8 ) mbasis(3,3)
+
+  mbasis(1,1) =   2.0D+00
+  mbasis(1,2) = - 4.0D+00
+  mbasis(1,3) =   2.0D+00
+
+  mbasis(2,1) = - 3.0D+00
+  mbasis(2,2) =   4.0D+00
+  mbasis(2,3) = - 1.0D+00
+
+  mbasis(3,1) =   1.0D+00
+  mbasis(3,2) =   0.0D+00
+  mbasis(3,3) =   0.0D+00
+
+  return
+end subroutine basis_matrix_overhauser_uni_l
+
+subroutine basis_matrix_overhauser_uni_r ( mbasis )
+
+!*****************************************************************************80
+!
+!! BASIS_MATRIX_OVERHAUSER_UNI_R sets the right uniform Overhauser basis matrix.
+!
+!  Discussion:
+!
+!    This basis matrix assumes that the data points P(N-2), P(N-1),
+!    and P(N) are uniformly spaced in T, and that P(N-1) corresponds to
+!    T = 0, and P(N) to T = 1.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    05 April 1999
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
+!
+  implicit none
+
+  real    ( kind = 8 ) mbasis(3,3)
+
+  mbasis(1,1) =   2.0D+00
+  mbasis(1,2) = - 4.0D+00
+  mbasis(1,3) =   2.0D+00
+
+  mbasis(2,1) = - 3.0D+00
+  mbasis(2,2) =   4.0D+00
+  mbasis(2,3) = - 1.0D+00
+
+  mbasis(3,1) =   1.0D+00
+  mbasis(3,2) =   0.0D+00
+  mbasis(3,3) =   0.0D+00
+
+  return
+end subroutine basis_matrix_overhauser_uni_r
+
+subroutine basis_matrix_tmp ( left, n, mbasis, ndata, tdata, ydata, tval, yval )
+
+!*****************************************************************************80
+!
+!! BASIS_MATRIX_TMP computes Q = T * MBASIS * P
+!
+!  Discussion:
+!
+!    YDATA is a vector of data values, most frequently the values of some
+!    function sampled at uniformly spaced points.  MBASIS is the basis
+!    matrix for a particular kind of spline.  T is a vector of the
+!    powers of the normalized difference between TVAL and the left
+!    endpoint of the interval.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    10 February 2004
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, integer ( kind = 4 ) LEFT, indicats that TVAL is in the interval
+!    [ TDATA(LEFT), TDATA(LEFT+1) ], or that this is the "nearest"
+!    interval to TVAL.
+!    For TVAL < TDATA(1), use LEFT = 1.
+!    For TDATA(NDATA) < TVAL, use LEFT = NDATA - 1.
+!
+!    Input, integer ( kind = 4 ) N, the order of the basis matrix.
+!
+!    Input, real ( kind = 8 ) MBASIS(N,N), the basis matrix.
+!
+!    Input, integer ( kind = 4 ) NDATA, the dimension of the vectors TDATA
+!    and YDATA.
+!
+!    Input, real ( kind = 8 ) TDATA(NDATA), the abscissa values.  This routine
+!    assumes that the TDATA values are uniformly spaced, with an
+!    increment of 1.0.
+!
+!    Input, real ( kind = 8 ) YDATA(NDATA), the data values to be
+!    interpolated or approximated.
+!
+!    Input, real ( kind = 8 ) TVAL, the value of T at which the spline is to be
+!    evaluated.
+!
+!    Output, real ( kind = 8 ) YVAL, the value of the spline at TVAL.
+!
+  implicit none
+
+  integer ( kind = 4 ), parameter :: maxn = 4
+  integer ( kind = 4 ) n
+  integer ( kind = 4 ) ndata
+
+  real    ( kind = 8 ) arg
+  integer ( kind = 4 ) first
+  integer ( kind = 4 ) i
+  integer ( kind = 4 ) j
+  integer ( kind = 4 ) left
+  real    ( kind = 8 ) mbasis(n,n)
+  real    ( kind = 8 ) tdata(ndata)
+  real    ( kind = 8 ) tval
+  real    ( kind = 8 ) tvec(maxn)
+  real    ( kind = 8 ) ydata(ndata)
+  real    ( kind = 8 ) yval
+
+  if ( left == 1 ) then
+    arg = 0.5D+00 * ( tval - tdata(left) )
+    first = left
+  else if ( left < ndata - 1 ) then
+    arg = tval - tdata(left)
+    first = left - 1
+  else if ( left == ndata - 1 ) then
+    arg = 0.5D+00 * ( 1.0D+00 + tval - tdata(left) )
+    first = left - 1
+  end if
+!
+!  TVEC(I) = ARG^(N-I).
+!
+  tvec(n) = 1.0D+00
+  do i = n-1, 1, -1
+    tvec(i) = arg * tvec(i+1)
+  end do
+
+  yval = 0.0D+00
+  do j = 1, n
+    yval = yval + dot_product ( tvec(1:n), mbasis(1:n,j) ) &
+      * ydata(first - 1 + j)
+  end do
+
+  return
+end subroutine basis_matrix_tmp
+
 subroutine basis_function_b_val ( tdata, tval, yval )
 
 !*****************************************************************************80
@@ -90,7 +1413,8 @@ subroutine basis_function_b_val ( tdata, tval, yval )
   end if
 
   return
-end
+end subroutine basis_function_b_val
+
 subroutine basis_function_beta_val ( beta1, beta2, tdata, tval, yval )
 
 !*****************************************************************************80
@@ -225,7 +1549,8 @@ subroutine basis_function_beta_val ( beta1, beta2, tdata, tval, yval )
     + 2.0D+00 * beta1**3 )
 
   return
-end
+end subroutine basis_function_beta_val
+
 subroutine basis_matrix_b_uni ( mbasis )
 
 !*****************************************************************************80
@@ -272,7 +1597,8 @@ subroutine basis_matrix_b_uni ( mbasis )
     (/ 4, 4 /) ), kind = 8 ) / 6.0D+00
 
   return
-end
+end subroutine basis_matrix_b_uni
+
 subroutine basis_matrix_beta_uni ( beta1, beta2, mbasis )
 
 !*****************************************************************************80
@@ -352,7 +1678,8 @@ subroutine basis_matrix_beta_uni ( beta1, beta2, mbasis )
   mbasis(1:4,1:4) = mbasis(1:4,1:4) / delta
 
   return
-end
+end subroutine basis_matrix_beta_uni
+
 subroutine basis_matrix_bezier ( mbasis )
 
 !*****************************************************************************80
@@ -418,7 +1745,8 @@ subroutine basis_matrix_bezier ( mbasis )
   mbasis(4,4) =  0.0D+00
 
   return
-end
+end subroutine basis_matrix_bezier
+
 subroutine basis_matrix_hermite ( mbasis )
 
 !*****************************************************************************80
@@ -481,421 +1809,8 @@ subroutine basis_matrix_hermite ( mbasis )
   mbasis(4,4) =  0.0D+00
 
   return
-end
-subroutine basis_matrix_overhauser_nonuni ( alpha, beta, mbasis )
+end subroutine basis_matrix_hermite
 
-!*****************************************************************************80
-!
-!! BASIS_MATRIX_OVERHAUSER_NONUNI: nonuniform Overhauser spline basis matrix.
-!
-!  Discussion:
-!
-!    This basis matrix assumes that the data points P1, P2, P3 and
-!    P4 are not uniformly spaced in T, and that P2 corresponds to T = 0,
-!    and P3 to T = 1.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    05 April 1999
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, real ( kind = 8 ) ALPHA, BETA.
-!    ALPHA = || P2 - P1 || / ( || P3 - P2 || + || P2 - P1 || )
-!    BETA  = || P3 - P2 || / ( || P4 - P3 || + || P3 - P2 || ).
-!
-!    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
-!
-  implicit none
-
-  real    ( kind = 8 ) alpha
-  real    ( kind = 8 ) beta
-  real    ( kind = 8 ) mbasis(4,4)
-
-  mbasis(1,1) = - ( 1.0D+00 - alpha ) * ( 1.0D+00 - alpha ) / alpha
-  mbasis(1,2) =   beta + ( 1.0D+00 - alpha ) / alpha
-  mbasis(1,3) =   alpha - 1.0D+00 / ( 1.0D+00 - beta )
-  mbasis(1,4) =   beta * beta / ( 1.0D+00 - beta )
-
-  mbasis(2,1) =   2.0D+00 * ( 1.0D+00 - alpha ) * ( 1.0D+00 - alpha ) / alpha
-  mbasis(2,2) = ( - 2.0D+00 * ( 1.0D+00 - alpha ) - alpha * beta ) / alpha
-  mbasis(2,3) = ( 2.0D+00 * ( 1.0D+00 - alpha ) &
-    - beta * ( 1.0D+00 - 2.0D+00 * alpha ) ) / ( 1.0D+00 - beta )
-  mbasis(2,4) = - beta * beta / ( 1.0D+00 - beta )
-
-  mbasis(3,1) = - ( 1.0D+00 - alpha ) * ( 1.0D+00 - alpha ) / alpha
-  mbasis(3,2) =   ( 1.0D+00 - 2.0D+00 * alpha ) / alpha
-  mbasis(3,3) =   alpha
-  mbasis(3,4) =   0.0D+00
-
-  mbasis(4,1) =   0.0D+00
-  mbasis(4,2) =   1.0D+00
-  mbasis(4,3) =   0.0D+00
-  mbasis(4,4) =   0.0D+00
-
-  return
-end
-subroutine basis_matrix_overhauser_nul ( alpha, mbasis )
-
-!*****************************************************************************80
-!
-!! BASIS_MATRIX_OVERHAUSER_NUL sets the nonuniform left Overhauser basis matrix.
-!
-!  Discussion:
-!
-!    This basis matrix assumes that the data points P1, P2, and
-!    P3 are not uniformly spaced in T, and that P1 corresponds to T = 0,
-!    and P2 to T = 1.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    27 August 1999
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, real ( kind = 8 ) ALPHA.
-!    ALPHA = || P2 - P1 || / ( || P3 - P2 || + || P2 - P1 || )
-!
-!    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
-!
-  implicit none
-
-  real    ( kind = 8 ) alpha
-  real    ( kind = 8 ) mbasis(3,3)
-
-  mbasis(1,1) =   1.0D+00 / alpha
-  mbasis(1,2) = - 1.0D+00 / ( alpha * ( 1.0D+00 - alpha ) )
-  mbasis(1,3) =   1.0D+00 / ( 1.0D+00 - alpha )
-
-  mbasis(2,1) = - ( 1.0D+00 + alpha ) / alpha
-  mbasis(2,2) =   1.0D+00 / ( alpha * ( 1.0D+00 - alpha ) )
-  mbasis(2,3) = - alpha / ( 1.0D+00 - alpha )
-
-  mbasis(3,1) =   1.0D+00
-  mbasis(3,2) =   0.0D+00
-  mbasis(3,3) =   0.0D+00
-
-  return
-end
-subroutine basis_matrix_overhauser_nur ( beta, mbasis )
-
-!*****************************************************************************80
-!
-!! BASIS_MATRIX_OVERHAUSER_NUR: the nonuniform right Overhauser basis matrix.
-!
-!  Discussion:
-!
-!    This basis matrix assumes that the data points PN-2, PN-1, and
-!    PN are not uniformly spaced in T, and that PN-1 corresponds to T = 0,
-!    and PN to T = 1.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    27 August 1999
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, real ( kind = 8 ) BETA.
-!    BETA = || P(N) - P(N-1) ||
-!         / ( || P(N) - P(N-1) || + || P(N-1) - P(N-2) || )
-!
-!    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
-!
-  implicit none
-
-  real    ( kind = 8 ) beta
-  real    ( kind = 8 ) mbasis(3,3)
-
-  mbasis(1,1) =   1.0D+00 / beta
-  mbasis(1,2) = - 1.0D+00 / ( beta * ( 1.0D+00 - beta ) )
-  mbasis(1,3) =   1.0D+00 / ( 1.0D+00 - beta )
-
-  mbasis(2,1) = - ( 1.0D+00 + beta ) / beta
-  mbasis(2,2) =   1.0D+00 / ( beta * ( 1.0D+00 - beta ) )
-  mbasis(2,3) = - beta / ( 1.0D+00 - beta )
-
-  mbasis(3,1) =   1.0D+00
-  mbasis(3,2) =   0.0D+00
-  mbasis(3,3) =   0.0D+00
-
-  return
-end
-subroutine basis_matrix_overhauser_uni ( mbasis )
-
-!*****************************************************************************80
-!
-!! BASIS_MATRIX_OVERHAUSER_UNI sets the uniform Overhauser spline basis matrix.
-!
-!  Discussion:
-!
-!    This basis matrix assumes that the data points P1, P2, P3 and
-!    P4 are uniformly spaced in T, and that P2 corresponds to T = 0,
-!    and P3 to T = 1.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    05 April 1999
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Reference:
-!
-!    James Foley, Andries vanDam, Steven Feiner, John Hughes,
-!    Computer Graphics, Principles and Practice,
-!    Second Edition,
-!    Addison Wesley, 1995,
-!    ISBN: 0201848406,
-!    LC: T385.C5735.
-!
-!  Parameters:
-!
-!    Output, real ( kind = 8 ) MBASIS(4,4), the basis matrix.
-!
-  implicit none
-
-  real    ( kind = 8 ) mbasis(4,4)
-
-  mbasis(1,1) = - 1.0D+00 / 2.0D+00
-  mbasis(1,2) =   3.0D+00 / 2.0D+00
-  mbasis(1,3) = - 3.0D+00 / 2.0D+00
-  mbasis(1,4) =   1.0D+00 / 2.0D+00
-
-  mbasis(2,1) =   2.0D+00 / 2.0D+00
-  mbasis(2,2) = - 5.0D+00 / 2.0D+00
-  mbasis(2,3) =   4.0D+00 / 2.0D+00
-  mbasis(2,4) = - 1.0D+00 / 2.0D+00
-
-  mbasis(3,1) = - 1.0D+00 / 2.0D+00
-  mbasis(3,2) =   0.0D+00
-  mbasis(3,3) =   1.0D+00 / 2.0D+00
-  mbasis(3,4) =   0.0D+00
-
-  mbasis(4,1) =   0.0D+00
-  mbasis(4,2) =   2.0D+00 / 2.0D+00
-  mbasis(4,3) =   0.0D+00
-  mbasis(4,4) =   0.0D+00
-
-  return
-end
-subroutine basis_matrix_overhauser_uni_l ( mbasis )
-
-!*****************************************************************************80
-!
-!! BASIS_MATRIX_OVERHAUSER_UNI_L sets the left uniform Overhauser basis matrix.
-!
-!  Discussion:
-!
-!    This basis matrix assumes that the data points P1, P2, and P3
-!    are not uniformly spaced in T, and that P1 corresponds to T = 0,
-!    and P2 to T = 1.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    05 April 1999
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
-!
-  implicit none
-
-  real    ( kind = 8 ) mbasis(3,3)
-
-  mbasis(1,1) =   2.0D+00
-  mbasis(1,2) = - 4.0D+00
-  mbasis(1,3) =   2.0D+00
-
-  mbasis(2,1) = - 3.0D+00
-  mbasis(2,2) =   4.0D+00
-  mbasis(2,3) = - 1.0D+00
-
-  mbasis(3,1) =   1.0D+00
-  mbasis(3,2) =   0.0D+00
-  mbasis(3,3) =   0.0D+00
-
-  return
-end
-subroutine basis_matrix_overhauser_uni_r ( mbasis )
-
-!*****************************************************************************80
-!
-!! BASIS_MATRIX_OVERHAUSER_UNI_R sets the right uniform Overhauser basis matrix.
-!
-!  Discussion:
-!
-!    This basis matrix assumes that the data points P(N-2), P(N-1),
-!    and P(N) are uniformly spaced in T, and that P(N-1) corresponds to
-!    T = 0, and P(N) to T = 1.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    05 April 1999
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
-!
-  implicit none
-
-  real    ( kind = 8 ) mbasis(3,3)
-
-  mbasis(1,1) =   2.0D+00
-  mbasis(1,2) = - 4.0D+00
-  mbasis(1,3) =   2.0D+00
-
-  mbasis(2,1) = - 3.0D+00
-  mbasis(2,2) =   4.0D+00
-  mbasis(2,3) = - 1.0D+00
-
-  mbasis(3,1) =   1.0D+00
-  mbasis(3,2) =   0.0D+00
-  mbasis(3,3) =   0.0D+00
-
-  return
-end
-subroutine basis_matrix_tmp ( left, n, mbasis, ndata, tdata, ydata, tval, yval )
-
-!*****************************************************************************80
-!
-!! BASIS_MATRIX_TMP computes Q = T * MBASIS * P
-!
-!  Discussion:
-!
-!    YDATA is a vector of data values, most frequently the values of some
-!    function sampled at uniformly spaced points.  MBASIS is the basis
-!    matrix for a particular kind of spline.  T is a vector of the
-!    powers of the normalized difference between TVAL and the left
-!    endpoint of the interval.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    10 February 2004
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, integer ( kind = 4 ) LEFT, indicats that TVAL is in the interval
-!    [ TDATA(LEFT), TDATA(LEFT+1) ], or that this is the "nearest"
-!    interval to TVAL.
-!    For TVAL < TDATA(1), use LEFT = 1.
-!    For TDATA(NDATA) < TVAL, use LEFT = NDATA - 1.
-!
-!    Input, integer ( kind = 4 ) N, the order of the basis matrix.
-!
-!    Input, real ( kind = 8 ) MBASIS(N,N), the basis matrix.
-!
-!    Input, integer ( kind = 4 ) NDATA, the dimension of the vectors TDATA
-!    and YDATA.
-!
-!    Input, real ( kind = 8 ) TDATA(NDATA), the abscissa values.  This routine
-!    assumes that the TDATA values are uniformly spaced, with an
-!    increment of 1.0.
-!
-!    Input, real ( kind = 8 ) YDATA(NDATA), the data values to be
-!    interpolated or approximated.
-!
-!    Input, real ( kind = 8 ) TVAL, the value of T at which the spline is to be
-!    evaluated.
-!
-!    Output, real ( kind = 8 ) YVAL, the value of the spline at TVAL.
-!
-  implicit none
-
-  integer ( kind = 4 ), parameter :: maxn = 4
-  integer ( kind = 4 ) n
-  integer ( kind = 4 ) ndata
-
-  real    ( kind = 8 ) arg
-  integer ( kind = 4 ) first
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) left
-  real    ( kind = 8 ) mbasis(n,n)
-  real    ( kind = 8 ) tdata(ndata)
-  real    ( kind = 8 ) tval
-  real    ( kind = 8 ) tvec(maxn)
-  real    ( kind = 8 ) ydata(ndata)
-  real    ( kind = 8 ) yval
-
-  if ( left == 1 ) then
-    arg = 0.5D+00 * ( tval - tdata(left) )
-    first = left
-  else if ( left < ndata - 1 ) then
-    arg = tval - tdata(left)
-    first = left - 1
-  else if ( left == ndata - 1 ) then
-    arg = 0.5D+00 * ( 1.0D+00 + tval - tdata(left) )
-    first = left - 1
-  end if
-!
-!  TVEC(I) = ARG^(N-I).
-!
-  tvec(n) = 1.0D+00
-  do i = n-1, 1, -1
-    tvec(i) = arg * tvec(i+1)
-  end do
-
-  yval = 0.0D+00
-  do j = 1, n
-    yval = yval + dot_product ( tvec(1:n), mbasis(1:n,j) ) &
-      * ydata(first - 1 + j)
-  end do
-
-  return
-end
 subroutine bc_val ( n, t, xcon, ycon, xval, yval )
 
 !*****************************************************************************80
@@ -972,8 +1887,9 @@ subroutine bc_val ( n, t, xcon, ycon, xval, yval )
   yval = dot_product ( ycon(0:n), bval(0:n) )
 
   return
-end
-function bez_val ( n, x, a, b, y )
+end subroutine bc_val
+
+real ( kind = 8 ) function bez_val ( n, x, a, b, y )
 
 !*****************************************************************************80
 !
@@ -1043,7 +1959,6 @@ function bez_val ( n, x, a, b, y )
 
   real    ( kind = 8 ) a
   real    ( kind = 8 ) b
-  real    ( kind = 8 ) bez_val
   real    ( kind = 8 ) bval(0:n)
   real    ( kind = 8 ) x
   real    ( kind = 8 ) x01
@@ -1065,218 +1980,8 @@ function bez_val ( n, x, a, b, y )
   bez_val = dot_product ( y(0:n), bval(0:n) )
 
   return
-end
-subroutine bp01 ( n, x, bern )
+end function bez_val
 
-!*****************************************************************************80
-!
-!! BP01 evaluates the Bernstein basis polynomials for [0,1] at a point.
-!
-!  Discussion:
-!
-!    For any N greater than or equal to 0, there is a set of N+1 Bernstein
-!    basis polynomials, each of degree N, which form a basis for
-!    all polynomials of degree N on [0,1].
-!
-!    BERN(N,I,X) = [N!/(I!*(N-I)!)] * (1-X)**(N-I) * X**I
-!
-!    N is the degree;
-!
-!    0 <= I <= N indicates which of the N+1 basis polynomials
-!    of degree N to choose;
-!
-!    X is a point in [0,1] at which to evaluate the basis polynomial.
-!
-!  First values:
-!
-!    B(0,0,X) = 1
-!
-!    B(1,0,X) =      1-X
-!    B(1,1,X) =                X
-!
-!    B(2,0,X) =     (1-X)**2
-!    B(2,1,X) = 2 * (1-X)    * X
-!    B(2,2,X) =                X**2
-!
-!    B(3,0,X) =     (1-X)**3
-!    B(3,1,X) = 3 * (1-X)**2 * X
-!    B(3,2,X) = 3 * (1-X)    * X**2
-!    B(3,3,X) =                X**3
-!
-!    B(4,0,X) =     (1-X)**4
-!    B(4,1,X) = 4 * (1-X)**3 * X
-!    B(4,2,X) = 6 * (1-X)**2 * X**2
-!    B(4,3,X) = 4 * (1-X)    * X**3
-!    B(4,4,X) =                X**4
-!
-!  Special values:
-!
-!    B(N,I,1/2) = C(N,K) / 2**N
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    12 February 2004
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Reference:
-!
-!    David Kahaner, Cleve Moler, Steven Nash,
-!    Numerical Methods and Software,
-!    Prentice Hall, 1989,
-!    ISBN: 0-13-627258-4,
-!    LC: TA345.K34.
-!
-!  Parameters:
-!
-!    Input, integer ( kind = 4 ) N, the degree of the Bernstein basis
-!    polynomials.  N must be at least 0.
-!
-!    Input, real ( kind = 8 ) X, the evaluation point.
-!
-!    Output, real ( kind = 8 ) BERN(0:N), the values of the N+1 Bernstein basis
-!    polynomials at X.
-!
-  implicit none
-
-  integer ( kind = 4 ) n
-
-  real    ( kind = 8 ) bern(0:n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  real    ( kind = 8 ) x
-
-  if ( n == 0 ) then
-
-    bern(0) = 1.0D+00
-
-  else if ( 0 < n ) then
-
-    bern(0) = 1.0D+00 - x
-    bern(1) = x
-
-    do i = 2, n
-      bern(i) = x * bern(i-1)
-      do j = i-1, 1, -1
-        bern(j) = x * bern(j-1) + ( 1.0D+00 - x ) * bern(j)
-      end do
-      bern(0) = ( 1.0D+00 - x ) * bern(0)
-    end do
-
-  end if
-
-  return
-end
-subroutine bpab ( n, a, b, x, bern )
-
-!*****************************************************************************80
-!
-!! BPAB evaluates the Bernstein basis polynomials for [A,B] at a point.
-!
-!  Discussion:
-!
-!    BERN(N,I,X) = [N!/(I!*(N-I)!)] * (B-X)**(N-I) * (X-A)**I / (B-A)**N
-!
-!    B(0,0,X) =   1
-!
-!    B(1,0,X) = (      B-X                ) / (B-A)
-!    B(1,1,X) = (                 X-A     ) / (B-A)
-!
-!    B(2,0,X) = (     (B-X)**2            ) / (B-A)**2
-!    B(2,1,X) = ( 2 * (B-X)    * (X-A)    ) / (B-A)**2
-!    B(2,2,X) = (                (X-A)**2 ) / (B-A)**2
-!
-!    B(3,0,X) = (     (B-X)**3            ) / (B-A)**3
-!    B(3,1,X) = ( 3 * (B-X)**2 * (X-A)    ) / (B-A)**3
-!    B(3,2,X) = ( 3 * (B-X)    * (X-A)**2 ) / (B-A)**3
-!    B(3,3,X) = (                (X-A)**3 ) / (B-A)**3
-!
-!    B(4,0,X) = (     (B-X)**4            ) / (B-A)**4
-!    B(4,1,X) = ( 4 * (B-X)**3 * (X-A)    ) / (B-A)**4
-!    B(4,2,X) = ( 6 * (B-X)**2 * (X-A)**2 ) / (B-A)**4
-!    B(4,3,X) = ( 4 * (B-X)    * (X-A)**3 ) / (B-A)**4
-!    B(4,4,X) = (                (X-A)**4 ) / (B-A)**4
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    12 February 2004
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Reference:
-!
-!    David Kahaner, Cleve Moler, Steven Nash,
-!    Numerical Methods and Software,
-!    Prentice Hall, 1989,
-!    ISBN: 0-13-627258-4,
-!    LC: TA345.K34.
-!
-!  Parameters:
-!
-!    Input, integer ( kind = 4 ) N, the degree of the Bernstein basis
-!    polynomials.  There is a set of N+1 Bernstein basis polynomials, each
-!    of degree N, which form a basis for polynomials of degree N on [A,B].
-!    N must be at least 0.
-!
-!    Input, real ( kind = 8 ) A, B, the endpoints of the interval on which the
-!    polynomials are to be based.  A and B should not be equal.
-!    Input, real ( kind = 8 ) X, the point at which the polynomials are to be
-!    evaluated.  X need not lie in the interval [A,B].
-!
-!    Output, real ( kind = 8 ) BERN(0:N), the values of the N+1 Bernstein basis
-!    polynomials at X.
-!
-  implicit none
-
-  integer ( kind = 4 ) n
-
-  real    ( kind = 8 ) a
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) bern(0:n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  real    ( kind = 8 ) x
-
-  if ( b == a ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) 'BPAB - Fatal error!'
-    write ( *, '(a,g14.6)' ) '  A = B = ', a
-    stop
-  end if
-
-  if ( n == 0 ) then
-
-    bern(0) = 1.0D+00
-
-  else if ( 0 < n ) then
-
-    bern(0) = ( b - x ) / ( b - a )
-    bern(1) = ( x - a ) / ( b - a )
-
-    do i = 2, n
-      bern(i) = ( x - a ) * bern(i-1) / ( b - a )
-      do j = i-1, 1, -1
-        bern(j) = ( ( b - x ) * bern(j) + ( x - a ) * bern(j-1) ) / ( b - a )
-      end do
-      bern(0) = ( b - x ) * bern(0) / ( b - a )
-    end do
-
-  end if
-
-  return
-end
 subroutine bpab_approx ( n, a, b, ydata, xval, yval )
 
 !*****************************************************************************80
@@ -1364,7 +2069,8 @@ subroutine bpab_approx ( n, a, b, ydata, xval, yval )
   yval = dot_product ( ydata(0:n), bvec(0:n) )
 
   return
-end
+end subroutine bpab_approx
+
 subroutine chfev ( x1, x2, f1, f2, d1, d2, ne, xe, fe, next, ierr )
 
 !*****************************************************************************80
@@ -1518,7 +2224,8 @@ subroutine chfev ( x1, x2, f1, f2, d1, d2, ne, xe, fe, next, ierr )
   end do
 
   return
-end
+end subroutine chfev
+
 subroutine data_to_dif ( ntab, xtab, ytab, diftab )
 
 !*****************************************************************************80
@@ -1571,7 +2278,6 @@ subroutine data_to_dif ( ntab, xtab, ytab, diftab )
   real    ( kind = 8 ) diftab(ntab)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) j
-  logical r8vec_distinct
   real    ( kind = 8 ) xtab(ntab)
   real    ( kind = 8 ) ytab(ntab)
 
@@ -1597,7 +2303,8 @@ subroutine data_to_dif ( ntab, xtab, ytab, diftab )
   end do
 
   return
-end
+end subroutine data_to_dif
+
 subroutine dif_val ( ntab, xtab, diftab, xval, yval )
 
 !*****************************************************************************80
@@ -1655,7 +2362,8 @@ subroutine dif_val ( ntab, xtab, diftab, xval, yval )
   end do
 
   return
-end
+end subroutine dif_val
+
 subroutine least_set_old ( ntab, xtab, ytab, ndeg, ptab, b, c, d, eps, ierror )
 
 !*****************************************************************************80
@@ -1903,7 +2611,8 @@ subroutine least_set_old ( ntab, xtab, ytab, ndeg, ptab, b, c, d, eps, ierror )
   eps = sqrt ( eps / real ( ntab, kind = 8 ) )
 
   return
-end
+end subroutine least_set_old
+
 subroutine least_val_old ( x, ndeg, b, c, d, value )
 
 !*****************************************************************************80
@@ -1984,7 +2693,8 @@ subroutine least_val_old ( x, ndeg, b, c, d, value )
   end if
 
   return
-end
+end subroutine least_val_old
+
 subroutine least_set ( point_num, x, f, w, nterms, b, c, d )
 
 !*****************************************************************************80
@@ -2145,7 +2855,8 @@ subroutine least_set ( point_num, x, f, w, nterms, b, c, d )
   end do
 
   return
-end
+end subroutine least_set
+
 subroutine least_val ( nterms, b, c, d, x, px )
 
 !*****************************************************************************80
@@ -2244,7 +2955,8 @@ subroutine least_val ( nterms, b, c, d, x, px )
   end do
 
   return
-end
+end subroutine least_val
+
 subroutine least_val2 ( nterms, b, c, d, x, px, pxp )
 
 !*****************************************************************************80
@@ -2346,7 +3058,8 @@ subroutine least_val2 ( nterms, b, c, d, x, px, pxp )
   end do
 
   return
-end
+end subroutine least_val2
+
 subroutine parabola_val2 ( dim_num, ndata, tdata, ydata, left, tval, yval )
 
 !*****************************************************************************80
@@ -2475,8 +3188,9 @@ subroutine parabola_val2 ( dim_num, ndata, tdata, ydata, left, tval, yval )
   end do
 
   return
-end
-function pchst ( arg1, arg2 )
+end subroutine parabola_val2
+
+real ( kind = 8 ) function pchst ( arg1, arg2 )
 
 !*****************************************************************************80
 !
@@ -2522,7 +3236,6 @@ function pchst ( arg1, arg2 )
 
   real    ( kind = 8 ) arg1
   real    ( kind = 8 ) arg2
-  real    ( kind = 8 ) pchst
 
   pchst = sign ( 1.0D+00, arg1 ) * sign ( 1.0D+00, arg2 )
 
@@ -2531,43 +3244,9 @@ function pchst ( arg1, arg2 )
   end if
 
   return
-end
-subroutine r8_swap ( x, y )
+end function pchst
 
-!*****************************************************************************80
-!
-!! R8_SWAP swaps two real values.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    01 May 2000
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input/output, real ( kind = 8 ) X, Y.  On output, the values of X and
-!    Y have been interchanged.
-!
-  implicit none
-
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) y
-  real    ( kind = 8 ) z
-
-  z = x
-  x = y
-  y = z
-
-  return
-end
-function r8_uniform_01 ( seed )
+real ( kind = 8 ) function r8_uniform_01 ( seed )
 
 !*****************************************************************************80
 !
@@ -2621,7 +3300,6 @@ function r8_uniform_01 ( seed )
 
   integer ( kind = 4 ) k
   integer ( kind = 4 ) seed
-  real    ( kind = 8 ) r8_uniform_01
 
   k = seed / 127773
 
@@ -2637,7 +3315,8 @@ function r8_uniform_01 ( seed )
   r8_uniform_01 = real ( seed, kind = 8 ) * 4.656612875E-10
 
   return
-end
+end function r8_uniform_01
+
 subroutine r83_mxv ( n, a, x, b )
 
 !*****************************************************************************80
@@ -2694,91 +3373,8 @@ subroutine r83_mxv ( n, a, x, b )
   b(2:n)   = b(2:n)   + a(3,1:n-1) * x(1:n-1)
 
   return
-end
-subroutine r83_np_fs ( n, a, b, x )
+end subroutine r83_mxv
 
-!*****************************************************************************80
-!
-!! R83_NP_FS factors and solves an R83 system.
-!
-!  Discussion:
-!
-!    The R83 storage format is used for a tridiagonal matrix.
-!    The superdiagonal is stored in entries (1,2:N), the diagonal in
-!    entries (2,1:N), and the subdiagonal in (3,1:N-1).  Thus, the
-!    original matrix is "collapsed" vertically into the array.
-!
-!    This algorithm requires that each diagonal entry be nonzero.
-!    It does not use pivoting, and so can fail on systems that
-!    are actually nonsingular.
-!
-!    Here is how an R83 matrix of order 5 would be stored:
-!
-!       *  A12 A23 A34 A45
-!      A11 A22 A33 A44 A55
-!      A21 A32 A43 A54  *
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    02 November 2003
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, integer ( kind = 4 ) N, the order of the linear system.
-!
-!    Input/output, real ( kind = 8 ) A(3,N).
-!    On input, the tridiagonal matrix.
-!    On output, the data in these vectors has been overwritten
-!    by factorization information.
-!
-!    Input, real ( kind = 8 ) B(N), the right hand side of the linear system.
-!
-!    Output, real ( kind = 8 ) X(N), the solution of the linear system.
-!
-  implicit none
-
-  integer ( kind = 4 ) n
-
-  real    ( kind = 8 ) a(3,n)
-  real    ( kind = 8 ) b(n)
-  integer ( kind = 4 ) i
-  real    ( kind = 8 ) x(n)
-  real    ( kind = 8 ) xmult
-!
-!  The diagonal entries can't be zero.
-!
-  do i = 1, n
-    if ( a(2,i) == 0.0D+00 ) then
-      write ( *, '(a)' ) ' '
-      write ( *, '(a)' ) 'R83_NP_FS - Fatal error!'
-      write ( *, '(a,i8,a)' ) '  A(2,', i, ') = 0.'
-      return
-    end if
-  end do
-
-  x(1:n) = b(1:n)
-
-  do i = 2, n
-    xmult = a(3,i-1) / a(2,i-1)
-    a(2,i) = a(2,i) - xmult * a(1,i)
-    x(i)   = x(i)   - xmult * x(i-1)
-  end do
-
-  x(n) = x(n) / a(2,n)
-  do i = n-1, 1, -1
-    x(i) = ( x(i) - a(1,i+1) * x(i+1) ) / a(2,i)
-  end do
-
-  return
-end
 subroutine r83_uniform ( n, seed, a )
 
 !*****************************************************************************80
@@ -2835,295 +3431,8 @@ subroutine r83_uniform ( n, seed, a )
   a(3,n) = 0.0D+00
 
   return
-end
-subroutine r8vec_bracket ( n, x, xval, left, right )
+end subroutine r83_uniform
 
-!*****************************************************************************80
-!
-!! R8VEC_BRACKET searches a sorted R8VEC for successive brackets of a value.
-!
-!  Discussion:
-!
-!    An R8VEC is an array of double precision real values.
-!
-!    If the values in the vector are thought of as defining intervals
-!    on the real line, then this routine searches for the interval
-!    nearest to or containing the given value.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    06 April 1999
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, integer ( kind = 4 ) N, length of input array.
-!
-!    Input, real ( kind = 8 ) X(N), an array sorted into ascending order.
-!
-!    Input, real ( kind = 8 ) XVAL, a value to be bracketed.
-!
-!    Output, integer ( kind = 4 ) LEFT, RIGHT, the results of the search.
-!    Either:
-!      XVAL < X(1), when LEFT = 1, RIGHT = 2;
-!      X(N) < XVAL, when LEFT = N-1, RIGHT = N;
-!    or
-!      X(LEFT) <= XVAL <= X(RIGHT).
-!
-  implicit none
-
-  integer ( kind = 4 ) n
-
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) right
-  real    ( kind = 8 ) x(n)
-  real    ( kind = 8 ) xval
-
-  do i = 2, n - 1
-
-    if ( xval < x(i) ) then
-      left = i - 1
-      right = i
-      return
-    end if
-
-   end do
-
-  left = n - 1
-  right = n
-
-  return
-end
-subroutine r8vec_bracket3 ( n, t, tval, left )
-
-!*****************************************************************************80
-!
-!! R8VEC_BRACKET3 finds the interval containing or nearest a given value.
-!
-!  Discussion:
-!
-!    An R8VEC is an array of double precision real values.
-!
-!    The routine always returns the index LEFT of the sorted array
-!    T with the property that either
-!    *  T is contained in the interval [ T(LEFT), T(LEFT+1) ], or
-!    *  T < T(LEFT) = T(1), or
-!    *  T > T(LEFT+1) = T(N).
-!
-!    The routine is useful for interpolation problems, where
-!    the abscissa must be located within an interval of data
-!    abscissas for interpolation, or the "nearest" interval
-!    to the (extreme) abscissa must be found so that extrapolation
-!    can be carried out.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    05 April 1999
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, integer ( kind = 4 ) N, length of the input array.
-!
-!    Input, real ( kind = 8 ) T(N), an array sorted into ascending order.
-!
-!    Input, real ( kind = 8 ) TVAL, a value to be bracketed by entries of T.
-!
-!    Input/output, integer ( kind = 4 ) LEFT.
-!
-!    On input, if 1 <= LEFT <= N-1, LEFT is taken as a suggestion for the
-!    interval [ T(LEFT), T(LEFT+1) ] in which TVAL lies.  This interval
-!    is searched first, followed by the appropriate interval to the left
-!    or right.  After that, a binary search is used.
-!
-!    On output, LEFT is set so that the interval [ T(LEFT), T(LEFT+1) ]
-!    is the closest to TVAL; it either contains TVAL, or else TVAL
-!    lies outside the interval [ T(1), T(N) ].
-!
-  implicit none
-
-  integer ( kind = 4 ) n
-
-  integer ( kind = 4 ) high
-  integer ( kind = 4 ) left
-  integer ( kind = 4 ) low
-  integer ( kind = 4 ) mid
-  real    ( kind = 8 ) t(n)
-  real    ( kind = 8 ) tval
-!
-!  Check the input data.
-!
-  if ( n < 2 ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) 'R8VEC_BRACKET3 - Fatal error!'
-    write ( *, '(a)' ) '  N must be at least 2.'
-    stop
-  end if
-!
-!  If LEFT is not between 1 and N-1, set it to the middle value.
-!
-  if ( left < 1 .or. n - 1 < left ) then
-    left = ( n + 1 ) / 2
-  end if
-!
-!  CASE 1: TVAL < T(LEFT):
-!  Search for TVAL in [T(I), T(I+1)] for intervals I = 1 to LEFT-1.
-!
-  if ( tval < t(left) ) then
-
-    if ( left == 1 ) then
-      return
-    else if ( left == 2 ) then
-      left = 1
-      return
-    else if ( t(left-1) <= tval ) then
-      left = left - 1
-      return
-    else if ( tval <= t(2) ) then
-      left = 1
-      return
-    end if
-!
-!  ...Binary search for TVAL in [T(I), T(I+1)] for intervals I = 2 to LEFT-2.
-!
-    low = 2
-    high = left - 2
-
-    do
-
-      if ( low == high ) then
-        left = low
-        return
-      end if
-
-      mid = ( low + high + 1 ) / 2
-
-      if ( t(mid) <= tval ) then
-        low = mid
-      else
-        high = mid - 1
-      end if
-
-    end do
-!
-!  CASE2: T(LEFT+1) < TVAL:
-!  Search for TVAL in {T(I),T(I+1)] for intervals I = LEFT+1 to N-1.
-!
-  else if ( t(left+1) < tval ) then
-
-    if ( left == n - 1 ) then
-      return
-    else if ( left == n - 2 ) then
-      left = left + 1
-      return
-    else if ( tval <= t(left+2) ) then
-      left = left + 1
-      return
-    else if ( t(n-1) <= tval ) then
-      left = n - 1
-      return
-    end if
-!
-!  ...Binary search for TVAL in [T(I), T(I+1)] for intervals I = LEFT+2 to N-2.
-!
-    low = left + 2
-    high = n - 2
-
-    do
-
-      if ( low == high ) then
-        left = low
-        return
-      end if
-
-      mid = ( low + high + 1 ) / 2
-
-      if ( t(mid) <= tval ) then
-        low = mid
-      else
-        high = mid - 1
-      end if
-
-    end do
-!
-!  CASE3: T(LEFT) <= TVAL <= T(LEFT+1):
-!  T is in [T(LEFT), T(LEFT+1)], as the user said it might be.
-!
-  else
-
-  end if
-
-  return
-end
-function r8vec_distinct ( n, x )
-
-!*****************************************************************************80
-!
-!! R8VEC_DISTINCT is true if the entries in an R8VEC are distinct.
-!
-!  Discussion:
-!
-!    An R8VEC is an array of double precision real values.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    16 September 1999
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, integer ( kind = 4 ) N, the number of entries in the vector.
-!
-!    Input, real ( kind = 8 ) X(N), the vector to be checked.
-!
-!    Output, logical R8VEC_DISTINCT is TRUE if all N elements of X
-!    are distinct.
-!
-  implicit none
-
-  integer ( kind = 4 ) n
-
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  logical r8vec_distinct
-  real    ( kind = 8 ) x(n)
-
-  r8vec_distinct = .false.
-
-  do i = 2, n
-    do j = 1, i - 1
-      if ( x(i) == x(j) ) then
-        return
-      end if
-    end do
-  end do
-
-  r8vec_distinct = .true.
-
-  return
-end
 subroutine r8vec_even ( n, alo, ahi, a )
 
 !*****************************************************************************80
@@ -3180,7 +3489,8 @@ subroutine r8vec_even ( n, alo, ahi, a )
   end if
 
   return
-end
+end subroutine r8vec_even
+
 subroutine r8vec_indicator ( n, a )
 
 !*****************************************************************************80
@@ -3221,138 +3531,8 @@ subroutine r8vec_indicator ( n, a )
   end do
 
   return
-end
-subroutine r8vec_order_type ( n, a, order )
+end subroutine r8vec_indicator
 
-!*****************************************************************************80
-!
-!! R8VEC_ORDER_TYPE determines the order type of an R8VEC.
-!
-!  Discussion:
-!
-!    An R8VEC is an array of double precision real values.
-!
-!    We assume the array is increasing or decreasing, and we want to
-!    verify that.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    20 July 2000
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, integer ( kind = 4 ) N, the number of entries of the array.
-!
-!    Input, real ( kind = 8 ) A(N), the array to be checked.
-!
-!    Output, integer ( kind = 4 ) ORDER, order indicator:
-!    -1, no discernable order;
-!    0, all entries are equal;
-!    1, ascending order;
-!    2, strictly ascending order;
-!    3, descending order;
-!    4, strictly descending order.
-!
-  implicit none
-
-  integer ( kind = 4 ) n
-
-  real    ( kind = 8 ) a(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) order
-!
-!  Search for the first value not equal to A(1).
-!
-  i = 1
-
-  do
-
-    i = i + 1
-
-    if ( n < i ) then
-      order = 0
-      return
-    end if
-
-    if ( a(1) < a(i) ) then
-
-      if ( i == 2 ) then
-        order = 2
-      else
-        order = 1
-      end if
-
-      exit
-
-    else if ( a(i) < a(1) ) then
-
-      if ( i == 2 ) then
-        order = 4
-      else
-        order = 3
-      end if
-
-      exit
-
-    end if
-
-  end do
-!
-!  Now we have a "direction".  Examine subsequent entries.
-!
-  do
-
-    i = i + 1
-    if ( n < i ) then
-      exit
-    end if
-
-    if ( order == 1 ) then
-
-      if ( a(i) < a(i-1) ) then
-        order = -1
-        exit
-      end if
-
-    else if ( order == 2 ) then
-
-      if ( a(i) < a(i-1) ) then
-        order = -1
-        exit
-      else if ( a(i) == a(i-1) ) then
-        order = 1
-      end if
-
-    else if ( order == 3 ) then
-
-      if ( a(i-1) < a(i) ) then
-        order = -1
-        exit
-      end if
-
-    else if ( order == 4 ) then
-
-      if ( a(i-1) < a(i) ) then
-        order = -1
-        exit
-      else if ( a(i) == a(i-1) ) then
-        order = 3
-      end if
-
-    end if
-
-  end do
-
-  return
-end
 subroutine r8vec_print ( n, a, title )
 
 !*****************************************************************************80
@@ -3403,7 +3583,8 @@ subroutine r8vec_print ( n, a, title )
   end do
 
   return
-end
+end subroutine r8vec_print
+
 subroutine r8vec_sort_bubble_a ( n, a )
 
 !*****************************************************************************80
@@ -3454,145 +3635,8 @@ subroutine r8vec_sort_bubble_a ( n, a )
   end do
 
   return
-end
-subroutine r8vec_uniform_01 ( n, seed, r )
+end subroutine r8vec_sort_bubble_a
 
-!*****************************************************************************80
-!
-!! R8VEC_UNIFORM_01 returns a unit pseudorandom R8VEC.
-!
-!  Discussion:
-!
-!    An R8VEC is an array of double precision real values.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    19 August 2004
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Reference:
-!
-!    Paul Bratley, Bennett Fox, Linus Schrage,
-!    A Guide to Simulation,
-!    Springer Verlag, pages 201-202, 1983.
-!
-!    Bennett Fox,
-!    Algorithm 647:
-!    Implementation and Relative Efficiency of Quasirandom
-!    Sequence Generators,
-!    ACM Transactions on Mathematical Software,
-!    Volume 12, Number 4, pages 362-376, 1986.
-!
-!    Peter Lewis, Allen Goodman, James Miller,
-!    A Pseudo-Random Number Generator for the System/360,
-!    IBM Systems Journal,
-!    Volume 8, pages 136-143, 1969.
-!
-!  Parameters:
-!
-!    Input, integer ( kind = 4 ) M, the number of entries in the vector.
-!
-!    Input/output, integer ( kind = 4 ) SEED, the "seed" value, which should
-!    NOT be 0.  On output, SEED has been updated.
-!
-!    Output, real ( kind = 8 ) R(N), the vector of pseudorandom values.
-!
-  implicit none
-
-  integer ( kind = 4 ) n
-
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) seed
-  real    ( kind = 8 ) r(n)
-
-  do i = 1, n
-
-    k = seed / 127773
-
-    seed = 16807 * ( seed - k * 127773 ) - k * 2836
-
-    if ( seed < 0 ) then
-      seed = seed + 2147483647
-    end if
-
-    r(i) = real ( seed, kind = 8 ) * 4.656612875D-10
-
-  end do
-
-  return
-end
-subroutine r8vec_unique_count ( n, a, tol, unique_num )
-
-!*****************************************************************************80
-!
-!! R8VEC_UNIQUE_COUNT counts the unique elements in an unsorted R8VEC.
-!
-!  Discussion:
-!
-!    An R8VEC is an array of double precision real values.
-!
-!    Because the array is unsorted, this algorithm is O(N^2).
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    08 December 2004
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, integer ( kind = 4 ) N, the number of elements of A.
-!
-!    Input, real ( kind = 8 ) A(N), the unsorted array to examine.
-!
-!    Input, real ( kind = 8 ) TOL, a nonnegative tolerance for equality.
-!    Set it to 0.0 for the strictest test.
-!
-!    Output, integer ( kind = 4 ) UNIQUE_NUM, the number of unique elements.
-!
-  implicit none
-
-  integer ( kind = 4 ) n
-
-  real    ( kind = 8 ) a(n)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) unique_num
-  real    ( kind = 8 ) tol
-
-  unique_num = 0
-
-  do i = 1, n
-
-    unique_num = unique_num + 1
-
-    do j = 1, i - 1
-
-      if ( abs ( a(i) - a(j) ) <= tol ) then
-        unique_num = unique_num - 1
-        exit
-      end if
-
-    end do
-
-  end do
-
-  return
-end
 subroutine spline_b_val ( ndata, tdata, ydata, tval, yval )
 
 !*****************************************************************************80
@@ -3708,7 +3752,8 @@ subroutine spline_b_val ( ndata, tdata, ydata, tval, yval )
   end if
 
   return
-end
+end subroutine spline_b_val
+
 subroutine spline_beta_val ( beta1, beta2, ndata, tdata, ydata, tval, yval )
 
 !*****************************************************************************80
@@ -3855,7 +3900,8 @@ subroutine spline_beta_val ( beta1, beta2, ndata, tdata, ydata, tval, yval )
   end if
 
   return
-end
+end subroutine spline_beta_val
+
 subroutine spline_bezier_val ( dim_num, interval_num, data_val, point_num, &
   point_t, point_val )
 
@@ -3954,7 +4000,8 @@ subroutine spline_bezier_val ( dim_num, interval_num, data_val, point_num, &
   end do
 
   return
-end
+end subroutine spline_bezier_val
+
 subroutine spline_constant_val ( ndata, tdata, ydata, tval, yval )
 
 !*****************************************************************************80
@@ -4025,7 +4072,8 @@ subroutine spline_constant_val ( ndata, tdata, ydata, tval, yval )
   yval = ydata(ndata)
 
   return
-end
+end subroutine spline_constant_val
+
 subroutine spline_cubic_set ( n, t, y, ibcbeg, ybcbeg, ibcend, ybcend, ypp )
 
 !*****************************************************************************80
@@ -4252,7 +4300,8 @@ subroutine spline_cubic_set ( n, t, y, ibcbeg, ybcbeg, ibcend, ybcend, ypp )
   end if
 
   return
-end
+end subroutine spline_cubic_set
+
 subroutine spline_cubic_val ( n, t, y, ypp, tval, yval, ypval, yppval )
 
 !*****************************************************************************80
@@ -4356,7 +4405,8 @@ subroutine spline_cubic_val ( n, t, y, ypp, tval, yval, ypval, yppval )
   yppval = ypp(left) + dt * ( ypp(right) - ypp(left) ) / h
 
   return
-end
+end subroutine spline_cubic_val
+
 subroutine spline_cubic_val2 ( n, t, y, ypp, left, tval, yval, ypval, yppval )
 
 !*****************************************************************************80
@@ -4472,7 +4522,8 @@ subroutine spline_cubic_val2 ( n, t, y, ypp, left, tval, yval, ypval, yppval )
   yppval = ypp(left) + dt * ( ypp(right) - ypp(left) ) / h
 
   return
-end
+end subroutine spline_cubic_val2
+
 subroutine spline_hermite_set ( ndata, tdata, ydata, ypdata, c )
 
 !*****************************************************************************80
@@ -4567,7 +4618,8 @@ subroutine spline_hermite_set ( ndata, tdata, ydata, ypdata, c )
   c(4,ndata) = 0.0D+00
 
   return
-end
+end subroutine spline_hermite_set
+
 subroutine spline_hermite_val ( ndata, tdata, c, tval, sval, spval )
 
 !*****************************************************************************80
@@ -4669,7 +4721,8 @@ subroutine spline_hermite_val ( ndata, tdata, c, tval, sval, spval )
   spval = c(2,left) + dt * ( 2.0D+00 * c(3,left) + dt * 3.0D+00 * c(4,left) )
 
   return
-end
+end subroutine spline_hermite_val
+
 subroutine spline_linear_int ( ndata, tdata, ydata, a, b, int_val )
 
 !*****************************************************************************80
@@ -4812,7 +4865,8 @@ subroutine spline_linear_int ( ndata, tdata, ydata, a, b, int_val )
   end if
 
   return
-end
+end subroutine spline_linear_int
+
 subroutine spline_linear_intset ( n, int_x, int_v, data_x, data_y )
 
 !*****************************************************************************80
@@ -4909,7 +4963,8 @@ subroutine spline_linear_intset ( n, int_x, int_v, data_x, data_y )
   call r83_np_fs ( n, a, data_y, data_y )
 
   return
-end
+end subroutine spline_linear_intset
+
 subroutine spline_linear_val ( ndata, tdata, ydata, tval, yval, ypval )
 
 !*****************************************************************************80
@@ -4984,7 +5039,8 @@ subroutine spline_linear_val ( ndata, tdata, ydata, tval, yval, ypval )
   yval = ydata(left) +  ( tval - tdata(left) ) * ypval
 
   return
-end
+end subroutine spline_linear_val
+
 subroutine spline_overhauser_nonuni_val ( ndata, tdata, ydata, tval, yval )
 
 !*****************************************************************************80
@@ -5119,7 +5175,8 @@ subroutine spline_overhauser_nonuni_val ( ndata, tdata, ydata, tval, yval )
   end if
 
   return
-end
+end subroutine spline_overhauser_nonuni_val
+
 subroutine spline_overhauser_uni_val ( ndata, tdata, ydata, tval, yval )
 
 !*****************************************************************************80
@@ -5205,7 +5262,8 @@ subroutine spline_overhauser_uni_val ( ndata, tdata, ydata, tval, yval )
   end if
 
   return
-end
+end subroutine spline_overhauser_uni_val
+
 subroutine spline_overhauser_val ( dim_num, ndata, tdata, ydata, tval, yval )
 
 !*****************************************************************************80
@@ -5350,7 +5408,8 @@ subroutine spline_overhauser_val ( dim_num, ndata, tdata, ydata, tval, yval )
   end if
 
   return
-end
+end subroutine spline_overhauser_val
+
 subroutine spline_pchip_set ( n, x, f, d )
 
 !*****************************************************************************80
@@ -5436,7 +5495,6 @@ subroutine spline_pchip_set ( n, x, f, d )
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) nless1
-  real    ( kind = 8 ) pchst
   real    ( kind = 8 ) temp
   real    ( kind = 8 ) w1
   real    ( kind = 8 ) w2
@@ -5578,7 +5636,8 @@ subroutine spline_pchip_set ( n, x, f, d )
   end if
 
   return
-end
+end subroutine spline_pchip_set
+
 subroutine spline_pchip_val ( n, x, f, d, ne, xe, fe )
 
 !*****************************************************************************80
@@ -5842,7 +5901,8 @@ subroutine spline_pchip_val ( n, x, f, d, ne, xe, fe )
   end do
 
   return
-end
+end subroutine spline_pchip_val
+
 subroutine spline_quadratic_val ( ndata, tdata, ydata, tval, yval, ypval )
 
 !*****************************************************************************80
@@ -5959,7 +6019,8 @@ subroutine spline_quadratic_val ( ndata, tdata, ydata, tval, yval, ypval )
   ypval = dif1 + dif2 * ( 2.0D+00 * tval - t1 - t2 )
 
   return
-end
+end subroutine spline_quadratic_val
+
 subroutine timestamp ( )
 
 !*****************************************************************************80
@@ -6037,5 +6098,7 @@ subroutine timestamp ( )
     d, trim ( month(m) ), y, h, ':', n, ':', s, '.', mm, trim ( ampm )
 
   return
-end
+end subroutine timestamp
+
+end module spline
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

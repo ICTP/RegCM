@@ -43,16 +43,12 @@ contains
   implicit none
 
 
-      REAL(kind=dp) :: T, TT,DVAL(NSPEC)
+      REAL(kind=dp) :: T
       REAL(kind=dp) :: RSTATE(20)
       INTEGER :: i
-! LOCAL VARIABLES
-
-      INTEGER IMN(12)                                                   &
-                     ,IIYEAR, IYEAR, IMTH, IDAY, IIY
-      DATA IMN/31,28,31,30,31,30,31,31,30,31,30,31/
 
 !------------------Declaration part for jval----------
+
       integer c_hvin
       integer c_nhv(22)
       REAL(kind=dp) jparam(       22)

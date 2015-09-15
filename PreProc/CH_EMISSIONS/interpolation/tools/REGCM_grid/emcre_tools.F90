@@ -39,8 +39,7 @@ CONTAINS
      REAL(DP)  :: sig
      REAL(DP)  :: u(SIZE(y,1),SIZE(y,2),n)
      REAL(DP)  :: p(SIZE(y,1),SIZE(y,2))
-     INTEGER  :: i,j,k
-
+     INTEGER  :: i,k
 
      y2(:,:,1)=0.0_dp
      u(:,:,1) =0.0_dp

@@ -151,7 +151,7 @@ CONTAINS
 
 
    REAL(KIND=dp) FUNCTION ARR3( A0,B0,A1,B1)
-      REAL A0,B0,A1,B1,FC
+      REAL A0,B0,A1,B1
       REAL(KIND=dp) k1,k2,ex
 
       K1=A0*C_M*(300/TEMP)**(B0)
@@ -219,7 +219,7 @@ SUBROUTINE peroxyrateconstants
 
 implicit none
 integer i, j
-real sperox(nperox), rk_perox(nperox,nperox)
+real(kind=dp) sperox(nperox), rk_perox(nperox,nperox)
 sperox(jch3o2)  =  VAR(indv_CH3O2)!C_CH3O2
 sperox(jethp)   =  VAR(indv_ETHP) ! C_ETHP
 sperox(jro2)    =  VAR(indv_RO2)  ! C_RO2
@@ -238,7 +238,7 @@ end do
 do i = 1, nperox
 do j = 1, nperox
 rk_perox(i,j) = ARR2( Aperox(i,j), Bperox(i,j))
-rk_param(i) = rk_param(i) + rk_perox(i,j)*sperox(j)
+rk_param(i) = rk_param(i) + real(rk_perox(i,j)*sperox(j))
 end do
 end do
 

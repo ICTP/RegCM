@@ -12,27 +12,18 @@ PROGRAM EMCRE
 !
 ! -----------------------------------------------------------------
 
-  USE mo_f2kcli                    ! command line interface
   USE emcre_tools
   USE emcre_netcdf
   USE netcdf
 
   IMPLICIT NONE
 
-  ! VERSION
-  CHARACTER(LEN=*), PARAMETER :: VERSION = '0.4'
-
   ! FOR COMMAND LINE
   CHARACTER(LEN=256) :: EXE          ! program name
   CHARACTER(LEN=256) :: CMD          ! argument
   INTEGER            :: NARG         ! number of arguments
 
-
   CHARACTER(LEN=str_vlong)   :: fname   ! filename
-
-
-  ! ... DATA AND GRID
-  INTEGER                                   :: ntime = 1 ! time steps
 
   !OUTPUT FILE SPECIFICATIONS
   INTEGER, PARAMETER :: bounds = 4
@@ -59,13 +50,8 @@ PROGRAM EMCRE
   ! VARIABLES
   INTEGER                         :: ismthlev
   INTEGER                         :: status       ! status flag
-  INTEGER                         :: jc,jf        ! class/file counter
-  INTEGER                         :: ji, jj, jk, jl, jt, jz, ii
-  INTEGER                         :: nc           ! act. number of classes
-  INTEGER                         :: nf           ! act. number of files
+  INTEGER                         :: ji, jj
   LOGICAL                         :: file_exists  ! checking existence of file
-  ! ... CONVERSION
-  REAL(DP) :: conv                      ! conversion
 
   LOGICAL :: smthbdy , lakedpth, fudge_lnd , fudge_lnd_s , fudge_tex , &
              ltexture , fudge_lak_s , fudge_tex_s , fudge_lak , h2ohgt,&
@@ -296,12 +282,8 @@ CONTAINS
 
     ! LOCAL
     INTEGER,SAVE                :: ncid   ! netCDF-ID
-    INTEGER                     :: dimid_jx, dimid_iy
     INTEGER                     :: varid_xlonc, varid_xlatc
     INTEGER                     :: varid_xlond, varid_xlatd
-
-    CHARACTER(LEN=str_vlong)    :: name_dim   ! line
-
 
     INQUIRE(FILE=TRIM(fname), EXIST=file_exists)
     IF (.not.file_exists) THEN
@@ -365,27 +347,12 @@ CONTAINS
     INTRINSIC :: DATE_AND_TIME, CHAR
 
     ! LOCAL
-    CHARACTER(LEN=*), PARAMETER :: substr = 'nc_dump'
     INTEGER :: ncid      ! netCDF-ID
-    INTEGER :: dimid_lat, dimid_lon, dimid_bounds,dimid_latb, dimid_lonb, dimid_time
-    INTEGER :: varid_lat, varid_lon, varid_bounds,varid_latb, varid_lonb, varid_time
+    INTEGER :: dimid_lat, dimid_lon, dimid_bounds
+    INTEGER :: varid_lat, varid_lon, varid_latb, varid_lonb
     INTEGER :: varid_var, dimid_rank
     INTEGER :: dimid_grid, varid_rank
     INTEGER, DIMENSION (2) :: rank_var
-    INTEGER                  :: jc
-    CHARACTER(LEN=str_long)  :: timestr = ''
-    CHARACTER(LEN=4)         :: yrstr = '    '
-    CHARACTER(LEN=4)         :: yrstr_end = '    '
-    CHARACTER(LEN=4)         :: yrstr_start = '    '
-    CHARACTER(LEN=2000 + MAX_NCLASS*50) :: nmlstr = ''
-    CHARACTER(LEN=4)         :: jcstr = '    '
-    CHARACTER(LEN=4)         :: levstr = '    '
-    CHARACTER(LEN=str_long)  :: scalestr = ''
-    CHARACTER(LEN=str_long)  :: mmassstr = ''
-    CHARACTER(LEN=str_long)  :: globssstr = ''
-    CHARACTER(LEN=str_vlong) :: heightstr = ''
-    CHARACTER(LEN=str_vlong) :: pressstr = ''
-    CHARACTER(LEN=str_vlong) :: ipressstr = ''
     !
     CHARACTER(LEN=8)         :: date
     CHARACTER(LEN=10)        :: time

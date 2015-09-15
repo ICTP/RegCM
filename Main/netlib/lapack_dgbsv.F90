@@ -732,7 +732,7 @@ module lapack_dgbsv
 !
 !     Determine the block size for this environment
 !
-      NB = ILAENV( 1, 'DGBTRF', ' ', M, N, KL, KU )
+      NB = ILAENV( 1, 'DGBTRF', M, N, KL, KU )
 !
 !     The block size must not exceed the limit set by the size of the
 !     local arrays WORK13 and WORK31.
@@ -1849,7 +1849,7 @@ module lapack_dgbsv
 !> \endverbatim
 !>
 !  =====================================================================
-    INTEGER FUNCTION ILAENV( ISPEC, NAME, OPTS, N1, N2, N3, N4 )
+    INTEGER FUNCTION ILAENV( ISPEC, NAME, N1, N2, N3, N4 )
       IMPLICIT NONE
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
@@ -1858,7 +1858,7 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      CHARACTER*( * )    NAME, OPTS
+      CHARACTER*( * )    NAME
       INTEGER            ISPEC, N1, N2, N3, N4
 !     ..
 !
@@ -1874,8 +1874,26 @@ module lapack_dgbsv
 !     ..
 !     .. Executable Statements ..
 !
-      GO TO ( 10, 10, 10, 80, 90, 100, 110, 120, &
-              130, 140, 150, 160, 160, 160, 160, 160 )ISPEC
+      SELECT CASE (ISPEC)
+        CASE (1, 2, 3)
+          GOTO 10
+        CASE (4)
+          GOTO 80
+        CASE (5)
+          GOTO 90
+        CASE (6 , 7)
+          GOTO 110
+        CASE (8)
+          GOTO 120
+        CASE (9)
+          GOTO 130
+        CASE (10)
+          GOTO 140
+        CASE (11)
+          GOTO 150
+        CASE (12, 13, 14, 15, 16)
+          GOTO 160
+      END SELECT
 !
 !     Invalid value for ISPEC
 !
@@ -1943,7 +1961,14 @@ module lapack_dgbsv
       C3 = SUBNAM( 4: 6 )
       C4 = C3( 2: 3 )
 !
-      GO TO ( 50, 60, 70 )ISPEC
+      SELECT CASE (ISPEC)
+        CASE (1)
+          GOTO 50
+        CASE (2)
+          GOTO 60
+        CASE (3)
+          GOTO 70
+      END SELECT
 !
    50 CONTINUE
 !
@@ -2246,7 +2271,7 @@ module lapack_dgbsv
       ILAENV = 2
       RETURN
 !
-  100 CONTINUE
+!  100 CONTINUE
 !
 !     ISPEC = 6:  crossover point for SVD (used by xGELSS and xGESVD)
 !
@@ -2302,7 +2327,7 @@ module lapack_dgbsv
 !
 !     12 <= ISPEC <= 16: xHSEQR or one of its subroutines.
 !
-      ILAENV = IPARMQ( ISPEC, NAME, OPTS, N1, N2, N3, N4 )
+      ILAENV = IPARMQ( ISPEC, N2, N3)
       RETURN
 !
 !     End of ILAENV
@@ -2522,7 +2547,7 @@ module lapack_dgbsv
 !> \endverbatim
 !>
 !  =====================================================================
-    INTEGER FUNCTION IPARMQ( ISPEC, NAME, OPTS, N, ILO, IHI, LWORK )
+    INTEGER FUNCTION IPARMQ( ISPEC, ILO, IHI )
       IMPLICIT NONE
 !
 !  -- LAPACK auxiliary routine (version 3.4.0) --
@@ -2531,14 +2556,13 @@ module lapack_dgbsv
 !     November 2011
 !
 !     .. Scalar Arguments ..
-      INTEGER            IHI, ILO, ISPEC, LWORK, N
-      CHARACTER          NAME*( * ), OPTS*( * )
+      INTEGER            IHI, ILO, ISPEC
 !
 !  ================================================================
 !     .. Parameters ..
-      INTEGER            INMIN, INWIN, INIBL, ISHFTS, ISHFTN , IACC22
+      INTEGER            INMIN, INWIN, INIBL, ISHFTS, IACC22
       PARAMETER          ( INMIN = 12, INWIN = 13, INIBL = 14, &
-                         ISHFTN = 15, IACC22 = 16 )
+                         ISHFTS = 15, IACC22 = 16 )
       INTEGER            NMIN, K22MIN, KACMIN, NIBBLE, KNWSWP
       PARAMETER          ( NMIN = 75, K22MIN = 14, KACMIN = 14, &
                          NIBBLE = 14, KNWSWP = 500 )

@@ -143,7 +143,7 @@ module mod_date
   public :: operator(>) , operator(<) , operator(>=) , &
             operator(<=) , operator(/=)
   public :: print_rcm_time_and_date , print_rcm_time_interval
-  public :: setcal
+  public :: setcal , set_timeunit
   public :: tochar , toint10 , tohours , toiso8601
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
   public :: hourdiff , nextmon , prevmon , yrfirst , nextwk , prevwk
