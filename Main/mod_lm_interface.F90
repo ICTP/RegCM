@@ -420,6 +420,7 @@ module mod_lm_interface
             cdustflx_clm(j,i,n) = sum(lms%dustemiss(:,j,i,n),1) * rdnnsg
           end do
         end do
+      end do
     end if
 #else
     call vecbats(lm,lms)
