@@ -27,6 +27,7 @@ module mod_che_start
   use mod_che_indices
   use mod_che_bdyco
   use mod_che_wetdep
+  use mod_che_chemistry
   use mod_che_carbonaer
   use mod_che_ncio
   use mod_che_mppio
@@ -56,6 +57,9 @@ module mod_che_start
     integer(ik4) :: i , j , k , itr , ibin , jbin , kbin,n
 
     ! A : Intialise chemistry tracer indices
+
+    dtchsolv = dtche
+    kchsolv = ntche
 
     iso2  = 0
     iso4  = 0
@@ -202,11 +206,15 @@ module mod_che_start
       ! gas phas species (CBMZ),
       ! max configuration : number of tracer = number of species
 
+      trac%indcbmz(:) = -1
+      trac%mw(:) = d_zero
       do n = 1,totsp
-       if ( chtrname(itr) == cbmzspec(n))then
-        trac%indcbmz(itr) = n  ! index of the tracer in the CBMZ list of species
-        trac%mw(itr) = mw_cbmz(n) ! correponding molecular weight
-       end if
+        if ( chtrname(itr) == cbmzspec(n) )then
+          ! index of the tracer in the CBMZ list of species
+          trac%indcbmz(itr) = n
+          ! correponding molecular weight
+          trac%mw(itr) = mw_cbmz(n)
+        end if
       end do
 
       if ( myid == italk ) then

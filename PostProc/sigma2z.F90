@@ -397,7 +397,7 @@ program sigma2z
   if ( iodyn == 2 ) then
     istatus = nf90_get_var(ncid, ip0varid, ps0)
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable p0.')
-    ps0 = ps0 - ptop * d_100
+    ps0 = ps0 - real(ptop * d_100)
   end if
 
   istatus = nf90_inq_varid(ncid, "time", ivarid)

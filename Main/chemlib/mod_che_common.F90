@@ -29,6 +29,8 @@ module mod_che_common
   use mod_che_param
   use mod_che_species
   use mod_che_indices
+  use mod_cbmz_global , only : xr , xrin , xrout , c
+  use mod_cbmz_parameters , only : nfix
 
   implicit none
 
@@ -53,7 +55,6 @@ module mod_che_common
 
   real(rk8) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
   real(rk8) , pointer , dimension(:,:,:,:) :: chia , chib
-  real(rk8) , pointer , dimension(:,:,:) :: srclp2
   real(rk8) , pointer , dimension(:,:,:) :: dtrace , wdwout , &
                                            wdrout , wxaq , wxsg , ddv_out
   real(rk8) , pointer , dimension(:,:,:) :: drydepv
@@ -89,13 +90,13 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:,:) :: bndt0 , bndt1 , bndq0 , bndq1
   real(rk8) , pointer , dimension(:,:) :: bndp0 , bndp1
   real(rk8) , pointer , dimension(:,:) :: sp0 , sp1
-  real(rk8) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d , &
-         crhob3d , cpb3d , cfcc , cza , cdzq , ccldfra , crembc , cremrat ,  &
-         cconvpr , crhb3d , cdrydepflx , cwetdepflx , tvirt
+  real(rk8) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d ,  &
+         crhob3d , cpb3d , cpf3d , cfcc , cza , czq , cdzq , ccldfra , &
+         crembc , cremrat ,  cconvpr , crhb3d , cdrydepflx , cwetdepflx , tvirt
   real(rk8) , pointer , dimension(:,:) :: cpsb , ctg , ctga , clndcat , cht , &
          cssw2da , cvegfrac , cxlai2d , csol2d , csdeltk2d , csdelqk2d , &
          cuvdrag , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc ,  &
-         cps2d , cps0
+         cps2d , cps0 , cptrop
   real(rk8) , pointer , dimension(:,:) :: psbb0 , psbb1
   real(rk8) , pointer , dimension(:,:) :: czen
   real(rk8) , pointer , dimension(:,:,:,:) :: ctaucld
@@ -181,11 +182,16 @@ module mod_che_common
       call getmem1d(icarb,1,7,'mod_che_common:icarb')
       call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
 
-      call getmem4d(chemall,jci1,jci2,ici1,ici2, &
-                    1,kz,1,totsp,'mod_che_common:chemall')
-      call getmem3d(srclp2,jci1,jci2,ici1,ici2,1,ntr,'mod_che_common:srclp2')
-      call getmem4d(jphoto,jci1,jci2,ici1,ici2,1,kz, &
-                    1,nphoto,'che_common:jphoto')
+      if ( igaschem == 1 .and. ichsolver > 0 ) then
+        call getmem4d(chemall,jci1,jci2,ici1,ici2, &
+                      1,kz,1,totsp,'mod_che_common:chemall')
+        call getmem4d(jphoto,jci1,jci2,ici1,ici2,1,kz, &
+                      1,nphoto,'che_common:jphoto')
+        call getmem1d(xr,1,totsp,'che_common:xr')
+        call getmem1d(xrin,1,totsp,'che_common:xrin')
+        call getmem1d(xrout,1,totsp,'che_common:xrout')
+        call getmem1d(c,1,totsp+nfix,'che_common:c')
+      end if
 
       call getmem3d(dtrace,jce1,jce2,ice1,ice2,1,ntr,'che_common:dtrace')
       call getmem3d(wdrout,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdrout')

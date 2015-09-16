@@ -87,7 +87,7 @@ module mod_params
 !
     namelist /restartparam/ ifrest , mdate0 , mdate1 , mdate2
 
-    namelist /timeparam/ dtrad , dtsrf , dtabem , dt
+    namelist /timeparam/ dtrad , dtsrf , dtche , dtabem , dt
 
     namelist /outparam/ ifsave , ifatm , ifrad , ifsrf , ifsub , iflak , &
       ifsts , ifchem , ifopt , savfrq , atmfrq , srffrq , subfrq ,       &
@@ -173,8 +173,9 @@ module mod_params
     !
     dtrad = 30.0D0 ! time interval in min solar rad caluclated
     dtsrf = 600.0D0 ! time interval at which bats is called (secs)
+    dtche = 900.0D0 ! time interval at which bats is called (secs)
     dtabem = 12.0D0  ! time interval absorption-emission calculated (hours)
-    dt = 200.0D0    ! time step in seconds
+    dt = 100.0D0    ! time step in seconds
     !-----namelist out      note: * signifies currently not in namelist
     !
     rfstrt = .false.
@@ -753,6 +754,7 @@ module mod_params
     call bcast(dtrad)
     call bcast(dtabem)
     call bcast(dtsrf)
+    call bcast(dtche)
     call bcast(dt)
 
     call bcast(ifsave)
@@ -1128,12 +1130,19 @@ module mod_params
       if ( mod(idnint(dtrad*60.0D0),idnint(dt)) /= 0 ) then
         write (stderr,*) 'DTRAD=' , dtrad , 'DT=' , dt
         call fatal(__FILE__,__LINE__, &
-                   'INCONSISTENT RADIATION TIMESTEPS SPECIFIED')
+                'DTRAD /= N*DT : INCONSISTENT RADIATION TIMESTEP SPECIFIED')
       end if
       if ( mod(idnint(dtsrf),idnint(dt)) /= 0 ) then
         write (stderr,*) 'DTSRF=' , dtsrf , 'DT=' , dt
         call fatal(__FILE__,__LINE__, &
-                   'INCONSISTENT SURFACE TIMESTEPS SPECIFIED')
+                'DTSRF /= N*DT : INCONSISTENT SURFACE TIMESTEP SPECIFIED')
+      end if
+      if ( ichem == 1 ) then
+        if ( mod(idnint(dtche),idnint(dt)) /= 0 ) then
+          write (stderr,*) 'DTCHE=' , dtche , 'DT=' , dt
+          call fatal(__FILE__,__LINE__, &
+                  'DTCHE /= N*DT : INCONSISTENT CHEMISTRY TIMESTEP SPECIFIED')
+        end if
       end if
       if ( ifsrf ) then
         if ( mod(idnint(srffrq*secph),idnint(dtsrf)) /= 0 ) then
@@ -1210,6 +1219,7 @@ module mod_params
     rtsrf = d_one/dble(ntsrf)
     ntrad = idnint((dtrad*secpm)/dtsec)
     rtrad = d_one/dble(ntrad)
+    ntche = idnint(dtche/dtsec)
 
     ktau = 0
 
@@ -1410,6 +1420,8 @@ module mod_params
             'model in minutes : ' , dtrad
       write(stdout,'(a,f12.6)') '  time step for emission  '// &
             'model in hours   : ' , dtabem
+      write(stdout,'(a,f12.6)') '  time step for chemistry '// &
+            'model in seconds : ' , dtche
     end if
 
     if ( nsg > 1 ) then

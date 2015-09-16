@@ -51,31 +51,31 @@ SUBROUTINE KppDecomp( JVS, IER )
 
       INTEGER  :: IER
       REAL(kind=dp) :: JVS(LU_NONZERO), W(NVAR), a
-      INTEGER  :: k, kk, j, jj
+      INTEGER  :: k, kk, kkk , j, jj
 
-      a = 0. ! mz_rs_20050606
       IER = 0
+      a = 0.0D0 ! mz_rs_20050606
       DO k=1,NVAR
         ! mz_rs_20050606: don't check if real value == 0
         ! IF ( JVS( LU_DIAG(k) ) .EQ. 0. ) THEN
         IF ( ABS(JVS(LU_DIAG(k))) < TINY(a) ) THEN
-            IER = k
-            RETURN
+          IER = k
+          RETURN
         END IF
         DO kk = LU_CROW(k), LU_CROW(k+1)-1
-              W( LU_ICOL(kk) ) = JVS(kk)
+          W( LU_ICOL(kk) ) = JVS(kk)
         END DO
         DO kk = LU_CROW(k), LU_DIAG(k)-1
-            j = LU_ICOL(kk)
-            a = -W(j) / JVS( LU_DIAG(j) )
-            W(j) = -a
-            DO jj = LU_DIAG(j)+1, LU_CROW(j+1)-1
-               W( LU_ICOL(jj) ) = W( LU_ICOL(jj) ) + a*JVS(jj)
-            END DO
-         END DO
-         DO kk = LU_CROW(k), LU_CROW(k+1)-1
-            JVS(kk) = W( LU_ICOL(kk) )
-         END DO
+          j = LU_ICOL(kk)
+          a = -W(j) / JVS( LU_DIAG(j) )
+          W(j) = -a
+          DO jj = LU_DIAG(j)+1, LU_CROW(j+1)-1
+            W( LU_ICOL(jj) ) = W( LU_ICOL(jj) ) + a*JVS(jj)
+          END DO
+        END DO
+        DO kk = LU_CROW(k), LU_CROW(k+1)-1
+          JVS(kk) = W( LU_ICOL(kk) )
+        END DO
       END DO
 
 END SUBROUTINE KppDecomp

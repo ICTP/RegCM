@@ -62,7 +62,7 @@
       integer(ik4) , intent(in) :: lmonth , lday , lyear
       real(rk8) , intent(in) :: calday , declin
       integer(ik8) , intent(in) :: ktau
-!
+
       real(rk8) :: facb , facs , fact , facv , pres10 , qsat10 , &
                   shu10 , u10 , v10
       real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec , &
@@ -81,11 +81,10 @@
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
       real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: chevap
-!      real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: checum
-       real(rk8) , dimension (1) :: polrftab
-       integer(ik4) , dimension (1) :: poltab
+!     real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: checum
+      real(rk8) , dimension (1) :: polrftab
+      integer(ik4) , dimension (1) :: poltab
       integer(ik4) :: i , j , ibin , k
-      integer(ik8) :: kchsolv
       !
       !*********************************************************************
       ! A : PRELIMINARY CALCULATIONS
@@ -429,21 +428,19 @@
       !
 
       if ( igaschem == 1 .and. ichsolver > 0 ) then
-        kchsolv = idnint(dtchsolv/dtsec)
         if ( mod(ktau+1,kchsolv) == 0 ) then
           chemten(:,:,:,:) = d_zero
           do j = jci1 , jci2
-            call chemistry(j,lyear,lmonth,lday)
+            call chemistry(j)
           end do
           if ( myid == italk .and. mod(ktau+1,krep) == 0 ) then
             write(stdout,'(a,2g12.5)') ' $$$ Jvalue min/max NO2surf : ', &
               minval(jphoto(:,:,kz,jvNO2 )),  maxval(jphoto(:,:,kz,jvNO2 ))
           end if
-       !    secondary inorganic aerosol solver ( modify also chemten !)
+          ! secondary inorganic aerosol solver ( modify also chemten !)
           if ( iisoropia == 1 ) then
-           call aerodriver
+            call aerodriver
           endif
-
         end if ! end chem timestep
 
         ! add tendency due to chemistry reaction + thermo equilibrium (every dt)

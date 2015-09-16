@@ -86,6 +86,7 @@ module mod_che_interface
     call assignpnt(atms%qxb3d,cqxb3d)
     call assignpnt(atms%rhob3d,crhob3d)
     call assignpnt(atms%pb3d,cpb3d)
+    call assignpnt(atms%pf3d,cpf3d)
     call assignpnt(atms%ps2d,cps2d)
     if ( idynamic == 2 ) then
       call assignpnt(atm0%ps,cps0)
@@ -128,11 +129,13 @@ module mod_che_interface
     call assignpnt(sdelq,csdelqk2d)
 
     call assignpnt(atms%za,cza)
+    call assignpnt(atms%zq,czq)
     call assignpnt(atms%dzq,cdzq)
     call assignpnt(coszrs,czen)
     call assignpnt(ssw2da,cssw2da)
 
     call assignpnt(taucldsp, ctaucld)
+    call assignpnt(ptrop, cptrop)
 
     cba%havebound = ba_cr%havebound
     call assignpnt(ba_cr%bsouth, cba%bsouth)

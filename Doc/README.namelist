@@ -173,6 +173,7 @@
  dtrad  =    30.,   ! time interval solar radiation calculated (minutes)
  dtabem =    18.,   ! time interval absorption-emission calculated (hours)
  dtsrf  =   600.,   ! time interval at which land model is called (seconds)
+ dtche  =   900.,   ! time interval at which chem model is called (seconds)
  /
 !
 ! Model Output control

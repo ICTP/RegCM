@@ -23,7 +23,7 @@ module mod_che_chemistry
   use mod_realkinds
   use mod_dynparam
   use mod_constants
-  use mod_runparams , only : iqv
+  use mod_runparams , only : iqv , calday
   use mod_che_common
   use mod_che_indices
   use mod_che_species
@@ -36,107 +36,70 @@ module mod_che_chemistry
 
   private
 
-  real(rk8) , parameter :: dtchsolv = 900.0D0
+  real(rk8) :: dtchsolv
+  integer(ik8) :: kchsolv
+
+  integer(ik4) , parameter :: kmin = 2
   real(rk8) , parameter :: kb = 1.380658D-19
   real(rk8) , parameter :: mwa = 28.97D0
 
-  public :: chemistry , dtchsolv
+  public :: chemistry , dtchsolv , kchsolv
 
   contains
 
-    subroutine chemistry(j,lyear,lmonth,lday )
+    subroutine chemistry(j)
       implicit none
       integer(ik4) , intent(in) :: j
-      integer(ik4) , intent(in) :: lyear , lmonth , lday
-      ! pressk    is pressure at level k
-      ! presskp1  is pressure at level k+1
-      ! presskm1  is pressue  at level k-1
-      ! heightk   is the approximated height at level k
-      ! heightkp1 is the approximated height at level k+1
-      ! heightkm1 is the approximated height at level k-1
-      real(rk8) :: cfactor , pfact , pss , sfp
-      real(rk8) :: pressk , presskp1 , presskm1
-      real(rk8) :: heightk , heightkp1 , heightkm1
-      real(rk8) , parameter :: scaleH = 7.6 !km
-      integer(ik4) :: i , k , kbl , kab , ic , n
+      real(rk8) :: cfactor , pfact
+      integer(ik4) :: i , k , ic , n
 
       time = dtchsolv
-      !! idate = (lyear-1900)*10000+lmonth*100+lday
 
       ! Begining of i , k loop
-      ! do not solve chemistry for stratosphere (k == 1)
-      do k = 2 , kz
+      ! do not solve chemistry anyway for topmost layer
+      do k = kmin , kz
         do i = ici1 , ici2
-          ! care here pressure4 is considered ???
-          altmid = cpb3d(j,i,k)
-          sfp    = cps2d(j,i)
-          temp   = ctb3d(j,i,k)
-          zenith = dacos(czen(j,i))*raddeg
-          dens   = crhob3d(j,i,k) * 1.D-03 * navgdr / 28.97D0
-          C_M    = altmid*10.0/(kb*temp)
-
-          deptha = d_zero
-          depthb = d_zero
+          altmid   = cpb3d(j,i,k)
+          ! Skip stratosphere ( ? Should we ? )
+          if ( altmid < cptrop(j,i) - d_100 ) cycle
+          temp     = ctb3d(j,i,k)
+          zenith   = dacos(czen(j,i))*raddeg
+          cfactor  = crhob3d(j,i,k) * 1.D-03 * navgdr
+          dens     = cfactor / amd
+          C_M      = altmid*10.0D0/(kb*temp)
+          deptha   = d_zero
+          depthb   = d_zero
           altabove = d_zero
           altbelow = d_zero
 
           if ( ichjphcld == 1 ) then
-            if ( k == kz ) then
-              pressk    = cpb3d(j,i,k)
-              heightk   = -1.0*scaleH*log(pressk/sfp)
-            end if
-            if ( k > 2 ) then
-              if ( ctaucld(j,i,k-1,8) > 0.0 ) then
-                do kab = k-1 , 2 , -1
-                  deptha    = deptha + ctaucld(j,i,kab,8)
-                  pressk    = cpb3d(j,i,kab)
-                  presskp1  = cpb3d(j,i,kab+1)
-                  heightkp1 = -1.0*scaleH*log(presskp1/sfp)
-                  presskm1  = cpb3d(j,i,kab-1)
-                  heightkm1 = -1.0*scaleH*log(presskm1/sfp)
-                  heightk   = 0.5*(heightkp1+heightkm1)
-                  altabove  = altabove + heightk*ctaucld(j,i,kab,8)
-                end do
-                altabove  = altabove/deptha
-              end if
-            end if
-            if ( k > kz ) then
-              if ( ctaucld(j,i,k+1,8) > 0.0 ) then
-                do kbl = kz , k+1 , -1
-                  depthb    = depthb + ctaucld(j,i,kbl,8)
-                  pressk    = cpb3d(j,i,kbl)
-                  presskp1  = cpb3d(j,i,kbl+1)
-                  heightkp1 = -1.0*scaleH*log(presskp1/sfp)
-                  presskm1  = cpb3d(j,i,kbl-1)
-                  heightkm1 = -1.0*scaleH*log(presskm1/sfp)
-                  heightk   = 0.5*(heightkp1+heightkm1)
-                  altbelow  = altbelow + heightk*ctaucld(j,i,kbl,8)
-                end do
-                altbelow  = altbelow/depthb
-              end if
-            end if
+            deptha   = sum(ctaucld(j,i,1:k-1,8))
+            altabove = sum(cdzq(j,i,1:k-1)*ctaucld(j,i,1:k-1,8))
+            depthb   = sum(ctaucld(j,i,k+1:kz,8))
+            altbelow = sum(cdzq(j,i,k+1:kz)*ctaucld(j,i,k+1:kz,8))
+            if ( deptha > d_zero ) altabove = altabove / deptha
+            if ( depthb > d_zero ) altbelow = altbelow / depthb
           end if
 
           ! call the chemistry solver
           xr(:) = d_zero
           xrin(:) = d_zero
+          xrout(:) = d_zero
           ! 1 : initialise xrin with the concentrations from
           !     previous chemsolv step
           do ic = 1 , totsp
             xrin(ic) = chemall(j,i,k,ic)
           end do
           ! 2 : update input concentrations for transported species only
-          cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
-
           do n = 1 , ntr
             if ( trac%indcbmz(n) > 0 ) then
-              xrin(trac%indcbmz(n)) = chib3d(j,i,k,n)*cfactor/trac%mw(n)
+              xrin(trac%indcbmz(n)) = chib3d(j,i,k,n) * cfactor / trac%mw(n)
             end if
           end do
           ! update for water vapor
-          xrin(ind_H2O)  = cqxb3d(j,i,k,iqv)*cfactor / 18.D00
+          xrin(ind_H2O)  = cqxb3d(j,i,k,iqv) * cfactor / amw
 
-          call chemmain
+          call chemmain(calday,dtchsolv)
 
           ! save the concentrations of all species for next chemistry step
           do ic = 1 , totsp
@@ -149,13 +112,12 @@ module mod_che_chemistry
           !
           ! Now calculate chemical tendencies
           ! mole.cm-3.s-1  to kg.kg-1.s-1.ps (consistency with chiten unit)
-          cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
-          pfact = cpsb(j,i)/cfactor/dtchsolv
+          pfact = cpsb(j,i) / cfactor / dtchsolv
 
           do n = 1 , ntr
             if ( trac%indcbmz(n) > 0 ) then
               chemten(j,i,k,n) = (xrout(trac%indcbmz(n)) - &
-                                  xrin(trac%indcbmz(n)))*pfact* trac%mw(n)
+                                  xrin(trac%indcbmz(n))) * pfact * trac%mw(n)
             end if
           end do
         end do ! end i , k loop

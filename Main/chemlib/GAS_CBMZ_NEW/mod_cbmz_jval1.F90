@@ -46,9 +46,9 @@ module mod_cbmz_jval1
       real(rk8) , dimension(56) :: cfac , jfaerz , jfsur
       real(rk8) :: falt , fzen , x
       real(rk8) :: fkn
-      integer(ik4) :: i , ialt , id , ig01 , ig02 , ig11 , ig12 , ig21 ,     &
-                 ig22 , ij , im , iwri , iy , izen , j , jaer , jalb ,  &
-                 jc , jcld , jct , jtem , k , kn
+      integer(ik4) :: i , ialt , ig01 , ig02 , ig11 , ig12 , ig21 , &
+                 ig22 , ij , iwri , izen , j , jaer , jalb ,  jc ,  &
+                 jcld , jct , jtem , k , kn
       real(rk8) , dimension(20,56) :: jfrac
       real(rk8) , dimension(20) :: jfx
 !
@@ -609,22 +609,10 @@ module mod_cbmz_jval1
       end do
 
 !     DATE ADJUSTMENT:
-!     ASSUME THAT INPUT jparam(20)= DATE  (decimal)
-!     either as date factor (-1 to +1)
-!     or DAY NUMBER (1-365)
-!     or YYMMDD (not 00)
-!     DAY FACTOR (X) IS cos(nd*2.*pi/365)
+!     ASSUME THAT INPUT jparam(20) = DAY NUMBER (0-days_per_year)
+!     DAY FACTOR (X) IS cos(nd*2.*pi/days_per_year)
 
-      x = jparam(20)
-      if ( x > d_one .and. x < 10000.0D0 ) then
-        x = dcos(d_two*mathpi*(jparam(20)/dayspy))
-      end if
-      if ( x >= 10000.0D0 ) then
-        iy = idint((x+0.001D0)/10000.0D0)
-        im = idint((x+0.001D0-10000.0D0*dble(iy))/100.0D0)
-        id = idint((x+0.001D0-10000.0D0*dble(iy)-100.0D0*dble(im)))
-        x = dcos(d_two*mathpi*(dble(id+30*(im-1))/dayspy))
-      end if
+      x = dcos(d_two*mathpi*(jparam(20)/dayspy))
 
 !     ADJUSTMENT:  x IS DAY FACTOR, -1. to +1.  NOW MAKE DAY ADJUSTMENT.
       x = d_one + 0.0344D0*x

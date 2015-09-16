@@ -42,7 +42,7 @@ MODULE mod_cbmz_Integrator
 
   USE mod_cbmz_Precision
   USE mod_cbmz_Global, ONLY: FIX, RCONST, TIME, ATOL, RTOL
-  USE mod_cbmz_Parameters, ONLY: NVAR, NSPEC, NFIX, LU_NONZERO
+  USE mod_cbmz_Parameters, ONLY: NVAR, NFIX, LU_NONZERO
   USE mod_cbmz_JacobianSP, ONLY: LU_DIAG
   USE mod_cbmz_LinearAlgebra, ONLY: KppDecomp, KppSolve, &
                Set2zero

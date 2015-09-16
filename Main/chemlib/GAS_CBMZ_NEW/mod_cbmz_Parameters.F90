@@ -28,9 +28,6 @@ MODULE mod_cbmz_Parameters
   PUBLIC
   SAVE
 
-
-! NSPEC - Number of chemical species
-  INTEGER, PARAMETER :: NSPEC = 60
 ! NVAR - Number of Variable species
   INTEGER, PARAMETER :: NVAR = 58
 ! NVARACT - Number of Active species

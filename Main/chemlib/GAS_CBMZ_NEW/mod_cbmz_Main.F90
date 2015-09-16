@@ -21,7 +21,6 @@
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 ! MAIN - Main program - driver routine
@@ -29,159 +28,177 @@
 !
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 module mod_cbmz_main1
-  USE mod_cbmz_Model
-  USE mod_cbmz_Global
-  USE mod_cbmz_Parameters
-public :: chemmain
-contains
-  subroutine chemmain
-  USE mod_cbmz_Model
-  USE mod_cbmz_Model
-  USE mod_cbmz_Global
-  USE mod_cbmz_Parameters
-  USE mod_cbmz_jval1
-  implicit none
+  use mod_cbmz_Model
+  use mod_cbmz_Global
+  use mod_cbmz_Parameters
 
+  public :: chemmain
 
-      REAL(kind=dp) :: T
-      REAL(kind=dp) :: RSTATE(20)
-      INTEGER :: i
+  contains
 
-!------------------Declaration part for jval----------
+  subroutine chemmain(jday,dtche)
+    use mod_cbmz_Model
+    use mod_cbmz_Global
+    use mod_cbmz_Parameters
+    use mod_cbmz_jval1
+    implicit none
 
-      integer c_hvin
-      integer c_nhv(22)
-      REAL(kind=dp) jparam(       22)
-      REAL(kind=dp) c_hvmat(22,40)
-      REAL(kind=dp) c_hvmatb(22)
-      REAL(kind=dp) c_jarray(80,510,56)
-      common/HVRVARS/c_hvmat, c_hvmatb, c_jarray
-      common/HVINT/ c_hvin,c_nhv
-      REAL(kind=dp)  jval(       56)
+    real(kind=dp) , intent(in) :: jday , dtche
 
-      INTEGER, PARAMETER :: jO2=1,jO31D=2,jO33P=3,jNO2=4,jNO3a=5 &
-           ,jNO3b=6,jN2O5a=7,jN2O5b=8,jN2O=9,jHO2=10             &
-           ,jH2O2=11,jHNO2=12,jHNO3=13,jHNO4=14,jCH2Oa=15        &
-           ,jCH2Ob=16,jCH3CHOa=17,jCH3CHOb=18,jCH3CHOc=19        &
-           ,jC2H5CHO=20,jCHOCHO=21,jCH3COCHO=22                  &
-           ,jCH3COCH3=23,jCH3OOH=24,jCH3ONO2=25,jPAN=26
-!--------------Reading TUVGRID2 part in jval--------------
-!~~~> Initialization
+    real(kind=dp) :: t
+    real(kind=dp) :: rstate(20)
+    integer :: i
 
-      STEPMIN = 0.0d0
-      STEPMAX = 0.0d0
+    !------------------Declaration part for jval----------
 
-      DO i=1,NVAR
-        RTOL(i) =1.0d-1
-        ATOL(i) =1.0d-1
-      END DO
-  FIX(1) = (0.22)*C_M
-  FIX(2) = (0.78)*C_M
+    integer :: c_hvin
+    integer , dimension(22) :: c_nhv(22)
+    real(kind=dp) , dimension(22) :: jparam
+    real(kind=dp) , dimension(22,40) :: c_hvmat
+    real(kind=dp) , dimension(22) :: c_hvmatb
+    real(kind=dp) , dimension(80,510,56) :: c_jarray
 
-      CALL loadperoxyparameters
-! constant rate coefficients
-  RCONST(11) = 2.2e-10
-  RCONST(24) = 2.2e-11
-  RCONST(34) = 5e-16
-  RCONST(40) = 3.5e-12
-  RCONST(41) = 2e-21
-  RCONST(48) = 8.1e-13
-  RCONST(52) = 1e-11
-  RCONST(60) = 1.7e-11
-  RCONST(69) = 2.5e-12
-  RCONST(72) = 8.1e-12
-  RCONST(73) = 4.1e-11
-  RCONST(74) = 2.2e-11
-  RCONST(75) = 1.4e-11
-  RCONST(76) = 3e-11
-  RCONST(82) = 3.3e-11
-  RCONST(83) = 7e-18
-  RCONST(85) = 1e-15
-  RCONST(98) = 4e-12
-  RCONST(100) = 4e-12
-  RCONST(101) = 4e-12
-  RCONST(102) = 4e-12
-  RCONST(103) = 4e-12
-  RCONST(104) = 4e-12
-  RCONST(105) = 4e-12
-  RCONST(106) = 1.1e-12
-  RCONST(107) = 2.5e-12
-  RCONST(108) = 2.5e-12
-  RCONST(109) = 4e-12
-  RCONST(110) = 1.2e-12
-  RCONST(111) = 4e-12
-  RCONST(112) = 2.5e-12
-! END constant rate coefficients
+    common /hvrvars/ c_hvmat , c_hvmatb , c_jarray
+    common /HVINT/ c_hvin , c_nhv
+    real(kind=dp) , dimension(56) :: jval
 
-      TSTART = 0.0*3600
-      DT = 900.0
+    integer , parameter :: jO2       = 1
+    integer , parameter :: jO31D     = 2
+    integer , parameter :: jO33P     = 3
+    integer , parameter :: jNO2      = 4
+    integer , parameter :: jNO3a     = 5
+    integer , parameter :: jNO3b     = 6
+    integer , parameter :: jN2O5a    = 7
+    integer , parameter :: jN2O5b    = 8
+    integer , parameter :: jN2O      = 9
+    integer , parameter :: jHO2      = 10
+    integer , parameter :: jH2O2     = 11
+    integer , parameter :: jHNO2     = 12
+    integer , parameter :: jHNO3     = 13
+    integer , parameter :: jHNO4     = 14
+    integer , parameter :: jCH2Oa    = 15
+    integer , parameter :: jCH2Ob    = 16
+    integer , parameter :: jCH3CHOa  = 17
+    integer , parameter :: jCH3CHOb  = 18
+    integer , parameter :: jCH3CHOc  = 19
+    integer , parameter :: jC2H5CHO  = 20
+    integer , parameter :: jCHOCHO   = 21
+    integer , parameter :: jCH3COCHO = 22
+    integer , parameter :: jCH3COCH3 = 23
+    integer , parameter :: jCH3OOH   = 24
+    integer , parameter :: jCH3ONO2  = 25
+    integer , parameter :: jPAN      = 26
 
+    !~~~> Initialization
 
-      DO i=1,NVAR
-      VAR(i)  = xrin(i)
-      END DO
-      T = TSTART
-      TEND = TSTART+(DT)
+    var => c(1:nvar)
+    fix => c(nvar+1:)
 
-      TIME = T
-      jparam(1) = zenith
-      jparam(2) = altmid
-      jparam(3) = 330._dp
-      jparam(4) = 0.1_dp
-      jparam(5) = 0.1_dp
-      jparam(6) = 0.38_dp
-      jparam(7) = 0.85_dp
-      jparam(8) = 0.1_dp
-      jparam(9) = deptha
-      jparam(10)= depthb
-      jparam(11)= altabove
-      jparam(12)= altbelow
-      jparam(13)= TEMP
-      TEMP      = TEMP
+    stepmin = 0.0d0
+    stepmax = 0.0d0
 
-      CALL jvalpro(c_nhv,c_hvmat,c_jarray,jparam, jval)
-        jval_O31D    =  jval(jO31D)
-        jval_O33P    =  jval(jO33P)
-        jval_NO2     =  jval(jNO2)
-        jval_H2O2    =  jval(jH2O2)
-        jval_CH2Oa   =  jval(jCH2Oa)
-        jval_CH2Ob   =  jval(jCH2Ob)
-        jval_HNO3    =  jval(jHNO3)
-        jval_HNO2    =  jval(jHNO2)
-        jval_HNO4    =  jval(jHNO4)
-        jval_NO3b    =  jval(jNO3b)
-        jval_NO3a    =  jval(jNO3a)
-        jval_N2O5b   =  jval(jN2O5b)
-        jval_CH3CHOa =  jval(jCH3CHOa)
-        jval_PAN     =  jval(jPAN)
-        jval_C2H5CHO =  jval(jC2H5CHO)
-        jval_CH3COCH3=  jval(jCH3COCH3)
-        jval_CHOCHO  =  jval(jCHOCHO)
-        c_jval(1,:)       = jval(:)
+    do i = 1 , nvar
+      rtol(i) = 0.1D0
+      atol(i) = 0.1D0
+    end do
+    fix(1) = (0.22D0)*C_M
+    fix(2) = (0.78D0)*C_M
 
+    call loadperoxyparameters
 
+    ! constant rate coefficients
+    rconst(11) = 2.2D-10
+    rconst(24) = 2.2D-11
+    rconst(34) = 5D-16
+    rconst(40) = 3.5D-12
+    rconst(41) = 2D-21
+    rconst(48) = 8.1D-13
+    rconst(52) = 1D-11
+    rconst(60) = 1.7D-11
+    rconst(69) = 2.5D-12
+    rconst(72) = 8.1D-12
+    rconst(73) = 4.1D-11
+    rconst(74) = 2.2D-11
+    rconst(75) = 1.4D-11
+    rconst(76) = 3D-11
+    rconst(82) = 3.3D-11
+    rconst(83) = 7D-18
+    rconst(85) = 1D-15
+    rconst(98) = 4D-12
+    rconst(100) = 4D-12
+    rconst(101) = 4D-12
+    rconst(102) = 4D-12
+    rconst(103) = 4D-12
+    rconst(104) = 4D-12
+    rconst(105) = 4D-12
+    rconst(106) = 1.1D-12
+    rconst(107) = 2.5D-12
+    rconst(108) = 2.5D-12
+    rconst(109) = 4D-12
+    rconst(110) = 1.2D-12
+    rconst(111) = 4D-12
+    rconst(112) = 2.5D-12
 
-kron: DO WHILE (T < TEND)
+    tstart = 0.0D0*3600.0D0
+    dt = dtche
 
-        CALL Update_RCONST()
+    do i = 1 , nvar
+      var(i)  = xrin(i)
+    end do
+    t = tstart
+    tend = tstart+dtche
 
-        CALL INTEGRATE( TIN = T, TOUT = T+DT, RSTATUS_U = RSTATE, &
-        ICNTRL_U = (/ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /))
+    time = t
+    jparam(1) = zenith
+    jparam(2) = altmid
+    jparam(3) = 330._dp
+    jparam(4) = 0.1_dp
+    jparam(5) = 0.1_dp
+    jparam(6) = 0.38_dp
+    jparam(7) = 0.85_dp
+    jparam(8) = 0.1_dp
+    jparam(9) = deptha
+    jparam(10)= depthb
+    jparam(11)= altabove
+    jparam(12)= altbelow
+    jparam(13)= temp
+    jparam(20)= jday
 
-        T = RSTATE(1)
+    call jvalpro(c_nhv,c_hvmat,c_jarray,jparam,jval)
 
-      END DO kron
-!~~~> End Time loop
-      DO i=1,NVAR
-      xrout(i) = VAR(i)
-      END DO
+    jval_O31D     =  jval(jO31D)
+    jval_O33P     =  jval(jO33P)
+    jval_NO2      =  jval(jNO2)
+    jval_H2O2     =  jval(jH2O2)
+    jval_CH2Oa    =  jval(jCH2Oa)
+    jval_CH2Ob    =  jval(jCH2Ob)
+    jval_HNO3     =  jval(jHNO3)
+    jval_HNO2     =  jval(jHNO2)
+    jval_HNO4     =  jval(jHNO4)
+    jval_NO3b     =  jval(jNO3b)
+    jval_NO3a     =  jval(jNO3a)
+    jval_N2O5b    =  jval(jN2O5b)
+    jval_CH3CHOa  =  jval(jCH3CHOa)
+    jval_PAN      =  jval(jPAN)
+    jval_C2H5CHO  =  jval(jC2H5CHO)
+    jval_CH3COCH3 =  jval(jCH3COCH3)
+    jval_CHOCHO   =  jval(jCHOCHO)
+    c_jval(1,:)   = jval(:)
 
+    kron: &
+    do while (t < tend)
+      call update_rconst()
+      call integrate( tin = t, tout = t+dt, rstatus_u = rstate, &
+               icntrl_u = (/ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /))
+      t = rstate(1)
+    end do kron
 
-     end subroutine chemmain
+    do i = 1 , nvar
+      xrout(i) = var(i)
+    end do
+
+  end subroutine chemmain
 
 end module  mod_cbmz_main1
-! End of MAIN function
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

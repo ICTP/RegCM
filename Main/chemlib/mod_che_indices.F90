@@ -20,13 +20,14 @@
 module mod_che_indices
 
   use mod_intkinds
+  use mod_cbmz_parameters , only : nvar
 
   implicit none
 
   public
 ! declarartoin of usefull chemical indices for species
-! IMPORTANT : "INTERFACE SPECIES" indices  
-!    ibchl , ibchb , iochl , iochb , iisop, ianh4, iano3 
+! IMPORTANT : "INTERFACE SPECIES" indices
+!    ibchl , ibchb , iochl , iochb , iisop, ianh4, iano3
 !    now declared in mod_runparam for surface/chem  interface compatibility !!
   integer(ik4) :: iso2 , iso4 , idms
   integer(ik4) :: imsa
@@ -58,7 +59,7 @@ module mod_che_indices
   ! list and name of cbmz species : must be absolutely consistant with
   ! mod_cbmz_Parameters
 
-  integer(ik4) , parameter :: totsp = 58
+  integer(ik4) , parameter :: totsp = nvar
   character(len=8),target, dimension(totsp) :: cbmzspec
   data  cbmzspec /'CO2',     & ! 1
                   'H2SO4',   & ! 2

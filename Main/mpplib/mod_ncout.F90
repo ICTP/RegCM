@@ -2345,6 +2345,8 @@ module mod_ncout
           ncattribute_real8('radiation_scheme_time_step_in_minuts',dtrad))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('absorption_emission_time_step_in_hours',dtabem))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('chemistry_scheme_time_step_in_seconds',dtche))
 
         ! Model Physics
 
