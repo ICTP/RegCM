@@ -156,6 +156,7 @@ module mod_che_interface
 #if (defined CLM45)
     call assignpnt(voc_em,cvoc_em)
     call assignpnt(idusts,idust)
+    call assignpnt(dustflx_clm,cdustflx_clm)
 #endif
 #if defined CLM
 #if defined VOC

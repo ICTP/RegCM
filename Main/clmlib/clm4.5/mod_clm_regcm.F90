@@ -478,6 +478,19 @@ module mod_clm_regcm
       end do
       deallocate(vocemis2d)
     end if
+
+    ! pass the CLM dust flux to regcm
+    ! nb: CLM consider 4 emission bins roughly equivalent in the regcm 4 bin version
+    ! if use o th regcm 12 bin, the total mass is redistributed (chemlib/mod_che_dust)
+    if ( ichem == 1 .and. ichdustemd == 3) then
+      allocate(vocemis2d(1:nnsg,jci1:jci2,ici1:ici2))
+      vocemis2d = 0.0D0
+     do k = 1, 4  
+     clm_l2a%notused(:) = clm_l2a%flxdst(:,k)
+     end do  
+     deallocate(vocemis2d)
+    end if 
+
     !--------------------------------------------------
 
     ! Will fix
