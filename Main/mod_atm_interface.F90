@@ -147,8 +147,10 @@ module mod_atm_interface
   real(rk8) , public , pointer , dimension(:,:) :: sfracs2d
   real(rk8) , public , pointer , dimension(:,:) :: svegfrac2d
   real(rk8) , public , pointer , dimension(:,:) :: sxlai2d
-  real(rk8) , public , pointer , dimension(:,:,:) :: voc_em
+#ifdef CLM45
+  real(rk8) , public , pointer , dimension(:,:,:) :: voc_em_clm
   real(rk8) , public , pointer , dimension(:,:,:) :: dustflx_clm
+#endif
 #ifdef CLM
   real(rk8) , public , pointer , dimension(:,:,:) :: dep_vels
 #ifdef VOC
@@ -992,8 +994,10 @@ module mod_atm_interface
         call getmem2d(sfracs2d,jci1,jci2,ici1,ici2,'storage:sfracs2d')
         call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'storage:svegfrac2d')
         call getmem2d(sxlai2d,jci1,jci2,ici1,ici2,'storage:sxlai2d')
-        call getmem3d(voc_em,jci1,jci2,ici1,ici2,1,ntr,'storage:voc_em')
+#ifdef CLM45
+        call getmem3d(voc_em_clm,jci1,jci2,ici1,ici2,1,ntr,'storage:voc_em_clm')
         call getmem3d(dustflx_clm,jci1,jci2,ici1,ici2,1,4,'storage:dustflx_clm')
+#endif
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
         call getmem1d(idusts,1,nbin,'storage:idusts')

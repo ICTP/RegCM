@@ -405,7 +405,7 @@ module mod_clm_regcm
     implicit none
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: k , g , begg , endg
-    real(rk8) , pointer , dimension(:,:,:) :: vocemis2d
+    real(rk8) , pointer , dimension(:,:,:) :: emis2d
 
     call get_proc_bounds(begg,endg)
 
@@ -462,34 +462,38 @@ module mod_clm_regcm
     ! FAB add compatibility for other biogenic species /
     ! TO BE UPDATED IF THE CHEM MECHANISM CHANGES (e.g add limonene, pinene etc)
     ! passed to the chemistry scheme for the right  mechanism tracer index
-    ! use temporary table vocemis2d for calling glb_l2c_ss
+    ! use temporary table emis2d for calling glb_l2c_ss
 
     if ( ichem == 1 .and. enable_megan_emission ) then
-      allocate(vocemis2d(1:nnsg,jci1:jci2,ici1:ici2))
-      vocemis2d = 0.0D0
+      allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
+      emis2d = 0.0D0
       do k = 1, shr_megan_mechcomps_n
        if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0) then
         clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
-        call glb_l2c_ss(lndcomm, clm_l2a%notused,vocemis2d)
-        lms%vocemiss(:,:,:,iisop) =  vocemis2d
+        call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+        lms%vocemiss(:,:,:,iisop) = emis2d
        end if
     ! add compatibility for other biogenic species !! /
     !
       end do
-      deallocate(vocemis2d)
+      deallocate(emis2d)
     end if
 
     ! pass the CLM dust flux to regcm
-    ! nb: CLM consider 4 emission bins roughly equivalent in the regcm 4 bin version
-    ! if use o th regcm 12 bin, the total mass is redistributed (chemlib/mod_che_dust)
+    ! nb: CLM considers 4 emission bins roughly equivalent to the regcm
+    ! 4 bin version.
+    ! if use the regcm 12 bin, the total mass is redistributed
+    ! (chemlib/mod_che_dust)
     if ( ichem == 1 .and. ichdustemd == 3) then
-      allocate(vocemis2d(1:nnsg,jci1:jci2,ici1:ici2))
-      vocemis2d = 0.0D0
-     do k = 1, 4  
-     clm_l2a%notused(:) = clm_l2a%flxdst(:,k)
-     end do  
-     deallocate(vocemis2d)
-    end if 
+      allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
+      emis2d = 0.0D0
+      do k = 1 , 4
+        clm_l2a%notused(:) = clm_l2a%flxdst(:,k)
+        call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+        lms%dustemiss(:,:,:,k) = emis2d
+      end do
+      deallocate(emis2d)
+    end if
 
     !--------------------------------------------------
 

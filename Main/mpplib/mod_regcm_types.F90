@@ -366,8 +366,10 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: tdeltas
     real(rk8) , pointer , dimension(:,:,:) :: tskin
     real(rk8) , pointer , dimension(:,:,:) :: sst
+#ifdef CLM45
     real(rk8) , pointer , dimension(:,:,:,:) :: vocemiss
-    real(rk8) , pointer , dimension(:,:,:,:) :: dustemiss 
+    real(rk8) , pointer , dimension(:,:,:,:) :: dustemiss
+#endif
   end type lm_state
 
   type lm_exchange

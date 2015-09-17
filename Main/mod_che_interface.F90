@@ -16,7 +16,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_che_interface
-!
+
   use mod_realkinds
   use mod_regcm_types
   use mod_che_common
@@ -154,9 +154,9 @@ module mod_che_interface
     call assignpnt(drydepflx,cdrydepflx)
 
 #if (defined CLM45)
-    call assignpnt(voc_em,cvoc_em)
-    call assignpnt(idusts,idust)
+    call assignpnt(voc_em_clm,cvoc_em_clm)
     call assignpnt(dustflx_clm,cdustflx_clm)
+    call assignpnt(idusts,idust)
 #endif
 #if defined CLM
 #if defined VOC

@@ -134,8 +134,10 @@ module mod_lm_interface
     call getmem3d(lms%scvk,1,nnsg,jci1,jci2,ici1,ici2,'bats:scvk')
     call getmem3d(lms%um10,1,nnsg,jci1,jci2,ici1,ici2,'bats:um10')
     call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'bats:emisv')
+#ifdef CLM45
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'bats:vocemiss')
     call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'bats:dustemiss')
+#endif
 
 #ifdef CLM
     call getmem2d(r2ctb,jde1,jde2,ide1,ide2,'clm:r2ctb')
@@ -409,12 +411,11 @@ module mod_lm_interface
       do n = 1 , ntr
         do i = ici1 , ici2
           do j = jci1 , jci2
-            cvoc_em(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
+            cvoc_em_clm(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
           end do
         end do
       end do
-
-      do n = 1 , 4 
+      do n = 1 , 4
         do i = ici1 , ici2
           do j = jci1 , jci2
             cdustflx_clm(j,i,n) = sum(lms%dustemiss(:,j,i,n),1) * rdnnsg
