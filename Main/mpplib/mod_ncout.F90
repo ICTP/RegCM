@@ -2345,8 +2345,10 @@ module mod_ncout
           ncattribute_real8('radiation_scheme_time_step_in_minuts',dtrad))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('absorption_emission_time_step_in_hours',dtabem))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('chemistry_scheme_time_step_in_seconds',dtche))
+        if ( ichem == 1 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('chemistry_scheme_time_step_in_seconds',dtche))
+        end if
 
         ! Model Physics
 
@@ -2382,8 +2384,10 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('coupled_ocean_run',iocncpl))
         end if
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('pressure_gradient_scheme',ipgf))
+        if ( idynamic == 1 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('pressure_gradient_scheme',ipgf))
+        end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('surface_emissivity_factor_computed',iemiss))
         call outstream_addatt(outstream(i)%ncout(j), &

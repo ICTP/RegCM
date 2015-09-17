@@ -581,6 +581,23 @@ module mod_tendency
       call vadv(aten%pp,atm1%pp,kz,0)
       call hadv(aten%w,atmx%w,kzp1)
       call vadv(aten%w,atm1%w,kzp1,0)
+      if ( iboudy == 1 .or. iboudy == 5 ) then
+        call nudge(kz,ba_cr,atm2%t,iboudy,xtb,aten%t)
+        call nudge(kz,iqv,ba_cr,atm2%qx,iboudy,xqb,aten%qx)
+        call nudge(kz,ba_cr,atm2%pp,iboudy,xppb,aten%pp)
+        call nudge(kzp1,ba_cr,atm2%w,iboudy,xwwb,aten%w)
+      else if ( iboudy == 4 ) then
+        call sponge(kz,ba_cr,xtb,aten%t)
+        call sponge(kz,iqv,ba_cr,xqb,aten%qx)
+        call sponge(kz,ba_cr,xppb,aten%pp)
+        call sponge(kzp1,ba_cr,xwwb,aten%w)
+      end if
+      if ( idiag > 0 ) then
+        ! rq : temp condensation tend is added the evap temp tend
+        !      calculated in pcp
+        tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
+        ten0 = aten%t
+      end if
     end if
     !
     ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
@@ -747,7 +764,7 @@ module mod_tendency
           end do
         end do
       end do
-      if ( ipptls > 0 ) then
+      if ( ipptls == 2 ) then
         do k = 2 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -1011,18 +1028,16 @@ module mod_tendency
     ! apply the sponge boundary conditions on t and qv.
     ! We must do this before adding diffusion terms.
     !
-    if ( iboudy == 4 ) then
-      call sponge(kz,ba_cr,xtb,aten%t)
-      call sponge(kz,iqv,ba_cr,xqb,aten%qx)
-      if ( idynamic == 2 ) then
-        call sponge(kz,ba_cr,xppb,aten%pp)
-        call sponge(kzp1,ba_cr,xwwb,aten%w)
-      end if
-      if ( idiag > 0 ) then
-        ! rq : temp condensation tend is added the evap temp tend
-        !      calculated in pcp
-        tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
-        ten0 = aten%t
+    if ( idynamic == 1 ) then
+      if ( iboudy == 4 ) then
+        call sponge(kz,ba_cr,xtb,aten%t)
+        call sponge(kz,iqv,ba_cr,xqb,aten%qx)
+        if ( idiag > 0 ) then
+          ! rq : temp condensation tend is added the evap temp tend
+          !      calculated in pcp
+          tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
+          ten0 = aten%t
+        end if
       end if
     end if
     !
@@ -1098,12 +1113,10 @@ module mod_tendency
     !
     ! apply the nudging boundary conditions:
     !
-    if ( iboudy == 1 .or. iboudy == 5 ) then
-      call nudge(kz,ba_cr,atm2%t,iboudy,xtb,aten%t)
-      call nudge(kz,iqv,ba_cr,atm2%qx,iboudy,xqb,aten%qx)
-      if ( idynamic == 2 ) then
-        call nudge(kz,ba_cr,atm2%pp,iboudy,xppb,aten%pp)
-        call nudge(kzp1,ba_cr,atm2%w,iboudy,xwwb,aten%w)
+    if ( idynamic == 1 ) then
+      if ( iboudy == 1 .or. iboudy == 5 ) then
+        call nudge(kz,ba_cr,atm2%t,iboudy,xtb,aten%t)
+        call nudge(kz,iqv,ba_cr,atm2%qx,iboudy,xqb,aten%qx)
       end if
     end if
     if ( ichem == 1 ) then
