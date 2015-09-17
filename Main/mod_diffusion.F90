@@ -55,12 +55,12 @@ module mod_diffusion
 !                                                                     c
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine diffu_d(ften,f,press,xkc)
+  subroutine diffu_d(uten,vten,u,v,press,xkc)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: f
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: u , v
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ften
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_d'
@@ -73,10 +73,14 @@ module mod_diffusion
     do k = 1 , kz
       do i = idii1 , idii2
         do j = jdii1 , jdii2
-          ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) *      &
-                rdxsq*(f(j+2,i,k)+f(j-2,i,k)+f(j,i+2,k)+f(j,i-2,k)  - &
-               d_four*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) + &
-              d_twelve*f(j,i,k))*press(j,i)
+          uten(j,i,k) = uten(j,i,k) - xkc(j,i,k) *      &
+                rdxsq*(u(j+2,i,k)+u(j-2,i,k)+u(j,i+2,k)+u(j,i-2,k)  - &
+               d_four*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k)) + &
+              d_twelve*u(j,i,k))*press(j,i)
+          vten(j,i,k) = vten(j,i,k) - xkc(j,i,k) *      &
+                rdxsq*(v(j+2,i,k)+v(j-2,i,k)+v(j,i+2,k)+v(j,i-2,k)  - &
+               d_four*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k)) + &
+              d_twelve*v(j,i,k))*press(j,i)
         end do
       end do
     end do
@@ -87,10 +91,12 @@ module mod_diffusion
       j = jdi1
       do k = 1 , kz
         do i = idi1 , idi2
-          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *    &
-                        rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
-                               f(j,i+1,k)+f(j,i-1,k) - &
-                        d_four*f(j,i,k))*press(j,i)
+          uten(j,i,k) = uten(j,i,k) + xkc(j,i,k) *    &
+                rdxsq*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k) - &
+                        d_four*u(j,i,k))*press(j,i)
+          vten(j,i,k) = vten(j,i,k) + xkc(j,i,k) *    &
+                rdxsq*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k) - &
+                        d_four*v(j,i,k))*press(j,i)
         end do
       end do
     end if
@@ -98,10 +104,12 @@ module mod_diffusion
       j = jdi2
       do k = 1 , kz
         do i = idi1 , idi2
-          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *    &
-                        rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
-                               f(j,i+1,k)+f(j,i-1,k) - &
-                        d_four*f(j,i,k))*press(j,i)
+          uten(j,i,k) = uten(j,i,k) + xkc(j,i,k) *    &
+                rdxsq*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k) - &
+                        d_four*u(j,i,k))*press(j,i)
+          vten(j,i,k) = vten(j,i,k) + xkc(j,i,k) *    &
+                rdxsq*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k) - &
+                        d_four*v(j,i,k))*press(j,i)
         end do
       end do
     end if
@@ -112,9 +120,12 @@ module mod_diffusion
       i = idi1
       do k = 1 , kz
         do j = jdi1 , jdi2
-          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *         &
-                rdxsq*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k) - &
-                d_four*f(j,i,k))*press(j,i)
+          uten(j,i,k) = uten(j,i,k) + xkc(j,i,k) *         &
+                rdxsq*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k) - &
+                d_four*u(j,i,k))*press(j,i)
+          vten(j,i,k) = vten(j,i,k) + xkc(j,i,k) *         &
+                rdxsq*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k) - &
+                d_four*v(j,i,k))*press(j,i)
         end do
       end do
     end if
@@ -122,9 +133,12 @@ module mod_diffusion
       i = idi2
       do k = 1 , kz
         do j = jdi1 , jdi2
-          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *         &
-                rdxsq*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k) - &
-                d_four*f(j,i,k))*press(j,i)
+          uten(j,i,k) = uten(j,i,k) + xkc(j,i,k) *         &
+                rdxsq*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k) - &
+                d_four*u(j,i,k))*press(j,i)
+          vten(j,i,k) = vten(j,i,k) + xkc(j,i,k) *         &
+                rdxsq*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k) - &
+                d_four*v(j,i,k))*press(j,i)
         end do
       end do
     end if

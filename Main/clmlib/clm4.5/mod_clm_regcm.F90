@@ -150,7 +150,7 @@ module mod_clm_regcm
         end if
       end if
       ! Restart frequency - needs more thinkering here...
-      if ( mod(ktau+1,ksav) == 0 ) then
+      if ( ksav > 0 .and. mod(ktau+1,ksav) == 0 ) then
         if ( .not. rstwr ) then
           rstwr = .true.
           write(rdate,'(i10)') toint10(nextr)
