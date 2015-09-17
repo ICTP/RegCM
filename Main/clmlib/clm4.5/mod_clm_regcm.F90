@@ -145,7 +145,7 @@ module mod_clm_regcm
         rstwr = .true.
         nlend = .true.
       else
-        if ( ksav > 0 )
+        if ( ksav > 0 ) then
           if ( mod(ktau+1,ksav) == 0 ) then
             rstwr = .true.
             if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
