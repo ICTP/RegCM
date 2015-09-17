@@ -118,12 +118,15 @@ module mod_output
     ldoslab = .false.
 
     if ( ktau > 0 ) then
-      if ( ksav > 0 .and. mod(ktau,ksav) == 0 ) then
-        ldosav = .true.
-      end if
-      if ( ( idatex == idate2 .or. &
-           (lfdomonth(idatex) .and. lmidnight(idatex))) ) then
-        ldosav = .true.
+      if ( ksav > 0 ) then
+        if ( mod(ktau,ksav) == 0 ) then
+          ldosav = .true.
+        end if
+      else
+        if ( ( idatex == idate2 .or. &
+             (lfdomonth(idatex) .and. lmidnight(idatex))) ) then
+          ldosav = .true.
+        end if
       end if
       if ( mod(ktau,katm) == 0 ) then
         ldoatm = .true.
