@@ -23,6 +23,10 @@ module mod_smooth
   use mod_realkinds
   use mod_constants
 
+  private
+
+  public :: smth121 , smthtr , cleanpeaks
+
   contains
 
   subroutine smth121(htgrid,jx,iy)
@@ -157,6 +161,42 @@ module mod_smooth
     deallocate(ii)
     deallocate(jj)
   end subroutine smthtr
+
+  subroutine cleanpeaks(nj,ni,xt)
+    implicit none
+    integer(ik4) , intent(in) :: nj , ni
+    real(rk8) , intent(inout) , dimension(nj,ni) :: xt
+    real(rk8) , dimension(nj,ni) :: xtn
+    real(rk8) :: np , sump
+    integer(ik4) :: i , j , ii , jj , iii , jjj , ipass
+    integer , parameter :: npass = 1
+    real(rk8) , parameter :: mhgt = 5.0D0
+
+    do ipass = 1 , npass
+      do i = 1 , ni
+        do j = 1 , nj
+          np = 0.0D0
+          sump = 0.0D0
+          do ii = i-1 , i+1
+            do jj = j-1 , j+1
+              iii = max(1,min(ii,ni))
+              jjj = max(1,min(jj,nj))
+              if ( xt(jjj,iii) > mhgt ) then
+                np = np + 1
+                sump = sump + xt(jjj,iii)
+              end if
+            end do
+          end do
+          if ( np > 0.0D0 ) then
+            xtn(j,i) = xt(j,i) + (sump - xt(j,i) * np)/np
+          else
+            xtn(j,i) = xt(j,i)
+          end if
+        end do
+      end do
+      xt(:,:) = xtn(:,:)
+    end do
+  end subroutine cleanpeaks
 
 end module mod_smooth
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

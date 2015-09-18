@@ -32,7 +32,7 @@ module mod_interp
   private
 
   public :: bilinx , bilinx2 , cressmcr , cressmdt , distwgtcr , distwgtdt
-  public :: gcdist
+  public :: gcdist , kernsmooth
 
   real(rk8) :: alatmn , alatmx , alonmn , alonmx
   real(rk8) :: glatmn , glatmx , glonmn , glonmx
@@ -303,6 +303,9 @@ module mod_interp
         end if
       end do
     end do
+    do l = 1 , llev
+      call kernsmooth(b3(:,:,l),jx,iy,2)
+    end do
   end subroutine bilinx2_3d
 
   subroutine bilinx2_2d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy)
@@ -445,6 +448,7 @@ module mod_interp
         end if
       end do
     end do
+    call kernsmooth(b3,jx,iy,2)
   end subroutine bilinx2_2d
 
   subroutine compwgt(alon,alat,glon,glat,d1xa,d1xb,d1xc,d1xd, &

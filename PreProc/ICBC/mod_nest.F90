@@ -29,6 +29,7 @@ module mod_nest
   use mod_write
   use mod_interp
   use mod_vertint
+  use mod_nhinterp
   use mod_hgt
   use mod_humid
   use mod_mksst
@@ -488,15 +489,7 @@ module mod_nest
         do i = 1 , iy_in
           do j = 1 , jx_in
             pr0_in = pstar0(j,i) * sigma_in(k) + ptop_in * d_100
-            if ( pr0_in > 5474.9 ) then
-              t0_in(j,i,k) = max(stdt + tlp*log(pr0_in/stdp), tiso)
-            else
-              if ( pr0_in > 5474.9 ) then
-                t0_in(j,i,k) = tiso + min(log(5474.9/pr0_in),228.65D0)
-              else
-                t0_in(j,i,k) = 228.65D0 + 2.0D0*min(log(5474.9/pr0_in),271.15D0)
-              end if
-            end if
+            t0_in(j,i,k) = temppres(pr0_in)
           end do
         end do
       end do

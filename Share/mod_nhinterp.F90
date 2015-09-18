@@ -28,7 +28,7 @@ module mod_nhinterp
 
   private
 
-  public :: nhsetup , nhbase , nhinterp , nhpp , nhw
+  public :: nhsetup , temppres , nhbase , nhinterp , nhpp , nhw
 
   real(rk8) :: ptop = 50.0D0  ! Centibars
   real(rk8) :: piso           ! Pascal
@@ -57,6 +57,20 @@ module mod_nhinterp
     !
     ! Compute the nonhydrostatic base state.
     !
+    real(rk8) function temppres(pr) result(tp)
+      implicit none
+      real(rk8) , intent(in) :: pr
+      if ( pr > 5474.9 ) then
+        tp = max(ts0 + tlp*log(pr/p0), tiso)
+      else
+        if ( pr > 5474.9 ) then
+          tp = tiso + min(log(5474.9/pr),228.65D0)
+        else
+          tp = 228.65D0 + 2.0D0*min(log(5474.9/pr),271.15D0)
+        end if
+      end if
+    end function temppres
+
     subroutine nhbase(i1,i2,j1,j2,kx,a,ter,ps0,pr0,t0,rho0)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kx
@@ -80,16 +94,7 @@ module mod_nhinterp
           ! Define reference state temperature at model points.
           do k = 1 , kx
             pr0(j,i,k) = ps0(j,i) * a(k) + ptoppa
-            if ( pr0(j,i,k) > 5474.9 ) then
-              t0(j,i,k) = max(ts0 + tlp*log(pr0(j,i,k)/p0), tiso)
-            else
-              if ( pr0(j,i,k) > 5474.9 ) then
-                t0(j,i,k) = tiso + min(log(5474.9/pr0(j,i,k)),228.65D0)
-              else
-                t0(j,i,k) = 228.65D0 + &
-                        2.0D0*min(log(5474.9/pr0(j,i,k)),271.15D0)
-              end if
-            end if
+            t0(j,i,k) = temppres(pr0(j,i,k))
             rho0(j,i,k) = pr0(j,i,k) / rgas / t0(j,i,k)
           end do
         end do
@@ -465,6 +470,8 @@ module mod_nhinterp
           end do
         end do
       end do
+      w(j2,:,:) = d_zero
+      w(:,i2,:) = d_zero
     end subroutine nhw
 
 end module mod_nhinterp

@@ -1128,25 +1128,25 @@ module mod_params
 
     if ( myid == italk ) then
       if ( mod(idnint(dtrad*60.0D0),idnint(dt)) /= 0 ) then
-        write (stderr,*) 'DTRAD=' , dtrad , 'DT=' , dt
+        write (stderr,*) 'DTRAD=' , dtrad , ' DT=' , dt
         call fatal(__FILE__,__LINE__, &
                 'DTRAD /= N*DT : INCONSISTENT RADIATION TIMESTEP SPECIFIED')
       end if
       if ( mod(idnint(dtsrf),idnint(dt)) /= 0 ) then
-        write (stderr,*) 'DTSRF=' , dtsrf , 'DT=' , dt
+        write (stderr,*) 'DTSRF=' , dtsrf , ' DT=' , dt
         call fatal(__FILE__,__LINE__, &
                 'DTSRF /= N*DT : INCONSISTENT SURFACE TIMESTEP SPECIFIED')
       end if
       if ( ichem == 1 ) then
         if ( mod(idnint(dtche),idnint(dt)) /= 0 ) then
-          write (stderr,*) 'DTCHE=' , dtche , 'DT=' , dt
+          write (stderr,*) 'DTCHE=' , dtche , ' DT=' , dt
           call fatal(__FILE__,__LINE__, &
                   'DTCHE /= N*DT : INCONSISTENT CHEMISTRY TIMESTEP SPECIFIED')
         end if
       end if
       if ( ifsrf ) then
         if ( mod(idnint(srffrq*secph),idnint(dtsrf)) /= 0 ) then
-          write (stderr,*) 'BATFRQ=' , srffrq , 'DTSRF=' , dtsrf
+          write (stderr,*) 'SRFFRQ=' , srffrq , ' DTSRF=' , dtsrf
           call fatal(__FILE__,__LINE__, &
                      'INCONSISTENT SURFACE OUTPUT FREQUENCY SPECIFIED')
         end if
@@ -1161,19 +1161,26 @@ module mod_params
         end if
       end if
       if ( mod(idnint(dtabem*secph),idnint(dt)) /= 0 ) then
-        write (stderr,*) 'DTABEM=' , dtabem , 'DT=' , dt
+        write (stderr,*) 'DTABEM=' , dtabem , ' DT=' , dt
         call fatal(__FILE__,__LINE__, &
                    'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
       end if
       if ( mod(idnint(dtabem*60.0D0),idnint(dtrad)) /= 0 ) then
-        write (stderr,*) 'DTABEM=' , dtabem , 'DTRAD=' , dtrad
+        write (stderr,*) 'DTABEM=' , dtabem , ' DTRAD=' , dtrad
         call fatal(__FILE__,__LINE__,                                   &
                    'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
                    ' TIMESTEPS SPECIFIED')
       end if
-      if ( ichem == 1 .and. chemfrq <=  d_zero) then
-        write (stderr,*) 'CHEMFRQ=' ,chemfrq
-        call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
+      if ( ichem == 1 ) then
+        if ( chemfrq <= d_zero ) then
+          write (stderr,*) 'CHEMFRQ=', chemfrq
+          call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
+        end if
+        if ( mod(idnint(chemfrq*secph),idnint(dtche)) /= 0 ) then
+          write (stderr,*) 'CHEMFRQ=' , chemfrq , ' DTCHE=', dtche
+          call fatal(__FILE__,__LINE__, &
+                     'INCONSISTENT CHEMISTRY OUTPUT FREQUENCY SPECIFIED')
+        end if
       end if
       if ( isladvec == 1 ) then
         if ( jxp < 5 .or. iyp < 5 ) then

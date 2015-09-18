@@ -28,6 +28,7 @@ module mod_write
   use mod_ncstream_types
   use mod_ncstream
   use mod_nhinterp
+  use mod_interp
   use mod_vectutil
 
   private
@@ -235,6 +236,10 @@ module mod_write
       tv4 = t4 * (d_one + ep1 * q4)
       ! Compute the nonhydrostatic perturbation pressure field (pp).
       call nhpp(1,iy,1,jx,kz,sigmaf,t4,pr0,t0,tv4,ps4,ps0,pp4)
+      do k = 1 , kz
+        call kernsmooth(ww4(:,:,k),jx,iy,2)
+        call kernsmooth(pp4(:,:,k),jx,iy,2)
+      end do
     end if
 
     ps4 = (ps4+ptop)*d_10
