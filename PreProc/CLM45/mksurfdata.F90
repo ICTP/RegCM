@@ -30,6 +30,24 @@ program mksurfdata
   write(stdout,*) 'Please recompile it using --enable-clm45 flag'
 #else
 
+#ifdef DYNPFT
+#ifndef CN
+  ERROR : CN MUST BE DEFINED ON ACTIVATING DYNPFT
+#endif
+#endif
+
+#ifdef CROP
+#ifndef CN
+  ERROR : CN MUST BE DEFINED ON ACTIVATING CROP
+#endif
+#endif
+
+#ifdef LCH4
+#ifndef CN
+  ERROR : CN MUST BE DEFINED ON ACTIVATING LCH4
+#endif
+#endif
+
   use mod_intkinds
   use mod_constants , only : raddeg
   use mod_realkinds
