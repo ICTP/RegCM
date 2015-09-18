@@ -206,7 +206,7 @@ module mod_cu_tiedtke
         pxf = m2c%psb(j,i)
         ! Pascal
         papp1(ii,k) = m2c%pas(j,i,k)
-        xpg(ii,k)   = m2c%zas(j,i,k)*egrav + m2c%ht(j,i) ! geopotential
+        xpg(ii,k)   = m2c%zas(j,i,k)*egrav ! geopotential
         ptm1(ii,k)  = m2c%tas(j,i,k)  ! temperature
         pum1(ii,k)  = m2c%uas(j,i,k)  ! u (guessing!)
         pvm1(ii,k)  = m2c%vas(j,i,k)  ! v     "
@@ -252,7 +252,7 @@ module mod_cu_tiedtke
         j = jmap(ii)
         ! 1st guess pressure at full levels
         paphp1(ii,k) = m2c%pasf(j,i,k)
-        xpgh(ii,k) = m2c%zfs(j,i,k)*egrav + m2c%ht(j,i) !   geopotential
+        xpgh(ii,k) = m2c%zfs(j,i,k)*egrav !   geopotential
       end do
     end do
 
