@@ -321,10 +321,10 @@ module mod_tendency
             !
             ! Calculate wind components at cross points
             !
-            ucc(j,i,k) = (atm1%u(j,i,k)  + atm1%u(j,i+1,k) + &
-                          atm1%u(j+1,i,k)+ atm1%u(j+1,i+1,k)) * rpsa(j,i)
-            vcc(j,i,k) = (atm1%v(j,i,k)  + atm1%v(j,i+1,k) + &
-                          atm1%v(j+1,i,k)+ atm1%v(j+1,i+1,k)) * rpsa(j,i)
+            ucc(j,i,k) = (atmx%u(j,i,k)  + atmx%u(j,i+1,k) + &
+                          atmx%u(j+1,i,k)+ atmx%u(j+1,i+1,k))
+            vcc(j,i,k) = (atmx%v(j,i,k)  + atmx%v(j,i+1,k) + &
+                          atmx%v(j+1,i,k)+ atmx%v(j+1,i+1,k))
 
           end do
         end do
@@ -741,6 +741,20 @@ module mod_tendency
       ! (4) mass divergence term (3rd RHS term in Eq. 2.2.3, 2.2.11 and
       !     Eq. 2.3.7)
       !
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            !
+            ! Calculate wind components at cross points
+            !
+            ucc(j,i,k) = (atm1%u(j,i,k)  + atm1%u(j,i+1,k) + &
+                          atm1%u(j+1,i,k)+ atm1%u(j+1,i+1,k))
+            vcc(j,i,k) = (atm1%v(j,i,k)  + atm1%v(j,i+1,k) + &
+                          atm1%v(j+1,i,k)+ atm1%v(j+1,i+1,k))
+
+          end do
+        end do
+      end do
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -2060,14 +2074,14 @@ module mod_tendency
       if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            atmx%u(jdi1,i,k) = wui(i,k)
-            atmx%v(jdi1,i,k) = wvi(i,k)
+            atmx%u(jdi1,i,k) = wui(i,k)*mddom%msfd(jdi1,i)
+            atmx%v(jdi1,i,k) = wvi(i,k)*mddom%msfd(jdi1,i)
           end do
         end do
         do k = 1 , kz
           do i = idi1 , idi2
-            atmx%u(jde1,i,k) = wue(i,k)
-            atmx%v(jde1,i,k) = wve(i,k)
+            atmx%u(jde1,i,k) = wue(i,k)*mddom%msfd(jde1,i)
+            atmx%v(jde1,i,k) = wve(i,k)*mddom%msfd(jde1,i)
           end do
         end do
         ! inflow/outflow dependence
@@ -2085,14 +2099,14 @@ module mod_tendency
       if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            atmx%u(jdi2,i,k) = eui(i,k)
-            atmx%v(jdi2,i,k) = evi(i,k)
+            atmx%u(jdi2,i,k) = eui(i,k)*mddom%msfd(jdi2,i)
+            atmx%v(jdi2,i,k) = evi(i,k)*mddom%msfd(jdi2,i)
           end do
         end do
         do k = 1 , kz
           do i = idi1 , idi2
-            atmx%u(jde2,i,k) = eue(i,k)
-            atmx%v(jde2,i,k) = eve(i,k)
+            atmx%u(jde2,i,k) = eue(i,k)*mddom%msfd(jde2,i)
+            atmx%v(jde2,i,k) = eve(i,k)*mddom%msfd(jde2,i)
           end do
         end do
         ! inflow/outflow dependence
@@ -2110,14 +2124,14 @@ module mod_tendency
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jdi1 , jdi2
-            atmx%u(j,idi1,k) = sui(j,k)
-            atmx%v(j,idi1,k) = svi(j,k)
+            atmx%u(j,idi1,k) = sui(j,k)*mddom%msfd(j,idi1)
+            atmx%v(j,idi1,k) = svi(j,k)*mddom%msfd(j,idi1)
           end do
         end do
         do k = 1 , kz
           do j = jde1 , jde2
-            atmx%u(j,ide1,k) = sue(j,k)
-            atmx%v(j,ide1,k) = sve(j,k)
+            atmx%u(j,ide1,k) = sue(j,k)*mddom%msfd(j,ide1)
+            atmx%v(j,ide1,k) = sve(j,k)*mddom%msfd(j,ide1)
           end do
         end do
         if ( iboudy == 3 .or. iboudy == 4 ) then
@@ -2135,14 +2149,14 @@ module mod_tendency
       if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jdi1 , jdi2
-            atmx%u(j,idi2,k) = nui(j,k)
-            atmx%v(j,idi2,k) = nvi(j,k)
+            atmx%u(j,idi2,k) = nui(j,k)*mddom%msfd(j,idi2)
+            atmx%v(j,idi2,k) = nvi(j,k)*mddom%msfd(j,idi2)
           end do
         end do
         do k = 1 , kz
           do j = jde1 , jde2
-            atmx%u(j,ide2,k) = nue(j,k)
-            atmx%v(j,ide2,k) = nve(j,k)
+            atmx%u(j,ide2,k) = nue(j,k)*mddom%msfd(j,ide2)
+            atmx%v(j,ide2,k) = nve(j,k)*mddom%msfd(j,ide2)
           end do
         end do
         if ( iboudy == 3 .or. iboudy == 4 ) then
