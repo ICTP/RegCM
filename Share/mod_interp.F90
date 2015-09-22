@@ -61,6 +61,11 @@ module mod_interp
     module procedure bilinx2_3d
   end interface bilinx2
 
+  interface kernsmooth
+    module procedure kernsmooth2
+    module procedure kernsmooth3
+  end interface kernsmooth
+
   contains
 
   subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,jx,iy,nflds)
@@ -303,9 +308,7 @@ module mod_interp
         end if
       end do
     end do
-    do l = 1 , llev
-      call kernsmooth(b3(:,:,l),jx,iy,2)
-    end do
+    call kernsmooth(b3,jx,iy,llev,2)
   end subroutine bilinx2_3d
 
   subroutine bilinx2_2d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy)
@@ -870,9 +873,9 @@ module mod_interp
          kin = (l-1)*nlev+k
          call distwgtcr(b3(:,:,kin),b2(:,:,kin),alon,alat, &
                            glon,glat,jx,iy,nlon,nlat)
-         call kernsmooth(b3(:,:,kin),jx,iy,2)
       end do
     end do
+    call kernsmooth(b3,jx,iy,nlev,2)
   end subroutine cressmcr
 
   subroutine cressmdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
@@ -891,9 +894,9 @@ module mod_interp
          kin = (l-1)*nlev+k
          call distwgtdt(b3(:,:,kin),b2(:,:,kin),alon,alat, &
                            glon,glat,jx,iy,nlon,nlat)
-         call kernsmooth(b3(:,:,kin),jx,iy,2)
       end do
     end do
+    call kernsmooth(b3,jx,iy,nlev,2)
   end subroutine cressmdt
 
   real(rk8) function gcdist_simple(lat1,lon1,lat2,lon2)
@@ -927,7 +930,7 @@ module mod_interp
     gcdist = earthrad*atan2(y,x)*d_r1000
   end function gcdist
 
-  subroutine kernsmooth(f,nx,ny,npass)
+  subroutine kernsmooth2(f,nx,ny,npass)
     implicit none
     integer(ik4) , intent(in) :: nx , ny , npass
     real(rk8) , dimension(nx,ny) , intent(inout) :: f
@@ -959,7 +962,43 @@ module mod_interp
       newf(nx,ny) = f(nx,ny)
       f(:,:) = newf(:,:)
     end do
-  end subroutine kernsmooth
+  end subroutine kernsmooth2
+
+  subroutine kernsmooth3(f,nx,ny,nz,npass)
+    implicit none
+    integer(ik4) , intent(in) :: nx , ny , nz , npass
+    real(rk8) , dimension(nx,ny,nz) , intent(inout) :: f
+    integer(ik4) :: i , j , k , n
+    real(rk8) , dimension(nx,ny) :: newf
+    do n = 1 , npass
+      do k = 1 , nz
+        do j = 2 , ny - 1
+          do i = 2 , nx - 1
+            newf(i,j) = (f(i+1,j-1,k) + f(i+1,j,k) + f(i+1,j+1,k) + &
+              f(i,j-1,k) + f(i,j,k) * 4.0D0 + f(i,j+1,k) + &
+              f(i-1,j-1,k) + f(i-1,j,k) + f(i-1,j+1,k)) / 12.0D0
+          end do
+        end do
+        do j = 2 , ny-1
+          newf(1,j) = (f(1,j-1,k) + f(1,j,k) * 7.0D0 + f(1,j+1,k) + &
+            f(2,j-1,k) + f(2,j,k) + f(2,j+1,k)) / 12.0D0
+          newf(nx,j) = (f(nx,j-1,k) + f(nx,j,k) * 7.0D0 + f(nx,j+1,k) + &
+            f(nx-1,j-1,k) + f(nx-1,j,k) + f(nx-1,j+1,k)) / 12.0D0
+        end do
+        do i = 2 , nx-1
+          newf(i,1) = (f(i-1,1,k) + f(i,1,k) * 7.0D0 + f(i+1,1,k) + &
+            f(i-1,2,k) + f(i,2,k) + f(i+1,2,k)) / 12.0D0
+          newf(i,ny) = (f(i-1,ny,k) + f(i,ny,k) * 7.0D0 + f(i+1,ny,k) + &
+            f(i-1,ny-1,k) + f(i,ny-1,k) + f(i+1,ny-1,k)) / 12.0D0
+        end do
+        newf(1,1) = f(1,1,k)
+        newf(nx,1) = f(nx,1,k)
+        newf(1,ny) = f(1,ny,k)
+        newf(nx,ny) = f(nx,ny,k)
+        f(:,:,k) = newf(:,:)
+      end do
+    end do
+  end subroutine kernsmooth3
 
 end module mod_interp
 
