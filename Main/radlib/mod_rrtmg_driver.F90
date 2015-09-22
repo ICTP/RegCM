@@ -786,8 +786,6 @@ module mod_rrtmg_driver
                       plev(n,k+1))/(egrav*play(n,k))
       end do
     end do
-    print *, deltaz(1,:)
-    stop
     !
     ! cloud fraction and cloud liquid waterpath calculation:
     ! as in STANDARD SCHEME for now (getdat) : We need to improve this
