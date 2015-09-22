@@ -630,6 +630,10 @@ module mod_rrtmg_driver
           end do
         end do
       end do
+      do k = kzp1 , kth
+        ql1(:,k) = minqx
+        qi1(:,k) = minqx
+      end do
     end if
     !
     ! h2o volume mixing ratio
@@ -764,14 +768,26 @@ module mod_rrtmg_driver
        tauaer_lw(n,kj,:) = tauxar3d_lw(n,k,:)
       end do
     end do
+    !
     ! deltaz
     !
     do k = 1 , kz
+      n = 1
+      kj = kzp1 - k
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          deltaz(n,k) = m2r%deltaz(j,i,kj)
+        end do
+      end do
+    end do
+    do k = kzp1 , kth
       do n = 1 , npr
         deltaz(n,k) = rgas*tlay(n,k)*(plev(n,k) - &
                       plev(n,k+1))/(egrav*play(n,k))
       end do
     end do
+    print *, deltaz(1,:)
+    stop
     !
     ! cloud fraction and cloud liquid waterpath calculation:
     ! as in STANDARD SCHEME for now (getdat) : We need to improve this
@@ -815,7 +831,7 @@ module mod_rrtmg_driver
     ! set cloud fractional cover at bottom (ncld) model levels = 0
     !
     ncldm1 = ncld - 1
-    do k = 1 ,ncldm1
+    do k = 1 , ncldm1
       do n = 1 , npr
         cldf(n,k) = d_zero
         clwp(n,k) = d_zero
@@ -948,32 +964,29 @@ module mod_rrtmg_driver
 !
   subroutine cldefr_rrtm(t,rel,rei,fice,pmid)
     implicit none
-!
     real(rk8) , pointer , dimension(:,:) :: fice , pmid , rei , rel , t
     intent (in) pmid , t
     intent (inout) fice , rei , rel
-!
     integer(ik4) :: k , n
     real(rk8) :: pnrml , rliq , weight
-!
-!   reimax - maximum ice effective radius
+    ! reimax - maximum ice effective radius
     real(rk8) , parameter :: reimax = 30.0D0
-!   rirnge - range of ice radii (reimax - 10 microns)
+    ! rirnge - range of ice radii (reimax - 10 microns)
     real(rk8) , parameter :: rirnge = 20.0D0
-!   pirnge - nrmlzd pres range for ice particle changes
+    ! pirnge - nrmlzd pres range for ice particle changes
     real(rk8) , parameter :: pirnge = 0.4D0
-!   picemn - normalized pressure below which rei=reimax
+    ! picemn - normalized pressure below which rei=reimax
     real(rk8) , parameter :: picemn = 0.4D0
-!   Temperatures in K (263.16 , 243.16)
+    ! Temperatures in K (263.16 , 243.16)
     real(rk8) , parameter :: minus10 = wattp-d_10
     real(rk8) , parameter :: minus30 = wattp-(d_three*d_10)
-!
-    do k = 1 , kz
+
+    do k = 1 , kth
       do n = 1 , npr
         !
         ! Define liquid drop size
         !
-        if ( ioro(n) /= 1 ) then
+        if ( ioro(n) == 0 ) then
           !
           ! Effective liquid radius over ocean and sea ice
           !
