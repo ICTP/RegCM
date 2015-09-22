@@ -778,7 +778,7 @@ module mod_tendency
           end do
         end do
       end do
-      if ( ipptls == 2 ) then
+      if ( ipptls > 0 ) then
         do k = 2 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2

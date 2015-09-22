@@ -117,30 +117,30 @@ module mod_advection
         do k = 1 , kz
           do i = idi1 , idi2
             do j = jdi1 , jdi2
-              ucmona = ua(j,i+1,k)+d_two*ua(j,i,k)+ua(j,i-1,k)
-              vcmona = va(j+1,i,k)+d_two*va(j,i,k)+va(j-1,i,k)
-              ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + &
-                       ua(j+1,i-1,k) + ucmona
-              vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + &
-                       va(j-1,i+1,k) + vcmona
-              ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + &
-                       ua(j-1,i-1,k) + ucmona
-              vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
-                       va(j-1,i-1,k) + vcmona
               divd = d_rfour * ( divx(j,i,k)   + divx(j,i-1,k)   + &
                                  divx(j-1,i,k) + divx(j-1,i-1,k) )
+              ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
+              vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
+              ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + ua(j+1,i-1,k)
+              vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
+              ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + ua(j-1,i-1,k)
+              vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
               diag = divd - dmapf(j,i)*( ( ucmonb - ucmonc ) + &
                                          ( vcmonb - vcmonc ) )
+              ucmonb = ucmonb + ucmona
+              vcmonb = vcmonb + vcmona
+              ucmonc = ucmonc + ucmona
+              vcmonc = vcmonc + vcmona
               uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag -    &
-                dmapf(j,i) * ((u(j+1,i,k)+u(j,i,k))  *ucmonb - &
-                              (u(j,i,k)  +u(j-1,i,k))*ucmonc + &
-                              (u(j,i+1,k)+u(j,i,k))  *vcmonb - &
-                              (u(j,i,k)  +u(j,i-1,k))*vcmonc)
+                dmapf(j,i) * (u(j+1,i,k) * ucmonb - &
+                              u(j-1,i,k) * ucmonc + &
+                              u(j,i+1,k) * vcmonb - &
+                              u(j,i-1,k) * vcmonc)
               vten(j,i,k) = vten(j,i,k) + v(j,i,k) * diag -    &
-                dmapf(j,i) * ((v(j+1,i,k)+v(j,i,k))  *ucmonb - &
-                              (v(j,i,k)  +v(j-1,i,k))*ucmonc + &
-                              (v(j,i+1,k)+v(j,i,k))  *vcmonb - &
-                              (v(j,i,k)  +v(j,i-1,k))*vcmonc)
+                dmapf(j,i) * (v(j+1,i,k) * ucmonb - &
+                              v(j-1,i,k) * ucmonc + &
+                              v(j,i+1,k) * vcmonb - &
+                              v(j,i-1,k) * vcmonc)
             end do
           end do
         end do
