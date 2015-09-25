@@ -423,6 +423,7 @@ module mod_lm_interface
         end do
       end do
     end if
+
 #else
     call vecbats(lm,lms)
 #endif

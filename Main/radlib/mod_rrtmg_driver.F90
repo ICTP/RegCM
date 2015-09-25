@@ -33,6 +33,7 @@ module mod_rrtmg_driver
   use mod_rad_atmosphere
   use rrtmg_sw_rad
   use mcica_subcol_gen_sw
+!  use rrtmg_lw_rad_nomcica
   use parrrsw
   use rrsw_wvn
   use parrrtm
@@ -320,6 +321,7 @@ module mod_rrtmg_driver
                     swuflxc,swdflxc,swhrc,swddiruviflx,      &
                     swddifuviflx,swddirpirflx,swddifpirflx,  &
                     swdvisflx,aeradfo,aeradfos,asaeradfo,asaeradfos)
+
     else
       swuflx(:,:) = d_zero
       swdflx(:,:) = d_zero
@@ -339,14 +341,15 @@ module mod_rrtmg_driver
     end if ! end shortwave call
 
     ! LW call :
-
+    idrv =0 
+    if ( 1==1) then
     permuteseed = permuteseed+mypid+ngptsw
     if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
     call mcica_subcol_lw(iplon,npr,kth,icld,permuteseed,irng,play,  &
                          cldf,ciwp,clwp,rei,rel,tauc_lw,cldfmcl_lw, &
                          ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
                          taucmcl_lw)
-    idrv = 0
+   
 
     call rrtmg_lw(npr,kth,icld,idrv,idirect,play,plev,tlay,tlev,tsfc,  &
                   h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,      &
@@ -356,7 +359,21 @@ module mod_rrtmg_driver
                   relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc, &
                   lwdflxc,lwhrc,duflx_dt,duflxc_dt,aerlwfo,     &
                   aerlwfos,asaerlwfo,asaerlwfos)
-
+!
+!    print*, 'rrtmg', tlay(50,:)
+!    print*, 'rrtmg', lwdflx(50,:)
+   
+    else 
+!   call rrtmg_lw_nomcica( npr,kth,icld,idrv,play,plev,tlay,tlev,tsfc,  &
+!                  h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,      &
+!                  cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf, &
+!                  inflglw,iceflglw,liqflglw,cldf,         &
+!                  tauc,ciwp,clwp,rei,     &
+!                  rel,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc, &
+!                  lwdflxc,lwhrc,duflx_dt,duflxc_dt )
+!    print*, 'rrtmg2', tlay(50,:)
+!    print*, 'rrtmg2', lwdflx(50,:)
+     end if 
     ! Output and interface
     !
     ! EES  next 3 added, they are calculated in radcsw : but not used further
@@ -644,7 +661,7 @@ module mod_rrtmg_driver
       do i = ici1 , ici2
         do j = jci1 , jci2
           h2ommr(n,kj) = dmax1(1.0D-7,m2r%qxatms(j,i,k,iqv))
-          h2ovmr(n,kj) = h2ommr(n,kj) * ep2
+          h2ovmr(n,kj) = h2ommr(n,kj) * ep2 
           n = n + 1
         end do
       end do
@@ -687,7 +704,7 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    !
+!
     ! other gas (n2o,ch4)
     !
     if ( iyear >= 1750 .and. iyear <= 2100 ) then
@@ -885,7 +902,7 @@ module mod_rrtmg_driver
 
 #if defined(CLM45) || defined(CLM)
     ! TS is the radiant temeprature
-    emis_surf(n,k) = d_one
+    emis_surf(:,:) = d_one
 #else
     do k = 1 , nbndlw
       n = 1

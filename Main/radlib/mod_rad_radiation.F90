@@ -1980,7 +1980,6 @@ module mod_rad_radiation
     do irad = 1 , nradaer
 
       if ( ichem == 1 .and. idirect > 0 .and. irad == 2 ) then
-        ! print *, aertrlw
         abstot(:,:,:) = d_one - (d_one - absgastot(:,:,:)) * aertrlw(:,:,:)
         emstot(:,:) = d_one - (d_one - emsgastot(:,:)) * aertrlw(:,:,1)
         do k = 1 , kz  ! aertrlw defined on plev levels

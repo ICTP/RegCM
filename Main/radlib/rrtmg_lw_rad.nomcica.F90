@@ -67,7 +67,7 @@
       implicit none
 
 ! public interfaces/functions/subroutines
-      public :: rrtmg_lw, inatm
+      public :: rrtmg_lw_nomcica, inatm
 
 !------------------------------------------------------------------
       contains
@@ -77,7 +77,8 @@
 ! Public subroutines
 !------------------------------------------------------------------
 
-      subroutine rrtmg_lw &
+!      subroutine rrtmg_lw &
+       subroutine rrtmg_lw_nomcica &
             (ncol    ,nlay    ,icld    ,idrv    , &
              play    ,plev    ,tlay    ,tlev    ,tsfc    , &
              h2ovmr  ,o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr, &
@@ -566,7 +567,7 @@
 ! End longitude/column loop
       enddo
 
-      end subroutine rrtmg_lw
+      end subroutine rrtmg_lw_nomcica
 
 !***************************************************************************
       subroutine inatm (iplon, nlay, icld, iaer, &

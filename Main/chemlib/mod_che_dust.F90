@@ -150,7 +150,7 @@ module mod_che_dust
 
   integer(ik4) :: ilg
 
-  public :: allocate_mod_che_dust , inidust , sfflux
+  public :: allocate_mod_che_dust , inidust , sfflux, clm_dust_tend
 
   contains
 
@@ -458,7 +458,7 @@ module mod_che_dust
         frac1(:) = frac1(:) / totv1
         frac2(:) = frac2(:) / totv2
         frac3(:) = frac3(:) / totv3
-      else if ( ichdustemd == 2 ) then
+      else if ( ichdustemd >= 2 ) then
         ! calculate the bin mass fraction to the total mass from Kok et al.
         ! distribution ( mass distribution).
         ! the independant variable is diameter so going from
@@ -470,7 +470,7 @@ module mod_che_dust
              if ( di(ns) > dustbsiz(n,1) .and. di(ns) <= dustbsiz(n,2) ) then
                 frac(n) = frac(n) + d_one/cv * &
                   (d_one+derf(log(di(ns)/d)/sqrt(d_two)/ &
-                  log(sigmas)))*exp(-(di(ns)/lambda)**3)  !see Kok (2011)
+                  log(sigmas)))*exp(-(d/di(ns)/lambda)**3)  !see Kok (2011)
              end if
            end do
            totv = totv + d_one / cv * (d_one+derf(log(di(ns)/d)/sqrt(d_two)/ &
@@ -907,6 +907,48 @@ module mod_che_dust
       end do
     end subroutine emission
 
-end module mod_che_dust
+    subroutine clm_dust_tend    
+!  update dust tendency with dust fluxes calculated in CLM
+! here sump up the total flux from clm ( initially defined on 4 bins)
+! and re-distribute it according to the selected dust emission size distrib
+! frac(n) is the weight relatibe to bin n ..
+! this insure consistency between emission distrbution and effective readius and optical properties 
+! use the same tuning erodibility factor rdstemfac than for standard scheme
+      implicit none
+      integer(ik4) :: i,j,n     
+      real(rk8) , pointer , dimension(:,:) :: sumdflux
+
+      allocate(sumdflux(jci1:jci2,ici1:ici2))
+      sumdflux = d_zero
+      sumdflux = sum(cdustflx_clm,3) * rdstemfac 
+      do j = jci1 , jci2
+        do i = ici1 , ici2
+           do n = 1 , nbin
+        
+            if ( ichdrdepo == 1 ) then
+              
+              chiten(j,i,kz,idust(n)) = chiten(j,i,kz,idust(n)) + &
+                   sumdflux(j,i)*frac(n) * egrav/(dsigma(kz)*1.D3)
+            elseif ( ichdrdepo == 2 ) then
+              ! pass the flux to BL scheme
+              chifxuw(j,i,idust(n)) = chifxuw(j,i,idust(n)) + &
+                  sumdflux(j,i) * frac(n)
+            end if
+            ! diagnostic source (accumulated)
+            cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
+                    sumdflux(j,i)*frac(n) * cfdout
+
+             if ( ichdiag == 1 ) then
+             cemisdiag(j,i,kz,idust(n)) = cemisdiag(j,i,kz,idust(n)) + &
+                      sumdflux(j,i)*frac(n) / ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+             end if
+          end do
+        end do
+      end do 
+      deallocate(sumdflux)
+
+      end subroutine clm_dust_tend
+
+end module mod_che_dust 
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
