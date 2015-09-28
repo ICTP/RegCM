@@ -960,7 +960,7 @@ module mod_tendency
       ! horizontal diffusion: initialize scratch vars to 0.
       ! need to compute tracer tendencies due to diffusion
       !
-      call diffu_x(chiten,chib3d,sfs%psb,xkc,kz)
+      call diffu_x(chiten,atms%chib3d,sfs%psb,xkc,kz)
       if ( ichdiag == 1 ) then
         cdifhdiag = cdifhdiag + (chiten - chiten0) * cfdout
       end if
@@ -1777,13 +1777,11 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              chias = chic(j,i,k,itr)
-              if ( chias < dlowval ) chias = dlowval
-              chibs = omu * chia(j,i,k,itr) + &
-                      gnu * (chib(j,i,k,itr)+chic(j,i,k,itr))
-              if ( chibs < dlowval ) chibs = dlowval
-              chib(j,i,k,itr) = chibs
+              chias = max(chic(j,i,k,itr),mintr)
+              chibs = max((omu * chia(j,i,k,itr) + &
+                           gnu * (chib(j,i,k,itr)+chic(j,i,k,itr))),mintr)
               chia(j,i,k,itr) = chias
+              chib(j,i,k,itr) = chibs
             end do
           end do
         end do

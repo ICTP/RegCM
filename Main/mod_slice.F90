@@ -109,7 +109,11 @@ module mod_slice
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              atms%chib3d(j,i,k,n) = chib(j,i,k,n)*rpsb(j,i)
+              if ( chib(j,i,k,n) > dlowval ) then
+                atms%chib3d(j,i,k,n) = max(chib(j,i,k,n)*rpsb(j,i),mintr)
+              else
+                atms%chib3d(j,i,k,n) = d_zero
+              end if
             end do
           end do
         end do
@@ -120,7 +124,11 @@ module mod_slice
       do k = 1 , kzp1
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
+            if ( abs(atm2%w(j,i,k)) > minww ) then
+              atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
+            else
+              atms%wb3d(j,i,k) = d_zero
+            end if
           end do
         end do
       end do

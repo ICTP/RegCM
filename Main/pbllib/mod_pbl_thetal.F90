@@ -79,7 +79,7 @@ module mod_pbl_thetal
     real(rk8) :: dthetal , dqt , qvprev , deltat , es , qcthresh
     real(rk8) :: tempqv , tempqc , tempt , tempes , ddq
     logical :: mflag
-    integer(ik4) :: i , iteration , itqt
+    integer(ik4) :: iteration , itqt
     integer(ik4) , parameter :: itmax = 6
 
     ! set some interal module variables
@@ -87,6 +87,7 @@ module mod_pbl_thetal
     myqt = qt
     myp = p
     myexner = (myp/1.0D5)**rovcp
+    templ = mythetal*myexner
 
     ! Use the Brent 1973 method to determine t from liquid water pot.
     ! temp., pressure, and total water
@@ -224,8 +225,6 @@ module mod_pbl_thetal
 
     else if ( imethod == 2 ) then
       ! Bretherton's iterative method
-
-      templ = mythetal*myexner
       ! set the dummy temperature temps (which will eventually
       ! be the actual temperature)
       temps = templ

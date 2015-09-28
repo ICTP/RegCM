@@ -55,8 +55,10 @@ module mod_constants
 
   ! Low/Hi values
   real(rk8) , parameter :: minqx   = 1.0D-10
-  real(rk8) , parameter :: dlowval = 1.0D-30
-  real(rk8) , parameter :: dhival  = 1.0D+30
+  real(rk8) , parameter :: minww   = 1.0D-20
+  real(rk8) , parameter :: mintr   = 1.0D-30
+  real(rk8) , parameter :: dlowval = 1.0D-60
+  real(rk8) , parameter :: dhival  = 1.0D+60
   real(rk4) , parameter :: slowval = 1.0E-30
   real(rk4) , parameter :: shival  = 1.0E+30
   real(rk8) , parameter :: dmissval = 1.0D+20

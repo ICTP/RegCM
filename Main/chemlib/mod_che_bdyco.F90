@@ -147,8 +147,8 @@ module mod_che_bdyco
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              tvirt(j,i,k) = bndt0(j,i,k) / (cps0(j,i) * d_r100) * &
-                (d_one + ep1 * bndq0(j,i,k) / (cps0(j,i) * d_r100))
+              tvirt(j,i,k) = bndt0(j,i,k) / (cps0(j,i) * d_r1000) * &
+                (d_one + ep1 * bndq0(j,i,k) / (cps0(j,i) * d_r1000))
             end do
           end do
         end do
@@ -215,8 +215,8 @@ module mod_che_bdyco
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              tvirt(j,i,k) = bndt1(j,i,k) / (cps0(j,i) * d_r100) * &
-                (d_one + ep1 * bndq1(j,i,k) / (cps0(j,i) * d_r100))
+              tvirt(j,i,k) = bndt1(j,i,k) / (cps0(j,i) * d_r1000) * &
+                (d_one + ep1 * bndq1(j,i,k) / (cps0(j,i) * d_r1000))
             end do
           end do
         end do
@@ -339,8 +339,8 @@ module mod_che_bdyco
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              tvirt(j,i,k) = bndt1(j,i,k) / (cps0(j,i) * d_r100) * &
-                (d_one + ep1 * bndq1(j,i,k) / (cps0(j,i) * d_r100))
+              tvirt(j,i,k) = bndt1(j,i,k) / (cps0(j,i) * d_r1000) * &
+                (d_one + ep1 * bndq1(j,i,k) / (cps0(j,i) * d_r1000))
             end do
           end do
         end do

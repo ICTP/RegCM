@@ -19,7 +19,7 @@
 !
 module mod_che_wetdep
 
-! This module contains routines for wet scavenging of gas and aerosols
+  ! This module contains routines for wet scavenging of gas and aerosols
 
   use mod_intkinds
   use mod_realkinds
@@ -36,37 +36,38 @@ module mod_che_wetdep
   public :: sethet , wetdepa
 
   contains
-!
-! Calculate the total wet deposition rate for each species that is able to be
-! washed/rained out (1/s).  This module was originally from MOZART4 but has been
-! adapted to work within the RegCM4.1-chem framework.
-! note: the press array is in pascals and must be
-! mutiplied by 10 to yield dynes/cm**2.
-! set wet deposition for
-!           1. h2o2         2. hno3
-!           3. ch2o         4. ch3ooh
-!           5. pooh         6. ch3coooh
-!           7. ho2no2       8. onit
-!           9. mvk         10. macr
-!          11. c2h5ooh     12. c3h7ooh
-!          13. rooh        14. ch3cocho
-!          15. pb          16. macrooh
-!          17. xooh        18. onitr
-!          19. isopooh     20. ch3oh
-!          21. c2h5oh      22. glyald
-!          23. hyac        24. hydrald
-!          25. ch3cho      26. isopno3
-!
-  subroutine sethet(j,zmid1,phis1,tfld1,strappt,convppt, &
-                    nevapr1,delt,xhnm1,qin1,ps2)
+  !
+  ! Calculate the total wet deposition rate for each species that is able to be
+  ! washed/rained out (1/s).
+  !  This module was originally from MOZART4 but has been adapted to work
+  ! within the RegCM4.1-chem framework.
+  ! note: the press array is in pascals and must be
+  ! mutiplied by 10 to yield dynes/cm**2.
+  ! set wet deposition for
+  !           1. h2o2         2. hno3
+  !           3. ch2o         4. ch3ooh
+  !           5. pooh         6. ch3coooh
+  !           7. ho2no2       8. onit
+  !           9. mvk         10. macr
+  !          11. c2h5ooh     12. c3h7ooh
+  !          13. rooh        14. ch3cocho
+  !          15. pb          16. macrooh
+  !          17. xooh        18. onitr
+  !          19. isopooh     20. ch3oh
+  !          21. c2h5oh      22. glyald
+  !          23. hyac        24. hydrald
+  !          25. ch3cho      26. isopno3
+  !
+  subroutine sethet(j,zmid1,phis,tfld,strappt,convppt, &
+                    nevapr1,delt,xhnm1,qin,ps2)
     implicit none
     integer, intent(in) :: j               ! longitude index
     ! surf geopotential (m2/s2)
-    real(rk8), dimension(ici1:ici2) , intent(in) :: phis1
+    real(rk8), dimension(ici1:ici2) , intent(in) :: phis
     ! midpoint geopot convert (m) to (km)
     real(rk8), dimension(ici1:ici2,kz) , intent(in) :: zmid1
     ! temperature (K)
-    real(rk8), dimension(ici1:ici2,kz) , intent(in) :: tfld1
+    real(rk8), dimension(ici1:ici2,kz) , intent(in) :: tfld
     ! dq/dt for convection (kg/kg/s) converted to (1/s) below
     ! real(rk8), dimension(ici1:ici2,kz) , intent(in) :: cmfdqr1
     ! rainwater formation tendency kg/kg/s1 converted to (1/s) :
@@ -82,17 +83,14 @@ module mod_che_wetdep
     ! total atms density (kg/m3) convert to (#/cm^3) below
     real(rk8), dimension(ici1:ici2,kz) , intent(in) :: xhnm1
     ! exported species ( mmr )
-    real(rk8), dimension(ici1:ici2,kz,ntr) , intent(in) :: qin1
+    real(rk8), dimension(ici1:ici2,kz,ntr) , intent(in) :: qin
     ! Pressure ( cb )
     real(rk8), dimension(ici1:ici2) , intent(in) :: ps2
-    real(rk8) :: phis(ici1:ici2)        ! surf geopotential (m2/s2)
     real(rk8) :: zmid(ici1:ici2,kz)     ! midpoint geopot convert (m) to (km)
-    real(rk8) :: tfld(ici1:ici2,kz)     ! temperature (K)
     real(rk8) :: cmfdqr(ici1:ici2,kz)   ! dq/dt for convection (1/s)
     real(rk8) :: nrain(ici1:ici2,kz)    ! stratoform precip (1/s)
     real(rk8) :: nevapr(ici1:ici2,kz)   ! evaporation (1/s)
     real(rk8) :: xhnm(ici1:ici2,kz)     ! total atms density (#/cm^3)
-    real(rk8) :: qin(ici1:ici2,kz,ntr)  ! exported species ( mmr )
     real(rk8) :: temp_dep(ici1:ici2)    ! temp var of wet dep rate
                                         ! (centibars_tracer/sec)
     ! temp var of wet dep rate
@@ -205,10 +203,6 @@ module mod_che_wetdep
     zmid(ici1:ici2,:) = zmid1(ici1:ici2,:)*m2km
     ![kg/m3 -> #/cm3]
     xhnm(ici1:ici2,:) = xhnm1(ici1:ici2,:)*navgdr*cm3_2_m3/( amd*d_1000)
-
-    phis(ici1:ici2) = phis1(ici1:ici2)
-    qin(ici1:ici2,:,:) = qin1(ici1:ici2,:,:)
-    tfld(ici1:ici2,:) = tfld1(ici1:ici2,:)
 
 
     !-----------------------------------------------------------------
@@ -560,15 +554,14 @@ module mod_che_wetdep
 
     end do level_loop2
 
-      !-----------------------------------------------------------------
-      ! *** abt added to work with RegCM4.1
-      ! Directly calculate the tracer tendency (chiten)
-      ! Loop over all non-aerosol tracers
-      ! old way MOZART: het_rates(:,k,ihcho)  = work3(:)
-      ! for RegCM4.1  : chiten(:,k,j,ihcho)  = chiten + work3(:) * chib
-      ! FAB: add diagnostic
-      !-----------------------------------------------------------------
-
+    !-----------------------------------------------------------------
+    ! *** abt added to work with RegCM4.1
+    ! Directly calculate the tracer tendency (chiten)
+    ! Loop over all non-aerosol tracers
+    ! old way MOZART: het_rates(:,k,ihcho)  = work3(:)
+    ! for RegCM4.1  : chiten(:,k,j,ihcho)  = chiten + work3(:) * chib
+    ! FAB: add diagnostic
+    !-----------------------------------------------------------------
 
     do k= 1 , kz
       do itr = 1 , ntr
@@ -626,7 +619,6 @@ module mod_che_wetdep
   subroutine wetdepa(j,mbin,indp,beffdiam,rhoaer,t,wl,fracloud,fracum, &
                      pressg,shj,rho,strappt,convppt,pdepv)
     implicit none
-!
     integer(ik4) , intent(in) :: j , mbin
     integer(ik4) , dimension(mbin) , intent(in) :: indp
     real(rk8) , dimension(mbin) , intent(in) :: beffdiam
@@ -884,185 +876,186 @@ module mod_che_wetdep
       end do
     end do
   end subroutine blcld ! below-cloud scavenging subroutine
-!
-!***********************************************************************
-!****  a e r o s o l   c o l l e c t i o n   e f f i c i e n c y    ****
-!***********************************************************************
-! . . . calculation of the collection efficiency of the aerosols of  . .
-! . . . type n by collector droplets of radius rcol  . . . . . . . . . .
-! . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . . . . . .
-! . . . dec 19/96 - s.l.gong - vectorised the whole program & added  . .
-! . . . . . . . . . . . . . .  some working space  . . . . . . . . . . .
-! . . . jul 8/94  - s.l.gong - first version . . . . . . . . . . . . . .
-!***********************************************************************
-!
-  subroutine cas(t,colef,indp,rhop,rho,rhsize,pressg,mbin,totppt,pdepv,shj)
-  !------------------------------------------------------------------------
-  !  purpose:
-  !  --------
-  !  this is a module of calculating the collection efficiency of
-  !  the aerosols of type n by collector droplets of radius rcol.
   !
-  implicit none
+  !***********************************************************************
+  !****  a e r o s o l   c o l l e c t i o n   e f f i c i e n c y    ****
+  !***********************************************************************
+  ! . . . calculation of the collection efficiency of the aerosols of  . .
+  ! . . . type n by collector droplets of radius rcol  . . . . . . . . . .
+  ! . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . . . . . .
+  ! . . . dec 19/96 - s.l.gong - vectorised the whole program & added  . .
+  ! . . . . . . . . . . . . . .  some working space  . . . . . . . . . . .
+  ! . . . jul 8/94  - s.l.gong - first version . . . . . . . . . . . . . .
+  !***********************************************************************
+  !
+  subroutine cas(t,colef,indp,rhop,rho,rhsize,pressg,mbin,totppt,pdepv,shj)
+    !---------------------------------------------------------------------
+    !  purpose:
+    !  --------
+    !  this is a module of calculating the collection efficiency of
+    !  the aerosols of type n by collector droplets of radius rcol.
+    !
+    implicit none
 
-  integer(ik4) , intent(in) :: mbin
-  integer(ik4) , dimension(mbin) , intent(in) :: indp
-  real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: t , rho , totppt
-  real(rk8) , dimension(ici1:ici2,kz,mbin) , intent(in) :: rhop , rhsize
-  real(rk8) , dimension(ici1:ici2) , intent(in) :: pressg
-  real(rk8) , dimension(ici1:ici2,kz,ntr) , intent(in) :: pdepv
-  real(rk8) , dimension(kz) , intent(in) :: shj
-  ! collection efficiency
-  real(rk8) , dimension(ici1:ici2,kz,mbin) , intent(out) :: colef
-!
-  real(rk8) :: pdiff
-  real(rk8) :: amu , anu !dynamic viscosity of air
-  real(rk8) :: amfp   ! mean molecular free path
-  real(rk8) :: schm   ! schmidt number
-  real(rk8) :: prii
-  real(rk8) :: priiv
-  ! real(rk8) :: cfac
-  real(rk8) :: cfaca
-  real(rk8) :: re ! reynolds number
-  real(rk8) :: rr ! ratio of collected particle radius:collector particle radius
-  real(rk8) :: st ! stokes number of collected particles
-  real(rk8) :: vr
-  real(rk8) :: sstar
-  real(rk8) :: amob
-  real(rk8) :: colimp , pre
-  real(rk8) :: vpr ! average settling velocity
-  real(rk8) :: rrm ! mass mean raindrop radius (for rain)
-                  ! characteristic capture length (for snow)
-  real(rk8) :: alpha
-  integer(ik4) :: n , k , i
+    integer(ik4) , intent(in) :: mbin
+    integer(ik4) , dimension(mbin) , intent(in) :: indp
+    real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: t , rho , totppt
+    real(rk8) , dimension(ici1:ici2,kz,mbin) , intent(in) :: rhop , rhsize
+    real(rk8) , dimension(ici1:ici2) , intent(in) :: pressg
+    real(rk8) , dimension(ici1:ici2,kz,ntr) , intent(in) :: pdepv
+    real(rk8) , dimension(kz) , intent(in) :: shj
+    ! collection efficiency
+    real(rk8) , dimension(ici1:ici2,kz,mbin) , intent(out) :: colef
 
-  ! Cunningham slip correction factor parameters for rain
+    real(rk8) :: pdiff
+    real(rk8) :: amu , anu !dynamic viscosity of air
+    real(rk8) :: amfp   ! mean molecular free path
+    real(rk8) :: schm   ! schmidt number
+    real(rk8) :: prii
+    real(rk8) :: priiv
+    ! real(rk8) :: cfac
+    real(rk8) :: cfaca
+    real(rk8) :: re ! reynolds number
+    real(rk8) :: rr ! (collected particle radius)/(collector particle radius)
+    real(rk8) :: st ! stokes number of collected particles
+    real(rk8) :: vr
+    real(rk8) :: sstar
+    real(rk8) :: amob
+    real(rk8) :: colimp , pre
+    real(rk8) :: vpr ! average settling velocity
+    real(rk8) :: rrm ! mass mean raindrop radius (for rain)
+                    ! characteristic capture length (for snow)
+    real(rk8) :: alpha
+    integer(ik4) :: n , k , i
 
-  !real(rk8) , parameter :: aa1r = 1.249D0
-  !real(rk8) , parameter :: aa2r = 0.42D0
-  !real(rk8) , parameter :: aa3r = 0.87D0
-  real(rk8) , parameter :: rhorain = 1000.0D0
-  real(rk8) , parameter :: amuw = 1.002D-3 ! at 20*c [kg/m/sec]
+    ! Cunningham slip correction factor parameters for rain
 
-  colef(:,:,:) = d_zero
+    !real(rk8) , parameter :: aa1r = 1.249D0
+    !real(rk8) , parameter :: aa2r = 0.42D0
+    !real(rk8) , parameter :: aa3r = 0.87D0
+    real(rk8) , parameter :: rhorain = 1000.0D0
+    real(rk8) , parameter :: amuw = 1.002D-3 ! at 20*c [kg/m/sec]
 
-  do n = 1 , mbin
-    do k = 1 , kz
-      do i = ici1 , ici2
-        ! . . . for precipitation:
-        vpr = d_zero
-        if ( totppt(i,k) > 1.D-15 ) then
-          !********************************************************
-          !* air's dynamic viscosity                           ****
-          !********************************************************
-          amu = a1*1.D-8*t(i,k)**a2/(t(i,k)+a3)
-          !. . . . mid layer pressure in [pascal].
-          pre = pressg(i)*shj(k)
-          !********************************************************
-          !* mean molecular free path.                         ****
-          !*     k.v. beard [1976], j atm. sci., 33            ****
-          !********************************************************
-          amfp = c1*(amu/c2)*(c3/pre)*sqrt(t(i,k)/c4)
-          !********************************************************
-          !* cunningham slip correction factor and             ****
-          !* relaxation time = vg/grav.                        ****
-          !********************************************************
-          cfaca = d_one + amfp/rhsize(i,k,n) * &
-                    (aa1+aa2*dexp(-aa3*rhsize(i,k,n)/amfp))
-          !*****************************************************
-          !* the schmidt number is the ratio of the         ****
-          !* kinematic viscosity of air to the particle     ****
-          !* brownian diffusivity ===> sc=v/d               ****
-          !*****************************************************
-          anu = amu/rho(i,k)
-          amob = 6.0D0*mathpi*amu*rhsize(i,k,n)/cfaca
-          pdiff = boltzk*t(i,k)/amob
-          schm = anu/pdiff
-          !----------------------------------------------------c
-          ! collector drop size                                c
-          !----------------------------------------------------c
-          !----------------------------------------------------c
-          ! rain scavenging rate                               c
-          ! units of totppt (mm.s-1) converted to m.s-1        c
-          ! rrm = mass mean raindrop radius                    c
-          !----------------------------------------------------c
-          if ( t(i,k) > tzero ) then
-            rrm = 0.35D0*(totppt(i,k)*3600.0D0)**0.25D0*1.D-3
-            ! what empirical parametization is that ?
-            ! needs apparently rain rate in mm/hr
-            prii = 2.0D0/9.0D0*egrav/amu
-            priiv = prii*(rhorain-rho(i,k))
-            ! cunningham settling slip-correction factor
-            ! settling velocity
-            ! FAB : wrong this formulation apply only for small
-            ! particles settling but not for big rain drops (high reynolds)!!
-            ! cf Seinfeld / Vpr would be overestimated
-            !  cfac = d_one+amfp/rrm*(aa1r+aa2r*dexp(-aa3r*rrm/amfp))
-            ! vpr = priiv*rrm**2*cfac
-            ! try with a mean rainfall velcoity of 3 m/s
-            vpr = 3.D0
+    colef(:,:,:) = d_zero
+
+    do n = 1 , mbin
+      do k = 1 , kz
+        do i = ici1 , ici2
+          ! . . . for precipitation:
+          vpr = d_zero
+          if ( totppt(i,k) > 1.D-15 ) then
+            !********************************************************
+            !* air's dynamic viscosity                           ****
+            !********************************************************
+            amu = a1*1.D-8*t(i,k)**a2/(t(i,k)+a3)
+            !. . . . mid layer pressure in [pascal].
+            pre = pressg(i)*shj(k)
+            !********************************************************
+            !* mean molecular free path.                         ****
+            !*     k.v. beard [1976], j atm. sci., 33            ****
+            !********************************************************
+            amfp = c1*(amu/c2)*(c3/pre)*sqrt(t(i,k)/c4)
+            !********************************************************
+            !* cunningham slip correction factor and             ****
+            !* relaxation time = vg/grav.                        ****
+            !********************************************************
+            cfaca = d_one + amfp/rhsize(i,k,n) * &
+                      (aa1+aa2*dexp(-aa3*rhsize(i,k,n)/amfp))
+            !*****************************************************
+            !* the schmidt number is the ratio of the         ****
+            !* kinematic viscosity of air to the particle     ****
+            !* brownian diffusivity ===> sc=v/d               ****
+            !*****************************************************
+            anu = amu/rho(i,k)
+            amob = 6.0D0*mathpi*amu*rhsize(i,k,n)/cfaca
+            pdiff = boltzk*t(i,k)/amob
+            schm = anu/pdiff
+            !----------------------------------------------------c
+            ! collector drop size                                c
+            !----------------------------------------------------c
+            !----------------------------------------------------c
+            ! rain scavenging rate                               c
+            ! units of totppt (mm.s-1) converted to m.s-1        c
+            ! rrm = mass mean raindrop radius                    c
+            !----------------------------------------------------c
+            if ( t(i,k) > tzero ) then
+              rrm = 0.35D0*(totppt(i,k)*3600.0D0)**0.25D0*1.D-3
+              ! what empirical parametization is that ?
+              ! needs apparently rain rate in mm/hr
+              prii = 2.0D0/9.0D0*egrav/amu
+              priiv = prii*(rhorain-rho(i,k))
+              ! cunningham settling slip-correction factor
+              ! settling velocity
+              ! FAB : wrong this formulation apply only for small
+              ! particles settling but not for big rain drops (high reynolds)!!
+              ! cf Seinfeld / Vpr would be overestimated
+              !  cfac = d_one+amfp/rrm*(aa1r+aa2r*dexp(-aa3r*rrm/amfp))
+              ! vpr = priiv*rrm**2*cfac
+              ! try with a mean rainfall velcoity of 3 m/s
+              vpr = 3.D0
+            end if
+            !----------------------------------------------------c
+            ! snow scavenging                                    c
+            ! data from slinn (1984) in atmospheric science &    c
+            ! power production, ed. darryl randerson             c
+            ! density of snow is set as 1/10 of liquid water.    c
+            ! factor of 1.0e-2 in wetdep calculation takes this  c
+            ! and unit change (to m.s-1) into account            c
+            ! rrm = characteristic capture length                c
+            !----------------------------------------------------c
+            ! needle-snow scavenging:
+            if ( t(i,k) <= tzero .and. t(i,k)>= tzero-8.0D0 ) then
+              vpr = 50.0D-2
+              rrm = 10.D-6
+              alpha = 1.0D0
+            end if
+            ! . . . steller-snow scavenging:
+            if ( t(i,k) < tzero-8.0D0 .and. t(i,k) >= tzero-25.0D0) then
+              vpr = 57.0D-2
+              rrm = 100.D-6
+              alpha = 0.5D0
+            end if
+            ! . . . graupel scavenging:
+            if ( t(i,k) < tzero-25.0D0 ) then
+              vpr = 180.0D-2
+              rrm = 1000.D-6
+              alpha = 2.0D0/3.0D0
+            endif
+
+            ! reynolds number:
+            re = rrm*vpr*rho(i,k)/amu
+            ! stokes number of collected particles:
+            st = d_two*pdepv(i,k,indp(n))*regrav*(vpr - &
+                 pdepv(i,k,indp(n)))/(d_two*rrm)
+            ! ratio of radius of collected particle to colector drop:
+            rr = rhsize(i,k,n)/rrm
+            vr = amuw/amu
+            sstar = (1.2D0+(d_one/12.0D0)* &
+                    dlog(d_one+re))/(d_one+dlog(d_one+re))
+            if ( st > sstar ) then
+              colimp = ((st-sstar)/ &
+                        (st-sstar+d_two/d_three))**(d_three/d_two) * &
+                         dsqrt(d_1000/rhop(i,k,n))
+            else
+              colimp = d_zero
+            end if
+            ! rain scavenging efficiency:
+            if ( t(i,k) > tzero ) then
+              colef(i,k,n) = d_four/(re*schm)*(d_one+0.4D0*dsqrt(re) * &
+                   schm**(d_one/d_three)+0.16D0*dsqrt(re*schm)) +  &
+                   d_four*rr*(d_one/vr + (d_one+d_two*dsqrt(re))*rr) + colimp
+            else
+            ! snow scavenging efficiency:
+            colef(i,k,n) = (d_one/schm)**alpha +  &
+                   (d_one-dexp(-(d_one+dsqrt(re))*rr**2)) + colimp
+            endif
+            ! setting the upper-bound for collection efficiency:
+            colef(i,k,n) = dmax1(d_zero,dmin1(d_one,colef(i,k,n)))
           end if
-          !----------------------------------------------------c
-          ! snow scavenging                                    c
-          ! data from slinn (1984) in atmospheric science &    c
-          ! power production, ed. darryl randerson             c
-          ! density of snow is set as 1/10 of liquid water.    c
-          ! factor of 1.0e-2 in wetdep calculation takes this  c
-          ! and unit change (to m.s-1) into account            c
-          ! rrm = characteristic capture length                c
-          !----------------------------------------------------c
-          ! needle-snow scavenging:
-          if ( t(i,k) <= tzero .and. t(i,k)>= tzero-8.0D0 ) then
-            vpr = 50.0D-2
-            rrm = 10.D-6
-            alpha = 1.0D0
-          end if
-          ! . . . steller-snow scavenging:
-          if ( t(i,k) < tzero-8.0D0 .and. t(i,k) >= tzero-25.0D0) then
-            vpr = 57.0D-2
-            rrm = 100.D-6
-            alpha = 0.5D0
-          end if
-          ! . . . graupel scavenging:
-          if ( t(i,k) < tzero-25.0D0 ) then
-            vpr = 180.0D-2
-            rrm = 1000.D-6
-            alpha = 2.0D0/3.0D0
-          endif
-
-          ! reynolds number:
-          re = rrm*vpr*rho(i,k)/amu
-          ! stokes number of collected particles:
-          st = d_two*pdepv(i,k,indp(n))*regrav*(vpr - &
-               pdepv(i,k,indp(n)))/(d_two*rrm)
-          ! ratio of radius of collected particle to colector drop:
-          rr = rhsize(i,k,n)/rrm
-          vr = amuw/amu
-          sstar = (1.2D0+(d_one/12.0D0)* &
-                  dlog(d_one+re))/(d_one+dlog(d_one+re))
-          if ( st > sstar ) then
-            colimp = ((st-sstar)/(st-sstar+d_two/d_three))**(d_three/d_two) * &
-                    dsqrt(d_1000/rhop(i,k,n))
-          else
-            colimp = d_zero
-          end if
-          ! rain scavenging efficiency:
-          if ( t(i,k) > tzero ) then
-            colef(i,k,n) = d_four/(re*schm)*(d_one+0.4D0*dsqrt(re) * &
-                 schm**(d_one/d_three)+0.16D0*dsqrt(re*schm)) +  &
-                 d_four*rr*(d_one/vr + (d_one+d_two*dsqrt(re))*rr) + colimp
-          else
-          ! snow scavenging efficiency:
-          colef(i,k,n) = (d_one/schm)**alpha +  &
-                 (d_one-dexp(-(d_one+dsqrt(re))*rr**2)) + colimp
-          endif
-          ! setting the upper-bound for collection efficiency:
-          colef(i,k,n) = dmax1(d_zero,dmin1(d_one,colef(i,k,n)))
-        end if
+        end do
       end do
     end do
-  end do
   end subroutine cas
-!
+
 end module mod_che_wetdep
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -4,7 +4,7 @@
 !     created:   $Date: 2009/11/12 20:52:25 $
 !
 
-       module rrtmg_lw_rad_nomcica
+module rrtmg_lw_rad_nomcica
 
 !  --------------------------------------------------------------------------
 ! |                                                                          |
@@ -67,7 +67,7 @@
       implicit none
 
 ! public interfaces/functions/subroutines
-      public :: rrtmg_lw_nomcica, inatm
+      public :: rrtmg_lw_nomcica
 
 !------------------------------------------------------------------
       contains
@@ -77,7 +77,6 @@
 ! Public subroutines
 !------------------------------------------------------------------
 
-!      subroutine rrtmg_lw &
        subroutine rrtmg_lw_nomcica &
             (ncol    ,nlay    ,icld    ,idrv    , &
              play    ,plev    ,tlay    ,tlev    ,tsfc    , &
@@ -898,8 +897,8 @@
 
       endif
 
-      end subroutine inatm
+    end subroutine inatm
 
-      end module rrtmg_lw_rad_nomcica
+end module rrtmg_lw_rad_nomcica
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

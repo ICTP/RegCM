@@ -184,6 +184,7 @@ module mod_nhinterp
                           fl * (zu - z0(j,i,k))) / (zu - zl)
                 fn(k) = exp(alnqvn)
               end if
+              if ( fn(k) < minqx ) fn(k) = minqx
             end if
           end do
           do k = 1 , kxs
@@ -258,8 +259,8 @@ module mod_nhinterp
               end do
               zu = z(j,i,l)
               zl = z(j,i,l+1)
-              f(j,i,l,  n) = max(f(j,i,l,  n), dlowval)
-              f(j,i,l+1,n) = max(f(j,i,l+1,n), dlowval)
+              f(j,i,l,  n) = max(f(j,i,l,  n),mintr)
+              f(j,i,l+1,n) = max(f(j,i,l+1,n),mintr)
               if ( z0(j,i,k) > zu ) then
                 fn(k) = f(j,i,l,n)
               else
@@ -267,8 +268,9 @@ module mod_nhinterp
                 fl = log(f(j,i,l+1,n))
                 alnqvn = (fu * (z0(j,i,k) - zl ) + &
                           fl * (zu - z0(j,i,k))) / (zu - zl)
-                fn(k) = max(exp(alnqvn),dlowval)
+                fn(k) = exp(alnqvn)
               end if
+              if ( fn(k) < dlowval ) fn(k) = mintr
             end do
             do k = 1 , kxs
               f(j,i,k,n) = fn(k)

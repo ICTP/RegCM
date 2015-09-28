@@ -135,7 +135,7 @@ module mod_che_output
         cbdydiag(:,:,:,itr) = d_zero
         if ( associated(che_sedten_out) ) then
           do k = 1 , kz
-            che_sedten_out(:,:,k) = cseddpdiag(jci1:jci2,ici1:ici2,k,itr)/ &
+            che_sedten_out(:,:,k) = cseddpdiag(jci1:jci2,ici1:ici2,k,itr) / &
                            cpsb(jci1:jci2,ici1:ici2)
           end do
         end if
@@ -144,12 +144,10 @@ module mod_che_output
           che_pblten_out = chifxuw(jci1:jci2,ici1:ici2,itr)
         end if
         if ( associated(che_emten_out) ) then
-          do k = 1 , kz
-            ! no need to normalise by ps here !!
-            che_emten_out(:,:,k) = cemisdiag(jci1:jci2,ici1:ici2,k,itr)
-          end do
+          ! no need to normalise by ps here !!
+          che_emten_out(:,:) = cemisdiag(jci1:jci2,ici1:ici2,itr)
         end if
-        cemisdiag(:,:,:,itr) = d_zero
+        cemisdiag(:,:,itr) = d_zero
       endif
 
       rainout(:,:,:,itr) = d_zero

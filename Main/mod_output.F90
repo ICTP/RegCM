@@ -355,8 +355,9 @@ module mod_output
         if ( associated(atm_kzm_out) ) &
           atm_kzm_out = uwstateb%kzm(jci1:jci2,ici1:ici2,1:kz)
 
-        if ( associated(atm_tpr_out) ) &
+        if ( associated(atm_tpr_out) ) then
           atm_tpr_out = (sfs%rainc+sfs%rainnc)/(atmfrq*secph)
+        end if
         if ( associated(atm_tsn_out) ) &
           atm_tsn_out = sfs%snownc/(atmfrq*secph)
 
@@ -364,6 +365,7 @@ module mod_output
           atm_tgb_out = atm_tgb_out * rsrf_in_atm
         if ( associated(atm_tsw_out) ) &
           atm_tsw_out = atm_tsw_out * rsrf_in_atm
+
         ! FAB add tendency diagnostic here
         if ( associated(atm_tten_adh_out) ) then
           do k = 1 , kz

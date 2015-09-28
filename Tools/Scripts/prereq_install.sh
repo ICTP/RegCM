@@ -26,9 +26,9 @@
 
 netcdf_c_ver=4.3.3.1
 netcdf_f_ver=4.4.2
-hdf5_ver=1.8.15
+hdf5_ver=1.8.15-patch1
 zlib_ver=1.2.8
-ompi_ver=1.8.5
+ompi_ver=1.10.0
 ompi_major=`echo $ompi_ver | cut -d "." -f 1-2`
 
 UNIDATA=http://www.unidata.ucar.edu/downloads/netcdf/ftp

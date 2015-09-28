@@ -85,8 +85,8 @@ module mod_ncout
   integer(ik4) , parameter :: nopt3dvars = 4
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
-  integer(ik4) , parameter :: nche2dvars = 8 + nbase
-  integer(ik4) , parameter :: nche3dvars = 13
+  integer(ik4) , parameter :: nche2dvars = 9 + nbase
+  integer(ik4) , parameter :: nche3dvars = 12
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
   integer(ik4) , parameter :: nslaboc2dvars = nbase
@@ -382,6 +382,7 @@ module mod_ncout
   integer(ik4) , parameter :: che_ddvel    = 11
   integer(ik4) , parameter :: che_burden   = 12
   integer(ik4) , parameter :: che_pblten   = 13
+  integer(ik4) , parameter :: che_emten    = 14
 
   integer(ik4) , parameter :: che_pp       = 1
   integer(ik4) , parameter :: che_mixrat   = 2
@@ -395,7 +396,6 @@ module mod_ncout
   integer(ik4) , parameter :: che_wasten   = 10
   integer(ik4) , parameter :: che_bdyten   = 11
   integer(ik4) , parameter :: che_sedten   = 12
-  integer(ik4) , parameter :: che_emten    = 13
 
   integer(ik4) , parameter :: slab_xlon    = 1
   integer(ik4) , parameter :: slab_xlat    = 2
@@ -606,10 +606,14 @@ module mod_ncout
           atm_rh_out => v3dvar_atm(atm_rh)%rval
         end if
         if ( ipptls == 2 ) then
-          if ( enable_atm3d_vars(atm_q_detr) ) then
-            call setup_var(v3dvar_atm,atm_q_detr,vsize,'qdetr','kg/m^2', &
-              'Detrainment', 'detrainment',.true.)
-            atm_q_detr_out => v3dvar_atm(atm_q_detr)%rval
+          if ( any(icup == 5) ) then
+            if ( enable_atm3d_vars(atm_q_detr) ) then
+              call setup_var(v3dvar_atm,atm_q_detr,vsize,'qdetr','kg/m^2', &
+                'Detrainment', 'detrainment',.true.)
+              atm_q_detr_out => v3dvar_atm(atm_q_detr)%rval
+            end if
+          else
+            enable_atm3d_vars(atm_q_detr) = .false.
           end if
           if ( enable_atm3d_vars(atm_qr) ) then
             call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
@@ -2007,6 +2011,27 @@ module mod_ncout
             'tracer_burden',.true.,'time: mean')
           che_burden_out => v2dvar_che(che_burden)%rval
         end if
+        if ( ichdiag == 1 ) then
+          if ( enable_che2d_vars(che_emten) ) then
+            call setup_var(v2dvar_che,che_emten,vsize,'emiten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to emission', &
+              'tendency_of_mixing_ratio_due_to_emission',.true.)
+            che_emten_out => v2dvar_che(che_emten)%rval
+          end if
+          if ( ibltyp == 2 .or. ibltyp == 99 ) then
+            if ( enable_che2d_vars(che_pblten) ) then
+              call setup_var(v2dvar_che,che_pblten,vsize,'pblten', &
+                'kg kg-1 s-1', 'Tendency of tracer due to UW PBL', &
+                'tendency_of_mixing_ratio_due_to_uw_pbl',.true.)
+              che_pblten_out => v2dvar_che(che_pblten)%rval
+            end if
+          else
+            enable_che2d_vars(che_pblten) = .false.
+          end if
+        else
+          enable_che2d_vars(che_emten) = .false.
+          enable_che2d_vars(che_pblten) = .false.
+        end if
 
         vsize%k2 = kz
         if ( idynamic == 2 ) then
@@ -2087,25 +2112,8 @@ module mod_ncout
               'tendency_of_mixing_ratio_due_to_sedimentation',.true.)
             che_sedten_out => v3dvar_che(che_sedten)%rval
           end if
-          if ( enable_che3d_vars(che_emten) ) then
-            call setup_var(v3dvar_che,che_emten,vsize,'emiten', &
-              'kg kg-1 s-1', 'Tendency of tracer due to emission', &
-              'tendency_of_mixing_ratio_due_to_emission',.true.)
-            che_emten_out => v3dvar_che(che_emten)%rval
-          end if
-          if ( ibltyp == 2 .or. ibltyp == 99 ) then
-            if ( enable_che2d_vars(che_pblten) ) then
-              call setup_var(v2dvar_che,che_pblten,vsize,'pblten', &
-                'kg kg-1 s-1', 'Tendency of tracer due to UW PBL', &
-                'tendency_of_mixing_ratio_due_to_uw_pbl',.true.)
-              che_pblten_out => v2dvar_che(che_pblten)%rval
-            end if
-          else
-            enable_che2d_vars(che_pblten) = .false.
-          end if
         else
-          enable_che3d_vars(che_cheten:che_emten) = .false.
-          enable_che2d_vars(che_pblten) = .false.
+          enable_che3d_vars(che_cheten:che_sedten) = .false.
         end if
         enable_che_vars(1:nche2dvars) = enable_che2d_vars
         enable_che_vars(nche2dvars+1:nchevars) = enable_che3d_vars
@@ -3128,18 +3136,36 @@ module mod_ncout
     if ( debug_level > 2 ) then
       write(ndebug+myid,*) &
               'Writing var ',trim(vp%vname),' at time ',tochar(idate)
-      select type(vp)
-        type is (ncvariable2d_real)
+    end if
+    select type(vp)
+      type is (ncvariable2d_real)
+        where ( abs(vp%rval) < tiny(0.0) )
+          vp%rval = d_zero
+        end where
+        if ( debug_level > 2 ) then
           write(ndebug+myid,*) 'Max Value : ', maxval(vp%rval)
           write(ndebug+myid,*) 'Min Value : ', minval(vp%rval)
-        type is (ncvariable3d_real)
+        end if
+      type is (ncvariable3d_real)
+        where ( abs(vp%rval) < tiny(0.0) )
+          vp%rval = d_zero
+        end where
+        if ( debug_level > 2 ) then
           write(ndebug+myid,*) 'Max Value : ', maxval(vp%rval)
           write(ndebug+myid,*) 'Min Value : ', minval(vp%rval)
-        type is (ncvariable4d_real)
+        end if
+      type is (ncvariable4d_real)
+        where ( abs(vp%rval) < tiny(0.0) )
+          vp%rval = d_zero
+        end where
+        if ( debug_level > 2 ) then
           write(ndebug+myid,*) 'Max Value : ', maxval(vp%rval)
           write(ndebug+myid,*) 'Min Value : ', minval(vp%rval)
-        class default
-      end select
+        end if
+      class default
+    end select
+    if ( debug_level > 2 ) then
+      flush(ndebug+myid)
     end if
 #endif
       call outstream_writevar(outstream(istream)%ncout(jfile),vp)

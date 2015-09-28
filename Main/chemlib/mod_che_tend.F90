@@ -75,6 +75,7 @@
       real(rk8) , dimension(ici1:ici2,jci1:jci2) :: psurf , rh10 , soilw , &
                  srad , temp10 , tsurf , vegfrac , wid10 , zeff , ustar , &
                  hsurf
+      real(rk8) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: bchi
       real(rk8) , dimension(ici1:ici2,1) :: xra
       real(rk8) , dimension(ici1:ici2,nbin,jci1:jci2) :: dust_flx
       real(rk8) , dimension(ici1:ici2,sbin,jci1:jci2) :: seasalt_flx
@@ -225,6 +226,7 @@
           !
           srad(i,j) = csol2d(j,i)
           hsurf(i,j) = cht(j,i)
+          bchi(i,:,:,j) = chib(j,i,:,:)
         end do
       end do
       !
@@ -276,9 +278,9 @@
       end if
       ! if flux calculated by clm45 / update the tendency if ichdustemd == 3
 #if defined CLM45
-      if (ichdustemd == 3 .and. ichsursrc ==1 ) then 
-         call clm_dust_tend
-      end if  
+      if ( ichdustemd == 3 .and. ichsursrc == 1 ) then
+        call clm_dust_tend
+      end if
 #endif
       !sea salt
       if ( isslt(1) > 0 .and. ichsursrc ==1 ) then
@@ -423,7 +425,7 @@
         do j = jci1 , jci2
           call sethet(j,hgt(:,:,j),hsurf(:,j),ttb(:,:,j),        &
                       prec(:,:,j),convprec(:,:,j),chevap(:,:,j), &
-                      dt,rho(:,:,j),chib(j,:,:,:),psurf(:,j))
+                      dt,rho(:,:,j),bchi(:,:,:,j),psurf(:,j))
         end do
       end if
       !

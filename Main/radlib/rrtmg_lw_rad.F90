@@ -67,7 +67,7 @@ module rrtmg_lw_rad
   implicit none
 
   ! public interfaces/functions/subroutines
-  public :: rrtmg_lw , inatm
+  public :: rrtmg_lw
 
 !------------------------------------------------------------------
   contains

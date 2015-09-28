@@ -298,7 +298,7 @@ contains
             noxflux(i)* cfdout
 
        if ( ichdiag == 1 ) then
-          cemisdiag(j,i,kz,ino) = cemisdiag(j,i,kz,ino) + &
+          cemisdiag(j,i,ino) = cemisdiag(j,i,ino) + &
                noxflux(i)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
        end if
     end do

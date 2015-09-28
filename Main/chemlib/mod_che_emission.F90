@@ -203,7 +203,7 @@ module mod_che_emission
           ! diagnostic for source, cumul
           cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
           if ( ichdiag == 1 ) then
-            cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
+            cemisdiag(j,i,itr) = cemisdiag(j,i,itr) + &
                 chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
           end if
         end do
@@ -229,7 +229,7 @@ module mod_che_emission
               ! this term will also be included in BL tendency diagnostic
               ! if UW scheme is used.
               if ( ibltyp /= 2 ) then
-                cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
+                cemisdiag(j,i,itr) = cemisdiag(j,i,itr) + &
                    chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
               end if
             end if

@@ -63,7 +63,7 @@ module mod_che_dust
 !  data dustbed1 /0.82D0 , 1.8D0 , 3.7D0 , 12.5D0 /
 
 !FAB
-! if calculated from Kok distribution 
+! if calculated from Kok distribution
   data dustbed1 /0.658184, 1.75093D0, 3.67936D0, 8.46347D0 /
 
   ! 12 bins option calculated from Kok Distibution
@@ -150,7 +150,7 @@ module mod_che_dust
 
   integer(ik4) :: ilg
 
-  public :: allocate_mod_che_dust , inidust , sfflux, clm_dust_tend
+  public :: allocate_mod_che_dust , inidust , sfflux , clm_dust_tend
 
   contains
 
@@ -213,11 +213,8 @@ module mod_che_dust
 
       logical :: rd_tex
       character(6) :: aerctl
-      real(rk8) :: alogdi , amean1 , amean2 , amean3 , asigma1 , amean , &
-             asigma , asigma2 , asigma3 , rwi , totv1 , totv2 , totv3 , totv
-      ! Fennec
-      real(rk8) :: amean1F , amean2F , amean3F , amean4F , asigma1F , &
-                   asigma2F , asigma3F , asigma4F, totvF, mass_dist
+      real(rk8) :: alogdi , amean1 , amean2 , amean3 , asigma1 , &
+             asigma2 , asigma3 , totv1 , totv2 , totv3 , totv
 #ifdef __PGI
       real(rk8) , external :: derf
 #endif
@@ -642,7 +639,7 @@ module mod_che_dust
                      rsfrow(i,n)* cfdout
 
              if ( ichdiag == 1 ) then
-             cemisdiag(jloop,i,kz,idust(n)) = cemisdiag(jloop,i,kz,idust(n)) + &
+             cemisdiag(jloop,i,idust(n)) = cemisdiag(jloop,i,idust(n)) + &
                        rsfrow(i,n)/ ( cdzq(jloop,i,kz)*crhob3d(jloop,i,kz)) * cfdout
              end if
           end do
@@ -742,8 +739,8 @@ module mod_che_dust
 
       call uthefft(il1,il2,ust,nsoil,roarow,utheff,rhodust)
 
-      call emission(il1,il2,rhodust,ftex,alphaprop, uth,roarow,rc,utheff, &
-                    ustar,srel,rsfrow,trsize,vegfrac,snowfrac)
+      call emission(il1,il2,rhodust,ftex,alphaprop,uth,roarow,rc,utheff, &
+                    ustar,srel,rsfrow,vegfrac,snowfrac)
 
     end subroutine dust_module
 !
@@ -765,24 +762,19 @@ module mod_che_dust
     end subroutine uthefft
 !
     subroutine emission(il1,il2,rhodust,ftex,alphaprop,uth,roarow,rc, &
-                        utheff,ustar,srel,rsfrow,trsize,vegfrac,snowfrac)
-
+                        utheff,ustar,srel,rsfrow,vegfrac,snowfrac)
       implicit none
-!
       integer(ik4) :: il1 , il2
       real(rk8) :: rhodust , uth
-      real(rk8) , dimension(ilg) :: rc ,ustar, roarow , vegfrac , snowfrac
+      real(rk8) , dimension(ilg) :: rc , ustar, roarow , vegfrac , snowfrac
       real(rk8) , dimension(ilg,nbin) :: rsfrow
       real(rk8) , dimension(ilg,nats) :: ftex , alphaprop
       real(rk8) , dimension(ilg,nsoil,nats) :: srel
-      real(rk8) , dimension(nbin,2) :: trsize
       real(rk8) , dimension(ilg,nsoil) :: utheff
       intent (in)  il1 , il2 , rc , rhodust , roarow , srel ,  &
-                   trsize , ustar , utheff , vegfrac, ftex
+                   ustar , utheff , vegfrac, ftex
       intent (inout) rsfrow , uth
-!
-!     real(rk8) :: beffect
-      real(rk8) :: beta , p1 , p2 , p3 , rwi , dec , ec , fdp1 , fdp2
+      real(rk8) :: beta , p1 , p2 , p3 , dec , ec , fdp1 , fdp2
       real(rk8) , dimension(ilg,nats) :: fsoil , fsoil1 , fsoil2 , fsoil3
       integer(ik4) :: i , k , n , nt , ns
 
@@ -907,29 +899,32 @@ module mod_che_dust
       end do
     end subroutine emission
 
-    subroutine clm_dust_tend    
-!  update dust tendency with dust fluxes calculated in CLM
-! here sump up the total flux from clm ( initially defined on 4 bins)
-! and re-distribute it according to the selected dust emission size distrib
-! frac(n) is the weight relatibe to bin n ..
-! this insure consistency between emission distrbution and effective readius and optical properties 
-! use the same tuning erodibility factor rdstemfac than for standard scheme
+    subroutine clm_dust_tend
       implicit none
-      integer(ik4) :: i,j,n     
+      integer(ik4) :: i,j,n
       real(rk8) , pointer , dimension(:,:) :: sumdflux
+
+      ! Update dust tendency with dust fluxes calculated in CLM
+      ! here sump up the total flux from clm ( initially defined on 4 bins)
+      ! and re-distribute it according to the selected dust emission size
+      ! distrib frac(n) is the weight relatibe to bin n ..
+      ! this insure consistency between emission distrbution and effective
+      ! readius and optical properties
+      ! use the same tuning erodibility factor rdstemfac than for
+      ! standard scheme
 
       allocate(sumdflux(jci1:jci2,ici1:ici2))
       sumdflux = d_zero
-      sumdflux = sum(cdustflx_clm,3) * rdstemfac 
+#ifdef CLM45
+      sumdflux = sum(cdustflx_clm,3) * rdstemfac
+#endif
       do j = jci1 , jci2
         do i = ici1 , ici2
            do n = 1 , nbin
-        
             if ( ichdrdepo == 1 ) then
-              
               chiten(j,i,kz,idust(n)) = chiten(j,i,kz,idust(n)) + &
                    sumdflux(j,i)*frac(n) * egrav/(dsigma(kz)*1.D3)
-            elseif ( ichdrdepo == 2 ) then
+            else if ( ichdrdepo == 2 ) then
               ! pass the flux to BL scheme
               chifxuw(j,i,idust(n)) = chifxuw(j,i,idust(n)) + &
                   sumdflux(j,i) * frac(n)
@@ -937,18 +932,17 @@ module mod_che_dust
             ! diagnostic source (accumulated)
             cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
                     sumdflux(j,i)*frac(n) * cfdout
-
              if ( ichdiag == 1 ) then
-             cemisdiag(j,i,kz,idust(n)) = cemisdiag(j,i,kz,idust(n)) + &
-                      sumdflux(j,i)*frac(n) / ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+               cemisdiag(j,i,idust(n)) = cemisdiag(j,i,idust(n)) + &
+                                 sumdflux(j,i)*frac(n) / &
+                                 (cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
              end if
           end do
         end do
-      end do 
+      end do
       deallocate(sumdflux)
+    end subroutine clm_dust_tend
 
-      end subroutine clm_dust_tend
-
-end module mod_che_dust 
+end module mod_che_dust
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
