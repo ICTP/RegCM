@@ -2346,7 +2346,7 @@ module mod_ncout
         ! Model timing parameters
 
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('atmosphere_time_step_in_seconds',dt))
+          ncattribute_real8('atmosphere_time_step_in_seconds',dtsec))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('surface_interaction_time_step_in_seconds',dtsrf))
         call outstream_addatt(outstream(i)%ncout(j), &
