@@ -63,7 +63,6 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:,:,:) :: zqxx     ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: radheatrt  ! radiation heat rate
   real(rk8) , pointer , dimension(:,:,:) :: ztten      ! tendency of temperature
-  real(rk8) , public , pointer , dimension(:,:,:) :: zeta  ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: qdetr ! conv. detr. water
   real(rk8) , pointer , dimension(:,:,:,:) :: zqxten   ! tendency of zqx
 
@@ -371,7 +370,6 @@ module mod_cloud_s1
     call assignpnt(atms%pf3d,papf)
     call assignpnt(atms%tb3d,zt)
     call assignpnt(atms%wpx3d,pverv)
-    call assignpnt(atms%za,zeta)
     call assignpnt(atms%qxb3d,zqxx)
     call assignpnt(atms%rhob3d,rho)
     call assignpnt(atms%rhb3d,relh)
