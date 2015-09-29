@@ -988,7 +988,7 @@ module mod_clm_soilhydrology
                     (smp1/sucsat(c,nlevsoi))**(-1.D0/bsw(c,nlevsoi))
             ! for temperatures close to tfrz, limit vwc to total water content
             vwc_zwt(c) = min(vwc_zwt(c), &
-                    0.5*(watsat(c,nlevsoi) + h2osoi_vol(c,nlevsoi)) )
+                    0.5D0*(watsat(c,nlevsoi) + h2osoi_vol(c,nlevsoi)) )
             exit
           end if
         end do
@@ -1107,7 +1107,7 @@ module mod_clm_soilhydrology
     ! aquifer (11th) layer
     do fc = 1, num_hydrologyc
       c = filter_hydrologyc(fc)
-      zmm(c,nlevsoi+1) = 0.5*(1.D3*zwt(c) + zmm(c,nlevsoi))
+      zmm(c,nlevsoi+1) = 0.5D0*(1.D3*zwt(c) + zmm(c,nlevsoi))
       if ( jwt(c) < nlevsoi ) then
         dzmm(c,nlevsoi+1) = dzmm(c,nlevsoi)
       else
@@ -1187,9 +1187,9 @@ module mod_clm_soilhydrology
 
         ! compute aquifer soil moisture as average of layer 10 and saturation
         if ( origflag == 1 ) then
-          s_node = max(0.5*(1.0D0+h2osoi_vol(c,j)/watsat(c,j)), 0.01D0)
+          s_node = max(0.5D0*(1.0D0+h2osoi_vol(c,j)/watsat(c,j)), 0.01D0)
         else
-          s_node = max(0.5*((vwc_zwt(c)+vwc_liq(c,j))/watsat(c,j)), 0.01D0)
+          s_node = max(0.5D0*((vwc_zwt(c)+vwc_liq(c,j))/watsat(c,j)), 0.01D0)
         end if
         s_node = min(1.0D0, s_node)
 

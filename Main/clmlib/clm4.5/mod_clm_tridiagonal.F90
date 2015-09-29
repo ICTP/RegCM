@@ -78,8 +78,13 @@ module mod_clm_tridiagonal
               u(ci,j) = r(ci,j) / bet(ci)
             else
               gam(ci,j) = c(ci,j-1) / bet(ci)
-              bet(ci) = b(ci,j) - a(ci,j) * gam(ci,j)
-              u(ci,j) = (r(ci,j) - a(ci,j)*u(ci,j-1)) / bet(ci)
+              if ( abs(a(ci,j)) > 1.0D-50 )  then
+                bet(ci) = b(ci,j) - a(ci,j) * gam(ci,j)
+                u(ci,j) = (r(ci,j) - a(ci,j)*u(ci,j-1)) / bet(ci)
+              else
+                bet(ci) = b(ci,j)
+                u(ci,j) = r(ci,j)/ bet(ci)
+              end if
             end if
           end if
         end if
@@ -99,7 +104,15 @@ module mod_clm_tridiagonal
                   ctype(ci) /= icol_shadewall .and. &
                   ctype(ci) /= icol_roof ) then
           if ( j >= jtop(ci) ) then
-            u(ci,j) = u(ci,j) - gam(ci,j+1) * u(ci,j+1)
+            if ( abs(u(ci,j)) > 1.0D-50 ) then
+              if ( abs(gam(ci,j+1)) > 1.0D-50 ) then
+                if ( abs(u(ci,j+1)) > 1.0D-50 ) then
+                  u(ci,j) = u(ci,j) - gam(ci,j+1) * u(ci,j+1)
+                end if
+              end if
+            else
+              u(ci,j) = 0.0D0
+            end if
           end if
         end if
       end do
