@@ -4611,6 +4611,11 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid /= iocpu ) return
+#ifdef DEBUG
+    where ( abs(rval) < tiny(0.0) )
+      rval = d_zero
+    end where
+#endif
     istart(2) = nt
     istart(1) = 1
     icount(2) = 1
@@ -4655,6 +4660,11 @@ module mod_clm_nchelper
       end do
       return
     end if
+#ifdef DEBUG
+    where ( abs(rval) < tiny(0.0) )
+      rval = d_zero
+    end where
+#endif
     istart(3) = nt
     istart(2) = 1
     istart(1) = 1
@@ -4708,6 +4718,11 @@ module mod_clm_nchelper
       end do
       return
     end if
+#ifdef DEBUG
+    where ( abs(rval) < tiny(0.0) )
+      rval = d_zero
+    end where
+#endif
     istart(4) = nt
     istart(3) = 1
     istart(2) = 1
@@ -4742,6 +4757,11 @@ module mod_clm_nchelper
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     if ( myid /= iocpu ) return
+#ifdef DEBUG
+    where ( abs(rval) < tiny(0.0) )
+      rval = d_zero
+    end where
+#endif
     istart(2) = nt
     istart(1) = 1
     icount(2) = 1
@@ -4786,6 +4806,11 @@ module mod_clm_nchelper
       end do
       return
     end if
+#ifdef DEBUG
+    where ( abs(rval) < tiny(0.0) )
+      rval = d_zero
+    end where
+#endif
     istart(3) = nt
     istart(2) = 1
     istart(1) = 1
@@ -4839,6 +4864,11 @@ module mod_clm_nchelper
       end do
       return
     end if
+#ifdef DEBUG
+    where ( abs(rval) < tiny(0.0) )
+      rval = d_zero
+    end where
+#endif
     istart(4) = nt
     istart(3) = 1
     istart(2) = 1
