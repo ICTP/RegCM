@@ -388,7 +388,6 @@ module mod_clm_staticecosysdyn
       k = 2
       write(stdout,*) 'Successfully read monthly vegetation data for'
       write(stdout,*) 'month ', months(k)
-      write(stdout,*)
     end if
     deallocate(mlai, msai, mhgtt, mhgtb)
     mlaidiff => clm3%g%l%c%p%pps%mlaidiff
