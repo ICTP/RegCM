@@ -36,11 +36,9 @@ program chem_icbc
   use mod_ox_icbc
   use mod_ae_icbc
   use mod_memutil
-!
+
   implicit none
-!
-!  Local Variables
-!
+
   type(rcm_time_and_date) :: idate , iodate
   type(rcm_time_interval) :: tdif , tbdy
   integer(ik4) :: nnn , nsteps
@@ -55,15 +53,15 @@ program chem_icbc
   data dochem /.false./
   data dooxcl /.false./
   data doaero /.false./
-!
+
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
      ichcumtra , ichsolver , idirect , ichdustemd , ichdiag , iindirect ,&
      ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion
 
   call header('chem_icbc')
-!
-! Read input global namelist
-!
+  !
+  ! Read input global namelist
+  !
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
   call initparam(namelistfile, ierr)
@@ -75,7 +73,7 @@ program chem_icbc
     write (stderr,*) 'Check argument and namelist syntax'
     stop
   end if
-!
+
   open(ipunit, file=namelistfile, status='old', &
        action='read', iostat=ierr)
   if ( ierr /= 0 ) then
@@ -90,7 +88,7 @@ program chem_icbc
     stop
   end if
   close(ipunit)
-!
+
   select case (chemsimtype)
     case ( 'CBMZ' )
       dochem = .true.
@@ -112,18 +110,22 @@ program chem_icbc
   end select
 
   call memory_init
-!
+
   call init_grid(jx,iy,kz)
   call init_outoxd(chemsimtype)
-!
+
   tdif = globidate2-globidate1
   tbdy = rcm_time_interval(ibdyfrq,uhrs)
   nsteps = idnint(tohours(tdif))/ibdyfrq + 1
-!
-  write (*,*) 'GLOBIDATE1 : ' , tochar(globidate1)
-  write (*,*) 'GLOBIDATE2 : ' , tochar(globidate2)
-  write (*,*) 'NSTEPS     : ' , nsteps
-  write (*,*) 'chemtyp     : ' , chemtyp
+
+  write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
+  write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
+  write (stdout,*) 'NSTEPS     : ' , nsteps
+  if ( dochem ) then
+    write (stdout,*) 'chemtyp     : ' , chemtyp
+  else
+    write (stdout,*) 'Aerosol simulation.'
+  end if
 
   idate = globidate1
   iodate = idate
@@ -161,5 +163,6 @@ program chem_icbc
 
   call finaltime(0)
   write(stdout,*) 'Successfully completed CHEM ICBC'
+
 end program chem_icbc
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

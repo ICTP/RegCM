@@ -36,17 +36,17 @@ module mod_ox_icbc
   integer(ik4) :: k , l
   integer(ik4) :: k0
 
-  integer(ik4) , parameter :: oxilon = 128 , oxjlat = 64 , oxilev = 26 , oxitime = 12
-  real(rk8) , dimension(oxilon) :: oxt42lon
-  real(rk8) , dimension(oxjlat) :: oxt42lat
-  real(rk8) , dimension(oxilev) :: oxt42hyam , oxt42hybm
+  integer(ik4) :: oxilon , oxjlat , oxilev , oxitime
+  real(rk8) , pointer , dimension(:) :: oxt42lon
+  real(rk8) , pointer , dimension(:) :: oxt42lat
+  real(rk8) , pointer , dimension(:) :: oxt42hyam , oxt42hybm
 !
 ! Oxidant climatology variables
 !
   real(rk8) :: p0 , r4pt
-  real(rk8) , dimension(oxilon,oxjlat) :: xps
-  real(rk8) , dimension(oxilon,oxilev,oxjlat,oxitime,noxsp) :: oxv2
-  real(rk8) , dimension(oxilon,oxjlat,oxitime) :: xps2
+  real(rk8) , pointer , dimension(:,:) :: xps
+  real(rk8) , pointer , dimension(:,:,:,:,:) :: oxv2
+  real(rk8) , pointer , dimension(:,:,:) :: xps2 , xinp
   real(rk8) , pointer , dimension(:,:) :: poxid_3
   real(rk8) , pointer , dimension(:,:,:,:) :: oxv3
 
@@ -61,16 +61,38 @@ module mod_ox_icbc
 
   subroutine header_ox_icbc
     implicit none
-    integer(ik4) :: ivarid , istatus , is
+    integer(ik4) :: ivarid , istatus , dimid , is
+    character(len=256) :: oxifile
 
     r4pt = real(ptop)
 
-    call getmem2d(poxid_3,1,jx,1,iy,'mod_ox_icbc:poxid_3')
-    call getmem4d(oxv3,1,jx,1,iy,1,oxilev,1,noxsp,'mod_ox_icbc:oxv3')
-
-    istatus = nf90_open(trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
-                      'oxid_3d_64x128_L26_c030722.nc', nf90_nowrite, ncid)
+    oxifile = trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
+              'oxid_3d_64x128_L26_c030722.nc'
+    write(stdout,*) 'Opening ',trim(oxifile)
+    istatus = nf90_open(oxifile, nf90_nowrite, ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error open oxid file')
+
+    istatus = nf90_inq_dimid(ncid,'lon',dimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
+    istatus = nf90_inquire_dimension(ncid,dimid,len=oxilon)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lon')
+    istatus = nf90_inq_dimid(ncid,'lat',dimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
+    istatus = nf90_inquire_dimension(ncid,dimid,len=oxjlat)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lat')
+    istatus = nf90_inq_dimid(ncid,'lev',dimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lev')
+    istatus = nf90_inquire_dimension(ncid,dimid,len=oxilev)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lev')
+    istatus = nf90_inq_dimid(ncid,'time',dimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+    istatus = nf90_inquire_dimension(ncid,dimid,len=oxitime)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire time')
+
+    call getmem1d(oxt42lon,1,oxilon,'mod_ox_icbc:oxilon')
+    call getmem1d(oxt42lat,1,oxjlat,'mod_ox_icbc:oxjlat')
+    call getmem1d(oxt42hyam,1,oxilev,'mod_ox_icbc:oxt42hyam')
+    call getmem1d(oxt42hybm,1,oxilev,'mod_ox_icbc:oxt42hybm')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
@@ -93,6 +115,15 @@ module mod_ox_icbc
     istatus = nf90_get_var(ncid,ivarid,p0)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var P0')
     p0 = p0*0.01
+
+    call getmem2d(poxid_3,1,jx,1,iy,'mod_ox_icbc:poxid_3')
+    call getmem2d(xps,1,oxilon,1,oxjlat,'mod_ox_icbc:xps')
+    call getmem3d(xps2,1,oxilon,1,oxjlat,1,oxitime,'mod_ox_icbc:xps2')
+    call getmem3d(xinp,1,oxilon,1,oxjlat,1,oxilev,'mod_ox_icbc:xinp')
+    call getmem4d(oxv3,1,jx,1,iy,1,oxilev,1,noxsp,'mod_ox_icbc:oxv3')
+    call getmem5d(oxv2,1,oxilon,1,oxilev,1,oxjlat,1,oxitime, &
+                  1,noxsp,'mod_ox_icbc:oxv2')
+
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
     istatus = nf90_get_var(ncid,ivarid,xps2)
@@ -111,7 +142,6 @@ module mod_ox_icbc
 !
     integer(ik4) :: i , is , j , k , k0
     type(rcm_time_and_date) , intent(in) :: idate
-    real(rk8) , dimension(oxilon,oxjlat,oxilev) :: xinp
     real(rk8) :: wt1 , wt2
     type(rcm_time_and_date) :: d1 , d2
     type(rcm_time_interval) :: t1 , tt
@@ -135,7 +165,7 @@ module mod_ox_icbc
         end do
       end do
       call bilinx2(oxv3(:,:,:,is),xinp,xlon,xlat,oxt42lon,oxt42lat, &
-                   oxilon,oxjlat,iy,jx,oxilev)
+                   oxilon,oxjlat,jx,iy,oxilev)
     end do
 
     do i = 1 , oxjlat
@@ -145,7 +175,7 @@ module mod_ox_icbc
     end do
 
     call bilinx2(poxid_3,xps,xlon,xlat,oxt42lon,oxt42lat, &
-                 oxilon,oxjlat,iy,jx)
+                 oxilon,oxjlat,jx,iy)
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz

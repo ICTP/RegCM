@@ -34,17 +34,16 @@ module mod_ch_icbc
   use mod_ch_param
 
   private
-!
+
   integer(ik4) :: chilon , chjlat , chilev
 
   real(rk8) , pointer , dimension(:) :: cht42lon
   real(rk8) , pointer , dimension(:) :: cht42lat
   real(rk8) , pointer , dimension(:) :: cht42hyam , cht42hybm
-!
-! Oxidant climatology variables
-!
+  !
+  ! Oxidant climatology variables
+  !
   real(rk8) , pointer , dimension(:) :: xtimes
-!  integer(ik4) , pointer , dimension(:) :: xtimes
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   real(rk8) :: p0
   real(rk8) , pointer , dimension(:,:) :: pchem_3
@@ -212,7 +211,7 @@ module mod_ch_icbc
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
     xps = xps*0.01
     call bilinx2(pchem_3,xps,xlon,xlat,cht42lon,cht42lat, &
-                 chilon,chjlat,iy,jx)
+                 chilon,chjlat,jx,iy)
   end subroutine readps
 
   subroutine find_data(idate,idate0,chfilename)
@@ -367,7 +366,7 @@ module mod_ch_icbc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
       call bilinx2(chv3(:,:,:,is),xinp(:,:,:,is),xlon,xlat,cht42lon,cht42lat, &
-                   chilon,chjlat,iy,jx,chilev)
+                   chilon,chjlat,jx,iy,chilev)
     end do
     do i = 1 , iy
       do j = 1 , jx

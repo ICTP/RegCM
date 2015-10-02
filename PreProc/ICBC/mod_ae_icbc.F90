@@ -32,17 +32,18 @@ module mod_ae_icbc
 
   private
 !
-  integer(ik4) , parameter :: aeilon = 144 , aejlat = 96 , aeilev = 26 , aeitime = 12
-  real(rk8) , dimension(aeilon) :: aet42lon
-  real(rk8) , dimension(aejlat) :: aet42lat
-  real(rk8) , dimension(aeilev) :: aet42hyam , aet42hybm
+  integer(ik4) :: aeilon , aejlat , aeilev , aeitime
+  real(rk8) , pointer , dimension(:) :: aet42lon
+  real(rk8) , pointer , dimension(:) :: aet42lat
+  real(rk8) , pointer , dimension(:) :: aet42hyam , aet42hybm
 !
 ! Oxidant climatology variables
 !
   real(rk8) :: p0 , r4pt
-  real(rk8) , dimension(aeilon,aejlat) :: xps
+  real(rk8) , pointer , dimension(:,:) :: xps
   real(rk8) , pointer , dimension(:,:,:,:,:) :: aev2
-  real(rk8) , dimension(aeilon,aejlat,aeitime) :: xps2
+  real(rk8) , pointer , dimension(:,:,:) :: xps2
+  real(rk8) , pointer , dimension(:,:,:) :: xinp
   real(rk8) , pointer , dimension(:,:) :: paeid_3
   real(rk8) , pointer , dimension(:,:,:,:) :: aev3
   integer(ik4) :: iyear
@@ -61,15 +62,11 @@ module mod_ae_icbc
   subroutine header_ae_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: ivarid , istatus , is
+    integer(ik4) :: ivarid , istatus , dimid , is
     integer(ik4) :: nyear , month , nday , nhour
     character(len=256) :: aefilename
 
     call split_idate(idate,nyear,month,nday,nhour)
-    call getmem2d(paeid_3,1,jx,1,iy,'mod_ae_icbc:paeid_3')
-    call getmem4d(aev3,1,jx,1,iy,1,aeilev,1,naesp,'mod_ae_icbc:aev3')
-    call getmem5d(aev2,1,aeilon,1,aejlat,1,aeilev,1,aeitime, &
-                  1,naesp,'mod_ae_icbc:aev2')
 
     r4pt = real(ptop)
 
@@ -88,8 +85,32 @@ module mod_ae_icbc
        trim(inpglob)//pthsep//'AERGLOB'//pthsep// &
        trim(scendir(iscen))//pthsep//'aero_1.9x2.5_L26_', &
        iyear, '-', iyear+9, '.nc'
+
+    write(stdout,*) 'Opening ',trim(aefilename)
     istatus = nf90_open(aefilename,nf90_nowrite, ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error open aeid file')
+
+    istatus = nf90_inq_dimid(ncid,'lon',dimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
+    istatus = nf90_inquire_dimension(ncid,dimid,len=aeilon)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lon')
+    istatus = nf90_inq_dimid(ncid,'lat',dimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
+    istatus = nf90_inquire_dimension(ncid,dimid,len=aejlat)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lat')
+    istatus = nf90_inq_dimid(ncid,'lev',dimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lev')
+    istatus = nf90_inquire_dimension(ncid,dimid,len=aeilev)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lev')
+    istatus = nf90_inq_dimid(ncid,'time',dimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+    istatus = nf90_inquire_dimension(ncid,dimid,len=aeitime)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire time')
+
+    call getmem1d(aet42lon,1,aeilon,'mod_ae_icbc:aeilon')
+    call getmem1d(aet42lat,1,aejlat,'mod_ae_icbc:aejlat')
+    call getmem1d(aet42hyam,1,aeilev,'mod_ae_icbc:aet42hyam')
+    call getmem1d(aet42hybm,1,aeilev,'mod_ae_icbc:aet42hybm')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
@@ -112,6 +133,15 @@ module mod_ae_icbc
     istatus = nf90_get_var(ncid,ivarid,p0)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var P0')
     p0 = p0*0.01
+
+    call getmem2d(paeid_3,1,jx,1,iy,'mod_ae_icbc:paeid_3')
+    call getmem2d(xps,1,aeilon,1,aejlat,'mod_ae_icbc:xps')
+    call getmem3d(xps2,1,aeilon,1,aejlat,1,aeitime,'mod_ae_icbc:xps2')
+    call getmem3d(xinp,1,aeilon,1,aejlat,1,aeilev,'mod_ae_icbc:xinp')
+    call getmem4d(aev3,1,jx,1,iy,1,aeilev,1,naesp,'mod_ae_icbc:aev3')
+    call getmem5d(aev2,1,aeilon,1,aejlat,1,aeilev,1,aeitime, &
+                  1,naesp,'mod_ae_icbc:aev2')
+
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
     istatus = nf90_get_var(ncid,ivarid,xps2)
@@ -130,10 +160,9 @@ module mod_ae_icbc
 
   subroutine get_ae_icbc(idate)
     implicit none
-!
+
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: i , l , is , j , k , k0
-    real(rk8) , dimension(aeilon,aejlat,aeilev) :: xinp
     real(rk8) :: wt1 , wt2
     type(rcm_time_and_date) :: d1 , d2
     type(rcm_time_interval) :: t1 , tt
@@ -150,6 +179,7 @@ module mod_ae_icbc
          trim(inpglob)//pthsep//'AERGLOB'//pthsep// &
          trim(scendir(iscen))//pthsep//'aero_1.9x2.5_L26_', &
          iyear, '-', iyear+9, '.nc'
+      write(stdout,*) 'Opening ',trim(aefilename)
       istatus = nf90_open(aefilename,nf90_nowrite, ncid)
       call checkncerr(istatus,__FILE__,__LINE__,'Error open aeid file')
       istatus = nf90_inq_varid(ncid,'PS',ivarid)
@@ -187,7 +217,7 @@ module mod_ae_icbc
         end do
       end do
       call bilinx2(aev3(:,:,:,is),xinp,xlon,xlat,aet42lon,aet42lat, &
-                   aeilon,aejlat,iy,jx,aeilev)
+                   aeilon,aejlat,jx,iy,aeilev)
     end do
 
     do i = 1 , aejlat
@@ -197,7 +227,7 @@ module mod_ae_icbc
     end do
 
     call bilinx2(paeid_3,xps,xlon,xlat,aet42lon,aet42lat, &
-                 aeilon,aejlat,iy,jx)
+                 aeilon,aejlat,jx,iy)
 
     do i = 1 , iy
       do j = 1 , jx
