@@ -545,17 +545,26 @@ program terrain
   where ( htgrid < 0.0 )
     htgrid = 0.0
   end where
-  if ( .not. h2ohgt ) then
-    where ( lndout > 14.5 .and. lndout < 15.5 )
-      htgrid = 0.0
-    end where
-  end if
   where ( lndout > 13.5 .and. lndout < 15.5 )
     mask = 0.0
   elsewhere
     mask = 2.0
-    dpth = 0.0
   end where
+  if ( .not. h2ohgt ) then
+    where ( lndout > 14.5 .and. lndout < 15.5 )
+      htgrid = 0.0
+    end where
+    ! Correction for Black Sea
+    where ( xlat > 40.0 .and. xlat < 47.2 .and. &
+            xlon > 26.5 .and. xlon < 42.0 .and. &
+            lndout > 13.5 .and. lndout < 14.5 )
+      htgrid = 0.0
+    end where
+    call remove_high_gradients(jx,iy,htgrid)
+  else
+    call remove_high_gradients(jx,iy,htgrid)
+    call h2oelev(jx,iy,htgrid,mask)
+  end if
   if (lakedpth) then
     where ( mask > 1.0 )
       dpth = 0.0
@@ -585,16 +594,26 @@ program terrain
     where ( htgrid_s < 0.0 )
       htgrid_s = 0.0
     end where
-    if ( .not. h2ohgt ) then
-      where ( lndout_s > 14.5 .and. lndout_s < 15.5 )
-        htgrid_s = 0.0
-      end where
-    end if
     where ( lndout_s > 13.5 .and. lndout_s < 15.5 )
       mask_s = 0.0
     elsewhere
       mask_s = 2.0
     end where
+    if ( .not. h2ohgt ) then
+      where ( lndout_s > 14.5 .and. lndout_s < 15.5 )
+        htgrid_s = 0.0
+      end where
+      ! Correction for Black Sea
+      where ( xlat_s > 40.0 .and. xlat_s < 47.2 .and. &
+              xlon_s > 26.5 .and. xlon_s < 42.0 .and. &
+              lndout_s > 13.5 .and. lndout_s < 14.5 )
+        htgrid_s = 0.0
+      end where
+      call remove_high_gradients(jxsg,iysg,htgrid_s)
+    else
+      call remove_high_gradients(jxsg,iysg,htgrid_s)
+      call h2oelev(jxsg,iysg,htgrid_s,mask_s)
+    end if
     if (lakedpth) then
       where ( mask_s > 1.0 )
         dpth_s = 0.0

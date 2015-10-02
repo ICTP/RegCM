@@ -25,7 +25,7 @@ module mod_smooth
 
   private
 
-  public :: smth121 , smthtr , cleanpeaks
+  public :: smth121 , smthtr , cleanpeaks , h2oelev , remove_high_gradients
 
   contains
 
@@ -33,7 +33,6 @@ module mod_smooth
     implicit none
     integer(ik4) , intent(in) :: jx , iy
     real(rk8) , intent(inout) , dimension(jx,iy) :: htgrid
-!
     integer(ik4) :: i , j
     real(rk8) , dimension(jx,iy) :: hscr1
     !
@@ -61,7 +60,6 @@ module mod_smooth
     implicit none
     integer(ik4) , intent(in) :: iflg , ni , nj , npass
     real(rk8) , intent(inout) , dimension(nj,ni) :: slab
-!
     real(rk8) :: aplus , asv , cell
     integer(ik4) :: i , ie , iem , j , je , jem , k , kp
     real(rk8) , dimension(2) :: xnu
@@ -121,7 +119,6 @@ module mod_smooth
     implicit none
     integer(ik4) , intent(in) :: nj , ni
     real(rk8) , intent(inout) , dimension(nj,ni) :: slab1
-!
     integer(ik4) :: i , iflg , j , k , n , n1 , npass
     integer(ik4) , allocatable , dimension(:) :: ii , jj
     !
@@ -161,6 +158,96 @@ module mod_smooth
     deallocate(ii)
     deallocate(jj)
   end subroutine smthtr
+
+  subroutine h2oelev(nj,ni,xt,mask)
+    implicit none
+    integer(ik4) , intent(in) :: nj , ni
+    real(rk8) , intent(in) , dimension(nj,ni) :: mask
+    real(rk8) , intent(inout) , dimension(nj,ni) :: xt
+    real(rk8) , dimension(nj,ni) :: xtn
+    real(rk8) :: np , sump
+    integer(ik4) :: i , j , ii , jj , iii , jjj , ipass
+    integer , parameter :: npass = 1
+
+    do ipass = 1 , npass
+      do i = 1 , ni
+        do j = 1 , nj
+          if ( mask(j,i) < 1.0 ) then
+            np = 4.0D0
+            sump = 4.0D0 * xt(j,i)
+            do ii = i-1 , i+1
+              do jj = j-1 , j+1
+                iii = max(1,min(ii,ni))
+                jjj = max(1,min(jj,nj))
+                sump = sump + xt(jjj,iii)
+                np = np + 1
+              end do
+            end do
+            xtn(j,i) = sump/np
+          else
+            xtn(j,i) = xt(j,i)
+          end if
+        end do
+      end do
+      xt(:,:) = xtn(:,:)
+    end do
+  end subroutine h2oelev
+
+  subroutine remove_high_gradients(nj,ni,xt)
+    implicit none
+    integer(ik4) , intent(in) :: nj , ni
+    real(rk8) , intent(inout) , dimension(nj,ni) :: xt
+    real(rk8) , dimension(nj,ni) :: xtn
+    real(rk8) , dimension(nj,ni) :: dhdx1
+    real(rk8) , dimension(nj,ni) :: dhdx2
+    real(rk8) , dimension(nj,ni) :: dhdy1
+    real(rk8) , dimension(nj,ni) :: dhdy2
+    real(rk8) :: np , sump
+    integer(ik4) :: i , j , ii , jj , iii , jjj , ipass
+    integer , parameter :: npass = 2
+    real(rk8) , parameter :: maxgra = 750.0D0
+    dhdx1(:,:) = d_zero
+    dhdy1(:,:) = d_zero
+    dhdx2(:,:) = d_zero
+    dhdy2(:,:) = d_zero
+    do i = 2 , ni-1
+      do j = 2 , nj-1
+        dhdx1(j,i) = abs(xt(j,i) - xt(j-1,i))
+        dhdx2(j,i) = abs(xt(j+1,i) - xt(j,i))
+        dhdy1(j,i) = abs(xt(j,i) - xt(j,i-1))
+        dhdy2(j,i) = abs(xt(j,i+1) - xt(j,i))
+      end do
+    end do
+    do ipass = 1 , npass
+      do i = 1 , ni
+        do j = 1 , nj
+          if ( dhdx1(j,i) > maxgra .or. &
+               dhdx2(j,i) > maxgra .or. &
+               dhdy1(j,i) > maxgra .or. &
+               dhdy2(j,i) > maxgra ) then
+            np = 0.0D0
+            sump = 0.0D0
+            do ii = i-1 , i+1
+              do jj = j-1 , j+1
+                iii = max(1,min(ii,ni))
+                jjj = max(1,min(jj,nj))
+                np = np + 1
+                sump = sump + xt(jjj,iii)
+              end do
+            end do
+            if ( np > 0.0D0 ) then
+              xtn(j,i) = xt(j,i) + (sump - xt(j,i) * np)/np
+            else
+              xtn(j,i) = xt(j,i)
+            end if
+          else
+            xtn(j,i) = xt(j,i)
+          end if
+        end do
+      end do
+      xt(:,:) = xtn(:,:)
+    end do
+  end subroutine remove_high_gradients
 
   subroutine cleanpeaks(nj,ni,xt)
     implicit none

@@ -534,7 +534,7 @@ module mod_dynparam
     moist_filename = 'moist.nc'
     tersrc = 'GMTED'
 
-    h2ohgt = .true.
+    h2ohgt = .false.
     h2opct = 50.0D0
     ismthlev = 1
     rewind(ipunit)
