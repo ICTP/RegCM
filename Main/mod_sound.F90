@@ -21,6 +21,7 @@ module mod_sound
 
   use mod_realkinds
   use mod_intkinds
+  use mod_memutil
   use mod_dynparam
   use mod_runparams
   use mod_mpmessage
@@ -34,27 +35,53 @@ module mod_sound
 
   private
 
-  public :: sound
+  public :: allocate_mod_sound , sound
+
+  real(rk8) , pointer , dimension(:,:,:) :: aa
+  real(rk8) , pointer , dimension(:,:,:) :: b
+  real(rk8) , pointer , dimension(:,:,:) :: c
+  real(rk8) , pointer , dimension(:,:,:) :: rhs
+  real(rk8) , pointer , dimension(:,:,:) :: sigdot
+  real(rk8) , pointer , dimension(:,:,:) :: wo
+  real(rk8) , pointer , dimension(:,:,:) :: ca
+  real(rk8) , pointer , dimension(:,:,:) :: g1 , g2
+  real(rk8) , pointer , dimension(:,:,:) :: ptend , pxup , pyvp
+  real(rk8) , pointer , dimension(:,:,:) :: tk
+  real(rk8) , pointer , dimension(:,:,:) :: cc , cdd , cj
+  real(rk8) , pointer , dimension(:,:,:) :: pi
+  real(rk8) , pointer , dimension(:,:,:) :: e , f
+  real(rk8) , pointer , dimension(:,:) :: astore
+  real(rk8) , pointer , dimension(:,:) :: wpval
 
   contains
 
+  subroutine allocate_mod_sound
+    implicit none
+    call getmem3d(aa,jci1,jci2,ici1,ici2,1,kzp1,'sound:aa')
+    call getmem3d(b,jci1,jci2,ici1,ici2,1,kzp1,'sound:b')
+    call getmem3d(c,jci1,jci2,ici1,ici2,1,kzp1,'sound:c')
+    call getmem3d(rhs,jci1,jci2,ici1,ici2,1,kzp1,'sound:rhs')
+    call getmem3d(sigdot,jci1,jci2,ici1,ici2,1,kzp1,'sound:sigdot')
+    call getmem3d(wo,jci1,jci2,ici1,ici2,1,kzp1,'sound:wo')
+    call getmem3d(e,jci1,jci2,ici1,ici2,1,kzp1,'sound:e')
+    call getmem3d(f,jci1,jci2,ici1,ici2,1,kzp1,'sound:f')
+    call getmem3d(ca,jci1,jci2,ici1,ici2,1,kz,'sound:ca')
+    call getmem3d(g1,jci1,jci2,ici1,ici2,1,kz,'sound:g1')
+    call getmem3d(g2,jci1,jci2,ici1,ici2,1,kz,'sound:g2')
+    call getmem3d(ptend,jci1,jci2,ici1,ici2,1,kz,'sound:ptend')
+    call getmem3d(pxup,jci1,jci2,ici1,ici2,1,kz,'sound:pxup')
+    call getmem3d(pyvp,jci1,jci2,ici1,ici2,1,kz,'sound:pyvp')
+    call getmem3d(tk,jci1,jci2,ici1,ici2,1,kz,'sound:tk')
+    call getmem3d(cc,jci1,jci2,ici1,ici2,1,kz,'sound:cc')
+    call getmem3d(cdd,jci1,jci2,ici1,ici2,1,kz,'sound:cdd')
+    call getmem3d(cj,jci1,jci2,ici1,ici2,1,kz,'sound:cj')
+    call getmem3d(pi,jci1,jci2,ici1,ici2,1,kz,'sound:pi')
+    call getmem2d(astore,jci1,jci2,ici1,ici2,'sound:astore')
+    call getmem2d(wpval,jci1,jci2,ici1,ici2,'sound:wpval')
+  end subroutine allocate_mod_sound
+
   subroutine sound
     implicit none
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: aa
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: b
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: c
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: rhs
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: sigdot
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wo
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ca
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: g1 , g2
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ptend , pxup , pyvp
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: tk
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: cc , cdd , cj
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: pi
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: e , f
-    real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore
-    real(rk8) , dimension(jci1:jci2,ici1:ici2) :: wpval
     real(rk8) :: bet , bm , bp , bpxbm , bpxbp , cddtmp ,  cfl , check , &
       chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
       ppold , rho , rho0s , rofac , xgamma , xkd , maxcfl , ucrsk ,      &

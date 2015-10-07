@@ -45,6 +45,7 @@ module mod_params
   use mod_savefile
   use mod_slabocean
   use mod_sldepparam
+  use mod_sound
 
   implicit none
 
@@ -1124,6 +1125,10 @@ module mod_params
     call allocate_mod_che_bionit
     if ( isladvec == 1 ) then
       call allocate_mod_sldepparam
+    end if
+
+    if ( idynamic == 2 ) then
+      call allocate_mod_sound
     end if
 
     if ( myid == italk ) then
