@@ -264,7 +264,7 @@
       !
       ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)
       !
-      if ( idust(1) > 0 .and. ichsursrc ==1 ) then
+      if ( idust(1) > 0 .and. ichsursrc == 1 ) then
         do j = jci1 , jci2
           where (ivegcov(:,j) == 11)
             zeff(:,j) = 0.01D0 ! value set to desert type for semi-arid)
@@ -283,7 +283,7 @@
       end if
 #endif
       !sea salt
-      if ( isslt(1) > 0 .and. ichsursrc ==1 ) then
+      if ( isslt(1) > 0 .and. ichsursrc == 1 ) then
         do j = jci1 , jci2
           call sea_salt(j,wid10(:,j),ivegcov(:,j),seasalt_flx(:,:,j))
         end do
@@ -300,14 +300,14 @@
         end do
       end if
       !
-      !biogenic nox emission
-      if (ichsursrc == 1 .and. ino > 0 .and. ichbion == 1) then
+      ! biogenic nox emission
+      if ( ichsursrc == 1 .and. ino > 0 .and. ichbion == 1 ) then
        do j = jci1 , jci2
           call soilnitro_emissions(j,ivegcov(:,j),wid10(:,j))
        end do
       end if
       !
-      !update emission tendencies from inventories
+      ! update emission tendencies from inventories
       !
       if ( ichsursrc == 1 ) then
         do j = jci1 , jci2
@@ -331,7 +331,7 @@
                            pdepv(:,:,:,j),ddepa(:,:,j))
         end do
       end if
-      if ( isslt(1) > 0  .and. ichdrdepo > 0) then
+      if ( isslt(1) > 0  .and. ichdrdepo > 0 ) then
         do j = jci1 , jci2
           call drydep_aero(j,sbin,isslt,rhosslt,ivegcov(:,j),      &
                            ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),  &
@@ -340,7 +340,7 @@
                            pdepv(:,:,:,j),ddepa(:,:,j))
         end do
       end if
-      if ( icarb(1) > 0  .and. ichdrdepo > 0) then
+      if ( icarb(1) > 0  .and. ichdrdepo > 0 ) then
         ibin = count( icarb > 0 )
         do j = jci1 , jci2
           call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov(:,j), &
@@ -377,7 +377,7 @@
       !
       ! WET deposition (rainout and washout) for aerosol
       !
-      if ( idust(1) > 0 .and. ichremlsc == 1) then
+      if ( idust(1) > 0 .and. ichremlsc == 1 ) then
         do j = jci1 , jci2
           call wetdepa(j,nbin,idust,dustbed,rhodust,ttb(:,:,j),  &
                        wl(:,:,j),fracloud(:,:,j),fracum(:,:,j),  &

@@ -463,7 +463,6 @@ module mod_che_ncio
         call rvar(ncid,istart,icount,iisop,echemsrc,'ISOP_BIO_flux',.false.,sdim)
       end if
 
-
       ! NO2 emission
       if ( ino2 /= 0 ) then
 !       call rvar(ncid,istart,icount,ino2,echemsrc, &
@@ -471,7 +470,6 @@ module mod_che_ncio
 !        echemsrc(:,:,ino2) = 0.1D0 * echemsrc(:,:,ino)
 !        echemsrc(:,:,ino)  = 0.9D0 * echemsrc(:,:,ino)
       end if
-
 
       if (ipollen /=0 ) then
         call  rvar(ncid,istart,icount,ipollen,echemsrc, &
