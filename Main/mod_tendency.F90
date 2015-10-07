@@ -1164,7 +1164,7 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv)
-          atmc%qx(j,i,k,iqv) = max(atmc%qx(j,i,k,iqv),minqx*sfs%psc(j,i))
+          atmc%qx(j,i,k,iqv) = max(atmc%qx(j,i,k,iqv),minqx)
         end do
       end do
     end do
@@ -1173,7 +1173,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
-            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),minqx*sfs%psc(j,i))
+            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),minqx)
           end do
         end do
       end do
@@ -1640,7 +1640,7 @@ module mod_tendency
           atm1%qx(j,i,k,iqv) = atmc%qx(j,i,k,iqv)
           atm2%qx(j,i,k,iqv) = omuhf*atm1%qx(j,i,k,iqv) + &
             gnuhf*(atm2%qx(j,i,k,iqv)+atmc%qx(j,i,k,iqv))
-          atm2%qx(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv),minqx*sfs%psb(j,i))
+          atm2%qx(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv),minqx)
         end do
       end do
     end do
@@ -1651,7 +1651,7 @@ module mod_tendency
             atm1%qx(j,i,k,n) = atmc%qx(j,i,k,n)
             atm2%qx(j,i,k,n) = omuhf*atm1%qx(j,i,k,n) + &
               gnuhf*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
-            atm2%qx(j,i,k,n) = max(atm2%qx(j,i,k,n),minqx*sfs%psb(j,i))
+            atm2%qx(j,i,k,n) = max(atm2%qx(j,i,k,n),minqx)
           end do
         end do
       end do
@@ -1777,9 +1777,15 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              chias = max(chic(j,i,k,itr),mintr)
-              chibs = max((omu * chia(j,i,k,itr) + &
-                           gnu * (chib(j,i,k,itr)+chic(j,i,k,itr))),mintr)
+              chias = chic(j,i,k,itr)
+              if ( chias < mintr ) then
+                chias = d_zero
+              end if
+              chibs = (omu * chia(j,i,k,itr) + &
+                       gnu * (chib(j,i,k,itr)+chic(j,i,k,itr)))
+              if ( chibs < mintr ) then
+                chibs = d_zero
+              end if
               chia(j,i,k,itr) = chias
               chib(j,i,k,itr) = chibs
             end do

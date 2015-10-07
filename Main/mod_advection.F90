@@ -512,8 +512,7 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) > minqx * ps(j,i) .and. &
-                     f(j,i,k-1,n) > minqx * ps(j,i) ) then
+                if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
                   fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
                 else
                   fg(j,i,k) = d_zero

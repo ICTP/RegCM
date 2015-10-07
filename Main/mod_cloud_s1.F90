@@ -1645,7 +1645,7 @@ module mod_cloud_s1
             !---------------------------------------------
             zqe = max(d_zero,min(zqe,zqsliq(j,i,k)))
             llo1 = zcovpclr(j,i) > zepsec .and. &
-            !      zqpretot(jl)>zepsec .and. &
+            !      zqpretot(jl) > zepsec .and. &
                    zqxfg(j,i,iqqr) > zminqx .and. &
                    zqe < zzrh*zqsliq(j,i,k)
             if ( llo1 ) then
@@ -1705,7 +1705,7 @@ module mod_cloud_s1
             !---------------------------------------------
             zqe = max(d_zero,min(zqe,zqsice(j,i,k)))
             llo1 = zcovpclr(j,i) > zepsec .and. &
-                   zqxfg(j,i,iqqs)>zminqx .and. &
+                   zqxfg(j,i,iqqs) > zminqx .and. &
                    zqe < zzrh*zqsice(j,i,k)
             if ( llo1 ) then
               ! note: units of zpreclr and zqpretot differ

@@ -84,22 +84,11 @@ module mod_slice
         end do
       end do
     end do
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atms%qxb3d(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv)*rpsb(j,i),minqx)
-        end do
-      end do
-    end do
-    do n = iqc , nqx
+    do n = 1 , nqx
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            if ( atm2%qx(j,i,k,n) > dlowval ) then
-              atms%qxb3d(j,i,k,n) = max(atm2%qx(j,i,k,n)*rpsb(j,i),minqx)
-            else
-              atms%qxb3d(j,i,k,n) = d_zero
-            end if
+            atms%qxb3d(j,i,k,n) = max(atm2%qx(j,i,k,n),minqx)*rpsb(j,i)
           end do
         end do
       end do
@@ -109,8 +98,8 @@ module mod_slice
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              if ( chib(j,i,k,n) > dlowval ) then
-                atms%chib3d(j,i,k,n) = max(chib(j,i,k,n)*rpsb(j,i),mintr)
+              if ( chib(j,i,k,n) > mintr ) then
+                atms%chib3d(j,i,k,n) = chib(j,i,k,n)*rpsb(j,i)
               else
                 atms%chib3d(j,i,k,n) = d_zero
               end if
