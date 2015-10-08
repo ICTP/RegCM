@@ -62,6 +62,7 @@ module mod_advection
   ! working space used to store the interlated values in vadv.
 
   real(rk8) , pointer , dimension(:) :: dds , xds
+  real(rk8) , pointer , dimension(:,:,:) :: fg
 
   real(rk8) , parameter :: c287 = 0.287D+00
 
@@ -86,6 +87,9 @@ module mod_advection
       call assignpnt(kpbl,kpb)
       call getmem1d(dds,1,kzp1,'mod_advection:dds')
       call getmem1d(xds,1,kz,'mod_advection:xds')
+      if ( ibltyp == 2 .and. iuwvadv == 1 ) then
+        call getmem3d(fg,jci1,jci2,ici1,ici2,1,kz,'advection:fg')
+      end if
       xds(:) =  d_one / dsigma(:)
       dds(1) = d_zero
       dds(kzp1) = d_zero
@@ -335,7 +339,6 @@ module mod_advection
       integer(ik4) , intent(in) :: ind , nk
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
-      real(rk8) , dimension(jci1:jci2,ici1:ici2,1:nk) :: fg
 
       real(rk8) :: slope , rdphf , rdplf , ff , qq
       integer(ik4) :: i , j , k
@@ -344,15 +347,12 @@ module mod_advection
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
-      fg(:,:,:) = d_zero
-
       if ( ind == 0 ) then
         if ( nk == kz ) then
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ff = twt(k,1)*f(j,i,k)+twt(k,2)*f(j,i,k-1)
-                ff = svv(j,i,k)*ff
+                ff = (twt(k,1)*f(j,i,k)+twt(k,2)*f(j,i,k-1)) * svv(j,i,k)
                 ften(j,i,k-1) = ften(j,i,k-1) - ff*xds(k-1)
                 ften(j,i,k)   = ften(j,i,k)   + ff*xds(k)
               end do
@@ -379,29 +379,15 @@ module mod_advection
             do j = jci1 , jci2
               rdphf = (pfs(j,i,k)/phs(j,i,k))**c287
               rdplf = (pfs(j,i,k)/phs(j,i,k-1))**c287
-              fg(j,i,k) = twt(k,1)*f(j,i,k)*rdphf + twt(k,2)*f(j,i,k-1)*rdplf
+              ff = (twt(k,1)*f(j,i,k)  *rdphf + &
+                    twt(k,2)*f(j,i,k-1)*rdplf) * svv(j,i,k)
+              ften(j,i,k-1) = ften(j,i,k-1) - ff*xds(k-1)
+              ften(j,i,k)   = ften(j,i,k)   + ff*xds(k)
             end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,1) = ften(j,i,1) - svv(j,i,2)*fg(j,i,2)*xds(1)
-          end do
-        end do
-        do k = 2 , nk-1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,k) = ften(j,i,k) - &
-                   (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))*xds(k)
-            end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,nk) = ften(j,i,nk) + svv(j,i,nk) * fg(j,i,nk)*xds(nk)
           end do
         end do
       else if ( ind == 2 ) then
+        fg(:,:,1) = d_zero
         do k = 2 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -482,8 +468,7 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
-      real(rk8) :: slope
-      real(rk8) , dimension(jci1:jci2,ici1:ici2,1:nk) :: fg
+      real(rk8) :: slope , ff
       integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv4d'
@@ -504,115 +489,49 @@ module mod_advection
       end if
       if ( ind == 1 ) then
         do n = n1 , n2
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              fg(j,i,1) = d_zero
-            end do
-          end do
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
-                  fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
+                  ff = (f(j,i,k,n) * &
+                    (f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)) * svv(j,i,k)
                 else
-                  fg(j,i,k) = d_zero
+                  ff = d_zero
                 end if
+                ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
+                ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
               end do
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)*xds(1)
-            end do
-          end do
-          do k = 2 , nk-1
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                ften(j,i,k,n) = ften(j,i,k,n) - &
-                       (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))*xds(k)
-              end do
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,nk,n) = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)*xds(nk)
             end do
           end do
         end do
       else if ( ind == 2 ) then
         do n = n1 , n2
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              fg(j,i,1) = d_zero
-            end do
-          end do
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                fg(j,i,k) = twt(k,1)*max(f(j,i,k,n),  d_zero) + &
-                            twt(k,2)*max(f(j,i,k-1,n),d_zero)
+                ff = (twt(k,1)*max(f(j,i,k,n),  d_zero) + &
+                      twt(k,2)*max(f(j,i,k-1,n),d_zero) ) * svv(j,i,k)
+                ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
+                ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
               end do
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)*xds(1)
-            end do
-          end do
-          do k = 2 , nk-1
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                ften(j,i,k,n) = ften(j,i,k,n) - &
-                       (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))*xds(k)
-              end do
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,nk,n) = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)*xds(nk)
             end do
           end do
         end do
       else if ( ind == 3 ) then
         do n = n1 , n2
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              fg(j,i,1) = d_zero
-            end do
-          end do
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
+                ff = (twt(k,1)*f(j,i,k,n)+twt(k,2)*f(j,i,k-1,n)) * svv(j,i,k)
+                ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
+                ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
               end do
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)*xds(1)
-            end do
-          end do
-          do k = 2 , nk-1
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                ften(j,i,k,n) = ften(j,i,k,n) - &
-                       (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))*xds(k)
-              end do
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,nk,n) = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)*xds(nk)
             end do
           end do
         end do
       else if ( ind == 4 ) then
         do n = n1 , n2
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              fg(j,i,1) = d_zero
-            end do
-          end do
+          fg(:,:,1) = d_zero
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
