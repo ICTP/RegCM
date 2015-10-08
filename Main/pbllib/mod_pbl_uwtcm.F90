@@ -980,6 +980,8 @@ module mod_pbl_uwtcm
       kth(1) = d_zero
       sm(ktmax) = d_one
       sh(ktmax) = d_one
+      sm(1) = d_one
+      sh(1) = d_one
 
       kloop: &
       do k = ktmax - 1, 2, -1
