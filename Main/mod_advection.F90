@@ -509,8 +509,12 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ff = (twt(k,1)*max(f(j,i,k,n),  d_zero) + &
-                      twt(k,2)*max(f(j,i,k-1,n),d_zero) ) * svv(j,i,k)
+                if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
+                  ff = (twt(k,1)*max(f(j,i,k,n),  d_zero) + &
+                        twt(k,2)*max(f(j,i,k-1,n),d_zero) ) * svv(j,i,k)
+                else
+                  ff = d_zero
+                end if
                 ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
                 ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
               end do
