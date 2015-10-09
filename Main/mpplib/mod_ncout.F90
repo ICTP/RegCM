@@ -2276,6 +2276,27 @@ module mod_ncout
         end if
         call outstream_setup(outstream(i)%ncout(j),outstream(i)%opar)
 
+        ! Land-surface model
+
+#if defined(CLM) || defined(CLM45)
+#ifdef CLM45
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_string('landsurface_model','clm4.5'))
+#endif
+#ifdef CLM
+        call outstream_addatt(outstream(i)%ncout(j), &
+           ncattribute_string('landsurface_model','clm3.5'))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('clm_land_surface_dataset_selection', imask))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('clm_use_modified_lawrence_albedo', &
+              ilawrence_albedo))
+#endif
+#else
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_string('landsurface_model','bats1e'))
+#endif
+
         ! Initial and Boundary data sources
 
         call outstream_addatt(outstream(i)%ncout(j), &
@@ -2349,6 +2370,8 @@ module mod_ncout
           ncattribute_real8('atmosphere_time_step_in_seconds',dtsec))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('surface_interaction_time_step_in_seconds',dtsrf))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('convection_time_step_in_seconds',dtcum))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('radiation_scheme_time_step_in_minuts',dtrad))
         call outstream_addatt(outstream(i)%ncout(j), &
@@ -2684,13 +2707,6 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('chem_enable_sulfate_indirect_effect',iindirect))
         end if
-#ifdef CLM
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('clm_land_surface_dataset_selection', imask))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('clm_use_modified_lawrence_albedo', &
-              ilawrence_albedo))
-#endif
         if ( iocncpl == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('cpl_coupling_timestep_in_seconds',cpldt))

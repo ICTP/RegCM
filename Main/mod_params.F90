@@ -88,7 +88,7 @@ module mod_params
 !
     namelist /restartparam/ ifrest , mdate0 , mdate1 , mdate2
 
-    namelist /timeparam/ dtrad , dtsrf , dtche , dtabem , dt
+    namelist /timeparam/ dtrad , dtsrf , dtcum , dtche , dtabem , dt
 
     namelist /outparam/ ifsave , ifatm , ifrad , ifsrf , ifsub , iflak , &
       ifsts , ifchem , ifopt , savfrq , atmfrq , srffrq , subfrq ,       &
@@ -172,10 +172,11 @@ module mod_params
     ! note: beginning/end forecast time set in restart.mm4
     !------namelist timeparam:
     !
-    dtrad = 30.0D0 ! time interval in min solar rad caluclated
+    dtrad = 30.0D0  ! time interval in min solar rad caluclated
     dtsrf = 600.0D0 ! time interval at which bats is called (secs)
+    dtcum = -1.0D0  ! time interval at which cumulus is called (secs)
     dtche = 900.0D0 ! time interval at which bats is called (secs)
-    dtabem = 12.0D0  ! time interval absorption-emission calculated (hours)
+    dtabem = 18.0D0 ! time interval absorption-emission calculated (hours)
     dt = 100.0D0    ! time step in seconds
     !-----namelist out      note: * signifies currently not in namelist
     !
@@ -755,8 +756,11 @@ module mod_params
     call bcast(dtrad)
     call bcast(dtabem)
     call bcast(dtsrf)
+    call bcast(dtcum)
     call bcast(dtche)
     call bcast(dt)
+
+    if ( dtcum < d_zero ) dtcum = dt
 
     call bcast(ifsave)
     call bcast(savfrq)
@@ -1142,6 +1146,16 @@ module mod_params
         call fatal(__FILE__,__LINE__, &
                 'DTSRF /= N*DT : INCONSISTENT SURFACE TIMESTEP SPECIFIED')
       end if
+      if ( mod(idnint(dtcum),idnint(dt)) /= 0 ) then
+        write (stderr,*) 'DTCUM=' , dtcum , ' DT=' , dt
+        call fatal(__FILE__,__LINE__, &
+                'DTCUM /= N*DT : INCONSISTENT CUMULUS TIMESTEP SPECIFIED')
+      end if
+      if ( idnint(dtcum) > idnint(dtsrf) ) then
+        write (stderr,*) 'DTCUM=' , dtcum , ' DTSRF=' , dtsrf
+        call fatal(__FILE__,__LINE__, &
+                'DTCUM > DTSRF : INCONSISTENT CUMULUS TIMESTEP SPECIFIED')
+      end if
       if ( ichem == 1 ) then
         if ( mod(idnint(dtche),idnint(dt)) /= 0 ) then
           write (stderr,*) 'DTCHE=' , dtche , ' DT=' , dt
@@ -1232,6 +1246,7 @@ module mod_params
     ntrad = idnint((dtrad*secpm)/dtsec)
     rtrad = d_one/dble(ntrad)
     ntche = idnint(dtche/dtsec)
+    ntcum = idnint(dtcum/dtsec)
 
     ktau = 0
 
@@ -1428,6 +1443,8 @@ module mod_params
             'model in seconds : ' , dt
       write(stdout,'(a,f12.6)') '  time step for surface   '// &
             'model in seconds : ' , dtsrf
+      write(stdout,'(a,f12.6)') '  time step for cumulus   '// &
+            'model in seconds : ' , dtcum
       write(stdout,'(a,f12.6)') '  time step for radiation '// &
             'model in minutes : ' , dtrad
       write(stdout,'(a,f12.6)') '  time step for emission  '// &

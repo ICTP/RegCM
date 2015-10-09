@@ -851,19 +851,21 @@ module mod_tendency
     !
     ! Call cumulus parametrization
     !
-    if ( ktau > 0 ) call cumulus
-    if ( any(icup == 5) ) then
-      if ( ipptls /= 2 .and. iconv /= 4 ) then
-        ! Put back detrained water
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              aten%qx(j,i,k,iqc) = aten%qx(j,i,k,iqc) + &
-                q_detr(j,i,k)*sfs%psb(j,i)*egrav / &
-                ((atms%pf3d(j,i,k+1)-atms%pf3d(j,i,k))) ! [kg/kg]
+    if ( ktau > 0 .and. mod(ktau+1,ntcum) == 0 ) then
+      call cumulus
+      if ( any(icup == 5) ) then
+        if ( ipptls /= 2 .and. iconv /= 4 ) then
+          ! Put back detrained water
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                aten%qx(j,i,k,iqc) = aten%qx(j,i,k,iqc) + &
+                  q_detr(j,i,k)*sfs%psb(j,i)*egrav / &
+                  ((atms%pf3d(j,i,k+1)-atms%pf3d(j,i,k))) ! [kg/kg]
+              end do
             end do
           end do
-        end do
+        end if
       end if
     end if
 
@@ -1795,8 +1797,9 @@ module mod_tendency
       !
       ! do cumulus transport/mixing of tracers for the schemes allowing it
       !
-      if ( ichcumtra == 1 .and. any(icup == 4 .or. icup == 5) ) then
-        call cumtran
+      if ( ktau > 0 .and. mod(ktau+1,ntcum) == 0 .and. &
+           ichcumtra == 1 .and. any(icup == 4 .or. icup == 5) ) then
+          call cumtran
       end if
     end if
     !
