@@ -20,10 +20,18 @@
 \chapter{Model Physics}
 
 \section{Dynamics}
-The model dynamic equations and numerical discretization are described by
-\cite{Grell_94}.
+The model has two dynamical cores:
 
-\subsection{Horizontal Momentum Equations}
+\begin{itemize}
+\item Hydrostatic equation solver
+\item Non-hydrostatic equation solver
+\end{itemize}
+
+\subsection{Hydrostatic dynamical core}
+The hydrostatic model dynamic equations and numerical discretization are
+described by \cite{Grell_94}.
+
+\subsubsection{Horizontal Momentum Equations}
 
 \begin{eqnarray} \nonumber
 {\partial{p^{\ast}u} \over \partial{t}} = -m^2 \left( {\partial{p^{\ast}uu/m}
@@ -49,7 +57,7 @@ map projections, $\dot{\sigma} = {d\sigma \over dt}$, and $F_H$ and $F_V$
 represent the effects of horizontal and vertical diffusion, and
 $p^{\ast}=p_s-p_t$.  \\
 
-\subsection{Continuity and Sigmadot $({\bf \dot{\sigma}})$ Equations}
+\subsubsection{Continuity and Sigmadot $({\bf \dot{\sigma}})$ Equations}
 
 \begin{eqnarray} \label{eq:continuity}
 {{\partial{p^{\ast}} \over \partial{t}}}
@@ -82,7 +90,7 @@ d\sigma\prime
 where $\sigma\prime$ is a dummy
 variable of integration and $\dot{\sigma}(\sigma=0)=0$.
 
-\subsection{Thermodynamic Equation and Equation for Omega ${\bf (\omega)}$}
+\subsubsection{Thermodynamic Equation and Equation for Omega ${\bf (\omega)}$}
 
 The thermodynamic equation is
 
@@ -115,7 +123,7 @@ The expression for $c_{pm} = c_p(1+0.8q_v)$, where $c_p$
 is the specific heat at constant pressure for dry air and $q_v$ is the mixing
 ratio of water vapor.
 
-\subsection{Hydrostatic Equation}
+\subsubsection{Hydrostatic Equation}
 
 \noindent The hydrostatic equation is
 used to compute the geopotential heights from the virtual temperature $T_v$,
@@ -129,6 +137,10 @@ used to compute the geopotential heights from the virtual temperature $T_v$,
 water vapor, cloud water or ice, and rain water or snow, mixing ratios.  
 
 \newpage
+
+\subsection{Non-hydrostatic dynamical core}
+The non-hydrostatic model dynamic equations and numerical discretization are
+described by \cite{Grell_94}.
 
 \section{Physics parametrizations} \label{sec:physics}
 

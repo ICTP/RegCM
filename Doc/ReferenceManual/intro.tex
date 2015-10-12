@@ -186,10 +186,46 @@ to be interpolated to the model's vertical coordinate before input to the model.
 The vertical coordinate is terrain-following (Figure~\ref{sigma_levels}) meaning
 that the lower grid levels follow the terrain while the upper surface is
 flatter. Intermediate levels progressively flatten as the pressure decreases
-toward the top of the model. A dimensionless $\sigma$ coordinate is used to
-define the model levels where $p$ is the pressure, $p_t$ is a specified constant
-top pressure, $p_s$ is the surface pressure.  \begin{eqnarray} \sigma = {(p -
-p_t) \over (p_s - p_t)} \end{eqnarray}
+toward the top of the model. 
+
+The Hydrostatic solver uses A dimensionless $\sigma$ coordinate to
+define the model levels where $p$ is the pressure, $p_t$ is a specified
+constant top pressure, $p_s$ is the surface pressure.
+\begin{eqnarray}
+  \sigma = {(p - p_t) \over (p_s - p_t)}
+\end{eqnarray}
+
+where we can define:
+
+\begin{eqnarray}
+  p^*(x,y) = p_s(x,y) - p_t
+\end{eqnarray}
+
+For the Non-hydrostatic solver a similar dimensionless coordinate is defined,
+but it is defined entirely from the reference pressure. Given a reference
+atmospheric profile:
+
+\begin{eqnarray}
+  p(x,y,z,t) = p_0(z) + p^\prime(x,y,z,t) \\
+  T(x,y,z,t) = T_0(z) + T^\prime(x,y,z,t) \\
+  \rho(x,y,z,t) = \rho_0(z) + \rho^\prime(x,y,z,t)
+\end{eqnarray}
+
+the vertical sigma coordinate is defined as:
+
+\begin{eqnarray}
+  \sigma = {(p_0 - p_t) \over (p_s - p_t)}
+\end{eqnarray}
+
+where $p_s$ is the surface pressure, $p_t$ is a specified constant top
+pressure and $p_0$ is the reference pressure profile. The total pressure
+at each grid point is thus given as:
+
+\begin{eqnarray}
+ p = p^*\sigma + p_t + p^\prime
+\end{eqnarray}
+
+with $p^*$ defined as in the hydrostatic solver.
 
 It can be seen from the equation and Figure~\ref{sigma_levels} that $\sigma$ is
 zero at the top and one at the surface, and each model level is defined by a
@@ -198,9 +234,13 @@ between zero and one that do not necessarily have to be evenly spaced. Commonly
 the resolution in the boundary layer is much finer than above, and the number of
 levels may vary upon the user demand.
 
-\begin{figure} \begin{center} \resizebox{5.5in}{!}{\includegraphics{grid2.eps}}
+\begin{figure}
+\begin{center}
+\resizebox{5.5in}{!}{\includegraphics{grid2.eps}}
 \caption{Schematic representation showing the horizontal Arakawa B-grid
-staggering of the dot and cross grid points.}  \label{grid} \end{center}
+staggering of the dot and cross grid points.}
+\label{grid}
+\end{center}
 \end{figure}
 
 The horizontal grid has an Arakawa-Lamb B-staggering of the velocity variables
@@ -235,12 +275,14 @@ comparison with observations. These transformations are accounted for in the
 model pre-processors that provide data on the model grid (Please note that
 model output of u and v components, raw or postprocessed, should be rotated to a
 lat/lon grid before comparing to observations).  The map scale factor, $m$, is
-defined by \\
+defined by:
 
-$m$ = (distance on grid) / (actual distance on earth)
+\begin{equation}
+	m = \frac{model\_grid\_distance}{real\_earth\_distance}
+\end{equation}
 
 \noindent \\ and its value is usually close to one, varying with latitude. The
-projections in the model preserve the shape of small areas, so that dx=dy
+projections in the model preserve the shape of small areas, so that $dx=dy$
 everywhere, but the grid length varies across the domain to allow a
 representation of a spherical surface on a plane surface. Map-scale factors need
 to be accounted for in the model equations wherever horizontal gradients are
