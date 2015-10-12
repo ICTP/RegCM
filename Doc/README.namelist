@@ -284,6 +284,14 @@
  itweak =            0, ! Tweak parameter. Enables modifications in tweakparam.
  /
 !
+! Non-hydrostatic core option
+!
+ &nonhydroparam
+ logp_lrate = 50.0D0,    ! Logp lapse rate d(T)/d(ln P) K/ln(Pa)
+ ifupr = 0,              ! Upper radiative boundary condition (Klemp and Durran,
+                         ! Bougeault, 1983)
+ /
+!
 ! Moisture scheme comtrol (ipptls = 1)
 !
  &subexparam
@@ -489,6 +497,7 @@
                            !   DUST   : Activate 4 dust bins scheme
                            !   SSLT   : Activate 2 bins Sea salt scheme
                            !   DUSS   : Activate DUST + SSLT
+                           !   DU12   : Activate 12 dust bins scheme
                            !   CARB   : Activate 4 species black/anthropic
                            !            carbon simulations
                            !   SULF   : Activate SO2 and SO4 tracers

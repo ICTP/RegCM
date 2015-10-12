@@ -4,117 +4,35 @@
 % See the file COPYING for copying conditions.
 %
 
-RegCM-4.4 is a new step in recoding the RegCM model after the effort put into
-the RegCM4 version. The code base now is actively developed by a community
-of developers internal and external to ICTP, and this work is merged on the
+The Regional Climate Model developed at ICTP has now reached its 4.5 release.
+The code base is actively developed by a community of developers internal and
+external to ICTP, and this work is merged on the
 Gforge site on gforge.ictp.it site.
 
-The main new technical features of the code are summarized in the following
-points:
+The main new technical features of the release 4.5 are summarized in the
+following points:
 
 \begin{itemize}
-  \item A number of new global models input layers have been added to preproc
-    stage, and we plan to support any request to add a new layer.
-    What is needed is just send us a couple of months worth of data, specify
-    format if not netCDF, fix a naming convention. Just ask, we will help you.
-    Now supported at SST stage:
-  \begin{enumerate}
-    \item GISST Met Office's Global Ice coverage and Sea Surface Temperatures
-     This data required a pre-processing (from ASCII to binary), and are
-     available from ICTP up to 2002 from clima-dods server
-    \item NOAA Optimal Interpolation SST dataset
-    \item ECMWF Era Interim SST dataset
-    \item CMIP5 global ocean model datasets:
-      \begin{enumerate}
-        \item Canadian Centre for Climate Modelling and Analysis CanESM2
-        \item Met Office Hadley Centre HadGEM2-ES
-        \item Commonwealth Scientific and Industrial Research Organization Mk3.6
-        \item EC-EARTH consortium (need conversion from GRIB to netCDF)
-        \item Institut Pierre-Simon Laplace CM5A-MR
-        \item NOAA Geophysical Fluid Dynamics Laboratory ESM2M
-        \item Centre National de Recherches Météorologiques CM5 model
-        \item Max-Planck-Institut für Meteorologie MPI-ESM-MR
-      \end{enumerate}
-    \item ECHAM 5 dataset (A1B in binary format from ICTP, A2 converted from
-      GRIB
-    to netCDF using cdo)
-    \item 33 years Era Interim average available from ICTP
-  \end{enumerate}
-  Code for FV model and some CAM 2/4 is present, but is obsolete or untested.
-  Supported at ICBC stage:
-  \begin{enumerate}
-    \item ERA Interim and ERA 40 reanalysis
-    \item NNRP reanalysys (V1 and V2)
-    \item CMIP5 global atmosphere model datasets:
-    \begin{enumerate}
-      \item Canadian Centre for Climate Modelling and Analysis CanESM2
-      \item Met Office Hadley Centre HadGEM2-ES
-      \item Commonwealth Scientific and Industrial Research Organization Mk3.6
-      \item EC-EARTH consortium (need conversion from GRIB to netCDF)
-      \item Institut Pierre-Simon Laplace CM5A-MR
-      \item NOAA Geophysical Fluid Dynamics Laboratory ESM2M
-      \item Centre National de Recherches Météorologiques CM5 model
-      \item Max-Planck-Institut für Meteorologie MPI-ESM-MR
-    \end{enumerate}
-    \item ECHAM 5 dataset (A1B in binary format from ICTP, A2 converted from
-      GRIB to netCDF using cdo)
-    \item 33 years Era Interim average available from ICTP
-  \end{enumerate}
-  Code for FV model and some CAM 2/4 is present, but is obsolete or untested.
-  \item Boundary conditions / emissions for tracers both aerosols and chemically
-   active creation from different sources
-  \item 2D model decomposition is fully tested and model scales easily up to 512
-   processors what was scaling previously up to 64 processors.
-  \item RCP standard 2.6, 4.5, 6.0 and 8.5 Greenhouse gas concentration data for
-   historical and future scenarios.
-  \item A new option to use measured total solar irradiance from SOLARIS instead
-   of the previously used hardcoded solar constant.
-  \item Climatological and future 2.6, 4.5 and 8.5 scenario data for ozone
-   concentration.
-  \item The CLM 4.5 surface scheme basic physics option is coupled to the
-    RegCM model.
-  \item The Ocean coupling is now hadled with a module which allows the RegCM
-    code to be used as an external library into the RegESM package.
-  \item Experimental new empirical cumulus cloud representation option.
-  \item In the model output each file tipology can be disabled, and in each file
-   each output 2D/3D variable can be disable. The default is to write all the
-   defined variables, but the user may play with the \verb=enable_xxx_vars=
-   flags to eventually disable variables.
-   Some variables cannot be disabled: xlat , xlon , mask , topo , ps.
-   Those are needed for model geolocation.
-  \item Model input is read now in parallel by all processors, i.e. a complete
-   diskless model for computing nodes is not supported: each processor needs
-   access to the input data directory.
-  \item Model output can be written in parallel by the model taking advantage
-    of a parallel file system and the mpiio capability of the HDF5 library.
-    Model must be compiled with the \verb=--enable-nc4-parallel= flag and the
-    namelist option \verb=do_parallel_netcdf_io= must be set to true.
-    As to take advantage from this a particular harware/software stack is
-    needed, this is NOT the default option.
-  \item Model output files contain when applicable geolocation informations
-   following the CF-1.6 convention. IDV can now use this informations, except
-   for the rotated mercator projection which is unsupported in the java IDV
-   library.
-  \item Model output variable naming convention and unit of measure shouldi
-    respect the CORDEX experiment guidelines. User should report any
-    non-conformity.
-  \item The Kallen 1996 algorithm is used to compute Mean Sea Level pressure.
-  \item A Gauss-Seidel smoothing has been applied to the Mean Sea Level and the
-   Geopotential Height post-processing calculation subroutines.
+  \item The MM5 non-hydrostatic dynamical core has been ported to the ICTP
+	  RegCM without removing the existing hydrostatic core. Now the user
+	  can select in the input namelist which of the two dynamical cores
+	  he wish to use.
+  \item The SAV file strategy has changed to allow a better integration of
+	  the RegCM into the RegESM framework and the user is required to
+	  modify the setting from previous version namelist files.
+  \item The source for the topography is now the GMTED dataset which is an
+	  update to the USGS GTOPO dataset.
+  \item The DUST 12 bin option has been added to the aerosol simulation types
+  \item The chemistry/aerosol option now works along the CLM4.5 option
+  \item The model supports soil moisture initialization from a previous run
+	  for both the BATS and the CLM4.5 surface models.
 \end{itemize}
 Bug Fixing:
 \begin{itemize}
-  \item Cressman type interpolation is used for all Gaussian grids in SST/ICBC
-  \item Added extra stratospheric layers in the RRTM radiation model.
-  \item Model input/output of netCDF files is consistent at all stages using a
-   common library.
-  \item Fix for tracer gases optical properties in the visible spectra
-  \item Relaxing upstream scheme for cloud disabled as it may need reworking.
-  \item The GrADSNc programs now is able to guess when the data are monthly
-    averages calculated with cdo and use 1mo as timestep in the ctl file
-  \item All model output is now using the write intrinsic instead of print.
-  \item A long standing bug in the computation of drag coefficient have
-    been fixed.
+  \item Bugs present in the CN schemes for the CLM4.5 implemented in RegCM
+	  have been fixed
+  \item A problematic interaction between the UW pbl and the new Microphisics
+	  has been fixed
 \end{itemize}
 
 Next release V 5.X :
@@ -126,8 +44,7 @@ Next release V 5.X :
 
 The model code is in Fortran 2003 ANSI standard.
 The development is done on Linux boxes, and the model is known to run
-on Oracle Solaris\texttrademark platforms, IBM AIX\texttrademark platforms,
-MacOS\texttrademark platforms.
+on IBM AIX\texttrademark platforms, MacOS\texttrademark platforms.
 No porting effort has been done towards non Unix-like Operating Systems.
 We will for this User Guide assume that the reference platform is a recent
 Linux distributon with a \verb=bash= shell.
@@ -151,8 +68,8 @@ Any shell variable is supposed to be set by the User with the following example
 syntax:
 
 \begin{Verbatim}
-$> export REGCM_ROOT="/home/user/RegCM4.4-rc13"
+$> export REGCM_ROOT="/home/user/RegCM-4.5.0"
 \end{Verbatim}
 
-Hope you will find this document useful. Any error found belongs to me and can
-be reported to be corrected in future revisions. Enjoy.
+Hope you will find this document useful. Any error found belongs to the
+RegCNET and can be reported to be corrected in future revisions. Enjoy.

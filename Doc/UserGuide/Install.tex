@@ -5,7 +5,7 @@
 %
 
 Whatever method is chosen to download the code, we assume that you have now
-on your working directory a new directory, named \verb=RegCM-4.4.x=.
+on your working directory a new directory, named \verb=RegCM-4.5.x=.
 That directory will be for the rest of this guide referred as 
 \verb=$REGCM_ROOT= .
 
@@ -31,19 +31,13 @@ needed:
      {\bf http://www.open-mpi.org}
   \end{enumerate}
 \item netCDF (\cite{Rew_90}) Format I/O library compiled with the above
-  Fortran compiler.  Source code can be found from \\
+  Fortran compiler with netCDF4 format support. Source code can be found from \\
   {\bf ftp://ftp.unidata.ucar.edu/pub/netcdf} \\
 \end{enumerate}
 
 Optional requirements strongly suggested are :
 
 \begin{enumerate}
-\item HDF5 Format I/O Library compiled with the above fortran compiler to
-enable netCDF V4 features. Source code can be obtained at: \\
-{\bf http://www.hdfgroup.org/ftp/HDF5/current/src} \\
-Note that some of the input datasets available from ICTP from 2012 DO require
-this option, as we distribute data in the netCDF V4 format.
-Note that current netCDF version 4.3.1.1/4.2 is dependent on HDF5 1.8.12.
 \item NCO netCDF Operators for manging netCDF file. Most Linux distribution
 have this already packed, and you should refer to your System Administrator or
 OS Software Installation manual to obtain it. Source code is at: \\
@@ -74,7 +68,7 @@ chapter $\ref{Appendice}$.
 
 \section{Configuring build}
 
-The RegCM Version 4.4 is configured by a configure script, which will select
+The RegCM Version 4.5 is configured by a configure script, which will select
 the known working configuration for the supported architectures.
 
 Currently tested and supported configurations (OS/Compiler) are:
@@ -82,12 +76,12 @@ Currently tested and supported configurations (OS/Compiler) are:
 \begin{enumerate}
 \item Linux with GNU gfortran compiler version $\ge 4.6$
 \item Linux with Intel\texttrademark ifort compiler version $\ge 12.0$
-\item Linux with Portland\texttrademark pgf95 compiler version $\ge 11.0$
+\item Linux with Portland\texttrademark pgf95 compiler version $\ge 12.0$
 \item Mac OsX\texttrademark with gfortran compiler $\ge 4.6$ from MacPorts
 \item IBM AIX\texttrademark with xlf2003 compiler
 \end{enumerate}
 
-The 4.4 version of the RegCM model relies on the standard GNU autotools to
+The 4.5 version of the RegCM model relies on the standard GNU autotools to
 configure and build the model code.
 
 The first step is to change working directory to \verb=$REGCM_ROOT= and run the
@@ -95,7 +89,7 @@ The first step is to change working directory to \verb=$REGCM_ROOT= and run the
 
 \begin{Verbatim}
 $> cd $REGCM_ROOT
-$> ./configure CC=icc FC=ifort
+$> ./configure # or, for intel : ./configure CC=icc FC=ifort
 \end{Verbatim}
 
 To know the list of arguments that can be given to the configure script, the

@@ -31,12 +31,18 @@ memory space to store the model internal variables.
  &dimparam
  iy     = 34,   ! This is number of points in the N/S direction
  jx     = 48,   ! This is number of points in the E/W direction
- kz     = 18,   ! Number of vertical levels
+ kz     = 23,   ! Number of vertical levels
  dsmin  = 0.01, ! Minimum sigma spacing (only used if kz is not 14, 18, or 23)
  dsmax  = 0.05, ! Maximum sigma spacing (only used if kz is not 14, 18, or 23)
  nsg    = 1,    ! For subgridding, number of points to decompose. If nsg=1,
                 ! no subgridding is performed. CLM3.5 does NOT work with
                 ! subgridding enabled.
+ njxcpus = -1,  ! Number of CPUS to be used in the jx (lon) dimension.
+                ! If <=0 , the executable will try to figure out a suitable
+                ! decomposition.
+ niycpus = -1,  ! Number of CPUS to be used in the iy (lat) dimension.
+                ! If <=0 , the executable will try to figure out a suitable
+                ! decomposition.
  /
 \end{Verbatim}
 }
@@ -44,10 +50,12 @@ memory space to store the model internal variables.
 The things you need to know here:
 
 \begin{enumerate}
-\item In the current version 4.4 the model parallelizes execution dividing
+\item In the current version 4.5 the model parallelizes execution dividing
 the work between the processors, with the minimum work per processor is 9
-points or a box $3*3$, so the maximum number of processors which can be used
-in a parallel run for the above configuration is roughly $180$.
+points or a box $3\times3$, so the maximum theorical number of processors which
+can be used in a parallel run for the above configuration is roughly $150$,
+but for the communication overhead the optimal would be around $12$ or a
+$10\times10$ patch per processor.
 \item If a custom number of sigma level is chosen (not 14, 18 or 23), the actual
 sigma values are calculated mimimizing the $a,b$ coefficients for the 
 equation:
@@ -62,12 +70,56 @@ derived from the recursive relation:
   dsig(i) = a(i)*dsig(i-1)
 \end{equation}
 
-where $a(i) = b*a(i-1)$. We at ICTP normally use 18 levels.
-\item Specifying an nsg number greater than one triggers the subgrid BATS model
-on. There is no plan to extend this feature to CLM3.5 model. This affects only
-surface variable calculations. All dynamical variables are calculated still
-on the coarser grid. Rain in the current implementation is also calculated on
-the coarser grid.
+where $a(i) = b*a(i-1)$. We at ICTP normally use 23 levels for the
+non-hydrostatic core and 18 for the hydrostatic core.
+\item Specifying an nsg number greater than one triggers the subgrid BATS/CLM45
+model on. There is no plan to extend this feature to CLM3.5 model.
+This affects only surface variable calculations. All dynamical
+variables are calculated still on the coarser grid.
+Rain in the current implementation is also calculated on the coarser
+grid.
+\item The \verb=njxcpus=, \verb=niycpus= parameters can be used to force
+a particular domain decomposition for any particular hardware architecture.
+Normally the algorithm in the model code should be able to fix the
+supposedly optimally balanced decomposition.
+\end{enumerate}
+
+\subsection{coreparam namelist}
+\label{coreparam}
+
+This namelist is new to the RegCM 4.5 version, and controls which dynamical
+core is used in the model.
+
+{\footnotesize
+\begin{Verbatim}
+ &coreparam
+ idynamic = 1,  ! Choice of dynamical core
+                ! 1 = MM4 hydrostatic core
+                ! 2 = MM5 NON hydrostatic core
+ /
+\end{Verbatim}
+}
+
+The things you need to know here:
+
+\begin{enumerate}
+\item For details about the two dynamical cores, refer to the Reference Manual.
+\item The hydrostatic core is cheaper computationally, but physically it should
+be limited to resolution greater than $15 km$. For higher resolution, the non
+hydrostatic core is to be used.
+\item The output variables of the two dynamical cores differ in the ATM files
+because of the different state variables used. Vertical levels also differ.
+\item The ICBC for the non-hydrostatic cannot be used for the hydrostatic run
+and the other way round.
+\item Nesting using the \verb=FNEST= option is supported in these
+configurations:
+\begin{enumerate}
+\item hydrostatic nested into hydrostatic
+\item non-hydrostatic nested into hydrostatic
+\item non-hydrostatic nested into non-hydrostatic
+\end{enumerate}
+\item Selecting the non-hydrostatic core, the nonhydroparam namelist is read
+in.
 \end{enumerate}
 
 \subsection{geoparam namelist}
@@ -243,15 +295,21 @@ path is limited to $256$ characters.
 \item If the netCDF library is compiled with OpenDAP support, an URL
 can be used as a path in the \verb=dirter= and \verb=inpter= variables.
 Note that the $256$ character limit for paths holds in the whole program.
-For \verb=terrain= program you may want to try the following URL: \\
-http://clima-dods.ictp.it/thredds/dodsC
+\item The \verb=lsmoist= namelist entry triggers the interpolation on the
+domain area of a global dataset of satellite measured surface soil moisture
+to estimate the initial model soil moisture. A simple algorithm extend the
+surface soil moisture to all the soil layers.
+\item The \verb=moist_filename= if present triggers reading from the
+specified file the soil moisture on all model vertical layers and use it to
+initialize the soil moisture content in an initial run. Note that for this
+a \verb=DOMAIN= file created for a CLM45 run cannot be used for a BATS run.
 \end{enumerate}
 
 \subsection{debugparam namelist}
 
-This namelist is used by all RegCM programs to enable/disable some debug printout.
-In the current release this flag is honored only by the model itself. If you
-are not a developer you may find this flags useless.
+This namelist is used by all RegCM programs to enable/disable some debug
+printout.  In the current release this flag is honored only by the model
+itself. If you are not a developer you may find this flags useless.
 
 {\footnotesize
 \begin{Verbatim}
@@ -352,7 +410,7 @@ tell them how to build initial and bondary conditions.
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
                              !          FV_A2, FV_B2, EH5A2, EH5B1, EHA1B,
                              !          EIN75, EIN15, ERSST, ERSKT, CCSST,
-			     !          CA_XX, HA_XX, EC_XX, IP_XX, GF_XX,
+                             !          CA_XX, HA_XX, EC_XX, IP_XX, GF_XX,
                              !          CN_XX
  dattyp = 'EIN15',           ! Type of global analysis datasets used
                              !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
@@ -360,6 +418,9 @@ tell them how to build initial and bondary conditions.
                              !          FVGCM, FNEST, EH5A2, EH5B1, EHA1B,
                              !          CCSMN, ECEXY, CA_XX, HA_XX, EC_XX,
                              !          IP_XX, GF_XX, CN_XX, MP_XX
+ chemtyp = 'MZCLM',          ! Type of Global Chemistry boundary conditions
+                             ! One in : MZ6HR, 6 hours MOZART output
+                             !        : MZCLM, MOZART climatology 1999-2009
  gdate1 = 1990060100,        ! Start date for ICBC data generation
  gdate2 = 1990070100,        ! End data for ICBC data generation
  calendar = 'gregorian',     ! Calendar to use (gregorian, noleap or 360_day)
@@ -392,6 +453,8 @@ Some input data are not freely distibutable by ICTP, and you need a special
 agreement with the owner to use them.
 Hopefully the situation is changing, and data exchange is becoming more and more
 the basis for good science in the climatic field.
+\item The \verb=chemtyp= paramter is read by the \verb=chem_icbc= program.
+See below in \ref{chemparam} about chemistry boundary conditions.
 \item For notes on path, you can see the above in terrainparam namelist
 description at \ref{pathnote}.
 \end{enumerate}
@@ -686,6 +749,25 @@ sensitivity experiments to select the best scheme for your application.
 \end{Verbatim}
 }
 
+\subsection{nonhydroparam namelist}
+
+This namelist controls non-hydrostatic core for the upper radiative boundary
+conditions and the base state temperature vertical profile curve.
+
+{\footnotesize
+\begin{Verbatim}
+ &nonhydroparam
+ logp_lrate = 50.0D0,    ! Logp lapse rate d(T)/d(ln P) K/ln(Pa)
+ ifupr = 0,              ! Upper radiative boundary condition (Klemp and Durran,
+                         ! Bougeault, 1983)
+ /
+\end{Verbatim}
+}
+
+\begin{enumerate}
+\item The upper radiative boundary layer option has a high computational cost.
+\end{enumerate}
+
 \subsection{subexparam namelist}
 
 This namelist controls the SUBEX moisture scheme. Please consider carefully
@@ -972,6 +1054,7 @@ You are allowed here to tune the RRTM radiative scheme selected above in
 }
 
 \subsection{chemparam namelist}
+\label{chemparam}
 
 This namelist controls the chemistry and aerosol options in the RegCM model.
 
@@ -983,6 +1066,7 @@ This namelist controls the chemistry and aerosol options in the RegCM model.
                            !   DUST   : Activate 4 dust bins scheme
                            !   SSLT   : Activate 2 bins Sea salt scheme
                            !   DUSS   : Activate DUST +SSLT
+                           !   DU12   : Activate 12 dust bins scheme
                            !   CARB   : Activate 4 species black/anthropic
                            !            carbon simulations
                            !   SULF   : Activate SO2 and SO4 tracers
@@ -997,24 +1081,30 @@ This namelist controls the chemistry and aerosol options in the RegCM model.
                  !     it is calculated by a size settling and dry
                  !     deposition scheme. For other aerosol,a dry
                  !     deposition velocity is simply prescribed further.
- ichebdy = 1,    ! Enable reading of chemical boundary conditions, otherwise put 0 in boundary conditions.
+ ichebdy = 1,    ! Enable reading of chemical boundary conditions, otherwise
+                 ! put 0 in boundary conditions.
  ichcumtra = 1,  ! 1 = enable tracer convective transport.
  ichremlsc = 1,  ! 1 = enable tracer rainout     
  ichremcvc = 1,  ! 1 = enable tracer washout 
  ichdustemd = 1, ! Choice for parametrisation of dust emission size distribution
                  ! 1 = use the standard scheme (Alfaro et al., Zakey et al.)
                  ! 2 = use a revised soil granulometry ref + 
-                 !     Kok et al emission size distribution : Menut et al.,2012; + Kok et al., 2011
- ichdiag = 0,    ! 1 = enable writing of additional tracer tendency diagnostics in the output
+                 !     Kok et al emission size distribution :
+                 !     Menut et al.,2012; + Kok et al., 2011
+ ichdiag = 0,    ! 1 = enable writing of additional tracer tendency
+                 ! diagnostics in the output
  idirect   = 1,  ! CHoice to enable or not aerosol feedbacks on radiation and
-                 ! dynamics (aerosol direct and semi direct effects): possible choice 1 or 2:
+                 ! dynamics (aerosol direct and semi direct effects)
+                 ! possible choice 1 or 2:
                  ! 1 = no coupling to dynamic and thermodynamic. However
                  !     the clear sky surface and top of atmosphere 
                  !     aerosol radiative forcings are diagnosed.
                  ! 2 = allows aerosol feedbacks on radiative,
                  !     thermodynamic and dynamic fields.
- iindirect = 0,  ! Enable sulfate first indirect effect in radiation scheme based on Qian et al., 2001 
- rdstemfac = 1.0,! Dust emission adjustment factor ( soil erodibility) : linearly reduce or increase the dust flux
+ iindirect = 0,  ! Enable sulfate first indirect effect in radiation scheme
+                 ! based on Qian et al., 2001 
+ rdstemfac = 1.0,! Dust emission adjustment factor ( soil erodibility)
+                 ! linearly reduce or increase the dust flux
  /
 \end{Verbatim}
 }
@@ -1031,6 +1121,7 @@ are:
   \item \verb=SSLT= : Activate 2 sea salt bins scheme, with on line emission,
     transport and removal.
   \item \verb=DUSS= : Activate Dust and seasalt scheme, 6 tracers.
+  \item \verb=DU12= : Activate 12 dust bins scheme
   \item \verb=CARB= : Activate 4 species organic and black carbon in both
     hydrophobic and hydrophilic aerosol scheme, with on line emission,
     transport and removal.
@@ -1085,7 +1176,7 @@ measurements data or GCM model with a chemistry parametrization active.
     The resulting global files, as well as grid informations are publicly
     available on ICTP site :
     \begin{center}
-    \verb=http://clima-dods.ictp.it/data/d8/cordex/RCP_EMGLOB_PROCESSED=
+    \verb=http://clima-dods.ictp.it/regcm4/RCP_EMGLOB_PROCESSED=
     \end{center}
     
   \item Chemical boundary conditions for important tracersare available through

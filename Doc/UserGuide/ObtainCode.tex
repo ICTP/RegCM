@@ -15,13 +15,13 @@ http://gforge.ictp.it/gf/project/regcm/frs
 and it can be later on decompressed and unpacked using:
 
 \begin{Verbatim}
-$> tar -zxvf RegCM-4.4.0.tar.gz
+$> tar -zxvf RegCM-4.5.0.tar.gz
 \end{Verbatim}
 
 \section{Model Developer}
 
 If you plan to become a model developer, source code can be obtained via svn.
-The RegCM team strongly encouragethe contributing developers to enroll on
+The RegCM team strongly encourages the contributing developers to enroll on
 the gforge site to always be up to date and to check on-line all the news of
 the package.
 
@@ -54,8 +54,18 @@ to install it as root is:
 #> yum install subversion
 \end{verbatim}
 
-If Subversion is installed, just type the following command:
+If Subversion is installed, after enrolled just type the following command:
 
 \begin{verbatim}
 $> svn checkout https://gforge.ictp.it/svn/regcm/branches/regcm-core
 \end{verbatim}
+
+To setup the model code from the SVN for your system, run the
+\verb=bootstrap.sh= script:
+
+\begin{verbatim}
+$> ./bootstrap.sh
+\end{verbatim}
+
+The system must have installed the \verb=autoconf=, \verb=automake= and
+\verb=libtool= programs.
