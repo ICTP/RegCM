@@ -791,6 +791,7 @@ module mod_rrtmg_driver
       do i = ici1 , ici2
         do j = jci1 , jci2
           deltaz(n,k) = m2r%deltaz(j,i,kj)
+          n = n + 1
         end do
       end do
     end do
