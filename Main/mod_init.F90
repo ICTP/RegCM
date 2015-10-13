@@ -607,21 +607,23 @@ module mod_init
   !
   ! Calculate topographical correction to diffusion coefficient
   !
-  do i = ide1 , ide2
-    do j = jde1 , jde2
+  do i = ice1 , ice2
+    do j = jce1 , jce2
       hgfact(j,i) = d_one
     end do
   end do
-  do i = idi1 , idi2
-    do j = jdi1 , jdi2
-      hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
-      hg2 = dabs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
-      hg3 = dabs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
-      hg4 = dabs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
-      hgmax = dmax1(hg1,hg2,hg3,hg4)*regrav
-      hgfact(j,i) = d_one/(d_one+(hgmax/0.001D0)**2)
+  if ( idynamic == 1 ) then
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
+        hg2 = dabs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
+        hg3 = dabs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
+        hg4 = dabs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
+        hgmax = dmax1(hg1,hg2,hg3,hg4)*regrav
+        hgfact(j,i) = d_one/(d_one+(hgmax/0.001D0)**2)
+      end do
     end do
-  end do
+  end if
   !
   ! RRTM_SW gas / abs constant initialisation
   !

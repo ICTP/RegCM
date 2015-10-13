@@ -105,7 +105,7 @@ module mod_params
       isolconst , icumcloud , islab_ocean , itweak , temp_tend_maxval , &
       wind_tend_maxval
 
-    namelist /nonhydroparam/ ifupr , logp_lrate
+    namelist /nonhydroparam/ ifupr , logp_lrate , ckh
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , idrv
@@ -139,7 +139,7 @@ module mod_params
            ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,      &
            ichdiag , ichsursrc , ichebdy , rdstemfac, ichjphcld, ichbion
 
-    namelist /uwparam/ iuwvadv , atwo , rstbl , czero
+    namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
     namelist /holtslagparam/ ricr_ocn , ricr_lnd , zhnew_fac , &
            ifaholtth10 , ifaholtmax , ifaholtmin
@@ -242,6 +242,7 @@ module mod_params
     !-----Non hydrostatic namelist param:
     !
     ifupr = 0
+    ckh = 1.0D0
     logp_lrate = 50.0D0
     !-----rrtm radiation namelist param:
     !
@@ -371,9 +372,10 @@ module mod_params
     kf_entrate = 0.03D0 ! Kain Fritsch entrainment rate
     !------namelist uwparam ;
     iuwvadv = 0
-    atwo = 10.0D0
+    atwo  = 10.0D0
     rstbl = 1.5D0
     czero = 5.869D0
+    nuk   = 5.0D0
     !
     !------namelist holtslagparam ;
     ricr_ocn = 0.25D0
@@ -807,6 +809,7 @@ module mod_params
 
     if ( idynamic == 2 ) then
       call bcast(ifupr)
+      call bcast(ckh)
       call bcast(logp_lrate)
     end if
 
@@ -1048,6 +1051,7 @@ module mod_params
       call bcast(atwo)
       call bcast(rstbl)
       call bcast(czero)
+      call bcast(nuk)
     end if
 
     if ( islab_ocean == 1 ) then
@@ -1336,8 +1340,13 @@ module mod_params
     dxsq = dx*dx
     c200 = vonkar*vonkar*dx/(d_four*(d_100-ptop))
     rdxsq = 1.0D0/dxsq
-    xkhz = 1.5D-3*dxsq/dt
-    xkhmax = dxsq/(64.0D0*dt)
+    if ( idynamic == 1 ) then
+      xkhz = 1.5D-3*dxsq/dt
+      xkhmax = dxsq/(64.0D0*dt)
+    else
+      xkhz = ckh*dx
+      xkhmax = d_two*dxsq/(64.0D0*dt)
+    end if
     akht1 = dxsq/tauht
     akht2 = dxsq/tauht
     !
@@ -1592,6 +1601,7 @@ module mod_params
         write(stdout,'(a,f11.6)') '  rstbl     = ', rstbl
         write(stdout,'(a,f11.6)') '  atwo      = ', atwo
         write(stdout,'(a,f11.6)') '  czero     = ', czero
+        write(stdout,'(a,i3)')    '  nuk       = ', nuk
         write(stdout,'(a,i3)')    '  iuwvadv   = ', iuwvadv
       end if
       if ( ipptls > 0 ) then

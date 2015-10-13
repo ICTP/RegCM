@@ -39,26 +39,26 @@ module mod_diffusion
   end interface
 
   public :: diffu_d , diffu_x
-!
+
   contains
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     These subroutines computes the diffusion term for decoupled     c
-!     variable on constant sigma surface.                             c
-!                                                                     c
-!     ften    : tendency for variable                                 c
-!                                                                     c
-!     xkc     : horizontal diffusion coefficient                      c
-!                                                                     c
-!     f       : variable f on cross/dot points                        c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-  subroutine diffu_d(uten,vten,u,v,press,xkc)
+  !
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !                                                                     c
+  !     These subroutines computes the diffusion term for decoupled     c
+  !     variable on constant sigma surface.                             c
+  !                                                                     c
+  !     ften    : tendency for variable                                 c
+  !                                                                     c
+  !     xk      : horizontal diffusion coefficient                      c
+  !                                                                     c
+  !     f       : variable f on cross/dot points                        c
+  !                                                                     c
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !
+  subroutine diffu_d(uten,vten,u,v,press,xkd)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: u , v
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkd
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
     integer(ik4) :: i , j , k
@@ -73,11 +73,11 @@ module mod_diffusion
     do k = 1 , kz
       do i = idii1 , idii2
         do j = jdii1 , jdii2
-          uten(j,i,k) = uten(j,i,k) - xkc(j,i,k) *      &
+          uten(j,i,k) = uten(j,i,k) - xkd(j,i,k) *      &
                 rdxsq*(u(j+2,i,k)+u(j-2,i,k)+u(j,i+2,k)+u(j,i-2,k)  - &
                d_four*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k)) + &
               d_twelve*u(j,i,k))*press(j,i)
-          vten(j,i,k) = vten(j,i,k) - xkc(j,i,k) *      &
+          vten(j,i,k) = vten(j,i,k) - xkd(j,i,k) *      &
                 rdxsq*(v(j+2,i,k)+v(j-2,i,k)+v(j,i+2,k)+v(j,i-2,k)  - &
                d_four*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k)) + &
               d_twelve*v(j,i,k))*press(j,i)
@@ -91,10 +91,10 @@ module mod_diffusion
       j = jdi1
       do k = 1 , kz
         do i = idi1 , idi2
-          uten(j,i,k) = uten(j,i,k) + xkc(j,i,k) *    &
+          uten(j,i,k) = uten(j,i,k) + xkd(j,i,k) *    &
                 rdxsq*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k) - &
                         d_four*u(j,i,k))*press(j,i)
-          vten(j,i,k) = vten(j,i,k) + xkc(j,i,k) *    &
+          vten(j,i,k) = vten(j,i,k) + xkd(j,i,k) *    &
                 rdxsq*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k) - &
                         d_four*v(j,i,k))*press(j,i)
         end do
@@ -104,10 +104,10 @@ module mod_diffusion
       j = jdi2
       do k = 1 , kz
         do i = idi1 , idi2
-          uten(j,i,k) = uten(j,i,k) + xkc(j,i,k) *    &
+          uten(j,i,k) = uten(j,i,k) + xkd(j,i,k) *    &
                 rdxsq*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k) - &
                         d_four*u(j,i,k))*press(j,i)
-          vten(j,i,k) = vten(j,i,k) + xkc(j,i,k) *    &
+          vten(j,i,k) = vten(j,i,k) + xkd(j,i,k) *    &
                 rdxsq*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k) - &
                         d_four*v(j,i,k))*press(j,i)
         end do
@@ -120,10 +120,10 @@ module mod_diffusion
       i = idi1
       do k = 1 , kz
         do j = jdi1 , jdi2
-          uten(j,i,k) = uten(j,i,k) + xkc(j,i,k) *         &
+          uten(j,i,k) = uten(j,i,k) + xkd(j,i,k) *         &
                 rdxsq*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k) - &
                 d_four*u(j,i,k))*press(j,i)
-          vten(j,i,k) = vten(j,i,k) + xkc(j,i,k) *         &
+          vten(j,i,k) = vten(j,i,k) + xkd(j,i,k) *         &
                 rdxsq*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k) - &
                 d_four*v(j,i,k))*press(j,i)
         end do
@@ -133,10 +133,10 @@ module mod_diffusion
       i = idi2
       do k = 1 , kz
         do j = jdi1 , jdi2
-          uten(j,i,k) = uten(j,i,k) + xkc(j,i,k) *         &
+          uten(j,i,k) = uten(j,i,k) + xkd(j,i,k) *         &
                 rdxsq*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k) - &
                 d_four*u(j,i,k))*press(j,i)
-          vten(j,i,k) = vten(j,i,k) + xkc(j,i,k) *         &
+          vten(j,i,k) = vten(j,i,k) + xkd(j,i,k) *         &
                 rdxsq*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k) - &
                 d_four*v(j,i,k))*press(j,i)
         end do
@@ -146,30 +146,33 @@ module mod_diffusion
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine diffu_d
-!
-  subroutine diffu_x3d(ften,f,press,xkc,kmax)
-!
+
+  subroutine diffu_x3d(ften,f,press,xkc,kmax,mfac)
     implicit none
-!
     integer(ik4) , intent(in) :: kmax
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: f
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ften
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
-!
+    real(rk8) , intent(in) , optional :: mfac
+    real(rk8) :: fac
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_x3d'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+    fac = d_one
+    if ( present(mfac) ) then
+      fac = mfac
+    end if
     !
     ! fourth-order scheme for interior:
     !
     do k = 1 , kmax
       do i = icii1 , icii2
         do j = jcii1 , jcii2
-          ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) *    &
+          ften(j,i,k) = ften(j,i,k) - fac * xkc(j,i,k) *    &
                       rdxsq*(f(j+2,i,k)+f(j-2,i,k) +  &
                              f(j,i+2,k)+f(j,i-2,k) -  &
                      d_four*(f(j+1,i,k)+f(j-1,i,k) +  &
@@ -185,7 +188,7 @@ module mod_diffusion
       j = jci1
       do k = 1 , kmax
         do i = ici1 , ici2
-          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *    &
+          ften(j,i,k) = ften(j,i,k) + fac * xkc(j,i,k) *    &
                         rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
                                f(j,i+1,k)+f(j,i-1,k) - &
                         d_four*f(j,i,k))*press(j,i)
@@ -196,7 +199,7 @@ module mod_diffusion
       j = jci2
       do k = 1 , kmax
         do i = ici1 , ici2
-          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *  &
+          ften(j,i,k) = ften(j,i,k) + fac * xkc(j,i,k) *  &
                         rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
                                f(j,i+1,k)+f(j,i-1,k) - &
                         d_four*f(j,i,k))*press(j,i)
@@ -210,7 +213,7 @@ module mod_diffusion
       i = ici1
       do k = 1 , kmax
         do j = jci1 , jci2
-          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *  &
+          ften(j,i,k) = ften(j,i,k) + fac * xkc(j,i,k) *  &
                       rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
                              f(j,i+1,k)+f(j,i-1,k) - &
                       d_four*f(j,i,k))*press(j,i)
@@ -221,7 +224,7 @@ module mod_diffusion
       i = ici2
       do k = 1 , kmax
         do j = jci1 , jci2
-          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) *  &
+          ften(j,i,k) = ften(j,i,k) + fac * xkc(j,i,k) *  &
                       rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
                              f(j,i+1,k)+f(j,i-1,k) - &
                       d_four*f(j,i,k))*press(j,i)
@@ -232,7 +235,7 @@ module mod_diffusion
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine diffu_x3d
-!
+
   subroutine diffu_x4d(ften,f,press,xkc,kmax,n4)
     implicit none
     integer(ik4) , intent(in) :: kmax

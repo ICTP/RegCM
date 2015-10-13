@@ -970,7 +970,7 @@ module mod_atm_interface
         call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:hstor')
       end if
 
-      call getmem2d(hgfact,jde1,jde2,ide1,ide2,'storage:hgfact')
+      call getmem2d(hgfact,jce1,jce2,ice1,ice2,'storage:hgfact')
       call getmem3d(omega,jci1,jci2,ici1,ici2,1,kz,'storage:omega')
       call getmem3d(qdot,jce1-ma%jbl1,jce2+ma%jbr1, &
                          ice1-ma%ibb1,ice2+ma%ibt1,1,kzp1,'storage:qdot')

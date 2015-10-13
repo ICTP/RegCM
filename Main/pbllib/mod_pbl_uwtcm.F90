@@ -75,7 +75,7 @@ module mod_pbl_uwtcm
   use mod_pbl_common
   use mod_pbl_thetal
   use mod_runparams , only : iqv , iqc , iqi , atwo , rstbl , &
-          czero , dt , rdt , ichem , sigma , hsigma , dsigma , ipptls
+          czero , nuk , dt , rdt , ichem , sigma , hsigma , dsigma , ipptls
   use mod_regcm_types
   use mod_service
 
@@ -84,8 +84,6 @@ module mod_pbl_uwtcm
   private
 
   real(rk8) , public , parameter :: tkemin = 1.0D-3
-
-  real(rk8) , public , parameter :: nuk = 5.0D0 ! multiplier for kethl
 
   ! Model constants
   ! fraction of turb layer to be considered in bbls

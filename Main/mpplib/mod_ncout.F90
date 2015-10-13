@@ -2389,6 +2389,8 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('logp_lapse_rate',logp_lrate))
           call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_real8('background_diffusion_coefficient',ckh))
+          call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('upper_radiative_bc',ifupr))
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
@@ -2666,6 +2668,8 @@ module mod_ncout
             ncattribute_real8('uwpbl_eddy_LS_stable_PBL_scaling',rstbl))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('uwpbl_czero',czero))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('uwpbl_nuk',nuk))
         end if
         if ( irrtm == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

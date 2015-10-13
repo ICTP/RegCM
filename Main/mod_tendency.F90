@@ -53,8 +53,8 @@ module mod_tendency
   private
 
   public :: allocate_mod_tend , tend
-  real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , &
-               ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc , th , tha
+  real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkd, xkcf , td , &
+         phi , ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc , th , tha
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4
   real(rk8) , pointer , dimension(:,:) :: pten
@@ -75,8 +75,10 @@ module mod_tendency
   subroutine allocate_mod_tend
     implicit none
     call getmem3d(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
-    call getmem3d(xkc,jdi1,jdi2,idi1,idi2,1,kz,'tendency:xkc')
-    call getmem3d(xkcf,jdi1,jdi2,idi1,idi2,1,kzp1,'tendency:xkcf')
+    call getmem3d(xkc,jce1-ma%jbl1,jce2+ma%jbr1, &
+                      ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'tendency:xkc')
+    call getmem3d(xkd,jdi1,jdi2,idi1,idi2,1,kz,'tendency:xkd')
+    call getmem3d(xkcf,jce1,jce2,ice1,ice2,1,kzp1,'tendency:xkcf')
     call getmem3d(ps4,jci1,jci2,ici1,ici2,1,4,'tendency:ps4')
     if ( ipptls == 2 ) then
       call getmem3d(qcd,jce1,jce2,ice1,ice2,1,kz,'tendency:qcd')
@@ -144,7 +146,7 @@ module mod_tendency
   !
   subroutine tend
     implicit none
-    real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,   &
+    real(rk8) :: chias , chibs , dudx , dudy , dvdx , dvdy ,   &
                psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot ,    &
                rovcpm , rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , &
                tva , tvavg , tvb , tvc , rho0s , cpm
@@ -497,6 +499,7 @@ module mod_tendency
     ! No diffusion of TKE on lower boundary (kzp1)
     !
     xkc(:,:,:)  = d_zero
+    xkd(:,:,:)  = d_zero
     xkcf(:,:,:) = d_zero
     !
     ! compute the horizontal diffusion coefficient and stored in xkc:
@@ -504,8 +507,8 @@ module mod_tendency
     ! for dot-point variables.
     !
     do k = 2 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
+      do i = ice1 , ice2
+        do j = jce1 , jce2
           dudx = atm2%u(j+1,i,k) + atm2%u(j+1,i+1,k) - &
                  atm2%u(j,i,k)   - atm2%u(j,i+1,k)
           dvdx = atm2%v(j+1,i,k) + atm2%v(j+1,i+1,k) - &
@@ -514,23 +517,27 @@ module mod_tendency
                  atm2%u(j,i,k)   - atm2%u(j+1,i,k)
           dvdy = atm2%v(j,i+1,k) + atm2%v(j+1,i+1,k) - &
                  atm2%v(j,i,k)   - atm2%v(j+1,i,k)
-          cell = (xkhz*hgfact(j,i)+c200 * &
-                  dsqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy)))
-          xkc(j,i,k) = dmin1(cell,xkhmax)
-          if ( k > 1 ) then
-            ! TAO: Interpolate the diffusion coefficients to full levels
-            ! for use in diffusion of TKE
-            cell = twt(k,1)*xkc(j,i,k) + twt(k,2)*xkc(j,i,k-1)
-            xkcf(j,i,k) = dmin1(nuk*cell,xkhmax)
-          else
-            ! TAO: Multiply the horizontal diffusion coefficient by
-            ! nuk for TKE.  Without this multiplication, it appears
-            ! that TKE does not diffuse fast enough, and stabilities
-            ! appear in the TKE field.  While this is different from
-            ! Bretherton's treatment, it is consistent with the
-            ! scaling of the vertical TKE diffusivity.
-            xkcf(j,i,1) = nuk*xkc(j,i,1)
-          end if
+          duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
+          xkc(j,i,k) = min((xkhz*hgfact(j,i)+c200*duv),xkhmax)
+        end do
+      end do
+    end do
+    call exchange(xkc,1,jce1,jce2,ice1,ice2,1,kz)
+    xkcf(:,:,1) = xkc(jce1:jce2,ice1:ice2,1)
+    xkcf(:,:,kzp1) = xkc(jce1:jce2,ice1:ice2,kz)
+    do k = 2 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          xkcf(j,i,k) = min((twt(k,1)*xkc(j,i,k) + &
+                             twt(k,2)*xkc(j,i,k-1)), xkhmax)
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          xkd(j,i,k) = min(d_rfour*(xkc(j,i,k)+xkc(j-1,i-1,k) + &
+                                    xkc(j-1,i,k)+xkc(j,i-1,k)),xkhmax)
         end do
       end do
     end do
@@ -1308,7 +1315,7 @@ module mod_tendency
     aten%u(:,:,:) = d_zero
     aten%v(:,:,:) = d_zero
     !
-    call diffu_d(adf%u,adf%v,atms%ubd3d,atms%vbd3d,sfs%psdotb,xkc)
+    call diffu_d(adf%u,adf%v,atms%ubd3d,atms%vbd3d,sfs%psdotb,xkd)
     !
     ! compute the horizontal advection terms for u and v:
     !
@@ -1622,7 +1629,13 @@ module mod_tendency
       ! Calculate the vertical advective tendency for TKE
       call vadv(uwstatea%advtke,atmx%tke,kzp1,0)
       ! Calculate the horizontal, diffusive tendency for TKE
-      call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kzp1)
+      ! TAO: Multiply the horizontal diffusion coefficient by
+      ! nuk for TKE.  Without this multiplication, it appears
+      ! that TKE does not diffuse fast enough, and stabilities
+      ! appear in the TKE field.  While this is different from
+      ! Bretherton's treatment, it is consistent with the
+      ! scaling of the vertical TKE diffusivity.
+      call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kzp1,nuk)
     end if
     !
     ! Compute future values of t and moisture variables at tau+1:

@@ -127,7 +127,7 @@ module mod_runparams
   real(rk8) , public :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
   real(rk8) , public :: c200 , rdxsq
   real(rk8) , public :: dtsrf , dtabem , dtrad , dtcum , dtche , cpldt
-  real(rk8) , public :: xkhmax , xkhz
+  real(rk8) , public :: ckh , xkhmax , xkhz
 
   integer(ik4) , public :: iboudy , ichem , ipgf , ipptls
   ! usefull flags for chemistry
@@ -277,6 +277,7 @@ module mod_runparams
   real(rk8) , public :: rstbl
   real(rk8) , public :: atwo
   real(rk8) , public  :: czero
+  real(rk8) , public  :: nuk
 
   ! Holtslag PBL parameters
 
