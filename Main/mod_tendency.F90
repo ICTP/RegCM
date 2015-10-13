@@ -509,14 +509,14 @@ module mod_tendency
     do k = 2 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          dudx = atm2%u(j+1,i,k) + atm2%u(j+1,i+1,k) - &
-                 atm2%u(j,i,k)   - atm2%u(j,i+1,k)
-          dvdx = atm2%v(j+1,i,k) + atm2%v(j+1,i+1,k) - &
-                 atm2%v(j,i,k)   - atm2%v(j,i+1,k)
-          dudy = atm2%u(j,i+1,k) + atm2%u(j+1,i+1,k) - &
-                 atm2%u(j,i,k)   - atm2%u(j+1,i,k)
-          dvdy = atm2%v(j,i+1,k) + atm2%v(j+1,i+1,k) - &
-                 atm2%v(j,i,k)   - atm2%v(j+1,i,k)
+          dudx = atmx%u(j+1,i,k) + atmx%u(j+1,i+1,k) - &
+                 atmx%u(j,i,k)   - atmx%u(j,i+1,k)
+          dvdx = atmx%v(j+1,i,k) + atmx%v(j+1,i+1,k) - &
+                 atmx%v(j,i,k)   - atmx%v(j,i+1,k)
+          dudy = atmx%u(j,i+1,k) + atmx%u(j+1,i+1,k) - &
+                 atmx%u(j,i,k)   - atmx%u(j+1,i,k)
+          dvdy = atmx%v(j,i+1,k) + atmx%v(j+1,i+1,k) - &
+                 atmx%v(j,i,k)   - atmx%v(j+1,i,k)
           duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
           xkc(j,i,k) = min((xkhz*hgfact(j,i)+c200*duv),xkhmax)
         end do
