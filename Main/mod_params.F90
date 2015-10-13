@@ -1601,7 +1601,7 @@ module mod_params
         write(stdout,'(a,f11.6)') '  rstbl     = ', rstbl
         write(stdout,'(a,f11.6)') '  atwo      = ', atwo
         write(stdout,'(a,f11.6)') '  czero     = ', czero
-        write(stdout,'(a,i3)')    '  nuk       = ', nuk
+        write(stdout,'(a,f11.6)') '  nuk       = ', nuk
         write(stdout,'(a,i3)')    '  iuwvadv   = ', iuwvadv
       end if
       if ( ipptls > 0 ) then
