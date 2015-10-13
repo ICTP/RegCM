@@ -290,6 +290,7 @@
  logp_lrate = 50.0D0,    ! Logp lapse rate d(T)/d(ln P) K/ln(Pa)
  ifupr = 0,              ! Upper radiative boundary condition (Klemp and Durran,
                          ! Bougeault, 1983)
+ ckh = 1.0D0,            ! Background diffusion multiplication factor
  /
 !
 ! Moisture scheme comtrol (ipptls = 1)
@@ -443,6 +444,8 @@
                   ! scale.  Higher values mean stronger mixing in stable 
                   ! conditions
  czero = 5.869D0, ! Czero constant in UW PBL (eqn 44a and pgs 856-857)
+ nuk = 5.0D0,     ! Multiplication coefficient for kethl used also
+                  ! in diffusion of TKE to avoid eccesive stability
  /
 !
 ! SLAB Ocean model, or q-flux adjusted mixed layer model
