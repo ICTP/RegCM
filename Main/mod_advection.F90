@@ -26,6 +26,7 @@ module mod_advection
   use mod_runparams
   use mod_memutil
   use mod_mpmessage
+  use mod_constants
   use mod_service
 
   implicit none
@@ -63,8 +64,6 @@ module mod_advection
 
   real(rk8) , pointer , dimension(:) :: dds , xds
   real(rk8) , pointer , dimension(:,:,:) :: fg
-
-  real(rk8) , parameter :: c287 = 0.287D+00
 
   contains
 

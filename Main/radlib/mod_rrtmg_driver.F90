@@ -24,6 +24,7 @@ module mod_rrtmg_driver
 !
   use mod_intkinds
   use mod_realkinds
+  use mod_constants
   use mod_dynparam
   use mod_memutil
   use mod_rad_common
@@ -499,8 +500,6 @@ module mod_rrtmg_driver
     real(rk8) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
                 dbarii , dbarli , ebarii , ebarli , fbarii , fbarli
 
-    real(rk8) , parameter :: c287 = 0.287D+00
-!
     data abarl / 2.817D-02 ,  2.682D-02 , 2.264D-02 , 1.281D-02/
     data bbarl / 1.305D+00 ,  1.346D+00 , 1.454D+00 , 1.641D+00/
     data cbarl /-5.620D-08 , -6.940D-06 , 4.640D-04 , 0.201D+00/

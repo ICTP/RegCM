@@ -107,8 +107,10 @@ module mod_constants
   real(rk8) , parameter :: pdbratio = 0.0112372D+00
 
   real(rk8) , parameter :: rgasmol = navgdr*boltzk
+  ! Gas constant for dry air
+  real(rk8) , parameter :: c287 = rgasmol/amd
   ! Gas constant for dry air in Joules/kg/K
-  real(rk8) , parameter :: rgas = (rgasmol/amd)*1000.0D+00
+  real(rk8) , parameter :: rgas = c287*1000.0D+00
   real(rk8) , parameter :: rdry = rgas
   ! Gas constant for water vapor in Joules/kg/K
   real(rk8) , parameter :: rwat = (rgasmol/amw)*1000.0D+00
