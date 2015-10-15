@@ -2162,7 +2162,8 @@ module mod_cloud_s1
        real(rk8) , intent(in):: zt
        real(rk8) , parameter :: rtice =  250.16D0 ! tzero - 23.0
        real(rk8) , parameter :: rtwat_rtice_r = d_one/23.0D0
-       phases = min(d_one,((max(rtice,min(tzero,zt))-rtice)*rtwat_rtice_r)**2)
+       phases = max(min(d_one,((max(rtice,min(tzero,zt))-rtice)* &
+                            rtwat_rtice_r)**2),d_zero)
      end function phases
 
      pure real(rk8) function foedem(zt)
