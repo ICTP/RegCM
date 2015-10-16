@@ -613,8 +613,8 @@ module mod_init
     end do
   end do
   if ( idynamic == 1 ) then
-    do i = ice1 , ice2
-      do j = jce1 , jce2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
         hg2 = dabs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
         hg3 = dabs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
