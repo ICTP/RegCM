@@ -386,7 +386,7 @@ module mod_bats_common
               end if
             end do
             ! Mean difference from subgrid values and coarse grid
-            xqsdif = xqsdif/rdnnsg
+            xqsdif = xqsdif*rdnnsg
             do n = 1 , nnsg
               xqs(n,j,i) = max(xqs(n,j,i)-xqsdif,d_zero)
             end do
