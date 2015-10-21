@@ -747,7 +747,7 @@ module mod_atm_interface
       call getmem3d(atm%pr,jce1-ma%jbl1,jce2+ma%jbr1, &
                            ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'reference:pr')
       call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'reference:t')
-      call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kz+1,'reference:pf')
+      call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'reference:pf')
       call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'reference:rho')
     end subroutine allocate_reference_atmosphere
 
@@ -871,7 +871,7 @@ module mod_atm_interface
     subroutine allocate_slice(ax)
       implicit none
       type(slice) , intent(out) :: ax
-      call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kz+1,'slice:pf3d')
+      call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
       call getmem3d(ax%pb3d,jce1,jce2,ice1,ice2,1,kz,'slice:pb3d')
       call getmem3d(ax%rhob3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhob3d')
       call getmem3d(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')

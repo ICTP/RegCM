@@ -4281,7 +4281,7 @@ module mod_rad_radiation
     !
     ! Convert ozone volume mixing ratio to mass mixing ratio:
     !
-    vmmr = amo/amd
+    vmmr = amo3/amd
     do k = 1 , kz
       do n = n1 , n2
         o3mmr(n,k) = vmmr*o3vmr(n,k)

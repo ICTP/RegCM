@@ -74,27 +74,27 @@ module mod_rad_tracer
 !   ptrop  - pressure level of tropopause
 !   pratio - pressure divided by ptrop
 !
-    real(rk8) :: pratio , xcfc11 , xcfc12 , xch4 , xn2o
+    real(rk8) :: pratio , xcfc11 , xcfc12 , xch4 , xn2o , alat
     integer(ik4) :: j , k
-!
+
     xcfc11 = d_zero
     xcfc12 = d_zero
     xch4 = d_zero
     xn2o = d_zero
     do j = n1 , n2
-!     set stratospheric scale height factor for gases
-      if ( dlat(j) <= 45.0D0 ) then
-        xn2o = 0.3478D0 + 0.00116D0*dlat(j)
+      alat = dlat(j) ! This is absolute value of latitude in degrees
+      if ( alat <= 45.0D0 ) then
+        xn2o = 0.3478D0 + 0.00116D0*alat
         xch4 = 0.2353D0
-        xcfc11 = 0.7273D0 + 0.00606D0*dlat(j)
-        xcfc12 = 0.4000D0 + 0.00222D0*dlat(j)
+        xcfc11 = 0.7273D0 + 0.00606D0*alat
+        xcfc12 = 0.4000D0 + 0.00222D0*alat
       else
-        xn2o = 0.4000D0 + 0.013333D0*(dlat(j)-45.0D0)
-        xch4 = 0.2353D0 + 0.0225489D0*(dlat(j)-45.0D0)
-        xcfc11 = 1.00D0 + 0.013333D0*(dlat(j)-45.0D0)
-        xcfc12 = 0.50D0 + 0.024444D0*(dlat(j)-45.0D0)
+        xn2o = 0.4000D0 + 0.013333D0*(alat-45.0D0)
+        xch4 = 0.2353D0 + 0.0225489D0*(alat-45.0D0)
+        xcfc11 = 1.00D0 + 0.013333D0*(alat-45.0D0)
+        xcfc12 = 0.50D0 + 0.024444D0*(alat-45.0D0)
       end if
-!
+      !  set stratospheric scale height factor for gases
       do k = 1 , kz
         if ( pmid(j,k) >= xptrop(j) ) then
           ch4(j,k) = ch40
@@ -103,10 +103,10 @@ module mod_rad_tracer
           cfc12(j,k) = cfc120
         else
           pratio = pmid(j,k)/xptrop(j)
-          ch4(j,k) = ch40*(pratio)**xch4
-          n2o(j,k) = n2o0*(pratio)**xn2o
-          cfc11(j,k) = cfc110*(pratio)**xcfc11
-          cfc12(j,k) = cfc120*(pratio)**xcfc12
+          ch4(j,k) = ch40*(pratio**xch4)
+          n2o(j,k) = n2o0*(pratio**xn2o)
+          cfc11(j,k) = cfc110*(pratio**xcfc11)
+          cfc12(j,k) = cfc120*(pratio**xcfc12)
         end if
       end do
     end do

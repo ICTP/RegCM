@@ -226,8 +226,8 @@ module mod_regcm_types
   end type surfstate
 
   type slice
-    real(rk8) , pointer , dimension(:,:,:) :: tb3d
     real(rk8) , pointer , dimension(:,:,:) :: th3d
+    real(rk8) , pointer , dimension(:,:,:) :: tb3d
     real(rk8) , pointer , dimension(:,:,:) :: pb3d
     real(rk8) , pointer , dimension(:,:,:) :: pf3d
     real(rk8) , pointer , dimension(:,:,:) :: rhob3d

@@ -324,8 +324,6 @@ module rrtmg_lw_rad
       integer(kind=im) :: iout                ! output option flag (inactive)
       integer(kind=im) :: iaer                ! aerosol option flag
       integer(kind=im) :: iplon               ! column loop index
-      integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
-      integer(kind=im) :: ims                 ! value for changing mcica permute seed
       integer(kind=im) :: k                   ! layer loop index
       integer(kind=im) :: ig                  ! g-point loop index
       integer(kind=im) :: n, nlwcall          ! added for rad calculation double call in regcm
@@ -437,11 +435,6 @@ module rrtmg_lw_rad
       istart = 1
       iend = 16
       iout = 0
-      ims = 1
-
-      ! Set imca to select calculation type:
-      !  imca = 0, use standard forward model calculation
-      !  imca = 1, use McICA for Monte Carlo treatment of sub-grid cloud variability
 
       ! *** This version uses McICA (imca = 1) ***
 

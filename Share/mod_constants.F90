@@ -99,10 +99,18 @@ module mod_constants
   real(rk8) , parameter :: amd   = 28.96454D+00
   ! Effective molecular weight of water (g/mol)
   real(rk8) , parameter :: amw   = 18.01528D+00
+  ! Effective molecular weight of oxygen molecule (g/mol)
+  real(rk8) , parameter :: amo2   = 31.9988D+00
   ! Effective molecular weight of ozone (g/mol)
-  real(rk8) , parameter :: amo   = 47.99820D+00
+  real(rk8) , parameter :: amo3   = 47.99820D+00
   ! Effective molecular weight of carbon dioxide (g/mol)
   real(rk8) , parameter :: amco2 = 44.00950D+00
+  ! Effective molecular weight of methane (g/mol)
+  real(rk8) , parameter :: amch4 = 16.040D+00
+  ! Effective molecular weight of cfc11 (g/mol)
+  real(rk8) , parameter :: amcfc11 = 163.1278D+00
+  ! Effective molecular weight of cfc12 (g/mol)
+  real(rk8) , parameter :: amcfc12 = 175.1385D+00
   ! Ratio of 13C/12C in Pee Dee Belemnite (C isotope standard)
   real(rk8) , parameter :: pdbratio = 0.0112372D+00
 
@@ -264,6 +272,7 @@ module mod_constants
   ! Constant used in computing saturation mixing ratio.
   ! Ratio of mean molecular weight of water to that of dry air
   real(rk8) , parameter :: ep2 = amw/amd
+  real(rk8) , parameter :: rep2 = amd/amw
 
   ! Terminal velocity constants
   real(rk8) , parameter :: avt = 841.99667D+00
