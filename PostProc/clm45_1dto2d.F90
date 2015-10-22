@@ -443,7 +443,7 @@ program clm45_1dto2d
   allocate(dimids(ndims))
   allocate(dsize(ndims))
   allocate(outdimids(ndims))
-  allocate(mapids(ndims))
+  allocate(mapids(ndims+2))
   allocate(lexpand(nvars))
   allocate(lpftexpand(nvars))
   allocate(varids(nvars))
@@ -547,7 +547,7 @@ program clm45_1dto2d
         mapids(id+1) = outdimids(iydim)
         mapids(id+2) = outdimids(dimids(id))
         if ( vndims(iv) > id ) then
-          mapids(id+3:vndims(iv)+1) = outdimids(dimids(id+1:ndims))
+          mapids(id+3:vndims(iv)+2) = outdimids(dimids(id+1:ndims))
         end if
         ndims = ndims + 2
         exit
@@ -555,7 +555,7 @@ program clm45_1dto2d
       mapids(id) = outdimids(dimids(id))
     end do
 
-    istatus = nf90_def_var(ncoutid, vname, vtype(iv), &
+    istatus = nf90_def_var(ncoutid, trim(vname), vtype(iv), &
                            mapids(1:ndims), varids(iv))
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error define variable '//trim(vname))
