@@ -2685,8 +2685,6 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
          ncattribute_integer('rrtm_opt_properties_calculation_lw_liq',iceflglw))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('rrtm_idrv',idrv))
-          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('rrtm_cloud_overlap_hypothesis',icld))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('rrtm_random_number_generator',irng))

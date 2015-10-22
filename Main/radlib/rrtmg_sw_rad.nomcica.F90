@@ -65,7 +65,7 @@
       implicit none
 
 ! public interfaces/functions/subroutines
-      public :: rrtmg_sw, inatm_sw, earth_sun
+      public :: rrtmg_sw_nomcica
 
 !------------------------------------------------------------------
       contains
@@ -75,7 +75,7 @@
 ! Public subroutines
 !------------------------------------------------------------------
 
-      subroutine rrtmg_sw &
+      subroutine rrtmg_sw_nomcica &
             (ncol    ,nlay    ,icld    , &
              play    ,plev    ,tlay    ,tlev    ,tsfc    , &
              h2ovmr  ,o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr, &
@@ -498,7 +498,7 @@
 ! Prepare atmosphere profile from GCM for use in RRTMG, and define
 ! other input parameters
 
-         call inatm_sw (iplon, nlay, icld, iaer, &
+         call inatm_sw_nomcica (iplon, nlay, icld, iaer, &
               play, plev, tlay, tlev, tsfc, h2ovmr, &
               o3vmr, co2vmr, ch4vmr, n2ovmr, o2vmr, &
               adjes, dyofyr, scon, inflgsw, iceflgsw, liqflgsw, &
@@ -707,7 +707,7 @@
 ! End longitude loop
       enddo
 
-      end subroutine rrtmg_sw
+      end subroutine rrtmg_sw_nomcica
 
 !*************************************************************************
       real(kind=rb) function earth_sun(idn)
@@ -737,7 +737,7 @@
       end function earth_sun
 
 !***************************************************************************
-      subroutine inatm_sw (iplon, nlay, icld, iaer, &
+      subroutine inatm_sw_nomcica (iplon, nlay, icld, iaer, &
             play, plev, tlay, tlev, tsfc, h2ovmr, &
             o3vmr, co2vmr, ch4vmr, n2ovmr, o2vmr, &
             adjes, dyofyr, scon, inflgsw, iceflgsw, liqflgsw, &
@@ -1076,7 +1076,7 @@
 
       endif
 
-      end subroutine inatm_sw
+      end subroutine inatm_sw_nomcica
 
       end module rrtmg_sw_rad_nomcica
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

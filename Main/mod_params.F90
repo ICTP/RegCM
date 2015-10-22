@@ -108,7 +108,7 @@ module mod_params
     namelist /nonhydroparam/ ifupr , logp_lrate , ckh
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
-      iceflglw , liqflglw , icld , irng , idrv
+      iceflglw , liqflglw , icld , irng
 
     namelist /subexparam/ ncld , qck1land , qck1oce , gulland , guloce ,     &
       rhmax , rh0oce , rh0land , cevaplnd , cevapoce , caccrlnd , caccroce , &
@@ -252,7 +252,6 @@ module mod_params
     inflglw  = 2
     iceflglw = 3
     liqflglw = 1
-    idrv = 0
     icld  = 1
     irng = 1
     !------namelist subexparam:
@@ -959,7 +958,6 @@ module mod_params
       call bcast(inflglw)
       call bcast(iceflglw)
       call bcast(liqflglw)
-      call bcast(idrv)
       call bcast(icld)
       call bcast(irng)
     end if

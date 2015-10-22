@@ -39,6 +39,7 @@ module mod_rrtmg_driver
   use parrrtm
   use rrtmg_lw_rad
   use rrtmg_lw_rad_nomcica
+  use rrtmg_sw_rad_nomcica
   use mod_rad_outrad
   use mod_mpmessage
   use mod_runparams
@@ -287,13 +288,6 @@ module mod_rrtmg_driver
     ! Call to the shortwave radiation code as soon one element of czen is > 0.
     !
     if ( maxval(m2r%coszrs) > dlowval) then
-      ! generates cloud properties:
-      permuteseed = permuteseed+mypid+ngptlw
-      if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
-      call mcica_subcol_sw(iplon,npr,kth,icld,permuteseed,irng,play,   &
-                           cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc,fsfc, &
-                           cldfmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,    &
-                           taucmcl,ssacmcl,asmcmcl,fsfcmcl)
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -305,17 +299,35 @@ module mod_rrtmg_driver
           n = n + 1
         end do
       end do
-      call rrtmg_sw(npr,kth,icld,idirect,play,plev,tlay,tlev, &
-                    tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,   &
-                    o2vmr,asdir,asdif,aldir,aldif,czen,eccf,  &
-                    0,solcon,inflgsw,iceflgsw,liqflgsw,       &
-                    cldfmcl,taucmcl,ssacmcl,asmcmcl,fsfcmcl,  &
-                    ciwpmcl,clwpmcl,reicmcl,relqmcl,tauaer,   &
-                    ssaaer,asmaer,ecaer,swuflx,swdflx,swhr,   &
-                    swuflxc,swdflxc,swhrc,swddiruviflx,       &
-                    swddifuviflx,swddirpirflx,swddifpirflx,   &
-                    swdvisflx,aeradfo,aeradfos,asaeradfo,asaeradfos)
-
+      if ( irng == 1 ) then
+        ! generates cloud properties:
+        permuteseed = permuteseed+mypid+ngptlw
+        if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
+        call mcica_subcol_sw(iplon,npr,kth,icld,permuteseed,irng,play,   &
+                             cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc,fsfc, &
+                             cldfmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,    &
+                             taucmcl,ssacmcl,asmcmcl,fsfcmcl)
+        call rrtmg_sw(npr,kth,icld,idirect,play,plev,tlay,tlev, &
+                      tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,   &
+                      o2vmr,asdir,asdif,aldir,aldif,czen,eccf,  &
+                      0,solcon,inflgsw,iceflgsw,liqflgsw,       &
+                      cldfmcl,taucmcl,ssacmcl,asmcmcl,fsfcmcl,  &
+                      ciwpmcl,clwpmcl,reicmcl,relqmcl,tauaer,   &
+                      ssaaer,asmaer,ecaer,swuflx,swdflx,swhr,   &
+                      swuflxc,swdflxc,swhrc,swddiruviflx,       &
+                      swddifuviflx,swddirpirflx,swddifpirflx,   &
+                      swdvisflx,aeradfo,aeradfos,asaeradfo,asaeradfos)
+      else
+        call rrtmg_sw_nomcica(npr,kth,icld,play,plev,tlay,tlev, &
+                              tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,  &
+                              n2ovmr,o2vmr,asdir,asdif,aldir,   &
+                              aldif,czen,eccf,0,solcon,inflgsw, &
+                              iceflgsw,liqflgsw,cldf,tauc,      &
+                              ssac,asmc,fsfc,ciwp,clwp,rei,rel, &
+                              tauaer,ssaaer,asmaer,ecaer,       &
+                              swuflx,swdflx,swhr,swuflxc,       &
+                              swdflxc,swhrc)
+      end if
     else
       swuflx(:,:) = d_zero
       swdflx(:,:) = d_zero
@@ -335,7 +347,7 @@ module mod_rrtmg_driver
     end if ! end shortwave call
 
     ! LW call :
-    if ( 1 == 1 ) then
+    if ( irng == 1 ) then
       permuteseed = permuteseed+mypid+ngptsw
       if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
       call mcica_subcol_lw(iplon,npr,kth,icld,permuteseed,irng,play,  &
@@ -343,7 +355,7 @@ module mod_rrtmg_driver
                            ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
                            taucmcl_lw)
 
-      call rrtmg_lw(npr,kth,icld,idrv,idirect,play,plev,tlay,tlev, &
+      call rrtmg_lw(npr,kth,icld,0,idirect,play,plev,tlay,tlev,    &
                     tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,  &
                     cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,  &
                     inflglw,iceflglw,liqflglw,cldfmcl_lw,          &
@@ -351,18 +363,14 @@ module mod_rrtmg_driver
                     relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,  &
                     lwdflxc,lwhrc,duflx_dt,duflxc_dt,aerlwfo,      &
                     aerlwfos,asaerlwfo,asaerlwfos)
-!      print*, 'rrtmg', tlay(50,:)
-!      print*, 'rrtmg', lwdflx(50,:)
     else
-      call rrtmg_lw_nomcica(npr,kth,icld,idrv,play,plev,tlay,tlev,tsfc,    &
+      call rrtmg_lw_nomcica(npr,kth,icld,0,play,plev,tlay,tlev,tsfc,       &
                             h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,       &
                             cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,  &
                             inflglw,iceflglw,liqflglw,cldf,tauc,ciwp,clwp, &
                             rei,rel,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,  &
-                            lwdflxc,lwhrc,duflx_dt,duflxc_dt )
-!      print*, 'rrtmg2', tlay(50,:)
-!      print*, 'rrtmg2', lwdflx(50,:)
-     end if
+                            lwdflxc,lwhrc,duflx_dt,duflxc_dt)
+    end if
     ! Output and interface
     !
     ! EES  next 3 added, they are calculated in radcsw : but not used further

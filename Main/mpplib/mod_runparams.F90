@@ -261,7 +261,6 @@ module mod_runparams
   integer(ik4) , public :: iceflgsw
   integer(ik4) , public :: liqflgsw
   integer(ik4) , public :: icld
-  integer(ik4) , public :: idrv
   integer(ik4) , public :: irng
   integer(ik4) , public :: inflglw
   integer(ik4) , public :: iceflglw
