@@ -819,8 +819,6 @@ else:
 xfac = unitcorrect(oldunits,lookup[variable]['units'])
 
 for it in range(0,np.size(correct_time)):
-  func = lookup[variable]['tocall']['method']
-  print(func,len(var.dimensions),lookup[variable].has_key('formula'),use_formula)
   if lookup[variable].has_key('vertint'):
     if 'plev' in var.dimensions:
       intvar = var[it,mask[0],Ellipsis]
