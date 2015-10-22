@@ -299,7 +299,7 @@ module mod_rrtmg_driver
           n = n + 1
         end do
       end do
-      if ( irng == 1 ) then
+      if ( irng >= 0 ) then
         ! generates cloud properties:
         permuteseed = permuteseed+mypid+ngptlw
         if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
@@ -347,7 +347,7 @@ module mod_rrtmg_driver
     end if ! end shortwave call
 
     ! LW call :
-    if ( irng == 1 ) then
+    if ( irng >= 0 ) then
       permuteseed = permuteseed+mypid+ngptsw
       if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
       call mcica_subcol_lw(iplon,npr,kth,icld,permuteseed,irng,play,  &
