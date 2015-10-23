@@ -45,13 +45,12 @@ module mcica_subcol_gen_lw
 ! Public subroutines
 !------------------------------------------------------------------
 
-      subroutine mcica_subcol_lw(iplon, ncol, nlay, icld, permuteseed, irng, play, &
+      subroutine mcica_subcol_lw(ncol, nlay, icld, permuteseed, irng, play, &
                        cldfrac, ciwp, clwp, rei, rel, tauc, cldfmcl, &
                        ciwpmcl, clwpmcl, reicmcl, relqmcl, taucmcl)
 
 ! ----- Input -----
 ! Control
-      integer(kind=im), intent(in) :: iplon           ! column/longitude index
       integer(kind=im), intent(in) :: ncol            ! number of columns
       integer(kind=im), intent(in) :: nlay            ! number of model layers
       integer(kind=im), intent(in) :: icld            ! clear/cloud, cloud overlap flag
@@ -108,7 +107,7 @@ module mcica_subcol_gen_lw
 
 ! Stochastic cloud generator variables [mcica]
       integer(kind=im), parameter :: nsubclw = ngptlw ! number of sub-columns (g-point intervals)
-      integer(kind=im) :: ilev                        ! loop index
+      ! integer(kind=im) :: ilev                        ! loop index
 
       real(kind=rb) :: pmid(ncol, nlay)               ! layer pressures (Pa)
 !      real(kind=rb) :: pdel(ncol, nlay)              ! layer pressure thickness (Pa)
@@ -287,10 +286,10 @@ module mcica_subcol_gen_lw
 !      real(kind=rb), parameter :: qmin   = 1.0e-10_rb   ! min cloud water and cloud ice (not used)
 
 ! Variables related to random number and seed
-      real(kind=rb), dimension(nsubcol, ncol, nlay) :: CDF, CDF2      ! random numbers
+      real(kind=rb), dimension(nsubcol, ncol, nlay) :: CDF    ! random numbers
+      ! real(kind=rb), dimension(nsubcol, ncol, nlay) :: CDF2 ! random numbers
       integer(kind=im), dimension(ncol) :: seed1, seed2, seed3, seed4 ! seed to create random number
       real(kind=rb), dimension(ncol) :: rand_num      ! random number (kissvec)
-      integer(kind=im) :: iseed                        ! seed to create random number (Mersenne Teister)
       real(kind=rb) :: rand_num_mt                    ! random number (Mersenne Twister)
 
 ! Flag to identify cloud fraction in subcolumns
@@ -327,10 +326,10 @@ module mcica_subcol_gen_lw
             if (pmid(i,1).lt.pmid(i,2)) then
                stop 'MCICA_SUBCOL: KISSVEC SEED GENERATOR REQUIRES PMID FROM BOTTOM FOUR LAYERS.'
             endif
-            seed1(i) = (pmid(i,1) - int(pmid(i,1)))  * 1000000000_im
-            seed2(i) = (pmid(i,2) - int(pmid(i,2)))  * 1000000000_im
-            seed3(i) = (pmid(i,3) - int(pmid(i,3)))  * 1000000000_im
-            seed4(i) = (pmid(i,4) - int(pmid(i,4)))  * 1000000000_im
+            seed1(i) = int((pmid(i,1) - int(pmid(i,1)))) * 1000000000_im
+            seed2(i) = int((pmid(i,2) - int(pmid(i,2)))) * 1000000000_im
+            seed3(i) = int((pmid(i,3) - int(pmid(i,3)))) * 1000000000_im
+            seed4(i) = int((pmid(i,4) - int(pmid(i,4)))) * 1000000000_im
           enddo
          do i=1,changeSeed
             call kissvec(seed1, seed2, seed3, seed4, rand_num)
@@ -538,10 +537,6 @@ module mcica_subcol_gen_lw
       real(kind=rb), dimension(:), intent(inout)  :: ran_arr
       integer(kind=im), dimension(:), intent(inout) :: seed1,seed2,seed3,seed4
       integer(kind=im) :: i,sz,kiss
-      integer(kind=im) :: m, k, n
-
-! inline function
-      m(k, n) = ieor (k, ishft (k, n) )
 
       sz = size(ran_arr)
       do i = 1, sz
@@ -552,6 +547,14 @@ module mcica_subcol_gen_lw
          kiss = seed1(i) + seed2(i) + ishft (seed3(i), 16_im) + seed4(i)
          ran_arr(i) = kiss*2.328306e-10_rb + 0.5_rb
       end do
+
+      contains
+
+        pure integer(kind=im) function m(k,n)
+          implicit none
+          integer (kind=im) , intent(in) :: k , n
+          m = ieor (k, ishft (k, n) )
+        end function m
 
       end subroutine kissvec
 

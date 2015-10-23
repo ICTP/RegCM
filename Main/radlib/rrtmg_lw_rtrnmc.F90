@@ -29,7 +29,7 @@
       contains
 
 !-----------------------------------------------------------------------------
-      subroutine rtrnmc(nlayers, istart, iend, iout, pz, semiss, ncbands, &
+      subroutine rtrnmc(nlayers, istart, iend, iout, pz, semiss, &
                         cldfmc, taucmc, planklay, planklev, plankbnd, &
                         pwvcm, fracs, taut, &
                         totuflux, totdflux, fnet, htr, &
@@ -86,7 +86,6 @@
                                                       !    Dimensions: (nlayers,ngptlw)
 
 ! Clouds
-      integer(kind=im), intent(in) :: ncbands         ! number of cloud spectral bands
       real(kind=rb), intent(in) :: cldfmc(:,:)        ! layer cloud fraction [mcica]
                                                       !    Dimensions: (ngptlw,nlayers)
       real(kind=rb), intent(in) :: taucmc(:,:)        ! layer cloud optical depth [mcica]
@@ -164,7 +163,6 @@
 !    nlayers                      ! number of model layers
 !    ngptlw                       ! total number of g-point subintervals
 !    nbndlw                       ! number of longwave spectral bands
-!    ncbands                      ! number of spectral bands for clouds
 !    secdiff                      ! diffusivity angle
 !    wtdiff                       ! weight for radiance to flux conversion
 !    pavel                        ! layer pressures (mb)
@@ -364,7 +362,7 @@
 
                      odtot = odepth + odcld(lev,igc)
                      tblind = odtot/(bpade+odtot)
-                     ittot = tblint*tblind + 0.5_rb
+                     ittot = int(tblint*tblind + 0.5_rb)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+dplankdn*odepth_rec)
@@ -381,7 +379,7 @@
 
                   else
                      tblind = odepth/(bpade+odepth)
-                     itgas = tblint*tblind+0.5_rb
+                     itgas = int(tblint*tblind+0.5_rb)
                      odepth = tau_tbl(itgas)
                      atrans(lev) = 1._rb - exp_tbl(itgas)
                      tfacgas = tfn_tbl(itgas)
@@ -389,7 +387,7 @@
 
                      odtot = odepth + odcld(lev,igc)
                      tblind = odtot/(bpade+odtot)
-                     ittot = tblint*tblind + 0.5_rb
+                     ittot = int(tblint*tblind + 0.5_rb)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+tfacgas*dplankdn)
@@ -412,7 +410,7 @@
                      bbugas(lev) = plfrac*(blay+dplankup*odepth)
                   else
                      tblind = odepth/(bpade+odepth)
-                     itr = tblint*tblind+0.5_rb
+                     itr = int(tblint*tblind+0.5_rb)
                      transc = exp_tbl(itr)
                      atrans(lev) = 1._rb-transc
                      tausfac = tfn_tbl(itr)

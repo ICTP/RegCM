@@ -37,9 +37,10 @@
 !  spectral band are reduced from 224 g-point intervals to 112.
 ! **************************************************************************
 
-      use parrrsw, only : mg, nbndsw, ngptsw
-      use rrsw_tbl, only: ntbl, tblint, pade, bpade, tau_tbl, exp_tbl
-      use rrsw_vsn, only: hvrini, hnamini
+      use parrrsw, only : mg, nbndsw
+      use rrsw_tbl, only: ntbl, pade, bpade, tau_tbl, exp_tbl
+      use rrsw_vsn, only: hvrini
+      use rrtmg_sw_read_nc
 
       real(kind=rb), intent(in) :: cpdair     ! Specific heat capacity of dry air
                                               ! at constant pressure at 273 K
@@ -493,7 +494,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg16, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref
+                            ka, kb, selfref, forref, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -574,7 +575,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg17, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref
+                            ka, kb, selfref, forref, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -659,7 +660,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg18, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref
+                            ka, kb, selfref, forref, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -742,7 +743,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg19, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref
+                            ka, kb, selfref, forref, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -825,7 +826,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg20, only : kao, kbo, selfrefo, forrefo, sfluxrefo, absch4o, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, absch4
+                            ka, kb, selfref, forref, sfluxref, absch4
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
@@ -904,7 +905,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg21, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref
+                            ka, kb, selfref, forref, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -989,7 +990,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg22, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref
+                            ka, kb, selfref, forref, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -1072,7 +1073,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg23, only : kao, selfrefo, forrefo, sfluxrefo, raylo, &
-                            absa, ka, selfref, forref, sfluxref, rayl
+                            ka, selfref, forref, sfluxref, rayl
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
@@ -1141,7 +1142,7 @@
 
       use rrsw_kg24, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             abso3ao, abso3bo, raylao, raylbo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            ka, kb, selfref, forref, sfluxref, &
                             abso3a, abso3b, rayla, raylb
 
 ! ------- Local -------
@@ -1245,7 +1246,7 @@
 
       use rrsw_kg25, only : kao, sfluxrefo, &
                             abso3ao, abso3bo, raylo, &
-                            absa, ka, sfluxref, &
+                            ka, sfluxref, &
                             abso3a, abso3b, rayl
 
 ! ------- Local -------
@@ -1326,7 +1327,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg27, only : kao, kbo, sfluxrefo, raylo, &
-                            absa, ka, absb, kb, sfluxref, rayl
+                            ka, kb, sfluxref, rayl
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
@@ -1380,8 +1381,7 @@
 !     band 28:  38000-50000 cm-1 (low - o3,o2; high - o3,o2)
 !-----------------------------------------------------------------------
 
-      use rrsw_kg28, only : kao, kbo, sfluxrefo, &
-                            absa, ka, absb, kb, sfluxref
+      use rrsw_kg28, only : kao, kbo, sfluxrefo, ka, kb, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -1443,7 +1443,7 @@
 
       use rrsw_kg29, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             absh2oo, absco2o, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            ka, kb, selfref, forref, sfluxref, &
                             absh2o, absco2
 
 ! ------- Local -------

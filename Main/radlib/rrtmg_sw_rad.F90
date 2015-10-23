@@ -188,11 +188,10 @@ module rrtmg_sw_rad
     !- + aerosol radiative forcing calculation
     ! --------- Modules ---------
 
-    use parrrsw, only : nbndsw, ngptsw, naerec, nstr, nmol, mxmol, &
+    use parrrsw, only : nbndsw, ngptsw, naerec, mxmol, &
          jpband, jpb1, jpb2
     use rrsw_aer, only : rsrtaua, rsrpiza, rsrasya
     use rrsw_con, only : heatfac, oneminus, pi
-    use rrsw_wvn, only : wavenum1, wavenum2
 
     ! ------- Declarations
 
@@ -326,14 +325,11 @@ module rrtmg_sw_rad
     ! [0 = direct and diffuse fluxes are unscaled]
     ! [1 = direct and diffuse fluxes are scaled]
     ! (total downward fluxes are always delta scaled)
-    integer(kind=im) :: isccos              ! instrumental cosine response flag (inactive)
     integer(kind=im) :: iplon               ! column loop index
     integer(kind=im) :: i                   ! layer loop index                       ! jk
     integer(kind=im) :: ib                  ! band loop index                        ! jsw
     integer(kind=im) :: ia, ig              ! indices
-    integer(kind=im) :: k                   ! layer loop index
     integer(kind=im) :: ims                 ! value for changing mcica permute seed
-    integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
     integer(kind=im) :: n , nsswcall        ! number of sw call for rad for. calculation (RegCM option)
     real(kind=rb) :: zepsec, zepzen         ! epsilon
     real(kind=rb) :: zdpgcp                 ! flux to heating conversion ratio
@@ -389,7 +385,6 @@ module rrtmg_sw_rad
          fac10(nlay+1), fac11(nlay+1)
 
     ! Atmosphere/clouds - cldprop
-    integer(kind=im) :: ncbands             ! number of cloud spectral bands
     integer(kind=im) :: inflag              ! flag for cloud property method
     integer(kind=im) :: iceflag             ! flag for ice cloud properties
     integer(kind=im) :: liqflag             ! flag for liquid cloud properties
@@ -422,11 +417,7 @@ module rrtmg_sw_rad
     real(kind=rb) :: fsfcmc(ngptsw,nlay+1)    ! in-cloud forward scattering fraction [mcica]
 
     ! Atmosphere/clouds/aerosol - spcvrt,spcvmc
-    real(kind=rb) :: ztauc(nlay+1,nbndsw)     ! cloud optical depth
-    real(kind=rb) :: ztaucorig(nlay+1,nbndsw) ! unscaled cloud optical depth
-    real(kind=rb) :: zasyc(nlay+1,nbndsw)     ! cloud asymmetry parameter
     !  (first moment of phase function)
-    real(kind=rb) :: zomgc(nlay+1,nbndsw)     ! cloud single scattering albedo
     real(kind=rb) :: ztaua(nlay+1,nbndsw)     ! total aerosol optical depth
     real(kind=rb) :: zasya(nlay+1,nbndsw)     ! total aerosol asymmetry parameter
     real(kind=rb) :: zomga(nlay+1,nbndsw)     ! total aerosol single scattering albedo
@@ -729,17 +720,14 @@ module rrtmg_sw_rad
         end do
 
         call spcvmc_sw &
-               (nlayers, istart, iend, icpr, idelm, iout, &
-               pavel, tavel, pz, tz, tbound, albdif, albdir, &
-               zcldfmc, ztaucmc, zasycmc, zomgcmc, ztaormc, &
-               ztaua, zasya, zomga, cossza, coldry, wkl, adjflux, &
-               laytrop, layswtch, laylow, jp, jt, jt1, &
-               co2mult, colch4, colco2, colh2o, colmol, coln2o, colo2, colo3, &
-               fac00, fac01, fac10, fac11, &
-               selffac, selffrac, indself, forfac, forfrac, indfor, &
-               zbbfd, zbbfu, zbbcd, zbbcu, zuvfd, zuvcd, znifd, znicd, &
-               zbbfddir, zbbcddir, zuvfddir, zuvcddir, znifddir, znicddir,&
-               zvsfd )
+            (nlayers, istart, iend, icpr, idelm, iout, albdif, albdir, &
+             zcldfmc, ztaucmc, zasycmc, zomgcmc, ztaormc, ztaua,       &
+             zasya, zomga, cossza, adjflux, laytrop, jp, jt, jt1,      &
+             colch4, colco2, colh2o, colmol, colo2, colo3, fac00,      &
+             fac01, fac10, fac11, selffac, selffrac, indself,          &
+             forfac, forfrac, indfor, zbbfd, zbbfu, zbbcd, zbbcu,      &
+             zuvfd, zuvcd, znifd, znicd, zbbfddir, zbbcddir,           &
+             zuvfddir, zuvcddir, znifddir, znicddir, zvsfd )
 
         if ( idirect == 1 ) then
           ! first call save the NET flux in  aerfo
@@ -864,10 +852,8 @@ module rrtmg_sw_rad
       taua, ssaa, asma)
     ! --------- Modules ----------
 
-    use parrrsw, only : nbndsw, ngptsw, nstr, nmol, mxmol, &
-                    jpband, jpb1, jpb2, rrsw_scon
-    use rrsw_con, only : heatfac, oneminus, pi, grav, avogad
-    use rrsw_wvn, only : ng, nspa, nspb, wavenum1, wavenum2, delwave
+    use parrrsw, only : nbndsw, ngptsw, nmol, jpb1, jpb2, rrsw_scon
+    use rrsw_con, only : grav, avogad
 
     ! ------- Declarations -------
 
@@ -1003,17 +989,17 @@ module rrtmg_sw_rad
 
     ! Set molecular weight ratios (for converting mmr to vmr)
     !  e.g. h2ovmr = h2ommr * amdw)
-    real(kind=rb), parameter :: amdw = 1.607793_rb  ! Molecular weight of dry air / water vapor
-    real(kind=rb), parameter :: amdc = 0.658114_rb  ! Molecular weight of dry air / carbon dioxide
-    real(kind=rb), parameter :: amdo = 0.603428_rb  ! Molecular weight of dry air / ozone
-    real(kind=rb), parameter :: amdm = 1.805423_rb  ! Molecular weight of dry air / methane
-    real(kind=rb), parameter :: amdn = 0.658090_rb  ! Molecular weight of dry air / nitrous oxide
-    real(kind=rb), parameter :: amdo2 = 0.905140_rb ! Molecular weight of dry air / oxygen
+    !real(kind=rb), parameter :: amdw = 1.607793_rb  ! Molecular weight of dry air / water vapor
+    ! real(kind=rb), parameter :: amdc = 0.658114_rb  ! Molecular weight of dry air / carbon dioxide
+    !real(kind=rb), parameter :: amdo = 0.603428_rb  ! Molecular weight of dry air / ozone
+    !real(kind=rb), parameter :: amdm = 1.805423_rb  ! Molecular weight of dry air / methane
+    !real(kind=rb), parameter :: amdn = 0.658090_rb  ! Molecular weight of dry air / nitrous oxide
+    !real(kind=rb), parameter :: amdo2 = 0.905140_rb ! Molecular weight of dry air / oxygen
 
-    real(kind=rb), parameter :: sbc = 5.67e-08_rb   ! Stefan-Boltzmann constant (W/m2K4)
+    !real(kind=rb), parameter :: sbc = 5.67e-08_rb   ! Stefan-Boltzmann constant (W/m2K4)
 
-    integer(kind=im) :: isp, l, ix, n, imol, ib, ig   ! Loop indices
-    real(kind=rb) :: amm, summol                      !
+    integer(kind=im) :: l, imol, ib, ig   ! Loop indices
+    real(kind=rb) :: amm
     real(kind=rb) :: adjflx                           ! flux adjustment for Earth/Sun distance
 !   real(kind=rb) :: earth_sun                        ! function for Earth/Sun distance adjustment
 

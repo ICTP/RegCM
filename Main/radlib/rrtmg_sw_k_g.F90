@@ -1,3 +1,4 @@
+module rrtmg_sw_k_g
 !     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_sw/src/rrtmg_sw_k_g.f90,v $
 !     author:    $Author: mike $
 !     revision:  $Revision: 1.4 $
@@ -12,6 +13,8 @@
 ! |                       (http://www.rtweb.aer.com/)                        |
 ! |                                                                          |
 !  --------------------------------------------------------------------------
+
+  contains
 
 ! **************************************************************************
 !      subroutine sw_kgbnn
@@ -63492,5 +63495,6 @@
         &  0.587212e-01_rb, 0.173470e+00_rb, 0.512452e+00_rb, 0.151385e+01_rb, 0.447209e+01_rb /)
 
       end subroutine sw_kgb29
+end module rrtmg_sw_k_g
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

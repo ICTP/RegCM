@@ -1,3 +1,4 @@
+module rrtmg_sw_read_nc
 !     path:      $Source: /storm/rc1/cvsroot/rc/rrtmg_sw/src/rrtmg_sw_read_nc.f90,v $
 !     author:    $Author: mike $
 !     revision:  $Revision: 1.1 $
@@ -13,6 +14,8 @@
 ! Written By: Patrick Hofmann
 ! Last Update: 4/3/2009
 !===============================================================================
+
+  contains
 
 !*******************************************************************************
 subroutine sw_kgb16
@@ -794,4 +797,6 @@ subroutine sw_kgb29
 
 end subroutine sw_kgb29
 !*******************************************************************************
+end module rrtmg_sw_read_nc
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

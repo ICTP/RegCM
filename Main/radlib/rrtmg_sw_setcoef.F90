@@ -131,9 +131,9 @@
 ! Initializations
       stpfac = 296._rb/1013._rb
 
-      indbound = tbound - 159._rb
+      indbound = int(tbound - 159._rb)
       tbndfrac = tbound - int(tbound)
-      indlev0  = tz(0) - 159._rb
+      indlev0  = int(tz(0) - 159._rb)
       t0frac   = tz(0) - int(tz(0))
 
       laytrop  = 0

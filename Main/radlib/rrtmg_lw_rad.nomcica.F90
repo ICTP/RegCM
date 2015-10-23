@@ -174,8 +174,8 @@ module rrtmg_lw_rad_nomcica
 ! --------- Modules ----------
 
       use parrrtm, only : nbndlw, ngptlw, maxxsec, mxmol
-      use rrlw_con, only: fluxfac, heatfac, oneminus, pi
-      use rrlw_wvn, only: ng, ngb, nspa, nspb, wavenum1, wavenum2, delwave
+      use rrlw_con, only: fluxfac, oneminus, pi
+      use rrlw_wvn, only: ngb
 
 ! ------- Declarations -------
 
@@ -494,7 +494,7 @@ module rrtmg_lw_rad_nomcica
 !  each longwave spectral band.
 
          call taumol(nlayers, pavel, wx, coldry, &
-                     laytrop, jp, jt, jt1, planklay, planklev, plankbnd, &
+                     laytrop, jp, jt, jt1, &
                      colh2o, colco2, colo3, coln2o, colco, colch4, colo2, &
                      colbrd, fac00, fac01, fac10, fac11, &
                      rat_h2oco2, rat_h2oco2_1, rat_h2oo3, rat_h2oo3_1, &
@@ -586,9 +586,9 @@ module rrtmg_lw_rad_nomcica
 
 ! --------- Modules ----------
 
-      use parrrtm, only : nbndlw, ngptlw, nmol, maxxsec, mxmol
-      use rrlw_con, only: fluxfac, heatfac, oneminus, pi, grav, avogad
-      use rrlw_wvn, only: ng, nspa, nspb, wavenum1, wavenum2, delwave, ixindx
+      use parrrtm, only : nbndlw, nmol, maxxsec
+      use rrlw_con, only: grav, avogad
+      use rrlw_wvn, only: ixindx
 
 ! ------- Declarations -------
 

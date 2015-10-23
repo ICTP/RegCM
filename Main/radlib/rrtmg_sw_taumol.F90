@@ -250,8 +250,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng16
-      use rrsw_kg16, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl
+      use rrsw_kg16, only : absa, absb, forref, selfref, sfluxref, rayl
 
 ! ------- Declarations -------
 
@@ -349,7 +348,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng17, ngs16
-      use rrsw_kg17, only : absa, ka, absb, kb, forref, selfref, &
+      use rrsw_kg17, only : absa, absb, forref, selfref, &
                             sfluxref, rayl
 
 ! ------- Declarations -------
@@ -472,7 +471,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng18, ngs17
-      use rrsw_kg18, only : absa, ka, absb, kb, forref, selfref, &
+      use rrsw_kg18, only : absa, absb, forref, selfref, &
                             sfluxref, rayl
 
 ! ------- Declarations -------
@@ -571,7 +570,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng19, ngs18
-      use rrsw_kg19, only : absa, ka, absb, kb, forref, selfref, &
+      use rrsw_kg19, only : absa, absb, forref, selfref, &
                             sfluxref, rayl
 
 ! ------- Declarations -------
@@ -670,7 +669,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng20, ngs19
-      use rrsw_kg20, only : absa, ka, absb, kb, forref, selfref, &
+      use rrsw_kg20, only : absa, absb, forref, selfref, &
                             sfluxref, absch4, rayl
 
       implicit none
@@ -679,11 +678,9 @@
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, lay, laysolfr, &
                           layreffr
-      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                       fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+      real(kind=rb) :: tauray
 
 ! Compute the optical depth by interpolating in ln(pressure),
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -756,8 +753,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng21, ngs20
-      use rrsw_kg21, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl
+      use rrsw_kg21, only : absa, absb, forref, selfref, sfluxref, rayl
 
 ! ------- Declarations -------
 
@@ -878,8 +874,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng22, ngs21
-      use rrsw_kg22, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl
+      use rrsw_kg22, only : absa, absb, forref, selfref, sfluxref, rayl
 
 ! ------- Declarations -------
 
@@ -987,18 +982,16 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng23, ngs22
-      use rrsw_kg23, only : absa, ka, forref, selfref, &
+      use rrsw_kg23, only : absa, forref, selfref, &
                             sfluxref, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, lay, laysolfr, &
                           layreffr
-      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                       fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray, givfac
+      real(kind=rb) :: tauray, givfac
 
 ! Average Giver et al. correction factor for this band.
       givfac = 1.029_rb
@@ -1061,7 +1054,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng24, ngs23
-      use rrsw_kg24, only : absa, ka, absb, kb, forref, selfref, &
+      use rrsw_kg24, only : absa, absb, forref, selfref, &
                             sfluxref, abso3a, abso3b, rayla, raylb
 
 ! ------- Declarations -------
@@ -1163,18 +1156,14 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng25, ngs24
-      use rrsw_kg25, only : absa, ka, &
-                            sfluxref, abso3a, abso3b, rayl
+      use rrsw_kg25, only : absa, sfluxref, abso3a, abso3b, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
-                          layreffr
-      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                       fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+      integer(kind=im) :: ig, ind0, ind1, lay, laysolfr, layreffr
+      real(kind=rb) :: tauray
 
 ! Compute the optical depth by interpolating in ln(pressure),
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1233,10 +1222,7 @@
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                       fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+      integer(kind=im) :: ig, lay, laysolfr
 
 ! Compute the optical depth by interpolating in ln(pressure),
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1278,17 +1264,14 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng27, ngs26
-      use rrsw_kg27, only : absa, ka, absb, kb, sfluxref, rayl
+      use rrsw_kg27, only : absa, absb, sfluxref, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
-                          layreffr
-      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                       fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray, scalekur
+      integer(kind=im) :: ig, ind0, ind1, lay, laysolfr, layreffr
+      real(kind=rb) :: tauray, scalekur
 
 ! Kurucz solar source function
 ! The values in sfluxref were obtained using the "low resolution"
@@ -1357,14 +1340,13 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng28, ngs27
-      use rrsw_kg28, only : absa, ka, absb, kb, sfluxref, rayl
+      use rrsw_kg28, only : absa, absb, sfluxref, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
-                          layreffr
+      integer(kind=im) :: ig, ind0, ind1, js, lay, laysolfr, layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
                        tauray, strrat
@@ -1465,18 +1447,16 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng29, ngs28
-      use rrsw_kg29, only : absa, ka, absb, kb, forref, selfref, &
+      use rrsw_kg29, only : absa, absb, forref, selfref, &
                             sfluxref, absh2o, absco2, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
-                          layreffr
-      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                       fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+      integer(kind=im) :: ig , ind0 , ind1 , indf , inds , lay, &
+                          laysolfr, layreffr
+      real(kind=rb) :: tauray
 
 ! Compute the optical depth by interpolating in ln(pressure),
 ! temperature, and appropriate species.  Below LAYTROP, the water

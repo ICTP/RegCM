@@ -187,8 +187,8 @@ module rrtmg_lw_rad
     ! --------- Modules ----------
 
       use parrrtm, only : nbndlw, ngptlw, maxxsec, mxmol
-      use rrlw_con, only: fluxfac, heatfac, oneminus, pi
-      use rrlw_wvn, only: ng, ngb, nspa, nspb, wavenum1, wavenum2, delwave
+      use rrlw_con, only: fluxfac, oneminus, pi
+      use rrlw_wvn, only: ngb
 
       ! ------- Declarations -------
 
@@ -505,7 +505,7 @@ module rrtmg_lw_rad
         !  each longwave spectral band.
 
         call taumol(nlayers, pavel, wx, coldry, &
-                  laytrop, jp, jt, jt1, planklay, planklev, plankbnd, &
+                  laytrop, jp, jt, jt1, &
                   colh2o, colco2, colo3, coln2o, colco, colch4, colo2, &
                   colbrd, fac00, fac01, fac10, fac11, &
                   rat_h2oco2, rat_h2oco2_1, rat_h2oo3, rat_h2oo3_1, &
@@ -569,12 +569,12 @@ module rrtmg_lw_rad
           ! to be used.  Clear sky calculation is done simultaneously.
           ! For McICA, RTRNMC is called for clear and cloudy calculations.
 
-          call rtrnmc(nlayers, istart, iend, iout, pz, semiss, ncbands, &
-                        cldfmc, taucmc, planklay, planklev, plankbnd, &
-                        pwvcm, fracs, taut, &
-                        totuflux, totdflux, fnet, htr, &
-                        totuclfl, totdclfl, fnetc, htrc, &
-                        idrv, dplankbnd_dt, dtotuflux_dt, dtotuclfl_dt )
+          call rtrnmc(nlayers, istart, iend, iout, pz, semiss, &
+                      cldfmc, taucmc, planklay, planklev, plankbnd, &
+                      pwvcm, fracs, taut, &
+                      totuflux, totdflux, fnet, htr, &
+                      totuclfl, totdclfl, fnetc, htrc, &
+                      idrv, dplankbnd_dt, dtotuflux_dt, dtotuclfl_dt )
 
           ! FAB save aerosol rad for
 
@@ -657,9 +657,9 @@ module rrtmg_lw_rad
 
       ! --------- Modules ----------
 
-      use parrrtm, only : nbndlw, ngptlw, nmol, maxxsec, mxmol
-      use rrlw_con, only: fluxfac, heatfac, oneminus, pi, grav, avogad
-      use rrlw_wvn, only: ng, nspa, nspb, wavenum1, wavenum2, delwave, ixindx
+      use parrrtm, only : nbndlw, ngptlw, nmol, maxxsec
+      use rrlw_con, only: grav, avogad
+      use rrlw_wvn, only: ixindx
 
       ! ------- Declarations -------
 
@@ -784,16 +784,16 @@ module rrtmg_lw_rad
 
 ! Set molecular weight ratios (for converting mmr to vmr)
 !  e.g. h2ovmr = h2ommr * amdw)
-      real(kind=rb), parameter :: amdw = 1.607793_rb  ! Molecular weight of dry air / water vapor
-      real(kind=rb), parameter :: amdc = 0.658114_rb  ! Molecular weight of dry air / carbon dioxide
-      real(kind=rb), parameter :: amdo = 0.603428_rb  ! Molecular weight of dry air / ozone
-      real(kind=rb), parameter :: amdm = 1.805423_rb  ! Molecular weight of dry air / methane
-      real(kind=rb), parameter :: amdn = 0.658090_rb  ! Molecular weight of dry air / nitrous oxide
-      real(kind=rb), parameter :: amdo2 = 0.905140_rb ! Molecular weight of dry air / oxygen
-      real(kind=rb), parameter :: amdc1 = 0.210852_rb ! Molecular weight of dry air / CFC11
-      real(kind=rb), parameter :: amdc2 = 0.239546_rb ! Molecular weight of dry air / CFC12
+      !real(kind=rb), parameter :: amdw = 1.607793_rb  ! Molecular weight of dry air / water vapor
+      !real(kind=rb), parameter :: amdc = 0.658114_rb  ! Molecular weight of dry air / carbon dioxide
+      !real(kind=rb), parameter :: amdo = 0.603428_rb  ! Molecular weight of dry air / ozone
+      !real(kind=rb), parameter :: amdm = 1.805423_rb  ! Molecular weight of dry air / methane
+      !real(kind=rb), parameter :: amdn = 0.658090_rb  ! Molecular weight of dry air / nitrous oxide
+      !real(kind=rb), parameter :: amdo2 = 0.905140_rb ! Molecular weight of dry air / oxygen
+      !real(kind=rb), parameter :: amdc1 = 0.210852_rb ! Molecular weight of dry air / CFC11
+      !real(kind=rb), parameter :: amdc2 = 0.239546_rb ! Molecular weight of dry air / CFC12
 
-      integer(kind=im) :: isp, l, ix, n, imol, ib, ig   ! Loop indices
+      integer(kind=im) :: l, ix, n, imol, ib, ig   ! Loop indices
       real(kind=rb) :: amm, amttl, wvttl, wvsh, summol
 
 ! Add one to nlayers here to include extra model layer at top of atmosphere

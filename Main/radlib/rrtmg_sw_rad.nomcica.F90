@@ -171,11 +171,9 @@
 
 ! --------- Modules ---------
 
-      use parrrsw, only : nbndsw, ngptsw, naerec, nstr, nmol, mxmol, &
-                          jpband, jpb1, jpb2
+      use parrrsw, only : nbndsw, naerec, mxmol, jpband, jpb1, jpb2
       use rrsw_aer, only : rsrtaua, rsrpiza, rsrasya
       use rrsw_con, only : heatfac, oneminus, pi
-      use rrsw_wvn, only : wavenum1, wavenum2
 
 ! ------- Declarations
 
@@ -657,16 +655,14 @@
          enddo
 
          call spcvrt_sw &
-             (nlayers, istart, iend, icpr, idelm, iout, &
-              pavel, tavel, pz, tz, tbound, albdif, albdir, &
-              cldfrac, ztauc, zasyc, zomgc, ztaucorig, &
-              ztaua, zasya, zomga, cossza, coldry, wkl, adjflux, &
-              laytrop, layswtch, laylow, jp, jt, jt1, &
-              co2mult, colch4, colco2, colh2o, colmol, coln2o, colo2, colo3, &
-              fac00, fac01, fac10, fac11, &
-              selffac, selffrac, indself, forfac, forfrac, indfor, &
-              zbbfd, zbbfu, zbbcd, zbbcu, zuvfd, zuvcd, znifd, znicd, &
-              zbbfddir, zbbcddir, zuvfddir, zuvcddir, znifddir, znicddir)
+            (nlayers, istart, iend, icpr, idelm, iout, albdif, albdir, &
+             cldfrac, ztauc, zasyc, zomgc, ztaucorig, ztaua, zasya,    &
+             zomga, cossza, adjflux, laytrop, jp, jt, jt1, colch4,     &
+             colco2, colh2o, colmol, colo2, colo3, fac00, fac01,       &
+             fac10, fac11, selffac, selffrac, indself, forfac,         &
+             forfrac, indfor, zbbfd, zbbfu, zbbcd, zbbcu, zuvfd,       &
+             zuvcd, znifd, znicd, zbbfddir, zbbcddir, zuvfddir,        &
+             zuvcddir, znifddir, znicddir)
 
 ! Transfer up and down, clear and total sky fluxes to output arrays.
 ! Vertical indexing goes from bottom to top; reverse here for GCM if necessary.
@@ -755,10 +751,8 @@
 
 ! --------- Modules ----------
 
-      use parrrsw, only : nbndsw, ngptsw, nstr, nmol, mxmol, &
-                          jpband, jpb1, jpb2, rrsw_scon
-      use rrsw_con, only : fluxfac, heatfac, oneminus, pi, grav, avogad
-      use rrsw_wvn, only : ng, nspa, nspb, wavenum1, wavenum2, delwave
+      use parrrsw, only : nbndsw, nmol, jpb1, jpb2, rrsw_scon
+      use rrsw_con, only : grav, avogad
 
 ! ------- Declarations -------
 

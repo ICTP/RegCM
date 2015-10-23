@@ -84,7 +84,7 @@
       real(kind=rb) :: factor                         !
       real(kind=rb) :: fint                           !
       real(kind=rb) :: radliq                         ! cloud liquid droplet radius (microns)
-      real(kind=rb), parameter :: eps = 1.e-6_rb      ! epsilon
+      !real(kind=rb), parameter :: eps = 1.e-6_rb      ! epsilon
       real(kind=rb), parameter :: cldmin = 1.e-20_rb  ! minimum value for cloud quantities
 
 ! ------- Definitions -------

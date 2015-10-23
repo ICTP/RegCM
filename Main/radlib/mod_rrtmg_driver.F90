@@ -265,20 +265,15 @@ module mod_rrtmg_driver
 #else
     mypid = getpid()
 #endif
-
   end subroutine allocate_mod_rad_rrtmg
-!
+
   subroutine rrtmg_driver(iyear,lout,m2r,r2a)
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
     type(rad_2_mod) , intent(inout) :: r2a
     integer(ik4) , intent(in) :: iyear
     logical , intent(in) :: lout
-    integer(ik4) :: iplon , k , kj , n , i , j
-
-!-----------------------------------------------------------------------
-
-    iplon = 1 ! not effectively used
+    integer(ik4) :: k , kj , n , i , j
 
     ! from water path and cloud radius / tauc_LW is not requested
     tauc_lw(:,:,:) = dlowval
@@ -303,7 +298,7 @@ module mod_rrtmg_driver
         ! generates cloud properties:
         permuteseed = permuteseed+mypid+ngptlw
         if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
-        call mcica_subcol_sw(iplon,npr,kth,icld,permuteseed,irng,play,   &
+        call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play,   &
                              cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc,fsfc, &
                              cldfmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,    &
                              taucmcl,ssacmcl,asmcmcl,fsfcmcl)
@@ -350,7 +345,7 @@ module mod_rrtmg_driver
     if ( irng >= 0 ) then
       permuteseed = permuteseed+mypid+ngptsw
       if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
-      call mcica_subcol_lw(iplon,npr,kth,icld,permuteseed,irng,play,  &
+      call mcica_subcol_lw(npr,kth,icld,permuteseed,irng,play,  &
                            cldf,ciwp,clwp,rei,rel,tauc_lw,cldfmcl_lw, &
                            ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
                            taucmcl_lw)

@@ -31,17 +31,14 @@
 
 ! ---------------------------------------------------------------------------
       subroutine spcvmc_sw &
-            (nlayers, istart, iend, icpr, idelm, iout, &
-             pavel, tavel, pz, tz, tbound, palbd, palbp, &
-             pcldfmc, ptaucmc, pasycmc, pomgcmc, ptaormc, &
-             ptaua, pasya, pomga, prmu0, coldry, wkl, adjflux, &
-             laytrop, layswtch, laylow, jp, jt, jt1, &
-             co2mult, colch4, colco2, colh2o, colmol, coln2o, colo2, colo3, &
-             fac00, fac01, fac10, fac11, &
-             selffac, selffrac, indself, forfac, forfrac, indfor, &
-             pbbfd, pbbfu, pbbcd, pbbcu, puvfd, puvcd, pnifd, pnicd, &
-             pbbfddir, pbbcddir, puvfddir, puvcddir, pnifddir, pnicddir,&
-             pvsfd )
+            (nlayers, istart, iend, icpr, idelm, iout, palbd, palbp, &
+             pcldfmc, ptaucmc, pasycmc, pomgcmc, ptaormc, ptaua,     &
+             pasya, pomga, prmu0, adjflux, laytrop, jp, jt, jt1,     &
+             colch4, colco2, colh2o, colmol, colo2, colo3, fac00,    &
+             fac01, fac10, fac11, selffac, selffrac, indself,        &
+             forfac, forfrac, indfor, pbbfd, pbbfu, pbbcd, pbbcu,    &
+             puvfd, puvcd, pnifd, pnicd, pbbfddir, pbbcddir,         &
+             puvfddir, puvcddir, pnifddir, pnicddir, pvsfd )
 ! ---------------------------------------------------------------------------
 !
 ! Purpose: Contains spectral loop to compute the shortwave radiative fluxes,
@@ -89,8 +86,6 @@
                                               ! [1 = direct and diffuse fluxes are scaled]
       integer(kind=im), intent(in) :: iout
       integer(kind=im), intent(in) :: laytrop
-      integer(kind=im), intent(in) :: layswtch
-      integer(kind=im), intent(in) :: laylow
 
       integer(kind=im), intent(in) :: indfor(:)
                                                                !   Dimensions: (nlayers)
@@ -103,19 +98,6 @@
       integer(kind=im), intent(in) :: jt1(:)
                                                                !   Dimensions: (nlayers)
 
-      real(kind=rb), intent(in) :: pavel(:)                    ! layer pressure (hPa, mb)
-                                                               !   Dimensions: (nlayers)
-      real(kind=rb), intent(in) :: tavel(:)                    ! layer temperature (K)
-                                                               !   Dimensions: (nlayers)
-      real(kind=rb), intent(in) :: pz(0:)                      ! level (interface) pressure (hPa, mb)
-                                                               !   Dimensions: (0:nlayers)
-      real(kind=rb), intent(in) :: tz(0:)                      ! level temperatures (hPa, mb)
-                                                               !   Dimensions: (0:nlayers)
-      real(kind=rb), intent(in) :: tbound                      ! surface temperature (K)
-      real(kind=rb), intent(in) :: wkl(:,:)                    ! molecular amounts (mol/cm2)
-                                                               !   Dimensions: (mxmol,nlayers)
-      real(kind=rb), intent(in) :: coldry(:)                   ! dry air column density (mol/cm2)
-                                                               !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: colmol(:)
                                                                !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: adjflux(:)                  ! Earth/Sun distance adjustment
@@ -149,13 +131,9 @@
                                                                !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: colch4(:)
                                                                !   Dimensions: (nlayers)
-      real(kind=rb), intent(in) :: co2mult(:)
-                                                               !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: colo3(:)
                                                                !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: colo2(:)
-                                                               !   Dimensions: (nlayers)
-      real(kind=rb), intent(in) :: coln2o(:)
                                                                !   Dimensions: (nlayers)
 
       real(kind=rb), intent(in) :: forfac(:)
@@ -210,8 +188,8 @@
       logical :: lrtchkclr(nlayers),lrtchkcld(nlayers)
 
       integer(kind=im)  :: klev
-      integer(kind=im) :: ib1, ib2, ibm, igt, ikl, ikp, ikx
-      integer(kind=im) :: iw, jb, jg, jl, jk
+      integer(kind=im) :: ib1, ib2, ibm, igt, ikl
+      integer(kind=im) :: iw, jb, jg, jk
 !      integer(kind=im), parameter :: nuv = ??
 !      integer(kind=im), parameter :: nvs = ??
       integer(kind=im) :: itind
@@ -219,24 +197,22 @@
       real(kind=rb) :: tblind, ze1
       real(kind=rb) :: zclear, zcloud
       real(kind=rb) :: zdbt(nlayers+1), zdbt_nodel(nlayers+1)
-      real(kind=rb) :: zgc(nlayers), zgcc(nlayers), zgco(nlayers)
-      real(kind=rb) :: zomc(nlayers), zomcc(nlayers), zomco(nlayers)
+      real(kind=rb) :: zgcc(nlayers), zgco(nlayers)
+      real(kind=rb) :: zomcc(nlayers), zomco(nlayers)
       real(kind=rb) :: zrdnd(nlayers+1), zrdndc(nlayers+1)
       real(kind=rb) :: zref(nlayers+1), zrefc(nlayers+1), zrefo(nlayers+1)
       real(kind=rb) :: zrefd(nlayers+1), zrefdc(nlayers+1), zrefdo(nlayers+1)
       real(kind=rb) :: zrup(nlayers+1), zrupd(nlayers+1)
       real(kind=rb) :: zrupc(nlayers+1), zrupdc(nlayers+1)
-      real(kind=rb) :: zs1(nlayers+1)
       real(kind=rb) :: ztauc(nlayers), ztauo(nlayers)
-      real(kind=rb) :: ztdn(nlayers+1), ztdnd(nlayers+1), ztdbt(nlayers+1)
-      real(kind=rb) :: ztoc(nlayers), ztor(nlayers)
+      real(kind=rb) :: ztdbt(nlayers+1)
       real(kind=rb) :: ztra(nlayers+1), ztrac(nlayers+1), ztrao(nlayers+1)
       real(kind=rb) :: ztrad(nlayers+1), ztradc(nlayers+1), ztrado(nlayers+1)
       real(kind=rb) :: zdbtc(nlayers+1), ztdbtc(nlayers+1)
       real(kind=rb) :: zincflx(ngptsw), zdbtc_nodel(nlayers+1)
       real(kind=rb) :: ztdbt_nodel(nlayers+1), ztdbtc_nodel(nlayers+1)
 
-      real(kind=rb) :: zdbtmc, zdbtmo, zf, zgw, zreflect
+      real(kind=rb) :: zdbtmc, zdbtmo, zf
       real(kind=rb) :: zwf, tauorig, repclc
 !     real(kind=rb) :: zincflux                                   ! inactive
 
@@ -422,7 +398,7 @@
                      zdbtmc = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                   else
                      tblind = ze1 / (bpade + ze1)
-                     itind = tblint * tblind + 0.5_rb
+                     itind = int(tblint * tblind + 0.5_rb)
                      zdbtmc = exp_tbl(itind)
                   endif
 
@@ -439,7 +415,7 @@
                      zdbtmo = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                   else
                      tblind = ze1 / (bpade + ze1)
-                     itind = tblint * tblind + 0.5_rb
+                     itind = int(tblint * tblind + 0.5_rb)
                      zdbtmo = exp_tbl(itind)
                   endif
 
@@ -520,7 +496,7 @@
                   zdbtmc = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = tblint * tblind + 0.5_rb
+                  itind = int(tblint * tblind + 0.5_rb)
                   zdbtmc = exp_tbl(itind)
                endif
 
@@ -538,7 +514,7 @@
                   zdbtmo = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = tblint * tblind + 0.5_rb
+                  itind = int(tblint * tblind + 0.5_rb)
                   zdbtmo = exp_tbl(itind)
                endif
 
