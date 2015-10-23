@@ -64,9 +64,8 @@ module mod_precip
 
   contains
 
-  subroutine allocate_mod_precip(ichem)
+  subroutine allocate_mod_precip
     implicit none
-    integer(ik4) , intent(in) :: ichem
     ! Those not. Note the external, internal change.
     call getmem2d(qck1,jci1,jci2,ici1,ici2,'pcp:qck1')
     call getmem2d(cgul,jci1,jci2,ici1,ici2,'pcp:cgul')

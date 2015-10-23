@@ -1109,7 +1109,7 @@ module mod_params
     call allocate_pblscheme
 
     if ( ipptls > 0 ) then
-      call allocate_mod_precip(ichem)
+      call allocate_mod_precip
     end if
 
     call allocate_mod_split
