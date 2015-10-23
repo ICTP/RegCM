@@ -320,10 +320,10 @@ module mod_cu_grell
     end do
 
     if ( maxval(kdet) > kz ) then
+      write(stderr,*) 'At point ', maxloc(kdet)
       write(stderr,*) 'Convection has reached column top!'
-      write(stderr,*) 'Hydrostatic model cannot procede.'
-      write(stderr,*) 'Try decreasing horizontal resolution'
-      write(stderr,*) 'I mean increase ds!!!'
+      write(stderr,*) 'Convection scheme cannot solve.'
+      write(stderr,*) 'Try decreasing dt.'
       call fatal(__FILE__,__LINE__,'GRELL INSTABILITY!')
     end if
     !
