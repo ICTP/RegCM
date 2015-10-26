@@ -1322,28 +1322,24 @@ module mod_params
     call bcast(ptop)
 
     dx = ds * d_1000
-    !
-    !-----specify the constants used in the model.
-    !     conf   : condensation threshold.
-    !     qcth   : threshold for the onset of autoconversion.
-    !     qck1oce  : constant autoconversion rate for ocean.
-    !     qck1land : constant autoconversion rate for land.
-    !     all the other constants are used to compute the cloud
-    !     microphysical parameterization (ref. orville & kopp, 1977 jas).
-    !
     dx2 = d_two*dx
     dx4 = d_four*dx
     dx8 = 8.0D0*dx
     dx16 = 16.0D0*dx
     dxsq = dx*dx
-    c200 = vonkar*vonkar*dx/(d_four*(d_100-ptop))
     rdxsq = 1.0D0/dxsq
+    !
+    ! Diffusion coefficients: for non-hydrostatic, follow the MM5
+    ! The hydrostatic diffusion is following the RegCM3 formulation
+    !
     if ( idynamic == 1 ) then
       xkhz = 1.5D-3*dxsq/dt
       xkhmax = dxsq/(64.0D0*dt)
+      c200 = vonkar*vonkar*dx/(d_four*(d_100-ptop))
     else
       xkhz = ckh*dx
       xkhmax = d_two*dxsq/(64.0D0*dt)
+      c200 = vonkar*vonkar*dx*d_rfour
     end if
     akht1 = dxsq/tauht
     akht2 = dxsq/tauht
@@ -1603,6 +1599,15 @@ module mod_params
         write(stdout,'(a,i3)')    '  iuwvadv   = ', iuwvadv
       end if
       if ( ipptls > 0 ) then
+        !
+        ! specify the constants used in the model.
+        !     conf   : condensation threshold.
+        !     qcth   : threshold for the onset of autoconversion.
+        !     qck1oce  : constant autoconversion rate for ocean.
+        !     qck1land : constant autoconversion rate for land.
+        ! all the other constants are used to compute the cloud
+        ! microphysical parameterization (ref. orville & kopp, 1977 jas).
+        !
         write(stdout,*) 'SUBEX large scale precipitation parameters'
         write(stdout,'(a,i2)' )   '  # of bottom no cloud model levels : ',ncld
         write(stdout,'(a,f11.6,a,f11.6)')                      &
