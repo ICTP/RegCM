@@ -714,7 +714,7 @@ module mod_rrtmg_driver
         !
         ! Form mass mixing ratios to vomlume mixing ratios
         !
-        o2vmr(n,k)    = 0.209460D0 * (amd/amo2)
+        o2vmr(n,k)    = 0.209460D0
         n2ovmr(n,k)   = n2ommr(n,k) * (amd/amco2)
         ch4vmr(n,k)   = ch4mmr(n,k) * (amd/amch4)
         cfc11vmr(n,k) = cfc11mmr(n,k) * (amd/amcfc11)

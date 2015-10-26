@@ -1335,7 +1335,7 @@ module mod_params
     if ( idynamic == 1 ) then
       xkhz = 1.5D-3*dxsq/dt
       xkhmax = dxsq/(64.0D0*dt)
-      c200 = vonkar*vonkar*dx/(d_four*(d_100-ptop))
+      c200 = vonkar*vonkar*dx*d_rfour
     else
       xkhz = ckh*dx
       xkhmax = d_two*dxsq/(64.0D0*dt)

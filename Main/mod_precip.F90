@@ -169,7 +169,7 @@ module mod_precip
           qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000
           ! 1ae. Compute the gridcell average autoconversion [kg/k g/s]
           pptnew = qck1(j,i)*(qcincld-qcth)*afc ! [kg/kg/s][avg]
-          pptnew = dmin1(dmax1(pptnew,d_zero),pptmax) ![kg/kg/s][avg]
+          pptnew = min(max(pptnew,d_zero),pptmax) ![kg/kg/s][avg]
           if ( pptnew < dlowval ) pptnew = d_zero
           if ( pptnew > d_zero ) then !   New precipitation
             ! 1af. Compute the cloud removal rate (for chemistry) [1/s]
@@ -186,7 +186,7 @@ module mod_precip
             pptacc = caccr(j,i)*qcleft*pptkm1 ![kg/kg/s][avg]
             ! 1agd. Update the precipitation accounting for the
             !       accretion [kg/kg/s]
-            pptnew = dmin1(pptmax,pptacc+pptnew) ![kg/kg/s][avg]
+            pptnew = min(pptmax,pptacc+pptnew) ![kg/kg/s][avg]
             ! 1ah. Accumulate precipitation and convert to kg/m2/s
             dpovg = dsigma(1)*psb(j,i)*thog                  ![kg/m2]
             pptsum(j,i) = pptnew*dpovg ![kg/m2/s][avg]
@@ -216,7 +216,7 @@ module mod_precip
           qcw = qx3(j,i,k,iqc)                               ![kg/kg][avg]
           afc = pfcc(j,i,k)                                  ![frac][avg]
           qs = pfqsat(tk,ppa)                                ![kg/kg][avg]
-          rh = dmin1(dmax1(qx3(j,i,k,iqv)/qs,d_zero),rhmax)  ![frac][avg]
+          rh = min(max(qx3(j,i,k,iqv)/qs,d_zero),rhmax)  ![frac][avg]
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
           dpovg = dsigma(k)*psb(j,i)*thog                    ![kg/m2][avg]
@@ -229,7 +229,7 @@ module mod_precip
           if ( pptsum(j,i) > d_zero .and. afc < 0.99D0 ) then
             ! 2bca. Compute the clear sky relative humidity
             rhcs = (rh-afc*rhmax)/(d_one-afc)                ![frac][clr]
-            rhcs = dmax1(dmin1(rhcs,rhmax),d_zero)           ![frac][clr]
+            rhcs = max(min(rhcs,rhmax),d_zero)           ![frac][clr]
             ! 2bcb. Raindrop evaporation [kg/kg/s]
             if ( l_lat_hack ) then
               rdevap = sun_cevap(j,i)*(rhmax-rhcs) * &
@@ -237,8 +237,8 @@ module mod_precip
             else
               rdevap = cevap(j,i)*(rhmax-rhcs)*dsqrt(pptsum(j,i))*(d_one-afc)
             end if
-            rdevap = dmin1((qs-qx3(j,i,k,iqv))/dt,rdevap)  ![kg/kg/s][avg]
-            rdevap = dmin1(dmax1(rdevap,d_zero),pptkm1)    ![kg/kg/s][avg]
+            rdevap = min((qs-qx3(j,i,k,iqv))/dt,rdevap)  ![kg/kg/s][avg]
+            rdevap = min(max(rdevap,d_zero),pptkm1)    ![kg/kg/s][avg]
             ! 2bcc. Update the precipitation accounting for the raindrop
             !       evaporation [kg/m2/s]
             pptsum(j,i) = pptsum(j,i) - rdevap*dpovg       ![kg/m2/s][avg]
@@ -264,7 +264,7 @@ module mod_precip
             qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000
             ! 1bdd. Compute the gridcell average autoconversion [kg/kg/s]
             pptnew = qck1(j,i)*(qcincld-qcth)*afc            ![kg/kg/s][avg]
-            pptnew = dmin1(dmax1(pptnew,d_zero),pptmax)      ![kg/kg/s][avg]
+            pptnew = min(max(pptnew,d_zero),pptmax)      ![kg/kg/s][avg]
             if ( pptnew < dlowval ) pptnew = d_zero
             ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
             if ( ichem == 1  .and. pptnew > d_zero ) then
@@ -283,7 +283,7 @@ module mod_precip
               pptacc = caccr(j,i)*qcleft*pptkm1              ![kg/kg/s][avg]
               ! 1bfd. Update the precipitation accounting for the
               !       accretion [kg/kg/s]
-              pptnew = dmin1(pptmax,pptacc+pptnew)           ![kg/kg/s][avg]
+              pptnew = min(pptmax,pptacc+pptnew)           ![kg/kg/s][avg]
             end if
             ! 1bg. Accumulate precipitation and convert to kg/m2/s
             pptsum(j,i) = pptsum(j,i) + pptnew*dpovg        ![kg/m2/s][avg]
@@ -414,68 +414,98 @@ module mod_precip
     implicit none
     real(rk8) :: exlwc , rh0adj , tcel
     integer(ik4) :: i , j , k
-    !--- add hanzhenyu 20140520
-    real(rk8) :: botm , rm , excld , qcld
+    real(rk8) :: botm , rm , qcld
 
-    exlwc = d_zero
-    botm = d_zero
-    rm = d_zero
-    excld = d_zero
-    qcld = d_zero
-    !------
+    if ( ipptls == 2 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ptotc(j,i,k) = qx3(j,i,k,iqc) + alphaice*qx3(j,i,k,iqi)
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ptotc(j,i,k) = qx3(j,i,k,iqc)
+          end do
+        end do
+      end do
+    end if
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
-    do k = 1 , kz
-      ! Adjusted relative humidity threshold
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( t3(j,i,k) >= tc0 ) then
-            rh0adj = rh0(j,i)
-          else ! high cloud (less subgrid variability)
-            rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-t3(j,i,k)))
-          end if
-!         if (ipptls == 1) then
-            if ( rh3(j,i,k) >= rhmax) then        ! full cloud cover
-              pfcc(j,i,k) = d_one
-            else if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
+
+    if ( iconvlwp == 2 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ! To calculate cloud fraction using the semi-empirical formula
+            ! of Xu and Randall (1996, JAS)
+            qcld = ptotc(j,i,k)
+            if ( qcld < 1.0D-12 ) then         ! no cloud cover
               pfcc(j,i,k) = d_zero
-            else                                         ! partial cloud cover
-              pfcc(j,i,k) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
-                           (rhmax-rh0adj))
-              ! if (ipptls == 1) ptotc(j,i,k) = qx3(j,i,k,iqc)
-              ! if (ipptls > 1)  ptotc(j,i,k) = qx3(j,i,k,iqc) + qx3(j,i,k,iqi)
-              pfcc(j,i,k) = dmin1(dmax1(pfcc(j,i,k),0.01D0),0.99D0)
-             end if
-!         else
-!           if ( rh3(j,i,k) >= d_one) then        ! full cloud cover
-!             pfcc(j,i,k) = d_one
-!           else
-!             pfcc(j,i,k) = (rh3(j,i,k)**0.25D0)* &
-!                   (d_one-dexp((-100.0D0*(qx3(j,i,k,iqc)+qx3(j,i,k,iqi))/ &
-!                   ((d_one-rh3(j,i,k))*qs3(j,i,k))**0.49D0)))
-!             pfcc(j,i,k) = dmin1(dmax1(pfcc(j,i,k),0.01D0),0.99D0)
-!           end if !  rh0 threshold
-!           Test CF either 1 or 0
-!           if (qx3(j,i,k,iqc)+qx3(j,i,k,iqi)>minqx) then
-!             pfcc(j,i,k)=d_one
-!           else
-!             pfcc(j,i,k)=d_zero
-!           end if
-!         end if
-          !----------------------------------------------------------------
-          ! Correction:
-          !   Ivan Guettler, 14.10.2010.
-          ! Based on: Vavrus, S. and Waliser D., 2008,
-          ! An Improved Parameterization for Simulating Arctic Cloud Amount
-          ! in the CCSM3 Climate Model, J. Climate
-          !----------------------------------------------------------------
-          if ( p3(j,i,k) >= 75000.0D0 ) then
-            ! Clouds below 750hPa
-            if ( qx3(j,i,k,iqv) <= 0.003D0 ) then
+            else
+              if ( rh3(j,i,k) >= d_one ) then  ! full cloud cover
+                pfcc(j,i,k) = d_one
+              else                             ! partial cloud cover
+                botm = exp( 0.49D0*log((d_one-rh3(j,i,k))*qs3(j,i,k)) )
+                rm = exp(0.25D0*log(rh3(j,i,k)))
+                if ( 100.D0*(qcld/botm) > 25.0D0 ) then
+                  pfcc(j,i,k) = min(0.99D0, max(0.01D0 , rm))
+                else
+                  pfcc(j,i,k) = min(0.99D0, max(0.01D0 , &
+                          rm*(d_one-exp(-100.D0*(qcld/botm)))))
+                end if
+              end if
+            end if
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ! Adjusted relative humidity threshold
+            if ( t3(j,i,k) >= tc0 ) then
+              rh0adj = rh0(j,i)
+            else ! high cloud (less subgrid variability)
+              rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-t3(j,i,k)))
+            end if
+            if ( rh3(j,i,k) >= rhmax) then      ! full cloud cover
+              pfcc(j,i,k) = d_one
+            else
+              if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
+                pfcc(j,i,k) = d_zero
+              else                              ! partial cloud cover
+                pfcc(j,i,k) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
+                             (rhmax-rh0adj))
+                pfcc(j,i,k) = min(max(pfcc(j,i,k),0.01D0),0.99D0)
+              end if
+            end if
+          end do
+        end do
+      end do
+    end if
+    !
+    ! Correction:
+    !   Ivan Guettler, 14.10.2010.
+    ! Based on: Vavrus, S. and Waliser D., 2008,
+    ! An Improved Parameterization for Simulating Arctic Cloud Amount
+    ! in the CCSM3 Climate Model, J. Climate
+    !
+    if ( ipptls == 1 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ! clouds below 750hPa, extremely cold conditions,
+            !  when no cld microphy
+            if ( p3(j,i,k) >= 75000.0D0 .and. &
+                 qx3(j,i,k,iqv) <= 0.003D0 ) then
               pfcc(j,i,k) = pfcc(j,i,k) * &
-                     dmax1(0.15D0,dmin1(d_one,qx3(j,i,k,iqv)/0.003D0))
+                     max(0.15D0,min(d_one,qx3(j,i,k,iqv)/0.003D0))
               !
               ! Tuğba Öztürk mod for Siberia
               !
@@ -485,112 +515,40 @@ module mod_precip
               !
               !
             end if
-          end if
-          !----------------------------------------------------------------
-          ! End of the correction.
-          !----------------------------------------------------------------
+          end do
         end do
       end do
-    end do
+    end if
+
     !-----------------------------------------------------------------
     ! 2.  Combine large-scale and convective fraction and liquid water
     !     to be passed into radiation.
     !-----------------------------------------------------------------
+
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ! Calculate total condensate, in ipptls = 1 it is given by the
-          ! liquid only, in ipptls = 2 it is given by liquid and ice
-          if ( ipptls == 1 ) then
-            ptotc(j,i,k) = qx3(j,i,k,iqc)
-          else if ( ipptls == 2 ) then
-            ptotc(j,i,k) = qx3(j,i,k,iqc) + alphaice*qx3(j,i,k,iqi)
-          end if
-          !-------- add hanzhenyu 20140520
-          if ( iconvlwp == 2 ) then
-            ! To calculate cloud fraction using the semi-empirical formula
-            ! of Xu and Randall (1996, JAS)
-            qcld = ptotc(j,i,k)
-            if ( qcld < 1.0D-12 ) then    ! no cloud cover
-              excld = d_zero
-            else if ( rh3(j,i,k) >= d_one ) then  ! full cloud cover
-              excld = d_one
+          ! Cloud Water Volume
+          ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+          if ( iconvlwp == 1 ) then
+            ! Apply the parameterisation based on temperature to the
+            ! the large scale clouds.
+            tcel = t3(j,i,k)-tzero
+            if ( tcel < -50D0 ) then
+              exlwc = 0.001D0
             else
-              botm = exp( 0.49D0*log((d_one-rh3(j,i,k))*qs3(j,i,k)) )
-              rm = exp(0.25D0*log(rh3(j,i,k)))
-              if ( 100.D0*(qcld/botm) > 25.0D0 ) then
-                excld = min(0.99D0, max(0.01D0 , rm))
-              else
-                excld = min(0.99D0, max(0.01D0 , &
-                        rm*(d_one-exp(-100.D0*(qcld/botm)))))
-              end if
-              ! xu and randall
+              exlwc = 0.127D+00 + 6.78D-03 * tcel + &
+                      1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
+              if ( exlwc > 0.300D0) exlwc = 0.300D0
+              if ( exlwc < 0.001D0) exlwc = 0.001D0
             end if
-            !------ for low cloud
-            ! a) clouds below 750hPa, extremely cold conditions,
-            !     when no cld microphy
-            if ( ipptls == 1 .and. p3(j,i,k) >= 75000.0D0 .and. &
-                    qx3(j,i,k,iqv) <= 0.003D0 ) then
-              excld = pfcc(j,i,k)   ! reduced rh-cld
-            end if
-            !--------
-            ! Cloud Water Volume
-            ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc /  m3
-            exlwc = qcld*rho3(j,i,k)*d_1000
-            !------------
-          else if ( iconvlwp == 1 .or. iconvlwp == 0 ) then
-            !------------
-            ! Adjusted relative humidity threshold
-            if ( t3(j,i,k) >= tc0 ) then
-              rh0adj = rh0(j,i)
-            else ! high cloud (less subgrid variability)
-              rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-t3(j,i,k)))
-            end if
-            if ( rh3(j,i,k) >= rhmax ) then        ! full cloud cover
-              excld = d_one
-            else if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
-              excld = d_zero
-            else                                   ! partial cloud cover
-              excld = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
-                            (rhmax-rh0adj))
-              excld = dmin1(dmax1(excld,0.01D0),0.99D0)
-            end if !  rh0 threshold
-            !----------------------------------------------------------------
-            ! Based on: Vavrus, S. and Waliser D., 2008,
-            !----------------------------------------------------------------
-            ! Clouds below 750hPa
-            if ( p3(j,i,k) >= 75000.0D0 .and. qx3(j,i,k,iqv) <= 0.003D0 ) then
-              excld = excld * dmax1(0.15D0,dmin1(d_one,qx3(j,i,k,iqv)/0.003D0))
-            end if
-            !------------------- end hanzhenyu
-            !--------
-            if ( iconvlwp == 1 ) then
-              ! Apply the parameterisation based on temperature to the
-              ! the large scale clouds.
-              tcel = t3(j,i,k)-tzero
-              if ( tcel < -50D0 ) then
-                exlwc = 0.001D0
-              else
-                exlwc = 0.127D+00 + 6.78D-03 * tcel + &
-                        1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
-                if ( exlwc > 0.300D0) exlwc = 0.300D0
-                if ( exlwc < 0.001D0) exlwc = 0.001D0
-              end if
-            else
-              ! Cloud Water Volume
-              ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-              exlwc = ptotc(j,i,k)*rho3(j,i,k)*d_1000
-            end if
-          end if   ! end if of iconvlwp , hanzy
-          radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + excld*exlwc) / &
-               dmax1(radcldf(j,i,k)+excld,0.01D0)
-          radcldf(j,i,k) = dmin1(dmax1(radcldf(j,i,k),excld),cftotmax)
-          if ( iconvlwp == 2 .and. ipptls == 2 ) then
-            pfcc(j,i,k) = excld
+          else
+            exlwc = ptotc(j,i,k)*rho3(j,i,k)*d_1000
           end if
-!hanzy    radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + &
-!hanzy    pfcc(j,i,k)*exlwc) / max(radcldf(j,i,k)+pfcc(j,i,k),0.01D0)
-!hanzy    radcldf(j,i,k) = min(max(pfcc(j,i,k),radcldf(j,i,k)),cftotmax)
+          radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + &
+                            pfcc(j,i,k)*exlwc) / &
+                            max(radcldf(j,i,k)+pfcc(j,i,k),0.01D0)
+          radcldf(j,i,k) = min(max(radcldf(j,i,k),pfcc(j,i,k)),cftotmax)
         end do
       end do
     end do
@@ -651,7 +609,7 @@ module mod_precip
           ! 2a. Calculate the saturation mixing ratio and relative humidity
           pres = p2(j,i,k)
           qvs = pfqsat(tmp3,pres)
-          rhc = dmax1(qvcs/qvs,dlowval)
+          rhc = max(qvcs/qvs,dlowval)
 
           r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
 
@@ -666,17 +624,16 @@ module mod_precip
           if ( rhc >= rhmax .or. rhc < rh0adj ) then ! Full or no cloud cover
             dqv = qvcs - qvs*conf ! Water vapor in excess of sat
             tmp1 = r1*dqv
-            fccc=d_zero
           else                                       ! Partial cloud cover
             fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
             !---- add hanzhenyu 20140520
             if ( pres >= 75000.0D0 .and. qvcs <= 0.003D0 ) then
               ! Clouds below 750hPa
-              fccc = fccc * dmax1(0.15D0,dmin1(d_one,qvcs/0.003D0))
+              fccc = fccc * max(0.15D0,min(d_one,qvcs/0.003D0))
             end if
             !--------------------
-            fccc = dmin1(dmax1(fccc,0.01D0),d_one)
-            qvc_cld = dmax1((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)
+            fccc = min(max(fccc,0.01D0),d_one)
+            qvc_cld = max((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)
             dqv = qvc_cld - qvs*conf  ! qv diff between predicted qv_c
             tmp1 = r1*dqv*fccc        ! grid cell average
           end if
