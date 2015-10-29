@@ -274,8 +274,10 @@
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          0, ! Model seaice effects
  idesseas =          0, ! Model desert seasonal albedo variability
- iconvlwp =          0, ! Use convective liquid water path as the large-scale
-                        ! liquid water path
+ iconvlwp =          0, ! Use convective algo for lwp in the large-scale
+ icldfrac =          1, ! Cloud fraction algorithm
+                        !   0 : Original SUBEX
+                        !   1 : Xu-Randall empirical
  irrtm    =          0, ! Use RRTM radiation scheme instead of CCSM
  iclimao3 =          0, ! Use O3 climatic dataset from SPARC CMIP5
  isolconst =         1, ! Use a constant 1367 W/m^2 instead of the prescribed
