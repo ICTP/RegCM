@@ -173,8 +173,8 @@ module mod_nhinterp
               fn(k) = (fu * (z0(j,i,k) - zl ) + &
                        fl * (zu - z0(j,i,k))) / (zu - zl)
             else if ( intmeth == 2 ) then
-              f(j,i,l) = max(f(j,i,l), minqx)
-              f(j,i,l+1) = max(f(j,i,l+1), minqx)
+              f(j,i,l) = max(f(j,i,l), minqq)
+              f(j,i,l+1) = max(f(j,i,l+1), minqq)
               if ( z0(j,i,k) > zu ) then
                 fn(k) = f(j,i,l)
               else
@@ -184,7 +184,7 @@ module mod_nhinterp
                           fl * (zu - z0(j,i,k))) / (zu - zl)
                 fn(k) = exp(alnqvn)
               end if
-              if ( fn(k) < minqx ) fn(k) = minqx
+              if ( fn(k) < minqq ) fn(k) = minqq
             end if
           end do
           do k = 1 , kxs

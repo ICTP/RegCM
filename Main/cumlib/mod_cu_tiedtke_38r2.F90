@@ -854,7 +854,7 @@ module mod_cu_tiedtke_38r2
           pmfu(jl,jk) = pmfu(jl,jk+1) + zdmfen(jl) - zdmfde(jl)
           zqeen = pqenh(jl,jk+1)*zdmfen(jl)
           zseen = (cpd*ptenh(jl,jk+1)+pgeoh(jl,jk+1))*zdmfen(jl)
-          if ( plitot(jl,jk)>minqx ) then
+          if ( plitot(jl,jk)>minqq ) then
             zleen = plitot(jl,jk)*zdmfen(jl)
           else
             zleen = d_zero
@@ -3530,7 +3530,7 @@ module mod_cu_tiedtke_38r2
                 lldsc(jl) = .true.
                 ibotsc(jl) = jkb
                 icbot(jl) = jkb
-                zlu(jl,jk+1) = minqx
+                zlu(jl,jk+1) = minqq
               else if ( zpdifftop <= zpdiffbot .and. &
                         zwu2h(jl,jk) > d_zero ) then
                 ilab(jl,jk) = 2

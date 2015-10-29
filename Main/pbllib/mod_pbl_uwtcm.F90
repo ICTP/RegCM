@@ -780,7 +780,7 @@ module mod_pbl_uwtcm
         radib:&
         do ilay = 1 , kpbconv
           k = ktop(ilay)
-          if ( qcx(k) > minqx .and. k > 1 ) then
+          if ( qcx(k) > minqq .and. k > 1 ) then
             bouyan(k) = bouyan(k) - rttenx(k)*(presfl(k+1)-presfl(k)) * &
                         rrhoxfl(k) * rexnerfl(k) / uthvx(k)
           end if
@@ -1135,7 +1135,7 @@ module mod_pbl_uwtcm
             ! add radiative/entrainment contribution to total
             k = ktop(ilay)
             radnnll = d_zero
-            if ( qcx(k) > minqx ) then
+            if ( qcx(k) > minqq ) then
               radnnll = rttenx(k)*(presfl(k+1)-presfl(k)) /  &
                         (rhoxfl(k)*uthvx(k)*exnerfl(k))
             end if

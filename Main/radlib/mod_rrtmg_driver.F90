@@ -634,8 +634,8 @@ module mod_rrtmg_driver
         end do
       end do
       do k = kzp1 , kth
-        ql1(:,k) = minqx
-        qi1(:,k) = minqx
+        ql1(:,k) = d_zero
+        qi1(:,k) = d_zero
       end do
     end if
     !
@@ -999,7 +999,7 @@ module mod_rrtmg_driver
         ! Define fractional amount of cloud that is ice
         !
         if ( ipptls == 2 ) then
-          if ( ql1(n,k)+qi1(n,k) > minqx ) then
+          if ( qi1(n,k) > minqq ) then
             fice(n,k) = qi1(n,k) / (ql1(n,k)+qi1(n,k))
           else
             fice(n,k) = d_zero

@@ -491,7 +491,7 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
+                if ( f(j,i,k,n) > minqv .and. f(j,i,k-1,n) > minqv ) then
                   ff = (f(j,i,k,n) * &
                     (f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)) * svv(j,i,k)
                 else

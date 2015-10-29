@@ -98,12 +98,12 @@ module mod_params
       enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
       do_parallel_netcdf_out , idiag
 
-    namelist /physicsparam/ ibltyp , iboudy , isladvec ,      &
-      icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls ,   &
-      iocnflx , iocncpl , iocnrough , iocnzoq , ichem , scenario ,      &
-      idcsst , iseaice , idesseas , iconvlwp , irrtm , iclimao3 ,       &
-      isolconst , icumcloud , islab_ocean , itweak , temp_tend_maxval , &
-      wind_tend_maxval
+    namelist /physicsparam/ ibltyp , iboudy , isladvec ,              &
+      icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls , &
+      iocnflx , iocncpl , iocnrough , iocnzoq , ichem , scenario ,    &
+      idcsst , iseaice , idesseas , iconvlwp , icldfrac , irrtm ,     &
+      iclimao3 , isolconst , icumcloud , islab_ocean , itweak ,       &
+      temp_tend_maxval , wind_tend_maxval
 
     namelist /nonhydroparam/ ifupr , logp_lrate , ckh
 
@@ -231,7 +231,8 @@ module mod_params
     idcsst = 0
     iseaice = 0
     idesseas = 0
-    iconvlwp = 1
+    iconvlwp = 0
+    icldfrac = 2
     irrtm = 0
     islab_ocean = 0
     iclimao3 = 0
@@ -887,6 +888,7 @@ module mod_params
     call bcast(iseaice)
     call bcast(idesseas)
     call bcast(iconvlwp)
+    call bcast(icldfrac)
     call bcast(irrtm)
     call bcast(iclimao3)
     call bcast(isolconst)
@@ -1431,7 +1433,8 @@ module mod_params
       write(stdout,'(a,i2)') '  Simulate desert seasons     : ' , idesseas
 #endif
       write(stdout,'(a,i2)') '  Enable chem/aerosol model   : ' , ichem
-      write(stdout,'(a,i2)') '  Convective LWP scheme       : ' , iconvlwp
+      write(stdout,'(a,i2)') '  Large scale LWP as convect. : ' , iconvlwp
+      write(stdout,'(a,i2)') '  Cloud fraction scheme       : ' , icldfrac
       write(stdout,*) 'Boundary Pameterizations'
       write(stdout,'(a,f9.6)') '  Nudge value high range     : ', high_nudge
       write(stdout,'(a,f9.6)') '  Nudge value medium range   : ', medium_nudge

@@ -170,7 +170,6 @@ module mod_precip
           ! 1ae. Compute the gridcell average autoconversion [kg/k g/s]
           pptnew = qck1(j,i)*(qcincld-qcth)*afc ! [kg/kg/s][avg]
           pptnew = min(max(pptnew,d_zero),pptmax) ![kg/kg/s][avg]
-          if ( pptnew < dlowval ) pptnew = d_zero
           if ( pptnew > d_zero ) then !   New precipitation
             ! 1af. Compute the cloud removal rate (for chemistry) [1/s]
             if ( ichem == 1 ) premrat(j,i,1) = pptnew/qcw
@@ -265,7 +264,6 @@ module mod_precip
             ! 1bdd. Compute the gridcell average autoconversion [kg/kg/s]
             pptnew = qck1(j,i)*(qcincld-qcth)*afc            ![kg/kg/s][avg]
             pptnew = min(max(pptnew,d_zero),pptmax)      ![kg/kg/s][avg]
-            if ( pptnew < dlowval ) pptnew = d_zero
             ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
             if ( ichem == 1  .and. pptnew > d_zero ) then
               premrat(j,i,k) = pptnew/qcw
@@ -315,9 +313,8 @@ module mod_precip
             prembc(j,i,k) = d_zero
             if ( premrat(j,i,k) > d_zero ) then
               do kk = 1 , k - 1
-                prembc(j,i,k) = prembc(j,i,k) + &
-                  premrat(j,i,kk)*qx3(j,i,kk,iqc) * &
-                             psb(j,i)*dsigma(kk)*uch          ![mm/hr]
+                prembc(j,i,k) = prembc(j,i,k) + & ![mm/hr]
+                  premrat(j,i,kk)*qx3(j,i,kk,iqc) * psb(j,i)*dsigma(kk)*uch
               end do
               ! the below cloud precipitation rate is now used
               ! directly in chemistry
@@ -438,7 +435,7 @@ module mod_precip
     ! 1.  Determine large-scale cloud fraction
     !-----------------------------------------
 
-    if ( iconvlwp == 2 ) then
+    if ( icldfrac == 1 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -545,10 +542,15 @@ module mod_precip
           else
             exlwc = ptotc(j,i,k)*rho3(j,i,k)*d_1000
           end if
-          radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + &
-                            pfcc(j,i,k)*exlwc) / &
-                            max(radcldf(j,i,k)+pfcc(j,i,k),0.01D0)
-          radcldf(j,i,k) = min(max(radcldf(j,i,k),pfcc(j,i,k)),cftotmax)
+          ! If already some cloud fraction from cumulus
+          if ( radcldf(j,i,k) > 0.01D0 ) then
+            radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + &
+                              pfcc(j,i,k)*exlwc) / (radcldf(j,i,k)+pfcc(j,i,k))
+            radcldf(j,i,k) = min(max(radcldf(j,i,k),pfcc(j,i,k)),cftotmax)
+          else
+            radlqwc(j,i,k) = exlwc
+            radcldf(j,i,k) = max(pfcc(j,i,k),cftotmax)
+          end if
         end do
       end do
     end do
@@ -601,8 +603,8 @@ module mod_precip
             write(stderr,*) 'At global K : ',k
           end if
 #endif
-          qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),minqx)/psc(j,i)
-          qccs = max((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc)),minqx)/psc(j,i)
+          qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),minqv)/psc(j,i)
+          qccs = max((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc)),d_zero)/psc(j,i)
           !-----------------------------------------------------------
           !     2.  Compute the cloud condensation/evaporation term.
           !-----------------------------------------------------------

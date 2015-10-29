@@ -54,7 +54,9 @@ module mod_constants
   real(rk8) , parameter :: deg360 = 360.0D+00
 
   ! Low/Hi values
-  real(rk8) , parameter :: minqx   = 1.0D-10
+  real(rk8) , parameter :: minqq   = 1.0D-8
+  real(rk8) , parameter :: minqv   = 1.0D-10
+  real(rk8) , parameter :: minqx   = 1.0D-12
   real(rk8) , parameter :: minww   = 1.0D-20
   real(rk8) , parameter :: mintr   = 1.0D-50
   real(rk8) , parameter :: dlowval = 1.0D-60
@@ -456,7 +458,7 @@ module mod_constants
     vp  = 1.0D0 / (p - 0.378D0*es)
     vp1 = ep2 * vp
     vp2 = vp1 * vp
-    qs = max(es * vp1, minqx)  ! kg/kg
+    qs = max(es * vp1, minqq)  ! kg/kg
   end function pfqsat
 
   pure real(rk8) function pfqsdt(t,p,e,dedt) result(qsdt)

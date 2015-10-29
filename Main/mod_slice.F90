@@ -87,7 +87,7 @@ module mod_slice
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%qxb3d(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv),minqx)*rpsb(j,i)
+          atms%qxb3d(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv),minqv)*rpsb(j,i)
         end do
       end do
     end do

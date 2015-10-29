@@ -225,7 +225,7 @@ module mod_cloud_s1
   real(rk8) , parameter :: uch = d_1000*regrav*secph
 #endif
 
-  real(rk8) , parameter :: zminqx = minqx ! 1.0D-8
+  real(rk8) , parameter :: zminqx = minqq ! 1.0D-8
 
   interface addpath
     module procedure addpath_array

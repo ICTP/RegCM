@@ -116,8 +116,10 @@ module mod_runparams
   integer(ik4) , public :: idirect , iindirect , iemiss , isolconst
   ! Semi-Langrangian advection for tracers
   integer(ik4) , public :: isladvec
-  ! Convective LWP scheme
+  ! Use for large scale lwp the same algo used for convective lwp
   integer(ik4) , public :: iconvlwp
+  ! Cloud fraction scheme
+  integer(ik4) , public :: icldfrac
   ! Upper radiative BC for non-hydrostatic core
   integer(ik4) , public :: ifupr
 
