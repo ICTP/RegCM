@@ -77,7 +77,7 @@ module mod_bats_albedo
     implicit none
 !
     real(rk8) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
-                 albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
+                 albld , albs , albsd , alwet , cf1 , cff ,     &
                  conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
                  dralbs , sfac , sl , sl2 , sli , wet
     integer(ik4) :: kolour , i
@@ -144,8 +144,8 @@ module mod_bats_albedo
         !      (soil albedo depends on moisture)
         kolour = kolsol(lveg(i))
         wet = ssw(i)/depuv(lveg(i))
-        alwet = dmax1((11.0D0-40.0D0*wet),d_zero)*0.01D0
-        alwet = dmin1(alwet,solour(kolour))
+        alwet = max((11.0D0-40.0D0*wet),d_zero)*0.01D0
+        alwet = min(alwet,solour(kolour))
         albg = solour(kolour) + alwet
         albgs = albg
         albgl = d_two*albg
@@ -154,17 +154,6 @@ module mod_bats_albedo
         albgsd = albgs
         albsd = albs
         albld = albl
-        ! Zenit Angle correction
-        albzn = 0.85D0 + d_one/(d_one + d_10*czeta)
-        ! Dec. 12, 2008
-        ! albzn = d_one
-        ! leafless hardwood canopy: no or inverse zen dep
-        if ( lveg(i) == 5 .and. sfac < 0.1D0 ) albzn = d_one
-        !
-        ! multiply by zenith angle correction
-        albs = albs*albzn
-        albl = albl*albzn
-        ! albedo over vegetation after zenith angle corr
         swal(i) = albs
         lwal(i) = albl
       else if ( lveg(i) == 12 ) then
@@ -201,7 +190,7 @@ module mod_bats_albedo
         dfalbs = snal0*(d_one-cons*age)
         ! czf corrects albedo of new snow for solar zenith
         cf1 = ((d_one+sli)/(d_one+sl2*czeta)-sli)
-        cff = dmax1(cf1,d_zero)
+        cff = max(cf1,d_zero)
         czf = 0.4D0*cff*(d_one-dfalbs)
         dralbs = dfalbs + czf
         dfalbl = snal1*(d_one-conn*age)

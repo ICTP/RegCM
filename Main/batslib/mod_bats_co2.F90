@@ -21,6 +21,7 @@ module mod_bats_co2
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_bats_param
   use mod_bats_leaftemp
   use mod_bats_internal
 
@@ -69,7 +70,7 @@ module mod_bats_co2
 
     apbm = d_zero
     do i = ilndbeg , ilndend
-      if ( sigf(i) > 0.001D0 ) then
+      if ( sigf(i) > minsigf ) then
         rsp = lftrs(i)*1.7D0
         rap = lftra(i)*1.5D0
         rt = rsp + rap + rmp

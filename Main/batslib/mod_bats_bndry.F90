@@ -94,7 +94,7 @@ module mod_bats_bndry
       ! Imported Lara Kuepper's Irrigated Crop modification from RegCM3
       ! see Kueppers et al. (2008)
       ! relaw is between field capacity and wilting point
-      relaw(i) = 0.75*(xmofc(itex)-xmowil(itex))+xmowil(itex)
+      ! relaw(i) = 0.75D0*(xmofc(itex)-xmowil(itex))+xmowil(itex)
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

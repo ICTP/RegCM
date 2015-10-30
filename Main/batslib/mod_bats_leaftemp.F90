@@ -109,7 +109,7 @@ module mod_bats_leaftemp
     ! 1.1  get stress-free stomatal resistance
     !      (1st guess at vapor pressure deficit)
     do i = ilndbeg , ilndend
-      if ( sigf(i) > 0.001D0 ) then
+      if ( sigf(i) > minsigf ) then
         vpdc(i) = d_10
         sgtg3 = emiss(i)*(sigm*tgrd(i)**3)
         flneto(i) = d_four*sgtg3*(tlef(i)-tgrd(i))
@@ -152,7 +152,7 @@ module mod_bats_leaftemp
       call condch
 
       do i = ilndbeg , ilndend
-        if ( sigf(i) > 0.001D0 ) then
+        if ( sigf(i) > minsigf ) then
           lftra(i) = d_one/(cf(i)*uaf(i))
           cn1(i) = wtlh(i)*rhs(i)
           df(i) = cn1(i)*cpd
@@ -175,7 +175,7 @@ module mod_bats_leaftemp
 
       epss = 1.0D-10
       do i = ilndbeg , ilndend
-        if ( sigf(i) > 0.001D0 ) then
+        if ( sigf(i) > minsigf ) then
           efpot = cn1(i)*(wtgaq(i)*qsatl(i) - wtgq0(i)*qgrd(i) - wtaq0(i)*qs(i))
           if ( efpot > d_zero ) then
             etr(i) = efpot*lftra(i)*fdry(i)/(lftrs(i)+lftra(i))
@@ -214,7 +214,7 @@ module mod_bats_leaftemp
       !
       !  3.3  compute dcn from dcd, output from subr. deriv
       do i = ilndbeg , ilndend
-        if ( sigf(i) > 0.001D0 ) then
+        if ( sigf(i) > minsigf ) then
           dcn = dcd(i)*tlef(i)
           ! 1.2  radiative forcing for leaf temperature calculation
           sgtg3 = emiss(i)*(sigm*tgrd(i)**3)
@@ -241,7 +241,7 @@ module mod_bats_leaftemp
     end do
 
     do i = ilndbeg , ilndend
-      if ( sigf(i) > 0.001D0 ) then
+      if ( sigf(i) > minsigf ) then
         !=========================================
         ! 4.   update dew accumulation (kg/m**2/s)
         !=========================================
@@ -350,7 +350,7 @@ module mod_bats_leaftemp
     rilmax = d_four
     call fseas(tlef,bseas)
     do i = ilndbeg , ilndend
-      if ( sigf(i) > 0.001D0 ) then
+      if ( sigf(i) > minsigf ) then
         ! zenith angle set in zenitm
         if ( (czenith(i)/rilmax) > 0.001D0 ) then
           trup = dexp(-g*rlai(i)/(rilmax*czenith(i)))
@@ -410,7 +410,7 @@ module mod_bats_leaftemp
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ilndbeg , ilndend
-      if ( sigf(i) > 0.001D0 ) then
+      if ( sigf(i) > minsigf ) then
         fwet(i) = d_zero
         if ( ldew(i) > d_zero ) then
           fwet(i) = ((dewmaxi/vegt(i))*ldew(i))**twot
@@ -462,7 +462,7 @@ module mod_bats_leaftemp
 #endif
 !
     do i = ilndbeg , ilndend
-      if ( sigf(i) > 0.001D0 ) then
+      if ( sigf(i) > minsigf ) then
         ! trsmx = trsmx0*sigf(i)*seasb(i)
         trsmx = trsmx0*sigf(i)
         rotf = rootf(lveg(i))
@@ -534,7 +534,7 @@ module mod_bats_leaftemp
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ilndbeg , ilndend
-      if ( sigf(i) > 0.001D0 ) then
+      if ( sigf(i) > minsigf ) then
         tkb = wta0(i)*sts(i) + wtl0(i)*tlef(i) + wtg0(i)*tgrd(i)
         dlstaf = sts(i) - sigf(i)*tkb - (d_one-sigf(i))*tgrd(i)
         if ( dlstaf <= d_zero ) then
@@ -602,7 +602,7 @@ module mod_bats_leaftemp
     !     g : ground
     !
     do i = ilndbeg , ilndend
-      if ( sigf(i) > 0.001D0 ) then
+      if ( sigf(i) > minsigf ) then
         uaf(i) = vspda(i)*dsqrt(cdr(i))
         cf(i) = 0.01D0*sqrtdi(lveg(i))/dsqrt(uaf(i))
         wta(i) = sigf(i)*cdr(i)*vspda(i)
@@ -650,7 +650,7 @@ module mod_bats_leaftemp
     !     g : ground
     !
     do i = ilndbeg , ilndend
-      if ( sigf(i) > 0.001D0 ) then
+      if ( sigf(i) > minsigf ) then
         rgr(i) = gwet(i)
         wtlq(i) = wtlh(i)*rpp(i)
         wtgq(i) = wtg(i)*rgr(i)
@@ -690,7 +690,7 @@ module mod_bats_leaftemp
 #endif
 !
     do i = ilndbeg , ilndend
-      if ( sigf(i) > 0.001D0 ) then
+      if ( sigf(i) > minsigf ) then
         qsatld = pfqsdt(tlef(i),sfcp(i))
         ! Move to specific hunidity
         qsatld = qsatld/(d_one+qsatld)

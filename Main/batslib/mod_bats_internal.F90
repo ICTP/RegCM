@@ -104,7 +104,7 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: qgrd
   real(rk8) , pointer , dimension(:) :: qs
   real(rk8) , pointer , dimension(:) :: qsatl
-  real(rk8) , pointer , dimension(:) :: relaw
+  ! real(rk8) , pointer , dimension(:) :: relaw
   real(rk8) , pointer , dimension(:) :: relfc
   real(rk8) , pointer , dimension(:) :: resp
   real(rk8) , pointer , dimension(:) :: rgr
@@ -280,7 +280,7 @@ module mod_bats_internal
     call getmem1d(qgrd,1,nlandp,'bats_internal:qgrd')
     call getmem1d(qs,1,nlandp,'bats_internal:qs')
     call getmem1d(qsatl,1,nlandp,'bats_internal:qsatl')
-    call getmem1d(relaw,1,nlandp,'bats_internal:relaw')
+    ! call getmem1d(relaw,1,nlandp,'bats_internal:relaw')
     call getmem1d(relfc,1,nlandp,'bats_internal:relfc')
     call getmem1d(resp,1,nlandp,'bats_internal:resp')
     call getmem1d(rgr,1,nlandp,'bats_internal:rgr')
