@@ -148,7 +148,7 @@ module mod_bats_param
   data xla / 6.0D0 , 2.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , &
              3.0D0 , 0.0D0 , 2.0D0 , 4.0D0 , 1.0D0 , 0.0D0 , &
              4.0D0 , 0.0D0 , 0.0D0 , 4.0D0 , 4.0D0 , 5.0D0 , &
-             4.0D0 , 1.0D0 , 1.0D0, 2.0D0 /
+             4.0D0 , 1.0D0 , 1.0D0 , 2.0D0 /
   !
   ! minimum leaf area index **lai depends on temp as veg cover
   ! BATS 1e , Table 2, k, pag 21
@@ -290,11 +290,11 @@ module mod_bats_param
   !
   !data albvgs / 0.10D0 , 0.10D0 , 0.05D0 , 0.05D0 , 0.08D0 , 0.04D0 , &
   !              0.08D0 , 0.20D0 , 0.10D0 , 0.08D0 , 0.17D0 , 0.80D0 , &
-  !              0.06D0 , 0.07D0 , 0.07D0 , 0.05D0 , 0.80D0 , 0.06D0 , &
+  !              0.06D0 , 0.07D0 , 0.07D0 , 0.05D0 , 0.08D0 , 0.06D0 , &
   !              0.06D0 , 0.06D0 , 0.02D0 , 0.06D0 /
   data albvgs / 0.10D0 , 0.10D0 , 0.04D0 , 0.04D0 , 0.06D0 , 0.04D0 , &
                 0.08D0 , 0.20D0 , 0.10D0 , 0.08D0 , 0.17D0 , 0.80D0 , &
-                0.06D0 , 0.07D0 , 0.07D0 , 0.05D0 , 0.80D0 , 0.06D0 , &
+                0.06D0 , 0.07D0 , 0.07D0 , 0.05D0 , 0.08D0 , 0.05D0 , &
                 0.06D0 , 0.06D0 , 0.02D0 , 0.06D0 /
   !
   ! albvgl is vegetation albedo for wavelengths > 0.7 microns data

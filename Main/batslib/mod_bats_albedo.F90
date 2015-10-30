@@ -75,11 +75,11 @@ module mod_bats_albedo
 !
   subroutine albedo
     implicit none
-!
     real(rk8) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
                  albld , albs , albsd , alwet , cf1 , cff ,     &
                  conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
-                 dralbs , sfac , sl , sl2 , sli , wet
+                 dralbs , sl , sl2 , sli , wet
+    ! real(rk8) :: sfac
     integer(ik4) :: kolour , i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'albedo'
@@ -129,7 +129,7 @@ module mod_bats_albedo
       !       2.   get albedo
       !================================================================
       !
-      sfac = d_one - aseas(i)
+      ! sfac = d_one - aseas(i)
       !
       ! ccm tests here on land mask for veg and soils data
       ! reduces albedo at low temps !!!!!
