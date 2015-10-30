@@ -53,7 +53,8 @@ module mod_precip
   real(rk8) :: qcth
   real(rk8) :: maxlat
 
-  real(rk8) , parameter :: uch = d_1000*regrav*secph
+  real(rk8) , parameter :: thog = d_1000*regrav
+  real(rk8) , parameter :: uch = thog*secph
   real(rk8) , parameter :: alphaice = d_four
 
   real(rk8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
@@ -126,7 +127,7 @@ module mod_precip
     implicit none
     real(rk8) :: dpovg , afc , ppa , pptacc , pptkm1 , pptmax , &
                 pptnew , qcincld , qcleft , qcw , qs , rdevap , &
-                rh , rhcs , rho , tcel , thog , tk , prainx
+                rh , rhcs , rho , tcel , tk , prainx
     integer(ik4) :: i , j , k , kk
     !
     !--------------------------------------------------------------------
@@ -138,10 +139,7 @@ module mod_precip
     !--------------------------------------------------------------------
     ! 1a. Perform computations for the top layer (layer 1)
     !   maximum precipation rate (total cloud water/dt)
-
-    thog = d_1000*regrav
-    ! precipation accumulated from above
-    pptsum(:,:) = d_zero
+    pptsum(:,:) = d_zero ! zero accumulated precip
     if ( ichem == 1 ) premrat(:,:,:) = d_zero
 
     do i = ici1 , ici2
@@ -153,7 +151,7 @@ module mod_precip
           tk = t3(j,i,1)                                     ![k][avg]
           tcel = tk - tzero                                  ![C][avg]
           ppa = p3(j,i,1)                                    ![Pa][avg]
-          rho = ppa/(rgas*tk)                                ![kg/m3][avg]
+          rho = rho3(j,i,1)                                  ![kg/m3][avg]
           qcw = qx3(j,i,1,iqc)                               ![kg/kg][avg]
           ! 1ab. Calculate the in cloud mixing ratio [kg/kg]
           qcincld = qcw/afc                                  ![kg/kg][cld]
@@ -187,7 +185,7 @@ module mod_precip
             !       accretion [kg/kg/s]
             pptnew = min(pptmax,pptacc+pptnew) ![kg/kg/s][avg]
             ! 1ah. Accumulate precipitation and convert to kg/m2/s
-            dpovg = dsigma(1)*psb(j,i)*thog                  ![kg/m2]
+            dpovg = dsigma(1)*psb(j,i)*thog    ![kg/m2]
             pptsum(j,i) = pptnew*dpovg ![kg/m2/s][avg]
             ! 1ai. Compute the cloud water tendency [kg/kg/s*cb]
             ! [kg/kg/s*cb][avg]
@@ -203,6 +201,7 @@ module mod_precip
 
     ! LAYER TWO TO KZ
     ! 1b. Perform computations for the 2nd layer to the surface
+    ! precipation accumulated from above
     do k = 2 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -211,7 +210,7 @@ module mod_precip
           tk = t3(j,i,k)                                     ![k][avg]
           tcel = tk - tzero                                  ![C][avg]
           ppa = p3(j,i,k)                                    ![Pa][avg]
-          rho = ppa/(rgas*tk)                                ![kg/m3][avg]
+          rho = rho3(j,i,k)                                  ![kg/m3][avg]
           qcw = qx3(j,i,k,iqc)                               ![kg/kg][avg]
           afc = pfcc(j,i,k)                                  ![frac][avg]
           qs = pfqsat(tk,ppa)                                ![kg/kg][avg]
@@ -530,7 +529,7 @@ module mod_precip
           if ( iconvlwp == 1 ) then
             ! Apply the parameterisation based on temperature to the
             ! the large scale clouds.
-            tcel = t3(j,i,k)-tzero
+            tcel = t3(j,i,k) - tzero
             if ( tcel < -50D0 ) then
               exlwc = 0.001D0
             else
@@ -549,7 +548,7 @@ module mod_precip
             radcldf(j,i,k) = min(max(radcldf(j,i,k),pfcc(j,i,k)),cftotmax)
           else
             radlqwc(j,i,k) = exlwc
-            radcldf(j,i,k) = max(pfcc(j,i,k),cftotmax)
+            radcldf(j,i,k) = min(pfcc(j,i,k),cftotmax)
           end if
         end do
       end do
