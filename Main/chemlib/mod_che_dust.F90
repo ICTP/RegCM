@@ -467,7 +467,7 @@ module mod_che_dust
              if ( di(ns) > dustbsiz(n,1) .and. di(ns) <= dustbsiz(n,2) ) then
                 frac(n) = frac(n) + d_one/cv * &
                   (d_one+derf(log(di(ns)/d)/sqrt(d_two)/ &
-                  log(sigmas)))*exp(-(d/di(ns)/lambda)**3)  !see Kok (2011)
+                  log(sigmas)))*exp(-(di(ns)/lambda)**3)  !see Kok (2011)
              end if
            end do
            totv = totv + d_one / cv * (d_one+derf(log(di(ns)/d)/sqrt(d_two)/ &
