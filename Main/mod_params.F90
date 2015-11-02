@@ -142,7 +142,7 @@ module mod_params
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
     namelist /holtslagparam/ ricr_ocn , ricr_lnd , zhnew_fac , &
-           ifaholtth10 , ifaholtmax , ifaholtmin
+           ifaholtth10 , ifaholt
 
 #ifdef CLM
     namelist /clmparam/ dirclm , imask , clmfrq , ilawrence_albedo
@@ -1042,8 +1042,7 @@ module mod_params
       call bcast(ricr_lnd)
       call bcast(zhnew_fac)
       call bcast(ifaholtth10)
-      call bcast(ifaholtmax)
-      call bcast(ifaholtmin)
+      call bcast(ifaholt)
     end if
     if ( ibltyp == 2 ) then
       call bcast(iuwvadv)
