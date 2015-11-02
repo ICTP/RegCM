@@ -170,7 +170,6 @@ module mod_rad_outrad
         call copy2d_add(aerlwfos,opt_acssrlrf_out)
         if (present(asaerlwfo))  call copy2d_add(asaerlwfo,opt_aastalrf_out)
         if (present(asaerlwfos)) call copy2d_add(asaerlwfos,opt_aassrlrf_out)
-
       end if
     end if
 

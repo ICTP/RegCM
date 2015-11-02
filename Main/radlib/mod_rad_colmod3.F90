@@ -34,19 +34,19 @@ module mod_rad_colmod3
   implicit none
 
   private
-!
+
   public :: allocate_mod_rad_colmod3 , colmod3
-!
-! Allowed range for cloud fraction
-!
-  real(rk8) , parameter :: lowcld = 0.00001D0
-  real(rk8) , parameter :: hicld  = 0.99999D0
-!
-!   longwave absorption coeff (m**2/g)
-!
+  !
+  ! Allowed range for cloud fraction
+  !
+  real(rk8) , parameter :: lowcld = 0.000D0
+  real(rk8) , parameter :: hicld  = 0.999D0
+  !
+  ! Longwave absorption coeff (m**2/g)
+  !
   real(rk8) , parameter :: kabsl = 0.090361D0
   real(rk8) , parameter :: nearone  = 0.99D+00
-!
+  !
   real(rk8) , pointer , dimension(:) :: alb , albc , &
     flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq ,  &
     fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,      &
@@ -69,11 +69,11 @@ module mod_rad_colmod3
   real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
   logical , pointer , dimension(:) :: czengt0
   integer(ik4) , pointer , dimension(:) :: ioro
-!
+
   integer(ik4) :: npr
 
   contains
-!
+
     subroutine allocate_mod_rad_colmod3
       implicit none
       npr = (jci2-jci1+1)*(ici2-ici1+1)
@@ -235,7 +235,7 @@ module mod_rad_colmod3
     type(rad_2_mod) , intent(inout) :: r2m
     integer(ik4) , intent(in) :: iyear
     logical , intent(in) :: lout , labsem
-!
+
     integer(ik4) :: i , j , k , n , m , k2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'colmod3'
@@ -459,16 +459,16 @@ module mod_rad_colmod3
     call time_end(subroutine_name,indx)
 #endif
   end subroutine colmod3
-!
-!-----------------------------------------------------------------------
-!
-! Compute cloud drop size
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! Compute cloud drop size
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine cldefr
     implicit none
-!
+
     integer(ik4) :: n , k , nt
     real(rk8) :: pnrml , rliq , weight , rhoa , nc , aerc , lwc , kparam
     ! reimax - maximum ice effective radius
@@ -487,7 +487,7 @@ module mod_rad_colmod3
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
-!
+
     totci(:) = d_zero
     do k = 1 , kz
       do n = 1 , npr
@@ -498,7 +498,7 @@ module mod_rad_colmod3
         else
           ! Effective liquid radius over land
           rliq = d_five+d_five* &
-                   dmin1(d_one,dmax1(d_zero,(minus10-tm1(n,k))*0.05D0))
+                   min(d_one,max(d_zero,(minus10-tm1(n,k))*0.05D0))
         end if
         ! rel : liquid effective drop size (microns)
         rel(n,k) = rliq
@@ -510,7 +510,7 @@ module mod_rad_colmod3
         ! Determine rei as function of normalized pressure
         pnrml = pmidm1(n,k)/ps(n)
         ! weight coef. for determining rei as fn of P/PS
-        weight = dmax1(dmin1((pnrml-picemn)/pirnge,d_one),d_zero)
+        weight = max(min((pnrml-picemn)/pirnge,d_one),d_zero)
         ! rei : ice effective drop size (microns)
         rei(n,k) = reimax - rirnge*weight
         ! Define fractional amount of cloud that is ice
@@ -579,13 +579,13 @@ module mod_rad_colmod3
     call time_end(subroutine_name,indx)
 #endif
   end subroutine cldefr
-!
-!-----------------------------------------------------------------------
-!
-! Compute cloud emissivity using cloud liquid water path (g/m**2)
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! Compute cloud emissivity using cloud liquid water path (g/m**2)
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine cldems
     implicit none
     integer(ik4) :: n , k
@@ -609,14 +609,14 @@ module mod_rad_colmod3
     call time_end(subroutine_name,indx)
 #endif
   end subroutine cldems
-!
-!-----------------------------------------------------------------------
-!
-! Interface routine for column model that initializes internal variables
-! A copy if them is performed on local 1D arrays.
-!
-!-----------------------------------------------------------------------
-!
+  !
+  !-----------------------------------------------------------------------
+  !
+  ! Interface routine for column model that initializes internal variables
+  ! A copy if them is performed on local 1D arrays.
+  !
+  !-----------------------------------------------------------------------
+  !
   subroutine getdat(m2r)
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
@@ -746,7 +746,7 @@ module mod_rad_colmod3
       do i = ici1 , ici2
         do j = jci1 , jci2
           tm1(n,k) = m2r%tatms(j,i,k)
-          rh1(n,k) = dmax1(dmin1(m2r%rhatms(j,i,k),nearone),d_zero)
+          rh1(n,k) = max(min(m2r%rhatms(j,i,k),nearone),d_zero)
           n = n + 1
         end do
       end do
@@ -779,9 +779,12 @@ module mod_rad_colmod3
     ! deltaz
     !
     do k = 1 , kz
-      do n = 1 , npr
-        deltaz(n,k) = rgas*tm1(n,k)*(pintm1(n,k+1) - &
-                      pintm1(n,k))/(egrav*pmidm1(n,k))
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          deltaz(n,k) = m2r%deltaz(j,i,k)
+          n = n + 1
+        end do
       end do
     end do
     !
@@ -797,47 +800,27 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          cld(n,k) = dmax1(m2r%cldfrc(j,i,k),lowcld)
-          cld(n,k) = dmin1(cld(n,k),hicld)
-!
-!qc       gary's mods for clouds/radiation tie-in to exmois
-!qc       implement here the new formula then multiply by 10e6
-!qc       if (tm1(n,k) > t0max) clwtem=clwmax
-!qc       if (tm1(n,k) >= t0st .and. tm1(n,k) <= t0max) then
-!qc         clwtem=clw0st+((tm1(n,k)-t0st)/(t0max-t0st))**2*(clwmax-clw0st)
-!qc       end if
-!qc       if (tm1(n,k) >= t0min .and. tm1(n,k) < t0st)
-!qc         clwtem=clw0st+(tm1(n,k)-t0st)/(t0min-t0st)*(clwmin-clw0st)
-!qc       end if
-!qc       if (tm1(n,k) < t0min) clwtem=clwmin
-!qc       clwtem=clwtem*1.e6
-!
-          !
-          ! Convert liquid water content into liquid water path, i.e.
-          ! multiply b deltaz
-          !
+          cld(n,k) = min(max(m2r%cldfrc(j,i,k),lowcld),hicld)
+          ! Convert liquid water content into liquid water path
           clwp(n,k) = m2r%cldlwc(j,i,k)*deltaz(n,k)
-          if ( m2r%cldfrc(j,i,k) < lowcld ) then
-            clwp(n,k) = d_zero
-          end if
-          totcl(n) = totcl(n)+clwp(n,k)*d_r1000
+          totcl(n) = totcl(n) + clwp(n,k)*d_r1000
           n = n + 1
         end do
       end do
     end do
-!
-!   only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
-!
-!   do k = 1 , kz
-!     do n = 1 , npr
-!       if ( pintm1(n,k+1) < 40000.0D0 ) then
-!         cld(n,k) = dmin1(cld(n,k),0.25d0)
-!       else
-!         cld(n,k)=dmin1(cld(n,k),0.7d0)
-!       end if
-!     end do
-!   end do
-!
+    !
+    ! only allow thin clouds (<0.25) above 400 mb (yhuang, 11/97)
+    !
+    !   do k = 1 , kz
+    !     do n = 1 , npr
+    !       if ( pintm1(n,k+1) < 40000.0D0 ) then
+    !         cld(n,k) = min(cld(n,k),0.25d0)
+    !       else
+    !         cld(n,k) = min(cld(n,k),cftotmax)
+    !       end if
+    !     end do
+    !   end do
+    !
     !
     ! Ground temperature
     !
@@ -881,6 +864,7 @@ module mod_rad_colmod3
     call time_end(subroutine_name,indx)
 #endif
   end subroutine getdat
-!
+
 end module mod_rad_colmod3
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
