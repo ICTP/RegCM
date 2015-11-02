@@ -255,28 +255,30 @@ module mod_params
     liqflglw = 1
     icld  = 1
     irng = 1
-    !------namelist subexparam:
     !
-    ncld = 1             ! # of bottom model levels with no clouds (rad only)
-    qck1land = 0.00025D0 ! Autoconversion Rate for Land
-    qck1oce = 0.00025D0  ! Autoconversion Rate for Ocean
-    gulland = 0.4D0      ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
-    guloce = 0.4D0       ! Fract of Gultepe eqn (qcth) for ocean
-    rhmax = 1.01D0       ! RH at whicn FCC = 1.0
-    rh0oce = 0.90D0      ! Relative humidity threshold for ocean
-    rh0land = 0.80D0     ! Relative humidity threshold for land
-    tc0 = 238.0D0        ! Below this temp, rh0 begins to approach unity
-    cevaplnd = 1.0D-3    ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
-    cevapoce = 1.0D-3    ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
-    caccrlnd = 3.0D0     ! Raindrop accretion rate land [m3/kg/s]
-    caccroce = 3.0D0     ! Raindrop accretion rate ocean [m3/kg/s]
-    cllwcv = 0.3D-3      ! Cloud liquid water content for convective precip.
-    clfrcvmax = 1.00D0   ! Max cloud fractional cover for convective precip.
-    cftotmax = 0.75D0    ! Max total cover cloud fraction for radiation
-    conf = d_one         ! Condensation threshold
-    lsrfhack = .false.   ! Surface radiation hack
+    ! namelist subexparam
+    !
+    ncld      = 1         ! # of bottom model levels with no clouds (rad only)
+    qck1land  = 0.00025D0 ! Autoconversion Rate for Land
+    qck1oce   = 0.00025D0 ! Autoconversion Rate for Ocean
+    gulland   = 0.4D0     ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
+    guloce    = 0.4D0     ! Fract of Gultepe eqn (qcth) for ocean
+    rhmax     = 1.01D0    ! RH at whicn FCC = 1.0
+    rh0oce    = 0.90D0    ! Relative humidity threshold for ocean
+    rh0land   = 0.80D0    ! Relative humidity threshold for land
+    tc0       = 238.0D0   ! Below this temp, rh0 begins to approach unity
+    cevaplnd  = 1.0D-3    ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
+    cevapoce  = 1.0D-3    ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
+    caccrlnd  = 3.0D0     ! Raindrop accretion rate land [m3/kg/s]
+    caccroce  = 3.0D0     ! Raindrop accretion rate ocean [m3/kg/s]
+    cllwcv    = 0.3D-3    ! Cloud liquid water content for convective precip.
+    clfrcvmax = 1.0D0     ! Max cloud fractional cover for convective precip.
+    cftotmax  = 1.0D0     ! Max total cover cloud fraction for radiation
+    conf      = 1.0D0     ! Condensation threshold
+    lsrfhack  = .false.   ! Surface radiation hack
     !
     ! namelist microparam
+    !
     stats = .false.
     budget_compute = .false. ! Verify enthalpy and moisture conservation
     nssopt = 1 ! Supersaturation Computation
