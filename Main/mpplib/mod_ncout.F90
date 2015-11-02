@@ -2657,9 +2657,7 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('holtslag_th10_estimate',ifaholtth10))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('holtslag_th10_maximize',ifaholtmax))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('holtslag_th10_minimize',ifaholtmin))
+            ncattribute_integer('holtslag_th10_maximize',ifaholt))
         end if
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

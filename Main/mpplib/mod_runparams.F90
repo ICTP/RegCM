@@ -286,8 +286,7 @@ module mod_runparams
   real(rk8) , public :: ricr_lnd
   real(rk8) , public :: zhnew_fac
   integer(ik4) , public :: ifaholtth10
-  integer(ik4) , public :: ifaholtmax
-  integer(ik4) , public :: ifaholtmin
+  integer(ik4) , public :: ifaholt
 
   ! Chemistry nameliste option
 

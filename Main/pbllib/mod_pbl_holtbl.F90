@@ -26,7 +26,7 @@ module mod_pbl_holtbl
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : iqv , iqc , dt , rdt , ichem , ichdrdepo ,    &
-          dsigma , zhnew_fac , ifaholtth10 , ifaholtmax , ifaholtmin
+          dsigma , zhnew_fac , ifaholtth10 , ifaholt
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -44,28 +44,28 @@ module mod_pbl_holtbl
                                           kvm , kvq ! , cgq
   real(rk8) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &
                                        ustr , xhfx , xqfx , pfcor
-!
+
   real(rk8) , pointer , dimension(:,:,:) :: alphak , betak , &
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
                         coeff2 , tpred1 , tpred2
   real(rk8) , pointer , dimension(:,:,:) :: kzm , rc , ttnp
   real(rk8) , pointer , dimension(:,:) :: govrth , uvdrage
   real(rk8) , pointer , dimension(:) :: hydf
-!
+
   real(rk8) , pointer , dimension(:,:,:) :: dza , thvx
   real(rk8) , pointer , dimension(:,:,:) :: akzz1 , akzz2
   real(rk8) , pointer , dimension(:,:,:) :: rhohf
-!
+
   real(rk8) , pointer , dimension(:,:,:) :: ri
   real(rk8) , pointer , dimension(:,:) :: therm
-!
-! minimum eddy diffusivity
+
+  ! minimum eddy diffusivity
   real(rk8) , parameter :: kzo = d_one
   real(rk8) , parameter :: szkm = 1600.0D0
-! coef. of proportionality and lower % of bl in sfc layer
+  ! coef. of proportionality and lower % of bl in sfc layer
   real(rk8) , parameter :: fak = 8.5D0
   real(rk8) , parameter :: sffrac = 0.1D0
-! beta coefs. for momentum, stable conditions and heat
+  ! beta coefs. for momentum, stable conditions and heat
   real(rk8) , parameter :: betam = 15.0D0
   real(rk8) , parameter :: betas = 5.0D0
   real(rk8) , parameter :: betah = 15.0D0
@@ -75,11 +75,11 @@ module mod_pbl_holtbl
   real(rk8) , parameter :: gpcf = egrav/d_1000 ! Grav and pressure conversion
   real(rk8) , parameter :: binm = betam*sffrac
   real(rk8) , parameter :: binh = betah*sffrac
-! power in formula for k and critical ri for judging stability
+  ! power in formula for k and critical ri for judging stability
   real(rk8) , parameter :: pink = d_two
-!
+
   contains
-!
+
   subroutine allocate_mod_pbl_holtbl
     implicit none
 
@@ -126,7 +126,7 @@ module mod_pbl_holtbl
       call getmem3d(kvc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvc')
     end if
   end subroutine allocate_mod_pbl_holtbl
-!
+
   subroutine holtbl(m2p,p2m)
   implicit none
   type(mod_2_pbl) , intent(in) :: m2p
@@ -140,9 +140,9 @@ module mod_pbl_holtbl
   integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
-!
-!----------------------------------------------------------------------
-!
+  !
+  !----------------------------------------------------------------------
+  !
   ! decouple flux-form variables to give u,v,t,theta,theta-vir.,
   ! t-vir., qv, and qc at cross points and at ktau-1.
   !
@@ -179,9 +179,8 @@ module mod_pbl_holtbl
       govrth(j,i) = egrav/m2p%thatm(j,i,kz)
     end do
   end do
-!
-! *********************************************************************
-!
+  !
+  ! *********************************************************************
   !
   !   compute the vertical diffusion term:
   !
@@ -211,15 +210,15 @@ module mod_pbl_holtbl
         if ( (ri-rc(j,i,k)) >= d_zero ) then
           kzm(j,i,k) = kzo
         else
-          kzm(j,i,k) = kzo + dsqrt(ss)*(rc(j,i,k)-ri)*szkm/rc(j,i,k)
+          kzm(j,i,k) = kzo + sqrt(ss)*(rc(j,i,k)-ri)*szkm/rc(j,i,k)
         end if
-        kzm(j,i,k) = dmin1(kzm(j,i,k),kzmax)
+        kzm(j,i,k) = min(kzm(j,i,k),kzmax)
       end do
     end do
   end do
-!
-! *********************************************************************
-!
+  !
+  ! *********************************************************************
+  !
   !   holtslag pbl
   !
   !   initialize bl diffusion coefficients and counter-gradient terms
@@ -246,14 +245,14 @@ module mod_pbl_holtbl
       ! compute friction velocity
       uflxsfx = m2p%uvdrag(j,i)*m2p%uxatm(j,i,kz)
       vflxsfx = m2p%uvdrag(j,i)*m2p%vxatm(j,i,kz)
-      ustr(j,i) = dsqrt(dsqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx)/m2p%rhox2d(j,i))
+      ustr(j,i) = sqrt(sqrt(uflxsfx*uflxsfx+vflxsfx*vflxsfx)/m2p%rhox2d(j,i))
       ! convert surface fluxes to kinematic units
       xhfx(j,i) = m2p%hfx(j,i)/(cpd*m2p%rhox2d(j,i))
       xqfx(j,i) = m2p%qfx(j,i)/m2p%rhox2d(j,i)
       ! compute virtual heat flux at surface
       hfxv(j,i) = xhfx(j,i) + mult*m2p%thatm(j,i,kz)*xqfx(j,i)
       ! limit coriolis parameter to value at 10 deg. latitude
-      pfcor(j,i) = dmax1(dabs(m2p%coriol(j,i)),2.546D-5)
+      pfcor(j,i) = max(dabs(m2p%coriol(j,i)),2.546D-5)
     end do
   end do
   !
@@ -275,33 +274,33 @@ module mod_pbl_holtbl
                        0.75D0*m2p%tgb(j,i))*(d_one+mult*sh10)
         else if ( ifaholtth10 == 3 ) then
           th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
-                      dlog(m2p%za(j,i,kz)*d_r10))
+                      log(m2p%za(j,i,kz)*d_r10))
         else
           th10(j,i) = ((m2p%thatm(j,i,kz) + &
                   m2p%tgb(j,i))*d_half)*(d_one+mult*sh10)
         end if
         oblen = -th10(j,i)*ustr(j,i)**3 /  &
-                (gvk*(hfxv(j,i)+dsign(1.0D-10,hfxv(j,i))))
+                (gvk*(hfxv(j,i)+sign(1.0D-10,hfxv(j,i))))
         if ( oblen >= m2p%za(j,i,kz) ) then
           th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
-             (dlog(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
+             (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
         else if ( oblen < m2p%za(j,i,kz) .and. oblen > d_10 ) then
           th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
-              (dlog(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
-              6.0D0*dlog(m2p%za(j,i,kz)/oblen))
+              (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
+              6.0D0*log(m2p%za(j,i,kz)/oblen))
         else if ( oblen <= d_10 ) then
           th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)) * &
-                      6.0D0*dlog(m2p%za(j,i,kz)*d_r10)
+                      6.0D0*log(m2p%za(j,i,kz)*d_r10)
         end if
       end if
-      if ( ifaholtmax == 1 ) then
-        th10(j,i) = dmax1(th10(j,i),m2p%tgb(j,i))  ! gtb add to maximize
-      else  if ( ifaholtmin  == 1 ) then
-        th10(j,i) = dmin1(th10(j,i),m2p%tgb(j,i))  ! gtb add to minimize
+      if ( ifaholt == 1 ) then
+        th10(j,i) = max(th10(j,i),m2p%thatm(j,i,kz))  ! gtb add to maximize
+      else  if ( ifaholt  == 2 ) then
+        th10(j,i) = min(th10(j,i),m2p%thatm(j,i,kz))  ! gtb add to minimize
       end if
       ! obklen compute obukhov length
       obklen(j,i) = -th10(j,i)*ustr(j,i)**3 / &
-              (gvk*(hfxv(j,i)+dsign(1.0D-10,hfxv(j,i))))
+              (gvk*(hfxv(j,i)+sign(1.0D-10,hfxv(j,i))))
     end do
   end do
   !
@@ -966,8 +965,8 @@ module mod_pbl_holtbl
     do j = jci1 , jci2
       ! compute mechanical mixing depth, set to lowest model level if lower
       phpblm = 0.07D0*ustr(j,i)/pfcor(j,i)
-      phpblm = dmax1(phpblm,m2p%za(j,i,kz))
-      p2m%zpbl(j,i) = dmax1(p2m%zpbl(j,i),phpblm)
+      phpblm = max(phpblm,m2p%za(j,i,kz))
+      p2m%zpbl(j,i) = max(p2m%zpbl(j,i),phpblm)
       p2m%kpbl(j,i) = kz
     end do
   end do
@@ -980,7 +979,7 @@ module mod_pbl_holtbl
         zm = m2p%za(j,i,k)
         zp = m2p%za(j,i,k2)
         if ( zm < p2m%zpbl(j,i) ) then
-          zp = dmin1(zp,p2m%zpbl(j,i))
+          zp = min(zp,p2m%zpbl(j,i))
           z = (zm+zp)*d_half
           zh = z/p2m%zpbl(j,i)
           zl = z/obklen(j,i)
@@ -1021,9 +1020,9 @@ module mod_pbl_holtbl
               pblk2 = fak1*zh*zzhnew2/(betas+zl)
             end if
             ! compute eddy diffusivities
-            kvm(j,i,k) = dmax1(pblk,kzo)
+            kvm(j,i,k) = max(pblk,kzo)
             kvh(j,i,k) = kvm(j,i,k)
-            kvq(j,i,k) = dmax1(pblk1,kzo)
+            kvq(j,i,k) = max(pblk1,kzo)
             ! Erika put k=0 in very stable conditions
             if ( zl <= 0.1D0 ) then
               kvm(j,i,k) = d_zero
@@ -1032,7 +1031,7 @@ module mod_pbl_holtbl
             end if
             ! Erika put k=0 in very stable conditions
             if ( ichem == 1 ) then
-              kvc(j,i,k) = dmax1(pblk2,kzo)
+              kvc(j,i,k) = max(pblk2,kzo)
             end if
             ! compute counter-gradient term
             cgh(j,i,k) = d_zero
@@ -1042,7 +1041,7 @@ module mod_pbl_holtbl
             if ( zh >= sffrac ) then
               ! igroup = 2
               xfmt = (d_one-binm*p2m%zpbl(j,i)/obklen(j,i))**onet
-              fht = dsqrt(d_one-binh*p2m%zpbl(j,i)/obklen(j,i))
+              fht = sqrt(d_one-binh*p2m%zpbl(j,i)/obklen(j,i))
               wsc = ustr(j,i)*xfmt
               pr = (xfmt/fht) + ccon
               fak2 = wsc*p2m%zpbl(j,i)*vonkar
@@ -1058,15 +1057,15 @@ module mod_pbl_holtbl
 !xexp5        pblk1 = vonkar * ustr(j,i) * zzhnew * (d_one-betam*zl)**onet
               pblk1 = fak1*zh*zzhnew*(d_one-betam*zl)**onet
               pblk2 = fak1*zh*zzhnew2*(d_one-betam*zl)**onet
-              pr = ((d_one-betam*zl)**onet)/dsqrt(d_one-betah*zl)
+              pr = ((d_one-betam*zl)**onet)/sqrt(d_one-betah*zl)
               cgh(j,i,k) = d_zero
             end if
             ! compute eddy diffusivities
-            kvm(j,i,k) = dmax1(pblk,kzo)
-            kvh(j,i,k) = dmax1((pblk/pr),kzo)
-            kvq(j,i,k) = dmax1(pblk1,kzo)
+            kvm(j,i,k) = max(pblk,kzo)
+            kvh(j,i,k) = max((pblk/pr),kzo)
+            kvq(j,i,k) = max(pblk1,kzo)
             if ( ichem == 1 ) then
-              kvc(j,i,k) = dmax1(pblk2,kzo)
+              kvc(j,i,k) = max(pblk2,kzo)
             end if
           end if
         end if
