@@ -58,7 +58,7 @@ module mod_rad_colmod3
   real(rk8) , pointer , dimension(:) :: asw , alw
   real(rk8) , pointer , dimension(:) :: abv , sol
   real(rk8) , pointer , dimension(:,:) :: cld , effcld , pilnm1 , pintm1
-  real(rk8) , pointer , dimension(:,:) :: clwp , emis , fice , &
+  real(rk8) , pointer , dimension(:,:) :: clwp , fice , &
     o3vmr , pmidm1 , pmlnm1 , qm1 , ql1 , qi1 , qrl ,  &
     qrs , rei , rel , deltaz , tm1 , rh1
   real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
@@ -121,7 +121,6 @@ module mod_rad_colmod3
 
       call getmem2d(rh1,1,npr,1,kz,'colmod3:rh1')
       call getmem2d(clwp,1,npr,1,kz,'colmod3:clwp')
-      call getmem2d(emis,1,npr,1,kz,'colmod3:emis')
       call getmem2d(fice,1,npr,1,kz,'colmod3:fice')
       call getmem2d(o3vmr,1,npr,1,kz,'colmod3:o3vmr')
       call getmem2d(pmidm1,1,npr,1,kz,'colmod3:pmidm1')
@@ -340,7 +339,6 @@ module mod_rad_colmod3
     pilnm1(:,:) = d_zero
     pintm1(:,:) = d_zero
     clwp(:,:) = d_zero
-    emis(:,:) = d_zero
     fice(:,:) = d_zero
     o3vmr(:,:) = d_zero
     pmidm1(:,:) = d_zero
@@ -379,10 +377,6 @@ module mod_rad_colmod3
     ! Cloud emissivity
     !
     call cldems
-    !
-    ! Effective cloud cover
-    !
-    effcld(:,1:kz) = cld(:,1:kz)*emis(:,1:kz)
     !
     ! Main radiation driving routine.
     ! NB: All fluxes returned from radctl() have already been converted to MKS.
@@ -522,20 +516,19 @@ module mod_rad_colmod3
         else
           if ( tm1(n,k) > minus10 ) then
             fice(n,k) = d_zero
-          else if ( tm1(n,k) <= minus10 .and. tm1(n,k) >= minus30 ) then
-          ! if colder than -10 degrees C but warmer than -30 C mixed phase
-          ! fice : fractional ice content within cloud
-            fice(n,k) = (minus10-tm1(n,k))/20.0D0
-          !  if colder than -30 degrees C then ice phase
           else
-            fice(n,k) = d_one
+            if ( tm1(n,k) <= minus10 .and. tm1(n,k) >= minus30 ) then
+              ! if colder than -10 degrees C but warmer than -30 C mixed phase
+              ! fice : fractional ice content within cloud
+              fice(n,k) = (minus10-tm1(n,k))/20.0D0
+              !  if colder than -30 degrees C then ice phase
+            else
+              fice(n,k) = d_one
+            end if
           end if
         end if
         !  Turn off ice radiative properties by setting fice = 0.0
-!
-!fil    no-ice test
 !       fice(n,k) = d_zero
-!fil
         totci(n) = totci(n) + clwp(n,k)*fice(n,k)*d_r1000
       end do
     end do
@@ -587,7 +580,7 @@ module mod_rad_colmod3
   subroutine cldems
     implicit none
     integer(ik4) :: n , k
-    real(rk8) :: kabs , kabsi
+    real(rk8) :: kabs , kabsi , emis
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cldems'
     integer(ik4) :: indx = 0
@@ -600,7 +593,9 @@ module mod_rad_colmod3
         ! longwave absorption coeff (m**2/g)
         kabs = kabsl*(d_one-fice(n,k)) + kabsi*fice(n,k)
         ! cloud emissivity (fraction)
-        emis(n,k) = d_one - dexp(-min(1.66D0*kabs*clwp(n,k),25.0D0))
+        emis = d_one - dexp(-min(1.66D0*kabs*clwp(n,k),25.0D0))
+        ! Effective cloud cover
+        effcld(n,k) = cld(n,k)*emis
       end do
     end do
 #ifdef DEBUG
