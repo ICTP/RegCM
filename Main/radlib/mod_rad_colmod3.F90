@@ -462,7 +462,8 @@ module mod_rad_colmod3
     implicit none
 
     integer(ik4) :: n , k , nt
-    real(rk8) :: pnrml , rliq , weight , rhoa , nc , aerc , lwc , kparam
+    real(rk8) :: pnrml , weight , rhoa , nc , aerc , lwc , kparam
+    real(rk8) :: tpara
     ! reimax - maximum ice effective radius
     real(rk8) , parameter :: reimax = 30.0D0
     ! rirnge - range of ice radii (reimax - 10 microns)
@@ -484,21 +485,15 @@ module mod_rad_colmod3
     do k = 1 , kz
       do n = 1 , npr
         ! Define liquid drop size
-        if ( ioro(n) /= 1 ) then
+        tpara = min(d_one,max(d_zero,(minus10-tm1(n,k))*0.05D0))
+        ! rel : liquid effective drop size (microns)
+        if ( ioro(n) == 0 ) then
           ! Effective liquid radius over ocean and sea ice
-          rliq = d_10
+          rel(n,k) = 7.0D0 + 5.0D0 * tpara
         else
           ! Effective liquid radius over land
-          rliq = d_five+d_five* &
-                   min(d_one,max(d_zero,(minus10-tm1(n,k))*0.05D0))
+          rel(n,k) = 6.0D0 + 5.0D0 * tpara
         end if
-        ! rel : liquid effective drop size (microns)
-        rel(n,k) = rliq
-!fil
-!       test radius
-!       rel(n,k) = d_10
-!       rei(n,k) = 30.0
-!fil
         ! Determine rei as function of normalized pressure
         pnrml = pmidm1(n,k)/ps(n)
         ! weight coef. for determining rei as fn of P/PS
@@ -554,8 +549,8 @@ module mod_rad_colmod3
                 ! Martin et al.(1994) parameter over ocean and sea ice
                 kparam = 0.80D0
               else
-               ! and over land
-               kparam = 0.67D0
+                ! and over land
+                kparam = 0.67D0
               end if
               !finally modify effective radius
               !(1.D6 to convert to rel to microm, 1D6 to vonvert nc in m-3)
