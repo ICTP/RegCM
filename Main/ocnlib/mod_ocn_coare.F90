@@ -88,7 +88,7 @@ module mod_ocn_coare
         t995 = sts(i)-tzero
         q995 = qv(i)
         z995 = ht(i)
-        ta = t995 + tzero
+        ta = tatm(i)
         ! height of the atmospheric data
         zu = z995
         zt = z995
@@ -143,7 +143,7 @@ module mod_ocn_coare
         wetc = wetc/(d_one+wetc)
 
         ! Deltas
-        dt = ts - t995 - 0.0098D0*zt
+        dt = ta - t995 - tzero
         dq = qs - q995
         du = uv995 - us
 

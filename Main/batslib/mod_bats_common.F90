@@ -90,7 +90,6 @@ module mod_bats_common
       if ( lsmoist ) then
         call c2l_gs(lndcomm,lm%smoist,gwet)
         do i = ilndbeg , ilndend
-          itex  = iexsol(lveg(i))
           ! Initialize soil moisture in the 3 layers
           tsw(i) = gwet(i)*deptv(lveg(i))
           rsw(i) = gwet(i)*deprv(lveg(i))

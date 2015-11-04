@@ -67,7 +67,6 @@ module mod_bats_bndry
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ilndbeg , ilndend
-      ! lveg is set in subr. interf
       freza(lveg(i)) = 0.15D0*deprv(lveg(i))
       frezu(lveg(i)) = 0.15D0*depuv(lveg(i))
       itex = iexsol(lveg(i))
@@ -75,8 +74,8 @@ module mod_bats_bndry
       porsl(i) = xmopor(itex)
       xkmx(i) = xmohyd(itex)
       bsw(i) = bee(itex)
-      bfc(i) = 5.8D0 - bsw(i)*(0.8D0+0.12D0*(bsw(i)-d_four)* &
-               dlog10(1.0D2*xkmx(i)))
+      bfc(i) = 5.8D0 - bsw(i)*(0.8D0+0.12D0*(bsw(i)-d_four) * &
+               log10(1.0D2*xkmx(i)))
       phi0 = xmosuc(itex)
       dmax = bsw(i)*phi0*xkmx(i)/porsl(i)
       dmin = 1.0D-3
@@ -84,7 +83,7 @@ module mod_bats_bndry
       tweak1 = (bsw(i)*(bsw(i)-6.0D0)+10.3D0) / &
                (bsw(i)*bsw(i)+40.0D0*bsw(i))
       ck = (d_one+dmnor)*tweak1*0.23D0/0.02356D0
-      evmx0(i) = 1.02D0*dmax*ck/dsqrt(depuv(lveg(i))*deprv(lveg(i)))
+      evmx0(i) = 1.02D0*dmax*ck/sqrt(depuv(lveg(i))*deprv(lveg(i)))
       gwmx0(i) = depuv(lveg(i))*porsl(i)
       gwmx1(i) = deprv(lveg(i))*porsl(i)
       gwmx2(i) = deptv(lveg(i))*porsl(i)
@@ -145,10 +144,9 @@ module mod_bats_bndry
 !
   subroutine bndry
     implicit none
-!
+
     real(rk8) :: qsatd , rai
     integer(ik4) :: i
-    real(rk8) , parameter :: minwrat = 1.0D-04
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bndry'
     integer(ik4) , save :: idindx = 0
@@ -160,18 +158,21 @@ module mod_bats_bndry
     !=======================================================================
 
     do i = ilndbeg , ilndend
-      htvp(i) = wlhv
       if ( tgrd(i) < tzero .or. sncv(i) > d_zero ) then
         htvp(i) = wlhs
+      else
+        htvp(i) = wlhv
       end if
-      sdrop(i) = d_zero
-      etrrun(i) = d_zero
       flnet(i) = d_zero
       fevpg(i) = d_zero
       fseng(i) = d_zero
       vegt(i) = d_zero
       efpr(i) = d_zero
       etr(i) = d_zero
+      pw(i) = d_zero
+      evapw(i) = d_zero
+      ps(i) = d_zero
+      evaps(i) = d_zero
       ! switch between rain and snow /tm is ref. temp set= anemom temp - 2.2
       tm(i) = sts(i) - rainsnowtemp
       ! soil moisture ratio (to max) as used in subrouts tgrund,
@@ -180,11 +181,12 @@ module mod_bats_bndry
       watu(i) = ssw(i)/gwmx0(i)
       watr(i) = rsw(i)/gwmx1(i)
       watt(i) = tsw(i)/gwmx2(i)
-      watu(i) = dmin1(watu(i),d_one)
-      watr(i) = dmin1(watr(i),d_one)
-      watt(i) = dmin1(watt(i),d_one)
-      watr(i) = dmax1(watr(i),minwrat)
-      watu(i) = dmax1(watu(i),minwrat)
+      watu(i) = min(watu(i),d_one)
+      watr(i) = min(watr(i),d_one)
+      watt(i) = min(watt(i),d_one)
+      watr(i) = max(watr(i),minwrat)
+      watu(i) = max(watu(i),minwrat)
+      watt(i) = max(watt(i),minwrat)
     end do
     !
     !=======================================================================
@@ -202,21 +204,23 @@ module mod_bats_bndry
     !
     do i = ilndbeg , ilndend
       if ( sigf(i) <= minsigf ) then
-        qsatd = pfqsdt(tgrd(i),sfcp(i))
+        !qsatd = pfqsdt(tgrd(i),sfcp(i))
         ! we need specific humidity
-        qsatd = (qsatd/(d_one+qsatd))*gwet(i)
+        !qsatd = qsatd/(d_one+qsatd)
+        call bats_qsdt(tgrd(i),qsatd)
+        qsatd = qgrd(i)*qsatd * gwet(i)
         rai = cdrx(i)*vspda(i)*rhs(i)
         cgrnds(i) = rai*cpd
         cgrndl(i) = rai*qsatd
         cgrnd(i) = cgrnds(i) + cgrndl(i)*htvp(i)
         ! 3.2  sensible and latent fluxes using soil temperatures
         ! from previous time step
-        delq(i) = (qs(i)-qgrd(i))*gwet(i)
+        delq(i) = (qs(i)-qgrd(i)) * gwet(i)
         delt(i) = sts(i) - tgrd(i)
         evpr(i) = -rai*delq(i)
         sent(i) = -cgrnds(i)*delt(i)
-        if ( dabs(sent(i)) < dlowval ) sent(i) = d_zero
-        if ( dabs(evpr(i)) < dlowval ) evpr(i) = d_zero
+        if ( abs(sent(i)) < dlowval ) sent(i) = d_zero
+        if ( abs(evpr(i)) < dlowval ) evpr(i) = d_zero
         ! 3.3  fluxes to subrout tgrund (evap is in kg/m**2/s)
         fseng(i) = sent(i)
         fevpg(i) = evpr(i)
@@ -234,7 +238,9 @@ module mod_bats_bndry
         !================================================================
         ! 4.1  add precipitation to leaf water
         ldew(i) = ldew(i)+dtbat*sigf(i)*prcp(i)
-        ldew(i) = dmax1(ldew(i),d_zero)
+        ldew(i) = max(ldew(i),d_zero)
+      else
+        ldew(i) = d_zero
       end if
     end do
     !
@@ -315,26 +321,27 @@ module mod_bats_bndry
   subroutine drip
     implicit none
     integer(ik4) :: i
+    real(rk8) :: xrun
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'drip'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ilndbeg , ilndend
+      etrrun(i) = d_zero
+      sdrop(i) = d_zero
       if ( sigf(i) > minsigf ) then
         ! xrun = leaf drip ; sdrop = snow drop off foliage
-        etrrun(i) = d_zero
-        xrun(i) = ldew(i) - dewmax*vegt(i)
-        sdrop(i) = d_zero
+        xrun = ldew(i) - dewmax*vegt(i)
         ! test on maximum value of dew
-        if ( xrun(i) > d_zero ) then
-          etrrun(i) = xrun(i)
+        if ( xrun > d_zero ) then
+          etrrun(i) = xrun
           ldew(i) = dewmax*vegt(i)
         end if
         ! below freezing excess leaf water falls as snow
-        if ( (xrun(i) > d_zero) .and. (tm(i) < tzero) ) then
+        if ( (xrun > d_zero) .and. (tm(i) < tzero) ) then
           etrrun(i) = d_zero
-          sdrop(i) = xrun(i)
+          sdrop(i) = xrun
         end if
       end if
     end do
@@ -378,7 +385,7 @@ module mod_bats_bndry
 !
     real(rk8) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr , &
                evmxt , rap , vakb , wtg2c , xxkb , gwatr , rsubsr , &
-               rsubss , xkmx1 , xkmx2 , xkmxr
+               rsubss , xkmx1 , xkmx2 , xkmxr , wata
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'water'
@@ -417,9 +424,9 @@ module mod_bats_bndry
       b = bsw(i)
       bfac = watr(i)**(d_three+bfc(i)) * watu(i)**(b-bfc(i)-d_one)
       bfac2 = watt(i)**(d_two+bfc(i)) * watr(i)**(b-bfc(i))
-      wfluxc(i) = evmxr*(depuv(lveg(i)) / deprv(lveg(i)))**0.4D0*bfac
-      wflux1(i) = wfluxc(i)*watr(i)
-      wflux2(i) = evmxt*sqrt(depuv(lveg(i)) / deprv(lveg(i)))* &
+      wfluxc(i) = evmxr*(depuv(lveg(i))/deprv(lveg(i)))**0.4D0*bfac
+      wflux1(i) = wfluxc(i)*(watr(i)-watu(i))
+      wflux2(i) = evmxt*sqrt(depuv(lveg(i))/deprv(lveg(i)))* &
                   bfac2*(watt(i)-watr(i))
       !
       ! 1.3  gravitational drainage
@@ -428,9 +435,9 @@ module mod_bats_bndry
       rsubsr = xkmx1*watt(i)**(b+d_half) * watr(i)**(b+2.5D0)
       rsubst(i) = xkmx2*watt(i)**(d_two*b+d_three)
       !
-      ! 1.32 bog or water
+      ! 1.32 bog
       !
-      if ( (lveg(i) >= 13) .and. (lveg(i) <= 15) ) then
+      if ( lveg(i) == 13 ) then
         rsubst(i) = d_zero
         rsubss = d_zero
         rsubsr = d_zero
@@ -445,7 +452,7 @@ module mod_bats_bndry
     ! 1.5  net flux at air interface
     !
     do i = ilndbeg , ilndend
-      gwatr = pw(i) - evapw(i) + sm(i) + etrrun(i)/dtbat
+      gwatr = pw(i) - evapw(i) + sm(i) + etrrun(i)/dtbat - efpr(i)*etr(i)
       !
       !=================================================================
       ! 2.   define runoff terms
@@ -453,20 +460,20 @@ module mod_bats_bndry
       !
       ! 2.1  surface runoff
       !
-      wata(i) = d_half*(watu(i)+watr(i))
+      wata = d_half*(watu(i)+watr(i))
       !
       ! 2.11 increase surface runoff over frozen ground
       !
       if ( tgrd(i) < tzero ) then
-        rsur(i) = dmin1(d_one,wata(i)**1) * dmax1(d_zero,gwatr)
+        rsur(i) = min(d_one,wata**1) * max(d_zero,gwatr)
       else
-        rsur(i) = dmin1(d_one,wata(i)**4) * dmax1(d_zero,gwatr)
+        rsur(i) = min(d_one,wata**4) * max(d_zero,gwatr)
       end if
       !
       ! 2.12 irrigate cropland
       !
       if ( lveg(i) == 10 .and. watr(i) < relfc(i) ) then
-        rsur(i) = rsur(i) + (rsw(i)-relfc(i)*gwmx1(i))/dtbat
+        rsur(i) = rsur(i) + min(d_zero,(rsw(i)-relfc(i)*gwmx1(i))/dtbat)
       end if
       ! Imported Lara Kuepper's Irrigated Crop modification from RegCM3
       ! see Kueppers et al. (2008)
@@ -481,7 +488,7 @@ module mod_bats_bndry
         ! Graziano. Seems that this runoff is borken at least
         ! at time step zero. Try to mediate using relfc. Is this
         ! correct ? Mhhhh....
-        rsur(i) = rsur(i) + dmin1(d_zero,(rsw(i)-relfc(i)*gwmx1(i))/dtbat)
+        rsur(i) = rsur(i) + min(d_zero,(rsw(i)-relfc(i)*gwmx1(i))/dtbat)
       end if
       !
       ! 2.2  total runoff
@@ -494,16 +501,16 @@ module mod_bats_bndry
       !
       ! 3.1  update top layer with implicit treatment of flux from below
       !
-      ssw(i) = ssw(i) + dtbat*(gwatr-efpr(i) * etr(i)-rsur(i)+wflux1(i))
-      ssw(i) = ssw(i)/(d_one+wfluxc(i)*dtbat/gwmx0(i))
+      ssw(i) = ssw(i) + dtbat * (gwatr - rsur(i) + wflux1(i))
+      ssw(i) = ssw(i) / (d_one + dtbat * wfluxc(i)/gwmx0(i))
       !
       ! 3.2  update root zone
       !
-      rsw(i) = rsw(i) + dtbat*(gwatr-etr(i) - rsur(i) + wflux2(i))
+      rsw(i) = rsw(i) + dtbat * (gwatr - rsur(i) + wflux2(i))
       !
       ! 3.3  update total water
       !
-      tsw(i) = tsw(i) + dtbat*(gwatr-etr(i)-rnof(i))
+      tsw(i) = tsw(i) + dtbat * (gwatr - rnof(i))
     end do
 
     do i = ilndbeg , ilndend
@@ -556,21 +563,21 @@ module mod_bats_bndry
     end do
     !
     !=======================================================================
-    !   7.   calculate potential evaporation and use mod_to determine
+    !   7.   calculate potential evaporation and use it to determine
     !        wetness factor, allowing for snow being saturated
     !=======================================================================
     !
     do i = ilndbeg , ilndend
-      xxkb = dmin1(rough(lveg(i)),d_one)
+      xxkb = min(rough(lveg(i)),d_one)
       vakb = (d_one-sigf(i))*vspda(i) + sigf(i) * &
              (xxkb*uaf(i)+(d_one-xxkb)*vspda(i))
       wtg2c = (d_one-sigf(i))*cdrx(i)*vakb
-      rap = rhs(i)*(csoilc*uaf(i)*sigf(i)*(qgrd(i) +  &
-            delq(i)-qs(i))+wtg2c*(qgrd(i)-qs(i)))
+      rap = rhs(i) * (csoilc*uaf(i)*sigf(i)*(qgrd(i)+delq(i)-qs(i)) + &
+                      wtg2c*(qgrd(i)-qs(i)))
       bfac = watr(i)**(d_three+bfc(i)) * watu(i)**(bsw(i)-bfc(i)-d_one)
       est0 = evmx0(i)*bfac*watu(i)
-      evmax = dmax1(est0,d_zero)
-      gwet(i) = dmin1(d_one,evmax/dmax1(1.0D-14,rap))
+      evmax = max(est0,d_zero)
+      gwet(i) = min(d_one,evmax/max(1.0D-14,rap))
       gwet(i) = scvk(i) + gwet(i)*(d_one-scvk(i))
     end do
 #ifdef DEBUG
@@ -602,7 +609,7 @@ module mod_bats_bndry
 !
   subroutine snow
     implicit none
-!
+
     real(rk8) :: age1 , age2 , arg , arg2 , dela , dela0 , &
                  dels , tage , sold
     integer(ik4) :: i
@@ -650,13 +657,13 @@ module mod_bats_bndry
       !==================================================================
       if ( sncv(i) > d_zero ) then
         arg = 5.0D3*(d_one/tzero-d_one/tgrd(i))
-        age1 = dexp(arg)
-        arg2 = dmin1(d_zero,d_10*arg)
-        age2 = dexp(arg2)
+        age1 = exp(arg)
+        arg2 = min(d_zero,d_10*arg)
+        age2 = exp(arg2)
         tage = age1 + age2 + age3
         dela0 = 1.0D-6*dtbat
         dela = dela0*tage
-        dels = d_r10*dmax1(d_zero,sncv(i)-sold)
+        dels = d_r10*max(d_zero,sncv(i)-sold)
         snag(i) = (snag(i)+dela)*(d_one-dels)
         if ( snag(i) < dlowval ) snag(i) = d_zero
       end if
@@ -738,7 +745,7 @@ module mod_bats_bndry
       !      specific heat only 0.49 that of water
       swtrtd = watu(i)*porsl(i)
       if ( tgrd(i) < tzero ) then
-        frozen = 0.85D0*dmin1(d_one,d_rfour*(tzero-tgrd(i)))
+        frozen = 0.85D0*min(d_one,d_rfour*(tzero-tgrd(i)))
         skd = xkperi
         rscsd = fsc(swtrtd*(d_one-0.51D0*frozen))
       else
@@ -747,7 +754,7 @@ module mod_bats_bndry
       end if
       swtrta = watr(i)*porsl(i)
       if ( tgbrd(i) < tzero ) then
-        froze2 = 0.85D0*dmin1(d_one,d_rfour*(tzero-tgbrd(i)))
+        froze2 = 0.85D0*min(d_one,d_rfour*(tzero-tgbrd(i)))
         ska = xkperi
         rscsa = fsc(swtrta*(d_one-0.51D0*froze2))
       else
@@ -755,35 +762,35 @@ module mod_bats_bndry
         rscsa = fsc(swtrta)
       end if
       ! 1.2  correct for snow cover, if significant
-      depdiu = dsqrt(d_two*skd/xnu)
+      depdiu = sqrt(d_two*skd/xnu)
       bcoef(i) = xdtime*depdiu/(rscsd*skd)
       sks = d_zero
       if ( scrat(i) > 0.001D0 ) then
         xlexp = d_two*scrat(i)/depdiu
         ! Graziano : Limit exponential argument
         if ( xlexp < 25.0D0 ) then
-          wtd = dexp(-xlexp)
+          wtd = exp(-xlexp)
         else
           wtd = d_zero
         end if
         rscss = csnw*rhosw(i)
         sks = 7.0D-7*cws*rhosw(i)
-        bcoefs = dsqrt(d_two*sks/xnu)/(rscss*sks)
+        bcoefs = sqrt(d_two*sks/xnu)/(rscss*sks)
         wtds = (d_one-wtd)*scvk(i)
-        bcoefd = dsqrt(d_two*skd/xnu)/(rscsd*skd)
+        bcoefd = sqrt(d_two*skd/xnu)/(rscsd*skd)
         bcoef(i) = xdtime*(wtds*bcoefs+(d_one-wtds)*bcoefd)
-        depdiu = wtds*dsqrt(d_two*sks/xnu) + (d_one-wtds)*depdiu
+        depdiu = wtds*sqrt(d_two*sks/xnu) + (d_one-wtds)*depdiu
       end if
-      depann = dsqrt(d_two*ska/xnua)
+      depann = sqrt(d_two*ska/xnua)
       if ( scrat(i) > 0.02D0 ) then
         xlexp = d_two*scrat(i)/depann
         if ( xlexp < 25.0D0 ) then
-          wtax = dexp(-xlexp)
+          wtax = exp(-xlexp)
         else
           wtax = d_zero
         end if
         wtas = (d_one-wtax)*scvk(i)
-        depann = wtas*dsqrt(d_two*sks/xnua) + (d_one-wtas)*depann
+        depann = wtas*sqrt(d_two*sks/xnua) + (d_one-wtas)*depann
       end if
       deprat(i) = depann/depdiu
       !=================================================================
@@ -795,11 +802,11 @@ module mod_bats_bndry
       ! 2.1  add freezing thermal inertia
       if ( (tgrd(i) < tzero) .and. (tgrd(i) > (tzero-d_four)) ) then
         depu = depuv(lveg(i))*d_r1000
-        cc(i) = d_one + dmax1(ssw(i)-frezu(lveg(i)),d_zero)*fct1(depu*rscsd)
+        cc(i) = d_one + max(ssw(i)-frezu(lveg(i)),d_zero)*fct1(depu*rscsd)
       end if
       if ( (tgbrd(i) < tzero) .and. (tgbrd(i) > (tzero-d_four)) ) then
         depr = deprv(lveg(i))*d_r1000
-        fct2(i) = dmax1(rsw(i)-freza(lveg(i)),d_zero) * fct1(depr*rscsa)
+        fct2(i) = max(rsw(i)-freza(lveg(i)),d_zero) * fct1(depr*rscsa)
       end if
       ! 2.2  large thermal inertial for permanent ice cap
       if ( lveg(i) == 12 ) fct2(i) = d_1000*fct2(i)
@@ -815,7 +822,7 @@ module mod_bats_bndry
         sm(i) = (bb(i) + (cc(i)-xdt2+cder)*tgrd(i) - &
                          (cc(i)+xdt2+cder)*tzero) / (bcoef(i)*wlhf)
         ! snow melt always between 0 and total snow
-        sm(i) = dmax1(d_zero,dmin1(sm(i),sncv(i)*d_two*rdtbat2))
+        sm(i) = max(d_zero,min(sm(i),sncv(i)*d_two*rdtbat2))
         bb(i) = bb(i) - bcoef(i)*wlhf*sm(i)
       end if
     end do
@@ -830,14 +837,14 @@ module mod_bats_bndry
       tg = (bb(i)+(cc(i)-xdt2+cder)*tgrd(i)) / (cc(i)+xdt2+cder)
       tgrd(i) = tg
       ! 3.2  put brakes on large temperature excursions
-      tgrd(i) = dmin1(tbef+d_10,tgrd(i))
-      tgrd(i) = dmax1(tbef-d_10,tgrd(i))
+      tgrd(i) = min(tbef+d_10,tgrd(i))
+      tgrd(i) = max(tbef-d_10,tgrd(i))
       ! 3.3  correct fluxes to present soil temperature
       tinc = tgrd(i) - tbef
       sent(i) = sent(i) + tinc*cgrnds(i)
       evpr(i) = evpr(i) + tinc*cgrndl(i)
-      if ( dabs(sent(i)) < dlowval ) sent(i) = d_zero
-      if ( dabs(evpr(i)) < dlowval ) evpr(i) = d_zero
+      if ( abs(sent(i)) < dlowval ) sent(i) = d_zero
+      if ( abs(evpr(i)) < dlowval ) evpr(i) = d_zero
       fseng(i) = fseng(i) + tinc*cgrnds(i)
       fevpg(i) = fevpg(i) + tinc*cgrndl(i)
       !

@@ -246,7 +246,10 @@ module mod_constants
 
   ! Drainage out of 10m layer bottom (mm/s)
   ! drain is set fairly large to prevent swamping the soil
-  real(rk8) , parameter :: drain = 1.0D-04
+  real(rk8) , parameter :: drain = 4.0D-04
+
+  ! Minimum ratio between potential and actual water content
+  real(rk8) , parameter :: minwrat = 1.0D-04
 
   ! Earth radius in meters
   real(rk8) , parameter :: earthrad = 6.371229D+06

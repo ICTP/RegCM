@@ -170,6 +170,7 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%uatm,usw)
       call c2l_gs(ocncomm,lm%vatm,vsw)
       call c2l_gs(ocncomm,lm%tatm,sts)
+      call c2l_gs(ocncomm,lm%sfta,tatm)
       call c2l_gs(ocncomm,lm%tground2,tgb)
       call c2l_gs(ocncomm,lm%hpbl,hpbl)
       call c2l_gs(ocncomm,lm%qvatm,qv)

@@ -71,6 +71,7 @@ module mod_ocn_internal
   real(rk8) , pointer , dimension(:) :: sm
   real(rk8) , pointer , dimension(:) :: sst
   real(rk8) , pointer , dimension(:) :: t2m
+  real(rk8) , pointer , dimension(:) :: tatm
   real(rk8) , pointer , dimension(:) :: taux
   real(rk8) , pointer , dimension(:) :: tauy
   real(rk8) , pointer , dimension(:) :: tdeltas
@@ -123,6 +124,7 @@ module mod_ocn_internal
     call getmem1d(sfps,1,nocnp,'ocn_internal:sfps')
     call getmem1d(sts,1,nocnp,'ocn_internal:sts')
     call getmem1d(t2m,1,nocnp,'ocn_internal:t2m')
+    call getmem1d(tatm,1,nocnp,'ocn_internal:tatm')
     call getmem1d(taux,1,nocnp,'ocn_internal:taux')
     call getmem1d(tauy,1,nocnp,'ocn_internal:tauy')
     call getmem1d(tgb,1,nocnp,'ocn_internal:tgb')

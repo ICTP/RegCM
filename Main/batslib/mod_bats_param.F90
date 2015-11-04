@@ -67,23 +67,19 @@ module mod_bats_param
   real(rk8) , parameter :: aarea = 0.02D0
   real(rk8) , parameter :: minsigf = 0.001D+00
   !
-  ! Saturated soil albedo for different soil coloures
-  ! BATS 1e , Table 3, II , pag 27
+  ! slmo is initial surface moisture availability in fraction of one
   !
-  !data solour / 0.12D0 , 0.11D0 , 0.10D0 , 0.09D0 , 0.08D0 ,        &
-  !              0.07D0 , 0.06D0 , 0.05D0 /
-  data solour / 0.16D0 , 0.15D0 , 0.10D0 , 0.09D0 , 0.08D0 ,        &
-                0.07D0 , 0.06D0 , 0.05D0 /
+  data slmo / 0.65D0 , 0.45D0 , 0.60D0 , 0.60D0 , 0.65D0 , &
+              0.65D0 , 0.55D0 , 0.01D0 , 0.90D0 , 0.80D0 , &
+              0.20D0 , 0.90D0 , 0.90D0 , 1.00D0 , 1.00D0 , &
+              0.50D0 , 0.50D0 , 0.65D0 , 0.60D0 , 0.60D0 , &
+              0.50D0 , 0.60D0 /
   !
   ! mfcv is maximum fractional vegetation cover
   ! BATS 1e , Table 2, a, pag 21
   !
-  !data mfcv  / 0.85D0 , 0.80D0 , 0.80D0 , 0.80D0 , 0.80D0 , 0.90D0 , &
-  !             0.80D0 , 0.00D0 , 0.60D0 , 0.80D0 , 0.10D0 , 0.00D0 , &
-  !             0.80D0 , 0.00D0 , 0.00D0 , 0.80D0 , 0.80D0 , 0.80D0 , &
-  !             0.80D0 , 0.80D0 , 0.05D0 , 0.40D0 /
   data mfcv  / 0.85D0 , 0.80D0 , 0.80D0 , 0.80D0 , 0.80D0 , 0.90D0 , &
-               0.80D0 , 0.00D0 , 0.60D0 , 0.80D0 , 0.35D0 , 0.00D0 , &
+               0.80D0 , 0.00D0 , 0.60D0 , 0.80D0 , 0.10D0 , 0.00D0 , &
                0.80D0 , 0.00D0 , 0.00D0 , 0.80D0 , 0.80D0 , 0.80D0 , &
                0.80D0 , 0.80D0 , 0.05D0 , 0.40D0 /
   !
@@ -99,14 +95,9 @@ module mod_bats_param
   ! height also used snow masking depth in subrout albedo
   ! BATS 1e , Table 2, c, pag 21
   !
-  !data rough / 0.0600D0 , 0.0200D0 , 1.0000D0 , 1.0000D0 , 0.8000D0 , &
-  !             2.0000D0 , 0.1000D0 , 0.0500D0 , 0.0400D0 , 0.0600D0 , &
-  !             0.1000D0 , 0.0100D0 , 0.0300D0 , 0.0024D0 , 0.0024D0 , &
-  !             0.1000D0 , 0.1000D0 , 0.8000D0 , 0.3000D0 , 0.3000D0 , &
-  !             1.5000D0 , 0.4000D0 /
-  data rough / 0.0800D0 , 0.0500D0 , 1.0000D0 , 1.0000D0 , 0.8000D0 , &
+  data rough / 0.0600D0 , 0.0200D0 , 1.0000D0 , 1.0000D0 , 0.8000D0 , &
                2.0000D0 , 0.1000D0 , 0.0500D0 , 0.0400D0 , 0.0600D0 , &
-               0.1000D0 , 0.0100D0 , 0.0300D0 , 0.0004D0 , 0.0004D0 , &
+               0.1000D0 , 0.0100D0 , 0.0300D0 , 0.0024D0 , 0.0024D0 , &
                0.1000D0 , 0.1000D0 , 0.8000D0 , 0.3000D0 , 0.3000D0 , &
                1.5000D0 , 0.4000D0 /
   !
@@ -120,47 +111,30 @@ module mod_bats_param
                 0.00D0 , 0.00D0 , 6.00D0 , 2.50D0 /
   !
   ! minimum stomatal resistance (s/m)
-  ! data rsmin/153.0,4*200.0,150.0,14*200.0/   ! shuttleworth
-  ! data rsmin/120.0,4*200.0,150.0,14*200.0/   ! bats1e numbers
-  !Sara
-  !     data rsmin/45.,60.,2*80.,120.,2*60.,200.,80.,45.,150.,200.,45.
-  !     &          ,2*200.,80.,120.,100.,2*120./
-  ! (increase in rsmin will lead to a decrease in evapotranspration)
   ! Model is expecially sensible to this, tune it carefully
+  ! increase in rsmin will lead to a decrease in evapotranspration
   ! BATS 1e , Table 2, i, pag 21
   !
-  !data rsmin / 120.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 150.0D0 , &
-  !             200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , &
-  !             200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , &
-  !             200.0D0 , 200.0D0 , 120.0D0 ,  60.0D0 /
-  data rsmin /  45.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 ,  50.0D0 , &
+  data rsmin / 120.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 150.0D0 , &
                200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , &
                200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , &
-               200.0D0 , 200.0D0 , 120.0D0 ,  60.0D0 /
+               200.0D0 , 200.0D0 , 120.0D0 , 120.0D0 /
   !
   ! maximum leaf area index (ratio unit cover per unit ground)
   ! BATS 1e , Table 2, j, pag 21
   !
-  !data xla / 6.0D0 , 2.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , &
-  !           6.0D0 , 0.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , 0.0D0 , &
-  !           6.0D0 , 0.0D0 , 0.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , &
-  !           6.0D0 , 6.0D0 , 1.0D0, 2.0D0 /
   data xla / 6.0D0 , 2.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , &
-             3.0D0 , 0.0D0 , 2.0D0 , 4.0D0 , 1.0D0 , 0.0D0 , &
-             4.0D0 , 0.0D0 , 0.0D0 , 4.0D0 , 4.0D0 , 5.0D0 , &
-             4.0D0 , 1.0D0 , 1.0D0 , 2.0D0 /
+             6.0D0 , 0.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , 0.0D0 , &
+             6.0D0 , 0.0D0 , 0.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , &
+             6.0D0 , 6.0D0 , 1.0D0 , 2.0D0 /
   !
   ! minimum leaf area index **lai depends on temp as veg cover
   ! BATS 1e , Table 2, k, pag 21
   !
-  !data xlai0 / 0.5D0 , 0.5D0 , 5.0D0 , 1.0D0 , 1.0D0 , 5.0D0 , &
-  !             0.5D0 , 0.0D0 , 0.5D0 , 0.5D0 , 0.5D0 , 0.0D0 , &
-  !             0.5D0 , 0.0D0 , 0.0D0 , 5.0D0 , 1.0D0 , 3.0D0 , &
-  !             0.5D0 , 0.5D0 , 0.5D0 , 0.5D0 /
   data xlai0 / 0.5D0 , 0.5D0 , 5.0D0 , 1.0D0 , 1.0D0 , 5.0D0 , &
-               1.0D0 , 0.0D0 , 0.5D0 , 2.0D0 , 0.5D0 , 0.0D0 , &
-               2.0D0 , 0.0D0 , 0.0D0 , 3.0D0 , 1.0D0 , 3.0D0 , &
-               0.5D0 , 1.0D0 , 0.5D0 , 1.0D0 /
+               0.5D0 , 0.0D0 , 0.5D0 , 0.5D0 , 0.5D0 , 0.0D0 , &
+               0.5D0 , 0.0D0 , 0.0D0 , 5.0D0 , 1.0D0 , 3.0D0 , &
+               0.5D0 , 0.5D0 , 0.5D0 , 0.5D0 /
   !
   ! stem and dead matter area index (projected area of non-transpiring sfcs)
   ! BATS 1e , Table 2, l, pag 21
@@ -213,27 +187,27 @@ module mod_bats_param
                3000.0D0 , 3000.0D0 , 3000.0D0 , 3000.0D0 , 3000.0D0 , &
                3000.0D0 , 3000.0D0 /
   !
-  ! iexsol is soil texture type (see subr soilbc)
-  !
-  !data iexsol / 6 , 6 , 6 , 6 , 7 , 8 , 6 , 3 , 6 , 6 , 5 , 12 , 6 ,  &
-  !              6 , 6 , 6 , 5 , 6 , 6 , 6 , 12 , 8 /
-  data iexsol / 6 , 6 , 6 , 6 , 7 , 8 , 6 , 1 , 6 , 6 , 5 , 12 , 6 ,  &
-                6 , 6 , 6 , 5 , 6 , 6 , 6 , 12 , 8 /
-  !
   ! kolsol is soil color type (see subr. albedo)
   !
-  !data kolsol / 6 , 4 , 5 , 5 , 5 , 5 , 5 , 3 , 4 , 4 , 2 , 1 , 6 ,   &
-  !              6 , 6 , 5 , 4 , 5 , 5 , 5 , 4 , 4 /
-  data kolsol / 6 , 4 , 5 , 5 , 5 , 5 , 5 , 1 , 4 , 4 , 2 , 1 , 6 ,   &
+  ! 1 -> Light colour
+  ! 2 -> Dark colour
+  !
+  data kolsol / 6 , 4 , 5 , 5 , 5 , 5 , 5 , 2 , 4 , 4 , 2 , 1 , 6 ,   &
                 6 , 6 , 5 , 4 , 5 , 5 , 5 , 4 , 4 /
   !
-  ! slmo is initial surface moisture availability in fraction of one
+  ! Saturated soil albedo for different soil coloures for short wave rad.
+  ! BATS 1e , Table 3, II , b, first line, pag 27
   !
-  data slmo / 0.65D0 , 0.45D0 , 0.60D0 , 0.60D0 , 0.65D0 , &
-              0.65D0 , 0.55D0 , 0.10D0 , 0.90D0 , 0.80D0 , &
-              0.20D0 , 0.90D0 , 0.90D0 , 1.00D0 , 1.00D0 , &
-              0.50D0 , 0.50D0 , 0.65D0 , 0.60D0 , 0.60D0 , &
-              0.50D0 , 0.60D0 /
+  data solour / 0.12D0 , 0.11D0 , 0.10D0 , 0.09D0 , 0.08D0 , &
+                0.07D0 , 0.06D0 , 0.05D0 /
+  !
+  ! iexsol is soil texture type (see subr soilbc)
+  !
+  ! 1  -> Sand
+  ! 12 -> Clay
+  !
+  data iexsol / 6 , 6 , 6 , 6 , 7 , 8 , 6 , 1 , 6 , 6 , 5 , 12 , 6 ,  &
+                6 , 6 , 6 , 5 , 6 , 6 , 6 , 12 , 8 /
   !
   ! xmopor is fraction of soil that is voids
   ! BATS 1e , Table 3, I , a, pag 27
@@ -244,10 +218,10 @@ module mod_bats_param
   ! xmosuc is the minimum soil suction (mm)
   ! BATS 1e , Table 3, I , b, pag 27
   !
-  data xmosuc / 30.0D0 ,  30.0D0 ,  30.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , &
-               200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 /
+  data xmosuc /  30.0D0 ,  30.0D0 ,  30.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , &
+                200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 /
   !
-  ! xmohyd is the max. hydraulic conductivity (mm/s)
+  ! xmohyd is the saturated hydraulic conductivity (mm/s)
   ! BATS 1e , Table 3, I , c, pag 27
   !
   data xmohyd / 0.2000D0 , 0.0800D0 , 0.0320D0 , 0.0130D0 , 0.0089D0 , &
@@ -258,19 +232,15 @@ module mod_bats_param
   ! (transpiration ceases)
   ! BATS 1e , Table 3, I , f, pag 27
   !
-  !data xmowil / 0.088D0 , 0.119D0 , 0.151D0 , 0.266D0 , 0.300D0 , &
-  !              0.332D0 , 0.378D0 , 0.419D0 , 0.455D0 , 0.487D0 , &
-  !              0.516D0 , 0.542D0 /
-  data xmowil / 0.095D0 , 0.128D0 , 0.161D0 , 0.266D0 , 0.300D0 , &
+  data xmowil / 0.088D0 , 0.119D0 , 0.151D0 , 0.266D0 , 0.300D0 , &
                 0.332D0 , 0.378D0 , 0.419D0 , 0.455D0 , 0.487D0 , &
                 0.516D0 , 0.542D0 /
   !
-  ! Field capacity (Lara Kueppers modif for irrigated agricultural lands)
-  ! see Kueppers et al. (2008)
+  ! Field capacity
   !
-  !data xmofc / 0.404D0 , 0.477D0 , 0.547D0 , 0.614D0 , 0.653D0 ,      &
-  !             0.688D0 , 0.728D0 , 0.763D0 , 0.794D0 , 0.820D0 ,      &
-  !             0.845D0 , 0.866D0 /
+  data xmofc / 0.404D0 , 0.477D0 , 0.547D0 , 0.614D0 , 0.653D0 ,  &
+               0.688D0 , 0.728D0 , 0.763D0 , 0.794D0 , 0.820D0 ,  &
+               0.845D0 , 0.866D0 /
   !
   ! bee is the clapp and hornbereger "b" parameter
   ! BATS 1e , Table 3, I , e, pag 27
@@ -288,25 +258,17 @@ module mod_bats_param
   ! albvgs is vegetation albedo for wavelengths < 0.7 microns data
   ! BATS 1e , Table 2, I , g, pag 21
   !
-  !data albvgs / 0.10D0 , 0.10D0 , 0.05D0 , 0.05D0 , 0.08D0 , 0.04D0 , &
-  !              0.08D0 , 0.20D0 , 0.10D0 , 0.08D0 , 0.17D0 , 0.80D0 , &
-  !              0.06D0 , 0.07D0 , 0.07D0 , 0.05D0 , 0.08D0 , 0.06D0 , &
-  !              0.06D0 , 0.06D0 , 0.02D0 , 0.06D0 /
-  data albvgs / 0.10D0 , 0.10D0 , 0.04D0 , 0.04D0 , 0.06D0 , 0.04D0 , &
+  data albvgs / 0.10D0 , 0.10D0 , 0.05D0 , 0.05D0 , 0.08D0 , 0.04D0 , &
                 0.08D0 , 0.20D0 , 0.10D0 , 0.08D0 , 0.17D0 , 0.80D0 , &
-                0.06D0 , 0.07D0 , 0.07D0 , 0.05D0 , 0.08D0 , 0.05D0 , &
+                0.06D0 , 0.07D0 , 0.07D0 , 0.05D0 , 0.08D0 , 0.06D0 , &
                 0.06D0 , 0.06D0 , 0.02D0 , 0.06D0 /
   !
   ! albvgl is vegetation albedo for wavelengths > 0.7 microns data
   ! BATS 1e , Table 2, I , h, pag 21
   !
-  !data albvgl / 0.30D0 , 0.30D0 , 0.23D0 , 0.23D0 , 0.28D0 , 0.20D0 , &
-  !              0.30D0 , 0.40D0 , 0.30D0 , 0.28D0 , 0.34D0 , 0.60D0 , &
-  !              0.18D0 , 0.20D0 , 0.20D0 , 0.23D0 , 0.28D0 , 0.24D0 , &
-  !              0.18D0 , 0.18D0 , 0.15D0 , 0.18D0 /
-  data albvgl / 0.30D0 , 0.30D0 , 0.20D0 , 0.20D0 , 0.26D0 , 0.20D0 , &
+  data albvgl / 0.30D0 , 0.30D0 , 0.23D0 , 0.23D0 , 0.28D0 , 0.20D0 , &
                 0.30D0 , 0.40D0 , 0.30D0 , 0.28D0 , 0.34D0 , 0.60D0 , &
-                0.18D0 , 0.20D0 , 0.20D0 , 0.23D0 , 0.28D0 , 0.23D0 , &
+                0.18D0 , 0.20D0 , 0.20D0 , 0.23D0 , 0.28D0 , 0.24D0 , &
                 0.18D0 , 0.18D0 , 0.15D0 , 0.18D0 /
   !
   ! Fraction of water extracted by upper layer roots (saturated)

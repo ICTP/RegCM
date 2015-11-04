@@ -152,7 +152,6 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: vpdc
   real(rk8) , pointer , dimension(:) :: vspda
   real(rk8) , pointer , dimension(:) :: vsw
-  real(rk8) , pointer , dimension(:) :: wata
   real(rk8) , pointer , dimension(:) :: watr
   real(rk8) , pointer , dimension(:) :: watt
   real(rk8) , pointer , dimension(:) :: watu
@@ -182,7 +181,6 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: xkmx
   real(rk8) , pointer , dimension(:) :: xlai
   real(rk8) , pointer , dimension(:) :: xlsai
-  real(rk8) , pointer , dimension(:) :: xrun
   real(rk8) , pointer , dimension(:) :: z10fra
   real(rk8) , pointer , dimension(:) :: z1log
   real(rk8) , pointer , dimension(:) :: z2fra
@@ -328,7 +326,6 @@ module mod_bats_internal
     call getmem1d(vpdc,1,nlandp,'bats_internal:vpdc')
     call getmem1d(vspda,1,nlandp,'bats_internal:vspda')
     call getmem1d(vsw,1,nlandp,'bats_internal:vsw')
-    call getmem1d(wata,1,nlandp,'bats_internal:wata')
     call getmem1d(watr,1,nlandp,'bats_internal:watr')
     call getmem1d(watt,1,nlandp,'bats_internal:watt')
     call getmem1d(watu,1,nlandp,'bats_internal:watu')
@@ -358,7 +355,6 @@ module mod_bats_internal
     call getmem1d(xkmx,1,nlandp,'bats_internal:xkmx')
     call getmem1d(xlai,1,nlandp,'bats_internal:xlai')
     call getmem1d(xlsai,1,nlandp,'bats_internal:xlsai')
-    call getmem1d(xrun,1,nlandp,'bats_internal:xrun')
     call getmem1d(z10fra,1,nlandp,'bats_internal:z10fra')
     call getmem1d(z1log,1,nlandp,'bats_internal:z1log')
     call getmem1d(z2fra,1,nlandp,'bats_internal:z2fra')
@@ -376,6 +372,37 @@ module mod_bats_internal
     call getmem1d(ncpr0,1,nlandp,'bats_internal:ncpr0')
     call getmem1d(cpr0,1,nlandp,'bats_internal:cpr0')
   end subroutine allocate_mod_bats_internal
-!
+
+  subroutine bats_psat(t,e)
+    implicit none
+    real(rk8) , intent(in) :: t
+    real(rk8) , intent(out) :: e
+    if ( t < tzero ) then
+      e = c1es * exp(c3ies*(t-tzero)/(t-c4ies))
+    else
+      e = c1es * exp(c3les*(t-tzero)/(t-c4les))
+    end if
+  end subroutine bats_psat
+
+  subroutine bats_satur(t,p,e,qs)
+    implicit none
+    real(rk8) , intent(in) :: t , p
+    real(rk8) , intent(out) :: e , qs
+    call bats_psat(t,e)
+    qs = ep2 * e/(p-0.378D0*e)
+  end subroutine bats_satur
+
+  subroutine bats_qsdt(t,qsdt)
+    implicit none
+    real(rk8) , intent(in) :: t
+    real(rk8) , intent(out) :: qsdt
+    if ( t < tzero ) then
+      qsdt = c3ies * (tzero-c4ies) * (d_one/(t-c4ies))**d_two
+    else
+      qsdt = c3les * (tzero-c4les) * (d_one/(t-c4les))**d_two
+    end if
+  end subroutine bats_qsdt
+
 end module mod_bats_internal
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

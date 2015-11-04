@@ -67,7 +67,7 @@ module mod_ocn_zeng
   !
   subroutine zengocndrv
     implicit none
-    real(rk8) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
+    real(rk8) :: dqh , dth , facttq , lh , q995 , qs , sh , zo , &
                  t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
     real(rk8) :: dthv , hq , zh , hu , obu , qstar , rb , xdens , &
                  th , thv , thvstar , tstar , um , visa , zot ,   &
@@ -103,13 +103,12 @@ module mod_ocn_zeng
       q995 = qv(i)
       z995 = ht(i)
       zi = max(d_two,hpbl(i))
-      psurf = sfps(i)*d_r100
       hu = z995
       zh = z995
       hq = z995
-      th = sts(i)*(d_1000/psurf)**rovcp
       ! potential T
-      dth = t995 + 0.0098D0*zh - tsurf
+      th = sts(i)*(1.0D5/sfps(i))**rovcp
+      dth = tatm(i) - tgrd(i)
       qs = pfqsat(tgrd(i),sfps(i))*0.98D0
       ! in kg/kg
       dqh = q995 - qs

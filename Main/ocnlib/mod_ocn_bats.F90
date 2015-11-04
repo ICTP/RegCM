@@ -56,7 +56,7 @@ module mod_ocn_bats
       ! Compute delt and delq
       qs = qv(i)
       qgrd = pfqsat(tgrd(i),sfps(i))
-      delt = sts(i) - tgrd(i)
+      delt = tatm(i) - tgrd(i)
       ! Specific humidities
       delq = (qs/(d_one+qs) - qgrd/(d_one+qgrd))
       ! Comnpute drag coefficient over ocean
