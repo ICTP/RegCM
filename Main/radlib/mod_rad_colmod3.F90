@@ -59,7 +59,7 @@ module mod_rad_colmod3
   real(rk8) , pointer , dimension(:) :: abv , sol
   real(rk8) , pointer , dimension(:,:) :: cld , effcld , pilnm1 , pintm1
   real(rk8) , pointer , dimension(:,:) :: clwp , emis , fice , &
-    o3mmr , o3vmr , pmidm1 , pmlnm1 , qm1 , ql1 , qi1 , qrl ,  &
+    o3vmr , pmidm1 , pmlnm1 , qm1 , ql1 , qi1 , qrl ,  &
     qrs , rei , rel , deltaz , tm1 , rh1
   real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
   real(rk8) , pointer , dimension(:,:,:) :: aermmr
@@ -123,7 +123,6 @@ module mod_rad_colmod3
       call getmem2d(clwp,1,npr,1,kz,'colmod3:clwp')
       call getmem2d(emis,1,npr,1,kz,'colmod3:emis')
       call getmem2d(fice,1,npr,1,kz,'colmod3:fice')
-      call getmem2d(o3mmr,1,npr,1,kz,'colmod3:o3mmr')
       call getmem2d(o3vmr,1,npr,1,kz,'colmod3:o3vmr')
       call getmem2d(pmidm1,1,npr,1,kz,'colmod3:pmidm1')
       call getmem2d(pmlnm1,1,npr,1,kz,'colmod3:pmlnm1')
@@ -250,7 +249,7 @@ module mod_rad_colmod3
 ! fractional cloud cover
 ! cloud liquid water path
 !
-!   NB: o3mmr and o3vmr should be dimensioned (iym1,kz) if a
+!   NB: o3vmr should be dimensioned (iym1,kz) if a
 !   different size radiation grid is used. Clashes between prgrid.h
 !   and ptrrgrid.h (they both define plngbuf) prevent us from
 !   dimensioning anything by kz in this top level crm() routine.
@@ -343,7 +342,6 @@ module mod_rad_colmod3
     clwp(:,:) = d_zero
     emis(:,:) = d_zero
     fice(:,:) = d_zero
-    o3mmr(:,:) = d_zero
     o3vmr(:,:) = d_zero
     pmidm1(:,:) = d_zero
     pmlnm1(:,:) = d_zero
@@ -838,12 +836,11 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          o3mmr(n,k) = d_half*(o3prof(j,i,k+1)+o3prof(j,i,k))
+          o3vmr(n,k) = d_half*(o3prof(j,i,k+1)+o3prof(j,i,k))*amd/amo
           n = n + 1
         end do
       end do
     end do
-    o3vmr(:,:) = o3mmr(:,:)/vmmr
     !
     ! Tracers mixing ratios
     !
