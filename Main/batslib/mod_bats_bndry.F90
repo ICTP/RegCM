@@ -434,6 +434,16 @@ module mod_bats_bndry
       rsubss = xkmxr*watr(i)**(b+d_half) * watu(i)**(b+2.5D0)
       rsubsr = xkmx1*watt(i)**(b+d_half) * watr(i)**(b+2.5D0)
       rsubst(i) = xkmx2*watt(i)**(d_two*b+d_three)
+      ! Hack : make desert / semi-desert and urban soil remove surface
+      !        moisture FASTER. Surface cracks ?
+      if ( lveg(i) == 8 ) then
+        ! This is halving the surface moisture every day
+        rsubss = (ssw(i)/2.0D0)*rsecpd
+      end if
+      if ( lveg(i) == 11 .or. lveg(i) == 21 ) then
+        ! This is halving the surface moisture every 4 days
+        rsubss = (ssw(i)/8.0D0)*rsecpd
+      end if
       !
       ! 1.32 bog
       !

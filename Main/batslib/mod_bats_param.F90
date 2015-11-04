@@ -70,7 +70,7 @@ module mod_bats_param
   ! slmo is initial surface moisture availability in fraction of one
   !
   data slmo / 0.65D0 , 0.45D0 , 0.60D0 , 0.60D0 , 0.65D0 , &
-              0.65D0 , 0.55D0 , 0.01D0 , 0.90D0 , 0.80D0 , &
+              0.65D0 , 0.55D0 , 0.10D0 , 0.90D0 , 0.80D0 , &
               0.20D0 , 0.90D0 , 0.90D0 , 1.00D0 , 1.00D0 , &
               0.50D0 , 0.50D0 , 0.65D0 , 0.60D0 , 0.60D0 , &
               0.50D0 , 0.60D0 /
