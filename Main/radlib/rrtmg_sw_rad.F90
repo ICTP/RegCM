@@ -309,7 +309,8 @@ module rrtmg_sw_rad
     !    Dimensions: (ncol,nlay)
     !fsolmon: add additional diag + aerosol radiative forcing
     real(kind=rb), intent(out) :: swddiruviflx(:,:), swddifuviflx(:,:), &! total sky downward sw flux / dif/dir/vis/pir
-                                  swddirpirflx(:,:), swddifpirflx(:,:), swdvisflx(:,:)!(ncol,nlay) (W/m2)
+                                  swddirpirflx(:,:), swddifpirflx(:,:), &
+                                  swdvisflx(:,:)!(ncol,nlay) (W/m2)
 
     real(kind=rb), intent(out) :: aerfo(:), aerfos(:),asaerfo(:),asaerfos(:)   ! Clear sky and all sky  shortwave radiative forcing (toa and srf) Dimensions: (ncol)
 
@@ -593,17 +594,15 @@ module rrtmg_sw_rad
       end do
 
       ! Clouds
-      if (icld.eq.0) then
-
+      if ( icld.eq.0 ) then
         zcldfmc(:,:) = 0._rb
         ztaucmc(:,:) = 0._rb
         ztaormc(:,:) = 0._rb
         zasycmc(:,:) = 0._rb
         zomgcmc(:,:) = 1._rb
-
-      else if (icld.ge.1) then
-        do i=1,nlayers
-          do ig=1,ngptsw
+      else if ( icld.ge.1 ) then
+        do i = 1 , nlayers
+          do ig = 1 , ngptsw
             zcldfmc(i,ig) = cldfmc(ig,i)
             ztaucmc(i,ig) = taucmc(ig,i)
             ztaormc(i,ig) = taormc(ig,i)
@@ -615,7 +614,7 @@ module rrtmg_sw_rad
 
       ! Aerosol
       ! IAER = 0: no aerosols
-      if (iaer.eq.0) then
+      if ( iaer.eq.0 ) then
 
         ztaua(:,:) = 0._rb
         zasya(:,:) = 0._rb
@@ -624,7 +623,7 @@ module rrtmg_sw_rad
         ! IAER = 6: Use ECMWF six aerosol types. See rrsw_aer.f90 for details.
         ! Input aerosol optical thickness at 0.55 micron for each aerosol type (ecaer),
         ! or set manually here for each aerosol and layer.
-      else if (iaer.eq.6) then
+      else if ( iaer.eq.6 ) then
 
         !            do i = 1, nlayers
         !               do ia = 1, naerec
@@ -653,9 +652,10 @@ module rrtmg_sw_rad
           end do
         end do
         ! IAER=10: Direct specification of aerosol optical properties from GCM
-      else if (iaer.eq.10) then
-!FAB
-! initialise at zero before using interactive aerosol in function of rad.forcing options
+      else if ( iaer.eq.10 ) then
+        ! FAB
+        ! initialise at zero before using interactive aerosol in function
+        ! of rad.forcing options
          ztaua(:,:) = 0._rb
          zasya(:,:) = 0._rb
          zomga(:,:) = 1._rb
@@ -669,9 +669,9 @@ module rrtmg_sw_rad
       end if
 
       !FAB add aerosol radforcing / refine with idirect criteria
-      if ( idirect == 0 .or. .not.lradfor ) then
+      if ( idirect == 0 .or. .not. lradfor ) then
         nsswcall = 1
-      elseif (idirect > 0 .and. lradfor) then
+      elseif (idirect > 0 .and. lradfor ) then
         nsswcall = 2
       end if
 
@@ -679,7 +679,7 @@ module rrtmg_sw_rad
       do n = 1 , nsswcall
         !
         if ( idirect == 1 ) then
-          if ( n == 1 .and. lradfor) then
+          if ( n == 1 .and. lradfor ) then
             do i = 1 ,nlayers
               do ib = 1 ,nbndsw
                 ztaua(i,ib) = taua(i,ib)
@@ -687,7 +687,7 @@ module rrtmg_sw_rad
                 zomga(i,ib) = ssaa(i,ib)
               end do
             end do
-          else if ( n == 2 .or. .not.lradfor) then
+          else if ( n == 2 .or. .not. lradfor ) then
             ztaua(:,:) = 0._rb
             zasya(:,:) = 0._rb
             zomga(:,:) = 1._rb
@@ -697,7 +697,7 @@ module rrtmg_sw_rad
             ztaua(:,:) = 0._rb
             zasya(:,:) = 0._rb
             zomga(:,:) = 1._rb
-          else if ( n == 2 .or. .not.lradfor ) then
+          else if ( n == 2 .or. .not. lradfor ) then
             do i = 1 ,nlayers
               do ib = 1 ,nbndsw
                 ztaua(i,ib) = taua(i,ib)
@@ -735,7 +735,7 @@ module rrtmg_sw_rad
              zuvfd, zuvcd, znifd, znicd, zbbfddir, zbbcddir,           &
              zuvfddir, zuvcddir, znifddir, znicddir, zvsfd )
 
-        if ( idirect == 1 .and. lradfor) then
+        if ( idirect == 1 .and. lradfor ) then
           ! first call save the NET flux in  aerfo
           if ( n == 1 ) then
             aerfo(iplon) = zbbcd(nlayers+1) -  zbbcu(nlayers+1)
@@ -753,13 +753,13 @@ module rrtmg_sw_rad
             asaerfos(iplon) = asaerfos(iplon) - &
               ( zbbfd(1) -zbbfu(1))
           end if
-        else if ( idirect == 2 .and. lradfor)  then
+        else if ( idirect == 2 .and. lradfor )  then
           if ( n == 1 ) then
             aerfo (iplon) =    zbbcd(nlayers+1) -  zbbcu(nlayers+1)
             aerfos (iplon) =   zbbcd(1) -  zbbcu(1)
             asaerfo (iplon) =    zbbfd(nlayers+1) -zbbfu(nlayers+1)
             asaerfos (iplon) =   zbbfd(1) -  zbbfu(1)
-          else if (n==2) then
+          else if ( n == 2 ) then
             ! calculate rad. for (with aer- without)
             aerfo(iplon) = (zbbcd(nlayers+1) - zbbcu(nlayers+1)) - &
               aerfo(iplon)
@@ -773,7 +773,7 @@ module rrtmg_sw_rad
           aerfos(iplon) = 0._rb
           asaerfo(iplon) = 0._rb
           asaerfos(iplon) = 0._rb
-        end if 
+        end if
       end do ! end loop on sw call
 
       ! Transfer up and down, clear and total sky fluxes to output arrays.

@@ -2690,7 +2690,6 @@ module mod_ncout
             ncattribute_integer('rrtm_mcica_stochastic_cloud',imcica))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('rrtm_mcica_stochastic_generator',irng))
-
         end if
         if ( ichem == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

@@ -289,10 +289,11 @@
       real(kind=rb), intent(out) :: swdflxc(:,:)      ! Clear sky shortwave downward flux (W/m2)
                                                       !    Dimensions: (ncol,nlay+1)
       real(kind=rb), intent(out) :: swhrc(:,:)        ! Clear sky shortwave radiative heating rate (K/d)
-      
+
      !fsolmon: add additional diag  +  add aerosol radiative forcing
       real(kind=rb), intent(out) :: swddiruviflx(:,:), swddifuviflx(:,:), &! total sky downward sw flux / dif/dir/vis/pir
-                                    swddirpirflx(:,:), swddifpirflx(:,:), swdvisflx(:,:)!(ncol,nlay) (W/m2)
+                                    swddirpirflx(:,:), swddifpirflx(:,:), &
+                                    swdvisflx(:,:)!(ncol,nlay) (W/m2)
 
       real(kind=rb), intent(out) :: aerfo(:), aerfos(:),asaerfo(:),asaerfos(:)   ! Clear sky and all sky  shortwave radiative forcing (toa and srf)  Dimensions: (ncol)
 
@@ -437,7 +438,7 @@
 !      real(kind=rb) :: zuvcu(nlay+2)         ! temporary clear sky upward UV shortwave flux (w/m2)
 !      real(kind=rb) :: zuvcd(nlay+2)         ! temporary clear sky downward UV shortwave flux (w/m2)
 !      real(kind=rb) :: zvsfu(nlay+2)         ! temporary upward visible shortwave flux (w/m2)
-!FAB regcm interface 
+!FAB regcm interface
        real(kind=rb) :: zvsfd(nlay+2)         ! temporary downward visible shortwave flux (w/m2)
 !      real(kind=rb) :: zvscu(nlay+2)         ! temporary clear sky upward visible shortwave flux (w/m2)
 !      real(kind=rb) :: zvscd(nlay+2)         ! temporary clear sky downward visible shortwave flux (w/m2)
@@ -486,7 +487,7 @@
 
 !FAB set iaer to 10 for interactivity
     iaer = 10
-    
+
 ! Set idelm to select between delta-M scaled or unscaled output direct and diffuse fluxes
 ! NOTE: total downward fluxes are always delta scaled
 ! idelm = 0, output direct and diffuse flux components are not delta scaled
@@ -529,11 +530,10 @@
 
 !  Without McICA, SW calculation is limited to clear or fully overcast conditions.
 !  Stop model if partial cloudiness is present.
-         print*,'cldfr',cldfr
          do i = 1, nlayers
-            if (cldfrac(i).gt.zepsec .and. cldfrac(i).lt.oneminus) then
-               stop 'PARTIAL CLOUD NOT ALLOWED'
-            endif
+           if ( cldfrac(i).gt.zepsec .and. cldfrac(i).lt.oneminus ) then
+              stop 'PARTIAL CLOUD NOT ALLOWED'
+           endif
          enddo
          call cldprop_sw(nlayers, inflag, iceflag, liqflag, cldfrac, &
                          tauc, ssac, asmc, fsfc, ciwp, clwp, rei, rel, &
@@ -574,7 +574,6 @@
             albdir(ib) = asdir(iplon)
             albdif(ib) = asdif(iplon)
          enddo
-
 
 ! Clouds
          if (icld.eq.0) then
@@ -649,110 +648,110 @@
 
          endif
 
-        !FAB add aerosol radforcing / refine with idirect criteria
-        if ( idirect == 0 ) then
-          nsswcall = 1
-        else
-          nsswcall = 2
-        end if
+         !FAB add aerosol radforcing / refine with idirect criteria
+         if ( idirect == 0 ) then
+           nsswcall = 1
+         else
+           nsswcall = 2
+         end if
 
-! Call the 2-stream radiation transfer model
+         ! Call the 2-stream radiation transfer model
 
-     do n = 1 , nsswcall
-        !
-        if ( idirect == 1 ) then
-          if ( n == 1 ) then
-            do i = 1 ,nlayers
-              do ib = 1 ,nbndsw
-                ztaua(i,ib) = taua(i,ib)
-                zasya(i,ib) = asma(i,ib)
-                zomga(i,ib) = ssaa(i,ib)
-              end do
-            end do
-          else if ( n == 2 ) then
-            ztaua(:,:) = 0._rb
-            zasya(:,:) = 0._rb
-            zomga(:,:) = 1._rb
-          end if
-        else if ( idirect == 0 .or.  idirect == 2 ) then
-          if ( n == 1 ) then
-            ztaua(:,:) = 0._rb
-            zasya(:,:) = 0._rb
-            zomga(:,:) = 1._rb
-          else if ( n == 2 ) then
-            do i = 1 ,nlayers
-              do ib = 1 ,nbndsw
-                ztaua(i,ib) = taua(i,ib)
-                zasya(i,ib) = asma(i,ib)
-                zomga(i,ib) = ssaa(i,ib)
-              end do
-            end do
-          end if
-        end if
+         do n = 1 , nsswcall
+         !
+           if ( idirect == 1 ) then
+             if ( n == 1 ) then
+               do i = 1 ,nlayers
+                 do ib = 1 ,nbndsw
+                   ztaua(i,ib) = taua(i,ib)
+                   zasya(i,ib) = asma(i,ib)
+                   zomga(i,ib) = ssaa(i,ib)
+                 end do
+               end do
+             else if ( n == 2 ) then
+               ztaua(:,:) = 0._rb
+               zasya(:,:) = 0._rb
+               zomga(:,:) = 1._rb
+             end if
+           else if ( idirect == 0 .or. idirect == 2 ) then
+             if ( n == 1 ) then
+               ztaua(:,:) = 0._rb
+               zasya(:,:) = 0._rb
+               zomga(:,:) = 1._rb
+             else if ( n == 2 ) then
+               do i = 1 ,nlayers
+                 do ib = 1 ,nbndsw
+                   ztaua(i,ib) = taua(i,ib)
+                   zasya(i,ib) = asma(i,ib)
+                   zomga(i,ib) = ssaa(i,ib)
+                 end do
+               end do
+             end if
+           end if
 
-         do i=1,nlayers+1
-            zbbcu(i) = 0._rb
-            zbbcd(i) = 0._rb
-            zbbfu(i) = 0._rb
-            zbbfd(i) = 0._rb
-            zbbcddir(i) = 0._rb
-            zbbfddir(i) = 0._rb
-            zuvcd(i) = 0._rb
-            zuvfd(i) = 0._rb
-            zuvcddir(i) = 0._rb
-            zuvfddir(i) = 0._rb
-            znicd(i) = 0._rb
-            znifd(i) = 0._rb
-            znicddir(i) = 0._rb
-            znifddir(i) = 0._rb
-            zvsfd(i) = 0._rb
-         enddo
+           do i = 1 , nlayers+1
+             zbbcu(i) = 0._rb
+             zbbcd(i) = 0._rb
+             zbbfu(i) = 0._rb
+             zbbfd(i) = 0._rb
+             zbbcddir(i) = 0._rb
+             zbbfddir(i) = 0._rb
+             zuvcd(i) = 0._rb
+             zuvfd(i) = 0._rb
+             zuvcddir(i) = 0._rb
+             zuvfddir(i) = 0._rb
+             znicd(i) = 0._rb
+             znifd(i) = 0._rb
+             znicddir(i) = 0._rb
+             znifddir(i) = 0._rb
+             zvsfd(i) = 0._rb
+           end do
 
-         call spcvrt_sw &
-            (nlayers, istart, iend, icpr, idelm, iout, albdif, albdir, &
-             cldfrac, ztauc, zasyc, zomgc, ztaucorig, ztaua, zasya,    &
-             zomga, cossza, adjflux, laytrop, jp, jt, jt1, colch4,     &
-             colco2, colh2o, colmol, colo2, colo3, fac00, fac01,       &
-             fac10, fac11, selffac, selffrac, indself, forfac,         &
-             forfrac, indfor, zbbfd, zbbfu, zbbcd, zbbcu, zuvfd,       &
-             zuvcd, znifd, znicd, zbbfddir, zbbcddir, zuvfddir,        &
-             zuvcddir, znifddir, znicddir, zvsfd )
+           call spcvrt_sw &
+              (nlayers, istart, iend, icpr, idelm, iout, albdif, albdir, &
+               cldfrac, ztauc, zasyc, zomgc, ztaucorig, ztaua, zasya,    &
+               zomga, cossza, adjflux, laytrop, jp, jt, jt1, colch4,     &
+               colco2, colh2o, colmol, colo2, colo3, fac00, fac01,       &
+               fac10, fac11, selffac, selffrac, indself, forfac,         &
+               forfrac, indfor, zbbfd, zbbfu, zbbcd, zbbcu, zuvfd,       &
+               zuvcd, znifd, znicd, zbbfddir, zbbcddir, zuvfddir,        &
+               zuvcddir, znifddir, znicddir, zvsfd )
 
-       if ( idirect == 1 ) then
-          ! first call save the NET flux in  aerfo
-          if ( n == 1 ) then
-            aerfo(iplon) = zbbcd(nlayers+1) -  zbbcu(nlayers+1)
-            aerfos(iplon) = zbbcd(1) -  zbbcu(1)
-            asaerfo(iplon) = zbbfd(nlayers+1) -  zbbfu(nlayers+1)
-            asaerfos(iplon) = zbbfd(1) -  zbbfu(1)
-          else if ( n == 2 ) then
-            ! calculate rad. for (with aer - without)
-            aerfo(iplon) = aerfo(iplon) - &
-              ( zbbcd(nlayers+1) -  zbbcu(nlayers+1))
-            aerfos(iplon) = aerfos(iplon) - &
-              ( zbbcd(1) -  zbbcu(1))
-            asaerfo(iplon) = asaerfo(iplon) - &
-              ( zbbfd(nlayers+1)-  zbbfu(nlayers+1))
-            asaerfos(iplon) = asaerfos(iplon) - &
-              ( zbbfd(1) -zbbfu(1))
-          end if
-        else if ( idirect == 2 )  then
-          if ( n == 1 ) then
-            aerfo (iplon) =    zbbcd(nlayers+1) -  zbbcu(nlayers+1)
-            aerfos (iplon) =   zbbcd(1) -  zbbcu(1)
-            asaerfo (iplon) =    zbbfd(nlayers+1) -zbbfu(nlayers+1)
-            asaerfos (iplon) =   zbbfd(1) -  zbbfu(1)
-          else if (n==2) then
-            ! calculate rad. for (with aer- without)
-            aerfo(iplon) = (zbbcd(nlayers+1) - zbbcu(nlayers+1)) - &
-              aerfo(iplon)
-            aerfos(iplon) = (zbbcd(1) - zbbcu(1)) - aerfos(iplon)
-            asaerfo(iplon) = (zbbfd(nlayers+1) - zbbfu(nlayers+1)) - &
-              asaerfo(iplon)
-            asaerfos(iplon) = (zbbfd(1) - zbbfu(1)) -asaerfos(iplon)
-          end if
-        end if
-      end do ! end loop on nsw call
+           if ( idirect == 1 ) then
+             ! first call save the NET flux in  aerfo
+             if ( n == 1 ) then
+               aerfo(iplon) = zbbcd(nlayers+1) -  zbbcu(nlayers+1)
+               aerfos(iplon) = zbbcd(1) -  zbbcu(1)
+               asaerfo(iplon) = zbbfd(nlayers+1) -  zbbfu(nlayers+1)
+               asaerfos(iplon) = zbbfd(1) -  zbbfu(1)
+             else if ( n == 2 ) then
+               ! calculate rad. for (with aer - without)
+               aerfo(iplon) = aerfo(iplon) - &
+                 ( zbbcd(nlayers+1) -  zbbcu(nlayers+1))
+               aerfos(iplon) = aerfos(iplon) - &
+                 ( zbbcd(1) -  zbbcu(1))
+               asaerfo(iplon) = asaerfo(iplon) - &
+                 ( zbbfd(nlayers+1)-  zbbfu(nlayers+1))
+               asaerfos(iplon) = asaerfos(iplon) - &
+                 ( zbbfd(1) -zbbfu(1))
+             end if
+           else if ( idirect == 2 )  then
+             if ( n == 1 ) then
+               aerfo (iplon) =    zbbcd(nlayers+1) -  zbbcu(nlayers+1)
+               aerfos (iplon) =   zbbcd(1) -  zbbcu(1)
+               asaerfo (iplon) =    zbbfd(nlayers+1) -zbbfu(nlayers+1)
+               asaerfos (iplon) =   zbbfd(1) -  zbbfu(1)
+             else if ( n == 2 ) then
+               ! calculate rad. for (with aer- without)
+               aerfo(iplon) = (zbbcd(nlayers+1) - zbbcu(nlayers+1)) - &
+                 aerfo(iplon)
+               aerfos(iplon) = (zbbcd(1) - zbbcu(1)) - aerfos(iplon)
+               asaerfo(iplon) = (zbbfd(nlayers+1) - zbbfu(nlayers+1)) - &
+                 asaerfo(iplon)
+               asaerfos(iplon) = (zbbfd(1) - zbbfu(1)) -asaerfos(iplon)
+             end if
+           end if
+         end do ! end loop on nsw call
 
 ! Transfer up and down, clear and total sky fluxes to output arrays.
 ! Vertical indexing goes from bottom to top; reverse here for GCM if necessary.

@@ -463,7 +463,7 @@ module mod_rad_colmod3
 
     integer(ik4) :: n , k , nt
     real(rk8) :: pnrml , weight , rhoa , nc , aerc , lwc , kparam
-    real(rk8) :: tpara
+    ! real(rk8) :: tpara
     ! reimax - maximum ice effective radius
     real(rk8) , parameter :: reimax = 30.0D0
     ! rirnge - range of ice radii (reimax - 10 microns)
@@ -485,14 +485,28 @@ module mod_rad_colmod3
     do k = 1 , kz
       do n = 1 , npr
         ! Define liquid drop size
-        tpara = min(d_one,max(d_zero,(minus10-tm1(n,k))*0.05D0))
         ! rel : liquid effective drop size (microns)
+        !
+        ! Global distribution of Cloud Droplet Effective Radius from
+        ! POLDER polarization measurements
+        ! On average, droplets are 2 to 3 micron smaller overland than over
+        ! the ocean, but the smaller droplets are found over highly
+        ! polluted regions and in areas affected by smoke from biomass
+        ! burning activity. Largest droplets are found in remote tropical
+        ! oceans, away from polarized reflectance of liquid clouds.
+        ! Toward the poles, for colder temperature, large droplets freeze
+        ! and only the smaller ones are kept liquid.
+        !
+        ! tpara = min(d_one,max(d_zero,(minus10-tm1(n,k))*0.05D0))
+        !
         if ( ioro(n) == 0 ) then
           ! Effective liquid radius over ocean and sea ice
-          rel(n,k) = 7.0D0 + 5.0D0 * tpara
+          ! rel(n,k) = 7.0D0 + 5.0D0 * tpara
+          rel(n,k) = 11.0D0
         else
           ! Effective liquid radius over land
-          rel(n,k) = 6.0D0 + 5.0D0 * tpara
+          ! rel(n,k) = 6.0D0 + 5.0D0 * tpara
+          rel(n,k) = 8.50D0
         end if
         ! Determine rei as function of normalized pressure
         pnrml = pmidm1(n,k)/ps(n)

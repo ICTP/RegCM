@@ -39,7 +39,7 @@
              fac10, fac11, selffac, selffrac, indself, forfac,       &
              forfrac, indfor, pbbfd, pbbfu, pbbcd, pbbcu, puvfd,     &
              puvcd, pnifd, pnicd, pbbfddir, pbbcddir, puvfddir,      &
-             puvcddir, pnifddir, pnicddir,pvsfd)
+             puvcddir, pnifddir, pnicddir, pvsfd)
 ! ---------------------------------------------------------------------------
 !
 ! Purpose: Contains spectral loop to compute the shortwave radiative fluxes,
@@ -583,8 +583,9 @@
                      puvcddir(ikl) = puvcddir(ikl) + zincflx(iw)*ztdbtc(jk)
                   endif
 !FAB
-                 if(ibm==10) pvsfd(ikl) = pvsfd(ikl) + zincflx(iw)*zfd(jk,iw)
-
+                  if ( ibm == 10 ) then
+                    pvsfd(ikl) = pvsfd(ikl) + zincflx(iw)*zfd(jk,iw)
+                  end if
 
 ! Accumulate direct fluxes for near-IR bands
                else if (ibm == 14 .or. ibm <= 9) then
