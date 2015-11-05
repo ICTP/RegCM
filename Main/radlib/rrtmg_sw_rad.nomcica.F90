@@ -76,7 +76,7 @@
 !------------------------------------------------------------------
 
       subroutine rrtmg_sw_nomcica &
-            (ncol    ,nlay    ,icld    , &
+            (ncol    ,nlay    ,icld    , idirect,  &
              play    ,plev    ,tlay    ,tlev    ,tsfc    , &
              h2ovmr  ,o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr, &
              asdir   ,asdif   ,aldir   ,aldif   , &
@@ -85,7 +85,10 @@
              taucld  ,ssacld  ,asmcld  ,fsfcld  , &
              cicewp  ,cliqwp  ,reice   ,reliq   , &
              tauaer  ,ssaaer  ,asmaer  ,ecaer   , &
-             swuflx  ,swdflx  ,swhr    ,swuflxc ,swdflxc ,swhrc)
+             swuflx  ,swdflx  ,swhr    ,swuflxc ,swdflxc ,swhrc, &
+             swddiruviflx, swddifuviflx ,&
+             swddirpirflx, swddifpirflx , swdvisflx, &
+             aerfo,aerfos,asaerfo,asaerfos)
 
 ! ------- Description -------
 
@@ -187,6 +190,8 @@
                                                       !    1: Random
                                                       !    2: Maximum/random
                                                       !    3: Maximum
+      integer(kind=im), intent(inout) :: idirect      ! FAB added for RegCM, control on aer rad for
+                                                    ! calculation
 
       real(kind=rb), intent(in) :: play(:,:)          ! Layer pressures (hPa, mb)
                                                       !    Dimensions: (ncol,nlay)
@@ -284,7 +289,12 @@
       real(kind=rb), intent(out) :: swdflxc(:,:)      ! Clear sky shortwave downward flux (W/m2)
                                                       !    Dimensions: (ncol,nlay+1)
       real(kind=rb), intent(out) :: swhrc(:,:)        ! Clear sky shortwave radiative heating rate (K/d)
-                                                      !    Dimensions: (ncol,nlay)
+      
+     !fsolmon: add additional diag  +  add aerosol radiative forcing
+      real(kind=rb), intent(out) :: swddiruviflx(:,:), swddifuviflx(:,:), &! total sky downward sw flux / dif/dir/vis/pir
+                                    swddirpirflx(:,:), swddifpirflx(:,:), swdvisflx(:,:)!(ncol,nlay) (W/m2)
+
+      real(kind=rb), intent(out) :: aerfo(:), aerfos(:),asaerfo(:),asaerfos(:)   ! Clear sky and all sky  shortwave radiative forcing (toa and srf)  Dimensions: (ncol)
 
 ! ----- Local -----
 
@@ -307,6 +317,8 @@
 !      integer(kind=im) :: k                   ! layer loop index
 !      integer(kind=im) :: ims                 ! value for changing mcica permute seed
 !      integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
+!FAB
+      integer(kind=im) :: n , nsswcall        ! number of sw call for rad for. calculation (RegCM option)
 
       real(kind=rb) :: zepsec, zepzen         ! epsilon
       real(kind=rb) :: zdpgcp                 ! flux to heating conversion ratio
@@ -425,7 +437,8 @@
 !      real(kind=rb) :: zuvcu(nlay+2)         ! temporary clear sky upward UV shortwave flux (w/m2)
 !      real(kind=rb) :: zuvcd(nlay+2)         ! temporary clear sky downward UV shortwave flux (w/m2)
 !      real(kind=rb) :: zvsfu(nlay+2)         ! temporary upward visible shortwave flux (w/m2)
-!      real(kind=rb) :: zvsfd(nlay+2)         ! temporary downward visible shortwave flux (w/m2)
+!FAB regcm interface 
+       real(kind=rb) :: zvsfd(nlay+2)         ! temporary downward visible shortwave flux (w/m2)
 !      real(kind=rb) :: zvscu(nlay+2)         ! temporary clear sky upward visible shortwave flux (w/m2)
 !      real(kind=rb) :: zvscd(nlay+2)         ! temporary clear sky downward visible shortwave flux (w/m2)
 !      real(kind=rb) :: znifu(nlay+2)         ! temporary upward near-IR shortwave flux (w/m2)
@@ -470,8 +483,10 @@
 !           input aerosol optical depth at 0.55 microns for each aerosol type (ecaer)
 ! iaer = 10, input total aerosol optical depth, single scattering albedo
 !            and asymmetry parameter (tauaer, ssaaer, asmaer) directly
-      iaer = 0
 
+!FAB set iaer to 10 for interactivity
+    iaer = 10
+    
 ! Set idelm to select between delta-M scaled or unscaled output direct and diffuse fluxes
 ! NOTE: total downward fluxes are always delta scaled
 ! idelm = 0, output direct and diffuse flux components are not delta scaled
@@ -514,7 +529,7 @@
 
 !  Without McICA, SW calculation is limited to clear or fully overcast conditions.
 !  Stop model if partial cloudiness is present.
-
+         print*,'cldfr',cldfr
          do i = 1, nlayers
             if (cldfrac(i).gt.zepsec .and. cldfrac(i).lt.oneminus) then
                stop 'PARTIAL CLOUD NOT ALLOWED'
@@ -634,8 +649,46 @@
 
          endif
 
+        !FAB add aerosol radforcing / refine with idirect criteria
+        if ( idirect == 0 ) then
+          nsswcall = 1
+        else
+          nsswcall = 2
+        end if
 
 ! Call the 2-stream radiation transfer model
+
+     do n = 1 , nsswcall
+        !
+        if ( idirect == 1 ) then
+          if ( n == 1 ) then
+            do i = 1 ,nlayers
+              do ib = 1 ,nbndsw
+                ztaua(i,ib) = taua(i,ib)
+                zasya(i,ib) = asma(i,ib)
+                zomga(i,ib) = ssaa(i,ib)
+              end do
+            end do
+          else if ( n == 2 ) then
+            ztaua(:,:) = 0._rb
+            zasya(:,:) = 0._rb
+            zomga(:,:) = 1._rb
+          end if
+        else if ( idirect == 0 .or.  idirect == 2 ) then
+          if ( n == 1 ) then
+            ztaua(:,:) = 0._rb
+            zasya(:,:) = 0._rb
+            zomga(:,:) = 1._rb
+          else if ( n == 2 ) then
+            do i = 1 ,nlayers
+              do ib = 1 ,nbndsw
+                ztaua(i,ib) = taua(i,ib)
+                zasya(i,ib) = asma(i,ib)
+                zomga(i,ib) = ssaa(i,ib)
+              end do
+            end do
+          end if
+        end if
 
          do i=1,nlayers+1
             zbbcu(i) = 0._rb
@@ -652,6 +705,7 @@
             znifd(i) = 0._rb
             znicddir(i) = 0._rb
             znifddir(i) = 0._rb
+            zvsfd(i) = 0._rb
          enddo
 
          call spcvrt_sw &
@@ -662,7 +716,43 @@
              fac10, fac11, selffac, selffrac, indself, forfac,         &
              forfrac, indfor, zbbfd, zbbfu, zbbcd, zbbcu, zuvfd,       &
              zuvcd, znifd, znicd, zbbfddir, zbbcddir, zuvfddir,        &
-             zuvcddir, znifddir, znicddir)
+             zuvcddir, znifddir, znicddir, zvsfd )
+
+       if ( idirect == 1 ) then
+          ! first call save the NET flux in  aerfo
+          if ( n == 1 ) then
+            aerfo(iplon) = zbbcd(nlayers+1) -  zbbcu(nlayers+1)
+            aerfos(iplon) = zbbcd(1) -  zbbcu(1)
+            asaerfo(iplon) = zbbfd(nlayers+1) -  zbbfu(nlayers+1)
+            asaerfos(iplon) = zbbfd(1) -  zbbfu(1)
+          else if ( n == 2 ) then
+            ! calculate rad. for (with aer - without)
+            aerfo(iplon) = aerfo(iplon) - &
+              ( zbbcd(nlayers+1) -  zbbcu(nlayers+1))
+            aerfos(iplon) = aerfos(iplon) - &
+              ( zbbcd(1) -  zbbcu(1))
+            asaerfo(iplon) = asaerfo(iplon) - &
+              ( zbbfd(nlayers+1)-  zbbfu(nlayers+1))
+            asaerfos(iplon) = asaerfos(iplon) - &
+              ( zbbfd(1) -zbbfu(1))
+          end if
+        else if ( idirect == 2 )  then
+          if ( n == 1 ) then
+            aerfo (iplon) =    zbbcd(nlayers+1) -  zbbcu(nlayers+1)
+            aerfos (iplon) =   zbbcd(1) -  zbbcu(1)
+            asaerfo (iplon) =    zbbfd(nlayers+1) -zbbfu(nlayers+1)
+            asaerfos (iplon) =   zbbfd(1) -  zbbfu(1)
+          else if (n==2) then
+            ! calculate rad. for (with aer- without)
+            aerfo(iplon) = (zbbcd(nlayers+1) - zbbcu(nlayers+1)) - &
+              aerfo(iplon)
+            aerfos(iplon) = (zbbcd(1) - zbbcu(1)) - aerfos(iplon)
+            asaerfo(iplon) = (zbbfd(nlayers+1) - zbbfu(nlayers+1)) - &
+              asaerfo(iplon)
+            asaerfos(iplon) = (zbbfd(1) - zbbfu(1)) -asaerfos(iplon)
+          end if
+        end if
+      end do ! end loop on nsw call
 
 ! Transfer up and down, clear and total sky fluxes to output arrays.
 ! Vertical indexing goes from bottom to top; reverse here for GCM if necessary.
@@ -680,9 +770,13 @@
 !  UV/visible direct/diffuse fluxes
             dirdnuv(i) = zuvfddir(i)
             difdnuv(i) = zuvfd(i) - dirdnuv(i)
+            swddiruviflx(iplon,i) =  dirdnuv(i)
+            swddifuviflx(iplon,i) =  difdnuv(i)
 !  Near-IR direct/diffuse fluxes
             dirdnir(i) = znifddir(i)
             difdnir(i) = znifd(i) - dirdnir(i)
+ ! FAB : Vis down flx
+            swdvisflx(iplon,i) = zvsfd(i)
          enddo
 
 !  Total and clear sky net fluxes

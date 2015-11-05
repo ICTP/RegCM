@@ -274,11 +274,13 @@ module mod_rrtmg_driver
     integer(ik4) , intent(in) :: iyear
     logical , intent(in) :: lout
     integer(ik4) :: k , kj , n , i , j
-
+    logical :: lradfor 
     ! from water path and cloud radius / tauc_LW is not requested
     tauc_lw(:,:,:) = dlowval
-    call prep_dat_rrtm(m2r,iyear)
+    call prep_dat_rrtm(m2r,iyear) 
 
+    lradfor = (ktau == 0 .or. mod(ktau+1,ntrad*nradfo) == 0)
+   
     !
     ! Call to the shortwave radiation code as soon one element of czen is > 0.
     !
@@ -294,15 +296,15 @@ module mod_rrtmg_driver
           n = n + 1
         end do
       end do
-      if ( irng >= 0 ) then
-        ! generates cloud properties:
+      if (imcica == 1 ) then
+              ! generates cloud properties:
         permuteseed = permuteseed+mypid+ngptlw
         if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
         call mcica_subcol_sw(npr,kth,icld,permuteseed,irng,play,   &
                              cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc,fsfc, &
                              cldfmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,    &
                              taucmcl,ssacmcl,asmcmcl,fsfcmcl)
-        call rrtmg_sw(npr,kth,icld,idirect,play,plev,tlay,tlev, &
+        call rrtmg_sw(npr,kth,icld,lradfor,idirect,play,plev,tlay,tlev, &
                       tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,   &
                       o2vmr,asdir,asdif,aldir,aldif,czen,eccf,  &
                       0,solcon,inflgsw,iceflgsw,liqflgsw,       &
@@ -313,7 +315,7 @@ module mod_rrtmg_driver
                       swddifuviflx,swddirpirflx,swddifpirflx,   &
                       swdvisflx,aeradfo,aeradfos,asaeradfo,asaeradfos)
       else
-        call rrtmg_sw_nomcica(npr,kth,icld,play,plev,tlay,tlev, &
+        call rrtmg_sw_nomcica(npr,kth,icld,idirect,play,plev,tlay,tlev, &
                               tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,  &
                               n2ovmr,o2vmr,asdir,asdif,aldir,   &
                               aldif,czen,eccf,0,solcon,inflgsw, &
@@ -321,14 +323,18 @@ module mod_rrtmg_driver
                               ssac,asmc,fsfc,ciwp,clwp,rei,rel, &
                               tauaer,ssaaer,asmaer,ecaer,       &
                               swuflx,swdflx,swhr,swuflxc,       &
-                              swdflxc,swhrc)
+                              swdflxc,swhrc,swddiruviflx,      &
+                              swddifuviflx,swddirpirflx,        &
+                              swddifpirflx,swdvisflx,           &
+                              aeradfo,aeradfos,                 & 
+                              asaeradfo,asaeradfos)
       end if
     else
       swuflx(:,:) = d_zero
       swdflx(:,:) = d_zero
       swuflxc(:,:) = d_zero
       swdflxc(:,:) = d_zero
-      swhr(:,:) = d_zero
+      swhr(:,:) = d_zero        !
       swhrc(:,:) = d_zero
       swdvisflx(:,:) = d_zero
       swddiruviflx(:,:) = d_zero
@@ -342,7 +348,8 @@ module mod_rrtmg_driver
     end if ! end shortwave call
 
     ! LW call :
-    if ( irng >= 0 ) then
+    if ( imcica == 1 ) then
+    
       permuteseed = permuteseed+mypid+ngptsw
       if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
       call mcica_subcol_lw(npr,kth,icld,permuteseed,irng,play,  &
@@ -350,7 +357,7 @@ module mod_rrtmg_driver
                            ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
                            taucmcl_lw)
 
-      call rrtmg_lw(npr,kth,icld,0,idirect,play,plev,tlay,tlev,    &
+      call rrtmg_lw(npr,kth,icld,0,lradfor, idirect,play,plev,tlay,tlev,    &
                     tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,  &
                     cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,  &
                     inflglw,iceflglw,liqflglw,cldfmcl_lw,          &
@@ -893,7 +900,7 @@ module mod_rrtmg_driver
 
     outtaucl(:,:,:) = d_zero
     outtauci(:,:,:) = d_zero
-
+          
     if ( inflgsw == 0 ) then
       do ns = 1 , nbndsw
         !
@@ -912,6 +919,7 @@ module mod_rrtmg_driver
         dbarii = dbari(indsl(ns))
         ebarii = ebari(indsl(ns))
         fbarii = fbari(indsl(ns))
+        
         do k = 1 , kz
           do n = 1 , npr
             if ( clwp(n,k) < dlowval .and. ciwp(n,k) < dlowval) cycle
@@ -924,6 +932,11 @@ module mod_rrtmg_driver
             tmp2i = d_one - cbarii - dbarii*rei(n,k)
             tmp3i = fbarii*rei(n,k)
             !
+            ! if McICA approach is used (irng = 0, or 1) , 
+            ! cloud optical depth (extinction) is in cloud quantity. 
+            ! if not, RRTM receive grid levl cloud optical depth and optical properties, 
+            ! as in the standard scheme 
+            if (imcica==1) then 
             ! cloud optical properties extinction optical depth
             !              IN_CLOUD quantities !
             !
@@ -931,23 +944,58 @@ module mod_rrtmg_driver
             tauxci(n,k) = ciwp(n,k)*tmp1i
             outtaucl(n,k,indsl(ns)) = outtaucl(n,k,indsl(ns)) + tauxcl(n,k)
             outtauci(n,k,indsl(ns)) = outtauci(n,k,indsl(ns)) + tauxci(n,k)
+
+            else
+            !
+            ! use here the same parametrisation as in mod_radiation / standard scheme
+            ! Grid level quantity  !
+            ! ciwp and clwp are already calculated 
+            !  
+            tauxcl(n,k) = clwp(n,k)*tmp1l*cldf(n,k) / &
+                          (d_one+(d_one-0.85D0)*(d_one-cldf(n,k))*      &
+                          clwp(n,k)*tmp1l)
+            outtaucl(n,k,indsl(ns)) = outtaucl(n,k,indsl(ns)) + tauxcl(n,k)
+            tauxci(n,k) = ciwp(n,k)*tmp1i*cldf(n,k) /     &
+                          (d_one+(d_one-0.78D0)*(d_one-cldf(n,k)) * &
+                          ciwp(n,k)*tmp1i)
+            outtauci(n,k,indsl(ns)) = outtauci(n,k,indsl(ns)) + tauxci(n,k)           
+           end if 
+
             wcl(n,k) = min(tmp2l,verynearone)
             gcl(n,k) = ebarli + tmp3l
             fcl(n,k) = gcl(n,k)*gcl(n,k)
             wci(n,k) = min(tmp2i,verynearone)
             gci(n,k) = ebarii + tmp3i
             fci(n,k) = gci(n,k)*gci(n,k)
-            tauc(ns,:,k) = tauxcl(n,k) + tauxci(n,k)
-            ssac(ns,:,k) = (tauxcl(n,k) * wcl(n,k) + &
-                            tauxci(n,k) * wci(n,k) ) / tauc (ns,:,k)
-            asmc(ns,:,k) = (tauxcl(n,k) * gcl(n,k) + &
-                            tauxci(n,k) * gci(n,k) ) / tauc (ns,:,k)
-            fsfc(ns,:,k) = (tauxcl(n,k) * fcl(n,k) + &
-                            tauxci(n,k) * fci(n,k) ) / tauc (ns,:,k)
+            tauc(ns,n,k) = tauxcl(n,k) + tauxci(n,k)
+           
+            ssac(ns,n,k) = (tauxcl(n,k) * wcl(n,k) + &
+                            tauxci(n,k) * wci(n,k) ) / tauc (ns,n,k)
+            asmc(ns,n,k) = (tauxcl(n,k) * gcl(n,k) + &
+                            tauxci(n,k) * gci(n,k) ) / tauc (ns,n,k)
+            fsfc(ns,n,k) = (tauxcl(n,k) * fcl(n,k) + &
+                            tauxci(n,k) * fci(n,k) ) / tauc (ns,n,k)
+
           end do
         end do
       end do ! spectral loop
-    end if  ! inflagsw
+! if mcica is not enabled, the column is either clear sky or either overcast
+! with effective cloud optical properties similar to std rad (accounting for cld fraction).
+! needs to set cldf to 0 or 1  for the the rrtm_nomcica code to work.     
+      if (imcica == 0 )then 
+         do k = 1 , kz
+            do n = 1 , npr
+               if ( cldf(n,k) > dlowval ) then 
+                  cldf(n,k) = d_one
+               else
+                  cldf(n,k) = d_zero        
+               end if
+            end do
+         end do
+      end if
+   end if  ! inflagsw
+
+
   end subroutine prep_dat_rrtm
 !
 ! for now we use for RRTM the same param as in standard rad

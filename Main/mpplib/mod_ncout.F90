@@ -2687,7 +2687,10 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('rrtm_cloud_overlap_hypothesis',icld))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('rrtm_random_number_generator',irng))
+            ncattribute_integer('rrtm_mcica_stochastic_cloud',imcica))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('rrtm_mcica_stochastic_generator',irng))
+
         end if
         if ( ichem == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -2703,7 +2706,7 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('chem_activate_wet_removal',ichremlsc))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('chem_dust_PSD_scheme',ichdustemd))
+            ncattribute_integer('chem_dust_emission_scheme',ichdustemd))
           call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('chem_enable_aerosol_radiation_feedback',idirect))
           call outstream_addatt(outstream(i)%ncout(j), &

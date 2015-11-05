@@ -1,5 +1,3 @@
-!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
 !    This file is part of ICTP RegCM.
 !
 !    ICTP RegCM is free software: you can redistribute it and/or modify

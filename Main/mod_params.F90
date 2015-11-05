@@ -108,7 +108,7 @@ module mod_params
     namelist /nonhydroparam/ ifupr , logp_lrate , ckh
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
-      iceflglw , liqflglw , icld , irng
+      iceflglw , liqflglw , icld , irng, imcica, nradfo
 
     namelist /subexparam/ ncld , qck1land , qck1oce , gulland , guloce ,     &
       rhmax , rh0oce , rh0land , cevaplnd , cevapoce , caccrlnd , caccroce , &
@@ -254,9 +254,10 @@ module mod_params
     iceflglw = 3
     liqflglw = 1
     icld  = 1
+    imcica = 1
     irng = 1
-    !
-    ! namelist subexparam
+    nradfo = 4 
+    !------namelist subexparam:
     !
     ncld      = 1         ! # of bottom model levels with no clouds (rad only)
     qck1land  = 0.00025D0 ! Autoconversion Rate for Land
@@ -963,7 +964,17 @@ module mod_params
       call bcast(liqflglw)
       call bcast(icld)
       call bcast(irng)
-    end if
+      call bcast(imcica)
+      call bcast(nradfo)
+      if ( imcica == 0 .and. inflgsw == 2 ) then
+       if ( myid == italk ) then
+        write(stderr,*) &
+          'Cannot use inflgsw RRTM cloud optical properties options when mcICA is not enabled imcica = 0'
+        write(stderr,*) 'Reseting inflgsw to zero !!!!'
+       end if
+        inflgsw = 0
+      end if
+     end if
 
     call bcast(clfrcvmax)
     call bcast(cllwcv)
@@ -1278,6 +1289,8 @@ module mod_params
     rnsrf_for_day = d_one/(dble(kday)*rtsrf)
     rnrad_for_radfrq = d_one/(dble(krad)*rtrad)
     rnrad_for_chem = dble(ntrad)/dble(kche)
+
+    if (irrtm ==1) rnrad_for_chem = dble(ntrad*nradfo)/dble(kche)
 
     rsrf_in_atm = dble(ntsrf)/dble(katm)
     rsrffrq_sec = d_one/(srffrq*secph)

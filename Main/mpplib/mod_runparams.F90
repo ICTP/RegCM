@@ -264,9 +264,11 @@ module mod_runparams
   integer(ik4) , public :: liqflgsw
   integer(ik4) , public :: icld
   integer(ik4) , public :: irng
+  integer(ik4) , public :: imcica 
   integer(ik4) , public :: inflglw
   integer(ik4) , public :: iceflglw
   integer(ik4) , public :: liqflglw
+  integer(ik4) , public :: nradfo
 
   ! Radiation schemes common parametrs
 

@@ -39,7 +39,7 @@
              fac10, fac11, selffac, selffrac, indself, forfac,       &
              forfrac, indfor, pbbfd, pbbfu, pbbcd, pbbcu, puvfd,     &
              puvcd, pnifd, pnicd, pbbfddir, pbbcddir, puvfddir,      &
-             puvcddir, pnifddir, pnicddir)
+             puvcddir, pnifddir, pnicddir,pvsfd)
 ! ---------------------------------------------------------------------------
 !
 ! Purpose: Contains spectral loop to compute the shortwave radiative fluxes,
@@ -175,7 +175,9 @@
 !      real(kind=rb), intent(out) :: pnifu(:)
 !      real(kind=rb), intent(out) :: pvscd(:)
 !      real(kind=rb), intent(out) :: pvscu(:)
-!      real(kind=rb), intent(out) :: pvsfd(:)
+
+! FAB , interface RegCM
+       real(kind=rb), intent(out) :: pvsfd(:)
 !      real(kind=rb), intent(out) :: pvsfu(:)
 
 
@@ -255,6 +257,7 @@
          pnifd(jk)=0._rb
          pnicddir(jk)=0._rb
          pnifddir(jk)=0._rb
+         pvsfd(jk)=0._rb
       enddo
 
 
@@ -579,6 +582,10 @@
                      puvfddir(ikl) = puvfddir(ikl) + zincflx(iw)*ztdbt(jk)
                      puvcddir(ikl) = puvcddir(ikl) + zincflx(iw)*ztdbtc(jk)
                   endif
+!FAB
+                 if(ibm==10) pvsfd(ikl) = pvsfd(ikl) + zincflx(iw)*zfd(jk,iw)
+
+
 ! Accumulate direct fluxes for near-IR bands
                else if (ibm == 14 .or. ibm <= 9) then
                   pnicd(ikl) = pnicd(ikl) + zincflx(iw)*zcd(jk,iw)

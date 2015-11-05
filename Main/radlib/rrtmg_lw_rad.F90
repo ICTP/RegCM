@@ -78,7 +78,7 @@ module rrtmg_lw_rad
 !------------------------------------------------------------------
 
     subroutine rrtmg_lw &
-             (ncol    ,nlay    ,icld    ,idrv   ,idirect,         &
+             (ncol    ,nlay    ,icld    ,idrv   ,lradfor, idirect,&
              play    ,plev    ,tlay    ,tlev    ,tsfc    ,        &
              h2ovmr  ,o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr , &
              cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr ,emis    ,        &
@@ -208,6 +208,7 @@ module rrtmg_lw_rad
       !    0: Normal forward calculation
       !    1: Normal forward calculation with
       !       duflx_dt and duflxc_dt output
+      logical, intent(in) :: lradfor          !FAB   
       integer(kind=im), intent(in) :: idirect !flag for computing aerosol radiative forcing
       real(kind=rb), intent(in) :: play(:,:)          ! Layer pressures (hPa, mb)
       !    Dimensions: (ncol,nlay)
@@ -517,44 +518,45 @@ module rrtmg_lw_rad
 
         ! Combine gaseous and aerosol optical depths, if aerosol active
         !
-        if ( iaer .eq. 0 ) then
+!        if ( iaer .eq. 0 ) then
+! initialise taut to taug 
           do k = 1, nlayers
             do ig = 1 , ngptlw
               taut(k,ig) = taug(k,ig)
             end do
           end do
-        end if
+!        end if
 
         ! FAB : double call to rad scheme forcomputing radiative forcing
-        if ( idirect == 0 ) then
+        if ( idirect == 0 .or. .not.lradfor) then
           nlwcall = 1
-        else
+        elseif (idirect > 0 .and. lradfor) then
           nlwcall = 2
         end if
         do n = 1 , nlwcall
           !
           if ( idirect == 1 ) then
-            if ( n == 1 )  then
+            if ( n == 1 .and. lradfor)  then
               do k = 1, nlayers
                 do ig = 1, ngptlw
                   taut(k,ig) = taug(k,ig) + taua(k,ngb(ig))
                 end do
               end do
-            else if ( n == 2 ) then
+            else if ( n == 2 .or. .not.lradfor) then
               do k = 1, nlayers
                 do ig = 1, ngptlw
                   taut(k,ig) = taug(k,ig)
                 end do
               end do
             end if
-          else if ( idirect == 0 .or. idirect == 2 ) then
-            if ( n == 1 ) then
+          else if ( idirect == 2 ) then
+            if ( n == 1 .and. lradfor) then
               do k = 1, nlayers
                 do ig = 1, ngptlw
                   taut(k,ig) = taug(k,ig)
                 end do
               end do
-            else if ( n == 2 ) then
+            else if ( n == 2 .or. .not.lradfor) then
               do k = 1, nlayers
                 do ig = 1, ngptlw
                   taut(k,ig) = taug(k,ig) + taua(k,ngb(ig))
@@ -578,7 +580,7 @@ module rrtmg_lw_rad
 
           ! FAB save aerosol rad for
 
-          if ( idirect == 1 ) then
+          if ( idirect == 1 .and. lradfor ) then
             ! first call save the NET flux in  aerfo
             if ( n == 1 ) then
               aerfolw (iplon) =    totdclfl(nlayers) - totuclfl(nlayers)
@@ -596,7 +598,7 @@ module rrtmg_lw_rad
               asaerfoslw (iplon) =  asaerfoslw(iplon) - &
                 (  totdflux(0) - totuflux(0)  )
             end if
-          else if ( idirect == 2 )  then
+          else if ( idirect == 2 .and. lradfor  )  then
             if ( n == 1 ) then
               aerfolw (iplon) = totdclfl(nlayers) - totuclfl(nlayers)
               aerfoslw (iplon) = totdclfl(0) -  totuclfl(0)
@@ -613,6 +615,11 @@ module rrtmg_lw_rad
               asaerfoslw(iplon) = (totdflux(0) - totuflux(0)) - &
                 asaerfoslw(iplon)
             end if
+          else
+              aerfolw(iplon) = 0._rb
+              aerfoslw(iplon) = 0._rb
+              asaerfolw(iplon) = 0._rb
+              asaerfoslw(iplon) = 0._rb
           end if
         end do ! end loop on nlw call
 
