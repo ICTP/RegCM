@@ -199,12 +199,6 @@
           rh10(i,j) = d_zero
           if ( qsat10 > d_zero ) rh10(i,j) = shu10/qsat10
           !
-          ! friction velocity ( from uvdrag so updtaed at bats or clm
-          ! frequency : little inconsistency here)
-          !
-          ustar(i,j) = sqrt(cuvdrag(j,i) *                             &
-                       sqrt((cubx3d(j,i,kz))**2+(cvbx3d(j,i,kz))**2) / &
-                             crhob3d(j,i,kz) )
           ! soil wetness
           soilw(i,j) = cssw2da(j,i)/cdepuv(idnint(clndcat(j,i)))/(2650.0D0 * &
                        (d_one-cxmopor(ciexsol(idnint(clndcat(j,i))))))
@@ -264,7 +258,7 @@
       !
       ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)
       !
-      if ( idust(1) > 0 .and. ichsursrc == 1 ) then
+      if ( idust(1) > 0 .and. ichdustemd < 3 .and.  ichsursrc == 1 ) then
         do j = jci1 , jci2
           where (ivegcov(:,j) == 11)
             zeff(:,j) = 0.01D0 ! value set to desert type for semi-arid)
@@ -278,8 +272,8 @@
       end if
       ! if flux calculated by clm45 / update the tendency if ichdustemd == 3
 #if defined CLM45
-      if ( ichdustemd == 3 .and. ichsursrc == 1 ) then
-        call clm_dust_tend
+      if (idust(1) > 0 .and.  ichdustemd == 3 .and. ichsursrc == 1 ) then
+        if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) call clm_dust_tend
       end if
 #endif
       !sea salt

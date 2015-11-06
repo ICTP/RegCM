@@ -903,7 +903,7 @@ module mod_che_dust
       implicit none
       integer(ik4) :: i,j,n
       real(rk8) , pointer , dimension(:,:) :: sumdflux
-
+      real(rk8) :: cdsfrq
       ! Update dust tendency with dust fluxes calculated in CLM
       ! here sump up the total flux from clm ( initially defined on 4 bins)
       ! and re-distribute it according to the selected dust emission size
@@ -912,7 +912,6 @@ module mod_che_dust
       ! readius and optical properties
       ! use the same tuning erodibility factor rdstemfac than for
       ! standard scheme
-
       allocate(sumdflux(jci1:jci2,ici1:ici2))
       sumdflux = d_zero
 #ifdef CLM45
@@ -930,12 +929,14 @@ module mod_che_dust
                   sumdflux(j,i) * frac(n)
             end if
             ! diagnostic source (accumulated)
+
+            cdsfrq = dble(ntsrf) / kche
             cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
-                    sumdflux(j,i)*frac(n) * cfdout
+                    sumdflux(j,i)*frac(n) * cdsfrq
              if ( ichdiag == 1 ) then
                cemisdiag(j,i,idust(n)) = cemisdiag(j,i,idust(n)) + &
                                  sumdflux(j,i)*frac(n) / &
-                                 (cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+                                 (cdzq(j,i,kz)*crhob3d(j,i,kz)) * cdsfrq 
              end if
           end do
         end do
