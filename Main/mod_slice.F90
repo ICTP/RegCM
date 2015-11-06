@@ -184,14 +184,11 @@ module mod_slice
         do j = jce1 , jce2
           atms%pb3d(j,i,k) = atm2%pr(j,i,k)
           atms%rhob3d(j,i,k) = atm2%rho(j,i,k)
-          atms%th3d(j,i,k) = atms%tb3d(j,i,k)*(1.0D5/atms%pb3d(j,i,k))**rovcp
+          atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
+                      (1.0D5/atms%pb3d(j,i,k))**rovcp
+          atms%tp3d(j,i,k) = atms%tb3d(j,i,k) * &
+                      (atms%ps2d(j,i)/atms%pb3d(j,i,k))**rovcp
         end do
-      end do
-    end do
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        atms%ts2d(j,i) = atms%tb3d(j,i,kz) * &
-                      (atms%ps2d(j,i)/atms%pb3d(j,i,kz))**rovcp
       end do
     end do
     !

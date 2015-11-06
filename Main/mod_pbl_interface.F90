@@ -89,6 +89,7 @@ module mod_pbl_interface
     call assignpnt(atms%ubd3d,m2p%udatm)
     call assignpnt(atms%vbd3d,m2p%vdatm)
     call assignpnt(atms%tb3d,m2p%tatm)
+    call assignpnt(atms%tp3d,m2p%tpatm)
     call assignpnt(atms%pb3d,m2p%patm)
     call assignpnt(atms%pf3d,m2p%patmf)
     call assignpnt(atms%qxb3d,m2p%qxatm)

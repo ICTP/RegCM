@@ -289,7 +289,7 @@ module mod_lm_interface
     call assignpnt(atms%qxb3d,lm%qvatm,kz,iqv)
     call assignpnt(atms%rhox2d,lm%rhox)
     call assignpnt(atms%ps2d,lm%sfps)
-    call assignpnt(atms%ts2d,lm%sfta)
+    call assignpnt(atms%tp3d,lm%sfta,kz)
     call assignpnt(atms%za,lm%hgt,kz)
     call assignpnt(sfs%hfx,lm%hfx)
     call assignpnt(sfs%qfx,lm%qfx)

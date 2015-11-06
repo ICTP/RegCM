@@ -897,10 +897,10 @@ module mod_atm_interface
       end if
       call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
       call getmem3d(ax%za,jce1,jce2,ice1,ice2,1,kz,'slice:za')
+      call getmem3d(ax%tp3d,jce1,jce2,ice1,ice2,1,kz,'slice:tp3d')
       call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
       call getmem2d(ax%rhox2d,jce1,jce2,ice1,ice2,'slice:rhox2d')
       call getmem2d(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
-      call getmem2d(ax%ts2d,jce1,jce2,ice1,ice2,'slice:ts2d')
       call getmem3d(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
       if ( ichem == 1 ) then
         call getmem4d(ax%chib3d,jce1-ma%jbl2,jce2+ma%jbr2, &

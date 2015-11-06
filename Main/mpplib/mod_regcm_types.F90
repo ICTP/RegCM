@@ -228,6 +228,7 @@ module mod_regcm_types
   type slice
     real(rk8) , pointer , dimension(:,:,:) :: th3d
     real(rk8) , pointer , dimension(:,:,:) :: tb3d
+    real(rk8) , pointer , dimension(:,:,:) :: tp3d
     real(rk8) , pointer , dimension(:,:,:) :: pb3d
     real(rk8) , pointer , dimension(:,:,:) :: pf3d
     real(rk8) , pointer , dimension(:,:,:) :: rhob3d
@@ -246,7 +247,6 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: dzq
     real(rk8) , pointer , dimension(:,:) :: rhox2d
     real(rk8) , pointer , dimension(:,:) :: ps2d
-    real(rk8) , pointer , dimension(:,:) :: ts2d
     real(rk8) , pointer , dimension(:,:,:) :: tkeb3d
     real(rk8) , pointer , dimension(:,:,:,:) :: chib3d
   end type slice
@@ -547,14 +547,15 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:,:) :: qxatm   ! atms%qx
     real(rk8) , pointer , dimension(:,:,:) :: tkests    ! atms%tke
     real(rk8) , pointer , dimension(:,:,:) :: thatm     ! atms%th3d
+    real(rk8) , pointer , dimension(:,:,:) :: tpatm     ! atms%tp3d
     real(rk8) , pointer , dimension(:,:,:) :: za        ! atms%za
     real(rk8) , pointer , dimension(:,:,:) :: zq        ! atms%zq
     real(rk8) , pointer , dimension(:,:,:) :: dzq       ! atms%dzq
+    real(rk8) , pointer , dimension(:,:) :: rhox2d      ! atms%rhox2d
     real(rk8) , pointer , dimension(:,:,:) :: heatrt    ! heatrt
     real(rk8) , pointer , dimension(:,:,:,:) :: chib    ! chib
     real(rk8) , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
     real(rk8) , pointer , dimension(:,:,:) :: drydepv   ! drydepv
-    real(rk8) , pointer , dimension(:,:) :: rhox2d      ! rhox2d
     integer(ik4) , pointer , dimension(:,:) :: ktrop    ! ktrop
   end type mod_2_pbl
 
