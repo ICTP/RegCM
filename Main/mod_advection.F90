@@ -456,8 +456,8 @@ module mod_advection
     !     ften   : is the tendency of variable 'f'.
     !     f      : is p*f.
     !     ind = 1 : for qv
-    !           2 : for hydometeors
-    !           3 : for chemical tracers
+    !           2 : for chemical tracers
+    !           3 : for hydometeors
     !           4 : use pbl information
     !
     subroutine vadv4d(ften,f,nk,ind,m,p)
@@ -509,8 +509,7 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
-                  ff = (twt(k,1)*max(f(j,i,k,n),  d_zero) + &
-                        twt(k,2)*max(f(j,i,k-1,n),d_zero) ) * svv(j,i,k)
+                  ff = (twt(k,1)*f(j,i,k,n)+twt(k,2)*f(j,i,k-1,n)) * svv(j,i,k)
                 else
                   ff = d_zero
                 end if

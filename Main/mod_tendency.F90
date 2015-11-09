@@ -63,7 +63,7 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:) :: rpsda
 
   integer :: ithadv = 1
-  integer(ik4) :: nexchange_adv , icvadv , iqxvadv , itrvadv
+  integer(ik4) :: nexchange_adv , iqvvadv , iqxvadv , itrvadv
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
 #endif
@@ -125,12 +125,12 @@ module mod_tendency
     else
       nexchange_adv = 1
     end if
-    icvadv = 1
+    iqvvadv = 1
     itrvadv = 2
     iqxvadv = 3
     if ( ibltyp == 2 ) then
       if ( iuwvadv == 1 ) then
-        icvadv = 4
+        iqvvadv = 4
         itrvadv = 4
         iqxvadv = 4
       end if
@@ -634,7 +634,7 @@ module mod_tendency
       ! same for hydrostatic and nonhydrostatic models:
       ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (2nd RHS term)
       !
-      call vadv(aten%t,atm1%t,kz,icvadv)
+      call vadv(aten%t,atm1%t,kz,1)
       if ( idiag > 0 ) then
         tdiag%adv = tdiag%adv + (aten%t - ten0) * afdout
         ten0 = aten%t
@@ -845,7 +845,7 @@ module mod_tendency
       qen0 = aten%qx(:,:,:,iqv)
     end if
     if ( all(icup /= 1) ) then
-      call vadv(aten%qx,atm1%qx,kz,icvadv,iqv)
+      call vadv(aten%qx,atm1%qx,kz,iqvvadv,iqv)
     end if
     if ( idiag > 0 ) then
       qdiag%adv = qdiag%adv + (aten%qx(:,:,:,iqv) - qen0) * afdout

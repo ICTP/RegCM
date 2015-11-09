@@ -42,21 +42,20 @@ module mod_cu_em
   real(rk8) , public , pointer , dimension(:,:) :: cbmf2d
   real(rk8) , public , pointer , dimension(:,:) :: elcrit2d
   real(rk8) , public , pointer , dimension(:,:) :: epmax2d
-!
+
   contains
-!
+
   subroutine allocate_mod_cu_em
     implicit none
     call getmem2d(cbmf2d,jci1,jci2,ici1,ici2,'mod_cu_em:cbmf2d')
     call getmem2d(elcrit2d,jci1,jci2,ici1,ici2,'mod_cu_em:elcrit2d')
     call getmem2d(epmax2d,jci1,jci2,ici1,ici2,'mod_cu_em:epmax2d')
   end subroutine allocate_mod_cu_em
-!
-!
-! **********************************************
-! **** Driver for Emanuel Convection Scheme ****
-! **********************************************
-!
+  !
+  ! **********************************************
+  ! **** Driver for Emanuel Convection Scheme ****
+  ! **********************************************
+  !
   subroutine cupemandrv(m2c,c2m)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
@@ -1144,8 +1143,8 @@ module mod_cu_em
         intent (in) gz , icb , kk , nd , nk , nl , p , q , qs , t
         intent (out) tvp
         intent (inout) clw , tpk
-        real(rk8) :: ah0 , ahg , alv , cpinv , cpp , denom , es , &
-                     qg , rg , s , tc , tg
+        real(rk8) :: ah0 , ahg , alv , cpinv , cpp , ppa , &
+                     qg , rg , s , tg
         integer(ik4) :: i , j , nsb , nst
         !
         ! calculate certain parcel quantities, including static energy
@@ -1183,16 +1182,9 @@ module mod_cu_em
             s = cpd + alv*alv*qg/(rwat*t(i)*t(i))
             s = d_one/s
             ahg = cpd*tg + (cl-cpd)*q(nk)*t(i) + alv*qg + gz(i)
-            tg = tg + s*(ah0-ahg)
-            tg = dmax1(tg,35.0D0)
-            tc = tg - tzero
-            denom = 243.5D0 + tc
-            if ( tc >= d_zero ) then
-              es = 6.112D0*dexp(17.67D0*tc/denom)
-            else
-              es = dexp(23.33086D0-6111.72784D0/tg+0.15215D0*dlog(tg))
-            end if
-            qg = rgow*es/(p(i)-es*(d_one-rgow))
+            tg = max(tg + s*(ah0-ahg),35.0D0)
+            ppa = p(i)*100.0D0
+            qg = pfqsat(ppa,tg)
           end do
           alv = wlhv - cpvmcl*(t(i)-tzero)
           tpk(i) = (ah0-(cl-cpd)*q(nk)*t(i)-gz(i)-alv*qg)*rcpd
