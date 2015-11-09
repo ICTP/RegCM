@@ -165,8 +165,8 @@ module mod_bats_leaftemp
           ! 2.3  recalculate saturation vapor pressure
           !
           eg1 = eg(i)
-          ! eg(i) = pfesat(tlef(i))
-          call bats_psat(tlef(i),eg(i))
+          eg(i) = pfesat(tlef(i))
+          ! call bats_psat(tlef(i),eg(i))
           qsatl(i) = qsatl(i)*eg(i)/eg1
         end if
       end do
@@ -273,10 +273,10 @@ module mod_bats_leaftemp
                    wtlq0(i))*qgrd(i)-wtaq0(i)*qs(i) -    &
                    wtlq0(i)*qsatl(i))+qbare)
         !  5.3  deriv of soil energy flux with respect to soil temp
-        !qsatdg = pfqsdt(tgrd(i),sfcp(i))
+        qsatdg = pfqsdt(tgrd(i),sfcp(i))
         ! we need specific humidity
-        !qsatdg = (qsatdg/(d_one+qsatdg))*rgr(i)
-        call bats_qsdt(tgrd(i),qsatdg)
+        qsatdg = (qsatdg/(d_one+qsatdg))
+        ! call bats_qsdt(tgrd(i),qsatdg)
         qsatdg = qsatdg*qgrd(i) * rgr(i)
         cgrnds(i) = rhs(i)*cpd*(wtg(i)*(wta0(i)+wtl0(i))+wtg2(i))
         cgrndl(i) = rhs(i)*qsatdg*((wta(i)+wtlq(i)) * &
@@ -511,11 +511,11 @@ module mod_bats_leaftemp
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ilndbeg , ilndend
-      !eg(i) = pfesat(t(i))
-      !qsat(i) = pfqsat(t(i),p(i),eg(i))
+      eg(i) = pfesat(t(i))
+      qsat(i) = pfqsat(t(i),p(i),eg(i))
       ! Move to specific humidity
-      !qsat(i) = qsat(i)/(d_one+qsat(i))
-      call bats_satur(t(i),p(i),eg(i),qsat(i))
+      qsat(i) = qsat(i)/(d_one+qsat(i))
+      ! call bats_satur(t(i),p(i),eg(i),qsat(i))
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -697,10 +697,10 @@ module mod_bats_leaftemp
 !
     do i = ilndbeg , ilndend
       if ( sigf(i) > minsigf ) then
-        !qsatld = pfqsdt(tlef(i),sfcp(i))
+        qsatld = pfqsdt(tlef(i),sfcp(i))
         ! Move to specific hunidity
-        !qsatld = qsatld/(d_one+qsatld)
-        call bats_qsdt(tlef(i),qsatld)
+        qsatld = qsatld/(d_one+qsatld)
+        ! call bats_qsdt(tlef(i),qsatld)
         qsatld = qsatl(i) * qsatld
         xkb = cdrd(i)/cdr(i)
         hfl = df(i)*(wtga(i)*tlef(i) - wtg0(i)*tgrd(i) - wta0(i)*sts(i))
