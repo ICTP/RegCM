@@ -1589,7 +1589,7 @@ module mod_params
     !
     sigtbl = (70.0D0-ptop)/(101.3D0-ptop)
     kmxpbl = kz
-    do k = kz , 1 , -1
+    do k = kz , 2 , -1
       delsig = hsigma(k) - sigtbl
       if ( delsig <= d_zero ) then
         kmxpbl = k
@@ -1606,7 +1606,7 @@ module mod_params
     if ( myid == italk ) then
       if ( ibltyp == 1 ) then
         write(stdout,*) 'PBL limit for Holtstag'
-        write(stdout,'(a,i3)') '  Index of highest allowed pbl : ',kmxpbl
+        write(stdout,'(a,i3)') '  Index of highest allowed pbl : ', kmxpbl
       else if ( ibltyp == 2 ) then
         write(stdout,*) 'UW TCM Parameters'
         write(stdout,'(a,f11.6)') '  rstbl     = ', rstbl

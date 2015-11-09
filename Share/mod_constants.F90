@@ -53,12 +53,14 @@ module mod_constants
   real(rk8) , parameter :: deg180 = 180.0D+00
   real(rk8) , parameter :: deg360 = 360.0D+00
 
-  ! Low/Hi values
+  ! minimum values for uncoupled/coupled variables which require them
   real(rk8) , parameter :: minqq   = 1.0D-8
   real(rk8) , parameter :: minqv   = 1.0D-10
   real(rk8) , parameter :: minqx   = 1.0D-12
   real(rk8) , parameter :: minww   = 1.0D-20
   real(rk8) , parameter :: mintr   = 1.0D-50
+
+  ! Low/Hi values
   real(rk8) , parameter :: dlowval = 1.0D-60
   real(rk8) , parameter :: dhival  = 1.0D+60
   real(rk4) , parameter :: slowval = 1.0E-30
