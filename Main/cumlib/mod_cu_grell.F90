@@ -53,23 +53,19 @@ module mod_cu_grell
               pwcavo , pwcev , pwcevo , qcd , qcdo , qck , qcko ,   &
               qkb , qkbo , vshear , xxac , xhcd , xhkb , xmb ,      &
               xpwcav , xpwcev , xqcd , xqck , xqkb
-!
-  real(rk8) , public , pointer , dimension(:,:,:) :: mflx
-!
+
   real(rk8) , public , pointer , dimension(:,:) :: dtauc2d , pbcmax2d ,   &
               mincld2d , shrmax2d , shrmin2d , edtmax2d , edtmin2d ,    &
               edtmaxo2d , edtmaxx2d , edtmino2d , edtminx2d , htmax2d , &
               htmin2d
   integer(ik4) , public , pointer , dimension(:,:) :: kbmax2d
-!
+
   public :: allocate_mod_cu_grell , cuparan
-!
+
   contains
 
   subroutine allocate_mod_cu_grell
     implicit none
-
-    call getmem3d(mflx,jci1,jci2,ici1,ici2,1,2,'cu_grell:mflx')
 
     call getmem2d(dtauc2d,jci1,jci2,ici1,ici2,'cu_grell:dtauc2d')
     call getmem2d(pbcmax2d,jci1,jci2,ici1,ici2,'cu_grell:pbcmax2d')
@@ -95,12 +91,12 @@ module mod_cu_grell
     call getmem3d(t,jci1,jci2,ici1,ici2,1,kz,'cu_grell:t')
     call getmem3d(tn,jci1,jci2,ici1,ici2,1,kz,'cu_grell:tn')
     call getmem3d(vsp,jci1,jci2,ici1,ici2,1,kz,'cu_grell:vsp')
-!
+
     call getmem2d(pratec,jci1,jci2,ici1,ici2,'cu_grell:pratec')
     call getmem2d(psur,jci1,jci2,ici1,ici2,'cu_grell:psur')
     call getmem2d(qcrit,jci1,jci2,ici1,ici2,'cu_grell:qcrit')
     call getmem2d(ter11,jci1,jci2,ici1,ici2,'cu_grell:ter11')
-!
+
     call getmem2d(kdet,jci1,jci2,ici1,ici2,'cu_grell:kdet')
     call getmem2d(kmin,jci1,jci2,ici1,ici2,'cu_grell:kmin')
     call getmem2d(k22,jci1,jci2,ici1,ici2,'cu_grell:k22')
@@ -108,7 +104,7 @@ module mod_cu_grell
     call getmem2d(kbcon,jci1,jci2,ici1,ici2,'cu_grell:kbcon')
     call getmem2d(kds,jci1,jci2,ici1,ici2,'cu_grell:kds')
     call getmem2d(ktop,jci1,jci2,ici1,ici2,'cu_grell:ktop')
-!
+
     call getmem3d(dby,jci1,jci2,ici1,ici2,1,kz,'cu_grell:dby')
     call getmem3d(dbyo,jci1,jci2,ici1,ici2,1,kz,'cu_grell:dbyo')
     call getmem3d(dellah,jci1,jci2,ici1,ici2,1,kz,'cu_grell:dellah')
@@ -145,7 +141,7 @@ module mod_cu_grell
     call getmem3d(xz,jci1,jci2,ici1,ici2,1,kz,'cu_grell:xz')
     call getmem3d(z,jci1,jci2,ici1,ici2,1,kz,'cu_grell:z')
     call getmem3d(zo,jci1,jci2,ici1,ici2,1,kz,'cu_grell:zo')
-!
+
     call getmem2d(xac,jci1,jci2,ici1,ici2,'cu_grell:xac')
     call getmem2d(xao,jci1,jci2,ici1,ici2,'cu_grell:xao')
     call getmem2d(bu,jci1,jci2,ici1,ici2,'cu_grell:bu')
@@ -189,8 +185,8 @@ module mod_cu_grell
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
     type(cum_2_mod) , intent(inout) :: c2m
-    real(rk8) :: pkdcut , pkk , prainx , us , vs
-    integer(ik4) :: i , j , k , jp1 , kk
+    real(rk8) :: pkdcut , pkk , prainx
+    integer(ik4) :: i , j , k , kk
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuparan'
     integer(ik4) , save :: idindx = 0
@@ -293,28 +289,32 @@ module mod_cu_grell
     xqck(:,:) = d_zero
     xqkb(:,:) = d_zero
 
+    ! Pressures in millibar here.
+
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        psur(j,i) = m2c%psf(j,i) * d_r100
+        ter11(j,i) = m2c%ht(j,i) * regrav
+      end do
+    end do
+
+    ! Grell scheme requires values bottom -> top
+
     do k = 1 , kz
+      kk = kz - k + 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          kk = kz - k + 1
-          jp1 = j + 1
-          us = m2c%uas(j,i,kk)
-          vs = m2c%vas(j,i,kk)
-          p(j,i,k) = m2c%pas(j,i,kk)*d_r100
+          vsp(j,i,k) = sqrt(m2c%uas(j,i,kk)**2 + m2c%vas(j,i,kk)**2)
+          p(j,i,k) = m2c%pas(j,i,kk) * d_r100
           t(j,i,k) = m2c%tas(j,i,kk)
-          q(j,i,k) = m2c%qxas(j,i,kk,iqv)
-          if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
+          q(j,i,k) = max(m2c%qxas(j,i,kk,iqv),1.0D-08)
+          po(j,i,k) = p(j,i,k)
           tn(j,i,k) = t(j,i,k) + (c2m%tten(j,i,kk))/m2c%psb(j,i)*dt
           qo(j,i,k) = q(j,i,k) + (c2m%qxten(j,i,kk,iqv))/m2c%psb(j,i)*dt
-          vsp(j,i,k) = dsqrt(us**2+vs**2)
           if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
-          po(j,i,k) = p(j,i,k)
-          psur(j,i) = m2c%psf(j,i) * d_r100
           pkk = psur(j,i) - po(j,i,k)
+          qcrit(j,i) = qcrit(j,i) + c2m%qxten(j,i,kk,iqv)/m2c%psb(j,i)
           if ( pkk <= pkdcut ) kdet(j,i) = kdet(j,i) + 1
-          ter11(j,i) = m2c%ht(j,i)*regrav
-          if ( ter11(j,i) <= d_zero ) ter11(j,i) = 1.0D-05
-          qcrit(j,i) = qcrit(j,i) + c2m%qxten(j,i,kk,iqv)
         end do
       end do
     end do
@@ -336,27 +336,29 @@ module mod_cu_grell
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( pratec(j,i) > d_zero ) then
-            kk = kz - k + 1
-            c2m%tten(j,i,kk) = m2c%psb(j,i)*outt(j,i,k) + c2m%tten(j,i,kk)
-            c2m%qxten(j,i,kk,iqv) = m2c%psb(j,i)*outq(j,i,k) + &
-                    c2m%qxten(j,i,kk,iqv)
+          if (cuscheme(j,i) == 2 ) then
+            if ( pratec(j,i) > d_zero ) then
+              kk = kz - k + 1
+              c2m%tten(j,i,kk) = m2c%psb(j,i)*outt(j,i,k) + c2m%tten(j,i,kk)
+              c2m%qxten(j,i,kk,iqv) = m2c%psb(j,i)*outq(j,i,k) + &
+                      c2m%qxten(j,i,kk,iqv)
+            end if
           end if
         end do
       end do
     end do
-    !
-    ! rain in cm.
-    !
+
     total_precip_points = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
-        prainx = pratec(j,i)*dtsec
-        if ( prainx > dlowval ) then
-          c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
-          ! precipitation rate for surface (kg m-2 s-1)
-          c2m%pcratec(j,i) = c2m%pcratec(j,i) + pratec(j,i)
-          total_precip_points = total_precip_points + 1
+        if (cuscheme(j,i) == 2 ) then
+          prainx = pratec(j,i)*dtsec
+          if ( prainx > dlowval ) then
+            c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
+            ! precipitation rate for surface (kg m-2 s-1)
+            c2m%pcratec(j,i) = c2m%pcratec(j,i) + pratec(j,i)
+            total_precip_points = total_precip_points + 1
+          end if
         end if
       end do
     end do
@@ -1078,8 +1080,6 @@ module mod_cu_grell
           xmb(j,i) = -f/xk
           if ( f <= d_zero .or. xk >= d_zero ) xmb(j,i) = d_zero
         end if
-        mflx(j,i,1) = xmb(j,i)
-        mflx(j,i,2) = xmb(j,i)*edt(j,i)
       end do
     end do
     !
