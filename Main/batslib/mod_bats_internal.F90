@@ -392,14 +392,15 @@ module mod_bats_internal
     qs = ep2 * e/(p-0.378D0*e)
   end subroutine bats_satur
 
-  subroutine bats_qsdt(t,qsdt)
+  subroutine bats_qsdt(t,qs,qsdt)
     implicit none
-    real(rk8) , intent(in) :: t
+    real(rk8) , intent(in) :: t , qs
     real(rk8) , intent(out) :: qsdt
+    ! Eqn. 83 from BATS manual
     if ( t < tzero ) then
-      qsdt = c3ies * (tzero-c4ies) * (d_one/(t-c4ies))**d_two
+      qsdt = qs * (c3ies * (tzero-c4ies) * (d_one/(t-c4ies))**d_two)
     else
-      qsdt = c3les * (tzero-c4les) * (d_one/(t-c4les))**d_two
+      qsdt = qs * (c3les * (tzero-c4les) * (d_one/(t-c4les))**d_two)
     end if
   end subroutine bats_qsdt
 

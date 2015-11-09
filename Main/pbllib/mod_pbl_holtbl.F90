@@ -252,7 +252,7 @@ module mod_pbl_holtbl
       ! compute virtual heat flux at surface
       hfxv(j,i) = xhfx(j,i) + mult*m2p%tpatm(j,i,kz)*xqfx(j,i)
       ! limit coriolis parameter to value at 10 deg. latitude
-      pfcor(j,i) = max(dabs(m2p%coriol(j,i)),2.546D-5)
+      pfcor(j,i) = max(abs(m2p%coriol(j,i)),2.546D-5)
     end do
   end do
   !

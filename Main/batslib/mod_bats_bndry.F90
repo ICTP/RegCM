@@ -205,10 +205,9 @@ module mod_bats_bndry
     do i = ilndbeg , ilndend
       if ( sigf(i) <= minsigf ) then
         qsatd = pfqsdt(tgrd(i),sfcp(i))
-        ! we need specific humidity
-        qsatd = qsatd/(d_one+qsatd)
-        !call bats_qsdt(tgrd(i),qsatd)
-        qsatd = qgrd(i)*qsatd * gwet(i)
+        qsatd = qsatd/(d_one+qsatd) * gwet(i)
+        ! call bats_qsdt(tgrd(i),qgrd(i),qsatd)
+        ! qsatd = qsatd * gwet(i)
         rai = cdrx(i)*vspda(i)*rhs(i)
         cgrnds(i) = rai*cpd
         cgrndl(i) = rai*qsatd
