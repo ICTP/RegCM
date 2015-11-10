@@ -430,6 +430,7 @@ module mod_bats_common
         fracv = sigf(i)
         fracb = (d_one-lncl(i))*(d_one-scvk(i))
         fracs = lncl(i)*wt(i) + (d_one-lncl(i))*scvk(i)
+        zo(i) = fracv * rough(lveg(i)) + fracb * zlnd + fracs * zsno
         facv = z2fra(i)/zlgveg(i)
         facb = z2fra(i)/zlglnd(i)
         facs = z2fra(i)/zlgsno(i)
@@ -450,6 +451,7 @@ module mod_bats_common
       call l2c_ss(lndcomm,qs,lms%q2m)
       call l2c_ss(lndcomm,sts,lms%t2m)
       call l2c_ss(lndcomm,tgbb,lms%tgbb)
+      call l2c_ss(lndcomm,zo,lms%zo)
 
       if ( ichem == 1 ) then
         call l2c_ss(lndcomm,delt,lms%deltat)

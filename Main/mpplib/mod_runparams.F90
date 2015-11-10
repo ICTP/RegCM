@@ -131,7 +131,7 @@ module mod_runparams
   real(rk8) , public :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
   real(rk8) , public :: c200 , rdxsq
   real(rk8) , public :: dtsrf , dtabem , dtrad , dtcum , dtche
-  real(rk8) , public :: cpldt, zomax, ustarmax
+  real(rk8) , public :: cpldt , zomax , ustarmax
   real(rk8) , public :: ckh , xkhmax , xkhz
 
   integer(ik4) , public :: iboudy , ichem , ipgf , ipptls
@@ -267,7 +267,7 @@ module mod_runparams
   integer(ik4) , public :: liqflgsw
   integer(ik4) , public :: icld
   integer(ik4) , public :: irng
-  integer(ik4) , public :: imcica 
+  integer(ik4) , public :: imcica
   integer(ik4) , public :: inflglw
   integer(ik4) , public :: iceflglw
   integer(ik4) , public :: liqflglw

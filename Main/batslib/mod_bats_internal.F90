@@ -185,6 +185,7 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: z1log
   real(rk8) , pointer , dimension(:) :: z2fra
   real(rk8) , pointer , dimension(:) :: zh
+  real(rk8) , pointer , dimension(:) :: zo
   real(rk8) , pointer , dimension(:) :: zlgdis
   real(rk8) , pointer , dimension(:) :: zlglnd
   real(rk8) , pointer , dimension(:) :: zlgsno
@@ -359,6 +360,7 @@ module mod_bats_internal
     call getmem1d(z1log,1,nlandp,'bats_internal:z1log')
     call getmem1d(z2fra,1,nlandp,'bats_internal:z2fra')
     call getmem1d(zh,1,nlandp,'bats_internal:zh')
+    call getmem1d(zo,1,nlandp,'bats_internal:zo')
     call getmem1d(zlgdis,1,nlandp,'bats_internal:zlgdis')
     call getmem1d(zlglnd,1,nlandp,'bats_internal:zlglnd')
     call getmem1d(zlgsno,1,nlandp,'bats_internal:zlgsno')

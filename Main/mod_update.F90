@@ -144,13 +144,13 @@ module mod_update
         exportFields%sflx(j,i) = zeroval
         exportFields%snow(j,i) = zeroval
         exportFields%dswr(j,i) = zeroval
-        exportFields%rhoa(j,i) = initval 
+        exportFields%rhoa(j,i) = initval
 !
         importFields%sst(j,i) = initval
         importFields%sit(j,i) = initval
         importFields%msk(j,i) = initval
-        importFields%zo(j,i) = initval 
-        importFields%ustar(j,i) = initval 
+        importFields%zo(j,i) = initval
+        importFields%ustar(j,i) = initval
 !
         ldmskb(j,i) = mddom%ldmsk(j,i)
         wetdry(j,i) = 0

@@ -26,7 +26,7 @@ module mod_ocn_zeng
   use mod_dynparam
   use mod_service
   use mod_ocn_internal
-  use mod_runparams , only : iocnrough , iocnzoq , ktau 
+  use mod_runparams , only : iocnrough , iocnzoq , ktau
   use mod_runparams , only : iocncpl, ntcpl
   use mod_runparams , only : iwavcpl, zomax, ustarmax
 
@@ -62,9 +62,9 @@ module mod_ocn_zeng
 
   real(rk8) , parameter :: threedays = 86400.0D0*3.0D0  ! 3 days
 
-    real(rk8) , parameter :: missing_r8 = 1.0d20
-    real(rk8) , parameter :: tol = missing_r8/2.0d0
-    logical :: flag1, flag2
+  real(rk8) , parameter :: missing_r8 = 1.0D20
+  real(rk8) , parameter :: tol = missing_r8/2.0D0
+  logical :: flag1 , flag2
 
   contains
   !
@@ -146,10 +146,10 @@ module mod_ocn_zeng
       ! flag1 is used as mask for zo
       !
       flag1 = .true.
-      if (iwavcpl == 1) then
-        if (zoo(i) < tol .and. ktau+1 > ntcpl) then
+      if ( iwavcpl == 1 ) then
+        if ( zoo(i) < tol .and. ktau+1 > ntcpl ) then
           zo = zoo(i)
-          if (zo > zomax) zo = zomax
+          if ( zo > zomax ) zo = zomax
           flag1 = .false.
         end if
       end if
@@ -158,10 +158,10 @@ module mod_ocn_zeng
       ! flag2 is used as mask for ustr
       !
       flag2 = .true.
-      if (iwavcpl == 1) then
-        if (ustr(i) < tol .and. ktau+1 > ntcpl) then
+      if ( iwavcpl == 1 ) then
+        if ( ustr(i) < tol .and. ktau+1 > ntcpl ) then
           ustar = ustr(i)
-          if (ustar > ustarmax) ustar = ustarmax
+          if ( ustar > ustarmax ) ustar = ustarmax
           flag2 = .false.
         end if
       end if
@@ -170,7 +170,7 @@ module mod_ocn_zeng
       !
       do nconv = 1 , 5
         call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
-        if (flag2 .or. ktau+1 <= ntcpl) then
+        if ( flag2 .or. ktau+1 <= ntcpl ) then
           ustar = vonkar*um/dlog(hu/zo)
         end if
       end do
@@ -192,7 +192,7 @@ module mod_ocn_zeng
         !
         ! wind
         !
-        if (flag2 .or. ktau+1 <= ntcpl) then
+        if ( flag2 .or. ktau+1 <= ntcpl ) then
           zeta = hu/obu
           if ( zeta < -zetam ) then      ! zeta < -1
             ustar = vonkar*um/(log(-zetam*obu/zo)-psi(1,-zetam)+ &
@@ -397,8 +397,8 @@ module mod_ocn_zeng
       real(rk8) , intent (in) :: ustar , um10 , wc , visa
       real(rk8) , intent (out) :: zo , zoq , zot
       real(rk8) :: cp , charnockog , re , xtq , rt , rq
-      ! if surface roughness not provided by wave model 
-      if (flag1 .or. ktau+1 <= ntcpl) then
+      ! if surface roughness not provided by wave model
+      if ( flag1 .or. ktau+1 <= ntcpl ) then
         ! Wave age. The wind here is the mean last N days wind
         cp = 1.2D0*um10
         ! Smith et al. (1992), Carlsson et al. (2009)

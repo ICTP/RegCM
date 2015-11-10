@@ -196,7 +196,7 @@
  ifopt   = .false.,           ! Output OPT ?
  chemfrq =     6.,            ! Frequency in hours to write to CHE
  enable_atm_vars = 67*.true., ! Mask to eventually disable variables ATM
- enable_srf_vars = 32*.true., ! Mask to eventually disable variables SRF
+ enable_srf_vars = 35*.true., ! Mask to eventually disable variables SRF
  enable_rad_vars = 25*.true., ! Mask to eventually disable variables RAD
  enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
  enable_sts_vars = 18*.true., ! Mask to eventually disable variables STS
@@ -258,6 +258,9 @@
                         !        only activated with coupling
  icumcloud =        2,  ! Use different models for cumulus clouds
  iocncpl =          0,  ! Activates RegCM-ROMS coupled model
+                        !   0 => no coupling
+                        !   1 => coupling activated
+ iwavcpl =          0,  ! Activates Wave coupled model
                         !   0 => no coupling
                         !   1 => coupling activated
    iocnrough =      1,  ! Zeng Ocean model roughness formula to use.
@@ -557,6 +560,8 @@
 !
  &cplparam
  cpldt        = 10800., ! Coupling time step in sec. 
+ zomax        = 0.005,  ! Maximum surface roughness from wave model coupling
+ ustarmax     = 2.0,    ! Maximum friction velocity from wave model coupling
  cpldbglevel  = 1,      ! Debug level
                         ! 1 => basic output
                         ! 2 => grid information of each component is written

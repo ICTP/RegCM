@@ -436,6 +436,22 @@ module mod_lm_interface
 #endif
 #endif
     call vecocn(lm,lms)
+
+    ! Fill land part of this output vars
+    do n = 1 , nnsg
+      do i = ici1, ici2
+        do j = jci1 , jci2
+          if ( lm%ldmsk1(n,j,i) > 0 ) then
+            lms%rhoa(n,j,i) = lms%sfcp(n,j,i)/(rgas*lms%t2m(n,j,i))
+            lms%ustar(n,j,i) = sqrt(sqrt( &
+                                  (lms%u10m(n,j,i)*lms%drag(n,j,i))**2 + &
+                                  (lms%v10m(n,j,i)*lms%drag(n,j,i))**2) / &
+                                  lms%rhoa(n,j,i))
+          end if
+        end do
+      end do
+    end do
+
     lm%hfx = sum(lms%sent,1)*rdnnsg
     lm%qfx = sum(lms%evpr,1)*rdnnsg
     lm%uvdrag = sum(lms%drag,1)*rdnnsg

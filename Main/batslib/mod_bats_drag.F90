@@ -147,8 +147,8 @@ module mod_bats_drag
     !
     do i = ilndbeg , ilndend
       ! drag coeff over land
-      frav = sigf(i)
       asigf = lncl(i)
+      frav = sigf(i)
       fras = asigf*wt(i) + (d_one-asigf)*scvk(i)
       frab = (d_one-asigf)*(d_one-scvk(i))
       cdb = (vonkar/zlglnd(i))**2

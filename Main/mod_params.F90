@@ -98,11 +98,11 @@ module mod_params
       enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
       do_parallel_netcdf_out , idiag
 
-    namelist /physicsparam/ ibltyp , iboudy , isladvec ,              &
-      icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls , &
-      iocnflx , iocncpl , iwavcpl, iocnrough , iocnzoq , ichem , scenario ,  &
-      idcsst , iseaice , idesseas , iconvlwp , icldfrac , irrtm ,     &
-      iclimao3 , isolconst , icumcloud , islab_ocean , itweak ,       &
+    namelist /physicsparam/ ibltyp , iboudy , isladvec ,                &
+      icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls ,   &
+      iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,       &
+      scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldfrac ,   &
+      irrtm , iclimao3 , isolconst , icumcloud , islab_ocean , itweak , &
       temp_tend_maxval , wind_tend_maxval
 
     namelist /nonhydroparam/ ifupr , logp_lrate , ckh
@@ -148,7 +148,7 @@ module mod_params
     namelist /clmparam/ dirclm , imask , clmfrq , ilawrence_albedo
 #endif
 
-    namelist /cplparam/ cpldt, zomax, ustarmax
+    namelist /cplparam/ cpldt , zomax , ustarmax
 
     namelist /slabocparam/ do_qflux_adj , do_restore_sst , &
       sst_restore_timescale , mixed_layer_depth

@@ -85,7 +85,7 @@ module mod_ocn_internal
   real(rk8) , pointer , dimension(:) :: vsw     ! vatm
   real(rk8) , pointer , dimension(:) :: ustr    ! ustar
   real(rk8) , pointer , dimension(:) :: zoo     ! zo
-  real(rk8) , pointer , dimension(:) :: rhoa    ! xdens 
+  real(rk8) , pointer , dimension(:) :: rhoa    ! xdens
 
   real(rk8) , pointer , dimension(:) :: laketa
   real(rk8) , pointer , dimension(:) :: lakhi

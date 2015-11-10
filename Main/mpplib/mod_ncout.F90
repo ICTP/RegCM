@@ -252,9 +252,9 @@ module mod_ncout
   integer(ik4) , parameter :: srf_dew      = 24
   integer(ik4) , parameter :: srf_srunoff  = 25
   integer(ik4) , parameter :: srf_trunoff  = 26
-  integer(ik4) , parameter :: srf_ustar  = 27
-  integer(ik4) , parameter :: srf_zo     = 28
-  integer(ik4) , parameter :: srf_rhoa   = 29
+  integer(ik4) , parameter :: srf_ustar    = 27
+  integer(ik4) , parameter :: srf_zo       = 28
+  integer(ik4) , parameter :: srf_rhoa     = 29
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
