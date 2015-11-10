@@ -565,13 +565,17 @@ module mod_init
       end do
     end if
     if ( any(icup == 6) ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            kfwavg(j,i,k) = atm1%w(j,i,k) / sfs%psb(j,i)
+      if ( idynamic == 2 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              kfwavg(j,i,k) = atm1%w(j,i,k) / sfs%psb(j,i)
+            end do
           end do
         end do
-      end do
+      else
+        kfwavg(:,:,:) = 1.0D-7
+      end if
     end if
   end if
   !
