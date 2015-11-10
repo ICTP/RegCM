@@ -83,6 +83,9 @@ module mod_ocn_internal
   real(rk8) , pointer , dimension(:) :: um10
   real(rk8) , pointer , dimension(:) :: usw     ! uatm
   real(rk8) , pointer , dimension(:) :: vsw     ! vatm
+  real(rk8) , pointer , dimension(:) :: ustr    ! ustar
+  real(rk8) , pointer , dimension(:) :: zoo     ! zo
+  real(rk8) , pointer , dimension(:) :: rhoa    ! xdens 
 
   real(rk8) , pointer , dimension(:) :: laketa
   real(rk8) , pointer , dimension(:) :: lakhi
@@ -134,6 +137,9 @@ module mod_ocn_internal
     call getmem1d(v10m,1,nocnp,'ocn_internal:v10m')
     call getmem1d(usw,1,nocnp,'ocn_internal:usw')
     call getmem1d(vsw,1,nocnp,'ocn_internal:vsw')
+    call getmem1d(ustr,1,nocnp,'ocn_internal:ustr')
+    call getmem1d(zoo,1,nocnp,'ocn_internal:zoo')
+    call getmem1d(rhoa,1,nocnp,'ocn_internal:rhoa')
     call getmem1d(mask,1,nocnp,'ocn_internal:mask')
     call getmem1d(icpl,1,nocnp,'ocn_internal:icpl')
     call getmem1d(czenith,1,nocnp,'ocn_internal:czenith')

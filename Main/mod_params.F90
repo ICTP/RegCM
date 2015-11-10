@@ -100,7 +100,7 @@ module mod_params
 
     namelist /physicsparam/ ibltyp , iboudy , isladvec ,              &
       icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls , &
-      iocnflx , iocncpl , iocnrough , iocnzoq , ichem , scenario ,    &
+      iocnflx , iocncpl , iwavcpl, iocnrough , iocnzoq , ichem , scenario ,  &
       idcsst , iseaice , idesseas , iconvlwp , icldfrac , irrtm ,     &
       iclimao3 , isolconst , icumcloud , islab_ocean , itweak ,       &
       temp_tend_maxval , wind_tend_maxval
@@ -148,7 +148,7 @@ module mod_params
     namelist /clmparam/ dirclm , imask , clmfrq , ilawrence_albedo
 #endif
 
-    namelist /cplparam/ cpldt
+    namelist /cplparam/ cpldt, zomax, ustarmax
 
     namelist /slabocparam/ do_qflux_adj , do_restore_sst , &
       sst_restore_timescale , mixed_layer_depth
@@ -224,6 +224,7 @@ module mod_params
     iocnflx = 2
     iocnzoq = 1
     iocncpl = 0
+    iwavcpl = 0
     iocnrough = 1
     lakemod = 0
     ichem = 0
@@ -429,6 +430,8 @@ module mod_params
     !
     !------namelist cplparam ;
     cpldt = 21600.0D0       ! coupling time step in seconds (seconds)
+    zomax = 0.02D0          ! maximum allowed surface roughness from wave comp.
+    ustarmax = 0.02D0       ! maximum allowed friction velocity from wave comp.
 
 #ifdef CLM
     if ( myid == italk ) then
@@ -709,7 +712,7 @@ module mod_params
 #endif
       end if
 #endif
-      if ( iocncpl == 1 ) then
+      if ( iocncpl == 1 .or. iwavcpl == 1 ) then
         rewind(ipunit)
         read (ipunit , cplparam, iostat=iretval, err=117)
         if ( iretval /= 0 ) then
@@ -801,6 +804,7 @@ module mod_params
     call bcast(ipptls)
     call bcast(iocnflx)
     call bcast(iocncpl)
+    call bcast(iwavcpl)
     call bcast(iocnrough)
     call bcast(iocnzoq)
     call bcast(ipgf)
@@ -881,8 +885,10 @@ module mod_params
       end if
     end if
 
-    if (iocncpl == 1) then
+    if (iocncpl == 1 .or. iwavcpl == 1) then
       call bcast(cpldt)
+      call bcast(zomax)
+      call bcast(ustarmax)
     end if
 
     call bcast(scenario,8)
@@ -1437,7 +1443,8 @@ module mod_params
         write(stdout,'(a,i2)') '  Zeng roughness formula      : ' , iocnrough
         write(stdout,'(a,i2)') '  Zeng roughness method       : ' , iocnzoq
       end if
-      write(stdout,'(a,i2)') '  Coupling with ROMS ocean    : ' , iocncpl
+      write(stdout,'(a,i2)') '  Coupling with ocean         : ' , iocncpl
+      write(stdout,'(a,i2)') '  Coupling with wave          : ' , iwavcpl
       write(stdout,'(a,i2)') '  Pressure gradient force     : ' , ipgf
       write(stdout,'(a,i2)') '  Prescribed LW emissivity    : ' , iemiss
 #ifndef CLM

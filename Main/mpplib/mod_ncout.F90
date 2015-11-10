@@ -60,7 +60,7 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 57
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nsrf2dvars = 21 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 24 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 6
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -252,6 +252,9 @@ module mod_ncout
   integer(ik4) , parameter :: srf_dew      = 24
   integer(ik4) , parameter :: srf_srunoff  = 25
   integer(ik4) , parameter :: srf_trunoff  = 26
+  integer(ik4) , parameter :: srf_ustar  = 27
+  integer(ik4) , parameter :: srf_zo     = 28
+  integer(ik4) , parameter :: srf_rhoa   = 29
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -982,6 +985,21 @@ module mod_ncout
           call setup_var(v2dvar_srf,srf_uvdrag,vsize,'tau','N m-2', &
             'Surface wind stress','surface_downward_stress',.true.)
           srf_uvdrag_out => v2dvar_srf(srf_uvdrag)%rval
+        end if
+        if ( enable_srf2d_vars(srf_ustar) ) then
+          call setup_var(v2dvar_srf,srf_ustar,vsize,'ustar','m s-1', &
+            'Surface friction velocity','friction_velocity',.true.)
+          srf_ustar_out => v2dvar_srf(srf_ustar)%rval
+        end if
+        if ( enable_srf2d_vars(srf_zo) ) then
+          call setup_var(v2dvar_srf,srf_zo,vsize,'zo','m', &
+            'Surface roughness length','roughness_length',.true.)
+          srf_zo_out => v2dvar_srf(srf_zo)%rval
+        end if
+        if ( enable_srf2d_vars(srf_rhoa) ) then
+          call setup_var(v2dvar_srf,srf_rhoa,vsize,'rhoa','kg m-3', &
+            'Surface air density','air_density',.true.)
+          srf_rhoa_out => v2dvar_srf(srf_rhoa)%rval
         end if
         if ( enable_srf2d_vars(srf_tg) ) then
           call setup_var(v2dvar_srf,srf_tg,vsize,'ts','K', &
@@ -2417,6 +2435,10 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('coupled_ocean_run',iocncpl))
         end if
+        if ( iwavcpl == 1 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('coupled_wave_run',iwavcpl))
+        end if
         if ( idynamic == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('pressure_gradient_scheme',ipgf))
@@ -2711,7 +2733,7 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('chem_enable_sulfate_indirect_effect',iindirect))
         end if
-        if ( iocncpl == 1 ) then
+        if ( iocncpl == 1 .or. iwavcpl == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('cpl_coupling_timestep_in_seconds',cpldt))
         end if

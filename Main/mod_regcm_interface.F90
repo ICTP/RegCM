@@ -193,7 +193,7 @@ module mod_regcm_interface
       ! Retrieve information from the driver
       !
 #ifdef CPL
-      if ( iocncpl == 1 ) then
+      if ( iocncpl == 1 .or. iwavcpl == 1 ) then
         if (ktau > 0) then
           call rcm_get(myid)
         end if
@@ -228,7 +228,7 @@ module mod_regcm_interface
       ! Send information to the driver
       !
 #ifdef CPL
-      if ( iocncpl == 1 ) then
+      if ( iocncpl == 1 .or. iwavcpl == 1 ) then
         call rcm_put(myid)
       end if
 #endif

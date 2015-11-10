@@ -103,6 +103,9 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: atm_stats_snowev_out => null()
 
   real(rk8) , dimension(:,:) , pointer :: srf_uvdrag_out => null()
+  real(rk8) , dimension(:,:) , pointer :: srf_ustar_out => null()
+  real(rk8) , dimension(:,:) , pointer :: srf_zo_out => null()
+  real(rk8) , dimension(:,:) , pointer :: srf_rhoa_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_tg_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_tlef_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_evp_out => null()

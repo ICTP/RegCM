@@ -559,7 +559,7 @@ module mod_bdycod
         do j = jci1 , jci2
           ! Update temperatures over water
           if ( mddom%ldmsk(j,i) == 0 ) then
-            if ( iocncpl == 1 ) then
+            if ( iocncpl == 1 .or. iwavcpl == 1 ) then
               if ( cplmsk(j,i) /= 0 ) cycle
             end if
             sfs%tga(j,i) = ts1(j,i)

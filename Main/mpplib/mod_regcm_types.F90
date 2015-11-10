@@ -223,6 +223,9 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: qfx
     real(rk8) , pointer , dimension(:,:) :: tgbb
     real(rk8) , pointer , dimension(:,:) :: uvdrag
+    real(rk8) , pointer , dimension(:,:) :: ustar
+    real(rk8) , pointer , dimension(:,:) :: zo
+    real(rk8) , pointer , dimension(:,:) :: rhoa 
   end type surfstate
 
   type slice
@@ -305,12 +308,15 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: sflx
     real(rk8) , pointer , dimension(:,:) :: snow
     real(rk8) , pointer , dimension(:,:) :: dswr
+    real(rk8) , pointer , dimension(:,:) :: rhoa
   end type exp_data
 
   type imp_data
     real(rk8) , pointer , dimension(:,:) :: sst
     real(rk8) , pointer , dimension(:,:) :: sit
     real(rk8) , pointer , dimension(:,:) :: msk
+    real(rk8) , pointer , dimension(:,:) :: zo
+    real(rk8) , pointer , dimension(:,:) :: ustar
   end type imp_data
 
   type lm_state
@@ -366,6 +372,9 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: tdeltas
     real(rk8) , pointer , dimension(:,:,:) :: tskin
     real(rk8) , pointer , dimension(:,:,:) :: sst
+    real(rk8) , pointer , dimension(:,:,:) :: zo
+    real(rk8) , pointer , dimension(:,:,:) :: ustar
+    real(rk8) , pointer , dimension(:,:,:) :: rhoa 
 #ifdef CLM45
     real(rk8) , pointer , dimension(:,:,:,:) :: vocemiss
     real(rk8) , pointer , dimension(:,:,:,:) :: dustemiss
@@ -439,6 +448,9 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: drydepflx   ! drydepflx
     real(rk8) , pointer , dimension(:,:,:) :: wetdepflx   ! wetdepflx
     integer(ik4) , pointer , dimension(:) :: idust        ! dust indices
+    real(rk8) , pointer , dimension(:,:) :: zo          ! zo
+    real(rk8) , pointer , dimension(:,:) :: ustar       ! ustar
+    real(rk8) , pointer , dimension(:,:) :: rhoa        ! xdens 
 #ifdef CLM
     real(rk8) , pointer , dimension(:,:,:) :: dep_vels
     real(rk8) , pointer , dimension(:,:) :: voc_em0

@@ -866,6 +866,8 @@ module mod_atm_interface
       end if
       call getmem2d(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')
       call getmem2d(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
+      call getmem2d(sfs%zo,jci1,jci2,ici1,ici2,'surf:zo')
+      call getmem2d(sfs%ustar,jci1,jci2,ici1,ici2,'surf:ustar')
     end subroutine allocate_surfstate
 !
     subroutine allocate_slice(ax)
@@ -1012,7 +1014,7 @@ module mod_atm_interface
         end if
 #endif
       end if
-      if ( iocncpl == 1 ) then
+      if ( iocncpl == 1 .or. iwavcpl == 1 ) then
         call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'storage:cplmsk')
         cplmsk(:,:) = 0
         call getmem3d(dailyrnf,jci1,jci2,ici1,ici2,1,2,'storage:dailyrnf')

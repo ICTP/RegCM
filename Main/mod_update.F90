@@ -107,10 +107,13 @@ module mod_update
     call getmem2d(exportFields%sflx,jce1,jce2,ice1,ice2,'cpl:sflx')
     call getmem2d(exportFields%snow,jce1,jce2,ice1,ice2,'cpl:snow')
     call getmem2d(exportFields%dswr,jce1,jce2,ice1,ice2,'cpl:dswr')
+    call getmem2d(exportFields%rhoa,jce1,jce2,ice1,ice2,'cpl:rhoa')
 !
     call getmem2d(importFields%sst,jce1,jce2,ice1,ice2,'cpl:sst')
     call getmem2d(importFields%sit,jce1,jce2,ice1,ice2,'cpl:sit')
     call getmem2d(importFields%msk,jce1,jce2,ice1,ice2,'cpl:msk')
+    call getmem2d(importFields%zo,jce1,jce2,ice1,ice2,'cpl:zo')
+    call getmem2d(importFields%ustar,jce1,jce2,ice1,ice2,'cpl:ustar')
 !
     call getmem2d(ldmskb,jci1,jci2,ici1,ici2,'cpl:ldmsk')
     call getmem2d(wetdry,jci1,jci2,ici1,ici2,'cpl:wetdry')
@@ -141,10 +144,13 @@ module mod_update
         exportFields%sflx(j,i) = zeroval
         exportFields%snow(j,i) = zeroval
         exportFields%dswr(j,i) = zeroval
+        exportFields%rhoa(j,i) = initval 
 !
         importFields%sst(j,i) = initval
         importFields%sit(j,i) = initval
         importFields%msk(j,i) = initval
+        importFields%zo(j,i) = initval 
+        importFields%ustar(j,i) = initval 
 !
         ldmskb(j,i) = mddom%ldmsk(j,i)
         wetdry(j,i) = 0

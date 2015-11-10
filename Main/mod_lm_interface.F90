@@ -95,6 +95,9 @@ module mod_lm_interface
     call getmem3d(lms%deltat,1,nnsg,jci1,jci2,ici1,ici2,'bats:deltat')
     call getmem3d(lms%deltaq,1,nnsg,jci1,jci2,ici1,ici2,'bats:deltaq')
     call getmem3d(lms%drag,1,nnsg,jci1,jci2,ici1,ici2,'bats:drag')
+    call getmem3d(lms%ustar,1,nnsg,jci1,jci2,ici1,ici2,'bats:ustar')
+    call getmem3d(lms%zo,1,nnsg,jci1,jci2,ici1,ici2,'bats:zo')
+    call getmem3d(lms%rhoa,1,nnsg,jci1,jci2,ici1,ici2,'bats:rho')
     call getmem3d(lms%lncl,1,nnsg,jci1,jci2,ici1,ici2,'bats:lncl')
     call getmem3d(lms%prcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:prcp')
     call getmem3d(lms%snwm,1,nnsg,jci1,jci2,ici1,ici2,'bats:snwm')
@@ -294,6 +297,9 @@ module mod_lm_interface
     call assignpnt(sfs%hfx,lm%hfx)
     call assignpnt(sfs%qfx,lm%qfx)
     call assignpnt(sfs%uvdrag,lm%uvdrag)
+    call assignpnt(sfs%ustar,lm%ustar)
+    call assignpnt(sfs%zo,lm%zo)
+    call assignpnt(sfs%rhoa,lm%rhoa)
     call assignpnt(sfs%tgbb,lm%tgbb)
     call assignpnt(sfs%tga,lm%tground1)
     call assignpnt(sfs%tgb,lm%tground2)
@@ -333,7 +339,9 @@ module mod_lm_interface
       call assignpnt(drydepflx,lm%drydepflx)
       call assignpnt(idusts,lm%idust)
     end if
-    call assignpnt(dailyrnf,lm%dailyrnf)
+    if ( iocncpl == 1 .or. iwavcpl == 1) then
+      call assignpnt(dailyrnf,lm%dailyrnf)
+    end if
 #ifdef CLM
     allocate(landmask(jx,iy))
     if ( ichem == 1 ) then
@@ -431,6 +439,9 @@ module mod_lm_interface
     lm%hfx = sum(lms%sent,1)*rdnnsg
     lm%qfx = sum(lms%evpr,1)*rdnnsg
     lm%uvdrag = sum(lms%drag,1)*rdnnsg
+    lm%ustar = sum(lms%ustar,1)*rdnnsg
+    lm%zo = sum(lms%zo,1)*rdnnsg
+    lm%rhoa = sum(lms%rhoa,1)*rdnnsg
     lm%tgbb = sum(lms%tgbb,1)*rdnnsg
     lm%tground1 = sum(lms%tgrd,1)*rdnnsg
     lm%tground2 = sum(lms%tgrd,1)*rdnnsg
@@ -721,6 +732,37 @@ module mod_lm_interface
     end do
     !
     !-----------------------------------------------------------------------
+    ! Retrieve information from WAV component
+    !-----------------------------------------------------------------------
+    !
+    do i = ici1, ici2
+      do j = jci1, jci2
+        if ( lm%iveg(j,i) == 14 .or. lm%iveg(j,i) == 15 ) then
+          !
+          !--------------------------------------
+          ! Update: Surface roughness
+          !--------------------------------------
+          !
+          if ( impfie%zo(j,i) < tol ) then
+            lm%zo(j,i) = impfie%zo(j,i)
+          else
+            lm%zo(j,i) = 1.0e20
+          end if
+          !
+          !--------------------------------------
+          ! Update: Friction velocity 
+          !--------------------------------------
+          !
+          if ( impfie%ustar(j,i) < tol ) then
+            lm%ustar(j,i) = impfie%ustar(j,i)
+          else
+            lm%ustar(j,i) = 1.0e20
+          end if
+        end if
+      end do
+    end do
+    !
+    !-----------------------------------------------------------------------
     ! Format definition
     !-----------------------------------------------------------------------
     !
@@ -857,6 +899,12 @@ module mod_lm_interface
       if ( ifsrf ) then
         if ( associated(srf_uvdrag_out) ) &
           srf_uvdrag_out = sum(lms%drag,1)*rdnnsg
+        if ( associated(srf_ustar_out) ) &
+          srf_ustar_out = sum(lms%ustar,1)*rdnnsg
+        if ( associated(srf_zo_out) ) &
+          srf_zo_out = sum(lms%zo,1)*rdnnsg
+        if ( associated(srf_rhoa_out) ) &
+          srf_rhoa_out = sum(lms%rhoa,1)*rdnnsg
         if ( associated(srf_tg_out) ) &
           srf_tg_out = sum(lms%tgbb,1)*rdnnsg
         if ( associated(srf_tlef_out) ) then
@@ -946,7 +994,7 @@ module mod_lm_interface
 
     end if ! IF output time
 
-    if ( iocncpl == 1 ) then
+    if ( iocncpl == 1 .or. iwavcpl == 1 ) then
       ! Fill for the RTM component
       lm%dailyrnf(:,:,1) = lm%dailyrnf(:,:,1) + sum(lms%srnof,1)*rdnnsg
       lm%dailyrnf(:,:,2) = lm%dailyrnf(:,:,2) + &

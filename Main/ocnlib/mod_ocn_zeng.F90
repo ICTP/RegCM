@@ -26,7 +26,9 @@ module mod_ocn_zeng
   use mod_dynparam
   use mod_service
   use mod_ocn_internal
-  use mod_runparams , only : iocnrough , iocnzoq
+  use mod_runparams , only : iocnrough , iocnzoq , ktau 
+  use mod_runparams , only : iocncpl, ntcpl
+  use mod_runparams , only : iwavcpl, zomax, ustarmax
 
   implicit none
 
@@ -59,6 +61,10 @@ module mod_ocn_zeng
   real(rk8) , parameter :: zetam = 1.574D0
 
   real(rk8) , parameter :: threedays = 86400.0D0*3.0D0  ! 3 days
+
+    real(rk8) , parameter :: missing_r8 = 1.0d20
+    real(rk8) , parameter :: tol = missing_r8/2.0d0
+    logical :: flag1, flag2
 
   contains
   !
@@ -136,11 +142,37 @@ module mod_ocn_zeng
         um = dsqrt(uv995*uv995+wc*wc)
       end if
       !
+      ! zo comes from wave model
+      ! flag1 is used as mask for zo
+      !
+      flag1 = .true.
+      if (iwavcpl == 1) then
+        if (zoo(i) < tol .and. ktau+1 > ntcpl) then
+          zo = zoo(i)
+          if (zo > zomax) zo = zomax
+          flag1 = .false.
+        end if
+      end if
+      !
+      ! ustr comes from wave model
+      ! flag2 is used as mask for ustr
+      !
+      flag2 = .true.
+      if (iwavcpl == 1) then
+        if (ustr(i) < tol .and. ktau+1 > ntcpl) then
+          ustar = ustr(i)
+          if (ustar > ustarmax) ustar = ustarmax
+          flag2 = .false.
+        end if
+      end if
+      !
       ! loop to obtain initial and good ustar and zo
       !
       do nconv = 1 , 5
         call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
-        ustar = vonkar*um/log(hu/zo)
+        if (flag2 .or. ktau+1 <= ntcpl) then
+          ustar = vonkar*um/dlog(hu/zo)
+        end if
       end do
       rb = egrav*hu*dthv/(thv*um*um)
       if ( rb >= d_zero ) then       ! neutral or stable
@@ -160,17 +192,19 @@ module mod_ocn_zeng
         !
         ! wind
         !
-        zeta = hu/obu
-        if ( zeta < -zetam ) then      ! zeta < -1
-          ustar = vonkar*um/(log(-zetam*obu/zo)-psi(1,-zetam)+ &
-                  psi(1,zo/obu)+1.14D0*((-zeta)**onet-(zetam)**onet))
-        else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-          ustar = vonkar*um/(log(hu/zo) - psi(1,zeta)+psi(1,zo/obu))
-        else if ( zeta <= d_one ) then !  0 <= zeta <= 1
-          ustar = vonkar*um/(log(hu/zo) + d_five*zeta-d_five*zo/obu)
-        else                           !  1 < zeta, phi=5+zeta
-          ustar = vonkar*um/(log(obu/zo)+d_five-d_five*zo/obu+  &
-                  (d_five*log(zeta)+zeta-d_one))
+        if (flag2 .or. ktau+1 <= ntcpl) then
+          zeta = hu/obu
+          if ( zeta < -zetam ) then      ! zeta < -1
+            ustar = vonkar*um/(log(-zetam*obu/zo)-psi(1,-zetam)+ &
+                    psi(1,zo/obu)+1.14D0*((-zeta)**onet-(zetam)**onet))
+          else if ( zeta < d_zero ) then ! -1 <= zeta < 0
+            ustar = vonkar*um/(log(hu/zo) - psi(1,zeta)+psi(1,zo/obu))
+          else if ( zeta <= d_one ) then !  0 <= zeta <= 1
+            ustar = vonkar*um/(log(hu/zo) + d_five*zeta-d_five*zo/obu)
+          else                           !  1 < zeta, phi=5+zeta
+            ustar = vonkar*um/(log(obu/zo)+d_five-d_five*zo/obu+  &
+                    (d_five*log(zeta)+zeta-d_one))
+          end if
         end if
         !
         ! temperature
@@ -320,6 +354,9 @@ module mod_ocn_zeng
       ! Back out Drag Coefficient
       facttq = log(z995*d_half)/log(z995/zo)
       drag(i) = ustar**2*rhox(i)/uv995
+      ustr(i) = ustar
+      zoo(i)  = zo
+      rhoa(i) = xdens
       u10m(i) = usw(i)*uv10/uv995
       v10m(i) = vsw(i)*uv10/uv995
       taux(i) = tau*(usw(i)/uv995)
@@ -360,27 +397,30 @@ module mod_ocn_zeng
       real(rk8) , intent (in) :: ustar , um10 , wc , visa
       real(rk8) , intent (out) :: zo , zoq , zot
       real(rk8) :: cp , charnockog , re , xtq , rt , rq
-      ! Wave age. The wind here is the mean last N days wind
-      cp = 1.2D0*um10
-      ! Smith et al. (1992), Carlsson et al. (2009)
-      ! Charnock parameter as power function of the wave age
-      ! We consider here dominant wind sea waves
-      ! Swell dominated sea would require a wave model...
-      charnockog = regrav*0.063D0*(cp/ustar)**(-0.4D0)
-      if ( iocnrough == 1 ) then
-        zo = 0.0065D0*regrav*ustar*ustar
-      else if ( iocnrough == 2 ) then
-        zo = 0.013D0*regrav*ustar*ustar + 0.11D0*visa/ustar
-      else if ( iocnrough == 3 ) then
-        zo = 0.017D0*regrav*ustar*ustar
-      else if ( iocnrough == 4 ) then
-        ! C.H. Huang, 2012
-        ! Modification of the Charnock Wind Stress Formula
-        ! to Include the Effects of Free Convection and Swell
-        ! Advanced Methods for Practical Applications in Fluid Mechanics
-        zo = charnockog*(ustar*ustar*ustar+0.11D0*wc*wc*wc)**twot
-      else
-        zo = charnockog*ustar*ustar
+      ! if surface roughness not provided by wave model 
+      if (flag1 .or. ktau+1 <= ntcpl) then
+        ! Wave age. The wind here is the mean last N days wind
+        cp = 1.2D0*um10
+        ! Smith et al. (1992), Carlsson et al. (2009)
+        ! Charnock parameter as power function of the wave age
+        ! We consider here dominant wind sea waves
+        ! Swell dominated sea would require a wave model...
+        charnockog = regrav*0.063D0*(cp/ustar)**(-0.4D0)
+        if ( iocnrough == 1 ) then
+          zo = 0.0065D0*regrav*ustar*ustar
+        else if ( iocnrough == 2 ) then
+          zo = 0.013D0*regrav*ustar*ustar + 0.11D0*visa/ustar
+        else if ( iocnrough == 3 ) then
+          zo = 0.017D0*regrav*ustar*ustar
+        else if ( iocnrough == 4 ) then
+          ! C.H. Huang, 2012
+          ! Modification of the Charnock Wind Stress Formula
+          ! to Include the Effects of Free Convection and Swell
+          ! Advanced Methods for Practical Applications in Fluid Mechanics
+          zo = charnockog*(ustar*ustar*ustar+0.11D0*wc*wc*wc)**twot
+        else
+          zo = charnockog*ustar*ustar
+        end if
       end if
       re = (ustar*zo)/visa
       if ( iocnzoq == 2 ) then

@@ -112,6 +112,8 @@ module mod_runparams
   integer(ik4) , public :: idesseas
   ! Ocean model switch indexes
   integer(ik4) , public :: iocnrough , iocnflx , iocncpl , iocnzoq
+  ! Wave model switch indexes
+  integer(ik4) , public :: iwavcpl
   ! Radiation switch controls
   integer(ik4) , public :: idirect , iindirect , iemiss , isolconst
   ! Semi-Langrangian advection for tracers
@@ -128,7 +130,8 @@ module mod_runparams
   real(rk8) , public :: dt , dt2 , dtsq , dtcb , dtbdys , rdt
   real(rk8) , public :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
   real(rk8) , public :: c200 , rdxsq
-  real(rk8) , public :: dtsrf , dtabem , dtrad , dtcum , dtche , cpldt
+  real(rk8) , public :: dtsrf , dtabem , dtrad , dtcum , dtche
+  real(rk8) , public :: cpldt, zomax, ustarmax
   real(rk8) , public :: ckh , xkhmax , xkhz
 
   integer(ik4) , public :: iboudy , ichem , ipgf , ipptls
@@ -140,7 +143,7 @@ module mod_runparams
   logical , public :: do_parallel_netcdf_in , do_parallel_netcdf_out
   logical , public :: ifrest , rfstrt , doing_restart , lsync
 
-  integer(ik4) , public :: kchi , kclo , kcmd , cpldbglevel
+  integer(ik4) , public :: kchi , kclo , kcmd
 !
   real(rk8) , public :: akht1 , akht2
 

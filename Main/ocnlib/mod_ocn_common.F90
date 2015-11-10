@@ -196,6 +196,8 @@ module mod_ocn_common
           mask = mask + 2
         end where
       end if
+      call c2l_gs(ocncomm,lm%zo,zoo)
+      call c2l_gs(ocncomm,lm%ustar,ustr)
     else
       ! OCN -> RegCM
       call l2c_ss(ocncomm,tgb,lms%tgbb)
@@ -207,6 +209,9 @@ module mod_ocn_common
       call l2c_ss(ocncomm,drag,lms%drag)
       call l2c_ss(ocncomm,u10m,lms%u10m)
       call l2c_ss(ocncomm,v10m,lms%v10m)
+      call l2c_ss(ocncomm,ustr,lms%ustar)
+      call l2c_ss(ocncomm,zoo,lms%zo)
+      call l2c_ss(ocncomm,rhoa,lms%rhoa)
       call l2c_ss(ocncomm,taux,lms%taux)
       call l2c_ss(ocncomm,tauy,lms%tauy)
       call l2c_ss(ocncomm,t2m,lms%t2m)
