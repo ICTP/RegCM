@@ -866,6 +866,7 @@ module mod_atm_interface
       end if
       call getmem2d(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')
       call getmem2d(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
+      call getmem2d(sfs%rhoa,jci1,jci2,ici1,ici2,'surf:rhoa')
       call getmem2d(sfs%zo,jci1,jci2,ici1,ici2,'surf:zo')
       call getmem2d(sfs%ustar,jci1,jci2,ici1,ici2,'surf:ustar')
     end subroutine allocate_surfstate

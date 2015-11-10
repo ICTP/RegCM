@@ -750,7 +750,7 @@ module mod_lm_interface
           end if
           !
           !--------------------------------------
-          ! Update: Friction velocity 
+          ! Update: Friction velocity
           !--------------------------------------
           !
           if ( impfie%ustar(j,i) < tol ) then
