@@ -308,7 +308,7 @@ module mod_cu_em
 !   3. dependence of latent heat of vaporization on tempertature
 !      removed because it is neglected in regcm. this is done by
 !      setting cpv equal to cl and setting wlhv to the regcm value.
-!   4. added cloud base (icb) and cloud top (inb) to the output to
+!   4. added cloud base (icb) and cloud top (ict) to the output to
 !      compute the cloud fraction and cloud liquid water content.
 !   5. each variable is now explicitly declared.  that is, the
 !      "implicit none" option was added.
@@ -319,20 +319,20 @@ module mod_cu_em
 !   7. a maximum value to the cloud base mass flux has been added.
 !
   subroutine cupeman(t,q,qs,u,v,tra,p,ph,nd,na,nl,ntra,iflag,ft,fq,fu,fv, &
-                     ftra,precip,wd,tprime,qprime,cbmf,icb,inb,elcrit,epmax)
+                     ftra,precip,wd,tprime,qprime,cbmf,icb,ict,elcrit,epmax)
 !
     implicit none
 !
     real(rk8) :: cbmf , precip , qprime , tprime , wd , elcrit , epmax
-    integer(ik4) :: icb , iflag , inb , na , nd , nl , ntra
+    integer(ik4) :: icb , iflag , ict , na , nd , nl , ntra
     real(rk8) , dimension(nd) :: fq , ft , fu , fv , p , ph , q , qs ,  &
                                t , u , v
     real(rk8) , dimension(nd,ntra) :: ftra , tra
     intent (in) na , ntra , ph , p , nd , nl , elcrit , epmax
     intent (out) tprime , wd
     intent (inout) cbmf , fq , ft , ftra , fu , fv , icb , iflag ,    &
-                   inb , precip , q , qprime , qs , t , tra , u , v
-!
+                   ict , precip , q , qprime , qs , t , tra , u , v
+
     real(rk8) :: a2 , ad , afac , ahm , ahmax , ahmin , alt , altem ,   &
                alv , alvnew , am , amp1 , anum , asij , asum , awat , &
                b6 , bf2 , bsum , by , byp , c6 , cape , capem ,       &
@@ -347,7 +347,7 @@ module mod_cu_em
                                th , told , tp , tratm , tv , tvp ,    &
                                up , vp , water , wt
     real(rk8) , dimension(na,na) :: elij , ment , qent , sij , uent , vent
-    integer(ik4) :: i , ihmin , inb1 , ipbl , j , jc , jn , jtt , k , nk
+    integer(ik4) :: i , ihmin , ict1 , ipbl , j , jc , jn , jtt , k , nk
     integer(ik4) , dimension(na) :: nent
     real(rk8) :: sjmax , sjmin , smid , smin , stemp , tc , tca ,       &
                thbar , tnew , traav , tvaplcl , tvpplcl , tvx , tvy , &
@@ -660,26 +660,26 @@ module mod_cu_em
       end do
     end do
 !
-!   find the first model level (inb1) above the parcel's
+!   find the first model level (ict1) above the parcel's
 !   highest level of neutral buoyancy
-!   and the highest level of positive cape (inb)
+!   and the highest level of positive cape (ict)
 !
     cape = d_zero
     capem = d_zero
-    inb = icb + 1
-    inb1 = inb
+    ict = icb + 1
+    ict1 = ict
     byp = d_zero
     do i = icb + 1 , nl - 1
       by = (tvp(i)-tv(i))*(ph(i)-ph(i+1))/p(i)
       cape = cape + by
-      if ( by >= d_zero ) inb1 = i + 1
+      if ( by >= d_zero ) ict1 = i + 1
       if ( cape > d_zero ) then
-        inb = i + 1
+        ict = i + 1
         byp = (tvp(i+1)-tv(i+1))*(ph(i+1)-ph(i+2))/p(i+1)
         capem = cape
       end if
     end do
-    inb = max0(inb,inb1)
+    ict = max0(ict,ict1)
     cape = capem + byp
     defrac = capem - cape
     defrac = dmax1(defrac,0.001D0)
@@ -689,7 +689,7 @@ module mod_cu_em
 !
 !   calculate liquid water static energy of lifted parcel
 !
-    do i = icb , inb
+    do i = icb , ict
       hp(i) = h(nk) + (lv(i)+(cpd-cpv)*t(i))*ep(i)*clw(i)
     end do
 !
@@ -726,22 +726,22 @@ module mod_cu_em
 !   calculate rates of mixing, m(i)
 !
     m(icb) = d_zero
-    do i = icb + 1 , inb
-      k = min0(i,inb1)
+    do i = icb + 1 , ict
+      k = min0(i,ict1)
       dbo = dabs(tv(k)-tvp(k)) + entp*0.02D0*(ph(k)-ph(k+1))
       dbosum = dbosum + dbo
       m(i) = cbmf*dbo
     end do
-    do i = icb + 1 , inb
+    do i = icb + 1 , ict
       m(i) = m(i)/dbosum
     end do
 !
 !   calculate entrained air mass flux (ment), total water mixing ratio (qent),
 !   total condensed water (elij), and mixing fraction (sij)
 !
-    do i = icb + 1 , inb
+    do i = icb + 1 , ict
       qti = q(nk) - ep(i)*clw(i)
-      do j = icb , inb
+      do j = icb , ict
         bf2 = d_one + lv(j)*lv(j)*qs(j)/(rwat*t(j)*t(j)*cpd)
         anum = h(j) - hp(i) + (cpv-cpd)*t(j)*(qti-q(j))
         denom = h(i) - hp(i) + (cpd-cpv)*(q(i)-qti)*t(j)
@@ -793,12 +793,12 @@ module mod_cu_em
         sij(i,i) = d_one
       end if
     end do
-    sij(inb,inb) = d_one
+    sij(ict,ict) = d_one
 !
 !   normalize entrained air mass fluxes to represent equal
 !   probabilities of mixing
 !
-    do i = icb + 1 , inb
+    do i = icb + 1 , ict
       if ( nent(i) /= 0 ) then
         qp1 = q(nk) - ep(i)*clw(i)
         anum = h(i) - hp(i) - lv(i)*(qp1-qs(i))
@@ -810,7 +810,7 @@ module mod_cu_em
         scrit = dmax1(scrit,d_zero)
         asij = d_zero
         smin = d_one
-        do j = icb , inb
+        do j = icb , ict
           if ( sij(i,j) > d_zero .and. sij(i,j) < 0.9D0 ) then
             if ( j > i ) then
               smid = dmin1(sij(i,j),scrit)
@@ -837,11 +837,11 @@ module mod_cu_em
         end do
         asij = dmax1(1.0D-21,asij)
         asij = d_one/asij
-        do j = icb , inb
+        do j = icb , ict
           ment(i,j) = ment(i,j)*asij
         end do
         bsum = d_zero
-        do j = icb , inb
+        do j = icb , ict
           bsum = bsum + ment(i,j)
         end do
         if ( bsum < 1.0D-18 ) then
@@ -859,10 +859,10 @@ module mod_cu_em
       end if
     end do
 !
-!   check whether ep(inb)=0, if so, skip precipitating
+!   check whether ep(ict)=0, if so, skip precipitating
 !   downdraft calculation
 !
-    if ( ep(inb) >= 0.0001D0 ) then
+    if ( ep(ict) >= 0.0001D0 ) then
 !
 !     integrate liquid water equation to find condensed water
 !     and condensed water flux
@@ -871,7 +871,7 @@ module mod_cu_em
 !
 !     begin downdraft loop
 !
-      do i = inb , 1 , -1
+      do i = ict , 1 , -1
 !
 !       calculate detrained precipitation
 !
@@ -935,7 +935,7 @@ module mod_cu_em
 !
 !       find mixing ratio of precipitating downdraft
 !
-        if ( i /= inb ) then
+        if ( i /= ict ) then
           if ( i == 1 ) then
             qstm = qs(1)
           else
@@ -983,7 +983,7 @@ module mod_cu_em
     dpinv = 0.01D0/(ph(1)-ph(2))
     am = d_zero
     if ( nk == 1 ) then
-      do k = 2 , inb
+      do k = 2 , ict
         am = am + m(k)
       end do
     end if
@@ -999,7 +999,7 @@ module mod_cu_em
       ftra(1,j) = ftra(1,j) + egrav*dpinv * &
                (mp(2)*(trap(2,j)-tra(1,j)) + am*(tra(2,j)-tra(1,j)))
     end do
-    do j = 2 , inb
+    do j = 2 , ict
       fq(1) = fq(1) + egrav*dpinv*ment(j,1)*(qent(j,1)-q(1))
       fu(1) = fu(1) + egrav*dpinv*ment(j,1)*(uent(j,1)-u(1))
       fv(1) = fv(1) + egrav*dpinv*ment(j,1)*(vent(j,1)-v(1))
@@ -1013,24 +1013,24 @@ module mod_cu_em
 !   first find the net saturated updraft and downdraft mass fluxes
 !   through each level
 !
-    do i = 2 , inb
+    do i = 2 , ict
       dpinv = 0.01D0/(ph(i)-ph(i+1))
       cpinv = d_one/cpn(i)
       amp1 = d_zero
       ad = d_zero
       if ( i >= nk ) then
-        do k = i + 1 , inb + 1
+        do k = i + 1 , ict + 1
           amp1 = amp1 + m(k)
         end do
       end if
       do k = 1 , i
-        do j = i + 1 , inb + 1
+        do j = i + 1 , ict + 1
           amp1 = amp1 + ment(k,j)
         end do
       end do
       if ( (d_two*egrav*dpinv*amp1) >= rdt ) iflag = 4
       do k = 1 , i - 1
-        do j = i , inb
+        do j = i , ict
           ad = ad + ment(j,k)
         end do
       end do
@@ -1057,7 +1057,7 @@ module mod_cu_em
           ftra(i,j) = ftra(i,j)+egrav*dpinv*ment(k,i)*(traent(k,i,j)-tra(i,j))
         end do
       end do
-      do k = i , inb
+      do k = i , ict
         fq(i) = fq(i) + egrav*dpinv*ment(k,i)*(qent(k,i)-q(i))
         fu(i) = fu(i) + egrav*dpinv*ment(k,i)*(uent(k,i)-u(i))
         fv(i) = fv(i) + egrav*dpinv*ment(k,i)*(vent(k,i)-v(i))
@@ -1080,27 +1080,27 @@ module mod_cu_em
 !   adjust tendencies at top of convection layer to reflect
 !   actual position of the level zero cape
 !
-    fqold = fq(inb)
-    fq(inb) = fq(inb)*(d_one-frac)
-    fq(inb-1) = fq(inb-1) + frac*fqold * &
-                ((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))*lv(inb)/lv(inb-1)
-    ftold = ft(inb)
-    ft(inb) = ft(inb)*(d_one-frac)
-    ft(inb-1) = ft(inb-1) + frac*ftold * &
-                ((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))*cpn(inb)/cpn(inb-1)
-    fuold = fu(inb)
-    fu(inb) = fu(inb)*(d_one-frac)
-    fu(inb-1) = fu(inb-1) + frac*fuold * &
-                ((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))
-    fvold = fv(inb)
-    fv(inb) = fv(inb)*(d_one-frac)
-    fv(inb-1) = fv(inb-1) + frac*fvold * &
-                ((ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb)))
+    fqold = fq(ict)
+    fq(ict) = fq(ict)*(d_one-frac)
+    fq(ict-1) = fq(ict-1) + frac*fqold * &
+                ((ph(ict)-ph(ict+1))/(ph(ict-1)-ph(ict)))*lv(ict)/lv(ict-1)
+    ftold = ft(ict)
+    ft(ict) = ft(ict)*(d_one-frac)
+    ft(ict-1) = ft(ict-1) + frac*ftold * &
+                ((ph(ict)-ph(ict+1))/(ph(ict-1)-ph(ict)))*cpn(ict)/cpn(ict-1)
+    fuold = fu(ict)
+    fu(ict) = fu(ict)*(d_one-frac)
+    fu(ict-1) = fu(ict-1) + frac*fuold * &
+                ((ph(ict)-ph(ict+1))/(ph(ict-1)-ph(ict)))
+    fvold = fv(ict)
+    fv(ict) = fv(ict)*(d_one-frac)
+    fv(ict-1) = fv(ict-1) + frac*fvold * &
+                ((ph(ict)-ph(ict+1))/(ph(ict-1)-ph(ict)))
     do k = 1 , ntra
-      ftraold = ftra(inb,k)
-      ftra(inb,k) = ftra(inb,k)*(d_one-frac)
-      ftra(inb-1,k) = ftra(inb-1,k) + frac*ftraold * &
-                      (ph(inb)-ph(inb+1))/(ph(inb-1)-ph(inb))
+      ftraold = ftra(ict,k)
+      ftra(ict,k) = ftra(ict,k)*(d_one-frac)
+      ftra(ict-1,k) = ftra(ict-1,k) + frac*ftraold * &
+                      (ph(ict)-ph(ict+1))/(ph(ict-1)-ph(ict))
     end do
 !
 !   very slightly adjust tendencies to force exact
@@ -1109,26 +1109,26 @@ module mod_cu_em
     ents = d_zero
     uav = d_zero
     vav = d_zero
-    do i = 1 , inb
+    do i = 1 , ict
       ents = ents + (cpn(i)*ft(i)+lv(i)*fq(i))*(ph(i)-ph(i+1))
       uav = uav + fu(i)*(ph(i)-ph(i+1))
       vav = vav + fv(i)*(ph(i)-ph(i+1))
     end do
-    ents = ents/(ph(1)-ph(inb+1))
-    uav = uav/(ph(1)-ph(inb+1))
-    vav = vav/(ph(1)-ph(inb+1))
-    do i = 1 , inb
+    ents = ents/(ph(1)-ph(ict+1))
+    uav = uav/(ph(1)-ph(ict+1))
+    vav = vav/(ph(1)-ph(ict+1))
+    do i = 1 , ict
       ft(i) = ft(i) - ents/cpn(i)
       fu(i) = (d_one-cu)*(fu(i)-uav)
       fv(i) = (d_one-cu)*(fv(i)-vav)
     end do
     do k = 1 , ntra
       traav = d_zero
-      do i = 1 , inb
+      do i = 1 , ict
         traav = traav + ftra(i,k)*(ph(i)-ph(i+1))
       end do
-      traav = traav/(ph(1)-ph(inb+1))
-      do i = 1 , inb
+      traav = traav/(ph(1)-ph(ict+1))
+      do i = 1 , ict
         ftra(i,k) = ftra(i,k) - traav
       end do
     end do

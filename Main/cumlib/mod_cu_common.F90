@@ -93,9 +93,9 @@ module mod_cu_common
           kbot = c2m%kcumbot(j,i)
           do k = ktop , kbot
             if ( cuscheme(j,i) == 4 ) then
-              c2m%cldlwc(:,:,:) = 0.5D-4
+              c2m%cldlwc(j,i,k) = 0.5D-4
             else
-              c2m%cldlwc(:,:,:) = 0.3D-3
+              c2m%cldlwc(j,i,k) = 0.3D-3
             end if
           end do
         end do
@@ -163,7 +163,7 @@ module mod_cu_common
         end do ic6iloop3
       end if
     else
-      if ( icumcloud == 1 ) then
+      if ( icumcloud <= 1 ) then
         iloop1: &
         do i = ici1 , ici2
           jloop1: &
@@ -191,7 +191,7 @@ module mod_cu_common
           do j = jci1 , jci2
             ktop = c2m%kcumtop(j,i)
             kbot = c2m%kcumbot(j,i)
-            kclth = kbot - ktop
+            kclth = kbot - ktop + 1
             if ( kclth < 1 ) cycle jloop3
             scalep = min((m2c%pas(j,i,kbot)-m2c%pas(j,i,ktop)) / &
                     maxcloud_dp,d_one)
