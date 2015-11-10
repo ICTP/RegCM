@@ -28,6 +28,7 @@ module mod_cu_kf
   use mod_cu_common
   use mod_runparams , only : dx , dxsq , ipptls , dt , dtsec
   use mod_runparams , only : iqv , iqr , iqi , iqs , iqc , kf_entrate
+  use mod_runparams , only : kf_trigger , ichem
   use mod_service
 
   implicit none

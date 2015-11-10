@@ -103,8 +103,7 @@ module mod_bats_drag
         cdr(i) = cdrn(i)/(d_one+11.5D0*rib(i))
       end if
       ! 3.1  apply lower limit to drag coefficient value
-      cdrmin = min(0.25D0*cdrn(i),6.0D-4)
-      !end if
+      cdrmin = max(0.25D0*cdrn(i),6.0D-4)
       if ( cdr(i) < cdrmin ) cdr(i) = cdrmin
       cdrx(i) = cdr(i)
     end do

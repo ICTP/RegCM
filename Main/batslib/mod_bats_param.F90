@@ -66,6 +66,8 @@ module mod_bats_param
   ! 0.02  Artic best
   real(rk8) , parameter :: aarea = 0.02D0
   real(rk8) , parameter :: minsigf = 0.001D+00
+  ! Seasonal crop cutoff
+  logical , parameter :: lcrop_cutoff = .false.
   !
   ! slmo is initial surface moisture availability in fraction of one
   !

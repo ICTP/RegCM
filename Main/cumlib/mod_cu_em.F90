@@ -24,7 +24,9 @@ module mod_cu_em
   use mod_intkinds
   use mod_realkinds
   use mod_memutil
-  use mod_runparams , only : rdt , dt , dtsec
+  use mod_runparams , only : rdt , dt , dtsec , alphae , betae , &
+    coeffr , coeffs , cu , damp , dtmax , entp , minorig , omtrain , &
+    omtsnow , sigd , sigs , tlcrit , iqv , ichem
   use mod_cu_common
   use mod_service
   use mod_regcm_types

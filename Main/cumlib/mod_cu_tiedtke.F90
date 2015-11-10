@@ -28,7 +28,8 @@ module mod_cu_tiedtke
   use mod_cu_common
   use mod_cu_tables
   use mod_service
-  use mod_runparams , only : iqc , iqv , iqi , dt , dtsec
+  use mod_runparams , only : iqc , iqv , iqi , dt , dtsec , entrmax , &
+    entrdd , entrmid , cprcon , entrpen , entrscv , iconv , ichem , ipptls
   use mod_cu_tiedtke_38r2 , only : sucumf , cumastrn
   use mod_regcm_types
 

@@ -29,7 +29,7 @@ module mod_cu_kuo
   use mod_mppparam
   use mod_cu_common
   use mod_service
-  use mod_runparams , only : iqv , dt , dtsec
+  use mod_runparams , only : iqv , dt , dtsec , ichem , dsigma , hsigma , qcon
   use mod_regcm_types
 
   implicit none

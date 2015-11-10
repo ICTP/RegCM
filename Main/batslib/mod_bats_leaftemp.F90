@@ -721,7 +721,6 @@ module mod_bats_leaftemp
     real(rk8) , pointer , dimension(:) , intent(in) :: temp
     real(rk8) , pointer , dimension(:) , intent(out) :: ffsea
     integer(ik4) :: i
-    logical , parameter :: lcrop_cutoff = .false.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'fseas'
     integer(ik4) , save :: idindx = 0

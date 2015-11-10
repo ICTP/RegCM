@@ -25,7 +25,7 @@ module mod_cu_common
   use mod_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_runparams
+  use mod_runparams , only : clfrcv , icumcloud , icup
   use mod_regcm_types
 
   implicit none
@@ -86,26 +86,42 @@ module mod_cu_common
     integer(ik4):: i , j , k , ktop , kbot , kclth , ikh
     c2m%cldfrc(:,:,:) = d_zero
     c2m%cldlwc(:,:,:) = d_zero
-    do k = 1 , kz
+    if ( icumcloud == 0 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          tcel = m2c%tas(j,i,k)-tzero
-          ! Temperature dependance for convective cloud water content
-          ! in g/m3 (Lemus et al., 1997)
-          if ( tcel < -50D0 ) then
-            c2m%cldlwc(j,i,k) = 0.001D0
-          else
-            c2m%cldlwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
-                             1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
-            if ( c2m%cldlwc(j,i,k) > 0.300D0 ) c2m%cldlwc(j,i,k) = 0.300D0
-            if ( c2m%cldlwc(j,i,k) < 0.001D0 ) c2m%cldlwc(j,i,k) = 0.001D0
-          end if
+          ktop = c2m%kcumtop(j,i)
+          kbot = c2m%kcumbot(j,i)
+          do k = ktop , kbot
+            if ( cuscheme(j,i) == 4 ) then
+              c2m%cldlwc(:,:,:) = 0.5D-4
+            else
+              c2m%cldlwc(:,:,:) = 0.3D-3
+            end if
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tcel = m2c%tas(j,i,k)-tzero
+            ! Temperature dependance for convective cloud water content
+            ! in g/m3 (Lemus et al., 1997)
+            if ( tcel < -50D0 ) then
+              c2m%cldlwc(j,i,k) = 0.001D0
+            else
+              c2m%cldlwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
+                               1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
+              if ( c2m%cldlwc(j,i,k) > 0.300D0 ) c2m%cldlwc(j,i,k) = 0.300D0
+              if ( c2m%cldlwc(j,i,k) < 0.001D0 ) c2m%cldlwc(j,i,k) = 0.001D0
+            end if
+          end do
+        end do
+      end do
+    end if
     scalef = (d_one-clfrcv)
     if ( any(icup == 6) ) then
-      if ( icumcloud == 1 ) then
+      if ( icumcloud <= 1 ) then
         ic6iloop1: &
         do i = ici1 , ici2
           ic6jloop1: &

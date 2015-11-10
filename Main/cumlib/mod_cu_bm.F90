@@ -25,7 +25,7 @@ module mod_cu_bm
   use mod_memutil
   use mod_service
   use mod_cu_common
-  use mod_runparams , only : iqv , dt , dtsec
+  use mod_runparams , only : iqv , dt , dtsec , ichem , hsigma , dsigma
   use mod_regcm_types
 
 !*****************************************************************

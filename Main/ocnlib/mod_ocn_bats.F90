@@ -69,7 +69,7 @@ module mod_ocn_bats
       else
         cdrx = cdrn/(d_one+11.5D0*rib)
       end if
-      cdrmin = dmax1(0.25D0*cdrn,6.0D-4)
+      cdrmin = max(0.25D0*cdrn,6.0D-4)
       if ( cdrx < cdrmin ) cdrx = cdrmin
       drag(i) = cdrx*dsqrt(ribd)*rhox(i)
 
