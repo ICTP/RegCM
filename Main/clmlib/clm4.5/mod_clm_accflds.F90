@@ -475,7 +475,7 @@ module mod_clm_accflds
         t_ref2m_min(p) = t_ref2m_min_inst(p)
         t_ref2m_max_inst(p) = -spval
         t_ref2m_min_inst(p) =  spval
-      else if (secs == int(dtsrf)) then
+      else if (secs <= int(dtsrf)) then
         t_ref2m_max(p) = spval
         t_ref2m_min(p) = spval
       end if
@@ -503,7 +503,7 @@ module mod_clm_accflds
           t_ref2m_max_inst_u(p) = -spval
           t_ref2m_min_inst_u(p) =  spval
         end if
-      else if (secs == int(dtsrf)) then
+      else if (secs <= int(dtsrf)) then
         t_ref2m_max_u(p) = spval
         t_ref2m_min_u(p) = spval
       end if
@@ -531,7 +531,7 @@ module mod_clm_accflds
           t_ref2m_max_inst_r(p) = -spval
           t_ref2m_min_inst_r(p) =  spval
         end if
-      else if (secs == int(dtsrf)) then
+      else if (secs <= int(dtsrf)) then
         t_ref2m_max_r(p) = spval
         t_ref2m_min_r(p) = spval
       end if

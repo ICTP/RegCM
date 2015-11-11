@@ -77,7 +77,7 @@ module mod_clm_cnphenology
 
     call CNStressDecidPhenology(num_soilp, filter_soilp)
 
-    if (doalb .and. num_pcropp > 0 ) then
+    if ( doalb .and. num_pcropp > 0 ) then
       call CropPhenology(num_pcropp, filter_pcropp)
     end if
 
@@ -189,6 +189,7 @@ module mod_clm_cnphenology
     integer(ik4) :: p                 ! indices
     integer(ik4) :: fp                ! lake filter pft index
     integer(ik4), save :: nyrs = -999 ! number of years prognostic crop has run
+    integer(ik4), save :: lyr = -999  ! Last valid year
     integer(ik4) kyr        ! current year
     integer(ik4) kmo        !       month of year  (1, ..., 12)
     integer(ik4) kda        !       day of month   (1, ..., 31)
@@ -196,6 +197,7 @@ module mod_clm_cnphenology
     ! length of years to average for gdd
     real(rk8), parameter :: yravg   = 20.0D0
     real(rk8), parameter :: yravgm1 = yravg-1.0D0 ! minus 1 of above
+    logical :: has_restarted_crop
 
     ! assign local pointers to derived type arrays
     ivt         => clm3%g%l%c%p%itype
@@ -216,23 +218,25 @@ module mod_clm_cnphenology
       p = filter_soilp(fp)
       tempavg_t2m(p) = tempavg_t2m(p) + t_ref2m(p) * (fracday/dayspy)
     end do
-
     !
     ! The following crop related steps are done here rather than CropPhenology
     ! so that they will be completed each time-step rather than with doalb.
     !
     ! The following lines come from ibis's climate.f + stats.f
     ! gdd SUMMATIONS ARE RELATIVE TO THE PLANTING DATE (see subr. updateAccFlds)
-
-    if ( num_pcropp > 0 )then
+    !
+    has_restarted_crop = .false.
+    if ( num_pcropp > 0 ) then
       ! get time-related info
       call curr_date(idatex,kyr,kmo,kda,mcsec)
       if ( nyrs == -999 ) then
         nyrs = CropRestYear()
       else
-        if ( kmo == 1 .and. &
-             kda == 1 .and. &
-             mcsec <= dtsrf ) call CropRestIncYear( nyrs )
+        if ( kmo == 1 .and. kda == 1 .and. kyr /= lyr ) then
+          call CropRestIncYear( nyrs )
+          has_restarted_crop = .true.
+          lyr = kyr
+        end if
       end if
     end if
 
@@ -245,9 +249,7 @@ module mod_clm_cnphenology
         gdd820(p)  = 0.D0   ! and crops will not be planted
         gdd1020(p) = 0.D0
       end if
-      if ( kmo == 1 .and. &
-           kda == 1 .and. &
-           mcsec <= dtsrf )  then      ! <-- END of EVERY YR:
+      if ( has_restarted_crop ) then
         if ( nyrs  == 1 ) then    ! <-- END of YR 1
           gdd020(p)  = gdd0(p)    ! <-- END of YR 1
           gdd820(p)  = gdd8(p)    ! <-- END of YR 1
@@ -1282,6 +1284,7 @@ module mod_clm_cnphenology
     real(rk8), pointer :: dwt_seedn_to_leaf(:)
     real(rk8), pointer :: fert_counter(:)   ! >0 fertilize; <=0 not (seconds)
     real(rk8), pointer :: fert(:)  ! fertilizer applied each timestep (gN/m2/s)
+    logical , save :: planted_crop_day
 
     pgridcell      => clm3%g%l%c%p%gridcell
     pcolumn        => clm3%g%l%c%p%column
@@ -1327,6 +1330,7 @@ module mod_clm_cnphenology
     jday = int(get_curr_calday() , ik4)
     call curr_date(idatex,kyr,kmo,kda,mcsec)
 
+    planted_crop_day = .false.
     ndays_on = 20.D0 ! number of days to fertilize
 
     do fp = 1, num_pcropp
@@ -1352,26 +1356,30 @@ module mod_clm_cnphenology
       ! initialize other variables that are calculated for crops
       ! on an annual basis in cropresidue subroutine
 
-      if ( jday == jdayyrstart(h) .and. mcsec <= dtsrf ) then
+      if ( jday == jdayyrstart(h) ) then
 
-        ! make sure variables aren't changed at beginning of the year
-        ! for a crop that is currently planted (e.g. winter temperate cereal)
+        if ( .not. planted_crop_day ) then
+          ! make sure variables aren't changed at beginning of the year
+          ! for a crop that is currently planted (e.g. winter temperate cereal)
 
-        if (.not. croplive(p))  then
-          cropplant(p) = .false.
-          idop(p)      = NOT_Planted
+          if (.not. croplive(p))  then
+            cropplant(p) = .false.
+            idop(p)      = NOT_Planted
 
-          ! keep next for continuous, annual winter temperate cereal type crop;
-          ! if we removed elseif,
-          ! winter cereal grown continuously would amount to a cereal/fallow
-          ! rotation because cereal would only be planted every other year
+            ! keep next for continuous, annual winter temperate cereal
+            !  type crop; if we removed elseif,
+            ! winter cereal grown continuously would amount to a cereal/fallow
+            ! rotation because cereal would only be planted every other year
 
-        else if (croplive(p) .and. (ivt(p) == nwcereal .or. &
-                 ivt(p) == nwcerealirrig)) then
-          cropplant(p) = .false.
-!       else ! not possible to have croplive and ivt==cornORsoy? (slevis)
+          else if (croplive(p) .and. (ivt(p) == nwcereal .or. &
+                   ivt(p) == nwcerealirrig)) then
+            cropplant(p) = .false.
+!         else ! not possible to have croplive and ivt==cornORsoy? (slevis)
+          end if
+          planted_crop_day = .true.
         end if
-
+      else
+        planted_crop_day = .false.
       end if
 
       if ( (.not. croplive(p)) .and. (.not. cropplant(p)) ) then

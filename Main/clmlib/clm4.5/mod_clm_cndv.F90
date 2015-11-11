@@ -421,8 +421,7 @@ module mod_clm_cndv
     call clm_closefile(ncid)
 
     if (myid == italk) then
-       write(stdout,*)'(histCNDV): Finished writing CNDV history dataset ',&
-            trim(dgvm_fn), ' at nstep = ',ktau
+       write(stdout,*) 'Written CNDV history dataset at nstep = ',ktau
     end if
 
   end subroutine histCNDV
