@@ -420,15 +420,14 @@ module mod_cu_grell
         ! define convection base and top
         !
         if ( ktop(n) > 1 .and. kbcon(n) > 1 ) then
-          if ( ktop(n) > 1 .and. k22(n) >= 1 ) then
+          if ( ktop(n) > 1 .and. kbcon(n) >= 1 ) then
             c2m%kcumtop(j,i) = kzp1 - ktop(n)
-            c2m%kcumbot(j,i) = kzp1 - k22(n)
+            c2m%kcumbot(j,i) = kzp1 - kbcon(n)
           end if
         end if
       end if
     end do
 
-    total_precip_points = 0
     do n = 1 , nap
       i = iac(n)
       j = jac(n)

@@ -177,6 +177,7 @@ module mod_rad_outrad
       if ( lout ) then
         call copy3d(cld,rad_cld_out)
         call copy3d(clwp,rad_clwp_out)
+        rad_clwp_out = rad_clwp_out * rad_cld_out
         call copy3d(qrs,rad_qrs_out)
         call copy3d(qrl,rad_qrl_out)
         call copy4d1(outtaucl,rad_taucl_out,4)

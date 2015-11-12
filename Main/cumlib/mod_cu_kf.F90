@@ -198,7 +198,6 @@ module mod_cu_kf
     pptice(:,:) = d_zero
     ktop(:) = 0
     kbot(:) = 0
-    total_precip_points = 0
 
     if ( kf_trigger == 2 ) then
       call fatal(__FILE__,__LINE__,'Not implemented kf_trigger == 2')

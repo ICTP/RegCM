@@ -823,7 +823,7 @@ module mod_rrtmg_driver
           ! deltaz,clwp are on the right grid since plev and tlay are
           ! care pressure is on bottom/toa grid
           !
-          cldf(n,k) = min(max(m2r%cldfrc(j,i,kj),d_zero),d_one)
+          cldf(n,k) = m2r%cldfrc(j,i,kj)
           clwp(n,k) = m2r%cldlwc(j,i,kj) * deltaz(n,k)
           n = n + 1
         end do

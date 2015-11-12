@@ -63,6 +63,12 @@ module mod_precip
   logical :: l_lat_hack = .false.
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
 
+  !
+  ! Allowed range for cloud fraction
+  !
+  real(rk8) , parameter :: lowcld = 0.00001D0
+  real(rk8) , parameter :: hicld  = 0.99999D0
+
   contains
 
   subroutine allocate_mod_precip
@@ -465,12 +471,12 @@ module mod_precip
         do i = ici1 , ici2
           do j = jci1 , jci2
             ! Adjusted relative humidity threshold
-            if ( t3(j,i,k) >= tc0 ) then
+            if ( t3(j,i,k) > tc0 ) then
               rh0adj = rh0(j,i)
             else ! high cloud (less subgrid variability)
               rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-t3(j,i,k)))
             end if
-            if ( rh3(j,i,k) >= rhmax) then      ! full cloud cover
+            if ( rh3(j,i,k) >= rhmax ) then     ! full cloud cover
               pfcc(j,i,k) = d_one
             else
               if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
@@ -535,21 +541,26 @@ module mod_precip
             else
               exlwc = 0.127D+00 + 6.78D-03 * tcel + &
                       1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
-              if ( exlwc > 0.300D0) exlwc = 0.300D0
-              if ( exlwc < 0.001D0) exlwc = 0.001D0
             end if
           else
-            exlwc = ptotc(j,i,k)*rho3(j,i,k)*d_1000
+            ! NOTE : IN CLOUD HERE IS NEEDED !!!
+            if ( pfcc(j,i,k) > lowcld ) then
+              exlwc = (ptotc(j,i,k)*rho3(j,i,k)*d_1000)/pfcc(j,i,k)
+            else
+              exlwc = d_zero
+            end if
           end if
-          ! If already some cloud fraction from cumulus
-          if ( radcldf(j,i,k) > 0.01D0 ) then
-            radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + &
-                              pfcc(j,i,k)*exlwc) / (radcldf(j,i,k)+pfcc(j,i,k))
-            radcldf(j,i,k) = min(max(radcldf(j,i,k),pfcc(j,i,k)),cftotmax)
+          if ( radcldf(j,i,k) > lowcld .or. pfcc(j,i,k) > lowcld ) then
+            ! get maximum cloud fraction between cumulus and large scale
+            radlqwc(j,i,k) = (exlwc * pfcc(j,i,k) + &
+                              radlqwc(j,i,k) * radcldf(j,i,k)) / &
+                              (radcldf(j,i,k) + pfcc(j,i,k))
+            radcldf(j,i,k) = max(radcldf(j,i,k),pfcc(j,i,k))
           else
-            radlqwc(j,i,k) = exlwc
-            radcldf(j,i,k) = min(pfcc(j,i,k),cftotmax)
+            radlqwc(j,i,k) = d_zero
+            radcldf(j,i,k) = lowcld
           end if
+          radcldf(j,i,k) = min(min(radcldf(j,i,k),hicld),cftotmax)
         end do
       end do
     end do

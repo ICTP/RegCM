@@ -37,11 +37,6 @@ module mod_rad_colmod3
 
   public :: allocate_mod_rad_colmod3 , colmod3
   !
-  ! Allowed range for cloud fraction
-  !
-  real(rk8) , parameter :: lowcld = 0.000D0
-  real(rk8) , parameter :: hicld  = 0.999D0
-  !
   ! Longwave absorption coeff (m**2/g)
   !
   real(rk8) , parameter :: kabsl = 0.090361D0
@@ -536,15 +531,15 @@ module mod_rad_colmod3
             end if
           end if
         end if
-        !  Turn off ice radiative properties by setting fice = 0.0
-!       fice(n,k) = d_zero
+        ! Turn off ice radiative properties by setting fice = 0.0
+        ! fice(n,k) = d_zero
         totci(n) = totci(n) + clwp(n,k)*fice(n,k)*d_r1000
       end do
     end do
 
     !FAB : reintroduce simple sulfate indirect effect
     ! from Qian  1999
-    ! clwp is passed  in g/m2
+    ! clwp is passed in g/m2
     if ( ichem == 1 .and. iindirect == 1 ) then
       do nt = 1 , ntr
         if ( chtrname(nt) /= 'SO4' ) cycle
@@ -802,7 +797,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          cld(n,k) = min(max(m2r%cldfrc(j,i,k),lowcld),hicld)
+          cld(n,k) = m2r%cldfrc(j,i,k)
           ! Convert liquid water content into liquid water path
           clwp(n,k) = m2r%cldlwc(j,i,k)*deltaz(n,k)
           totcl(n) = totcl(n) + clwp(n,k)*d_r1000

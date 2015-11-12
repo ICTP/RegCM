@@ -18,9 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_cu_common
-!
-! Storage and constants related to cumulus convection schemes.
-!
+
   use mod_intkinds
   use mod_realkinds
   use mod_constants
@@ -41,6 +39,7 @@ module mod_cu_common
   real(rk8) , dimension(10) :: cld_profile
   real(rk8) , dimension(10) :: fixed_cld_profile
   real(rk8) , dimension(10) :: rnum
+
   real(rk8) , parameter :: maxcloud_dp =  60000.0D0 ! In Pa
   logical , parameter :: addnoise = .false.
 
@@ -77,7 +76,7 @@ module mod_cu_common
       end if
     end if
   end subroutine init_mod_cumulus
-!
+
   subroutine model_cumulus_cloud(m2c,c2m)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
@@ -86,39 +85,6 @@ module mod_cu_common
     integer(ik4):: i , j , k , ktop , kbot , kclth , ikh
     c2m%cldfrc(:,:,:) = d_zero
     c2m%cldlwc(:,:,:) = d_zero
-    if ( icumcloud == 0 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ktop = c2m%kcumtop(j,i)
-          kbot = c2m%kcumbot(j,i)
-          do k = ktop , kbot
-            if ( cuscheme(j,i) == 4 ) then
-              c2m%cldlwc(j,i,k) = 0.5D-4
-            else
-              c2m%cldlwc(j,i,k) = 0.3D-3
-            end if
-          end do
-        end do
-      end do
-    else
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tcel = m2c%tas(j,i,k)-tzero
-            ! Temperature dependance for convective cloud water content
-            ! in g/m3 (Lemus et al., 1997)
-            if ( tcel < -50D0 ) then
-              c2m%cldlwc(j,i,k) = 0.001D0
-            else
-              c2m%cldlwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
-                               1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
-              if ( c2m%cldlwc(j,i,k) > 0.300D0 ) c2m%cldlwc(j,i,k) = 0.300D0
-              if ( c2m%cldlwc(j,i,k) < 0.001D0 ) c2m%cldlwc(j,i,k) = 0.001D0
-            end if
-          end do
-        end do
-      end do
-    end if
     scalef = (d_one-clfrcv)
     if ( any(icup == 6) ) then
       if ( icumcloud <= 1 ) then
@@ -151,8 +117,8 @@ module mod_cu_common
             if ( cuscheme(j,i) == 6 ) cycle ic6jloop3
             ktop = c2m%kcumtop(j,i)
             kbot = c2m%kcumbot(j,i)
-            kclth = kbot - ktop
-            if ( kclth < 1 ) cycle ic6jloop3
+            kclth = kbot - ktop + 1
+            if ( kclth < 2 ) cycle ic6jloop3
             scalep = min((m2c%pas(j,i,kbot)-m2c%pas(j,i,ktop)) / &
                     maxcloud_dp,d_one)
             do k = ktop , kbot
@@ -192,7 +158,7 @@ module mod_cu_common
             ktop = c2m%kcumtop(j,i)
             kbot = c2m%kcumbot(j,i)
             kclth = kbot - ktop + 1
-            if ( kclth < 1 ) cycle jloop3
+            if ( kclth < 2 ) cycle jloop3
             scalep = min((m2c%pas(j,i,kbot)-m2c%pas(j,i,ktop)) / &
                     maxcloud_dp,d_one)
             do k = ktop , kbot
@@ -203,10 +169,39 @@ module mod_cu_common
         end do iloop3
       end if
     end if
-    where ( c2m%cldfrc < 1.0D-4 )
-      c2m%cldlwc = 0.001D0
-    end where
+    if ( icumcloud == 0 ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ktop = c2m%kcumtop(j,i)
+          kbot = c2m%kcumbot(j,i)
+          do k = ktop , kbot
+            if ( cuscheme(j,i) == 4 ) then
+              c2m%cldlwc(j,i,k) = 0.5D-4
+            else
+              c2m%cldlwc(j,i,k) = 0.3D-3
+            end if
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tcel = m2c%tas(j,i,k)-tzero
+            ! Temperature dependance for convective cloud water content
+            ! in g/m3 (Lemus et al., 1997)
+            ! NOTE : THIS IS IN-CLOUD VARIABLE.
+            if ( tcel < -50.0D0 ) then
+              c2m%cldlwc(j,i,k) = 0.001D0
+            else
+              c2m%cldlwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
+                               1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
+            end if
+          end do
+        end do
+      end do
+    end if
   end subroutine model_cumulus_cloud
-!
+
 end module mod_cu_common
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

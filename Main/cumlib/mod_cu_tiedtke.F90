@@ -166,7 +166,6 @@ module mod_cu_tiedtke
 
     if ( nipoi == 0 ) return
 
-    total_precip_points = 0
     ilab(:,:) = 2
     cevapcu(:) = cevapu
     c2m%q_detr(:,:,:) = d_zero
@@ -204,7 +203,7 @@ module mod_cu_tiedtke
       do ii = 1 , nipoi
         i = imap(ii)
         j = jmap(ii)
-        pxf = m2c%psb(j,i)
+        pxf = d_one/m2c%psb(j,i)
         ! Pascal
         papp1(ii,k) = m2c%pas(j,i,k)
         xpg(ii,k)   = m2c%zas(j,i,k)*egrav ! geopotential
@@ -214,14 +213,14 @@ module mod_cu_tiedtke
         pverv(ii,k) = m2c%wpas(j,i,k)
         pqm1(ii,k)  = m2c%qxas(j,i,k,iqv) ! humidity
         pxlm1(ii,k) = m2c%qxas(j,i,k,iqc) ! cloud liquid water
-        ptte(ii,k)  = c2m%tten(j,i,k)/pxf
-        pvom(ii,k)  = c2m%uten(j,i,k)/pxf
-        pvol(ii,k)  = c2m%vten(j,i,k)/pxf
-        pqte(ii,k)  = c2m%qxten(j,i,k,iqv)/pxf
-        pxlte(ii,k) = c2m%qxten(j,i,k,iqc)/pxf
+        ptte(ii,k)  = c2m%tten(j,i,k)*pxf
+        pvom(ii,k)  = c2m%uten(j,i,k)*pxf
+        pvol(ii,k)  = c2m%vten(j,i,k)*pxf
+        pqte(ii,k)  = c2m%qxten(j,i,k,iqv)*pxf
+        pxlte(ii,k) = c2m%qxten(j,i,k,iqc)*pxf
         if (ipptls == 2) then
           pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
-          pxite(ii,k) = c2m%qxten(j,i,k,iqi)/pxf ! ice tend
+          pxite(ii,k) = c2m%qxten(j,i,k,iqi)*pxf ! ice tend
         else
           pxim1(ii,k) = d_zero
           pxite(ii,k) = d_zero

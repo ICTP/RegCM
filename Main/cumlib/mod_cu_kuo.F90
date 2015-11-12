@@ -103,7 +103,6 @@ module mod_cu_kuo
     ! at this stage, c2m%qxten(j,i,k,iqv) only includes horizontal advection.
     ! sca: is the amount of total moisture convergence
     !
-    total_precip_points = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
         sca = d_zero

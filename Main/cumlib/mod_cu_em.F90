@@ -74,8 +74,7 @@ module mod_cu_em
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
-    total_precip_points = 0
+
     c2m%kcumtop(:,:) = 0
     c2m%kcumbot(:,:) = 0
     ktop = 1
@@ -126,7 +125,7 @@ module mod_cu_em
         ! iflag=3: No moist convection: cloud base higher than level kzm2.
         ! iflag=4: Moist convection occurs, but CFL condition on the
         !          subsidence warming is violated. (Does not terminate scheme.)
-        if ( iflag == 1 .or. iflag == 4 ) then ! If moist convection
+        if ( iflag == 1 .or. iflag == 4 ) then
 !         if ( iflag == 4 ) then               ! If CFL violation
 !           write(stderr,*) 'EMAN CFL VIOLATION: ',i,j,cbmf
 !         end if
@@ -153,20 +152,20 @@ module mod_cu_em
             end do
           end if
 
-          ! The order top/bottom for regcm is reversed.
-          c2m%kcumtop(j,i) = kzp1 - ktop
-          c2m%kcumbot(j,i) = kzp1 - kbase
 
           ! Build for chemistry 3d table of constant precipitation rate
           ! from the surface to the top of the convection
           if ( ichem == 1 ) then
             do k = 1 , ktop-1
-              c2m%convpr(j,i,kz-k+1) = pret
+              c2m%convpr(j,i,kzp1-k) = pret
             end do
           end if
 
           ! Precipitation
           if ( pret > dlowval ) then
+            ! The order top/bottom for regcm is reversed.
+            c2m%kcumtop(j,i) = kzp1 - ktop
+            c2m%kcumbot(j,i) = kzp1 - kbase
             c2m%rainc(j,i)  = c2m%rainc(j,i)  + pret * dtsec  ! mm
             c2m%pcratec(j,i) = c2m%pcratec(j,i) + pret
             total_precip_points = total_precip_points + 1

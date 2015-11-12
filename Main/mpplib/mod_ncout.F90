@@ -1605,23 +1605,19 @@ module mod_ncout
             'tendency_of_air_temperature_due_to_longwave_heating',.true.)
           rad_qrl_out => v3dvar_rad(rad_qrl)%rval
         end if
-        if ( idiag > 0 ) then
-          if ( enable_rad4d_vars(rad_taucl) ) then
-            v4dvar_rad(rad_taucl)%axis = 'xyzS'
-            call setup_var(v4dvar_rad,rad_taucl,vsize,'taucl','1', &
-              'Cloud liquid water optical depth', &
-              'atmosphere_optical_thickness_due_to_cloud_liquid_water',.true.)
-            rad_taucl_out => v4dvar_rad(rad_taucl)%rval
-          end if
-          if ( enable_rad4d_vars(rad_tauci) ) then
-            v4dvar_rad(rad_tauci)%axis = 'xyzS'
-            call setup_var(v4dvar_rad,rad_tauci,vsize,'tauci','1', &
-              'Cloud ice optical depth', &
-              'atmosphere_optical_thickness_due_to_cloud_ice',.true.)
-            rad_tauci_out => v4dvar_rad(rad_tauci)%rval
-          end if
-        else
-          enable_rad4d_vars(rad_taucl:rad_tauci) = .false.
+        if ( enable_rad4d_vars(rad_taucl) ) then
+          v4dvar_rad(rad_taucl)%axis = 'xyzS'
+          call setup_var(v4dvar_rad,rad_taucl,vsize,'taucl','1', &
+            'Cloud liquid water optical depth', &
+            'atmosphere_optical_thickness_due_to_cloud_liquid_water',.true.)
+          rad_taucl_out => v4dvar_rad(rad_taucl)%rval
+        end if
+        if ( enable_rad4d_vars(rad_tauci) ) then
+          v4dvar_rad(rad_tauci)%axis = 'xyzS'
+          call setup_var(v4dvar_rad,rad_tauci,vsize,'tauci','1', &
+            'Cloud ice optical depth', &
+            'atmosphere_optical_thickness_due_to_cloud_ice',.true.)
+          rad_tauci_out => v4dvar_rad(rad_tauci)%rval
         end if
 
         enable_rad_vars(1:nrad2dvars) = enable_rad2d_vars

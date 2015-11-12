@@ -246,7 +246,6 @@ module mod_cu_bm
     c2m%kcumtop(:,:) = 0
     c2m%kcumbot(:,:) = 0
     if ( ichem == 1 ) c2m%convpr(:,:,:) = d_zero
-    total_precip_points = 0
     iconss = 0
     tauk = dt/trel
     cthrs = (0.006350D0/secpd)*dt/cprlg

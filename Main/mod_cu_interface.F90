@@ -173,6 +173,7 @@ module mod_cu_interface
 
   subroutine cumulus
     implicit none
+    total_precip_points = 0
     if ( icup_lnd == icup_ocn ) then
       select case ( icup_lnd )
         case (1)
