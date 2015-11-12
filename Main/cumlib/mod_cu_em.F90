@@ -164,8 +164,10 @@ module mod_cu_em
           ! Precipitation
           if ( pret > dlowval ) then
             ! The order top/bottom for regcm is reversed.
-            c2m%kcumtop(j,i) = kzp1 - ktop
-            c2m%kcumbot(j,i) = kzp1 - kbase
+            if ( pret > 1.0D-6 ) then
+              c2m%kcumtop(j,i) = kzp1-ktop
+              c2m%kcumbot(j,i) = kzp1-kbase
+            end if
             c2m%rainc(j,i)  = c2m%rainc(j,i)  + pret * dtsec  ! mm
             c2m%pcratec(j,i) = c2m%pcratec(j,i) + pret
             total_precip_points = total_precip_points + 1
