@@ -451,15 +451,18 @@ module mod_cu_kf
         dpthmx = d_zero
         nk = lc-1
         if ( nk+1 < kts ) then
-          write(stderr,*) 'WOULD GO OFF BOTTOM: KF_ETA_PARA NK',NK
+          write(stderr,*) 'WOULD GO OFF BOTTOM: KF_ETA_PARA NK', NK
+          write(stderr,*) 'AT I = ',imap(np), ', J = ', jmap(np)
           call fatal(__FILE__,__LINE__,'KF FATAL ERROR')
         else
           calcdpth: &
           do
             nk = nk + 1
             if ( nk > kte ) then
-              write(stderr,*) 'WOULD GO OFF TOP: KF_ETA_PARA DPTHMX,DPMIN', &
-                      dpthmx , dpmin
+              write(stderr,*) 'WOULD GO OFF TOP: KF_ETA_PARA.'
+              write(stderr,*) 'AT I = ',imap(np), ', J = ', jmap(np)
+              write(stderr,*) 'DPTHMX = ', dpthmx
+              write(stderr,*) 'DPMIN  = ', dpmin
               call fatal(__FILE__,__LINE__,'KF FATAL ERROR')
             end if
             dpthmx = dpthmx+dp(nk)
@@ -1532,6 +1535,7 @@ module mod_cu_kf
         do nk = 1 , ltop
           if ( qg(nk) < d_zero ) then
             if ( nk == 1 ) then
+              write(stderr,*) 'AT I = ',imap(np), ', J = ', jmap(np)
               call fatal(__FILE__,__LINE__,'KF: QG, QG(NK) < 0')
             end if
             nk1 = nk + 1
@@ -1909,6 +1913,7 @@ module mod_cu_kf
         end do
       end if
       if ( istop == 1 ) then
+        write(stderr,*) 'AT I = ',imap(np), ', J = ', jmap(np)
         call fatal(__FILE__,__LINE__,'KAIN-FRITSCH, istop=1, diags')
       end if
       cndtnf = (d_one-eqfrc(lfs))*(qliq(lfs)+qice(lfs))*dmf(lfs)
