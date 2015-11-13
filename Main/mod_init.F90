@@ -574,7 +574,7 @@ module mod_init
           end do
         end do
       else
-        kfwavg(:,:,:) = 1.0D-7
+        kfwavg(:,:,:) = d_zero
       end if
     end if
   end if
