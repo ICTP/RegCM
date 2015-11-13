@@ -2030,10 +2030,10 @@ module mod_cu_kf
       kbot(np) = lcl
     end do modelpoints
 
-1035 format(1X,'PEF(WS)=',F4.2,'(CB)=',F4.2,'LC,LET=',2I3,'WKL=', &
+1035 format(1X,'PEF(WS)=',F5.2,'(CB)=',F5.2,'LC,LET=',2I3,'WKL=', &
             F6.3,'VWS=',F5.2)
 1080 format(2X,'LFS,LDB,LDT =',3I3,' TIMEC, TADVEC, NSTEP=',      &
-            2(1X,F5.0),I3,'NCOUNT, FABE, AINC=',I2,1X,F5.3,F6.2)
+            2(1X,F5.0),I3,'NCOUNT, FABE, AINC=',I2,1X,F6.3,F6.2)
 1085 format(A3,16A7,2A8)
 1110 format(' ','INITIAL WATER =',E12.5,' FINAL WATER =',E12.5,   &
             ' TOTAL WATER CHANGE =',F8.2,'%')
