@@ -385,8 +385,8 @@ module mod_params
     ricr_ocn = 0.25D0
     ricr_lnd = 0.25D0
     zhnew_fac = 0.25D0
-    ifaholtth10 = 1
-    ifaholt = 2
+    ifaholtth10 = 3
+    ifaholt = 0
     !
     !-----namelist slabocparam ;
     mixed_layer_depth     = 50.0D0

@@ -40,6 +40,7 @@ module mod_cu_em
   real(rk8) , parameter :: cl = 2500.0D0
   real(rk8) , parameter :: cpvmcl = cl - cpv
   real(rk8) , parameter :: mincbmf = 1.0D-30
+  integer , parameter :: ipbl = 0
 
   real(rk8) , public , pointer , dimension(:,:) :: cbmf2d
   real(rk8) , public , pointer , dimension(:,:) :: elcrit2d
@@ -348,7 +349,7 @@ module mod_cu_em
                                th , told , tp , tratm , tv , tvp ,    &
                                up , vp , water , wt
     real(rk8) , dimension(na,na) :: elij , ment , qent , sij , uent , vent
-    integer(ik4) :: i , ihmin , ict1 , ipbl , j , jc , jn , jtt , k , nk
+    integer(ik4) :: i , ihmin , ict1 , j , jc , jn , jtt , k , nk
     integer(ik4) , dimension(na) :: nent
     real(rk8) :: sjmax , sjmin , smid , smin , stemp , tc , tca ,       &
                thbar , tnew , traav , tvaplcl , tvpplcl , tvx , tvy , &
@@ -367,8 +368,6 @@ module mod_cu_em
 !            for models using bulk pbl schemes; otherwise, it should
 !            be the first model level at which t is defined above
 !            the surface layer)
-!
-    ipbl = 0
 !
 !   assign values of thermodynamic constants, gravity, and liquid
 !   water density.  these should be consistent with those used in
@@ -395,11 +394,11 @@ module mod_cu_em
     tprime = d_zero
     qprime = d_zero
     iflag = 0
-!
+
     if ( ipbl /= 0 ) then
-!
-!     perform dry adiabatic adjustment
-!
+      !
+      ! Perform dry adiabatic adjustment
+      !
       jc = 0
       do i = nl - 1 , 1 , -1
         jn = 0
@@ -409,7 +408,7 @@ module mod_cu_em
           thbar = asum/dble(j+1-i)
           if ( (th(j)*(d_one+q(j)*rgowi-q(j))) < thbar ) jn = j
         end do
-        if ( i == 1 ) jn = max0(jn,2)
+        if ( i == 1 ) jn = max(jn,2)
         if ( jn /= 0 ) then
           do
             ahm = d_zero
@@ -467,9 +466,9 @@ module mod_cu_em
           end do
         end if
       end do
-!
-!     remove any supersaturation that results from adjustment
-!
+      !
+      ! Remove any supersaturation that results from adjustment
+      !
       if ( jc > 1 ) then
         do j = 1 , jc
           if ( qs(j) < q(j) ) then
@@ -478,7 +477,6 @@ module mod_cu_em
                     (cpv-cl+alv*alv/(rwat*t(j)*t(j))))
             alvnew = wlhv - cpvmcl*(tnew-tzero)
             qnew = (alv*q(j)-(tnew-t(j))*(cpd*(d_one-q(j))+cl*q(j)))/alvnew
-!rcm        precip = precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
             precip = precip + 1.0D5*(ph(j)-ph(j+1)) * &
                      (q(j)-qnew)*regrav*rdt*d_r1000  ! mm/s
             t(j) = tnew
@@ -487,11 +485,10 @@ module mod_cu_em
           end if
         end do
       end if
-!
     end if
-!
-!   calculate arrays of geopotential, heat capacity and static energy
-!
+    !
+    ! Calculate arrays of geopotential, heat capacity and static energy
+    !
     gz(1) = d_zero
     cpn(1) = cpd*(d_one-q(1)) + q(1)*cpv
     h(1) = t(1)*cpn(1)
@@ -509,42 +506,41 @@ module mod_cu_em
       lv(i) = wlhv - cpvmcl*(t(i)-tzero)
       hm(i) = (cpd*(d_one-q(i))+cl*q(i))*(t(i)-t(1))+lv(i)*q(i)+gz(i)
       tv(i) = t(i)*(d_one+q(i)*rgowi-q(i))
-!
-!     find level of minimum moist static energy
-!
+      !
+      ! Find level of minimum moist static energy
+      !
       if ( i >= minorig .and. hm(i) < ahmin .and. hm(i) < hm(i-1) ) then
         ahmin = hm(i)
         ihmin = i
       end if
     end do
-    ihmin = min0(ihmin,nl-1)
-!
-!   find that model level below the level of minimum moist
-!   static energy that has the maximum value of moist static
-!   energy
-!
+    ihmin = min(ihmin,nl-1)
+    !
+    ! Find the model level below the level of minimum moist
+    ! static energy that has the maximum value of moist static energy
+    !
     ahmax = d_zero
-    nk = nl
+    nk = minorig
     do i = minorig , ihmin
       if ( hm(i) > ahmax ) then
         nk = i
         ahmax = hm(i)
       end if
     end do
-!
-!   check whether parcel level temperature and specific humidity are reasonable
-!   skip convection if hm increases monotonically upward
-!
+    !
+    ! Check whether parcel level temperature and specific humidity are
+    ! reasonable. Skip convection if hm increases monotonically upward
+    !
     if ( t(nk) < 250.0D0 .or. q(nk) <= d_zero .or. &
          ihmin == (nl-1) ) then
       iflag = 0
       cbmf = d_zero
       return
     end if
-!
-!   calculate lifted condensation level of air at parcel origin level
-!   (within 0.2% of formula of bolton, mon. wea. rev.,1980)
-!
+    !
+    ! Calculate lifted condensation level of air at parcel origin level
+    ! (within 0.2% of formula of bolton, mon. wea. rev.,1980)
+    !
     rh = q(nk)/qs(nk)
     chi = t(nk)/(1669.0D0-122.0D0*rh-t(nk))
     plcl = p(nk)*(rh**chi)
@@ -553,50 +549,50 @@ module mod_cu_em
       cbmf = d_zero
       return
     end if
-!
-!   calculate first level above lcl (=icb)
-!
+    !
+    ! Calculate first level above lcl (=icb)
+    !
     icb = nl - 1
     do i = nk + 1 , nl
-      if ( p(i) < plcl ) icb = min0(icb,i)
+      if ( p(i) < plcl ) icb = min(icb,i)
     end do
     if ( icb >= (nl-1) ) then
       iflag = 3
       cbmf = d_zero
       return
     end if
-!
-!   find temperature up through icb and test for instability
-!
-!   subroutine tlift calculates part of the lifted parcel virtual
-!   temperature, the actual temperature and the adiabatic
-!   liquid water content
-!
+    !
+    ! Find temperature up through icb and test for instability
+    !
+    ! Subroutine tlift calculates part of the lifted parcel virtual
+    ! temperature, the actual temperature and the adiabatic
+    ! liquid water content
+    !
     call tlift(p,t,q,qs,gz,icb,nk,tvp,tp,clw,nd,nl,1)
     do i = nk , icb
       tvp(i) = tvp(i) - tp(i)*q(nk)
     end do
-!
-!   if there was no convection at last time step and parcel
-!   is stable at icb then skip rest of calculation
-!
-    if ( dabs(cbmf) < mincbmf .and. tvp(icb) <= (tv(icb)-dtmax) ) then
+    !
+    ! If there was no convection at last time step and parcel
+    ! is stable at icb then skip rest of calculation
+    !
+    if ( abs(cbmf) < mincbmf .and. tvp(icb) <= (tv(icb)-dtmax) ) then
       iflag = 0
       return
     end if
-!
-!   if this point is reached, moist convective adjustment is necessary
-!
+    !
+    ! if this point is reached, moist convective adjustment is necessary
+    !
     if ( iflag /= 4 ) iflag = 1
-!
-!   find the rest of the lifted parcel temperatures
-!
+    !
+    ! Find the rest of the lifted parcel temperatures
+    !
     call tlift(p,t,q,qs,gz,icb,nk,tvp,tp,clw,nd,nl,2)
-!
-!   set the precipitation efficiencies and the fraction of
-!   precipitation falling outside of cloud
-!   these may be functions of tp(i), p(i) and clw(i)
-!
+    !
+    ! Set the precipitation efficiencies and the fraction of
+    ! precipitation falling outside of cloud
+    ! these may be functions of tp(i), p(i) and clw(i)
+    !
     do i = 1 , nk
       ep(i) = d_zero
       sigp(i) = sigs
@@ -608,23 +604,23 @@ module mod_cu_em
       else
         elacrit = elcrit*(d_one-tca/tlcrit)
       end if
-      elacrit = dmax1(elacrit,d_zero)
-      ep(i) = epmax*(d_one-elacrit/dmax1(clw(i),1.0D-8))
-      ep(i) = dmax1(ep(i),d_zero)
-      ep(i) = dmin1(ep(i),epmax)
+      elacrit = max(elacrit,d_zero)
+      ep(i) = epmax*(d_one-elacrit/max(clw(i),1.0D-8))
+      ep(i) = max(ep(i),d_zero)
+      ep(i) = min(ep(i),epmax)
       sigp(i) = sigs
     end do
-!
-!   calculate virtual temperature and lifted parcel
-!   virtual temperature
-!
+    !
+    ! Calculate virtual temperature and lifted parcel
+    ! virtual temperature
+    !
     do i = icb + 1 , nl
       tvp(i) = tvp(i) - tp(i)*q(nk)
     end do
     tvp(nl+1) = tvp(nl) - (gz(nl+1)-gz(nl))*rcpd
-!
-!   now initialize various arrays used in the computations
-!
+    !
+    ! now initialize various arrays used in the computations
+    !
     do i = 1 , nl + 1
       hp(i) = h(i)
       nent(i) = 0
@@ -660,11 +656,10 @@ module mod_cu_em
         trap(i,j) = tra(i-1,j)
       end do
     end do
-!
-!   find the first model level (ict1) above the parcel's
-!   highest level of neutral buoyancy
-!   and the highest level of positive cape (ict)
-!
+    !
+    ! Find the first model level (ict1) above the parcel's highest level
+    ! of neutral buoyancy and the highest level of positive cape (ict)
+    !
     cape = d_zero
     capem = d_zero
     ict = icb + 1
@@ -680,30 +675,30 @@ module mod_cu_em
         capem = cape
       end if
     end do
-    ict = max0(ict,ict1)
+    ict = max(ict,ict1)
     cape = capem + byp
     defrac = capem - cape
-    defrac = dmax1(defrac,0.001D0)
+    defrac = max(defrac,0.001D0)
     frac = -cape/defrac
-    frac = dmin1(frac,d_one)
-    frac = dmax1(frac,d_zero)
-!
-!   calculate liquid water static energy of lifted parcel
-!
+    frac = min(frac,d_one)
+    frac = max(frac,d_zero)
+    !
+    ! Calculate liquid water static energy of lifted parcel
+    !
     do i = icb , ict
       hp(i) = h(nk) + (lv(i)+(cpd-cpv)*t(i))*ep(i)*clw(i)
     end do
-!
-!   calculate cloud base mass flux and rates of mixing, m(i),
-!   at each model level
-!
+    !
+    ! Calculate cloud base mass flux and rates of mixing, m(i),
+    ! at each model level
+    !
     dbosum = d_zero
-!
-!   interpolate difference between lifted parcel and
-!   environmental temperatures to lifted condensation level
-!
-    tvpplcl = tvp(icb-1) - rgas*tvp(icb-1)*(p(icb-1)-plcl)/(cpn(icb-1)*p(icb-1))
-    tvaplcl = tv(icb) + (tvp(icb)-tvp(icb+1))*(plcl-p(icb))/(p(icb)-p(icb+1))
+    !
+    ! Interpolate difference between lifted parcel and
+    ! environmental temperatures to lifted condensation level
+    !
+    tvpplcl = tvp(icb-1)-rgas*tvp(icb-1)*(p(icb-1)-plcl)/(cpn(icb-1)*p(icb-1))
+    tvaplcl = tv(icb)+(tvp(icb)-tvp(icb+1))*(plcl-p(icb))/(p(icb)-p(icb+1))
     dtpbl = d_zero
     do i = nk , icb - 1
       dtpbl = dtpbl + (tvp(i)-tv(i))*(ph(i)-ph(i+1))
@@ -711,35 +706,38 @@ module mod_cu_em
     dtpbl = dtpbl/(ph(nk)-ph(icb))
     dtmnx = tvpplcl - tvaplcl + dtmax + dtpbl
     dtma = dtmnx
-!
-!   adjust cloud base mass flux
-!
+    !
+    ! Adjust cloud base mass flux
+    !
     cbmfold = cbmf
     delt0 = 300.0D0
     damps = damp*dt/delt0
     cbmf = (d_one-damps)*cbmf + 0.1D0*alphae*dtma
-    cbmf = dmax1(cbmf,d_zero)
-!
-!   if cloud base mass flux is zero, skip rest of calculation
-!
-    if ( dabs(cbmf) < mincbmf .and. dabs(cbmfold) < mincbmf ) return
-!
-!   calculate rates of mixing, m(i)
-!
+    cbmf = max(cbmf,d_zero)
+    !
+    ! If cloud base mass flux is zero, skip rest of calculation
+    !
+    if ( abs(cbmf) < mincbmf .and. abs(cbmfold) < mincbmf ) then
+      iflag = 0
+      return
+    end if
+    !
+    ! calculate rates of mixing, m(i)
+    !
     m(icb) = d_zero
     do i = icb + 1 , ict
-      k = min0(i,ict1)
-      dbo = dabs(tv(k)-tvp(k)) + entp*0.02D0*(ph(k)-ph(k+1))
+      k = min(i,ict1)
+      dbo = abs(tv(k)-tvp(k)) + entp*0.02D0*(ph(k)-ph(k+1))
       dbosum = dbosum + dbo
       m(i) = cbmf*dbo
     end do
     do i = icb + 1 , ict
       m(i) = m(i)/dbosum
     end do
-!
-!   calculate entrained air mass flux (ment), total water mixing ratio (qent),
-!   total condensed water (elij), and mixing fraction (sij)
-!
+    !
+    ! Calculate entrained air mass flux (ment), total water mixing ratio (qent),
+    ! total condensed water (elij), and mixing fraction (sij)
+    !
     do i = icb + 1 , ict
       qti = q(nk) - ep(i)*clw(i)
       do j = icb , ict
@@ -747,7 +745,7 @@ module mod_cu_em
         anum = h(j) - hp(i) + (cpv-cpd)*t(j)*(qti-q(j))
         denom = h(i) - hp(i) + (cpd-cpv)*(q(i)-qti)*t(j)
         dei = denom
-        if ( dabs(dei) < 0.01D0 ) dei = 0.01D0
+        if ( abs(dei) < 0.01D0 ) dei = 0.01D0
         sij(i,j) = anum/dei
         sij(i,i) = d_one
         altem = sij(i,j)*q(i) + (d_one-sij(i,j))*qti - qs(j)
@@ -758,7 +756,7 @@ module mod_cu_em
               altem > cwat) .and. j > i ) then
           anum = anum - lv(j)*(qti-qs(j)-cwat*bf2)
           denom = denom + lv(j)*(q(i)-qti)
-          if ( dabs(denom) < 0.01D0 ) denom = 0.01D0
+          if ( abs(denom) < 0.01D0 ) denom = 0.01D0
           sij(i,j) = anum/denom
           altem = sij(i,j)*q(i) + (d_one-sij(i,j))*qti - qs(j)
           altem = altem - (bf2-d_one)*cwat
@@ -771,17 +769,17 @@ module mod_cu_em
             traent(i,j,k) = sij(i,j)*tra(i,k) + (d_one-sij(i,j))*tra(nk,k)
           end do
           elij(i,j) = altem
-          elij(i,j) = dmax1(d_zero,elij(i,j))
+          elij(i,j) = max(d_zero,elij(i,j))
           ment(i,j) = m(i)/(d_one-sij(i,j))
           nent(i) = nent(i) + 1
         end if
-        sij(i,j) = dmax1(d_zero,sij(i,j))
-        sij(i,j) = dmin1(d_one,sij(i,j))
+        sij(i,j) = max(d_zero,sij(i,j))
+        sij(i,j) = min(d_one,sij(i,j))
       end do
-!
-!     if no air can entrain at level i assume that updraft detrains
-!     at that level and calculate detrained air flux and properties
-!
+      !
+      ! If no air can entrain at level i assume that updraft detrains
+      ! at that level and calculate detrained air flux and properties
+      !
       if ( nent(i) == 0 ) then
         ment(i,i) = m(i)
         qent(i,i) = q(nk) - ep(i)*clw(i)
@@ -795,48 +793,48 @@ module mod_cu_em
       end if
     end do
     sij(ict,ict) = d_one
-!
-!   normalize entrained air mass fluxes to represent equal
-!   probabilities of mixing
-!
+    !
+    ! Normalize entrained air mass fluxes to represent equal
+    ! probabilities of mixing
+    !
     do i = icb + 1 , ict
       if ( nent(i) /= 0 ) then
         qp1 = q(nk) - ep(i)*clw(i)
         anum = h(i) - hp(i) - lv(i)*(qp1-qs(i))
         denom = h(i) - hp(i) + lv(i)*(q(i)-qp1)
-        if ( dabs(denom) < 0.01D0 ) denom = 0.01D0
+        if ( abs(denom) < 0.01D0 ) denom = 0.01D0
         scrit = anum/denom
         alt = qp1 - qs(i) + scrit*(q(i)-qp1)
         if ( alt < d_zero ) scrit = d_one
-        scrit = dmax1(scrit,d_zero)
+        scrit = max(scrit,d_zero)
         asij = d_zero
         smin = d_one
         do j = icb , ict
           if ( sij(i,j) > d_zero .and. sij(i,j) < 0.9D0 ) then
             if ( j > i ) then
-              smid = dmin1(sij(i,j),scrit)
+              smid = min(sij(i,j),scrit)
               sjmax = smid
               sjmin = smid
               if ( smid < smin .and. sij(i,j+1) < smid ) then
                 smin = smid
-                sjmax = dmin1(sij(i,j+1),sij(i,j),scrit)
-                sjmin = dmax1(sij(i,j-1),sij(i,j))
-                sjmin = dmin1(sjmin,scrit)
+                sjmax = min(sij(i,j+1),sij(i,j),scrit)
+                sjmin = max(sij(i,j-1),sij(i,j))
+                sjmin = min(sjmin,scrit)
               end if
             else
-              sjmax = dmax1(sij(i,j+1),scrit)
-              smid = dmax1(sij(i,j),scrit)
+              sjmax = max(sij(i,j+1),scrit)
+              smid = max(sij(i,j),scrit)
               sjmin = d_zero
               if ( j > 1 ) sjmin = sij(i,j-1)
-              sjmin = dmax1(sjmin,scrit)
+              sjmin = max(sjmin,scrit)
             end if
-            delp = dabs(sjmax-smid)
-            delm = dabs(sjmin-smid)
+            delp = abs(sjmax-smid)
+            delm = abs(sjmin-smid)
             asij = asij + (delp+delm)*(ph(j)-ph(j+1))
             ment(i,j) = ment(i,j)*(delp+delm)*(ph(j)-ph(j+1))
           end if
         end do
-        asij = dmax1(1.0D-21,asij)
+        asij = max(1.0D-21,asij)
         asij = d_one/asij
         do j = icb , ict
           ment(i,j) = ment(i,j)*asij
@@ -859,83 +857,82 @@ module mod_cu_em
         end if
       end if
     end do
-!
-!   check whether ep(ict)=0, if so, skip precipitating
-!   downdraft calculation
-!
+    !
+    ! Check whether ep(ict)=0, if so, skip precipitating
+    ! downdraft calculation
+    !
     if ( ep(ict) >= 0.0001D0 ) then
-!
-!     integrate liquid water equation to find condensed water
-!     and condensed water flux
-!
+      !
+      ! Integrate liquid water equation to find condensed water
+      ! and condensed water flux
+      !
       jtt = 2
-!
-!     begin downdraft loop
-!
+      !
+      ! Begin downdraft loop
+      !
       do i = ict , 1 , -1
-!
-!       calculate detrained precipitation
-!
+        !
+        ! Calculate detrained precipitation
+        !
         wdtrain = egrav*ep(i)*m(i)*clw(i)
         if ( i > 1 ) then
           do j = 1 , i - 1
             awat = elij(j,i) - (d_one-ep(i))*clw(i)
-            awat = dmax1(d_zero,awat)
+            awat = max(d_zero,awat)
             wdtrain = wdtrain + egrav*awat*ment(j,i)
           end do
         end if
-!
-!       find rain water and evaporation using provisional
-!       estimates of qp(i)and qp(i-1)
-!
-!       value of terminal velocity and coefficient of evaporation for snow
-!
+        !
+        ! Find rain water and evaporation using provisional
+        ! estimates of qp(i)and qp(i-1)
+        ! Value of terminal velocity and coefficient of evaporation for snow
+        !
         coeff = coeffs
         wt(i) = omtsnow
-!
-!       value of terminal velocity and coefficient of evaporation for rain
-!
+        !
+        ! Value of terminal velocity and coefficient of evaporation for rain
+        !
         if ( t(i) > tzero) then
           coeff = coeffr
           wt(i) = omtrain
         end if
-        qsm = (q(i)+qp(i+1))*d_half
+        qsm = d_half*(q(i)+qp(i+1))
         afac = coeff*ph(i)*(qs(i)-qsm)/(1.0D4+2.0D3*ph(i)*qs(i))
-        afac = dmax1(afac,d_zero)
+        afac = max(afac,d_zero)
         sigt = sigp(i)
-        sigt = dmax1(d_zero,sigt)
-        sigt = dmin1(d_one,sigt)
+        sigt = max(d_zero,sigt)
+        sigt = min(d_one,sigt)
         b6 = d_100*(ph(i)-ph(i+1))*sigt*afac/wt(i)
         c6 = (water(i+1)*wt(i+1)+wdtrain/sigd)/wt(i)
-        revap = (-b6+dsqrt(b6*b6+d_four*c6))*d_half
+        revap = d_half*(-b6+sqrt(b6*b6+d_four*c6))
         evap(i) = sigt*afac*revap
         water(i) = revap*revap
-!
-!       calculate precipitating downdraft mass flux under
-!       hydrostatic approximation
-!
+        !
+        ! Calculate precipitating downdraft mass flux under
+        ! hydrostatic approximation
+        !
         if ( i /= 1 ) then
           dhdp = (h(i)-h(i-1))/(p(i-1)-p(i))
-          dhdp = dmax1(dhdp,d_10)
+          dhdp = max(dhdp,d_10)
           mp(i) = d_100*regrav*lv(i)*sigd*evap(i)/dhdp
-          mp(i) = dmax1(mp(i),d_zero)
-!
-!         add small amount of inertia to downdraft
-!
+          mp(i) = max(mp(i),d_zero)
+          !
+          ! Add small amount of inertia to downdraft
+          !
           fac = 20.0D0/(ph(i-1)-ph(i))
           mp(i) = (fac*mp(i+1)+mp(i))/(d_one+fac)
-!
-!         force mp to decrease linearly to zero
-!         between about 950 mb and the surface
-!
+          !
+          ! Force mp to decrease linearly to zero
+          ! between about 950 mb and the surface
+          !
           if ( p(i) > (0.949D0*p(1)) ) then
-            jtt = max0(jtt,i)
+            jtt = max(jtt,i)
             mp(i) = mp(jtt)*(p(1)-p(i))/(p(1)-p(jtt))
           end if
         end if
-!
-!       find mixing ratio of precipitating downdraft
-!
+        !
+        ! Find mixing ratio of precipitating downdraft
+        !
         if ( i /= ict ) then
           if ( i == 1 ) then
             qstm = qs(1)
@@ -960,27 +957,26 @@ module mod_cu_em
               trap(i,j) = trap(i+1,j)
             end do
           end if
-          qp(i) = dmin1(qp(i),qstm)
-          qp(i) = dmax1(qp(i),d_zero)
+          qp(i) = min(qp(i),qstm)
+          qp(i) = max(qp(i),d_zero)
         end if
       end do
-!
-!     calculate surface precipitation in mm/s
-!
-!     precip = precip+wt(1)*sigd*water(1)*3600.*24000./(d_1000*g)   ! mm/d
+      !
+      ! Calculate surface precipitation in mm/s
+      !
       precip = precip + wt(1)*sigd*water(1)*regrav ! mm/s
     end if
-!
-!
-!   calculate downdraft velocity scale and surface temperature and
-!   water vapor fluctuations
-!
-    wd = betae*dabs(mp(icb))*0.01D0*rgas*t(icb)/(sigd*p(icb))
-    qprime = (qp(1)-q(1))*d_half
+    !
+    ! Calculate downdraft velocity scale and surface temperature and
+    ! water vapor fluctuations
+    !
+    wd = betae*abs(mp(icb))*0.01D0*rgas*t(icb)/(sigd*p(icb))
+    qprime = d_half*(qp(1)-q(1))
     tprime = wlhv*qprime*rcpd
-!
-!   calculate tendencies of lowest level potential temperature and mixing ratio
-!
+    !
+    ! Calculate tendencies of lowest level potential temperature
+    ! and mixing ratio
+    !
     dpinv = 0.01D0/(ph(1)-ph(2))
     am = d_zero
     if ( nk == 1 ) then
@@ -1008,12 +1004,12 @@ module mod_cu_em
         ftra(1,k) = ftra(1,k) + egrav*dpinv*ment(j,1)*(traent(j,1,k)-tra(1,k))
       end do
     end do
-!
-!   calculate tendencies of potential temperature and mixing ratio
-!   at levels above the lowest level
-!   first find the net saturated updraft and downdraft mass fluxes
-!   through each level
-!
+    !
+    ! Calculate tendencies of potential temperature and mixing ratio
+    ! at levels above the lowest level
+    ! First find the net saturated updraft and downdraft mass fluxes
+    ! through each level
+    !
     do i = 2 , ict
       dpinv = 0.01D0/(ph(i)-ph(i+1))
       cpinv = d_one/cpn(i)
@@ -1050,7 +1046,7 @@ module mod_cu_em
       end do
       do k = 1 , i - 1
         awat = elij(k,i) - (d_one-ep(i))*clw(i)
-        awat = dmax1(awat,d_zero)
+        awat = max(awat,d_zero)
         fq(i) = fq(i) + egrav*dpinv*ment(k,i)*(qent(k,i)-awat-q(i))
         fu(i) = fu(i) + egrav*dpinv*ment(k,i)*(uent(k,i)-u(i))
         fv(i) = fv(i) + egrav*dpinv*ment(k,i)*(vent(k,i)-v(i))
@@ -1077,10 +1073,10 @@ module mod_cu_em
                (mp(i+1)*(trap(i+1,j)-tra(i,j)) - mp(i)*(trap(i,j)-trap(i-1,j)))
       end do
     end do
-!
-!   adjust tendencies at top of convection layer to reflect
-!   actual position of the level zero cape
-!
+    !
+    ! Adjust tendencies at top of convection layer to reflect
+    ! actual position of the level zero cape
+    !
     fqold = fq(ict)
     fq(ict) = fq(ict)*(d_one-frac)
     fq(ict-1) = fq(ict-1) + frac*fqold * &
@@ -1103,10 +1099,10 @@ module mod_cu_em
       ftra(ict-1,k) = ftra(ict-1,k) + frac*ftraold * &
                       (ph(ict)-ph(ict+1))/(ph(ict-1)-ph(ict))
     end do
-!
-!   very slightly adjust tendencies to force exact
-!   enthalpy, momentum and tracer conservation
-!
+    !
+    ! Very slightly adjust tendencies to force exact
+    ! enthalpy, momentum and tracer conservation
+    !
     ents = d_zero
     uav = d_zero
     vav = d_zero
@@ -1182,23 +1178,21 @@ module mod_cu_em
           qg = qs(i)
           alv = wlhv - cpvmcl*(t(i)-tzero)
           do j = 1 , 2
-            s = cpd + alv*alv*qg/(rwat*t(i)*t(i))
-            s = d_one/s
+            s = d_one/(cpd + alv*alv*qg/(rwat*t(i)*t(i)))
             ahg = cpd*tg + (cl-cpd)*q(nk)*t(i) + alv*qg + gz(i)
             tg = max(tg + s*(ah0-ahg),35.0D0)
             ppa = p(i)*100.0D0
             qg = pfqsat(ppa,tg)
           end do
-          alv = wlhv - cpvmcl*(t(i)-tzero)
           tpk(i) = (ah0-(cl-cpd)*q(nk)*t(i)-gz(i)-alv*qg)*rcpd
           clw(i) = q(nk) - qg
-          clw(i) = dmax1(d_zero,clw(i))
+          clw(i) = max(d_zero,clw(i))
           rg = qg/(d_one-q(nk))
           tvp(i) = tpk(i)*(d_one+rg*rgowi)
         end do
       end subroutine tlift
 
   end subroutine cupeman
-!
+
 end module mod_cu_em
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
