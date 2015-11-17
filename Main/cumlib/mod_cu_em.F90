@@ -26,7 +26,7 @@ module mod_cu_em
   use mod_memutil
   use mod_runparams , only : rdt , dt , dtsec , alphae , betae , &
     coeffr , coeffs , cu , damp , dtmax , entp , minorig , omtrain , &
-    omtsnow , sigd , sigs , tlcrit , iqv , ichem
+    omtsnow , sigd , sigs , tlcrit , iqv , ichem , dxsq , clfrcv
   use mod_cu_common
   use mod_service
   use mod_regcm_types
@@ -66,7 +66,7 @@ module mod_cu_em
     integer(ik4) :: ntra
     real(rk8) :: cbmf , pret , qprime , tprime , wd , elcrit , epmax
     real(rk8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
-                                qscup , tcup , ucup , vcup
+                                qscup , tcup , ucup , vcup , cldfra
     real(rk8) , dimension(kz,ntr) :: ftra , tra
     integer(ik4) :: i , j , k , iflag , kbase , kk , ktop
     real(rk8) , dimension(kzp1) :: phcup
@@ -92,7 +92,7 @@ module mod_cu_em
         do k = 1 , kz
           kk = kzp1 - k
           tcup(k) = m2c%tas(j,i,kk)                                   ! [k]
-          ! Model wants specific humidities
+          ! Model wants specific humidities and pressures in mb
           qcup(k) = m2c%qxas(j,i,kk,iqv)/(d_one+m2c%qxas(j,i,kk,iqv)) ! [kg/kg]
           qscup(k) = m2c%qsas(j,i,kk)/(d_one+m2c%qsas(j,i,kk))        ! [kg/kg]
           ucup(k) = m2c%uas(j,i,kk)                                   ! [m/s]
@@ -115,7 +115,7 @@ module mod_cu_em
 
         call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
                      kzm1,ntra,iflag,ft,fq,fu,fv,ftra,pret,wd,          &
-                     tprime,qprime,cbmf,kbase,ktop,elcrit,epmax)
+                     tprime,qprime,cbmf,cldfra,kbase,ktop,elcrit,epmax)
 
         cbmf2d(j,i) = cbmf
 
@@ -153,7 +153,6 @@ module mod_cu_em
             end do
           end if
 
-
           ! Build for chemistry 3d table of constant precipitation rate
           ! from the surface to the top of the convection
           if ( ichem == 1 ) then
@@ -162,13 +161,16 @@ module mod_cu_em
             end do
           end if
 
+          c2m%kcumtop(j,i) = kzp1-ktop
+          c2m%kcumbot(j,i) = kzp1-kbase
+          do k = 1 , kz
+            kk = kzp1 - k
+            c2m%cldfrc(j,i,k) = cldfra(kk)
+          end do
+
           ! Precipitation
           if ( pret > dlowval ) then
             ! The order top/bottom for regcm is reversed.
-            if ( pret > 1.0D-6 ) then
-              c2m%kcumtop(j,i) = kzp1-ktop
-              c2m%kcumbot(j,i) = kzp1-kbase
-            end if
             c2m%rainc(j,i)  = c2m%rainc(j,i)  + pret * dtsec  ! mm
             c2m%pcratec(j,i) = c2m%pcratec(j,i) + pret
             total_precip_points = total_precip_points + 1
@@ -321,14 +323,13 @@ module mod_cu_em
 !   7. a maximum value to the cloud base mass flux has been added.
 !
   subroutine cupeman(t,q,qs,u,v,tra,p,ph,nd,na,nl,ntra,iflag,ft,fq,fu,fv, &
-                     ftra,precip,wd,tprime,qprime,cbmf,icb,ict,elcrit,epmax)
-!
+                     ftra,precip,wd,tprime,qprime,cbmf,cldfra,icb,ict,    &
+                     elcrit,epmax)
     implicit none
-!
     real(rk8) :: cbmf , precip , qprime , tprime , wd , elcrit , epmax
     integer(ik4) :: icb , iflag , ict , na , nd , nl , ntra
     real(rk8) , dimension(nd) :: fq , ft , fu , fv , p , ph , q , qs ,  &
-                               t , u , v
+                               t , u , v , cldfra
     real(rk8) , dimension(nd,ntra) :: ftra , tra
     intent (in) na , ntra , ph , p , nd , nl , elcrit , epmax
     intent (out) tprime , wd
@@ -1128,6 +1129,16 @@ module mod_cu_em
       do i = 1 , ict
         ftra(i,k) = ftra(i,k) - traav
       end do
+    end do
+
+    mp(:) = mp(:) / dxsq
+
+    ! Xu, K.-M., and S. K. Krueger:
+    !   Evaluation of cloudiness parameterizations using a cumulus
+    !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
+    do i = icb , ict
+      cldfra(i) = 0.105D0*log(d_one+(500.0D0*d_half*(mp(i)+mp(i+1))))
+      cldfra(i) = min(max(0.01D0,cldfra(i)),clfrcv)
     end do
 
     contains

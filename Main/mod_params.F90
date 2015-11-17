@@ -331,9 +331,9 @@ module mod_params
     dtauc = 60.0D0         ! Fritsch & Chappell (1980)
     !
     !------namelist emanparam:
-    minsig = 0.95D0     ! Lowest sigma level from which convection can originate
-    elcrit_ocn = 0.0011D0 ! Autoconversion threshold water content (gm/gm)
-    elcrit_lnd = 0.0011D0 ! Autoconversion threshold water content (gm/gm)
+    minsig = 0.950D0    ! Lowest sigma level from which convection can originate
+    elcrit_ocn = 1.1D-3 ! Autoconversion threshold water content (gm/gm)
+    elcrit_lnd = 1.1D-3 ! Autoconversion threshold water content (gm/gm)
     tlcrit = -55.0D0    ! Below tlcrit auto-conversion threshold is zero
     entp = 1.5D0        ! Coefficient of mixing in the entrainment formulation
     sigd = 0.05D0       ! Fractional area covered by unsaturated dndraft
@@ -1820,8 +1820,8 @@ module mod_params
       end do
       if ( myid == italk ) then
         write(stdout,*) 'Emanuel (1991) Convection Scheme V4.3C used.'
-        write(stdout,'(a,f11.6)') &
-          '  Min Convection origin             : ',minsig
+        write(stdout,'(a,f11.6,a,i2,a)') &
+          '  Min Convection origin             : ',minsig,', (',kzp1-minorig,')'
         write(stdout,'(a,f11.6)') '  Autoconversion Threshold (ocean)  : ', &
           elcrit_ocn
         write(stdout,'(a,f11.6)') '  Autoconversion Threshold (land)   : ', &

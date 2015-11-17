@@ -28,7 +28,7 @@ module mod_cu_kf
   use mod_cu_common
   use mod_runparams , only : dx , dxsq , ipptls , dt , dtsec
   use mod_runparams , only : iqv , iqr , iqi , iqs , iqc , kf_entrate
-  use mod_runparams , only : kf_trigger , ichem
+  use mod_runparams , only : kf_trigger , ichem , clfrcv
   use mod_service
 
   implicit none
@@ -1744,14 +1744,14 @@ module mod_cu_kf
           umf_new = umf(nk)/dxsq
           xcldfra = 0.07D0*log(d_one+(500.0D0*umf_new))
           xcldfra = max(0.01D0,xcldfra)
-          cldfra_sh_kf(np,nk) = min(0.2D0,xcldfra)
+          cldfra_sh_kf(np,nk) = min(clfrcv,xcldfra)
         end do
       else
         do nk = klcl-1 , ltop1
           umf_new = umf(nk)/dxsq
           xcldfra = 0.14D0*log(d_one+(500.0D0*umf_new))
           xcldfra = max(0.01D0,xcldfra)
-          cldfra_dp_kf(np,nk) = min(0.6D0,xcldfra)
+          cldfra_dp_kf(np,nk) = min(clfrcv,xcldfra)
         end do
       end if
       !
