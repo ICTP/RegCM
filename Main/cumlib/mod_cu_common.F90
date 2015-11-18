@@ -144,7 +144,11 @@ module mod_cu_common
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            c2m%cldlwc(j,i,k) = clwfromt(m2c%tas(j,i,k))
+            if ( c2m%cldfrc(j,i,k) > 0.001D0 ) then
+              c2m%cldlwc(j,i,k) = clwfromt(m2c%tas(j,i,k))
+            else
+              c2m%cldlwc(j,i,k) = d_zero
+            end if
           end do
         end do
       end do
