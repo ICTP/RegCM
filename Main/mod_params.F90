@@ -386,7 +386,7 @@ module mod_params
     ricr_ocn = 0.25D0
     ricr_lnd = 0.25D0
     zhnew_fac = 0.25D0
-    ifaholtth10 = 3
+    ifaholtth10 = 0
     ifaholt = 0
     !
     !-----namelist slabocparam ;
