@@ -118,23 +118,23 @@ module mod_constants
   ! Ratio of 13C/12C in Pee Dee Belemnite (C isotope standard)
   real(rk8) , parameter :: pdbratio = 0.0112372D+00
 
-  real(rk8) , parameter :: rgasmol = navgdr*boltzk
+  real(rk8) , parameter :: rgasmol = navgdr*boltzk ! 8.3144717808
   ! Gas constant for dry air
   real(rk8) , parameter :: c287 = rgasmol/amd
   ! Gas constant for dry air in Joules/kg/K
-  real(rk8) , parameter :: rgas = c287*1000.0D+00
+  real(rk8) , parameter :: rgas = c287*1000.0D+00  ! 287.0569248
   real(rk8) , parameter :: rdry = rgas
   ! Gas constant for water vapor in Joules/kg/K
-  real(rk8) , parameter :: rwat = (rgasmol/amw)*1000.0D+00
+  real(rk8) , parameter :: rwat = (rgasmol/amw)*1000.0D+00 ! 461.5233169
   ! Ratio of the two above
   real(rk8) , parameter :: rgow = rgas/rwat
   ! Reverse of the above
   real(rk8) , parameter :: rgowi = rwat/rgas
 
   ! Specific heat at constant pressure for dry air J/kg/K
-  real(rk8) , parameter :: cpd = 3.5D+00*rgas
+  real(rk8) , parameter :: cpd = 3.5D+00*rgas  ! 1004.6992368000
   ! Specific heat at constant pressure for moist air J/kg/K
-  real(rk8) , parameter :: cpv = 4.0D+00*rwat
+  real(rk8) , parameter :: cpv = 4.0D+00*rwat  ! 1846.0932676000
   ! Specific heat of water at 15 Celsius J/kg/K
   real(rk8) , parameter :: cpw = 4186.95D+00
   ! Specific heat of water at 0 Celsius J/kg/K

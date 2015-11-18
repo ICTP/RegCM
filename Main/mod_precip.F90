@@ -32,6 +32,7 @@ module mod_precip
   use mod_memutil
   use mod_mpmessage
   use mod_regcm_types
+  use mod_humid , only : clwfromt
 
   implicit none
 
@@ -418,7 +419,7 @@ module mod_precip
   !
   subroutine cldfrac
     implicit none
-    real(rk8) :: exlwc , rh0adj , tcel
+    real(rk8) :: exlwc , rh0adj
     integer(ik4) :: i , j , k
     real(rk8) :: botm , rm , qcld
 
@@ -561,12 +562,10 @@ module mod_precip
           if ( iconvlwp == 1 ) then
             ! Apply the parameterisation based on temperature to the
             ! the large scale clouds.
-            tcel = t3(j,i,k) - tzero
-            if ( tcel < -50D0 ) then
-              exlwc = 0.001D0
+            if ( pfcc(j,i,k) > lowcld ) then
+              exlwc = clwfromt(t3(j,i,k))
             else
-              exlwc = 0.127D+00 + 6.78D-03 * tcel + &
-                      1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
+              exlwc = d_zero
             end if
           else
             ! NOTE : IN CLOUD HERE IS NEEDED !!!

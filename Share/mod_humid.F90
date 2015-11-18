@@ -34,7 +34,7 @@ module mod_humid
     module procedure humid1_o_single_nonhydro
   end interface humid1_o
 
-  public :: humid1 , humid1_o , humid1fv , humid2
+  public :: humid1 , humid1_o , humid1fv , humid2 , clwfromt
 
   contains
 
@@ -212,6 +212,23 @@ module mod_humid
       end do
     end do
   end subroutine humid2
+
+  real(rk8) function clwfromt(t) result(clw)
+    implicit none
+    real(rk8) , intent(in) :: t
+    real(rk8) :: tcel
+    ! Temperature dependency for cloud water content
+    ! in g/m3 (Lemus et al., 1997)
+    ! NOTE : THIS IS IN-CLOUD VARIABLE.
+    tcel = t - tzero
+    if ( tcel < -50.0D0 ) then
+      clw = 0.001D0
+    else
+      clw = 0.127D+00 + 6.78D-03 * tcel +    &
+                        1.29D-04 * tcel**2 + &
+                        8.36D-07 * tcel**3
+    end if
+  end function clwfromt
 
 end module mod_humid
 

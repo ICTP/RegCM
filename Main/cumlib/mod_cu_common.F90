@@ -24,6 +24,7 @@ module mod_cu_common
   use mod_constants
   use mod_dynparam
   use mod_runparams , only : clfrcv , icumcloud , icup
+  use mod_humid , only : clwfromt
   use mod_regcm_types
 
   implicit none
@@ -81,7 +82,7 @@ module mod_cu_common
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
     type(cum_2_mod) , intent(inout) :: c2m
-    real(rk8) :: akclth , tcel , scalep , scalef
+    real(rk8) :: akclth , scalep , scalef
     integer(ik4):: i , j , k , ktop , kbot , kclth , ikh
     scalef = (d_one-clfrcv)
     if ( icumcloud <= 1 ) then
@@ -143,16 +144,7 @@ module mod_cu_common
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tcel = m2c%tas(j,i,k)-tzero
-            ! Temperature dependance for convective cloud water content
-            ! in g/m3 (Lemus et al., 1997)
-            ! NOTE : THIS IS IN-CLOUD VARIABLE.
-            if ( tcel < -50.0D0 ) then
-              c2m%cldlwc(j,i,k) = 0.001D0
-            else
-              c2m%cldlwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
-                               1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
-            end if
+            c2m%cldlwc(j,i,k) = clwfromt(m2c%tas(j,i,k))
           end do
         end do
       end do
