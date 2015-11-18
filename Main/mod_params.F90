@@ -98,12 +98,12 @@ module mod_params
       enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
       do_parallel_netcdf_out , idiag
 
-    namelist /physicsparam/ ibltyp , iboudy , isladvec ,                &
-      icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls ,   &
-      iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,       &
-      scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldfrac ,   &
-      irrtm , iclimao3 , isolconst , icumcloud , islab_ocean , itweak , &
-      temp_tend_maxval , wind_tend_maxval
+    namelist /physicsparam/ ibltyp , iboudy , isladvec ,                  &
+      icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls ,     &
+      iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,         &
+      scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldmstrat ,   &
+      icldfrac , irrtm , iclimao3 , isolconst , icumcloud , islab_ocean , &
+      itweak , temp_tend_maxval , wind_tend_maxval
 
     namelist /nonhydroparam/ ifupr , logp_lrate , ckh
 
@@ -233,7 +233,8 @@ module mod_params
     iseaice = 0
     idesseas = 0
     iconvlwp = 0
-    icldfrac = 2
+    icldfrac = 1
+    icldmstrat = 0
     irrtm = 0
     islab_ocean = 0
     iclimao3 = 0
@@ -897,6 +898,7 @@ module mod_params
     call bcast(idesseas)
     call bcast(iconvlwp)
     call bcast(icldfrac)
+    call bcast(icldmstrat)
     call bcast(irrtm)
     call bcast(iclimao3)
     call bcast(isolconst)
@@ -1456,6 +1458,7 @@ module mod_params
       write(stdout,'(a,i2)') '  Enable chem/aerosol model   : ' , ichem
       write(stdout,'(a,i2)') '  Large scale LWP as convect. : ' , iconvlwp
       write(stdout,'(a,i2)') '  Cloud fraction scheme       : ' , icldfrac
+      write(stdout,'(a,i2)') '  Marine stratocumulus fraction ' , icldmstrat
       write(stdout,*) 'Boundary Pameterizations'
       write(stdout,'(a,f9.6)') '  Nudge value high range     : ', high_nudge
       write(stdout,'(a,f9.6)') '  Nudge value medium range   : ', medium_nudge
@@ -1854,7 +1857,8 @@ module mod_params
     if ( any(icup == 5)  ) then
       if ( myid == italk .and. iconv /= 4 ) then
         write(stdout,*) 'Tiedtke (1986) Convection Scheme ECHAM 5.4 used.'
-        write(stdout,'(a,i2)')    '  Used Scheme                       : ',iconv
+        write(stdout,'(a,i2)')    &
+          '  Used Scheme                       : ',iconv
         write(stdout,'(a,f11.6)') &
           '  Entrainment rate penetrative conv.: ',entrpen
         write(stdout,'(a,f11.6)') &

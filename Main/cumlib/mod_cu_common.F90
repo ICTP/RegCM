@@ -86,14 +86,15 @@ module mod_cu_common
     c2m%cldfrc(:,:,:) = d_zero
     c2m%cldlwc(:,:,:) = d_zero
     scalef = (d_one-clfrcv)
-    if ( any(icup == 6) .or. any(icup == 4) ) then
+    if ( any(icup == 6) .or. any(icup == 4) .or. any(icup == 2) ) then
       if ( icumcloud <= 1 ) then
         ic6iloop1: &
         do i = ici1 , ici2
           ic6jloop1: &
           do j = jci1 , jci2
             if ( cuscheme(j,i) == 6 .or. &
-                 cuscheme(j,i) == 4 ) cycle ic6jloop1
+                 cuscheme(j,i) == 4 .or. &
+                 cuscheme(j,i) == 2 ) cycle ic6jloop1
             ! The regcm model is top to bottom
             ktop = c2m%kcumtop(j,i)
             kbot = c2m%kcumbot(j,i)
@@ -116,7 +117,8 @@ module mod_cu_common
           ic6jloop3: &
           do j = jci1 , jci2
             if ( cuscheme(j,i) == 6 .or. &
-                 cuscheme(j,i) == 4 ) cycle ic6jloop3
+                 cuscheme(j,i) == 4 .or. &
+                 cuscheme(j,i) == 2 ) cycle ic6jloop3
             ktop = c2m%kcumtop(j,i)
             kbot = c2m%kcumbot(j,i)
             kclth = kbot - ktop + 1

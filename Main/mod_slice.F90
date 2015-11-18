@@ -192,6 +192,23 @@ module mod_slice
       end do
     end do
     !
+    ! Find 700 mb theta
+    !
+    if ( icldmstrat == 1 ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          vertloop: &
+          do k = 1 , kz
+            if ( atms%pb3d(j,i,k) > 70000.0 ) then
+              atms%th700(j,i) = twt(k,1) * atms%th3d(j,i,k+1) + &
+                                twt(k,2) * atms%th3d(j,i,k)
+              exit vertloop
+            end if
+          end do vertloop
+        end do
+      end do
+    end if
+    !
     ! Find tropopause hgt.
     !
     ktrop(:,:) = 1

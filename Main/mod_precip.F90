@@ -40,9 +40,10 @@ module mod_precip
   ! Precip sum beginning from top
   !
   real(rk8) , pointer , dimension(:,:) :: pptsum
-  real(rk8) , pointer , dimension(:,:) :: psb , psc , rainnc , lsmrnc
+  integer(ik4) , pointer , dimension(:,:) :: ldmsk
+  real(rk8) , pointer , dimension(:,:) :: psb , psc , rainnc , lsmrnc , th700
   real(rk8) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten
-  real(rk8) , pointer , dimension(:,:,:) :: t3 , t2 , tten
+  real(rk8) , pointer , dimension(:,:,:) :: t3 , t2 , tten , th3
   real(rk8) , pointer , dimension(:,:,:) :: p3 , p2 , qs3 , rh3 , rho3
   real(rk8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
   real(rk8) , pointer , dimension(:,:,:) :: pfcc
@@ -89,7 +90,10 @@ module mod_precip
     use mod_mppparam , only : maxall
     implicit none
     call maxall(maxval(mddom%xlat),maxlat)
+    call assignpnt(mddom%ldmsk,ldmsk)
     call assignpnt(atms%tb3d,t3)
+    call assignpnt(atms%th3d,th3)
+    call assignpnt(atms%th700,th700)
     call assignpnt(atms%pb3d,p3)
     call assignpnt(atms%qxb3d,qx3)
     call assignpnt(atms%qsb3d,qs3)
@@ -516,6 +520,28 @@ module mod_precip
               !     ((d_one-rh3(j,i,k))*qs3(j,i,k))**0.49D0))
               !
               !
+            end if
+          end do
+        end do
+      end do
+    end if
+
+    !------------------------------------------
+    ! 1a. Determine Marine stratocumulus clouds
+    !------------------------------------------
+
+    if ( icldmstrat == 1 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( ldmsk(j,i) == 0 ) then
+              if ( p3(j,i,k) >= 70000.0D0 ) then
+                ! Klein, S. A., and D. L. Hartmann,
+                ! The seasonal cycle of low stratiform clouds,
+                ! J. Climate, 6, 1587-1606, 1993
+                pfcc(j,i,k) = min(hicld,max(pfcc(j,i,k), &
+                      (th700(j,i)-th3(j,i,k)) * 0.057D0 - 0.5573D0))
+              end if
             end if
           end do
         end do

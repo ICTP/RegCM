@@ -230,6 +230,7 @@ module mod_regcm_types
 
   type slice
     real(rk8) , pointer , dimension(:,:,:) :: th3d
+    real(rk8) , pointer , dimension(:,:) :: th700
     real(rk8) , pointer , dimension(:,:,:) :: tb3d
     real(rk8) , pointer , dimension(:,:,:) :: tp3d
     real(rk8) , pointer , dimension(:,:,:) :: pb3d

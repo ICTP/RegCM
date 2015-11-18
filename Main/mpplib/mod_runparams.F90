@@ -122,6 +122,8 @@ module mod_runparams
   integer(ik4) , public :: iconvlwp
   ! Cloud fraction scheme
   integer(ik4) , public :: icldfrac
+  ! Marine stratocumulus considered
+  integer(ik4) , public :: icldmstrat
   ! Upper radiative BC for non-hydrostatic core
   integer(ik4) , public :: ifupr
 

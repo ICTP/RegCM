@@ -25,7 +25,7 @@ module mod_cu_grell
   use mod_memutil
   use mod_cu_common
   use mod_mpmessage
-  use mod_runparams , only : iqv , dt , dtsec , igcc , ichem
+  use mod_runparams , only : iqv , dt , dtsec , igcc , ichem , clfrcv
   use mod_regcm_types
 
   implicit none
@@ -43,7 +43,7 @@ module mod_cu_grell
               dellaq , dellat , dkk , he , heo , hes , heso , pwc , &
               pwcd , pwcdo , pwco , qc , qco , qes , qeso , qrcd ,  &
               qrcdo , tv , tvo , xdby , xhe , xhes , xpwc , xpwcd , &
-              xq , xqc , xqes , xqrcd , xt , xtv , xz , z , zo
+              xq , xqc , xqes , xqrcd , xt , xtv , xz , z , zo , cldf
   real(rk8) , pointer , dimension(:) :: pratec , psur , qcrit , ter11
   integer(ik4) , pointer , dimension(:) :: kdet
   integer(ik4) , pointer , dimension(:) :: kmin , k22 , kb , kbcon , &
@@ -167,6 +167,7 @@ module mod_cu_grell
     call getmem2d(xz,1,ncp,1,kz,'cu_grell:xz')
     call getmem2d(z,1,ncp,1,kz,'cu_grell:z')
     call getmem2d(zo,1,ncp,1,kz,'cu_grell:zo')
+    call getmem2d(cldf,1,ncp,1,kz,'cu_grell:cldf')
 
     call getmem1d(xac,1,ncp,'cu_grell:xac')
     call getmem1d(xao,1,ncp,'cu_grell:xao')
@@ -423,6 +424,9 @@ module mod_cu_grell
           if ( ktop(n) > 1 .and. kbcon(n) >= 1 ) then
             c2m%kcumtop(j,i) = kzp1 - ktop(n)
             c2m%kcumbot(j,i) = kzp1 - kbcon(n)
+            do k = c2m%kcumtop(j,i) , c2m%kcumbot(j,i)
+              c2m%cldfrc(j,i,k) = cldf(n,kzp1-k)
+            end do
           end if
         end if
       end if
@@ -986,7 +990,6 @@ module mod_cu_grell
     end do
     !
     ! downdraft calculations
-    !
     ! downdraft moisture properties
     !
     do k = 1 , kz - 1
@@ -1084,7 +1087,7 @@ module mod_cu_grell
         if ( igcc == 1 ) then
           f = (xao(n)-xac(n))/dt ! Arakawa-Schubert closure
         else if ( igcc == 2 ) then
-          f = xac(n)/dtauc(n)  ! Fritsch-Chappell closure
+          f = xac(n)/dtauc(n)    ! Fritsch-Chappell closure
         end if
         xk = (xxac(n)-xac(n))/mbdt
         xmb(n) = -f/xk
@@ -1102,11 +1105,13 @@ module mod_cu_grell
             if ( (outtes > htmax(n)) .or. (outtes < htmin(n)) ) then
               xmb(n) = d_zero
               xac(n) = -d_one
+              cldf(n,k) = d_zero
             else
               outt(n,k) = outt(n,k) + dellat(n,k)*xmb(n)
               outq(n,k) = outq(n,k) + dellaq(n,k)*xmb(n)
-              pratec(n) = pratec(n) + &
-                (pwc(n,k)+edt(n)*pwcd(n,k))*xmb(n)
+              cldf(n,k) = 0.105D0*log(d_one+(500.0D0*d_half*xpwc(n,k)))
+              cldf(n,k) = min(max(0.0D0,cldf(n,k)),clfrcv)
+              pratec(n) = pratec(n) + (pwc(n,k)+edt(n)*pwcd(n,k))*xmb(n)
             end if
           end if
         end if
