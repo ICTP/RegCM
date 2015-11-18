@@ -25,7 +25,7 @@ module mod_cu_grell
   use mod_memutil
   use mod_cu_common
   use mod_mpmessage
-  use mod_runparams , only : iqv , dt , dtsec , igcc , ichem , clfrcv
+  use mod_runparams , only : iqv , dt , dtsec , igcc , ichem , clfrcv , dxsq
   use mod_regcm_types
 
   implicit none
@@ -457,7 +457,7 @@ module mod_cu_grell
                dv3 , dv3q , dz , dz1 , dz2 , dzo , e , eo , f ,  &
                agamma , agamma0 , agamma1 , agamma2 , agammo ,   &
                agammo0 , mbdt , outtes , pbcdif , qrch , qrcho , &
-               tvbar , tvbaro , xk
+               tvbar , tvbaro , xk , mflx
     integer(ik4) :: n , k , iph , ipho , kbcono , kk , lpt
     logical :: foundtop
 #ifdef DEBUG
@@ -1109,7 +1109,8 @@ module mod_cu_grell
             else
               outt(n,k) = outt(n,k) + dellat(n,k)*xmb(n)
               outq(n,k) = outq(n,k) + dellaq(n,k)*xmb(n)
-              cldf(n,k) = 0.105D0*log(d_one+(500.0D0*d_half*xpwc(n,k)))
+              mflx = (p(n,k)/(rgas*t(n,k))) * dellah(n,k)*xmb(n)
+              cldf(n,k) = 0.105D0*log(d_one+(500.0D0*mflx))
               cldf(n,k) = min(max(0.0D0,cldf(n,k)),clfrcv)
               pratec(n) = pratec(n) + (pwc(n,k)+edt(n)*pwcd(n,k))*xmb(n)
             end if
