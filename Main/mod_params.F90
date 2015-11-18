@@ -232,7 +232,7 @@ module mod_params
     idcsst = 0
     iseaice = 0
     idesseas = 0
-    iconvlwp = 0
+    iconvlwp = 1
     icldfrac = 1
     icldmstrat = 0
     irrtm = 0
@@ -570,6 +570,10 @@ module mod_params
           end if
           if ( budget_compute ) then
             write(stdout,*) 'Will check the total enthalpy and moisture'
+          end if
+          if ( iconvlwp /= 0 ) then
+            write(stdout,*) 'Will set iconvlwp == 0'
+            iconvlwp = 0
           end if
         end if
       end if
