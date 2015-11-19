@@ -82,7 +82,7 @@ module mod_mkharvest
           p2 = 'SCENARIO'//pthsep//'RCP4.5'
         case ('60')
           p2 = 'SCENARIO'//pthsep//'RCP6.0'
-        case ('85')
+        case ('85', '15')
           p2 = 'SCENARIO'//pthsep//'RCP8.5'
         case default
           call die(__FILE__,'Dynamic landuse only supported for CMIP5',__LINE__)

@@ -304,6 +304,7 @@ module mod_runparams
   integer(ik4) , public :: ichremlsc
   integer(ik4) , public :: ichsursrc
   integer(ik4) , public :: ichsolver
+  integer(ik4) , public :: ismoke ! marijuana
   integer(ik4) , public :: ichdustemd
   integer(ik4) , public :: ichdiag
   integer(ik4) , public :: ichebdy
@@ -314,7 +315,7 @@ module mod_runparams
   ! chemistry species indices that are used not only in chemlib but also in
   ! other interface ( e.g CLM4.5)/ other species are delcared in
   ! chemlib/mod_che_indices
-  integer(ik4) , public :: ibchb , ibchl , iochl , iochb , ianh4 , iano3, iisop
+  integer(ik4) , public :: ibchb , ibchl , iochl , iochb , ianh4 , iano3, iisop, ism1,ism2
 
   ! Large scale SUBEX parameters
 

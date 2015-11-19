@@ -20,6 +20,7 @@
 module mod_che_start
 
   use mod_intkinds
+  use mod_runparams
   use mod_realkinds
   use mod_dynparam
   use mod_mpmessage
@@ -74,7 +75,8 @@ module mod_che_start
     icarb = 0
     ianh4 = 0
     iano3 = 0
-
+    ism1 = 0
+    ism2 =0
 
     ino     = 0
     ino2    = 0
@@ -192,10 +194,24 @@ module mod_che_start
         carbed(kbin) = reffoc
         chtrsol(itr) = solochl
       end if
+      if ( chtrname(itr) == 'SM1' ) then
+        kbin = kbin + 1
+        ism1 = itr
+        icarb(kbin) = itr
+        carbed(kbin) = reffsm1
+        chtrsol(itr) = solsm1
+      end if
+      if ( chtrname(itr) == 'SM2' ) then
+        kbin = kbin + 1
+        iochb = itr
+        icarb(kbin) = itr
+        carbed(kbin) = reffsm2
+        chtrsol(itr) = solsm2
+      end if
+
       if ( chtrname(itr)(1:4) ==  'DUST') then
         ibin = ibin + 1
         idust(ibin) = itr
-        chtrsol(itr) = soldust(ibin)
       end if
       if ( chtrname(itr)(1:4) ==  'SSLT') then
         jbin = jbin + 1

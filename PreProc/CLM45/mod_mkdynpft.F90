@@ -64,6 +64,7 @@ module mod_mkdynpft
 
     character(len=256) :: inpfile
 
+!    if ( year > 2100 ) year = 2100
     p1 = 'dynamic'
     p2 = '.'
     write(cy,'(i0.4)') year
@@ -78,7 +79,7 @@ module mod_mkdynpft
           p2 = 'SCENARIO'//pthsep//'RCP4.5'
         case ('60')
           p2 = 'SCENARIO'//pthsep//'RCP6.0'
-        case ('85')
+        case ('85', '15')
           p2 = 'SCENARIO'//pthsep//'RCP8.5'
         case default
           call die(__FILE__,'Dynamic landuse only supported for CMIP5',__LINE__)

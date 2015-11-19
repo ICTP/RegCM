@@ -38,6 +38,9 @@ module mod_che_carbonaer
   real(rk8) , public , parameter :: rhooc   = 1200.0D0
   real(rk8) , public , parameter :: rhobchl = 1600.0D0
   real(rk8) , public , parameter :: rhoochl = 1200.0D0
+  real(rk8) , public , parameter :: rhosm1 = 1200.0D0
+  real(rk8) , public , parameter :: rhosm2 = 1200.0D0
+
 
   ! effctive dimaters ( and not radius!)  in micrometer
   ! ( should they be defined intercatively in the future ? )
@@ -45,10 +48,15 @@ module mod_che_carbonaer
   real(rk8) , public , parameter :: reffbchl = 0.3D0
   real(rk8) , public , parameter :: reffoc   = 0.2D0
   real(rk8) , public , parameter :: reffochl = 0.3D0
+  real(rk8) , public , parameter :: reffsm1 = 0.3D0
+  real(rk8) , public , parameter :: reffsm2 = 0.3D0
+
 
   ! aging efolding time (s), from hydrophobic to hydrophilic
   ! Cooke et al.
   real(rk8) , parameter :: chagct = 1.15D0 * 86400.0D0
+  real(rk8) , parameter :: chsmct = 1.15D0 * 86400.0D0
+
   !
   ! solubility of carbon aer for rain out param of giorgi and chameides
   !
@@ -56,11 +64,15 @@ module mod_che_carbonaer
   real(rk8) , parameter :: solbchl = 0.8D0
   real(rk8) , parameter :: soloc = 0.05D0
   real(rk8) , parameter :: solochl = 0.8D0
-  public :: aging_carb , solbc , solbchl , soloc , solochl
+  real(rk8) , parameter :: solsm1 = 0.05D0
+  real(rk8) , parameter :: solsm2 = 0.8D0
+
+
+  public :: aging_carb , solbc , solbchl , soloc , solochl, solsm1,solsm2
 
   ! bin size for carboneaceous aerosols
   ! ps add one dimension for sulfate too.
-  real(rk8) , public , dimension(7) :: carbed
+  real(rk8) , public , dimension(9) :: carbed
 
   contains
 
@@ -94,6 +106,20 @@ module mod_che_carbonaer
           end do
         end do
       end if
+
+      if ( ism1 > 0  .and. ism2 > 0 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            agingtend1 = -chib(j,i,k,iochb)*(d_one-dexp(-dt/chsmct))/dt
+            agingtend2 = -agingtend1
+            chiten(j,i,k,ism1) = chiten(j,i,k,ism1) + agingtend1
+            chiten(j,i,k,ism2) = chiten(j,i,k,ism2) + agingtend2
+          end do
+        end do
+      end if
+
+
+
     end subroutine aging_carb
 !
 end module mod_che_carbonaer

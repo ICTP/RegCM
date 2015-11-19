@@ -137,7 +137,7 @@ module mod_params
 
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
            ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,      &
-           ichdiag , ichsursrc , ichebdy , rdstemfac, ichjphcld, ichbion
+           ichdiag , ichsursrc , ichebdy , rdstemfac, ichjphcld, ichbion,ismoke
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
@@ -408,6 +408,7 @@ module mod_params
     !
     !------namelist chemparam ; ( 0= none, 1= activated)
     ichsolver = 1     ! enable chem solver
+    ismoke = 1        ! consider emissions from fires (smoke tracer)
     ichremlsc = 1     ! tracer removal by large scale clouds
     ichremcvc = 1     ! tracer removal by convective clouds
     ichdrdepo = 1     ! tracer dry deposition
@@ -1120,6 +1121,8 @@ module mod_params
       call bcast(igaschem)
       call bcast(ichebdy)
       call bcast(ichbion)
+      call bcast(ismoke)
+
     end if
     !
     ! ALLOCATE NEEDED SPACE

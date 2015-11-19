@@ -670,7 +670,6 @@ module mod_che_wetdep
       ! cwetdepflx(:,:,indp(n)) is also a time accumulated array which is
       ! set to 0 when the surface (CLM45) scheme is called. The average between
       ! surface time steps is calculated in the atm to surface interface
-
       if ( ichremlsc == 1 ) then
         do k = 1 , kz
           do i = ici1 , ici2
@@ -801,7 +800,7 @@ module mod_che_wetdep
         end do
       end do
     end do
-
+    
   end subroutine wetdepa
 
   subroutine blcld(mbin,indp,rhsize,t,pressg,shj,rho,totppt,pdepv, &

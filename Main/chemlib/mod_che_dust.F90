@@ -413,11 +413,11 @@ module mod_che_dust
       !
       dustbsiz(:,:) = dustbsiz1(:,:)
       dustbed(:) = dustbed1(:)
-      soldust(:) = soldust1(:)
+      chtrsol(idust(:))=  soldust1(:) 
       if ( chemsimtype == 'DU12' ) then
         dustbsiz(:,:) = dustbsiz2(:,:)
         dustbed(:) = dustbed2(:)
-        soldust(:) = soldust2(:)
+        chtrsol(idust(:))=  soldust2(:)
       end if
 
       if ( ichdustemd == 1 ) then
@@ -755,8 +755,11 @@ module mod_che_dust
       integer(ik4) :: n , i
       do n = 1 , nsoil
         do i = il1 , il2
-          if ( ust == 0 ) utheff(i,n) = ustart0(rhodust,dp_array(n),roarow(i))
+          if ( ust == 1 ) utheff(i,n) = ustart0(rhodust,dp_array(n),roarow(i))
+
           if ( ust == 1 ) utheff(i,n) = ustart01(rhodust,dp_array(n),roarow(i))
+
+
         end do
       end do
     end subroutine uthefft

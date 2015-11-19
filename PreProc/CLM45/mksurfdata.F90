@@ -214,7 +214,7 @@ program mksurfdata
           p2 = 'SCENARIO'//pthsep//'RCP4.5'
         case ('60')
           p2 = 'SCENARIO'//pthsep//'RCP6.0'
-        case ('85')
+        case ('85', '15')
           p2 = 'SCENARIO'//pthsep//'RCP8.5'
         case default
           call die(__FILE__,'Dynamic landuse only supported for CMIP5',__LINE__)
@@ -1374,6 +1374,18 @@ program mksurfdata
     nvar = 1
     call define_cross_geolocation_coord(ncid,idims,nvar,illvar)
 
+    ivdims(1) = idims(1)
+    ivdims(2) = idims(2)
+    ivdims(3) = idims(4)
+    istatus = nf90_def_var(ncid, 'pft_2d', nf90_double, ivdims(1:3), ipft2dvar)
+    call checkncerr(istatus,__FILE__,__LINE__,  'Error add var pft')
+    istatus = nf90_put_att(ncid, ipft2dvar, 'long_name','percent pft')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add pft long_name')
+    istatus = nf90_put_att(ncid, ipft2dvar, 'units','%')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
+    istatus = nf90_put_att(ncid, ipft2dvar, '_FillValue',vmisdat)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
+
     ! Variables
     istatus = nf90_def_var(ncid, 'gridcell', nf90_int, idims(5), ilndvar)
     call checkncerr(istatus,__FILE__,__LINE__,  'Error add var gridcell')
@@ -1573,6 +1585,8 @@ program mksurfdata
       istatus = nf90_put_var(ncid, ipftvar, gcvar, istart(1:2), icount(1:2))
       call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft')
     end do
+    istatus = nf90_put_var(ncid, ipft2dvar, var3d)
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft2d')
     deallocate(var3d)
 
     allocate(var3d(jxsg,iysg,6))

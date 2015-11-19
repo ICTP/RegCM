@@ -270,10 +270,22 @@ module mod_che_common
                                'SSLT01','SSLT02'/)
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'DUSS simulation'
+    else if ( chemsimtype(1:4) == 'FIRE' ) then      
+      ntr = 2
+      allocate(chtrname(ntr))
+      chtrname(1:ntr)(1:6) = (/'SM1  ','SM2  '/)
+      iaerosol = 1
+      if ( myid == italk ) write(stdout,*) 'FIRE simulation'
     else if ( chemsimtype(1:4) == 'CARB' ) then
+      if(ismoke==1) then
+      ntr = 6
+      allocate(chtrname(ntr))
+      chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', 'SM1   ', 'SM2   '/)
+      else
       ntr = 4
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB '/)
+      end if 
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'CARB simulation'
     else if ( chemsimtype(1:4) == 'SULF' ) then
