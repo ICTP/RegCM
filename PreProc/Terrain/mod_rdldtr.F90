@@ -227,7 +227,8 @@ module mod_rdldtr
               call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                            (i-1)*ifrac+1,ifrac,lcrosstime)
               call qsort(copybuf)
-              values(j,i) = 0.5*(copybuf(nfrac/2)+copybuf(nfrac/2+1))
+              !values(j,i) = 0.5*(copybuf(nfrac/2)+copybuf(nfrac/2+1))
+              values(j,i) = copybuf(max(nfrac/2,1))
             end do
           end do
         case (3)
@@ -258,7 +259,7 @@ module mod_rdldtr
     call relmem2d(readbuf)
     write(stdout,'(a)') ' Done.'
   end subroutine read_ncglob
-!
+
   subroutine fillbuf(copybuf,readbuf,ni,nj,i,j,isize,lwrap)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , isize
@@ -294,20 +295,19 @@ module mod_rdldtr
       end do
     end do
   end subroutine fillbuf
-!
-  function mpindex(x)
+
+  pure integer(ik4) function mpindex(x) result(res)
     implicit none
     real(rk8) , dimension(:) , intent(in) :: x
-    integer(ik4) :: mpindex
     integer(ik4) , dimension(32) :: cnt
     integer(ik4) :: i
     cnt = 0
     do i = 1 , 32
       cnt(i) = count(int(x) == i)
     end do
-    mpindex = maxloc(cnt,1,cnt>0)
+    res = maxloc(cnt,1,cnt>0)
   end function mpindex
-!
+
   recursive subroutine qsort(a)
     implicit none
     real(rk8) , dimension(:) , intent(in out) :: a
