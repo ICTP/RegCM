@@ -2965,7 +2965,7 @@ module mod_che_isorropia
     call poly3(m1,m2,m3,delcl,islv)            ! hcl dissolution
     if ( islv/=0 ) then
       delcl = tiny1          ! tiny1 amounts of hcl assumed when no root
-      write (errinf,'(1pe7.1)') tiny1
+      write (errinf,'(1pe10.3)') tiny1
       call pusherr(0022,errinf)          ! warning error: no solution
     end if
     delcl = min(delcl,chi4)
@@ -2976,7 +2976,7 @@ module mod_che_isorropia
     if ( delcl<zero .or. delno<zero .or. delcl>chi4 .or. delno>chi3 ) then
       delcl = tiny1     ! tiny1 amounts of hcl assumed when no root
       delno = tiny1
-      write (errinf,'(1pe7.1)') tiny1
+      write (errinf,'(1pe10.3)') tiny1
       call pusherr(0022,errinf)          ! warning error: no solution
     end if
 ! &
