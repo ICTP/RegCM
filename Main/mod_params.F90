@@ -137,7 +137,8 @@ module mod_params
 
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
            ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,      &
-           ichdiag , ichsursrc , ichebdy , rdstemfac, ichjphcld, ichbion,ismoke
+           ichdiag , ichsursrc , ichebdy , rdstemfac, ichjphcld, ichbion,  &
+           ismoke
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
@@ -1142,7 +1143,6 @@ module mod_params
       call bcast(ichebdy)
       call bcast(ichbion)
       call bcast(ismoke)
-
     end if
     !
     ! ALLOCATE NEEDED SPACE

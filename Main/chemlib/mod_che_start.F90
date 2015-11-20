@@ -75,8 +75,8 @@ module mod_che_start
     icarb = 0
     ianh4 = 0
     iano3 = 0
-    ism1 = 0
-    ism2 =0
+    ism1  = 0
+    ism2  = 0
 
     ino     = 0
     ino2    = 0
@@ -208,7 +208,6 @@ module mod_che_start
         carbed(kbin) = reffsm2
         chtrsol(itr) = solsm2
       end if
-
       if ( chtrname(itr)(1:4) ==  'DUST') then
         ibin = ibin + 1
         idust(ibin) = itr

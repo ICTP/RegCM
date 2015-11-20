@@ -78,8 +78,8 @@ module mod_rad_aerosol
   real(rk8) , dimension(nbndsw) :: gsbc_hb_rrtm , gsbc_hl_rrtm , &
     gsoc_hb_rrtm , gsoc_hl_rrtm , ksbc_hb_rrtm , ksbc_hl_rrtm ,  &
     ksoc_hb_rrtm , ksoc_hl_rrtm , wsbc_hb_rrtm , wsbc_hl_rrtm ,  &
-    wsoc_hb_rrtm , wsoc_hl_rrtm, gssm1_rrtm, gssm2_rrtm, kssm1_rrtm, kssm2_rrtm, &
-    wssm1_rrtm, wssm2_rrtm
+    wsoc_hb_rrtm , wsoc_hl_rrtm , gssm1_rrtm , gssm2_rrtm ,      &
+    kssm1_rrtm , kssm2_rrtm , wssm1_rrtm , wssm2_rrtm
 
   real(rk8) , dimension(nspi,4) :: gsdust_stand , ksdust_stand , wsdust_stand
   real(rk8), dimension(nspi,12) :: gsdust12_stand  , ksdust12_stand , &
@@ -108,8 +108,9 @@ module mod_rad_aerosol
   ! Aerosol optical properties (for the mixing)
   !
   real(rk8) , pointer , dimension(:) :: gsbc_hb , gsbc_hl , gsoc_hb , &
-            gsoc_hl , ksbc_hb , ksbc_hl , ksoc_hb , ksoc_hl , &
-            wsbc_hb , wsbc_hl , wsoc_hb , wsoc_hl, gssm1,gssm2,kssm1,kssm2,wssm1,wssm2
+            gsoc_hl , ksbc_hb , ksbc_hl , ksoc_hb , ksoc_hl ,         &
+            wsbc_hb , wsbc_hl , wsoc_hb , wsoc_hl , gssm1 , gssm2 ,   &
+            kssm1 , kssm2 , wssm1 , wssm2
 
   real(rk8) , pointer,  dimension(:,:) :: gsdust , ksdust , wsdust , ksdust_lw
 
@@ -897,8 +898,7 @@ module mod_rad_aerosol
     3.71831D-01, 2.75473D-01, 1.50134D-01, 7.01898D-02, 4.08139D-02, &
     2.46670D-02, 1.57207D-02 /
 
-
-    data kssm1_rrtm /0.06D0, 0.084D0, 0.111D0, 0.142D0, &
+  data kssm1_rrtm /0.06D0, 0.084D0, 0.111D0, 0.142D0, &
       0.194D0, 0.301D0, 0.411D0, 0.934D0, 2.34D0, 4.88D0, &
       8.525D0, 12.897D0, 15.918D0, 0.0281D0/
 
@@ -912,8 +912,7 @@ module mod_rad_aerosol
       0.797D0, 0.848D0, 0.875D0, 0.884D0, &
       0.875D0, 0.0114D0/
 
-
- data kssm2_rrtm /0.045D0, 0.065D0, 0.093D0, 0.129D0, &
+  data kssm2_rrtm /0.045D0, 0.065D0, 0.093D0, 0.129D0, &
       0.192D0, 0.334D0, 0.481D0, 1.164D0, 2.919D0, 5.752D0, &
       9.242D0, 15.528D0, 13.755D0, 0.0181D0/
 
@@ -926,7 +925,6 @@ module mod_rad_aerosol
       0.565D0, 0.676D0, 0.738D0, 0.818D0, &
       0.887D0, 0.912D0, 0.923D0, 0.921D0, &
       0.904D0, 0.029D0/
-
 
   contains
 
@@ -1010,14 +1008,14 @@ module mod_rad_aerosol
         wsbc_hl = wsbc_hl_rrtm
         wsoc_hb = wsoc_hb_rrtm
         wsoc_hl = wsoc_hl_rrtm
-        if ( ismoke > 0) then 
-        gssm1 = gssm1_rrtm
-        kssm1 = kssm1_rrtm
-        wssm1 = wssm1_rrtm
-        gssm2 = gssm2_rrtm
-        kssm2 = kssm2_rrtm
-        wssm2 = wssm2_rrtm
-        end if 
+        if ( ismoke > 0) then
+          gssm1 = gssm1_rrtm
+          kssm1 = kssm1_rrtm
+          wssm1 = wssm1_rrtm
+          gssm2 = gssm2_rrtm
+          kssm2 = kssm2_rrtm
+          wssm2 = wssm2_rrtm
+        end if
         if ( nbin == 4 ) then
           gsdust =  gsdust_rrtm
           ksdust =  ksdust_rrtm

@@ -103,7 +103,7 @@ module mod_che_ncio
                 'DUST05', 'DUST06', 'DUST07', 'DUST08',  &
                 'DUST09', 'DUST10', 'DUST11', 'DUST12' /
   data aesslt / 'SSLT01' , 'SSLT02' /
-  data aecarb / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL','SM1','SM2' /
+  data aecarb / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL' , 'SM1' , 'SM2' /
   data aesulf / 'SO2' , 'SO4' /
   data aesuca / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL' , 'SO2' , 'SO4' /
   data aeaero / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL' , 'SO2' , 'SO4' , &
@@ -431,10 +431,9 @@ module mod_che_ncio
         call rvar(ncid,istart,icount,iochb,echemsrc,'OC_flux',.false.,sdim)
       end if
 !SMOKE
-      if (ism1 /= 0 ) then
+      if ( ism1 /= 0 ) then
         call rvar(ncid,istart,icount,ism1,echemsrc,'SM_flux',.false.,sdim)
-      end if 
-
+      end if
 !OLET
       if ( iolet /= 0 ) then
         call rvar(ncid,istart,icount,iolet,echemsrc,'OLET_flux',.false.,sdim)

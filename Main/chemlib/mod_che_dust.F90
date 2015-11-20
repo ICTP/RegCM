@@ -413,11 +413,11 @@ module mod_che_dust
       !
       dustbsiz(:,:) = dustbsiz1(:,:)
       dustbed(:) = dustbed1(:)
-      chtrsol(idust(:))=  soldust1(:) 
+      chtrsol(idust(:)) = soldust1(:)
       if ( chemsimtype == 'DU12' ) then
         dustbsiz(:,:) = dustbsiz2(:,:)
         dustbed(:) = dustbed2(:)
-        chtrsol(idust(:))=  soldust2(:)
+        chtrsol(idust(:)) = soldust2(:)
       end if
 
       if ( ichdustemd == 1 ) then
@@ -743,7 +743,7 @@ module mod_che_dust
                     ustar,srel,rsfrow,vegfrac,snowfrac)
 
     end subroutine dust_module
-!
+
     subroutine uthefft(il1,il2,ust,nsoil,roarow,utheff,rhodust)
       implicit none
       integer(ik4) :: il1 , il2 , nsoil , ust
@@ -756,14 +756,11 @@ module mod_che_dust
       do n = 1 , nsoil
         do i = il1 , il2
           if ( ust == 1 ) utheff(i,n) = ustart0(rhodust,dp_array(n),roarow(i))
-
           if ( ust == 1 ) utheff(i,n) = ustart01(rhodust,dp_array(n),roarow(i))
-
-
         end do
       end do
     end subroutine uthefft
-!
+
     subroutine emission(il1,il2,rhodust,ftex,alphaprop,uth,roarow,rc, &
                         utheff,ustar,srel,rsfrow,vegfrac,snowfrac)
       implicit none
@@ -939,7 +936,7 @@ module mod_che_dust
              if ( ichdiag == 1 ) then
                cemisdiag(j,i,idust(n)) = cemisdiag(j,i,idust(n)) + &
                                  sumdflux(j,i)*frac(n) / &
-                                 (cdzq(j,i,kz)*crhob3d(j,i,kz)) * cdsfrq 
+                                 (cdzq(j,i,kz)*crhob3d(j,i,kz)) * cdsfrq
              end if
           end do
         end do
