@@ -118,7 +118,7 @@ module mod_params
       ksemi , vqxr , vqxi , vqxs , zauto_rate_khair , zauto_rate_kessl , &
       zauto_rate_klepi , rkconv , rcovpmin , rpecons
 
-    namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
+    namelist /grellparam/ gcr0 , shrmin , shrmax , edtmin , edtmax ,  &
       edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
       htmin , htmax , skbmax , dtauc, shrmin_ocn , shrmax_ocn ,       &
       edtmin_ocn, edtmax_ocn, edtmino_ocn , edtmaxo_ocn ,             &
@@ -163,14 +163,15 @@ module mod_params
     !
     ! default values for all the options:
     !     (can be overwritten by namelist input).
-    !------namelist restart param:
+    !
+    ! restartparam ;
     !
     ifrest = .false.     ! Restart?:  t=true; f=false
     idate0 = 1900010100  ! Start date of the initial simulation
     idate1 = 1900010100  ! Start date of this simulation
     idate2 = 1900010100  ! End Date this simulation
-    ! note: beginning/end forecast time set in restart.mm4
-    !------namelist timeparam:
+    !
+    ! timeparam ;
     !
     dtrad = 30.0D0  ! time interval in min solar rad caluclated
     dtsrf = 600.0D0 ! time interval at which bats is called (secs)
@@ -178,7 +179,8 @@ module mod_params
     dtche = 900.0D0 ! time interval at which bats is called (secs)
     dtabem = 18.0D0 ! time interval absorption-emission calculated (hours)
     dt = 100.0D0    ! time step in seconds
-    !-----namelist out      note: * signifies currently not in namelist
+    !
+    ! outparam ;
     !
     rfstrt = .false.
     ifsave = .false.
@@ -210,7 +212,8 @@ module mod_params
     do_parallel_netcdf_in = .false.
     do_parallel_netcdf_out = .false.
     idiag = 0
-    !-----namelist physicsparam:
+    !
+    ! physicsparam ;
     !
     ibltyp = 1
     iboudy = 5
@@ -222,32 +225,34 @@ module mod_params
     ipgf = 1
     iemiss = 0
     iocnflx = 2
+    iocnrough = 1
     iocnzoq = 1
     iocncpl = 0
     iwavcpl = 0
-    iocnrough = 1
     lakemod = 0
     ichem = 0
     scenario = 'RF'
     idcsst = 0
     iseaice = 0
     idesseas = 0
-    iconvlwp = 1
-    icldfrac = 1
+    iconvlwp = 0
+    icldfrac = 0
     icldmstrat = 0
     irrtm = 0
     islab_ocean = 0
     iclimao3 = 0
-    isolconst = 1
-    icumcloud = 2
+    isolconst = 0
+    icumcloud = 1
     temp_tend_maxval = 0.5D0*(dt/secpm)
     wind_tend_maxval = 0.5D0*(dt/secpm)
-    !-----Non hydrostatic namelist param:
+    !
+    ! Non hydrostatic param ;
     !
     ifupr = 0
     ckh = 1.0D0
     logp_lrate = 50.0D0
-    !-----rrtm radiation namelist param:
+    !
+    ! Rrtm radiation param ;
     !
     inflgsw  = 2
     iceflgsw = 3
@@ -259,28 +264,29 @@ module mod_params
     imcica = 1
     irng = 1
     nradfo = 4
-    !------namelist subexparam:
+    !
+    ! Subexparam ;
     !
     ncld      = 1         ! # of bottom model levels with no clouds (rad only)
-    qck1land  = 0.00025D0 ! Autoconversion Rate for Land
-    qck1oce   = 0.00025D0 ! Autoconversion Rate for Ocean
-    gulland   = 0.4D0     ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
-    guloce    = 0.4D0     ! Fract of Gultepe eqn (qcth) for ocean
+    qck1land  = 0.00050D0 ! Autoconversion Rate for Land
+    qck1oce   = 0.00050D0 ! Autoconversion Rate for Ocean
+    gulland   = 0.40D0    ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
+    guloce    = 0.40D0    ! Fract of Gultepe eqn (qcth) for ocean
     rhmax     = 1.01D0    ! RH at whicn FCC = 1.0
     rh0oce    = 0.90D0    ! Relative humidity threshold for ocean
     rh0land   = 0.80D0    ! Relative humidity threshold for land
     tc0       = 238.0D0   ! Below this temp, rh0 begins to approach unity
-    cevaplnd  = 1.0D-3    ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
-    cevapoce  = 1.0D-3    ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
-    caccrlnd  = 3.0D0     ! Raindrop accretion rate land [m3/kg/s]
-    caccroce  = 3.0D0     ! Raindrop accretion rate ocean [m3/kg/s]
+    cevaplnd  = 1.0D-4    ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
+    cevapoce  = 1.0D-4    ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
+    caccrlnd  = 6.0D0     ! Raindrop accretion rate land [m3/kg/s]
+    caccroce  = 6.0D0     ! Raindrop accretion rate ocean [m3/kg/s]
     cllwcv    = 0.3D-3    ! Cloud liquid water content for convective precip.
     clfrcvmax = 1.0D0     ! Max cloud fractional cover for convective precip.
-    cftotmax  = 1.0D0     ! Max total cover cloud fraction for radiation
+    cftotmax  = 0.8D0     ! Max total cover cloud fraction for radiation
     conf      = 1.0D0     ! Condensation threshold
     lsrfhack  = .false.   ! Surface radiation hack
     !
-    ! namelist microparam
+    ! microparam ;
     !
     stats = .false.
     budget_compute = .false. ! Verify enthalpy and moisture conservation
@@ -307,31 +313,34 @@ module mod_params
     rcovpmin = 0.1D0
     rpecons = 5.547D-5
     !
-    !------namelist grellparam:
-    shrmin = 0.25D0       ! Minimum Shear effect on precip eff.
-    shrmax = 0.50D0       ! Maximum Shear effect on precip eff.
-    edtmin = 0.25D0       ! Minimum Precipitation Efficiency
-    edtmax = 0.50D0       ! Maximum Precipitation Efficiency
-    edtmino = 0.25D0      ! Minimum Precipitation Efficiency (o var)
-    edtmaxo = 0.50D0      ! Maximum Precipitation Efficiency (o var)
-    edtminx = 0.25D0      ! Minimum Precipitation Efficiency (x var)
-    edtmaxx = 0.50D0      ! Maximum Precipitation Efficiency (x var)
-    shrmin_ocn = 0.25D0   ! Minimum Shear effect on precip eff.
-    shrmax_ocn = 0.50D0   ! Maximum Shear effect on precip eff.
-    edtmin_ocn = 0.25D0   ! Minimum Precipitation Efficiency
-    edtmax_ocn = 0.50D0   ! Maximum Precipitation Efficiency
-    edtmino_ocn = 0.25D0  ! Minimum Precipitation Efficiency (o var)
-    edtmaxo_ocn = 0.50D0  ! Maximum Precipitation Efficiency (o var)
-    edtminx_ocn = 0.25D0  ! Minimum Precipitation Efficiency (x var)
-    edtmaxx_ocn = 0.50D0  ! Maximum Precipitation Efficiency (x var)
-    pbcmax = 150.0D0       ! Max depth (mb) of stable layer b/twn LCL & LFC
-    mincld = 150.0D0       ! Min cloud depth (mb).
-    htmin = -250.0D0       ! Min convective heating
-    htmax = 500.0D0        ! Max convective heating
-    skbmax = 0.4D0        ! Max cloud base height in sigma
-    dtauc = 60.0D0         ! Fritsch & Chappell (1980)
+    ! grellparam ;
     !
-    !------namelist emanparam:
+    gcr0 = 0.0020D0       ! Conversion rate from cloud to rain
+    shrmin = 0.00D0       ! Minimum Shear effect on precip eff.
+    shrmax = 1.00D0       ! Maximum Shear effect on precip eff.
+    edtmin = 0.10D0       ! Minimum Precipitation Efficiency
+    edtmax = 1.00D0       ! Maximum Precipitation Efficiency
+    edtmino = 0.10D0      ! Minimum Precipitation Efficiency (o var)
+    edtmaxo = 1.00D0      ! Maximum Precipitation Efficiency (o var)
+    edtminx = 0.1000      ! Minimum Precipitation Efficiency (x var)
+    edtmaxx = 1.00D0      ! Maximum Precipitation Efficiency (x var)
+    shrmin_ocn = 0.00D0   ! Minimum Shear effect on precip eff.
+    shrmax_ocn = 1.00D0   ! Maximum Shear effect on precip eff.
+    edtmin_ocn = 0.10D0   ! Minimum Precipitation Efficiency
+    edtmax_ocn = 1.00D0   ! Maximum Precipitation Efficiency
+    edtmino_ocn = 0.10D0  ! Minimum Precipitation Efficiency (o var)
+    edtmaxo_ocn = 1.00D0  ! Maximum Precipitation Efficiency (o var)
+    edtminx_ocn = 0.10D0  ! Minimum Precipitation Efficiency (x var)
+    edtmaxx_ocn = 1.00D0  ! Maximum Precipitation Efficiency (x var)
+    pbcmax = 150.0D0      ! Max depth (mb) of stable layer b/twn LCL & LFC
+    mincld = 150.0D0      ! Min cloud depth (mb).
+    htmin = -250.0D0      ! Min convective heating
+    htmax = 500.0D0       ! Max convective heating
+    skbmax = 0.4D0        ! Max cloud base height in sigma
+    dtauc = 30.0D0        ! Fritsch & Chappell (1980)
+    !
+    ! emanparam ;
+    !
     minsig = 0.950D0    ! Lowest sigma level from which convection can originate
     elcrit_ocn = 1.1D-3 ! Autoconversion threshold water content (gm/gm)
     elcrit_lnd = 1.1D-3 ! Autoconversion threshold water content (gm/gm)
@@ -351,7 +360,8 @@ module mod_params
     epmax_ocn = 0.999D0 ! Maximum precipitation efficiency over land
     epmax_lnd = 0.999D0 ! Maximum precipitation efficiency over ocean
     !
-    !------namelist tiedtkeparam:
+    ! tiedtkeparam ;
+    !
     iconv    = 4        ! Selects the actual scheme
     entrmax  = 1.75D-3  ! Max entrainment iconv=[1,2,3]
     entrdd   = 3.0D-4   ! Entrainment rate for cumulus downdrafts
@@ -372,30 +382,36 @@ module mod_params
     rprc_lnd = 1.4D-3 ! coefficient for determining conversion from cloud water
     rprc_ocn = 1.4D-3 ! coefficient for determining conversion from cloud water
     !
-    !------namelist kfparam ;
+    ! kfparam ;
+    !
     kf_trigger = 3
     kf_entrate = 0.03D0 ! Kain Fritsch entrainment rate
-    !------namelist uwparam ;
+    !
+    ! uwparam ;
+    !
     iuwvadv = 0
     atwo  = 10.0D0
     rstbl = 1.5D0
     czero = 5.869D0
     nuk   = 5.0D0
     !
-    !------namelist holtslagparam ;
+    ! holtslagparam ;
+    !
     ricr_ocn = 0.25D0
     ricr_lnd = 0.25D0
     zhnew_fac = 0.25D0
     ifaholtth10 = 0
     ifaholt = 0
     !
-    !-----namelist slabocparam ;
+    ! slabocparam ;
+    !
     mixed_layer_depth     = 50.0D0
     sst_restore_timescale = 5.0D0 !days
     do_restore_sst = .true.
     do_qflux_adj = .false.
     !
-    !-----namelist tweakparam ;
+    ! tweakparam ;
+    !
     itweak = 0
     itweak_sst = 0
     itweak_temperature = 0
@@ -406,7 +422,8 @@ module mod_params
     solar_tweak = 0.0D0
     gas_tweak_factors(:) = 1.0D0
     !
-    !------namelist chemparam ; ( 0= none, 1= activated)
+    ! chemparam ; ( 0 = none, 1 = activated)
+    !
     ichsolver = 1     ! enable chem solver
     ismoke = 1        ! consider emissions from fires (smoke tracer)
     ichremlsc = 1     ! tracer removal by large scale clouds
@@ -422,18 +439,20 @@ module mod_params
     ichebdy = 1
     rdstemfac = d_one
     ichbion = 0
-    !
-    !------namelist clmparam ; (read in case clm surface model compiled in)
 #ifdef CLM
+    !
+    ! clmparam ; (read in case clm surface model compiled in)
+    !
     imask = 1
     ilawrence_albedo = 1
     clmfrq = 24.0D0
 #endif
     !
-    !------namelist cplparam ;
-    cpldt = 21600.0D0       ! coupling time step in seconds (seconds)
-    zomax = 0.02D0          ! maximum allowed surface roughness from wave comp.
-    ustarmax = 0.02D0       ! maximum allowed friction velocity from wave comp.
+    ! cplparam ;
+    !
+    cpldt = 21600.0D0  ! coupling time step in seconds (seconds)
+    zomax = 0.02D0     ! maximum allowed surface roughness from wave comp.
+    ustarmax = 0.02D0  ! maximum allowed friction velocity from wave comp.
 
 #ifdef CLM
     if ( myid == italk ) then
@@ -994,6 +1013,7 @@ module mod_params
     call bcast(cllwcv)
 
     if ( any(icup == 2) ) then
+      call bcast(gcr0)
       call bcast(shrmin)
       call bcast(shrmax)
       call bcast(edtmin)
@@ -1764,6 +1784,7 @@ module mod_params
       end do
       if ( myid == italk ) then
         write(stdout,*) 'Grell Convection Scheme used.'
+        write(stdout,'(a,f11.6)') '  Conversion rate : ' , gcr0
         write(stdout,'(a,f11.6)') '  Max Shear       : ' , shrmax
         write(stdout,'(a,f11.6)') '  Min Shear       : ' , shrmin
         write(stdout,'(a,f11.6)') '  Max PPT eff     : ' , edtmax

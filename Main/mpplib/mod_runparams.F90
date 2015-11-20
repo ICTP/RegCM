@@ -167,6 +167,7 @@ module mod_runparams
 
   ! Grell cumulus scheme parameters
 
+  real(rk8) , public :: gcr0
   real(rk8) , public :: mincld
   real(rk8) , public :: skbmax
   real(rk8) , public :: shrmax_ocn

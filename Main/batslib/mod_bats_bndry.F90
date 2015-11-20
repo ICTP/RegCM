@@ -433,16 +433,6 @@ module mod_bats_bndry
       rsubss = xkmxr*watr(i)**(b+d_half) * watu(i)**(b+2.5D0)
       rsubsr = xkmx1*watt(i)**(b+d_half) * watr(i)**(b+2.5D0)
       rsubst(i) = xkmx2*watt(i)**(d_two*b+d_three)
-      ! Hack : make desert / semi-desert and urban soil remove surface
-      !        moisture FASTER. Surface cracks ?
-      !if ( lveg(i) == 8 ) then
-      !  ! This is halving the surface moisture every day
-      !  rsubss = (ssw(i)/2.0D0)*rsecpd
-      !end if
-      !if ( lveg(i) == 11 .or. lveg(i) == 21 ) then
-      !  ! This is halving the surface moisture every 4 days
-      !  rsubss = (ssw(i)/8.0D0)*rsecpd
-      !end if
       !
       ! 1.32 bog
       !
@@ -487,16 +477,12 @@ module mod_bats_bndry
       ! Imported Lara Kuepper's Irrigated Crop modification from RegCM3
       ! see Kueppers et al. (2008)
       ! if ( lveg(i) == 10 .and. watr(i) < relaw(i) ) then
-      !   rsur(i) = rsur(i) + &
-      !         (rsw(i)-relaw(i)*gwmx1(i))/dtbat
+      !   rsur(i) = rsur(i) + (rsw(i)-relaw(i)*gwmx1(i))/dtbat
       ! end if
       !
       ! 2.13 saturate swamp or rice paddy
       !
       if ( lveg(i) == 13 ) then
-        ! Graziano. Seems that this runoff is borken at least
-        ! at time step zero. Try to mediate using relfc. Is this
-        ! correct ? Mhhhh....
         rsur(i) = rsur(i) + min(d_zero,(rsw(i)-relfc(i)*gwmx1(i))/dtbat)
       end if
       !

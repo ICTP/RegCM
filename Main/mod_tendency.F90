@@ -1181,7 +1181,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
-            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),minqx)
+            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),d_zero)
           end do
         end do
       end do
@@ -1665,7 +1665,7 @@ module mod_tendency
             atm1%qx(j,i,k,n) = atmc%qx(j,i,k,n)
             atm2%qx(j,i,k,n) = omuhf*atm1%qx(j,i,k,n) + &
               gnuhf*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
-            atm2%qx(j,i,k,n) = max(atm2%qx(j,i,k,n),minqx)
+            atm2%qx(j,i,k,n) = max(atm2%qx(j,i,k,n),d_zero)
           end do
         end do
       end do

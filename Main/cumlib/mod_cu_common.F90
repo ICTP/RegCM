@@ -131,13 +131,15 @@ module mod_cu_common
         do j = jci1 , jci2
           ktop = c2m%kcumtop(j,i)
           kbot = c2m%kcumbot(j,i)
-          do k = ktop , kbot
-            if ( cuscheme(j,i) == 4 ) then
-              c2m%cldlwc(j,i,k) = 0.5D-4
-            else
-              c2m%cldlwc(j,i,k) = 0.3D-3
-            end if
-          end do
+          if ( ktop > 1 .and. kbot > 1 ) then
+            do k = ktop , kbot
+              if ( cuscheme(j,i) == 4 ) then
+                c2m%cldlwc(j,i,k) = 0.5D-4
+              else
+                c2m%cldlwc(j,i,k) = 0.3D-3
+              end if
+            end do
+          end if
         end do
       end do
     else

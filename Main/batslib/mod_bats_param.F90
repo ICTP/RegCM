@@ -71,21 +71,17 @@ module mod_bats_param
   !
   ! slmo is initial surface moisture availability in fraction of one
   !
-  data slmo / 0.65D0 , 0.45D0 , 0.60D0 , 0.60D0 , 0.65D0 , &
-              0.65D0 , 0.55D0 , 0.10D0 , 0.90D0 , 0.80D0 , &
-              0.20D0 , 0.90D0 , 0.90D0 , 1.00D0 , 1.00D0 , &
-              0.50D0 , 0.50D0 , 0.65D0 , 0.60D0 , 0.60D0 , &
-              0.50D0 , 0.60D0 /
+  data slmo / 0.50D0 , 0.50D0 , 0.50D0 , 0.50D0 , 0.50D0 , &
+              0.50D0 , 0.50D0 , 0.50D0 , 0.50D0 , 0.50D0 , &
+              0.50D0 , 0.50D0 , 0.50D0 , 1.00D0 , 1.00D0 , &
+              0.50D0 , 0.50D0 , 0.50D0 , 0.50D0 , 0.50D0 , &
+              0.50D0 , 0.50D0 /
   !
   ! mfcv is maximum fractional vegetation cover
   ! BATS 1e , Table 2, a, pag 21
   !
-  !data mfcv  / 0.85D0 , 0.80D0 , 0.80D0 , 0.80D0 , 0.80D0 , 0.90D0 , &
-  !             0.80D0 , 0.00D0 , 0.60D0 , 0.80D0 , 0.10D0 , 0.00D0 , &
-  !             0.80D0 , 0.00D0 , 0.00D0 , 0.80D0 , 0.80D0 , 0.80D0 , &
-  !             0.80D0 , 0.80D0 , 0.05D0 , 0.40D0 /
   data mfcv  / 0.85D0 , 0.80D0 , 0.80D0 , 0.80D0 , 0.80D0 , 0.90D0 , &
-               0.80D0 , 0.00D0 , 0.60D0 , 0.80D0 , 0.35D0 , 0.00D0 , &
+               0.80D0 , 0.00D0 , 0.60D0 , 0.80D0 , 0.10D0 , 0.00D0 , &
                0.80D0 , 0.00D0 , 0.00D0 , 0.80D0 , 0.80D0 , 0.80D0 , &
                0.80D0 , 0.80D0 , 0.05D0 , 0.40D0 /
   !
@@ -106,10 +102,12 @@ module mod_bats_param
   !             0.1000D0 , 0.0100D0 , 0.0300D0 , 0.0024D0 , 0.0024D0 , &
   !             0.1000D0 , 0.1000D0 , 0.8000D0 , 0.3000D0 , 0.3000D0 , &
   !             1.5000D0 , 1.0000D0 /
-  data rough / 0.1100D0 , 0.0400D0 , 1.0000D0 , 0.9000D0 , 0.9000D0 , &
-               2.0000D0 , 0.1000D0 , 0.0400D0 , 0.0400D0 , 0.1000D0 , &
-               0.0500D0 , 0.0400D0 , 0.0500D0 , 0.0010D0 , 0.0010D0 , &
-               0.1300D0 , 0.0800D0 , 0.8000D0 , 0.5000D0 , 0.3000D0 , &
+  ! Following Stulls "Meteorology for Scientists and Engineers",
+  ! Davenport-Wieringa roughness-length classifcations.
+  data rough / 0.1000D0 , 0.0300D0 , 1.0000D0 , 1.0000D0 , 1.0000D0 , &
+               1.0000D0 , 0.3000D0 , 0.0050D0 , 0.0300D0 , 0.1000D0 , &
+               0.0300D0 , 0.0050D0 , 0.1000D0 , 0.0002D0 , 0.0004D0 , &
+               0.2500D0 , 0.1000D0 , 1.0000D0 , 0.5000D0 , 0.3000D0 , &
                2.0000D0 , 1.0000D0 /
   !
   ! displacement height (meter)
@@ -241,25 +239,29 @@ module mod_bats_param
   !
   !data iexsol / 6 , 6 , 6 , 6 , 7 , 8 , 6 , 3 , 6 , 6 , 5 , 12 , 6 ,  &
   !              6 , 6 , 6 , 5 , 6 , 6 , 6 , 12 , 8 /
-  data iexsol / 6 , 6 , 6 , 6 , 7 , 8 , 6 , 1 , 6 , 6 , 5 , 12 , 6 ,  &
-                6 , 6 , 6 , 5 , 6 , 6 , 6 , 12 , 8 /
+  data iexsol / 6 , 4 , 6 , 6 , 7 , 8 , 5 , 1 , 6 , 6 , 2 , 12 , 9 ,  &
+                0 , 0 , 6 , 5 , 6 , 6 , 8 , 12 , 8 /
   !
   ! xmopor is fraction of soil that is voids
   ! BATS 1e , Table 3, I , a, pag 27
   !
-  data xmopor / 0.33D0 , 0.36D0 , 0.39D0 , 0.42D0 , 0.45D0 , 0.48D0 , &
+  !data xmopor / 0.33D0 , 0.36D0 , 0.39D0 , 0.42D0 , 0.45D0 , 0.48D0 , &
+  !              0.51D0 , 0.54D0 , 0.57D0 , 0.60D0 , 0.63D0 , 0.66D0 /
+  data xmopor / 0.13D0 , 0.26D0 , 0.39D0 , 0.42D0 , 0.45D0 , 0.48D0 , &
                 0.51D0 , 0.54D0 , 0.57D0 , 0.60D0 , 0.63D0 , 0.66D0 /
   !
   ! xmosuc is the minimum soil suction (mm)
   ! BATS 1e , Table 3, I , b, pag 27
   !
-  data xmosuc /  30.0D0 ,  30.0D0 ,  30.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , &
+  !data xmosuc /  30.0D0 ,  30.0D0 ,  30.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , &
+  !              200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 /
+  data xmosuc /  10.0D0 ,  20.0D0 ,  30.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , &
                 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 , 200.0D0 /
   !
   ! xmohyd is the saturated hydraulic conductivity (mm/s)
   ! BATS 1e , Table 3, I , c, pag 27
   !
-  data xmohyd / 0.2000D0 , 0.0800D0 , 0.0320D0 , 0.0130D0 , 0.0089D0 , &
+  data xmohyd / 0.0200D0 , 0.0800D0 , 0.0320D0 , 0.0130D0 , 0.0089D0 , &
                 0.0063D0 , 0.0045D0 , 0.0032D0 , 0.0022D0 , 0.0016D0 , &
                 0.0011D0 , 0.0008D0 /
   !

@@ -2534,6 +2534,8 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('grell_scheme_closure',igcc))
           call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('grell_cloud_conversion_rate',gcr0))
+          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('grell_min_shear_on_precip',shrmin))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('grell_max_shear_on_precip',shrmax))
