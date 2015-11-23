@@ -24,7 +24,7 @@ module mod_cu_em
   use mod_intkinds
   use mod_realkinds
   use mod_memutil
-  use mod_runparams , only : rdt , dt , dtsec , alphae , betae , &
+  use mod_runparams , only : alphae , betae , &
     coeffr , coeffs , cu , damp , dtmax , entp , minorig , omtrain , &
     omtsnow , sigd , sigs , tlcrit , iqv , ichem , dxsq , clfrcv
   use mod_cu_common
@@ -59,10 +59,9 @@ module mod_cu_em
   ! **** Driver for Emanuel Convection Scheme ****
   ! **********************************************
   !
-  subroutine cupemandrv(m2c,c2m)
+  subroutine cupemandrv(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    type(cum_2_mod) , intent(inout) :: c2m
     integer(ik4) :: ntra
     real(rk8) :: cbmf , pret , qprime , tprime , wd , elcrit , epmax
     real(rk8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
@@ -76,11 +75,11 @@ module mod_cu_em
     call time_begin(subroutine_name,idindx)
 #endif
 
-    c2m%kcumtop(:,:) = 0
-    c2m%kcumbot(:,:) = 0
+    cu_ktop(:,:) = 0
+    cu_kbot(:,:) = 0
     ktop = 1
     if ( ichem == 1 ) then
-      c2m%convpr(:,:,:) = d_zero
+      cu_convpr(:,:,:) = d_zero
       ntra = ntr
     else
       ntra = 0
@@ -134,22 +133,21 @@ module mod_cu_em
           ! Tendencies
           do k = 1 , kz
             kk = kzp1 - k
-            c2m%tten(j,i,kk) = ft(k)*m2c%psb(j,i) + c2m%tten(j,i,kk)
+            cu_tten(j,i,kk) = ft(k)
             ! Move specific humidity tendency to mixing ratio tendency
-            c2m%qxten(j,i,kk,iqv) = fq(k)/(d_one-fq(k))* &
-                              m2c%psb(j,i)+c2m%qxten(j,i,kk,iqv)
+            cu_qten(j,i,kk,iqv) = fq(k)/(d_one-fq(k))
             ! There is a bit of an inconsistency here...  The wind
             ! tendencies from convection are on cross points, but the
             ! model wants them on dot points.
-            c2m%uten(j,i,kk) = fu(k)*m2c%psb(j,i) + c2m%uten(j,i,kk)
-            c2m%vten(j,i,kk) = fv(k)*m2c%psb(j,i) + c2m%vten(j,i,kk)
+            cu_uten(j,i,kk) = fu(k)
+            cu_vten(j,i,kk) = fv(k)
           end do
 
           ! Tracer tendency
           if (ichem ==1 ) then
             do k = 1 , kz
               kk = kzp1 - k
-              c2m%chiten(j,i,kk,:) = ftra(k,:) * m2c%psb(j,i)
+              cu_chiten(j,i,kk,:) = ftra(k,:)
             end do
           end if
 
@@ -157,22 +155,21 @@ module mod_cu_em
           ! from the surface to the top of the convection
           if ( ichem == 1 ) then
             do k = 1 , ktop-1
-              c2m%convpr(j,i,kzp1-k) = pret
+              cu_convpr(j,i,kzp1-k) = pret
             end do
           end if
 
-          c2m%kcumtop(j,i) = kzp1-ktop
-          c2m%kcumbot(j,i) = kzp1-kbase
+          cu_ktop(j,i) = kzp1-ktop
+          cu_kbot(j,i) = kzp1-kbase
           do k = 1 , kz
             kk = kzp1 - k
-            c2m%cldfrc(j,i,k) = cldfra(kk)
+            cu_cldfrc(j,i,k) = cldfra(kk)
           end do
 
           ! Precipitation
           if ( pret > dlowval ) then
             ! The order top/bottom for regcm is reversed.
-            c2m%rainc(j,i)  = c2m%rainc(j,i)  + pret * dtsec  ! mm
-            c2m%pcratec(j,i) = c2m%pcratec(j,i) + pret
+            cu_prate(j,i) = cu_prate(j,i) + pret
             total_precip_points = total_precip_points + 1
           end if
         end if
@@ -479,7 +476,7 @@ module mod_cu_em
             alvnew = wlhv - cpvmcl*(tnew-tzero)
             qnew = (alv*q(j)-(tnew-t(j))*(cpd*(d_one-q(j))+cl*q(j)))/alvnew
             precip = precip + 1.0D5*(ph(j)-ph(j+1)) * &
-                     (q(j)-qnew)*regrav*rdt*d_r1000  ! mm/s
+                     (q(j)-qnew)*regrav*rdtcum*d_r1000  ! mm/s
             t(j) = tnew
             q(j) = qnew
             qs(j) = qnew
@@ -712,7 +709,7 @@ module mod_cu_em
     !
     cbmfold = cbmf
     delt0 = 300.0D0
-    damps = damp*dt/delt0
+    damps = damp*dtcum/delt0
     cbmf = (d_one-damps)*cbmf + 0.1D0*alphae*dtma
     cbmf = max(cbmf,d_zero)
     !
@@ -985,7 +982,7 @@ module mod_cu_em
         am = am + m(k)
       end do
     end if
-    if ( (d_two*egrav*dpinv*am) >= rdt ) iflag = 4
+    if ( (d_two*egrav*dpinv*am) >= rdtcum ) iflag = 4
     ft(1) = ft(1) + egrav*dpinv*am*(t(2)-t(1)+(gz(2)-gz(1))/cpn(1))
     ft(1) = ft(1) - lvcp(1)*sigd*evap(1)
     ft(1) = ft(1) + sigd*wt(2)*(cl-cpd)*water(2)*(t(2)-t(1))*dpinv/cpn(1)
@@ -1026,7 +1023,7 @@ module mod_cu_em
           amp1 = amp1 + ment(k,j)
         end do
       end do
-      if ( (d_two*egrav*dpinv*amp1) >= rdt ) iflag = 4
+      if ( (d_two*egrav*dpinv*amp1) >= rdtcum ) iflag = 4
       do k = 1 , i - 1
         do j = i , ict
           ad = ad + ment(j,k)

@@ -26,7 +26,7 @@ module mod_cu_grell
   use mod_cu_common
   use mod_constants
   use mod_mpmessage
-  use mod_runparams , only : iqv , dt , dtsec , igcc , ichem , clfrcv , gcr0
+  use mod_runparams , only : iqv , dtcum , igcc , ichem , clfrcv , gcr0
   use mod_regcm_types
 
   implicit none
@@ -201,10 +201,9 @@ module mod_cu_grell
     call getmem1d(xqkb,1,ncp,'cu_grell:xqkb')
   end subroutine allocate_mod_cu_grell
 
-  subroutine cuparan(m2c,c2m)
+  subroutine cuparan(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    type(cum_2_mod) , intent(inout) :: c2m
     real(rk8) :: prainx
     integer(ik4) :: i , j , k , kk , n
 #ifdef DEBUG
@@ -229,7 +228,7 @@ module mod_cu_grell
     psur(:)  = d_zero
     qcrit(:) = d_zero
     ter11(:) = d_zero
-    if ( ichem == 1 ) c2m%convpr(:,:,:) = d_zero
+    if ( ichem == 1 ) cu_convpr(:,:,:) = d_zero
 
     kdet(:)  = 1
     k22(:)   = 1
@@ -356,10 +355,10 @@ module mod_cu_grell
         t(n,k) = m2c%tas(j,i,kk)
         q(n,k) = max(m2c%qxas(j,i,kk,iqv),1.0D-08)
         po(n,k) = p(n,k)
-        tn(n,k) = t(n,k) + (c2m%tten(j,i,kk))/m2c%psb(j,i)*dt
-        qo(n,k) = q(n,k) + (c2m%qxten(j,i,kk,iqv))/m2c%psb(j,i)*dt
+        tn(n,k) = t(n,k) + avg_tten(j,i,kk) * dtcum
+        qo(n,k) = q(n,k) + avg_qten(j,i,kk,iqv) * dtcum
         if ( qo(n,k) < 1.0D-08 ) qo(n,k) = 1.0D-08
-        qcrit(n) = qcrit(n) + c2m%qxten(j,i,kk,iqv)/m2c%psb(j,i)
+        qcrit(n) = qcrit(n) + avg_qten(j,i,kk,iqv)
       end do
     end do
     !
@@ -374,8 +373,8 @@ module mod_cu_grell
       do n = 1 , nap
         i = iac(n)
         j = jac(n)
-        c2m%tten(j,i,kk) = m2c%psb(j,i)*outt(n,k) + c2m%tten(j,i,kk)
-        c2m%qxten(j,i,kk,iqv) = m2c%psb(j,i)*outq(n,k) + c2m%qxten(j,i,kk,iqv)
+        cu_tten(j,i,kk) = outt(n,k)
+        cu_qten(j,i,kk,iqv) = outq(n,k)
       end do
     end do
 
@@ -386,15 +385,15 @@ module mod_cu_grell
         i = iac(n)
         j = jac(n)
         do k = 1 , ktop(n)-1
-          c2m%convpr(j,i,kz-k+1) = pratec(n)
+          cu_convpr(j,i,kz-k+1) = pratec(n)
         end do
       end do
     end if
     !
     ! calculate cloud fraction and water content
     !
-    c2m%kcumtop(:,:) = 0
-    c2m%kcumbot(:,:) = 0
+    cu_ktop(:,:) = 0
+    cu_kbot(:,:) = 0
     do n = 1 , nap
       i = iac(n)
       j = jac(n)
@@ -404,10 +403,10 @@ module mod_cu_grell
         !
         if ( ktop(n) > 1 .and. kbcon(n) > 1 ) then
           if ( ktop(n) > 1 .and. kbcon(n) >= 1 ) then
-            c2m%kcumtop(j,i) = kzp1 - ktop(n)
-            c2m%kcumbot(j,i) = kzp1 - kbcon(n)
-            do k = c2m%kcumtop(j,i) , c2m%kcumbot(j,i)
-              c2m%cldfrc(j,i,k) = cldf(n,kzp1-k)
+            cu_ktop(j,i) = kzp1 - ktop(n)
+            cu_kbot(j,i) = kzp1 - kbcon(n)
+            do k = cu_ktop(j,i) , cu_kbot(j,i)
+              cu_cldfrc(j,i,k) = cldf(n,kzp1-k)
             end do
           end if
         end if
@@ -417,11 +416,9 @@ module mod_cu_grell
     do n = 1 , nap
       i = iac(n)
       j = jac(n)
-      prainx = pratec(n)*dtsec
-      if ( prainx > dlowval ) then
-        c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
+      if ( pratec(n) > dlowval ) then
         ! precipitation rate for surface (kg m-2 s-1)
-        c2m%pcratec(j,i) = c2m%pcratec(j,i) + pratec(n)
+        cu_prate(j,i) = cu_prate(j,i) + pratec(n)
         total_precip_points = total_precip_points + 1
       end if
     end do
@@ -481,7 +478,7 @@ module mod_cu_grell
     ! pwcev  = total normalized integrated evaoprate (I2)
     ! pwcd   = evaporate at that level
     !
-    mbdt = dt * 5.0D-03
+    mbdt = dtcum * 5.0D-03
     !
     ! environmental conditions, first heights
     !
@@ -1062,9 +1059,9 @@ module mod_cu_grell
         f  = -d_one
         xk = -d_one
         if ( igcc == 1 ) then
-          f = (xao(n)-xac(n))/dt ! Arakawa-Schubert closure
+          f = (xao(n)-xac(n))/dtcum ! Arakawa-Schubert closure
         else if ( igcc == 2 ) then
-          f = xac(n)/dtauc(n)    ! Fritsch-Chappell closure
+          f = xac(n)/dtauc(n)       ! Fritsch-Chappell closure
         end if
         xk = (xxac(n)-xac(n))/mbdt
         xmb(n) = -f/xk

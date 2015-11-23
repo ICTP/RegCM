@@ -668,12 +668,16 @@ module mod_ncout
                  'large_scale_precipitation',.true.)
               atm_rainls_out => v3dvar_atm(atm_rainls)%rval
             end if
-            if ( enable_atm3d_vars(atm_raincc) ) then
-              call setup_var(v3dvar_atm,atm_raincc,vsize, &
-                'raincc','kg m-2 s-1', &
-                'Convective precipitation at each level', &
-                'convective_precipitation',.true.)
-              atm_raincc_out => v3dvar_atm(atm_raincc)%rval
+            if ( any(icup == 5) ) then
+              if ( enable_atm3d_vars(atm_raincc) ) then
+                call setup_var(v3dvar_atm,atm_raincc,vsize, &
+                  'raincc','kg m-2 s-1', &
+                  'Convective precipitation at each level', &
+                  'convective_precipitation',.true.)
+                atm_raincc_out => v3dvar_atm(atm_raincc)%rval
+              end if
+            else
+              enable_atm3d_vars(atm_raincc) = .false.
             end if
           else
             enable_atm3d_vars(atm_rainls) = .false.

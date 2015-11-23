@@ -23,18 +23,41 @@ module mod_cu_common
   use mod_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_runparams , only : clfrcv , icumcloud , icup
+  use mod_runparams , only : clfrcv , icumcloud , icup , ichem , dtcum , nqx
+  use mod_mppparam , only : ma
   use mod_humid , only : clwfromt
+  use mod_memutil
   use mod_regcm_types
 
   implicit none
 
   public
 
+  real(rk8) , pointer , dimension(:,:,:) :: cu_tten
+  real(rk8) , pointer , dimension(:,:,:) :: avg_tten
+  real(rk8) , pointer , dimension(:,:,:) :: cu_uten
+  real(rk8) , pointer , dimension(:,:,:) :: cu_vten
+  real(rk8) , pointer , dimension(:,:,:) :: cu_utenx
+  real(rk8) , pointer , dimension(:,:,:) :: cu_vtenx
+  real(rk8) , pointer , dimension(:,:,:) :: avg_uten
+  real(rk8) , pointer , dimension(:,:,:) :: avg_vten
+  real(rk8) , pointer , dimension(:,:,:,:) :: cu_qten
+  real(rk8) , pointer , dimension(:,:,:,:) :: avg_qten
+  real(rk8) , pointer , dimension(:,:,:,:) :: cu_chiten
+  real(rk8) , pointer , dimension(:,:,:,:) :: avg_chiten
+  real(rk8) , pointer , dimension(:,:) :: cu_prate
+  real(rk8) , pointer , dimension(:,:,:) :: cu_qdetr
+  real(rk8) , pointer , dimension(:,:,:) :: cu_raincc
+  real(rk8) , pointer , dimension(:,:,:) :: cu_convpr
+  real(rk8) , pointer , dimension(:,:,:) :: cu_cldfrc
+  real(rk8) , pointer , dimension(:,:,:) :: cu_cldlwc
+  integer(ik4) , pointer , dimension(:,:) :: cu_ktop
+  integer(ik4) , pointer , dimension(:,:) :: cu_kbot
+
   real(rk8) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+  real(rk8) :: rdtcum
 
   integer(ik4) , pointer , dimension(:,:) :: cuscheme ! which scheme to use
-  real(rk8) , pointer , dimension(:,:,:) :: rain_cc
   integer(ik4) :: total_precip_points
 
   real(rk8) , dimension(10) :: cld_profile
@@ -51,6 +74,41 @@ module mod_cu_common
     integer(ik4) , dimension(:) , allocatable:: iseed
     integer :: k , nseed
     real(rk4) :: cputime
+    integer(ik4) :: ib , it , jr , jl
+
+    rdtcum = d_one / dtcum
+
+    ib = ma%ibb1
+    it = ma%ibt1
+    jl = ma%jbl1
+    jr = ma%jbr1
+
+    call getmem3d(cu_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:tten')
+    call getmem3d(avg_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_tten')
+    call getmem3d(cu_uten,jci1,jci2,ici1,ici2,1,kz,'cumulus:uten')
+    call getmem3d(cu_vten,jci1,jci2,ici1,ici2,1,kz,'cumulus:vten')
+    call getmem3d(avg_uten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_uten')
+    call getmem3d(avg_vten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_vten')
+    call getmem3d(cu_utenx,jci1-jl,jci2+jr,ici1-ib,ici2+it,1,kz,'cumulus:utenx')
+    call getmem3d(cu_vtenx,jci1-jl,jci2+jr,ici1-ib,ici2+it,1,kz,'cumulus:vtenx')
+    call getmem4d(cu_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:qten')
+    call getmem4d(avg_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:avg_qten')
+    call getmem3d(cu_cldfrc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldfrc')
+    call getmem3d(cu_cldlwc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldlwc')
+    call getmem2d(cu_prate,jci1,jci2,ici1,ici2,'cumulus:prate')
+    call getmem2d(cu_ktop,jci1,jci2,ici1,ici2,'cumulus:ktop')
+    call getmem2d(cu_kbot,jci1,jci2,ici1,ici2,'cumulus:kbot')
+    if ( ichem == 1 ) then
+      call getmem4d(cu_chiten,jci1,jci2,ici1,ici2,1,kz,1,ntr,'cumulus:chiten')
+      call getmem4d(avg_chiten,jci1,jci2, &
+                               ici1,ici2,1,kz,1,ntr,'cumulus:avgchiten')
+      call getmem3d(cu_convpr,jci1,jci2,ici1,ici2,1,kz,'cumulus:convpr')
+    end if
+    if ( any(icup == 5) ) then
+      call getmem3d(cu_qdetr,jdi1,jdi2,idi1,idi2,1,kz,'cumulus:qdetr')
+      call getmem3d(cu_raincc,jdi1,jdi2,idi1,idi2,1,kz,'cumulus:raincc')
+    end if
+
     if ( icumcloud == 2 ) then
       !
       ! Free hand draw of a generic ten layer cumulus cloud shape.
@@ -78,10 +136,9 @@ module mod_cu_common
     end if
   end subroutine init_mod_cumulus
 
-  subroutine model_cumulus_cloud(m2c,c2m)
+  subroutine model_cumulus_cloud(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    type(cum_2_mod) , intent(inout) :: c2m
     real(rk8) :: akclth , scalep , scalef
     integer(ik4):: i , j , k , ktop , kbot , kclth , ikh
     scalef = (d_one-clfrcv)
@@ -92,13 +149,13 @@ module mod_cu_common
         do j = jci1 , jci2
           if ( cuscheme(j,i) /= 1 .and. cuscheme(j,i) /= 3 ) cycle jloop1
           ! The regcm model is top to bottom
-          ktop = c2m%kcumtop(j,i)
-          kbot = c2m%kcumbot(j,i)
+          ktop = cu_ktop(j,i)
+          kbot = cu_kbot(j,i)
           kclth = kbot - ktop + 1
           if ( kclth < 2 ) cycle jloop1
           akclth = d_one/dble(kclth)
           do k = ktop , kbot
-            c2m%cldfrc(j,i,k) = d_one - scalef**akclth
+            cu_cldfrc(j,i,k) = d_one - scalef**akclth
           end do
         end do jloop1
       end do iloop1
@@ -113,15 +170,15 @@ module mod_cu_common
         jloop3: &
         do j = jci1 , jci2
           if ( cuscheme(j,i) /= 1 .and. cuscheme(j,i) /= 3 ) cycle jloop3
-          ktop = c2m%kcumtop(j,i)
-          kbot = c2m%kcumbot(j,i)
+          ktop = cu_ktop(j,i)
+          kbot = cu_kbot(j,i)
           kclth = kbot - ktop + 1
           if ( kclth < 2 ) cycle jloop3
           scalep = min((m2c%pas(j,i,kbot)-m2c%pas(j,i,ktop)) / &
                   maxcloud_dp,d_one)
           do k = ktop , kbot
             ikh = max(1,min(10,int((dble(k-ktop+1)/dble(kclth))*d_10)))
-            c2m%cldfrc(j,i,k) = cld_profile(ikh)*clfrcv*scalep
+            cu_cldfrc(j,i,k) = cld_profile(ikh)*clfrcv*scalep
           end do
         end do jloop3
       end do iloop3
@@ -129,14 +186,14 @@ module mod_cu_common
     if ( icumcloud == 0 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ktop = c2m%kcumtop(j,i)
-          kbot = c2m%kcumbot(j,i)
+          ktop = cu_ktop(j,i)
+          kbot = cu_kbot(j,i)
           if ( ktop > 1 .and. kbot > 1 ) then
             do k = ktop , kbot
               if ( cuscheme(j,i) == 4 ) then
-                c2m%cldlwc(j,i,k) = 0.5D-4
+                cu_cldlwc(j,i,k) = 0.5D-4
               else
-                c2m%cldlwc(j,i,k) = 0.3D-3
+                cu_cldlwc(j,i,k) = 0.3D-3
               end if
             end do
           end if
@@ -146,10 +203,10 @@ module mod_cu_common
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( c2m%cldfrc(j,i,k) > 0.001D0 ) then
-              c2m%cldlwc(j,i,k) = clwfromt(m2c%tas(j,i,k))
+            if ( cu_cldfrc(j,i,k) > 0.001D0 ) then
+              cu_cldlwc(j,i,k) = clwfromt(m2c%tas(j,i,k))
             else
-              c2m%cldlwc(j,i,k) = d_zero
+              cu_cldlwc(j,i,k) = d_zero
             end if
           end do
         end do

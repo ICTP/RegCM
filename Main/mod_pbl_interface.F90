@@ -134,7 +134,7 @@ module mod_pbl_interface
       case (2)
         call uwtcm(m2p,p2m)
         call uvcross2dot(uwten%u,uwten%v,aten%u,aten%v,1,kz)
-        call get_data_from_tcm(p2m,atm1,atm2,.true.)
+        call get_data_from_tcm(p2m,atm1,atm2)
       case default
         return
     end select

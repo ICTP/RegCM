@@ -152,12 +152,11 @@ module mod_pbl_uwtcm
     call getmem2d(tcmstate%srftke,jci1,jci2,ici1,ici2,'pbl_common:srftke')
   end subroutine allocate_tcm_state
 
-  subroutine get_data_from_tcm(p2m,atm1,atm2,bRegridWinds)
+  subroutine get_data_from_tcm(p2m,atm1,atm2)
     implicit none
     type(pbl_2_mod) , intent(inout) :: p2m
     type(atmstate_a) , intent(inout) :: atm1
     type(atmstate_b) , intent(inout) :: atm2
-    logical , intent(in) :: bRegridWinds
     integer :: i , j , k , n
     ! Don't update the model variables if we are the diagnostic mode
     ! (Holtslag running, and UW updating tke)
@@ -213,21 +212,6 @@ module mod_pbl_uwtcm
               p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) + &
                  chiuwten(j,i,k,n)
             end do
-          end do
-        end do
-      end do
-    end if
-
-    if ( .not. bRegridWinds ) then
-      !
-      ! If the TCM calculations were done on the dot grid, then
-      ! the u and v tendencies need not to be regridded to the dot grid
-      !
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            p2m%uten(j,i,k) = p2m%uten(j,i,k) + p2m%uuwten(j,i,k)
-            p2m%vten(j,i,k) = p2m%vten(j,i,k) + p2m%vuwten(j,i,k)
           end do
         end do
       end do

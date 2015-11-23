@@ -132,6 +132,7 @@ module mod_atm_interface
 
   ! Cumulus
   real(rk8) , public , pointer , dimension(:,:,:) :: q_detr
+  real(rk8) , public , pointer , dimension(:,:,:) :: rain_cc
 
   integer(ik4) , public , parameter :: zero_exchange_point = 0
   integer(ik4) , public , parameter :: one_exchange_point = 1
@@ -690,52 +691,41 @@ module mod_atm_interface
       end if
     end subroutine allocate_atmstate_decoupled
 
-    subroutine allocate_atmstate_tendency(atm,exchange_points)
+    subroutine allocate_atmstate_tendency(atm)
       implicit none
-      integer(ik4) , intent(in) :: exchange_points
       type(atmstate_tendency) , intent(out) :: atm
       integer(ik4) :: ib , it , jr , jl
-      if ( exchange_points == zero_exchange_point ) then
-        ib = 0
-        it = 0
-        jl = 0
-        jr = 0
-      else if ( exchange_points == one_exchange_point ) then
-        ib = ma%ibb1
-        it = ma%ibt1
-        jl = ma%jbl1
-        jr = ma%jbr1
-      else if ( exchange_points == two_exchange_point ) then
-        ib = ma%ibb2
-        it = ma%ibt2
-        jl = ma%jbl2
-        jr = ma%jbr2
-      else if ( exchange_points == four_exchange_point ) then
-        ib = ma%ibb4
-        it = ma%ibt4
-        jl = ma%jbl4
-        jr = ma%jbr4
-      else
-        ib = -1
-        it = -1
-        jl = -1
-        jr = -1
-        call fatal(__FILE__,__LINE__,'Uncoded number of exchange points')
-      end if
+      ib = ma%ibb1
+      it = ma%ibt1
+      jl = ma%jbl1
+      jr = ma%jbr1
       call getmem3d(atm%u,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:u')
       call getmem3d(atm%v,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:v')
-      call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
-      call getmem4d(atm%qx,jce1-jl,jce2+jr, &
-                           ice1-ib,ice2+it,1,kz,1,nqx,'atmstate:qx')
+      call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'atmstate:t')
+      call getmem4d(atm%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atmstate:qx')
       if ( ibltyp == 2 ) then
-        call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
-                      1,kzp1,'atmstate:tke')
+        call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
-        call getmem3d(atm%pp,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:pp')
-        call getmem3d(atm%w,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kzp1,'atmstate:w')
+        call getmem3d(atm%pp,jce1,jce2,ice1,ice2,1,kz,'atmstate:pp')
+        call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
       end if
     end subroutine allocate_atmstate_tendency
+
+    subroutine allocate_uwstate_tendency(uws)
+      implicit none
+      type(atmstate_tendency) , intent(out) :: uws
+      integer(ik4) :: ib , it , jr , jl
+      ib = ma%ibb1
+      it = ma%ibt1
+      jl = ma%jbl1
+      jr = ma%jbr1
+      call getmem3d(uws%u,jci1-jl,jci2+jr,ici1-ib,ici2+it,1,kz,'uws:u')
+      call getmem3d(uws%v,jci1-jl,jci2+jr,ici1-ib,ici2+it,1,kz,'uws:v')
+      call getmem3d(uws%t,jci1,jci2,ici1,ici2,1,kz,'uws:t')
+      call getmem4d(uws%qx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'uws:qx')
+      call getmem3d(uws%tke,jci1,jci2,ici1,ici2,1,kzp1,'uws:tke')
+    end subroutine allocate_uwstate_tendency
 
     subroutine allocate_reference_atmosphere(atm)
       implicit none
@@ -948,9 +938,9 @@ module mod_atm_interface
         call allocate_atmstate_decoupled(atmx,one_exchange_point)
       end if
       call allocate_atmstate_c(atmc,one_exchange_point)
-      call allocate_atmstate_tendency(aten,zero_exchange_point)
+      call allocate_atmstate_tendency(aten)
       if ( ibltyp == 2 ) then
-        call allocate_atmstate_tendency(uwten,one_exchange_point)
+        call allocate_uwstate_tendency(uwten)
       end if
 
       call allocate_surfstate(sfs)
@@ -1051,6 +1041,9 @@ module mod_atm_interface
       call getmem2d(zpbl,jci1,jci2,ici1,ici2,'storage:zpbl')
       call getmem2d(kpbl,jci1,jci2,ici1,ici2,'storage:kpbl')
       call getmem3d(q_detr,jci1,jci2,ici1,ici2,1,kz,'storage:q_detr')
+      if ( any(icup == 5) ) then
+        call getmem3d(rain_cc,jci1,jci2,ici1,ici2,1,kz,'storage:rain_cc')
+      end if
 
       if ( idynamic == 2 ) then
         call allocate_reference_atmosphere(atm0)

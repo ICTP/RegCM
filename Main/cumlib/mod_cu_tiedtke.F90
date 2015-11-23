@@ -28,7 +28,7 @@ module mod_cu_tiedtke
   use mod_cu_common
   use mod_cu_tables
   use mod_service
-  use mod_runparams , only : iqc , iqv , iqi , dt , dtsec , entrmax , &
+  use mod_runparams , only : iqc , dtcum , iqv , iqi , entrmax , &
     entrdd , entrmid , cprcon , entrpen , entrscv , iconv , ichem , ipptls
   use mod_cu_tiedtke_38r2 , only : sucumf , cumastrn
   use mod_regcm_types
@@ -153,11 +153,10 @@ module mod_cu_tiedtke
 !
 ! This subroutines calls cucall
 !
-  subroutine tiedtkedrv(m2c,c2m)
+  subroutine tiedtkedrv(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    type(cum_2_mod) , intent(inout) :: c2m
-    integer(ik4) :: i , j , k , ii , iplmlc
+    integer(ik4) :: i , j , k , n , ii , iplmlc
     real(rk8) :: pxf
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
@@ -169,17 +168,19 @@ module mod_cu_tiedtke
 
     ilab(:,:) = 2
     cevapcu(:) = cevapu
-    c2m%q_detr(:,:,:) = d_zero
+    cu_qdetr(:,:,:) = d_zero
 
     if ( ichem == 1 ) then
-      c2m%convpr(:,:,:) = d_zero
-      do k = 1 , kz
-        do ii = 1 , nipoi
-          i = imap(ii)
-          j = jmap(ii)
-          ! tracers input profile : implicit loop on tracer
-          pxtm1(ii,k,:) = m2c%chias(j,i,k,:)
-          pxtte(ii,k,:) = c2m%chiten(j,i,k,:)/m2c%psb(j,i)
+      cu_convpr(:,:,:) = d_zero
+      do n = 1 , ntr
+        do k = 1 , kz
+          do ii = 1 , nipoi
+            i = imap(ii)
+            j = jmap(ii)
+            ! tracers input profile : implicit loop on tracer
+            pxtm1(ii,k,n) = m2c%chias(j,i,k,n)
+            pxtte(ii,k,n) = avg_chiten(j,i,k,n)
+          end do
         end do
       end do
     else
@@ -214,14 +215,14 @@ module mod_cu_tiedtke
         pverv(ii,k) = m2c%wpas(j,i,k)
         pqm1(ii,k)  = m2c%qxas(j,i,k,iqv) ! humidity
         pxlm1(ii,k) = m2c%qxas(j,i,k,iqc) ! cloud liquid water
-        ptte(ii,k)  = c2m%tten(j,i,k)*pxf
-        pvom(ii,k)  = c2m%uten(j,i,k)*pxf
-        pvol(ii,k)  = c2m%vten(j,i,k)*pxf
-        pqte(ii,k)  = c2m%qxten(j,i,k,iqv)*pxf
-        pxlte(ii,k) = c2m%qxten(j,i,k,iqc)*pxf
+        ptte(ii,k)  = avg_tten(j,i,k)
+        pvom(ii,k)  = avg_uten(j,i,k)
+        pvol(ii,k)  = avg_vten(j,i,k)
+        pqte(ii,k)  = avg_qten(j,i,k,iqv)
+        pxlte(ii,k) = avg_qten(j,i,k,iqc)
         if (ipptls == 2) then
           pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
-          pxite(ii,k) = c2m%qxten(j,i,k,iqi)*pxf ! ice tend
+          pxite(ii,k) = avg_qten(j,i,k,iqi)
         else
           pxim1(ii,k) = d_zero
           pxite(ii,k) = d_zero
@@ -293,10 +294,8 @@ module mod_cu_tiedtke
           i = imap(ii)
           j = jmap(ii)
           total_precip_points = total_precip_points + 1
-          ! total precip cumulative
-          c2m%rainc(j,i) = c2m%rainc(j,i) + paprc(ii) + paprs(ii)
           ! rainfall for surface
-          c2m%pcratec(j,i)= c2m%pcratec(j,i) + prsfc(ii) + pssfc(ii)
+          cu_prate(j,i)= cu_prate(j,i) + prsfc(ii) + pssfc(ii)
         end if
       end if
     end do
@@ -308,13 +307,13 @@ module mod_cu_tiedtke
         if (ktype(ii) > 0) then
           i = imap(ii)
           j = jmap(ii)
-          c2m%tten(j,i,k) = ptte(ii,k) * m2c%psb(j,i)
-          c2m%uten(j,i,k) = pvom(ii,k) * m2c%psb(j,i)
-          c2m%vten(j,i,k) = pvol(ii,k) * m2c%psb(j,i)
-          c2m%qxten(j,i,k,iqv) = pqte(ii,k)  * m2c%psb(j,i)
-          c2m%qxten(j,i,k,iqc) = pxlte(ii,k) * m2c%psb(j,i)
-          c2m%q_detr(j,i,k) = max(zlude(ii,k),dlowval)
-          rain_cc(j,i,k) = pmflxr(ii,k)
+          cu_tten(j,i,k) = ptte(ii,k)
+          cu_uten(j,i,k) = pvom(ii,k)
+          cu_vten(j,i,k) = pvol(ii,k)
+          cu_qten(j,i,k,iqv) = pqte(ii,k)
+          cu_qten(j,i,k,iqc) = pxlte(ii,k)
+          cu_qdetr(j,i,k) = max(zlude(ii,k),dlowval)
+          cu_raincc(j,i,k) = pmflxr(ii,k)
         end if
       end do
     end do
@@ -325,7 +324,7 @@ module mod_cu_tiedtke
           if (ktype(ii) > 0) then
             i = imap(ii)
             j = jmap(ii)
-            c2m%qxten(j,i,k,iqi) = pxite(ii,k) * m2c%psb(j,i)
+            cu_qten(j,i,k,iqi) = pxite(ii,k)
           end if
         end do
       end do
@@ -335,8 +334,7 @@ module mod_cu_tiedtke
           if (ktype(ii) > 0) then
             i = imap(ii)
             j = jmap(ii)
-            c2m%qxten(j,i,k,iqc) = c2m%qxten(j,i,k,iqc) + &
-              pxite(ii,k) * m2c%psb(j,i)
+            cu_qten(j,i,k,iqc) = cu_qten(j,i,k,iqc) + pxite(ii,k)
           end if
         end do
       end do
@@ -348,38 +346,37 @@ module mod_cu_tiedtke
           if (ktype(ii) > 0) then
             i = imap(ii)
             j = jmap(ii)
-            c2m%chiten(j,i,k,:) = pxtte(ii,k,:) * m2c%psb(j,i)
+            cu_chiten(j,i,k,:) = pxtte(ii,k,:)
             ! build for chemistry 3d table of constant precipitation rate
             ! from the surface to the top of the convection
             if ( k > kctop(ii) ) then
-              c2m%convpr(j,i,k) = (prsfc(ii)+pssfc(ii))
+              cu_convpr(j,i,k) = (prsfc(ii)+pssfc(ii))
             end if
           end if
         end do
       end do
     end if
 
-    c2m%kcumtop(:,:) = 0
-    c2m%kcumbot(:,:) = 0
+    cu_ktop(:,:) = 0
+    cu_kbot(:,:) = 0
     do ii = 1 , nipoi
       if (ktype(ii) > 0) then
         i = imap(ii)
         j = jmap(ii)
-        c2m%kcumtop(j,i) = kctop(ii)
-        c2m%kcumbot(j,i) = kcbot(ii)
+        cu_ktop(j,i) = kctop(ii)
+        cu_kbot(j,i) = kcbot(ii)
         do k = kctop(ii) , kcbot(ii)
           if ( ktype(ii) == 1 ) then
-            c2m%cldfrc(j,i,k) = 0.140D0*log(d_one+(500.0D0*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = 0.140D0*log(d_one+(500.0D0*pmfu(ii,k)))
           else if ( ktype(ii) == 2 ) then
-            c2m%cldfrc(j,i,k) = 0.105D0*log(d_one+(500.0D0*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = 0.105D0*log(d_one+(500.0D0*pmfu(ii,k)))
           else
-            c2m%cldfrc(j,i,k) = 0.070D0*log(d_one+(500.0D0*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = 0.070D0*log(d_one+(500.0D0*pmfu(ii,k)))
           end if
-          c2m%cldfrc(j,i,k) = min(max(0.0D0,c2m%cldfrc(j,i,k)),clfrcv)
+          cu_cldfrc(j,i,k) = min(max(0.0D0,cu_cldfrc(j,i,k)),clfrcv)
         end do
       end if
     end do
-
 
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -466,14 +463,14 @@ module mod_cu_tiedtke
 !
   do jk = 1 , klev
     do jl = 1 , kproma
-      ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
-      zqp1(jl,jk) = max(d_zero,pqm1(jl,jk)+pqte(jl,jk)*dt)
-      zxlp1 = pxlm1(jl,jk) + pxlte(jl,jk)*dt
-      zxip1 = pxim1(jl,jk) + pxite(jl,jk)*dt
+      ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtcum
+      zqp1(jl,jk) = max(d_zero,pqm1(jl,jk)+pqte(jl,jk)*dtcum)
+      zxlp1 = pxlm1(jl,jk) + pxlte(jl,jk)*dtcum
+      zxip1 = pxim1(jl,jk) + pxite(jl,jk)*dtcum
       zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
       ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
-      zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
-      zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
+      zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtcum
+      zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtcum
       if ( iconv /= 4 ) then
         it = int(ztp1(jl,jk)*d_1000)
         if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
@@ -490,7 +487,7 @@ module mod_cu_tiedtke
 
     do jt = 1 , ktrac
       do jl = 1 , kproma
-        zxtp1(jl,jk,jt) = pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dt
+        zxtp1(jl,jk,jt) = pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtcum
       end do
     end do
 
@@ -578,14 +575,12 @@ module mod_cu_tiedtke
     end do
     pmflxr = d_zero
     pmflxs = d_zero
-    call cumastrn(1,kproma,kbdim,klev,ldland,dt,ztp1,zqp1,       &
+    call cumastrn(1,kproma,kbdim,klev,ldland,dtcum,ztp1,zqp1,    &
                   zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
                   pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &
                   locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &
                   zlu,pmflxr,pmflxs,zrain,pmfu,zmfd,zlude,       &
                   pmfude_rate,pmfdde_rate,pcape,ktrac,pxtm1,pxtte)
-    paprc(:) = pmflxr(:,klev+1)*1.D3*dtsec
-    paprs(:) = pmflxs(:,klev+1)*1.D3*dtsec
     prsfc = pmflxr(:,klev+1)*1.D3
     pssfc = pmflxs(:,klev+1)*1.D3
   case default
@@ -762,7 +757,7 @@ module mod_cu_tiedtke
 !     1.           SPECIFY CONSTANTS AND PARAMETERS
 !     --------------------------------
 !
-  zcons2 = d_one/(egrav*dt)
+  zcons2 = d_one/(egrav*dtcum)
 
 ! *AMT* NOTE!
 ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1260,7 +1255,7 @@ module mod_cu_tiedtke
 !     1.           SPECIFY CONSTANTS AND PARAMETERS
 !     --------------------------------
 !
-  zcons2 = d_one/(egrav*dt)
+  zcons2 = d_one/(egrav*dtcum)
 
 ! *AMT* NOTE!
 ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1706,7 +1701,7 @@ module mod_cu_tiedtke
 !     --------------------------------
 !
 !
-  zcons2 = d_one/(egrav*dt)
+  zcons2 = d_one/(egrav*dtcum)
 !
 !---------------------------------------------------------------------
 !*    2.           INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -2263,7 +2258,7 @@ module mod_cu_tiedtke
 !*    1.           SPECIFY PARAMETERS
 !     ------------------
 !
-  zcons2 = d_one/(egrav*dt)
+  zcons2 = d_one/(egrav*dtcum)
   ztglace = tzero - 13.0D0
   zqold(1:kproma) = d_zero
 
@@ -2767,7 +2762,7 @@ module mod_cu_tiedtke
 !*    1.           SPECIFY PARAMETERS
 !     ------------------
 !
-  zcons2 = d_one/(egrav*dt)
+  zcons2 = d_one/(egrav*dtcum)
   ztglace = tzero - 13.0D0
 
 ! AMT NOTE!!! in the original scheme, this level which restricts rainfall
@@ -3800,8 +3795,6 @@ module mod_cu_tiedtke
   do jl = 1 , kproma
     prsfc(jl) = prfl(jl)
     pssfc(jl) = psfl(jl)
-    paprc(jl) = paprc(jl) + dtsec*(prfl(jl)+psfl(jl))
-    paprs(jl) = paprs(jl) + dtsec*psfl(jl)
   end do
 #ifdef DEBUG
   call time_end(subroutine_name,idindx)
@@ -4195,8 +4188,8 @@ module mod_cu_tiedtke
 !
 !*    SPECIFY CONSTANTS
 !
-  zcons1 = cpd/(wlhf*egrav*dt)
-  zcons2 = d_one/(egrav*dt)
+  zcons1 = cpd/(wlhf*egrav*dtcum)
+  zcons2 = d_one/(egrav*dtcum)
   zcucov = 0.050D0
   ztmelp2 = tzero + 2.0D0
 !

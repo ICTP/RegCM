@@ -5312,7 +5312,7 @@ end module mod_cu_tiedtke_38r2
 ! P. Bechtold              ECMWF/Reading
 !                          last update 10/2006
 ! --------------------------------------------------------------------
-! #### This program reads the GATE dam2c%taset (161 soundings) and
+! #### This program reads the GATE dataset (161 soundings) and
 ! #### calls the convection routine.
 !
 ! #### All thermodynamic and dynamic variables are supposed to be

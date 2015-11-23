@@ -366,7 +366,7 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
-    FCFLAGS="-O0 -g -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
+    FCFLAGS="-O0 -g -pg -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
             -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
             -Wampersand -Warray-bounds -Wcharacter-truncation -Wuninitialized \
             -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
@@ -405,7 +405,7 @@ else
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
-    FCFLAGS="-O3 -mtune=native $FCFLAGS"
+    FCFLAGS="-O3 -mtune=native -march=native $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then

@@ -27,9 +27,15 @@ module mod_cu_interface
   use mod_runparams
   use mod_memutil
   use mod_regcm_types
+  use mod_mppparam , only : exchange , uvcross2dot
 
   use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
-      model_cumulus_cloud , init_mod_cumulus , rain_cc
+      model_cumulus_cloud , init_mod_cumulus
+  use mod_cu_common , only : avg_tten , avg_uten , avg_vten , avg_qten , &
+      avg_chiten
+  use mod_cu_common , only : cu_utenx , cu_vtenx , cu_tten , cu_qten , &
+      cu_prate , cu_uten , cu_vten , cu_ktop , cu_kbot , cu_cldfrc ,   &
+      cu_cldlwc , cu_qdetr , cu_raincc , cu_convpr , cu_chiten
   use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv
   use mod_cu_tables , only : init_convect_tables
   use mod_cu_bm , only : allocate_mod_cu_bm , bmpara , lutbl , cldefi ,    &
@@ -50,9 +56,8 @@ module mod_cu_interface
 
   public :: allocate_cumulus
   public :: init_cumulus
-  public :: cumulus
+  public :: cumulus , cumulus_kuo_htdiff
 
-  public :: htdiff
   public :: lutbl
 
   public :: cuscheme
@@ -62,7 +67,6 @@ module mod_cu_interface
   public :: rswat
   public :: tbase
   public :: kfwavg
-  public :: rain_cc
   public :: twght
   public :: vqflx
   public :: shrmax2d
@@ -88,13 +92,14 @@ module mod_cu_interface
   type(mod_2_cum) :: m2c
   type(cum_2_mod) :: c2m
 
+  real(rk8) :: w1 , w2
+
   contains
 
   subroutine allocate_cumulus
     use mod_atm_interface
     implicit none
     integer(ik4) :: i , j
-    call getmem3d(rain_cc,jci1,jci2,ici1,ici2,1,kz+1,'cumulus:rain_cc')
     call getmem2d(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -136,6 +141,7 @@ module mod_cu_interface
     call assignpnt(mddom%ht,m2c%ht)
     call assignpnt(mddom%ldmsk,m2c%ldmsk)
     call assignpnt(sfs%psb,m2c%psb)
+    call assignpnt(sfs%psdotb,m2c%psdotb)
     call assignpnt(atms%za,m2c%zas)
     call assignpnt(atms%zq,m2c%zfs)
     call assignpnt(atms%dzq,m2c%dzq)
@@ -168,51 +174,240 @@ module mod_cu_interface
     call assignpnt(icumbot,c2m%kcumbot)
     call assignpnt(convpr,c2m%convpr)
     call assignpnt(q_detr,c2m%q_detr)
+    call assignpnt(rain_cc,c2m%rain_cc)
     call init_mod_cumulus
   end subroutine init_cumulus
 
   subroutine cumulus
     implicit none
-    total_precip_points = 0
-    if ( icup_lnd == icup_ocn ) then
-      select case ( icup_lnd )
-        case (1)
-          call cupara(m2c,c2m)
-        case (2)
-          call cuparan(m2c,c2m)
-        case (3)
-          call bmpara(m2c,c2m)
-        case (4)
-          call cupemandrv(m2c,c2m)
-        case (5)
-          call tiedtkedrv(m2c,c2m)
-        case (6)
-          call kfdrv(m2c,c2m)
-      end select
-    else
-      select case ( icup_lnd )
-        case (2)
-          call cuparan(m2c,c2m)
-        case (4)
-          call cupemandrv(m2c,c2m)
-        case (5)
-          call tiedtkedrv(m2c,c2m)
-        case (6)
-          call kfdrv(m2c,c2m)
-      end select
-      select case ( icup_ocn )
-        case (2)
-          call cuparan(m2c,c2m)
-        case (4)
-          call cupemandrv(m2c,c2m)
-        case (5)
-          call tiedtkedrv(m2c,c2m)
-        case (6)
-          call kfdrv(m2c,c2m)
-      end select
+    integer(ik4) :: i , j , k , n
+
+    w1 = dt/dtcum
+    w2 = d_one - w1
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          avg_tten(j,i,k) = w2*avg_tten(j,i,k) + &
+                            w1*c2m%tten(j,i,k)/m2c%psb(j,i)
+        end do
+      end do
+    end do
+
+    call exchange(c2m%uten,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(c2m%vten,1,jde1,jde2,ide1,ide2,1,kz)
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          avg_uten(j,i,k) = w2*avg_uten(j,i,k) +            &
+                            w1*d_rfour*(c2m%uten(j,i,k) +   &
+                                        c2m%uten(j+1,i,k) + &
+                                        c2m%uten(j,i+1,k) + &
+                                        c2m%uten(j+1,i+1,k)) / m2c%psb(j,i)
+          avg_vten(j,i,k) = w2*avg_vten(j,i,k) +            &
+                            w1*d_rfour*(c2m%vten(j,i,k) +   &
+                                        c2m%vten(j+1,i,k) + &
+                                        c2m%vten(j,i+1,k) + &
+                                        c2m%vten(j+1,i+1,k)) / m2c%psb(j,i)
+        end do
+      end do
+    end do
+    do n = 1 , nqx
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            avg_qten(j,i,k,n) = w2*avg_qten(j,i,k,n) + &
+                                w1*c2m%qxten(j,i,k,n)/m2c%psb(j,i)
+          end do
+        end do
+      end do
+    end do
+    do n = 1 , ntr
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            avg_chiten(j,i,k,n) = w2*avg_chiten(j,i,k,n) + &
+                                  w1*c2m%chiten(j,i,k,n)/m2c%psb(j,i)
+          end do
+        end do
+      end do
+    end do
+
+    ! Update cumulus tendencies
+
+    if ( ktau > 0 .and. mod(ktau+1,ntcum) == 0 ) then
+
+      cu_prate(:,:) = d_zero
+      cu_ktop(:,:) = 0
+      cu_kbot(:,:) = 0
+      cu_tten(:,:,:) = d_zero
+      cu_uten(:,:,:) = d_zero
+      cu_vten(:,:,:) = d_zero
+      cu_qten(:,:,:,:) = d_zero
+      if ( ichem == 1 ) then
+        cu_chiten(:,:,:,:) = d_zero
+        cu_convpr(:,:,:) = d_zero
+      end if
+      cu_cldfrc(:,:,:) = d_zero
+      cu_cldlwc(:,:,:) = d_zero
+
+      if ( any(icup == 5) ) then
+        cu_qdetr(:,:,:) = d_zero
+        cu_raincc(:,:,:) = d_zero
+      end if
+
+      total_precip_points = 0
+      if ( icup_lnd == icup_ocn ) then
+        select case ( icup_lnd )
+          case (1)
+            call cupara(m2c)
+          case (2)
+            call cuparan(m2c)
+          case (3)
+            call bmpara(m2c)
+          case (4)
+            call cupemandrv(m2c)
+          case (5)
+            call tiedtkedrv(m2c)
+          case (6)
+            call kfdrv(m2c)
+        end select
+      else
+        select case ( icup_lnd )
+          case (2)
+            call cuparan(m2c)
+          case (4)
+            call cupemandrv(m2c)
+          case (5)
+            call tiedtkedrv(m2c)
+          case (6)
+            call kfdrv(m2c)
+        end select
+        select case ( icup_ocn )
+          case (2)
+            call cuparan(m2c)
+          case (4)
+            call cupemandrv(m2c)
+          case (5)
+            call tiedtkedrv(m2c)
+          case (6)
+            call kfdrv(m2c)
+        end select
+      end if
+
+      call model_cumulus_cloud(m2c)
+
     end if
-    call model_cumulus_cloud(m2c,c2m)
+
+    ! Sum cumulus tendencies
+
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        c2m%pcratec(j,i) = c2m%pcratec(j,i) + cu_prate(j,i)
+        c2m%rainc(j,i) = c2m%rainc(j,i) + cu_prate(j,i) * dtsec / dtcum
+        c2m%kcumtop(j,i) = cu_ktop(j,i)
+        c2m%kcumbot(j,i) = cu_kbot(j,i)
+      end do
+    end do
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          c2m%tten(j,i,k) = c2m%tten(j,i,k) + &
+                     cu_tten(j,i,k) * m2c%psb(j,i) * w1
+        end do
+      end do
+    end do
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          cu_utenx(j,i,k) = cu_uten(j,i,k) * m2c%psb(j,i) * w1
+          cu_vtenx(j,i,k) = cu_vten(j,i,k) * m2c%psb(j,i) * w1
+        end do
+      end do
+    end do
+
+    call uvcross2dot(cu_utenx,cu_vtenx,c2m%uten,c2m%vten,1,kz)
+
+    do n = 1 , nqx
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + &
+                     cu_qten(j,i,k,n) * m2c%psb(j,i) * w1
+          end do
+        end do
+      end do
+    end do
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          c2m%cldfrc(j,i,k) = max(cu_cldfrc(j,i,k),1D-10)
+          c2m%cldlwc(j,i,k) = cu_cldlwc(j,i,k)
+        end do
+      end do
+    end do
+
+    if ( ichem == 1 ) then
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              c2m%chiten(j,i,k,n) = c2m%chiten(j,i,k,n) + &
+                  cu_chiten(j,i,k,n) * m2c%psb(j,i) * w1
+            end do
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            c2m%convpr(j,i,k) = cu_convpr(j,i,k)
+          end do
+        end do
+      end do
+    end if
+
+    if ( any(icup == 5) ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            c2m%q_detr(j,i,k) = cu_qdetr(j,i,k) * w1
+            c2m%rain_cc(j,i,k) = cu_raincc(j,i,k)
+          end do
+        end do
+      end do
+    end if
   end subroutine cumulus
+
+  subroutine cumulus_kuo_htdiff
+    implicit none
+    integer(ik4) :: i , j , k , n
+    if ( ktau > 0 .and. mod(ktau+1,ntcum) == 0 ) then
+      call htdiff(dxsq,akht1)
+    end if
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          c2m%tten(j,i,k) = c2m%tten(j,i,k) + &
+                     cu_tten(j,i,k) * m2c%psb(j,i) * w1
+        end do
+      end do
+    end do
+    do n = 1 , nqx
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + &
+                     cu_qten(j,i,k,n) * m2c%psb(j,i) * w1
+          end do
+        end do
+      end do
+    end do
+  end subroutine cumulus_kuo_htdiff
 
 end module mod_cu_interface
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

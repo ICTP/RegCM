@@ -82,7 +82,12 @@ module mod_mkdynpft
         case ('85', '15')
           p2 = 'SCENARIO'//pthsep//'RCP8.5'
         case default
-          call die(__FILE__,'Dynamic landuse only supported for CMIP5',__LINE__)
+          if ( dattyp /= "EIN15" .and. &
+               dattyp(1:4) /= "NNRP" .and. &
+               dattyp /= "JRA55" ) then
+            call die(__FILE__, &
+              'Dynamic landuse only supported for CMIP5',__LINE__)
+          end if
       end select
     end if
 

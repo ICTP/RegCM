@@ -582,8 +582,8 @@ module mod_precip
                               (radcldf(j,i,k) + pfcc(j,i,k))
             radcldf(j,i,k) = max(radcldf(j,i,k),pfcc(j,i,k))
           else
-            radlqwc(j,i,k) = d_zero
             radcldf(j,i,k) = lowcld
+            radlqwc(j,i,k) = d_zero
           end if
           radcldf(j,i,k) = min(min(radcldf(j,i,k),hicld),cftotmax)
         end do
@@ -685,9 +685,11 @@ module mod_precip
           !-----------------------------------------------------------
           !     3.  Compute the tendencies.
           !-----------------------------------------------------------
-          qxten(j,i,k,iqv) = qxten(j,i,k,iqv) - psc(j,i)*tmp2
-          qxten(j,i,k,iqc) = qxten(j,i,k,iqc) + psc(j,i)*tmp2
-          tten(j,i,k) = tten(j,i,k) + psc(j,i)*tmp2*wlhvocp
+          if ( abs(tmp2) > dlowval ) then
+            qxten(j,i,k,iqv) = qxten(j,i,k,iqv) - psc(j,i)*tmp2
+            qxten(j,i,k,iqc) = qxten(j,i,k,iqc) + psc(j,i)*tmp2
+            tten(j,i,k) = tten(j,i,k) + psc(j,i)*tmp2*wlhvocp
+          end if
         end do
       end do
     end do

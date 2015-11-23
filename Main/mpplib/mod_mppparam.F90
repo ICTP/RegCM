@@ -344,7 +344,7 @@ module mod_mppparam
   end interface myunpack_global
 
   type(model_area) , public :: ma
-!
+
   real(rk8) , pointer , dimension(:) :: r8vector1
   real(rk8) , pointer , dimension(:) :: r8vector2
   real(rk4) , pointer , dimension(:) :: r4vector1
@@ -5414,8 +5414,8 @@ module mod_mppparam
     ! invar%u(i,k,0) holds invar%u(i,k,jxp) of the parallel
     ! chunk next door)
 
-    call exchange_lb(ux,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange_lb(vx,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange_lb(ux,1,jci1,jci2,ici1,ici2,1,kz)
+    call exchange_lb(vx,1,jci1,jci2,ici1,ici2,1,kz)
 
     !
     !     x     x     x     x     x     x
@@ -5438,8 +5438,8 @@ module mod_mppparam
     ! to put the u and v variables on the dot grid.
 
     do k = k1 , k2
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
+      do i = idii1 , idii2
+        do j = jdii1 , jdii2
           ud(j,i,k) =  ud(j,i,k) +               &
             d_rfour*(ux(j,i,k) + ux(j-1,i,k) +   &
                      ux(j,i-1,k) + ux(j-1,i-1,k))

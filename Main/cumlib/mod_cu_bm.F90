@@ -25,7 +25,7 @@ module mod_cu_bm
   use mod_memutil
   use mod_service
   use mod_cu_common
-  use mod_runparams , only : iqv , dt , dtsec , ichem , hsigma , dsigma
+  use mod_runparams , only : iqv , dtcum , ichem , hsigma , dsigma
   use mod_regcm_types
 
 !*****************************************************************
@@ -147,10 +147,9 @@ module mod_cu_bm
     call getmem1d(jshal,1,intall,'cu_bm:jshal')
   end subroutine allocate_mod_cu_bm
 
-  subroutine bmpara(m2c,c2m)
+  subroutine bmpara(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    type(cum_2_mod) , intent(inout) :: c2m
     real(rk8) , parameter :: h1 = 1.0D0
     real(rk8) , parameter :: h3000 = 3000.0D0
     real(rk8) , parameter :: h10e5 = 100000.0D0
@@ -240,15 +239,15 @@ module mod_cu_bm
     lshu = 0
     pratec = d_zero
     !
-    ! c2m%kcumtop = top level of cumulus clouds
-    ! c2m%kcumbot = bottom level of cumulus clouds
+    ! cumtop = top level of cumulus clouds
+    ! cumbot = bottom level of cumulus clouds
     !
-    c2m%kcumtop(:,:) = 0
-    c2m%kcumbot(:,:) = 0
-    if ( ichem == 1 ) c2m%convpr(:,:,:) = d_zero
+    cu_ktop(:,:) = 0
+    cu_kbot(:,:) = 0
+    if ( ichem == 1 ) cu_convpr(:,:,:) = d_zero
     iconss = 0
-    tauk = dt/trel
-    cthrs = (0.006350D0/secpd)*dt/cprlg
+    tauk = dtcum/trel
+    cthrs = (6.350D0/secpd)*dtcum/cprlg
 
     !
     ! xsm is surface mask: =1 water; =0 land
@@ -294,10 +293,9 @@ module mod_cu_bm
     do i = ici1 , ici2
       do j = jci1 , jci2
         do k = 1 , kz
-          t(j,i,k) = m2c%tas(j,i,k) + (c2m%tten(j,i,k))/m2c%psb(j,i)*dt
+          t(j,i,k) = m2c%tas(j,i,k) + avg_tten(j,i,k)*dtcum
           if ( t(j,i,k) > tzero .and. ml(j,i) == kzp1 ) ml(j,i) = k
-          q(j,i,k) = m2c%qxas(j,i,k,iqv) + &
-                  (c2m%qxten(j,i,k,iqv))/m2c%psb(j,i)*dt
+          q(j,i,k) = m2c%qxas(j,i,k,iqv) + avg_qten(j,i,k,iqv)*dtcum
           pppk = m2c%pas(j,i,k)
           ape(j,i,k) = (pppk/h10e5)**dm2859
         end do
@@ -327,8 +325,8 @@ module mod_cu_bm
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( q(j,i,k) < epsq ) q(j,i,k) = epsq
-          pdiff = (d_one-hsigma(k))*m2c%psb(j,i)
-          if ( pdiff < 30.0D0 .and. ip300(j,i) == 0 ) ip300(j,i) = k
+          pdiff = m2c%pas(j,i,k) - m2c%psf(j,i)
+          if ( pdiff < 30000.0D0 .and. ip300(j,i) == 0 ) ip300(j,i) = k
         end do
       end do
     end do
@@ -684,7 +682,7 @@ module mod_cu_bm
       total_precip_points = total_precip_points + 1
       ! keep the land value of efi equal to 1 until precip surpasses
       ! a threshold value, currently set to 0.25 inches per 24 hrs
-      pthrs = cthrs/m2c%psb(j,i)
+      pthrs = cthrs/m2c%psf(j,i)
       drheat = (preck*xsm(j,i)+dmax1(epsp,preck-pthrs)*(h1-xsm(j,i)))*cpd/avrgt
       efi = efifc*dentpy/drheat
       !
@@ -707,15 +705,14 @@ module mod_cu_bm
       !
       ! update precipitation, temperature & moisture
       !
-      pratec = d_half*((m2c%psb(j,i)*d_1000*preck*cprlg)*d_100)/dt
+      pratec = d_half*((m2c%psf(j,i)*preck*cprlg)*d_100)/dtcum
       if ( pratec > dlowval ) then
-        c2m%rainc(j,i) = c2m%rainc(j,i) + pratec * dtsec
         ! precipitation rate for surface (mm/s)
-        c2m%pcratec(j,i) = c2m%pcratec(j,i) + pratec
+        cu_prate(j,i) = cu_prate(j,i) + pratec
       end if
       do l = ltpk , lb
-        tmod(j,i,l) = dift(l)*fefi/dt
-        qqmod(j,i,l) = difq(l)*fefi/dt
+        tmod(j,i,l) = dift(l)*fefi/dtcum
+        qqmod(j,i,l) = difq(l)*fefi/dtcum
       end do
     end do
     !
@@ -1015,11 +1012,11 @@ module mod_cu_bm
           end if
           ! find cloud fractional cover and liquid water content
           kbaseb = min0(lbtk,kzm2)
-          c2m%kcumtop(j,i) = ltpk
-          c2m%kcumbot(j,i) = kbaseb
+          cu_ktop(j,i) = ltpk
+          cu_kbot(j,i) = kbaseb
           if ( ichem == 1 ) then
             do k = ltpk , kz
-              c2m%convpr(j,i,k) = pratec
+              cu_convpr(j,i,k) = pratec
             end do
           end if
         end if
@@ -1028,9 +1025,8 @@ module mod_cu_bm
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          c2m%tten(j,i,k)  = c2m%tten(j,i,k)  + tmod(j,i,k) *m2c%psb(j,i)
-          c2m%qxten(j,i,k,iqv) = c2m%qxten(j,i,k,iqv) + &
-                  qqmod(j,i,k)*m2c%psb(j,i)
+          cu_tten(j,i,k)  = tmod(j,i,k)
+          cu_qten(j,i,k,iqv) = qqmod(j,i,k)
         end do
       end do
     end do

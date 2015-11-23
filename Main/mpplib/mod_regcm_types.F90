@@ -505,6 +505,7 @@ module mod_regcm_types
   type mod_2_cum
     real(rk8) , pointer , dimension(:,:) :: ht        ! mddom%ht
     real(rk8) , pointer , dimension(:,:) :: psb       ! sfs%psb
+    real(rk8) , pointer , dimension(:,:) :: psdotb    ! sfs%psdotb
     real(rk8) , pointer , dimension(:,:) :: psf       ! atms%ps2d
     real(rk8) , pointer , dimension(:,:,:) :: pas     ! atms%pb3d
     real(rk8) , pointer , dimension(:,:,:) :: pasf    ! atms%pf3d
@@ -538,6 +539,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: cldfrc
     real(rk8) , pointer , dimension(:,:,:) :: cldlwc
     real(rk8) , pointer , dimension(:,:,:) :: q_detr
+    real(rk8) , pointer , dimension(:,:,:) :: rain_cc
     integer(ik4) , pointer , dimension(:,:) :: kcumtop
     integer(ik4) , pointer , dimension(:,:) :: kcumbot
   end type cum_2_mod

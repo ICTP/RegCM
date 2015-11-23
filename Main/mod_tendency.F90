@@ -858,21 +858,19 @@ module mod_tendency
     !
     ! Call cumulus parametrization
     !
-    if ( ktau > 0 .and. mod(ktau+1,ntcum) == 0 ) then
-      call cumulus
-      if ( any(icup == 5) ) then
-        if ( ipptls /= 2 .and. iconv /= 4 ) then
-          ! Put back detrained water
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                aten%qx(j,i,k,iqc) = aten%qx(j,i,k,iqc) + &
-                  q_detr(j,i,k)*sfs%psb(j,i)*egrav / &
-                  ((atms%pf3d(j,i,k+1)-atms%pf3d(j,i,k))) ! [kg/kg]
-              end do
+    call cumulus
+    if ( any(icup == 5) ) then
+      if ( ipptls /= 2 .and. iconv /= 4 ) then
+        ! Put back detrained water
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%qx(j,i,k,iqc) = aten%qx(j,i,k,iqc) + &
+                q_detr(j,i,k)*sfs%psb(j,i)*egrav / &
+                ((atms%pf3d(j,i,k+1)-atms%pf3d(j,i,k))) ! [kg/kg]
             end do
           end do
-        end if
+        end do
       end if
     end if
 
@@ -1002,7 +1000,7 @@ module mod_tendency
     end if
 
     if ( any(icup == 1) ) then
-      call htdiff(dxsq,akht1)
+      call cumulus_kuo_htdiff
     end if
     !
     ! Call medium resolution PBL
@@ -1662,10 +1660,15 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            atm1%qx(j,i,k,n) = atmc%qx(j,i,k,n)
-            atm2%qx(j,i,k,n) = omuhf*atm1%qx(j,i,k,n) + &
-              gnuhf*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
-            atm2%qx(j,i,k,n) = max(atm2%qx(j,i,k,n),d_zero)
+            if ( atmc%qx(j,i,k,n) > minqx ) then
+              atm1%qx(j,i,k,n) = atmc%qx(j,i,k,n)
+              atm2%qx(j,i,k,n) = omuhf*atm1%qx(j,i,k,n) + &
+                gnuhf*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
+              atm2%qx(j,i,k,n) = max(atm2%qx(j,i,k,n),minqx)
+            else
+              atm1%qx(j,i,k,n) = d_zero
+              atm2%qx(j,i,k,n) = max(gnuhf*atm2%qx(j,i,k,n),minqx)
+            end if
           end do
         end do
       end do
@@ -1988,7 +1991,8 @@ module mod_tendency
       integer(ik4) :: i , j , k , kk , ierr
       real(rk8) :: check_ww , mean_ww
       ierr = 0
-      wten = sqrt(aten%u**2+aten%v**2)
+      wten = sqrt(aten%u(jde1:jde2,ide1:ide2,:)**2 + &
+                  aten%v(jde1:jde2,ide1:ide2,:)**2)
       mean_ww = (maxval(wten)+minval(wten))/d_two
       do k = 1 , kz
         do i = ici1, ici2

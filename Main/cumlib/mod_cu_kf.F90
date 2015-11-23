@@ -26,7 +26,7 @@ module mod_cu_kf
   use mod_regcm_types
   use mod_mpmessage
   use mod_cu_common
-  use mod_runparams , only : dx , dxsq , ipptls , dt , dtsec
+  use mod_runparams , only : dx , dxsq , ipptls , dtcum
   use mod_runparams , only : iqv , iqr , iqi , iqs , iqc , kf_entrate
   use mod_runparams , only : kf_trigger , ichem , clfrcv
   use mod_service
@@ -153,10 +153,9 @@ module mod_cu_kf
     call getmem3d(kfwavg,jci1,jci2,ici1,ici2,1,kz,'mod_cu_kf:kfwavg')
   end subroutine allocate_mod_cu_kf
 
-  subroutine kfdrv(m2c,c2m)
+  subroutine kfdrv(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    type(cum_2_mod) , intent(inout) :: c2m
     integer :: i , j ,  k , kk , np
     real(rk8) :: w0
 #ifdef DEBUG
@@ -214,12 +213,10 @@ module mod_cu_kf
       do np = 1 , nipoi
         i = imap(np)
         j = jmap(np)
-        c2m%tten(j,i,kk) = c2m%tten(j,i,kk) + dtdt(np,k)*m2c%psb(j,i)
-        c2m%qxten(j,i,kk,iqv) = c2m%qxten(j,i,kk,iqv) + &
-                dqdt(np,k)*m2c%psb(j,i)
-        c2m%qxten(j,i,kk,iqc) = c2m%qxten(j,i,kk,iqc) + &
-                dqcdt(np,k)*m2c%psb(j,i)
-        c2m%cldfrc(j,i,k) = cldfra_sh_kf(np,k) + cldfra_dp_kf(np,k)
+        cu_tten(j,i,kk) = dtdt(np,k)
+        cu_qten(j,i,kk,iqv) = dqdt(np,k)
+        cu_qten(j,i,kk,iqc) = dqcdt(np,k)
+        cu_cldfrc(j,i,k) = max(cldfra_sh_kf(np,k),cldfra_dp_kf(np,k))
       end do
     end do
 
@@ -229,12 +226,9 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          c2m%qxten(j,i,kk,iqr) = c2m%qxten(j,i,kk,iqr) + &
-                  dqrdt(np,k)*m2c%psb(j,i)
-          c2m%qxten(j,i,kk,iqi) = c2m%qxten(j,i,kk,iqi) + &
-                  dqidt(np,k)*m2c%psb(j,i)
-          c2m%qxten(j,i,kk,iqs) = c2m%qxten(j,i,kk,iqs) + &
-                  dqsdt(np,k)*m2c%psb(j,i)
+          cu_qten(j,i,kk,iqr) = dqrdt(np,k)
+          cu_qten(j,i,kk,iqi) = dqidt(np,k)
+          cu_qten(j,i,kk,iqs) = dqsdt(np,k)
           kfwavg(j,i,kk) = w0avg(np,k)
         end do
       end do
@@ -243,28 +237,27 @@ module mod_cu_kf
     ! Build for chemistry 3d table of constant precipitation rate
     ! from the surface to the top of the convection
     if ( ichem == 1 ) then
-      c2m%convpr(:,:,:) = d_zero
+      cu_convpr(:,:,:) = d_zero
       do k = 1 , kz
         kk = kz - k + 1
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          c2m%convpr(j,i,kk) = pptliq(np,k) + pptice(np,k)
+          cu_convpr(j,i,kk) = pptliq(np,k) + pptice(np,k)
         end do
       end do
     end if
 
-    c2m%kcumtop(:,:) = 0
-    c2m%kcumbot(:,:) = 0
+    cu_ktop(:,:) = 0
+    cu_kbot(:,:) = 0
 
     do np = 1 , nipoi
       i = imap(np)
       j = jmap(np)
       if ( pratec(np) > dlowval ) then
-        c2m%kcumtop(j,i) = kz-ktop(np)+1
-        c2m%kcumbot(j,i) = kz-kbot(np)+1
-        c2m%rainc(j,i) = c2m%rainc(j,i) + raincv(np)
-        c2m%pcratec(j,i)= c2m%pcratec(j,i) + pratec(np)
+        cu_ktop(j,i) = kz-ktop(np)+1
+        cu_kbot(j,i) = kz-kbot(np)+1
+        cu_prate(j,i)= cu_prate(j,i) + pratec(np)
         total_precip_points = total_precip_points + 1
       end if
     end do
@@ -316,8 +309,8 @@ module mod_cu_kf
             fabe , stab , dtt , dtt1 , dtime , tma , tmb , tmm , bcoeff , &
             acoeff , qvdiff , topomg , cpm , dq , abeg , dabe , dfda ,    &
             frc2 , dr , udfrc , tuc , qgs , rh0 , rhg , qinit , qfnl ,    &
-            err2 , relerr , rnc , fabeold , aincold , uefrc , ddfrc ,     &
-            tdc , defrc , rhbar , dmffrc , dilbe
+            err2 , relerr , fabeold , aincold , uefrc , ddfrc , tdc ,     &
+            defrc , rhbar , dmffrc , dilbe
     real(rk8) :: tp , avalue , aintrp , tkemax , qfrz , qss , &
             pptmlt , dtmelt , rhh , evac , binc
     integer(ik4) :: indlu , nu , nuchm , nnn , klfs
@@ -1145,8 +1138,8 @@ module mod_cu_kf
       timec = min(3600.0D0,timec)
       ! shallow convection TIMEC = 40 minutes
       if ( ishall == 1 ) timec = 2400.0D0
-      nic = nint(timec/dt)
-      timec = dble(nic)*dt
+      nic = nint(timec/dtcum)
+      timec = dble(nic)*dtcum
       !
       ! Compute wind shear and precipitation efficiency.
       !
@@ -1918,8 +1911,6 @@ module mod_cu_kf
       end if
       cndtnf = (d_one-eqfrc(lfs))*(qliq(lfs)+qice(lfs))*dmf(lfs)
       pratec(np) = pptflx*(d_one-fbfrc)/dxsq
-      raincv(np) = dtsec*pratec(np)     !  ppt fb mods
-      rnc = raincv(np)*nic
       !
       ! Evaluate moisture budget
       !
@@ -1963,7 +1954,7 @@ module mod_cu_kf
       ! If the advective time period (tadvec) is less than specified minimum
       ! timec, allow feedback to occur only during tadvec.
       !
-      if ( tadvec < timec ) nic = nint(tadvec/dt)
+      if ( tadvec < timec ) nic = nint(tadvec/dtcum)
       if ( ishall == 1 ) then
         timec = 2400.0D0
         nshall = nshall + 1
@@ -2024,8 +2015,6 @@ module mod_cu_kf
         dqdt(np,k) = (qg(k)-q0(k))/timec
       end do
       pratec(np) = pptflx*(d_one-fbfrc)/dxsq
-      raincv(np) = dtsec*pratec(np)
-      rnc = raincv(np)*nic
       ktop(np) = ltop
       kbot(np) = lcl
     end do modelpoints
@@ -2381,7 +2370,7 @@ module mod_cu_kf
     implicit none
     integer(ik4) :: kp , it , itcnt , i
     real(rk8) :: dpr , temp , p , es , qs , pi , thes , tgues , &
-            thgues , f0 , t1 , t0 , f1 , dt , a1 , thtgs
+            thgues , f0 , t1 , t0 , f1 , dtx , a1 , thtgs
 
     ! minimum starting temp
     real(rk8) , parameter :: tmin = 150.0D0
@@ -2449,10 +2438,10 @@ module mod_cu_kf
           if ( abs(f1) < toler ) then
             exit iter1
           end if
-          dt = f1 * (t1-t0)/(f1-f0)
+          dtx = f1 * (t1-t0)/(f1-f0)
           t0 = t1
           f0 = f1
-          t1 = t1 - dt
+          t1 = t1 - dtx
         end do iter1
         ttab(it,kp) = t1
         qstab(it,kp) = qs
