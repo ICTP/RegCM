@@ -184,8 +184,8 @@ module mod_precip
           !      (i.e. total cloud water/dt) [kg/kg/s]
           pptmax = qcw/dt                                    ![kg/kg/s][avg]
           if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
-            pccn(j,i,1) = (calc_ccn(rhobchl,chi3(j,i,1,1)) + &
-                           calc_ccn(rhoochl,chi3(j,i,1,3)) + &
+            pccn(j,i,1) = (calc_ccn(rhobchl,chi3(j,i,1,ibchl)) + &
+                           calc_ccn(rhoochl,chi3(j,i,1,iochl)) + &
                            calc_ccn(rhos,chi3(j,i,1,6))    + &
                            calc_ccn(rhosslt,chi3(j,i,1,11))) * abulk
             qcth = pccn(j,i,1)*(4.0D0/3.0D0)*mathpi * &
@@ -300,8 +300,8 @@ module mod_precip
             !       (i.e. total cloud water/dt) [kg/kg/s]
             pptmax = qcw/dt                                  ![kg/kg/s][cld]
             if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
-              pccn(j,i,k) = (calc_ccn(rhobchl,chi3(j,i,k,1)) + &
-                             calc_ccn(rhoochl,chi3(j,i,k,3)) + &
+              pccn(j,i,k) = (calc_ccn(rhobchl,chi3(j,i,k,ibchl)) + &
+                             calc_ccn(rhoochl,chi3(j,i,k,iochl)) + &
                              calc_ccn(rhos,chi3(j,i,k,6))    + &
                              calc_ccn(rhosslt,chi3(j,i,k,11))) * abulk
               qcth = pccn(j,i,k)*(4.0D0/3.0D0)*mathpi * &
