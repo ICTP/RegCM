@@ -5473,15 +5473,19 @@ module mod_mppparam
       end if
       if ( ma%has_bdytopleft ) then
         ud(jdi1,idi2,k) = ud(jdi1,idi2,k) + ux(jci1,ici2,k)
+        vd(jdi1,idi2,k) = vd(jdi1,idi2,k) + vx(jci1,ici2,k)
       end if
       if ( ma%has_bdybottomleft ) then
         ud(jdi1,idi1,k) = ud(jdi1,idi1,k) + ux(jci1,ici1,k)
+        vd(jdi1,idi1,k) = vd(jdi1,idi1,k) + vx(jci1,ici1,k)
       end if
       if ( ma%has_bdytopright ) then
         ud(jdi2,idi2,k) = ud(jdi2,idi2,k) + ux(jci2,ici2,k)
+        vd(jdi2,idi2,k) = vd(jdi2,idi2,k) + vx(jci2,ici2,k)
       end if
       if ( ma%has_bdybottomright ) then
         ud(jdi2,idi1,k) = ud(jdi2,idi1,k) + ux(jci2,ici1,k)
+        vd(jdi2,idi1,k) = vd(jdi2,idi1,k) + vx(jci2,ici1,k)
       end if
     end do
   end subroutine uvcross2dot
