@@ -5,7 +5,7 @@ module mod_cu_tiedtke_38r2
   use mod_constants
   use mod_dynparam
   use mod_mpmessage
-  use mod_runparams , only : dtcum , rcrit1 , rprc_ocn , rprc_lnd
+  use mod_runparams , only : dt , rcrit1 , rprc_ocn , rprc_lnd
   use mod_runparams , only : detrpen , entrpen , entshalp , entrdd
   use mod_runparams , only : rhebc_ocn , rhebc_lnd , rcuc_lnd , rcuc_ocn
   use mod_runparams , only : rcpec_ocn , rcpec_lnd

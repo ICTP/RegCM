@@ -29,7 +29,7 @@ module mod_cu_kuo
   use mod_mppparam
   use mod_cu_common
   use mod_service
-  use mod_runparams , only : iqv , dtcum , ichem , dsigma , hsigma , qcon
+  use mod_runparams , only : iqv , dt , ichem , dsigma , hsigma , qcon
   use mod_regcm_types
 
   implicit none
@@ -234,11 +234,11 @@ module mod_cu_kuo
               end do
               do k = 1 , kz
                 ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
-                rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dtcum
+                rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dt
                 apcnt = (d_one-c301)*sca/4.3D-3
                 eddyf = apcnt*vqflx(k,kbase,ktop)
                 cu_qten(j,i,k,iqv) = eddyf/(m2c%psf(j,i)*d_r100)
-                rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dtcum
+                rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dt
               end do
               kbaseb = min0(kbase,kzm2)
               cu_ktop(j,i) = ktop
@@ -292,8 +292,8 @@ module mod_cu_kuo
           rswt = rswat(j,i,k)/tauht
           cu_tten(j,i,k) = rsht
           cu_qten(j,i,k,iqv) = cu_qten(j,i,kz,iqv) + rswt
-          rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dtcum/tauht)
-          rswat(j,i,k) = rswat(j,i,k)*(d_one-dtcum/tauht)
+          rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dt/tauht)
+          rswat(j,i,k) = rswat(j,i,k)*(d_one-dt/tauht)
         end do
       end do
     end do
@@ -346,7 +346,7 @@ module mod_cu_kuo
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rsheat(j,i,k) = rsheat(j,i,k)+akht1*dtcum/dxsq * &
+          rsheat(j,i,k) = rsheat(j,i,k)+akht1*dt/dxsq * &
                    (wrkkuo1(j,i-1,k)+wrkkuo1(j,i+1,k) + &
                     wrkkuo1(j-1,i,k)+wrkkuo1(j+1,i,k)-d_four*wrkkuo1(j,i,k))
         end do
@@ -355,7 +355,7 @@ module mod_cu_kuo
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rswat(j,i,k) = rswat(j,i,k)+akht1*dtcum/dxsq * &
+          rswat(j,i,k) = rswat(j,i,k)+akht1*dt/dxsq * &
                 (wrkkuo2(j,i-1,k)+wrkkuo2(j,i+1,k) + &
                  wrkkuo2(j-1,i,k)+wrkkuo2(j+1,i,k)-d_four*wrkkuo2(j,i,k))
         end do

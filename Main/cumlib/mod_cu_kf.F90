@@ -26,7 +26,7 @@ module mod_cu_kf
   use mod_regcm_types
   use mod_mpmessage
   use mod_cu_common
-  use mod_runparams , only : dx , dxsq , ipptls , dtcum
+  use mod_runparams , only : dx , dxsq , ipptls , dt
   use mod_runparams , only : iqv , iqr , iqi , iqs , iqc , kf_entrate
   use mod_runparams , only : kf_trigger , ichem , clfrcv
   use mod_service
@@ -1138,8 +1138,8 @@ module mod_cu_kf
       timec = min(3600.0D0,timec)
       ! shallow convection TIMEC = 40 minutes
       if ( ishall == 1 ) timec = 2400.0D0
-      nic = nint(timec/dtcum)
-      timec = dble(nic)*dtcum
+      nic = nint(timec/dt)
+      timec = dble(nic)*dt
       !
       ! Compute wind shear and precipitation efficiency.
       !
@@ -1954,7 +1954,7 @@ module mod_cu_kf
       ! If the advective time period (tadvec) is less than specified minimum
       ! timec, allow feedback to occur only during tadvec.
       !
-      if ( tadvec < timec ) nic = nint(tadvec/dtcum)
+      if ( tadvec < timec ) nic = nint(tadvec/dt)
       if ( ishall == 1 ) then
         timec = 2400.0D0
         nshall = nshall + 1

@@ -23,7 +23,7 @@ module mod_cu_common
   use mod_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_runparams , only : clfrcv , icumcloud , icup , ichem , dtcum , nqx
+  use mod_runparams , only : clfrcv , icumcloud , icup , ichem , dt , nqx
   use mod_mppparam , only : ma
   use mod_humid , only : clwfromt
   use mod_memutil
@@ -55,7 +55,7 @@ module mod_cu_common
   integer(ik4) , pointer , dimension(:,:) :: cu_kbot
 
   real(rk8) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
-  real(rk8) :: rdtcum
+  real(rk8) :: rdt
 
   integer(ik4) , pointer , dimension(:,:) :: cuscheme ! which scheme to use
   integer(ik4) :: total_precip_points
@@ -76,7 +76,7 @@ module mod_cu_common
     real(rk4) :: cputime
     integer(ik4) :: ib , it , jr , jl
 
-    rdtcum = d_one / dtcum
+    rdt = d_one / dt
 
     ib = ma%ibb1
     it = ma%ibt1

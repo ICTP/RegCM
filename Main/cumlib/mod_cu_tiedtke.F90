@@ -28,7 +28,7 @@ module mod_cu_tiedtke
   use mod_cu_common
   use mod_cu_tables
   use mod_service
-  use mod_runparams , only : iqc , dtcum , iqv , iqi , entrmax , &
+  use mod_runparams , only : iqc , dt , iqv , iqi , entrmax , &
          entrdd , entrmid , cprcon , entrpen , entrscv , iconv , &
          ichem , iaerosol , ipptls
   use mod_cu_tiedtke_38r2 , only : sucumf , cumastrn
@@ -472,14 +472,14 @@ module mod_cu_tiedtke
 !
   do jk = 1 , klev
     do jl = 1 , kproma
-      ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtcum
-      zqp1(jl,jk) = max(d_zero,pqm1(jl,jk)+pqte(jl,jk)*dtcum)
-      zxlp1 = pxlm1(jl,jk) + pxlte(jl,jk)*dtcum
-      zxip1 = pxim1(jl,jk) + pxite(jl,jk)*dtcum
+      ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
+      zqp1(jl,jk) = max(d_zero,pqm1(jl,jk)+pqte(jl,jk)*dt)
+      zxlp1 = pxlm1(jl,jk) + pxlte(jl,jk)*dt
+      zxip1 = pxim1(jl,jk) + pxite(jl,jk)*dt
       zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
       ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
-      zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtcum
-      zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtcum
+      zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
+      zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
       if ( iconv /= 4 ) then
         it = int(ztp1(jl,jk)*d_1000)
         if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
@@ -496,7 +496,7 @@ module mod_cu_tiedtke
 
     do jt = 1 , ktrac
       do jl = 1 , kproma
-        zxtp1(jl,jk,jt) = pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtcum
+        zxtp1(jl,jk,jt) = pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dt
       end do
     end do
 
@@ -584,7 +584,7 @@ module mod_cu_tiedtke
     end do
     pmflxr = d_zero
     pmflxs = d_zero
-    call cumastrn(1,kproma,kbdim,klev,ldland,dtcum,ztp1,zqp1,    &
+    call cumastrn(1,kproma,kbdim,klev,ldland,dt,ztp1,zqp1,    &
                   zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
                   pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &
                   locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &
@@ -767,7 +767,7 @@ module mod_cu_tiedtke
 !     1.           SPECIFY CONSTANTS AND PARAMETERS
 !     --------------------------------
 !
-  zcons2 = d_one/(egrav*dtcum)
+  zcons2 = d_one/(egrav*dt)
 
 ! *AMT* NOTE!
 ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1265,7 +1265,7 @@ module mod_cu_tiedtke
 !     1.           SPECIFY CONSTANTS AND PARAMETERS
 !     --------------------------------
 !
-  zcons2 = d_one/(egrav*dtcum)
+  zcons2 = d_one/(egrav*dt)
 
 ! *AMT* NOTE!
 ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1711,7 +1711,7 @@ module mod_cu_tiedtke
 !     --------------------------------
 !
 !
-  zcons2 = d_one/(egrav*dtcum)
+  zcons2 = d_one/(egrav*dt)
 !
 !---------------------------------------------------------------------
 !*    2.           INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -2268,7 +2268,7 @@ module mod_cu_tiedtke
 !*    1.           SPECIFY PARAMETERS
 !     ------------------
 !
-  zcons2 = d_one/(egrav*dtcum)
+  zcons2 = d_one/(egrav*dt)
   ztglace = tzero - 13.0D0
   zqold(1:kproma) = d_zero
 
@@ -2772,7 +2772,7 @@ module mod_cu_tiedtke
 !*    1.           SPECIFY PARAMETERS
 !     ------------------
 !
-  zcons2 = d_one/(egrav*dtcum)
+  zcons2 = d_one/(egrav*dt)
   ztglace = tzero - 13.0D0
 
 ! AMT NOTE!!! in the original scheme, this level which restricts rainfall
@@ -4198,8 +4198,8 @@ module mod_cu_tiedtke
 !
 !*    SPECIFY CONSTANTS
 !
-  zcons1 = cpd/(wlhf*egrav*dtcum)
-  zcons2 = d_one/(egrav*dtcum)
+  zcons1 = cpd/(wlhf*egrav*dt)
+  zcons2 = d_one/(egrav*dt)
   zcucov = 0.050D0
   ztmelp2 = tzero + 2.0D0
 !

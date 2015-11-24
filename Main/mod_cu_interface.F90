@@ -92,8 +92,6 @@ module mod_cu_interface
   type(mod_2_cum) :: m2c
   type(cum_2_mod) :: c2m
 
-  real(rk8) :: w1 , w2
-
   contains
 
   subroutine allocate_cumulus
@@ -181,9 +179,9 @@ module mod_cu_interface
   subroutine cumulus
     implicit none
     integer(ik4) :: i , j , k , n
-
-    w1 = dt/dtcum
-    w2 = d_one - w1
+    !real(rk8) :: w1 , w2
+    !w1 = dt/dtcum
+    !w2 = d_one - w1
 
     !do k = 1 , kz
     !  do i = ici1 , ici2
@@ -349,7 +347,7 @@ module mod_cu_interface
     do i = ici1 , ici2
       do j = jci1 , jci2
         c2m%pcratec(j,i) = c2m%pcratec(j,i) + cu_prate(j,i)
-        c2m%rainc(j,i) = c2m%rainc(j,i) + cu_prate(j,i) * dtsec / dtcum
+        c2m%rainc(j,i) = c2m%rainc(j,i) + cu_prate(j,i) * dtsec
         c2m%kcumtop(j,i) = cu_ktop(j,i)
         c2m%kcumbot(j,i) = cu_kbot(j,i)
       end do
@@ -358,8 +356,7 @@ module mod_cu_interface
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          c2m%tten(j,i,k) = c2m%tten(j,i,k) + &
-                     cu_tten(j,i,k) * m2c%psb(j,i) * w1
+          c2m%tten(j,i,k) = c2m%tten(j,i,k) + cu_tten(j,i,k) * m2c%psb(j,i)
         end do
       end do
     end do
@@ -367,8 +364,8 @@ module mod_cu_interface
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          cu_utenx(j,i,k) = cu_uten(j,i,k) * m2c%psb(j,i) * w1
-          cu_vtenx(j,i,k) = cu_vten(j,i,k) * m2c%psb(j,i) * w1
+          cu_utenx(j,i,k) = cu_uten(j,i,k) * m2c%psb(j,i)
+          cu_vtenx(j,i,k) = cu_vten(j,i,k) * m2c%psb(j,i)
         end do
       end do
     end do
@@ -380,7 +377,7 @@ module mod_cu_interface
         do i = ici1 , ici2
           do j = jci1 , jci2
             c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + &
-                     cu_qten(j,i,k,n) * m2c%psb(j,i) * w1
+                     cu_qten(j,i,k,n) * m2c%psb(j,i)
           end do
         end do
       end do
@@ -401,7 +398,7 @@ module mod_cu_interface
           do i = ici1 , ici2
             do j = jci1 , jci2
               c2m%chiten(j,i,k,n) = c2m%chiten(j,i,k,n) + &
-                  cu_chiten(j,i,k,n) * m2c%psb(j,i) * w1
+                  cu_chiten(j,i,k,n) * m2c%psb(j,i)
             end do
           end do
         end do
@@ -419,7 +416,7 @@ module mod_cu_interface
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            c2m%q_detr(j,i,k) = cu_qdetr(j,i,k) * w1
+            c2m%q_detr(j,i,k) = cu_qdetr(j,i,k)
             c2m%rain_cc(j,i,k) = cu_raincc(j,i,k)
           end do
         end do
@@ -436,8 +433,7 @@ module mod_cu_interface
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          c2m%tten(j,i,k) = c2m%tten(j,i,k) + &
-                     cu_tten(j,i,k) * m2c%psb(j,i) * w1
+          c2m%tten(j,i,k) = c2m%tten(j,i,k) + cu_tten(j,i,k) * m2c%psb(j,i)
         end do
       end do
     end do
@@ -446,7 +442,7 @@ module mod_cu_interface
         do i = ici1 , ici2
           do j = jci1 , jci2
             c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + &
-                     cu_qten(j,i,k,n) * m2c%psb(j,i) * w1
+                     cu_qten(j,i,k,n) * m2c%psb(j,i)
           end do
         end do
       end do

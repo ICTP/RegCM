@@ -25,7 +25,7 @@ module mod_cu_bm
   use mod_memutil
   use mod_service
   use mod_cu_common
-  use mod_runparams , only : iqv , dtcum , ichem , hsigma , dsigma
+  use mod_runparams , only : iqv , dt , ichem , hsigma , dsigma
   use mod_regcm_types
 
 !*****************************************************************
@@ -246,8 +246,8 @@ module mod_cu_bm
     cu_kbot(:,:) = 0
     if ( ichem == 1 ) cu_convpr(:,:,:) = d_zero
     iconss = 0
-    tauk = dtcum/trel
-    cthrs = (6.350D0/secpd)*dtcum/cprlg
+    tauk = dt/trel
+    cthrs = (6.350D0/secpd)*dt/cprlg
 
     !
     ! xsm is surface mask: =1 water; =0 land
@@ -293,9 +293,9 @@ module mod_cu_bm
     do i = ici1 , ici2
       do j = jci1 , jci2
         do k = 1 , kz
-          t(j,i,k) = m2c%tas(j,i,k) + avg_tten(j,i,k)*dtcum
+          t(j,i,k) = m2c%tas(j,i,k) + avg_tten(j,i,k)*dt
           if ( t(j,i,k) > tzero .and. ml(j,i) == kzp1 ) ml(j,i) = k
-          q(j,i,k) = m2c%qxas(j,i,k,iqv) + avg_qten(j,i,k,iqv)*dtcum
+          q(j,i,k) = m2c%qxas(j,i,k,iqv) + avg_qten(j,i,k,iqv)*dt
           pppk = m2c%pas(j,i,k)
           ape(j,i,k) = (pppk/h10e5)**dm2859
         end do
@@ -705,14 +705,14 @@ module mod_cu_bm
       !
       ! update precipitation, temperature & moisture
       !
-      pratec = d_half*((m2c%psf(j,i)*preck*cprlg)*d_100)/dtcum
+      pratec = d_half*((m2c%psf(j,i)*preck*cprlg)*d_100)/dt
       if ( pratec > dlowval ) then
         ! precipitation rate for surface (mm/s)
         cu_prate(j,i) = cu_prate(j,i) + pratec
       end if
       do l = ltpk , lb
-        tmod(j,i,l) = dift(l)*fefi/dtcum
-        qqmod(j,i,l) = difq(l)*fefi/dtcum
+        tmod(j,i,l) = dift(l)*fefi/dt
+        qqmod(j,i,l) = difq(l)*fefi/dt
       end do
     end do
     !
