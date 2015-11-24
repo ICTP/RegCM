@@ -329,7 +329,7 @@ module mod_cu_interface
       end do
     end do
 
-    call uvcross2dot(cu_utenx,cu_vtenx,c2m%uten,c2m%vten,1,kz)
+    call uvcross2dot(cu_utenx,cu_vtenx,c2m%uten,c2m%vten)
 
     do n = 1 , nqx
       do k = 1 , kz

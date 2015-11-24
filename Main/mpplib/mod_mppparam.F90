@@ -380,7 +380,7 @@ module mod_mppparam
   public :: exchange_bdy_lr , exchange_bdy_tb
   public :: grid_distribute , grid_collect , grid_fill
   public :: subgrid_distribute , subgrid_collect
-  public :: uvcross2dot , psc2psd
+  public :: uvcross2dot , uvdot2cross , psc2psd
   public :: bcast , sumall , maxall
   public :: gather_r , gather_i
   public :: allgather_r , allgather_i
@@ -5390,54 +5390,45 @@ module mod_mppparam
     end if
   end subroutine real8_2d_grid_fill_extend2
 !
-! Takes u and v on the cross grid (the same grid as t, qv, qc, etc.)
+! Takes u and v tendencies on the cross grid (the same grid as t, qv, qc, etc.)
 ! and interpolates the u and v to the dot grid.
 ! This routine sheilds the user of the function from the need to worry
 ! about the details of the domain decomposition.
 !
 ! Written by Travis A. O'Brien 01/04/11.
 !
-  subroutine uvcross2dot(ux,vx,ud,vd,k1,k2)
+  subroutine uvcross2dot(ux,vx,ud,vd)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
-    integer(ik4) , intent(in) :: k1 , k2
     integer(ik4) :: i , j , k
-
-    ! TODO:  It might make sense to encapsulate the following code
-    ! in to a standard routine, since this boundary sending code is
-    ! ubiquitous throughout the RegCM code and it is domain
-    ! decomposition-dependent.
-
-    ! Send the right-edge of the u/v tendencies to the left
-    ! edge of the next process's u/v tendencies (so that
-    ! invar%u(i,k,0) holds invar%u(i,k,jxp) of the parallel
-    ! chunk next door)
 
     call exchange_lb(ux,1,jci1,jci2,ici1,ici2,1,kz)
     call exchange_lb(vx,1,jci1,jci2,ici1,ici2,1,kz)
 
     !
+    !  o     o     o     o     o     o     o
+    !
     !     x     x     x     x     x     x
     !
-    !        o     o     o     o     o
+    !  o     o     o     o     o     o     o
     !         (i-1,j-1)     (i,j-1)
     !     x     x     x-----x     x     x
     !                 |(i,j)|
-    !        o     o  |  o  |  o     o
+    !  o     o     o  |  o  |  o     o     o
     !                 |     |
     !     x     x     x-----x     x     x
     !           (i-1,j)     (i,j)
-    !
-    !        o     o     o     o     o
+    !  o     o     o     o     o     o     o
     !
     !     x     x     x     x     x     x
     !
+    !  o     o     o     o     o     o     o
 
     ! Perform the bilinear interpolation necessary
     ! to put the u and v variables on the dot grid.
 
-    do k = k1 , k2
+    do k = 1 , kz
       do i = idii1 , idii2
         do j = jdii1 , jdii2
           ud(j,i,k) =  ud(j,i,k) +               &
@@ -5448,9 +5439,95 @@ module mod_mppparam
                      vx(j,i-1,k) + vx(j-1,i-1,k))
         end do
       end do
+      if ( ma%has_bdyleft ) then
+        do i = idii1 , idii2
+          ud(jdi1,i,k) = ud(jdi1,i,k) + &
+            d_half*(ux(jci1,i,k) + ux(jci1,i-1,k))
+          vd(jdi1,i,k) = vd(jdi1,i,k) + &
+            d_half*(vx(jci1,i,k) + vx(jci1,i-1,k))
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do i = idii1 , idii2
+          ud(jdi2,i,k) = ud(jdi2,i,k) + &
+            d_half*(ux(jci2,i,k) + ux(jci2,i-1,k))
+          vd(jdi2,i,k) = vd(jdi2,i,k) + &
+            d_half*(vx(jci2,i,k) + vx(jci2,i-1,k))
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do j = jdii1 , jdii2
+          ud(j,idi2,k) = ud(j,idi2,k) + &
+            d_half*(ux(j,ici2,k) + ux(j-1,ici2,k))
+          vd(j,idi2,k) = vd(j,idi2,k) + &
+            d_half*(vx(j,ici2,k) + vx(j-1,ici2,k))
+        end do
+      end if
+      if ( ma%has_bdybottom ) then
+        do j = jdii1 , jdii2
+          ud(j,idi1,k) = ud(j,idi1,k) + &
+            d_half*(ux(j,ici1,k) + ux(j-1,ici1,k))
+          vd(j,idi1,k) = vd(j,idi1,k) + &
+            d_half*(vx(j,ici1,k) + vx(j-1,ici1,k))
+        end do
+      end if
+      if ( ma%has_bdytopleft ) then
+        ud(jdi1,idi2,k) = ud(jdi1,idi2,k) + ux(jci1,jci2,k)
+      end if
+      if ( ma%has_bdybottomleft ) then
+        ud(jdi1,idi1,k) = ud(jdi1,idi1,k) + ux(jci1,jci1,k)
+      end if
+      if ( ma%has_bdytopright ) then
+        ud(jdi2,idi2,k) = ud(jdi2,idi2,k) + ux(jci2,jci2,k)
+      end if
+      if ( ma%has_bdybottomright ) then
+        ud(jdi2,idi1,k) = ud(jdi2,idi1,k) + ux(jci2,jci1,k)
+      end if
     end do
   end subroutine uvcross2dot
-!
+
+  subroutine uvdot2cross(ud,vd,ux,vx)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
+    integer(ik4) :: i , j , k
+
+    call exchange(ud,1,jdi1,jdi2,idi1,idi2,1,kz)
+    call exchange(vd,1,jdi1,jdi2,idi1,idi2,1,kz)
+
+    !
+    !     o     o     o     o     o     o
+    !
+    !        x     x     x     x     x
+    !           (i+1,j)   (i+1,j+1)
+    !     o     o     o-----o     o     o
+    !                 |(i,j)|
+    !        x     x  |  x  |  x     x
+    !                 |     |
+    !     o     o     o-----o     o     o
+    !             (i,j)     (i,j+1)
+    !        x     x     x     x     x
+    !
+    !     o     o     o     o     o     o
+    !
+
+    ! Perform the bilinear interpolation necessary
+    ! to put the u and v variables on the cross grid.
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ux(j,i,k) =  ux(j,i,k) +                 &
+            d_rfour*(ud(j,i,  k) + ud(j+1,i,  k) + &
+                     ud(j,i+1,k) + ud(j+1,i+1,k))
+          vx(j,i,k) =  vx(j,i,k) +                 &
+            d_rfour*(vd(j,i  ,k) + vd(j+1,i  ,k) + &
+                     vd(j,i+1,k) + vd(j+1,i+1,k))
+        end do
+      end do
+    end do
+  end subroutine uvdot2cross
+
   subroutine psc2psd(pc,pd)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in)  :: pc
