@@ -185,58 +185,102 @@ module mod_cu_interface
     w1 = dt/dtcum
     w2 = d_one - w1
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          avg_tten(j,i,k) = w2*avg_tten(j,i,k) + &
-                            w1*c2m%tten(j,i,k)/m2c%psb(j,i)
-        end do
-      end do
-    end do
+    !do k = 1 , kz
+    !  do i = ici1 , ici2
+    !    do j = jci1 , jci2
+    !      avg_tten(j,i,k) = w2*avg_tten(j,i,k) + &
+    !                        w1*c2m%tten(j,i,k)/m2c%psb(j,i)
+    !    end do
+    !  end do
+    !end do
 
-    call exchange(c2m%uten,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(c2m%vten,1,jde1,jde2,ide1,ide2,1,kz)
+    !call exchange(c2m%uten,1,jde1,jde2,ide1,ide2,1,kz)
+    !call exchange(c2m%vten,1,jde1,jde2,ide1,ide2,1,kz)
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          avg_uten(j,i,k) = w2*avg_uten(j,i,k) +            &
-                            w1*d_rfour*(c2m%uten(j,i,k) +   &
-                                        c2m%uten(j+1,i,k) + &
-                                        c2m%uten(j,i+1,k) + &
-                                        c2m%uten(j+1,i+1,k)) / m2c%psb(j,i)
-          avg_vten(j,i,k) = w2*avg_vten(j,i,k) +            &
-                            w1*d_rfour*(c2m%vten(j,i,k) +   &
-                                        c2m%vten(j+1,i,k) + &
-                                        c2m%vten(j,i+1,k) + &
-                                        c2m%vten(j+1,i+1,k)) / m2c%psb(j,i)
-        end do
-      end do
-    end do
-    do n = 1 , nqx
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            avg_qten(j,i,k,n) = w2*avg_qten(j,i,k,n) + &
-                                w1*c2m%qxten(j,i,k,n)/m2c%psb(j,i)
-          end do
-        end do
-      end do
-    end do
-    do n = 1 , ntr
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            avg_chiten(j,i,k,n) = w2*avg_chiten(j,i,k,n) + &
-                                  w1*c2m%chiten(j,i,k,n)/m2c%psb(j,i)
-          end do
-        end do
-      end do
-    end do
+    !do k = 1 , kz
+    !  do i = ici1 , ici2
+    !    do j = jci1 , jci2
+    !      avg_uten(j,i,k) = w2*avg_uten(j,i,k) +            &
+    !                        w1*d_rfour*(c2m%uten(j,i,k) +   &
+    !                                    c2m%uten(j+1,i,k) + &
+    !                                    c2m%uten(j,i+1,k) + &
+    !                                    c2m%uten(j+1,i+1,k)) / m2c%psb(j,i)
+    !      avg_vten(j,i,k) = w2*avg_vten(j,i,k) +            &
+    !                        w1*d_rfour*(c2m%vten(j,i,k) +   &
+    !                                    c2m%vten(j+1,i,k) + &
+    !                                    c2m%vten(j,i+1,k) + &
+    !                                    c2m%vten(j+1,i+1,k)) / m2c%psb(j,i)
+    !    end do
+    !  end do
+    !end do
+    !do n = 1 , nqx
+    !  do k = 1 , kz
+    !    do i = ici1 , ici2
+    !      do j = jci1 , jci2
+    !        avg_qten(j,i,k,n) = w2*avg_qten(j,i,k,n) + &
+    !                            w1*c2m%qxten(j,i,k,n)/m2c%psb(j,i)
+    !      end do
+    !    end do
+    !  end do
+    !end do
+    !do n = 1 , ntr
+    !  do k = 1 , kz
+    !    do i = ici1 , ici2
+    !      do j = jci1 , jci2
+    !        avg_chiten(j,i,k,n) = w2*avg_chiten(j,i,k,n) + &
+    !                              w1*c2m%chiten(j,i,k,n)/m2c%psb(j,i)
+    !      end do
+    !    end do
+    !  end do
+    !end do
 
     ! Update cumulus tendencies
 
     if ( ktau > 0 .and. mod(ktau+1,ntcum) == 0 ) then
+
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            avg_tten(j,i,k) = c2m%tten(j,i,k)/m2c%psb(j,i)
+          end do
+        end do
+      end do
+
+      call exchange(c2m%uten,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(c2m%vten,1,jde1,jde2,ide1,ide2,1,kz)
+
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            avg_uten(j,i,k) = d_rfour*(c2m%uten(j,i,k) +   &
+                                       c2m%uten(j+1,i,k) + &
+                                       c2m%uten(j,i+1,k) + &
+                                       c2m%uten(j+1,i+1,k)) / m2c%psb(j,i)
+            avg_vten(j,i,k) = d_rfour*(c2m%vten(j,i,k) +   &
+                                       c2m%vten(j+1,i,k) + &
+                                       c2m%vten(j,i+1,k) + &
+                                       c2m%vten(j+1,i+1,k)) / m2c%psb(j,i)
+          end do
+        end do
+      end do
+      do n = 1 , nqx
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              avg_qten(j,i,k,n) = c2m%qxten(j,i,k,n)/m2c%psb(j,i)
+            end do
+          end do
+        end do
+      end do
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              avg_chiten(j,i,k,n) = c2m%chiten(j,i,k,n)/m2c%psb(j,i)
+            end do
+          end do
+        end do
+      end do
 
       cu_prate(:,:) = d_zero
       cu_ktop(:,:) = 0

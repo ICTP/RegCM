@@ -72,7 +72,7 @@ module mod_cu_tiedtke
   ! Rainfall max elevation
   real(rk8) , parameter :: zdlev   = 1.5D4
   ! Midlevel convection top pressure
-  real(rk8) , parameter :: cmcptop = 300.0D0
+  real(rk8) , parameter :: cmcptop = 30000.0D0
   ! Relat. cloud massflux at level above nonbuoyancy
   real(rk8) , parameter :: cmfctop = 0.35D0
 
@@ -157,7 +157,6 @@ module mod_cu_tiedtke
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
     integer(ik4) :: i , j , k , n , ii , iplmlc
-    real(rk8) :: pxf
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
     integer(ik4) , save :: idindx = 0
@@ -205,7 +204,6 @@ module mod_cu_tiedtke
       do ii = 1 , nipoi
         i = imap(ii)
         j = jmap(ii)
-        pxf = d_one/m2c%psb(j,i)
         ! Pascal
         papp1(ii,k) = m2c%pas(j,i,k)
         xpg(ii,k)   = m2c%zas(j,i,k)*egrav ! geopotential
@@ -265,7 +263,7 @@ module mod_cu_tiedtke
       iplmlc = 1
       do k = 1 , kzp1
         iplmlc = k
-        if ( paphp1(ii,k) >= cmcptop*100.0D0 ) exit
+        if ( paphp1(ii,k) >= cmcptop ) exit
       end do
       nmctop = nmctop + iplmlc
     end do
@@ -290,13 +288,11 @@ module mod_cu_tiedtke
     !
     do ii = 1 , nipoi
       if (ktype(ii) > 0) then
-        if ( paprc(ii) > dlowval ) then
-          i = imap(ii)
-          j = jmap(ii)
-          total_precip_points = total_precip_points + 1
-          ! rainfall for surface
-          cu_prate(j,i)= cu_prate(j,i) + prsfc(ii) + pssfc(ii)
-        end if
+        i = imap(ii)
+        j = jmap(ii)
+        total_precip_points = total_precip_points + 1
+        ! rainfall for surface
+        cu_prate(j,i)= cu_prate(j,i) + prsfc(ii) + pssfc(ii)
       end if
     end do
     !
