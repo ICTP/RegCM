@@ -206,6 +206,9 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: adi
     real(rk8) , pointer , dimension(:,:,:) :: rad
     real(rk8) , pointer , dimension(:,:,:) :: lsc
+    real(rk8) , pointer , dimension(:,:,:) :: qcl
+    real(rk8) , pointer , dimension(:,:,:) :: qcr
+    real(rk8) , pointer , dimension(:,:,:) :: acr
   end type qendiag
 
   type surfstate
@@ -523,6 +526,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:,:) :: chias ! atms%chib3d
     real(rk8) , pointer , dimension(:,:) :: qfx       ! sfs%qfx
     real(rk8) , pointer , dimension(:,:) :: hfx       ! sfs%hfx
+    real(rk8) , pointer , dimension(:,:,:) :: ccn     ! ccn
     integer(ik4) , pointer , dimension(:,:) :: ktrop
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
   end type mod_2_cum

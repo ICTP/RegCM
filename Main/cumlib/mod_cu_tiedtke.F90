@@ -29,7 +29,8 @@ module mod_cu_tiedtke
   use mod_cu_tables
   use mod_service
   use mod_runparams , only : iqc , dtcum , iqv , iqi , entrmax , &
-    entrdd , entrmid , cprcon , entrpen , entrscv , iconv , ichem , ipptls
+         entrdd , entrmid , cprcon , entrpen , entrscv , iconv , &
+         ichem , iaerosol , ipptls
   use mod_cu_tiedtke_38r2 , only : sucumf , cumastrn
   use mod_regcm_types
 
@@ -51,7 +52,7 @@ module mod_cu_tiedtke
   real(rk8) , pointer , dimension(:,:,:) :: pxtm1 , pxtte
   real(rk8) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 ,    &
         pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec , zlude , &
-        pmflxr
+        pmflxr , pccn
   real(rk8) , pointer , dimension(:) :: prsfc , pssfc , paprc , &
         paprs , ptopmax , xphfx , xpqfx
   real(rk8) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
@@ -135,6 +136,9 @@ module mod_cu_tiedtke
     call getmem2d(zlude,1,nipoi,1,kz,'mod_cu_tiedtke:zlude')
     call getmem2d(pxtec,1,nipoi,1,kz,'mod_cu_tiedtke:pxtec')
     call getmem2d(pqtec,1,nipoi,1,kz,'mod_cu_tiedtke:pqtec')
+    if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+      call getmem2d(pccn,1,nipoi,1,kz,'mod_cu_tiedtke:pccn')
+    end if
     call getmem2d(pmflxr,1,nipoi,1,kz+1,'mod_cu_tiedtke:pmflxr')
     call getmem1d(kctop,1,nipoi,'mod_cu_tiedtke:kctop')
     call getmem1d(kcbot,1,nipoi,'mod_cu_tiedtke:kcbot')
@@ -182,6 +186,15 @@ module mod_cu_tiedtke
           end do
         end do
       end do
+      if ( .false. .and. iaerosol == 1 ) then
+        do k = 1 , kz
+          do ii = 1 , nipoi
+            i = imap(ii)
+            j = jmap(ii)
+            pccn(ii,k) = m2c%ccn(j,i,k)
+          end do
+        end do
+      end if
     else
       pxtm1(:,:,:) = d_zero ! tracers input profiles
       pxtte(:,:,:) = d_zero ! tracer tendencies
@@ -282,7 +295,7 @@ module mod_cu_tiedtke
                 pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
                 pxite,pverv,pxtec,pqtec,xphfx,xpqfx,papp1,paphp1,xpg, &
                 xpgh,prsfc,pssfc,paprc,paprs,pmflxr,pmfu,zlude,ktype, &
-                ldland,kctop,kcbot,ptopmax)
+                ldland,kctop,kcbot,ptopmax,pccn)
     !
     ! postprocess some fields including precipitation fluxes
     !
@@ -384,7 +397,7 @@ module mod_cu_tiedtke
                     ptte,pqte,pvom,pvol,pxlte,pxite,pverv,pxtec, &
                     pqtec,pshfla,pqhfla,papp1,paphp1,pgeo,pgeoh, &
                     prsfc,pssfc,paprc,paprs,pmflxr,pmfu,zlude,   &
-                    ktype,ldland,kctop,kcbot,ptopmax)
+                    ktype,ldland,kctop,kcbot,ptopmax,pccn)
 !
 !
 !     *CUCALL* - MASTER ROUTINE - PROVIDES INTERFACE FOR:
@@ -419,13 +432,13 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim,klevp1) , intent(out) :: pmflxr
   real(rk8) , dimension(kbdim,klev) :: papp1 , pgeo , pqm1 , pqte ,   &
          pqtec , ptm1 , ptte , pum1 , pverv , pvm1 , pvol , pvom ,  &
-         pxim1 , pxite , pxlm1 , pxlte , pxtec , pmfu , zlude
+         pxim1 , pxite , pxlm1 , pxlte , pxtec , pmfu , zlude , pccn
   real(rk8) , dimension(kbdim) :: paprc , paprs , pqhfla , pshfla , prsfc , &
                                 pssfc , ptopmax
   integer(ik4) , dimension(kbdim) , intent(out) :: kctop , kcbot
   real(rk8) , dimension(kbdim,klev,ktrac) :: pxtm1 , pxtte
   intent (in) papp1 , pqm1 , ptm1 , pum1 , pvm1 , pxim1 , &
-              pxlm1 , pxlte , pxtm1
+              pxlm1 , pxlte , pxtm1 , pccn
   intent(out) :: zlude
   intent (inout) ptopmax
 !
@@ -576,7 +589,8 @@ module mod_cu_tiedtke
                   pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &
                   locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &
                   zlu,pmflxr,pmflxs,zrain,pmfu,zmfd,zlude,       &
-                  pmfude_rate,pmfdde_rate,pcape,ktrac,pxtm1,pxtte)
+                  pmfude_rate,pmfdde_rate,pcape,ktrac,pxtm1,     &
+                  pxtte,pccn)
     prsfc = pmflxr(:,klev+1)*1.D3
     pssfc = pmflxs(:,klev+1)*1.D3
   case default

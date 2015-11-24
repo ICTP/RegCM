@@ -57,7 +57,7 @@ module mod_ncout
   integer(ik4) , parameter :: nbase = 5
 
   integer(ik4) , parameter :: natm2dvars = 5 + nbase
-  integer(ik4) , parameter :: natm3dvars = 57
+  integer(ik4) , parameter :: natm3dvars = 61
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 24 + nbase
@@ -225,6 +225,10 @@ module mod_ncout
   integer(ik4) , parameter :: atm_stats_frz    = 55
   integer(ik4) , parameter :: atm_stats_rainev = 56
   integer(ik4) , parameter :: atm_stats_snowev = 57
+  integer(ik4) , parameter :: atm_qcrit        = 58
+  integer(ik4) , parameter :: atm_ccnnum       = 59
+  integer(ik4) , parameter :: atm_qincl        = 60
+  integer(ik4) , parameter :: atm_autoconvr    = 61
 
   integer(ik4) , parameter :: srf_xlon     = 1
   integer(ik4) , parameter :: srf_xlat     = 2
@@ -608,6 +612,41 @@ module mod_ncout
             'relative_humidity',.true.)
           atm_rh_out => v3dvar_atm(atm_rh)%rval
         end if
+        if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+          if ( enable_atm3d_vars(atm_ccnnum) ) then
+            call setup_var(v3dvar_atm,atm_ccnnum,vsize, &
+               'ccnnum','1/cm^3','Cloud condensation nuclei', &
+               'cloud condensation nuclei',.true.)
+            atm_ccnnum_out => v3dvar_atm(atm_ccnnum)%rval
+          end if
+        else
+          enable_atm3d_vars(atm_ccnnum) = .false.
+        end if
+        if ( .false. .and. idiag == 1 .and. &
+             ichem == 1 .and. iaerosol == 1 ) then
+          if ( enable_atm3d_vars(atm_qcrit) ) then
+            call setup_var(v3dvar_atm,atm_qcrit,vsize, &
+              'qcrit','Kg kg-1','Critical water mixing ratio', &
+              'critical water mixing ratio',.true.)
+            atm_qcrit_out => v3dvar_atm(atm_qcrit)%rval
+          end if
+          if ( enable_atm3d_vars(atm_qincl) ) then
+            call setup_var(v3dvar_atm,atm_qincl,vsize, &
+              'qincl','kg kg-1','Water mixing ratio in cloud', &
+              'water mixing ratio in cloud',.true.)
+            atm_qincl_out => v3dvar_atm(atm_qincl)%rval
+          end if
+          if ( enable_atm3d_vars(atm_autoconvr) ) then
+            call setup_var(v3dvar_atm,atm_autoconvr,vsize, &
+              'autoconvr','kg kg-1 s-1','Autoconversion rate', &
+              'autoconversion rate',.true.)
+            atm_autoconvr_out => v3dvar_atm(atm_autoconvr)%rval
+          end if
+        else
+          enable_atm3d_vars(atm_qcrit) = .false.
+          enable_atm3d_vars(atm_qincl) = .false.
+          enable_atm3d_vars(atm_autoconvr) = .false.
+        end if
         if ( ipptls == 2 ) then
           if ( any(icup == 5) ) then
             if ( enable_atm3d_vars(atm_q_detr) ) then
@@ -802,7 +841,7 @@ module mod_ncout
           enable_atm3d_vars(atm_stats_supw:atm_stats_snowev) = .false.
         end if
 
-        if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        if ( ibltyp == 2 ) then
           if ( enable_atm3d_vars(atm_tke) ) then
             call setup_var(v3dvar_atm,atm_tke,vsize,'tke','m2 s2', &
               'Turbulent Kinetic Energy','turbulent_kinetic_energy', .true.)
@@ -2036,7 +2075,7 @@ module mod_ncout
               'tendency_of_mixing_ratio_due_to_emission',.true.)
             che_emten_out => v2dvar_che(che_emten)%rval
           end if
-          if ( ibltyp == 2 .or. ibltyp == 99 ) then
+          if ( ibltyp == 2 ) then
             if ( enable_che2d_vars(che_pblten) ) then
               call setup_var(v2dvar_che,che_pblten,vsize,'pblten', &
                 'kg kg-1 s-1', 'Tendency of tracer due to UW PBL', &
@@ -2504,6 +2543,14 @@ module mod_ncout
          ncattribute_real8('subex_cloud_fraction_max_for_convection',clfrcvmax))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('subex_cloud_liqwat_max_for_convection',cllwcv))
+          if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('mean_critical_radius',rcrit))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('geometric_mean_d_and_s',coef_ccn))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('bulk_activation_ratio',abulk))
+          end if
         else if ( ipptls == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('micro_statistics',stats))
@@ -2654,6 +2701,10 @@ module mod_ncout
               ncattribute_real8('tiedtke_cloud_water_conv_over_land',rprc_lnd))
             call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('tiedtke_cloud_water_conv_over_ocean',rprc_ocn))
+            if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+              call outstream_addatt(outstream(i)%ncout(j), &
+                ncattribute_real8('tiedtke_mean_critical_radius',rcrit1))
+            end if
           else
             call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('tiedtke_max_entrainment',entrmax))
@@ -2671,7 +2722,7 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('kf_entrainment_rate',kf_entrate))
         end if
-        if ( ibltyp == 1 .or. ibltyp == 99 ) then
+        if ( ibltyp == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('holtslag_critical_ocean_richardson',ricr_ocn))
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -2683,7 +2734,7 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('holtslag_th10_maximize',ifaholt))
         end if
-        if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        if ( ibltyp == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('uwpbl_advection_scheme',iuwvadv))
           call outstream_addatt(outstream(i)%ncout(j), &

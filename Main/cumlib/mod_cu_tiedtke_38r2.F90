@@ -5,7 +5,10 @@ module mod_cu_tiedtke_38r2
   use mod_constants
   use mod_dynparam
   use mod_mpmessage
-  use mod_runparams
+  use mod_runparams , only : dtcum , rcrit1 , rprc_ocn , rprc_lnd
+  use mod_runparams , only : detrpen , entrpen , entshalp , entrdd
+  use mod_runparams , only : rhebc_ocn , rhebc_lnd , rcuc_lnd , rcuc_ocn
+  use mod_runparams , only : rcpec_ocn , rcpec_lnd
 
   implicit none
 
@@ -13,6 +16,7 @@ module mod_cu_tiedtke_38r2
 
   public :: sucumf , custrat , cumastrn , cuancape2
 
+  real(rk8) , parameter :: rhow = 1000.0D0
   real(rk8) , parameter :: zqmax = 0.5D0
   real(rk8) , parameter :: rkap = 0.4D0
   real(rk8) , parameter :: ratm = 100000.0D0
@@ -628,7 +632,7 @@ module mod_cu_tiedtke_38r2
                     pqsen,plitot,pgeo,pgeoh,pap,paph,pvervel,pwubase,   &
                     ldland,ldcum,ktype,klab,ptu,pqu,plu,pmfu,pmfub,     &
                     plglac,pmfus,pmfuq,pmful,plude,pdmfup,pdmfen,kcbot, &
-                    kctop,kctop0,kdpl,pmfude_rate,pkineu,pwmean)
+                    kctop,kctop0,kdpl,pmfude_rate,pkineu,pwmean,ccn)
     implicit none
     integer(ik4) , intent(in) :: klon
     integer(ik4) , intent(in) :: klev
@@ -637,6 +641,7 @@ module mod_cu_tiedtke_38r2
     real(rk8) , intent(in) :: ptsphy
     real(rk8) , dimension(klon,klev) , intent(inout) :: ptenh
     real(rk8) , dimension(klon,klev) , intent(inout) :: pqenh
+    real(rk8) , dimension(klon,klev) , intent(in) :: ccn
     real(rk8) , dimension(klon,klev) , intent(in) :: pten
     real(rk8) , dimension(klon,klev) , intent(in) :: pqen
     real(rk8) , dimension(klon,klev) , intent(in) :: pqsen
@@ -993,12 +998,17 @@ module mod_cu_tiedtke_38r2
         !     ANALYTIC INTEGRATION OF EQUATION FOR L
         do jl = kidia , kfdia
           if ( llo1(jl) ) then
-            if ( ldland(jl) ) then
-              zdnoprc = 5.D-4
-              zprcdgw = rprc_lnd*regrav
+            if ( .false. ) then
+              zdnoprc = ccn(jl,jk)*(4.0D0/3.0D0)*mathpi * &
+                              ((rcrit1*1D-4)**3)*(rhow*1D-3)*1D+3
             else
-              zdnoprc = 3.D-4
-              zprcdgw = rprc_ocn*regrav
+              if ( ldland(jl) ) then
+                zdnoprc = 5.D-4
+                zprcdgw = rprc_lnd*regrav
+              else
+                zdnoprc = 3.D-4
+                zprcdgw = rprc_ocn*regrav
+              end if
             end if
             if ( plu(jl,jk) > zdnoprc ) then
               zwu = min(15.0D0,sqrt(d_two*max(0.1D0,pkineu(jl,jk+1))))
@@ -4165,7 +4175,7 @@ module mod_cu_tiedtke_38r2
                       pgeo,pgeoh,ptent,ptenq,ptenu,ptenv,ptenl,pteni,  &
                       ldcum,ktype,kcbot,kctop,kbotsc,ldsc,ptu,pqu,plu, &
                       pmflxr,pmflxs,prain,pmfu,pmfd,plude,pmfude_rate, &
-                      pmfdde_rate,pcape,ktrac,pcen,ptenc)
+                      pmfdde_rate,pcape,ktrac,pcen,ptenc,ccn)
     implicit none
     integer(ik4) , intent(in) :: klon
     integer(ik4) , intent(in) :: klev
@@ -4194,6 +4204,7 @@ module mod_cu_tiedtke_38r2
     real(rk8) , dimension(klon,klev) , intent(inout) :: ptenu
     real(rk8) , dimension(klon,klev) , intent(inout) :: ptenv
     real(rk8) , dimension(klon,klev) , intent(inout) :: plude
+    real(rk8) , dimension(klon,klev) , intent(in) :: ccn
     real(rk8) , dimension(klon,klev,ktrac) , intent(inout) :: ptenc
     logical , dimension(klon) , intent(inout) :: ldcum
     integer(ik4) , dimension(klon) , intent(inout) :: ktype
@@ -4390,7 +4401,7 @@ module mod_cu_tiedtke_38r2
                 zwubase,ldland,ldcum,ktype,ilab,ptu,pqu,plu,    &
                 pmfu,zmfub,zlglac,zmfus,zmfuq,zmful,plude,      &
                 zdmfup,zdmfen,kcbot,kctop,ictop0,idpl,          &
-                pmfude_rate,zkineu,pwmean)
+                pmfude_rate,zkineu,pwmean,ccn)
     !*         (C) CHECK CLOUD DEPTH AND CHANGE ENTRAINMENT RATE ACCORDINGLY
     ! CALCULATE PRECIPITATION RATE (FOR DOWNDRAFT CALCULATION)
     ! -----------------------------------------------------

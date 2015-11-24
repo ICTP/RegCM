@@ -112,7 +112,8 @@ module mod_params
 
     namelist /subexparam/ ncld , qck1land , qck1oce , gulland , guloce ,     &
       rhmax , rh0oce , rh0land , cevaplnd , cevapoce , caccrlnd , caccroce , &
-      tc0 , cllwcv , clfrcvmax , cftotmax , conf , lsrfhack
+      tc0 , cllwcv , clfrcvmax , cftotmax , conf , lsrfhack , rcrit ,        &
+      coef_ccn , abulk
 
     namelist /microparam/ stats , budget_compute , nssopt , kautoconv ,  &
       ksemi , vqxr , vqxi , vqxs , zauto_rate_khair , zauto_rate_kessl , &
@@ -131,7 +132,7 @@ module mod_params
     namelist /tiedtkeparam/ iconv , entrmax , entrdd , entrpen ,   &
       entrscv , entrmid , cprcon , detrpen , entshalp , rcuc_lnd , &
       rcuc_ocn , rcpec_lnd , rcpec_ocn , rhebc_lnd , rhebc_ocn ,   &
-      rprc_ocn , rprc_lnd
+      rprc_ocn , rprc_lnd , rcrit1
 
     namelist /kfparam/ kf_trigger , kf_entrate
 
@@ -285,6 +286,9 @@ module mod_params
     clfrcvmax = 1.0D0     ! Max cloud fractional cover for convective precip.
     cftotmax  = 0.8D0     ! Max total cover cloud fraction for radiation
     conf      = 1.0D0     ! Condensation threshold
+    rcrit     = 13.5D0    ! Mean critical radius
+    coef_ccn  = 2.0D0     ! Geometric mean Diameter and standard deviation
+    abulk     = 0.9D0     ! Bulk activation ratio
     lsrfhack  = .false.   ! Surface radiation hack
     !
     ! microparam ;
@@ -380,8 +384,9 @@ module mod_params
                         ! cloud at which evaporation starts for land
     rhebc_ocn = 0.9D0   ! Critical relative humidity below
                         ! cloud at which evaporation starts for ocean
-    rprc_lnd = 1.4D-3 ! coefficient for determining conversion from cloud water
-    rprc_ocn = 1.4D-3 ! coefficient for determining conversion from cloud water
+    rprc_lnd = 1.4D-3   ! coefficient for conversion from cloud water
+    rprc_ocn = 1.4D-3   ! coefficient for conversion from cloud water
+    rcrit1   = 13.5D0   ! Mean critical radius for ccn
     !
     ! kfparam ;
     !
@@ -969,6 +974,9 @@ module mod_params
       call bcast(caccroce)
       call bcast(cftotmax)
       call bcast(conf)
+      call bcast(rcrit)
+      call bcast(coef_ccn)
+      call bcast(abulk)
       call bcast(lsrfhack)
       if ( ipptls == 2 ) then
         call bcast(stats)
@@ -1078,6 +1086,7 @@ module mod_params
       call bcast(rhebc_ocn)
       call bcast(rprc_lnd)
       call bcast(rprc_ocn)
+      call bcast(rcrit1)
     end if
 
     if ( any(icup == 6) ) then
@@ -1707,6 +1716,14 @@ module mod_params
             '  Condensation threshold            : ', conf
         write(stdout,'(a,l11)') &
             '  Surface radiation hack            : ', lsrfhack
+        if ( .false. .and. ichem == 1 ) then
+          write(stdout,'(a,l11)') &
+              '  Critical Mean Radius              : ', rcrit
+          write(stdout,'(a,l11)') &
+              '  CCN Diameter and sigma            : ', coef_ccn
+          write(stdout,'(a,l11)') &
+              '  Bulk Activation Ratio             : ', abulk
+        end if
       end if
     end if
 
@@ -1899,6 +1916,10 @@ module mod_params
           '  CLW to rain conversion factor     : ',cprcon
         write(stdout,'(a,f11.6)') &
           '  Max entrainment                   : ',entrmax
+        if ( .false. .and. ichem == 1 ) then
+          write(stdout,'(a,f11.6)') &
+            '  Mean critical radius              : ',rcrit1
+        end if
       end if
       if ( myid == italk .and. iconv == 4 ) then
         write(stdout,*) 'Tiedtke (1986) Convection Scheme ECMWF 38R2 used.'

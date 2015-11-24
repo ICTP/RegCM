@@ -43,14 +43,15 @@ module mod_precip
   real(rk8) , pointer , dimension(:,:) :: pptsum
   integer(ik4) , pointer , dimension(:,:) :: ldmsk
   real(rk8) , pointer , dimension(:,:) :: psb , psc , rainnc , lsmrnc , th700
-  real(rk8) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten
+  real(rk8) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten , chi3
   real(rk8) , pointer , dimension(:,:,:) :: t3 , t2 , tten , th3
   real(rk8) , pointer , dimension(:,:,:) :: p3 , p2 , qs3 , rh3 , rho3
   real(rk8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
   real(rk8) , pointer , dimension(:,:,:) :: pfcc
   real(rk8) , pointer , dimension(:,:,:) :: premrat
   real(rk8) , pointer , dimension(:,:,:) :: prembc
-  real(rk8) , pointer , dimension(:,:,:) :: ptotc
+  real(rk8) , pointer , dimension(:,:,:) :: ptotc , pccn
+  real(rk8) , pointer , dimension(:,:,:) :: dia_qcr , dia_qcl , dia_acr
 
   real(rk8) :: qcth
   real(rk8) :: maxlat
@@ -71,6 +72,12 @@ module mod_precip
   real(rk8) , parameter :: lowcld = 0.00001D0
   real(rk8) , parameter :: hicld  = 0.99999D0
 
+  real(rk8) , parameter :: rhos = 1800.0D0
+  real(rk8) , parameter :: rhow = 1000.0D0
+  real(rk8) , parameter :: rhosslt = 1000.0D0
+  real(rk8) , parameter :: rhoochl = 1200.0D0
+  real(rk8) , parameter :: rhobchl = 1600.0D0
+
   contains
 
   subroutine allocate_mod_precip
@@ -87,7 +94,7 @@ module mod_precip
   subroutine init_precip
     use mod_atm_interface , only : mddom , atms , atm2 , aten , sfs , &
                                    pptnc , cldfra , cldlwc , fcc ,    &
-                                   remrat , rembc , totc
+                                   remrat , rembc , totc , qdiag , ccn
     use mod_mppparam , only : maxall
     implicit none
     call maxall(maxval(mddom%xlat),maxlat)
@@ -114,8 +121,15 @@ module mod_precip
     call assignpnt(fcc,pfcc)
     call assignpnt(totc,ptotc)
     if ( ichem == 1 ) then
+      call assignpnt(atms%chib3d,chi3)
       call assignpnt(remrat,premrat)
       call assignpnt(rembc,prembc)
+      call assignpnt(ccn,pccn)
+      if ( idiag == 1 ) then
+        call assignpnt(qdiag%qcr,dia_qcr)
+        call assignpnt(qdiag%qcl,dia_qcl)
+        call assignpnt(qdiag%acr,dia_acr)
+      end if
     end if
   end subroutine init_precip
   !
@@ -169,16 +183,33 @@ module mod_precip
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
           pptmax = qcw/dt                                    ![kg/kg/s][avg]
-          ! 1ad. Implement here the formula for qcth.
-          !   - Gultepe & Isaac, J. Clim, 1997, v10 p446 table 4, eq 5
-          !   - The factor of 1000 converts from g/kg to kg/kg
-          !   - The factor of cgul accounts for the fact that the Gultepe
-          !     and Isaac equation is for mean cloud water while qcth is the
-          !     theshhold for auto-conversion.
-          qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000
+          if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+            pccn(j,i,1) = (calc_ccn(rhobchl,chi3(j,i,1,1)) + &
+                           calc_ccn(rhoochl,chi3(j,i,1,3)) + &
+                           calc_ccn(rhos,chi3(j,i,1,6))    + &
+                           calc_ccn(rhosslt,chi3(j,i,1,11))) * abulk
+            qcth = pccn(j,i,1)*(4.0D0/3.0D0)*mathpi * &
+                       ((rcrit*1D-4)**3)*(rhow*1D-3)*1D+3
+            if ( idiag == 1 ) then
+              dia_qcr(j,i,1) = qcth
+              dia_qcl(j,i,1) = qcincld
+            end if
+          else
+            ! 1ad. Implement here the formula for qcth.
+            !   - Gultepe & Isaac, J. Clim, 1997, v10 p446 table 4, eq 5
+            !   - The factor of 1000 converts from g/kg to kg/kg
+            !   - The factor of cgul accounts for the fact that the Gultepe
+            !     and Isaac equation is for mean cloud water while qcth is the
+            !     theshhold for auto-conversion.
+            qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000
+          end if
           ! 1ae. Compute the gridcell average autoconversion [kg/k g/s]
           pptnew = qck1(j,i)*(qcincld-qcth)*afc ! [kg/kg/s][avg]
           pptnew = min(max(pptnew,d_zero),pptmax) ![kg/kg/s][avg]
+          if ( .false. .and. ichem == 1 .and. &
+               iaerosol == 1 .and. idiag == 1 ) then
+            dia_acr(j,i,1) = pptnew
+          end if
           if ( pptnew > d_zero ) then !   New precipitation
             ! 1af. Compute the cloud removal rate (for chemistry) [1/s]
             if ( ichem == 1 ) premrat(j,i,1) = pptnew/qcw
@@ -268,12 +299,29 @@ module mod_precip
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
             pptmax = qcw/dt                                  ![kg/kg/s][cld]
-            ! 1bdc. Implement the Gultepe & Isaac formula for qcth.
-            ![kg/kg][cld]
-            qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000
+            if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+              pccn(j,i,k) = (calc_ccn(rhobchl,chi3(j,i,k,1)) + &
+                             calc_ccn(rhoochl,chi3(j,i,k,3)) + &
+                             calc_ccn(rhos,chi3(j,i,k,6))    + &
+                             calc_ccn(rhosslt,chi3(j,i,k,11))) * abulk
+              qcth = pccn(j,i,k)*(4.0D0/3.0D0)*mathpi * &
+                         ((rcrit*1D-4)**3)*(rhow*1D-3)*1D+3
+              if ( idiag == 1 ) then
+                dia_qcr(j,i,k) = qcth
+                dia_qcl(j,i,k) = qcincld
+              end if
+            else
+              ! 1bdc. Implement the Gultepe & Isaac formula for qcth.
+              ![kg/kg][cld]
+              qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000
+            end if
             ! 1bdd. Compute the gridcell average autoconversion [kg/kg/s]
             pptnew = qck1(j,i)*(qcincld-qcth)*afc            ![kg/kg/s][avg]
             pptnew = min(max(pptnew,d_zero),pptmax)      ![kg/kg/s][avg]
+            if ( .false. .and. ichem == 1 .and. &
+                 iaerosol == 1 .and. idiag == 1 ) then
+              dia_acr(j,i,k) = pptnew
+            end if
             ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
             if ( ichem == 1  .and. pptnew > d_zero ) then
               premrat(j,i,k) = pptnew/qcw
@@ -351,6 +399,12 @@ module mod_precip
     end do
 
   contains
+
+    pure real(rk8) function calc_ccn(denx,mrat) result(res)
+      implicit none
+      real(rk8) , intent(in) :: denx , mrat
+      res = (1D+6/(denx*1D-3))*(6.0D0/mathpi)*coef_ccn*mrat*1D+03
+    end function calc_ccn
 
     pure real(rk8) function season_factor(lat) result(sf)
       implicit none

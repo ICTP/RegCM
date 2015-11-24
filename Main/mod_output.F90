@@ -263,97 +263,128 @@ module mod_output
             atm_q_detr_out(:,:,k) = q_detr(jci1:jci2,ici1:ici2,k)
           end do
         end if
-        if ( associated(atm_stats_supw_out) ) then
-          do k = 1 , kz
-            atm_stats_supw_out(:,:,k) = statssupw(jci1:jci2,ici1:ici2,k)
-          end do
+
+        if ( ipptls == 2 .and. stats ) then
+          if ( associated(atm_stats_supw_out) ) then
+            do k = 1 , kz
+              atm_stats_supw_out(:,:,k) = statssupw(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_supc_out) ) then
+            do k = 1 , kz
+              atm_stats_supc_out(:,:,k) = statssupc(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_detw_out) ) then
+            do k = 1 , kz
+              atm_stats_detw_out(:,:,k) = statserosw(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_detc_out) ) then
+            do k = 1 , kz
+              atm_stats_detc_out(:,:,k) = statserosc(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_erow_out) ) then
+            do k = 1 , kz
+              atm_stats_erow_out(:,:,k) = statsdetrw(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_eroc_out) ) then
+            do k = 1 , kz
+              atm_stats_eroc_out(:,:,k) = statsdetrc(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_evw_out) ) then
+            do k = 1 , kz
+              atm_stats_evw_out(:,:,k) = statsevapw(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_evc_out) ) then
+            do k = 1 , kz
+              atm_stats_evc_out(:,:,k) = statsevapc(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_con1w_out) ) then
+            do k = 1 , kz
+              atm_stats_con1w_out(:,:,k) = statscond1w(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_con1c_out) ) then
+            do k = 1 , kz
+              atm_stats_con1c_out(:,:,k) = statscond1c(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_con2w_out) ) then
+            do k = 1 , kz
+              atm_stats_con2w_out(:,:,k) = statscond2w(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_con2c_out) ) then
+            do k = 1 , kz
+              atm_stats_con2c_out(:,:,k) = statscond2c(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_dep_out) ) then
+            do k = 1 , kz
+              atm_stats_dep_out(:,:,k) = statsdepos(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_melt_out) ) then
+            do k = 1 , kz
+              atm_stats_melt_out(:,:,k) = statsmelt(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_frz_out) ) then
+            do k = 1 , kz
+              atm_stats_frz_out(:,:,k) = statsfrz(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_rainev_out) ) then
+            do k = 1 , kz
+              atm_stats_rainev_out(:,:,k) = statsrainev(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_snowev_out) ) then
+            do k = 1 , kz
+              atm_stats_snowev_out(:,:,k) = statssnowev(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
         end if
-        if ( associated(atm_stats_supc_out) ) then
-          do k = 1 , kz
-            atm_stats_supc_out(:,:,k) = statssupc(jci1:jci2,ici1:ici2,k)
-          end do
+
+        if ( ibltyp == 2 ) then
+          if ( associated(atm_tke_out) ) &
+            atm_tke_out = atm1%tke(jci1:jci2,ici1:ici2,1:kz)
+          if ( associated(atm_kth_out) ) &
+            atm_kth_out = uwstateb%kth(jci1:jci2,ici1:ici2,1:kz)
+          if ( associated(atm_kzm_out) ) &
+            atm_kzm_out = uwstateb%kzm(jci1:jci2,ici1:ici2,1:kz)
         end if
-        if ( associated(atm_stats_detw_out) ) then
-          do k = 1 , kz
-            atm_stats_detw_out(:,:,k) = statserosw(jci1:jci2,ici1:ici2,k)
-          end do
+
+        if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+          if ( associated(atm_ccnnum_out) ) then
+            do k = 1 , kz
+              atm_ccnnum_out(:,:,k) = ccn(jce1:jce2,ice1:ice2,k)
+            end do
+          end if
+          if ( idiag == 1 ) then
+            if ( associated(atm_qcrit_out) ) then
+              do k = 1 , kz
+                atm_qcrit_out(:,:,k) = qdiag%qcr(jce1:jce2,ice1:ice2,k)
+              end do
+            end if
+            if ( associated(atm_qincl_out) ) then
+              do k = 1 , kz
+                atm_qincl_out(:,:,k) = qdiag%qcl(jce1:jce2,ice1:ice2,k)
+              end do
+            end if
+            if ( associated(atm_autoconvr_out) ) then
+              do k = 1 , kz
+                atm_autoconvr_out(:,:,k) = qdiag%acr(jce1:jce2,ice1:ice2,k)
+              end do
+            end if
+          end if
         end if
-        if ( associated(atm_stats_detc_out) ) then
-          do k = 1 , kz
-            atm_stats_detc_out(:,:,k) = statserosc(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_erow_out) ) then
-          do k = 1 , kz
-            atm_stats_erow_out(:,:,k) = statsdetrw(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_eroc_out) ) then
-          do k = 1 , kz
-            atm_stats_eroc_out(:,:,k) = statsdetrc(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_evw_out) ) then
-          do k = 1 , kz
-            atm_stats_evw_out(:,:,k) = statsevapw(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_evc_out) ) then
-          do k = 1 , kz
-            atm_stats_evc_out(:,:,k) = statsevapc(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_con1w_out) ) then
-          do k = 1 , kz
-            atm_stats_con1w_out(:,:,k) = statscond1w(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_con1c_out) ) then
-          do k = 1 , kz
-            atm_stats_con1c_out(:,:,k) = statscond1c(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_con2w_out) ) then
-          do k = 1 , kz
-            atm_stats_con2w_out(:,:,k) = statscond2w(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_con2c_out) ) then
-          do k = 1 , kz
-            atm_stats_con2c_out(:,:,k) = statscond2c(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_dep_out) ) then
-          do k = 1 , kz
-            atm_stats_dep_out(:,:,k) = statsdepos(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_melt_out) ) then
-          do k = 1 , kz
-            atm_stats_melt_out(:,:,k) = statsmelt(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_frz_out) ) then
-          do k = 1 , kz
-            atm_stats_frz_out(:,:,k) = statsfrz(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_rainev_out) ) then
-          do k = 1 , kz
-            atm_stats_rainev_out(:,:,k) = statsrainev(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_stats_snowev_out) ) then
-          do k = 1 , kz
-            atm_stats_snowev_out(:,:,k) = statssnowev(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_tke_out) ) &
-          atm_tke_out = atm1%tke(jci1:jci2,ici1:ici2,1:kz)
-        if ( associated(atm_kth_out) ) &
-          atm_kth_out = uwstateb%kth(jci1:jci2,ici1:ici2,1:kz)
-        if ( associated(atm_kzm_out) ) &
-          atm_kzm_out = uwstateb%kzm(jci1:jci2,ici1:ici2,1:kz)
 
         if ( associated(atm_tpr_out) ) then
           atm_tpr_out = (sfs%rainc+sfs%rainnc)/(atmfrq*secph)
@@ -367,113 +398,115 @@ module mod_output
           atm_tsw_out = atm_tsw_out * rsrf_in_atm
 
         ! FAB add tendency diagnostic here
-        if ( associated(atm_tten_adh_out) ) then
-          do k = 1 , kz
-            atm_tten_adh_out(:,:,k) = tdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          tdiag%adh = d_zero
-        end if
-        if ( associated(atm_tten_adv_out) ) then
-          do k = 1 , kz
-            atm_tten_adv_out(:,:,k) = tdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          tdiag%adv = d_zero
-        end if
-        if ( associated(atm_tten_tbl_out) ) then
-          do k = 1 , kz
-            atm_tten_tbl_out(:,:,k) = tdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          tdiag%tbl = d_zero
-        end if
-        if ( associated(atm_tten_dif_out) ) then
-          do k = 1 , kz
-            atm_tten_dif_out(:,:,k) = tdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          tdiag%dif = d_zero
-        end if
-        if ( associated(atm_tten_bdy_out) ) then
-          do k = 1 , kz
-            atm_tten_bdy_out(:,:,k) = tdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          tdiag%bdy = d_zero
-        end if
-        if ( associated(atm_tten_con_out) ) then
-          do k = 1 , kz
-            atm_tten_con_out(:,:,k) = tdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          tdiag%con = d_zero
-        end if
-        if ( associated(atm_tten_adi_out) ) then
-          do k = 1 , kz
-            atm_tten_adi_out(:,:,k) = tdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          tdiag%adi = d_zero
-        end if
-        if ( associated(atm_tten_rad_out) ) then
-          do k = 1 , kz
-            atm_tten_rad_out(:,:,k) = tdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          tdiag%rad = d_zero
-        end if
-        if ( associated(atm_tten_lsc_out) ) then
-          do k = 1 , kz
-            atm_tten_lsc_out(:,:,k) = tdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          tdiag%lsc = d_zero
-        end if
-        if ( associated(atm_qten_adh_out) ) then
-          do k = 1 , kz
-            atm_qten_adh_out(:,:,k) = qdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          qdiag%adh = d_zero
-        end if
-        if ( associated(atm_qten_adv_out) ) then
-          do k = 1 , kz
-            atm_qten_adv_out(:,:,k) = qdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          qdiag%adv = d_zero
-        end if
-        if ( associated(atm_qten_tbl_out) ) then
-          do k = 1 , kz
-            atm_qten_tbl_out(:,:,k) = qdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          qdiag%tbl = d_zero
-        end if
-        if ( associated(atm_qten_dif_out) ) then
-          do k = 1 , kz
-            atm_qten_dif_out(:,:,k) = qdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          qdiag%dif = d_zero
-        end if
-        if ( associated(atm_qten_bdy_out) ) then
-          do k = 1 , kz
-            atm_qten_bdy_out(:,:,k) = qdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          qdiag%bdy = d_zero
-        end if
-        if ( associated(atm_qten_con_out) ) then
-          do k = 1 , kz
-            atm_qten_con_out(:,:,k) = qdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          qdiag%con = d_zero
-        end if
-        if ( associated(atm_qten_adi_out) ) then
-          do k = 1 , kz
-            atm_qten_adi_out(:,:,k) = qdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          qdiag%adi = d_zero
-        end if
-        if ( associated(atm_qten_rad_out) ) then
-          do k = 1 , kz
-            atm_qten_rad_out(:,:,k) = qdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          qdiag%rad = d_zero
-        end if
-        if ( associated(atm_qten_lsc_out) ) then
-          do k = 1 , kz
-            atm_qten_lsc_out(:,:,k) = qdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
-          qdiag%lsc = d_zero
+        if ( idiag == 1 ) then
+          if ( associated(atm_tten_adh_out) ) then
+            do k = 1 , kz
+              atm_tten_adh_out(:,:,k) = tdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%adh = d_zero
+          end if
+          if ( associated(atm_tten_adv_out) ) then
+            do k = 1 , kz
+              atm_tten_adv_out(:,:,k) = tdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%adv = d_zero
+          end if
+          if ( associated(atm_tten_tbl_out) ) then
+            do k = 1 , kz
+              atm_tten_tbl_out(:,:,k) = tdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%tbl = d_zero
+          end if
+          if ( associated(atm_tten_dif_out) ) then
+            do k = 1 , kz
+              atm_tten_dif_out(:,:,k) = tdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%dif = d_zero
+          end if
+          if ( associated(atm_tten_bdy_out) ) then
+            do k = 1 , kz
+              atm_tten_bdy_out(:,:,k) = tdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%bdy = d_zero
+          end if
+          if ( associated(atm_tten_con_out) ) then
+            do k = 1 , kz
+              atm_tten_con_out(:,:,k) = tdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%con = d_zero
+          end if
+          if ( associated(atm_tten_adi_out) ) then
+            do k = 1 , kz
+              atm_tten_adi_out(:,:,k) = tdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%adi = d_zero
+          end if
+          if ( associated(atm_tten_rad_out) ) then
+            do k = 1 , kz
+              atm_tten_rad_out(:,:,k) = tdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%rad = d_zero
+          end if
+          if ( associated(atm_tten_lsc_out) ) then
+            do k = 1 , kz
+              atm_tten_lsc_out(:,:,k) = tdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%lsc = d_zero
+          end if
+          if ( associated(atm_qten_adh_out) ) then
+            do k = 1 , kz
+              atm_qten_adh_out(:,:,k) = qdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%adh = d_zero
+          end if
+          if ( associated(atm_qten_adv_out) ) then
+            do k = 1 , kz
+              atm_qten_adv_out(:,:,k) = qdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%adv = d_zero
+          end if
+          if ( associated(atm_qten_tbl_out) ) then
+            do k = 1 , kz
+              atm_qten_tbl_out(:,:,k) = qdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%tbl = d_zero
+          end if
+          if ( associated(atm_qten_dif_out) ) then
+            do k = 1 , kz
+              atm_qten_dif_out(:,:,k) = qdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%dif = d_zero
+          end if
+          if ( associated(atm_qten_bdy_out) ) then
+            do k = 1 , kz
+              atm_qten_bdy_out(:,:,k) = qdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%bdy = d_zero
+          end if
+          if ( associated(atm_qten_con_out) ) then
+            do k = 1 , kz
+              atm_qten_con_out(:,:,k) = qdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%con = d_zero
+          end if
+          if ( associated(atm_qten_adi_out) ) then
+            do k = 1 , kz
+              atm_qten_adi_out(:,:,k) = qdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%adi = d_zero
+          end if
+          if ( associated(atm_qten_rad_out) ) then
+            do k = 1 , kz
+              atm_qten_rad_out(:,:,k) = qdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%rad = d_zero
+          end if
+          if ( associated(atm_qten_lsc_out) ) then
+            do k = 1 , kz
+              atm_qten_lsc_out(:,:,k) = qdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%lsc = d_zero
+          end if
         end if
 
         if ( idynamic == 2 ) then

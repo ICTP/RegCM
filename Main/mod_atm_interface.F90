@@ -125,6 +125,7 @@ module mod_atm_interface
   real(rk8) , pointer , public , dimension(:,:,:) :: remrat
   real(rk8) , pointer , public , dimension(:,:,:) :: rembc
   real(rk8) , pointer , public , dimension(:,:,:) :: totc
+  real(rk8) , pointer , public , dimension(:,:,:) :: ccn
 
   ! PBL
   integer(ik4) , public , pointer , dimension(:,:) :: kpbl
@@ -774,6 +775,11 @@ module mod_atm_interface
       call getmem3d(dia%dif,jce1,jce2,ice1,ice2,1,kz,'tendiag:dif')
       call getmem3d(dia%rad,jce1,jce2,ice1,ice2,1,kz,'tendiag:rad')
       call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc')
+      if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+        call getmem3d(dia%qcl,jce1,jce2,ice1,ice2,1,kz,'tendiag:qcl')
+        call getmem3d(dia%qcr,jce1,jce2,ice1,ice2,1,kz,'tendiag:qcr')
+        call getmem3d(dia%acr,jce1,jce2,ice1,ice2,1,kz,'tendiag:acr')
+      end if
     end subroutine allocate_qendiag
 
     subroutine allocate_domain(dom)
@@ -1007,6 +1013,9 @@ module mod_atm_interface
           call getmem3d(dep_vels,1,jx,1,iy,1,ntr,'storage:dep_vels')
         end if
 #endif
+        if ( .false. .and. iaerosol == 1 ) then
+          call getmem3d(ccn,jci1,jci2,ici1,ici2,1,kz,'storage:ccn')
+        end if
       end if
       if ( iocncpl == 1 .or. iwavcpl == 1 ) then
         call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'storage:cplmsk')

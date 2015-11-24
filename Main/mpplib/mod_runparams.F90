@@ -127,6 +127,12 @@ module mod_runparams
   ! Upper radiative BC for non-hydrostatic core
   integer(ik4) , public :: ifupr
 
+  ! Aerosol effects
+  real(rk8) , public :: rcrit
+  real(rk8) , public :: rcrit1
+  real(rk8) , public :: coef_ccn
+  real(rk8) , public :: abulk
+
   character(len=8) , public :: scenario
 
   real(rk8) , public :: dt , dt2 , dtsq , dtcb , dtbdys , rdt
