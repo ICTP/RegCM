@@ -292,8 +292,9 @@ module mod_constants
 
   ! Dynamic parameters
   ! alpha = .2495 in brown-campana; = 0. in split explicit
-  real(rk8) , parameter :: alpha = 0.0D+00
-  real(rk8) , parameter :: beta = d_one - d_two*alpha
+  real(rk8) , parameter :: alpha_hyd = 0.0D+00
+  real(rk8) , parameter :: beta_hyd = d_one - d_two*alpha_hyd
+
   real(rk8) , parameter :: gnu = 0.10D+00
   real(rk8) , parameter :: omu = d_one - d_two*gnu
   real(rk8) , parameter :: gnuhf = d_half*gnu

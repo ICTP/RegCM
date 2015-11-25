@@ -146,10 +146,10 @@ module mod_tendency
   !
   subroutine tend
     implicit none
-    real(rk8) :: chias , chibs , dudx , dudy , dvdx , dvdy ,   &
-               psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot ,    &
-               rovcpm , rtbar , sigpsa , tv , tv1 , tv2 , tv3 , tv4 , &
-               tva , tvavg , tvb , tvc , rho0s , cpm
+    real(rk8) :: chias , chibs , dudx , dudy , dvdx , dvdy ,       &
+               psasum , pt2bar , pt2tot , ptnbar , maxv , ptntot , &
+               rovcpm , rtbar , tv , tva , &
+               tvavg , tvb , tvc , rho0s , cpm
     real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
@@ -198,7 +198,7 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
-            atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atmx%t(j,i,k))
+            atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atmx%tv(j,i,k))
           end do
         end do
       end do
@@ -211,8 +211,7 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             atm1%pr(j,i,k) = atm0%pr(j,i,k) + atmx%pp(j,i,k)
-            atm1%rho(j,i,k) = atm1%pr(j,i,k) / &
-              (rgas*atmx%t(j,i,k)*(d_one+ep1*atmx%qx(j,i,k,iqv)))
+            atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atmx%tv(j,i,k))
           end do
         end do
       end do
@@ -233,8 +232,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atm2%pr(j,i,k)  = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
-            atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)*rpsb(j,i))
+            atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
           end do
         end do
       end do
@@ -247,9 +245,6 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)*rpsb(j,i)
-            atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
-              (rgas*atm2%t(j,i,k)*rpsb(j,i) *  &
-              (d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
           end do
         end do
       end do
@@ -260,6 +255,7 @@ module mod_tendency
     call exchange(atmx%u,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atmx%v,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atmx%t,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atmx%tv,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atmx%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     if ( ichem == 1 ) then
       call exchange(chi,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
@@ -682,8 +678,8 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             rovcpm = rgas/(cpd*(d_one + 0.856D0*qvd(j,i,k)))
-            tv = atmx%t(j,i,k)*(d_one + ep1*qvd(j,i,k))
-            aten%t(j,i,k) = aten%t(j,i,k) + (omega(j,i,k)*rovcpm*tv) / &
+            aten%t(j,i,k) = aten%t(j,i,k) + &
+                            (omega(j,i,k)*rovcpm*atmx%tv(j,i,k)) / &
                             (ptop*rpsa(j,i)+hsigma(k))
           end do
         end do
@@ -1209,7 +1205,7 @@ module mod_tendency
               tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
               tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
               tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
-              td(j,i,k) = alpha*(tvc+tvb) + beta*tva
+              td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
               ttld(j,i,k) = td(j,i,k) - sfs%psa(j,i) * &
                         t00pg*((hsigma(k)*sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
             end do
@@ -1258,7 +1254,7 @@ module mod_tendency
               tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
               tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
               tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
-              td(j,i,k) = alpha*(tvc+tvb) + beta*tva
+              td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
             end do
           end do
         end do
@@ -1389,16 +1385,10 @@ module mod_tendency
         do k = 1 , kz
           do i = idi1 , idi2
             do j = jdi1 , jdi2
-              psasum = sfs%psa(j,i)   + sfs%psa(j,i-1)  + &
-                       sfs%psa(j-1,i) + sfs%psa(j-1,i-1)
-              sigpsa = psasum
-              tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*qvd(j-1,i-1,k))
-              tv2 = atmx%t(j-1,i,k)*(  d_one+ep1*qvd(j-1,i,k))
-              tv3 = atmx%t(j,i-1,k)*(  d_one+ep1*qvd(j,i-1,k))
-              tv4 = atmx%t(j,i,k)*(    d_one+ep1*qvd(j,i,k))
-              rtbar = tv1 + tv2 + tv3 + tv4 - d_four*t00pg*             &
-                      ((hsigma(k)*psasum*d_rfour+ptop)/p00pg)**pgfaa1
-              rtbar = rgas*rtbar*sigpsa/16.0D0
+              rtbar = d_rfour * (atmx%tv(j-1,i-1,k) + atmx%tv(j-1,i,k) + &
+                                 atmx%tv(j,i-1,k)   + atmx%tv(j,i,k))  - &
+                      t00pg*((hsigma(k)*sfs%psdota(j,i)+ptop)/p00pg)**pgfaa1
+              rtbar = rgas*rtbar*sfs%psdota(j,i)
               !
               ! Hydrostatic model. The first part of the pressure gradient term:
               ! (1) 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
@@ -1427,14 +1417,9 @@ module mod_tendency
         do k = 1 , kz
           do i = idi1 , idi2
             do j = jdi1 , jdi2
-              psasum = sfs%psa(j,i)   + sfs%psa(j,i-1)  + &
-                       sfs%psa(j-1,i) + sfs%psa(j-1,i-1)
-              sigpsa = psasum
-              tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*qvd(j-1,i-1,k))
-              tv2 = atmx%t(j-1,i,k)*(  d_one+ep1*qvd(j-1,i,k))
-              tv3 = atmx%t(j,i-1,k)*(  d_one+ep1*qvd(j,i-1,k))
-              tv4 = atmx%t(j,i,k)*(    d_one+ep1*qvd(j,i,k))
-              rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.0D0
+              rtbar = d_rfour * (atmx%tv(j-1,i-1,k) + atmx%tv(j-1,i,k) +   &
+                                 atmx%tv(j,i-1,k)   + atmx%tv(j,i,k))
+              rtbar = rgas*rtbar*sfs%psdota(j,i)
               !
               ! Hydrostatic model. The first part of the pressure gradient term:
               ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
@@ -1716,7 +1701,6 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
-            atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)*rpsb(j,i))
           end do
         end do
       end do
@@ -1758,13 +1742,11 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)*rpsb(j,i)
-            atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
-              (rgas*atm2%t(j,i,k)*rpsb(j,i) *  &
-              (d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
           end do
         end do
       end do
     end if
+
     if ( ibltyp == 2 ) then
       ! TAO: Once the full loop above is completed, update the TKE
       ! tendency if the UW PBL is running.  NOTE!!! Do not try to
@@ -2213,6 +2195,13 @@ module mod_tendency
           end do
         end do
       end do
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atmx%tv(j,i,k) = atmx%t(j,i,k) * (d_one + ep1*atmx%qx(j,i,k,iqv))
+          end do
+        end do
+      end do
       if ( ibltyp == 2 ) then
         do k = 1 , kz
           do i = ici1 , ici2
@@ -2254,8 +2243,7 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              tv = atmx%t(j,i,k)*(d_one + ep1*atmx%qx(j,i,k,iqv))
-              atmx%pr(j,i,k) = (tv - atm0%t(j,i,k) - &
+              atmx%pr(j,i,k) = (atmx%tv(j,i,k) - atm0%t(j,i,k) - &
                 atmx%pp(j,i,k)/(cpd*atm0%rho(j,i,k))) / atmx%t(j,i,k)
             end do
           end do

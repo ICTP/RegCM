@@ -588,7 +588,6 @@ module mod_atm_interface
                       1,kzp1,'atmstate:tke')
       end if
       call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
-      call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       if ( idynamic == 2 ) then
         call getmem3d(atm%pp,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:pp')
         call getmem3d(atm%w,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kzp1,'atmstate:w')
@@ -679,6 +678,7 @@ module mod_atm_interface
       call getmem3d(atm%u,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:u')
       call getmem3d(atm%v,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:v')
       call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
+      call getmem3d(atm%tv,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:tv')
       call getmem4d(atm%qx,jce1-jl,jce2+jr, &
                            ice1-ib,ice2+it,1,kz,1,nqx,'atmstate:qx')
       if ( ibltyp == 2 ) then
