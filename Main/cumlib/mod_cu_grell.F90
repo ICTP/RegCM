@@ -204,7 +204,6 @@ module mod_cu_grell
   subroutine cuparan(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    real(rk8) :: prainx
     integer(ik4) :: i , j , k , kk , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuparan'

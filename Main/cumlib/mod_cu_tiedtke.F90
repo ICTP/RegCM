@@ -53,8 +53,8 @@ module mod_cu_tiedtke
   real(rk8) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 ,    &
         pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec , zlude , &
         pmflxr , pccn
-  real(rk8) , pointer , dimension(:) :: prsfc , pssfc , paprc , &
-        paprs , ptopmax , xphfx , xpqfx
+  real(rk8) , pointer , dimension(:) :: prsfc , pssfc , &
+        ptopmax , xphfx , xpqfx
   real(rk8) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
         pxlte , pverv , pmfu , xpg , xpgh
   real(rk8) , pointer , dimension(:) :: pmean
@@ -145,8 +145,6 @@ module mod_cu_tiedtke
     call getmem2d(paphp1,1,nipoi,1,kzp1,'mod_cu_tiedtke:paphp1')
     call getmem1d(prsfc,1,nipoi,'mod_cu_tiedtke:prsfc')
     call getmem1d(pssfc,1,nipoi,'mod_cu_tiedtke:pssfc')
-    call getmem1d(paprc,1,nipoi,'mod_cu_tiedtke:paprc')
-    call getmem1d(paprs,1,nipoi,'mod_cu_tiedtke:paprs')
     call getmem1d(ptopmax,1,nipoi,'mod_cu_tiedtke:ptopmax')
     call getmem1d(xphfx,1,nipoi,'mod_cu_tiedtke:xphfx')
     call getmem1d(xpqfx,1,nipoi,'mod_cu_tiedtke:xpqfx')
@@ -285,8 +283,6 @@ module mod_cu_tiedtke
     ! Output variables (1d)
     prsfc(:) = d_zero ! CHECK - surface rain flux
     pssfc(:) = d_zero ! CHECK - surface snow flux
-    paprc(:) = d_zero ! total precip cumulative
-    paprs(:) = d_zero ! total snow cumulative
 
     kctop(:) = 0
     kcbot(:) = 0
@@ -294,8 +290,8 @@ module mod_cu_tiedtke
     call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,   &
                 pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
                 pxite,pverv,pxtec,pqtec,xphfx,xpqfx,papp1,paphp1,xpg, &
-                xpgh,prsfc,pssfc,paprc,paprs,pmflxr,pmfu,zlude,ktype, &
-                ldland,kctop,kcbot,ptopmax,pccn)
+                xpgh,prsfc,pssfc,pmflxr,pmfu,zlude,ktype,ldland,kctop,&
+                kcbot,ptopmax,pccn)
     !
     ! postprocess some fields including precipitation fluxes
     !
@@ -396,8 +392,8 @@ module mod_cu_tiedtke
                     pxtm1,pxtte,ptm1,pqm1,pum1,pvm1,pxlm1,pxim1, &
                     ptte,pqte,pvom,pvol,pxlte,pxite,pverv,pxtec, &
                     pqtec,pshfla,pqhfla,papp1,paphp1,pgeo,pgeoh, &
-                    prsfc,pssfc,paprc,paprs,pmflxr,pmfu,zlude,   &
-                    ktype,ldland,kctop,kcbot,ptopmax,pccn)
+                    prsfc,pssfc,pmflxr,pmfu,zlude,ktype,ldland,  &
+                    kctop,kcbot,ptopmax,pccn)
 !
 !
 !     *CUCALL* - MASTER ROUTINE - PROVIDES INTERFACE FOR:
@@ -423,7 +419,7 @@ module mod_cu_tiedtke
 !          CUMASTR, CUMASTRT OR CUMASTRH
 !
   implicit none
-!
+
   integer(ik4) , intent(in) :: kbdim , klev , klevm1 , klevp1 , kproma , ktrac
   integer(ik4) , dimension(kbdim,klev) :: ilab
   integer(ik4) , dimension(kbdim) :: ktype
@@ -433,15 +429,15 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim,klev) :: papp1 , pgeo , pqm1 , pqte ,   &
          pqtec , ptm1 , ptte , pum1 , pverv , pvm1 , pvol , pvom ,  &
          pxim1 , pxite , pxlm1 , pxlte , pxtec , pmfu , zlude , pccn
-  real(rk8) , dimension(kbdim) :: paprc , paprs , pqhfla , pshfla , prsfc , &
-                                pssfc , ptopmax
+  real(rk8) , dimension(kbdim) :: pqhfla , pshfla , prsfc , &
+         pssfc , ptopmax
   integer(ik4) , dimension(kbdim) , intent(out) :: kctop , kcbot
   real(rk8) , dimension(kbdim,klev,ktrac) :: pxtm1 , pxtte
   intent (in) papp1 , pqm1 , ptm1 , pum1 , pvm1 , pxim1 , &
-              pxlm1 , pxlte , pxtm1 , pccn
+         pxlm1 , pxlte , pxtm1 , pccn
   intent(out) :: zlude
   intent (inout) ptopmax
-!
+
   integer(ik4) , dimension(kbdim) :: itopec2
   integer(ik4) :: ilevmin , it , jk , jl , jt
   logical , dimension(kbdim) :: locum
@@ -515,23 +511,20 @@ module mod_cu_tiedtke
     call cumastr(kproma,kbdim,klev,klevp1,klevm1,ilab,ztp1,zqp1,    &
                  zxp1,zup1,zvp1,ztvp1,ktrac,ldland,zxtp1,zxtu,pxtte,&
                  pverv,zqsat,pqhfla,paphp1,pgeo,ptte,pqte,pvom,pvol,&
-                 prsfc,pssfc,paprc,paprs,pxtec,pqtec,zqude,locum,   &
-                 ktype,kcbot,kctop,ztu,zqu,zlu,zlude,pmfu,zmfd,     &
-                 zrain)
+                 prsfc,pssfc,pxtec,pqtec,zqude,locum,ktype,kcbot,   &
+                 kctop,ztu,zqu,zlu,zlude,pmfu,zmfd,zrain)
   case (2)
     call cumastrt(kproma,kbdim,klev,klevp1,klevm1,ilab,ztp1,zqp1,   &
                   zxp1,zup1,zvp1,ztvp1,ktrac,ldland,zxtp1,zxtu,     &
                   pxtte,pverv,zqsat,pqhfla,paphp1,pgeo,ptte,pqte,   &
-                  pvom,pvol,prsfc,pssfc,paprc,paprs,pxtec,pqtec,    &
-                  zqude,locum,ktype,kcbot,kctop,ztu,zqu,zlu,zlude,  &
-                  pmfu,zmfd,zrain)
+                  pvom,pvol,prsfc,pssfc,pxtec,pqtec,zqude,locum,    &
+                  ktype,kcbot,kctop,ztu,zqu,zlu,zlude,pmfu,zmfd,zrain)
   case (3)
     call cumastrh(kproma,kbdim,klev,klevp1,klevm1,ilab,ztp1,zqp1,   &
                   zxp1,zup1,zvp1,ztvp1,ktrac,ldland,zxtp1,zxtu,     &
                   pxtte,pverv,zqsat,pqhfla,paphp1,pgeo,ptte,pqte,   &
-                  pvom,pvol,prsfc,pssfc,paprc,paprs,pxtec,pqtec,    &
-                  zqude,locum,ktype,kcbot,kctop,ztu,zqu,zlu,zlude,  &
-                  pmfu,zmfd,zrain)
+                  pvom,pvol,prsfc,pssfc,pxtec,pqtec,zqude,locum,    &
+                  ktype,kcbot,kctop,ztu,zqu,zlu,zlude,pmfu,zmfd,zrain)
   case (4)
     ! =====================
     ! ABOUT pqhfl and pahfs
@@ -633,9 +626,8 @@ module mod_cu_tiedtke
   subroutine cumastr(kproma,kbdim,klev,klevp1,klevm1,ilab,pten,pqen,&
                      pxen,puen,pven,ptven,ktrac,ldland,pxten,pxtu,  &
                      pxtte,pverv,pqsen,pqhfla,paphp1,pgeo,ptte,pqte,&
-                     pvom,pvol,prsfc,pssfc,paprc,paprs,pxtec,pqtec, &
-                     pqude,ldcum,ktype,kcbot,kctop,ptu,pqu,plu,     &
-                     plude,pmfu,pmfd,prain)
+                     pvom,pvol,prsfc,pssfc,pxtec,pqtec,pqude,ldcum, &
+                     ktype,kcbot,kctop,ptu,pqu,plu,plude,pmfu,pmfd,prain)
 !
 !**** *CUMASTR*  MASTER ROUTINE FOR CUMULUS MASSFLUX-SCHEME
 !
@@ -728,8 +720,7 @@ module mod_cu_tiedtke
   integer(ik4) , dimension(kbdim) :: kcbot , kctop , ktype
   logical , dimension(kbdim) :: ldcum , ldland
   real(rk8) , dimension(kbdim,klevp1) :: paphp1
-  real(rk8) , dimension(kbdim) :: paprc , paprs , pqhfla , prain ,    &
-                                prsfc , pssfc
+  real(rk8) , dimension(kbdim) :: pqhfla , prain , prsfc , pssfc
   real(rk8) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
          pmfu , pqen , pqsen , pqte , pqtec , pqu , pqude , pten ,  &
          ptte , ptu , ptven , puen , pven , pverv , pvol , pvom ,   &
@@ -1110,7 +1101,7 @@ module mod_cu_tiedtke
   call cudtdq(kproma,kbdim,klev,klevp1,itopm2,ldcum,ktrac,paphp1,   &
               pten,ptte,pqte,pxtte,pxtec,zmfuxt,zmfdxt,zmfus,zmfds, &
               zmfuq,zmfdq,zmful,zdmfup,zdmfdp,plude,zdpmel,zrfl,    &
-              zsfl,zcpen,pqtec,pqude,prsfc,pssfc,paprc,paprs)
+              zsfl,zcpen,pqtec,pqude,prsfc,pssfc)
 
 !*AMT*
 !  do jl = 1 , kproma
@@ -1134,9 +1125,9 @@ module mod_cu_tiedtke
   subroutine cumastrh(kproma,kbdim,klev,klevp1,klevm1,ilab,pten,    &
                       pqen,pxen,puen,pven,ptven,ktrac,ldland,pxten, &
                       pxtu,pxtte,pverv,pqsen,pqhfla,paphp1,pgeo,    &
-                      ptte,pqte,pvom,pvol,prsfc,pssfc,paprc,paprs,  &
-                      pxtec,pqtec,pqude,ldcum,ktype,kcbot,kctop,ptu,&
-                      pqu,plu,plude,pmfu,pmfd,prain)
+                      ptte,pqte,pvom,pvol,prsfc,pssfc,pxtec,pqtec,  &
+                      pqude,ldcum,ktype,kcbot,kctop,ptu,pqu,plu,    &
+                      plude,pmfu,pmfd,prain)
 !
 !     M.TIEDTKE      E.C.M.W.F.     1986/1987/1989
 !
@@ -1226,8 +1217,7 @@ module mod_cu_tiedtke
   integer(ik4) , dimension(kbdim) :: kcbot , kctop , ktype
   logical , dimension(kbdim) :: ldcum , ldland
   real(rk8) , dimension(kbdim,klevp1) :: paphp1
-  real(rk8) , dimension(kbdim) :: paprc , paprs , pqhfla , prain ,    &
-                                prsfc , pssfc
+  real(rk8) , dimension(kbdim) :: pqhfla , prain , prsfc , pssfc
   real(rk8) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
          pmfu , pqen , pqsen , pqte , pqtec , pqu , pqude , pten ,  &
          ptte , ptu , ptven , puen , pven , pverv , pvol , pvom ,   &
@@ -1564,7 +1554,7 @@ module mod_cu_tiedtke
   call cudtdq(kproma,kbdim,klev,klevp1,itopm2,ldcum,ktrac,paphp1,   &
               pten,ptte,pqte,pxtte,pxtec,zmfuxt,zmfdxt,zmfus,zmfds, &
               zmfuq,zmfdq,zmful,zdmfup,zdmfdp,plude,zdpmel,zrfl,    &
-              zsfl,zcpen,pqtec,pqude,prsfc,pssfc,paprc,paprs)
+              zsfl,zcpen,pqtec,pqude,prsfc,pssfc)
 !
 !-----------------------------------------------------------------------
 !*    9.0          UPDATE TENDENCIES FOR U AND U IN SUBROUTINE CUDUDV
@@ -1581,9 +1571,9 @@ module mod_cu_tiedtke
   subroutine cumastrt(kproma,kbdim,klev,klevp1,klevm1,ilab,pten,    &
                       pqen,pxen,puen,pven,ptven,ktrac,ldland,pxten, &
                       pxtu,pxtte,pverv,pqsen,pqhfla,paphp1,pgeo,    &
-                      ptte,pqte,pvom,pvol,prsfc,pssfc,paprc,paprs,  &
-                      pxtec,pqtec,pqude,ldcum,ktype,kcbot,kctop,ptu,&
-                      pqu,plu,plude,pmfu,pmfd,prain)
+                      ptte,pqte,pvom,pvol,prsfc,pssfc,pxtec,pqtec,  &
+                      pqude,ldcum,ktype,kcbot,kctop,ptu,pqu,plu,    &
+                      plude,pmfu,pmfd,prain)
 !
 !     M.TIEDTKE      E.C.M.W.F.     1986/1987/1989
 !
@@ -1673,8 +1663,7 @@ module mod_cu_tiedtke
   integer(ik4) , dimension(kbdim) :: kcbot , kctop , ktype
   logical , dimension(kbdim) :: ldcum , ldland
   real(rk8) , dimension(kbdim,klevp1) :: paphp1
-  real(rk8) , dimension(kbdim) :: paprc , paprs , pqhfla , prain ,    &
-                                prsfc , pssfc
+  real(rk8) , dimension(kbdim) :: pqhfla , prain , prsfc , pssfc
   real(rk8) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
          pmfu , pqen , pqsen , pqte , pqtec , pqu , pqude , pten ,  &
          ptte , ptu , ptven , puen , pven , pverv , pvol , pvom ,   &
@@ -1965,7 +1954,7 @@ module mod_cu_tiedtke
   call cudtdq(kproma,kbdim,klev,klevp1,itopm2,ldcum,ktrac,paphp1,   &
               pten,ptte,pqte,pxtte,pxtec,zmfuxt,zmfdxt,zmfus,zmfds, &
               zmfuq,zmfdq,zmful,zdmfup,zdmfdp,plude,zdpmel,zrfl,    &
-              zsfl,zcpen,pqtec,pqude,prsfc,pssfc,paprc,paprs)
+              zsfl,zcpen,pqtec,pqude,prsfc,pssfc)
 !
 !---------------------------------------------------------------------
 !*    9.0          UPDATE TENDENCIES FOR U AND U IN SUBROUTINE CUDUDV
@@ -3669,7 +3658,7 @@ module mod_cu_tiedtke
                     paphp1,pten,ptte,pqte,pxtte,pxtec,pmfuxt,pmfdxt,&
                     pmfus,pmfds,pmfuq,pmfdq,pmful,pdmfup,pdmfdp,    &
                     plude,pdpmel,prfl,psfl,pcpen,pqtec,pqude,prsfc, &
-                    pssfc,paprc,paprs)
+                    pssfc)
 !
 !
 !**** *CUDTDQ* - UPDATES T AND Q TENDENCIES, PRECIPITATION RATES
@@ -3687,8 +3676,7 @@ module mod_cu_tiedtke
   integer(ik4) , intent(in) :: kbdim , klev , klevp1 , kproma , ktopm2 , ktrac
   logical , dimension(kbdim) :: ldcum
   real(rk8) , dimension(kbdim,klevp1) :: paphp1
-  real(rk8) , dimension(kbdim) :: paprc , paprs , prfl , prsfc ,      &
-                                psfl , pssfc
+  real(rk8) , dimension(kbdim) :: prfl , prsfc , psfl , pssfc
   real(rk8) , dimension(kbdim,klev) :: pcpen , pdmfdp , pdmfup ,      &
          pdpmel , plude , pmfdq , pmfds , pmful , pmfuq , pmfus ,   &
          pqte , pqtec , pqude , pten , ptte , pxtec
@@ -3697,7 +3685,7 @@ module mod_cu_tiedtke
               plude , pmfdq , pmfds , pmfdxt , pmful , pmfuq ,      &
               pmfus , pmfuxt , pqude , prfl , psfl , pten
   intent (out) pqtec , prsfc , pssfc , pxtec
-  intent (inout) paprc , paprs , pqte , ptte , pxtte
+  intent (inout) pqte , ptte , pxtte
 !
   integer(ik4) :: jk , jl , jt
   logical :: llo1
