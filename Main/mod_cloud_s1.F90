@@ -219,18 +219,14 @@ module mod_cloud_s1
   real(rk8) , public  , pointer, dimension(:,:,:)   :: statssnowev
 #ifdef USE_LAPACK
   integer(ik4) , pointer , dimension(:) :: ipivot
-#else
-  integer(ik4) , pointer , dimension(:,:,:)   :: jindex2  ! index variable
-  real(rk8) , pointer , dimension(:) :: vv , swap
-  real(rk8) , parameter :: uch = d_1000*regrav*secph
 #endif
 
   real(rk8) , parameter :: zminqx = minqq ! 1.0D-8
 
-  interface addpath
-    module procedure addpath_array
-    module procedure addpath_real
-  end interface
+!  interface addpath
+!    module procedure addpath_array
+!    module procedure addpath_real
+!  end interface
 
   contains
 
@@ -315,10 +311,6 @@ module mod_cloud_s1
 
 #ifdef USE_LAPACK
       call getmem1d(ipivot,1,nqx,'cmicro:ipivot')
-#else
-      call getmem3d(jindex2,1,nqx,jci1,jci2,ici1,ici2,'cmicro:jindex2')
-      call getmem1d(vv,1,nqx,'cmicro:vv')
-      call getmem1d(swap,1,nqx,'cmicro:swap')
 #endif
       call getmem3d(zfallsink,jci1,jci2,ici1,ici2,1,nqx,'cmicro:zfallsink')
       call getmem3d(zfallsrce,jci1,jci2,ici1,ici2,1,nqx,'cmicro:zfallsrce')
@@ -1750,9 +1742,9 @@ module mod_cloud_s1
               if ( stats ) then
                 statssnowev(j,i,k) = zevap
               end if
-           end if
-         end do
-       end do
+            end if
+          end do
+        end do
       end if !lmicro
       !--------------------------------
       ! solver for the microphysics
@@ -1936,8 +1928,7 @@ module mod_cloud_s1
       end do
 #else
       ! Internally coded solution
-      call ludcmp(zqlhs,jindex2)
-      call lubksb(zqlhs,jindex2,zqxn)
+      call mysolve(zqlhs,zqxn)
 #endif
       !------------------------------------------------------------------------
       !  Precipitation/sedimentation fluxes to next level
@@ -2146,266 +2137,253 @@ module mod_cloud_s1
 
     contains
 
-     pure real(rk8) function delta(zt)
-       !delta = 1 if zt > tzero
-       !delta = 0 if zt < tzero
-       implicit none
-       real(rk8) , intent(in):: zt
-       delta = max(d_zero,sign(d_one,zt-tzero))
-     end function delta
+      pure real(rk8) function delta(zt)
+        !delta = 1 if zt > tzero
+        !delta = 0 if zt < tzero
+        implicit none
+        real(rk8) , intent(in):: zt
+        delta = max(d_zero,sign(d_one,zt-tzero))
+      end function delta
 
-     pure real(rk8) function phases(zt)
-       !phases = 1      if zt > tzero
-       !phases = 0      if zt < rtice
-       !0<phases < 1    if rtice < zt < tzero
-       implicit none
-       real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: rtice =  250.16D0 ! tzero - 23.0
-       real(rk8) , parameter :: rtwat_rtice_r = d_one/23.0D0
-       phases = max(min(d_one,((max(rtice,min(tzero,zt))-rtice)* &
-                            rtwat_rtice_r)**2),d_zero)
-     end function phases
+      pure real(rk8) function phases(zt)
+        !phases = 1      if zt > tzero
+        !phases = 0      if zt < rtice
+        !0<phases < 1    if rtice < zt < tzero
+        implicit none
+        real(rk8) , intent(in):: zt
+        real(rk8) , parameter :: rtice =  250.16D0 ! tzero - 23.0
+        real(rk8) , parameter :: rtwat_rtice_r = d_one/23.0D0
+        phases = max(min(d_one,((max(rtice,min(tzero,zt))-rtice)* &
+                                rtwat_rtice_r)**2),d_zero)
+      end function phases
 
-     pure real(rk8) function foedem(zt)
-       implicit none
-       real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: r4les = 35.86D0
-       real(rk8) , parameter :: r4ies = 7.66D0
-       real(rk8) , parameter :: r5les = 4097.9337D0
-       real(rk8) , parameter :: r5ies = 5807.547D0
-       real(rk8) , parameter :: r5alvcp = r5les*wlhvocp
-       real(rk8) , parameter :: r5alscp = r5ies*wlhsocp
-       foedem = phases(zt)*r5alvcp*(d_one/(zt-r4les)**2) + &
-                (d_one-phases(zt))*r5alscp*(d_one/(zt-r4ies)**2)
-     end function foedem
+      pure real(rk8) function foedem(zt)
+        implicit none
+        real(rk8) , intent(in):: zt
+        real(rk8) , parameter :: r4les = 35.86D0
+        real(rk8) , parameter :: r4ies = 7.66D0
+        real(rk8) , parameter :: r5les = 4097.9337D0
+        real(rk8) , parameter :: r5ies = 5807.547D0
+        real(rk8) , parameter :: r5alvcp = r5les*wlhvocp
+        real(rk8) , parameter :: r5alscp = r5ies*wlhsocp
+        foedem = phases(zt)*r5alvcp*(d_one/(zt-r4les)**2) + &
+                 (d_one-phases(zt))*r5alscp*(d_one/(zt-r4ies)**2)
+      end function foedem
 
-     pure real(rk8) function foeldcpm(zt)
-       implicit none
-       real(rk8) , intent(in):: zt
-       foeldcpm = phases(zt)*wlhvocp+(d_one-phases(zt))*wlhsocp
-     end function foeldcpm
+      pure real(rk8) function foeldcpm(zt)
+        implicit none
+        real(rk8) , intent(in):: zt
+        foeldcpm = phases(zt)*wlhvocp+(d_one-phases(zt))*wlhsocp
+      end function foeldcpm
 
-     pure real(rk8) function foeewm(zt)
-       implicit none
-       real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: r2es =  610.78D0*ep2
-       real(rk8) , parameter :: r3les = 17.269D0
-       real(rk8) , parameter :: r4les = 35.86D0
-       foeewm = r2es*(phases(zt)*exp(r3les*(zt-tzero)/(zt-r4les)) + &
-                 (d_one-phases(zt))*exp(21.874D0*((zt-tzero)/(zt-7.66D0))))
-     end function foeewm
+      pure real(rk8) function foeewm(zt)
+        implicit none
+        real(rk8) , intent(in):: zt
+        real(rk8) , parameter :: r2es =  610.78D0*ep2
+        real(rk8) , parameter :: r3les = 17.269D0
+        real(rk8) , parameter :: r4les = 35.86D0
+        foeewm = r2es*(phases(zt)*exp(r3les*(zt-tzero)/(zt-r4les)) + &
+                  (d_one-phases(zt))*exp(21.874D0*((zt-tzero)/(zt-7.66D0))))
+      end function foeewm
 
-     pure real(rk8) function foeeliq(zt) ! = 0.622*esw  !Teten's formula
-       implicit none
-       real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: r2es =  610.78D0*ep2 ! = 0.622
-       real(rk8) , parameter :: r3les = 17.269D0
-       real(rk8) , parameter :: r4les = 35.86D0
-       foeeliq = r2es*exp(r3les*(zt-tzero)/(zt-r4les))
-     end function foeeliq
+      pure real(rk8) function foeeliq(zt) ! = 0.622*esw  !Teten's formula
+        implicit none
+        real(rk8) , intent(in):: zt
+        real(rk8) , parameter :: r2es =  610.78D0*ep2 ! = 0.622
+        real(rk8) , parameter :: r3les = 17.269D0
+        real(rk8) , parameter :: r4les = 35.86D0
+        foeeliq = r2es*exp(r3les*(zt-tzero)/(zt-r4les))
+      end function foeeliq
 
-     pure real(rk8) function foeeice(zt) ! = 0.622*esi
-       implicit none
-       real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: r2es =  610.78D0*ep2
-       foeeice = r2es*exp(21.874D0*((zt-tzero)/(zt-7.66D0)))
-     end function foeeice
+      pure real(rk8) function foeeice(zt) ! = 0.622*esi
+        implicit none
+        real(rk8) , intent(in):: zt
+        real(rk8) , parameter :: r2es =  610.78D0*ep2
+        foeeice = r2es*exp(21.874D0*((zt-tzero)/(zt-7.66D0)))
+      end function foeeice
 
-     pure real(rk8) function fokoop(zt,foeeliq,foeeice)
-       implicit none
-       ! se T < 0 la nuvola si forma o quando q e' maggiore della liquid
-       ! water saturation minima, oppure se e' maggiore del mixing ratio
-       ! wrt ice critica a cui inizia l'homogeneaous ice nucleation
-       ! At temperatures below 0◦C new cloud forms in any non-cloudy part
-       ! of the grid box where the humidity exceeds either the minimum of
-       ! the liquid water saturation specific humidity (qsl), or the
-       ! critical vapour saturation mixing ratio with respect to ice at
-       ! which homogeneous ice nucleation initiates
-       ! empirical fit given by Karcher and Lohmann (2002) which is a
-       ! function of temperature and ranges from 45% supersaturation at
-       ! T = 235 K to 67% at T = 190 K.
-       ! At temperatures warmer than -38 degC the cloud formation over a
-       ! timestep results entirely in liquid cloud,
-       ! i.e. fokoop = foeeliq/foeeice, mentre per T < -38 fokoop = RHhomo
-       ! while below this threshold the liquid water or aqueous sulphate
-       ! solutes are assumed to freeze instantaneously and the process is
-       ! a source for cloud ice.
-       ! fokoop modifies the ice saturation mixing ratio for homogeneous
-       ! nucleation
-       real(rk8) , parameter :: rkoop1 = 2.583       ! RHhomo = 2.583-T/207.8
-       real(rk8) , parameter :: rkoop2 = 0.48116D-02 ! rkoop2 = 1/207.8
-       real(rk8) , intent(in) :: zt, foeeliq , foeeice
-       fokoop = min(rkoop1-rkoop2*zt,foeeliq/foeeice)
-     end function fokoop
+      pure real(rk8) function fokoop(zt,foeeliq,foeeice)
+        implicit none
+        ! se T < 0 la nuvola si forma o quando q e' maggiore della liquid
+        ! water saturation minima, oppure se e' maggiore del mixing ratio
+        ! wrt ice critica a cui inizia l'homogeneaous ice nucleation
+        ! At temperatures below 0◦C new cloud forms in any non-cloudy part
+        ! of the grid box where the humidity exceeds either the minimum of
+        ! the liquid water saturation specific humidity (qsl), or the
+        ! critical vapour saturation mixing ratio with respect to ice at
+        ! which homogeneous ice nucleation initiates
+        ! empirical fit given by Karcher and Lohmann (2002) which is a
+        ! function of temperature and ranges from 45% supersaturation at
+        ! T = 235 K to 67% at T = 190 K.
+        ! At temperatures warmer than -38 degC the cloud formation over a
+        ! timestep results entirely in liquid cloud,
+        ! i.e. fokoop = foeeliq/foeeice, mentre per T < -38 fokoop = RHhomo
+        ! while below this threshold the liquid water or aqueous sulphate
+        ! solutes are assumed to freeze instantaneously and the process is
+        ! a source for cloud ice.
+        ! fokoop modifies the ice saturation mixing ratio for homogeneous
+        ! nucleation
+        real(rk8) , parameter :: rkoop1 = 2.583       ! RHhomo = 2.583-T/207.8
+        real(rk8) , parameter :: rkoop2 = 0.48116D-02 ! rkoop2 = 1/207.8
+        real(rk8) , intent(in) :: zt, foeeliq , foeeice
+        fokoop = min(rkoop1-rkoop2*zt,foeeliq/foeeice)
+      end function fokoop
+
+      subroutine mysolve(aam,bbm)
+        implicit none
+        real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: aam
+        real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: bbm
+        integer(ik4) :: i , j , k , ii , jj , ll , imax , m , n
+        real(rk8) :: aamax , dum , xsum , swap
+        integer(ik4) , dimension(nqx) :: indx
+        real(rk8) , dimension(nqx) :: vv
+
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            !                                                Ux=y
+            ! solve A x = b-------------> LU x = b---------> Ly=b
+            !
+            ! LOOP OVER ROWS TO GET THE IMPLICIT SCALING INFORMATION.
+            !
+            do m = 1 , nqx
+              aamax = d_zero
+              do n = 1 , nqx
+                if ( abs(aam(m,n,j,i)) > aamax ) aamax = abs(aam(m,n,j,i))
+              end do
+              if ( aamax < dlowval ) then
+                call fatal(__FILE__,__LINE__,'SINGULAR MATRIX')
+              end if ! SINGULAR MATRIX
+              vv(m) = d_one/aamax ! SAVE THE SCALING.
+            end do
+            do n = 1 , nqx
+              ! THIS IS THE LOOP OVER COLUMNS OF CROUT S METHOD.
+              if ( n > 1 ) then
+                do m = 1 , n - 1
+                  ! THIS IS EQUATION (2.3.12) EXCEPT FOR I = J.
+                  xsum = aam(m,n,j,i)
+                  do k = 1 , m - 1
+                    xsum = xsum - aam(m,k,j,i)*aam(k,n,j,i)
+                  end do
+                  aam(m,n,j,i) = xsum
+                end do
+              end if
+              ! INITIALIZE FOR THE SEARCH FOR LARGEST PIVOT ELEMENT.
+              aamax = d_zero
+              imax = n
+              ! THIS IS I = J OF EQUATION (2.3.12)
+              do m = n , nqx
+                ! AND I = J+1. . .N OF EQUATION (2.3.13).
+                xsum = aam(m,n,j,i)
+                if ( n > 1 ) then
+                  do k = 1 , n - 1
+                    xsum = xsum - aam(m,k,j,i)*aam(k,n,j,i)
+                  end do
+                  aam(m,n,j,i) = xsum
+                end if
+                dum = vv(m)*abs(xsum)   ! FIGURE OF MERIT FOR THE PIVOT.
+                if ( dum >= aamax ) then ! IS IT BETTER THAN THE BEST SO FAR?
+                  imax = m
+                  aamax = dum
+                end if
+              end do
+              if ( n /= imax ) then
+                ! DO WE NEED TO INTERCHANGE ROWS? YES, DO SO...
+                ! D = -D !...AND CHANGE THE PARITY OF D.
+                do ii = 1 , nqx
+                  swap = aam(imax,ii,j,i)
+                  aam(imax,ii,j,i) = aam(n,ii,j,i)
+                  aam(n,ii,j,i) = swap
+                end do
+                vv(imax) = vv(n) ! ALSO INTERCHANGE THE SCALE FACTOR.
+              end if
+              indx(n) = imax
+              if ( abs(aam(n,n,j,i)) < dlowval ) aam(n,n,j,i) = dlowval
+              dum = d_one/aam(n,n,j,i)
+              if ( n /= nqx ) then
+                do m = n + 1 , nqx
+                  aam(m,n,j,i) = aam(m,n,j,i)*dum
+                end do
+              end if
+            end do
+            if ( abs(aam(nqx,nqx,j,i)) < dlowval ) then
+              aam(nqx,nqx,j,i) = dlowval
+            end if
+            !
+            ! SOLVE THE SET OF N LINEAR EQUATIONS A * X = B.
+            ! HERE A IS INPUT, NOT AS THE MATRIX A BUT RATHER AS
+            ! ITS LU DECOMPOSITION, DETERMINED BY THE ROUTINE LUDCMP.
+            ! INDX IS INPUT AS THE PERMUTATION VECTOR RETURNED BY LUDCMP.
+            ! B(1:N) IS INPUT AS THE RIGHT-HAND SIDE VECTOR B,
+            ! AND RETURNS WITH THE SOLUTION VECTOR X. A, N, NP,
+            ! AND INDX ARE NOT MODIFIED BY THIS ROUTINE AND CAN BE
+            ! LEFT IN PLACE FOR SUCCESSIVE CALLS WITH DI
+            !
+            ii = 0
+            ! WHEN II IS SET TO A POSITIVE VALUE, IT WILL BECOME
+            ! THE INDEX OF THE  FIRST NONVANISHING ELEMENT OF B.
+            ! WE NOW DO THE FORWARD SUBSTITUTION, EQUATION (2.3.6).
+            ! THE ONLY NEW WRINKLE IS TO UNSCRAMBLE THE PERMUTATION AS WE GO.
+            do m = 1 , nqx
+              ll = indx(m)
+              xsum = bbm(ll,j,i)
+              bbm(ll,j,i) = bbm(m,j,i)
+              if ( ii == 0 ) then
+                if ( abs(xsum) > dlowval ) ii = m
+              else
+                do jj = ii , m - 1
+                  xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i)
+                end do
+              end if
+              bbm(m,j,i) = xsum
+            end do
+            ! NOW WE DO THE BACKSUBSTITUTION, EQUATION (2.3.7)
+            do m = nqx , 1 , -1
+              xsum = bbm(m,j,i)
+              do jj = m + 1 , nqx
+                xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i)
+              end do
+              ! STORE A COMPONENT OF THE SOLUTION VECTOR X.
+              bbm(m,j,i) = xsum/aam(m,m,j,i)
+            end do
+          end do
+        end do
+      end subroutine mysolve
 
   end subroutine microphys
 
-  subroutine lubksb(aam,indx,bbm)
-    implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: aam
-    integer(ik4) , pointer , intent(in) , dimension(:,:,:) :: indx
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: bbm
-    integer(ik4) :: i , j , ii , jj , ll , m
-    real(rk8) :: xsum
-#ifdef DEBUG
-     character(len=dbgslen) :: subroutine_name = 'lubksb'
-     integer(ik4) , save :: idindx = 0
-     call time_begin(subroutine_name,idindx)
-#endif
-
-    ! SOLVES THE SET OF N LINEAR EQUATIONS A * X = B.
-    ! HERE A IS INPUT, NOT AS THE MATRIX A BUT RATHER AS
-    ! ITS LU DECOMPOSITION, DETERMINED BY THE ROUTINE LUDCMP.
-    ! INDX IS INPUT AS THE PERMUTATION VECTOR RETURNED BY LUDCMP.
-    ! B(1:N) IS INPUT AS THE RIGHT-HAND SIDE VECTOR B,
-    ! AND RETURNS WITH THE SOLUTION VECTOR X. A, N, NP,
-    ! AND INDX ARE NOT MODIFIED BY THIS ROUTINE AND CAN BE
-    ! LEFT IN PLACE FOR SUCCESSIVE CALLS WITH DI
-
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ii = 0
-        ! WHEN II IS SET TO A POSITIVE VALUE, IT WILL BECOME
-        ! THE INDEX OF THE  FIRST NONVANISHING ELEMENT OF B.
-        ! WE NOW DO THE FORWARD SUBSTITUTION, EQUATION (2.3.6).
-        ! THE ONLY NEW WRINKLE IS TO UNSCRAMBLE THE PERMUTATION AS WE GO.
-        do m = 1 , nqx
-          ll = indx(m,j,i)
-          xsum = bbm(ll,j,i)
-          bbm(ll,j,i) = bbm(m,j,i)
-          if ( ii /= 0 ) then
-            do jj = ii , m - 1
-              xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i)
-            end do
-          else if ( dabs(xsum) > dlowval ) then
-            ii = m
-          end if
-          bbm(m,j,i) = xsum
-        end do
-        do m = nqx , 1 , -1 ! NOW WE DO THE BACKSUBSTITUTION, EQUATION (2.3.7)
-          xsum = bbm(m,j,i)
-          do jj = m + 1 , nqx
-            xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i)
-          end do
-          ! STORE A COMPONENT OF THE SOLUTION VECTOR X.
-          bbm(m,j,i) = xsum/aam(m,m,j,i)
-        end do
-      end do
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
-  end subroutine lubksb
-
-  subroutine ludcmp(aam,indx)
-    ! solves A x = b-------------> LU x = b---------> Ly=b
-    !                                                 Ux=y
-    !
-    implicit none
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: aam
-    integer(ik4) , pointer , intent(inout) , dimension(:,:,:) :: indx
-    real(rk8) :: aamax , dum , xsum
-    integer(ik4) :: i , j , k , imax , n , m
-#ifdef DEBUG
-     character(len=dbgslen) :: subroutine_name = 'ludcmp'
-     integer(ik4) , save :: idindx = 0
-     call time_begin(subroutine_name,idindx)
-#endif
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-       !LOOP OVER ROWS TO GET THE IMPLICIT SCALING INFORMATION.
-       do m = 1 , nqx
-          aamax = d_zero
-          do n = 1 , nqx
-            if ( dabs(aam(m,n,j,i)) > aamax ) aamax = dabs(aam(m,n,j,i))
-          end do
-          if ( dabs(aamax) < dlowval ) then
-            call fatal(__FILE__,__LINE__,'SINGULAR MATRIX')
-          end if ! SINGULAR MATRIX
-          vv(m) = d_one/aamax !SAVE THE SCALING.
-        end do
-        do n = 1 , nqx
-          ! THIS IS THE LOOP OVER COLUMNS OF CROUT S METHOD.
-          do m = 1 , n - 1
-            ! THIS IS EQUATION (2.3.12) EXCEPT FOR I = J.
-            xsum = aam(m,n,j,i)
-            do k = 1 , m - 1
-              xsum = xsum - aam(m,k,j,i)*aam(k,n,j,i)
-            end do
-            aam(m,n,j,i) = xsum
-          end do
-          ! INITIALIZE FOR THE SEARCH FOR LARGEST PIVOT ELEMENT.
-          aamax = d_zero
-          imax = n
-         ! THIS IS I = J OF EQUATION (2.3.12)
-         do m = n , nqx
-            ! AND I = J+1. . .N OF EQUATION (2.3.13).
-            xsum = aam(m,n,j,i)
-            do k = 1 , n - 1
-              xsum = xsum - aam(m,k,j,i)*aam(k,n,j,i)
-            end do
-            aam(m,n,j,i) = xsum
-            dum = vv(m)*dabs(xsum)   ! FIGURE OF MERIT FOR THE PIVOT.
-            if ( dum >= aamax ) then ! IS IT BETTER THAN THE BEST SO FAR?
-              imax = m
-              aamax = dum
-            end if
-          end do
-          if ( n /= imax ) then
-            ! DO WE NEED TO INTERCHANGE ROWS? YES, DO SO...
-            ! D = -D !...AND CHANGE THE PARITY OF D.
-            swap = aam(imax,:,j,i)
-            aam(imax,:,j,i) = aam(n,:,j,i)
-            aam(n,:,j,i) = swap
-            vv(imax) = vv(n) ! ALSO INTERCHANGE THE SCALE FACTOR.
-          end if
-          indx(n,j,i) = imax
-          if ( dabs(aam(n,n,j,i)) < dlowval ) aam(n,n,j,i) = dlowval
-          dum = d_one/aam(n,n,j,i)
-          do m = n + 1 , nqx ! nqx is implicitly excluded by the loop
-            aam(m,n,j,i) = aam(m,n,j,i)*dum
-          end do
-        end do
-      end do
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
-  end subroutine ludcmp
-
-  subroutine addpath_array(src,snk,proc2,zsqa,zsqb,beta,fg,j,i)
-    implicit none
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: zsqa , zsqb
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: fg
-    real(rk8) , pointer , intent(in) , dimension(:,:)  :: proc2
-    integer(ik4) , intent(in) :: src, snk
-    integer(ik4), intent(in)  :: i , j
-    real(rk8) , intent(in) :: beta
-    zsqa(j,i,src,snk) = zsqa(j,i,src,snk) + (d_one-beta)*proc2(j,i)
-    zsqa(j,i,snk,src) = zsqa(j,i,snk,src) - (d_one-beta)*proc2(j,i)
-    fg(j,i,src) = fg(j,i,src) + (d_one-beta)*proc2(j,i)
-    fg(j,i,snk) = fg(j,i,snk) - (d_one-beta)*proc2(j,i)
-    zsqb(j,i,src,snk) = zsqb(j,i,src,snk) + beta*proc2(j,i)
-  end subroutine addpath_array
-
-  subroutine addpath_real(src,snk,proc,zsqa,zsqb,beta,fg)
-    implicit none
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: zsqa , zsqb
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: fg
-    real(rk8) , intent(in) :: proc
-    integer(ik4) , intent(in) :: src , snk
-    integer(ik4) :: i , j
-    real(rk8) , intent(in) :: beta
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        zsqa(j,i,src,snk) = zsqa(j,i,src,snk) + (d_one-beta)*proc
-        zsqa(j,i,snk,src) = zsqa(j,i,snk,src) - (d_one-beta)*proc
-        fg(j,i,src) = fg(j,i,src) + (d_one-beta)*proc
-        fg(j,i,snk) = fg(j,i,snk) - (d_one-beta)*proc
-        zsqb(j,i,src,snk) = zsqb(j,i,src,snk) + beta*proc
-      end do
-    end do
-  end subroutine addpath_real
+!  subroutine addpath_array(src,snk,proc2,zsqa,zsqb,beta,fg,j,i)
+!    implicit none
+!    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: zsqa , zsqb
+!    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: fg
+!    real(rk8) , pointer , intent(in) , dimension(:,:)  :: proc2
+!    integer(ik4) , intent(in) :: src, snk
+!    integer(ik4), intent(in)  :: i , j
+!    real(rk8) , intent(in) :: beta
+!    zsqa(j,i,src,snk) = zsqa(j,i,src,snk) + (d_one-beta)*proc2(j,i)
+!    zsqa(j,i,snk,src) = zsqa(j,i,snk,src) - (d_one-beta)*proc2(j,i)
+!    fg(j,i,src) = fg(j,i,src) + (d_one-beta)*proc2(j,i)
+!    fg(j,i,snk) = fg(j,i,snk) - (d_one-beta)*proc2(j,i)
+!    zsqb(j,i,src,snk) = zsqb(j,i,src,snk) + beta*proc2(j,i)
+!  end subroutine addpath_array
+!
+!  subroutine addpath_real(src,snk,proc,zsqa,zsqb,beta,fg)
+!    implicit none
+!    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: zsqa , zsqb
+!    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: fg
+!    real(rk8) , intent(in) :: proc
+!    integer(ik4) , intent(in) :: src , snk
+!    integer(ik4) :: i , j
+!    real(rk8) , intent(in) :: beta
+!    do i = ici1 , ici2
+!      do j = jci1 , jci2
+!        zsqa(j,i,src,snk) = zsqa(j,i,src,snk) + (d_one-beta)*proc
+!        zsqa(j,i,snk,src) = zsqa(j,i,snk,src) - (d_one-beta)*proc
+!        fg(j,i,src) = fg(j,i,src) + (d_one-beta)*proc
+!        fg(j,i,snk) = fg(j,i,snk) - (d_one-beta)*proc
+!        zsqb(j,i,src,snk) = zsqb(j,i,src,snk) + beta*proc
+!      end do
+!    end do
+!  end subroutine addpath_real
 
 end module mod_cloud_s1
 
