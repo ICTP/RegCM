@@ -248,10 +248,12 @@ module mod_output
             atm_ph_out(:,:,k) = atms%pf3d(jci1:jci2,ici1:ici2,k)
           end do
         end if
-        if ( associated(atm_rainls_out) ) then
-          do k = 1 , kz
-            atm_rainls_out(:,:,k) = rain_ls(jci1:jci2,ici1:ici2,k)
-          end do
+        if ( ipptls == 2 ) then
+          if ( associated(atm_rainls_out) ) then
+            do k = 1 , kz
+              atm_rainls_out(:,:,k) = rain_ls(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
         end if
         if ( associated(atm_raincc_out) ) then
           do k = 1 , kz

@@ -61,7 +61,8 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:,:,:) :: zqxx     ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: radheatrt  ! radiation heat rate
   real(rk8) , pointer , dimension(:,:,:) :: ztten      ! tendency of temperature
-  real(rk8) , pointer , dimension(:,:,:) :: qdetr ! conv. detr. water
+  real(rk8) , pointer , dimension(:,:,:) :: qdetr      ! conv. detr. water
+  real(rk8) , pointer , dimension(:,:,:) :: rainls     ! Rain from here
   real(rk8) , pointer , dimension(:,:,:,:) :: zqxten   ! tendency of zqx
 
   ! Total water and enthalpy budget diagnostics variables
@@ -77,7 +78,6 @@ module mod_cloud_s1
   logical , pointer , dimension(:,:,:) ::   llindex1
   logical , pointer , dimension(:,:,:,:) :: llindex3
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: rain_ls
   real(rk8) , pointer , dimension(:,:,:):: zsumh0 , zsumq0
   real(rk8) , pointer , dimension(:,:,:) :: zsumh1 , zsumq1
   real(rk8) , pointer , dimension(:,:,:) :: zerrorq , zerrorh
@@ -300,7 +300,6 @@ module mod_cloud_s1
     call getmem3d(zpfplsn,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:zpfplsn')
     call getmem3d(pfsqlf,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:pfsqlf')
     call getmem3d(pfsqif,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:pfsqif')
-    call getmem3d(rain_ls,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:rain_ls')
     call getmem3d(zliq,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:zliq')
     call getmem3d(zqxfg,jci1,jci2,ici1,ici2,1,nqx,'cmicro:zqxfg')
     call getmem3d(fccfg,jci1,jci2,ici1,ici2,1,kz,'cmicro:fccfg')
@@ -372,6 +371,7 @@ module mod_cloud_s1
     call assignpnt(pptnc,lsmrnc)
     call assignpnt(heatrt,radheatrt)
     call assignpnt(q_detr,qdetr)
+    call assignpnt(rain_ls,rainls)
     call assignpnt(mddom%ldmsk,ldmsk)
 
     ! Define species phase, 0 = vapour, 1 = liquid, 2 = ice
@@ -1172,10 +1172,11 @@ module mod_cloud_s1
           do j = jci1 , jci2
             if ( fccfg(j,i,k) > zerocf .and. &
                  zdqs(j,i) <= -zminqx ) then
-              zchng(j,i)=max(-zdqs(j,i),d_zero) !new limiter
-              zphases = zliq(j,i,k)
+              ! new limiter
+              zchng(j,i) = max(-zdqs(j,i),d_zero)
               ! old limiter
               !  (significantly improves upper tropospheric humidity rms)
+              zphases = zliq(j,i,k)
               if ( fccfg(j,i,k) > onecf ) then
                 zcor = d_one/(d_one-ep1*zqsmix(j,i,k))
                 zcdmax = (zqx0(j,i,k,iqqv)-zqsmix(j,i,k)) / &
@@ -1226,7 +1227,6 @@ module mod_cloud_s1
           do j = jci1 , jci2
             if ( zdqs(j,i) <= -zminqx .and. &
                  fccfg(j,i,k) < onecf ) then
-              ztmpa = d_one-fccfg(j,i,k)
               !---------------------------
               ! critical relative humidity
               !---------------------------
@@ -1263,6 +1263,7 @@ module mod_cloud_s1
                 zchng(j,i) = -zfac*zdqs(j,i)*d_half*zacond !mine linear
                 ! new limiter formulation
                 ! zqsice(j,i,k)-zqe) / &
+                ztmpa = d_one-fccfg(j,i,k)
                 zzdl = d_two*(zfac*zqsmix(j,i,k)-zqe) / ztmpa
                 ! added correction term zfac 15/03/2010
                 if ( zfac*zdqs(j,i) < -zzdl ) then
@@ -2249,7 +2250,7 @@ module mod_cloud_s1
     prcflxc(:,:) = d_zero
     zpfplsl(:,:,:) = d_zero
     zpfplsn(:,:,:) = d_zero
-    rain_ls(:,:,:) = d_zero
+    rainls(:,:,:) = d_zero
 
     !--------------------------------------------------------------------
     ! Copy general precip arrays back into PFP arrays for GRIB archiving
@@ -2263,7 +2264,7 @@ module mod_cloud_s1
           do i = ici1 , ici2
             do j = jci1 , jci2
               zpfplsl(j,i,k) = zpfplsl(j,i,k) + zpfplsx(j,i,k,n)
-              rain_ls(j,i,k) = zpfplsl(j,i,k)
+              rainls(j,i,k) = zpfplsl(j,i,k)
             end do
           end do
         end do

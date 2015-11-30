@@ -126,6 +126,7 @@ module mod_atm_interface
   real(rk8) , pointer , public , dimension(:,:,:) :: rembc
   real(rk8) , pointer , public , dimension(:,:,:) :: totc
   real(rk8) , pointer , public , dimension(:,:,:) :: ccn
+  real(rk8) , pointer , public , dimension(:,:,:) :: rain_ls
 
   ! PBL
   integer(ik4) , public , pointer , dimension(:,:) :: kpbl
@@ -1054,6 +1055,9 @@ module mod_atm_interface
         call getmem3d(rain_cc,jci1,jci2,ici1,ici2,1,kz,'storage:rain_cc')
       end if
 
+      if ( ipptls == 2 ) then
+        call getmem3d(rain_ls,jci1,jci2,ici1,ici2,1,kz,'storage:rain_ls')
+      end if
       if ( idynamic == 2 ) then
         call allocate_reference_atmosphere(atm0)
         call getmem2d(dpsdxm,jce1,jce2,ice1,ice2,'storage:dpsdxm')
