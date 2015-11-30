@@ -27,6 +27,7 @@ module mod_precip
   !
   use mod_intkinds
   use mod_realkinds
+  use mod_constants
   use mod_dynparam
   use mod_runparams
   use mod_memutil
@@ -65,12 +66,6 @@ module mod_precip
 
   logical :: l_lat_hack = .false.
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
-
-  !
-  ! Allowed range for cloud fraction
-  !
-  real(rk8) , parameter :: lowcld = 0.00001D0
-  real(rk8) , parameter :: hicld  = 0.99999D0
 
   real(rk8) , parameter :: rhos = 1800.0D0
   real(rk8) , parameter :: rhow = 1000.0D0

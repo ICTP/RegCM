@@ -601,6 +601,10 @@ module mod_params
             write(stdout,*) 'Will set iconvlwp == 0'
             iconvlwp = 0
           end if
+          if ( cftotmax < d_one ) then
+            write(stdout,*) 'Will set cftotmax == 1'
+            cftotmax = d_one
+          end if
         end if
       end if
 

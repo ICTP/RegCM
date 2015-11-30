@@ -77,9 +77,6 @@ module mod_cloud_s1
   logical , pointer , dimension(:,:,:) ::   llindex1
   logical , pointer , dimension(:,:,:,:) :: llindex3
 
-  real(rk8) :: zalfaw , zphases , zice , zdelta , ztmpl , &
-               ztmpi , ztnew , zqe , zrain , zpreclr , zarg , zsig
-
   real(rk8) , public , pointer , dimension(:,:,:) :: rain_ls
   real(rk8) , pointer , dimension(:,:,:):: zsumh0 , zsumq0
   real(rk8) , pointer , dimension(:,:,:) :: zsumh1 , zsumq1
@@ -220,11 +217,25 @@ module mod_cloud_s1
 
   real(rk8) , parameter :: zminqx = minqq ! 1.0D-8
 
+  abstract interface
+    pure function myzqe(q,m,f,l)
+      use mod_constants , only : rk8
+      implicit none
+      real(rk8) :: myzqe
+      real(rk8) , intent(in) :: q , m , f , l
+    end function myzqe
+  end interface
+
+  procedure(myzqe) , pointer :: p_zqe => null()
+
 !  interface addpath
 !    module procedure addpath_array
 !    module procedure addpath_real
 !  end interface
 
+  real(rk8) , parameter :: clfeps = 1.0D-6
+  real(rk8) , parameter :: zerocf = lowcld - clfeps
+  real(rk8) , parameter :: onecf  = hicld + clfeps
   contains
 
   subroutine allocate_mod_cloud_s1
@@ -350,7 +361,7 @@ module mod_cloud_s1
 
   subroutine init_cloud_s1
     use mod_atm_interface
-    use mod_runparams , only : vqxr , vqxi , vqxs
+    use mod_runparams , only : vqxr , vqxi , vqxs , nssopt
     implicit none
     integer(ik4) :: n
     call assignpnt(atms%pb3d,paph)
@@ -407,6 +418,17 @@ module mod_cloud_s1
     if ( nssopt < 0 .or. nssopt > 3 ) then
       call fatal(__FILE__,__LINE__,'NSSOPT IN CLOUD MUST BE IN RANGE 0-3')
     end if
+
+    select case(nssopt)
+      case (0)
+        p_zqe => noscheme_zqe
+      case (1)
+        p_zqe => tompkins_zqe
+      case (2)
+        p_zqe => lohmann_karcher_zqe
+      case (3)
+        p_zqe => gierens_zqe
+    end select
   end subroutine init_cloud_s1
 
   subroutine microphys
@@ -415,6 +437,8 @@ module mod_cloud_s1
     logical :: llo1
     real(rk8) :: zexplicit
     real(rk8) :: zfac , zfaci , zfacw , zcor , zfokoop
+    real(rk8) :: zalfaw , zphases , zice , zdelta , ztmpl , &
+                 ztmpi , ztnew , zqe , zrain , zpreclr , zarg , zsig
     ! local real variables for autoconversion rate constants
     real(rk8) :: alpha1 ! coefficient autoconversion cold cloud
     real(rk8) :: ztmpa
@@ -438,8 +462,6 @@ module mod_cloud_s1
     ! constants for deposition process
     real(rk8) :: zvpice , zvpliq , zadd , zbdd , zcvds , &
                  zice0 , zinew , zinfactor
-    ! constants for scaling factor
-    real(rk8) :: zmm , zrr , zmax , zrat
     ! constants for condensation
     real(rk8) :: zdpmxdt , zwtot , zzzdt , zdtdiab , zdtforc , &
                  zqp , zqsat , zcond1 , zlevap
@@ -465,7 +487,7 @@ module mod_cloud_s1
             if ( zqxx(j,i,k,n) > zepsec ) then
               zqx0(j,i,k,n) = zqxx(j,i,k,n)
             else
-              zqx0(j,i,k,n) = d_zero
+              zqx0(j,i,k,n) = zepsec
             end if
           end do
         end do
@@ -484,6 +506,7 @@ module mod_cloud_s1
         end do
       end do
     end do
+
     !-----------------------------------
     ! initialization for cloud variables
     ! -------------------------------------
@@ -686,6 +709,12 @@ module mod_cloud_s1
         end do
       end do
 
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          fccfg(j,i,k) = min(hicld,max(pfcc(j,i,k),lowcld))
+        end do
+      end do
+
       ! Reset matrix so missing pathways are set
       zsolqb(:,:,:,:)  = d_zero
       zsolqa(:,:,:,:)  = d_zero
@@ -749,7 +778,7 @@ module mod_cloud_s1
           !--------------------------------
           ! in-cloud consensate amount
           !--------------------------------
-          ztmpa = d_one/max(pfcc(j,i,k),zepsec)
+          ztmpa = d_one/fccfg(j,i,k)
           zliqcld(j,i) = zqx0(j,i,k,iqql)*ztmpa
           zicecld(j,i) = zqx0(j,i,k,iqqi)*ztmpa
           zlicld(j,i)  = zliqcld(j,i) + zicecld(j,i)
@@ -784,7 +813,7 @@ module mod_cloud_s1
       ! Note also that the KOOP factor automatically clips the supersaturation
       ! to a maximum set by the liquid water saturation mixing ratio
       ! important for temperatures near to but below 0C
-      !qv_max = qs * (pfcc + (1-pfcc) *RH_homo ) if T < 0C
+      !qv_max = qs * (fcc + (1-fcc) *RH_homo ) if T < 0C
       !qv_max = qs                             if T > 0C
       !-----------------------------------------------------------------------
       do i = ici1 , ici2
@@ -799,7 +828,7 @@ module mod_cloud_s1
               zfac  = d_one
             else
               zfokoop = fokoop(zt(j,i,k),foeeliq(zt(j,i,k)),foeeice(zt(j,i,k)))
-              zfac  = pfcc(j,i,k) + zfokoop*(d_one-pfcc(j,i,k))
+              zfac  = fccfg(j,i,k) + zfokoop*(d_one-fccfg(j,i,k))
             end if
           end if
 
@@ -811,7 +840,7 @@ module mod_cloud_s1
           ! However, if the temperature is below the threshold for homogeneous
           ! freezing then the supersaturation is turned instantly to ice.
           ! Moreover the RH is clipped to the limit of
-          ! qv_max = qs * (pfcc + (1-pfcc) *RH_homo )
+          ! qv_max = qs * (fcc + (1-fcc) *RH_homo )
           !--------------------------------------------------------------------
           ! zqsmix?
           ! zcorqslsliq? shouldn't it be zcorqsmix?
@@ -835,7 +864,7 @@ module mod_cloud_s1
             end if
           else
             if ( zsubsat(j,i) < d_zero .and. &
-                 pfcc(j,i,k) == d_zero .and. &
+                 fccfg(j,i,k) < zerocf .and. &
                  zli(j,i,k) > zepsec ) then
               ! turn subsaturation into vapor, where there is no cloud
               excess = zli(j,i,k)+zsubsat(j,i)
@@ -869,7 +898,7 @@ module mod_cloud_s1
               end if
             else
               if ( zsubsat(j,i) < d_zero .and. &
-                   pfcc(j,i,k) == d_zero .and. &
+                   fccfg(j,i,k) < zerocf .and. &
                    zli(j,i,k) > zepsec ) then
                 excess = zli(j,i,k)+zsubsat(j,i)
                 if ( excess < d_zero ) then
@@ -917,11 +946,6 @@ module mod_cloud_s1
       ! and the parametrization can have different variables switched on
       ! and off.
       ! each of these is a parametrization for a microphysical process.
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          fccfg(j,i,k) = pfcc(j,i,k)
-        end do
-      end do
       !------------------------------------------------------------------
       !                 DETRAINMENT FROM CONVECTION
       !------------------------------------------------------------------
@@ -945,8 +969,8 @@ module mod_cloud_s1
 
               ! adjustment of the cloud fraction, that increases when qdetr
               ! adds liquid to the scheme
-              ! zqe = (zqx0(j,i,k,iqqv)-pfcc(j,i,k)*zqsmix(j,i,k)) / &
-              !        zqsice(j,i,k)) / max(zepsec,d_one-pfcc(j,i,k))
+              ! zqe = (zqx0(j,i,k,iqqv)-fccfg(j,i,k)*zqsmix(j,i,k)) / &
+              !        zqsice(j,i,k)) / (d_one-fccfg(j,i,k))
               ! zqe = max(d_zero,min(zqe,zqsmix(j,i,k))) !zqsice(j,i,k)))
               ! define the new cloud
               ! fccfg(j,i,k) = (relh(j,i,k)**0.25D0)* &
@@ -955,13 +979,13 @@ module mod_cloud_s1
               !                sqrt((d_one-relh(j,i,k))*zqsice(j,i,k)))))
               ! fccfg(j,i,k) = dmin1(dmax1(fccfg(j,i,k),0.01D0),0.99D0)
               ! zchng(j,i) = min(zqdetr(j,i,k),(fccfg(j,i,k) - &
-              !                            pfcc(j,i,k))*(zqsice(j,i,k)-zqe))
+              !                            fccfg(j,i,k))*(zqsice(j,i,k)-zqe))
               ! zchng(j,i) = max(zchng(j,i),d_zero)
               ! zqdetr2(j,i,k) = zqdetr2(j,i,k) - zchng(j,i)
               ! if (zqdetr2(j,i,k) > d_zero) then
-              !    fccfg(j,i,k) = fccfg(j,i,k)
+              !   fccfg(j,i,k) = fccfg(j,i,k)
               ! else
-              !    fccfg(j,i,k) = pfcc(j,i,k)
+              !   fccfg(j,i,k) = pfcc(j,i,k)
               ! end if
               ! zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql) + zchng(j,i)
               ! zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv) - zchng(j,i)
@@ -1148,19 +1172,20 @@ module mod_cloud_s1
         end if
 
         !----------------------------------------------------------------------
-            ! zdqs(j,i) < 0: formation of clouds
+        ! zdqs(j,i) < 0: formation of clouds
         !----------------------------------------------------------------------
         ! (1) increase of cloud water in existing clouds
         zchng(:,:) = d_zero
 
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( fccfg(j,i,k) > zepsec .and. zdqs(j,i) <= -zminqx ) then
+            if ( fccfg(j,i,k) > zerocf .and. &
+                 zdqs(j,i) <= -zminqx ) then
               zchng(j,i)=max(-zdqs(j,i),d_zero) !new limiter
               zphases = phases(zt(j,i,k))
               ! old limiter
               !  (significantly improves upper tropospheric humidity rms)
-              if ( fccfg(j,i,k) > 0.99D0 ) then
+              if ( fccfg(j,i,k) > onecf ) then
                 zcor = d_one/(d_one-ep1*zqsmix(j,i,k))
                 zcdmax = (zqx0(j,i,k,iqqv)-zqsmix(j,i,k)) / &
                          (d_one + zcor*zqsmix(j,i,k)*foedem(zt(j,i,k),zphases))
@@ -1179,13 +1204,13 @@ module mod_cloud_s1
               ! liquid remains at cold temperatures until next timestep.
               !----------------------------------------------------------------
               if ( zt(j,i,k) > thomo ) then
-                zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv)+zchng(j,i)
-                zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql)-zchng(j,i)
-                zqxfg(j,i,iqql) = zqxfg(j,i,iqql)+zchng(j,i)
+                zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv) + zchng(j,i)
+                zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql) - zchng(j,i)
+                zqxfg(j,i,iqql) = zqxfg(j,i,iqql) + zchng(j,i)
               else
-                zsolqa(j,i,iqqi,iqqv) = zsolqa(j,i,iqqi,iqqv)+zchng(j,i)
-                zsolqa(j,i,iqqv,iqqi) = zsolqa(j,i,iqqv,iqqi)-zchng(j,i)
-                zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)+zchng(j,i)
+                zsolqa(j,i,iqqi,iqqv) = zsolqa(j,i,iqqi,iqqv) + zchng(j,i)
+                zsolqa(j,i,iqqv,iqqi) = zsolqa(j,i,iqqv,iqqi) - zchng(j,i)
+                zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi) + zchng(j,i)
               end if
             end if
           end do
@@ -1194,21 +1219,11 @@ module mod_cloud_s1
         if ( stats ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              if ( fccfg(j,i,k) > zepsec .and. zdqs(j,i) <= -zminqx ) then
-                if ( zt(j,i,k) > thomo ) then
-                  statscond1w(j,i,k) = zchng(j,i)
-                else
-                  statscond1c(j,i,k) = zchng(j,i)
-                end if
+              if ( zt(j,i,k) > thomo ) then
+                statscond1w(j,i,k) = zchng(j,i)
+              else
+                statscond1c(j,i,k) = zchng(j,i)
               end if
-            end do
-          end do
-        end if
-
-        if ( stats ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              statscond2w(j,i,k) = zchng(j,i)
             end do
           end do
         end if
@@ -1218,7 +1233,9 @@ module mod_cloud_s1
         ! (2) generation of new clouds (dc/dt>0)
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( zdqs(j,i) <= -zminqx .and. fccfg(j,i,k) < d_one-zepsec ) then
+            if ( zdqs(j,i) <= -zminqx .and. &
+                 fccfg(j,i,k) < onecf ) then
+              ztmpa = d_one-fccfg(j,i,k)
               !---------------------------
               ! critical relative humidity
               !---------------------------
@@ -1234,33 +1251,15 @@ module mod_cloud_s1
               !---------------------------
               ! supersaturation options
               !---------------------------
-              if ( zt(j,i,k) >= tzero ) then
+              if ( zt(j,i,k) >= tzero .or. nssopt == 0 ) then
                 ! no ice supersaturation allowed
                 zfac = d_one
               else
                 ! ice supersaturation
-                zfac = fokoop(zt(j,i,k),foeeliq(zt(j,i,k)), &
-                              foeeice(zt(j,i,k)))
+                zfac = fokoop(zt(j,i,k),foeeliq(zt(j,i,k)),foeeice(zt(j,i,k)))
               end if
-              if ( nssopt == 0 ) then
-                ! no scheme, called when zfac is defined one
-                zqe = (zqx0(j,i,k,iqqv)-fccfg(j,i,k)*zqsmix(j,i,k)) / &
-                        max(zepsec,d_one-fccfg(j,i,k))
-                zqe = max(d_zero,zqe)
-                zfac = d_one
-              else if ( nssopt == 1 ) then
-                ! tompkins
-                !zqsice(j,i,k)) / &
-                zqe = (zqx0(j,i,k,iqqv)-fccfg(j,i,k)*zqsmix(j,i,k)) / &
-                       max(zepsec,d_one-fccfg(j,i,k))
-                zqe = max(d_zero,zqe)
-              else if ( nssopt == 2 ) then
-                ! lohmann and karcher
-                zqe = zqx0(j,i,k,iqqv)
-              else if ( nssopt == 3 ) then
-                ! gierens
-                zqe = zqx0(j,i,k,iqqv)+zli(j,i,k)
-              end if
+              zqe = p_zqe(zqx0(j,i,k,iqqv),fccfg(j,i,k), &
+                          zqsmix(j,i,k),zli(j,i,k))
               if ( zqe >= zrhc*zqsmix(j,i,k)*zfac .and. &
                    zqe < zqsmix(j,i,k)*zfac ) then
                 ! note: not **2 on 1-a term if zqe is used.
@@ -1273,8 +1272,7 @@ module mod_cloud_s1
                 zchng(j,i) = -zfac*zdqs(j,i)*d_half*zacond !mine linear
                 ! new limiter formulation
                 ! zqsice(j,i,k)-zqe) / &
-                zzdl = d_two*(zfac*zqsmix(j,i,k)-zqe) / &
-                       max(zepsec,d_one-fccfg(j,i,k))
+                zzdl = d_two*(zfac*zqsmix(j,i,k)-zqe) / ztmpa
                 ! added correction term zfac 15/03/2010
                 if ( zfac*zdqs(j,i) < -zzdl ) then
                   ! zqsice(j,i,k)+zqx0(j,i,k,iqqv)
@@ -1283,12 +1281,10 @@ module mod_cloud_s1
                   zchng(j,i) = min(zchng(j,i),zlcondlim)
                 end if
                 zchng(j,i) = max(zchng(j,i),d_zero)
-                if ( zchng(j,i) < zminqx .or. &
-                    (d_one-fccfg(j,i,k)) < zepsec ) then
+                if ( zchng(j,i) < zminqx ) then
                   zchng(j,i) = d_zero
-                  zacond       = d_zero
+                  zacond     = d_zero
                 end if
-                if ( zchng(j,i) == d_zero ) zacond = d_zero
                 !-------------------------------------------------------------
                 ! all increase goes into liquid unless so cold cloud
                 ! homogeneously freezes
@@ -1296,13 +1292,13 @@ module mod_cloud_s1
                 ! liquid remains at cold temperatures until next timestep.
                 !-------------------------------------------------------------
                 if ( zt(j,i,k) > thomo ) then
-                  zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv)+zchng(j,i)
-                  zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql)-zchng(j,i)
-                  zqxfg(j,i,iqql) = zqxfg(j,i,iqql)+zchng(j,i)
+                  zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv) + zchng(j,i)
+                  zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql) - zchng(j,i)
+                  zqxfg(j,i,iqql) = zqxfg(j,i,iqql) + zchng(j,i)
                 else ! homogeneous freezing
-                  zsolqa(j,i,iqqi,iqqv) = zsolqa(j,i,iqqi,iqqv)+zchng(j,i)
-                  zsolqa(j,i,iqqv,iqqi) = zsolqa(j,i,iqqv,iqqi)-zchng(j,i)
-                  zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)+zchng(j,i)
+                  zsolqa(j,i,iqqi,iqqv) = zsolqa(j,i,iqqi,iqqv) + zchng(j,i)
+                  zsolqa(j,i,iqqv,iqqi) = zsolqa(j,i,iqqv,iqqi) - zchng(j,i)
+                  zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi) + zchng(j,i)
                 end if
               end if
             end if
@@ -1312,7 +1308,11 @@ module mod_cloud_s1
         if ( stats ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              statscond2c(j,i,k) = zchng(j,i)
+              if ( zt(j,i,k) > thomo ) then
+                statscond2w(j,i,k) = zchng(j,i)
+              else
+                statscond2c(j,i,k) = zchng(j,i)
+              end if
             end do
           end do
         end if
@@ -1339,7 +1339,7 @@ module mod_cloud_s1
             !--------------------------------------------------------------
             if ( k > 1 ) then
               if ( fccfg(j,i,k-1) < rcldtopcf .and. &
-                   fccfg(j,i,k) >= rcldtopcf ) then
+                   fccfg(j,i,k)  >= rcldtopcf ) then
                 zcldtopdist(j,i) = d_zero
               else
                 zcldtopdist(j,i) = zcldtopdist(j,i) + &
@@ -1434,7 +1434,7 @@ module mod_cloud_s1
 
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ztmpa = d_one/max(fccfg(j,i,k),zepsec)
+            ztmpa = d_one/fccfg(j,i,k)
             zliqcld(j,i) = zqxfg(j,i,iqql)*ztmpa
             zicecld(j,i) = zqxfg(j,i,iqqi)*ztmpa
           end do
@@ -1486,7 +1486,7 @@ module mod_cloud_s1
             if ( zqpretot(j,i) > zepsec ) then
               zcovptot(j,i) = d_one - ((d_one-zcovptot(j,i))*&
                               (d_one - max(fccfg(j,i,k),fccfg(j,i,k-1)))/&
-                              (d_one - min(fccfg(j,i,k-1),d_one-1.E-06)))
+                              (d_one - min(fccfg(j,i,k-1),hicld)))
               zcovptot(j,i) = max(zcovptot(j,i),rcovpmin)   !rcovpmin = 0.1
               ! clear sky proportion
               zcovpclr(j,i) = max(d_zero,zcovptot(j,i)-fccfg(j,i,k))
@@ -1779,13 +1779,13 @@ module mod_cloud_s1
         do i = ici1 , ici2
           do j = jci1 , jci2
             zzrh = rprecrhmax + &
-              (d_one-rprecrhmax)*zcovpclr(j,i)/max(zepsec,d_one-fccfg(j,i,k))
+              (d_one-rprecrhmax)*zcovpclr(j,i)/(d_one-fccfg(j,i,k))
             zzrh = min(max(zzrh,rprecrhmax),d_one)
             ! This is a critical relative humidity that is used to limit
             ! moist environment to prevent the gridbox saturating when
             ! only part of the gridbox has evaporating precipitation
             zqe = (zqx0(j,i,k,iqqv)-fccfg(j,i,k)*zqsliq(j,i,k)) / &
-                      max(zepsec,d_one-fccfg(j,i,k))
+                      (d_one-fccfg(j,i,k))
             !---------------------------------------------
             ! humidity in moistest zcovpclr part of domain
             !---------------------------------------------
@@ -1851,10 +1851,10 @@ module mod_cloud_s1
         do i = ici1 , ici2
           do j = jci1 , jci2
             zzrh = rprecrhmax + (d_one-rprecrhmax) * &
-                   zcovpclr(j,i)/max(zepsec,d_one-fccfg(j,i,k))
+                   zcovpclr(j,i)/(d_one-fccfg(j,i,k))
             zzrh = min(max(zzrh,rprecrhmax),d_one)
-            zqe = (zqx0(j,i,k,iqqv)-fccfg(j,i,k)*zqsice(j,i,k))/&
-                  max(zepsec,d_one-fccfg(j,i,k))
+            zqe = (zqx0(j,i,k,iqqv)-fccfg(j,i,k) * &
+                   zqsice(j,i,k))/(d_one-fccfg(j,i,k))
             !---------------------------------------------
             ! humidity in moistest zcovpclr part of domain
             !---------------------------------------------
@@ -1942,9 +1942,7 @@ module mod_cloud_s1
       do n = 1 , nqx
         do i = ici1 , ici2
           do j = jci1 , jci2
-            zmax = max(zqx0(j,i,k,n),zepsec)
-            zrat = max(zsinksum(j,i,n),zmax)
-            zratio(j,i,n) = zmax/zrat
+            zratio(j,i,n) = zqx0(j,i,k,n)/max(zsinksum(j,i,n),zqx0(j,i,k,n))
           end do
         end do
       end do
@@ -2011,9 +2009,7 @@ module mod_cloud_s1
         do i = ici1 , ici2
           do j = jci1 , jci2
             jo = iorder(j,i,n)
-            zmm = max(zqx0(j,i,k,jo),zepsec)
-            zrr = max(zsinksum(j,i,jo),zmm)
-            zratio(j,i,jo) = zmm/zrr
+            zratio(j,i,jo) = zqx0(j,i,k,jo)/max(zsinksum(j,i,jo),zqx0(j,i,k,jo))
           end do
         end do
         !------
@@ -2513,6 +2509,30 @@ module mod_cloud_s1
       end subroutine mysolve
 
   end subroutine microphys
+
+  pure real(rk8) function noscheme_zqe(q,m,f,l) result(zqe)
+    implicit none
+    real(rk8) , intent(in) :: q , m , f , l
+    zqe = max((q-m*f)/(d_one-f),d_zero)
+  end function noscheme_zqe
+
+  pure real(rk8) function tompkins_zqe(q,m,f,l) result(zqe)
+    implicit none
+    real(rk8) , intent(in) :: q , m , f , l
+    zqe = max((q-m*f)/(d_one-f),d_zero)
+  end function tompkins_zqe
+
+  pure real(rk8) function lohmann_karcher_zqe(q,m,f,l) result(zqe)
+    implicit none
+    real(rk8) , intent(in) :: q , m , f , l
+    zqe = q
+  end function lohmann_karcher_zqe
+
+  pure real(rk8) function gierens_zqe(q,m,f,l) result(zqe)
+    implicit none
+    real(rk8) , intent(in) :: q , m , f , l
+    zqe = q/l
+  end function gierens_zqe
 
 !  subroutine addpath_array(src,snk,proc2,zsqa,zsqb,beta,fg,j,i)
 !    implicit none

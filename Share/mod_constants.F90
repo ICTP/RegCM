@@ -352,6 +352,10 @@ module mod_constants
   real(rk8) , parameter :: icetemp = 271.38D0
   real(rk8) , parameter :: iceminh = 0.01D0
 
+  ! Allowed range for cloud fraction
+  real(rk8) , parameter :: lowcld = 0.0001D0
+  real(rk8) , parameter :: hicld  = 0.9999D0
+
   contains
 
   ! Computes saturation pressurre

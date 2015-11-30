@@ -900,11 +900,12 @@ module mod_tendency
       end if
       call vadv(aten%qx,atm1%qx,kz,iqxvadv,iqfrst,iqlst)
       if ( ipptls == 2 ) then
+        call cldfrac
         call microphys
       else
         call pcp
+        call cldfrac
       end if
-      call cldfrac
       !
       ! compute the diffusion terms:
       ! the diffusion term for qx is stored in diffqx.
