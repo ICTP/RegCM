@@ -21,7 +21,7 @@ module mod_atm_interface
 
   use mod_dynparam
   use mod_stdio
-  use mod_constants , only : d_rfour
+  use mod_constants
   use mod_runparams
   use mod_mppparam
   use mod_mpmessage
@@ -1056,7 +1056,7 @@ module mod_atm_interface
       end if
 
       if ( ipptls == 2 ) then
-        call getmem3d(rain_ls,jci1,jci2,ici1,ici2,1,kz,'storage:rain_ls')
+        call getmem3d(rain_ls,jci1,jci2,ici1,ici2,1,kzp1,'storage:rain_ls')
       end if
       if ( idynamic == 2 ) then
         call allocate_reference_atmosphere(atm0)
