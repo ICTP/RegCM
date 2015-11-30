@@ -477,6 +477,7 @@ module mod_rad_colmod3
 #endif
 
     totci(:) = d_zero
+    totcl(:) = d_zero
     do k = 1 , kz
       do n = 1 , npr
         ! Define liquid drop size
@@ -533,6 +534,7 @@ module mod_rad_colmod3
         end if
         ! Turn off ice radiative properties by setting fice = 0.0
         ! fice(n,k) = d_zero
+        totcl(n) = totcl(n) + clwp(n,k)*(d_one-fice(n,k))*d_r1000
         totci(n) = totci(n) + clwp(n,k)*fice(n,k)*d_r1000
       end do
     end do
@@ -790,7 +792,6 @@ module mod_rad_colmod3
     !   - NOT on the topmost two layers
     !   - Starting from ncld levels from the surface
     !
-    totcl(:) = d_zero
     kmaxcld = 1
     kmincld = kz-ncld
     do k = kmaxcld , kmincld
@@ -800,7 +801,6 @@ module mod_rad_colmod3
           cld(n,k) = m2r%cldfrc(j,i,k)
           ! Convert liquid water content into liquid water path
           clwp(n,k) = m2r%cldlwc(j,i,k)*deltaz(n,k)
-          totcl(n) = totcl(n) + clwp(n,k)*d_r1000
           n = n + 1
         end do
       end do

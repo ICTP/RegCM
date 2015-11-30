@@ -438,7 +438,7 @@ module mod_rrtmg_driver
     end if
 
     totci(:) = sum(clwp_int*fice,2)*d_r1000
-    totcl(:) = sum(clwp_int,2)*d_r1000
+    totcl(:) = sum(clwp_int*(d_one-fice),2)*d_r1000
 
     call radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,            &
                 firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,  &
