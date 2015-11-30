@@ -100,13 +100,9 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:,:) :: zfallsrce
   ! for convection detrainment source and subsidence source/sink terms
   real(rk8) , pointer , dimension(:,:) :: zcorqsice
-  real(rk8) , pointer , dimension(:,:) :: zdqsicedt
   real(rk8) , pointer , dimension(:,:) :: zcorqsliq
-  real(rk8) , pointer , dimension(:,:) :: zdqsliqdt
-  real(rk8) , pointer , dimension(:,:) :: zrainaut
   real(rk8) , pointer , dimension(:,:) :: zcorqsmix
   real(rk8) , pointer , dimension(:,:) :: zevaplimmix
-  real(rk8) , pointer , dimension(:,:) :: zdqsmixdt
   real(rk8) , pointer , dimension(:,:) :: zsnowaut
   real(rk8) , pointer , dimension(:,:,:) :: zconvsrce
   real(rk8) , pointer , dimension(:,:,:) :: zconvsink
@@ -263,12 +259,10 @@ module mod_cloud_s1
     call getmem2d(zcovptot,jci1,jci2,ici1,ici2,'cmicro:zcovptot')
     call getmem2d(zcovpclr,jci1,jci2,ici1,ici2,'cmicro:zcovpclr')
     call getmem2d(zqpretot,jci1,jci2,ici1,ici2,'cmicro:zqpretot')
-    call getmem2d(zrainaut,jci1,jci2,ici1,ici2,'cmicro:zrainaut')
     call getmem2d(zsnowaut,jci1,jci2,ici1,ici2,'cmicro:zsnowaut')
     call getmem2d(zcldtopdist,jci1,jci2,ici1,ici2,'cmicro:zcldtopdist')
     call getmem2d(zicenuclei,jci1,jci2,ici1,ici2,'cmicro:zicenuclei')
     call getmem2d(zlicld,jci1,jci2,ici1,ici2,'cmicro:zlicld')
-    call getmem2d(zdqsmixdt,jci1,jci2,ici1,ici2,'cmicro:zdqsmixdt')
     call getmem2d(zcorqsmix,jci1,jci2,ici1,ici2,'cmicro:zcorqsmix')
     call getmem2d(zevaplimmix,jci1,jci2,ici1,ici2,'cmicro:zevaplimmix')
     call getmem2d(zliqcld,jci1,jci2,ici1,ici2,'cmicro:zliqcld')
@@ -276,9 +270,7 @@ module mod_cloud_s1
     call getmem2d(zsupsat,jci1,jci2,ici1,ici2,'cmicro:zsupsat')
     call getmem2d(zsubsat,jci1,jci2,ici1,ici2,'cmicro:zsubsat')
     call getmem2d(zmin,jci1,jci2,ici1,ici2,'cmicro:zmin')
-    call getmem2d(zdqsicedt,jci1,jci2,ici1,ici2,'cmicro:zdqsicedt')
     call getmem2d(zcorqsice,jci1,jci2,ici1,ici2,'cmicro:zcorqsice')
-    call getmem2d(zdqsliqdt,jci1,jci2,ici1,ici2,'cmicro:zdqsliqdt')
     call getmem2d(zcorqsliq,jci1,jci2,ici1,ici2,'cmicro:zcorqsliq')
     call getmem2d(ztrpaus,jci1,jci2,ici1,ici2,'cmicro:ztrpaus')
     call getmem2d(zpapfd,jci1,jci2,ici1,ici2,'cmicro:zpapfd')
@@ -458,10 +450,11 @@ module mod_cloud_s1
     real(rk8) :: prainx , psnowx
     ! local real constants for evaporation
     real(rk8) :: zdpr , zdenom , zdpevap , zevapi , zevapl , excess
+    real(rk8) :: zdqsmixdt , zdqsicedt , zdqsliqdt
     ! real(rk8) :: zgdph_r
     ! constants for deposition process
     real(rk8) :: zvpice , zvpliq , zadd , zbdd , zcvds , &
-                 zice0 , zinew , zinfactor
+                 zice0 , zinew , zinfactor , zrainaut , zsnowaut
     ! constants for condensation
     real(rk8) :: zdpmxdt , zwtot , zzzdt , zdtdiab , zdtforc , &
                  zqp , zqsat , zcond1 , zlevap
@@ -733,8 +726,6 @@ module mod_cloud_s1
 
       ! Set j,i arrays to zero
       zqpretot(:,:)  = d_zero
-      zrainaut(:,:)  = d_zero
-      zsnowaut(:,:)  = d_zero
       ! zqdetr2(:,:,:) = d_zero
 
       ! Set stats variables to zero
@@ -755,21 +746,21 @@ module mod_cloud_s1
           ! calculate dqs/dT
           !------------------------------------
           ! liquid
-          zfacw          = r5les/((zt(j,i,k) - r4les)**2)
-          zcor           = d_one/(d_one - ep1*zfoeeliqt(j,i,k))
-          zdqsliqdt(j,i) = zfacw*zcor*zqsliq(j,i,k)
-          zcorqsliq(j,i) = d_one + wlhvocp*zdqsliqdt(j,i)
+          zfacw     = r5les/((zt(j,i,k) - r4les)**2)
+          zcor      = d_one/(d_one - ep1*zfoeeliqt(j,i,k))
+          zdqsliqdt = zfacw*zcor*zqsliq(j,i,k)
+          zcorqsliq(j,i) = d_one + wlhvocp*zdqsliqdt
           ! ice
-          zfaci          = r5ies/((zt(j,i,k) - r4ies)**2)
-          zcor           = d_one/(d_one - ep1*zfoeew(j,i,k))
-          zdqsicedt(j,i) = zfaci*zcor*zqsice(j,i,k)
-          zcorqsice(j,i) = d_one + wlhsocp*zdqsicedt(j,i)
+          zfaci     = r5ies/((zt(j,i,k) - r4ies)**2)
+          zcor      = d_one/(d_one - ep1*zfoeew(j,i,k))
+          zdqsicedt = zfaci*zcor*zqsice(j,i,k)
+          zcorqsice(j,i) = d_one + wlhsocp*zdqsicedt
           ! diagnostic mixed
-          zalfaw         = zliq(j,i,k)
-          zfac           = zalfaw*zfacw + (d_one - zalfaw)*zfaci
-          zcor           = d_one/(d_one - ep1*zfoeewmt(j,i,k))
-          zdqsmixdt(j,i) = zfac*zcor*zqsmix(j,i,k)
-          zcorqsmix(j,i) = d_one/(d_one + foeldcpm(zt(j,i,k))*zdqsmixdt(j,i))
+          zalfaw    = zliq(j,i,k)
+          zfac      = zalfaw*zfacw + (d_one - zalfaw)*zfaci
+          zcor      = d_one/(d_one - ep1*zfoeewmt(j,i,k))
+          zdqsmixdt = zfac*zcor*zqsmix(j,i,k)
+          zcorqsmix(j,i) = d_one/(d_one + foeldcpm(zt(j,i,k))*zdqsmixdt)
           !--------------------------------
           ! evaporation/sublimation limits
           !--------------------------------
@@ -1562,24 +1553,23 @@ module mod_cloud_s1
                   ! to replace this with an explicit collection parametrization
                   !-----------------------------------------------------------
                   zprecip = (zpfplsx(j,i,k,iqqs)+zpfplsx(j,i,k,iqqr)) / &
-                    max(zepsec,zcovptot(j,i))
+                             max(zepsec,zcovptot(j,i))
                   zcfpr = d_one + rprc1*sqrt(max(zprecip,d_zero))
                   alpha1 = alpha1*zcfpr
                   zlcrit = zlcrit/max(zcfpr,zepsec)
                   ! security for exp for some compilers
                   if ( zliqcld(j,i)/zlcrit < 25.0D0 ) then
-                    zrainaut(j,i) = alpha1 * &
-                      (d_one - exp(-(zliqcld(j,i)/zlcrit)**2))
+                    zrainaut = alpha1*(d_one - exp(-(zliqcld(j,i)/zlcrit)**2))
                   else
-                    zrainaut(j,i) = alpha1
+                    zrainaut = alpha1
                   end if
                   !-----------------------
                   ! rain freezes instantly
                   !-----------------------
                   if ( zt(j,i,k) <= tzero ) then
-                    zsolqb(j,i,iqqs,iqql) = zsolqb(j,i,iqqs,iqql)+zrainaut(j,i)
+                    zsolqb(j,i,iqqs,iqql) = zsolqb(j,i,iqqs,iqql)+zrainaut
                   else
-                    zsolqb(j,i,iqqr,iqql) = zsolqb(j,i,iqqr,iqql)+zrainaut(j,i)
+                    zsolqb(j,i,iqqr,iqql) = zsolqb(j,i,iqqr,iqql)+zrainaut
                   end if
                 end if
               end do
@@ -1596,11 +1586,11 @@ module mod_cloud_s1
                 zlcrit = rlcritsnow
                 zarg = (zicecld(j,i)/zlcrit)**2
                 if ( zarg < 25.0D0 ) then
-                  zsnowaut(j,i) = alpha1 * (d_one - exp(-zarg))
+                  zsnowaut = alpha1 * (d_one - exp(-zarg))
                 else
-                  zsnowaut(j,i) = alpha1
+                  zsnowaut = alpha1
                 end if
-                zsolqb(j,i,iqqs,iqqi) = zsolqb(j,i,iqqs,iqqi) + zsnowaut(j,i)
+                zsolqb(j,i,iqqs,iqqi) = zsolqb(j,i,iqqs,iqqi) + zsnowaut
               end if
             end if
           end do
