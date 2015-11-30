@@ -615,7 +615,7 @@ module mod_cloud_s1
             zqe = zqdetr(j,i,k)*dt*egrav/(papf(j,i,k+1)-papf(j,i,k)) ! 1 ?
             if ( zqe > zminqx ) then
               zsumq0(j,i,k) = zsumq0(j,i,k)+zqdetr(j,i,k)*dt
-              zalfaw = phases(zt(j,i,k))
+              zalfaw = zliq(j,i,k)
               ztnew = ztnew-(wlhvocp*zalfaw+wlhsocp*(d_one-zalfaw))*zqe
             end if
             zsumh0(j,i,k) = zsumh0(j,i,k)+(papf(j,i,k+1)-papf(j,i,k))*ztnew
@@ -640,7 +640,7 @@ module mod_cloud_s1
           !---------------------------------------------
           ! mixed phase saturation
           !--------------------------------------------
-          zphases = phases(zt(j,i,k))
+          zphases = zliq(j,i,k)
           zfoeewmt(j,i,k) = min(foeewm(zt(j,i,k),zphases)/paph(j,i,k),d_half)
           zqsmix(j,i,k) = zfoeewmt(j,i,k)
           ! ep1 = rwat/rgas - d_one
@@ -1182,7 +1182,7 @@ module mod_cloud_s1
             if ( fccfg(j,i,k) > zerocf .and. &
                  zdqs(j,i) <= -zminqx ) then
               zchng(j,i)=max(-zdqs(j,i),d_zero) !new limiter
-              zphases = phases(zt(j,i,k))
+              zphases = zliq(j,i,k)
               ! old limiter
               !  (significantly improves upper tropospheric humidity rms)
               if ( fccfg(j,i,k) > onecf ) then
