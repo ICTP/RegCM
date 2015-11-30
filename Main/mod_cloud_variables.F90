@@ -62,6 +62,9 @@ module mod_cloud_variables
   real(rk8) , parameter :: ztw5 = 275.0D0
   real(rk8) , parameter :: rtaumel = 1.1880D4
   ! variables/constants for the supersaturation
+  real(rk8) , parameter :: r2es =  610.78D0*ep2 ! = 0.622
+  real(rk8) , parameter :: r3les = 17.269D0
+  real(rk8) , parameter :: r3ies = 21.874D0
   real(rk8) , parameter :: r5les =  4097.9337D0  !r3les*(rtt-r4les)
   real(rk8) , parameter :: r5ies =  5807.547D0 !r3ies*(rtt-r4ies)
   real(rk8) , parameter :: r4les =  35.86D0
@@ -76,6 +79,11 @@ module mod_cloud_variables
   real(rk8), parameter :: rdepliqrefdepth = 500.0D0
   ! initial mass of ice particle
   real(rk8), parameter :: riceinit = 1.D-12
+  real(rk8) , parameter :: r5alvcp = r5les*wlhvocp
+  real(rk8) , parameter :: r5alscp = r5ies*wlhsocp
+  real(rk8) , parameter :: rkoop1 = 2.583       ! RHhomo = 2.583-T/207.8
+  real(rk8) , parameter :: rkoop2 = 0.48116D-02 ! rkoop2 = 1/207.8
 
 end module mod_cloud_variables
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
