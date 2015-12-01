@@ -512,13 +512,13 @@ module mod_cu_kf
         tvlcl = tlcl*(d_one + c3*qmix)
         zlcl = zmix + (tlcl-tmix)/gdry
         findklcl1: &
-        do nk = lc, kl
+        do nk = lc , kl
           klcl = nk
           if ( zlcl <= z0(np,nk) ) exit findklcl1
         end do findklcl1
         if ( zlcl > z0(np,kl) ) cycle modelpoints
 
-        k = klcl-1
+        k = max(1,klcl-1)
         ! Calculate DLP using Z instead of log(P)
         dlp = (zlcl-z0(np,k)) / (z0(np,klcl)-z0(np,k))
         !
