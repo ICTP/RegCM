@@ -635,13 +635,25 @@ else:
          repr(dates[-1].day).zfill(2)+repr(dates[-1].hour).zfill(2)+
          repr(dates[-1].minute).zfill(2))
 
-cordexname = (variable+'_'+domain+'_'+global_model+
-              '_'+experiment.translate(None,'.')+'_'+
-              ensemble+'_'+ICTP_Model+'_'+ICTP_Model_Version+'_'+
-              frequency+'_'+dd1+'-'+dd2+'.nc')
+myexp = experiment.translate(None,'.')
+cordexdir = os.path.join('CORDEX','output',domain,'ICTP',global_model,
+                         myexp,ensemble,ICTP_Model,ICTP_Model_Version,
+                         frequency,variable)
+try:
+  os.makedirs(cordexdir)
+except:
+  pass
+
+cordexname = os.path.join(cordexdir,(variable+'_'+domain+'_'+global_model+
+              '_'+myexp+'_'+ensemble+'_'+ICTP_Model+'_'+ICTP_Model_Version+'_'+
+              frequency+'_'+dd1+'-'+dd2+'.nc'))
 
 # Open output filename
-nco = Dataset(cordexname, 'w' , format='NETCDF4_CLASSIC')
+try:
+  nco = Dataset(cordexname, 'w' , format='NETCDF4_CLASSIC')
+except:
+  print('Cannot create output file')
+  raise IOError('Cannot create output file')
 
 # Write Global attributes
 nco.setncatts(newattr)
@@ -848,16 +860,13 @@ for it in range(0,np.size(correct_time)):
         raise RuntimeError('Unknow vertical interpolation method!')
   elif lookup[variable].has_key('formula') and use_formula:
     func = lookup[variable]['tocall']['method']
-    print(func,len(var.dimensions))
     if lookup[variable]['tocall']['dimension'] == 2:
       if variable == 'mslp':
         tmp = wrapper(func,compvars,it) * xfac
         mod_hgt.gs_filter(tmp,compvars[0][it,Ellipsis])
         newvar[it,Ellipsis] = tmp
       else:
-        print(func,len(var.dimensions))
         if ( func == 'level' and len(var.dimensions) == 4 ):
-          print ('here !')
           lvl = lookup[variable]['tocall']['level']
           newvar[it,Ellipsis] = var[it,lvl,:,:]
         else:
