@@ -43,6 +43,12 @@ module mod_rad_scenarios
 
   integer(ik4) :: i , j
 
+  integer(ik4) , public :: igh_co2 = 2
+  integer(ik4) , public :: igh_ch4 = 3
+  integer(ik4) , public :: igh_n2o = 4
+  integer(ik4) , public :: igh_cfc11 = 5
+  integer(ik4) , public :: igh_cfc12 = 6
+
   ! SRES and RCP Scenarios
 
   data scenarios /'A1B','RF','A2','B1','B2','RCP3PD','RCP4.5','RCP6','RCP8.5'/

@@ -703,10 +703,10 @@ module mod_rrtmg_driver
       !
       ! Transform in mass mixing ratios (g/g) for trcmix
       !
-      ch40 = cgas(3,iyear)*1.0D-9*(amco2/amd)
-      n2o0 = cgas(4,iyear)*1.0D-9*(amch4/amd)
-      cfc110 = cgas(5,iyear)*1.0D-12*(amcfc11/amd)
-      cfc120 = cgas(6,iyear)*1.0D-12*(amcfc12/amd)
+      ch40 = cgas(igh_ch4,iyear)*1.0D-9*(amch4/amd)
+      n2o0 = cgas(igh_n2o,iyear)*1.0D-9*(amn2o/amd)
+      cfc110 = cgas(igh_cfc11,iyear)*1.0D-12*(amcfc11/amd)
+      cfc120 = cgas(igh_cfc12,iyear)*1.0D-12*(amcfc12/amd)
       call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
     else
       write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
@@ -721,7 +721,7 @@ module mod_rrtmg_driver
         ! Form mass mixing ratios to vomlume mixing ratios
         !
         o2vmr(n,k)    = 0.209460D0
-        n2ovmr(n,k)   = n2ommr(n,k) * (amd/amco2)
+        n2ovmr(n,k)   = n2ommr(n,k) * (amd/amn2o)
         ch4vmr(n,k)   = ch4mmr(n,k) * (amd/amch4)
         cfc11vmr(n,k) = cfc11mmr(n,k) * (amd/amcfc11)
         cfc12vmr(n,k) = cfc12mmr(n,k) * (amd/amcfc12)

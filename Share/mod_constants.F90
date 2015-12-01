@@ -103,18 +103,23 @@ module mod_constants
   real(rk8) , parameter :: amd   = 28.96454D+00
   ! Effective molecular weight of water (g/mol)
   real(rk8) , parameter :: amw   = 18.01528D+00
-  ! Effective molecular weight of oxygen molecule (g/mol)
+
+  ! From http://pubchem.ncbi.nlm.nih.gov
+  ! Molecular weight of oxygen molecule (g/mol)
   real(rk8) , parameter :: amo2   = 31.9988D+00
-  ! Effective molecular weight of ozone (g/mol)
+  ! Molecular weight of ozone (g/mol)
   real(rk8) , parameter :: amo3   = 47.99820D+00
-  ! Effective molecular weight of carbon dioxide (g/mol)
+  ! Molecular weight of carbon dioxide (g/mol)
   real(rk8) , parameter :: amco2 = 44.00950D+00
-  ! Effective molecular weight of methane (g/mol)
-  real(rk8) , parameter :: amch4 = 16.040D+00
-  ! Effective molecular weight of cfc11 (g/mol)
-  real(rk8) , parameter :: amcfc11 = 163.1278D+00
-  ! Effective molecular weight of cfc12 (g/mol)
-  real(rk8) , parameter :: amcfc12 = 175.1385D+00
+  ! Molecular weight of nitrous oxide (g/mol)
+  real(rk8) , parameter :: amn2o = 44.0128D+00
+  ! Molecular weight of methane (g/mol)
+  real(rk8) , parameter :: amch4 = 16.04246D+00
+  ! Molecular weight of cfc11 (g/mol)
+  real(rk8) , parameter :: amcfc11 = 137.368103D+00
+  ! Molecular weight of cfc12 (g/mol)
+  real(rk8) , parameter :: amcfc12 = 120.913506D+00
+
   ! Ratio of 13C/12C in Pee Dee Belemnite (C isotope standard)
   real(rk8) , parameter :: pdbratio = 0.0112372D+00
 

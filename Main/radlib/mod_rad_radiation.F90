@@ -694,12 +694,12 @@ module mod_rad_radiation
 !   cfc120 = 4.14307 * 0.503e-9
 !   co2mmr = 1.51913 * co2vmr
     if ( iyear >= 1750 .and. iyear <= 2100 ) then
-      co2vmr = cgas(2,iyear)*1.0D-6
-      co2mmr = co2vmr*44.0D0/28.9644D0
-      ch40 = cgas(3,iyear)*1.0D-9*0.55241D0
-      n2o0 = cgas(4,iyear)*1.0D-9*1.51913D0
-      cfc110 = cgas(5,iyear)*1.0D-12*4.69548D0
-      cfc120 = cgas(6,iyear)*1.0D-12*4.14307D0
+      co2vmr = cgas(igh_co2,iyear)*1.0D-6
+      co2mmr = co2vmr*(amco2/amd)
+      ch40 = cgas(igh_ch4,iyear)*1.0D-9*(amch4/amd)
+      n2o0 = cgas(igh_n2o,iyear)*1.0D-9*(amn2o/amd)
+      cfc110 = cgas(igh_cfc11,iyear)*1.0D-12*(amcfc11/amd)
+      cfc120 = cgas(igh_cfc12,iyear)*1.0D-12*(amcfc12/amd)
     else
       write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
       call fatal(__FILE__,__LINE__,                                   &
