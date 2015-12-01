@@ -899,12 +899,15 @@ module mod_tendency
         call hadv(aten%qx,atmx%qx,kz,iqfrst,iqlst)
       end if
       call vadv(aten%qx,atm1%qx,kz,iqxvadv,iqfrst,iqlst)
+      !
+      ! Clouds and large scale precipitation
+      !
+      ! First compute cloud fraction, then precipitation
+      call cldfrac
       if ( ipptls == 2 ) then
-        call cldfrac
         call microphys
       else
         call pcp
-        call cldfrac
       end if
       !
       ! compute the diffusion terms:

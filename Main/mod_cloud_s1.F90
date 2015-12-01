@@ -430,7 +430,7 @@ module mod_cloud_s1
     real(rk8) :: zexplicit
     real(rk8) :: zfac , zfaci , zfacw , zcor , zfokoop
     real(rk8) :: zalfaw , zphases , zice , zdelta , ztmpl , &
-                 ztmpi , ztnew , zqe , zrain , zpreclr , zarg , zsig
+                 ztmpi , ztnew , zqe , zrain , zpreclr , zarg
     ! local real variables for autoconversion rate constants
     real(rk8) :: alpha1 ! coefficient autoconversion cold cloud
     real(rk8) :: ztmpa
@@ -441,7 +441,7 @@ module mod_cloud_s1
     real(rk8) :: zzrh
     real(rk8) :: zbeta , zbeta1
     ! local variables for condensation
-    real(rk8) :: zcond , zdtdp , zcdmax , zrhc , zsigk , &
+    real(rk8) :: zcond , zdtdp , zcdmax , zrhc , zsig , &
                  zacond , zzdl , zlcondlim
     ! local variables for melting
     real(rk8) :: ztdiff
@@ -591,11 +591,11 @@ module mod_cloud_s1
             end if
             do n = 1 , nqx
               if ( kphase(n) == 1 ) then
-                ztnew = ztnew-wlhvocp*(zqx0(j,i,k,n)+ &
-                        (zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)
+                ztmpl = zqx0(j,i,k,n)+dt*(zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))
+                ztmpi = d_zero
               else if ( kphase(n) == 2 ) then
-                ztnew = ztnew-wlhsocp*(zqx0(j,i,k,n)+ &
-                        (zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)
+                ztmpi = zqx0(j,i,k,n)+dt*(zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))
+                ztmpl = d_zero
               end if
               zsumq0(j,i,k) = zsumq0(j,i,k) + &
                 (zqx0(j,i,k,n)+(zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)* &
@@ -1234,10 +1234,10 @@ module mod_cloud_s1
               !                   HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
               !                   CONDENSATION (TIEDTKE, 1993, EQUATION 24)
               zrhc = ramid !=0.8
-              zsigk = paph(j,i,k)/papf(j,i,kz+1)
+              zsig = paph(j,i,k)/papf(j,i,kz+1)
               ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
-              if ( zsigk > 0.8D0 ) then
-                zrhc = ramid+(d_one-ramid)*((zsigk-0.8D0)/0.2D0)**2
+              if ( zsig > 0.8D0 ) then
+                zrhc = ramid+(d_one-ramid)*((zsig-0.8D0)/0.2D0)**2
               end if
               !---------------------------
               ! supersaturation options
