@@ -173,7 +173,7 @@ fi
 
 NC_INCLUDES=""
 NC_LDFLAGS=""
- NC_LIBS=""
+NC_LIBS=""
 
 if eval "test x$NFAUTO = xyes"; then
   if eval "test x$NCAUTO = xyes"; then
@@ -279,30 +279,23 @@ if test -z "$SYSDEF"; then
    SYSDEF="UNKNOWNOS"
 fi
 
-AM_CONDITIONAL(OSNAME_AIX, [ test x"$osname" = xAIX ] )
-AM_CONDITIONAL(OSNAME_LINUX, [ test x"$osname" = xLinux ] )
+AM_CONDITIONAL(OSNAME_AIX, [ test -z "${osname##AIX}" ] )
+AM_CONDITIONAL(OSNAME_LINUX, [ test -z "${osname##Linux}" ] )
 
 # Cut away flags for this test
 FCPROG=`echo $FC | cut -d " " -f 1`
 AC_SUBST(FCPROG)
 
-AM_CONDITIONAL(COMPILER_IBM, [ test x"$FCPROG" = xxlf2003 -o \
-                                    x"$FCPROG" = xxlf2003_r -o \
-                                    x"$FCPROG" = xxlf2008 -o \
-                                    x"$FCPROG" = xxlf2008_r -o \
-                                    x"$FCPROG" = xbgxlf2003 -o \
-                                    x"$FCPROG" = xbgxlf2003_r -o \
-                                    x"$FCPROG" = xbgxlf2008 -o \
-                                    x"$FCPROG" = xbgxlf2008_r ] )
-AM_CONDITIONAL(COMPILER_CRAY, [ test x"$FCPROG" = xftn ] )
-AM_CONDITIONAL(COMPILER_GNU, [ test x"$FCPROG" = xgfortran ] )
-AM_CONDITIONAL(COMPILER_G95, [ test x"$FCPROG" = xg95 ] )
-AM_CONDITIONAL(COMPILER_SUN, [ test x"$FCPROG" = xsunf95 ] )
-AM_CONDITIONAL(COMPILER_PGI, [ test x"$FCPROG" = xpgf95 -o \
-                                    x"$FCPROG" = xpgf90 -o \
-                                    x"$FCPROG" = xpgfortran ] )
-AM_CONDITIONAL(COMPILER_INTEL, [ test x"$FCPROG" = xifort -o \
-                                      x"$FCPROG" = ximpif90 ])
+AM_CONDITIONAL(COMPILER_IBM, [ test -z "${FCPROG##xxlf200*}" -o \
+                                    -z "${FCPROG##xbgxlf200*}" ] )
+AM_CONDITIONAL(COMPILER_CRAY, [ test -z "${FCPROG##xftn*}" ] )
+AM_CONDITIONAL(COMPILER_GNU, [ test -z "${FCPROG##gfortran*}" ] )
+AM_CONDITIONAL(COMPILER_G95, [ test -z "${FCPROG##g95*}" ] )
+AM_CONDITIONAL(COMPILER_SUN, [ test -z "${FCPROG##sunf9*}" ] )
+AM_CONDITIONAL(COMPILER_PGI, [ test -z "${FCPROG##pgf9*}" -o \
+                                    -z "${FCPROG##pgfortran*}" ] )
+AM_CONDITIONAL(COMPILER_INTEL, [ test -z "${FCPROG##ifort*}" -o \
+                                      -z "${FCPROG##impif*}" ] )
 AM_CONDITIONAL(REGCM_PARALLEL, [ test x"$PARALLEL" = "x1"])
 
 # Force Big endian I/O for known compilers
