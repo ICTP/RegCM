@@ -335,7 +335,7 @@ module mod_cu_kf
     do np = its , ite
       iprnt = .false.
       nshall = 0
-      kl = kte-1
+      kl = kte
       kx = kte
       !                                                    ! PPT FB MODS
       ! OPTION TO FEED CONVECTIVELY GENERATED RAINWATER    ! PPT FB MODS
@@ -383,7 +383,7 @@ module mod_cu_kf
         if ( p0(np,k) >= p300) llfc = k
       end do
       ! dzq is dz between sigma surfaces, dza is dz between model half level
-      do k = 2 , kx
+      do k = 2 , kl
         dza(k-1) = z0(np,k)-z0(np,k-1)
       end do
       dza(kl) = d_zero
@@ -673,7 +673,7 @@ module mod_cu_kf
           rei = d_zero
           dilbe = d_zero
           updraft: &
-          do nk = k , kl
+          do nk = k , kl-1
             nk1 = nk + 1
             ratio2(nk1) = ratio2(nk)
             frc1 = d_zero
@@ -1193,7 +1193,7 @@ module mod_cu_kf
         do nk = kstart+1 , kl
           dppp = p0(np,kstart) - p0(np,nk)
           if ( dppp > 150.0D2 ) then
-            klfs = nK
+            klfs = nk
             exit findklfs
           end if
         end do findklfs
@@ -1873,7 +1873,7 @@ module mod_cu_kf
         end do
         write(stdout,1085) 'K','P','Z','T0','TG','DT','TU','TD','Q0','QG', &
                     'DQ','QU','QD','QLG','QIG','QRG','QSG','RH0','RHG'
-        do nk = 1 , kx
+        do nk = 1 , kl
           k = kx - nk + 1
           dtt = tg(k) - t0(np,k)
           tuc = tu(k) - t00
