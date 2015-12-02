@@ -1621,6 +1621,7 @@ module mod_cu_kf
             exit findklcl2
           end if
         end do findklcl2
+        klcl = max(2,klcl)
         k = klcl - 1
         dlp = (zlcl-z0(np,k))/(z0(np,klcl)-z0(np,k))
         !
