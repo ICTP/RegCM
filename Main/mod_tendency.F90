@@ -834,7 +834,7 @@ module mod_tendency
       call slhadv_x(aten%qx,atm2%qx,iqv)
       call hdvg_x(aten%qx,atm1%qx,iqv)
     else
-      call hadv(aten%qx,atmx%qx,kz,iqv)
+      call hadv(aten%qx,atmx%qx,kz,iqv,iqv)
     end if
     if ( idiag > 0 ) then
       qdiag%adh = qdiag%adh + (aten%qx(:,:,:,iqv) - qen0) * afdout
@@ -949,7 +949,7 @@ module mod_tendency
         call slhadv_x(chiten,chib)
         call hdvg_x(chiten,chia)
       else
-        call hadv(chiten,chi,kz)
+        call hadv(chiten,chi,kz,1,ntr)
       end if
       if ( ichdiag == 1 ) then
         cadvhdiag = cadvhdiag + (chiten - chiten0) * cfdout

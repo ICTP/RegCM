@@ -26,12 +26,12 @@ module mod_rad_radiation
   use mod_service
   use mod_runparams , only : idirect , scon , ichem , cftotmax , lsrfhack
   use mod_memutil
+  use mod_ipcc_scenario
 
   ! Used by this module only
 
   use mod_rad_common
   use mod_rad_tracer
-  use mod_rad_scenarios
   use mod_rad_aerosol
 
   implicit none
@@ -1007,10 +1007,8 @@ module mod_rad_radiation
 !       totcf(n) has been calculated for the SW, dolw is always true
 !
         if ( lsrfhack ) then
-          flwds(n) = flwds(n) * totcf(n) + &
-                     fslwdcs(n) * (d_one - totcf(n))
-          flns(n) = flns(n) * totcf(n) + &
-                    flnsc(n) * (d_one - totcf(n))
+          flwds(n) = flwds(n) * totcf(n) + fslwdcs(n) * (d_one - totcf(n))
+          flns(n)  = flns(n) * totcf(n)  + flnsc(n) * (d_one - totcf(n))
         end if
       end do
     end if

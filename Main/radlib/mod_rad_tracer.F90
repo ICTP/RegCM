@@ -29,10 +29,9 @@ module mod_rad_tracer
   private
 
   public :: trcmix , trcpth , trcab , trcabn , trcems , trcplk
-  public :: cfc110 , cfc120 , ch40 , co2mmr , n2o0
-!
-  real(rk8) :: cfc110 , cfc120 , ch40 , co2mmr , n2o0
-!
+
+  real(rk8) , public :: cfc110 , cfc120 , ch40 , co2mmr , n2o0
+
   contains
 !
 !-----------------------------------------------------------------------

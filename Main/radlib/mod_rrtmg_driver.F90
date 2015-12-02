@@ -26,9 +26,9 @@ module mod_rrtmg_driver
   use mod_realkinds
   use mod_constants
   use mod_dynparam
+  use mod_ipcc_scenario
   use mod_memutil
   use mod_rad_common
-  use mod_rad_scenarios
   use mod_rad_tracer
   use mod_rad_aerosol
   use mod_rad_atmosphere

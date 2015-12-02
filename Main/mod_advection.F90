@@ -281,33 +281,20 @@ module mod_advection
 
     subroutine hadv4d(ften,f,nk,m,p)
       implicit none
-      integer(ik4) , intent (in) :: nk
-      integer(ik4) , optional , intent (in) :: m , p
+      integer(ik4) , intent (in) :: nk , m , p
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
-      integer(ik4) :: i , j , k , n , n1 , n2
+      integer(ik4) :: i , j , k , n
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv4d'
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
-      if ( present(m) ) then
-        if ( present(p) ) then
-          n1 = m
-          n2 = p
-        else
-          n1 = m
-          n2 = m
-        end if
-      else
-        n1 = lbound(f,4)
-        n2 = ubound(f,4)
-      end if
       !
       ! for qv:
       !
-      do n = n1 , n2
+      do n = m , p
         do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2

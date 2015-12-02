@@ -147,7 +147,7 @@ mod_params.o : mod_params.F90 mod_advection.o mod_atm_interface.o mod_bdycod.o m
 endif
 mod_pbl_interface.o : mod_pbl_interface.F90 mod_atm_interface.o mod_che_common.o mod_che_interface.o mod_constants.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_pbl_common.o mod_pbl_holtbl.o mod_pbl_uwtcm.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o
 mod_precip.o : mod_precip.F90 mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mppparam.o mod_mpmessage.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_humid.o mod_constants.o
-mod_rad_interface.o : mod_rad_interface.F90 mod_atm_interface.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_rad_aerosol.o mod_rad_colmod3.o mod_rad_common.o mod_rad_o3blk.o mod_rad_outrad.o mod_rad_radiation.o mod_rad_scenarios.o mod_realkinds.o mod_regcm_types.o mod_rrtmg_driver.o mod_runparams.o
+mod_rad_interface.o : mod_rad_interface.F90 mod_atm_interface.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_rad_aerosol.o mod_rad_colmod3.o mod_rad_common.o mod_rad_o3blk.o mod_rad_outrad.o mod_rad_radiation.o mod_ipcc_scenario.o mod_realkinds.o mod_regcm_types.o mod_rrtmg_driver.o mod_runparams.o
 if DO_COMPILE_CPL
 mod_regcm_interface.o : mod_regcm_interface.F90 mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_cloud_s1.o mod_header.o mod_init.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_ncout.o mod_output.o mod_params.o mod_pbl_interface.o mod_runparams.o mod_service.o mod_split.o mod_sun.o mod_tendency.o mod_tstep.o mod_update.o
 else

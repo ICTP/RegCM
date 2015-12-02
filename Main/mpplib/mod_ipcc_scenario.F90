@@ -17,12 +17,12 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_rad_scenarios
-!
-! IPCC Scenarios obtained from:
-!
-!     ftp://crgd.atmos.uiuc.edu/pub/post-sres
-!
+module mod_ipcc_scenario
+  !
+  ! IPCC Scenarios obtained from:
+  !
+  !     ftp://crgd.atmos.uiuc.edu/pub/post-sres
+  !
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
@@ -1775,5 +1775,6 @@ module mod_rad_scenarios
     end if
   end subroutine set_scenario
 !
-end module mod_rad_scenarios
+end module mod_ipcc_scenario
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
