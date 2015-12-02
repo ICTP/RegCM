@@ -1203,7 +1203,7 @@ module mod_cloud_s1
         zchng(:,:) = d_zero
         zqexc(:,:) = d_zero
 
-        if ( nssopt == 0 .or. nssopt == 1 ) then
+        if ( nssopt == 0 .or. nssopt == 1 ) then ! Tompkins
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( zdqs(j,i) <= -zminqx .and. &
@@ -1214,7 +1214,7 @@ module mod_cloud_s1
               end if
             end do
           end do
-        else if ( nssopt == 2 ) then
+        else if ( nssopt == 2 ) then ! Lohmann and Karcher
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( zdqs(j,i) <= -zminqx .and. &
@@ -1223,7 +1223,7 @@ module mod_cloud_s1
               end if
             end do
           end do
-        else if ( nssopt == 3 ) then
+        else if ( nssopt == 3 ) then ! Gierens
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( zdqs(j,i) <= -zminqx .and. &
