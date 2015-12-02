@@ -89,6 +89,7 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:) :: zdtgdp  ! dt * g/dp
   real(rk8) , pointer , dimension(:,:) :: zrdtgdp ! dp / (dt * g)  [Kg/(m*s)]
   ! Microphysics
+  real(rk8) , pointer , dimension(:,:) :: zqexc
   real(rk8) , pointer , dimension(:,:) :: zchng
   real(rk8) , pointer , dimension(:,:) :: zchngmax
   real(rk8) , pointer , dimension(:,:) :: zicetot
@@ -213,17 +214,6 @@ module mod_cloud_s1
 
   real(rk8) , parameter :: zminqx = minqq ! 1.0D-8
 
-  abstract interface
-    pure function myzqe(q,m,f,l)
-      use mod_constants , only : rk8
-      implicit none
-      real(rk8) :: myzqe
-      real(rk8) , intent(in) :: q , m , f , l
-    end function myzqe
-  end interface
-
-  procedure(myzqe) , pointer :: p_zqe => null()
-
 !  interface addpath
 !    module procedure addpath_array
 !    module procedure addpath_real
@@ -248,6 +238,7 @@ module mod_cloud_s1
     call getmem2d(zdqs,jci1,jci2,ici1,ici2,'cmicro:zdqs')
     call getmem2d(koop,jci1,jci2,ici1,ici2,'cmicro:koop')
     call getmem2d(zicetot,jci1,jci2,ici1,ici2,'cmicro:zicetot')
+    call getmem2d(zqexc,jci1,jci2,ici1,ici2,'cmicro:zqexc')
     call getmem2d(zchng,jci1,jci2,ici1,ici2,'cmicro:zchng')
     call getmem2d(zchngmax,jci1,jci2,ici1,ici2,'cmicro:zchngmax')
     call getmem2d(zdp,jci1,jci2,ici1,ici2,'cmicro:zdp')
@@ -410,17 +401,6 @@ module mod_cloud_s1
     if ( nssopt < 0 .or. nssopt > 3 ) then
       call fatal(__FILE__,__LINE__,'NSSOPT IN CLOUD MUST BE IN RANGE 0-3')
     end if
-
-    select case(nssopt)
-      case (0)
-        p_zqe => noscheme_zqe
-      case (1)
-        p_zqe => tompkins_zqe
-      case (2)
-        p_zqe => lohmann_karcher_zqe
-      case (3)
-        p_zqe => gierens_zqe
-    end select
   end subroutine init_cloud_s1
 
   subroutine microphys
@@ -1221,6 +1201,38 @@ module mod_cloud_s1
         end if
 
         zchng(:,:) = d_zero
+        zqexc(:,:) = d_zero
+
+        if ( nssopt == 0 .or. nssopt == 1 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( zdqs(j,i) <= -zminqx .and. &
+                   fccfg(j,i,k) < onecf ) then
+                zqexc(j,i) = max((zqx0(j,i,k,iqqv) -  &
+                        fccfg(j,i,k)*zqsmix(j,i,k)) / &
+                        (d_one-fccfg(j,i,k)),d_zero)
+              end if
+            end do
+          end do
+        else if ( nssopt == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( zdqs(j,i) <= -zminqx .and. &
+                   fccfg(j,i,k) < onecf ) then
+                zqexc(j,i) = zqx0(j,i,k,iqqv)
+              end if
+            end do
+          end do
+        else if ( nssopt == 3 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( zdqs(j,i) <= -zminqx .and. &
+                   fccfg(j,i,k) < onecf ) then
+                zqexc(j,i) = zqx0(j,i,k,iqqv)/zli(j,i,k)
+              end if
+            end do
+          end do
+        end if
 
         ! (2) generation of new clouds (dc/dt>0)
         do i = ici1 , ici2
@@ -1249,22 +1261,20 @@ module mod_cloud_s1
                 ! ice supersaturation
                 zfac = fokoop(zt(j,i,k),foeeliq(zt(j,i,k)),foeeice(zt(j,i,k)))
               end if
-              zqe = p_zqe(zqx0(j,i,k,iqqv),fccfg(j,i,k), &
-                          zqsmix(j,i,k),zli(j,i,k))
-              if ( zqe >= zrhc*zqsmix(j,i,k)*zfac .and. &
-                   zqe < zqsmix(j,i,k)*zfac ) then
+              if ( zqexc(j,i) >= zrhc*zqsmix(j,i,k)*zfac .and. &
+                   zqexc(j,i) < zqsmix(j,i,k)*zfac ) then
                 ! note: not **2 on 1-a term if zqe is used.
                 ! added correction term zfac to numerator 15/03/2010
                 zacond = -(d_one-fccfg(j,i,k))*zfac*zdqs(j,i) / &
-                          max(d_two*(zfac*zqsmix(j,i,k)-zqe),zepsec)
+                          max(d_two*(zfac*zqsmix(j,i,k)-zqexc(j,i)),zepsec)
                 zacond = min(zacond,d_one-fccfg(j,i,k)) ! put the limiter back
                 ! linear term:
                 ! added correction term zfac 15/03/2010
                 zchng(j,i) = -zfac*zdqs(j,i)*d_half*zacond !mine linear
                 ! new limiter formulation
-                ! zqsice(j,i,k)-zqe) / &
+                ! zqsice(j,i,k)-zqexc(j,i)) / &
                 ztmpa = d_one-fccfg(j,i,k)
-                zzdl = d_two*(zfac*zqsmix(j,i,k)-zqe) / ztmpa
+                zzdl = d_two*(zfac*zqsmix(j,i,k)-zqexc(j,i)) / ztmpa
                 ! added correction term zfac 15/03/2010
                 if ( zfac*zdqs(j,i) < -zzdl ) then
                   ! zqsice(j,i,k)+zqx0(j,i,k,iqqv)
@@ -2500,30 +2510,6 @@ module mod_cloud_s1
       end subroutine mysolve
 
   end subroutine microphys
-
-  pure real(rk8) function noscheme_zqe(q,m,f,l) result(zqe)
-    implicit none
-    real(rk8) , intent(in) :: q , m , f , l
-    zqe = max((q-m*f)/(d_one-f),d_zero)
-  end function noscheme_zqe
-
-  pure real(rk8) function tompkins_zqe(q,m,f,l) result(zqe)
-    implicit none
-    real(rk8) , intent(in) :: q , m , f , l
-    zqe = max((q-m*f)/(d_one-f),d_zero)
-  end function tompkins_zqe
-
-  pure real(rk8) function lohmann_karcher_zqe(q,m,f,l) result(zqe)
-    implicit none
-    real(rk8) , intent(in) :: q , m , f , l
-    zqe = q
-  end function lohmann_karcher_zqe
-
-  pure real(rk8) function gierens_zqe(q,m,f,l) result(zqe)
-    implicit none
-    real(rk8) , intent(in) :: q , m , f , l
-    zqe = q/l
-  end function gierens_zqe
 
 !  subroutine addpath_array(src,snk,proc2,zsqa,zsqb,beta,fg,j,i)
 !    implicit none
