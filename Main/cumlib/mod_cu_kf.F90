@@ -1070,8 +1070,8 @@ module mod_cu_kf
         thetee(nk) = envirtht(p0(np,nk),t0(np,nk),q0(nk))
         eqfrc(nk) = d_one
       end do
-      ltop1 = ltop+1
-      ltopm1 = ltop-1
+      ltop1 = min(kx,ltop+1)
+      ltopm1 = max(1,ltop-1)
       !
       ! Define variables above cloud top
       !
