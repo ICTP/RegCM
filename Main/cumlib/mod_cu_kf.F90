@@ -1553,6 +1553,8 @@ module mod_cu_kf
         topomg = (udr(ltop)-uer(ltop))*dp(ltop)*emsd(ltop)
         if ( abs(topomg-omg(ltop)) > 1.0D-3 ) then
           istop = 1
+          write (stderr, *) 'POSSIBLE INSTABILITY IN KF CODE'
+          iprnt = .true.
           exit iter
         end if
         !
@@ -1833,7 +1835,7 @@ module mod_cu_kf
       !
       ! Send final parameterized values to output files
       !
-      if ( iprnt ) then
+      if ( iprnt .or. istop == 1 ) then
         write(stdout,*)
         write(stdout,*) 'P(LC), DTP, WKL, WKLCL =',p0(np,lc)/d_100, &
             tlcl+dtlcl+dtrh-tenv,wkl,wklcL
@@ -1907,7 +1909,7 @@ module mod_cu_kf
         end do
       end if
       if ( istop == 1 ) then
-        write(stderr,*) 'AT I = ',imap(np), ', J = ', jmap(np)
+        write(stderr,*) 'AT I = ', imap(np), ', J = ', jmap(np)
         call fatal(__FILE__,__LINE__,'KAIN-FRITSCH, istop=1, diags')
       end if
       cndtnf = (d_one-eqfrc(lfs))*(qliq(lfs)+qice(lfs))*dmf(lfs)
@@ -1929,15 +1931,14 @@ module mod_cu_kf
       if ( iprnt ) write(stdout,1110) qinit,qfnl,err2
       if ( abs(err2) > 0.05D0 .and. istop == 0 ) then
         istop = 1
-        if ( iprnt ) then
-          write(stdout,'(i6)') kl
-          do nk = 1 , kL
-            k = kl - nk + 1
-            write(stdout,'(8f12.3)') p0(np,k)/d_100,t0(np,k)-t00, &
-                    q0(k)*d_1000,u0(np,k),v0(np,k),w0avg(np,k),   &
-                    dp(k)/d_100,tke(k)
-          end do
-        end if
+        iprnt = .true.
+        write(stdout,'(i6)') kl
+        do nk = 1 , kL
+          k = kl - nk + 1
+          write(stdout,'(8f12.3)') p0(np,k)/d_100,t0(np,k)-t00, &
+                  q0(k)*d_1000,u0(np,k),v0(np,k),w0avg(np,k),   &
+                  dp(k)/d_100,tke(k)
+        end do
       end if
       if ( pptflx > d_zero ) then
         relerr = err2*qinit/(pptflx*timec)
