@@ -93,7 +93,9 @@ module mod_cu_kf
   real(rk8) , parameter :: c2 = 2.5403D0
   real(rk8) , parameter :: c3 = 0.608D0
   real(rk8) , parameter :: c4 = 0.810D0
-  real(rk8) , parameter :: dpmin = 5.0D3
+  real(rk8) , parameter :: dpmin = 5.0D2
+  real(rk8) , parameter :: min_pef = 0.2D0
+  real(rk8) , parameter :: max_pef = 0.9D0
 
   contains
 
@@ -323,29 +325,29 @@ module mod_cu_kf
     integer(ik4) :: istop , ml , l5 , kmix , low , lc , llfc , nlayrs , &
             nk , kpbl , klcl , lcl , let , iflag , nk1 , ltop , nj ,  &
             ltop1 , ltopm1 , kstart , lfs , nd , nic , ldb , ldt ,    &
-            nd1 , ndk , lmax , ncount , noitr , nstep , ntc , nchm ,  &
-            ishall , nshall , np
+            nd1 , ndk , lmax , ncount , noitr , nstep , ntc , ishall , np
     logical :: iprnt
     real(rk8) :: u00 , qslcl , rhlcl , dqssdt    !jfb
 
     real(rk8) , parameter :: ttfrz = tzero - 5.0D0
     real(rk8) , parameter :: tbfrz = tzero - 25.0D0
 
+    kl = kte
+    kx = kte
+
     modelpoints: &
     do np = its , ite
       iprnt = .false.
-      nshall = 0
-      kl = kte
-      kx = kte
       !                                                    ! PPT FB MODS
       ! OPTION TO FEED CONVECTIVELY GENERATED RAINWATER    ! PPT FB MODS
       ! INTO GRID-RESOLVED RAINWATER (OR SNOW/GRAUPEL)     ! PPT FB MODS
       ! FIELD.  "FBFRC" IS THE FRACTION OF AVAILABLE       ! PPT FB MODS
       ! PRECIPITATION TO BE FED BACK (0.0 - 1.0)...        ! PPT FB MODS
-      fbfrc = d_zero                                        ! PPT FB MODS
+      fbfrc = d_zero                                       ! PPT FB MODS
       ! mods to allow shallow convection...
-      nchm = 0
       ishall = 0
+      llfc = 1
+      l5 = 1
       p300 = p0(np,1) - 30000.0D0
       !
       ! Pressure perturbation term is only defined at mid-point of
@@ -396,8 +398,9 @@ module mod_cu_kf
       ! this parcel can produce a cloud greater than specifed minimum depth
       ! (CHMIN)...For now, set interval at 15 mb...
       !
+      kcheck(:) = 0
+      kcheck(1) = 1
       ncheck = 1
-      kcheck(ncheck) = 1
       pm15 = p0(np,1) - 15.0D2
       do k = 2 , llfc
         if ( p0(np,k) < pm15 ) then
@@ -415,11 +418,9 @@ module mod_cu_kf
         if ( nu > ncheck ) then
           if ( ishall == 1 ) then
             chmax = d_zero
-            nchm = 0
             do nk = 1 , ncheck
               nnn = kcheck(nk)
               if ( cldhgt(nnn) > chmax ) then
-                nchm = nnn
                 nuchm = nk
                 chmax = cldhgt(nnn)
               end if
@@ -1152,8 +1153,8 @@ module mod_cu_kf
             (v0(np,ltop)-v0(np,klcl))*(v0(np,ltop)-v0(np,klcl))
       vws = 1.0D3*shsign*sqrt(vws)/(z0(np,ltop)-z0(np,lcl))
       pef = 1.591D0 + vws*(-0.639D0 + vws*(9.53D-2 - vws*4.96D-3))
-      pef = max(pef,0.2D0)
-      pef = min(pef,0.9D0)
+      pef = max(pef,min_pef)
+      pef = min(pef,max_pef)
       !
       ! Precipitation efficiency is a function of the height of cloud base.
       !
@@ -1167,7 +1168,7 @@ module mod_cu_kf
       end if
       if ( cbh > 25.0D0 ) rcbh = 2.4D0
       pefcbh = d_one/(d_one+rcbh)
-      pefcbh = min(pefcbh,0.9D0)
+      pefcbh = min(pefcbh,max_pef)
       !
       ! mean pef. is used to compute rainfall.
       !
@@ -1852,7 +1853,7 @@ module mod_cu_kf
 1030  format(' ',' P0(LET) = ',F6.1,' P0(LTOP) = ',F6.1,' VMFLCL =',    &
         E12.3,' PLCL =',F6.1,' WLCL =',F6.3,' CLDHGT =',F8.1)
         write(stdout,1035) pef,pefcbh,lc,let,wkl,vws
-        write(stdout,*) 'PRECIP EFFICIENCY =' , PEFF
+        write(stdout,*) 'PRECIP EFFICIENCY =' , peff
         write(stdout,1080) lfs,ldb,ldt,timec,tadvec,nstep,ncount,fabe,ainc
         write(stdout,'(16a8)') '  P  ','   DP ',' DT K/D ',' DR K/D ',   &
                 '   OMG  ', ' DOMGDP ','   UMF  ','   UER  ','   UDR  ', &
@@ -1959,7 +1960,6 @@ module mod_cu_kf
       if ( tadvec < timec ) nic = nint(tadvec/dt)
       if ( ishall == 1 ) then
         timec = 2400.0D0
-        nshall = nshall + 1
       end if
 
       do k = 1 , kx
