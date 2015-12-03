@@ -36,15 +36,16 @@ module mod_advection
   public :: init_advection, hadv , vadv
 
   interface hadv
-    module procedure hadv3d
     module procedure hadvuv
+    module procedure hadv3d
+    module procedure hadv_qv
     module procedure hadv4d
   end interface hadv
 
   interface vadv
+    module procedure vadvuv
     module procedure vadv3d
     module procedure vadv4d
-    module procedure vadvuv
   end interface vadv
 
   real(rk8) , pointer , dimension(:,:,:) :: ua   ! U wind * ps
@@ -243,7 +244,7 @@ module mod_advection
             do j = jci1 , jci2
               ften(j,i,k) = ften(j,i,k) - xmapf(j,i) *                  &
                   ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k)+f(j,i,k)) -  &
-                   (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k)+f(j-1,i,k)) +  &
+                   (ua(j,i+1,k)+ua(j,i,k)) *   (f(j-1,i,k)+f(j,i,k)) +  &
                    (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k)+f(j,i,k)) -  &
                    (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k)+f(j,i,k)))
             end do
@@ -279,30 +280,85 @@ module mod_advection
 #endif
     end subroutine hadv3d
 
-    subroutine hadv4d(ften,f,nk,m,p)
+    subroutine hadv_qv(ften,f,nk,iv)
       implicit none
-      integer(ik4) , intent (in) :: nk , m , p
+      integer , intent(in) :: nk , iv
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
-      integer(ik4) :: i , j , k , n
+      integer(ik4) :: i , j , k
 #ifdef DEBUG
-      character(len=dbgslen) :: subroutine_name = 'hadv4d'
+      character(len=dbgslen) :: subroutine_name = 'hadv_qv'
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
       !
       ! for qv:
       !
-      do n = m , p
+      do k = 1 , nk
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ften(j,i,k,iv) = ften(j,i,k,iv) - xmapf(j,i) *                  &
+                ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,iv)+f(j,i,k,iv)) -  &
+                 (ua(j,i+1,k)+ua(j,i,k)) *   (f(j-1,i,k,iv)+f(j,i,k,iv)) +  &
+                 (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,iv)+f(j,i,k,iv)) -  &
+                 (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,iv)+f(j,i,k,iv)))
+          end do
+        end do
+      end do
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+    end subroutine hadv_qv
+    !
+    ! Up-wind values are used
+    !
+    subroutine hadv4d(ften,f,nk,n1,n2)
+      implicit none
+      integer , intent(in) :: nk , n1 , n2
+      real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+
+      integer(ik4) :: i , j , k , n
+      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2 , fx1 , fx2 , fy1 , fy2
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'hadv4d'
+      integer(ik4) , save :: idindx = 0
+      call time_begin(subroutine_name,idindx)
+#endif
+      !
+      ! for qx different from qv and tracers
+      !
+      do n = n1 , n2
         do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,k,n) = ften(j,i,k,n) - xmapf(j,i)       *            &
-                  ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,n)+f(j,i,k,n)) -  &
-                   (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k,n)+f(j-1,i,k,n)) +  &
-                   (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,n)+f(j,i,k,n)) -  &
-                   (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,n)+f(j,i,k,n)))
+              uavg1 = ua(j,i+1,k)+ua(j,i,k)
+              uavg2 = ua(j+1,i+1,k)+ua(j+1,i,k)
+              if ( uavg1 >= 0 ) then
+                fx1 = f(j-1,i,k,n)
+              else
+                fx1 = f(j,i,k,n)
+              end if
+              if ( uavg2 >= 0 ) then
+                fx2 = f(j,i,k,n)
+              else
+                fx2 = f(j+1,i,k,n)
+              end if
+              vavg1 = va(j+1,i,k)+va(j,i,k)
+              vavg2 = va(j+1,i+1,k)+va(j,i+1,k)
+              if ( vavg1 >= 0 ) then
+                fy1 = f(j,i-1,k,n)
+              else
+                fy1 = f(j,i,k,n)
+              end if
+              if ( vavg2 >= 0 ) then
+                fy2 = f(j,i,k,n)
+              else
+                fy2 = f(j,i+1,k,n)
+              end if
+              ften(j,i,k,n) = ften(j,i,k,n) - xmapf(j,i) * &
+                  (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
             end do
           end do
         end do

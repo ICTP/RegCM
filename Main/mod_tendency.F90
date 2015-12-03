@@ -834,7 +834,7 @@ module mod_tendency
       call slhadv_x(aten%qx,atm2%qx,iqv)
       call hdvg_x(aten%qx,atm1%qx,iqv)
     else
-      call hadv(aten%qx,atmx%qx,kz,iqv,iqv)
+      call hadv(aten%qx,atmx%qx,kz,iqv)
     end if
     if ( idiag > 0 ) then
       qdiag%adh = qdiag%adh + (aten%qx(:,:,:,iqv) - qen0) * afdout
