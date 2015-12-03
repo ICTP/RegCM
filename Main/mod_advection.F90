@@ -482,7 +482,7 @@ module mod_advection
                   ff = (f(j,i,k,n) * &
                     (f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)) * svv(j,i,k)
                 else
-                  ff = d_zero
+                  ff = minqv
                 end if
                 ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
                 ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
