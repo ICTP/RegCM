@@ -56,9 +56,9 @@ module mod_cu_kf
   !  CAM3-CAM5 methodology, along with captured liquid and ice condensates.
   !    JAH & KA (U.S. EPA) -- May 2013
   !
-  integer(ik4) , parameter :: kfnt = 500
-  integer(ik4) , parameter :: kfnp = 440
-  integer(ik4) , parameter :: kfna = 300
+  integer(ik4) , parameter :: kfnt = 250
+  integer(ik4) , parameter :: kfnp = 220
+  integer(ik4) , parameter :: kfna = 200
   real(rk8) , dimension(kfnt,kfnp) , private , save :: ttab , qstab
   real(rk8) , dimension(kfnp) , private , save :: the0k
   real(rk8) , dimension(kfna) , private , save :: alu
@@ -91,11 +91,12 @@ module mod_cu_kf
 
   real(rk8) , parameter :: c1 = 3374.6525D0
   real(rk8) , parameter :: c2 = 2.5403D0
-  real(rk8) , parameter :: c3 = 0.608D0
   real(rk8) , parameter :: c4 = 0.810D0
-  real(rk8) , parameter :: dpmin = 5.0D2
+  real(rk8) , parameter :: dpmin = 5.0D3
   real(rk8) , parameter :: min_pef = 0.2D0
   real(rk8) , parameter :: max_pef = 0.9D0
+  real(rk8) , parameter :: ttfrz = tzero - 5.0D0
+  real(rk8) , parameter :: tbfrz = tzero - 25.0D0
 
   contains
 
@@ -309,7 +310,7 @@ module mod_cu_kf
             dtmp , t1rh , qsrh , pptflx , cpr , cndtnf , updinc ,         &
             aincm2 , ddinc , aincmx , aincm1 , ainc , tder2 , pptfl2 ,    &
             fabe , stab , dtt , dtt1 , dtime , tma , tmb , tmm , bcoeff , &
-            acoeff , qvdiff , topomg , cpm , dq , abeg , dabe , dfda ,    &
+            acoeff , topomg , cpm , dq , abeg , dabe , dfda ,             &
             frc2 , dr , udfrc , tuc , qgs , rh0 , rhg , qinit , qfnl ,    &
             err2 , relerr , fabeold , aincold , uefrc , ddfrc , tdc ,     &
             defrc , rhbar , dmffrc , dilbe
@@ -328,9 +329,6 @@ module mod_cu_kf
             nd1 , ndk , lmax , ncount , noitr , nstep , ntc , ishall , np
     logical :: iprnt
     real(rk8) :: u00 , qslcl , rhlcl , dqssdt    !jfb
-
-    real(rk8) , parameter :: ttfrz = tzero - 5.0D0
-    real(rk8) , parameter :: tbfrz = tzero - 25.0D0
 
     kl = kte
     kx = kte
@@ -366,14 +364,14 @@ module mod_cu_kf
         es = aliq * exp((bliq*t0(np,k)-cliq)/(t0(np,k)-dliq))
         qes(k) = ep2 * es/(p0(np,k)-es)
         q0(k) = min(qes(k),qv0(np,k))
-        q0(k) = max(minqx,q0(k))
+        q0(k) = max(0.000001D0,q0(k))
         ql0(k) = d_zero
         qi0(k) = d_zero
         qr0(k) = d_zero
         qs0(k) = d_zero
         rh(k) = q0(k) / qes(k)
         dilfrc(k) = d_one
-        tv0(k) = t0(np,k) * (d_one + c3*q0(k))
+        tv0(k) = t0(np,k) * (d_one + ep1*q0(k))
         ! dp is the pressure interval between full sigma levels
         dp(k) = rho(np,k)*egrav*dzq(np,k)
         ! If Turbulent Kinetic Energy (TKE) is available from turbulent
@@ -505,12 +503,12 @@ module mod_cu_kf
         indlu = max(1, min(kfna-1,int(tp)+1))
         avalue = (indlu-1)*ainc + astrt
         aintrp = (a1-avalue)/ainc
-        tlog = aintrp*alu(indlu+1) + (1-aintrp)*alu(indlu)
+        tlog = aintrp*alu(indlu+1) + (d_one-aintrp)*alu(indlu)
         tdpt = (cliq-dliq*tlog) / (bliq-tlog)
         tlcl = tdpt - (0.212D0 + 1.571D-3*(tdpt-t00) - &
                        4.36D-4*(tmix-t00))*(tmix-tdpt)
         tlcl = min(tlcl,tmix)
-        tvlcl = tlcl*(d_one + c3*qmix)
+        tvlcl = tlcl*(d_one + ep1*qmix)
         zlcl = zmix + (tlcl-tmix)/gdry
         findklcl1: &
         do nk = lc , kl
@@ -527,7 +525,7 @@ module mod_cu_kf
         !
         tenv = t0(np,k) + (t0(np,klcl)-t0(np,k))*dlp
         qenv = q0(k) + (q0(klcl)-q0(k))*dlp
-        tven = tenv*(d_one + c3*qenv)
+        tven = tenv*(d_one + ep1*qenv)
         !
         ! Check to see if cloud is buoyant using fritsch-chappell trigger
         ! function described in kain and fritsch (1992). w0 is an
@@ -606,7 +604,7 @@ module mod_cu_kf
           end if
           plcl = p0(np,k) + (p0(np,klcl)-p0(np,k))*dlp
           wtw = wlcl*wlcl
-          tvlcl = tlcl*(d_one + c3*qmix)
+          tvlcl = tlcl*(d_one + ep1*qmix)
           rholcl = plcl/(rdry*tvlcl)
           lcl = klcl
           let = lcl
@@ -713,7 +711,7 @@ module mod_cu_kf
               call dtfrznew(tu(nk1),p0(np,nk1),theteu(nk1), &
                       qu(nk1),qfrz,qice(nk1))
             end if
-            tvu(nk1) = tu(nk1)*(d_one + c3*qu(nk1))
+            tvu(nk1) = tu(nk1)*(d_one + ep1*qu(nk1))
             !
             ! Calculate updraft vertical velocity and precipitation fallout.
             !
@@ -747,7 +745,7 @@ module mod_cu_kf
             ! rei is the rate of environmental inflow.
             !
             rei = vmflcl*dp(nk1)*0.03D0/rad ! KF (1990) Eq. 1; Kain (2004) Eq. 5
-            tvqu(nk1) = tu(nk1)*(d_one + c3*qu(nk1)-qliq(nk1)-qice(nk1))
+            tvqu(nk1) = tu(nk1)*(d_one + ep1*qu(nk1)-qliq(nk1)-qice(nk1))
             if ( nk == k ) then
               dilbe = ((tvlcl+tvqu(nk1))/(tven+tv0(nk1)) - d_one)*dzz
             else
@@ -777,7 +775,7 @@ module mod_cu_kf
               tmpice = f2*qice(nk1)
               call tpmix2(p0(np,nk1),thttmp,ttmp,qtmp, &
                       tmpliq,tmpice,qnewlq,qnewic)
-              tu95 = ttmp*(d_one + c3*qtmp-tmpliq-tmpice)
+              tu95 = ttmp*(d_one + ep1*qtmp-tmpliq-tmpice)
               if ( tu95 > tv0(nk1) ) then
                 ee2 = d_one
                 ud2 = d_zero
@@ -791,7 +789,7 @@ module mod_cu_kf
                 tmpice = f2*qice(nk1)
                 call tpmix2(p0(np,nk1),thttmp,ttmp,qtmp, &
                         tmpliq,tmpice,qnewlq,qnewic)
-                tu10 = ttmp*(d_one + c3*qtmp-tmpliq-tmpice)
+                tu10 = ttmp*(d_one + ep1*qtmp-tmpliq-tmpice)
                 tvdiff = abs(tu10-tvqu(nk1))
                 if ( tvdiff < 1.0D-3 ) then
                   ee2 = d_one
@@ -1216,7 +1214,7 @@ module mod_cu_kf
           !
           ! Take a first guess at the initial downdraft mass flux
           !
-          tvd(lfs) = tz(lfs)*(d_one + c3*qss)
+          tvd(lfs) = tz(lfs)*(d_one + ep1*qss)
           rdd = p0(np,lfs)/(rdry*tvd(lfs))
           a1 = (d_one-peff)*au0
           dmf(lfs) = -a1*rdd
@@ -1298,7 +1296,7 @@ module mod_cu_kf
               qss = qsrh
               qsd(nd) = qss
             end if
-            tvd(nd) = tz(nd)*(d_one + c3*qsd(nd))
+            tvd(nd) = tz(nd)*(d_one + ep1*qsd(nd))
             if ( tvd(nd) > tv0(nd) .or. nd == 1 ) then
               ldb = nd
               exit findldb
@@ -1411,7 +1409,7 @@ module mod_cu_kf
       ! closure.
       !
       tder2 = tder
-      pptfl2 = pptflX
+      pptfl2 = pptflx
       do nk = 1 , ltop
         detlq2(nk) = detlq(nk)
         detic2(nk) = detic(nk)
@@ -1538,14 +1536,11 @@ module mod_cu_kf
             end if
             tma = qg(nk1)*ems(nk1)
             tmb = qg(nk-1)*ems(nk-1)
-            tmm = (qg(nk)-1.0D-9)*ems(nk  )
+            tmm = (qg(nk)-1.0D-9)*ems(nk)
             bcoeff = -tmm/((tma*tma)/tmb+tmb)
             acoeff = bcoeff*tma/tmb
             tmb = tmb*(d_one-bcoeff)
             tma = tma*(d_one-acoeff)
-            if ( nk == ltop ) then
-              qvdiff = (qg(nk1)-tma*emsd(nk1))*d_100/qg(nk1)
-            end if
             qg(nk) = 1.0D-9
             qg(nk1) = tma*emsd(nk1)
             qg(nk-1) = tmb*emsd(nk-1)
@@ -1554,8 +1549,9 @@ module mod_cu_kf
         topomg = (udr(ltop)-uer(ltop))*dp(ltop)*emsd(ltop)
         if ( abs(topomg-omg(ltop)) > 1.0D-3 ) then
           istop = 1
-          write (stderr, *) 'POSSIBLE INSTABILITY IN KF CODE'
           iprnt = .true.
+          write (stderr, *) 'POSSIBLE INSTABILITY IN KF CODE'
+          write (stderr, *) 'MASS DOES NOT BALANCE IN KF SCHEME'
           exit iter
         end if
         !
@@ -1564,7 +1560,7 @@ module mod_cu_kf
         do nk = 1 , ltop
           exn(nk) = (p00/p0(np,nk))**(0.2854D0*(d_one-0.28D0*qg(nk)))
           tg(nk) = thtag(nk)/exn(nk)
-          tvg(nk) = tg(nk)*(d_one + c3*qg(nk))
+          tvg(nk) = tg(nk)*(d_one + ep1*qg(nk))
         end do
         if ( ishall == 1 ) then
           exit iter
@@ -1615,7 +1611,7 @@ module mod_cu_kf
                          4.36D-4*(tmix-t00))*(tmix-tdpt)
           tlcl = min(tlcl,tmix)
         end if
-        tvlcl = tlcl*(d_one + c3*qmix)
+        tvlcl = tlcl*(d_one + ep1*qmix)
         zlcl = zmix + (tlcl-tmix)/gdry
         findklcl2: &
         do nk = lc , kl
@@ -1632,7 +1628,7 @@ module mod_cu_kf
         !
         tenv = tg(k) + (tg(klcl)-tg(k))*dlp
         qenv = qg(k) + (qg(klcl)-qg(k))*dlp
-        tven = tenv*(d_one + c3*qenv)
+        tven = tenv*(d_one + ep1*qenv)
         plcl = p0(np,k) + (p0(np,klcl)-p0(np,k))*dlp
         theteu(k) = tmix*(p00/pmix)**(0.2854D0*(d_one-0.28D0*qmix))* &
                exp((c1/tlcl-c2)*qmix*(d_one+c4*qmix))
@@ -1644,7 +1640,7 @@ module mod_cu_kf
           nk1 = nk + 1
           theteu(nk1) = theteu(nk)
           call tpmix2dd(p0(np,nk1),theteu(nk1),tgu(nk1),qgu(nk1))
-          tvqu(nk1) = tgu(nk1)*(d_one + c3*qgu(nk1)-qliq(nk1)-qice(nk1))
+          tvqu(nk1) = tgu(nk1)*(d_one + ep1*qgu(nk1)-qliq(nk1)-qice(nk1))
           if ( nk == k ) then
             dzz = z0(np,klcl) - zlcl
             dilbe = ((tvlcl+tvqu(nk1))/(tven+tvg(nk1))-d_one)*dzz
@@ -1701,7 +1697,7 @@ module mod_cu_kf
           ! If more than 10% of the original cape remains, increase the
           ! convective mass flux by the factor ainc:
           !
-          if ( fabe == d_zero ) then
+          if ( abs(fabe) < dlowval ) then
             ainc = ainc*d_half
           else
             if ( dabe < 1.0D-4 ) then
@@ -1741,7 +1737,7 @@ module mod_cu_kf
           umf_new = umf(nk)/dxsq
           xcldfra = 0.07D0*log(d_one+(500.0D0*umf_new))
           xcldfra = max(0.01D0,xcldfra)
-          cldfra_sh_kf(np,nk) = min(clfrcv,xcldfra)
+          cldfra_sh_kf(np,nk) = min(d_half*clfrcv,xcldfra)
         end do
       else
         do nk = klcl-1 , ltop1
@@ -1859,7 +1855,6 @@ module mod_cu_kf
                 '   OMG  ', ' DOMGDP ','   UMF  ','   UER  ','   UDR  ', &
                 '   DMF  ','   DER  ','   DDR  ','   EMS  ','    W0  ',  &
                 '  DETLQ ',' DETIC '
-        write(stdout,*) 'just before do 300...'
         do nk = 1 , ltop
           k = ltop - nk + 1
           dtt = (tg(k)-t0(np,k))*86400.0D0/timec
@@ -1908,10 +1903,10 @@ module mod_cu_kf
           write(stdout,'(8f11.3)') p0(np,k)/d_100,t0(np,k)-t00, &
                   q0(k)*d_1000,u0(np,k),v0(np,k),w0avg(np,k),dp(k),tke(k)
         end do
-      end if
-      if ( istop == 1 ) then
-        write(stderr,*) 'AT I = ', imap(np), ', J = ', jmap(np)
-        call fatal(__FILE__,__LINE__,'KAIN-FRITSCH, istop=1, diags')
+        if ( istop == 1 ) then
+          write(stderr,*) 'AT I = ', imap(np), ', J = ', jmap(np)
+          call fatal(__FILE__,__LINE__,'KAIN-FRITSCH, istop=1, diags')
+        end if
       end if
       cndtnf = (d_one-eqfrc(lfs))*(qliq(lfs)+qice(lfs))*dmf(lfs)
       pratec(np) = pptflx*(d_one-fbfrc)/dxsq
@@ -2110,7 +2105,7 @@ module mod_cu_kf
           qu = qs
         else
           rll = xlv0-xlv1*temp
-          cpp = 1004.5D0*(d_one+0.89D0*qu)
+          cpp = cpd*(d_one+0.89D0*qu)
           if ( qtot < 1.0D-10 ) then
             ! If no liquid water or ice is available, temperature is given by:
             temp = temp + rll*(dq/(d_one+dq))/cpp
@@ -2148,7 +2143,7 @@ module mod_cu_kf
       rlc = 2.5D6 - 2369.276D0*(tu-t00)
       rls = 2833922.0D0 - 259.532D0*(tu-t00)
       rlf = rls - rlc
-      cpp = 1004.5D0*(d_one + 0.89D0*qu)
+      cpp = cpd*(d_one + 0.89D0*qu)
       !
       ! a = d(es)/dt is that calculated from Buck (1981) emperical formulas
       ! for saturation vapor pressure
@@ -2379,12 +2374,12 @@ module mod_cu_kf
     ! maximum bottom pressure (pascals)
     real(rk8) , parameter :: pbot = 1.1D5
     ! equivalent potential temperature increment
-    real(rk8) , parameter :: dth = d_half
+    real(rk8) , parameter :: dth = 1.0D0
     ! tolerance for accuracy of temperature
     real(rk8) , parameter :: toler = 0.001D0
 
     ! top pressure (pascals)
-    plutop = ptop*d_1000 - d_100
+    plutop = max(ptop*d_1000,5000.0D0)
     ! pressure increment
     dpr = (pbot-plutop) / dble(kfnp-1)
     !
