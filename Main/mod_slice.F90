@@ -121,17 +121,6 @@ module mod_slice
     end if
 
     if ( idynamic == 2 ) then
-      do k = 1 , kzp1
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            if ( abs(atm2%w(j,i,k)) > minww ) then
-              atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
-            else
-              atms%wb3d(j,i,k) = d_zero
-            end if
-          end do
-        end do
-      end do
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -191,6 +180,47 @@ module mod_slice
         end do
       end do
     end do
+
+    if ( idynamic == 2 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            atms%wpx3d(j,i,k) = omega(j,i,k)
+          end do
+        end do
+      end do
+      do k = 1 , kzp1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            if ( abs(atm2%w(j,i,k)) > minww ) then
+              atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
+            else
+              atms%wb3d(j,i,k) = d_zero
+            end if
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            atms%wpx3d(j,i,k) = omega(j,i,k) * d_1000 ! Pa/s
+          end do
+        end do
+      end do
+      atms%wb3d(:,:,1) = d_zero
+      atms%wb3d(:,:,kzp1) = d_zero
+      do k = 2 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atms%wb3d(j,i,k) = d_half*regrav * &
+                   (atms%wpx3d(j,i,k)/atms%rhob3d(j,i,k) + &
+                    atms%wpx3d(j,i,k+1)/atms%rhob3d(j,i,k+1))
+          end do
+        end do
+      end do
+    end if
+
     !
     ! Find 700 mb theta
     !
@@ -291,24 +321,6 @@ module mod_slice
         end do
       end do
     end do
-
-    if ( ipptls == 2 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            atms%wpx3d(j,i,k) = omega(j,i,k)
-          end do
-        end do
-      end do
-    else
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            atms%wpx3d(j,i,k) = omega(j,i,k) * d_1000 ! Pa/s
-          end do
-        end do
-      end do
-    end if
 
     if ( ibltyp == 2 ) then
       do k = 1 , kzp1

@@ -516,6 +516,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: tas     ! atms%tb3d
     real(rk8) , pointer , dimension(:,:,:) :: uas     ! atms%ubx3d
     real(rk8) , pointer , dimension(:,:,:) :: vas     ! atms%vbx3d
+    real(rk8) , pointer , dimension(:,:,:) :: was     ! atms%wx3d
     real(rk8) , pointer , dimension(:,:,:) :: wpas    ! atms%wpx3d
     real(rk8) , pointer , dimension(:,:,:) :: qsas    ! atms%qsb3d
     real(rk8) , pointer , dimension(:,:,:) :: rhoas   ! atms%rhob3d

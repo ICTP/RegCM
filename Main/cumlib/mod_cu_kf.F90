@@ -182,7 +182,7 @@ module mod_cu_kf
         p0(np,k) = m2c%pas(j,i,kk)
         rho(np,k) = m2c%rhoas(j,i,kk)
         dzq(np,k) = m2c%dzq(j,i,kk)
-        w0 = m2c%wpas(j,i,kk) / (egrav*rho(np,k)) ! m/s
+        w0 = d_half * (m2c%was(j,i,kk)+m2c%was(j,i,kk+1))
         ! Average over four timesteps.
         w0avg(np,k) = (kfwavg(j,i,kk)*3.0D0+w0)*d_rfour
       end do

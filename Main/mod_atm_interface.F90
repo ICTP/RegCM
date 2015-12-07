@@ -897,6 +897,8 @@ module mod_atm_interface
                               ice1-ma%ibb2,ice2+ma%ibt2,1,kzp1,'slice:ppb3d')
         call getmem3d(ax%wb3d,jce1-ma%jbl2,jce2+ma%jbr2, &
                               ice1-ma%ibb2,ice2+ma%ibt2,1,kzp1,'slice:wb3d')
+      else
+        call getmem3d(ax%wb3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:wb3d')
       end if
       call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
       call getmem3d(ax%za,jce1,jce2,ice1,ice2,1,kz,'slice:za')
