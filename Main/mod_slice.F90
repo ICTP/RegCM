@@ -201,6 +201,7 @@ module mod_slice
         end do
       end do
     else
+      ! Omega in the hydrostatic model is in cb/s
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
