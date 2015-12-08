@@ -1271,12 +1271,12 @@ module mod_bdycod
         if ( idynamic == 2 ) then
           do k = 1 , kz
             do i = ici1 , ici2
-              atm1%pp(jce1,i,k)   = xppb%b0(jce1,i,k) + xt*xppb%bt(jce1,i,k)
+              atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k) + xt*xppb%bt(jce1,i,k)
             end do
           end do
           do k = 1 , kzp1
             do i = ici1 , ici2
-              atm1%w(jce1,i,k)    = xwwb%b0(jce1,i,k) + xt*xwwb%bt(jce1,i,k)
+              atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k) + xt*xwwb%bt(jce1,i,k)
             end do
           end do
         end if
@@ -1291,12 +1291,12 @@ module mod_bdycod
         if ( idynamic == 2 ) then
           do k = 1 , kz
             do i = ici1 , ici2
-              atm1%pp(jce2,i,k)   = xppb%b0(jce2,i,k) + xt*xppb%bt(jce2,i,k)
+              atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k) + xt*xppb%bt(jce2,i,k)
             end do
           end do
           do k = 1 , kzp1
             do i = ici1 , ici2
-              atm1%w(jce2,i,k)    = xwwb%b0(jce2,i,k) + xt*xwwb%bt(jce2,i,k)
+              atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k) + xt*xwwb%bt(jce2,i,k)
             end do
           end do
         end if
@@ -1311,12 +1311,12 @@ module mod_bdycod
         if ( idynamic == 2 ) then
           do k = 1 , kz
             do j = jce1 , jce2
-              atm1%pp(j,ice1,k)   = xppb%b0(j,ice1,k) + xt*xppb%bt(j,ice1,k)
+              atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k) + xt*xppb%bt(j,ice1,k)
             end do
           end do
           do k = 1 , kzp1
             do j = jce1 , jce2
-              atm1%w(j,ice1,k)    = xwwb%b0(j,ice1,k) + xt*xwwb%bt(j,ice1,k)
+              atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k) + xt*xwwb%bt(j,ice1,k)
             end do
           end do
         end if
@@ -1331,16 +1331,29 @@ module mod_bdycod
         if ( idynamic == 2 ) then
           do k = 1 , kz
             do j = jce1 , jce2
-              atm1%pp(j,ice2,k)   = xppb%b0(j,ice2,k) + xt*xppb%bt(j,ice2,k)
+              atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k) + xt*xppb%bt(j,ice2,k)
             end do
           end do
           do k = 1 , kzp1
             do j = jce1 , jce2
-              atm1%w(j,ice2,k)    = xwwb%b0(j,ice2,k) + xt*xwwb%bt(j,ice2,k)
+              atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k) + xt*xwwb%bt(j,ice2,k)
             end do
           end do
         end if
       end if
+      !
+      ! Top BC for QV
+      !
+      !do j = jci1 , jci2
+      !  do i = ici1 , ici2
+      !    atm1%qx(j,i,1,iqv) = (0.10D0 * atm1%qx(j,i,1,iqv) + &
+      !              0.90D0 * (xqb%b0(j,i,1) + xt*xqb%bt(j,i,1)))
+      !    atm1%qx(j,i,1,iqv) = max(atm1%qx(j,i,1,iqv), &
+      !                xqb%b0(j,i,1) + xt*xqb%bt(j,i,1))
+      !    atm1%qx(j,i,1,iqv) = xqb%b0(j,i,1) + xt*xqb%bt(j,i,1)
+      !  end do
+      !end do
+      !
     end if
 
     if ( iboudy == 3 .or. iboudy == 4 ) then
@@ -1420,7 +1433,7 @@ module mod_bdycod
       end if
     end if
     !
-    ! set boundary values for p*qc and p*qr:
+    ! set boundary values for p*qc
     ! *** note ***
     ! for large domain, we assume the boundary tendencies are not available.
     !
@@ -1431,128 +1444,126 @@ module mod_bdycod
     !
     ! west boundary:
     !
-    do n = iqc , nqx
-      if ( ma%has_bdyleft ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
-            windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-            if ( windavg >= d_zero ) then
-              qxx = d_zero
-            else
-              qxx = qxint
-            end if
-            atm1%qx(jce1,i,k,n) = qxx*sfs%psa(jce1,i)
-          end do
-        end do
-      end if
-      !
-      ! east boundary:
-      !
-      if ( ma%has_bdyright ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
-            windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-            if ( windavg < d_zero ) then
-              qxx = d_zero
-            else
-              qxx = qxint
-            end if
-            atm1%qx(jce2,i,k,n) = qxx*sfs%psa(jce2,i)
-          end do
-        end do
-      end if
-      !
-      ! south boundary:
-      !
-      if ( ma%has_bdybottom ) then
-        do k = 1 , kz
-          do j = jci1 , jci2
-            qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
-            windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-            if ( windavg >= d_zero ) then
-              qxx = d_zero
-            else
-              qxx = qxint
-            end if
-            atm1%qx(j,ice1,k,n) = qxx*sfs%psa(j,ice1)
-          end do
-        end do
-      end if
-      !
-      ! north boundary:
-      !
-      if ( ma%has_bdytop ) then
-        do k = 1 , kz
-          do j = jci1 , jci2
-            qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
-            windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-            if ( windavg < d_zero ) then
-              qxx = d_zero
-            else
-              qxx = qxint
-            end if
-            atm1%qx(j,ice2,k,n) = qxx*sfs%psa(j,ice2)
-          end do
-        end do
-      end if
-      !
-      ! Corners
-      !
-      if ( ma%has_bdytop .and. ma%has_bdyright ) then
-        do k = 1 , kz
-          qxint = atm1%qx(jci2,ici2,k,n)/sfs%psa(jci2,ici2)
-          windavg = nve(jci2,k) + nve(jce2,k) + nvi(jci2,k) + nvi(jce2,k) + &
-                    eue(ici2,k) + eue(ice2,k) + eui(ici2,k) + eui(ice2,k)
-          if ( windavg <= d_zero ) then
+    if ( ma%has_bdyleft ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          qxint = sum(atm1%qx(jci1,i,k,iqfrst:iqlst))/sfs%psa(jci1,i)
+          windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
+          if ( windavg >= d_zero ) then
             qxx = d_zero
           else
             qxx = qxint
           end if
-          atm1%qx(jce2,ice2,k,n) = qxx*sfs%psa(jce2,ice2)
+          atm1%qx(jce1,i,k,iqc) = qxx*sfs%psa(jce1,i)
         end do
-      end if
-      if ( ma%has_bdytop .and. ma%has_bdyleft ) then
-        do k = 1 , kz
-          qxint = atm1%qx(jci1,ici2,k,n)/sfs%psa(jci1,ici2)
-          windavg = nve(jci1,k) + nve(jce1,k) + nvi(jci1,k) + nvi(jce1,k) + &
-                    wue(ici2,k) + wue(ice2,k) + wui(ici2,k) + wui(ice2,k)
-          if ( windavg <= d_zero ) then
+      end do
+    end if
+    !
+    ! east boundary:
+    !
+    if ( ma%has_bdyright ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          qxint = sum(atm1%qx(jci2,i,k,iqfrst:iqlst))/sfs%psa(jci2,i)
+          windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
+          if ( windavg < d_zero ) then
             qxx = d_zero
           else
             qxx = qxint
           end if
-          atm1%qx(jce1,ice2,k,n) = qxx*sfs%psa(jce1,ice2)
+          atm1%qx(jce2,i,k,iqc) = qxx*sfs%psa(jce2,i)
         end do
-      end if
-      if ( ma%has_bdybottom .and. ma%has_bdyright ) then
-        do k = 1 , kz
-          qxint = atm1%qx(jci2,ici1,k,n)/sfs%psa(jci2,ici1)
-          windavg = sve(jci2,k) + sve(jce2,k) + svi(jci2,k) + svi(jce2,k) + &
-                    eue(ici1,k) + eue(ice1,k) + eui(ici1,k) + eui(ice1,k)
-          if ( windavg <= d_zero ) then
+      end do
+    end if
+    !
+    ! south boundary:
+    !
+    if ( ma%has_bdybottom ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          qxint = sum(atm1%qx(j,ici1,k,iqfrst:iqlst))/sfs%psa(j,ici1)
+          windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+          if ( windavg >= d_zero ) then
             qxx = d_zero
           else
             qxx = qxint
           end if
-          atm1%qx(jce2,ice1,k,n) = qxx*sfs%psa(jce2,ice1)
+          atm1%qx(j,ice1,k,iqc) = qxx*sfs%psa(j,ice1)
         end do
-      end if
-      if ( ma%has_bdybottom .and. ma%has_bdyleft ) then
-        do k = 1 , kz
-          qxint = atm1%qx(jci1,ici1,k,n)/sfs%psa(jci1,ici1)
-          windavg = sve(jci1,k) + sve(jce1,k) + svi(jci1,k) + svi(jce1,k) + &
-                    wue(ici1,k) + wue(ice1,k) + wui(ici1,k) + wui(ice1,k)
-          if ( windavg <= d_zero ) then
+      end do
+    end if
+    !
+    ! north boundary:
+    !
+    if ( ma%has_bdytop ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          qxint = sum(atm1%qx(j,ici2,k,iqfrst:iqlst))/sfs%psa(j,ici2)
+          windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+          if ( windavg < d_zero ) then
             qxx = d_zero
           else
             qxx = qxint
           end if
-          atm1%qx(jce1,ice1,k,n) = qxx*sfs%psa(jce1,ice1)
+          atm1%qx(j,ice2,k,iqc) = qxx*sfs%psa(j,ice2)
         end do
-      end if
-    end do
+      end do
+    end if
+    !
+    ! Corners
+    !
+    if ( ma%has_bdytop .and. ma%has_bdyright ) then
+      do k = 1 , kz
+        qxint = sum(atm1%qx(jci2,ici2,k,iqfrst:iqlst))/sfs%psa(jci2,ici2)
+        windavg = nve(jci2,k) + nve(jce2,k) + nvi(jci2,k) + nvi(jce2,k) + &
+                  eue(ici2,k) + eue(ice2,k) + eui(ici2,k) + eui(ice2,k)
+        if ( windavg <= d_zero ) then
+          qxx = d_zero
+        else
+          qxx = qxint
+        end if
+        atm1%qx(jce2,ice2,k,iqc) = qxx*sfs%psa(jce2,ice2)
+      end do
+    end if
+    if ( ma%has_bdytop .and. ma%has_bdyleft ) then
+      do k = 1 , kz
+        qxint = sum(atm1%qx(jci1,ici2,k,iqfrst:iqlst))/sfs%psa(jci1,ici2)
+        windavg = nve(jci1,k) + nve(jce1,k) + nvi(jci1,k) + nvi(jce1,k) + &
+                  wue(ici2,k) + wue(ice2,k) + wui(ici2,k) + wui(ice2,k)
+        if ( windavg <= d_zero ) then
+          qxx = d_zero
+        else
+          qxx = qxint
+        end if
+        atm1%qx(jce1,ice2,k,iqc) = qxx*sfs%psa(jce1,ice2)
+      end do
+    end if
+    if ( ma%has_bdybottom .and. ma%has_bdyright ) then
+      do k = 1 , kz
+        qxint = sum(atm1%qx(jci2,ici1,k,iqfrst:iqlst))/sfs%psa(jci2,ici1)
+        windavg = sve(jci2,k) + sve(jce2,k) + svi(jci2,k) + svi(jce2,k) + &
+                  eue(ici1,k) + eue(ice1,k) + eui(ici1,k) + eui(ice1,k)
+        if ( windavg <= d_zero ) then
+          qxx = d_zero
+        else
+          qxx = qxint
+        end if
+        atm1%qx(jce2,ice1,k,iqc) = qxx*sfs%psa(jce2,ice1)
+      end do
+    end if
+    if ( ma%has_bdybottom .and. ma%has_bdyleft ) then
+      do k = 1 , kz
+        qxint = sum(atm1%qx(jci1,ici1,k,iqfrst:iqlst))/sfs%psa(jci1,ici1)
+        windavg = sve(jci1,k) + sve(jce1,k) + svi(jci1,k) + svi(jce1,k) + &
+                  wue(ici1,k) + wue(ice1,k) + wui(ici1,k) + wui(ice1,k)
+        if ( windavg <= d_zero ) then
+          qxx = d_zero
+        else
+          qxx = qxint
+        end if
+        atm1%qx(jce1,ice1,k,iqc) = qxx*sfs%psa(jce1,ice1)
+      end do
+    end if
 
     if ( ibltyp == 2 ) then
       if ( ktau == 0 ) then

@@ -841,7 +841,7 @@ module mod_tendency
       qen0 = aten%qx(:,:,:,iqv)
     end if
     if ( all(icup /= 1) ) then
-      call vadv(aten%qx,atm1%qx,kz,iqvvadv,iqv)
+      call vadv(aten%qx,atm1%qx,kz,iqv,iqv,iqvvadv)
     end if
     if ( idiag > 0 ) then
       qdiag%adv = qdiag%adv + (aten%qx(:,:,:,iqv) - qen0) * afdout
@@ -898,7 +898,7 @@ module mod_tendency
       else
         call hadv(aten%qx,atmx%qx,kz,iqfrst,iqlst)
       end if
-      call vadv(aten%qx,atm1%qx,kz,iqxvadv,iqfrst,iqlst)
+      call vadv(aten%qx,atm1%qx,kz,iqfrst,iqlst,iqxvadv)
       !
       ! Clouds and large scale precipitation
       !
@@ -956,7 +956,7 @@ module mod_tendency
         chiten0 = chiten
       end if
       if ( all(icup /= 1) ) then
-        call vadv(chiten,chia,kz,itrvadv)
+        call vadv(chiten,chia,kz,1,ntr,itrvadv)
       end if
       if ( ichdiag == 1 ) then
         cadvvdiag = cadvvdiag + (chiten - chiten0) * cfdout

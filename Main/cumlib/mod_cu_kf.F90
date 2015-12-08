@@ -328,7 +328,7 @@ module mod_cu_kf
             ltop1 , ltopm1 , kstart , lfs , nd , nic , ldb , ldt ,    &
             nd1 , ndk , lmax , ncount , noitr , nstep , ntc , ishall , np
     logical :: iprnt
-    real(rk8) :: u00 , qslcl , rhlcl , dqssdt    !jfb
+    real(rk8) :: qslcl , rhlcl , dqssdt    !jfb
 
     kl = kte
     kx = kte
@@ -562,18 +562,15 @@ module mod_cu_kf
           ! as described in Narita and Ohmori (2007, 12th Mesoscale Conf.)
           ! for now, just assume U00 = 0.75.
           ! !!!!!! for MM5, SET DTRH = 0. !!!!!!!!
-          u00 = 0.75D0
-          if ( u00 < d_one ) then
-            qslcl = qes(k) + (qes(klcl)-qes(k))*dlp
-            rhlcl = qenv/qslcl
-            dqssdt = qmix*(cliq-bliq*dliq)/((tlcl-dliq)*(tlcl-dliq))
-            if ( rhlcl >= 0.75D0 .and. rhlcl <= 0.95D0 ) then
-              dtrh = 0.25D0*(rhlcl-0.75D0)*qmix/dqssdt
-            else if ( rhlcl > 0.95D0 ) then
-              dtrh = (d_one/rhlcl-d_one)*qmix/dqssdt
-            else
-              dtrh = d_zero
-            end if
+          qslcl = qes(k) + (qes(klcl)-qes(k))*dlp
+          rhlcl = qenv/qslcl
+          dqssdt = qmix*(cliq-bliq*dliq)/((tlcl-dliq)*(tlcl-dliq))
+          if ( rhlcl >= 0.75D0 .and. rhlcl <= 0.95D0 ) then
+            dtrh = 0.25D0*(rhlcl-0.75D0)*qmix/dqssdt
+          else if ( rhlcl > 0.95D0 ) then
+            dtrh = (d_one/rhlcl-d_one)*qmix/dqssdt
+          else
+            dtrh = d_zero
           end if
         end if   ! kf_trigger 3
 

@@ -251,7 +251,7 @@ module mod_precip
           qcw = qx3(j,i,k,iqc)                               ![kg/kg][avg]
           afc = pfcc(j,i,k)                                  ![frac][avg]
           qs = pfqsat(tk,ppa)                                ![kg/kg][avg]
-          rh = min(max(qx3(j,i,k,iqv)/qs,d_zero),rhmax)  ![frac][avg]
+          rh = rh3(j,i,k)                                    ![frac][avg]
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
           dpovg = dsigma(k)*psb(j,i)*thog                    ![kg/m2][avg]
@@ -263,8 +263,8 @@ module mod_precip
           !    gridcell (i.e. the gridcell average precipitation is used).
           if ( pptsum(j,i) > d_zero .and. afc < 0.99D0 ) then
             ! 2bca. Compute the clear sky relative humidity
-            rhcs = (rh-afc*rhmax)/(d_one-afc)                ![frac][clr]
-            rhcs = max(min(rhcs,rhmax),d_zero)           ![frac][clr]
+            rhcs = (rh-afc*rhmax)/(d_one-afc)            ![frac][clr]
+            rhcs = max(min(rhcs,rhmax),rhmin)            ![frac][clr]
             ! 2bcb. Raindrop evaporation [kg/kg/s]
             if ( l_lat_hack ) then
               rdevap = sun_cevap(j,i)*(rhmax-rhcs) * &
@@ -504,8 +504,10 @@ module mod_precip
             if ( qcld < 1.0D-12 ) then         ! no cloud cover
               pfcc(j,i,k) = d_zero
             else
-              if ( rh3(j,i,k) >= d_one ) then  ! full cloud cover
+              if ( rh3(j,i,k) >= rhmax ) then  ! full cloud cover
                 pfcc(j,i,k) = d_one
+              else if ( rh3(j,i,k) <= rhmin ) then
+                pfcc(j,i,k) = d_zero
               else                             ! partial cloud cover
                 botm = exp( 0.49D0*log((d_one-rh3(j,i,k))*qs3(j,i,k)) )
                 rm = exp(0.25D0*log(rh3(j,i,k)))
@@ -532,6 +534,8 @@ module mod_precip
             end if
             if ( rh3(j,i,k) >= rhmax ) then     ! full cloud cover
               pfcc(j,i,k) = d_one
+            else if ( rh3(j,i,k) <= rhmin ) then
+              pfcc(j,i,k) = d_zero
             else
               if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
                 pfcc(j,i,k) = d_zero
@@ -695,7 +699,7 @@ module mod_precip
           ! 2a. Calculate the saturation mixing ratio and relative humidity
           pres = p2(j,i,k)
           qvs = pfqsat(tmp3,pres)
-          rhc = max(qvcs/qvs,dlowval)
+          rhc = min(max(qvcs/qvs,rhmin),rhmax)
 
           r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
 

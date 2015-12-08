@@ -110,10 +110,10 @@ module mod_params
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
 
-    namelist /subexparam/ ncld , qck1land , qck1oce , gulland , guloce ,     &
-      rhmax , rh0oce , rh0land , cevaplnd , cevapoce , caccrlnd , caccroce , &
-      tc0 , cllwcv , clfrcvmax , cftotmax , conf , lsrfhack , rcrit ,        &
-      coef_ccn , abulk
+    namelist /subexparam/ ncld , qck1land , qck1oce , gulland , guloce ,  &
+      rhmax , rh0oce , rh0land , cevaplnd , cevapoce , caccrlnd ,         &
+      caccroce , tc0 , cllwcv , clfrcvmax , cftotmax , conf , lsrfhack ,  &
+      rcrit , coef_ccn , abulk
 
     namelist /microparam/ stats , budget_compute , nssopt , kautoconv ,  &
       ksemi , vqxr , vqxi , vqxs , zauto_rate_khair , zauto_rate_kessl , &
@@ -275,6 +275,7 @@ module mod_params
     gulland   = 0.40D0    ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
     guloce    = 0.40D0    ! Fract of Gultepe eqn (qcth) for ocean
     rhmax     = 1.01D0    ! RH at whicn FCC = 1.0
+    rhmin     = 0.00D0    ! RH min value
     rh0oce    = 0.90D0    ! Relative humidity threshold for ocean
     rh0land   = 0.80D0    ! Relative humidity threshold for land
     tc0       = 238.0D0   ! Below this temp, rh0 begins to approach unity
@@ -283,8 +284,8 @@ module mod_params
     caccrlnd  = 6.0D0     ! Raindrop accretion rate land [m3/kg/s]
     caccroce  = 6.0D0     ! Raindrop accretion rate ocean [m3/kg/s]
     cllwcv    = 0.3D-3    ! Cloud liquid water content for convective precip.
-    clfrcvmax = 1.0D0     ! Max cloud fractional cover for convective precip.
-    cftotmax  = 0.8D0     ! Max total cover cloud fraction for radiation
+    clfrcvmax = 0.8D0     ! Max cloud fractional cover for convective precip.
+    cftotmax  = 1.0D0     ! Max total cover cloud fraction for radiation
     conf      = 1.0D0     ! Condensation threshold
     rcrit     = 13.5D0    ! Mean critical radius
     coef_ccn  = 2.0D0     ! Geometric mean Diameter and standard deviation
@@ -321,28 +322,28 @@ module mod_params
     ! grellparam ;
     !
     gcr0 = 0.0020D0       ! Conversion rate from cloud to rain
-    shrmin = 0.00D0       ! Minimum Shear effect on precip eff.
-    shrmax = 1.00D0       ! Maximum Shear effect on precip eff.
+    shrmin = 0.10D0       ! Minimum Shear effect on precip eff.
+    shrmax = 0.90D0       ! Maximum Shear effect on precip eff.
     edtmin = 0.10D0       ! Minimum Precipitation Efficiency
-    edtmax = 1.00D0       ! Maximum Precipitation Efficiency
+    edtmax = 0.90D0       ! Maximum Precipitation Efficiency
     edtmino = 0.10D0      ! Minimum Precipitation Efficiency (o var)
-    edtmaxo = 1.00D0      ! Maximum Precipitation Efficiency (o var)
+    edtmaxo = 0.90D0      ! Maximum Precipitation Efficiency (o var)
     edtminx = 0.1000      ! Minimum Precipitation Efficiency (x var)
-    edtmaxx = 1.00D0      ! Maximum Precipitation Efficiency (x var)
-    shrmin_ocn = 0.00D0   ! Minimum Shear effect on precip eff.
-    shrmax_ocn = 1.00D0   ! Maximum Shear effect on precip eff.
+    edtmaxx = 0.90D0      ! Maximum Precipitation Efficiency (x var)
+    shrmin_ocn = 0.10D0   ! Minimum Shear effect on precip eff.
+    shrmax_ocn = 0.90D0   ! Maximum Shear effect on precip eff.
     edtmin_ocn = 0.10D0   ! Minimum Precipitation Efficiency
-    edtmax_ocn = 1.00D0   ! Maximum Precipitation Efficiency
+    edtmax_ocn = 0.90D0   ! Maximum Precipitation Efficiency
     edtmino_ocn = 0.10D0  ! Minimum Precipitation Efficiency (o var)
-    edtmaxo_ocn = 1.00D0  ! Maximum Precipitation Efficiency (o var)
+    edtmaxo_ocn = 0.90D0  ! Maximum Precipitation Efficiency (o var)
     edtminx_ocn = 0.10D0  ! Minimum Precipitation Efficiency (x var)
-    edtmaxx_ocn = 1.00D0  ! Maximum Precipitation Efficiency (x var)
+    edtmaxx_ocn = 0.90D0  ! Maximum Precipitation Efficiency (x var)
     pbcmax = 150.0D0      ! Max depth (mb) of stable layer b/twn LCL & LFC
-    mincld = 150.0D0      ! Min cloud depth (mb).
+    mincld = 50.0D0       ! Min cloud depth (mb).
     htmin = -250.0D0      ! Min convective heating
-    htmax = 500.0D0       ! Max convective heating
+    htmax = 250.0D0       ! Max convective heating
     skbmax = 0.4D0        ! Max cloud base height in sigma
-    dtauc = 30.0D0        ! Fritsch & Chappell (1980)
+    dtauc = 60.0D0        ! Fritsch & Chappell (1980)
     !
     ! emanparam ;
     !
@@ -390,7 +391,7 @@ module mod_params
     !
     ! kfparam ;
     !
-    kf_trigger = 3
+    kf_trigger = 1
     kf_entrate = 0.03D0 ! Kain Fritsch entrainment rate
     !
     ! uwparam ;
@@ -650,6 +651,10 @@ module mod_params
         else
           write(stdout,*) 'Read kfparam OK'
 #endif
+        end if
+        if ( kf_trigger /= 1 ) then
+          write(stdout,*) 'Resetting kf_trigger to 1'
+          kf_trigger = 1
         end if
       end if
       if ( any(icup < 0) .or. any(icup > 6) ) then

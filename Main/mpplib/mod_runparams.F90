@@ -333,6 +333,7 @@ module mod_runparams
   real(rk8) , public :: qck1oce
   real(rk8) , public :: gulland
   real(rk8) , public :: guloce
+  real(rk8) , public :: rhmin
   real(rk8) , public :: rhmax
   real(rk8) , public :: rh0land
   real(rk8) , public :: rh0oce
