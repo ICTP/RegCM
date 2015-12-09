@@ -134,7 +134,7 @@ module mod_params
       rcuc_ocn , rcpec_lnd , rcpec_ocn , rhebc_lnd , rhebc_ocn ,   &
       rprc_ocn , rprc_lnd , rcrit1
 
-    namelist /kfparam/ kf_trigger , kf_entrate
+    namelist /kfparam/ kf_min_pef , kf_max_pef , kf_entrate
 
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
            ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,      &
@@ -391,8 +391,9 @@ module mod_params
     !
     ! kfparam ;
     !
-    kf_trigger = 1
     kf_entrate = 0.03D0 ! Kain Fritsch entrainment rate
+    kf_min_pef = 0.2D0  ! Minimum precipitation efficiency
+    kf_max_pef = 0.9D0  ! Maximum precipitation efficiency
     !
     ! uwparam ;
     !
@@ -651,10 +652,6 @@ module mod_params
         else
           write(stdout,*) 'Read kfparam OK'
 #endif
-        end if
-        if ( kf_trigger /= 1 ) then
-          write(stdout,*) 'Resetting kf_trigger to 1'
-          kf_trigger = 1
         end if
       end if
       if ( any(icup < 0) .or. any(icup > 6) ) then
@@ -1099,8 +1096,9 @@ module mod_params
     end if
 
     if ( any(icup == 6) ) then
-      call bcast(kf_trigger)
       call bcast(kf_entrate)
+      call bcast(kf_min_pef)
+      call bcast(kf_max_pef)
     end if
 
     if ( ibltyp == 1 ) then
@@ -1938,7 +1936,9 @@ module mod_params
     if ( any(icup == 6)  ) then
       if ( myid == italk ) then
         write(stdout,*) 'Kain Fritsch scheme used.'
-        write(stdout,'(a,f11.6)') '  Entrainment rate : ', kf_entrate
+        write(stdout,'(a,f11.6)') '  Entrainment rate         : ', kf_entrate
+        write(stdout,'(a,f11.6)') '  Maximum prec. efficiency : ', kf_max_pef
+        write(stdout,'(a,f11.6)') '  Minimum prec. efficiency : ', kf_min_pef
       end if
     end if
 

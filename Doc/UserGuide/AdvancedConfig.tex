@@ -876,6 +876,7 @@ selected number is $2, 4, 5$.
  /
 
  &emanparam
+ gcr0 = 0.002,        ! Conversion rate from cloud to rain
  minsig = 0.95,       ! Lowest sigma level from which convection can originate
  elcrit_ocn = 0.0011, ! Autoconversion threshold water content (g/g) over ocean
  elcrit_lnd = 0.0011, ! Autoconversion threshold water content (g/g) over land
@@ -917,8 +918,9 @@ selected number is $2, 4, 5$.
  /
 
  &kfparam
- kf_trigger = 3,      ! Trigger mechanism. Allowed values 1 and 3
  kf_entrate = 0.03D0, ! Entrainment rate
+ kf_min_pef = 0.2D0,  ! Minimum precipitation efficiency
+ kf_max_pef = 0.9D0,  ! Maximum precipitation efficiency
  /
 \end{Verbatim}
 }

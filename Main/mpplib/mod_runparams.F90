@@ -250,7 +250,8 @@ module mod_runparams
   ! Kain-Fritsch parameter
 
   real(rk8) , public :: kf_entrate
-  integer(ik4) , public :: kf_trigger
+  real(rk8) , public :: kf_min_pef
+  real(rk8) , public :: kf_max_pef
   !
 
   ! Tweak Global data

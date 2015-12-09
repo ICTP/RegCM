@@ -27,8 +27,9 @@ module mod_cu_kf
   use mod_mpmessage
   use mod_cu_common
   use mod_runparams , only : dx , dxsq , ipptls , dt
-  use mod_runparams , only : iqv , iqr , iqi , iqs , iqc , kf_entrate
-  use mod_runparams , only : kf_trigger , ichem , clfrcv
+  use mod_runparams , only : iqv , iqr , iqi , iqs , iqc
+  use mod_runparams , only : kf_entrate , kf_min_pef , kf_max_pef
+  use mod_runparams , only : ichem , clfrcv
   use mod_service
 
   implicit none
@@ -39,11 +40,13 @@ module mod_cu_kf
   !
   ! The code below is adapted from kfeta code from WRF 3.6.1 codebase.
   ! It is missing the kf_trigger == 2 option, and we use by default the
-  ! kf_trigger == 3 option.
+  ! kf_trigger == 1 option.
   !
   ! Trieste , August 2014
   !
   !             Graziano Giuliani
+  !
+  integer , parameter :: kf_trigger = 1
   !
   public :: allocate_mod_cu_kf , kfdrv , kf_lutab , kfwavg
   !
@@ -93,8 +96,6 @@ module mod_cu_kf
   real(rk8) , parameter :: c2 = 2.5403D0
   real(rk8) , parameter :: c4 = 0.810D0
   real(rk8) , parameter :: dpmin = 5.0D3
-  real(rk8) , parameter :: min_pef = 0.2D0
-  real(rk8) , parameter :: max_pef = 0.9D0
   real(rk8) , parameter :: ttfrz = tzero - 5.0D0
   real(rk8) , parameter :: tbfrz = tzero - 25.0D0
 
@@ -1148,8 +1149,8 @@ module mod_cu_kf
             (v0(np,ltop)-v0(np,klcl))*(v0(np,ltop)-v0(np,klcl))
       vws = 1.0D3*shsign*sqrt(vws)/(z0(np,ltop)-z0(np,lcl))
       pef = 1.591D0 + vws*(-0.639D0 + vws*(9.53D-2 - vws*4.96D-3))
-      pef = max(pef,min_pef)
-      pef = min(pef,max_pef)
+      pef = max(pef,kf_min_pef)
+      pef = min(pef,kf_max_pef)
       !
       ! Precipitation efficiency is a function of the height of cloud base.
       !
@@ -1163,7 +1164,8 @@ module mod_cu_kf
       end if
       if ( cbh > 25.0D0 ) rcbh = 2.4D0
       pefcbh = d_one/(d_one+rcbh)
-      pefcbh = min(pefcbh,max_pef)
+      pefcbh = max(pefcbh,kf_min_pef)
+      pefcbh = min(pefcbh,kf_max_pef)
       !
       ! mean pef. is used to compute rainfall.
       !

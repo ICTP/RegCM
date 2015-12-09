@@ -2718,9 +2718,11 @@ module mod_ncout
         end if
         if ( any(icup == 6) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('kf_trigger',kf_trigger))
-          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('kf_entrainment_rate',kf_entrate))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('kf_min_precipitation_efficiency',kf_min_pef))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('kf_max_precipitation_efficiency',kf_max_pef))
         end if
         if ( ibltyp == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

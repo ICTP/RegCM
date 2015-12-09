@@ -353,6 +353,7 @@
 ! Grell Cumulus scheme control
 !
  &grellparam
+ gcr0 = 0.002,        ! Conversion rate from cloud to rain
  shrmin = 0.25,       ! Minimum Shear effect on precip eff.
  shrmax = 0.50,       ! Maximum Shear effect on precip eff.
  edtmin = 0.25,       ! Minimum Precipitation Efficiency
@@ -425,8 +426,9 @@
 ! Kain Fritsch cumulus parameters
 !
  &kfparam
- kf_trigger = 3,      ! Trigger mechanism. Allowed values 1 and 3
  kf_entrate = 0.03D0, ! Entrainment rate
+ kf_min_pef = 0.2D0,  ! Minimum precipitation efficiency
+ kf_max_pef = 0.9D0,  ! Maximum precipitation efficiency
  /
 !
 ! Holtslag PBL scheme control
