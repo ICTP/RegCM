@@ -35,11 +35,17 @@ module mod_advection
 
   public :: init_advection, hadv , vadv
 
+  real(rk8) , parameter :: t_extrema = 5.0D0
+  real(rk8) , parameter :: c_extrema = 0.0002D0
+  real(rk8) , parameter :: q_rel_extrema = 0.2D0
+
   interface hadv
     module procedure hadvuv
-    module procedure hadv3d
+    module procedure hadv_t
     module procedure hadv_qv
-    module procedure hadv4d
+    module procedure hadv3d
+    module procedure hadv_qx
+    module procedure hadvtr
   end interface hadv
 
   interface vadv
@@ -218,11 +224,63 @@ module mod_advection
     !  HADV
     !     This subroutines computes the horizontal flux-divergence terms.
     !     second-order difference is used.
-    !     ldot   : cross/dot variable flag
     !     ften   : is the tendency for variable 'f'.
     !     f      : is p*f.
-    !     nk     : is the number of vertical levels to work (kz/kzp1)
     !
+    subroutine hadv_t(ften,f)
+      implicit none
+      real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
+      real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
+      integer(ik4) :: i , j , k
+      real(rk8) :: advval
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'hadvt'
+      integer(ik4) , save :: idindx = 0
+      call time_begin(subroutine_name,idindx)
+#endif
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            advval = - xmapf(j,i) *                                  &
+               ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k)+f(j,i,k)) -  &
+                (ua(j,i+1,k)+ua(j,i,k)) *   (f(j-1,i,k)+f(j,i,k)) +  &
+                (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k)+f(j,i,k)) -  &
+                (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k)+f(j,i,k)))
+            !
+            ! Instability correction
+            !
+            ! Local extrema exceeding a certain threshold
+            ! must not grow further due to advection
+            !
+            if ( abs(f(j,i+1,k) + f(j,i-1,k) - &
+                     d_two*f(j,i,k))/ps(j,i) > t_extrema ) then
+              if ( (f(j,i,k) > f(j,i+1,k)) .and. &
+                   (f(j,i,k) > f(j,i-1,k)) ) then
+                advval = min(advval,d_zero)
+              else if ( (f(j,i,k) < f(j,i+1,k)) .and. &
+                        (f(j,i,k) < f(j,i-1,k)) ) then
+                advval = max(advval,d_zero)
+              end if
+            end if
+            if ( abs(f(j+1,i,k) + f(j-1,i,k) - &
+                     d_two*f(j,i,k))/ps(j,i) > t_extrema ) then
+              if ( (f(j,i,k) > f(j+1,i,k)) .and. &
+                   (f(j,i,k) > f(j-1,i,k)) ) then
+                advval = min(advval,d_zero)
+              else if ( (f(j,i,k) < f(j+1,i,k)) .and. &
+                        (f(j,i,k) < f(j-1,i,k)) ) then
+                advval = max(advval,d_zero)
+              end if
+            end if
+            ften(j,i,k) = ften(j,i,k) + advval
+          end do
+        end do
+      end do
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+    end subroutine hadv_t
+
     subroutine hadv3d(ften,f,nk)
       implicit none
       integer(ik4) , intent (in) :: nk
@@ -280,12 +338,12 @@ module mod_advection
 #endif
     end subroutine hadv3d
 
-    subroutine hadv_qv(ften,f,nk,iv)
+    subroutine hadv_qv(ften,f,iv)
       implicit none
-      integer , intent(in) :: nk , iv
+      integer , intent(in) :: iv
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
-
+      real(rk8) :: advval
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv_qv'
@@ -295,14 +353,41 @@ module mod_advection
       !
       ! for qv:
       !
-      do k = 1 , nk
+      do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ften(j,i,k,iv) = ften(j,i,k,iv) - xmapf(j,i) *                  &
+            advval = - xmapf(j,i) *  &
                 ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,iv)+f(j,i,k,iv)) -  &
                  (ua(j,i+1,k)+ua(j,i,k)) *   (f(j-1,i,k,iv)+f(j,i,k,iv)) +  &
                  (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,iv)+f(j,i,k,iv)) -  &
                  (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,iv)+f(j,i,k,iv)))
+            !
+            ! Instability correction
+            !
+            ! Local extrema exceeding a certain realtive threshold
+            ! must not grow further due to advection
+            !
+            if ( abs(f(j,i+1,k,iv) + f(j,i-1,k,iv) - &
+                    d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
+              if ( (f(j,i,k,iv) > f(j,i+1,k,iv)) .and. &
+                   (f(j,i,k,iv) > f(j,i-1,k,iv)) ) then
+                advval = min(advval,d_zero)
+              else if ( (f(j,i,k,iv) < f(j,i+1,k,iv)) .and. &
+                        (f(j,i,k,iv) < f(j,i-1,k,iv)) ) then
+                advval = max(advval,d_zero)
+              end if
+            end if
+            if ( abs(f(j+1,i,k,iv) + f(j-1,i,k,iv) - &
+                     d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
+              if ( (f(j,i,k,iv) > f(j+1,i,k,iv)) .and. &
+                   (f(j,i,k,iv) > f(j-1,i,k,iv)) ) then
+                advval = min(advval,d_zero)
+              else if ( (f(j,i,k,iv) < f(j+1,i,k,iv)) .and. &
+                        (f(j,i,k,iv) < f(j-1,i,k,iv)) ) then
+                advval = max(advval,d_zero)
+              end if
+            end if
+            ften(j,i,k,iv) = ften(j,i,k,iv) + advval
           end do
         end do
       end do
@@ -313,16 +398,18 @@ module mod_advection
     !
     ! Up-wind values are used
     !
-    subroutine hadv4d(ften,f,nk,n1,n2)
+    subroutine hadv_qx(ften,f,n1,n2)
       implicit none
-      integer , intent(in) :: nk , n1 , n2
+      integer , intent(in) :: n1 , n2
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
       integer(ik4) :: i , j , k , n
-      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2 , fx1 , fx2 , fy1 , fy2
+      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2
+      real(rk8) :: fx1 , fx2 , fy1 , fy2
+      real(rk8) :: advval
 #ifdef DEBUG
-      character(len=dbgslen) :: subroutine_name = 'hadv4d'
+      character(len=dbgslen) :: subroutine_name = 'hadv_qx'
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
@@ -330,7 +417,91 @@ module mod_advection
       ! for qx different from qv and tracers
       !
       do n = n1 , n2
-        do k = 1 , nk
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              uavg1 = ua(j,i+1,k)+ua(j,i,k)
+              uavg2 = ua(j+1,i+1,k)+ua(j+1,i,k)
+              if ( uavg1 >= 0 ) then
+                fx1 = f(j-1,i,k,n)
+              else
+                fx1 = f(j,i,k,n)
+              end if
+              if ( uavg2 >= 0 ) then
+                fx2 = f(j,i,k,n)
+              else
+                fx2 = f(j+1,i,k,n)
+              end if
+              vavg1 = va(j+1,i,k)+va(j,i,k)
+              vavg2 = va(j+1,i+1,k)+va(j,i+1,k)
+              if ( vavg1 >= 0 ) then
+                fy1 = f(j,i-1,k,n)
+              else
+                fy1 = f(j,i,k,n)
+              end if
+              if ( vavg2 >= 0 ) then
+                fy2 = f(j,i,k,n)
+              else
+                fy2 = f(j,i+1,k,n)
+              end if
+              advval = -xmapf(j,i)*(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
+              if ( n == iqc ) then
+                !
+                ! Instability correction
+                !
+                ! Local extrema exceeding a certain threshold
+                ! must not grow further due to advection
+                !
+                if ( abs(f(j,i+1,k,n)+f(j,i-1,k,n) - &
+                         d_two*f(j,i,k,n))/ps(j,i) > c_extrema ) then
+                  if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
+                       (f(j,i,k,n) > f(j,i-1,k,n)) ) then
+                    advval = min(advval,d_zero)
+                  else if ( (f(j,i,k,n) < f(j,i+1,k,n)) .and. &
+                            (f(j,i,k,n) < f(j,i-1,k,n)) ) then
+                    advval = max(advval,d_zero)
+                  end if
+                end if
+                if ( abs(f(j+1,i,k,n)+f(j-1,i,k,n) - &
+                         d_two*f(j,i,k,n))/ps(j,i) > c_extrema ) then
+                  if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
+                       (f(j,i,k,n) > f(j-1,i,k,n)) ) then
+                    advval = min(advval,d_zero)
+                  else if ( (f(j,i,k,n) < f(j+1,i,k,n)) .and. &
+                            (f(j,i,k,n) < f(j-1,i,k,n)) ) then
+                    advval = max(advval,d_zero)
+                  end if
+                end if
+              end if
+              ften(j,i,k,n) = ften(j,i,k,n) + advval
+            end do
+          end do
+        end do
+      end do
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+    end subroutine hadv_qx
+    !
+    ! Up-wind values are used
+    !
+    subroutine hadvtr(ften,f)
+      implicit none
+      real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+
+      integer(ik4) :: i , j , k , n
+      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2 , fx1 , fx2 , fy1 , fy2
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'hadvtr'
+      integer(ik4) , save :: idindx = 0
+      call time_begin(subroutine_name,idindx)
+#endif
+      !
+      ! for tracers
+      !
+      do n = 1 , ntr
+        do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
               uavg1 = ua(j,i+1,k)+ua(j,i,k)
@@ -366,7 +537,7 @@ module mod_advection
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
-    end subroutine hadv4d
+    end subroutine hadvtr
     !
     ! VADV
     !     This subroutine computes the vertical flux-divergence terms.
@@ -521,14 +692,13 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) > minqv .and. f(j,i,k-1,n) > minqv ) then
+                if ( f(j,i,k,n)   > minqv .and. &
+                     f(j,i,k-1,n) > minqv ) then
                   ff = (f(j,i,k,n) * &
                     (f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)) * svv(j,i,k)
-                else
-                  ff = minqv
+                  ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
+                  ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
                 end if
-                ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
-                ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
               end do
             end do
           end do
@@ -540,11 +710,9 @@ module mod_advection
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
                   ff = (twt(k,1)*f(j,i,k,n)+twt(k,2)*f(j,i,k-1,n)) * svv(j,i,k)
-                else
-                  ff = d_zero
+                  ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
+                  ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
                 end if
-                ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
-                ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
               end do
             end do
           end do
@@ -556,11 +724,9 @@ module mod_advection
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
                   ff = (twt(k,1)*f(j,i,k,n)+twt(k,2)*f(j,i,k-1,n)) * svv(j,i,k)
-                else
-                  ff = d_zero
+                  ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
+                  ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
                 end if
-                ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
-                ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
               end do
             end do
           end do

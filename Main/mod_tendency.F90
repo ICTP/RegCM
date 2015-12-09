@@ -586,7 +586,7 @@ module mod_tendency
       call vadv(aten%w,atm1%w,kzp1,0)
       if ( iboudy == 1 .or. iboudy == 5 ) then
         call nudge(kz,ba_cr,atm2%t,iboudy,xtb,aten%t)
-        call nudge(kz,iqv,ba_cr,atm2%qx,iboudy,xqb,aten%qx)
+        call nudge(kz,iqv,iqv,ba_cr,atm2%qx,iboudy,xqb,aten%qx)
         call nudge(kz,ba_cr,atm2%pp,iboudy,xppb,aten%pp)
         call nudge(kzp1,ba_cr,atm2%w,iboudy,xwwb,aten%w)
       else if ( iboudy == 4 ) then
@@ -617,7 +617,7 @@ module mod_tendency
     ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (1st RHS term)
     !
     if ( ithadv == 0 ) then
-      call hadv(aten%t,atmx%t,kz)
+      call hadv(aten%t,atmx%t)
       if ( idiag > 0 ) then
         tdiag%adh = tdiag%adh + (aten%t - ten0) * afdout
         ten0 = aten%t
@@ -834,7 +834,7 @@ module mod_tendency
       call slhadv_x(aten%qx,atm2%qx,iqv)
       call hdvg_x(aten%qx,atm1%qx,iqv)
     else
-      call hadv(aten%qx,atmx%qx,kz,iqv)
+      call hadv(aten%qx,atmx%qx,iqv)
     end if
     if ( idiag > 0 ) then
       qdiag%adh = qdiag%adh + (aten%qx(:,:,:,iqv) - qen0) * afdout
@@ -896,7 +896,7 @@ module mod_tendency
         call slhadv_x(aten%qx,atm2%qx,iqfrst,iqlst)
         call hdvg_x(aten%qx,atm1%qx,iqfrst,iqlst)
       else
-        call hadv(aten%qx,atmx%qx,kz,iqfrst,iqlst)
+        call hadv(aten%qx,atmx%qx,iqfrst,iqlst)
       end if
       call vadv(aten%qx,atm1%qx,kz,iqfrst,iqlst,iqxvadv)
       !
@@ -949,7 +949,7 @@ module mod_tendency
         call slhadv_x(chiten,chib)
         call hdvg_x(chiten,chia)
       else
-        call hadv(chiten,chi,kz,1,ntr)
+        call hadv(chiten,chi)
       end if
       if ( ichdiag == 1 ) then
         cadvhdiag = cadvhdiag + (chiten - chiten0) * cfdout
@@ -1136,7 +1136,7 @@ module mod_tendency
     if ( idynamic == 1 ) then
       if ( iboudy == 1 .or. iboudy == 5 ) then
         call nudge(kz,ba_cr,atm2%t,iboudy,xtb,aten%t)
-        call nudge(kz,iqv,ba_cr,atm2%qx,iboudy,xqb,aten%qx)
+        call nudge(kz,iqv,iqv,ba_cr,atm2%qx,iboudy,xqb,aten%qx)
       end if
     end if
     if ( ichem == 1 ) then
@@ -1179,7 +1179,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
-            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),d_zero)
+            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),minqx)
           end do
         end do
       end do
@@ -1641,23 +1641,16 @@ module mod_tendency
           atm1%qx(j,i,k,iqv) = atmc%qx(j,i,k,iqv)
           atm2%qx(j,i,k,iqv) = omuhf*atm1%qx(j,i,k,iqv) + &
             gnuhf*(atm2%qx(j,i,k,iqv)+atmc%qx(j,i,k,iqv))
-          atm2%qx(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv),minqv)
         end do
       end do
     end do
-    do n = iqc , nqx
+    do n = iqfrst , iqlst
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( atmc%qx(j,i,k,n) > minqx ) then
-              atm1%qx(j,i,k,n) = atmc%qx(j,i,k,n)
-              atm2%qx(j,i,k,n) = omuhf*atm1%qx(j,i,k,n) + &
-                gnuhf*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
-              atm2%qx(j,i,k,n) = max(atm2%qx(j,i,k,n),minqx)
-            else
-              atm1%qx(j,i,k,n) = d_zero
-              atm2%qx(j,i,k,n) = max(gnuhf*atm2%qx(j,i,k,n),minqx)
-            end if
+            atm1%qx(j,i,k,n) = atmc%qx(j,i,k,n)
+            atm2%qx(j,i,k,n) = omuhf*atm1%qx(j,i,k,n) + &
+              gnuhf*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
           end do
         end do
       end do

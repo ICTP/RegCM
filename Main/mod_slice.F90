@@ -212,11 +212,11 @@ module mod_slice
       atms%wb3d(:,:,1) = d_zero
       atms%wb3d(:,:,kzp1) = d_zero
       do k = 2 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             atms%wb3d(j,i,k) = d_half*regrav * &
-                   (atms%wpx3d(j,i,k)/atms%rhob3d(j,i,k) + &
-                    atms%wpx3d(j,i,k+1)/atms%rhob3d(j,i,k+1))
+                   (atms%wpx3d(j,i,k-1)/atms%rhob3d(j,i,k-1) + &
+                    atms%wpx3d(j,i,k)/atms%rhob3d(j,i,k))
           end do
         end do
       end do
