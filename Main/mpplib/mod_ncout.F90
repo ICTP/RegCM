@@ -2723,6 +2723,14 @@ module mod_ncout
             ncattribute_real8('kf_min_precipitation_efficiency',kf_min_pef))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('kf_max_precipitation_efficiency',kf_max_pef))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('kf_downdraft_start_dp',kf_dpp))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('kf_CAPE_consumption_time_min',kf_min_dtcape))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('kf_CAPE_consumption_time_max',kf_max_dtcape))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('kf_TKE_maximum_value_subcloud',kf_tkemax))
         end if
         if ( ibltyp == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

@@ -29,6 +29,8 @@ module mod_cu_kf
   use mod_runparams , only : dx , dxsq , ipptls , dt
   use mod_runparams , only : iqv , iqr , iqi , iqs , iqc
   use mod_runparams , only : kf_entrate , kf_min_pef , kf_max_pef
+  use mod_runparams , only : kf_dpp , kf_min_dtcape , kf_max_dtcape
+  use mod_runparams , only : kf_tkemax
   use mod_runparams , only : ichem , clfrcv
   use mod_service
 
@@ -315,8 +317,8 @@ module mod_cu_kf
             frc2 , dr , udfrc , tuc , qgs , rh0 , rhg , qinit , qfnl ,    &
             err2 , relerr , fabeold , aincold , uefrc , ddfrc , tdc ,     &
             defrc , rhbar , dmffrc , dilbe
-    real(rk8) :: tp , avalue , aintrp , tkemax , qfrz , qss , &
-            pptmlt , dtmelt , rhh , evac , binc
+    real(rk8) :: tp , avalue , aintrp , qfrz , qss , pptmlt , dtmelt , &
+            rhh , evac , binc
     integer(ik4) :: indlu , nu , nuchm , nnn , klfs
     real(rk8) :: chmin , pm15 , chmax , dtrh , rad , dppp
     real(rk8) :: tvdiff , dttot , absomg , absomgtc , frdp
@@ -1131,10 +1133,13 @@ module mod_cu_kf
       vconv = d_half*(wspd(klcl)+wspd(l5))
       timec = dx/vconv
       tadvec = timec
-      timec = max(1800.0D0,timec) ! 30 minutes  >= TIMEC <= 60 minutes
-      timec = min(3600.0D0,timec)
-      ! shallow convection TIMEC = 40 minutes
-      if ( ishall == 1 ) timec = 2400.0D0
+      ! kf_min_dtcape >= TIMEC <= kf_max_dtcape
+      timec = max(kf_min_dtcape,timec)
+      timec = min(kf_max_dtcape,timec)
+      ! shallow convection TIMEC
+      if ( ishall == 1 ) then
+        timec = max(d_half*(kf_max_dtcape+kf_min_dtcape)-300.0D0,300.0D0)
+      end if
       nic = nint(timec/dt)
       timec = dble(nic)*dt
       !
@@ -1183,14 +1188,14 @@ module mod_cu_kf
         lfs = 1
       else
         !
-        ! Start downdraft about 150 mb above cloud base.
+        ! Start downdraft about above cloud base.
         !
         kstart = kpbl+1
         klfs = let-1
         findklfs: &
         do nk = kstart+1 , kl
           dppp = p0(np,kstart) - p0(np,nk)
-          if ( dppp > 150.0D2 ) then
+          if ( dppp > kf_dpp * d_100 ) then
             klfs = nk
             exit findklfs
           end if
@@ -1431,8 +1436,7 @@ module mod_cu_kf
         ! just specify shallow-cloud mass flux using TKEMAX = 5...
         !
         ! find the maximum TKE value between LC and KLCL...
-        tkemax = 5.0D0
-        evac = d_half*tkemax*0.1D0
+        evac = d_half*kf_tkemax*0.1D0
         ainc = evac*dpthmx*dxsq/(vmflcl*egrav*timec)
         tder = tder2*ainc
         pptflx = pptfl2*ainc
@@ -1953,7 +1957,7 @@ module mod_cu_kf
       !
       if ( tadvec < timec ) nic = nint(tadvec/dt)
       if ( ishall == 1 ) then
-        timec = 2400.0D0
+        timec = max(d_half*(kf_max_dtcape+kf_min_dtcape)-300.0D0,300.0D0)
       end if
 
       do k = 1 , kx

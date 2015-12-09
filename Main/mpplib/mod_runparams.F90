@@ -252,6 +252,10 @@ module mod_runparams
   real(rk8) , public :: kf_entrate
   real(rk8) , public :: kf_min_pef
   real(rk8) , public :: kf_max_pef
+  real(rk8) , public :: kf_dpp
+  real(rk8) , public :: kf_min_dtcape
+  real(rk8) , public :: kf_max_dtcape
+  real(rk8) , public :: kf_tkemax
   !
 
   ! Tweak Global data

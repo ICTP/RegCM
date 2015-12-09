@@ -918,9 +918,13 @@ selected number is $2, 4, 5$.
  /
 
  &kfparam
- kf_entrate = 0.03D0, ! Entrainment rate
- kf_min_pef = 0.2D0,  ! Minimum precipitation efficiency
- kf_max_pef = 0.9D0,  ! Maximum precipitation efficiency
+ kf_entrate = 0.03D0,     ! Entrainment rate
+ kf_min_pef = 0.2D0,      ! Minimum precipitation efficiency
+ kf_max_pef = 0.9D0,      ! Maximum precipitation efficiency
+ kf_dpp     = 150.0D0,    ! Start elevation for downdraft above cloud base (mb)
+ kf_min_dtcape = 1800.0D0 ! Consumption time of CAPE low limit
+ kf_max_dtcape = 3600.0D0 ! Consumption time of CAPE high limit
+ kf_tkemax = 5.0D0        ! Maximum turbolent kinetic energy in sub cloud layer
  /
 \end{Verbatim}
 }
@@ -928,10 +932,9 @@ selected number is $2, 4, 5$.
 Things you need to know here:
 
 \begin{enumerate}
-\item In case of the mixed schemes $96, 97, 98, 99$, both the selected schemes
-configuration namelist are read in.
-Note in this case for the schemes only the relevant (Ocean or Land) control
-values are used.
+\item In case of mixed cumulus schemes (land/ocean), both the selected
+schemes configuration namelist are read in.  Note in this case for the
+schemes only the relevant (Ocean or Land) control values are used.
 \item Minimum and maximum values of the fraction of reevaporated water in the
 downdraft for the Grell scheme is essentially a measure of the precipitation
 efficiency: increasing their value generally decrease convective precipitation.

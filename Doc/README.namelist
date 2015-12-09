@@ -426,9 +426,13 @@
 ! Kain Fritsch cumulus parameters
 !
  &kfparam
- kf_entrate = 0.03D0, ! Entrainment rate
- kf_min_pef = 0.2D0,  ! Minimum precipitation efficiency
- kf_max_pef = 0.9D0,  ! Maximum precipitation efficiency
+ kf_entrate = 0.03D0,     ! Entrainment rate
+ kf_min_pef = 0.2D0,      ! Minimum precipitation efficiency
+ kf_max_pef = 0.9D0,      ! Maximum precipitation efficiency
+ kf_dpp     = 150.0D0,    ! Start elevation for downdraft above cloud base (mb)
+ kf_min_dtcape = 1800.0D0 ! Consumption time of CAPE low limit
+ kf_max_dtcape = 3600.0D0 ! Consumption time of CAPE high limit
+ kf_tkemax = 5.0D0        ! Maximum turbolent kinetic energy in sub cloud layer
  /
 !
 ! Holtslag PBL scheme control

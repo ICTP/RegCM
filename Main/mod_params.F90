@@ -134,17 +134,18 @@ module mod_params
       rcuc_ocn , rcpec_lnd , rcpec_ocn , rhebc_lnd , rhebc_ocn ,   &
       rprc_ocn , rprc_lnd , rcrit1
 
-    namelist /kfparam/ kf_min_pef , kf_max_pef , kf_entrate
+    namelist /kfparam/ kf_min_pef , kf_max_pef , kf_entrate , kf_dpp , &
+      kf_min_dtcape , kf_max_dtcape , kf_tkemax
 
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
-           ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,      &
-           ichdiag , ichsursrc , ichebdy , rdstemfac, ichjphcld, ichbion,  &
-           ismoke
+      ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
+      ichdiag , ichsursrc , ichebdy , rdstemfac, ichjphcld, ichbion,       &
+      ismoke
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
     namelist /holtslagparam/ ricr_ocn , ricr_lnd , zhnew_fac , &
-           ifaholtth10 , ifaholt
+      ifaholtth10 , ifaholt
 
 #ifdef CLM
     namelist /clmparam/ dirclm , imask , clmfrq , ilawrence_albedo
@@ -394,6 +395,10 @@ module mod_params
     kf_entrate = 0.03D0 ! Kain Fritsch entrainment rate
     kf_min_pef = 0.2D0  ! Minimum precipitation efficiency
     kf_max_pef = 0.9D0  ! Maximum precipitation efficiency
+    kf_dpp = 150.0D0    ! Starting height of downdraft above updraft source (mb)
+    kf_tkemax = 5.0D0   ! Maximum turbolent kinetic energy in sub cloud layer
+    kf_min_dtcape = 1800.0D0 ! Consumption time of CAPE low limit
+    kf_max_dtcape = 3600.0D0 ! Consumption time of CAPE high limit
     !
     ! uwparam ;
     !
@@ -652,6 +657,22 @@ module mod_params
         else
           write(stdout,*) 'Read kfparam OK'
 #endif
+        end if
+        if ( kf_min_dtcape < 600.0D0 ) then
+          write(stdout,*) 'Resetting kf_min_dtcape to 600 s'
+          kf_min_dtcape = 600.0D0
+        end if
+        if ( kf_max_dtcape > 7200.0D0 ) then
+          write(stdout,*) 'Resetting kf_max_dtcape to 7200 s'
+          kf_max_dtcape = 7200.0D0
+        end if
+        if ( kf_tkemax > 12.0D0 ) then
+          write(stdout,*) 'Resetting kf_tkemax to 12 m2 s-2'
+          kf_tkemax = 12.0D0
+        end if
+        if ( kf_tkemax < 3.0D0 ) then
+          write(stdout,*) 'Resetting kf_tkemax to 3 m2 s-2'
+          kf_tkemax = 3.0D0
         end if
       end if
       if ( any(icup < 0) .or. any(icup > 6) ) then
@@ -1099,6 +1120,10 @@ module mod_params
       call bcast(kf_entrate)
       call bcast(kf_min_pef)
       call bcast(kf_max_pef)
+      call bcast(kf_dpp)
+      call bcast(kf_min_dtcape)
+      call bcast(kf_max_dtcape)
+      call bcast(kf_tkemax)
     end if
 
     if ( ibltyp == 1 ) then
@@ -1939,6 +1964,10 @@ module mod_params
         write(stdout,'(a,f11.6)') '  Entrainment rate         : ', kf_entrate
         write(stdout,'(a,f11.6)') '  Maximum prec. efficiency : ', kf_max_pef
         write(stdout,'(a,f11.6)') '  Minimum prec. efficiency : ', kf_min_pef
+        write(stdout,'(a,f11.6)') '  Updraft start elevation  : ', kf_dpp
+        write(stdout,'(a,f11.6)') '  CAPE removal time min.   : ', kf_min_dtcape
+        write(stdout,'(a,f11.6)') '  CAPE removal time max.   : ', kf_max_dtcape
+        write(stdout,'(a,f11.6)') '  TKE maximum in sub cloud : ', kf_tkemax
       end if
     end if
 
