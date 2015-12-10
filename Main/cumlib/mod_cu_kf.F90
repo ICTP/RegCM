@@ -26,7 +26,7 @@ module mod_cu_kf
   use mod_regcm_types
   use mod_mpmessage
   use mod_cu_common
-  use mod_runparams , only : dx , dxsq , ipptls , dt
+  use mod_runparams , only : dx , dxsq , ipptls , ibltyp , dt
   use mod_runparams , only : iqv , iqr , iqi , iqs , iqc
   use mod_runparams , only : kf_entrate , kf_min_pef , kf_max_pef
   use mod_runparams , only : kf_dpp , kf_min_dtcape , kf_max_dtcape
@@ -73,7 +73,7 @@ module mod_cu_kf
 
   integer(ik4) , dimension(:) , pointer :: imap , jmap
   real(rk8) , dimension(:,:) , pointer :: u0 , v0 , z0 , t0 , qv0 , p0
-  real(rk8) , dimension(:,:) , pointer :: rho , dzq , w0avg
+  real(rk8) , dimension(:,:) , pointer :: rho , dzq , w0avg , tke
   real(rk8) , dimension(:) , pointer :: raincv , pratec
   real(rk8) , dimension(:,:) , pointer :: qc_kf , qi_kf
   integer(ik4) , dimension(:) , pointer :: ktop , kbot
@@ -130,10 +130,11 @@ module mod_cu_kf
     call getmem2d(u0,1,nipoi,1,kz,'mod_cu_kf:u0')
     call getmem2d(v0,1,nipoi,1,kz,'mod_cu_kf:v0')
     call getmem2d(t0,1,nipoi,1,kz,'mod_cu_kf:t0')
-    call getmem2d(z0,1,nipoi,1,kz,'mod_cu_kf:t0')
+    call getmem2d(z0,1,nipoi,1,kz,'mod_cu_kf:z0')
     call getmem2d(qv0,1,nipoi,1,kz,'mod_cu_kf:qv0')
     call getmem2d(p0,1,nipoi,1,kz,'mod_cu_kf:p0')
     call getmem2d(rho,1,nipoi,1,kz,'mod_cu_kf:rho')
+    call getmem2d(tke,1,nipoi,1,kz,'mod_cu_kf:tke')
     call getmem2d(dzq,1,nipoi,1,kz,'mod_cu_kf:dzq')
     call getmem2d(w0avg,1,nipoi,1,kz,'mod_cu_kf:w0avg')
     call getmem2d(dqdt,1,nipoi,1,kz,'mod_cu_kf:dqdt')
@@ -173,7 +174,7 @@ module mod_cu_kf
     if ( nipoi == 0 ) return
 
     do k = 1 , kz
-      kk = kz - k + 1
+      kk = kzp1 - k
       do np = 1 , nipoi
         i = imap(np)
         j = jmap(np)
@@ -190,6 +191,19 @@ module mod_cu_kf
         w0avg(np,k) = (kfwavg(j,i,kk)*3.0D0+w0)*d_rfour
       end do
     end do
+
+    if ( ibltyp == 2 ) then
+      do k = 1 , kz
+        kk = kzp1 - k
+        do np = 1 , nipoi
+          i = imap(np)
+          j = jmap(np)
+          tke(np,k) = d_half * (m2c%tkeas(j,i,kk)+m2c%tkeas(j,i,kk+1))
+        end do
+      end do
+    else
+      tke(:,:) = kf_tkemax
+    end if
 
     dtdt(:,:) = d_zero
     dqdt(:,:) = d_zero
@@ -299,7 +313,7 @@ module mod_cu_kf
     real(rk8) , dimension(kts:kte+1) :: omg
     real(rk8) , dimension(kts:kte) :: rainfb , snowfb
     real(rk8) , dimension(kts:kte) :: cldhgt , qsd , dilfrc , ddilfrc , &
-            tke , tgu , qgu , thteeg
+            tgu , qgu , thteeg
 
     real(rk8) :: fbfrc , p300 , dpthmx , qmix , zmix , pmix , tmix , emix , &
             tlog , tdpt , tlcl , tvlcl , plcl , es , dlp , tenv , qenv ,  &
@@ -309,7 +323,7 @@ module mod_cu_kf
             ud2 , ttmp , f1 , f2 , thttmp , qtmp , tmpliq , tmpice ,      &
             tu95 , tu10 , ee1 , ud1 , dptt , qnewlq , dumfdp , vconv ,    &
             timec , shsign , vws , pef , cbh , rcbh , pefcbh , peff ,     &
-            peff2 , tder , tadvec , dpdd , dpt , rdd , a1 , dssdt ,       &
+            peff2 , tder , tadvec , dpdd , rdd , a1 , dssdt ,             &
             dtmp , t1rh , qsrh , pptflx , cpr , cndtnf , updinc ,         &
             aincm2 , ddinc , aincmx , aincm1 , ainc , tder2 , pptfl2 ,    &
             fabe , stab , dtt , dtt1 , dtime , tma , tmb , tmm , bcoeff , &
@@ -332,7 +346,7 @@ module mod_cu_kf
             nd1 , ndk , lmax , ncount , noitr , nstep , ntc , ishall , np
     logical :: iprnt
     real(rk8) :: qslcl , rhlcl , dqssdt    !jfb
-    integer , parameter :: maxiter = 10
+    integer , parameter :: maxiter = 100
 
     kl = kte
     kx = kte
@@ -381,7 +395,6 @@ module mod_cu_kf
         ! If Turbulent Kinetic Energy (TKE) is available from turbulent
         ! mixing scheme use it for shallow convection.
         ! For now, assume it is not available
-        tke(k) = d_zero
         cldhgt(k) = d_zero
         if ( p0(np,k) >= d_half*p0(np,1) ) l5 = k
         if ( p0(np,k) >= p300) llfc = k
@@ -1437,7 +1450,7 @@ module mod_cu_kf
         ! just specify shallow-cloud mass flux using TKEMAX = 5...
         !
         ! find the maximum TKE value between LC and KLCL...
-        evac = d_half*kf_tkemax*0.1D0
+        evac = d_half*maxval(tke(np,lc:klcl))*0.1D0
         ainc = evac*dpthmx*dxsq/(vmflcl*egrav*timec)
         tder = tder2*ainc
         pptflx = pptfl2*ainc
@@ -1530,10 +1543,8 @@ module mod_cu_kf
         !
         do nk = 1 , ltop
           if ( qg(nk) < d_zero ) then
-            if ( nk == 1 ) then
-              write(stderr,*) 'AT I = ',imap(np), ', J = ', jmap(np)
-              call fatal(__FILE__,__LINE__,'KF: QG, QG(NK) < 0')
-            end if
+            write(stderr,*) 'AT I = ',imap(np), ', J = ', jmap(np)
+            write(stderr,*) 'KF: QG, QG(NK) < 0'
             nk1 = nk + 1
             if ( nk == ltop ) then
               nk1 = klcl
@@ -1665,7 +1676,7 @@ module mod_cu_kf
           cycle modelpoints
         end if
         if ( ncount /= 1 ) then
-          if ( abs(ainc-aincold) < 0.0001D0 ) then
+          if ( abs(ainc-aincold) < 0.00001D0 ) then
             noitr = 1
             ainc = aincold
             cycle iter
@@ -1900,10 +1911,11 @@ module mod_cu_kf
         ! If calculations above show an error in the mass budget, print out a
         ! to be used later for diagnostic purposes, THEN abort run.
         !
-        do nk = 1 , kL
+        do nk = 1 , kl
           k = kl - nk + 1
           write(stdout,'(8f11.3)') p0(np,k)/d_100,t0(np,k)-t00, &
-                  q0(k)*d_1000,u0(np,k),v0(np,k),w0avg(np,k),dp(k),tke(k)
+                  q0(k)*d_1000,u0(np,k),v0(np,k),w0avg(np,k)*d_100, &
+                  dp(k),tke(np,k)
         end do
         if ( istop == 1 ) then
           write(stderr,*) 'AT I = ', imap(np), ', J = ', jmap(np)
@@ -1917,25 +1929,26 @@ module mod_cu_kf
       !
       qinit = d_zero
       qfnl = d_zero
-      dpt = d_zero
       do nk = 1 , ltop
-        dpt = dpt + dp(nk)
-        qinit = qinit + q0(nk)*ems(nk)
-        qfnl = qfnl + qg(nk)*ems(nk)
-        qfnl = qfnl + (qlg(nk)+qig(nk)+qrg(nk)+qsg(nk))*ems(nk)
+        qinit = qinit + q0(nk)*ems(nk)/dxsq
+        qfnl = qfnl + (qg(nk)+qlg(nk)+qig(nk)+qrg(nk)+qsg(nk))*ems(nk)/dxsq
       end do
-      qfnl = qfnl + pptflx*timec*(d_one-fbfrc)  !  ppt fb mods
+      qfnl = qfnl + pptflx*timec*(d_one-fbfrc)/dxsq  !  ppt fb mods
       err2 = (qfnl-qinit)*d_100/qinit
-      if ( iprnt ) write(stdout,1110) qinit,qfnl,err2
       if ( abs(err2) > 0.05D0 .and. istop == 0 ) then
         istop = 1
         iprnt = .true.
-        write(stdout,'(i6)') kl
-        do nk = 1 , kL
+        write(stdout,1110) qinit , qfnl , err2
+        write(stdout,'(a,f12.3)') 'PPTFLX = ',(pptflx*(d_one-fbfrc)*timec)/dxsq
+        write(stdout,'(a,i6,a,i2)') 'LEVELS = ', kl,', ISHALLOW = ',ishall
+        write(stdout,'(a,i2)') 'NCOUNT : ',ncount
+        do nk = 1 , kl
           k = kl - nk + 1
           write(stdout,'(8f12.3)') p0(np,k)/d_100,t0(np,k)-t00, &
                   q0(k)*d_1000,u0(np,k),v0(np,k),w0avg(np,k),   &
-                  dp(k)/d_100,tke(k)
+                  dp(k)/d_100,tke(np,k)
+          write(stdout,'(5f12.3)') qg(nk)*d_1000,qlg(nk)*d_1000, &
+                  qig(nk)*d_1000,qrg(nk)*d_1000,qsg(nk)*d_1000
         end do
       end if
       if ( pptflx > d_zero ) then
@@ -1958,7 +1971,6 @@ module mod_cu_kf
       if ( ishall == 1 ) then
         timec = max(d_half*(kf_max_dtcape+kf_min_dtcape)-300.0D0,300.0D0)
       end if
-
       do k = 1 , kx
         !
         ! If hydrometeors are not allowed, they must be evaporated or sublimated
@@ -2016,6 +2028,9 @@ module mod_cu_kf
       pratec(np) = pptflx*(d_one-fbfrc)/dxsq
       ktop(np) = ltop
       kbot(np) = lcl
+      if ( istop == 1 ) then
+        call fatal(__FILE__,__LINE__,'MODEL STOPS')
+      end if
     end do modelpoints
 
 1035 format(1X,'PEF(WS)=',F5.2,'(CB)=',F5.2,'LC,LET=',2I3,'WKL=', &
