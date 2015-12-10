@@ -44,9 +44,9 @@ module mod_cu_kuo
   ! dlt    : temperature difference used to allow over shooting.
   ! cdscld : critical cloud depth in delta sigma.
   !
-  real(rk8) , parameter :: qdcrit = 3.0D-7
+  real(rk8) , parameter :: qdcrit = 1.0D-7
   real(rk8) , parameter :: pert   = 1.0D0
-  real(rk8) , parameter :: perq   = 1.0D-3
+  real(rk8) , parameter :: perq   = 1.0D-4
   real(rk8) , parameter :: dlt    = 3.0D0
   real(rk8) , parameter :: cdscld = 0.3D0
 
