@@ -332,6 +332,7 @@ module mod_cu_kf
             nd1 , ndk , lmax , ncount , noitr , nstep , ntc , ishall , np
     logical :: iprnt
     real(rk8) :: qslcl , rhlcl , dqssdt    !jfb
+    integer , parameter :: maxiter = 10
 
     kl = kte
     kx = kte
@@ -1453,7 +1454,7 @@ module mod_cu_kf
       end if  ! Otherwise for deep convection
               ! use iterative procedure to find mass fluxes...
       iter: &
-      do ncount = 1 , 10
+      do ncount = 1 , maxiter
         !
         ! Compute properties for compensational subsidence
         !
@@ -1549,14 +1550,6 @@ module mod_cu_kf
             qg(nk-1) = tmb*emsd(nk-1)
           end if
         end do
-        topomg = (udr(ltop)-uer(ltop))*dp(ltop)*emsd(ltop)
-        if ( abs(topomg-omg(ltop)) > 1.0D-3 ) then
-          istop = 1
-          iprnt = .true.
-          write (stderr, *) 'POSSIBLE INSTABILITY IN KF CODE'
-          write (stderr, *) 'MASS DOES NOT BALANCE IN KF SCHEME'
-          exit iter
-        end if
         !
         ! Convert theta to t
         !
@@ -1686,16 +1679,13 @@ module mod_cu_kf
         end if
         aincold = ainc
         fabeold = fabe
+        topomg = (udr(ltop)-uer(ltop))*dp(ltop)*emsd(ltop)
         if ( ainc/aincmx > 0.999D0 .and. fabe > 1.05D0-stab ) then
           exit iter
         end if
-        if ( (fabe <= 1.05D0-stab .and. fabe >= 0.95D0-stab) .or. &
-              ncount == 10 ) then
+        if ( fabe <= 1.05D0-stab .and. fabe >= 0.95D0-stab ) then
           exit iter
         else
-          if ( ncount > 10 ) then
-            exit iter
-          end if
           !
           ! If more than 10% of the original cape remains, increase the
           ! convective mass flux by the factor ainc:
@@ -1732,6 +1722,15 @@ module mod_cu_kf
           !
           ! Go back up for another iteration.
           !
+        end if
+        if ( abs(topomg-omg(ltop)) > 1.0D-3 ) then
+          iprnt = .true.
+          write (stderr, *) 'POSSIBLE INSTABILITY IN KF CODE'
+          write (stderr, *) 'MASS DOES NOT BALANCE IN KF SCHEME'
+          write (stderr, *) 'NCOUNT = ', ncount
+          if ( ncount == maxiter ) istop = 1
+        else
+          iprnt = .false.
         end if
       end do iter
       ! Get the cloud fraction for layer NK+1=NK1
