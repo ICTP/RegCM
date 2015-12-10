@@ -20,27 +20,47 @@ def ddlogn(D,Dm,sigma,N ):
  return dND
 
 # user defined parameter
-#define the number (or mass) distribution (e.g from Kok et al). 
-#diameter micron
-D = np.arange(0.01,65, 0.05)
+
+
+#diameter range in  micron, for efficincy consider ans iso-log progression of diameters, step 0.01  ! 
+# fix the range in function ofthe binning 
+Dmin= 0.05
+Dmax= 70
+
+lndmin =  np.log(Dmin)
+lndmax =  np.log(Dmax)
+lnD = np.arange(lndmin,lndmax, 0.01)
+D=np.exp(lnD)
+
+#define the number (or mass) distribution (here Kok et al)
 cN = 0.9539
 Ds=3.4
 sigs=3.0
 lamb=12
 A= np.log(D/Ds)/ (np.sqrt(2) * np.log(sigs))
-#care dND/dD or dND/d(lnD) !!
-dND =(1/D)* (1/(cN*D*D)) * (1 + erf(A)) * np.exp(-1.*(D/lamb)**3)
-#dND = (D/12.62) * (1 + erf(A)) * np.exp(-1.*(D/lamb)**3)
+
+#care dND/dD vs dND/d(lnD) !!
+# here we work in isolog so it is more convenient to use dND/d(lnD)
+# this means really  dND/d(lnD)/ kOK ET AL
+dND = (1/(cN*D*D)) * (1 + erf(A)) * np.exp(-1.*(D/lamb)**3)
  
 
 # here use a 3 log distribution 
 # e.g. alfaro Gomez
 if(1==2):
- sig = [1.75, 1.75, 1.75]
- Dm = [0.64, 3.45, 8.67]
- Nf = [0.74, 0.20, 0.06]
+ sig = [1.30, 1.75, 1.75]
+ Dm = [0.24, 1, 1]
+ Nf = [1., 0., 0.]
  dND = ddlogn(D,Dm,sig,Nf )
 
+ #sig = [1.75, 1.75, 1.75]
+ #Dm = [0.64, 3.45, 8.67]
+ #Nf = [0.74, 0.20, 0.06]
+ #dND = ddlogn(D,Dm,sig,Nf )
+ #sig = [1.75, 1.76, 1.70]
+ #Dm = [0.20, 1.67, 11.6]
+ #Nf = [0.9752, 0.0195, 0.052]
+ #dND = ddlogn(D,Dm,sig,Nf )
 
 
 
@@ -49,11 +69,13 @@ if(1==2):
 #you can take also one big bin encompassing the whole distrib (that 's what we do for BC/OC, in this case it is equivalent to integrate over the full distrib mode). 
 
 #here is LISA optimal distrib for dust
-sbin =  np.array([0.09,0.18, 0.6, 1.55, 2.50, 3.75, 4.70, 5.70, 7.50, 14.50, 26.0, 41.0, 63.0])
-#sbin = [0.01 ,1.,2.5,5.,20. ]
+#sbin =  np.array([0.09,0.18, 0.6, 1.55, 2.50, 3.75, 4.70, 5.70, 7.50, 14.50, 26.0, 41.0, 63.0])
+sbin = [0.09 ,1.,2.5,5.,63. ]
 #sbin =[0.98,1.2,2.5,5.,20.]
 # set aerosol density in g/m3
-rhop = 2650E3 
+
+#sbin= [0, 1]
+rhop = 2650E3  
 
 # define the refractive index, vary spectrally acoording to Wagner et al., ACP 2012 
 # I added  an extrapolation point for wavlenght belo 0.305 
@@ -66,14 +88,17 @@ rhop = 2650E3
 # added  an extrapolation point for wavlenght belo 0.305 and above 0.9 
 # should complete this data with IR indices 
 
-ndbib= [1.53] * 20 
+ndbib= [1.54] * 20 
+
 
 wbib= [0.2, 0.305, 0.355, 0.405, 0.455, 0.505, 0.555, 0.605, 0.655, 0.705, 0.755, 0.805, 0.855, 0.905, 0.955,\
        2,3, 5,8,13]
+#kbib = [0.018]*20
+
 kbib = [0.04, 0.027866667,	0.020111111,	0.014933333,	0.010222222,	0.007955556,	0.005133333,	0.003788889,	0.003177778,	0.003033333,	0.003011111,	0.002911111,	0.003111111,	0.003111111,	0.003066667 , 0.0028,0.0025,0.002, 0.00195, 0.0019]
 
-
-
+#ndbib= [1.55] * 20 
+#kbib = [0.0055]*20
 #kbib = [0.04, 0.027866667,     0.020111111,    0.014933333,    0.001,    0.001,    0.001,    0.001,    0.003177778,    0.003033333,    0.003011111,    0.002911111,    0.003111111,    0.003111111,    0.003066667 , 0.0028,0.0025,0.002, 0.00195, 0.0019]
 
 #with this function we can simply interpolate kbib for every value of wavelenght !
@@ -105,7 +130,7 @@ if(1==1):
                          12850.,16000.,22650.,29000.,38000.,50000., 2600.])
 
 # Longwave spectral band limits (wavenumbers)
-    if(1==1): 
+    if(1==2): 
        wavenum1 =  np.array([ 10., 350., 500., 630., 700. , 820. , \
                       980. ,1080. ,1180. ,1390. ,1480. ,1800. , \
                      2080. ,2250. ,2380. ,2600. ])
@@ -142,24 +167,31 @@ Sv= np.zeros(len(sbin)-1)
 Ss= np.zeros(len(sbin)-1)
 normb= np.zeros(len(sbin)-1)
 
+
+#normb is usefull to normalise the distribution within the bin
+# mathemnatically we shoul multiply consider dNd * dlnD, but dlnD is constant here (because of isolog progression)
+# and will always simplifies through normalisation or calculation of moment ratios ... 
 for b in range(len(sbin)-1):
- for dd in range(len(D)):
+ for dd in range(len(lnD)):
   if (D[dd] >= sbin[b] and D[dd] <sbin[b+1]):
-   Sv[b] = Sv[b] + D[dd]**3 * dND[dd]
+   Sv[b] = Sv[b] + D[dd]**3 * dND[dd] 
    Ss[b] = Ss[b] + D[dd]**2 * dND[dd]
    normb[b] = normb[b] +   dND[dd]
 Deff = Sv/Ss
-print Deff
+print "Deff", Deff
+
+
+
 
 # visu
 
 fig = plt.figure()
 ax = fig.add_subplot(1,3,1)
-#here plot dN/d(logD) !!
-ax.plot(D,dND *D , color='blue')
+#here plot dN/d(lnD) for comparison with papers !!
+ax.plot(D,dND , color='blue')
 ax.set_yscale('log')
 ax.set_xscale('log')
-ax.set_xlim([0.08, 65])
+ax.set_xlim([0.2, 20])
 ax.set_ylim([1.E-4, 1])
 ax.set_title("distribution and bins, dot= Deff")
 ax.set_xlabel('D in micrometer')
@@ -172,9 +204,9 @@ for x in Deff:
 
 #visu also the ref index spectral variation interp + values 
 ax2 = fig.add_subplot(1,3,2)
-#xx = np.linspace(0.2,13,500)
-xx = np.linspace(3,40,500)
-ax2.plot(xx, ndint(xx), color='green')
+xx = np.linspace(0.2,13,500)
+#xx = np.linspace(3,40,500)
+ax2.plot(xx, kint(xx), color='green')
 #ax2.scatter(wbib,kbib)
 ax2.set_title(" im ref index, dot = data, line = interp used for oppt calc. ")
 ax2.set_xlabel('wavelenght in micrometer')
@@ -186,7 +218,7 @@ ax2.set_xlabel('wavelenght in micrometer')
 #calculate optical properties per bin
 #######################################3
 # methode 1 considering only bin effective diam calculated before
-if(1==1):
+if(1==2):
     extb =  np.zeros((len(sbin)-1,len(wavmin)))
     ssab = np.zeros((len(sbin)-1,len(wavmin)))
     asyb =  np.zeros((len(sbin)-1,len(wavmin)))
@@ -213,7 +245,7 @@ if(1==1):
 
 
 
-if (1==2):
+if (1==1):
 #method 2(slower) double integration  /more precise prblem mie return nan for extrem coarse particles
 # calculate the mie parameter for every diameter of the range, averaged on spectral band
 
@@ -224,10 +256,10 @@ if (1==2):
 
   for nband in range(len(wavmin)):
          specbin = np.linspace(wavmin[nband],wavmax[nband],10)   
-         extd = np.zeros(len(D))
-         ssad  = np.zeros(len(D))
-         asyd  = np.zeros(len(D))
-         for db in range(len(D)):
+         extd = np.zeros(len(lnD))
+         ssad  = np.zeros(len(lnD))
+         asyd  = np.zeros(len(lnD))
+         for db in range(len(lnD)):
            qext = 0.
            ssa = 0.
            asy =0.
@@ -241,7 +273,7 @@ if (1==2):
              asy=  asy + mie.asy()
            extd[db] = qext / len(specbin) / (2./3. * rhop * D[db]*1E-6)  
            ssad [db] = ssa / len(specbin)
-           asyd [db] = asy / len(specbin)
+           asyd [db] = asy / len(specbin)                                                                           
         # perform the bin wighting av according to distibution
            for b in range(len(sbin)-1):  
              if (D[db] >= sbin[b] and D[db] <sbin[b+1]): 
