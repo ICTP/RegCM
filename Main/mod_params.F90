@@ -1433,8 +1433,6 @@ module mod_params
       xkhmax = d_two*dxsq/(64.0D0*dt)
       c200 = vonkar*vonkar*dx*d_rfour
     end if
-    akht1 = dxsq/tauht
-    akht2 = dxsq/tauht
     !
     ! Calculate boundary areas per processor
     !
@@ -1779,11 +1777,11 @@ module mod_params
           !
           ! get twght from 1/2 level sigma values
           !
-          bb = dlog(hsigma(ktop)) + dlog(hsigma(kbase))
-          cc = dlog(hsigma(ktop))*dlog(hsigma(kbase))
+          bb = log(hsigma(ktop)) + log(hsigma(kbase))
+          cc = log(hsigma(ktop))*log(hsigma(kbase))
           ssum = d_zero
           do k = ktop , kbase
-            xx = dlog(hsigma(k))
+            xx = log(hsigma(k))
             twght(k,kbase,ktop) = (xx*xx) - (bb*xx) + cc
             ssum = ssum + twght(k,kbase,ktop)*dsigma(k)
           end do
@@ -1794,8 +1792,8 @@ module mod_params
           ! get vqflx from  d(w*q) / dsigma on full levels
           ! do computations in p to avoid sigma=0. discontinuity
           !
-          xtop = dlog((d_100-ptop)*sigma(ktop)+ptop)
-          xbot = dlog((d_100-ptop)*sigma(kbase+1)+ptop)
+          xtop = log((d_100-ptop)*sigma(ktop)+ptop)
+          xbot = log((d_100-ptop)*sigma(kbase+1)+ptop)
           bb = xtop + xbot
           cc = xtop*xbot
           vqmax = d_zero
@@ -1805,15 +1803,15 @@ module mod_params
           wk = (xx*xx) - (bb*xx) + cc
           qk = -((yy*yy)-(bb*yy)+cc)
           do k = ktop , kbase
-            xx = dlog((d_100-ptop)*sigma(k+1)+ptop)
-            yy = dlog((d_100-ptop) * &
+            xx = log((d_100-ptop)*sigma(k+1)+ptop)
+            yy = log((d_100-ptop) * &
                  (sigma(ktop)+sigma(kbase+1)-sigma(k+1))+ptop)
             wkp1 = (xx*xx) - (bb*xx) + cc
             qkp1 = -((yy*yy)-(bb*yy)+cc)
             vqflx(k,kbase,ktop) = -((wkp1*qkp1)-(wk*qk))/dsigma(k)
             ssum = ssum + vqflx(k,kbase,ktop)
-            if ( dabs(vqflx(k,kbase,ktop)) > vqmax ) &
-                 vqmax = dabs(vqflx(k,kbase,ktop))
+            if ( abs(vqflx(k,kbase,ktop)) > vqmax ) &
+                 vqmax = abs(vqflx(k,kbase,ktop))
             wk = wkp1
             qk = qkp1
           end do

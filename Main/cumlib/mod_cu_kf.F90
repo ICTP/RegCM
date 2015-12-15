@@ -257,7 +257,6 @@ module mod_cu_kf
     ! Build for chemistry 3d table of constant precipitation rate
     ! from the surface to the top of the convection
     if ( ichem == 1 ) then
-      cu_convpr(:,:,:) = d_zero
       do k = 1 , kz
         kk = kz - k + 1
         do np = 1 , nipoi
@@ -267,10 +266,6 @@ module mod_cu_kf
         end do
       end do
     end if
-
-    cu_ktop(:,:) = 0
-    cu_kbot(:,:) = 0
-
     do np = 1 , nipoi
       i = imap(np)
       j = jmap(np)

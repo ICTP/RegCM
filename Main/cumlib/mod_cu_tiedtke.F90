@@ -169,7 +169,6 @@ module mod_cu_tiedtke
 
     ilab(:,:) = 2
     cevapcu(:) = cevapu
-    cu_qdetr(:,:,:) = d_zero
 
     if ( ichem == 1 ) then
       cu_convpr(:,:,:) = d_zero
@@ -362,8 +361,6 @@ module mod_cu_tiedtke
       end do
     end if
 
-    cu_ktop(:,:) = 0
-    cu_kbot(:,:) = 0
     do ii = 1 , nipoi
       if (ktype(ii) > 0) then
         i = imap(ii)

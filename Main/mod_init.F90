@@ -327,10 +327,6 @@ module mod_init
         call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici2)
       end if
 
-      if ( any(icup == 1) ) then
-        call grid_distribute(rsheat_io,rsheat,jci1,jci2,ici1,ici2,1,kz)
-        call grid_distribute(rswat_io,rswat,jci1,jci2,ici1,ici2,1,kz)
-      end if
       if ( any(icup == 3) ) then
         call grid_distribute(tbase_io,tbase,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(cldefi_io,cldefi,jci1,jci2,ici1,ici2)

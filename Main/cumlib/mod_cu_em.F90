@@ -111,13 +111,6 @@ module mod_cu_em
     call time_begin(subroutine_name,idindx)
 #endif
 
-    cu_ktop(:,:) = 0
-    cu_kbot(:,:) = 0
-    ktop = 1
-    if ( ichem == 1 ) then
-      cu_convpr(:,:,:) = d_zero
-    end if
-
     nap = 0
     do i = ici1 , ici2
       do j = jci1 , jci2

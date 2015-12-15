@@ -147,13 +147,11 @@ module mod_runparams
   integer(ik4) , public :: iaerosol , igaschem , ioxclim , iisoropia
   character(len=6) , pointer , dimension(:) , public :: chtrname
   integer(ik4) , public :: nbin = 1
-!
+
   logical , public :: do_parallel_netcdf_in , do_parallel_netcdf_out
   logical , public :: ifrest , rfstrt , doing_restart , lsync
 
   integer(ik4) , public :: kchi , kclo , kcmd
-!
-  real(rk8) , public :: akht1 , akht2
 
   real(rk8) , pointer , dimension(:) , public :: dtau
   real(rk8) , pointer , dimension(:) , public :: hsigma , dsigma , qcon

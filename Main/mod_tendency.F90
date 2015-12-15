@@ -998,10 +998,6 @@ module mod_tendency
       call surface_model
       if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
     end if
-
-    if ( any(icup == 1) ) then
-      call cumulus_kuo_htdiff
-    end if
     !
     ! Call medium resolution PBL
     !

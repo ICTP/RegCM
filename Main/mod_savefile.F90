@@ -132,9 +132,6 @@ module mod_savefile
 
   real(rk8) , public , pointer , dimension(:,:,:) :: fcc_io
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: rsheat_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: rswat_io
-
   real(rk8) , public , pointer , dimension(:,:,:,:) :: gasabsnxt_io
   real(rk8) , public , pointer , dimension(:,:,:,:) :: gasabstot_io
   real(rk8) , public , pointer , dimension(:,:,:) :: gasemstot_io
@@ -162,6 +159,16 @@ module mod_savefile
   real(rk8) , public , pointer , dimension(:,:,:) :: lwdiralb_io
   real(rk8) , public , pointer , dimension(:,:,:) :: lwdifalb_io
 #endif
+
+  interface myputvar
+    module procedure myputvar2dd
+    module procedure myputvar2ddf
+    module procedure myputvar3dd
+    module procedure myputvar4dd
+    module procedure myputvar1dif
+    module procedure myputvar2di
+    module procedure myputvar3di
+  end interface myputvar
 
   contains
 
@@ -255,11 +262,6 @@ module mod_savefile
       end if
       if ( ipptls > 0 ) then
         call getmem3d(fcc_io,jcross1,jcross2,icross1,icross2,1,kz,'fcc_io')
-      end if
-      if ( any(icup == 1) ) then
-        call getmem3d(rsheat_io,jcross1,jcross2, &
-                                icross1,icross2,1,kz,'rsheat_io')
-        call getmem3d(rswat_io,jcross1,jcross2,icross1,icross2,1,kz,'rswat_io')
       end if
 
       if ( idynamic == 1 ) then
@@ -413,12 +415,6 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read tgbb')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'uvdrag'),uvdrag_io)
       call check_ok(__FILE__,__LINE__,'Cannot read uvdrag')
-      if ( any(icup == 1) ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'rsheat'),rsheat_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read rsheat')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'rswat'),rswat_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read rswat')
-      end if
       if ( any(icup == 3) ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'cldefi'),cldefi_io)
         call check_ok(__FILE__,__LINE__,'Cannot read cldefi')
@@ -605,7 +601,7 @@ module mod_savefile
     use netcdf
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: ncid
+    integer(ik4) :: ncid , ivcc
     integer(ik4) , dimension(maxdims) :: dimids
     integer(ik4) , dimension(maxdims) :: wrkdim
     integer(ik4) , dimension(maxvars) :: varids
@@ -669,322 +665,188 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot create dimension ikern')
       end if
 
+      ivcc = 0
       wrkdim(1) = dimids(idjdot)
       wrkdim(2) = dimids(ididot)
       wrkdim(3) = dimids(idkh)
-      ncstatus = nf90_def_var(ncid,'atm1_u',nf90_double,wrkdim(1:3),varids(1))
-      call check_ok(__FILE__,__LINE__,'Cannot create var atm1_u')
-      ncstatus = nf90_def_var(ncid,'atm2_u',nf90_double,wrkdim(1:3),varids(2))
-      call check_ok(__FILE__,__LINE__,'Cannot create var atm2_u')
-      ncstatus = nf90_def_var(ncid,'atm1_v',nf90_double,wrkdim(1:3),varids(3))
-      call check_ok(__FILE__,__LINE__,'Cannot create var atm1_v')
-      ncstatus = nf90_def_var(ncid,'atm2_v',nf90_double,wrkdim(1:3),varids(4))
-      call check_ok(__FILE__,__LINE__,'Cannot create var atm2_v')
+      call mydefvar(ncid,'atm1_u',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm2_u',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm1_v',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm2_v',nf90_double,wrkdim,1,3,varids,ivcc)
       wrkdim(1) = dimids(idjcross)
       wrkdim(2) = dimids(idicross)
       wrkdim(3) = dimids(idkh)
-      ncstatus = nf90_def_var(ncid,'atm1_t',nf90_double,wrkdim(1:3),varids(5))
-      call check_ok(__FILE__,__LINE__,'Cannot create var atm1_t')
-      ncstatus = nf90_def_var(ncid,'atm2_t',nf90_double,wrkdim(1:3),varids(6))
-      call check_ok(__FILE__,__LINE__,'Cannot create var atm2_t')
+      call mydefvar(ncid,'atm1_t',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm2_t',nf90_double,wrkdim,1,3,varids,ivcc)
       wrkdim(4) = dimids(idnqx)
-      ncstatus = nf90_def_var(ncid,'atm1_qx',nf90_double,wrkdim(1:4),varids(7))
-      call check_ok(__FILE__,__LINE__,'Cannot create var atm1_qx')
-      ncstatus = nf90_def_var(ncid,'atm2_qx',nf90_double,wrkdim(1:4),varids(8))
-      call check_ok(__FILE__,__LINE__,'Cannot create var atm2_qx')
+      call mydefvar(ncid,'atm1_qx',nf90_double,wrkdim,1,4,varids,ivcc)
+      call mydefvar(ncid,'atm2_qx',nf90_double,wrkdim,1,4,varids,ivcc)
       if ( ibltyp == 2 ) then
         wrkdim(3) = dimids(idkf)
-        ncstatus = nf90_def_var(ncid,'atm1_tke',nf90_double, &
-                                wrkdim(1:3),varids(9))
-        call check_ok(__FILE__,__LINE__,'Cannot create var atm1_tke')
-        ncstatus = nf90_def_var(ncid,'atm2_tke',nf90_double, &
-                                wrkdim(1:3),varids(10))
-        call check_ok(__FILE__,__LINE__,'Cannot create var atm2_tke')
-        ncstatus = nf90_def_var(ncid,'kpbl',nf90_int,wrkdim(1:2),varids(11))
-        call check_ok(__FILE__,__LINE__,'Cannot create var kpbl')
+        call mydefvar(ncid,'atm1_tke',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'atm2_tke',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
       end if
       if ( idynamic == 2 ) then
         wrkdim(3) = dimids(idkf)
-        ncstatus = nf90_def_var(ncid,'atm1_w',nf90_double, &
-                                wrkdim(1:3),varids(12))
-        ncstatus = nf90_def_var(ncid,'atm2_w',nf90_double, &
-                                wrkdim(1:3),varids(13))
+        call mydefvar(ncid,'atm1_w',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'atm2_w',nf90_double,wrkdim,1,3,varids,ivcc)
         wrkdim(3) = dimids(idkh)
-        ncstatus = nf90_def_var(ncid,'atm1_pp',nf90_double, &
-                                wrkdim(1:3),varids(14))
-        ncstatus = nf90_def_var(ncid,'atm2_pp',nf90_double, &
-                                wrkdim(1:3),varids(15))
+        call mydefvar(ncid,'atm1_pp',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'atm2_pp',nf90_double,wrkdim,1,3,varids,ivcc)
       end if
-      ncstatus = nf90_def_var(ncid,'psa',nf90_double,wrkdim(1:2),varids(16))
-      call check_ok(__FILE__,__LINE__,'Cannot create var psa')
-      ncstatus = nf90_def_var(ncid,'psb',nf90_double,wrkdim(1:2),varids(17))
-      call check_ok(__FILE__,__LINE__,'Cannot create var psb')
-      ncstatus = nf90_def_var(ncid,'tga',nf90_double,wrkdim(1:2),varids(18))
-      call check_ok(__FILE__,__LINE__,'Cannot create var tga')
-      ncstatus = nf90_def_var(ncid,'tgb',nf90_double,wrkdim(1:2),varids(19))
-      call check_ok(__FILE__,__LINE__,'Cannot create var tgb')
-      ncstatus = nf90_def_var(ncid,'hfx',nf90_double,wrkdim(1:2),varids(20))
-      call check_ok(__FILE__,__LINE__,'Cannot create var hfx')
-      ncstatus = nf90_def_var(ncid,'qfx',nf90_double,wrkdim(1:2),varids(21))
-      call check_ok(__FILE__,__LINE__,'Cannot create var qfx')
-      ncstatus = nf90_def_var(ncid,'rainc',nf90_double,wrkdim(1:2),varids(22))
-      call check_ok(__FILE__,__LINE__,'Cannot create var rainc')
-      ncstatus = nf90_def_var(ncid,'rainnc',nf90_double,wrkdim(1:2),varids(23))
-      call check_ok(__FILE__,__LINE__,'Cannot create var rainnc')
-      ncstatus = nf90_def_var(ncid,'tgbb',nf90_double,wrkdim(1:2),varids(24))
-      call check_ok(__FILE__,__LINE__,'Cannot create var tgbb')
-      ncstatus = nf90_def_var(ncid,'uvdrag',nf90_double,wrkdim(1:2),varids(25))
-      call check_ok(__FILE__,__LINE__,'Cannot create var uvdrag')
+      call mydefvar(ncid,'psa',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'psb',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'tga',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'tgb',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'hfx',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'qfx',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'rainc',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'rainnc',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'tgbb',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'uvdrag',nf90_double,wrkdim,1,2,varids,ivcc)
       wrkdim(3) = dimids(idkh)
-      if ( any(icup == 1) ) then
-        ncstatus = nf90_def_var(ncid,'rsheat',nf90_double, &
-                                wrkdim(1:3),varids(26))
-        call check_ok(__FILE__,__LINE__,'Cannot create var rsheat')
-        ncstatus = nf90_def_var(ncid,'rswat',nf90_double, &
-                                wrkdim(1:3),varids(27))
-        call check_ok(__FILE__,__LINE__,'Cannot create var rswat')
-      end if
       if ( any(icup == 3) ) then
-        ncstatus = nf90_def_var(ncid,'cldefi',nf90_double, &
-                                wrkdim(1:2),varids(28))
-        call check_ok(__FILE__,__LINE__,'Cannot create var cldefi')
-        ncstatus = nf90_def_var(ncid,'tbase',nf90_double, &
-                                wrkdim(1:3),varids(29))
-        call check_ok(__FILE__,__LINE__,'Cannot create var tbase')
+        call mydefvar(ncid,'cldefi',nf90_double,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'tbase',nf90_double,wrkdim,1,3,varids,ivcc)
       end if
       if ( any(icup == 6) ) then
-        ncstatus = nf90_def_var(ncid,'kfwavg',nf90_double, &
-                                wrkdim(1:3),varids(30))
-        call check_ok(__FILE__,__LINE__,'Cannot create var kfwavg')
+        call mydefvar(ncid,'kfwavg',nf90_double,wrkdim,1,3,varids,ivcc)
       end if
       if ( any(icup == 4) ) then
-        ncstatus = nf90_def_var(ncid,'cbmf2d',nf90_double, &
-                                wrkdim(1:2),varids(31))
-        call check_ok(__FILE__,__LINE__,'Cannot create var cbmf2d')
+        call mydefvar(ncid,'cbmf2d',nf90_double,wrkdim,1,2,varids,ivcc)
       end if
       if ( irrtm == 0 ) then
         wrkdim(3) = dimids(idkh)
         wrkdim(4) = dimids(idspw)
-        ncstatus = nf90_def_var(ncid,'gasabsnxt',nf90_double, &
-                                wrkdim(1:4),varids(32))
-        call check_ok(__FILE__,__LINE__,'Cannot create var gasabsnxt')
+        call mydefvar(ncid,'gasabsnxt',nf90_double,wrkdim,1,4,varids,ivcc)
         wrkdim(3) = dimids(idkf)
         wrkdim(4) = dimids(idkf)
-        ncstatus = nf90_def_var(ncid,'gasabstot',nf90_double, &
-                                wrkdim(1:4),varids(33))
-        call check_ok(__FILE__,__LINE__,'Cannot create var gasabstot')
-        ncstatus = nf90_def_var(ncid,'gasemstot',nf90_double, &
-                                wrkdim(1:3),varids(34))
-        call check_ok(__FILE__,__LINE__,'Cannot create var gasemstot')
+        call mydefvar(ncid,'gasabstot',nf90_double,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'gasemstot',nf90_double,wrkdim,1,3,varids,ivcc)
       end if
       if ( ipptls > 0 ) then
         wrkdim(3) = dimids(idkh)
-        ncstatus = nf90_def_var(ncid,'fcc',nf90_double,wrkdim(1:3),varids(35))
-        call check_ok(__FILE__,__LINE__,'Cannot create var fcc')
+        call mydefvar(ncid,'fcc',nf90_double,wrkdim,1,3,varids,ivcc)
         if ( ipptls == 2 ) then
-          ncstatus = nf90_def_var(ncid,'snownc',nf90_double, &
-                                  wrkdim(1:2),varids(36))
-          call check_ok(__FILE__,__LINE__,'Cannot create var snownc')
+          call mydefvar(ncid,'snownc',nf90_double,wrkdim,1,2,varids,ivcc)
         end if
       end if
-      ncstatus = nf90_def_var(ncid,'solis',nf90_double,wrkdim(1:2),varids(37))
-      call check_ok(__FILE__,__LINE__,'Cannot create var solis')
-      ncstatus = nf90_def_var(ncid,'solvs',nf90_double,wrkdim(1:2),varids(38))
-      call check_ok(__FILE__,__LINE__,'Cannot create var solvs')
-      ncstatus = nf90_def_var(ncid,'solvsd',nf90_double,wrkdim(1:2),varids(39))
-      call check_ok(__FILE__,__LINE__,'Cannot create var solvsd')
-      ncstatus = nf90_def_var(ncid,'solvl',nf90_double,wrkdim(1:2),varids(40))
-      call check_ok(__FILE__,__LINE__,'Cannot create var solvl')
-      ncstatus = nf90_def_var(ncid,'solvld',nf90_double,wrkdim(1:2),varids(41))
-      call check_ok(__FILE__,__LINE__,'Cannot create var solvld')
-      ncstatus = nf90_def_var(ncid,'sabveg',nf90_double,wrkdim(1:2),varids(42))
-      call check_ok(__FILE__,__LINE__,'Cannot create var sabveg')
+      call mydefvar(ncid,'solis',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solvs',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solvsd',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solvl',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solvld',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'sabveg',nf90_double,wrkdim,1,2,varids,ivcc)
       wrkdim(1) = dimids(idnnsg)
       wrkdim(2) = dimids(idjcross)
       wrkdim(3) = dimids(idicross)
-      ncstatus = nf90_def_var(ncid,'tlef',nf90_double,wrkdim(1:3),varids(43))
-      call check_ok(__FILE__,__LINE__,'Cannot create var tlef')
-      ncstatus = nf90_def_var(ncid,'ssw',nf90_double,wrkdim(1:3),varids(44))
-      call check_ok(__FILE__,__LINE__,'Cannot create var ssw')
-      ncstatus = nf90_def_var(ncid,'rsw',nf90_double,wrkdim(1:3),varids(45))
-      call check_ok(__FILE__,__LINE__,'Cannot create var rsw')
-      ncstatus = nf90_def_var(ncid,'tsw',nf90_double,wrkdim(1:3),varids(46))
-      call check_ok(__FILE__,__LINE__,'Cannot create var tsw')
-      ncstatus = nf90_def_var(ncid,'tgrd',nf90_double,wrkdim(1:3),varids(47))
-      call check_ok(__FILE__,__LINE__,'Cannot create var tgrd')
-      ncstatus = nf90_def_var(ncid,'tgbrd',nf90_double,wrkdim(1:3),varids(48))
-      call check_ok(__FILE__,__LINE__,'Cannot create var tgbrd')
-      ncstatus = nf90_def_var(ncid,'sncv',nf90_double,wrkdim(1:3),varids(49))
-      call check_ok(__FILE__,__LINE__,'Cannot create var sncv')
-      ncstatus = nf90_def_var(ncid,'gwet',nf90_double,wrkdim(1:3),varids(50))
-      call check_ok(__FILE__,__LINE__,'Cannot create var gwet')
-      ncstatus = nf90_def_var(ncid,'snag',nf90_double,wrkdim(1:3),varids(51))
-      call check_ok(__FILE__,__LINE__,'Cannot create var snag')
-      ncstatus = nf90_def_var(ncid,'sfice',nf90_double,wrkdim(1:3),varids(52))
-      call check_ok(__FILE__,__LINE__,'Cannot create var sfice')
-      ncstatus = nf90_def_var(ncid,'ldew',nf90_double,wrkdim(1:3),varids(53))
-      call check_ok(__FILE__,__LINE__,'Cannot create var ldew')
-      ncstatus = nf90_def_var(ncid,'ldmsk1',nf90_int,wrkdim(1:3),varids(54))
-      call check_ok(__FILE__,__LINE__,'Cannot create var ldmsk1')
-      ncstatus = nf90_def_var(ncid,'taf',nf90_double,wrkdim(1:3),varids(55))
-      call check_ok(__FILE__,__LINE__,'Cannot create var taf')
-      ncstatus = nf90_def_var(ncid,'emiss',nf90_double,wrkdim(1:3),varids(56))
-      call check_ok(__FILE__,__LINE__,'Cannot create var emiss')
-      ncstatus = nf90_def_var(ncid,'scvk',nf90_double,wrkdim(1:3),varids(57))
-      call check_ok(__FILE__,__LINE__,'Cannot create var scvk')
-      ncstatus = nf90_def_var(ncid,'um10',nf90_double,wrkdim(1:3),varids(58))
-      call check_ok(__FILE__,__LINE__,'Cannot create var um10')
+      call mydefvar(ncid,'tlef',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'ssw',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'rsw',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'tsw',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'tgrd',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'tgbrd',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'sncv',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'gwet',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'snag',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'sfice',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'ldew',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'ldmsk1',nf90_int,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'taf',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'emiss',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'scvk',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'um10',nf90_double,wrkdim,1,3,varids,ivcc)
       if ( idcsst == 1 ) then
-        ncstatus = nf90_def_var(ncid,'sst',nf90_double, &
-                                wrkdim(1:3),varids(59))
-        ncstatus = nf90_def_var(ncid,'tskin',nf90_double, &
-                                wrkdim(1:3),varids(60))
-        call check_ok(__FILE__,__LINE__,'Cannot create var tskin')
-        ncstatus = nf90_def_var(ncid,'deltas',nf90_double, &
-                                wrkdim(1:3),varids(61))
-        call check_ok(__FILE__,__LINE__,'Cannot create var deltas')
-        ncstatus = nf90_def_var(ncid,'tdeltas',nf90_double, &
-                                wrkdim(1:3),varids(62))
-        call check_ok(__FILE__,__LINE__,'Cannot create var tdeltas')
+        call mydefvar(ncid,'sst',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'tskin',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'deltas',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'tdeltas',nf90_double,wrkdim,1,3,varids,ivcc)
       end if
 #ifndef CLM
       if ( lakemod == 1 ) then
-        ncstatus = nf90_def_var(ncid,'eta',nf90_double,wrkdim(1:3),varids(63))
-        call check_ok(__FILE__,__LINE__,'Cannot create var eta')
-        ncstatus = nf90_def_var(ncid,'hi',nf90_double,wrkdim(1:3),varids(64))
-        call check_ok(__FILE__,__LINE__,'Cannot create var hi')
+        call mydefvar(ncid,'eta',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'hi',nf90_double,wrkdim,1,3,varids,ivcc)
         wrkdim(4) = dimids(iddpt)
-        ncstatus = nf90_def_var(ncid,'tlak',nf90_double,wrkdim(1:4),varids(65))
-        call check_ok(__FILE__,__LINE__,'Cannot create var tlak')
+        call mydefvar(ncid,'tlak',nf90_double,wrkdim,1,4,varids,ivcc)
       end if
 #endif
       wrkdim(1) = dimids(idjcross)
       wrkdim(2) = dimids(idicross)
       wrkdim(3) = dimids(idkh)
-      ncstatus = nf90_def_var(ncid,'heatrt',nf90_double,wrkdim(1:3),varids(66))
-      call check_ok(__FILE__,__LINE__,'Cannot create var heatrt')
+      call mydefvar(ncid,'heatrt',nf90_double,wrkdim,1,3,varids,ivcc)
       wrkdim(3) = dimids(idkf)
-      ncstatus = nf90_def_var(ncid,'o3prof',nf90_double,wrkdim(1:3),varids(67))
-      call check_ok(__FILE__,__LINE__,'Cannot create var o3prof')
-      ncstatus = nf90_def_var(ncid,'flw',nf90_double,wrkdim(1:2),varids(68))
-      call check_ok(__FILE__,__LINE__,'Cannot create var flw')
-      ncstatus = nf90_def_var(ncid,'flwd',nf90_double,wrkdim(1:2),varids(69))
-      call check_ok(__FILE__,__LINE__,'Cannot create var flwd')
-      ncstatus = nf90_def_var(ncid,'fsw',nf90_double,wrkdim(1:2),varids(70))
-      call check_ok(__FILE__,__LINE__,'Cannot create var fsw')
-      ncstatus = nf90_def_var(ncid,'sinc',nf90_double,wrkdim(1:2),varids(71))
-      call check_ok(__FILE__,__LINE__,'Cannot create var sinc')
-      ncstatus = nf90_def_var(ncid,'ldmsk',nf90_int,wrkdim(1:2),varids(72))
-      call check_ok(__FILE__,__LINE__,'Cannot create var ldmsk')
+      call mydefvar(ncid,'o3prof',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'flw',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'flwd',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'fsw',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'sinc',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'ldmsk',nf90_int,wrkdim,1,2,varids,ivcc)
       if ( iocnflx == 2 ) then
-        ncstatus = nf90_def_var(ncid,'zpbl',nf90_double,wrkdim(1:2),varids(73))
-        call check_ok(__FILE__,__LINE__,'Cannot create var zpbl')
+        call mydefvar(ncid,'zpbl',nf90_double,wrkdim,1,2,varids,ivcc)
       end if
       if ( ichem == 1 ) then
         wrkdim(3) = dimids(idkh)
         wrkdim(4) = dimids(idntr)
-        ncstatus = nf90_def_var(ncid,'chia',nf90_double,wrkdim(1:4),varids(74))
-        call check_ok(__FILE__,__LINE__,'Cannot create var chia')
-        ncstatus = nf90_def_var(ncid,'chib',nf90_double,wrkdim(1:4),varids(75))
-        call check_ok(__FILE__,__LINE__,'Cannot create var chib')
+        call mydefvar(ncid,'chia',nf90_double,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'chib',nf90_double,wrkdim,1,4,varids,ivcc)
         if ( igaschem == 1 .and. ichsolver > 0 ) then
           wrkdim(3) = dimids(idkh)
           wrkdim(4) = dimids(idtotsp)
-          ncstatus = nf90_def_var(ncid,'chemall',nf90_double, &
-                                  wrkdim(1:4),varids(76))
-          call check_ok(__FILE__,__LINE__,'Cannot create var chemall')
+          call mydefvar(ncid,'chemall',nf90_double,wrkdim,1,4,varids,ivcc)
           wrkdim(3) = dimids(idkf)
           wrkdim(4) = dimids(idspi)
-          ncstatus = nf90_def_var(ncid,'taucldsp',nf90_double, &
-                                  wrkdim(1:4),varids(77))
-          call check_ok(__FILE__,__LINE__,'Cannot create var taucldsp')
+          call mydefvar(ncid,'taucldsp',nf90_double,wrkdim,1,4,varids,ivcc)
         end if
         wrkdim(3) = dimids(idkh)
         wrkdim(4) = dimids(idntr)
-        ncstatus = nf90_def_var(ncid,'rainout',nf90_double, &
-                                wrkdim(1:4),varids(78))
-        call check_ok(__FILE__,__LINE__,'Cannot create var rainout')
-        ncstatus = nf90_def_var(ncid,'washout',nf90_double, &
-                                wrkdim(1:4),varids(79))
-        call check_ok(__FILE__,__LINE__,'Cannot create var washout')
+        call mydefvar(ncid,'rainout',nf90_double,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'washout',nf90_double,wrkdim,1,4,varids,ivcc)
         wrkdim(3) = dimids(idntr)
-        ncstatus = nf90_def_var(ncid,'remdrd',nf90_double, &
-                                wrkdim(1:3),varids(80))
-        call check_ok(__FILE__,__LINE__,'Cannot create var remdrd')
-        ncstatus = nf90_def_var(ncid,'ssw2da',nf90_double, &
-                                wrkdim(1:2),varids(81))
-        call check_ok(__FILE__,__LINE__,'Cannot create var ssw2da')
-        ncstatus = nf90_def_var(ncid,'sdelq',nf90_double, &
-                                wrkdim(1:2),varids(82))
-        call check_ok(__FILE__,__LINE__,'Cannot create var sdelq')
-        ncstatus = nf90_def_var(ncid,'sdelt',nf90_double, &
-                                wrkdim(1:2),varids(83))
-        call check_ok(__FILE__,__LINE__,'Cannot create var sdelt')
-        ncstatus = nf90_def_var(ncid,'sfracb2d',nf90_double, &
-                                wrkdim(1:2),varids(84))
-        call check_ok(__FILE__,__LINE__,'Cannot create var sfracb2d')
-        ncstatus = nf90_def_var(ncid,'sfracs2d',nf90_double, &
-                                wrkdim(1:2),varids(85))
-        call check_ok(__FILE__,__LINE__,'Cannot create var sfracs2d')
-        ncstatus = nf90_def_var(ncid,'sfracv2d',nf90_double, &
-                                wrkdim(1:2),varids(86))
-        call check_ok(__FILE__,__LINE__,'Cannot create var sfracv2d')
-        ncstatus = nf90_def_var(ncid,'svegfrac2d',nf90_double, &
-                                wrkdim(1:2),varids(87))
-        call check_ok(__FILE__,__LINE__,'Cannot create var svegfrac2d')
+        call mydefvar(ncid,'remdrd',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'ssw2da',nf90_double,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sdelq',nf90_double,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sdelt',nf90_double,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sfracb2d',nf90_double,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sfracs2d',nf90_double,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sfracv2d',nf90_double,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'svegfrac2d',nf90_double,wrkdim,1,2,varids,ivcc)
       end if
       if ( idynamic == 1 ) then
         wrkdim(1) = dimids(idjdot)
         wrkdim(2) = dimids(ididot)
         wrkdim(3) = dimids(idnsplit)
-        ncstatus = nf90_def_var(ncid,'dstor',nf90_double,wrkdim(1:3),varids(88))
-        call check_ok(__FILE__,__LINE__,'Cannot create var dstor')
-        ncstatus = nf90_def_var(ncid,'hstor',nf90_double,wrkdim(1:3),varids(89))
-        call check_ok(__FILE__,__LINE__,'Cannot create var hstor')
+        call mydefvar(ncid,'dstor',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'hstor',nf90_double,wrkdim,1,3,varids,ivcc)
       end if
       if ( islab_ocean == 1 .and. do_restore_sst ) then
         wrkdim(1) = dimids(idjcross)
         wrkdim(2) = dimids(idicross)
-        ncstatus = nf90_def_var(ncid,'qflux_restore_sst',nf90_double, &
-                                wrkdim(1:2),varids(90))
-        call check_ok(__FILE__,__LINE__,'Cannot create var qflux_restore_sst')
+        call mydefvar(ncid,'qflux_restore_sst',nf90_double, &
+                      wrkdim,1,2,varids,ivcc)
         wrkdim(1) = dimids(idmonth)
-        ncstatus = nf90_def_var(ncid,'stepcount',nf90_double, &
-                                wrkdim(1:1),varids(91))
-        call check_ok(__FILE__,__LINE__,'Cannot create var stepcount')
+        call mydefvar(ncid,'stepcount',nf90_int,wrkdim,1,1,varids,ivcc)
       end if
 #ifdef CLM
       wrkdim(1) = dimids(idjcross)
       wrkdim(2) = dimids(idicross)
       if ( imask == 2 ) then
-        ncstatus = nf90_def_var(ncid,'lndcat',nf90_double,wrkdim(1:2), &
-                                varids(92))
-        call check_ok(__FILE__,__LINE__,'Cannot create var lndcat')
+        call mydefvar(ncid,'lndcat',nf90_double,wrkdim,1,2,varids,ivcc)
       end if
 #endif
 #ifdef CLM45
       wrkdim(1) = dimids(idnnsg)
       wrkdim(2) = dimids(idjcross)
       wrkdim(3) = dimids(idicross)
-      ncstatus = nf90_def_var(ncid,'swdiralb',nf90_double,wrkdim(1:3), &
-                              varids(93))
-      call check_ok(__FILE__,__LINE__,'Cannot create var swdiralb')
-      ncstatus = nf90_def_var(ncid,'swdifalb',nf90_double,wrkdim(1:3), &
-                              varids(94))
-      call check_ok(__FILE__,__LINE__,'Cannot create var swdifalb')
-      ncstatus = nf90_def_var(ncid,'lwdiralb',nf90_double,wrkdim(1:3), &
-                              varids(95))
-      call check_ok(__FILE__,__LINE__,'Cannot create var lwdiralb')
-      ncstatus = nf90_def_var(ncid,'lwdifalb',nf90_double,wrkdim(1:3), &
-                              varids(96))
-      call check_ok(__FILE__,__LINE__,'Cannot create var lwdifalb')
+      call mydefvar(ncid,'swdiralb',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'swdifalb',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'lwdiralb',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'lwdifalb',nf90_double,wrkdim,1,3,varids,ivcc)
 #endif
       if ( idynamic == 2 .and. ifupr == 1 ) then
         wrkdim(1) = dimids(ikern)
         wrkdim(2) = dimids(ikern)
-        ncstatus = nf90_def_var(ncid,'tmask',nf90_double,wrkdim(1:2), &
-                                varids(97))
-        call check_ok(__FILE__,__LINE__,'Cannot create var tmask')
+        call mydefvar(ncid,'tmask',nf90_double,wrkdim,1,2,varids,ivcc)
       end if
 
       ncstatus = nf90_put_att(ncid,nf90_global,'ktau',ktau)
@@ -999,242 +861,144 @@ module mod_savefile
       ncstatus = nf90_enddef(ncid)
       call check_ok(__FILE__,__LINE__,'Cannot setup savefile '//trim(ffout))
 
-      ncstatus = nf90_put_var(ncid,varids(1),atm1_u_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write atm1_u')
-      ncstatus = nf90_put_var(ncid,varids(2),atm2_u_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write atm2_u')
-      ncstatus = nf90_put_var(ncid,varids(3),atm1_v_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write atm1_v')
-      ncstatus = nf90_put_var(ncid,varids(4),atm2_v_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write atm2_v')
-      ncstatus = nf90_put_var(ncid,varids(5),atm1_t_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write atm1_t')
-      ncstatus = nf90_put_var(ncid,varids(6),atm2_t_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write atm2_t')
-      ncstatus = nf90_put_var(ncid,varids(7),atm1_qx_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write atm1_qx')
-      ncstatus = nf90_put_var(ncid,varids(8),atm2_qx_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write atm2_qx')
+      ivcc = 0
+      call myputvar(ncid,'atm1_u',atm1_u_io,varids,ivcc)
+      call myputvar(ncid,'atm2_u',atm2_u_io,varids,ivcc)
+      call myputvar(ncid,'atm1_v',atm1_v_io,varids,ivcc)
+      call myputvar(ncid,'atm2_v',atm2_v_io,varids,ivcc)
+      call myputvar(ncid,'atm1_t',atm1_t_io,varids,ivcc)
+      call myputvar(ncid,'atm2_t',atm2_t_io,varids,ivcc)
+      call myputvar(ncid,'atm1_qx',atm1_qx_io,varids,ivcc)
+      call myputvar(ncid,'atm2_qx',atm2_qx_io,varids,ivcc)
       if ( ibltyp == 2 ) then
-        ncstatus = nf90_put_var(ncid,varids(9),atm1_tke_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write atm1_tke')
-        ncstatus = nf90_put_var(ncid,varids(10),atm2_tke_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write atm2_tke')
-        ncstatus = nf90_put_var(ncid,varids(11),kpbl_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write kpbl')
+        call myputvar(ncid,'atm1_tke',atm1_tke_io,varids,ivcc)
+        call myputvar(ncid,'atm2_tke',atm1_tke_io,varids,ivcc)
+        call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
       end if
       if ( idynamic == 2 ) then
-        ncstatus = nf90_put_var(ncid,varids(12),atm1_w_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write atm1_w')
-        ncstatus = nf90_put_var(ncid,varids(13),atm2_w_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write atm2_w')
-        ncstatus = nf90_put_var(ncid,varids(14),atm1_pp_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write atm1_pp')
-        ncstatus = nf90_put_var(ncid,varids(15),atm2_pp_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write atm2_pp')
+        call myputvar(ncid,'atm1_w',atm1_w_io,varids,ivcc)
+        call myputvar(ncid,'atm2_w',atm2_w_io,varids,ivcc)
+        call myputvar(ncid,'atm1_pp',atm1_pp_io,varids,ivcc)
+        call myputvar(ncid,'atm2_pp',atm2_pp_io,varids,ivcc)
       end if
-      ncstatus = nf90_put_var(ncid,varids(16),psa_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write psa')
-      ncstatus = nf90_put_var(ncid,varids(17),psb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write psb')
-      ncstatus = nf90_put_var(ncid,varids(18),tga_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write tga')
-      ncstatus = nf90_put_var(ncid,varids(19),tgb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write tgb')
-      ncstatus = nf90_put_var(ncid,varids(20),hfx_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write hfx')
-      ncstatus = nf90_put_var(ncid,varids(21),qfx_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write qfx')
-      ncstatus = nf90_put_var(ncid,varids(22),rainc_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write rainc')
-      ncstatus = nf90_put_var(ncid,varids(23),rainnc_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write rainnc')
-      ncstatus = nf90_put_var(ncid,varids(24),tgbb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write tgbb')
-      ncstatus = nf90_put_var(ncid,varids(25),uvdrag_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write uvdrag')
-      if ( any(icup == 1) ) then
-        ncstatus = nf90_put_var(ncid,varids(26),rsheat_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write rsheat')
-        ncstatus = nf90_put_var(ncid,varids(27),rswat_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write rswat')
-      end if
+      call myputvar(ncid,'psa',psa_io,varids,ivcc)
+      call myputvar(ncid,'psb',psb_io,varids,ivcc)
+      call myputvar(ncid,'tga',tga_io,varids,ivcc)
+      call myputvar(ncid,'tgb',tgb_io,varids,ivcc)
+      call myputvar(ncid,'hfx',hfx_io,varids,ivcc)
+      call myputvar(ncid,'qfx',qfx_io,varids,ivcc)
+      call myputvar(ncid,'rainc',rainc_io,varids,ivcc)
+      call myputvar(ncid,'rainnc',rainnc_io,varids,ivcc)
+      call myputvar(ncid,'tgbb',tgbb_io,varids,ivcc)
+      call myputvar(ncid,'uvdrag',uvdrag_io,varids,ivcc)
       if ( any(icup == 3) ) then
-        ncstatus = nf90_put_var(ncid,varids(28),cldefi_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write cldefi')
-        ncstatus = nf90_put_var(ncid,varids(29),tbase_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write tbase')
+        call myputvar(ncid,'cldefi',cldefi_io,varids,ivcc)
+        call myputvar(ncid,'tbase',tbase_io,varids,ivcc)
       end if
       if ( any(icup == 6) ) then
-        ncstatus = nf90_put_var(ncid,varids(30),kfwavg_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write kfwavg')
+        call myputvar(ncid,'kfwavg',kfwavg_io,varids,ivcc)
       end if
       if ( any(icup == 4) ) then
-        ncstatus = nf90_put_var(ncid,varids(31),cbmf2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write cbmf2d')
+        call myputvar(ncid,'cbmf2d',cbmf2d_io,varids,ivcc)
       end if
       if ( irrtm == 0 ) then
-        ncstatus = nf90_put_var(ncid,varids(32),gasabsnxt_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write gasabsnxt')
-        ncstatus = nf90_put_var(ncid,varids(33),gasabstot_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write gasabstot')
-        ncstatus = nf90_put_var(ncid,varids(34),gasemstot_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write gasemstot')
+        call myputvar(ncid,'gasabsnxt',gasabsnxt_io,varids,ivcc)
+        call myputvar(ncid,'gasabstot',gasabstot_io,varids,ivcc)
+        call myputvar(ncid,'gasemstot',gasemstot_io,varids,ivcc)
       end if
       if ( ipptls > 0 ) then
-        ncstatus = nf90_put_var(ncid,varids(35),fcc_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write fcc')
+        call myputvar(ncid,'fcc',fcc_io,varids,ivcc)
         if ( ipptls == 2 ) then
-          ncstatus = nf90_put_var(ncid,varids(36),snownc_io)
-          call check_ok(__FILE__,__LINE__,'Cannot write snownc')
+          call myputvar(ncid,'snownc',snownc_io,varids,ivcc)
         end if
       end if
-      ncstatus = nf90_put_var(ncid,varids(37),solis_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write solis')
-      ncstatus = nf90_put_var(ncid,varids(38),solvs_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write solvs')
-      ncstatus = nf90_put_var(ncid,varids(39),solvsd_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write solvsd')
-      ncstatus = nf90_put_var(ncid,varids(40),solvl_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write solvl')
-      ncstatus = nf90_put_var(ncid,varids(41),solvld_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write solvld')
-      ncstatus = nf90_put_var(ncid,varids(42),sabveg_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write sabveg')
-      ncstatus = nf90_put_var(ncid,varids(43),tlef_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write tlef')
-      ncstatus = nf90_put_var(ncid,varids(44),ssw_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write ssw')
-      ncstatus = nf90_put_var(ncid,varids(45),rsw_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write rsw')
-      ncstatus = nf90_put_var(ncid,varids(46),tsw_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write tsw')
-      ncstatus = nf90_put_var(ncid,varids(47),tgrd_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write tgrd')
-      ncstatus = nf90_put_var(ncid,varids(48),tgbrd_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write tgbrd')
-      ncstatus = nf90_put_var(ncid,varids(49),sncv_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write sncv')
-      ncstatus = nf90_put_var(ncid,varids(50),gwet_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write gwet')
-      ncstatus = nf90_put_var(ncid,varids(51),snag_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write snag')
-      ncstatus = nf90_put_var(ncid,varids(52),sfice_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write sfice')
-      ncstatus = nf90_put_var(ncid,varids(53),ldew_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write ldew')
-      ncstatus = nf90_put_var(ncid,varids(54),ldmsk1_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write ldmsk1')
-      ncstatus = nf90_put_var(ncid,varids(55),taf_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write taf')
-      ncstatus = nf90_put_var(ncid,varids(56),emisv_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write emiss')
-      ncstatus = nf90_put_var(ncid,varids(57),scvk_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write scvk')
-      ncstatus = nf90_put_var(ncid,varids(58),um10_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write um10')
+      call myputvar(ncid,'solis',solis_io,varids,ivcc)
+      call myputvar(ncid,'solvs',solvs_io,varids,ivcc)
+      call myputvar(ncid,'solvsd',solvsd_io,varids,ivcc)
+      call myputvar(ncid,'solvl',solvl_io,varids,ivcc)
+      call myputvar(ncid,'solvld',solvld_io,varids,ivcc)
+      call myputvar(ncid,'sabveg',sabveg_io,varids,ivcc)
+      call myputvar(ncid,'tlef',tlef_io,varids,ivcc)
+      call myputvar(ncid,'ssw',ssw_io,varids,ivcc)
+      call myputvar(ncid,'rsw',rsw_io,varids,ivcc)
+      call myputvar(ncid,'tsw',tsw_io,varids,ivcc)
+      call myputvar(ncid,'tgrd',tgrd_io,varids,ivcc)
+      call myputvar(ncid,'tgbrd',tgbrd_io,varids,ivcc)
+      call myputvar(ncid,'sncv',sncv_io,varids,ivcc)
+      call myputvar(ncid,'gwet',gwet_io,varids,ivcc)
+      call myputvar(ncid,'snag',snag_io,varids,ivcc)
+      call myputvar(ncid,'sfice',sfice_io,varids,ivcc)
+      call myputvar(ncid,'ldew',ldew_io,varids,ivcc)
+      call myputvar(ncid,'ldmsk1',ldmsk1_io,varids,ivcc)
+      call myputvar(ncid,'taf',taf_io,varids,ivcc)
+      call myputvar(ncid,'emiss',emisv_io,varids,ivcc)
+      call myputvar(ncid,'scvk',scvk_io,varids,ivcc)
+      call myputvar(ncid,'um10',um10_io,varids,ivcc)
       if ( idcsst == 1 ) then
-        ncstatus = nf90_put_var(ncid,varids(59),sst_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write sst')
-        ncstatus = nf90_put_var(ncid,varids(60),tskin_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write tskin')
-        ncstatus = nf90_put_var(ncid,varids(61),deltas_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write deltas')
-        ncstatus = nf90_put_var(ncid,varids(62),tdeltas_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write tdeltas')
+        call myputvar(ncid,'sst',sst_io,varids,ivcc)
+        call myputvar(ncid,'tskin',tskin_io,varids,ivcc)
+        call myputvar(ncid,'deltas',deltas_io,varids,ivcc)
+        call myputvar(ncid,'tdeltas',tdeltas_io,varids,ivcc)
       end if
 #ifndef CLM
       if ( lakemod == 1 ) then
-        ncstatus = nf90_put_var(ncid,varids(63),eta_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write eta')
-        ncstatus = nf90_put_var(ncid,varids(64),hi_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write hi')
-        ncstatus = nf90_put_var(ncid,varids(65),tlak_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write tlak')
+        call myputvar(ncid,'eta',eta_io,varids,ivcc)
+        call myputvar(ncid,'hi',hi_io,varids,ivcc)
+        call myputvar(ncid,'tlak',tlak_io,varids,ivcc)
       end if
 #endif
-      ncstatus = nf90_put_var(ncid,varids(66),heatrt_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write heatrt')
-      ncstatus = nf90_put_var(ncid,varids(67),o3prof_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write o3prof')
-      ncstatus = nf90_put_var(ncid,varids(68),flw_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write flw')
-      ncstatus = nf90_put_var(ncid,varids(69),flwd_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write flwd')
-      ncstatus = nf90_put_var(ncid,varids(70),fsw_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write fsw')
-      ncstatus = nf90_put_var(ncid,varids(71),sinc_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write sinc')
-      ncstatus = nf90_put_var(ncid,varids(72),ldmsk_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write ldmsk')
+      call myputvar(ncid,'heatrt',heatrt_io,varids,ivcc)
+      call myputvar(ncid,'o3prof',o3prof_io,varids,ivcc)
+      call myputvar(ncid,'flw',flw_io,varids,ivcc)
+      call myputvar(ncid,'flwd',flwd_io,varids,ivcc)
+      call myputvar(ncid,'fsw',fsw_io,varids,ivcc)
+      call myputvar(ncid,'sinc',sinc_io,varids,ivcc)
+      call myputvar(ncid,'ldmsk',ldmsk_io,varids,ivcc)
       if ( iocnflx == 2 ) then
-        ncstatus = nf90_put_var(ncid,varids(73),zpbl_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write zpbl')
+        call myputvar(ncid,'zpbl',zpbl_io,varids,ivcc)
       end if
       if ( ichem == 1 ) then
-        ncstatus = nf90_put_var(ncid,varids(74),chia_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write chia')
-        ncstatus = nf90_put_var(ncid,varids(75),chib_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write chib')
+        call myputvar(ncid,'chia',chia_io,varids,ivcc)
+        call myputvar(ncid,'chib',chib_io,varids,ivcc)
         if ( igaschem == 1 .and. ichsolver > 0 ) then
-          ncstatus = nf90_put_var(ncid,varids(76),chemall_io)
-          call check_ok(__FILE__,__LINE__,'Cannot write chemall')
-          ncstatus = nf90_put_var(ncid,varids(77),taucldsp_io)
-          call check_ok(__FILE__,__LINE__,'Cannot write taucldsp')
+          call myputvar(ncid,'chemall',chemall_io,varids,ivcc)
+          call myputvar(ncid,'taucldsp',taucldsp_io,varids,ivcc)
         end if
-        ncstatus = nf90_put_var(ncid,varids(78),rainout_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write rainout')
-        ncstatus = nf90_put_var(ncid,varids(79),washout_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write washout')
-        ncstatus = nf90_put_var(ncid,varids(80),remdrd_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write remdrd')
-        ncstatus = nf90_put_var(ncid,varids(81),ssw2da_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write ssw2da')
-        ncstatus = nf90_put_var(ncid,varids(82),sdelq_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write sdelq')
-        ncstatus = nf90_put_var(ncid,varids(83),sdelt_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write sdelt')
-        ncstatus = nf90_put_var(ncid,varids(84),sfracb2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write sfracb2d')
-        ncstatus = nf90_put_var(ncid,varids(85),sfracs2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write sfracs2d')
-        ncstatus = nf90_put_var(ncid,varids(86),sfracv2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write sfracv2d')
-        ncstatus = nf90_put_var(ncid,varids(87),svegfrac2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write svegfrac2d')
+        call myputvar(ncid,'rainout',rainout_io,varids,ivcc)
+        call myputvar(ncid,'washout',washout_io,varids,ivcc)
+        call myputvar(ncid,'remdrd',remdrd_io,varids,ivcc)
+        call myputvar(ncid,'ssw2da',ssw2da_io,varids,ivcc)
+        call myputvar(ncid,'sdelq',sdelq_io,varids,ivcc)
+        call myputvar(ncid,'sdelt',sdelt_io,varids,ivcc)
+        call myputvar(ncid,'sfracb2d',sfracb2d_io,varids,ivcc)
+        call myputvar(ncid,'sfracs2d',sfracs2d_io,varids,ivcc)
+        call myputvar(ncid,'sfracv2d',sfracv2d_io,varids,ivcc)
+        call myputvar(ncid,'svegfrac2d',svegfrac2d_io,varids,ivcc)
       end if
       if ( idynamic == 1 ) then
-        ncstatus = nf90_put_var(ncid,varids(88),dstor_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write dstor')
-        ncstatus = nf90_put_var(ncid,varids(89),hstor_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write hstor')
+        call myputvar(ncid,'dstor',dstor_io,varids,ivcc)
+        call myputvar(ncid,'hstor',hstor_io,varids,ivcc)
       end if
       if ( islab_ocean == 1 .and. do_restore_sst ) then
-        ncstatus = nf90_put_var(ncid,varids(90),qflux_restore_sst_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write qflux_restore_sst')
-        ncstatus = nf90_put_var(ncid,varids(91),stepcount)
-        call check_ok(__FILE__,__LINE__,'Cannot write stepcount')
+        call myputvar(ncid,'qflux_restore_sst',qflux_restore_sst_io,varids,ivcc)
+        call myputvar(ncid,'stepcount',stepcount,size(stepcount),varids,ivcc)
       end if
 #ifdef CLM
       if ( imask == 2 ) then
-        ncstatus = nf90_put_var(ncid,varids(92),lndcat_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write lndcat')
+        call myputvar(ncid,'lndcat',lndcat_io,varids,ivcc)
       end if
 #endif
 #ifdef CLM45
-      ncstatus = nf90_put_var(ncid,varids(93),swdiralb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write swdiralb')
-      ncstatus = nf90_put_var(ncid,varids(94),swdifalb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write swdifalb')
-      ncstatus = nf90_put_var(ncid,varids(95),lwdiralb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write swdiralb')
-      ncstatus = nf90_put_var(ncid,varids(96),lwdifalb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write swdifalb')
+      call myputvar(ncid,'swdiralb',swdiralb_io,varids,ivcc)
+      call myputvar(ncid,'swdifalb',swdifalb_io,varids,ivcc)
+      call myputvar(ncid,'lwdiralb',lwdiralb_io,varids,ivcc)
+      call myputvar(ncid,'lwdifalb',lwdifalb_io,varids,ivcc)
 #endif
       if ( idynamic == 2 .and. ifupr == 1 ) then
-        ncstatus = nf90_put_var(ncid,varids(97),tmask)
-        call check_ok(__FILE__,__LINE__,'Cannot write tmask')
+        call myputvar(ncid,'tmask',tmask, &
+                      size(tmask,1),size(tmask,2),varids,ivcc)
       end if
+
       ncstatus = nf90_close(ncid)
       call check_ok(__FILE__,__LINE__,'Cannot close savefile '//trim(ffout))
     end if
@@ -1272,6 +1036,110 @@ module mod_savefile
     ncstatus = nf90_inq_varid(ncid,vname,varid)
     call check_ok(__FILE__,__LINE__,'Cannot find variable '//trim(vname))
   end function get_varid
+
+  subroutine mydefvar(ncid,str,ityp,idims,i1,i2,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid , ityp , i1 , i2
+    integer(ik4) , intent(inout) :: iivar
+    integer(ik4) , dimension(:) , intent(in) :: idims
+    integer(ik4) , dimension(:) , intent(inout) :: ivar
+    character(len=*) , intent(in) :: str
+    iivar = iivar + 1
+    ncstatus = nf90_def_var(ncid,str,ityp,idims(i1:i2),ivar(iivar))
+    call check_ok(__FILE__,__LINE__,'Cannot create var '//trim(str))
+  end subroutine mydefvar
+
+  subroutine myputvar2dd(ncid,str,var,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar2dd
+
+  subroutine myputvar2ddf(ncid,str,var,nx,ny,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid , nx , ny
+    character(len=*) , intent(in) :: str
+    real(rk8) , dimension(nx,ny) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar2ddf
+
+  subroutine myputvar3dd(ncid,str,var,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar3dd
+
+  subroutine myputvar4dd(ncid,str,var,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar4dd
+
+  subroutine myputvar1dif(ncid,str,var,nx,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid , nx
+    character(len=*) , intent(in) :: str
+    integer(ik4) , dimension(nx) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar1dif
+
+  subroutine myputvar2di(ncid,str,var,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar2di
+
+  subroutine myputvar3di(ncid,str,var,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar3di
 
 end module mod_savefile
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

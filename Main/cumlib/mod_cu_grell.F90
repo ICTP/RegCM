@@ -391,8 +391,6 @@ module mod_cu_grell
     !
     ! calculate cloud fraction and water content
     !
-    cu_ktop(:,:) = 0
-    cu_kbot(:,:) = 0
     do n = 1 , nap
       i = iac(n)
       j = jac(n)

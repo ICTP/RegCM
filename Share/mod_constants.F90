@@ -280,11 +280,11 @@ module mod_constants
   real(rk8) , parameter :: wtur = 0.1D+00
 
   ! Constant used in computing virtual temperature.
-  real(rk8) , parameter :: ep1 = amd/amw - d_one
+  real(rk8) , parameter :: ep1 = amd/amw - d_one ! 0.6077762876
   ! Constant used in computing saturation mixing ratio.
   ! Ratio of mean molecular weight of water to that of dry air
-  real(rk8) , parameter :: ep2 = amw/amd
-  real(rk8) , parameter :: rep2 = amd/amw
+  real(rk8) , parameter :: ep2 = amw/amd   ! 0.6219770795
+  real(rk8) , parameter :: rep2 = amd/amw  ! 1.6077762876
 
   ! Terminal velocity constants
   real(rk8) , parameter :: avt = 841.99667D+00
@@ -304,9 +304,6 @@ module mod_constants
   real(rk8) , parameter :: omu = d_one - d_two*gnu
   real(rk8) , parameter :: gnuhf = d_half*gnu
   real(rk8) , parameter :: omuhf = d_one - d_two*gnuhf
-
-  ! Cumulous parameters
-  real(rk8) , parameter :: tauht = 7200.0D+00
 
   ! Constant surface Long Wave emissivity
   real(rk8) , parameter :: lnd_sfcemiss = 0.985D0

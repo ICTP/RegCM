@@ -223,7 +223,7 @@ module mod_cu_bm
                rhl , rotsum , rtbar , smix , stabdl , sumde , sumdp , &
                sumdt , tauk , tcorr , tdpt , thskl , thtpk , thvmkl , &
                tkl , tlcl , trfkl , tskl , ztop
-    integer(ik4) :: i , j , iconss , iter , ivi , k , kb , kbaseb ,    &
+    integer(ik4) :: i , j , iter , ivi , k , kb , kbaseb ,    &
                khdeep , khshal , kk , l , l0 , l0m1 , lb ,    &
                lbm1 , lbtk , lcor , lqm , lshu , ltp1 , ltpk , ltsh , &
                n , ndeep , ndepth , ndstn , ndstp , nshal , nswap , ll
@@ -232,23 +232,9 @@ module mod_cu_bm
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
-!-----------------------------------------------------------------------
-!
-    lqm = 0
-    lshu = 0
-    pratec = d_zero
-    !
-    ! cumtop = top level of cumulus clouds
-    ! cumbot = bottom level of cumulus clouds
-    !
-    cu_ktop(:,:) = 0
-    cu_kbot(:,:) = 0
-    if ( ichem == 1 ) cu_convpr(:,:,:) = d_zero
-    iconss = 0
+
     tauk = dt/trel
     cthrs = (6.350D0/secpd)*dt/cprlg
-
     !
     ! xsm is surface mask: =1 water; =0 land
     !
@@ -502,6 +488,7 @@ module mod_cu_bm
     do n = 1 , khdeep
       i = ideep(n)
       j = jdeep(n)
+      pratec = d_zero
       dentpy = d_zero
       avrgt = d_zero
       preck = d_zero
@@ -613,6 +600,7 @@ module mod_cu_bm
         !
         ! find lqm
         !
+        lqm = 0
         do l = 1 , lb
           if ( pk(l) <= pqm ) lqm = l
         end do
@@ -709,6 +697,11 @@ module mod_cu_bm
       if ( pratec > dlowval ) then
         ! precipitation rate for surface (mm/s)
         cu_prate(j,i) = cu_prate(j,i) + pratec
+      end if
+      if ( ichem == 1 ) then
+        do k = ltpk , kz
+          cu_convpr(j,i,k) = pratec
+        end do
       end if
       do l = ltpk , lb
         tmod(j,i,l) = dift(l)*fefi/dt
@@ -816,6 +809,7 @@ module mod_cu_bm
       ! highest level allowed is level just below pshu
       !
       if ( ptpk <= pshu ) then
+        lshu = 0
         do l = 1 , kz
           if ( pk(l) <= pshu ) lshu = l + 1
         end do
@@ -982,7 +976,6 @@ module mod_cu_bm
       !
       ! relaxation towards reference profiles
       !
-      iconss = iconss + 1
       do l = ltp1 , lbtk
         tmod(j,i,l) = (trefk(l)-tk(l))/trel
         qqmod(j,i,l) = (qrefk(l)-qk(l))/trel
@@ -1014,11 +1007,6 @@ module mod_cu_bm
           kbaseb = min0(lbtk,kzm2)
           cu_ktop(j,i) = ltpk
           cu_kbot(j,i) = kbaseb
-          if ( ichem == 1 ) then
-            do k = ltpk , kz
-              cu_convpr(j,i,k) = pratec
-            end do
-          end if
         end if
       end do
     end do
