@@ -80,6 +80,11 @@ module mod_lm_interface
   public :: t_finalizef
 #endif
 
+#ifdef CLM45
+  real(rk8) , pointer , dimension(:,:) :: patm , tatm , uatm , vatm , &
+    thatm , qvatm , zatm
+#endif
+
   type(lm_exchange) :: lm
   type(lm_state) :: lms
 
@@ -90,56 +95,63 @@ module mod_lm_interface
 
     rdnnsg = d_one/dble(nnsg)
 
-    call getmem3d(lms%sent,1,nnsg,jci1,jci2,ici1,ici2,'bats:sent')
-    call getmem3d(lms%evpr,1,nnsg,jci1,jci2,ici1,ici2,'bats:evpr')
-    call getmem3d(lms%deltat,1,nnsg,jci1,jci2,ici1,ici2,'bats:deltat')
-    call getmem3d(lms%deltaq,1,nnsg,jci1,jci2,ici1,ici2,'bats:deltaq')
-    call getmem3d(lms%drag,1,nnsg,jci1,jci2,ici1,ici2,'bats:drag')
-    call getmem3d(lms%ustar,1,nnsg,jci1,jci2,ici1,ici2,'bats:ustar')
-    call getmem3d(lms%zo,1,nnsg,jci1,jci2,ici1,ici2,'bats:zo')
-    call getmem3d(lms%rhoa,1,nnsg,jci1,jci2,ici1,ici2,'bats:rho')
-    call getmem3d(lms%lncl,1,nnsg,jci1,jci2,ici1,ici2,'bats:lncl')
-    call getmem3d(lms%prcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:prcp')
-    call getmem3d(lms%snwm,1,nnsg,jci1,jci2,ici1,ici2,'bats:snwm')
-    call getmem3d(lms%trnof,1,nnsg,jci1,jci2,ici1,ici2,'bats:trnof')
-    call getmem3d(lms%srnof,1,nnsg,jci1,jci2,ici1,ici2,'bats:srnof')
-    call getmem3d(lms%xlai,1,nnsg,jci1,jci2,ici1,ici2,'bats:xlai')
-    call getmem3d(lms%sfcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfcp')
-    call getmem3d(lms%q2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:q2m')
-    call getmem3d(lms%t2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:t2m')
-    call getmem3d(lms%u10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:u10m')
-    call getmem3d(lms%v10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:v10m')
-    call getmem3d(lms%taux,1,nnsg,jci1,jci2,ici1,ici2,'bats:taux')
-    call getmem3d(lms%tauy,1,nnsg,jci1,jci2,ici1,ici2,'bats:tauy')
-    call getmem3d(lms%wt,1,nnsg,jci1,jci2,ici1,ici2,'bats:wt')
-    call getmem3d(lms%swalb,1,nnsg,jci1,jci2,ici1,ici2,'bats:swalb')
-    call getmem3d(lms%lwalb,1,nnsg,jci1,jci2,ici1,ici2,'bats:lwalb')
-    call getmem3d(lms%swdiralb,1,nnsg,jci1,jci2,ici1,ici2,'bats:swdiralb')
-    call getmem3d(lms%lwdiralb,1,nnsg,jci1,jci2,ici1,ici2,'bats:lwdiralb')
-    call getmem3d(lms%swdifalb,1,nnsg,jci1,jci2,ici1,ici2,'bats:swdifalb')
-    call getmem3d(lms%lwdifalb,1,nnsg,jci1,jci2,ici1,ici2,'bats:lwdifalb')
+    call getmem3d(lms%sent,1,nnsg,jci1,jci2,ici1,ici2,'lm:sent')
+    call getmem3d(lms%evpr,1,nnsg,jci1,jci2,ici1,ici2,'lm:evpr')
+    call getmem3d(lms%deltat,1,nnsg,jci1,jci2,ici1,ici2,'lm:deltat')
+    call getmem3d(lms%deltaq,1,nnsg,jci1,jci2,ici1,ici2,'lm:deltaq')
+    call getmem3d(lms%drag,1,nnsg,jci1,jci2,ici1,ici2,'lm:drag')
+    call getmem3d(lms%ustar,1,nnsg,jci1,jci2,ici1,ici2,'lm:ustar')
+    call getmem3d(lms%zo,1,nnsg,jci1,jci2,ici1,ici2,'lm:zo')
+    call getmem3d(lms%rhoa,1,nnsg,jci1,jci2,ici1,ici2,'lm:rho')
+    call getmem3d(lms%lncl,1,nnsg,jci1,jci2,ici1,ici2,'lm:lncl')
+    call getmem3d(lms%prcp,1,nnsg,jci1,jci2,ici1,ici2,'lm:prcp')
+    call getmem3d(lms%snwm,1,nnsg,jci1,jci2,ici1,ici2,'lm:snwm')
+    call getmem3d(lms%trnof,1,nnsg,jci1,jci2,ici1,ici2,'lm:trnof')
+    call getmem3d(lms%srnof,1,nnsg,jci1,jci2,ici1,ici2,'lm:srnof')
+    call getmem3d(lms%xlai,1,nnsg,jci1,jci2,ici1,ici2,'lm:xlai')
+    call getmem3d(lms%sfcp,1,nnsg,jci1,jci2,ici1,ici2,'lm:sfcp')
+    call getmem3d(lms%q2m,1,nnsg,jci1,jci2,ici1,ici2,'lm:q2m')
+    call getmem3d(lms%t2m,1,nnsg,jci1,jci2,ici1,ici2,'lm:t2m')
+    call getmem3d(lms%u10m,1,nnsg,jci1,jci2,ici1,ici2,'lm:u10m')
+    call getmem3d(lms%v10m,1,nnsg,jci1,jci2,ici1,ici2,'lm:v10m')
+    call getmem3d(lms%taux,1,nnsg,jci1,jci2,ici1,ici2,'lm:taux')
+    call getmem3d(lms%tauy,1,nnsg,jci1,jci2,ici1,ici2,'lm:tauy')
+    call getmem3d(lms%wt,1,nnsg,jci1,jci2,ici1,ici2,'lm:wt')
+    call getmem3d(lms%swalb,1,nnsg,jci1,jci2,ici1,ici2,'lm:swalb')
+    call getmem3d(lms%lwalb,1,nnsg,jci1,jci2,ici1,ici2,'lm:lwalb')
+    call getmem3d(lms%swdiralb,1,nnsg,jci1,jci2,ici1,ici2,'lm:swdiralb')
+    call getmem3d(lms%lwdiralb,1,nnsg,jci1,jci2,ici1,ici2,'lm:lwdiralb')
+    call getmem3d(lms%swdifalb,1,nnsg,jci1,jci2,ici1,ici2,'lm:swdifalb')
+    call getmem3d(lms%lwdifalb,1,nnsg,jci1,jci2,ici1,ici2,'lm:lwdifalb')
 
-    call getmem3d(lms%gwet,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet')
-    call getmem3d(lms%ldew,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldew')
-    call getmem4d(lms%sw,1,nnsg,jci1,jci2,ici1,ici2,1,num_soil_layers,'bats:sw')
+    call getmem3d(lms%gwet,1,nnsg,jci1,jci2,ici1,ici2,'lm:gwet')
+    call getmem3d(lms%ldew,1,nnsg,jci1,jci2,ici1,ici2,'lm:ldew')
+    call getmem4d(lms%sw,1,nnsg,jci1,jci2,ici1,ici2,1,num_soil_layers,'lm:sw')
     call assignpnt(lms%sw,lms%ssw,1)
     call assignpnt(lms%sw,lms%rsw,2)
-    call getmem3d(lms%tsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:tsw')
-    call getmem3d(lms%tgbb,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgbb')
-    call getmem3d(lms%tgrd,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgrd')
-    call getmem3d(lms%tgbrd,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgbrd')
-    call getmem3d(lms%tlef,1,nnsg,jci1,jci2,ici1,ici2,'bats:tlef')
-    call getmem3d(lms%taf,1,nnsg,jci1,jci2,ici1,ici2,'bats:taf')
-    call getmem3d(lms%sigf,1,nnsg,jci1,jci2,ici1,ici2,'bats:sigf')
-    call getmem3d(lms%sfice,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfice')
-    call getmem3d(lms%snag,1,nnsg,jci1,jci2,ici1,ici2,'bats:snag')
-    call getmem3d(lms%sncv,1,nnsg,jci1,jci2,ici1,ici2,'bats:sncv')
-    call getmem3d(lms%scvk,1,nnsg,jci1,jci2,ici1,ici2,'bats:scvk')
-    call getmem3d(lms%um10,1,nnsg,jci1,jci2,ici1,ici2,'bats:um10')
-    call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'bats:emisv')
+    call getmem3d(lms%tsw,1,nnsg,jci1,jci2,ici1,ici2,'lm:tsw')
+    call getmem3d(lms%tgbb,1,nnsg,jci1,jci2,ici1,ici2,'lm:tgbb')
+    call getmem3d(lms%tgrd,1,nnsg,jci1,jci2,ici1,ici2,'lm:tgrd')
+    call getmem3d(lms%tgbrd,1,nnsg,jci1,jci2,ici1,ici2,'lm:tgbrd')
+    call getmem3d(lms%tlef,1,nnsg,jci1,jci2,ici1,ici2,'lm:tlef')
+    call getmem3d(lms%taf,1,nnsg,jci1,jci2,ici1,ici2,'lm:taf')
+    call getmem3d(lms%sigf,1,nnsg,jci1,jci2,ici1,ici2,'lm:sigf')
+    call getmem3d(lms%sfice,1,nnsg,jci1,jci2,ici1,ici2,'lm:sfice')
+    call getmem3d(lms%snag,1,nnsg,jci1,jci2,ici1,ici2,'lm:snag')
+    call getmem3d(lms%sncv,1,nnsg,jci1,jci2,ici1,ici2,'lm:sncv')
+    call getmem3d(lms%scvk,1,nnsg,jci1,jci2,ici1,ici2,'lm:scvk')
+    call getmem3d(lms%um10,1,nnsg,jci1,jci2,ici1,ici2,'lm:um10')
+    call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'lm:emisv')
 #ifdef CLM45
-    call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'bats:vocemiss')
-    call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'bats:dustemiss')
+    call getmem2d(patm,jci1,jci2,ici1,ici2,'lm:patm')
+    call getmem2d(tatm,jci1,jci2,ici1,ici2,'lm:tatm')
+    call getmem2d(uatm,jci1,jci2,ici1,ici2,'lm:uatm')
+    call getmem2d(vatm,jci1,jci2,ici1,ici2,'lm:vatm')
+    call getmem2d(thatm,jci1,jci2,ici1,ici2,'lm:thatm')
+    call getmem2d(qvatm,jci1,jci2,ici1,ici2,'lm:qvatm')
+    call getmem2d(zatm,jci1,jci2,ici1,ici2,'lm:zatm')
+    call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
+    call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'lm:dustemiss')
 #endif
 
 #ifdef CLM
@@ -284,16 +296,26 @@ module mod_lm_interface
     call assignpnt(mdsub%iveg,lm%iveg1)
     call assignpnt(mdsub%dhlake,lm%dhlake1)
     call assignpnt(cplmsk,lm%icplmsk)
+#ifdef CLM45
+    call assignpnt(uatm,lm%uatm)
+    call assignpnt(vatm,lm%vatm)
+    call assignpnt(thatm,lm%thatm)
+    call assignpnt(tatm,lm%tatm)
+    call assignpnt(patm,lm%patm)
+    call assignpnt(qvatm,lm%qvatm)
+    call assignpnt(zatm,lm%hgt)
+#else
     call assignpnt(atms%ubx3d,lm%uatm,kz)
     call assignpnt(atms%vbx3d,lm%vatm,kz)
     call assignpnt(atms%th3d,lm%thatm,kz)
     call assignpnt(atms%tb3d,lm%tatm,kz)
     call assignpnt(atms%pb3d,lm%patm,kz)
     call assignpnt(atms%qxb3d,lm%qvatm,kz,iqv)
+    call assignpnt(atms%za,lm%hgt,kz)
+#endif
     call assignpnt(atms%rhox2d,lm%rhox)
     call assignpnt(atms%ps2d,lm%sfps)
     call assignpnt(atms%tp3d,lm%sfta,kz)
-    call assignpnt(atms%za,lm%hgt,kz)
     call assignpnt(sfs%hfx,lm%hfx)
     call assignpnt(sfs%qfx,lm%qfx)
     call assignpnt(sfs%uvdrag,lm%uvdrag)
@@ -396,8 +418,14 @@ module mod_lm_interface
   end subroutine initialize_surface_model
 
   subroutine surface_model
+#ifdef CLM45
+    use mod_atm_interface , only : atms
+#endif
     implicit none
     integer(ik4) :: i , j , n , nn , ierr , i1 , i2
+#ifdef CLM45
+    real(rk8) :: tm , dlnp , z1 , z2 , w1 , w2
+#endif
 #ifdef CLM
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
       r2cdoalb = .true.
@@ -413,6 +441,32 @@ module mod_lm_interface
     call mtrxclm(lm,lms)
 #else
 #ifdef CLM45
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        zatm(j,i) = atms%za(j,i,kz)
+        patm(j,i) = atms%pb3d(j,i,kz)
+        tatm(j,i) = atms%tb3d(j,i,kz)
+        thatm(j,i) = atms%th3d(j,i,kz)
+        uatm(j,i) = atms%ubx3d(j,i,kz)
+        vatm(j,i) = atms%vbx3d(j,i,kz)
+        qvatm(j,i) = atms%qxb3d(j,i,kz,iqv)
+        if ( atms%za(j,i,kz) < 35.0 ) then
+          z1 = atms%za(j,i,kz)
+          z2 = atms%za(j,i,kz-1)
+          w1 = (z2-35.0D0)/(z2-z1)
+          w2 = d_one - w1
+          zatm(j,i) = 35.0D0
+          tatm(j,i) = atms%tb3d(j,i,kz)*w1 + atms%tb3d(j,i,kz+1)*w2
+          thatm(j,i) = atms%th3d(j,i,kz)*w1 + atms%th3d(j,i,kz+1)*w2
+          uatm(j,i) = atms%ubx3d(j,i,kz)*w1 + atms%ubx3d(j,i,kz+1)*w2
+          vatm(j,i) = atms%vbx3d(j,i,kz)*w1 + atms%vbx3d(j,i,kz+1)*w2
+          qvatm(j,i) = atms%qxb3d(j,i,kz,iqv)*w1 + atms%qxb3d(j,i,kz+1,iqv)*w2
+          tm = d_half*(tatm(j,i)+atms%tb3d(j,i,kz))
+          dlnp = (egrav*zatm(j,i))/(rgas*tm)
+          patm(j,i) = patm(j,i)*exp(-dlnp)
+        end if
+      end do
+    end do
     call runclm45(lm,lms)
     !coupling of biogenic VOC from CLM45 to chemistry
     if ( ichem == 1 ) then

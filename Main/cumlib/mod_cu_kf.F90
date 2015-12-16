@@ -237,6 +237,7 @@ module mod_cu_kf
         cu_qten(j,i,kk,iqv) = dqdt(np,k)
         cu_qten(j,i,kk,iqc) = dqcdt(np,k)
         cu_cldfrc(j,i,k) = max(cldfra_sh_kf(np,k),cldfra_dp_kf(np,k))
+        kfwavg(j,i,kk) = w0avg(np,k)
       end do
     end do
 
@@ -249,7 +250,6 @@ module mod_cu_kf
           cu_qten(j,i,kk,iqr) = dqrdt(np,k)
           cu_qten(j,i,kk,iqi) = dqidt(np,k)
           cu_qten(j,i,kk,iqs) = dqsdt(np,k)
-          kfwavg(j,i,kk) = w0avg(np,k)
         end do
       end do
     end if
