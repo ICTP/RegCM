@@ -553,7 +553,8 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
 
-      real(rk8) :: slope , rdphf , rdplf , ff , qq
+      real(rk8) :: slope , rdphf , rdplf , ff , pa287 , qq
+      real(rk8) , dimension(jci1:jci2,ici1:ici2,kz) :: dotqdot
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv3d'
@@ -587,13 +588,20 @@ module mod_advection
         !
         ! vertical advection terms : interpolate to full sigma levels
         !
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            rdphf = exp(-c287*log(phs(j,i,1)))
+            dotqdot(j,i,1) = f(j,i,1)*rdphf
+          end do
+        end do
         do k = 2 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
-              rdphf = (pfs(j,i,k)/phs(j,i,k))**c287
-              rdplf = (pfs(j,i,k)/phs(j,i,k-1))**c287
-              ff = (twt(k,1)*f(j,i,k)  *rdphf + &
-                    twt(k,2)*f(j,i,k-1)*rdplf) * svv(j,i,k)
+              rdphf = exp(-c287*log(phs(j,i,k)))
+              rdplf = exp( c287*log(pfs(j,i,k)))
+              dotqdot(j,i,k) = f(j,i,k)*rdphf
+              ff = rdplf * svv(j,i,k) * ( twt(k,1) * dotqdot(j,i,k) + &
+                                          twt(k,2) * dotqdot(j,i,k-1) )
               ften(j,i,k-1) = ften(j,i,k-1) - ff*xds(k-1)
               ften(j,i,k)   = ften(j,i,k)   + ff*xds(k)
             end do

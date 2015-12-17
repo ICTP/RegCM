@@ -649,7 +649,7 @@ module mod_tendency
         end do
       end do
       call exchange(th,1,jce1,jce2,ice1,ice2,1,kz)
-      call hadv(thten,th,kz)
+      call hadv(thten,th)
       if ( idiag > 0 ) then
         tdiag%adh = tdiag%adh + (thten - ten0) * afdout
         ten0 = thten
