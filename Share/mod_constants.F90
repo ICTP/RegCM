@@ -125,7 +125,7 @@ module mod_constants
 
   real(rk8) , parameter :: rgasmol = navgdr*boltzk ! 8.3144717808
   ! Gas constant for dry air
-  real(rk8) , parameter :: c287 = rgasmol/amd
+  real(rk8) , parameter :: c287 = rgasmol/amd      ! 0.2870569248
   ! Gas constant for dry air in Joules/kg/K
   real(rk8) , parameter :: rgas = c287*1000.0D+00  ! 287.0569248
   real(rk8) , parameter :: rdry = rgas
