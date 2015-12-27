@@ -24,34 +24,22 @@ module mod_uvrot
   use mod_constants
 
   contains
-
+  !
+  ! Change U and V from true (N,E) to map values (X,Y)
+  !
   subroutine uvrot4(u,v,dlon,dlat,clon,clat,gridfc,jx,iy,ll,pollon, &
                     pollat,lgtype)
     implicit none
-    real(rk8) :: clat , clon , gridfc , pollat , pollon
-    integer(ik4) :: iy , jx , ll
-    character(len=6) :: lgtype
-    real(rk8) , dimension(jx,iy) :: dlat , dlon
-    real(rk8) , dimension(jx,iy,ll) :: u , v
-    intent (in) clat , clon , dlat , dlon , gridfc , iy , jx ,        &
-                lgtype , ll , pollat , pollon
-    intent (inout) u , v
-!
-    real(rk8) :: cosdel , d , polcphi , pollam , polphi , polsphi ,    &
-            sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm ,  &
+    real(rk8) , intent(in) :: clat , clon , gridfc , pollat , pollon
+    integer(ik4) , intent(in) :: iy , jx , ll
+    character(len=6) , intent(in) :: lgtype
+    real(rk8) , dimension(jx,iy) , intent(in) :: dlat , dlon
+    real(rk8) , dimension(jx,iy,ll) , intent(inout) :: u , v
+    real(rk8) :: cosdel , d , polcphi , pollam , polphi , polsphi ,  &
+            sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm , &
             zphi , zrla , zrlap
     integer(ik4) :: i , j , l
-    !
-    !     CHANGE U AND V FROM TRUE (N,E) TO MAP VALUES (X,Y)
-    !
-    !     FOR ROTATED MERCATOR PROJECTION
-    !UVUSVS   -   ROTATES THE TWO WINDCOMPONENTS U AND V AT POINT
-    !     DLON,DLAT TO THE WINDCOMPONENTS US AND VS IN A
-    !     ROTATED POLE GRID WHERE THE ORIGIN IS LOCATED
-    !     AT POLLON,POLLAT
-    !**   CALL  :   CALL UVUSVS(U,V,US,VS,DLON,DLAT,POLLON,POLLAT)
-    !**   AUTHOR:   D.MAJEWSKI
-    !
+
     if ( lgtype == 'NORMER' ) then
       return
     end if
@@ -65,8 +53,8 @@ module mod_uvrot
       end if
       if ( pollam > deg180 ) pollam = pollam - deg360
 
-      polcphi = dcos(degrad*polphi)
-      polsphi = dsin(degrad*polphi)
+      polcphi = cos(degrad*polphi)
+      polsphi = sin(degrad*polphi)
 
       do j = 1 , iy
         do i = 1 , jx
@@ -74,9 +62,9 @@ module mod_uvrot
           zrla = dlon(i,j)*degrad
           if ( dlat(i,j) > 89.999999D0 ) zrla = d_zero
           zrlap = pollam*degrad - zrla
-          zarg1 = polcphi*dsin(zrlap)
-          zarg2 = polsphi*dcos(zphi) - polcphi*dsin(zphi)*dcos(zrlap)
-          znorm = d_one/dsqrt(zarg1**2+zarg2**2)
+          zarg1 = polcphi*sin(zrlap)
+          zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
+          znorm = d_one/sqrt(zarg1**2+zarg2**2)
           sindel = zarg1*znorm
           cosdel = zarg2*znorm
           do l = 1 , ll
@@ -104,8 +92,8 @@ module mod_uvrot
           else
             x = (clon-dlon(i,j))*degrad*gridfc
           end if
-          xs = dsin(x)
-          xc = dcos(x)
+          xs = sin(x)
+          xc = cos(x)
           if ( clat >= d_zero ) then
             do l = 1 , ll
               d = v(i,j,l)*xs + u(i,j,l)*xc
@@ -123,37 +111,23 @@ module mod_uvrot
       end do
     end if
   end subroutine uvrot4
-!
-!-----------------------------------------------------------------------
-!
+  !
+  ! Change U and V from map values (X,Y) to true (N,E)
+  !
   subroutine uvrot4nx(u,v,dlon,dlat,clon,clat,gridfc,jx,iy,ll, &
                       pollon,pollat,lgtype)
     implicit none
-!
-    real(rk8) :: clat , clon , gridfc , pollat , pollon
-    integer(ik4) :: iy , jx , ll
-    character(len=6) :: lgtype
-    real(rk8) , dimension(jx,iy) :: dlat , dlon
-    real(rk8) , dimension(jx,iy,ll) :: u , v
-    intent (in) clat , clon , dlat , dlon , gridfc , iy , jx ,  &
-                lgtype , ll , pollat , pollon
-    intent (inout) u , v
-!
-    real(rk8) :: cosdel , d , polcphi , pollam , polphi , polsphi ,   &
+
+    real(rk8) , intent(in) :: clat , clon , gridfc , pollat , pollon
+    integer(ik4) , intent(in) :: iy , jx , ll
+    character(len=6) , intent(in) :: lgtype
+    real(rk8) , dimension(jx,iy) , intent(in) :: dlat , dlon
+    real(rk8) , dimension(jx,iy,ll) , intent(inout) :: u , v
+    real(rk8) :: cosdel , d , polcphi , pollam , polphi , polsphi ,  &
             sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm , &
             zphi , zrla , zrlap
     integer(ik4) :: i , j , l
-    !
-    !     CHANGE U AND V FROM TRUE (N,E) TO MAP VALUES (X,Y)
-    !
-    !     FOR ROTATED MERCATOR PROJECTION
-    !UVUSVS   -   ROTATES THE TWO WINDCOMPONENTS U AND V AT POINT
-    !     DLON,DLAT TO THE WINDCOMPONENTS US AND VS IN A
-    !     ROTATED POLE GRID WHERE THE ORIGIN IS LOCATED
-    !     AT POLLON,POLLAT
-    !**   CALL  :   CALL UVUSVS(U,V,US,VS,DLON,DLAT,POLLON,POLLAT)
-    !**   AUTHOR:   D.MAJEWSKI
-    !
+
     if ( lgtype == 'ROTMER' ) then
       if ( pollat > d_zero ) then
         pollam = pollon + deg180
@@ -164,8 +138,8 @@ module mod_uvrot
       end if
       if ( pollam > deg180 ) pollam = pollam - deg360
 
-      polcphi = dcos(degrad*polphi)
-      polsphi = dsin(degrad*polphi)
+      polcphi = cos(degrad*polphi)
+      polsphi = sin(degrad*polphi)
 
       do j = 1 , iy
         do i = 1 , jx
@@ -173,9 +147,9 @@ module mod_uvrot
           zrla = dlon(i,j)*degrad
           if ( dlat(i,j) > 89.999999D0 ) zrla = d_zero
           zrlap = pollam*degrad - zrla
-          zarg1 = polcphi*dsin(zrlap)
-          zarg2 = polsphi*dcos(zphi) - polcphi*dsin(zphi)*dcos(zrlap)
-          znorm = d_one/dsqrt(zarg1**2+zarg2**2)
+          zarg1 = polcphi*sin(zrlap)
+          zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
+          znorm = d_one/sqrt(zarg1**2+zarg2**2)
           sindel = zarg1*znorm
           cosdel = zarg2*znorm
           do l = 1 , ll
@@ -203,8 +177,8 @@ module mod_uvrot
           else
             x = (clon-dlon(i,j))*degrad*gridfc
           end if
-          xs = dsin(x)
-          xc = dcos(x)
+          xs = sin(x)
+          xc = cos(x)
           if ( clat >= d_zero ) then
             do l = 1 , ll
               d = u(i,j,l)*xc - v(i,j,l)*xs
