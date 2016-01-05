@@ -305,7 +305,7 @@ module mod_clm_ch4
     do g = lbg , ubg
 
       if (ch4offline) then
-        forc_pch4(g) = atmch4*forc_pbot(g)
+        forc_pch4(g) = -atmch4*forc_pbot(g)
       else
         if (forc_pch4(g) == 0.D0) then
           write(stderr,*) 'not using ch4offline, but methane concentration &
