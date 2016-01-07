@@ -112,7 +112,7 @@ module mod_sst_gnmnc
       varname(2) = 'ts'
     else if ( ssttyp(1:3) == 'HA_' ) then
       if ( .not. date_in_scenario(imm1,5) ) then
-        if ( idate > 1959110100 ) then
+        if ( imm1 > 1959110100 ) then
           inpfile = trim(inpglob)// &
              '/HadGEM2/SST/tos_Omon_HadGEM2-ES_historical'// &
              '_r1i1p1_195912-200512.nc'
