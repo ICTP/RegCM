@@ -171,7 +171,6 @@ module mod_cu_tiedtke
     cevapcu(:) = cevapu
 
     if ( ichem == 1 ) then
-      cu_convpr(:,:,:) = d_zero
       do n = 1 , ntr
         do k = 1 , kz
           do ii = 1 , nipoi
@@ -214,8 +213,7 @@ module mod_cu_tiedtke
       do ii = 1 , nipoi
         i = imap(ii)
         j = jmap(ii)
-        ! Pascal
-        papp1(ii,k) = m2c%pas(j,i,k)
+        papp1(ii,k) = m2c%pas(j,i,k)       ! Pressure in Pa
         xpg(ii,k)   = m2c%zas(j,i,k)*egrav ! geopotential
         ptm1(ii,k)  = m2c%tas(j,i,k)  ! temperature
         pum1(ii,k)  = m2c%uas(j,i,k)  ! u (guessing!)

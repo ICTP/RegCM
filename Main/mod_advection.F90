@@ -75,12 +75,12 @@ module mod_advection
   contains
 
     subroutine init_advection
-      use mod_atm_interface , only : mddom , sfs , atms , atmc
+      use mod_atm_interface , only : mddom , sfs , atms , atmx
       use mod_atm_interface , only : mdv , qdot , kpbl
       implicit none
       integer(ik4) :: k
-      call assignpnt(atmc%u,ua)
-      call assignpnt(atmc%v,va)
+      call assignpnt(atmx%umc,ua)
+      call assignpnt(atmx%vmc,va)
       call assignpnt(sfs%psa,ps)
       call assignpnt(mddom%msfx,mapfx)
       call assignpnt(mddom%msfd,mapfd)
@@ -123,7 +123,34 @@ module mod_advection
       ! ua, va : are p*u and p*v.
       ! msfd   : is the map scale factor at dot points.
       !
-      if ( idynamic == 2 ) then
+      if ( idynamic == 1 ) then
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              ucmona = ua(j,i+1,k)+d_two*ua(j,i,k)+ua(j,i-1,k)
+              vcmona = va(j+1,i,k)+d_two*va(j,i,k)+va(j-1,i,k)
+              ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + &
+                       ua(j+1,i-1,k) + ucmona
+              vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + &
+                       va(j-1,i+1,k) + vcmona
+              ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + &
+                       ua(j-1,i-1,k) + ucmona
+              vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
+                       va(j-1,i-1,k) + vcmona
+              uten(j,i,k) = uten(j,i,k) - dmapf(j,i) *      &
+                          ((u(j+1,i,k)+u(j,i,k))  *ucmonb - &
+                           (u(j,i,k)  +u(j-1,i,k))*ucmonc + &
+                           (u(j,i+1,k)+u(j,i,k))  *vcmonb - &
+                           (u(j,i,k)  +u(j,i-1,k))*vcmonc)
+              vten(j,i,k) = vten(j,i,k) - dmapf(j,i) *      &
+                          ((v(j+1,i,k)+v(j,i,k))  *ucmonb - &
+                           (v(j,i,k)  +v(j-1,i,k))*ucmonc + &
+                           (v(j,i+1,k)+v(j,i,k))  *vcmonb - &
+                           (v(j,i,k)  +v(j,i-1,k))*vcmonc)
+            end do
+          end do
+        end do
+      else
         do k = 1 , kz
           do i = idi1 , idi2
             do j = jdi1 , jdi2
@@ -151,33 +178,6 @@ module mod_advection
                               v(j-1,i,k) * ucmonc + &
                               v(j,i+1,k) * vcmonb - &
                               v(j,i-1,k) * vcmonc)
-            end do
-          end do
-        end do
-      else
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              ucmona = ua(j,i+1,k)+d_two*ua(j,i,k)+ua(j,i-1,k)
-              vcmona = va(j+1,i,k)+d_two*va(j,i,k)+va(j-1,i,k)
-              ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + &
-                       ua(j+1,i-1,k) + ucmona
-              vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + &
-                       va(j-1,i+1,k) + vcmona
-              ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + &
-                       ua(j-1,i-1,k) + ucmona
-              vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
-                       va(j-1,i-1,k) + vcmona
-              uten(j,i,k) = uten(j,i,k) - dmapf(j,i) *      &
-                          ((u(j+1,i,k)+u(j,i,k))  *ucmonb - &
-                           (u(j,i,k)  +u(j-1,i,k))*ucmonc + &
-                           (u(j,i+1,k)+u(j,i,k))  *vcmonb - &
-                           (u(j,i,k)  +u(j,i-1,k))*vcmonc)
-              vten(j,i,k) = vten(j,i,k) - dmapf(j,i) *      &
-                          ((v(j+1,i,k)+v(j,i,k))  *ucmonb - &
-                           (v(j,i,k)  +v(j-1,i,k))*ucmonc + &
-                           (v(j,i+1,k)+v(j,i,k))  *vcmonb - &
-                           (v(j,i,k)  +v(j,i-1,k))*vcmonc)
             end do
           end do
         end do
@@ -553,7 +553,7 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
 
-      real(rk8) :: slope , rdphf , rdplf , ff , pa287 , qq
+      real(rk8) :: slope , rdphf , rdplf , ff , qq
       real(rk8) , dimension(jci1:jci2,ici1:ici2,kz) :: dotqdot
       integer(ik4) :: i , j , k
 #ifdef DEBUG
@@ -588,25 +588,52 @@ module mod_advection
         !
         ! vertical advection terms : interpolate to full sigma levels
         !
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            rdphf = exp(-c287*log(phs(j,i,1)))
-            dotqdot(j,i,1) = f(j,i,1)*rdphf
-          end do
-        end do
-        do k = 2 , nk
+        if ( idynamic == 1 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              rdphf = exp(-c287*log(phs(j,i,k)))
-              rdplf = exp( c287*log(pfs(j,i,k)))
-              dotqdot(j,i,k) = f(j,i,k)*rdphf
-              ff = rdplf * svv(j,i,k) * ( twt(k,1) * dotqdot(j,i,k) + &
-                                          twt(k,2) * dotqdot(j,i,k-1) )
-              ften(j,i,k-1) = ften(j,i,k-1) - ff*xds(k-1)
-              ften(j,i,k)   = ften(j,i,k)   + ff*xds(k)
+              dotqdot(j,i,1) = d_zero
             end do
           end do
-        end do
+          do k = 2 , nk
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                dotqdot(j,i,k) = twt(k,1)*f(j,i,k) *             &
+                                 (pfs(j,i,k)/phs(j,i,k))**c287 + &
+                                 twt(k,2)*f(j,i,k-1) *           &
+                                 (pfs(j,i,k)/phs(j,i,k-1))**c287
+              end do
+            end do
+          end do
+          do k = 2 , nk
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ff = svv(j,i,k) * dotqdot(j,i,k)
+                ften(j,i,k-1) = ften(j,i,k-1) - ff*xds(k-1)
+                ften(j,i,k)   = ften(j,i,k)   + ff*xds(k)
+              end do
+            end do
+          end do
+        else
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              rdphf = exp(-c287*log(phs(j,i,1)))
+              dotqdot(j,i,1) = f(j,i,1)*rdphf
+            end do
+          end do
+          do k = 2 , nk
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                rdphf = exp(-c287*log(phs(j,i,k)))
+                rdplf = exp( c287*log(pfs(j,i,k)))
+                dotqdot(j,i,k) = f(j,i,k)*rdphf
+                ff = rdplf * svv(j,i,k) * ( twt(k,1) * dotqdot(j,i,k) + &
+                                            twt(k,2) * dotqdot(j,i,k-1) )
+                ften(j,i,k-1) = ften(j,i,k-1) - ff*xds(k-1)
+                ften(j,i,k)   = ften(j,i,k)   + ff*xds(k)
+              end do
+            end do
+          end do
+        end if
       else if ( ind == 2 ) then
         fg(:,:,1) = d_zero
         do k = 2 , nk

@@ -157,8 +157,14 @@ module mod_regcm_types
   end type atmstate_tendency
 
   type atmstate_decoupled
-    real(rk8) , pointer , dimension(:,:,:) :: u
-    real(rk8) , pointer , dimension(:,:,:) :: v
+    real(rk8) , pointer , dimension(:,:,:) :: uc  ! Coupled with pressure
+    real(rk8) , pointer , dimension(:,:,:) :: vc  ! Coupled with pressure
+    real(rk8) , pointer , dimension(:,:,:) :: umc ! Coupled * mapfactor
+    real(rk8) , pointer , dimension(:,:,:) :: vmc ! Coupled * mapfactor
+    real(rk8) , pointer , dimension(:,:,:) :: ud  ! De-coupled
+    real(rk8) , pointer , dimension(:,:,:) :: vd  ! De-coupled
+    real(rk8) , pointer , dimension(:,:,:) :: umd ! De-coupled * mapfactor
+    real(rk8) , pointer , dimension(:,:,:) :: vmd ! De-coupled * mapfactor
     real(rk8) , pointer , dimension(:,:,:) :: w
     real(rk8) , pointer , dimension(:,:,:) :: t
     real(rk8) , pointer , dimension(:,:,:) :: tv

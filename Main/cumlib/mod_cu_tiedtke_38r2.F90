@@ -89,8 +89,7 @@ module mod_cu_tiedtke_38r2
     implicit none
     integer(ik4) , intent(in) :: ksmax , klev
     real(rk8) , dimension(klev) , intent(in) :: pmean
-    integer(ik4) :: nflevg , jlev
-    nflevg = klev
+    integer(ik4) :: jlev
     rtau = d_one+264.0D0/real(ksmax)
     rtau = min(3.0D0,rtau)
     if ( ksmax >= 511 ) then
@@ -100,8 +99,11 @@ module mod_cu_tiedtke_38r2
     end if
     njkt1 = 2
     njkt2 = 2
-    njkt3 = nflevg-2
-    do jlev = nflevg , 2 , -1
+    njkt3 = klev
+    njkt4 = klev
+    njkt5 = klev
+    njkt6 = klev
+    do jlev = klev , 2 , -1
       if ( pmean(jlev)/pmean(klev)*stdp > 350.D2 ) njkt1 = jlev
       if ( pmean(jlev)/pmean(klev)*stdp >  60.D2 ) njkt2 = jlev
       if ( pmean(jlev)/pmean(klev)*stdp > 950.D2 ) njkt3 = jlev
@@ -109,7 +111,6 @@ module mod_cu_tiedtke_38r2
       if ( pmean(jlev)/pmean(klev)*stdp > 500.D2 ) njkt5 = jlev
       if ( pmean(jlev)/pmean(klev)*stdp > 700.D2 ) njkt6 = jlev
     end do
-    njkt3 = min(nflevg-2,njkt3)
   end subroutine sucumf
 !
 !***** CUANCAPE2 - COMPUTE APPROXIMATE CAPE,CIN  USING THETAE AND THETAES

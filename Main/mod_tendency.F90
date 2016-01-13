@@ -168,23 +168,10 @@ module mod_tendency
     !
     call surface_pressures
     !
-    ! multiply ua and va by inverse of mapscale factor at dot point:
-    !
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          atmc%u(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
-          atmc%v(j,i,k) = atm1%v(j,i,k)*mddom%msfd(j,i)
-        end do
-      end do
-    end do
-    !
     ! Decoupling on atmx and apply bdy conditions to U,V
     !
     call decouple
     !
-    call exchange(atmc%u,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmc%v,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm1%t,1,jce1,jce2,ice1,ice2,1,kz)
@@ -252,8 +239,14 @@ module mod_tendency
       call exchange(atm2%w,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
-    call exchange(atmx%u,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%v,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%uc,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%vc,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%umc,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%vmc,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%ud,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%vd,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%umd,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%vmd,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atmx%t,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atmx%tv,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atmx%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
@@ -292,11 +285,11 @@ module mod_tendency
             ! The surface pressure tendency in the   hydrostatic model:
             ! Eq. 2.1.5 & Eq. 2.4.2 in the MM5 manual
             !
-            mdv%cr(j,i,k) = (atmc%u(j+1,i+1,k)+atmc%u(j+1,i,k)- &
-                             atmc%u(j,i+1,k)  -atmc%u(j,i,k)) + &
-                            (atmc%v(j+1,i+1,k)+atmc%v(j,i+1,k)- &
-                             atmc%v(j+1,i,k)  -atmc%v(j,i,k))
-            pten(j,i) = pten(j,i) - mdv%cr(j,i,k)*dsigma(k) * dummy(j,i)
+            mdv%cr(j,i,k) = ((atmx%umc(j+1,i+1,k)+atmx%umc(j+1,i,k)- &
+                              atmx%umc(j,i+1,k)  -atmx%umc(j,i,k)) + &
+                             (atmx%vmc(j+1,i+1,k)+atmx%vmc(j,i+1,k)- &
+                              atmx%vmc(j+1,i,k)  -atmx%vmc(j,i,k))) * dummy(j,i)
+            pten(j,i) = pten(j,i) - mdv%cr(j,i,k) * dsigma(k)
           end do
         end do
       end do
@@ -308,7 +301,7 @@ module mod_tendency
             ! Eq. 2.1.6 & Eq. 2.4.3 in the MM5 manual
             !
             qdot(j,i,k) = qdot(j,i,k-1) - (pten(j,i) + &
-              mdv%cr(j,i,k-1)*dummy(j,i)) * dsigma(k-1) * rpsa(j,i)
+                       mdv%cr(j,i,k-1)) * dsigma(k-1) * rpsa(j,i)
            end do
         end do
       end do
@@ -319,10 +312,10 @@ module mod_tendency
             !
             ! Calculate wind components at cross points
             !
-            ucc(j,i,k) = (atmx%u(j,i,k)  + atmx%u(j,i+1,k) + &
-                          atmx%u(j+1,i,k)+ atmx%u(j+1,i+1,k))
-            vcc(j,i,k) = (atmx%v(j,i,k)  + atmx%v(j,i+1,k) + &
-                          atmx%v(j+1,i,k)+ atmx%v(j+1,i+1,k))
+            ucc(j,i,k) = (atmx%umd(j,i,k)  + atmx%umd(j,i+1,k) + &
+                          atmx%umd(j+1,i,k)+ atmx%umd(j+1,i+1,k))
+            vcc(j,i,k) = (atmx%vmd(j,i,k)  + atmx%vmd(j,i+1,k) + &
+                          atmx%vmd(j+1,i,k)+ atmx%vmd(j+1,i+1,k))
 
           end do
         end do
@@ -351,11 +344,12 @@ module mod_tendency
             ! nonhydrostatic model:
             ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
             !
-            mdv%cr(j,i,k) = ((atmc%u(j+1,i+1,k)+atmc%u(j+1,i,k) -              &
-                              atmc%u(j,i+1,k)  -atmc%u(j,i,k))  +              &
-                             (atmc%v(j+1,i+1,k)+atmc%v(j,i+1,k) -              &
-                              atmc%v(j+1,i,k)  -atmc%v(j,i,k))) * dummy(j,i) + &
-               (qdot(j,i,k+1) - qdot(j,i,k)) * sfs%psa(j,i)/dsigma(k)
+            mdv%cr(j,i,k) = ((atmx%umc(j+1,i+1,k)+atmx%umc(j+1,i,k) -  &
+                              atmx%umc(j,i+1,k)  -atmx%umc(j,i,k))  +  &
+                             (atmx%vmc(j+1,i+1,k)+atmx%vmc(j,i+1,k) -  &
+                              atmx%vmc(j+1,i,k)  -atmx%vmc(j,i,k))) *  &
+                     dummy(j,i) + (qdot(j,i,k+1) - qdot(j,i,k)) *      &
+                        sfs%psa(j,i)/dsigma(k)
           end do
         end do
       end do
@@ -367,8 +361,8 @@ module mod_tendency
     !
     omega(:,:,:) = d_zero
     if ( idynamic == 1 ) then
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           dummy(j,i) = d_one/(dx8*mddom%msfx(j,i))
         end do
       end do
@@ -378,14 +372,14 @@ module mod_tendency
             !
             ! omega in the hydrostatic model: Eqs. 2.1.7, 2.1.8 & 2.4.4
             !
-            omega(j,i,k) = d_half*sfs%psa(j,i)*(qdot(j,i,k+1)+qdot(j,i,k)) + &
-                        hsigma(k)*(pten(j,i)+                         &
-                       ((atmx%u(j,i,k)    +atmx%u(j,i+1,k)+           &
-                         atmx%u(j+1,i+1,k)+atmx%u(j+1,i,k))*          &
-                       (sfs%psa(j+1,i)-sfs%psa(j-1,i))+               &
-                       (atmx%v(j,i,k)    +atmx%v(j,i+1,k)+            &
-                        atmx%v(j+1,i+1,k)+atmx%v(j+1,i,k))*           &
-                       (sfs%psa(j,i+1)-sfs%psa(j,i-1)))*dummy(j,i))
+            omega(j,i,k) = d_half*(qdot(j,i,k+1)+qdot(j,i,k)) *   &
+                        sfs%psa(j,i) + hsigma(k) * (pten(j,i) +   &
+                       ((atmx%ud(j,i,k) + atmx%ud(j,i+1,k) +      &
+                         atmx%ud(j+1,i+1,k) + atmx%ud(j+1,i,k))*  &
+                         (sfs%psa(j+1,i)-sfs%psa(j-1,i)) +        &
+                        (atmx%vd(j,i,k) + atmx%vd(j,i+1,k) +      &
+                         atmx%vd(j+1,i+1,k) + atmx%vd(j+1,i,k)) * &
+                         (sfs%psa(j,i+1)-sfs%psa(j,i-1)))*dummy(j,i))
           end do
         end do
       end do
@@ -460,13 +454,6 @@ module mod_tendency
           sfs%psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
         end do
       end if
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atm2%pr(j,i,k) = (hsigma(k)*sfs%psc(j,i) + ptop)*d_1000
-          end do
-        end do
-      end do
       do i = ice1 , ice2
         do j = jce1 , jce2
           rpsc(j,i) = d_one/sfs%psc(j,i)
@@ -505,14 +492,14 @@ module mod_tendency
     do k = 2 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          dudx = atmx%u(j+1,i,k) + atmx%u(j+1,i+1,k) - &
-                 atmx%u(j,i,k)   - atmx%u(j,i+1,k)
-          dvdx = atmx%v(j+1,i,k) + atmx%v(j+1,i+1,k) - &
-                 atmx%v(j,i,k)   - atmx%v(j,i+1,k)
-          dudy = atmx%u(j,i+1,k) + atmx%u(j+1,i+1,k) - &
-                 atmx%u(j,i,k)   - atmx%u(j+1,i,k)
-          dvdy = atmx%v(j,i+1,k) + atmx%v(j+1,i+1,k) - &
-                 atmx%v(j,i,k)   - atmx%v(j+1,i,k)
+          dudx = atms%ubd3d(j+1,i,k) + atms%ubd3d(j+1,i+1,k) - &
+                 atms%ubd3d(j,i,k)   - atms%ubd3d(j,i+1,k)
+          dvdx = atms%vbd3d(j+1,i,k) + atms%vbd3d(j+1,i+1,k) - &
+                 atms%vbd3d(j,i,k)   - atms%vbd3d(j,i+1,k)
+          dudy = atms%ubd3d(j,i+1,k) + atms%ubd3d(j+1,i+1,k) - &
+                 atms%ubd3d(j,i,k)   - atms%ubd3d(j+1,i,k)
+          dvdy = atms%vbd3d(j,i+1,k) + atms%vbd3d(j+1,i+1,k) - &
+                 atms%vbd3d(j,i,k)   - atms%vbd3d(j+1,i,k)
           duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
           xkc(j,i,k) = min((xkhz*hgfact(j,i)+c200*duv),xkhmax)
         end do
@@ -750,10 +737,10 @@ module mod_tendency
             !
             ! Calculate wind components at cross points
             !
-            ucc(j,i,k) = (atm1%u(j,i,k)  + atm1%u(j,i+1,k) + &
-                          atm1%u(j+1,i,k)+ atm1%u(j+1,i+1,k))
-            vcc(j,i,k) = (atm1%v(j,i,k)  + atm1%v(j,i+1,k) + &
-                          atm1%v(j+1,i,k)+ atm1%v(j+1,i+1,k))
+            ucc(j,i,k) = (atmx%uc(j,i,k)  + atmx%uc(j,i+1,k) + &
+                          atmx%uc(j+1,i,k)+ atmx%uc(j+1,i+1,k))
+            vcc(j,i,k) = (atmx%vc(j,i,k)  + atmx%vc(j,i+1,k) + &
+                          atmx%vc(j+1,i,k)+ atmx%vc(j+1,i+1,k))
 
           end do
         end do
@@ -1316,7 +1303,7 @@ module mod_tendency
     ! same for hydrostatic and nonhydrostatic models: 1st RHS term in
     ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
     !
-    call hadv(aten%u,aten%v,atmx%u,atmx%v)
+    call hadv(aten%u,aten%v,atmx%ud,atmx%vd)
 #ifdef DEBUG
     call check_wind_tendency('HADV')
 #endif
@@ -1332,8 +1319,8 @@ module mod_tendency
             ! (1) part of the horizontal component of the Coriolis force due
             ! to the horizontal movement (4th RHS term in Eq.2.1.1, Eq.2.1.2)
             !
-            aten%u(j,i,k) = aten%u(j,i,k) + mddom%coriol(j,i)*atm1%v(j,i,k)
-            aten%v(j,i,k) = aten%v(j,i,k) - mddom%coriol(j,i)*atm1%u(j,i,k)
+            aten%u(j,i,k) = aten%u(j,i,k) + mddom%coriol(j,i)*atmx%vc(j,i,k)
+            aten%v(j,i,k) = aten%v(j,i,k) - mddom%coriol(j,i)*atmx%uc(j,i,k)
           end do
         end do
       end do
@@ -1363,13 +1350,17 @@ module mod_tendency
                                  atm1%w(j,i-1,k+1)   + atm1%w(j,i,k+1))
             wabar = wadot + wadotp1
             amfac = wabar * rpsda(j,i) * rearthrad
-            duv = atm1%u(j,i,k)*mddom%dmdy(j,i) - atm1%v(j,i,k)*mddom%dmdx(j,i)
-            aten%u(j,i,k) = aten%u(j,i,k) + mddom%coriol(j,i)*atm1%v(j,i,k) - &
-                         mddom%ef(j,i)*mddom%ddx(j,i)*wabar +      &
-                         atmx%v(j,i,k)*duv - atm1%u(j,i,k)*amfac
-            aten%v(j,i,k) = aten%v(j,i,k) - mddom%coriol(j,i)*atm1%u(j,i,k) + &
-                         mddom%ef(j,i)*mddom%ddy(j,i)*wabar -      &
-                         atmx%u(j,i,k)*duv - atm1%v(j,i,k)*amfac
+            duv = atmx%uc(j,i,k)*mddom%dmdy(j,i)-atmx%vc(j,i,k)*mddom%dmdx(j,i)
+            aten%u(j,i,k) = aten%u(j,i,k) +                      &
+                            mddom%coriol(j,i)*atmx%vc(j,i,k) -   & ! H Coriolis
+                            mddom%ef(j,i)*mddom%ddx(j,i)*wabar + & ! V Coriolis
+                            atmx%vmd(j,i,k)*duv -                & ! H curv
+                            atmx%uc(j,i,k)*amfac                   ! V curv
+            aten%v(j,i,k) = aten%v(j,i,k) -                      &
+                            mddom%coriol(j,i)*atmx%uc(j,i,k) +   & ! H Coriolis
+                            mddom%ef(j,i)*mddom%ddy(j,i)*wabar - & ! V Coriolis
+                            atmx%umd(j,i,k)*duv -                & ! H curv
+                            atmx%vc(j,i,k)*amfac                   ! V curv
           end do
         end do
       end do
@@ -1557,7 +1548,7 @@ module mod_tendency
     ! same for hydrostatic and nonhydrostatic models: 2nd RHS term in
     ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
     !
-    call vadv(aten%u,aten%v,atm1%u,atm1%v)
+    call vadv(aten%u,aten%v,atmx%umc,atmx%vmc)
 #ifdef DEBUG
     call check_wind_tendency('VADV')
 #endif
@@ -2056,13 +2047,36 @@ module mod_tendency
         end do
       end if
       !
-      ! Internal U,V points
+      ! Coupled helper
       !
       do k = 1 , kz
-        do i = idii1 , idii2
-          do j = jdii1 , jdii2
-            atmx%u(j,i,k) = atmc%u(j,i,k)*rpsda(j,i)
-            atmx%v(j,i,k) = atmc%v(j,i,k)*rpsda(j,i)
+        do i = ide1 , ide2
+          do j = jde1 , jde2
+            atmx%uc(j,i,k) = atm1%u(j,i,k)
+            atmx%vc(j,i,k) = atm1%v(j,i,k)
+          end do
+        end do
+      end do
+      !
+      ! multiply ua and va by inverse of mapscale factor at dot point
+      !
+      do k = 1 , kz
+        do i = ide1 , ide2
+          do j = jde1 , jde2
+            atmx%umc(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
+            atmx%vmc(j,i,k) = atm1%v(j,i,k)*mddom%msfd(j,i)
+          end do
+        end do
+      end do
+      !
+      ! Decoupled part with boundary conditions
+      ! Internal points
+      !
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            atmx%ud(j,i,k) = atm1%u(j,i,k)*rpsda(j,i)
+            atmx%vd(j,i,k) = atm1%v(j,i,k)*rpsda(j,i)
           end do
         end do
       end do
@@ -2072,23 +2086,23 @@ module mod_tendency
       if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            atmx%u(jdi1,i,k) = wui(i,k)*mddom%msfd(jdi1,i)
-            atmx%v(jdi1,i,k) = wvi(i,k)*mddom%msfd(jdi1,i)
+            atmx%ud(jdi1,i,k) = wui(i,k)
+            atmx%vd(jdi1,i,k) = wvi(i,k)
           end do
         end do
         do k = 1 , kz
           do i = idi1 , idi2
-            atmx%u(jde1,i,k) = wue(i,k)*mddom%msfd(jde1,i)
-            atmx%v(jde1,i,k) = wve(i,k)*mddom%msfd(jde1,i)
+            atmx%ud(jde1,i,k) = wue(i,k)
+            atmx%vd(jde1,i,k) = wve(i,k)
           end do
         end do
         ! inflow/outflow dependence
         if ( iboudy == 3 .or. iboudy == 4 ) then
           do k = 1 , kz
             do i = idi1 , idi2
-              if ( atmx%u(jde1,i,k) <= d_zero ) then
-                atmx%u(jde1,i,k) = atmx%u(jdi1,i,k)
-                atmx%v(jde1,i,k) = atmx%v(jdi1,i,k)
+              if ( atmx%uc(jde1,i,k) <= d_zero ) then
+                atmx%ud(jde1,i,k) = atmx%ud(jdi1,i,k)
+                atmx%vd(jde1,i,k) = atmx%vd(jdi1,i,k)
               end if
             end do
           end do
@@ -2097,23 +2111,23 @@ module mod_tendency
       if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            atmx%u(jdi2,i,k) = eui(i,k)*mddom%msfd(jdi2,i)
-            atmx%v(jdi2,i,k) = evi(i,k)*mddom%msfd(jdi2,i)
+            atmx%ud(jdi2,i,k) = eui(i,k)
+            atmx%vd(jdi2,i,k) = evi(i,k)
           end do
         end do
         do k = 1 , kz
           do i = idi1 , idi2
-            atmx%u(jde2,i,k) = eue(i,k)*mddom%msfd(jde2,i)
-            atmx%v(jde2,i,k) = eve(i,k)*mddom%msfd(jde2,i)
+            atmx%ud(jde2,i,k) = eue(i,k)
+            atmx%vd(jde2,i,k) = eve(i,k)
           end do
         end do
         ! inflow/outflow dependence
         if ( iboudy == 3 .or. iboudy == 4 ) then
           do k = 1 , kz
             do i = idi1 , idi2
-              if ( atmx%u(jde2,i,k) >= d_zero ) then
-                atmx%u(jde2,i,k) = atmx%u(jdi2,i,k)
-                atmx%v(jde2,i,k) = atmx%v(jdi2,i,k)
+              if ( atmx%uc(jde2,i,k) >= d_zero ) then
+                atmx%ud(jde2,i,k) = atmx%ud(jdi2,i,k)
+                atmx%vd(jde2,i,k) = atmx%vd(jdi2,i,k)
               end if
             end do
           end do
@@ -2122,23 +2136,23 @@ module mod_tendency
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jdi1 , jdi2
-            atmx%u(j,idi1,k) = sui(j,k)*mddom%msfd(j,idi1)
-            atmx%v(j,idi1,k) = svi(j,k)*mddom%msfd(j,idi1)
+            atmx%ud(j,idi1,k) = sui(j,k)
+            atmx%vd(j,idi1,k) = svi(j,k)
           end do
         end do
         do k = 1 , kz
           do j = jde1 , jde2
-            atmx%u(j,ide1,k) = sue(j,k)*mddom%msfd(j,ide1)
-            atmx%v(j,ide1,k) = sve(j,k)*mddom%msfd(j,ide1)
+            atmx%ud(j,ide1,k) = sue(j,k)
+            atmx%vd(j,ide1,k) = sve(j,k)
           end do
         end do
         if ( iboudy == 3 .or. iboudy == 4 ) then
           ! inflow/outflow dependence
           do k = 1 , kz
             do j = jde1 , jde2
-              if ( atmx%v(j,ide1,k) >= d_zero ) then
-                atmx%v(j,ide1,k) = atmx%v(j,idi1,k)
-                atmx%u(j,ide1,k) = atmx%u(j,idi1,k)
+              if ( atmx%vc(j,ide1,k) >= d_zero ) then
+                atmx%ud(j,ide1,k) = atmx%ud(j,idi1,k)
+                atmx%vd(j,ide1,k) = atmx%vd(j,idi1,k)
               end if
             end do
           end do
@@ -2147,28 +2161,37 @@ module mod_tendency
       if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jdi1 , jdi2
-            atmx%u(j,idi2,k) = nui(j,k)*mddom%msfd(j,idi2)
-            atmx%v(j,idi2,k) = nvi(j,k)*mddom%msfd(j,idi2)
+            atmx%ud(j,idi2,k) = nui(j,k)
+            atmx%vd(j,idi2,k) = nvi(j,k)
           end do
         end do
         do k = 1 , kz
           do j = jde1 , jde2
-            atmx%u(j,ide2,k) = nue(j,k)*mddom%msfd(j,ide2)
-            atmx%v(j,ide2,k) = nve(j,k)*mddom%msfd(j,ide2)
+            atmx%ud(j,ide2,k) = nue(j,k)
+            atmx%vd(j,ide2,k) = nve(j,k)
           end do
         end do
         if ( iboudy == 3 .or. iboudy == 4 ) then
           ! inflow/outflow dependence
           do k = 1 , kz
             do j = jde1 , jde2
-              if ( atmx%v(j,ide2,k) <= d_zero ) then
-                atmx%v(j,ide2,k) = atmx%v(j,idi2,k)
-                atmx%u(j,ide2,k) = atmx%u(j,idi2,k)
+              if ( atmx%vc(j,ide2,k) <= d_zero ) then
+                atmx%ud(j,ide2,k) = atmx%ud(j,idi2,k)
+                atmx%vd(j,ide2,k) = atmx%vd(j,idi2,k)
               end if
             end do
           end do
         end if
       end if
+      !
+      do k = 1 , kz
+        do i = ide1 , ide2
+          do j = jde1 , jde2
+            atmx%umd(j,i,k) = atmx%ud(j,i,k)*mddom%msfd(j,i)
+            atmx%vmd(j,i,k) = atmx%vd(j,i,k)*mddom%msfd(j,i)
+          end do
+        end do
+      end do
       !
       ! T , QV , QC
       !

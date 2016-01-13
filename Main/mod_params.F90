@@ -251,7 +251,7 @@ module mod_params
     !
     ! Non hydrostatic param ;
     !
-    ifupr = 0
+    ifupr = 1
     ckh = 1.0D0
     logp_lrate = 50.0D0
     !

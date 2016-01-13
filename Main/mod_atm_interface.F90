@@ -676,8 +676,14 @@ module mod_atm_interface
         jr = -1
         call fatal(__FILE__,__LINE__,'Uncoded number of exchange points')
       end if
-      call getmem3d(atm%u,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:u')
-      call getmem3d(atm%v,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:v')
+      call getmem3d(atm%uc,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:uc')
+      call getmem3d(atm%vc,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:vc')
+      call getmem3d(atm%umc,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:umc')
+      call getmem3d(atm%vmc,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:vmc')
+      call getmem3d(atm%ud,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:ud')
+      call getmem3d(atm%vd,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:vd')
+      call getmem3d(atm%umd,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:umd')
+      call getmem3d(atm%vmd,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:vmd')
       call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
       call getmem3d(atm%tv,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:tv')
       call getmem4d(atm%qx,jce1-jl,jce2+jr, &

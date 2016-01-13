@@ -296,7 +296,11 @@
             if (cldfmc(ig,lay) .eq. 1._rb) then
                ib = ngb(ig)
                odcld(lay,ig) = secdiff(ib) * taucmc(ig,lay)
-               transcld = exp(-odcld(lay,ig))
+               if ( odcld(lay,ig) < 25.0D0 ) then
+                 transcld = exp(-odcld(lay,ig))
+               else
+                 transcld = 0.0_rb
+               end if
                abscld(lay,ig) = 1._rb - transcld
                efclfrac(lay,ig) = abscld(lay,ig) * cldfmc(ig,lay)
                icldlyr(lay) = 1
