@@ -219,15 +219,17 @@ module mod_cu_interface
             end do
           end do
         end do
-        do n = 1 , ntr
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                avg_chiten(j,i,k,n) = c2m%chiten(j,i,k,n)/m2c%psb(j,i)
+        if ( ichem == 1 ) then
+          do n = 1 , ntr
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  avg_chiten(j,i,k,n) = c2m%chiten(j,i,k,n)/m2c%psb(j,i)
+                end do
               end do
             end do
           end do
-        end do
+        end if
 
         cu_prate(:,:) = d_zero
         cu_ktop(:,:) = 0

@@ -30,7 +30,7 @@ module mod_cu_tiedtke
   use mod_service
   use mod_runparams , only : iqc , dt , iqv , iqi , entrmax , &
          entrdd , entrmid , cprcon , entrpen , entrscv , iconv , &
-         ichem , iaerosol , ipptls
+         ichem , iaerosol , ipptls , hsigma , ktau
   use mod_cu_tiedtke_38r2 , only : sucumf , cumastrn
   use mod_regcm_types
 
@@ -226,7 +226,7 @@ module mod_cu_tiedtke
         pvol(ii,k)  = avg_vten(j,i,k)
         pqte(ii,k)  = avg_qten(j,i,k,iqv)
         pxlte(ii,k) = avg_qten(j,i,k,iqc)
-        if (ipptls == 2) then
+        if ( ipptls == 2 ) then
           pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
           pxite(ii,k) = avg_qten(j,i,k,iqi)
         else
@@ -243,14 +243,14 @@ module mod_cu_tiedtke
     nskmax = nint(17747.5/ds)
     if ( iconv == 4 ) then
       do k = 1 , kz
-        pmean(k) = sum(papp1(:,k))/nipoi
+        pmean(k) = hsigma(k) * (stdp-ptop*d_1000) + ptop*d_1000
       end do
       call sucumf(nskmax,kz,pmean)
     else
       do ii = 1 , nipoi
         i = imap(ii)
         j = jmap(ii)
-        ptopmax(ii) = papp1(ii,max(1,m2c%ktrop(j,i)-1))
+        ptopmax(ii) = papp1(ii,max(1,m2c%ktrop(j,i)+1))
       end do
     end if
 
@@ -309,11 +309,11 @@ module mod_cu_tiedtke
         if (ktype(ii) > 0) then
           i = imap(ii)
           j = jmap(ii)
-          cu_tten(j,i,k) = ptte(ii,k)
-          cu_uten(j,i,k) = pvom(ii,k)
-          cu_vten(j,i,k) = pvol(ii,k)
-          cu_qten(j,i,k,iqv) = pqte(ii,k)
-          cu_qten(j,i,k,iqc) = pxlte(ii,k)
+          cu_tten(j,i,k) = ptte(ii,k) - avg_tten(j,i,k)
+          cu_uten(j,i,k) = pvom(ii,k) - avg_uten(j,i,k)
+          cu_vten(j,i,k) = pvol(ii,k) - avg_vten(j,i,k)
+          cu_qten(j,i,k,iqv) = pqte(ii,k) - avg_qten(j,i,k,iqv)
+          cu_qten(j,i,k,iqc) = pxlte(ii,k) - avg_qten(j,i,k,iqc)
           cu_qdetr(j,i,k) = max(zlude(ii,k),dlowval)
           cu_raincc(j,i,k) = pmflxr(ii,k)
         end if
@@ -326,7 +326,7 @@ module mod_cu_tiedtke
           if (ktype(ii) > 0) then
             i = imap(ii)
             j = jmap(ii)
-            cu_qten(j,i,k,iqi) = pxite(ii,k)
+            cu_qten(j,i,k,iqi) = pxite(ii,k) - avg_qten(j,i,k,iqi)
           end if
         end do
       end do
@@ -473,7 +473,11 @@ module mod_cu_tiedtke
       zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
       if ( iconv /= 4 ) then
         it = int(ztp1(jl,jk)*d_1000)
-        if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
+        if ( it < jptlucu1 .or. it > jptlucu2 ) then
+          write(stderr,'(a,f12.4,a,i8)') &
+            '! LOOKUP PROBLEM FOR T = ',real(ztp1(jl,jk)), ' at ktau ', ktau
+          lookupoverflow = .true.
+        end if
         it = max(min(it,jptlucu2),jptlucu1)
         zqsat(jl,jk) = tlucua(it)/papp1(jl,jk)
         zqsat(jl,jk) = min(d_half,zqsat(jl,jk))
@@ -2065,7 +2069,6 @@ module mod_cu_tiedtke
       end do
     end do
 !
-!
     ik = jk
     icall = 0
     call cuadjtq(kproma,kbdim,klev,ik,zph,ptenh,pqsenh,loflag,icall)
@@ -2075,7 +2078,7 @@ module mod_cu_tiedtke
       pqenh(jl,jk) = min(pqen(jl,jk-1),pqsen(jl,jk-1))              &
                      + (pqsenh(jl,jk)-pqsen(jl,jk-1))
       pqenh(jl,jk) = max(pqenh(jl,jk),d_zero)
-!      pcpcu(jl,jk) = cpd*(d_one+hcrm1*pqenh(jl,jk))
+!     pcpcu(jl,jk) = cpd*(d_one+hcrm1*pqenh(jl,jk))
       pcpcu(jl,jk) = cpd
     end do
   end do
@@ -2297,7 +2300,6 @@ module mod_cu_tiedtke
         pmfuxt(jl,jk,jt) = d_zero
       end do
     end do
-!
   end do
   do jk = 1 , klev
     do jl = 1 , kproma

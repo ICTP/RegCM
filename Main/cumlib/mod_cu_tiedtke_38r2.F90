@@ -97,8 +97,8 @@ module mod_cu_tiedtke_38r2
     else
       rmfcfl = 5.0D0
     end if
-    njkt1 = 2
-    njkt2 = 2
+    njkt1 = klev
+    njkt2 = klev
     njkt3 = klev
     njkt4 = klev
     njkt5 = klev
