@@ -33,114 +33,276 @@ described by \cite{Grell_94}.
 
 \subsubsection{Horizontal Momentum Equations}
 
-\begin{eqnarray} \nonumber
-{\partial{p^{\ast}u} \over \partial{t}} = -m^2 \left( {\partial{p^{\ast}uu/m}
-\over \partial{x}} + {\partial{p^{\ast}vu/m} \over \partial{y}} \right) -
-{\partial{p^{\ast}u \dot{\sigma}} \over \partial{\sigma}}  \hspace{6cm} \\
-\nonumber \\ 
-- m p^{\ast} \left[ {RT_v \over ({p^{\ast} + p_t/\sigma)}} {\partial{p^{\ast}}
-  \over \partial{x}} + {\partial{\phi} \over \partial{x}} \right] + fp^{\ast}v +
-F_Hu + F_Vu, \hspace{3cm} \\\nonumber \\ \nonumber {\partial{p^{\ast}v} \over
-\partial{t}} = -m^2 \left( {\partial{p^{\ast}uv/m} \over \partial{x}} +
-{\partial{p^{\ast}vv/m} \over \partial{y}} \right) - {\partial{p^{\ast}v
-\dot{\sigma}} \over \partial{\sigma}}  \hspace{6cm} \\ \nonumber \\
-- m p^{\ast} \left[ {RT_v \over ({p^{\ast} + p_t/\sigma)}} {\partial{p^{\ast}}
-  \over \partial{y}} + {\partial{\phi} \over \partial{y}} \right] + fp^{\ast}u +
-F_Hv + F_Vv, \hspace{3cm} \\ \nonumber
-\end{eqnarray}
+\begin{gather}
+\label{hydro1}
+	\frac{\partial{p^{\ast}u}}{\partial{t}} =
+	-m^2 \left[ \frac{\partial{p^{\ast}uu/m}}{\partial{x}} + 
+		\frac{\partial{p^{\ast}vu/m}}{\partial{y}} \right] -
+		\frac{\partial{p^{\ast}u \dot{\sigma}}}{\partial{\sigma}}
+	    \\ \nonumber
+	    -mp^{\ast} \left[ \frac{\sigma}{\rho}
+			\frac{\partial{p^{\ast}}}{\partial{x}} +
+			\frac{\partial{\phi}}{\partial{x}} \right] +
+	p^{\ast}fv + F_Hu + F_Vu \\
+\label{hydro2}
+	\frac{\partial{p^{\ast}v}}{\partial{t}} = 
+	-m^2 \left[ \frac{\partial{p^{\ast}uv/m}}{\partial{x}} +
+		\frac{\partial{p^{\ast}vv/m}}{\partial{y}} \right] -
+		\frac{\partial{p^{\ast}v\dot{\sigma}}}{\partial{\sigma}}
+	   \\ \nonumber
+	   -mp^{\ast} \left[ \frac{\sigma}{\rho}
+	   		\frac{\partial{p^{\ast}}}{\partial{y}} +
+			\frac{\partial{\phi}}{\partial{y}} \right]
+	+ p^{\ast}fu + F_Hv + F_Vv
+\end{gather}
 
 where $u$ and $v$ are the eastward and northward components of
-velocity, $T_v$ is virtual temperature, $\phi$ is geopotential height, $f$ is
-the coriolis parameter, $R$ is the gas constant for dry air, $m$ is the map
-scale factor for either the Polar Stereographic, Lambert Conformal, or Mercator
-map projections, $\dot{\sigma} = {d\sigma \over dt}$, and $F_H$ and $F_V$
+velocity, $\phi$ is geopotential height, $f$ is the coriolis parameter,
+$m$ is the map scale factor for the chosen projection, and $F_H$ and $F_V$
 represent the effects of horizontal and vertical diffusion, and
-$p^{\ast}=p_s-p_t$.  \\
+$p^{\ast} = p_s-p_t$.  \\
+
+In the equation \ref{hydro1} - \ref{hydro2}, $\dot{\sigma}$ is the total
+derivative of the vertical coordinate $\sigma$ over time $t$:
+
+\begin{equation}
+\dot{\sigma} = {d\sigma \over dt}
+\end{equation}
+
+Moreover, given $T_v$ as the virtual temperature:
+
+\begin{equation}
+T_v = T \left( 1 + 0.608 Q_v \right)
+\end{equation}
+
+then
+
+\begin{equation}
+\frac{\sigma}{\rho} = \frac{RT_v}{(p^{\ast} + p_t/\sigma)}
+\end{equation}
+
+with $R$ the gas constant for dry air
 
 \subsubsection{Continuity and Sigmadot $({\bf \dot{\sigma}})$ Equations}
 
+The surface pressure is computed from the continuity equation:
+
 \begin{eqnarray} \label{eq:continuity}
-{{\partial{p^{\ast}} \over \partial{t}}}
-= -m^2 \left( {\partial{p^{\ast}u/m} \over \partial{x}} + {\partial{p^{\ast}v/m}
-\over \partial{y}} \right) - {\partial{p^{\ast}\dot{\sigma}} \over
-\partial{\sigma}}.
+\frac{\partial{p^{\ast}}}{\partial{t}} = 
+	-m^2 \left[ \frac{\partial{p^{\ast}u/m}}{\partial{x}} +
+		    \frac{\partial{p^{\ast}v/m}}{\partial{y}} \right] -
+	\frac{\partial{p^{\ast}\dot{\sigma}}}{\partial{\sigma}}
 \end{eqnarray}
 
 The vertical integral of Equation~\ref{eq:continuity} is used to
 compute the temporal variation of the surface pressure in the model,
 
 \begin{eqnarray}
-{{\partial{p^{\ast}} \over \partial{t}}} = -m^2 \int_{0}^{1}
-\left( {\partial{p^{\ast}u/m} \over \partial{x}} + {\partial{p^{\ast}v/m} \over
-\partial{y}} \right) d\sigma.
+\label{intform}
+	\frac{\partial{p^{\ast}}}{\partial{t}} = -m^2 \int_{0}^{1}
+	{\left[ \frac{\partial{p^{\ast}u/m}}{\partial{x}} + 
+		\frac{\partial{p^{\ast}v/m}}{\partial{y}} \right] d\sigma}
 \end{eqnarray}
 
-After calculation of the surface-pressure tendency
-${\partial{p^{\ast}} \over \partial{t}}$, the
-vertical velocity in sigma coordinates $(\dot{\sigma})$ is computed at each
-level in the model from the vertical integral of Equation~\ref{eq:continuity}.
+The surface pressure tendency from \ref{intform} is then used with the
+the vertical integral of \ref{eq:continuity} to compute the vertical
+velocity in sigma coordinates $(\dot{\sigma})$ at each
+level in the model:
 
 \begin{eqnarray}
-\dot{\sigma} = - {1 \over p^{\ast}} \int_{0}^{\sigma} \left[
-{\partial{p^{\ast}} \over \partial{t}} + m^2 \left( {\partial{p^{\ast}u/m} \over
-\partial{x}} + {\partial{p^{\ast}v/m} \over \partial{y}} \right) \right]
-d\sigma\prime
+	\dot{\sigma} = - \frac{1}{p^{\ast}} \int_{0}^{\sigma}{
+		\left[ \frac{\partial{p^{\ast}}}{\partial{t}} +
+		m^2 \left(\frac{\partial{p^{\ast}u/m}}{\partial{x}} +
+		                 \frac{\partial{p^{\ast}v/m}}{\partial{y}}
+	 \right) \right] d\sigma^\prime}
 \end{eqnarray}
 
-where $\sigma\prime$ is a dummy
-variable of integration and $\dot{\sigma}(\sigma=0)=0$.
+where $\sigma^\prime$ is a dummy variable of integration and
+$\dot{\sigma}(\sigma=0)=0$.
 
 \subsubsection{Thermodynamic Equation and Equation for Omega ${\bf (\omega)}$}
 
 The thermodynamic equation is
 
-\begin{eqnarray} \nonumber
-{{\partial{p^{\ast}T} \over \partial{t}}} = -m^2 \left( {\partial{p^{\ast}uT/m}
-\over \partial{x}} + {\partial{p^{\ast}vT/m} \over \partial{y}} \right) -
-{\partial{p^{\ast}T\dot{\sigma}} \over \partial{\sigma}} +  \\ \nonumber \\
-{RT_v\omega \over c_{pm}(\sigma + P_t/p_{ast})} + {p^{\ast}Q \over c_{pm}} +
-F_HT + F_VT
-\end{eqnarray}
-
-where $c_{pm}$ is the specific heat for
-moist air at constant pressure, $Q$ is the diabatic heating, $F_HT$ represents
-the effect of horizontal diffusion, $F_VT$ represents the effect of vertical
-mixing and dry convective adjustment, and $\omega$ is
-
 \begin{eqnarray}
-\omega = p^{\ast} \dot{\sigma} + \sigma {dp^{\ast} \over dt}
+\frac{\partial{p^{\ast}T}}{\partial{t}} = 
+-m^2 \left[ \frac{\partial{p^{\ast}uT/m}}{\partial{x}} +
+	    \frac{\partial{p^{\ast}vT/m}}{\partial{y}} \right] -
+	    \frac{\partial{p^{\ast}T\dot{\sigma}}}{\partial{\sigma}} +
+	    \nonumber \\
+	\frac{RT_v\omega}{c_{p}(\sigma + p_t/p_{\ast})} +
+	\frac{p^{\ast}Q}{c_{p}} + F_HT + F_VT
 \end{eqnarray}
 
-where,
+where, given $c_{pd}$ the heat capacity of dry air and $q_v$ the water vapor
+mixing ratio:
+
+\begin{equation}
+c_{p} = c_{pd} \left( 1 + 0.8q_v \right)
+\end{equation}
+
+$c_p$ is the specific heat for moist air at constant pressure, $Q$ is the
+diabatic heating, $F_HT$ represents the effect of horizontal diffusion,
+$F_VT$ represents the effect of vertical mixing and dry convective adjustment,
+and $\omega$ is
+
+\begin{equation}
+\omega = p^{\ast} \dot{\sigma} + \sigma \frac{dp^{\ast}}{dt}
+\end{equation}
+
+where:
   
 \begin{eqnarray}
-{dp^{\ast} \over dt} =
-{\partial{p^{\ast}} \over \partial{t}} + m \left( u {\partial{p^{\ast}} \over
-\partial{x}} + v {\partial{p^{\ast}} \over \partial{y}} \right)
+\frac{dp^{\ast}}{dt} =
+   \frac{\partial{p^{\ast}}}{\partial{t}} + m
+   \left[ u \frac{\partial{p^{\ast}}}{\partial{x}} +
+          v \frac{\partial{p^{\ast}}}{\partial{y}} \right]
 \end{eqnarray}
-
-The expression for $c_{pm} = c_p(1+0.8q_v)$, where $c_p$
-is the specific heat at constant pressure for dry air and $q_v$ is the mixing
-ratio of water vapor.
 
 \subsubsection{Hydrostatic Equation}
 
-\noindent The hydrostatic equation is
-used to compute the geopotential heights from the virtual temperature $T_v$,
+The hydrostatic equation is used to compute the geopotential heights from
+the virtual temperature $T_v$,
 
 \begin{eqnarray}
-{\partial{\phi} \over \partial l n (\sigma + p_t / p^{\ast})} =
--RT_v \left[ 1 + {q_c + q_r \over 1 + q_v} \right]^{-1}
+\frac{\partial{\phi}}{\partial{\ln(\sigma + p_t / p^{\ast})}} =
+-RT_v \left[ 1 + \frac{\sum{q_x}}{1 + q_v} \right]^{-1}
 \end{eqnarray}
 
-\noindent \\ where $T_v = T(1 + 0.608q_v)$, $q_v$, $q_c$, and $q_r$ are the
-water vapor, cloud water or ice, and rain water or snow, mixing ratios.  
+where $T_v = T(1 + 0.608q_v)$, $q_v$, is the water vapor mixing ratio, and
+$q_x$ are the mixing ratios of all condensed water species.
 
 \newpage
 
 \subsection{Non-hydrostatic dynamical core}
 The non-hydrostatic model dynamic equations and numerical discretization are
 described by \cite{Grell_94}.
+
+\subsubsection{Model Equations}
+
+Being $p^{\ast}$ constant in time, in the non-hydrostatic the continuity
+equation no longer applies, thus the $DIV$ term appear in the equations
+\ref{non-hydro-eq-first}-\ref{non-hydro-eq-last}:
+
+\begin{gather}
+\label{non-hydro-eq-first}
+\frac{\partial{p^{\ast} u}}{\partial{t}} = -m^2 \left[ 
+	\frac{\partial{p^{\ast} uu/m}}{\partial{x}} + 
+\frac{\partial{p^{\ast} vu/m}}{\partial{y}}\right] -
+	\frac{\partial{p^{\ast} u \dot{\sigma}}}{\partial{\sigma}} + 
+	uDIV \\ \nonumber
+	-\frac{mp^{\ast}}{\rho} \left[
+		\frac{\partial{p^\prime}}{\partial{x}} -
+		\frac{\sigma}{p^{\ast}}
+		\frac{\partial{p^{\ast}}}{\partial{x}}
+	        \frac{\partial{p^\prime}}{\partial{\sigma}}\right] +
+	p^{\ast}fv - p^{\ast} ew \cos\theta + D_u  \\
+\frac{\partial{p^{\ast} v}}{\partial{t}}= -m^2 \left[ 
+	\frac{\partial{p^{\ast} uv/m}}{\partial{x}} + 
+	\frac{\partial{p^{\ast} vv/m}}{\partial{y}}\right] -
+	\frac{\partial{p^{\ast} v \dot{\sigma}}}{\partial{\sigma}}+ 
+	vDIV \\ \nonumber
+	-\frac{mp^{\ast}}{\rho} \left[
+		\frac{\partial{p^\prime}}{\partial{y}} -
+		\frac{\sigma}{p^{\ast}}
+		\frac{\partial{p^{\ast}}}{\partial{y}}
+		\frac{\partial{p^\prime}}{\partial{\sigma}} \right] -
+	p^{\ast}fu + p^{\ast} ew \sin\theta + D_v \\
+\frac{\partial{p^{\ast} w}}{\partial{t}} = -m^2 \left[ 
+	\frac{\partial{p^{\ast} uw/m}}{\partial{x}} + 
+	\frac{\partial{p^{\ast} vw/m}}{\partial{y}}\right] -
+	\frac{\partial{p^{\ast} w \dot{\sigma}}}{\partial{\sigma}} + 
+	wDIV \\ \nonumber
+	+ p^{\ast}g\frac{\rho_0}\rho{}\left[
+		\frac{1}{p^{\ast}}
+		\frac{\partial{p^\prime}}{\partial{\sigma}} +
+		\frac{T^{\prime}_{v}}{T} -
+		\frac{T_0 p^\prime}{Tp_0} \right]
+	-p^{\ast} g \left[\left(q_c+q_r\right)\right] \\ \nonumber
+	+ p^{\ast} e \left( u\cos\theta - v\sin\theta \right) + D_w \\
+\frac{\partial{p^{\ast} p^\prime}}{\partial{t}} = -m^2 \left[ 
+	\frac{\partial{p^{\ast} up^\prime/m}}{\partial{x}} + 
+	\frac{\partial{p^{\ast} vp^\prime/m}}{\partial{y}}\right] -
+	\frac{\partial{p^{\ast} p^\prime \dot{\sigma}}}{\partial{\sigma}} + 
+	p^{\prime}DIV \\ \nonumber
+	- m^2 p^{\ast} \gamma p \left[
+		\frac{\partial{u/m}}{\partial{x}} -
+		\frac{\sigma}{mp^{\ast}}
+		\frac{\partial{p^{\ast}}}{\partial{x}}
+		\frac{\partial{u}}{\partial{\sigma}} + 
+		\frac{\partial{v/m}}{\partial{y}} -
+		\frac{\sigma}{mp^{\ast}}
+		\frac{\partial{p^{\ast}}}{\partial{y}}
+		\frac{\partial{v}}{\partial{\sigma}} \right] \\ \nonumber
+	+ \rho_0 g \gamma p \frac{\partial{w}}{\partial{\sigma}} +
+	p^{\ast} \rho_0 gw \\
+\label{non-hydro-eq-last}
+\frac{\partial{p^{\ast} T}}{\partial{t}} = -m^2 \left[
+	\frac{\partial{p^{\ast} uT/m}}{\partial{x}} +
+	\frac{\partial{p^{\ast} vT/m}}{\partial{y}} \right] -
+	\frac{\partial{p^{\ast} T \dot{\sigma}}}{\partial{\sigma}} +
+	TDIV \\ \nonumber
+	+\frac{1}{\rho c_p}\left[p^{\ast}\frac{Dp^{\prime}}{Dt} -
+	\rho_0gp^{\ast}w -D_{p^\prime}\right] +
+	p^{\ast}\frac{\dot{Q}}{c_p} +D_T
+\end{gather}
+
+where:
+
+\begin{eqnarray}
+	DIV = m^2 \left[ \frac{\partial{p^{\ast}u/m}}{\partial{x}} +
+		\frac{\partial{p^{\ast} v/m}}{\partial{y}} \right] +
+		\frac{\partial{p^{\ast} \dot{\sigma}}}{\partial{\sigma}} \\
+  \dot{\sigma} = - \frac{\rho_0g}{p^{\ast}}w -
+                   \frac{m\sigma}{p^{\ast}}
+		   \frac{\partial{p^{\ast}}}{\partial{x}}u -
+		   \frac{m\sigma}{p^{\ast}}
+		   \frac{\partial{p^{\ast}}}{\partial{y}} v \\
+   \tan \theta = - \cos \phi \frac{\partial{\lambda}/ \partial{y}}
+				  {\partial{\phi}/ \partial{x}} \\ \nonumber
+				 \phi = latitude \\ \nonumber
+				 \lambda = longitude \\
+   \gamma = c_p / c_v
+\end{eqnarray}
+
+\subsubsection{Sound Waves}
+
+For the non-hydrostatic equations, the acoustic wave terms are separated
+from the slow varying terms and handled with a shorter time steps. The reduced
+equations contain only interactions between momentum and pressure:
+
+\begin{gather}
+\frac{\partial{u}}{\partial{t}} + \frac{m}{\rho} \left[
+		\frac{\partial{p^\prime}}{\partial{x}} -
+		\frac{\sigma}{p^{\ast}}
+		\frac{\partial{p^\ast}}{\partial{x}}
+		\frac{\partial{p^\prime}}{\partial{\sigma}} \right] = S_u \\
+\frac{\partial{v}}{\partial{t}} + \frac{m}{\rho} \left[
+		\frac{\partial{p^\prime}}{\partial{y}} -
+		\frac{\sigma}{p^{\ast}}
+		\frac{\partial{p^\ast}}{\partial{y}}
+		\frac{\partial{p^\prime}}{\partial{\sigma}} \right] = S_v \\
+\frac{\partial{w}}{\partial{t}} - \frac{\rho_0}{\rho} 
+	\frac{g}{p^\ast}\frac{\partial{p^\prime}}{\partial{\sigma}} +
+	\frac{g}{\gamma} \frac{p^\prime}{p} = S_w \\
+\frac{\partial{p^\prime}}{\partial{t}} + m^2 \gamma p \left[
+	  \frac{\partial{u/m}}{\partial{x}} -
+	  \frac{\sigma}{mp^\ast}
+	  \frac{\partial{p^\ast}}{\partial{x}}
+	  \frac{\partial{u}}{\partial{\sigma}} +
+	  \frac{\partial{v/m}}{\partial{y}} -
+	  \frac{\sigma}{mp^\ast}
+	  \frac{\partial{p^\ast}}{\partial{y}}
+	  \frac{\partial{v}}{\partial{\sigma}} \right] -
+	  \frac{\rho_0 g \gamma p}{p^\ast}
+	  \frac{\partial{w}}{\partial{\sigma}} - \rho_0 gw = S_{p^\prime}
+\end{gather}
+
+with $\gamma$ the ratio of the specific heats at constant pressure and volume.
+During the small time-steps, the $S_x$ terms are kept constant (they contain
+advection, diffusion, buoyancy and coriolis tendencies), and following the
+semi-implicit scheme in \cite{Klemp_1978} we solve the above by recursion.
+The step only depends on the horizontal grid size.
 
 \section{Physics parametrizations} \label{sec:physics}
 
@@ -560,7 +722,6 @@ each time step, including equations~\ref{uwheight} and \ref{tkeeqn}, follows:
 \frac{\partial \chi_j}{\partial t}\Bigr\rvert_{BL} &= \frac{\partial}{\partial z}[\kappa z S_h(z) \sqrt{2 e(z)} \frac{\partial \chi_j}{\partial z}]\label{uwmodeld} 
 \end{align}
 \end{subequations}
-
 
 \subsection{Convective Precipitation Schemes}
 
