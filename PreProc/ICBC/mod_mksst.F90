@@ -60,7 +60,7 @@ module mod_mksst
     integer(ik4) :: i , j , irec
     integer(ik4) :: iyy , im , id , ih
     type(rcm_time_interval) :: ks1 , ks2
-    real(rk8) :: wt
+    real(rk8) :: wt , a , b
 
     call split_idate(idate,iyy,im,id,ih)
 
@@ -163,7 +163,8 @@ module mod_mksst
                 tsccm(j,i) = 271.0
               else
                 ! Find nearest water points
-                tsccm(j,i) = nearn(j,i,work1)
+                a = nearn(j,i,work1)
+                if ( a > -900.0 ) tsccm(j,i) = a
               end if
             end if
           end if
@@ -207,8 +208,10 @@ module mod_mksst
               else if ( xlat(j,i) < -55.0 .and. ( im > 5 .and. im < 9 ) ) then
                 tsccm(j,i) = 271.0
               else
+                a = nearn(j,i,work1)
+                b = nearn(j,i,work2)
                 ! Find nearest water points
-                tsccm(j,i) = nearn(j,i,work1)*wt + (1.0-wt)*nearn(j,i,work2)
+                if ( a > -900 .and. b > -900) tsccm(j,i) = a*wt + (1.0-wt)*b
               end if
             end if
           end if
@@ -223,6 +226,10 @@ module mod_mksst
     real(rk8) , dimension(:,:) , intent(in) :: sst
     real(rk8) :: wt , wtsum , distsig
     integer(ik4) :: i , j , nr , np
+    if ( all(sst < -900) ) then
+      nearn = -999.0
+      return
+    end if
     nr = 1
     np = -1
     nearn = 0.0D0
