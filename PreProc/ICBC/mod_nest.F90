@@ -32,7 +32,6 @@ module mod_nest
   use mod_nhinterp
   use mod_hgt
   use mod_humid
-  use mod_mksst
   use mod_uvrot
   use mod_vectutil
   use mod_message
@@ -57,6 +56,7 @@ module mod_nest
   real(rk8) , pointer , dimension(:,:,:) :: q , t
   real(rk8) , pointer , dimension(:,:,:) :: u , v
   real(rk8) , pointer , dimension(:,:,:) :: pp3d , p3d , t0_in
+  real(rk8) , pointer , dimension(:,:,:) :: ts_in , ts
   real(rk8) , pointer , dimension(:,:) :: ps , p0_in , pstar0
   real(rk8) , pointer , dimension(:,:) :: ht_in
   real(rk8) , pointer , dimension(:,:) :: xlat_in , xlon_in
@@ -251,6 +251,10 @@ module mod_nest
     call checkncerr(istatus,__FILE__,__LINE__,'variable ps missing')
     istatus = nf90_get_var(ncinp, ivarid, ps, istart(1:3), icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__,'variable ps read error')
+    istatus = nf90_inq_varid(ncinp, 'ts', ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__,'variable ts missing')
+    istatus = nf90_get_var(ncinp, ivarid, ts_in, istart(1:3), icount(1:3))
+    call checkncerr(istatus,__FILE__,__LINE__,'variable ts read error')
 
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
     !
@@ -282,6 +286,7 @@ module mod_nest
     !
     call cressmcr(b3,b2,xlon,xlat,xlon_in,xlat_in,jx,iy,jx_in,iy_in,np,3)
     call cressmdt(d3,d2,dlon,dlat,xlon_in,xlat_in,jx,iy,jx_in,iy_in,np,2)
+    call cressmcr(ts,ts_in,xlon,xlat,xlon_in,xlat_in,jx,iy,jx_in,iy_in,1,1)
     !
     ! Rotate U-V fields after horizontal interpolation
     !
@@ -305,7 +310,12 @@ module mod_nest
     ! Interpolation from pressure levels
     !
     call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,np)
-    call readsst(ts4,idate)
+    !
+    ! Overwrite SST using TS from ATM file.
+    !
+    where ( mask == 0 )
+      ts4 = ts(:,:,1)
+    end where
     !
     ! Interpolate U, V, T, and Q.
     !
@@ -383,6 +393,7 @@ module mod_nest
     call getmem3d(v,1,jx_in,1,iy_in,1,kz_in,'mod_nest:v')
     call getmem3d(z1,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z1')
     call getmem2d(ps,1,jx_in,1,iy_in,'mod_nest:ps')
+    call getmem3d(ts_in,1,jx_in,1,iy_in,1,1,'mod_nest:ts_in')
     call getmem2d(xlat_in,1,jx_in,1,iy_in,'mod_nest:xlat_in')
     call getmem2d(xlon_in,1,jx_in,1,iy_in,'mod_nest:xlon_in')
     call getmem2d(ht_in,1,jx_in,1,iy_in,'mod_nest:ht_in')
@@ -512,6 +523,7 @@ module mod_nest
     call getmem3d(d2,1,jx_in,1,iy_in,1,np*2,'mod_nest:d2')
     call getmem3d(b3,1,iy,1,jx,1,np*3,'mod_nest:b3')
     call getmem3d(d3,1,iy,1,jx,1,np*2,'mod_nest:d3')
+    call getmem3d(ts,1,iy,1,jx,1,1,'mod_nest:ts')
     tp => b2(:,:,1:np)
     qp => b2(:,:,np+1:2*np)
     hp => b2(:,:,2*np+1:3*np)
