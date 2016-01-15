@@ -471,6 +471,7 @@ module mod_nest
     call getmem1d(sigmar,1,np,'mod_nest:sigmar')
 
     call getmem2d(p0_in,1,jx_in,1,iy_in,'mod_nest:p0_in')
+    call getmem2d(pstar0,1,jx_in,1,iy_in,'mod_nest:pstar0')
 
     if ( oidyn == 2 ) then
       istatus = nf90_get_att(ncinp, nf90_global, 'logp_lapse_rate', tlp)
@@ -479,7 +480,6 @@ module mod_nest
       call getmem3d(pp3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pp3d')
       call getmem3d(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
       call getmem3d(t0_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t0_in')
-      call getmem2d(pstar0,1,jx_in,1,iy_in,'mod_nest:pstar0')
       istatus = nf90_inq_varid(ncinp, 'p0', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__,'variable p0 error')
       istatus = nf90_get_var(ncinp, ivarid, p0_in)
