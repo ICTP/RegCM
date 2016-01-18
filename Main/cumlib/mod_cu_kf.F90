@@ -847,7 +847,7 @@ module mod_cu_kf
               if ( dilbe > d_zero ) then
                 abe = abe - dilbe*egrav
               end if
-              let=nk
+              let = nk
               exit updraft
             else
               ee1 = ee2
@@ -889,7 +889,7 @@ module mod_cu_kf
           ! velocity first becomes negative.
           !
           ltop = nk
-          cldhgt(lc) = z0(np,ltop) - zlcL
+          cldhgt(lc) = z0(np,ltop) - zlcl
           !
           ! Instead of using the same minimum cloud height (for deep convection)
           ! everywhere, try specifying minimum cloud depth as a function of tlcl
@@ -903,7 +903,7 @@ module mod_cu_kf
           else if ( tlcl < 273.0D0 ) then
             chmin = 2.0D3
           end if
-          do nk = k,ltop
+          do nk = k , ltop
             qc_kf(np,nk) = qliq(nk)
             qi_kf(np,nk) = qice(nk)
           end do
