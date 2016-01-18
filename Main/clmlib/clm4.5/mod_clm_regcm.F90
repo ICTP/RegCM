@@ -289,7 +289,7 @@ module mod_clm_regcm
       !
       ! interface with atmospheric chemistry
       ! CO2 partial pressure (Pa)
-      clm_a2l%forc_pco2 = co2_ppmv*1.D-6*clm_a2l%forc_psrf
+      clm_a2l%forc_pco2 = cgas(igh_co2,xyear)*1.D-6*clm_a2l%forc_psrf
       if ( use_c13 ) then
        ! C13O2 partial pressure (Pa)
        clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
