@@ -110,10 +110,10 @@ module mod_humid
     do k = 1 , km
       do j = 1 , jm
         do i = 1 , im
-          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-          ! PS in output file is ps + ptop and bot are hPa !
-          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-          p = (dble(sigma(k))*dble(ps(i,j)) + ptop) * d_100
+          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          ! PS in output file is ps + ptop
+          !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          p = dble(sigma(k))*(dble(ps(i,j)) - ptop*d_100) + ptop * d_100
           qs = real(pfqsat(dble(t(i,j,k)),p))
           q(i,j,k) = max(q(i,j,k)/qs,0.0)
         end do
