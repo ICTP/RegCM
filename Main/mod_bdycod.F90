@@ -1542,7 +1542,7 @@ module mod_bdycod
               tkeint = atm1%tke(jci1,i,k+1)/sfs%psa(jci1,i)
               windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
               if ( windavg >= d_zero ) then
-                atm1%tke(jce1,i,k+1) = tkemin*sfs%psa(jce1,i)
+                atm1%tke(jce1,i,k+1) = d_half*(tkemin+tkeint)*sfs%psa(jce1,i)
               else
                 atm1%tke(jce1,i,k+1) = tkeint*sfs%psa(jce1,i)
               end if
@@ -1558,7 +1558,7 @@ module mod_bdycod
               tkeint = atm1%tke(jci2,i,k+1)/sfs%psa(jci2,i)
               windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
               if ( windavg <= d_zero ) then
-                atm1%tke(jce2,i,k+1) = tkemin*sfs%psa(jce2,i)
+                atm1%tke(jce2,i,k+1) = d_half*(tkemin+tkeint)*sfs%psa(jce2,i)
               else
                 atm1%tke(jce2,i,k+1) = tkeint*sfs%psa(jce2,i)
               end if
@@ -1574,7 +1574,7 @@ module mod_bdycod
               tkeint = atm1%tke(j,ici1,k+1)/sfs%psa(j,ici1)
               windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
               if ( windavg >= d_zero ) then
-                atm1%tke(j,ice1,k+1) = tkemin*sfs%psa(j,ice1)
+                atm1%tke(j,ice1,k+1) = d_half*(tkemin+tkeint)*sfs%psa(j,ice1)
               else
                 atm1%tke(j,ice1,k+1) = tkeint*sfs%psa(j,ice1)
               end if
@@ -1590,7 +1590,7 @@ module mod_bdycod
               tkeint = atm1%tke(j,ici2,k+1)/sfs%psa(j,ici2)
               windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
               if ( windavg < d_zero ) then
-                atm1%tke(j,ice2,k+1) = tkemin*sfs%psa(j,ice2)
+                atm1%tke(j,ice2,k+1) = d_half*(tkemin+tkeint)*sfs%psa(j,ice2)
               else
                 atm1%tke(j,ice2,k+1) = tkeint*sfs%psa(j,ice2)
               end if
