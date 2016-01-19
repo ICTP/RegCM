@@ -24,7 +24,7 @@
 # Destination directory
 #DEST=$PWD
 
-netcdf_c_ver=4.3.3.1
+netcdf_c_ver=4.4.0
 netcdf_f_ver=4.4.2
 hdf5_ver=1.8.16
 zlib_ver=1.2.8
