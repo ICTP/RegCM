@@ -123,6 +123,7 @@ module mod_init
       call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
       call psc2psd(sfs%psa,sfs%psdota)
       call psc2psd(sfs%psb,sfs%psdotb)
+      call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
       do i = ici1 , ici2
         do j = jci1 , jci2
           sfs%tga(j,i) = ts0(j,i)
@@ -308,6 +309,7 @@ module mod_init
       call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
       call psc2psd(sfs%psa,sfs%psdota)
       call psc2psd(sfs%psb,sfs%psdotb)
+      call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
 
       if ( ipptls > 0 ) then
         call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici2,1,kz)

@@ -536,13 +536,14 @@ module mod_atm_interface
         call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
                       1,kzp1,'atmstate:tke')
       end if
-      call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
       if ( idynamic == 2 ) then
+        call getmem3d(atm%pr,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:pr')
         call getmem3d(atm%rho,jce1-jl,jce2+jr, &
                               ice1-ib,ice2+it,1,kz,'atmstate:rho')
         call getmem3d(atm%pp,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:pp')
         call getmem3d(atm%w,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kzp1,'atmstate:w')
       else
+        call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
         call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       end if
     end subroutine allocate_atmstate_a
@@ -856,7 +857,8 @@ module mod_atm_interface
       call getmem2d(sfs%psb,jce1-ma%jbl1,jce2+ma%jbr1, &
                             ice1-ma%ibb1,ice2+ma%ibt1,'surf:psb')
       call getmem2d(sfs%psc,jce1,jce2,ice1,ice2,'surf:psc')
-      call getmem2d(sfs%psdota,jde1,jde2,ide1,ide2,'surf:psdota')
+      call getmem2d(sfs%psdota,jde1-ma%jbl1,jde2+ma%jbr1, &
+                               ide1-ma%ibb1,ide2+ma%ibt1,'surf:psdota')
       call getmem2d(sfs%psdotb,jde1,jde2,ide1,ide2,'surf:psdotb')
       call getmem2d(sfs%tga,jci1,jci2,ici1,ici2,'surf:tga')
       call getmem2d(sfs%tgb,jci1,jci2,ici1,ici2,'surf:tgb')

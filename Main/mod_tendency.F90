@@ -70,6 +70,10 @@ module mod_tendency
 
   real(rk8) :: rptn ! Total number of internal points
 
+  integer(ik4) :: ice1g , ice2g , jce1g , jce2g
+  integer(ik4) :: ide1g , ide2g , jde1g , jde2g
+  integer(ik4) :: idi1g , idi2g , jdi1g , jdi2g
+
   contains
 
   subroutine allocate_mod_tend
@@ -89,9 +93,11 @@ module mod_tendency
     call assignpnt(atmx%qx,qvd,iqv)
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem2d(dummy,jde1,jde2,ide1,ide2,'tendency:dummy')
-    call getmem2d(rpsa,jce1,jce2,ice1,ice2,'tendency:rpsa')
+    call getmem2d(rpsa,jce1-ma%jbl1,jce2+ma%jbr1, &
+                       ice1-ma%ibb1,ice2+ma%ibt1,'tendency:rpsa')
     call getmem2d(rpsb,jce1,jce2,ice1,ice2,'tendency:rpsb')
-    call getmem2d(rpsda,jde1,jde2,ide1,ide2,'tendency:rpsda')
+    call getmem2d(rpsda,jde1-ma%jbl1,jde2+ma%jbr1, &
+                        ide1-ma%ibb1,ide2+ma%ibt1,'tendency:rpsda')
     if ( idynamic == 1 ) then
       ithadv = 0
       call getmem3d(ttld,jce1,jce2,ice1,ice2,1,kz,'tend:ttld')
@@ -135,6 +141,18 @@ module mod_tendency
         iqxvadv = 4
       end if
     end if
+    idi1g = idi1 - ma%ibb1
+    idi2g = idi2 + ma%ibt1
+    jdi1g = jdi1 - ma%jbl1
+    jdi2g = jdi2 + ma%jbr1
+    ide1g = ide1 - ma%ibb1
+    ide2g = ide2 + ma%ibt1
+    jde1g = jde1 - ma%jbl1
+    jde2g = jde2 + ma%jbr1
+    ice1g = ice1 - ma%ibb1
+    ice2g = ice2 + ma%ibt1
+    jce1g = jce1 - ma%jbl1
+    jce2g = jce2 + ma%jbr1
   end subroutine allocate_mod_tend
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -172,41 +190,6 @@ module mod_tendency
     !
     call decouple
     !
-    call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atm1%t,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(atm1%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    if ( ibltyp == 2 ) then
-      call exchange(atm1%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
-    end if
-
-    if ( idynamic == 1 ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
-            atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atmx%tv(j,i,k))
-          end do
-        end do
-      end do
-    else
-      !
-      ! Constant reference state and perturbations are defined
-      ! for the nonhydrostatic model.
-      !
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atm1%pr(j,i,k) = atm0%pr(j,i,k) + atmx%pp(j,i,k)
-            atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atmx%tv(j,i,k))
-          end do
-        end do
-      end do
-      call exchange(atm1%rho,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atm1%pp,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kzp1)
-    end if
-
     call exchange(atm2%u,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm2%v,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm2%t,1,jce1,jce2,ice1,ice2,1,kz)
@@ -239,24 +222,9 @@ module mod_tendency
       call exchange(atm2%w,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
-    call exchange(atmx%uc,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%vc,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%umc,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%vmc,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%ud,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%vd,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%umd,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%vmd,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%t,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(atmx%tv,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(atmx%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     if ( ichem == 1 ) then
       call exchange(chi,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call exchange(chib,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-    end if
-    if ( idynamic == 2 ) then
-      call exchange(atmx%pp,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atmx%w,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
     if ( ipptls == 2 ) then
       qcd(:,:,:) = atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqc) + &
@@ -1999,8 +1967,8 @@ module mod_tendency
       if ( idynamic == 1 ) then
         call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
         call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ice1g , ice2g
+          do j = jce1g , jce2g
             rpsa(j,i) = d_one/sfs%psa(j,i)
           end do
         end do
@@ -2011,10 +1979,11 @@ module mod_tendency
         end do
         call psc2psd(sfs%psa,sfs%psdota)
         call psc2psd(sfs%psb,sfs%psdotb)
+        call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
       else
         if ( .not. linit ) then
-          do i = ice1 , ice2
-            do j = jce1 , jce2
+          do i = ice1g , ice2g
+            do j = jce1g , jce2g
               rpsa(j,i) = d_one/sfs%psa(j,i)
             end do
           end do
@@ -2023,8 +1992,8 @@ module mod_tendency
               rpsb(j,i) = d_one/sfs%psb(j,i)
             end do
           end do
-          do i = ide1 , ide2
-            do j = jde1 , jde2
+          do i = ide1g , ide2g
+            do j = jde1g , jde2g
               rpsda(j,i) = d_one/sfs%psdota(j,i)
             end do
           end do
@@ -2040,18 +2009,28 @@ module mod_tendency
       ! Helper
       !
       if ( idynamic == 1 ) then
-        do i = ide1 , ide2
-          do j = jde1 , jde2
+        do i = ide1g , ide2g
+          do j = jde1g , jde2g
             rpsda(j,i) = d_one/sfs%psdota(j,i)
           end do
         end do
       end if
       !
+      ! Exchange ghost points
+      !
+      call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm1%t,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm1%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+      if ( ibltyp == 2 ) then
+        call exchange(atm1%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
+      end if
+      !
       ! Coupled helper
       !
       do k = 1 , kz
-        do i = ide1 , ide2
-          do j = jde1 , jde2
+        do i = ide1g , ide2g
+          do j = jde1g , jde2g
             atmx%uc(j,i,k) = atm1%u(j,i,k)
             atmx%vc(j,i,k) = atm1%v(j,i,k)
           end do
@@ -2061,8 +2040,8 @@ module mod_tendency
       ! multiply ua and va by inverse of mapscale factor at dot point
       !
       do k = 1 , kz
-        do i = ide1 , ide2
-          do j = jde1 , jde2
+        do i = ide1g , ide2g
+          do j = jde1g , jde2g
             atmx%umc(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
             atmx%vmc(j,i,k) = atm1%v(j,i,k)*mddom%msfd(j,i)
           end do
@@ -2070,11 +2049,11 @@ module mod_tendency
       end do
       !
       ! Decoupled part with boundary conditions
-      ! Internal points
+      ! Internal points , with ghost points
       !
       do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
+        do i = idi1g , idi2g
+          do j = jdi1g , jdi2g
             atmx%ud(j,i,k) = atm1%u(j,i,k)*rpsda(j,i)
             atmx%vd(j,i,k) = atm1%v(j,i,k)*rpsda(j,i)
           end do
@@ -2185,8 +2164,8 @@ module mod_tendency
       end if
       !
       do k = 1 , kz
-        do i = ide1 , ide2
-          do j = jde1 , jde2
+        do i = ide1g , ide2g
+          do j = jde1g , jde2g
             atmx%umd(j,i,k) = atmx%ud(j,i,k)*mddom%msfd(j,i)
             atmx%vmd(j,i,k) = atmx%vd(j,i,k)*mddom%msfd(j,i)
           end do
@@ -2196,32 +2175,32 @@ module mod_tendency
       ! T , QV , QC
       !
       do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ice1g , ice2g
+          do j = jce1g , jce2g
             atmx%t(j,i,k) = atm1%t(j,i,k)*rpsa(j,i)
           end do
         end do
       end do
       do n = 1 , nqx
         do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
+          do i = ice1g , ice2g
+            do j = jce1g , jce2g
               atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)*rpsa(j,i)
             end do
           end do
         end do
       end do
       do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ice1g , ice2g
+          do j = jce1g , jce2g
             atmx%tv(j,i,k) = atmx%t(j,i,k) * (d_one + ep1*atmx%qx(j,i,k,iqv))
           end do
         end do
       end do
       if ( ibltyp == 2 ) then
         do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ice1g , ice2g
+            do j = jce1g , jce2g
               atmx%tke(j,i,k) = atm1%tke(j,i,k) ! Here is already decoupled.
             end do
           end do
@@ -2241,18 +2220,42 @@ module mod_tendency
           end do
         end do
       end if
-      if ( idynamic == 2 ) then
+
+      if ( idynamic == 1 ) then
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
+              atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
+              atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atmx%tv(j,i,k))
+            end do
+          end do
+        end do
+      else
+        !
+        ! Constant reference state and perturbations are defined
+        ! for the nonhydrostatic model.
+        !
+        call exchange(atm1%pp,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kzp1)
+        do k = 1 , kz
+          do i = ice1g , ice2g
+            do j = jce1g , jce2g
               atmx%pp(j,i,k) = atm1%pp(j,i,k)*rpsa(j,i)
             end do
           end do
         end do
         do k = 1 , kzp1
-          do i = ice1 , ice2
-            do j = jce1 , jce2
+          do i = ice1g , ice2g
+            do j = jce1g , jce2g
               atmx%w(j,i,k) = atm1%w(j,i,k)*rpsa(j,i)
+            end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1g , ice2g
+            do j = jce1g , jce2g
+              atm1%pr(j,i,k) = atm0%pr(j,i,k) + atmx%pp(j,i,k)
+              atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atmx%tv(j,i,k))
             end do
           end do
         end do
