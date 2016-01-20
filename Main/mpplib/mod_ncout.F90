@@ -2449,6 +2449,8 @@ module mod_ncout
                   ncattribute_real8('background_diffusion_coefficient',ckh))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('upper_radiative_bc',ifupr))
+          call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_integer('diffusion_hgt_factor',diffu_hgtf))
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('lateral_boundary_condition_scheme',iboudy))

@@ -105,7 +105,7 @@ module mod_params
       icldfrac , irrtm , iclimao3 , isolconst , icumcloud , islab_ocean , &
       itweak , temp_tend_maxval , wind_tend_maxval
 
-    namelist /nonhydroparam/ ifupr , logp_lrate , ckh
+    namelist /nonhydroparam/ ifupr , logp_lrate , ckh , diffu_hgtf
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -252,6 +252,7 @@ module mod_params
     ! Non hydrostatic param ;
     !
     ifupr = 1
+    diffu_hgtf = 1
     ckh = 1.0D0
     logp_lrate = 50.0D0
     !
@@ -874,6 +875,7 @@ module mod_params
     if ( idynamic == 2 ) then
       call bcast(ifupr)
       call bcast(ckh)
+      call bcast(diffu_hgtf)
       call bcast(logp_lrate)
     end if
 

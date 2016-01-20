@@ -292,10 +292,11 @@
 ! Non-hydrostatic core option
 !
  &nonhydroparam
- logp_lrate = 50.0D0,    ! Logp lapse rate d(T)/d(ln P) K/ln(Pa)
- ifupr = 0,              ! Upper radiative boundary condition (Klemp and Durran,
-                         ! Bougeault, 1983)
- ckh = 1.0D0,            ! Background diffusion multiplication factor
+ logp_lrate = 50.0D0, ! Logp lapse rate d(T)/d(ln P) K/ln(Pa)
+ ifupr = 0,           ! Upper radiative boundary condition (Klemp and Durran,
+                      ! Bougeault, 1983)
+ ckh = 1.0D0,         ! Background diffusion multiplication factor
+ diffu_hgtf = 1,      ! Add topographic effect to diffusion
  /
 !
 ! Moisture scheme comtrol (ipptls = 1)

@@ -141,6 +141,7 @@ module mod_runparams
   real(rk8) , public :: dtsrf , dtabem , dtrad , dtcum , dtche
   real(rk8) , public :: cpldt , zomax , ustarmax
   real(rk8) , public :: ckh , xkhmax , xkhz
+  integer(ik4) , public :: diffu_hgtf
 
   integer(ik4) , public :: iboudy , ichem , ipgf , ipptls
   ! usefull flags for chemistry
