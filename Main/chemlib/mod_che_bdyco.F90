@@ -83,20 +83,16 @@ module mod_che_bdyco
     call getmem1d(ichbdy2trac,1,max_input_tracers,'che_bdyco:ichbdytrac')
     call getmem4d(chebdy,jce1,jce2,ice1,ice2,1,kz, &
                   1,max_input_tracers,'che_bdyco:chebdy')
-    call getmem4d(chib0,jde1-ma%jbl1,jde2+ma%jbr1, &
-                        ide1-ma%ibb1,ide2+ma%ibt1, &
+    call getmem4d(chib0,jde1ga,jde2ga,ide1ga,ide2ga, &
                         1,kz,1,ntr,'mod_che_bdyco:chib0')
-    call getmem4d(chib1,jde1-ma%jbl1,jde2+ma%jbr1, &
-                        ide1-ma%ibb1,ide2+ma%ibt1, &
+    call getmem4d(chib1,jde1ga,jde2ga,ide1ga,ide2ga, &
                         1,kz,1,ntr,'mod_che_bdyco:chib1')
-    call getmem4d(chibt,jde1-ma%jbl1,jde2+ma%jbr1, &
-                        ide1-ma%ibb1,ide2+ma%ibt1, &
+    call getmem4d(chibt,jde1ga,jde2ga,ide1ga,ide2ga, &
                         1,kz,1,ntr,'mod_che_bdyco:chibt')
     call getmem2d(cefc,1,nspgx,1,kz,'che_bdyco:fcx')
     call getmem2d(cegc,1,nspgx,1,kz,'che_bdyco:fcx')
     if ( ioxclim == 1 ) then
-      call getmem4d(oxcl,jde1-ma%jbl1,jde2+ma%jbr1, &
-                         ide1-ma%ibb1,ide2+ma%ibt1, &
+      call getmem4d(oxcl,jde1ga,jde2ga,ide1ga,ide2ga, &
                          1,kz,1,noxcl,'che_bdyco:oxcl')
     end if
   end subroutine allocate_mod_che_bdyco

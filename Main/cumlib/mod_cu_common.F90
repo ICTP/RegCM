@@ -74,14 +74,8 @@ module mod_cu_common
     integer(ik4) , dimension(:) , allocatable:: iseed
     integer :: k , nseed
     real(rk4) :: cputime
-    integer(ik4) :: ib , it , jr , jl
 
     rdt = d_one / dt
-
-    ib = ma%ibb1
-    it = ma%ibt1
-    jl = ma%jbl1
-    jr = ma%jbr1
 
     call getmem3d(cu_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:tten')
     call getmem3d(avg_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_tten')
@@ -91,8 +85,8 @@ module mod_cu_common
       call getmem3d(avg_uten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_uten')
       call getmem3d(avg_vten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_vten')
     end if
-    call getmem3d(cu_utenx,jci1-jl,jci2+jr,ici1-ib,ici2+it,1,kz,'cumulus:utenx')
-    call getmem3d(cu_vtenx,jci1-jl,jci2+jr,ici1-ib,ici2+it,1,kz,'cumulus:vtenx')
+    call getmem3d(cu_utenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:utenx')
+    call getmem3d(cu_vtenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:vtenx')
     call getmem4d(cu_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:qten')
     call getmem4d(avg_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:avg_qten')
     call getmem3d(cu_cldfrc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldfrc')

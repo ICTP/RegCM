@@ -35,6 +35,11 @@ module mod_mppparam
 
   private
 
+  integer(ik4) , public :: ic11g , ic12g , jc11g , jc12g
+  integer(ik4) , public :: ice1g , ice2g , jce1g , jce2g
+  integer(ik4) , public :: ide1g , ide2g , jde1g , jde2g
+  integer(ik4) , public :: idi1g , idi2g , jdi1g , jdi2g
+
   logical , parameter :: lreorder = .false.
 
   type(masked_comm) , public :: lndcomm

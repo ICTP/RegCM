@@ -182,8 +182,8 @@
             zeff(i,j) = zoce
           end if
           ! 10 m wind
-          u10 = (cubx3d(j,i,kz))*(1-fact)
-          v10 = (cvbx3d(j,i,kz))*(1-fact)
+          u10 = (cubx3d(j,i,kz))*(d_one-fact)
+          v10 = (cvbx3d(j,i,kz))*(d_one-fact)
           wid10(i,j) = sqrt(u10**2+v10**2)
           ! 10 m air temperature
           temp10(i,j) = ctb3d(j,i,kz) - csdeltk2d(j,i)*fact

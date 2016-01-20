@@ -131,19 +131,12 @@ module mod_che_common
       call getmem1d(trac%mw,1,ntr,'mod_che_common:trac%mw')
       call getmem1d(trac%indchbdy,1,ntr,'mod_che_common:trac%indchbdy')
 
-      call getmem4d(chia,jce1-ma%jbl2,jce2+ma%jbr2, &
-                    ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chia')
-      if ( isladvec == 1 ) then
-        call getmem4d(chib,jce1-ma%jbl4,jce2+ma%jbr4, &
-                      ice1-ma%ibb4,ice2+ma%ibt4,1,kz,1,ntr,'che_common:chib')
-        call getmem4d(chi,jce1-ma%jbl4,jce2+ma%jbr4, &
-                      ice1-ma%ibb4,ice2+ma%ibt4,1,kz,1,ntr,'che_common:chi')
-      else
-        call getmem4d(chib,jce1-ma%jbl2,jce2+ma%jbr2, &
-                      ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chib')
-        call getmem4d(chi,jce1-ma%jbl1,jce2+ma%jbr1, &
-                      ice1-ma%ibb1,ice2+ma%ibt1,1,kz,1,ntr,'che_common:chi')
-      end if
+      call getmem4d(chia,jce1gb,jce2gb,ice1gb,ice2gb, &
+                         1,kz,1,ntr,'che_common:chia')
+      call getmem4d(chib,jce1gb,jce2gb,ice1gb,ice2gb, &
+                         1,kz,1,ntr,'che_common:chib')
+      call getmem4d(chi,jce1gb,jce2gb,ice1gb,ice2gb, &
+                        1,kz,1,ntr,'che_common:chi')
       if ( idynamic == 2 ) then
         call getmem3d(tvirt,jce1,jce2,ice1,ice2,1,kz,'che_common:tvirt')
         call getmem2d(sp0,jce1,jce2,ice1,ice2,'che_common:sp0')
@@ -153,19 +146,14 @@ module mod_che_common
       call getmem4d(chiten,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chiten')
       call getmem4d(chemten,jce1,jce2, &
                     ice1,ice2,1,kz,1,ntr,'che_common:chemten')
-
       call getmem3d(chemsrc,jce1,jce2,ice1,ice2, &
                     1,ntr,'mod_che_common:chemsrc')
-
       call getmem3d(tmpsrc,jce1,jce2,ice1,ice2, &
                     1,ntr,'mod_che_common:tmpsrc')
-
       call getmem3d(chifxuw,jci1,jci2,ici1,ici2, &
                     1,ntr,'mod_che_common:chifxuw')
-
       call getmem3d(convcldfra,jci1,jci2,ici1,ici2, &
                     1,kz,'mod_che_common:convcldfra')
-
       call getmem4d(rxsg,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
                     'che_common:rxsg')
       call getmem4d(rxsaq1,jce1,jce2,ice1,ice2,1,kz,1,ntr, &

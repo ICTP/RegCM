@@ -111,28 +111,28 @@ module mod_bdycod
     end if
 
     if ( ma%has_bdytop ) then
-      call getmem2d(nue,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nue')
-      call getmem2d(nui,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nui')
-      call getmem2d(nve,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nve')
-      call getmem2d(nvi,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:nvi')
+      call getmem2d(nue,jde1ga,jde2ga,1,kz,'bdycon:nue')
+      call getmem2d(nui,jde1ga,jde2ga,1,kz,'bdycon:nui')
+      call getmem2d(nve,jde1ga,jde2ga,1,kz,'bdycon:nve')
+      call getmem2d(nvi,jde1ga,jde2ga,1,kz,'bdycon:nvi')
     end if
     if ( ma%has_bdybottom ) then
-      call getmem2d(sue,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:sue')
-      call getmem2d(sui,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:sui')
-      call getmem2d(sve,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:sve')
-      call getmem2d(svi,jde1-ma%jbl1,jde2+ma%jbr1,1,kz,'bdycon:svi')
+      call getmem2d(sue,jde1ga,jde2ga,1,kz,'bdycon:sue')
+      call getmem2d(sui,jde1ga,jde2ga,1,kz,'bdycon:sui')
+      call getmem2d(sve,jde1ga,jde2ga,1,kz,'bdycon:sve')
+      call getmem2d(svi,jde1ga,jde2ga,1,kz,'bdycon:svi')
     end if
     if ( ma%has_bdyright ) then
-      call getmem2d(eue,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eue')
-      call getmem2d(eui,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eui')
-      call getmem2d(eve,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:eve')
-      call getmem2d(evi,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:evi')
+      call getmem2d(eue,ide1ga,ide2ga,1,kz,'bdycon:eue')
+      call getmem2d(eui,ide1ga,ide2ga,1,kz,'bdycon:eui')
+      call getmem2d(eve,ide1ga,ide2ga,1,kz,'bdycon:eve')
+      call getmem2d(evi,ide1ga,ide2ga,1,kz,'bdycon:evi')
     end if
     if ( ma%has_bdyleft ) then
-      call getmem2d(wue,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wue')
-      call getmem2d(wui,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wui')
-      call getmem2d(wve,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wve')
-      call getmem2d(wvi,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wvi')
+      call getmem2d(wue,ide1ga,ide2ga,1,kz,'bdycon:wue')
+      call getmem2d(wui,ide1ga,ide2ga,1,kz,'bdycon:wui')
+      call getmem2d(wve,ide1ga,ide2ga,1,kz,'bdycon:wve')
+      call getmem2d(wvi,ide1ga,ide2ga,1,kz,'bdycon:wvi')
     end if
     call getmem2d(psdot,jde1,jde2,ide1,ide2,'bdycon:psdot')
     call getmem2d(rpsdot,jde1,jde2,ide1,ide2,'bdycon:rpsdot')
