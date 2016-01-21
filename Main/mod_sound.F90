@@ -53,10 +53,14 @@ module mod_sound
   real(rk8) , pointer , dimension(:,:) :: astore
   real(rk8) , pointer , dimension(:,:) :: wpval
 
+  real(rk8) , dimension(-6:6) :: fi , fj
+  real(rk8) , dimension(0:6) :: fk , fl
+
   contains
 
   subroutine allocate_mod_sound
     implicit none
+    integer(ik4) :: i , j
     call getmem3d(aa,jci1,jci2,ici1,ici2,1,kzp1,'sound:aa')
     call getmem3d(b,jci1,jci2,ici1,ici2,1,kzp1,'sound:b')
     call getmem3d(c,jci1,jci2,ici1,ici2,1,kzp1,'sound:c')
@@ -78,6 +82,27 @@ module mod_sound
     call getmem3d(pi,jci1,jci2,ici1,ici2,1,kz,'sound:pi')
     call getmem2d(astore,jci1,jci2,ici1,ici2,'sound:astore')
     call getmem2d(wpval,jci1,jci2,ici1,ici2,'sound:wpval')
+    if ( ifupr == 1 ) then
+      !
+      ! DEFINE VALUES OF FK, FL, FI & FJ FOR UPPER RADIATIVE BC
+      !
+      do i = 1 , 5
+        fk(i) = d_two
+        fl(i) = d_two
+      end do
+      fk(0) = d_one
+      fl(0) = d_one
+      fk(6) = d_one
+      fl(6) = d_one
+      do i = -5 , 5
+        fi(i) = d_one
+        fj(i) = d_one
+      end do
+      fi(-6) = d_half
+      fj(-6) = d_half
+      fi(6) = d_half
+      fj(6) = d_half
+    end if
   end subroutine allocate_mod_sound
 
   subroutine sound
@@ -95,8 +120,6 @@ module mod_sound
     real(rk8) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
                  xkleff , xleff , xmsftot , xmsf
     real(rk8) :: loc_abar , loc_rhon , loc_xmsf
-    real(rk8) , dimension(-6:6) :: fi , fj
-    real(rk8) , dimension(0:6) :: fk , fl
     integer(ik4) :: inn , jnn , ll , nsi , nsj
     !
     ! HT IS G*(TERR. HT.)
@@ -146,32 +169,6 @@ module mod_sound
       if ( myid == italk ) write(stdout,'(a,f7.2,a,i3,a,f4.1,a,f4.1)') &
             ' Short time step ' , dts , ', nstep = ', istep , &
             ', beta = ' , bet , ', xkd = ' , xkd
-      if ( ifupr == 1 ) then
-        do i = -6 , 6
-          do j = -6 , 6
-            tmask(j,i) = d_zero
-          end do
-        end do
-        !
-        ! DEFINE VALUES OF FK, FL, FI & FJ FOR UPPER RADIATIVE BC
-        !
-        do i = 1 , 5
-          fk(i) = d_two
-          fl(i) = d_two
-        end do
-        fk(0) = d_one
-        fl(0) = d_one
-        fk(6) = d_one
-        fl(6) = d_one
-        do i = -5 , 5
-          fi(i) = d_one
-          fj(i) = d_one
-        end do
-        fi(-6) = d_half
-        fj(-6) = d_half
-        fi(6) = d_half
-        fj(6) = d_half
-      end if
     end if
     !
     !  Premultiply the tendency arrays by dts
@@ -503,8 +500,12 @@ module mod_sound
         ! If first time through and upper radiation b.c`s are used
         ! Need to calc some coefficients
         !
-        if ( ktau == 0 .and. it == 1 ) then
+        if ( ( ktau == 0 .or. mod(ktau,kday) == 0 ).and. it == 1 ) then
           ! Calculating means for upper radiative boundary conditions
+          if ( myid == italk ) then
+            write(stdout,'(a,i8)') &
+               ' Updating upper radiative BC coefficients at ktau =',ktau
+          end if
           atot = d_zero
           rhontot = d_zero
           xmsftot = d_zero
@@ -524,6 +525,7 @@ module mod_sound
           call sumall(loc_rhon,rhon)
           call sumall(loc_xmsf,xmsf)
           dxmsfb = d_two/dx/xmsf
+          tmask(:,:) = d_zero
           do k = 0 , 6
             rk = dble(k)
             do ll = 0 , 6
