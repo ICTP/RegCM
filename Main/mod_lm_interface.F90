@@ -424,7 +424,7 @@ module mod_lm_interface
     implicit none
     integer(ik4) :: i , j , n , nn , ierr , i1 , i2
 #ifdef CLM45
-    real(rk8) :: tm , dlnp , z1 , z2 , w1 , w2
+    real(rk8) :: tm , dz , dlnp , z1 , z2 , w1 , w2
 #endif
 #ifdef CLM
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
@@ -455,6 +455,7 @@ module mod_lm_interface
           z2 = atms%za(j,i,kz-1)
           w1 = (z2-35.0D0)/(z2-z1)
           w2 = d_one - w1
+          dz = 35.0D0 - atms%za(j,i,kz)
           zatm(j,i) = 35.0D0
           tatm(j,i) = atms%tb3d(j,i,kz)*w1 + atms%tb3d(j,i,kz-1)*w2
           thatm(j,i) = atms%th3d(j,i,kz)*w1 + atms%th3d(j,i,kz-1)*w2
@@ -462,7 +463,7 @@ module mod_lm_interface
           vatm(j,i) = atms%vbx3d(j,i,kz)*w1 + atms%vbx3d(j,i,kz-1)*w2
           qvatm(j,i) = atms%qxb3d(j,i,kz,iqv)*w1 + atms%qxb3d(j,i,kz-1,iqv)*w2
           tm = d_half*(tatm(j,i)+atms%tb3d(j,i,kz))
-          dlnp = d_r100*((egrav*zatm(j,i))/(rgas*tm))
+          dlnp = ((egrav*dz)/(rgas*tm))
           patm(j,i) = patm(j,i)*exp(-dlnp)
         end if
       end do
