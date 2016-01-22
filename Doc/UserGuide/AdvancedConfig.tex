@@ -573,10 +573,11 @@ integration timestep and triggers for calling internal parametric schemes.
 \begin{Verbatim}
  &timeparam
  dt     =   150., ! time step in seconds
- dtrad  =    30., ! time interval solar radiation calculated (minutes)
- dtsrf  =   600., ! time interval at which land model is called (seconds)
- dtcum  =    -1., ! time interval at which cumuls is called (seconds)
- dtabem =    18., ! time interval absorption-emission calculated (hours)
+ dtrad  =     0., ! time interval solar radiation calculated (minutes)
+ dtsrf  =     0., ! time interval at which land model is called (seconds)
+ dtcum  =     0., ! time interval at which cumuls is called (seconds)
+ dtabem =     0., ! time interval absorption-emission calculated (hours)
+ dtchem =   900., ! time interval for chemistry reactions (seconds)
  /
 \end{Verbatim}
 }
@@ -584,6 +585,9 @@ integration timestep and triggers for calling internal parametric schemes.
 Things you need to know here:
 
 \begin{enumerate}
+\item If only dt is chosen, the other values are computed to align with dt
+and output frequencies to have $~5minutes$ for cumulus, $~10minutes$ for
+surface, $~30 minutes$ for radiation, $18hr$ for absorption-emission.
 \item All the internal timesteps need to be multiples of the base
 timestep $dt$.  Note that the units are different, so you need to convert the
 other timesteps in seconds before the check.
@@ -609,7 +613,7 @@ calling the cumulus convection scheme every model timestep. For small $dt$,
 this value should be set to $~5minute$.
 \item The absorption-emission computations are the most expensive in
 computational time in the radiation scheme, which accounts overall for
-around $30\percent$ of the total execution time. The $18 hours$ default
+around $30\%$ of the total execution time. The $18 hours$ default
 allows for a compromise for accuracy/cost and should avoid aliasing on a
 daily timeframe window.
 \end{enumerate}

@@ -51,6 +51,9 @@ module mod_params
 
   private
 
+  real(rk8) , parameter :: maxdt = 600.0D0
+  real(rk8) , parameter :: mindt = 2.0D0
+
   public :: param
 
   contains
@@ -176,12 +179,12 @@ module mod_params
     !
     ! timeparam ;
     !
-    dtrad = 30.0D0  ! time interval in min solar rad caluclated
-    dtsrf = 600.0D0 ! time interval at which bats is called (secs)
-    dtcum = -1.0D0  ! time interval at which cumulus is called (secs)
+    dt = 100.0D0  ! time step in seconds
+    dtrad = 0.0D0 ! time interval in min solar rad caluclated
+    dtsrf = 0.0D0 ! time interval at which bats is called (secs)
+    dtcum = 0.0D0 ! time interval at which cumulus is called (secs)
+    dtabem = 0.0D0 ! time interval absorption-emission calculated (hours)
     dtche = 900.0D0 ! time interval at which bats is called (secs)
-    dtabem = 18.0D0 ! time interval absorption-emission calculated (hours)
-    dt = 100.0D0    ! time step in seconds
     !
     ! outparam ;
     !
@@ -806,6 +809,49 @@ module mod_params
       end if
 
       close(ipunit)
+
+      if ( dt > maxdt .or. dt > 3.0D0 * ds ) then
+        dt = min(maxdt,3.0D0*ds)
+        write(stdout,*) 'Resetting dt to maximum value for RegCM , ',dt,' s'
+      end if
+      if ( dt < mindt ) then
+        dt = 3.0D0 * ds
+        write(stdout,*) &
+          'Resetting dt to safe value (CFL limit) for RegCM , ',dt,' s'
+      end if
+
+      dt = check_against_outparams(dt,1.0D0)
+      if ( dtcum < d_zero ) dtcum = dt
+
+      if ( dt < 2.0D0 ) then
+        call fatal(__FILE__,__LINE__, &
+           'Cannot match all output frequencies with chosen dt')
+      end if
+      if ( dtsrf < dt ) then
+        if ( dt > 600.0D0 ) then
+          dtsrf = dt
+        else
+          dtsrf = min(int(600.0D0 / dt) * dt + dt,600.0D0)
+          dtsrf = check_against_outparams(dtsrf,dt)
+        end if
+      end if
+      if ( dtcum < dt ) then
+        if ( dt > 300.0D0 ) then
+          dtcum = dt
+        else
+          dtcum = min(int(300.0D0 / dt) * dt + dt,300.0D0)
+          dtcum = check_against_outparams_cum(dtcum,dt)
+        end if
+      end if
+      if ( dtrad*60.0D0 < dt ) then
+        dtrad = int(1800.0 / dt) * dt + dt
+        dtrad = check_against_outparams_rad(dtrad,dt)
+        dtrad = dtrad / 60.0D0
+      end if
+      if ( dtabem*3600.0D0 < dt ) then
+        dtabem = int(1080.0D0 / dtrad) * dtrad
+        dtabem = dtabem / 60.0D0
+      end if
     end if
     !
     ! communicate to all processors
@@ -819,14 +865,12 @@ module mod_params
     call bcast(globidate1)
     call bcast(globidate2)
 
+    call bcast(dt)
     call bcast(dtrad)
-    call bcast(dtabem)
     call bcast(dtsrf)
     call bcast(dtcum)
     call bcast(dtche)
-    call bcast(dt)
-
-    if ( dtcum < d_zero ) dtcum = dt
+    call bcast(dtabem)
 
     call bcast(ifsave)
     call bcast(savfrq)
@@ -1547,8 +1591,10 @@ module mod_params
             'model in minutes : ' , dtrad
       write(stdout,'(a,f12.6)') '  time step for emission  '// &
             'model in hours   : ' , dtabem
-      write(stdout,'(a,f12.6)') '  time step for chemistry '// &
-            'model in seconds : ' , dtche
+      if ( ichem == 1 ) then
+        write(stdout,'(a,f12.6)') '  time step for chemistry '// &
+              'model in seconds : ' , dtche
+      end if
     end if
 
     if ( nsg > 1 ) then
@@ -2267,6 +2313,131 @@ module mod_params
         end if
       end subroutine compute_full_coriolis_coefficients
 
+      recursive integer function gcd_rec(u,v) result(gcd)
+        implicit none
+        integer , intent(in) :: u , v
+        if ( mod(u,v) /= 0 ) then
+          gcd = gcd_rec(v,mod(u,v))
+        else
+          gcd = v
+        end if
+      end function gcd_rec
+
+      real(rk8) function check_against_outparams(dt,dec) result(newdt)
+        implicit none
+        real(rk8) , intent(in) :: dt , dec
+        newdt = int(dt/dec)*dec
+        do
+          if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
+            newdt = newdt - dec
+            cycle
+          else
+            if ( gcd_rec(int(newdt), int(atmfrq*secph)) < newdt ) then
+              newdt = newdt - dec
+              cycle
+            else
+              if ( gcd_rec(int(newdt), int(srffrq*secph)) < newdt ) then
+                newdt = newdt - dec
+                cycle
+              else
+                if ( gcd_rec(int(newdt), int(radfrq*secph)) < newdt ) then
+                  newdt = newdt - dec
+                  cycle
+                else
+                  if ( ichem == 1 ) then
+                    if ( gcd_rec(int(newdt), int(chemfrq*secph)) < newdt ) then
+                      newdt = newdt - dec
+                      cycle
+                    else
+                      exit
+                    end if
+                  end if
+                  exit
+                end if
+                exit
+              end if
+              exit
+            end if
+            exit
+          end if
+        end do
+      end function check_against_outparams
+
+      real(rk8) function check_against_outparams_cum(dt,dec) result(newdt)
+        implicit none
+        real(rk8) , intent(in) :: dt , dec
+        newdt = int(dt/dec)*dec
+        do
+          if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
+            newdt = newdt - dec
+            cycle
+          else
+            if ( gcd_rec(int(newdt), int(atmfrq*secph)) < newdt ) then
+              newdt = newdt - dec
+              cycle
+            else
+              if ( gcd_rec(int(newdt), int(srffrq*secph)) < newdt ) then
+                newdt = newdt - dec
+                cycle
+              else
+                if ( gcd_rec(int(newdt), int(radfrq*secph)) < newdt ) then
+                  newdt = newdt - dec
+                  cycle
+                else
+                  if ( gcd_rec(int(newdt), int(dtsrf*secph)) < newdt ) then
+                    newdt = newdt - dec
+                    cycle
+                  else
+                    if ( ichem == 1 ) then
+                      if ( gcd_rec(int(newdt), &
+                                   int(chemfrq*secph)) < newdt ) then
+                        newdt = newdt - dec
+                        cycle
+                      else
+                        exit
+                      end if
+                      exit
+                    end if
+                    exit
+                  end if
+                  exit
+                end if
+                exit
+              end if
+              exit
+            end if
+            exit
+          end if
+        end do
+      end function check_against_outparams_cum
+
+      real(rk8) function check_against_outparams_rad(dt,dec) result(newdt)
+        implicit none
+        real(rk8) , intent(in) :: dt , dec
+        newdt = int(dt/dec)*dec
+        do
+          if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
+            newdt = newdt - dec
+            cycle
+          else
+            if ( gcd_rec(int(newdt), int(radfrq*secph)) < newdt ) then
+              newdt = newdt - dec
+              cycle
+            else
+              exit
+            end if
+            exit
+          end if
+        end do
+      end function check_against_outparams_rad
+
+      real(rk8) function check_against_outparams_abe(dt,dec) result(newdt)
+        implicit none
+        real(rk8) , intent(in) :: dt , dec
+        newdt = int(dt/dec) * dec
+      end function check_against_outparams_abe
+
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
   end subroutine param
 
 end module mod_params

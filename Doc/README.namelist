@@ -167,13 +167,14 @@
  /
 !
 ! Model timing parameters
+! All values except dt can be zero. Convenient values are chosen by the model.
 !
  &timeparam
  dt     =   150.,   ! time step in seconds
- dtrad  =    30.,   ! time interval solar radiation calculated (minutes)
- dtabem =    18.,   ! time interval absorption-emission calculated (hours)
- dtsrf  =   600.,   ! time interval at which land model is called (seconds)
- dtcum  =    -1.,   ! time interval at which cumuls is called (seconds)
+ dtrad  =     0.,   ! time interval solar radiation calculated (minutes)
+ dtabem =     0.,   ! time interval absorption-emission calculated (hours)
+ dtsrf  =     0.,   ! time interval at which land model is called (seconds)
+ dtcum  =     0.,   ! time interval at which cumuls is called (seconds)
  dtche  =   900.,   ! time interval at which chem model is called (seconds)
  /
 !
