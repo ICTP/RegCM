@@ -2437,7 +2437,6 @@ module mod_params
         newdt = int(dt/dec) * dec
       end function check_against_outparams_abe
 
-! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
   end subroutine param
 
 end module mod_params
