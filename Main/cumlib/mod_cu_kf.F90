@@ -1536,7 +1536,7 @@ module mod_cu_kf
         ! Check to see if mixing ratio dips below zero anywhere;  if so, borrow
         ! moisture from adjacent layers to bring it back up above zero
         !
-        do nk = 1 , ltop
+        do nk = 2 , ltop
           if ( qg(nk) < d_zero ) then
             write(stderr,*) 'AT I = ',imap(np), ', J = ', jmap(np)
             write(stderr,*) 'KF: QG, QG(NK) < 0'
