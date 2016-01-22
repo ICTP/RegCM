@@ -462,7 +462,7 @@ module mod_lm_interface
           vatm(j,i) = atms%vbx3d(j,i,kz)*w1 + atms%vbx3d(j,i,kz-1)*w2
           qvatm(j,i) = atms%qxb3d(j,i,kz,iqv)*w1 + atms%qxb3d(j,i,kz-1,iqv)*w2
           tm = d_half*(tatm(j,i)+atms%tb3d(j,i,kz))
-          dlnp = (egrav*zatm(j,i))/(rgas*tm)
+          dlnp = d_r100*((egrav*zatm(j,i))/(rgas*tm))
           patm(j,i) = patm(j,i)*exp(-dlnp)
         end if
       end do
