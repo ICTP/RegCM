@@ -456,11 +456,11 @@ module mod_lm_interface
           w1 = (z2-35.0D0)/(z2-z1)
           w2 = d_one - w1
           zatm(j,i) = 35.0D0
-          tatm(j,i) = atms%tb3d(j,i,kz)*w1 + atms%tb3d(j,i,kz+1)*w2
-          thatm(j,i) = atms%th3d(j,i,kz)*w1 + atms%th3d(j,i,kz+1)*w2
-          uatm(j,i) = atms%ubx3d(j,i,kz)*w1 + atms%ubx3d(j,i,kz+1)*w2
-          vatm(j,i) = atms%vbx3d(j,i,kz)*w1 + atms%vbx3d(j,i,kz+1)*w2
-          qvatm(j,i) = atms%qxb3d(j,i,kz,iqv)*w1 + atms%qxb3d(j,i,kz+1,iqv)*w2
+          tatm(j,i) = atms%tb3d(j,i,kz)*w1 + atms%tb3d(j,i,kz-1)*w2
+          thatm(j,i) = atms%th3d(j,i,kz)*w1 + atms%th3d(j,i,kz-1)*w2
+          uatm(j,i) = atms%ubx3d(j,i,kz)*w1 + atms%ubx3d(j,i,kz-1)*w2
+          vatm(j,i) = atms%vbx3d(j,i,kz)*w1 + atms%vbx3d(j,i,kz-1)*w2
+          qvatm(j,i) = atms%qxb3d(j,i,kz,iqv)*w1 + atms%qxb3d(j,i,kz-1,iqv)*w2
           tm = d_half*(tatm(j,i)+atms%tb3d(j,i,kz))
           dlnp = (egrav*zatm(j,i))/(rgas*tm)
           patm(j,i) = patm(j,i)*exp(-dlnp)
