@@ -596,11 +596,7 @@ module mod_lm_interface
     end if
 #else
 #ifdef CLM45
-    if ( ktau == 0 ) then
-      call albedobats(lm,lms)
-    else
-      call albedoclm45(lm,lms)
-    end if
+    call albedoclm45(lm,lms)
 #else
     call albedobats(lm,lms)
 #endif
