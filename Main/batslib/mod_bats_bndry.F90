@@ -291,7 +291,7 @@ module mod_bats_bndry
     implicit none
     integer(ik4) :: i
 #ifdef DEBUG
-    character(len=64) :: subroutine_name = 'vcover'
+    character(len=dbgslen) :: subroutine_name = 'vcover'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif

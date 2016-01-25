@@ -2361,7 +2361,7 @@ module mod_rad_radiation
     integer(ik4) :: n , k
 !
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'radclw'
+    character(len=dbgslen) :: subroutine_name = 'radclr'
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif

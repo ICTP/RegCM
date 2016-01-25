@@ -100,7 +100,7 @@ module mod_ocn_bats
     real(rk8) :: factuv , fevpg , fseng , qgrnd , ribn , sold , vspda
     integer(ik4) :: i
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'ocnbats'
+    character(len=dbgslen) :: subroutine_name = 'seaice'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
