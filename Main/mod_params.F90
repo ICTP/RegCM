@@ -2207,6 +2207,8 @@ module mod_params
     call time_end(subroutine_name,idindx)
 #endif
 
+    return
+
 100 call fatal(__FILE__,__LINE__, 'Error reading RESTARTPARAM')
 101 call fatal(__FILE__,__LINE__, 'Error reading TIMEPARAM')
 102 call fatal(__FILE__,__LINE__, 'Error reading OUTPARAM')
