@@ -85,6 +85,9 @@ module mod_ocn_bats
       t2m(i) = sts(i) - delt*fact
       q2m(i) = qs - delq*fact
     end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine ocnbats
 
   subroutine seaice
@@ -288,6 +291,9 @@ module mod_ocn_bats
       t2m(i) = sts(i) - delt*fact
       q2m(i) = qs - delq*fact
     end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine seaice
 
 end module mod_ocn_bats
