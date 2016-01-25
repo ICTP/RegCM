@@ -637,7 +637,7 @@ module mod_sladvection
                  dvcapdy , hdvg , tatotdvtrm
     integer(ik4) :: i , j , k
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'hdvg_x'
+    character(len=dbgslen) :: subroutine_name = 'hdvg_d'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif

@@ -60,7 +60,7 @@ module mod_sound
 
   subroutine allocate_mod_sound
     implicit none
-    integer(ik4) :: i , j
+    integer(ik4) :: i
     call getmem3d(aa,jci1,jci2,ici1,ici2,1,kzp1,'sound:aa')
     call getmem3d(b,jci1,jci2,ici1,ici2,1,kzp1,'sound:b')
     call getmem3d(c,jci1,jci2,ici1,ici2,1,kzp1,'sound:c')
