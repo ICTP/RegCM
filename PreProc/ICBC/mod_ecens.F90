@@ -195,17 +195,22 @@ module mod_ecens
                         'Error find var '//trim(varname(kkrec)))
         if ( kkrec == 1 ) then
           istat = nf90_inq_dimid(inet5(kkrec),'time',jdim)
-          call checkncerr(istat,__FILE__,__LINE__,'Error find dim time')
+          call checkncerr(istat,__FILE__,__LINE__, &
+                          'Error find dim time')
           istat = nf90_inquire_dimension(inet5(kkrec),jdim,len=ntime)
-          call checkncerr(istat,__FILE__,__LINE__,'Error read dim time')
+          call checkncerr(istat,__FILE__,__LINE__, &
+                          'Error read dim time')
           call getmem1d(xtime,1,ntime,'mod_ecens:xtime')
           call getmem1d(enstime,1,ntime,'mod_ecens:enstime')
           istat = nf90_inq_varid(inet5(kkrec),'time',ivar)
-          call checkncerr(istat,__FILE__,__LINE__,'Error find var time')
+          call checkncerr(istat,__FILE__,__LINE__, &
+                          'Error find var time')
           istat = nf90_get_att(inet5(kkrec),ivar,'units',cunit)
-          call checkncerr(istat,__FILE__,__LINE__,'Error read var units')
+          call checkncerr(istat,__FILE__,__LINE__, &
+                          'Error read var units')
           istat = nf90_get_var(inet5(kkrec),ivar,xtime)
-          call checkncerr(istat,__FILE__,__LINE__,'Error read var time')
+          call checkncerr(istat,__FILE__,__LINE__, &
+                          'Error read var time')
           do i = 1 , ntime
             enstime(i) = timeval2date(xtime(i),cunit,ccal)
           end do
@@ -237,10 +242,12 @@ module mod_ecens
       if ( kkrec == 1 ) then
         icount(3) = 1
         istat = nf90_get_var(inet,ivar,work(:,:,1),istart,icount)
-        call checkncerr(istat,__FILE__,__LINE__,'Err read var '//vfname(kkrec))
+        call checkncerr(istat,__FILE__,__LINE__, &
+                        'Err read var '//vfname(kkrec))
       else
         istat = nf90_get_var(inet,ivar,work,istart,icount)
-        call checkncerr(istat,__FILE__,__LINE__,'Err read var '//vfname(kkrec))
+        call checkncerr(istat,__FILE__,__LINE__, &
+                        'Err read var '//vfname(kkrec))
       endif
 
       if ( kkrec == 1 ) then
@@ -282,19 +289,26 @@ module mod_ecens
     pathaddname = trim(inpglob)//pthsep//trim(fname)
 
     istat = nf90_open(pathaddname,nf90_nowrite,inet)
-    call checkncerr(istat,__FILE__,__LINE__,'Error open '//trim(pathaddname))
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error open '//trim(pathaddname))
     istat = nf90_inq_dimid(inet,'lon',jdim)
-    call checkncerr(istat,__FILE__,__LINE__,'Error find dim lon')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find dim lon')
     istat = nf90_inquire_dimension(inet,jdim,len=nlon)
-    call checkncerr(istat,__FILE__,__LINE__,'Error read dim lon')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read dim lon')
     istat = nf90_inq_dimid(inet,'lat',jdim)
-    call checkncerr(istat,__FILE__,__LINE__,'Error find dim lat')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find dim lat')
     istat = nf90_inquire_dimension(inet,jdim,len=nlat)
-    call checkncerr(istat,__FILE__,__LINE__,'Error read dim lat')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read dim lat')
     istat = nf90_inq_dimid(inet,'mlev',jdim)
-    call checkncerr(istat,__FILE__,__LINE__,'Error find dim mlev')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find dim mlev')
     istat = nf90_inquire_dimension(inet,jdim,len=mlev)
-    call checkncerr(istat,__FILE__,__LINE__,'Error read dim mlev')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read dim mlev')
 
     call getmem1d(vlat,1,nlat,'mod_ecens:vlat')
     call getmem1d(rlat,1,nlat,'mod_ecens:rlat')
@@ -304,24 +318,32 @@ module mod_ecens
     call getmem3d(work,1,nlon,1,nlat,1,mlev,'mod_ecens:work')
 
     istat = nf90_inq_varid(inet,'lon',ivar)
-    call checkncerr(istat,__FILE__,__LINE__,'Error find var lon')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find var lon')
     istat = nf90_get_var(inet,ivar,vlon)
-    call checkncerr(istat,__FILE__,__LINE__,'Error read var lon')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read var lon')
     istat = nf90_inq_varid(inet,'lat',ivar)
-    call checkncerr(istat,__FILE__,__LINE__,'Error find var lat')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find var lat')
     istat = nf90_get_var(inet,ivar,rlat)
-    call checkncerr(istat,__FILE__,__LINE__,'Error read var lat')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read var lat')
     do j = 1 , nlat
       vlat(j) = rlat(nlat-j+1)
     end do
     istat = nf90_inq_varid(inet,'hyam',ivar)
-    call checkncerr(istat,__FILE__,__LINE__,'Error find var hyam')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find var hyam')
     istat = nf90_get_var(inet,ivar,ak)
-    call checkncerr(istat,__FILE__,__LINE__,'Error read var hyam')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read var hyam')
     istat = nf90_inq_varid(inet,'hybm',ivar)
-    call checkncerr(istat,__FILE__,__LINE__,'Error find var hyam')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find var hyam')
     istat = nf90_get_var(inet,ivar,bk)
-    call checkncerr(istat,__FILE__,__LINE__,'Error read var hybm')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read var hybm')
 
     pplev(1) = 30.
     pplev(2) = 50.
@@ -375,7 +397,8 @@ module mod_ecens
     v3 => d3(:,:,nplev+1:2*nplev)
 
     istat = nf90_inq_varid(inet,'var129',ivar)
-    call checkncerr(istat,__FILE__,__LINE__,'Error find var var129')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find var var129')
 
     istart(:) = 1
     icount(1) = nlon
@@ -383,7 +406,8 @@ module mod_ecens
     icount(3) = 1
     icount(4) = 1
     istat = nf90_get_var(inet,ivar,work,istart,icount)
-    call checkncerr(istat,__FILE__,__LINE__,'Error read var var129')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read var var129')
     do j = 1 , nlat
       zs2(:,j) = work(:,nlat-j+1,1)
     end do
@@ -394,7 +418,8 @@ module mod_ecens
     end where
 
     istat = nf90_close(inet)
-    call checkncerr(istat,__FILE__,__LINE__,'Error close file')
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error close file')
   end subroutine headerecens
 
 end module mod_ecens

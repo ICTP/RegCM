@@ -206,9 +206,11 @@ module mod_domain
     if ( present(linternal) ) lb = linternal
     if ( present(lsubgrid) ) ls = lsubgrid
     istatus = nf90_inq_dimid(ncid, 'jx', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension JX')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error search dimension JX')
     istatus = nf90_inquire_dimension(ncid, idimid, len=jxx)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension JX')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read dimension JX')
     jcheck = jx
     if ( lb .and. i_band /= 1 ) jcheck = jcheck - 3
     if ( ls ) jcheck = jcheck * nsg
@@ -222,9 +224,11 @@ module mod_domain
       end if
     end if
     istatus = nf90_inq_dimid(ncid, 'iy', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension IY')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error search dimension IY')
     istatus = nf90_inquire_dimension(ncid, idimid, len=iyy)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension IY')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read dimension IY')
     icheck = iy
     if ( lb ) icheck = icheck - 3
     if ( ls ) icheck = icheck * nsg
@@ -238,9 +242,11 @@ module mod_domain
       end if
     end if
     istatus = nf90_inq_dimid(ncid, 'kz', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension KZ')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error search dimension KZ')
     istatus = nf90_inquire_dimension(ncid, idimid, len=kzz)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension KZ')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read dimension KZ')
     kcheck = kzp1
     if ( lh ) kcheck = kz
     if ( kcheck /= kzz ) then
@@ -253,16 +259,19 @@ module mod_domain
       end if
     end if
     istatus = nf90_inq_varid(ncid, 'ptop', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error search variable PTOP')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error search variable PTOP')
     istatus = nf90_get_var(ncid, ivarid, ptsp)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read variable ptop')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read variable ptop')
     if ( dabs(dble(ptsp*d_r10)-dble(ptop)) > 0.001D+00 ) then
       write(stderr,*) 'DOMAIN FILE : ', ptsp
       write(stderr,*) 'NAMELIST    : ', ptop
       call die('Mismatch: PTOP in DOMAIN file /= PTOP in namelist')
     end if
     istatus = nf90_get_att(ncid, nf90_global, 'projection', proj)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read attribute projection')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read attribute projection')
     if (proj /= iproj) then
       write(stderr,*) 'Mismatch: IPROJ in DOMAIN file /= IPROJ in namelist'
       write(stderr,*) 'DOMAIN FILE : ', proj

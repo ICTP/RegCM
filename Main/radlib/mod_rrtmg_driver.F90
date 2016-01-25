@@ -710,7 +710,7 @@ module mod_rrtmg_driver
       call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
     else
       write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
-      call fatal(__FILE__,__LINE__,                                   &
+      call fatal(__FILE__,__LINE__, &
             'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
     end if
 

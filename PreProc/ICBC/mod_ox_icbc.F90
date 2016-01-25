@@ -70,24 +70,33 @@ module mod_ox_icbc
               'oxid_3d_64x128_L26_c030722.nc'
     write(stdout,*) 'Opening ',trim(oxifile)
     istatus = nf90_open(oxifile, nf90_nowrite, ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error open oxid file')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error open oxid file')
 
     istatus = nf90_inq_dimid(ncid,'lon',dimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lon')
     istatus = nf90_inquire_dimension(ncid,dimid,len=oxilon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire lon')
     istatus = nf90_inq_dimid(ncid,'lat',dimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lat')
     istatus = nf90_inquire_dimension(ncid,dimid,len=oxjlat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire lat')
     istatus = nf90_inq_dimid(ncid,'lev',dimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lev')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lev')
     istatus = nf90_inquire_dimension(ncid,dimid,len=oxilev)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lev')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire lev')
     istatus = nf90_inq_dimid(ncid,'time',dimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim time')
     istatus = nf90_inquire_dimension(ncid,dimid,len=oxitime)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire time')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire time')
 
     call getmem1d(oxt42lon,1,oxilon,'mod_ox_icbc:oxilon')
     call getmem1d(oxt42lat,1,oxjlat,'mod_ox_icbc:oxjlat')
@@ -95,25 +104,35 @@ module mod_ox_icbc
     call getmem1d(oxt42hybm,1,oxilev,'mod_ox_icbc:oxt42hybm')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var lon')
     istatus = nf90_get_var(ncid,ivarid,oxt42lon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var lon')
     istatus = nf90_inq_varid(ncid,'lat',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var lat')
     istatus = nf90_get_var(ncid,ivarid,oxt42lat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var lat')
     istatus = nf90_inq_varid(ncid,'hyam',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var hyam')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var hyam')
     istatus = nf90_get_var(ncid,ivarid,oxt42hyam)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var hyam')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var hyam')
     istatus = nf90_inq_varid(ncid,'hybm',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var hybm')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var hybm')
     istatus = nf90_get_var(ncid,ivarid,oxt42hybm)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var hybm')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var hybm')
     istatus = nf90_inq_varid(ncid,'P0',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var P0')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var P0')
     istatus = nf90_get_var(ncid,ivarid,p0)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var P0')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var P0')
     p0 = p0*0.01
 
     call getmem2d(poxid_3,1,jx,1,iy,'mod_ox_icbc:poxid_3')
@@ -125,15 +144,19 @@ module mod_ox_icbc
                   1,noxsp,'mod_ox_icbc:oxv2')
 
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var PS')
     istatus = nf90_get_var(ncid,ivarid,xps2)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var PS')
     xps2 = xps2 * 0.01
     do is = 1 , noxsp
       istatus = nf90_inq_varid(ncid,oxspec(is),ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//oxspec(is))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var '//oxspec(is))
       istatus = nf90_get_var(ncid,ivarid,oxv2(:,:,:,:,is))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//oxspec(is))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//oxspec(is))
     end do
   end subroutine header_ox_icbc
 
@@ -216,7 +239,8 @@ module mod_ox_icbc
     implicit none
     if ( ncid > 0 ) then
       istatus = nf90_close(ncid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error close oxid file')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close oxid file')
     end if
   end subroutine close_ox_icbc
 

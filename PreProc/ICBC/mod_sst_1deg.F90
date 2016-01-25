@@ -270,7 +270,8 @@ module mod_sst_1deg
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error open '//trim(pathaddname))
       istatus = nf90_inq_varid(inet,varname,ivar)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find '//trim(varname))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find '//trim(varname))
       istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error find attribute scale_factor')
@@ -334,11 +335,14 @@ module mod_sst_1deg
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error open file '//trim(pathaddname))
       istatus = nf90_inq_varid(inet,varname,ivar)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var '//varname)
       istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find att scale_factor')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find att scale_factor')
       istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find att add_offset')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find att add_offset')
       istart(1) = 1
       istart(2) = 1
       icount(1) = ilon
@@ -350,7 +354,8 @@ module mod_sst_1deg
     istart(3) = it
     icount(3) = 1
     istatus = nf90_get_var(inet,ivar,work,istart,icount)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var '//varname)
 
     do j = 1 , jlat
       do i = 1 , ilon
@@ -399,11 +404,14 @@ module mod_sst_1deg
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open file '//trim(pathaddname))
       istatus = nf90_inq_varid(inet,varname,ivar)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var '//varname)
       istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find att scale_factor')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find att scale_factor')
       istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find att add_offset')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find att add_offset')
       istart(1) = 1
       istart(2) = 1
       icount(1) = ilon
@@ -414,12 +422,14 @@ module mod_sst_1deg
     istart(3) = kkk
     icount(3) = 1
     istatus = nf90_get_var(inet,ivar,work,istart,icount)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var '//varname)
     if (idate < 1989123100) then
       istart(3) = kkk-1
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work1,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname)
     end if
 
     do j = 1 , jlat
@@ -483,11 +493,14 @@ module mod_sst_1deg
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error open file '//trim(pathaddname))
       istatus = nf90_inq_varid(inet,varname,ivar)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var '//varname)
       istatus = nf90_get_att(inet,ivar,'scale_factor',xscale)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find att scale_factor')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find att scale_factor')
       istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find att add_offset')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find att add_offset')
       istart(1) = 1
       istart(2) = 1
       icount(1) = ilon
@@ -498,12 +511,14 @@ module mod_sst_1deg
     istart(3) = kkk
     icount(3) = 1
     istatus = nf90_get_var(inet,ivar,work,istart,icount)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var '//varname)
     if (idate < 1989123100) then
       istart(3) = kkk-1
       icount(3) = 1
       istatus = nf90_get_var(inet,ivar,work1,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname)
     end if
 
     do j = 1 , jlat

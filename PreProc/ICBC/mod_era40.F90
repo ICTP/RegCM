@@ -207,7 +207,8 @@ module mod_era40
                           'Error find att scale_factor')
           istatus = nf90_get_att(inet6(kkrec,k4),ivar6(kkrec,k4), &
                                  'add_offset',xoff(kkrec,k4))
-          call checkncerr(istatus,__FILE__,__LINE__,'Error find att add_offset')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find att add_offset')
           write (stdout,*) inet6(kkrec,k4) , trim(pathaddname) ,  &
                       xscl(kkrec,k4) , xoff(kkrec,k4)
         end do

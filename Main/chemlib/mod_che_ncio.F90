@@ -286,15 +286,18 @@ module mod_che_ncio
       if ( do_parallel_netcdf_in .or. myid == iocpu ) then
         call openfile_withname(aername,ncid)
         istatus = nf90_inq_dimid(ncid, 'time', idimid)
-        call check_ok(__FILE__,__LINE__,'Dimension time miss', 'CHEMI FILE')
+        call check_ok(__FILE__,__LINE__, &
+                      'Dimension time miss', 'CHEMI FILE')
         istatus = nf90_inquire_dimension(ncid, idimid, len=chmnrec)
         call check_ok(__FILE__,__LINE__, &
                 'Dimension time read error', 'CHEMI FILE')
         allocate (emtimeval(chmnrec))
         istatus = nf90_inq_varid(ncid, 'time', itvar)
-        call check_ok(__FILE__,__LINE__,'variable time miss', 'CHEMISS FILE')
+        call check_ok(__FILE__,__LINE__, &
+                      'variable time miss', 'CHEMISS FILE')
         istatus = nf90_get_att(ncid, itvar, 'units', chemi_timeunits)
-        call check_ok(__FILE__,__LINE__,'variable time units miss', &
+        call check_ok(__FILE__,__LINE__, &
+                      'variable time units miss', &
                       'CHEMISS FILE')
         if ( chemi_timeunits(1:6) == 'months' ) then
           ifreq = ifrqmon
@@ -303,14 +306,16 @@ module mod_che_ncio
         else if ( chemi_timeunits(1:5) == 'hours' ) then
           ifreq = ifrqhrs
         else
-          call fatal(__FILE__,__LINE__,'NO CODED FREQUENCY IN CHEMISS FILE')
+          call fatal(__FILE__,__LINE__, &
+                        'NO CODED FREQUENCY IN CHEMISS FILE')
         end if
         istatus = nf90_get_att(ncid, itvar, 'calendar', chemi_timecal)
         if ( istatus /= nf90_noerr ) then
           chemi_timecal = 'gregorian'
         end if
         istatus = nf90_get_var(ncid, itvar, emtimeval)
-        call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
+        call check_ok(__FILE__,__LINE__, &
+                      'variable time read error', 'ICBC FILE')
 
         recc = 0
         looprec: &
@@ -339,7 +344,8 @@ module mod_che_ncio
 
         if ( recc == 0 ) then
           write(stderr,*) 'chem emission : time record not found emission file'
-          call fatal(__FILE__,__LINE__,'IO ERROR in CHEM EMISSION')
+          call fatal(__FILE__,__LINE__, &
+                        'IO ERROR in CHEM EMISSION')
         else
           if ( myid == italk ) then
             write(stdout,*) 'CHE_EMISS: Reading record ', recc
@@ -707,7 +713,8 @@ module mod_che_ncio
           appdat1 = tochar(chbc_idate(1))
           appdat2 = tochar(chbc_idate(ibcnrec))
           write (stderr,*) 'Range is : ', appdat1, '-', appdat2
-          call fatal(__FILE__,__LINE__,'CHBC READ')
+          call fatal(__FILE__,__LINE__, &
+                        'CHBC READ')
         end if
         chbc_search = ibcrec
       end if
@@ -749,31 +756,40 @@ module mod_che_ncio
       ibcrec = 1
       ibcnrec = 0
       istatus = nf90_inq_dimid(ibcid, 'time', idimid)
-      call check_ok(__FILE__,__LINE__,'Dimension time miss', 'ICBC FILE')
+      call check_ok(__FILE__,__LINE__, &
+                    'Dimension time miss', 'ICBC FILE')
       istatus = nf90_inquire_dimension(ibcid, idimid, len=ibcnrec)
-      call check_ok(__FILE__,__LINE__,'Dimension time read error', 'ICBC FILE')
+      call check_ok(__FILE__,__LINE__, &
+                    'Dimension time read error', 'ICBC FILE')
       if ( ibcnrec < 1 ) then
         write (stderr,*) 'Time var in ICBC has zero dim.'
-        call fatal(__FILE__,__LINE__,'ICBC READ')
+        call fatal(__FILE__,__LINE__, &
+                      'ICBC READ')
       end if
       istatus = nf90_inq_varid(ibcid, 'time', itvar)
-      call check_ok(__FILE__,__LINE__,'variable time miss', 'ICBC FILE')
+      call check_ok(__FILE__,__LINE__, &
+                    'variable time miss', 'ICBC FILE')
       istatus = nf90_get_att(ibcid, itvar, 'units', icbc_timeunits)
-      call check_ok(__FILE__,__LINE__,'variable time units miss','ICBC FILE')
+      call check_ok(__FILE__,__LINE__, &
+                    'variable time units miss','ICBC FILE')
       istatus = nf90_get_att(ibcid, itvar, 'calendar', icbc_timecal)
-      call check_ok(__FILE__,__LINE__,'variable time calendar miss','ICBC FILE')
+      call check_ok(__FILE__,__LINE__, &
+                    'variable time calendar miss','ICBC FILE')
       allocate(icbc_nctime(ibcnrec), stat=istatus)
       if ( istatus /= 0 ) then
         write(stderr,*) 'Memory allocation error in ICBC for time real values'
-        call fatal(__FILE__,__LINE__,'ICBC READ')
+        call fatal(__FILE__,__LINE__, &
+                      'ICBC READ')
       end if
       allocate(chbc_idate(ibcnrec), stat=istatus)
       if ( istatus /= 0 ) then
         write(stderr,*) 'Memory allocation error in ICBC for time array'
-        call fatal(__FILE__,__LINE__,'ICBC READ')
+        call fatal(__FILE__,__LINE__, &
+                      'ICBC READ')
       end if
       istatus = nf90_get_var(ibcid, itvar, icbc_nctime)
-      call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
+      call check_ok(__FILE__,__LINE__, &
+                    'variable time read error', 'ICBC FILE')
       do i = 1 , ibcnrec
         chbc_idate(i) = timeval2date(icbc_nctime(i), &
                                      icbc_timeunits,icbc_timecal)
@@ -784,7 +800,8 @@ module mod_che_ncio
           write (stderr,*) 'Time var in ICBC inconsistency.'
           write (stderr,*) 'Expecting ibdyfrq = ', ibdyfrq
           write (stderr,*) 'Found     ibdyfrq = ', chkdiff
-          call fatal(__FILE__,__LINE__,'ICBC READ')
+          call fatal(__FILE__,__LINE__, &
+                        'ICBC READ')
         end if
       end if
       deallocate(icbc_nctime)

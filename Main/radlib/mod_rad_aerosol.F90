@@ -1253,7 +1253,8 @@ module mod_rad_aerosol
               rh0 = dmin1(0.99D0,dmax1(d_zero,rh(n,k)))
               jbin = jbin+1
               if ( jbin > 2 ) then
-                call fatal(__FILE__,__LINE__,'SEA SALT BINS MAX is 2')
+                call fatal(__FILE__,__LINE__, &
+                           'SEA SALT BINS MAX is 2')
               end if
               do l = 1 , 7
                 if ( rh0 > rhp(1) .and. rh0 <= rhp(l+1) ) then

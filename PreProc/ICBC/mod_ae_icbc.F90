@@ -88,24 +88,33 @@ module mod_ae_icbc
 
     write(stdout,*) 'Opening ',trim(aefilename)
     istatus = nf90_open(aefilename,nf90_nowrite, ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error open aeid file')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error open aeid file')
 
     istatus = nf90_inq_dimid(ncid,'lon',dimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lon')
     istatus = nf90_inquire_dimension(ncid,dimid,len=aeilon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire lon')
     istatus = nf90_inq_dimid(ncid,'lat',dimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lat')
     istatus = nf90_inquire_dimension(ncid,dimid,len=aejlat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire lat')
     istatus = nf90_inq_dimid(ncid,'lev',dimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lev')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lev')
     istatus = nf90_inquire_dimension(ncid,dimid,len=aeilev)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lev')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire lev')
     istatus = nf90_inq_dimid(ncid,'time',dimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim time')
     istatus = nf90_inquire_dimension(ncid,dimid,len=aeitime)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire time')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire time')
 
     call getmem1d(aet42lon,1,aeilon,'mod_ae_icbc:aeilon')
     call getmem1d(aet42lat,1,aejlat,'mod_ae_icbc:aejlat')
@@ -113,25 +122,35 @@ module mod_ae_icbc
     call getmem1d(aet42hybm,1,aeilev,'mod_ae_icbc:aet42hybm')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var lon')
     istatus = nf90_get_var(ncid,ivarid,aet42lon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var lon')
     istatus = nf90_inq_varid(ncid,'lat',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var lat')
     istatus = nf90_get_var(ncid,ivarid,aet42lat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var lat')
     istatus = nf90_inq_varid(ncid,'hyam',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var hyam')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var hyam')
     istatus = nf90_get_var(ncid,ivarid,aet42hyam)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var hyam')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var hyam')
     istatus = nf90_inq_varid(ncid,'hybm',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var hybm')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var hybm')
     istatus = nf90_get_var(ncid,ivarid,aet42hybm)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var hybm')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var hybm')
     istatus = nf90_inq_varid(ncid,'P0',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var P0')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var P0')
     istatus = nf90_get_var(ncid,ivarid,p0)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var P0')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var P0')
     p0 = p0*0.01
 
     call getmem2d(paeid_3,1,jx,1,iy,'mod_ae_icbc:paeid_3')
@@ -143,15 +162,18 @@ module mod_ae_icbc
                   1,naesp,'mod_ae_icbc:aev2')
 
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var PS')
     istatus = nf90_get_var(ncid,ivarid,xps2)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var PS')
     xps2 = xps2*0.01
     do is = 1 , naesp
       istatus = nf90_inq_varid(ncid,aespec(is),ivarid)
       if ( istatus == nf90_noerr ) then
         istatus = nf90_get_var(ncid,ivarid,aev2(:,:,:,:,is))
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//aespec(is))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//aespec(is))
       else
         aev2(:,:,:,:,is) = d_zero
       end if
@@ -181,11 +203,14 @@ module mod_ae_icbc
          iyear, '-', iyear+9, '.nc'
       write(stdout,*) 'Opening ',trim(aefilename)
       istatus = nf90_open(aefilename,nf90_nowrite, ncid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error open aeid file')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open aeid file')
       istatus = nf90_inq_varid(ncid,'PS',ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var PS')
       istatus = nf90_get_var(ncid,ivarid,xps2)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var PS')
       xps2 = xps2*0.01
       do is = 1 , naesp
         istatus = nf90_inq_varid(ncid,aespec(is),ivarid)
@@ -269,7 +294,8 @@ module mod_ae_icbc
     implicit none
     if ( ncid > 0 ) then
       istatus = nf90_close(ncid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error close aeid file')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close aeid file')
     end if
   end subroutine close_ae_icbc
 

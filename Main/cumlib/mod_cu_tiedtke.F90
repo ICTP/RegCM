@@ -493,7 +493,8 @@ module mod_cu_tiedtke
     end do
 
     if ( lookupoverflow ) then
-      call fatal(__FILE__,__LINE__,'Cumulus Tables lookup error: OVERFLOW')
+      call fatal(__FILE__,__LINE__, &
+                 'Cumulus Tables lookup error: OVERFLOW')
     end if
 
     do jt = 1 , ktrac
@@ -593,7 +594,8 @@ module mod_cu_tiedtke
     prsfc = pmflxr(:,klev+1)*1.D3
     pssfc = pmflxs(:,klev+1)*1.D3
   case default
-    call fatal(__FILE__,__LINE__,'ICONV must be in the range 1-4')
+    call fatal(__FILE__,__LINE__, &
+               'ICONV must be in the range 1-4')
   end select
 !
 !     ------------------------------------------------------------------
@@ -885,7 +887,8 @@ module mod_cu_tiedtke
   end do
 !
   if ( lookupoverflow ) then
-    call fatal(__FILE__,__LINE__,'Cumulus Tables lookup error: OVERFLOW')
+    call fatal(__FILE__,__LINE__, &
+               'Cumulus Tables lookup error: OVERFLOW')
   end if
 !
 !     FIND LOWEST POSSIBLE ORG. DETRAINMENT LEVEL
@@ -1373,7 +1376,8 @@ module mod_cu_tiedtke
   end do
 !
   if ( lookupoverflow ) then
-    call fatal(__FILE__,__LINE__,'Cumulus Tables lookup error: OVERFLOW')
+    call fatal(__FILE__,__LINE__, &
+               'Cumulus Tables lookup error: OVERFLOW')
   end if
 !!
 !!    DEEP CONVECTION IF CLOUD DEPTH > 200 HPA, ELSE SHALLOW
@@ -1814,7 +1818,8 @@ module mod_cu_tiedtke
   end do
 !
   if ( lookupoverflow ) then
-    call fatal(__FILE__,__LINE__,'Cumulus Tables lookup error: OVERFLOW')
+    call fatal(__FILE__,__LINE__, &
+               'Cumulus Tables lookup error: OVERFLOW')
   end if
 !!
 !!    DEEP CONVECTION IF CLOUD DEPTH > 200 HPA, ELSE SHALLOW
@@ -4438,7 +4443,8 @@ module mod_cu_tiedtke
       end do
 
       if (lookupoverflow) then
-        call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
+        call fatal(__FILE__,__LINE__, &
+                   'cumulus tables lookup error: overflow')
       endif
 
       if ( isum == 0 ) exit
@@ -4469,7 +4475,8 @@ module mod_cu_tiedtke
       end do
 
       if (lookupoverflow) then
-        call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
+        call fatal(__FILE__,__LINE__, &
+                   'cumulus tables lookup error: overflow')
       endif
     end do
 
@@ -4504,7 +4511,8 @@ module mod_cu_tiedtke
       end do
 
       if (lookupoverflow) then
-        call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
+        call fatal(__FILE__,__LINE__, &
+                   'cumulus tables lookup error: overflow')
       endif
 
       if ( isum == 0 ) exit
@@ -4533,7 +4541,8 @@ module mod_cu_tiedtke
       end do
 
       if (lookupoverflow) then
-        call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
+        call fatal(__FILE__,__LINE__, &
+                   'cumulus tables lookup error: overflow')
       endif
     end do
 
@@ -4565,7 +4574,8 @@ module mod_cu_tiedtke
       end do
 
       if (lookupoverflow) then
-        call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
+        call fatal(__FILE__,__LINE__, &
+                   'cumulus tables lookup error: overflow')
       endif
 
       ! isum = 0 !AMT fudge to only make one iteration for temporary speed fix
@@ -4594,7 +4604,8 @@ module mod_cu_tiedtke
       end do
 
       if (lookupoverflow) then
-        call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
+        call fatal(__FILE__,__LINE__, &
+                   'cumulus tables lookup error: overflow')
       endif
     end do
 
@@ -4622,7 +4633,8 @@ module mod_cu_tiedtke
     end do
 
     if (lookupoverflow) then
-      call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
+      call fatal(__FILE__,__LINE__, &
+                 'cumulus tables lookup error: overflow')
     endif
 
     do jl = 1 , kproma
@@ -4647,7 +4659,8 @@ module mod_cu_tiedtke
     end do
 
     if (lookupoverflow) then
-      call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
+      call fatal(__FILE__,__LINE__, &
+                 'cumulus tables lookup error: overflow')
     endif
 
   end if

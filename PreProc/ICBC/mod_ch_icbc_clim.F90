@@ -93,17 +93,23 @@ module mod_ch_icbc_clim
     call checkncerr(istatus,__FILE__,__LINE__, &
        'Error open file chemical '//trim(chfilename))
     istatus = nf90_inq_dimid(ncid,'lon',idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lon')
     istatus = nf90_inquire_dimension(ncid,idimid,len=chilon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dim lon')
     istatus = nf90_inq_dimid(ncid,'lat',idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lat')
     istatus = nf90_inquire_dimension(ncid,idimid,len=chjlat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dim lat')
     istatus = nf90_inq_dimid(ncid,'lev',idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lev')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lev')
     istatus = nf90_inquire_dimension(ncid,idimid,len=chilev)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lev')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dim lev')
 
     call getmem2d(pchem_3,1,jx,1,iy,'mod_ch_icbc:pchem_3_1')
     call getmem4d(chv3,1,jx,1,iy,1,chilev,1,nchsp,'mod_ch_icbc:chv3')
@@ -119,27 +125,38 @@ module mod_ch_icbc_clim
     call getmem4d(xinp,1,chilon,1,chjlat,1,chilev,1,nchsp,'mod_ch_icbc:xinp')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var lon')
     istatus = nf90_get_var(ncid,ivarid,cht42lon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var lon')
     istatus = nf90_inq_varid(ncid,'lat',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var lat')
     istatus = nf90_get_var(ncid,ivarid,cht42lat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var lat')
     istatus = nf90_inq_varid(ncid,'hyam',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var hyam')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var hyam')
     istatus = nf90_get_var(ncid,ivarid,cht42hyam)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var hyam')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var hyam')
     istatus = nf90_inq_varid(ncid,'hybm',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var hybm')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var hybm')
     istatus = nf90_get_var(ncid,ivarid,cht42hybm)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var hybm')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var hybm')
     istatus = nf90_inq_varid(ncid,'P0',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var P0')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var P0')
     istatus = nf90_get_var(ncid,ivarid,p0)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var P0')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var P0')
     istatus = nf90_close(ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error close file chemical')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error close file chemical')
 
     p0 = 1000.0
     r4pt = real(ptop)
@@ -250,12 +267,15 @@ module mod_ch_icbc_clim
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
        'mz4_avg_1999-2009_',im1,'.nc'
     istatus = nf90_open(chfilename,nf90_nowrite,ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error open file chemical')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error open file chemical')
     write(stdout, *) trim(chfilename)
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var PS')
     istatus = nf90_get_var(ncid,ivarid,xps)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var PS')
     xps = xps*0.01
     do is = 1 , nchsp
       istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_inst',ivarid)
@@ -300,17 +320,21 @@ module mod_ch_icbc_clim
       end do
     end do
     istatus = nf90_close(ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error close file chemical')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error close file chemical')
     write(chfilename,'(a,i0.2,a)') &
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
        'mz4_avg_1999-2009_',im2,'.nc'
     istatus = nf90_open(chfilename,nf90_nowrite,ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error open file chemical')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error open file chemical')
     write(stdout, *) trim(chfilename)
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var PS')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var PS')
     istatus = nf90_get_var(ncid,ivarid,xps)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var PS')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var PS')
     xps = xps*0.01
     do is = 1 , nchsp
       istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_inst',ivarid)
@@ -355,7 +379,8 @@ module mod_ch_icbc_clim
       end do
     end do
     istatus = nf90_close(ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error close file chemical')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error close file chemical')
   end subroutine read2m
 
   subroutine close_ch_icbc_clim

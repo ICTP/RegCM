@@ -206,7 +206,8 @@ module mod_wrtoxd
         if ( aespec(i) == 'OC2' ) ioc2 = i
       end do
       if ( isoa < 0 .or. ioc2 < 0 ) then
-        call fatal(__FILE__,__LINE__,'Logical error: Search SOA error')
+        call fatal(__FILE__,__LINE__, &
+                   'Logical error: Search SOA error')
       end if
     end if
     if ( sum_sslt_bins ) then
@@ -221,7 +222,8 @@ module mod_wrtoxd
         if ( aespec(i) == 'SSLT04' ) isslt4 = i
       end do
       if ( isslt1 < 0 .or. isslt2 < 0 .or. isslt3 < 0 .or. isslt4 < 0 ) then
-        call fatal(__FILE__,__LINE__,'Logical error: Search SSLT error.')
+        call fatal(__FILE__,__LINE__, &
+                   'Logical error: Search SSLT error.')
       end if
     end if
     v2dvar_base(1)%vname = 'xlon'

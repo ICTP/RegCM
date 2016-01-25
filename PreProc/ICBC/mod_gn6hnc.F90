@@ -255,17 +255,23 @@ module mod_gn6hnc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error open '//trim(pathaddname))
     istatus = nf90_inq_dimid(inet1,'lon',jdim)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find lon dim')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find lon dim')
     istatus = nf90_inquire_dimension(inet1,jdim,len=nlon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lon dim')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire lon dim')
     istatus = nf90_inq_dimid(inet1,'lat',jdim)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find lat dim')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find lat dim')
     istatus = nf90_inquire_dimension(inet1,jdim,len=nlat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lat dim')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire lat dim')
     istatus = nf90_inq_dimid(inet1,'lev',jdim)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find lev dim')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find lev dim')
     istatus = nf90_inquire_dimension(inet1,jdim,len=klev)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lev dim')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire lev dim')
 
     ! Input layer and pressure interpolated values
 
@@ -279,9 +285,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
       istatus = nf90_inq_dimid(inet2,'lon',jdim)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find lon dim')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find lon dim')
       istatus = nf90_inquire_dimension(inet2,jdim,len=nulon)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lon dim')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire lon dim')
       pathaddname = trim(inpglob)// &
             '/HadGEM2/RF/va/va_6hrLev_HadGEM2-ES_historical_'// &
             'r1i1p1_199012010600-199103010000.nc'
@@ -289,9 +297,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
       istatus = nf90_inq_dimid(inet3,'lat',jdim)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find lat dim')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find lat dim')
       istatus = nf90_inquire_dimension(inet3,jdim,len=nvlat)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lat dim')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire lat dim')
       pathaddname = trim(inpglob)// &
             '/HadGEM2/RF/ua/ua_6hrLev_HadGEM2-ES_historical_'// &
             'r1i1p1_199012010600-199103010000.nc'
@@ -332,35 +342,47 @@ module mod_gn6hnc
       qvar => b2(:,:,2*klev+1:3*klev)
       if ( dattyp == 'GFS11' ) then
         istatus = nf90_inq_dimid(inet1,'rhlev',jdim)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error find rhlev dim')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find rhlev dim')
         istatus = nf90_inquire_dimension(inet1,jdim,len=nrhlev)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error inquire rhlev dim')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error inquire rhlev dim')
       else
         call getmem3d(pp3d,1,nlon,1,nlat,1,klev,'mod_gn6hnc:pp3d')
       end if
     end if
 
     istatus = nf90_inq_varid(inet1,'lat',ivar1)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find lat var')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find lat var')
     istatus = nf90_get_var(inet1,ivar1,glat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read lat var')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read lat var')
     istatus = nf90_inq_varid(inet1,'lon',ivar1)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find lon var')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find lon var')
     istatus = nf90_get_var(inet1,ivar1,glon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read lon var')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read lon var')
     if ( dattyp(1:2) == 'HA' ) then
       istatus = nf90_inq_varid(inet2,'lon',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find lon var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find lon var')
       istatus = nf90_get_var(inet2,ivar1,uglon)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read lon var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read lon var')
       istatus = nf90_inq_varid(inet3,'lat',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find lat var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find lat var')
       istatus = nf90_get_var(inet3,ivar1,vglat)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read lat var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read lat var')
       istatus = nf90_close(inet2)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error close ua file')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close ua file')
       istatus = nf90_close(inet3)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error close va file')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close va file')
       call getmem3d(ha_d2_1,1,nulon,1,nlat,1,klev,'mod_gn6hnc:ha_d2_1')
       call getmem3d(ha_d2_2,1,nlon,1,nvlat,1,klev,'mod_gn6hnc:ha_d2_2')
     end if
@@ -377,35 +399,47 @@ module mod_gn6hnc
     if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
          dattyp == 'CCSM3' ) then
       istatus = nf90_inq_varid(inet1,'hyam',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find hyam var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find hyam var')
       istatus = nf90_get_var(inet1,ivar1,ak)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read hyam var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read hyam var')
       istatus = nf90_inq_varid(inet1,'hybm',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find hybm var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find hybm var')
       istatus = nf90_get_var(inet1,ivar1,bk)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read hybm var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read hybm var')
       istatus = nf90_inq_varid(inet1,'P0',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find P0 var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find P0 var')
       istatus = nf90_get_var(inet1,ivar1,dp0)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read P0 var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read P0 var')
       p0 = real(dp0)
       istatus = nf90_inq_varid(inet1,'PHIS',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find PHIS var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find PHIS var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read PHYS var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read PHYS var')
       zsvar(:,:) = zsvar(:,:)*real(regrav)
       where (zsvar < 0.0) zsvar = 0.0
     else if ( dattyp == 'JRA55' ) then
       npl = klev ! Data are on pressure levels
       call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find lev var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find lev var')
       istatus = nf90_get_var(inet1,ivar1,pplev)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read lev var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read lev var')
       istatus = nf90_inq_varid(inet1,'var6',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find var6 var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var6 var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var6 var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var6 var')
       zsvar(:,:) = zsvar(:,:)*real(regrav)
       where (zsvar < 0.0) zsvar = 0.0
       do j = 1 , nlat
@@ -415,25 +449,33 @@ module mod_gn6hnc
       call relmem1d(gltemp)
     else if ( dattyp(1:3) == 'HA_' ) then
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find lev var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find lev var')
       istatus = nf90_get_var(inet1,ivar1,ak)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read lev var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read lev var')
       istatus = nf90_inq_varid(inet1,'b',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find b var')
       istatus = nf90_get_var(inet1,ivar1,bk)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read b var')
       istatus = nf90_inq_varid(inet1,'orog',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read orog var')
       call getmem2d(pmslvar,1,nlon,1,nlat,'mod_gn6hnc:pmslvar')
     else if ( dattyp(1:2) == 'E5' ) then
       npl = klev ! Data are on pressure levels
       call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find lev var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find lev var')
       istatus = nf90_get_var(inet1,ivar1,pplev)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read lev var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read lev var')
       ! Close the T file, get just orography from fixed file.
       istatus = nf90_close(inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -445,9 +487,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
       istatus = nf90_inq_varid(inet1,'geosp',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find geosporog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find geosporog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read orog var')
       zsvar(:,:) = zsvar(:,:)*real(regrav)
       call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
       call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
@@ -462,13 +506,17 @@ module mod_gn6hnc
       end where
     else if ( dattyp(1:3) == 'MP_' ) then
       istatus = nf90_inq_varid(inet1,'hyam',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find hyam var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find hyam var')
       istatus = nf90_get_var(inet1,ivar1,ak)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read hyam var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read hyam var')
       istatus = nf90_inq_varid(inet1,'hybm',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find b var')
       istatus = nf90_get_var(inet1,ivar1,bk)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read b var')
       ! Close the T file, get just orography from fixed file.
       istatus = nf90_close(inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -480,9 +528,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
       istatus = nf90_inq_varid(inet1,'geosp',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find geosporog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find geosporog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read orog var')
       zsvar(:,:) = zsvar(:,:)*real(regrav)
       call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
       call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
@@ -497,13 +547,17 @@ module mod_gn6hnc
       end where
     else if ( dattyp(1:3) == 'CA_' ) then
       istatus = nf90_inq_varid(inet1,'ap',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find ap var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find ap var')
       istatus = nf90_get_var(inet1,ivar1,ak)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read ap var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read ap var')
       istatus = nf90_inq_varid(inet1,'b',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find b var')
       istatus = nf90_get_var(inet1,ivar1,bk)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read b var')
       ! Close the T file, get just orography from fixed file.
       istatus = nf90_close(inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -515,9 +569,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
       istatus = nf90_inq_varid(inet1,'orog',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read orog var')
       call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
       call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
       do j = 1 , nlon
@@ -531,13 +587,17 @@ module mod_gn6hnc
       end where
     else if ( dattyp(1:3) == 'IP_' ) then
       istatus = nf90_inq_varid(inet1,'ap',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find ap var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find ap var')
       istatus = nf90_get_var(inet1,ivar1,ak)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read ap var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read ap var')
       istatus = nf90_inq_varid(inet1,'b',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find b var')
       istatus = nf90_get_var(inet1,ivar1,bk)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read b var')
       ! Close the T file, get just orography from fixed file.
       istatus = nf90_close(inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -549,9 +609,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
       istatus = nf90_inq_varid(inet1,'orog',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read orog var')
       call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
       call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
       do j = 1 , nlon
@@ -565,17 +627,23 @@ module mod_gn6hnc
       end where
     else if ( dattyp(1:3) == 'GF_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find a var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find a var')
       istatus = nf90_get_var(inet1,ivar1,ak)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read a var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read a var')
       istatus = nf90_inq_varid(inet1,'b',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find b var')
       istatus = nf90_get_var(inet1,ivar1,bk)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read b var')
       istatus = nf90_inq_varid(inet1,'p0',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find p0 var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find p0 var')
       istatus = nf90_get_var(inet1,ivar1,dp0)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read p0 var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read p0 var')
       p0 = real(dp0)
       ! Close the T file, get just orography from fixed file.
       istatus = nf90_close(inet1)
@@ -588,9 +656,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
       istatus = nf90_inq_varid(inet1,'orog',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read orog var')
       call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
       call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
       do j = 1 , nlon
@@ -604,17 +674,23 @@ module mod_gn6hnc
       end where
     else if ( dattyp(1:3) == 'MI_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find a var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find a var')
       istatus = nf90_get_var(inet1,ivar1,ak)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read a var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read a var')
       istatus = nf90_inq_varid(inet1,'b',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find b var')
       istatus = nf90_get_var(inet1,ivar1,bk)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read b var')
       istatus = nf90_inq_varid(inet1,'p0',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find p0 var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find p0 var')
       istatus = nf90_get_var(inet1,ivar1,dp0)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read p0 var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read p0 var')
       p0 = real(dp0)
       ! Close the T file, get just orography from fixed file.
       istatus = nf90_close(inet1)
@@ -627,9 +703,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
         'Error open '//trim(pathaddname))
       istatus = nf90_inq_varid(inet1,'orog',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read orog var')
       call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
       call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
       do j = 1 , nlon
@@ -643,17 +721,23 @@ module mod_gn6hnc
       end where
     else if ( dattyp(1:3) == 'CN_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find a var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find a var')
       istatus = nf90_get_var(inet1,ivar1,ak)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read a var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read a var')
       istatus = nf90_inq_varid(inet1,'b',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find b var')
       istatus = nf90_get_var(inet1,ivar1,bk)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read b var')
       istatus = nf90_inq_varid(inet1,'p0',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find p0 var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find p0 var')
       istatus = nf90_get_var(inet1,ivar1,dp0)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read p0 var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read p0 var')
       p0 = real(dp0)
       ! Close the T file, get just orography from fixed file.
       istatus = nf90_close(inet1)
@@ -666,9 +750,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
       istatus = nf90_inq_varid(inet1,'orog',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read orog var')
       call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
       call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
       do j = 1 , nlon
@@ -682,17 +768,23 @@ module mod_gn6hnc
       end where
     else if ( dattyp(1:3) == 'CS_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find a var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find a var')
       istatus = nf90_get_var(inet1,ivar1,ak)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read a var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read a var')
       istatus = nf90_inq_varid(inet1,'b',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find b var')
       istatus = nf90_get_var(inet1,ivar1,bk)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read b var')
       istatus = nf90_inq_varid(inet1,'p0',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find p0 var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find p0 var')
       istatus = nf90_get_var(inet1,ivar1,dp0)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read p0 var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read p0 var')
       p0 = real(dp0)
       ! Close the T file, get just orography from fixed file.
       istatus = nf90_close(inet1)
@@ -705,9 +797,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
       istatus = nf90_inq_varid(inet1,'orog',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read orog var')
       call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
       call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
       do j = 1 , nlon
@@ -723,13 +817,17 @@ module mod_gn6hnc
       npl = klev ! Data are on pressure levels
       call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find lev var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find lev var')
       istatus = nf90_get_var(inet1,ivar1,pplev)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read lev var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read lev var')
       istatus = nf90_inq_varid(inet1,'orog',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find orog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read orog var')
       do j = 1 , nlat
         gltemp(nlat-j+1) = glat(j)
       end do
@@ -739,13 +837,17 @@ module mod_gn6hnc
       npl = klev ! Data are on pressure levels
       call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find lev var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find lev var')
       istatus = nf90_get_var(inet1,ivar1,pplev)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read lev var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read lev var')
       istatus = nf90_inq_varid(inet1,'geo',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find geo var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find geo var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read geo var')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read geo var')
       ! Transform geopotential to elevation
       zsvar(:,:) = zsvar(:,:)/real(egrav)
       call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
@@ -980,7 +1082,8 @@ module mod_gn6hnc
     if ( dattyp == 'GFS11' ) then
       if ( inet(1) > 0 ) then
         istatus = nf90_close(inet(1))
-        call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error close file')
       end if
       write (inname,99001) year, pthsep, 'fnl_', &
            year, month, day, '_', hour, '_00.nc'
@@ -996,33 +1099,39 @@ module mod_gn6hnc
                         'Error find var '//trim(varname(kkrec)))
       end do
       istatus = nf90_get_var(inet(1),ivar(6),vwork(:,:,1))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(6))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(6))
       do j = 1 , nlat
         psvar(:,nlat-j+1) = vwork(:,j,1)*0.01 ! Go to mb
       end do
       istatus = nf90_get_var(inet(1),ivar(1),vwork)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(1))
       do j = 1 , nlat
         tvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
       istatus = nf90_get_var(inet(1),ivar(2),vwork)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(2))
       do j = 1 , nlat
         hvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
       vwork = 0.0
       istatus = nf90_get_var(inet(1),ivar(3),vwork(:,:,klev-nrhlev+1:klev))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(3))
       do j = 1 , nlat
         qvar(:,nlat-j+1,:) = vwork(:,j,:)*0.01
       end do
       istatus = nf90_get_var(inet(1),ivar(4),vwork)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(4))
       do j = 1 , nlat
         uvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
       istatus = nf90_get_var(inet(1),ivar(5),vwork)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(5))
       do j = 1 , nlat
         vvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
@@ -1032,7 +1141,8 @@ module mod_gn6hnc
         do kkrec = 1 , 5
           if ( inet(kkrec) > 0 ) then
             istatus = nf90_close(inet(kkrec))
-            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error close file')
           end if
         end do
         ! monthly files, one for each variable
@@ -1054,19 +1164,25 @@ module mod_gn6hnc
           end if
         end do
         istatus = nf90_inq_dimid(inet(1),'time',timid)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim time')
         istatus = nf90_inquire_dimension(inet(1),timid, len=timlen)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error inquire dim time')
         istatus = nf90_inq_varid(inet(1),'time',timid)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var time')
         istatus = nf90_get_att(inet(1),timid,'units',cunit)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read time units')
         istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read time calendar')
         call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
         call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
         istatus = nf90_get_var(inet(1),timid,xtimes)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read time')
         do it = 1 , timlen
           itimes(it) = timeval2date(xtimes(it),cunit,ccal)
         end do
@@ -1082,22 +1198,26 @@ module mod_gn6hnc
       istart(3) = 1
       istart(4) = it
       istatus = nf90_get_var(inet(1),ivar(1),vwork,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//jra55vars(1))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//jra55vars(1))
       do j = 1 , nlat
         tvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
       istatus = nf90_get_var(inet(2),ivar(2),vwork,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//jra55vars(2))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//jra55vars(2))
       do j = 1 , nlat
         hvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
       istatus = nf90_get_var(inet(4),ivar(4),vwork,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//jra55vars(4))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//jra55vars(4))
       do j = 1 , nlat
         uvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
       istatus = nf90_get_var(inet(5),ivar(5),vwork,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//jra55vars(5))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//jra55vars(5))
       do j = 1 , nlat
         vvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
@@ -1108,7 +1228,8 @@ module mod_gn6hnc
       icount(3) = 27
       vwork = 0.0D0
       istatus = nf90_get_var(inet(3),ivar(3),vwork,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//jra55vars(3))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//jra55vars(3))
       do j = 1 , nlat
         qvar(:,nlat-j+1,:) = vwork(:,j,:)*0.01D0
       end do
@@ -1118,7 +1239,8 @@ module mod_gn6hnc
         do kkrec = 1 , 5
           if ( inet(kkrec) > 0 ) then
             istatus = nf90_close(inet(kkrec))
-            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error close file')
           end if
         end do
         ! yearly files, one for each variable
@@ -1140,19 +1262,25 @@ module mod_gn6hnc
           end if
         end do
         istatus = nf90_inq_dimid(inet(1),'time',timid)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim time')
         istatus = nf90_inquire_dimension(inet(1),timid, len=timlen)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error inquire dim time')
         istatus = nf90_inq_varid(inet(1),'time',timid)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var time')
         istatus = nf90_get_att(inet(1),timid,'units',cunit)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read time units')
         istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read time calendar')
         call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
         call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
         istatus = nf90_get_var(inet(1),timid,xtimes)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read time')
         do it = 1 , timlen
           itimes(it) = timeval2date(xtimes(it),cunit,ccal)
         end do
@@ -1168,15 +1296,20 @@ module mod_gn6hnc
       istart(3) = 1
       istart(4) = it
       istatus = nf90_get_var(inet(1),ivar(1),tvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(1))
       istatus = nf90_get_var(inet(2),ivar(2),hvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(2))
       istatus = nf90_get_var(inet(3),ivar(3),qvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(3))
       istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(4))
       istatus = nf90_get_var(inet(5),ivar(5),vvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(5))
       do k = 1, klev
         pp3d(:,:,k) = pplev(k)*0.01 ! Get in hPa
       end do
@@ -1186,7 +1319,8 @@ module mod_gn6hnc
         do kkrec = 1 , 5
           if ( inet(kkrec) > 0 ) then
             istatus = nf90_close(inet(kkrec))
-            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error close file')
           end if
         end do
         varname => echvars
@@ -1209,19 +1343,25 @@ module mod_gn6hnc
           write (stdout,*) inet(kkrec), trim(pathaddname)
         end do
         istatus = nf90_inq_dimid(inet(1),'time',timid)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim time')
         istatus = nf90_inquire_dimension(inet(1),timid, len=timlen)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error inquire dim time')
         istatus = nf90_inq_varid(inet(1),'time',timid)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var time')
         istatus = nf90_get_att(inet(1),timid,'units',cunit)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read time units')
         istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read time calendar')
         call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
         call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
         istatus = nf90_get_var(inet(1),timid,xtimes)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read time')
         do it = 1 , timlen
           itimes(it) = timeval2date(xtimes(it),cunit,ccal)
         end do
@@ -1237,20 +1377,25 @@ module mod_gn6hnc
       istart(3) = 1
       istart(4) = it
       istatus = nf90_get_var(inet(1),ivar(1),tvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(1))
       istatus = nf90_get_var(inet(2),ivar(2),hvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(2))
       hvar = hvar/egrav ! Get to m
       where ( hvar < 0.0 )
         hvar = 0.0 ! We do not want negative hgt, don't we?
       end where
       ! This is specific humidity
       istatus = nf90_get_var(inet(3),ivar(3),qvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(3))
       istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(4))
       istatus = nf90_get_var(inet(5),ivar(5),vvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(5))
       do k = 1, klev
         pp3d(:,:,k) = pplev(k)*0.01 ! Get in hPa
       end do
@@ -1264,7 +1409,8 @@ module mod_gn6hnc
         if ( idate < ipstimes(1) .or. idate > ipstimes(pstimlen) ) then
           if ( inet(6) > 0 ) then
             istatus = nf90_close(inet(6))
-            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error close file')
           end if
           iyear1 = year
           if ( month == 12 .and. day >= 1 .and. hour > 0 ) then
@@ -1292,19 +1438,25 @@ module mod_gn6hnc
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error open '//trim(pathaddname))
           istatus = nf90_inq_dimid(inet(6),'time',timid)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find dim time')
           istatus = nf90_inquire_dimension(inet(6),timid, len=pstimlen)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error inquire dim time')
           istatus = nf90_inq_varid(inet(6),'time',timid)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var time')
           istatus = nf90_get_att(inet(6),timid,'units',cunit)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time units')
           istatus = nf90_get_att(inet(6),timid,'calendar',ccal)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time calendar')
           call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
           call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
           istatus = nf90_get_var(inet(6),timid,xtimes)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time')
           do it = 1 , pstimlen
             ipstimes(it) = timeval2date(xtimes(it),cunit,ccal)
           end do
@@ -1319,7 +1471,8 @@ module mod_gn6hnc
         if ( idate < ipstimes(1) .or. idate > ipstimes(pstimlen) ) then
           if ( inet(6) > 0 ) then
             istatus = nf90_close(inet(6))
-            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error close file')
           end if
           if ( .not. date_in_scenario(idate,5,.true.) ) then
             if ( year == 2005 ) then
@@ -1368,19 +1521,25 @@ module mod_gn6hnc
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error open '//trim(pathaddname))
           istatus = nf90_inq_dimid(inet(6),'time',timid)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find dim time')
           istatus = nf90_inquire_dimension(inet(6),timid, len=pstimlen)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error inquire dim time')
           istatus = nf90_inq_varid(inet(6),'time',timid)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var time')
           istatus = nf90_get_att(inet(6),timid,'units',cunit)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time units')
           istatus = nf90_get_att(inet(6),timid,'calendar',ccal)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time calendar')
           call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
           call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
           istatus = nf90_get_var(inet(6),timid,xtimes)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time')
           do it = 1 , pstimlen
             ipstimes(it) = timeval2date(xtimes(it),cunit,ccal)
           end do
@@ -1395,7 +1554,8 @@ module mod_gn6hnc
         if ( idate < ipstimes(1) .or. idate > ipstimes(pstimlen) ) then
           if ( inet(6) > 0 ) then
             istatus = nf90_close(inet(6))
-            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error close file')
           end if
           if ( .not. date_in_scenario(idate,5,.true.) ) then
             write (inname,99005) 'RF', pthsep, trim(mirocvars(6)), pthsep, &
@@ -1412,19 +1572,25 @@ module mod_gn6hnc
           call checkncerr(istatus,__FILE__,__LINE__, &
             'Error open '//trim(pathaddname))
           istatus = nf90_inq_dimid(inet(6),'time',timid)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find dim time')
           istatus = nf90_inquire_dimension(inet(6),timid, len=pstimlen)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error inquire dim time')
           istatus = nf90_inq_varid(inet(6),'time',timid)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var time')
           istatus = nf90_get_att(inet(6),timid,'units',cunit)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time units')
           istatus = nf90_get_att(inet(6),timid,'calendar',ccal)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time calendar')
           call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
           call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
           istatus = nf90_get_var(inet(6),timid,xtimes)
-          call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time')
           do it = 1 , pstimlen
             ipstimes(it) = timeval2date(xtimes(it),cunit,ccal)
           end do
@@ -1439,11 +1605,13 @@ module mod_gn6hnc
         if (inet(1) > 0) then
           if ( dattyp == 'CAM4N' ) then
             istatus = nf90_close(inet(1))
-            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error close file')
             filedate = filedate + tdif
           else if ( dattyp == 'CCSM3' ) then
             istatus = nf90_close(inet(1))
-            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error close file')
           else
             if ( dattyp(1:3) == 'HA_' .or. &
                  dattyp(1:3) == 'CS_' .or. &
@@ -1451,14 +1619,16 @@ module mod_gn6hnc
               do i = 1 , nfiles-1
                 if ( havars(i) /= 'XXX' ) then
                   istatus = nf90_close(inet(i))
-                  call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+                  call checkncerr(istatus,__FILE__,__LINE__, &
+                                  'Error close file')
                 end if
               end do
             else
               do i = 1 , nfiles
                 if ( havars(i) /= 'XXX' ) then
                   istatus = nf90_close(inet(i))
-                  call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+                  call checkncerr(istatus,__FILE__,__LINE__, &
+                                  'Error close file')
                 end if
               end do
             end if
@@ -1801,19 +1971,25 @@ module mod_gn6hnc
       end if
 
       istatus = nf90_inq_dimid(inet(1),'time',timid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find dim time')
       istatus = nf90_inquire_dimension(inet(1),timid, len=timlen)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire dim time')
       istatus = nf90_inq_varid(inet(1),'time',timid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var time')
       istatus = nf90_get_att(inet(1),timid,'units',cunit)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read time units')
       istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read time calendar')
       call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
       call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
       istatus = nf90_get_var(inet(1),timid,xtimes)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read time')
       do it = 1 , timlen
         itimes(it) = timeval2date(xtimes(it),cunit,ccal)
       end do
@@ -1840,7 +2016,8 @@ module mod_gn6hnc
         itps = idnint(tohours(tdif))/6 + 1
         istart(3) = itps
         istatus = nf90_get_var(inet(6),ivar(6),pmslvar,istart(1:3),icount(1:3))
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(6))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(6))
         pmslvar(:,:) = pmslvar(:,:)*0.01
       else if ( dattyp(1:3) == 'CS_' .or. &
                 dattyp(1:3) == 'MI_' ) then
@@ -1848,10 +2025,12 @@ module mod_gn6hnc
         itps = idnint(tohours(tdif))/6 + 1
         istart(3) = itps
         istatus = nf90_get_var(inet(6),ivar(6),psvar,istart(1:3),icount(1:3))
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(6))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(6))
       else
         istatus = nf90_get_var(inet(6),ivar(6),psvar,istart(1:3),icount(1:3))
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(6))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(6))
       end if
       icount(1) = nlon
       icount(2) = nlat
@@ -1862,12 +2041,14 @@ module mod_gn6hnc
       istart(3) = 1
       istart(4) = it
       istatus = nf90_get_var(inet(1),ivar(1),tvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(1))
       if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
            dattyp == 'CCSM3' ) then
         ! We have geopotential HGT in m, on hybrid sigma pressure levels
         istatus = nf90_get_var(inet(2),ivar(2),hvar,istart,icount)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(2))
         do k = 1 , klev
           do j = 1 , nlat
             do i = 1 , nlon
@@ -1909,7 +2090,8 @@ module mod_gn6hnc
         pp3d(:,:,:) = pp3d(:,:,:)*0.01
       end if
       istatus = nf90_get_var(inet(3),ivar(3),qvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(3))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(3))
 
       ! Replace with relative humidity for internal calculation
       call humid1fv(tvar,qvar,pp3d,nlon,nlat,klev)
@@ -1918,7 +2100,8 @@ module mod_gn6hnc
         icount(1) = nulon
         icount(2) = nlat
         istatus = nf90_get_var(inet(4),ivar(4),ha_d2_1,istart,icount)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(4))
         do k = 1 , klev
           do j = 1 , nlat
             uvar(1,j,k) = ha_d2_1(1,j,k)
@@ -1939,7 +2122,8 @@ module mod_gn6hnc
         icount(1) = nlon
         icount(2) = nvlat
         istatus = nf90_get_var(inet(5),ivar(5),ha_d2_2,istart,icount)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(5))
         do k = 1 , klev
           do i = 1 , nlon
             vvar(i,1,k) = ha_d2_2(i,1,k)
@@ -1959,9 +2143,11 @@ module mod_gn6hnc
         end do
       else
         istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(4))
         istatus = nf90_get_var(inet(5),ivar(5),vvar,istart,icount)
-        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(5))
       end if
 
     end if ! Other data types not the GFS11 or E_ICH1

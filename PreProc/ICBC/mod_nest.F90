@@ -104,7 +104,8 @@ module mod_nest
 
     if ( idate > itimes(nrec) ) then
       istatus = nf90_close(ncinp)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Error close')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close')
       imf = monfirst(idate)
       write (fillin,'(a,i10)') 'ATM.', toint10(imf)
       if ( coarsedir(1:5) == '     ' ) then
@@ -118,17 +119,22 @@ module mod_nest
         inpfile = trim(inpfile)//trim(coarsedom)//'_'//fillin//'.nc'
       end if
       istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error opening '//trim(inpfile))
       istatus = nf90_inq_dimid(ncinp, 'time', idimid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Dimension time missing')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Dimension time missing')
       istatus = nf90_inquire_dimension(ncinp, idimid, len=nrec)
-      call checkncerr(istatus,__FILE__,__LINE__,'Dimension time read error')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Dimension time read error')
       istatus = nf90_inq_varid(ncinp, 'time', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable time missing')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable time missing')
       call getmem1d(itimes,1,nrec,'mod_nest:itimes')
       call getmem1d(xtimes,1,nrec,'mod_nest:xtimes')
       istatus = nf90_get_var(ncinp, ivarid, xtimes)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable time read error')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable time read error')
       do i = 1 , nrec
         itimes(i) = timeval2date(xtimes(i), timeunits,timecal)
       end do
@@ -144,7 +150,8 @@ module mod_nest
     if (irec < 0) then
       ! Try previous month !
       istatus = nf90_close(ncinp)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error close '//trim(inpfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close '//trim(inpfile))
       imf = prevmon(idate)
       write (fillin,'(a,i10)') 'ATM.', toint10(imf)
       if ( coarsedir(1:5) == '     ' ) then
@@ -158,17 +165,22 @@ module mod_nest
         inpfile = trim(inpfile)//trim(coarsedom)//'_'//fillin//'.nc'
       end if
       istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error opening '//trim(inpfile))
       istatus = nf90_inq_dimid(ncinp, 'time', idimid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Dimension time missing')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Dimension time missing')
       istatus = nf90_inquire_dimension(ncinp, idimid, len=nrec)
-      call checkncerr(istatus,__FILE__,__LINE__,'Dimension time read error')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Dimension time read error')
       istatus = nf90_inq_varid(ncinp, 'time', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable time missing')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable time missing')
       call getmem1d(itimes,1,nrec,'mod_nest:itimes')
       call getmem1d(xtimes,1,nrec,'mod_nest:xtimes')
       istatus = nf90_get_var(ncinp, ivarid, xtimes)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable time read error')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable time read error')
       do i = 1 , nrec
         itimes(i) = timeval2date(xtimes(i), timeunits,timecal)
       end do
@@ -196,42 +208,52 @@ module mod_nest
     istatus = nf90_inq_varid(ncinp, 'ua', ivarid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(ncinp, 'u', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable u/ua missing')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable u/ua missing')
     end if
     istatus = nf90_get_var(ncinp, ivarid, u, istart, icount)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable u/ua read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable u/ua read error')
     istatus = nf90_inq_varid(ncinp, 'va', ivarid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(ncinp, 'v', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable v/va missing')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable v/va missing')
     end if
     istatus = nf90_get_var(ncinp, ivarid, v, istart, icount)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable v/va read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable v/va read error')
     istatus = nf90_inq_varid(ncinp, 'ta', ivarid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(ncinp, 't', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable t/ta missing')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable t/ta missing')
     end if
     istatus = nf90_get_var(ncinp, ivarid, t, istart, icount)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable t/ta read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable t/ta read error')
     lspch = .true.
     istatus = nf90_inq_varid(ncinp, 'qas', ivarid)
     if ( istatus /= nf90_noerr ) then
       lspch = .false.
       istatus = nf90_inq_varid(ncinp, 'qv', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable qv/qas missing')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable qv/qas missing')
     end if
     istatus = nf90_get_var(ncinp, ivarid, q, istart, icount)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable qv read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable qv read error')
     ! Transform specific humidity in mixing ratio
     if ( lspch ) then
       q = q/(d_one-q)
     end if
     if ( oidyn == 2 ) then
       istatus = nf90_inq_varid(ncinp, 'ppa', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable ppa missing')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ppa missing')
       istatus = nf90_get_var(ncinp, ivarid, pp3d, istart, icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable ppa read error')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ppa read error')
       do k = 1 , kz_in
         do i = 1 , iy_in
           do j = 1 , jx_in
@@ -248,13 +270,17 @@ module mod_nest
     icount(2) = iy_in
     icount(1) = jx_in
     istatus = nf90_inq_varid(ncinp, 'ps', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable ps missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable ps missing')
     istatus = nf90_get_var(ncinp, ivarid, ps, istart(1:3), icount(1:3))
-    call checkncerr(istatus,__FILE__,__LINE__,'variable ps read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable ps read error')
     istatus = nf90_inq_varid(ncinp, 'ts', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable ts missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable ts missing')
     istatus = nf90_get_var(ncinp, ivarid, ts_in, istart(1:3), icount(1:3))
-    call checkncerr(istatus,__FILE__,__LINE__,'variable ts read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable ts read error')
 
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
     !
@@ -352,34 +378,47 @@ module mod_nest
     end if
 
     istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Error opening '//trim(inpfile))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error opening '//trim(inpfile))
 
     istatus = nf90_inq_dimid(ncinp, 'iy', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Dimension iy missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension iy missing')
     istatus = nf90_inquire_dimension(ncinp, idimid, len=iy_in)
-    call checkncerr(istatus,__FILE__,__LINE__,'Dimension iy read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension iy read error')
     istatus = nf90_inq_dimid(ncinp, 'jx', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Dimension jx missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension jx missing')
     istatus = nf90_inquire_dimension(ncinp, idimid, len=jx_in)
-    call checkncerr(istatus,__FILE__,__LINE__,'Dimension jx read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension jx read error')
     istatus = nf90_inq_dimid(ncinp, 'kz', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Dimension kz missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension kz missing')
     istatus = nf90_inquire_dimension(ncinp, idimid, len=kz_in)
-    call checkncerr(istatus,__FILE__,__LINE__,'Dimension kz read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension kz read error')
     istatus = nf90_inq_dimid(ncinp, 'time', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Dimension time missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension time missing')
     istatus = nf90_inquire_dimension(ncinp, idimid, len=nrec)
-    call checkncerr(istatus,__FILE__,__LINE__,'Dimension time read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension time read error')
     istatus = nf90_inq_varid(ncinp, 'time', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable time missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable time missing')
     istatus = nf90_get_att(ncinp, ivarid, 'units', timeunits)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable time units missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable time units missing')
     istatus = nf90_get_att(ncinp, ivarid, 'calendar', timecal)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable time calendar missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable time calendar missing')
     call getmem1d(itimes,1,nrec,'mod:nest:itimes')
     call getmem1d(xtimes,1,nrec,'mod:nest:xtimes')
     istatus = nf90_get_var(ncinp, ivarid, xtimes)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable time read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable time read error')
     do i = 1 , nrec
       itimes(i) = timeval2date(xtimes(i), timeunits, timecal)
     end do
@@ -399,9 +438,11 @@ module mod_nest
     call getmem2d(ht_in,1,jx_in,1,iy_in,'mod_nest:ht_in')
 
     istatus = nf90_inq_varid(ncinp, 'sigma', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable sigma error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable sigma error')
     istatus = nf90_get_var(ncinp, ivarid, sigma_in)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable sigma read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable sigma read error')
     if ( sigma_in(1) < dlowval ) then
       ! Fix V. 4.3.x bug in sigma levels
       allocate(sigfix(kz_in+1))
@@ -413,30 +454,41 @@ module mod_nest
       deallocate(sigfix)
     end if
     istatus = nf90_inq_varid(ncinp, 'xlat', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable xlat error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable xlat error')
     istatus = nf90_get_var(ncinp, ivarid, xlat_in)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable xlat read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable xlat read error')
     istatus = nf90_inq_varid(ncinp, 'xlon', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable xlon error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable xlon error')
     istatus = nf90_get_var(ncinp, ivarid, xlon_in)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable xlon read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable xlon read error')
     istatus = nf90_inq_varid(ncinp, 'topo', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable topo error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable topo error')
     istatus = nf90_get_var(ncinp, ivarid, ht_in)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable topo read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable topo read error')
     istatus = nf90_inq_varid(ncinp, 'ptop', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable ptop error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable ptop error')
     istatus = nf90_get_var(ncinp, ivarid, ptop_in)
-    call checkncerr(istatus,__FILE__,__LINE__,'variable ptop read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable ptop read error')
 
     istatus = nf90_get_att(ncinp, nf90_global,'projection', iproj_in)
-    call checkncerr(istatus,__FILE__,__LINE__,'attribure iproj read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'attribure iproj read error')
     istatus = nf90_get_att(ncinp, nf90_global, &
                       'latitude_of_projection_origin', clat_in)
-    call checkncerr(istatus,__FILE__,__LINE__,'attribure clat read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'attribure clat read error')
     istatus = nf90_get_att(ncinp, nf90_global, &
                       'longitude_of_projection_origin', clon_in)
-    call checkncerr(istatus,__FILE__,__LINE__,'attribure clat read error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'attribure clat read error')
     istatus = nf90_get_att(ncinp, nf90_global, 'dynamical_core', oidyn)
     if ( istatus /= nf90_noerr ) then
       oidyn = 1 ! Assume non-hydrostatic
@@ -444,7 +496,8 @@ module mod_nest
 
     if ( iproj_in == 'LAMCON' ) then
       istatus = nf90_get_att(ncinp, nf90_global, 'standard_parallel', trlat)
-      call checkncerr(istatus,__FILE__,__LINE__,'attribure truelat read error')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'attribure truelat read error')
       if ( clat_in < 0. ) then
         xsign = -1.0D0       ! SOUTH HEMESPHERE
       else
@@ -465,10 +518,12 @@ module mod_nest
     else
       istatus = nf90_get_att(ncinp, nf90_global, &
                       'grid_north_pole_latitude', plat_in)
-      call checkncerr(istatus,__FILE__,__LINE__,'attribure plat read error')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'attribure plat read error')
       istatus = nf90_get_att(ncinp, nf90_global, &
                       'grid_north_pole_longitude', plon_in)
-      call checkncerr(istatus,__FILE__,__LINE__,'attribure plon read error')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'attribure plon read error')
       xcone_in = 0.0D0
     end if
 
@@ -492,9 +547,11 @@ module mod_nest
       call getmem3d(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
       call getmem3d(t0_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t0_in')
       istatus = nf90_inq_varid(ncinp, 'p0', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable p0 error')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable p0 error')
       istatus = nf90_get_var(ncinp, ivarid, p0_in)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable p0 read error')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable p0 read error')
       pstar0 = p0_in - ptop_in * d_100
       do k = 1 , kz_in
         do i = 1 , iy_in
@@ -506,9 +563,11 @@ module mod_nest
       end do
     else
       istatus = nf90_inq_varid(ncinp, 'ps', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable ps error')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ps error')
       istatus = nf90_get_var(ncinp, ivarid, p0_in)
-      call checkncerr(istatus,__FILE__,__LINE__,'variable ps read error')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ps read error')
       pstar0 = p0_in - ptop_in * d_100
     end if
 

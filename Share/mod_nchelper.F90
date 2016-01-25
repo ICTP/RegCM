@@ -133,59 +133,75 @@ module mod_nchelper
                'ICTP Regional Climatic model V4')
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding global title')
     incstat = nf90_put_att(ncid, nf90_global, 'institution','ICTP')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global institution')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global institution')
     incstat = nf90_put_att(ncid, nf90_global, 'source', &
                'RegCM Model simulation '//trim(prgname)//' output')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global source')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global source')
     incstat = nf90_put_att(ncid, nf90_global, 'Conventions','CF-1.4')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global Conventions')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global Conventions')
     call date_and_time(values=tvals)
     write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
          tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
          tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
          ' : Created by RegCM '//trim(prgname)
     incstat = nf90_put_att(ncid, nf90_global, 'history', history)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global history')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global history')
     incstat = nf90_put_att(ncid, nf90_global, 'references', &
                'http://gforge.ictp.it/gf/project/regcm')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global references')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global references')
     incstat = nf90_put_att(ncid, nf90_global, 'model_revision',SVN_REV)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global institution')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global institution')
     incstat = nf90_put_att(ncid, nf90_global, 'experiment',domname)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global experiment')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global experiment')
     incstat = nf90_put_att(ncid, nf90_global, 'projection',iproj)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global projection')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global projection')
     if ( lsub ) then
       incstat = nf90_put_att(ncid, nf90_global, &
                              'grid_size_in_meters', (ds*1000.0)/dble(nsg))
-      call checkncerr(incstat,__FILE__,__LINE__,'Error adding global gridsize')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding global gridsize')
       incstat = nf90_put_att(ncid, nf90_global, 'model_subgrid', 'Yes');
       call checkncerr(incstat,__FILE__,__LINE__, &
                       'Error adding global subgrid flag')
     else
       incstat = nf90_put_att(ncid, nf90_global,'grid_size_in_meters', ds*1000.0)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error adding global gridsize')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding global gridsize')
     end if
     incstat = nf90_put_att(ncid, nf90_global, &
                  'latitude_of_projection_origin', clat)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global clat')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global clat')
     incstat = nf90_put_att(ncid, nf90_global,                     &
                  'longitude_of_projection_origin', clon)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global clon')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global clon')
     if (iproj == 'ROTMER') then
       incstat = nf90_put_att(ncid, nf90_global,'grid_north_pole_latitude', plat)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error adding global plat')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding global plat')
       incstat = nf90_put_att(ncid, nf90_global, &
                              'grid_north_pole_longitude', plon)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error adding global plon')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding global plon')
     else if (iproj == 'LAMCON') then
       trlat(1) = real(truelatl)
       trlat(2) = real(truelath)
       incstat = nf90_put_att(ncid, nf90_global,'standard_parallel', trlat)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error adding global truelat')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding global truelat')
     end if
     incstat = nf90_put_att(ncid, nf90_global, 'grid_factor', xcone)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global grid_factor')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global grid_factor')
   end subroutine add_common_global_params
 
   subroutine define_horizontal_coord(ncid,nx,ny,xjx,yiy,idims,ihvar)
@@ -209,25 +225,33 @@ module mod_nchelper
       xjx(j) = real(dble(xjx(j-1))+ds)
     end do
     incstat = nf90_def_var(ncid, 'jx', nf90_float, idims(1), ihvar(1))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable jx')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable jx')
     incstat = nf90_put_att(ncid, ihvar(1), 'standard_name',       &
                            'projection_x_coordinate')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding jx standard_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding jx standard_name')
     incstat = nf90_put_att(ncid, ihvar(1), 'long_name',           &
                            'x-coordinate in Cartesian system')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding jx long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding jx long_name')
     incstat = nf90_put_att(ncid, ihvar(1), 'units', 'km')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding jx units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding jx units')
     incstat = nf90_def_var(ncid, 'iy', nf90_float, idims(2), ihvar(2))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable iy')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable iy')
     incstat = nf90_put_att(ncid, ihvar(2), 'standard_name',       &
                            'projection_y_coordinate')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding iy standard_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding iy standard_name')
     incstat = nf90_put_att(ncid, ihvar(2), 'long_name',           &
                            'y-coordinate in Cartesian system')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding iy long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding iy long_name')
     incstat = nf90_put_att(ncid, ihvar(2), 'units', 'km')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding iy units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding iy units')
   end subroutine define_horizontal_coord
 
   subroutine define_vertical_coord(ncid,idims,izvar)
@@ -237,20 +261,25 @@ module mod_nchelper
     integer(ik4) , intent(out) , dimension(2) :: izvar
 
     incstat = nf90_def_var(ncid, 'sigma', nf90_float, idims(3), izvar(1))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable sigma')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable sigma')
     incstat = nf90_put_att(ncid, izvar(1), 'standard_name', &
                            'atmosphere_sigma_coordinate')
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding sigma standard_name')
     incstat = nf90_put_att(ncid, izvar(1), 'long_name', &
                            'Sigma at model layer midpoints')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding sigma long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding sigma long_name')
     incstat = nf90_put_att(ncid, izvar(1), 'units', '1')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding sigma units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding sigma units')
     incstat = nf90_put_att(ncid, izvar(1), 'axis', 'Z')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding sigma axis')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding sigma axis')
     incstat = nf90_put_att(ncid, izvar(1), 'positive', 'down')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding sigma positive')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding sigma positive')
     if ( idynamic == 2 ) then
       incstat = nf90_put_att(ncid, izvar(1), 'formula', &
              'p(n,k,j,i) = ptop + sigma(k)*(p0(j,i)-ptop) + ppa(n,k,j,i)')
@@ -263,15 +292,19 @@ module mod_nchelper
                              'Error adding sigma formula_terms')
     end if
     incstat = nf90_def_var(ncid, 'ptop', nf90_float, varid=izvar(2))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable ptop')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable ptop')
     incstat = nf90_put_att(ncid, izvar(2), 'standard_name', &
                            'air_pressure')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding ptop standard_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding ptop standard_name')
     incstat = nf90_put_att(ncid, izvar(2), 'long_name', &
                            'Pressure at model top')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding ptop long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding ptop long_name')
     incstat = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding ptop units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding ptop units')
   end subroutine define_vertical_coord
 
   subroutine define_cross_geolocation_coord(ncid,idims,ipnt,ivar)
@@ -282,32 +315,42 @@ module mod_nchelper
     integer(ik4) , dimension(:) , intent(out) :: ivar
 
     incstat = nf90_def_var(ncid, 'xlat', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable xlat')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable xlat')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error setting deflate on xlat')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on xlat')
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'latitude')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding xlat standard_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xlat standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name', &
                            'Latitude at cross points')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding xlat long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xlat long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', 'degrees_north')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding xlat units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xlat units')
     ipnt = ipnt+1
     incstat = nf90_def_var(ncid, 'xlon', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable xlon')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable xlon')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error setting deflate on xlon')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on xlon')
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'longitude')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding xlon standard_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xlon standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name', &
                            'Longitude at cross points')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding xlon long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xlon long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', 'degrees_east')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding xlon units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xlon units')
     ipnt = ipnt + 1
   end subroutine define_cross_geolocation_coord
 
@@ -319,32 +362,42 @@ module mod_nchelper
     integer(ik4) , dimension(:) , intent(out) :: ivar
 
     incstat = nf90_def_var(ncid, 'dlat', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable dlat')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable dlat')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error setting deflate on dlat')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on dlat')
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'latitude')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dlat standard_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dlat standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name', &
                            'Latitude at dot points')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dlat long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dlat long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', 'degrees_north')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dlat units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dlat units')
     ipnt = ipnt+1
     incstat = nf90_def_var(ncid, 'dlon', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable dlon')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable dlon')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error setting deflate on dlon')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on dlon')
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'longitude')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dlon standard_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dlon standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name', &
                            'Longitude at dot points')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dlon long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dlon long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', 'degrees_east')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dlon units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dlon units')
     ipnt = ipnt + 1
   end subroutine define_dot_geolocation_coord
 
@@ -357,37 +410,49 @@ module mod_nchelper
 
 
     incstat = nf90_def_var(ncid, 'topo', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable topo')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable topo')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error setting deflate on topo')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on topo')
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', &
                            'surface_altitude')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding topo standard_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding topo standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name',  &
                            'Domain surface elevation')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding topo long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding topo long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', 'm')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding topo units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding topo units')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'coordinates', 'xlon xlat')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding topo coordinates')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding topo coordinates')
     ipnt = ipnt + 1
     incstat = nf90_def_var(ncid, 'mask', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable mask')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable mask')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error setting deflate on mask')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on mask')
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', &
                            'land_binary_mask')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding mask standard_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding mask standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name', 'Land Sea mask')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding mask long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding mask long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', '1')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding mask units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding mask units')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'coordinates', 'xlon xlat')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding mask coordinates')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding mask coordinates')
     ipnt = ipnt + 1
   end subroutine define_topo_and_mask
 
@@ -399,7 +464,8 @@ module mod_nchelper
     integer(ik4) , dimension(:) , intent(out) :: ivar
 
     incstat = nf90_def_var(ncid, 'landuse', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable landuse')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable landuse')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -428,15 +494,18 @@ module mod_nchelper
               '20 => Water and Land mixture'//char(10)//          &
               '21 => Urban'//char(10)//                           &
               '22 => Sub-Urban')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding landuse legend')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding landuse legend')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'land_type')
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding landuse standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name',  &
                      'Landuse category as defined in BATS1E')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding landuse long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding landuse long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', '1')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding landuse units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding landuse units')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'coordinates', 'xlon xlat')
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding landuse coordinates')
@@ -451,42 +520,56 @@ module mod_nchelper
     integer(ik4) , dimension(:) , intent(out) :: ivar
 
     incstat = nf90_def_var(ncid, 'xmap', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable xmap')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable xmap')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error setting deflate on xmap')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on xmap')
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'map_factor')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding xmap standard_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xmap standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name',  &
                            'Map factor in domain cross points')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding xmap long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xmap long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', '1')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding xmap units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xmap units')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'coordinates', 'xlon xlat')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding xmap coordinates')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xmap coordinates')
     ipnt = ipnt + 1
     incstat = nf90_def_var(ncid, 'dmap', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable dmap')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable dmap')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error setting deflate on dmap')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on dmap')
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'map_factor')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dmap standard_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dmap standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name', &
                            'Map factor in domain dot points')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dmap long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dmap long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', '1')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dmap units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dmap units')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'coordinates', 'dlon dlat')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dmap coordinates')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dmap coordinates')
     ipnt = ipnt + 1
     incstat = nf90_def_var(ncid, 'coriol', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable coriol')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable coriol')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error setting deflate on coriol')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on coriol')
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', &
                            'coriolis_parameter')
@@ -494,11 +577,14 @@ module mod_nchelper
                     'Error adding coriol standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name', &
                            'Coriolis force parameter')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding coriol long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding coriol long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', 's-1')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding coriol units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding coriol units')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'coordinates', 'xlon xlat')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding coriol coordinates')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding coriol coordinates')
     ipnt = ipnt + 1
   end subroutine define_mapfactor_and_coriolis
 
@@ -510,21 +596,26 @@ module mod_nchelper
     integer(ik4) , dimension(:) , intent(out) :: ivar
 
     incstat = nf90_def_var(ncid, 'snowam', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable snowam')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable snowam')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error setting deflate on snowam')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on snowam')
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'snowfall_amount')
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding snowam standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name', &
                            'Snow initial amount in mm')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding snowam long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding snowam long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', 'kg m-2')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding snowam units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding snowam units')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'coordinates', 'xlon xlat')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding snowam coordinates')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding snowam coordinates')
     ipnt = ipnt + 1
   end subroutine define_initial_snow
 
@@ -537,22 +628,28 @@ module mod_nchelper
     real(rk4) , parameter :: fillv = 0.0
 
     incstat = nf90_def_var(ncid, 'dhlake', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable dhlake')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable dhlake')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error setting deflate on dhlake')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on dhlake')
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'depth')
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding dhlake standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name', 'Depth')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dhlake long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dhlake long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', 'm')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dhlake units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dhlake units')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'coordinates', 'xlon xlat')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dhlake coordinates')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dhlake coordinates')
     incstat = nf90_put_att(ncid, ivar(ipnt), '_FillValue', fillv)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dhlake _FillValue')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dhlake _FillValue')
     ipnt = ipnt + 1
   end subroutine define_lakedepth
 
@@ -565,7 +662,8 @@ module mod_nchelper
     integer(ik4) , dimension(3) :: itmpdims
 
     incstat = nf90_def_var(ncid, 'texture', nf90_float, idims(1:2), ivar(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable texture')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable texture')
 #ifdef NETCDF4_HDF5
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -589,15 +687,18 @@ module mod_nchelper
             '15 => Bedrock'//char(10)//                  &
             '16 => Other'//char(10)//                    &
             '17 => No data')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding texture legend')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding texture legend')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'soil_type')
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding texture standard_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name', &
                            'Texture dominant category')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding texture long_name')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding texture long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', '1')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding texture units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding texture units')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'coordinates', 'xlon xlat')
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding texture coordinates')
@@ -623,7 +724,8 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding text_frac long_name')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'units', '1')
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding text_frac units')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding text_frac units')
     incstat = nf90_put_att(ncid, ivar(ipnt), 'coordinates', 'xlon xlat')
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding text_frac coordinates')
@@ -637,9 +739,11 @@ module mod_nchelper
     real(rk4) , intent(in) :: ptop
     integer(ik4) , intent(in) , dimension(2) :: izvar
     incstat = nf90_put_var(ncid, izvar(1), sigma)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error variable sigma write')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable sigma write')
     incstat = nf90_put_var(ncid, izvar(2), ptop)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error variable ptop write')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable ptop write')
   end subroutine write_vertical_coord
 
   subroutine write_horizontal_coord(ncid,xjx,yiy,ihvar)
@@ -648,9 +752,11 @@ module mod_nchelper
     real(rk4) , dimension(:) , intent(in) :: xjx , yiy
     integer(ik4) , intent(in) , dimension(2) :: ihvar
     incstat = nf90_put_var(ncid, ihvar(1), xjx)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error variable jx write')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable jx write')
     incstat = nf90_put_var(ncid, ihvar(2), yiy)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error variable iy write')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable iy write')
   end subroutine write_horizontal_coord
 
   subroutine write_var1d_static_single(ncid,vnam,values,ipnt,ivar)
@@ -661,7 +767,8 @@ module mod_nchelper
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , intent(in) , dimension(:) :: ivar
     incstat = nf90_put_var(ncid, ivar(ipnt), values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error variable '//vnam//' write')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable '//vnam//' write')
     ipnt = ipnt + 1
     if ( debug_level > 2 ) then
       incstat = nf90_sync(ncid)
@@ -678,7 +785,8 @@ module mod_nchelper
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , intent(in) , dimension(:) :: ivar
     incstat = nf90_put_var(ncid, ivar(ipnt), values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error variable '//vnam//' write')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable '//vnam//' write')
     ipnt = ipnt + 1
     if ( debug_level > 2 ) then
       incstat = nf90_sync(ncid)
@@ -695,7 +803,8 @@ module mod_nchelper
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , intent(in) , dimension(:) :: ivar
     incstat = nf90_put_var(ncid, ivar(ipnt), values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error variable '//vnam//' write')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable '//vnam//' write')
     ipnt = ipnt + 1
     if ( debug_level > 2 ) then
       incstat = nf90_sync(ncid)
@@ -712,7 +821,8 @@ module mod_nchelper
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , intent(in) , dimension(:) :: ivar
     incstat = nf90_put_var(ncid, ivar(ipnt), values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error variable '//vnam//' write')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable '//vnam//' write')
     ipnt = ipnt + 1
     if ( debug_level > 2 ) then
       incstat = nf90_sync(ncid)
@@ -729,7 +839,8 @@ module mod_nchelper
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , intent(in) , dimension(:) :: ivar
     incstat = nf90_put_var(ncid, ivar(ipnt), values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error variable '//vnam//' write')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable '//vnam//' write')
     ipnt = ipnt + 1
     if ( debug_level > 2 ) then
       incstat = nf90_sync(ncid)
@@ -769,9 +880,11 @@ module mod_nchelper
     character(len=*) , dimension(:) :: values
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid, vnam, ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error read '//vnam)
   end subroutine read_var1d_static_text
 
   subroutine read_var1d_static_single(ncid,vnam,values,lerror)
@@ -790,9 +903,11 @@ module mod_nchelper
         end if
       end if
     end if
-    call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error read '//vnam)
   end subroutine read_var1d_static_single
 
   subroutine read_var1d_static_double(ncid,vnam,values,lerror)
@@ -811,9 +926,11 @@ module mod_nchelper
         end if
       end if
     end if
-    call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error read '//vnam)
   end subroutine read_var1d_static_double
 
   subroutine read_var1d_static_integer(ncid,vnam,values,lerror)
@@ -832,9 +949,11 @@ module mod_nchelper
         end if
       end if
     end if
-    call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error read '//vnam)
   end subroutine read_var1d_static_integer
 
   subroutine read_var1d_static_double_fix(ncid,vnam,n,values,lerror)
@@ -854,9 +973,11 @@ module mod_nchelper
         end if
       end if
     end if
-    call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error read '//vnam)
   end subroutine read_var1d_static_double_fix
 
   subroutine read_var1d_static_single_fix(ncid,vnam,n,values,lerror)
@@ -876,9 +997,11 @@ module mod_nchelper
         end if
       end if
     end if
-    call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error read '//vnam)
   end subroutine read_var1d_static_single_fix
 
   subroutine read_var1d_static_integer_fix(ncid,vnam,n,values,lerror)
@@ -898,9 +1021,11 @@ module mod_nchelper
         end if
       end if
     end if
-    call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error search '//vnam)
     incstat = nf90_get_var(ncid, ivarid, values)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error read '//vnam)
   end subroutine read_var1d_static_integer_fix
 
   subroutine read_var2d_static_double(ncid,vnam,values,lerror,istart,icount)
@@ -917,17 +1042,21 @@ module mod_nchelper
         lerror = .false.
         return
       end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     else
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     end if
     if ( present(istart) .and. present(icount) ) then
       incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     else
       incstat = nf90_get_var(ncid, ivarid, values)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     end if
   end subroutine read_var2d_static_double
 
@@ -945,17 +1074,21 @@ module mod_nchelper
         lerror = .false.
         return
       end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     else
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     end if
     if ( present(istart) .and. present(icount) ) then
       incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     else
       incstat = nf90_get_var(ncid, ivarid, values)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     end if
   end subroutine read_var2d_static_single
 
@@ -973,17 +1106,21 @@ module mod_nchelper
         lerror = .false.
         return
       end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     else
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     end if
     if ( present(istart) .and. present(icount) ) then
       incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     else
       incstat = nf90_get_var(ncid, ivarid, values)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     end if
   end subroutine read_var2d_static_integer
 
@@ -1003,17 +1140,21 @@ module mod_nchelper
         lerror = .false.
         return
       end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     else
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     end if
     if ( present(istart) .and. present(icount) ) then
       incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     else
       incstat = nf90_get_var(ncid, ivarid, values)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     end if
   end subroutine read_var2d_static_double_fix
 
@@ -1033,17 +1174,21 @@ module mod_nchelper
         lerror = .false.
         return
       end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     else
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     end if
     if ( present(istart) .and. present(icount) ) then
       incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     else
       incstat = nf90_get_var(ncid, ivarid, values)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     end if
   end subroutine read_var2d_static_single_fix
 
@@ -1063,17 +1208,21 @@ module mod_nchelper
         lerror = .false.
         return
       end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     else
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     end if
     if ( present(istart) .and. present(icount) ) then
       incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     else
       incstat = nf90_get_var(ncid, ivarid, values)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     end if
   end subroutine read_var2d_static_integer_fix
 
@@ -1091,17 +1240,21 @@ module mod_nchelper
         lerror = .false.
         return
       end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     else
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     end if
     if ( present(istart) .and. present(icount) ) then
       incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     else
       incstat = nf90_get_var(ncid, ivarid, values)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     end if
   end subroutine read_var3d_static_double
 
@@ -1119,17 +1272,21 @@ module mod_nchelper
         lerror = .false.
         return
       end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     else
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     end if
     if ( present(istart) .and. present(icount) ) then
       incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     else
       incstat = nf90_get_var(ncid, ivarid, values)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     end if
   end subroutine read_var3d_static_single
 
@@ -1147,17 +1304,21 @@ module mod_nchelper
         lerror = .false.
         return
       end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     else
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     end if
     if ( present(istart) .and. present(icount) ) then
       incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     else
       incstat = nf90_get_var(ncid, ivarid, values)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     end if
   end subroutine read_var3d_static_integer
 
@@ -1177,17 +1338,21 @@ module mod_nchelper
         lerror = .false.
         return
       end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     else
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     end if
     if ( present(istart) .and. present(icount) ) then
       incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     else
       incstat = nf90_get_var(ncid, ivarid, values)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     end if
   end subroutine read_var3d_static_double_fix
 
@@ -1207,17 +1372,21 @@ module mod_nchelper
         lerror = .false.
         return
       end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     else
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     end if
     if ( present(istart) .and. present(icount) ) then
       incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     else
       incstat = nf90_get_var(ncid, ivarid, values)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     end if
   end subroutine read_var3d_static_single_fix
 
@@ -1237,17 +1406,21 @@ module mod_nchelper
         lerror = .false.
         return
       end if
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     else
       incstat = nf90_inq_varid(ncid, vnam, ivarid)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error search '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error search '//vnam)
     end if
     if ( present(istart) .and. present(icount) ) then
       incstat = nf90_get_var(ncid, ivarid, values, istart, icount)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     else
       incstat = nf90_get_var(ncid, ivarid, values)
-      call checkncerr(incstat,__FILE__,__LINE__,'Error read '//vnam)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error read '//vnam)
     end if
   end subroutine read_var3d_static_integer_fix
 
@@ -1258,11 +1431,14 @@ module mod_nchelper
     integer(ik4) , intent(inout) , dimension(:) :: idims
     integer(ik4) , intent(inout) :: ipnt
     incstat = nf90_def_dim(ncid, 'jx', nx, idims(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dimension jx')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dimension jx')
     incstat = nf90_def_dim(ncid, 'iy', ny, idims(ipnt+1))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dimension iy')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dimension iy')
     incstat = nf90_def_dim(ncid, 'kz', nz, idims(ipnt+2))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dimension kz')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dimension kz')
     ipnt = ipnt + 3
   end subroutine define_basic_dimensions
 
@@ -1277,7 +1453,8 @@ module mod_nchelper
     incstat = nd
     if ( nd == -1 ) incstat = nf90_unlimited
     incstat = nf90_def_dim(ncid, dnam, incstat, idims(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding dimension '//dnam)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dimension '//dnam)
     ipnt = ipnt + 1
   end subroutine add_dimension
 
@@ -1328,10 +1505,12 @@ module mod_nchelper
         return
       end if
     end if
-    call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension '//dname)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error search dimension '//dname)
     if ( present(dlen) ) then
       istatus = nf90_inquire_dimension(ncid, idimid, len=dlen)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension '//dname)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read dimension '//dname)
     end if
   end subroutine ncd_inqdim
 
@@ -1347,7 +1526,8 @@ module mod_nchelper
     else
       istat = nf90_put_att(ncid,nf90_global,aname,aval)
     end if
-    call checkncerr(istat,__FILE__,__LINE__,'Error adding attribute '//aname)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error adding attribute '//aname)
   end subroutine add_attribute
 
   subroutine get_attribute(ncid,aname,aval,ivar)
@@ -1362,7 +1542,8 @@ module mod_nchelper
     else
       istat = nf90_get_att(ncid,nf90_global,aname,aval)
     end if
-    call checkncerr(istat,__FILE__,__LINE__,'Error reading attribute '//aname)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error reading attribute '//aname)
   end subroutine get_attribute
 
   logical function check_dimlen(ncid,dname,ival)
@@ -1387,27 +1568,33 @@ module mod_nchelper
     integer(ik4) :: idimid
     integer(ik4) :: iyy , jxx , kzz
     istatus = nf90_inq_dimid(ncid, 'jx', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension JX')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error search dimension JX')
     istatus = nf90_inquire_dimension(ncid, idimid, len=jxx)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension JX')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read dimension JX')
     if ( jx /= jxx ) then
       write(stderr,*) 'DOMAIN FILE : ', jxx
       write(stderr,*) 'NAMELIST    : ', jx
       call die('Mismatch: JX in DOMAIN file /= JX in namelist')
     end if
     istatus = nf90_inq_dimid(ncid, 'iy', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension IY')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error search dimension IY')
     istatus = nf90_inquire_dimension(ncid, idimid, len=iyy)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension IY')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read dimension IY')
     if ( iy /= iyy ) then
       write(stderr,*) 'DOMAIN FILE : ', iyy
       write(stderr,*) 'NAMELIST    : ', iy
       call die('Mismatch: IY in DOMAIN file /= IY in namelist')
     end if
     istatus = nf90_inq_dimid(ncid, 'kz', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension KZ')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error search dimension KZ')
     istatus = nf90_inquire_dimension(ncid, idimid, len=kzz)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension KZ')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read dimension KZ')
     if ( kz /= kzz ) then
       write(stderr,*) 'DOMAIN FILE : ', kzz
       write(stderr,*) 'NAMELIST    : ', kz
@@ -1426,11 +1613,14 @@ module mod_nchelper
     integer(ik4) , dimension(:) , intent(inout) :: ivars
     integer(ik4) :: incstat
     incstat = nf90_def_var(ncid, varname, nf90_double, idims, ivars(ipnt))
-    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable '//varname)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable '//varname)
     incstat = nf90_put_att(ncid, ivars(ipnt), 'long_name',long_name)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error long_name to '//varname)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error long_name to '//varname)
     incstat = nf90_put_att(ncid, ivars(ipnt), 'units', units)
-    call checkncerr(incstat,__FILE__,__LINE__,'Error units to '//varname)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error units to '//varname)
     ipnt = ipnt + 1
   end subroutine add_variable
 
@@ -1450,7 +1640,8 @@ module mod_nchelper
         end if
       end if
     end if
-    call checkncerr(istatus,__FILE__,__LINE__,'Error search '//vname)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error search '//vname)
   end subroutine check_var
 
   subroutine closefile(ncid)
@@ -1458,7 +1649,8 @@ module mod_nchelper
     integer(ik4) , intent(in) :: ncid
     integer(ik4) :: istatus
     istatus = nf90_close(ncid)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Error closing file')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error closing file')
   end subroutine closefile
 
   subroutine checkncerr(ival,filename,line,arg)

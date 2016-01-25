@@ -170,8 +170,9 @@ module mod_ncep
       icount(4) = 1
       inet = inet5(kkrec)
       istatus = nf90_get_var(inet,ivar5(kkrec),work,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
-                    'read error in file'//trim(pathaddname))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Variable '//varname(kkrec)// &
+                      'read error in file'//trim(pathaddname))
       if ( kkrec == 1 ) then
         do k = 1 , klev
           do j = 1 , jlat
@@ -288,8 +289,9 @@ module mod_ncep
       icount(4) = 1
       inet = inet5(kkrec)
       istatus = nf90_get_var(inet,ivar5(kkrec),work,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
-                    'read error in file'//trim(pathaddname))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Variable '//varname(kkrec)// &
+                      'read error in file'//trim(pathaddname))
       xscale = xscl(kkrec)
       xadd = xoff(kkrec)
       do ilev = 1 , nlev
@@ -358,25 +360,32 @@ module mod_ncep
            dattyp//'/',year , '/air.' , year,'.nc'
     end if
     istatus = nf90_open(inpfile,nf90_nowrite,inet)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error opening '//trim(inpfile))
     istatus = nf90_inq_dimid(inet,'lon',iddim)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_dimid(inet,'longitude',iddim)
     end if
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lon')
     istatus = nf90_inquire_dimension(inet,iddim, len=ilon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dim lon')
     istatus = nf90_inq_dimid(inet,'lat',iddim)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_dimid(inet,'latitude',iddim)
     end if
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lat')
     istatus = nf90_inquire_dimension(inet,iddim, len=jlat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dim lat')
     istatus = nf90_inq_dimid(inet,'level',iddim)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim level')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim level')
     istatus = nf90_inquire_dimension(inet,iddim, len=klev)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim level')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dim level')
 
     call getmem1d(glon,1,ilon,'mod_ncep:glon')
     call getmem1d(glat,1,jlat,'mod_ncep:glat')
@@ -385,9 +394,11 @@ module mod_ncep
     call getmem1d(sigma1,1,klev,'mod_ncep:sigma1')
 
     istatus = nf90_inq_varid(inet,'level',idv)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var level')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var level')
     istatus = nf90_get_var(inet,idv,sigma1)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read level')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read level')
     ! Invert levels
     do k = 1 , klev
       sigmar(k) = sigma1(klev-k+1)/1000.0D0
@@ -399,18 +410,23 @@ module mod_ncep
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(inet,'longitude',idv)
     end if
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var lon')
     istatus = nf90_get_var(inet,idv,glon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read lon')
     istatus = nf90_inq_varid(inet,'lat',idv)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(inet,'latitude',idv)
     end if
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var lon')
     istatus = nf90_get_var(inet,idv,glat1)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read lat')
     istatus = nf90_close(inet)
-    call checkncerr(istatus,__FILE__,__LINE__,'Cannot close file')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Cannot close file')
 
     write(stdout,*) 'Read static data'
 

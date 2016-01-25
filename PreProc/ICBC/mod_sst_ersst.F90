@@ -92,13 +92,17 @@ module mod_sst_ersst
     lfirst = .true.
     write (stdout,*) 'Opened ', trim(inpfile)
     istatus = nf90_inq_dimid(inet,'longitude',dimi)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find lon dim')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find lon dim')
     istatus = nf90_inquire_dimension(inet,dimi,len=ilon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lon dim')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire lon dim')
     istatus = nf90_inq_dimid(inet,'latitude',dimi)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find lat dim')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find lat dim')
     istatus = nf90_inquire_dimension(inet,dimi,len=jlat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lat dim')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire lat dim')
 
     call getmem1d(loni,1,ilon,'sst_ersst:loni')
     call getmem1d(lati,1,jlat,'sst_ersst:lati')
@@ -106,20 +110,25 @@ module mod_sst_ersst
     call getmem2d(work,1,ilon,1,jlat,'sst_ersst:work')
 
     istatus = nf90_inq_varid(inet,'longitude',vari)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find lon var')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find lon var')
     istatus = nf90_get_var(inet,vari,loni)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read lon var')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read lon var')
     istatus = nf90_inq_varid(inet,'latitude',vari)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find lat var')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find lat var')
     istatus = nf90_get_var(inet,vari,lati)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read lat var')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read lat var')
 
     idate = globidate1
     do it = 1 , nsteps
       call split_idate(idate,year,month,day,hour)
       if ( year /= isyear ) then
         istatus = nf90_close(inet)
-        call checkncerr(istatus,__FILE__,__LINE__,'Cannot close file')
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Cannot close file')
         write (inpfile,'(a,i0.4,a)') &
                trim(inpglob)//pthsep//ssttyp//pthsep// &
                'SST'//pthsep//'sst.',year, '.nc'

@@ -133,7 +133,8 @@ module mod_che_bdyco
         ! Cannot run without initial conditions
         !
         appdat = tochar(chbdydate1)
-        call fatal(__FILE__,__LINE__,'CHBC for '//appdat//' not found')
+        call fatal(__FILE__,__LINE__, &
+                   'CHBC for '//appdat//' not found')
       end if
 
       call read_chbc(chebdy)
@@ -201,7 +202,8 @@ module mod_che_bdyco
         datefound = chbc_search(chbdydate2)
         if (datefound < 0) then
           appdat = tochar(chbdydate2)
-          call fatal(__FILE__,__LINE__,'CHBC for '//appdat//' not found')
+          call fatal(__FILE__,__LINE__, &
+                     'CHBC for '//appdat//' not found')
         end if
       end if
 
@@ -325,7 +327,8 @@ module mod_che_bdyco
         datefound = chbc_search(chbdydate2)
         if (datefound < 0) then
           appdat = tochar(chbdydate2)
-          call fatal(__FILE__,__LINE__,'CHBC for '//appdat//' not found')
+          call fatal(__FILE__,__LINE__, &
+                     'CHBC for '//appdat//' not found')
         end if
       end if
 

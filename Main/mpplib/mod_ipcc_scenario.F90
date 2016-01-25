@@ -1762,7 +1762,8 @@ module mod_ipcc_scenario
       case default
         write (stderr,*) 'Unsupported emission scenario: ', csc
         write (stderr,*) 'Use one in SRES/RCP ', scenarios
-        call fatal(__FILE__,__LINE__,'UNSUPPORTED EMISSION SCENARIO')
+        call fatal(__FILE__,__LINE__, &
+                   'UNSUPPORTED EMISSION SCENARIO')
     end select
     if ( itweak == 1 ) then
       if ( itweak_greenhouse_gases == 1 ) then

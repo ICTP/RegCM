@@ -274,7 +274,8 @@ module mod_pbl_thetal
             if ( itqt > imax ) then
               write(stderr,*) '(mod_thetal) warning: non-convergence of ', &
                          'temperature solution'
-              call fatal(__FILE__,__LINE__,'model stops for UW PBL error')
+              call fatal(__FILE__,__LINE__, &
+                         'model stops for UW PBL error')
             end if
             itqt = itqt + 1
             cycle bigloop

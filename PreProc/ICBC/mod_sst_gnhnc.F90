@@ -122,45 +122,56 @@ module mod_sst_gnhnc
     end if
 
     istatus = nf90_open(inpfile,nf90_nowrite,inet1)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error opening '//trim(inpfile))
     write (stdout,*) 'Opened ', trim(inpfile)
 
     istatus = nf90_inq_dimid(inet1,'lat',latid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_dimid(inet1,'latitude',latid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find dim lat')
     end if
     istatus = nf90_inq_dimid(inet1,'lon',lonid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_dimid(inet1,'longitude',lonid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find dim lon')
     end if
     istatus = nf90_inquire_dimension(inet1,latid,len=jlat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dim lat')
     istatus = nf90_inquire_dimension(inet1,lonid,len=ilon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dim lon')
 
     istatus = nf90_inq_dimid(inet1,'time',timid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lon')
     istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dim time')
 
     call getmem1d(work1,1,timlen,'mod_gnhnc_sst:work1')
 
     istatus = nf90_inq_varid(inet1,'lat',latid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(inet1,'latitude',latid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find var lat')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var lat')
     end if
     istatus = nf90_inq_varid(inet1,'lon',lonid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(inet1,'longitude',lonid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var lon')
     end if
     istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(1))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var '//varname(1))
     istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(2))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var '//varname(2))
 
     call getmem1d(glat,1,jlat,'mod_gnhnc_sst:glat')
     call getmem1d(glon,1,ilon,'mod_gnhnc_sst:glon')
@@ -168,9 +179,11 @@ module mod_sst_gnhnc
     call getmem2d(glon2,1,ilon,1,jlat,'mod_gnhnc_sst:glon2')
 
     istatus = nf90_get_var(inet1,latid,glat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var lat')
     istatus = nf90_get_var(inet1,lonid,glon)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error read var lon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var lon')
     do j = 1 , ilon
       glat2(j,:) = glat(:)
     end do
@@ -187,7 +200,8 @@ module mod_sst_gnhnc
       istart(1) = 1
       icount(1) = timlen
       istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(1))
 
       istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -267,7 +281,8 @@ module mod_sst_gnhnc
     if ( it > timlen ) then
       ! Try switching to next file
       istatus = nf90_close(inet1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error Close file')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error Close file')
       call split_idate(idate, year, month, day, hour)
       y1 = year
       m1 = month
@@ -294,21 +309,27 @@ module mod_sst_gnhnc
         call find_ccsm3_file(inpfile,year,month,day,hour)
       end if
       istatus = nf90_open(inpfile,nf90_nowrite,inet1)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error opening '//trim(inpfile))
       write (stdout,*) 'Opened ', trim(inpfile)
       istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(1))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var '//varname(1))
       istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(2))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var '//varname(2))
       istatus = nf90_inq_dimid(inet1,'time',timid)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find dim time')
       istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire dim time')
       call getmem1d(work1,1,timlen,'mod_gnhnc_sst:work1')
       istart(1) = 1
       icount(1) = timlen
       istatus = nf90_get_var(inet1,ivar2(1),work1,istart(1:1),icount(1:1))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(1))
       istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(1)//' units')
@@ -327,14 +348,16 @@ module mod_sst_gnhnc
     istart(3) = it
     if ( ssttyp == 'EIXXX' .or. ssttyp(1:3) == 'CFS' ) then
       istatus = nf90_get_var(inet1,ivar2(2),work,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(2))
       work2 = 1E+20
       where ( work /= fillvalue )
         work2 = work * scale_factor + add_offset
       end where
     else
       istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(2))
       if ( ssttyp(1:2) == 'E5' ) then
         where ( abs(work2-273.15) < 0.001 )
           work2 = 1E+20

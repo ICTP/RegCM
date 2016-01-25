@@ -1384,7 +1384,8 @@ module mod_cu_tiedtke_38r2
       end if
     else
 #ifndef TESTME
-      call fatal(__FILE__,__LINE__,'Unknown method kcall in cuadjtq')
+      call fatal(__FILE__,__LINE__, &
+                 'Unknown method kcall in cuadjtq')
 #endif
     end if
   end subroutine cuadjtq
@@ -5111,7 +5112,8 @@ module mod_cu_tiedtke_38r2
               write (61,'(i4,e12.4)') jn , zsumc(jl,4+jn)
             end do
 #ifndef TESTME
-            call fatal(__FILE__,__LINE__,'ERROR IN TRACER CONSERVATION')
+            call fatal(__FILE__,__LINE__, &
+                       'ERROR IN TRACER CONSERVATION')
 #endif
           end if
           ikb = kctop(jl)

@@ -107,11 +107,13 @@ program ncprepare
   end if
 
   istatus = nf90_open(ncfile, nf90_nowrite, ncid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error Open file '//trim(ncfile))
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error Open file '//trim(ncfile))
 
   if ( lclm ) then
     istatus = nf90_open(clmfile, nf90_nowrite, ncid_clm)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error Open file '//trim(clmfile))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error Open file '//trim(clmfile))
     istatus = nf90_inquire(ncid_clm,ndims,nvars,natts,udimid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire file '//trim(ncfile))
@@ -122,9 +124,11 @@ program ncprepare
   end if
 
   allocate(lvarflag(nvars), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__,'lvarflag')
+  call checkalloc(istatus,__FILE__,__LINE__, &
+                  'lvarflag')
   allocate(dimids(ndims), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__,'dimids')
+  call checkalloc(istatus,__FILE__,__LINE__, &
+                  'dimids')
 
   open(11, file=tmpctl, form='formatted', status='replace')
   if ( lclm ) then
@@ -138,7 +142,8 @@ program ncprepare
   end if
 
   istatus = nf90_get_att(ncid, nf90_global, 'title', charatt)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error reading title attribute')
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error reading title attribute')
   write(11, '(a)') 'title '//trim(charatt)
 
   istatus = nf90_get_att(ncid, nf90_global, 'ipcc_scenario_code', charatt)
@@ -151,31 +156,39 @@ program ncprepare
     if (istatus /= nf90_noerr) then
       istatus = nf90_inq_dimid(ncid_clm, "x", jxdimid)
     end if
-    call checkncerr(istatus,__FILE__,__LINE__,'Dimension x missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension x missing')
     istatus = nf90_inquire_dimension(ncid_clm, jxdimid, len=jx)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension x')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dimension x')
     istatus = nf90_inq_dimid(ncid_clm, "lat", iydimid)
     if (istatus /= nf90_noerr) then
       istatus = nf90_inq_dimid(ncid_clm, "y", iydimid)
     end if
-    call checkncerr(istatus,__FILE__,__LINE__,'Dimension y missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension y missing')
     istatus = nf90_inquire_dimension(ncid_clm, iydimid, len=iy)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension y')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dimension y')
   else
     istatus = nf90_inq_dimid(ncid, "jx", jxdimid)
     if (istatus /= nf90_noerr) then
       istatus = nf90_inq_dimid(ncid, "x", jxdimid)
     end if
-    call checkncerr(istatus,__FILE__,__LINE__,'Dimension x missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension x missing')
     istatus = nf90_inquire_dimension(ncid, jxdimid, len=jx)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension x')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dimension x')
     istatus = nf90_inq_dimid(ncid, "iy", iydimid)
     if (istatus /= nf90_noerr) then
       istatus = nf90_inq_dimid(ncid, "y", iydimid)
     end if
-    call checkncerr(istatus,__FILE__,__LINE__,'Dimension y missing')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension y missing')
     istatus = nf90_inquire_dimension(ncid, iydimid, len=iy)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension y')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dimension y')
   end if
   istatus = nf90_inq_dimid(ncid, "kz", kzdimid)
   if (istatus /= nf90_noerr) then
@@ -187,7 +200,8 @@ program ncprepare
   end if
   if (istatus == nf90_noerr) then
     istatus = nf90_inquire_dimension(ncid, kzdimid, len=kz)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension z')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dimension z')
   else
     kz = 0
   end if
@@ -195,7 +209,8 @@ program ncprepare
     istatus = nf90_inq_dimid(ncid_clm, "time", itdimid)
     if (istatus == nf90_noerr) then
       istatus = nf90_inquire_dimension(ncid_clm, itdimid, len=nt)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension time')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire dimension time')
     else
       nt = 0
     end if
@@ -203,13 +218,15 @@ program ncprepare
     if (istatus == nf90_noerr) then
       ldepth = .true.
       istatus = nf90_inquire_dimension(ncid_clm, dptdimid, len=nd)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension depth')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire dimension depth')
     end if
   else
     istatus = nf90_inq_dimid(ncid, "time", itdimid)
     if (istatus == nf90_noerr) then
       istatus = nf90_inquire_dimension(ncid, itdimid, len=nt)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension time')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire dimension time')
     else
       nt = 0
     end if
@@ -217,7 +234,8 @@ program ncprepare
     if (istatus == nf90_noerr) then
       ldepth = .true.
       istatus = nf90_inquire_dimension(ncid, dptdimid, len=nd)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension depth')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire dimension depth')
     end if
   end if
 
@@ -234,32 +252,41 @@ program ncprepare
 #endif
 
   allocate(xlat(jx,iy), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__,'xlat')
+  call checkalloc(istatus,__FILE__,__LINE__, &
+                  'xlat')
   allocate(xlon(jx,iy), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__,'xlon')
+  call checkalloc(istatus,__FILE__,__LINE__, &
+                  'xlon')
   allocate(tmplon(iy), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__,'tmplon')
+  call checkalloc(istatus,__FILE__,__LINE__, &
+                  'tmplon')
 
   istatus = nf90_inq_varid(ncid, "xlat", ivarid)
   if ( istatus /= nf90_noerr ) then
     istatus = nf90_inq_varid(ncid, "lat", ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find variable xlat')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find variable xlat')
   end if
   istatus = nf90_get_var(ncid, ivarid, xlat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error read variable xlat')
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error read variable xlat')
   istatus = nf90_inq_varid(ncid, "xlon", ivarid)
   if ( istatus /= nf90_noerr ) then
     istatus = nf90_inq_varid(ncid, "lon", ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error find variable xlon')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find variable xlon')
   end if
   istatus = nf90_get_var(ncid, ivarid, xlon)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error read variable xlon')
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error read variable xlon')
 
   istatus = nf90_get_att(ncid, nf90_global, 'projection', iproj)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error read attribute projection')
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error read attribute projection')
 
   istatus = nf90_get_att(ncid, nf90_global, 'experiment', experiment)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error read attribute experiment')
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error read attribute experiment')
 
   istatus = nf90_get_att(ncid, nf90_global, 'latitude_of_projection_origin', &
                          clat)
@@ -320,17 +347,23 @@ program ncprepare
   deallocate(xlon)
 
   allocate(rin(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__,'rin')
+  call checkalloc(istatus,__FILE__,__LINE__, &
+                  'rin')
   allocate(r4in(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__,'r4in')
+  call checkalloc(istatus,__FILE__,__LINE__, &
+                  'r4in')
   allocate(rjn(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__,'rjn')
+  call checkalloc(istatus,__FILE__,__LINE__, &
+                  'rjn')
   allocate(r4jn(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__,'r4jn')
+  call checkalloc(istatus,__FILE__,__LINE__, &
+                  'r4jn')
   allocate(ruv(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__,'ruv')
+  call checkalloc(istatus,__FILE__,__LINE__, &
+                  'ruv')
   allocate(r4uv(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__,'r4uv')
+  call checkalloc(istatus,__FILE__,__LINE__, &
+                  'r4uv')
 
   if (iproj == 'LAMCON') then
     istatus = nf90_get_att(ncid, nf90_global, 'standard_parallel', trlat)
@@ -423,7 +456,8 @@ program ncprepare
 
   if (.not. ldepth .and. kz /= 0) then
     allocate(level(kz), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'level')
+    call checkalloc(istatus,__FILE__,__LINE__, &
+                    'level')
     if (lsigma) then
       istatus = nf90_inq_varid(ncid, "sigma", ivarid)
     else
@@ -432,9 +466,11 @@ program ncprepare
         istatus = nf90_inq_varid(ncid, "plev", ivarid)
       end if
     end if
-    call checkncerr(istatus,__FILE__,__LINE__, 'Vertical var not present')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Vertical var not present')
     istatus = nf90_get_var(ncid, ivarid, level)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Read Z var')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Read Z var')
 
     if (lsigma) level = level * 1000.0
     write (lvformat, '(a,i4,a)') '(a,i4,a,',kz,'f7.1)'
@@ -449,25 +485,34 @@ program ncprepare
 
   if (nt > 1) then
     allocate(times(nt), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'times')
+    call checkalloc(istatus,__FILE__,__LINE__, &
+                    'times')
     if ( lclm ) then
       istatus = nf90_inq_varid(ncid_clm, "time", ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time variable not present')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time variable not present')
       istatus = nf90_get_att(ncid_clm, ivarid, 'units', timeunit)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time units not present')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time units not present')
       istatus = nf90_get_att(ncid_clm, ivarid, 'calendar', timecal)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time calendar not present')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time calendar not present')
       istatus = nf90_get_var(ncid_clm, ivarid, times)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Read time variable')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Read time variable')
     else
       istatus = nf90_inq_varid(ncid, "time", ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time variable not present')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time variable not present')
       istatus = nf90_get_att(ncid, ivarid, 'units', timeunit)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time units not present')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time units not present')
       istatus = nf90_get_att(ncid, ivarid, 'calendar', timecal)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time calendar not present')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time calendar not present')
       istatus = nf90_get_var(ncid, ivarid, times)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Read time variable')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Read time variable')
     end if
     idate1 = timeval2date(times(1), timeunit, timecal)
     idate2 = timeval2date(times(2), timeunit, timecal)
@@ -497,22 +542,30 @@ program ncprepare
   else if (nt == 1) then
     if ( lclm ) then
       istatus = nf90_inq_varid(ncid_clm, "time", ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time variable not present')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time variable not present')
       istatus = nf90_get_att(ncid_clm, ivarid, 'units', timeunit)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time units not present')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time units not present')
       istatus = nf90_get_att(ncid_clm, ivarid, 'calendar', timecal)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time calendar not present')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time calendar not present')
       istatus = nf90_get_var(ncid_clm, ivarid, time1)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time variable read')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time variable read')
     else
       istatus = nf90_inq_varid(ncid, "time", ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time variable not present')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time variable not present')
       istatus = nf90_get_att(ncid, ivarid, 'units', timeunit)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time units not present')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time units not present')
       istatus = nf90_get_att(ncid, ivarid, 'calendar', timecal)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time calendar not present')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time calendar not present')
       istatus = nf90_get_var(ncid, ivarid, time1)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Time variable read')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Time variable read')
     end if
     idate1 = timeval2date(time1, timeunit, timecal)
     delta = 6
@@ -534,7 +587,8 @@ program ncprepare
       istatus = nf90_inquire_variable(ncid,i,name=varname,xtype=xtype, &
                                       ndims=idimid,dimids=dimids)
     end if
-    call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Inquire variable error')
 
     if ( varname == 'u' ) lu = .true.
     if ( varname == 'ua' ) lua = .true.
@@ -559,7 +613,8 @@ program ncprepare
           else
             istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
           end if
-          call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dim error')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Inquire split dim error')
           totvars = totvars + isplit
         else
           lvarflag(i) = .false.
@@ -574,7 +629,8 @@ program ncprepare
           else
             istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
           end if
-          call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dim error')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Inquire split dim error')
           totvars = totvars + isplit
         else
           lvarflag(i) = .false.
@@ -587,7 +643,8 @@ program ncprepare
           else
             istatus = nf90_inquire_dimension(ncid, dimids(4), len=isplit)
           end if
-          call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dim error')
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Inquire split dim error')
           totvars = totvars + isplit
         else
           lvarflag(i) = .false.
@@ -617,7 +674,8 @@ program ncprepare
       istatus = nf90_inquire_variable(ncid,i,name=varname,ndims=idimid, &
                                       dimids=dimids)
     end if
-    call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Inquire variable error')
     if (idimid == 2) then
       if (dimids(2) == iydimid .and. dimids(1) == jxdimid) then
         dimdesc = ' 0 y,x'
@@ -668,9 +726,11 @@ program ncprepare
       end if
     else
       istatus = nf90_get_att(ncid,i,'long_name', vardesc)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable long_name')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Inquire variable long_name')
       istatus = nf90_get_att(ncid,i,'units', varunit)
-      call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable units')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Inquire variable units')
     end if
 
     if (.not. lvarsplit) then
@@ -683,7 +743,8 @@ program ncprepare
       else
         istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
       end if
-      call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dimension')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Inquire split dimension')
       if (idimid == 3) then
         do j = 1 , isplit
           write (11, '(a,a,i0.2,a,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
@@ -703,7 +764,8 @@ program ncprepare
       else
         istatus = nf90_inquire_dimension(ncid, dimids(4), len=isplit)
       end if
-      call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dimension')
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Inquire split dimension')
       do j = 1 , isplit
         if (ldepth) then
           write (11, '(a,a,i0.2,a,i2,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
@@ -727,10 +789,12 @@ program ncprepare
   close(11)
 
   istatus = nf90_close(ncid)
-  call checkncerr(istatus,__FILE__,__LINE__, 'Close file error')
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Close file error')
   if ( lclm ) then
     istatus = nf90_close(ncid_clm)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Close file error')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Close file error')
   end if
 
 end program ncprepare

@@ -182,9 +182,11 @@ module mod_ein
                            xscl(kkrec,1) , xoff(kkrec,1)
           if ( kkrec == 1 ) then
             istatus = nf90_inq_dimid(inet5(1,1),'time',timid)
-            call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error find dim time')
             istatus = nf90_inquire_dimension(inet5(1,1),timid,len=timlen)
-            call checkncerr(istatus,__FILE__,__LINE__,'Error inquire time')
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error inquire time')
             istatus = nf90_inq_varid(inet5(1,1),'time',timid)
             if ( istatus /= nf90_noerr ) then
               istatus = nf90_inq_varid(inet5(1,1),'date',timid)
@@ -196,7 +198,8 @@ module mod_ein
             call getmem1d(itimes,1,timlen,'mod_ein:itimes')
             call getmem1d(xtimes,1,timlen,'mod_ein:xtimes')
             istatus = nf90_get_var(inet5(1,1),timid,xtimes)
-            call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error read time')
             do it = 1 , timlen
               itimes(it) = timeval2date(dble(xtimes(it)),cunit,ccal)
             end do
@@ -234,18 +237,23 @@ module mod_ein
                              xscl(kkrec,k4) , xoff(kkrec,k4)
             if ( k4 == 1 .and. kkrec == 1 ) then
               istatus = nf90_inq_dimid(inet5(1,1),'time',timid)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error find dim time')
               istatus = nf90_inquire_dimension(inet5(1,1),timid,len=timlen)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error inquire time')
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error inquire time')
               istatus = nf90_inq_varid(inet5(1,1),'time',timid)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error find var time')
               istatus = nf90_get_att(inet5(1,1),timid,'units',cunit)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error read time units')
               ccal = 'gregorian'
               call getmem1d(itimes,1,timlen,'mod_ein:itimes')
               call getmem1d(xtimes,1,timlen,'mod_ein:xtimes')
               istatus = nf90_get_var(inet5(1,1),timid,xtimes)
-              call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error read time')
               do it = 1 , timlen
                 itimes(it) = timeval2date(dble(xtimes(it)),cunit,ccal)
               end do
@@ -272,7 +280,7 @@ module mod_ein
       ivar = ivar5(kkrec,k4)
       istatus = nf90_get_var(inet,ivar,work,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
-        'Error read var '//varname(kkrec))
+                      'Error read var '//varname(kkrec))
       xscale = xscl(kkrec,k4)
       xadd = xoff(kkrec,k4)
       if ( kkrec == 1 ) then
@@ -330,18 +338,18 @@ module mod_ein
           pthsep//'XXXX'//pthsep//inname
       istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
       call checkncerr(istatus,__FILE__,__LINE__, &
-            'Error open file '//trim(pathaddname))
+                      'Error open file '//trim(pathaddname))
     else
       write(inname,'(i4,a,a,i4,a)') &
         year, pthsep, 'air.', year, '.00.nc'
       pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
       istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
       call checkncerr(istatus,__FILE__,__LINE__, &
-              'Error open file '//trim(pathaddname))
+                      'Error open file '//trim(pathaddname))
     end if
     istatus = nf90_inq_dimid(ncid,'latitude',idimid)
     call checkncerr(istatus,__FILE__,__LINE__, &
-          'Missing latitude dimension in file '//trim(pathaddname))
+                    'Missing latitude dimension in file '//trim(pathaddname))
     istatus = nf90_inquire_dimension(ncid,idimid,len=jlat)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error reading latitude dimelen in file '//trim(pathaddname))
