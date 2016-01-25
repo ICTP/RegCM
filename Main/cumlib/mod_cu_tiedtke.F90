@@ -99,7 +99,9 @@ module mod_cu_tiedtke
         end if
       end do
     end do
-    if ( nipoi == 0 ) return
+    if ( nipoi == 0 ) then
+      return
+    end if
     call getmem1d(imap,1,nipoi,'mod_cu_tiedtke:imap')
     call getmem1d(jmap,1,nipoi,'mod_cu_tiedtke:jmap')
     ii = 1
@@ -165,7 +167,12 @@ module mod_cu_tiedtke
     call time_begin(subroutine_name,idindx)
 #endif
 
-    if ( nipoi == 0 ) return
+    if ( nipoi == 0 ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 
     ilab(:,:) = 2
     cevapcu(:) = cevapu

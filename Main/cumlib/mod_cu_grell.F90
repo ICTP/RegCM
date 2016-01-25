@@ -317,7 +317,12 @@ module mod_cu_grell
       end do
     end do
 
-    if ( nap == 0 ) return
+    if ( nap == 0 ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 
     ! Pressures in millibar here.
 

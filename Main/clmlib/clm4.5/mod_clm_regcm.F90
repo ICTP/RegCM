@@ -304,45 +304,44 @@ module mod_clm_regcm
       !    flux arriving through lm interface are accumulated between
       !    two surface call : needs to average with rtsrf
       ! c) dry deposition BC HL
-      if(ibchl >0) then
-      chemdepflx(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,ibchl) * rtsrf
-      call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-      clm_a2l%forc_aer(:,1) = clm_a2l%notused
+      if ( ibchl > 0 ) then
+        chemdepflx(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,ibchl) * rtsrf
+        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+        clm_a2l%forc_aer(:,1) = clm_a2l%notused
       end if
       ! drydeposition BCHB
-      if(ibchb >0) then
-      chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,ibchb) * rtsrf
-      call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-      clm_a2l%forc_aer(:,2) = clm_a2l%notused
+      if ( ibchb > 0 ) then
+        chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,ibchb) * rtsrf
+        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+        clm_a2l%forc_aer(:,2) = clm_a2l%notused
       end if
       ! wet dep BC (sum rainout and washout fluxes, sum hb amd hl)
-      if(ibchb >0 .and. ibchl >0 ) then
-      chemdepflx(:,:) =  (lm%wetdepflx(jci1:jci2,ici1:ici2,ibchb)  &
-                       +  lm%wetdepflx(jci1:jci2,ici1:ici2,ibchl)) * rtsrf
-      call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-      clm_a2l%forc_aer(:,3) = clm_a2l%notused
+      if ( ibchb > 0 .and. ibchl > 0 ) then
+        chemdepflx(:,:) =  (lm%wetdepflx(jci1:jci2,ici1:ici2,ibchb)  &
+                         +  lm%wetdepflx(jci1:jci2,ici1:ici2,ibchl)) * rtsrf
+        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+        clm_a2l%forc_aer(:,3) = clm_a2l%notused
       end if
       ! drydeposition OC HL
-      if(iochl >0) then
-      chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,iochl)*  rtsrf
-      call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-      clm_a2l%forc_aer(:,4) = clm_a2l%notused
+      if ( iochl > 0 ) then
+        chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,iochl)*  rtsrf
+        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+        clm_a2l%forc_aer(:,4) = clm_a2l%notused
       end if
       ! drydeposition OC HB
-      if(iochb >0) then
-      chemdepflx(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,iochb) *  rtsrf
-      call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-      clm_a2l%forc_aer(:,5) = clm_a2l%notused
+      if ( iochb > 0 ) then
+        chemdepflx(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,iochb) *  rtsrf
+        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+        clm_a2l%forc_aer(:,5) = clm_a2l%notused
       end if
       ! wet dep OC (sum rainout and washout fluxes, sum hb and hl)
       if(iochb >0 .and. iochl >0 ) then
-      chemdepflx(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,iochb)   &
-                       +  lm%wetdepflx(jci1:jci2,ici1:ici2,iochl)) * rtsrf
-      call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
-      clm_a2l%forc_aer(:,6) = clm_a2l%notused
+        chemdepflx(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,iochb)   &
+                         +  lm%wetdepflx(jci1:jci2,ici1:ici2,iochl)) * rtsrf
+        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+        clm_a2l%forc_aer(:,6) = clm_a2l%notused
       end if
-
-      if (size(lm%idust) == 4 ) then
+      if ( size(lm%idust) == 4 ) then
        ! wet dep dust 1
        chemdepflx(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1)) &
                       +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1))) * rtsrf
@@ -382,11 +381,9 @@ module mod_clm_regcm
        chemdepflx(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,lm%idust(4))  * rtsrf
        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
        clm_a2l%forc_aer(:,14) = clm_a2l%notused
-
       end if
       ! FAB to do : treat the 12 bins case ..
       ! b : pass the nitrogen deposition flux
-
     end if ! end test on ichem
 
     if ( .true. ) then
@@ -465,14 +462,14 @@ module mod_clm_regcm
     if ( ichem == 1 .and. enable_megan_emission ) then
       allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
       emis2d = 0.0D0
-      do k = 1, shr_megan_mechcomps_n
-       if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0) then
-        clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
-        call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-        lms%vocemiss(:,:,:,iisop) = emis2d
-       end if
-    ! add compatibility for other biogenic species !! /
-    !
+      do k = 1 , shr_megan_mechcomps_n
+        if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0) then
+          clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
+          call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+          lms%vocemiss(:,:,:,iisop) = emis2d
+        end if
+        ! add compatibility for other biogenic species !! /
+        !
       end do
       deallocate(emis2d)
     end if
@@ -482,7 +479,7 @@ module mod_clm_regcm
     ! 4 bin version.
     ! if use the regcm 12 bin, the total mass is redistributed
     ! (chemlib/mod_che_dust)
-    if ( ichem == 1 .and. ichdustemd == 3) then
+    if ( ichem == 1 .and. ichdustemd == 3 ) then
       allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
       emis2d = 0.0D0
       do k = 1 , 4

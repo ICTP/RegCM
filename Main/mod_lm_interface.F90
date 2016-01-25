@@ -450,21 +450,21 @@ module mod_lm_interface
         uatm(j,i) = atms%ubx3d(j,i,kz)
         vatm(j,i) = atms%vbx3d(j,i,kz)
         qvatm(j,i) = atms%qxb3d(j,i,kz,iqv)
-        if ( atms%za(j,i,kz) < 35.0 ) then
+        if ( zatm(j,i) < 35.0 ) then
+          zatm(j,i) = 35.0D0
+          dz = zatm(j,i) - atms%za(j,i,kz)
+          tm = d_half*(atms%tb3d(j,i,kz)+atms%tb3d(j,i,kzm1))
+          dlnp = ((egrav*dz)/(rgas*tm))
           z1 = atms%za(j,i,kz)
-          z2 = atms%za(j,i,kz-1)
+          z2 = atms%za(j,i,kzm1)
           w1 = (z2-35.0D0)/(z2-z1)
           w2 = d_one - w1
-          dz = 35.0D0 - atms%za(j,i,kz)
-          zatm(j,i) = 35.0D0
-          tatm(j,i) = atms%tb3d(j,i,kz)*w1 + atms%tb3d(j,i,kz-1)*w2
-          thatm(j,i) = atms%th3d(j,i,kz)*w1 + atms%th3d(j,i,kz-1)*w2
-          uatm(j,i) = atms%ubx3d(j,i,kz)*w1 + atms%ubx3d(j,i,kz-1)*w2
-          vatm(j,i) = atms%vbx3d(j,i,kz)*w1 + atms%vbx3d(j,i,kz-1)*w2
-          qvatm(j,i) = atms%qxb3d(j,i,kz,iqv)*w1 + atms%qxb3d(j,i,kz-1,iqv)*w2
-          tm = d_half*(tatm(j,i)+atms%tb3d(j,i,kz))
-          dlnp = ((egrav*dz)/(rgas*tm))
-          patm(j,i) = patm(j,i)*exp(-dlnp)
+          tatm(j,i) = atms%tb3d(j,i,kz)*w1 + atms%tb3d(j,i,kzm1)*w2
+          thatm(j,i) = atms%th3d(j,i,kz)*w1 + atms%th3d(j,i,kzm1)*w2
+          uatm(j,i) = atms%ubx3d(j,i,kz)*w1 + atms%ubx3d(j,i,kzm1)*w2
+          vatm(j,i) = atms%vbx3d(j,i,kz)*w1 + atms%vbx3d(j,i,kzm1)*w2
+          qvatm(j,i) = atms%qxb3d(j,i,kz,iqv)*w1 + atms%qxb3d(j,i,kzm1,iqv)*w2
+          patm(j,i) = atms%pb3d(j,i,kz)*exp(-dlnp)
         end if
       end do
     end do

@@ -114,7 +114,9 @@ module mod_cu_kf
         end if
       end do
     end do
-    if ( nipoi == 0 ) return
+    if ( nipoi == 0 ) then
+      return
+    end if
     call getmem1d(imap,1,nipoi,'mod_cu_kf:imap')
     call getmem1d(jmap,1,nipoi,'mod_cu_kf:jmap')
     ii = 1
@@ -171,7 +173,12 @@ module mod_cu_kf
     call time_begin(subroutine_name,idindx)
 #endif
 
-    if ( nipoi == 0 ) return
+    if ( nipoi == 0 ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 
     do k = 1 , kz
       kk = kzp1 - k
