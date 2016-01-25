@@ -3562,7 +3562,12 @@ module mod_cu_tiedtke
     kdtop(jl) = klevp1
   end do
 !
-  if ( .not. lmfdd ) return
+  if ( .not. lmfdd ) then
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
+    return
+  end if
 !
 !----------------------------------------------------------------------
 !       2.           DETERMINE LEVEL OF FREE SINKING BY

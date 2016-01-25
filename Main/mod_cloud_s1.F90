@@ -449,7 +449,12 @@ module mod_cloud_s1
     call time_begin(subroutine_name,idindx)
 #endif
 
-    if ( .not. fscheme ) return
+    if ( .not. fscheme ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 
     ! Set the default 1.D-14 = d_zero
     ! Define the inizial array zqx0
