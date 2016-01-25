@@ -106,6 +106,7 @@ module mod_cu_kf
   subroutine allocate_mod_cu_kf
     implicit none
     integer(ik4) :: ii , i , j
+    call getmem3d(kfwavg,jci1,jci2,ici1,ici2,1,kz,'mod_cu_kf:kfwavg')
     nipoi = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -159,7 +160,6 @@ module mod_cu_kf
       call getmem2d(tpart_v,1,nipoi,1,kz,'mod_cu_kf:tpart_v')
       call getmem2d(tpart_h,1,nipoi,1,kz,'mod_cu_kf:tpart_h')
     end if
-    call getmem3d(kfwavg,jci1,jci2,ici1,ici2,1,kz,'mod_cu_kf:kfwavg')
   end subroutine allocate_mod_cu_kf
 
   subroutine kfdrv(m2c)
