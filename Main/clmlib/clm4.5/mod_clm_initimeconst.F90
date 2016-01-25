@@ -1464,6 +1464,7 @@ module mod_clm_initimeconst
                  dzurb_roof, ziurb_wall, ziurb_roof)
     end if
 
+    deallocate(std)
     deallocate(tslope)
 #if (defined VICHYDRO)
     deallocate(b2d, ds2d, dsmax2d,ws2d)
