@@ -617,15 +617,15 @@ module mod_init
     !
     ! Calculate topographical correction to diffusion coefficient
     !
-    do i = ice1 , ice2
-      do j = jce1 , jce2
+    do i = ice1ga , ice2ga
+      do j = jce1ga , jce2ga
         hgfact(j,i) = d_one
       end do
     end do
     if ( idynamic == 1 .or. &
          (idynamic == 2 .and. diffu_hgtf == 1) ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ici1ga , ici2ga
+        do j = jci1ga , jci2ga
           hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
           hg2 = dabs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
           hg3 = dabs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)

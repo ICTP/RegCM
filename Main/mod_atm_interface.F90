@@ -680,7 +680,7 @@ module mod_atm_interface
     subroutine allocate_domain(dom)
       implicit none
       type(domain) , intent(out) :: dom
-      call getmem2d(dom%ht,jde1ga,jde2ga,ide1ga,ide2ga,'storage:ht')
+      call getmem2d(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
       call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
       call getmem2d(dom%xlat,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlat')
       call getmem2d(dom%xlon,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlon')
@@ -850,7 +850,7 @@ module mod_atm_interface
         call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:hstor')
       end if
 
-      call getmem2d(hgfact,jce1,jce2,ice1,ice2,'storage:hgfact')
+      call getmem2d(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,'storage:hgfact')
       call getmem3d(omega,jci1,jci2,ici1,ici2,1,kz,'storage:omega')
       call getmem3d(qdot,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'storage:qdot')
       call getmem2d(ktrop,jci1,jci2,ici1,ici2,'storage:ktrop')

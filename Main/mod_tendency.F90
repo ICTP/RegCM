@@ -384,8 +384,8 @@ module mod_tendency
     ! for dot-point variables.
     !
     do k = 2 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do i = ice1ga , ice2ga
+        do j = jce1ga , jce2ga
           dudx = atms%ubd3d(j+1,i,k) + atms%ubd3d(j+1,i+1,k) - &
                  atms%ubd3d(j,i,k)   - atms%ubd3d(j,i+1,k)
           dvdx = atms%vbd3d(j+1,i,k) + atms%vbd3d(j+1,i+1,k) - &
@@ -399,7 +399,6 @@ module mod_tendency
         end do
       end do
     end do
-    call exchange(xkc,1,jce1,jce2,ice1,ice2,1,kz)
     xkcf(:,:,1) = xkc(jce1:jce2,ice1:ice2,1)
     xkcf(:,:,kzp1) = xkc(jce1:jce2,ice1:ice2,kz)
     do k = 2 , kz
