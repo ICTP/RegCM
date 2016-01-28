@@ -56,10 +56,10 @@ module mod_diffusion
 
   subroutine allocate_mod_diffusion
     implicit none
-    call getmem2d(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,'storage:hgfact')
-    call getmem3d(xkc,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'tendency:xkc')
-    call getmem3d(xkd,jdi1,jdi2,idi1,idi2,1,kz,'tendency:xkd')
-    call getmem3d(xkcf,jce1,jce2,ice1,ice2,1,kzp1,'tendency:xkcf')
+    call getmem2d(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,'diffusion:hgfact')
+    call getmem3d(xkc,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'diffusion:xkc')
+    call getmem3d(xkd,jdi1,jdi2,idi1,idi2,1,kz,'diffusion:xkd')
+    call getmem3d(xkcf,jce1,jce2,ice1,ice2,1,kzp1,'diffusion:xkcf')
   end subroutine allocate_mod_diffusion
 
   subroutine initialize_diffusion
