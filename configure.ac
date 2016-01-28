@@ -403,8 +403,10 @@ else
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
+    AR=xiar
     FCFLAGS="-O3 -fp-model source -ip $FCFLAGS"
     AC_SUBST(FCFLAGS)
+    AC_SUBST(AR)
   fi
   if test -z "$COMPILER_IBM_TRUE"; then
     FCFLAGS="-qsuppress=1501-245 -O3 -qstrict -qxlf2003=polymorphic \

@@ -23,6 +23,8 @@ module mod_diffusion
 !
   use mod_intkinds
   use mod_realkinds
+  use mod_constants
+  use mod_memutil
   use mod_dynparam
   use mod_atm_interface
   use mod_runparams
@@ -33,14 +35,127 @@ module mod_diffusion
 
   private
 
+  real(rk8) , pointer , dimension(:,:,:) :: xkc , xkd , xkcf
+  real(rk8) , public , pointer , dimension(:,:) :: hgfact
+
+  real(rk8) :: dydc , xkhmax , xkhz
+
   interface diffu_x
+    module procedure diffu_x3df
     module procedure diffu_x3d
     module procedure diffu_x4d
   end interface
 
-  public :: diffu_d , diffu_x
+  public :: allocate_mod_diffusion
+  public :: initialize_diffusion
+  public :: calc_coeff
+  public :: diffu_d
+  public :: diffu_x
 
   contains
+
+  subroutine allocate_mod_diffusion
+    implicit none
+    call getmem2d(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,'storage:hgfact')
+    call getmem3d(xkc,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'tendency:xkc')
+    call getmem3d(xkd,jdi1,jdi2,idi1,idi2,1,kz,'tendency:xkd')
+    call getmem3d(xkcf,jce1,jce2,ice1,ice2,1,kzp1,'tendency:xkcf')
+  end subroutine allocate_mod_diffusion
+
+  subroutine initialize_diffusion
+    implicit none
+    integer(ik4) :: i , j
+    real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
+    !
+    ! Diffusion coefficients: for non-hydrostatic, follow the MM5
+    ! The hydrostatic diffusion is following the RegCM3 formulation
+    !
+    xkhmax = dxsq/(64.0D0*dtsec)    ! Computation stability
+    dydc = vonkar*vonkar*dx*d_rfour ! Deformation term coefficient
+    if ( idynamic == 1 ) then
+      xkhz = 1.5D-3*dxsq/dtsec
+    else
+      xkhz = 3.0D-3*dxsq/dtsec
+      xkhmax = xkhmax * d_two ! Increase maximum allowed diffusion coefficient
+    end if
+    if ( myid == 0 ) then
+      write(stdout,'(a,e13.6,a)') &
+        ' Constant hor. diff. coef. = ',xkhz,' m^2 s-1'
+      write(stdout,'(a,e13.6,a)') &
+        ' Maximumt hor. diff. coef. = ',xkhmax,' m^2 s-1'
+    end if
+    !
+    ! Calculate topographical correction to diffusion coefficient
+    !
+    do i = ice1ga , ice2ga
+      do j = jce1ga , jce2ga
+        hgfact(j,i) = d_one
+      end do
+    end do
+    if ( idynamic == 1 .or. &
+         (idynamic == 2 .and. diffu_hgtf == 1) ) then
+      do i = ici1ga , ici2ga
+        do j = jci1ga , jci2ga
+          hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
+          hg2 = dabs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
+          hg3 = dabs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
+          hg4 = dabs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
+          hgmax = dmax1(hg1,hg2,hg3,hg4)*regrav
+          hgfact(j,i) = d_one/(d_one+(hgmax/0.001D0)**2)
+        end do
+      end do
+    end if
+  end subroutine initialize_diffusion
+
+  subroutine calc_coeff
+    implicit none
+    real(rk8) :: dudx , dvdx , dudy , dvdy , duv
+    integer(ik4) :: i , j , k
+
+    xkc(:,:,:)  = d_zero
+    xkd(:,:,:)  = d_zero
+    xkcf(:,:,:) = d_zero
+    !
+    ! compute the horizontal diffusion coefficient and stored in xkc:
+    ! the values are calculated at cross points, but they also used
+    ! for dot-point variables.
+    !
+    do k = 2 , kz
+      do i = ice1ga , ice2ga
+        do j = jce1ga , jce2ga
+          ! Following Smagorinsky et al, 1965 for eddy viscosity
+          dudx = atms%ubd3d(j+1,i,k) + atms%ubd3d(j+1,i+1,k) - &
+                 atms%ubd3d(j,i,k)   - atms%ubd3d(j,i+1,k)
+          dvdx = atms%vbd3d(j+1,i,k) + atms%vbd3d(j+1,i+1,k) - &
+                 atms%vbd3d(j,i,k)   - atms%vbd3d(j,i+1,k)
+          dudy = atms%ubd3d(j,i+1,k) + atms%ubd3d(j+1,i+1,k) - &
+                 atms%ubd3d(j,i,k)   - atms%ubd3d(j+1,i,k)
+          dvdy = atms%vbd3d(j,i+1,k) + atms%vbd3d(j+1,i+1,k) - &
+                 atms%vbd3d(j,i,k)   - atms%vbd3d(j+1,i,k)
+          duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
+          xkc(j,i,k) = min((xkhz*hgfact(j,i)+dydc*duv),xkhmax)
+        end do
+      end do
+    end do
+    xkcf(:,:,1) = xkc(jce1:jce2,ice1:ice2,1)
+    xkcf(:,:,kzp1) = xkc(jce1:jce2,ice1:ice2,kz)
+    do k = 2 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          xkcf(j,i,k) = min((twt(k,1)*xkc(j,i,k) + &
+                             twt(k,2)*xkc(j,i,k-1)), xkhmax)
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          xkd(j,i,k) = min(d_rfour*(xkc(j,i,k)+xkc(j-1,i-1,k) + &
+                                    xkc(j-1,i,k)+xkc(j,i-1,k)),xkhmax)
+        end do
+      end do
+    end do
+  end subroutine calc_coeff
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !                                                                     c
@@ -55,10 +170,9 @@ module mod_diffusion
   !                                                                     c
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
-  subroutine diffu_d(uten,vten,u,v,press,xkd)
+  subroutine diffu_d(uten,vten,u,v,press)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: u , v
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkd
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
     integer(ik4) :: i , j , k
@@ -147,32 +261,25 @@ module mod_diffusion
 #endif
   end subroutine diffu_d
 
-  subroutine diffu_x3d(ften,f,press,xkc,kmax,mfac)
+  subroutine diffu_x3df(ften,f,press,fac)
     implicit none
-    integer(ik4) , intent(in) :: kmax
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: f
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ften
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
-    real(rk8) , intent(in) , optional :: mfac
-    real(rk8) :: fac
+    real(rk8) , intent(in) :: fac
     integer(ik4) :: i , j , k
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'diffu_x3d'
+    character(len=dbgslen) :: subroutine_name = 'diffu_x3df'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    fac = d_one
-    if ( present(mfac) ) then
-      fac = mfac
-    end if
     !
     ! fourth-order scheme for interior:
     !
-    do k = 1 , kmax
+    do k = 1 , kzp1
       do i = icii1 , icii2
         do j = jcii1 , jcii2
-          ften(j,i,k) = ften(j,i,k) - fac * xkc(j,i,k) * press(j,i) * &
+          ften(j,i,k) = ften(j,i,k) - fac * xkcf(j,i,k) * press(j,i) * &
                       rdxsq*(f(j+2,i,k)+f(j-2,i,k) +  &
                              f(j,i+2,k)+f(j,i-2,k) -  &
                      d_four*(f(j+1,i,k)+f(j-1,i,k) +  &
@@ -186,9 +293,9 @@ module mod_diffusion
     !
     if ( ma%has_bdyleft ) then
       j = jci1
-      do k = 1 , kmax
+      do k = 1 , kzp1
         do i = ici1 , ici2
-          ften(j,i,k) = ften(j,i,k) + fac * xkc(j,i,k) * press(j,i) * &
+          ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * press(j,i) * &
                         rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
                                f(j,i+1,k)+f(j,i-1,k) - &
                         d_four*f(j,i,k))
@@ -197,9 +304,9 @@ module mod_diffusion
     end if
     if ( ma%has_bdyright ) then
       j = jci2
-      do k = 1 , kmax
+      do k = 1 , kzp1
         do i = ici1 , ici2
-          ften(j,i,k) = ften(j,i,k) + fac * xkc(j,i,k) * press(j,i) * &
+          ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * press(j,i) * &
                         rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
                                f(j,i+1,k)+f(j,i-1,k) - &
                         d_four*f(j,i,k))
@@ -211,9 +318,9 @@ module mod_diffusion
     !
     if ( ma%has_bdybottom ) then
       i = ici1
-      do k = 1 , kmax
+      do k = 1 , kzp1
         do j = jci1 , jci2
-          ften(j,i,k) = ften(j,i,k) + fac * xkc(j,i,k) * press(j,i) * &
+          ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * press(j,i) * &
                       rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
                              f(j,i+1,k)+f(j,i-1,k) - &
                       d_four*f(j,i,k))
@@ -222,9 +329,90 @@ module mod_diffusion
     end if
     if ( ma%has_bdytop ) then
       i = ici2
-      do k = 1 , kmax
+      do k = 1 , kzp1
         do j = jci1 , jci2
-          ften(j,i,k) = ften(j,i,k) + fac * xkc(j,i,k) * press(j,i) * &
+          ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * press(j,i) * &
+                      rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
+                             f(j,i+1,k)+f(j,i-1,k) - &
+                      d_four*f(j,i,k))
+        end do
+      end do
+    end if
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
+  end subroutine diffu_x3df
+
+  subroutine diffu_x3d(ften,f,press)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: f
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ften
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: press
+    integer(ik4) :: i , j , k
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'diffu_x3d'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
+    !
+    ! fourth-order scheme for interior:
+    !
+    do k = 1 , kz
+      do i = icii1 , icii2
+        do j = jcii1 , jcii2
+          ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) * press(j,i) * &
+                      rdxsq*(f(j+2,i,k)+f(j-2,i,k) +  &
+                             f(j,i+2,k)+f(j,i-2,k) -  &
+                     d_four*(f(j+1,i,k)+f(j-1,i,k) +  &
+                             f(j,i+1,k)+f(j,i-1,k)) + &
+                    d_twelve*f(j,i,k))
+        end do
+      end do
+    end do
+    !
+    ! second-order scheme for east and west boundaries:
+    !
+    if ( ma%has_bdyleft ) then
+      j = jci1
+      do k = 1 , kz
+        do i = ici1 , ici2
+          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) * press(j,i) * &
+                        rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
+                               f(j,i+1,k)+f(j,i-1,k) - &
+                        d_four*f(j,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      j = jci2
+      do k = 1 , kz
+        do i = ici1 , ici2
+          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) * press(j,i) * &
+                        rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
+                               f(j,i+1,k)+f(j,i-1,k) - &
+                        d_four*f(j,i,k))
+        end do
+      end do
+    end if
+    !
+    ! second-order scheme for north and south boundaries:
+    !
+    if ( ma%has_bdybottom ) then
+      i = ici1
+      do k = 1 , kz
+        do j = jci1 , jci2
+          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) * press(j,i) * &
+                      rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
+                             f(j,i+1,k)+f(j,i-1,k) - &
+                      d_four*f(j,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      i = ici2
+      do k = 1 , kz
+        do j = jci1 , jci2
+          ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) * press(j,i) * &
                       rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
                              f(j,i+1,k)+f(j,i-1,k) - &
                       d_four*f(j,i,k))
@@ -236,11 +424,9 @@ module mod_diffusion
 #endif
   end subroutine diffu_x3d
 
-  subroutine diffu_x4d(ften,f,press,xkc,kmax,n4)
+  subroutine diffu_x4d(ften,f,press,n4)
     implicit none
-    integer(ik4) , intent(in) :: kmax
     integer(ik4) , optional , intent(in) :: n4
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: f
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
@@ -262,7 +448,7 @@ module mod_diffusion
     ! fourth-order scheme for interior:
     !
     do n = n1 , n2
-      do k = 1 , kmax
+      do k = 1 , kz
         do i = icii1 , icii2
           do j = jcii1 , jcii2
             ften(j,i,k,n) = ften(j,i,k,n) - xkc(j,i,k) * press(j,i) * &
@@ -281,7 +467,7 @@ module mod_diffusion
     if ( ma%has_bdyleft ) then
       j = jci1
       do n = n1 , n2
-        do k = 1 , kmax
+        do k = 1 , kz
           do i = ici1 , ici2
             ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) * press(j,i) * &
                           rdxsq*(f(j+1,i,k,n)+f(j-1,i,k,n) + &
@@ -294,7 +480,7 @@ module mod_diffusion
     if ( ma%has_bdyright ) then
       j = jci2
       do n = n1 , n2
-        do k = 1 , kmax
+        do k = 1 , kz
           do i = ici1 , ici2
             ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) * press(j,i) * &
                           rdxsq*(f(j+1,i,k,n)+f(j-1,i,k,n) + &
@@ -310,7 +496,7 @@ module mod_diffusion
     if ( ma%has_bdybottom ) then
       i = ici1
       do n = n1 , n2
-        do k = 1 , kmax
+        do k = 1 , kz
           do j = jci1 , jci2
             ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) * press(j,i) * &
                         rdxsq*(f(j+1,i,k,n)+f(j-1,i,k,n) + &
@@ -323,7 +509,7 @@ module mod_diffusion
     if ( ma%has_bdytop ) then
       i = ici2
       do n = n1 , n2
-        do k = 1 , kmax
+        do k = 1 , kz
           do j = jci1 , jci2
             ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) * press(j,i) * &
                         rdxsq*(f(j+1,i,k,n)+f(j-1,i,k,n) + &

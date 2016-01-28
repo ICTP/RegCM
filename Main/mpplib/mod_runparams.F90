@@ -137,10 +137,10 @@ module mod_runparams
 
   real(rk8) , public :: dt , dt2 , dtsq , dtcb , dtbdys , rdt
   real(rk8) , public :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
-  real(rk8) , public :: c200 , rdxsq
+  real(rk8) , public :: rdxsq
   real(rk8) , public :: dtsrf , dtabem , dtrad , dtcum , dtche
   real(rk8) , public :: cpldt , zomax , ustarmax
-  real(rk8) , public :: ckh , xkhmax , xkhz
+  real(rk8) , public :: ckh
   integer(ik4) , public :: diffu_hgtf
 
   integer(ik4) , public :: iboudy , ichem , ipgf , ipptls

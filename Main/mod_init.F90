@@ -36,6 +36,7 @@ module mod_init
   use rrtmg_sw_init
   use rrtmg_lw_init
   use mod_pbl_interface
+  use mod_diffusion , only : initialize_diffusion
   use mod_precip
   use mod_bdycod
   use mod_mpmessage
@@ -67,7 +68,7 @@ module mod_init
   subroutine init
     implicit none
     integer(ik4) :: i , j , k , n
-    real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax , sfice_temp
+    real(rk8) :: sfice_temp
     character(len=32) :: appdat
     real(rk8) , dimension(kzp1) :: ozprnt
 #ifdef DEBUG
@@ -614,27 +615,7 @@ module mod_init
     call exchange(atm2%v,2,jde1,jde2,ide1,ide2,1,kz)
     call mkslice
     call initialize_surface_model
-    !
-    ! Calculate topographical correction to diffusion coefficient
-    !
-    do i = ice1ga , ice2ga
-      do j = jce1ga , jce2ga
-        hgfact(j,i) = d_one
-      end do
-    end do
-    if ( idynamic == 1 .or. &
-         (idynamic == 2 .and. diffu_hgtf == 1) ) then
-      do i = ici1ga , ici2ga
-        do j = jci1ga , jci2ga
-          hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
-          hg2 = dabs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
-          hg3 = dabs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
-          hg4 = dabs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
-          hgmax = dmax1(hg1,hg2,hg3,hg4)*regrav
-          hgfact(j,i) = d_one/(d_one+(hgmax/0.001D0)**2)
-        end do
-      end do
-    end if
+    call initialize_diffusion
     !
     ! RRTM_SW gas / abs constant initialisation
     !

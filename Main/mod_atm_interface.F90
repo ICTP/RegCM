@@ -58,7 +58,6 @@ module mod_atm_interface
   public :: allocate_v3dbound , allocate_v2dbound
   public :: setup_boundaries , setup_model_indexes
 
-  real(rk8) , public , pointer , dimension(:,:) :: hgfact
   real(rk8) , public , pointer , dimension(:,:,:) :: dstor
   real(rk8) , public , pointer , dimension(:,:,:) :: hstor
   real(rk8) , public , pointer , dimension(:,:) :: ts0 , ts1
@@ -850,7 +849,6 @@ module mod_atm_interface
         call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:hstor')
       end if
 
-      call getmem2d(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,'storage:hgfact')
       call getmem3d(omega,jci1,jci2,ici1,ici2,1,kz,'storage:omega')
       call getmem3d(qdot,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'storage:qdot')
       call getmem2d(ktrop,jci1,jci2,ici1,ici2,'storage:ktrop')

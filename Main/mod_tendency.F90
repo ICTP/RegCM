@@ -53,7 +53,7 @@ module mod_tendency
   private
 
   public :: allocate_mod_tend , tend
-  real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkd, xkcf , td , &
+  real(rk8) , pointer , dimension(:,:,:) :: ttld , td , &
          phi , ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc , th , tha
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4
@@ -75,9 +75,6 @@ module mod_tendency
   subroutine allocate_mod_tend
     implicit none
     call getmem3d(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
-    call getmem3d(xkc,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'tendency:xkc')
-    call getmem3d(xkd,jdi1,jdi2,idi1,idi2,1,kz,'tendency:xkd')
-    call getmem3d(xkcf,jce1,jce2,ice1,ice2,1,kzp1,'tendency:xkcf')
     call getmem3d(ps4,jci1,jci2,ici1,ici2,1,4,'tendency:ps4')
     if ( ipptls == 2 ) then
       call getmem3d(qcd,jce1,jce2,ice1,ice2,1,kz,'tendency:qcd')
@@ -143,11 +140,10 @@ module mod_tendency
   !
   subroutine tend
     implicit none
-    real(rk8) :: chias , chibs , dudx , dudy , dvdx , dvdy , &
-                 pt2bar , pt2tot , ptnbar , maxv , ptntot ,  &
-                 rovcpm , rtbar , tv , tva , tvavg , tvb ,   &
-                 tvc , rho0s , cpm
-    real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
+    real(rk8) :: chias , chibs , duv , pt2bar , pt2tot , ptnbar , &
+                 maxv , ptntot , rovcpm , rtbar , tv , tva ,      &
+                 tvavg , tvb , tvc , rho0s , cpm , rofac , uaq ,  &
+                 vaq , wabar , amfac , wadot , wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -373,50 +369,9 @@ module mod_tendency
     !
     call zenitm(coszrs)
     !
-    ! No diffusion of TKE on lower boundary (kzp1)
+    ! Compute new diffusion coefficients
     !
-    xkc(:,:,:)  = d_zero
-    xkd(:,:,:)  = d_zero
-    xkcf(:,:,:) = d_zero
-    !
-    ! compute the horizontal diffusion coefficient and stored in xkc:
-    ! the values are calculated at cross points, but they also used
-    ! for dot-point variables.
-    !
-    do k = 2 , kz
-      do i = ice1ga , ice2ga
-        do j = jce1ga , jce2ga
-          dudx = atms%ubd3d(j+1,i,k) + atms%ubd3d(j+1,i+1,k) - &
-                 atms%ubd3d(j,i,k)   - atms%ubd3d(j,i+1,k)
-          dvdx = atms%vbd3d(j+1,i,k) + atms%vbd3d(j+1,i+1,k) - &
-                 atms%vbd3d(j,i,k)   - atms%vbd3d(j,i+1,k)
-          dudy = atms%ubd3d(j,i+1,k) + atms%ubd3d(j+1,i+1,k) - &
-                 atms%ubd3d(j,i,k)   - atms%ubd3d(j+1,i,k)
-          dvdy = atms%vbd3d(j,i+1,k) + atms%vbd3d(j+1,i+1,k) - &
-                 atms%vbd3d(j,i,k)   - atms%vbd3d(j+1,i,k)
-          duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
-          xkc(j,i,k) = min((xkhz*hgfact(j,i)+c200*duv),xkhmax)
-        end do
-      end do
-    end do
-    xkcf(:,:,1) = xkc(jce1:jce2,ice1:ice2,1)
-    xkcf(:,:,kzp1) = xkc(jce1:jce2,ice1:ice2,kz)
-    do k = 2 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          xkcf(j,i,k) = min((twt(k,1)*xkc(j,i,k) + &
-                             twt(k,2)*xkc(j,i,k-1)), xkhmax)
-        end do
-      end do
-    end do
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          xkd(j,i,k) = min(d_rfour*(xkc(j,i,k)+xkc(j-1,i-1,k) + &
-                                    xkc(j-1,i,k)+xkc(j,i-1,k)),xkhmax)
-        end do
-      end do
-    end do
+    call calc_coeff( )
     !
     ! Initialize the tendencies
     !
@@ -691,7 +646,7 @@ module mod_tendency
     ! compute the diffusion term for t and store in difft:
     !
     if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%t
-    call diffu_x(adf%t,atms%tb3d,sfs%psb,xkc,kz)
+    call diffu_x(adf%t,atms%tb3d,sfs%psb)
     if ( idiag > 0 ) then
       ! save the h diff diag here
       tdiag%dif(jci1:jci2,ici1:ici2,:) = tdiag%dif(jci1:jci2,ici1:ici2,:) + &
@@ -704,8 +659,8 @@ module mod_tendency
     ! compute the diffusion term for perturb pressure pp and store in diffpp:
     !
     if ( idynamic == 2 ) then
-      call diffu_x(adf%pp,atms%ppb3d,sfs%psb,xkc,kz)
-      call diffu_x(adf%w,atms%wb3d,sfs%psb,xkcf,kzp1)
+      call diffu_x(adf%pp,atms%ppb3d,sfs%psb)
+      call diffu_x(adf%w,atms%wb3d,sfs%psb,d_one)
     end if
     !
     ! compute the moisture tendencies for convection
@@ -796,7 +751,7 @@ module mod_tendency
       if ( idiag > 0 ) then
         qen0(jci1:jci2,ici1:ici2,:) = adf%qx(jci1:jci2,ici1:ici2,:,iqv)
       end if
-      call diffu_x(adf%qx,atms%qxb3d,sfs%psb,xkc,kz)
+      call diffu_x(adf%qx,atms%qxb3d,sfs%psb)
       if ( idiag > 0 ) then
         ! save the h diff diag here
         qdiag%dif(jci1:jci2,ici1:ici2,:) = qdiag%dif(jci1:jci2,ici1:ici2,:) + &
@@ -846,7 +801,7 @@ module mod_tendency
       ! horizontal diffusion: initialize scratch vars to 0.
       ! need to compute tracer tendencies due to diffusion
       !
-      call diffu_x(chiten,atms%chib3d,sfs%psb,xkc,kz)
+      call diffu_x(chiten,atms%chib3d,sfs%psb)
       if ( ichdiag == 1 ) then
         cdifhdiag = cdifhdiag + (chiten - chiten0) * cfdout
       end if
@@ -1188,7 +1143,7 @@ module mod_tendency
     aten%u(:,:,:) = d_zero
     aten%v(:,:,:) = d_zero
     !
-    call diffu_d(adf%u,adf%v,atms%ubd3d,atms%vbd3d,sfs%psdotb,xkd)
+    call diffu_d(adf%u,adf%v,atms%ubd3d,atms%vbd3d,sfs%psdotb)
     !
     ! compute the horizontal advection terms for u and v:
     !
@@ -1501,7 +1456,7 @@ module mod_tendency
       ! appear in the TKE field.  While this is different from
       ! Bretherton's treatment, it is consistent with the
       ! scaling of the vertical TKE diffusivity.
-      call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kzp1,nuk)
+      call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,nuk)
     end if
     !
     ! Compute future values of t and moisture variables at tau+1:

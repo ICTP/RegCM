@@ -42,6 +42,7 @@ module mod_params
   use mod_tendency
   use mod_ncout
   use mod_advection , only : init_advection
+  use mod_diffusion , only : allocate_mod_diffusion
   use mod_savefile
   use mod_slabocean
   use mod_sldepparam
@@ -1273,6 +1274,8 @@ module mod_params
       call allocate_mod_sound
     end if
 
+    call allocate_mod_diffusion
+
     if ( myid == italk ) then
       if ( mod(idnint(dtrad*60.0D0),idnint(dt)) /= 0 ) then
         write (stderr,*) 'DTRAD=' , dtrad , ' DT=' , dt
@@ -1466,19 +1469,6 @@ module mod_params
     dx16 = 16.0D0*dx
     dxsq = dx*dx
     rdxsq = 1.0D0/dxsq
-    !
-    ! Diffusion coefficients: for non-hydrostatic, follow the MM5
-    ! The hydrostatic diffusion is following the RegCM3 formulation
-    !
-    if ( idynamic == 1 ) then
-      xkhz = 1.5D-3*dxsq/dt
-      xkhmax = dxsq/(64.0D0*dt)
-      c200 = vonkar*vonkar*dx*d_rfour
-    else
-      xkhz = ckh*dx
-      xkhmax = d_two*dxsq/(64.0D0*dt)
-      c200 = vonkar*vonkar*dx*d_rfour
-    end if
     !
     ! Calculate boundary areas per processor
     !
@@ -2170,10 +2160,6 @@ module mod_params
           k , sigma(k) , hsigma(k) , dsigma(k) , twt(k,1) , twt(k,2) , qcon(k)
       end do
       write(stdout,'(1x,i2,5x,f7.4)') kzp1 , sigma(kzp1)
-      write(stdout,'(a,e13.6,a)') &
-        '  Constant hor. diff. coef. = ',xkhz,' m^2 s-1'
-      write(stdout,'(a,e13.6,a)') &
-        '  Maximumt hor. diff. coef. = ',xkhmax,' m^2 s-1'
     end if
 
     if (itweak == 1 ) then
