@@ -160,7 +160,7 @@ module mod_sound
     dtsmax = dx/cs/(d_one+xkd)
     ! DTL LONG TIME-STEP (XXB-XXC)
     istep = int(dt/dtsmax) + 1
-    if ( ktau >= 1 ) istep = max(4,istep)
+    if ( ktau >= 1 ) istep = max(8,istep)
     dts = dt/istep
     !
     ! Calculate the loop boundaries
