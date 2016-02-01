@@ -1521,12 +1521,12 @@ module mod_bdycod
           atm2%tke(jce2,:,:) = tkemin ! West boundary
         end if
         if ( ma%has_bdytop ) then
-          atm1%tke(:,ice2,:) = tkemin  ! South boundary
-          atm2%tke(:,ice2,:) = tkemin  ! South boundary
+          atm1%tke(:,ice2,:) = tkemin  ! North boundary
+          atm2%tke(:,ice2,:) = tkemin  ! North boundary
         end if
         if ( ma%has_bdybottom ) then
-          atm1%tke(:,ice1,:) = tkemin  ! North boundary
-          atm2%tke(:,ice1,:) = tkemin  ! North boundary
+          atm1%tke(:,ice1,:) = tkemin  ! South boundary
+          atm2%tke(:,ice1,:) = tkemin  ! South boundary
         end if
       else
         ! if the boundary values and tendencies are not available,
@@ -1537,12 +1537,14 @@ module mod_bdycod
         ! west boundary:
         !
         if ( ma%has_bdyleft ) then
+          atm1%tke(jce1,:,1) = tkemin ! East boundary
+          atm2%tke(jce1,:,1) = tkemin ! East boundary
           do k = 1 , kz
             do i = ice1 , ice2
               tkeint = atm1%tke(jci1,i,k+1)/sfs%psa(jci1,i)
               windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
               if ( windavg >= d_zero ) then
-                atm1%tke(jce1,i,k+1) = d_half*(tkemin+tkeint)*sfs%psa(jce1,i)
+                atm1%tke(jce1,i,k+1) = tkemin
               else
                 atm1%tke(jce1,i,k+1) = tkeint*sfs%psa(jce1,i)
               end if
@@ -1553,12 +1555,14 @@ module mod_bdycod
         ! east boundary:
         !
         if ( ma%has_bdyright ) then
+          atm1%tke(jce2,:,1) = tkemin ! West boundary
+          atm2%tke(jce2,:,1) = tkemin ! West boundary
           do k = 1 , kz
             do i = ice1 , ice2
               tkeint = atm1%tke(jci2,i,k+1)/sfs%psa(jci2,i)
               windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
               if ( windavg <= d_zero ) then
-                atm1%tke(jce2,i,k+1) = d_half*(tkemin+tkeint)*sfs%psa(jce2,i)
+                atm1%tke(jce2,i,k+1) = tkemin
               else
                 atm1%tke(jce2,i,k+1) = tkeint*sfs%psa(jce2,i)
               end if
@@ -1569,12 +1573,14 @@ module mod_bdycod
         ! south boundary:
         !
         if ( ma%has_bdybottom ) then
+          atm1%tke(:,ice1,1) = tkemin  ! South boundary
+          atm2%tke(:,ice1,1) = tkemin  ! South boundary
           do k = 1 , kz
             do j = jci1 , jci2
               tkeint = atm1%tke(j,ici1,k+1)/sfs%psa(j,ici1)
               windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
               if ( windavg >= d_zero ) then
-                atm1%tke(j,ice1,k+1) = d_half*(tkemin+tkeint)*sfs%psa(j,ice1)
+                atm1%tke(j,ice1,k+1) = tkemin
               else
                 atm1%tke(j,ice1,k+1) = tkeint*sfs%psa(j,ice1)
               end if
@@ -1585,12 +1591,14 @@ module mod_bdycod
         ! north boundary:
         !
         if ( ma%has_bdytop ) then
+          atm1%tke(:,ice2,1) = tkemin  ! South boundary
+          atm2%tke(:,ice2,1) = tkemin  ! South boundary
           do k = 1 , kz
             do j = jci1 , jci2
               tkeint = atm1%tke(j,ici2,k+1)/sfs%psa(j,ici2)
               windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
               if ( windavg < d_zero ) then
-                atm1%tke(j,ice2,k+1) = d_half*(tkemin+tkeint)*sfs%psa(j,ice2)
+                atm1%tke(j,ice2,k+1) = tkemin
               else
                 atm1%tke(j,ice2,k+1) = tkeint*sfs%psa(j,ice2)
               end if
