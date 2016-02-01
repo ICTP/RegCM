@@ -56,6 +56,9 @@ module mod_sound
   real(rk8) , dimension(-6:6) :: fi , fj
   real(rk8) , dimension(0:6) :: fk , fl
 
+  real(rk8) , parameter :: xkd = 0.10D0
+  real(rk8) , parameter :: bet = 0.40D0
+
   contains
 
   subroutine allocate_mod_sound
@@ -107,10 +110,10 @@ module mod_sound
 
   subroutine sound
     implicit none
-    real(rk8) :: bet , bm , bp , bpxbm , bpxbp , cddtmp ,  cfl , check , &
-      chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
-      ppold , rho , rho0s , rofac , xgamma , xkd , maxcfl , ucrsk ,      &
-      vcrsk , ucrskm1 , vcrskm1 , rll , rk , ri , rj , npts
+    real(rk8) :: bm , bp , bpxbm , bpxbp , cddtmp ,  cfl , check , &
+      chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts ,     &
+      dtsmax , ppold , rho , rho0s , rofac , xgamma , maxcfl ,     &
+      ucrsk , vcrsk , ucrskm1 , vcrskm1 , rll , rk , ri , rj , npts
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
     logical , save :: cfl_error = .false.
     character (len=32) :: appdat
@@ -147,12 +150,10 @@ module mod_sound
     !  pp(BET)=0.5(1+BET)*pp(t+1)+0.5(1-BET)*pp(t)
     !   w(BET)=0.5(1+BET)* w(t+1)+0.5(1-BET)* w(t)
     !
-    bet = 0.4D0
     bp = (d_one+bet)*d_half
     bm = (d_one-bet)*d_half
     bpxbp = bp*bp
     bpxbm = bp*bm
-    xkd = 0.1D0
 
     xgamma = d_one/(d_one-rovcp)
     ! CALCULATE SHORT TIME-STEP
@@ -166,7 +167,7 @@ module mod_sound
     ! Calculate the loop boundaries
     !
     if ( ktau == 0 ) then
-      if ( myid == italk ) write(stdout,'(a,f7.2,a,i3,a,f4.1,a,f4.1)') &
+      if ( myid == italk ) write(stdout,'(a,f7.2,a,i3,a,f5.2,a,f5.2)') &
             ' Short time step ' , dts , ', nstep = ', istep , &
             ', beta = ' , bet , ', xkd = ' , xkd
     end if
