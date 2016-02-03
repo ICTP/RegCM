@@ -35,7 +35,7 @@ module mod_sound
 
   private
 
-  public :: allocate_mod_sound , sound
+  public :: allocate_mod_sound , init_sound , sound
 
   real(rk8) , pointer , dimension(:,:,:) :: aa
   real(rk8) , pointer , dimension(:,:,:) :: b
@@ -56,14 +56,25 @@ module mod_sound
   real(rk8) , dimension(-6:6) :: fi , fj
   real(rk8) , dimension(0:6) :: fk , fl
 
-  real(rk8) , parameter :: xkd = 0.10D0
+  !
+  !  BET IS IKAWA BETA PARAMETER (0.=CENTERED, 1.=BACKWARD)
+  !
+  !  The parameter BET determines the time-weighting, where zero gives a
+  !  time-centered average and positive values give a bias towards the
+  !  future time step that can be used for acoustic damping. In practice,
+  !  values of BET = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1). This
+  !  time-weighting is applied on w and pp:
+  !
   real(rk8) , parameter :: bet = 0.40D0
+  real(rk8) , parameter :: xkd = 0.10D0
+  real(rk8) , parameter :: xgamma = d_one/(d_one-rovcp)
+  real(rk8) :: cs , bp , bm , bpxbm , bpxbp
+  real(rk8) :: dtsmax
 
   contains
 
   subroutine allocate_mod_sound
     implicit none
-    integer(ik4) :: i
     call getmem3d(aa,jci1,jci2,ici1,ici2,1,kzp1,'sound:aa')
     call getmem3d(b,jci1,jci2,ici1,ici2,1,kzp1,'sound:b')
     call getmem3d(c,jci1,jci2,ici1,ici2,1,kzp1,'sound:c')
@@ -85,6 +96,12 @@ module mod_sound
     call getmem3d(pi,jci1,jci2,ici1,ici2,1,kz,'sound:pi')
     call getmem2d(astore,jci1,jci2,ici1,ici2,'sound:astore')
     call getmem2d(wpval,jci1,jci2,ici1,ici2,'sound:wpval')
+  end subroutine allocate_mod_sound
+
+  subroutine init_sound
+    implicit none
+    integer(ik4) :: i
+
     if ( ifupr == 1 ) then
       !
       ! DEFINE VALUES OF FK, FL, FI & FJ FOR UPPER RADIATIVE BC
@@ -106,14 +123,20 @@ module mod_sound
       fi(6) = d_half
       fj(6) = d_half
     end if
-  end subroutine allocate_mod_sound
+    cs = sqrt(xgamma*rgas*stdt)
+    ! Calculate short time-step
+    dtsmax = dx/cs/(d_one+xkd)
+    bp = (d_one+bet)*d_half
+    bm = (d_one-bet)*d_half
+    bpxbp = bp*bp
+    bpxbm = bp*bm
+  end subroutine init_sound
 
   subroutine sound
     implicit none
-    real(rk8) :: bm , bp , bpxbm , bpxbp , cddtmp ,  cfl , check , &
-      chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts ,     &
-      dtsmax , ppold , rho , rho0s , rofac , xgamma , maxcfl ,     &
-      ucrsk , vcrsk , ucrskm1 , vcrskm1 , rll , rk , ri , rj , npts
+    real(rk8) :: cddtmp ,  cfl , check , chh , cjtmp , cpm , denom , &
+      dppdp0 , dpterm , dts , ppold , rho , rho0s , rofac , maxcfl , &
+      ucrsk , vcrsk , ucrskm1 , vcrskm1 , rll , rkk , ri , rj , npts
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
     logical , save :: cfl_error = .false.
     character (len=32) :: appdat
@@ -123,7 +146,7 @@ module mod_sound
     real(rk8) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
                  xkleff , xleff , xmsftot , xmsf
     real(rk8) :: loc_abar , loc_rhon , loc_xmsf
-    integer(ik4) :: inn , jnn , ll , nsi , nsj
+    integer(ik4) :: inn , jnn , ll , kk , nsi , nsj
     !
     ! HT IS G*(TERR. HT.)
     ! UTENS, VTENS, PPTENS AND WTENS ARE SUPPLIED TO THIS ROUTINE
@@ -140,36 +163,22 @@ module mod_sound
     !   WTU=(SIGMA(K+1)-SIGMA(K))/(SIGMA(K+1)-SIGMA(K-1))
     !   TIME-STEPS(ISTEP)
     !
-    ! BET IS IKAWA BETA PARAMETER (0.=CENTERED, 1.=BACKWARD)
-    !  The parameter BET determines the time-weighting, where zero gives a
-    !  time-centered average and positive values give a bias towards the
-    !  future time step that can be used for acoustic damping. In practice,
-    !  values of BET = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1). This
-    !  time-weighting is applied on w and pp:
-    !
     !  pp(BET)=0.5(1+BET)*pp(t+1)+0.5(1-BET)*pp(t)
     !   w(BET)=0.5(1+BET)* w(t+1)+0.5(1-BET)* w(t)
     !
-    bp = (d_one+bet)*d_half
-    bm = (d_one-bet)*d_half
-    bpxbp = bp*bp
-    bpxbm = bp*bm
-
-    xgamma = d_one/(d_one-rovcp)
-    ! CALCULATE SHORT TIME-STEP
-    cs = sqrt(xgamma*rgas*stdt)
-    dtsmax = dx/cs/(d_one+xkd)
-    ! DTL LONG TIME-STEP (XXB-XXC)
     istep = int(dt/dtsmax) + 1
-    if ( ktau >= 1 ) istep = max(8,istep)
+    ! DTL LONG TIME-STEP (XXB-XXC)
+    if ( ktau > 0 ) then
+      istep = max(8,istep)
+    end if
     dts = dt/istep
     !
     ! Calculate the loop boundaries
     !
-    if ( ktau == 0 ) then
-      if ( myid == italk ) write(stdout,'(a,f7.2,a,i3,a,f5.2,a,f5.2)') &
-            ' Short time step ' , dts , ', nstep = ', istep , &
-            ', beta = ' , bet , ', xkd = ' , xkd
+    if ( ktau == 0 .or. ktau == 2 ) then
+      if ( myid == italk ) write(stdout,'(a,i2,a,f7.2,a,i3,a,f6.3,a,f6.3)') &
+            ' ktau = ' , ktau , ' : Short time step ' , dts , &
+            ', nstep = ', istep , ', beta = ' , bet , ', xkd = ' , xkd
     end if
     !
     !  Premultiply the tendency arrays by dts
@@ -501,7 +510,7 @@ module mod_sound
         ! If first time through and upper radiation b.c`s are used
         ! Need to calc some coefficients
         !
-        if ( ( ktau == 0 .or. mod(ktau,kday) == 0 ).and. it == 1 ) then
+        if ( ( ktau == 0 .or. mod(ktau,kday) == 0 ) .and. it == 1 ) then
           ! Calculating means for upper radiative boundary conditions
           if ( myid == italk ) then
             write(stdout,'(a,i8)') &
@@ -519,47 +528,48 @@ module mod_sound
               xmsftot = xmsftot + mddom%msfx(j,i)
             end do
           end do
-          loc_abar = atot/npts
-          loc_rhon = rhontot/npts
-          loc_xmsf = xmsftot/npts
+          loc_abar = atot
+          loc_rhon = rhontot
+          loc_xmsf = xmsftot
           call sumall(loc_abar,abar)
           call sumall(loc_rhon,rhon)
           call sumall(loc_xmsf,xmsf)
+          abar = abar/npts
+          rhon = rhon/npts
+          xmsf = xmsf/npts
           dxmsfb = d_two/dx/xmsf
           tmask(:,:) = d_zero
-          do k = 0 , 6
-            rk = dble(k)
+          do kk = 0 , 6
+            rkk = dble(kk)
             do ll = 0 , 6
               rll = dble(ll)
-              xkeff = dxmsfb * sin(mathpi*rk/12.0D0)*cos(mathpi*rll/12.0D0)
-              xleff = dxmsfb * sin(mathpi*rll/12.0D0)*cos(mathpi*rk/12.0D0)
+              xkeff = dxmsfb * sin(mathpi*rkk/12.0D0)*cos(mathpi*rll/12.0D0)
+              xleff = dxmsfb * sin(mathpi*rll/12.0D0)*cos(mathpi*rkk/12.0D0)
               xkleff = sqrt(xkeff*xkeff + xleff*xleff)
               do i = -6 , 6
                 ri = dble(i)
                 do j = -6 , 6
                   rj = dble(j)
                   tmask(j,i) = tmask(j,i) + &
-                               fi(i)*fj(j)*fk(k)*fl(ll)/144.0D0 * &
-                               cos(2.0D0*mathpi*rk*ri/12.0D0) *     &
+                               fi(i)*fj(j)*fk(kk)*fl(ll)/144.0D0 * &
+                               cos(2.0D0*mathpi*rkk*ri/12.0D0) *     &
                                cos(2.0D0*mathpi*rll*rj/12.0D0) *    &
                                xkleff / (rhon-abar*xkleff)
                 end do
               end do
             end do
           end do
+          ! Finished initial coefficient compute (goes in SAV file)
         end if
         !
-        ! Finished initial coefficient compute (goes in SAV file)
         ! Apply upper rad cond. (not in the lateral boundary)
         !
         do i = ici1 , ici2
-          if ( i < nspgx-1 .or. i > iy-nspgx-2 ) cycle
           do j = jci1 , jci2
-            if ( j < nspgx-1 .or. j > jx-nspgx-2 ) cycle
             do nsi = -6 , 6
-              inn = i + nsi
+              inn = min(max(i,2),nicross-2)
               do nsj = -6 , 6
-                jnn = j + nsj
+                jnn = min(max(j,2),njcross-2)
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do
             end do

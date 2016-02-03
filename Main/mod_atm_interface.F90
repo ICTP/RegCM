@@ -590,9 +590,6 @@ module mod_atm_interface
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
       call getmem3d(atm%tv,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tv')
       call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
-      if ( ibltyp == 2 ) then
-        call getmem3d(atm%tke,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:tke')
-      end if
       if ( idynamic == 2 ) then
         call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
         call getmem3d(atm%pp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pp')
@@ -790,10 +787,6 @@ module mod_atm_interface
       if ( ichem == 1 ) then
         call getmem4d(ax%chib3d,jce1gb,jce2gb,ice1gb,ice2gb, &
                                 1,kz,1,ntr,'slice:chib3d')
-      end if
-      if ( ibltyp == 2 ) then
-        call getmem3d(ax%tkeb3d,jce1gb,jce2gb, &
-                                ice1gb,ice2gb,1,kzp1,'slice:tkeb3d')
       end if
     end subroutine allocate_slice
 

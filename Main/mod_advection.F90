@@ -281,9 +281,9 @@ module mod_advection
 #endif
     end subroutine hadv_t
 
-    subroutine hadv3d(ften,f,nk)
+    subroutine hadv3d(ften,f,ind)
       implicit none
-      integer(ik4) , intent (in) :: nk
+      integer(ik4) , intent (in) :: ind
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
 
@@ -293,11 +293,11 @@ module mod_advection
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
-      !
-      ! for cross point variables on half sigma levels
-      !
-      if ( nk == kz ) then
-        do k = 1 , nk
+      if ( ind == 0 ) then
+        !
+        ! for cross point variables on half sigma levels
+        !
+        do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
               ften(j,i,k) = ften(j,i,k) - xmapf(j,i) *                  &
@@ -308,12 +308,12 @@ module mod_advection
             end do
           end do
         end do
-      else
+      else if ( ind == 1 ) then
         !
         ! Interpolate the winds to the full sigma levels
         ! while the advection term is calculated
         !
-        do k = 2 , nk - 1
+        do k = 2 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
               ften(j,i,k) = ften(j,i,k) - xmapf(j,i)       *  &
@@ -332,6 +332,9 @@ module mod_advection
             end do
           end do
         end do
+      else
+        call fatal(__FILE__,__LINE__, &
+                   'Unsupported advection scheme')
       end if
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
@@ -563,7 +566,7 @@ module mod_advection
 #endif
       if ( ind == 0 ) then
         if ( nk == kz ) then
-          do k = 2 , nk
+          do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ff = (twt(k,1)*f(j,i,k)+twt(k,2)*f(j,i,k-1)) * svv(j,i,k)
@@ -573,7 +576,7 @@ module mod_advection
             end do
           end do
         else
-          do k = 1 , nk - 1
+          do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
                 qq = d_half * (svv(j,i,k) + svv(j,i,k+1))

@@ -395,6 +395,7 @@ module mod_tendency
 
     if ( ibltyp == 2 ) then
       aten%tke(:,:,:) = d_zero
+      uwstatea%advtke(:,:,:) = d_zero
     end if
     if ( ichem == 1 ) then
       chiten(:,:,:,:)  = d_zero
@@ -415,9 +416,9 @@ module mod_tendency
       !
       ! Also, cf. Eq. 2.2.11 of vertical velocity tendency in the MM5 manual.
       !
-      call hadv(aten%pp,atmx%pp,kz)
+      call hadv(aten%pp,atmx%pp,0)
       call vadv(aten%pp,atm1%pp,kz,0)
-      call hadv(aten%w,atmx%w,kzp1)
+      call hadv(aten%w,atmx%w,1)
       call vadv(aten%w,atm1%w,kzp1,0)
       if ( iboudy == 1 .or. iboudy == 5 ) then
         call nudge(kz,ba_cr,atm2%t,iboudy,xtb,aten%t)
@@ -1433,11 +1434,10 @@ module mod_tendency
 #ifdef DEBUG
     call check_wind_tendency('DIFF')
 #endif
-    !
-    !  Couple TKE to ps for use in vertical advection
-    !
     if ( ibltyp == 2 ) then
-      uwstatea%advtke(:,:,:) = d_zero
+      !
+      !  Couple TKE to ps for use in vertical advection
+      !
       do k = 1 , kzp1
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -1446,17 +1446,13 @@ module mod_tendency
         end do
       end do
       ! Calculate the horizontal advective tendency for TKE
-      call hadv(uwstatea%advtke,atmx%tke,kzp1)
+      call hadv(uwstatea%advtke,atm1%tke,1)
       ! Calculate the vertical advective tendency for TKE
-      call vadv(uwstatea%advtke,atmx%tke,kzp1,0)
+      call vadv(uwstatea%advtke,uwstatea%tkeps,kzp1,0)
       ! Calculate the horizontal, diffusive tendency for TKE
-      ! TAO: Multiply the horizontal diffusion coefficient by
-      ! nuk for TKE.  Without this multiplication, it appears
-      ! that TKE does not diffuse fast enough, and stabilities
-      ! appear in the TKE field.  While this is different from
-      ! Bretherton's treatment, it is consistent with the
-      ! scaling of the vertical TKE diffusivity.
-      call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,nuk)
+      ! The multiplication factor was causing instabilities
+      ! in the non-hydrostatic model and has been removed.
+      call diffu_x(uwstatea%advtke,atm2%tke,sfs%psb,d_one)
     end if
     !
     ! Compute future values of t and moisture variables at tau+1:
@@ -2120,15 +2116,6 @@ module mod_tendency
           end do
         end do
       end do
-      if ( ibltyp == 2 ) then
-        do k = 1 , kz
-          do i = ice1ga , ice2ga
-            do j = jce1ga , jce2ga
-              atmx%tke(j,i,k) = atm1%tke(j,i,k) ! Here is already decoupled.
-            end do
-          end do
-        end do
-      end if
       !
       ! call tracer decoupling routine for multiple (ntr) species
       !

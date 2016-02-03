@@ -47,6 +47,7 @@ module mod_init
   use mod_constants
   use mod_outvars
   use mod_service
+  use mod_sound , only : init_sound
 
   implicit none
 
@@ -616,6 +617,9 @@ module mod_init
     call mkslice
     call initialize_surface_model
     call initialize_diffusion
+    if ( idynamic == 2 ) then
+      call init_sound
+    end if
     !
     ! RRTM_SW gas / abs constant initialisation
     !

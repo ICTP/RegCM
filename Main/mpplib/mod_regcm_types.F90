@@ -169,7 +169,6 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: t
     real(rk8) , pointer , dimension(:,:,:) :: tv
     real(rk8) , pointer , dimension(:,:,:,:) :: qx
-    real(rk8) , pointer , dimension(:,:,:) :: tke
     real(rk8) , pointer , dimension(:,:,:) :: pp
     real(rk8) , pointer , dimension(:,:,:) :: pr
     real(rk8) , pointer , dimension(:,:,:) :: rho
@@ -260,7 +259,6 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: dzq
     real(rk8) , pointer , dimension(:,:) :: rhox2d
     real(rk8) , pointer , dimension(:,:) :: ps2d
-    real(rk8) , pointer , dimension(:,:,:) :: tkeb3d
     real(rk8) , pointer , dimension(:,:,:,:) :: chib3d
   end type slice
 

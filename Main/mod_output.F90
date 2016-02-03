@@ -185,8 +185,8 @@ module mod_output
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                atm_w_out(j,i,k) = (twt(k,1) * atm1%w(j,i,k+1) + &
-                                    twt(k,2) * atm1%w(j,i,k)) / ps_out(j,i)
+                atm_w_out(j,i,k) = d_half * (atm1%w(j,i,k+1) + &
+                                             atm1%w(j,i,k)) / ps_out(j,i)
               end do
             end do
           end do

@@ -2112,7 +2112,7 @@ module mod_params
     !
     ! Setup Boundary condition routines.
     !
-    call setup_bdycon(sigma)
+    call setup_bdycon
     if ( ichem == 1 ) call setup_che_bdycon
 
     if ( idynamic == 2 ) then

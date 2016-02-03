@@ -192,11 +192,7 @@ module mod_slice
       do k = 1 , kzp1
         do i = ice1gb , ice2gb
           do j = jce1gb , jce2gb
-            if ( abs(atm2%w(j,i,k)) > minww ) then
-              atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
-            else
-              atms%wb3d(j,i,k) = d_zero
-            end if
+            atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
           end do
         end do
       end do
@@ -322,16 +318,6 @@ module mod_slice
         end do
       end do
     end do
-
-    if ( ibltyp == 2 ) then
-      do k = 1 , kzp1
-        do i = ice1gb , ice2gb
-          do j = jce1gb , jce2gb
-            atms%tkeb3d(j,i,k) = atm2%tke(j,i,k)*rpsb(j,i)
-          end do
-        end do
-      end do
-    end if
 
   end subroutine mkslice
 
