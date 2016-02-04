@@ -244,7 +244,7 @@ module mod_pbl_holtbl
         xhfx(j,i) = m2p%hfx(j,i)/(cpd*m2p%rhox2d(j,i))
         xqfx(j,i) = m2p%qfx(j,i)/m2p%rhox2d(j,i)
         ! compute virtual heat flux at surface
-        hfxv(j,i) = xhfx(j,i) + ep1*m2p%tpatm(j,i,kz)*xqfx(j,i)
+        hfxv(j,i) = xhfx(j,i) + 0.61D0 *m2p%tpatm(j,i,kz)*xqfx(j,i)
         ! limit coriolis parameter to value at 10 deg. latitude
         pfcor(j,i) = max(abs(m2p%coriol(j,i)),2.546D-5)
       end do
@@ -963,7 +963,6 @@ module mod_pbl_holtbl
       phpblm = 0.07D0*ustr(j,i)/pfcor(j,i)
       phpblm = max(phpblm,m2p%za(j,i,kz))
       p2m%zpbl(j,i) = max(p2m%zpbl(j,i),phpblm)
-      p2m%kpbl(j,i) = kz
     end do
   end do
 
