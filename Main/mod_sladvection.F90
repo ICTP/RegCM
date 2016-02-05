@@ -65,12 +65,12 @@ module mod_sladvection
       do k = 1, kz
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-            uadvx_d(j,i,k)  = atmx%ud(j,i,k)
-            vadvy_d(j,i,k)  = atmx%vd(j,i,k)
-            uadxp1_d(j,i,k) = atmx%ud(j+1,i,k)
-            uadxm1_d(j,i,k) = atmx%ud(j-1,i,k)
-            vadyp1_d(j,i,k) = atmx%vd(j,i+1,k)
-            vadym1_d(j,i,k) = atmx%vd(j,i-1,k)
+            uadvx_d(j,i,k)  = atmx%ud(j,i,k)/mddom%msfd(j,i)
+            vadvy_d(j,i,k)  = atmx%vd(j,i,k)/mddom%msfd(j,i)
+            uadxp1_d(j,i,k) = atmx%ud(j+1,i,k)/mddom%msfd(j+1,i)
+            uadxm1_d(j,i,k) = atmx%ud(j-1,i,k)/mddom%msfd(j-1,i)
+            vadyp1_d(j,i,k) = atmx%vd(j,i+1,k)/mddom%msfd(j,i+1)
+            vadym1_d(j,i,k) = atmx%vd(j,i-1,k)/mddom%msfd(j,i-1)
           end do
         end do
       end do
@@ -78,24 +78,24 @@ module mod_sladvection
       do k = 1, kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            uadvx_x(j,i,k) = 0.25D0 * (atmx%ud(j,i,k) + &
-                 atmx%ud(j,i+1,k) + atmx%ud(j+1,i+1,k) + &
-                 atmx%ud(j+1,i,k))
-            vadvy_x(j,i,k) = 0.25D0 * (atmx%vd(j,i,k) + &
-                 atmx%vd(j,i+1,k) + atmx%vd(j+1,i+1,k) + &
-                 atmx%vd(j+1,i,k))
-            uadxp1_x(j,i,k) = 0.25D0 * (atmx%ud(j+1,i,k) + &
-                 atmx%ud(j+1,i+1,k) + atmx%ud(j+2,i+1,k)  + &
-                 atmx%ud(j+2,i,k))
-            uadxm1_x(j,i,k) = 0.25D0 * (atmx%ud(j,i,k) + &
-                 atmx%ud(j,i+1,k) + atmx%ud(j-1,i+1,k)  + &
-                 atmx%ud(j-1,i,k))
-            vadyp1_x(j,i,k) = 0.25D0 * (atmx%vd(j,i+1,k) + &
-                 atmx%vd(j+1,i+1,k) + atmx%vd(j+1,i+2,k)  + &
-                 atmx%vd(j,i+2,k))
-            vadym1_x(j,i,k) = 0.25D0 * (atmx%vd(j,i,k) + &
-                 atmx%vd(j,i-1,k) + atmx%vd(j+1,i,k)    + &
-                 atmx%vd(j+1,i,k))
+            uadvx_x(j,i,k) = 0.25D0 * &
+              (atmx%ud(j,i,k)     + atmx%ud(j,i+1,k) + &
+               atmx%ud(j+1,i+1,k) + atmx%ud(j+1,i,k)) / mddom%msfx(j,i)
+            vadvy_x(j,i,k) = 0.25D0 * &
+              (atmx%vd(j,i,k)     + atmx%vd(j,i+1,k) + &
+               atmx%vd(j+1,i+1,k) + atmx%vd(j+1,i,k)) / mddom%msfx(j,i)
+            uadxp1_x(j,i,k) = 0.25D0 * &
+              (atmx%ud(j+1,i,k)    + atmx%ud(j+1,i+1,k) + &
+               atmx%ud(j+2,i+1,k)  + atmx%ud(j+2,i,k)) / mddom%msfx(j+1,i)
+            uadxm1_x(j,i,k) = 0.25D0 * &
+              (atmx%ud(j,i,k)     + atmx%ud(j,i+1,k) + &
+               atmx%ud(j-1,i+1,k) + atmx%ud(j-1,i,k)) / mddom%msfx(j-1,i)
+            vadyp1_x(j,i,k) = 0.25D0 * &
+              (atmx%vd(j,i+1,k) + atmx%vd(j+1,i+1,k) + &
+               atmx%vd(j+1,i+2,k) + atmx%vd(j,i+2,k)) / mddom%msfx(j,i+1)
+            vadym1_x(j,i,k) = 0.25D0 * &
+              (atmx%vd(j,i,k) + atmx%vd(j,i-1,k) + &
+               atmx%vd(j+1,i,k) + atmx%vd(j+1,i,k)) / mddom%msfx(j,i-1)
           end do
         end do
       end do
@@ -530,32 +530,29 @@ module mod_sladvection
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ucapf_x = (atmx%umd(j+1,i+1,k) + atmx%umd(j+1,i,k))*d_half
-          ucapi_x = (atmx%umd(j,i+1,k) + atmx%umd(j,i,k))*d_half
+          ucapf_x = (atmx%ud(j+1,i+1,k) + atmx%ud(j+1,i,k))*d_half
+          ucapi_x = (atmx%ud(j,i+1,k) + atmx%ud(j,i,k))*d_half
+          vcapf_x = (atmx%vd(j+1,i+1,k) + atmx%vd(j,i+1,k))*d_half
+          vcapi_x = (atmx%vd(j+1,i,k) + atmx%vd(j,i,k))*d_half
           ducapdx = (ucapf_x - ucapi_x) / dx
-          vcapf_x = (atmx%vmd(j+1,i+1,k) + atmx%vmd(j,i+1,k))*d_half
-          vcapi_x = (atmx%vmd(j+1,i,k) + atmx%vmd(j,i,k))*d_half
           dvcapdy = (vcapf_x - vcapi_x) / dx
-          hdvg = (ducapdx + dvcapdy)/(mddom%msfx(j,i)*mddom%msfx(j,i))
+          !ucapf_x = 0.25D0 * &
+          !  (atmx%ud(j+1,i,k) + atmx%ud(j+1,i+1,k) + &
+          !   atmx%ud(j+2,i+1,k) + atmx%ud(j+2,i,k))
+          !ucapi_x = 0.25D0 * &
+          !  (atmx%ud(j,i,k) + atmx%ud(j,i+1,k) + &
+          !   atmx%ud(j-1,i+1,k) + atmx%ud(j-1,i,k))
+          !vcapf_x = 0.25D0 * &
+          !  (atmx%vd(j,i+1,k) + atmx%vd(j+1,i+1,k) + &
+          !   atmx%vd(j+1,i+2,k) + atmx%vd(j,i+2,k))
+          !vcapi_x = 0.25D0 * &
+          !  (atmx%vd(j,i,k) + atmx%vd(j,i-1,k) + &
+          !   atmx%vd(j+1,i-1,k) + atmx%vd(j+1,i,k))
+          !ducapdx = (ucapf_x - ucapi_x) / (2.0D0*dx)
+          !dvcapdy = (vcapf_x - vcapi_x) / (2.0D0*dx)
+          hdvg = (ducapdx + dvcapdy) / mddom%msfx(j,i)
           tatotdvtrm = var(j,i,k)*hdvg
           ften(j,i,k) = ften(j,i,k) - tatotdvtrm
-          !GTD ucapf_x = 0.25D0*(atmx%ud(j+1,i,k) + &
-          !GTD   atmx%ud(j+1,i+1,k) + atmx%ud(j+2,i+1,k) + &
-          !GTD   atmx%ud(j+2,i,k))*mddom%msfx(j+1,i)
-          !GTD ucapi_x = 0.25D0*(atmx%ud(j,i,k) + &
-          !GTD   atmx%ud(j,i+1,k) + atmx%ud(j-1,i+1,k) + &
-          !GTD   atmx%ud(j-1,i,k))*mddom%msfx(j-1,i)
-          !GTD vcapf_x = 0.25D0*(atmx%vd(j,i+1,idyp1_x,k) + &
-          !GTD   atmx%vd(j+1,i+1,k+ atmx%vd(j+1,i+2,k) + &
-          !GTD   atmx%vd(j,i+2,k))*mddom%msfx(j,i+1)
-          !GTD vcapi_x = 0.25D0*(atmx%vd(j,i,k) + &
-          !GTD   atmx%vd(j,i-1,k) + atmx%vd(j+1,i-1,k) + &
-          !GTD   atmx%vd(j+1,i,k))*mddom%msfx(j,i-1)
-          !GTD ducapdx = (ucapf_x - ucapi_x) / (2.0D0*dx)
-          !GTD dvcapdy = (vcapf_x - vcapi_x) / (2.0D0*dx)
-          !GTD hdvg = (ducapdx + dvcapdy)/(mddom%msfx(j,i)*mddom%msfx(j,i))
-          !GTD tatotdvtrm = var(j,i,k)*hdvg
-          !GTD ften(j,i,k) = ften(j,i,k) - tatotdvtrm
         end do
       end do
     end do
@@ -593,32 +590,29 @@ module mod_sladvection
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ucapf_x = (atmx%umd(j+1,i+1,k) + atmx%umd(j+1,i,k))*d_half
-            ucapi_x = (atmx%umd(j,i+1,k) + atmx%umd(j,i,k))*d_half
+            ucapf_x = (atmx%ud(j+1,i+1,k) + atmx%ud(j+1,i,k))*d_half
+            ucapi_x = (atmx%ud(j,i+1,k) + atmx%ud(j,i,k))*d_half
+            vcapf_x = (atmx%vd(j+1,i+1,k) + atmx%vd(j,i+1,k))*d_half
+            vcapi_x = (atmx%vd(j+1,i,k) + atmx%vd(j,i,k))*d_half
             ducapdx = (ucapf_x - ucapi_x) / dx
-            vcapf_x = (atmx%vmd(j+1,i+1,k) + atmx%vmd(j,i+1,k))*d_half
-            vcapi_x = (atmx%vmd(j+1,i,k) + atmx%vmd(j,i,k))*d_half
             dvcapdy = (vcapf_x - vcapi_x) / dx
-            hdvg = (ducapdx + dvcapdy)/(mddom%msfx(j,i)*mddom%msfx(j,i))
+            !ucapf_x = 0.25D0 * &
+            !  (atmx%ud(j+1,i,k) + atmx%ud(j+1,i+1,k) + &
+            !   atmx%ud(j+2,i+1,k) + atmx%ud(j+2,i,k))
+            !ucapi_x = 0.25D0 * &
+            !  (atmx%ud(j,i,k) + atmx%ud(j,i+1,k) + &
+            !   atmx%ud(j-1,i+1,k) + atmx%ud(j-1,i,k))
+            !vcapf_x = 0.25D0 * &
+            !  (atmx%vd(j,i+1,k) + atmx%vd(j+1,i+1,k) + &
+            !   atmx%vd(j+1,i+2,k) + atmx%vd(j,i+2,k))
+            !vcapi_x = 0.25D0 * &
+            !  (atmx%vd(j,i,k) + atmx%vd(j,i-1,k) + &
+            !   atmx%vd(j+1,i-1,k) + atmx%vd(j+1,i,k))
+            !ducapdx = (ucapf_x - ucapi_x) / (2.0D0*dx)
+            !dvcapdy = (vcapf_x - vcapi_x) / (2.0D0*dx)
+            hdvg = (ducapdx + dvcapdy) / mddom%msfx(j,i)
             tatotdvtrm = var(j,i,k,n)*hdvg
             ften(j,i,k,n) = ften(j,i,k,n) - tatotdvtrm
-            !GTD ucapf_x = 0.25D0*(atmx%ud(j+1,i,k) + &
-            !GTD   atmx%ud(j+1,i+1,k) + atmx%ud(j+2,i+1,k) + &
-            !GTD   atmx%ud(j+2,i,k))*mddom%msfx(j+1,i)
-            !GTD ucapi_x = 0.25D0*(atmx%ud(j,i,k) + &
-            !GTD   atmx%ud(j,i+1,k) + atmx%ud(j-1,i+1,k) + &
-            !GTD   atmx%ud(j-1,i,k))*mddom%msfx(j-1,i)
-            !GTD vcapf_x = 0.25D0*(atmx%vd(j,i+1,idyp1_x,k) + &
-            !GTD   atmx%vd(j+1,i+1,k+ atmx%vd(j+1,i+2,k) + &
-            !GTD   atmx%vd(j,i+2,k))*mddom%msfx(j,i+1)
-            !GTD vcapi_x = 0.25D0*(atmx%vd(j,i,k) + &
-            !GTD   atmx%vd(j,i-1,k) + atmx%vd(j+1,i-1,k) + &
-            !GTD   atmx%vd(j+1,i,k))*mddom%msfx(j,i-1)
-            !GTD ducapdx = (ucapf_x - ucapi_x) / (2.0D0*dx)
-            !GTD dvcapdy = (vcapf_x - vcapi_x) / (2.0D0*dx)
-            !GTD hdvg = (ducapdx + dvcapdy)/(mddom%msfx(j,i)*mddom%msfx(j,i))
-            !GTD tatotdvtrm = var(j,i,k,n)*hdvg
-            !GTD ften(j,i,k,n) = ften(j,i,k,n) - tatotdvtrm
           end do
         end do
       end do
@@ -628,9 +622,8 @@ module mod_sladvection
 #endif
   end subroutine hdvg_x4d
 
-  subroutine hdvg_d(ften,var,dx)
+  subroutine hdvg_d(ften,var)
     implicit none
-    real(rk8) , intent(in) :: dx
     real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ften
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: var
     real(rk8) :: ucapf, ucapi , ducapdx , vcapf , vcapi ,   &
@@ -644,14 +637,14 @@ module mod_sladvection
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          ucapf = atmx%umd(j+1,i,k)
-          ucapi = atmx%umd(j-1,i,k)
+          ucapf = atmx%ud(j+1,i,k)
+          ucapi = atmx%ud(j-1,i,k)
           ducapdx = (ucapf - ucapi) / (2.0D0*dx)
-          vcapf = atmx%vmd(j,i+1,k)
-          vcapi = atmx%vmd(j,i-1,k)
+          vcapf = atmx%vd(j,i+1,k)
+          vcapi = atmx%vd(j,i-1,k)
           dvcapdy = (vcapf - vcapi) / (2.0D0*dx)
-          hdvg = (ducapdx + dvcapdy) / (mddom%msfd(j,i)*mddom%msfd(j,i))
-          tatotdvtrm = var(j,i,k)*hdvg/mddom%msfd(j,i)
+          hdvg = (ducapdx + dvcapdy) / mddom%msfd(j,i)
+          tatotdvtrm = var(j,i,k)*hdvg
           ften(j,i,k) = ften(j,i,k) - tatotdvtrm
         end do
       end do
