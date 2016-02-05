@@ -1953,25 +1953,14 @@ module mod_tendency
       ! Decoupled part with boundary conditions
       ! Internal points
       !
-      if ( isladvec == 1 ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              atmx%ud(j,i,k) = atm1%u(j,i,k)*rpsda(j,i)
-              atmx%vd(j,i,k) = atm1%v(j,i,k)*rpsda(j,i)
-            end do
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            atmx%ud(j,i,k) = atm1%u(j,i,k)*rpsda(j,i)
+            atmx%vd(j,i,k) = atm1%v(j,i,k)*rpsda(j,i)
           end do
         end do
-      else
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              atmx%ud(j,i,k) = atm1%u(j,i,k)*rpsda(j,i)
-              atmx%vd(j,i,k) = atm1%v(j,i,k)*rpsda(j,i)
-            end do
-          end do
-        end do
-      end if
+      end do
       !
       ! Boundary U,Vpoints
       !
