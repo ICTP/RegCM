@@ -70,13 +70,13 @@ module mod_diffusion
     ! Diffusion coefficients: for non-hydrostatic, follow the MM5
     ! The hydrostatic diffusion is following the RegCM3 formulation
     !
-    xkhmax = dxsq/(64.0D0*dtsec)    ! Computation stability
-    dydc = vonkar*vonkar*dx*d_rfour ! Deformation term coefficient
+    xkhmax = d_two*dxsq/(64.0D0*dtsec) ! Computation stability
+    dydc = vonkar*vonkar*dx*d_rfour    ! Deformation term coefficient
+    ! (Xu et al., MWR, 2001, 502-516)
     if ( idynamic == 1 ) then
-      xkhz = 1.5D-3*dxsq/dtsec
+      xkhz = dx       ! 1.5D-3*dxsq/dtsec
     else
-      xkhz = 3.0D-3*dxsq/dtsec
-      xkhmax = xkhmax * d_two ! Increase maximum allowed diffusion coefficient
+      xkhz = ckh * dx ! 3.0D-3*dxsq/dtsec
     end if
     if ( myid == 0 ) then
       write(stdout,'(a,e13.6,a)') &
