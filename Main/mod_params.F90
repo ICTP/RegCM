@@ -419,7 +419,7 @@ module mod_params
     ricr_lnd = 0.25D0
     zhnew_fac = 0.25D0
     ifaholtth10 = 0
-    ifaholt = 0
+    ifaholt = 1
     !
     ! slabocparam ;
     !
