@@ -1222,15 +1222,17 @@ module mod_params
       call bcast(rdstemfac)
       call bcast(ichdiag)
       call bcast(ichsursrc)
+      call bcast(ichebdy)
+      call bcast(ichbion)
+      call bcast(ismoke)
+
       call chem_config
+! the following param are set according in chem-config !
       call bcast(ntr)
       call bcast(nbin)
       call bcast(iaerosol)
       call bcast(ioxclim)
       call bcast(igaschem)
-      call bcast(ichebdy)
-      call bcast(ichbion)
-      call bcast(ismoke)
     end if
     !
     ! ALLOCATE NEEDED SPACE

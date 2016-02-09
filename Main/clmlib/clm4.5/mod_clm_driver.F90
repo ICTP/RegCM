@@ -174,7 +174,8 @@ module mod_clm_driver
     type(rcm_time_interval) :: tdif
 #endif
     character(len=256) :: filer  ! restart file name
-
+    !FAB
+    logical, save  :: lfirstcall
     ! Assign local pointers to derived subtypes components (landunit-level)
 
     itypelun => clm3%g%l%itype
@@ -573,11 +574,14 @@ module mod_clm_driver
     call BalanceCheck(begp,endp,begc,endc,begl,endl,begg,endg)
 
 #if (defined CN)
-    if ( ktau < 2 ) then
+!    print*,'FAB', lfirstcall
+!    if (ktau < 2) then
+    if ( ktau < 2 .or. .not.lfirstcall) then
       if ( myid == italk ) then
         write(stdout,*) &
           '--WARNING-- skipping CN balance check for first timestep'
       end if
+    lfirstcall = .true.
     else
       call CBalanceCheck(begc,endc,filter%num_soilc,filter%soilc)
       call NBalanceCheck(begc,endc,filter%num_soilc,filter%soilc)

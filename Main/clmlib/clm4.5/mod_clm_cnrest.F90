@@ -3243,7 +3243,7 @@ module mod_clm_cnrest
     else if (flag == 'write') then
       call clm_writevar(ncid,'totcolc',cptr%ccs%totcolc,gcomm_column)
     end if
-
+ 
     ! prod10c
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'prod10c',(/'column'/), &

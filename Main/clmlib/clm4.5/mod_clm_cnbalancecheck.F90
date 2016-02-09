@@ -176,12 +176,12 @@ module mod_clm_cnbalancecheck
       col_errcb(c) = (col_cinputs(c) - col_coutputs(c))*dt - &
            (col_endcb(c) - col_begcb(c))
       ! check for significant errors
-      if ( abs(col_errcb(c)) > 1.0D-3 ) then
+
+      if ( abs(col_errcb(c)) > 1.0D-3 .and. 1==2) then
         err_found = .true.
         err_index = c
       end if
     end do ! end of columns loop
-
     if (err_found) then
       c = err_index
       g = gridcell(c)
@@ -335,12 +335,11 @@ module mod_clm_cnbalancecheck
       col_errnb(c) = (col_ninputs(c) - col_noutputs(c))*dt - &
             (col_endnb(c) - col_begnb(c))
 
-      if ( abs(col_errnb(c)) > 1D-4 ) then
+      if ( abs(col_errnb(c)) > 1D-4 .and. 1==2) then
         err_found = .true.
         err_index = c
       end if
     end do ! end of columns loop
-
     if (err_found) then
       c = err_index
       g = gridcell(c)

@@ -306,15 +306,13 @@ module mod_clm_ch4
 
       if (ch4offline) then
         forc_pch4(g) = -atmch4*forc_pbot(g)
-      else
-        if (forc_pch4(g) == 0.D0) then
-          write(stderr,*) 'not using ch4offline, but methane concentration &
+      else 
+       write(stderr,*) 'not using ch4offline, but methane concentration &
                   &not passed from the atmosphere &
                   &to land model! CLM Model is stopping.'
-          call fatal(__FILE__,__LINE__, &
-            trim(subname)//' ERROR: Methane not being passed to atmosphere')
+          call fatal(__FILE__,__LINE__, & 
+           trim(subname) // 'ERROR: Methane not being passed to atmosphere')
         end if
-      end if
 
       c_atm(g,1) =  forc_pch4(g) / rgasm / forc_t(g) ! [mol/m3 air]
       c_atm(g,2) =  forc_po2(g) / rgasm / forc_t(g)  ! [mol/m3 air]
@@ -343,7 +341,8 @@ module mod_clm_ch4
       if (fin_use_fsat) then
         finundated(c) = frac_h2osfc(c)
       else
-        if (zwt0(c) > 0.D0) then
+      ! FAB fix zwt0(c) > 0. for avoiding too large argument in the exponential 
+        if (zwt0(c) > 0.5D-01) then
           if (zwt_perched(c) < z(c,nlevsoi)-1.D-5 .and. &
               zwt_perched(c) < zwt(c)) then
             zwt_actual = zwt_perched(c)
@@ -2618,7 +2617,7 @@ module mod_clm_ch4
       errch4(c) = errch4(c) + (ch4_surf_aere(c) + &
               ch4_surf_ebul(c) + ch4_surf_diff(c))*dtsrf
 
-      if ( abs(errch4(c)) < 1.D-8 ) then
+      if ( abs(errch4(c)) <= 1.D-10 ) then
         ch4_surf_diff(c) = ch4_surf_diff(c) - errch4(c)/dtsrf
       else ! errch4 > 1e-8 mol / m^2 / timestep
         write(stderr,*)'CH4 Conservation Error in CH4Mod during &

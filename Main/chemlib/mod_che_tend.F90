@@ -258,6 +258,8 @@
       !
       ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)
       !
+
+
       if ( idust(1) > 0 .and. ichdustemd < 3 .and.  ichsursrc == 1 ) then
         do j = jci1 , jci2
           where (ivegcov(:,j) == 11)
@@ -433,6 +435,7 @@
       if ( igaschem == 1 .and. ichsolver > 0 ) then
         if ( mod(ktau+1,kchsolv) == 0 ) then
           chemten(:,:,:,:) = d_zero
+          print*,chemall(45,35,kz,ind_OH)
           do j = jci1 , jci2
             call chemistry(j)
           end do

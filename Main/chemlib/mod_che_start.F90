@@ -131,6 +131,10 @@ module mod_che_start
     end if
 #endif
 
+    trac%indcbmz(:) = -1
+    trac%mw(:) = d_zero
+
+
     ibin = 0
     jbin = 0
     kbin = 0
@@ -221,8 +225,8 @@ module mod_che_start
       ! gas phas species (CBMZ),
       ! max configuration : number of tracer = number of species
 
-      trac%indcbmz(:) = -1
-      trac%mw(:) = d_zero
+!      trac%indcbmz(:) = -1
+!      trac%mw(:) = d_zero
       do n = 1,totsp
         if ( chtrname(itr) == cbmzspec(n) )then
           ! index of the tracer in the CBMZ list of species

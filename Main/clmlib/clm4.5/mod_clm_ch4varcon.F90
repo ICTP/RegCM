@@ -120,7 +120,7 @@ module mod_clm_ch4varcon
   ! Note: switching this off turns off ALL lake methane biogeochem.
   ! However, 0 values will still be averaged into the concentration _sat
   ! history fields.
-  logical , public :: allowlakeprod = .false.
+  logical , public :: allowlakeprod = .true.
 
   ! Base decomposition rate (1/s) at 25C
   ! Equates to about a 200 year lifetime.
@@ -179,7 +179,7 @@ module mod_clm_ch4varcon
   ! appropriate for woody PFTs, although nongrassporosratio above partly
   ! adjusts for this.  However, using fine root C reduces the aerenchyma
   ! area by a large factor.
-  logical , public :: usefrootc = .false.
+  logical , public :: usefrootc = .true.
 
   ! true --> Methane is not passed between the land & atmosphere.
   ! NEM is not added to NEE flux to atm. to correct for methane production,
@@ -234,8 +234,8 @@ module mod_clm_ch4varcon
     ! Production
     namelist /ch4par_in/ &
         q10ch4base, q10ch4, rootlitfrac, f_ch4, cnscalefactor, &
-        redoxlag, & ! ch4rmcnlim, anoxicmicrosites,
-        mino2lim, lake_decomp_fact, usephfact, redoxlag_vertical
+        redoxlag, & 
+        mino2lim, lake_decomp_fact, ch4rmcnlim, anoxicmicrosites,redoxlag_vertical
 
     ! Oxidation
     namelist /ch4par_in/ &
@@ -244,8 +244,8 @@ module mod_clm_ch4varcon
 
     ! Aerenchyma
     namelist /ch4par_in/ &
-         aereoxid, scale_factor_aere,  & !transpirationloss,
-         nongrassporosratio, unsat_aere_ratio, &
+         aereoxid, scale_factor_aere,  & 
+         nongrassporosratio, unsat_aere_ratio, transpirationloss, &
          usefrootc
 
     ! Ebullition
@@ -255,7 +255,7 @@ module mod_clm_ch4varcon
     ! Transport
     namelist /ch4par_in/ &
          organic_max, satpow, scale_factor_gasdiff, &
-         scale_factor_liqdiff !, ch4frzout
+         scale_factor_liqdiff, ch4frzout
 
 
     ! ----------------------------------------------------------------------
@@ -290,7 +290,7 @@ module mod_clm_ch4varcon
     call bcast(satpow)
     call bcast(cnscalefactor)
     call bcast(f_ch4)
-    ! call bcast(transpirationloss)
+    call bcast(transpirationloss)
     call bcast(k_m_o2)
     call bcast(nongrassporosratio)
     call bcast(allowlakeprod)
@@ -306,9 +306,9 @@ module mod_clm_ch4varcon
     call bcast(unsat_aere_ratio)
     call bcast(usefrootc)
     call bcast(ch4offline)
-    ! call bcast(ch4rmcnlim)
-    ! call bcast(anoxicmicrosites)
-    ! call bcast(ch4frzout)
+    call bcast(ch4rmcnlim)
+    call bcast(anoxicmicrosites)
+    call bcast(ch4frzout)
     call bcast(redoxlag_vertical)
     call bcast(atmch4)
 
@@ -330,7 +330,7 @@ module mod_clm_ch4varcon
       write(stdout,*)'satpow = ', satpow
       write(stdout,*)'cnscalefactor = ', cnscalefactor
       write(stdout,*)'f_ch4 = ', f_ch4
-      !write(stdout,*)'transpirationloss = ', transpirationloss
+      write(stdout,*)'transpirationloss = ', transpirationloss
       write(stdout,*)'k_m_o2 = ', k_m_o2
       write(stdout,*)'nongrassporosratio = ', nongrassporosratio
       write(stdout,*)'allowlakeprod = ', allowlakeprod
@@ -346,9 +346,9 @@ module mod_clm_ch4varcon
       write(stdout,*)'unsat_aere_ratio = ', unsat_aere_ratio
       write(stdout,*)'usefrootc = ', usefrootc
       write(stdout,*)'ch4offline = ', ch4offline
-      !write(stdout,*)'ch4rmcnlim = ', ch4rmcnlim
-      !write(stdout,*)'anoxicmicrosites = ', anoxicmicrosites
-      !write(stdout,*)'ch4frzout = ', ch4frzout
+      write(stdout,*)'ch4rmcnlim = ', ch4rmcnlim
+      write(stdout,*)'anoxicmicrosites = ', anoxicmicrosites
+      write(stdout,*)'ch4frzout = ', ch4frzout
       write(stdout,*)'redoxlag_vertical = ', redoxlag_vertical
       write(stdout,*)'atmch4 = ', atmch4
 

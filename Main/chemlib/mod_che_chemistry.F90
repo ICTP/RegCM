@@ -88,12 +88,12 @@ module mod_che_chemistry
           ! 1 : initialise xrin with the concentrations from
           !     previous chemsolv step
           do ic = 1 , totsp
-            xrin(ic) = chemall(j,i,k,ic)
+!           xrin(ic) = chemall(j,i,k,ic)
           end do
           ! 2 : update input concentrations for transported species only
           do n = 1 , ntr
             if ( trac%indcbmz(n) > 0 ) then
-              xrin(trac%indcbmz(n)) = chib3d(j,i,k,n) * cfactor / trac%mw(n)
+               xrin(trac%indcbmz(n)) = chib3d(j,i,k,n) * cfactor / trac%mw(n)
             end if
           end do
           ! update for water vapor
