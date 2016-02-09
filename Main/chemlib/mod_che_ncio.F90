@@ -286,7 +286,6 @@ module mod_che_ncio
       if ( do_parallel_netcdf_in .or. myid == iocpu ) then
         call openfile_withname(aername,ncid)
         istatus = nf90_inq_dimid(ncid, 'time', idimid)
-        print*,"OK1" 
         call check_ok(__FILE__,__LINE__, &
                       'Dimension time miss', 'CHEMI FILE')
         istatus = nf90_inquire_dimension(ncid, idimid, len=chmnrec)
@@ -294,7 +293,6 @@ module mod_che_ncio
                 'Dimension time read error', 'CHEMI FILE')
         allocate (emtimeval(chmnrec))
         istatus = nf90_inq_varid(ncid, 'time', itvar)
-        print*,'OK2'
         call check_ok(__FILE__,__LINE__, &
                       'variable time miss', 'CHEMISS FILE')
         istatus = nf90_get_att(ncid, itvar, 'units', chemi_timeunits)
@@ -315,19 +313,16 @@ module mod_che_ncio
         if ( istatus /= nf90_noerr ) then
           chemi_timecal = 'gregorian'
         end if
-        print*,'OK3'
         istatus = nf90_get_var(ncid, itvar, emtimeval)
         call check_ok(__FILE__,__LINE__, &
                       'variable time read error', 'ICBC FILE')
 
-        print*, emtimeval, chemi_timeunits, chemi_timecal
         
 
         recc = 0
         looprec: &
         do n = 1 , chmnrec
           tchdate = timeval2date(emtimeval(n),chemi_timeunits,chemi_timecal)
-          print*, tchdate
           call split_idate(tchdate,year,month,day,hour)
           select case (ifreq)
             case (ifrqmon)

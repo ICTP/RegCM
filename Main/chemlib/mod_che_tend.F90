@@ -435,7 +435,6 @@
       if ( igaschem == 1 .and. ichsolver > 0 ) then
         if ( mod(ktau+1,kchsolv) == 0 ) then
           chemten(:,:,:,:) = d_zero
-          print*,chemall(45,35,kz,ind_OH)
           do j = jci1 , jci2
             call chemistry(j)
           end do
