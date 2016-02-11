@@ -169,7 +169,7 @@ module mod_sound
     istep = int(dt/dtsmax) + 1
     ! DTL LONG TIME-STEP (XXB-XXC)
     if ( ktau > 0 ) then
-      istep = max(8,istep)
+      istep = max(4,istep)
     end if
     dts = dt/istep
     !

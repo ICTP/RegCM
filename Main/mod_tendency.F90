@@ -223,7 +223,6 @@ module mod_tendency
                           atmx%umd(j+1,i,k)+ atmx%umd(j+1,i+1,k))
             vcc(j,i,k) = (atmx%vmd(j,i,k)  + atmx%vmd(j,i+1,k) + &
                           atmx%vmd(j+1,i,k)+ atmx%vmd(j+1,i+1,k))
-
           end do
         end do
       end do
@@ -1152,7 +1151,7 @@ module mod_tendency
     ! same for hydrostatic and nonhydrostatic models: 1st RHS term in
     ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
     !
-    call hadv(aten%u,aten%v,atmx%ud,atmx%vd)
+    call hadv(aten%u,aten%v,atmx%umd,atmx%vmd)
 #ifdef DEBUG
     call check_wind_tendency('HADV')
 #endif
@@ -1397,7 +1396,7 @@ module mod_tendency
     ! same for hydrostatic and nonhydrostatic models: 2nd RHS term in
     ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
     !
-    call vadv(aten%u,aten%v,atmx%umc,atmx%vmc)
+    call vadv(aten%u,aten%v,atmx%uc,atmx%vc)
 #ifdef DEBUG
     call check_wind_tendency('VADV')
 #endif
