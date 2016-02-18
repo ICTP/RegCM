@@ -74,7 +74,7 @@ module mod_cu_kf
   integer(ik4) , dimension(:) , pointer :: imap , jmap
   real(rk8) , dimension(:,:) , pointer :: u0 , v0 , z0 , t0 , qv0 , p0
   real(rk8) , dimension(:,:) , pointer :: rho , dzq , w0avg , tke
-  real(rk8) , dimension(:) , pointer :: raincv , pratec
+  real(rk8) , dimension(:) , pointer :: pratec
   real(rk8) , dimension(:,:) , pointer :: qc_kf , qi_kf
   integer(ik4) , dimension(:) , pointer :: ktop , kbot
   real(rk8) , dimension(:,:) , pointer :: cldfra_dp_kf , cldfra_sh_kf
@@ -92,7 +92,7 @@ module mod_cu_kf
   real(rk8) , parameter :: p00 = 1.0D5
 
   real(rk8) , parameter :: astrt = 1.0D-3
-  real(rk8) , parameter :: aincb = 0.050D0
+  real(rk8) , parameter :: aincb = 0.0750D0
 
   real(rk8) , parameter :: c1 = 3374.6525D0
   real(rk8) , parameter :: c2 = 2.5403D0
@@ -130,35 +130,34 @@ module mod_cu_kf
         end if
       end do
     end do
-    call getmem2d(u0,1,nipoi,1,kz,'mod_cu_kf:u0')
-    call getmem2d(v0,1,nipoi,1,kz,'mod_cu_kf:v0')
-    call getmem2d(t0,1,nipoi,1,kz,'mod_cu_kf:t0')
-    call getmem2d(z0,1,nipoi,1,kz,'mod_cu_kf:z0')
-    call getmem2d(qv0,1,nipoi,1,kz,'mod_cu_kf:qv0')
-    call getmem2d(p0,1,nipoi,1,kz,'mod_cu_kf:p0')
-    call getmem2d(rho,1,nipoi,1,kz,'mod_cu_kf:rho')
-    call getmem2d(tke,1,nipoi,1,kz,'mod_cu_kf:tke')
-    call getmem2d(dzq,1,nipoi,1,kz,'mod_cu_kf:dzq')
-    call getmem2d(w0avg,1,nipoi,1,kz,'mod_cu_kf:w0avg')
-    call getmem2d(dqdt,1,nipoi,1,kz,'mod_cu_kf:dqdt')
-    call getmem2d(dqidt,1,nipoi,1,kz,'mod_cu_kf:dqidt')
-    call getmem2d(dqcdt,1,nipoi,1,kz,'mod_cu_kf:dqcdt')
-    call getmem2d(dqrdt,1,nipoi,1,kz,'mod_cu_kf:dqrdt')
-    call getmem2d(dqsdt,1,nipoi,1,kz,'mod_cu_kf:dqsdt')
-    call getmem2d(dtdt,1,nipoi,1,kz,'mod_cu_kf:dtdt')
-    call getmem2d(cldfra_dp_kf,1,nipoi,1,kz,'mod_cu_kf:cldfra_dp_kf')
-    call getmem2d(pptliq,1,nipoi,1,kz,'mod_cu_kf:pptliq')
-    call getmem2d(pptice,1,nipoi,1,kz,'mod_cu_kf:pptice')
-    call getmem2d(cldfra_sh_kf,1,nipoi,1,kz,'mod_cu_kf:cldfra_sh_kf')
-    call getmem2d(qc_kf,1,nipoi,1,kz,'mod_cu_kf:qc_kf')
-    call getmem2d(qi_kf,1,nipoi,1,kz,'mod_cu_kf:qi_kf')
-    call getmem1d(raincv,1,nipoi,'mod_cu_kf:raincv')
+    call getmem2d(u0,1,kz,1,nipoi,'mod_cu_kf:u0')
+    call getmem2d(v0,1,kz,1,nipoi,'mod_cu_kf:v0')
+    call getmem2d(t0,1,kz,1,nipoi,'mod_cu_kf:t0')
+    call getmem2d(z0,1,kz,1,nipoi,'mod_cu_kf:z0')
+    call getmem2d(qv0,1,kz,1,nipoi,'mod_cu_kf:qv0')
+    call getmem2d(p0,1,kz,1,nipoi,'mod_cu_kf:p0')
+    call getmem2d(rho,1,kz,1,nipoi,'mod_cu_kf:rho')
+    call getmem2d(tke,1,kz,1,nipoi,'mod_cu_kf:tke')
+    call getmem2d(dzq,1,kz,1,nipoi,'mod_cu_kf:dzq')
+    call getmem2d(w0avg,1,kz,1,nipoi,'mod_cu_kf:w0avg')
+    call getmem2d(dqdt,1,kz,1,nipoi,'mod_cu_kf:dqdt')
+    call getmem2d(dqidt,1,kz,1,nipoi,'mod_cu_kf:dqidt')
+    call getmem2d(dqcdt,1,kz,1,nipoi,'mod_cu_kf:dqcdt')
+    call getmem2d(dqrdt,1,kz,1,nipoi,'mod_cu_kf:dqrdt')
+    call getmem2d(dqsdt,1,kz,1,nipoi,'mod_cu_kf:dqsdt')
+    call getmem2d(dtdt,1,kz,1,nipoi,'mod_cu_kf:dtdt')
+    call getmem2d(cldfra_dp_kf,1,kz,1,nipoi,'mod_cu_kf:cldfra_dp_kf')
+    call getmem2d(pptliq,1,kz,1,nipoi,'mod_cu_kf:pptliq')
+    call getmem2d(pptice,1,kz,1,nipoi,'mod_cu_kf:pptice')
+    call getmem2d(cldfra_sh_kf,1,kz,1,nipoi,'mod_cu_kf:cldfra_sh_kf')
+    call getmem2d(qc_kf,1,kz,1,nipoi,'mod_cu_kf:qc_kf')
+    call getmem2d(qi_kf,1,kz,1,nipoi,'mod_cu_kf:qi_kf')
     call getmem1d(pratec,1,nipoi,'mod_cu_kf:pratec')
     call getmem1d(ktop,1,nipoi,'mod_cu_kf:ktop')
     call getmem1d(kbot,1,nipoi,'mod_cu_kf:kbot')
     if ( kf_trigger == 2 ) then
-      call getmem2d(tpart_v,1,nipoi,1,kz,'mod_cu_kf:tpart_v')
-      call getmem2d(tpart_h,1,nipoi,1,kz,'mod_cu_kf:tpart_h')
+      call getmem2d(tpart_v,1,kz,1,nipoi,'mod_cu_kf:tpart_v')
+      call getmem2d(tpart_h,1,kz,1,nipoi,'mod_cu_kf:tpart_h')
     end if
   end subroutine allocate_mod_cu_kf
 
@@ -185,17 +184,15 @@ module mod_cu_kf
       do np = 1 , nipoi
         i = imap(np)
         j = jmap(np)
-        u0(np,k) = m2c%uas(j,i,kk)
-        v0(np,k) = m2c%vas(j,i,kk)
-        t0(np,k) = m2c%tas(j,i,kk)
-        z0(np,k) = m2c%zas(j,i,kk)
-        qv0(np,k) = m2c%qxas(j,i,kk,iqv)
-        p0(np,k) = m2c%pas(j,i,kk)
-        rho(np,k) = m2c%rhoas(j,i,kk)
-        dzq(np,k) = m2c%dzq(j,i,kk)
-        w0 = d_half * (m2c%was(j,i,kk)+m2c%was(j,i,kk+1))
-        ! Average over four timesteps.
-        w0avg(np,k) = (kfwavg(j,i,kk)*3.0D0+w0)*d_rfour
+        u0(k,np) = m2c%uas(j,i,kk)
+        v0(k,np) = m2c%vas(j,i,kk)
+        t0(k,np) = m2c%tas(j,i,kk)
+        z0(k,np) = m2c%zas(j,i,kk)
+        qv0(k,np) = m2c%qxas(j,i,kk,iqv)
+        p0(k,np) = m2c%pas(j,i,kk)
+        rho(k,np) = m2c%rhoas(j,i,kk)
+        dzq(k,np) = m2c%dzq(j,i,kk)
+        w0avg(np,k) = kfwavg(j,i,kk)
       end do
     end do
 
@@ -205,7 +202,7 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          tke(np,k) = d_half * (m2c%tkeas(j,i,kk)+m2c%tkeas(j,i,kk+1))
+          tke(k,np) = d_half * (m2c%tkeas(j,i,kk)+m2c%tkeas(j,i,kk+1))
         end do
       end do
     else
@@ -218,7 +215,6 @@ module mod_cu_kf
     dqcdt(:,:) = d_zero
     dqrdt(:,:) = d_zero
     dqsdt(:,:) = d_zero
-    raincv(:) = d_zero
     pratec(:) = d_zero
     pptliq(:,:) = d_zero
     pptice(:,:) = d_zero
@@ -240,11 +236,10 @@ module mod_cu_kf
       do np = 1 , nipoi
         i = imap(np)
         j = jmap(np)
-        cu_tten(j,i,kk) = dtdt(np,k)
-        cu_qten(j,i,kk,iqv) = dqdt(np,k)
-        cu_qten(j,i,kk,iqc) = dqcdt(np,k)
-        cu_cldfrc(j,i,k) = max(cldfra_sh_kf(np,k),cldfra_dp_kf(np,k))
-        kfwavg(j,i,kk) = w0avg(np,k)
+        cu_tten(j,i,kk) = dtdt(k,np)
+        cu_qten(j,i,kk,iqv) = dqdt(k,np)
+        cu_qten(j,i,kk,iqc) = dqcdt(k,np)
+        cu_cldfrc(j,i,k) = max(cldfra_sh_kf(k,np),cldfra_dp_kf(k,np))
       end do
     end do
 
@@ -254,9 +249,9 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          cu_qten(j,i,kk,iqr) = dqrdt(np,k)
-          cu_qten(j,i,kk,iqi) = dqidt(np,k)
-          cu_qten(j,i,kk,iqs) = dqsdt(np,k)
+          cu_qten(j,i,kk,iqr) = dqrdt(k,np)
+          cu_qten(j,i,kk,iqi) = dqidt(k,np)
+          cu_qten(j,i,kk,iqs) = dqsdt(k,np)
         end do
       end do
     end if
@@ -269,7 +264,7 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          cu_convpr(j,i,kk) = pptliq(np,k) + pptice(np,k)
+          cu_convpr(j,i,kk) = pptliq(k,np) + pptice(k,np)
         end do
       end do
     end if
@@ -348,8 +343,9 @@ module mod_cu_kf
             nd1 , ndk , lmax , ncount , noitr , nstep , ntc , ishall , np
     logical :: iprnt
     real(rk8) :: qslcl , rhlcl , dqssdt    !jfb
-    integer , parameter :: maxiter = 100
+    integer :: maxiter
 
+    maxiter = kte
     kl = kte
     kx = kte
 
@@ -366,7 +362,7 @@ module mod_cu_kf
       ishall = 0
       llfc = 1
       l5 = 1
-      p300 = p0(np,1) - 30000.0D0
+      p300 = p0(1,np) - 30000.0D0
       !
       ! Pressure perturbation term is only defined at mid-point of
       ! vertical layers. Since total pressure is needed at the top and
@@ -381,9 +377,9 @@ module mod_cu_kf
         ! Saturation vapor pressure (ES) is calculated following Buck (1981)
         ! If q0 is above saturation value, reduce it to saturation level.
         !
-        es = aliq * exp((bliq*t0(np,k)-cliq)/(t0(np,k)-dliq))
-        qes(k) = ep2 * es/(p0(np,k)-es)
-        q0(k) = min(qes(k),qv0(np,k))
+        es = aliq * exp((bliq*t0(k,np)-cliq)/(t0(k,np)-dliq))
+        qes(k) = ep2 * es/(p0(k,np)-es)
+        q0(k) = min(qes(k),qv0(k,np))
         q0(k) = max(0.000001D0,q0(k))
         ql0(k) = d_zero
         qi0(k) = d_zero
@@ -391,19 +387,19 @@ module mod_cu_kf
         qs0(k) = d_zero
         rh(k) = q0(k) / qes(k)
         dilfrc(k) = d_one
-        tv0(k) = t0(np,k) * (d_one + ep1*q0(k))
+        tv0(k) = t0(k,np) * (d_one + ep1*q0(k))
         ! dp is the pressure interval between full sigma levels
-        dp(k) = rho(np,k)*egrav*dzq(np,k)
+        dp(k) = rho(k,np)*egrav*dzq(k,np)
         ! If Turbulent Kinetic Energy (TKE) is available from turbulent
         ! mixing scheme use it for shallow convection.
         ! For now, assume it is not available
         cldhgt(k) = d_zero
-        if ( p0(np,k) >= d_half*p0(np,1) ) l5 = k
-        if ( p0(np,k) >= p300) llfc = k
+        if ( p0(k,np) >= d_half*p0(1,np) ) l5 = k
+        if ( p0(k,np) >= p300) llfc = k
       end do
       ! dzq is dz between sigma surfaces, dza is dz between model half level
       do k = 2 , kl
-        dza(k-1) = z0(np,k)-z0(np,k-1)
+        dza(k-1) = z0(k,np)-z0(k-1,np)
       end do
       dza(kl) = d_zero
       !
@@ -418,9 +414,9 @@ module mod_cu_kf
       kcheck(:) = 0
       kcheck(1) = 1
       ncheck = 1
-      pm15 = p0(np,1) - 15.0D2
+      pm15 = p0(1,np) - 15.0D2
       do k = 2 , llfc
-        if ( p0(np,k) < pm15 ) then
+        if ( p0(k,np) < pm15 ) then
           ncheck = ncheck+1
           kcheck(ncheck) = k
           pm15 = pm15 - 15.0D2
@@ -502,10 +498,10 @@ module mod_cu_kf
         ! layers.
         !
         do nk = lc , kpbl
-          tmix = tmix + dp(nk)*t0(np,nk)
+          tmix = tmix + dp(nk)*t0(nk,np)
           qmix = qmix + dp(nk)*q0(nk)
-          zmix = zmix + dp(nk)*z0(np,nk)
-          pmix = pmix + dp(nk)*p0(np,nk)
+          zmix = zmix + dp(nk)*z0(nk,np)
+          pmix = pmix + dp(nk)*p0(nk,np)
         end do
         tmix = tmix/dpthmx
         qmix = qmix/dpthmx
@@ -532,17 +528,17 @@ module mod_cu_kf
         findklcl1: &
         do nk = lc , kl
           klcl = nk
-          if ( zlcl <= z0(np,nk) ) exit findklcl1
+          if ( zlcl <= z0(nk,np) ) exit findklcl1
         end do findklcl1
-        if ( zlcl > z0(np,kl) ) cycle modelpoints
+        if ( zlcl > z0(kl,np) ) cycle modelpoints
 
         k = max(1,klcl-1)
         ! Calculate DLP using Z instead of log(P)
-        dlp = (zlcl-z0(np,k)) / (z0(np,klcl)-z0(np,k))
+        dlp = (zlcl-z0(k,np)) / (z0(klcl,np)-z0(k,np))
         !
         ! Estimate environmental temperature and mixing ratio at the lcl.
         !
-        tenv = t0(np,k) + (t0(np,klcl)-t0(np,k))*dlp
+        tenv = t0(k,np) + (t0(klcl,np)-t0(k,np))*dlp
         qenv = q0(k) + (q0(klcl)-q0(k))*dlp
         tven = tenv*(d_one + ep1*qenv)
         !
@@ -561,8 +557,8 @@ module mod_cu_kf
         else
           wklcl = 0.02D0          ! units of m/s
         end if
-        wkl = (w0avg(np,k) + &
-                (w0avg(np,klcl) - w0avg(np,k))*dlp)*dx/25.0D3 - wklcl
+        wkl = (w0avg(k,np) + &
+                (w0avg(klcl,np) - w0avg(k,np))*dlp)*dx/25.0D3 - wklcl
         if ( wkl < 0.0001D0 ) then
           dtlcl = d_zero
         else
@@ -570,7 +566,7 @@ module mod_cu_kf
         end if
 
         if ( kf_trigger == 2 ) then
-          dtlcl = max(tpart_h(np,klcl) + tpart_v(np,klcl), d_zero)
+          dtlcl = max(tpart_h(klcl,np) + tpart_v(klcl,np), d_zero)
         end if
 
         dtrh = d_zero
@@ -618,7 +614,7 @@ module mod_cu_kf
           else
             wlcl = d_one
           end if
-          plcl = p0(np,k) + (p0(np,klcl)-p0(np,k))*dlp
+          plcl = p0(k,np) + (p0(klcl,np)-p0(k,np))*dlp
           wtw = wlcl*wlcl
           tvlcl = tlcl*(d_one + ep1*qmix)
           rholcl = plcl/(rdry*tvlcl)
@@ -664,8 +660,8 @@ module mod_cu_kf
           qicout(k) = d_zero
           detlq(k) = d_zero
           detic(k) = d_zero
-          pptliq(np,k) = d_zero
-          pptice(np,k) = d_zero
+          pptliq(k,np) = d_zero
+          pptice(k,np) = d_zero
           iflag = 0
           !
           ! ttemp is used during calculation of the linear glaciation
@@ -692,12 +688,12 @@ module mod_cu_kf
             nk1 = nk + 1
             ratio2(nk1) = ratio2(nk)
             frc1 = d_zero
-            tu(nk1) = t0(np,nk1)
+            tu(nk1) = t0(nk1,np)
             theteu(nk1) = theteu(nk)
             qu(nk1) = qu(nk)
             qliq(nk1) = qliq(nk)
             qice(nk1) = qice(nk)
-            call tpmix2(p0(np,nk1),theteu(nk1),tu(nk1),qu(nk1),qliq(nk1), &
+            call tpmix2(p0(nk1,np),theteu(nk1),tu(nk1),qu(nk1),qliq(nk1), &
                         qice(nk1),qnewlq,qnewic)
             !
             ! Check to see if updraft temp is above the temperature at which
@@ -724,8 +720,8 @@ module mod_cu_kf
               qnewlq = qnewlq - qnewlq*frc1
               qice(nk1) = qice(nk1) + qliq(nk1)*frc1
               qliq(nk1) = qliq(nk1) - qliq(nk1)*frc1
-              call dtfrznew(tu(nk1),p0(np,nk1),theteu(nk1), &
-                      qu(nk1),qfrz,qice(nk1))
+              call dtfrznew(tu(nk1),p0(nk1,np),theteu(nk1), &
+                            qu(nk1),qfrz,qice(nk1))
             end if
             tvu(nk1) = tu(nk1)*(d_one + ep1*qu(nk1))
             !
@@ -733,8 +729,8 @@ module mod_cu_kf
             !
             if ( nk == k ) then
               be = (tvlcl+tvu(nk1))/(tven+tv0(nk1)) - d_one
-              boterm = d_two*(z0(np,nk1)-zlcl)*egrav*be/1.5D0
-              dzz = z0(np,nk1)-zlcl
+              boterm = d_two*(z0(nk1,np)-zlcl)*egrav*be/1.5D0
+              dzz = z0(nk1,np)-zlcl
             else
               be = (tvu(nk)+tvu(nk1))/(tv0(nk)+tv0(nk1)) - d_one
               boterm = d_two*dza(nk)*egrav*be/1.5D0
@@ -756,7 +752,7 @@ module mod_cu_kf
             !
             ! Calculate value of theta-e in environment to entrain into updraft
             !
-            thetee(nk1) = envirtht(p0(np,nk1),t0(np,nk1),q0(nk1))
+            thetee(nk1) = envirtht(p0(nk1,np),t0(nk1,np),q0(nk1))
             !
             ! rei is the rate of environmental inflow.
             !
@@ -789,8 +785,8 @@ module mod_cu_kf
               qtmp = f1*q0(nk1) + f2*qu(nk1)
               tmpliq = f2*qliq(nk1)
               tmpice = f2*qice(nk1)
-              call tpmix2(p0(np,nk1),thttmp,ttmp,qtmp, &
-                      tmpliq,tmpice,qnewlq,qnewic)
+              call tpmix2(p0(nk1,np),thttmp,ttmp,qtmp, &
+                          tmpliq,tmpice,qnewlq,qnewic)
               tu95 = ttmp*(d_one + ep1*qtmp-tmpliq-tmpice)
               if ( tu95 > tv0(nk1) ) then
                 ee2 = d_one
@@ -803,8 +799,8 @@ module mod_cu_kf
                 qtmp = f1*q0(nk1) + f2*qu(nk1)
                 tmpliq = f2*qliq(nk1)
                 tmpice = f2*qice(nk1)
-                call tpmix2(p0(np,nk1),thttmp,ttmp,qtmp, &
-                        tmpliq,tmpice,qnewlq,qnewic)
+                call tpmix2(p0(nk1,np),thttmp,ttmp,qtmp, &
+                            tmpliq,tmpice,qnewlq,qnewic)
                 tu10 = ttmp*(d_one + ep1*qtmp-tmpliq-tmpice)
                 tvdiff = abs(tu10-tvqu(nk1))
                 if ( tvdiff < 1.0D-3 ) then
@@ -880,9 +876,9 @@ module mod_cu_kf
               ! trppt is the total rate of production of precip up to the
               ! current model level.
               !
-              pptliq(np,nk1) = qlqout(nk1)*umf(nk)
-              pptice(np,nk1) = qicout(nk1)*umf(nk)
-              trppt = trppt + pptliq(np,nk1) + pptice(np,nk1)
+              pptliq(nk1,np) = qlqout(nk1)*umf(nk)
+              pptice(nk1,np) = qicout(nk1)*umf(nk)
+              trppt = trppt + pptliq(nk1,np) + pptice(nk1,np)
               if ( nk1 <= kpbl ) uer(nk1) = uer(nk1) + vmflcl*dp(nk1)/dpthmx
             end if
           end do updraft
@@ -896,7 +892,7 @@ module mod_cu_kf
           ! velocity first becomes negative.
           !
           ltop = nk
-          cldhgt(lc) = z0(np,ltop) - zlcl
+          cldhgt(lc) = z0(ltop,np) - zlcl
           !
           ! Instead of using the same minimum cloud height (for deep convection)
           ! everywhere, try specifying minimum cloud depth as a function of tlcl
@@ -911,8 +907,8 @@ module mod_cu_kf
             chmin = 2.0D3
           end if
           do nk = k , ltop
-            qc_kf(np,nk) = qliq(nk)
-            qi_kf(np,nk) = qice(nk)
+            qc_kf(nk,np) = qliq(nk)
+            qi_kf(nk,np) = qice(nk)
           end do
           !
           ! If cloud top height is less than the specified minimum for deep
@@ -939,18 +935,18 @@ module mod_cu_kf
               uer(nk) = d_zero
               detlq(nk) = d_zero
               detic(nk) = d_zero
-              pptliq(np,nk) = d_zero
-              pptice(np,nk) = d_zero
-              cldfra_dp_kf(np,nk) = d_zero
-              cldfra_sh_kf(np,nk) = d_zero
-              qc_kf(np,nk) = d_zero
-              qi_kf(np,nk) = d_zero
+              pptliq(nk,np) = d_zero
+              pptice(nk,np) = d_zero
+              cldfra_dp_kf(nk,np) = d_zero
+              cldfra_sh_kf(nk,np) = d_zero
+              qc_kf(nk,np) = d_zero
+              qi_kf(nk,np) = d_zero
             end do
           else if ( cldhgt(lc) > chmin .and. abe > d_one ) then
             ! Deep Convection allowed
             ishall = 0
             do nk = k , ltop
-              cldfra_sh_kf(np,nk) = d_zero
+              cldfra_sh_kf(nk,np) = d_zero
             end do
             exit usl
           else
@@ -959,7 +955,7 @@ module mod_cu_kf
             !
             ishall = 1
             do nk = k , ltop
-              cldfra_dp_kf(np,nk) = d_zero
+              cldfra_dp_kf(nk,np) = d_zero
             end do
             if ( nu == nuchm ) then
               exit usl ! Shallow Convection from this layer
@@ -972,12 +968,12 @@ module mod_cu_kf
                 uer(nk) = d_zero
                 detlq(nk) = d_zero
                 detic(nk) = d_zero
-                pptliq(np,nk) = d_zero
-                pptice(np,nk) = d_zero
-                cldfra_dp_kf(np,nk) = d_zero
-                cldfra_sh_kf(np,nk) = d_zero
-                qc_kf(np,nk) = d_zero
-                qi_kf(np,nk) = d_zero
+                pptliq(nk,np) = d_zero
+                pptice(nk,np) = d_zero
+                cldfra_dp_kf(nk,np) = d_zero
+                cldfra_sh_kf(nk,np) = d_zero
+                qc_kf(nk,np) = d_zero
+                qi_kf(nk,np) = d_zero
               end do
             end if
           end if
@@ -1032,10 +1028,10 @@ module mod_cu_kf
             detic(nk) = udr(nk)*qice(nk)*dilfrc(nk)
           end if
           if ( nk >= let+2 ) then
-            trppt = trppt - pptliq(np,nk) - pptice(np,nk)
-            pptliq(np,nk) = umf(nk-1)*qlqout(nk)
-            pptice(np,nk) = umf(nk-1)*qicout(nk)
-            trppt = trppt + pptliq(np,nk) + pptice(np,nk)
+            trppt = trppt - pptliq(nk,np) - pptice(nk,np)
+            pptliq(nk,np) = umf(nk-1)*qlqout(nk)
+            pptice(nk,np) = umf(nk-1)*qicout(nk)
+            trppt = trppt + pptliq(nk,np) + pptice(nk,np)
           end if
         end do
       end if
@@ -1043,7 +1039,7 @@ module mod_cu_kf
       ! Initialize some arrays below cloud base and above cloud top.
       !
       do nk = 1 , ltop
-        if ( t0(np,nk) > t00 ) ml = nk
+        if ( t0(nk,np) > t00 ) ml = nk
       end do
       do nk = 1 , k
         if ( nk >= lc ) then
@@ -1057,7 +1053,7 @@ module mod_cu_kf
             umf(nk) = vmflcl
             uer(nk) = d_zero
           end if
-          tu(nk) = tmix + (z0(np,nk)-zmix)*gdry
+          tu(nk) = tmix + (z0(nk,np)-zmix)*gdry
           qu(nk) = qmix
           wu(nk) = wlcl
         else
@@ -1066,10 +1062,10 @@ module mod_cu_kf
           umf(nk) = d_zero
           wu(nk) = d_zero
           uer(nk) = d_zero
-          cldfra_dp_kf(np,nk) = d_zero
-          cldfra_sh_kf(np,nK) = d_zero
-          qc_kf(np,nk) = d_zero
-          qi_kf(np,nk) = d_zero
+          cldfra_dp_kf(nk,np) = d_zero
+          cldfra_sh_kf(nk,np) = d_zero
+          qc_kf(nk,np) = d_zero
+          qi_kf(nk,np) = d_zero
         end if
         udr(nk) = d_zero
         qdt(nk) = d_zero
@@ -1077,12 +1073,12 @@ module mod_cu_kf
         qice(nk) = d_zero
         qlqout(nk) = d_zero
         qicout(nk) = d_zero
-        pptliq(np,nk) = d_zero
-        pptice(np,nk) = d_zero
+        pptliq(nk,np) = d_zero
+        pptice(nk,np) = d_zero
         detlq(nk) = d_zero
         detic(nk) = d_zero
         ratio2(nk) = d_zero
-        thetee(nk) = envirtht(p0(np,nk),t0(np,nk),q0(nk))
+        thetee(nk) = envirtht(p0(nk,np),t0(nk,np),q0(nk))
         eqfrc(nk) = d_one
       end do
       ltop1 = min(kx,ltop+1)
@@ -1101,22 +1097,22 @@ module mod_cu_kf
         qicout(nk) = d_zero
         detlq(nk) = d_zero
         detic(nk) = d_zero
-        pptliq(np,nk) = d_zero
-        pptice(np,nk) = d_zero
+        pptliq(nk,np) = d_zero
+        pptice(nk,np) = d_zero
         if ( nk > ltop1 ) then
           tu(nk) = d_zero
           qu(nk) = d_zero
           wu(nk) = d_zero
-          cldfra_dp_kf(np,nk) = d_zero
-          cldfra_sh_kf(np,nk) = d_zero
-          qc_kf(np,nk) = d_zero
-          qi_kf(np,nk) = d_zero
+          cldfra_dp_kf(nk,np) = d_zero
+          cldfra_sh_kf(nk,np) = d_zero
+          qc_kf(nk,np) = d_zero
+          qi_kf(nk,np) = d_zero
         end if
         thta0(nk) = d_zero
         thtau(nk) = d_zero
         ems(nk) = d_zero
         emsd(nk) = d_zero
-        tg(nk) = t0(np,nk)
+        tg(nk) = t0(nk,np)
         qg(nk) = q0(nk)
         qlg(nk) = d_zero
         qig(nk) = d_zero
@@ -1132,10 +1128,10 @@ module mod_cu_kf
         ! Initialize some variables to be used later
         ! in the vert advection scheme
         !
-        exn(nk) = (p00/p0(np,nk))**(0.2854D0*(d_one-0.28D0*qdt(nk)))
+        exn(nk) = (p00/p0(nk,np))**(0.2854D0*(d_one-0.28D0*qdt(nk)))
         thtau(nk) = tu(nk)*exn(nk)
-        exn(nk) = (p00/p0(np,nk))**(0.2854D0*(d_one-0.28D0*q0(nk)))
-        thta0(nk) = t0(np,nk)*exn(nk)
+        exn(nk) = (p00/p0(nk,np))**(0.2854D0*(d_one-0.28D0*q0(nk)))
+        thta0(nk) = t0(nk,np)*exn(nk)
         ddilfrc(nk) = d_one/dilfrc(nk)
         omg(nk) = d_zero
       end do
@@ -1143,9 +1139,9 @@ module mod_cu_kf
       ! Compute convective time scale(timec). the mean wind at the lcl
       ! and midtroposphere is used.
       !
-      wspd(klcl) = sqrt(u0(np,klcl)*u0(np,klcl) + v0(np,klcl)*v0(np,klcl))
-      wspd(l5) = sqrt(u0(np,l5)*u0(np,l5) + v0(np,l5)*v0(np,l5))
-      wspd(ltop) = sqrt(u0(np,ltop)*u0(np,ltop) + v0(np,ltop)*v0(np,ltop))
+      wspd(klcl) = sqrt(u0(klcl,np)*u0(klcl,np) + v0(klcl,np)*v0(klcl,np))
+      wspd(l5) = sqrt(u0(l5,np)*u0(l5,np) + v0(l5,np)*v0(l5,np))
+      wspd(ltop) = sqrt(u0(ltop,np)*u0(ltop,np) + v0(ltop,np)*v0(ltop,np))
       vconv = d_half*(wspd(klcl)+wspd(l5))
       timec = dx/vconv
       tadvec = timec
@@ -1156,7 +1152,7 @@ module mod_cu_kf
       if ( ishall == 1 ) then
         timec = max(d_half*(kf_max_dtcape+kf_min_dtcape)-300.0D0,300.0D0)
       end if
-      nic = nint(timec/dt)
+      nic = max(nint(timec/dt),1)
       timec = dble(nic)*dt
       !
       ! Compute wind shear and precipitation efficiency.
@@ -1166,16 +1162,16 @@ module mod_cu_kf
       else
         shsign = -d_one
       end if
-      vws = (u0(np,ltop)-u0(np,klcl))*(u0(np,ltop)-u0(np,klcl)) + &
-            (v0(np,ltop)-v0(np,klcl))*(v0(np,ltop)-v0(np,klcl))
-      vws = 1.0D3*shsign*sqrt(vws)/(z0(np,ltop)-z0(np,lcl))
+      vws = (u0(ltop,np)-u0(klcl,np))*(u0(ltop,np)-u0(klcl,np)) + &
+            (v0(ltop,np)-v0(klcl,np))*(v0(ltop,np)-v0(klcl,np))
+      vws = 1.0D3*shsign*sqrt(vws)/(z0(ltop,np)-z0(lcl,np))
       pef = 1.591D0 + vws*(-0.639D0 + vws*(9.53D-2 - vws*4.96D-3))
       pef = max(pef,kf_min_pef)
       pef = min(pef,kf_max_pef)
       !
       ! Precipitation efficiency is a function of the height of cloud base.
       !
-      cbh = (zlcl-z0(np,1))*3.281D-3
+      cbh = (zlcl-z0(1,np))*3.281D-3
       if ( cbh < 3.0D0 ) then
         rcbh = 0.02D0
       else
@@ -1210,7 +1206,7 @@ module mod_cu_kf
         klfs = let-1
         findklfs: &
         do nk = kstart+1 , kl
-          dppp = p0(np,kstart) - p0(np,nk)
+          dppp = p0(kstart,np) - p0(nk,np)
           if ( dppp > kf_dpp * d_100 ) then
             klfs = nk
             exit findklfs
@@ -1223,19 +1219,19 @@ module mod_cu_kf
         ! level of equil temp, let, is just above cloud base) do not allow a
         ! downdraft.
         !
-        if ( (p0(np,kstart)-p0(np,lfs)) > 50.0D2 ) then
+        if ( (p0(kstart,np)-p0(lfs,np)) > 50.0D2 ) then
           theted(lfs) = thetee(lfs)
           qd(lfs) = q0(lfs)
           !
           ! Call tpmix2dd to find wet-bulb temp, qv
           !
-          call tpmix2dd(p0(np,lfs),theted(lfs),tz(lfs),qss)
-          thtad(lfs) = tz(lfs)*(p00/p0(np,lfs))**(0.2854D0*(d_one-0.28D0*qss))
+          call tpmix2dd(p0(lfs,np),theted(lfs),tz(lfs),qss)
+          thtad(lfs) = tz(lfs)*(p00/p0(lfs,np))**(0.2854D0*(d_one-0.28D0*qss))
           !
           ! Take a first guess at the initial downdraft mass flux
           !
           tvd(lfs) = tz(lfs)*(d_one + ep1*qss)
-          rdd = p0(np,lfs)/(rdry*tvd(lfs))
+          rdd = p0(lfs,np)/(rdry*tvd(lfs))
           a1 = (d_one-peff)*au0
           dmf(lfs) = -a1*rdd
           der(lfs) = dmf(lfs)
@@ -1260,7 +1256,7 @@ module mod_cu_kf
           !
           pptmlt = 0.
           do nk = klcl , ltop
-            pptmlt = pptmlt + pptice(np,nk)
+            pptmlt = pptmlt + pptice(nk,np)
           end do
           if ( lc < ml ) then
             ! For now, calculate melting effect as if dmf = -umf at klcl,
@@ -1272,12 +1268,12 @@ module mod_cu_kf
             dtmelt = d_zero
           end if
           ldt = min(lfs-1,kstart-1)
-          call tpmix2dd(p0(np,kstart),theted(kstart),tz(kstart),qss)
+          call tpmix2dd(p0(kstart,np),theted(kstart),tz(kstart),qss)
           tz(kstart) = tz(kstart) - dtmelt
           es = aliq*exp((bliq*tz(kstart)-cliq)/(tz(kstart)-dliq))
-          qss = ep2*es/(p0(np,kstart)-es)
+          qss = ep2*es/(p0(kstart,np)-es)
           theted(kstart) = tz(kstart) * &
-               (p00/p0(np,kstart))**(0.2854D0*(d_one-0.28D0*qss))*    &
+               (p00/p0(kstart,np))**(0.2854D0*(d_one-0.28D0*qss))*    &
                 exp((c1/tz(kstart)-c2)*qss*(d_one+c4*qss))
           ldt = min(lfs-1,kstart-1)
           findldb: &
@@ -1288,12 +1284,12 @@ module mod_cu_kf
             !
             ! Call tpmix2dd to find wet bulb temp, saturation mixing ratio
             !
-            call tpmix2dd(p0(np,nd),theted(nd),tz(nd),qss)
+            call tpmix2dd(p0(nd,np),theted(nd),tz(nd),qss)
             qsd(nd) = qss
             !
             ! Specify RH decrease of 20%/km in downdraft...
             !
-            rhh = d_one-0.2D0/d_1000*(z0(np,kstart)-z0(np,nd))
+            rhh = d_one-0.2D0/d_1000*(z0(kstart,np)-z0(nd,np))
             !
             ! Adjust downdraft TEMP, Q to specified RH:
             !
@@ -1303,7 +1299,7 @@ module mod_cu_kf
               dtmp = rl*qss*(d_one-rhh)/(cpd+rl*rhh*qss*dssdt)
               t1rh = tz(nd) + dtmp
               es = rhh*aliq*exp((bliq*t1rh-cliq)/(t1rh-dliq))
-              qsrh = ep2*es/(p0(np,nd)-es)
+              qsrh = ep2*es/(p0(nd,np)-es)
               !
               ! Check to see if mixing ratio at specified rh is less than actual
               ! mixing ratio. If so, adjust to give zero evaporation.
@@ -1322,7 +1318,7 @@ module mod_cu_kf
               exit findldb
             end if
           end do findldb
-          if ( (p0(np,ldb)-p0(np,lfs)) > 50.0D2 ) then
+          if ( (p0(ldb,np)-p0(lfs,np)) > 50.0D2 ) then
             ! minimum Downdraft depth!
             do nd = ldt , ldb , -1
               nd1 = nd+1
@@ -1332,7 +1328,7 @@ module mod_cu_kf
               tder = tder + (qsd(ND)-qd(nd))*ddr(nd)
               qd(nd) = qsd(nd)
               thtad(nd) = tz(nd) * &
-                      (p00/p0(np,nd))**(0.2854D0*(d_one-0.28D0*qd(nd)))
+                      (p00/p0(nd,np))**(0.2854D0*(d_one-0.28D0*qd(nd)))
             end do
           end if
         end if
@@ -1452,7 +1448,7 @@ module mod_cu_kf
         ! just specify shallow-cloud mass flux using TKEMAX = 5...
         !
         ! find the maximum TKE value between LC and KLCL...
-        evac = d_half*maxval(tke(np,lc:klcl))*0.1D0
+        evac = d_half*maxval(tke(lc:klcl,np))*0.1D0
         ainc = evac*dpthmx*dxsq/(vmflcl*egrav*timec)
         tder = tder2*ainc
         pptflx = pptfl2*ainc
@@ -1468,6 +1464,7 @@ module mod_cu_kf
         end do
       end if  ! Otherwise for deep convection
               ! use iterative procedure to find mass fluxes...
+
       iter: &
       do ncount = 1 , maxiter
         !
@@ -1476,13 +1473,13 @@ module mod_cu_kf
         ! Determine omega value necessary at top and bottom of each layer to
         ! satisfy mass continuity.
         !
-        dtt = timec
+        dtt = timec/d_two
         do nk = 1 , ltop
           domgdp(nk) = -(uer(nk)-der(nk)-udr(nk)-ddr(nk))*emsd(nk)
           if ( nk > 1 ) then
             omg(nk) = omg(nk-1) - dp(nk-1)*domgdp(nk-1)
             absomg = abs(omg(nk))
-            absomgtc = absomg*timec
+            absomgtc = absomg*timec/d_two
             frdp = 0.75D0*dp(nk-1)
             if ( absomgtc > frdp ) then
               dtt1 = frdp/absomg
@@ -1490,11 +1487,11 @@ module mod_cu_kf
             end if
           end if
         end do
+        nstep = nint(timec/dtt)
+        dtime = timec/dble(nstep)
         do nk = 1 , ltop
           thpa(nk) = thta0(nk)
           qpa(nk) = q0(nk)
-          nstep = nint(timec/dtt+1)
-          dtime = timec/dble(nstep)
           fxm(nk) = omg(nk)*dxsq*regrav
         end do
         !
@@ -1567,7 +1564,7 @@ module mod_cu_kf
         ! Convert theta to t
         !
         do nk = 1 , ltop
-          exn(nk) = (p00/p0(np,nk))**(0.2854D0*(d_one-0.28D0*qg(nk)))
+          exn(nk) = (p00/p0(nk,np))**(0.2854D0*(d_one-0.28D0*qg(nk)))
           tg(nk) = thtag(nk)/exn(nk)
           tvg(nk) = tg(nk)*(d_one + ep1*qg(nk))
         end do
@@ -1614,7 +1611,7 @@ module mod_cu_kf
           indlu = max(1, min(kfna-1,int(tp)+1))
           avalue = (indlu-1)*binc+astrt
           aintrp = (a1-avalue)/binc
-          tlog = aintrp*alu(indlu+1)+(1-aintrp)*alu(indlu)
+          tlog = aintrp*alu(indlu+1)+(d_one-aintrp)*alu(indlu)
           tdpt = (cliq-dliq*tlog)/(bliq-tlog)
           tlcl = tdpt - (0.212D0+1.571D-3*(tdpt-t00) - &
                          4.36D-4*(tmix-t00))*(tmix-tdpt)
@@ -1625,20 +1622,20 @@ module mod_cu_kf
         findklcl2: &
         do nk = lc , kl
           klcl = nk
-          if ( zlcl <= z0(np,nk) ) then
+          if ( zlcl <= z0(nk,np) ) then
             exit findklcl2
           end if
         end do findklcl2
         klcl = max(2,klcl)
         k = klcl - 1
-        dlp = (zlcl-z0(np,k))/(z0(np,klcl)-z0(np,k))
+        dlp = (zlcl-z0(k,np))/(z0(klcl,np)-z0(k,np))
         !
         ! Estimate environmental temperature and mixing ratio at the lcl
         !
         tenv = tg(k) + (tg(klcl)-tg(k))*dlp
         qenv = qg(k) + (qg(klcl)-qg(k))*dlp
         tven = tenv*(d_one + ep1*qenv)
-        plcl = p0(np,k) + (p0(np,klcl)-p0(np,k))*dlp
+        plcl = p0(k,np) + (p0(klcl,np)-p0(k,np))*dlp
         theteu(k) = tmix*(p00/pmix)**(0.2854D0*(d_one-0.28D0*qmix))* &
                exp((c1/tlcl-c2)*qmix*(d_one+c4*qmix))
         !
@@ -1648,10 +1645,10 @@ module mod_cu_kf
         do nk = k , ltopm1
           nk1 = nk + 1
           theteu(nk1) = theteu(nk)
-          call tpmix2dd(p0(np,nk1),theteu(nk1),tgu(nk1),qgu(nk1))
+          call tpmix2dd(p0(nk1,np),theteu(nk1),tgu(nk1),qgu(nk1))
           tvqu(nk1) = tgu(nk1)*(d_one + ep1*qgu(nk1)-qliq(nk1)-qice(nk1))
           if ( nk == k ) then
-            dzz = z0(np,klcl) - zlcl
+            dzz = z0(klcl,np) - zlcl
             dilbe = ((tvlcl+tvqu(nk1))/(tven+tvg(nk1))-d_one)*dzz
           else
             dzz = dza(nk)
@@ -1661,7 +1658,7 @@ module mod_cu_kf
           !
           ! Dilute by entrainment by the rate as original updraft
           !
-          thteeg(nk1) = envirtht(p0(np,nk1),tg(nk1),qg(nk1))
+          thteeg(nk1) = envirtht(p0(nk1,np),tg(nk1),qg(nk1))
           theteu(nk1) = theteu(nk1)*ddilfrc(nk1) + &
                         thteeg(nk1)*(d_one-ddilfrc(nk1))
         end do
@@ -1678,7 +1675,7 @@ module mod_cu_kf
           cycle modelpoints
         end if
         if ( ncount /= 1 ) then
-          if ( abs(ainc-aincold) < 0.00001D0 ) then
+          if ( abs(ainc-aincold) < 0.0001D0 ) then
             noitr = 1
             ainc = aincold
             cycle iter
@@ -1752,14 +1749,14 @@ module mod_cu_kf
           umf_new = umf(nk)/dxsq
           xcldfra = 0.07D0*log(d_one+(500.0D0*umf_new))
           xcldfra = max(0.01D0,xcldfra)
-          cldfra_sh_kf(np,nk) = min(d_half*clfrcv,xcldfra)
+          cldfra_sh_kf(nk,np) = min(d_half*clfrcv,xcldfra)
         end do
       else
         do nk = klcl-1 , ltop1
           umf_new = umf(nk)/dxsq
           xcldfra = 0.14D0*log(d_one+(500.0D0*umf_new))
           xcldfra = max(0.01D0,xcldfra)
-          cldfra_dp_kf(np,nk) = min(clfrcv,xcldfra)
+          cldfra_dp_kf(nk,np) = min(clfrcv,xcldfra)
         end do
       end if
       !
@@ -1780,8 +1777,8 @@ module mod_cu_kf
         qipa(nk) = qi0(nk)
         qrpa(nk) = qr0(nk)
         qspa(nk) = qs0(nk)
-        rainfb(nk) = pptliq(np,nk)*ainc*fbfrc*frc2   !  ppt fb mods
-        snowfb(nk) = pptice(np,nk)*ainc*fbfrc*frc2   !  ppt fb mods
+        rainfb(nk) = pptliq(nk,np)*ainc*fbfrc*frc2   !  ppt fb mods
+        snowfb(nk) = pptice(nk,np)*ainc*fbfrc*frc2   !  ppt fb mods
       end do
       do ntc = 1 , nstep
         !
@@ -1825,10 +1822,8 @@ module mod_cu_kf
         do nk = 1 , ltop
           qlpa(nk) = qlpa(nk)+(qlfxin(nk)+detlq(nk)-qlfxout(nk))*dtime*emsd(nk)
           qipa(nk) = qipa(nk)+(qifxin(nk)+detic(nk)-qifxout(nk))*dtime*emsd(nk)
-          ! ppt fb mods
           qrpa(nk) = qrpa(nk)+(qrfxin(nk)-qrfxout(nk)+rainfb(nk))*dtime*emsd(nk)
           qspa(nk) = qspa(nk)+(qsfxin(nk)-qsfxout(nk)+snowfb(nk))*dtime*emsd(nk)
-          ! ppt fb mods
         end do
       end do
       do nk = 1 , ltop
@@ -1842,24 +1837,24 @@ module mod_cu_kf
       ! grid point
       !
       if ( iprnt ) then
-        write(stderr,1080) LFS,LDB,LDT,TIMEC,TADVEC,NSTEP,NCOUNT,FABE,AINC
+        write(stderr,1080) lfs,ldb,ldt,timec,tadvec,nstep,ncount,fabe,ainc
       end if
       !
       ! Send final parameterized values to output files
       !
       if ( iprnt .or. istop == 1 ) then
         write(stdout,*)
-        write(stdout,*) 'P(LC), DTP, WKL, WKLCL =',p0(np,lc)/d_100, &
+        write(stdout,*) 'P(LC), DTP, WKL, WKLCL =',p0(lc,np)/d_100, &
             tlcl+dtlcl+dtrh-tenv,wkl,wklcL
         write(stdout,*) 'TLCL, DTLCL, DTRH, TENV =',tlcl,dtlcl,    &
             dtrh,tenv
-        write(stdout,1025) klcl,zlcl,dtlcl,ltop,p0(np,ltop),iflag,    &
+        write(stdout,1025) klcl,zlcl,dtlcl,ltop,p0(ltop,np),iflag,    &
             tmix-t00,pmix,qmix,abe
 1025  format(5X,' KLCL=',I2,' ZLCL=',F7.1,'M',                            &
           ' DTLCL=',F5.2,' LTOP=',I2,' P0(LTOP)=',-2PF5.1,'MB FRZ LV=',   &
           I2,' TMIX=',0PF4.1,1X,'PMIX=',-2PF6.1,' QMIX=',3PF5.1,          &
           ' CAPE=',0PF7.1)
-        write(stdout,1030) p0(np,let)/d_100,p0(np,ltop)/d_100, &
+        write(stdout,1030) p0(let,np)/d_100,p0(ltop,np)/d_100, &
             vmflcl,plcl/d_100,wlcl,cldhgt(lc)
 1030  format(' ',' P0(LET) = ',F6.1,' P0(LTOP) = ',F6.1,' VMFLCL =',    &
         E12.3,' PLCL =',F6.1,' WLCL =',F6.3,' CLDHGT =',F8.1)
@@ -1872,16 +1867,16 @@ module mod_cu_kf
                 '  DETLQ ',' DETIC '
         do nk = 1 , ltop
           k = ltop - nk + 1
-          dtt = (tg(k)-t0(np,k))*86400.0D0/timec
+          dtt = (tg(k)-t0(k,np))*86400.0D0/timec
           rl = xlv0-xlv1*tg(k)
           dr = -(qg(k)-q0(k))*rl*86400.0D0/(timec*cpd)
           udfrc = udr(k)*timec*emsd(k)
           uefrc = uer(k)*timec*emsd(k)
           ddfrc = ddr(k)*timec*emsd(k)
           defrc = -der(k)*timec*emsd(k)
-          write(stdout,1075) p0(np,k)/d_100,dp(k)/d_100,dtt,dr,omg(k),     &
+          write(stdout,1075) p0(k,np)/d_100,dp(k)/d_100,dtt,dr,omg(k),     &
                   domgdp(k)*1.0D4, umf(k)/1.0D6,uefrc,udfrc,dmf(k)/1.0D6,  &
-                  defrc,ddfrc,ems(k)/1.0D11,w0avg(np,k)*1.0D2,             &
+                  defrc,ddfrc,ems(k)/1.0D11,w0avg(k,np)*1.0D2,             &
                   detlq(k)*timec*emsd(K)*1.0D3,detic(k)*timec*emsd(k)*1.0D3
    1075   format(F8.2,3(F8.2),2(F8.3),F8.2,2F8.3,F8.2,6F8.3)
         end do
@@ -1889,20 +1884,20 @@ module mod_cu_kf
                     'DQ','QU','QD','QLG','QIG','QRG','QSG','RH0','RHG'
         do nk = 1 , kl
           k = kx - nk + 1
-          dtt = tg(k) - t0(np,k)
+          dtt = tg(k) - t0(k,np)
           tuc = tu(k) - t00
           if ( k < lc .or. k > ltop ) tuc = d_zero
           tdc = tz(k)-t00
           if ( (k < ldb .or. k > ldt) .and. k /= lfs ) tdc = d_zero
-          if ( t0(np,k) < t00 ) then
+          if ( t0(k,np) < t00 ) then
             es = aliq*exp((bliq*tg(k)-cliq)/(tg(k)-dliq))
           else
             es = aliq*exp((bliq*tg(k)-cliq)/(tg(k)-dliq))
           end if
-          qgs = es*ep2/(p0(np,k)-es)
+          qgs = es*ep2/(p0(k,np)-es)
           rh0 = q0(k)/qes(k)
           rhg = qg(k)/qgs
-          write(stdout,1090) k,p0(np,k)/d_100,z0(np,k),t0(np,k)-t00, &
+          write(stdout,1090) k,p0(k,np)/d_100,z0(k,np),t0(k,np)-t00, &
                   tg(k)-t00,dtt,tuc,tdc,q0(k)*d_1000,qg(k)*d_1000,   &
                   (qg(k)-q0(k))*d_1000,qu(k)*d_1000,QD(K)*d_1000,    &
                   qlg(k)*d_1000,qig(k)*d_1000,qrg(k)*d_1000,         &
@@ -1915,9 +1910,9 @@ module mod_cu_kf
         !
         do nk = 1 , kl
           k = kl - nk + 1
-          write(stdout,'(8f11.3)') p0(np,k)/d_100,t0(np,k)-t00, &
-                  q0(k)*d_1000,u0(np,k),v0(np,k),w0avg(np,k)*d_100, &
-                  dp(k),tke(np,k)
+          write(stdout,'(8f11.3)') p0(k,np)/d_100,t0(k,np)-t00, &
+                  q0(k)*d_1000,u0(k,np),v0(k,np),w0avg(k,np)*d_100, &
+                  dp(k),tke(k,np)
         end do
         if ( istop == 1 ) then
           write(stderr,*) 'AT I = ', imap(np), ', J = ', jmap(np)
@@ -1925,7 +1920,6 @@ module mod_cu_kf
         end if
       end if
       cndtnf = (d_one-eqfrc(lfs))*(qliq(lfs)+qice(lfs))*dmf(lfs)
-      pratec(np) = pptflx*(d_one-fbfrc)/dxsq
       !
       ! Evaluate moisture budget
       !
@@ -1946,9 +1940,9 @@ module mod_cu_kf
         write(stdout,'(a,i2)') 'NCOUNT : ',ncount
         do nk = 1 , kl
           k = kl - nk + 1
-          write(stdout,'(8f12.3)') p0(np,k)/d_100,t0(np,k)-t00, &
-                  q0(k)*d_1000,u0(np,k),v0(np,k),w0avg(np,k),   &
-                  dp(k)/d_100,tke(np,k)
+          write(stdout,'(8f12.3)') p0(k,np)/d_100,t0(k,np)-t00, &
+                  q0(k)*d_1000,u0(k,np),v0(k,np),w0avg(k,np),   &
+                  dp(k)/d_100,tke(k,np)
           write(stdout,'(5f12.3)') qg(nk)*d_1000,qlg(nk)*d_1000, &
                   qig(nk)*d_1000,qrg(nk)*d_1000,qsg(nk)*d_1000
         end do
@@ -1969,10 +1963,6 @@ module mod_cu_kf
       ! If the advective time period (tadvec) is less than specified minimum
       ! timec, allow feedback to occur only during tadvec.
       !
-      if ( tadvec < timec ) nic = nint(tadvec/dt)
-      if ( ishall == 1 ) then
-        timec = max(d_half*(kf_max_dtcape+kf_min_dtcape)-300.0D0,300.0D0)
-      end if
       do k = 1 , kx
         !
         ! If hydrometeors are not allowed, they must be evaporated or sublimated
@@ -1986,10 +1976,10 @@ module mod_cu_kf
         if ( .not. f_qi .and. warm_rain ) then
           cpm = cpd*(d_one + 0.887D0*qg(k))
           tg(k) = tg(k) - (qig(k)+qsg(k))*wlhf/cpm
-          dqcdt(np,k) = (qlg(k)+qig(k)-ql0(k)-qi0(k))/timec
-          dqidt(np,k) = d_zero
-          dqrdt(np,k) = (qrg(k)+qsg(k)-qr0(k)-qs0(k))/timec
-          dqsdt(np,k) = d_zero
+          dqcdt(k,np) = (qlg(k)+qig(k)-ql0(k)-qi0(k))/timec
+          dqidt(k,np) = d_zero
+          dqrdt(k,np) = (qrg(k)+qsg(k)-qr0(k)-qs0(k))/timec
+          dqsdt(k,np) = d_zero
         else if ( .not. f_qi .and. .not. warm_rain ) then
           !
           ! If ice phase is allowed, but mixed phase is not, melt frozen
@@ -2002,30 +1992,30 @@ module mod_cu_kf
           else if ( k > ml ) then
             tg(k) = tg(k) + (qlg(k)+qrg(k))*wlhf/cpm
           end if
-          dqcdt(np,k) = (qlg(k)+qig(k)-ql0(k)-qi0(k))/timec
-          dqidt(np,k) = d_zero
-          dqrdt(np,k) = (qrg(k)+qsg(k)-qr0(k)-qs0(k))/timec
-          dqsdt(np,k) = d_zero
+          dqcdt(k,np) = (qlg(k)+qig(k)-ql0(k)-qi0(k))/timec
+          dqidt(k,np) = d_zero
+          dqrdt(k,np) = (qrg(k)+qsg(k)-qr0(k)-qs0(k))/timec
+          dqsdt(k,np) = d_zero
         else if ( f_qi ) then
           !
           ! If mixed phase hydrometeors are allowed, feed back convective
           ! tendencies of hydrometeors directly.
           !
-          dqcdt(np,k) = (qlg(k)-ql0(k))/timec
-          dqidt(np,k) = (qig(k)-qi0(k))/timec
-          dqrdt(np,k) = (qrg(k)-qr0(k))/timec
+          dqcdt(k,np) = (qlg(k)-ql0(k))/timec
+          dqidt(k,np) = (qig(k)-qi0(k))/timec
+          dqrdt(k,np) = (qrg(k)-qr0(k))/timec
           if ( f_qs ) then
-            dqsdt(np,k) = (qsg(k)-qs0(k))/timec
+            dqsdt(k,np) = (qsg(k)-qs0(k))/timec
           else
-            dqidt(np,k) = dqidt(np,k) + (qsg(k)-qs0(k))/timec
+            dqidt(k,np) = dqidt(k,np) + (qsg(k)-qs0(k))/timec
           end if
         else
           call fatal(__FILE__,__LINE__, &
               'KAIN-FRITSCH, THIS COMBINATION OF IMOIST,&
              & IEXICE, IICE NOT ALLOWED')
         end if
-        dtdt(np,k) = (tg(k)-t0(np,k))/timec
-        dqdt(np,k) = (qg(k)-q0(k))/timec
+        dtdt(k,np) = (tg(k)-t0(k,np))/timec
+        dqdt(k,np) = (qg(k)-q0(k))/timec
       end do
       pratec(np) = pptflx*(d_one-fbfrc)/dxsq
       ktop(np) = ltop

@@ -152,7 +152,7 @@ module mod_sigma
         sigma_coordinate(24) = 1.0D0
       else ! Compute (or try to do so)
         dsmax = 0.05D0
-        dsmin = 0.0025D0
+        dsmin = 0.01D0
         if ( present(dmax) ) dsmax = dmax
         if ( present(dmin) ) dsmin = dmin
         allocate(alph(nk), stat=ierr)

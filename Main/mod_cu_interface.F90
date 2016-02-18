@@ -181,6 +181,17 @@ module mod_cu_interface
 
     if ( ktau > 0 ) then
 
+      if ( any(icup == 6) ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              kfwavg(j,i,k) = kfwavg(j,i,k) + &
+                            d_half * (m2c%was(j,i,k)+m2c%was(j,i,k+1))
+            end do
+          end do
+        end do
+      end if
+
       if ( mod(ktau+1,ntcum) == 0 ) then
 
         ! Update cumulus tendencies
@@ -266,6 +277,7 @@ module mod_cu_interface
               call tiedtkedrv(m2c)
             case (6)
               call kfdrv(m2c)
+              kfwavg(:,:,:) = d_zero
           end select
         else
           select case ( icup_lnd )
@@ -277,6 +289,7 @@ module mod_cu_interface
               call tiedtkedrv(m2c)
             case (6)
               call kfdrv(m2c)
+              kfwavg(:,:,:) = d_zero
           end select
           select case ( icup_ocn )
             case (2)
@@ -287,6 +300,7 @@ module mod_cu_interface
               call tiedtkedrv(m2c)
             case (6)
               call kfdrv(m2c)
+              kfwavg(:,:,:) = d_zero
           end select
         end if
 
