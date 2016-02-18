@@ -423,8 +423,8 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              uavg1 = ua(j,i+1,k)+ua(j,i,k)
-              uavg2 = ua(j+1,i+1,k)+ua(j+1,i,k)
+              uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
+              uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
               if ( uavg1 >= 0 ) then
                 fx1 = f(j-1,i,k,n)
               else
@@ -435,8 +435,8 @@ module mod_advection
               else
                 fx2 = f(j+1,i,k,n)
               end if
-              vavg1 = va(j+1,i,k)+va(j,i,k)
-              vavg2 = va(j+1,i+1,k)+va(j,i+1,k)
+              vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
+              vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
               if ( vavg1 >= 0 ) then
                 fy1 = f(j,i-1,k,n)
               else
@@ -507,8 +507,8 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              uavg1 = ua(j,i+1,k)+ua(j,i,k)
-              uavg2 = ua(j+1,i+1,k)+ua(j+1,i,k)
+              uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
+              uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
               if ( uavg1 >= 0 ) then
                 fx1 = f(j-1,i,k,n)
               else
@@ -519,8 +519,8 @@ module mod_advection
               else
                 fx2 = f(j+1,i,k,n)
               end if
-              vavg1 = va(j+1,i,k)+va(j,i,k)
-              vavg2 = va(j+1,i+1,k)+va(j,i+1,k)
+              vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
+              vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
               if ( vavg1 >= 0 ) then
                 fy1 = f(j,i-1,k,n)
               else
