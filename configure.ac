@@ -290,7 +290,8 @@ AM_CONDITIONAL(COMPILER_IBM, [ test -z "${FCPROG##xxlf200*}" -o \
                                     -z "${FCPROG##xbgxlf200*}" ] )
 AM_CONDITIONAL(COMPILER_CRAY, [ test -z "${FCPROG##xftn*}" ] )
 AM_CONDITIONAL(COMPILER_GNU, [ test -z "${FCPROG##gfortran*}" -o \
-			            -z "${FCPROG##scorep}" ] )
+                                    -z "${FCPROG##\/gfortran*}" -o \
+                                    -z "${FCPROG##scorep}" ] )
 AM_CONDITIONAL(COMPILER_G95, [ test -z "${FCPROG##g95*}" ] )
 AM_CONDITIONAL(COMPILER_SUN, [ test -z "${FCPROG##sunf9*}" ] )
 AM_CONDITIONAL(COMPILER_PGI, [ test -z "${FCPROG##pgf9*}" -o \
