@@ -192,7 +192,7 @@ module mod_cu_kf
         p0(k,np) = m2c%pas(j,i,kk)
         rho(k,np) = m2c%rhoas(j,i,kk)
         dzq(k,np) = m2c%dzq(j,i,kk)
-        w0avg(np,k) = kfwavg(j,i,kk)
+        w0avg(k,np) = kfwavg(j,i,kk)
       end do
     end do
 
