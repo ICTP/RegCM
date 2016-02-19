@@ -41,6 +41,7 @@ module mod_advection
   real(rk8) , parameter :: c_extrema = 0.0002D0
   real(rk8) , parameter :: q_rel_extrema = 0.2D0
 
+  ! To implement a relaxed upwind scheme, change the factors below.
   real(rk8) , parameter :: fact1 = 1.0D0
   real(rk8) , parameter :: fact2 = d_one - fact1
 
@@ -59,8 +60,8 @@ module mod_advection
     module procedure vadv4d
   end interface vadv
 
-  real(rk8) , pointer , dimension(:,:,:) :: ua   ! U wind * ps
-  real(rk8) , pointer , dimension(:,:,:) :: va   ! V wind * ps
+  real(rk8) , pointer , dimension(:,:,:) :: ua   ! U/m * ps
+  real(rk8) , pointer , dimension(:,:,:) :: va   ! V/m * ps
   real(rk8) , pointer , dimension(:,:) :: ps     ! Surface pressure
   real(rk8) , pointer , dimension(:,:) :: mapfx  ! Map factor Cross
   real(rk8) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
@@ -125,7 +126,7 @@ module mod_advection
       call time_begin(subroutine_name,idindx)
 #endif
       !
-      ! ua, va : are p*u and p*v.
+      ! ua, va : are p*u/m and p*v/m
       ! msfd   : is the map scale factor at dot points.
       !
       if ( idynamic == 1 ) then
@@ -482,24 +483,24 @@ module mod_advection
             do j = jci1 , jci2
               uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
               uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
-              if ( uavg1 >= 0 ) then
+              if ( uavg1 >= d_zero ) then
                 fx1 = fact1*f(j-1,i,k,n)+fact2*f(j,i,k,n)
               else
                 fx1 = fact1*f(j,i,k,n)+fact2*f(j-1,i,k,n)
               end if
-              if ( uavg2 >= 0 ) then
+              if ( uavg2 >= d_zero ) then
                 fx2 = fact1*f(j,i,k,n)+fact2*f(j+1,i,k,n)
               else
                 fx2 = fact1*f(j+1,i,k,n)+fact2*f(j,i,k,n)
               end if
               vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
               vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
-              if ( vavg1 >= 0 ) then
+              if ( vavg1 >= d_zero ) then
                 fy1 = fact1*f(j,i-1,k,n)+fact2*f(j,i,k,n)
               else
                 fy1 = fact1*f(j,i,k,n)+fact2*f(j,i-1,k,n)
               end if
-              if ( vavg2 >= 0 ) then
+              if ( vavg2 >= d_zero ) then
                 fy2 = fact1*f(j,i,k,n)+fact2*f(j,i+1,k,n)
               else
                 fy2 = fact1*f(j,i+1,k,n)+fact2*f(j,i,k,n)
@@ -566,24 +567,24 @@ module mod_advection
             do j = jci1 , jci2
               uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
               uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
-              if ( uavg1 >= 0 ) then
+              if ( uavg1 >= d_zero ) then
                 fx1 = fact1*f(j-1,i,k,n)+fact2*f(j,i,k,n)
               else
                 fx1 = fact1*f(j,i,k,n)+fact2*f(j-1,i,k,n)
               end if
-              if ( uavg2 >= 0 ) then
+              if ( uavg2 >= d_zero ) then
                 fx2 = fact1*f(j,i,k,n)+fact2*f(j+1,i,k,n)
               else
                 fx2 = fact1*f(j+1,i,k,n)+fact2*f(j,i,k,n)
               end if
               vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
               vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
-              if ( vavg1 >= 0 ) then
+              if ( vavg1 >= d_zero ) then
                 fy1 = fact1*f(j,i-1,k,n)+fact2*f(j,i,k,n)
               else
                 fy1 = fact1*f(j,i,k,n)+fact2*f(j,i-1,k,n)
               end if
-              if ( vavg2 >= 0 ) then
+              if ( vavg2 >= d_zero ) then
                 fy2 = fact1*f(j,i,k,n)+fact2*f(j,i+1,k,n)
               else
                 fy2 = fact1*f(j,i+1,k,n)+fact2*f(j,i,k,n)
@@ -657,19 +658,17 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                dotqdot(j,i,k) = twt(k,1)*f(j,i,k) *             &
-                                 (pfs(j,i,k)/phs(j,i,k))**c287 + &
-                                 twt(k,2)*f(j,i,k-1) *           &
-                                 (pfs(j,i,k)/phs(j,i,k-1))**c287
+                dotqdot(j,i,k) = svv(j,i,k) * &
+                    (twt(k,1)*f(j,i,k)  *(pfs(j,i,k)/phs(j,i,k))  **c287 + &
+                     twt(k,2)*f(j,i,k-1)*(pfs(j,i,k)/phs(j,i,k-1))**c287)
               end do
             end do
           end do
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ff = svv(j,i,k) * dotqdot(j,i,k)
-                ften(j,i,k-1) = ften(j,i,k-1) - ff*xds(k-1)
-                ften(j,i,k)   = ften(j,i,k)   + ff*xds(k)
+                ften(j,i,k-1) = ften(j,i,k-1) - dotqdot(j,i,k)*xds(k-1)
+                ften(j,i,k)   = ften(j,i,k)   + dotqdot(j,i,k)*xds(k)
               end do
             end do
           end do
