@@ -567,26 +567,26 @@ module mod_advection
               uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
               uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
               if ( uavg1 >= 0 ) then
-                fx1 = f(j-1,i,k,n)
+                fx1 = fact1*f(j-1,i,k,n)+fact2*f(j,i,k,n)
               else
-                fx1 = f(j,i,k,n)
+                fx1 = fact1*f(j,i,k,n)+fact2*f(j-1,i,k,n)
               end if
               if ( uavg2 >= 0 ) then
-                fx2 = f(j,i,k,n)
+                fx2 = fact1*f(j,i,k,n)+fact2*f(j+1,i,k,n)
               else
-                fx2 = f(j+1,i,k,n)
+                fx2 = fact1*f(j+1,i,k,n)+fact2*f(j,i,k,n)
               end if
               vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
               vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
               if ( vavg1 >= 0 ) then
-                fy1 = f(j,i-1,k,n)
+                fy1 = fact1*f(j,i-1,k,n)+fact2*f(j,i,k,n)
               else
-                fy1 = f(j,i,k,n)
+                fy1 = fact1*f(j,i,k,n)+fact2*f(j,i-1,k,n)
               end if
               if ( vavg2 >= 0 ) then
-                fy2 = f(j,i,k,n)
+                fy2 = fact1*f(j,i,k,n)+fact2*f(j,i+1,k,n)
               else
-                fy2 = f(j,i+1,k,n)
+                fy2 = fact1*f(j,i+1,k,n)+fact2*f(j,i,k,n)
               end if
               ften(j,i,k,n) = ften(j,i,k,n) - xmapf(j,i) * &
                   (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
