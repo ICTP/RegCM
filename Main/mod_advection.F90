@@ -41,7 +41,7 @@ module mod_advection
   real(rk8) , parameter :: c_extrema = 0.0002D0
   real(rk8) , parameter :: q_rel_extrema = 0.2D0
 
-  real(rk8) , parameter :: fact1 = 0.6D0
+  real(rk8) , parameter :: fact1 = 1.0D0
   real(rk8) , parameter :: fact2 = d_one - fact1
 
   interface hadv
