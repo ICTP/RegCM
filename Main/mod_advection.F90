@@ -35,7 +35,7 @@ module mod_advection
 
   public :: init_advection, hadv , vadv
 
-  logical :: stability_enhance = .false.
+  logical :: stability_enhance = .true.
   real(rk8) , parameter :: t_extrema = 5.0D0
   real(rk8) , parameter :: c_extrema = 0.0002D0
   real(rk8) , parameter :: q_rel_extrema = 0.2D0
@@ -404,7 +404,7 @@ module mod_advection
 #endif
     end subroutine hadv_qv
     !
-    ! Up-wind values are used
+    ! Up-wind values are used for non-hydrostatic
     !
     subroutine hadv_qx(ften,f,n1,n2)
       implicit none
@@ -424,6 +424,52 @@ module mod_advection
       !
       ! for qx different from qv and tracers
       !
+      if ( idynamic == 1 ) then
+        do n = n1 , n2
+          do k = 1 , kz
+            do i = ici1 , ici2
+              advval = - xmapf(j,i) *  &
+                  ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,n)+f(j,i,k,n)) -  &
+                   (ua(j,i+1,k)+ua(j,i,k)) *   (f(j-1,i,k,n)+f(j,i,k,n)) +  &
+                   (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,n)+f(j,i,k,n)) -  &
+                   (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,n)+f(j,i,k,n)))
+              if ( n == iqc .and. stability_enhance ) then
+                !
+                ! Instability correction
+                !
+                ! Local extrema exceeding a certain threshold
+                ! must not grow further due to advection
+                !
+                if ( abs(f(j,i+1,k,n)+f(j,i-1,k,n) - &
+                         d_two*f(j,i,k,n))/ps(j,i) > c_extrema ) then
+                  if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
+                       (f(j,i,k,n) > f(j,i-1,k,n)) ) then
+                    advval = min(advval,d_zero)
+                  else if ( (f(j,i,k,n) < f(j,i+1,k,n)) .and. &
+                            (f(j,i,k,n) < f(j,i-1,k,n)) ) then
+                    advval = max(advval,d_zero)
+                  end if
+                end if
+                if ( abs(f(j+1,i,k,n)+f(j-1,i,k,n) - &
+                         d_two*f(j,i,k,n))/ps(j,i) > c_extrema ) then
+                  if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
+                       (f(j,i,k,n) > f(j-1,i,k,n)) ) then
+                    advval = min(advval,d_zero)
+                  else if ( (f(j,i,k,n) < f(j+1,i,k,n)) .and. &
+                            (f(j,i,k,n) < f(j-1,i,k,n)) ) then
+                    advval = max(advval,d_zero)
+                  end if
+                end if
+              end if
+              ften(j,i,k,n) = ften(j,i,k,n) + advval
+            end do
+          end do
+        end do
+#ifdef DEBUG
+        call time_end(subroutine_name,idindx)
+#endif
+        return
+      end if
       do n = n1 , n2
         do k = 1 , kz
           do i = ici1 , ici2
