@@ -35,10 +35,14 @@ module mod_advection
 
   public :: init_advection, hadv , vadv
 
-  logical :: stability_enhance = .true.
+  logical , parameter :: stability_enhance = .true.
+  logical , parameter :: upwind_scheme = .true.
   real(rk8) , parameter :: t_extrema = 5.0D0
   real(rk8) , parameter :: c_extrema = 0.0002D0
   real(rk8) , parameter :: q_rel_extrema = 0.2D0
+
+  real(rk8) , parameter :: fact1 = 0.6D0
+  real(rk8) , parameter :: fact2 = d_one - fact1
 
   interface hadv
     module procedure hadvuv
@@ -424,7 +428,7 @@ module mod_advection
       !
       ! for qx different from qv and tracers
       !
-      if ( idynamic == 1 ) then
+      if ( .not. upwind_scheme ) then
         do n = n1 , n2
           do k = 1 , kz
             do i = ici1 , ici2
@@ -479,26 +483,26 @@ module mod_advection
               uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
               uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
               if ( uavg1 >= 0 ) then
-                fx1 = f(j-1,i,k,n)
+                fx1 = fact1*f(j-1,i,k,n)+fact2*f(j,i,k,n)
               else
-                fx1 = f(j,i,k,n)
+                fx1 = fact1*f(j,i,k,n)+fact2*f(j-1,i,k,n)
               end if
               if ( uavg2 >= 0 ) then
-                fx2 = f(j,i,k,n)
+                fx2 = fact1*f(j,i,k,n)+fact2*f(j+1,i,k,n)
               else
-                fx2 = f(j+1,i,k,n)
+                fx2 = fact1*f(j+1,i,k,n)+fact2*f(j,i,k,n)
               end if
               vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
               vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
               if ( vavg1 >= 0 ) then
-                fy1 = f(j,i-1,k,n)
+                fy1 = fact1*f(j,i-1,k,n)+fact2*f(j,i,k,n)
               else
-                fy1 = f(j,i,k,n)
+                fy1 = fact1*f(j,i,k,n)+fact2*f(j,i-1,k,n)
               end if
               if ( vavg2 >= 0 ) then
-                fy2 = f(j,i,k,n)
+                fy2 = fact1*f(j,i,k,n)+fact2*f(j,i+1,k,n)
               else
-                fy2 = f(j,i+1,k,n)
+                fy2 = fact1*f(j,i+1,k,n)+fact2*f(j,i,k,n)
               end if
               advval = -xmapf(j,i)*(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
               if ( n == iqc .and. stability_enhance ) then
