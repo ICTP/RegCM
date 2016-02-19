@@ -42,13 +42,13 @@ module mod_cu_kf
   !
   ! The code below is adapted from kfeta code from WRF 3.6.1 codebase.
   ! It is missing the kf_trigger == 2 option, and we use by default the
-  ! kf_trigger == 1 option.
+  ! kf_trigger == 3 option.
   !
   ! Trieste , August 2014
   !
   !             Graziano Giuliani
   !
-  integer , parameter :: kf_trigger = 1
+  integer , parameter :: kf_trigger = 3
   !
   public :: allocate_mod_cu_kf , kfdrv , kf_lutab , kfwavg
   !
