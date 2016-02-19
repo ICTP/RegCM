@@ -35,6 +35,7 @@ module mod_advection
 
   public :: init_advection, hadv , vadv
 
+  logical :: stability_enhance = .false.
   real(rk8) , parameter :: t_extrema = 5.0D0
   real(rk8) , parameter :: c_extrema = 0.0002D0
   real(rk8) , parameter :: q_rel_extrema = 0.2D0
@@ -252,24 +253,26 @@ module mod_advection
             ! Local extrema exceeding a certain threshold
             ! must not grow further due to advection
             !
-            if ( abs(f(j,i+1,k) + f(j,i-1,k) - &
-                     d_two*f(j,i,k))/ps(j,i) > t_extrema ) then
-              if ( (f(j,i,k) > f(j,i+1,k)) .and. &
-                   (f(j,i,k) > f(j,i-1,k)) ) then
-                advval = min(advval,d_zero)
-              else if ( (f(j,i,k) < f(j,i+1,k)) .and. &
-                        (f(j,i,k) < f(j,i-1,k)) ) then
-                advval = max(advval,d_zero)
+            if ( stability_enhance ) then
+              if ( abs(f(j,i+1,k) + f(j,i-1,k) - &
+                       d_two*f(j,i,k))/ps(j,i) > t_extrema ) then
+                if ( (f(j,i,k) > f(j,i+1,k)) .and. &
+                     (f(j,i,k) > f(j,i-1,k)) ) then
+                  advval = min(advval,d_zero)
+                else if ( (f(j,i,k) < f(j,i+1,k)) .and. &
+                          (f(j,i,k) < f(j,i-1,k)) ) then
+                  advval = max(advval,d_zero)
+                end if
               end if
-            end if
-            if ( abs(f(j+1,i,k) + f(j-1,i,k) - &
-                     d_two*f(j,i,k))/ps(j,i) > t_extrema ) then
-              if ( (f(j,i,k) > f(j+1,i,k)) .and. &
-                   (f(j,i,k) > f(j-1,i,k)) ) then
-                advval = min(advval,d_zero)
-              else if ( (f(j,i,k) < f(j+1,i,k)) .and. &
-                        (f(j,i,k) < f(j-1,i,k)) ) then
-                advval = max(advval,d_zero)
+              if ( abs(f(j+1,i,k) + f(j-1,i,k) - &
+                       d_two*f(j,i,k))/ps(j,i) > t_extrema ) then
+                if ( (f(j,i,k) > f(j+1,i,k)) .and. &
+                     (f(j,i,k) > f(j-1,i,k)) ) then
+                  advval = min(advval,d_zero)
+                else if ( (f(j,i,k) < f(j+1,i,k)) .and. &
+                          (f(j,i,k) < f(j-1,i,k)) ) then
+                  advval = max(advval,d_zero)
+                end if
               end if
             end if
             ften(j,i,k) = ften(j,i,k) + advval
@@ -370,24 +373,26 @@ module mod_advection
             ! Local extrema exceeding a certain realtive threshold
             ! must not grow further due to advection
             !
-            if ( abs(f(j,i+1,k,iv) + f(j,i-1,k,iv) - &
-                    d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
-              if ( (f(j,i,k,iv) > f(j,i+1,k,iv)) .and. &
-                   (f(j,i,k,iv) > f(j,i-1,k,iv)) ) then
-                advval = min(advval,d_zero)
-              else if ( (f(j,i,k,iv) < f(j,i+1,k,iv)) .and. &
-                        (f(j,i,k,iv) < f(j,i-1,k,iv)) ) then
-                advval = max(advval,d_zero)
+            if ( stability_enhance ) then
+              if ( abs(f(j,i+1,k,iv) + f(j,i-1,k,iv) - &
+                      d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
+                if ( (f(j,i,k,iv) > f(j,i+1,k,iv)) .and. &
+                     (f(j,i,k,iv) > f(j,i-1,k,iv)) ) then
+                  advval = min(advval,d_zero)
+                else if ( (f(j,i,k,iv) < f(j,i+1,k,iv)) .and. &
+                          (f(j,i,k,iv) < f(j,i-1,k,iv)) ) then
+                  advval = max(advval,d_zero)
+                end if
               end if
-            end if
-            if ( abs(f(j+1,i,k,iv) + f(j-1,i,k,iv) - &
-                     d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
-              if ( (f(j,i,k,iv) > f(j+1,i,k,iv)) .and. &
-                   (f(j,i,k,iv) > f(j-1,i,k,iv)) ) then
-                advval = min(advval,d_zero)
-              else if ( (f(j,i,k,iv) < f(j+1,i,k,iv)) .and. &
-                        (f(j,i,k,iv) < f(j-1,i,k,iv)) ) then
-                advval = max(advval,d_zero)
+              if ( abs(f(j+1,i,k,iv) + f(j-1,i,k,iv) - &
+                       d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
+                if ( (f(j,i,k,iv) > f(j+1,i,k,iv)) .and. &
+                     (f(j,i,k,iv) > f(j-1,i,k,iv)) ) then
+                  advval = min(advval,d_zero)
+                else if ( (f(j,i,k,iv) < f(j+1,i,k,iv)) .and. &
+                          (f(j,i,k,iv) < f(j-1,i,k,iv)) ) then
+                  advval = max(advval,d_zero)
+                end if
               end if
             end if
             ften(j,i,k,iv) = ften(j,i,k,iv) + advval
@@ -448,7 +453,7 @@ module mod_advection
                 fy2 = f(j,i+1,k,n)
               end if
               advval = -xmapf(j,i)*(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
-              if ( n == iqc ) then
+              if ( n == iqc .and. stability_enhance ) then
                 !
                 ! Instability correction
                 !
