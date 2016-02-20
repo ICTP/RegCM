@@ -61,9 +61,9 @@ module mod_cu_kf
   !  CAM3-CAM5 methodology, along with captured liquid and ice condensates.
   !    JAH & KA (U.S. EPA) -- May 2013
   !
-  integer(ik4) , parameter :: kfnt = 250
-  integer(ik4) , parameter :: kfnp = 220
-  integer(ik4) , parameter :: kfna = 200
+  integer(ik4) , parameter :: kfnt = 500
+  integer(ik4) , parameter :: kfnp = 440
+  integer(ik4) , parameter :: kfna = 600
   real(rk8) , dimension(kfnt,kfnp) , private , save :: ttab , qstab
   real(rk8) , dimension(kfnp) , private , save :: the0k
   real(rk8) , dimension(kfna) , private , save :: alu
@@ -92,7 +92,7 @@ module mod_cu_kf
   real(rk8) , parameter :: p00 = 1.0D5
 
   real(rk8) , parameter :: astrt = 1.0D-3
-  real(rk8) , parameter :: aincb = 0.0750D0
+  real(rk8) , parameter :: aincb = 0.0250D0
 
   real(rk8) , parameter :: c1 = 3374.6525D0
   real(rk8) , parameter :: c2 = 2.5403D0
@@ -343,9 +343,8 @@ module mod_cu_kf
             nd1 , ndk , lmax , ncount , noitr , nstep , ntc , ishall , np
     logical :: iprnt
     real(rk8) :: qslcl , rhlcl , dqssdt    !jfb
-    integer :: maxiter
+    integer , parameter :: maxiter = 100
 
-    maxiter = kte
     kl = kte
     kx = kte
 
@@ -2383,9 +2382,9 @@ module mod_cu_kf
     ! maximum bottom pressure (pascals)
     real(rk8) , parameter :: pbot = 1.1D5
     ! equivalent potential temperature increment
-    real(rk8) , parameter :: dth = 1.0D0
+    real(rk8) , parameter :: dth = 0.5D0
     ! tolerance for accuracy of temperature
-    real(rk8) , parameter :: toler = 0.001D0
+    real(rk8) , parameter :: toler = 0.0001D0
 
     ! top pressure (pascals)
     plutop = max(ptop*d_1000,5000.0D0)
