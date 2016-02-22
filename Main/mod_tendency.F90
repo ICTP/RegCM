@@ -212,7 +212,6 @@ module mod_tendency
            end do
         end do
       end do
-
     else if ( idynamic == 2 ) then
       do k = 1 , kz
         do i = ice1 , ice2
@@ -941,7 +940,7 @@ module mod_tendency
     ! moisture schemes
     !
     if ( ipptls > 0 ) then
-      do n = iqc , nqx
+      do n = iqfrst , iqlst
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -1006,7 +1005,7 @@ module mod_tendency
         end do
       end do
     end do
-    do n = iqc , nqx
+    do n = iqfrst , iqlst
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2

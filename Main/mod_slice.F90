@@ -91,7 +91,7 @@ module mod_slice
         end do
       end do
     end do
-    do n = iqc , nqx
+    do n = iqfrst , iqlst
       do k = 1 , kz
         do i = ice1gb , ice2gb
           do j = jce1gb , jce2gb
