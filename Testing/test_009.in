@@ -65,7 +65,7 @@
  /
  &outparam
  ifsave  = .true. ,
-   savfrq  =  7200.,
+   savfrq  =  0.,
  ifatm  = .true. ,
    atmfrq  =     6.,
  ifrad   = .true. ,
