@@ -212,6 +212,7 @@ module mod_tendency
            end do
         end do
       end do
+
     else if ( idynamic == 2 ) then
       do k = 1 , kz
         do i = ice1 , ice2

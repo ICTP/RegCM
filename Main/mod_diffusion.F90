@@ -52,6 +52,9 @@ module mod_diffusion
   public :: diffu_d
   public :: diffu_x
 
+  ! Set this to zero to remove dynamical dependency of diffusion
+  real(rk8) , parameter :: aflag = d_one
+
   contains
 
   subroutine allocate_mod_diffusion
@@ -70,11 +73,11 @@ module mod_diffusion
     ! Diffusion coefficients: for non-hydrostatic, follow the MM5
     ! The hydrostatic diffusion is following the RegCM3 formulation
     !
-    xkhmax = d_two*dxsq/(64.0D0*dtsec) ! Computation stability
-    dydc = vonkar*vonkar*dx*d_rfour    ! Deformation term coefficient
+    xkhmax = d_two*dxsq/(64.0D0*dtsec)    ! Computation stability
+    dydc = aflag*vonkar*vonkar*dx*d_rfour ! Deformation term coefficient
     ! (Xu et al., MWR, 2001, 502-516)
     if ( idynamic == 1 ) then
-      xkhz = dx       ! 1.5D-3*dxsq/dtsec
+      xkhz = 1.5D-3*dxsq/dtsec ! dx
     else
       xkhz = ckh * dx ! 3.0D-3*dxsq/dtsec
     end if
@@ -92,8 +95,7 @@ module mod_diffusion
         hgfact(j,i) = d_one
       end do
     end do
-    if ( idynamic == 1 .or. &
-         (idynamic == 2 .and. diffu_hgtf == 1) ) then
+    if ( diffu_hgtf == 1 ) then
       do i = ici1ga , ici2ga
         do j = jci1ga , jci2ga
           hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
