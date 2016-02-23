@@ -396,7 +396,7 @@ module mod_ocn_zeng
       implicit none
       real(rk8) , intent (in) :: ustar , um10 , wc , visa
       real(rk8) , intent (out) :: zo , zoq , zot
-      real(rk8) :: cp , charnockog , re , xtq , rt , rq
+      real(rk8) :: cp , charnockog , re , xtq , rt , rq , alph
       ! if surface roughness not provided by wave model
       if ( flag1 .or. ktau+1 <= ntcpl ) then
         ! Wave age. The wind here is the mean last N days wind
@@ -418,6 +418,18 @@ module mod_ocn_zeng
           ! to Include the Effects of Free Convection and Swell
           ! Advanced Methods for Practical Applications in Fluid Mechanics
           zo = charnockog*(ustar*ustar*ustar+0.11D0*wc*wc*wc)**twot
+        else if ( iocnrough == 5 ) then
+          if ( um10 < 10.0D0 ) then
+            alph = 0.011D0
+          else if ( um10 > 10.0D0 .and. um10 < 18.0D0 ) then
+            alph = 0.011D0 + 0.000875*(um10-10.0D0)
+          else if ( um10 > 18.0D0 .and. um10 < 25.0D0 ) then
+            alph = 0.018D0
+          else
+            alph = max(2.D-3,0.018D0/(d_one+0.050D0*(ustar-0.02D0)**2 - &
+                                            0.018D0*(ustar-0.02D0)**1.6D0))
+          end if
+          zo = alph*regrav*ustar*ustar + 0.11D0*visa/ustar
         else
           zo = charnockog*ustar*ustar
         end if
