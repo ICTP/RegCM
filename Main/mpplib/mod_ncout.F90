@@ -2456,6 +2456,10 @@ module mod_ncout
           ncattribute_integer('lateral_boundary_condition_scheme',iboudy))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('semi_lagrangian_advection_scheme',isladvec))
+        if ( isladvec == 1 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('quasi_monotonic_sl_scheme',iqmsl))
+        end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('boundary_layer_scheme',ibltyp))
         call outstream_addatt(outstream(i)%ncout(j), &

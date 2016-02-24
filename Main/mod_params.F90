@@ -103,7 +103,7 @@ module mod_params
       enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
       do_parallel_netcdf_out , idiag
 
-    namelist /physicsparam/ ibltyp , iboudy , isladvec ,                  &
+    namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,          &
       icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls ,     &
       iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,         &
       scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldmstrat ,   &
@@ -226,6 +226,7 @@ module mod_params
     ibltyp = 1
     iboudy = 5
     isladvec = 0
+    iqmsl = 0
     icup_lnd = 5
     icup_ocn = 5
     ipptls = 1
@@ -901,6 +902,7 @@ module mod_params
 
     call bcast(iboudy)
     call bcast(isladvec)
+    call bcast(iqmsl)
     call bcast(ibltyp)
     call bcast(icup_lnd)
     call bcast(icup_ocn)
@@ -1539,6 +1541,9 @@ module mod_params
       write(stdout,*) 'Physical Parameterizations'
       write(stdout,'(a,i2)') '  Lateral Boundary conditions : ' , iboudy
       write(stdout,'(a,i2)') '  Semi-Lagrangian Advection   : ' , isladvec
+      if ( isladvec == 1 ) then
+        write(stdout,'(a,i2)') '  QMSL algorithm used         : ' , iqmsl
+      end if
       write(stdout,'(a,i2)') '  Land cumulus conv. scheme   : ' , icup_lnd
       write(stdout,'(a,i2)') '  Ocean cumulus conv. scheme  : ' , icup_ocn
       if ( any(icup == 2) ) then

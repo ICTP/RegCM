@@ -365,20 +365,24 @@ module mod_sladvection
           !              cb1,cb2,bl1 and bl2 pts in y dirn
           tbadp = betm2dp_x(j,i,k)*bl2 + betm1dp_x(j,i,k)*cb2 + &
                   betdp_x(j,i,k)*cb1 + betp1dp_x(j,i,k)*bl1
-          ! to get the maximum and minimum value
-          tbmax = max(var(xndp_x(j,i,k),yndp_x(j,i,k),k),    &
-                      var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k), &
-                      var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k), &
-                      var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k))
-          tbmin = min(var(xndp_x(j,i,k),yndp_x(j,i,k),k) ,   &
-                      var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k), &
-                      var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k), &
-                      var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k))
           ! for the quasi monotonic sl
-          if ( tbadp > tbmax ) then
-            tsla = tbmax
-          else if ( tbadp < tbmin ) then
-            tsla = tbmin
+          if ( iqmsl == 1 ) then
+            ! to get the maximum and minimum value
+            tbmax = max(var(xndp_x(j,i,k),yndp_x(j,i,k),k),    &
+                        var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k), &
+                        var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k), &
+                        var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k))
+            tbmin = min(var(xndp_x(j,i,k),yndp_x(j,i,k),k) ,   &
+                        var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k), &
+                        var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k), &
+                        var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k))
+            if ( tbadp > tbmax ) then
+              tsla = tbmax
+            else if ( tbadp < tbmin ) then
+              tsla = tbmin
+            else
+              tsla = tbadp
+            end if
           else
             tsla = tbadp
           end if
@@ -438,20 +442,24 @@ module mod_sladvection
             !              cb1,cb2,bl1 and bl2 pts in y dirn
             tbadp = betm2dp_x(j,i,k)*bl2 + betm1dp_x(j,i,k)*cb2 + &
                     betdp_x(j,i,k)*cb1 + betp1dp_x(j,i,k)*bl1
-            ! to get the maximum and minimum value
-            tbmax = max(var(xndp_x(j,i,k),yndp_x(j,i,k),k,n),    &
-                        var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k,n), &
-                        var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k,n), &
-                        var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k,n))
-            tbmin = min(var(xndp_x(j,i,k),yndp_x(j,i,k),k,n) ,   &
-                        var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k,n), &
-                        var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k,n), &
-                        var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k,n))
             ! for the quasi monotonic sl
-            if ( tbadp > tbmax ) then
-              tsla = tbmax
-            else if ( tbadp < tbmin ) then
-              tsla = tbmin
+            if ( iqmsl == 1 ) then
+              ! to get the maximum and minimum value
+              tbmax = max(var(xndp_x(j,i,k),yndp_x(j,i,k),k,n),    &
+                          var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k,n), &
+                          var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k,n), &
+                          var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k,n))
+              tbmin = min(var(xndp_x(j,i,k),yndp_x(j,i,k),k,n) ,   &
+                          var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k,n), &
+                          var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k,n), &
+                          var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k,n))
+              if ( tbadp > tbmax ) then
+                tsla = tbmax
+              else if ( tbadp < tbmin ) then
+                tsla = tbmin
+              else
+                tsla = tbadp
+              end if
             else
               tsla = tbadp
             end if
@@ -500,20 +508,23 @@ module mod_sladvection
           !   cb1,cb2,bl1 and bl2 pts in y dirn
           tbadp = betm2dp_d(j,i,k)*bl2 + betm1dp_d(j,i,k)*cb2 + &
                   betdp_d(j,i,k)*cb1 + betp1dp_d(j,i,k)*bl1
-          ! to get the maximum and minimum value
-          tbmax = max(var(xndp_d(j,i,k),yndp_d(j,i,k),k) ,   &
-                      var(xndp_d(j,i,k),ynnm1dp_d(j,i,k),k), &
-                      var(xnnm1dp_d(j,i,k),yndp_d(j,i,k),k), &
-                      var(xnnm1dp_d(j,i,k),ynnm1dp_d(j,i,k),k))
-          tbmin = min(var(xndp_d(j,i,k),yndp_d(j,i,k),k),    &
-                      var(xndp_d(j,i,k),ynnm1dp_d(j,i,k),k), &
-                      var(xnnm1dp_d(j,i,k),yndp_d(j,i,k),k), &
-                      var(xnnm1dp_d(j,i,k),ynnm1dp_d(j,i,k),k))
-          ! for the quasi monotonic sl
-          if ( tbadp > tbmax ) then
-            tsla = tbmax
-          else if ( tbadp < tbmin ) then
-            tsla = tbmin
+          if ( iqmsl == 1 ) then
+            ! to get the maximum and minimum value
+            tbmax = max(var(xndp_d(j,i,k),yndp_d(j,i,k),k) ,   &
+                        var(xndp_d(j,i,k),ynnm1dp_d(j,i,k),k), &
+                        var(xnnm1dp_d(j,i,k),yndp_d(j,i,k),k), &
+                        var(xnnm1dp_d(j,i,k),ynnm1dp_d(j,i,k),k))
+            tbmin = min(var(xndp_d(j,i,k),yndp_d(j,i,k),k),    &
+                        var(xndp_d(j,i,k),ynnm1dp_d(j,i,k),k), &
+                        var(xnnm1dp_d(j,i,k),yndp_d(j,i,k),k), &
+                        var(xnnm1dp_d(j,i,k),ynnm1dp_d(j,i,k),k))
+            if ( tbadp > tbmax ) then
+              tsla = tbmax
+            else if ( tbadp < tbmin ) then
+              tsla = tbmin
+            else
+              tsla = tbadp
+            end if
           else
             tsla = tbadp
           end if
