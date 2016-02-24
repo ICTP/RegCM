@@ -42,6 +42,7 @@ module mod_params
   use mod_tendency
   use mod_ncout
   use mod_advection , only : init_advection
+  use mod_sladvection , only : init_sladvection
   use mod_diffusion , only : allocate_mod_diffusion
   use mod_savefile
   use mod_slabocean
@@ -1642,6 +1643,9 @@ module mod_params
     call exchange(mddom%msfd,2,jde1,jde2,ide1,ide2)
 
     call init_advection
+    if ( isladvec == 1 ) then
+      call init_sladvection
+    end if
     call init_precip
     if ( ichem == 1 ) then
       call init_chem

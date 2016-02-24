@@ -691,7 +691,7 @@ module mod_precip
             write(stderr,*) 'At global K : ',k
           end if
 #endif
-          qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),minqv)/psc(j,i)
+          qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),d_zero)/psc(j,i)
           qccs = max((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc)),d_zero)/psc(j,i)
           !-----------------------------------------------------------
           !     2.  Compute the cloud condensation/evaporation term.
@@ -722,7 +722,7 @@ module mod_precip
               fccc = fccc * max(0.15D0,min(d_one,qvcs/0.003D0))
             end if
             !--------------------
-            fccc = min(max(fccc,0.01D0),d_one)
+            fccc = min(max(fccc,d_zero),d_one)
             qvc_cld = max((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)
             dqv = qvc_cld - qvs*conf  ! qv diff between predicted qv_c
             tmp1 = r1*dqv*fccc        ! grid cell average
