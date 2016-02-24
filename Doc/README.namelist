@@ -235,6 +235,9 @@
                         ! humidity
                         !   0 => Disabled
                         !   1 => Enable Semi Lagrangian Scheme
+   iqmsl =          0,  ! Quasi-monotonic Semi Lagrangian
+                        !   0 => Standard Semi-Lagrangian
+                        !   1 => Bermejo and Staniforth 1992 QMSL scheme
  ibltyp  =          1,  ! Boundary layer scheme
                         !   0 => Frictionless
                         !   1 => Holtslag PBL (Holtslag, 1990)
