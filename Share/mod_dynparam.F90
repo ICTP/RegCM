@@ -248,6 +248,13 @@ module mod_dynparam
   integer(ik4) , public :: ide1gb , ide2gb , jde1gb , jde2gb
   integer(ik4) , public :: idi1gb , idi2gb , jdi1gb , jdi2gb
 
+  ! SL stencil points
+
+  integer(ik4) , public :: ici1sl , ici2sl , jci1sl , jci2sl
+  integer(ik4) , public :: ice1sl , ice2sl , jce1sl , jce2sl
+  integer(ik4) , public :: ide1sl , ide2sl , jde1sl , jde2sl
+  integer(ik4) , public :: idi1sl , idi2sl , jdi1sl , jdi2sl
+
   ! J index Dot points Full Domain  = jde1 : begin , jde2 : end
   ! I index Cross points Internal Domain = ici1 : begin , ici2 : end
 

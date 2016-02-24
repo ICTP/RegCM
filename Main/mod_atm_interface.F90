@@ -305,6 +305,24 @@ module mod_atm_interface
       ice2gb = ice2 + ma%ibt2
       jce1gb = jce1 - ma%jbl2
       jce2gb = jce2 + ma%jbr2
+
+      idi1sl = idi1gb - ma%ibb2
+      idi2sl = idi2gb + ma%ibt2
+      jdi1sl = jdi1gb - ma%jbl2
+      jdi2sl = jdi2gb + ma%jbr2
+      ide1sl = ide1gb - ma%ibb2
+      ide2sl = ide2gb + ma%ibt2
+      jde1sl = jde1gb - ma%jbl2
+      jde2sl = jde2gb + ma%jbr2
+      ici1sl = ici1gb - ma%ibb2
+      ici2sl = ici2gb + ma%ibt2
+      jci1sl = jci1gb - ma%jbl2
+      jci2sl = jci2gb + ma%jbr2
+      ice1sl = ice1gb - ma%ibb2
+      ice2sl = ice2gb + ma%ibt2
+      jce1sl = jce1gb - ma%jbl2
+      jce2sl = jce2gb + ma%jbr2
+
 #ifdef DEBUG
       write(ndebug+myid,*) 'TOPLEFT     = ', ma%topleft
       write(ndebug+myid,*) 'TOP         = ', ma%top
@@ -512,13 +530,8 @@ module mod_atm_interface
     subroutine allocate_atmstate_a(atm)
       implicit none
       type(atmstate_a) , intent(out) :: atm
-      if ( isladvec == 1 ) then
-        call getmem3d(atm%u,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:u')
-        call getmem3d(atm%v,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:v')
-      else
-        call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
-        call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
-      end if
+      call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
+      call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
       call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
       if ( ibltyp == 2 ) then
@@ -541,7 +554,13 @@ module mod_atm_interface
       call getmem3d(atm%u,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:u')
       call getmem3d(atm%v,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:v')
       call getmem3d(atm%t,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:t')
-      call getmem4d(atm%qx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,1,nqx,'atmstate:qx')
+      if ( isladvec == 1 ) then
+        call getmem4d(atm%qx,jce1sl,jce2sl, &
+                             ice1sl,ice2sl,1,kz,1,nqx,'atmstate:qx')
+      else
+        call getmem4d(atm%qx,jce1gb,jce2gb, &
+                             ice1gb,ice2gb,1,kz,1,nqx,'atmstate:qx')
+      end if
       if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1gb,jce2gb,ice1gb,ice2gb,1,kzp1,'atmstate:tke')
       end if
@@ -578,14 +597,16 @@ module mod_atm_interface
       call getmem3d(atm%vc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vc')
       call getmem3d(atm%umc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:umc')
       call getmem3d(atm%vmc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vmc')
-      call getmem3d(atm%umd,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:umd')
-      call getmem3d(atm%vmd,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vmd')
       if ( isladvec == 1 ) then
-        call getmem3d(atm%ud,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:ud')
-        call getmem3d(atm%vd,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:vd')
+        call getmem3d(atm%ud,jde1gb,jde2gb,ide1gb,ide2ga,1,kz,'atmstate:ud')
+        call getmem3d(atm%vd,jde1gb,jde2gb,ide1gb,ide2ga,1,kz,'atmstate:vd')
+        call getmem3d(atm%umd,jde1gb,jde2gb,ide1gb,ide2ga,1,kz,'atmstate:umd')
+        call getmem3d(atm%vmd,jde1gb,jde2gb,ide1gb,ide2ga,1,kz,'atmstate:vmd')
       else
         call getmem3d(atm%ud,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:ud')
         call getmem3d(atm%vd,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vd')
+        call getmem3d(atm%umd,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:umd')
+        call getmem3d(atm%vmd,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vmd')
       end if
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
       call getmem3d(atm%tv,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tv')
@@ -730,11 +751,7 @@ module mod_atm_interface
       call getmem2d(sfs%psa,jce1ga,jce2ga,ice1ga,ice2ga,'surf:psa')
       call getmem2d(sfs%psb,jce1gb,jce2gb,ice1gb,ice2gb,'surf:psb')
       call getmem2d(sfs%psc,jce1,jce2,ice1,ice2,'surf:psc')
-      if ( isladvec == 1 ) then
-        call getmem2d(sfs%psdota,jde1gb,jde2gb,ide1gb,ide2gb,'surf:psdota')
-      else
-        call getmem2d(sfs%psdota,jde1ga,jde2ga,ide1ga,ide2ga,'surf:psdota')
-      end if
+      call getmem2d(sfs%psdota,jde1ga,jde2ga,ide1ga,ide2ga,'surf:psdota')
       call getmem2d(sfs%psdotb,jde1gb,jde2gb,ide1gb,ide2gb,'surf:psdotb')
       call getmem2d(sfs%tga,jci1,jci2,ici1,ici2,'surf:tga')
       call getmem2d(sfs%tgb,jci1,jci2,ici1,ici2,'surf:tgb')
@@ -805,10 +822,6 @@ module mod_atm_interface
 
     subroutine allocate_mod_atm_interface
       implicit none
-
-      if ( isladvec == 1 ) then
-
-      end if
 
       call allocate_domain(mddom)
       call allocate_domain_subgrid(mdsub)

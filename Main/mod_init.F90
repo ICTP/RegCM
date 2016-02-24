@@ -125,11 +125,7 @@ module mod_init
       call exchange(sfs%psb,2,jce1,jce2,ice1,ice2)
       call psc2psd(sfs%psa,sfs%psdota)
       call psc2psd(sfs%psb,sfs%psdotb)
-      if ( isladvec == 1 ) then
-        call exchange(sfs%psdota,2,jde1,jde2,ide1,ide2)
-      else
-        call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
-      end if
+      call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
       call exchange(sfs%psdotb,2,jde1,jde2,ide1,ide2)
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -316,11 +312,7 @@ module mod_init
       call exchange(sfs%psb,2,jce1,jce2,ice1,ice2)
       call psc2psd(sfs%psa,sfs%psdota)
       call psc2psd(sfs%psb,sfs%psdotb)
-      if ( isladvec == 1 ) then
-        call exchange(sfs%psdota,2,jde1,jde2,ide1,ide2)
-      else
-        call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
-      end if
+      call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
       call exchange(sfs%psdotb,2,jde1,jde2,ide1,ide2)
 
       if ( ipptls > 0 ) then

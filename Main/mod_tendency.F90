@@ -87,11 +87,7 @@ module mod_tendency
     call getmem2d(dummy,jde1,jde2,ide1,ide2,'tendency:dummy')
     call getmem2d(rpsa,jce1ga,jce2ga,ice1ga,ice2ga,'tendency:rpsa')
     call getmem2d(rpsb,jce1,jce2,ice1,ice2,'tendency:rpsb')
-    if ( isladvec == 1 ) then
-      call getmem2d(rpsda,jde1gb,jde2gb,ide1gb,ide2gb,'tendency:rpsda')
-    else
-      call getmem2d(rpsda,jde1ga,jde2ga,ide1ga,ide2ga,'tendency:rpsda')
-    end if
+    call getmem2d(rpsda,jde1ga,jde2ga,ide1ga,ide2ga,'tendency:rpsda')
     if ( idynamic == 1 ) then
       ithadv = 0
       call getmem3d(ttld,jce1,jce2,ice1,ice2,1,kz,'tend:ttld')
@@ -1854,11 +1850,7 @@ module mod_tendency
         end do
         call psc2psd(sfs%psa,sfs%psdota)
         call psc2psd(sfs%psb,sfs%psdotb)
-        if ( isladvec == 1 ) then
-          call exchange(sfs%psdota,2,jde1,jde2,ide1,ide2)
-        else
-          call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
-        end if
+        call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
         call exchange(sfs%psdotb,2,jde1,jde2,ide1,ide2)
       else
         if ( .not. linit ) then
@@ -1872,19 +1864,11 @@ module mod_tendency
               rpsb(j,i) = d_one/sfs%psb(j,i)
             end do
           end do
-          if ( isladvec == 1 ) then
-            do i = ide1gb , ide2gb
-              do j = jde1gb , jde2gb
-                rpsda(j,i) = d_one/sfs%psdota(j,i)
-              end do
+          do i = ide1ga , ide2ga
+            do j = jde1ga , jde2ga
+              rpsda(j,i) = d_one/sfs%psdota(j,i)
             end do
-          else
-            do i = ide1ga , ide2ga
-              do j = jde1ga , jde2ga
-                rpsda(j,i) = d_one/sfs%psdota(j,i)
-              end do
-            end do
-          end if
+          end do
           linit = .true.
         end if
       end if
@@ -1897,30 +1881,17 @@ module mod_tendency
       ! Helper
       !
       if ( idynamic == 1 ) then
-        if ( isladvec == 1 ) then
-          do i = ide1gb , ide2gb
-            do j = jde1gb , jde2gb
-              rpsda(j,i) = d_one/sfs%psdota(j,i)
-            end do
+        do i = ide1ga , ide2ga
+          do j = jde1ga , jde2ga
+            rpsda(j,i) = d_one/sfs%psdota(j,i)
           end do
-        else
-          do i = ide1ga , ide2ga
-            do j = jde1ga , jde2ga
-              rpsda(j,i) = d_one/sfs%psdota(j,i)
-            end do
-          end do
-        end if
+        end do
       end if
       !
       ! Exchange ghost points
       !
-      if ( isladvec == 1 ) then
-        call exchange(atm1%u,2,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(atm1%v,2,jde1,jde2,ide1,ide2,1,kz)
-      else
-        call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
-      end if
+      call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
       call exchange(atm1%t,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
       if ( ibltyp == 2 ) then
@@ -2064,20 +2035,28 @@ module mod_tendency
         end if
       end if
       if ( isladvec == 1 ) then
-        call exchange(atmx%ud,2,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(atmx%vd,2,jde1,jde2,ide1,ide2,1,kz)
-      else
         call exchange(atmx%ud,1,jde1,jde2,ide1,ide2,1,kz)
         call exchange(atmx%vd,1,jde1,jde2,ide1,ide2,1,kz)
-      end if
-      do k = 1 , kz
-        do i = ide1ga , ide2ga
-          do j = jde1ga , jde2ga
-            atmx%umd(j,i,k) = atmx%ud(j,i,k)*mddom%msfd(j,i)
-            atmx%vmd(j,i,k) = atmx%vd(j,i,k)*mddom%msfd(j,i)
+        do k = 1 , kz
+          do i = ide1ga , ide2ga
+            do j = jde1ga , jde2ga
+              atmx%umd(j,i,k) = atmx%ud(j,i,k)*mddom%msfd(j,i)
+              atmx%vmd(j,i,k) = atmx%vd(j,i,k)*mddom%msfd(j,i)
+            end do
           end do
         end do
-      end do
+      else
+        call exchange(atmx%ud,2,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(atmx%vd,2,jde1,jde2,ide1,ide2,1,kz)
+        do k = 1 , kz
+          do i = ide1gb , ide2gb
+            do j = jde1gb , jde2gb
+              atmx%umd(j,i,k) = atmx%ud(j,i,k)*mddom%msfd(j,i)
+              atmx%vmd(j,i,k) = atmx%vd(j,i,k)*mddom%msfd(j,i)
+            end do
+          end do
+        end do
+      end if
       !
       ! T , QV , QC
       !
@@ -2172,7 +2151,11 @@ module mod_tendency
       call exchange(atm2%u,2,jde1,jde2,ide1,ide2,1,kz)
       call exchange(atm2%v,2,jde1,jde2,ide1,ide2,1,kz)
       call exchange(atm2%t,2,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atm2%qx,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+      if ( isladvec == 1 ) then
+        call exchange(atm2%qx,4,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+      else
+        call exchange(atm2%qx,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+      end if
       if ( ibltyp == 2 ) then
         call exchange(atm2%tke,2,jce1,jce2,ice1,ice2,1,kzp1)
       end if
@@ -2203,8 +2186,13 @@ module mod_tendency
 
       if ( ichem == 1 ) then
         call exchange(chi,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call exchange(chib,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        if ( isladvec == 1 ) then
+          call exchange(chib,4,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        else
+          call exchange(chib,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        end if
       end if
+
     end subroutine decouple
 
   end subroutine tend

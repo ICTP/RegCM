@@ -131,10 +131,15 @@ module mod_che_common
       call getmem1d(trac%mw,1,ntr,'mod_che_common:trac%mw')
       call getmem1d(trac%indchbdy,1,ntr,'mod_che_common:trac%indchbdy')
 
-      call getmem4d(chia,jce1gb,jce2gb,ice1gb,ice2gb, &
+      call getmem4d(chia,jce1ga,jce2ga,ice1ga,ice2ga, &
                          1,kz,1,ntr,'che_common:chia')
-      call getmem4d(chib,jce1gb,jce2gb,ice1gb,ice2gb, &
-                         1,kz,1,ntr,'che_common:chib')
+      if ( isladvec == 1 ) then
+        call getmem4d(chib,jce1sl,jce2sl,ice1sl,ice2sl, &
+                           1,kz,1,ntr,'che_common:chib')
+      else
+        call getmem4d(chib,jce1gb,jce2gb,ice1gb,ice2gb, &
+                           1,kz,1,ntr,'che_common:chib')
+      end if
       call getmem4d(chi,jce1gb,jce2gb,ice1gb,ice2gb, &
                         1,kz,1,ntr,'che_common:chi')
       if ( idynamic == 2 ) then
