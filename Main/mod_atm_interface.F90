@@ -598,10 +598,10 @@ module mod_atm_interface
       call getmem3d(atm%umc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:umc')
       call getmem3d(atm%vmc,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vmc')
       if ( isladvec == 1 ) then
-        call getmem3d(atm%ud,jde1gb,jde2gb,ide1gb,ide2ga,1,kz,'atmstate:ud')
-        call getmem3d(atm%vd,jde1gb,jde2gb,ide1gb,ide2ga,1,kz,'atmstate:vd')
-        call getmem3d(atm%umd,jde1gb,jde2gb,ide1gb,ide2ga,1,kz,'atmstate:umd')
-        call getmem3d(atm%vmd,jde1gb,jde2gb,ide1gb,ide2ga,1,kz,'atmstate:vmd')
+        call getmem3d(atm%ud,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:ud')
+        call getmem3d(atm%vd,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:vd')
+        call getmem3d(atm%umd,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:umd')
+        call getmem3d(atm%vmd,jde1gb,jde2gb,ide1gb,ide2gb,1,kz,'atmstate:vmd')
       else
         call getmem3d(atm%ud,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:ud')
         call getmem3d(atm%vd,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:vd')
