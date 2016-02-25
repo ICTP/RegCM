@@ -226,7 +226,7 @@ module mod_params
     ibltyp = 1
     iboudy = 5
     isladvec = 0
-    iqmsl = 0
+    iqmsl = 1
     icup_lnd = 5
     icup_ocn = 5
     ipptls = 1
