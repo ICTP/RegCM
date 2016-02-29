@@ -508,7 +508,9 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rovcpm = rgas/(cpd*(d_one + 0.856D0*qvd(j,i,k)))
+            !rovcpm = rgas/(cpd*(d_one + 0.856D0*qvd(j,i,k)))
+            !rovcpm = rgas/(cpd + 1.820D0*qvd(j,i,k))
+            rovcpm = rgas/(cpd*(d_one + 0.80D0*qvd(j,i,k)))
             aten%t(j,i,k) = aten%t(j,i,k) + &
                             (omega(j,i,k)*rovcpm*atmx%tv(j,i,k)) / &
                             (ptop*rpsa(j,i)+hsigma(k))
@@ -733,7 +735,6 @@ module mod_tendency
       !
       ! Clouds and large scale precipitation
       !
-      ! First compute cloud fraction, then precipitation
       call cldfrac
       if ( ipptls == 2 ) then
         call microphys

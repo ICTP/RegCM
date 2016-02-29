@@ -300,7 +300,7 @@ module mod_constants
   real(rk8) , parameter :: alpha_hyd = 0.0D+00
   real(rk8) , parameter :: beta_hyd = d_one - d_two*alpha_hyd
 
-  real(rk8) , parameter :: gnu = 0.10D+00
+  real(rk8) , parameter :: gnu = 0.1024D+00
   real(rk8) , parameter :: omu = d_one - d_two*gnu
   real(rk8) , parameter :: gnuhf = d_half*gnu
   real(rk8) , parameter :: omuhf = d_one - d_two*gnuhf

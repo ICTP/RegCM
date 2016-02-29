@@ -248,6 +248,13 @@ module mod_init
         lms%deltas(:,:,:) = 0.001D0
         lms%tdeltas(:,:,:) = lms%sst(:,:,:) - lms%deltas(:,:,:)
       end if
+      do n = 1 , nnsg
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            lms%um10(n,j,i) = 0.5D0
+          end do
+        end do
+      end do
       !
       ! End of initial run case
       !

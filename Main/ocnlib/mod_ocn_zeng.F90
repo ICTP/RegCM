@@ -118,10 +118,10 @@ module mod_ocn_zeng
       qs = pfqsat(tgrd(i),sfps(i))*0.98D0
       ! in kg/kg
       dqh = q995 - qs
-      thv = th*(d_one+0.61D0*q995)
+      thv = th*(d_one+ep1*q995)
       ! virtual potential T
-      dthv = dth*(d_one+0.61D0*q995) + 0.61D0*th*dqh
-      xdens = sfps(i)/(rgas*tgrd(i)*(d_one+0.61D0*qs))
+      dthv = dth*(d_one+ep1*q995) + ep1*th*dqh
+      xdens = sfps(i)/(rgas*tgrd(i)*(d_one+ep1*qs))
       ! density
       xlv = (2.501D0-0.00237D0*tsurf)*1.0D+6
       ! J/kg
@@ -129,8 +129,9 @@ module mod_ocn_zeng
       ! Kinematic viscosity of dry air (m2/s)
       !   Andreas (1989) CRREL Rep. 89-11
       !
-      visa = 1.326D-5*(d_one+6.542D-3*t995 + 8.301D-6*t995*t995 - &
-                       4.84D-9*t995*t995*t995)
+      visa = 1.326D-5*(d_one + 6.542D-3 * t995 + &
+                               8.301D-6 * t995*t995 - &
+                               4.840D-9 * t995*t995*t995)
       !
       ! initial values of u* and convective velocity
       !
@@ -238,7 +239,7 @@ module mod_ocn_zeng
           qstar = vonkar*dqh/(log(obu/zoq) + d_five-d_five*zoq/obu+ &
                   (d_five*log(zeta)+zeta-d_one))
         end if
-        thvstar = tstar*(d_one+0.61D0*q995) + 0.61D0*th*qstar
+        thvstar = tstar*(d_one+ep1*q995) + ep1*th*qstar
         zeta = vonkar*egrav*thvstar*hu/(ustar**2*thv)
         if ( zeta >= d_zero ) then   !neutral or stable
           um = max(uv995,0.1D0)
