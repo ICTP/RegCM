@@ -224,6 +224,7 @@ module mod_slice
     if ( icldmstrat == 1 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
+          atms%th700(j,i) = atms%th3d(j,i,kz)
           vertloop: &
           do k = 1 , kz-1
             if ( atms%pb3d(j,i,k) > 70000.0 ) then
