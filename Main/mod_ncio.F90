@@ -61,6 +61,8 @@ module mod_ncio
 
   contains
 
+#include <pfesat.inc>
+
   subroutine read_domain_info(ht,lnd,mask,xlat,xlon,dlat,dlon, &
                               msfx,msfd,coriol,snowam,smoist,rmoist,hlake)
     implicit none

@@ -70,6 +70,9 @@ module mod_cu_grell
 
   contains
 
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   subroutine allocate_mod_cu_grell
     implicit none
 

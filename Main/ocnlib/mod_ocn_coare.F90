@@ -33,6 +33,10 @@ module mod_ocn_coare
   public :: coare3_drv
 
   contains
+#include <pfesat.inc>
+#include <pfqsat.inc>
+#include <pqderiv.inc>
+#include <wlh.inc>
     !
     !-----------------------------------------------------------------------
     ! This routine computes the bulk parameterization of surface
@@ -50,8 +54,8 @@ module mod_ocn_coare
       real(rk8) :: usr , qsr , tsr , zetu , l10 , wetc , zet
       real(rk8) :: cd10 , ch10 , ct10 , cc , cd , ct , ribcu , ribu
       real(rk8) :: rr , rt , rq , zo , zot , zoq , dels , bigc , Al
-      real(rk8) :: L , Bf , tkt , qout , qcol , alq , xlamx , dqer
-      real(rk8) :: Le , visa , rhoa , cpv , Rns , Rnl
+      real(rk8) :: l , Bf , tkt , qout , qcol , alq , xlamx , dqer
+      real(rk8) :: le , visa , rhoa , cpv , Rns , Rnl
       real(rk8) :: hsb , hlb , tau , uv10 , facttq
       integer(ik4) :: i , k , niter
       logical :: iflag
@@ -105,7 +109,7 @@ module mod_ocn_coare
         cpv = cpa*(1.0D0+0.84D0*q995)
 
         ! latent heat of vaporization (J/kg) at sea surface
-        Le = wlh(tgrd(i))
+        le = wlh(tgrd(i))
 
         ! moist air density (kg/m3)
         rhoa = sfps(i)/(rgas*ta*(d_one+0.61D0*q995))

@@ -27,19 +27,23 @@ module mod_bats_bndry
   use mod_bats_param
   use mod_bats_drag
   use mod_bats_internal
-!
+  use mod_constants
+
   implicit none
-!
+
   private
 
   public :: soilbc , bndry
-!
+
   real(rk8) , parameter :: lowsice = 1.0D-22
   real(rk8) , parameter :: rainsnowtemp = 2.2D0
   real(rk8) , parameter :: xnu = twopi/secpd
 
   contains
 
+#include <pfesat.inc>
+#include <pfqsat.inc>
+#include <pqderiv.inc>
   !
   !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   !
@@ -877,7 +881,7 @@ module mod_bats_bndry
       real(rk8) , intent(in) :: x
       fct1 = wlhf*d_rfour*1.414D0/x
     end function fct1
-!
+
   end subroutine tgrund
 !
 end module mod_bats_bndry

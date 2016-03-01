@@ -90,6 +90,9 @@ module mod_lm_interface
 
   contains
 
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   subroutine allocate_surface_model
     implicit none
 

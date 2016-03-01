@@ -75,6 +75,9 @@ module mod_precip
 
   contains
 
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   subroutine allocate_mod_precip
     implicit none
     ! Those not. Note the external, internal change.

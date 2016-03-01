@@ -67,6 +67,8 @@ module mod_ocn_zeng
   logical :: flag1 , flag2
 
   contains
+#include <pfesat.inc>
+#include <pfqsat.inc>
   !
   ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
   ! Account for SST diurnal evoluation warm layer/ skin temperature scheme

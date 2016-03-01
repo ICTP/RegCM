@@ -39,6 +39,9 @@ module mod_slice
 
   contains
 
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   subroutine mkslice
     implicit none
     real(rk8) :: cell

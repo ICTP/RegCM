@@ -34,6 +34,9 @@ module mod_ocn_bats
 
   contains
 
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   subroutine ocnbats
     implicit none
     real(rk8) :: ribd , cdrn , rib , qgrd

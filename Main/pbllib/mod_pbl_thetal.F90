@@ -39,6 +39,9 @@ module mod_pbl_thetal
 
   contains
 
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   real(rk8) function zerofunc(t,bderiv)
     implicit none
     real(rk8) , intent(in) :: t

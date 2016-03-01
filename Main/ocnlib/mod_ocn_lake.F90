@@ -64,6 +64,10 @@ module mod_ocn_lake
   end interface lake_fillvar
 
   contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
 !
 !-----------------------------------------------------------------------
 !

@@ -58,6 +58,9 @@ module mod_cu_em
 
   contains
 
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   subroutine allocate_mod_cu_em
     implicit none
 

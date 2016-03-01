@@ -38,6 +38,10 @@ module mod_humid
 
   contains
 
+#include <pfesat.inc>
+#include <pfqsat.inc>
+#include <sig2p.inc>
+
   subroutine humid1(t,q,ps,ptop,sigma,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk

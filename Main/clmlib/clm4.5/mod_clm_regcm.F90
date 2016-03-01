@@ -32,6 +32,9 @@ module mod_clm_regcm
 
   contains
 
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   subroutine initclm45(lm,lms)
     implicit none
     type(lm_exchange) , intent(inout) :: lm

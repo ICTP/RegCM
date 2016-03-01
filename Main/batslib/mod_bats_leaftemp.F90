@@ -38,6 +38,11 @@ module mod_bats_leaftemp
   public :: lftemp , satur , fseas
 
   contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+#include <pqderiv.inc>
+
 !
 !=======================================================================
 !     based on: bats version 1e          copyright 18 august 1989

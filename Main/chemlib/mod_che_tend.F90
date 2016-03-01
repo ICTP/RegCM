@@ -50,6 +50,10 @@
   public :: tractend2
 
   contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !

@@ -85,6 +85,9 @@ module mod_cu_bm
 
   contains
 
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   subroutine allocate_mod_cu_bm
     implicit none
     integer(ik4) :: intall
