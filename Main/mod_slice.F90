@@ -225,7 +225,7 @@ module mod_slice
       do i = ici1 , ici2
         do j = jci1 , jci2
           vertloop: &
-          do k = 1 , kz
+          do k = 1 , kz-1
             if ( atms%pb3d(j,i,k) > 70000.0 ) then
               atms%th700(j,i) = twt(k,1) * atms%th3d(j,i,k+1) + &
                                 twt(k,2) * atms%th3d(j,i,k)
