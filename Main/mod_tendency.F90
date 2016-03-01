@@ -2036,22 +2036,22 @@ module mod_tendency
         end if
       end if
       if ( isladvec == 1 ) then
-        call exchange(atmx%ud,1,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(atmx%vd,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(atmx%ud,2,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(atmx%vd,2,jde1,jde2,ide1,ide2,1,kz)
         do k = 1 , kz
-          do i = ide1ga , ide2ga
-            do j = jde1ga , jde2ga
+          do i = ide1gb , ide2gb
+            do j = jde1gb , jde2gb
               atmx%umd(j,i,k) = atmx%ud(j,i,k)*mddom%msfd(j,i)
               atmx%vmd(j,i,k) = atmx%vd(j,i,k)*mddom%msfd(j,i)
             end do
           end do
         end do
       else
-        call exchange(atmx%ud,2,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(atmx%vd,2,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(atmx%ud,1,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(atmx%vd,1,jde1,jde2,ide1,ide2,1,kz)
         do k = 1 , kz
-          do i = ide1gb , ide2gb
-            do j = jde1gb , jde2gb
+          do i = ide1ga , ide2ga
+            do j = jde1ga , jde2ga
               atmx%umd(j,i,k) = atmx%ud(j,i,k)*mddom%msfd(j,i)
               atmx%vmd(j,i,k) = atmx%vd(j,i,k)*mddom%msfd(j,i)
             end do
