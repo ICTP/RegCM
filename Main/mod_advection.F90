@@ -355,6 +355,8 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
       real(rk8) :: advval
+      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2
+      real(rk8) :: fx1 , fx2 , fy1 , fy2
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv_qv'
@@ -364,23 +366,89 @@ module mod_advection
       !
       ! for qv:
       !
+      if ( .not. upwind_scheme ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              advval = - xmapf(j,i) *  &
+                  ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,iv)+f(j,i,k,iv)) -  &
+                   (ua(j,i+1,k)+ua(j,i,k)) *   (f(j-1,i,k,iv)+f(j,i,k,iv)) +  &
+                   (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,iv)+f(j,i,k,iv)) -  &
+                   (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,iv)+f(j,i,k,iv)))
+              !
+              ! Instability correction
+              !
+              ! Local extrema exceeding a certain realtive threshold
+              ! must not grow further due to advection
+              !
+              if ( stability_enhance ) then
+                if ( abs(f(j,i+1,k,iv) + f(j,i-1,k,iv) - &
+                        d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
+                  if ( (f(j,i,k,iv) > f(j,i+1,k,iv)) .and. &
+                       (f(j,i,k,iv) > f(j,i-1,k,iv)) ) then
+                    advval = min(advval,d_zero)
+                  else if ( (f(j,i,k,iv) < f(j,i+1,k,iv)) .and. &
+                            (f(j,i,k,iv) < f(j,i-1,k,iv)) ) then
+                    advval = max(advval,d_zero)
+                  end if
+                end if
+                if ( abs(f(j+1,i,k,iv) + f(j-1,i,k,iv) - &
+                       d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
+                  if ( (f(j,i,k,iv) > f(j+1,i,k,iv)) .and. &
+                       (f(j,i,k,iv) > f(j-1,i,k,iv)) ) then
+                    advval = min(advval,d_zero)
+                  else if ( (f(j,i,k,iv) < f(j+1,i,k,iv)) .and. &
+                            (f(j,i,k,iv) < f(j-1,i,k,iv)) ) then
+                    advval = max(advval,d_zero)
+                  end if
+                end if
+              end if
+              ften(j,i,k,iv) = ften(j,i,k,iv) + advval
+            end do
+          end do
+        end do
+#ifdef DEBUG
+        call time_end(subroutine_name,idindx)
+#endif
+        return
+      end if
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            advval = - xmapf(j,i) *  &
-                ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,iv)+f(j,i,k,iv)) -  &
-                 (ua(j,i+1,k)+ua(j,i,k)) *   (f(j-1,i,k,iv)+f(j,i,k,iv)) +  &
-                 (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,iv)+f(j,i,k,iv)) -  &
-                 (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,iv)+f(j,i,k,iv)))
-            !
-            ! Instability correction
-            !
-            ! Local extrema exceeding a certain realtive threshold
-            ! must not grow further due to advection
-            !
+            uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
+            uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
+            if ( uavg1 >= d_zero ) then
+              fx1 = fact1*f(j-1,i,k,iv)+fact2*f(j,i,k,iv)
+            else
+              fx1 = fact1*f(j,i,k,iv)+fact2*f(j-1,i,k,iv)
+            end if
+            if ( uavg2 >= d_zero ) then
+              fx2 = fact1*f(j,i,k,iv)+fact2*f(j+1,i,k,iv)
+            else
+              fx2 = fact1*f(j+1,i,k,iv)+fact2*f(j,i,k,iv)
+            end if
+            vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
+            vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
+            if ( vavg1 >= d_zero ) then
+              fy1 = fact1*f(j,i-1,k,iv)+fact2*f(j,i,k,iv)
+            else
+              fy1 = fact1*f(j,i,k,iv)+fact2*f(j,i-1,k,iv)
+            end if
+            if ( vavg2 >= d_zero ) then
+              fy2 = fact1*f(j,i,k,iv)+fact2*f(j,i+1,k,iv)
+            else
+              fy2 = fact1*f(j,i+1,k,iv)+fact2*f(j,i,k,iv)
+            end if
+            advval = -xmapf(j,i)*(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
             if ( stability_enhance ) then
+              !
+              ! Instability correction
+              !
+              ! Local extrema exceeding a certain threshold
+              ! must not grow further due to advection
+              !
               if ( abs(f(j,i+1,k,iv) + f(j,i-1,k,iv) - &
-                      d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
+                        d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
                 if ( (f(j,i,k,iv) > f(j,i+1,k,iv)) .and. &
                      (f(j,i,k,iv) > f(j,i-1,k,iv)) ) then
                   advval = min(advval,d_zero)
