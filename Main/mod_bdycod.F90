@@ -63,7 +63,7 @@ module mod_bdycod
                                          sve , svi , nve , nvi
   real(rk8) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
                                          wve , wvi , eve , evi
-  real(rk8) , pointer , dimension(:,:) :: psdot , rpsdot
+  real(rk8) , pointer , dimension(:,:) :: psdot
   real(rk8) , pointer , dimension(:) :: fcx , gcx
   real(rk8) , pointer , dimension(:) :: fcd , gcd
   real(rk8) , pointer , dimension(:) :: lfc , lgc
@@ -135,7 +135,6 @@ module mod_bdycod
       call getmem2d(wvi,ide1ga,ide2ga,1,kz,'bdycon:wvi')
     end if
     call getmem2d(psdot,jde1,jde2,ide1,ide2,'bdycon:psdot')
-    call getmem2d(rpsdot,jde1,jde2,ide1,ide2,'bdycon:rpsdot')
   end subroutine allocate_mod_bdycon
 
   subroutine setup_bdycon
@@ -346,7 +345,6 @@ module mod_bdycod
       xpsb%b0(:,:) = atm0%ps(:,:) * d_r1000 ! Cb
       psdot(:,:) = atm0%psdot(jde1:jde2,ide1:ide2) * d_r1000
       xpsb%b1(:,:) = xpsb%b0(:,:)
-      rpsdot(:,:) = d_one/psdot(:,:)
     else
       xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
       xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
@@ -627,50 +625,38 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 #endif
     !
-    ! First compute the p* at dot points to decouple U,V:
-    !
-    if ( idynamic == 1 ) then
-      call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-      call psc2psd(sfs%psa,psdot)
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          rpsdot(j,i) = d_one/psdot(j,i)
-        end do
-      end do
-    end if
-    !
     ! Now compute last two points values in U and V
     ! Internal points
     !
     if ( ma%has_bdyleft ) then
       do k = 1 , kz
         do i = idi1 , idi2
-          wui(i,k) = atm1%u(jdi1,i,k)*rpsdot(jdi1,i)
-          wvi(i,k) = atm1%v(jdi1,i,k)*rpsdot(jdi1,i)
+          wui(i,k) = atm1%u(jdi1,i,k)
+          wvi(i,k) = atm1%v(jdi1,i,k)
         end do
       end do
     end if
     if ( ma%has_bdyright ) then
       do k = 1 , kz
         do i = idi1 , idi2
-          eui(i,k) = atm1%u(jdi2,i,k)*rpsdot(jdi2,i)
-          evi(i,k) = atm1%v(jdi2,i,k)*rpsdot(jdi2,i)
+          eui(i,k) = atm1%u(jdi2,i,k)
+          evi(i,k) = atm1%v(jdi2,i,k)
         end do
       end do
     end if
     if ( ma%has_bdybottom ) then
       do k = 1 , kz
         do j = jdi1 , jdi2
-          sui(j,k) = atm1%u(j,idi1,k)*rpsdot(j,idi1)
-          svi(j,k) = atm1%v(j,idi1,k)*rpsdot(j,idi1)
+          sui(j,k) = atm1%u(j,idi1,k)
+          svi(j,k) = atm1%v(j,idi1,k)
         end do
       end do
     end if
     if ( ma%has_bdytop ) then
       do k = 1 , kz
         do j = jdi1 , jdi2
-          nui(j,k) = atm1%u(j,idi2,k)*rpsdot(j,idi2)
-          nvi(j,k) = atm1%v(j,idi2,k)*rpsdot(j,idi2)
+          nui(j,k) = atm1%u(j,idi2,k)
+          nvi(j,k) = atm1%v(j,idi2,k)
         end do
       end do
     end if
@@ -686,16 +672,16 @@ module mod_bdycod
       if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = ide1 , ide2
-            wue(i,k) = xub%b0(jde1,i,k)*rpsdot(jde1,i)
-            wve(i,k) = xvb%b0(jde1,i,k)*rpsdot(jde1,i)
+            wue(i,k) = xub%b0(jde1,i,k)
+            wve(i,k) = xvb%b0(jde1,i,k)
           end do
         end do
       end if
       if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = ide1 , ide2
-            eue(i,k) = xub%b0(jde2,i,k)*rpsdot(jde2,i)
-            eve(i,k) = xvb%b0(jde2,i,k)*rpsdot(jde2,i)
+            eue(i,k) = xub%b0(jde2,i,k)
+            eve(i,k) = xvb%b0(jde2,i,k)
           end do
         end do
       end if
@@ -705,16 +691,16 @@ module mod_bdycod
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jde1 , jde2
-            sue(j,k) = xub%b0(j,ide1,k)*rpsdot(j,ide1)
-            sve(j,k) = xvb%b0(j,ide1,k)*rpsdot(j,ide1)
+            sue(j,k) = xub%b0(j,ide1,k)
+            sve(j,k) = xvb%b0(j,ide1,k)
           end do
         end do
       end if
       if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jde1 , jde2
-            nue(j,k) = xub%b0(j,ide2,k)*rpsdot(j,ide2)
-            nve(j,k) = xvb%b0(j,ide2,k)*rpsdot(j,ide2)
+            nue(j,k) = xub%b0(j,ide2,k)
+            nve(j,k) = xvb%b0(j,ide2,k)
           end do
         end do
       end if
@@ -727,16 +713,16 @@ module mod_bdycod
       if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            wue(i,k) = (xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k))*rpsdot(jde1,i)
-            wve(i,k) = (xvb%b0(jde1,i,k) + xt*xvb%bt(jde1,i,k))*rpsdot(jde1,i)
+            wue(i,k) = (xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k))
+            wve(i,k) = (xvb%b0(jde1,i,k) + xt*xvb%bt(jde1,i,k))
           end do
         end do
       end if
       if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            eue(i,k) = (xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k))*rpsdot(jde2,i)
-            eve(i,k) = (xvb%b0(jde2,i,k) + xt*xvb%bt(jde2,i,k))*rpsdot(jde2,i)
+            eue(i,k) = (xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k))
+            eve(i,k) = (xvb%b0(jde2,i,k) + xt*xvb%bt(jde2,i,k))
           end do
         end do
       end if
@@ -746,16 +732,16 @@ module mod_bdycod
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jde1 , jde2
-            sue(j,k) = (xub%b0(j,ide1,k) + xt*xub%bt(j,ide1,k))*rpsdot(j,ide1)
-            sve(j,k) = (xvb%b0(j,ide1,k) + xt*xvb%bt(j,ide1,k))*rpsdot(j,ide1)
+            sue(j,k) = (xub%b0(j,ide1,k) + xt*xub%bt(j,ide1,k))
+            sve(j,k) = (xvb%b0(j,ide1,k) + xt*xvb%bt(j,ide1,k))
           end do
         end do
       end if
       if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jde1 , jde2
-            nue(j,k) = (xub%b0(j,ide2,k) + xt*xub%bt(j,ide2,k))*rpsdot(j,ide2)
-            nve(j,k) = (xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k))*rpsdot(j,ide2)
+            nue(j,k) = (xub%b0(j,ide2,k) + xt*xub%bt(j,ide2,k))
+            nve(j,k) = (xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k))
           end do
         end do
       end if

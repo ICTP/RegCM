@@ -1899,62 +1899,39 @@ module mod_tendency
         call exchange(atm1%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
       end if
       !
-      ! Coupled helper
+      ! Coupled helper : Internal points
       !
       do k = 1 , kz
-        do i = ide1ga , ide2ga
-          do j = jde1ga , jde2ga
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
             atmx%uc(j,i,k) = atm1%u(j,i,k)
             atmx%vc(j,i,k) = atm1%v(j,i,k)
           end do
         end do
       end do
       !
-      ! multiply ua and va by inverse of mapscale factor at dot point
-      !
-      do k = 1 , kz
-        do i = ide1ga , ide2ga
-          do j = jde1ga , jde2ga
-            atmx%umc(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
-            atmx%vmc(j,i,k) = atm1%v(j,i,k)*mddom%msfd(j,i)
-          end do
-        end do
-      end do
-      !
-      ! Decoupled part with boundary conditions
-      ! Internal points
-      !
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            atmx%ud(j,i,k) = atm1%u(j,i,k)*rpsda(j,i)
-            atmx%vd(j,i,k) = atm1%v(j,i,k)*rpsda(j,i)
-          end do
-        end do
-      end do
-      !
-      ! Boundary U,Vpoints
+      ! Boundary U,V points
       !
       if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            atmx%ud(jdi1,i,k) = wui(i,k)
-            atmx%vd(jdi1,i,k) = wvi(i,k)
+            atmx%uc(jdi1,i,k) = wui(i,k)
+            atmx%vc(jdi1,i,k) = wvi(i,k)
           end do
         end do
         do k = 1 , kz
           do i = idi1 , idi2
-            atmx%ud(jde1,i,k) = wue(i,k)
-            atmx%vd(jde1,i,k) = wve(i,k)
+            atmx%uc(jde1,i,k) = wue(i,k)
+            atmx%vc(jde1,i,k) = wve(i,k)
           end do
         end do
         ! inflow/outflow dependence
         if ( iboudy == 3 .or. iboudy == 4 ) then
           do k = 1 , kz
             do i = idi1 , idi2
-              if ( atmx%uc(jde1,i,k) <= d_zero ) then
-                atmx%ud(jde1,i,k) = atmx%ud(jdi1,i,k)
-                atmx%vd(jde1,i,k) = atmx%vd(jdi1,i,k)
+              if ( atm1%u(jde1,i,k) <= d_zero ) then
+                atmx%uc(jde1,i,k) = atmx%uc(jdi1,i,k)
+                atmx%vc(jde1,i,k) = atmx%vc(jdi1,i,k)
               end if
             end do
           end do
@@ -1963,23 +1940,23 @@ module mod_tendency
       if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            atmx%ud(jdi2,i,k) = eui(i,k)
-            atmx%vd(jdi2,i,k) = evi(i,k)
+            atmx%uc(jdi2,i,k) = eui(i,k)
+            atmx%vc(jdi2,i,k) = evi(i,k)
           end do
         end do
         do k = 1 , kz
           do i = idi1 , idi2
-            atmx%ud(jde2,i,k) = eue(i,k)
-            atmx%vd(jde2,i,k) = eve(i,k)
+            atmx%uc(jde2,i,k) = eue(i,k)
+            atmx%vc(jde2,i,k) = eve(i,k)
           end do
         end do
         ! inflow/outflow dependence
         if ( iboudy == 3 .or. iboudy == 4 ) then
           do k = 1 , kz
             do i = idi1 , idi2
-              if ( atmx%uc(jde2,i,k) >= d_zero ) then
-                atmx%ud(jde2,i,k) = atmx%ud(jdi2,i,k)
-                atmx%vd(jde2,i,k) = atmx%vd(jdi2,i,k)
+              if ( atm1%u(jde2,i,k) >= d_zero ) then
+                atmx%uc(jde2,i,k) = atmx%uc(jdi2,i,k)
+                atmx%vc(jde2,i,k) = atmx%vc(jdi2,i,k)
               end if
             end do
           end do
@@ -1988,23 +1965,23 @@ module mod_tendency
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jdi1 , jdi2
-            atmx%ud(j,idi1,k) = sui(j,k)
-            atmx%vd(j,idi1,k) = svi(j,k)
+            atmx%uc(j,idi1,k) = sui(j,k)
+            atmx%vc(j,idi1,k) = svi(j,k)
           end do
         end do
         do k = 1 , kz
           do j = jde1 , jde2
-            atmx%ud(j,ide1,k) = sue(j,k)
-            atmx%vd(j,ide1,k) = sve(j,k)
+            atmx%uc(j,ide1,k) = sue(j,k)
+            atmx%vc(j,ide1,k) = sve(j,k)
           end do
         end do
         if ( iboudy == 3 .or. iboudy == 4 ) then
           ! inflow/outflow dependence
           do k = 1 , kz
             do j = jde1 , jde2
-              if ( atmx%vc(j,ide1,k) >= d_zero ) then
-                atmx%ud(j,ide1,k) = atmx%ud(j,idi1,k)
-                atmx%vd(j,ide1,k) = atmx%vd(j,idi1,k)
+              if ( atm1%v(j,ide1,k) >= d_zero ) then
+                atmx%uc(j,ide1,k) = atmx%uc(j,idi1,k)
+                atmx%vc(j,ide1,k) = atmx%vc(j,idi1,k)
               end if
             end do
           end do
@@ -2013,28 +1990,52 @@ module mod_tendency
       if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jdi1 , jdi2
-            atmx%ud(j,idi2,k) = nui(j,k)
-            atmx%vd(j,idi2,k) = nvi(j,k)
+            atmx%uc(j,idi2,k) = nui(j,k)
+            atmx%vc(j,idi2,k) = nvi(j,k)
           end do
         end do
         do k = 1 , kz
           do j = jde1 , jde2
-            atmx%ud(j,ide2,k) = nue(j,k)
-            atmx%vd(j,ide2,k) = nve(j,k)
+            atmx%uc(j,ide2,k) = nue(j,k)
+            atmx%vc(j,ide2,k) = nve(j,k)
           end do
         end do
         if ( iboudy == 3 .or. iboudy == 4 ) then
           ! inflow/outflow dependence
           do k = 1 , kz
             do j = jde1 , jde2
-              if ( atmx%vc(j,ide2,k) <= d_zero ) then
-                atmx%ud(j,ide2,k) = atmx%ud(j,idi2,k)
-                atmx%vd(j,ide2,k) = atmx%vd(j,idi2,k)
+              if ( atm1%v(j,ide2,k) <= d_zero ) then
+                atmx%uc(j,ide2,k) = atmx%uc(j,idi2,k)
+                atmx%vc(j,ide2,k) = atmx%vc(j,idi2,k)
               end if
             end do
           end do
         end if
       end if
+      call exchange(atmx%uc,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atmx%vc,1,jde1,jde2,ide1,ide2,1,kz)
+      !
+      ! multiply ua and va by inverse of mapscale factor at dot point
+      !
+      do k = 1 , kz
+        do i = ide1ga , ide2ga
+          do j = jde1ga , jde2ga
+            atmx%umc(j,i,k) = atmx%uc(j,i,k)*mddom%msfd(j,i)
+            atmx%vmc(j,i,k) = atmx%vc(j,i,k)*mddom%msfd(j,i)
+          end do
+        end do
+      end do
+      !
+      ! Decoupled part with boundary conditions
+      !
+      do k = 1 , kz
+        do i = ide1 , ide2
+          do j = jde1 , jde2
+            atmx%ud(j,i,k) = atmx%uc(j,i,k)*rpsda(j,i)
+            atmx%vd(j,i,k) = atmx%vc(j,i,k)*rpsda(j,i)
+          end do
+        end do
+      end do
       if ( isladvec == 1 ) then
         call exchange(atmx%ud,2,jde1,jde2,ide1,ide2,1,kz)
         call exchange(atmx%vd,2,jde1,jde2,ide1,ide2,1,kz)
