@@ -65,8 +65,8 @@ module mod_sound
   !  values of BET = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1). This
   !  time-weighting is applied on w and pp:
   !
-  real(rk8) , parameter :: bet = 0.40D0
-  real(rk8) , parameter :: xkd = 0.10D0
+  real(rk8) , parameter :: bet = 0.4096D0
+  real(rk8) , parameter :: xkd = 0.1024D0
   real(rk8) , parameter :: xgamma = d_one/(d_one-rovcp)
   real(rk8) :: cs , bp , bm , bpxbm , bpxbp
   real(rk8) :: dtsmax
@@ -171,7 +171,7 @@ module mod_sound
     if ( ktau > 0 ) then
       istep = max(4,istep)
     end if
-    dts = dt/istep
+    dts = dt/dble(istep)
     !
     ! Calculate the loop boundaries
     !

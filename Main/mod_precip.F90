@@ -72,6 +72,7 @@ module mod_precip
   real(rk8) , parameter :: rhosslt = 1000.0D0
   real(rk8) , parameter :: rhoochl = 1200.0D0
   real(rk8) , parameter :: rhobchl = 1600.0D0
+  real(rk8) , parameter :: qcmin = 1.0D-10
 
   contains
 
@@ -167,15 +168,15 @@ module mod_precip
 
     do i = ici1 , ici2
       do j = jci1 , jci2
-        afc = pfcc(j,i,1)                                    ![frac][avg]
-        if ( afc > 0.01D0 ) then !   if there is a cloud
+        afc = pfcc(j,i,1)                                  ![frac][avg]
+        qcw = qx3(j,i,1,iqc)                               ![kg/kg][avg]
+        if ( afc > 0.01D0 .and. qcw > qcmin ) then ! if there is a cloud
           ! 1aa. Compute temperature and humidities with the adjustments
           !      due to convection.
           tk = t3(j,i,1)                                     ![k][avg]
           tcel = tk - tzero                                  ![C][avg]
           ppa = p3(j,i,1)                                    ![Pa][avg]
           rho = rho3(j,i,1)                                  ![kg/m3][avg]
-          qcw = qx3(j,i,1,iqc)                               ![kg/kg][avg]
           ! 1ab. Calculate the in cloud mixing ratio [kg/kg]
           qcincld = qcw/afc                                  ![kg/kg][cld]
           ! 1ac. Compute the maximum precipation rate
@@ -202,7 +203,7 @@ module mod_precip
             qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000
           end if
           ! 1ae. Compute the gridcell average autoconversion [kg/k g/s]
-          pptnew = qck1(j,i)*(qcincld-qcth)*afc ! [kg/kg/s][avg]
+          pptnew = qck1(j,i)*(qcincld-qcth)*afc   ![kg/kg/s][avg]
           pptnew = min(max(pptnew,d_zero),pptmax) ![kg/kg/s][avg]
           if ( .false. .and. ichem == 1 .and. &
                iaerosol == 1 .and. idiag == 1 ) then
@@ -291,7 +292,7 @@ module mod_precip
             rdevap = d_zero                                  ![kg/kg/s][avg]
           end if
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
-          if ( afc > 0.01D0 ) then !   if there is a cloud
+          if ( afc > 0.01D0 .and. qcw > qcmin ) then ! if there is a cloud
             ! 1bda. Calculate the in cloud mixing ratio [kg/kg]
             qcincld = qcw/afc                                ![kg/kg][cld]
             ! 1bdb. Compute the maximum precipation rate
@@ -712,31 +713,31 @@ module mod_precip
           else ! high cloud (less subgrid variability)
             rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-tmp3))
           end if
+          rh0adj = max(rhmin,min(rh0adj,rhmax))
 
-          ! 2c. Compute the water vapor in excess of saturation
-          if ( rhc >= rhmax .or. rhc < rh0adj ) then ! Full or no cloud cover
-            dqv = qvcs - qvs*conf ! Water vapor in excess of sat
-            tmp1 = r1*dqv
-          else                                       ! Partial cloud cover
+          if ( rhc < rh0adj ) then      ! No cloud cover
+            dqv = qvcs - qvs*conf
+          else if ( rhc >= rhmax ) then ! Full or no cloud cover
+            dqv = qvcs - qvs*conf
+          else
             fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
-            !---- add hanzhenyu 20140520
             if ( pres >= 75000.0D0 .and. qvcs <= 0.003D0 ) then
-              ! Clouds below 750hPa
               fccc = fccc * max(0.15D0,min(d_one,qvcs/0.003D0))
             end if
-            !--------------------
             fccc = min(max(fccc,d_zero),d_one)
             qvc_cld = max((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)
-            dqv = qvc_cld - qvs*conf  ! qv diff between predicted qv_c
-            tmp1 = r1*dqv*fccc        ! grid cell average
+            dqv = fccc * (qvc_cld - qvs*conf)  ! qv diff between predicted qv_c
           end if
+
+          ! 2c. Compute the water vapor in excess of saturation
+          tmp1 = r1*dqv               ! grid cell average
 
           ! 2d. Compute the new cloud water + old cloud water
           exces = qccs + tmp1
           if ( exces >= d_zero ) then ! Some cloud is left
             tmp2 = tmp1/dt
           else                        ! The cloud evaporates
-            tmp2 = -qccs/dt
+            tmp2 = -(qccs*conf)/dt
           end if
           !-----------------------------------------------------------
           !     3.  Compute the tendencies.

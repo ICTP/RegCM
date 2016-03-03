@@ -36,13 +36,14 @@ module mod_advection
   public :: init_advection, hadv , vadv
 
   logical , parameter :: stability_enhance = .true.
-  logical , parameter :: upwind_scheme = .true.
+  logical , parameter :: upwind_scheme_qv = .false.
+  logical , parameter :: upwind_scheme_qx = .true.
   real(rk8) , parameter :: t_extrema = 5.0D0
-  real(rk8) , parameter :: c_extrema = 0.0002D0
-  real(rk8) , parameter :: q_rel_extrema = 0.2D0
+  real(rk8) , parameter :: c_rel_extrema = 0.050D0
+  real(rk8) , parameter :: q_rel_extrema = 0.050D0
 
   ! To implement a relaxed upwind scheme, change the factors below.
-  real(rk8) , parameter :: fact1 = 1.0D0
+  real(rk8) , parameter :: fact1 = 0.8192D0
   real(rk8) , parameter :: fact2 = d_one - fact1
 
   interface hadv
@@ -366,7 +367,7 @@ module mod_advection
       !
       ! for qv:
       !
-      if ( .not. upwind_scheme ) then
+      if ( .not. upwind_scheme_qv ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -497,7 +498,7 @@ module mod_advection
       !
       ! for qx different from qv and tracers
       !
-      if ( .not. upwind_scheme ) then
+      if ( .not. upwind_scheme_qx ) then
         do n = n1 , n2
           do k = 1 , kz
             do i = ici1 , ici2
@@ -514,8 +515,8 @@ module mod_advection
                   ! Local extrema exceeding a certain threshold
                   ! must not grow further due to advection
                   !
-                  if ( abs(f(j,i+1,k,n)+f(j,i-1,k,n) - &
-                           d_two*f(j,i,k,n))/ps(j,i) > c_extrema ) then
+                  if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - &
+                          d_two*f(j,i,k,n)) / f(j,i,k,n) > c_rel_extrema ) then
                     if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
                          (f(j,i,k,n) > f(j,i-1,k,n)) ) then
                       advval = min(advval,d_zero)
@@ -524,8 +525,8 @@ module mod_advection
                       advval = max(advval,d_zero)
                     end if
                   end if
-                  if ( abs(f(j+1,i,k,n)+f(j-1,i,k,n) - &
-                           d_two*f(j,i,k,n))/ps(j,i) > c_extrema ) then
+                  if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - &
+                          d_two*f(j,i,k,n)) / f(j,i,k,n) > c_rel_extrema ) then
                     if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
                          (f(j,i,k,n) > f(j-1,i,k,n)) ) then
                       advval = min(advval,d_zero)
@@ -581,8 +582,8 @@ module mod_advection
                 ! Local extrema exceeding a certain threshold
                 ! must not grow further due to advection
                 !
-                if ( abs(f(j,i+1,k,n)+f(j,i-1,k,n) - &
-                         d_two*f(j,i,k,n))/ps(j,i) > c_extrema ) then
+                if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - &
+                        d_two*f(j,i,k,n)) / f(j,i,k,n) > c_rel_extrema ) then
                   if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
                        (f(j,i,k,n) > f(j,i-1,k,n)) ) then
                     advval = min(advval,d_zero)
@@ -591,8 +592,8 @@ module mod_advection
                     advval = max(advval,d_zero)
                   end if
                 end if
-                if ( abs(f(j+1,i,k,n)+f(j-1,i,k,n) - &
-                         d_two*f(j,i,k,n))/ps(j,i) > c_extrema ) then
+                if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - &
+                        d_two*f(j,i,k,n)) / f(j,i,k,n) > c_rel_extrema ) then
                   if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
                        (f(j,i,k,n) > f(j-1,i,k,n)) ) then
                     advval = min(advval,d_zero)

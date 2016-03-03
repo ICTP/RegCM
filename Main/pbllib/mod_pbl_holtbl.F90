@@ -556,7 +556,7 @@ module mod_pbl_holtbl
           coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
           coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
           coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-          coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqv) + &
+          coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqv) +         &
                           coef3(j,i,k)*coeff1(j,i,k-1)) / &
                           (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
         end do
@@ -569,9 +569,9 @@ module mod_pbl_holtbl
         coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
         coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
         coefe(j,i,kz) = d_zero
-        coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqv) + &
-                 dt*alphak(j,i,kz)*m2p%qfx(j,i) + &
-                 coef3(j,i,kz)*coeff1(j,i,kz-1)) /    &
+        coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqv) +  &
+                 dt*alphak(j,i,kz)*m2p%qfx(j,i) +  &
+                 coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                  (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
       end do
     end do
