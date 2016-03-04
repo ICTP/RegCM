@@ -72,6 +72,8 @@ module mod_tendency
 
   contains
 
+#include "cpmf.inc"
+
   subroutine allocate_mod_tend
     implicit none
     call getmem3d(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
@@ -508,9 +510,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            !rovcpm = rgas/(cpd*(d_one + 0.856D0*qvd(j,i,k)))
-            !rovcpm = rgas/(cpd + 1.820D0*qvd(j,i,k))
-            rovcpm = rgas/(cpd*(d_one + 0.80D0*qvd(j,i,k)))
+            rovcpm = rgas/cpmf(qvd(j,i,k))
             aten%t(j,i,k) = aten%t(j,i,k) + &
                             (omega(j,i,k)*rovcpm*atmx%tv(j,i,k)) / &
                             (ptop*rpsa(j,i)+hsigma(k))
@@ -526,7 +526,7 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              cpm = cpd*(d_one + 0.856D0*qvd(j,i,k))
+              cpm = cpmf(qvd(j,i,k))
               aten%t(j,i,k) = aten%t(j,i,k) + atmx%t(j,i,k)*mdv%cr(j,i,k) - &
                         (omega(j,i,k)*sfs%psa(j,i) + aten%pp(j,i,k) + &
                          atmx%pp(j,i,k)*mdv%cr(j,i,k)) / (atm1%rho(j,i,k)*cpm)

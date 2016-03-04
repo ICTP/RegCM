@@ -73,6 +73,7 @@ module mod_precip
   real(rk8) , parameter :: rhoochl = 1200.0D0
   real(rk8) , parameter :: rhobchl = 1600.0D0
   real(rk8) , parameter :: qcmin = 1.0D-10
+  real(rk8) , parameter :: qvmin = 1.0D-8
 
   contains
 
@@ -716,13 +717,14 @@ module mod_precip
           rh0adj = max(rhmin,min(rh0adj,rhmax))
 
           if ( rhc < rh0adj ) then      ! No cloud cover
-            dqv = qvcs - qvs*conf
+            dqv = max((qvcs-qvmin),d_zero) - qvs*conf
           else if ( rhc >= rhmax ) then ! Full or no cloud cover
-            dqv = qvcs - qvs*conf
+            dqv = max((qvcs-qvmin),d_zero) - qvs*conf
           else
             fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
             if ( pres >= 75000.0D0 .and. qvcs <= 0.003D0 ) then
-              fccc = fccc * max(0.15D0,min(d_one,qvcs/0.003D0))
+              fccc = fccc * max(0.15D0, &
+                          min(d_one,max((qvcs-qvmin),d_zero)/0.003D0))
             end if
             fccc = min(max(fccc,d_zero),d_one)
             qvc_cld = max((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)

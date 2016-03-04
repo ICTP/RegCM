@@ -37,6 +37,7 @@ module mod_ocn_coare
 #include <pfqsat.inc>
 #include <pqderiv.inc>
 #include <wlh.inc>
+#include <cpmf.inc>
     !
     !-----------------------------------------------------------------------
     ! This routine computes the bulk parameterization of surface
@@ -67,7 +68,6 @@ module mod_ocn_coare
       real(rk8) , parameter :: rhow = 1022.0    ! water density
       real(rk8) , parameter :: be   = 0.026D0   ! sal. expans. coef. of water
       real(rk8) , parameter :: cpw  = 4.0d3     ! spec. heat of water
-      real(rk8) , parameter :: cpa  = 1004.67D0 ! spec. heat of moist. air
 
 
       do i = iocnbeg , iocnend
@@ -106,13 +106,13 @@ module mod_ocn_coare
         !---------------------------------------
         !
         ! specific heat of moist air
-        cpv = cpa*(1.0D0+0.84D0*q995)
+        cpv = cpmf(q995)
 
         ! latent heat of vaporization (J/kg) at sea surface
         le = wlh(tgrd(i))
 
         ! moist air density (kg/m3)
-        rhoa = sfps(i)/(rgas*ta*(d_one+0.61D0*q995))
+        rhoa = sfps(i)/(rgas*ta*(d_one+ep1*q995))
 
         ! kinematic viscosity of dry air (m2/s), Andreas (1989)
         visa = 1.326d-5*(d_one+6.542d-3*t995+8.301d-6*t995*t995- &
@@ -200,7 +200,7 @@ module mod_ocn_coare
         ct = vonkar/dlog(zt/zot10)
         cc = vonkar*ct/cd
         ribcu = -zu/zi/0.004D0/beta**3
-        ribu = -egrav*zu/ta*((dt-dter)+0.61D0*ta*dq)/ut**2
+        ribu = -egrav*zu/ta*((dt-dter)+ep1*ta*dq)/ut**2
 
         niter = 3
         if (ribu < 0.0D0) then
@@ -225,7 +225,7 @@ module mod_ocn_coare
         !------------------------------------------
         !
         do k = 1, niter
-          zet = vonkar*egrav*zu/ta*(tsr+0.61D0*ta*qsr)/(usr*usr)
+          zet = vonkar*egrav*zu/ta*(tsr+ep1*ta*qsr)/(usr*usr)
           if ( iflag ) then
             zo = zogs
           else
@@ -288,7 +288,7 @@ module mod_ocn_coare
           qsr = -(dq-wetc*dter)*vonkar*fdg/(dlog(zq/zoq)-psit(zq/L))
 
           ! compute gustiness in wind speed
-          Bf = -egrav/ta*usr*(tsr+0.61D0*ta*qsr)
+          Bf = -egrav/ta*usr*(tsr+ep1*ta*qsr)
           if ( Bf > 0.0D0 ) then
             ug = beta*(Bf*zi)**0.333D0
           else
@@ -297,7 +297,7 @@ module mod_ocn_coare
           ut = dsqrt(du*du+ug*ug)
 
           ! background sensible and latent heat flux
-          hsb = -rhoa*cpa*usr*tsr
+          hsb = -rhoa*cpd*usr*tsr
           hlb = -rhoa*Le*usr*qsr
 
           ! total cooling at the interface

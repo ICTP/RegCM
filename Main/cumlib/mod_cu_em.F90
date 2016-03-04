@@ -167,8 +167,8 @@ module mod_cu_em
       tprime(n) = d_zero
       qprime(n) = d_zero
       iflag(n) = 0
-      ktop(n) = 0
-      kbase(n) = 0
+      ktop(n) = -1
+      kbase(n) = -1
       ! Past history
       cbmf(n) = cbmf2d(j,i) ! [(kg/m**2)/s]
     end do
@@ -221,8 +221,10 @@ module mod_cu_em
           end do
         end if
 
-        cu_ktop(j,i) = kzp1-ktop(n)
-        cu_kbot(j,i) = kzp1-kbase(n)
+        if ( ktop(n) > 0 .and. kbase(n) > 0 ) then
+          cu_ktop(j,i) = kzp1-ktop(n)
+          cu_kbot(j,i) = kzp1-kbase(n)
+        end if
         do k = 1 , kz
           kk = kzp1 - k
           cu_cldfrc(j,i,k) = cldfra(n,kk)
