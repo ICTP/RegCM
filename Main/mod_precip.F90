@@ -182,7 +182,7 @@ module mod_precip
           qcincld = qcw/afc                                  ![kg/kg][cld]
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
-          pptmax = qcw/dt                                    ![kg/kg/s][avg]
+          pptmax = max((qcw-qcmin),d_zero)/dt               ![kg/kg/s][avg]
           if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
             pccn(j,i,1) = (calc_ccn(rhobchl,chi3(j,i,1,ibchl)) + &
                            calc_ccn(rhoochl,chi3(j,i,1,iochl)) + &
@@ -298,7 +298,7 @@ module mod_precip
             qcincld = qcw/afc                                ![kg/kg][cld]
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
-            pptmax = qcw/dt                                  ![kg/kg/s][cld]
+            pptmax = max((qcw-qcmin),d_zero)/dt             ![kg/kg/s][avg]
             if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
               pccn(j,i,k) = (calc_ccn(rhobchl,chi3(j,i,k,ibchl)) + &
                              calc_ccn(rhoochl,chi3(j,i,k,iochl)) + &
