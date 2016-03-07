@@ -195,7 +195,11 @@ module mod_slice
       do k = 1 , kzp1
         do i = ice1gb , ice2gb
           do j = jce1gb , jce2gb
-            atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
+            if ( abs(atm2%w(j,i,k)) > minww ) then
+              atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
+            else
+              atms%wb3d(j,i,k) = d_zero
+            end if
           end do
         end do
       end do

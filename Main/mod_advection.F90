@@ -39,8 +39,8 @@ module mod_advection
   logical , parameter :: upwind_scheme_qv = .false.
   logical , parameter :: upwind_scheme_qx = .true.
   real(rk8) , parameter :: t_extrema = 5.0D0
-  real(rk8) , parameter :: c_rel_extrema = 0.050D0
-  real(rk8) , parameter :: q_rel_extrema = 0.050D0
+  real(rk8) , parameter :: c_rel_extrema = 0.100D0
+  real(rk8) , parameter :: q_rel_extrema = 0.100D0
 
   ! To implement a relaxed upwind scheme, change the factors below.
   real(rk8) , parameter :: fact1 = 0.8192D0

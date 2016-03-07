@@ -369,7 +369,8 @@ module mod_nhinterp
       integer(ik4) :: i , j , k , km , kp
       integer(ik4) :: l , ll , lm , lp , ip , im , jp , jm
       real(rk8) :: alnpq , dx2 , omegal , omegau , ubar , vbar
-      real(rk8) :: pr0 , ziso , zl , zu , rho , omegan
+      real(rk8) :: pr0 , ziso , zl , zu , rho , omegan , pten
+      real(rk8) , dimension(kxs) :: mdv
       real(rk8) , dimension(kxs+1) :: omega , qdt
       real(rk8) , dimension(kxs+1) :: z0q , zq
       real(rk8) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
@@ -410,18 +411,23 @@ module mod_nhinterp
               log((sigma(l)   * pspa(j,i) + ptoppa) / &
                   (sigma(l+1) * pspa(j,i) + ptoppa))
           end do
+          pten = d_zero
+          mdv(:) = d_zero
+          do l = 1 , kxs
+            mdv(l) = (u(jp,ip,l) * psdotpa(jp,ip) / xmsfd(jp,ip) +  &
+                      u(jp,i ,l) * psdotpa(jp,i ) / xmsfd(jp,i ) -  &
+                      u(j ,ip,l) * psdotpa(j ,ip) / xmsfd(j ,ip) -  &
+                      u(j ,i ,l) * psdotpa(j ,i ) / xmsfd(j ,i ) +  &
+                      v(jp,ip,l) * psdotpa(jp,ip) / xmsfd(jp,ip) +  &
+                      v(j ,ip,l) * psdotpa(j ,ip) / xmsfd(j ,ip) -  &
+                      v(jp,i ,l) * psdotpa(jp,i ) / xmsfd(jp,i ) -  &
+                      v(j ,i ,l) * psdotpa(j ,i ) / xmsfd(j ,i )) / &
+                   dx2 * xmsfx(j,i) * xmsfx(j,i) * dsigma(l)
+            pten = pten - mdv(l) * dsigma(l)
+          end do
           qdt(1) = d_zero
           do l = 2 , kxs
-            qdt(l) = qdt(l-1) - &
-                      (u(jp,ip,l) * psdotpa(jp,ip) / xmsfd(jp,ip) +  &
-                       u(jp,i ,l) * psdotpa(jp,i ) / xmsfd(jp,i ) -  &
-                       u(j ,ip,l) * psdotpa(j ,ip) / xmsfd(j ,ip) -  &
-                       u(j ,i ,l) * psdotpa(j ,i ) / xmsfd(j ,i ) +  &
-                       v(jp,ip,l) * psdotpa(jp,ip) / xmsfd(jp,ip) +  &
-                       v(j ,ip,l) * psdotpa(j ,ip) / xmsfd(j ,ip) -  &
-                       v(jp,i ,l) * psdotpa(jp,i ) / xmsfd(jp,i ) -  &
-                       v(j ,i ,l) * psdotpa(j ,i ) / xmsfd(j ,i )) / &
-                   dx2 * xmsfx(j,i) * xmsfx(j,i) * dsigma(l) / pspa(j,i)
+            qdt(l) = qdt(l-1) - (pten + mdv(l-1)) * dsigma(l-1) / pspa(j,i)
           end do
           qdt(kxs+1) = d_zero
           omega(1) = d_zero
