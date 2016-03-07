@@ -70,6 +70,7 @@ module mod_sound
   real(rk8) , parameter :: xgamma = d_one/(d_one-rovcp)
   real(rk8) :: cs , bp , bm , bpxbm , bpxbp
   real(rk8) :: dtsmax
+  real(rk8) :: npts
 
   contains
 
@@ -132,13 +133,14 @@ module mod_sound
     bm = (d_one-bet)*d_half
     bpxbp = bp*bp
     bpxbm = bp*bm
+    npts = dble((nicross-2)*(njcross-2))
   end subroutine init_sound
 
   subroutine sound
     implicit none
     real(rk8) :: cddtmp ,  cfl , check , chh , cjtmp , cpm , denom , &
       dppdp0 , dpterm , dts , ppold , rho , rho0s , rofac , maxcfl , &
-      ucrsk , vcrsk , ucrskm1 , vcrskm1 , rll , rkk , ri , rj , npts
+      ucrsk , vcrsk , ucrskm1 , vcrskm1 , rll , rkk , ri , rj
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
     logical , save :: cfl_error = .false.
     character (len=32) :: appdat
@@ -521,7 +523,6 @@ module mod_sound
           atot = d_zero
           rhontot = d_zero
           xmsftot = d_zero
-          npts = dble((nicross-2)*(njcross-2))
           do i = ici1 , ici2
             do j = jci1 , jci2
               atot = atot + astore(j,i)

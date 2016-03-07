@@ -43,7 +43,7 @@ module mod_advection
   real(rk8) , parameter :: q_rel_extrema = 0.100D0
 
   ! To implement a relaxed upwind scheme, change the factors below.
-  real(rk8) , parameter :: fact1 = 0.8192D0
+  real(rk8) , parameter :: fact1 = 0.6D0
   real(rk8) , parameter :: fact2 = d_one - fact1
 
   interface hadv

@@ -644,7 +644,7 @@ module mod_tendency
     ! compute the diffusion term for t and store in difft:
     !
     if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%t
-    call diffu_x(adf%t,atms%tb3d,sfs%psb)
+    call diffu_x(adf%t,atms%tb3d)
     if ( idiag > 0 ) then
       ! save the h diff diag here
       tdiag%dif(jci1:jci2,ici1:ici2,:) = tdiag%dif(jci1:jci2,ici1:ici2,:) + &
@@ -657,8 +657,8 @@ module mod_tendency
     ! compute the diffusion term for perturb pressure pp and store in diffpp:
     !
     if ( idynamic == 2 ) then
-      call diffu_x(adf%pp,atms%ppb3d,sfs%psb)
-      call diffu_x(adf%w,atms%wb3d,sfs%psb,d_one)
+      call diffu_x(adf%pp,atms%ppb3d)
+      call diffu_x(adf%w,atms%wb3d,d_one)
     end if
     !
     ! compute the moisture tendencies for convection
@@ -748,7 +748,7 @@ module mod_tendency
       if ( idiag > 0 ) then
         qen0(jci1:jci2,ici1:ici2,:) = adf%qx(jci1:jci2,ici1:ici2,:,iqv)
       end if
-      call diffu_x(adf%qx,atms%qxb3d,sfs%psb)
+      call diffu_x(adf%qx,atms%qxb3d)
       if ( idiag > 0 ) then
         ! save the h diff diag here
         qdiag%dif(jci1:jci2,ici1:ici2,:) = qdiag%dif(jci1:jci2,ici1:ici2,:) + &
@@ -798,7 +798,7 @@ module mod_tendency
       ! horizontal diffusion: initialize scratch vars to 0.
       ! need to compute tracer tendencies due to diffusion
       !
-      call diffu_x(chiten,atms%chib3d,sfs%psb)
+      call diffu_x(chiten,atms%chib3d)
       if ( ichdiag == 1 ) then
         cdifhdiag = cdifhdiag + (chiten - chiten0) * cfdout
       end if
@@ -1140,7 +1140,7 @@ module mod_tendency
     aten%u(:,:,:) = d_zero
     aten%v(:,:,:) = d_zero
     !
-    call diffu_d(adf%u,adf%v,atms%ubd3d,atms%vbd3d,sfs%psdotb)
+    call diffu_d(adf%u,adf%v,atms%ubd3d,atms%vbd3d)
     !
     ! compute the horizontal advection terms for u and v:
     !
@@ -1448,7 +1448,7 @@ module mod_tendency
       ! Calculate the horizontal, diffusive tendency for TKE
       ! The multiplication factor was causing instabilities
       ! in the non-hydrostatic model and has been removed.
-      call diffu_x(uwstatea%advtke,atm2%tke,sfs%psb,d_one)
+      call diffu_x(uwstatea%advtke,atm2%tke,d_one)
     end if
     !
     ! Compute future values of t and moisture variables at tau+1:
@@ -1906,15 +1906,6 @@ module mod_tendency
           do j = jde1ga , jde2ga
             atmx%uc(j,i,k) = atm1%u(j,i,k)
             atmx%vc(j,i,k) = atm1%v(j,i,k)
-          end do
-        end do
-      end do
-      !
-      ! multiply ua and va by inverse of mapscale factor at dot point
-      !
-      do k = 1 , kz
-        do i = ide1ga , ide2ga
-          do j = jde1ga , jde2ga
             atmx%umc(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
             atmx%vmc(j,i,k) = atm1%v(j,i,k)*mddom%msfd(j,i)
           end do
