@@ -815,12 +815,9 @@ module mod_params
 
       if ( dt > maxdt .or. dt > 3.0D0 * ds ) then
         dt = min(maxdt,3.0D0*ds)
-        write(stdout,*) 'Resetting dt to maximum value for RegCM , ',dt,' s'
       end if
       if ( dt < mindt ) then
-        dt = 3.0D0 * ds
-        write(stdout,*) &
-          'Resetting dt to safe value (CFL limit) for RegCM , ',dt,' s'
+        write(stderr,*) 'DT very small , ',dt,' s !!!!'
       end if
 
       dt = check_against_outparams(dt,1.0D0)
