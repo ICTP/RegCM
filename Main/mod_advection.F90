@@ -41,6 +41,8 @@ module mod_advection
   real(rk8) , parameter :: t_extrema = 5.0D0
   real(rk8) , parameter :: c_rel_extrema = 0.100D0
   real(rk8) , parameter :: q_rel_extrema = 0.100D0
+  real(rk8) , parameter :: nfc = 2.0D4
+  real(rk8) , parameter :: rnfc = 0.5D-4
 
   ! To implement a relaxed upwind scheme, change the factors below.
   real(rk8) , parameter :: fact1 = 0.6D0
@@ -371,11 +373,15 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              advval = - xmapf(j,i) *  &
-                  ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,iv)+f(j,i,k,iv)) -  &
-                   (ua(j,i+1,k)+ua(j,i,k)) *   (f(j-1,i,k,iv)+f(j,i,k,iv)) +  &
-                   (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,iv)+f(j,i,k,iv)) -  &
-                   (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,iv)+f(j,i,k,iv)))
+              advval = - xmapf(j,i) * rnfc * &
+               ((ua(j+1,i+1,k)+ua(j+1,i,  k))  * &
+                      (nfc*f(j+1,i,k,iv)+nfc*f(j,i,k,iv)) -  &
+                (ua(j,  i+1,k)+ua(j,  i,  k))  *  &
+                      (nfc*f(j-1,i,k,iv)+nfc*f(j,i,k,iv)) +  &
+                (va(j+1,i+1,k)+va(j,  i+1,k))  *  &
+                      (nfc*f(j,i+1,k,iv)+nfc*f(j,i,k,iv)) -  &
+                (va(j+1,i,  k)+va(j,  i,  k))  *  &
+                      (nfc*f(j,i-1,k,iv)+nfc*f(j,i,k,iv)))
               !
               ! Instability correction
               !
@@ -503,11 +509,15 @@ module mod_advection
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                advval = - xmapf(j,i) *  &
-                    ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,n)+f(j,i,k,n)) -  &
-                     (ua(j,i+1,k)+ua(j,i,k)) *   (f(j-1,i,k,n)+f(j,i,k,n)) +  &
-                     (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,n)+f(j,i,k,n)) -  &
-                     (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,n)+f(j,i,k,n)))
+                advval = - xmapf(j,i) * rnfc * &
+                 ((ua(j+1,i+1,k)+ua(j+1,i,k)) * &
+                           (nfc*f(j+1,i,k,n)+nfc*f(j,i,k,n)) -  &
+                  (ua(j,i+1,k)+ua(j,i,k)) *    &
+                           (nfc*f(j-1,i,k,n)+nfc*f(j,i,k,n)) +  &
+                  (va(j+1,i+1,k)+va(j,i+1,k))* &
+                           (nfc*f(j,i+1,k,n)+nfc*f(j,i,k,n)) -  &
+                  (va(j+1,i,k)+va(j,i,k)) *    &
+                           (nfc*f(j,i-1,k,n)+nfc*f(j,i,k,n)))
                 if ( n == iqc .and. stability_enhance ) then
                   !
                   ! Instability correction
@@ -553,28 +563,29 @@ module mod_advection
               uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
               uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
               if ( uavg1 >= d_zero ) then
-                fx1 = fact1*f(j-1,i,k,n)+fact2*f(j,i,k,n)
+                fx1 = (fact1*nfc*f(j-1,i,k,n)+fact2*nfc*f(j,i,k,n))
               else
-                fx1 = fact1*f(j,i,k,n)+fact2*f(j-1,i,k,n)
+                fx1 = (fact1*nfc*f(j,i,k,n)+fact2*nfc*f(j-1,i,k,n))
               end if
               if ( uavg2 >= d_zero ) then
-                fx2 = fact1*f(j,i,k,n)+fact2*f(j+1,i,k,n)
+                fx2 = (fact1*nfc*f(j,i,k,n)+fact2*nfc*f(j+1,i,k,n))
               else
-                fx2 = fact1*f(j+1,i,k,n)+fact2*f(j,i,k,n)
+                fx2 = (fact1*nfc*f(j+1,i,k,n)+fact2*nfc*f(j,i,k,n))
               end if
               vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
               vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
               if ( vavg1 >= d_zero ) then
-                fy1 = fact1*f(j,i-1,k,n)+fact2*f(j,i,k,n)
+                fy1 = (fact1*nfc*f(j,i-1,k,n)+fact2*nfc*f(j,i,k,n))
               else
-                fy1 = fact1*f(j,i,k,n)+fact2*f(j,i-1,k,n)
+                fy1 = (fact1*nfc*f(j,i,k,n)+fact2*nfc*f(j,i-1,k,n))
               end if
               if ( vavg2 >= d_zero ) then
-                fy2 = fact1*f(j,i,k,n)+fact2*f(j,i+1,k,n)
+                fy2 = (fact1*nfc*f(j,i,k,n)+fact2*nfc*f(j,i+1,k,n))
               else
-                fy2 = fact1*f(j,i+1,k,n)+fact2*f(j,i,k,n)
+                fy2 = (fact1*nfc*f(j,i+1,k,n)+fact2*nfc*f(j,i,k,n))
               end if
-              advval = -xmapf(j,i)*(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
+              advval = -xmapf(j,i) * &
+                    rnfc*(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
               if ( n == iqc .and. stability_enhance ) then
                 !
                 ! Instability correction
@@ -637,28 +648,28 @@ module mod_advection
               uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
               uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
               if ( uavg1 >= d_zero ) then
-                fx1 = fact1*f(j-1,i,k,n)+fact2*f(j,i,k,n)
+                fx1 = (fact1*nfc*f(j-1,i,k,n)+fact2*nfc*f(j,i,k,n))
               else
-                fx1 = fact1*f(j,i,k,n)+fact2*f(j-1,i,k,n)
+                fx1 = (fact1*nfc*f(j,i,k,n)+fact2*nfc*f(j-1,i,k,n))
               end if
               if ( uavg2 >= d_zero ) then
-                fx2 = fact1*f(j,i,k,n)+fact2*f(j+1,i,k,n)
+                fx2 = (fact1*nfc*f(j,i,k,n)+fact2*nfc*f(j+1,i,k,n))
               else
-                fx2 = fact1*f(j+1,i,k,n)+fact2*f(j,i,k,n)
+                fx2 = (fact1*nfc*f(j+1,i,k,n)+fact2*nfc*f(j,i,k,n))
               end if
               vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
               vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
               if ( vavg1 >= d_zero ) then
-                fy1 = fact1*f(j,i-1,k,n)+fact2*f(j,i,k,n)
+                fy1 = (fact1*nfc*f(j,i-1,k,n)+fact2*nfc*f(j,i,k,n))
               else
-                fy1 = fact1*f(j,i,k,n)+fact2*f(j,i-1,k,n)
+                fy1 = (fact1*nfc*f(j,i,k,n)+fact2*nfc*f(j,i-1,k,n))
               end if
               if ( vavg2 >= d_zero ) then
-                fy2 = fact1*f(j,i,k,n)+fact2*f(j,i+1,k,n)
+                fy2 = (fact1*nfc*f(j,i,k,n)+fact2*nfc*f(j,i+1,k,n))
               else
-                fy2 = fact1*f(j,i+1,k,n)+fact2*f(j,i,k,n)
+                fy2 = (fact1*nfc*f(j,i+1,k,n)+fact2*nfc*f(j,i,k,n))
               end if
-              ften(j,i,k,n) = ften(j,i,k,n) - xmapf(j,i) * &
+              ften(j,i,k,n) = ften(j,i,k,n) - xmapf(j,i) * rnfc * &
                   (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
             end do
           end do
@@ -857,10 +868,10 @@ module mod_advection
               do j = jci1 , jci2
                 if ( f(j,i,k,n)   > minqv .and. &
                      f(j,i,k-1,n) > minqv ) then
-                  ff = (f(j,i,k,n) * &
-                    (f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)) * svv(j,i,k)
-                  ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
-                  ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
+                  ff = (nfc*f(j,i,k,n) * &
+                    (nfc*f(j,i,k-1,n)/nfc*f(j,i,k,n))**qcon(k)) * svv(j,i,k)
+                  ften(j,i,k-1,n) = ften(j,i,k-1,n) - rnfc*ff*xds(k-1)
+                  ften(j,i,k,n)   = ften(j,i,k,n)   + rnfc*ff*xds(k)
                 end if
               end do
             end do
@@ -872,9 +883,10 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
-                  ff = (twt(k,1)*f(j,i,k,n)+twt(k,2)*f(j,i,k-1,n)) * svv(j,i,k)
-                  ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
-                  ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
+                  ff = (twt(k,1)*nfc*f(j,i,k,n) + &
+                        twt(k,2)*nfc*f(j,i,k-1,n)) * svv(j,i,k)
+                  ften(j,i,k-1,n) = ften(j,i,k-1,n) - rnfc*ff*xds(k-1)
+                  ften(j,i,k,n)   = ften(j,i,k,n)   + rnfc*ff*xds(k)
                 end if
               end do
             end do
@@ -886,9 +898,10 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
-                  ff = (twt(k,1)*f(j,i,k,n)+twt(k,2)*f(j,i,k-1,n)) * svv(j,i,k)
-                  ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
-                  ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
+                  ff = (twt(k,1)*nfc*f(j,i,k,n) + &
+                        twt(k,2)*nfc*f(j,i,k-1,n)) * svv(j,i,k)
+                  ften(j,i,k-1,n) = ften(j,i,k-1,n) - rnfc*ff*xds(k-1)
+                  ften(j,i,k,n)   = ften(j,i,k,n)   + rnfc*ff*xds(k)
                 end if
               end do
             end do

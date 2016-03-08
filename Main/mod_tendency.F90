@@ -748,7 +748,7 @@ module mod_tendency
       if ( idiag > 0 ) then
         qen0(jci1:jci2,ici1:ici2,:) = adf%qx(jci1:jci2,ici1:ici2,:,iqv)
       end if
-      call diffu_x(adf%qx,atms%qxb3d)
+      call diffu_x(adf%qx,atms%qxb3d,nqx)
       if ( idiag > 0 ) then
         ! save the h diff diag here
         qdiag%dif(jci1:jci2,ici1:ici2,:) = qdiag%dif(jci1:jci2,ici1:ici2,:) + &
@@ -798,7 +798,7 @@ module mod_tendency
       ! horizontal diffusion: initialize scratch vars to 0.
       ! need to compute tracer tendencies due to diffusion
       !
-      call diffu_x(chiten,atms%chib3d)
+      call diffu_x(chiten,atms%chib3d,ntr)
       if ( ichdiag == 1 ) then
         cdifhdiag = cdifhdiag + (chiten - chiten0) * cfdout
       end if
@@ -1007,7 +1007,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
-            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),minqx)
+            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),d_zero)
           end do
         end do
       end do
