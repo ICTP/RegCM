@@ -56,6 +56,11 @@ module mod_interp
   logical :: lonwrap = .false.
   logical :: latpole = .false.
 
+  interface cressmcr
+    module procedure cressmcr3d
+    module procedure cressmcr2d
+  end interface cressmcr
+
   interface bilinx2
     module procedure bilinx2_2d
     module procedure bilinx2_3d
@@ -857,7 +862,7 @@ module mod_interp
               id1dl,id1dr,id1ul,id1ur,jd1dl,jd1dr,jd1ul,jd1ur)
   end subroutine distwgtdt
 
-  subroutine cressmcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
+  subroutine cressmcr3d(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlev , nlon , nf
     real(rk8) , dimension(jx,iy) :: alat , alon
@@ -875,8 +880,20 @@ module mod_interp
                            glon,glat,jx,iy,nlon,nlat)
       end do
     end do
-    call kernsmooth(b3,jx,iy,nlev,2)
-  end subroutine cressmcr
+  end subroutine cressmcr3d
+
+  subroutine cressmcr2d(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
+    implicit none
+    integer(ik4) :: iy , jx , nlat , nlon
+    real(rk8) , dimension(jx,iy) :: alat , alon
+    real(rk8) , dimension(jx,iy) :: b3
+    real(rk8) , dimension(nlon,nlat) :: glat , glon
+    real(rk8) , dimension(nlon,nlat) :: b2
+    intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
+    intent (out) b3
+
+    call distwgtcr(b3(:,:),b2(:,:),alon,alat,glon,glat,jx,iy,nlon,nlat)
+  end subroutine cressmcr2d
 
   subroutine cressmdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
     implicit none
