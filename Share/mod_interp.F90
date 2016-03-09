@@ -313,7 +313,6 @@ module mod_interp
         end if
       end do
     end do
-    call kernsmooth(b3,jx,iy,llev,2)
   end subroutine bilinx2_3d
 
   subroutine bilinx2_2d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy)
@@ -456,7 +455,6 @@ module mod_interp
         end if
       end do
     end do
-    call kernsmooth(b3,jx,iy,2)
   end subroutine bilinx2_2d
 
   subroutine compwgt(alon,alat,glon,glat,d1xa,d1xb,d1xc,d1xd, &
@@ -913,7 +911,6 @@ module mod_interp
                            glon,glat,jx,iy,nlon,nlat)
       end do
     end do
-    call kernsmooth(b3,jx,iy,nlev,2)
   end subroutine cressmdt
 
   real(rk8) function gcdist_simple(lat1,lon1,lat2,lon2)
