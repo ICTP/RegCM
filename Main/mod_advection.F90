@@ -138,14 +138,14 @@ module mod_advection
             do j = jdi1 , jdi2
               ucmona = ua(j,i+1,k)+d_two*ua(j,i,k)+ua(j,i-1,k)
               vcmona = va(j+1,i,k)+d_two*va(j,i,k)+va(j-1,i,k)
-              ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + &
-                       ua(j+1,i-1,k) + ucmona
-              vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + &
-                       va(j-1,i+1,k) + vcmona
-              ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + &
-                       ua(j-1,i-1,k) + ucmona
-              vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + &
-                       va(j-1,i-1,k) + vcmona
+              ucmonb = ua(j+1,i+1,k)+d_two*ua(j+1,i,k)+ua(j+1,i-1,k)
+              vcmonb = va(j+1,i+1,k)+d_two*va(j,i+1,k)+va(j-1,i+1,k)
+              ucmonc = ua(j-1,i+1,k)+d_two*ua(j-1,i,k)+ua(j-1,i-1,k)
+              vcmonc = va(j+1,i-1,k)+d_two*va(j,i-1,k)+va(j-1,i-1,k)
+              ucmonb = ucmonb + ucmona
+              vcmonb = vcmonb + vcmona
+              ucmonc = ucmonc + ucmona
+              vcmonc = vcmonc + vcmona
               uten(j,i,k) = uten(j,i,k) - dmapf(j,i) *      &
                           ((u(j+1,i,k)+u(j,i,k))  *ucmonb - &
                            (u(j,i,k)  +u(j-1,i,k))*ucmonc + &

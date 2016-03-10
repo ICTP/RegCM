@@ -26,7 +26,6 @@ module mod_diffusion
   use mod_constants
   use mod_memutil
   use mod_dynparam
-  use mod_atm_interface
   use mod_runparams
   use mod_mppparam
   use mod_service
@@ -38,7 +37,7 @@ module mod_diffusion
   real(rk8) , pointer , dimension(:,:,:) :: xkc , xkd , xkcf
   real(rk8) , public , pointer , dimension(:,:) :: hgfact
 
-  real(rk8) :: dydc , xkhmax , xkhz
+  real(rk8) :: dydc , xkhmax
 
   interface diffu_x
     module procedure diffu_x3df
@@ -71,9 +70,10 @@ module mod_diffusion
   end subroutine allocate_mod_diffusion
 
   subroutine initialize_diffusion
+    use mod_atm_interface , only : mddom , sfs , atms
     implicit none
     integer(ik4) :: i , j
-    real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
+    real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax , xkhz
     !
     ! Diffusion coefficients: for non-hydrostatic, follow the MM5
     ! The hydrostatic diffusion is following the RegCM3 formulation
@@ -97,18 +97,18 @@ module mod_diffusion
     !
     do i = ice1ga , ice2ga
       do j = jce1ga , jce2ga
-        hgfact(j,i) = d_one
+        hgfact(j,i) = xkhz
       end do
     end do
     if ( diffu_hgtf == 1 ) then
       do i = ici1ga , ici2ga
         do j = jci1ga , jci2ga
-          hg1 = dabs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
-          hg2 = dabs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
-          hg3 = dabs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
-          hg4 = dabs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
-          hgmax = dmax1(hg1,hg2,hg3,hg4)*regrav
-          hgfact(j,i) = d_one/(d_one+(hgmax/0.001D0)**2)
+          hg1 = abs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
+          hg2 = abs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
+          hg3 = abs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
+          hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
+          hgmax = max(hg1,hg2,hg3,hg4)*regrav
+          hgfact(j,i) = xkhz/(d_one+(hgmax/0.001D0)**2)
         end do
       end do
     end if
@@ -144,7 +144,7 @@ module mod_diffusion
           dvdy = vd(j,i+1,k) + vd(j+1,i+1,k) - &
                  vd(j,i,k)   - vd(j+1,i,k)
           duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
-          xkc(j,i,k) = min((xkhz*hgfact(j,i)+dydc*duv),xkhmax)
+          xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
         end do
       end do
     end do
