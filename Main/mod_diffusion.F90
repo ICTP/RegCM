@@ -43,6 +43,7 @@ module mod_diffusion
     module procedure diffu_x3df
     module procedure diffu_x3d
     module procedure diffu_x4d
+    module procedure diffu_x4d3d
   end interface
 
   public :: allocate_mod_diffusion
@@ -432,32 +433,42 @@ module mod_diffusion
 #endif
   end subroutine diffu_x3d
 
-  subroutine diffu_x4d(ften,f,nn)
+  subroutine diffu_x4d(ften,f,n1,n2)
     implicit none
-    integer(ik4) , intent(in) :: nn
+    integer(ik4) , intent(in) :: n1 , n2
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: f
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
+    integer(ik4) ::  n
+    !
+    do n = n1 , n2
+      call diffu_x4d3d(ften,f,n)
+    end do
+  end subroutine diffu_x4d
+
+  subroutine diffu_x4d3d(ften,f,n)
+    implicit none
+    integer(ik4) , intent(in) :: n
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: f
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
 
-    integer(ik4) :: i , j , k , n
+    integer(ik4) :: i , j , k
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'diffu_x4d'
+    character(len=dbgslen) :: subroutine_name = 'diffu_x4d3d'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
     ! fourth-order scheme for interior:
     !
-    do n = 1 , nn
-      do k = 1 , kz
-        do i = icii1 , icii2
-          do j = jcii1 , jcii2
-            ften(j,i,k,n) = ften(j,i,k,n) - xkc(j,i,k) * pc(j,i) *          &
-                 rnfc * rdxsq*(nfc*f(j+2,i,k,n)+nfc*f(j-2,i,k,n) +          &
-                               nfc*f(j,i+2,k,n)+nfc*f(j,i-2,k,n) -          &
-                               d_four*(nfc*f(j+1,i,k,n)+nfc*f(j-1,i,k,n) +  &
-                                       nfc*f(j,i+1,k,n)+nfc*f(j,i-1,k,n)) + &
-                               d_twelve*nfc*f(j,i,k,n))
-          end do
+    do k = 1 , kz
+      do i = icii1 , icii2
+        do j = jcii1 , jcii2
+          ften(j,i,k,n) = ften(j,i,k,n) - xkc(j,i,k) * pc(j,i) *          &
+               rnfc * rdxsq*(nfc*f(j+2,i,k,n)+nfc*f(j-2,i,k,n) +          &
+                             nfc*f(j,i+2,k,n)+nfc*f(j,i-2,k,n) -          &
+                             d_four*(nfc*f(j+1,i,k,n)+nfc*f(j-1,i,k,n) +  &
+                                     nfc*f(j,i+1,k,n)+nfc*f(j,i-1,k,n)) + &
+                             d_twelve*nfc*f(j,i,k,n))
         end do
       end do
     end do
@@ -466,27 +477,23 @@ module mod_diffusion
     !
     if ( ma%has_bdyleft ) then
       j = jci1
-      do n = 1 , nn
-        do k = 1 , kz
-          do i = ici1 , ici2
-            ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) * pc(j,i) * &
-                 rnfc * rdxsq*(nfc*f(j+1,i,k,n)+nfc*f(j-1,i,k,n) + &
-                               nfc*f(j,i+1,k,n)+nfc*f(j,i-1,k,n) - &
-                               d_four*nfc*f(j,i,k,n))
-          end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) * pc(j,i) * &
+               rnfc * rdxsq*(nfc*f(j+1,i,k,n)+nfc*f(j-1,i,k,n) + &
+                             nfc*f(j,i+1,k,n)+nfc*f(j,i-1,k,n) - &
+                             d_four*nfc*f(j,i,k,n))
         end do
       end do
     end if
     if ( ma%has_bdyright ) then
       j = jci2
-      do n = 1 , nn
-        do k = 1 , kz
-          do i = ici1 , ici2
-            ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) * pc(j,i) * &
-                 rnfc * rdxsq*(nfc*f(j+1,i,k,n)+nfc*f(j-1,i,k,n) + &
-                               nfc*f(j,i+1,k,n)+nfc*f(j,i-1,k,n) - &
-                               d_four*nfc*f(j,i,k,n))
-          end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) * pc(j,i) * &
+               rnfc * rdxsq*(nfc*f(j+1,i,k,n)+nfc*f(j-1,i,k,n) + &
+                             nfc*f(j,i+1,k,n)+nfc*f(j,i-1,k,n) - &
+                             d_four*nfc*f(j,i,k,n))
         end do
       end do
     end if
@@ -495,34 +502,30 @@ module mod_diffusion
     !
     if ( ma%has_bdybottom ) then
       i = ici1
-      do n = 1 , nn
-        do k = 1 , kz
-          do j = jci1 , jci2
-            ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) * pc(j,i) * &
-                 rnfc * rdxsq*(nfc*f(j+1,i,k,n)+nfc*f(j-1,i,k,n) + &
-                               nfc*f(j,i+1,k,n)+nfc*f(j,i-1,k,n) - &
-                               d_four*nfc*f(j,i,k,n))
-          end do
+      do k = 1 , kz
+        do j = jci1 , jci2
+          ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) * pc(j,i) * &
+               rnfc * rdxsq*(nfc*f(j+1,i,k,n)+nfc*f(j-1,i,k,n) + &
+                             nfc*f(j,i+1,k,n)+nfc*f(j,i-1,k,n) - &
+                             d_four*nfc*f(j,i,k,n))
         end do
       end do
     end if
     if ( ma%has_bdytop ) then
       i = ici2
-      do n = 1 , nn
-        do k = 1 , kz
-          do j = jci1 , jci2
-            ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) * pc(j,i) * &
-                 rnfc * rdxsq*(nfc*f(j+1,i,k,n)+nfc*f(j-1,i,k,n) + &
-                               nfc*f(j,i+1,k,n)+nfc*f(j,i-1,k,n) - &
-                               d_four*nfc*f(j,i,k,n))
-          end do
+      do k = 1 , kz
+        do j = jci1 , jci2
+          ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) * pc(j,i) * &
+               rnfc * rdxsq*(nfc*f(j+1,i,k,n)+nfc*f(j-1,i,k,n) + &
+                             nfc*f(j,i+1,k,n)+nfc*f(j,i-1,k,n) - &
+                             d_four*nfc*f(j,i,k,n))
         end do
       end do
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-  end subroutine diffu_x4d
+  end subroutine diffu_x4d3d
 
 end module mod_diffusion
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
