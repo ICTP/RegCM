@@ -36,6 +36,9 @@ module mod_advection
   public :: init_advection, hadv , vadv
 
   logical , parameter :: stability_enhance = .true.
+  real(rk8) , parameter :: ups = 0.10D0
+  real(rk8) , parameter :: upu = 0.25D0
+  real(rk8) , parameter :: umax = 100.0D0
   real(rk8) , parameter :: t_extrema = 5.0D0
   real(rk8) , parameter :: c_rel_extrema = 0.20D0
   real(rk8) , parameter :: q_rel_extrema = 0.20D0
@@ -141,16 +144,16 @@ module mod_advection
               uuc = (u(j-1,i,k)+u(j,i,k))
               vvb = (v(j,i+1,k)+v(j,i,k))
               vvc = (v(j,i-1,k)+v(j,i,k))
-              f1 = d_half + max(min(uub/200.0D0,0.2D0),-0.2D0)
+              f1 = d_half + max(min(uub/umax,upu),-upu)
               f2 = d_one - f1
               ucmonb = f1*ucmona + f2*ucmonb
-              f1 = d_half + max(min(uuc/200.0D0,0.2D0),-0.2D0)
+              f1 = d_half + max(min(uuc/umax,upu),-upu)
               f2 = d_one - f1
               ucmonc = f1*ucmonc + f2*ucmona
-              f1 = d_half + max(min(vvb/200.0D0,0.2D0),-0.2D0)
+              f1 = d_half + max(min(vvb/umax,upu),-upu)
               f2 = d_one - f1
               vcmonb = f1*vcmona + f2*vcmonb
-              f1 = d_half + max(min(vvc/200.0D0,0.2D0),-0.2D0)
+              f1 = d_half + max(min(vvc/umax,upu),-upu)
               f2 = d_one - f1
               vcmonc = f1*vcmonc + f2*vcmona
               diag = - dmapf(j,i) * ( ( ucmonb - ucmonc ) + &
@@ -180,16 +183,16 @@ module mod_advection
               uuc = (u(j-1,i,k)+u(j,i,k))
               vvb = (v(j,i+1,k)+v(j,i,k))
               vvc = (v(j,i-1,k)+v(j,i,k))
-              f1 = d_half + max(min(uub/200.0D0,0.2D0),-0.2D0)
+              f1 = d_half + max(min(uub/umax,upu),-upu)
               f2 = d_one - f1
               ucmonb = f1*ucmona + f2*ucmonb
-              f1 = d_half + max(min(uuc/200.0D0,0.2D0),-0.2D0)
+              f1 = d_half + max(min(uuc/umax,upu),-upu)
               f2 = d_one - f1
               ucmonc = f1*ucmonc + f2*ucmona
-              f1 = d_half + max(min(vvb/200.0D0,0.2D0),-0.2D0)
+              f1 = d_half + max(min(vvb/umax,upu),-upu)
               f2 = d_one - f1
               vcmonb = f1*vcmona + f2*vcmonb
-              f1 = d_half + max(min(vvc/200.0D0,0.2D0),-0.2D0)
+              f1 = d_half + max(min(vvc/umax,upu),-upu)
               f2 = d_one - f1
               vcmonc = f1*vcmonc + f2*vcmona
               diag = divd - dmapf(j,i)*( ( ucmonb - ucmonc ) + &
@@ -254,7 +257,7 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
       integer(ik4) :: i , j , k
-      real(rk8) :: advval , uavg1 , uavg2 , vavg1 , vavg2
+      real(rk8) :: advval , uavg1 , uavg2 , vavg1 , vavg2 , ul
       real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvt'
@@ -264,15 +267,16 @@ module mod_advection
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
+            ul = umax * ps(j,i)
             uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
             uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
-            f1 = d_half + max(min((uavg2+uavg1)/20000.0D0,0.1D0),-0.1D0)
+            f1 = d_half + max(min((uavg2+uavg1)/ul,ups),-ups)
             f2 = d_one - f1
             fx1 = f1*f(j-1,i,k)+f2*f(j,i,k)
             fx2 = f1*f(j,i,k)+f2*f(j+1,i,k)
             vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
             vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
-            f1 = d_half + max(min((vavg2+vavg1)/20000.0D0,0.1D0),-0.1D0)
+            f1 = d_half + max(min((vavg2+vavg1)/ul,ups),-ups)
             f2 = d_one - f1
             fy1 = f1*f(j,i-1,k)+f2*f(j,i,k)
             fy2 = f1*f(j,i,k)+f2*f(j,i+1,k)
@@ -320,7 +324,7 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
       integer(ik4) :: i , j , k
-      real(rk8) :: advval , uavg1 , uavg2 , vavg1 , vavg2
+      real(rk8) :: advval , uavg1 , uavg2 , vavg1 , vavg2 , ul
       real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv3d'
@@ -334,15 +338,16 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
+              ul = umax * ps(j,i)
               uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
               uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
-              f1 = d_half + max(min((uavg2+uavg1)/20000.0D0,0.1D0),-0.1D0)
+              f1 = d_half + max(min((uavg2+uavg1)/ul,ups),-ups)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k)+f2*f(j,i,k)
               fx2 = f1*f(j,i,k)+f2*f(j+1,i,k)
               vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
               vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
-              f1 = d_half + max(min((vavg2+vavg1)/20000.0D0,0.1D0),-0.1D0)
+              f1 = d_half + max(min((vavg2+vavg1)/ul,ups),-ups)
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k)+f2*f(j,i,k)
               fy2 = f1*f(j,i,k)+f2*f(j,i+1,k)
@@ -359,13 +364,14 @@ module mod_advection
         do k = 2 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
+              ul = umax * ps(j,i)
               uavg1 = d_half * &
                  ( twt(k,2) * (ua(j,i+1,k)+ua(j,i,k)) + &
                    twt(k,1) * (ua(j,i+1,k-1)+ua(j,i,k-1)) )
               uavg2 = d_half * &
                  ( twt(k,2) * (ua(j+1,i+1,k)+ua(j+1,i,k)) + &
                    twt(k,1) * (ua(j+1,i+1,k-1)+ua(j+1,i,k-1)) )
-              f1 = d_half + max(min((uavg2+uavg1)/20000.0D0,0.1D0),-0.1D0)
+              f1 = d_half + max(min((uavg2+uavg1)/ul,ups),-ups)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k)+f2*f(j,i,k)
               fx2 = f1*f(j,i,k)+f2*f(j+1,i,k)
@@ -375,7 +381,7 @@ module mod_advection
               vavg2 = d_half * &
                  ( twt(k,2) * (va(j+1,i+1,k)+va(j,i+1,k)) + &
                    twt(k,1) * (va(j+1,i+1,k-1)+va(j,i+1,k-1)) )
-              f1 = d_half + max(min((vavg2+vavg1)/20000.0D0,0.1D0),-0.1D0)
+              f1 = d_half + max(min((vavg2+vavg1)/ul,ups),-ups)
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k)+f2*f(j,i,k)
               fy2 = f1*f(j,i,k)+f2*f(j,i+1,k)
@@ -399,7 +405,7 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
       real(rk8) :: advval
-      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2
+      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2 , ul
       real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
       integer(ik4) :: i , j , k
 #ifdef DEBUG
@@ -413,15 +419,16 @@ module mod_advection
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
+            ul = umax * ps(j,i)
             uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
             uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
-            f1 = d_half + max(min((uavg2+uavg1)/20000.0D0,0.1D0),-0.1D0)
+            f1 = d_half + max(min((uavg2+uavg1)/ul,ups),-ups)
             f2 = d_one - f1
             fx1 = f1*f(j-1,i,k,iv)+f2*f(j,i,k,iv)
             fx2 = f1*f(j,i,k,iv)+f2*f(j+1,i,k,iv)
             vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
             vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
-            f1 = d_half + max(min((vavg2+vavg1)/20000.0D0,0.1D0),-0.1D0)
+            f1 = d_half + max(min((vavg2+vavg1)/ul,ups),-ups)
             f2 = d_one - f1
             fy1 = f1*f(j,i-1,k,iv)+f2*f(j,i,k,iv)
             fy2 = f1*f(j,i,k,iv)+f2*f(j,i+1,k,iv)
@@ -472,7 +479,7 @@ module mod_advection
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
       integer(ik4) :: i , j , k , n
-      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2
+      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2 , ul
       real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
       real(rk8) :: advval
 #ifdef DEBUG
@@ -487,15 +494,16 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
+              ul = umax * ps(j,i)
               uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
               uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
-              f1 = d_half + max(min((uavg2+uavg1)/20000.0D0,0.1D0),-0.1D0)
+              f1 = d_half + max(min((uavg2+uavg1)/ul,ups),-ups)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k,n)+f2*f(j,i,k,n)
               fx2 = f1*f(j,i,k,n)  +f2*f(j+1,i,k,n)
               vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
               vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
-              f1 = d_half + max(min((vavg2+vavg1)/20000.0D0,0.1D0),-0.1D0)
+              f1 = d_half + max(min((vavg2+vavg1)/ul,ups),-ups)
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k,n)+f2*f(j,i,k,n)
               fy2 = f1*f(j,i,k,n)  +f2*f(j,i+1,k,n)
@@ -546,7 +554,7 @@ module mod_advection
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
       integer(ik4) :: i , j , k , n
-      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2
+      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2 , ul
       real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvtr'
@@ -560,15 +568,16 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
+              ul = umax * ps(j,i)
               uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
               uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
-              f1 = d_half + max(min((uavg2+uavg1)/20000.0D0,0.1D0),-0.1D0)
+              f1 = d_half + max(min((uavg2+uavg1)/ul,ups),-ups)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k,n)+f2*f(j,i,k,n)
               fx2 = f1*f(j,i,k,n)  +f2*f(j+1,i,k,n)
               vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
               vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
-              f1 = d_half + max(min((vavg2+vavg1)/20000.0D0,0.1D0),-0.1D0)
+              f1 = d_half + max(min((vavg2+vavg1)/ul,ups),-ups)
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k,n)+f2*f(j,i,k,n)
               fy2 = f1*f(j,i,k,n)  +f2*f(j,i+1,k,n)
