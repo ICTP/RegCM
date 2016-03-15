@@ -36,9 +36,9 @@ module mod_advection
   public :: init_advection, hadv , vadv
 
   logical , parameter :: upstream_mode = .true.
-  real(rk8) , parameter :: upu = 0.1024D0
-  real(rk8) , parameter :: ups = 0.1024D0
-  real(rk8) , parameter :: umax = 100.0D0
+  real(rk8) , parameter :: upu = 0.4D0
+  real(rk8) , parameter :: ups = 0.4D0
+  real(rk8) , parameter :: umax = 160.0D0
 
   logical , parameter :: stability_enhance = .true.
   real(rk8) , parameter :: t_extrema = 5.0D0
@@ -206,16 +206,16 @@ module mod_advection
               uuc = u(j-1,i,k)+u(j,i,k)
               vvb = v(j,i+1,k)+v(j,i,k)
               vvc = v(j,i-1,k)+v(j,i,k)
-              f1 = d_one + max(min(uub/umax,upu),-upu)
+              f1 = d_one + max(min(uub/umax*upu,upu),-upu)
               f2 = d_two - f1
               ucmonb = (f1*ucmona + f2*ucmonb) * 0.125D0
-              f1 = d_one + max(min(uuc/umax,upu),-upu)
+              f1 = d_one + max(min(uuc/umax*upu,upu),-upu)
               f2 = d_two - f1
               ucmonc = (f1*ucmonc + f2*ucmona) * 0.125D0
-              f1 = d_one + max(min(vvb/umax,upu),-upu)
+              f1 = d_one + max(min(vvb/umax*upu,upu),-upu)
               f2 = d_two - f1
               vcmonb = (f1*vcmona + f2*vcmonb) * 0.125D0
-              f1 = d_one + max(min(vvc/umax,upu),-upu)
+              f1 = d_one + max(min(vvc/umax*upu,upu),-upu)
               f2 = d_two - f1
               vcmonc = (f1*vcmonc + f2*vcmona) * 0.125D0
               diag = - dmapf(j,i) * ( ( ucmonb - ucmonc ) + &
@@ -245,16 +245,16 @@ module mod_advection
               uuc = u(j-1,i,k)+u(j,i,k)
               vvb = v(j,i+1,k)+v(j,i,k)
               vvc = v(j,i-1,k)+v(j,i,k)
-              f1 = d_one + max(min(uub/umax,upu),-upu)
+              f1 = d_one + max(min(uub/umax*upu,upu),-upu)
               f2 = d_two - f1
               ucmonb = (f1*ucmona + f2*ucmonb) * 0.125D0
-              f1 = d_one + max(min(uuc/umax,upu),-upu)
+              f1 = d_one + max(min(uuc/umax*upu,upu),-upu)
               f2 = d_two - f1
               ucmonc = (f1*ucmonc + f2*ucmona) * 0.125D0
-              f1 = d_one + max(min(vvb/umax,upu),-upu)
+              f1 = d_one + max(min(vvb/umax*upu,upu),-upu)
               f2 = d_two - f1
               vcmonb = (f1*vcmona + f2*vcmonb) * 0.125D0
-              f1 = d_one + max(min(vvc/umax,upu),-upu)
+              f1 = d_one + max(min(vvc/umax*upu,upu),-upu)
               f2 = d_two - f1
               vcmonc = (f1*vcmonc + f2*vcmona) * 0.125D0
               diag = divd - dmapf(j,i)*( ( ucmonb - ucmonc ) + &
@@ -387,11 +387,11 @@ module mod_advection
             uavg2 = ua(j+1,i+1,k) + ua(j+1,i,k)
             vavg1 = va(j+1,i,k)   + va(j,i,k)
             vavg2 = va(j+1,i+1,k) + va(j,i+1,k)
-            f1 = d_half + max(min((uavg2+uavg1)/ul,ups),-ups)
+            f1 = d_half + max(min((uavg2+uavg1)/ul*ups,ups),-ups)
             f2 = d_one - f1
             fx1 = f1*f(j-1,i,k) + f2*f(j,i,k)
             fx2 = f1*f(j,i,k)   + f2*f(j+1,i,k)
-            f1 = d_half + max(min((vavg2+vavg1)/ul,ups),-ups)
+            f1 = d_half + max(min((vavg2+vavg1)/ul*ups,ups),-ups)
             f2 = d_one - f1
             fy1 = f1*f(j,i-1,k) + f2*f(j,i,k)
             fy2 = f1*f(j,i,k)   + f2*f(j,i+1,k)
@@ -520,11 +520,11 @@ module mod_advection
               uavg2 = ua(j+1,i+1,k)+ua(j+1,i,k)
               vavg1 = va(j+1,i,k)+va(j,i,k)
               vavg2 = va(j+1,i+1,k)+va(j,i+1,k)
-              f1 = d_half + max(min((uavg2+uavg1)/ul,ups),-ups)
+              f1 = d_half + max(min((uavg2+uavg1)/ul*ups,ups),-ups)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k)+f2*f(j,i,k)
               fx2 = f1*f(j,i,k)+f2*f(j+1,i,k)
-              f1 = d_half + max(min((vavg2+vavg1)/ul,ups),-ups)
+              f1 = d_half + max(min((vavg2+vavg1)/ul*ups,ups),-ups)
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k)+f2*f(j,i,k)
               fy2 = f1*f(j,i,k)+f2*f(j,i+1,k)
@@ -550,11 +550,11 @@ module mod_advection
                         twt(k,1) * (va(j+1,i,k-1)+va(j,i,k-1)) )
               vavg2 = ( twt(k,2) * (va(j+1,i+1,k)+va(j,i+1,k)) + &
                         twt(k,1) * (va(j+1,i+1,k-1)+va(j,i+1,k-1)) )
-              f1 = d_half + max(min((uavg2+uavg1)/ul,ups),-ups)
+              f1 = d_half + max(min((uavg2+uavg1)/ul*ups,ups),-ups)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k)+f2*f(j,i,k)
               fx2 = f1*f(j,i,k)+f2*f(j+1,i,k)
-              f1 = d_half + max(min((vavg2+vavg1)/ul,ups),-ups)
+              f1 = d_half + max(min((vavg2+vavg1)/ul*ups,ups),-ups)
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k)+f2*f(j,i,k)
               fy2 = f1*f(j,i,k)+f2*f(j,i+1,k)
@@ -650,11 +650,11 @@ module mod_advection
             uavg2 = ua(j+1,i+1,k)+ua(j+1,i,k)
             vavg1 = va(j+1,i,k)+va(j,i,k)
             vavg2 = va(j+1,i+1,k)+va(j,i+1,k)
-            f1 = d_half + max(min((uavg2+uavg1)/ul,ups),-ups)
+            f1 = d_half + max(min((uavg2+uavg1)/ul*ups,ups),-ups)
             f2 = d_one - f1
             fx1 = f1*f(j-1,i,k,iv)+f2*f(j,i,k,iv)
             fx2 = f1*f(j,i,k,iv)+f2*f(j+1,i,k,iv)
-            f1 = d_half + max(min((vavg2+vavg1)/ul,ups),-ups)
+            f1 = d_half + max(min((vavg2+vavg1)/ul*ups,ups),-ups)
             f2 = d_one - f1
             fy1 = f1*f(j,i-1,k,iv)+f2*f(j,i,k,iv)
             fy2 = f1*f(j,i,k,iv)+f2*f(j,i+1,k,iv)
@@ -779,11 +779,11 @@ module mod_advection
               uavg2 = ua(j+1,i+1,k)+ua(j+1,i,k)
               vavg1 = va(j+1,i,k)+va(j,i,k)
               vavg2 = va(j+1,i+1,k)+va(j,i+1,k)
-              f1 = d_half + max(min((uavg2+uavg1)/ul,ups),-ups)
+              f1 = d_half + max(min((uavg2+uavg1)/ul*ups,ups),-ups)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k,n)+f2*f(j,i,k,n)
               fx2 = f1*f(j,i,k,n)  +f2*f(j+1,i,k,n)
-              f1 = d_half + max(min((vavg2+vavg1)/ul,ups),-ups)
+              f1 = d_half + max(min((vavg2+vavg1)/ul*ups,ups),-ups)
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k,n)+f2*f(j,i,k,n)
               fy2 = f1*f(j,i,k,n)  +f2*f(j,i+1,k,n)
@@ -878,11 +878,11 @@ module mod_advection
               uavg2 = ua(j+1,i+1,k)+ua(j+1,i,k)
               vavg1 = va(j+1,i,k)+va(j,i,k)
               vavg2 = va(j+1,i+1,k)+va(j,i+1,k)
-              f1 = d_half + max(min((uavg2+uavg1)/ul,ups),-ups)
+              f1 = d_half + max(min((uavg2+uavg1)/ul*ups,ups),-ups)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k,n)+f2*f(j,i,k,n)
               fx2 = f1*f(j,i,k,n)  +f2*f(j+1,i,k,n)
-              f1 = d_half + max(min((vavg2+vavg1)/ul,ups),-ups)
+              f1 = d_half + max(min((vavg2+vavg1)/ul*ups,ups),-ups)
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k,n)+f2*f(j,i,k,n)
               fy2 = f1*f(j,i,k,n)  +f2*f(j,i+1,k,n)
