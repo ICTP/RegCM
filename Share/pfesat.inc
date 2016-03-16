@@ -42,7 +42,6 @@
          + td*(a5 + td*(a6 + td*(a7 + td*a8)))))))
     else
       es = c0 + td*(c1 + td*(c2 + td*(c3 + td*(c4 &
-
          + td*(c5 + td*(c6 + td*(c7 + td*c8)))))))
     end if
     es   = es * d_100 ! pa
