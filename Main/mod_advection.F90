@@ -33,12 +33,12 @@ module mod_advection
 
   private
 
-  public :: init_advection, hadv , vadv
+  public :: init_advection, hadv , vadv , start_advect
 
   logical , parameter :: upstream_mode = .true.
-  real(rk8) , parameter :: upu = 0.2D0
-  real(rk8) , parameter :: ups = 0.2D0
-  real(rk8) , parameter :: umax = 160.0D0
+  real(rk8) , parameter :: upu = 0.1D0
+  real(rk8) , parameter :: umax = 100.0D0
+  real(rk8) , parameter :: uchu = upu/umax
 
   logical , parameter :: stability_enhance = .true.
   real(rk8) , parameter :: t_extrema = 5.0D0
@@ -78,6 +78,9 @@ module mod_advection
 
   real(rk8) , pointer , dimension(:) :: dds , xds
   real(rk8) , pointer , dimension(:,:,:) :: fg
+  real(rk8) , pointer , dimension(:,:,:) :: wg1 , wg2
+  real(rk8) , pointer , dimension(:,:,:) :: uavg1 , uavg2
+  real(rk8) , pointer , dimension(:,:,:) :: vavg1 , vavg2
 
   contains
 
@@ -104,6 +107,14 @@ module mod_advection
       if ( ibltyp == 2 .and. iuwvadv == 1 ) then
         call getmem3d(fg,jci1,jci2,ici1,ici2,1,kz,'advection:fg')
       end if
+      call getmem3d(uavg1,jci1,jci2,ici1,ici2,1,kz,'advection:uavg1')
+      call getmem3d(uavg2,jci1,jci2,ici1,ici2,1,kz,'advection:uavg2')
+      call getmem3d(vavg1,jci1,jci2,ici1,ici2,1,kz,'advection:vavg1')
+      call getmem3d(vavg2,jci1,jci2,ici1,ici2,1,kz,'advection:vavg2')
+      if ( upstream_mode ) then
+        call getmem3d(wg1,jci1,jci2,ici1,ici2,1,kz,'advection:wg1')
+        call getmem3d(wg2,jci1,jci2,ici1,ici2,1,kz,'advection:wg2')
+      end if
       xds(:) =  d_one / dsigma(:)
       dds(1) = d_zero
       dds(kzp1) = d_zero
@@ -111,6 +122,36 @@ module mod_advection
         dds(k) = d_one / (dsigma(k) + dsigma(k-1))
       end do
     end subroutine init_advection
+    !
+    ! Pre-compute
+    !
+    subroutine start_advect
+      implicit none
+      integer(ik4) :: i , j , k
+      if ( .not. upstream_mode ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              uavg1(j,i,k) = d_half*(ua(j,i+1,k)   + ua(j,i,k))
+              uavg2(j,i,k) = d_half*(ua(j+1,i+1,k) + ua(j+1,i,k))
+              vavg1(j,i,k) = d_half*(va(j+1,i,k)   + va(j,i,k))
+              vavg2(j,i,k) = d_half*(va(j+1,i+1,k) + va(j,i+1,k))
+            end do
+          end do
+        end do
+      else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              uavg1(j,i,k) = ua(j,i+1,k)   + ua(j,i,k)
+              uavg2(j,i,k) = ua(j+1,i+1,k) + ua(j+1,i,k)
+              vavg1(j,i,k) = va(j+1,i,k)   + va(j,i,k)
+              vavg2(j,i,k) = va(j+1,i+1,k) + va(j,i+1,k)
+            end do
+          end do
+        end do
+      end if
+    end subroutine start_advect
     !
     ! UV advection
     !
@@ -206,16 +247,16 @@ module mod_advection
               uuc = u(j-1,i,k)+u(j,i,k)
               vvb = v(j,i+1,k)+v(j,i,k)
               vvc = v(j,i-1,k)+v(j,i,k)
-              f1 = d_one + max(min(uub/umax*upu,upu),-upu)
+              f1 = d_one + max(min(uub*uchu,upu),-upu)
               f2 = d_two - f1
               ucmonb = (f1*ucmona + f2*ucmonb) * 0.125D0
-              f1 = d_one + max(min(uuc/umax*upu,upu),-upu)
+              f1 = d_one + max(min(uuc*uchu,upu),-upu)
               f2 = d_two - f1
               ucmonc = (f1*ucmonc + f2*ucmona) * 0.125D0
-              f1 = d_one + max(min(vvb/umax*upu,upu),-upu)
+              f1 = d_one + max(min(vvb*uchu,upu),-upu)
               f2 = d_two - f1
               vcmonb = (f1*vcmona + f2*vcmonb) * 0.125D0
-              f1 = d_one + max(min(vvc/umax*upu,upu),-upu)
+              f1 = d_one + max(min(vvc*uchu,upu),-upu)
               f2 = d_two - f1
               vcmonc = (f1*vcmonc + f2*vcmona) * 0.125D0
               diag = - dmapf(j,i) * ( ( ucmonb - ucmonc ) + &
@@ -245,16 +286,16 @@ module mod_advection
               uuc = u(j-1,i,k)+u(j,i,k)
               vvb = v(j,i+1,k)+v(j,i,k)
               vvc = v(j,i-1,k)+v(j,i,k)
-              f1 = d_one + max(min(uub/umax*upu,upu),-upu)
+              f1 = d_one + max(min(uub*uchu,upu),-upu)
               f2 = d_two - f1
               ucmonb = (f1*ucmona + f2*ucmonb) * 0.125D0
-              f1 = d_one + max(min(uuc/umax*upu,upu),-upu)
+              f1 = d_one + max(min(uuc*uchu,upu),-upu)
               f2 = d_two - f1
               ucmonc = (f1*ucmonc + f2*ucmona) * 0.125D0
-              f1 = d_one + max(min(vvb/umax*upu,upu),-upu)
+              f1 = d_one + max(min(vvb*uchu,upu),-upu)
               f2 = d_two - f1
               vcmonb = (f1*vcmona + f2*vcmonb) * 0.125D0
-              f1 = d_one + max(min(vvc/umax*upu,upu),-upu)
+              f1 = d_one + max(min(vvc*uchu,upu),-upu)
               f2 = d_two - f1
               vcmonc = (f1*vcmonc + f2*vcmona) * 0.125D0
               diag = divd - dmapf(j,i)*( ( ucmonb - ucmonc ) + &
@@ -319,7 +360,7 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
       integer(ik4) :: i , j , k
-      real(rk8) :: advval , uavg1 , uavg2 , vavg1 , vavg2 , ul
+      real(rk8) :: advval , ul
       real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvt'
@@ -331,16 +372,13 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              uavg1 = d_half*(ua(j,i+1,k)   + ua(j,i,k))
-              uavg2 = d_half*(ua(j+1,i+1,k) + ua(j+1,i,k))
-              vavg1 = d_half*(va(j+1,i,k)   + va(j,i,k))
-              vavg2 = d_half*(va(j+1,i+1,k) + va(j,i+1,k))
               fx1 = f(j-1,i,k) + f(j,i,k)
               fx2 = f(j,i,k)   + f(j+1,i,k)
               fy1 = f(j,i-1,k) + f(j,i,k)
               fy2 = f(j,i,k)   + f(j,i+1,k)
               advval = - xmapf(j,i) * &
-                     (uavg2*fx2-uavg1*fx1 + vavg2*fy2-vavg1*fy1)
+                     (uavg2(j,i,k)*fx2-uavg1(j,i,k)*fx1 + &
+                      vavg2(j,i,k)*fy2-vavg1(j,i,k)*fy1)
               !
               ! Instability correction
               !
@@ -382,21 +420,18 @@ module mod_advection
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ul = d_two * umax * ps(j,i)
-            uavg1 = ua(j,i+1,k)   + ua(j,i,k)
-            uavg2 = ua(j+1,i+1,k) + ua(j+1,i,k)
-            vavg1 = va(j+1,i,k)   + va(j,i,k)
-            vavg2 = va(j+1,i+1,k) + va(j,i+1,k)
-            f1 = d_half + max(min((uavg2+uavg1)/ul*ups,ups),-ups)
+            ul = d_half * uchu / ps(j,i)
+            f1 = d_half + max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
             f2 = d_one - f1
             fx1 = f1*f(j-1,i,k) + f2*f(j,i,k)
             fx2 = f1*f(j,i,k)   + f2*f(j+1,i,k)
-            f1 = d_half + max(min((vavg2+vavg1)/ul*ups,ups),-ups)
+            f1 = d_half + max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
             f2 = d_one - f1
             fy1 = f1*f(j,i-1,k) + f2*f(j,i,k)
             fy2 = f1*f(j,i,k)   + f2*f(j,i+1,k)
             advval = -xmapf(j,i) * &
-                 (uavg2*fx2-uavg1*fx1 + vavg2*fy2-vavg1*fy1)
+                   (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
+                    vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
             !
             ! Instability correction
             !
@@ -440,7 +475,7 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
       integer(ik4) :: i , j , k
-      real(rk8) :: advval , uavg1 , uavg2 , vavg1 , vavg2 , ul
+      real(rk8) :: advval , ul , uaz1 , uaz2 , vaz1 , vaz2
       real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv3d'
@@ -456,16 +491,13 @@ module mod_advection
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                uavg1 = d_half*(ua(j,i+1,k)   + ua(j,i,k))
-                uavg2 = d_half*(ua(j+1,i+1,k) + ua(j+1,i,k))
-                vavg1 = d_half*(va(j+1,i,k)   + va(j,i,k))
-                vavg2 = d_half*(va(j+1,i+1,k) + va(j,i+1,k))
                 fx1 = f(j-1,i,k) + f(j,i,k)
                 fx2 = f(j,i,k)   + f(j+1,i,k)
                 fy1 = f(j,i-1,k) + f(j,i,k)
                 fy2 = f(j,i,k)   + f(j,i+1,k)
                 ften(j,i,k) = ften(j,i,k) - xmapf(j,i) * &
-                          (uavg2*fx2-uavg1*fx1 + vavg2*fy2-vavg1*fy1)
+                          (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
+                           vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
               end do
             end do
           end do
@@ -477,24 +509,20 @@ module mod_advection
           do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                uavg1 = d_half * &
-                   ( twt(k,2) * (ua(j,i+1,k)     + ua(j,i,k)) + &
-                     twt(k,1) * (ua(j,i+1,k-1)   + ua(j,i,k-1)) )
-                uavg2 = d_half * &
-                   ( twt(k,2) * (ua(j+1,i+1,k)   + ua(j+1,i,k)) + &
-                     twt(k,1) * (ua(j+1,i+1,k-1) + ua(j+1,i,k-1)) )
-                vavg1 = d_half * &
-                   ( twt(k,2) * (va(j+1,i,k)     + va(j,i,k)) + &
-                     twt(k,1) * (va(j+1,i,k-1)   + va(j,i,k-1)) )
-                vavg2 = d_half * &
-                   ( twt(k,2) * (va(j+1,i+1,k)   + va(j,i+1,k)) + &
-                     twt(k,1) * (va(j+1,i+1,k-1) + va(j,i+1,k-1)) )
+                uaz1 = ( twt(k,2) * uavg1(j,i,k) + &
+                         twt(k,1) * uavg1(j,i,k-1) )
+                uaz2 = ( twt(k,2) * uavg2(j,i,k) + &
+                         twt(k,1) * uavg2(j,i,k-1) )
+                vaz1 = ( twt(k,2) * vavg1(j,i,k) + &
+                         twt(k,1) * vavg1(j,i,k-1) )
+                vaz2 = ( twt(k,2) * vavg2(j,i,k) + &
+                         twt(k,1) * vavg2(j,i,k-1) )
                 fx1 = f(j-1,i,k) + f(j,i,k)
                 fx2 = f(j,i,k)   + f(j+1,i,k)
                 fy1 = f(j,i-1,k) + f(j,i,k)
                 fy2 = f(j,i,k)   + f(j,i+1,k)
                 ften(j,i,k) = ften(j,i,k) - xmapf(j,i) * &
-                          (uavg2*fx2-uavg1*fx1 + vavg2*fy2-vavg1*fy1)
+                          (uaz2*fx2-uaz1*fx1 + vaz2*fy2-vaz1*fy1)
               end do
             end do
           end do
@@ -515,21 +543,18 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ul = d_two * umax * ps(j,i)
-              uavg1 = ua(j,i+1,k)+ua(j,i,k)
-              uavg2 = ua(j+1,i+1,k)+ua(j+1,i,k)
-              vavg1 = va(j+1,i,k)+va(j,i,k)
-              vavg2 = va(j+1,i+1,k)+va(j,i+1,k)
-              f1 = d_half + max(min((uavg2+uavg1)/ul*ups,ups),-ups)
+              ul = d_half * uchu / ps(j,i)
+              f1 = d_half + max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k)+f2*f(j,i,k)
               fx2 = f1*f(j,i,k)+f2*f(j+1,i,k)
-              f1 = d_half + max(min((vavg2+vavg1)/ul*ups,ups),-ups)
+              f1 = d_half + max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k)+f2*f(j,i,k)
               fy2 = f1*f(j,i,k)+f2*f(j,i+1,k)
               ften(j,i,k) = ften(j,i,k) - xmapf(j,i) * &
-                        (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
+                        (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
+                         vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
             end do
           end do
         end do
@@ -541,25 +566,25 @@ module mod_advection
         do k = 2 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ul = d_two * umax * ps(j,i)
-              uavg1 = ( twt(k,2) * (ua(j,i+1,k)+ua(j,i,k)) + &
-                        twt(k,1) * (ua(j,i+1,k-1)+ua(j,i,k-1)) )
-              uavg2 = ( twt(k,2) * (ua(j+1,i+1,k)+ua(j+1,i,k)) + &
-                        twt(k,1) * (ua(j+1,i+1,k-1)+ua(j+1,i,k-1)) )
-              vavg1 = ( twt(k,2) * (va(j+1,i,k)+va(j,i,k)) + &
-                        twt(k,1) * (va(j+1,i,k-1)+va(j,i,k-1)) )
-              vavg2 = ( twt(k,2) * (va(j+1,i+1,k)+va(j,i+1,k)) + &
-                        twt(k,1) * (va(j+1,i+1,k-1)+va(j,i+1,k-1)) )
-              f1 = d_half + max(min((uavg2+uavg1)/ul*ups,ups),-ups)
+              ul = d_half * uchu / ps(j,i)
+              uaz1 = ( twt(k,2) * uavg1(j,i,k) + &
+                       twt(k,1) * uavg1(j,i,k-1) )
+              uaz2 = ( twt(k,2) * uavg2(j,i,k) + &
+                       twt(k,1) * uavg2(j,i,k-1) )
+              vaz1 = ( twt(k,2) * vavg1(j,i,k) + &
+                       twt(k,1) * vavg1(j,i,k-1) )
+              vaz2 = ( twt(k,2) * vavg2(j,i,k) + &
+                       twt(k,1) * vavg2(j,i,k-1) )
+              f1 = d_half + max(min((uaz2+uaz1)*ul,upu),-upu)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k)+f2*f(j,i,k)
               fx2 = f1*f(j,i,k)+f2*f(j+1,i,k)
-              f1 = d_half + max(min((vavg2+vavg1)/ul*ups,ups),-ups)
+              f1 = d_half + max(min((vaz2+vaz1)*ul,upu),-upu)
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k)+f2*f(j,i,k)
               fy2 = f1*f(j,i,k)+f2*f(j,i+1,k)
               ften(j,i,k) = ften(j,i,k) - xmapf(j,i) * &
-                        (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
+                        (uaz2*fx2-uaz1*fx1 + vaz2*fy2-vaz1*fy1)
             end do
           end do
         end do
@@ -578,8 +603,7 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
       real(rk8) :: advval
-      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2 , ul
-      real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
+      real(rk8) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv_qv'
@@ -594,16 +618,13 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              uavg1 = d_half*(ua(j,i+1,k)   + ua(j,i,k))
-              uavg2 = d_half*(ua(j+1,i+1,k) + ua(j+1,i,k))
-              vavg1 = d_half*(va(j+1,i,k)   + va(j,i,k))
-              vavg2 = d_half*(va(j+1,i+1,k) + va(j,i+1,k))
               fx1 = f(j-1,i,k,iv) + f(j,i,k,iv)
               fx2 = f(j,i,k,iv)   + f(j+1,i,k,iv)
               fy1 = f(j,i-1,k,iv) + f(j,i,k,iv)
               fy2 = f(j,i,k,iv)   + f(j,i+1,k,iv)
               advval = -xmapf(j,i) * &
-                     (uavg2*fx2-uavg1*fx1 + vavg2*fy2-vavg1*fy1)
+                     (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
+                      vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
               !
               ! Instability correction
               !
@@ -645,20 +666,18 @@ module mod_advection
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ul = d_two * umax * ps(j,i)
-            uavg1 = ua(j,i+1,k)+ua(j,i,k)
-            uavg2 = ua(j+1,i+1,k)+ua(j+1,i,k)
-            vavg1 = va(j+1,i,k)+va(j,i,k)
-            vavg2 = va(j+1,i+1,k)+va(j,i+1,k)
-            f1 = d_half + max(min((uavg2+uavg1)/ul*ups,ups),-ups)
+            ul = d_half * uchu / ps(j,i)
+            f1 = d_half + max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
             f2 = d_one - f1
             fx1 = f1*f(j-1,i,k,iv)+f2*f(j,i,k,iv)
             fx2 = f1*f(j,i,k,iv)+f2*f(j+1,i,k,iv)
-            f1 = d_half + max(min((vavg2+vavg1)/ul*ups,ups),-ups)
+            f1 = d_half + max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
             f2 = d_one - f1
             fy1 = f1*f(j,i-1,k,iv)+f2*f(j,i,k,iv)
             fy2 = f1*f(j,i,k,iv)+f2*f(j,i+1,k,iv)
-            advval = -xmapf(j,i)*(uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
+            advval = -xmapf(j,i) * &
+                      (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
+                       vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
             !
             ! Instability correction
             !
@@ -705,8 +724,7 @@ module mod_advection
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
       integer(ik4) :: i , j , k , n
-      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2 , ul
-      real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
+      real(rk8) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
       real(rk8) :: advval
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv_qx'
@@ -721,16 +739,13 @@ module mod_advection
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                uavg1 = d_half*(ua(j,i+1,k)   + ua(j,i,k))
-                uavg2 = d_half*(ua(j+1,i+1,k) + ua(j+1,i,k))
-                vavg1 = d_half*(va(j+1,i,k)   + va(j,i,k))
-                vavg2 = d_half*(va(j+1,i+1,k) + va(j,i+1,k))
                 fx1 = f(j-1,i,k,n) + f(j,i,k,n)
                 fx2 = f(j,i,k,n)   + f(j+1,i,k,n)
                 fy1 = f(j,i-1,k,n) + f(j,i,k,n)
                 fy2 = f(j,i,k,n)   + f(j,i+1,k,n)
                 advval = -xmapf(j,i) * &
-                     (uavg2*fx2-uavg1*fx1 + vavg2*fy2-vavg1*fy1)
+                     (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
+                      vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
                 if ( n == iqc .and. stability_enhance ) then
                   !
                   ! Instability correction
@@ -774,20 +789,18 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ul = d_two * umax * ps(j,i)
-              uavg1 = ua(j,i+1,k)+ua(j,i,k)
-              uavg2 = ua(j+1,i+1,k)+ua(j+1,i,k)
-              vavg1 = va(j+1,i,k)+va(j,i,k)
-              vavg2 = va(j+1,i+1,k)+va(j,i+1,k)
-              f1 = d_half + max(min((uavg2+uavg1)/ul*ups,ups),-ups)
+              ul = d_half * uchu / ps(j,i)
+              f1 = d_half + max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k,n)+f2*f(j,i,k,n)
               fx2 = f1*f(j,i,k,n)  +f2*f(j+1,i,k,n)
-              f1 = d_half + max(min((vavg2+vavg1)/ul*ups,ups),-ups)
+              f1 = d_half + max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k,n)+f2*f(j,i,k,n)
               fy2 = f1*f(j,i,k,n)  +f2*f(j,i+1,k,n)
-              advval = -xmapf(j,i) * (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
+              advval = - xmapf(j,i) * &
+                         (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
+                          vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
               if ( n == iqc .and. stability_enhance ) then
                 !
                 ! Instability correction
@@ -834,8 +847,7 @@ module mod_advection
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
       integer(ik4) :: i , j , k , n
-      real(rk8) :: uavg1 , uavg2 , vavg1 , vavg2 , ul
-      real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
+      real(rk8) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvtr'
       integer(ik4) , save :: idindx = 0
@@ -849,16 +861,13 @@ module mod_advection
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                uavg1 = d_half*(ua(j,i+1,k)+ua(j,i,k))
-                uavg2 = d_half*(ua(j+1,i+1,k)+ua(j+1,i,k))
-                vavg1 = d_half*(va(j+1,i,k)+va(j,i,k))
-                vavg2 = d_half*(va(j+1,i+1,k)+va(j,i+1,k))
                 fx1 = f(j-1,i,k,n)+f(j,i,k,n)
                 fx2 = f(j,i,k,n)  +f(j+1,i,k,n)
                 fy1 = f(j,i-1,k,n)+f(j,i,k,n)
                 fy2 = f(j,i,k,n)  +f(j,i+1,k,n)
                 ften(j,i,k,n) = ften(j,i,k,n) - xmapf(j,i) * &
-                    (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
+                    (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
+                     vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
               end do
             end do
           end do
@@ -873,21 +882,18 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ul = d_two * umax * ps(j,i)
-              uavg1 = ua(j,i+1,k)+ua(j,i,k)
-              uavg2 = ua(j+1,i+1,k)+ua(j+1,i,k)
-              vavg1 = va(j+1,i,k)+va(j,i,k)
-              vavg2 = va(j+1,i+1,k)+va(j,i+1,k)
-              f1 = d_half + max(min((uavg2+uavg1)/ul*ups,ups),-ups)
+              ul = d_half * uchu / ps(j,i)
+              f1 = d_half + max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k,n)+f2*f(j,i,k,n)
               fx2 = f1*f(j,i,k,n)  +f2*f(j+1,i,k,n)
-              f1 = d_half + max(min((vavg2+vavg1)/ul*ups,ups),-ups)
+              f1 = d_half + max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k,n)+f2*f(j,i,k,n)
               fy2 = f1*f(j,i,k,n)  +f2*f(j,i+1,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) - xmapf(j,i) * &
-                  (uavg2*fx2-uavg1*fx1+vavg2*fy2-vavg1*fy1)
+                  (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
+                   vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
             end do
           end do
         end do

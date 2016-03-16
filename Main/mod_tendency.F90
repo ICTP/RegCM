@@ -405,6 +405,8 @@ module mod_tendency
     !
     ! Compute Horizontal advection terms
     !
+    call start_advect
+
     if ( idynamic == 2 ) then
       !
       ! Horizontal and vertical advection of pressure perturbation and vertical
