@@ -204,7 +204,7 @@ module mod_gn6hnc
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.
       pathaddname = trim(inpglob)// &
-            '/IPSL-CM5A-LR/HIST/ta/ta_6hrLev_IPSL-CM5A-LR_historical_'// &
+            '/IPSL-CM5A-LR/RF/ta/ta_6hrLev_IPSL-CM5A-LR_historical_'// &
             'r1i1p1_195001010300-195912312100.nc'
     else if ( dattyp(1:3) == 'GF_' ) then
       ! Vertical info are not stored in the fixed orography file.
@@ -237,7 +237,7 @@ module mod_gn6hnc
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.
       pathaddname = trim(inpglob)// &
-            '/MPI-ESM-MR/HIST/ta/ta_6hrLev_MPI-ESM-MR_historical_'// &
+            '/MPI-ESM-MR/RF/ta/ta_6hrLev_MPI-ESM-MR_historical_'// &
             'r1i1p1_197001010000-197002010000.nc'
     else if ( dattyp == 'GFS11' ) then
       pathaddname = trim(inpglob)//'/GFS11/fixed/fixed_orography.nc'
@@ -1756,11 +1756,11 @@ module mod_gn6hnc
             if ( ipvars(i) /= 'XXX' ) then
               if ( .not. date_in_scenario(idate,5,.true.) ) then
                 if ( year > 2000 ) then
-                  write (inname,99005) 'HIST',pthsep,trim(ipvars(i)), pthsep, &
+                  write (inname,99005) 'RF',pthsep,trim(ipvars(i)), pthsep, &
                     trim(ipvars(i)), trim(ipbase1)//trim(ipbase3), &
                     2000, '01010300-', 2005, '12312100.nc'
                 else
-                  write (inname,99005) 'HIST',pthsep,trim(ipvars(i)), pthsep, &
+                  write (inname,99005) 'RF',pthsep,trim(ipvars(i)), pthsep, &
                     trim(ipvars(i)), trim(ipbase1)//trim(ipbase3), &
                     (year/10*10), '01010300-', (year/10*10+9), '12312100.nc'
                 end if
@@ -1780,15 +1780,15 @@ module mod_gn6hnc
           ! PS is in 50 years file...
           if ( .not. date_in_scenario(idate,5,.true.) ) then
             if ( year < 1950 ) then
-              write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
+              write (inname,99005) 'RF',pthsep,trim(ipvars(6)), pthsep, &
                     trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
                     1900, '01010300-', 1949, '12312100.nc'
             else if ( year < 2000 ) then
-              write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
+              write (inname,99005) 'RF',pthsep,trim(ipvars(6)), pthsep, &
                     trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
                     1950, '01010300-', 1999, '12312100.nc'
             else
-              write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
+              write (inname,99005) 'RF',pthsep,trim(ipvars(6)), pthsep, &
                     trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
                     2000, '01010300-', 2005, '12312100.nc'
             end if
