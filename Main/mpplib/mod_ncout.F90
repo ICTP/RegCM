@@ -1104,11 +1104,15 @@ module mod_ncout
             'surface_downwelling_shortwave_flux_in_air',.true.,'time: mean')
           srf_sina_out => v2dvar_srf(srf_sina)%rval
         end if
-        if ( enable_srf2d_vars(srf_prcv) ) then
-          call setup_var(v2dvar_srf,srf_prcv,vsize,'prc','kg m-2 s-1', &
-            'Convective precipitation flux','convective_rainfall_flux', &
-            .true.,'time: mean')
-          srf_prcv_out => v2dvar_srf(srf_prcv)%rval
+        if ( any(icup) > 0 ) then
+          if ( enable_srf2d_vars(srf_prcv) ) then
+            call setup_var(v2dvar_srf,srf_prcv,vsize,'prc','kg m-2 s-1', &
+              'Convective precipitation flux','convective_rainfall_flux', &
+              .true.,'time: mean')
+            srf_prcv_out => v2dvar_srf(srf_prcv)%rval
+          end if
+        else
+          enable_srf2d_vars(srf_prcv) = .false.
         end if
         if ( enable_srf2d_vars(srf_zpbl) ) then
           call setup_var(v2dvar_srf,srf_zpbl,vsize,'zmla','m', &
