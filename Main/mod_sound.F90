@@ -628,7 +628,10 @@ module mod_sound
           appdat = tochar(idatex)
           write(stdout,'(a,a23,a,i16)') ' $$$ ', appdat , ', ktau   = ', ktau
           write(stdout,'(a,e12.5)') ' $$$ max value of CFL = ',maxcfl
-          write(stdout,'(a,i7)') ' $$$  no. of points w/convection = ', iconvec
+          if ( any(icup > 0) ) then
+            write(stdout,'(a,i7)') &
+              ' $$$  no. of points with active convection = ', iconvec
+          end if
         end if
       end if
       if ( cfl > d_one ) then

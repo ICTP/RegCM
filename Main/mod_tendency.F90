@@ -1743,7 +1743,10 @@ module mod_tendency
           write(stdout,'(a,a23,a,i16)') ' $$$ ', appdat , ', ktau   = ', ktau
           write(stdout,'(a,2E12.5)') ' $$$ 1st, 2nd time deriv of ps   = ', &
                 ptntot , pt2tot
-          write(stdout,'(a,i7)') ' $$$  no. of points w/convection = ', iconvec
+          if ( any(icup > 0) ) then
+            write(stdout,'(a,i7)') &
+              ' $$$  no. of points with active convection = ', iconvec
+          end if
         end if
       end if
     end if

@@ -24,8 +24,7 @@ vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 noinst_LIBRARIES = libcum.a
 libcum_a_SOURCES = mod_cu_common.F90 mod_cu_bm.F90 mod_cu_em.F90 \
                    mod_cu_grell.F90 mod_cu_kuo.F90 mod_cu_tables.F90 \
-                   mod_cu_tiedtke.F90 mod_cu_tiedtke_38r2.F90 \
-                   mod_cu_kf.F90
+                   mod_cu_tiedtke.F90 mod_cu_kf.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -54,5 +53,4 @@ mod_cu_grell.o : mod_cu_grell.F90 mod_cu_common.o mod_intkinds.o mod_memutil.o m
 mod_cu_kf.o : mod_cu_kf.F90 mod_constants.o mod_cu_common.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o mod_stdio.o
 mod_cu_kuo.o : mod_cu_kuo.F90 mod_cu_common.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o mod_constants.o
 mod_cu_tables.o : mod_cu_tables.F90 mod_constants.o mod_intkinds.o mod_realkinds.o
-mod_cu_tiedtke_38r2.o : mod_cu_tiedtke_38r2.F90 mod_constants.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o
-mod_cu_tiedtke.o : mod_cu_tiedtke.F90 mod_constants.o mod_cu_common.o mod_cu_tables.o mod_cu_tiedtke_38r2.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o
+mod_cu_tiedtke.o : mod_cu_tiedtke.F90 mod_constants.o mod_cu_common.o mod_cu_tables.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o
