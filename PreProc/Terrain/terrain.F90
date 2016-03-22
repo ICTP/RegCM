@@ -197,11 +197,11 @@ program terrain
       call die('terrain')
     end if
     write(stdout,*) 'Subgrid Geo mapping done'
-!
-!       reduce the search area for the domain
+
+    ! reduce the search area for the domain
     call mxmnll(jxsg,iysg,xlon_s,xlat_s,i_band)
     write(stdout,*) 'Determined Subgrid coordinate range'
-!
+
     ntypec_s = idnint((ds/dble(nsg)/d_two)*60.0D0/110.0)
     do while ( mod(3600,ntypec_s*60) /= 0 )
       ntypec_s = ntypec_s -1
@@ -216,7 +216,7 @@ program terrain
                 ntypec_s,1,lonwrap,lcrosstime)
     call relmem2d(values)
     write(stdout,*)'Interpolated DEM on SUBGRID'
-!
+
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                      pthsep//'GLCC_BATS_30s.nc',       &
                      'landcover',30,ntypec_s,.true.,3)
@@ -228,7 +228,7 @@ program terrain
     call filter1plakes(jxsg,iysg,lndout_s)
     call relmem2d(values)
     write(stdout,*)'Interpolated landcover on SUBGRID'
-!
+
     if ( lsmoist ) then
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'ESACCI-SOILMOISTURE.nc', &
@@ -248,7 +248,7 @@ program terrain
       call relmem2d(values)
       write(stdout,*)'Interpolated soil moisture on SUBGRID'
     end if
-!
+
     if ( ltexture ) then
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GLZB_SOIL_30s.nc',       &
@@ -279,10 +279,9 @@ program terrain
       write(stdout,*)'Interpolated bathymetry on SUBGRID'
     end if
 
-!     ******           grell smoothing to eliminate 2 delx wave (6/90):
-
+    ! grell smoothing to eliminate 2 delx wave (6/90):
     do ism = 1 , ismthlev
-      call smth121(htgrid_s,jxsg,iysg)
+      call smth121(htgrid_s,jxsg,iysg,3*nsg)
     end do
 
     if ( ibndry ) then
@@ -350,9 +349,9 @@ program terrain
     write(stdout,*) 'Fudging data (if requested) succeeded'
 
   end if
-!
-!     set up the parameters and constants
-!
+  !
+  ! set up the parameters and constants
+  !
   write (stdout,*) ''
   write (stdout,*) 'Doing Horizontal Grid with following parameters'
   write (stdout,*) 'iy     = ' , iysg
@@ -363,8 +362,9 @@ program terrain
   write (stdout,*) 'iproj  = ' , iproj
   dsinm = ds*d_1000
   write(stdout,*) 'Grid setup done'
-!
-!-----calling the map projection subroutine
+  !
+  ! calling the map projection subroutine
+  !
   if ( iproj=='LAMCON' ) then
     call lambrt(xlon,xlat,xmap,coriol,jx,iy,clong,clat,dsinm,0,xcone,  &
                 truelatl,truelath)
@@ -391,11 +391,12 @@ program terrain
     call die('terrain')
   end if
   write(stdout,*) 'Geo mapping done'
-!
-!     reduce the search area for the domain
+  !
+  ! reduce the search area for the domain
+  !
   call mxmnll(jx,iy,xlon,xlat,i_band)
   write(stdout,*)'Determined Grid coordinate range'
-!
+
   ntypec = idnint((ds/d_two)*60.0D0/110.0)
   do while ( mod(3600,ntypec*60) /= 0 .and. ntypec > 1 )
     ntypec = ntypec - 1
@@ -410,7 +411,7 @@ program terrain
               ntypec,1,lonwrap,lcrosstime)
   call relmem2d(values)
   write(stdout,*)'Interpolated DEM on model GRID'
-!
+
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                    pthsep//'GLCC_BATS_30s.nc',       &
                    'landcover',30,ntypec,.true.,3)
@@ -422,7 +423,7 @@ program terrain
   call filter1plakes(jx,iy,lndout)
   call relmem2d(values)
   write(stdout,*)'Interpolated landcover on model GRID'
-!
+
   if ( lsmoist ) then
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                      pthsep//'ESACCI-SOILMOISTURE.nc', &
@@ -442,7 +443,7 @@ program terrain
     call relmem2d(values)
     write(stdout,*)'Interpolated soil moisture on model GRID'
   end if
-!
+
   if ( ltexture ) then
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                      pthsep//'GLZB_SOIL_30s.nc',       &
@@ -473,12 +474,12 @@ program terrain
     write(stdout,*)'Interpolated bathymetry on model GRID'
   end if
 
-!     ******           preliminary heavy smoothing of boundaries
+  ! preliminary heavy smoothing of boundaries
   if ( smthbdy ) call smthtr(htgrid,jx,iy)
 
-!     ******           grell smoothing to eliminate 2 delx wave (6/90):
+  ! grell smoothing to eliminate 2 delx wave (6/90):
   do ism = 1 , ismthlev
-    call smth121(htgrid,jx,iy)
+    call smth121(htgrid,jx,iy,3)
   end do
 
   if ( ibndry ) then
@@ -678,7 +679,7 @@ program terrain
   call memory_destroy
 
   write(stdout,*)'Successfully completed terrain fields generation'
-!
+
 99001 format (a,a,a,a,i0.3)
 99002 format (a,a,a,a)
 
