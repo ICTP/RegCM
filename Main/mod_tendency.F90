@@ -2068,7 +2068,7 @@ module mod_tendency
         do k = 1 , kz
           do i = ice1ga , ice2ga
             do j = jce1ga , jce2ga
-              atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)*rpsa(j,i)
+              atmx%qx(j,i,k,n) = max(atm1%qx(j,i,k,n)*rpsa(j,i),1.0D-12)
             end do
           end do
         end do
