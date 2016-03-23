@@ -2250,9 +2250,9 @@ module mod_params
         do i = ice1 , ice2
           do j = jce1 , jce2
             dpsdxm(j,i) = (atm0%psdot(j+1,i) - atm0%psdot(j,i)) / &
-                          (atm0%ps(j,i)*dx4*mddom%msfx(j,i))
+                          (atm0%ps(j,i)*dx4)
             dpsdym(j,i) = (atm0%psdot(j,i+1) - atm0%psdot(j,i)) / &
-                          (atm0%ps(j,i)*dx4*mddom%msfx(j,i))
+                          (atm0%ps(j,i)*dx4)
           end do
         end do
         if ( myid == italk ) then

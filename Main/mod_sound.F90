@@ -602,14 +602,14 @@ module mod_sound
       do k = kz , 2 , -1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ucrsk = (atmc%u(j,i,k) + atmc%u(j,i+1,k) + &
-                     atmc%u(j+1,i,k) + atmc%u(j+1,i+1,k))*mddom%msfx(j,i)
-            vcrsk = (atmc%v(j,i,k) + atmc%v(j,i+1,k) + &
-                     atmc%v(j+1,i,k) + atmc%v(j+1,i+1,k))*mddom%msfx(j,i)
-            ucrskm1 = (atmc%u(j,i,k-1)   + atmc%u(j,i+1,k-1) + &
-                       atmc%u(j+1,i,k-1) + atmc%u(j+1,i+1,k-1))*mddom%msfx(j,i)
-            vcrskm1 = (atmc%v(j,i,k-1)   + atmc%v(j,i+1,k-1) + &
-                       atmc%v(j+1,i,k-1) + atmc%v(j+1,i+1,k-1))*mddom%msfx(j,i)
+            ucrsk = atmc%u(j,i,k) + atmc%u(j,i+1,k) + &
+                    atmc%u(j+1,i,k) + atmc%u(j+1,i+1,k)
+            vcrsk = atmc%v(j,i,k) + atmc%v(j,i+1,k) + &
+                    atmc%v(j+1,i,k) + atmc%v(j+1,i+1,k)
+            ucrskm1 = atmc%u(j,i,k-1)   + atmc%u(j,i+1,k-1) + &
+                      atmc%u(j+1,i,k-1) + atmc%u(j+1,i+1,k-1)
+            vcrskm1 = atmc%v(j,i,k-1)   + atmc%v(j,i+1,k-1) + &
+                      atmc%v(j+1,i,k-1) + atmc%v(j+1,i+1,k-1)
             rho0s = twt(k,1)*atm0%rho(j,i,k) + twt(k,2)*atm0%rho(j,i,k-1)
             sigdot(j,i,k) = -rho0s*egrav*atmc%w(j,i,k)/atm0%ps(j,i) - &
                sigma(k) * ( dpsdxm(j,i) * ( twt(k,1)*ucrsk +          &
