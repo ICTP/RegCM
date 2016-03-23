@@ -5376,19 +5376,6 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: b
     integer :: i , j
     call grid_collect(a,b,i1,i2,j1,j2)
-    ! Extrapolate out
-    do i = -1 , 4
-      do j = -4 , jx+4
-        b(j,-i) = b(j,4+i)
-        b(j,iy+i) = b(j,iy-4-i)
-      end do
-    end do
-    do i = -4 , iy+4
-      do j = -1 , 4
-        b(-j,i) = b(4+j,i)
-        b(jx+j,i) = b(jx-4+j,i)
-      end do
-    end do
     call mpi_bcast(b,product(shape(b)),mpi_real8,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')

@@ -542,10 +542,10 @@ module mod_sound
           xmsf = xmsf/npts
           dxmsfb = d_two/dx/xmsf
           tmask(:,:) = d_zero
-          do kk = 0 , 6
-            rkk = dble(kk)
-            do ll = 0 , 6
-              rll = dble(ll)
+          do ll = 0 , 6
+            rll = dble(ll)
+            do kk = 0 , 6
+              rkk = dble(kk)
               xkeff = dxmsfb * sin(mathpi*rkk/12.0D0)*cos(mathpi*rll/12.0D0)
               xleff = dxmsfb * sin(mathpi*rll/12.0D0)*cos(mathpi*rkk/12.0D0)
               xkleff = sqrt(xkeff*xkeff + xleff*xleff)
