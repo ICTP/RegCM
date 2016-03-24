@@ -368,7 +368,7 @@ module mod_nhinterp
       real(rk8) , pointer , intent(out) , dimension(:,:) :: wtop
       integer(ik4) :: i , j , k , km , kp
       integer(ik4) :: l , ll , lm , lp , ip , im , jp , jm
-      real(rk8) :: alnpq , dx2 , omegal , omegau , ubar , vbar
+      real(rk8) :: alnpq , dx2 , omegal , omegau , ubar , vbar , wu , wl
       real(rk8) :: pr0 , ziso , zl , zu , rho , omegan , pten
       real(rk8) , dimension(kxs) :: mdv
       real(rk8) , dimension(kxs+1) :: omega , qdt
@@ -422,25 +422,24 @@ module mod_nhinterp
                       v(j ,ip,l) * psdotpa(j ,ip) / xmsfd(j ,ip) -  &
                       v(jp,i ,l) * psdotpa(jp,i ) / xmsfd(jp,i ) -  &
                       v(j ,i ,l) * psdotpa(j ,i ) / xmsfd(j ,i )) / &
-                   dx2 * xmsfx(j,i) * xmsfx(j,i) * dsigma(l)
+                   dx2 * xmsfx(j,i) * xmsfx(j,i)
             pten = pten - mdv(l) * dsigma(l)
           end do
           qdt(1) = d_zero
-          do l = 2 , kxs
+          do l = 2 , kxs + 1
             qdt(l) = qdt(l-1) - (pten + mdv(l-1)) * dsigma(l-1) / pspa(j,i)
           end do
-          qdt(kxs+1) = d_zero
           omega(1) = d_zero
           do l = 2 , kxs+1
             lp = min(l,kxs)
             lm = max(l-1,1)
-            ubar = 0.125D0 * (u(j ,i ,lp) + u(j ,i ,lm) + &
-                              u(j ,ip,lp) + u(j ,ip,lm) + &
-                              u(jp,i ,lp) + u(jp,i ,lm) + &
+            ubar = 0.125D0 * (u(j ,i ,lp) + u(j ,i ,lm)  + &
+                              u(j ,ip,lp) + u(j ,ip,lm)  + &
+                              u(jp,i ,lp) + u(jp,i ,lm)  + &
                               u(jp,ip,lp) + u(jp,ip,lm))
-            vbar = 0.125D0 * (v(j ,i ,lp) + v(j ,i ,lm) + &
-                              v(j ,ip,lp) + v(j ,ip,lm) + &
-                              v(jp,i ,lp) + v(jp,i ,lm) + &
+            vbar = 0.125D0 * (v(j ,i ,lp) + v(j ,i ,lm)  + &
+                              v(j ,ip,lp) + v(j ,ip,lm)  + &
+                              v(jp,i ,lp) + v(jp,i ,lm)  + &
                               v(jp,ip,lp) + v(jp,ip,lm))
             ! Calculate omega
             omega(l) = pspa(j,i) * qdt(l) + sigma(l) * &
@@ -461,11 +460,13 @@ module mod_nhinterp
             zl = zq(l)
             omegau = omega(l-1)
             omegal = omega(l)
-            omegan = (omegau * (z0q(k) - zl ) + &
-                      omegal * (zu - z0q(k))) / (zu - zl)
+            wu = (z0q(k) - zl) / (zu - zl)
+            wl = d_one - wu
+            omegan = omegau * wu + omegal * wl
+            wu = (a(kp) - sigma(k)) / (a(kp)-a(km))
+            wl = d_one - wu
+            rho = rho0(j,i,km) * wu + rho0(j,i,kp) * wl
             !  W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
-            rho = (rho0(j,i,km) * (a(kp) - sigma(k)) + &
-                   rho0(j,i,kp) * (sigma(k) - a(km))) / (a(kp)-a(km))
             wtmp(j,i,k) = -omegan/rho * regrav
           end do
         end do

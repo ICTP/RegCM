@@ -66,6 +66,7 @@ module mod_ecens
   real(rk8) , pointer , dimension(:,:,:) :: u3 , v3
 
   real(rk8) , dimension(nplev) :: pplev , sigmar
+  real(rk8) :: pss
 
   integer(ik4) :: mdlver , ensnum
   integer(ik4) , parameter :: ibctime = 6
@@ -144,13 +145,13 @@ module mod_ecens
     ! Determine surface temps on RegCM topography.
     ! interpolation from pressure levels
     !
-    call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nplev)
+    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,nplev)
     call readsst(ts4,idate)
     ! Interpolate U, V, T, and Q.
-    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,nplev)
-    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,nplev)
-    call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,nplev)
-    call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,nplev)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
+    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
     call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine getecens
   !
@@ -365,8 +366,9 @@ module mod_ecens
     pplev(18) = 1000.
 
     do k = 1 , nplev
-      sigmar(k) = pplev(k)*0.001
+      sigmar(k) = pplev(k)/pplev(nplev)
     end do
+    pss = pplev(nplev) / d_10 ! centibars
 
     call getmem3d(bb,1,nlon,1,nlat,1,mlev*4+2,'mod_ecens:bb')
     call getmem3d(pp3d,1,nlon,1,nlat,1,mlev,'mod_ecens:pp3d')

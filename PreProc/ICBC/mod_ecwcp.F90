@@ -33,6 +33,7 @@ module mod_ecwcp
   real(rk8) , dimension(jlat) :: hlat
   real(rk8) , dimension(ilon) :: hlon
   real(rk8) , dimension(nlev) :: sigma1 , sigmar
+  real(rk8) , parameter :: pss = 100.0D0
 
   real(rk4) , dimension(ilon,jlat) :: r2
 
@@ -153,16 +154,16 @@ module mod_ecwcp
     !
     ! Determine surface temps on RegCM topography.
     ! Interpolation from pressure levels
-    call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nlev)
+    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,nlev)
 
     call readsst(ts4,idate)
 
     ! interpolate U, V, T, and Q.
-    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,nlev)
-    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,nlev)
-    call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,nlev)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
     call humid1(t3,q3,d_100,d_zero,sigma1,jx,iy,nlev)
-    call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,nlev)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
     call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine getecwcp
 

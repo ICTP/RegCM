@@ -45,6 +45,7 @@ module mod_ncep
   real(rk8) , pointer , dimension(:) :: glat , glat1
   real(rk8) , pointer , dimension(:) :: glon
   real(rk8) , pointer , dimension(:) :: sigmar , sigma1
+  real(rk8) :: pss
 
   real(rk8) , pointer , dimension(:,:,:) :: b2
   real(rk8) , pointer , dimension(:,:,:) :: d2
@@ -101,16 +102,16 @@ module mod_ncep
     ! Determine surface temps on rcm topography.
     ! Interpolation from pressure levels
     !
-    call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
+    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,klev)
 
     call readsst(ts4,idate)
     !
     ! Interpolate U, V, T, and Q.
     !
-    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,klev)
-    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,klev)
-    call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,klev)
-    call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine getncep
 
@@ -401,8 +402,9 @@ module mod_ncep
                     'Error read level')
     ! Invert levels
     do k = 1 , klev
-      sigmar(k) = sigma1(klev-k+1)/1000.0D0
+      sigmar(k) = sigma1(klev-k+1)/sigma1(1)
     end do
+    pss = sigma1(1) / d_10 ! centibars
     !
     ! INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
     !

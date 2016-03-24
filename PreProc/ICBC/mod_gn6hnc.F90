@@ -60,6 +60,7 @@ module mod_gn6hnc
   integer(ik4) :: npl , nrhlev
   real(rk8) , pointer , dimension(:) :: pplev
   real(rk8) , pointer , dimension(:) :: sigmar
+  real(rk8) :: pss
 
   ! Whole space
   real(rk8) , pointer , dimension(:,:,:) :: b2
@@ -936,12 +937,14 @@ module mod_gn6hnc
 
     if ( dattyp(1:3) == 'EC_' .or. dattyp == 'JRA55') then
       do k = 1 , klev
-        sigmar(k) = pplev(klev-k+1)*0.00001
+        sigmar(k) = pplev(klev-k+1)/pplev(1)
       end do
-    else if ( dattyp(1:2) == 'E5' ) then
-      sigmar(:) = pplev(:)*0.00001
+      pss = pplev(1)/1000.0 ! Pa -> cb
     else
-      sigmar(:) = pplev(:)*0.001
+      do k = 1 , klev
+        sigmar(k) = pplev(k)/pplev(klev)
+      end do
+      pss = pplev(klev)/10.0D0 ! mb -> cb
     end if
 
     write (stdout,*) 'Read in Static fields OK'
@@ -1041,15 +1044,15 @@ module mod_gn6hnc
     call crs2dot(pd4,ps4,jx,iy,i_band)
 
     ! Recalculate temperature on RegCM orography
-    call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
+    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,npl)
     ! Replace it with SST on water points
     call readsst(ts4,idate)
 
     ! Vertically interpolate on RegCM sigma levels
-    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,npl)
-    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,npl)
-    call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,npl)
-    call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,npl)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
+    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
 
     ! Get back to specific humidity
     call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)

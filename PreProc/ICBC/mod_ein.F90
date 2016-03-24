@@ -56,6 +56,7 @@ module mod_ein
   real(rk8) , pointer , dimension(:) :: glon
   integer(ik4) , pointer , dimension(:) :: plevs
   real(rk8) , pointer , dimension(:) :: sigma1 , sigmar
+  real(rk8) :: pss
   integer(2) , pointer , dimension(:,:,:) :: work
 
   integer(ik4) , dimension(5,4) :: inet5
@@ -103,15 +104,15 @@ module mod_ein
     !
     ! Interpolation from pressure levels
     !
-    call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
+    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,klev)
     call readsst(ts4,idate)
     !
     ! Interpolate U, V, T, and Q.
     !
-    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,klev)
-    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,klev)
-    call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,klev)
-    call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     !
     ! Get back to mixing ratio
     !
@@ -411,7 +412,8 @@ module mod_ein
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    sigmar(:) = dble(plevs(:))/1000.0
+    sigmar(:) = dble(plevs(:))/plevs(klev)
+    pss = plevs(klev)/10.0D0 ! mb -> cb
     !
     ! CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
     !

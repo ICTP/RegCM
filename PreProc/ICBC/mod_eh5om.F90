@@ -54,6 +54,7 @@ module mod_eh5om
   real(rk8) , dimension(jlat) :: glat
   real(rk8) , dimension(ilon) :: glon
   real(rk8) , dimension(klev) :: sigma1 , sigmar
+  real(rk8) , parameter :: pss = 100.0
 
   real(rk8) , dimension(mlev+1) :: hyai , hybi
   real(rk8) , dimension(mlev) :: hyam , hybm
@@ -328,13 +329,13 @@ module mod_eh5om
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
     call crs2dot(pd4,ps4,jx,iy,i_band)
 
-    call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
+    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,klev)
     call readsst(ts4,idate)
 
-    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,klev)
-    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,klev)
-    call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,klev)
-    call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine geteh5om
 

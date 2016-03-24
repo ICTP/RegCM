@@ -68,6 +68,7 @@ module mod_nest
   real(rk8) , pointer , dimension(:,:,:) :: up , vp
 
   real(rk8) , pointer , dimension(:) :: plev , sigmar
+  real(rk8) :: pss
   real(rk8) , pointer , dimension(:) :: sigma_in
 
   integer(ik4) :: iy_in , jx_in , kz_in
@@ -335,7 +336,7 @@ module mod_nest
     ! Determine surface temps on RegCM topography.
     ! Interpolation from pressure levels
     !
-    call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,np)
+    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,np)
     !
     ! Overwrite SST using TS from ATM file.
     !
@@ -345,10 +346,10 @@ module mod_nest
     !
     ! Interpolate U, V, T, and Q.
     !
-    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,np)
-    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,np)
-    call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,np)
-    call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,np)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,np)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,np)
+    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,np)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,np)
     call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_nest
 
@@ -597,6 +598,7 @@ module mod_nest
     do k = 1 , np
       sigmar(k) = plev(k)/plev(np)
     end do
+    pss = plev(np) / 10.0D0 ! mb -> cb
 
   end subroutine headernest
 

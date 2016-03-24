@@ -33,7 +33,6 @@ module mod_vertint
   ! lrate is defined as a positive constant.
   real(rk8) , parameter :: rglrog = rgas*lrate*regrav
   real(rk8) , parameter :: b1 = -egrav/lrate
-  real(rk8) , parameter :: psccm = 100.0D0
 
   interface intlin_o
     module procedure intlin_o_double
@@ -1682,10 +1681,10 @@ module mod_vertint
   !
   !-----------------------------------------------------------------------
   !
-  subroutine intv0(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
+  subroutine intv0(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
-    real(rk8) , intent(in) :: pt
+    real(rk8) , intent(in) :: pt , pss
     real(rk8) , dimension(ni,nj,kccm) , intent(in) :: fccm
     real(rk8) , dimension(ni,nj) , intent(in) :: psrcm
     real(rk8) , dimension(kccm) , intent(in) :: sccm
@@ -1699,10 +1698,10 @@ module mod_vertint
     ! The interpolation is linear in p.  Where extrapolation
     ! is necessary, fields are considered to have 0 vertical derivative.
     !
-    pt1 = pt/psccm
+    pt1 = pt/pss
     do i = 1 , ni
       do j = 1 , nj
-        dp1 = psrcm(i,j)/psccm
+        dp1 = psrcm(i,j)/pss
         do n = 1 , krcm
           sc = srcm(n)*dp1 + pt1
           k1 = 0
@@ -1726,10 +1725,10 @@ module mod_vertint
     end do
   end subroutine intv0
 
-  subroutine intv1(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
+  subroutine intv1(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
-    real(rk8) , intent(in) :: pt
+    real(rk8) , intent(in) :: pt , pss
     real(rk8) , dimension(ni,nj,kccm) , intent(in) :: fccm
     real(rk8) , dimension(ni,nj) , intent(in) :: psrcm
     real(rk8) , dimension(kccm) , intent(in) :: sccm
@@ -1742,10 +1741,10 @@ module mod_vertint
     ! The interpolation is linear in P.  Where extrapolation
     ! is necessary, fields are considered to have 0 vertical derivative.
     !
-    pt1 = pt/psccm
+    pt1 = pt/pss
     do i = 1 , ni
       do j = 1 , nj
-        dp1 = psrcm(i,j)/psccm
+        dp1 = psrcm(i,j)/pss
         do n = 1 , krcm
           sc = srcm(n)*dp1 + pt1
           k1 = 0
@@ -1771,10 +1770,10 @@ module mod_vertint
   !
   !-----------------------------------------------------------------------
   !
-  subroutine intv2(frcm,fccm,psrcm,srcm,sccm,pt,ni,nj,krcm,kccm)
+  subroutine intv2(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
-    real(rk8) , intent(in) :: pt
+    real(rk8) , intent(in) :: pt , pss
     real(rk8) , dimension(ni,nj,kccm) , intent(in) :: fccm
     real(rk8) , dimension(ni,nj) , intent(in) :: psrcm
     real(rk8) , dimension(kccm) , intent(in) :: sccm
@@ -1791,10 +1790,10 @@ module mod_vertint
     ! thickness is determined hydrostatically from the mean of the
     ! two extreme temperatues in the layer.
     !
-    pt1 = pt/psccm
+    pt1 = pt/pss
     do i = 1 , ni
       do j = 1 , nj
-        dp1 = psrcm(i,j)/psccm
+        dp1 = psrcm(i,j)/pss
         do n = 1 , krcm
           sc = srcm(n)*dp1 + pt1
           k1 = 0
@@ -1819,10 +1818,10 @@ module mod_vertint
   !
   !-----------------------------------------------------------------------
   !
-  subroutine intv3(fsccm,fccm,psrccm,sccm,ptop,ni,nj,kccm)
+  subroutine intv3(fsccm,fccm,psrccm,pss,sccm,ptop,ni,nj,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , ni , nj
-    real(rk8) , intent(in) :: ptop
+    real(rk8) , intent(in) :: ptop , pss
     real(rk8) , dimension(ni,nj,kccm) , intent(in) :: fccm
     real(rk8) , dimension(ni,nj) , intent(in) :: psrccm
     real(rk8) , dimension(ni,nj) , intent(out) :: fsccm
@@ -1840,7 +1839,7 @@ module mod_vertint
     !
     do i = 1 , ni
       do j = 1 , nj
-        sc = (psrccm(i,j)+ptop)*d_r100
+        sc = (psrccm(i,j)+ptop)/pss
         k1 = 0
         do k = 1 , kccm - 1
           if ( sc <= sccm(k+1) .and. sc >= sccm(k) ) k1 = k

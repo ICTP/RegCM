@@ -44,6 +44,7 @@ module mod_erahi
 
   real(rk8) , dimension(nlev1+1) :: ak , bk
   real(rk8) , dimension(nlev2) :: pplev , sigma1 , sigmar
+  real(rk8) , parameter :: pss = 100.0D0
   real(rk8) , dimension(nlats) :: slat
   real(rk8) , dimension(nlons) :: slon
 
@@ -189,15 +190,15 @@ module mod_erahi
     !
     ! Determine surface temps on RegCM topography.
     ! Interpolation from pressure levels
-    call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nlev2)
+    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,nlev2)
 
     call readsst(ts4,idate)
 
     ! Interpolate U, V, T, and Q.
-    call intv1(u4,u3,pd4,sigmah,sigmar,ptop,jx,iy,kz,nlev2)
-    call intv1(v4,v3,pd4,sigmah,sigmar,ptop,jx,iy,kz,nlev2)
-    call intv2(t4,t3,ps4,sigmah,sigmar,ptop,jx,iy,kz,nlev2)
-    call intv1(q4,q3,ps4,sigmah,sigmar,ptop,jx,iy,kz,nlev2)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
     call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
 99001 format (a,a,a,a,'EHI_',i10)
   end subroutine geterahi
@@ -391,7 +392,7 @@ module mod_erahi
     pplev(18) = 1000.
 
     do k = 1 , nlev2
-      sigmar(k) = pplev(k)*0.001
+      sigmar(k) = pplev(k)/pplev(nlev2)
     end do
     !
     ! Change order of vertical indexes for pressure levels
