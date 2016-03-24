@@ -211,37 +211,37 @@ module mod_bdycod
       end do
     end if
     if ( idynamic == 2 ) then
-      wtbdy(:,:) = 1.0D0
+      wtbdy(:,:) = d_one
       if ( iboudy == 1 ) then
         if ( ma%has_bdyleft ) then
           wtbdy(jce1,:) = d_zero
           do n = 2 , nspgx-1
-            wtbdy(n,:) = fcx(n)
+            wtbdy(jce1+n-1,:) = d_one-xfun(n,.false.)
           end do
         end if
         if ( ma%has_bdyright ) then
           wtbdy(jce2,:) = d_zero
           do n = 2 , nspgx-1
-            wtbdy(jce2-n+1,:) = fcx(n)
+            wtbdy(jce2-n+1,:) = d_one-xfun(n,.false.)
           end do
         end if
         if ( ma%has_bdybottom ) then
           wtbdy(:,ice1) = d_zero
           do n = 2 , nspgx-1
-            wtbdy(:,n) = fcx(n)
+            wtbdy(:,ice1+n-1) = d_one-xfun(n,.false.)
           end do
         end if
         if ( ma%has_bdytop ) then
           wtbdy(:,ice2) = d_zero
           do n = 2 , nspgx-1
-            wtbdy(:,ice2-n+1) = fcx(n)
+            wtbdy(:,ice2-n+1) = d_one-xfun(n,.false.)
           end do
         end if
       else if ( iboudy == 4 ) then
         if ( ma%has_bdyleft ) then
           wtbdy(jce1,:) = d_zero
           do n = 2 , nspgx-1
-            wtbdy(n,:) = wgtx(n)
+            wtbdy(jce1+n-1,:) = wgtx(n)
           end do
         end if
         if ( ma%has_bdyright ) then
@@ -253,7 +253,7 @@ module mod_bdycod
         if ( ma%has_bdybottom ) then
           wtbdy(:,ice1) = d_zero
           do n = 2 , nspgx-1
-            wtbdy(:,n) = wgtx(n)
+            wtbdy(:,ice1+n-1) = wgtx(n)
           end do
         end if
         if ( ma%has_bdytop ) then
@@ -266,25 +266,25 @@ module mod_bdycod
         if ( ma%has_bdyleft ) then
           wtbdy(jce1,:) = d_zero
           do n = 2 , nspgx-1
-            wtbdy(n,:) = fefc(n,1)
+            wtbdy(jce1+n-1,:) = d_one-xfune(n,1,anudgf)
           end do
         end if
         if ( ma%has_bdyright ) then
           wtbdy(jce2,:) = d_zero
           do n = 2 , nspgx-1
-            wtbdy(jce2-n+1,:) = fefc(n,1)
+            wtbdy(jce2-n+1,:) = d_one-xfune(n,1,anudgf)
           end do
         end if
         if ( ma%has_bdybottom ) then
           wtbdy(:,ice1) = d_zero
           do n = 2 , nspgx-1
-            wtbdy(:,n) = fefc(n,1)
+            wtbdy(:,ice1+n-1) = d_one-xfune(n,1,anudgf)
           end do
         end if
         if ( ma%has_bdytop ) then
           wtbdy(:,ice2) = d_zero
           do n = 2 , nspgx-1
-            wtbdy(:,ice2-n+1) = fefc(n,1)
+            wtbdy(:,ice2-n+1) = d_one-xfune(n,1,anudgf)
           end do
         end if
       end if
