@@ -28,6 +28,7 @@ module mod_sound
   use mod_constants
   use mod_stdio
   use mod_mppparam
+  use mod_bdycod , only : wtbdy
   use mod_cu_interface , only : total_precip_points
   use mod_atm_interface
 
@@ -51,6 +52,7 @@ module mod_sound
   real(rk8) , pointer , dimension(:,:,:) :: pi
   real(rk8) , pointer , dimension(:,:,:) :: e , f
   real(rk8) , pointer , dimension(:,:) :: astore
+  real(rk8) , pointer , dimension(:,:) :: rpsb
   real(rk8) , pointer , dimension(:,:) :: wpval
 
   real(rk8) , dimension(-6:6) :: fi , fj
@@ -99,6 +101,7 @@ module mod_sound
     call getmem3d(pi,jci1,jci2,ici1,ici2,1,kz,'sound:pi')
     call getmem2d(astore,jci1,jci2,ici1,ici2,'sound:astore')
     call getmem2d(wpval,jci1,jci2,ici1,ici2,'sound:wpval')
+    call getmem2d(rpsb,jci1,jci2,ici1,ici2,'sound:rpsb')
   end subroutine allocate_mod_sound
 
   subroutine init_sound
@@ -191,6 +194,11 @@ module mod_sound
     !  xxb stores filtered old xxa without xxc term
     !  no asselin filter on boundary
     !
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        rpsb(j,i) = d_one/sfs%psb(j,i)
+      end do
+    end do
     do k = 1 , kz
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -206,7 +214,7 @@ module mod_sound
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv)/sfs%psb(j,i)
+          atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) * rpsb(j,i)
         end do
       end do
     end do
@@ -214,7 +222,7 @@ module mod_sound
       do i = ice1 , ice2
         do j = jce1 , jce2
           aten%pp(j,i,k) = aten%pp(j,i,k) * dts
-          atmc%pp(j,i,k) = atm2%pp(j,i,k)/sfs%psb(j,i)
+          atmc%pp(j,i,k) = atm2%pp(j,i,k) * rpsb(j,i)
           atm2%pp(j,i,k) = omuhf*atm1%pp(j,i,k) + gnuhf*atm2%pp(j,i,k)
         end do
       end do
@@ -223,7 +231,7 @@ module mod_sound
       do i = ice1 , ice2
         do j = jce1 , jce2
           aten%w(j,i,k) = aten%w(j,i,k) * dts
-          atmc%w(j,i,k) = atm2%w(j,i,k)/sfs%psb(j,i)
+          atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
           atm2%w(j,i,k) = omuhf*atm1%w(j,i,k) + gnuhf*atm2%w(j,i,k)
         end do
       end do
@@ -372,7 +380,7 @@ module mod_sound
                        mddom%msfx(j,i) - d_two * (pyvp(j,i,1) + pxup(j,i,1)) )
           tk(j,i,1) = atm0%ps(j,i) * atm0%t(j,i,1) / &
                       (d_two * xgamma * atm0%pr(j,i,1) * &
-                      atm2%t(j,i,1) / sfs%psb(j,i))
+                      atm2%t(j,i,1) * rpsb(j,i))
         end do
       end do
       do k = 2 , kz
@@ -382,7 +390,7 @@ module mod_sound
           do j = jci1 , jci2
             tk(j,i,k) = atm0%ps(j,i) * atm0%t(j,i,k) / &
                         (d_two * xgamma * atm0%pr(j,i,k) * &
-                        atm2%t(j,i,k) / sfs%psb(j,i))
+                        atm2%t(j,i,k) * rpsb(j,i))
             rofac = (dsigma(km1)*atm0%rho(j,i,k) + &
                      dsigma(k)*atm0%rho(j,i,km1)) / &
                     (dsigma(km1)*atm1%rho(j,i,k) + &
@@ -526,7 +534,7 @@ module mod_sound
           do i = ici1 , ici2
             do j = jci1 , jci2
               atot = atot + astore(j,i)
-              ensq = egrav*egrav/cpd/(atm2%t(j,i,1)/sfs%psb(j,i))
+              ensq = egrav*egrav/cpd/(atm2%t(j,i,1) * rpsb(j,i))
               rhontot = rhontot + atm1%rho(j,i,1)*sqrt(ensq)
               xmsftot = xmsftot + mddom%msfx(j,i)
             end do
@@ -542,10 +550,10 @@ module mod_sound
           xmsf = xmsf/npts
           dxmsfb = d_two/dx/xmsf
           tmask(:,:) = d_zero
-          do ll = 0 , 6
-            rll = dble(ll)
-            do kk = 0 , 6
-              rkk = dble(kk)
+          do kk = 0 , 6
+            rkk = dble(kk)
+            do ll = 0 , 6
+              rll = dble(ll)
               xkeff = dxmsfb * sin(mathpi*rkk/12.0D0)*cos(mathpi*rll/12.0D0)
               xleff = dxmsfb * sin(mathpi*rll/12.0D0)*cos(mathpi*rkk/12.0D0)
               xkleff = sqrt(xkeff*xkeff + xleff*xleff)
@@ -555,8 +563,8 @@ module mod_sound
                   rj = dble(j)
                   tmask(j,i) = tmask(j,i) + &
                                fi(i)*fj(j)*fk(kk)*fl(ll)/144.0D0 * &
-                               cos(2.0D0*mathpi*rkk*ri/12.0D0) *     &
-                               cos(2.0D0*mathpi*rll*rj/12.0D0) *    &
+                               cos(2.0D0*mathpi*rkk*ri/12.0D0) *   &
+                               cos(2.0D0*mathpi*rll*rj/12.0D0) *   &
                                xkleff / (rhon-abar*xkleff)
                 end do
               end do
@@ -573,10 +581,13 @@ module mod_sound
               inn = min(max(i,2),nicross-2)
               do nsj = -6 , 6
                 jnn = min(max(j,2),njcross-2)
-                wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
+                wpval(j,i) = wpval(j,i) + &
+                       estore_g(jnn,inn)*tmask(nsj,nsi)*wtbdy(j,i)
               end do
             end do
-            if ( abs(wpval(j,i)) < dlowval ) wpval(j,i) = d_zero
+            if ( abs(wpval(j,i)) < dlowval ) then
+              wpval(j,i) = sign(dlowval,wpval(j,i))
+            end if
           end do
         end do
       end if
@@ -769,10 +780,10 @@ module mod_sound
           atm1%w(j,i,k) = sfs%psb(j,i) * atmc%w(j,i,k)
           atm2%w(j,i,k) = atm2%w(j,i,k) + gnuhf*atm1%w(j,i,k)
           if ( abs(atm1%w(j,i,k)) < dlowval) then
-            atm1%w(j,i,k) = d_zero
+            atm1%w(j,i,k) = sign(dlowval,atm1%w(j,i,k))
           end if
           if ( abs(atm2%w(j,i,k)) < dlowval) then
-            atm2%w(j,i,k) = d_zero
+            atm2%w(j,i,k) = sign(dlowval,atm2%w(j,i,k))
           end if
         end do
       end do

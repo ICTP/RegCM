@@ -43,7 +43,6 @@ module mod_bdycod
   private
 
   public :: allocate_mod_bdycon , init_bdy , bdyin , bdyval
-
   !
   ! West U External  = WUE
   ! West U Internal  = WUI
@@ -58,11 +57,13 @@ module mod_bdycod
   ! fnudge : are the coefficients for the newtonian term.
   ! gnydge : are the coefficients for the diffusion term.
   public :: fnudge , gnudge
+  public :: wtbdy
   !
   real(rk8) , pointer , dimension(:,:) :: sue , sui , nue , nui , &
                                          sve , svi , nve , nvi
   real(rk8) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
                                          wve , wvi , eve , evi
+  real(rk8) , pointer , dimension(:,:) :: wtbdy
   real(rk8) , pointer , dimension(:,:) :: psdot
   real(rk8) , pointer , dimension(:) :: fcx , gcx
   real(rk8) , pointer , dimension(:) :: fcd , gcd
@@ -135,6 +136,9 @@ module mod_bdycod
       call getmem2d(wvi,ide1ga,ide2ga,1,kz,'bdycon:wvi')
     end if
     call getmem2d(psdot,jde1,jde2,ide1,ide2,'bdycon:psdot')
+    if ( idynamic == 2 ) then
+      call getmem2d(wtbdy,jce1,jce2,ice1,ice2,'bdycon:wtbdy')
+    end if
   end subroutine allocate_mod_bdycon
 
   subroutine setup_bdycon
@@ -206,6 +210,86 @@ module mod_bdycod
         end do
       end do
     end if
+    if ( idynamic == 2 ) then
+      wtbdy(:,:) = 1.0D0
+      if ( iboudy == 1 ) then
+        if ( ma%has_bdyleft ) then
+          wtbdy(jce1,:) = d_zero
+          do n = 2 , nspgx-1
+            wtbdy(n,:) = fcx(n)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          wtbdy(jce2,:) = d_zero
+          do n = 2 , nspgx-1
+            wtbdy(jce2-n+1,:) = fcx(n)
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          wtbdy(:,ice1) = d_zero
+          do n = 2 , nspgx-1
+            wtbdy(:,n) = fcx(n)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          wtbdy(:,ice2) = d_zero
+          do n = 2 , nspgx-1
+            wtbdy(:,ice2-n+1) = fcx(n)
+          end do
+        end if
+      else if ( iboudy == 4 ) then
+        if ( ma%has_bdyleft ) then
+          wtbdy(jce1,:) = d_zero
+          do n = 2 , nspgx-1
+            wtbdy(n,:) = wgtx(n)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          wtbdy(jce2,:) = d_zero
+          do n = 2 , nspgx-1
+            wtbdy(jce2-n+1,:) = wgtx(n)
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          wtbdy(:,ice1) = d_zero
+          do n = 2 , nspgx-1
+            wtbdy(:,n) = wgtx(n)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          wtbdy(:,ice2) = d_zero
+          do n = 2 , nspgx-1
+            wtbdy(:,ice2-n+1) = wgtx(n)
+          end do
+        end if
+      else if ( iboudy == 5 ) then
+        if ( ma%has_bdyleft ) then
+          wtbdy(jce1,:) = d_zero
+          do n = 2 , nspgx-1
+            wtbdy(n,:) = fefc(n,1)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          wtbdy(jce2,:) = d_zero
+          do n = 2 , nspgx-1
+            wtbdy(jce2-n+1,:) = fefc(n,1)
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          wtbdy(:,ice1) = d_zero
+          do n = 2 , nspgx-1
+            wtbdy(:,n) = fefc(n,1)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          wtbdy(:,ice2) = d_zero
+          do n = 2 , nspgx-1
+            wtbdy(:,ice2-n+1) = fefc(n,1)
+          end do
+        end if
+      end if
+    end if
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
