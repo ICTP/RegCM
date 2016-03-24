@@ -57,13 +57,11 @@ module mod_bdycod
   ! fnudge : are the coefficients for the newtonian term.
   ! gnydge : are the coefficients for the diffusion term.
   public :: fnudge , gnudge
-  public :: wtbdy
   !
   real(rk8) , pointer , dimension(:,:) :: sue , sui , nue , nui , &
                                          sve , svi , nve , nvi
   real(rk8) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
                                          wve , wvi , eve , evi
-  real(rk8) , pointer , dimension(:,:) :: wtbdy
   real(rk8) , pointer , dimension(:,:) :: psdot
   real(rk8) , pointer , dimension(:) :: fcx , gcx
   real(rk8) , pointer , dimension(:) :: fcd , gcd
@@ -142,7 +140,7 @@ module mod_bdycod
 
   subroutine setup_bdycon
     implicit none
-    integer(ik4) :: n , k
+    integer(ik4) :: i , j , n , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
     integer(ik4) , save :: idindx = 0
@@ -210,83 +208,31 @@ module mod_bdycod
       end do
     end if
     if ( idynamic == 2 .and. ifupr == 1 ) then
-      call getmem2d(wtbdy,jce1,jce2,ice1,ice2,'bdycon:wtbdy')
-      wtbdy(:,:) = d_one
+      wtbdy(jci1:jci2,ici1:ici2) = d_one
       if ( iboudy == 1 ) then
-        if ( ma%has_bdyleft ) then
-          wtbdy(jce1,:) = d_zero
-          do n = 2 , nspgx-1
-            wtbdy(jce1+n-1,:) = d_one-xfun(n,.false.)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            if ( .not. ba_cr%bwest(j,i)  .and. .not. ba_cr%beast(j,i) .and. &
+                 .not. ba_cr%bsouth(j,i) .and. .not. ba_cr%bnorth(j,i) ) cycle
+            wtbdy(j,i) = d_one-xfun(ba_cr%ibnd(j,i),.false.)
           end do
-        end if
-        if ( ma%has_bdyright ) then
-          wtbdy(jce2,:) = d_zero
-          do n = 2 , nspgx-1
-            wtbdy(jce2-n+1,:) = d_one-xfun(n,.false.)
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          wtbdy(:,ice1) = d_zero
-          do n = 2 , nspgx-1
-            wtbdy(:,ice1+n-1) = d_one-xfun(n,.false.)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          wtbdy(:,ice2) = d_zero
-          do n = 2 , nspgx-1
-            wtbdy(:,ice2-n+1) = d_one-xfun(n,.false.)
-          end do
-        end if
+        end do
       else if ( iboudy == 4 ) then
-        if ( ma%has_bdyleft ) then
-          wtbdy(jce1,:) = d_zero
-          do n = 2 , nspgx-1
-            wtbdy(jce1+n-1,:) = wgtx(n)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            if ( .not. ba_cr%bwest(j,i)  .and. .not. ba_cr%beast(j,i) .and. &
+                 .not. ba_cr%bsouth(j,i) .and. .not. ba_cr%bnorth(j,i) ) cycle
+            wtbdy(j,i) = wgtx(ba_cr%ibnd(j,i))
           end do
-        end if
-        if ( ma%has_bdyright ) then
-          wtbdy(jce2,:) = d_zero
-          do n = 2 , nspgx-1
-            wtbdy(jce2-n+1,:) = wgtx(n)
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          wtbdy(:,ice1) = d_zero
-          do n = 2 , nspgx-1
-            wtbdy(:,ice1+n-1) = wgtx(n)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          wtbdy(:,ice2) = d_zero
-          do n = 2 , nspgx-1
-            wtbdy(:,ice2-n+1) = wgtx(n)
-          end do
-        end if
+        end do
       else if ( iboudy == 5 ) then
-        if ( ma%has_bdyleft ) then
-          wtbdy(jce1,:) = d_zero
-          do n = 2 , nspgx-1
-            wtbdy(jce1+n-1,:) = d_one-xfune(n,1,anudgf)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            if ( .not. ba_cr%bwest(j,i)  .and. .not. ba_cr%beast(j,i) .and. &
+                 .not. ba_cr%bsouth(j,i) .and. .not. ba_cr%bnorth(j,i) ) cycle
+            wtbdy(j,i) = d_one-xfune(ba_cr%ibnd(j,i),1,anudgf)
           end do
-        end if
-        if ( ma%has_bdyright ) then
-          wtbdy(jce2,:) = d_zero
-          do n = 2 , nspgx-1
-            wtbdy(jce2-n+1,:) = d_one-xfune(n,1,anudgf)
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          wtbdy(:,ice1) = d_zero
-          do n = 2 , nspgx-1
-            wtbdy(:,ice1+n-1) = d_one-xfune(n,1,anudgf)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          wtbdy(:,ice2) = d_zero
-          do n = 2 , nspgx-1
-            wtbdy(:,ice2-n+1) = d_one-xfune(n,1,anudgf)
-          end do
-        end if
+        end do
       end if
       call grid_fill(wtbdy,wtbdy_g,jce1,jce2,ice1,ice2)
     end if

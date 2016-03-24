@@ -28,7 +28,6 @@ module mod_sound
   use mod_constants
   use mod_stdio
   use mod_mppparam
-  use mod_bdycod , only : wtbdy
   use mod_cu_interface , only : total_precip_points
   use mod_atm_interface
 
@@ -101,7 +100,7 @@ module mod_sound
     call getmem3d(pi,jci1,jci2,ici1,ici2,1,kz,'sound:pi')
     call getmem2d(astore,jci1,jci2,ici1,ici2,'sound:astore')
     call getmem2d(wpval,jci1,jci2,ici1,ici2,'sound:wpval')
-    call getmem2d(rpsb,jci1,jci2,ici1,ici2,'sound:rpsb')
+    call getmem2d(rpsb,jce1gb,jce2gb,ice1gb,ice2gb,'sound:rpsb')
   end subroutine allocate_mod_sound
 
   subroutine init_sound
@@ -194,8 +193,8 @@ module mod_sound
     !  xxb stores filtered old xxa without xxc term
     !  no asselin filter on boundary
     !
-    do i = ice1 , ice2
-      do j = jce1 , jce2
+    do i = ice1gb , ice2gb
+      do j = jce1gb , jce2gb
         rpsb(j,i) = d_one/sfs%psb(j,i)
       end do
     end do
