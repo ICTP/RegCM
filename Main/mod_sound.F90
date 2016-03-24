@@ -582,7 +582,7 @@ module mod_sound
               do nsj = -6 , 6
                 jnn = min(max(j,2),njcross-2)
                 wpval(j,i) = wpval(j,i) + &
-                       estore_g(jnn,inn)*tmask(nsj,nsi)*wtbdy(j,i)
+                       estore_g(jnn,inn)*tmask(nsj,nsi)*wtbdy_g(jnn,inn)
               end do
             end do
             if ( abs(wpval(j,i)) < dlowval ) then

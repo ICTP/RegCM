@@ -137,7 +137,6 @@ module mod_bdycod
     end if
     call getmem2d(psdot,jde1,jde2,ide1,ide2,'bdycon:psdot')
     if ( idynamic == 2 ) then
-      call getmem2d(wtbdy,jce1,jce2,ice1,ice2,'bdycon:wtbdy')
     end if
   end subroutine allocate_mod_bdycon
 
@@ -210,7 +209,8 @@ module mod_bdycod
         end do
       end do
     end if
-    if ( idynamic == 2 ) then
+    if ( idynamic == 2 .and. ifupr == 1 ) then
+      call getmem2d(wtbdy,jce1,jce2,ice1,ice2,'bdycon:wtbdy')
       wtbdy(:,:) = d_one
       if ( iboudy == 1 ) then
         if ( ma%has_bdyleft ) then
@@ -288,6 +288,7 @@ module mod_bdycod
           end do
         end if
       end if
+      call grid_fill(wtbdy,wtbdy_g,jce1,jce2,ice1,ice2)
     end if
 
 #ifdef DEBUG

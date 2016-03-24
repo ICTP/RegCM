@@ -96,7 +96,7 @@ module mod_atm_interface
 
   ! Dynamic 2
   real(rk8) , pointer , public , dimension(:,:) :: dpsdxm , dpsdym
-  real(rk8) , pointer , public , dimension(:,:) :: estore , estore_g
+  real(rk8) , pointer , public , dimension(:,:) :: estore , estore_g , wtbdy_g
   real(rk8) , public , dimension(-6:6,-6:6) :: tmask
 
   ! Surface
@@ -946,6 +946,8 @@ module mod_atm_interface
           call getmem2d(estore,jci1,jci2,ici1,ici2,'storage:estore')
           call getmem2d(estore_g,jcross1,jcross2, &
                                  icross1,icross2,'storage:estore_g')
+          call getmem2d(wtbdy_g,jcross1,jcross2, &
+                                icross1,icross2,'storage:wtbdy_g')
         end if
         call getmem2d(hyps0,jce1,jce2,ice1,ice2,'storage:hyps0')
         call getmem2d(hyps1,jce1,jce2,ice1,ice2,'storage:hyps1')
