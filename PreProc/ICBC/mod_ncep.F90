@@ -95,7 +95,7 @@ module mod_ncep
     !
     ! New calculation of P* on rcm topography.
     !
-    call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
+    call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,klev)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
     call crs2dot(pd4,ps4,jx,iy,i_band)
     !

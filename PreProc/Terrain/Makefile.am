@@ -24,7 +24,7 @@ mod_fudge.o : mod_fudge.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_messa
 mod_header.o : mod_header.F90 mod_intkinds.o mod_stdio.o
 mod_intldtr.o : mod_intldtr.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_stdio.o mod_message.o
 mod_maps.o : mod_maps.F90 mod_intkinds.o mod_realkinds.o mod_memutil.o
-mod_maputils.o : mod_maputils.F90 mod_constants.o mod_projections.o mod_projections.o mod_projections.o mod_projections.o
+mod_maputils.o : mod_maputils.F90 mod_constants.o mod_intkinds.o mod_realkinds.o mod_projections.o
 mod_rdldtr.o : mod_rdldtr.F90 mod_block.o mod_stdio.o mod_constants.o mod_memutil.o mod_nchelper.o
 mod_smooth.o : mod_smooth.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_write.o : mod_write.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_ncstream_types.o mod_ncstream.o

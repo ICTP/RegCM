@@ -305,12 +305,12 @@ module mod_clm_ch4
     do g = lbg , ubg
 
       if (ch4offline) then
-        forc_pch4(g) = -atmch4*forc_pbot(g)
-      else 
+        forc_pch4(g) = atmch4*forc_pbot(g)
+      else
        write(stderr,*) 'not using ch4offline, but methane concentration &
                   &not passed from the atmosphere &
                   &to land model! CLM Model is stopping.'
-          call fatal(__FILE__,__LINE__, & 
+          call fatal(__FILE__,__LINE__, &
            trim(subname) // 'ERROR: Methane not being passed to atmosphere')
         end if
 
@@ -341,7 +341,7 @@ module mod_clm_ch4
       if (fin_use_fsat) then
         finundated(c) = frac_h2osfc(c)
       else
-      ! FAB fix zwt0(c) > 0. for avoiding too large argument in the exponential 
+      ! FAB fix zwt0(c) > 0. for avoiding too large argument in the exponential
         if (zwt0(c) > 0.5D-01) then
           if (zwt_perched(c) < z(c,nlevsoi)-1.D-5 .and. &
               zwt_perched(c) < zwt(c)) then

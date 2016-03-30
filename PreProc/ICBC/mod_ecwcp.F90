@@ -146,7 +146,7 @@ module mod_ecwcp
     !
     call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev,plon,plat,iproj)
     ! New calculation of P* on RegCM topography.
-    call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,nlev)
+    call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nlev)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
     call crs2dot(pd4,ps4,jx,iy,i_band)
     !

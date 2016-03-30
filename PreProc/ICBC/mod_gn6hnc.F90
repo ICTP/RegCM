@@ -1039,7 +1039,7 @@ module mod_gn6hnc
     end if
 
     ! Recalculate pressure on RegCM orography
-    call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl)
+    call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,npl)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
     call crs2dot(pd4,ps4,jx,iy,i_band)
 

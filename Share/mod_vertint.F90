@@ -969,27 +969,30 @@ module mod_vertint
   !
   !-----------------------------------------------------------------------
   !
-  subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,sccm,ni,nj,nlev1)
+  subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,pss,sccm,ni,nj,nlev1)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nlev1
+    real(rk8) :: pss
     real(rk8) , dimension(ni,nj) , intent(in) :: zrcm
     real(rk8) , dimension(nlev1) , intent(in) :: sccm
     real(rk8) , dimension(ni,nj,nlev1) , intent(in) :: tp , zp
     real(rk8) , dimension(ni,nj) , intent(out) :: tlayer , pa , za
     integer(ik4) :: i , j , k , kb , kt
+    real(rk8) :: wu , wl
     !
-    !     INTGTB CALCULATES ALL VARIABLES NEEDED TO COMPUTE P* ON THE RCM
-    !     TOPOGRAPHY.  THE MEAN TEMPERATURE IN THE LAYER BETWEEN
-    !     THE TOPOGRAPHY AND THE PRESSURE LEVEL ABOVE IS CALULATED
-    !     BY LINEARLY INTERPOLATING WITH HEIGHT THE TEMPS ON
-    !     PRESSURE LEVELS.
-    !     INPUT:    TP        TEMPS ON ECMWF PRESSURE LEVELS
-    !     ZP        HEIGHTS OF ECMWF PRESSURE LEVELS
-    !     ZRCM      RCM TOPOGRAPHY
-    !     SCCM      ECMWF PRESSURE LEVELS (DIVIDED BY 1000.)
-    !     OUTPUT:   TLAYER    MEAN LAYER TEMP ABOVE RCM SURFACE
-    !     PA        PRESSURE AT TOP OF LAYER
-    !     ZA        HEIGHT AT PRESSURE PA
+    ! INTGTB CALCULATES ALL VARIABLES NEEDED TO COMPUTE P* ON THE RCM
+    ! TOPOGRAPHY.  THE MEAN TEMPERATURE IN THE LAYER BETWEEN
+    ! THE TOPOGRAPHY AND THE PRESSURE LEVEL ABOVE IS CALULATED
+    ! BY LINEARLY INTERPOLATING WITH HEIGHT THE TEMPS ON
+    ! PRESSURE LEVELS.
+    !
+    ! INPUT:    TP      TEMPS ON GLOBAL MODEL PRESSURE LEVELS
+    !           ZP      HEIGHTS OF GLOBAL MODEL PRESSURE LEVELS
+    !           ZRCM    RCM TOPOGRAPHY
+    !           SCCM    GLOBAL PRESSURE LEVELS (DIVIDED BY SURFACE)
+    ! OUTPUT:   TLAYER  MEAN LAYER TEMP ABOVE RCM SURFACE
+    !           PA      PRESSURE AT TOP OF LAYER
+    !           ZA      HEIGHT AT PRESSURE PA
     !
     do i = 1 , ni
       do j = 1 , nj
@@ -1000,17 +1003,17 @@ module mod_vertint
         end do
         kb = kt + 1
         if ( kt /= 0 ) then
-          tlayer(i,j) = (tp(i,j,nlev1+1-kt)*(zrcm(i,j)-          &
-                         zp(i,j,nlev1+1-kb))+tp(i,j,nlev1+1-kb)  &
-                        *(zp(i,j,nlev1+1-kt)-zrcm(i,j)))         &
-                        /(zp(i,j,nlev1+1-kt)-zp(i,j,nlev1+1-kb))
-          tlayer(i,j) = (tp(i,j,nlev1+1-kt)+tlayer(i,j))/d_two
+          wu = ( zrcm(i,j) - zp(i,j,nlev1+1-kb) ) / &
+               ( zp(i,j,nlev1+1-kt) - zp(i,j,nlev1+1-kb) )
+          wl = d_one - wu
+          tlayer(i,j) = tp(i,j,nlev1+1-kt) * wu + tp(i,j,nlev1+1-kb) * wl
+          tlayer(i,j) = (tp(i,j,nlev1+1-kt) + tlayer(i,j))/d_two
           za(i,j) = zp(i,j,nlev1+1-kt)
-          pa(i,j) = d_100*sccm(kt)
+          pa(i,j) = pss*sccm(kt)
         else
           tlayer(i,j) = tp(i,j,1)
           za(i,j) = zp(i,j,1)
-          pa(i,j) = d_100
+          pa(i,j) = pss
         end if
       end do
     end do
@@ -1664,7 +1667,6 @@ module mod_vertint
     real(rk8) , intent(in) :: pt
     real(rk8) , dimension(ni,nj) , intent(in) :: pa , tlayer , za , zrcm
     real(rk8) , dimension(ni,nj) , intent(out) :: psrcm
-    real(rk8) :: tb
     integer(ik4) :: i , j
     !
     ! EXTRAPOLATE SURFACE PRESSURE FROM CLOSEST PRESSURE LEVEL ABOVE.
@@ -1673,8 +1675,7 @@ module mod_vertint
     !
     do i = 1 , ni
       do j = 1 , nj
-        tb = tlayer(i,j)
-        psrcm(i,j) = pa(i,j)*dexp(-govr*(zrcm(i,j)-za(i,j))/tb)-pt
+        psrcm(i,j) = pa(i,j)*exp(-govr*(zrcm(i,j)-za(i,j))/tlayer(i,j)) - pt
       end do
     end do
   end subroutine intpsn
@@ -1706,9 +1707,7 @@ module mod_vertint
           sc = srcm(n)*dp1 + pt1
           k1 = 0
           do k = 1 , kccm
-            if ( sc > sccm(k) ) then
-              k1 = k
-            end if
+            if ( sc > sccm(k) ) k1 = k
           end do
           if ( k1 == 0 ) then
             frcm(i,j,n) = fccm(i,j,1)
@@ -1749,9 +1748,7 @@ module mod_vertint
           sc = srcm(n)*dp1 + pt1
           k1 = 0
           do k = 1 , kccm
-            if ( sc > sccm(k) ) then
-              k1 = k
-            end if
+            if ( sc > sccm(k) ) k1 = k
           end do
           if ( k1 == 0 ) then
             frcm(i,j,n) = fccm(i,j,kccm)
@@ -1782,7 +1779,7 @@ module mod_vertint
     real(rk8) :: a1 , dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
     !
-    ! INTV2 is for vertical interpolation of T.  The interpolation is
+    ! INTV2 is for vertical interpolation.  The interpolation is
     ! linear in log P.  Where extrapolation upward is necessary,
     ! the T field is considered to have 0 vertical derivative.
     ! Where extrapolation downward is necessary, the T field is
@@ -1829,7 +1826,7 @@ module mod_vertint
     real(rk8) :: a1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1
     !
-    ! INTV3 is for vertical interpolation of tsccm.  The interpolation
+    ! INTV3 is for vertical interpolation.  The interpolation
     ! is linear in log P.  Where extrapolation upward is necessary,
     ! the T field is considered to have 0 vertical derivative.
     ! Where extrapolation downward is necessary, the T field is
@@ -1841,23 +1838,23 @@ module mod_vertint
       do j = 1 , nj
         sc = (psrccm(i,j)+ptop)/pss
         k1 = 0
-        do k = 1 , kccm - 1
-          if ( sc <= sccm(k+1) .and. sc >= sccm(k) ) k1 = k
+        do k = 1 , kccm
+          if ( sc > sccm(k) ) k1 = k
         end do
-        !If the surface is below the GCM's lowest level,
-        !then extrapolate temperature
-        if (sc > sccm(kccm) ) then
-          a1 = rgas2*log(sc/sccm(kccm))
-          fsccm(i,j) = fccm(i,j,kccm+1-kccm)*(b1-a1)/(b1+a1)
-        !Otherwise, interpolate the surface temperature between
-        !the two adjacent GCM levels
-        else if ( k1 == 0 ) then
+        if ( k1 == 0 ) then
           fsccm(i,j) = fccm(i,j,1)
-        else
+        else if ( k1 /= kccm ) then
+          ! Interpolate the temperature between
+          ! the two adjacent GCM levels
           kp1 = k1 + 1
           rc = log(sccm(k1)/sc)/log(sccm(k1)/sccm(kp1))
           rc1 = d_one - rc
           fsccm(i,j) = rc1*fccm(i,j,kccm+1-k1)+rc*fccm(i,j,kccm+1-kp1)
+        else
+          ! If the surface is below the GCM's lowest level,
+          ! extrapolate
+          a1 = rgas2*log(sc/sccm(kccm))
+          fsccm(i,j) = fccm(i,j,kccm+1-kccm)*(b1-a1)/(b1+a1)
         end if
       end do
     end do

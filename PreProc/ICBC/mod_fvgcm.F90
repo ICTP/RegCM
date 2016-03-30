@@ -259,7 +259,7 @@ module mod_fvgcm
     call top2btm(u3,jx,iy,nlev)
     call top2btm(v3,jx,iy,nlev)
 
-    call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,nlev)
+    call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nlev)
 
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
     call crs2dot(pd4,ps4,jx,iy,i_band)

@@ -20,149 +20,128 @@
 module mod_maputils
 
   use mod_constants
+  use mod_intkinds
+  use mod_realkinds
+
+  private
+
+  public :: lambrt , mappol , normer , rotmer
 
   contains
 
   subroutine lambrt(xlon,xlat,smap,coriol,jx,iy,clon,clat,ds,idot,  &
                     xn,truelatl,truelath)
+    use mod_projections
+    implicit none
+    integer(ik4) , intent(in) :: idot , iy , jx
+    real(rk8) , intent(in) :: clat , clon , ds , truelath , truelatl
+    real(rk8) , dimension(jx,iy) , intent(out) :: coriol , smap , xlat , xlon
+    real(rk8) , intent(out) :: xn
+    real(rk8) :: cntri , cntrj
+    integer(ik4) :: i , j
 
-  use mod_projections
-  implicit none
-!
-  real(rk8) :: clat , clon , ds , truelath , truelatl , xn
-  integer(ik4) :: idot , iy , jx
-  real(rk8) , dimension(jx,iy) :: coriol , smap , xlat , xlon
-  intent (in) clat , clon , ds , idot , iy , jx , truelath ,        &
-              truelatl
-  intent (out) coriol , smap , xlat , xlon , xn
-!
-  real(rk8) :: cntri , cntrj
-  integer(ik4) :: i , j
-!
-  cntrj = dble(jx+idot)/d_two
-  cntri = dble(iy+idot)/d_two
-  call setup_lcc(clat,clon,cntrj,cntri,ds,clon,truelath,truelatl)
-!
-  do i = 1 , iy
-    do j = 1 , jx
-      call ijll_lc(dble(j),dble(i),xlat(j,i),xlon(j,i))
-      call mapfac_lc(xlat(j,i), smap(j,i))
-    end do
-  end do
-  if ( idot==1 ) then
+    cntrj = dble(jx+idot)/d_two
+    cntri = dble(iy+idot)/d_two
+    call setup_lcc(clat,clon,cntrj,cntri,ds,clon,truelath,truelatl)
     do i = 1 , iy
       do j = 1 , jx
-        coriol(j,i) = eomeg2*dsin(xlat(j,i)*degrad)
+        call ijll_lc(dble(j),dble(i),xlat(j,i),xlon(j,i))
+        call mapfac_lc(xlat(j,i), smap(j,i))
       end do
     end do
-  end if
-  xn = conefac
+    if ( idot==1 ) then
+      do i = 1 , iy
+        do j = 1 , jx
+          coriol(j,i) = eomeg2*dsin(xlat(j,i)*degrad)
+        end do
+      end do
+    end if
+    xn = conefac
   end subroutine lambrt
 
   subroutine mappol(xlon,xlat,xmap,coriol,jx,iy,clon,clat,delx,idot)
+    use mod_projections
+    implicit none
+    real(rk8) , intent(in) :: clat , clon , delx
+    integer(ik4) , intent(in) :: idot , iy , jx
+    real(rk8) , intent(out) , dimension(jx,iy) :: coriol , xlat , xlon , xmap
+    real(rk8) :: cntrj , cntri
+    integer(ik4) :: i , j
 
-  use mod_projections
-  implicit none
-!
-  real(rk8) :: clat , clon , delx
-  integer(ik4) :: idot , iy , jx
-  real(rk8) , dimension(jx,iy) :: coriol , xlat , xlon , xmap
-  intent (in) clat , clon , delx , idot , iy , jx
-  intent (out) coriol , xlat , xlon , xmap
-!
-  real(rk8) :: cntrj , cntri
-  integer(ik4) :: i , j
-!
-  cntrj = dble(jx+idot)/d_two
-  cntri = dble(iy+idot)/d_two
-  call setup_plr(clat,clon,cntrj,cntri,delx,clon)
-!
-  do i = 1 , iy
-    do j = 1 , jx
-      call ijll_ps(dble(j),dble(i),xlat(j,i),xlon(j,i))
-      call mapfac_ps(xlat(j,i), xmap(j,i))
-    end do
-  end do
-
-  if ( idot==1 ) then
+    cntrj = dble(jx+idot)/d_two
+    cntri = dble(iy+idot)/d_two
+    call setup_plr(clat,clon,cntrj,cntri,delx,clon)
     do i = 1 , iy
       do j = 1 , jx
-        coriol(j,i) = eomeg2*dsin(xlat(j,i)*degrad)
+        call ijll_ps(dble(j),dble(i),xlat(j,i),xlon(j,i))
+        call mapfac_ps(xlat(j,i), xmap(j,i))
       end do
     end do
-  end if
+    if ( idot==1 ) then
+      do i = 1 , iy
+        do j = 1 , jx
+          coriol(j,i) = eomeg2*dsin(xlat(j,i)*degrad)
+        end do
+      end do
+    end if
   end subroutine mappol
 
   subroutine normer(xlon,xlat,xmap,coriol,jx,iy,clon,clat,delx,idot)
+    use mod_projections
+    implicit none
+    real(rk8) , intent(in) :: clat , clon , delx
+    integer(ik4) , intent(in) :: idot , iy , jx
+    real(rk8) , dimension(jx,iy) , intent(out) :: coriol , xlat , xlon , xmap
+    real(rk8) :: cntri , cntrj
+    integer(ik4) :: i , j
 
-  use mod_projections
-  implicit none
-!
-  real(rk8) :: clat , clon , delx
-  integer(ik4) :: idot , iy , jx
-  real(rk8) , dimension(jx,iy) :: coriol , xlat , xlon , xmap
-  intent (in) clat , clon , delx , idot , iy , jx
-  intent (out) coriol , xlat , xlon , xmap
-!
-  real(rk8) :: cntri , cntrj
-  integer(ik4) :: i , j
-!
-  cntrj = dble(jx+idot)/d_two
-  cntri = dble(iy+idot)/d_two
-  call setup_mrc(clat,clon,cntrj,cntri,delx)
-!
-  do i = 1 , iy
-    do j = 1 , jx
-      call ijll_mc(dble(j),dble(i),xlat(j,i),xlon(j,i))
-      call mapfac_mc(xlat(j,i), xmap(j,i))
-    end do
-  end do
-
-  if ( idot==1 ) then
+    cntrj = dble(jx+idot)/d_two
+    cntri = dble(iy+idot)/d_two
+    call setup_mrc(clat,clon,cntrj,cntri,delx)
     do i = 1 , iy
       do j = 1 , jx
-        coriol(j,i) = eomeg2*dsin(xlat(j,i)*degrad)
+        call ijll_mc(dble(j),dble(i),xlat(j,i),xlon(j,i))
+        call mapfac_mc(xlat(j,i), xmap(j,i))
       end do
     end do
-  end if
-
+    if ( idot==1 ) then
+      do i = 1 , iy
+        do j = 1 , jx
+          coriol(j,i) = eomeg2*dsin(xlat(j,i)*degrad)
+        end do
+      end do
+    end if
   end subroutine normer
 
   subroutine rotmer(xlon,xlat,xmap,coriol,jx,iy,clon,clat,pollon,   &
                     pollat,ds,idot)
 
-  use mod_projections
-  implicit none
-!
-  real(rk8) :: clat , clon , ds , pollat , pollon
-  integer(ik4) :: idot , iy , jx
-  real(rk8) , dimension(jx,iy) :: coriol , xlat , xlon , xmap
-  intent (in) clat , clon , ds , idot , iy , jx
-  intent (out) coriol , xlat , xlon , xmap
-!
-  real(rk8) :: cntri , cntrj
-  integer(ik4) :: i , j
-!
-  cntrj = dble(jx+idot)/d_two
-  cntri = dble(iy+idot)/d_two
-  call setup_rmc(clat,clon,cntrj,cntri,ds,pollon,pollat)
-!
-  do i = 1 , iy
-    do j = 1 , jx
-      call ijll_rc(dble(j),dble(i),xlat(j,i),xlon(j,i))
-      call mapfac_rc(dble(i), xmap(j,i))
-    end do
-  end do
+    use mod_projections
+    implicit none
+    real(rk8) , intent(in) :: clat , clon , ds , pollat , pollon
+    integer(ik4) , intent(in) :: idot , iy , jx
+    real(rk8) , dimension(jx,iy) , intent(out) :: coriol , xlat , xlon , xmap
+    real(rk8) :: cntri , cntrj
+    integer(ik4) :: i , j
 
-  if ( idot==1 ) then
+    cntrj = dble(jx+idot)/d_two
+    cntri = dble(iy+idot)/d_two
+    call setup_rmc(clat,clon,cntrj,cntri,ds,pollon,pollat)
     do i = 1 , iy
       do j = 1 , jx
-        coriol(j,i) = eomeg2*dsin(xlat(j,i)*degrad)
+        call ijll_rc(dble(j),dble(i),xlat(j,i),xlon(j,i))
+        call mapfac_rc(dble(i), xmap(j,i))
       end do
     end do
-  end if
-
+    if ( idot == 1 ) then
+      do i = 1 , iy
+        do j = 1 , jx
+          coriol(j,i) = eomeg2*dsin(xlat(j,i)*degrad)
+        end do
+      end do
+    end if
   end subroutine rotmer
-!
+
 end module mod_maputils
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
