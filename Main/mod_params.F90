@@ -2273,13 +2273,13 @@ module mod_params
         end do
         if ( ma%has_bdybottom ) then
           do j = jce1 , jce2
-            dpsdxm(j,ice1) = (atm0%ps(j,ice1+1) - atm0%ps(j,ice1)) / &
+            dpsdym(j,ice1) = (atm0%ps(j,ice1+1) - atm0%ps(j,ice1)) / &
                              (atm0%ps(j,ice1)*dx8*mddom%msfx(j,ice1))
           end do
         end if
         if ( ma%has_bdytop ) then
           do j = jce1 , jce2
-            dpsdxm(j,ice2) = (atm0%ps(j,ice2) - atm0%ps(j,ice2-1)) / &
+            dpsdym(j,ice2) = (atm0%ps(j,ice2) - atm0%ps(j,ice2-1)) / &
                              (atm0%ps(j,ice2)*dx8*mddom%msfx(j,ice2))
           end do
         end if
