@@ -211,12 +211,12 @@ module mod_advection
                 vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
                 vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
                 vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
-                diag = divd - dmapf(j,i) * 0.250D0 * &
-                   ( ( ucmonb - ucmonc ) + ( vcmonb - vcmonc ) )
                 ucmonb = (ucmona + ucmonb) * 0.125D0
                 ucmonc = (ucmonc + ucmona) * 0.125D0
                 vcmonb = (vcmona + vcmonb) * 0.125D0
                 vcmonc = (vcmonc + vcmona) * 0.125D0
+                diag = divd - dmapf(j,i) * &
+                   ( ( ucmonb - ucmonc ) + ( vcmonb - vcmonc ) )
                 uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag - dmapf(j,i) * &
                             (u(j+1,i,k) * ucmonb - u(j-1,i,k) * ucmonc + &
                              u(j,i+1,k) * vcmonb - u(j,i-1,k) * vcmonc)
@@ -282,8 +282,6 @@ module mod_advection
               vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
               vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
               vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
-              diag = divd - dmapf(j,i) * 0.250D0 * &
-                  ( ( ucmonb - ucmonc ) + ( vcmonb - vcmonc ) )
               uub = u(j+1,i,k)+u(j,i,k)
               uuc = u(j-1,i,k)+u(j,i,k)
               vvb = v(j,i+1,k)+v(j,i,k)
@@ -300,6 +298,8 @@ module mod_advection
               f1 = d_half + max(min(vvc*uchu,upu),-upu)
               f2 = d_one - f1
               vcmonc = (f1*vcmonc + f2*vcmona) * 0.250D0
+              diag = divd - dmapf(j,i) * &
+                  ( ( ucmonb - ucmonc ) + ( vcmonb - vcmonc ) )
               uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag - dmapf(j,i) * &
                           (u(j+1,i,k) * ucmonb - u(j-1,i,k) * ucmonc + &
                            u(j,i+1,k) * vcmonb - u(j,i-1,k) * vcmonc)
