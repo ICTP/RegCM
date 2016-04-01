@@ -98,6 +98,9 @@ module mod_nest
     integer(ik4) , dimension(4) :: istart , icount
     type(rcm_time_and_date) :: imf
     logical :: lspch
+    real(rk8) :: ptoppa
+
+    ptoppa = ptop * d_1000
 
     if (.not. associated(b2)) then
       call die('get_nest','Called get_nest before headernest !',1)
@@ -289,14 +292,16 @@ module mod_nest
     !
     ! Interpolate H,U,V,T,Q
     !
+    ! In this module, all pressures are in Pascal.
+    !
     if ( oidyn == 1 ) then
       call htsig_o(t,z1,ps,ht_in,sigma_in,ptop_in,jx_in,iy_in,kz_in)
       call humid1_o(t,q,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in)
-      call intlog_o(tp,t,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlog(tp,t,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
       call height_o(hp,z1,t,ps,ht_in,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
-      call intlin_o(up,u,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
-      call intlin_o(vp,v,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
-      call intlin_o(qp,q,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlin(up,u,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlin(vp,v,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlin(qp,q,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
     else
       call nonhydrost(z1,t0_in,p0_in,ptop_in,ht_in,sigma_in,jx_in,iy_in,kz_in)
       call humid1_o(t,q,p3d,jx_in,iy_in,kz_in)
@@ -306,6 +311,7 @@ module mod_nest
       call intlin(vp,v,ps,p3d,jx_in,iy_in,kz_in,plev,np)
       call intlin(qp,q,ps,p3d,jx_in,iy_in,kz_in,plev,np)
     end if
+
     call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in, &
                   xcone_in,jx_in,iy_in,np,plon_in,plat_in,iproj_in)
     !
@@ -330,13 +336,13 @@ module mod_nest
     ! New calculation of P* on RegCM topography.
     !
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,np)
-    call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+    call intpsn(ps4,topogm,pa,za,tlayer,ptoppa,jx,iy)
     call crs2dot(pd4,ps4,jx,iy,i_band)
     !
     ! Determine surface temps on RegCM topography.
     ! Interpolation from pressure levels
     !
-    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,np)
+    call intv3(ts4,t3,ps4,pss,sigmar,ptoppa,jx,iy,np)
     !
     ! Overwrite SST using TS from ATM file.
     !
@@ -346,11 +352,16 @@ module mod_nest
     !
     ! Interpolate U, V, T, and Q.
     !
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,np)
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,np)
-    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,np)
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,np)
-    call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
+    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
+    call humid2(t4,q4,ps4,ptoppa,sigmah,jx,iy,kz)
+    !
+    ! Put surface pressures in cb now to be conforming to other modules.
+    !
+    ps4 = ps4 * d_r1000
+    pd4 = pd4 * d_r1000
   end subroutine get_nest
 
   subroutine headernest
@@ -572,9 +583,12 @@ module mod_nest
       pstar0 = p0_in - ptop_in * d_100
     end if
 
-    do ip = 1 , np
-      plev(ip) = d_half * (maxval(pstar0*sigma_in(ip+1)) + &
+    do ip = 1 , np/2
+      plev(ip) = d_half * (minval(pstar0*sigma_in(ip+1)) + &
                            maxval(pstar0*sigma_in(ip))) + ptop_in * d_100
+    end do
+    do ip = np/2+1 , np
+      plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in * d_100
     end do
 
     ! Set up pointers
@@ -598,8 +612,7 @@ module mod_nest
     do k = 1 , np
       sigmar(k) = plev(k)/plev(np)
     end do
-    pss = plev(np) / 10.0D0 ! mb -> cb
-
+    pss = plev(np)
   end subroutine headernest
 
 end module mod_nest

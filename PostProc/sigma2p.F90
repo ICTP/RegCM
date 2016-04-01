@@ -531,9 +531,9 @@ program sigma2p
               call top2btm(pvar,jx,iy,np)
             else
               if (intscheme(i) == 1) then
-                call intlin_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+                call intlin(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
               else if (intscheme(i) == 2) then
-                call intlog_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+                call intlog(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
               end if
             end if
             apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
@@ -583,9 +583,9 @@ program sigma2p
                 call top2btm(pvar,jx,iy,np)
               else
                 if (intscheme(i) == 1) then
-                  call intlin_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+                  call intlin(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
                 else if (intscheme(i) == 2) then
-                  call intlog_o(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+                  call intlog(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
                 end if
               end if
               apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
@@ -624,7 +624,7 @@ program sigma2p
         call top2btm(pvar,jx,iy,np)
       else
         call humid1_o(tmpvar,qvar,ps,sigma,ptop,jx,iy,kz)
-        call intlin_o(pvar,qvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+        call intlin(pvar,qvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
       end if
       pvar = pvar * 100.0 ! Put in %
       iv = 4

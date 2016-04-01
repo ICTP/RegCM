@@ -34,28 +34,22 @@ module mod_vertint
   real(rk8) , parameter :: rglrog = rgas*lrate*regrav
   real(rk8) , parameter :: b1 = -egrav/lrate
 
-  interface intlin_o
-    module procedure intlin_o_double
-    module procedure intlin_o_single
-    module procedure intlin_z_o_single
-  end interface intlin_o
-
-  interface intlog_o
-    module procedure intlog_o_double
-    module procedure intlog_o_single
-  end interface intlog_o
-
   interface intlin
     module procedure intlin_double
     module procedure intlin_single
+    module procedure intlin_o_double
+    module procedure intlin_o_single
+    module procedure intlin_z_o_single
   end interface intlin
 
   interface intlog
     module procedure intlog_double
     module procedure intlog_single
+    module procedure intlog_o_double
+    module procedure intlog_o_single
   end interface intlog
 
-  public :: intlin , intlin_o , intgtb , intlog , intlog_o
+  public :: intlin , intgtb , intlog
   public :: intpsn , intv0 , intv1 , intv2 , intv3
   public :: intlinreg , intlinprof
 

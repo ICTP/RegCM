@@ -524,7 +524,7 @@ program sigma2z
           call checkalloc(istatus,__FILE__,__LINE__,'azvar')
           do ii = 1 , n3d
             xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),(/jx,iy,kz/))
-            call intlin_o(zvar,xvar,hzvar,sigma,jx,iy,kz,zlevs,nz)
+            call intlin(zvar,xvar,hzvar,sigma,jx,iy,kz,zlevs,nz)
             azvar((ii-1)*iz3d+1:ii*iz3d) = reshape(zvar,(/iz3d/))
           end do
           if ( i == qvarid ) then
@@ -561,7 +561,7 @@ program sigma2z
             do ii = 1 , n3d
               xvar = reshape(avar((ii-1)*i3d+(ich-1)*i3d+1:(ii+ich-1)*i3d), &
                              (/jx,iy,kz/))
-              call intlin_o(zvar,xvar,hzvar,sigma,jx,iy,kz,zlevs,nz)
+              call intlin(zvar,xvar,hzvar,sigma,jx,iy,kz,zlevs,nz)
               azvar((ii-1)*iz3d+1:ii*iz3d) = reshape(zvar,(/iz3d/))
             end do
             istatus = nf90_put_var(ncout, i, azvar, istart(1:iv), icount(1:iv))
@@ -601,7 +601,7 @@ program sigma2z
       else
         call humid1_o(tazvar,qazvar,ps,sigma,ptop,jx,iy,kz)
       end if
-      call intlin_o(zvar,qazvar,hzvar,sigma,jx,iy,kz,zlevs,nz)
+      call intlin(zvar,qazvar,hzvar,sigma,jx,iy,kz,zlevs,nz)
       zvar = zvar * 100.0 ! Put in %
       iv = 4
       istart(iv) = it
