@@ -74,7 +74,7 @@ program sigma2p
   integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
   integer(ik4) :: tvarid , qvarid , irhvar , ihgvar , imslpvar , ircm_map
   logical :: has_t , has_q , has_rh
-  logical :: make_rh , make_hgt
+  logical :: make_rh , make_hgt , has_sph
   integer(ik4) :: n3d , ip3d , iodyn
 
   data has_t /.false./
@@ -217,6 +217,8 @@ program sigma2p
   ippvarid = -1
   ip0varid = -1
 
+  has_sph = .false.
+
   do i = 1 , nvars
     lkvarflag(i) = .false.
     ltvarflag(i) = .false.
@@ -254,6 +256,7 @@ program sigma2p
       tvarid = i
       tdimids = dimids(1:4)
     else if (varname == 'qas' .or. varname == 'qv') then
+      if ( varname == 'qas' ) has_sph = .true.
       has_q = .true.
       qvarid = i
     else if (varname == 'chtrname') then
@@ -542,6 +545,9 @@ program sigma2p
             tmpvar = xvar
           else if ( i == qvarid ) then
             qvar = xvar
+            if ( has_sph ) then
+              call sph2mxr(qvar,jx,iy,kz)
+            end if
           end if
           icount(iv-1) = np
           istatus = nf90_put_var(ncout, i, apvar, istart(1:iv), icount(1:iv))
@@ -619,11 +625,11 @@ program sigma2p
 
     if ( make_rh ) then
       if ( iodyn == 2 ) then
-        call humid1_o(tmpvar,qvar,press,jx,iy,kz)
+        call mxr2rh(tmpvar,qvar,press,jx,iy,kz)
         call intlin(pvar,qvar,ps,press,jx,iy,kz,plevs,np)
         call top2btm(pvar,jx,iy,np)
       else
-        call humid1_o(tmpvar,qvar,ps,sigma,ptop,jx,iy,kz)
+        call mxr2rh(tmpvar,qvar,ps,sigma,ptop,jx,iy,kz)
         call intlin(pvar,qvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
       end if
       pvar = pvar * 100.0 ! Put in %

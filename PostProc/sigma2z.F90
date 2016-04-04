@@ -73,7 +73,7 @@ program sigma2z
   integer(ik4) , dimension(3) :: psdimids
   integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
   integer(ik4) :: tvarid , qvarid , irhvar , imslzvar , ircm_map
-  logical :: has_t , has_q , has_rh
+  logical :: has_t , has_q , has_rh , has_sph
   logical :: make_rh , make_mslp
   integer(ik4) :: n3d , iz3d , iodyn
 
@@ -222,6 +222,8 @@ program sigma2z
   ippvarid = -1
   ip0varid = -1
 
+  has_sph = .false.
+
   do i = 1 , nvars
     lkvarflag(i) = .false.
     ltvarflag(i) = .false.
@@ -259,6 +261,7 @@ program sigma2z
       tvarid = i
       tdimids = dimids(1:4)
     else if (varname == 'qas' .or. varname == 'qv') then
+      if ( varname == 'qas' ) has_sph = .true.
       has_q = .true.
       qvarid = i
     else if (varname == 'chtrname') then
@@ -529,6 +532,9 @@ program sigma2z
           end do
           if ( i == qvarid ) then
             qazvar = xvar
+            if ( has_sph ) then
+              call sph2mxr(qazvar,jx,iy,kz)
+            end if
           end if
           icount(iv-1) = nz
           istatus = nf90_put_var(ncout, i, azvar, istart(1:iv), icount(1:iv))
@@ -597,9 +603,9 @@ program sigma2z
 
     if ( make_rh ) then
       if ( iodyn == 2 ) then
-        call humid1_o(tazvar,qazvar,press,jx,iy,kz)
+        call mxr2rh(tazvar,qazvar,press,jx,iy,kz)
       else
-        call humid1_o(tazvar,qazvar,ps,sigma,ptop,jx,iy,kz)
+        call mxr2rh(tazvar,qazvar,ps,sigma,ptop,jx,iy,kz)
       end if
       call intlin(zvar,qazvar,hzvar,sigma,jx,iy,kz,zlevs,nz)
       zvar = zvar * 100.0 ! Put in %

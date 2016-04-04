@@ -245,7 +245,7 @@ module mod_fvgcm
 
     call intlog(tp,t2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
 
-    call humid1fv(t2,q2,pp3d,numx,numy,nlev)
+    call mxr2rh(t2,q2,pp3d,numx,numy,nlev,-9999.0D0)
     call intlin(qp,q2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
 
     call bilinx2(b3,b2,xlon,xlat,vlon,vlat,numx,numy,jx,iy,nlev*3)
@@ -272,7 +272,7 @@ module mod_fvgcm
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
-    call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine getfvgcm
 
   subroutine headerfv

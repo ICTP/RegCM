@@ -163,8 +163,8 @@ module mod_erahi
     call intlin(vp,v2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
     ! 3. For Temperatures
     call intlog(tp,t2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
-    ! 4. For Moisture qva & qca
-    call humid1fv(t2,q2,pp3d,nlons,nlats,nlev1)
+    ! 4. For Moisture
+    call mxr2rh(t2,q2,pp3d,nlons,nlats,nlev1,-9999.0D0)
     call intlin(qp,q2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
     !
     ! Horizontal interpolation of both the scalar and vector fields
@@ -199,7 +199,7 @@ module mod_erahi
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
-    call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
 99001 format (a,a,a,a,'EHI_',i10)
   end subroutine geterahi
 

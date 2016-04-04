@@ -162,9 +162,9 @@ module mod_ecwcp
     call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
-    call humid1(t3,q3,d_100,d_zero,sigma1,jx,iy,nlev)
+    call mxr2rh(t3,q3,d_100,d_zero,sigma1,jx,iy,nlev)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
-    call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine getecwcp
 
   subroutine headerec

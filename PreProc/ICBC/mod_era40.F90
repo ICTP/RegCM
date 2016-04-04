@@ -109,7 +109,7 @@ module mod_era40
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
-    call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine getera40
 
   subroutine era6hour(dattyp,idate,idate0)

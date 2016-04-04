@@ -1055,7 +1055,7 @@ module mod_gn6hnc
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
 
     ! Get back to specific humidity
-    call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
 
   end subroutine get_gn6hnc
   !
@@ -1403,7 +1403,7 @@ module mod_gn6hnc
         pp3d(:,:,k) = pplev(k)*0.01 ! Get in hPa
       end do
       ! Replace with relative humidity for internal calculation
-      call humid1fv(tvar,qvar,pp3d,nlon,nlat,klev)
+      call mxr2rh(tvar,qvar,pp3d,nlon,nlat,klev,-9999.0D0)
     else
       ! Even more difficult. Each data type has its own quirks.
       tdif = rcm_time_interval(180,uhrs)
@@ -2096,8 +2096,15 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(3))
 
+      if ( dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
+           dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'GF_' .or. &
+           dattyp(1:3) == 'CN_' .or. dattyp(1:3) == 'CS_' .or. &
+           dattyp(1:3) == 'MI_' .or. dattyp(1:3) == 'MP' ) then
+        call sph2mxr(qvar,nlon,nlat,klev)
+      end if
+
       ! Replace with relative humidity for internal calculation
-      call humid1fv(tvar,qvar,pp3d,nlon,nlat,klev)
+      call mxr2rh(tvar,qvar,pp3d,nlon,nlat,klev,-9999.0D0)
 
       if ( dattyp(1:3) == 'HA_' ) then
         icount(1) = nulon

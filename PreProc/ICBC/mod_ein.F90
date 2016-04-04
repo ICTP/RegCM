@@ -116,7 +116,7 @@ module mod_ein
     !
     ! Get back to mixing ratio
     !
-    call humid2(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine getein
 !
 !-----------------------------------------------------------------------

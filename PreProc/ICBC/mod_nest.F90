@@ -249,7 +249,7 @@ module mod_nest
                     'variable qv read error')
     ! Transform specific humidity in mixing ratio
     if ( lspch ) then
-      q = q/(d_one-q)
+      call sph2mxr(q,jx_in,iy_in,kz_in)
     end if
     if ( oidyn == 2 ) then
       istatus = nf90_inq_varid(ncinp, 'ppa', ivarid)
@@ -296,7 +296,7 @@ module mod_nest
     !
     if ( oidyn == 1 ) then
       call htsig_o(t,z1,ps,ht_in,sigma_in,ptop_in,jx_in,iy_in,kz_in)
-      call humid1_o(t,q,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in)
+      call mxr2rh(t,q,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in)
       call intlog(tp,t,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
       call height_o(hp,z1,t,ps,ht_in,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
       call intlin(up,u,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
@@ -304,7 +304,7 @@ module mod_nest
       call intlin(qp,q,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
     else
       call nonhydrost(z1,t0_in,p0_in,ptop_in,ht_in,sigma_in,jx_in,iy_in,kz_in)
-      call humid1_o(t,q,p3d,jx_in,iy_in,kz_in)
+      call mxr2rh(t,q,p3d,jx_in,iy_in,kz_in)
       call intlog(tp,t,ps,p3d,jx_in,iy_in,kz_in,plev,np)
       call height_o(hp,z1,t,ps,ht_in,p3d,jx_in,iy_in,kz_in,plev,np)
       call intlin(up,u,ps,p3d,jx_in,iy_in,kz_in,plev,np)
@@ -356,12 +356,12 @@ module mod_nest
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
-    call humid2(t4,q4,ps4,ptoppa,sigmah,jx,iy,kz)
     !
     ! Put surface pressures in cb now to be conforming to other modules.
     !
     ps4 = ps4 * d_r1000
     pd4 = pd4 * d_r1000
+    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_nest
 
   subroutine headernest
