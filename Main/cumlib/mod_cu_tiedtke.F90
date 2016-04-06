@@ -41,6 +41,8 @@ module mod_cu_tiedtke
 
   private
 
+  public :: allocate_mod_cu_tiedtke , tiedtkedrv
+
   real(rk8) , parameter :: rhow = 1000.0D0
   real(rk8) , parameter :: rkap = 0.4D0
   real(rk8) , parameter :: ratm = 100000.0D0
@@ -91,9 +93,6 @@ module mod_cu_tiedtke
 
   ! Fractional massflux for downdrafts at lfs
   real(rk8) , parameter :: rmfdeps = 0.3D0
-
-
-  public :: allocate_mod_cu_tiedtke , tiedtkedrv
 
   ! evaporation coefficient for kuo0
   real(rk8) , pointer , dimension(:) :: cevapcu
@@ -303,7 +302,7 @@ module mod_cu_tiedtke
       do k = 1 , kz
         pmean(k) = hsigma(k) * (stdp-ptop*d_1000) + ptop*d_1000
       end do
-      call sucumf(nskmax,kz,pmean)
+      call setup(nskmax,kz,pmean)
     else
       do ii = 1 , nipoi
         i = imap(ii)
@@ -441,11 +440,10 @@ module mod_cu_tiedtke
 #endif
 
     contains
-
     !
-    ! This routine defines disposable parameters for massflux scheme
+    ! This routine defines parameters for massflux scheme
     !
-    subroutine sucumf(ksmax,klev,pmean)
+    subroutine setup(ksmax,klev,pmean)
       implicit none
       integer(ik4) , intent(in) :: ksmax , klev
       real(rk8) , dimension(klev) , intent(in) :: pmean
@@ -465,7 +463,7 @@ module mod_cu_tiedtke
         if ( pmean(jlev)/pmean(klev)*stdp >  60.D2 ) nk060 = jlev
         if ( pmean(jlev)/pmean(klev)*stdp > 950.D2 ) nk950 = jlev
       end do
-    end subroutine sucumf
+    end subroutine setup
 
   end subroutine tiedtkedrv
   !
@@ -4412,503 +4410,6 @@ module mod_cu_tiedtke
 #endif
   end subroutine cuadjtq
   !
-  ! thetae2cape - Compute approximate CAPE,CIN  using thetae and thetaes
-  !
-  ! Estimate CAPE first for a mixed-layer parcel, then loop over subsequent
-  ! departure layers in lowest 350 hPa
-  !    Theta_e = Theta*exp[L q_v/(C_p T)]
-  !            = T*(P0/P)**(R_d/C_p) * exp[L q_v/(C_p T)]
-  ! This will be the updraught parcel (conserving its properties)i,
-  ! i.e. no entrainment.
-  !    CAPE    =  Int ( g dTheta_v/Theta_v dz )
-  !            =~ Int ( g (Theta_e_up-Theta_e_sat)/Theta_e_sat ) dz
-  ! With this formulation the actual CAPE is overestimated roughly 20%.
-  ! Deep convection can be considered for CAPE values above 200-500 J/kg
-  !
-  subroutine thetae2cape(n1,n2,np,nk,ph,pf,t,q,cape,cin)
-    implicit none
-    integer(ik4) , intent(in) :: np                    ! number of points
-    integer(ik4) , intent(in) :: nk                    ! number of levels
-    integer(ik4) , intent(in) :: n1                    ! start point
-    integer(ik4) , intent(in) :: n2                    ! end point
-    real(rk8) , dimension(np,nk) , intent(in) :: ph    ! Pressure on hsigma Pa
-    real(rk8) , dimension(np,nk+1) , intent(in) :: pf  ! pressure on sigma Pa
-    real(rk8) , dimension(np,nk) , intent(in) :: t     ! Temeprature K
-    real(rk8) , dimension(np,nk) , intent(in) :: q     ! Mixing ratio kg/kg
-    real(rk8) , dimension(np) , intent(out) :: cape    ! CAPE J/kg
-    real(rk8) , dimension(np) , intent(out) :: cin     ! CIN  J/kg
-    integer(ik4) :: n , k , kk
-    real(rk8) , dimension(np) :: pmix , tmix , thmix , qmix , theteu
-    real(rk8) , dimension(np,nk) :: xcape , xcin , thetad , rph
-    real(rk8) , dimension(np) :: xcin2
-    real(rk8) :: dp , thetes , qs , dz , temp
-    logical , dimension(np) :: lzlt350
-    logical , dimension(np,nk) :: lpgt80
-
-    rph(:,:) = d_one / ph(:,:)
-    lpgt80(:,:) = ph(:,:) > 80.0D2
-
-    do n = n1 , n2
-      cape(n)  = d_zero
-      cin(n)   = d_zero
-      xcin2(n) = -1000.0D0
-    end do
-    do k = nk - 1 , nk060 , -1
-      do n = n1 , n2
-        if ( lpgt80(n,k) ) then
-          qs = max(minqv,fesat(t(n,k))*rph(n,k))
-          qs = qs/(d_one-ep1*qs)
-          thetes = t(n,k)*(ratm*rph(n,k))**rovcp * exp(lwocp(t(n,k))*qs/t(n,k))
-          thetad(n,k) = d_one/thetes
-        end if
-      end do
-    end do
-    do kk = nk - 1 , nk350 , -1
-      do n = n1 , n2
-        xcape(n,kk) = d_zero
-        xcin(n,kk) = d_zero
-        if ( pf(n,nk+1)-pf(n,kk-1) < 60.0D2 ) then
-          tmix(n) = d_zero
-          thmix(n) = d_zero
-          qmix(n) = d_zero
-          pmix(n) = d_zero
-          do k = kk + 1 , kk - 1 , -1
-            if ( pmix(n) < 30.0D2 ) then
-              dp = pf(n,k+1) - pf(n,k)
-              pmix(n) = pmix(n) + dp
-              thmix(n) = thmix(n) + t(n,k)*dp*(ratm/ph(n,k))**rovcp
-              qmix(n) = qmix(n) + q(n,k)*dp
-            end if
-          end do
-          dp = d_one/pmix(n)
-          qmix(n) = qmix(n)/pmix(n)
-          pmix(n) = pf(n,kk+2) - d_half*pmix(n)
-          thmix(n) = thmix(n)*dp
-          tmix(n) = thmix(n)*(pmix(n)/ratm)**rovcp
-        else
-          qmix(n) = q(n,kk)
-          pmix(n) = pf(n,kk)
-          tmix(n) = t(n,kk)
-          thmix(n) = t(n,kk)*(ratm/pmix(n))**rovcp
-        end if
-        theteu(n) = thmix(n)*exp(lwocp(tmix(n))*qmix(n)/tmix(n))
-        lzlt350(n) = (pf(n,nk+1)-pf(n,kk)) < 350.0D2
-      end do
-      do k = kk , nk060 , -1
-        do n = n1 , n2
-          if ( lpgt80(n,k) .and. lzlt350(n) ) then
-            temp = theteu(n)*thetad(n,k) - d_one
-            dz = (pf(n,k+1)-pf(n,k))*rph(n,k) * rgas*t(n,k)*(d_one+ep1*q(n,k))
-            if ( temp > d_zero ) then
-              xcape(n,kk) = xcape(n,kk) + temp*dz
-            else if ( temp < d_zero .and. xcape(n,kk) < 100.0D0 ) then
-              xcin(n,kk) = xcin(n,kk) + temp*dz
-            end if
-          end if
-        end do
-      end do
-    end do
-    ! chose maximum CAPE and CIN values
-    do k = nk - 1 , nk350 , -1
-      do n = n1 , n2
-        if ( xcape(n,k) > cape(n) ) cape(n) = xcape(n,k)
-        if ( xcin(n,k) > xcin2(n) .and. &
-             xcin(n,k) < d_zero ) xcin2(n) = xcin(n,k)
-      end do
-    end do
-    do n = n1 , n2
-      cin(n) = -xcin2(n)
-    end do
-  end subroutine thetae2cape
-  !
-  ! Produce adjusted t,q and l values
-  !
-  subroutine moistadj(n1,n2,np,nk,kk,sp,t,q,ldflag,jcall)
-    implicit none
-    integer(ik4) , intent(in) :: np ! number of points
-    integer(ik4) , intent(in) :: nk ! number of levels
-    integer(ik4) , intent(in) :: n1 ! start point
-    integer(ik4) , intent(in) :: n2 ! end point
-    integer(ik4) , intent(in) :: kk ! actual level
-    real(rk8) , dimension(np) , intent(in) :: sp ! Surface pressure Pa
-    real(rk8) , dimension(np,nk) , intent(inout) :: t
-    real(rk8) , dimension(np,nk) , intent(inout) :: q
-    logical , dimension(np) , intent(in) :: ldflag ! Active convection flag
-    integer(ik4) , intent(in) :: jcall ! Calling method
-    integer(ik4) :: jl
-    real(rk8) :: cond , cond1 , cor , qs , rp
-    real(rk8) :: zl , zi , zf
-    !----------------------------------------------------------------------
-    !   2.           CALCULATE CONDENSATION AND ADJUST T AND Q ACCORDINGLY
-    !   -----------------------------------------------------
-    if ( jcall == 1 ) then
-      do jl = n1 , n2
-        if ( ldflag(jl) ) then
-          rp = d_one/sp(jl)
-          zl = d_one/(t(jl,kk)-c4les)
-          zi = d_one/(t(jl,kk)-c4ies)
-          qs = c2es*(xalpha(t(jl,kk))*exp(c3les*(t(jl,kk)-tzero)*zl) + &
-                (d_one-xalpha(t(jl,kk)))*exp(c3ies*(t(jl,kk)-tzero)*zi))
-          qs = qs*rp
-          qs = min(qmax,qs)
-          cor = d_one - ep1*qs
-          zf = xalpha(t(jl,kk))*c5alvcp*zl**2 + &
-               (d_one-xalpha(t(jl,kk)))*c5alscp*zi**2
-          cond = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
-          if ( cond > d_zero ) then
-            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
-            q(jl,kk) = q(jl,kk) - cond
-            zl = d_one/(t(jl,kk)-c4les)
-            zi = d_one/(t(jl,kk)-c4ies)
-            qs = c2es*(xalpha(t(jl,kk)) * &
-              exp(c3les*(t(jl,kk)-tzero)*zl)+(d_one-xalpha(t(jl,kk))) * &
-              exp(c3ies*(t(jl,kk)-tzero)*zi))
-            qs = qs*rp
-            qs = xmin(d_half,qs)
-            cor = d_one - ep1*qs
-            zf = xalpha(t(jl,kk))*c5alvcp*zl**2 + &
-                 (d_one-xalpha(t(jl,kk)))*c5alscp*zi**2
-            cond1 = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
-            if ( abs(cond) < dlowval ) cond1 = d_zero
-            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-            q(jl,kk) = q(jl,kk) - cond1
-          end if
-        end if
-      end do
-    else if ( jcall == 2 ) then
-      do jl = n1 , n2
-        if ( ldflag(jl) ) then
-          rp = d_one/sp(jl)
-          qs = fesat(t(jl,kk))*rp
-          qs = min(qmax,qs)
-          cor = d_one/(d_one-ep1*qs)
-          qs = qs*cor
-          cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-          cond = min(cond,d_zero)
-          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
-          q(jl,kk) = q(jl,kk) - cond
-          qs = fesat(t(jl,kk))*rp
-          qs = min(qmax,qs)
-          cor = d_one/(d_one-ep1*qs)
-          qs = qs*cor
-          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-          if ( abs(cond) < dlowval ) cond1 = min(cond1,d_zero)
-          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-          q(jl,kk) = q(jl,kk) - cond1
-        end if
-      end do
-    else if ( jcall == 0 ) then
-      do jl = n1 , n2
-        rp = d_one/sp(jl)
-        qs = fesat(t(jl,kk))*rp
-        qs = min(qmax,qs)
-        cor = d_one/(d_one-ep1*qs)
-        qs = qs*cor
-        cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-        t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-        q(jl,kk) = q(jl,kk) - cond1
-        qs = fesat(t(jl,kk))*rp
-        qs = min(qmax,qs)
-        cor = d_one/(d_one-ep1*qs)
-        qs = qs*cor
-        cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-        t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-        q(jl,kk) = q(jl,kk) - cond1
-      end do
-    else if ( jcall == 4 ) then
-      do jl = n1 , n2
-        if ( ldflag(jl) ) then
-          rp = d_one/sp(jl)
-          qs = fesat(t(jl,kk))*rp
-          qs = min(qmax,qs)
-          cor = d_one/(d_one-ep1*qs)
-          qs = qs*cor
-          cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
-          q(jl,kk) = q(jl,kk) - cond
-          qs = fesat(t(jl,kk))*rp
-          qs = min(qmax,qs)
-          cor = d_one/(d_one-ep1*qs)
-          qs = qs*cor
-          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-          q(jl,kk) = q(jl,kk) - cond1
-        end if
-      end do
-    else if ( jcall == 5 ) then ! Same as 4 but with LDFLAG all true
-      do jl = n1 , n2
-        rp = d_one/sp(jl)
-        qs = fesat(t(jl,kk))*rp
-        qs = min(qmax,qs)
-        cor = d_one/(d_one-ep1*qs)
-        qs = qs*cor
-        cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-        t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
-        q(jl,kk) = q(jl,kk) - cond
-        qs = fesat(t(jl,kk))*rp
-        qs = min(qmax,qs)
-        cor = d_one/(d_one-ep1*qs)
-        qs = qs*cor
-        cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-        t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-        q(jl,kk) = q(jl,kk) - cond1
-      end do
-    else if ( jcall == 3 ) then
-      do jl = n1 , n2
-        rp = d_one/sp(jl)
-        qs = fesat(t(jl,kk))*rp
-        qs = min(qmax,qs)
-        cor = d_one/(d_one-ep1*qs)
-        qs = qs*cor
-        cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-        t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-        q(jl,kk) = q(jl,kk) - cond1
-        qs = fesat(t(jl,kk))*rp
-        qs = min(qmax,qs)
-        cor = d_one/(d_one-ep1*qs)
-        qs = qs*cor
-        cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-        t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
-        q(jl,kk) = q(jl,kk) - cond1
-      end do
-    else
-#ifndef TESTME
-      call fatal(__FILE__,__LINE__, 'Unknown method jcall in moistadj')
-#endif
-    end if
-
-    contains
-
-    pure real(rk8) function xmin(x,y)
-      implicit none
-      real(rk8) , intent(in) :: x , y
-      xmin = y - d_half*(abs(x-y)-(x-y))
-    end function xmin
-
-  end subroutine moistadj
-  !
-  ! Computes t,q tendencies for stratocumulus convection
-  ! This routine does the parameterization of boundary-layer mixing by
-  ! enhanced vertical diffusion of sensible heat and moisture for the case
-  ! of stratocumulus convection.
-  ! The scheme is only applied in the boundary-layer and only when neither
-  ! penetrative nor shallow convection are activated.
-  !
-  ! Enhanced vertical diffusion of moisture and sensible heat occurs,
-  ! whenever
-  !   1. Lifted surface air is buoyant AND
-  !   2. Condensation level exists for free convection
-  !
-  ! Then the exchange coefficient is as follows:
-  !   K = C1 in cloud layer
-  !   K = C1*F(RH) at cloud top (top entrainment)
-  !
-  subroutine stratcum(n1,n2,np,nk,ldcum,dtcum,ph,pf,geo,t,q,qs,enth,tent,tenq)
-    implicit none
-    integer(ik4) , intent(in) :: np ! number of points
-    integer(ik4) , intent(in) :: nk ! number of levels
-    integer(ik4) , intent(in) :: n1 ! start point
-    integer(ik4) , intent(in) :: n2 ! end point
-    logical , dimension(np) , intent(in) :: ldcum(np) ! cumulus activation flag
-    real(rk8) , intent(in) :: dtcum ! timestep
-    real(rk8) , dimension(np,nk) , intent(in) :: ph      ! Pressure Pa
-    real(rk8) , dimension(np,nk+1) , intent(in) :: pf    ! Pressure on sigma
-    real(rk8) , dimension(np,nk) , intent(in) :: geo     ! Geopotential
-    real(rk8) , dimension(np,nk) , intent(in) :: t       ! Temperature
-    real(rk8) , dimension(np,nk) , intent(in) :: q       ! MXR
-    real(rk8) , dimension(np,nk) , intent(in) :: qs      ! Saturation MXR
-    ! Dry Static Energy Increment J/(kg*s)
-    real(rk8) , dimension(np,nk) , intent(out) :: enth
-    ! Temperature tendency K/s
-    real(rk8) , dimension(np,nk) , intent(inout) :: tent
-    ! Moisture tendency kg/(kg*s)
-    real(rk8) , dimension(np,nk) , intent(inout) :: tenq
-    real(rk8) , dimension(np,nk) :: tc , qc , cf , cptgz , tdif , qdif , ebs
-    real(rk8) , dimension(np) :: cpts , qts , tcoe , qold , pp
-    real(rk8) , dimension(np,nk+1) :: ap
-    integer(ik4) , dimension(np,nk) :: ilab
-    logical , dimension(np) :: llflag , llo2 , llbl
-    integer(ik4) :: icall , ik , ilevh , k , n
-    real(rk8) :: buo , cons1 , cons2 , cons3 , disc , dqdt , dtdt , &
-                 fac , kdiff1 , kdiff2 , qdp , rdtcum , tmst ,      &
-                 tpfac1 , tpfac2
-    !--------------------------------------
-    ! 2. Physical constants and parameters.
-    ! -------------------------------------
-    tpfac1 = rvdifts
-    rdtcum = d_one/dtcum
-    tpfac2 = d_one/tpfac1
-    kdiff1 = 10.0D0
-    kdiff2 = 2.5D0
-    tmst = dtcum
-    cons1 = tpfac1*tmst*egrav**2/(d_half*rgas)
-    cons2 = d_one/tmst
-    cons3 = tmst*cpd
-    ilevh = nk/2
-    !------------------------------
-    !* 3. PRELIMINARY COMPUTATIONS.
-    ! -----------------------------
-    do k = 1 , nk
-      do n = n1 , n2
-        cptgz(n,k) = geo(n,k) + t(n,k)*cpd
-        cf(n,k) = d_zero
-        ilab(n,k) = 0
-      end do
-    end do
-    !--------------------------------------------------------
-    ! 4. DETERMINE EXCHANGE COEFFICIENTS THEREFORE
-    !   (A) LIFT SURFACE AIR, CHECK FOR BUOYANCY AND SET FLAG
-    !   (B) THEN DEFINE DIFFUSION COEFFICIENTS,I.E.
-    !   K=C1 FOR CLOUD LAYER
-    !   K=C1*F(RH) FOR CLOUD TOP (TOP ENTRAINMENT)
-    ! -------------------------------------------------------
-    do n = n1 , n2
-      tc(n,nk) = t(n,nk) + 0.25D0
-      qc(n,nk) = q(n,nk)
-      if ( .not.ldcum(n) ) then
-        ilab(n,nk) = 1
-      else
-        ilab(n,nk) = 0
-      end if
-      llo2(n) = .false.
-      llbl(n) = .true.
-    end do
-    do k = nk - 1 , ilevh , -1
-      do n = n1 , n2
-        if ( ph(n,k) < 0.9D0*pf(n,nk+1) ) llbl(n) = .false.
-      end do
-      do n = n1 , n2
-        if ( llbl(n) ) then
-          tc(n,k) = (tc(n,k+1)*cpd+geo(n,k+1)-geo(n,k))*rcpd
-          qc(n,k) = qc(n,k+1)
-          if ( ilab(n,k+1) > 0 ) then
-            llflag(n) = .true.
-          else
-            llflag(n) = .false.
-          end if
-          ap(n,k) = ph(n,k)
-          pp(n) = ph(n,k)
-          qold(n) = qc(n,k)
-        end if
-      end do
-      do n = n1 , n2
-        if ( .not.llbl(n) ) llflag(n) = .false.
-      end do
-      ik = k
-      icall = 1
-      call moistadj(n1,n2,np,nk,ik,pp,tc,qc,llflag,icall)
-      do n = n1 , n2
-        if ( llbl(n) ) then
-          if ( qc(n,k) /= qold(n) ) ilab(n,k) = 2
-        end if
-      end do
-      do n = n1 , n2
-        if ( llbl(n) ) then
-          buo = tc(n,k)*(d_one+ep1*qc(n,k)) - t(n,k)*(d_one+ep1*q(n,k))
-          if ( buo < d_zero ) ilab(n,k) = 0
-          if ( buo > d_zero .and. &
-            ilab(n,k) == 0 .and. ilab(n,k+1) == 1 ) ilab(n,k) = 1
-          if ( ilab(n,k) == 2 ) llo2(n) = .true.
-        end if
-      end do
-    end do
-    do n = n1 , n2
-      llbl(n) = .true.
-    end do
-    do k = nk - 1 , ilevh , -1
-      do n = n1 , n2
-        if ( ph(n,k) < 0.9D0*pf(n,nk+1) ) llbl(n) = .false.
-      end do
-      do n = n1 , n2
-        if ( llbl(n) ) then
-          if ( ilab(n,k) == 2 ) then
-            cf(n,k) = kdiff1
-            if ( ilab(n,nk-2) == 0 ) cf(n,k) = kdiff2
-          else
-            cf(n,k) = d_zero
-          end if
-          if ( cf(n,k+1) > d_zero .and. ilab(n,k) == 0 ) then
-            cf(n,k) = cf(n,k+1) * &
-              5.0D0*max(q(n,k+1)/qs(n,k+1)-0.8D0,d_zero) *&
-                    max(q(n,k+1)/qs(n,k+1)- &
-                         q(n,k)/qs(n,k),d_zero)
-            llbl(n) = .false.
-          end if
-        end if
-      end do
-    end do
-    !----------------------------
-    !* 4.7 Exchange coefficients.
-    !----------------------------
-    do k = ilevh , nk - 1
-      do n = n1 , n2
-        cf(n,k) = cf(n,k)*cons1*pf(n,k+1) / &
-               ((geo(n,k)-geo(n,k+1))*(t(n,k)+t(n,k+1)))
-      end do
-    end do
-    !------------------------------------------------
-    !* 4.8 Dummy surface values of t and q at surface
-    !------------------------------------------------
-    do n = n1 , n2
-      cpts(n) = tpfac2*cptgz(n,nk)
-      qts(n) = tpfac2*q(n,nk)
-    end do
-    !------------------------------------------------
-    ! 5. Solution of the vertical diffusion equation.
-    ! -----------------------------------------------
-    !* 5.1 Setting of right hand sides.
-    do k = ilevh , nk
-      do n = n1 , n2
-        tdif(n,k) = tpfac2*cptgz(n,k)
-        qdif(n,k) = tpfac2*q(n,k)
-      end do
-    end do
-    !* 5.2 Top layer elimination.
-    do n = n1 , n2
-      tcoe(n) = cf(n,ilevh)
-      qdp = d_one/(pf(n,ilevh+1)-pf(n,ilevh))
-      disc = d_one/(d_one+cf(n,ilevh)*qdp)
-      ebs(n,ilevh) = disc*(cf(n,ilevh)*qdp)
-      qdif(n,ilevh) = disc*qdif(n,ilevh)
-      tdif(n,ilevh) = disc*tdif(n,ilevh)
-    end do
-    !* 5.3 Elimination for layers below
-    do k = ilevh + 1 , nk
-      do n = n1 , n2
-        qdp = d_one/(pf(n,k+1)-pf(n,k))
-        fac = tcoe(n)*qdp
-        tcoe(n) = cf(n,k)
-        disc = d_one/(d_one+fac*(d_one-ebs(n,k-1))+cf(n,k)*qdp)
-        ebs(n,k) = disc*(cf(n,k)*qdp)
-        qdif(n,k) = disc*(qdif(n,k)+fac*qdif(n,k-1))
-        tdif(n,k) = disc*(tdif(n,k)+fac*tdif(n,k-1))
-      end do
-    end do
-    do n = n1 , n2
-      qdif(n,nk) = qdif(n,nk) + (ebs(n,nk)*qts(n))
-      tdif(n,nk) = tdif(n,nk) + (ebs(n,nk)*cpts(n))
-    end do
-    !* 5.5 Back-substitution.
-    do k = nk - 1 , ilevh , -1
-      do n = n1 , n2
-        qdif(n,k) = qdif(n,k) + (ebs(n,k)*qdif(n,k+1))
-        tdif(n,k) = tdif(n,k) + (ebs(n,k)*tdif(n,k+1))
-      end do
-    end do
-    !------------------------------------------
-    !* 6. Incrementation of t and q tendencies.
-    ! -----------------------------------------
-    do k = ilevh , nk
-      do n = n1 , n2
-        dqdt = (qdif(n,k)-tpfac2*q(n,k))*cons2
-        tenq(n,k) = tenq(n,k) + dqdt
-        dtdt = (tdif(n,k)-tpfac2*cptgz(n,k))/cons3
-        tent(n,k) = tent(n,k) + dtdt
-        enth(n,k) = (tdif(n,k)-tpfac2*cptgz(n,k))*cons2
-      end do
-    end do
-  end subroutine stratcum
-  !
   ! This routine computes the physical tendencies of the prognostic
   ! variables t,q,u,v and tracers due to convective processes.
   ! Processes considered are: convective fluxes, formation of precipitation,
@@ -5115,6 +4616,7 @@ module mod_cu_tiedtke
     integer(ik4) :: nt
     real(rk8) , dimension(:,:) , allocatable :: xtent , xtenq , xsumc
     real(rk8) , dimension(:,:,:) , allocatable :: xtenc
+
     ! ---------------------------------------
     ! 0. Compute Saturation specific humidity
     ! ---------------------------------------
@@ -5127,23 +4629,24 @@ module mod_cu_tiedtke
     rdtcum = d_one/dtcum
     cons2 = rmfcfl/(egrav*dtcum)
     cons = d_one/(egrav*dtcum)
-    !----------------------------------------------
-    !* 2. Initialize values at vertical grid points
-    ! ---------------------------------------------
+    !---------------------------------------------
+    ! 2. Initialize values at vertical grid points
+    ! --------------------------------------------
     call initcum
-    !-----------------------------
-    !* 3.0 Cloud base calculations
-    ! ----------------------------
-    ! ----------------------------------
-    !*   (A) Determine cloud base values
-    ! ----------------------------------
+    !---------------------------
+    ! 3. Cloud base calculations
+    ! --------------------------
+    ! ---------------------------------
+    !   (A) Determine cloud base values
+    ! ---------------------------------
     call cloudbase
-    !*   (B) Determine total moisture convergence and
-    !*       decide on type of cumulus convection on the basis of
-    !*       the depth of the convection
-    !*           deep    if cloud depth > 200mb
-    !*           shallow if cloud depth < 200mb
-    ! -----------------------------------------
+    !-----------------------------------------------------------
+    !   (B) Determine total moisture convergence and
+    !       decide on type of cumulus convection on the basis of
+    !       the depth of the convection
+    !           deep    if cloud depth > 200mb
+    !           shallow if cloud depth < 200mb
+    ! ----------------------------------------------------------
     ! Calculate column and sub cloud layer moisture convergence
     ! and sub cloud layer moist static energy convergence
     do n = n1 , n2
@@ -5160,12 +4663,12 @@ module mod_cu_tiedtke
         end if
       end do
     end do
-    ! -----------------------------------------------------
-    !* Estimate cloud height for entrainment/detrainment
-    !* Calculations and initial determination of cloud type
-    ! -----------------------------------------------------
-    !* Specify initial cloud type
-    !*
+    !-----------------------------------------------------
+    ! Estimate cloud height for entrainment/detrainment
+    ! Calculations and initial determination of cloud type
+    ! ----------------------------------------------------
+    ! Specify initial cloud type
+    !
     do n = n1 , n2
       if ( ldcum(n) ) then
         ikb = kcbot(n)
@@ -5180,14 +4683,14 @@ module mod_cu_tiedtke
         ktype(n) = 0
       end if
     end do
-    ! -------------------------------------------------------------------------
-    !*   (C) calculate initial updraught mass flux and set lateral mixing rates
-    !*       for deep convection assume it is 10% of maximum value
-    !*       which is determined by the thickness of the layer and timestep
-    !*       for shallow convection calculated assuming a balance of moist
-    !*       static energy in the sub-cloud layer (ignores present of
-    !*       downdraughts)
-    ! -------------------------------------------------------------------------
+    !-----------------------------------------------------------------------
+    ! (C) calculate initial updraught mass flux and set lateral mixing rates
+    !     for deep convection assume it is 10% of maximum value
+    !     which is determined by the thickness of the layer and timestep
+    !     for shallow convection calculated assuming a balance of moist
+    !     static energy in the sub-cloud layer (ignores present of
+    !     downdraughts)
+    ! ----------------------------------------------------------------------
     if ( lmfwstar ) then
       do n = n1 , n2
         if ( ldcum(n) ) then
@@ -5234,14 +4737,14 @@ module mod_cu_tiedtke
         mfub(n) = d_zero
       end if
     end do
-    !-----------------------------------------------------------------------
-    !* 4.0 Determine cloud ascent for entraining plume
-    ! ----------------------------------------------------------------------
-    !*     (B) Do ascent in absence of downdrafts
+    !-----------------------------------------------
+    ! 4. Determine cloud ascent for entraining plume
+    ! ----------------------------------------------
+    !  (B) Do ascent in absence of downdrafts
     ! --------------------------------------------
     call ascent
-    !*     (C) Check cloud depth and change entrainment rate accordingly
-    !          Calculate precipitation rate (for downdraft calculation)
+    !  (C) Check cloud depth and change entrainment rate accordingly
+    !      Calculate precipitation rate (for downdraft calculation)
     ! -----------------------------------------------------------------------
     do n = n1 , n2
       if ( ldcum(n) ) then
@@ -5276,26 +4779,26 @@ module mod_cu_tiedtke
         end do
       end do
     end if
-    !------------------------------------
-    !* 5.0 Cumulus downdraft calculations
-    ! -----------------------------------
+    !----------------------------------
+    ! 5. Cumulus downdraft calculations
+    ! ---------------------------------
     if ( lmfdd ) then
-      !   -----------------
-      !*  (A) Determine lfs
-      !   -----------------
+      !-------------------
+      ! (A) Determine lfs
+      ! --=---------------
       call lfs
-      !   --------------------------------------
-      !*  (B) Determine downdraft t,q and fluxes
-      !   --------------------------------------
+      !---------------------------------------
+      ! (B) Determine downdraft t,q and fluxes
+      ! --------------------------------------
       call ddrafdsc
     end if
-    !----------------------------------------------------------------
-    !* 6.0 Closure
-    ! ------
-    !*   Recalculate cloud base massflux from a cape closure for deep
-    !*   convection (ktype=1) and by PBL equilibrum taking downdrafts
-    !*   into account for shallow convection (ktype=2)
-    ! ----------------------------------------------------------------
+    !-----------
+    ! 6. Closure
+    ! ----------
+    !   Recalculate cloud base massflux from a cape closure for deep
+    !   convection (ktype=1) and by PBL equilibrum taking downdrafts
+    !   into account for shallow convection (ktype=2)
+    ! --------------------------------------------------------------
     ! Deep convection
     do n = n1 , n2
       rheat(n) = d_zero
@@ -5344,9 +4847,9 @@ module mod_cu_tiedtke
         end if
         qumqe = qu(n,ikb) + lu(n,ikb) - eps*qd(n,ikb) - (d_one-eps)*qf(n,ikb)
         dqmin = max(0.01D0*qf(n,ikb),1.D-10)
-        !     maximum permisable value of ud base mass flux
+        ! Maximum permisable value of ud base mass flux
         mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
-        !     shallow convection
+        ! Shallow convection
         if ( ktype(n) == 2 ) then
           dh = cpd*(tu(n,ikb)-eps*td(n,ikb) - &
                    (d_one-eps)*tf(n,ikb)) + wlhv*qumqe
@@ -5364,14 +4867,14 @@ module mod_cu_tiedtke
           end if
           if ( lmfwstar ) mfub1(n) = mf_shal(n)
         end if
-        ! mid-level convection
+        ! Mid-level convection
         if ( ktype(n) == 3 ) then
           mfub1(n) = mfub(n)*(d_one+eps)
           mfub1(n) = min(mfub1(n),mfmax)
         end if
       end if
     end do
-    ! rescale DD fluxes if deep and shallow convection
+    ! Rescale DD fluxes if deep and shallow convection
     do k = 1 , nk
       do n = n1 , n2
         if ( lddraf(n) .and. (ktype(n) == 1 .or. ktype(n) == 2) ) then
@@ -5385,9 +4888,9 @@ module mod_cu_tiedtke
         end if
       end do
     end do
-    !---------------------------
-    !* 6.2 Final closure=scaling
-    ! --------------------------
+    !--------------------------
+    ! 6.1 Final closure=scaling
+    ! -------------------------
     do n = n1 , n2
       if ( ldcum(n) ) mfs(n) = mfub1(n)/max(cmfcmin,mfub(n))
     end do
@@ -5420,10 +4923,10 @@ module mod_cu_tiedtke
         end if
       end do
     end do
-    !----------------------------------------------------------
-    !* 6.5  In case that either deep or shallow is switched off
-    !       reset ldcum to false-> fluxes set to zero
-    ! ---------------------------------------------------------
+    !--------------------------------------------------------
+    ! 6.2 In case that either deep or shallow is switched off
+    !      reset ldcum to false-> fluxes set to zero
+    ! -------------------------------------------------------
     ! exclude pathological ktype=2 kcbot=kctop=nk-1
     do n = n1 , n2
       if ( ktype(n) == 2 .and.        &
@@ -5443,9 +4946,9 @@ module mod_cu_tiedtke
         end if
       end do
     end if
-    !---------------------------------------
-    !* 7.0 Determine final convective fluxes
-    ! --------------------------------------
+    !-------------------------------------
+    ! 7. Determine final convective fluxes
+    ! ------------------------------------
     !- set DD mass fluxes to zero above cloud top
     ! (because of inconsistency with second updraught)
     do n = n1 , n2
@@ -5517,7 +5020,7 @@ module mod_cu_tiedtke
         end if
       end do
     end do
-    ! avoid negative humidities at ddraught top
+    ! Avoid negative humidities at ddraught top
     do n = n1 , n2
       if ( lddraf(n) ) then
         k = idtop(n)
@@ -5531,7 +5034,7 @@ module mod_cu_tiedtke
         end if
       end if
     end do
-    ! avoid negative humidities near cloud top because gradient of precip flux
+    ! Avoid negative humidities near cloud top because gradient of precip flux
     ! and detrainment / liquid water flux too large
     do k = 2 , nk
       do n = n1 , n2
@@ -5576,9 +5079,9 @@ module mod_cu_tiedtke
         allocate (xsumc(np,4))
       end if
     end if
-    !-----------------------------------
-    !* 8.0 Update tendencies for t and q
-    ! ----------------------------------
+    !---------------------------------
+    ! 8. Update tendencies for t and q
+    ! --------------------------------
     if ( rmfsoltq > d_zero ) then
       !   derive draught properties for implicit
       do k = nk , 2 , -1
@@ -5608,9 +5111,9 @@ module mod_cu_tiedtke
       end do
     end if
     call dtdqc
-    !---------------------------------------------------
-    !* 9.0 Compute momentum in updraught and downdraught
-    ! --------------------------------------------------
+    !-------------------------------------------------
+    ! 9. Compute momentum in updraught and downdraught
+    ! ------------------------------------------------
     if ( lmfdudv ) then
       do k = nk - 1 , 2 , -1
         ik = k + 1
@@ -5655,9 +5158,9 @@ module mod_cu_tiedtke
           end if
         end do
       end do
-      !   ---------------------------------
-      !*  9.1 UPDATE TENDENCIES FOR U AND V
-      !   ---------------------------------
+      !----------------------------------
+      ! 9.1 Update tendencies for u and v
+      ! ---------------------------------
       !---------------------------------------------------------------
       ! For explicit/semi-implicit rescale massfluxes for stability in
       ! momentum
@@ -5753,10 +5256,10 @@ module mod_cu_tiedtke
         end do
       end if
     end if
-    !---------------------------------------------------------
-    !* 10. In case that either deep or shallow is switched off
-    !      need to set some variables a posteriori to zero
-    ! --------------------------------------------------------
+    !--------------------------------------------------------
+    ! 10. In case that either deep or shallow is switched off
+    !     need to set some variables a posteriori to zero
+    !--------------------------------------------------------
     if ( .not. lmfscv .or. .not. lmfpen ) then
       do k = 2 , nk
         do n = n1 , n2
@@ -5777,10 +5280,9 @@ module mod_cu_tiedtke
         end if
       end do
     end if
-    !---------------------------------
-    !*  11.0 Chemical tracer transport
-    ! --------------------------------
-
+    !------------------------------
+    ! 11. Chemical tracer transport
+    ! -----------------------------
     if ( lmftrac .and. ntrac > 0 ) then
       ! transport switched off for mid-level convection
       do n = n1 , n2
@@ -5855,9 +5357,9 @@ module mod_cu_tiedtke
       end if
       call ctracer(lldcum,llddraf3,mfuus,mfdus,mfudr,mfddr)
     end if
-    !-----------------------------------------------------------
-    !* 12. Put detrainment rates from mflx units in units mflx/m
-    ! ----------------------------------------------------------
+    !----------------------------------------------------------
+    ! 12. Put detrainment rates from mflx units in units mflx/m
+    ! ---------------------------------------------------------
     do k = 2 , nk
       do n = n1 , n2
         if ( ldcum(n) ) then
@@ -5872,11 +5374,11 @@ module mod_cu_tiedtke
         end if
       end do
     end do
-    !----------------------------------------------------------------------
+
     if ( llconscheck ) then
-      ! ---------------------------------------
-      !* 13.0 Conservation check AND correction
-      ! ---------------------------------------
+      !--------------------------------------
+      ! 13. Conservation check AND correction
+      ! -------------------------------------
       do n = n1 , n2
         xsumc(n,:) = d_zero
       end do
@@ -5935,10 +5437,10 @@ module mod_cu_tiedtke
       deallocate (xtenq)
       deallocate (xtent)
     end if
-    !---------------------------------------------------------
-    !* 14.0 Compute convective tendencies for liquid and solid
-    !       cloud condensate
-    ! --------------------------------------------------------
+    !-------------------------------------------------------
+    ! 14. Compute convective tendencies for liquid and solid
+    !     cloud condensate
+    ! ------------------------------------------------------
     do k = 1 , nk
       do n = n1 , n2
         tenl(n,k) = lude(n,k)*egrav/(pf(n,k+1)-pf(n,k))
@@ -5967,11 +5469,11 @@ module mod_cu_tiedtke
       logical , dimension(np) :: llflag
       integer(ik4) :: icall , ik , k , n
       real(rk8) :: zs
-      !---------------------------------------------------
-      !* 1. Specify large scale parameters at half levels
-      !*    adjust temperature fields if staticly unstable
-      !*    find level of maximum vertical velocity
-      ! --------------------------------------------------
+      !--------------------------------------------------
+      ! 1. Specify large scale parameters at half levels
+      !    adjust temperature fields if staticly unstable
+      !    find level of maximum vertical velocity
+      ! -------------------------------------------------
       do k = 2 , nk
         do n = n1 , n2
           tf(n,k) = (max(cpd*t(n,k-1) + &
@@ -5984,7 +5486,7 @@ module mod_cu_tiedtke
         if ( k >= nk-1 .or. k < nk060 ) cycle
         ik = k
         icall = 3
-        call moistadj(n1,n2,np,nk,ik,xph,tf,qsf,llflag,icall)
+        call moistadj(ik,xph,tf,qsf,llflag,icall)
         do n = n1 , n2
           qf(n,k) = min(q(n,k-1),qs(n,k-1))+(qsf(n,k)-qs(n,k-1))
           qf(n,k) = max(qf(n,k),d_zero)
@@ -6012,9 +5514,9 @@ module mod_cu_tiedtke
           end if
         end do
       end do
-      !-----------------------------------------------------------------------
-      !*    2.0 INITIALIZE VALUES FOR UPDRAFTS AND DOWNDRAFTS
-      !*        ---------------------------------------------
+      !-------------------------------------------------
+      ! 2. Initialize values for updrafts and downdrafts
+      ! ------------------------------------------------
       do k = 1 , nk
         ik = k - 1
         if ( k==1 ) ik = 1
@@ -6089,6 +5591,160 @@ module mod_cu_tiedtke
       end do
     end subroutine satur
     !
+    ! Produce adjusted t,q and l values
+    !
+    subroutine moistadj(kk,sp,t,q,ldflag,jcall)
+      implicit none
+      integer(ik4) , intent(in) :: kk ! actual level
+      real(rk8) , dimension(np) , intent(in) :: sp ! Surface pressure Pa
+      real(rk8) , dimension(np,nk) , intent(inout) :: t
+      real(rk8) , dimension(np,nk) , intent(inout) :: q
+      logical , dimension(np) , intent(in) :: ldflag ! Active convection flag
+      integer(ik4) , intent(in) :: jcall ! Calling method
+      integer(ik4) :: jl
+      real(rk8) :: cond , cond1 , cor , qs , rp
+      real(rk8) :: zl , zi , zf
+      !---------------------------------------------------------
+      ! 1. Calculate condensation and adjust t and q accordingly
+      ! --------------------------------------------------------
+      if ( jcall == 1 ) then
+        do jl = n1 , n2
+          if ( ldflag(jl) ) then
+            rp = d_one/sp(jl)
+            zl = d_one/(t(jl,kk)-c4les)
+            zi = d_one/(t(jl,kk)-c4ies)
+            qs = c2es*(xalpha(t(jl,kk))*exp(c3les*(t(jl,kk)-tzero)*zl) + &
+                  (d_one-xalpha(t(jl,kk)))*exp(c3ies*(t(jl,kk)-tzero)*zi))
+            qs = qs*rp
+            qs = min(qmax,qs)
+            cor = d_one - ep1*qs
+            zf = xalpha(t(jl,kk))*c5alvcp*zl**2 + &
+                 (d_one-xalpha(t(jl,kk)))*c5alscp*zi**2
+            cond = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
+            if ( cond > d_zero ) then
+              t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
+              q(jl,kk) = q(jl,kk) - cond
+              zl = d_one/(t(jl,kk)-c4les)
+              zi = d_one/(t(jl,kk)-c4ies)
+              qs = c2es*(xalpha(t(jl,kk)) * &
+                exp(c3les*(t(jl,kk)-tzero)*zl)+(d_one-xalpha(t(jl,kk))) * &
+                exp(c3ies*(t(jl,kk)-tzero)*zi))
+              qs = qs*rp
+              qs = xmin(d_half,qs)
+              cor = d_one - ep1*qs
+              zf = xalpha(t(jl,kk))*c5alvcp*zl**2 + &
+                   (d_one-xalpha(t(jl,kk)))*c5alscp*zi**2
+              cond1 = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
+              if ( abs(cond) < dlowval ) cond1 = d_zero
+              t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+              q(jl,kk) = q(jl,kk) - cond1
+            end if
+          end if
+        end do
+      else if ( jcall == 2 ) then
+        do jl = n1 , n2
+          if ( ldflag(jl) ) then
+            rp = d_one/sp(jl)
+            qs = fesat(t(jl,kk))*rp
+            qs = min(qmax,qs)
+            cor = d_one/(d_one-ep1*qs)
+            qs = qs*cor
+            cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+            cond = min(cond,d_zero)
+            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
+            q(jl,kk) = q(jl,kk) - cond
+            qs = fesat(t(jl,kk))*rp
+            qs = min(qmax,qs)
+            cor = d_one/(d_one-ep1*qs)
+            qs = qs*cor
+            cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+            if ( abs(cond) < dlowval ) cond1 = min(cond1,d_zero)
+            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+            q(jl,kk) = q(jl,kk) - cond1
+          end if
+        end do
+      else if ( jcall == 0 ) then
+        do jl = n1 , n2
+          rp = d_one/sp(jl)
+          qs = fesat(t(jl,kk))*rp
+          qs = min(qmax,qs)
+          cor = d_one/(d_one-ep1*qs)
+          qs = qs*cor
+          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+          q(jl,kk) = q(jl,kk) - cond1
+          qs = fesat(t(jl,kk))*rp
+          qs = min(qmax,qs)
+          cor = d_one/(d_one-ep1*qs)
+          qs = qs*cor
+          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+          q(jl,kk) = q(jl,kk) - cond1
+        end do
+      else if ( jcall == 4 ) then
+        do jl = n1 , n2
+          if ( ldflag(jl) ) then
+            rp = d_one/sp(jl)
+            qs = fesat(t(jl,kk))*rp
+            qs = min(qmax,qs)
+            cor = d_one/(d_one-ep1*qs)
+            qs = qs*cor
+            cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
+            q(jl,kk) = q(jl,kk) - cond
+            qs = fesat(t(jl,kk))*rp
+            qs = min(qmax,qs)
+            cor = d_one/(d_one-ep1*qs)
+            qs = qs*cor
+            cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+            t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+            q(jl,kk) = q(jl,kk) - cond1
+          end if
+        end do
+      else if ( jcall == 5 ) then ! Same as 4 but with LDFLAG all true
+        do jl = n1 , n2
+          rp = d_one/sp(jl)
+          qs = fesat(t(jl,kk))*rp
+          qs = min(qmax,qs)
+          cor = d_one/(d_one-ep1*qs)
+          qs = qs*cor
+          cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
+          q(jl,kk) = q(jl,kk) - cond
+          qs = fesat(t(jl,kk))*rp
+          qs = min(qmax,qs)
+          cor = d_one/(d_one-ep1*qs)
+          qs = qs*cor
+          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+          q(jl,kk) = q(jl,kk) - cond1
+        end do
+      else if ( jcall == 3 ) then
+        do jl = n1 , n2
+          rp = d_one/sp(jl)
+          qs = fesat(t(jl,kk))*rp
+          qs = min(qmax,qs)
+          cor = d_one/(d_one-ep1*qs)
+          qs = qs*cor
+          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+          q(jl,kk) = q(jl,kk) - cond1
+          qs = fesat(t(jl,kk))*rp
+          qs = min(qmax,qs)
+          cor = d_one/(d_one-ep1*qs)
+          qs = qs*cor
+          cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
+          t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
+          q(jl,kk) = q(jl,kk) - cond1
+        end do
+      else
+#ifndef TESTME
+        call fatal(__FILE__,__LINE__, 'Unknown method jcall in moistadj')
+#endif
+      end if
+
+    end subroutine moistadj
+    !
     ! This routine does the calculations for cloud ascents, i.e. produce
     ! cloud ascents vertical profiles of T,Q,L,U AND V and corresponding
     ! fluxes as well as precipitation rates.
@@ -6118,9 +5774,9 @@ module mod_cu_tiedtke
                    zvi , zvv , zvw , zwu , zco , arg
       real(rk8) :: change , zxs , zxe
       logical , dimension(np) :: llklab
-      !-----------------------
-      !* 1. Specify parameters
-      ! ----------------------
+      !----------------------
+      ! 1. Specify parameters
+      ! ---------------------
       cons2 = rmfcfl/(egrav*dtcum)
       facbuo = d_half/(d_one+d_half)
       cldmax = 5.D-3
@@ -6176,9 +5832,9 @@ module mod_cu_tiedtke
       do n = n1 , n2
         if ( ktype(n) == 3 ) ldcum(n) = .false.
       end do
-      !------------------------------------------
-      ! 3.0 Initialize values at cloud base level
-      ! -----------------------------------------
+      !-----------------------------------------
+      ! 3. Initialize values at cloud base level
+      ! ----------------------------------------
       do n = n1 , n2
         kctop(n) = kcbot(n)
         if ( ldcum(n) ) then
@@ -6234,10 +5890,12 @@ module mod_cu_tiedtke
           end if
         end do
         if ( is > 0 ) llo3 = .true.
-        !* Specify entrainment rates
-        !  -------------------------
+        !--------------------------
+        ! Specify entrainment rates
+        ! -------------------------
         ik = k
         call entrainm(ik,llo3,ndmfen,ndmfde)
+        !----------------------------------------------------
         ! Do adiabatic ascent for entraining/detraining plume
         ! ---------------------------------------------------
         if ( llo3 ) then
@@ -6312,7 +5970,7 @@ module mod_cu_tiedtke
           ik = k
           icall = 1
           if ( nlm > 0 ) then
-            call moistadj(n1,n2,np,nk,ik,xph,tu,qu,llflag,icall)
+            call moistadj(ik,xph,tu,qu,llflag,icall)
           end if
           do nll = 1 , nlm
             n = nlx(nll)
@@ -6502,10 +6160,9 @@ module mod_cu_tiedtke
       real(rk8) , dimension(np) , intent(out) :: dmfde    ! Detrainment
       integer(ik4) :: n
       real(rk8) :: mf
-      !
-      ! -----------------------------------------------
-      !* 1. Calculate entrainment and detrainment rates
-      ! -----------------------------------------------
+      !-----------------------------------------------
+      ! 1. Calculate entrainment and detrainment rates
+      ! ----------------------------------------------
       if ( ldwork ) then
         do n = n1 , n2
           dmfen(n) = d_zero
@@ -6531,9 +6188,9 @@ module mod_cu_tiedtke
       implicit none
       integer(ik4) , intent(in) :: kk                     ! current level
       integer(ik4) :: n
-      !------------------------------------------------
-      !* 1. Calculate entrainment and detrainment rates
-      ! -----------------------------------------------
+      !-----------------------------------------------
+      ! 1. Calculate entrainment and detrainment rates
+      ! ----------------------------------------------
       do n = n1 , n2
         if ( .not.ldcum(n) .and. ilab(n,kk+1) == 0 ) then
           if ( lmfmid .and. geo(n,kk) >  5000.0D0 .and. &
@@ -6625,7 +6282,7 @@ module mod_cu_tiedtke
           if ( is == 0 ) cycle
           ik = k
           icall = 2
-          call moistadj(n1,n2,np,nk,ik,xph,tenwb,qenwb,llo2,icall)
+          call moistadj(ik,xph,tenwb,qenwb,llo2,icall)
           !-----------------------------------------------
           ! 2.2 Do mixing of cumulus and environmental air
           !     and check for negative buoyancy.
@@ -6748,7 +6405,7 @@ module mod_cu_tiedtke
         end do
         ik = k
         icall = 2
-        call moistadj(n1,n2,np,nk,ik,xph,td,qd,llo2,icall)
+        call moistadj(ik,xph,td,qd,llo2,icall)
         do n = n1 , n2
           if ( llo2(n) ) then
             cond(n) = cond(n) - qd(n,k)
@@ -6802,9 +6459,9 @@ module mod_cu_tiedtke
       real(rk8) , dimension(:,:) , allocatable :: dtdt , dqdt , dp
       real(rk8) , dimension(:,:) , allocatable :: bb , r1 , r2
       logical , dimension(:,:) , allocatable :: llcumbas
-      ! ------------------------------
-      !* 1.0 Setup and initializations
-      ! ------------------------------
+      !-----------------------------
+      ! 1. Setup and initializations
+      ! ----------------------------
       ximp = d_one - rmfsoltq
       allocate (dtdt(np,nk))
       allocate (dqdt(np,nk))
@@ -6838,7 +6495,9 @@ module mod_cu_tiedtke
         end do
       end do
       if ( rmfsoltq > d_zero ) then
-        !* 2.0 Recompute convective fluxes if implicit
+        !-------------------------------------------
+        ! 2. Recompute convective fluxes if implicit
+        ! ------------------------------------------
         do k = itopm2 , nk
           ik = k - 1
           do n = n1 , n2
@@ -6861,8 +6520,9 @@ module mod_cu_tiedtke
           end do
         end do
       end if
-      !* 3.0 Compute tendencies
-      ! -----------------------
+      !----------------------
+      ! 3. Compute tendencies
+      ! ---------------------
       do k = itopm2 , nk
         if ( k < nk ) then
           do n = n1 , n2
@@ -6891,8 +6551,9 @@ module mod_cu_tiedtke
         end if
       end do
       if ( abs(rmfsoltq) < dlowval ) then
-        !* 3.1 Update tendencies
-        ! ----------------------
+        !----------------------
+        ! 3.1 Update tendencies
+        ! ---------------------
         do k = itopm2 , nk
           do n = n1 , n2
             if ( ldcum(n) ) then
@@ -6903,9 +6564,9 @@ module mod_cu_tiedtke
           end do
         end do
       else
-        !-----------------------
-        !* 3.2 IMPLICIT SOLUTION
-        !   --------------------
+        !----------------------
+        ! 3.2 Implicit solution
+        ! ---------------------
         ! Fill bi-diagonal Matrix vectors A=k-1, B=k, C=k+1;
         ! DTDT and DQDT correspond to the RHS ("constants") of the equation
         ! The solution is in R1 and R2
@@ -6990,9 +6651,9 @@ module mod_cu_tiedtke
           end if
         end do
       end do
-      !----------------------------------------------------
-      !* 1.0 Calculate fluxes and update u and v tendencies
-      ! ---------------------------------------------------
+      !--------------------------------------------------
+      ! 1. Calculate fluxes and update u and v tendencies
+      ! -------------------------------------------------
       do k = itopm2 , nk
         ik = k - 1
         do n = n1 , n2
@@ -7020,9 +6681,9 @@ module mod_cu_tiedtke
           end do
         end do
       end if
-      ! -----------------------
-      !* 1.2 Compute tendencies
-      ! -----------------------
+      ! ----------------------
+      ! 1.2 Compute tendencies
+      ! ----------------------
       do k = itopm2 , nk
         if ( k < nk ) then
           ik = k + 1
@@ -7042,9 +6703,9 @@ module mod_cu_tiedtke
         end if
       end do
       if ( abs(rmfsoluv) < dlowval ) then
-        ! ----------------------
-        !* 1.3 Update tendencies
-        ! ----------------------
+        !----------------------
+        ! 1.3 Update tendencies
+        ! ---------------------
         do k = itopm2 , nk
           do n = n1 , n2
             if ( ldcum(n) ) then
@@ -7055,8 +6716,8 @@ module mod_cu_tiedtke
         end do
       else
         !------------------------------------------------------------------
-        !* 1.6 IMPLICIT SOLUTION
-        ! Fill bi-diagonal Matrix vectors A=k-1, B=k; reuse MFUU=A and BB=B
+        ! 1.4 Implicit solution
+        ! Fill bi-diagonal Matrix vectors A=k-1, B=k; reuse A and B
         ! DUDT and DVDT correspond to the RHS ("constants") of the equation
         ! The solution is in R1 and R2
         ! -----------------------------------------------------------------
@@ -7100,7 +6761,6 @@ module mod_cu_tiedtke
         deallocate (r1)
         deallocate (bb)
       end if
-
       deallocate (dp)
       deallocate (dvdt)
       deallocate (dudt)
@@ -7118,12 +6778,14 @@ module mod_cu_tiedtke
       real(rk8) :: alfaw , cons1 , cons1a , cons2 , denom , drfl , &
                    drfl1 , fac , pdr , pds , xrfl , xrfln , rmin ,  &
                    rnew , snmlt , zp , rcpecons , rcucov
-
+      !-------------------
+      ! 0. Setup constants
+      ! ------------------
       cons1a = cpd/(wlhf*egrav*rtaumel)
       cons2 = rmfcfl/(egrav*dtcum)
-      !---------------------------------------
-      !* 1.0 Determine final convective fluxes
-      ! --------------------------------------
+      !-------------------------------------
+      ! 1. Determine final convective fluxes
+      ! ------------------------------------
       do n = n1 , n2
         rain(n) = d_zero
         if ( .not.ldcum(n) .or. idtop(n) < kctop(n) ) lddraf(n) = .false.
@@ -7179,10 +6841,10 @@ module mod_cu_tiedtke
       end do
       mflxr(:,nk+1) = d_zero
       mflxs(:,nk+1) = d_zero
-      !-----------------------------------
-      !* 1.5 Scale fluxes below cloud base
+      !----------------------------------
+      ! 1.1 Scale fluxes below cloud base
       !      linear dcrease
-      ! ----------------------------------
+      ! ---------------------------------
       do n = n1 , n2
         if ( ldcum(n) ) then
           ikb = kcbot(n)
@@ -7220,11 +6882,11 @@ module mod_cu_tiedtke
           end if
         end do
       end do
-      !------------------------------------
-      !* 2. Calculate rain/snow fall rates
-      !*    Calculate melting of snow
-      !*    Calculate evaporation of precip
-      ! -----------------------------------
+      !-----------------------------------
+      ! 2. Calculate rain/snow fall rates
+      !    Calculate melting of snow
+      !    Calculate evaporation of precip
+      ! ----------------------------------
       do k = itopm2 , nk
         do n = n1 , n2
           if ( ldcum(n) .and. k >= kctop(n)-1 ) then
@@ -7355,7 +7017,6 @@ module mod_cu_tiedtke
       real(rk8) , dimension(np) :: dtvtrig ! virtual temperatures
       real(rk8) :: work1 , work2 ! work for T and w perturbations
       real(rk8) :: xtmp
-
       !-----------------------------------
       ! 0. Initialize constants and fields
       ! ----------------------------------
@@ -7383,8 +7044,8 @@ module mod_cu_tiedtke
         end do
       end do
       !-------------------------------------------
-      ! 1.1 Prepare fields by linear interpolation
-      !     of specific humidity and static energy
+      ! 1. Prepare fields by linear interpolation
+      !    of specific humidity and static energy
       ! ------------------------------------------
       do k = 1 , nk
         do n = n1 , n2
@@ -7496,12 +7157,12 @@ module mod_cu_tiedtke
             end do
           end if
         end if
-        !-----------------------------------------------
-        ! 2.0 Do ascent in subcloud and layer,
-        !     check for existence of condensation level,
-        !     adjust t,q and l accordingly
-        !     Check for buoyancy and set flags
-        ! ----------------------------------------------
+        !----------------------------------------------
+        ! 2. Do ascent in subcloud and layer,
+        !    check for existence of condensation level,
+        !    adjust t,q and l accordingly
+        !    Check for buoyancy and set flags
+        ! ---------------------------------------------
         ! ----------------------------------------------------------
         ! 2.1 Do the vertical ascent until velocity becomes negative
         ! ----------------------------------------------------------
@@ -7547,7 +7208,7 @@ module mod_cu_tiedtke
           if ( is == 0 ) exit
           ik = k
           icall = 1
-          call moistadj(n1,n2,np,nk,ik,xph,xtu,xqu,llgo_on,icall)
+          call moistadj(ik,xph,xtu,xqu,llgo_on,icall)
           do n = n1 , n2
             if ( llgo_on(n) ) then
               ! Add condensation to water
@@ -7560,9 +7221,9 @@ module mod_cu_tiedtke
               if ( kk == nk ) then
                 ! No precip for shallow
                 xlu(n,k) = min(xlu(n,k),5.D-3)
-                !* Chose a more pseudo-adiabatic formulation as
-                !* original overestimates water loading effect and
-                !* therefore strongly underestimates cloud thickness
+                ! Chose a more pseudo-adiabatic formulation as
+                ! original overestimates water loading effect and
+                ! therefore strongly underestimates cloud thickness
               else
                 xlu(n,k) = d_half*xlu(n,k)
               end if
@@ -7763,7 +7424,6 @@ module mod_cu_tiedtke
     end subroutine cloudbase
     !
     ! Compute convective transport of chemical tracers
-    ! IMPORTANT: Routine is for positive definit quantities
     ! Explicit upstream and implicit solution of vertical advection
     ! depending on value of rmfsolct:
     !         0 = explicit
@@ -7773,8 +7433,6 @@ module mod_cu_tiedtke
     ! For explicit solution: only one single iteration
     ! For implicit solution: first implicit solver, then explicit solver
     !                        To correct tendencies below cloud base
-    ! ATTENTION: detrainment rates have usually units kg/(m3*s), so for use
-    ! in current routine you have to multiply values by dz !!
     !
     subroutine ctracer(ldcum,lddraf,mfu,mfd,pudrate,pddrate)
       implicit none
@@ -7798,9 +7456,9 @@ module mod_cu_tiedtke
       allocate (mfc(np,nk,ntrac))   ! Fluxes
       allocate (dp(np,nk))          ! Pressure difference
       allocate (llcumask(np,nk))    ! Mask for convection
-      !
-      ! Initialize Cumulus mask + some setups
-      !
+      !-----------------------------------------
+      ! 0. Initialize Cumulus mask + some setups
+      ! ----------------------------------------
       do k = 2 , nk
         do n = n1 , n2
           llcumask(n,k) = .false.
@@ -7811,9 +7469,9 @@ module mod_cu_tiedtke
         end do
       end do
       do nt = 1 , ntrac
-        !-----------------------------------------
-        !* 1.0 Define tracers at full sigma levels
-        ! ----------------------------------------
+        !---------------------------------------
+        ! 1. Define tracers at full sigma levels
+        ! --------------------------------------
         do k = 2 , nk
           ik = k - 1
           do n = n1 , n2
@@ -7827,9 +7485,9 @@ module mod_cu_tiedtke
         do n = n1 , n2
           cu(n,nk,nt) = qtrac(n,nk,nt)
         end do
-        !----------------------------
-        !* 2.0 Compute updraft values
-        ! ---------------------------
+        !--------------------------
+        ! 2. Compute updraft values
+        ! -------------------------
         do k = nk - 1 , 3 , -1
           ik = k + 1
           do n = n1 , n2
@@ -7844,9 +7502,9 @@ module mod_cu_tiedtke
             end if
           end do
         end do
-        !------------------------------
-        !* 3.0 Compute downdraft values
-        ! -----------------------------
+        !----------------------------
+        ! 3. Compute downdraft values
+        ! ---------------------------
         do k = 3 , nk
           ik = k - 1
           do n = n1 , n2
@@ -7882,9 +7540,9 @@ module mod_cu_tiedtke
       end do
 
       do nt = 1 , ntrac
-        !--------------------
-        !* 4.0 Compute fluxes
-        ! -------------------
+        !------------------
+        ! 4. Compute fluxes
+        ! -----------------
         do k = 2 , nk
           ik = k - 1
           do n = n1 , n2
@@ -7895,9 +7553,9 @@ module mod_cu_tiedtke
             end if
           end do
         end do
-        !------------------------------
-        !* 5.0 Compute tendencies = rhs
-        ! -----------------------------
+        !----------------------------
+        ! 5. Compute tendencies = rhs
+        ! ---------------------------
         do k = 2 , nk - 1
           ik = k + 1
           do n = n1 , n2
@@ -7912,9 +7570,9 @@ module mod_cu_tiedtke
         end do
       end do
       if ( abs(rmfsolct) < dlowval ) then
-        !-----------------------
-        !* 6.0 Update tendencies
-        ! ----------------------
+        !---------------------
+        ! 6. Update tendencies
+        ! --------------------
         do nt = 1 , ntrac
           do k = 2 , nk
             do n = n1 , n2
@@ -7925,9 +7583,9 @@ module mod_cu_tiedtke
           end do
         end do
       else
-        !-----------------------
-        !* 7.0 Implicit solution
-        !   --------------------
+        !---------------------
+        ! 7. Implicit solution
+        ! ---------------------
         ! Fill bi-diagonal Matrix vectors A=k-1, B=k;
         ! tenc corresponds to the RHS ("constants") of the equation
         ! The solution is in R1
@@ -7981,52 +7639,56 @@ module mod_cu_tiedtke
       deallocate (cen)
     end subroutine ctracer
 
+    pure real(rk8) function xmin(x,y)
+      implicit none
+      real(rk8) , intent(in) :: x , y
+      xmin = y - d_half*(abs(x-y)-(x-y))
+    end function xmin
+    pure real(rk8) function lwocp(t)
+      implicit none
+      real(rk8) , intent(in) :: t
+      real(rk8) :: gtzero
+      gtzero = max(d_zero,sign(d_one,t-tzero))
+      lwocp = gtzero*wlhvocp + (d_one-gtzero)*wlhsocp
+    end function lwocp
+    pure real(rk8) function xalpha(t)
+      implicit none
+      real(rk8) , intent(in) :: t
+      xalpha = min(d_one,((max(rtice,min(rtwat,t))-rtice)*rtwat_rtice_r)**2)
+    end function xalpha
+    pure real(rk8) function fesat(t)
+      implicit none
+      real(rk8) , intent(in) :: t
+      fesat = c2es*(xalpha(t)*exp(c3les*(t-tzero)/(t-c4les))+ &
+            (d_one-xalpha(t))*exp(c3ies*(t-tzero)/(t-c4ies)))
+    end function fesat
+    pure real(rk8) function fdqsat(t)
+      implicit none
+      real(rk8) , intent(in) :: t
+      fdqsat = xalpha(t)*c5alvcp*(d_one/(t-c4les)**2) + &
+              (d_one-xalpha(t))*c5alscp*(d_one/(t-c4ies)**2)
+    end function fdqsat
+    pure real(rk8) function mlwocp(t)
+      implicit none
+      real(rk8) , intent(in) :: t
+      mlwocp = xalpha(t)*wlhvocp+(d_one-xalpha(t))*wlhsocp
+    end function mlwocp
+    pure real(rk8) function mlw(t)
+      implicit none
+      real(rk8) , intent(in) :: t
+      mlw = xalpha(t)*wlhv+(d_one-xalpha(t))*wlhs
+    end function mlw
+    pure real(rk8) function esw(t)
+      implicit none
+      real(rk8) , intent(in) :: t
+      esw = c3les*(t-tzero)/(t-c4les)
+    end function esw
+    pure real(rk8) function esi(t)
+      implicit none
+      real(rk8) , intent(in) :: t
+      esi = c3ies*(t-tzero)/(t-c4ies)
+    end function esi
   end subroutine ntiedtke
-
-  pure real(rk8) function lwocp(t)
-    implicit none
-    real(rk8) , intent(in) :: t
-    real(rk8) :: gtzero
-    gtzero = max(d_zero,sign(d_one,t-tzero))
-    lwocp = gtzero*wlhvocp + (d_one-gtzero)*wlhsocp
-  end function lwocp
-  pure real(rk8) function xalpha(t)
-    implicit none
-    real(rk8) , intent(in) :: t
-    xalpha = min(d_one,((max(rtice,min(rtwat,t))-rtice)*rtwat_rtice_r)**2)
-  end function xalpha
-  pure real(rk8) function fesat(t)
-    implicit none
-    real(rk8) , intent(in) :: t
-    fesat = c2es*(xalpha(t)*exp(c3les*(t-tzero)/(t-c4les))+ &
-          (d_one-xalpha(t))*exp(c3ies*(t-tzero)/(t-c4ies)))
-  end function fesat
-  pure real(rk8) function fdqsat(t)
-    implicit none
-    real(rk8) , intent(in) :: t
-    fdqsat = xalpha(t)*c5alvcp*(d_one/(t-c4les)**2) + &
-            (d_one-xalpha(t))*c5alscp*(d_one/(t-c4ies)**2)
-  end function fdqsat
-  pure real(rk8) function mlwocp(t)
-    implicit none
-    real(rk8) , intent(in) :: t
-    mlwocp = xalpha(t)*wlhvocp+(d_one-xalpha(t))*wlhsocp
-  end function mlwocp
-  pure real(rk8) function mlw(t)
-    implicit none
-    real(rk8) , intent(in) :: t
-    mlw = xalpha(t)*wlhv+(d_one-xalpha(t))*wlhs
-  end function mlw
-  pure real(rk8) function esw(t)
-    implicit none
-    real(rk8) , intent(in) :: t
-    esw = c3les*(t-tzero)/(t-c4les)
-  end function esw
-  pure real(rk8) function esi(t)
-    implicit none
-    real(rk8) , intent(in) :: t
-    esi = c3ies*(t-tzero)/(t-c4ies)
-  end function esi
 
 end module mod_cu_tiedtke
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
