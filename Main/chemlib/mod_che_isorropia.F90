@@ -3341,7 +3341,7 @@ module mod_che_isorropia
 ! *** get appropriate root.
 !
     if ( del1<zero .or. del1>hi .or. del1>no3i ) then
-      print * , delt
+      !print * , delt
       delt = zero
     else
       delt = del1
@@ -25657,7 +25657,7 @@ module mod_che_isorropia
     rtsq = r*temp*r*temp
     a1 = xk6/rtsq
     a2 = xk10/rtsq
-    print * , a2
+    !print * , a2
 !
     theta1 = gam - bet*(a2/a1)
     theta2 = a2/a1
