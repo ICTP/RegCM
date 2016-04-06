@@ -87,9 +87,11 @@ module mod_che_chemistry
           xrout(:) = d_zero
           ! 1 : initialise xrin with the concentrations from
           !     previous chemsolv step
-          do ic = 1 , totsp
+!  FAB: this fix a stability bug , but the solver might slower since        
+!  other option is to transport all the species.
+!          do ic = 1 , totsp
 !           xrin(ic) = chemall(j,i,k,ic)
-          end do
+!          end do
           ! 2 : update input concentrations for transported species only
           do n = 1 , ntr
             if ( trac%indcbmz(n) > 0 ) then
