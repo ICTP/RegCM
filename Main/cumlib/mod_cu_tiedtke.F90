@@ -46,7 +46,7 @@ module mod_cu_tiedtke
   real(rk8) , parameter :: rhow = 1000.0D0
   real(rk8) , parameter :: rkap = 0.4D0
   real(rk8) , parameter :: ratm = 100000.0D0
-  real(rk8) , parameter :: qmax = 0.9D0
+  real(rk8) , parameter :: qsmax = 0.5D0
   real(rk8) , parameter :: cwdrag = (3.0D0/8.0D0)*0.506D0/0.200D0
 
   real(rk8) :: rtau
@@ -542,7 +542,7 @@ module mod_cu_tiedtke
           end if
           it = max(min(it,jptlucu2),jptlucu1)
           zqsat(jl,jk) = tlucua(it)/papp1(jl,jk)
-          zqsat(jl,jk) = min(qmax,zqsat(jl,jk))
+          zqsat(jl,jk) = min(qsmax,zqsat(jl,jk))
           zqsat(jl,jk) = zqsat(jl,jk)/(d_one-ep1*zqsat(jl,jk))
         end if
       end do
@@ -891,14 +891,14 @@ module mod_cu_tiedtke
         if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
         it = max(min(it,jptlucu2),jptlucu1)
         zes = tlucua(it)/paphp1(jl,jk)
-        zes = min(qmax,zes)
+        zes = min(qsmax,zes)
         lo = zes < 0.40D0
         zcor = d_one/(d_one-ep1*zes)
         zqsat = zes*zcor
         it1 = it + 1
         it1 = max(min(it1,jptlucu2),jptlucu1)
         zqst1 = tlucua(it1)/paphp1(jl,jk)
-        zqst1 = min(qmax,zqst1)
+        zqst1 = min(qsmax,zqst1)
         zqst1 = zqst1/(d_one-ep1*zqst1)
         zdqsdt = (zqst1-zqsat)*d_1000
         zgam = merge(zalvdcp*zdqsdt,zqsat*zcor*tlucub(it),lo)
@@ -1366,14 +1366,14 @@ module mod_cu_tiedtke
         if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
         it = max(min(it,jptlucu2),jptlucu1)
         zes = tlucua(it)/paphp1(jl,jk)
-        zes = min(qmax,zes)
+        zes = min(qsmax,zes)
         lo = zes < 0.40D0
         zcor = d_one/(d_one-ep1*zes)
         zqsat = zes*zcor
         it1 = it + 1
         it1 = max(min(it1,jptlucu2),jptlucu1)
         zqst1 = tlucua(it1)/paphp1(jl,jk)
-        zqst1 = min(qmax,zqst1)
+        zqst1 = min(qsmax,zqst1)
         zqst1 = zqst1/(d_one-ep1*zqst1)
         zdqsdt = (zqst1-zqsat)*d_1000
         zgam = merge(zalvdcp*zdqsdt,zqsat*zcor*tlucub(it),lo)
@@ -1785,14 +1785,14 @@ module mod_cu_tiedtke
         if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
         it = max(min(it,jptlucu2),jptlucu1)
         zes = tlucua(it)/paphp1(jl,jk)
-        zes = min(qmax,zes)
+        zes = min(qsmax,zes)
         lo = zes < 0.40D0
         zcor = d_one/(d_one-ep1*zes)
         zqsat = zes*zcor
         it1 = it + 1
         it1 = max(min(it1,jptlucu2),jptlucu1)
         zqst1 = tlucua(it1)/paphp1(jl,jk)
-        zqst1 = min(qmax,zqst1)
+        zqst1 = min(qsmax,zqst1)
         zqst1 = zqst1/(d_one-ep1*zqst1)
         zdqsdt = (zqst1-zqsat)*d_1000
         zgam = merge(zalvdcp*zdqsdt,zqsat*zcor*tlucub(it),lo)
@@ -4164,14 +4164,14 @@ module mod_cu_tiedtke
             if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
             it = max(min(it,jptlucu2),jptlucu1)
             zes = tlucua(it)/pp(jl)
-            zes = min(qmax,zes)
+            zes = min(qsmax,zes)
             lo = zes < 0.4D0
             zcor = d_one/(d_one-ep1*zes)
             zqsat = zes*zcor
             it1 = it+1
             it1 = max(min(it1,jptlucu2),jptlucu1)
             zqst1 = tlucua(it1)/pp(jl)
-            zqst1 = min(qmax,zqst1)
+            zqst1 = min(qsmax,zqst1)
             zqst1 = zqst1/(d_one-ep1*zqst1)
             zdqsdt = (zqst1-zqsat)*d_1000
             zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
@@ -4197,14 +4197,14 @@ module mod_cu_tiedtke
               if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
               it = max(min(it,jptlucu2),jptlucu1)
               zes = tlucua(it)/pp(jl)
-              zes = min(qmax,zes)
+              zes = min(qsmax,zes)
               lo = zes < 0.4D0
               zcor = d_one/(d_one-ep1*zes)
               zqsat = zes*zcor
               it1 = it+1
               it1 = max(min(it1,jptlucu2),jptlucu1)
               zqst1 = tlucua(it1)/pp(jl)
-              zqst1 = min(qmax,zqst1)
+              zqst1 = min(qsmax,zqst1)
               zqst1 = zqst1/(d_one-ep1*zqst1)
               zdqsdt = (zqst1-zqsat)*d_1000
               zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
@@ -4232,14 +4232,14 @@ module mod_cu_tiedtke
             if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
             it = max(min(it,jptlucu2),jptlucu1)
             zes = tlucua(it)/pp(jl)
-            zes = min(qmax,zes)
+            zes = min(qsmax,zes)
             lo = zes < 0.4D0
             zcor = d_one/(d_one-ep1*zes)
             zqsat = zes*zcor
             it1 = it+1
             it1 = max(min(it1,jptlucu2),jptlucu1)
             zqst1 = tlucua(it1)/pp(jl)
-            zqst1 = min(qmax,zqst1)
+            zqst1 = min(qsmax,zqst1)
             zqst1 = zqst1/(d_one-ep1*zqst1)
             zdqsdt = (zqst1-zqsat)*d_1000
             zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
@@ -4264,14 +4264,14 @@ module mod_cu_tiedtke
             if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
             it = max(min(it,jptlucu2),jptlucu1)
             zes = tlucua(it)/pp(jl)
-            zes = min(qmax,zes)
+            zes = min(qsmax,zes)
             lo = zes < 0.4D0
             zcor = d_one/(d_one-ep1*zes)
             zqsat = zes*zcor
             it1 = it+1
             it1 = max(min(it1,jptlucu2),jptlucu1)
             zqst1 = tlucua(it1)/pp(jl)
-            zqst1 = min(qmax,zqst1)
+            zqst1 = min(qsmax,zqst1)
             zqst1 = zqst1/(d_one-ep1*zqst1)
             zdqsdt = (zqst1-zqsat)*d_1000
             zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
@@ -4297,14 +4297,14 @@ module mod_cu_tiedtke
           if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
           it = max(min(it,jptlucu2),jptlucu1)
           zes = tlucua(it)/pp(jl)
-          zes = min(qmax,zes)
+          zes = min(qsmax,zes)
           lo = zes < 0.4D0
           zcor = d_one/(d_one-ep1*zes)
           zqsat = zes*zcor
           it1 = it+1
           it1 = max(min(it1,jptlucu2),jptlucu1)
           zqst1 = tlucua(it1)/pp(jl)
-          zqst1 = min(qmax,zqst1)
+          zqst1 = min(qsmax,zqst1)
           zqst1 = zqst1/(d_one-ep1*zqst1)
           zdqsdt = (zqst1-zqsat)*d_1000
           zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
@@ -4328,14 +4328,14 @@ module mod_cu_tiedtke
           if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
           it = max(min(it,jptlucu2),jptlucu1)
           zes = tlucua(it)/pp(jl)
-          zes = min(qmax,zes)
+          zes = min(qsmax,zes)
           lo = zes < 0.4D0
           zcor = d_one/(d_one-ep1*zes)
           zqsat = zes*zcor
           it1 = it+1
           it1 = max(min(it1,jptlucu2),jptlucu1)
           zqst1 = tlucua(it1)/pp(jl)
-          zqst1 = min(qmax,zqst1)
+          zqst1 = min(qsmax,zqst1)
           zqst1 = zqst1/(d_one-ep1*zqst1)
           zdqsdt = (zqst1-zqsat)*d_1000
           zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
@@ -4357,14 +4357,14 @@ module mod_cu_tiedtke
         if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
         it = max(min(it,jptlucu2),jptlucu1)
         zes = tlucua(it)/pp(jl)
-        zes = min(qmax,zes)
+        zes = min(qsmax,zes)
         lo = zes < 0.4D0
         zcor = d_one/(d_one-ep1*zes)
         zqsat = zes*zcor
         it1 = it+1
         it1 = max(min(it1,jptlucu2),jptlucu1)
         zqst1 = tlucua(it1)/pp(jl)
-        zqst1 = min(qmax,zqst1)
+        zqst1 = min(qsmax,zqst1)
         zqst1 = zqst1/(d_one-ep1*zqst1)
         zdqsdt = (zqst1-zqsat)*d_1000
         zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
@@ -4383,14 +4383,14 @@ module mod_cu_tiedtke
         if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
         it = max(min(it,jptlucu2),jptlucu1)
         zes = tlucua(it)/pp(jl)
-        zes = min(qmax,zes)
+        zes = min(qsmax,zes)
         lo = zes < 0.4D0
         zcor = d_one/(d_one-ep1*zes)
         zqsat = zes*zcor
         it1 = it+1
         it1 = max(min(it1,jptlucu2),jptlucu1)
         zqst1 = tlucua(it1)/pp(jl)
-        zqst1 = min(qmax,zqst1)
+        zqst1 = min(qsmax,zqst1)
         zqst1 = zqst1/(d_one-ep1*zqst1)
         zdqsdt = (zqst1-zqsat)*d_1000
         zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
@@ -5585,7 +5585,7 @@ module mod_cu_tiedtke
       real(rk8) :: qs
       do k = kt , nk
         do n = n1 , n2
-          qs = min(qmax,fesat(t(n,k))/pr(n,k))
+          qs = min(qsmax,fesat(t(n,k))/pr(n,k))
           qsat(n,k) = qs/(d_one-ep1*qs)
         end do
       end do
@@ -5616,7 +5616,7 @@ module mod_cu_tiedtke
             qs = c2es*(xalpha(t(jl,kk))*exp(c3les*(t(jl,kk)-tzero)*zl) + &
                   (d_one-xalpha(t(jl,kk)))*exp(c3ies*(t(jl,kk)-tzero)*zi))
             qs = qs*rp
-            qs = min(qmax,qs)
+            qs = min(qsmax,qs)
             cor = d_one - ep1*qs
             zf = xalpha(t(jl,kk))*c5alvcp*zl**2 + &
                  (d_one-xalpha(t(jl,kk)))*c5alscp*zi**2
@@ -5630,7 +5630,7 @@ module mod_cu_tiedtke
                 exp(c3les*(t(jl,kk)-tzero)*zl)+(d_one-xalpha(t(jl,kk))) * &
                 exp(c3ies*(t(jl,kk)-tzero)*zi))
               qs = qs*rp
-              qs = xmin(qmax,qs)
+              qs = xmin(qsmax,qs)
               cor = d_one - ep1*qs
               zf = xalpha(t(jl,kk))*c5alvcp*zl**2 + &
                    (d_one-xalpha(t(jl,kk)))*c5alscp*zi**2
@@ -5646,7 +5646,7 @@ module mod_cu_tiedtke
           if ( ldflag(jl) ) then
             rp = d_one/sp(jl)
             qs = fesat(t(jl,kk))*rp
-            qs = min(qmax,qs)
+            qs = min(qsmax,qs)
             cor = d_one/(d_one-ep1*qs)
             qs = qs*cor
             cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
@@ -5654,7 +5654,7 @@ module mod_cu_tiedtke
             t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
             q(jl,kk) = q(jl,kk) - cond
             qs = fesat(t(jl,kk))*rp
-            qs = min(qmax,qs)
+            qs = min(qsmax,qs)
             cor = d_one/(d_one-ep1*qs)
             qs = qs*cor
             cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
@@ -5667,14 +5667,14 @@ module mod_cu_tiedtke
         do jl = n1 , n2
           rp = d_one/sp(jl)
           qs = fesat(t(jl,kk))*rp
-          qs = min(qmax,qs)
+          qs = min(qsmax,qs)
           cor = d_one/(d_one-ep1*qs)
           qs = qs*cor
           cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
           t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
           q(jl,kk) = q(jl,kk) - cond1
           qs = fesat(t(jl,kk))*rp
-          qs = min(qmax,qs)
+          qs = min(qsmax,qs)
           cor = d_one/(d_one-ep1*qs)
           qs = qs*cor
           cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
@@ -5686,14 +5686,14 @@ module mod_cu_tiedtke
           if ( ldflag(jl) ) then
             rp = d_one/sp(jl)
             qs = fesat(t(jl,kk))*rp
-            qs = min(qmax,qs)
+            qs = min(qsmax,qs)
             cor = d_one/(d_one-ep1*qs)
             qs = qs*cor
             cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
             t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
             q(jl,kk) = q(jl,kk) - cond
             qs = fesat(t(jl,kk))*rp
-            qs = min(qmax,qs)
+            qs = min(qsmax,qs)
             cor = d_one/(d_one-ep1*qs)
             qs = qs*cor
             cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
@@ -5705,14 +5705,14 @@ module mod_cu_tiedtke
         do jl = n1 , n2
           rp = d_one/sp(jl)
           qs = fesat(t(jl,kk))*rp
-          qs = min(qmax,qs)
+          qs = min(qsmax,qs)
           cor = d_one/(d_one-ep1*qs)
           qs = qs*cor
           cond = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
           t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond
           q(jl,kk) = q(jl,kk) - cond
           qs = fesat(t(jl,kk))*rp
-          qs = min(qmax,qs)
+          qs = min(qsmax,qs)
           cor = d_one/(d_one-ep1*qs)
           qs = qs*cor
           cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
@@ -5723,14 +5723,14 @@ module mod_cu_tiedtke
         do jl = n1 , n2
           rp = d_one/sp(jl)
           qs = fesat(t(jl,kk))*rp
-          qs = min(qmax,qs)
+          qs = min(qsmax,qs)
           cor = d_one/(d_one-ep1*qs)
           qs = qs*cor
           cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
           t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
           q(jl,kk) = q(jl,kk) - cond1
           qs = fesat(t(jl,kk))*rp
-          qs = min(qmax,qs)
+          qs = min(qsmax,qs)
           cor = d_one/(d_one-ep1*qs)
           qs = qs*cor
           cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
@@ -7255,7 +7255,7 @@ module mod_cu_tiedtke
               if ( xlu(n,k) > d_zero .and. iilab(n,k+1) == 1 ) then
                 ik = k + 1
                 qsu = fesat(xtu(n,ik))/pf(n,ik)
-                qsu = min(qmax,qsu)
+                qsu = min(qsmax,qsu)
                 cor = d_one/(d_one-ep1*qsu)
                 qsu = qsu*cor
                 dq = min(d_zero,xqu(n,ik)-qsu)
@@ -7656,6 +7656,9 @@ module mod_cu_tiedtke
       real(rk8) , intent(in) :: t
       xalpha = min(d_one,((max(rtice,min(rtwat,t))-rtice)*rtwat_rtice_r)**2)
     end function xalpha
+    !
+    ! Magnus Tetens formula
+    !
     pure real(rk8) function fesat(t)
       implicit none
       real(rk8) , intent(in) :: t

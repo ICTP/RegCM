@@ -186,7 +186,7 @@ module mod_constants
   real(rk8) , parameter :: wattp = 273.16D+00
   real(rk8) , parameter :: tboil = 373.1339D+00
   real(rk8) , parameter :: c1es = 610.78D+00
-  real(rk8) , parameter :: c2es = c1es*rgas/rwat
+  real(rk8) , parameter :: c2es = c1es*amw/amd
   real(rk8) , parameter :: c3les = 17.2693882D+00
   real(rk8) , parameter :: c3ies = 21.875D+00
   real(rk8) , parameter :: c4les = 35.86D+00
