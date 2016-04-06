@@ -302,7 +302,7 @@ module mod_cu_tiedtke
       do k = 1 , kz
         pmean(k) = hsigma(k) * (stdp-ptop*d_1000) + ptop*d_1000
       end do
-      call setup(nskmax,kz,pmean)
+      call setup(nskmax,pmean)
     else
       do ii = 1 , nipoi
         i = imap(ii)
@@ -443,25 +443,25 @@ module mod_cu_tiedtke
     !
     ! This routine defines parameters for massflux scheme
     !
-    subroutine setup(ksmax,klev,pmean)
+    subroutine setup(smax,pmean)
       implicit none
-      integer(ik4) , intent(in) :: ksmax , klev
-      real(rk8) , dimension(klev) , intent(in) :: pmean
-      integer(ik4) :: jlev
-      rtau = d_one+264.0D0/real(ksmax)
+      integer(ik4) , intent(in) :: smax
+      real(rk8) , dimension(kz) , intent(in) :: pmean
+      integer(ik4) :: klev
+      rtau = d_one+264.0D0/dble(smax)
       rtau = min(3.0D0,rtau)
-      if ( ksmax >= 511 ) then
+      if ( smax >= 511 ) then
         rmfcfl = 3.0D0
       else
         rmfcfl = 5.0D0
       end if
-      nk350 = klev
-      nk060 = klev
-      nk950 = klev
-      do jlev = klev , 2 , -1
-        if ( pmean(jlev)/pmean(klev)*stdp > 350.D2 ) nk350 = jlev
-        if ( pmean(jlev)/pmean(klev)*stdp >  60.D2 ) nk060 = jlev
-        if ( pmean(jlev)/pmean(klev)*stdp > 950.D2 ) nk950 = jlev
+      nk350 = kz
+      nk060 = kz
+      nk950 = kz
+      do klev = kz , 2 , -1
+        if ( pmean(klev)/pmean(kz)*stdp > 350.D2 ) nk350 = klev
+        if ( pmean(klev)/pmean(kz)*stdp >  60.D2 ) nk060 = klev
+        if ( pmean(klev)/pmean(kz)*stdp > 950.D2 ) nk950 = klev
       end do
     end subroutine setup
 
