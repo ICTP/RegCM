@@ -277,28 +277,28 @@ module mod_params
     !
     ! Subexparam ;
     !
-    ncld      = 1         ! # of bottom model levels with no clouds (rad only)
-    qck1land  = 0.00250D0 ! Autoconversion Rate for Land
-    qck1oce   = 0.00250D0 ! Autoconversion Rate for Ocean
-    gulland   = 0.40D0    ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
-    guloce    = 0.40D0    ! Fract of Gultepe eqn (qcth) for ocean
-    rhmax     = 1.01D0    ! RH at whicn FCC = 1.0
-    rhmin     = 0.01D0    ! RH min value
-    rh0land   = 0.80D0    ! Relative humidity threshold for land
-    rh0oce    = 0.90D0    ! Relative humidity threshold for ocean
-    tc0       = 238.0D0   ! Below this temp, rh0 begins to approach unity
-    cevaplnd  = 1.0D-3    ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
-    cevapoce  = 1.0D-3    ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
-    caccrlnd  = 3.0D0     ! Raindrop accretion rate land  [m3/kg/s]
-    caccroce  = 3.0D0     ! Raindrop accretion rate ocean [m3/kg/s]
-    cllwcv    = 0.3D-3    ! Cloud liquid water content for convective precip.
-    clfrcvmax = 0.75D0    ! Max cloud fractional cover for convective precip.
-    cftotmax  = 0.75D0    ! Max total cover cloud fraction for radiation
-    conf      = 1.00D0    ! Condensation efficiency
-    rcrit     = 13.5D0    ! Mean critical radius
-    coef_ccn  = 2.0D0     ! Geometric mean Diameter and standard deviation
-    abulk     = 0.9D0     ! Bulk activation ratio
-    lsrfhack  = .false.   ! Surface radiation hack
+    ncld      = 1        ! # of bottom model levels with no clouds (rad only)
+    qck1land  = 0.0005D0 ! Autoconversion Rate for Land
+    qck1oce   = 0.0005D0 ! Autoconversion Rate for Ocean
+    gulland   = 0.65D0   ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
+    guloce    = 0.30D0   ! Fract of Gultepe eqn (qcth) for ocean
+    rhmax     = 1.01D0   ! RH at whicn FCC = 1.0
+    rhmin     = 0.01D0   ! RH min value
+    rh0land   = 0.80D0   ! Relative humidity threshold for land
+    rh0oce    = 0.90D0   ! Relative humidity threshold for ocean
+    tc0       = 238.0D0  ! Below this temp, rh0 begins to approach unity
+    cevaplnd  = 1.0D-5   ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
+    cevapoce  = 1.0D-5   ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
+    caccrlnd  = 6.0D0    ! Raindrop accretion rate land  [m3/kg/s]
+    caccroce  = 6.0D0    ! Raindrop accretion rate ocean [m3/kg/s]
+    cllwcv    = 0.3D-3   ! Cloud liquid water content for convective precip.
+    clfrcvmax = 0.75D0   ! Max cloud fractional cover for convective precip.
+    cftotmax  = 0.75D0   ! Max total cover cloud fraction for radiation
+    conf      = 1.00D0   ! Condensation efficiency
+    rcrit     = 13.5D0   ! Mean critical radius
+    coef_ccn  = 2.0D0    ! Geometric mean Diameter and standard deviation
+    abulk     = 0.9D0    ! Bulk activation ratio
+    lsrfhack  = .false.  ! Surface radiation hack
     !
     ! microparam ;
     !

@@ -799,22 +799,28 @@ The parameters below are the ones currently used at ICTP.
 {\footnotesize
 \begin{Verbatim}
  &subexparam
- ncld      =          1, ! # of bottom model levels with no clouds
- qck1land  =   .250E-03, ! Autoconversion Rate for Land
- qck1oce   =   .250E-03, ! Autoconversion Rate for Ocean
- gulland   =        0.4, ! Fract of Gultepe eqn (qcth) when precip occurs
- guloce    =        0.4, ! Fract of Gultepe eqn (qcth) for ocean
- rhmax     =       1.01, ! RH at whicn FCC = 1.0
- rh0oce    =       0.90, ! Relative humidity threshold for ocean
- rh0land   =       0.80, ! Relative humidity threshold for land
- tc0       =      238.0, ! Below this temperature, rh0 begins to approach unity
- cevaplnd  =   .100E-02, ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
- cevapoce  =   .100E-02, ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
- caccrlnd  =      3.000, ! Raindrop accretion rate [m3/kg/s]
- caccroce  =      3.000, ! Raindrop accretion rate [m3/kg/s]
- cllwcv    =     0.3E-3, ! Cloud liquid water content for convective precip.
- clfrcvmax =       1.00, ! Max cloud fractional cover for convective precip.
- cftotmax  =       0.75, ! Max total cover cloud fraction for radiation
+ ncld      = 1,      ! # of bottom model levels with no clouds (rad only)
+ qck1land  = 0.0005, ! Autoconversion Rate for Land
+ qck1oce   = 0.0005, ! Autoconversion Rate for Ocean
+ gulland   = 0.65,   ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
+ guloce    = 0.30,   ! Fract of Gultepe eqn (qcth) for ocean
+ rhmax     = 1.01,   ! RH at whicn FCC = 1.0
+ rhmin     = 0.01,   ! RH min value
+ rh0land   = 0.80,   ! Relative humidity threshold for land
+ rh0oce    = 0.90,   ! Relative humidity threshold for ocean
+ tc0       = 238.0,  ! Below this temp, rh0 begins to approach unity
+ cevaplnd  = 1.0e-5, ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
+ cevapoce  = 1.0e-5, ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
+ caccrlnd  = 6.0,    ! Raindrop accretion rate land  [m3/kg/s]
+ caccroce  = 6.0,    ! Raindrop accretion rate ocean [m3/kg/s]
+ cllwcv    = 0.3e-3, ! Cloud liquid water content for convective precip.
+ clfrcvmax = 0.75,   ! Max cloud fractional cover for convective precip.
+ cftotmax  = 0.75,   ! Max total cover cloud fraction for radiation
+ conf      = 1.00,   ! Condensation efficiency
+ rcrit     = 13.5,   ! Mean critical radius
+ coef_ccn  = 2.0,    ! Geometric mean Diameter and standard deviation
+ abulk     = 0.9,    ! Bulk activation ratio
+ lsrfhack  = .false. ! Surface radiation hack
  /
 \end{Verbatim}
 }
