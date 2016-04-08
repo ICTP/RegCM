@@ -872,28 +872,29 @@ selected number is $2, 4, 5$.
 {\footnotesize
 \begin{Verbatim}
  &grellparam
- shrmin = 0.25,       ! Minimum Shear effect on precip eff.
- shrmax = 0.50,       ! Maximum Shear effect on precip eff.
- edtmin = 0.25,       ! Minimum Precipitation Efficiency
- edtmax = 0.50,       ! Maximum Precipitation Efficiency
- edtmino = 0.25,      ! Minimum Precipitation Efficiency (o var)
- edtmaxo = 0.50,      ! Maximum Precipitation Efficiency (o var)
- edtminx = 0.25,      ! Minimum Precipitation Efficiency (x var)
- edtmaxx = 0.50,      ! Maximum Precipitation Efficiency (x var)
- shrmin_ocn = 0.25,   ! Minimum Shear effect on precip eff. OCEAN points
- shrmax_ocn = 0.50,   ! Maximum Shear effect on precip eff.
- edtmin_ocn = 0.25,   ! Minimum Precipitation Efficiency
- edtmax_ocn = 0.50,   ! Maximum Precipitation Efficiency
- edtmino_ocn = 0.25,  ! Minimum Precipitation Efficiency (o var)
- edtmaxo_ocn = 0.50,  ! Maximum Precipitation Efficiency (o var)
- edtminx_ocn = 0.25,  ! Minimum Precipitation Efficiency (x var)
- edtmaxx_ocn = 0.50,  ! Maximum Precipitation Efficiency (x var)
- pbcmax = 150.0,      ! Max depth (mb) of stable layer b/twn LCL & LFC
- mincld = 150.0,      ! Min cloud depth (mb).
- htmin = -250.0,      ! Min convective heating
- htmax = 500.0,       ! Max convective heating
- skbmax = 0.4,        ! Max cloud base height in sigma
- dtauc = 30.0,        ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
+ gcr0 = 0.0020,      ! Conversion rate from cloud to rain
+ edtmin      = 0.20, ! Minimum Precipitation Efficiency land
+ edtmin_ocn  = 0.20, ! Minimum Precipitation Efficiency ocean
+ edtmax      = 0.80, ! Maximum Precipitation Efficiency land
+ edtmax_ocn  = 0.80, ! Maximum Precipitation Efficiency ocean
+ edtmino     = 0.20, ! Minimum Tendency Efficiency (o var) land
+ edtmino_ocn = 0.20, ! Minimum Tendency Efficiency (o var) ocean
+ edtmaxo     = 0.80, ! Maximum Tendency Efficiency (o var) land
+ edtmaxo_ocn = 0.80, ! Maximum Tendency Efficiency (o var) ocean
+ edtminx     = 0.20, ! Minimum Tendency Efficiency (x var) land
+ edtminx_ocn = 0.20, ! Minimum Tendency Efficiency (x var) ocean
+ edtmaxx     = 0.80, ! Maximum Tendency Efficiency (x var) land
+ edtmaxx_ocn = 0.80, ! Maximum Tendency Efficiency (x var) ocean
+ shrmin      = 0.30, ! Minimum Shear effect on precip eff. land
+ shrmin_ocn  = 0.30, ! Minimum Shear effect on precip eff. ocean
+ shrmax      = 0.90, ! Maximum Shear effect on precip eff. land
+ shrmax_ocn  = 0.90, ! Maximum Shear effect on precip eff. ocean
+ pbcmax = 50.0,      ! Max depth (mb) of stable layer b/twn LCL & LFC
+ mincld = 150.0,     ! Min cloud depth (mb).
+ htmin = -250.0,     ! Min convective heating
+ htmax = 500.0,      ! Max convective heating
+ skbmax = 0.4,       ! Max cloud base height in sigma
+ dtauc = 30.0D0      ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
  /
 
  &emanparam
