@@ -334,6 +334,7 @@
 ! New Microphysics Option (ipptls = 2)
 !
  &microparam
+  stats = .false.,           ! Produce debug variables in output files
   budget_compute = .false.,  ! Verify enthalpy and moisture conservation
   nssopt = 1,                ! Supersaturation Computation
                              ! 0 => No scheme
