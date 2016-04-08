@@ -297,6 +297,9 @@ module mod_cu_tiedtke
       end do
     end do
 
+    ! Transform to specific humidity
+    pqm1(:,:) = pqm1(:,:)/(d_one + pqm1(:,:))
+
     nskmax = nint(17747.5/ds)
     if ( iconv == 4 ) then
       do k = 1 , kz
@@ -369,7 +372,9 @@ module mod_cu_tiedtke
           cu_tten(j,i,k) = ptte(ii,k) - avg_tten(j,i,k)
           cu_uten(j,i,k) = pvom(ii,k) - avg_uten(j,i,k)
           cu_vten(j,i,k) = pvol(ii,k) - avg_vten(j,i,k)
-          cu_qten(j,i,k,iqv) = pqte(ii,k) - avg_qten(j,i,k,iqv)
+          ! Tendency in specific humidity to mixing ratio tendency.
+          cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqte(ii,k)) - &
+                               avg_qten(j,i,k,iqv)
           cu_qten(j,i,k,iqc) = pxlte(ii,k) - avg_qten(j,i,k,iqc)
           cu_qdetr(j,i,k) = max(zlude(ii,k),dlowval)
           cu_raincc(j,i,k) = pmflxr(ii,k)
@@ -4456,7 +4461,7 @@ module mod_cu_tiedtke
     !-----------------------------------------------------
     ! Temperature K
     real(rk8) , dimension(np,nk) , intent(inout) :: t
-    ! Water Vapor Mixing Ratio kg/kg
+    ! Water Vapor Specific Humidity kg/kg
     real(rk8) , dimension(np,nk) , intent(inout) :: q
     ! U wind m/s
     real(rk8) , dimension(np,nk) , intent(in) :: u
@@ -4478,24 +4483,24 @@ module mod_cu_tiedtke
     real(rk8) , dimension(np,nk) , intent(in) :: geo
     ! Geopotential m^2/s^2 on sigma levels
     real(rk8) , dimension(np,nk+1) , intent(in) :: geof
-    ! Teacer MXR kg/kg
+    ! Tracer Mixing ratio kg/kg
     real(rk8) , dimension(np,nk,ntrac) , intent(in) :: qtrac
     !-----------------------------------------------------
     ! ::::::::::::::: Output Tendencies ::::::::::::::::::
     !-----------------------------------------------------
-    ! Temperature K/s
+    ! Temperature  tendency K/s
     real(rk8) , dimension(np,nk) , intent(inout) :: tent
-    ! MXR kg/(kg*s)
+    ! specific humidity tendency kg/(kg*s)
     real(rk8) , dimension(np,nk) , intent(inout) :: tenq
-    ! Cloud MXR kg/(kg*s)
+    ! Cloud liquid water mixing ratio tendency kg/(kg*s)
     real(rk8) , dimension(np,nk) , intent(out) :: tenl
-    ! Ice MXR kg/(kg*s)
+    ! Ice water mixing ratio tendency kg/(kg*s)
     real(rk8) , dimension(np,nk) , intent(out) :: teni
     ! U wind m/s^2
     real(rk8) , dimension(np,nk) , intent(inout) :: tenu
     ! V wind m/s^2
     real(rk8) , dimension(np,nk) , intent(inout) :: tenv
-    ! Tracer MXR kg/(kg*s)
+    ! Tracer mixing ratio tendency kg/(kg*s)
     real(rk8) , dimension(np,nk,ntrac) , intent(inout) :: tenc
     ! Detrained liquid water kg/(m^2*s)
     real(rk8) , dimension(np,nk) , intent(inout) :: lude
@@ -4515,9 +4520,9 @@ module mod_cu_tiedtke
     logical , dimension(np) , intent(out) :: ldsc
     ! Updraft temperature K
     real(rk8) , dimension(np,nk) , intent(inout) :: tu
-    ! Updraft Water Vapor MXR kg/kg
+    ! Updraft Water Vapor specific humidity kg/kg
     real(rk8) , dimension(np,nk) , intent(inout) :: qu
-    ! Updraft Cloud Liquid Water MXR kg/kg
+    ! Updraft Cloud Liquid Water mixing ratio kg/kg
     real(rk8) , dimension(np,nk) , intent(inout) :: lu
     ! Rain Mass Flux kg/(m^2*s)
     real(rk8) , dimension(np,nk+1) , intent(inout) :: mflxr
