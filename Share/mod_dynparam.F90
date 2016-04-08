@@ -452,7 +452,7 @@ module mod_dynparam
       ierr = 1
       return
     end if
-!
+
     dsmax = 0.05D0
     dsmin = 0.01D0
     njxcpus = -1
@@ -555,7 +555,7 @@ module mod_dynparam
     moist_filename = 'moist.nc'
     tersrc = 'GMTED'
 
-    h2ohgt = .false.
+    h2ohgt = .true.
     h2opct = 50.0D0
     ismthlev = 1
     rewind(ipunit)
