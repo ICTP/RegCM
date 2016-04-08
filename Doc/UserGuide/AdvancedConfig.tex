@@ -731,37 +731,58 @@ sensitivity experiments to select the best scheme for your application.
                         !   4 => Emanuel (1991)
                         !   5 => Tiedtke (1996)
                         !   6 => Kain-Fritsch (1990), Kain (2004)
-   igcc  =          1,  ! Grell Scheme Cumulus closure scheme
+   igcc  =          2,  ! Grell Scheme (icup == 2) Cumulus closure scheme
                         !   1 => Arakawa & Schubert (1974)
                         !   2 => Fritsch & Chappell (1980)
  ipptls  =          1,  ! Moisture scheme
                         !   1 => Explicit moisture (SUBEX; Pal et al 2000)
                         !   2 => Explicit moisture Nogherotto/Tompkins
+ iocncpl =          0,  ! Ocean SST from coupled Ocean Model through RegESM
+                        !   1 => Coupling activated
+ iwavcpl =          0,  ! Ocean roughness from coupled Wave Model through RegESM
+                        !   1 => Coupling activated
  iocnflx =          2,  ! Ocean Flux scheme
                         !   1 => Use BATS1e Monin-Obukhov
                         !   2 => Zeng et al (1998)
-                        !   3 => Coare bulk flux algorithm (snowice),
-                        !        only activated with coupling
+                        !   3 => Coare bulk flux algorithm
    iocnrough =      1,  ! Zeng Ocean model roughness formula to use.
                         !   1 => (0.0065*ustar*ustar)/egrav
                         !   2 => (0.013*ustar*ustar)/egrav + 0.11*visa/ustar
+			!   3 => (0.017*ustar*ustar)/egrav
+			!   4 => Huang 2012 free convection and swell effects
+			!   5 => four regime formulation
+   iocnzoq =        1,  ! Zeng Ocean model factors for t,q roughness
+                        !   1 => 2.67*(re**d_rfour) - 2.57
+			!   2 => min(4.0e-4, 2.0e-4*re**(-3.3))
+			!   3 => COARE formulation as in bulk flux above
  ipgf    =          0,  ! Pressure gradient force scheme
                         !   0 => Use full fields
                         !   1 => Hydrostatic deduction with pert. temperature
  iemiss  =          0,  ! Use computed long wave emissivity
  lakemod =          0,  ! Use lake model
- ichem   =          1,  ! Use active aerosol chemical model
+ ichem   =          0,  ! Use active aerosol chemical model
  scenario =      'A1B', ! IPCC Scenario to use in A1B,A2,B1,B2
                         ! RCP Scenarios in RPC2.6,RCP4.5,RCP6,RCP8.5
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          0, ! Model seaice effects
  idesseas =          0, ! Model desert seasonal albedo variability
- iconvlwp =          0, ! Use convective algo for lwp in the large-scale
- icldfrac =          1, ! Cloud fraction algorithm
+ iconvlwp =          1, ! Use convective algo for lwp in the large-scale
+                        ! This is reset to zero if using ipptls = 2
+ icldfrac =          0, ! Cloud fraction algorithm
                         !   0 : Original SUBEX
+                        !   1 : Xu-Randall empirical
+ icldmstrat =        1, ! Simulate stratocumulus clouds
+ icumcloud =         1, ! Formulas to use for cumulus clouds (cf and lwc)
+                        ! Cloud fractions, only if mass fluxes are not
+			! available (Kuo and BM):
+			!   0,1 => cf = 1-(1-clfrcv)**(1/kdepth)
+			!   2   => cf = cloud profile
+			! Liquid water content:
+			!   0   => constant in cloud
+			!   1,2 => function of temperature
  irrtm    =          0, ! Use RRTM radiation scheme instead of CCSM
  iclimao3 =          0, ! Use O3 climatic dataset from SPARC CMIP5
- isolconst =         1, ! Use a constant 1367 W/m^2 instead of the prescribed
+ isolconst =         0, ! Use a constant 1367 W/m^2 instead of the prescribed
                         ! TSI recommended CMIP5 solar forcing data.
  islab_ocean =       0, ! Activate the SLAB ocean model
  itweak =            0, ! Enable tweak scenario
@@ -840,32 +861,32 @@ This namelist controls the new microphysics scheme.
 {\footnotesize
 \begin{Verbatim}
  &microparam
-  stats = .false.,           ! Produce debug variables in output files
-  budget_compute = .false.,  ! Verify enthalpy and moisture conservation
-  nssopt = 1,                ! Supersaturation Computation
-                             ! 0 => No scheme
-                             ! 1 => Tompkins
-                             ! 2 => Lohmann and Karcher
-                             ! 3 => Gierens
-  kautoconv = 4,             !  Choose the autoconversion paramaterization
-                             ! => 1 Klein & Pincus (2000)
-                             ! => 2 Khairoutdinov and Kogan (2000)
-                             ! => 3 Kessler (1969)
-                             ! => 4 Sundqvist
-  ksemi = 1.0D0,             ! Implicit/Explicit control
-                             ! NOT ACTIVATED YET - IT DOES NOT WORK!
-                             ! ksemi == 0 => scheme is fully explicit
-                             ! ksemi == 1 => scheme is fully implicit
-                             ! 0<ksemi<1  => scheme is semi-implicit
-  vqxr = 4.0D0,              ! Rain fall speed (default is 4 m/s)
-  vqxi = 0.15D0,             ! Ice fall speed (default is 0.15 m/s)
-  vqxs = 1.0D0,              ! Snow fall speed (default is 1 m/s)
-  zauto_rate_khair = 0.355D0,! Autoconversion coefficient for kautoconv=2
-  zauto_rate_kessl = 1.D-3,  ! Autoconversion coefficient for kautoconv=3
-  zauto_rate_klepi = 0.5D-3, ! Autoconversion coefficient for kautoconv=1
-  rkconv = 1.666D-4,         ! Autoconversion coefficient for kautoconv=4
-  rcovpmin = 0.1D0,          ! Minimum precipitation coverage
-  rpecons = 5.547D-5,        ! Evaporation constant Kessler
+ stats = .false.,           ! Produce debug variables in output files
+ budget_compute = .false.,  ! Verify enthalpy and moisture conservation
+ nssopt = 1,                ! Supersaturation Computation
+                            ! 0 => No scheme
+                            ! 1 => Tompkins
+                            ! 2 => Lohmann and Karcher
+                            ! 3 => Gierens
+ kautoconv = 4,             !  Choose the autoconversion paramaterization
+                            ! => 1 Klein & Pincus (2000)
+                            ! => 2 Khairoutdinov and Kogan (2000)
+                            ! => 3 Kessler (1969)
+                            ! => 4 Sundqvist
+ ksemi = 1.0,               ! Implicit/Explicit control 
+                            ! NOT ACTIVATED YET - IT DOES NOT WORK!
+                            ! ksemi == 0 => scheme is fully explicit
+                            ! ksemi == 1 => scheme is fully implicit
+                            ! 0<ksemi<1  => scheme is semi-implicit
+ vqxr = 4.0,                ! Rain fall speed (default is 4 m/s)
+ vqxi = 0.15,               ! Ice fall speed (default is 0.15 m/s)
+ vqxs = 1.0,                ! Snow fall speed (default is 1 m/s)
+ zauto_rate_khair = 0.355,  ! Autoconversion coefficient for kautoconv=2
+ zauto_rate_kessl = 1.e-3,  ! Autoconversion coefficient for kautoconv=3
+ zauto_rate_klepi = 0.5e-3, ! Autoconversion coefficient for kautoconv=1
+ rkconv = 1.666e-4,         ! Autoconversion coefficient for kautoconv=4
+ rcovpmin = 0.1,            ! Minimum precipitation coverage
+ rpecons = 5.547e-5,        ! Evaporation constant Kessler
  /
 \end{Verbatim}
 }
@@ -927,32 +948,33 @@ selected number is $2, 4, 5$.
 
  &tiedtkeparam
  iconv = 4,           ! Actual used scheme.
- entrmax = 1.75D-3,   ! Max entrainment iconv=[1,2,3]
- entrdd  = 3.0D-4,    ! Entrainment rate for cumulus downdrafts
- entrpen = 1.75D-3,   ! Entrainment rate for penetrative convection
- entrscv = 3.0D-4,    ! Entrainment rate for shallow convection iconv=[1,2,3]
- entrmid = 1.0D-4,    ! Entrainment rate for midlevel convection iconv=[1,2,3]
- cprcon = 1.0D-4,     ! Coefficient for determining conversion iconv=[1,2,3]
- detrpen = 0.75D-4,   ! Detrainment rate for penetrative convection iconv=4
- entshalp = 2.0D0,    ! shallow entrainment factor for entrorg iconv=4
- rcuc_lnd = 0.05D0,   ! Convective cloud cover for rain evporation iconv=4
- rcuc_ocn = 0.05D0,   ! Convective cloud cover for rain evporation iconv=4
- rcpec_lnd = 5.55D-5, ! Coefficient for rain evaporation below cloud iconv=4
- rcpec_ocn = 5.55D-5, ! Coefficient for rain evaporation below cloud iconv=4
- rhebc_lnd = 0.7D0,   ! Critical rh below cloud for evaporation iconv=4
- rhebc_ocn = 0.9D0,   ! Critical rh below cloud for evaporation iconv=4
- rprc_lnd = 1.4D-3,   ! conversion coefficient from cloud water iconv=4
- rprc_ocn = 1.4D-3,   ! conversion coefficient from cloud water iconv=4
+ entrmax = 1.75e-3,   ! Max entrainment iconv=[1,2,3]
+ entrdd  = 3.0e-4,    ! Entrainment rate for cumulus downdrafts
+ entrpen = 1.75e-3,   ! Entrainment rate for penetrative convection
+ entrscv = 3.0e-4,    ! Entrainment rate for shallow convection iconv=[1,2,3]
+ entrmid = 1.0e-4,    ! Entrainment rate for midlevel convection iconv=[1,2,3]
+ cprcon = 1.0e-4,     ! Coefficient for determining conversion iconv=[1,2,3]
+ detrpen = 0.75e-4,   ! Detrainment rate for penetrative convection iconv=4
+ entshalp = 2.0,      ! shallow entrainment factor for entrorg iconv=4
+ rcuc_lnd = 0.05,     ! Convective cloud cover for rain evporation iconv=4
+ rcuc_ocn = 0.05,     ! Convective cloud cover for rain evporation iconv=4
+ rcpec_lnd = 5.55e-5, ! Coefficient for rain evaporation below cloud iconv=4
+ rcpec_ocn = 5.55e-5, ! Coefficient for rain evaporation below cloud iconv=4
+ rhebc_lnd = 0.7,     ! Critical rh below cloud for evaporation iconv=4
+ rhebc_ocn = 0.9,     ! Critical rh below cloud for evaporation iconv=4
+ rprc_lnd = 1.4e-3,   ! conversion coefficient from cloud water iconv=4
+ rprc_ocn = 1.4e-3,   ! conversion coefficient from cloud water iconv=4
+ rcrit1   = 13.5,     ! Mean critical radius for ccn
  /
 
  &kfparam
- kf_entrate = 0.03D0,     ! Entrainment rate
- kf_min_pef = 0.2D0,      ! Minimum precipitation efficiency
- kf_max_pef = 0.9D0,      ! Maximum precipitation efficiency
- kf_dpp     = 150.0D0,    ! Start elevation for downdraft above cloud base (mb)
- kf_min_dtcape = 1800.0D0 ! Consumption time of CAPE low limit
- kf_max_dtcape = 3600.0D0 ! Consumption time of CAPE high limit
- kf_tkemax = 5.0D0        ! Maximum turbolent kinetic energy in sub cloud layer
+ kf_entrate = 0.03,      ! Entrainment rate
+ kf_min_pef = 0.2,       ! Minimum precipitation efficiency
+ kf_max_pef = 0.9,       ! Maximum precipitation efficiency
+ kf_dpp     = 150.0,     ! Start elevation for downdraft above cloud base (mb)
+ kf_tkemax = 5.0,        ! Maximum turbolent kinetic energy in sub cloud layer
+ kf_min_dtcape = 1800.0, ! Consumption time of CAPE low limit
+ kf_max_dtcape = 3600.0, ! Consumption time of CAPE high limit
  /
 \end{Verbatim}
 }
@@ -979,9 +1001,20 @@ $1$.
 {\footnotesize
 \begin{Verbatim}
  &holtslagparam
- ricr_ocn = 0.25D0,  ! Critical Richardson Number over Ocean
- ricr_lnd = 0.25D0,  ! Critical Richardson Number over Land
- zhnew_fac = 0.25D0, ! Multiplicative factor for zzhnew in holtpbl
+ ricr_ocn = 0.25,  ! Critical Richardson Number over Ocean
+ ricr_lnd = 0.25,  ! Critical Richardson Number over Land
+ zhnew_fac = 0.25, ! Multiplicative factor for zzhnew in holtpbl
+ ifaholtth10 = 1,  ! First approximation for obhukov length, th10 formula:
+                   !      1 => 0.5 * (t+tg) * (1+0.61*q)
+                   !      2 => (0.25*t + 0.75*tg) * (1+0.61*q)
+                   !      3 => theta + hf/(k*us)*log(z/10)
+                   ! t = air temp., tg = ground temp., q = wv mix. ratio
+                   ! hf = total heat flux, z = elevation
+                   ! theta = virt. pot. t
+ ifaholt = 1,      ! th10 final adjustment:
+                   !      0 => no adjustment
+                   !      1 => max(th10,tg)
+                   !      2 => min(th10,tg)
  /
 \end{Verbatim}
 }
@@ -995,15 +1028,16 @@ $2$.
 {\footnotesize
 \begin{Verbatim}
  &uwparam
- iuwvadv = 0,     ! 0=standard T/QV/QC advection, 1=GB01-style advection
-                  ! 1 is ideal for MSc simulation, but may have stability issues
- atwo = 15.0D0,   ! Efficiency of enhancement of entrainment by cloud evap.
-                  !  see Grenier and Bretherton (2001) Mon. Wea. Rev.
-                  !  and Bretherton and Park (2009) J. Clim.
- rstbl = 1.5D0,   ! Scaling parameter for stable boundary layer eddy length
-                  ! scale.  Higher values mean stronger mixing in stable 
-                  ! conditions
- czero = 5.869D0, ! Czero constant in UW PBL (eqn 44a and pgs 856-857)
+ iuwvadv = 0,   ! 0=standard T/QV/QC advection, 1=GB01-style advection
+                ! 1 is ideal for MSc simulation, but may have stability issues
+ atwo = 15.0,   ! Efficiency of enhancement of entrainment by cloud evap.
+                !  see Grenier and Bretherton (2001) Mon. Wea. Rev.
+                !  and Bretherton and Park (2009) J. Clim.
+ rstbl = 1.5,   ! Scaling parameter for stable boundary layer eddy length
+                ! scale.  Higher values mean stronger mixing in stable 
+                ! conditions
+ czero = 5.869, ! Czero constant in UW PBL (eqn 44a and pgs 856-857)
+ nuk = 5.0,     ! Multiplicative factor for diffusion coefficients
  /
 \end{Verbatim}
 }

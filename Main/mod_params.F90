@@ -223,15 +223,15 @@ module mod_params
     !
     ! physicsparam ;
     !
-    ibltyp = 1
     iboudy = 5
+    ibltyp = 1
     isladvec = 0
     iqmsl = 1
-    icup_lnd = 5
-    icup_ocn = 5
+    icup_lnd = 4
+    icup_ocn = 4
+    igcc = 2
     ipptls = 1
-    igcc = 1
-    ipgf = 1
+    ipgf = 0
     iemiss = 0
     iocnflx = 2
     iocnrough = 1
@@ -252,8 +252,8 @@ module mod_params
     iclimao3 = 0
     isolconst = 0
     icumcloud = 1
-    temp_tend_maxval = 0.5D0*(dt/secpm)
-    wind_tend_maxval = 0.5D0*(dt/secpm)
+    temp_tend_maxval = 1.0D0*(dt/secpm)
+    wind_tend_maxval = 1.0D0*(dt/secpm)
     !
     ! Non hydrostatic param ;
     !
@@ -276,6 +276,7 @@ module mod_params
     nradfo = 4
     !
     ! Subexparam ;
+    ! From Pal et al, 2000
     !
     ncld      = 1        ! # of bottom model levels with no clouds (rad only)
     qck1land  = 0.0005D0 ! Autoconversion Rate for Land
@@ -301,6 +302,7 @@ module mod_params
     lsrfhack  = .false.  ! Surface radiation hack
     !
     ! microparam ;
+    ! From original Nogerotto settings
     !
     stats = .false.
     budget_compute = .false. ! Verify enthalpy and moisture conservation
@@ -328,6 +330,7 @@ module mod_params
     rpecons = 5.547D-5
     !
     ! grellparam ;
+    ! Taken from MM5 Grell implementation
     !
     gcr0 = 0.0020D0      ! Conversion rate from cloud to rain
     edtmin      = 0.20D0 ! Minimum Precipitation Efficiency land
@@ -354,6 +357,7 @@ module mod_params
     dtauc = 30.0D0       ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
     !
     ! emanparam ;
+    ! From Kerry Emanuel convect 4.3c original code
     !
     minsig = 0.950D0    ! Lowest sigma level from which convection can originate
     elcrit_ocn = 1.1D-3 ! Autoconversion threshold water content (gm/gm)
@@ -375,6 +379,7 @@ module mod_params
     epmax_lnd = 0.999D0 ! Maximum precipitation efficiency over ocean
     !
     ! tiedtkeparam ;
+    ! Taken from MPI Echam settings
     !
     iconv    = 4        ! Selects the actual scheme
     entrmax  = 1.75D-3  ! Max entrainment iconv=[1,2,3]
@@ -398,6 +403,7 @@ module mod_params
     rcrit1   = 13.5D0   ! Mean critical radius for ccn
     !
     ! kfparam ;
+    ! Taken from WRF KFeta parametrization
     !
     kf_entrate = 0.03D0 ! Kain Fritsch entrainment rate
     kf_min_pef = 0.2D0  ! Minimum precipitation efficiency
@@ -408,6 +414,7 @@ module mod_params
     kf_max_dtcape = 3600.0D0 ! Consumption time of CAPE high limit
     !
     ! uwparam ;
+    ! Original settings from Travis O'Brian
     !
     iuwvadv = 0
     atwo  = 10.0D0
@@ -416,11 +423,12 @@ module mod_params
     nuk   = 5.0D0
     !
     ! holtslagparam ;
+    ! Settings from C. Torma
     !
     ricr_ocn = 0.25D0
     ricr_lnd = 0.25D0
     zhnew_fac = 0.25D0
-    ifaholtth10 = 0
+    ifaholtth10 = 1
     ifaholt = 1
     !
     ! slabocparam ;
