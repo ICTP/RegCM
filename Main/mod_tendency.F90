@@ -424,7 +424,7 @@ module mod_tendency
       call vadv(aten%w,atm1%w,kzp1,0)
       if ( iboudy == 1 .or. iboudy == 5 ) then
         call nudge(kz,ba_cr,atm2%t,iboudy,xtb,aten%t)
-        call nudge(kz,iqv,iqv,ba_cr,atm2%qx,iboudy,xqb,aten%qx)
+        call nudge(kz,ba_cr,atm2%qx,iboudy,xqb,aten%qx,iqv)
         call nudge(kz,ba_cr,atm2%pp,iboudy,xppb,aten%pp)
         call nudge(kzp1,ba_cr,atm2%w,iboudy,xwwb,aten%w)
       else if ( iboudy == 4 ) then

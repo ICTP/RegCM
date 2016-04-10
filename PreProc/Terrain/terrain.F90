@@ -691,8 +691,25 @@ program terrain
     real(rk8) , dimension(:,:) , intent(inout) :: xx
     real(rk8) , dimension (mmx) :: vals
     integer(ik4) :: ii , jj , js , is , ip , il , maxil
-    il = 1
+    real(rk8) :: mincc , maxcc , countcc
+    countcc = 1.0D0
+    maxcc = 0.0D0
+    mincc = 0.0D0
+    do ii = 1 , imax
+      do jj = 1 , jmax
+        if ( xx(jj,ii) > 0.0D0 ) then
+          countcc = countcc + 1.0D0
+          if ( maxcc < xx(jj,ii) ) maxcc = xx(jj,ii)
+          if ( mincc > xx(jj,ii) ) mincc = xx(jj,ii)
+        end if
+      end do
+    end do
+    if ( countcc > 0.0D0 ) then
+      mincc = mincc / countcc
+      maxcc = maxcc / countcc
+    end if
     maxil = minval(shape(xx))/2
+    il = 1
     do
       ip = 0
       vals(:) = 0.0D0
@@ -718,8 +735,8 @@ program terrain
         if ( il == maxil ) then
           write(stderr,*) 'At point lat = ',xlat(j,i)
           write(stderr,*) '         lon = ',xlon(j,i)
-          call die(__FILE__,'Not finding anything around !',__LINE__)
-          exit
+          write(stderr,*) 'Setting to default value '
+          xx(j,i) = (maxcc+mincc) * d_half
         end if
       end if
     end do

@@ -80,7 +80,7 @@ module mod_bdycod
   end interface timeint
 
   interface nudge
-    module procedure nudge4d , nudge3d , nudge2d
+    module procedure nudge4d , nudge4d3d , nudge3d , nudge2d
   end interface nudge
 
   interface sponge
@@ -1919,6 +1919,211 @@ module mod_bdycod
   !                                                                 c
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
+  subroutine nudge4d3d(nk,ba,f,ibdy,bnd,ften,n)
+    implicit none
+    integer(ik4) , intent(in) :: ibdy , nk , n
+    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: f
+    type(v3dbound) , intent(in) :: bnd
+    type(bound_area) , intent(in) :: ba
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    real(rk8) :: xt , xf , fls0 , fls1 , fls2 , fls3 , fls4 , xg
+    integer(ik4) :: i , j , k , ib , i1 , i2 , j1 , j2
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'nudge4d3d'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
+    if ( .not. ba%havebound ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
+
+    xt = xbctime + dt
+    if ( ba%dotflag ) then
+      lfc => fcd
+      lgc => gcd
+      i1 = idi1
+      i2 = idi2
+      j1 = jdi1
+      j2 = jdi2
+    else
+      lfc => fcx
+      lgc => gcx
+      i1 = ici1
+      i2 = ici2
+      j1 = jci1
+      j2 = jci2
+    end if
+    if ( nk == size(hefc) ) then
+      efc => hefc
+      egc => hegc
+    else
+      efc => fefc
+      egc => fegc
+    end if
+
+    if ( ibdy == 1 ) then
+      if ( ba%ns /= 0 ) then
+        do k = 1 , nk
+          do i = i1 , i2
+            do j = j1 , j2
+              if ( .not. ba%bsouth(j,i) ) cycle
+              ib = ba%ibnd(j,i)
+              xf = lfc(ib)
+              xg = lgc(ib)
+              fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k,n)
+              fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,n)
+              fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,n)
+              fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,n)
+              fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end if
+      if ( ba%nn /= 0 ) then
+        do k = 1 , nk
+          do i = i1 , i2
+            do j = j1 , j2
+              if ( .not. ba%bnorth(j,i) ) cycle
+              ib = ba%ibnd(j,i)
+              xf = lfc(ib)
+              xg = lgc(ib)
+              fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k,n)
+              fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,n)
+              fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,n)
+              fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,n)
+              fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end if
+      if ( ba%nw /= 0 ) then
+        do k = 1 , nk
+          do i = i1 , i2
+            do j = j1 , j2
+              if ( .not. ba%bwest(j,i) ) cycle
+              ib = ba%ibnd(j,i)
+              xf = lfc(ib)
+              xg = lgc(ib)
+              fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k,n)
+              fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,n)
+              fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,n)
+              fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,n)
+              fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end if
+      if ( ba%ne /= 0 ) then
+        do k = 1 , nk
+          do i = i1 , i2
+            do j = j1 , j2
+              if ( .not. ba%beast(j,i) ) cycle
+              ib = ba%ibnd(j,i)
+              xf = lfc(ib)
+              xg = lgc(ib)
+              fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k,n)
+              fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,n)
+              fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,n)
+              fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,n)
+              fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 -  &
+                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end if
+    else
+      if ( ba%ns /= 0 ) then
+        do k = 1 , nk
+          do i = i1 , i2
+            do j = j1 , j2
+              if ( .not. ba%bsouth(j,i) ) cycle
+              ib = ba%ibnd(j,i)
+              xf = efc(ib,k)
+              xg = egc(ib,k)
+              fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k,n)
+              fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,n)
+              fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,n)
+              fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,n)
+              fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end if
+      if ( ba%nn /= 0 ) then
+        do k = 1 , nk
+          do i = i1 , i2
+            do j = j1 , j2
+              if ( .not. ba%bnorth(j,i) ) cycle
+              ib = ba%ibnd(j,i)
+              xf = efc(ib,k)
+              xg = egc(ib,k)
+              fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k,n)
+              fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,n)
+              fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,n)
+              fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,n)
+              fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end if
+      if ( ba%nw /= 0 ) then
+        do k = 1 , nk
+          do i = i1 , i2
+            do j = j1 , j2
+              if ( .not. ba%bwest(j,i) ) cycle
+              ib = ba%ibnd(j,i)
+              xf = efc(ib,k)
+              xg = egc(ib,k)
+              fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k,n)
+              fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,n)
+              fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,n)
+              fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,n)
+              fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end if
+      if ( ba%ne /= 0 ) then
+        do k = 1 , nk
+          do i = i1 , i2
+            do j = j1 , j2
+              if ( .not. ba%beast(j,i) ) cycle
+              ib = ba%ibnd(j,i)
+              xf = efc(ib,k)
+              xg = egc(ib,k)
+              fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k,n)
+              fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,n)
+              fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,n)
+              fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,n)
+              fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 -  &
+                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end if
+    end if
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
+  end subroutine nudge4d3d
+
   subroutine nudge4d(nk,n1,n2,ba,f,ibdy,bnd,ften)
     implicit none
     integer(ik4) , intent(in) :: ibdy , nk , n1 , n2

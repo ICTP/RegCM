@@ -1149,7 +1149,7 @@ module mod_cu_em
             ahg = cpd*tg + (cl-cpd)*q(n,nk)*t(n,i) + alv*qg + gz(i)
             tg = max(tg + s*(ah0-ahg),35.0D0)
             ppa = p(n,i)*100.0D0
-            qg = pfqsat(ppa,tg)
+            qg = pfqsat(tg,ppa)
           end do
           tpk(i) = (ah0-(cl-cpd)*q(n,nk)*t(n,i)-gz(i)-alv*qg)*rcpd
           clw(i) = q(n,nk) - qg
