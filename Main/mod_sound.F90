@@ -46,6 +46,7 @@ module mod_sound
   real(rk8) , pointer , dimension(:,:,:) :: ca
   real(rk8) , pointer , dimension(:,:,:) :: g1 , g2
   real(rk8) , pointer , dimension(:,:,:) :: ptend , pxup , pyvp
+  real(rk8) , pointer , dimension(:,:,:) :: ucrs , vcrs
   real(rk8) , pointer , dimension(:,:,:) :: tk
   real(rk8) , pointer , dimension(:,:,:) :: cc , cdd , cj
   real(rk8) , pointer , dimension(:,:,:) :: pi
@@ -101,6 +102,8 @@ module mod_sound
     call getmem2d(astore,jci1,jci2,ici1,ici2,'sound:astore')
     call getmem2d(wpval,jci1,jci2,ici1,ici2,'sound:wpval')
     call getmem2d(rpsb,jce1gb,jce2gb,ice1gb,ice2gb,'sound:rpsb')
+    call getmem3d(ucrs,jci1,jci2,ici1,ici2,1,kz,'sound:ucrs')
+    call getmem3d(vcrs,jci1,jci2,ici1,ici2,1,kz,'sound:vcrs')
   end subroutine allocate_mod_sound
 
   subroutine init_sound
@@ -142,7 +145,7 @@ module mod_sound
     implicit none
     real(rk8) :: cddtmp ,  cfl , check , chh , cjtmp , cpm , denom , &
       dppdp0 , dpterm , dts , ppold , rho , rho0s , rofac , maxcfl , &
-      ucrsk , vcrsk , ucrskm1 , vcrskm1 , rll , rkk , ri , rj
+      rll , rkk , ri , rj
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
     logical , save :: cfl_error = .false.
     character (len=32) :: appdat
@@ -173,9 +176,13 @@ module mod_sound
     !   w(BET)=0.5(1+BET)* w(t+1)+0.5(1-BET)* w(t)
     !
     ! DTL LONG TIME-STEP (XXB-XXC)
-    istep = max(int(dt/dtsmax),2)
-    if ( ktau > 1 ) then
-      istep = max(4,istep)
+    if ( ktau == 0 ) then
+      istep = 4
+    else
+      istep = max(int(dt/dtsmax),2)
+      if ( ktau > 1 ) then
+        istep = max(4,istep)
+      end if
     end if
     dts = dt/dble(istep)
     !
@@ -332,21 +339,24 @@ module mod_sound
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atmc%w(j,i,kzp1) = d_rfour * &
+          atmc%w(j,i,kzp1) = d_half * d_rfour * regrav * &
                      ((atmc%v(j,i+1,kz)   + atmc%v(j,i,kz) +    &
                        atmc%v(j+1,i+1,kz) + atmc%v(j+1,i,kz)) * &
                       ( mddom%ht(j,i+1) - mddom%ht(j,i-1) ) +   &
                       (atmc%u(j,i+1,kz)   + atmc%u(j,i,kz) +    &
                        atmc%u(j+1,i+1,kz) + atmc%u(j+1,i,kz)) * &
                       ( mddom%ht(j+1,i) - mddom%ht(j-1,i))) /   &
-                      ( d_two * dx * mddom%msfx(j,i) * egrav )
+                      ( dx * mddom%msfx(j,i) )
           e(j,i,kz) = d_zero
           f(j,i,kz) = atmc%w(j,i,kzp1)
-
+        end do
+      end do
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           cc(j,i,1)  = xgamma * atm1%pr(j,i,1) * dts/ (dx*mddom%msfx(j,i))
           cdd(j,i,1) = xgamma * atm1%pr(j,i,1) * atm0%rho(j,i,1) * &
                        egrav * dts / (atm0%ps(j,i)*dsigma(1))
-          cj(j,i,1)  = atm0%rho(j,i,1) * egrav * dts / d_two
+          cj(j,i,1)  = d_half * atm0%rho(j,i,1) * egrav * dts
           pxup(j,i,1) = 0.0625D0 *                              &
                       ( atm0%pr(j+1,i,1) - atm0%pr(j-1,i,1) ) * &
                       ( atmc%u(j,i,1)   + atmc%u(j+1,i,1)   +   &
@@ -377,9 +387,8 @@ module mod_sound
                            atmc%u(j+1,i+1,1) * mddom%msfd(j+1,i+1) - &
                            atmc%u(j,i+1,1)   * mddom%msfd(j,i+1) ) / &
                        mddom%msfx(j,i) - d_two * (pyvp(j,i,1) + pxup(j,i,1)) )
-          tk(j,i,1) = atm0%ps(j,i) * atm0%t(j,i,1) / &
-                      (d_two * xgamma * atm0%pr(j,i,1) * &
-                      atm2%t(j,i,1) * rpsb(j,i))
+          tk(j,i,1) = (d_half * atm0%ps(j,i) * atm0%t(j,i,1)) / &
+                      (xgamma * atm0%pr(j,i,1) * atm2%t(j,i,1) * rpsb(j,i))
         end do
       end do
       do k = 2 , kz
@@ -387,20 +396,19 @@ module mod_sound
         km1 = k-1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tk(j,i,k) = atm0%ps(j,i) * atm0%t(j,i,k) / &
-                        (d_two * xgamma * atm0%pr(j,i,k) * &
-                        atm2%t(j,i,k) * rpsb(j,i))
-            rofac = (dsigma(km1)*atm0%rho(j,i,k) + &
-                     dsigma(k)*atm0%rho(j,i,km1)) / &
-                    (dsigma(km1)*atm1%rho(j,i,k) + &
-                     dsigma(k)*atm1%rho(j,i,km1))
+            tk(j,i,k) = (d_half * atm0%ps(j,i) * atm0%t(j,i,k)) / &
+                        (xgamma * atm0%pr(j,i,k) * atm2%t(j,i,k) * rpsb(j,i))
+            rofac = (dsigma(km1)*atm0%rho(j,i,k) +    &
+                     dsigma(k)  *atm0%rho(j,i,km1)) / &
+                    (dsigma(km1)*atm1%rho(j,i,k) +    &
+                     dsigma(k)  *atm1%rho(j,i,km1))
             !
             ! Set factors for differencing
             !
             cc(j,i,k)  = xgamma * atm1%pr(j,i,k) * dts / (dx*mddom%msfx(j,i))
             cdd(j,i,k) = xgamma * atm1%pr(j,i,k) * atm0%rho(j,i,k) * &
                          egrav * dts / (atm0%ps(j,i)*dsigma(k))
-            cj(j,i,k) = atm0%rho(j,i,k) * egrav * dts * d_half
+            cj(j,i,k) = d_half * atm0%rho(j,i,k) * egrav * dts
             ca(j,i,k) = egrav * dts / (atm0%pr(j,i,k)-atm0%pr(j,i,km1)) * rofac
             g1(j,i,k) = d_one - dsigma(km1) * tk(j,i,k)
             g2(j,i,k) = d_one + dsigma(k) * tk(j,i,km1)
@@ -512,8 +520,8 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             denom = (cdd(j,i,1) + cj(j,i,1)) * bp
-            astore(j,i) = denom * e(j,i,1) + (cj(j,i,1) - cdd(j,i,1)) * bp
             estore(j,i) = atmc%pp(j,i,1) + f(j,i,1) * denom
+            astore(j,i) = denom * e(j,i,1) + (cj(j,i,1) - cdd(j,i,1)) * bp
           end do
         end do
         call grid_fill(estore,estore_g,jci1,jci2,ici1,ici2)
@@ -549,10 +557,10 @@ module mod_sound
           xmsf = xmsf/npts
           dxmsfb = d_two/dx/xmsf
           tmask(:,:) = d_zero
-          do kk = 0 , 6
-            rkk = dble(kk)
-            do ll = 0 , 6
-              rll = dble(ll)
+          do ll = 0 , 6
+            rll = dble(ll)
+            do kk = 0 , 6
+              rkk = dble(kk)
               xkeff = dxmsfb * sin(mathpi*rkk/12.0D0)*cos(mathpi*rll/12.0D0)
               xleff = dxmsfb * sin(mathpi*rll/12.0D0)*cos(mathpi*rkk/12.0D0)
               xkleff = sqrt(xkeff*xkeff + xleff*xleff)
@@ -584,9 +592,6 @@ module mod_sound
                        estore_g(jnn,inn)*tmask(nsj,nsi)*wtbdy_g(jnn,inn)
               end do
             end do
-            if ( abs(wpval(j,i)) < dlowval ) then
-              wpval(j,i) = sign(dlowval,wpval(j,i))
-            end if
           end do
         end do
       end if
@@ -601,6 +606,12 @@ module mod_sound
       !
       ! Downward sweep calculation of w
       !
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          atmc%w(j,i,2) = bet * atmc%w(j,i,1) + &
+                (d_one - bet) * (e(j,i,1)*atmc%w(j,i,1)+f(j,i,1))
+        end do
+      end do
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -608,32 +619,30 @@ module mod_sound
           end do
         end do
       end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ucrs(j,i,k) = atmc%u(j,i,k) * mddom%msfd(j,i) +     &
+                          atmc%u(j,i+1,k) * mddom%msfd(j,i+1) + &
+                          atmc%u(j+1,i,k) * mddom%msfd(j+1,i) + &
+                          atmc%u(j+1,i+1,k) * mddom%msfd(j+1,i+1)
+            vcrs(j,i,k) = atmc%v(j,i,k) * mddom%msfd(j,i) +     &
+                          atmc%v(j,i+1,k) * mddom%msfd(j,i+1) + &
+                          atmc%v(j+1,i,k) * mddom%msfd(j+1,i) + &
+                          atmc%v(j+1,i+1,k) * mddom%msfd(j+1,i+1)
+          end do
+        end do
+      end do
       cfl = d_zero
       do k = kz , 2 , -1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ucrsk = atmc%u(j,i,k) * mddom%msfd(j,i) +     &
-                    atmc%u(j,i+1,k) * mddom%msfd(j,i+1) + &
-                    atmc%u(j+1,i,k) * mddom%msfd(j+1,i) + &
-                    atmc%u(j+1,i+1,k) * mddom%msfd(j+1,i+1)
-            vcrsk = atmc%v(j,i,k) * mddom%msfd(j,i) +     &
-                    atmc%v(j,i+1,k) * mddom%msfd(j,i+1) + &
-                    atmc%v(j+1,i,k) * mddom%msfd(j+1,i) + &
-                    atmc%v(j+1,i+1,k) * mddom%msfd(j+1,i+1)
-            ucrskm1 = atmc%u(j,i,k-1) * mddom%msfd(j,i) +     &
-                      atmc%u(j,i+1,k-1) * mddom%msfd(j,i+1) + &
-                      atmc%u(j+1,i,k-1) * mddom%msfd(j+1,i) + &
-                      atmc%u(j+1,i+1,k-1) * mddom%msfd(j+1,i+1)
-            vcrskm1 = atmc%v(j,i,k-1) * mddom%msfd(j,i) +     &
-                      atmc%v(j,i+1,k-1) * mddom%msfd(j,i+1) + &
-                      atmc%v(j+1,i,k-1) * mddom%msfd(j+1,i) + &
-                      atmc%v(j+1,i+1,k-1) * mddom%msfd(j+1,i+1)
             rho0s = twt(k,1)*atm0%rho(j,i,k) + twt(k,2)*atm0%rho(j,i,k-1)
-            sigdot(j,i,k) = -rho0s*egrav*atmc%w(j,i,k)/atm0%ps(j,i) - &
-               sigma(k) * ( dpsdxm(j,i) * ( twt(k,1)*ucrsk +          &
-                                            twt(k,2)*ucrskm1 ) +      &
-                            dpsdym(j,i) * ( twt(k,1)*vcrsk +          &
-                                            twt(k,2)*vcrskm1 ) )
+            sigdot(j,i,k) = -rho0s*egrav*atmc%w(j,i,k)/atm0%ps(j,i) -  &
+               sigma(k) * ( dpsdxm(j,i) * ( twt(k,1)*ucrs(j,i,k) +     &
+                                            twt(k,2)*ucrs(j,i,k-1) ) + &
+                            dpsdym(j,i) * ( twt(k,1)*vcrs(j,i,k) +     &
+                                            twt(k,2)*vcrs(j,i,k-1) ) )
             check = abs(sigdot(j,i,k)) * dt / (dsigma(k) + dsigma(k-1))
             cfl = max(check,cfl)
           end do
@@ -691,8 +700,8 @@ module mod_sound
             !
             cpm = cpmf(atmc%qx(j,i,k,iqv))
             dpterm = sfs%psb(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm1%rho(j,i,k))
-            atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
             atm2%t(j,i,k) = atm2%t(j,i,k) + gnuhf*dpterm
+            atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
           end do
         end do
       end do
@@ -777,10 +786,10 @@ module mod_sound
       do i = ici1 , ici2
         do j = jci1 , jci2
           atm1%w(j,i,k) = sfs%psb(j,i) * atmc%w(j,i,k)
-          atm2%w(j,i,k) = atm2%w(j,i,k) + gnuhf*atm1%w(j,i,k)
           if ( abs(atm1%w(j,i,k)) < dlowval) then
             atm1%w(j,i,k) = sign(dlowval,atm1%w(j,i,k))
           end if
+          atm2%w(j,i,k) = atm2%w(j,i,k) + gnuhf*atm1%w(j,i,k)
           if ( abs(atm2%w(j,i,k)) < dlowval) then
             atm2%w(j,i,k) = sign(dlowval,atm2%w(j,i,k))
           end if

@@ -258,8 +258,12 @@ module mod_params
     ! Non hydrostatic param ;
     !
     ifupr = 1
-    diffu_hgtf = 1
-    ckh = sqrt(d_two)
+    if ( idynamic == 2 ) then
+      diffu_hgtf = 0
+    else
+      diffu_hgtf = 1
+    end if
+    ckh = d_one
     logp_lrate = 50.0D0
     !
     ! Rrtm radiation param ;

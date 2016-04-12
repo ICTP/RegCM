@@ -549,10 +549,10 @@ module mod_init
         do i = ice1 , ice2
           do j = jce1 , jce2
             atm1%pr(j,i,k) = atm0%pr(j,i,k) + atm1%pp(j,i,k)/sfs%psa(j,i)
-            atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)/sfs%psb(j,i)
             atm1%rho(j,i,k) = atm1%pr(j,i,k) /        &
                 (rgas*atm1%t(j,i,k)/sfs%psa(j,i) *    &
                 (d_one+ep1*atm1%qx(j,i,k,iqv)/sfs%psa(j,i)))
+            atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)/sfs%psb(j,i)
           end do
         end do
       end do
