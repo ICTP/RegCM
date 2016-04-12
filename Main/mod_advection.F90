@@ -36,8 +36,8 @@ module mod_advection
   public :: init_advection, hadv , vadv , start_advect
 
   logical , parameter :: upstream_mode = .true.
-  real(rk8) , parameter :: upu = 0.1D0
-  real(rk8) , parameter :: umax = 100.0D0
+  real(rk8) , parameter :: upu = 0.2D0
+  real(rk8) , parameter :: umax = 200.0D0
   real(rk8) , parameter :: uchu = upu/umax
 
   logical , parameter :: stability_enhance = .true.
@@ -1089,8 +1089,7 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n)   > minqv .and. &
-                     f(j,i,k-1,n) > minqv ) then
+                if ( f(j,i,k,n)   > minqv .and. f(j,i,k-1,n) > minqv ) then
                   ff = (f(j,i,k,n) * &
                     (f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)) * svv(j,i,k)
                   ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)

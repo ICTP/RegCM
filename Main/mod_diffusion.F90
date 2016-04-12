@@ -81,9 +81,9 @@ module mod_diffusion
     dydc = aflag*vonkar*vonkar*dx*d_rfour ! Deformation term coefficient
     ! (Xu et al., MWR, 2001, 502-516)
     if ( idynamic == 1 ) then
-      xkhz = 1.5D-3*dxsq/dtsec ! dx
+      xkhz = 1.5D-3*dxsq/dtsec
     else
-      xkhz = ckh * dx ! 3.0D-3*dxsq/dtsec
+      xkhz = ckh * 3.0D-3*dxsq/dtsec ! ckh * dx ! 3.0D-3*dxsq/dtsec
     end if
     if ( myid == 0 ) then
       write(stdout,'(a,e13.6,a)') &

@@ -284,38 +284,6 @@ program terrain
       call smth121(htgrid_s,jxsg,iysg,3*nsg)
     end do
 
-    if ( ibndry ) then
-      do j = 2 , jxsg - 1
-        htgrid_s(j,1) = htgrid_s(j,2)
-        htgrid_s(j,iysg) = htgrid_s(j,iysg-1)
-        lndout_s(j,1) = lndout_s(j,2)
-        lndout_s(j,iysg) = lndout_s(j,iysg-1)
-
-        if ( ltexture ) then
-          texout_s(j,1) = texout_s(j,2)
-          texout_s(j,iysg) = texout_s(j,iysg-1)
-          do k = 1 , ntex
-            frac_tex_s(j,1,k) = frac_tex_s(j,2,k)
-            frac_tex_s(j,iysg,k) = frac_tex_s(j,iysg-1,k)
-          end do
-        end if
-      end do
-      do i = 1 , iysg
-        htgrid_s(1,i) = htgrid_s(2,i)
-        htgrid_s(jxsg,i) = htgrid_s(jxsg-1,i)
-        lndout_s(1,i) = lndout_s(2,i)
-        lndout_s(jxsg,i) = lndout_s(jxsg-1,i)
-
-        if ( ltexture ) then
-          texout_s(1,i) = texout_s(2,i)
-          texout_s(jxsg,i) = texout_s(jxsg-1,i)
-          do k = 1 , ntex
-            frac_tex_s(1,i,k) = frac_tex_s(2,i,k)
-            frac_tex_s(jxsg,i,k) = frac_tex_s(jxsg-1,i,k)
-          end do
-        end if
-      end do
-    end if
     do i = 1 , iysg
       do j = 1 , jxsg
         snowam_s(j,i) = 0.0
@@ -482,39 +450,6 @@ program terrain
     call smth121(htgrid,jx,iy,3)
   end do
 
-  if ( ibndry ) then
-    do j = 2 , jx - 1
-      htgrid(j,1) = htgrid(j,2)
-      htgrid(j,iy) = htgrid(j,iy-1)
-      lndout(j,1) = lndout(j,2)
-      lndout(j,iy) = lndout(j,iy-1)
-
-      if ( ltexture ) then
-        texout(j,1) = texout(j,2)
-        texout(j,iy) = texout(j,iy-1)
-        do k = 1 , ntex
-          frac_tex(j,1,k) = frac_tex(j,2,k)
-          frac_tex(j,iy,k) = frac_tex(j,iy-1,k)
-        end do
-      end if
-    end do
-    do i = 1 , iy
-      htgrid(1,i) = htgrid(2,i)
-      htgrid(jx,i) = htgrid(jx-1,i)
-      lndout(1,i) = lndout(2,i)
-      lndout(jx,i) = lndout(jx-1,i)
-
-      if ( ltexture ) then
-        texout(1,i) = texout(2,i)
-        texout(jx,i) = texout(jx-1,i)
-        do k = 1 , ntex
-          frac_tex(1,i,k) = frac_tex(2,i,k)
-          frac_tex(jx,i,k) = frac_tex(jx-1,i,k)
-        end do
-      end if
-    end do
-  end if
-
   do i = 1 , iy
     do j = 1 , jx
       snowam(j,i) = 0.0
@@ -584,6 +519,40 @@ program terrain
     smoist = smissval
   end if
 
+  if ( ibndry ) then
+    do j = 2 , jx - 1
+      htgrid(j,1) = htgrid(j,2)
+      htgrid(j,iy) = htgrid(j,iy-1)
+      lndout(j,1) = lndout(j,2)
+      lndout(j,iy) = lndout(j,iy-1)
+
+      if ( ltexture ) then
+        texout(j,1) = texout(j,2)
+        texout(j,iy) = texout(j,iy-1)
+        do k = 1 , ntex
+          frac_tex(j,1,k) = frac_tex(j,2,k)
+          frac_tex(j,iy,k) = frac_tex(j,iy-1,k)
+        end do
+      end if
+    end do
+    do i = 1 , iy
+      htgrid(1,i) = htgrid(2,i)
+      htgrid(jx,i) = htgrid(jx-1,i)
+      lndout(1,i) = lndout(2,i)
+      lndout(jx,i) = lndout(jx-1,i)
+
+      if ( ltexture ) then
+        texout(1,i) = texout(2,i)
+        texout(jx,i) = texout(jx-1,i)
+        do k = 1 , ntex
+          frac_tex(1,i,k) = frac_tex(2,i,k)
+          frac_tex(jx,i,k) = frac_tex(jx-1,i,k)
+        end do
+      end if
+    end do
+  end if
+
+
   if ( lakedpth ) then
     write (char_lak,99002) trim(dirter), pthsep, trim(domname), &
              '_LAK'
@@ -637,6 +606,38 @@ program terrain
       end where
     else
       smoist_s = smissval
+    end if
+    if ( ibndry ) then
+      do j = 2 , jxsg - 1
+        htgrid_s(j,1) = htgrid_s(j,2)
+        htgrid_s(j,iysg) = htgrid_s(j,iysg-1)
+        lndout_s(j,1) = lndout_s(j,2)
+        lndout_s(j,iysg) = lndout_s(j,iysg-1)
+
+        if ( ltexture ) then
+          texout_s(j,1) = texout_s(j,2)
+          texout_s(j,iysg) = texout_s(j,iysg-1)
+          do k = 1 , ntex
+            frac_tex_s(j,1,k) = frac_tex_s(j,2,k)
+            frac_tex_s(j,iysg,k) = frac_tex_s(j,iysg-1,k)
+          end do
+        end if
+      end do
+      do i = 1 , iysg
+        htgrid_s(1,i) = htgrid_s(2,i)
+        htgrid_s(jxsg,i) = htgrid_s(jxsg-1,i)
+        lndout_s(1,i) = lndout_s(2,i)
+        lndout_s(jxsg,i) = lndout_s(jxsg-1,i)
+
+        if ( ltexture ) then
+          texout_s(1,i) = texout_s(2,i)
+          texout_s(jxsg,i) = texout_s(jxsg-1,i)
+          do k = 1 , ntex
+            frac_tex_s(1,i,k) = frac_tex_s(2,i,k)
+            frac_tex_s(jxsg,i,k) = frac_tex_s(jxsg-1,i,k)
+          end do
+        end if
+      end do
     end if
 
     if ( idynamic == 2 ) then

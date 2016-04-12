@@ -259,7 +259,7 @@ module mod_params
     !
     ifupr = 1
     diffu_hgtf = 1
-    ckh = 1.0D0
+    ckh = sqrt(d_two)
     logp_lrate = 50.0D0
     !
     ! Rrtm radiation param ;

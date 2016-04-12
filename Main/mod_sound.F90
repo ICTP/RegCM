@@ -172,9 +172,9 @@ module mod_sound
     !  pp(BET)=0.5(1+BET)*pp(t+1)+0.5(1-BET)*pp(t)
     !   w(BET)=0.5(1+BET)* w(t+1)+0.5(1-BET)* w(t)
     !
-    istep = max(int(dt/dtsmax),1)
     ! DTL LONG TIME-STEP (XXB-XXC)
-    if ( ktau > 0 ) then
+    istep = max(int(dt/dtsmax),2)
+    if ( ktau > 1 ) then
       istep = max(4,istep)
     end if
     dts = dt/dble(istep)
@@ -601,7 +601,7 @@ module mod_sound
       !
       ! Downward sweep calculation of w
       !
-      do k = 1 , kz
+      do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%w(j,i,k+1) = e(j,i,k)*atmc%w(j,i,k) + f(j,i,k)

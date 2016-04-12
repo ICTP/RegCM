@@ -62,7 +62,7 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:) :: dummy , rpsa , rpsb , rpsc
   real(rk8) , pointer , dimension(:,:) :: rpsda
 
-  integer :: ithadv = 1
+  integer :: ithadv = 0
   integer(ik4) :: iqvvadv , iqxvadv , itrvadv
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
@@ -614,7 +614,7 @@ module mod_tendency
                    mddom%ex(j,i)*(uaq*mddom%crx(j,i) -     &
                                   vaq*mddom%cry(j,i)) +    &
                    (uaq*uaq+vaq*vaq)*rearthrad*rpsa(j,i) + &
-                   atmx%w(j,i,k)*(twt(k,1)*mdv%cr(j,i,k) +   &
+                   atmx%w(j,i,k)*(twt(k,1)*mdv%cr(j,i,k) + &
                                   twt(k,2)*mdv%cr(j,i,k-1))
           end do
         end do
@@ -1019,7 +1019,10 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
-            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),minqx)
+            if ( atmc%qx(j,i,k,n) < minqx ) then
+              atmc%qx(j,i,k,iqv) = atmc%qx(j,i,k,iqv) + atmc%qx(j,i,k,n)
+              atmc%qx(j,i,k,n) = d_zero
+            end if
           end do
         end do
       end do
