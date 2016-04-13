@@ -309,9 +309,9 @@ module mod_tendency
     !
     if ( idynamic == 1 ) then
       if ( iboudy == 4 ) then
-        call sponge(ba_cr,xpsb,pten)
+        call sponge(xpsb,pten)
       else if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(ba_cr,sfs%psb,iboudy,xpsb,pten)
+        call nudge(iboudy,sfs%psb,xpsb,pten)
       end if
       !
       ! psc : forecast pressure
@@ -430,15 +430,15 @@ module mod_tendency
       call hadv(aten%w,atmx%w,1)
       call vadv(aten%w,atm1%w,kzp1,0)
       if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(kz,ba_cr,atm2%t,iboudy,xtb,aten%t)
-        call nudge(kz,ba_cr,atm2%qx,iboudy,xqb,aten%qx,iqv)
-        call nudge(kz,ba_cr,atm2%pp,iboudy,xppb,aten%pp)
-        call nudge(kzp1,ba_cr,atm2%w,iboudy,xwwb,aten%w)
+        call nudge(iboudy,atm2%t,xtb,aten%t)
+        call nudge(iboudy,atm2%qx,xqb,aten%qx,iqv)
+        call nudge(iboudy,atm2%pp,xppb,aten%pp)
+        call nudge(iboudy,atm2%w,xwwb,aten%w)
       else if ( iboudy == 4 ) then
-        call sponge(kz,ba_cr,xtb,aten%t)
-        call sponge(kz,iqv,ba_cr,xqb,aten%qx)
-        call sponge(kz,ba_cr,xppb,aten%pp)
-        call sponge(kzp1,ba_cr,xwwb,aten%w)
+        call sponge(xtb,aten%t)
+        call sponge(xqb,aten%qx,iqv)
+        call sponge(xppb,aten%pp)
+        call sponge(xwwb,aten%w)
       end if
       if ( idiag > 0 ) then
         ! rq : temp condensation tend is added the evap temp tend
@@ -883,8 +883,8 @@ module mod_tendency
     !
     if ( idynamic == 1 ) then
       if ( iboudy == 4 ) then
-        call sponge(kz,ba_cr,xtb,aten%t)
-        call sponge(kz,iqv,ba_cr,xqb,aten%qx)
+        call sponge(xtb,aten%t)
+        call sponge(xqb,aten%qx,iqv)
         if ( idiag > 0 ) then
           ! rq : temp condensation tend is added the evap temp tend
           !      calculated in pcp
@@ -968,8 +968,8 @@ module mod_tendency
     !
     if ( idynamic == 1 ) then
       if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(kz,ba_cr,atm2%t,iboudy,xtb,aten%t)
-        call nudge(kz,iqv,iqv,ba_cr,atm2%qx,iboudy,xqb,aten%qx)
+        call nudge(iboudy,atm2%t,xtb,aten%t)
+        call nudge(iboudy,atm2%qx,xqb,aten%qx,iqv)
       end if
     end if
     if ( ichem == 1 ) then
@@ -1409,15 +1409,13 @@ module mod_tendency
     ! apply the sponge boundary condition on u and v:
     !
     if ( iboudy == 4 ) then
-      call sponge(kz,ba_dt,xub,aten%u)
-      call sponge(kz,ba_dt,xvb,aten%v)
+      call sponge(xub,xvb,aten%u,aten%v)
     end if
     !
     ! apply the nudging boundary conditions:
     !
     if ( iboudy == 1 .or. iboudy == 5 ) then
-      call nudge(kz,ba_dt,atm2%u,iboudy,xub,aten%u)
-      call nudge(kz,ba_dt,atm2%v,iboudy,xvb,aten%v)
+      call nudge(iboudy,atm2%u,atm2%v,xub,xvb,aten%u,aten%v)
     end if
 #ifdef DEBUG
     call check_wind_tendency('BDYC')
