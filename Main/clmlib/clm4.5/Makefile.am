@@ -20,7 +20,9 @@
 include $(REGCM_ROOT)/makeinc
 
 vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib: \
-          $(REGCM_ROOT)/Main/batslib:$(REGCM_ROOT)/Main/netlib:$(REGCM_ROOT)/Main/chemlib:.
+          $(REGCM_ROOT)/Main/batslib:$(REGCM_ROOT)/Main/netlib: \
+	  $(REGCM_ROOT)/Main/chemlib:.
+vpath %.inc $(REGCM_ROOT)/Share:.
 
 noinst_LIBRARIES = libclm45.a
 libclm45_a_SOURCES = mod_clm_nchelper.F90 mod_clm_domain.F90 mod_clm_type.F90 \
@@ -184,7 +186,7 @@ mod_clm_pft2col.o : mod_clm_pft2col.F90 mod_clm_subgridave.o mod_clm_type.o mod_
 mod_clm_pftdyn.o : mod_clm_pftdyn.F90 mod_clm_decomp.o mod_clm_nchelper.o mod_clm_pftvarcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_clm_varsur.o mod_constants.o mod_date.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_pftvarcon.o : mod_clm_pftvarcon.F90 mod_clm_nchelper.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_qsat.o : mod_clm_qsat.F90 mod_constants.o mod_realkinds.o $(REGCM_ROOT)/makeinc
-mod_clm_regcm.o : mod_clm_regcm.F90 mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_driver.o mod_clm_initialize.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_constants.o mod_date.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o mod_sunorbit.o  $(REGCM_ROOT)/makeinc
+mod_clm_regcm.o : mod_clm_regcm.F90 mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_driver.o mod_clm_initialize.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_constants.o mod_date.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o mod_sunorbit.o  $(REGCM_ROOT)/makeinc pfesat.inc pfqsat.inc
 mod_clm_restfile.o : mod_clm_restfile.F90 mod_clm_accumul.o mod_clm_biogeophysrest.o mod_clm_ch4rest.o mod_clm_cnrest.o mod_clm_croprest.o mod_clm_decomp.o mod_clm_histfile.o mod_clm_nchelper.o mod_clm_slakerest.o mod_clm_subgridrest.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_reweight.o : mod_clm_reweight.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_filter.o mod_clm_type.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_slakecon.o : mod_clm_slakecon.F90 mod_clm_varpar.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc

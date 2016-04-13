@@ -76,7 +76,7 @@ module mod_sound
 
   contains
 
-#include "cpmf.inc"
+#include <cpmf.inc>
 
   subroutine allocate_mod_sound
     implicit none

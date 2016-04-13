@@ -75,7 +75,7 @@ module mod_tendency
 
   contains
 
-#include "cpmf.inc"
+#include <cpmf.inc>
 
   subroutine allocate_mod_tend
     implicit none
