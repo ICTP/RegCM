@@ -62,16 +62,13 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:) :: dummy , rpsa , rpsb , rpsc
   real(rk8) , pointer , dimension(:,:) :: rpsda
 
-  integer :: ithadv = 0
+  integer :: ithadv = 1
   integer(ik4) :: iqvvadv , iqxvadv , itrvadv
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
 #endif
 
   real(rk8) :: rptn ! Total number of internal points
-
-  ! We are using some upstream in advection, so we will not diffuse tracers
-  logical , parameter :: diffu_tracers = .true.
 
   contains
 
@@ -392,7 +389,17 @@ module mod_tendency
 #endif
     cldfra(:,:,:) = d_zero
     cldlwc(:,:,:) = d_zero
-
+    !
+    ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
+    !
+    adf%t(:,:,:)    = d_zero
+    adf%qx(:,:,:,:) = d_zero
+    adf%u(:,:,:) = d_zero
+    adf%v(:,:,:) = d_zero
+    if ( idynamic == 2 ) then
+      adf%w(:,:,:)    = d_zero
+      adf%pp(:,:,:)   = d_zero
+    end if
     if ( ibltyp == 2 ) then
       aten%tke(:,:,:) = d_zero
       uwstatea%advtke(:,:,:) = d_zero
@@ -439,15 +446,6 @@ module mod_tendency
         tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
         ten0 = aten%t
       end if
-    end if
-    !
-    ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
-    !
-    adf%t(:,:,:)    = d_zero
-    adf%qx(:,:,:,:) = d_zero
-    if ( idynamic == 2 ) then
-      adf%w(:,:,:)    = d_zero
-      adf%pp(:,:,:)   = d_zero
     end if
     !
     ! compute the horizontal advection term in temperature tendency:
@@ -753,15 +751,12 @@ module mod_tendency
       if ( idiag > 0 ) then
         qen0(jci1:jci2,ici1:ici2,:) = adf%qx(jci1:jci2,ici1:ici2,:,iqv)
       end if
-      if ( diffu_tracers ) then
-        call diffu_x(adf%qx,atms%qxb3d,1,nqx)
-      else
-        call diffu_x(adf%qx,atms%qxb3d,iqv)
-      end if
+      call diffu_x(adf%qx,atms%qxb3d,1,nqx)
       if ( idiag > 0 ) then
         ! save the h diff diag here
-        qdiag%dif(jci1:jci2,ici1:ici2,:) = qdiag%dif(jci1:jci2,ici1:ici2,:) + &
-                     (adf%qx(jci1:jci2,ici1:ici2,:,iqv) -                 &
+        qdiag%dif(jci1:jci2,ici1:ici2,:) = &
+                      qdiag%dif(jci1:jci2,ici1:ici2,:) +   &
+                     (adf%qx(jci1:jci2,ici1:ici2,:,iqv) -  &
                       qen0(jci1:jci2,ici1:ici2,:)) * afdout
         ! reset qen0 to aten%t
         qen0 = aten%qx(:,:,:,iqv)
@@ -947,17 +942,15 @@ module mod_tendency
     ! moisture schemes
     !
     if ( ipptls > 0 ) then
-      if ( diffu_tracers ) then
-        do n = iqfrst , iqlst
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%qx(j,i,k,n)
-              end do
+      do n = iqfrst , iqlst
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%qx(j,i,k,n)
             end do
           end do
         end do
-      end if
+      end do
       if ( ipptls == 1 ) then
         call condtq
       end if
@@ -2075,7 +2068,7 @@ module mod_tendency
         do k = 1 , kz
           do i = ice1ga , ice2ga
             do j = jce1ga , jce2ga
-              atmx%qx(j,i,k,n) = max(atm1%qx(j,i,k,n)*rpsa(j,i),1.0D-12)
+              atmx%qx(j,i,k,n) = max(atm1%qx(j,i,k,n)*rpsa(j,i),minqx)
             end do
           end do
         end do

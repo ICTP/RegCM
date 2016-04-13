@@ -171,7 +171,7 @@ module mod_pbl_uwtcm
       do i = ici1 , ici2
         do j = jci1 , jci2
           p2m%diffqx(j,i,k,iqv) = p2m%diffqx(j,i,k,iqv) +  &
-             p2m%qxuwten(j,i,k,iqv)
+                                  p2m%qxuwten(j,i,k,iqv)
         end do
       end do
     end do
@@ -188,8 +188,8 @@ module mod_pbl_uwtcm
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
-             p2m%qxuwten(j,i,k,iqc)
+          p2m%diffqx(j,i,k,iqc) = p2m%diffqx(j,i,k,iqc) + &
+                                  p2m%qxuwten(j,i,k,iqc)
         end do
       end do
     end do
@@ -197,13 +197,12 @@ module mod_pbl_uwtcm
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
-               p2m%qxuwten(j,i,k,iqi)
+            p2m%diffqx(j,i,k,iqi) = p2m%diffqx(j,i,k,iqi) + &
+                                    p2m%qxuwten(j,i,k,iqi)
           end do
         end do
       end do
     end if
-
 
     ! Put the tracer tendencies in chiuwten
     ! TODO: may want to calcuate rmdr here following holtbl
@@ -325,7 +324,7 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay , kpbconv , iteration
-    real(rk8) :: temps , templ , deltat , rvls
+    real(rk8) :: temps , templ , deltat , rvls , pfac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
@@ -365,11 +364,12 @@ module mod_pbl_uwtcm
           zqx(k) = m2p%zq(j,i,k)
         end do
 
+        pfac = dt / psbx
         tke(kzp1) = m2p%tkests(j,i,kzp1)
         do k = 1 , kz
-          tx(k)  = m2p%tatm(j,i,k)
-          qx(k)  = m2p%qxatm(j,i,k,iqv)
-          qcx(k) = m2p%qxatm(j,i,k,iqc)
+          tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k) * pfac
+          qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv) * pfac
+          qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc) * pfac
           zax(k) = m2p%za(j,i,k)
           tke(k) = m2p%tkests(j,i,k)
           ux(k)  = m2p%uxatm(j,i,k)
@@ -597,11 +597,12 @@ module mod_pbl_uwtcm
             rvls = ep2/(preshl(k)/pfesat(temps)-d_one)
           end do
           if ( ipptls == 2 ) then
-            qcx(k) = min(1.0D-3,max(qwx(k)-rvls, d_zero))
+            qcx(k) = min(1.0D-3,max(qwx(k)-rvls, minqx))
           else
-            qcx(k) = max(qwx(k)-rvls, d_zero)
+            qcx(k) = max(qwx(k)-rvls, minqx)
           end if
-          qx(k) = qwx(k) - qcx(k)
+          qx(k) = max(qwx(k) - qcx(k), minqq)
+          qcx(k) = max(qwx(k) - qx(k), d_zero)
           thx(k) = (templ + qcx(k)*wlhvocp) *rexnerhl(k)
           uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
           ! Determine the temperature and qc and qv
@@ -775,7 +776,6 @@ module mod_pbl_uwtcm
         ! tke at top is fixed
         tke(1) = d_zero
         ! diagnose tke at surface, following my 82, b1 ** (2/3) / 2 = 3.25
-        !tke(kzp1) = 3.25 * ustx * ustx ! normal
         tke(kzp1) = 3.25D0 * ustxsq ! normal
 
         ! now the implicit calculations
