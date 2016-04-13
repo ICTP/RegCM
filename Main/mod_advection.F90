@@ -509,14 +509,14 @@ module mod_advection
           do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                uaz1 = ( twt(k,2) * uavg1(j,i,k) + &
-                         twt(k,1) * uavg1(j,i,k-1) )
-                uaz2 = ( twt(k,2) * uavg2(j,i,k) + &
-                         twt(k,1) * uavg2(j,i,k-1) )
-                vaz1 = ( twt(k,2) * vavg1(j,i,k) + &
-                         twt(k,1) * vavg1(j,i,k-1) )
-                vaz2 = ( twt(k,2) * vavg2(j,i,k) + &
-                         twt(k,1) * vavg2(j,i,k-1) )
+                uaz1 = ( twt(k,1) * uavg1(j,i,k) + &
+                         twt(k,2) * uavg1(j,i,k-1) )
+                uaz2 = ( twt(k,1) * uavg2(j,i,k) + &
+                         twt(k,2) * uavg2(j,i,k-1) )
+                vaz1 = ( twt(k,1) * vavg1(j,i,k) + &
+                         twt(k,2) * vavg1(j,i,k-1) )
+                vaz2 = ( twt(k,1) * vavg2(j,i,k) + &
+                         twt(k,2) * vavg2(j,i,k-1) )
                 fx1 = f(j-1,i,k) + f(j,i,k)
                 fx2 = f(j,i,k)   + f(j+1,i,k)
                 fy1 = f(j,i-1,k) + f(j,i,k)
@@ -567,14 +567,14 @@ module mod_advection
           do i = ici1 , ici2
             do j = jci1 , jci2
               ul = d_half * uchu / ps(j,i)
-              uaz1 = ( twt(k,2) * uavg1(j,i,k) + &
-                       twt(k,1) * uavg1(j,i,k-1) )
-              uaz2 = ( twt(k,2) * uavg2(j,i,k) + &
-                       twt(k,1) * uavg2(j,i,k-1) )
-              vaz1 = ( twt(k,2) * vavg1(j,i,k) + &
-                       twt(k,1) * vavg1(j,i,k-1) )
-              vaz2 = ( twt(k,2) * vavg2(j,i,k) + &
-                       twt(k,1) * vavg2(j,i,k-1) )
+              uaz1 = ( twt(k,1) * uavg1(j,i,k) + &
+                       twt(k,2) * uavg1(j,i,k-1) )
+              uaz2 = ( twt(k,1) * uavg2(j,i,k) + &
+                       twt(k,2) * uavg2(j,i,k-1) )
+              vaz1 = ( twt(k,1) * vavg1(j,i,k) + &
+                       twt(k,2) * vavg1(j,i,k-1) )
+              vaz2 = ( twt(k,1) * vavg2(j,i,k) + &
+                       twt(k,2) * vavg2(j,i,k-1) )
               f1 = d_half + max(min((uaz2+uaz1)*ul,upu),-upu)
               f2 = d_one - f1
               fx1 = f1*f(j-1,i,k)+f2*f(j,i,k)
