@@ -315,6 +315,13 @@
                     ! Bougeault, 1983)
  ckh = 1.0,         ! Background diffusion multiplication factor
  diffu_hgtf = 1,    ! Add topographic effect to diffusion
+ nhbet = 0.4,       ! Ikawa beta parameter (0.=centered, 1.=backward)
+                    ! determines the time-weighting, where zero gives a
+                    ! time-centered average and positive values give a bias
+                    ! towards the future time step that can be used for
+                    ! acoustic damping. In practice, values of
+                    ! nhbet = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1)
+ nhxkd = 0.1,       ! Time weighting for weighting old/new pp
  /
 !
 ! Moisture scheme comtrol (ipptls = 1)

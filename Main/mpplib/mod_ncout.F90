@@ -2455,6 +2455,10 @@ module mod_ncout
                   ncattribute_integer('upper_radiative_bc',ifupr))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('diffusion_hgt_factor',diffu_hgtf))
+          call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_real8('sound_bet_param',nhbet))
+          call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_real8('sound_xkd_param',nhxkd))
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('lateral_boundary_condition_scheme',iboudy))

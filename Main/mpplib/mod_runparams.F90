@@ -127,6 +127,10 @@ module mod_runparams
   integer(ik4) , public :: icldmstrat
   ! Upper radiative BC for non-hydrostatic core
   integer(ik4) , public :: ifupr
+  ! BET parameter in sound waves removal
+  real(rk8) , public :: nhbet
+  ! XKD parameter in sound waves removal
+  real(rk8) , public :: nhxkd
 
   ! Aerosol effects
   real(rk8) , public :: rcrit

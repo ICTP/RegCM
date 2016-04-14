@@ -110,7 +110,8 @@ module mod_params
       icldfrac , irrtm , iclimao3 , isolconst , icumcloud , islab_ocean , &
       itweak , temp_tend_maxval , wind_tend_maxval
 
-    namelist /nonhydroparam/ ifupr , logp_lrate , ckh , diffu_hgtf
+    namelist /nonhydroparam/ ifupr , logp_lrate , ckh , diffu_hgtf , &
+      nhbet , nhxkd
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -265,6 +266,8 @@ module mod_params
     end if
     ckh = d_one
     logp_lrate = 50.0D0
+    nhbet = 0.4D0
+    nhxkd = 0.1D0
     !
     ! Rrtm radiation param ;
     !
@@ -934,6 +937,8 @@ module mod_params
       call bcast(ckh)
       call bcast(diffu_hgtf)
       call bcast(logp_lrate)
+      call bcast(nhbet)
+      call bcast(nhxkd)
     end if
 
     if ( ipptls == 2 ) then

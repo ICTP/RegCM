@@ -67,8 +67,8 @@ module mod_sound
   !  values of BET = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1). This
   !  time-weighting is applied on w and pp:
   !
-  real(rk8) , parameter :: bet = 0.4D0
-  real(rk8) , parameter :: xkd = 0.1D0
+  real(rk8) :: bet = 0.4D0
+  real(rk8) :: xkd = 0.1D0
   real(rk8) , parameter :: xgamma = d_one/(d_one-rovcp)
   real(rk8) :: cs , bp , bm , bpxbm , bpxbp
   real(rk8) :: dtsmax
@@ -139,6 +139,8 @@ module mod_sound
     bpxbp = bp*bp
     bpxbm = bp*bm
     npts = dble((nicross-2)*(njcross-2))
+    bet = nhbet
+    xkd = nhxkd
   end subroutine init_sound
 
   subroutine sound
