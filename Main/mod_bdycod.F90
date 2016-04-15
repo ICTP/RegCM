@@ -1878,7 +1878,6 @@ module mod_bdycod
     real(rk8) , pointer , intent(inout) , dimension(:,:) :: ften
     integer(ik4) :: i , j
     integer(ik4) :: ib
-    real(rk8) , pointer , dimension(:) :: wg
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'sponge2d'
     integer(ik4) , save :: idindx = 0

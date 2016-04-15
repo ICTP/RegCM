@@ -475,7 +475,7 @@ module mod_advection
       real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
       integer(ik4) :: i , j , k
-      real(rk8) :: advval , ul , uaz1 , uaz2 , vaz1 , vaz2
+      real(rk8) :: ul , uaz1 , uaz2 , vaz1 , vaz2
       real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv3d'

@@ -370,10 +370,10 @@ module mod_pbl_uwtcm
           tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k) * pfac
           qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv) * pfac
           qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc) * pfac
+          ux(k)  = m2p%uxatm(j,i,k) + p2m%uten(j,i,k) * pfac
+          vx(k)  = m2p%vxatm(j,i,k) + p2m%vten(j,i,k) * pfac
           zax(k) = m2p%za(j,i,k)
           tke(k) = m2p%tkests(j,i,k)
-          ux(k)  = m2p%uxatm(j,i,k)
-          vx(k)  = m2p%vxatm(j,i,k)
           rttenx(k) = m2p%heatrt(j,i,k)
         end do
         if ( ipptls == 2 ) then
