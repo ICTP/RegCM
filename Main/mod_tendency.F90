@@ -1012,7 +1012,10 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
-            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),minqx)
+            if ( atmc%qx(j,i,k,n) < minqx ) then
+              atmc%qx(j,i,k,iqv) = atmc%qx(j,i,k,iqv) + atmc%qx(j,i,k,n)
+              atmc%qx(j,i,k,n) = d_zero
+            end if
           end do
         end do
       end do
