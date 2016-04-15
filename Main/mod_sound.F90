@@ -68,7 +68,7 @@ module mod_sound
   !  time-weighting is applied on w and pp:
   !
   real(rk8) :: bet = 0.4D0
-  real(rk8) :: xkd = 0.1D0
+  real(rk8) :: xkd = 0.9D0
   real(rk8) , parameter :: xgamma = d_one/(d_one-rovcp)
   real(rk8) :: cs , bp , bm , bpxbm , bpxbp
   real(rk8) :: dtsmax
@@ -131,16 +131,19 @@ module mod_sound
       fi(6) = d_half
       fj(6) = d_half
     end if
+    bet = nhbet
+    xkd = nhxkd
     cs = sqrt(xgamma*rgas*stdt)
     ! Calculate short time-step
     dtsmax = dx/cs/(d_one+xkd)
+    if ( myid == italk ) then
+      write(stdout,'(a,f7.2)') ' Non-hydrostatic small dt limit = ', dtsmax
+    end if
     bp = (d_one+bet)*d_half
     bm = (d_one-bet)*d_half
     bpxbp = bp*bp
     bpxbm = bp*bm
     npts = dble((nicross-2)*(njcross-2))
-    bet = nhbet
-    xkd = nhxkd
   end subroutine init_sound
 
   subroutine sound
@@ -608,13 +611,14 @@ module mod_sound
       !
       ! Downward sweep calculation of w
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atmc%w(j,i,2) = bet * atmc%w(j,i,1) + &
-                (d_one - bet) * (e(j,i,1)*atmc%w(j,i,1)+f(j,i,1))
-        end do
-      end do
-      do k = 2 , kz
+      !do i = ici1 , ici2
+      !  do j = jci1 , jci2
+      !    atmc%w(j,i,2) = bet * atmc%w(j,i,1) + &
+      !          (d_one - bet) * (e(j,i,1)*atmc%w(j,i,1)+f(j,i,1))
+      !  end do
+      !end do
+      !do k = 2 , kz
+      do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%w(j,i,k+1) = e(j,i,k)*atmc%w(j,i,k) + f(j,i,k)
