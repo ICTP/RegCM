@@ -267,7 +267,7 @@ module mod_params
     ckh = d_one
     logp_lrate = 50.0D0
     nhbet = 0.4D0
-    nhxkd = 0.9D0
+    nhxkd = 0.1D0
     !
     ! Rrtm radiation param ;
     !
