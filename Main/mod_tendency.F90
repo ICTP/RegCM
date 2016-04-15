@@ -69,7 +69,7 @@ module mod_tendency
 #endif
 
   ! We are using some upstream in advection, so we will not diffuse tracers
-  logical , parameter :: diffu_tracers = .false.
+  logical , parameter :: diffu_tracers = .true.
 
   real(rk8) :: rptn ! Total number of internal points
 
