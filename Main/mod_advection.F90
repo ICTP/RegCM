@@ -78,7 +78,6 @@ module mod_advection
 
   real(rk8) , pointer , dimension(:) :: dds , xds
   real(rk8) , pointer , dimension(:,:,:) :: fg
-  real(rk8) , pointer , dimension(:,:,:) :: wg1 , wg2
   real(rk8) , pointer , dimension(:,:,:) :: uavg1 , uavg2
   real(rk8) , pointer , dimension(:,:,:) :: vavg1 , vavg2
 
@@ -111,10 +110,6 @@ module mod_advection
       call getmem3d(uavg2,jci1,jci2,ici1,ici2,1,kz,'advection:uavg2')
       call getmem3d(vavg1,jci1,jci2,ici1,ici2,1,kz,'advection:vavg1')
       call getmem3d(vavg2,jci1,jci2,ici1,ici2,1,kz,'advection:vavg2')
-      if ( upstream_mode ) then
-        call getmem3d(wg1,jci1,jci2,ici1,ici2,1,kz,'advection:wg1')
-        call getmem3d(wg2,jci1,jci2,ici1,ici2,1,kz,'advection:wg2')
-      end if
       xds(:) =  d_one / dsigma(:)
       dds(1) = d_zero
       dds(kzp1) = d_zero

@@ -70,9 +70,6 @@ module mod_tendency
 
   real(rk8) :: rptn ! Total number of internal points
 
-  ! We are using some upstream in advection, so we will not diffuse tracers
-  logical , parameter :: diffu_tracers = .true.
-
   contains
 
 #include <cpmf.inc>
@@ -754,11 +751,7 @@ module mod_tendency
       if ( idiag > 0 ) then
         qen0(jci1:jci2,ici1:ici2,:) = adf%qx(jci1:jci2,ici1:ici2,:,iqv)
       end if
-      if ( diffu_tracers ) then
-        call diffu_x(adf%qx,atms%qxb3d,1,nqx)
-      else
-        call diffu_x(adf%qx,atms%qxb3d,iqv)
-      end if
+      call diffu_x(adf%qx,atms%qxb3d,1,nqx)
       if ( idiag > 0 ) then
         ! save the h diff diag here
         qdiag%dif(jci1:jci2,ici1:ici2,:) = &
@@ -949,17 +942,15 @@ module mod_tendency
     ! moisture schemes
     !
     if ( ipptls > 0 ) then
-      if ( diffu_tracers ) then
-        do n = iqfrst , iqlst
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%qx(j,i,k,n)
-              end do
+      do n = iqfrst , iqlst
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%qx(j,i,k,n)
             end do
           end do
         end do
-      end if
+      end do
       if ( ipptls == 1 ) then
         call condtq
       end if

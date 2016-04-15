@@ -87,14 +87,21 @@ module mod_slice
         end do
       end do
     end do
-    do n = 1 , nqx
+    do k = 1 , kz
+      do i = ice1gb , ice2gb
+        do j = jce1gb , jce2gb
+          atms%qxb3d(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv),minqv)*rpsb(j,i)
+        end do
+      end do
+    end do
+    do n = iqfrst , iqlst
       do k = 1 , kz
         do i = ice1gb , ice2gb
           do j = jce1gb , jce2gb
             if ( atm2%qx(j,i,k,n) > minqx ) then
               atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)*rpsb(j,i)
             else
-              atms%qxb3d(j,i,k,n) = d_zero
+              atms%qxb3d(j,i,k,n) = minqx
             end if
           end do
         end do

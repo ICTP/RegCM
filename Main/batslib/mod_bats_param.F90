@@ -97,18 +97,18 @@ module mod_bats_param
   ! height also used snow masking depth in subrout albedo
   ! BATS 1e , Table 2, c, pag 21
   !
-  data rough / 0.0600D0 , 0.0200D0 , 1.0000D0 , 1.0000D0 , 0.8000D0 , &
-               2.0000D0 , 0.1000D0 , 0.0500D0 , 0.0400D0 , 0.0600D0 , &
-               0.1000D0 , 0.0100D0 , 0.0300D0 , 0.0024D0 , 0.0024D0 , &
-               0.1000D0 , 0.1000D0 , 0.8000D0 , 0.3000D0 , 0.3000D0 , &
-               1.5000D0 , 1.0000D0 /
+  !data rough / 0.0600D0 , 0.0200D0 , 1.0000D0 , 1.0000D0 , 0.8000D0 , &
+  !             2.0000D0 , 0.1000D0 , 0.0500D0 , 0.0400D0 , 0.0600D0 , &
+  !             0.1000D0 , 0.0100D0 , 0.0300D0 , 0.0024D0 , 0.0024D0 , &
+  !             0.1000D0 , 0.1000D0 , 0.8000D0 , 0.3000D0 , 0.3000D0 , &
+  !             1.5000D0 , 1.0000D0 /
   ! Following Stulls "Meteorology for Scientists and Engineers",
   ! Davenport-Wieringa roughness-length classifcations.
-  !data rough / 0.1000D0 , 0.0300D0 , 1.0000D0 , 1.0000D0 , 1.0000D0 , &
-  !             1.0000D0 , 0.3000D0 , 0.0050D0 , 0.0300D0 , 0.1000D0 , &
-  !             0.0300D0 , 0.0050D0 , 0.1000D0 , 0.0002D0 , 0.0004D0 , &
-  !             0.2500D0 , 0.1000D0 , 1.0000D0 , 0.5000D0 , 0.3000D0 , &
-  !             2.0000D0 , 1.0000D0 /
+  data rough / 0.1000D0 , 0.0300D0 , 1.0000D0 , 1.0000D0 , 1.0000D0 , &
+               1.0000D0 , 0.3000D0 , 0.0050D0 , 0.0300D0 , 0.1000D0 , &
+               0.0300D0 , 0.0050D0 , 0.1000D0 , 0.0002D0 , 0.0004D0 , &
+               0.2500D0 , 0.1000D0 , 1.0000D0 , 0.5000D0 , 0.3000D0 , &
+               2.0000D0 , 1.0000D0 /
   !
   ! displacement height (meter)
   ! if great parts of veg. are covered by snow, use displa=0

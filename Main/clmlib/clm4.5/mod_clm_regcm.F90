@@ -260,7 +260,7 @@ module mod_clm_regcm
     do i = begg , endg
       satp = pfesat(clm_a2l%forc_t(i))
       satq = pfqsat(clm_a2l%forc_t(i),clm_a2l%forc_pbot(i),satp)
-      clm_a2l%forc_rh(i) = max(clm_a2l%forc_q(i)/satq,d_zero)
+      clm_a2l%forc_rh(i) = min(max(clm_a2l%forc_q(i)/satq,d_zero),d_one)
       clm_a2l%forc_vp(i) = satp * clm_a2l%forc_rh(i)
       clm_a2l%forc_rh(i) = clm_a2l%forc_rh(i) * 100.0D0
       ! Set upper limit of air temperature for snowfall at 275.65K.
