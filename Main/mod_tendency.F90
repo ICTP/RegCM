@@ -68,6 +68,9 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:,:) :: wten
 #endif
 
+  ! We are using some upstream in advection, so we will not diffuse tracers
+  logical , parameter :: diffu_tracers = .false.
+
   real(rk8) :: rptn ! Total number of internal points
 
   contains
@@ -751,7 +754,11 @@ module mod_tendency
       if ( idiag > 0 ) then
         qen0(jci1:jci2,ici1:ici2,:) = adf%qx(jci1:jci2,ici1:ici2,:,iqv)
       end if
-      call diffu_x(adf%qx,atms%qxb3d,1,nqx)
+      if ( diffu_tracers ) then
+        call diffu_x(adf%qx,atms%qxb3d,1,nqx)
+      else
+        call diffu_x(adf%qx,atms%qxb3d,iqv)
+      end if
       if ( idiag > 0 ) then
         ! save the h diff diag here
         qdiag%dif(jci1:jci2,ici1:ici2,:) = &
@@ -942,15 +949,17 @@ module mod_tendency
     ! moisture schemes
     !
     if ( ipptls > 0 ) then
-      do n = iqfrst , iqlst
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%qx(j,i,k,n)
+      if ( diffu_tracers ) then
+        do n = iqfrst , iqlst
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%qx(j,i,k,n)
+              end do
             end do
           end do
         end do
-      end do
+      end if
       if ( ipptls == 1 ) then
         call condtq
       end if
@@ -1012,10 +1021,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
-            if ( atmc%qx(j,i,k,n) < minqx ) then
-              atmc%qx(j,i,k,iqv) = atmc%qx(j,i,k,iqv) + atmc%qx(j,i,k,n)
-              atmc%qx(j,i,k,n) = d_zero
-            end if
+            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),minqx)
           end do
         end do
       end do
