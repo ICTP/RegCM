@@ -247,7 +247,7 @@ module mod_params
     idesseas = 0
     iconvlwp = 1
     icldfrac = 0
-    icldmstrat = 1
+    icldmstrat = 0
     irrtm = 0
     islab_ocean = 0
     iclimao3 = 0

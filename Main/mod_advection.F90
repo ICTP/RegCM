@@ -35,7 +35,7 @@ module mod_advection
 
   public :: init_advection, hadv , vadv , start_advect
 
-  logical , parameter :: upstream_mode = .false.
+  logical , parameter :: upstream_mode = .true.
   real(rk8) , parameter :: upu = 0.2D0
   real(rk8) , parameter :: umax = 200.0D0
   real(rk8) , parameter :: uchu = upu/umax
