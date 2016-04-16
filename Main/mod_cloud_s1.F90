@@ -2462,7 +2462,7 @@ module mod_cloud_s1
                 vv(imax) = vv(n) ! ALSO INTERCHANGE THE SCALE FACTOR.
               end if
               indx(n) = imax
-              if ( abs(aam(n,n,j,i)) < dlowval ) aam(n,n,j,i) = dlowval
+              if ( abs(aam(n,n,j,i)) < zminqx ) aam(n,n,j,i) = zminqx
               dum = d_one/aam(n,n,j,i)
               if ( n /= nqx ) then
                 do m = n + 1 , nqx
@@ -2470,8 +2470,8 @@ module mod_cloud_s1
                 end do
               end if
             end do
-            if ( abs(aam(nqx,nqx,j,i)) < dlowval ) then
-              aam(nqx,nqx,j,i) = dlowval
+            if ( abs(aam(nqx,nqx,j,i)) < zminqx ) then
+              aam(nqx,nqx,j,i) = zminqx
             end if
             !
             ! SOLVE THE SET OF N LINEAR EQUATIONS A * X = B.
@@ -2493,7 +2493,7 @@ module mod_cloud_s1
               xsum = bbm(ll,j,i)
               bbm(ll,j,i) = bbm(m,j,i)
               if ( ii == 0 ) then
-                if ( abs(xsum) > dlowval ) ii = m
+                if ( abs(xsum) > zminqx ) ii = m
               else
                 do jj = ii , m - 1
                   xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i)

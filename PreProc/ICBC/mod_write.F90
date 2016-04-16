@@ -227,7 +227,7 @@ module mod_write
       end do
       ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
       call nhw(1,iy,1,jx,kz,sigmah,sigmaf,dsigma,topogm,u4,v4,tv4, &
-               rho0,ps4,pd4,ps0,msfx,msfd,ww4,wtop4,dx)
+               rho0,ps4,pd4,ps0,msfx,msfd,ww4,wtop4,dx,i_band)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,topod,u4,tvd4,pd4,psd0,1)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,topod,v4,tvd4,pd4,psd0,1)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,topogm,t4,tv4,ps4,ps0,1)

@@ -118,7 +118,7 @@ module mod_nhinterp
       real(rk8) , pointer , intent(in) , dimension(:,:) :: ps
       real(rk8) , pointer , intent(in) , dimension(:,:) :: ps0
       real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: f
-      integer(ik4) :: i , j , k , l , ll , ip , im , jp , jm
+      integer(ik4) :: i , j , k , l , ll
       real(rk8) :: fl , fu , pr0 , alnp , alnqvn
       real(rk8) :: ziso , zl , zu , wu , wl
       real(rk8) , dimension(1:kxs) :: fn
@@ -148,10 +148,6 @@ module mod_nhinterp
       !
       do i = i1 , i2
         do j = j1 , j2
-          ip = min(i2-1,i)
-          jp = min(j2-1,j)
-          im = max(i1,i-1)
-          jm = max(j1,j-1)
           zq(kxs+1) = ter(j,i)
           do k = kxs , 1 , -1
             zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
@@ -210,7 +206,7 @@ module mod_nhinterp
       real(rk8) , pointer , intent(in) , dimension(:,:) :: ps
       real(rk8) , pointer , intent(in) , dimension(:,:) :: ps0
       real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: f
-      integer(ik4) :: i , j , k , n , l , ll , ip , im , jp , jm
+      integer(ik4) :: i , j , k , n , l , ll
       real(rk8) :: fl , fu , pr0 , alnp , alnqvn
       real(rk8) :: ziso , zl , zu , wl , wu
       real(rk8) , dimension(1:kxs) :: fn
@@ -240,10 +236,6 @@ module mod_nhinterp
       !
       do i = i1 , i2
         do j = j1 , j2
-          ip = min(i2-1,i)
-          jp = min(j2-1,j)
-          im = max(i1,i-1)
-          jm = max(j1,j-1)
           zq(kxs+1) = geo(j,i)*regrav
           do k = kxs , 1 , -1
             zq(k) = zq(k+1) - rovg * tv(j,i,k) * &
@@ -361,9 +353,9 @@ module mod_nhinterp
     ! horizontal wind fields (u and v).
     !
     subroutine nhw(i1,i2,j1,j2,kxs,sigmah,sigma,dsigma,ter,u,v,tv,rho0, &
-                   ps,psdot,ps0,xmsfx,xmsfd,w,wtop,ds)
+                   ps,psdot,ps0,xmsfx,xmsfd,w,wtop,ds,iband)
       implicit none
-      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs
+      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , iband
       real(rk8) , pointer , intent(in) , dimension(:) :: sigmah , sigma , dsigma
       real(rk8) , pointer , intent(in) , dimension(:,:) :: ter  ! Meters
       real(rk8) , pointer , intent(in) , dimension(:,:) :: xmsfx , xmsfd
@@ -410,12 +402,35 @@ module mod_nhinterp
         do j = j1 , j2
           ip = min(i+1,i2)
           im = max(i-1,i1)
-          jp = min(j+1,j2)
-          jm = max(j-1,j1)
           ipp = min(i+2,i2)
           imm = max(i-2,i1)
-          jpp = min(j+2,j2)
-          jmm = max(j-2,j1)
+          if ( iband /= 1 ) then 
+            jp = min(j+1,j2)
+            jm = max(j-1,j1)
+            jpp = min(j+2,j2)
+            jmm = max(j-2,j1)
+          else
+            if ( j == j2-1 ) then
+              jPP = j1
+              jp = j2
+            else if ( j == j2 ) then
+              jpp = j1 + 1
+              jp = j1
+            else
+              jp = j + 1
+              jPP = j + 2
+            end if
+            if ( j == j1 + 1 ) then
+              jmm = j2
+              jm = j1
+            else if ( j == j1 ) then
+              jmm = j1 + 1
+              jm = j1
+            else
+              jmm = j - 2
+              jm = j - 1
+            end if
+          end if
           z0q(kxs+1) = ter(j,i)
           do k = 1 , kxs
             if ( pr0(j,i,k) < piso ) then
