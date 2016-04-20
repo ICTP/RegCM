@@ -387,7 +387,9 @@ module mod_sladvection
             tsla = tbadp
           end if
           ! to compute the tendency
-          ften(j,i,k) = ften(j,i,k) + (tsla - var(j,i,k))/dt
+          if ( abs(tsla - var(j,i,k)) > dlowval ) then
+            ften(j,i,k) = ften(j,i,k) + (tsla - var(j,i,k))/dt
+          end if
         end do
       end do
     end do
@@ -464,7 +466,9 @@ module mod_sladvection
               tsla = tbadp
             end if
             ! to compute the tendency
-            ften(j,i,k,n) =  ften(j,i,k,n) + (tsla - var(j,i,k,n))/dt
+            if ( abs(tsla - var(j,i,k,n)) > dlowval ) then
+              ften(j,i,k,n) =  ften(j,i,k,n) + (tsla - var(j,i,k,n))/dt
+            end if
           end do
         end do
       end do

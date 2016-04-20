@@ -400,37 +400,6 @@ module mod_nhinterp
 
       do i = i1 , i2
         do j = j1 , j2
-          ip = min(i+1,i2)
-          im = max(i-1,i1)
-          ipp = min(i+2,i2)
-          imm = max(i-2,i1)
-          if ( iband /= 1 ) then 
-            jp = min(j+1,j2)
-            jm = max(j-1,j1)
-            jpp = min(j+2,j2)
-            jmm = max(j-2,j1)
-          else
-            if ( j == j2-1 ) then
-              jPP = j1
-              jp = j2
-            else if ( j == j2 ) then
-              jpp = j1 + 1
-              jp = j1
-            else
-              jp = j + 1
-              jPP = j + 2
-            end if
-            if ( j == j1 + 1 ) then
-              jmm = j2
-              jm = j1
-            else if ( j == j1 ) then
-              jmm = j1 + 1
-              jm = j1
-            else
-              jmm = j - 2
-              jm = j - 1
-            end if
-          end if
           z0q(kxs+1) = ter(j,i)
           do k = 1 , kxs
             if ( pr0(j,i,k) < piso ) then
@@ -446,6 +415,37 @@ module mod_nhinterp
           do l = kxs , 1 , -1
             zq(l) = zq(l+1) - rovg*tv(j,i,l) * logprp(j,i,l)
           end do
+          ip = min(i+1,i2)
+          im = max(i-1,i1)
+          ipp = min(i+2,i2)
+          imm = max(i-2,i1)
+          if ( iband /= 1 ) then
+            jp = min(j+1,j2)
+            jm = max(j-1,j1)
+            jpp = min(j+2,j2)
+            jmm = max(j-2,j1)
+          else
+            if ( j == j2-1 ) then
+              jpp = j1
+              jp = j2
+            else if ( j == j2 ) then
+              jpp = j1 + 1
+              jp = j1
+            else
+              jp = j + 1
+              jpp = j + 2
+            end if
+            if ( j == j1 + 1 ) then
+              jmm = j2
+              jm = j1
+            else if ( j == j1 ) then
+              jmm = j2 - 1
+              jm = j2
+            else
+              jmm = j - 2
+              jm = j - 1
+            end if
+          end if
           pten = d_zero
           mdv(:) = d_zero
           do l = 1 , kxs
@@ -512,8 +512,10 @@ module mod_nhinterp
             !  W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
             wtmp(j,i,k) = -omegan/rho * regrav
           end do
+          wtmp(j,i,1) = -omega(2)/rho0(j,i,1)*regrav
         end do
       end do
+      wtmp(j1:j2,i1:i2,:) = dble(int(wtmp(j1:j2,i1:i2,:) * d_100)) * d_r100
       wtop(j1:j2,i1:i2) = wtmp(j1:j2,i1:i2,1)
       do k = 2 , kxs + 1
         do i = i1 , i2
@@ -524,6 +526,8 @@ module mod_nhinterp
       end do
       w(j2,:,:) = d_zero
       w(:,i2,:) = d_zero
+      wtop(j2,:) = d_zero
+      wtop(:,i2) = d_zero
     end subroutine nhw
 
 end module mod_nhinterp

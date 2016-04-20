@@ -386,17 +386,17 @@ module mod_runparams
   ! Super saturation option
   integer , public :: nssopt
   ! Choose the autoconversion paramaterization
-  integer , public :: kautoconv
+  integer , public :: iautoconv
   ! Implict option
-  real(rk8) , public :: ksemi
+  real(rk8) , public :: rsemi
   ! Fall speed values
-  real(rk8) , public :: vqxr
-  real(rk8) , public :: vqxi
-  real(rk8) , public :: vqxs
+  real(rk8) , public :: vfqr
+  real(rk8) , public :: vfqi
+  real(rk8) , public :: vfqs
   ! autoconversion values
-  real(rk8) , public :: zauto_rate_khair
-  real(rk8) , public :: zauto_rate_kessl
-  real(rk8) , public :: zauto_rate_klepi
+  real(rk8) , public :: auto_rate_khair
+  real(rk8) , public :: auto_rate_kessl
+  real(rk8) , public :: auto_rate_klepi
   real(rk8) , public :: rkconv
   ! limit values
   real(rk8) , public :: rcovpmin

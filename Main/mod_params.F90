@@ -121,9 +121,9 @@ module mod_params
       caccroce , tc0 , cllwcv , clfrcvmax , cftotmax , conf , lsrfhack ,  &
       rcrit , coef_ccn , abulk
 
-    namelist /microparam/ stats , budget_compute , nssopt , kautoconv ,  &
-      ksemi , vqxr , vqxi , vqxs , zauto_rate_khair , zauto_rate_kessl , &
-      zauto_rate_klepi , rkconv , rcovpmin , rpecons
+    namelist /microparam/ stats , budget_compute , nssopt , iautoconv , &
+      rsemi , vfqr , vfqi , vfqs , auto_rate_khair , auto_rate_kessl ,  &
+      auto_rate_klepi , rkconv , rcovpmin , rpecons
 
     namelist /grellparam/ gcr0 , shrmin , shrmax , edtmin , edtmax ,  &
       edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
@@ -318,20 +318,20 @@ module mod_params
                ! 1 => Tompkins
                ! 2 => Lohmann and Karcher
                ! 3 => Gierens
-    kautoconv = 4 !  Choose the autoconversion paramaterization
+    iautoconv = 4 !  Choose the autoconversion paramaterization
                   ! => 1 Klein & Pincus (2000)
                   ! => 2 Khairoutdinov and Kogan (2000)
                   ! => 3 Kessler (1969)
                   ! => 4 Sundqvist
-    ksemi = d_one ! 0 => fully explicit
+    rsemi = d_one ! 0 => fully explicit
                   ! 1 => fully implict
-                  ! 0<ksemi<1 => semi-implicit
-    vqxr = 4.0D0
-    vqxi = 0.15D0
-    vqxs = 1.0D0
-    zauto_rate_khair = 0.355D0
-    zauto_rate_kessl = 1.D-3
-    zauto_rate_klepi = 0.5D-3
+                  ! 0<rsemi<1 => semi-implicit
+    vfqr = 4.0D0
+    vfqi = 0.15D0
+    vfqs = 1.0D0
+    auto_rate_khair = 0.355D0
+    auto_rate_kessl = 1.D-3
+    auto_rate_klepi = 0.5D-3
     rkconv = 1.666D-4 ! d_one/6000.0D0
     rcovpmin = 0.1D0
     rpecons = 5.547D-5
@@ -1073,14 +1073,14 @@ module mod_params
         call bcast(stats)
         call bcast(budget_compute)
         call bcast(nssopt)
-        call bcast(kautoconv)
-        call bcast(ksemi)
-        call bcast(vqxr)
-        call bcast(vqxi)
-        call bcast(vqxs)
-        call bcast(zauto_rate_khair)
-        call bcast(zauto_rate_kessl)
-        call bcast(zauto_rate_klepi)
+        call bcast(iautoconv)
+        call bcast(rsemi)
+        call bcast(vfqr)
+        call bcast(vfqi)
+        call bcast(vfqs)
+        call bcast(auto_rate_khair)
+        call bcast(auto_rate_kessl)
+        call bcast(auto_rate_klepi)
         call bcast(rcovpmin)
         call bcast(rpecons)
         call bcast(rkconv)

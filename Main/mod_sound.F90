@@ -80,17 +80,17 @@ module mod_sound
 
   subroutine allocate_mod_sound
     implicit none
-    call getmem3d(aa,jci1,jci2,ici1,ici2,1,kzp1,'sound:aa')
-    call getmem3d(b,jci1,jci2,ici1,ici2,1,kzp1,'sound:b')
-    call getmem3d(c,jci1,jci2,ici1,ici2,1,kzp1,'sound:c')
-    call getmem3d(rhs,jci1,jci2,ici1,ici2,1,kzp1,'sound:rhs')
+    call getmem3d(aa,jci1,jci2,ici1,ici2,2,kz,'sound:aa')
+    call getmem3d(b,jci1,jci2,ici1,ici2,2,kz,'sound:b')
+    call getmem3d(c,jci1,jci2,ici1,ici2,2,kz,'sound:c')
+    call getmem3d(rhs,jci1,jci2,ici1,ici2,2,kz,'sound:rhs')
     call getmem3d(sigdot,jci1,jci2,ici1,ici2,1,kzp1,'sound:sigdot')
     call getmem3d(wo,jci1,jci2,ici1,ici2,1,kzp1,'sound:wo')
-    call getmem3d(e,jci1,jci2,ici1,ici2,1,kzp1,'sound:e')
-    call getmem3d(f,jci1,jci2,ici1,ici2,1,kzp1,'sound:f')
-    call getmem3d(ca,jci1,jci2,ici1,ici2,1,kz,'sound:ca')
-    call getmem3d(g1,jci1,jci2,ici1,ici2,1,kz,'sound:g1')
-    call getmem3d(g2,jci1,jci2,ici1,ici2,1,kz,'sound:g2')
+    call getmem3d(e,jci1,jci2,ici1,ici2,1,kz,'sound:e')
+    call getmem3d(f,jci1,jci2,ici1,ici2,1,kz,'sound:f')
+    call getmem3d(ca,jci1,jci2,ici1,ici2,2,kz,'sound:ca')
+    call getmem3d(g1,jci1,jci2,ici1,ici2,2,kz,'sound:g1')
+    call getmem3d(g2,jci1,jci2,ici1,ici2,2,kz,'sound:g2')
     call getmem3d(ptend,jci1,jci2,ici1,ici2,1,kz,'sound:ptend')
     call getmem3d(pxup,jci1,jci2,ici1,ici2,1,kz,'sound:pxup')
     call getmem3d(pyvp,jci1,jci2,ici1,ici2,1,kz,'sound:pyvp')
@@ -99,7 +99,9 @@ module mod_sound
     call getmem3d(cdd,jci1,jci2,ici1,ici2,1,kz,'sound:cdd')
     call getmem3d(cj,jci1,jci2,ici1,ici2,1,kz,'sound:cj')
     call getmem3d(pi,jci1,jci2,ici1,ici2,1,kz,'sound:pi')
-    call getmem2d(astore,jci1,jci2,ici1,ici2,'sound:astore')
+    if ( ifupr == 1 ) then
+      call getmem2d(astore,jci1,jci2,ici1,ici2,'sound:astore')
+    end if
     call getmem2d(wpval,jci1,jci2,ici1,ici2,'sound:wpval')
     call getmem2d(rpsb,jce1gb,jce2gb,ice1gb,ice2gb,'sound:rpsb')
     call getmem3d(ucrs,jci1,jci2,ici1,ici2,1,kz,'sound:ucrs')
@@ -250,12 +252,13 @@ module mod_sound
     !
     ! Time Step loop
     !
+    timeloop: &
     do it = 1 , istep
       if ( it > 1 ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              atmc%pp(j,i,k) = atmc%pp(j,i,k) + xkd*pi(j,i,k)
+              atmc%pp(j,i,k) = atmc%pp(j,i,k) + (d_one-xkd)*pi(j,i,k)
             end do
           end do
         end do
@@ -317,7 +320,7 @@ module mod_sound
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              atmc%pp(j,i,k) = atmc%pp(j,i,k) - xkd*pi(j,i,k)
+              atmc%pp(j,i,k) = atmc%pp(j,i,k) - (d_one-xkd)*pi(j,i,k)
             end do
           end do
         end do
@@ -562,10 +565,10 @@ module mod_sound
           xmsf = xmsf/npts
           dxmsfb = d_two/dx/xmsf
           tmask(:,:) = d_zero
-          do ll = 0 , 6
-            rll = dble(ll)
-            do kk = 0 , 6
-              rkk = dble(kk)
+          do kk = 0 , 6
+            rkk = dble(kk)
+            do ll = 0 , 6
+              rll = dble(ll)
               xkeff = dxmsfb * sin(mathpi*rkk/12.0D0)*cos(mathpi*rll/12.0D0)
               xleff = dxmsfb * sin(mathpi*rll/12.0D0)*cos(mathpi*rkk/12.0D0)
               xkleff = sqrt(xkeff*xkeff + xleff*xleff)
@@ -573,10 +576,10 @@ module mod_sound
                 ri = dble(i)
                 do j = -6 , 6
                   rj = dble(j)
-                  tmask(j,i) = tmask(j,i) + &
-                               fi(i)*fj(j)*fk(kk)*fl(ll)/144.0D0 * &
-                               cos(2.0D0*mathpi*rkk*ri/12.0D0) *   &
-                               cos(2.0D0*mathpi*rll*rj/12.0D0) *   &
+                  tmask(j,i) = tmask(j,i) +                          &
+                               (fi(i)*fj(j)*fk(kk)*fl(ll))/144.0D0 * &
+                               cos(2.0D0*mathpi*rkk*ri/12.0D0) *     &
+                               cos(2.0D0*mathpi*rll*rj/12.0D0) *     &
                                xkleff / (rhon-abar*xkleff)
                 end do
               end do
@@ -585,10 +588,14 @@ module mod_sound
           ! Finished initial coefficient compute (goes in SAV file)
         end if
         !
-        ! Apply upper rad cond. (not in the lateral boundary)
+        ! Apply upper rad cond. ! (not in the lateral boundary ?)
         !
+        iloop: &
         do i = ici1 , ici2
+          !if ( i < nspgx .or. nicross - i < nspgx ) cycle iloop
+          jloop: &
           do j = jci1 , jci2
+            !if ( j < nspgx .or. njcross - j < nspgx ) cycle jloop
             do nsi = -6 , 6
               inn = min(max(i,2),nicross-2)
               do nsj = -6 , 6
@@ -597,8 +604,8 @@ module mod_sound
                        estore_g(jnn,inn)*tmask(nsj,nsi)*wtbdy_g(jnn,inn)
               end do
             end do
-          end do
-        end do
+          end do jloop
+        end do iloop
       end if
       !
       ! Finished calc of radiation w, apply whichever
@@ -710,62 +717,8 @@ module mod_sound
           end do
         end do
       end do
-      ! Fix bdy pn pp
-      if ( ma%has_bdyleft ) then
-        do i = ice1 , ice2
-          atmc%pp(jce1,i,:) = atmc%pp(jce1,i,:) + aten%pp(jce1,i,:)
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do i = ice1 , ice2
-          atmc%pp(jce2,i,:) = atmc%pp(jce2,i,:) + aten%pp(jce2,i,:)
-        end do
-      end if
-      if ( ma%has_bdybottom ) then
-        do j = jce1 , jce2
-          atmc%pp(j,ice1,:) = atmc%pp(j,ice1,:) + aten%pp(j,ice1,:)
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do j = jce1 , jce2
-          atmc%pp(j,ice2,:) = atmc%pp(j,ice2,:) + aten%pp(j,ice2,:)
-        end do
-      end if
-      ! Zero gradient conditions on w
-      if ( ma%has_bdyleft ) then
-        do i = ici1 , ici2
-          atmc%w(jce1,i,:) = atmc%w(jci1,i,:)
-        end do
-        if ( ma%has_bdytop ) then
-          atmc%w(jce1,ice2,:) = atmc%w(jci1,ici2,:)
-        end if
-        if ( ma%has_bdybottom ) then
-          atmc%w(jce1,ice1,:) = atmc%w(jci1,ici1,:)
-        end if
-      end if
-      if ( ma%has_bdyright ) then
-        do i = ici1 , ici2
-          atmc%w(jce2,i,:) = atmc%w(jci2,i,:)
-        end do
-        if ( ma%has_bdytop ) then
-          atmc%w(jce2,ice2,:) = atmc%w(jci2,ici2,:)
-        end if
-        if ( ma%has_bdybottom ) then
-          atmc%w(jce2,ice1,:) = atmc%w(jci2,ici1,:)
-        end if
-      end if
-      if ( ma%has_bdytop ) then
-        do j = jci1 , jci2
-          atmc%w(j,ice2,:) = atmc%w(j,ici2,:)
-        end do
-      end if
-      if ( ma%has_bdybottom ) then
-        do j = jci1 , jci2
-          atmc%w(j,ice1,:) = atmc%w(j,ici1,:)
-        end do
-      end if
       ! End of time loop
-    end do
+    end do timeloop
     !
     ! Transfer xxa to xxb, new values to xxa and apply time filter
     !

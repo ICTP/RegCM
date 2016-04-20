@@ -361,22 +361,22 @@
                             ! 1 => Tompkins
                             ! 2 => Lohmann and Karcher
                             ! 3 => Gierens
- kautoconv = 4,             !  Choose the autoconversion paramaterization
+ iautoconv = 4,             !  Choose the autoconversion paramaterization
                             ! => 1 Klein & Pincus (2000)
                             ! => 2 Khairoutdinov and Kogan (2000)
                             ! => 3 Kessler (1969)
                             ! => 4 Sundqvist
- ksemi = 1.0,               ! Implicit/Explicit control 
+ rsemi = 1.0,               ! Implicit/Explicit control 
                             ! NOT ACTIVATED YET - IT DOES NOT WORK!
-                            ! ksemi == 0 => scheme is fully explicit
-                            ! ksemi == 1 => scheme is fully implicit
-                            ! 0<ksemi<1  => scheme is semi-implicit
- vqxr = 4.0,                ! Rain fall speed (default is 4 m/s)
- vqxi = 0.15,               ! Ice fall speed (default is 0.15 m/s)
- vqxs = 1.0,                ! Snow fall speed (default is 1 m/s)
- zauto_rate_khair = 0.355,  ! Autoconversion coefficient for kautoconv=2
- zauto_rate_kessl = 1.e-3,  ! Autoconversion coefficient for kautoconv=3
- zauto_rate_klepi = 0.5e-3, ! Autoconversion coefficient for kautoconv=1
+                            ! rsemi == 0 => scheme is fully explicit
+                            ! rsemi == 1 => scheme is fully implicit
+                            ! 0<rsemi<1  => scheme is semi-implicit
+ vfqr = 4.0,                ! Rain fall speed (default is 4 m/s)
+ vfqi = 0.15,               ! Ice fall speed (default is 0.15 m/s)
+ vfqs = 1.0,                ! Snow fall speed (default is 1 m/s)
+ auto_rate_khair = 0.355,   ! Autoconversion coefficient for kautoconv=2
+ auto_rate_kessl = 1.e-3,   ! Autoconversion coefficient for kautoconv=3
+ auto_rate_klepi = 0.5e-3,  ! Autoconversion coefficient for kautoconv=1
  rkconv = 1.666e-4,         ! Autoconversion coefficient for kautoconv=4
  rcovpmin = 0.1,            ! Minimum precipitation coverage
  rpecons = 5.547e-5,        ! Evaporation constant Kessler

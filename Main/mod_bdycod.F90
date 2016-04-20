@@ -168,7 +168,7 @@ module mod_bdycod
       wgtd(3) = 0.55D0
       wgtd(4) = 0.80D0
       wgtd(5) = 0.95D0
-      do k = 4 , nspgx
+      do k = 4 , nspgd
         wgtd(k) = d_one
       end do
       wgtx(1) = 0.0D0

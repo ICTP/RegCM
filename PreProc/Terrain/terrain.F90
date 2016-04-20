@@ -522,34 +522,42 @@ program terrain
   if ( ibndry ) then
     do j = 1 , jx
       htgrid(j,1) = htgrid(j,2)
-      htgrid(j,iy) = htgrid(j,iy-1)
+      htgrid(j,iy-1) = htgrid(j,iy-2)
+      htgrid(j,iy) = htgrid(j,iy-2)
       lndout(j,1) = lndout(j,2)
-      lndout(j,iy) = lndout(j,iy-1)
+      lndout(j,iy-1) = lndout(j,iy-2)
+      lndout(j,iy) = lndout(j,iy-2)
     end do
     if ( ltexture ) then
       do j = 1 , jx
         texout(j,1) = texout(j,2)
-        texout(j,iy) = texout(j,iy-1)
+        texout(j,iy-1) = texout(j,iy-2)
+        texout(j,iy) = texout(j,iy-2)
         do k = 1 , ntex
           frac_tex(j,1,k) = frac_tex(j,2,k)
-          frac_tex(j,iy,k) = frac_tex(j,iy-1,k)
+          frac_tex(j,iy-1,k) = frac_tex(j,iy-2,k)
+          frac_tex(j,iy,k) = frac_tex(j,iy-2,k)
         end do
       end do
     end if
     if ( i_band /= 1 ) then
       do i = 2 , iy-1
         htgrid(1,i) = htgrid(2,i)
-        htgrid(jx,i) = htgrid(jx-1,i)
+        htgrid(jx-1,i) = htgrid(jx-2,i)
+        htgrid(jx,i) = htgrid(jx-2,i)
         lndout(1,i) = lndout(2,i)
-        lndout(jx,i) = lndout(jx-1,i)
+        lndout(jx-1,i) = lndout(jx-2,i)
+        lndout(jx,i) = lndout(jx-2,i)
       end do
       if ( ltexture ) then
         do i = 2 , iy-1
           texout(1,i) = texout(2,i)
-          texout(jx,i) = texout(jx-1,i)
+          texout(jx-1,i) = texout(jx-2,i)
+          texout(jx,i) = texout(jx-2,i)
           do k = 1 , ntex
             frac_tex(1,i,k) = frac_tex(2,i,k)
-            frac_tex(jx,i,k) = frac_tex(jx-1,i,k)
+            frac_tex(jx-1,i,k) = frac_tex(jx-2,i,k)
+            frac_tex(jx,i,k) = frac_tex(jx-2,i,k)
           end do
         end do
       end if
@@ -613,34 +621,42 @@ program terrain
     if ( ibndry ) then
       do j = 1 , jxsg
         htgrid_s(j,1) = htgrid_s(j,2)
-        htgrid_s(j,iysg) = htgrid_s(j,iysg-1)
+        htgrid_s(j,iysg-1) = htgrid_s(j,iysg-2)
+        htgrid_s(j,iysg) = htgrid_s(j,iysg-2)
         lndout_s(j,1) = lndout_s(j,2)
-        lndout_s(j,iysg) = lndout_s(j,iysg-1)
+        lndout_s(j,iysg-1) = lndout_s(j,iysg-2)
+        lndout_s(j,iysg) = lndout_s(j,iysg-2)
       end do
       if ( ltexture ) then
         do j = 1 , jxsg
           texout_s(j,1) = texout_s(j,2)
-          texout_s(j,iysg) = texout_s(j,iysg-1)
+          texout_s(j,iysg-1) = texout_s(j,iysg-2)
+          texout_s(j,iysg) = texout_s(j,iysg-2)
           do k = 1 , ntex
             frac_tex_s(j,1,k) = frac_tex_s(j,2,k)
-            frac_tex_s(j,iysg,k) = frac_tex_s(j,iysg-1,k)
+            frac_tex_s(j,iysg-1,k) = frac_tex_s(j,iysg-2,k)
+            frac_tex_s(j,iysg,k) = frac_tex_s(j,iysg-2,k)
           end do
         end do
       end if
       if ( i_band /= 1 ) then
         do i = 1 , iysg
           htgrid_s(1,i) = htgrid_s(2,i)
-          htgrid_s(jxsg,i) = htgrid_s(jxsg-1,i)
+          htgrid_s(jxsg-1,i) = htgrid_s(jxsg-2,i)
+          htgrid_s(jxsg,i) = htgrid_s(jxsg-2,i)
           lndout_s(1,i) = lndout_s(2,i)
-          lndout_s(jxsg,i) = lndout_s(jxsg-1,i)
+          lndout_s(jxsg-1,i) = lndout_s(jxsg-2,i)
+          lndout_s(jxsg,i) = lndout_s(jxsg-2,i)
         end do
         if ( ltexture ) then
           do i = 1 , iysg
             texout_s(1,i) = texout_s(2,i)
-            texout_s(jxsg,i) = texout_s(jxsg-1,i)
+            texout_s(jxsg-1,i) = texout_s(jxsg-2,i)
+            texout_s(jxsg,i) = texout_s(jxsg-2,i)
             do k = 1 , ntex
               frac_tex_s(1,i,k) = frac_tex_s(2,i,k)
-              frac_tex_s(jxsg,i,k) = frac_tex_s(jxsg-1,i,k)
+              frac_tex_s(jxsg-1,i,k) = frac_tex_s(jxsg-2,i,k)
+              frac_tex_s(jxsg,i,k) = frac_tex_s(jxsg-2,i,k)
             end do
           end do
         end if
