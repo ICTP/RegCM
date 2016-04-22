@@ -31,7 +31,7 @@ module mod_constants
   real(rk8) , parameter :: d_four = 4.0D+00
   real(rk8) , parameter :: d_five = 5.0D+00
   real(rk8) , parameter :: d_six = 6.0D+00
-  real(rk8) , parameter :: d_nine = 6.0D+00
+  real(rk8) , parameter :: d_nine = 9.0D+00
   real(rk8) , parameter :: d_half = 0.50D+00
   real(rk8) , parameter :: d_rfour = 0.250D+00
   real(rk8) , parameter :: d_twelve = 12.0D+00
