@@ -103,6 +103,8 @@ module mod_update
     call getmem2d(exportFields%taux,jce1,jce2,ice1,ice2,'cpl:taux')
     call getmem2d(exportFields%tauy,jce1,jce2,ice1,ice2,'cpl:tauy')
     call getmem2d(exportFields%wspd,jce1,jce2,ice1,ice2,'cpl:wspd')
+    call getmem2d(exportFields%wdir,jce1,jce2,ice1,ice2,'cpl:wdir')
+    call getmem2d(exportFields%ustr,jce1,jce2,ice1,ice2,'cpl:ustr')
     call getmem2d(exportFields%nflx,jce1,jce2,ice1,ice2,'cpl:nflx')
     call getmem2d(exportFields%sflx,jce1,jce2,ice1,ice2,'cpl:sflx')
     call getmem2d(exportFields%snow,jce1,jce2,ice1,ice2,'cpl:snow')
@@ -135,15 +137,17 @@ module mod_update
         exportFields%prec(j,i) = initval
         exportFields%wndu(j,i) = initval
         exportFields%wndv(j,i) = initval
-        exportFields%rnof(j,i) = zeroval
-        exportFields%snof(j,i) = zeroval
-        exportFields%taux(j,i) = zeroval
-        exportFields%tauy(j,i) = zeroval
-        exportFields%wspd(j,i) = zeroval
-        exportFields%nflx(j,i) = zeroval
-        exportFields%sflx(j,i) = zeroval
-        exportFields%snow(j,i) = zeroval
-        exportFields%dswr(j,i) = zeroval
+        exportFields%rnof(j,i) = initval
+        exportFields%snof(j,i) = initval
+        exportFields%taux(j,i) = initval
+        exportFields%tauy(j,i) = initval
+        exportFields%wspd(j,i) = initval
+        exportFields%wdir(j,i) = initval
+        exportFields%ustr(j,i) = initval
+        exportFields%nflx(j,i) = initval 
+        exportFields%sflx(j,i) = initval
+        exportFields%snow(j,i) = initval
+        exportFields%dswr(j,i) = initval
         exportFields%rhoa(j,i) = initval
 !
         importFields%sst(j,i) = initval

@@ -637,6 +637,11 @@ module mod_lm_interface
         expfie%sflx(j,i) = (sum(lms%evpr(:,j,i))-sum(lms%prcp(:,j,i)))*rdnnsg
         expfie%snow(j,i) = sum(lms%sncv(:,j,i))*rdnnsg
         expfie%wspd(j,i) = dsqrt(expfie%wndu(j,i)**2+expfie%wndv(j,i)**2)
+        expfie%wdir(j,i) = atan2(expfie%wndu(j,i), expfie%wndv(j,i))
+        if (expfie%wdir(j,i) < d_zero) then
+          expfie%wdir(j,i) = expfie%wdir(j,i)+twopi
+        end if
+        expfie%ustr(j,i) = sum(lms%ustar(:,j,i))*rdnnsg
         expfie%nflx(j,i) = lm%rswf(j,i) - expfie%lhfx(j,i) - &
                            expfie%shfx(j,i) - lm%rlwf(j,i)
       end do

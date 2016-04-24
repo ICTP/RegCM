@@ -312,6 +312,8 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: taux
     real(rk8) , pointer , dimension(:,:) :: tauy
     real(rk8) , pointer , dimension(:,:) :: wspd
+    real(rk8) , pointer , dimension(:,:) :: wdir
+    real(rk8) , pointer , dimension(:,:) :: ustr
     real(rk8) , pointer , dimension(:,:) :: nflx
     real(rk8) , pointer , dimension(:,:) :: sflx
     real(rk8) , pointer , dimension(:,:) :: snow
