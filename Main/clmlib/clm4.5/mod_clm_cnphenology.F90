@@ -22,25 +22,25 @@ module mod_clm_cnphenology
   public :: CNPhenologyInit      ! Initialization
   public :: CNPhenology          ! Update
 
-  real(rk8) :: fracday    ! dtime as a fraction of day
-  real(rk8) :: crit_dayl  ! critical daylength for offset (seconds)
-  real(rk8) :: ndays_on   ! number of days to complete onset
-  real(rk8) :: ndays_off  ! number of days to complete offset
-  real(rk8) :: fstor2tran ! fraction of storge to move to transfer on each onset
-  real(rk8) :: crit_onset_fdd  ! critical number of freezing days
-  real(rk8) :: crit_onset_swi  ! water stress days for offset trigger
-  real(rk8) :: soilpsi_on      ! water potential for onset trigger (MPa)
-  real(rk8) :: crit_offset_fdd ! critical number of freezing degree days
+  real(rkx) :: fracday    ! dtime as a fraction of day
+  real(rkx) :: crit_dayl  ! critical daylength for offset (seconds)
+  real(rkx) :: ndays_on   ! number of days to complete onset
+  real(rkx) :: ndays_off  ! number of days to complete offset
+  real(rkx) :: fstor2tran ! fraction of storge to move to transfer on each onset
+  real(rkx) :: crit_onset_fdd  ! critical number of freezing days
+  real(rkx) :: crit_onset_swi  ! water stress days for offset trigger
+  real(rkx) :: soilpsi_on      ! water potential for onset trigger (MPa)
+  real(rkx) :: crit_offset_fdd ! critical number of freezing degree days
                                ! to trigger offset
-  real(rk8) :: crit_offset_swi ! water stress days for offset trigger
-  real(rk8) :: soilpsi_off     ! water potential for offset trigger (MPa)
-  real(rk8) :: lwtop           ! live wood turnover proportion (annual fraction)
+  real(rkx) :: crit_offset_swi ! water stress days for offset trigger
+  real(rkx) :: soilpsi_off     ! water potential for offset trigger (MPa)
+  real(rkx) :: lwtop           ! live wood turnover proportion (annual fraction)
   !
   ! CropPhenology variables and constants
   !
-  real(rk8) :: p1d, p1v ! photoperiod factor constants for crop vernalization
-  real(rk8) :: hti    ! cold hardening index threshold for vernalization
-  real(rk8) :: tbase  ! base temperature for vernalization
+  real(rkx) :: p1d, p1v ! photoperiod factor constants for crop vernalization
+  real(rkx) :: hti    ! cold hardening index threshold for vernalization
+  real(rkx) :: tbase  ! base temperature for vernalization
   integer(ik4), parameter :: NOT_Planted   = 999 ! If not planted   yet in year
   integer(ik4), parameter :: NOT_Harvested = 999 ! If not harvested yet in year
   integer(ik4), parameter :: inNH       = 1      ! Northern Hemisphere
@@ -121,33 +121,33 @@ module mod_clm_cnphenology
     ! -----------------------------------------
     !
     ! critical daylength from Biome-BGC, v4.1.2
-    crit_dayl = 39300.D0
+    crit_dayl = 39300._rkx
 
     ! -----------------------------------------
     ! Constants for CNSeasonDecidPhenology and CNStressDecidPhenology
     ! -----------------------------------------
-    ndays_on  = 30.D0
-    ndays_off = 15.D0
+    ndays_on  = 30._rkx
+    ndays_off = 15._rkx
 
     ! transfer parameters
-    fstor2tran = 0.5D0
+    fstor2tran = 0.5_rkx
     ! -----------------------------------------
     ! Constants for CNStressDecidPhenology
     ! -----------------------------------------
 
     ! onset parameters
-    crit_onset_fdd = 15.0D0
+    crit_onset_fdd = 15.0_rkx
     ! critical onset gdd now being calculated as a function of annual
     ! average 2m temp.
     ! crit_onset_gdd = 150.0 ! c3 grass value
     ! crit_onset_gdd = 1000.0   ! c4 grass value
-    crit_onset_swi = 15.0D0
-    soilpsi_on     = -2.0D0
+    crit_onset_swi = 15.0_rkx
+    soilpsi_on     = -2.0_rkx
 
     ! offset parameters
-    crit_offset_fdd = 15.0D0
-    crit_offset_swi = 15.0D0
-    soilpsi_off     = -2.0D0
+    crit_offset_fdd = 15.0_rkx
+    crit_offset_swi = 15.0_rkx
+    soilpsi_off     = -2.0_rkx
 
     ! -----------------------------------------
     ! Constants for CNLivewoodTurnover
@@ -155,7 +155,7 @@ module mod_clm_cnphenology
 
     ! set the global parameter for livewood turnover rate
     ! define as an annual fraction (0.7), and convert to fraction per second
-    lwtop = 0.7D0 / 31536000.0D0
+    lwtop = 0.7_rkx / 31536000.0_rkx
 
     ! -----------------------------------------
     ! Call any subroutine specific initialization routines
@@ -176,14 +176,14 @@ module mod_clm_cnphenology
 
     integer(ik4) , pointer :: ivt(:)   ! pft vegetation type
     ! ecophysiological constants
-    real(rk8), pointer :: t_ref2m(:)     ! 2m air temperature (K)
-    real(rk8), pointer :: tempavg_t2m(:) ! temp. avg 2m air temperature (K)
-    real(rk8), pointer :: gdd0(:)    ! growing deg. days base 0 deg C (ddays)
-    real(rk8), pointer :: gdd8(:)    !    "     "    "    "   8  "  "    "
-    real(rk8), pointer :: gdd10(:)   !    "     "    "    "  10  "  "    "
-    real(rk8), pointer :: gdd020(:)  ! 20-yr mean of gdd0 (ddays)
-    real(rk8), pointer :: gdd820(:)  ! 20-yr mean of gdd8 (ddays)
-    real(rk8), pointer :: gdd1020(:) ! 20-yr mean of gdd10 (ddays)
+    real(rkx), pointer :: t_ref2m(:)     ! 2m air temperature (K)
+    real(rkx), pointer :: tempavg_t2m(:) ! temp. avg 2m air temperature (K)
+    real(rkx), pointer :: gdd0(:)    ! growing deg. days base 0 deg C (ddays)
+    real(rkx), pointer :: gdd8(:)    !    "     "    "    "   8  "  "    "
+    real(rkx), pointer :: gdd10(:)   !    "     "    "    "  10  "  "    "
+    real(rkx), pointer :: gdd020(:)  ! 20-yr mean of gdd0 (ddays)
+    real(rkx), pointer :: gdd820(:)  ! 20-yr mean of gdd8 (ddays)
+    real(rkx), pointer :: gdd1020(:) ! 20-yr mean of gdd10 (ddays)
     integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell index
 
     integer(ik4) :: p                 ! indices
@@ -195,8 +195,8 @@ module mod_clm_cnphenology
     integer(ik4) kda        !       day of month   (1, ..., 31)
     integer(ik4) mcsec      !       seconds of day (0, ..., seconds/day)
     ! length of years to average for gdd
-    real(rk8), parameter :: yravg   = 20.0D0
-    real(rk8), parameter :: yravgm1 = yravg-1.0D0 ! minus 1 of above
+    real(rkx), parameter :: yravg   = 20.0_rkx
+    real(rkx), parameter :: yravgm1 = yravg-1.0_rkx ! minus 1 of above
     logical :: has_restarted_crop
 
     ! assign local pointers to derived type arrays
@@ -245,9 +245,9 @@ module mod_clm_cnphenology
       if ( kmo == 1 .and. &
            kda == 1 .and. &
            nyrs == 0 ) then ! YR 1:
-        gdd020(p)  = 0.D0   ! set gdd..20 variables to 0
-        gdd820(p)  = 0.D0   ! and crops will not be planted
-        gdd1020(p) = 0.D0
+        gdd020(p)  = 0._rkx   ! set gdd..20 variables to 0
+        gdd820(p)  = 0._rkx   ! and crops will not be planted
+        gdd1020(p) = 0._rkx
       end if
       if ( has_restarted_crop ) then
         if ( nyrs  == 1 ) then    ! <-- END of YR 1
@@ -274,12 +274,12 @@ module mod_clm_cnphenology
     integer(ik4) , pointer :: ivt(:) ! pft vegetation type
     ! ecophysiological constants
     ! binary flag for evergreen leaf habit (0 or 1)
-    real(rk8), pointer :: evergreen(:)
-    real(rk8), pointer :: leaf_long(:) ! leaf longevity (yrs)
+    real(rkx), pointer :: evergreen(:)
+    real(rkx), pointer :: leaf_long(:) ! leaf longevity (yrs)
 
-    real(rk8), pointer :: bglfr(:) ! background litterfall rate (1/s)
-    real(rk8), pointer :: bgtr(:)  ! background transfer growth rate (1/s)
-    real(rk8), pointer :: lgsf(:)  ! long growing season factor [0-1]
+    real(rkx), pointer :: bglfr(:) ! background litterfall rate (1/s)
+    real(rkx), pointer :: bgtr(:)  ! background transfer growth rate (1/s)
+    real(rkx), pointer :: lgsf(:)  ! long growing season factor [0-1]
 
     integer(ik4) :: p   ! indices
     integer(ik4) :: fp  ! lake filter pft index
@@ -294,10 +294,10 @@ module mod_clm_cnphenology
 
     do fp = 1 , num_soilp
       p = filter_soilp(fp)
-      if (evergreen(ivt(p)) == 1.D0) then
-        bglfr(p) = 1.D0/(leaf_long(ivt(p))*dayspy*secspday)
-        bgtr(p)  = 0.D0
-        lgsf(p)  = 0.D0
+      if (evergreen(ivt(p)) == 1._rkx) then
+        bglfr(p) = 1._rkx/(leaf_long(ivt(p))*dayspy*secspday)
+        bgtr(p)  = 0._rkx
+        lgsf(p)  = 0._rkx
       end if
     end do
   end subroutine CNEvergreenPhenology
@@ -314,87 +314,87 @@ module mod_clm_cnphenology
     integer(ik4) , pointer :: ivt(:)        ! pft vegetation type
     integer(ik4) , pointer :: pcolumn(:)    ! pft's column index
     integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell index
-    real(rk8), pointer :: latdeg(:)         ! latitude (radians)
-    real(rk8), pointer :: decl(:)           ! solar declination (radians)
+    real(rkx), pointer :: latdeg(:)         ! latitude (radians)
+    real(rkx), pointer :: decl(:)           ! solar declination (radians)
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rk8), pointer :: t_soisno(:,:)
+    real(rkx), pointer :: t_soisno(:,:)
     ! soil water potential in each soil layer (MPa)
-    real(rk8), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
-    real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
-    real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
-    real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live corse root C strg
-    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead corse root C strg
-    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth resp. strg
-    real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
-    real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
-    real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
-    real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
+    real(rkx), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
+    real(rkx), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
+    real(rkx), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
+    real(rkx), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
+    real(rkx), pointer :: livecrootc_storage(:) ! (gC/m2) live corse root C strg
+    real(rkx), pointer :: deadcrootc_storage(:) ! (gC/m2) dead corse root C strg
+    real(rkx), pointer :: gresp_storage(:)      ! (gC/m2) growth resp. strg
+    real(rkx), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
+    real(rkx), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
+    real(rkx), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
+    real(rkx), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
+    real(rkx), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
+    real(rkx), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
     ! ecophysiological constants
     ! binary flag for seasonal-deciduous leaf habit (0 or 1)
-    real(rk8), pointer :: season_decid(:)
+    real(rkx), pointer :: season_decid(:)
     ! binary flag for woody lifeform (1=woody, 0=not woody)
-    real(rk8), pointer :: woody(:)
+    real(rkx), pointer :: woody(:)
 
-    real(rk8), pointer :: dormant_flag(:)    ! dormancy flag
-    real(rk8), pointer :: days_active(:)     ! number of day since last dormancy
-    real(rk8), pointer :: onset_flag(:)      ! onset flag
-    real(rk8), pointer :: onset_counter(:)   ! onset counter (seconds)
-    real(rk8), pointer :: onset_gddflag(:)   ! onset freeze flag
-    real(rk8), pointer :: onset_gdd(:)       ! onset growing degree days
-    real(rk8), pointer :: offset_flag(:)     ! offset flag
-    real(rk8), pointer :: offset_counter(:)  ! offset counter (seconds)
-    real(rk8), pointer :: dayl(:)            ! daylength (seconds)
+    real(rkx), pointer :: dormant_flag(:)    ! dormancy flag
+    real(rkx), pointer :: days_active(:)     ! number of day since last dormancy
+    real(rkx), pointer :: onset_flag(:)      ! onset flag
+    real(rkx), pointer :: onset_counter(:)   ! onset counter (seconds)
+    real(rkx), pointer :: onset_gddflag(:)   ! onset freeze flag
+    real(rkx), pointer :: onset_gdd(:)       ! onset growing degree days
+    real(rkx), pointer :: offset_flag(:)     ! offset flag
+    real(rkx), pointer :: offset_counter(:)  ! offset counter (seconds)
+    real(rkx), pointer :: dayl(:)            ! daylength (seconds)
     ! daylength from previous albedo timestep (seconds)
-    real(rk8), pointer :: prev_dayl(:)
+    real(rkx), pointer :: prev_dayl(:)
     ! annual average 2m air temperature (K)
-    real(rk8), pointer :: annavg_t2m(:)
+    real(rkx), pointer :: annavg_t2m(:)
     ! previous timestep leaf C litterfall flux (gC/m2/s)
-    real(rk8), pointer :: prev_leafc_to_litter(:)
+    real(rkx), pointer :: prev_leafc_to_litter(:)
     ! previous timestep froot C litterfall flux (gC/m2/s)
-    real(rk8), pointer :: prev_frootc_to_litter(:)
-    real(rk8), pointer :: lgsf(:)  ! long growing season factor [0-1]
-    real(rk8), pointer :: bglfr(:) ! background litterfall rate (1/s)
-    real(rk8), pointer :: bgtr(:)  ! background transfer growth rate (1/s)
-    real(rk8), pointer :: leafc_xfer_to_leafc(:)
-    real(rk8), pointer :: frootc_xfer_to_frootc(:)
-    real(rk8), pointer :: livestemc_xfer_to_livestemc(:)
-    real(rk8), pointer :: deadstemc_xfer_to_deadstemc(:)
-    real(rk8), pointer :: livecrootc_xfer_to_livecrootc(:)
-    real(rk8), pointer :: deadcrootc_xfer_to_deadcrootc(:)
-    real(rk8), pointer :: leafn_xfer_to_leafn(:)
-    real(rk8), pointer :: frootn_xfer_to_frootn(:)
-    real(rk8), pointer :: livestemn_xfer_to_livestemn(:)
-    real(rk8), pointer :: deadstemn_xfer_to_deadstemn(:)
-    real(rk8), pointer :: livecrootn_xfer_to_livecrootn(:)
-    real(rk8), pointer :: deadcrootn_xfer_to_deadcrootn(:)
-    real(rk8), pointer :: leafc_xfer(:)      ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: frootc_xfer(:)     ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: livestemc_xfer(:)  ! (gC/m2) live stem C transfer
-    real(rk8), pointer :: deadstemc_xfer(:)  ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: livecrootc_xfer(:) ! (gC/m2) live cors root C transfer
-    real(rk8), pointer :: deadcrootc_xfer(:) ! (gC/m2) dead cors root C transfer
-    real(rk8), pointer :: leafn_xfer(:)      ! (gN/m2) leaf N transfer
-    real(rk8), pointer :: frootn_xfer(:)     ! (gN/m2) fine root N transfer
-    real(rk8), pointer :: livestemn_xfer(:)  ! (gN/m2) live stem N transfer
-    real(rk8), pointer :: deadstemn_xfer(:)  ! (gN/m2) dead stem N transfer
-    real(rk8), pointer :: livecrootn_xfer(:) ! (gN/m2) live cors root N transfer
-    real(rk8), pointer :: deadcrootn_xfer(:) ! (gN/m2) dead cors root N transfer
-    real(rk8), pointer :: leafc_storage_to_xfer(:)
-    real(rk8), pointer :: frootc_storage_to_xfer(:)
-    real(rk8), pointer :: livestemc_storage_to_xfer(:)
-    real(rk8), pointer :: deadstemc_storage_to_xfer(:)
-    real(rk8), pointer :: livecrootc_storage_to_xfer(:)
-    real(rk8), pointer :: deadcrootc_storage_to_xfer(:)
-    real(rk8), pointer :: gresp_storage_to_xfer(:)
-    real(rk8), pointer :: leafn_storage_to_xfer(:)
-    real(rk8), pointer :: frootn_storage_to_xfer(:)
-    real(rk8), pointer :: livestemn_storage_to_xfer(:)
-    real(rk8), pointer :: deadstemn_storage_to_xfer(:)
-    real(rk8), pointer :: livecrootn_storage_to_xfer(:)
-    real(rk8), pointer :: deadcrootn_storage_to_xfer(:)
+    real(rkx), pointer :: prev_frootc_to_litter(:)
+    real(rkx), pointer :: lgsf(:)  ! long growing season factor [0-1]
+    real(rkx), pointer :: bglfr(:) ! background litterfall rate (1/s)
+    real(rkx), pointer :: bgtr(:)  ! background transfer growth rate (1/s)
+    real(rkx), pointer :: leafc_xfer_to_leafc(:)
+    real(rkx), pointer :: frootc_xfer_to_frootc(:)
+    real(rkx), pointer :: livestemc_xfer_to_livestemc(:)
+    real(rkx), pointer :: deadstemc_xfer_to_deadstemc(:)
+    real(rkx), pointer :: livecrootc_xfer_to_livecrootc(:)
+    real(rkx), pointer :: deadcrootc_xfer_to_deadcrootc(:)
+    real(rkx), pointer :: leafn_xfer_to_leafn(:)
+    real(rkx), pointer :: frootn_xfer_to_frootn(:)
+    real(rkx), pointer :: livestemn_xfer_to_livestemn(:)
+    real(rkx), pointer :: deadstemn_xfer_to_deadstemn(:)
+    real(rkx), pointer :: livecrootn_xfer_to_livecrootn(:)
+    real(rkx), pointer :: deadcrootn_xfer_to_deadcrootn(:)
+    real(rkx), pointer :: leafc_xfer(:)      ! (gC/m2) leaf C transfer
+    real(rkx), pointer :: frootc_xfer(:)     ! (gC/m2) fine root C transfer
+    real(rkx), pointer :: livestemc_xfer(:)  ! (gC/m2) live stem C transfer
+    real(rkx), pointer :: deadstemc_xfer(:)  ! (gC/m2) dead stem C transfer
+    real(rkx), pointer :: livecrootc_xfer(:) ! (gC/m2) live cors root C transfer
+    real(rkx), pointer :: deadcrootc_xfer(:) ! (gC/m2) dead cors root C transfer
+    real(rkx), pointer :: leafn_xfer(:)      ! (gN/m2) leaf N transfer
+    real(rkx), pointer :: frootn_xfer(:)     ! (gN/m2) fine root N transfer
+    real(rkx), pointer :: livestemn_xfer(:)  ! (gN/m2) live stem N transfer
+    real(rkx), pointer :: deadstemn_xfer(:)  ! (gN/m2) dead stem N transfer
+    real(rkx), pointer :: livecrootn_xfer(:) ! (gN/m2) live cors root N transfer
+    real(rkx), pointer :: deadcrootn_xfer(:) ! (gN/m2) dead cors root N transfer
+    real(rkx), pointer :: leafc_storage_to_xfer(:)
+    real(rkx), pointer :: frootc_storage_to_xfer(:)
+    real(rkx), pointer :: livestemc_storage_to_xfer(:)
+    real(rkx), pointer :: deadstemc_storage_to_xfer(:)
+    real(rkx), pointer :: livecrootc_storage_to_xfer(:)
+    real(rkx), pointer :: deadcrootc_storage_to_xfer(:)
+    real(rkx), pointer :: gresp_storage_to_xfer(:)
+    real(rkx), pointer :: leafn_storage_to_xfer(:)
+    real(rkx), pointer :: frootn_storage_to_xfer(:)
+    real(rkx), pointer :: livestemn_storage_to_xfer(:)
+    real(rkx), pointer :: deadstemn_storage_to_xfer(:)
+    real(rkx), pointer :: livecrootn_storage_to_xfer(:)
+    real(rkx), pointer :: deadcrootn_storage_to_xfer(:)
 #if (defined CNDV)
     ! exclude seasonal decid pfts from tropics
     logical , pointer :: pftmayexist(:)
@@ -402,11 +402,11 @@ module mod_clm_cnphenology
 
     integer(ik4) :: c,p        !indices
     integer(ik4) :: fp         !lake filter pft index
-    real(rk8):: ws_flag        !winter-summer solstice flag (0 or 1)
-    real(rk8):: crit_onset_gdd !critical onset growing degree-day sum
-    real(rk8):: soilt
-    real(rk8):: lat            !latitude (radians)
-    real(rk8):: temp           !temporary variable for daylength calculation
+    real(rkx):: ws_flag        !winter-summer solstice flag (0 or 1)
+    real(rkx):: crit_onset_gdd !critical onset growing degree-day sum
+    real(rkx):: soilt
+    real(rkx):: lat            !latitude (radians)
+    real(rkx):: temp           !temporary variable for daylength calculation
 
     ! Assign local pointers to derived type arrays (in)
     ivt                           => clm3%g%l%c%p%itype
@@ -498,16 +498,16 @@ module mod_clm_cnphenology
       p = filter_soilp(fp)
       c = pcolumn(p)
 
-      if (season_decid(ivt(p)) == 1.D0) then
+      if (season_decid(ivt(p)) == 1._rkx) then
 
         ! set background litterfall rate, background transfer rate, and
         ! long growing season factor to 0 for seasonal deciduous types
-        bglfr(p) = 0.D0
-        bgtr(p) = 0.D0
-        lgsf(p) = 0.D0
+        bglfr(p) = 0._rkx
+        bgtr(p) = 0._rkx
+        lgsf(p) = 0._rkx
 
         ! onset gdd sum from Biome-BGC, v4.1.2
-        crit_onset_gdd = exp(4.8D0 + 0.13D0*(annavg_t2m(p) - tfrz))
+        crit_onset_gdd = exp(4.8_rkx + 0.13_rkx*(annavg_t2m(p) - tfrz))
 
         ! use solar declination information stored during Surface Albedo()
         ! and latitude from gps to calcluate daylength (convert latitude
@@ -515,98 +515,98 @@ module mod_clm_cnphenology
         ! number of seconds per radian of hour-angle
 
         prev_dayl(p) = dayl(p)
-        lat = (rpi/180.D0)*latdeg(pgridcell(p))
+        lat = (rpi/180._rkx)*latdeg(pgridcell(p))
         temp = -(sin(lat)*sin(decl(c)))/(cos(lat) * cos(decl(c)))
-        temp = min(1.D0,max(-1.D0,temp))
-        dayl(p) = 2.0D0 * 13750.9871D0 * acos(temp)
+        temp = min(1._rkx,max(-1._rkx,temp))
+        dayl(p) = 2.0_rkx * 13750.9871_rkx * acos(temp)
 
         ! set flag for solstice period (winter->summer = 1, summer->winter = 0)
         if (dayl(p) >= prev_dayl(p)) then
-          ws_flag = 1.D0
+          ws_flag = 1._rkx
         else
-          ws_flag = 0.D0
+          ws_flag = 0._rkx
         end if
 
         ! update offset_counter and test for the end of the offset period
-        if (offset_flag(p) == 1.0D0) then
+        if (offset_flag(p) == 1.0_rkx) then
           ! decrement counter for offset period
           offset_counter(p) = offset_counter(p) - dtsrf
 
           ! if this is the end of the offset_period, reset phenology
           ! flags and indices
-          if (offset_counter(p) == 0.0D0) then
+          if (offset_counter(p) == 0.0_rkx) then
             ! this code block was originally handled by
             ! call cn_offset_cleanup(p) inlined during vectorization
 
-            offset_flag(p) = 0.D0
-            offset_counter(p) = 0.D0
-            dormant_flag(p) = 1.D0
-            days_active(p) = 0.D0
+            offset_flag(p) = 0._rkx
+            offset_counter(p) = 0._rkx
+            dormant_flag(p) = 1._rkx
+            days_active(p) = 0._rkx
 #if (defined CNDV)
             pftmayexist(p) = .true.
 #endif
 
             ! reset the previous timestep litterfall flux memory
-            prev_leafc_to_litter(p) = 0.D0
-            prev_frootc_to_litter(p) = 0.D0
+            prev_leafc_to_litter(p) = 0._rkx
+            prev_frootc_to_litter(p) = 0._rkx
           end if
         end if
 
         ! update onset_counter and test for the end of the onset period
-        if (onset_flag(p) == 1.0D0) then
+        if (onset_flag(p) == 1.0_rkx) then
           ! decrement counter for onset period
           onset_counter(p) = onset_counter(p) - dtsrf
 
           ! if this is the end of the onset period, reset phenology
           ! flags and indices
-          if (onset_counter(p) == 0.0D0) then
+          if (onset_counter(p) == 0.0_rkx) then
             ! this code block was originally handled by call cn_onset_cleanup(p)
             ! inlined during vectorization
 
-            onset_flag(p) = 0.0D0
-            onset_counter(p) = 0.0D0
+            onset_flag(p) = 0.0_rkx
+            onset_counter(p) = 0.0_rkx
             ! set all transfer growth rates to 0.0
-            leafc_xfer_to_leafc(p)   = 0.0D0
-            frootc_xfer_to_frootc(p) = 0.0D0
-            leafn_xfer_to_leafn(p)   = 0.0D0
-            frootn_xfer_to_frootn(p) = 0.0D0
-            if (woody(ivt(p)) == 1.0D0) then
-              livestemc_xfer_to_livestemc(p)   = 0.0D0
-              deadstemc_xfer_to_deadstemc(p)   = 0.0D0
-              livecrootc_xfer_to_livecrootc(p) = 0.0D0
-              deadcrootc_xfer_to_deadcrootc(p) = 0.0D0
-              livestemn_xfer_to_livestemn(p)   = 0.0D0
-              deadstemn_xfer_to_deadstemn(p)   = 0.0D0
-              livecrootn_xfer_to_livecrootn(p) = 0.0D0
-              deadcrootn_xfer_to_deadcrootn(p) = 0.0D0
+            leafc_xfer_to_leafc(p)   = 0.0_rkx
+            frootc_xfer_to_frootc(p) = 0.0_rkx
+            leafn_xfer_to_leafn(p)   = 0.0_rkx
+            frootn_xfer_to_frootn(p) = 0.0_rkx
+            if (woody(ivt(p)) == 1.0_rkx) then
+              livestemc_xfer_to_livestemc(p)   = 0.0_rkx
+              deadstemc_xfer_to_deadstemc(p)   = 0.0_rkx
+              livecrootc_xfer_to_livecrootc(p) = 0.0_rkx
+              deadcrootc_xfer_to_deadcrootc(p) = 0.0_rkx
+              livestemn_xfer_to_livestemn(p)   = 0.0_rkx
+              deadstemn_xfer_to_deadstemn(p)   = 0.0_rkx
+              livecrootn_xfer_to_livecrootn(p) = 0.0_rkx
+              deadcrootn_xfer_to_deadcrootn(p) = 0.0_rkx
             end if
             ! set transfer pools to 0.0
-            leafc_xfer(p) = 0.0D0
-            leafn_xfer(p) = 0.0D0
-            frootc_xfer(p) = 0.0D0
-            frootn_xfer(p) = 0.0D0
-            if (woody(ivt(p)) == 1.0D0) then
-              livestemc_xfer(p) = 0.0D0
-              livestemn_xfer(p) = 0.0D0
-              deadstemc_xfer(p) = 0.0D0
-              deadstemn_xfer(p) = 0.0D0
-              livecrootc_xfer(p) = 0.0D0
-              livecrootn_xfer(p) = 0.0D0
-              deadcrootc_xfer(p) = 0.0D0
-              deadcrootn_xfer(p) = 0.0D0
+            leafc_xfer(p) = 0.0_rkx
+            leafn_xfer(p) = 0.0_rkx
+            frootc_xfer(p) = 0.0_rkx
+            frootn_xfer(p) = 0.0_rkx
+            if (woody(ivt(p)) == 1.0_rkx) then
+              livestemc_xfer(p) = 0.0_rkx
+              livestemn_xfer(p) = 0.0_rkx
+              deadstemc_xfer(p) = 0.0_rkx
+              deadstemn_xfer(p) = 0.0_rkx
+              livecrootc_xfer(p) = 0.0_rkx
+              livecrootn_xfer(p) = 0.0_rkx
+              deadcrootc_xfer(p) = 0.0_rkx
+              deadcrootn_xfer(p) = 0.0_rkx
             end if
           end if
         end if
 
         ! test for switching from dormant period to growth period
-        if (dormant_flag(p) == 1.0D0) then
+        if (dormant_flag(p) == 1.0_rkx) then
 
           ! Test to turn on growing degree-day sum, if off.
           ! switch on the growing degree day sum on the winter solstice
 
-          if (onset_gddflag(p) == 0.D0 .and. ws_flag == 1.D0) then
-            onset_gddflag(p) = 1.D0
-            onset_gdd(p) = 0.D0
+          if (onset_gddflag(p) == 0._rkx .and. ws_flag == 1._rkx) then
+            onset_gddflag(p) = 1._rkx
+            onset_gdd(p) = 0._rkx
           end if
 
           ! Test to turn off growing degree-day sum, if on.
@@ -615,25 +615,25 @@ module mod_clm_cnphenology
           ! In that case, it will take until the next winter solstice
           ! before the growing degree-day summation starts again.
 
-          if (onset_gddflag(p) == 1.D0 .and. ws_flag == 0.D0) then
-            onset_gddflag(p) = 0.D0
-            onset_gdd(p) = 0.D0
+          if (onset_gddflag(p) == 1._rkx .and. ws_flag == 0._rkx) then
+            onset_gddflag(p) = 0._rkx
+            onset_gdd(p) = 0._rkx
           end if
 
           ! if the gdd flag is set, and if the soil is above freezing
           ! then accumulate growing degree days for onset trigger
 
           soilt = t_soisno(c,3)
-          if (onset_gddflag(p) == 1.0D0 .and. soilt > tfrz) then
+          if (onset_gddflag(p) == 1.0_rkx .and. soilt > tfrz) then
             onset_gdd(p) = onset_gdd(p) + (soilt-tfrz)*fracday
           end if
 
           ! set onset_flag if critical growing degree-day sum is exceeded
           if (onset_gdd(p) > crit_onset_gdd) then
-            onset_flag(p) = 1.0D0
-            dormant_flag(p) = 0.0D0
-            onset_gddflag(p) = 0.0D0
-            onset_gdd(p) = 0.0D0
+            onset_flag(p) = 1.0_rkx
+            dormant_flag(p) = 0.0_rkx
+            onset_gddflag(p) = 0.0_rkx
+            onset_gdd(p) = 0.0_rkx
             onset_counter(p) = ndays_on * secspday
 
             ! move all the storage pools into transfer pools, where they
@@ -644,7 +644,7 @@ module mod_clm_cnphenology
             ! set carbon fluxes for shifting storage pools to transfer pools
             leafc_storage_to_xfer(p)  = fstor2tran * leafc_storage(p)/dtsrf
             frootc_storage_to_xfer(p) = fstor2tran * frootc_storage(p)/dtsrf
-            if (woody(ivt(p)) == 1.0D0) then
+            if (woody(ivt(p)) == 1.0_rkx) then
               livestemc_storage_to_xfer(p)  = fstor2tran * &
                       livestemc_storage(p)/dtsrf
               deadstemc_storage_to_xfer(p)  = fstor2tran * &
@@ -660,7 +660,7 @@ module mod_clm_cnphenology
             ! set nitrogen fluxes for shifting storage pools to transfer pools
             leafn_storage_to_xfer(p)  = fstor2tran * leafn_storage(p)/dtsrf
             frootn_storage_to_xfer(p) = fstor2tran * frootn_storage(p)/dtsrf
-            if (woody(ivt(p)) == 1.0D0) then
+            if (woody(ivt(p)) == 1.0_rkx) then
               livestemn_storage_to_xfer(p)  = fstor2tran * &
                       livestemn_storage(p)/dtsrf
               deadstemn_storage_to_xfer(p)  = fstor2tran * &
@@ -672,7 +672,7 @@ module mod_clm_cnphenology
             end if
           end if
         ! test for switching from growth period to offset period
-        else if (offset_flag(p) == 0.0D0) then
+        else if (offset_flag(p) == 0.0_rkx) then
 #if (defined CNDV)
           ! If days_active > 355, then remove pft in
           ! CNDVEstablishment at the end of the year.
@@ -680,15 +680,15 @@ module mod_clm_cnphenology
           ! gridcells where dayl never drops below crit_dayl.
           ! This results in TLAI>1e4 in a few gridcells.
           days_active(p) = days_active(p) + fracday
-          if (days_active(p) > 355.D0) pftmayexist(p) = .false.
+          if (days_active(p) > 355._rkx) pftmayexist(p) = .false.
 #endif
 
           ! only begin to test for offset daylength once past the summer sol
-          if (ws_flag == 0.D0 .and. dayl(p) < crit_dayl) then
-            offset_flag(p) = 1.D0
+          if (ws_flag == 0._rkx .and. dayl(p) < crit_dayl) then
+            offset_flag(p) = 1._rkx
             offset_counter(p) = ndays_off * secspday
-            prev_leafc_to_litter(p) = 0.D0
-            prev_frootc_to_litter(p) = 0.D0
+            prev_leafc_to_litter(p) = 0._rkx
+            prev_frootc_to_litter(p) = 0._rkx
           end if
         end if
       end if ! end if seasonal deciduous
@@ -713,104 +713,104 @@ module mod_clm_cnphenology
     integer(ik4) , pointer :: ivt(:)                ! pft vegetation type
     integer(ik4) , pointer :: pcolumn(:)            ! pft's column index
     integer(ik4) , pointer :: pgridcell(:)          ! pft's gridcell index
-    real(rk8), pointer :: latdeg(:)             ! latitude (radians)
-    real(rk8), pointer :: decl(:)               ! solar declination (radians)
-    real(rk8), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
-    real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
-    real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
-    real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
+    real(rkx), pointer :: latdeg(:)             ! latitude (radians)
+    real(rkx), pointer :: decl(:)               ! solar declination (radians)
+    real(rkx), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
+    real(rkx), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
+    real(rkx), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
+    real(rkx), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
     ! (gC/m2) live coarse root C storage
-    real(rk8), pointer :: livecrootc_storage(:)
+    real(rkx), pointer :: livecrootc_storage(:)
     ! (gC/m2) dead coarse root C storage
-    real(rk8), pointer :: deadcrootc_storage(:)
+    real(rkx), pointer :: deadcrootc_storage(:)
     ! (gC/m2) growth respiration storage
-    real(rk8), pointer :: gresp_storage(:)
-    real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
-    real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
-    real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
-    real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
+    real(rkx), pointer :: gresp_storage(:)
+    real(rkx), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
+    real(rkx), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
+    real(rkx), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
+    real(rkx), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
     ! (gN/m2) live coarse root N storage
-    real(rk8), pointer :: livecrootn_storage(:)
+    real(rkx), pointer :: livecrootn_storage(:)
     ! (gN/m2) dead coarse root N storage
-    real(rk8), pointer :: deadcrootn_storage(:)
+    real(rkx), pointer :: deadcrootn_storage(:)
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rk8), pointer :: t_soisno(:,:)
+    real(rkx), pointer :: t_soisno(:,:)
     ! soil water potential in each soil layer (MPa)
-    real(rk8), pointer :: soilpsi(:,:)
-    real(rk8), pointer :: leaf_long(:)     ! leaf longevity (yrs)
+    real(rkx), pointer :: soilpsi(:,:)
+    real(rkx), pointer :: leaf_long(:)     ! leaf longevity (yrs)
     ! binary flag for stress-deciduous leaf habit (0 or 1)
-    real(rk8), pointer :: stress_decid(:)
+    real(rkx), pointer :: stress_decid(:)
     ! binary flag for woody lifeform (1=woody, 0=not woody)
-    real(rk8), pointer :: woody(:)
+    real(rkx), pointer :: woody(:)
 
-    real(rk8), pointer :: dormant_flag(:)  ! dormancy flag
-    real(rk8), pointer :: days_active(:)   ! number of days since last dormancy
-    real(rk8), pointer :: onset_flag(:)    ! onset flag
-    real(rk8), pointer :: onset_counter(:) ! onset counter (seconds)
-    real(rk8), pointer :: onset_gddflag(:) ! onset freeze flag
-    real(rk8), pointer :: onset_fdd(:)     ! onset freezing degree days counter
-    real(rk8), pointer :: onset_gdd(:)     ! onset growing degree days
-    real(rk8), pointer :: onset_swi(:)     ! onset soil water index
-    real(rk8), pointer :: offset_flag(:)   ! offset flag
-    real(rk8), pointer :: offset_counter(:) ! offset counter (seconds)
-    real(rk8), pointer :: dayl(:)           ! daylength (seconds)
-    real(rk8), pointer :: offset_fdd(:)  ! offset freezing degree days counter
-    real(rk8), pointer :: offset_swi(:)  ! offset soil water index
-    real(rk8), pointer :: annavg_t2m(:)  ! annual average 2m air temperature (K)
-    real(rk8), pointer :: lgsf(:)     ! long growing season factor [0-1]
-    real(rk8), pointer :: bglfr(:)    ! background litterfall rate (1/s)
-    real(rk8), pointer :: bgtr(:)     ! background transfer growth rate (1/s)
+    real(rkx), pointer :: dormant_flag(:)  ! dormancy flag
+    real(rkx), pointer :: days_active(:)   ! number of days since last dormancy
+    real(rkx), pointer :: onset_flag(:)    ! onset flag
+    real(rkx), pointer :: onset_counter(:) ! onset counter (seconds)
+    real(rkx), pointer :: onset_gddflag(:) ! onset freeze flag
+    real(rkx), pointer :: onset_fdd(:)     ! onset freezing degree days counter
+    real(rkx), pointer :: onset_gdd(:)     ! onset growing degree days
+    real(rkx), pointer :: onset_swi(:)     ! onset soil water index
+    real(rkx), pointer :: offset_flag(:)   ! offset flag
+    real(rkx), pointer :: offset_counter(:) ! offset counter (seconds)
+    real(rkx), pointer :: dayl(:)           ! daylength (seconds)
+    real(rkx), pointer :: offset_fdd(:)  ! offset freezing degree days counter
+    real(rkx), pointer :: offset_swi(:)  ! offset soil water index
+    real(rkx), pointer :: annavg_t2m(:)  ! annual average 2m air temperature (K)
+    real(rkx), pointer :: lgsf(:)     ! long growing season factor [0-1]
+    real(rkx), pointer :: bglfr(:)    ! background litterfall rate (1/s)
+    real(rkx), pointer :: bgtr(:)     ! background transfer growth rate (1/s)
     ! previous timestep leaf C litterfall flux (gC/m2/s)
-    real(rk8), pointer :: prev_leafc_to_litter(:)
+    real(rkx), pointer :: prev_leafc_to_litter(:)
     ! previous timestep froot C litterfall flux (gC/m2/s)
-    real(rk8), pointer :: prev_frootc_to_litter(:)
-    real(rk8), pointer :: leafc_xfer_to_leafc(:)
-    real(rk8), pointer :: frootc_xfer_to_frootc(:)
-    real(rk8), pointer :: livestemc_xfer_to_livestemc(:)
-    real(rk8), pointer :: deadstemc_xfer_to_deadstemc(:)
-    real(rk8), pointer :: livecrootc_xfer_to_livecrootc(:)
-    real(rk8), pointer :: deadcrootc_xfer_to_deadcrootc(:)
-    real(rk8), pointer :: leafn_xfer_to_leafn(:)
-    real(rk8), pointer :: frootn_xfer_to_frootn(:)
-    real(rk8), pointer :: livestemn_xfer_to_livestemn(:)
-    real(rk8), pointer :: deadstemn_xfer_to_deadstemn(:)
-    real(rk8), pointer :: livecrootn_xfer_to_livecrootn(:)
-    real(rk8), pointer :: deadcrootn_xfer_to_deadcrootn(:)
-    real(rk8), pointer :: leafc_xfer(:)      ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: frootc_xfer(:)     ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: livestemc_xfer(:)  ! (gC/m2) live stem C transfer
-    real(rk8), pointer :: deadstemc_xfer(:)  ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: livecrootc_xfer(:) ! (gC/m2) live cors root C transfer
-    real(rk8), pointer :: deadcrootc_xfer(:) ! (gC/m2) dead cors root C transfer
-    real(rk8), pointer :: leafn_xfer(:)      ! (gN/m2) leaf N transfer
-    real(rk8), pointer :: frootn_xfer(:)     ! (gN/m2) fine root N transfer
-    real(rk8), pointer :: livestemn_xfer(:)  ! (gN/m2) live stem N transfer
-    real(rk8), pointer :: deadstemn_xfer(:)  ! (gN/m2) dead stem N transfer
-    real(rk8), pointer :: livecrootn_xfer(:) ! (gN/m2) live cors root N transfer
-    real(rk8), pointer :: deadcrootn_xfer(:) ! (gN/m2) dead cors root N transfer
-    real(rk8), pointer :: leafc_storage_to_xfer(:)
-    real(rk8), pointer :: frootc_storage_to_xfer(:)
-    real(rk8), pointer :: livestemc_storage_to_xfer(:)
-    real(rk8), pointer :: deadstemc_storage_to_xfer(:)
-    real(rk8), pointer :: livecrootc_storage_to_xfer(:)
-    real(rk8), pointer :: deadcrootc_storage_to_xfer(:)
-    real(rk8), pointer :: gresp_storage_to_xfer(:)
-    real(rk8), pointer :: leafn_storage_to_xfer(:)
-    real(rk8), pointer :: frootn_storage_to_xfer(:)
-    real(rk8), pointer :: livestemn_storage_to_xfer(:)
-    real(rk8), pointer :: deadstemn_storage_to_xfer(:)
-    real(rk8), pointer :: livecrootn_storage_to_xfer(:)
-    real(rk8), pointer :: deadcrootn_storage_to_xfer(:)
+    real(rkx), pointer :: prev_frootc_to_litter(:)
+    real(rkx), pointer :: leafc_xfer_to_leafc(:)
+    real(rkx), pointer :: frootc_xfer_to_frootc(:)
+    real(rkx), pointer :: livestemc_xfer_to_livestemc(:)
+    real(rkx), pointer :: deadstemc_xfer_to_deadstemc(:)
+    real(rkx), pointer :: livecrootc_xfer_to_livecrootc(:)
+    real(rkx), pointer :: deadcrootc_xfer_to_deadcrootc(:)
+    real(rkx), pointer :: leafn_xfer_to_leafn(:)
+    real(rkx), pointer :: frootn_xfer_to_frootn(:)
+    real(rkx), pointer :: livestemn_xfer_to_livestemn(:)
+    real(rkx), pointer :: deadstemn_xfer_to_deadstemn(:)
+    real(rkx), pointer :: livecrootn_xfer_to_livecrootn(:)
+    real(rkx), pointer :: deadcrootn_xfer_to_deadcrootn(:)
+    real(rkx), pointer :: leafc_xfer(:)      ! (gC/m2) leaf C transfer
+    real(rkx), pointer :: frootc_xfer(:)     ! (gC/m2) fine root C transfer
+    real(rkx), pointer :: livestemc_xfer(:)  ! (gC/m2) live stem C transfer
+    real(rkx), pointer :: deadstemc_xfer(:)  ! (gC/m2) dead stem C transfer
+    real(rkx), pointer :: livecrootc_xfer(:) ! (gC/m2) live cors root C transfer
+    real(rkx), pointer :: deadcrootc_xfer(:) ! (gC/m2) dead cors root C transfer
+    real(rkx), pointer :: leafn_xfer(:)      ! (gN/m2) leaf N transfer
+    real(rkx), pointer :: frootn_xfer(:)     ! (gN/m2) fine root N transfer
+    real(rkx), pointer :: livestemn_xfer(:)  ! (gN/m2) live stem N transfer
+    real(rkx), pointer :: deadstemn_xfer(:)  ! (gN/m2) dead stem N transfer
+    real(rkx), pointer :: livecrootn_xfer(:) ! (gN/m2) live cors root N transfer
+    real(rkx), pointer :: deadcrootn_xfer(:) ! (gN/m2) dead cors root N transfer
+    real(rkx), pointer :: leafc_storage_to_xfer(:)
+    real(rkx), pointer :: frootc_storage_to_xfer(:)
+    real(rkx), pointer :: livestemc_storage_to_xfer(:)
+    real(rkx), pointer :: deadstemc_storage_to_xfer(:)
+    real(rkx), pointer :: livecrootc_storage_to_xfer(:)
+    real(rkx), pointer :: deadcrootc_storage_to_xfer(:)
+    real(rkx), pointer :: gresp_storage_to_xfer(:)
+    real(rkx), pointer :: leafn_storage_to_xfer(:)
+    real(rkx), pointer :: frootn_storage_to_xfer(:)
+    real(rkx), pointer :: livestemn_storage_to_xfer(:)
+    real(rkx), pointer :: deadstemn_storage_to_xfer(:)
+    real(rkx), pointer :: livecrootn_storage_to_xfer(:)
+    real(rkx), pointer :: deadcrootn_storage_to_xfer(:)
 
     ! seconds per quarter day
-    real(rk8),parameter :: secspqtrday = secspday / 4.0D0
+    real(rkx),parameter :: secspqtrday = secspday / 4.0_rkx
     integer(ik4) :: c,p         ! indices
     integer(ik4) :: fp          ! lake filter pft index
-    real(rk8):: crit_onset_gdd  ! degree days for onset trigger
-    real(rk8):: soilt           ! temperature of top soil layer
-    real(rk8):: psi             ! water stress of top soil layer
-    real(rk8):: lat             !latitude (radians)
-    real(rk8):: temp            !temporary variable for daylength calculation
+    real(rkx):: crit_onset_gdd  ! degree days for onset trigger
+    real(rkx):: soilt           ! temperature of top soil layer
+    real(rkx):: psi             ! water stress of top soil layer
+    real(rkx):: lat             !latitude (radians)
+    real(rkx):: temp            !temporary variable for daylength calculation
 
     ! Assign local pointers to derived type arrays (in)
     ivt                 => clm3%g%l%c%p%itype
@@ -905,7 +905,7 @@ module mod_clm_cnphenology
       p = filter_soilp(fp)
       c = pcolumn(p)
 
-      if (stress_decid(ivt(p)) == 1.D0) then
+      if (stress_decid(ivt(p)) == 1._rkx) then
         soilt = t_soisno(c,3)
         psi = soilpsi(c,3)
 
@@ -914,88 +914,88 @@ module mod_clm_cnphenology
         ! from degrees to radians) the constant 13750.9871 is the number
         ! of seconds per radian of hour-angle
 
-        lat = (rpi/180.D0)*latdeg(pgridcell(p))
+        lat = (rpi/180._rkx)*latdeg(pgridcell(p))
         temp = -(sin(lat)*sin(decl(c)))/(cos(lat) * cos(decl(c)))
-        temp = min(1.D0,max(-1.D0,temp))
-        dayl(p) = 2.0D0 * 13750.9871D0 * acos(temp)
+        temp = min(1._rkx,max(-1._rkx,temp))
+        dayl(p) = 2.0_rkx * 13750.9871_rkx * acos(temp)
 
         ! onset gdd sum from Biome-BGC, v4.1.2
-        crit_onset_gdd = exp(4.8D0 + 0.13D0*(annavg_t2m(p) - tfrz))
+        crit_onset_gdd = exp(4.8_rkx + 0.13_rkx*(annavg_t2m(p) - tfrz))
 
         ! update offset_counter and test for the end of the offset period
-        if (offset_flag(p) == 1.D0) then
+        if (offset_flag(p) == 1._rkx) then
           ! decrement counter for offset period
           offset_counter(p) = offset_counter(p) - dtsrf
 
           ! if this is the end of the offset_period, reset phenology
           ! flags and indices
-          if (offset_counter(p) == 0.D0) then
+          if (offset_counter(p) == 0._rkx) then
             ! this code block was originally handled by
             ! call cn_offset_cleanup(p) inlined during vectorization
-            offset_flag(p) = 0.D0
-            offset_counter(p) = 0.D0
-            dormant_flag(p) = 1.D0
-            days_active(p) = 0.D0
+            offset_flag(p) = 0._rkx
+            offset_counter(p) = 0._rkx
+            dormant_flag(p) = 1._rkx
+            days_active(p) = 0._rkx
 
             ! reset the previous timestep litterfall flux memory
-            prev_leafc_to_litter(p) = 0.D0
-            prev_frootc_to_litter(p) = 0.D0
+            prev_leafc_to_litter(p) = 0._rkx
+            prev_frootc_to_litter(p) = 0._rkx
           end if
         end if
 
         ! update onset_counter and test for the end of the onset period
-        if (onset_flag(p) == 1.0D0) then
+        if (onset_flag(p) == 1.0_rkx) then
           ! decrement counter for onset period
           onset_counter(p) = onset_counter(p) - dtsrf
 
           ! if this is the end of the onset period, reset phenology
           ! flags and indices
-          if (onset_counter(p) == 0.0D0) then
+          if (onset_counter(p) == 0.0_rkx) then
             ! this code block was originally handled by call cn_onset_cleanup(p)
             ! inlined during vectorization
-            onset_flag(p) = 0.D0
-            onset_counter(p) = 0.D0
+            onset_flag(p) = 0._rkx
+            onset_counter(p) = 0._rkx
             ! set all transfer growth rates to 0.0
-            leafc_xfer_to_leafc(p)   = 0.D0
-            frootc_xfer_to_frootc(p) = 0.D0
-            leafn_xfer_to_leafn(p)   = 0.D0
-            frootn_xfer_to_frootn(p) = 0.D0
-            if (woody(ivt(p)) == 1.0D0) then
-              livestemc_xfer_to_livestemc(p)   = 0.D0
-              deadstemc_xfer_to_deadstemc(p)   = 0.D0
-              livecrootc_xfer_to_livecrootc(p) = 0.D0
-              deadcrootc_xfer_to_deadcrootc(p) = 0.D0
-              livestemn_xfer_to_livestemn(p)   = 0.D0
-              deadstemn_xfer_to_deadstemn(p)   = 0.D0
-              livecrootn_xfer_to_livecrootn(p) = 0.D0
-              deadcrootn_xfer_to_deadcrootn(p) = 0.D0
+            leafc_xfer_to_leafc(p)   = 0._rkx
+            frootc_xfer_to_frootc(p) = 0._rkx
+            leafn_xfer_to_leafn(p)   = 0._rkx
+            frootn_xfer_to_frootn(p) = 0._rkx
+            if (woody(ivt(p)) == 1.0_rkx) then
+              livestemc_xfer_to_livestemc(p)   = 0._rkx
+              deadstemc_xfer_to_deadstemc(p)   = 0._rkx
+              livecrootc_xfer_to_livecrootc(p) = 0._rkx
+              deadcrootc_xfer_to_deadcrootc(p) = 0._rkx
+              livestemn_xfer_to_livestemn(p)   = 0._rkx
+              deadstemn_xfer_to_deadstemn(p)   = 0._rkx
+              livecrootn_xfer_to_livecrootn(p) = 0._rkx
+              deadcrootn_xfer_to_deadcrootn(p) = 0._rkx
             end if
             ! set transfer pools to 0.0
-            leafc_xfer(p) = 0.D0
-            leafn_xfer(p) = 0.D0
-            frootc_xfer(p) = 0.D0
-            frootn_xfer(p) = 0.D0
-            if (woody(ivt(p)) == 1.0D0) then
-              livestemc_xfer(p) = 0.D0
-              livestemn_xfer(p) = 0.D0
-              deadstemc_xfer(p) = 0.D0
-              deadstemn_xfer(p) = 0.D0
-              livecrootc_xfer(p) = 0.D0
-              livecrootn_xfer(p) = 0.D0
-              deadcrootc_xfer(p) = 0.D0
-              deadcrootn_xfer(p) = 0.D0
+            leafc_xfer(p) = 0._rkx
+            leafn_xfer(p) = 0._rkx
+            frootc_xfer(p) = 0._rkx
+            frootn_xfer(p) = 0._rkx
+            if (woody(ivt(p)) == 1.0_rkx) then
+              livestemc_xfer(p) = 0._rkx
+              livestemn_xfer(p) = 0._rkx
+              deadstemc_xfer(p) = 0._rkx
+              deadstemn_xfer(p) = 0._rkx
+              livecrootc_xfer(p) = 0._rkx
+              livecrootn_xfer(p) = 0._rkx
+              deadcrootc_xfer(p) = 0._rkx
+              deadcrootn_xfer(p) = 0._rkx
             end if
           end if
         end if
 
         ! test for switching from dormant period to growth period
-        if (dormant_flag(p) == 1.D0) then
+        if (dormant_flag(p) == 1._rkx) then
 
           ! keep track of the number of freezing degree days in this
           ! dormancy period (only if the freeze flag has not previously been set
           ! for this dormancy period
 
-          if (onset_gddflag(p) == 0.D0 .and. &
+          if (onset_gddflag(p) == 0._rkx .and. &
               soilt < tfrz) onset_fdd(p) = onset_fdd(p) + fracday
 
           ! if the number of freezing degree days exceeds a critical value,
@@ -1005,15 +1005,15 @@ module mod_clm_cnphenology
           ! the accumulated soil water index following the freeze trigger
 
           if (onset_fdd(p) > crit_onset_fdd) then
-            onset_gddflag(p) = 1.D0
-            onset_fdd(p) = 0.D0
-            onset_swi(p) = 0.D0
+            onset_gddflag(p) = 1._rkx
+            onset_fdd(p) = 0._rkx
+            onset_swi(p) = 0._rkx
           end if
 
           ! if the freeze flag is set, and if the soil is above freezing
           ! then accumulate growing degree days for onset trigger
 
-          if (onset_gddflag(p) == 1.D0 .and. soilt > tfrz) then
+          if (onset_gddflag(p) == 1._rkx .and. soilt > tfrz) then
             onset_gdd(p) = onset_gdd(p) + (soilt-tfrz)*fracday
           end if
 
@@ -1024,32 +1024,32 @@ module mod_clm_cnphenology
           ! then test for soil temperature criteria
 
           if (onset_swi(p) > crit_onset_swi) then
-            onset_flag(p) = 1.D0
+            onset_flag(p) = 1._rkx
 
             ! only check soil temperature criteria if freeze flag set since
             ! beginning of last dormancy.  If freeze flag set and growing
             ! degree day sum (since freeze trigger) is lower than critical
             ! value, then override the onset_flag set from soil water.
 
-            if (onset_gddflag(p) == 1.D0 .and. &
-                onset_gdd(p) < crit_onset_gdd) onset_flag(p) = 0.D0
+            if (onset_gddflag(p) == 1._rkx .and. &
+                onset_gdd(p) < crit_onset_gdd) onset_flag(p) = 0._rkx
           end if
 
           ! only allow onset if dayl > 6hrs
-          if (onset_flag(p) == 1.D0 .and. dayl(p) <= secspqtrday) then
-            onset_flag(p) = 0.D0
+          if (onset_flag(p) == 1._rkx .and. dayl(p) <= secspqtrday) then
+            onset_flag(p) = 0._rkx
           end if
 
           ! if this is the beginning of the onset period
           ! then reset the phenology flags and indices
 
-          if (onset_flag(p) == 1.D0) then
-            dormant_flag(p) = 0.D0
-            days_active(p) = 0.D0
-            onset_gddflag(p) = 0.D0
-            onset_fdd(p) = 0.D0
-            onset_gdd(p) = 0.D0
-            onset_swi(p) = 0.D0
+          if (onset_flag(p) == 1._rkx) then
+            dormant_flag(p) = 0._rkx
+            days_active(p) = 0._rkx
+            onset_gddflag(p) = 0._rkx
+            onset_fdd(p) = 0._rkx
+            onset_gdd(p) = 0._rkx
+            onset_swi(p) = 0._rkx
             onset_counter(p) = ndays_on * secspday
 
             ! call subroutine to move all the storage pools into transfer pools,
@@ -1061,7 +1061,7 @@ module mod_clm_cnphenology
             ! set carbon fluxes for shifting storage pools to transfer pools
             leafc_storage_to_xfer(p)  = fstor2tran * leafc_storage(p)/dtsrf
             frootc_storage_to_xfer(p) = fstor2tran * frootc_storage(p)/dtsrf
-            if (woody(ivt(p)) == 1.0D0) then
+            if (woody(ivt(p)) == 1.0_rkx) then
               livestemc_storage_to_xfer(p)  = fstor2tran * &
                       livestemc_storage(p)/dtsrf
               deadstemc_storage_to_xfer(p)  = fstor2tran * &
@@ -1077,7 +1077,7 @@ module mod_clm_cnphenology
             ! set nitrogen fluxes for shifting storage pools to transfer pools
             leafn_storage_to_xfer(p)  = fstor2tran * leafn_storage(p)/dtsrf
             frootn_storage_to_xfer(p) = fstor2tran * frootn_storage(p)/dtsrf
-            if (woody(ivt(p)) == 1.0D0) then
+            if (woody(ivt(p)) == 1.0_rkx) then
               livestemn_storage_to_xfer(p)  = fstor2tran * &
                       livestemn_storage(p)/dtsrf
               deadstemn_storage_to_xfer(p)  = fstor2tran * &
@@ -1089,7 +1089,7 @@ module mod_clm_cnphenology
             end if
           end if
         ! test for switching from growth period to offset period
-        else if (offset_flag(p) == 0.D0) then
+        else if (offset_flag(p) == 0._rkx) then
 
           ! if soil water potential lower than critical value, accumulate
           ! as stress in offset soil water index
@@ -1102,7 +1102,7 @@ module mod_clm_cnphenology
             ! then set flag to start the offset period and reset index variables
 
             if (offset_swi(p) >= crit_offset_swi .and. &
-                onset_flag(p) == 0.D0) offset_flag(p) = 1.D0
+                onset_flag(p) == 0._rkx) offset_flag(p) = 1._rkx
 
           ! if soil water potential higher than critical value, reduce the
           ! offset water stress index.  By this mechanism, there must be a
@@ -1110,13 +1110,13 @@ module mod_clm_cnphenology
 
           else if (psi >= soilpsi_on) then
             offset_swi(p) = offset_swi(p) - fracday
-            offset_swi(p) = max(offset_swi(p),0.D0)
+            offset_swi(p) = max(offset_swi(p),0._rkx)
           end if
 
             ! decrease freezing day accumulator for warm soil
-          if (offset_fdd(p) > 0.D0 .and. soilt > tfrz) then
+          if (offset_fdd(p) > 0._rkx .and. soilt > tfrz) then
             offset_fdd(p) = offset_fdd(p) - fracday
-            offset_fdd(p) = max(0.D0, offset_fdd(p))
+            offset_fdd(p) = max(0._rkx, offset_fdd(p))
           end if
 
           ! increase freezing day accumulator for cold soil
@@ -1126,66 +1126,66 @@ module mod_clm_cnphenology
             ! if freezing degree day sum is greater than critical value,
             ! initiate offset
             if (offset_fdd(p) > crit_offset_fdd .and. &
-                onset_flag(p) == 0.D0) offset_flag(p) = 1.D0
+                onset_flag(p) == 0._rkx) offset_flag(p) = 1._rkx
           end if
 
           ! force offset if daylength is < 6 hrs
           if (dayl(p) <= secspqtrday) then
-            offset_flag(p) = 1.D0
+            offset_flag(p) = 1._rkx
           end if
 
           ! if this is the beginning of the offset period
           ! then reset flags and indices
-          if (offset_flag(p) == 1.D0) then
-            offset_fdd(p) = 0.D0
-            offset_swi(p) = 0.D0
+          if (offset_flag(p) == 1._rkx) then
+            offset_fdd(p) = 0._rkx
+            offset_swi(p) = 0._rkx
             offset_counter(p) = ndays_off * secspday
-            prev_leafc_to_litter(p) = 0.D0
-            prev_frootc_to_litter(p) = 0.D0
+            prev_leafc_to_litter(p) = 0._rkx
+            prev_frootc_to_litter(p) = 0._rkx
           end if
         end if
 
         ! keep track of number of days since last dormancy for control on
         ! fraction of new growth to send to storage for next growing season
 
-        if (dormant_flag(p) == 0.0D0) then
+        if (dormant_flag(p) == 0.0_rkx) then
           days_active(p) = days_active(p) + fracday
         end if
 
         ! calculate long growing season factor (lgsf)
         ! only begin to calculate a lgsf greater than 0.0 once the number
         ! of days active exceeds days/year.
-        lgsf(p) = max(min((days_active(p)-dayspy)/dayspy, 1.D0),0.D0)
+        lgsf(p) = max(min((days_active(p)-dayspy)/dayspy, 1._rkx),0._rkx)
 
         ! set background litterfall rate, when not in the phenological
         ! offset period
-        if (offset_flag(p) == 1.D0) then
-          bglfr(p) = 0.D0
+        if (offset_flag(p) == 1._rkx) then
+          bglfr(p) = 0._rkx
         else
           ! calculate the background litterfall rate (bglfr)
           ! in units 1/s, based on leaf longevity (yrs) and
           ! correction for long growing season
 
-          bglfr(p) = (1.D0/(leaf_long(ivt(p))*dayspy*secspday))*lgsf(p)
+          bglfr(p) = (1._rkx/(leaf_long(ivt(p))*dayspy*secspday))*lgsf(p)
         end if
 
         ! set background transfer rate when active but not in the
         ! phenological onset period
-        if (onset_flag(p) == 1.D0) then
-          bgtr(p) = 0.D0
+        if (onset_flag(p) == 1._rkx) then
+          bgtr(p) = 0._rkx
         else
           ! the background transfer rate is calculated as the rate
           ! that would result in complete turnover of the storage pools
           ! in one year at steady state, once lgsf has reached 1.0
           ! (after 730 days active).
 
-          bgtr(p) = (1.D0/(dayspy*secspday))*lgsf(p)
+          bgtr(p) = (1._rkx/(dayspy*secspday))*lgsf(p)
 
           ! set carbon fluxes for shifting storage pools to transfer pools
 
           leafc_storage_to_xfer(p)  = leafc_storage(p) * bgtr(p)
           frootc_storage_to_xfer(p) = frootc_storage(p) * bgtr(p)
-          if (woody(ivt(p)) == 1.0D0) then
+          if (woody(ivt(p)) == 1.0_rkx) then
             livestemc_storage_to_xfer(p)  = livestemc_storage(p) * bgtr(p)
             deadstemc_storage_to_xfer(p)  = deadstemc_storage(p) * bgtr(p)
             livecrootc_storage_to_xfer(p) = livecrootc_storage(p) * bgtr(p)
@@ -1196,7 +1196,7 @@ module mod_clm_cnphenology
           ! set nitrogen fluxes for shifting storage pools to transfer pools
           leafn_storage_to_xfer(p)  = leafn_storage(p) * bgtr(p)
           frootn_storage_to_xfer(p) = frootn_storage(p) * bgtr(p)
-          if (woody(ivt(p)) == 1.0D0) then
+          if (woody(ivt(p)) == 1.0_rkx) then
             livestemn_storage_to_xfer(p)  = livestemn_storage(p) * bgtr(p)
             deadstemn_storage_to_xfer(p)  = deadstemn_storage(p) * bgtr(p)
             livecrootn_storage_to_xfer(p) = livecrootn_storage(p) * bgtr(p)
@@ -1233,57 +1233,57 @@ module mod_clm_cnphenology
     integer(ik4) :: g     ! gridcell indices
     integer(ik4) :: h     ! hemisphere indices
     integer(ik4) :: idpp  ! number of days past planting
-    real(rk8) :: crmcorn  ! comparitive relative maturity for corn
-    real(rk8) :: ndays_on ! number of days to fertilize
+    real(rkx) :: crmcorn  ! comparitive relative maturity for corn
+    real(rkx) :: ndays_on ! number of days to fertilize
 
     integer(ik4) , pointer :: pgridcell(:)! pft's gridcell index
     integer(ik4) , pointer :: pcolumn(:)  ! pft's column index
     integer(ik4) , pointer :: ivt(:)      ! pft
-    real(rk8), pointer :: hui(:)     ! =gdd since planting (gddplant)
-    real(rk8), pointer :: leafout(:) ! =gdd from top soil layer temperature
+    real(rkx), pointer :: hui(:)     ! =gdd since planting (gddplant)
+    real(rkx), pointer :: leafout(:) ! =gdd from top soil layer temperature
     ! one-sided leaf area index, no burying by snow
-    real(rk8), pointer :: tlai(:)
-    real(rk8), pointer :: gdd020(:)   ! 20 yr mean of gdd0
-    real(rk8), pointer :: gdd820(:)   ! 20 yr mean of gdd8
-    real(rk8), pointer :: gdd1020(:)  ! 20 yr mean of gdd10
-    real(rk8), pointer :: a5tmin(:)   ! 5-day running mean of min 2-m temp
-    real(rk8), pointer :: a10tmin(:)  ! 10-day running mean of min 2-m temp
-    real(rk8), pointer :: t10(:)      ! 10-day running mean of the 2 m temp (K)
+    real(rkx), pointer :: tlai(:)
+    real(rkx), pointer :: gdd020(:)   ! 20 yr mean of gdd0
+    real(rkx), pointer :: gdd820(:)   ! 20 yr mean of gdd8
+    real(rkx), pointer :: gdd1020(:)  ! 20 yr mean of gdd10
+    real(rkx), pointer :: a5tmin(:)   ! 5-day running mean of min 2-m temp
+    real(rkx), pointer :: a10tmin(:)  ! 10-day running mean of min 2-m temp
+    real(rkx), pointer :: t10(:)      ! 10-day running mean of the 2 m temp (K)
     !daily minimum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_min(:)
+    real(rkx), pointer :: t_ref2m_min(:)
     ! background transfer growth rate (1/s)
-    real(rk8), pointer :: bgtr(:)
-    real(rk8), pointer :: lgsf(:)           ! long growing season factor [0-1]
-    real(rk8), pointer :: offset_flag(:)    ! offset flag
-    real(rk8), pointer :: offset_counter(:) ! offset counter
-    real(rk8), pointer :: leaf_long(:)      ! leaf longevity (yrs)
-    real(rk8), pointer :: leafcn(:)         ! leaf C:N (gC/gN)
+    real(rkx), pointer :: bgtr(:)
+    real(rkx), pointer :: lgsf(:)           ! long growing season factor [0-1]
+    real(rkx), pointer :: offset_flag(:)    ! offset flag
+    real(rkx), pointer :: offset_counter(:) ! offset counter
+    real(rkx), pointer :: leaf_long(:)      ! leaf longevity (yrs)
+    real(rkx), pointer :: leafcn(:)         ! leaf C:N (gC/gN)
     ! max fertilizer to be applied in total (kgN/m2)
-    real(rk8), pointer :: fertnitro(:)
+    real(rkx), pointer :: fertnitro(:)
 
     integer(ik4) , pointer :: idop(:)     ! date of planting
     integer(ik4) , pointer :: harvdate(:) ! harvest date
     logical , pointer :: croplive(:)    ! Flag, true if planted, not harvested
     logical , pointer :: cropplant(:)   ! Flag, true if crop may be planted
-    real(rk8), pointer :: cumvd(:)      ! cumulative vernalization d?ependence?
-    real(rk8), pointer :: hdidx(:)      ! cold hardening index?
-    real(rk8), pointer :: vf(:)         ! vernalization factor
-    real(rk8), pointer :: gddmaturity(:)  ! gdd needed to harvest
-    real(rk8), pointer :: bglfr(:)        ! background litterfall rate (1/s)
+    real(rkx), pointer :: cumvd(:)      ! cumulative vernalization d?ependence?
+    real(rkx), pointer :: hdidx(:)      ! cold hardening index?
+    real(rkx), pointer :: vf(:)         ! vernalization factor
+    real(rkx), pointer :: gddmaturity(:)  ! gdd needed to harvest
+    real(rkx), pointer :: bglfr(:)        ! background litterfall rate (1/s)
     ! heat unit index needed from planting to leaf emergence
-    real(rk8), pointer :: huileaf(:)
+    real(rkx), pointer :: huileaf(:)
     ! same to reach vegetative maturity
-    real(rk8), pointer :: huigrain(:)
-    real(rk8), pointer :: onset_flag(:)    ! onset flag
-    real(rk8), pointer :: onset_counter(:) ! onset counter
-    real(rk8), pointer :: leafc_xfer(:)    ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: leafn_xfer(:)    ! (gN/m2) leaf N transfer
+    real(rkx), pointer :: huigrain(:)
+    real(rkx), pointer :: onset_flag(:)    ! onset flag
+    real(rkx), pointer :: onset_counter(:) ! onset counter
+    real(rkx), pointer :: leafc_xfer(:)    ! (gC/m2) leaf C transfer
+    real(rkx), pointer :: leafn_xfer(:)    ! (gN/m2) leaf N transfer
     ! (gC/m2/s) seed source to PFT-level
-    real(rk8), pointer :: dwt_seedc_to_leaf(:)
+    real(rkx), pointer :: dwt_seedc_to_leaf(:)
     ! (gN/m2/s) seed source to PFT-level
-    real(rk8), pointer :: dwt_seedn_to_leaf(:)
-    real(rk8), pointer :: fert_counter(:)   ! >0 fertilize; <=0 not (seconds)
-    real(rk8), pointer :: fert(:)  ! fertilizer applied each timestep (gN/m2/s)
+    real(rkx), pointer :: dwt_seedn_to_leaf(:)
+    real(rkx), pointer :: fert_counter(:)   ! >0 fertilize; <=0 not (seconds)
+    real(rkx), pointer :: fert(:)  ! fertilizer applied each timestep (gN/m2/s)
     logical , save :: planted_crop_day
 
     pgridcell      => clm3%g%l%c%p%gridcell
@@ -1331,7 +1331,7 @@ module mod_clm_cnphenology
     call curr_date(idatex,kyr,kmo,kda,mcsec)
 
     planted_crop_day = .false.
-    ndays_on = 20.D0 ! number of days to fertilize
+    ndays_on = 20._rkx ! number of days to fertilize
 
     do fp = 1, num_pcropp
       p = filter_pcropp(fp)
@@ -1341,9 +1341,9 @@ module mod_clm_cnphenology
 
       ! background litterfall and transfer rates; long growing season factor
 
-      bglfr(p) = 0.D0 ! this value changes later in a crop's life cycle
-      bgtr(p)  = 0.D0
-      lgsf(p)  = 0.D0
+      bglfr(p) = 0._rkx ! this value changes later in a crop's life cycle
+      bgtr(p)  = 0._rkx
+      lgsf(p)  = 0._rkx
 
       ! ---------------------------------
       ! from AgroIBIS subroutine planting
@@ -1427,15 +1427,15 @@ module mod_clm_cnphenology
               (gdd020(p) /= spval .and. &
                gdd020(p) >= gddmin(ivt(p)))) then
 
-            cumvd(p)       = 0.D0
-            hdidx(p)       = 0.D0
-            vf(p)          = 0.D0
+            cumvd(p)       = 0._rkx
+            hdidx(p)       = 0._rkx
+            vf(p)          = 0._rkx
             croplive(p)    = .true.
             cropplant(p)   = .true.
             idop(p)        = jday
             harvdate(p)    = NOT_Harvested
             gddmaturity(p) = hybgdd(ivt(p))
-            leafc_xfer(p)  = 1.D0 ! initial seed at planting to appear
+            leafc_xfer(p)  = 1._rkx ! initial seed at planting to appear
             leafn_xfer(p)  = leafc_xfer(p) / leafcn(ivt(p)) ! with onset
             dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dtsrf
             dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dtsrf
@@ -1447,20 +1447,20 @@ module mod_clm_cnphenology
                    gdd020(p)  /= spval .and. &
                    gdd020(p)  >= gddmin(ivt(p))) then
 
-            cumvd(p)       = 0.D0
-            hdidx(p)       = 0.D0
-            vf(p)          = 0.D0
+            cumvd(p)       = 0._rkx
+            hdidx(p)       = 0._rkx
+            vf(p)          = 0._rkx
             croplive(p)    = .true.
             cropplant(p)   = .true.
             idop(p)        = jday
             harvdate(p)    = NOT_Harvested
             gddmaturity(p) = hybgdd(ivt(p))
-            leafc_xfer(p)  = 1.D0 ! initial seed at planting to appear
+            leafc_xfer(p)  = 1._rkx ! initial seed at planting to appear
             leafn_xfer(p)  = leafc_xfer(p) / leafcn(ivt(p)) ! with onset
             dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dtsrf
             dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dtsrf
           else
-            gddmaturity(p) = 0.D0
+            gddmaturity(p) = 0._rkx
           end if
 
         else ! not winter cereal... slevis: added distinction between NH and SH
@@ -1490,23 +1490,23 @@ module mod_clm_cnphenology
               gddmaturity(p) = min(gdd1020(p),hybgdd(ivt(p)))
             end if
             if (ivt(p)==ncorn .or. ivt(p)==ncornirrig) then
-              gddmaturity(p) = max(950.D0, &
-                      min(gdd820(p)*0.85D0, hybgdd(ivt(p))))
-              gddmaturity(p) = max(950.D0, min(gddmaturity(p)+150.D0,1850.D0))
+              gddmaturity(p) = max(950._rkx, &
+                      min(gdd820(p)*0.85_rkx, hybgdd(ivt(p))))
+              gddmaturity(p) = max(950._rkx, min(gddmaturity(p)+150._rkx,1850._rkx))
             end if
             if (ivt(p)==nscereal .or. &
                 ivt(p) == nscerealirrig) then
               gddmaturity(p) = min(gdd020(p),hybgdd(ivt(p)))
             end if
 
-            leafc_xfer(p) = 1.D0 ! initial seed at planting to appear
+            leafc_xfer(p) = 1._rkx ! initial seed at planting to appear
             leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p)) ! with onset
             dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dtsrf
             dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dtsrf
 
             ! If hit the max planting julian day -- go ahead and plant
           else if (jday == maxplantjday(ivt(p),h) .and. &
-                   gdd820(p) > 0.D0 .and. &
+                   gdd820(p) > 0._rkx .and. &
                    gdd820(p) /= spval ) then
             croplive(p)  = .true.
             cropplant(p) = .true.
@@ -1519,21 +1519,21 @@ module mod_clm_cnphenology
             end if
             if (ivt(p)==ncorn .or. &
                 ivt(p)==ncornirrig) then
-              gddmaturity(p) = max(950.D0, &
-                      min(gdd820(p)*0.85D0, hybgdd(ivt(p))))
+              gddmaturity(p) = max(950._rkx, &
+                      min(gdd820(p)*0.85_rkx, hybgdd(ivt(p))))
             end if
             if (ivt(p)==nscereal .or. &
                 ivt(p) == nscerealirrig) then
               gddmaturity(p) = min(gdd020(p),hybgdd(ivt(p)))
             end if
 
-            leafc_xfer(p) = 1.D0 ! initial seed at planting to appear
+            leafc_xfer(p) = 1._rkx ! initial seed at planting to appear
             leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p)) ! with onset
             dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dtsrf
             dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dtsrf
 
           else
-            gddmaturity(p) = 0.D0
+            gddmaturity(p) = 0._rkx
           end if
         end if ! crop pft distinction
 
@@ -1562,15 +1562,15 @@ module mod_clm_cnphenology
           ! the following estimation of crmcorn from gddmaturity is
           ! based on a linear regression using data from Pioneer-brand
           ! corn hybrids (Kucharik, 2003, Earth Interactions 7:1-33: fig. 2)
-          crmcorn = max(73.D0, min(135.D0, (gddmaturity(p)+ 53.683D0)/13.882D0))
+          crmcorn = max(73._rkx, min(135._rkx, (gddmaturity(p)+ 53.683_rkx)/13.882_rkx))
 
           ! the following adjustment of grnfill based on crmcorn is based
           ! on a tuning of Agro-IBIS to give reasonable results for max LAI
           ! and the seasonal progression of LAI growth (pers. comm.
           ! C. Kucharik June 10, 2010)
-          huigrain(p) = -0.002D0  * (crmcorn - 73.D0) + grnfill(ivt(p))
+          huigrain(p) = -0.002_rkx  * (crmcorn - 73._rkx) + grnfill(ivt(p))
 
-          huigrain(p) = min(max(huigrain(p), grnfill(ivt(p))-0.1D0), &
+          huigrain(p) = min(max(huigrain(p), grnfill(ivt(p))-0.1_rkx), &
                   grnfill(ivt(p)))
           huigrain(p) = huigrain(p) * gddmaturity(p)     ! Cabelguenne et
         else
@@ -1621,8 +1621,8 @@ module mod_clm_cnphenology
       ! too difficult to implement on 0.5 degree scale grid cells
       ! --- --- ---
 
-      onset_flag(p)  = 0.D0 ! CN terminology to trigger certain
-      offset_flag(p) = 0.D0 ! carbon and nitrogen transfers
+      onset_flag(p)  = 0._rkx ! CN terminology to trigger certain
+      offset_flag(p) = 0._rkx ! carbon and nitrogen transfers
 
       if (croplive(p)) then
 
@@ -1630,7 +1630,7 @@ module mod_clm_cnphenology
         ! vernalization factor is not 1;
         ! vf affects the calculation of gddtsoi & gddplant
 
-        if (t_ref2m_min(p) < 1.D30 .and. vf(p) /= 1.D0 .and. &
+        if (t_ref2m_min(p) < 1.e30_rkx .and. vf(p) /= 1._rkx .and. &
             (ivt(p) == nwcereal .or. ivt(p) == nwcerealirrig)) then
           call vernalization(p)
         end if
@@ -1653,11 +1653,11 @@ module mod_clm_cnphenology
 
         if (leafout(p) >= huileaf(p) .and. &
             hui(p) < huigrain(p) .and. idpp < mxmat(ivt(p))) then
-          if (abs(onset_counter(p)) > 1.D-6) then
-            onset_flag(p)    = 1.D0
+          if (abs(onset_counter(p)) > 1.e-6_rkx) then
+            onset_flag(p)    = 1._rkx
             onset_counter(p) = dtsrf
             fert_counter(p)  = ndays_on * secspday
-            fert(p) = fertnitro(ivt(p)) * 1000.D0 / fert_counter(p)
+            fert(p) = fertnitro(ivt(p)) * 1000._rkx / fert_counter(p)
           else
             ! this ensures no re-entry to onset of phase2
             ! b/c onset_counter(p) = onset_counter(p) - dtsrf
@@ -1676,13 +1676,13 @@ module mod_clm_cnphenology
         else if (hui(p) >= gddmaturity(p) .or. idpp >= mxmat(ivt(p))) then
           if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
           croplive(p) = .false.     ! no re-entry in greater if-block
-          if (tlai(p) > 0.D0) then ! plant had emerged before harvest
-            offset_flag(p) = 1.D0
+          if (tlai(p) > 0._rkx) then ! plant had emerged before harvest
+            offset_flag(p) = 1._rkx
             offset_counter(p) = dtsrf
           else                      ! plant never emerged from the ground
             dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) - leafc_xfer(p)/dtsrf
             dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) - leafn_xfer(p)/dtsrf
-            leafc_xfer(p) = 0.D0  ! revert planting transfers
+            leafc_xfer(p) = 0._rkx  ! revert planting transfers
             leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
           end if
 
@@ -1693,14 +1693,14 @@ module mod_clm_cnphenology
           ! Use CN's simple formula at least as a place holder (slevis)
 
         else if (hui(p) >= huigrain(p)) then
-          bglfr(p) = 1.D0/(leaf_long(ivt(p))*dayspy*secspday)
+          bglfr(p) = 1._rkx/(leaf_long(ivt(p))*dayspy*secspday)
         end if
 
         ! continue fertilizer application while in phase 2;
         ! assumes that onset of phase 2 took one time step only
 
-        if (fert_counter(p) <= 0.D0) then
-          fert(p) = 0.D0
+        if (fert_counter(p) <= 0._rkx) then
+          fert(p) = 0._rkx
         else ! continue same fert application every timestep
           fert_counter(p) = fert_counter(p) - dtsrf
         end if
@@ -1709,8 +1709,8 @@ module mod_clm_cnphenology
         ! next 2 lines conserve mass if leaf*_xfer > 0 due to interpinic
         dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) - leafc_xfer(p)/dtsrf
         dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) - leafn_xfer(p)/dtsrf
-        onset_counter(p) = 0.D0
-        leafc_xfer(p) = 0.D0
+        onset_counter(p) = 0._rkx
+        leafc_xfer(p) = 0._rkx
         leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
       end if ! croplive
     end do ! prognostic crops loop
@@ -1725,7 +1725,7 @@ module mod_clm_cnphenology
     use mod_clm_time_manager , only : get_calday
     implicit none
     integer(ik4), intent(in) :: begp, endp ! Beginning and ending PFT index
-    real(rk8), pointer :: latdeg(:)        ! latitude (radians)
+    real(rkx), pointer :: latdeg(:)        ! latitude (radians)
     integer(ik4) , pointer :: pgridcell(:) ! pft's gridcell index
     integer(ik4)           :: p,g,n      ! indices
 
@@ -1754,7 +1754,7 @@ module mod_clm_cnphenology
     do p = begp , endp
       g = pgridcell(p)
       ! Northern hemisphere
-      if ( latdeg(g) > 0.0D0 )then
+      if ( latdeg(g) > 0.0_rkx )then
         inhemi(p) = inNH
       else
         inhemi(p) = inSH
@@ -1767,12 +1767,12 @@ module mod_clm_cnphenology
     ! photoperiod factor calculation
     ! genetic constant - can be modified
 
-    p1d = 0.004D0  ! average for genotypes from Ritchey, 1991.
+    p1d = 0.004_rkx  ! average for genotypes from Ritchey, 1991.
                    ! Modeling plant & soil systems: Wheat phasic developmt
-    p1v = 0.003D0  ! average for genotypes from Ritchey, 1991.
+    p1v = 0.003_rkx  ! average for genotypes from Ritchey, 1991.
 
-    hti   = 1.D0
-    tbase = 0.D0
+    hti   = 1._rkx
+    tbase = 0._rkx
   end subroutine CropPhenologyInit
   !
   ! * * * only call for winter temperate cereal * * *
@@ -1788,28 +1788,28 @@ module mod_clm_cnphenology
     implicit none
     integer(ik4), intent(in) :: p    ! PFT index running over
 
-    real(rk8) :: tcrown        ! ?
-    real(rk8) :: vd, vd1, vd2  ! vernalization dependence
-    real(rk8) :: tkil          ! Freeze kill threshold
+    real(rkx) :: tcrown        ! ?
+    real(rkx) :: vd, vd1, vd2  ! vernalization dependence
+    real(rkx) :: tkil          ! Freeze kill threshold
     integer(ik4) :: c          ! indices
 
     integer(ik4) , pointer :: pcolumn(:)  ! pft's column index
     logical , pointer :: croplive(:)    ! Flag, true if planted, not harvested
     ! one-sided leaf area index, no burying by snow
-    real(rk8), pointer :: tlai(:)
-    real(rk8), pointer :: t_ref2m(:)  ! 2 m height surface air temperature (K)
+    real(rkx), pointer :: tlai(:)
+    real(rkx), pointer :: t_ref2m(:)  ! 2 m height surface air temperature (K)
     !daily minimum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_min(:)
+    real(rkx), pointer :: t_ref2m_min(:)
     !daily maximum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_max(:)
-    real(rk8), pointer :: snow_depth(:)  ! snow height (m)
+    real(rkx), pointer :: t_ref2m_max(:)
+    real(rkx), pointer :: snow_depth(:)  ! snow height (m)
 
-    real(rk8), pointer :: vf(:)          ! vernalization factor for cereal
-    real(rk8), pointer :: cumvd(:)       ! cumulative vernalization d?ependence?
-    real(rk8), pointer :: gddmaturity(:) ! gdd needed to harvest
+    real(rkx), pointer :: vf(:)          ! vernalization factor for cereal
+    real(rkx), pointer :: cumvd(:)       ! cumulative vernalization d?ependence?
+    real(rkx), pointer :: gddmaturity(:) ! gdd needed to harvest
     ! heat unit index needed to reach vegetative maturity
-    real(rk8), pointer :: huigrain(:)
-    real(rk8), pointer :: hdidx(:)       ! cold hardening index?
+    real(rkx), pointer :: huigrain(:)
+    real(rkx), pointer :: hdidx(:)       ! cold hardening index?
 
 
     pcolumn     => clm3%g%l%c%p%column
@@ -1832,8 +1832,8 @@ module mod_clm_cnphenology
     ! snow depth in centimeters
 
     if (t_ref2m(p) < tfrz) then !slevis: t_ref2m inst of td=daily avg (K)
-      tcrown = 2.D0 + (t_ref2m(p) - tfrz) * (0.4D0 + 0.0018D0 * &
-               (min(snow_depth(c)*100.D0, 15.D0) - 15.D0)**2)
+      tcrown = 2._rkx + (t_ref2m(p) - tfrz) * (0.4_rkx + 0.0018_rkx * &
+               (min(snow_depth(c)*100._rkx, 15._rkx) - 15._rkx)**2)
     else !slevis: snow_depth inst of adsnod=daily average (m)
       tcrown = t_ref2m(p) - tfrz
     end if
@@ -1845,21 +1845,21 @@ module mod_clm_cnphenology
     ! (slevis) reset vf, cumvd, and hdidx to 0 at planting of crop (slevis)
 
     if (t_ref2m_max(p) > tfrz) then
-      if (t_ref2m_min(p) <= tfrz+15.D0) then
-        vd1 = 1.4D0 - 0.0778D0 * tcrown
-        vd2 = 0.5D0 + 13.44D0 / &
-                ((t_ref2m_max(p)-t_ref2m_min(p)+3.D0)**2) * tcrown
-        vd = max(0.D0, min(1.D0, vd1, vd2))
+      if (t_ref2m_min(p) <= tfrz+15._rkx) then
+        vd1 = 1.4_rkx - 0.0778_rkx * tcrown
+        vd2 = 0.5_rkx + 13.44_rkx / &
+                ((t_ref2m_max(p)-t_ref2m_min(p)+3._rkx)**2) * tcrown
+        vd = max(0._rkx, min(1._rkx, vd1, vd2))
         cumvd(p) = cumvd(p) + vd
       end if
 
-      if (cumvd(p) < 10.D0 .and. t_ref2m_max(p) > tfrz+30.D0) then
-        cumvd(p) = cumvd(p) - 0.5D0 * (t_ref2m_max(p) - tfrz - 30.D0)
+      if (cumvd(p) < 10._rkx .and. t_ref2m_max(p) > tfrz+30._rkx) then
+        cumvd(p) = cumvd(p) - 0.5_rkx * (t_ref2m_max(p) - tfrz - 30._rkx)
       end if
-      cumvd(p) = max(0.D0, cumvd(p))       ! must be > 0
+      cumvd(p) = max(0._rkx, cumvd(p))       ! must be > 0
 
-      vf(p) = 1.D0 - p1v * (50.D0 - cumvd(p))
-      vf(p) = max(0.D0, min(vf(p), 1.D0)) ! must be between 0 - 1
+      vf(p) = 1._rkx - p1v * (50._rkx - cumvd(p))
+      vf(p) = max(0._rkx, min(vf(p), 1._rkx)) ! must be between 0 - 1
     end if
 
     ! calculate cold hardening of plant
@@ -1869,34 +1869,34 @@ module mod_clm_cnphenology
 
     ! there are two distinct phases of hardening
 
-    if (t_ref2m_min(p) <= tfrz-3.D0 .or. hdidx(p) /= 0.D0) then
+    if (t_ref2m_min(p) <= tfrz-3._rkx .or. hdidx(p) /= 0._rkx) then
       if (hdidx(p) >= hti) then   ! done with phase 1
-        hdidx(p) = hdidx(p) + 0.083D0
-        hdidx(p) = min(hdidx(p), hti*2.D0)
+        hdidx(p) = hdidx(p) + 0.083_rkx
+        hdidx(p) = min(hdidx(p), hti*2._rkx)
       end if
 
-      if (t_ref2m_max(p) >= tbase + tfrz + 10.D0) then
-        hdidx(p) = hdidx(p) - 0.02D0 * (t_ref2m_max(p)-tbase-tfrz-10.D0)
+      if (t_ref2m_max(p) >= tbase + tfrz + 10._rkx) then
+        hdidx(p) = hdidx(p) - 0.02_rkx * (t_ref2m_max(p)-tbase-tfrz-10._rkx)
         if (hdidx(p) > hti) then
-          hdidx(p) = hdidx(p) - 0.02D0 * (t_ref2m_max(p)-tbase-tfrz-10.D0)
+          hdidx(p) = hdidx(p) - 0.02_rkx * (t_ref2m_max(p)-tbase-tfrz-10._rkx)
         end if
-        hdidx(p) = max(0.D0, hdidx(p))
+        hdidx(p) = max(0._rkx, hdidx(p))
       end if
-    else if (tcrown >= tbase-1.D0) then
-      if (tcrown <= tbase+8.D0) then
-        hdidx(p) = hdidx(p) + 0.1D0 - (tcrown-tbase+3.5D0)**2 / 506.D0
-        if (hdidx(p) >= hti .and. tcrown <= tbase + 0.D0) then
-          hdidx(p) = hdidx(p) + 0.083D0
-          hdidx(p) = min(hdidx(p), hti*2.D0)
+    else if (tcrown >= tbase-1._rkx) then
+      if (tcrown <= tbase+8._rkx) then
+        hdidx(p) = hdidx(p) + 0.1_rkx - (tcrown-tbase+3.5_rkx)**2 / 506._rkx
+        if (hdidx(p) >= hti .and. tcrown <= tbase + 0._rkx) then
+          hdidx(p) = hdidx(p) + 0.083_rkx
+          hdidx(p) = min(hdidx(p), hti*2._rkx)
         end if
       end if
 
-      if (t_ref2m_max(p) >= tbase + tfrz + 10.D0) then
-        hdidx(p) = hdidx(p) - 0.02D0 * (t_ref2m_max(p)-tbase-tfrz-10.D0)
+      if (t_ref2m_max(p) >= tbase + tfrz + 10._rkx) then
+        hdidx(p) = hdidx(p) - 0.02_rkx * (t_ref2m_max(p)-tbase-tfrz-10._rkx)
         if (hdidx(p) > hti) then
-          hdidx(p) = hdidx(p) - 0.02D0 * (t_ref2m_max(p)-tbase-tfrz-10.D0)
+          hdidx(p) = hdidx(p) - 0.02_rkx * (t_ref2m_max(p)-tbase-tfrz-10._rkx)
         end if
-        hdidx(p) = max(0.D0, hdidx(p))
+        hdidx(p) = max(0._rkx, hdidx(p))
       end if
     end if
 
@@ -1909,14 +1909,14 @@ module mod_clm_cnphenology
     ! will have to develop some type of relationship that reduces LAI and
     ! biomass pools in response to cold damaged crop
 
-    if (t_ref2m_min(p) <= tfrz - 6.D0) then
-      tkil = (tbase - 6.D0) - 6.D0 * hdidx(p)
+    if (t_ref2m_min(p) <= tfrz - 6._rkx) then
+      tkil = (tbase - 6._rkx) - 6._rkx * hdidx(p)
       if (tkil >= tcrown) then
-        if ((0.95D0 - 0.02D0 * (tcrown - tkil)**2) >= 0.02D0) then
+        if ((0.95_rkx - 0.02_rkx * (tcrown - tkil)**2) >= 0.02_rkx) then
           write (stdout,*)  'crop damaged by cold temperatures at p,c =', p,c
-        else if (tlai(p) > 0.D0) then ! slevis: kill if past phase1
-          gddmaturity(p) = 0.D0      !         by forcing through
-          huigrain(p)    = 0.D0      !         harvest
+        else if (tlai(p) > 0._rkx) then ! slevis: kill if past phase1
+          gddmaturity(p) = 0._rkx      !         by forcing through
+          huigrain(p)    = 0._rkx      !         harvest
           write (stdout,*) &
                   '95% of crop killed by cold temperatures at p,c =', p,c
         end if
@@ -1933,40 +1933,40 @@ module mod_clm_cnphenology
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
     integer(ik4) , pointer :: ivt(:)             ! pft vegetation type
-    real(rk8), pointer :: onset_flag(:)      ! onset flag
-    real(rk8), pointer :: onset_counter(:)   ! onset days counter
-    real(rk8), pointer :: leafc_xfer(:)      ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: frootc_xfer(:)     ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: livestemc_xfer(:)  ! (gC/m2) live stem C transfer
-    real(rk8), pointer :: deadstemc_xfer(:)  ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: livecrootc_xfer(:) ! (gC/m2) live cors root C transfer
-    real(rk8), pointer :: deadcrootc_xfer(:) ! (gC/m2) dead cors root C transfer
-    real(rk8), pointer :: leafn_xfer(:)      ! (gN/m2) leaf N transfer
-    real(rk8), pointer :: frootn_xfer(:)     ! (gN/m2) fine root N transfer
-    real(rk8), pointer :: livestemn_xfer(:)  ! (gN/m2) live stem N transfer
-    real(rk8), pointer :: deadstemn_xfer(:)  ! (gN/m2) dead stem N transfer
-    real(rk8), pointer :: livecrootn_xfer(:) ! (gN/m2) live cors root N transfer
-    real(rk8), pointer :: deadcrootn_xfer(:) ! (gN/m2) dead cors root N transfer
+    real(rkx), pointer :: onset_flag(:)      ! onset flag
+    real(rkx), pointer :: onset_counter(:)   ! onset days counter
+    real(rkx), pointer :: leafc_xfer(:)      ! (gC/m2) leaf C transfer
+    real(rkx), pointer :: frootc_xfer(:)     ! (gC/m2) fine root C transfer
+    real(rkx), pointer :: livestemc_xfer(:)  ! (gC/m2) live stem C transfer
+    real(rkx), pointer :: deadstemc_xfer(:)  ! (gC/m2) dead stem C transfer
+    real(rkx), pointer :: livecrootc_xfer(:) ! (gC/m2) live cors root C transfer
+    real(rkx), pointer :: deadcrootc_xfer(:) ! (gC/m2) dead cors root C transfer
+    real(rkx), pointer :: leafn_xfer(:)      ! (gN/m2) leaf N transfer
+    real(rkx), pointer :: frootn_xfer(:)     ! (gN/m2) fine root N transfer
+    real(rkx), pointer :: livestemn_xfer(:)  ! (gN/m2) live stem N transfer
+    real(rkx), pointer :: deadstemn_xfer(:)  ! (gN/m2) dead stem N transfer
+    real(rkx), pointer :: livecrootn_xfer(:) ! (gN/m2) live cors root N transfer
+    real(rkx), pointer :: deadcrootn_xfer(:) ! (gN/m2) dead cors root N transfer
     ! binary flag for woody lifeform (1=woody, 0=not woody)
-    real(rk8), pointer :: woody(:)
-    real(rk8), pointer :: bgtr(:) ! background transfer growth rate (1/s)
+    real(rkx), pointer :: woody(:)
+    real(rkx), pointer :: bgtr(:) ! background transfer growth rate (1/s)
 
-    real(rk8), pointer :: leafc_xfer_to_leafc(:)
-    real(rk8), pointer :: frootc_xfer_to_frootc(:)
-    real(rk8), pointer :: livestemc_xfer_to_livestemc(:)
-    real(rk8), pointer :: deadstemc_xfer_to_deadstemc(:)
-    real(rk8), pointer :: livecrootc_xfer_to_livecrootc(:)
-    real(rk8), pointer :: deadcrootc_xfer_to_deadcrootc(:)
-    real(rk8), pointer :: leafn_xfer_to_leafn(:)
-    real(rk8), pointer :: frootn_xfer_to_frootn(:)
-    real(rk8), pointer :: livestemn_xfer_to_livestemn(:)
-    real(rk8), pointer :: deadstemn_xfer_to_deadstemn(:)
-    real(rk8), pointer :: livecrootn_xfer_to_livecrootn(:)
-    real(rk8), pointer :: deadcrootn_xfer_to_deadcrootn(:)
+    real(rkx), pointer :: leafc_xfer_to_leafc(:)
+    real(rkx), pointer :: frootc_xfer_to_frootc(:)
+    real(rkx), pointer :: livestemc_xfer_to_livestemc(:)
+    real(rkx), pointer :: deadstemc_xfer_to_deadstemc(:)
+    real(rkx), pointer :: livecrootc_xfer_to_livecrootc(:)
+    real(rkx), pointer :: deadcrootc_xfer_to_deadcrootc(:)
+    real(rkx), pointer :: leafn_xfer_to_leafn(:)
+    real(rkx), pointer :: frootn_xfer_to_frootn(:)
+    real(rkx), pointer :: livestemn_xfer_to_livestemn(:)
+    real(rkx), pointer :: deadstemn_xfer_to_deadstemn(:)
+    real(rkx), pointer :: livecrootn_xfer_to_livecrootn(:)
+    real(rkx), pointer :: deadcrootn_xfer_to_deadcrootn(:)
 
     integer(ik4) :: p    ! indices
     integer(ik4) :: fp   ! lake filter pft index
-    real(rk8):: t1       ! temporary variable
+    real(rkx):: t1       ! temporary variable
 
     ! assign local pointers to derived type arrays (in)
     ivt             => clm3%g%l%c%p%itype
@@ -2010,21 +2010,21 @@ module mod_clm_cnphenology
       p = filter_soilp(fp)
 
       ! only calculate these fluxes during onset period
-      if (onset_flag(p) == 1.D0) then
+      if (onset_flag(p) == 1._rkx) then
 
         ! The transfer rate is a linearly decreasing function of time,
         ! going to zero on the last timestep of the onset period
 
         if (onset_counter(p) == dtsrf) then
-          t1 = 1.0D0 / dtsrf
+          t1 = 1.0_rkx / dtsrf
         else
-          t1 = 2.0D0 / (onset_counter(p))
+          t1 = 2.0_rkx / (onset_counter(p))
         end if
         leafc_xfer_to_leafc(p)   = t1 * leafc_xfer(p)
         frootc_xfer_to_frootc(p) = t1 * frootc_xfer(p)
         leafn_xfer_to_leafn(p)   = t1 * leafn_xfer(p)
         frootn_xfer_to_frootn(p) = t1 * frootn_xfer(p)
-        if (woody(ivt(p)) == 1.0D0) then
+        if (woody(ivt(p)) == 1.0_rkx) then
           livestemc_xfer_to_livestemc(p)   = t1 * livestemc_xfer(p)
           deadstemc_xfer_to_deadstemc(p)   = t1 * deadstemc_xfer(p)
           livecrootc_xfer_to_livecrootc(p) = t1 * livecrootc_xfer(p)
@@ -2040,12 +2040,12 @@ module mod_clm_cnphenology
       ! deciduous algorithm). In this case, all of the mass in the transfer
       ! pools should be moved to displayed growth in each timestep.
 
-      if (bgtr(p) > 0.D0) then
+      if (bgtr(p) > 0._rkx) then
         leafc_xfer_to_leafc(p)   = leafc_xfer(p) / dtsrf
         frootc_xfer_to_frootc(p) = frootc_xfer(p) / dtsrf
         leafn_xfer_to_leafn(p)   = leafn_xfer(p) / dtsrf
         frootn_xfer_to_frootn(p) = frootn_xfer(p) / dtsrf
-        if (woody(ivt(p)) == 1.0D0) then
+        if (woody(ivt(p)) == 1.0_rkx) then
           livestemc_xfer_to_livestemc(p)   = livestemc_xfer(p) / dtsrf
           deadstemc_xfer_to_deadstemc(p)   = deadstemc_xfer(p) / dtsrf
           livecrootc_xfer_to_livecrootc(p) = livecrootc_xfer(p) / dtsrf
@@ -2068,45 +2068,45 @@ module mod_clm_cnphenology
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     integer(ik4) , pointer :: ivt(:)            ! pft vegetation type
-    real(rk8), pointer :: offset_flag(:)        ! offset flag
-    real(rk8), pointer :: offset_counter(:)     ! offset days counter
-    real(rk8), pointer :: leafc(:)              ! (gC/m2) leaf C
-    real(rk8), pointer :: frootc(:)             ! (gC/m2) fine root C
-    real(rk8), pointer :: cpool_to_leafc(:)  ! allocation to leaf C (gC/m2/s)
+    real(rkx), pointer :: offset_flag(:)        ! offset flag
+    real(rkx), pointer :: offset_counter(:)     ! offset days counter
+    real(rkx), pointer :: leafc(:)              ! (gC/m2) leaf C
+    real(rkx), pointer :: frootc(:)             ! (gC/m2) fine root C
+    real(rkx), pointer :: cpool_to_leafc(:)  ! allocation to leaf C (gC/m2/s)
     ! allocation to fine root C (gC/m2/s)
-    real(rk8), pointer :: cpool_to_frootc(:)
+    real(rkx), pointer :: cpool_to_frootc(:)
 !   integer(ik4) , pointer :: pcolumn(:)     ! pft's column index
-    real(rk8), pointer :: grainc(:)          ! (gC/m2) grain C
-    real(rk8), pointer :: livestemc(:)       ! (gC/m2) livestem C
-    real(rk8), pointer :: cpool_to_grainc(:) ! allocation to grain C (gC/m2/s)
+    real(rkx), pointer :: grainc(:)          ! (gC/m2) grain C
+    real(rkx), pointer :: livestemc(:)       ! (gC/m2) livestem C
+    real(rkx), pointer :: cpool_to_grainc(:) ! allocation to grain C (gC/m2/s)
     ! allocation to live stem C (gC/m2/s)
-    real(rk8), pointer :: cpool_to_livestemc(:)
-    real(rk8), pointer :: livewdcn(:)    ! live wood C:N (gC/gN)
-    real(rk8), pointer :: graincn(:)     ! grain C:N (gC/gN)
-    real(rk8), pointer :: leafcn(:)      ! leaf C:N (gC/gN)
-    real(rk8), pointer :: lflitcn(:)     ! leaf litter C:N (gC/gN)
-    real(rk8), pointer :: frootcn(:)     ! fine root C:N (gC/gN)
+    real(rkx), pointer :: cpool_to_livestemc(:)
+    real(rkx), pointer :: livewdcn(:)    ! live wood C:N (gC/gN)
+    real(rkx), pointer :: graincn(:)     ! grain C:N (gC/gN)
+    real(rkx), pointer :: leafcn(:)      ! leaf C:N (gC/gN)
+    real(rkx), pointer :: lflitcn(:)     ! leaf litter C:N (gC/gN)
+    real(rkx), pointer :: frootcn(:)     ! fine root C:N (gC/gN)
 
     ! previous timestep leaf C litterfall flux (gC/m2/s)
-    real(rk8), pointer :: prev_leafc_to_litter(:)
+    real(rkx), pointer :: prev_leafc_to_litter(:)
     ! previous timestep froot C litterfall flux (gC/m2/s)
-    real(rk8), pointer :: prev_frootc_to_litter(:)
-    real(rk8), pointer :: leafc_to_litter(:)  ! leaf C litterfall (gC/m2/s)
-    real(rk8), pointer :: frootc_to_litter(:) ! fine root C litterfall (gC/m2/s)
-    real(rk8), pointer :: leafn_to_litter(:)  ! leaf N litterfall (gN/m2/s)
+    real(rkx), pointer :: prev_frootc_to_litter(:)
+    real(rkx), pointer :: leafc_to_litter(:)  ! leaf C litterfall (gC/m2/s)
+    real(rkx), pointer :: frootc_to_litter(:) ! fine root C litterfall (gC/m2/s)
+    real(rkx), pointer :: leafn_to_litter(:)  ! leaf N litterfall (gN/m2/s)
     ! leaf N to retranslocated N pool (gN/m2/s)
-    real(rk8), pointer :: leafn_to_retransn(:)
-    real(rk8), pointer :: frootn_to_litter(:) ! fine root N litterfall (gN/m2/s)
+    real(rkx), pointer :: leafn_to_retransn(:)
+    real(rkx), pointer :: frootn_to_litter(:) ! fine root N litterfall (gN/m2/s)
     ! live stem C litterfall (gC/m2/s)
-    real(rk8), pointer :: livestemc_to_litter(:)
-    real(rk8), pointer :: grainc_to_food(:)      ! grain C to food (gC/m2/s)
+    real(rkx), pointer :: livestemc_to_litter(:)
+    real(rkx), pointer :: grainc_to_food(:)      ! grain C to food (gC/m2/s)
     ! livestem N to litter (gN/m2/s)
-    real(rk8), pointer :: livestemn_to_litter(:)
-    real(rk8), pointer :: grainn_to_food(:)      ! grain N to food (gN/m2/s)
+    real(rkx), pointer :: livestemn_to_litter(:)
+    real(rkx), pointer :: grainn_to_food(:)      ! grain N to food (gN/m2/s)
 
     integer(ik4) :: p  ! indices
     integer(ik4) :: fp ! lake filter pft index
-    real(rk8):: t1     ! temporary variable
+    real(rkx):: t1     ! temporary variable
 
     ! assign local pointers to derived type arrays (in)
     ivt                            => clm3%g%l%c%p%itype
@@ -2146,9 +2146,9 @@ module mod_clm_cnphenology
     do fp = 1 , num_soilp
       p = filter_soilp(fp)
       ! only calculate fluxes during offset period
-      if (offset_flag(p) == 1.D0) then
+      if (offset_flag(p) == 1._rkx) then
         if (offset_counter(p) == dtsrf) then
-          t1 = 1.0D0 / dtsrf
+          t1 = 1.0_rkx / dtsrf
           leafc_to_litter(p)  = t1 * leafc(p)  + cpool_to_leafc(p)
           frootc_to_litter(p) = t1 * frootc(p) + cpool_to_frootc(p)
           ! this assumes that offset_counter == dtsrf for crops
@@ -2158,7 +2158,7 @@ module mod_clm_cnphenology
             livestemc_to_litter(p) = t1 * livestemc(p)  + cpool_to_livestemc(p)
           end if
         else
-          t1 = dtsrf * 2.0D0 / (offset_counter(p) * offset_counter(p))
+          t1 = dtsrf * 2.0_rkx / (offset_counter(p) * offset_counter(p))
           leafc_to_litter(p)  = prev_leafc_to_litter(p)  + &
                   t1*(leafc(p)  - prev_leafc_to_litter(p)*offset_counter(p))
           frootc_to_litter(p) = prev_frootc_to_litter(p) + &
@@ -2194,19 +2194,19 @@ module mod_clm_cnphenology
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     ! pft level
     integer(ik4) , pointer :: ivt(:)       ! pft vegetation type
-    real(rk8), pointer :: bglfr(:)     ! background litterfall rate (1/s)
-    real(rk8), pointer :: leafc(:)     ! (gC/m2) leaf C
-    real(rk8), pointer :: frootc(:)    ! (gC/m2) fine root C
+    real(rkx), pointer :: bglfr(:)     ! background litterfall rate (1/s)
+    real(rkx), pointer :: leafc(:)     ! (gC/m2) leaf C
+    real(rkx), pointer :: frootc(:)    ! (gC/m2) fine root C
     ! ecophysiological constants
-    real(rk8), pointer :: leafcn(:)    ! leaf C:N (gC/gN)
-    real(rk8), pointer :: lflitcn(:)   ! leaf litter C:N (gC/gN)
-    real(rk8), pointer :: frootcn(:)   ! fine root C:N (gC/gN)
+    real(rkx), pointer :: leafcn(:)    ! leaf C:N (gC/gN)
+    real(rkx), pointer :: lflitcn(:)   ! leaf litter C:N (gC/gN)
+    real(rkx), pointer :: frootcn(:)   ! fine root C:N (gC/gN)
 
-    real(rk8), pointer :: leafc_to_litter(:)
-    real(rk8), pointer :: frootc_to_litter(:)
-    real(rk8), pointer :: leafn_to_litter(:)
-    real(rk8), pointer :: leafn_to_retransn(:)
-    real(rk8), pointer :: frootn_to_litter(:)
+    real(rkx), pointer :: leafc_to_litter(:)
+    real(rkx), pointer :: frootc_to_litter(:)
+    real(rkx), pointer :: leafn_to_litter(:)
+    real(rkx), pointer :: leafn_to_retransn(:)
+    real(rkx), pointer :: frootn_to_litter(:)
 
     integer(ik4) :: p    ! indices
     integer(ik4) :: fp   ! lake filter pft index
@@ -2232,7 +2232,7 @@ module mod_clm_cnphenology
       p = filter_soilp(fp)
       ! only calculate these fluxes if the background
       ! litterfall rate is non-zero
-      if (bglfr(p) > 0.D0) then
+      if (bglfr(p) > 0._rkx) then
         ! units for bglfr are already 1/s
         leafc_to_litter(p)  = bglfr(p) * leafc(p)
         frootc_to_litter(p) = bglfr(p) * frootc(p)
@@ -2257,29 +2257,29 @@ module mod_clm_cnphenology
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     ! pft level
     integer(ik4) , pointer :: ivt(:)         ! pft vegetation type
-    real(rk8), pointer :: livestemc(:)   ! (gC/m2) live stem C
-    real(rk8), pointer :: livecrootc(:)  ! (gC/m2) live coarse root C
-    real(rk8), pointer :: livestemn(:)   ! (gN/m2) live stem N
-    real(rk8), pointer :: livecrootn(:)  ! (gN/m2) live coarse root N
+    real(rkx), pointer :: livestemc(:)   ! (gC/m2) live stem C
+    real(rkx), pointer :: livecrootc(:)  ! (gC/m2) live coarse root C
+    real(rkx), pointer :: livestemn(:)   ! (gN/m2) live stem N
+    real(rkx), pointer :: livecrootn(:)  ! (gN/m2) live coarse root N
     ! ecophysiological constants
     ! binary flag for woody lifeform (1=woody, 0=not woody)
-    real(rk8), pointer :: woody(:)
+    real(rkx), pointer :: woody(:)
     ! live wood (phloem and ray parenchyma) C:N (gC/gN)
-    real(rk8), pointer :: livewdcn(:)
+    real(rkx), pointer :: livewdcn(:)
     ! dead wood (xylem and heartwood) C:N (gC/gN)
-    real(rk8), pointer :: deadwdcn(:)
+    real(rkx), pointer :: deadwdcn(:)
 
-    real(rk8), pointer :: livestemc_to_deadstemc(:)
-    real(rk8), pointer :: livecrootc_to_deadcrootc(:)
-    real(rk8), pointer :: livestemn_to_deadstemn(:)
-    real(rk8), pointer :: livestemn_to_retransn(:)
-    real(rk8), pointer :: livecrootn_to_deadcrootn(:)
-    real(rk8), pointer :: livecrootn_to_retransn(:)
+    real(rkx), pointer :: livestemc_to_deadstemc(:)
+    real(rkx), pointer :: livecrootc_to_deadcrootc(:)
+    real(rkx), pointer :: livestemn_to_deadstemn(:)
+    real(rkx), pointer :: livestemn_to_retransn(:)
+    real(rkx), pointer :: livecrootn_to_deadcrootn(:)
+    real(rkx), pointer :: livecrootn_to_retransn(:)
 
     integer(ik4) :: p    ! indices
     integer(ik4) :: fp   ! lake filter pft index
-    real(rk8):: ctovr    ! temporary variable for carbon turnover
-    real(rk8):: ntovr    ! temporary variable for nitrogen turnover
+    real(rkx):: ctovr    ! temporary variable for carbon turnover
+    real(rkx):: ntovr    ! temporary variable for nitrogen turnover
 
     ! assign local pointers to derived type arrays (in)
     ivt         => clm3%g%l%c%p%itype
@@ -2303,7 +2303,7 @@ module mod_clm_cnphenology
     do fp = 1,num_soilp
       p = filter_soilp(fp)
       ! only calculate these fluxes for woody types
-      if (woody(ivt(p)) > 0.D0) then
+      if (woody(ivt(p)) > 0._rkx) then
         ! live stem to dead stem turnover
         ctovr = livestemc(p) * lwtop
         ntovr = ctovr / livewdcn(ivt(p))
@@ -2334,48 +2334,48 @@ module mod_clm_cnphenology
     logical , pointer :: pactive(:)
     integer(ik4) , pointer :: ivt(:) ! pft vegetation type
     ! weight (relative to column) for this pft (0-1)
-    real(rk8), pointer :: wtcol(:)
+    real(rkx), pointer :: wtcol(:)
     ! leaf C litterfall (gC/m2/s)
-    real(rk8), pointer :: leafc_to_litter(:)
+    real(rkx), pointer :: leafc_to_litter(:)
     ! fine root N litterfall (gN/m2/s)
-    real(rk8), pointer :: frootc_to_litter(:)
+    real(rkx), pointer :: frootc_to_litter(:)
     ! live stem C litterfall (gC/m2/s)
-    real(rk8), pointer :: livestemc_to_litter(:)
-    real(rk8), pointer :: grainc_to_food(:)      ! grain C to food (gC/m2/s)
+    real(rkx), pointer :: livestemc_to_litter(:)
+    real(rkx), pointer :: grainc_to_food(:)      ! grain C to food (gC/m2/s)
     ! livestem N to litter (gN/m2/s)
-    real(rk8), pointer :: livestemn_to_litter(:)
-    real(rk8), pointer :: grainn_to_food(:)   ! grain N to food (gN/m2/s)
-    real(rk8), pointer :: leafn_to_litter(:)  ! leaf N litterfall (gN/m2/s)
-    real(rk8), pointer :: frootn_to_litter(:) ! fine root N litterfall (gN/m2/s)
+    real(rkx), pointer :: livestemn_to_litter(:)
+    real(rkx), pointer :: grainn_to_food(:)   ! grain N to food (gN/m2/s)
+    real(rkx), pointer :: leafn_to_litter(:)  ! leaf N litterfall (gN/m2/s)
+    real(rkx), pointer :: frootn_to_litter(:) ! fine root N litterfall (gN/m2/s)
     ! C fluxes associated with phenology (litterfall and crop) to
     ! litter metabolic pool (gC/m3/s)
-    real(rk8), pointer :: phenology_c_to_litr_met_c(:,:)
+    real(rkx), pointer :: phenology_c_to_litr_met_c(:,:)
     ! C fluxes associated with phenology (litterfall and crop) to
     ! litter cellulose pool (gC/m3/s)
-    real(rk8), pointer :: phenology_c_to_litr_cel_c(:,:)
+    real(rkx), pointer :: phenology_c_to_litr_cel_c(:,:)
     ! C fluxes associated with phenology (litterfall and crop) to
     ! litter lignin pool (gC/m3/s)
-    real(rk8), pointer :: phenology_c_to_litr_lig_c(:,:)
+    real(rkx), pointer :: phenology_c_to_litr_lig_c(:,:)
     ! N fluxes associated with phenology (litterfall and crop) to
     ! litter metabolic pool (gN/m3/s)
-    real(rk8), pointer :: phenology_n_to_litr_met_n(:,:)
+    real(rkx), pointer :: phenology_n_to_litr_met_n(:,:)
     ! N fluxes associated with phenology (litterfall and crop) to
     ! litter cellulose pool (gN/m3/s)
-    real(rk8), pointer :: phenology_n_to_litr_cel_n(:,:)
+    real(rkx), pointer :: phenology_n_to_litr_cel_n(:,:)
     ! N fluxes associated with phenology (litterfall and crop) to
     ! litter lignin pool (gN/m3/s)
-    real(rk8), pointer :: phenology_n_to_litr_lig_n(:,:)
-    real(rk8), pointer :: lf_flab(:)  ! leaf litter labile fraction
-    real(rk8), pointer :: lf_fcel(:)  ! leaf litter cellulose fraction
-    real(rk8), pointer :: lf_flig(:)  ! leaf litter lignin fraction
-    real(rk8), pointer :: fr_flab(:)  ! fine root litter labile fraction
-    real(rk8), pointer :: fr_fcel(:)  ! fine root litter cellulose fraction
-    real(rk8), pointer :: fr_flig(:)  ! fine root litter lignin fraction
+    real(rkx), pointer :: phenology_n_to_litr_lig_n(:,:)
+    real(rkx), pointer :: lf_flab(:)  ! leaf litter labile fraction
+    real(rkx), pointer :: lf_fcel(:)  ! leaf litter cellulose fraction
+    real(rkx), pointer :: lf_flig(:)  ! leaf litter lignin fraction
+    real(rkx), pointer :: fr_flab(:)  ! fine root litter labile fraction
+    real(rkx), pointer :: fr_fcel(:)  ! fine root litter cellulose fraction
+    real(rkx), pointer :: fr_flig(:)  ! fine root litter lignin fraction
     integer(ik4) , pointer :: npfts(:)  ! number of pfts for each column
     integer(ik4) , pointer :: pfti(:)   ! beginning pft index for each column
 
-    real(rk8), pointer :: leaf_prof(:,:)    ! (1/m) profile of leaves
-    real(rk8), pointer :: froot_prof(:,:)   ! (1/m) profile of fine roots
+    real(rkx), pointer :: leaf_prof(:,:)    ! (1/m) profile of leaves
+    real(rkx), pointer :: froot_prof(:,:)   ! (1/m) profile of fine roots
 
     integer(ik4) :: fc,c,pi,p,j       ! indices
 

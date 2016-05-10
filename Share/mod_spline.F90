@@ -41,19 +41,19 @@ module mod_spline
       integer(ik4) , parameter :: nmax = 100
 !
       ! Arrays of tabulated function in ascending order by x with y = f(x)
-      real(rk8) , dimension(:) , intent(in)  :: x , y
+      real(rkx) , dimension(:) , intent(in)  :: x , y
       ! Specified derivatives at x(1) and x(n)
       ! Values > 1E30 signals second derivative zero
-      real(rk8) , intent(in) :: yp1 , ypn
+      real(rkx) , intent(in) :: yp1 , ypn
       ! Output array of second derivatives
-      real(rk8) , dimension(:) , intent(out) :: y2
+      real(rkx) , dimension(:) , intent(out) :: y2
 !
       integer(ik4) :: n , i , k
-      real(rk8) :: p , qn , sig , un
-      real(rk8) , dimension(nmax) :: u
+      real(rkx) :: p , qn , sig , un
+      real(rkx) , dimension(nmax) :: u
 
       n = size(x,1)
-      if ( yp1 > 0.99D30 ) then
+      if ( yp1 > 0.99e30_rkx ) then
         y2(1) = d_zero
         u(1) = d_zero
       else
@@ -68,7 +68,7 @@ module mod_spline
                      (y(i)-y(i-1))/(x(i)-x(i-1))) / &
                      (x(i+1)-x(i-1))-sig*u(i-1))/p
       end do
-      if ( ypn > 0.99D30 ) then
+      if ( ypn > 0.99e30_rkx ) then
         qn = d_zero
         un = d_zero
       else
@@ -87,15 +87,15 @@ module mod_spline
       implicit none
 !
       ! Arrays of tabulated function in ascending order by xa with ya = f(xa)
-      real(rk8) , dimension(:) , intent(in) :: xa , ya
+      real(rkx) , dimension(:) , intent(in) :: xa , ya
       ! Array of second derivatives
-      real(rk8) , dimension(:) , intent(in) :: y2a
+      real(rkx) , dimension(:) , intent(in) :: y2a
       ! Ascissa endpoint of integration
-      real(rk8) , intent(in) :: x
+      real(rkx) , intent(in) :: x
       ! Output value
-      real(rk8) , intent(out) :: yi
+      real(rkx) , intent(out) :: yi
 !
-      real(rk8) :: a , a2 , b , b2 , h , xx
+      real(rkx) :: a , a2 , b , b2 , h , xx
       integer(ik4) :: n , khi , klo
 !
       n = size(xa,1)
@@ -104,7 +104,7 @@ module mod_spline
       khi = 2
       do while ( x > xa(klo) .and. khi <= n )
         xx = x
-        if ( khi<n ) xx = dmin1(x,xa(khi))
+        if ( khi<n ) xx = min(x,xa(khi))
         h = xa(khi) - xa(klo)
         a = (xa(khi)-xx)/h
         b = (xx-xa(klo))/h
@@ -125,15 +125,15 @@ module mod_spline
       implicit none
 !
       ! Arrays of tabulated function values in ascending xa order
-      real(rk8) , dimension(:) , intent(in) :: xa , ya
+      real(rkx) , dimension(:) , intent(in) :: xa , ya
       ! Arrays of second derivatives
-      real(rk8) , dimension(:) , intent(in) :: y2a
+      real(rkx) , dimension(:) , intent(in) :: y2a
       ! Abscissa of interpolation
-      real(rk8) , intent(in) :: x
+      real(rkx) , intent(in) :: x
       ! Output value
-      real(rk8) , intent(out) :: y
+      real(rkx) , intent(out) :: y
 !
-      real(rk8) :: a , b , h
+      real(rkx) :: a , b , h
       integer(ik4) :: n , k , khi , klo
 !
       n = size(xa,1)
@@ -149,7 +149,7 @@ module mod_spline
       end do
       h = xa(khi) - xa(klo)
       if ( h==0 ) then
-        y = 1.0D-30
+        y = 1.0e-30_rkx
         return
       end if
       a = (xa(khi)-x)/h

@@ -44,23 +44,23 @@ module mod_mksoitex
   character(len=16) , parameter :: varname3 = 'PCT_CLAY'
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real(rk8) :: vmin = 0.0D0
-  real(rk8) :: vmisdat = -9999.0D0
+  real(rkx) :: vmin = 0.0_rkx
+  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
   subroutine mksoitex(soitexfile,sand,clay)
     implicit none
     character(len=*) , intent(in) :: soitexfile
-    real(rk8) , dimension(:,:,:) , intent(out) :: sand , clay
+    real(rkx) , dimension(:,:,:) , intent(out) :: sand , clay
     integer(ik4) :: nlat , nlon , nlev , nmpu
     integer(ik4) :: idimid , ivarid1 , ivarid2 , ivarid3 , ivarmask , ncid
     integer(ik4) , dimension(2) :: istart , icount
     integer(ik4) :: istatus , i , j , l , li , lo , number_of_mapunits
-    real(rk8) , dimension(:,:,:) , allocatable :: rvar1 , rvar2
-    real(rk8) , dimension(:,:) , allocatable :: temp1 , temp2
-    real(rk8) , dimension(:,:) , allocatable :: rmask , mpu
-    real(rk8) , dimension(:) , allocatable :: glat , glon , rlat , rlon
+    real(rkx) , dimension(:,:,:) , allocatable :: rvar1 , rvar2
+    real(rkx) , dimension(:,:) , allocatable :: temp1 , temp2
+    real(rkx) , dimension(:,:) , allocatable :: rmask , mpu
+    real(rkx) , dimension(:) , allocatable :: glat , glon , rlat , rlon
     type(global_domain) :: domain
 
     character(len=256) :: inpfile
@@ -130,11 +130,11 @@ module mod_mksoitex
       'Cannot read dimension number_of_mapunits in file '//trim(inpfile))
 
     ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0D0 )
-      glon = glon - 360.0D0
+    where ( glon >  180.0_rkx )
+      glon = glon - 360.0_rkx
     end where
-    where ( glon < -180.0D0 )
-      glon = glon + 360.0D0
+    where ( glon < -180.0_rkx )
+      glon = glon + 360.0_rkx
     end where
 
     call get_window(glat,glon,domain)
@@ -191,10 +191,10 @@ module mod_mksoitex
         if ( mpu(i,j) > 0 .and. mpu(i,j) <= number_of_mapunits ) then
           rvar1(i,j,:) = temp1(int(mpu(i,j)),:)
           rvar2(i,j,:) = temp2(int(mpu(i,j)),:)
-          if ( any(rvar1(i,j,:) > 100.0D0) ) then
+          if ( any(rvar1(i,j,:) > 100.0_rkx) ) then
             write(stderr,*) 'CLAY > 100.0'
           end if
-          if ( any(rvar2(i,j,:) > 100.0D0) ) then
+          if ( any(rvar2(i,j,:) > 100.0_rkx) ) then
             write(stderr,*) 'SAND > 100.0'
           end if
         else
@@ -210,11 +210,11 @@ module mod_mksoitex
     do l = 1  , size(clay,3)
       do i = 1 , size(clay,2)
         do j = 1 , size(clay,1)
-          if ( clay(j,i,l) + sand(j,i,l) /= 100.0D0 ) then
+          if ( clay(j,i,l) + sand(j,i,l) /= 100.0_rkx ) then
             if ( clay(j,i,l) > sand(j,i,l) ) then
-              sand(j,i,l) = 100.0D0 - clay(j,i,l)
+              sand(j,i,l) = 100.0_rkx - clay(j,i,l)
             else
-              clay(j,i,l) = 100.0D0 - sand(j,i,l)
+              clay(j,i,l) = 100.0_rkx - sand(j,i,l)
             end if
           end if
         end do

@@ -65,21 +65,21 @@ module mod_bats_co2
   subroutine co2
     implicit none
     integer(ik4) :: i
-    real(rk8) :: rap , resps , rsp , rt , rcar , cari , apbm
-    real(rk8) , parameter :: rmp = 800.0D0
+    real(rkx) :: rap , resps , rsp , rt , rcar , cari , apbm
+    real(rkx) , parameter :: rmp = 800.0_rkx
 
     apbm = d_zero
     do i = ilndbeg , ilndend
       if ( sigf(i) > minsigf ) then
-        rsp = lftrs(i)*1.7D0
-        rap = lftra(i)*1.5D0
+        rsp = lftrs(i)*1.7_rkx
+        rap = lftra(i)*1.5_rkx
         rt = rsp + rap + rmp
         rcar = carbon(swsi(i)*rlai(i),tlef(i),rt,tgrd(i),xlai(i),xlsai(i))
         cari = sigf(i)*xlsai(i)*fdry(i)*rcar
         apbm = apbm + cari*dtbat
         if ( apbm < d_zero ) apbm = d_zero
-        resps = 0.7D-7*resp(i)*dexp(0.1D0*(tgrd(i)-300.0D0)) * &
-                dmin1(d_one,ssw(i)/(0.6D0*gwmx0(i)))
+        resps = 0.7e-7_rkx*resp(i)*exp(0.1_rkx*(tgrd(i)-300.0_rkx)) * &
+                min(d_one,ssw(i)/(0.6_rkx*gwmx0(i)))
         resp(i) = resp(i) + (cari-resps)*dtbat
         if ( resp(i) < d_zero ) resp(i) = d_zero
       end if
@@ -102,10 +102,10 @@ module mod_bats_co2
 !     betatl = rai/lai  (must be set reasonably)
 !====================================================================
 !
-  pure real(rk8) function carbon(vf,t,rm,tg,xlai,xlsai)
+  pure real(rkx) function carbon(vf,t,rm,tg,xlai,xlsai)
     implicit none
-    real(rk8) , intent(in) :: rm , t , tg , vf , xlai , xlsai
-    real(rk8) :: ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
+    real(rkx) , intent(in) :: rm , t , tg , vf , xlai , xlsai
+    real(rkx) :: ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
                cco2i , ccold , gt , p , pm , pml , rt , w , &
                wd , wp , xk , xkb , xl
     integer(ik4) :: it
@@ -122,69 +122,69 @@ module mod_bats_co2
     betatl = d_half
     if ( vf < d_two ) then
       ! nighttime maintenance respiration only
-      carbon = -0.36D-8*((d_one+alphtl)*0.877D0*rt+ &
-                 betatl*(r(tg)-0.123D0*rt))
+      carbon = -0.36e-8_rkx*((d_one+alphtl)*0.877_rkx*rt+ &
+                 betatl*(r(tg)-0.123_rkx*rt))
     else
       ! convert lambda less than 0.7 micron solar into photon units
       ! light intensity (e/m2)
-      xl = 4.6D-3*vf
+      xl = 4.6e-3_rkx*vf
       ! co2 external concentration(mm/m3)
       ! 335ppm/v
-      cco2 = 13.5D0
+      cco2 = 13.5_rkx
       ! initial guess for co2 concentration inside chloroplast
       cco2i = cco2
       ! co2 half max in absence of oxygen  (mm/m3)
       xk = d_half
       ! oxygen inhibition factor
-      b = 3.56D0
+      b = 3.56_rkx
       xkb = xk*b
       ! maximum temperature optimum light saturated photosynthesis
-      pml = 0.050D0
+      pml = 0.050_rkx
       ! quantum yield(mm/e)
-      al = 0.05D0
-      gt = g(t,320.0D0,4.0D3)
+      al = 0.05_rkx
+      gt = g(t,320.0_rkx,4.0e3_rkx)
       ! maximum photosynthesis
       pm = e(xl,al,pml*gt)
       ! iterate
       do it = 1 , 30
         ! photorespiration
-        wp = pm/(d_one+0.4D0*(d_one+cco2i/xk))
+        wp = pm/(d_one+0.4_rkx*(d_one+cco2i/xk))
         ! total respiration
         ! dark respiration within daytime leaves
-        wd = 3.0D-4*rt + 0.14D0*p
+        wd = 3.0e-4_rkx*rt + 0.14_rkx*p
         w = wp + wd
         ! carbon uptake factors
         ac = cco2 + xkb + rm*(pm-w)
         bc = d_four*rm*(cco2*(pm-w)-xkb*w)
-        ab = dsqrt(ac**2-bc)
+        ab = sqrt(ac**2-bc)
         p = d_half*(ac-ab)/rm
         ccold = cco2i
         cco2i = cco2 - p*rm
-        if ( dabs(cco2i-ccold) <= 0.05D0 .and. it > 9 ) exit
+        if ( abs(cco2i-ccold) <= 0.05_rkx .and. it > 9 ) exit
       end do
       ! respiration outside leaves
-      carbon = 1.2D-5*((d_one-0.14D0*(alphtl+betatl)) * &
-               p-3.0D-4*(alphtl*rt+betatl*r(tg)))
+      carbon = 1.2e-5_rkx*((d_one-0.14_rkx*(alphtl+betatl)) * &
+               p-3.0e-4_rkx*(alphtl*rt+betatl*r(tg)))
     end if
 
     contains
 
-      pure real(rk8) function g(t,tmx,sl)
+      pure real(rkx) function g(t,tmx,sl)
         implicit none
-        real(rk8) , intent(in) :: t , tmx , sl
-        g = dexp(sl*(d_one/tmx-d_one/t)) / &
-            (d_one+(dexp(sl*(d_one/tmx-d_one/t)*6.0D0)))*5.0D-3*t
+        real(rkx) , intent(in) :: t , tmx , sl
+        g = exp(sl*(d_one/tmx-d_one/t)) / &
+            (d_one+(exp(sl*(d_one/tmx-d_one/t)*6.0_rkx)))*5.0e-3_rkx*t
       end function g
       ! temperature dependence of dark respiration
-      pure real(rk8) function r(t)
+      pure real(rkx) function r(t)
         implicit none
-        real(rk8) , intent(in) :: t
-        r = dexp(30.0D0-9.0D3/t)
+        real(rkx) , intent(in) :: t
+        r = exp(30.0_rkx-9.0e3_rkx/t)
       end function r
       ! light dependence of photosynthesis
-      pure real(rk8) function e(xl,a,pml)
+      pure real(rkx) function e(xl,a,pml)
         implicit none
-        real(rk8) , intent(in) :: xl , a , pml
+        real(rkx) , intent(in) :: xl , a , pml
         e = a*xl/sqrt(d_one+(a*xl/pml)**2)
       end function e
 

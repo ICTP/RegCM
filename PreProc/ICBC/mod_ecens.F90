@@ -44,29 +44,29 @@ module mod_ecens
   integer(ik4) :: mlev , nlat , nlon , ntime
   integer(ik4) , parameter :: nplev = 18
 
-  real(rk8) , pointer , dimension(:) :: vlat
-  real(rk8) , pointer , dimension(:) :: rlat
-  real(rk8) , pointer , dimension(:) :: vlon
-  real(rk8) , pointer , dimension(:) :: ak , bk
-  real(rk8) , pointer , dimension(:,:,:) :: work
+  real(rkx) , pointer , dimension(:) :: vlat
+  real(rkx) , pointer , dimension(:) :: rlat
+  real(rkx) , pointer , dimension(:) :: vlon
+  real(rkx) , pointer , dimension(:) :: ak , bk
+  real(rkx) , pointer , dimension(:,:,:) :: work
 
-  real(rk8) , pointer , dimension(:,:,:) :: bb
-  real(rk8) , pointer , dimension(:,:,:) :: b2
-  real(rk8) , pointer , dimension(:,:,:) :: d2
-  real(rk8) , pointer , dimension(:,:,:) :: b3
-  real(rk8) , pointer , dimension(:,:,:) :: d3
-  real(rk8) , pointer , dimension(:,:,:) :: pp3d , z1
+  real(rkx) , pointer , dimension(:,:,:) :: bb
+  real(rkx) , pointer , dimension(:,:,:) :: b2
+  real(rkx) , pointer , dimension(:,:,:) :: d2
+  real(rkx) , pointer , dimension(:,:,:) :: b3
+  real(rkx) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , pointer , dimension(:,:,:) :: pp3d , z1
 
-  real(rk8) , pointer , dimension(:,:) :: zs2
-  real(rk8) , pointer , dimension(:,:) :: ps2
-  real(rk8) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
-  real(rk8) , pointer , dimension(:,:,:) :: tp , qp , hp
-  real(rk8) , pointer , dimension(:,:,:) :: up , vp
-  real(rk8) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-  real(rk8) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rkx) , pointer , dimension(:,:) :: zs2
+  real(rkx) , pointer , dimension(:,:) :: ps2
+  real(rkx) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
+  real(rkx) , pointer , dimension(:,:,:) :: tp , qp , hp
+  real(rkx) , pointer , dimension(:,:,:) :: up , vp
+  real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
 
-  real(rk8) , dimension(nplev) :: pplev , sigmar
-  real(rk8) :: pss
+  real(rkx) , dimension(nplev) :: pplev , sigmar
+  real(rkx) :: pss
 
   integer(ik4) :: mdlver , ensnum
   integer(ik4) , parameter :: ibctime = 6
@@ -74,7 +74,7 @@ module mod_ecens
   integer(ik4) , dimension(4) :: icount , istart
   type(rcm_time_and_date) , save :: ilastdate
   type(rcm_time_and_date) , pointer , dimension(:) :: enstime
-  real(rk8) , pointer , dimension(:) :: xtime
+  real(rkx) , pointer , dimension(:) :: xtime
   character(len=256) :: pathaddname , fname
   character(len=4) :: ensbase = 'f8qe'
   type(rcm_time_and_date) , save :: fmon
@@ -116,7 +116,7 @@ module mod_ecens
     ! 3. For Temperatures
     call intlog(tp,t2,ps2,pp3d,nlon,nlat,mlev,pplev,nplev)
     ! 4. For Moisture qva & qca
-    call mxr2rh(t2,q2,pp3d,nlon,nlat,mlev,-9999.0D0)
+    call mxr2rh(t2,q2,pp3d,nlon,nlat,mlev,-9999.0_rkx)
     call intlin(qp,q2,ps2,pp3d,nlon,nlat,mlev,pplev,nplev)
     !
     ! Horizontal interpolation of both the scalar and vector fields
@@ -223,7 +223,7 @@ module mod_ecens
     endif
 
     tdif = idate - enstime(1)
-    it = idnint(tohours(tdif))/ibctime+1
+    it = nint(tohours(tdif))/ibctime+1
 
     do kkrec = 1 , 5
 

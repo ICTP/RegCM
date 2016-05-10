@@ -1,3 +1,22 @@
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of ICTP RegCM.
+!
+!    ICTP RegCM is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 3 of the License, or
+!    (at your option) any later version.
+!
+!    ICTP RegCM is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License
+!    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 module mod_che_isorropia
 
   ! ------------
@@ -57,27 +76,27 @@ module mod_che_isorropia
     integer(ik4) , parameter :: nions = 10
     integer(ik4) , parameter :: ngasaq = 3
     integer(ik4) , parameter :: nslds = 19
-    real(rk8) , parameter :: w_so4 = 98.0D0
-    real(rk8) , parameter :: w_ano3 = 62.0D0
-    real(rk8) , parameter :: w_anh4 = 18.0D0
-    real(rk8) , parameter :: massfactor = 1000.0D0
-    real(rk8) , parameter :: dtaesolv = 900.0D0
-    real(rk8) , parameter :: conmin = 1.0D-30
+    real(rkx) , parameter :: w_so4 = 98.0_rkx
+    real(rkx) , parameter :: w_ano3 = 62.0_rkx
+    real(rkx) , parameter :: w_anh4 = 18.0_rkx
+    real(rkx) , parameter :: massfactor = 1000.0_rkx
+    real(rkx) , parameter :: dtaesolv = 900.0_rkx
+    real(rkx) , parameter :: conmin = 1.0e-30_rkx
 
-    real(rk8) , dimension(ncomp) :: wi , wt
-    real(rk8) , dimension(ngasaq) :: gas
-    real(rk8) , dimension(nslds) :: aersld
-    real(rk8) , dimension(nions+ngasaq+2) :: aerliq
-    real(rk8) , dimension(nctrl) :: cntrl
-    real(rk8) , dimension(nother) :: other
+    real(rkx) , dimension(ncomp) :: wi , wt
+    real(rkx) , dimension(ngasaq) :: gas
+    real(rkx) , dimension(nslds) :: aersld
+    real(rkx) , dimension(nions+ngasaq+2) :: aerliq
+    real(rkx) , dimension(nctrl) :: cntrl
+    real(rkx) , dimension(nother) :: other
     integer(ik4) :: i , j , k
-    real(rk8) :: tempi , rhi
+    real(rkx) :: tempi , rhi
 
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
           cntrl(1) = d_zero
-          cntrl(2) = 1.0D0
+          cntrl(2) = 1.0_rkx
           wt = d_zero
           gas = d_zero
           aerliq = d_zero
@@ -131,7 +150,7 @@ module mod_che_isorropia
 !
 !  inut:
 !  1. [wi]
-!     real(rk8) array of length [8].
+!     real(rkx) array of length [8].
 !     concentrations , expressed in moles/m3. depending on the type of
 !     problem solved (specified in cntrl(1)), wi contains either
 !     gas+aerosol or aerosol only concentratios.
@@ -145,15 +164,15 @@ module mod_che_isorropia
 !     wi(8) - magnesium
 !
 !  2. [rhi]
-!     real(rk8) variable.
+!     real(rkx) variable.
 !     ambient relative humidity expressed on a (0 ,1) scale.
 !
 !  3. [tempi]
-!     real(rk8) variable.
+!     real(rkx) variable.
 !     ambient temperature expressed in kelvins.
 !
 !  4. [cntrl]
-!     real(rk8) array of length [2].
+!     real(rkx) array of length [2].
 !     parameters that control the type of problem solved.
 !
 !     cntrl(1): defines the type of problem solved.
@@ -168,7 +187,7 @@ module mod_che_isorropia
 !
 !  ouput:
 !  1. [wt]
-!     real(rk8) array of length [8].
+!     real(rkx) array of length [8].
 !     total concentrations (gas+aerosol) of species , expressed in moles/m3.
 !     if the foreward probelm is solved (cntrl(1) = 0), array wt is
 !     identical to array wi.
@@ -182,14 +201,14 @@ module mod_che_isorropia
 !     wt(8) - total magnesium
 !
 !  2. [gas]
-!     real(rk8) array of length [03].
+!     real(rkx) array of length [03].
 !     gaseous species concentrations , expressed in moles/m3.
 !     gas(1) - nh3
 !     gas(2) - hno3
 !     gas(3) - hcl
 !
 !  3. [aerliq]
-!     real(rk8) array of length [15].
+!     real(rkx) array of length [15].
 !     liquid aerosol species concentrations , expressed in moles/m3.
 !     aerliq(01) - h+(aq)
 !     aerliq(02) - na+(aq)
@@ -208,7 +227,7 @@ module mod_che_isorropia
 !     aerliq(15) - mg2+(aq)
 !
 !  4. [aersld]
-!     real(rk8) array of length [19].
+!     real(rkx) array of length [19].
 !     solid aerosol species concentrations , expressed in moles/m3.
 !     aersld(01) - nano3(s)
 !     aersld(02) - nh4no3(s)
@@ -235,7 +254,7 @@ module mod_che_isorropia
 !     returns the subcase which the input corresponds to.
 !
 !  6. [other]
-!     real(rk8) array of length [9].
+!     real(rkx) array of length [9].
 !     returns solution information.
 !
 !     other(1): shows if aerosol water exists.
@@ -278,40 +297,40 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     implicit none
     integer(ik4) :: i
-    real(rk8) :: rhi , tempi
+    real(rkx) :: rhi , tempi
     integer(ik4) , parameter :: nctrl = 2
     integer(ik4) , parameter :: nother = 9
     character(len = 15) :: scasi
-    real(rk8) , dimension(ncomp) :: wi , wt
-    real(rk8) , dimension(ngasaq) :: gas
-    real(rk8) , dimension(nslds) :: aersld
-    real(rk8) , dimension(nions+ngasaq+2) :: aerliq
-    real(rk8) , dimension(nctrl) :: cntrl
-    real(rk8) , dimension(nother) :: other
+    real(rkx) , dimension(ncomp) :: wi , wt
+    real(rkx) , dimension(ngasaq) :: gas
+    real(rkx) , dimension(nslds) :: aersld
+    real(rkx) , dimension(nions+ngasaq+2) :: aerliq
+    real(rkx) , dimension(nctrl) :: cntrl
+    real(rkx) , dimension(nother) :: other
 !
 ! *** default values *************************************************
 !
-    temp = 298.0D0
-    r = 82.0567D-6
-    rh = 0.9D0
-    eps = 1D-6
+    temp = 298.0_rkx
+    r = 82.0567e-6_rkx
+    rh = 0.9_rkx
+    eps = 1e-6_rkx
     maxit = 100
-    tiny1 = 1D-20
-    great = 1D10
-    zero = 0.0D0
-    one = 1.0D0
+    tiny1 = epsilon(1.0_rkx)
+    great = 1e10_rkx
+    zero = 0.0_rkx
+    one = 1.0_rkx
     nsweep = 4
-    tiny2 = 1D-11
+    tiny2 = 1e-11_rkx
     ndiv = 5
 !
-    molal = 0.0D0
-    molalr = 0.0D0
-    gama = 0.1D0
-    gamou = 1D10
-    gamin = 1D10
+    molal = 0.0_rkx
+    molalr = 0.0_rkx
+    gama = 0.1_rkx
+    gamou = 1e10_rkx
+    gamin = 1e10_rkx
     calain = .true.
     calaou = .true.
-    epsact = 5D-2
+    epsact = 5e-2_rkx
     iclact = 0
     iacalc = 1
     nadj = 0
@@ -649,7 +668,7 @@ module mod_che_isorropia
     do i = 1 , ngasaq
       aerliq(7+1+i) = gasaq(i)
     end do
-    aerliq(7+1) = water*1.0D3/18.0D0
+    aerliq(7+1) = water*1.0e3_rkx/18.0_rkx
     aerliq(7+ngasaq+2) = coh
 !
     do i = 8 , 10               ! liquid aerosol species
@@ -677,9 +696,9 @@ module mod_che_isorropia
     aersld(19) = cmgcl2
 !
     if ( water<=tiny1 ) then        ! dry flag
-      other(1) = 1.D0
+      other(1) = 1._rkx
     else
-      other(1) = 0.D0
+      other(1) = 0._rkx
     end if
 !
     other(2) = sulrat              ! other stuff
@@ -756,7 +775,7 @@ module mod_che_isorropia
 !     calculations.
 !
 !  6. [epsacti]
-!     real(rk8) variable.
+!     real(rkx) variable.
 !     defines the convergence criterion for activity coefficient
 !     calculations.
 !
@@ -784,7 +803,7 @@ module mod_che_isorropia
                        nadji)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: epsacti , epsi
+    real(rkx) :: epsacti , epsi
     integer(ik4) :: iacalci , maxiti , nadji , ndivi , nsweepi
     integer(ik4) :: wftypi
 !
@@ -822,7 +841,7 @@ module mod_che_isorropia
                        nadji)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: epsacti , epsi
+    real(rkx) :: epsacti , epsi
     integer(ik4) :: iacalci , maxiti , nadji , ndivi , nsweepi
     integer(ik4) :: wftypi
 !
@@ -855,9 +874,9 @@ module mod_che_isorropia
   subroutine init1(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: coef , rhi , t0 , t0t , tcf , tempi
+    real(rkx) :: coef , rhi , t0 , t0t , tcf , tempi
     integer(ik4) :: i , irh
-    real(rk8) , dimension(ncomp) :: wi
+    real(rkx) , dimension(ncomp) :: wi
 !
 ! *** save input variables in common block
 ! ******************************
@@ -876,46 +895,46 @@ module mod_che_isorropia
 !
 ! *** calculate equilibrium constants
 ! ***********************************
-    xk1 = 1.015D-2     ! hso4(aq)         <==> h(aq)     + so4(aq)
-    xk21 = 57.639D0    ! nh3(g)           <==> nh3(aq)
-    xk22 = 1.805D-5    ! nh3(aq)          <==> nh4(aq)   + oh(aq)
-    xk7 = 1.817D0      ! (nh4)2so4(s)     <==> 2*nh4(aq) + so4(aq)
-    xk12 = 1.382D2     ! nh4hso4(s)       <==> nh4(aq)   + hso4(aq)
-    xk13 = 29.268D0    ! (nh4)3h(so4)2(s) <==> 3*nh4(aq) + hso4(aq) + so4(aq)
-    xkw = 1.010D-14    ! h2o              <==> h(aq)     + oh(aq)
+    xk1 = 1.015e-2_rkx     ! hso4(aq)         <==> h(aq)     + so4(aq)
+    xk21 = 57.639_rkx    ! nh3(g)           <==> nh3(aq)
+    xk22 = 1.805e-5_rkx    ! nh3(aq)          <==> nh4(aq)   + oh(aq)
+    xk7 = 1.817_rkx      ! (nh4)2so4(s)     <==> 2*nh4(aq) + so4(aq)
+    xk12 = 1.382e2_rkx     ! nh4hso4(s)       <==> nh4(aq)   + hso4(aq)
+    xk13 = 29.268_rkx    ! (nh4)3h(so4)2(s) <==> 3*nh4(aq) + hso4(aq) + so4(aq)
+    xkw = 1.010e-14_rkx    ! h2o              <==> h(aq)     + oh(aq)
 !
     if ( int(temp)/=298 ) then       ! for t != 298k or 298.15k
-      t0 = 298.15D0
+      t0 = 298.15_rkx
       t0t = t0/temp
-      coef = 1.0D0 + log(t0t) - t0t
-      xk1 = xk1*exp(8.85D0*(t0t-1.0D0)+25.140D0*coef)
-      xk21 = xk21*exp(13.79D0*(t0t-1.0D0)-5.393D0*coef)
-      xk22 = xk22*exp(-1.50D0*(t0t-1.0D0)+26.920D0*coef)
-      xk7 = xk7*exp(-2.65D0*(t0t-1.0D0)+38.570D0*coef)
-      xk12 = xk12*exp(-2.87D0*(t0t-1.0D0)+15.830D0*coef)
-      xk13 = xk13*exp(-5.19D0*(t0t-1.0D0)+54.400D0*coef)
-      xkw = xkw*exp(-22.52D0*(t0t-1.0D0)+26.920D0*coef)
+      coef = 1.0_rkx + log(t0t) - t0t
+      xk1 = xk1*exp(8.85_rkx*(t0t-1.0_rkx)+25.140_rkx*coef)
+      xk21 = xk21*exp(13.79_rkx*(t0t-1.0_rkx)-5.393_rkx*coef)
+      xk22 = xk22*exp(-1.50_rkx*(t0t-1.0_rkx)+26.920_rkx*coef)
+      xk7 = xk7*exp(-2.65_rkx*(t0t-1.0_rkx)+38.570_rkx*coef)
+      xk12 = xk12*exp(-2.87_rkx*(t0t-1.0_rkx)+15.830_rkx*coef)
+      xk13 = xk13*exp(-5.19_rkx*(t0t-1.0_rkx)+54.400_rkx*coef)
+      xkw = xkw*exp(-22.52_rkx*(t0t-1.0_rkx)+26.920_rkx*coef)
     end if
     xk2 = xk21*xk22
 !
 ! *** calculate deliquescence relative humidities (unicomponent)
 ! ********
-    drh2so4 = 0.0000D0
-    drnh42s4 = 0.7997D0
-    drnh4hs4 = 0.4000D0
-    drlc = 0.6900D0
+    drh2so4 = 0.0000_rkx
+    drnh42s4 = 0.7997_rkx
+    drnh4hs4 = 0.4000_rkx
+    drlc = 0.6900_rkx
     if ( int(temp)/=298 ) then
-      t0 = 298.15D0
-      tcf = 1.0D0/temp - 1.0D0/t0
-      drnh42s4 = drnh42s4*exp(80.D0*tcf)
-      drnh4hs4 = drnh4hs4*exp(384.D0*tcf)
-      drlc = drlc*exp(186.D0*tcf)
+      t0 = 298.15_rkx
+      tcf = 1.0_rkx/temp - 1.0_rkx/t0
+      drnh42s4 = drnh42s4*exp(80._rkx*tcf)
+      drnh4hs4 = drnh4hs4*exp(384._rkx*tcf)
+      drlc = drlc*exp(186._rkx*tcf)
     end if
 !
 ! *** calculate mutual deliquescence relative humidities
 ! ****************
-    drmlcab = 0.3780D0                ! (nh4)3h(so4)2 & nh4hso4
-    drmlcas = 0.6900D0                ! (nh4)3h(so4)2 & (nh4)2so4
+    drmlcab = 0.3780_rkx                ! (nh4)3h(so4)2 & nh4hso4
+    drmlcas = 0.6900_rkx                ! (nh4)3h(so4)2 & (nh4)2so4
 !!!      if (int(temp) .ne. 298) then      ! for the time being.
 !!!         t0       = 298.15d0
 !!!         tcf      = 1.0/temp - 1.0/t0
@@ -933,14 +952,14 @@ module mod_che_isorropia
 !
     do i = 1 , npair
       molalr(i) = zero
-      gama(i) = 0.1D0
+      gama(i) = 0.1_rkx
       gamin(i) = great
       gamou(i) = great
-      m0(i) = 1D5
+      m0(i) = 1e5_rkx
     end do
 !
     do i = 1 , npair
-      gama(i) = 0.1D0
+      gama(i) = 0.1_rkx
     end do
 !
     do i = 1 , nions
@@ -982,7 +1001,7 @@ module mod_che_isorropia
 !
 ! *** calculate zsr parameters
 ! ******************************************
-    irh = min(int(rh*nzsr+0.5D0),nzsr)        ! position in zsr arrays
+    irh = min(int(rh*nzsr+0.5_rkx),nzsr)        ! position in zsr arrays
     irh = max(irh,1)
 !
 ! m0(01) = awsc(irh)      ! nacl
@@ -990,7 +1009,7 @@ module mod_che_isorropia
 ! ic = m0(01)
 ! call kmtab(ic ,298.0 ,     gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                            xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx) call kmtab(ic ,dble(temp),gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx) m0(01) = m0(01)*exp(ln10*(gi0-gii))
 ! end if
@@ -1000,7 +1019,7 @@ module mod_che_isorropia
 ! ic = 3.0*m0(02)
 ! call kmtab(ic ,298.0 ,     xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(02) = m0(02)*exp(ln10*(gi0-gii))
 ! end if
@@ -1010,7 +1029,7 @@ module mod_che_isorropia
 ! ic = m0(03)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(03) = m0(03)*exp(ln10*(gi0-gii))
 ! end if
@@ -1020,7 +1039,7 @@ module mod_che_isorropia
 !!         ic = 3.0*m0(04)
 !!         call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,
 !!     &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx)
-!!         call kmtab(ic ,dble(temp),xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,
+!!         call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,
 !!     &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx)
 !!         m0(04) = m0(04)*exp(ln10*(gi0-gii))
 !!      end if
@@ -1030,7 +1049,7 @@ module mod_che_isorropia
 ! ic     = m0(05)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(05) = m0(05)*exp(ln10*(gi0-gii))
 ! end if
@@ -1040,7 +1059,7 @@ module mod_che_isorropia
 ! ic = m0(06)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(06) = m0(06)*exp(ln10*(gi0-gii))
 ! end if
@@ -1050,7 +1069,7 @@ module mod_che_isorropia
 ! ic = 3.0*m0(07)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(07) = m0(07)*exp(ln10*(gi0-gii))
 ! end if
@@ -1059,8 +1078,8 @@ module mod_che_isorropia
 ! if (m0(08)  <  100.0) then     ! these are redundant , because m0(8)
 ! is not used ic = m0(08)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
-!c         call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx)
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
+!c         call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx)
 ! ,xx ,xx ,xx ,xx) & m0(08) = m0(08)*exp(ln10*(gi0-gii))
 ! end if
 !
@@ -1069,7 +1088,7 @@ module mod_che_isorropia
 ! ic = m0(09)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,gii ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(09) = m0(09)*exp(ln10*(gi0-gii))
 ! end if
@@ -1079,7 +1098,7 @@ module mod_che_isorropia
 ! ic = m0(12)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,gi0 , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,gii , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(12) = m0(12)*exp(ln10*(gi0-gii))
 ! end if
@@ -1090,10 +1109,10 @@ module mod_che_isorropia
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g130   = 0.2*(3.0*gi0+2.0*gii)
-! call kmtab(ic ,dble(temp),xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
+! call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g13i   = 0.2*(3.0*gi0+2.0*gii)
-! m0(13) = m0(13)*exp(ln10*dble(g130-g13i))
+! m0(13) = m0(13)*exp(ln10*real(g130-g13i,rkx))
 ! end if
 !
 ! *** other initializations
@@ -1103,7 +1122,7 @@ module mod_che_isorropia
     calain = .true.
     frst = .true.
     scase = '??'
-    sulratw = 2.D0
+    sulratw = 2._rkx
     sodrat = zero
     crnarat = zero
     crrat = zero
@@ -1132,9 +1151,9 @@ module mod_che_isorropia
   subroutine init2(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: coef , rhi , t0 , t0t , tcf , tempi
+    real(rkx) :: coef , rhi , t0 , t0t , tcf , tempi
     integer(ik4) :: i , irh
-    real(rk8) , dimension(ncomp) :: wi
+    real(rkx) , dimension(ncomp) :: wi
 !
 ! *** save input variables in common block
 ! ******************************
@@ -1153,35 +1172,35 @@ module mod_che_isorropia
 !
 ! *** calculate equilibrium constants
 ! ***********************************
-    xk1 = 1.015D-2     ! hso4(aq)         <==> h(aq)     + so4(aq)
-    xk21 = 57.639D0    ! nh3(g)           <==> nh3(aq)
-    xk22 = 1.805D-5    ! nh3(aq)          <==> nh4(aq)   + oh(aq)
-    xk4 = 2.511D6      ! hno3(g)          <==> h(aq)     + no3(aq) ! isorr
-! xk4  = 3.638D6   ! hno3(g)          <==> h(aq)     + no3(aq) ! sequil
-    xk41 = 2.100D5     ! hno3(g)          <==> hno3(aq)
-    xk7 = 1.817D0      ! (nh4)2so4(s)     <==> 2*nh4(aq) + so4(aq)
-    xk10 = 5.746D-17   ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! isorr
-! xk10 = 2.985D-17 ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! sequil
-    xk12 = 1.382D2     ! nh4hso4(s)       <==> nh4(aq)   + hso4(aq)
-    xk13 = 29.268D0    ! (nh4)3h(so4)2(s) <==> 3*nh4(aq) + hso4(aq) + so4(aq)
-    xkw = 1.010D-14    ! h2o              <==> h(aq)     + oh(aq)
+    xk1 = 1.015e-2_rkx     ! hso4(aq)         <==> h(aq)     + so4(aq)
+    xk21 = 57.639_rkx    ! nh3(g)           <==> nh3(aq)
+    xk22 = 1.805e-5_rkx    ! nh3(aq)          <==> nh4(aq)   + oh(aq)
+    xk4 = 2.511e6_rkx      ! hno3(g)          <==> h(aq)     + no3(aq) ! isorr
+! xk4  = 3.638e6_rkx   ! hno3(g)          <==> h(aq)     + no3(aq) ! sequil
+    xk41 = 2.100e5_rkx     ! hno3(g)          <==> hno3(aq)
+    xk7 = 1.817_rkx      ! (nh4)2so4(s)     <==> 2*nh4(aq) + so4(aq)
+    xk10 = 5.746e-17_rkx   ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! isorr
+! xk10 = 2.985e-17_rkx ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! sequil
+    xk12 = 1.382e2_rkx     ! nh4hso4(s)       <==> nh4(aq)   + hso4(aq)
+    xk13 = 29.268_rkx    ! (nh4)3h(so4)2(s) <==> 3*nh4(aq) + hso4(aq) + so4(aq)
+    xkw = 1.010e-14_rkx    ! h2o              <==> h(aq)     + oh(aq)
 !
     if ( int(temp)/=298 ) then       ! for t != 298k or 298.15k
-      t0 = 298.15D0
+      t0 = 298.15_rkx
       t0t = t0/temp
-      coef = 1.0D0 + log(t0t) - t0t
-      xk1 = xk1*exp(8.85D0*(t0t-1.0D0)+25.140D0*coef)
-      xk21 = xk21*exp(13.79D0*(t0t-1.0D0)-5.393D0*coef)
-      xk22 = xk22*exp(-1.50D0*(t0t-1.0D0)+26.920D0*coef)
-      xk4 = xk4*exp(29.17D0*(t0t-1.0D0)+16.830D0*coef)        !isorr
-!   xk4 = xk4 *exp( 29.47D0*(t0t-1.0D0) + 16.840D0*coef) ! sequil
-      xk41 = xk41*exp(29.17D0*(t0t-1.0D0)+16.830D0*coef)
-      xk7 = xk7*exp(-2.65D0*(t0t-1.0D0)+38.570D0*coef)
-      xk10 = xk10*exp(-74.38D0*(t0t-1.0D0)+6.120D0*coef)       ! isorr
-!   xk10 = xk10*exp(-75.11D0*(t0t-1.0D0) + 13.460D0*coef) ! sequil
-      xk12 = xk12*exp(-2.87D0*(t0t-1.0D0)+15.830D0*coef)
-      xk13 = xk13*exp(-5.19D0*(t0t-1.0D0)+54.400D0*coef)
-      xkw = xkw*exp(-22.52D0*(t0t-1.0D0)+26.920D0*coef)
+      coef = 1.0_rkx + log(t0t) - t0t
+      xk1 = xk1*exp(8.85_rkx*(t0t-1.0_rkx)+25.140_rkx*coef)
+      xk21 = xk21*exp(13.79_rkx*(t0t-1.0_rkx)-5.393_rkx*coef)
+      xk22 = xk22*exp(-1.50_rkx*(t0t-1.0_rkx)+26.920_rkx*coef)
+      xk4 = xk4*exp(29.17_rkx*(t0t-1.0_rkx)+16.830_rkx*coef)        !isorr
+!   xk4 = xk4 *exp( 29.47_rkx*(t0t-1.0_rkx) + 16.840_rkx*coef) ! sequil
+      xk41 = xk41*exp(29.17_rkx*(t0t-1.0_rkx)+16.830_rkx*coef)
+      xk7 = xk7*exp(-2.65_rkx*(t0t-1.0_rkx)+38.570_rkx*coef)
+      xk10 = xk10*exp(-74.38_rkx*(t0t-1.0_rkx)+6.120_rkx*coef)       ! isorr
+!   xk10 = xk10*exp(-75.11_rkx*(t0t-1.0_rkx) + 13.460_rkx*coef) ! sequil
+      xk12 = xk12*exp(-2.87_rkx*(t0t-1.0_rkx)+15.830_rkx*coef)
+      xk13 = xk13*exp(-5.19_rkx*(t0t-1.0_rkx)+54.400_rkx*coef)
+      xkw = xkw*exp(-22.52_rkx*(t0t-1.0_rkx)+26.920_rkx*coef)
     end if
     xk2 = xk21*xk22
     xk42 = xk4/xk41
@@ -1189,25 +1208,25 @@ module mod_che_isorropia
 ! *** calculate deliquescence relative humidities (unicomponent)
 ! ********
     drh2so4 = zero
-    drnh42s4 = 0.7997D0
-    drnh4hs4 = 0.4000D0
-    drnh4no3 = 0.6183D0
-    drlc = 0.6900D0
+    drnh42s4 = 0.7997_rkx
+    drnh4hs4 = 0.4000_rkx
+    drnh4no3 = 0.6183_rkx
+    drlc = 0.6900_rkx
     if ( int(temp)/=298 ) then
-      t0 = 298.15D0
-      tcf = 1.0D0/temp - 1.0D0/t0
-      drnh4no3 = drnh4no3*exp(852.D0*tcf)
-      drnh42s4 = drnh42s4*exp(80.D0*tcf)
-      drnh4hs4 = drnh4hs4*exp(384.D0*tcf)
-      drlc = drlc*exp(186.D0*tcf)
+      t0 = 298.15_rkx
+      tcf = 1.0_rkx/temp - 1.0_rkx/t0
+      drnh4no3 = drnh4no3*exp(852._rkx*tcf)
+      drnh42s4 = drnh42s4*exp(80._rkx*tcf)
+      drnh4hs4 = drnh4hs4*exp(384._rkx*tcf)
+      drlc = drlc*exp(186._rkx*tcf)
       drnh4no3 = min(drnh4no3,drnh42s4)      ! adjust for drh crossover at t<271k
     end if
 !
 ! *** calculate mutual deliquescence relative humidities
 ! ****************
-    drmlcab = 0.3780D0                ! (nh4)3h(so4)2 & nh4hso4
-    drmlcas = 0.6900D0                ! (nh4)3h(so4)2 & (nh4)2so4
-    drmasan = 0.6000D0                ! (nh4)2so4     & nh4no3
+    drmlcab = 0.3780_rkx                ! (nh4)3h(so4)2 & nh4hso4
+    drmlcas = 0.6900_rkx                ! (nh4)3h(so4)2 & (nh4)2so4
+    drmasan = 0.6000_rkx                ! (nh4)2so4     & nh4no3
 ! if (int(temp) .ne. 298) then    ! for the time being
 ! t0       = 298.15d0
 ! tcf      = 1.0/temp - 1.0/t0
@@ -1226,14 +1245,14 @@ module mod_che_isorropia
 !
     do i = 1 , npair
       molalr(i) = zero
-      gama(i) = 0.1D0
+      gama(i) = 0.1_rkx
       gamin(i) = great
       gamou(i) = great
-      m0(i) = 1D5
+      m0(i) = 1e5_rkx
     end do
 !
     do i = 1 , npair
-      gama(i) = 0.1D0
+      gama(i) = 0.1_rkx
     end do
 !
     do i = 1 , nions
@@ -1275,7 +1294,7 @@ module mod_che_isorropia
 !
 ! *** calculate zsr parameters *****************************************
 !
-    irh = min(int(rh*nzsr+0.5D0),nzsr)        ! position in zsr arrays
+    irh = min(int(rh*nzsr+0.5_rkx),nzsr)        ! position in zsr arrays
     irh = max(irh,1)
 !
 ! m0(01) = awsc(irh)      ! nacl
@@ -1283,7 +1302,7 @@ module mod_che_isorropia
 ! ic = m0(01)
 ! call kmtab(ic ,298.0 ,     gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(01) = m0(01)*exp(ln10*(gi0-gii))
 ! end if
@@ -1293,7 +1312,7 @@ module mod_che_isorropia
 ! ic = 3.0*m0(02)
 ! call kmtab(ic ,298.0 ,     xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(02) = m0(02)*exp(ln10*(gi0-gii))
 ! end if
@@ -1303,7 +1322,7 @@ module mod_che_isorropia
 ! ic = m0(03)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(03) = m0(03)*exp(ln10*(gi0-gii))
 ! end if
@@ -1313,7 +1332,7 @@ module mod_che_isorropia
 ! ic = 3.0*m0(04)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(04) = m0(04)*exp(ln10*(gi0-gii))
 ! end if
@@ -1323,7 +1342,7 @@ module mod_che_isorropia
 ! ic     = m0(05)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(05) = m0(05)*exp(ln10*(gi0-gii))
 ! end if
@@ -1333,7 +1352,7 @@ module mod_che_isorropia
 ! ic = m0(06)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(06) = m0(06)*exp(ln10*(gi0-gii))
 ! end if
@@ -1343,7 +1362,7 @@ module mod_che_isorropia
 ! ic = 3.0*m0(07)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(07) = m0(07)*exp(ln10*(gi0-gii))
 ! end if
@@ -1352,8 +1371,8 @@ module mod_che_isorropia
 ! if (m0(08)  <  100.0) then     ! these are redundant , because m0(8)
 ! is not used ic = m0(08)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
-!c         call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx)
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
+!c         call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx)
 ! ,xx ,xx ,xx ,xx) & m0(08) = m0(08)*exp(ln10*(gi0-gii))
 ! end if
 !
@@ -1362,7 +1381,7 @@ module mod_che_isorropia
 ! ic = m0(09)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,gii ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(09) = m0(09)*exp(ln10*(gi0-gii))
 ! end if
@@ -1372,7 +1391,7 @@ module mod_che_isorropia
 ! ic = m0(12)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,gi0 , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,gii , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(12) = m0(12)*exp(ln10*(gi0-gii))
 ! end if
@@ -1383,10 +1402,10 @@ module mod_che_isorropia
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g130   = 0.2*(3.0*gi0+2.0*gii)
-! call kmtab(ic ,dble(temp),xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
+! call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g13i   = 0.2*(3.0*gi0+2.0*gii)
-! m0(13) = m0(13)*exp(ln10*dble(g130-g13i))
+! m0(13) = m0(13)*exp(ln10*real(g130-g13i,rkx))
 ! end if
 !
 ! *** other initializations
@@ -1396,7 +1415,7 @@ module mod_che_isorropia
     calain = .true.
     frst = .true.
     scase = '??'
-    sulratw = 2.D0
+    sulratw = 2._rkx
     sodrat = zero
     crnarat = zero
     crrat = zero
@@ -1426,9 +1445,9 @@ module mod_che_isorropia
   subroutine isoinit3(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: coef , rhi , t0 , t0t , tcf , tempi
+    real(rkx) :: coef , rhi , t0 , t0t , tcf , tempi
     integer(ik4) :: i , irh
-    real(rk8) , dimension(ncomp) :: wi
+    real(rkx) , dimension(ncomp) :: wi
 !
 ! *** save input variables in common block
 ! ******************************
@@ -1447,51 +1466,51 @@ module mod_che_isorropia
 !
 ! *** calculate equilibrium constants
 ! ***********************************
-    xk1 = 1.015D-2     ! hso4(aq)         <==> h(aq)     + so4(aq)
-    xk21 = 57.639D0    ! nh3(g)           <==> nh3(aq)
-    xk22 = 1.805D-5    ! nh3(aq)          <==> nh4(aq)   + oh(aq)
-    xk3 = 1.971D6      ! hcl(g)           <==> h(aq)     + cl(aq)
-    xk31 = 2.500D3     ! hcl(g)           <==> hcl(aq)
-    xk4 = 2.511D6      ! hno3(g)          <==> h(aq)     + no3(aq) ! isorr
+    xk1 = 1.015e-2_rkx     ! hso4(aq)         <==> h(aq)     + so4(aq)
+    xk21 = 57.639_rkx    ! nh3(g)           <==> nh3(aq)
+    xk22 = 1.805e-5_rkx    ! nh3(aq)          <==> nh4(aq)   + oh(aq)
+    xk3 = 1.971e6_rkx      ! hcl(g)           <==> h(aq)     + cl(aq)
+    xk31 = 2.500e3_rkx     ! hcl(g)           <==> hcl(aq)
+    xk4 = 2.511e6_rkx      ! hno3(g)          <==> h(aq)     + no3(aq) ! isorr
 ! xk4  = 3.638e6   ! hno3(g)          <==> h(aq)     + no3(aq) ! sequil
-    xk41 = 2.100D5     ! hno3(g)          <==> hno3(aq)
-    xk5 = 0.4799D0     ! na2so4(s)        <==> 2*na(aq)  + so4(aq)
-    xk6 = 1.086D-16    ! nh4cl(s)         <==> nh3(g)    + hcl(g)
-    xk7 = 1.817D0      ! (nh4)2so4(s)     <==> 2*nh4(aq) + so4(aq)
-    xk8 = 37.661D0     ! nacl(s)          <==> na(aq)    + cl(aq)
-    xk10 = 5.746D-17   ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! isorr
+    xk41 = 2.100e5_rkx     ! hno3(g)          <==> hno3(aq)
+    xk5 = 0.4799_rkx     ! na2so4(s)        <==> 2*na(aq)  + so4(aq)
+    xk6 = 1.086e-16_rkx    ! nh4cl(s)         <==> nh3(g)    + hcl(g)
+    xk7 = 1.817_rkx      ! (nh4)2so4(s)     <==> 2*nh4(aq) + so4(aq)
+    xk8 = 37.661_rkx     ! nacl(s)          <==> na(aq)    + cl(aq)
+    xk10 = 5.746e-17_rkx   ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! isorr
 ! xk10 = 2.985e-17 ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! sequil
-    xk11 = 2.413D4     ! nahso4(s)        <==> na(aq)    + hso4(aq)
-    xk12 = 1.382D2     ! nh4hso4(s)       <==> nh4(aq)   + hso4(aq)
-    xk13 = 29.268D0    ! (nh4)3h(so4)2(s) <==> 3*nh4(aq) + hso4(aq) + so4(aq)
-    xk14 = 22.05D0     ! nh4cl(s)         <==> nh4(aq)   + cl(aq)
-    xkw = 1.010D-14    ! h2o              <==> h(aq)     + oh(aq)
-    xk9 = 11.977D0     ! nano3(s)         <==> na(aq)    + no3(aq)
+    xk11 = 2.413e4_rkx     ! nahso4(s)        <==> na(aq)    + hso4(aq)
+    xk12 = 1.382e2_rkx     ! nh4hso4(s)       <==> nh4(aq)   + hso4(aq)
+    xk13 = 29.268_rkx    ! (nh4)3h(so4)2(s) <==> 3*nh4(aq) + hso4(aq) + so4(aq)
+    xk14 = 22.05_rkx     ! nh4cl(s)         <==> nh4(aq)   + cl(aq)
+    xkw = 1.010e-14_rkx    ! h2o              <==> h(aq)     + oh(aq)
+    xk9 = 11.977_rkx     ! nano3(s)         <==> na(aq)    + no3(aq)
 !
     if ( int(temp)/=298 ) then       ! for t != 298k or 298.15k
-      t0 = 298.15D0
+      t0 = 298.15_rkx
       t0t = t0/temp
       coef = 1.0 + log(t0t) - t0t
-      xk1 = xk1*exp(8.85D0*(t0t-1.0D0)+25.140D0*coef)
-      xk21 = xk21*exp(13.79D0*(t0t-1.0D0)-5.393D0*coef)
-      xk22 = xk22*exp(-1.50D0*(t0t-1.0D0)+26.920D0*coef)
-      xk3 = xk3*exp(30.20D0*(t0t-1.0D0)+19.910D0*coef)
-      xk31 = xk31*exp(30.20D0*(t0t-1.0D0)+19.910D0*coef)
-      xk4 = xk4*exp(29.17D0*(t0t-1.0D0)+16.830D0*coef)        !isorr
-!   xk4 = xk4 *exp( 29.47D0*(t0t-1.0D0) + 16.840D0*coef) ! sequil
-      xk41 = xk41*exp(29.17D0*(t0t-1.0D0)+16.830D0*coef)
-      xk5 = xk5*exp(0.98D0*(t0t-1.0D0)+39.500D0*coef)
-      xk6 = xk6*exp(-71.00D0*(t0t-1.0D0)+2.400D0*coef)
-      xk7 = xk7*exp(-2.65D0*(t0t-1.0D0)+38.570D0*coef)
-      xk8 = xk8*exp(-1.56D0*(t0t-1.0D0)+16.900D0*coef)
-      xk9 = xk9*exp(-8.22D0*(t0t-1.0D0)+16.010D0*coef)
-      xk10 = xk10*exp(-74.38D0*(t0t-1.0D0)+6.120D0*coef)       ! isorr
-!   xk10 = xk10*exp(-75.11D0*(t0t-1.0) + 13.460D0*coef) ! sequil
-      xk11 = xk11*exp(0.79D0*(t0t-1.0D0)+14.746D0*coef)
-      xk12 = xk12*exp(-2.87D0*(t0t-1.0D0)+15.830D0*coef)
-      xk13 = xk13*exp(-5.19D0*(t0t-1.0D0)+54.400D0*coef)
-      xk14 = xk14*exp(24.55D0*(t0t-1.0D0)+16.900D0*coef)
-      xkw = xkw*exp(-22.52D0*(t0t-1.0D0)+26.920D0*coef)
+      xk1 = xk1*exp(8.85_rkx*(t0t-1.0_rkx)+25.140_rkx*coef)
+      xk21 = xk21*exp(13.79_rkx*(t0t-1.0_rkx)-5.393_rkx*coef)
+      xk22 = xk22*exp(-1.50_rkx*(t0t-1.0_rkx)+26.920_rkx*coef)
+      xk3 = xk3*exp(30.20_rkx*(t0t-1.0_rkx)+19.910_rkx*coef)
+      xk31 = xk31*exp(30.20_rkx*(t0t-1.0_rkx)+19.910_rkx*coef)
+      xk4 = xk4*exp(29.17_rkx*(t0t-1.0_rkx)+16.830_rkx*coef)        !isorr
+!   xk4 = xk4 *exp( 29.47_rkx*(t0t-1.0_rkx) + 16.840_rkx*coef) ! sequil
+      xk41 = xk41*exp(29.17_rkx*(t0t-1.0_rkx)+16.830_rkx*coef)
+      xk5 = xk5*exp(0.98_rkx*(t0t-1.0_rkx)+39.500_rkx*coef)
+      xk6 = xk6*exp(-71.00_rkx*(t0t-1.0_rkx)+2.400_rkx*coef)
+      xk7 = xk7*exp(-2.65_rkx*(t0t-1.0_rkx)+38.570_rkx*coef)
+      xk8 = xk8*exp(-1.56_rkx*(t0t-1.0_rkx)+16.900_rkx*coef)
+      xk9 = xk9*exp(-8.22_rkx*(t0t-1.0_rkx)+16.010_rkx*coef)
+      xk10 = xk10*exp(-74.38_rkx*(t0t-1.0_rkx)+6.120_rkx*coef)       ! isorr
+!   xk10 = xk10*exp(-75.11_rkx*(t0t-1.0) + 13.460_rkx*coef) ! sequil
+      xk11 = xk11*exp(0.79_rkx*(t0t-1.0_rkx)+14.746_rkx*coef)
+      xk12 = xk12*exp(-2.87_rkx*(t0t-1.0_rkx)+15.830_rkx*coef)
+      xk13 = xk13*exp(-5.19_rkx*(t0t-1.0_rkx)+54.400_rkx*coef)
+      xk14 = xk14*exp(24.55_rkx*(t0t-1.0_rkx)+16.900_rkx*coef)
+      xkw = xkw*exp(-22.52_rkx*(t0t-1.0_rkx)+26.920_rkx*coef)
     end if
     xk2 = xk21*xk22
     xk42 = xk4/xk41
@@ -1500,27 +1519,27 @@ module mod_che_isorropia
 ! *** calculate deliquescence relative humidities (unicomponent)
 ! ********
     drh2so4 = zero
-    drnh42s4 = 0.7997D0
-    drnh4hs4 = 0.4000D0
-    drlc = 0.6900D0
-    drnacl = 0.7528D0
-    drnano3 = 0.7379D0
-    drnh4cl = 0.7710D0
-    drnh4no3 = 0.6183D0
-    drna2so4 = 0.9300D0
-    drnahso4 = 0.5200D0
+    drnh42s4 = 0.7997_rkx
+    drnh4hs4 = 0.4000_rkx
+    drlc = 0.6900_rkx
+    drnacl = 0.7528_rkx
+    drnano3 = 0.7379_rkx
+    drnh4cl = 0.7710_rkx
+    drnh4no3 = 0.6183_rkx
+    drna2so4 = 0.9300_rkx
+    drnahso4 = 0.5200_rkx
     if ( int(temp)/=298 ) then
-      t0 = 298.15D0
-      tcf = 1.0D0/temp - 1.0D0/t0
-      drnacl = drnacl*exp(25.D0*tcf)
-      drnano3 = drnano3*exp(304.D0*tcf)
-      drna2so4 = drna2so4*exp(80.D0*tcf)
-      drnh4no3 = drnh4no3*exp(852.D0*tcf)
-      drnh42s4 = drnh42s4*exp(80.D0*tcf)
-      drnh4hs4 = drnh4hs4*exp(384.D0*tcf)
-      drlc = drlc*exp(186.D0*tcf)
-      drnh4cl = drnh4cl*exp(239.D0*tcf)
-      drnahso4 = drnahso4*exp(-45.D0*tcf)
+      t0 = 298.15_rkx
+      tcf = 1.0_rkx/temp - 1.0_rkx/t0
+      drnacl = drnacl*exp(25._rkx*tcf)
+      drnano3 = drnano3*exp(304._rkx*tcf)
+      drna2so4 = drna2so4*exp(80._rkx*tcf)
+      drnh4no3 = drnh4no3*exp(852._rkx*tcf)
+      drnh42s4 = drnh42s4*exp(80._rkx*tcf)
+      drnh4hs4 = drnh4hs4*exp(384._rkx*tcf)
+      drlc = drlc*exp(186._rkx*tcf)
+      drnh4cl = drnh4cl*exp(239._rkx*tcf)
+      drnahso4 = drnahso4*exp(-45._rkx*tcf)
 !
 !   *** adjust for drh "crossover" at low temperatures
 !
@@ -1532,31 +1551,31 @@ module mod_che_isorropia
 !
 ! *** calculate mutual deliquescence relative humidities
 ! ****************
-    drmlcab = 0.378D0      ! (nh4)3h(so4)2 & nh4hso4
-    drmlcas = 0.690D0      ! (nh4)3h(so4)2 & (nh4)2so4
-    drmasan = 0.600D0      ! (nh4)2so4     & nh4no3
-    drmg1 = 0.460D0        ! (nh4)2so4 , nh4no3 , na2so4 , nh4cl
-    drmg2 = 0.691D0        ! (nh4)2so4 , na2so4 , nh4cl
-    drmg3 = 0.697D0        ! (nh4)2so4 , na2so4
-    drmh1 = 0.240D0        ! na2so4 , nano3 , nacl , nh4no3 , nh4cl
-    drmh2 = 0.596D0        ! na2so4 , nano3 , nacl , nh4cl
-    drmi1 = 0.240D0        ! lc , nahso4 , nh4hso4 , na2so4 , (nh4)2so4
-    drmi2 = 0.363D0        ! lc , nahso4 , na2so4 , (nh4)2so4  - no data -
-    drmi3 = 0.610D0        ! lc , na2so4 , (nh4)2so4
-    drmq1 = 0.494D0        ! (nh4)2so4 , nh4no3 , na2so4
-    drmr1 = 0.663D0        ! na2so4 , nano3 , nacl
-    drmr2 = 0.735D0        ! na2so4 , nacl
-    drmr3 = 0.673D0        ! nano3 , nacl
-    drmr4 = 0.694D0        ! na2so4 , nacl , nh4cl
-    drmr5 = 0.731D0        ! na2so4 , nh4cl
-    drmr6 = 0.596D0        ! na2so4 , nano3 , nh4cl
-    drmr7 = 0.380D0        ! na2so4 , nano3 , nacl , nh4no3
-    drmr8 = 0.380D0        ! na2so4 , nacl , nh4no3
-    drmr9 = 0.494D0        ! na2so4 , nh4no3
-    drmr10 = 0.476D0       ! na2so4 , nano3 , nh4no3
-    drmr11 = 0.340D0       ! na2so4 , nacl , nh4no3 , nh4cl
-    drmr12 = 0.460D0       ! na2so4 , nh4no3 , nh4cl
-    drmr13 = 0.438D0       ! na2so4 , nano3 , nh4no3 , nh4cl
+    drmlcab = 0.378_rkx      ! (nh4)3h(so4)2 & nh4hso4
+    drmlcas = 0.690_rkx      ! (nh4)3h(so4)2 & (nh4)2so4
+    drmasan = 0.600_rkx      ! (nh4)2so4     & nh4no3
+    drmg1 = 0.460_rkx        ! (nh4)2so4 , nh4no3 , na2so4 , nh4cl
+    drmg2 = 0.691_rkx        ! (nh4)2so4 , na2so4 , nh4cl
+    drmg3 = 0.697_rkx        ! (nh4)2so4 , na2so4
+    drmh1 = 0.240_rkx        ! na2so4 , nano3 , nacl , nh4no3 , nh4cl
+    drmh2 = 0.596_rkx        ! na2so4 , nano3 , nacl , nh4cl
+    drmi1 = 0.240_rkx        ! lc , nahso4 , nh4hso4 , na2so4 , (nh4)2so4
+    drmi2 = 0.363_rkx        ! lc , nahso4 , na2so4 , (nh4)2so4  - no data -
+    drmi3 = 0.610_rkx        ! lc , na2so4 , (nh4)2so4
+    drmq1 = 0.494_rkx        ! (nh4)2so4 , nh4no3 , na2so4
+    drmr1 = 0.663_rkx        ! na2so4 , nano3 , nacl
+    drmr2 = 0.735_rkx        ! na2so4 , nacl
+    drmr3 = 0.673_rkx        ! nano3 , nacl
+    drmr4 = 0.694_rkx        ! na2so4 , nacl , nh4cl
+    drmr5 = 0.731_rkx        ! na2so4 , nh4cl
+    drmr6 = 0.596_rkx        ! na2so4 , nano3 , nh4cl
+    drmr7 = 0.380_rkx        ! na2so4 , nano3 , nacl , nh4no3
+    drmr8 = 0.380_rkx        ! na2so4 , nacl , nh4no3
+    drmr9 = 0.494_rkx        ! na2so4 , nh4no3
+    drmr10 = 0.476_rkx       ! na2so4 , nano3 , nh4no3
+    drmr11 = 0.340_rkx       ! na2so4 , nacl , nh4no3 , nh4cl
+    drmr12 = 0.460_rkx       ! na2so4 , nh4no3 , nh4cl
+    drmr13 = 0.438_rkx       ! na2so4 , nano3 , nh4no3 , nh4cl
 ! if (int(temp) .ne. 298) then
 ! t0       = 298.15d0
 ! tcf      = 1.0/temp - 1.0/t0
@@ -1597,14 +1616,14 @@ module mod_che_isorropia
 !
     do i = 1 , npair
       molalr(i) = zero
-      gama(i) = 0.1D0
+      gama(i) = 0.1_rkx
       gamin(i) = great
       gamou(i) = great
-      m0(i) = 1D5
+      m0(i) = 1e5_rkx
     end do
 !
     do i = 1 , npair
-      gama(i) = 0.1D0
+      gama(i) = 0.1_rkx
     end do
 !
     do i = 1 , nions
@@ -1646,7 +1665,7 @@ module mod_che_isorropia
 !
 ! *** calculate zsr parameters
 ! ******************************************
-    irh = min(int(rh*nzsr+0.5D0),nzsr)        ! position in zsr arrays
+    irh = min(int(rh*nzsr+0.5_rkx),nzsr)        ! position in zsr arrays
     irh = max(irh,1)
 !
     m0(01) = awsc(irh)        ! nacl
@@ -1654,7 +1673,7 @@ module mod_che_isorropia
 ! ic = m0(01)
 ! call kmtab(ic ,298.0 ,     gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(01) = m0(01)*exp(ln10*(gi0-gii))
 ! end if
@@ -1664,7 +1683,7 @@ module mod_che_isorropia
 ! ic = 3.0*m0(02)
 ! call kmtab(ic ,298.0 ,     xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(02) = m0(02)*exp(ln10*(gi0-gii))
 ! end if
@@ -1674,7 +1693,7 @@ module mod_che_isorropia
 ! ic = m0(03)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) c        m0(03) = m0(03)*exp(ln10*(gi0-gii))
 ! end if
@@ -1684,7 +1703,7 @@ module mod_che_isorropia
 ! ic = 3.0*m0(04)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(04) = m0(04)*exp(ln10*(gi0-gii))
 ! end if
@@ -1694,7 +1713,7 @@ module mod_che_isorropia
 ! ic     = m0(05)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(05) = m0(05)*exp(ln10*(gi0-gii))
 ! end if
@@ -1704,7 +1723,7 @@ module mod_che_isorropia
 ! ic = m0(06)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(06) = m0(06)*exp(ln10*(gi0-gii))
 ! end if
@@ -1714,7 +1733,7 @@ module mod_che_isorropia
 ! ic = 3.0*m0(07)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(07) = m0(07)*exp(ln10*(gi0-gii))
 ! end if
@@ -1723,8 +1742,8 @@ module mod_che_isorropia
 ! if (m0(08)  <  100.0) then     ! these are redundant , because m0(8)
 ! is not used ic = m0(08)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
-!c         call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx)
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
+!c         call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx)
 ! ,xx ,xx ,xx ,xx) & m0(08) = m0(08)*exp(ln10*(gi0-gii))
 ! end if
 !
@@ -1733,7 +1752,7 @@ module mod_che_isorropia
 ! ic = m0(09)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,gii ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(09) = m0(09)*exp(ln10*(gi0-gii))
 ! end if
@@ -1743,7 +1762,7 @@ module mod_che_isorropia
 ! ic = m0(12)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,gi0 , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,gii , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(12) = m0(12)*exp(ln10*(gi0-gii))
 ! end if
@@ -1754,10 +1773,10 @@ module mod_che_isorropia
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g130   = 0.2*(3.0*gi0+2.0*gii)
-! call kmtab(ic ,dble(temp),xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
+! call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g13i   = 0.2*(3.0*gi0+2.0*gii)
-! m0(13) = m0(13)*exp(ln10*dble(g130-g13i))
+! m0(13) = m0(13)*exp(ln10*real(g130-g13i,rkx))
 ! end if
 !
 ! *** other initializations
@@ -1767,7 +1786,7 @@ module mod_che_isorropia
     calain = .true.
     frst = .true.
     scase = '??'
-    sulratw = 2.D0
+    sulratw = 2._rkx
     crnarat = zero
     crrat = zero
     nofer = 0
@@ -1795,9 +1814,9 @@ module mod_che_isorropia
   subroutine init4(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: coef , rhi , t0 , t0t , tcf , tempi
+    real(rkx) :: coef , rhi , t0 , t0t , tcf , tempi
     integer(ik4) :: i , irh
-    real(rk8) , dimension(ncomp) :: wi
+    real(rkx) , dimension(ncomp) :: wi
 !
 ! *** save input variables in common block
 ! ******************************
@@ -1816,78 +1835,78 @@ module mod_che_isorropia
 !
 ! *** calculate equilibrium constants
 ! ***********************************
-    xk1 = 1.015D-2     ! hso4(aq)         <==> h(aq)     + so4(aq)
-    xk21 = 57.639D0    ! nh3(g)           <==> nh3(aq)
-    xk22 = 1.805D-5    ! nh3(aq)          <==> nh4(aq)   + oh(aq)
-    xk3 = 1.971D6      ! hcl(g)           <==> h(aq)     + cl(aq)
-    xk31 = 2.500D3     ! hcl(g)           <==> hcl(aq)
-    xk4 = 2.511D6      ! hno3(g)          <==> h(aq)     + no3(aq) ! isorr
-! xk4  = 3.638D6   ! hno3(g)          <==> h(aq)     + no3(aq) ! sequil
-    xk41 = 2.100D5     ! hno3(g)          <==> hno3(aq)
-    xk5 = 0.4799D0     ! na2so4(s)        <==> 2*na(aq)  + so4(aq)
-    xk6 = 1.086D-16    ! nh4cl(s)         <==> nh3(g)    + hcl(g)
-    xk7 = 1.817D0      ! (nh4)2so4(s)     <==> 2*nh4(aq) + so4(aq)
-    xk8 = 37.661D0     ! nacl(s)          <==> na(aq)    + cl(aq)
-! xk10 = 5.746D-17 ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! isorr
-    xk10 = 4.199D-17   ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! (mozurkewich , 1993)
-! xk10 = 2.985D-17 ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! sequil
-    xk11 = 2.413D4     ! nahso4(s)        <==> na(aq)    + hso4(aq)
-    xk12 = 1.382D2     ! nh4hso4(s)       <==> nh4(aq)   + hso4(aq)
-    xk13 = 29.268D0    ! (nh4)3h(so4)2(s) <==> 3*nh4(aq) + hso4(aq) + so4(aq)
-    xk14 = 22.05D0     ! nh4cl(s)         <==> nh4(aq)   + cl(aq)
-    xkw = 1.010D-14    ! h2o              <==> h(aq)     + oh(aq)
-    xk9 = 11.977D0     ! nano3(s)         <==> na(aq)    + no3(aq)
+    xk1 = 1.015e-2_rkx     ! hso4(aq)         <==> h(aq)     + so4(aq)
+    xk21 = 57.639_rkx    ! nh3(g)           <==> nh3(aq)
+    xk22 = 1.805e-5_rkx    ! nh3(aq)          <==> nh4(aq)   + oh(aq)
+    xk3 = 1.971e6_rkx      ! hcl(g)           <==> h(aq)     + cl(aq)
+    xk31 = 2.500e3_rkx     ! hcl(g)           <==> hcl(aq)
+    xk4 = 2.511e6_rkx      ! hno3(g)          <==> h(aq)     + no3(aq) ! isorr
+! xk4  = 3.638e6_rkx   ! hno3(g)          <==> h(aq)     + no3(aq) ! sequil
+    xk41 = 2.100e5_rkx     ! hno3(g)          <==> hno3(aq)
+    xk5 = 0.4799_rkx     ! na2so4(s)        <==> 2*na(aq)  + so4(aq)
+    xk6 = 1.086e-16_rkx    ! nh4cl(s)         <==> nh3(g)    + hcl(g)
+    xk7 = 1.817_rkx      ! (nh4)2so4(s)     <==> 2*nh4(aq) + so4(aq)
+    xk8 = 37.661_rkx     ! nacl(s)          <==> na(aq)    + cl(aq)
+! xk10 = 5.746e-17_rkx ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! isorr
+    xk10 = 4.199e-17_rkx   ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! (mozurkewich , 1993)
+! xk10 = 2.985e-17_rkx ! nh4no3(s)        <==> nh3(g)    + hno3(g) ! sequil
+    xk11 = 2.413e4_rkx     ! nahso4(s)        <==> na(aq)    + hso4(aq)
+    xk12 = 1.382e2_rkx     ! nh4hso4(s)       <==> nh4(aq)   + hso4(aq)
+    xk13 = 29.268_rkx    ! (nh4)3h(so4)2(s) <==> 3*nh4(aq) + hso4(aq) + so4(aq)
+    xk14 = 22.05_rkx     ! nh4cl(s)         <==> nh4(aq)   + cl(aq)
+    xkw = 1.010e-14_rkx    ! h2o              <==> h(aq)     + oh(aq)
+    xk9 = 11.977_rkx     ! nano3(s)         <==> na(aq)    + no3(aq)
 !
-    xk15 = 6.067D5     ! ca(no3)2(s)      <==> ca(aq)    + 2no3(aq)
-    xk16 = 7.974D11    ! cacl2(s)         <==> ca(aq)    + 2cl(aq)
-    xk17 = 1.569D-2    ! k2so4(s)         <==> 2k(aq)    + so4(aq)
-    xk18 = 24.016D0    ! khso4(s)         <==> k(aq)     + hso4(aq)
-    xk19 = 0.872D0     ! kno3(s)          <==> k(aq)     + no3(aq)
-    xk20 = 8.680D0     ! kcl(s)           <==> k(aq)     + cl(aq)
-    xk23 = 1.079D5     ! mgs04(s)         <==> mg(aq)    + so4(aq)
-    xk24 = 2.507D15    ! mg(no3)2(s)      <==> mg(aq)    + 2no3(aq)
-    xk25 = 9.557D21    ! mgcl2(s)         <==> mg(aq)    + 2cl(aq)
+    xk15 = 6.067e5_rkx     ! ca(no3)2(s)      <==> ca(aq)    + 2no3(aq)
+    xk16 = 7.974e11_rkx    ! cacl2(s)         <==> ca(aq)    + 2cl(aq)
+    xk17 = 1.569e-2_rkx    ! k2so4(s)         <==> 2k(aq)    + so4(aq)
+    xk18 = 24.016_rkx    ! khso4(s)         <==> k(aq)     + hso4(aq)
+    xk19 = 0.872_rkx     ! kno3(s)          <==> k(aq)     + no3(aq)
+    xk20 = 8.680_rkx     ! kcl(s)           <==> k(aq)     + cl(aq)
+    xk23 = 1.079e5_rkx     ! mgs04(s)         <==> mg(aq)    + so4(aq)
+    xk24 = 2.507e15_rkx    ! mg(no3)2(s)      <==> mg(aq)    + 2no3(aq)
+    xk25 = 9.557e21_rkx    ! mgcl2(s)         <==> mg(aq)    + 2cl(aq)
 ! xk26 = 4.299d-7  ! co2(aq) + h2o    <==> hco3(aq)  + h(aq)
 ! xk27 = 4.678d-11 ! hco3(aq)         <==> co3(aq)   + h(aq)
 
 !
     if ( int(temp)/=298 ) then       ! for t != 298k or 298.15k
-      t0 = 298.15D0
+      t0 = 298.15_rkx
       t0t = t0/temp
-      coef = 1.0D0 + log(t0t) - t0t
-      xk1 = xk1*exp(8.85D0*(t0t-1.0D0)+25.140D0*coef)
-      xk21 = xk21*exp(13.79D0*(t0t-1.0D0)-5.393D0*coef)
-      xk22 = xk22*exp(-1.50D0*(t0t-1.0D0)+26.920D0*coef)
-      xk3 = xk3*exp(30.20D0*(t0t-1.0D0)+19.910D0*coef)
-      xk31 = xk31*exp(30.20D0*(t0t-1.0D0)+19.910D0*coef)
-      xk4 = xk4*exp(29.17D0*(t0t-1.0D0)+16.830D0*coef)        !isorr
-!   xk4 = xk4 *exp( 29.47D0*(t0t-1.0D0) + 16.840D0*coef) ! sequil
-      xk41 = xk41*exp(29.17D0*(t0t-1.0D0)+16.830D0*coef)
-      xk5 = xk5*exp(0.98D0*(t0t-1.0D0)+39.500D0*coef)
-      xk6 = xk6*exp(-71.00D0*(t0t-1.0D0)+2.400D0*coef)
-      xk7 = xk7*exp(-2.65D0*(t0t-1.0D0)+38.570D0*coef)
-      xk8 = xk8*exp(-1.56D0*(t0t-1.0D0)+16.900D0*coef)
-      xk9 = xk9*exp(-8.22D0*(t0t-1.0D0)+16.010D0*coef)
-!   xk10 = xk10*exp(-74.38D0*(t0t-1.0D0) +  6.120D0*coef) ! isorr
-      xk10 = xk10*exp(-74.7351D0*(t0t-1.0D0)+6.025D0*coef)       ! (mozurkewich , 1993)
-!   xk10 = xk10*exp(-75.11D0*(t0t-1.0D0) + 13.460D0*coef) ! sequil
-      xk11 = xk11*exp(0.79D0*(t0t-1.0D0)+14.746D0*coef)
-      xk12 = xk12*exp(-2.87D0*(t0t-1.0D0)+15.830D0*coef)
-      xk13 = xk13*exp(-5.19D0*(t0t-1.0D0)+54.400D0*coef)
-      xk14 = xk14*exp(24.55D0*(t0t-1.0D0)+16.900D0*coef)
-      xkw = xkw*exp(-22.52D0*(t0t-1.0D0)+26.920D0*coef)
+      coef = 1.0_rkx + log(t0t) - t0t
+      xk1 = xk1*exp(8.85_rkx*(t0t-1.0_rkx)+25.140_rkx*coef)
+      xk21 = xk21*exp(13.79_rkx*(t0t-1.0_rkx)-5.393_rkx*coef)
+      xk22 = xk22*exp(-1.50_rkx*(t0t-1.0_rkx)+26.920_rkx*coef)
+      xk3 = xk3*exp(30.20_rkx*(t0t-1.0_rkx)+19.910_rkx*coef)
+      xk31 = xk31*exp(30.20_rkx*(t0t-1.0_rkx)+19.910_rkx*coef)
+      xk4 = xk4*exp(29.17_rkx*(t0t-1.0_rkx)+16.830_rkx*coef)        !isorr
+!   xk4 = xk4 *exp( 29.47_rkx*(t0t-1.0_rkx) + 16.840_rkx*coef) ! sequil
+      xk41 = xk41*exp(29.17_rkx*(t0t-1.0_rkx)+16.830_rkx*coef)
+      xk5 = xk5*exp(0.98_rkx*(t0t-1.0_rkx)+39.500_rkx*coef)
+      xk6 = xk6*exp(-71.00_rkx*(t0t-1.0_rkx)+2.400_rkx*coef)
+      xk7 = xk7*exp(-2.65_rkx*(t0t-1.0_rkx)+38.570_rkx*coef)
+      xk8 = xk8*exp(-1.56_rkx*(t0t-1.0_rkx)+16.900_rkx*coef)
+      xk9 = xk9*exp(-8.22_rkx*(t0t-1.0_rkx)+16.010_rkx*coef)
+!   xk10 = xk10*exp(-74.38_rkx*(t0t-1.0_rkx) +  6.120_rkx*coef) ! isorr
+      xk10 = xk10*exp(-74.7351_rkx*(t0t-1.0_rkx)+6.025_rkx*coef)       ! (mozurkewich , 1993)
+!   xk10 = xk10*exp(-75.11_rkx*(t0t-1.0_rkx) + 13.460_rkx*coef) ! sequil
+      xk11 = xk11*exp(0.79_rkx*(t0t-1.0_rkx)+14.746_rkx*coef)
+      xk12 = xk12*exp(-2.87_rkx*(t0t-1.0_rkx)+15.830_rkx*coef)
+      xk13 = xk13*exp(-5.19_rkx*(t0t-1.0_rkx)+54.400_rkx*coef)
+      xk14 = xk14*exp(24.55_rkx*(t0t-1.0_rkx)+16.900_rkx*coef)
+      xkw = xkw*exp(-22.52_rkx*(t0t-1.0_rkx)+26.920_rkx*coef)
 !
-!   xk15 = xk15 *exp(  .0D0*(t0t-1.0D0) + .0D0*coef)
-!   xk16 = xk16 *exp(  .0D0*(t0t-1.0D0) + .0D0*coef)
-      xk17 = xk17*exp(-9.585D0*(t0t-1.0D0)+45.81D0*coef)
-      xk18 = xk18*exp(-8.423D0*(t0t-1.0D0)+17.96D0*coef)
-      xk19 = xk19*exp(-14.08D0*(t0t-1.0D0)+19.39D0*coef)
-      xk20 = xk20*exp(-6.902D0*(t0t-1.0D0)+19.95D0*coef)
-!   xk23 = xk23 *exp(  .0D0*(t0t-1.0D0) + .0D0*coef)
-!   xk24 = xk24 *exp(  .0D0*(t0t-1.0D0) + .0D0*coef)
-!   xk25 = xk25 *exp(  .0D0*(t0t-1.0D0) + .0D0*coef)
-!   xk26 = xk26 *exp(-3.0821D0*(t0t-1.0D0) + 31.8139D0*coef)
-!   xk27 = xk27 *exp(-5.9908D0*(t0t-1.0D0) + 38.844D0*coef)
+!   xk15 = xk15 *exp(  .0_rkx*(t0t-1.0_rkx) + .0_rkx*coef)
+!   xk16 = xk16 *exp(  .0_rkx*(t0t-1.0_rkx) + .0_rkx*coef)
+      xk17 = xk17*exp(-9.585_rkx*(t0t-1.0_rkx)+45.81_rkx*coef)
+      xk18 = xk18*exp(-8.423_rkx*(t0t-1.0_rkx)+17.96_rkx*coef)
+      xk19 = xk19*exp(-14.08_rkx*(t0t-1.0_rkx)+19.39_rkx*coef)
+      xk20 = xk20*exp(-6.902_rkx*(t0t-1.0_rkx)+19.95_rkx*coef)
+!   xk23 = xk23 *exp(  .0_rkx*(t0t-1.0_rkx) + .0_rkx*coef)
+!   xk24 = xk24 *exp(  .0_rkx*(t0t-1.0_rkx) + .0_rkx*coef)
+!   xk25 = xk25 *exp(  .0_rkx*(t0t-1.0_rkx) + .0_rkx*coef)
+!   xk26 = xk26 *exp(-3.0821_rkx*(t0t-1.0_rkx) + 31.8139_rkx*coef)
+!   xk27 = xk27 *exp(-5.9908_rkx*(t0t-1.0_rkx) + 38.844_rkx*coef)
 
     end if
     xk2 = xk21*xk22
@@ -1897,94 +1916,94 @@ module mod_che_isorropia
 ! *** calculate deliquescence relative humidities (unicomponent)
 ! ********
     drh2so4 = zero
-    drnh42s4 = 0.7997D0
-    drnh4hs4 = 0.4000D0
-    drlc = 0.6900D0
-    drnacl = 0.7528D0
-    drnano3 = 0.7379D0
-    drnh4cl = 0.7710D0
-    drnh4no3 = 0.6183D0
-    drna2so4 = 0.9300D0
-    drnahso4 = 0.5200D0
-    drcano32 = 0.4906D0
-    drcacl2 = 0.2830D0
-    drk2so4 = 0.9750D0
-    drkhso4 = 0.8600D0
-    drkno3 = 0.9248D0
-    drkcl = 0.8426D0
-    drmgso4 = 0.8613D0
-    drmgno32 = 0.5400D0
-    drmgcl2 = 0.3284D0
+    drnh42s4 = 0.7997_rkx
+    drnh4hs4 = 0.4000_rkx
+    drlc = 0.6900_rkx
+    drnacl = 0.7528_rkx
+    drnano3 = 0.7379_rkx
+    drnh4cl = 0.7710_rkx
+    drnh4no3 = 0.6183_rkx
+    drna2so4 = 0.9300_rkx
+    drnahso4 = 0.5200_rkx
+    drcano32 = 0.4906_rkx
+    drcacl2 = 0.2830_rkx
+    drk2so4 = 0.9750_rkx
+    drkhso4 = 0.8600_rkx
+    drkno3 = 0.9248_rkx
+    drkcl = 0.8426_rkx
+    drmgso4 = 0.8613_rkx
+    drmgno32 = 0.5400_rkx
+    drmgcl2 = 0.3284_rkx
     if ( int(temp)/=298 ) then
-      t0 = 298.15D0
-      tcf = 1.0D0/temp - 1.0D0/t0
-      drnacl = drnacl*exp(25.D0*tcf)
-      drnano3 = drnano3*exp(304.D0*tcf)
-      drna2so4 = drna2so4*exp(80.D0*tcf)
-      drnh4no3 = drnh4no3*exp(852.D0*tcf)
-      drnh42s4 = drnh42s4*exp(80.D0*tcf)
-      drnh4hs4 = drnh4hs4*exp(384.D0*tcf)
-      drlc = drlc*exp(186.D0*tcf)
-      drnh4cl = drnh4cl*exp(239.D0*tcf)
-      drnahso4 = drnahso4*exp(-45.D0*tcf)
+      t0 = 298.15_rkx
+      tcf = 1.0_rkx/temp - 1.0_rkx/t0
+      drnacl = drnacl*exp(25._rkx*tcf)
+      drnano3 = drnano3*exp(304._rkx*tcf)
+      drna2so4 = drna2so4*exp(80._rkx*tcf)
+      drnh4no3 = drnh4no3*exp(852._rkx*tcf)
+      drnh42s4 = drnh42s4*exp(80._rkx*tcf)
+      drnh4hs4 = drnh4hs4*exp(384._rkx*tcf)
+      drlc = drlc*exp(186._rkx*tcf)
+      drnh4cl = drnh4cl*exp(239._rkx*tcf)
+      drnahso4 = drnahso4*exp(-45._rkx*tcf)
 !   drcano32 = drcano32*exp(-430.5d0*tcf)
-      drcano32 = drcano32*exp(509.4D0*tcf)      ! kelly & wexler (2005) for cano32.4h20
-!   drcacl2  = drcacl2 *exp(-1121.D0*tcf)
-      drcacl2 = drcacl2*exp(551.1D0*tcf)       ! kelly & wexler (2005) for cacl2.6h20
-      drk2so4 = drk2so4*exp(35.6D0*tcf)
-!   drkhso4  = drkhso4 *exp( 0.D0*tcf)
-!   drkno3   = drkno3  *exp( 0.D0*tcf)
-      drkcl = drkcl*exp(159.D0*tcf)
-      drmgso4 = drmgso4*exp(-714.45D0*tcf)
-      drmgno32 = drmgno32*exp(230.2D0*tcf)      ! kelly & wexler (2005) for mgno32.6h20
-!   drmgcl2  = drmgcl2 *exp(-1860.D0*tcf)
-      drmgcl2 = drmgcl2*exp(42.23D0*tcf)        ! kelly & wexler (2005) for mgcl2.6h20
+      drcano32 = drcano32*exp(509.4_rkx*tcf)      ! kelly & wexler (2005) for cano32.4h20
+!   drcacl2  = drcacl2 *exp(-1121._rkx*tcf)
+      drcacl2 = drcacl2*exp(551.1_rkx*tcf)       ! kelly & wexler (2005) for cacl2.6h20
+      drk2so4 = drk2so4*exp(35.6_rkx*tcf)
+!   drkhso4  = drkhso4 *exp( 0._rkx*tcf)
+!   drkno3   = drkno3  *exp( 0._rkx*tcf)
+      drkcl = drkcl*exp(159._rkx*tcf)
+      drmgso4 = drmgso4*exp(-714.45_rkx*tcf)
+      drmgno32 = drmgno32*exp(230.2_rkx*tcf)      ! kelly & wexler (2005) for mgno32.6h20
+!   drmgcl2  = drmgcl2 *exp(-1860._rkx*tcf)
+      drmgcl2 = drmgcl2*exp(42.23_rkx*tcf)        ! kelly & wexler (2005) for mgcl2.6h20
 !
     end if
 !
 ! *** calculate mutual deliquescence relative humidities
 ! ****************
-    drmlcab = 0.378D0      ! (nh4)3h(so4)2 & nh4hso4
-    drmlcas = 0.690D0      ! (nh4)3h(so4)2 & (nh4)2so4
-    drmasan = 0.600D0      ! (nh4)2so4     & nh4no3
-    drmg1 = 0.460D0        ! (nh4)2so4 , nh4no3 , na2so4 , nh4cl
-    drmg2 = 0.691D0        ! (nh4)2so4 , na2so4 , nh4cl
-    drmg3 = 0.697D0        ! (nh4)2so4 , na2so4
-    drmh1 = 0.240D0        ! na2so4 , nano3 , nacl , nh4no3 , nh4cl
-    drmh2 = 0.596D0        ! na2so4 , nano3 , nacl , nh4cl
-    drmi1 = 0.240D0        ! lc , nahso4 , nh4hso4 , na2so4 , (nh4)2so4
-    drmi2 = 0.363D0        ! lc , nahso4 , na2so4 , (nh4)2so4  - no data -
-    drmi3 = 0.610D0        ! lc , na2so4 , (nh4)2so4
-    drmq1 = 0.494D0        ! (nh4)2so4 , nh4no3 , na2so4
-    drmr1 = 0.663D0        ! na2so4 , nano3 , nacl
-    drmr2 = 0.735D0        ! na2so4 , nacl
-    drmr3 = 0.673D0        ! nano3 , nacl
-    drmr4 = 0.694D0        ! na2so4 , nacl , nh4cl
-    drmr5 = 0.731D0        ! na2so4 , nh4cl
-    drmr6 = 0.596D0        ! na2so4 , nano3 , nh4cl
-    drmr7 = 0.380D0        ! na2so4 , nano3 , nacl , nh4no3
-    drmr8 = 0.380D0        ! na2so4 , nacl , nh4no3
-    drmr9 = 0.494D0        ! na2so4 , nh4no3
-    drmr10 = 0.476D0       ! na2so4 , nano3 , nh4no3
-    drmr11 = 0.340D0       ! na2so4 , nacl , nh4no3 , nh4cl
-    drmr12 = 0.460D0       ! na2so4 , nh4no3 , nh4cl
-    drmr13 = 0.438D0       ! na2so4 , nano3 , nh4no3 , nh4cl
+    drmlcab = 0.378_rkx      ! (nh4)3h(so4)2 & nh4hso4
+    drmlcas = 0.690_rkx      ! (nh4)3h(so4)2 & (nh4)2so4
+    drmasan = 0.600_rkx      ! (nh4)2so4     & nh4no3
+    drmg1 = 0.460_rkx        ! (nh4)2so4 , nh4no3 , na2so4 , nh4cl
+    drmg2 = 0.691_rkx        ! (nh4)2so4 , na2so4 , nh4cl
+    drmg3 = 0.697_rkx        ! (nh4)2so4 , na2so4
+    drmh1 = 0.240_rkx        ! na2so4 , nano3 , nacl , nh4no3 , nh4cl
+    drmh2 = 0.596_rkx        ! na2so4 , nano3 , nacl , nh4cl
+    drmi1 = 0.240_rkx        ! lc , nahso4 , nh4hso4 , na2so4 , (nh4)2so4
+    drmi2 = 0.363_rkx        ! lc , nahso4 , na2so4 , (nh4)2so4  - no data -
+    drmi3 = 0.610_rkx        ! lc , na2so4 , (nh4)2so4
+    drmq1 = 0.494_rkx        ! (nh4)2so4 , nh4no3 , na2so4
+    drmr1 = 0.663_rkx        ! na2so4 , nano3 , nacl
+    drmr2 = 0.735_rkx        ! na2so4 , nacl
+    drmr3 = 0.673_rkx        ! nano3 , nacl
+    drmr4 = 0.694_rkx        ! na2so4 , nacl , nh4cl
+    drmr5 = 0.731_rkx        ! na2so4 , nh4cl
+    drmr6 = 0.596_rkx        ! na2so4 , nano3 , nh4cl
+    drmr7 = 0.380_rkx        ! na2so4 , nano3 , nacl , nh4no3
+    drmr8 = 0.380_rkx        ! na2so4 , nacl , nh4no3
+    drmr9 = 0.494_rkx        ! na2so4 , nh4no3
+    drmr10 = 0.476_rkx       ! na2so4 , nano3 , nh4no3
+    drmr11 = 0.340_rkx       ! na2so4 , nacl , nh4no3 , nh4cl
+    drmr12 = 0.460_rkx       ! na2so4 , nh4no3 , nh4cl
+    drmr13 = 0.438_rkx       ! na2so4 , nano3 , nh4no3 , nh4cl
 !
-    drmo1 = 0.460D0        ! (nh4)2so4 , nh4no3 , nh4cl , na2so4 , k2so4 , mgso4
-    drmo2 = 0.691D0        ! (nh4)2so4 , nh4cl , na2so4 , k2so4 , mgso4
-    drmo3 = 0.697D0        ! (nh4)2so4 , na2so4 , k2so4 , mgso4
-    drml1 = 0.240D0        ! k2so4 , mgso4 , khso4 , nh4hso4 , nahso4 , (nh4)2so4 , na2so4 , lc
-    drml2 = 0.363D0        ! k2so4 , mgso4 , khso4 , nahso4 , (nh4)2so4 , na2so4 , lc
-    drml3 = 0.610D0        ! k2so4 , mgso4 , khso4 , (nh4)2so4 , na2so4 , lc
-    drmm1 = 0.240D0        ! k2so4 , na2so4 , mgso4 , nh4cl , nacl , nano3 , nh4no3
-    drmm2 = 0.596D0        ! k2so4 , na2so4 , mgso4 , nh4cl , nacl , nano3
-    drmp1 = 0.200D0        ! ca(no3)2 , cacl2 , k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
-    drmp2 = 0.240D0        ! ca(no3)2 , k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
-    drmp3 = 0.240D0        ! ca(no3)2 , k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
-    drmp4 = 0.240D0        ! k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
-    drmp5 = 0.240D0        ! k2so4 , kno3 , kcl , mgso4 , nano3 , nacl , nh4no3 , nh4cl
+    drmo1 = 0.460_rkx        ! (nh4)2so4 , nh4no3 , nh4cl , na2so4 , k2so4 , mgso4
+    drmo2 = 0.691_rkx        ! (nh4)2so4 , nh4cl , na2so4 , k2so4 , mgso4
+    drmo3 = 0.697_rkx        ! (nh4)2so4 , na2so4 , k2so4 , mgso4
+    drml1 = 0.240_rkx        ! k2so4 , mgso4 , khso4 , nh4hso4 , nahso4 , (nh4)2so4 , na2so4 , lc
+    drml2 = 0.363_rkx        ! k2so4 , mgso4 , khso4 , nahso4 , (nh4)2so4 , na2so4 , lc
+    drml3 = 0.610_rkx        ! k2so4 , mgso4 , khso4 , (nh4)2so4 , na2so4 , lc
+    drmm1 = 0.240_rkx        ! k2so4 , na2so4 , mgso4 , nh4cl , nacl , nano3 , nh4no3
+    drmm2 = 0.596_rkx        ! k2so4 , na2so4 , mgso4 , nh4cl , nacl , nano3
+    drmp1 = 0.200_rkx        ! ca(no3)2 , cacl2 , k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+    drmp2 = 0.240_rkx        ! ca(no3)2 , k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , mgcl2 , nano3 , nacl , nh4no3 , nh4cl
+    drmp3 = 0.240_rkx        ! ca(no3)2 , k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
+    drmp4 = 0.240_rkx        ! k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl
+    drmp5 = 0.240_rkx        ! k2so4 , kno3 , kcl , mgso4 , nano3 , nacl , nh4no3 , nh4cl
 !
-    drmv1 = 0.494D0        ! (nh4)2so4 , nh4no3 , na2so4 , k2so4 , mgso4
+    drmv1 = 0.494_rkx        ! (nh4)2so4 , nh4no3 , na2so4 , k2so4 , mgso4
 !
 !
 ! drmo1   = 0.1d0    ! (nh4)2so4 , nh4no3 , nh4cl , na2so4 , k2so4 ,
@@ -2043,14 +2062,14 @@ module mod_che_isorropia
 !
     do i = 1 , npair
       molalr(i) = zero
-      gama(i) = 0.1D0
+      gama(i) = 0.1_rkx
       gamin(i) = great
       gamou(i) = great
-      m0(i) = 1D5
+      m0(i) = 1e5_rkx
     end do
 !
     do i = 1 , npair
-      gama(i) = 0.1D0
+      gama(i) = 0.1_rkx
     end do
 !
     do i = 1 , nions
@@ -2092,7 +2111,7 @@ module mod_che_isorropia
 !
 ! *** calculate zsr parameters
 ! ******************************************
-    irh = min(int(rh*nzsr+0.5D0),nzsr)        ! position in zsr arrays
+    irh = min(int(rh*nzsr+0.5_rkx),nzsr)        ! position in zsr arrays
     irh = max(irh,1)
 !
     m0(01) = awsc(irh)        ! nacl
@@ -2100,7 +2119,7 @@ module mod_che_isorropia
 ! ic = m0(01)
 ! call kmtab(ic ,298.0 ,     gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                            xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx) call kmtab(ic ,dble(temp),gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),gii ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx , &                            xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(01) = m0(01)*exp(ln10*(gi0-gii))
 ! end if
@@ -2110,7 +2129,7 @@ module mod_che_isorropia
 ! ic = 3.0*m0(02)
 ! call kmtab(ic ,298.0 ,     xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,gii ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(02) = m0(02)*exp(ln10*(gi0-gii))
 ! end if
@@ -2120,7 +2139,7 @@ module mod_che_isorropia
 ! ic = m0(03)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,gii ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(03) = m0(03)*exp(ln10*(gi0-gii))
 ! end if
@@ -2130,7 +2149,7 @@ module mod_che_isorropia
 ! ic = 3.0*m0(04)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(04) = m0(04)*exp(ln10*(gi0-gii))
 ! end if
@@ -2140,7 +2159,7 @@ module mod_che_isorropia
 ! ic     = m0(05)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(05) = m0(05)*exp(ln10*(gi0-gii))
 ! end if
@@ -2150,7 +2169,7 @@ module mod_che_isorropia
 ! ic = m0(06)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(06) = m0(06)*exp(ln10*(gi0-gii))
 ! end if
@@ -2160,7 +2179,7 @@ module mod_che_isorropia
 ! ic = 3.0*m0(07)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(07) = m0(07)*exp(ln10*(gi0-gii))
 ! end if
@@ -2169,8 +2188,8 @@ module mod_che_isorropia
 ! if (m0(08)  <  100.0) then     ! these are redundant , because m0(8)
 ! is not used ic = m0(08)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
-!c         call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx)
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
+!c         call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,gii ,xx ,xx ,xx ,xx)
 ! ,xx ,xx ,xx ,xx) & m0(08) = m0(08)*exp(ln10*(gi0-gii))
 ! end if
 !
@@ -2179,7 +2198,7 @@ module mod_che_isorropia
 ! ic = m0(09)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,gii ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx ,xx) m0(09) = m0(09)*exp(ln10*(gi0-gii))
 ! end if
@@ -2189,7 +2208,7 @@ module mod_che_isorropia
 ! ic = m0(12)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,gi0 , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,gii , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(12) = m0(12)*exp(ln10*(gi0-gii))
 ! end if
@@ -2200,10 +2219,10 @@ module mod_che_isorropia
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g130   = 0.2*(3.0*gi0+2.0*gii)
-! call kmtab(ic ,dble(temp),xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
+! call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) g13i   = 0.2*(3.0*gi0+2.0*gii)
-! m0(13) = m0(13)*exp(ln10*dble(g130-g13i))
+! m0(13) = m0(13)*exp(ln10*real(g130-g13i,rkx))
 ! end if
 !
     m0(15) = awcn(irh)        ! ca(no3)2
@@ -2211,7 +2230,7 @@ module mod_che_isorropia
 ! ic = m0(15)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx , &                             gi0 ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             gii ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(15) = m0(15)*exp(ln10*(gi0-gii))
 ! end if
@@ -2221,7 +2240,7 @@ module mod_che_isorropia
 ! ic = m0(16)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx , &                             xx ,gi0 ,xx ,xx ,xx ,xx ,xx ,xx
-! ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,gii ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(16) = m0(16)*exp(ln10*(gi0-gii))
 ! end if
@@ -2231,7 +2250,7 @@ module mod_che_isorropia
 ! ic = m0(17)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx , &                             xx ,xx ,gi0 ,xx ,xx ,xx ,xx ,xx
-! ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,gii ,xx ,xx ,xx ,xx
 ! ,xx ,xx) m0(17) = m0(17)*exp(ln10*(gi0-gii))
 ! end if
@@ -2241,7 +2260,7 @@ module mod_che_isorropia
 ! ic = m0(18)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx , &                             xx ,xx ,xx ,gi0 ,xx ,xx ,xx ,xx
-! ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,gii ,xx ,xx ,xx
 ! ,xx ,xx) m0(18) = m0(18)*exp(ln10*(gi0-gii))
 ! end if
@@ -2251,7 +2270,7 @@ module mod_che_isorropia
 ! ic = m0(19)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx , &                             xx ,xx ,xx ,xx ,gi0 ,xx ,xx ,xx
-! ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,gii ,xx ,xx
 ! ,xx ,xx) m0(19) = m0(19)*exp(ln10*(gi0-gii))
 ! end if
@@ -2261,7 +2280,7 @@ module mod_che_isorropia
 ! ic = m0(20)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx , &                             xx ,xx ,xx ,xx ,xx ,gi0 ,xx ,xx
-! ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,gii ,xx
 ! ,xx ,xx) m0(20) = m0(20)*exp(ln10*(gi0-gii))
 ! end if
@@ -2271,7 +2290,7 @@ module mod_che_isorropia
 ! ic = m0(21)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,gi0 ,xx
-! ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,gii
 ! ,xx ,xx) m0(21) = m0(21)*exp(ln10*(gi0-gii))
 ! end if
@@ -2281,7 +2300,7 @@ module mod_che_isorropia
 ! ic = m0(22)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,gi0
-! ,xx) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,xx) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,gii ,xx) m0(22) = m0(22)*exp(ln10*(gi0-gii))
 ! end if
@@ -2291,7 +2310,7 @@ module mod_che_isorropia
 ! ic = m0(23)
 ! call kmtab(ic ,298.0 ,     xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
-! ,gi0) call kmtab(ic ,dble(temp),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
+! ,gi0) call kmtab(ic ,real(temp,rkx),xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,xx , &                             xx ,xx ,xx ,xx ,xx ,xx
 ! ,xx ,xx ,gii) m0(23) = m0(23)*exp(ln10*(gi0-gii))
 ! end if
@@ -2303,10 +2322,10 @@ module mod_che_isorropia
     calain = .true.
     frst = .true.
     scase = '??'
-    sulratw = 2.D0
-    so4rat = 2.D0
-    crnarat = 2.D0
-    crrat = 2.D0
+    sulratw = 2._rkx
+    so4rat = 2._rkx
+    crnarat = 2._rkx
+    crrat = 2._rkx
     nofer = 0
     stkofl = .false.
     do i = 1 , nerrmx
@@ -2334,17 +2353,17 @@ module mod_che_isorropia
   subroutine adjust(wi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: excl , exnh4 , exno3 , exs4
-    real(rk8) , dimension(:) :: wi
+    real(rkx) :: excl , exnh4 , exno3 , exs4
+    real(rkx) , dimension(:) :: wi
 !
 ! *** for ammonium *****************************************************
 !
     if ( iprob==0 ) then           ! calculate excess (solution - input)
-      exnh4 = gnh3 + molal(3) + cnh4cl + cnh4no3 + cnh4hs4 + 2D0*cnh42s4 +&
-              3D0*clc - wi(3)
+      exnh4 = gnh3 + molal(3) + cnh4cl + cnh4no3 + cnh4hs4 + 2_rkx*cnh42s4 +&
+              3_rkx*clc - wi(3)
     else
-      exnh4 = molal(3) + cnh4cl + cnh4no3 + cnh4hs4 + 2D0*cnh42s4 +       &
-              3D0*clc - wi(3)
+      exnh4 = molal(3) + cnh4cl + cnh4no3 + cnh4hs4 + 2_rkx*cnh42s4 +       &
+              3_rkx*clc - wi(3)
 
     end if
     exnh4 = max(exnh4,zero)
@@ -2378,11 +2397,11 @@ module mod_che_isorropia
         cnh4no3 = zero              ! zero salt concentration
       end if
 !
-      if ( clc>3D0*exnh4 ) then    ! adjust (nh4)3h(so4)2(s)
-        clc = clc - exnh4/3D0       ! more solid than excess
+      if ( clc>3_rkx*exnh4 ) then    ! adjust (nh4)3h(so4)2(s)
+        clc = clc - exnh4/3_rkx       ! more solid than excess
         go to 100
       else                          ! less solid than excess
-        exnh4 = exnh4 - 3D0*clc     ! reduce excess
+        exnh4 = exnh4 - 3_rkx*clc     ! reduce excess
         clc = zero                  ! zero salt concentration
       end if
 !
@@ -2460,7 +2479,7 @@ module mod_che_isorropia
 !
 ! *** for sulfate ******************************************************
 !
- 300  exs4 = molal(5) + molal(6) + 2.D0*clc + cnh42s4 + cnh4hs4 +       &
+ 300  exs4 = molal(5) + molal(6) + 2._rkx*clc + cnh42s4 + cnh4hs4 +       &
                cna2so4 + cnahso4 - wi(2)
     exs4 = max(exs4,zero)           ! calculate excess (solution - input)
     if ( exs4>=tiny1 ) then        ! no excess so4 , return
@@ -2481,13 +2500,13 @@ module mod_che_isorropia
         molal(5) = zero
       end if
 !
-      if ( clc>2D0*exs4 ) then     ! adjust (nh4)3h(so4)2(s)
-        clc = clc - exs4/2D0        ! more solid than excess
-        gnh3 = gnh3 + 1.5D0*exs4    ! evaporate nh3 to gas phase
+      if ( clc>2_rkx*exs4 ) then     ! adjust (nh4)3h(so4)2(s)
+        clc = clc - exs4/2_rkx        ! more solid than excess
+        gnh3 = gnh3 + 1.5_rkx*exs4    ! evaporate nh3 to gas phase
         return
       else                          ! less solid than excess
-        gnh3 = gnh3 + 1.5D0*clc     ! evaporate nh3 to gas phase
-        exs4 = exs4 - 2D0*clc       ! reduce excess
+        gnh3 = gnh3 + 1.5_rkx*clc     ! evaporate nh3 to gas phase
+        exs4 = exs4 - 2_rkx*clc       ! reduce excess
         clc = zero                  ! zero salt concentration
       end if
 !
@@ -2503,9 +2522,9 @@ module mod_che_isorropia
 !
       if ( cnh42s4>exs4 ) then     ! adjust (nh4)2so4(s)
         cnh42s4 = cnh42s4 - exs4    ! more solid than excess
-        gnh3 = gnh3 + 2.D0*exs4     ! evaporate nh3 to gas phase
+        gnh3 = gnh3 + 2._rkx*exs4     ! evaporate nh3 to gas phase
       else                          ! less solid than excess
-        gnh3 = gnh3 + 2.D0*cnh42s4   ! evaporate nh3 to gas phase
+        gnh3 = gnh3 + 2._rkx*cnh42s4   ! evaporate nh3 to gas phase
         exs4 = exs4 - cnh42s4      ! reduce excess
         cnh42s4 = zero             ! zero salt concentration
       end if
@@ -2526,15 +2545,15 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function getasr(so4i,rhi)
+  real(rkx) function getasr(so4i,rhi)
     implicit none
-    real(rk8) :: a1 , rat , wf
+    real(rkx) :: a1 , rat , wf
     integer(ik4) :: ia1 , indr , inds , indsh , indsl , iposh , iposl
     integer , parameter :: nso4s = 14
     integer , parameter :: nrhs = 20
     integer , parameter :: nasrd = nso4s*nrhs
-    real(rk8) :: so4i , rhi
-    real(rk8) :: asrat(nasrd) , asso4(nso4s)
+    real(rkx) :: so4i , rhi
+    real(rkx) :: asrat(nasrd) , asso4(nso4s)
 !
     asso4 = (/1.0E-9,2.5E-9,5.0E-9,7.5E-9,1.0E-8,2.5E-8,5.0E-8,7.5E-8,    &
             1.0E-7,2.5E-7,5.0E-7,7.5E-7,1.0E-6,5.0E-6/)
@@ -2623,7 +2642,7 @@ module mod_che_isorropia
     iposh = (indsh-1)*nrhs + indr                 ! high position in array
 !
     wf = (so4i-asso4(indsl))/(asso4(indsh)-asso4(indsl)+1E-7)
-    wf = min(max(wf,0.0D0),1.0D0)
+    wf = min(max(wf,0.0_rkx),1.0_rkx)
     getasr = wf*asrat(iposh) + (1.0-wf)*asrat(iposl)
   end function getasr
 !
@@ -2649,19 +2668,19 @@ module mod_che_isorropia
   subroutine calcha
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: alfa , delt , diak , x
-    real(rk8) :: kapa
+    real(rkx) :: alfa , delt , diak , x
+    real(rkx) :: kapa
 ! character errinf*40
 !
 ! *** calculate hcl dissolution
 ! *****************************************
     x = w(5)
-    delt = 0.0D0
+    delt = 0.0_rkx
     if ( water>tiny1 ) then
       kapa = molal(1)
       alfa = xk3*r*temp*(water/gama(11))**2
       diak = sqrt((kapa+alfa)**2+4.0*alfa*x)
-      delt = 0.5D0*(-(kapa+alfa)+diak)
+      delt = 0.5_rkx*(-(kapa+alfa)+diak)
 !   if (delt/kapa > 0.1d0) then
 !   write (errinf ,'(1pe10.3)') delt/kapa*100.0
 !   call pusherr (0033 , errinf)
@@ -2670,7 +2689,7 @@ module mod_che_isorropia
 !
 ! *** calculate hcl speciation in the gas phase
 ! *************************
-    ghcl = max(x-delt,0.0D0)          ! gas hcl
+    ghcl = max(x-delt,0.0_rkx)          ! gas hcl
 !
 ! *** calculate hcl speciation in the liquid phase
 ! **********************
@@ -2702,7 +2721,7 @@ module mod_che_isorropia
   subroutine calchap
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: alfa , delt
+    real(rkx) :: alfa , delt
 !
 ! *** is there a liquid phase?
 ! ******************************************
@@ -2739,19 +2758,19 @@ module mod_che_isorropia
   subroutine calcna
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: alfa , delt , diak , x
-    real(rk8) :: kapa
+    real(rkx) :: alfa , delt , diak , x
+    real(rkx) :: kapa
 ! character errinf*40
 !
 ! *** calculate hno3 dissolution
 ! ****************************************
     x = w(4)
-    delt = 0.0D0
+    delt = 0.0_rkx
     if ( water>tiny1 ) then
       kapa = molal(1)
       alfa = xk4*r*temp*(water/gama(10))**2
       diak = sqrt((kapa+alfa)**2+4.0*alfa*x)
-      delt = 0.5D0*(-(kapa+alfa)+diak)
+      delt = 0.5_rkx*(-(kapa+alfa)+diak)
 !   if (delt/kapa > 0.1d0) then
 !   write (errinf ,'(1pe10.3)') delt/kapa*100.0
 !   call pusherr (0019 , errinf)    ! warning error: no solution
@@ -2760,7 +2779,7 @@ module mod_che_isorropia
 !
 ! *** calculate hno3 speciation in the gas phase
 ! ************************
-    ghno3 = max(x-delt,0.0D0)         ! gas hno3
+    ghno3 = max(x-delt,0.0_rkx)         ! gas hno3
 !
 ! *** calculate hno3 speciation in the liquid phase
 ! *********************
@@ -2791,7 +2810,7 @@ module mod_che_isorropia
   subroutine calcnap
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: alfa , delt
+    real(rkx) :: alfa , delt
 !
 ! *** is there a liquid phase?
 ! ******************************************
@@ -2832,7 +2851,7 @@ module mod_che_isorropia
   subroutine calcnh3
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a1 , bb , cc , chi1 , chi2 , diak , psi
+    real(rkx) :: a1 , bb , cc , chi1 , chi2 , diak , psi
 !
 ! *** is there a liquid phase?
 ! ******************************************
@@ -2846,8 +2865,8 @@ module mod_che_isorropia
 !
     bb = (chi2+one/a1)                ! a= 1; b!=1; c!=1
     cc = -chi1/a1
-    diak = sqrt(bb*bb-4.D0*cc)       ! always > 0
-    psi = 0.5D0*(-bb+diak)             ! one positive root
+    diak = sqrt(bb*bb-4._rkx*cc)       ! always > 0
+    psi = 0.5_rkx*(-bb+diak)             ! one positive root
     psi = max(tiny1,min(psi,chi1))      ! constrict in acceptible range
 !
 ! *** calculate nh3 speciation in the gas phase
@@ -2881,7 +2900,7 @@ module mod_che_isorropia
   subroutine calcnh3p
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a1
+    real(rkx) :: a1
 !
 ! *** is there a liquid phase?
 ! ******************************************
@@ -2912,9 +2931,9 @@ module mod_che_isorropia
   subroutine calcnha
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a3 , a4 , c1 , c2 , c3 , chi3 , chi4 , delcl , delno , omega
+    real(rkx) :: a3 , a4 , c1 , c2 , c3 , chi3 , chi4 , delcl , delno , omega
     integer(ik4) :: islv
-    real(rk8) m1 , m2 , m3
+    real(rkx) m1 , m2 , m3
     character(len = 40) :: errinf
 !
 ! *** special case; water = zero
@@ -3021,7 +3040,7 @@ module mod_che_isorropia
   subroutine calcnhp
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a3 , a4 , delt
+    real(rkx) :: a3 , a4 , delt
 !
 ! *** is there a liquid phase?
 ! ******************************************
@@ -3070,7 +3089,7 @@ module mod_che_isorropia
 !
 !    subroutine calchco3
 !      include 'isrpia.inc'
-!      real(rk8) kapa
+!      real(rkx) kapa
 !      character errinf*40
 !
 ! ** special case; water = zero ******************************************
@@ -3136,9 +3155,9 @@ module mod_che_isorropia
   subroutine calcamaq(nh4i,ohi,delt)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a22 , akw , bb , cc , dd , del1 , del2 , delt
-    real(rk8) :: ohi , om1 , om2
-    real(rk8) :: nh4i
+    real(rkx) :: a22 , akw , bb , cc , dd , del1 , del2 , delt
+    real(rkx) :: ohi , om1 , om2
+    real(rkx) :: nh4i
 ! character errinf*40
 !
 ! *** equilibrium constants
@@ -3152,10 +3171,10 @@ module mod_che_isorropia
     om2 = ohi
     bb = -(om1+om2+a22*akw)
     cc = om1*om2
-    dd = sqrt(bb*bb-4.D0*cc)
+    dd = sqrt(bb*bb-4._rkx*cc)
 
-    del1 = 0.5D0*(-bb-dd)
-    del2 = 0.5D0*(-bb+dd)
+    del1 = 0.5_rkx*(-bb-dd)
+    del2 = 0.5_rkx*(-bb+dd)
 !
 ! *** get appropriate root.
 !
@@ -3192,8 +3211,8 @@ module mod_che_isorropia
   subroutine calcamaq2(ggnh3,nh4i,ohi,nh3aq)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a22 , akw , alf1 , alf2 , bb , cc , del , ggnh3 , ohi
-    real(rk8) :: nh4i , nh3aq
+    real(rkx) :: a22 , akw , alf1 , alf2 , bb , cc , del , ggnh3 , ohi
+    real(rkx) :: nh4i , nh3aq
 !
 ! *** equilibrium constants
 !
@@ -3206,7 +3225,7 @@ module mod_che_isorropia
     alf2 = ggnh3
     bb = alf1 + a22*akw
     cc = -a22*akw*alf2
-    del = 0.5D0*(-bb+sqrt(bb*bb-4.D0*cc))
+    del = 0.5_rkx*(-bb+sqrt(bb*bb-4._rkx*cc))
 !
 ! *** adjust concentrations
 !
@@ -3234,8 +3253,8 @@ module mod_che_isorropia
   subroutine calcclaq(cli,hi,delt)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a32 , bb , cc , dd , del1 , del2 , delt , hi , om1 , om2
-    real(rk8) :: cli
+    real(rkx) :: a32 , bb , cc , dd , del1 , del2 , delt , hi , om1 , om2
+    real(rkx) :: cli
 !
 ! *** equilibrium constants
 !
@@ -3247,10 +3266,10 @@ module mod_che_isorropia
     om2 = hi
     bb = -(om1+om2+a32)
     cc = om1*om2
-    dd = sqrt(bb*bb-4.D0*cc)
+    dd = sqrt(bb*bb-4._rkx*cc)
 
-    del1 = 0.5D0*(-bb-dd)
-    del2 = 0.5D0*(-bb+dd)
+    del1 = 0.5_rkx*(-bb-dd)
+    del2 = 0.5_rkx*(-bb+dd)
 !
 ! *** get appropriate root.
 !
@@ -3280,8 +3299,8 @@ module mod_che_isorropia
   subroutine calcclaq2(ggcl,cli,hi,claq)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a32 , akw , alf1 , alf2 , claq , coef , del1 , ggcl , hi
-    real(rk8) :: cli
+    real(rkx) :: a32 , akw , alf1 , alf2 , claq , coef , del1 , ggcl , hi
+    real(rkx) :: cli
 !
 ! *** equilibrium constants
 !
@@ -3293,7 +3312,7 @@ module mod_che_isorropia
     alf1 = cli - ggcl
     alf2 = ggcl
     coef = (alf1+a32)
-    del1 = 0.5D0*(-coef+sqrt(coef*coef+4.D0*a32*alf2))
+    del1 = 0.5_rkx*(-coef+sqrt(coef*coef+4._rkx*a32*alf2))
 !
 ! *** correct concentrations
 !
@@ -3320,8 +3339,8 @@ module mod_che_isorropia
   subroutine calcniaq(no3i,hi,delt)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a42 , bb , cc , dd , del1 , del2 , om1 , om2
-    real(rk8) :: no3i , hi , delt
+    real(rkx) :: a42 , bb , cc , dd , del1 , del2 , om1 , om2
+    real(rkx) :: no3i , hi , delt
 !
 ! *** equilibrium constants
 !
@@ -3333,10 +3352,10 @@ module mod_che_isorropia
     om2 = hi
     bb = -(om1+om2+a42)
     cc = om1*om2
-    dd = sqrt(bb*bb-4.D0*cc)
+    dd = sqrt(bb*bb-4._rkx*cc)
 
-    del1 = 0.5D0*(-bb-dd)
-    del2 = 0.5D0*(-bb+dd)
+    del1 = 0.5_rkx*(-bb-dd)
+    del2 = 0.5_rkx*(-bb+dd)
 !
 ! *** get appropriate root.
 !
@@ -3372,8 +3391,8 @@ module mod_che_isorropia
   subroutine calcniaq2(ggno3,no3i,hi,no3aq)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a42 , akw , alf1 , alf2 , alf3 , bb , cc , del1 , ggno3 , hi
-    real(rk8) :: no3i , no3aq
+    real(rkx) :: a42 , akw , alf1 , alf2 , alf3 , bb , cc , del1 , ggno3 , hi
+    real(rkx) :: no3i , no3aq
 !
 ! *** equilibrium constants
 !
@@ -3388,7 +3407,7 @@ module mod_che_isorropia
 !
     bb = alf3 + alf1 + a42
     cc = alf3*alf1 - a42*alf2
-    del1 = 0.5D0*(-bb+sqrt(bb*bb-4.D0*cc))
+    del1 = 0.5_rkx*(-bb+sqrt(bb*bb-4._rkx*cc))
 !
 ! *** correct concentrations
 !
@@ -3416,7 +3435,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aml5 , frcl , frnh4 , frno3 , hso4i , so4i , tots4
+    real(rkx) :: aml5 , frcl , frnh4 , frno3 , hso4i , so4i , tots4
     integer(ik4) :: i
     character(len=1) :: sc
 !
@@ -3452,7 +3471,7 @@ module mod_che_isorropia
 !
     else if ( sc=='d' ) then
       molalr(4) = molal(5) + molal(6)             ! (nh4)2so4
-      aml5 = molal(3) - 2.D0*molalr(4)            ! "free" nh4
+      aml5 = molal(3) - 2._rkx*molalr(4)            ! "free" nh4
       molalr(5) = max(min(aml5,molal(7)),zero)     ! nh4no3 = min("free", no3)
 !
 !   *** nh4-so4-no3 system ; sulfate rich case ; no free acid
@@ -3477,10 +3496,10 @@ module mod_che_isorropia
 !   *** na-nh4-so4-no3-cl system ; sulfate poor ; sodium poor case
 !
     else if ( sc=='g' ) then
-      molalr(2) = 0.5D0*molal(2)                           ! na2so4
+      molalr(2) = 0.5_rkx*molal(2)                           ! na2so4
       tots4 = molal(5) + molal(6)                          ! total so4
       molalr(4) = max(tots4-molalr(2),zero)                ! (nh4)2so4
-      frnh4 = max(molal(3)-2.D0*molalr(4),zero)
+      frnh4 = max(molal(3)-2._rkx*molalr(4),zero)
       molalr(5) = min(molal(7),frnh4)                      ! nh4no3
       frnh4 = max(frnh4-molalr(5),zero)
       molalr(6) = min(molal(4),frnh4)                      ! nh4cl
@@ -3521,13 +3540,13 @@ module mod_che_isorropia
 !   *** na-nh4-so4-no3-cl-ca-k-mg system ; sulfate poor ; cr+na poor
 !   case
     else if ( sc=='o' ) then
-      molalr(2) = 0.5D0*molal(2)                           ! na2so4
+      molalr(2) = 0.5_rkx*molal(2)                           ! na2so4
       tots4 = molal(5) + molal(6)                          ! total so4
-      molalr(17) = 0.5D0*molal(9)                             ! k2so4
+      molalr(17) = 0.5_rkx*molal(9)                             ! k2so4
       molalr(21) = molal(10)                                ! mgso4
       molalr(4) = max(tots4-molalr(2)-molalr(17)-molalr(21),zero)
                                                           ! (nh4)2so4
-      frnh4 = max(molal(3)-2.D0*molalr(4),zero)
+      frnh4 = max(molal(3)-2._rkx*molalr(4),zero)
       molalr(5) = min(molal(7),frnh4)                      ! nh4no3
       frnh4 = max(frnh4-molalr(5),zero)
       molalr(6) = min(molal(4),frnh4)                      ! nh4cl
@@ -3560,10 +3579,10 @@ module mod_che_isorropia
       molalr(20) = psi14                                      ! kcl
       molalr(22) = psi15                                      ! mgno32
       molalr(23) = psi16                                      ! mgcl2
-      frno3 = max(molal(7)-molalr(3)-2.D0*molalr(15)-molalr(19)           &
-              -2.D0*molalr(22),zero)                        ! "free" no3
-      frcl = max(molal(4)-molalr(1)-2.D0*molalr(16)-molalr(20)            &
-             -2.D0*molalr(23),zero)                         ! "free" cl
+      frno3 = max(molal(7)-molalr(3)-2._rkx*molalr(15)-molalr(19)           &
+              -2._rkx*molalr(22),zero)                        ! "free" no3
+      frcl = max(molal(4)-molalr(1)-2._rkx*molalr(16)-molalr(20)            &
+             -2._rkx*molalr(23),zero)                         ! "free" cl
       molalr(5) = min(molal(3),frno3)                        ! nh4no3
       frnh4 = max(molal(3)-molalr(5),zero)                   ! "free" nh3
       molalr(6) = min(frcl,frnh4)                             ! nh4cl
@@ -3600,7 +3619,7 @@ module mod_che_isorropia
 !
     else if ( sc=='n' ) then
       molalr(4) = molal(5) + molal(6)             ! (nh4)2so4
-      aml5 = waer(3) - 2.D0*molalr(4)             ! "free" nh4
+      aml5 = waer(3) - 2._rkx*molalr(4)             ! "free" nh4
       molalr(5) = max(min(aml5,waer(4)),zero)      ! nh4no3 = min("free", no3)
 !
 !   *** nh4-so4-no3-na-cl system ; sulfate poor , sodium poor case
@@ -3701,10 +3720,10 @@ module mod_che_isorropia
       subroutine liqcase
       end subroutine liqcase
     end interface
-    real(rk8) :: clco , cna2so , cnaclo , cnahso , cnano , cnh42so , cnh4clo , &
+    real(rkx) :: clco , cna2so , cnaclo , cnahso , cnano , cnh42so , cnh4clo , &
          cnh4hso , cnh4n3o , dambis , damchl , damg , damnit , damsul ,   &
          dhag , dlc , dnag , dsobis , dsochl , dsonit
-    real(rk8) :: dsosul , ghclo , ghno3o , gnh3o , onemwf , rhdry , rhi , &
+    real(rkx) :: dsosul , ghclo , ghno3o , gnh3o , onemwf , rhdry , rhi , &
          rhliq , wf
     integer(ik4) :: i
 !
@@ -3713,7 +3732,7 @@ module mod_che_isorropia
     if ( wftyp==0 ) then
       wf = one
     else if ( wftyp==1 ) then
-      wf = 0.5D0
+      wf = 0.5_rkx
     else
       wf = (rhliq-rhi)/(rhliq-rhdry)
     end if
@@ -3722,7 +3741,7 @@ module mod_che_isorropia
 ! *** find first section ; dry one ************************************
 !
     call drycase
-    if ( abs(onemwf)>1D-5 ) then         ! dry aerosol
+    if ( abs(onemwf)>1e-5_rkx ) then         ! dry aerosol
 !
       cnh42so = cnh42s4                  ! first (dry) solution
       cnh4hso = cnh4hs4
@@ -3800,8 +3819,8 @@ module mod_che_isorropia
 !   liquid
 !
       molal(1) = onemwf*molal(1)                                 ! h+
-      molal(2) = onemwf*(2.D0*dsosul+dsobis+dsonit+dsochl)       ! na+
-      molal(3) = onemwf*(2.D0*damsul+damg+dambis+damchl+3.D0*dlc+damnit)
+      molal(2) = onemwf*(2._rkx*dsosul+dsobis+dsonit+dsochl)       ! na+
+      molal(3) = onemwf*(2._rkx*damsul+damg+dambis+damchl+3._rkx*dlc+damnit)
                                                                ! nh4+
       molal(4) = onemwf*(damchl+dsochl+dhag)                     ! cl-
       molal(5) = onemwf*(damsul+dsosul+dlc-molal(6))             ! so4-- !vb 17 sept 2001
@@ -3856,13 +3875,13 @@ module mod_che_isorropia
       subroutine liqcase
       end subroutine liqcase
     end interface
-    real(rk8) :: ccac2l , ccan32o , ccaso , ck2so , ckclo , ckhso , ckn3o , &
+    real(rkx) :: ccac2l , ccan32o , ccaso , ck2so , ckclo , ckhso , ckn3o , &
          clco , cmgc2l , cmgn32o , cmgso , cna2so , cnaclo , cnahso , cnano , &
          cnh42so , cnh4clo , cnh4hso , cnh4n3o , dambis
-    real(rk8) :: damchl , damg , damnit , damsul , dcachl , dcanit , dcasul , &
+    real(rkx) :: damchl , damg , damnit , damsul , dcachl , dcanit , dcasul , &
          dhag , dlc , dmgchl , dmgnit , dmgsul , dnag , dpobis , dpochl , &
          dponit , dposul , dsobis , dsochl , dsonit
-    real(rk8) :: dsosul , ghclo , ghno3o , gnh3o , onemwf , rhdry , rhi , &
+    real(rkx) :: dsosul , ghclo , ghno3o , gnh3o , onemwf , rhdry , rhi , &
          rhliq , wf
     integer(ik4) :: i
 !
@@ -3871,7 +3890,7 @@ module mod_che_isorropia
     if ( wftyp==0 ) then
       wf = one
     else if ( wftyp==1 ) then
-      wf = 0.5D0
+      wf = 0.5_rkx
     else
       wf = (rhliq-rhi)/(rhliq-rhdry)
     end if
@@ -3880,7 +3899,7 @@ module mod_che_isorropia
 ! *** find first section ; dry one ************************************
 !
     call drycase
-    if ( abs(onemwf)<=1D-5 ) return    ! dry aerosol
+    if ( abs(onemwf)<=1e-5_rkx ) return    ! dry aerosol
 !
     cnh42so = cnh42s4                    ! first (dry) solution
     cnh4hso = cnh4hs4
@@ -4004,18 +4023,18 @@ module mod_che_isorropia
 ! liquid
 !
     molal(1) = onemwf*molal(1)                                       ! h+
-    molal(2) = onemwf*(2.D0*dsosul+dsobis+dsonit+dsochl)             ! na+
-    molal(3) = onemwf*(2.D0*damsul+damg+dambis+damchl+3.D0*dlc+damnit)
+    molal(2) = onemwf*(2._rkx*dsosul+dsobis+dsonit+dsochl)             ! na+
+    molal(3) = onemwf*(2._rkx*damsul+damg+dambis+damchl+3._rkx*dlc+damnit)
                                                                     ! nh4+
-    molal(4) = onemwf*(damchl+dsochl+dhag+2.D0*dcachl+2.D0*dmgchl+dpochl)
+    molal(4) = onemwf*(damchl+dsochl+dhag+2._rkx*dcachl+2._rkx*dmgchl+dpochl)
                                                                      ! cl-
     molal(5) = onemwf*(damsul+dsosul+dlc-molal(6)+dcasul+dposul+dmgsul)
                                                                     ! so4-- !vb 17 sept 2001
     molal(6) = onemwf*(molal(6)+dsobis+dambis+dlc+dpobis)            ! hso4-
-    molal(7) = onemwf*(damnit+dsonit+dnag+2.D0*dcanit+2.D0*dmgnit+dponit)
+    molal(7) = onemwf*(damnit+dsonit+dnag+2._rkx*dcanit+2._rkx*dmgnit+dponit)
                                                                     ! no3-
     molal(8) = onemwf*(dcasul+dcanit+dcachl)                         ! ca2+
-    molal(9) = onemwf*(2.D0*dposul+dponit+dpochl+dpobis)             ! k+
+    molal(9) = onemwf*(2._rkx*dposul+dponit+dpochl+dpobis)             ! k+
     molal(10) = onemwf*(dmgsul+dmgnit+dmgchl)                         ! mg2+
     water = onemwf*water
 !
@@ -4077,10 +4096,10 @@ module mod_che_isorropia
       subroutine liqcase
       end subroutine liqcase
     end interface
-    real(rk8) :: a2 , a3 , a4 , a8 , clco , cna2so , cnaclo , cnahso , cnano , &
+    real(rkx) :: a2 , a3 , a4 , a8 , clco , cna2so , cnaclo , cnahso , cnano , &
          cnh42so , cnh4clo , cnh4hso , cnh4n3o , dambis , dlc , dsobis ,  &
          hien , hieq , onemwf , rhdry
-    real(rk8) :: rhi , rhliq , wf
+    real(rkx) :: rhi , rhliq , wf
     integer(ik4) :: i
 !
 ! *** find weight factor **********************************************
@@ -4088,7 +4107,7 @@ module mod_che_isorropia
     if ( wftyp==0 ) then
       wf = one
     else if ( wftyp==1 ) then
-      wf = 0.5D0
+      wf = 0.5_rkx
     else
       wf = (rhliq-rhi)/(rhliq-rhdry)
     end if
@@ -4097,7 +4116,7 @@ module mod_che_isorropia
 ! *** find first section ; dry one ************************************
 !
     call drycase
-    if ( abs(onemwf)>1D-5 ) then         ! dry aerosol
+    if ( abs(onemwf)>1e-5_rkx ) then         ! dry aerosol
 !
       cnh42so = cnh42s4              ! first (dry) solution
       cnh4hso = cnh4hs4
@@ -4160,9 +4179,9 @@ module mod_che_isorropia
 !
       water = onemwf*water
 !
-      molal(2) = waer(1) - 2.D0*cna2so4 - cnahso4 - cnano3 - cnacl
+      molal(2) = waer(1) - 2._rkx*cna2so4 - cnahso4 - cnano3 - cnacl
                                                                ! na+
-      molal(3) = waer(3) - 2.D0*cnh42s4 - cnh4hs4 - cnh4cl - 3.D0*clc -   &
+      molal(3) = waer(3) - 2._rkx*cnh42s4 - cnh4hs4 - cnh4cl - 3._rkx*clc -   &
                  cnh4no3                                       ! nh4+
       molal(4) = waer(5) - cnacl - cnh4cl                        ! cl-
       molal(7) = waer(4) - cnano3 - cnh4no3                      ! no3-
@@ -4175,7 +4194,7 @@ module mod_che_isorropia
       else
         hieq = a8*molal(6)/molal(5)
       end if
-      hien = molal(4) + molal(7) + molal(6) + 2.D0*molal(5) - molal(2)    &
+      hien = molal(4) + molal(7) + molal(6) + 2._rkx*molal(5) - molal(2)    &
              - molal(3)
       molal(1) = max(hieq,hien)                                   ! h+
 !
@@ -4219,10 +4238,10 @@ module mod_che_isorropia
       subroutine liqcase
       end subroutine liqcase
     end interface
-    real(rk8) :: a2 , a3 , a4 , a8 , ccac2l , ccan32o , ccaso , ck2so , ckclo ,&
+    real(rkx) :: a2 , a3 , a4 , a8 , ccac2l , ccan32o , ccaso , ck2so , ckclo ,&
          ckhso , ckn3o , clco , cmgc2l , cmgn32o , cmgso , cna2so ,       &
          cnaclo , cnahso , cnano , cnh42so
-    real(rk8) :: cnh4clo , cnh4hso , cnh4n3o , dambis , dlc , dpobis , &
+    real(rkx) :: cnh4clo , cnh4hso , cnh4n3o , dambis , dlc , dpobis , &
          dsobis , hien , hieq , onemwf , rhdry , rhi , rhliq , wf
     integer(ik4) :: i
 !
@@ -4231,7 +4250,7 @@ module mod_che_isorropia
     if ( wftyp==0 ) then
       wf = one
     else if ( wftyp==1 ) then
-      wf = 0.5D0
+      wf = 0.5_rkx
     else
       wf = (rhliq-rhi)/(rhliq-rhdry)
     end if
@@ -4240,7 +4259,7 @@ module mod_che_isorropia
 ! *** find first section ; dry one ************************************
 !
     call drycase
-    if ( abs(onemwf)<=1D-5 ) return   ! dry aerosol
+    if ( abs(onemwf)<=1e-5_rkx ) return   ! dry aerosol
 !
     cnh42so = cnh42s4                ! first (dry) solution
     cnh4hso = cnh4hs4
@@ -4337,18 +4356,18 @@ module mod_che_isorropia
 !
     water = onemwf*water
 !
-    molal(2) = waer(1) - 2.D0*cna2so4 - cnahso4 - cnano3 - cnacl     ! na+
-    molal(3) = waer(3) - 2.D0*cnh42s4 - cnh4hs4 - cnh4cl - 3.D0*clc -     &
+    molal(2) = waer(1) - 2._rkx*cna2so4 - cnahso4 - cnano3 - cnacl     ! na+
+    molal(3) = waer(3) - 2._rkx*cnh42s4 - cnh4hs4 - cnh4cl - 3._rkx*clc -     &
                cnh4no3                                               ! nh4+
-    molal(4) = waer(5) - cnacl - cnh4cl - 2.D0*ccacl2 - 2.D0*cmgcl2 - ckcl
+    molal(4) = waer(5) - cnacl - cnh4cl - 2._rkx*ccacl2 - 2._rkx*cmgcl2 - ckcl
                                                                      ! cl-
-    molal(7) = waer(4) - cnano3 - cnh4no3 - ckno3 - 2.D0*ccano32 -        &
-               2.D0*cmgno32                                          ! no3-
+    molal(7) = waer(4) - cnano3 - cnh4no3 - ckno3 - 2._rkx*ccano32 -        &
+               2._rkx*cmgno32                                          ! no3-
     molal(6) = onemwf*(molal(6)+dsobis+dambis+dlc+dpobis)              ! hso4-
     molal(5) = waer(2) - molal(6) - clc - cnh42s4 - cna2so4 - ccaso4 -    &
                ck2so4 - cmgso4                                       ! so4--
     molal(8) = waer(6) - ccaso4 - ccano32 - ccacl2                     ! ca++
-    molal(9) = waer(7) - 2.D0*ck2so4 - ckno3 - ckcl - ckhso4           ! k+
+    molal(9) = waer(7) - 2._rkx*ck2so4 - ckno3 - ckcl - ckhso4           ! k+
     molal(10) = waer(8) - cmgso4 - cmgno32 - cmgcl2                     ! mg++
 !
     a8 = xk1*water/gama(7)*(gama(8)/gama(7))**2.
@@ -4357,7 +4376,7 @@ module mod_che_isorropia
     else
       hieq = a8*molal(6)/molal(5)
     end if
-    hien = molal(4) + molal(7) + molal(6) + 2.D0*molal(5) - molal(2)      &
+    hien = molal(4) + molal(7) + molal(6) + 2._rkx*molal(5) - molal(2)      &
            - molal(3)
     molal(1) = max(hieq,hien)                                           ! h+
 !
@@ -4389,7 +4408,7 @@ module mod_che_isorropia
   subroutine calchs4(hi,so4i,hso4i,delta)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a8 , bb , cc , dd , delta , delta1 , delta2 , hi , &
+    real(rkx) :: a8 , bb , cc , dd , delta , delta1 , delta2 , hi , &
          hso4i , so4i , sqdd
 !
 ! *** if too little water , dont solve
@@ -4405,12 +4424,12 @@ module mod_che_isorropia
 !
     bb = -(hi+so4i+a8)
     cc = hi*so4i - hso4i*a8
-    dd = bb*bb - 4.D0*cc
+    dd = bb*bb - 4._rkx*cc
 !
     if ( dd>=zero ) then
       sqdd = sqrt(dd)
-      delta1 = 0.5D0*(-bb+sqdd)
-      delta2 = 0.5D0*(-bb-sqdd)
+      delta1 = 0.5_rkx*(-bb+sqdd)
+      delta2 = 0.5_rkx*(-bb-sqdd)
       if ( hso4i<=tiny1 ) then
         delta = delta2
       else if ( hi*so4i>=a8*hso4i ) then
@@ -4451,7 +4470,7 @@ module mod_che_isorropia
   subroutine calcph(gg,hi,ohi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: akw , bb , cc , cn , dd , gg , hi , ohi
+    real(rkx) :: akw , bb , cc , cn , dd , gg , hi , ohi
 !
     akw = xkw*rh*water*water
     cn = sqrt(akw)
@@ -4461,14 +4480,14 @@ module mod_che_isorropia
     if ( gg>tiny1 ) then                          ! h+ in excess
       bb = -gg
       cc = -akw
-      dd = bb*bb - 4.D0*cc
-      hi = max(0.5D0*(-bb+sqrt(dd)),cn)
+      dd = bb*bb - 4._rkx*cc
+      hi = max(0.5_rkx*(-bb+sqrt(dd)),cn)
       ohi = akw/hi
     else                                          ! oh- in excess
       bb = gg
       cc = -akw
-      dd = bb*bb - 4.D0*cc
-      ohi = max(0.5D0*(-bb+sqrt(dd)),cn)
+      dd = bb*bb - 4._rkx*cc
+      ohi = max(0.5_rkx*(-bb+sqrt(dd)),cn)
       hi = akw/ohi
     end if
   end subroutine calcph
@@ -4524,14 +4543,14 @@ module mod_che_isorropia
   subroutine calcact4
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: errin , errou
+    real(rkx) :: errin , errou
     integer(ik4) :: i , j
-    real(rk8) , dimension(6,4) :: g0
-    real(rk8) , dimension(6) :: f1
-    real(rk8) , dimension(4) :: f2a , f2b
-    real(rk8) :: zpl , zmi , agama , sion , h , ch
-    real(rk8) :: mpl , xij , yji
-    data g0/24*0D0/
+    real(rkx) , dimension(6,4) :: g0
+    real(rkx) , dimension(6) :: f1
+    real(rkx) , dimension(4) :: f2a , f2b
+    real(rkx) :: zpl , zmi , agama , sion , h , ch
+    real(rkx) :: mpl , xij , yji
+    data g0/24*0_rkx/
 !
 ! *** save activities in old array *************************************
 !
@@ -4551,7 +4570,7 @@ module mod_che_isorropia
     do i = 1 , nions
       ionic = ionic + molal(i)*z(i)*z(i)
     end do
-    ionic = max(min(0.5D0*ionic/water,100.D0),tiny1)
+    ionic = max(min(0.5_rkx*ionic/water,100._rkx),tiny1)
 !
 ! *** calculate binary activity coefficients ***************************
 !
@@ -4559,12 +4578,12 @@ module mod_che_isorropia
 ! ,1)=g01;g0(2 ,2)=g02 & g02 ,3) = g12;g0(2 ,4)=g03;g0(3 ,1)=g06;g0(3
 ! ,2)=g04;g0(3 ,3)=g09;g0(3 ,4)=g05
     if ( iacalc==0 ) then                ! k.m.; full
-      call kmful4(ionic,dble(temp),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4)&
+      call kmful4(ionic,real(temp,rkx),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4)&
                   ,g0(3,1),g0(1,2),g0(1,3),g0(3,3),g0(1,4),g0(1,1),g0(2,3)&
                   ,g0(4,4),g0(4,1),g0(5,2),g0(5,3),g0(5,4),g0(5,1),g0(6,2)&
                   ,g0(6,4),g0(6,1))
     else                                 ! k.m.; tabulated
-      call kmtab(ionic,dble(temp),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4),&
+      call kmtab(ionic,real(temp,rkx),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4),&
                  g0(3,1),g0(1,2),g0(1,3),g0(3,3),g0(1,4),g0(1,1),g0(2,3), &
                  g0(4,4),g0(4,1),g0(5,2),g0(5,3),g0(5,4),g0(5,1),g0(6,2), &
                  g0(6,4),g0(6,1))
@@ -4589,11 +4608,11 @@ module mod_che_isorropia
       mpl = molal(i)/water
       do j = 1 , 4
         zmi = z(j+3)
-        ch = 0.25D0*(zpl+zmi)*(zpl+zmi)/ionic
+        ch = 0.25_rkx*(zpl+zmi)*(zpl+zmi)/ionic
         xij = ch*mpl
         yji = ch*molal(j+3)/water
-        f1(i) = f1(i) + dble(yji*(g0(i,j)+zpl*zmi*h))
-        f2a(j) = f2a(j) + dble(xij*(g0(i,j)+zpl*zmi*h))
+        f1(i) = f1(i) + real(yji*(g0(i,j)+zpl*zmi*h),rkx)
+        f2a(j) = f2a(j) + real(xij*(g0(i,j)+zpl*zmi*h),rkx)
       end do
     end do
 !
@@ -4605,11 +4624,11 @@ module mod_che_isorropia
         if ( j==3 ) then
           if ( i==4 .or. i==6 ) go to 100
         end if
-        ch = 0.25D0*(zpl+zmi)*(zpl+zmi)/ionic
+        ch = 0.25_rkx*(zpl+zmi)*(zpl+zmi)/ionic
         xij = ch*mpl
         yji = ch*molal(j+3)/water
-        f1(i) = f1(i) + dble(yji*(g0(i,j)+zpl*zmi*h))
-        f2b(j) = f2b(j) + dble(xij*(g0(i,j)+zpl*zmi*h))
+        f1(i) = f1(i) + real(yji*(g0(i,j)+zpl*zmi*h),rkx)
+        f2b(j) = f2b(j) + real(xij*(g0(i,j)+zpl*zmi*h),rkx)
       end do
     end do
 !
@@ -4630,8 +4649,8 @@ module mod_che_isorropia
     gama(12) = ga(2,3)*zz(12)                    ! nahso4
     gama(13) = 0.20*(3.0*gama(04)+2.0*gama(09))  ! lc ; scape
 ! gama(13) = 0.50*(gama(04)+gama(09))            ! lc ; sequilib
-! gama(13) = 0.25D0*(3.0*gama(04)+gama(07))      ! lc ; aim
-    gama(14) = 0.0D0                             ! caso4
+! gama(13) = 0.25_rkx*(3.0*gama(04)+gama(07))      ! lc ; aim
+    gama(14) = 0.0_rkx                             ! caso4
     gama(15) = gb(4,4)*zz(15)                    ! ca(no3)2
     gama(16) = gb(4,1)*zz(16)                    ! cacl2
     gama(17) = gb(5,2)*zz(17)                    ! k2so4
@@ -4645,9 +4664,9 @@ module mod_che_isorropia
 ! *** convert log (gama) coefficients to gama **************************
 !
     do i = 1 , npair
-      gama(i) = max(-5.0D0,min(gama(i),5.0D0))       ! f77 library routine
+      gama(i) = max(-5.0_rkx,min(gama(i),5.0_rkx))       ! f77 library routine
       gama(i) = 10.0**gama(i)
-!   gama(i) = ex10(dble(gama(i)), 5.0)    ! cutoff set to [-5 ,5]
+!   gama(i) = ex10(real(gama(i),rkx), 5.0)    ! cutoff set to [-5 ,5]
     end do
 !
 ! *** setup activity calculation flags ********************************
@@ -4674,12 +4693,12 @@ module mod_che_isorropia
     iclact = iclact + 1                  ! increment activity call counter
 
     contains
-      real(rk8) function ga(i,j)
+      real(rkx) function ga(i,j)
         implicit none
         integer(ik4) , intent(in) :: i , j
         ga = (f1(i)/z(i)+f2a(j)/z(j+3))/(z(i)+z(j+3)) - h
       end function ga
-      real(rk8) function gb(i,j)
+      real(rkx) function gb(i,j)
         implicit none
         integer(ik4) , intent(in) :: i , j
         gb = (f1(i)/z(i+4)+f2b(j)/z(j+3))/(z(i+4)+z(j+3)) - h
@@ -4705,13 +4724,13 @@ module mod_che_isorropia
   subroutine calcact3
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: errin , errou
+    real(rkx) :: errin , errou
     integer(ik4) :: i , j
-    real(rk8) , dimension(6,4) :: g0
-    real(rk8) , dimension(3) ::  f1
-    real(rk8) , dimension(4) ::  f2
-    real(rk8) :: zpl , zmi , agama , sion , h , ch
-    real(rk8) :: mpl , xij , yji
+    real(rkx) , dimension(6,4) :: g0
+    real(rkx) , dimension(3) ::  f1
+    real(rkx) , dimension(4) ::  f2
+    real(rkx) :: zpl , zmi , agama , sion , h , ch
+    real(rkx) :: mpl , xij , yji
 !
 ! *** save activities in old array *************************************
 !
@@ -4731,7 +4750,7 @@ module mod_che_isorropia
     do i = 1 , 7
       ionic = ionic + molal(i)*z(i)*z(i)
     end do
-    ionic = max(min(0.5D0*ionic/water,100.D0),tiny1)
+    ionic = max(min(0.5_rkx*ionic/water,100._rkx),tiny1)
 !
 ! *** calculate binary activity coefficients ***************************
 !
@@ -4739,11 +4758,11 @@ module mod_che_isorropia
 ! ,1)=g01;g0(2 ,2)=g02 & g02 ,3) = g12;g0(2 ,4)=g03;g0(3 ,1)=g06;g0(3
 ! ,2)=g04;g0(3 ,3)=g09;g0(3 ,4)=g05
     if ( iacalc==0 ) then                ! k.m.; full
-      call kmful3(ionic,dble(temp),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4)&
+      call kmful3(ionic,real(temp,rkx),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4)&
                   ,g0(3,1),g0(1,2),g0(1,3),g0(3,3),g0(1,4),g0(1,1),g0(2,3)&
                   )
     else                                 ! k.m.; tabulated
-      call kmtab(ionic,dble(temp),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4),&
+      call kmtab(ionic,real(temp,rkx),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4),&
                  g0(3,1),g0(1,2),g0(1,3),g0(3,3),g0(1,4),g0(1,1),g0(2,3), &
                  g0(4,4),g0(4,1),g0(5,2),g0(5,3),g0(5,4),g0(5,1),g0(6,2), &
                  g0(6,4),g0(6,1))
@@ -4766,11 +4785,11 @@ module mod_che_isorropia
       mpl = molal(i)/water
       do j = 1 , 4
         zmi = z(j+3)
-        ch = 0.25D0*(zpl+zmi)*(zpl+zmi)/ionic
+        ch = 0.25_rkx*(zpl+zmi)*(zpl+zmi)/ionic
         xij = ch*mpl
         yji = ch*molal(j+3)/water
-        f1(i) = f1(i) + dble(yji*(g0(i,j)+zpl*zmi*h))
-        f2(j) = f2(j) + dble(xij*(g0(i,j)+zpl*zmi*h))
+        f1(i) = f1(i) + real(yji*(g0(i,j)+zpl*zmi*h),rkx)
+        f2(j) = f2(j) + real(xij*(g0(i,j)+zpl*zmi*h),rkx)
       end do
     end do
 !
@@ -4788,18 +4807,18 @@ module mod_che_isorropia
     gama(10) = g(1,4)*zz(10)                        ! hno3
     gama(11) = g(1,1)*zz(11)                        ! hcl
     gama(12) = g(2,3)*zz(12)                        ! nahso4
-    gama(13) = 0.20D0*(3.0D0*gama(04)+2.0D0*gama(09))  ! lc ; scape
-! gama(13) = 0.50D0*(gama(04)+gama(09))          ! lc ; sequilib
-! gama(13) = 0.25D0*(3.0D0*gama(04)+gama(07))      ! lc ; aim
+    gama(13) = 0.20_rkx*(3.0_rkx*gama(04)+2.0_rkx*gama(09))  ! lc ; scape
+! gama(13) = 0.50_rkx*(gama(04)+gama(09))          ! lc ; sequilib
+! gama(13) = 0.25_rkx*(3.0_rkx*gama(04)+gama(07))      ! lc ; aim
 !
 ! *** convert log (gama) coefficients to gama **************************
 !
     do i = 1 , 13
-      gama(i) = max(-5.0D0,min(gama(i),5.0D0))       ! f77 library routine
-      gama(i) = 10.0D0**gama(i)
+      gama(i) = max(-5.0_rkx,min(gama(i),5.0_rkx))       ! f77 library routine
+      gama(i) = 10.0_rkx**gama(i)
 !     gama(i) = exp(ln10*gama(i))
-!     gama(i) = ex10(dble(gama(i)), 5.0D0)    ! cutoff set to [-5 ,5]
-!     gama(i) = gamin(i)*(1.0D0-urf) + urf*gama(i)  ! under-relax gama's
+!     gama(i) = ex10(real(gama(i),rkx), 5.0_rkx)    ! cutoff set to [-5 ,5]
+!     gama(i) = gamin(i)*(1.0_rkx-urf) + urf*gama(i)  ! under-relax gama's
     end do
 !
 ! *** setup activity calculation flags *********************************
@@ -4825,7 +4844,7 @@ module mod_che_isorropia
 !
     iclact = iclact + 1                  ! increment activity call counter
     contains
-      real(rk8) function g(i,j)
+      real(rkx) function g(i,j)
         implicit none
         integer(ik4) , intent(in) :: i , j
         g = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
@@ -4851,13 +4870,13 @@ module mod_che_isorropia
   subroutine calcact2
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: errin , errou
+    real(rkx) :: errin , errou
     integer(ik4) :: i , j
-    real(rk8) , dimension(6,4) :: g0
-    real(rk8) , dimension(3) :: f1
-    real(rk8) , dimension(4) :: f2
-    real(rk8) :: zpl , zmi , agama , sion , h , ch
-    real(rk8) :: mpl , xij , yji
+    real(rkx) , dimension(6,4) :: g0
+    real(rkx) , dimension(3) :: f1
+    real(rkx) , dimension(4) :: f2
+    real(rkx) :: zpl , zmi , agama , sion , h , ch
+    real(rkx) :: mpl , xij , yji
 !
 ! *** save activities in old array *************************************
 !
@@ -4885,7 +4904,7 @@ module mod_che_isorropia
     do i = 1 , 7
       ionic = ionic + molal(i)*z(i)*z(i)
     end do
-    ionic = max(min(0.5D0*ionic/water,100.D0),tiny1)
+    ionic = max(min(0.5_rkx*ionic/water,100._rkx),tiny1)
 !
 ! *** calculate binary activity coefficients ***************************
 !
@@ -4893,10 +4912,10 @@ module mod_che_isorropia
 ! ,1)=g01;g0(2 ,2)=g02 & g02 ,3) = g12;g0(2 ,4)=g03;g0(3 ,1)=g06;g0(3
 ! ,2)=g04;g0(3 ,3)=g09;g0(3 ,4)=g05
     if ( iacalc==0 ) then                ! k.m.; full
-      call kmful2(ionic,dble(temp),g0(3,2),g0(3,4),g0(1,2),g0(1,3),g0(3,3)&
+      call kmful2(ionic,real(temp,rkx),g0(3,2),g0(3,4),g0(1,2),g0(1,3),g0(3,3)&
                   ,g0(1,4))
     else                                 ! k.m.; tabulated
-      call kmtab(ionic,dble(temp),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4),&
+      call kmtab(ionic,real(temp,rkx),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4),&
                  g0(3,1),g0(1,2),g0(1,3),g0(3,3),g0(1,4),g0(1,1),g0(2,3), &
                  g0(4,4),g0(4,1),g0(5,2),g0(5,3),g0(5,4),g0(5,1),g0(6,2), &
                  g0(6,4),g0(6,1))
@@ -4919,11 +4938,11 @@ module mod_che_isorropia
       mpl = molal(i)/water
       do j = 2 , 4
         zmi = z(j+3)
-        ch = 0.25D0*(zpl+zmi)*(zpl+zmi)/ionic
+        ch = 0.25_rkx*(zpl+zmi)*(zpl+zmi)/ionic
         xij = ch*mpl
         yji = ch*molal(j+3)/water
-        f1(i) = f1(i) + dble(yji*(g0(i,j)+zpl*zmi*h))
-        f2(j) = f2(j) + dble(xij*(g0(i,j)+zpl*zmi*h))
+        f1(i) = f1(i) + real(yji*(g0(i,j)+zpl*zmi*h),rkx)
+        f2(j) = f2(j) + real(xij*(g0(i,j)+zpl*zmi*h),rkx)
       end do
     end do
 !
@@ -4943,34 +4962,34 @@ module mod_che_isorropia
 ! gama(12) = g(2 ,3)*zz(12)                     ! nahso4
     gama(13) = 0.20*(3.0*gama(04)+2.0*gama(09))    ! lc ; scape
 ! gama(13) = 0.50*(gama(04)+gama(09))          ! lc ; sequilib
-! gama(13) = 0.25D0*(3.0*gama(04)+gama(07))      ! lc ; aim
+! gama(13) = 0.25_rkx*(3.0*gama(04)+gama(07))      ! lc ; aim
 !
 ! *** convert log (gama) coefficients to gama **************************
 !
     do i = 7 , 10
-      gama(i) = max(-5.0D0,min(gama(i),5.0D0))       ! f77 library routine
+      gama(i) = max(-5.0_rkx,min(gama(i),5.0_rkx))       ! f77 library routine
       gama(i) = 10.0**gama(i)
 !   gama(i) = exp(ln10*gama(i))
-!   gama(i) = ex10(dble(gama(i)), 5.0)    ! cutoff set to [-5 ,5]
+!   gama(i) = ex10(real(gama(i),rkx), 5.0)    ! cutoff set to [-5 ,5]
 !   gama(i) = gamin(i)*(1.0-urf) + urf*gama(i)  ! under-relax gama's
     end do
 !
-    gama(4) = max(-5.0D0,min(gama(4),5.0D0))      ! f77 library routine
+    gama(4) = max(-5.0_rkx,min(gama(4),5.0_rkx))      ! f77 library routine
     gama(4) = 10.0**gama(4)
 ! gama(i) = exp(ln10*gama(i))
-! gama(i) = ex10(dble(gama(i)), 5.0)    ! cutoff set to [-5 ,5]
+! gama(i) = ex10(real(gama(i),rkx), 5.0)    ! cutoff set to [-5 ,5]
 ! gama(4) = gamin(4)*(1.0-urf) + urf*gama(4)  ! under-relax gama's
 !
-    gama(5) = max(-5.0D0,min(gama(5),5.0D0))      ! f77 library routine
+    gama(5) = max(-5.0_rkx,min(gama(5),5.0_rkx))      ! f77 library routine
     gama(5) = 10.0**gama(5)
 ! gama(i) = exp(ln10*gama(i))
-! gama(i) = ex10(dble(gama(i)), 5.0)    ! cutoff set to [-5 ,5]
+! gama(i) = ex10(real(gama(i),rkx), 5.0)    ! cutoff set to [-5 ,5]
 ! gama(5) = gamin(5)*(1.0-urf) + urf*gama(i)  ! under-relax gama's
 !
-    gama(13) = max(-5.0D0,min(gama(13),5.0D0))      ! f77 library routine
+    gama(13) = max(-5.0_rkx,min(gama(13),5.0_rkx))      ! f77 library routine
     gama(13) = 10.0**gama(13)
 ! gama(i) = exp(ln10*gama(i))
-! gama(i) = ex10(dble(gama(i)), 5.0)    ! cutoff set to [-5 ,5]
+! gama(i) = ex10(real(gama(i),rkx), 5.0)    ! cutoff set to [-5 ,5]
 ! gama(13) = gamin(13)*(1.0-urf) + urf*gama(13)  ! under-relax gama's
 !
 ! *** setup activity calculation flags *********************************
@@ -5003,7 +5022,7 @@ module mod_che_isorropia
 !
     iclact = iclact + 1                  ! increment activity call counter
     contains
-      real(rk8) function g(i,j)
+      real(rkx) function g(i,j)
         implicit none
         integer(ik4) , intent(in) :: i , j
         g = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
@@ -5029,13 +5048,13 @@ module mod_che_isorropia
   subroutine calcact1
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: errin , errou
+    real(rkx) :: errin , errou
     integer(ik4) :: i , j
-    real(rk8) , dimension(6,4) :: g0
-    real(rk8) , dimension(3) :: f1
-    real(rk8) , dimension(4) :: f2
-    real(rk8) :: zpl , zmi , agama , sion , h , ch
-    real(rk8) :: mpl , xij , yji
+    real(rkx) , dimension(6,4) :: g0
+    real(rkx) , dimension(3) :: f1
+    real(rkx) , dimension(4) :: f2
+    real(rkx) :: zpl , zmi , agama , sion , h , ch
+    real(rkx) :: mpl , xij , yji
 !
 ! *** save activities in old array *************************************
 !
@@ -5064,7 +5083,7 @@ module mod_che_isorropia
     do i = 1 , 7
       ionic = ionic + molal(i)*z(i)*z(i)
     end do
-    ionic = max(min(0.5D0*ionic/water,100.D0),tiny1)
+    ionic = max(min(0.5_rkx*ionic/water,100._rkx),tiny1)
 !
 ! *** calculate binary activity coefficients ***************************
 !
@@ -5072,9 +5091,9 @@ module mod_che_isorropia
 ! ,1)=g01;g0(2 ,2)=g02 & g02 ,3) = g12;g0(2 ,4)=g03;g0(3 ,1)=g06;g0(3
 ! ,2)=g04;g0(3 ,3)=g09;g0(3 ,4)=g05
     if ( iacalc==0 ) then                ! k.m.; full
-      call kmful1(ionic,dble(temp),g0(3,2),g0(1,2),g0(1,3))
+      call kmful1(ionic,real(temp,rkx),g0(3,2),g0(1,2),g0(1,3))
     else                                 ! k.m.; tabulated
-      call kmtab(ionic,dble(temp),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4),&
+      call kmtab(ionic,real(temp,rkx),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4),&
                  g0(3,1),g0(1,2),g0(1,3),g0(3,3),g0(1,4),g0(1,1),g0(2,3), &
                  g0(4,4),g0(4,1),g0(5,2),g0(5,3),g0(5,4),g0(5,1),g0(6,2), &
                  g0(6,4),g0(6,1))
@@ -5097,11 +5116,11 @@ module mod_che_isorropia
       mpl = molal(i)/water
       do j = 2 , 3
         zmi = z(j+3)
-        ch = 0.25D0*(zpl+zmi)*(zpl+zmi)/ionic
+        ch = 0.25_rkx*(zpl+zmi)*(zpl+zmi)/ionic
         xij = ch*mpl
         yji = ch*molal(j+3)/water
-        f1(i) = f1(i) + dble(yji*(g0(i,j)+zpl*zmi*h))
-        f2(j) = f2(j) + dble(xij*(g0(i,j)+zpl*zmi*h))
+        f1(i) = f1(i) + real(yji*(g0(i,j)+zpl*zmi*h),rkx)
+        f2(j) = f2(j) + real(xij*(g0(i,j)+zpl*zmi*h),rkx)
       end do
     end do
 !
@@ -5115,40 +5134,40 @@ module mod_che_isorropia
 ! gama(06) = g(3 ,1)*zz(06)                     ! nh4cl
     gama(07) = g(1,2)*zz(07)                        ! 2h-so4
     gama(08) = g(1,3)*zz(08)                        ! h-hso4
-    gama(09) = 0.5D0*(gama(04)+gama(07))             ! nh4hso4 ; aim (wexler & seinfeld , 1991)
+    gama(09) = 0.5_rkx*(gama(04)+gama(07))             ! nh4hso4 ; aim (wexler & seinfeld , 1991)
 ! gama(10) = g(1 ,4)*zz(10)                     ! hno3
 ! gama(11) = g(1 ,1)*zz(11)                     ! hcl
 ! gama(12) = g(2 ,3)*zz(12)                     ! nahso4
     gama(13) = 0.20*(3.0*gama(04)+2.0*gama(09))    ! lc ; scape
 ! gama(13) = 0.50*(gama(04)+gama(09))          ! lc ; sequilib
-! gama(13) = 0.25D0*(3.0*gama(04)+gama(07))      ! lc ; aim
+! gama(13) = 0.25_rkx*(3.0*gama(04)+gama(07))      ! lc ; aim
 !
 ! *** convert log (gama) coefficients to gama **************************
 !
     do i = 7 , 9
-      gama(i) = max(-5.0D0,min(gama(i),5.0D0))       ! f77 library routine
+      gama(i) = max(-5.0_rkx,min(gama(i),5.0_rkx))       ! f77 library routine
       gama(i) = 10.0**gama(i)
 !   gama(i) = exp(ln10*gama(i))
-!   gama(i) = ex10(dble(gama(i)), 5.0)    ! cutoff set to [-5 ,5]
+!   gama(i) = ex10(real(gama(i),rkx), 5.0)    ! cutoff set to [-5 ,5]
 !   gama(i) = gamin(i)*(1.0-urf) + urf*gama(i)  ! under-relax gama's
     end do
 !
-    gama(4) = max(-5.0D0,min(gama(4),5.0D0))      ! f77 library routine
+    gama(4) = max(-5.0_rkx,min(gama(4),5.0_rkx))      ! f77 library routine
     gama(4) = 10.0**gama(4)
 ! gama(i) = exp(ln10*gama(i))
-! gama(i) = ex10(dble(gama(i)), 5.0)    ! cutoff set to [-5 ,5]
+! gama(i) = ex10(real(gama(i),rkx), 5.0)    ! cutoff set to [-5 ,5]
 ! gama(4) = gamin(4)*(1.0-urf) + urf*gama(4)  ! under-relax gama's
 !
 ! gama(5) = max(-5.0d0 , min(gama(5),5.0d0) ) ! f77 library routine
 ! gama(5) = 10.0**gama(5)
 ! gama(i) = exp(ln10*gama(i))
-! gama(i) = ex10(dble(gama(i)), 5.0)    ! cutoff set to [-5 ,5]
+! gama(i) = ex10(real(gama(i),rkx), 5.0)    ! cutoff set to [-5 ,5]
 ! gama(5) = gamin(5)*(1.0-urf) + urf*gama(i)  ! under-relax gama's
 !
-    gama(13) = max(-5.0D0,min(gama(13),5.0D0))      ! f77 library routine
+    gama(13) = max(-5.0_rkx,min(gama(13),5.0_rkx))      ! f77 library routine
     gama(13) = 10.0**gama(13)
 ! gama(i) = exp(ln10*gama(i))
-! gama(i) = ex10(dble(gama(i)), 5.0)    ! cutoff set to [-5 ,5]
+! gama(i) = ex10(real(gama(i),rkx), 5.0)    ! cutoff set to [-5 ,5]
 ! gama(13) = gamin(13)*(1.0-urf) + urf*gama(13)  ! under-relax gama's
 !
 ! *** setup activity calculation flags *********************************
@@ -5181,7 +5200,7 @@ module mod_che_isorropia
 !
     iclact = iclact + 1                  ! increment activity call counter
     contains
-      real(rk8) function g(i,j)
+      real(rkx) function g(i,j)
         integer(ik4) , intent(in) :: i , j
         g = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
       end function g
@@ -5205,7 +5224,7 @@ module mod_che_isorropia
     implicit none
     integer(ik4) :: i
     do i = 1 , npair
-      gama(i) = 0.1D0
+      gama(i) = 0.1_rkx
     end do
   end subroutine rstgam
 !
@@ -5227,49 +5246,49 @@ module mod_che_isorropia
   subroutine kmful4(ionic,temp,g01,g02,g03,g04,g05,g06,g07,g08,g09,g10, &
                     g11,g12,g15,g16,g17,g18,g19,g20,g21,g22,g23)
     implicit none
-    real(rk8) :: cf1 , cf2 , g01 , g02 , g03 , g04 , g05 , g06 , g07 , g08 , &
+    real(rkx) :: cf1 , cf2 , g01 , g02 , g03 , g04 , g05 , g06 , g07 , g08 , &
          g09 , g10 , g11 , g12 , g15 , g16 , g17 , g18 , g19 , g20
-    real(rk8) :: g21 , g22 , g23 , sion , tc , ti , z01 , z02 , z03 , z04 , &
+    real(rkx) :: g21 , g22 , g23 , sion , tc , ti , z01 , z02 , z03 , z04 , &
          z05 , z06 , z07 , z08 , z10 , z11 , z15 , z16 , z17 , z19
-    real(rk8) :: z20 , z21 , z22 , z23
-    real(rk8) :: ionic , temp
+    real(rkx) :: z20 , z21 , z22 , z23
+    real(rkx) :: ionic , temp
     data z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10 , z11 , z15 ,&
          z16 , z17 , z19 , z20 , z21 , z22 , z23 &
-         /1.0D0 , 2.0D0 , 1.0D0 , 2.0D0 , 1.0D0 , 1.0D0 , 2.0D0 , 1.0D0 , &
-         1.0D0 , 1.0D0 , 2.0D0 ,  2.0D0 , 2.0D0 , 1.0D0 , 1.0D0 , 4.0D0 , &
-         2.0D0 , 2.0D0/
+         /1.0_rkx , 2.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , &
+         1.0_rkx , 1.0_rkx , 2.0_rkx ,  2.0_rkx , 2.0_rkx , 1.0_rkx , 1.0_rkx , 4.0_rkx , &
+         2.0_rkx , 2.0_rkx/
 !
     sion = sqrt(ionic)
 !
 ! *** coefficients at 25 oc
 !
-    call mkbi(2.230D0,ionic,sion,z01,g01)
-    call mkbi(-0.19D0,ionic,sion,z02,g02)
-    call mkbi(-0.39D0,ionic,sion,z03,g03)
-    call mkbi(-0.25D0,ionic,sion,z04,g04)
-    call mkbi(-1.15D0,ionic,sion,z05,g05)
-    call mkbi(0.820D0,ionic,sion,z06,g06)
-    call mkbi(-.100D0,ionic,sion,z07,g07)
-    call mkbi(8.000D0,ionic,sion,z08,g08)
-    call mkbi(2.600D0,ionic,sion,z10,g10)
-    call mkbi(6.000D0,ionic,sion,z11,g11)
-    call mkbi(0.930D0,ionic,sion,z15,g15)
-    call mkbi(2.400D0,ionic,sion,z16,g16)
-    call mkbi(-0.25D0,ionic,sion,z17,g17)
-    call mkbi(-2.33D0,ionic,sion,z19,g19)
-    call mkbi(0.920D0,ionic,sion,z20,g20)
-    call mkbi(0.150D0,ionic,sion,z21,g21)
-    call mkbi(2.320D0,ionic,sion,z22,g22)
-    call mkbi(2.900D0,ionic,sion,z23,g23)
+    call mkbi(2.230_rkx,ionic,sion,z01,g01)
+    call mkbi(-0.19_rkx,ionic,sion,z02,g02)
+    call mkbi(-0.39_rkx,ionic,sion,z03,g03)
+    call mkbi(-0.25_rkx,ionic,sion,z04,g04)
+    call mkbi(-1.15_rkx,ionic,sion,z05,g05)
+    call mkbi(0.820_rkx,ionic,sion,z06,g06)
+    call mkbi(-.100_rkx,ionic,sion,z07,g07)
+    call mkbi(8.000_rkx,ionic,sion,z08,g08)
+    call mkbi(2.600_rkx,ionic,sion,z10,g10)
+    call mkbi(6.000_rkx,ionic,sion,z11,g11)
+    call mkbi(0.930_rkx,ionic,sion,z15,g15)
+    call mkbi(2.400_rkx,ionic,sion,z16,g16)
+    call mkbi(-0.25_rkx,ionic,sion,z17,g17)
+    call mkbi(-2.33_rkx,ionic,sion,z19,g19)
+    call mkbi(0.920_rkx,ionic,sion,z20,g20)
+    call mkbi(0.150_rkx,ionic,sion,z21,g21)
+    call mkbi(2.320_rkx,ionic,sion,z22,g22)
+    call mkbi(2.900_rkx,ionic,sion,z23,g23)
 !
 ! *** correct for t other than 298 k
 !
-    ti = temp - 273.0D0
-    tc = ti - 25.0D0
-    if ( abs(tc)>1.0D0 ) then
-      cf1 = 1.125D0 - 0.005D0*ti
-      cf2 = (0.125D0-0.005D0*ti)                                          &
-            *(0.039D0*ionic**0.92D0-0.41D0*sion/(1.0D0+sion))
+    ti = temp - 273.0_rkx
+    tc = ti - 25.0_rkx
+    if ( abs(tc)>1.0_rkx ) then
+      cf1 = 1.125_rkx - 0.005_rkx*ti
+      cf2 = (0.125_rkx-0.005_rkx*ti)                                          &
+            *(0.039_rkx*ionic**0.92_rkx-0.41_rkx*sion/(1.0_rkx+sion))
       g01 = cf1*g01 - cf2*z01
       g02 = cf1*g02 - cf2*z02
       g03 = cf1*g03 - cf2*z03
@@ -5311,37 +5330,37 @@ module mod_che_isorropia
   subroutine kmful3(ionic,temp,g01,g02,g03,g04,g05,g06,g07,g08,g09,g10, &
                       g11,g12)
     implicit none
-    real(rk8) :: cf1 , cf2 , g01 , g02 , g03 , g04 , g05 , g06 , g07 , g08 , &
+    real(rkx) :: cf1 , cf2 , g01 , g02 , g03 , g04 , g05 , g06 , g07 , g08 , &
          g09 , g10 , g11 , g12 , sion , tc , ti , z01 , z02 , z03
-    real(rk8) :: z04 , z05 , z06 , z07 , z08 , z10 , z11
-    real(rk8) :: ionic , temp
+    real(rkx) :: z04 , z05 , z06 , z07 , z08 , z10 , z11
+    real(rkx) :: ionic , temp
     data z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10 , z11 &
-      /1.0D0 , 2.0D0 , 1.0D0 , 2.0D0 , 1.0D0 , 1.0D0 , 2.0D0 , 1.0D0 , &
-       1.0D0 , 1.0D0/
+      /1.0_rkx , 2.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , &
+       1.0_rkx , 1.0_rkx/
 !
     sion = sqrt(ionic)
 !
 ! *** coefficients at 25 oc
 !
-    call mkbi(2.230D0,ionic,sion,z01,g01)
-    call mkbi(-0.19D0,ionic,sion,z02,g02)
-    call mkbi(-0.39D0,ionic,sion,z03,g03)
-    call mkbi(-0.25D0,ionic,sion,z04,g04)
-    call mkbi(-1.15D0,ionic,sion,z05,g05)
-    call mkbi(0.820D0,ionic,sion,z06,g06)
-    call mkbi(-.100D0,ionic,sion,z07,g07)
-    call mkbi(8.000D0,ionic,sion,z08,g08)
-    call mkbi(2.600D0,ionic,sion,z10,g10)
-    call mkbi(6.000D0,ionic,sion,z11,g11)
+    call mkbi(2.230_rkx,ionic,sion,z01,g01)
+    call mkbi(-0.19_rkx,ionic,sion,z02,g02)
+    call mkbi(-0.39_rkx,ionic,sion,z03,g03)
+    call mkbi(-0.25_rkx,ionic,sion,z04,g04)
+    call mkbi(-1.15_rkx,ionic,sion,z05,g05)
+    call mkbi(0.820_rkx,ionic,sion,z06,g06)
+    call mkbi(-.100_rkx,ionic,sion,z07,g07)
+    call mkbi(8.000_rkx,ionic,sion,z08,g08)
+    call mkbi(2.600_rkx,ionic,sion,z10,g10)
+    call mkbi(6.000_rkx,ionic,sion,z11,g11)
 !
 ! *** correct for t other than 298 k
 !
-    ti = temp - 273.0D0
-    tc = ti - 25.0D0
-    if ( abs(tc)>1.0D0 ) then
-      cf1 = 1.125D0 - 0.005D0*ti
-      cf2 = (0.125D0-0.005D0*ti)                                          &
-            *(0.039D0*ionic**0.92D0-0.41D0*sion/(1.0D0+sion))
+    ti = temp - 273.0_rkx
+    tc = ti - 25.0_rkx
+    if ( abs(tc)>1.0_rkx ) then
+      cf1 = 1.125_rkx - 0.005_rkx*ti
+      cf2 = (0.125_rkx-0.005_rkx*ti)                                          &
+            *(0.039_rkx*ionic**0.92_rkx-0.41_rkx*sion/(1.0_rkx+sion))
       g01 = cf1*g01 - cf2*z01
       g02 = cf1*g02 - cf2*z02
       g03 = cf1*g03 - cf2*z03
@@ -5373,13 +5392,13 @@ module mod_che_isorropia
 !
   subroutine kmful2(ionic,temp,g04,g05,g07,g08,g09,g10)
     implicit none
-    real(rk8) :: cf1 , cf2 , g04 , g05 , g07 , g08 , g09 , g10 , sion , &
+    real(rkx) :: cf1 , cf2 , g04 , g05 , g07 , g08 , g09 , g10 , sion , &
          tc , ti , z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10
-    real(rk8) :: z11
-    real(rk8) :: ionic , temp
+    real(rkx) :: z11
+    real(rkx) :: ionic , temp
     data z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10 , z11 &
-      /1.0D0 , 2.0D0 , 1.0D0 , 2.0D0 , 1.0D0 , 1.0D0 , 2.0D0 , 1.0D0 , &
-       1.0D0 , 1.0D0/
+      /1.0_rkx , 2.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , &
+       1.0_rkx , 1.0_rkx/
 !
     sion = sqrt(ionic)
 !
@@ -5388,22 +5407,22 @@ module mod_che_isorropia
 ! call mkbi(2.230 , ionic , sion , z01 , g01)
 ! call mkbi(-0.19 , ionic , sion , z02 , g02)
 ! call mkbi(-0.39 , ionic , sion , z03 , g03)
-    call mkbi(-0.25D0,ionic,sion,z04,g04)
-    call mkbi(-1.15D0,ionic,sion,z05,g05)
+    call mkbi(-0.25_rkx,ionic,sion,z04,g04)
+    call mkbi(-1.15_rkx,ionic,sion,z05,g05)
 ! call mkbi(0.820 , ionic , sion , z06 , g06)
-    call mkbi(-.100D0,ionic,sion,z07,g07)
-    call mkbi(8.000D0,ionic,sion,z08,g08)
-    call mkbi(2.600D0,ionic,sion,z10,g10)
+    call mkbi(-.100_rkx,ionic,sion,z07,g07)
+    call mkbi(8.000_rkx,ionic,sion,z08,g08)
+    call mkbi(2.600_rkx,ionic,sion,z10,g10)
 ! call mkbi(6.000 , ionic , sion , z11 , g11)
 !
 ! *** correct for t other than 298 k
 !
-    ti = temp - 273.0D0
-    tc = ti - 25.0D0
-    if ( abs(tc)>1.0D0 ) then
-      cf1 = 1.125D0 - 0.005D0*ti
-      cf2 = (0.125D0-0.005D0*ti)                                          &
-            *(0.039D0*ionic**0.92D0-0.41D0*sion/(1.0D0+sion))
+    ti = temp - 273.0_rkx
+    tc = ti - 25.0_rkx
+    if ( abs(tc)>1.0_rkx ) then
+      cf1 = 1.125_rkx - 0.005_rkx*ti
+      cf2 = (0.125_rkx-0.005_rkx*ti)                                          &
+            *(0.039_rkx*ionic**0.92_rkx-0.41_rkx*sion/(1.0_rkx+sion))
 !   g01 = cf1*g01 - cf2*z01
 !   g02 = cf1*g02 - cf2*z02
 !   g03 = cf1*g03 - cf2*z03
@@ -5435,36 +5454,36 @@ module mod_che_isorropia
 !
   subroutine kmful1(ionic,temp,g04,g07,g08)
     implicit none
-    real(rk8) :: cf1 , cf2 , g04 , g07 , g08 , sion , tc , ti , &
+    real(rkx) :: cf1 , cf2 , g04 , g07 , g08 , sion , tc , ti , &
          z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10 , z11
-    real(rk8) :: ionic , temp
+    real(rkx) :: ionic , temp
     data z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10 , z11 &
-      /1.0D0 , 2.0D0 , 1.0D0 , 2.0D0 , 1.0D0 , 1.0D0 , 2.0D0 , 1.0D0 , &
-       1.0D0 , 1.0D0/
+      /1.0_rkx , 2.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , 1.0_rkx , 2.0_rkx , 1.0_rkx , &
+       1.0_rkx , 1.0_rkx/
 !
     sion = sqrt(ionic)
 !
 ! *** coefficients at 25 oc
 !
-! call mkbi(2.230D0 , ionic , sion , z01 , g01)
-! call mkbi(-0.19D0 , ionic , sion , z02 , g02)
-! call mkbi(-0.39D0 , ionic , sion , z03 , g03)
-    call mkbi(-0.25D0,ionic,sion,z04,g04)
-! call mkbi(-1.15D0 , ionic , sion , z05 , g05)
-! call mkbi(0.820D0 , ionic , sion , z06 , g06)
-    call mkbi(-.100D0,ionic,sion,z07,g07)
-    call mkbi(8.000D0,ionic,sion,z08,g08)
-! call mkbi(2.600D0 , ionic , sion , z10 , g10)
-! call mkbi(6.000D0 , ionic , sion , z11 , g11)
+! call mkbi(2.230_rkx , ionic , sion , z01 , g01)
+! call mkbi(-0.19_rkx , ionic , sion , z02 , g02)
+! call mkbi(-0.39_rkx , ionic , sion , z03 , g03)
+    call mkbi(-0.25_rkx,ionic,sion,z04,g04)
+! call mkbi(-1.15_rkx , ionic , sion , z05 , g05)
+! call mkbi(0.820_rkx , ionic , sion , z06 , g06)
+    call mkbi(-.100_rkx,ionic,sion,z07,g07)
+    call mkbi(8.000_rkx,ionic,sion,z08,g08)
+! call mkbi(2.600_rkx , ionic , sion , z10 , g10)
+! call mkbi(6.000_rkx , ionic , sion , z11 , g11)
 !
 ! *** correct for t other than 298 k
 !
-    ti = temp - 273.0D0
-    tc = ti - 25.0D0
-    if ( abs(tc)>1.0D0 ) then
-      cf1 = 1.125D0 - 0.005D0*ti
-      cf2 = (0.125D0-0.005D0*ti)                                          &
-            *(0.039D0*ionic**0.92D0-0.41D0*sion/(1.0D0+sion))
+    ti = temp - 273.0_rkx
+    tc = ti - 25.0_rkx
+    if ( abs(tc)>1.0_rkx ) then
+      cf1 = 1.125_rkx - 0.005_rkx*ti
+      cf2 = (0.125_rkx-0.005_rkx*ti)                                          &
+            *(0.039_rkx*ionic**0.92_rkx-0.41_rkx*sion/(1.0_rkx+sion))
 !   g01 = cf1*g01 - cf2*z01
 !   g02 = cf1*g02 - cf2*z02
 !   g03 = cf1*g03 - cf2*z03
@@ -5495,14 +5514,14 @@ module mod_che_isorropia
 !
   subroutine mkbi(q,ionic,sion,zip,bi)
     implicit none
-    real(rk8) :: b , bi , c , q , sion , xx , zip
-    real(rk8) :: ionic
-    b = 0.75D0 - .065D0*q
-    c = 1.0D0
-    if ( ionic<6.0D0 ) c = 1.0D0 +                                        &
-                           .055D0*q*exp(-0.023D0*ionic*ionic*ionic)
-    xx = -0.5107D0*sion/(1.0D0+c*sion)
-    bi = (1.0D0+b*(1.0D0+0.1D0*ionic)**q-b)
+    real(rkx) :: b , bi , c , q , sion , xx , zip
+    real(rkx) :: ionic
+    b = 0.75_rkx - .065_rkx*q
+    c = 1.0_rkx
+    if ( ionic<6.0_rkx ) c = 1.0_rkx +                                        &
+                           .055_rkx*q*exp(-0.023_rkx*ionic*ionic*ionic)
+    xx = -0.5107_rkx*sion/(1.0_rkx+c*sion)
+    bi = (1.0_rkx+b*(1.0_rkx+0.1_rkx*ionic)**q-b)
     bi = zip*log10(bi) + zip*xx
   end subroutine mkbi
 !======================================================================
@@ -5524,12 +5543,12 @@ module mod_che_isorropia
   subroutine kmtab(ino,temp,g01,g02,g03,g04,g05,g06,g07,g08,g09,g10,g11, &
                      g12,g15,g16,g17,g18,g19,g20,g21,g22,g23)
     implicit none
-    real(rk8) :: g01 , g02 , g03 , g04 , g05 , g06 , g07 , g08 , g09 , &
+    real(rkx) :: g01 , g02 , g03 , g04 , g05 , g06 , g07 , g08 , g09 , &
                  g10 , g11 , g12 , g13 , g14 , g15 , g16 , g17 , g18 , &
                  g19 , g20 , g21 , g22 , g23
     integer(ik4) :: ind
-    real(rk8) :: ino , temp
-    real(rk8) , dimension(23) :: binarray
+    real(rkx) :: ino , temp
+    real(rkx) , dimension(23) :: binarray
 !
 ! *** find temperature range
 !
@@ -5585,7 +5604,7 @@ module mod_che_isorropia
 !     chris nolte , 6/16/05
 !
 !      implicit none
-!      real(rk8) in
+!      real(rkx) in
 !      if (in  <=  0.300000e+02) then
 !         ibacpos = min(nint( 0.200000e+02*in) + 1 , 600)
 !      else
@@ -5615,9 +5634,9 @@ module mod_che_isorropia
   subroutine km198(ionic,binarr)
     implicit none
     integer(ik4) :: ipos
-    real(rk8) , dimension(23) :: binarr
-    real(rk8) :: ionic
-    real(rk8) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
+    real(rkx) , dimension(23) :: binarr
+    real(rkx) :: ionic
+    real(rkx) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
                                   bnc05m , bnc06m , bnc07m , bnc08m ,     &
                                   bnc09m , bnc10m , bnc11m , bnc12m ,     &
                                   bnc13m , bnc14m , bnc15m , bnc16m ,     &
@@ -7443,9 +7462,9 @@ module mod_che_isorropia
   subroutine km223(ionic,binarr)
     implicit none
     integer(ik4) :: ipos
-    real(rk8) , dimension(23) :: binarr
-    real(rk8) :: ionic
-    real(rk8) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
+    real(rkx) , dimension(23) :: binarr
+    real(rkx) :: ionic
+    real(rkx) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
                                   bnc05m , bnc06m , bnc07m , bnc08m ,     &
                                   bnc09m , bnc10m , bnc11m , bnc12m ,     &
                                   bnc13m , bnc14m , bnc15m , bnc16m ,     &
@@ -9276,9 +9295,9 @@ module mod_che_isorropia
   subroutine km248(ionic,binarr)
     implicit none
     integer(ik4) :: ipos
-    real(rk8) , dimension(23) :: binarr
-    real(rk8) :: ionic
-    real(rk8) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
+    real(rkx) , dimension(23) :: binarr
+    real(rkx) :: ionic
+    real(rkx) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
                                   bnc05m , bnc06m , bnc07m , bnc08m ,     &
                                   bnc09m , bnc10m , bnc11m , bnc12m ,     &
                                   bnc13m , bnc14m , bnc15m , bnc16m ,     &
@@ -11106,9 +11125,9 @@ module mod_che_isorropia
   subroutine km273(ionic,binarr)
     implicit none
     integer(ik4) :: ipos
-    real(rk8) , dimension(23) :: binarr
-    real(rk8) :: ionic
-    real(rk8) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
+    real(rkx) , dimension(23) :: binarr
+    real(rkx) :: ionic
+    real(rkx) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
                                   bnc05m , bnc06m , bnc07m , bnc08m ,     &
                                   bnc09m , bnc10m , bnc11m , bnc12m ,     &
                                   bnc13m , bnc14m , bnc15m , bnc16m ,     &
@@ -12927,9 +12946,9 @@ module mod_che_isorropia
   subroutine km298(ionic,binarr)
     implicit none
     integer(ik4) :: ipos
-    real(rk8) , dimension(23) :: binarr
-    real(rk8) :: ionic
-    real(rk8) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
+    real(rkx) , dimension(23) :: binarr
+    real(rkx) :: ionic
+    real(rkx) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
                                   bnc05m , bnc06m , bnc07m , bnc08m ,     &
                                   bnc09m , bnc10m , bnc11m , bnc12m ,     &
                                   bnc13m , bnc14m , bnc15m , bnc16m ,     &
@@ -14742,9 +14761,9 @@ module mod_che_isorropia
   subroutine km323(ionic,binarr)
     implicit none
     integer(ik4) :: ipos
-    real(rk8) , dimension(23) :: binarr
-    real(rk8) :: ionic
-    real(rk8) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
+    real(rkx) , dimension(23) :: binarr
+    real(rkx) :: ionic
+    real(rkx) , dimension(561) :: bnc01m , bnc02m , bnc03m , bnc04m ,     &
                                   bnc05m , bnc06m , bnc07m , bnc08m ,     &
                                   bnc09m , bnc10m , bnc11m , bnc12m ,     &
                                   bnc13m , bnc14m , bnc15m , bnc16m ,     &
@@ -16675,8 +16694,8 @@ module mod_che_isorropia
 !
 !  ====================== arguments / usage =============================
 !
-!  vr        is the real(rk8) variable which value is to be saved &
-!  df        is a real(rk8) variable , with the default value of var. &
+!  vr        is the real(rkx) variable which value is to be saved &
+!  df        is a real(rkx) variable , with the default value of var. &
 !  pompt     is a character varible containing the prompt string. &
 !  pfmt      is a character variable containing the format specifier
 !             for the default value def. &
@@ -16700,7 +16719,7 @@ module mod_che_isorropia
     integer(ik4) :: iend
     character(len=*) :: prompt , prfmt
     character(len=128) :: buffer
-    real(rk8) :: def , var
+    real(rkx) :: def , var
     integer(ik4) :: ierr , ires
 !
     ierr = 0
@@ -16825,7 +16844,7 @@ module mod_che_isorropia
 !
 ! *** isorropia code
 ! *** subroutine poly3
-! *** finds the real(rk8) :: roots of the third order algebraic equation:
+! *** finds the real(rkx) :: roots of the third order algebraic equation:
 !     x**3 + a1*x**2 + a2*x + a3 = 0.0
 !     the equation is solved analytically.
 !
@@ -16855,12 +16874,12 @@ module mod_che_isorropia
 !
   subroutine poly3(a1,a2,a3,root,islv)
     implicit none
-    real(rk8) :: a1 , a2 , a3 , coef , d , eps , expon , pi , q , r , &
+    real(rkx) :: a1 , a2 , a3 , coef , d , eps , expon , pi , q , r , &
          root , s , sqd , ssig , t , thet , thet1 , thet2 , tsig , zero
     integer(ik4) :: i , islv , ix
-    parameter (expon = 1.D0/3.D0,zero = 0.D0,thet1 = 120.D0/180.D0,       &
-               thet2 = 240.D0/180.D0,pi = 3.14159265358932,eps = 1D-50)
-    real(rk8) x(3)
+    parameter (expon = 1._rkx/3._rkx,zero = 0._rkx,thet1 = 120._rkx/180._rkx,       &
+               thet2 = 240._rkx/180._rkx,pi = 3.14159265358932,eps = 1e-50_rkx)
+    real(rkx) x(3)
 !
 ! *** special case : quadratic*x equation *****************************
 !
@@ -16868,12 +16887,12 @@ module mod_che_isorropia
       islv = 1
       ix = 1
       x(1) = zero
-      d = a1*a1 - 4.D0*a2
+      d = a1*a1 - 4._rkx*a2
       if ( d>=zero ) then
         ix = 3
         sqd = sqrt(d)
-        x(2) = 0.5D0*(-a1+sqd)
-        x(3) = 0.5D0*(-a1-sqd)
+        x(2) = 0.5_rkx*(-a1+sqd)
+        x(3) = 0.5_rkx*(-a1-sqd)
       end if
     else
 !
@@ -16882,38 +16901,38 @@ module mod_che_isorropia
 !   defne parameters q , r , s , t , d
 !
       islv = 1
-      q = (3.D0*a2-a1*a1)/9.D0
-      r = (9.D0*a1*a2-27.D0*a3-2.D0*a1*a1*a1)/54.D0
+      q = (3._rkx*a2-a1*a1)/9._rkx
+      r = (9._rkx*a1*a2-27._rkx*a3-2._rkx*a1*a1*a1)/54._rkx
       d = q*q*q + r*r
 !
 !   *** calculate roots
 !   *************************************************
-!   d  0 , three real(rk8) :: roots
+!   d  0 , three real(rkx) :: roots
 !
       if ( d<-eps ) then           ! d < -eps  : d < zero
         ix = 3
         thet = expon*acos(r/sqrt(-q*q*q))
-        coef = 2.D0*sqrt(-q)
+        coef = 2._rkx*sqrt(-q)
         x(1) = coef*cos(thet) - expon*a1
         x(2) = coef*cos(thet+thet1*pi) - expon*a1
         x(3) = coef*cos(thet+thet2*pi) - expon*a1
 !
-!     d  0 , three real(rk8) :: (one double) roots
+!     d  0 , three real(rkx) :: (one double) roots
 !
       else if ( d<=eps ) then       ! -eps <= d <= eps  : d = zero
         ix = 2
-        ssig = sign(1.D0,r)
+        ssig = sign(1._rkx,r)
         s = ssig*(abs(r))**expon
-        x(1) = 2.D0*s - expon*a1
+        x(1) = 2._rkx*s - expon*a1
         x(2) = -s - expon*a1
 !
-!     d  0 , one real(rk8) :: root
+!     d  0 , one real(rkx) :: root
 !
       else                          ! d > eps  : d > zero
         ix = 1
         sqd = sqrt(d)
-        ssig = sign(1.D0,r+sqd)              ! transfer sign to ssig
-        tsig = sign(1.D0,r-sqd)
+        ssig = sign(1._rkx,r+sqd)              ! transfer sign to ssig
+        tsig = sign(1._rkx,r-sqd)
         s = ssig*(abs(r+sqd))**expon        ! exponentiate abs()
         t = tsig*(abs(r-sqd))**expon
         x(1) = s + t - expon*a1
@@ -16922,7 +16941,7 @@ module mod_che_isorropia
 !
 ! *** select appropriate root *****************************************
 !
-    root = 1.D30
+    root = 1.e30_rkx
     do i = 1 , ix
       if ( x(i)>zero ) then
         root = min(root,x(i))
@@ -16935,7 +16954,7 @@ module mod_che_isorropia
 !
 ! *** isorropia code
 ! *** subroutine poly3b
-! *** finds a real(rk8) :: root of the third order algebraic equation:
+! *** finds a real(rkx) :: root of the third order algebraic equation:
 !     x**3 + a1*x**2 + a2*x + a3 = 0.0
 !     the equation is solved numerically (bisection).
 !
@@ -16951,11 +16970,11 @@ module mod_che_isorropia
   subroutine poly3b(a1,a2,a3,rtlw,rthi,root,islv)
 !
     implicit none
-    real(rk8) :: a1 , a2 , a3 , dx , root , rthi , &
+    real(rkx) :: a1 , a2 , a3 , dx , root , rthi , &
          rtlw , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , islv
-    real(rk8) , parameter :: zero = 0.D0
-    real(rk8) , parameter :: eps = 1D-15
+    real(rkx) , parameter :: zero = 0._rkx
+    real(rkx) , parameter :: eps = 1e-15_rkx
     integer(ik4) , parameter :: maxit = 100
     integer(ik4) , parameter :: ndiv = 5
 !
@@ -16974,7 +16993,7 @@ module mod_che_isorropia
     do i = 1 , ndiv
       x2 = x1 + dx
       y2 = func(x2)
-      if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100      ! (y1*y2 < zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100      ! (y1*y2 < zero)
       x1 = x2
       y1 = y2
     end do
@@ -16984,7 +17003,7 @@ module mod_che_isorropia
     if ( abs(y2)<eps ) then       ! x2 is a root
       root = x2
     else
-      root = 1.D30
+      root = 1.e30_rkx
       islv = 1
     end if
     return
@@ -16993,9 +17012,9 @@ module mod_che_isorropia
 !
 100 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = func(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -17007,20 +17026,20 @@ module mod_che_isorropia
 !
 ! *** converged ; return ***********************************************
 !
-    x3 = 0.5D0*(x1+x2)
+    x3 = 0.5_rkx*(x1+x2)
     y3 = func(x3)
     root = x3
     islv = 0
     contains
-      real(rk8) function func(x)
+      real(rkx) function func(x)
         implicit none
-        real(rk8) , intent(in) :: x
+        real(rkx) , intent(in) :: x
         func = x**30 + a1*x**2 + a2*x + a3
       end function func
   end subroutine poly3b
 !
 !      program driver
-!      real(rk8) root
+!      real(rkx) root
 !
 !      call poly3 (-1.d0 , 1.d0 , -1.d0 , root , islv)
 !      if (islv.ne.0) stop 'error in poly3'
@@ -17040,7 +17059,7 @@ module mod_che_isorropia
 !     maximum error is 2%, execution time is 42% of the library routine
 !     (on a 80286/80287 machine , using lahey fortran 77 v.3.0).
 !
-!     exponent range is between -k and k (k is the real(rk8) :: argument 'k')
+!     exponent range is between -k and k (k is the real(rkx) :: argument 'k')
 !     max value for k: 9.999
 !     if x < -k , x is set to -k , if x > k , x is set to k
 !
@@ -17058,9 +17077,9 @@ module mod_che_isorropia
 !
     function ex10(x,k)
     implicit none
-    real(rk8) :: x , ex10 , y , k
-    real(rk8) , dimension(20) :: aint10
-    real(rk8) , dimension(200) :: adec10
+    real(rkx) :: x , ex10 , y , k
+    real(rkx) , dimension(20) :: aint10
+    real(rkx) , dimension(200) :: adec10
     integer(ik4) :: k1 , k2
 !
 ! *** common block definition
@@ -17385,11 +17404,11 @@ module mod_che_isorropia
 !     be stored before the stack exhausts).
 !
 !  7. [tin]
-!     real(rk8) variable
+!     real(rkx) variable
 !     the value used for a very small number.
 !
 !  8. [grt]
-!     real(rk8) variable
+!     real(rkx) variable
 !     the value used for a very large number.
 !
 ! *** copyright 1996-2006 , university of miami , carnegie mellon university ,
@@ -17402,7 +17421,7 @@ module mod_che_isorropia
   subroutine isorinf(versi,ncmp,nion,naqgas,nsol,nerr,tin,grt)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: grt , tin
+    real(rkx) :: grt , tin
     integer(ik4) :: naqgas , ncmp , nerr , nion , nsol
     character(len=*) :: versi
 !
@@ -17437,8 +17456,8 @@ module mod_che_isorropia
   subroutine isrp1f(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: dc , rhi , tempi
-    real(rk8) , dimension(ncomp) :: wi
+    real(rkx) :: dc , rhi , tempi
+    real(rkx) , dimension(ncomp) :: wi
 !
 ! *** initialize all variables in common block
 ! **************************
@@ -17453,7 +17472,7 @@ module mod_che_isorropia
 ! *** sulfate poor
 !
     if ( 2.0<=sulrat ) then
-      dc = w(3) - 2.001D0*w(2)    ! for numerical stability
+      dc = w(3) - 2.001_rkx*w(2)    ! for numerical stability
       w(3) = w(3) + max(-dc,zero)
 !
       if ( metstbl==1 ) then
@@ -17535,8 +17554,8 @@ module mod_che_isorropia
   subroutine isrp2f(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: rhi , tempi
-    real(rk8) , dimension(ncomp) :: wi
+    real(rkx) :: rhi , tempi
+    real(rkx) , dimension(ncomp) :: wi
 !
 ! *** initialize all variables in common block
 ! **************************
@@ -17652,19 +17671,19 @@ module mod_che_isorropia
   subroutine isrp3f(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: rest , rhi , tempi
-    real(rk8) , dimension(ncomp) :: wi
+    real(rkx) :: rest , rhi , tempi
+    real(rkx) , dimension(ncomp) :: wi
 !
 ! *** adjust for too little ammonium and chloride
 ! ***********************
-    wi(3) = max(wi(3),1.D-10)      ! nh4+ : 1e-4 umoles/m3
-    wi(5) = max(wi(5),1.D-10)      ! cl-  : 1e-4 umoles/m3
+    wi(3) = max(wi(3),1.e-10_rkx)      ! nh4+ : 1e-4 umoles/m3
+    wi(5) = max(wi(5),1.e-10_rkx)      ! cl-  : 1e-4 umoles/m3
 !
 ! *** adjust for too little sodium , sulfate and nitrate combined
 ! ********
-    if ( wi(1)+wi(2)+wi(4)<=1D-10 ) then
-      wi(1) = 1.D-10     ! na+  : 1e-4 umoles/m3
-      wi(2) = 1.D-10     ! so4- : 1e-4 umoles/m3
+    if ( wi(1)+wi(2)+wi(4)<=1e-10_rkx ) then
+      wi(1) = 1.e-10_rkx     ! na+  : 1e-4 umoles/m3
+      wi(2) = 1.e-10_rkx     ! so4- : 1e-4 umoles/m3
     end if
 !
 ! *** initialize all variables in common block
@@ -17673,9 +17692,9 @@ module mod_che_isorropia
 !
 ! *** check if too much sodium ; adjust and issue error message
 ! *********
-    rest = 2.D0*w(2) + w(4) + w(5)
+    rest = 2._rkx*w(2) + w(4) + w(5)
     if ( w(1)>rest ) then              ! na > 2*so4+cl+no3 ?
-      w(1) = (one-1D-6)*rest            ! adjust na amount
+      w(1) = (one-1e-6_rkx)*rest            ! adjust na amount
       call pusherr(0050,'isrp3f')        ! warning error: na adjusted
     end if
 !
@@ -17829,11 +17848,11 @@ module mod_che_isorropia
   subroutine isrp4f(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: cafri , ccacl2i , ccano32i , ccaso4i , clfri , cmgcl2i , &
+    real(rkx) :: cafri , ccacl2i , ccano32i , ccaso4i , clfri , cmgcl2i , &
          cmgno32i , cmgso4i , cna2so4i , cnacli , cnano3i , frmgi ,       &
          frso4i , rest , rest1 , rest2 , rest3 , rhi , tempi
-    real(rk8) , dimension(ncomp) :: wi
-    real(rk8) :: nafri , no3fri , no3fr
+    real(rkx) , dimension(ncomp) :: wi
+    real(rkx) :: nafri , no3fri , no3fr
 !
 ! *** adjust for too little ammonium and chloride
 ! ***********************
@@ -17853,60 +17872,60 @@ module mod_che_isorropia
 !
 ! *** check if too much sodium+crustals ; adjust and issue error message
 !
-    rest = 2.D0*w(2) + w(4) + w(5)
+    rest = 2._rkx*w(2) + w(4) + w(5)
 !
     if ( w(1)+w(6)+w(7)+w(8)>rest ) then
 !
       ccaso4i = min(w(2),w(6))
       frso4i = max(w(2)-ccaso4i,zero)
       cafri = max(w(6)-ccaso4i,zero)
-      ccano32i = min(cafri,0.5D0*w(4))
+      ccano32i = min(cafri,0.5_rkx*w(4))
       cafri = max(cafri-ccano32i,zero)
-      no3fri = max(w(4)-2.D0*ccano32i,zero)
-      ccacl2i = min(cafri,0.5D0*w(5))
-      clfri = max(w(5)-2.D0*ccacl2i,zero)
-      rest1 = 2.D0*frso4i + no3fri + clfri
+      no3fri = max(w(4)-2._rkx*ccano32i,zero)
+      ccacl2i = min(cafri,0.5_rkx*w(5))
+      clfri = max(w(5)-2._rkx*ccacl2i,zero)
+      rest1 = 2._rkx*frso4i + no3fri + clfri
 !
-      cna2so4i = min(frso4i,0.5D0*w(1))
+      cna2so4i = min(frso4i,0.5_rkx*w(1))
       frso4i = max(frso4i-cna2so4i,zero)
-      nafri = max(w(1)-2.D0*cna2so4i,zero)
+      nafri = max(w(1)-2._rkx*cna2so4i,zero)
       cnacli = min(nafri,clfri)
       nafri = max(nafri-cnacli,zero)
       clfri = max(clfri-cnacli,zero)
       cnano3i = min(nafri,no3fri)
       no3fr = max(no3fri-cnano3i,zero)
-      rest2 = 2.D0*frso4i + no3fri + clfri
+      rest2 = 2._rkx*frso4i + no3fri + clfri
 !
       cmgso4i = min(frso4i,w(8))
       frmgi = max(w(8)-cmgso4i,zero)
       frso4i = max(frso4i-cmgso4i,zero)
-      cmgno32i = min(frmgi,0.5D0*no3fri)
+      cmgno32i = min(frmgi,0.5_rkx*no3fri)
       frmgi = max(frmgi-cmgno32i,zero)
-      no3fri = max(no3fri-2.D0*cmgno32i,zero)
-      cmgcl2i = min(frmgi,0.5D0*clfri)
-      clfri = max(clfri-2.D0*cmgcl2i,zero)
-      rest3 = 2.D0*frso4i + no3fri + clfri
+      no3fri = max(no3fri-2._rkx*cmgno32i,zero)
+      cmgcl2i = min(frmgi,0.5_rkx*clfri)
+      clfri = max(clfri-2._rkx*cmgcl2i,zero)
+      rest3 = 2._rkx*frso4i + no3fri + clfri
 !
       if ( w(6)>rest ) then                          ! ca > 2*so4+cl+no3 ?
-        w(6) = (one-1D-6)*rest                   ! adjust ca amount
+        w(6) = (one-1e-6_rkx)*rest                   ! adjust ca amount
         w(1) = zero                               ! adjust na amount
         w(7) = zero                               ! adjust k amount
         w(8) = zero                               ! adjust mg amount
         call pusherr(0051,'isrp4f')               ! warning error: ca , na , k , mg in excess
 !
       else if ( w(1)>rest1 ) then                    ! na > 2*frso4+frcl+frno3 ?
-        w(1) = (one-1D-6)*rest1                  ! adjust na amount
+        w(1) = (one-1e-6_rkx)*rest1                  ! adjust na amount
         w(7) = zero                               ! adjust k amount
         w(8) = zero                               ! adjust mg amount
         call pusherr(0052,'isrp4f')               ! warning error: na , k , mg in excess
 !
       else if ( w(8)>rest2 ) then                    ! mg > 2*frso4+frcl+frno3 ?
-        w(8) = (one-1D-6)*rest2                  ! adjust mg amount
+        w(8) = (one-1e-6_rkx)*rest2                  ! adjust mg amount
         w(7) = zero                               ! adjust k amount
         call pusherr(0053,'isrp4f')               ! warning error: k , mg in excess
 !
       else if ( w(7)>rest3 ) then                    ! k > 2*frso4+frcl+frno3 ?
-        w(7) = (one-1D-6)*rest3                  ! adjust k amount
+        w(7) = (one-1e-6_rkx)*rest3                  ! adjust k amount
         call pusherr(0054,'isrp4f')               ! warning error: k in excess
       end if
     end if
@@ -18173,14 +18192,14 @@ module mod_che_isorropia
   subroutine calca2
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: dx , omehi , omelo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rkx) :: dx , omehi , omelo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
 !
     calaou = .true.           ! outer loop activity calculation flag
     omelo = tiny1              ! low  limit: solution is very basic
-    omehi = 2.0D0*w(2)        ! high limit: from nh4+ -> nh3(g) + h+(aq)
+    omehi = 2.0_rkx*w(2)        ! high limit: from nh4+ -> nh3(g) + h+(aq)
 !
 ! *** calculate water content *****************************************
 !
@@ -18201,7 +18220,7 @@ module mod_che_isorropia
     do i = 1 , ndiv
       x2 = max(x1-dx,omelo)
       y2 = funca2(x2)
-      if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100     ! (y1*y2 < zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100     ! (y1*y2 < zero)
       x1 = x2
       y1 = y2
     end do
@@ -18216,9 +18235,9 @@ module mod_che_isorropia
 !
 100 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funca2(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -18231,7 +18250,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 200 continue
-    x3 = 0.5D0*(x1+x2)
+    x3 = 0.5_rkx*(x1+x2)
     y3 = funca2(x3)
   end subroutine calca2
 !
@@ -18245,12 +18264,12 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funca2(omegi)
+  real(rkx) function funca2(omegi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a1 , a2 , a3 , denom , omegi , psi , zeta
+    real(rkx) :: a1 , a2 , a3 , denom , omegi , psi , zeta
     integer(ik4) :: i
-    real(rk8) :: lamda
+    real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
 !
@@ -18342,7 +18361,7 @@ module mod_che_isorropia
   subroutine calcb4
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: ak1 , bb , bet , cc , dd , gam
+    real(rkx) :: ak1 , bb , bet , cc , dd , gam
     integer(ik4) :: i
 !
 ! *** solve equations **************************************************
@@ -18371,11 +18390,11 @@ module mod_che_isorropia
 !
       bb = bet + ak1 - gam
       cc = -ak1*bet
-      dd = bb*bb - 4.D0*cc
+      dd = bb*bb - 4._rkx*cc
 !
 !   *** speciation & water content
 !   ***************************************
-      molal(5) = max(tiny1,min(0.5D0*(-bb+sqrt(dd)),w(2)))         ! so4i
+      molal(5) = max(tiny1,min(0.5_rkx*(-bb+sqrt(dd)),w(2)))         ! so4i
       molal(6) = max(tiny1,min(w(2)-molal(5),w(2)))              ! hso4i
       molal(1) = max(tiny1,min(ak1*molal(6)/molal(5),w(2)))      ! hi
       call calcmr                                              ! water content
@@ -18408,7 +18427,7 @@ module mod_che_isorropia
   subroutine calcb3
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: tlc , tnh42s4 , tnh4hs4 , x , y
+    real(rkx) :: tlc , tnh42s4 , tnh4hs4 , x , y
 !
 ! *** calculate equivalent amount of hso4 and so4
 ! ***********************
@@ -18458,7 +18477,7 @@ module mod_che_isorropia
   subroutine calcb3a(tlc,tnh42s4)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: dz , tlc , tnh42s4 , y1 , y2 , y3 , &
+    real(rkx) :: dz , tlc , tnh42s4 , y1 , y2 , y3 , &
          yhi , ylo , z1 , z2 , z3 , zhi , zk , zlo
     integer(ik4) :: i
 !
@@ -18480,7 +18499,7 @@ module mod_che_isorropia
     do i = 1 , ndiv
       z2 = z1 + dz
       y2 = funcb3a(z2,tlc,tnh42s4)
-      if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100     ! (y1*y2 < zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100     ! (y1*y2 < zero)
       z1 = z2
       y1 = y2
     end do
@@ -18513,9 +18532,9 @@ module mod_che_isorropia
 !
 100 continue
     do i = 1 , maxit
-      z3 = 0.5D0*(z1+z2)
+      z3 = 0.5_rkx*(z1+z2)
       y3 = funcb3a(z3,tlc,tnh42s4)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         z2 = z3
       else
@@ -18529,7 +18548,7 @@ module mod_che_isorropia
 ! *** converged ; return
 ! ************************************************
 200 continue
-    zk = 0.5D0*(z1+z2)
+    zk = 0.5_rkx*(z1+z2)
     y3 = funcb3a(zk,tlc,tnh42s4)
   end subroutine calcb3a
 !
@@ -18543,12 +18562,12 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcb3a(zk,y,x)
+  real(rkx) function funcb3a(zk,y,x)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: dd , grat1 , x , y , zk
+    real(rkx) :: dd , grat1 , x , y , zk
     integer(ik4) :: i
-    real(rk8) :: kk
+    real(rkx) :: kk
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
@@ -18557,7 +18576,7 @@ module mod_che_isorropia
     do i = 1 , nsweep
       grat1 = xk1*water/gama(7)*(gama(8)/gama(7))**2.
       dd = sqrt((zk+grat1+y)**24.0*y*grat1)
-      kk = 0.5D0*(-(zk+grat1+y)+dd)
+      kk = 0.5_rkx*(-(zk+grat1+y)+dd)
 !
 !   *** speciation & water content
 !   ***************************************
@@ -18603,9 +18622,9 @@ module mod_che_isorropia
   subroutine calcb3b(y,x)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: dd , grat1 , x , y
+    real(rkx) :: dd , grat1 , x , y
     integer(ik4) :: i
-    real(rk8) :: kk
+    real(rkx) :: kk
 !
     calaou = .false.          ! outer loop activity calculation flag
     frst = .false.
@@ -18616,7 +18635,7 @@ module mod_che_isorropia
     do i = 1 , nsweep
       grat1 = xk1*water/gama(7)*(gama(8)/gama(7))**2.
       dd = sqrt((grat1+y)**24.0*(x+y)*grat1)
-      kk = 0.5D0*(-(grat1+y)+dd)
+      kk = 0.5_rkx*(-(grat1+y)+dd)
 !
 !   *** speciation & water content
 !   ***************************************
@@ -18658,7 +18677,7 @@ module mod_che_isorropia
   subroutine calcb2
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: x , y
+    real(rkx) :: x , y
 !
 ! *** calculate equivalent amount of hso4 and so4
 ! ***********************
@@ -18705,7 +18724,7 @@ module mod_che_isorropia
   subroutine calcb2a(tlc,tnh42s4)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: tlc , tnh42s4
+    real(rkx) :: tlc , tnh42s4
 !
 ! *** regime depends upon the ambient relative humidity
 ! *****************
@@ -18747,14 +18766,14 @@ module mod_che_isorropia
   subroutine calcb2a2(tlc,tnh42s4)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: clco , cnh42so , onemwf , tlc , tnh42s4 , wf
+    real(rkx) :: clco , cnh42so , onemwf , tlc , tnh42s4 , wf
 !
 ! *** find weight factor **********************************************
 !
     if ( wftyp==0 ) then
       wf = zero
     else if ( wftyp==1 ) then
-      wf = 0.5D0
+      wf = 0.5_rkx
     else
       wf = (drlc-rh)/(drlc-drmlcas)
     end if
@@ -18774,7 +18793,7 @@ module mod_che_isorropia
 ! *** find solution at mdrh by weighting dry & liquid solutions.
 !
     molal(1) = onemwf*molal(1)                                     ! h+
-    molal(3) = onemwf*(2.D0*(cnh42so-cnh42s4)+3.D0*(clco-clc))     ! nh4+
+    molal(3) = onemwf*(2._rkx*(cnh42so-cnh42s4)+3._rkx*(clco-clc))     ! nh4+
     molal(5) = onemwf*(cnh42so-cnh42s4+clco-clc)                   ! so4--
     molal(6) = onemwf*(clco-clc)                                   ! hso4-
 !
@@ -18812,7 +18831,7 @@ module mod_che_isorropia
   subroutine calcb2b(tlc,tnh4hs4)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: dx , tlc , tnh4hs4 , x1 , x2 , x3 , &
+    real(rkx) :: dx , tlc , tnh4hs4 , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo , zhi , zlo
     integer(ik4) :: i
 !
@@ -18834,7 +18853,7 @@ module mod_che_isorropia
     do i = 1 , ndiv
       x2 = x1 - dx
       y2 = funcb2b(x2,tnh4hs4,tlc)
-      if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100     ! (y1*y2 < zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100     ! (y1*y2 < zero)
       x1 = x2
       y1 = y2
     end do
@@ -18867,9 +18886,9 @@ module mod_che_isorropia
 ! *************************************************
 100 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcb2b(x3,tnh4hs4,tlc)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -18883,7 +18902,7 @@ module mod_che_isorropia
 ! *** converged ; return
 ! ************************************************
 200 continue
-    x3 = 0.5D0*(x1+x2)
+    x3 = 0.5_rkx*(x1+x2)
     y3 = funcb2b(x3,tnh4hs4,tlc)
   end subroutine calcb2b
 !
@@ -18897,10 +18916,10 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcb2b(x,tnh4hs4,tlc)
+  real(rkx) function funcb2b(x,tnh4hs4,tlc)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: delta , grat2 , omega , parm , tlc , tnh4hs4 , x
+    real(rkx) :: delta , grat2 , omega , parm , tlc , tnh4hs4 , x
     integer(ik4) :: i
 !
 ! *** solve equations **************************************************
@@ -18911,7 +18930,7 @@ module mod_che_isorropia
       grat2 = xk1*water*(gama(8)/gama(7))**2/gama(7)
       parm = x + grat2
       delta = parm*parm + 4.0*(x+tnh4hs4)*grat2    ! diakrinousa
-      omega = 0.5D0*(-parm+sqrt(delta))              ! thetiki riza (ie:h+>0)
+      omega = 0.5_rkx*(-parm+sqrt(delta))              ! thetiki riza (ie:h+>0)
 !
 !   *** speciation & water content
 !   ***************************************
@@ -19001,7 +19020,7 @@ module mod_che_isorropia
   subroutine calcb1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: x , y
+    real(rkx) :: x , y
 !
 ! *** setup parameters ************************************************
 !
@@ -19048,14 +19067,14 @@ module mod_che_isorropia
   subroutine calcb1b
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: clco , cnh42so , cnh4hso , onemwf , wf
+    real(rkx) :: clco , cnh42so , cnh4hso , onemwf , wf
 !
 ! *** find weight factor **********************************************
 !
     if ( wftyp==0 ) then
       wf = zero
     else if ( wftyp==1 ) then
-      wf = 0.5D0
+      wf = 0.5_rkx
     else
       wf = (drnh4hs4-rh)/(drnh4hs4-drmlcab)
     end if
@@ -19078,8 +19097,8 @@ module mod_che_isorropia
 ! *** find solution at mdrh by weighting dry & liquid solutions.
 !
     molal(1) = onemwf*molal(1)                                     ! h+
-    molal(3) = onemwf*(2.D0*(cnh42so-cnh42s4)+(cnh4hso-cnh4hs4)           &
-               +3.D0*(clco-clc))                                 ! nh4+
+    molal(3) = onemwf*(2._rkx*(cnh42so-cnh42s4)+(cnh4hso-cnh4hs4)           &
+               +3._rkx*(clco-clc))                                 ! nh4+
     molal(5) = onemwf*(cnh42so-cnh42s4+clco-clc)                   ! so4--
     molal(6) = onemwf*(cnh4hso-cnh4hs4+clco-clc)                   ! hso4-
 !
@@ -19110,9 +19129,9 @@ module mod_che_isorropia
   subroutine calcc2
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: bb , cc , parm , psi
+    real(rkx) :: bb , cc , parm , psi
     integer(ik4) :: i
-    real(rk8) :: lamda , kapa
+    real(rkx) :: lamda , kapa
 !
     calaou = .true.          ! outer loop activity calculation flag
     frst = .true.
@@ -19126,7 +19145,7 @@ module mod_che_isorropia
       parm = water*xk1/gama(7)*(gama(8)/gama(7))**2.
       bb = psi + parm
       cc = -parm*(lamda+psi)
-      kapa = 0.5D0*(-bb+sqrt(bb*bb-4.0*cc))
+      kapa = 0.5_rkx*(-bb+sqrt(bb*bb-4.0*cc))
 !
 !   *** speciation & water content
 !   ***************************************
@@ -19166,9 +19185,9 @@ module mod_che_isorropia
   subroutine calcc1
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: dx , x1 , x2 , x3 , y1 , y2 , y3 , yhi , ylo
+    real(rkx) :: dx , x1 , x2 , x3 , y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
-    real(rk8) :: klo , khi
+    real(rkx) :: klo , khi
 !
     calaou = .true.      ! outer loop activity calculation flag
     klo = tiny1
@@ -19188,7 +19207,7 @@ module mod_che_isorropia
     do i = 1 , ndiv
       x2 = x1 + dx
       y2 = funcc1(x2)
-      if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100      ! (y1*y2  <  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100      ! (y1*y2  <  zero)
       x1 = x2
       y1 = y2
     end do
@@ -19219,9 +19238,9 @@ module mod_che_isorropia
 !
 100 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcc1(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -19235,7 +19254,7 @@ module mod_che_isorropia
 ! *** converged ; return ***********************************************
 !
 200 continue
-    x3 = 0.5D0*(x1+x2)
+    x3 = 0.5_rkx*(x1+x2)
     y3 = funcc1(x3)
 !
   end subroutine calcc1
@@ -19255,12 +19274,12 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcc1(kapa)
+  real(rkx) function funcc1(kapa)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: bb , cc , par1 , par2 , psi
+    real(rkx) :: bb , cc , par1 , par2 , psi
     integer(ik4) :: i
-    real(rk8) :: kapa , lamda
+    real(rkx) :: kapa , lamda
 !
 ! *** solve equations **************************************************
 !
@@ -19274,7 +19293,7 @@ module mod_che_isorropia
       par2 = xk12*(water/gama(9))**2
       bb = psi + par1
       cc = -par1*(psi+kapa)
-      lamda = 0.5D0*(-bb+sqrt(bb*bb-4*cc))
+      lamda = 0.5_rkx*(-bb+sqrt(bb*bb-4*cc))
 !
 !   *** save concentrations in molal array
 !   *******************************
@@ -19319,7 +19338,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , p4 , psi4hi , psi4lo , &
+    real(rkx) :: delta , dx , p4 , psi4hi , psi4lo , &
          x1 , x2 , x3 , y1 , y2 , y3 , yhi , ylo , yy
     integer(ik4) :: i
 !
@@ -19363,7 +19382,7 @@ module mod_che_isorropia
     do i = 1 , ndiv
       x2 = x1 + dx
       y2 = funcd3(x2)
-      if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 200     ! (y1*y2 < zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 200     ! (y1*y2 < zero)
       x1 = x2
       y1 = y2
     end do
@@ -19409,9 +19428,9 @@ module mod_che_isorropia
 !
 200 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcd3(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -19425,7 +19444,7 @@ module mod_che_isorropia
 ! *** converged ; return **********************************************
 !
 300 continue
-    x3 = 0.5D0*(x1+x2)
+    x3 = 0.5_rkx*(x1+x2)
     y3 = funcd3(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -19449,11 +19468,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcd3(p4)
+  real(rkx) function funcd3(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: abb , ahi , bb , denm , p4
+    real(rkx) :: abb , ahi , bb , denm , p4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -19465,19 +19484,47 @@ module mod_che_isorropia
 ! *** solve equations ; with iterations for activity coef. ************
 !
     do i = 1 , nsweep
-      a2 = xk7*(water/gama(4))**3
-      a3 = xk4*r*temp*(water/gama(10))**2
+      a2 = water/gama(4)
+      if ( a2 > 1.0e-3_rkx ) then
+        a2 = a2*a2*a2
+        a2 = xk7*a2
+      else
+        a2 = 0.0_rkx
+      end if
+      a3 = water/gama(10)
+      if ( a3 > 1.0e-5_rkx ) then
+        a3 = a3*a3
+        a3 = xk4*r*temp*a3
+      else
+        a3 = 0.0_rkx
+      end if
       a4 = (xk2/xkw)*r*temp*(gama(10)/gama(5))**2
-      a7 = xkw*rh*water*water
+      a7 = water
+      if ( a7 > 1.0e-5_rkx ) then
+        a7 = a7*a7
+        a7 = xkw*rh*a7
+      else
+        a7 = 0.0_rkx
+      end if
+      if ( a2 < epsilon(1.0_rkx) ) a2 = 0.0_rkx
+      if ( a3 < epsilon(1.0_rkx) ) a3 = 0.0_rkx
+      if ( a4 < epsilon(1.0_rkx) ) a4 = 0.0_rkx
+      if ( a7 < epsilon(1.0_rkx) ) a7 = 0.0_rkx
 !
-      psi3 = a3*a4*chi3*(chi4-psi4) - psi1*(2.D0*psi2+psi1+psi4)
-      psi3 = psi3/(a3*a4*(chi4-psi4)+2.D0*psi2+psi1+psi4)
+      psi3 = a3*a4*chi3*(chi4-psi4) - psi1*(2._rkx*psi2+psi1+psi4)
+      psi3 = psi3/(a3*a4*(chi4-psi4)+2._rkx*psi2+psi1+psi4)
       psi3 = min(max(psi3,zero),chi3)
 !
       bb = psi4 - psi3
+      if ( bb < epsilon(1.0_rkx) ) bb = 0.0_rkx
+
 !ol ahi  = 0.5d0*(-bb + sqrt(bb*bb + 4.d0*a7)) ! this is correct also
 !   ahi  = 2.0*a7/(bb+sqrt(bb*bb + 4.d0*a7)) ! avoid overflow when hi->0
-      denm = bb + sqrt(bb*bb+4.D0*a7)
+      if ( bb > 1.0e-5_rkx ) then
+        denm = bb + sqrt(bb*bb+4._rkx*a7)
+      else
+        denm = bb + sqrt(4._rkx*a7)
+      end if
       if ( denm<=tiny1 ) then          ! avoid overflow when hi->0
         abb = abs(bb)
         denm = (bb+abb) + 2.0*a7/abb     ! taylor expansion of sqrt
@@ -19487,7 +19534,7 @@ module mod_che_isorropia
 !   *** speciation & water content
 !   ***************************************
       molal(1) = ahi                                 ! hi
-      molal(3) = psi1 + psi4 + 2.D0*psi2             ! nh4i
+      molal(3) = psi1 + psi4 + 2._rkx*psi2             ! nh4i
       molal(5) = psi2                                ! so4i
       molal(6) = zero                                ! hso4i
       molal(7) = psi3 + psi1                         ! no3i
@@ -19532,7 +19579,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , p4 , psi4hi , psi4lo , &
+    real(rkx) :: delta , dx , p4 , psi4hi , psi4lo , &
          x1 , x2 , x3 , y1 , y2 , y3 , yhi , ylo , yy
     integer(ik4) :: i
 !
@@ -19576,7 +19623,7 @@ module mod_che_isorropia
     do i = 1 , ndiv
       x2 = x1 + dx
       y2 = funcd2(x2)
-      if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) then
+      if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) then
 !
 !     thi is done , in case if y(psi4lo)>0 , but y(psi4lo+dx) < 0
 !     (i.e.undersat)
@@ -19627,9 +19674,9 @@ module mod_che_isorropia
 !
 200 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcd2(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -19667,11 +19714,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcd2(p4)
+  real(rkx) function funcd2(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: abb , ahi , bb , denm , p4
+    real(rkx) :: abb , ahi , bb , denm , p4
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -19692,7 +19739,7 @@ module mod_che_isorropia
 !
       if ( chi2>tiny1 .and. water>tiny1 ) then
         psi14 = psi1 + psi4
-        call poly3(psi14,0.25D0*psi14**2,-a2/4.D0,psi2,islv)            ! psi2
+        call poly3(psi14,0.25_rkx*psi14**2,-a2/4._rkx,psi2,islv)            ! psi2
         if ( islv==0 ) then
           psi2 = min(psi2,chi2)
         else
@@ -19700,25 +19747,25 @@ module mod_che_isorropia
         end if
       end if
 !
-      psi3 = a3*a4*chi3*(chi4-psi4) - psi1*(2.D0*psi2+psi1+psi4)
-      psi3 = psi3/(a3*a4*(chi4-psi4)+2.D0*psi2+psi1+psi4)
+      psi3 = a3*a4*chi3*(chi4-psi4) - psi1*(2._rkx*psi2+psi1+psi4)
+      psi3 = psi3/(a3*a4*(chi4-psi4)+2._rkx*psi2+psi1+psi4)
 !   psi3  = min(max(psi3 , zero), chi3)
 !
       bb = psi4 - psi3    ! (bb > 0 , acidic solution , <0 alkaline)
 !
 !   do ot change computation scheme for h+, all others did not work
 !   well.
-      denm = bb + sqrt(bb*bb+4.D0*a7)
+      denm = bb + sqrt(bb*bb+4._rkx*a7)
       if ( denm<=tiny1 ) then          ! avoid overflow when hi->0
         abb = abs(bb)
-        denm = (bb+abb) + 2.D0*a7/abb     ! taylor expansion of sqrt
+        denm = (bb+abb) + 2._rkx*a7/abb     ! taylor expansion of sqrt
       end if
-      ahi = 2.D0*a7/denm
+      ahi = 2._rkx*a7/denm
 !
 !   *** speciation & water content
 !   ***************************************
       molal(1) = ahi                                  ! hi
-      molal(3) = psi1 + psi4 + 2.D0*psi2              ! nh4
+      molal(3) = psi1 + psi4 + 2._rkx*psi2              ! nh4
       molal(5) = psi2                                 ! so4
       molal(6) = zero                                 ! hso4
       molal(7) = psi3 + psi1                          ! no3
@@ -19805,7 +19852,7 @@ module mod_che_isorropia
   subroutine calcd1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: diak , om , omps , parm , ps , x , ze
+    real(rkx) :: diak , om , omps , parm , ps , x , ze
 !
 ! *** setup parameters ************************************************
 !
@@ -19820,7 +19867,7 @@ module mod_che_isorropia
 !
     omps = om + ps
     diak = sqrt(omps*omps+4.0*parm)                     ! diakrinousa
-    ze = min(x,0.5D0*(-omps+diak))                         ! thetiki riza
+    ze = min(x,0.5_rkx*(-omps+diak))                         ! thetiki riza
 !
 ! *** speciation *******************************************************
 !
@@ -19852,17 +19899,17 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rk8) :: delta , dx , psi6hi , psi6lo , &
+    real(rkx) :: delta , dx , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
 !
     calaou = .true.
-    chi1 = 0.5D0*w(1)
+    chi1 = 0.5_rkx*w(1)
     chi2 = max(w(2)-chi1,zero)
     chi3 = zero
-    chi4 = max(w(3)-2.D0*chi2,zero)
+    chi4 = max(w(3)-2._rkx*chi2,zero)
     chi5 = w(4)
     chi6 = w(5)
 !
@@ -19888,7 +19935,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcg5a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -19903,9 +19950,9 @@ module mod_che_isorropia
 !
 100 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcg5a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -19919,7 +19966,7 @@ module mod_che_isorropia
 ! *** converged ; return **********************************************
 !
 200 continue
-    x3 = 0.5D0*(x1+x2)
+    x3 = 0.5_rkx*(x1+x2)
     y3 = funcg5a(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -19951,11 +19998,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcg5a(x)
+  real(rkx) function funcg5a(x)
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rk8) :: akk , bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: akk , bb , cc , dd , hi , ohi , smin , x
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -19985,24 +20032,24 @@ module mod_che_isorropia
 !
 !   if(chi4 > tiny1) then
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
-        bb = -(chi4+psi6+psi5+1.D0/a4)
-        cc = chi4*(psi5+psi6) - 2.D0*psi2/a4
-        dd = max(bb*bb-4.D0*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
+        cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
+        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
       else
         psi4 = tiny1
       end if
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = 2.0D0*psi1                              ! nai
+      molal(2) = 2.0_rkx*psi1                              ! nai
       molal(3) = 2.0*psi2 + psi4                         ! nh4i
       molal(4) = psi6                                    ! cli
       molal(5) = psi2 + psi1                             ! so4i
       molal(6) = zero
       molal(7) = psi5                                    ! no3i
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -20050,17 +20097,17 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rk8) :: delta , dx , psi6hi , psi6lo , &
+    real(rkx) :: delta , dx , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
 !
     calaou = .true.
-    chi1 = 0.5D0*w(1)
+    chi1 = 0.5_rkx*w(1)
     chi2 = max(w(2)-chi1,zero)
     chi3 = zero
-    chi4 = max(w(3)-2.D0*chi2,zero)
+    chi4 = max(w(3)-2._rkx*chi2,zero)
     chi5 = w(4)
     chi6 = w(5)
 !
@@ -20085,7 +20132,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcg4a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -20100,9 +20147,9 @@ module mod_che_isorropia
 !
 100 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcg4a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -20116,7 +20163,7 @@ module mod_che_isorropia
 ! *** converged ; return **********************************************
 !
 200 continue
-    x3 = 0.5D0*(x1+x2)
+    x3 = 0.5_rkx*(x1+x2)
     y3 = funcg4a(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -20148,13 +20195,13 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcg4a(x)
+  real(rkx) function funcg4a(x)
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rk8) :: bb , cc , cli , dd , hi , ohi , so4i , x
+    real(rkx) :: bb , cc , cli , dd , hi , ohi , so4i , x
     integer(ik4) :: i , islv
-    real(rk8) :: nai , nh4i , no3i
+    real(rkx) :: nai , nh4i , no3i
 !
 ! *** setup parameters ************************************************
 !
@@ -20183,10 +20230,10 @@ module mod_che_isorropia
 !
 !   if(chi4 > tiny1) then
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
-        bb = -(chi4+psi6+psi5+1.D0/a4)
-        cc = chi4*(psi5+psi6) - 2.D0*psi2/a4
-        dd = max(bb*bb-4.D0*cc,zero)        ! patch proposed by uma shankar , 19/11/2001
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
+        cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
+        dd = max(bb*bb-4._rkx*cc,zero)        ! patch proposed by uma shankar , 19/11/2001
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
       else
         psi4 = tiny1
       end if
@@ -20197,14 +20244,14 @@ module mod_che_isorropia
       cli = psi6
       so4i = psi2 + psi1
       no3i = psi5
-      nai = 2.0D0*psi1
+      nai = 2.0_rkx*psi1
 !
-      call calcph(2.D0*so4i+no3i+cli-nai-nh4i,hi,ohi)
+      call calcph(2._rkx*so4i+no3i+cli-nai-nh4i,hi,ohi)
 !
 !   *** na2so4 dissolution
 !
       if ( chi1>tiny1 .and. water>tiny1 ) then             ! psi1
-        call poly3(psi2,zero,-a1/4.D0,psi1,islv)
+        call poly3(psi2,zero,-a1/4._rkx,psi1,islv)
         if ( islv==0 ) then
           psi1 = min(psi1,chi1)
         else
@@ -20324,17 +20371,17 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rk8) :: delta , dx , psi6hi , psi6lo , &
+    real(rkx) :: delta , dx , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
 !
     calaou = .true.
-    chi1 = 0.5D0*w(1)
+    chi1 = 0.5_rkx*w(1)
     chi2 = max(w(2)-chi1,zero)
     chi3 = zero
-    chi4 = max(w(3)-2.D0*chi2,zero)
+    chi4 = max(w(3)-2._rkx*chi2,zero)
     chi5 = w(4)
     chi6 = w(5)
 !
@@ -20359,7 +20406,7 @@ module mod_che_isorropia
         x2 = x1 + dx
         y2 = funcg3a(x2)
 !
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -20374,9 +20421,9 @@ module mod_che_isorropia
 !
 100 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcg3a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -20390,7 +20437,7 @@ module mod_che_isorropia
 ! *** converged ; return **********************************************
 !
 200 continue
-    x3 = 0.5D0*(x1+x2)
+    x3 = 0.5_rkx*(x1+x2)
     y3 = funcg3a(x3)
 !
 ! *** final calculations
@@ -20400,7 +20447,7 @@ module mod_che_isorropia
 !
 300 continue
     if ( chi1>tiny1 .and. water>tiny1 ) then        ! psi1
-      call poly3(psi2,zero,-a1/4.D0,psi1,islv)
+      call poly3(psi2,zero,-a1/4._rkx,psi1,islv)
       if ( islv==0 ) then
         psi1 = min(psi1,chi1)
       else
@@ -20409,7 +20456,7 @@ module mod_che_isorropia
     else
       psi1 = zero
     end if
-    molal(2) = 2.0D0*psi1                 ! na+  effect
+    molal(2) = 2.0_rkx*psi1                 ! na+  effect
     molal(5) = molal(5) + psi1            ! so4  effect
     cna2so4 = max(chi1-psi1,zero)          ! na2so4(s) depletion
 !
@@ -20441,11 +20488,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcg3a(x)
+  real(rkx) function funcg3a(x)
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rk8) :: bb , cc , dd , hi , ohi , psi20 , smin , x
+    real(rkx) :: bb , cc , dd , hi , ohi , psi20 , smin , x
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -20475,16 +20522,16 @@ module mod_che_isorropia
 !
 !   if(chi4 > tiny1) then
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
-        bb = -(chi4+psi6+psi5+1.D0/a4)
-        cc = chi4*(psi5+psi6) - 2.D0*psi2/a4
-        dd = max(bb*bb-4.D0*cc,zero)         ! patch proposed by uma shankar , 19/11/01
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
+        cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
+        dd = max(bb*bb-4._rkx*cc,zero)         ! patch proposed by uma shankar , 19/11/01
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
       else
         psi4 = tiny1
       end if
 !
       if ( chi2>tiny1 .and. water>tiny1 ) then
-        call poly3(psi4,psi4*psi4/4.D0,-a2/4.D0,psi20,islv)
+        call poly3(psi4,psi4*psi4/4._rkx,-a2/4._rkx,psi20,islv)
         if ( islv==0 ) psi2 = min(psi20,chi2)
       end if
 !
@@ -20497,7 +20544,7 @@ module mod_che_isorropia
       molal(6) = zero                                    ! hso4
       molal(7) = psi5                                    ! no3i
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -20612,17 +20659,17 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rk8) :: delta , dx , psi6hi , psi6lo , &
+    real(rkx) :: delta , dx , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
 !
     calaou = .true.
-    chi1 = 0.5D0*w(1)
+    chi1 = 0.5_rkx*w(1)
     chi2 = max(w(2)-chi1,zero)
     chi3 = zero
-    chi4 = max(w(3)-2.D0*chi2,zero)
+    chi4 = max(w(3)-2._rkx*chi2,zero)
     chi5 = w(4)
     chi6 = w(5)
 !
@@ -20646,7 +20693,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcg2a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -20661,9 +20708,9 @@ module mod_che_isorropia
 !
 100 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcg2a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -20677,7 +20724,7 @@ module mod_che_isorropia
 ! *** converged ; return **********************************************
 !
 200 continue
-    x3 = 0.5D0*(x1+x2)
+    x3 = 0.5_rkx*(x1+x2)
     if ( x3<=tiny2 ) then     ! practically no nitrates , so dry solution
       water = tiny1
     else
@@ -20691,7 +20738,7 @@ module mod_che_isorropia
 !
 300 continue
     if ( chi1>tiny1 .and. water>tiny1 ) then        ! psi1
-      call poly3(psi2,zero,-a1/4.D0,psi1,islv)
+      call poly3(psi2,zero,-a1/4._rkx,psi1,islv)
       if ( islv==0 ) then
         psi1 = min(psi1,chi1)
       else
@@ -20700,7 +20747,7 @@ module mod_che_isorropia
     else
       psi1 = zero
     end if
-    molal(2) = 2.0D0*psi1                 ! na+  effect
+    molal(2) = 2.0_rkx*psi1                 ! na+  effect
     molal(5) = molal(5) + psi1            ! so4  effect
     cna2so4 = max(chi1-psi1,zero)          ! na2so4(s) depletion
 !
@@ -20732,11 +20779,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcg2a(x)
+  real(rkx) function funcg2a(x)
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rk8) :: bb , cc , dd , delt , deno , hi , ohi , &
+    real(rkx) :: bb , cc , dd , delt , deno , hi , ohi , &
          psi20 , psi31 , psi32 , smin , x
     integer(ik4) :: i , islv
 !
@@ -20764,7 +20811,7 @@ module mod_che_isorropia
       psi4 = min(psi5+psi6,chi4)
 !
       if ( chi2>tiny1 .and. water>tiny1 ) then
-        call poly3(psi4,psi4*psi4/4.D0,-a2/4.D0,psi20,islv)
+        call poly3(psi4,psi4*psi4/4._rkx,-a2/4._rkx,psi20,islv)
         if ( islv==0 ) psi2 = min(psi20,chi2)
       end if
 !
@@ -20778,7 +20825,7 @@ module mod_che_isorropia
       molal(7) = psi5                                 ! no3i
 !
 !   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -20798,9 +20845,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghcl)
         bb = -(gnh3+ghcl)
         cc = gnh3*ghcl - a3
-        dd = bb*bb - 4.D0*cc
-        psi31 = 0.5D0*(-bb+sqrt(dd))
-        psi32 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi31 = 0.5_rkx*(-bb+sqrt(dd))
+        psi32 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi31>zero .and. psi31>zero ) then
           psi3 = psi31
         else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -20902,15 +20949,15 @@ module mod_che_isorropia
   subroutine calcg1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a1 , a2 , alf , bb , bet , cc , dd , &
+    real(rkx) :: a1 , a2 , alf , bb , bet , cc , dd , &
          dd1 , dd2 , frna , gam , rtsq , so4fr , sqdd , &
          sqdd1 , sqdd2 , theta1 , theta2
-    real(rk8) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2
+    real(rkx) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2
 !
 ! *** calculate non volatile solids ***********************************
 !
-    cna2so4 = min(0.5D0*w(1),w(2))
-    frna = max(w(1)-2.D0*cna2so4,zero)
+    cna2so4 = min(0.5_rkx*w(1),w(2))
+    frna = max(w(1)-2._rkx*cna2so4,zero)
     so4fr = max(w(2)-cna2so4,zero)
 ! cnh42s4 = w(2) - cna2so4
     cnh42s4 = max(so4fr,zero)                       ! cnh42s4
@@ -20932,14 +20979,14 @@ module mod_che_isorropia
 !
     bb = (theta1-alf-bet*(one+theta2))/(one+theta2)
     cc = (alf*bet-a1-bet*theta1)/(one+theta2)
-    dd = bb*bb - 4.0D0*cc
+    dd = bb*bb - 4.0_rkx*cc
     if ( dd>=zero ) then        ! solve each reaction seperately
 !
 !   two roots for kapa , check and see if any valid
 !
       sqdd = sqrt(dd)
-      kapa1 = 0.5D0*(-bb+sqdd)
-      kapa2 = 0.5D0*(-bb-sqdd)
+      kapa1 = 0.5_rkx*(-bb+sqdd)
+      kapa2 = 0.5_rkx*(-bb-sqdd)
       lamda1 = theta1 + theta2*kapa1
       lamda2 = theta1 + theta2*kapa2
 !
@@ -20966,15 +21013,15 @@ module mod_che_isorropia
 !
     kapa = zero
     lamda = zero
-    dd1 = (alf+bet)*(alf+bet) - 4.0D0*(alf*bet-a1)
-    dd2 = (alf+gam)*(alf+gam) - 4.0D0*(alf*gam-a2)
+    dd1 = (alf+bet)*(alf+bet) - 4.0_rkx*(alf*bet-a1)
+    dd2 = (alf+gam)*(alf+gam) - 4.0_rkx*(alf*gam-a2)
 !
 ! nh4l equilibrium
 !
     if ( dd1>=zero ) then
       sqdd1 = sqrt(dd1)
-      kapa1 = 0.5D0*(alf+bet+sqdd1)
-      kapa2 = 0.5D0*(alf+bet-sqdd1)
+      kapa1 = 0.5_rkx*(alf+bet+sqdd1)
+      kapa2 = 0.5_rkx*(alf+bet-sqdd1)
 !
       if ( kapa1>=zero .and. kapa1<=min(alf,bet) ) then
         kapa = kapa1
@@ -20989,8 +21036,8 @@ module mod_che_isorropia
 !
     if ( dd2>=zero ) then
       sqdd2 = sqrt(dd2)
-      lamda1 = 0.5D0*(alf+gam+sqdd2)
-      lamda2 = 0.5D0*(alf+gam-sqdd2)
+      lamda1 = 0.5_rkx*(alf+gam+sqdd2)
+      lamda2 = 0.5_rkx*(alf+gam-sqdd2)
 !
       if ( lamda1>=zero .and. lamda1<=min(alf,gam) ) then
         lamda = lamda1
@@ -21043,7 +21090,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frna , psi6hi , psi6lo , &
+    real(rkx) :: delta , dx , frna , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -21053,7 +21100,7 @@ module mod_che_isorropia
     chi1 = w(2)                                    ! cna2so4
     chi2 = zero                                    ! cnh42s4
     chi3 = zero                                    ! cnh4cl
-    frna = max(w(1)-2.D0*chi1,zero)
+    frna = max(w(1)-2._rkx*chi1,zero)
     chi8 = min(frna,w(4))                           ! cnano3
     chi4 = w(3)                                    ! nh3(g)
     chi5 = max(w(4)-chi8,zero)                      ! hno3(g)
@@ -21076,7 +21123,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funch6a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -21091,9 +21138,9 @@ module mod_che_isorropia
 !
 100 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funch6a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -21107,7 +21154,7 @@ module mod_che_isorropia
 ! *** converged ; return **********************************************
 !
 200 continue
-    x3 = 0.5D0*(x1+x2)
+    x3 = 0.5_rkx*(x1+x2)
     y3 = funch6a(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -21139,11 +21186,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funch6a(x)
+  real(rkx) function funch6a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -21176,10 +21223,10 @@ module mod_che_isorropia
       psi5 = max(psi5,tiny1)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = bb*bb - 4.D0*cc
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(psi4,chi4)
       else
         psi4 = tiny1
@@ -21187,14 +21234,14 @@ module mod_che_isorropia
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = psi8 + psi7 + 2.D0*psi1                   ! nai
+      molal(2) = psi8 + psi7 + 2._rkx*psi1                   ! nai
       molal(3) = psi4                                      ! nh4i
       molal(4) = psi6 + psi7                               ! cli
       molal(5) = psi2 + psi1                               ! so4i
       molal(6) = zero                                      ! hso4i
       molal(7) = psi5 + psi8                               ! no3i
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -21243,7 +21290,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frna , psi6hi , psi6lo , &
+    real(rkx) :: delta , dx , frna , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -21262,7 +21309,7 @@ module mod_che_isorropia
     chi1 = w(2)                                    ! cna2so4
     chi2 = zero                                    ! cnh42s4
     chi3 = zero                                    ! cnh4cl
-    frna = max(w(1)-2.D0*chi1,zero)
+    frna = max(w(1)-2._rkx*chi1,zero)
     chi8 = min(frna,w(4))                           ! cnano3
     chi4 = w(3)                                    ! nh3(g)
     chi5 = max(w(4)-chi8,zero)                      ! hno3(g)
@@ -21285,7 +21332,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funch5a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -21300,9 +21347,9 @@ module mod_che_isorropia
 !
 100 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funch5a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -21316,7 +21363,7 @@ module mod_che_isorropia
 ! *** converged ; return **********************************************
 !
 200 continue
-    x3 = 0.5D0*(x1+x2)
+    x3 = 0.5_rkx*(x1+x2)
     y3 = funch5a(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -21348,11 +21395,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funch5a(x)
+  real(rkx) function funch5a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: aa , bb , cc , dd , hi , ohi , smin , x
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -21385,10 +21432,10 @@ module mod_che_isorropia
       psi5 = max(psi5,tiny1)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = bb*bb - 4.D0*cc
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(psi4,chi4)
       else
         psi4 = tiny1
@@ -21397,7 +21444,7 @@ module mod_che_isorropia
       if ( chi1>tiny1 .and. water>tiny1 ) then          ! na2so4 dissolution
         aa = psi7 + psi8
         bb = aa*aa
-        cc = -a1/4.D0
+        cc = -a1/4._rkx
         call poly3(aa,bb,cc,psi1,islv)
         if ( islv==0 ) then
           psi1 = min(psi1,chi1)
@@ -21408,14 +21455,14 @@ module mod_che_isorropia
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = psi8 + psi7 + 2.D0*psi1                    ! nai
+      molal(2) = psi8 + psi7 + 2._rkx*psi1                    ! nai
       molal(3) = psi4                                       ! nh4i
       molal(4) = psi6 + psi7                                ! cli
       molal(5) = psi2 + psi1                                ! so4i
       molal(6) = zero
       molal(7) = psi5 + psi8                                ! no3i
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -21464,7 +21511,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frna , psi6hi , psi6lo , &
+    real(rkx) :: delta , dx , frna , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -21483,7 +21530,7 @@ module mod_che_isorropia
     chi1 = w(2)                                    ! cna2so4
     chi2 = zero                                    ! cnh42s4
     chi3 = zero                                    ! cnh4cl
-    frna = max(w(1)-2.D0*chi1,zero)
+    frna = max(w(1)-2._rkx*chi1,zero)
     chi8 = min(frna,w(4))                           ! cnano3
     chi4 = w(3)                                    ! nh3(g)
     chi5 = max(w(4)-chi8,zero)                      ! hno3(g)
@@ -21506,7 +21553,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funch4a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -21521,9 +21568,9 @@ module mod_che_isorropia
 !
 100 continue
     do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funch4a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -21537,7 +21584,7 @@ module mod_che_isorropia
 ! *** converged ; return **********************************************
 !
 200 continue
-    x3 = 0.5D0*(x1+x2)
+    x3 = 0.5_rkx*(x1+x2)
     y3 = funch4a(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -21569,11 +21616,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funch4a(x)
+  real(rkx) function funch4a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , cc , dd , delt , hi , ohi , psi31 , psi32 , smin , x
+    real(rkx) :: aa , bb , cc , dd , delt , hi , ohi , psi31 , psi32 , smin , x
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -21606,10 +21653,10 @@ module mod_che_isorropia
       psi5 = max(psi5,tiny1)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = bb*bb - 4.D0*cc
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(psi4,chi4)
       else
         psi4 = tiny1
@@ -21618,7 +21665,7 @@ module mod_che_isorropia
       if ( chi1>tiny1 .and. water>tiny1 ) then          ! na2so4 dissolution
         aa = psi7 + psi8
         bb = aa*aa
-        cc = -a1/4.D0
+        cc = -a1/4._rkx
         call poly3(aa,bb,cc,psi1,islv)
         if ( islv==0 ) then
           psi1 = min(psi1,chi1)
@@ -21629,14 +21676,14 @@ module mod_che_isorropia
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = psi8 + psi7 + 2.D0*psi1                    ! nai
+      molal(2) = psi8 + psi7 + 2._rkx*psi1                    ! nai
       molal(3) = psi4                                       ! nh4i
       molal(4) = psi6 + psi7                                ! cli
       molal(5) = psi2 + psi1                                ! so4i
       molal(6) = zero
       molal(7) = psi5 + psi8                                ! no3i
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -21658,9 +21705,9 @@ module mod_che_isorropia
       delt = min(gnh3,ghcl)
       bb = -(gnh3+ghcl)
       cc = gnh3*ghcl - a3
-      dd = bb*bb - 4.D0*cc
-      psi31 = 0.5D0*(-bb+sqrt(dd))
-      psi32 = 0.5D0*(-bb-sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      psi31 = 0.5_rkx*(-bb+sqrt(dd))
+      psi32 = 0.5_rkx*(-bb-sqrt(dd))
       if ( delt-psi31>zero .and. psi31>zero ) then
         psi3 = psi31
       else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -21710,7 +21757,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frna , psi6hi , psi6lo , &
+    real(rkx) :: delta , dx , frna , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -21729,7 +21776,7 @@ module mod_che_isorropia
     chi1 = w(2)                                    ! cna2so4
     chi2 = zero                                    ! cnh42s4
     chi3 = zero                                    ! cnh4cl
-    frna = max(w(1)-2.D0*chi1,zero)
+    frna = max(w(1)-2._rkx*chi1,zero)
     chi8 = min(frna,w(4))                           ! cnano3
     chi4 = w(3)                                    ! nh3(g)
     chi5 = max(w(4)-chi8,zero)                      ! hno3(g)
@@ -21752,7 +21799,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funch3a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -21766,9 +21813,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funch3a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -21781,7 +21828,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funch3a(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -21812,11 +21859,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funch3a(x)
+  real(rkx) function funch3a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , cc , dd , delt , diak , hi , ohi , &
+    real(rkx) :: aa , bb , cc , dd , delt , diak , hi , ohi , &
          psi31 , psi32 , smin , x
     integer(ik4) :: i , islv
 !
@@ -21850,25 +21897,25 @@ module mod_che_isorropia
       psi5 = max(psi5,tiny1)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = bb*bb - 4.D0*cc
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(psi4,chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then          ! nacl dissolution
-        diak = (psi8-psi6)**20 + 4.D0*a7
-        psi7 = 0.5D0*(-(psi8+psi6)+sqrt(diak))
+        diak = (psi8-psi6)**20 + 4._rkx*a7
+        psi7 = 0.5_rkx*(-(psi8+psi6)+sqrt(diak))
         psi7 = max(min(psi7,chi7),zero)
       end if
 !
       if ( chi1>tiny1 .and. water>tiny1 ) then          ! na2so4 dissolution
         aa = psi7 + psi8
         bb = aa*aa
-        cc = -a1/4.D0
+        cc = -a1/4._rkx
         call poly3(aa,bb,cc,psi1,islv)
         if ( islv==0 ) then
           psi1 = min(psi1,chi1)
@@ -21879,14 +21926,14 @@ module mod_che_isorropia
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = psi8 + psi7 + 2.D0*psi1                 ! nai
+      molal(2) = psi8 + psi7 + 2._rkx*psi1                 ! nai
       molal(3) = psi4                                    ! nh4i
       molal(4) = psi6 + psi7                             ! cli
       molal(5) = psi2 + psi1                             ! so4i
       molal(6) = zero
       molal(7) = psi5 + psi8                             ! no3i
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -21908,9 +21955,9 @@ module mod_che_isorropia
       delt = min(gnh3,ghcl)
       bb = -(gnh3+ghcl)
       cc = gnh3*ghcl - a3
-      dd = bb*bb - 4.D0*cc
-      psi31 = 0.5D0*(-bb+sqrt(dd))
-      psi32 = 0.5D0*(-bb-sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      psi31 = 0.5_rkx*(-bb+sqrt(dd))
+      psi32 = 0.5_rkx*(-bb-sqrt(dd))
       if ( delt-psi31>zero .and. psi31>zero ) then
         psi3 = psi31
       else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -22010,7 +22057,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frna , psi6hi , psi6lo , &
+    real(rkx) :: delta , dx , frna , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -22020,7 +22067,7 @@ module mod_che_isorropia
     chi1 = w(2)                                    ! cna2so4
     chi2 = zero                                    ! cnh42s4
     chi3 = zero                                    ! cnh4cl
-    frna = max(w(1)-2.D0*chi1,zero)
+    frna = max(w(1)-2._rkx*chi1,zero)
     chi8 = min(frna,w(4))                           ! cnano3
     chi4 = w(3)                                    ! nh3(g)
     chi5 = max(w(4)-chi8,zero)                      ! hno3(g)
@@ -22043,7 +22090,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funch2a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -22057,9 +22104,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funch2a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -22072,7 +22119,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funch2a(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -22103,11 +22150,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funch2a(x)
+  real(rkx) function funch2a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: a64 , aa , bb , cc , dd , delt , diak , hi , ohi , psi31 , &
+    real(rkx) :: a64 , aa , bb , cc , dd , delt , diak , hi , ohi , psi31 , &
          psi32 , smin , x
     integer(ik4) :: i , islv
 !
@@ -22144,31 +22191,31 @@ module mod_che_isorropia
       psi5 = max(psi5,tiny1)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = bb*bb - 4.D0*cc
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(psi4,chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then          ! nacl dissolution
-        diak = (psi8-psi6)**20 + 4.D0*a7
-        psi7 = 0.5D0*(-(psi8+psi6)+sqrt(diak))
+        diak = (psi8-psi6)**20 + 4._rkx*a7
+        psi7 = 0.5_rkx*(-(psi8+psi6)+sqrt(diak))
         psi7 = max(min(psi7,chi7),zero)
       end if
 !
       if ( chi8>tiny1 .and. water>tiny1 ) then          ! nano3 dissolution
-        diak = (psi7-psi5)**20 + 4.D0*a8
-        psi8 = 0.5D0*(-(psi7+psi5)+sqrt(diak))
+        diak = (psi7-psi5)**20 + 4._rkx*a8
+        psi8 = 0.5_rkx*(-(psi7+psi5)+sqrt(diak))
         psi8 = max(min(psi8,chi8),zero)
       end if
 !
       if ( chi1>tiny1 .and. water>tiny1 ) then          ! na2so4 dissolution
         aa = psi7 + psi8
         bb = aa*aa
-        cc = -a1/4.D0
+        cc = -a1/4._rkx
         call poly3(aa,bb,cc,psi1,islv)
         if ( islv==0 ) then
           psi1 = min(psi1,chi1)
@@ -22179,14 +22226,14 @@ module mod_che_isorropia
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = psi8 + psi7 + 2.D0*psi1                     ! nai
+      molal(2) = psi8 + psi7 + 2._rkx*psi1                     ! nai
       molal(3) = psi4                                        ! nh4i
       molal(4) = psi6 + psi7                                 ! cli
       molal(5) = psi2 + psi1                                 ! so4i
       molal(6) = zero                                        ! hso4i
       molal(7) = psi5 + psi8                                 ! no3i
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -22206,9 +22253,9 @@ module mod_che_isorropia
       delt = min(gnh3,ghcl)
       bb = -(gnh3+ghcl)
       cc = gnh3*ghcl - a3
-      dd = bb*bb - 4.D0*cc
-      psi31 = 0.5D0*(-bb+sqrt(dd))
-      psi32 = 0.5D0*(-bb-sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      psi31 = 0.5_rkx*(-bb+sqrt(dd))
+      psi32 = 0.5_rkx*(-bb-sqrt(dd))
       if ( delt-psi31>zero .and. psi31>zero ) then
         psi3 = psi31
       else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -22296,9 +22343,9 @@ module mod_che_isorropia
   subroutine calch1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a1 , a2 , alf , bb , bet , cc , clfr , dd , dd1 , dd2 , &
+    real(rkx) :: a1 , a2 , alf , bb , bet , cc , clfr , dd , dd1 , dd2 , &
          gam , rtsq , sqdd , sqdd1 , sqdd2 , theta1 , theta2
-    real(rk8) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2 , nafr , &
+    real(rkx) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2 , nafr , &
          no3fr
 !
 ! *** calculate non volatile solids ***********************************
@@ -22328,14 +22375,14 @@ module mod_che_isorropia
 !
     bb = (theta1-alf-bet*(one+theta2))/(one+theta2)
     cc = (alf*bet-a1-bet*theta1)/(one+theta2)
-    dd = bb*bb - 4.0D0*cc
+    dd = bb*bb - 4.0_rkx*cc
     if ( dd>=zero ) then        ! solve each reaction seperately
 !
 !   two roots for kapa , check and see if any valid
 !
       sqdd = sqrt(dd)
-      kapa1 = 0.5D0*(-bb+sqdd)
-      kapa2 = 0.5D0*(-bb-sqdd)
+      kapa1 = 0.5_rkx*(-bb+sqdd)
+      kapa2 = 0.5_rkx*(-bb-sqdd)
       lamda1 = theta1 + theta2*kapa1
       lamda2 = theta1 + theta2*kapa2
 !
@@ -22362,15 +22409,15 @@ module mod_che_isorropia
 !
     kapa = zero
     lamda = zero
-    dd1 = (alf+bet)*(alf+bet) - 4.0D0*(alf*bet-a1)
-    dd2 = (alf+gam)*(alf+gam) - 4.0D0*(alf*gam-a2)
+    dd1 = (alf+bet)*(alf+bet) - 4.0_rkx*(alf*bet-a1)
+    dd2 = (alf+gam)*(alf+gam) - 4.0_rkx*(alf*gam-a2)
 !
 ! nh4l equilibrium
 !
     if ( dd1>=zero ) then
       sqdd1 = sqrt(dd1)
-      kapa1 = 0.5D0*(alf+bet+sqdd1)
-      kapa2 = 0.5D0*(alf+bet-sqdd1)
+      kapa1 = 0.5_rkx*(alf+bet+sqdd1)
+      kapa2 = 0.5_rkx*(alf+bet-sqdd1)
 !
       if ( kapa1>=zero .and. kapa1<=min(alf,bet) ) then
         kapa = kapa1
@@ -22385,8 +22432,8 @@ module mod_che_isorropia
 !
     if ( dd2>=zero ) then
       sqdd2 = sqrt(dd2)
-      lamda1 = 0.5D0*(alf+gam+sqdd2)
-      lamda2 = 0.5D0*(alf+gam-sqdd2)
+      lamda1 = 0.5_rkx*(alf+gam+sqdd2)
+      lamda2 = 0.5_rkx*(alf+gam-sqdd2)
 !
       if ( lamda1>=zero .and. lamda1<=min(alf,gam) ) then
         lamda = lamda1
@@ -22439,7 +22486,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , cc , dd
+    real(rkx) :: bb , cc , dd
     integer(ik4) :: i
 !
 ! *** find dry composition
@@ -22474,14 +22521,14 @@ module mod_che_isorropia
 !
       bb = psi2 + psi4 + psi5 + a6                         ! psi6
       cc = -a6*(psi2+psi3+psi1)
-      dd = bb*bb - 4.D0*cc
-      psi6 = 0.5D0*(-bb+sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      psi6 = 0.5_rkx*(-bb+sqrt(dd))
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = psi6                                        ! hi
-      molal(2) = 2.D0*psi4 + psi3                            ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1                ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                            ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1                ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6                   ! so4i
       molal(6) = psi2 + psi3 + psi1 - psi6                   ! hso4i
       clc = zero
@@ -22520,7 +22567,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -22570,7 +22617,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 - dx
         y2 = funci5a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50    ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -22588,9 +22635,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funci5a(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -22603,7 +22650,7 @@ module mod_che_isorropia
 !
 !   *** converged ; return
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funci5a(x3)
     end if
 !
@@ -22627,11 +22674,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funci5a(p4)
+  real(rkx) function funci5a(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , cc , dd , p4
+    real(rkx) :: bb , cc , dd , p4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -22652,14 +22699,14 @@ module mod_che_isorropia
 !
       bb = psi2 + psi4 + psi5 + a6                         ! psi6
       cc = -a6*(psi2+psi3+psi1)
-      dd = bb*bb - 4.D0*cc
-      psi6 = 0.5D0*(-bb+sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      psi6 = 0.5_rkx*(-bb+sqrt(dd))
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = psi6                                ! hi
-      molal(2) = 2.D0*psi4 + psi3                    ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1        ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                    ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1        ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6           ! so4i
       molal(6) = psi2 + psi3 + psi1 - psi6           ! hso4i
       clc = zero
@@ -22703,7 +22750,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -22753,7 +22800,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 - dx
         y2 = funci4a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50    ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -22771,9 +22818,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funci4a(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -22786,7 +22833,7 @@ module mod_che_isorropia
 !
 !   *** converged ; return
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funci4a(x3)
     end if
   end subroutine calci4
@@ -22809,11 +22856,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funci4a(p4)
+  real(rkx) function funci4a(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , cc , dd , p4
+    real(rkx) :: bb , cc , dd , p4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -22835,17 +22882,17 @@ module mod_che_isorropia
 !
       bb = psi2 + psi4 + psi5 + a6                         ! psi6
       cc = -a6*(psi2+psi3+psi1)
-      dd = bb*bb - 4.D0*cc
-      psi6 = 0.5D0*(-bb+sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      psi6 = 0.5_rkx*(-bb+sqrt(dd))
 !
-      psi5 = (psi3+2.D0*psi4-a7*(3.D0*psi2+psi1))/2.D0/a7
+      psi5 = (psi3+2._rkx*psi4-a7*(3._rkx*psi2+psi1))/2._rkx/a7
       psi5 = max(min(psi5,chi5),zero)
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = psi6                                ! hi
-      molal(2) = 2.D0*psi4 + psi3                    ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1        ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                    ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1        ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6           ! so4i
       molal(6) = psi2 + psi3 + psi1 - psi6           ! hso4i
       clc = zero
@@ -22947,7 +22994,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -22990,7 +23037,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = max(x1-dx,psi2lo)
         y2 = funci3a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -23004,9 +23051,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funci3a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -23019,7 +23066,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funci3a(x3)
   end subroutine calci3a
 !
@@ -23041,11 +23088,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funci3a(p2)
+  real(rkx) function funci3a(p2)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -23080,7 +23127,7 @@ module mod_che_isorropia
         do i = 1 , ndiv
           x2 = max(x1-dx,psi4lo)
           y2 = funci3b(x2)
-          if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50  ! (y1*y2 < zero)
+          if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50  ! (y1*y2 < zero)
           x1 = x2
           y1 = y2
         end do
@@ -23094,9 +23141,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funci3b(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -23109,7 +23156,7 @@ module mod_che_isorropia
 !
 !   *** inner loop converged
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funci3b(x3)
     end if
 !
@@ -23134,11 +23181,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funci3b(p4)
+  real(rkx) function funci3b(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , cc , dd , p4
+    real(rkx) :: bb , cc , dd , p4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -23163,17 +23210,17 @@ module mod_che_isorropia
 !
       bb = psi2 + psi4 + psi5 + a6                         ! psi6
       cc = -a6*(psi2+psi3+psi1)
-      dd = bb*bb - 4.D0*cc
-      psi6 = 0.5D0*(-bb+sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      psi6 = 0.5_rkx*(-bb+sqrt(dd))
 !
-      psi5 = (psi3+2.D0*psi4-a7*(3.D0*psi2+psi1))/2.D0/a7
+      psi5 = (psi3+2._rkx*psi4-a7*(3._rkx*psi2+psi1))/2._rkx/a7
       psi5 = max(min(psi5,chi5),zero)
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = psi6                                     ! hi
-      molal(2) = 2.D0*psi4 + psi3                         ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1             ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                         ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1             ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6                ! so4i
       molal(6) = max(psi2+psi3+psi1-psi6,tiny1)             ! hso4i
       clc = max(chi2-psi2,zero)
@@ -23275,7 +23322,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -23318,7 +23365,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = max(x1-dx,psi2lo)
         y2 = funci2a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -23332,9 +23379,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funci2a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -23347,7 +23394,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funci2a(x3)
   end subroutine calci2a
 !
@@ -23369,11 +23416,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funci2a(p2)
+  real(rkx) function funci2a(p2)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , cc , dd , p2
+    real(rkx) :: aa , bb , cc , dd , p2
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -23399,14 +23446,14 @@ module mod_che_isorropia
 !   caculate dissociation quantities
 !
       if ( chi5>tiny1 .and. water>tiny1 ) then
-        psi5 = (psi3+2.D0*psi4-a7*(3.D0*psi2+psi1))/2.D0/a7
+        psi5 = (psi3+2._rkx*psi4-a7*(3._rkx*psi2+psi1))/2._rkx/a7
         psi5 = max(min(psi5,chi5),tiny1)
       end if
 !
       if ( chi4>tiny1 .and. water>tiny1 ) then
         aa = psi2 + psi5 + psi6 + psi3
         bb = psi3*aa
-        cc = 0.25D0*(psi3*psi3*(psi2+psi5+psi6)-a4)
+        cc = 0.25_rkx*(psi3*psi3*(psi2+psi5+psi6)-a4)
         call poly3(aa,bb,cc,psi4,islv)
         if ( islv==0 ) then
           psi4 = min(psi4,chi4)
@@ -23416,8 +23463,8 @@ module mod_che_isorropia
       end if
 !
       if ( chi3>tiny1 .and. water>tiny1 ) then
-        aa = 2.D0*psi4 + psi2 + psi1 - psi6
-        bb = 2.D0*psi4*(psi2+psi1-psi6) - a3
+        aa = 2._rkx*psi4 + psi2 + psi1 - psi6
+        bb = 2._rkx*psi4*(psi2+psi1-psi6) - a3
         cc = zero
         call poly3(aa,bb,cc,psi3,islv)
         if ( islv==0 ) then
@@ -23429,14 +23476,14 @@ module mod_che_isorropia
 !
       bb = psi2 + psi4 + psi5 + a6                         ! psi6
       cc = -a6*(psi2+psi3+psi1)
-      dd = bb*bb - 4.D0*cc
-      psi6 = 0.5D0*(-bb+sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      psi6 = 0.5_rkx*(-bb+sqrt(dd))
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = psi6                               ! hi
-      molal(2) = 2.D0*psi4 + psi3                   ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1       ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                   ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1       ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6          ! so4i
       molal(6) = psi2 + psi3 + psi1 - psi6          ! hso4i
       clc = chi2 - psi2
@@ -23522,30 +23569,30 @@ module mod_che_isorropia
   subroutine calci1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: frnh4 , frso4
+    real(rkx) :: frnh4 , frso4
 !
 ! *** calculate non volatile solids ***********************************
 !
-    cna2so4 = 0.5D0*w(1)
+    cna2so4 = 0.5_rkx*w(1)
     cnh4hs4 = zero
     cnahso4 = zero
     cnh42s4 = zero
     frso4 = max(w(2)-cna2so4,zero)
 !
-    clc = min(w(3)/3.D0,frso4/2.D0)
-    frso4 = max(frso4-2.D0*clc,zero)
-    frnh4 = max(w(3)-3.D0*clc,zero)
+    clc = min(w(3)/3._rkx,frso4/2._rkx)
+    frso4 = max(frso4-2._rkx*clc,zero)
+    frnh4 = max(w(3)-3._rkx*clc,zero)
 !
     if ( frso4<=tiny1 ) then
       clc = max(clc-frnh4,zero)
-      cnh42s4 = 2.D0*frnh4
+      cnh42s4 = 2._rkx*frnh4
 
     else if ( frnh4<=tiny1 ) then
-      cnh4hs4 = 3.D0*min(frso4,clc)
+      cnh4hs4 = 3._rkx*min(frso4,clc)
       clc = max(clc-frso4,zero)
       if ( cna2so4>tiny1 ) then
-        frso4 = max(frso4-cnh4hs4/3.D0,zero)
-        cnahso4 = 2.D0*frso4
+        frso4 = max(frso4-cnh4hs4/3._rkx,zero)
+        cnahso4 = 2._rkx*frso4
         cna2so4 = max(cna2so4-frso4,zero)
       end if
     end if
@@ -23577,9 +23624,9 @@ module mod_che_isorropia
   subroutine calcj3
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a3 , bb , cc , chi1 , chi2 , dd , psi1 , psi2
+    real(rkx) :: a3 , bb , cc , chi1 , chi2 , dd , psi1 , psi2
     integer(ik4) :: i
-    real(rk8) :: lamda , kapa
+    real(rkx) :: lamda , kapa
 !
 ! *** setup parameters ************************************************
 !
@@ -23603,8 +23650,8 @@ module mod_che_isorropia
 !
       bb = a3 + lamda                           ! kapa
       cc = -a3*(lamda+psi1+psi2)
-      dd = bb*bb - 4.D0*cc
-      kapa = 0.5D0*(-bb+sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      kapa = 0.5_rkx*(-bb+sqrt(dd))
 !
 !   *** calculate speciation
 !   ********************************************
@@ -23650,7 +23697,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casej
     implicit none
-    real(rk8) :: dx , psi1hi , psi1lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi1hi , psi1lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -23679,7 +23726,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 - dx
         y2 = funcj2(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50    ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -23697,9 +23744,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funcj2(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -23712,7 +23759,7 @@ module mod_che_isorropia
 !
 !   *** converged ; return
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funcj2(x3)
     end if
   end subroutine calcj2
@@ -23735,11 +23782,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcj2(p1)
+  real(rkx) function funcj2(p1)
     use mod_che_common_isorropia
     use mod_che_common_casej
     implicit none
-    real(rk8) :: bb , cc , dd , p1
+    real(rkx) :: bb , cc , dd , p1
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -23762,8 +23809,8 @@ module mod_che_isorropia
 !
       bb = a3 + lamda                           ! kapa
       cc = -a3*(lamda+psi1+psi2)
-      dd = bb*bb - 4.D0*cc
-      kapa = 0.5D0*(-bb+sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      kapa = 0.5_rkx*(-bb+sqrt(dd))
 !
 !   *** calculate speciation
 !   ********************************************
@@ -23813,7 +23860,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casej
     implicit none
-    real(rk8) :: dx , psi1hi , psi1lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi1hi , psi1lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -23843,7 +23890,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 - dx
         y2 = funcj1(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50    ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -23861,9 +23908,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funcj1(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -23876,7 +23923,7 @@ module mod_che_isorropia
 !
 !   *** converged ; return
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funcj1(x3)
     end if
   end subroutine calcj1
@@ -23898,11 +23945,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcj1(p1)
+  real(rkx) function funcj1(p1)
     use mod_che_common_isorropia
     use mod_che_common_casej
     implicit none
-    real(rk8) :: bb , cc , dd , p1
+    real(rkx) :: bb , cc , dd , p1
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -23921,13 +23968,13 @@ module mod_che_isorropia
       a2 = xk12*(water/gama(09))**2
       a3 = xk1*water/gama(7)*(gama(8)/gama(7))**2
 !
-      psi2 = 0.5D0*(-(lamda+psi1)+sqrt((lamda+psi1)**20+4.D0*a2))       ! psi2
+      psi2 = 0.5_rkx*(-(lamda+psi1)+sqrt((lamda+psi1)**20+4._rkx*a2))       ! psi2
       psi2 = min(psi2,chi2)
 !
       bb = a3 + lamda                           ! kapa
       cc = -a3*(lamda+psi2+psi1)
-      dd = bb*bb - 4.D0*cc
-      kapa = 0.5D0*(-bb+sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      kapa = 0.5_rkx*(-bb+sqrt(dd))
 !
 !   *** save concentrations in molal array
 !   ******************************
@@ -23976,7 +24023,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
+    real(rkx) :: cafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
     integer(ik4) :: i
 !
@@ -23986,11 +24033,11 @@ module mod_che_isorropia
     chi9 = min(w(6),w(2))                           ! ccaso4
     so4fr = max(w(2)-chi9,zero)
     cafr = max(w(6)-chi9,zero)
-    chi7 = min(0.5D0*w(7),so4fr)                    ! ck2so4
-    frk = max(w(7)-2.D0*chi7,zero)
+    chi7 = min(0.5_rkx*w(7),so4fr)                    ! ck2so4
+    frk = max(w(7)-2._rkx*chi7,zero)
     so4fr = max(so4fr-chi7,zero)
-    chi1 = min(0.5D0*w(1),so4fr)                    ! na2so4
-    nafr = max(w(1)-2.D0*chi1,zero)
+    chi1 = min(0.5_rkx*w(1),so4fr)                    ! na2so4
+    nafr = max(w(1)-2._rkx*chi1,zero)
     so4fr = max(so4fr-chi1,zero)
     chi8 = min(w(8),so4fr)                          ! cmgso4
     frmg = max(w(8)-chi8,zero)
@@ -23999,7 +24046,7 @@ module mod_che_isorropia
     chi5 = w(4)
     chi6 = w(5)
     chi2 = max(so4fr,zero)
-    chi4 = max(w(3)-2.D0*chi2,zero)
+    chi4 = max(w(3)-2._rkx*chi2,zero)
 !
     psi1 = chi1
     psi2 = chi2
@@ -24030,7 +24077,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funco7(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -24044,9 +24091,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funco7(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -24059,7 +24106,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funco7(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -24089,11 +24136,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funco7(x)
+  real(rkx) function funco7(x)
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -24120,10 +24167,10 @@ module mod_che_isorropia
 !
 !   if(chi4 > tiny1) then
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
-        bb = -(chi4+psi6+psi5+1.D0/a4)
-        cc = chi4*(psi5+psi6) - 2.D0*psi2/a4
-        dd = max(bb*bb-4.D0*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
+        cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
+        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = max(min(psi4,chi4),zero)
       else
         psi4 = tiny1
@@ -24131,21 +24178,21 @@ module mod_che_isorropia
 !
 !   *** save concentrations in molal array
 !   ******************************
-      molal(2) = 2.0D0*psi1                           ! na+
-      molal(3) = 2.0D0*psi2 + psi4                    ! nh4i
+      molal(2) = 2.0_rkx*psi1                           ! na+
+      molal(3) = 2.0_rkx*psi2 + psi4                    ! nh4i
       molal(4) = psi6                                 ! cli
       molal(5) = psi1 + psi2 + psi7 + psi8            ! so4i
       molal(6) = zero                                 ! hso4
       molal(7) = psi5                                 ! no3i
       molal(8) = zero                                 ! cai
-      molal(9) = 2.0D0*psi7                           ! ki
+      molal(9) = 2.0_rkx*psi7                           ! ki
       molal(10) = psi8                                 ! mg
 !
 !   *** calculate hso4 speciation and return
 !   *******************************
 !   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -24199,7 +24246,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
+    real(rkx) :: cafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
     integer(ik4) :: i
 !
@@ -24209,11 +24256,11 @@ module mod_che_isorropia
     chi9 = min(w(6),w(2))                           ! ccaso4
     so4fr = max(w(2)-chi9,zero)
     cafr = max(w(6)-chi9,zero)
-    chi7 = min(0.5D0*w(7),so4fr)                    ! ck2so4
-    frk = max(w(7)-2.D0*chi7,zero)
+    chi7 = min(0.5_rkx*w(7),so4fr)                    ! ck2so4
+    frk = max(w(7)-2._rkx*chi7,zero)
     so4fr = max(so4fr-chi7,zero)
-    chi1 = min(0.5D0*w(1),so4fr)                    ! na2so4
-    nafr = max(w(1)-2.D0*chi1,zero)
+    chi1 = min(0.5_rkx*w(1),so4fr)                    ! na2so4
+    nafr = max(w(1)-2._rkx*chi1,zero)
     so4fr = max(so4fr-chi1,zero)
     chi8 = min(w(8),so4fr)                          ! cmgso4
     frmg = max(w(8)-chi8,zero)
@@ -24222,7 +24269,7 @@ module mod_che_isorropia
     chi5 = w(4)
     chi6 = w(5)
     chi2 = max(so4fr,zero)
-    chi4 = max(w(3)-2.D0*chi2,zero)
+    chi4 = max(w(3)-2._rkx*chi2,zero)
 !
 !
     psi1 = chi1
@@ -24251,7 +24298,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funco6(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -24265,9 +24312,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funco6(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -24280,7 +24327,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funco6(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -24310,11 +24357,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funco6(x)
+  real(rkx) function funco6(x)
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -24342,17 +24389,17 @@ module mod_che_isorropia
 !
 !   if(chi4 > tiny1) then
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
-        bb = -(chi4+psi6+psi5+1.D0/a4)
-        cc = chi4*(psi5+psi6) - 2.D0*psi2/a4
-        dd = max(bb*bb-4.D0*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
+        cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
+        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = max(min(psi4,chi4),zero)
       else
         psi4 = tiny1
       end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then             ! psi7
-        call poly3(psi1+psi2+psi8,zero,-a7/4.D0,psi7,islv)
+        call poly3(psi1+psi2+psi8,zero,-a7/4._rkx,psi7,islv)
         if ( islv==0 ) then
           psi7 = max(min(psi7,chi7),zero)
         else
@@ -24364,21 +24411,21 @@ module mod_che_isorropia
 !
 !   *** save concentrations in molal array
 !   ******************************
-      molal(2) = 2.0D0*psi1                           ! na+
-      molal(3) = 2.0D0*psi2 + psi4                    ! nh4i
+      molal(2) = 2.0_rkx*psi1                           ! na+
+      molal(3) = 2.0_rkx*psi2 + psi4                    ! nh4i
       molal(4) = psi6                                 ! cli
       molal(5) = psi1 + psi2 + psi7 + psi8            ! so4i
       molal(6) = zero                                 ! hso4
       molal(7) = psi5                                 ! no3i
       molal(8) = zero                                 ! cai
-      molal(9) = 2.0D0*psi7                           ! ki
+      molal(9) = 2.0_rkx*psi7                           ! ki
       molal(10) = psi8                                 ! mg
 !
 !   *** calculate hso4 speciation and return
 !   *******************************
 !   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -24432,7 +24479,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
+    real(rkx) :: cafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
     integer(ik4) :: i
 !
@@ -24442,11 +24489,11 @@ module mod_che_isorropia
     chi9 = min(w(6),w(2))                           ! ccaso4
     so4fr = max(w(2)-chi9,zero)
     cafr = max(w(6)-chi9,zero)
-    chi7 = min(0.5D0*w(7),so4fr)                    ! ck2so4
-    frk = max(w(7)-2.D0*chi7,zero)
+    chi7 = min(0.5_rkx*w(7),so4fr)                    ! ck2so4
+    frk = max(w(7)-2._rkx*chi7,zero)
     so4fr = max(so4fr-chi7,zero)
-    chi1 = min(0.5D0*w(1),so4fr)                    ! na2so4
-    nafr = max(w(1)-2.D0*chi1,zero)
+    chi1 = min(0.5_rkx*w(1),so4fr)                    ! na2so4
+    nafr = max(w(1)-2._rkx*chi1,zero)
     so4fr = max(so4fr-chi1,zero)
     chi8 = min(w(8),so4fr)                          ! cmgso4
     frmg = max(w(8)-chi8,zero)
@@ -24455,7 +24502,7 @@ module mod_che_isorropia
     chi5 = w(4)
     chi6 = w(5)
     chi2 = max(so4fr,zero)
-    chi4 = max(w(3)-2.D0*chi2,zero)
+    chi4 = max(w(3)-2._rkx*chi2,zero)
 !
     psi1 = zero
     psi2 = chi2
@@ -24483,7 +24530,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funco5(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -24497,9 +24544,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funco5(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -24512,7 +24559,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funco5(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -24542,11 +24589,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funco5(x)
+  real(rkx) function funco5(x)
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -24574,18 +24621,18 @@ module mod_che_isorropia
 !
 !   if(chi4 > tiny1) then
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
-        bb = -(chi4+psi6+psi5+1.D0/a4)
-        cc = chi4*(psi5+psi6) - 2.D0*psi2/a4
-        dd = max(bb*bb-4.D0*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
+        cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
+        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = max(min(psi4,chi4),zero)
       else
         psi4 = tiny1
       end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then             ! psi7
-        call poly3((psi2+psi8)/(sqrt(a1/a7)+1.D0),zero,                   &
-                   -a7/4.D0/(sqrt(a1/a7)+1.D0),psi7,islv)
+        call poly3((psi2+psi8)/(sqrt(a1/a7)+1._rkx),zero,                   &
+                   -a7/4._rkx/(sqrt(a1/a7)+1._rkx),psi7,islv)
         if ( islv==0 ) then
           psi7 = max(min(psi7,chi7),zero)
         else
@@ -24604,21 +24651,21 @@ module mod_che_isorropia
 !
 !   *** save concentrations in molal array
 !   ******************************
-      molal(2) = 2.0D0*psi1                           ! nai
-      molal(3) = 2.0D0*psi2 + psi4                    ! nh4i
+      molal(2) = 2.0_rkx*psi1                           ! nai
+      molal(3) = 2.0_rkx*psi2 + psi4                    ! nh4i
       molal(4) = psi6                                 ! cli
       molal(5) = psi1 + psi2 + psi7 + psi8            ! so4i
       molal(6) = zero                                 ! hso4
       molal(7) = psi5                                 ! no3i
       molal(8) = zero                                 ! cai
-      molal(9) = 2.0D0*psi7                           ! ki
+      molal(9) = 2.0_rkx*psi7                           ! ki
       molal(10) = psi8                                 ! mg
 !
 !   *** calculate hso4 speciation and return
 !   *******************************
 !   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -24672,7 +24719,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
+    real(rkx) :: cafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
     integer(ik4) :: i , islv
 !
@@ -24682,11 +24729,11 @@ module mod_che_isorropia
     chi9 = min(w(6),w(2))                           ! ccaso4
     so4fr = max(w(2)-chi9,zero)
     cafr = max(w(6)-chi9,zero)
-    chi7 = min(0.5D0*w(7),so4fr)                    ! ck2so4
-    frk = max(w(7)-2.D0*chi7,zero)
+    chi7 = min(0.5_rkx*w(7),so4fr)                    ! ck2so4
+    frk = max(w(7)-2._rkx*chi7,zero)
     so4fr = max(so4fr-chi7,zero)
-    chi1 = min(0.5D0*w(1),so4fr)                    ! na2so4
-    nafr = max(w(1)-2.D0*chi1,zero)
+    chi1 = min(0.5_rkx*w(1),so4fr)                    ! na2so4
+    nafr = max(w(1)-2._rkx*chi1,zero)
     so4fr = max(so4fr-chi1,zero)
     chi8 = min(w(8),so4fr)                          ! cmgso4
     frmg = max(w(8)-chi8,zero)
@@ -24695,7 +24742,7 @@ module mod_che_isorropia
     chi5 = w(4)
     chi6 = w(5)
     chi2 = max(so4fr,zero)
-    chi4 = max(w(3)-2.D0*chi2,zero)
+    chi4 = max(w(3)-2._rkx*chi2,zero)
 !
     psi2 = chi2
     psi3 = zero
@@ -24722,7 +24769,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funco4(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -24736,9 +24783,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funco4(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -24751,7 +24798,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funco4(x3)
 !
 ! *** final calculations **********************************************
@@ -24760,7 +24807,7 @@ module mod_che_isorropia
 ! *** na2so4 dissolution
 !
  300  if ( chi1>tiny1 .and. water>tiny1 ) then        ! psi1
-      call poly3(psi2+psi7+psi8,zero,-a1/4.D0,psi1,islv)
+      call poly3(psi2+psi7+psi8,zero,-a1/4._rkx,psi1,islv)
       if ( islv==0 ) then
         psi1 = min(psi1,chi1)
       else
@@ -24769,7 +24816,7 @@ module mod_che_isorropia
     else
       psi1 = zero
     end if
-    molal(2) = 2.0D0*psi1                 ! na+  effect
+    molal(2) = 2.0_rkx*psi1                 ! na+  effect
     molal(5) = molal(5) + psi1            ! so4  effect
     cna2so4 = max(chi1-psi1,zero)          ! na2so4(s) depletion
 !
@@ -24800,11 +24847,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funco4(x)
+  real(rkx) function funco4(x)
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -24836,17 +24883,17 @@ module mod_che_isorropia
 !
 !   if(chi4 > tiny1) then
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
-        bb = -(chi4+psi6+psi5+1.D0/a4)
-        cc = chi4*(psi5+psi6) - 2.D0*psi2/a4
-        dd = max(bb*bb-4.D0*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
+        cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
+        dd = max(bb*bb-4._rkx*cc,zero)                  ! patch proposed by uma shankar , 19/11/01
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = max(min(psi4,chi4),zero)
       else
         psi4 = tiny1
       end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then             ! psi7
-        call poly3(psi2+psi8,zero,-a7/4.D0,psi7,islv)
+        call poly3(psi2+psi8,zero,-a7/4._rkx,psi7,islv)
         if ( islv==0 ) then
           psi7 = max(min(psi7,chi7),zero)
         else
@@ -24859,20 +24906,20 @@ module mod_che_isorropia
 !   *** calculate gas / solid species (liquid in molal already)
 !   *********
       molal(2) = zero                                 ! nai
-      molal(3) = 2.0D0*psi2 + psi4                    ! nh4i
+      molal(3) = 2.0_rkx*psi2 + psi4                    ! nh4i
       molal(4) = psi6                                 ! cli
       molal(5) = psi2 + psi7 + psi8                   ! so4i
       molal(6) = zero                                 ! hso4
       molal(7) = psi5                                 ! no3i
       molal(8) = zero                                 ! cai
-      molal(9) = 2.0D0*psi7                           ! ki
+      molal(9) = 2.0_rkx*psi7                           ! ki
       molal(10) = psi8                                 ! mgi
 !
 !   *** calculate hso4 speciation and return
 !   *******************************
 !   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -24975,7 +25022,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
+    real(rkx) :: cafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
     integer(ik4) :: i , islv
 !
@@ -24985,11 +25032,11 @@ module mod_che_isorropia
     chi9 = min(w(6),w(2))                           ! ccaso4
     so4fr = max(w(2)-chi9,zero)
     cafr = max(w(6)-chi9,zero)
-    chi7 = min(0.5D0*w(7),so4fr)                    ! ck2so4
-    frk = max(w(7)-2.D0*chi7,zero)
+    chi7 = min(0.5_rkx*w(7),so4fr)                    ! ck2so4
+    frk = max(w(7)-2._rkx*chi7,zero)
     so4fr = max(so4fr-chi7,zero)
-    chi1 = min(0.5D0*w(1),so4fr)                    ! na2so4
-    nafr = max(w(1)-2.D0*chi1,zero)
+    chi1 = min(0.5_rkx*w(1),so4fr)                    ! na2so4
+    nafr = max(w(1)-2._rkx*chi1,zero)
     so4fr = max(so4fr-chi1,zero)
     chi8 = min(w(8),so4fr)                          ! cmgso4
     frmg = max(w(8)-chi8,zero)
@@ -24998,7 +25045,7 @@ module mod_che_isorropia
     chi5 = w(4)
     chi6 = w(5)
     chi2 = max(so4fr,zero)
-    chi4 = max(w(3)-2.D0*chi2,zero)
+    chi4 = max(w(3)-2._rkx*chi2,zero)
 !
     psi8 = chi8
     psi6lo = tiny1
@@ -25021,7 +25068,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funco3a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -25035,9 +25082,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funco3a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -25050,7 +25097,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funco3a(x3)
 !
 ! *** final calculations
@@ -25059,7 +25106,7 @@ module mod_che_isorropia
 ! *** na2so4 dissolution
 !
  300  if ( chi1>tiny1 .and. water>tiny1 ) then        ! psi1
-      call poly3(psi2+psi7+psi8,zero,-a1/4.D0,psi1,islv)
+      call poly3(psi2+psi7+psi8,zero,-a1/4._rkx,psi1,islv)
       if ( islv==0 ) then
         psi1 = min(max(psi1,zero),chi1)
       else
@@ -25068,7 +25115,7 @@ module mod_che_isorropia
     else
       psi1 = zero
     end if
-    molal(2) = 2.0D0*psi1                 ! na+  effect
+    molal(2) = 2.0_rkx*psi1                 ! na+  effect
     molal(5) = molal(5) + psi1            ! so4  effect
     cna2so4 = max(chi1-psi1,zero)          ! na2so4(s) depletion
 !
@@ -25100,11 +25147,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funco3a(x)
+  real(rkx) function funco3a(x)
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: a65 , bb , cc , dd , deno , hi , ohi , psi20 , smin , x
+    real(rkx) :: a65 , bb , cc , dd , deno , hi , ohi , psi20 , smin , x
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -25138,17 +25185,17 @@ module mod_che_isorropia
 !
 !   if(chi4 > tiny1) then                             ! psi4
       if ( w(2)>tiny1 ) then         ! accounts for nh3 evaporation
-        bb = -(chi4+psi6+psi5+1.D0/a4)
-        cc = chi4*(psi5+psi6) - 2.D0*psi2/a4
-        dd = max(bb*bb-4.D0*cc,zero)         ! patch proposed by uma shankar , 19/11/01
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
+        cc = chi4*(psi5+psi6) - 2._rkx*psi2/a4
+        dd = max(bb*bb-4._rkx*cc,zero)         ! patch proposed by uma shankar , 19/11/01
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
       else
         psi4 = tiny1
       end if
       psi4 = min(max(psi4,zero),chi4)
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then             ! psi7
-        call poly3(psi2+psi8,zero,-a7/4.D0,psi7,islv)
+        call poly3(psi2+psi8,zero,-a7/4._rkx,psi7,islv)
         if ( islv==0 ) then
           psi7 = max(min(psi7,chi7),zero)
         else
@@ -25159,8 +25206,8 @@ module mod_che_isorropia
       end if
 !
       if ( chi2>tiny1 .and. water>tiny1 ) then
-        call poly3(psi7+psi8+psi4,psi4*(psi7+psi8)+psi4*psi4/4.D0,        &
-                   (psi4*psi4*(psi7+psi8)-a2)/4.D0,psi20,islv)
+        call poly3(psi7+psi8+psi4,psi4*(psi7+psi8)+psi4*psi4/4._rkx,        &
+                   (psi4*psi4*(psi7+psi8)-a2)/4._rkx,psi20,islv)
         if ( islv==0 ) psi2 = min(max(psi20,zero),chi2)
       end if
 !   psi2 = 0.5d0*(2.0d0*sqrt(a2/a7)*psi7 - psi4)
@@ -25169,18 +25216,18 @@ module mod_che_isorropia
 !   *** save concentrations in molal array
 !   ******************************
       molal(2) = zero                                 ! nai
-      molal(3) = 2.0D0*psi2 + psi4                    ! nh4i
+      molal(3) = 2.0_rkx*psi2 + psi4                    ! nh4i
       molal(4) = psi6                                 ! cli
       molal(5) = psi2 + psi7 + psi8                   ! so4i
       molal(6) = zero                                 ! hso4
       molal(7) = psi5                                 ! no3i
       molal(8) = zero                                 ! cai
-      molal(9) = 2.0D0*psi7                           ! ki
+      molal(9) = 2.0_rkx*psi7                           ! ki
       molal(10) = psi8                                 ! mgi
 !
 !   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -25301,7 +25348,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , nafr , delta , dx , frk , frmg , psi6hi , &
+    real(rkx) :: cafr , nafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , islv
 !
@@ -25311,11 +25358,11 @@ module mod_che_isorropia
     chi9 = min(w(6),w(2))                           ! ccaso4
     so4fr = max(w(2)-chi9,zero)
     cafr = max(w(6)-chi9,zero)
-    chi7 = min(0.5D0*w(7),so4fr)                    ! ck2so4
-    frk = max(w(7)-2.D0*chi7,zero)
+    chi7 = min(0.5_rkx*w(7),so4fr)                    ! ck2so4
+    frk = max(w(7)-2._rkx*chi7,zero)
     so4fr = max(so4fr-chi7,zero)
-    chi1 = min(0.5D0*w(1),so4fr)                    ! na2so4
-    nafr = max(w(1)-2.D0*chi1,zero)
+    chi1 = min(0.5_rkx*w(1),so4fr)                    ! na2so4
+    nafr = max(w(1)-2._rkx*chi1,zero)
     so4fr = max(so4fr-chi1,zero)
     chi8 = min(w(8),so4fr)                          ! cmgso4
     frmg = max(w(8)-chi8,zero)
@@ -25324,7 +25371,7 @@ module mod_che_isorropia
     chi5 = w(4)
     chi6 = w(5)
     chi2 = max(so4fr,zero)
-    chi4 = max(w(3)-2.D0*chi2,zero)
+    chi4 = max(w(3)-2._rkx*chi2,zero)
 !
     psi8 = chi8
     psi6lo = tiny1
@@ -25347,7 +25394,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funco2a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -25361,9 +25408,9 @@ module mod_che_isorropia
 ! *** perform bisection ************************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funco2a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -25376,7 +25423,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return ***********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     if ( x3<=tiny2 ) then     ! practically no nitrates , so dry solution
       water = tiny1
     else
@@ -25389,7 +25436,7 @@ module mod_che_isorropia
 ! *** na2so4 dissolution
 !
  300  if ( chi1>tiny1 .and. water>tiny1 ) then        ! psi1
-      call poly3(psi2+psi7+psi8,zero,-a1/4.D0,psi1,islv)
+      call poly3(psi2+psi7+psi8,zero,-a1/4._rkx,psi1,islv)
       if ( islv==0 ) then
         psi1 = min(psi1,chi1)
       else
@@ -25398,7 +25445,7 @@ module mod_che_isorropia
     else
       psi1 = zero
     end if
-    molal(2) = 2.0D0*psi1                 ! na+  effect
+    molal(2) = 2.0_rkx*psi1                 ! na+  effect
     molal(5) = molal(5) + psi1            ! so4  effect
     cna2so4 = max(chi1-psi1,zero)          ! na2so4(s) depletion
 !
@@ -25429,11 +25476,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funco2a(x)
+  real(rkx) function funco2a(x)
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: a65 , bb , cc , dd , delt , deno , hi , ohi , psi20 , &
+    real(rkx) :: a65 , bb , cc , dd , delt , deno , hi , ohi , psi20 , &
          psi31 , psi32 , smin , x
     integer(ik4) :: i , islv
 !
@@ -25468,7 +25515,7 @@ module mod_che_isorropia
 !
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then             ! psi7
-        call poly3(psi2+psi8,zero,-a7/4.D0,psi7,islv)
+        call poly3(psi2+psi8,zero,-a7/4._rkx,psi7,islv)
         if ( islv==0 ) then
           psi7 = max(min(psi7,chi7),zero)
         else
@@ -25479,8 +25526,8 @@ module mod_che_isorropia
       end if
 !
       if ( chi2>tiny1 .and. water>tiny1 ) then
-        call poly3(psi7+psi8+psi4,psi4*(psi7+psi8)+psi4*psi4/4.D0,        &
-                   (psi4*psi4*(psi7+psi8)-a2)/4.D0,psi20,islv)
+        call poly3(psi7+psi8+psi4,psi4*(psi7+psi8)+psi4*psi4/4._rkx,        &
+                   (psi4*psi4*(psi7+psi8)-a2)/4._rkx,psi20,islv)
         if ( islv==0 ) psi2 = min(max(psi20,zero),chi2)
       end if
 !   psi2 = 0.5d0*(2.0d0*sqrt(a2/a7)*psi7 - psi4)
@@ -25489,18 +25536,18 @@ module mod_che_isorropia
 !   *** save concentrations in molal array
 !   ******************************
       molal(2) = zero                                 ! nai
-      molal(3) = 2.0D0*psi2 + psi4                    ! nh4i
+      molal(3) = 2.0_rkx*psi2 + psi4                    ! nh4i
       molal(4) = psi6                                 ! cli
       molal(5) = psi2 + psi7 + psi8                   ! so4i
       molal(6) = zero                                 ! hso4
       molal(7) = psi5                                 ! no3i
       molal(8) = zero                                 ! cai
-      molal(9) = 2.0D0*psi7                           ! ki
+      molal(9) = 2.0_rkx*psi7                           ! ki
       molal(10) = psi8                                 ! mgi
 !
 !   molal (1) = max(chi5 - psi5 , tiny1)*a5/psi5   ! hi
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -25524,9 +25571,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghcl)
         bb = -(gnh3+ghcl)
         cc = gnh3*ghcl - a3
-        dd = bb*bb - 4.D0*cc
-        psi31 = 0.5D0*(-bb+sqrt(dd))
-        psi32 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi31 = 0.5_rkx*(-bb+sqrt(dd))
+        psi32 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi31>zero .and. psi31>zero ) then
           psi3 = psi31
         else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -25626,21 +25673,21 @@ module mod_che_isorropia
   subroutine calco1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a1 , a2 , alf , bb , bet , cafr , cc , dd , dd1 , dd2 , &
+    real(rkx) :: a1 , a2 , alf , bb , bet , cafr , cc , dd , dd1 , dd2 , &
          frk , frmg , frna , gam , rtsq , so4fr , sqdd , sqdd1 , sqdd2 , &
          theta1 , theta2
-    real(rk8) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2
+    real(rkx) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2
 !
 ! *** calculate non volatile solids ***********************************
 !
     ccaso4 = min(w(6),w(2))                         ! ccaso4
     so4fr = max(w(2)-ccaso4,zero)
     cafr = max(w(6)-ccaso4,zero)
-    ck2so4 = min(0.5D0*w(7),so4fr)                  ! ck2s04
-    frk = max(w(7)-2.D0*ck2so4,zero)
+    ck2so4 = min(0.5_rkx*w(7),so4fr)                  ! ck2s04
+    frk = max(w(7)-2._rkx*ck2so4,zero)
     so4fr = max(so4fr-ck2so4,zero)
-    cna2so4 = min(0.5D0*w(1),so4fr)                 ! cna2so4
-    frna = max(w(1)-2.D0*cna2so4,zero)
+    cna2so4 = min(0.5_rkx*w(1),so4fr)                 ! cna2so4
+    frna = max(w(1)-2._rkx*cna2so4,zero)
     so4fr = max(so4fr-cna2so4,zero)
     cmgso4 = min(w(8),so4fr)                        ! cmgso4
     frmg = max(w(8)-cmgso4,zero)
@@ -25650,7 +25697,7 @@ module mod_che_isorropia
 !
 ! *** calculate volatile species **************************************
 !
-    alf = w(3) - 2.0D0*cnh42s4
+    alf = w(3) - 2.0_rkx*cnh42s4
     bet = w(5)
     gam = w(4)
 !
@@ -25666,14 +25713,14 @@ module mod_che_isorropia
 !
     bb = (theta1-alf-bet*(one+theta2))/(one+theta2)
     cc = (alf*bet-a1-bet*theta1)/(one+theta2)
-    dd = bb*bb - 4.0D0*cc
+    dd = bb*bb - 4.0_rkx*cc
     if ( dd>=zero ) then        ! solve each reaction seperately
 !
 !   two roots for kapa , check and see if any valid
 !
       sqdd = sqrt(dd)
-      kapa1 = 0.5D0*(-bb+sqdd)
-      kapa2 = 0.5D0*(-bb-sqdd)
+      kapa1 = 0.5_rkx*(-bb+sqdd)
+      kapa2 = 0.5_rkx*(-bb-sqdd)
       lamda1 = theta1 + theta2*kapa1
       lamda2 = theta1 + theta2*kapa2
 !
@@ -25700,15 +25747,15 @@ module mod_che_isorropia
 !
     kapa = zero
     lamda = zero
-    dd1 = (alf+bet)*(alf+bet) - 4.0D0*(alf*bet-a1)
-    dd2 = (alf+gam)*(alf+gam) - 4.0D0*(alf*gam-a2)
+    dd1 = (alf+bet)*(alf+bet) - 4.0_rkx*(alf*bet-a1)
+    dd2 = (alf+gam)*(alf+gam) - 4.0_rkx*(alf*gam-a2)
 !
 ! nh4l equilibrium
 !
     if ( dd1>=zero ) then
       sqdd1 = sqrt(dd1)
-      kapa1 = 0.5D0*(alf+bet+sqdd1)
-      kapa2 = 0.5D0*(alf+bet-sqdd1)
+      kapa1 = 0.5_rkx*(alf+bet+sqdd1)
+      kapa2 = 0.5_rkx*(alf+bet-sqdd1)
 !
       if ( kapa1>=zero .and. kapa1<=min(alf,bet) ) then
         kapa = kapa1
@@ -25723,8 +25770,8 @@ module mod_che_isorropia
 !
     if ( dd2>=zero ) then
       sqdd2 = sqrt(dd2)
-      lamda1 = 0.5D0*(alf+gam+sqdd2)
-      lamda2 = 0.5D0*(alf+gam-sqdd2)
+      lamda1 = 0.5_rkx*(alf+gam+sqdd2)
+      lamda2 = 0.5_rkx*(alf+gam-sqdd2)
 !
       if ( lamda1>=zero .and. lamda1<=min(alf,gam) ) then
         lamda = lamda1
@@ -25777,7 +25824,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
+    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -25787,8 +25834,8 @@ module mod_che_isorropia
     chi11 = min(w(6),w(2))                         ! ccaso4
     so4fr = max(w(2)-chi11,zero)
     cafr = max(w(6)-chi11,zero)
-    chi9 = min(0.5D0*w(7),so4fr)                   ! ck2s04
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(0.5_rkx*w(7),so4fr)                   ! ck2s04
+    frk = max(w(7)-2._rkx*chi9,zero)
     so4fr = max(so4fr-chi9,zero)
     chi10 = min(w(8),so4fr)                       ! cmgso4
     frmg = max(w(8)-chi10,zero)
@@ -25796,7 +25843,7 @@ module mod_che_isorropia
     chi1 = max(so4fr,zero)                          ! cna2so4
     chi2 = zero                                    ! cnh42s4
     chi3 = zero                                    ! cnh4cl
-    frna = max(w(1)-2.D0*chi1,zero)
+    frna = max(w(1)-2._rkx*chi1,zero)
     chi8 = min(frna,w(4))                           ! cnano3
     chi4 = w(3)                                    ! nh3(g)
     chi5 = max(w(4)-chi8,zero)                      ! hno3(g)
@@ -25819,7 +25866,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcm8(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -25833,9 +25880,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcm8(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -25848,7 +25895,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcm8(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -25878,11 +25925,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcm8(x)
+  real(rkx) function funcm8(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -25918,10 +25965,10 @@ module mod_che_isorropia
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
@@ -25929,18 +25976,18 @@ module mod_che_isorropia
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = psi8 + psi7 + 2.D0*psi1                   ! nai
+      molal(2) = psi8 + psi7 + 2._rkx*psi1                   ! nai
       molal(3) = psi4                                      ! nh4i
       molal(4) = psi6 + psi7                               ! cli
       molal(5) = psi2 + psi1 + psi9 + psi10                ! so4i
       molal(6) = zero                                      ! hso4i
       molal(7) = psi5 + psi8                               ! no3i
       molal(8) = psi11                                     ! cai
-      molal(9) = 2.D0*psi9                                 ! ki
+      molal(9) = 2._rkx*psi9                                 ! ki
       molal(10) = psi10                                     ! mgi
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -25992,7 +26039,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
+    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -26002,8 +26049,8 @@ module mod_che_isorropia
     chi11 = min(w(6),w(2))                         ! ccaso4
     so4fr = max(w(2)-chi11,zero)
     cafr = max(w(6)-chi11,zero)
-    chi9 = min(0.5D0*w(7),so4fr)                   ! ck2s04
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(0.5_rkx*w(7),so4fr)                   ! ck2s04
+    frk = max(w(7)-2._rkx*chi9,zero)
     so4fr = max(so4fr-chi9,zero)
     chi10 = min(w(8),so4fr)                       ! cmgso4
     frmg = max(w(8)-chi10,zero)
@@ -26011,7 +26058,7 @@ module mod_che_isorropia
     chi1 = max(so4fr,zero)                          ! cna2so4
     chi2 = zero                                    ! cnh42s4
     chi3 = zero                                    ! cnh4cl
-    frna = max(w(1)-2.D0*chi1,zero)
+    frna = max(w(1)-2._rkx*chi1,zero)
     chi8 = min(frna,w(4))                           ! cnano3
     chi4 = w(3)                                    ! nh3(g)
     chi5 = max(w(4)-chi8,zero)                      ! hno3(g)
@@ -26034,7 +26081,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcm7(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -26048,9 +26095,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcm7(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -26063,7 +26110,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcm7(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -26093,11 +26140,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcm7(x)
+  real(rkx) function funcm7(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -26134,17 +26181,17 @@ module mod_che_isorropia
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then               !k2so4
-        call poly3(psi1+psi10,zero,-a9/4.D0,psi9,islv)
+        call poly3(psi1+psi10,zero,-a9/4._rkx,psi9,islv)
         if ( islv==0 ) then
           psi9 = max(min(psi9,chi9),zero)
         else
@@ -26154,18 +26201,18 @@ module mod_che_isorropia
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = psi8 + psi7 + 2.D0*psi1                   ! nai
+      molal(2) = psi8 + psi7 + 2._rkx*psi1                   ! nai
       molal(3) = psi4                                      ! nh4i
       molal(4) = psi6 + psi7                               ! cli
       molal(5) = psi2 + psi1 + psi9 + psi10                ! so4i
       molal(6) = zero                                      ! hso4i
       molal(7) = psi5 + psi8                               ! no3i
       molal(8) = psi11                                     ! cai
-      molal(9) = 2.D0*psi9                                 ! ki
+      molal(9) = 2._rkx*psi9                                 ! ki
       molal(10) = psi10                                     ! mgi
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -26217,7 +26264,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
+    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -26227,8 +26274,8 @@ module mod_che_isorropia
     chi11 = min(w(6),w(2))                         ! ccaso4
     so4fr = max(w(2)-chi11,zero)
     cafr = max(w(6)-chi11,zero)
-    chi9 = min(0.5D0*w(7),so4fr)                   ! ck2s04
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(0.5_rkx*w(7),so4fr)                   ! ck2s04
+    frk = max(w(7)-2._rkx*chi9,zero)
     so4fr = max(so4fr-chi9,zero)
     chi10 = min(w(8),so4fr)                       ! cmgso4
     frmg = max(w(8)-chi10,zero)
@@ -26236,7 +26283,7 @@ module mod_che_isorropia
     chi1 = max(so4fr,zero)                          ! cna2so4
     chi2 = zero                                    ! cnh42s4
     chi3 = zero                                    ! cnh4cl
-    frna = max(w(1)-2.D0*chi1,zero)
+    frna = max(w(1)-2._rkx*chi1,zero)
     chi8 = min(frna,w(4))                           ! cnano3
     chi4 = w(3)                                    ! nh3(g)
     chi5 = max(w(4)-chi8,zero)                      ! hno3(g)
@@ -26259,7 +26306,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcm6(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -26273,9 +26320,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcm6(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -26288,7 +26335,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcm6(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -26318,11 +26365,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcm6(x)
+  real(rkx) function funcm6(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , cc , dd , hi , ohi , riz , smin , x
+    real(rkx) :: aa , bb , cc , dd , hi , ohi , riz , smin , x
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -26359,10 +26406,10 @@ module mod_che_isorropia
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
@@ -26370,12 +26417,12 @@ module mod_che_isorropia
 !
       if ( chi1>tiny1 .and. water>tiny1 ) then        !na2so4
         riz = sqrt(a9/a1)
-        aa = (0.5D0*riz*(psi7+psi8)+psi10+(1.D0+riz)*(psi7+psi8))         &
-             /(1.D0+riz)
-        bb = ((psi7+psi8)*(0.5D0*riz*(psi7+psi8)+psi10)+0.25D0*(psi7+psi8)&
-             **2*(1.D0+riz))/(1.D0+riz)
-        cc = (0.25D0*(psi7+psi8)**2*(0.5D0*riz*(psi7+psi8)+psi10)       &
-             -a1/4.D0)/(1.D0+riz)
+        aa = (0.5_rkx*riz*(psi7+psi8)+psi10+(1._rkx+riz)*(psi7+psi8))         &
+             /(1._rkx+riz)
+        bb = ((psi7+psi8)*(0.5_rkx*riz*(psi7+psi8)+psi10)+0.25_rkx*(psi7+psi8)&
+             **2*(1._rkx+riz))/(1._rkx+riz)
+        cc = (0.25_rkx*(psi7+psi8)**2*(0.5_rkx*riz*(psi7+psi8)+psi10)       &
+             -a1/4._rkx)/(1._rkx+riz)
 !     aa  = psi7+psi8+psi9+psi10
 !     bb  = (psi7+psi8)*(psi9+psi10)+0.25d0*(psi7+psi8)**2.
 !     cc  = ((psi7+psi8)**2(psi9+psi10)-a1)/4.0d0
@@ -26396,7 +26443,7 @@ module mod_che_isorropia
 !   end if
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then        !k2so4
-        call poly3(psi1+psi10,zero,-a9/4.D0,psi9,islv)
+        call poly3(psi1+psi10,zero,-a9/4._rkx,psi9,islv)
         if ( islv==0 ) then
           psi9 = min(psi9,chi9)
         else
@@ -26406,18 +26453,18 @@ module mod_che_isorropia
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = psi8 + psi7 + 2.D0*psi1                   ! nai
+      molal(2) = psi8 + psi7 + 2._rkx*psi1                   ! nai
       molal(3) = psi4                                      ! nh4i
       molal(4) = psi6 + psi7                               ! cli
       molal(5) = psi2 + psi1 + psi9 + psi10                ! so4i
       molal(6) = zero                                      ! hso4i
       molal(7) = psi5 + psi8                               ! no3i
       molal(8) = psi11                                     ! cai
-      molal(9) = 2.D0*psi9                                 ! ki
+      molal(9) = 2._rkx*psi9                                 ! ki
       molal(10) = psi10                                     ! mgi
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -26469,7 +26516,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
+    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -26479,8 +26526,8 @@ module mod_che_isorropia
     chi11 = min(w(6),w(2))                         ! ccaso4
     so4fr = max(w(2)-chi11,zero)
     cafr = max(w(6)-chi11,zero)
-    chi9 = min(0.5D0*w(7),so4fr)                   ! ck2s04
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(0.5_rkx*w(7),so4fr)                   ! ck2s04
+    frk = max(w(7)-2._rkx*chi9,zero)
     so4fr = max(so4fr-chi9,zero)
     chi10 = min(w(8),so4fr)                       ! cmgso4
     frmg = max(w(8)-chi10,zero)
@@ -26488,7 +26535,7 @@ module mod_che_isorropia
     chi1 = max(so4fr,zero)                          ! cna2so4
     chi2 = zero                                    ! cnh42s4
     chi3 = zero                                    ! cnh4cl
-    frna = max(w(1)-2.D0*chi1,zero)
+    frna = max(w(1)-2._rkx*chi1,zero)
     chi8 = min(frna,w(4))                           ! cnano3
     chi4 = w(3)                                    ! nh3(g)
     chi5 = max(w(4)-chi8,zero)                      ! hno3(g)
@@ -26511,7 +26558,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcm5(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -26525,9 +26572,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcm5(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -26540,7 +26587,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcm5(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -26570,11 +26617,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcm5(x)
+  real(rkx) function funcm5(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , cc , dd , hi , ohi , riz , smin , x
+    real(rkx) :: aa , bb , cc , dd , hi , ohi , riz , smin , x
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -26611,10 +26658,10 @@ module mod_che_isorropia
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
@@ -26622,12 +26669,12 @@ module mod_che_isorropia
 !
       if ( chi1>tiny1 .and. water>tiny1 ) then        !na2so4
         riz = sqrt(a9/a1)
-        aa = (0.5D0*riz*(psi7+psi8)+psi10+(1.D0+riz)*(psi7+psi8))         &
-             /(1.D0+riz)
-        bb = ((psi7+psi8)*(0.5D0*riz*(psi7+psi8)+psi10)+0.25D0*(psi7+psi8)&
-             **2*(1.D0+riz))/(1.D0+riz)
-        cc = (0.25D0*(psi7+psi8)**2*(0.5D0*riz*(psi7+psi8)+psi10)       &
-             -a1/4.D0)/(1.D0+riz)
+        aa = (0.5_rkx*riz*(psi7+psi8)+psi10+(1._rkx+riz)*(psi7+psi8))         &
+             /(1._rkx+riz)
+        bb = ((psi7+psi8)*(0.5_rkx*riz*(psi7+psi8)+psi10)+0.25_rkx*(psi7+psi8)&
+             **2*(1._rkx+riz))/(1._rkx+riz)
+        cc = (0.25_rkx*(psi7+psi8)**2*(0.5_rkx*riz*(psi7+psi8)+psi10)       &
+             -a1/4._rkx)/(1._rkx+riz)
 !     aa  = psi7+psi8+psi9+psi10
 !     bb  = (psi7+psi8)*(psi9+psi10)+0.25d0*(psi7+psi8)**2.
 !     cc  = ((psi7+psi8)**2(psi9+psi10)-a1)/4.0d0
@@ -26641,7 +26688,7 @@ module mod_che_isorropia
       end if
 !
       if ( chi9>=tiny1 .and. water>tiny1 ) then
-        psi9 = 0.5D0*sqrt(a9/a1)*(2.0D0*psi1+psi7+psi8)
+        psi9 = 0.5_rkx*sqrt(a9/a1)*(2.0_rkx*psi1+psi7+psi8)
         psi9 = max(min(psi9,chi9),zero)
       else
         psi9 = zero
@@ -26658,18 +26705,18 @@ module mod_che_isorropia
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = psi8 + psi7 + 2.D0*psi1                   ! nai
+      molal(2) = psi8 + psi7 + 2._rkx*psi1                   ! nai
       molal(3) = psi4                                      ! nh4i
       molal(4) = psi6 + psi7                               ! cli
       molal(5) = psi2 + psi1 + psi9 + psi10                ! so4i
       molal(6) = zero                                      ! hso4i
       molal(7) = psi5 + psi8                               ! no3i
       molal(8) = psi11                                     ! cai
-      molal(9) = 2.D0*psi9                                 ! ki
+      molal(9) = 2._rkx*psi9                                 ! ki
       molal(10) = psi10                                     ! mgi
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -26721,7 +26768,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
+    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -26740,8 +26787,8 @@ module mod_che_isorropia
     chi11 = min(w(6),w(2))                         ! ccaso4
     so4fr = max(w(2)-chi11,zero)
     cafr = max(w(6)-chi11,zero)
-    chi9 = min(0.5D0*w(7),so4fr)                   ! ck2s04
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(0.5_rkx*w(7),so4fr)                   ! ck2s04
+    frk = max(w(7)-2._rkx*chi9,zero)
     so4fr = max(so4fr-chi9,zero)
     chi10 = min(w(8),so4fr)                       ! cmgso4
     frmg = max(w(8)-chi10,zero)
@@ -26749,7 +26796,7 @@ module mod_che_isorropia
     chi1 = max(so4fr,zero)                          ! cna2so4
     chi2 = zero                                    ! cnh42s4
     chi3 = zero                                    ! cnh4cl
-    frna = max(w(1)-2.D0*chi1,zero)
+    frna = max(w(1)-2._rkx*chi1,zero)
     chi8 = min(frna,w(4))                           ! cnano3
     chi4 = w(3)                                    ! nh3(g)
     chi5 = max(w(4)-chi8,zero)                      ! hno3(g)
@@ -26772,7 +26819,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcm4(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -26786,9 +26833,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcm4(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -26801,7 +26848,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcm4(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -26831,11 +26878,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcm4(x)
+  real(rkx) function funcm4(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , cc , dd , delt , hi , ohi , psi31 , psi32 , riz , &
+    real(rkx) :: aa , bb , cc , dd , delt , hi , ohi , psi31 , psi32 , riz , &
          smin , x
     integer(ik4) :: i , islv
 !
@@ -26874,10 +26921,10 @@ module mod_che_isorropia
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,tiny1),chi4)
       else
         psi4 = tiny1
@@ -26885,12 +26932,12 @@ module mod_che_isorropia
 !
       if ( chi1>tiny1 .and. water>tiny1 ) then        !na2so4
         riz = sqrt(a9/a1)
-        aa = (0.5D0*riz*(psi7+psi8)+psi10+(1.D0+riz)*(psi7+psi8))         &
-             /(1.D0+riz)
-        bb = ((psi7+psi8)*(0.5D0*riz*(psi7+psi8)+psi10)+0.25D0*(psi7+psi8)&
-             **2*(1.D0+riz))/(1.D0+riz)
-        cc = (0.25D0*(psi7+psi8)**2*(0.5D0*riz*(psi7+psi8)+psi10)       &
-             -a1/4.D0)/(1.D0+riz)
+        aa = (0.5_rkx*riz*(psi7+psi8)+psi10+(1._rkx+riz)*(psi7+psi8))         &
+             /(1._rkx+riz)
+        bb = ((psi7+psi8)*(0.5_rkx*riz*(psi7+psi8)+psi10)+0.25_rkx*(psi7+psi8)&
+             **2*(1._rkx+riz))/(1._rkx+riz)
+        cc = (0.25_rkx*(psi7+psi8)**2*(0.5_rkx*riz*(psi7+psi8)+psi10)       &
+             -a1/4._rkx)/(1._rkx+riz)
 !     aa  = psi7+psi8+psi9+psi10
 !     bb  = (psi7+psi8)*(psi9+psi10)+0.25d0*(psi7+psi8)**2.
 !     cc  = ((psi7+psi8)**2(psi9+psi10)-a1)/4.0d0
@@ -26904,7 +26951,7 @@ module mod_che_isorropia
       end if
 !
       if ( chi9>=tiny1 .and. water>tiny1 ) then
-        psi9 = 0.5D0*sqrt(a9/a1)*(2.0D0*psi1+psi7+psi8)
+        psi9 = 0.5_rkx*sqrt(a9/a1)*(2.0_rkx*psi1+psi7+psi8)
         psi9 = max(min(psi9,chi9),zero)
       else
         psi9 = zero
@@ -26921,18 +26968,18 @@ module mod_che_isorropia
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = psi8 + psi7 + 2.D0*psi1                   ! nai
+      molal(2) = psi8 + psi7 + 2._rkx*psi1                   ! nai
       molal(3) = psi4                                      ! nh4i
       molal(4) = psi6 + psi7                               ! cli
       molal(5) = psi2 + psi1 + psi9 + psi10                ! so4i
       molal(6) = zero                                      ! hso4i
       molal(7) = psi5 + psi8                               ! no3i
       molal(8) = psi11                                     ! cai
-      molal(9) = 2.D0*psi9                                 ! ki
+      molal(9) = 2._rkx*psi9                                 ! ki
       molal(10) = psi10                                     ! mgi
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -26956,9 +27003,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghcl)
         bb = -(gnh3+ghcl)
         cc = gnh3*ghcl - a3
-        dd = bb*bb - 4.D0*cc
-        psi31 = 0.5D0*(-bb+sqrt(dd))
-        psi32 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi31 = 0.5_rkx*(-bb+sqrt(dd))
+        psi32 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi31>zero .and. psi31>zero ) then
           psi3 = psi31
         else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -27012,7 +27059,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
+    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -27031,8 +27078,8 @@ module mod_che_isorropia
     chi11 = min(w(6),w(2))                         ! ccaso4
     so4fr = max(w(2)-chi11,zero)
     cafr = max(w(6)-chi11,zero)
-    chi9 = min(0.5D0*w(7),so4fr)                   ! ck2s04
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(0.5_rkx*w(7),so4fr)                   ! ck2s04
+    frk = max(w(7)-2._rkx*chi9,zero)
     so4fr = max(so4fr-chi9,zero)
     chi10 = min(w(8),so4fr)                       ! cmgso4
     frmg = max(w(8)-chi10,zero)
@@ -27040,7 +27087,7 @@ module mod_che_isorropia
     chi1 = max(so4fr,zero)                          ! cna2so4
     chi2 = zero                                    ! cnh42s4
     chi3 = zero                                    ! cnh4cl
-    frna = max(w(1)-2.D0*chi1,zero)
+    frna = max(w(1)-2._rkx*chi1,zero)
     chi8 = min(frna,w(4))                           ! cnano3
     chi4 = w(3)                                    ! nh3(g)
     chi5 = max(w(4)-chi8,zero)                      ! hno3(g)
@@ -27063,7 +27110,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcm3(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -27077,9 +27124,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcm3(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -27092,7 +27139,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcm3(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -27122,11 +27169,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcm3(x)
+  real(rkx) function funcm3(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , cc , dd , delt , diak , hi , ohi , psi31 , psi32 , &
+    real(rkx) :: aa , bb , cc , dd , delt , diak , hi , ohi , psi31 , psi32 , &
          riz , smin , x
     integer(ik4) :: i , islv
 !
@@ -27166,10 +27213,10 @@ module mod_che_isorropia
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,tiny1),chi4)
       else
         psi4 = tiny1
@@ -27184,19 +27231,19 @@ module mod_che_isorropia
 !   end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then          ! nacl dissolution
-        diak = (psi8-psi6)**20 + 4.D0*a7
-        psi7 = 0.5D0*(-(psi8+psi6)+sqrt(diak))
+        diak = (psi8-psi6)**20 + 4._rkx*a7
+        psi7 = 0.5_rkx*(-(psi8+psi6)+sqrt(diak))
         psi7 = max(min(psi7,chi7),zero)
       end if
 !
       if ( chi1>tiny1 .and. water>tiny1 ) then        !na2so4
         riz = sqrt(a9/a1)
-        aa = (0.5D0*riz*(psi7+psi8)+psi10+(1.D0+riz)*(psi7+psi8))         &
-             /(1.D0+riz)
-        bb = ((psi7+psi8)*(0.5D0*riz*(psi7+psi8)+psi10)+0.25D0*(psi7+psi8)&
-             **2*(1.D0+riz))/(1.D0+riz)
-        cc = (0.25D0*(psi7+psi8)**2*(0.5D0*riz*(psi7+psi8)+psi10)       &
-             -a1/4.D0)/(1.D0+riz)
+        aa = (0.5_rkx*riz*(psi7+psi8)+psi10+(1._rkx+riz)*(psi7+psi8))         &
+             /(1._rkx+riz)
+        bb = ((psi7+psi8)*(0.5_rkx*riz*(psi7+psi8)+psi10)+0.25_rkx*(psi7+psi8)&
+             **2*(1._rkx+riz))/(1._rkx+riz)
+        cc = (0.25_rkx*(psi7+psi8)**2*(0.5_rkx*riz*(psi7+psi8)+psi10)       &
+             -a1/4._rkx)/(1._rkx+riz)
 !     aa  = psi7+psi8+psi9+psi10
 !     bb  = (psi7+psi8)*(psi9+psi10)+0.25d0*(psi7+psi8)**2.
 !     cc  = ((psi7+psi8)**2(psi9+psi10)-a1)/4.0d0
@@ -27210,7 +27257,7 @@ module mod_che_isorropia
       end if
 !
       if ( chi9>=tiny1 ) then
-        psi9 = 0.5D0*sqrt(a9/a1)*(2.0D0*psi1+psi7+psi8)
+        psi9 = 0.5_rkx*sqrt(a9/a1)*(2.0_rkx*psi1+psi7+psi8)
         psi9 = max(min(psi9,chi9),zero)
       else
         psi9 = zero
@@ -27227,18 +27274,18 @@ module mod_che_isorropia
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = psi8 + psi7 + 2.D0*psi1                   ! nai
+      molal(2) = psi8 + psi7 + 2._rkx*psi1                   ! nai
       molal(3) = psi4                                      ! nh4i
       molal(4) = psi6 + psi7                               ! cli
       molal(5) = psi2 + psi1 + psi9 + psi10                ! so4i
       molal(6) = zero                                      ! hso4i
       molal(7) = psi5 + psi8                               ! no3i
       molal(8) = psi11                                     ! cai
-      molal(9) = 2.D0*psi9                                 ! ki
+      molal(9) = 2._rkx*psi9                                 ! ki
       molal(10) = psi10                                     ! mgi
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -27262,9 +27309,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghcl)
         bb = -(gnh3+ghcl)
         cc = gnh3*ghcl - a3
-        dd = bb*bb - 4.D0*cc
-        psi31 = 0.5D0*(-bb+sqrt(dd))
-        psi32 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi31 = 0.5_rkx*(-bb+sqrt(dd))
+        psi32 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi31>zero .and. psi31>zero ) then
           psi3 = psi31
         else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -27368,7 +27415,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
+    real(rkx) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -27378,8 +27425,8 @@ module mod_che_isorropia
     chi11 = min(w(6),w(2))                         ! ccaso4
     so4fr = max(w(2)-chi11,zero)
     cafr = max(w(6)-chi11,zero)
-    chi9 = min(0.5D0*w(7),so4fr)                   ! ck2s04
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(0.5_rkx*w(7),so4fr)                   ! ck2s04
+    frk = max(w(7)-2._rkx*chi9,zero)
     so4fr = max(so4fr-chi9,zero)
     chi10 = min(w(8),so4fr)                       ! cmgso4
     frmg = max(w(8)-chi10,zero)
@@ -27387,7 +27434,7 @@ module mod_che_isorropia
     chi1 = max(so4fr,zero)                          ! cna2so4
     chi2 = zero                                    ! cnh42s4
     chi3 = zero                                    ! cnh4cl
-    frna = max(w(1)-2.D0*chi1,zero)
+    frna = max(w(1)-2._rkx*chi1,zero)
     chi8 = min(frna,w(4))                           ! cnano3
     chi4 = w(3)                                    ! nh3(g)
     chi5 = max(w(4)-chi8,zero)                      ! hno3(g)
@@ -27410,7 +27457,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcm2a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -27424,9 +27471,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcm2a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -27439,7 +27486,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcm2a(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -27469,11 +27516,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcm2a(x)
+  real(rkx) function funcm2a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: a64 , aa , bb , cc , dd , delt , diak , hi , ohi , psi31 , &
+    real(rkx) :: a64 , aa , bb , cc , dd , delt , diak , hi , ohi , psi31 , &
          psi32 , riz , smin , x
     integer(ik4) :: i , islv
 !
@@ -27514,10 +27561,10 @@ module mod_che_isorropia
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,tiny1),chi4)
       else
         psi4 = tiny1
@@ -27540,25 +27587,25 @@ module mod_che_isorropia
 !   end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then          ! nacl dissolution
-        diak = (psi8-psi6)**20 + 4.D0*a7
-        psi7 = 0.5D0*(-(psi8+psi6)+sqrt(diak))
+        diak = (psi8-psi6)**20 + 4._rkx*a7
+        psi7 = 0.5_rkx*(-(psi8+psi6)+sqrt(diak))
         psi7 = max(min(psi7,chi7),zero)
       end if
 !
       if ( chi8>tiny1 .and. water>tiny1 ) then          ! nano3 dissolution
-        diak = (psi7-psi5)**20 + 4.D0*a8
-        psi8 = 0.5D0*(-(psi7+psi5)+sqrt(diak))
+        diak = (psi7-psi5)**20 + 4._rkx*a8
+        psi8 = 0.5_rkx*(-(psi7+psi5)+sqrt(diak))
         psi8 = max(min(psi8,chi8),zero)
       end if
 !
       if ( chi1>tiny1 .and. water>tiny1 ) then        !na2so4
         riz = sqrt(a9/a1)
-        aa = (0.5D0*riz*(psi7+psi8)+psi10+(1.D0+riz)*(psi7+psi8))         &
-             /(1.D0+riz)
-        bb = ((psi7+psi8)*(0.5D0*riz*(psi7+psi8)+psi10)+0.25D0*(psi7+psi8)&
-             **2*(1.D0+riz))/(1.D0+riz)
-        cc = (0.25D0*(psi7+psi8)**2*(0.5D0*riz*(psi7+psi8)+psi10)       &
-             -a1/4.D0)/(1.D0+riz)
+        aa = (0.5_rkx*riz*(psi7+psi8)+psi10+(1._rkx+riz)*(psi7+psi8))         &
+             /(1._rkx+riz)
+        bb = ((psi7+psi8)*(0.5_rkx*riz*(psi7+psi8)+psi10)+0.25_rkx*(psi7+psi8)&
+             **2*(1._rkx+riz))/(1._rkx+riz)
+        cc = (0.25_rkx*(psi7+psi8)**2*(0.5_rkx*riz*(psi7+psi8)+psi10)       &
+             -a1/4._rkx)/(1._rkx+riz)
 !
 !     aa  = psi7+psi8+psi9+psi10
 !     bb  = (psi7+psi8)*(psi9+psi10)+0.25d0*(psi7+psi8)**2.
@@ -27574,7 +27621,7 @@ module mod_che_isorropia
 !
       if ( chi9>=tiny1 .and. water>tiny1 ) then
 !     psi9  = 0.5d0*sqrt(a9/a1)*(2.0d0*psi1+psi7+psi8)
-        psi9 = 0.5D0*sqrt(a9/a1)*(2.0D0*psi1+psi7+psi8)
+        psi9 = 0.5_rkx*sqrt(a9/a1)*(2.0_rkx*psi1+psi7+psi8)
         psi9 = max(min(psi9,chi9),zero)
       else
         psi9 = zero
@@ -27591,18 +27638,18 @@ module mod_che_isorropia
 !
 !   *** calculate speciation
 !   ********************************************
-      molal(2) = psi8 + psi7 + 2.D0*psi1                   ! nai
+      molal(2) = psi8 + psi7 + 2._rkx*psi1                   ! nai
       molal(3) = psi4                                      ! nh4i
       molal(4) = psi6 + psi7                               ! cli
       molal(5) = psi2 + psi1 + psi9 + psi10                ! so4i
       molal(6) = zero                                      ! hso4i
       molal(7) = psi5 + psi8                               ! no3i
       molal(8) = psi11                                     ! cai
-      molal(9) = 2.D0*psi9                                 ! ki
+      molal(9) = 2._rkx*psi9                                 ! ki
       molal(10) = psi10                                     ! mgi
 !
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !
@@ -27626,9 +27673,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghcl)
         bb = -(gnh3+ghcl)
         cc = gnh3*ghcl - a3
-        dd = bb*bb - 4.D0*cc
-        psi31 = 0.5D0*(-bb+sqrt(dd))
-        psi32 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi31 = 0.5_rkx*(-bb+sqrt(dd))
+        psi32 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi31>zero .and. psi31>zero ) then
           psi3 = psi31
         else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -27718,10 +27765,10 @@ module mod_che_isorropia
   subroutine calcm1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a1 , a2 , alf , bb , bet , cafr , cc , clfr , dd , &
+    real(rkx) :: a1 , a2 , alf , bb , bet , cafr , cc , clfr , dd , &
          dd1 , dd2 , frk , frmg , gam , rtsq , so4fr , sqdd , sqdd1 , &
          sqdd2 , theta1 , theta2
-    real(rk8) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2 , nafr , &
+    real(rkx) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2 , nafr , &
               no3fr
 !
 ! *** calculate non volatile solids ***********************************
@@ -27729,14 +27776,14 @@ module mod_che_isorropia
     ccaso4 = min(w(6),w(2))                         ! ccaso4
     so4fr = max(w(2)-ccaso4,zero)
     cafr = max(w(6)-ccaso4,zero)
-    ck2so4 = min(0.5D0*w(7),so4fr)                  ! ck2s04
-    frk = max(w(7)-2.D0*ck2so4,zero)
+    ck2so4 = min(0.5_rkx*w(7),so4fr)                  ! ck2s04
+    frk = max(w(7)-2._rkx*ck2so4,zero)
     so4fr = max(so4fr-ck2so4,zero)
     cmgso4 = min(w(8),so4fr)                        ! cmgso4
     frmg = max(w(8)-cmgso4,zero)
     so4fr = max(so4fr-cmgso4,zero)
     cna2so4 = max(so4fr,zero)                        ! cna2so4
-    nafr = max(w(1)-2.D0*cna2so4,zero)
+    nafr = max(w(1)-2._rkx*cna2so4,zero)
     cnano3 = min(nafr,w(4))                          ! cnano3
     no3fr = max(w(4)-cnano3,zero)
     cnacl = min(max(nafr-cnano3,zero),w(5))          ! cnacl
@@ -27759,14 +27806,14 @@ module mod_che_isorropia
 !
     bb = (theta1-alf-bet*(one+theta2))/(one+theta2)
     cc = (alf*bet-a1-bet*theta1)/(one+theta2)
-    dd = bb*bb - 4.0D0*cc
+    dd = bb*bb - 4.0_rkx*cc
     if ( dd>=zero ) then        ! solve each reaction seperately
 !
 !   two roots for kapa , check and see if any valid
 !
       sqdd = sqrt(dd)
-      kapa1 = 0.5D0*(-bb+sqdd)
-      kapa2 = 0.5D0*(-bb-sqdd)
+      kapa1 = 0.5_rkx*(-bb+sqdd)
+      kapa2 = 0.5_rkx*(-bb-sqdd)
       lamda1 = theta1 + theta2*kapa1
       lamda2 = theta1 + theta2*kapa2
 !
@@ -27793,15 +27840,15 @@ module mod_che_isorropia
 !
     kapa = zero
     lamda = zero
-    dd1 = (alf+bet)*(alf+bet) - 4.0D0*(alf*bet-a1)
-    dd2 = (alf+gam)*(alf+gam) - 4.0D0*(alf*gam-a2)
+    dd1 = (alf+bet)*(alf+bet) - 4.0_rkx*(alf*bet-a1)
+    dd2 = (alf+gam)*(alf+gam) - 4.0_rkx*(alf*gam-a2)
 !
 ! nh4l equilibrium
 !
     if ( dd1>=zero ) then
       sqdd1 = sqrt(dd1)
-      kapa1 = 0.5D0*(alf+bet+sqdd1)
-      kapa2 = 0.5D0*(alf+bet-sqdd1)
+      kapa1 = 0.5_rkx*(alf+bet+sqdd1)
+      kapa2 = 0.5_rkx*(alf+bet-sqdd1)
 !
       if ( kapa1>=zero .and. kapa1<=min(alf,bet) ) then
         kapa = kapa1
@@ -27816,8 +27863,8 @@ module mod_che_isorropia
 !
     if ( dd2>=zero ) then
       sqdd2 = sqrt(dd2)
-      lamda1 = 0.5D0*(alf+gam+sqdd2)
-      lamda2 = 0.5D0*(alf+gam-sqdd2)
+      lamda1 = 0.5_rkx*(alf+gam+sqdd2)
+      lamda2 = 0.5_rkx*(alf+gam-sqdd2)
 !
       if ( lamda1>=zero .and. lamda1<=min(alf,gam) ) then
         lamda = lamda1
@@ -27871,7 +27918,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
+    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
          frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -27881,26 +27928,26 @@ module mod_che_isorropia
     chi11 = min(w(2),w(6))                          ! ccaso4
     frca = max(w(6)-chi11,zero)
     frso4 = max(w(2)-chi11,zero)
-    chi9 = min(frso4,0.5D0*w(7))                     ! ck2so4
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(frso4,0.5_rkx*w(7))                     ! ck2so4
+    frk = max(w(7)-2._rkx*chi9,zero)
     frso4 = max(frso4-chi9,zero)
     chi10 = frso4                                   ! cmgso4
     frmg = max(w(8)-chi10,zero)
     chi7 = min(w(1),w(5))                           ! cnacl
     frna = max(w(1)-chi7,zero)
     frcl = max(w(5)-chi7,zero)
-    chi12 = min(frca,0.5D0*w(4))                     ! ccano32
+    chi12 = min(frca,0.5_rkx*w(4))                     ! ccano32
     frca = max(frca-chi12,zero)
-    frno3 = max(w(4)-2.D0*chi12,zero)
-    chi17 = min(frca,0.5D0*frcl)                     ! ccacl2
+    frno3 = max(w(4)-2._rkx*chi12,zero)
+    chi17 = min(frca,0.5_rkx*frcl)                     ! ccacl2
     frca = max(frca-chi17,zero)
-    frcl = max(frcl-2.D0*chi17,zero)
-    chi15 = min(frmg,0.5D0*frno3)                    ! cmgno32
+    frcl = max(frcl-2._rkx*chi17,zero)
+    chi15 = min(frmg,0.5_rkx*frno3)                    ! cmgno32
     frmg = max(frmg-chi15,zero)
-    frno3 = max(frno3-2.D0*chi15,zero)
-    chi16 = min(frmg,0.5D0*frcl)                     ! cmgcl2
+    frno3 = max(frno3-2._rkx*chi15,zero)
+    chi16 = min(frmg,0.5_rkx*frcl)                     ! cmgcl2
     frmg = max(frmg-chi16,zero)
-    frcl = max(frcl-2.D0*chi16,zero)
+    frcl = max(frcl-2._rkx*chi16,zero)
     chi8 = min(frna,frno3)                           ! cnano3
     frna = max(frna-chi8,zero)
     frno3 = max(frno3-chi8,zero)
@@ -27935,7 +27982,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcp13(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -27949,9 +27996,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcp13(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -27964,7 +28011,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcp13(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -27997,11 +28044,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcp13(x)
+  real(rkx) function funcp13(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , cc , dd , hi , ohi , smin , x
+    real(rkx) :: bb , cc , dd , hi , ohi , smin , x
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -28035,17 +28082,17 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = chi5*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)                 &
-             - a6/a5*(psi8+2.D0*psi12+psi13+2.D0*psi15)*(chi6-psi6)
-      psi5 = psi5/(a6/a5*(chi6-psi6)+psi6+psi7+psi14+2.D0*psi16+          &
-             2.D0*psi17)
+      psi5 = chi5*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)                 &
+             - a6/a5*(psi8+2._rkx*psi12+psi13+2._rkx*psi15)*(chi6-psi6)
+      psi5 = psi5/(a6/a5*(chi6-psi6)+psi6+psi7+psi14+2._rkx*psi16+          &
+             2._rkx*psi17)
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
@@ -28055,12 +28102,12 @@ module mod_che_isorropia
 !   *********************************************
       molal(2) = psi8 + psi7                                         ! nai
       molal(3) = psi4                                                ! nh4i
-      molal(4) = psi6 + psi7 + psi14 + 2.D0*psi16 + 2.D0*psi17       ! cli
+      molal(4) = psi6 + psi7 + psi14 + 2._rkx*psi16 + 2._rkx*psi17       ! cli
       molal(5) = psi9 + psi10                                        ! so4i
       molal(6) = zero                                                ! hso4i
-      molal(7) = psi5 + psi8 + 2.D0*psi12 + psi13 + 2.D0*psi15       ! no3i
+      molal(7) = psi5 + psi8 + 2._rkx*psi12 + psi13 + 2._rkx*psi15       ! no3i
       molal(8) = psi11 + psi12 + psi17                               ! cai
-      molal(9) = 2.D0*psi9 + psi13 + psi14                           ! ki
+      molal(9) = 2._rkx*psi9 + psi13 + psi14                           ! ki
       molal(10) = psi10 + psi15 + psi16                               ! mgi
 !
 !   *** calculate h+
@@ -28088,8 +28135,8 @@ module mod_che_isorropia
 !
 !   *** no excess of crustals calculate h+
 !   *******************************
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10) - 2.D0*molal(8)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10) - 2._rkx*molal(8)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !   end if
@@ -28149,7 +28196,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
+    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
          frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -28159,26 +28206,26 @@ module mod_che_isorropia
     chi11 = min(w(2),w(6))                          ! ccaso4
     frca = max(w(6)-chi11,zero)
     frso4 = max(w(2)-chi11,zero)
-    chi9 = min(frso4,0.5D0*w(7))                     ! ck2so4
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(frso4,0.5_rkx*w(7))                     ! ck2so4
+    frk = max(w(7)-2._rkx*chi9,zero)
     frso4 = max(frso4-chi9,zero)
     chi10 = frso4                                   ! cmgso4
     frmg = max(w(8)-chi10,zero)
     chi7 = min(w(1),w(5))                           ! cnacl
     frna = max(w(1)-chi7,zero)
     frcl = max(w(5)-chi7,zero)
-    chi12 = min(frca,0.5D0*w(4))                     ! ccano32
+    chi12 = min(frca,0.5_rkx*w(4))                     ! ccano32
     frca = max(frca-chi12,zero)
-    frno3 = max(w(4)-2.D0*chi12,zero)
-    chi17 = min(frca,0.5D0*frcl)                     ! ccacl2
+    frno3 = max(w(4)-2._rkx*chi12,zero)
+    chi17 = min(frca,0.5_rkx*frcl)                     ! ccacl2
     frca = max(frca-chi17,zero)
-    frcl = max(frcl-2.D0*chi17,zero)
-    chi15 = min(frmg,0.5D0*frno3)                    ! cmgno32
+    frcl = max(frcl-2._rkx*chi17,zero)
+    chi15 = min(frmg,0.5_rkx*frno3)                    ! cmgno32
     frmg = max(frmg-chi15,zero)
-    frno3 = max(frno3-2.D0*chi15,zero)
-    chi16 = min(frmg,0.5D0*frcl)                     ! cmgcl2
+    frno3 = max(frno3-2._rkx*chi15,zero)
+    chi16 = min(frmg,0.5_rkx*frcl)                     ! cmgcl2
     frmg = max(frmg-chi16,zero)
-    frcl = max(frcl-2.D0*chi16,zero)
+    frcl = max(frcl-2._rkx*chi16,zero)
     chi8 = min(frna,frno3)                           ! cnano3
     frna = max(frna-chi8,zero)
     frno3 = max(frno3-chi8,zero)
@@ -28213,7 +28260,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcp12(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -28227,9 +28274,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcp12(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -28242,7 +28289,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcp12(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -28274,11 +28321,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcp12(x)
+  real(rkx) function funcp12(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , bbp , cc , ccp , dd , ddp , hi , ohi , smin , x
+    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , hi , ohi , smin , x
     integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
@@ -28313,17 +28360,17 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = chi5*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)                 &
-             - a6/a5*(psi8+2.D0*psi12+psi13+2.D0*psi15)*(chi6-psi6-psi3)
-      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2.D0*psi16+     &
-             2.D0*psi17)
+      psi5 = chi5*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)                 &
+             - a6/a5*(psi8+2._rkx*psi12+psi13+2._rkx*psi15)*(chi6-psi6-psi3)
+      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2._rkx*psi16+     &
+             2._rkx*psi17)
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
@@ -28331,8 +28378,8 @@ module mod_che_isorropia
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then               !k2so4
         bbp = psi10 + psi13 + psi14
-        ccp = (psi13+psi14)*(0.25D0*(psi13+psi14)+psi10)
-        ddp = 0.25D0*(psi13+psi14)**2*psi10 - a9/4.D0
+        ccp = (psi13+psi14)*(0.25_rkx*(psi13+psi14)+psi10)
+        ddp = 0.25_rkx*(psi13+psi14)**2*psi10 - a9/4._rkx
         call poly3(bbp,ccp,ddp,psi9,islv)
         if ( islv==0 ) then
           psi9 = min(max(psi9,zero),chi9)
@@ -28346,12 +28393,12 @@ module mod_che_isorropia
 !   ********************************************
       molal(2) = psi8 + psi7                                         ! nai
       molal(3) = psi4                                                ! nh4i
-      molal(4) = psi6 + psi7 + psi14 + 2.D0*psi16 + 2.D0*psi17       ! cli
+      molal(4) = psi6 + psi7 + psi14 + 2._rkx*psi16 + 2._rkx*psi17       ! cli
       molal(5) = psi9 + psi10                                        ! so4i
       molal(6) = zero                                                ! hso4i
-      molal(7) = psi5 + psi8 + 2.D0*psi12 + psi13 + 2.D0*psi15       ! no3i
+      molal(7) = psi5 + psi8 + 2._rkx*psi12 + psi13 + 2._rkx*psi15       ! no3i
       molal(8) = psi11 + psi12 + psi17                               ! cai
-      molal(9) = 2.D0*psi9 + psi13 + psi14                           ! ki
+      molal(9) = 2._rkx*psi9 + psi13 + psi14                           ! ki
       molal(10) = psi10 + psi15 + psi16                               ! mgi
 !
 !   *** calculate h+
@@ -28379,8 +28426,8 @@ module mod_che_isorropia
 !
 !   ** no excess of crustals calculate h+
 !   *******************************
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10) - 2.D0*molal(8)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10) - 2._rkx*molal(8)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !   end if
@@ -28439,7 +28486,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
+    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
          frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -28449,26 +28496,26 @@ module mod_che_isorropia
     chi11 = min(w(2),w(6))                          ! ccaso4
     frca = max(w(6)-chi11,zero)
     frso4 = max(w(2)-chi11,zero)
-    chi9 = min(frso4,0.5D0*w(7))                     ! ck2so4
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(frso4,0.5_rkx*w(7))                     ! ck2so4
+    frk = max(w(7)-2._rkx*chi9,zero)
     frso4 = max(frso4-chi9,zero)
     chi10 = frso4                                   ! cmgso4
     frmg = max(w(8)-chi10,zero)
     chi7 = min(w(1),w(5))                           ! cnacl
     frna = max(w(1)-chi7,zero)
     frcl = max(w(5)-chi7,zero)
-    chi12 = min(frca,0.5D0*w(4))                     ! ccano32
+    chi12 = min(frca,0.5_rkx*w(4))                     ! ccano32
     frca = max(frca-chi12,zero)
-    frno3 = max(w(4)-2.D0*chi12,zero)
-    chi17 = min(frca,0.5D0*frcl)                     ! ccacl2
+    frno3 = max(w(4)-2._rkx*chi12,zero)
+    chi17 = min(frca,0.5_rkx*frcl)                     ! ccacl2
     frca = max(frca-chi17,zero)
-    frcl = max(frcl-2.D0*chi17,zero)
-    chi15 = min(frmg,0.5D0*frno3)                    ! cmgno32
+    frcl = max(frcl-2._rkx*chi17,zero)
+    chi15 = min(frmg,0.5_rkx*frno3)                    ! cmgno32
     frmg = max(frmg-chi15,zero)
-    frno3 = max(frno3-2.D0*chi15,zero)
-    chi16 = min(frmg,0.5D0*frcl)                     ! cmgcl2
+    frno3 = max(frno3-2._rkx*chi15,zero)
+    chi16 = min(frmg,0.5_rkx*frcl)                     ! cmgcl2
     frmg = max(frmg-chi16,zero)
-    frcl = max(frcl-2.D0*chi16,zero)
+    frcl = max(frcl-2._rkx*chi16,zero)
     chi8 = min(frna,frno3)                           ! cnano3
     frna = max(frna-chi8,zero)
     frno3 = max(frno3-chi8,zero)
@@ -28503,7 +28550,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcp11(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -28517,9 +28564,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcp11(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -28532,7 +28579,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcp11(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -28564,11 +28611,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcp11(x)
+  real(rkx) function funcp11(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , bbp , cc , ccp , dd , ddp , delta , gkama , hi , &
+    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delta , gkama , hi , &
          ohi , smin , vhta , x
     integer(ik4) :: i , islv
 !
@@ -28604,34 +28651,34 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = chi5*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)                 &
-             - a6/a5*(psi8+2.D0*psi12+psi13+2.D0*psi15)*(chi6-psi6-psi3)
-      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2.D0*psi16+     &
-             2.D0*psi17)
+      psi5 = chi5*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)                 &
+             - a6/a5*(psi8+2._rkx*psi12+psi13+2._rkx*psi15)*(chi6-psi6-psi3)
+      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2._rkx*psi16+     &
+             2._rkx*psi17)
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi13>tiny1 .and. water>tiny1 ) then               !kno3
-        vhta = psi5 + psi8 + 2.D0*psi12 + 2.D0*psi15 + psi14 + 2.D0*psi9
-        gkama = (psi5+psi8+2.D0*psi12+2.D0*psi15)*(2.D0*psi9+psi14) - a13
-        delta = max(vhta*vhta-4.D0*gkama,zero)
-        psi13 = 0.5D0*(-vhta+sqrt(delta))
+        vhta = psi5 + psi8 + 2._rkx*psi12 + 2._rkx*psi15 + psi14 + 2._rkx*psi9
+        gkama = (psi5+psi8+2._rkx*psi12+2._rkx*psi15)*(2._rkx*psi9+psi14) - a13
+        delta = max(vhta*vhta-4._rkx*gkama,zero)
+        psi13 = 0.5_rkx*(-vhta+sqrt(delta))
         psi13 = min(max(psi13,zero),chi13)
       end if
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then               !k2so4
         bbp = psi10 + psi13 + psi14
-        ccp = (psi13+psi14)*(0.25D0*(psi13+psi14)+psi10)
-        ddp = 0.25D0*(psi13+psi14)**2*psi10 - a9/4.D0
+        ccp = (psi13+psi14)*(0.25_rkx*(psi13+psi14)+psi10)
+        ddp = 0.25_rkx*(psi13+psi14)**2*psi10 - a9/4._rkx
         call poly3(bbp,ccp,ddp,psi9,islv)
         if ( islv==0 ) then
           psi9 = min(max(psi9,zero),chi9)
@@ -28645,12 +28692,12 @@ module mod_che_isorropia
 !   ********************************************
       molal(2) = psi8 + psi7                                         ! nai
       molal(3) = psi4                                                ! nh4i
-      molal(4) = psi6 + psi7 + psi14 + 2.D0*psi16 + 2.D0*psi17       ! cli
+      molal(4) = psi6 + psi7 + psi14 + 2._rkx*psi16 + 2._rkx*psi17       ! cli
       molal(5) = psi9 + psi10                                        ! so4i
       molal(6) = zero                                                ! hso4i
-      molal(7) = psi5 + psi8 + 2.D0*psi12 + psi13 + 2.D0*psi15       ! no3i
+      molal(7) = psi5 + psi8 + 2._rkx*psi12 + psi13 + 2._rkx*psi15       ! no3i
       molal(8) = psi11 + psi12 + psi17                               ! cai
-      molal(9) = 2.D0*psi9 + psi13 + psi14                           ! ki
+      molal(9) = 2._rkx*psi9 + psi13 + psi14                           ! ki
       molal(10) = psi10 + psi15 + psi16                               ! mgi
 !
 !   *** calculate h+
@@ -28678,8 +28725,8 @@ module mod_che_isorropia
 !
 !   ** no excess of crustals calculate h+
 !   *******************************
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10) - 2.D0*molal(8)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10) - 2._rkx*molal(8)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !   end if
@@ -28739,7 +28786,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
+    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
          frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -28749,26 +28796,26 @@ module mod_che_isorropia
     chi11 = min(w(2),w(6))                          ! ccaso4
     frca = max(w(6)-chi11,zero)
     frso4 = max(w(2)-chi11,zero)
-    chi9 = min(frso4,0.5D0*w(7))                     ! ck2so4
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(frso4,0.5_rkx*w(7))                     ! ck2so4
+    frk = max(w(7)-2._rkx*chi9,zero)
     frso4 = max(frso4-chi9,zero)
     chi10 = frso4                                   ! cmgso4
     frmg = max(w(8)-chi10,zero)
     chi7 = min(w(1),w(5))                           ! cnacl
     frna = max(w(1)-chi7,zero)
     frcl = max(w(5)-chi7,zero)
-    chi12 = min(frca,0.5D0*w(4))                     ! ccano32
+    chi12 = min(frca,0.5_rkx*w(4))                     ! ccano32
     frca = max(frca-chi12,zero)
-    frno3 = max(w(4)-2.D0*chi12,zero)
-    chi17 = min(frca,0.5D0*frcl)                     ! ccacl2
+    frno3 = max(w(4)-2._rkx*chi12,zero)
+    chi17 = min(frca,0.5_rkx*frcl)                     ! ccacl2
     frca = max(frca-chi17,zero)
-    frcl = max(frcl-2.D0*chi17,zero)
-    chi15 = min(frmg,0.5D0*frno3)                    ! cmgno32
+    frcl = max(frcl-2._rkx*chi17,zero)
+    chi15 = min(frmg,0.5_rkx*frno3)                    ! cmgno32
     frmg = max(frmg-chi15,zero)
-    frno3 = max(frno3-2.D0*chi15,zero)
-    chi16 = min(frmg,0.5D0*frcl)                     ! cmgcl2
+    frno3 = max(frno3-2._rkx*chi15,zero)
+    chi16 = min(frmg,0.5_rkx*frcl)                     ! cmgcl2
     frmg = max(frmg-chi16,zero)
-    frcl = max(frcl-2.D0*chi16,zero)
+    frcl = max(frcl-2._rkx*chi16,zero)
     chi8 = min(frna,frno3)                           ! cnano3
     frna = max(frna-chi8,zero)
     frno3 = max(frno3-chi8,zero)
@@ -28803,7 +28850,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcp10(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -28817,9 +28864,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcp10(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -28832,7 +28879,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcp10(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -28864,11 +28911,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcp10(x)
+  real(rkx) function funcp10(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , bbp , cc , ccp , dd , ddp , delta , gkama , hi , &
+    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delta , gkama , hi , &
          ohi , smin , vhta , x
     integer(ik4) :: i , islv
 !
@@ -28904,34 +28951,34 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = chi5*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)                 &
-             - a6/a5*(psi8+2.D0*psi12+psi13+2.D0*psi15)*(chi6-psi6-psi3)
-      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2.D0*psi16+     &
-             2.D0*psi17)
+      psi5 = chi5*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)                 &
+             - a6/a5*(psi8+2._rkx*psi12+psi13+2._rkx*psi15)*(chi6-psi6-psi3)
+      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2._rkx*psi16+     &
+             2._rkx*psi17)
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi13>tiny1 .and. water>tiny1 ) then               !kno3
-        vhta = psi5 + psi8 + 2.D0*psi12 + 2.D0*psi15 + psi14 + 2.D0*psi9
-        gkama = (psi5+psi8+2.D0*psi12+2.D0*psi15)*(2.D0*psi9+psi14) - a13
-        delta = max(vhta*vhta-4.D0*gkama,zero)
-        psi13 = 0.5D0*(-vhta+sqrt(delta))
+        vhta = psi5 + psi8 + 2._rkx*psi12 + 2._rkx*psi15 + psi14 + 2._rkx*psi9
+        gkama = (psi5+psi8+2._rkx*psi12+2._rkx*psi15)*(2._rkx*psi9+psi14) - a13
+        delta = max(vhta*vhta-4._rkx*gkama,zero)
+        psi13 = 0.5_rkx*(-vhta+sqrt(delta))
         psi13 = min(max(psi13,zero),chi13)
       end if
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then               !k2so4
         bbp = psi10 + psi13 + psi14
-        ccp = (psi13+psi14)*(0.25D0*(psi13+psi14)+psi10)
-        ddp = 0.25D0*(psi13+psi14)**2*psi10 - a9/4.D0
+        ccp = (psi13+psi14)*(0.25_rkx*(psi13+psi14)+psi10)
+        ddp = 0.25_rkx*(psi13+psi14)**2*psi10 - a9/4._rkx
         call poly3(bbp,ccp,ddp,psi9,islv)
         if ( islv==0 ) then
           psi9 = min(max(psi9,zero),chi9)
@@ -28945,12 +28992,12 @@ module mod_che_isorropia
 !   ********************************************
       molal(2) = psi8 + psi7                                         ! nai
       molal(3) = psi4                                                ! nh4i
-      molal(4) = psi6 + psi7 + psi14 + 2.D0*psi16 + 2.D0*psi17       ! cli
+      molal(4) = psi6 + psi7 + psi14 + 2._rkx*psi16 + 2._rkx*psi17       ! cli
       molal(5) = psi9 + psi10                                        ! so4i
       molal(6) = zero                                                ! hso4i
-      molal(7) = psi5 + psi8 + 2.D0*psi12 + psi13 + 2.D0*psi15       ! no3i
+      molal(7) = psi5 + psi8 + 2._rkx*psi12 + psi13 + 2._rkx*psi15       ! no3i
       molal(8) = psi11 + psi12 + psi17                               ! cai
-      molal(9) = 2.D0*psi9 + psi13 + psi14                           ! ki
+      molal(9) = 2._rkx*psi9 + psi13 + psi14                           ! ki
       molal(10) = psi10 + psi15 + psi16                               ! mgi
 !
 !   *** calculate h+
@@ -28978,8 +29025,8 @@ module mod_che_isorropia
 !
 !   ** no excess of crustals calculate h+
 !   *******************************
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10) - 2.D0*molal(8)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10) - 2._rkx*molal(8)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !   end if
@@ -29039,7 +29086,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
+    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
          frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -29049,26 +29096,26 @@ module mod_che_isorropia
     chi11 = min(w(2),w(6))                          ! ccaso4
     frca = max(w(6)-chi11,zero)
     frso4 = max(w(2)-chi11,zero)
-    chi9 = min(frso4,0.5D0*w(7))                     ! ck2so4
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(frso4,0.5_rkx*w(7))                     ! ck2so4
+    frk = max(w(7)-2._rkx*chi9,zero)
     frso4 = max(frso4-chi9,zero)
     chi10 = frso4                                   ! cmgso4
     frmg = max(w(8)-chi10,zero)
     chi7 = min(w(1),w(5))                           ! cnacl
     frna = max(w(1)-chi7,zero)
     frcl = max(w(5)-chi7,zero)
-    chi12 = min(frca,0.5D0*w(4))                     ! ccano32
+    chi12 = min(frca,0.5_rkx*w(4))                     ! ccano32
     frca = max(frca-chi12,zero)
-    frno3 = max(w(4)-2.D0*chi12,zero)
-    chi17 = min(frca,0.5D0*frcl)                     ! ccacl2
+    frno3 = max(w(4)-2._rkx*chi12,zero)
+    chi17 = min(frca,0.5_rkx*frcl)                     ! ccacl2
     frca = max(frca-chi17,zero)
-    frcl = max(frcl-2.D0*chi17,zero)
-    chi15 = min(frmg,0.5D0*frno3)                    ! cmgno32
+    frcl = max(frcl-2._rkx*chi17,zero)
+    chi15 = min(frmg,0.5_rkx*frno3)                    ! cmgno32
     frmg = max(frmg-chi15,zero)
-    frno3 = max(frno3-2.D0*chi15,zero)
-    chi16 = min(frmg,0.5D0*frcl)                     ! cmgcl2
+    frno3 = max(frno3-2._rkx*chi15,zero)
+    chi16 = min(frmg,0.5_rkx*frcl)                     ! cmgcl2
     frmg = max(frmg-chi16,zero)
-    frcl = max(frcl-2.D0*chi16,zero)
+    frcl = max(frcl-2._rkx*chi16,zero)
     chi8 = min(frna,frno3)                           ! cnano3
     frna = max(frna-chi8,zero)
     frno3 = max(frno3-chi8,zero)
@@ -29103,7 +29150,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcp9(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -29117,9 +29164,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcp9(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -29132,7 +29179,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcp9(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -29164,11 +29211,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcp9(x)
+  real(rkx) function funcp9(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , bbp , cc , ccp , dd , ddp , delta , gkama , hi , &
+    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delta , gkama , hi , &
          ohi , smin , vhta , x
     integer(ik4) :: i , islv
 !
@@ -29205,40 +29252,40 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = chi5*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)                 &
-             - a6/a5*(psi8+2.D0*psi12+psi13+2.D0*psi15)*(chi6-psi6-psi3)
-      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2.D0*psi16+     &
-             2.D0*psi17)
+      psi5 = chi5*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)                 &
+             - a6/a5*(psi8+2._rkx*psi12+psi13+2._rkx*psi15)*(chi6-psi6-psi3)
+      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2._rkx*psi16+     &
+             2._rkx*psi17)
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi13>tiny1 .and. water>tiny1 ) then               !kno3
-        vhta = psi5 + psi8 + 2.D0*psi12 + 2.D0*psi15 + psi14 + 2.D0*psi9
-        gkama = (psi5+psi8+2.D0*psi12+2.D0*psi15)*(2.D0*psi9+psi14) - a13
-        delta = max(vhta*vhta-4.D0*gkama,zero)
-        psi13 = 0.5D0*(-vhta+sqrt(delta))
+        vhta = psi5 + psi8 + 2._rkx*psi12 + 2._rkx*psi15 + psi14 + 2._rkx*psi9
+        gkama = (psi5+psi8+2._rkx*psi12+2._rkx*psi15)*(2._rkx*psi9+psi14) - a13
+        delta = max(vhta*vhta-4._rkx*gkama,zero)
+        psi13 = 0.5_rkx*(-vhta+sqrt(delta))
         psi13 = min(max(psi13,zero),chi13)
       end if
 !
       if ( chi14>tiny1 .and. water>tiny1 ) then               !kcl
-        psi14 = a14/a13*(psi5+psi8+2.D0*psi12+psi13+2.D0*psi15)           &
-                - psi6 - psi7 - 2.D0*psi16 - 2.D0*psi17
+        psi14 = a14/a13*(psi5+psi8+2._rkx*psi12+psi13+2._rkx*psi15)           &
+                - psi6 - psi7 - 2._rkx*psi16 - 2._rkx*psi17
         psi14 = min(max(psi14,zero),chi14)
       end if
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then               !k2so4
         bbp = psi10 + psi13 + psi14
-        ccp = (psi13+psi14)*(0.25D0*(psi13+psi14)+psi10)
-        ddp = 0.25D0*(psi13+psi14)**2*psi10 - a9/4.D0
+        ccp = (psi13+psi14)*(0.25_rkx*(psi13+psi14)+psi10)
+        ddp = 0.25_rkx*(psi13+psi14)**2*psi10 - a9/4._rkx
         call poly3(bbp,ccp,ddp,psi9,islv)
         if ( islv==0 ) then
           psi9 = min(max(psi9,zero),chi9)
@@ -29252,12 +29299,12 @@ module mod_che_isorropia
 !   ********************************************
       molal(2) = psi8 + psi7                                         ! nai
       molal(3) = psi4                                                ! nh4i
-      molal(4) = psi6 + psi7 + psi14 + 2.D0*psi16 + 2.D0*psi17       ! cli
+      molal(4) = psi6 + psi7 + psi14 + 2._rkx*psi16 + 2._rkx*psi17       ! cli
       molal(5) = psi9 + psi10                                        ! so4i
       molal(6) = zero                                                ! hso4i
-      molal(7) = psi5 + psi8 + 2.D0*psi12 + psi13 + 2.D0*psi15       ! no3i
+      molal(7) = psi5 + psi8 + 2._rkx*psi12 + psi13 + 2._rkx*psi15       ! no3i
       molal(8) = psi11 + psi12 + psi17                               ! cai
-      molal(9) = 2.D0*psi9 + psi13 + psi14                           ! ki
+      molal(9) = 2._rkx*psi9 + psi13 + psi14                           ! ki
       molal(10) = psi10 + psi15 + psi16                               ! mgi
 !
 !   *** calculate h+
@@ -29285,8 +29332,8 @@ module mod_che_isorropia
 !
 !   ** no excess of crustals calculate h+
 !   *******************************
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10) - 2.D0*molal(8)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10) - 2._rkx*molal(8)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !   end if
@@ -29346,7 +29393,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
+    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
          frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -29356,26 +29403,26 @@ module mod_che_isorropia
     chi11 = min(w(2),w(6))                          ! ccaso4
     frca = max(w(6)-chi11,zero)
     frso4 = max(w(2)-chi11,zero)
-    chi9 = min(frso4,0.5D0*w(7))                     ! ck2so4
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(frso4,0.5_rkx*w(7))                     ! ck2so4
+    frk = max(w(7)-2._rkx*chi9,zero)
     frso4 = max(frso4-chi9,zero)
     chi10 = frso4                                   ! cmgso4
     frmg = max(w(8)-chi10,zero)
     chi7 = min(w(1),w(5))                           ! cnacl
     frna = max(w(1)-chi7,zero)
     frcl = max(w(5)-chi7,zero)
-    chi12 = min(frca,0.5D0*w(4))                     ! ccano32
+    chi12 = min(frca,0.5_rkx*w(4))                     ! ccano32
     frca = max(frca-chi12,zero)
-    frno3 = max(w(4)-2.D0*chi12,zero)
-    chi17 = min(frca,0.5D0*frcl)                     ! ccacl2
+    frno3 = max(w(4)-2._rkx*chi12,zero)
+    chi17 = min(frca,0.5_rkx*frcl)                     ! ccacl2
     frca = max(frca-chi17,zero)
-    frcl = max(frcl-2.D0*chi17,zero)
-    chi15 = min(frmg,0.5D0*frno3)                    ! cmgno32
+    frcl = max(frcl-2._rkx*chi17,zero)
+    chi15 = min(frmg,0.5_rkx*frno3)                    ! cmgno32
     frmg = max(frmg-chi15,zero)
-    frno3 = max(frno3-2.D0*chi15,zero)
-    chi16 = min(frmg,0.5D0*frcl)                     ! cmgcl2
+    frno3 = max(frno3-2._rkx*chi15,zero)
+    chi16 = min(frmg,0.5_rkx*frcl)                     ! cmgcl2
     frmg = max(frmg-chi16,zero)
-    frcl = max(frcl-2.D0*chi16,zero)
+    frcl = max(frcl-2._rkx*chi16,zero)
     chi8 = min(frna,frno3)                           ! cnano3
     frna = max(frna-chi8,zero)
     frno3 = max(frno3-chi8,zero)
@@ -29410,7 +29457,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcp8(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -29424,9 +29471,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcp8(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -29439,7 +29486,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcp8(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -29471,11 +29518,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcp8(x)
+  real(rkx) function funcp8(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , gkama , &
+    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , gkama , &
          hi , ohi , psi31 , psi32 , smin , vhta , x
     integer(ik4) :: i , islv
 !
@@ -29512,40 +29559,40 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = chi5*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)                 &
-             - a6/a5*(psi8+2.D0*psi12+psi13+2.D0*psi15)*(chi6-psi6-psi3)
-      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2.D0*psi16+     &
-             2.D0*psi17)
+      psi5 = chi5*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)                 &
+             - a6/a5*(psi8+2._rkx*psi12+psi13+2._rkx*psi15)*(chi6-psi6-psi3)
+      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2._rkx*psi16+     &
+             2._rkx*psi17)
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi13>tiny1 .and. water>tiny1 ) then               !kno3
-        vhta = psi5 + psi8 + 2.D0*psi12 + 2.D0*psi15 + psi14 + 2.D0*psi9
-        gkama = (psi5+psi8+2.D0*psi12+2.D0*psi15)*(2.D0*psi9+psi14) - a13
-        delta = max(vhta*vhta-4.D0*gkama,zero)
-        psi13 = 0.5D0*(-vhta+sqrt(delta))
+        vhta = psi5 + psi8 + 2._rkx*psi12 + 2._rkx*psi15 + psi14 + 2._rkx*psi9
+        gkama = (psi5+psi8+2._rkx*psi12+2._rkx*psi15)*(2._rkx*psi9+psi14) - a13
+        delta = max(vhta*vhta-4._rkx*gkama,zero)
+        psi13 = 0.5_rkx*(-vhta+sqrt(delta))
         psi13 = min(max(psi13,zero),chi13)
       end if
 !
       if ( chi14>tiny1 .and. water>tiny1 ) then               !kcl
-        psi14 = a14/a13*(psi5+psi8+2.D0*psi12+psi13+2.D0*psi15)           &
-                - psi6 - psi7 - 2.D0*psi16 - 2.D0*psi17
+        psi14 = a14/a13*(psi5+psi8+2._rkx*psi12+psi13+2._rkx*psi15)           &
+                - psi6 - psi7 - 2._rkx*psi16 - 2._rkx*psi17
         psi14 = min(max(psi14,zero),chi14)
       end if
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then               !k2so4
         bbp = psi10 + psi13 + psi14
-        ccp = (psi13+psi14)*(0.25D0*(psi13+psi14)+psi10)
-        ddp = 0.25D0*(psi13+psi14)**2*psi10 - a9/4.D0
+        ccp = (psi13+psi14)*(0.25_rkx*(psi13+psi14)+psi10)
+        ddp = 0.25_rkx*(psi13+psi14)**2*psi10 - a9/4._rkx
         call poly3(bbp,ccp,ddp,psi9,islv)
         if ( islv==0 ) then
           psi9 = min(max(psi9,zero),chi9)
@@ -29559,12 +29606,12 @@ module mod_che_isorropia
 !   ********************************************
       molal(2) = psi8 + psi7                                         ! nai
       molal(3) = psi4                                                ! nh4i
-      molal(4) = psi6 + psi7 + psi14 + 2.D0*psi16 + 2.D0*psi17       ! cli
+      molal(4) = psi6 + psi7 + psi14 + 2._rkx*psi16 + 2._rkx*psi17       ! cli
       molal(5) = psi9 + psi10                                        ! so4i
       molal(6) = zero                                                ! hso4i
-      molal(7) = psi5 + psi8 + 2.D0*psi12 + psi13 + 2.D0*psi15       ! no3i
+      molal(7) = psi5 + psi8 + 2._rkx*psi12 + psi13 + 2._rkx*psi15       ! no3i
       molal(8) = psi11 + psi12 + psi17                               ! cai
-      molal(9) = 2.D0*psi9 + psi13 + psi14                           ! ki
+      molal(9) = 2._rkx*psi9 + psi13 + psi14                           ! ki
       molal(10) = psi10 + psi15 + psi16                               ! mgi
 !
 !   *** calculate h+
@@ -29592,8 +29639,8 @@ module mod_che_isorropia
 !
 !   ** no excess of crustals calculate h+
 !   *******************************
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10) - 2.D0*molal(8)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10) - 2._rkx*molal(8)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !   end if
@@ -29623,9 +29670,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghcl)
         bb = -(gnh3+ghcl)
         cc = gnh3*ghcl - a3
-        dd = bb*bb - 4.D0*cc
-        psi31 = 0.5D0*(-bb+sqrt(dd))
-        psi32 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi31 = 0.5_rkx*(-bb+sqrt(dd))
+        psi32 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi31>zero .and. psi31>zero ) then
           psi3 = psi31
         else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -29681,7 +29728,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
+    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
          frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -29691,26 +29738,26 @@ module mod_che_isorropia
     chi11 = min(w(2),w(6))                          ! ccaso4
     frca = max(w(6)-chi11,zero)
     frso4 = max(w(2)-chi11,zero)
-    chi9 = min(frso4,0.5D0*w(7))                     ! ck2so4
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(frso4,0.5_rkx*w(7))                     ! ck2so4
+    frk = max(w(7)-2._rkx*chi9,zero)
     frso4 = max(frso4-chi9,zero)
     chi10 = frso4                                   ! cmgso4
     frmg = max(w(8)-chi10,zero)
     chi7 = min(w(1),w(5))                           ! cnacl
     frna = max(w(1)-chi7,zero)
     frcl = max(w(5)-chi7,zero)
-    chi12 = min(frca,0.5D0*w(4))                     ! ccano32
+    chi12 = min(frca,0.5_rkx*w(4))                     ! ccano32
     frca = max(frca-chi12,zero)
-    frno3 = max(w(4)-2.D0*chi12,zero)
-    chi17 = min(frca,0.5D0*frcl)                     ! ccacl2
+    frno3 = max(w(4)-2._rkx*chi12,zero)
+    chi17 = min(frca,0.5_rkx*frcl)                     ! ccacl2
     frca = max(frca-chi17,zero)
-    frcl = max(frcl-2.D0*chi17,zero)
-    chi15 = min(frmg,0.5D0*frno3)                    ! cmgno32
+    frcl = max(frcl-2._rkx*chi17,zero)
+    chi15 = min(frmg,0.5_rkx*frno3)                    ! cmgno32
     frmg = max(frmg-chi15,zero)
-    frno3 = max(frno3-2.D0*chi15,zero)
-    chi16 = min(frmg,0.5D0*frcl)                     ! cmgcl2
+    frno3 = max(frno3-2._rkx*chi15,zero)
+    chi16 = min(frmg,0.5_rkx*frcl)                     ! cmgcl2
     frmg = max(frmg-chi16,zero)
-    frcl = max(frcl-2.D0*chi16,zero)
+    frcl = max(frcl-2._rkx*chi16,zero)
     chi8 = min(frna,frno3)                           ! cnano3
     frna = max(frna-chi8,zero)
     frno3 = max(frno3-chi8,zero)
@@ -29745,7 +29792,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcp7(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -29759,9 +29806,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcp7(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -29774,7 +29821,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcp7(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -29806,11 +29853,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcp7(x)
+  real(rkx) function funcp7(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
+    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
          gkama , hi , ohi , psi31 , psi32 , smin , vhta , vita , x
     integer(ik4) :: i , islv
 !
@@ -29848,40 +29895,40 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = chi5*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)                 &
-             - a6/a5*(psi8+2.D0*psi12+psi13+2.D0*psi15)*(chi6-psi6-psi3)
-      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2.D0*psi16+     &
-             2.D0*psi17)
+      psi5 = chi5*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)                 &
+             - a6/a5*(psi8+2._rkx*psi12+psi13+2._rkx*psi15)*(chi6-psi6-psi3)
+      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2._rkx*psi16+     &
+             2._rkx*psi17)
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi13>tiny1 .and. water>tiny1 ) then               !kno3
-        vhta = psi5 + psi8 + 2.D0*psi12 + 2.D0*psi15 + psi14 + 2.D0*psi9
-        gkama = (psi5+psi8+2.D0*psi12+2.D0*psi15)*(2.D0*psi9+psi14) - a13
-        delta = max(vhta*vhta-4.D0*gkama,zero)
-        psi13 = 0.5D0*(-vhta+sqrt(delta))
+        vhta = psi5 + psi8 + 2._rkx*psi12 + 2._rkx*psi15 + psi14 + 2._rkx*psi9
+        gkama = (psi5+psi8+2._rkx*psi12+2._rkx*psi15)*(2._rkx*psi9+psi14) - a13
+        delta = max(vhta*vhta-4._rkx*gkama,zero)
+        psi13 = 0.5_rkx*(-vhta+sqrt(delta))
         psi13 = min(max(psi13,zero),chi13)
       end if
 !
       if ( chi14>tiny1 .and. water>tiny1 ) then               !kcl
-        psi14 = a14/a13*(psi5+psi8+2.D0*psi12+psi13+2.D0*psi15)           &
-                - psi6 - psi7 - 2.D0*psi16 - 2.D0*psi17
+        psi14 = a14/a13*(psi5+psi8+2._rkx*psi12+psi13+2._rkx*psi15)           &
+                - psi6 - psi7 - 2._rkx*psi16 - 2._rkx*psi17
         psi14 = min(max(psi14,zero),chi14)
       end if
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then               !k2so4
         bbp = psi10 + psi13 + psi14
-        ccp = (psi13+psi14)*(0.25D0*(psi13+psi14)+psi10)
-        ddp = 0.25D0*(psi13+psi14)**2*psi10 - a9/4.D0
+        ccp = (psi13+psi14)*(0.25_rkx*(psi13+psi14)+psi10)
+        ddp = 0.25_rkx*(psi13+psi14)**2*psi10 - a9/4._rkx
         call poly3(bbp,ccp,ddp,psi9,islv)
         if ( islv==0 ) then
           psi9 = min(max(psi9,zero),chi9)
@@ -29891,10 +29938,10 @@ module mod_che_isorropia
       end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then          ! nacl dissolution
-        vita = psi6 + psi14 + psi8 + 2.D0*psi16 + 2.D0*psi17
-        gkama = psi8*(2.D0*psi16+psi6+psi14+2.D0*psi17) - a7
-        diak = max(vita*vita-4.0D0*gkama,zero)
-        psi7 = 0.5D0*(-vita+sqrt(diak))
+        vita = psi6 + psi14 + psi8 + 2._rkx*psi16 + 2._rkx*psi17
+        gkama = psi8*(2._rkx*psi16+psi6+psi14+2._rkx*psi17) - a7
+        diak = max(vita*vita-4.0_rkx*gkama,zero)
+        psi7 = 0.5_rkx*(-vita+sqrt(diak))
         psi7 = max(min(psi7,chi7),zero)
       end if
 !
@@ -29903,12 +29950,12 @@ module mod_che_isorropia
 !   ********************************************
       molal(2) = psi8 + psi7                                         ! nai
       molal(3) = psi4                                                ! nh4i
-      molal(4) = psi6 + psi7 + psi14 + 2.D0*psi16 + 2.D0*psi17       ! cli
+      molal(4) = psi6 + psi7 + psi14 + 2._rkx*psi16 + 2._rkx*psi17       ! cli
       molal(5) = psi9 + psi10                                        ! so4i
       molal(6) = zero                                                ! hso4i
-      molal(7) = psi5 + psi8 + 2.D0*psi12 + psi13 + 2.D0*psi15       ! no3i
+      molal(7) = psi5 + psi8 + 2._rkx*psi12 + psi13 + 2._rkx*psi15       ! no3i
       molal(8) = psi11 + psi12 + psi17                               ! cai
-      molal(9) = 2.D0*psi9 + psi13 + psi14                           ! ki
+      molal(9) = 2._rkx*psi9 + psi13 + psi14                           ! ki
       molal(10) = psi10 + psi15 + psi16                               ! mgi
 !
 !   *** calculate h+
@@ -29936,8 +29983,8 @@ module mod_che_isorropia
 !
 !   ** no excess of crustals calculate h+
 !   *******************************
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10) - 2.D0*molal(8)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10) - 2._rkx*molal(8)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !   end if
@@ -29967,9 +30014,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghcl)
         bb = -(gnh3+ghcl)
         cc = gnh3*ghcl - a3
-        dd = bb*bb - 4.D0*cc
-        psi31 = 0.5D0*(-bb+sqrt(dd))
-        psi32 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi31 = 0.5_rkx*(-bb+sqrt(dd))
+        psi32 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi31>zero .and. psi31>zero ) then
           psi3 = psi31
         else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -30025,7 +30072,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
+    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
          frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -30035,26 +30082,26 @@ module mod_che_isorropia
     chi11 = min(w(2),w(6))                          ! ccaso4
     frca = max(w(6)-chi11,zero)
     frso4 = max(w(2)-chi11,zero)
-    chi9 = min(frso4,0.5D0*w(7))                     ! ck2so4
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(frso4,0.5_rkx*w(7))                     ! ck2so4
+    frk = max(w(7)-2._rkx*chi9,zero)
     frso4 = max(frso4-chi9,zero)
     chi10 = frso4                                   ! cmgso4
     frmg = max(w(8)-chi10,zero)
     chi7 = min(w(1),w(5))                           ! cnacl
     frna = max(w(1)-chi7,zero)
     frcl = max(w(5)-chi7,zero)
-    chi12 = min(frca,0.5D0*w(4))                     ! ccano32
+    chi12 = min(frca,0.5_rkx*w(4))                     ! ccano32
     frca = max(frca-chi12,zero)
-    frno3 = max(w(4)-2.D0*chi12,zero)
-    chi17 = min(frca,0.5D0*frcl)                     ! ccacl2
+    frno3 = max(w(4)-2._rkx*chi12,zero)
+    chi17 = min(frca,0.5_rkx*frcl)                     ! ccacl2
     frca = max(frca-chi17,zero)
-    frcl = max(frcl-2.D0*chi17,zero)
-    chi15 = min(frmg,0.5D0*frno3)                    ! cmgno32
+    frcl = max(frcl-2._rkx*chi17,zero)
+    chi15 = min(frmg,0.5_rkx*frno3)                    ! cmgno32
     frmg = max(frmg-chi15,zero)
-    frno3 = max(frno3-2.D0*chi15,zero)
-    chi16 = min(frmg,0.5D0*frcl)                     ! cmgcl2
+    frno3 = max(frno3-2._rkx*chi15,zero)
+    chi16 = min(frmg,0.5_rkx*frcl)                     ! cmgcl2
     frmg = max(frmg-chi16,zero)
-    frcl = max(frcl-2.D0*chi16,zero)
+    frcl = max(frcl-2._rkx*chi16,zero)
     chi8 = min(frna,frno3)                           ! cnano3
     frna = max(frna-chi8,zero)
     frno3 = max(frno3-chi8,zero)
@@ -30089,7 +30136,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcp6(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -30103,9 +30150,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcp6(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -30118,7 +30165,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcp6(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -30150,11 +30197,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcp6(x)
+  real(rkx) function funcp6(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
+    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
          gkama , hi , ohi , psi31 , psi32 , smin , vhta , vita , x
     integer(ik4) :: i , islv
 !
@@ -30193,40 +30240,40 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = chi5*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)                 &
-             - a6/a5*(psi8+2.D0*psi12+psi13+2.D0*psi15)*(chi6-psi6-psi3)
-      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2.D0*psi16+     &
-             2.D0*psi17)
+      psi5 = chi5*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)                 &
+             - a6/a5*(psi8+2._rkx*psi12+psi13+2._rkx*psi15)*(chi6-psi6-psi3)
+      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2._rkx*psi16+     &
+             2._rkx*psi17)
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi13>tiny1 .and. water>tiny1 ) then               !kno3
-        vhta = psi5 + psi8 + 2.D0*psi12 + 2.D0*psi15 + psi14 + 2.D0*psi9
-        gkama = (psi5+psi8+2.D0*psi12+2.D0*psi15)*(2.D0*psi9+psi14) - a13
-        delta = max(vhta*vhta-4.D0*gkama,zero)
-        psi13 = 0.5D0*(-vhta+sqrt(delta))
+        vhta = psi5 + psi8 + 2._rkx*psi12 + 2._rkx*psi15 + psi14 + 2._rkx*psi9
+        gkama = (psi5+psi8+2._rkx*psi12+2._rkx*psi15)*(2._rkx*psi9+psi14) - a13
+        delta = max(vhta*vhta-4._rkx*gkama,zero)
+        psi13 = 0.5_rkx*(-vhta+sqrt(delta))
         psi13 = min(max(psi13,zero),chi13)
       end if
 !
       if ( chi14>tiny1 .and. water>tiny1 ) then               !kcl
-        psi14 = a14/a13*(psi5+psi8+2.D0*psi12+psi13+2.D0*psi15)           &
-                - psi6 - psi7 - 2.D0*psi16 - 2.D0*psi17
+        psi14 = a14/a13*(psi5+psi8+2._rkx*psi12+psi13+2._rkx*psi15)           &
+                - psi6 - psi7 - 2._rkx*psi16 - 2._rkx*psi17
         psi14 = min(max(psi14,zero),chi14)
       end if
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then               !k2so4
         bbp = psi10 + psi13 + psi14
-        ccp = (psi13+psi14)*(0.25D0*(psi13+psi14)+psi10)
-        ddp = 0.25D0*(psi13+psi14)**2*psi10 - a9/4.D0
+        ccp = (psi13+psi14)*(0.25_rkx*(psi13+psi14)+psi10)
+        ddp = 0.25_rkx*(psi13+psi14)**2*psi10 - a9/4._rkx
         call poly3(bbp,ccp,ddp,psi9,islv)
         if ( islv==0 ) then
           psi9 = min(max(psi9,zero),chi9)
@@ -30236,10 +30283,10 @@ module mod_che_isorropia
       end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then          ! nacl dissolution
-        vita = psi6 + psi14 + psi8 + 2.D0*psi16 + 2.D0*psi17
-        gkama = psi8*(2.D0*psi16+psi6+psi14+2.D0*psi17) - a7
-        diak = max(vita*vita-4.0D0*gkama,zero)
-        psi7 = 0.5D0*(-vita+sqrt(diak))
+        vita = psi6 + psi14 + psi8 + 2._rkx*psi16 + 2._rkx*psi17
+        gkama = psi8*(2._rkx*psi16+psi6+psi14+2._rkx*psi17) - a7
+        diak = max(vita*vita-4.0_rkx*gkama,zero)
+        psi7 = 0.5_rkx*(-vita+sqrt(diak))
         psi7 = max(min(psi7,chi7),zero)
       end if
 !
@@ -30248,8 +30295,8 @@ module mod_che_isorropia
 !     gkam = psi7*(2.d0*psi12+psi5+psi13+2.d0*psi15)-a8
 !     dia  = max(vit*vit - 4.0d0*gkam ,zero)
 !     psi8 = 0.5d0*( -vit + sqrt(dia) )
-        psi8 = a8/a7*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)              &
-               - psi5 - 2.D0*psi12 - psi13 - 2.D0*psi15
+        psi8 = a8/a7*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)              &
+               - psi5 - 2._rkx*psi12 - psi13 - 2._rkx*psi15
         psi8 = max(min(psi8,chi8),zero)
       end if
 !
@@ -30258,12 +30305,12 @@ module mod_che_isorropia
 !   ********************************************
       molal(2) = psi8 + psi7                                         ! nai
       molal(3) = psi4                                                ! nh4i
-      molal(4) = psi6 + psi7 + psi14 + 2.D0*psi16 + 2.D0*psi17       ! cli
+      molal(4) = psi6 + psi7 + psi14 + 2._rkx*psi16 + 2._rkx*psi17       ! cli
       molal(5) = psi9 + psi10                                        ! so4i
       molal(6) = zero                                                ! hso4i
-      molal(7) = psi5 + psi8 + 2.D0*psi12 + psi13 + 2.D0*psi15       ! no3i
+      molal(7) = psi5 + psi8 + 2._rkx*psi12 + psi13 + 2._rkx*psi15       ! no3i
       molal(8) = psi11 + psi12 + psi17                               ! cai
-      molal(9) = 2.D0*psi9 + psi13 + psi14                           ! ki
+      molal(9) = 2._rkx*psi9 + psi13 + psi14                           ! ki
       molal(10) = psi10 + psi15 + psi16                               ! mgi
 !
 !   *** calculate h+
@@ -30291,8 +30338,8 @@ module mod_che_isorropia
 !
 !   ** no excess of crustals calculate h+
 !   *******************************
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10) - 2.D0*molal(8)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10) - 2._rkx*molal(8)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !   end if
@@ -30322,9 +30369,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghcl)
         bb = -(gnh3+ghcl)
         cc = gnh3*ghcl - a3
-        dd = bb*bb - 4.D0*cc
-        psi31 = 0.5D0*(-bb+sqrt(dd))
-        psi32 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi31 = 0.5_rkx*(-bb+sqrt(dd))
+        psi32 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi31>zero .and. psi31>zero ) then
           psi3 = psi31
         else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -30432,7 +30479,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
+    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
          frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -30442,26 +30489,26 @@ module mod_che_isorropia
     chi11 = min(w(2),w(6))                          ! ccaso4
     frca = max(w(6)-chi11,zero)
     frso4 = max(w(2)-chi11,zero)
-    chi9 = min(frso4,0.5D0*w(7))                     ! ck2so4
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(frso4,0.5_rkx*w(7))                     ! ck2so4
+    frk = max(w(7)-2._rkx*chi9,zero)
     frso4 = max(frso4-chi9,zero)
     chi10 = frso4                                   ! cmgso4
     frmg = max(w(8)-chi10,zero)
     chi7 = min(w(1),w(5))                           ! cnacl
     frna = max(w(1)-chi7,zero)
     frcl = max(w(5)-chi7,zero)
-    chi12 = min(frca,0.5D0*w(4))                     ! ccano32
+    chi12 = min(frca,0.5_rkx*w(4))                     ! ccano32
     frca = max(frca-chi12,zero)
-    frno3 = max(w(4)-2.D0*chi12,zero)
-    chi17 = min(frca,0.5D0*frcl)                     ! ccacl2
+    frno3 = max(w(4)-2._rkx*chi12,zero)
+    chi17 = min(frca,0.5_rkx*frcl)                     ! ccacl2
     frca = max(frca-chi17,zero)
-    frcl = max(frcl-2.D0*chi17,zero)
-    chi15 = min(frmg,0.5D0*frno3)                    ! cmgno32
+    frcl = max(frcl-2._rkx*chi17,zero)
+    chi15 = min(frmg,0.5_rkx*frno3)                    ! cmgno32
     frmg = max(frmg-chi15,zero)
-    frno3 = max(frno3-2.D0*chi15,zero)
-    chi16 = min(frmg,0.5D0*frcl)                     ! cmgcl2
+    frno3 = max(frno3-2._rkx*chi15,zero)
+    chi16 = min(frmg,0.5_rkx*frcl)                     ! cmgcl2
     frmg = max(frmg-chi16,zero)
-    frcl = max(frcl-2.D0*chi16,zero)
+    frcl = max(frcl-2._rkx*chi16,zero)
     chi8 = min(frna,frno3)                           ! cnano3
     frna = max(frna-chi8,zero)
     frno3 = max(frno3-chi8,zero)
@@ -30496,7 +30543,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcp5(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -30510,9 +30557,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcp5(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -30525,7 +30572,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcp5(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -30557,11 +30604,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcp5(x)
+  real(rkx) function funcp5(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
+    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
          gkama , hi , ohi , psi21 , psi22 , psi31 , psi32 , smin , &
          vhta , vita , x
     integer(ik4) :: i , islv
@@ -30601,40 +30648,40 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = (chi5-psi2)*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)          &
-             - a6/a5*(psi8+2.D0*psi12+psi13+2.D0*psi15)*(chi6-psi6-psi3)
-      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2.D0*psi16+     &
-             2.D0*psi17)
+      psi5 = (chi5-psi2)*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)          &
+             - a6/a5*(psi8+2._rkx*psi12+psi13+2._rkx*psi15)*(chi6-psi6-psi3)
+      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2._rkx*psi16+     &
+             2._rkx*psi17)
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi13>tiny1 .and. water>tiny1 ) then               !kno3
-        vhta = psi5 + psi8 + 2.D0*psi12 + 2.D0*psi15 + psi14 + 2.D0*psi9
-        gkama = (psi5+psi8+2.D0*psi12+2.D0*psi15)*(2.D0*psi9+psi14) - a13
-        delta = max(vhta*vhta-4.D0*gkama,zero)
-        psi13 = 0.5D0*(-vhta+sqrt(delta))
+        vhta = psi5 + psi8 + 2._rkx*psi12 + 2._rkx*psi15 + psi14 + 2._rkx*psi9
+        gkama = (psi5+psi8+2._rkx*psi12+2._rkx*psi15)*(2._rkx*psi9+psi14) - a13
+        delta = max(vhta*vhta-4._rkx*gkama,zero)
+        psi13 = 0.5_rkx*(-vhta+sqrt(delta))
         psi13 = min(max(psi13,zero),chi13)
       end if
 !
       if ( chi14>tiny1 .and. water>tiny1 ) then               !kcl
-        psi14 = a14/a13*(psi5+psi8+2.D0*psi12+psi13+2.D0*psi15)           &
-                - psi6 - psi7 - 2.D0*psi16 - 2.D0*psi17
+        psi14 = a14/a13*(psi5+psi8+2._rkx*psi12+psi13+2._rkx*psi15)           &
+                - psi6 - psi7 - 2._rkx*psi16 - 2._rkx*psi17
         psi14 = min(max(psi14,zero),chi14)
       end if
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then               !k2so4
         bbp = psi10 + psi13 + psi14
-        ccp = (psi13+psi14)*(0.25D0*(psi13+psi14)+psi10)
-        ddp = 0.25D0*(psi13+psi14)**2*psi10 - a9/4.D0
+        ccp = (psi13+psi14)*(0.25_rkx*(psi13+psi14)+psi10)
+        ddp = 0.25_rkx*(psi13+psi14)**2*psi10 - a9/4._rkx
         call poly3(bbp,ccp,ddp,psi9,islv)
         if ( islv==0 ) then
           psi9 = min(max(psi9,zero),chi9)
@@ -30644,10 +30691,10 @@ module mod_che_isorropia
       end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then          ! nacl dissolution
-        vita = psi6 + psi14 + psi8 + 2.D0*psi16 + 2.D0*psi17
-        gkama = psi8*(2.D0*psi16+psi6+psi14+2.D0*psi17) - a7
-        diak = max(vita*vita-4.0D0*gkama,zero)
-        psi7 = 0.5D0*(-vita+sqrt(diak))
+        vita = psi6 + psi14 + psi8 + 2._rkx*psi16 + 2._rkx*psi17
+        gkama = psi8*(2._rkx*psi16+psi6+psi14+2._rkx*psi17) - a7
+        diak = max(vita*vita-4.0_rkx*gkama,zero)
+        psi7 = 0.5_rkx*(-vita+sqrt(diak))
         psi7 = max(min(psi7,chi7),zero)
       end if
 !
@@ -30656,8 +30703,8 @@ module mod_che_isorropia
 !     gkam = psi7*(2.d0*psi12+psi5+psi13+2.d0*psi15)-a8
 !     dia  = max(vit*vit - 4.0d0*gkam ,zero)
 !     psi8 = 0.5d0*( -vit + sqrt(dia) )
-        psi8 = a8/a7*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)              &
-               - psi5 - 2.D0*psi12 - psi13 - 2.D0*psi15
+        psi8 = a8/a7*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)              &
+               - psi5 - 2._rkx*psi12 - psi13 - 2._rkx*psi15
         psi8 = max(min(psi8,chi8),zero)
       end if
 !
@@ -30666,12 +30713,12 @@ module mod_che_isorropia
 !   ********************************************
       molal(2) = psi8 + psi7                                         ! nai
       molal(3) = psi4                                                ! nh4i
-      molal(4) = psi6 + psi7 + psi14 + 2.D0*psi16 + 2.D0*psi17       ! cli
+      molal(4) = psi6 + psi7 + psi14 + 2._rkx*psi16 + 2._rkx*psi17       ! cli
       molal(5) = psi9 + psi10                                        ! so4i
       molal(6) = zero                                                ! hso4i
-      molal(7) = psi5 + psi8 + 2.D0*psi12 + psi13 + 2.D0*psi15       ! no3i
+      molal(7) = psi5 + psi8 + 2._rkx*psi12 + psi13 + 2._rkx*psi15       ! no3i
       molal(8) = psi11 + psi12 + psi17                               ! cai
-      molal(9) = 2.D0*psi9 + psi13 + psi14                           ! ki
+      molal(9) = 2._rkx*psi9 + psi13 + psi14                           ! ki
       molal(10) = psi10 + psi15 + psi16                               ! mgi
 !
 !   ** calculate h+
@@ -30699,8 +30746,8 @@ module mod_che_isorropia
 !
 !   ** no excess of crustals calculate h+
 !   *******************************
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10) - 2.D0*molal(8)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10) - 2._rkx*molal(8)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !   end if
@@ -30730,9 +30777,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghcl)
         bb = -(gnh3+ghcl)
         cc = gnh3*ghcl - a3
-        dd = bb*bb - 4.D0*cc
-        psi31 = 0.5D0*(-bb+sqrt(dd))
-        psi32 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi31 = 0.5_rkx*(-bb+sqrt(dd))
+        psi32 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi31>zero .and. psi31>zero ) then
           psi3 = psi31
         else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -30758,9 +30805,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghno3)
         bb = -(gnh3+ghno3)
         cc = gnh3*ghno3 - a2
-        dd = bb*bb - 4.D0*cc
-        psi21 = 0.5D0*(-bb+sqrt(dd))
-        psi22 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi21 = 0.5_rkx*(-bb+sqrt(dd))
+        psi22 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi21>zero .and. psi21>zero ) then
           psi2 = psi21
         else if ( delt-psi22>zero .and. psi22>zero ) then
@@ -30868,7 +30915,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
+    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
          frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -30878,26 +30925,26 @@ module mod_che_isorropia
     chi11 = min(w(2),w(6))                          ! ccaso4
     frca = max(w(6)-chi11,zero)
     frso4 = max(w(2)-chi11,zero)
-    chi9 = min(frso4,0.5D0*w(7))                     ! ck2so4
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(frso4,0.5_rkx*w(7))                     ! ck2so4
+    frk = max(w(7)-2._rkx*chi9,zero)
     frso4 = max(frso4-chi9,zero)
     chi10 = frso4                                   ! cmgso4
     frmg = max(w(8)-chi10,zero)
     chi7 = min(w(1),w(5))                           ! cnacl
     frna = max(w(1)-chi7,zero)
     frcl = max(w(5)-chi7,zero)
-    chi12 = min(frca,0.5D0*w(4))                     ! ccano32
+    chi12 = min(frca,0.5_rkx*w(4))                     ! ccano32
     frca = max(frca-chi12,zero)
-    frno3 = max(w(4)-2.D0*chi12,zero)
-    chi17 = min(frca,0.5D0*frcl)                     ! ccacl2
+    frno3 = max(w(4)-2._rkx*chi12,zero)
+    chi17 = min(frca,0.5_rkx*frcl)                     ! ccacl2
     frca = max(frca-chi17,zero)
-    frcl = max(frcl-2.D0*chi17,zero)
-    chi15 = min(frmg,0.5D0*frno3)                    ! cmgno32
+    frcl = max(frcl-2._rkx*chi17,zero)
+    chi15 = min(frmg,0.5_rkx*frno3)                    ! cmgno32
     frmg = max(frmg-chi15,zero)
-    frno3 = max(frno3-2.D0*chi15,zero)
-    chi16 = min(frmg,0.5D0*frcl)                     ! cmgcl2
+    frno3 = max(frno3-2._rkx*chi15,zero)
+    chi16 = min(frmg,0.5_rkx*frcl)                     ! cmgcl2
     frmg = max(frmg-chi16,zero)
-    frcl = max(frcl-2.D0*chi16,zero)
+    frcl = max(frcl-2._rkx*chi16,zero)
     chi8 = min(frna,frno3)                           ! cnano3
     frna = max(frna-chi8,zero)
     frno3 = max(frno3-chi8,zero)
@@ -30932,7 +30979,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcp4(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -30946,9 +30993,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcp4(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -30961,7 +31008,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcp4(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -30992,11 +31039,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcp4(x)
+  real(rkx) function funcp4(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
+    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
          gkama , hi , ohi , psi21 , psi22 , psi31 , psi32 , smin , vhta , &
          vita , x
     integer(ik4) :: i , islv
@@ -31036,40 +31083,40 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = (chi5-psi2)*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)          &
-             - a6/a5*(psi8+2.D0*psi12+psi13+2.D0*psi15)*(chi6-psi6-psi3)
-      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2.D0*psi16+     &
-             2.D0*psi17)
+      psi5 = (chi5-psi2)*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)          &
+             - a6/a5*(psi8+2._rkx*psi12+psi13+2._rkx*psi15)*(chi6-psi6-psi3)
+      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2._rkx*psi16+     &
+             2._rkx*psi17)
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi13>tiny1 .and. water>tiny1 ) then               !kno3
-        vhta = psi5 + psi8 + 2.D0*psi12 + 2.D0*psi15 + psi14 + 2.D0*psi9
-        gkama = (psi5+psi8+2.D0*psi12+2.D0*psi15)*(2.D0*psi9+psi14) - a13
-        delta = max(vhta*vhta-4.D0*gkama,zero)
-        psi13 = 0.5D0*(-vhta+sqrt(delta))
+        vhta = psi5 + psi8 + 2._rkx*psi12 + 2._rkx*psi15 + psi14 + 2._rkx*psi9
+        gkama = (psi5+psi8+2._rkx*psi12+2._rkx*psi15)*(2._rkx*psi9+psi14) - a13
+        delta = max(vhta*vhta-4._rkx*gkama,zero)
+        psi13 = 0.5_rkx*(-vhta+sqrt(delta))
         psi13 = min(max(psi13,zero),chi13)
       end if
 !
       if ( chi14>tiny1 .and. water>tiny1 ) then               !kcl
-        psi14 = a14/a13*(psi5+psi8+2.D0*psi12+psi13+2.D0*psi15)           &
-                - psi6 - psi7 - 2.D0*psi16 - 2.D0*psi17
+        psi14 = a14/a13*(psi5+psi8+2._rkx*psi12+psi13+2._rkx*psi15)           &
+                - psi6 - psi7 - 2._rkx*psi16 - 2._rkx*psi17
         psi14 = min(max(psi14,zero),chi14)
       end if
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then               !k2so4
         bbp = psi10 + psi13 + psi14
-        ccp = (psi13+psi14)*(0.25D0*(psi13+psi14)+psi10)
-        ddp = 0.25D0*(psi13+psi14)**2*psi10 - a9/4.D0
+        ccp = (psi13+psi14)*(0.25_rkx*(psi13+psi14)+psi10)
+        ddp = 0.25_rkx*(psi13+psi14)**2*psi10 - a9/4._rkx
         call poly3(bbp,ccp,ddp,psi9,islv)
         if ( islv==0 ) then
           psi9 = min(max(psi9,zero),chi9)
@@ -31079,10 +31126,10 @@ module mod_che_isorropia
       end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then          ! nacl dissolution
-        vita = psi6 + psi14 + psi8 + 2.D0*psi16 + 2.D0*psi17
-        gkama = psi8*(2.D0*psi16+psi6+psi14+2.D0*psi17) - a7
-        diak = max(vita*vita-4.0D0*gkama,zero)
-        psi7 = 0.5D0*(-vita+sqrt(diak))
+        vita = psi6 + psi14 + psi8 + 2._rkx*psi16 + 2._rkx*psi17
+        gkama = psi8*(2._rkx*psi16+psi6+psi14+2._rkx*psi17) - a7
+        diak = max(vita*vita-4.0_rkx*gkama,zero)
+        psi7 = 0.5_rkx*(-vita+sqrt(diak))
         psi7 = max(min(psi7,chi7),zero)
       end if
 !
@@ -31091,8 +31138,8 @@ module mod_che_isorropia
 !     gkam = psi7*(2.d0*psi12+psi5+psi13+2.d0*psi15)-a8
 !     dia  = max(vit*vit - 4.0d0*gkam ,zero)
 !     psi8 = 0.5d0*( -vit + sqrt(dia) )
-        psi8 = a8/a7*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)              &
-               - psi5 - 2.D0*psi12 - psi13 - 2.D0*psi15
+        psi8 = a8/a7*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)              &
+               - psi5 - 2._rkx*psi12 - psi13 - 2._rkx*psi15
         psi8 = max(min(psi8,chi8),zero)
       end if
 !
@@ -31101,12 +31148,12 @@ module mod_che_isorropia
 !   ********************************************
       molal(2) = psi8 + psi7                                         ! nai
       molal(3) = psi4                                                ! nh4i
-      molal(4) = psi6 + psi7 + psi14 + 2.D0*psi16 + 2.D0*psi17       ! cli
+      molal(4) = psi6 + psi7 + psi14 + 2._rkx*psi16 + 2._rkx*psi17       ! cli
       molal(5) = psi9 + psi10                                        ! so4i
       molal(6) = zero                                                ! hso4i
-      molal(7) = psi5 + psi8 + 2.D0*psi12 + psi13 + 2.D0*psi15       ! no3i
+      molal(7) = psi5 + psi8 + 2._rkx*psi12 + psi13 + 2._rkx*psi15       ! no3i
       molal(8) = psi11 + psi12 + psi17                               ! cai
-      molal(9) = 2.D0*psi9 + psi13 + psi14                           ! ki
+      molal(9) = 2._rkx*psi9 + psi13 + psi14                           ! ki
       molal(10) = psi10 + psi15 + psi16                               ! mgi
 !
 !   *** calculate h+
@@ -31134,8 +31181,8 @@ module mod_che_isorropia
 !
 !   ** no excess of crustals calculate h+
 !   *******************************
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10) - 2.D0*molal(8)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10) - 2._rkx*molal(8)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !   end if
@@ -31165,9 +31212,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghcl)
         bb = -(gnh3+ghcl)
         cc = gnh3*ghcl - a3
-        dd = bb*bb - 4.D0*cc
-        psi31 = 0.5D0*(-bb+sqrt(dd))
-        psi32 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi31 = 0.5_rkx*(-bb+sqrt(dd))
+        psi32 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi31>zero .and. psi31>zero ) then
           psi3 = psi31
         else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -31193,9 +31240,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghno3)
         bb = -(gnh3+ghno3)
         cc = gnh3*ghno3 - a2
-        dd = bb*bb - 4.D0*cc
-        psi21 = 0.5D0*(-bb+sqrt(dd))
-        psi22 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi21 = 0.5_rkx*(-bb+sqrt(dd))
+        psi22 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi21>zero .and. psi21>zero ) then
           psi2 = psi21
         else if ( delt-psi22>zero .and. psi22>zero ) then
@@ -31303,7 +31350,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
+    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
          frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -31313,26 +31360,26 @@ module mod_che_isorropia
     chi11 = min(w(2),w(6))                          ! ccaso4
     frca = max(w(6)-chi11,zero)
     frso4 = max(w(2)-chi11,zero)
-    chi9 = min(frso4,0.5D0*w(7))                     ! ck2so4
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(frso4,0.5_rkx*w(7))                     ! ck2so4
+    frk = max(w(7)-2._rkx*chi9,zero)
     frso4 = max(frso4-chi9,zero)
     chi10 = frso4                                   ! cmgso4
     frmg = max(w(8)-chi10,zero)
     chi7 = min(w(1),w(5))                           ! cnacl
     frna = max(w(1)-chi7,zero)
     frcl = max(w(5)-chi7,zero)
-    chi12 = min(frca,0.5D0*w(4))                     ! ccano32
+    chi12 = min(frca,0.5_rkx*w(4))                     ! ccano32
     frca = max(frca-chi12,zero)
-    frno3 = max(w(4)-2.D0*chi12,zero)
-    chi17 = min(frca,0.5D0*frcl)                     ! ccacl2
+    frno3 = max(w(4)-2._rkx*chi12,zero)
+    chi17 = min(frca,0.5_rkx*frcl)                     ! ccacl2
     frca = max(frca-chi17,zero)
-    frcl = max(frcl-2.D0*chi17,zero)
-    chi15 = min(frmg,0.5D0*frno3)                    ! cmgno32
+    frcl = max(frcl-2._rkx*chi17,zero)
+    chi15 = min(frmg,0.5_rkx*frno3)                    ! cmgno32
     frmg = max(frmg-chi15,zero)
-    frno3 = max(frno3-2.D0*chi15,zero)
-    chi16 = min(frmg,0.5D0*frcl)                     ! cmgcl2
+    frno3 = max(frno3-2._rkx*chi15,zero)
+    chi16 = min(frmg,0.5_rkx*frcl)                     ! cmgcl2
     frmg = max(frmg-chi16,zero)
-    frcl = max(frcl-2.D0*chi16,zero)
+    frcl = max(frcl-2._rkx*chi16,zero)
     chi8 = min(frna,frno3)                           ! cnano3
     frna = max(frna-chi8,zero)
     frno3 = max(frno3-chi8,zero)
@@ -31367,7 +31414,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcp3(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -31381,9 +31428,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcp3(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -31396,7 +31443,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcp3(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -31428,11 +31475,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcp3(x)
+  real(rkx) function funcp3(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
+    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
          gkama , hi , ohi , psi21 , psi22 , psi31 , psi32 , smin , vhta , &
          vita , x
     integer(ik4) :: i , islv
@@ -31472,40 +31519,40 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = (chi5-psi2)*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)          &
-             - a6/a5*(psi8+2.D0*psi12+psi13+2.D0*psi15)*(chi6-psi6-psi3)
-      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2.D0*psi16+     &
-             2.D0*psi17)
+      psi5 = (chi5-psi2)*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)          &
+             - a6/a5*(psi8+2._rkx*psi12+psi13+2._rkx*psi15)*(chi6-psi6-psi3)
+      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2._rkx*psi16+     &
+             2._rkx*psi17)
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi13>tiny1 .and. water>tiny1 ) then               !kno3
-        vhta = psi5 + psi8 + 2.D0*psi12 + 2.D0*psi15 + psi14 + 2.D0*psi9
-        gkama = (psi5+psi8+2.D0*psi12+2.D0*psi15)*(2.D0*psi9+psi14) - a13
-        delta = max(vhta*vhta-4.D0*gkama,zero)
-        psi13 = 0.5D0*(-vhta+sqrt(delta))
+        vhta = psi5 + psi8 + 2._rkx*psi12 + 2._rkx*psi15 + psi14 + 2._rkx*psi9
+        gkama = (psi5+psi8+2._rkx*psi12+2._rkx*psi15)*(2._rkx*psi9+psi14) - a13
+        delta = max(vhta*vhta-4._rkx*gkama,zero)
+        psi13 = 0.5_rkx*(-vhta+sqrt(delta))
         psi13 = min(max(psi13,zero),chi13)
       end if
 !
       if ( chi14>tiny1 .and. water>tiny1 ) then               !kcl
-        psi14 = a14/a13*(psi5+psi8+2.D0*psi12+psi13+2.D0*psi15)           &
-                - psi6 - psi7 - 2.D0*psi16 - 2.D0*psi17
+        psi14 = a14/a13*(psi5+psi8+2._rkx*psi12+psi13+2._rkx*psi15)           &
+                - psi6 - psi7 - 2._rkx*psi16 - 2._rkx*psi17
         psi14 = min(max(psi14,zero),chi14)
       end if
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then               !k2so4
         bbp = psi10 + psi13 + psi14
-        ccp = (psi13+psi14)*(0.25D0*(psi13+psi14)+psi10)
-        ddp = 0.25D0*(psi13+psi14)**2*psi10 - a9/4.D0
+        ccp = (psi13+psi14)*(0.25_rkx*(psi13+psi14)+psi10)
+        ddp = 0.25_rkx*(psi13+psi14)**2*psi10 - a9/4._rkx
         call poly3(bbp,ccp,ddp,psi9,islv)
         if ( islv==0 ) then
           psi9 = min(max(psi9,zero),chi9)
@@ -31515,10 +31562,10 @@ module mod_che_isorropia
       end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then          ! nacl dissolution
-        vita = psi6 + psi14 + psi8 + 2.D0*psi16 + 2.D0*psi17
-        gkama = psi8*(2.D0*psi16+psi6+psi14+2.D0*psi17) - a7
-        diak = max(vita*vita-4.0D0*gkama,zero)
-        psi7 = 0.5D0*(-vita+sqrt(diak))
+        vita = psi6 + psi14 + psi8 + 2._rkx*psi16 + 2._rkx*psi17
+        gkama = psi8*(2._rkx*psi16+psi6+psi14+2._rkx*psi17) - a7
+        diak = max(vita*vita-4.0_rkx*gkama,zero)
+        psi7 = 0.5_rkx*(-vita+sqrt(diak))
         psi7 = max(min(psi7,chi7),zero)
       end if
 !
@@ -31527,8 +31574,8 @@ module mod_che_isorropia
 !     gkam = psi7*(2.d0*psi12+psi5+psi13+2.d0*psi15)-a8
 !     dia  = max(vit*vit - 4.0d0*gkam ,zero)
 !     psi8 = 0.5d0*( -vit + sqrt(dia) )
-        psi8 = a8/a7*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)              &
-               - psi5 - 2.D0*psi12 - psi13 - 2.D0*psi15
+        psi8 = a8/a7*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)              &
+               - psi5 - 2._rkx*psi12 - psi13 - 2._rkx*psi15
         psi8 = max(min(psi8,chi8),zero)
       end if
 !
@@ -31537,12 +31584,12 @@ module mod_che_isorropia
 !   ********************************************
       molal(2) = psi8 + psi7                                         ! nai
       molal(3) = psi4                                                ! nh4i
-      molal(4) = psi6 + psi7 + psi14 + 2.D0*psi16 + 2.D0*psi17       ! cli
+      molal(4) = psi6 + psi7 + psi14 + 2._rkx*psi16 + 2._rkx*psi17       ! cli
       molal(5) = psi9 + psi10                                        ! so4i
       molal(6) = zero                                                ! hso4i
-      molal(7) = psi5 + psi8 + 2.D0*psi12 + psi13 + 2.D0*psi15       ! no3i
+      molal(7) = psi5 + psi8 + 2._rkx*psi12 + psi13 + 2._rkx*psi15       ! no3i
       molal(8) = psi11 + psi12 + psi17                               ! cai
-      molal(9) = 2.D0*psi9 + psi13 + psi14                           ! ki
+      molal(9) = 2._rkx*psi9 + psi13 + psi14                           ! ki
       molal(10) = psi10 + psi15 + psi16                               ! mgi
 !
 !   *** calculate h+
@@ -31570,8 +31617,8 @@ module mod_che_isorropia
 !
 !   ** no excess of crustals calculate h+
 !   *******************************
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10) - 2.D0*molal(8)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10) - 2._rkx*molal(8)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !   end if
@@ -31601,9 +31648,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghcl)
         bb = -(gnh3+ghcl)
         cc = gnh3*ghcl - a3
-        dd = bb*bb - 4.D0*cc
-        psi31 = 0.5D0*(-bb+sqrt(dd))
-        psi32 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi31 = 0.5_rkx*(-bb+sqrt(dd))
+        psi32 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi31>zero .and. psi31>zero ) then
           psi3 = psi31
         else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -31629,9 +31676,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghno3)
         bb = -(gnh3+ghno3)
         cc = gnh3*ghno3 - a2
-        dd = bb*bb - 4.D0*cc
-        psi21 = 0.5D0*(-bb+sqrt(dd))
-        psi22 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi21 = 0.5_rkx*(-bb+sqrt(dd))
+        psi22 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi21>zero .and. psi21>zero ) then
           psi2 = psi21
         else if ( delt-psi22>zero .and. psi22>zero ) then
@@ -31773,7 +31820,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , &
+    real(rkx) :: delta , dx , frca , frcl , frk , frmg , frna , &
          frno3 , frso4 , psi6hi , psi6lo , x1 , x2 ,  &
          x3 , y1 , y2 , y3
     integer(ik4) :: i
@@ -31784,26 +31831,26 @@ module mod_che_isorropia
     chi11 = min(w(2),w(6))                          ! ccaso4
     frca = max(w(6)-chi11,zero)
     frso4 = max(w(2)-chi11,zero)
-    chi9 = min(frso4,0.5D0*w(7))                     ! ck2so4
-    frk = max(w(7)-2.D0*chi9,zero)
+    chi9 = min(frso4,0.5_rkx*w(7))                     ! ck2so4
+    frk = max(w(7)-2._rkx*chi9,zero)
     frso4 = max(frso4-chi9,zero)
     chi10 = frso4                                   ! cmgso4
     frmg = max(w(8)-chi10,zero)
     chi7 = min(w(1),w(5))                           ! cnacl
     frna = max(w(1)-chi7,zero)
     frcl = max(w(5)-chi7,zero)
-    chi12 = min(frca,0.5D0*w(4))                     ! ccano32
+    chi12 = min(frca,0.5_rkx*w(4))                     ! ccano32
     frca = max(frca-chi12,zero)
-    frno3 = max(w(4)-2.D0*chi12,zero)
-    chi17 = min(frca,0.5D0*frcl)                     ! ccacl2
+    frno3 = max(w(4)-2._rkx*chi12,zero)
+    chi17 = min(frca,0.5_rkx*frcl)                     ! ccacl2
     frca = max(frca-chi17,zero)
-    frcl = max(frcl-2.D0*chi17,zero)
-    chi15 = min(frmg,0.5D0*frno3)                    ! cmgno32
+    frcl = max(frcl-2._rkx*chi17,zero)
+    chi15 = min(frmg,0.5_rkx*frno3)                    ! cmgno32
     frmg = max(frmg-chi15,zero)
-    frno3 = max(frno3-2.D0*chi15,zero)
-    chi16 = min(frmg,0.5D0*frcl)                     ! cmgcl2
+    frno3 = max(frno3-2._rkx*chi15,zero)
+    chi16 = min(frmg,0.5_rkx*frcl)                     ! cmgcl2
     frmg = max(frmg-chi16,zero)
-    frcl = max(frcl-2.D0*chi16,zero)
+    frcl = max(frcl-2._rkx*chi16,zero)
     chi8 = min(frna,frno3)                           ! cnano3
     frna = max(frna-chi8,zero)
     frno3 = max(frno3-chi8,zero)
@@ -31838,7 +31885,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 + dx
         y2 = funcp2a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -31852,9 +31899,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcp2a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -31867,7 +31914,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcp2a(x3)
 !
 ! *** calculate hso4 speciation and return
@@ -31899,11 +31946,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcp2a(x)
+  real(rkx) function funcp2a(x)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
+    real(rkx) :: bb , bbp , cc , ccp , dd , ddp , delt , delta , diak , &
          gkama , hi , ohi , psi21 , psi22 , psi31 , psi32 , smin , vhta , &
          vita , x
     integer(ik4) :: i , islv
@@ -31943,40 +31990,40 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = (chi5-psi2)*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)          &
-             - a6/a5*(psi8+2.D0*psi12+psi13+2.D0*psi15)*(chi6-psi6-psi3)
-      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2.D0*psi16+     &
-             2.D0*psi17)
+      psi5 = (chi5-psi2)*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)          &
+             - a6/a5*(psi8+2._rkx*psi12+psi13+2._rkx*psi15)*(chi6-psi6-psi3)
+      psi5 = psi5/(a6/a5*(chi6-psi6-psi3)+psi6+psi7+psi14+2._rkx*psi16+     &
+             2._rkx*psi17)
       psi5 = min(max(psi5,tiny1),chi5)
 !
       if ( w(3)>tiny1 .and. water>tiny1 ) then       ! first try 3rd order soln
-        bb = -(chi4+psi6+psi5+1.D0/a4)
+        bb = -(chi4+psi6+psi5+1._rkx/a4)
         cc = chi4*(psi5+psi6)
-        dd = max(bb*bb-4.D0*cc,zero)
-        psi4 = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        psi4 = 0.5_rkx*(-bb-sqrt(dd))
         psi4 = min(max(psi4,zero),chi4)
       else
         psi4 = tiny1
       end if
 !
       if ( chi13>tiny1 .and. water>tiny1 ) then               !kno3
-        vhta = psi5 + psi8 + 2.D0*psi12 + 2.D0*psi15 + psi14 + 2.D0*psi9
-        gkama = (psi5+psi8+2.D0*psi12+2.D0*psi15)*(2.D0*psi9+psi14) - a13
-        delta = max(vhta*vhta-4.D0*gkama,zero)
-        psi13 = 0.5D0*(-vhta+sqrt(delta))
+        vhta = psi5 + psi8 + 2._rkx*psi12 + 2._rkx*psi15 + psi14 + 2._rkx*psi9
+        gkama = (psi5+psi8+2._rkx*psi12+2._rkx*psi15)*(2._rkx*psi9+psi14) - a13
+        delta = max(vhta*vhta-4._rkx*gkama,zero)
+        psi13 = 0.5_rkx*(-vhta+sqrt(delta))
         psi13 = min(max(psi13,zero),chi13)
       end if
 !
       if ( chi14>tiny1 .and. water>tiny1 ) then               !kcl
-        psi14 = a14/a13*(psi5+psi8+2.D0*psi12+psi13+2.D0*psi15)           &
-                - psi6 - psi7 - 2.D0*psi16 - 2.D0*psi17
+        psi14 = a14/a13*(psi5+psi8+2._rkx*psi12+psi13+2._rkx*psi15)           &
+                - psi6 - psi7 - 2._rkx*psi16 - 2._rkx*psi17
         psi14 = min(max(psi14,zero),chi14)
       end if
 !
       if ( chi9>tiny1 .and. water>tiny1 ) then               !k2so4
         bbp = psi10 + psi13 + psi14
-        ccp = (psi13+psi14)*(0.25D0*(psi13+psi14)+psi10)
-        ddp = 0.25D0*(psi13+psi14)**2*psi10 - a9/4.D0
+        ccp = (psi13+psi14)*(0.25_rkx*(psi13+psi14)+psi10)
+        ddp = 0.25_rkx*(psi13+psi14)**2*psi10 - a9/4._rkx
         call poly3(bbp,ccp,ddp,psi9,islv)
         if ( islv==0 ) then
           psi9 = min(max(psi9,zero),chi9)
@@ -31986,10 +32033,10 @@ module mod_che_isorropia
       end if
 !
       if ( chi7>tiny1 .and. water>tiny1 ) then          ! nacl dissolution
-        vita = psi6 + psi14 + psi8 + 2.D0*psi16 + 2.D0*psi17
-        gkama = psi8*(2.D0*psi16+psi6+psi14+2.D0*psi17) - a7
-        diak = max(vita*vita-4.0D0*gkama,zero)
-        psi7 = 0.5D0*(-vita+sqrt(diak))
+        vita = psi6 + psi14 + psi8 + 2._rkx*psi16 + 2._rkx*psi17
+        gkama = psi8*(2._rkx*psi16+psi6+psi14+2._rkx*psi17) - a7
+        diak = max(vita*vita-4.0_rkx*gkama,zero)
+        psi7 = 0.5_rkx*(-vita+sqrt(diak))
         psi7 = max(min(psi7,chi7),zero)
       end if
 !
@@ -31998,8 +32045,8 @@ module mod_che_isorropia
 !     gkam = psi7*(2.d0*psi12+psi5+psi13+2.d0*psi15)-a8
 !     dia  = max(vit*vit - 4.0d0*gkam ,zero)
 !     psi8 = 0.5d0*( -vit + sqrt(dia) )
-        psi8 = a8/a7*(psi6+psi7+psi14+2.D0*psi16+2.D0*psi17)              &
-               - psi5 - 2.D0*psi12 - psi13 - 2.D0*psi15
+        psi8 = a8/a7*(psi6+psi7+psi14+2._rkx*psi16+2._rkx*psi17)              &
+               - psi5 - 2._rkx*psi12 - psi13 - 2._rkx*psi15
         psi8 = max(min(psi8,chi8),zero)
       end if
 !
@@ -32008,12 +32055,12 @@ module mod_che_isorropia
 !   ********************************************
       molal(2) = psi8 + psi7                                         ! nai
       molal(3) = psi4                                                ! nh4i
-      molal(4) = psi6 + psi7 + psi14 + 2.D0*psi16 + 2.D0*psi17       ! cli
+      molal(4) = psi6 + psi7 + psi14 + 2._rkx*psi16 + 2._rkx*psi17       ! cli
       molal(5) = psi9 + psi10                                        ! so4i
       molal(6) = zero                                                ! hso4i
-      molal(7) = psi5 + psi8 + 2.D0*psi12 + psi13 + 2.D0*psi15       ! no3i
+      molal(7) = psi5 + psi8 + 2._rkx*psi12 + psi13 + 2._rkx*psi15       ! no3i
       molal(8) = psi11 + psi12 + psi17                               ! cai
-      molal(9) = 2.D0*psi9 + psi13 + psi14                           ! ki
+      molal(9) = 2._rkx*psi9 + psi13 + psi14                           ! ki
       molal(10) = psi10 + psi15 + psi16                               ! mgi
 !
 !   *** calculate h+
@@ -32041,8 +32088,8 @@ module mod_che_isorropia
 !
 !   ** no excess of crustals calculate h+
 !   *******************************
-      smin = 2.D0*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
-             - molal(9) - 2.D0*molal(10) - 2.D0*molal(8)
+      smin = 2._rkx*molal(5) + molal(7) + molal(4) - molal(2) - molal(3)    &
+             - molal(9) - 2._rkx*molal(10) - 2._rkx*molal(8)
       call calcph(smin,hi,ohi)
       molal(1) = hi
 !   end if
@@ -32072,9 +32119,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghcl)
         bb = -(gnh3+ghcl)
         cc = gnh3*ghcl - a3
-        dd = bb*bb - 4.D0*cc
-        psi31 = 0.5D0*(-bb+sqrt(dd))
-        psi32 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi31 = 0.5_rkx*(-bb+sqrt(dd))
+        psi32 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi31>zero .and. psi31>zero ) then
           psi3 = psi31
         else if ( delt-psi32>zero .and. psi32>zero ) then
@@ -32100,9 +32147,9 @@ module mod_che_isorropia
         delt = min(gnh3,ghno3)
         bb = -(gnh3+ghno3)
         cc = gnh3*ghno3 - a2
-        dd = bb*bb - 4.D0*cc
-        psi21 = 0.5D0*(-bb+sqrt(dd))
-        psi22 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        psi21 = 0.5_rkx*(-bb+sqrt(dd))
+        psi22 = 0.5_rkx*(-bb-sqrt(dd))
         if ( delt-psi21>zero .and. psi21>zero ) then
           psi2 = psi21
         else if ( delt-psi22>zero .and. psi22>zero ) then
@@ -32195,10 +32242,10 @@ module mod_che_isorropia
   subroutine calcp1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a1 , a2 , alf , bb , bet , cafr , cc , clfr , dd , &
+    real(rkx) :: a1 , a2 , alf , bb , bet , cafr , cc , clfr , dd , &
          dd1 , dd2 , frk , frmg , gam , rtsq , so4fr , sqdd , sqdd1 , &
          sqdd2 , theta1 , theta2
-    real(rk8) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2 , nafr , &
+    real(rkx) :: lamda , lamda1 , lamda2 , kapa , kapa1 , kapa2 , nafr , &
               no3fr
 !
 ! *** calculate non volatile solids ***********************************
@@ -32206,26 +32253,26 @@ module mod_che_isorropia
     ccaso4 = min(w(2),w(6))                         !solid caso4
     cafr = max(w(6)-ccaso4,zero)
     so4fr = max(w(2)-ccaso4,zero)
-    ck2so4 = min(so4fr,0.5D0*w(7))                   !solid k2so4
-    frk = max(w(7)-2.D0*ck2so4,zero)
+    ck2so4 = min(so4fr,0.5_rkx*w(7))                   !solid k2so4
+    frk = max(w(7)-2._rkx*ck2so4,zero)
     so4fr = max(so4fr-ck2so4,zero)
     cmgso4 = so4fr                                  !solid mgso4
     frmg = max(w(8)-cmgso4,zero)
     cnacl = min(w(1),w(5))                          !solid nacl
     nafr = max(w(1)-cnacl,zero)
     clfr = max(w(5)-cnacl,zero)
-    ccano32 = min(cafr,0.5D0*w(4))                   !solid ca(no3)2
+    ccano32 = min(cafr,0.5_rkx*w(4))                   !solid ca(no3)2
     cafr = max(cafr-ccano32,zero)
-    no3fr = max(w(4)-2.D0*ccano32,zero)
-    ccacl2 = min(cafr,0.5D0*clfr)                    !solid cacl2
+    no3fr = max(w(4)-2._rkx*ccano32,zero)
+    ccacl2 = min(cafr,0.5_rkx*clfr)                    !solid cacl2
     cafr = max(cafr-ccacl2,zero)
-    clfr = max(clfr-2.D0*ccacl2,zero)
-    cmgno32 = min(frmg,0.5D0*no3fr)                  !solid mg(no3)2
+    clfr = max(clfr-2._rkx*ccacl2,zero)
+    cmgno32 = min(frmg,0.5_rkx*no3fr)                  !solid mg(no3)2
     frmg = max(frmg-cmgno32,zero)
-    no3fr = max(no3fr-2.D0*cmgno32,zero)
-    cmgcl2 = min(frmg,0.5D0*clfr)                    !solid mgcl2
+    no3fr = max(no3fr-2._rkx*cmgno32,zero)
+    cmgcl2 = min(frmg,0.5_rkx*clfr)                    !solid mgcl2
     frmg = max(frmg-cmgcl2,zero)
-    clfr = max(clfr-2.D0*cmgcl2,zero)
+    clfr = max(clfr-2._rkx*cmgcl2,zero)
     cnano3 = min(nafr,no3fr)                         !solid nano3
     nafr = max(nafr-cnano3,zero)
     no3fr = max(no3fr-cnano3,zero)
@@ -32253,14 +32300,14 @@ module mod_che_isorropia
 !
     bb = (theta1-alf-bet*(one+theta2))/(one+theta2)
     cc = (alf*bet-a1-bet*theta1)/(one+theta2)
-    dd = bb*bb - 4.0D0*cc
+    dd = bb*bb - 4.0_rkx*cc
     if ( dd>=zero ) then        ! solve each reaction seperately
 !
 !   two roots for kapa , check and see if any valid
 !
       sqdd = sqrt(dd)
-      kapa1 = 0.5D0*(-bb+sqdd)
-      kapa2 = 0.5D0*(-bb-sqdd)
+      kapa1 = 0.5_rkx*(-bb+sqdd)
+      kapa2 = 0.5_rkx*(-bb-sqdd)
       lamda1 = theta1 + theta2*kapa1
       lamda2 = theta1 + theta2*kapa2
 !
@@ -32287,15 +32334,15 @@ module mod_che_isorropia
 !
     kapa = zero
     lamda = zero
-    dd1 = (alf+bet)*(alf+bet) - 4.0D0*(alf*bet-a1)
-    dd2 = (alf+gam)*(alf+gam) - 4.0D0*(alf*gam-a2)
+    dd1 = (alf+bet)*(alf+bet) - 4.0_rkx*(alf*bet-a1)
+    dd2 = (alf+gam)*(alf+gam) - 4.0_rkx*(alf*gam-a2)
 !
 ! nh4l equilibrium
 !
     if ( dd1>=zero ) then
       sqdd1 = sqrt(dd1)
-      kapa1 = 0.5D0*(alf+bet+sqdd1)
-      kapa2 = 0.5D0*(alf+bet-sqdd1)
+      kapa1 = 0.5_rkx*(alf+bet+sqdd1)
+      kapa2 = 0.5_rkx*(alf+bet-sqdd1)
 !
       if ( kapa1>=zero .and. kapa1<=min(alf,bet) ) then
         kapa = kapa1
@@ -32310,8 +32357,8 @@ module mod_che_isorropia
 !
     if ( dd2>=zero ) then
       sqdd2 = sqrt(dd2)
-      lamda1 = 0.5D0*(alf+gam+sqdd2)
-      lamda2 = 0.5D0*(alf+gam-sqdd2)
+      lamda1 = 0.5_rkx*(alf+gam+sqdd2)
+      lamda2 = 0.5_rkx*(alf+gam-sqdd2)
 !
       if ( lamda1>=zero .and. lamda1<=min(alf,gam) ) then
         lamda = lamda1
@@ -32364,9 +32411,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , cc , dd
+    real(rkx) :: bb , cc , dd
     integer(ik4) :: i
-    real(rk8) :: lamda
+    real(rkx) :: lamda
 !
 ! *** find dry composition
 ! **********************************************
@@ -32406,18 +32453,18 @@ module mod_che_isorropia
 !
       bb = psi7 + psi6 + psi5 + psi4 + psi2 + a9                   ! lamda
       cc = -a9*(psi8+psi1+psi2+psi3)
-      dd = max(bb*bb-4.D0*cc,zero)
-      lamda = 0.5D0*(-bb+sqrt(dd))
+      dd = max(bb*bb-4._rkx*cc,zero)
+      lamda = 0.5_rkx*(-bb+sqrt(dd))
       lamda = min(max(lamda,tiny1),psi8+psi3+psi2+psi1)
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = lamda                                               ! hi
-      molal(2) = 2.D0*psi4 + psi3                                    ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1                        ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                                    ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1                        ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6 + psi7 + lamda            ! so4i
       molal(6) = psi2 + psi3 + psi1 + psi8 - lamda                   ! hso4i
-      molal(9) = psi8 + 2.0D0*psi6                                   ! ki
+      molal(9) = psi8 + 2.0_rkx*psi6                                   ! ki
       molal(10) = psi7                                                ! mgi
 !
       clc = zero
@@ -32461,7 +32508,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , psi6hi , psi6lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi6hi , psi6lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -32515,7 +32562,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 - dx
         y2 = funcl8(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50    ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -32532,9 +32579,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funcl8(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -32547,7 +32594,7 @@ module mod_che_isorropia
 !
 !   *** converged ; return
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funcl8(x3)
     end if
   end subroutine calcl8
@@ -32571,13 +32618,13 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcl8(p6)
+  real(rkx) function funcl8(p6)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: bb , cc , dd , p6
+    real(rkx) :: bb , cc , dd , p6
     integer(ik4) :: i
-    real(rk8) :: lamda
+    real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
 !
@@ -32598,15 +32645,15 @@ module mod_che_isorropia
 !
       bb = psi7 + psi6 + psi5 + psi4 + psi2 + a9                   ! lamda
       cc = -a9*(psi8+psi1+psi2+psi3)
-      dd = bb*bb - 4.D0*cc
-      lamda = 0.5D0*(-bb+sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      lamda = 0.5_rkx*(-bb+sqrt(dd))
       lamda = min(max(lamda,tiny1),psi8+psi3+psi2+psi1)
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = lamda                                               ! hi
-      molal(2) = 2.D0*psi4 + psi3                                    ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1                        ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                                    ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1                        ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6 + psi7 + lamda            ! so4i
       molal(6) = max(psi2+psi3+psi1+psi8-lamda,tiny1)                  ! hso4i
       molal(9) = psi8 + 2.0*psi6                                     ! ki
@@ -32656,7 +32703,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -32710,7 +32757,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 - dx
         y2 = funcl7(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50    ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -32727,9 +32774,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funcl7(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -32742,7 +32789,7 @@ module mod_che_isorropia
 !
 !   *** converged ; return
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funcl7(x3)
     end if
   end subroutine calcl7
@@ -32766,13 +32813,13 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcl7(p4)
+  real(rkx) function funcl7(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , cc , dd , p4
+    real(rkx) :: aa , bb , cc , dd , p4
     integer(ik4) :: i , islv
-    real(rk8) :: lamda
+    real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
 !
@@ -32799,8 +32846,8 @@ module mod_che_isorropia
 !
       if ( chi6>tiny1 .and. water>tiny1 ) then
         aa = psi5 + psi4 + psi2 + psi7 + psi8 + lamda
-        bb = psi8*(psi5+psi4+psi2+psi7+0.25D0*psi8+lamda)
-        cc = 0.25D0*(psi8*psi8*(psi5+psi4+psi2+psi7+lamda)-a6)
+        bb = psi8*(psi5+psi4+psi2+psi7+0.25_rkx*psi8+lamda)
+        cc = 0.25_rkx*(psi8*psi8*(psi5+psi4+psi2+psi7+lamda)-a6)
         call poly3(aa,bb,cc,psi6,islv)
         if ( islv==0 ) then
           psi6 = min(psi6,chi6)
@@ -32811,16 +32858,16 @@ module mod_che_isorropia
 !
       bb = psi7 + psi6 + psi5 + psi4 + psi2 + a9                   ! lamda
       cc = -a9*(psi8+psi1+psi2+psi3)
-      dd = bb*bb - 4.D0*cc
-      lamda = 0.5D0*(-bb+sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      lamda = 0.5_rkx*(-bb+sqrt(dd))
       lamda = min(max(lamda,tiny1),psi8+psi3+psi2+psi1)
 !
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = lamda                                               ! hi
-      molal(2) = 2.D0*psi4 + psi3                                    ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1                        ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                                    ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1                        ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6 + psi7 + lamda            ! so4i
       molal(6) = max(psi2+psi3+psi1+psi8-lamda,tiny1)                  ! hso4i
       molal(9) = psi8 + 2.0*psi6                                     ! ki
@@ -32870,7 +32917,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -32924,7 +32971,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 - dx
         y2 = funcl6(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50    ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -32942,9 +32989,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funcl6(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -32957,7 +33004,7 @@ module mod_che_isorropia
 !
 !   *** converged ; return
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funcl6(x3)
     end if
   end subroutine calcl6
@@ -32980,13 +33027,13 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcl6(p4)
+  real(rkx) function funcl6(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , cc , dd , p4
+    real(rkx) :: aa , bb , cc , dd , p4
     integer(ik4) :: i , islv
-    real(rk8) :: lamda
+    real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
 !
@@ -33013,8 +33060,8 @@ module mod_che_isorropia
 !
       if ( chi6>tiny1 .and. water>tiny1 ) then
         aa = psi5 + psi4 + psi2 + psi7 + psi8 + lamda
-        bb = psi8*(psi5+psi4+psi2+psi7+0.25D0*psi8+lamda)
-        cc = 0.25D0*(psi8*psi8*(psi5+psi4+psi2+psi7+lamda)-a6)
+        bb = psi8*(psi5+psi4+psi2+psi7+0.25_rkx*psi8+lamda)
+        cc = 0.25_rkx*(psi8*psi8*(psi5+psi4+psi2+psi7+lamda)-a6)
         call poly3(aa,bb,cc,psi6,islv)
         if ( islv==0 ) then
           psi6 = min(psi6,chi6)
@@ -33027,15 +33074,15 @@ module mod_che_isorropia
 !
       bb = psi7 + psi6 + psi5 + psi4 + psi2 + a9                    ! lamda
       cc = -a9*(psi8+psi1+psi2+psi3)
-      dd = bb*bb - 4.D0*cc
-      lamda = 0.5D0*(-bb+sqrt(dd))
+      dd = bb*bb - 4._rkx*cc
+      lamda = 0.5_rkx*(-bb+sqrt(dd))
       lamda = min(max(lamda,tiny1),psi8+psi3+psi2+psi1)
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = lamda                                               ! hi
-      molal(2) = 2.D0*psi4 + psi3                                    ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1                        ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                                    ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1                        ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6 + psi7 + lamda            ! so4i
       molal(6) = max(psi2+psi3+psi1+psi8-lamda,tiny1)                  ! hso4i
       molal(9) = psi8 + 2.0*psi6                                     ! ki
@@ -33085,7 +33132,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -33141,7 +33188,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = max(x1-dx,psi4lo)
         y2 = funcl5(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50    ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -33159,9 +33206,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funcl5(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -33174,7 +33221,7 @@ module mod_che_isorropia
 !
 !   *** converged ; return
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funcl5(x3)
     end if
   end subroutine calcl5
@@ -33198,13 +33245,13 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcl5(p4)
+  real(rkx) function funcl5(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , bita , cama , cc , dd , delt , p4
+    real(rkx) :: aa , bb , bita , cama , cc , dd , delt , p4
     integer(ik4) :: i , islv
-    real(rk8) :: lamda
+    real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
 !
@@ -33232,8 +33279,8 @@ module mod_che_isorropia
 !
       if ( chi6>tiny1 .and. water>tiny1 ) then
         aa = psi5 + psi4 + psi2 + psi7 + psi8 + lamda
-        bb = psi8*(psi5+psi4+psi2+psi7+0.25D0*psi8+lamda)
-        cc = 0.25D0*(psi8*psi8*(psi5+psi4+psi2+psi7+lamda)-a6)
+        bb = psi8*(psi5+psi4+psi2+psi7+0.25_rkx*psi8+lamda)
+        cc = 0.25_rkx*(psi8*psi8*(psi5+psi4+psi2+psi7+lamda)-a6)
         call poly3(aa,bb,cc,psi6,islv)
         if ( islv==0 ) then
           psi6 = min(psi6,chi6)
@@ -33246,24 +33293,24 @@ module mod_che_isorropia
 !
       bb = psi7 + psi6 + psi5 + psi4 + psi2 + a9                    ! lamda
       cc = -a9*(psi8+psi1+psi2+psi3)
-      dd = max(bb*bb-4.D0*cc,zero)
-      lamda = 0.5D0*(-bb+sqrt(dd))
+      dd = max(bb*bb-4._rkx*cc,zero)
+      lamda = 0.5_rkx*(-bb+sqrt(dd))
       lamda = min(max(lamda,tiny1),psi8+psi3+psi2+psi1)
 !
-      bita = psi3 + psi2 + psi1 + 2.D0*psi6 - lamda
-      cama = 2.D0*psi6*(psi3+psi2+psi1-lamda) - a8
-      delt = max(bita*bita-4.D0*cama,zero)
-      psi8 = 0.5D0*(-bita+sqrt(delt))
+      bita = psi3 + psi2 + psi1 + 2._rkx*psi6 - lamda
+      cama = 2._rkx*psi6*(psi3+psi2+psi1-lamda) - a8
+      delt = max(bita*bita-4._rkx*cama,zero)
+      psi8 = 0.5_rkx*(-bita+sqrt(delt))
       psi8 = min(max(psi8,zero),chi8)
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = lamda                                               ! hi
-      molal(2) = 2.D0*psi4 + psi3                                    ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1                        ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                                    ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1                        ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6 + psi7 + lamda            ! so4i
       molal(6) = max(psi2+psi3+psi1+psi8-lamda,tiny1)                  ! hso4i
-      molal(9) = psi8 + 2.0D0*psi6                                   ! ki
+      molal(9) = psi8 + 2.0_rkx*psi6                                   ! ki
       molal(10) = psi7                                                ! mgi
 !
       clc = zero
@@ -33312,7 +33359,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -33366,7 +33413,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 - dx
         y2 = funcl4(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50    ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -33384,9 +33431,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funcl4(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -33399,7 +33446,7 @@ module mod_che_isorropia
 !
 !   *** converged ; return
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funcl4(x3)
     end if
   end subroutine calcl4
@@ -33423,13 +33470,13 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcl4(p4)
+  real(rkx) function funcl4(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , bita , cama , cc , dd , delt , p4
+    real(rkx) :: aa , bb , bita , cama , cc , dd , delt , p4
     integer(ik4) :: i , islv
-    real(rk8) :: lamda
+    real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
 !
@@ -33452,16 +33499,16 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = (psi3+2.D0*psi4-sqrt(a4/a5)*(3.D0*psi2+psi1))                &
-             /2.D0/sqrt(a4/a5)                                      ! ! psi5
+      psi5 = (psi3+2._rkx*psi4-sqrt(a4/a5)*(3._rkx*psi2+psi1))                &
+             /2._rkx/sqrt(a4/a5)                                      ! ! psi5
       psi5 = max(min(psi5,chi5),zero)
 !
       psi7 = chi7
 !
       bb = psi7 + psi6 + psi5 + psi4 + psi2 + a9                    ! lamda
       cc = -a9*(psi8+psi1+psi2+psi3)
-      dd = max(bb*bb-4.D0*cc,zero)
-      lamda = 0.5D0*(-bb+sqrt(dd))
+      dd = max(bb*bb-4._rkx*cc,zero)
+      lamda = 0.5_rkx*(-bb+sqrt(dd))
       lamda = min(max(lamda,tiny1),psi8+psi3+psi2+psi1)
 !
 !   psi6 = 0.5d0*(sqrt(a6/a4)*(2.d0*psi4+psi3)-psi8)             ! psi6
@@ -33469,8 +33516,8 @@ module mod_che_isorropia
 !
       if ( chi6>tiny1 .and. water>tiny1 ) then
         aa = psi5 + psi4 + psi2 + psi7 + psi8 + lamda
-        bb = psi8*(psi5+psi4+psi2+psi7+0.25D0*psi8+lamda)
-        cc = 0.25D0*(psi8*psi8*(psi5+psi4+psi2+psi7+lamda)-a6)
+        bb = psi8*(psi5+psi4+psi2+psi7+0.25_rkx*psi8+lamda)
+        cc = 0.25_rkx*(psi8*psi8*(psi5+psi4+psi2+psi7+lamda)-a6)
         call poly3(aa,bb,cc,psi6,islv)
         if ( islv==0 ) then
           psi6 = min(psi6,chi6)
@@ -33479,20 +33526,20 @@ module mod_che_isorropia
         end if
       end if
 !
-      bita = psi3 + psi2 + psi1 + 2.D0*psi6 - lamda
-      cama = 2.D0*psi6*(psi3+psi2+psi1-lamda) - a8
-      delt = max(bita*bita-4.D0*cama,zero)
-      psi8 = 0.5D0*(-bita+sqrt(delt))
+      bita = psi3 + psi2 + psi1 + 2._rkx*psi6 - lamda
+      cama = 2._rkx*psi6*(psi3+psi2+psi1-lamda) - a8
+      delt = max(bita*bita-4._rkx*cama,zero)
+      psi8 = 0.5_rkx*(-bita+sqrt(delt))
       psi8 = min(max(psi8,zero),chi8)
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = lamda                                               ! hi
-      molal(2) = 2.D0*psi4 + psi3                                    ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1                        ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                                    ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1                        ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6 + psi7 + lamda            ! so4i
       molal(6) = max(psi2+psi3+psi1+psi8-lamda,tiny1)                  ! hso4i
-      molal(9) = psi8 + 2.0D0*psi6                                   ! ki
+      molal(9) = psi8 + 2.0_rkx*psi6                                   ! ki
       molal(10) = psi7                                                ! mgi
 !
       clc = zero
@@ -33596,7 +33643,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -33645,7 +33692,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = max(x1-dx,psi2lo)
         y2 = funcl3a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -33659,9 +33706,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcl3a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -33674,7 +33721,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcl3a(x3)
   end subroutine calcl3a
 !
@@ -33696,11 +33743,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcl3a(p2)
+  real(rkx) function funcl3a(p2)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -33736,7 +33783,7 @@ module mod_che_isorropia
         do i = 1 , ndiv
           x2 = max(x1-dx,psi4lo)
           y2 = funcl3b(x2)
-          if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50  ! (y1*y2 < zero)
+          if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50  ! (y1*y2 < zero)
           x1 = x2
           y1 = y2
         end do
@@ -33750,9 +33797,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funcl3b(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -33765,7 +33812,7 @@ module mod_che_isorropia
 !
 !   *** inner loop converged
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funcl3b(x3)
     end if
 !
@@ -33794,13 +33841,13 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcl3b(p4)
+  real(rkx) function funcl3b(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , bita , cama , cc , dd , delt , p4
+    real(rkx) :: aa , bb , bita , cama , cc , dd , delt , p4
     integer(ik4) :: i , islv
-    real(rk8) :: lamda
+    real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
 !
@@ -33821,16 +33868,16 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = (psi3+2.D0*psi4-sqrt(a4/a5)*(3.D0*psi2+psi1))                &
-             /2.D0/sqrt(a4/a5)                                      ! ! psi5
+      psi5 = (psi3+2._rkx*psi4-sqrt(a4/a5)*(3._rkx*psi2+psi1))                &
+             /2._rkx/sqrt(a4/a5)                                      ! ! psi5
       psi5 = max(min(psi5,chi5),zero)
 !
       psi7 = chi7
 !
       bb = psi7 + psi6 + psi5 + psi4 + psi2 + a9                    ! lamda
       cc = -a9*(psi8+psi1+psi2+psi3)
-      dd = max(bb*bb-4.D0*cc,zero)
-      lamda = 0.5D0*(-bb+sqrt(dd))
+      dd = max(bb*bb-4._rkx*cc,zero)
+      lamda = 0.5_rkx*(-bb+sqrt(dd))
       lamda = min(max(lamda,tiny1),psi8+psi3+psi2+psi1)
 !
 !   psi6 = 0.5d0*(sqrt(a6/a4)*(2.d0*psi4+psi3)-psi8)             ! psi6
@@ -33838,8 +33885,8 @@ module mod_che_isorropia
 !
       if ( chi6>tiny1 .and. water>tiny1 ) then
         aa = psi5 + psi4 + psi2 + psi7 + psi8 + lamda
-        bb = psi8*(psi5+psi4+psi2+psi7+0.25D0*psi8+lamda)
-        cc = 0.25D0*(psi8*psi8*(psi5+psi4+psi2+psi7+lamda)-a6)
+        bb = psi8*(psi5+psi4+psi2+psi7+0.25_rkx*psi8+lamda)
+        cc = 0.25_rkx*(psi8*psi8*(psi5+psi4+psi2+psi7+lamda)-a6)
         call poly3(aa,bb,cc,psi6,islv)
         if ( islv==0 ) then
           psi6 = min(psi6,chi6)
@@ -33848,20 +33895,20 @@ module mod_che_isorropia
         end if
       end if
 !
-      bita = psi3 + psi2 + psi1 + 2.D0*psi6 - lamda
-      cama = 2.D0*psi6*(psi3+psi2+psi1-lamda) - a8
-      delt = max(bita*bita-4.D0*cama,zero)
-      psi8 = 0.5D0*(-bita+sqrt(delt))
+      bita = psi3 + psi2 + psi1 + 2._rkx*psi6 - lamda
+      cama = 2._rkx*psi6*(psi3+psi2+psi1-lamda) - a8
+      delt = max(bita*bita-4._rkx*cama,zero)
+      psi8 = 0.5_rkx*(-bita+sqrt(delt))
       psi8 = min(max(psi8,zero),chi8)
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = lamda                                               ! hi
-      molal(2) = 2.D0*psi4 + psi3                                    ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1                        ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                                    ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1                        ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6 + psi7 + lamda            ! so4i
       molal(6) = max(psi2+psi3+psi1+psi8-lamda,tiny1)                  ! hso4i
-      molal(9) = psi8 + 2.0D0*psi6                                   ! ki
+      molal(9) = psi8 + 2.0_rkx*psi6                                   ! ki
       molal(10) = psi7                                                ! mgi
 !
       clc = max(chi2-psi2,zero)
@@ -33967,7 +34014,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -34013,7 +34060,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = max(x1-dx,psi2lo)
         y2 = funcl2a(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100   ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100   ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -34027,9 +34074,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcl2a(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -34042,7 +34089,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcl2a(x3)
   end subroutine calcl2a
 !
@@ -34064,11 +34111,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcl2a(p2)
+  real(rkx) function funcl2a(p2)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -34107,7 +34154,7 @@ module mod_che_isorropia
         do i = 1 , ndiv
           x2 = max(x1-dx,psi4lo)
           y2 = funcl2b(x2)
-          if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50  ! (y1*y2 < zero)
+          if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50  ! (y1*y2 < zero)
           x1 = x2
           y1 = y2
         end do
@@ -34121,9 +34168,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funcl2b(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -34136,7 +34183,7 @@ module mod_che_isorropia
 !
 !   *** inner loop converged
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funcl2b(x3)
     end if
 !
@@ -34164,13 +34211,13 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcl2b(p4)
+  real(rkx) function funcl2b(p4)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: aa , bb , bita , cama , cc , dd , delt , p4
+    real(rkx) :: aa , bb , bita , cama , cc , dd , delt , p4
     integer(ik4) :: i , islv
-    real(rk8) :: lamda
+    real(rkx) :: lamda
 !
 ! *** setup parameters ************************************************
 !
@@ -34199,13 +34246,13 @@ module mod_che_isorropia
 !
 !   caculate dissociation quantities
 !
-      psi5 = (psi3+2.D0*psi4-sqrt(a4/a5)*(3.D0*psi2+psi1))                &
-             /2.D0/sqrt(a4/a5)                                      ! ! psi5
+      psi5 = (psi3+2._rkx*psi4-sqrt(a4/a5)*(3._rkx*psi2+psi1))                &
+             /2._rkx/sqrt(a4/a5)                                      ! ! psi5
       psi5 = max(min(psi5,chi5),zero)
 !
       if ( chi3>tiny1 .and. water>tiny1 ) then
-        aa = 2.D0*psi4 + psi2 + psi1 + psi8 - lamda
-        bb = 2.D0*psi4*(psi2+psi1+psi8-lamda) - a3
+        aa = 2._rkx*psi4 + psi2 + psi1 + psi8 - lamda
+        bb = 2._rkx*psi4*(psi2+psi1+psi8-lamda) - a3
         cc = zero
         call poly3(aa,bb,cc,psi3,islv)
         if ( islv==0 ) then
@@ -34219,8 +34266,8 @@ module mod_che_isorropia
 !
       bb = psi7 + psi6 + psi5 + psi4 + psi2 + a9                    ! lamda
       cc = -a9*(psi8+psi1+psi2+psi3)
-      dd = max(bb*bb-4.D0*cc,zero)
-      lamda = 0.5D0*(-bb+sqrt(dd))
+      dd = max(bb*bb-4._rkx*cc,zero)
+      lamda = 0.5_rkx*(-bb+sqrt(dd))
       lamda = min(max(lamda,tiny1),psi8+psi3+psi2+psi1)
 !
 !   psi6 = 0.5d0*(sqrt(a6/a4)*(2.d0*psi4+psi3)-psi8)             ! psi6
@@ -34228,8 +34275,8 @@ module mod_che_isorropia
 !
       if ( chi6>tiny1 .and. water>tiny1 ) then
         aa = psi5 + psi4 + psi2 + psi7 + psi8 + lamda
-        bb = psi8*(psi5+psi4+psi2+psi7+0.25D0*psi8+lamda)
-        cc = 0.25D0*(psi8*psi8*(psi5+psi4+psi2+psi7+lamda)-a6)
+        bb = psi8*(psi5+psi4+psi2+psi7+0.25_rkx*psi8+lamda)
+        cc = 0.25_rkx*(psi8*psi8*(psi5+psi4+psi2+psi7+lamda)-a6)
         call poly3(aa,bb,cc,psi6,islv)
         if ( islv==0 ) then
           psi6 = min(psi6,chi6)
@@ -34238,20 +34285,20 @@ module mod_che_isorropia
         end if
       end if
 !
-      bita = psi3 + psi2 + psi1 + 2.D0*psi6 - lamda                 ! psi8
-      cama = 2.D0*psi6*(psi3+psi2+psi1-lamda) - a8
-      delt = max(bita*bita-4.D0*cama,zero)
-      psi8 = 0.5D0*(-bita+sqrt(delt))
+      bita = psi3 + psi2 + psi1 + 2._rkx*psi6 - lamda                 ! psi8
+      cama = 2._rkx*psi6*(psi3+psi2+psi1-lamda) - a8
+      delt = max(bita*bita-4._rkx*cama,zero)
+      psi8 = 0.5_rkx*(-bita+sqrt(delt))
       psi8 = min(max(psi8,zero),chi8)
 !
 !   *** calculate speciation
 !   ********************************************
       molal(1) = lamda                                               ! hi
-      molal(2) = 2.D0*psi4 + psi3                                    ! nai
-      molal(3) = 3.D0*psi2 + 2.D0*psi5 + psi1                        ! nh4i
+      molal(2) = 2._rkx*psi4 + psi3                                    ! nai
+      molal(3) = 3._rkx*psi2 + 2._rkx*psi5 + psi1                        ! nh4i
       molal(5) = psi2 + psi4 + psi5 + psi6 + psi7 + lamda            ! so4i
       molal(6) = max(psi2+psi3+psi1+psi8-lamda,tiny1)                  ! hso4i
-      molal(9) = psi8 + 2.0D0*psi6                                   ! ki
+      molal(9) = psi8 + 2.0_rkx*psi6                                   ! ki
       molal(10) = psi7                                                ! mgi
 !
       clc = max(chi2-psi2,zero)
@@ -34339,18 +34386,18 @@ module mod_che_isorropia
   subroutine calcl1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: cafr , frk , frmg , frna , frnh4 , frso4
+    real(rkx) :: cafr , frk , frmg , frna , frnh4 , frso4
 !
 ! *** calculate non volatile solids ***********************************
 !
     ccaso4 = min(w(6),w(2))                         ! ccaso4
     frso4 = max(w(2)-ccaso4,zero)
     cafr = max(w(6)-ccaso4,zero)
-    ck2so4 = min(0.5D0*w(7),frso4)                  ! ck2so4
-    frk = max(w(7)-2.D0*ck2so4,zero)
+    ck2so4 = min(0.5_rkx*w(7),frso4)                  ! ck2so4
+    frk = max(w(7)-2._rkx*ck2so4,zero)
     frso4 = max(frso4-ck2so4,zero)
-    cna2so4 = min(0.5D0*w(1),frso4)                 ! cna2so4
-    frna = max(w(1)-2.D0*cna2so4,zero)
+    cna2so4 = min(0.5_rkx*w(1),frso4)                 ! cna2so4
+    frna = max(w(1)-2._rkx*cna2so4,zero)
     frso4 = max(frso4-cna2so4,zero)
     cmgso4 = min(w(8),frso4)                        ! cmgso4
     frmg = max(w(8)-cmgso4,zero)
@@ -34361,16 +34408,16 @@ module mod_che_isorropia
     cnh42s4 = zero
     ckhso4 = zero
 !
-    clc = min(w(3)/3.D0,frso4/2.D0)
-    frso4 = max(frso4-2.D0*clc,zero)
-    frnh4 = max(w(3)-3.D0*clc,zero)
+    clc = min(w(3)/3._rkx,frso4/2._rkx)
+    frso4 = max(frso4-2._rkx*clc,zero)
+    frnh4 = max(w(3)-3._rkx*clc,zero)
 !
     if ( frso4<=tiny1 ) then
       clc = max(clc-frnh4,zero)
-      cnh42s4 = 2.D0*frnh4
+      cnh42s4 = 2._rkx*frnh4
 
     else if ( frnh4<=tiny1 ) then
-      cnh4hs4 = 3.D0*min(frso4,clc)
+      cnh4hs4 = 3._rkx*min(frso4,clc)
       clc = max(clc-frso4,zero)
 !   if (ck2so4 > tiny1) then
 !   frso4  = max(frso4-cnh4hs4/3.d0 , zero)
@@ -34384,13 +34431,13 @@ module mod_che_isorropia
 !   end if
 !
       if ( cna2so4>tiny1 ) then
-        frso4 = max(frso4-cnh4hs4/3.D0,zero)
-        cnahso4 = 2.D0*frso4
+        frso4 = max(frso4-cnh4hs4/3._rkx,zero)
+        cnahso4 = 2._rkx*frso4
         cna2so4 = max(cna2so4-frso4,zero)
       end if
       if ( ck2so4>tiny1 ) then
-        frso4 = max(frso4-cnh4hs4/3.D0,zero)
-        ckhso4 = 2.D0*frso4
+        frso4 = max(frso4-cnh4hs4/3._rkx,zero)
+        ckhso4 = 2._rkx*frso4
         ck2so4 = max(ck2so4-frso4,zero)
       end if
     end if
@@ -34423,7 +34470,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rk8) :: bb , cc , dd , psi4
+    real(rkx) :: bb , cc , dd , psi4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -34451,8 +34498,8 @@ module mod_che_isorropia
 !
       bb = a4 + lamda + psi4                                ! kapa
       cc = -a4*(lamda+psi3+psi2+psi1) + lamda*psi4
-      dd = max(bb*bb-4.D0*cc,zero)
-      kapa = 0.5D0*(-bb+sqrt(dd))
+      dd = max(bb*bb-4._rkx*cc,zero)
+      kapa = 0.5_rkx*(-bb+sqrt(dd))
 !
 !   *** save concentrations in molal array
 !   ******************************
@@ -34500,7 +34547,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rk8) :: dx , psi3hi , psi3lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi3hi , psi3lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -34532,7 +34579,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 - dx
         y2 = funck3(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50    ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -34550,9 +34597,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funck3(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -34565,7 +34612,7 @@ module mod_che_isorropia
 !
 !   *** converged ; return
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funck3(x3)
     end if
   end subroutine calck3
@@ -34587,11 +34634,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funck3(p1)
+  real(rkx) function funck3(p1)
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rk8) :: bb , cc , dd , p1 , psi4
+    real(rkx) :: bb , cc , dd , p1 , psi4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -34616,8 +34663,8 @@ module mod_che_isorropia
 !
       bb = a4 + lamda + psi4                              ! kapa
       cc = -a4*(lamda+psi3+psi2+psi1) + lamda*psi4
-      dd = max(bb*bb-4.D0*cc,zero)
-      kapa = 0.5D0*(-bb+sqrt(dd))
+      dd = max(bb*bb-4._rkx*cc,zero)
+      kapa = 0.5_rkx*(-bb+sqrt(dd))
 !
 !   *** save concentrations in molal array
 !   ******************************
@@ -34672,7 +34719,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rk8) :: dx , psi3hi , psi3lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi3hi , psi3lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -34704,7 +34751,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 - dx
         y2 = funck2(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50    ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -34722,9 +34769,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funck2(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -34737,7 +34784,7 @@ module mod_che_isorropia
 !
 !   *** converged ; return
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funck2(x3)
     end if
   end subroutine calck2
@@ -34759,11 +34806,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funck2(p1)
+  real(rkx) function funck2(p1)
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rk8) :: bb , cc , dd , p1 , psi4
+    real(rkx) :: bb , cc , dd , p1 , psi4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -34789,8 +34836,8 @@ module mod_che_isorropia
 !
       bb = a4 + lamda + psi4                                 ! kapa
       cc = -a4*(lamda+psi3+psi2+psi1) + lamda*psi4
-      dd = max(bb*bb-4.D0*cc,zero)
-      kapa = 0.5D0*(-bb+sqrt(dd))
+      dd = max(bb*bb-4._rkx*cc,zero)
+      kapa = 0.5_rkx*(-bb+sqrt(dd))
 !
 !   *** save concentrations in molal array
 !   ******************************
@@ -34845,7 +34892,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rk8) :: dx , psi3hi , psi3lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , psi3hi , psi3lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -34877,7 +34924,7 @@ module mod_che_isorropia
       do i = 1 , ndiv
         x2 = x1 - dx
         y2 = funck1(x2)
-        if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 50    ! (y1*y2 < zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 50    ! (y1*y2 < zero)
         x1 = x2
         y1 = y2
       end do
@@ -34895,9 +34942,9 @@ module mod_che_isorropia
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
-        x3 = 0.5D0*(x1+x2)
+        x3 = 0.5_rkx*(x1+x2)
         y3 = funck1(x3)
-        if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then       ! (y1*y3  <=  zero)
+        if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then       ! (y1*y3  <=  zero)
           y2 = y3
           x2 = x3
         else
@@ -34910,7 +34957,7 @@ module mod_che_isorropia
 !
 !   *** converged ; return
 !   **********************************************
- 100  x3 = 0.5D0*(x1+x2)
+ 100  x3 = 0.5_rkx*(x1+x2)
       y3 = funck1(x3)
     end if
   end subroutine calck1
@@ -34932,11 +34979,11 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funck1(p1)
+  real(rkx) function funck1(p1)
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rk8) :: bb , cc , dd , p1 , psi4
+    real(rkx) :: bb , cc , dd , p1 , psi4
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -34965,8 +35012,8 @@ module mod_che_isorropia
 !
       bb = a4 + lamda + psi4                                 ! kapa
       cc = -a4*(lamda+psi3+psi2+psi1) + lamda*psi4
-      dd = max(bb*bb-4.D0*cc,zero)
-      kapa = 0.5D0*(-bb+sqrt(dd))
+      dd = max(bb*bb-4._rkx*cc,zero)
+      kapa = 0.5_rkx*(-bb+sqrt(dd))
 !
 !   *** save concentrations in molal array
 !   ******************************
@@ -35018,8 +35065,8 @@ module mod_che_isorropia
   subroutine isrp1r(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: rhi , tempi
-    real(rk8) , dimension(ncomp) :: wi
+    real(rkx) :: rhi , tempi
+    real(rkx) , dimension(ncomp) :: wi
 !
 ! *** initialize common block variables
 ! *********************************
@@ -35030,7 +35077,7 @@ module mod_che_isorropia
     if ( rh>=drnh42s4 ) then           ! wet aerosol , need nh4 at sratio = 2.0
       sulratw = getasr(waer(2),rhi)         ! aerosol sulfate ratio
     else
-      sulratw = 2.0D0                       ! dry aerosol sulfate ratio
+      sulratw = 2.0_rkx                       ! dry aerosol sulfate ratio
     end if
     sulrat = waer(3)/waer(2)            ! sulfate ratio
 !
@@ -35128,8 +35175,8 @@ module mod_che_isorropia
   subroutine isrp2r(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: rhi , tempi
-    real(rk8) , dimension(ncomp) :: wi
+    real(rkx) :: rhi , tempi
+    real(rkx) , dimension(ncomp) :: wi
     logical :: tryliq
 !
 ! *** initialize all variables in common block
@@ -35143,7 +35190,7 @@ module mod_che_isorropia
     if ( tryliq .and. rh>=drnh4no3 ) then   ! *** wet aerosol
       sulratw = getasr(waer(2),rhi)         ! limiting sulfate ratio
     else
-      sulratw = 2.0D0                       ! *** dry aerosol
+      sulratw = 2.0_rkx                       ! *** dry aerosol
     end if
     sulrat = waer(3)/waer(2)
 !
@@ -35276,9 +35323,9 @@ module mod_che_isorropia
   subroutine isrp3r(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: frso4 , rhi , sri , tempi
+    real(rkx) :: frso4 , rhi , sri , tempi
     integer(ik4) :: i
-    real(rk8) , dimension(ncomp) :: wi
+    real(rkx) , dimension(ncomp) :: wi
     logical :: tryliq
 ! &
 ! ** adjust for too little ammonium and chloride ***********************
@@ -35303,13 +35350,13 @@ module mod_che_isorropia
 ! *** calculate sulfate & sodium ratios
 ! *********************************
     if ( tryliq .and. rh>=drnh4no3 ) then    ! ** wet aerosol
-      frso4 = waer(2) - waer(1)/2.0D0          ! sulfate unbound by sodium
+      frso4 = waer(2) - waer(1)/2.0_rkx          ! sulfate unbound by sodium
       frso4 = max(frso4,tiny1)
       sri = getasr(frso4,rhi)                   ! sulfate ratio for nh4+
       sulratw = (waer(1)+frso4*sri)/waer(2)    ! limiting sulfate ratio
-      sulratw = min(sulratw,2.0D0)
+      sulratw = min(sulratw,2.0_rkx)
     else
-      sulratw = 2.0D0                        ! ** dry aerosol
+      sulratw = 2.0_rkx                        ! ** dry aerosol
     end if
     sulrat = (waer(1)+waer(3))/waer(2)
     sodrat = waer(1)/waer(2)
@@ -35490,9 +35537,9 @@ module mod_che_isorropia
   subroutine isrp4r(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: frso4 , rhi , sri , tempi
+    real(rkx) :: frso4 , rhi , sri , tempi
     integer(ik4) :: i
-    real(rk8) , dimension(ncomp) :: wi
+    real(rkx) , dimension(ncomp) :: wi
     logical :: tryliq
 !
 ! ** adjust for too little ammonium and chloride ***********************
@@ -35519,15 +35566,15 @@ module mod_che_isorropia
 ! *** calculate sulfate , crustal & sodium ratios
 ! ***********************
     if ( tryliq ) then                               ! ** wet aerosol
-      frso4 = waer(2) - waer(1)/2.0D0 - waer(6) - waer(7)/2.0D0 - waer(8)
+      frso4 = waer(2) - waer(1)/2.0_rkx - waer(6) - waer(7)/2.0_rkx - waer(8)
                                                     ! sulfate unbound by sodium ,calcium ,pottasium ,magnesium
       frso4 = max(frso4,tiny1)
       sri = getasr(frso4,rhi)                         ! sulfate ratio for nh4+
       sulratw = (waer(1)+frso4*sri+waer(6)+waer(7)+waer(8))/waer(2)
                                                    ! limiting sulfate ratio
-      sulratw = min(sulratw,2.0D0)
+      sulratw = min(sulratw,2.0_rkx)
     else
-      sulratw = 2.0D0                        ! ** dry aerosol
+      sulratw = 2.0_rkx                        ! ** dry aerosol
     end if
     so4rat = (waer(1)+waer(3)+waer(6)+waer(7)+waer(8))/waer(2)
     crnarat = (waer(1)+waer(6)+waer(7)+waer(8))/waer(2)
@@ -35795,9 +35842,9 @@ module mod_che_isorropia
   subroutine calcs2
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: a2 , akw , del , hi , hso4i , ohi , so4i
+    real(rkx) :: a2 , akw , del , hi , hso4i , ohi , so4i
     integer(ik4) :: i
-    real(rk8) nh4i , nh3gi , nh3aq
+    real(rkx) nh4i , nh3gi , nh3aq
 !
 ! *** setup parameters ************************************************
 !
@@ -35807,7 +35854,7 @@ module mod_che_isorropia
 !
 ! *** calculate water content *****************************************
 !
-    molalr(4) = min(waer(2),0.5D0*waer(3))
+    molalr(4) = min(waer(2),0.5_rkx*waer(3))
     water = molalr(4)/m0(4)       ! zsr correlation
 !
 ! *** solve equations ; with iterations for activity coef. ************
@@ -35821,7 +35868,7 @@ module mod_che_isorropia
       so4i = waer(2)
       hso4i = zero
 !
-      call calcph(2.D0*so4i-nh4i,hi,ohi)              ! get ph
+      call calcph(2._rkx*so4i-nh4i,hi,ohi)              ! get ph
 !
       nh3aq = zero                                  ! ammonia equilibrium
       if ( hi<ohi ) then
@@ -35881,11 +35928,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     implicit none
 !
-    cnh42s4 = min(waer(2),0.5D0*waer(3))    ! for bad input problems
+    cnh42s4 = min(waer(2),0.5_rkx*waer(3))    ! for bad input problems
     gnh3 = zero
 !
     w(2) = cnh42s4
-    w(3) = 2.D0*cnh42s4 + gnh3
+    w(3) = 2._rkx*cnh42s4 + gnh3
   end subroutine calcs1
 
 !======================================================================
@@ -35908,9 +35955,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , aml5 , del , gg , hi , hso4i , ohi , so4i
+    real(rkx) :: akw , aml5 , del , gg , hi , hso4i , ohi , so4i
     integer(ik4) :: i
-    real(rk8) :: nh4i , no3i , nh3aq , no3aq
+    real(rkx) :: nh4i , no3i , nh3aq , no3aq
 !
 ! *** setup parameters ************************************************
 !
@@ -35920,8 +35967,8 @@ module mod_che_isorropia
 !
 ! *** aerosol water content
 !
-    molalr(4) = min(waer(2),0.5D0*waer(3))         ! (nh4)2so4
-    aml5 = max(waer(3)-2.D0*molalr(4),zero)        ! "free" nh4
+    molalr(4) = min(waer(2),0.5_rkx*waer(3))         ! (nh4)2so4
+    aml5 = max(waer(3)-2._rkx*molalr(4),zero)        ! "free" nh4
     molalr(5) = max(min(aml5,waer(4)),zero)         ! nh4no3= min("free",no3)
     water = molalr(4)/m0(4) + molalr(5)/m0(5)
     water = max(water,tiny1)
@@ -35942,13 +35989,13 @@ module mod_che_isorropia
       so4i = waer(2)
       hso4i = zero
 !
-      call calcph(2.D0*so4i+no3i-nh4i,hi,ohi)
+      call calcph(2._rkx*so4i+no3i-nh4i,hi,ohi)
 !
 !   ammnia association equilibrium
 !
       nh3aq = zero
       no3aq = zero
-      gg = 2.D0*so4i + no3i - nh4i
+      gg = 2._rkx*so4i + no3i - nh4i
       if ( hi<ohi ) then
         call calcamaq2(-gg,nh4i,ohi,nh3aq)
         hi = akw/ohi
@@ -36011,14 +36058,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , p4 , psi1hi , psi1lo , x1 , x2 , x3 , &
+    real(rkx) :: dx , p4 , psi1hi , psi1lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo , yy
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
 !
-    chi1 = min(waer(2),0.5D0*waer(3))         ! (nh4)2so4
-    chi2 = max(waer(3)-2.D0*chi1,zero)         ! "free" nh4+
+    chi1 = min(waer(2),0.5_rkx*waer(3))         ! (nh4)2so4
+    chi2 = max(waer(3)-2._rkx*chi1,zero)         ! "free" nh4+
     chi3 = max(waer(4)-chi2,zero)              ! "free" no3
 !
     psi2 = chi2
@@ -36042,7 +36089,7 @@ module mod_che_isorropia
     do i = 1 , ndiv
       x2 = max(x1-dx,zero)
       y2 = funcn2(x2)
-      if ( sign(1.D0,y1)*sign(1.D0,y2)<zero ) go to 100     ! (y1*y2 < zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y2)<zero ) go to 100     ! (y1*y2 < zero)
       x1 = x2
       y1 = y2
     end do
@@ -36074,9 +36121,9 @@ module mod_che_isorropia
 ! *** perform bisection ***********************************************
 !
  100  do i = 1 , maxit
-      x3 = 0.5D0*(x1+x2)
+      x3 = 0.5_rkx*(x1+x2)
       y3 = funcn2(x3)
-      if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
+      if ( sign(1._rkx,y1)*sign(1._rkx,y3)<=zero ) then         ! (y1*y3  <=  zero)
         y2 = y3
         x2 = x3
       else
@@ -36089,7 +36136,7 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+ 200  x3 = 0.5_rkx*(x1+x2)
     y3 = funcn2(x3)
   end subroutine calcn2
 !
@@ -36103,13 +36150,13 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  real(rk8) function funcn2(p1)
+  real(rkx) function funcn2(p1)
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , del , gg , hi , hso4i , ohi , p1 , so4i
+    real(rkx) :: akw , del , gg , hi , hso4i , ohi , p1 , so4i
     integer(ik4) :: i
-    real(rk8) :: nh4i , no3i , nh3aq , no3aq
+    real(rkx) :: nh4i , no3i , nh3aq , no3aq
 !
 ! *** setup parameters ************************************************
 !
@@ -36128,18 +36175,18 @@ module mod_che_isorropia
 !
 !   ion concentrations
 !
-      nh4i = 2.D0*psi1 + psi2
+      nh4i = 2._rkx*psi1 + psi2
       no3i = psi2 + psi3
       so4i = psi1
       hso4i = zero
 !
-      call calcph(2.D0*so4i+no3i-nh4i,hi,ohi)
+      call calcph(2._rkx*so4i+no3i-nh4i,hi,ohi)
 !
 !   ammnia association equilibrium
 !
       nh3aq = zero
       no3aq = zero
-      gg = 2.D0*so4i + no3i - nh4i
+      gg = 2._rkx*so4i + no3i - nh4i
       if ( hi<ohi ) then
         call calcamaq2(-gg,nh4i,ohi,nh3aq)
         hi = akw/ohi
@@ -36247,7 +36294,7 @@ module mod_che_isorropia
   subroutine calcn1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: psi1 , psi2
+    real(rkx) :: psi1 , psi2
 !
 ! *** setup parameters *************************************************
 !
@@ -36261,7 +36308,7 @@ module mod_che_isorropia
 ! *** the following statment is here to avoid negative nh4+ values in
 ! calcn? routines that call calcn1a
 !
-    psi2 = max(min(waer(2),0.5D0*(waer(3)-psi1)),tiny1)
+    psi2 = max(min(waer(2),0.5_rkx*(waer(3)-psi1)),tiny1)
 !
     cnh4no3 = psi1
     cnh42s4 = psi2
@@ -36296,10 +36343,10 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
          hi , hso4i , ohi , so4i
     integer(ik4) :: i
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
 !
 ! *** setup parameters ************************************************
 !
@@ -36337,18 +36384,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i
       if ( gg>tiny1 ) then                           ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                           ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -36359,7 +36406,7 @@ module mod_che_isorropia
         hi = akw/ohi
         hso4i = zero
       else
-        ggno3 = max(2.D0*so4i+no3i-nai-nh4i,zero)
+        ggno3 = max(2._rkx*so4i+no3i-nai-nh4i,zero)
         ggcl = max(gg-ggno3,zero)
         if ( ggcl>tiny1 ) call calcclaq2(ggcl,cli,hi,claq)             ! hcl
         if ( ggno3>tiny1 ) then
@@ -36435,11 +36482,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
          hi , hso4i , ohi , psi1o , root3 , so4i
     integer(ik4) :: i , islv
     logical :: psconv1
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
 !
 ! *** setup parameters ************************************************
 !
@@ -36484,8 +36531,8 @@ module mod_che_isorropia
 !
       if ( nai*nai*so4i>a5 ) then
         bb = -(waer(2)+waer(1))
-        cc = waer(1)*waer(2) + 0.25D0*waer(1)*waer(1)
-        dd = -0.25D0*(waer(1)*waer(1)*waer(2)-a5)
+        cc = waer(1)*waer(2) + 0.25_rkx*waer(1)*waer(1)
+        dd = -0.25_rkx*(waer(1)*waer(1)*waer(2)-a5)
         call poly3(bb,cc,dd,root3,islv)
         if ( islv/=0 ) root3 = tiny1
         root3 = min(root3,waer(1)/2.0,waer(2),chi1)
@@ -36497,7 +36544,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      nai = waer(1) - 2.D0*root3
+      nai = waer(1) - 2._rkx*root3
       so4i = waer(2) - root3
       nh4i = waer(3)
       no3i = waer(4)
@@ -36505,18 +36552,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i
       if ( gg>tiny1 ) then                           ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                           ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -36527,7 +36574,7 @@ module mod_che_isorropia
         hi = akw/ohi
         hso4i = zero
       else
-        ggno3 = max(2.D0*so4i+no3i-nai-nh4i,zero)
+        ggno3 = max(2._rkx*so4i+no3i-nai-nh4i,zero)
         ggcl = max(gg-ggno3,zero)
         if ( ggcl>tiny1 ) call calcclaq2(ggcl,cli,hi,claq)             ! hcl
         if ( ggno3>tiny1 ) then
@@ -36653,11 +36700,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
          hi , hso4i , ohi , psi1o , psi6o , root1 , root3 , so4i
     integer(ik4) :: i , islv
     logical :: psconv1 , psconv6
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
 !
 ! *** setup parameters ************************************************
 !
@@ -36710,8 +36757,8 @@ module mod_che_isorropia
 !
       if ( nai*nai*so4i>a5 ) then
         bb = -(waer(2)+waer(1)-root1)
-        cc = waer(1)*(waer(2)-root1) + 0.25D0*waer(1)*waer(1)
-        dd = -0.25D0*(waer(1)*waer(1)*(waer(2)-root1)-a5)
+        cc = waer(1)*(waer(2)-root1) + 0.25_rkx*waer(1)*waer(1)
+        dd = -0.25_rkx*(waer(1)*waer(1)*(waer(2)-root1)-a5)
         call poly3(bb,cc,dd,root3,islv)
         if ( islv/=0 ) root3 = tiny1
         root3 = min(root3,waer(1)/2.0,waer(2)-root1,chi1)
@@ -36725,8 +36772,8 @@ module mod_che_isorropia
 !
       if ( nh4i*nh4i*so4i>a7 ) then
         bb = -(waer(2)+waer(3)-root3)
-        cc = waer(3)*(waer(2)-root3+0.5D0*waer(3))
-        dd = -((waer(2)-root3)*waer(3)**20+a7)/4.D0
+        cc = waer(3)*(waer(2)-root3+0.5_rkx*waer(3))
+        dd = -((waer(2)-root3)*waer(3)**20+a7)/4._rkx
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
         root1 = min(root1,waer(3),waer(2)-root3,chi6)
@@ -36738,26 +36785,26 @@ module mod_che_isorropia
 !
 !   ion concentrations
 !
-      nai = waer(1) - 2.D0*root3
+      nai = waer(1) - 2._rkx*root3
       so4i = waer(2) - root1 - root3
-      nh4i = waer(3) - 2.D0*root1
+      nh4i = waer(3) - 2._rkx*root1
       no3i = waer(4)
       cli = waer(5)
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -36768,7 +36815,7 @@ module mod_che_isorropia
         hi = akw/ohi
         hso4i = zero
       else
-        ggno3 = max(2.D0*so4i+no3i-nai-nh4i,zero)
+        ggno3 = max(2._rkx*so4i+no3i-nai-nh4i,zero)
         ggcl = max(gg-ggno3,zero)
         if ( ggcl>tiny1 ) call calcclaq2(ggcl,cli,hi,claq)          ! hcl
         if ( ggno3>tiny1 ) then
@@ -36905,13 +36952,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
          hi , hso4i , ohi , psi1o , psi4o , psi6o , root1 , root2 ,   &
          root2a , root2b , root3
-    real(rk8) :: so4i
+    real(rkx) :: so4i
     integer(ik4) :: i , islv
     logical :: psconv1 , psconv4 , psconv6
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
 !
 ! *** setup parameters ************************************************
 !
@@ -36967,21 +37014,21 @@ module mod_che_isorropia
 !   ammnium chloride
 !
       if ( nh4i*cli>a14 ) then
-        bb = -(waer(3)+waer(5)-2.D0*root1)
-        cc = waer(5)*(waer(3)-2.D0*root1) - a14
-        dd = bb*bb - 4.D0*cc
+        bb = -(waer(3)+waer(5)-2._rkx*root1)
+        cc = waer(5)*(waer(3)-2._rkx*root1) - a14
+        dd = bb*bb - 4._rkx*cc
         if ( dd<zero ) then
           root2 = zero
         else
           dd = sqrt(dd)
-          root2a = 0.5D0*(-bb+dd)
-          root2b = 0.5D0*(-bb-dd)
+          root2a = 0.5_rkx*(-bb+dd)
+          root2b = 0.5_rkx*(-bb-dd)
           if ( zero<=root2a ) then
             root2 = root2a
           else
             root2 = root2b
           end if
-          root2 = min(root2,waer(5),waer(3)-2.D0*root1,chi4)
+          root2 = min(root2,waer(5),waer(3)-2._rkx*root1,chi4)
           root2 = max(root2,zero)
           psi4 = chi4 - root2
         end if
@@ -36993,8 +37040,8 @@ module mod_che_isorropia
 !
       if ( nai*nai*so4i>a5 ) then
         bb = -(waer(2)+waer(1)-root1)
-        cc = waer(1)*(waer(2)-root1) + 0.25D0*waer(1)*waer(1)
-        dd = -0.25D0*(waer(1)*waer(1)*(waer(2)-root1)-a5)
+        cc = waer(1)*(waer(2)-root1) + 0.25_rkx*waer(1)*waer(1)
+        dd = -0.25_rkx*(waer(1)*waer(1)*(waer(2)-root1)-a5)
         call poly3(bb,cc,dd,root3,islv)
         if ( islv/=0 ) root3 = tiny1
         root3 = min(root3,waer(1)/2.0,waer(2)-root1,chi1)
@@ -37008,8 +37055,8 @@ module mod_che_isorropia
 !
       if ( nh4i*nh4i*so4i>a7 ) then
         bb = -(waer(2)+waer(3)-root2-root3)
-        cc = (waer(3)-root2)*(waer(2)-root3+0.5D0*(waer(3)-root2))
-        dd = -((waer(2)-root3)*(waer(3)-root2)**20+a7)/4.D0
+        cc = (waer(3)-root2)*(waer(2)-root3+0.5_rkx*(waer(3)-root2))
+        dd = -((waer(2)-root3)*(waer(3)-root2)**20+a7)/4._rkx
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
         root1 = min(root1,waer(3)-root2,waer(2)-root3,chi6)
@@ -37021,26 +37068,26 @@ module mod_che_isorropia
 !
 !   ion concentrations
 !
-      nai = waer(1) - 2.D0*root3
+      nai = waer(1) - 2._rkx*root3
       so4i = waer(2) - root1 - root3
-      nh4i = waer(3) - root2 - 2.D0*root1
+      nh4i = waer(3) - root2 - 2._rkx*root1
       no3i = waer(4)
       cli = waer(5) - root2
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -37051,7 +37098,7 @@ module mod_che_isorropia
         hi = akw/ohi
         hso4i = zero
       else
-        ggno3 = max(2.D0*so4i+no3i-nai-nh4i,zero)
+        ggno3 = max(2._rkx*so4i+no3i-nai-nh4i,zero)
         ggcl = max(gg-ggno3,zero)
         if ( ggcl>tiny1 ) call calcclaq2(ggcl,cli,hi,claq)          ! hcl
         if ( ggno3>tiny1 ) then
@@ -37205,15 +37252,15 @@ module mod_che_isorropia
   subroutine calcq1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: frnh3 , frso4
+    real(rkx) :: frnh3 , frso4
 !
 ! *** calculate solids
 ! **************************************************
-    cna2so4 = 0.5D0*waer(1)
+    cna2so4 = 0.5_rkx*waer(1)
     frso4 = max(waer(2)-cna2so4,zero)
 !
-    cnh42s4 = max(min(frso4,0.5D0*waer(3)),tiny1)
-    frnh3 = max(waer(3)-2.D0*cnh42s4,zero)
+    cnh42s4 = max(min(frso4,0.5_rkx*waer(3)),tiny1)
+    frnh3 = max(waer(3)-2._rkx*cnh42s4,zero)
 !
     cnh4no3 = min(frnh3,waer(4))
 ! frno3   = max (waer(4)-cnh4no3 , zero)
@@ -37252,10 +37299,10 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
          hi , hso4i , ohi , so4i
     integer(ik4) :: i
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
 !
 ! *** setup parameters ************************************************
 !
@@ -37295,18 +37342,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*waer(2) + no3i + cli - nai - nh4i
+      gg = 2._rkx*waer(2) + no3i + cli - nai - nh4i
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -37316,7 +37363,7 @@ module mod_che_isorropia
         call calcamaq2(-gg,nh4i,ohi,nh3aq)
         hi = akw/ohi
       else
-        ggno3 = max(2.D0*so4i+no3i-nai-nh4i,zero)
+        ggno3 = max(2._rkx*so4i+no3i-nai-nh4i,zero)
         ggcl = max(gg-ggno3,zero)
         if ( ggcl>tiny1 ) call calcclaq2(ggcl,cli,hi,claq)          ! hcl
         if ( ggno3>tiny1 ) then
@@ -37392,11 +37439,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
          hi , hso4i , ohi , psio , root , so4i
     integer(ik4) :: i , islv
     logical :: psconv
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
     logical :: nean , neac , nesn , nesc
 !
 ! *** setup parameters ************************************************
@@ -37450,9 +37497,9 @@ module mod_che_isorropia
 !
       root = zero
       if ( nai*nai*so4i>a5 ) then
-        bb = -3.D0*chi1
-        cc = 3.D0*chi1**2
-        dd = -chi1**3 + 0.25D0*a5
+        bb = -3._rkx*chi1
+        cc = 3._rkx*chi1**2
+        dd = -chi1**3 + 0.25_rkx*a5
         call poly3(bb,cc,dd,root,islv)
         if ( islv/=0 ) root = tiny1
         root = min(max(root,zero),chi1)
@@ -37463,7 +37510,7 @@ module mod_che_isorropia
 !
 !   ion concentrations
 !
-      nai = waer(1) - 2.D0*root
+      nai = waer(1) - 2._rkx*root
       so4i = waer(2) - root
       nh4i = waer(3)
       no3i = waer(4)
@@ -37471,18 +37518,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -37492,7 +37539,7 @@ module mod_che_isorropia
         call calcamaq2(-gg,nh4i,ohi,nh3aq)
         hi = akw/ohi
       else
-        ggno3 = max(2.D0*so4i+no3i-nai-nh4i,zero)
+        ggno3 = max(2._rkx*so4i+no3i-nai-nh4i,zero)
         ggcl = max(gg-ggno3,zero)
         if ( ggcl>tiny1 ) call calcclaq2(ggcl,cli,hi,claq)          ! hcl
         if ( ggno3>tiny1 ) then
@@ -37627,11 +37674,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
          hi , hso4i , ohi , psio1 , psio4 , root , so4i
     integer(ik4) :: i , islv
     logical :: psconv1 , psconv4
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
 !
 ! *** setup parameters ************************************************
 !
@@ -37679,14 +37726,14 @@ module mod_che_isorropia
 !
       root = zero
       if ( nai*nai*so4i>a5 ) then
-        bb = -3.D0*chi1
-        cc = 3.D0*chi1**2
-        dd = -chi1**3 + 0.25D0*a5
+        bb = -3._rkx*chi1
+        cc = 3._rkx*chi1**2
+        dd = -chi1**3 + 0.25_rkx*a5
         call poly3(bb,cc,dd,root,islv)
         if ( islv/=0 ) root = tiny1
         root = min(max(root,zero),chi1)
         psi1 = chi1 - root
-        nai = waer(1) - 2.D0*root
+        nai = waer(1) - 2._rkx*root
         so4i = waer(2) - root
       end if
       psconv1 = abs(psi1-psio1)<=eps*psio1
@@ -37698,8 +37745,8 @@ module mod_che_isorropia
       if ( nh4i*cli>a14 ) then
         bb = -(nh4i+cli)
         cc = -a14 + nh4i*cli
-        dd = bb*bb - 4.D0*cc
-        root = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        root = 0.5_rkx*(-bb-sqrt(dd))
         if ( root>tiny1 ) then
           root = min(root,chi4)
           psi4 = chi4 - root
@@ -37714,18 +37761,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -37735,7 +37782,7 @@ module mod_che_isorropia
         call calcamaq2(-gg,nh4i,ohi,nh3aq)
         hi = akw/ohi
       else
-        ggno3 = max(2.D0*so4i+no3i-nai-nh4i,zero)
+        ggno3 = max(2._rkx*so4i+no3i-nai-nh4i,zero)
         ggcl = max(gg-ggno3,zero)
         if ( ggcl>tiny1 ) call calcclaq2(ggcl,cli,hi,claq)          ! hcl
         if ( ggno3>tiny1 ) then
@@ -37885,13 +37932,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
          hi , hso4i , ohi , psi1o , psi3o , psi4o , root1 , root2 ,   &
          root2a , root2b , root3
-    real(rk8) :: root3a , root3b , so4i
+    real(rkx) :: root3a , root3b , so4i
     integer(ik4) :: i , islv
     logical :: psconv1 , psconv3 , psconv4
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
 !
 ! *** setup parameters ************************************************
 !
@@ -37957,9 +38004,9 @@ module mod_che_isorropia
       if ( nh4i*cli>a14 ) then
         bb = -(waer(3)+waer(5)-root3)
         cc = -a14 + nh4i*(waer(5)-root3)
-        dd = max(bb*bb-4.D0*cc,zero)
-        root2a = 0.5D0*(-bb+sqrt(dd))
-        root2b = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        root2a = 0.5_rkx*(-bb+sqrt(dd))
+        root2b = 0.5_rkx*(-bb-sqrt(dd))
         if ( zero<=root2a ) then
           root2 = root2a
         else
@@ -37975,8 +38022,8 @@ module mod_che_isorropia
 !
       if ( nai*nai*so4i>a5 ) then
         bb = -(chi1+waer(1)-root3)
-        cc = 0.25D0*(waer(1)-root3)*(4.D0*chi1+waer(1)-root3)
-        dd = -0.25D0*(chi1*(waer(1)-root3)**20-a5)
+        cc = 0.25_rkx*(waer(1)-root3)*(4._rkx*chi1+waer(1)-root3)
+        dd = -0.25_rkx*(chi1*(waer(1)-root3)**20-a5)
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
         root1 = min(max(root1,zero),max(waer(1)-root3,zero),chi1,waer(2))
@@ -37987,7 +38034,7 @@ module mod_che_isorropia
 !
 !   ion concentrations
 !
-      nai = waer(1) - (2.D0*root1+root3)
+      nai = waer(1) - (2._rkx*root1+root3)
       so4i = waer(2) - root1
       nh4i = waer(3) - root2
       cli = waer(5) - (root3+root2)
@@ -37996,11 +38043,11 @@ module mod_che_isorropia
 !   sodum chloride  ; to obtain new value for root3
 !
       if ( nai*cli>a8 ) then
-        bb = -((chi1-2.D0*root1)+(waer(5)-root2))
-        cc = (chi1-2.D0*root1)*(waer(5)-root2) - a8
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root3a = 0.5D0*(-bb-sqrt(dd))
-        root3b = 0.5D0*(-bb+sqrt(dd))
+        bb = -((chi1-2._rkx*root1)+(waer(5)-root2))
+        cc = (chi1-2._rkx*root1)*(waer(5)-root2) - a8
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root3a = 0.5_rkx*(-bb-sqrt(dd))
+        root3b = 0.5_rkx*(-bb+sqrt(dd))
         if ( zero<=root3a ) then
           root3 = root3a
         else
@@ -38014,18 +38061,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -38035,7 +38082,7 @@ module mod_che_isorropia
         call calcamaq2(-gg,nh4i,ohi,nh3aq)
         hi = akw/ohi
       else
-        ggno3 = max(2.D0*so4i+no3i-nai-nh4i,zero)
+        ggno3 = max(2._rkx*so4i+no3i-nai-nh4i,zero)
         ggcl = max(gg-ggno3,zero)
         if ( ggcl>tiny1 ) call calcclaq2(ggcl,cli,hi,claq)          ! hcl
         if ( ggno3>tiny1 ) then
@@ -38223,13 +38270,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , ggcl , ggno3 , &
          hi , hso4i , ohi , psi1o , psi2o , psi3o , psi4o , root1 ,   &
          root2 , root2a , root2b
-    real(rk8) :: root3 , root3a , root3b , root4 , root4a , root4b , so4i
+    real(rkx) :: root3 , root3a , root3b , root4 , root4a , root4b , so4i
     integer(ik4) :: i , islv
     logical :: psconv1 , psconv2 , psconv3 , psconv4
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq
 !
 ! *** setup parameters ************************************************
 !
@@ -38303,10 +38350,10 @@ module mod_che_isorropia
       if ( nh4i*cli>a14 ) then
         bb = -(waer(3)+waer(5)-root3)
         cc = nh4i*(waer(5)-root3) - a14
-        dd = max(bb*bb-4.D0*cc,zero)
+        dd = max(bb*bb-4._rkx*cc,zero)
         dd = sqrt(dd)
-        root2a = 0.5D0*(-bb+dd)
-        root2b = 0.5D0*(-bb-dd)
+        root2a = 0.5_rkx*(-bb+dd)
+        root2b = 0.5_rkx*(-bb-dd)
         if ( zero<=root2a ) then
           root2 = root2a
         else
@@ -38322,12 +38369,12 @@ module mod_che_isorropia
 !
       if ( nai*nai*so4i>a5 ) then
         bb = -(waer(2)+waer(1)-root3-root4)
-        cc = waer(1)*(2.D0*root3+2.D0*root4-4.D0*waer(2)-one)             &
-             - (root3+root4)**2 + 4.D0*waer(2)*(root3+root4)
-        cc = -0.25D0*cc
-        dd = waer(1)*waer(2)*(one-2.D0*root3-2.D0*root4) + waer(2)        &
+        cc = waer(1)*(2._rkx*root3+2._rkx*root4-4._rkx*waer(2)-one)             &
+             - (root3+root4)**2 + 4._rkx*waer(2)*(root3+root4)
+        cc = -0.25_rkx*cc
+        dd = waer(1)*waer(2)*(one-2._rkx*root3-2._rkx*root4) + waer(2)        &
              *(root3+root4)**2 - a5
-        dd = -0.25D0*dd
+        dd = -0.25_rkx*dd
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
         root1 = min(max(root1,zero),chi1)
@@ -38339,11 +38386,11 @@ module mod_che_isorropia
 !   sodum nitrate
 !
       if ( nai*no3i>a9 ) then
-        bb = -(waer(4)+waer(1)-2.D0*root1-root3)
-        cc = waer(4)*(waer(1)-2.D0*root1-root3) - a9
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root4a = 0.5D0*(-bb-dd)
-        root4b = 0.5D0*(-bb+dd)
+        bb = -(waer(4)+waer(1)-2._rkx*root1-root3)
+        cc = waer(4)*(waer(1)-2._rkx*root1-root3) - a9
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root4a = 0.5_rkx*(-bb-dd)
+        root4b = 0.5_rkx*(-bb+dd)
         if ( zero<=root4a ) then
           root4 = root4a
         else
@@ -38357,7 +38404,7 @@ module mod_che_isorropia
 !
 !   ion concentrations
 !
-      nai = waer(1) - (2.D0*root1+root3+root4)
+      nai = waer(1) - (2._rkx*root1+root3+root4)
       so4i = waer(2) - root1
       nh4i = waer(3) - root2
       no3i = waer(4) - root4
@@ -38366,11 +38413,11 @@ module mod_che_isorropia
 !   sodum chloride  ; to obtain new value for root3
 !
       if ( nai*cli>a8 ) then
-        bb = -(waer(1)-2.D0*root1+waer(5)-root2-root4)
-        cc = (waer(5)+root2)*(waer(1)-2.D0*root1-root4) - a8
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root3a = 0.5D0*(-bb-dd)
-        root3b = 0.5D0*(-bb+dd)
+        bb = -(waer(1)-2._rkx*root1+waer(5)-root2-root4)
+        cc = (waer(5)+root2)*(waer(1)-2._rkx*root1-root4) - a8
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root3a = 0.5_rkx*(-bb-dd)
+        root3b = 0.5_rkx*(-bb+dd)
         if ( zero<=root3a ) then
           root3 = root3a
         else
@@ -38384,18 +38431,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -38405,7 +38452,7 @@ module mod_che_isorropia
         call calcamaq2(-gg,nh4i,ohi,nh3aq)
         hi = akw/ohi
       else
-        ggno3 = max(2.D0*so4i+no3i-nai-nh4i,zero)
+        ggno3 = max(2._rkx*so4i+no3i-nai-nh4i,zero)
         ggcl = max(gg-ggno3,zero)
         if ( ggcl>tiny1 ) call calcclaq2(ggcl,cli,hi,claq)          ! hcl
         if ( ggno3>tiny1 ) then
@@ -38649,7 +38696,7 @@ module mod_che_isorropia
   subroutine calcr1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: frcl , frna , frnh3 , frno3
+    real(rkx) :: frcl , frna , frnh3 , frno3
 !
 ! *** calculate solids
 ! **************************************************
@@ -38702,9 +38749,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , ohi , so4i
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , ohi , so4i
     integer(ik4) :: i
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -38754,18 +38801,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                    ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                     ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 
@@ -38868,11 +38915,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi70 , root7 , so4i
     integer(ik4) :: i , islv
     logical :: psconv7
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -38926,8 +38973,8 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a7 ) then
         bb = -((waer(2)-waer(6))+waer(7))
-        cc = waer(7)*(waer(2)-waer(6)) + 0.25D0*waer(7)*waer(7)
-        dd = -0.25D0*(waer(7)*waer(7)*waer(2)-a7)
+        cc = waer(7)*(waer(2)-waer(6)) + 0.25_rkx*waer(7)*waer(7)
+        dd = -0.25_rkx*(waer(7)*waer(7)*waer(2)-a7)
         call poly3(bb,cc,dd,root7,islv)
         if ( islv/=0 ) root7 = tiny1
         root7 = min(root7,waer(7)/2.0,max(waer(2)-waer(6),zero),chi7)
@@ -38939,7 +38986,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root7,zero)
+      ki = max(waer(7)-2._rkx*root7,zero)
       so4i = max(waer(2)-waer(6)-root7,zero)
       nh4i = waer(3)
       no3i = waer(4)
@@ -38950,18 +38997,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -39070,11 +39117,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi1o , psi70 , root1 , root7 , so4i
     integer(ik4) :: i , islv
     logical :: psconv7 , psconv1
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -39135,8 +39182,8 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a7 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root1)
-        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25D0*waer(7)*waer(7)
-        dd = -0.25D0*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
+        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25_rkx*waer(7)*waer(7)
+        dd = -0.25_rkx*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
         call poly3(bb,cc,dd,root7,islv)
         if ( islv/=0 ) root7 = tiny1
         root7 = max(root7,zero)
@@ -39151,8 +39198,8 @@ module mod_che_isorropia
 !
       if ( nai*nai*so4i>a1 ) then
         bb = -((waer(2)-waer(6))+waer(1)-root7)
-        cc = waer(1)*((waer(2)-waer(6))-root7) + 0.25D0*waer(1)*waer(1)
-        dd = -0.25D0*(waer(1)*waer(1)*((waer(2)-waer(6))-root7)-a1)
+        cc = waer(1)*((waer(2)-waer(6))-root7) + 0.25_rkx*waer(1)*waer(1)
+        dd = -0.25_rkx*(waer(1)*waer(1)*((waer(2)-waer(6))-root7)-a1)
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
         root1 = max(root1,zero)
@@ -39165,8 +39212,8 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root7,zero)
-      nai = max(waer(1)-2.D0*root1,zero)
+      ki = max(waer(7)-2._rkx*root7,zero)
+      nai = max(waer(1)-2._rkx*root1,zero)
       so4i = max((waer(2)-waer(6))-root7-root1,zero)
       nh4i = waer(3)
       no3i = waer(4)
@@ -39176,18 +39223,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -39296,11 +39343,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi1o , psi70 , root1 , root7 , so4i
     integer(ik4) :: i , islv
     logical :: psconv7 , psconv1
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -39362,8 +39409,8 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a7 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root1)
-        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25D0*waer(7)*waer(7)
-        dd = -0.25D0*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
+        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25_rkx*waer(7)*waer(7)
+        dd = -0.25_rkx*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
         call poly3(bb,cc,dd,root7,islv)
         if ( islv/=0 ) root7 = tiny1
         root7 = max(root7,zero)
@@ -39378,8 +39425,8 @@ module mod_che_isorropia
 !
       if ( nai*nai*so4i>a1 ) then
         bb = -((waer(2)-waer(6))+waer(1)-root7)
-        cc = waer(1)*((waer(2)-waer(6))-root7) + 0.25D0*waer(1)*waer(1)
-        dd = -0.25D0*(waer(1)*waer(1)*((waer(2)-waer(6))-root7)-a1)
+        cc = waer(1)*((waer(2)-waer(6))-root7) + 0.25_rkx*waer(1)*waer(1)
+        dd = -0.25_rkx*(waer(1)*waer(1)*((waer(2)-waer(6))-root7)-a1)
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
         root1 = max(root1,zero)
@@ -39392,8 +39439,8 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root7,zero)
-      nai = max(waer(1)-2.D0*root1,zero)
+      ki = max(waer(7)-2._rkx*root7,zero)
+      nai = max(waer(1)-2._rkx*root1,zero)
       so4i = max((waer(2)-waer(6))-root7-root1,zero)
       nh4i = waer(3)
       no3i = waer(4)
@@ -39403,18 +39450,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -39564,11 +39611,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi1o , psi60 , psi70 , root1 , root6 , root7 , so4i
     integer(ik4) :: i , islv
     logical :: psconv7 , psconv1 , psconv6
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -39635,9 +39682,9 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a7 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root1-root6)
-        cc = waer(7)*((waer(2)-waer(6))-root1-root6) + 0.25D0*waer(7)       &
+        cc = waer(7)*((waer(2)-waer(6))-root1-root6) + 0.25_rkx*waer(7)       &
              *waer(7)
-        dd = -0.25D0*(waer(7)*waer(7)*((waer(2)-waer(6))-root1-root6)-a7)
+        dd = -0.25_rkx*(waer(7)*waer(7)*((waer(2)-waer(6))-root1-root6)-a7)
         call poly3(bb,cc,dd,root7,islv)
         if ( islv/=0 ) root7 = tiny1
         root7 = max(root7,zero)
@@ -39652,9 +39699,9 @@ module mod_che_isorropia
 !
       if ( nai*nai*so4i>a1 ) then
         bb = -((waer(2)-waer(6))+waer(1)-root7-root6)
-        cc = waer(1)*((waer(2)-waer(6))-root7-root6) + 0.25D0*waer(1)       &
+        cc = waer(1)*((waer(2)-waer(6))-root7-root6) + 0.25_rkx*waer(1)       &
              *waer(1)
-        dd = -0.25D0*(waer(1)*waer(1)*((waer(2)-waer(6))-root7-root6)-a1)
+        dd = -0.25_rkx*(waer(1)*waer(1)*((waer(2)-waer(6))-root7-root6)-a1)
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
         root1 = max(root1,zero)
@@ -39669,9 +39716,9 @@ module mod_che_isorropia
 !
       if ( nh4i*nh4i*so4i>a6 ) then
         bb = -((waer(2)-waer(6))+waer(3)-root7-root1)
-        cc = waer(3)*((waer(2)-waer(6))-root7-root1) + 0.25D0*waer(3)       &
+        cc = waer(3)*((waer(2)-waer(6))-root7-root1) + 0.25_rkx*waer(3)       &
              *waer(3)
-        dd = -0.25D0*(waer(3)*waer(3)*((waer(2)-waer(6))-root7-root1)-a6)
+        dd = -0.25_rkx*(waer(3)*waer(3)*((waer(2)-waer(6))-root7-root1)-a6)
         call poly3(bb,cc,dd,root6,islv)
         if ( islv/=0 ) root6 = tiny1
         root6 = max(root6,zero)
@@ -39683,10 +39730,10 @@ module mod_che_isorropia
       psi60 = psi6
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root7,zero)
-      nai = max(waer(1)-2.D0*root1,zero)
+      ki = max(waer(7)-2._rkx*root7,zero)
+      nai = max(waer(1)-2._rkx*root1,zero)
       so4i = max(waer(2)-waer(6)-root7-root1-root6,zero)
-      nh4i = max(waer(3)-2.D0*root6,zero)
+      nh4i = max(waer(3)-2._rkx*root6,zero)
       no3i = waer(4)
       cli = waer(5)
       cai = zero
@@ -39694,18 +39741,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -39868,13 +39915,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi1o , psi40 , psi60 , psi70 , root1 , root4 , root4a , &
          root4b , root6 , root7
-    real(rk8) :: so4i
+    real(rkx) :: so4i
     integer(ik4) :: i , islv
     logical :: psconv7 , psconv1 , psconv6 , psconv4
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -39945,22 +39992,22 @@ module mod_che_isorropia
 !   ammnium chloride
 !
       if ( nh4i*cli>a14 ) then
-        bb = -(waer(3)+waer(5)-2.D0*root6)
-        cc = waer(5)*(waer(3)-2.D0*root6) - a14
-        dd = bb*bb - 4.D0*cc
+        bb = -(waer(3)+waer(5)-2._rkx*root6)
+        cc = waer(5)*(waer(3)-2._rkx*root6) - a14
+        dd = bb*bb - 4._rkx*cc
         if ( dd<zero ) then
           root4 = zero
         else
           dd = sqrt(dd)
-          root4a = 0.5D0*(-bb+dd)
-          root4b = 0.5D0*(-bb-dd)
+          root4a = 0.5_rkx*(-bb+dd)
+          root4b = 0.5_rkx*(-bb-dd)
           if ( zero<=root4a ) then
             root4 = root4a
           else
             root4 = root4b
           end if
           root4 = max(root4,zero)
-          root4 = min(root4,waer(5),max(waer(3)-2.D0*root6,zero),chi4)
+          root4 = min(root4,waer(5),max(waer(3)-2._rkx*root6,zero),chi4)
           psi4 = chi4 - root4
         end if
       end if
@@ -39971,9 +40018,9 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a7 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root1-root6)
-        cc = waer(7)*((waer(2)-waer(6))-root1-root6) + 0.25D0*waer(7)       &
+        cc = waer(7)*((waer(2)-waer(6))-root1-root6) + 0.25_rkx*waer(7)       &
              *waer(7)
-        dd = -0.25D0*(waer(7)*waer(7)*((waer(2)-waer(6))-root1-root6)-a7)
+        dd = -0.25_rkx*(waer(7)*waer(7)*((waer(2)-waer(6))-root1-root6)-a7)
         call poly3(bb,cc,dd,root7,islv)
         if ( islv/=0 ) root7 = tiny1
         root7 = max(root7,zero)
@@ -39988,9 +40035,9 @@ module mod_che_isorropia
 !
       if ( nai*nai*so4i>a1 ) then
         bb = -((waer(2)-waer(6))+waer(1)-root7-root6)
-        cc = waer(1)*((waer(2)-waer(6))-root7-root6) + 0.25D0*waer(1)       &
+        cc = waer(1)*((waer(2)-waer(6))-root7-root6) + 0.25_rkx*waer(1)       &
              *waer(1)
-        dd = -0.25D0*(waer(1)*waer(1)*((waer(2)-waer(6))-root7-root6)-a1)
+        dd = -0.25_rkx*(waer(1)*waer(1)*((waer(2)-waer(6))-root7-root6)-a1)
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
         root1 = max(root1,zero)
@@ -40006,9 +40053,9 @@ module mod_che_isorropia
       if ( nh4i*nh4i*so4i>a6 ) then
         bb = -((waer(2)-waer(6))+waer(3)-root7-root1-root4)
         cc = waer(3)*((waer(2)-waer(6))-root7-root1)                      &
-             + 0.25D0*(waer(3)-root4)                                       &
+             + 0.25_rkx*(waer(3)-root4)                                       &
              **2 + root4*(root1+root7-(waer(2)-waer(6)))
-        dd = -0.25D0*((waer(3)-root4)**2*((waer(2)-waer(6))-root7-root1)  &
+        dd = -0.25_rkx*((waer(3)-root4)**2*((waer(2)-waer(6))-root7-root1)  &
              -a6)
         call poly3(bb,cc,dd,root6,islv)
         if ( islv/=0 ) root6 = tiny1
@@ -40022,10 +40069,10 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root7,zero)
-      nai = max(waer(1)-2.D0*root1,zero)
+      ki = max(waer(7)-2._rkx*root7,zero)
+      nai = max(waer(1)-2._rkx*root1,zero)
       so4i = max(waer(2)-waer(6)-root7-root1-root6,zero)
-      nh4i = max(waer(3)-2.D0*root6,zero)
+      nh4i = max(waer(3)-2._rkx*root6,zero)
       no3i = waer(4)
       cli = waer(5)
       cai = zero
@@ -40033,18 +40080,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -40233,24 +40280,24 @@ module mod_che_isorropia
   subroutine calcv1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: cafr , frk , frmg , frnh3 , so4fr , nafr
+    real(rkx) :: cafr , frk , frmg , frnh3 , so4fr , nafr
 !
 ! *** calculate solids
 ! **************************************************
     ccaso4 = min(waer(6),waer(2))                          ! ccaso4
     so4fr = max(waer(2)-ccaso4,zero)
     cafr = max(waer(6)-ccaso4,zero)
-    ck2so4 = min(0.5D0*waer(7),so4fr)                      ! ck2so4
-    frk = max(waer(7)-2.D0*ck2so4,zero)
+    ck2so4 = min(0.5_rkx*waer(7),so4fr)                      ! ck2so4
+    frk = max(waer(7)-2._rkx*ck2so4,zero)
     so4fr = max(so4fr-ck2so4,zero)
-    cna2so4 = min(0.5D0*waer(1),so4fr)                     ! cna2so4
-    nafr = max(waer(1)-2.D0*cna2so4,zero)
+    cna2so4 = min(0.5_rkx*waer(1),so4fr)                     ! cna2so4
+    nafr = max(waer(1)-2._rkx*cna2so4,zero)
     so4fr = max(so4fr-cna2so4,zero)
     cmgso4 = min(waer(8),so4fr)                            ! cmgso4
     frmg = max(waer(8)-cmgso4,zero)
     so4fr = max(so4fr-cmgso4,zero)
-    cnh42s4 = max(min(so4fr,0.5D0*waer(3)),tiny1)
-    frnh3 = max(waer(3)-2.D0*cnh42s4,zero)
+    cnh42s4 = max(min(so4fr,0.5_rkx*waer(3)),tiny1)
+    frnh3 = max(waer(3)-2._rkx*cnh42s4,zero)
 !
     cnh4no3 = min(frnh3,waer(4))
 ! frno3   = max (waer(4) - cnh4no3 , zero)
@@ -40289,9 +40336,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , ohi , so4i
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , ohi , so4i
     integer(ik4) :: i
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -40344,18 +40391,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
       if ( hi<=tiny1 ) hi = sqrt(akw)
@@ -40461,11 +40508,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi70 , root7 , so4i
     integer(ik4) :: i , islv
     logical :: psconv7
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -40534,8 +40581,8 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a7 ) then
         bb = -((waer(2)-waer(6))+waer(7))
-        cc = waer(7)*(waer(2)-waer(6)) + 0.25D0*waer(7)*waer(7)
-        dd = -0.25D0*(waer(7)*waer(7)*(waer(2)-waer(6))-a7)
+        cc = waer(7)*(waer(2)-waer(6)) + 0.25_rkx*waer(7)*waer(7)
+        dd = -0.25_rkx*(waer(7)*waer(7)*(waer(2)-waer(6))-a7)
         call poly3(bb,cc,dd,root7,islv)
         if ( islv/=0 ) root7 = tiny1
         root7 = max(root7,zero)
@@ -40547,7 +40594,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root7,zero)
+      ki = max(waer(7)-2._rkx*root7,zero)
       so4i = max(waer(2)-waer(6)-root7,zero)
       nh4i = waer(3)
       no3i = waer(4)
@@ -40558,18 +40605,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !   if (hi <= tiny1) hi = sqrt(akw)
@@ -40682,11 +40729,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi1o , psi70 , root1 , root7 , so4i
     integer(ik4) :: i , islv
     logical :: psconv7 , psconv1
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -40761,8 +40808,8 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a7 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root1)
-        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25D0*waer(7)*waer(7)
-        dd = -0.25D0*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
+        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25_rkx*waer(7)*waer(7)
+        dd = -0.25_rkx*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
         call poly3(bb,cc,dd,root7,islv)
         if ( islv/=0 ) root7 = tiny1
         root7 = max(root7,zero)
@@ -40778,8 +40825,8 @@ module mod_che_isorropia
 !
       if ( nai*nai*so4i>a1 ) then
         bb = -((waer(2)-waer(6))+waer(1)-root7)
-        cc = waer(1)*((waer(2)-waer(6))-root7) + 0.25D0*waer(1)*waer(1)
-        dd = -0.25D0*(waer(1)*waer(1)*((waer(2)-waer(6))-root7)-a1)
+        cc = waer(1)*((waer(2)-waer(6))-root7) + 0.25_rkx*waer(1)*waer(1)
+        dd = -0.25_rkx*(waer(1)*waer(1)*((waer(2)-waer(6))-root7)-a1)
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
         root1 = max(root1,zero)
@@ -40792,8 +40839,8 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root7,zero)
-      nai = max(waer(1)-2.D0*root1,zero)
+      ki = max(waer(7)-2._rkx*root7,zero)
+      nai = max(waer(1)-2._rkx*root1,zero)
       so4i = max(waer(2)-waer(6)-root7-root1,zero)
       nh4i = waer(3)
       no3i = waer(4)
@@ -40803,18 +40850,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !   if (hi <= tiny1) hi = sqrt(akw)
@@ -40927,11 +40974,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi1o , psi70 , root1 , root7 , so4i
     integer(ik4) :: i , islv
     logical :: psconv7 , psconv1
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -41006,8 +41053,8 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a7 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root1)
-        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25D0*waer(7)*waer(7)
-        dd = -0.25D0*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
+        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25_rkx*waer(7)*waer(7)
+        dd = -0.25_rkx*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
         call poly3(bb,cc,dd,root7,islv)
         if ( islv/=0 ) root7 = tiny1
         root7 = max(root7,zero)
@@ -41022,8 +41069,8 @@ module mod_che_isorropia
 !
       if ( nai*nai*so4i>a1 ) then
         bb = -((waer(2)-waer(6))+waer(1)-root7)
-        cc = waer(1)*((waer(2)-waer(6))-root7) + 0.25D0*waer(1)*waer(1)
-        dd = -0.25D0*(waer(1)*waer(1)*((waer(2)-waer(6))-root7)-a1)
+        cc = waer(1)*((waer(2)-waer(6))-root7) + 0.25_rkx*waer(1)*waer(1)
+        dd = -0.25_rkx*(waer(1)*waer(1)*((waer(2)-waer(6))-root7)-a1)
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
         root1 = max(root1,zero)
@@ -41036,8 +41083,8 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root7,zero)
-      nai = max(waer(1)-2.D0*root1,zero)
+      ki = max(waer(7)-2._rkx*root7,zero)
+      nai = max(waer(1)-2._rkx*root1,zero)
       so4i = max(waer(2)-waer(6)-root7-root1,zero)
       nh4i = waer(3)
       no3i = waer(4)
@@ -41047,18 +41094,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !   if (hi <= tiny1) hi = sqrt(akw)
@@ -41220,11 +41267,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi1o , psi40 , psi70 , root1 , root4 , root7 , so4i
     integer(ik4) :: i , islv
     logical :: psconv7 , psconv1 , psconv4
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -41305,8 +41352,8 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a7 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root1)
-        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25D0*waer(7)*waer(7)
-        dd = -0.25D0*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
+        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25_rkx*waer(7)*waer(7)
+        dd = -0.25_rkx*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
         call poly3(bb,cc,dd,root7,islv)
         if ( islv/=0 ) root7 = tiny1
         root7 = max(root7,zero)
@@ -41321,8 +41368,8 @@ module mod_che_isorropia
 !
       if ( nai*nai*so4i>a1 ) then
         bb = -((waer(2)-waer(6))+waer(1)-root7)
-        cc = waer(1)*((waer(2)-waer(6))-root7) + 0.25D0*waer(1)*waer(1)
-        dd = -0.25D0*(waer(1)*waer(1)*((waer(2)-waer(6))-root7)-a1)
+        cc = waer(1)*((waer(2)-waer(6))-root7) + 0.25_rkx*waer(1)*waer(1)
+        dd = -0.25_rkx*(waer(1)*waer(1)*((waer(2)-waer(6))-root7)-a1)
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
         root1 = max(root1,zero)
@@ -41338,8 +41385,8 @@ module mod_che_isorropia
       if ( nh4i*cli>a14 ) then
         bb = -(nh4i+cli)
         cc = -a14 + nh4i*cli
-        dd = bb*bb - 4.D0*cc
-        root4 = 0.5D0*(-bb-sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        root4 = 0.5_rkx*(-bb-sqrt(dd))
         if ( root4>tiny1 ) then
           root4 = min(max(root4,zero),chi4)
           psi4 = chi4 - root4
@@ -41350,8 +41397,8 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root7,zero)
-      nai = max(waer(1)-2.D0*root1,zero)
+      ki = max(waer(7)-2._rkx*root7,zero)
+      nai = max(waer(1)-2._rkx*root1,zero)
       so4i = max(waer(2)-waer(6)-root7-root1,zero)
       nh4i = max(waer(3)-root4,zero)
       no3i = waer(4)
@@ -41361,18 +41408,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !   if (hi <= tiny1) hi = sqrt(akw)
@@ -41552,13 +41599,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi1o , psi30 , psi40 , psi70 , root1 , root3 , root3a , &
          root3b , root4 , root4a
-    real(rk8) :: root4b , root7 , so4i
+    real(rkx) :: root4b , root7 , so4i
     integer(ik4) :: i , islv
     logical :: psconv7 , psconv1 , psconv4 , psconv3
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -41644,8 +41691,8 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a7 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root1)
-        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25D0*waer(7)*waer(7)
-        dd = -0.25D0*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
+        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25_rkx*waer(7)*waer(7)
+        dd = -0.25_rkx*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
         call poly3(bb,cc,dd,root7,islv)
         if ( islv/=0 ) root7 = tiny1
         root7 = max(root7,zero)
@@ -41661,8 +41708,8 @@ module mod_che_isorropia
       if ( nai*nai*so4i>a1 ) then
         bb = -(((waer(2)-waer(6))-root7)*(waer(1)-root3))
         cc = ((waer(2)-waer(6))-root7)*(waer(1)-root3)                    &
-             + 0.25D0*(waer(1)-root3)**2.
-        dd = -0.25D0*(((waer(2)-waer(6))-root7)*(waer(1)-root3)**20-a1)
+             + 0.25_rkx*(waer(1)-root3)**2.
+        dd = -0.25_rkx*(((waer(2)-waer(6))-root7)*(waer(1)-root3)**20-a1)
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
         root1 = min(max(root1,zero),max(waer(1)-root3,zero),chi1,         &
@@ -41677,9 +41724,9 @@ module mod_che_isorropia
       if ( nh4i*cli>a14 ) then
         bb = -(waer(3)+waer(5)-root4)
         cc = -a14 + nh4i*(waer(5)-root4)
-        dd = max(bb*bb-4.D0*cc,zero)
-        root4a = 0.5D0*(-bb+sqrt(dd))
-        root4b = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        root4a = 0.5_rkx*(-bb+sqrt(dd))
+        root4b = 0.5_rkx*(-bb-sqrt(dd))
         if ( zero<=root4a ) then
           root4 = root4a
         else
@@ -41694,11 +41741,11 @@ module mod_che_isorropia
 !   sodum chloride  ; to obtain new value for root3
 !
       if ( nai*cli>a8 ) then
-        bb = -((chi1-2.D0*root1)+(waer(5)-root4))
-        cc = (chi1-2.D0*root1)*(waer(5)-root4) - a8
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root3a = 0.5D0*(-bb-sqrt(dd))
-        root3b = 0.5D0*(-bb+sqrt(dd))
+        bb = -((chi1-2._rkx*root1)+(waer(5)-root4))
+        cc = (chi1-2._rkx*root1)*(waer(5)-root4) - a8
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root3a = 0.5_rkx*(-bb-sqrt(dd))
+        root3b = 0.5_rkx*(-bb+sqrt(dd))
         if ( zero<=root3a ) then
           root3 = root3a
         else
@@ -41712,8 +41759,8 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root7,zero)
-      nai = max(waer(1)-2.D0*root1-root3,zero)
+      ki = max(waer(7)-2._rkx*root7,zero)
+      nai = max(waer(1)-2._rkx*root1-root3,zero)
       so4i = max(waer(2)-waer(6)-root7-root1,zero)
       nh4i = max(waer(3)-root4,zero)
       no3i = waer(4)
@@ -41723,18 +41770,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !   if (hi <= tiny1) hi = sqrt(akw)
@@ -41976,14 +42023,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi1o , psi20 , psi30 , psi40 , psi50 , psi70 , root1 , &
          root3 , root3a , root3b
-    real(rk8) :: root4 , root4a , root4b , root5 , root5a , root5b , &
+    real(rkx) :: root4 , root4a , root4b , root5 , root5a , root5b , &
          root7 , so4i
     integer(ik4) :: i , islv
     logical :: psconv7 , psconv1 , psconv4 , psconv3 , psconv5
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -42075,8 +42122,8 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a7 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root1)
-        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25D0*waer(7)*waer(7)
-        dd = -0.25D0*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
+        cc = waer(7)*((waer(2)-waer(6))-root1) + 0.25_rkx*waer(7)*waer(7)
+        dd = -0.25_rkx*(waer(7)*waer(7)*((waer(2)-waer(6))-root1)-a7)
         call poly3(bb,cc,dd,root7,islv)
         if ( islv/=0 ) root7 = tiny1
         root7 = max(root7,zero)
@@ -42092,8 +42139,8 @@ module mod_che_isorropia
       if ( nai*nai*so4i>a1 ) then
         bb = -(((waer(2)-waer(6))-root7)*(waer(1)-root3-root5))
         cc = ((waer(2)-waer(6))-root7)*(waer(1)-root3-root5)              &
-             + 0.25D0*(waer(1)-root3-root5)**2
-        dd = -0.25D0*(((waer(2)-waer(6))-root7)*(waer(1)-root3-root5)     &
+             + 0.25_rkx*(waer(1)-root3-root5)**2
+        dd = -0.25_rkx*(((waer(2)-waer(6))-root7)*(waer(1)-root3-root5)     &
              **20-a1)
         call poly3(bb,cc,dd,root1,islv)
         if ( islv/=0 ) root1 = tiny1
@@ -42109,9 +42156,9 @@ module mod_che_isorropia
       if ( nh4i*cli>a14 ) then
         bb = -(waer(3)+waer(5)-root4)
         cc = -a14 + nh4i*(waer(5)-root4)
-        dd = max(bb*bb-4.D0*cc,zero)
-        root4a = 0.5D0*(-bb+sqrt(dd))
-        root4b = 0.5D0*(-bb-sqrt(dd))
+        dd = max(bb*bb-4._rkx*cc,zero)
+        root4a = 0.5_rkx*(-bb+sqrt(dd))
+        root4b = 0.5_rkx*(-bb-sqrt(dd))
         if ( zero<=root4a ) then
           root4 = root4a
         else
@@ -42126,11 +42173,11 @@ module mod_che_isorropia
 !   sodum chloride  ; to obtain new value for root3
 !
       if ( nai*cli>a8 ) then
-        bb = -((chi1-2.D0*root1-root5)+(waer(5)-root4))
-        cc = (chi1-2.D0*root1-root5)*(waer(5)-root4) - a8
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root3a = 0.5D0*(-bb-sqrt(dd))
-        root3b = 0.5D0*(-bb+sqrt(dd))
+        bb = -((chi1-2._rkx*root1-root5)+(waer(5)-root4))
+        cc = (chi1-2._rkx*root1-root5)*(waer(5)-root4) - a8
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root3a = 0.5_rkx*(-bb-sqrt(dd))
+        root3b = 0.5_rkx*(-bb+sqrt(dd))
         if ( zero<=root3a ) then
           root3 = root3a
         else
@@ -42145,11 +42192,11 @@ module mod_che_isorropia
 !   sodum nitrate
 !
       if ( nai*no3i>a9 ) then
-        bb = -(waer(4)+waer(1)-2.D0*root1-root3)
-        cc = waer(4)*(waer(1)-2.D0*root1-root3) - a9
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root5a = 0.5D0*(-bb-dd)
-        root5b = 0.5D0*(-bb+dd)
+        bb = -(waer(4)+waer(1)-2._rkx*root1-root3)
+        cc = waer(4)*(waer(1)-2._rkx*root1-root3) - a9
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root5a = 0.5_rkx*(-bb-dd)
+        root5b = 0.5_rkx*(-bb+dd)
         if ( zero<=root5a ) then
           root5 = root5a
         else
@@ -42164,8 +42211,8 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.0D0*root7,zero)
-      nai = max(waer(1)-2.0D0*root1-root3-root5,zero)
+      ki = max(waer(7)-2.0_rkx*root7,zero)
+      nai = max(waer(1)-2.0_rkx*root1-root3-root5,zero)
       so4i = max(waer(2)-waer(6)-root7-root1,zero)
       nh4i = max(waer(3)-root4,zero)
       no3i = max(waer(4)-root5,zero)
@@ -42175,18 +42222,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !   if (hi <= tiny1) hi = sqrt(akw)
@@ -42452,21 +42499,21 @@ module mod_che_isorropia
   subroutine calcu1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: cafr , frcl , frk , frmg , frna , frnh3 , frno3 , so4fr
+    real(rkx) :: cafr , frcl , frk , frmg , frna , frnh3 , frno3 , so4fr
 !
 ! *** calculate solids *************************************************
 !
     ccaso4 = min(waer(6),waer(2))                      ! ccaso4
     so4fr = max(waer(2)-ccaso4,zero)
     cafr = max(waer(6)-ccaso4,zero)
-    ck2so4 = min(0.5D0*waer(7),so4fr)                  ! ck2so4
-    frk = max(waer(7)-2.D0*ck2so4,zero)
+    ck2so4 = min(0.5_rkx*waer(7),so4fr)                  ! ck2so4
+    frk = max(waer(7)-2._rkx*ck2so4,zero)
     so4fr = max(so4fr-ck2so4,zero)
     cmgso4 = min(waer(8),so4fr)                        ! cmgso4
     frmg = max(waer(8)-cmgso4,zero)
     so4fr = max(so4fr-cmgso4,zero)
     cna2so4 = max(so4fr,zero)                           ! cna2so4
-    frna = max(waer(1)-2.D0*cna2so4,zero)
+    frna = max(waer(1)-2._rkx*cna2so4,zero)
 !
     cnh42s4 = zero
 !
@@ -42518,10 +42565,10 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , so4i , kcl
     integer(ik4) :: i
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -42578,18 +42625,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -42699,11 +42746,11 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi9o , root9 , so4i , kcl
     integer(ik4) :: i , islv
     logical :: psconv9
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -42764,8 +42811,8 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a9 ) then
         bb = -((waer(2)-waer(6))+waer(7))
-        cc = waer(7)*(waer(2)-waer(6)) + 0.25D0*waer(7)*waer(7)
-        dd = -0.25D0*(waer(7)*waer(7)*(waer(2)-waer(6))-a9)
+        cc = waer(7)*(waer(2)-waer(6)) + 0.25_rkx*waer(7)*waer(7)
+        dd = -0.25_rkx*(waer(7)*waer(7)*(waer(2)-waer(6))-a9)
         call poly3(bb,cc,dd,root9,islv)
         if ( islv/=0 ) root9 = tiny1
         root9 = min(root9,waer(7)/2.0,(waer(2)-waer(6)),chi9)
@@ -42777,7 +42824,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root9,zero)
+      ki = max(waer(7)-2._rkx*root9,zero)
       so4i = max(waer(2)-waer(6)-root9,zero)
       nh4i = waer(3)
       no3i = waer(4)
@@ -42788,18 +42835,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -42916,12 +42963,12 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi13o , psi9o , root13 , root13a , root13b , root9 , &
          so4i , kcl
     integer(ik4) :: i , islv
     logical :: psconv9 , psconv13
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -42989,9 +43036,9 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a9 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root13)
-        cc = (waer(7)-root13)*(waer(2)-waer(6)) + 0.25D0*(waer(7)-root13) &
+        cc = (waer(7)-root13)*(waer(2)-waer(6)) + 0.25_rkx*(waer(7)-root13) &
              **2
-        dd = -0.25D0*((waer(7)-root13)**2*(waer(2)-waer(6))-a9)
+        dd = -0.25_rkx*((waer(7)-root13)**2*(waer(2)-waer(6))-a9)
         call poly3(bb,cc,dd,root9,islv)
         if ( islv/=0 ) root9 = tiny1
         root9 = min(root9,waer(7)/2.0-root13,(waer(2)-waer(6)),chi9)
@@ -43004,11 +43051,11 @@ module mod_che_isorropia
 !   potssium nitrate
 !
       if ( ki*no3i>a13 ) then
-        bb = -(waer(4)+waer(7)-2.D0*root9)
-        cc = waer(4)*(waer(7)-2.D0*root9) - a13
-        dd = sqrt(max(bb*bb-4.D0*cc,zero))
-        root13a = 0.5D0*(-bb-dd)
-        root13b = 0.5D0*(-bb+dd)
+        bb = -(waer(4)+waer(7)-2._rkx*root9)
+        cc = waer(4)*(waer(7)-2._rkx*root9) - a13
+        dd = sqrt(max(bb*bb-4._rkx*cc,zero))
+        root13a = 0.5_rkx*(-bb-dd)
+        root13b = 0.5_rkx*(-bb+dd)
         if ( zero<=root13a ) then
           root13 = root13a
         else
@@ -43022,7 +43069,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root9-root13,zero)
+      ki = max(waer(7)-2._rkx*root9-root13,zero)
       so4i = max(waer(2)-waer(6)-root9,zero)
       nh4i = waer(3)
       no3i = max(waer(4)-root13,zero)
@@ -43033,18 +43080,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -43161,12 +43208,12 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi13o , psi9o , root13 , root13a , root13b , root9 , &
          so4i , kcl
     integer(ik4) :: i , islv
     logical :: psconv9 , psconv13
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -43236,9 +43283,9 @@ module mod_che_isorropia
 !
       if ( ki*ki*so4i>a9 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root13)
-        cc = (waer(7)-root13)*(waer(2)-waer(6)) + 0.25D0*(waer(7)-root13) &
+        cc = (waer(7)-root13)*(waer(2)-waer(6)) + 0.25_rkx*(waer(7)-root13) &
              **2
-        dd = -0.25D0*((waer(7)-root13)**2*(waer(2)-waer(6))-a9)
+        dd = -0.25_rkx*((waer(7)-root13)**2*(waer(2)-waer(6))-a9)
         call poly3(bb,cc,dd,root9,islv)
         if ( islv/=0 ) root9 = tiny1
         root9 = min(root9,waer(7)/2.0-root13,(waer(2)-waer(6)),chi9)
@@ -43251,11 +43298,11 @@ module mod_che_isorropia
 !   potssium nitrate
 !
       if ( ki*no3i>a13 ) then
-        bb = -(waer(4)+waer(7)-2.D0*root9)
-        cc = waer(4)*(waer(7)-2.D0*root9) - a13
-        dd = sqrt(max(bb*bb-4.D0*cc,zero))
-        root13a = 0.5D0*(-bb-dd)
-        root13b = 0.5D0*(-bb+dd)
+        bb = -(waer(4)+waer(7)-2._rkx*root9)
+        cc = waer(4)*(waer(7)-2._rkx*root9) - a13
+        dd = sqrt(max(bb*bb-4._rkx*cc,zero))
+        root13a = 0.5_rkx*(-bb-dd)
+        root13b = 0.5_rkx*(-bb+dd)
         if ( zero<=root13a ) then
           root13 = root13a
         else
@@ -43269,7 +43316,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root9-root13,zero)
+      ki = max(waer(7)-2._rkx*root9-root13,zero)
       so4i = max(waer(2)-waer(6)-root9,zero)
       nh4i = waer(3)
       no3i = max(waer(4)-root13,zero)
@@ -43280,18 +43327,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -43408,12 +43455,12 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi13o , psi14o , psi9o , root13 , root13a , root13b , &
          root14 , root14a , root14b , root9 , so4i , kcl
     integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -43488,8 +43535,8 @@ module mod_che_isorropia
       if ( ki*ki*so4i>a9 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root13-root14)
         cc = (waer(7)-root13-root14)*(waer(2)-waer(6))                    &
-             + 0.25D0*(waer(7)-root13-root14)**2
-        dd = -0.25D0*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
+             + 0.25_rkx*(waer(7)-root13-root14)**2
+        dd = -0.25_rkx*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
         call poly3(bb,cc,dd,root9,islv)
         if ( islv/=0 ) root9 = tiny1
         root9 = min(root9,waer(7)/2.0-root13-root14,(waer(2)-waer(6)),    &
@@ -43503,11 +43550,11 @@ module mod_che_isorropia
 !   potssium nitrate
 !
       if ( ki*no3i>a13 ) then
-        bb = -(waer(4)+waer(7)-2.D0*root9-root14)
-        cc = waer(4)*(waer(7)-2.D0*root9-root14) - a13
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root13a = 0.5D0*(-bb-dd)
-        root13b = 0.5D0*(-bb+dd)
+        bb = -(waer(4)+waer(7)-2._rkx*root9-root14)
+        cc = waer(4)*(waer(7)-2._rkx*root9-root14) - a13
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root13a = 0.5_rkx*(-bb-dd)
+        root13b = 0.5_rkx*(-bb+dd)
         if ( zero<=root13a ) then
           root13 = root13a
         else
@@ -43522,11 +43569,11 @@ module mod_che_isorropia
 !   potssium cloride
 !
       if ( ki*cli>a14 ) then
-        bb = -(waer(5)+waer(7)-2.D0*root9-root13)
-        cc = waer(5)*(waer(7)-2.D0*root9-root13) - a14
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root14a = 0.5D0*(-bb-dd)
-        root14b = 0.5D0*(-bb+dd)
+        bb = -(waer(5)+waer(7)-2._rkx*root9-root13)
+        cc = waer(5)*(waer(7)-2._rkx*root9-root13) - a14
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root14a = 0.5_rkx*(-bb-dd)
+        root14b = 0.5_rkx*(-bb+dd)
         if ( zero<=root14a ) then
           root14 = root14a
         else
@@ -43540,7 +43587,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root9-root13-root14,zero)
+      ki = max(waer(7)-2._rkx*root9-root13-root14,zero)
       so4i = max(waer(2)-waer(6)-root9,zero)
       nh4i = waer(3)
       no3i = max(waer(4)-root13,zero)
@@ -43551,18 +43598,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -43679,13 +43726,13 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi13o , psi14o , psi5o , psi9o , root13 , root13a , &
          root13b , root14 , root14a , root14b
-    real(rk8) :: root5 , root5a , root5b , root9 , so4i , kcl
+    real(rkx) :: root5 , root5a , root5b , root9 , so4i , kcl
     integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -43765,8 +43812,8 @@ module mod_che_isorropia
       if ( ki*ki*so4i>a9 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root13-root14)
         cc = (waer(7)-root13-root14)*(waer(2)-waer(6))                    &
-             + 0.25D0*(waer(7)-root13-root14)**2
-        dd = -0.25D0*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
+             + 0.25_rkx*(waer(7)-root13-root14)**2
+        dd = -0.25_rkx*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
         call poly3(bb,cc,dd,root9,islv)
         if ( islv/=0 ) root9 = tiny1
         root9 = min(root9,waer(7)/2.0-root13-root14,(waer(2)-waer(6)),    &
@@ -43780,11 +43827,11 @@ module mod_che_isorropia
 !   potssium nitrate
 !
       if ( ki*no3i>a13 ) then
-        bb = -(waer(4)+waer(7)-2.D0*root9-root14)
-        cc = waer(4)*(waer(7)-2.D0*root9-root14) - a13
-        dd = sqrt(max(bb*bb-4.D0*cc,zero))
-        root13a = 0.5D0*(-bb-dd)
-        root13b = 0.5D0*(-bb+dd)
+        bb = -(waer(4)+waer(7)-2._rkx*root9-root14)
+        cc = waer(4)*(waer(7)-2._rkx*root9-root14) - a13
+        dd = sqrt(max(bb*bb-4._rkx*cc,zero))
+        root13a = 0.5_rkx*(-bb-dd)
+        root13b = 0.5_rkx*(-bb+dd)
         if ( zero<=root13a ) then
           root13 = root13a
         else
@@ -43799,11 +43846,11 @@ module mod_che_isorropia
 !   potssium cloride
 !
       if ( ki*cli>a14 ) then
-        bb = -(waer(5)-root5+waer(7)-2.D0*root9-root13)
-        cc = (waer(5)-root5)*(waer(7)-2.D0*root9-root13) - a14
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root14a = 0.5D0*(-bb-dd)
-        root14b = 0.5D0*(-bb+dd)
+        bb = -(waer(5)-root5+waer(7)-2._rkx*root9-root13)
+        cc = (waer(5)-root5)*(waer(7)-2._rkx*root9-root13) - a14
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root14a = 0.5_rkx*(-bb-dd)
+        root14b = 0.5_rkx*(-bb+dd)
         if ( zero<=root14a ) then
           root14 = root14a
         else
@@ -43820,9 +43867,9 @@ module mod_che_isorropia
       if ( nh4i*cli>a5 ) then
         bb = -(waer(5)+waer(3)-root14)
         cc = (waer(5)-root14)*waer(3) - a5
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root5a = 0.5D0*(-bb-dd)
-        root5b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root5a = 0.5_rkx*(-bb-dd)
+        root5b = 0.5_rkx*(-bb+dd)
         if ( zero<=root5a ) then
           root5 = root5a
         else
@@ -43836,7 +43883,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root9-root13-root14,zero)
+      ki = max(waer(7)-2._rkx*root9-root13-root14,zero)
       so4i = max(waer(2)-waer(6)-root9,zero)
       nh4i = max(waer(3)-root5,zero)
       no3i = max(waer(4)-root13,zero)
@@ -43847,18 +43894,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -43975,14 +44022,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi13o , psi14o , psi5o , psi7o , psi9o , root13 , &
          root13a , root13b , root14 , root14a
-    real(rk8) :: root14b , root5 , root5a , root5b , root7 , root7a , &
+    real(rkx) :: root14b , root5 , root5a , root5b , root7 , root7a , &
          root7b , root9 , so4i , kcl
     integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -44067,8 +44114,8 @@ module mod_che_isorropia
       if ( ki*ki*so4i>a9 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root13-root14)
         cc = (waer(7)-root13-root14)*(waer(2)-waer(6))                    &
-             + 0.25D0*(waer(7)-root13-root14)**2
-        dd = -0.25D0*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
+             + 0.25_rkx*(waer(7)-root13-root14)**2
+        dd = -0.25_rkx*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
         call poly3(bb,cc,dd,root9,islv)
         if ( islv/=0 ) root9 = tiny1
         root9 = min(root9,waer(7)/2.0-root13-root14,(waer(2)-waer(6)),    &
@@ -44082,11 +44129,11 @@ module mod_che_isorropia
 !   potssium nitrate
 !
       if ( ki*no3i>a13 ) then
-        bb = -(waer(4)+waer(7)-2.D0*root9-root14)
-        cc = waer(4)*(waer(7)-2.D0*root9-root14) - a13
-        dd = sqrt(max(bb*bb-4.D0*cc,zero))
-        root13a = 0.5D0*(-bb-dd)
-        root13b = 0.5D0*(-bb+dd)
+        bb = -(waer(4)+waer(7)-2._rkx*root9-root14)
+        cc = waer(4)*(waer(7)-2._rkx*root9-root14) - a13
+        dd = sqrt(max(bb*bb-4._rkx*cc,zero))
+        root13a = 0.5_rkx*(-bb-dd)
+        root13b = 0.5_rkx*(-bb+dd)
         if ( zero<=root13a ) then
           root13 = root13a
         else
@@ -44101,11 +44148,11 @@ module mod_che_isorropia
 !   potssium cloride
 !
       if ( ki*cli>a14 ) then
-        bb = -(waer(5)-root5-root7+waer(7)-2.D0*root9-root13)
-        cc = (waer(5)-root5-root7)*(waer(7)-2.D0*root9-root13) - a14
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root14a = 0.5D0*(-bb-dd)
-        root14b = 0.5D0*(-bb+dd)
+        bb = -(waer(5)-root5-root7+waer(7)-2._rkx*root9-root13)
+        cc = (waer(5)-root5-root7)*(waer(7)-2._rkx*root9-root13) - a14
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root14a = 0.5_rkx*(-bb-dd)
+        root14b = 0.5_rkx*(-bb+dd)
         if ( zero<=root14a ) then
           root14 = root14a
         else
@@ -44122,9 +44169,9 @@ module mod_che_isorropia
       if ( nh4i*cli>a5 ) then
         bb = -(waer(5)+waer(3)-root14-root7)
         cc = (waer(5)-root14-root7)*waer(3) - a5
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root5a = 0.5D0*(-bb-dd)
-        root5b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root5a = 0.5_rkx*(-bb-dd)
+        root5b = 0.5_rkx*(-bb+dd)
         if ( zero<=root5a ) then
           root5 = root5a
         else
@@ -44141,9 +44188,9 @@ module mod_che_isorropia
       if ( nai*cli>a7 ) then
         bb = -(waer(5)+waer(1)-root14-root5)
         cc = (waer(5)-root14-root5)*waer(1) - a7
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root7a = 0.5D0*(-bb-dd)
-        root7b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root7a = 0.5_rkx*(-bb-dd)
+        root7b = 0.5_rkx*(-bb+dd)
         if ( zero<=root7a ) then
           root7 = root7a
         else
@@ -44157,7 +44204,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root9-root13-root14,zero)
+      ki = max(waer(7)-2._rkx*root9-root13-root14,zero)
       so4i = max(waer(2)-waer(6)-root9,zero)
       nh4i = max(waer(3)-root5,zero)
       no3i = max(waer(4)-root13,zero)
@@ -44168,18 +44215,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -44297,14 +44344,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , &
          root13 , root13a , root13b , root14
-    real(rk8) :: root14a , root14b , root5 , root5a , root5b , root7 , &
+    real(rkx) :: root14a , root14b , root5 , root5a , root5b , root7 , &
          root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
     integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -44394,8 +44441,8 @@ module mod_che_isorropia
       if ( ki*ki*so4i>a9 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root13-root14)
         cc = (waer(7)-root13-root14)*(waer(2)-waer(6))                    &
-             + 0.25D0*(waer(7)-root13-root14)**2
-        dd = -0.25D0*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
+             + 0.25_rkx*(waer(7)-root13-root14)**2
+        dd = -0.25_rkx*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
         call poly3(bb,cc,dd,root9,islv)
         if ( islv/=0 ) root9 = tiny1
         root9 = min(root9,waer(7)/2.0-root13-root14,(waer(2)-waer(6)),    &
@@ -44409,11 +44456,11 @@ module mod_che_isorropia
 !   potssium nitrate
 !
       if ( ki*no3i>a13 ) then
-        bb = -(waer(4)-root8+waer(7)-2.D0*root9-root14)
-        cc = (waer(4)-root8)*(waer(7)-2.D0*root9-root14) - a13
-        dd = sqrt(max(bb*bb-4.D0*cc,zero))
-        root13a = 0.5D0*(-bb-dd)
-        root13b = 0.5D0*(-bb+dd)
+        bb = -(waer(4)-root8+waer(7)-2._rkx*root9-root14)
+        cc = (waer(4)-root8)*(waer(7)-2._rkx*root9-root14) - a13
+        dd = sqrt(max(bb*bb-4._rkx*cc,zero))
+        root13a = 0.5_rkx*(-bb-dd)
+        root13b = 0.5_rkx*(-bb+dd)
         if ( zero<=root13a ) then
           root13 = root13a
         else
@@ -44428,11 +44475,11 @@ module mod_che_isorropia
 !   potssium cloride
 !
       if ( ki*cli>a14 ) then
-        bb = -(waer(5)-root5-root7+waer(7)-2.D0*root9-root13)
-        cc = (waer(5)-root5-root7)*(waer(7)-2.D0*root9-root13) - a14
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root14a = 0.5D0*(-bb-dd)
-        root14b = 0.5D0*(-bb+dd)
+        bb = -(waer(5)-root5-root7+waer(7)-2._rkx*root9-root13)
+        cc = (waer(5)-root5-root7)*(waer(7)-2._rkx*root9-root13) - a14
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root14a = 0.5_rkx*(-bb-dd)
+        root14b = 0.5_rkx*(-bb+dd)
         if ( zero<=root14a ) then
           root14 = root14a
         else
@@ -44449,9 +44496,9 @@ module mod_che_isorropia
       if ( nh4i*cli>a5 ) then
         bb = -(waer(5)+waer(3)-root14-root7)
         cc = (waer(5)-root14-root7)*waer(3) - a5
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root5a = 0.5D0*(-bb-dd)
-        root5b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root5a = 0.5_rkx*(-bb-dd)
+        root5b = 0.5_rkx*(-bb+dd)
         if ( zero<=root5a ) then
           root5 = root5a
         else
@@ -44468,9 +44515,9 @@ module mod_che_isorropia
       if ( nai*cli>a7 ) then
         bb = -(waer(5)+waer(1)-root8-root14-root5)
         cc = (waer(5)-root14-root5)*(waer(1)-root8) - a7
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root7a = 0.5D0*(-bb-dd)
-        root7b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root7a = 0.5_rkx*(-bb-dd)
+        root7b = 0.5_rkx*(-bb+dd)
         if ( zero<=root7a ) then
           root7 = root7a
         else
@@ -44487,9 +44534,9 @@ module mod_che_isorropia
       if ( nai*no3i>a8 ) then
         bb = -(waer(4)-root13+waer(1)-root7)
         cc = (waer(4)-root13)*(waer(1)-root7) - a8
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root8a = 0.5D0*(-bb-dd)
-        root8b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root8a = 0.5_rkx*(-bb-dd)
+        root8b = 0.5_rkx*(-bb+dd)
         if ( zero<=root8a ) then
           root8 = root8a
         else
@@ -44503,7 +44550,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root9-root13-root14,zero)
+      ki = max(waer(7)-2._rkx*root9-root13-root14,zero)
       so4i = max(waer(2)-waer(6)-root9,zero)
       nh4i = max(waer(3)-root5,zero)
       no3i = max(waer(4)-root13-root8,zero)
@@ -44514,18 +44561,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -44696,14 +44743,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , root13 , &
          root13a , root13b , root14
-    real(rk8) :: root14a , root14b , root5 , root5a , root5b , root7 , &
+    real(rkx) :: root14a , root14b , root5 , root5a , root5b , root7 , &
          root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
     integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -44794,8 +44841,8 @@ module mod_che_isorropia
       if ( ki*ki*so4i>a9 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root13-root14)
         cc = (waer(7)-root13-root14)*(waer(2)-waer(6))                    &
-             + 0.25D0*(waer(7)-root13-root14)**2
-        dd = -0.25D0*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
+             + 0.25_rkx*(waer(7)-root13-root14)**2
+        dd = -0.25_rkx*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
         call poly3(bb,cc,dd,root9,islv)
         if ( islv/=0 ) root9 = tiny1
         root9 = min(root9,waer(7)/2.0-root13-root14,(waer(2)-waer(6)),    &
@@ -44809,11 +44856,11 @@ module mod_che_isorropia
 !   potssium nitrate
 !
       if ( ki*no3i>a13 ) then
-        bb = -(waer(4)-root8+waer(7)-2.D0*root9-root14)
-        cc = (waer(4)-root8)*(waer(7)-2.D0*root9-root14) - a13
-        dd = sqrt(max(bb*bb-4.D0*cc,zero))
-        root13a = 0.5D0*(-bb-dd)
-        root13b = 0.5D0*(-bb+dd)
+        bb = -(waer(4)-root8+waer(7)-2._rkx*root9-root14)
+        cc = (waer(4)-root8)*(waer(7)-2._rkx*root9-root14) - a13
+        dd = sqrt(max(bb*bb-4._rkx*cc,zero))
+        root13a = 0.5_rkx*(-bb-dd)
+        root13b = 0.5_rkx*(-bb+dd)
         if ( zero<=root13a ) then
           root13 = root13a
         else
@@ -44828,11 +44875,11 @@ module mod_che_isorropia
 !   potssium cloride
 !
       if ( ki*cli>a14 ) then
-        bb = -(waer(5)-root5-root7+waer(7)-2.D0*root9-root13)
-        cc = (waer(5)-root5-root7)*(waer(7)-2.D0*root9-root13) - a14
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root14a = 0.5D0*(-bb-dd)
-        root14b = 0.5D0*(-bb+dd)
+        bb = -(waer(5)-root5-root7+waer(7)-2._rkx*root9-root13)
+        cc = (waer(5)-root5-root7)*(waer(7)-2._rkx*root9-root13) - a14
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root14a = 0.5_rkx*(-bb-dd)
+        root14b = 0.5_rkx*(-bb+dd)
         if ( zero<=root14a ) then
           root14 = root14a
         else
@@ -44849,9 +44896,9 @@ module mod_che_isorropia
       if ( nh4i*cli>a5 ) then
         bb = -(waer(5)+waer(3)-root14-root7)
         cc = (waer(5)-root14-root7)*waer(3) - a5
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root5a = 0.5D0*(-bb-dd)
-        root5b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root5a = 0.5_rkx*(-bb-dd)
+        root5b = 0.5_rkx*(-bb+dd)
         if ( zero<=root5a ) then
           root5 = root5a
         else
@@ -44868,9 +44915,9 @@ module mod_che_isorropia
       if ( nai*cli>a7 ) then
         bb = -(waer(5)+waer(1)-root8-root14-root5)
         cc = (waer(5)-root14-root5)*(waer(1)-root8) - a7
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root7a = 0.5D0*(-bb-dd)
-        root7b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root7a = 0.5_rkx*(-bb-dd)
+        root7b = 0.5_rkx*(-bb+dd)
         if ( zero<=root7a ) then
           root7 = root7a
         else
@@ -44887,9 +44934,9 @@ module mod_che_isorropia
       if ( nai*no3i>a8 ) then
         bb = -(waer(4)-root13+waer(1)-root7)
         cc = (waer(4)-root13)*(waer(1)-root7) - a8
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root8a = 0.5D0*(-bb-dd)
-        root8b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root8a = 0.5_rkx*(-bb-dd)
+        root8b = 0.5_rkx*(-bb+dd)
         if ( zero<=root8a ) then
           root8 = root8a
         else
@@ -44903,7 +44950,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root9-root13-root14,zero)
+      ki = max(waer(7)-2._rkx*root9-root13-root14,zero)
       so4i = max(waer(2)-waer(6)-root9,zero)
       nh4i = max(waer(3)-root5,zero)
       no3i = max(waer(4)-root13-root8,zero)
@@ -44914,18 +44961,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -45095,14 +45142,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , root13 , &
          root13a , root13b , root14
-    real(rk8) :: root14a , root14b , root5 , root5a , root5b , root7 , &
+    real(rkx) :: root14a , root14b , root5 , root5a , root5b , root7 , &
          root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
     integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -45194,8 +45241,8 @@ module mod_che_isorropia
       if ( ki*ki*so4i>a9 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root13-root14)
         cc = (waer(7)-root13-root14)*(waer(2)-waer(6))                    &
-             + 0.25D0*(waer(7)-root13-root14)**2
-        dd = -0.25D0*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
+             + 0.25_rkx*(waer(7)-root13-root14)**2
+        dd = -0.25_rkx*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
         call poly3(bb,cc,dd,root9,islv)
         if ( islv/=0 ) root9 = tiny1
         root9 = min(root9,waer(7)/2.0-root13-root14,(waer(2)-waer(6)),    &
@@ -45209,11 +45256,11 @@ module mod_che_isorropia
 !   potssium nitrate
 !
       if ( ki*no3i>a13 ) then
-        bb = -(waer(4)-root8+waer(7)-2.D0*root9-root14)
-        cc = (waer(4)-root8)*(waer(7)-2.D0*root9-root14) - a13
-        dd = sqrt(max(bb*bb-4.D0*cc,zero))
-        root13a = 0.5D0*(-bb-dd)
-        root13b = 0.5D0*(-bb+dd)
+        bb = -(waer(4)-root8+waer(7)-2._rkx*root9-root14)
+        cc = (waer(4)-root8)*(waer(7)-2._rkx*root9-root14) - a13
+        dd = sqrt(max(bb*bb-4._rkx*cc,zero))
+        root13a = 0.5_rkx*(-bb-dd)
+        root13b = 0.5_rkx*(-bb+dd)
         if ( zero<=root13a ) then
           root13 = root13a
         else
@@ -45228,11 +45275,11 @@ module mod_che_isorropia
 !   potssium cloride
 !
       if ( ki*cli>a14 ) then
-        bb = -(waer(5)-root5-root7+waer(7)-2.D0*root9-root13)
-        cc = (waer(5)-root5-root7)*(waer(7)-2.D0*root9-root13) - a14
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root14a = 0.5D0*(-bb-dd)
-        root14b = 0.5D0*(-bb+dd)
+        bb = -(waer(5)-root5-root7+waer(7)-2._rkx*root9-root13)
+        cc = (waer(5)-root5-root7)*(waer(7)-2._rkx*root9-root13) - a14
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root14a = 0.5_rkx*(-bb-dd)
+        root14b = 0.5_rkx*(-bb+dd)
         if ( zero<=root14a ) then
           root14 = root14a
         else
@@ -45249,9 +45296,9 @@ module mod_che_isorropia
       if ( nh4i*cli>a5 ) then
         bb = -(waer(5)+waer(3)-root14-root7)
         cc = (waer(5)-root14-root7)*waer(3) - a5
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root5a = 0.5D0*(-bb-dd)
-        root5b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root5a = 0.5_rkx*(-bb-dd)
+        root5b = 0.5_rkx*(-bb+dd)
         if ( zero<=root5a ) then
           root5 = root5a
         else
@@ -45268,9 +45315,9 @@ module mod_che_isorropia
       if ( nai*cli>a7 ) then
         bb = -(waer(5)+waer(1)-root8-root14-root5)
         cc = (waer(5)-root14-root5)*(waer(1)-root8) - a7
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root7a = 0.5D0*(-bb-dd)
-        root7b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root7a = 0.5_rkx*(-bb-dd)
+        root7b = 0.5_rkx*(-bb+dd)
         if ( zero<=root7a ) then
           root7 = root7a
         else
@@ -45287,9 +45334,9 @@ module mod_che_isorropia
       if ( nai*no3i>a8 ) then
         bb = -(waer(4)-root13+waer(1)-root7)
         cc = (waer(4)-root13)*(waer(1)-root7) - a8
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root8a = 0.5D0*(-bb-dd)
-        root8b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root8a = 0.5_rkx*(-bb-dd)
+        root8b = 0.5_rkx*(-bb+dd)
         if ( zero<=root8a ) then
           root8 = root8a
         else
@@ -45303,7 +45350,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root9-root13-root14,zero)
+      ki = max(waer(7)-2._rkx*root9-root13-root14,zero)
       so4i = max(waer(2)-waer(6)-root9,zero)
       nh4i = max(waer(3)-root5,zero)
       no3i = max(waer(4)-root13-root8,zero)
@@ -45314,18 +45361,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -45499,14 +45546,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , &
          root13 , root13a , root13b , root14
-    real(rk8) :: root14a , root14b , root5 , root5a , root5b , root7 , &
+    real(rkx) :: root14a , root14b , root5 , root5a , root5b , root7 , &
          root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
     integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -45599,8 +45646,8 @@ module mod_che_isorropia
       if ( ki*ki*so4i>a9 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root13-root14)
         cc = (waer(7)-root13-root14)*(waer(2)-waer(6))                    &
-             + 0.25D0*(waer(7)-root13-root14)**2
-        dd = -0.25D0*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
+             + 0.25_rkx*(waer(7)-root13-root14)**2
+        dd = -0.25_rkx*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
         call poly3(bb,cc,dd,root9,islv)
         if ( islv/=0 ) root9 = tiny1
         root9 = min(root9,waer(7)/2.0-root13-root14,(waer(2)-waer(6)),    &
@@ -45614,11 +45661,11 @@ module mod_che_isorropia
 !   potssium nitrate
 !
       if ( ki*no3i>a13 ) then
-        bb = -(waer(4)-root8+waer(7)-2.D0*root9-root14)
-        cc = (waer(4)-root8)*(waer(7)-2.D0*root9-root14) - a13
-        dd = sqrt(max(bb*bb-4.D0*cc,zero))
-        root13a = 0.5D0*(-bb-dd)
-        root13b = 0.5D0*(-bb+dd)
+        bb = -(waer(4)-root8+waer(7)-2._rkx*root9-root14)
+        cc = (waer(4)-root8)*(waer(7)-2._rkx*root9-root14) - a13
+        dd = sqrt(max(bb*bb-4._rkx*cc,zero))
+        root13a = 0.5_rkx*(-bb-dd)
+        root13b = 0.5_rkx*(-bb+dd)
         if ( zero<=root13a ) then
           root13 = root13a
         else
@@ -45633,11 +45680,11 @@ module mod_che_isorropia
 !   potssium cloride
 !
       if ( ki*cli>a14 ) then
-        bb = -(waer(5)-root5-root7+waer(7)-2.D0*root9-root13)
-        cc = (waer(5)-root5-root7)*(waer(7)-2.D0*root9-root13) - a14
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root14a = 0.5D0*(-bb-dd)
-        root14b = 0.5D0*(-bb+dd)
+        bb = -(waer(5)-root5-root7+waer(7)-2._rkx*root9-root13)
+        cc = (waer(5)-root5-root7)*(waer(7)-2._rkx*root9-root13) - a14
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root14a = 0.5_rkx*(-bb-dd)
+        root14b = 0.5_rkx*(-bb+dd)
         if ( zero<=root14a ) then
           root14 = root14a
         else
@@ -45654,9 +45701,9 @@ module mod_che_isorropia
       if ( nh4i*cli>a5 ) then
         bb = -(waer(5)+waer(3)-root14-root7)
         cc = (waer(5)-root14-root7)*waer(3) - a5
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root5a = 0.5D0*(-bb-dd)
-        root5b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root5a = 0.5_rkx*(-bb-dd)
+        root5b = 0.5_rkx*(-bb+dd)
         if ( zero<=root5a ) then
           root5 = root5a
         else
@@ -45673,9 +45720,9 @@ module mod_che_isorropia
       if ( nai*cli>a7 ) then
         bb = -(waer(5)+waer(1)-root8-root14-root5)
         cc = (waer(5)-root14-root5)*(waer(1)-root8) - a7
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root7a = 0.5D0*(-bb-dd)
-        root7b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root7a = 0.5_rkx*(-bb-dd)
+        root7b = 0.5_rkx*(-bb+dd)
         if ( zero<=root7a ) then
           root7 = root7a
         else
@@ -45692,9 +45739,9 @@ module mod_che_isorropia
       if ( nai*no3i>a8 ) then
         bb = -(waer(4)-root13+waer(1)-root7)
         cc = (waer(4)-root13)*(waer(1)-root7) - a8
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root8a = 0.5D0*(-bb-dd)
-        root8b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root8a = 0.5_rkx*(-bb-dd)
+        root8b = 0.5_rkx*(-bb+dd)
         if ( zero<=root8a ) then
           root8 = root8a
         else
@@ -45708,7 +45755,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root9-root13-root14,zero)
+      ki = max(waer(7)-2._rkx*root9-root13-root14,zero)
       so4i = max(waer(2)-waer(6)-root9,zero)
       nh4i = max(waer(3)-root5,zero)
       no3i = max(waer(4)-root13-root8,zero)
@@ -45719,18 +45766,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -45934,14 +45981,14 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+    real(rkx) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , root13 , &
          root13a , root13b , root14
-    real(rk8) :: root14a , root14b , root5 , root5a , root5b , root7 , &
+    real(rkx) :: root14a , root14b , root5 , root5a , root5b , root7 , &
          root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
     integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
-    real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
+    real(rkx) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
 !
@@ -46035,8 +46082,8 @@ module mod_che_isorropia
       if ( ki*ki*so4i>a9 ) then
         bb = -((waer(2)-waer(6))+waer(7)-root13-root14)
         cc = (waer(7)-root13-root14)*(waer(2)-waer(6))                    &
-             + 0.25D0*(waer(7)-root13-root14)**2
-        dd = -0.25D0*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
+             + 0.25_rkx*(waer(7)-root13-root14)**2
+        dd = -0.25_rkx*((waer(7)-root13-root14)**2*(waer(2)-waer(6))-a9)
         call poly3(bb,cc,dd,root9,islv)
         if ( islv/=0 ) root9 = tiny1
         root9 = min(root9,waer(7)/2.0-root13-root14,(waer(2)-waer(6)),    &
@@ -46050,11 +46097,11 @@ module mod_che_isorropia
 !   potssium nitrate
 !
       if ( ki*no3i>a13 ) then
-        bb = -(waer(4)-root8+waer(7)-2.D0*root9-root14)
-        cc = (waer(4)-root8)*(waer(7)-2.D0*root9-root14) - a13
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root13a = 0.5D0*(-bb-dd)
-        root13b = 0.5D0*(-bb+dd)
+        bb = -(waer(4)-root8+waer(7)-2._rkx*root9-root14)
+        cc = (waer(4)-root8)*(waer(7)-2._rkx*root9-root14) - a13
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root13a = 0.5_rkx*(-bb-dd)
+        root13b = 0.5_rkx*(-bb+dd)
         if ( zero<=root13a ) then
           root13 = root13a
         else
@@ -46069,11 +46116,11 @@ module mod_che_isorropia
 !   potssium cloride
 !
       if ( ki*cli>a14 ) then
-        bb = -(waer(5)-root5-root7+waer(7)-2.D0*root9-root13)
-        cc = (waer(5)-root5-root7)*(waer(7)-2.D0*root9-root13) - a14
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root14a = 0.5D0*(-bb-dd)
-        root14b = 0.5D0*(-bb+dd)
+        bb = -(waer(5)-root5-root7+waer(7)-2._rkx*root9-root13)
+        cc = (waer(5)-root5-root7)*(waer(7)-2._rkx*root9-root13) - a14
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root14a = 0.5_rkx*(-bb-dd)
+        root14b = 0.5_rkx*(-bb+dd)
         if ( zero<=root14a ) then
           root14 = root14a
         else
@@ -46090,9 +46137,9 @@ module mod_che_isorropia
       if ( nh4i*cli>a5 ) then
         bb = -(waer(5)+waer(3)-root14-root7)
         cc = (waer(5)-root14-root7)*waer(3) - a5
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root5a = 0.5D0*(-bb-dd)
-        root5b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root5a = 0.5_rkx*(-bb-dd)
+        root5b = 0.5_rkx*(-bb+dd)
         if ( zero<=root5a ) then
           root5 = root5a
         else
@@ -46109,9 +46156,9 @@ module mod_che_isorropia
       if ( nai*cli>a7 ) then
         bb = -(waer(5)+waer(1)-root8-root14-root5)
         cc = (waer(5)-root14-root5)*(waer(1)-root8) - a7
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root7a = 0.5D0*(-bb-dd)
-        root7b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root7a = 0.5_rkx*(-bb-dd)
+        root7b = 0.5_rkx*(-bb+dd)
         if ( zero<=root7a ) then
           root7 = root7a
         else
@@ -46128,9 +46175,9 @@ module mod_che_isorropia
       if ( nai*no3i>a8 ) then
         bb = -(waer(4)-root13+waer(1)-root7)
         cc = (waer(4)-root13)*(waer(1)-root7) - a8
-        dd = sqrt(max(bb*bb-4.D0*cc,tiny1))
-        root8a = 0.5D0*(-bb-dd)
-        root8b = 0.5D0*(-bb+dd)
+        dd = sqrt(max(bb*bb-4._rkx*cc,tiny1))
+        root8a = 0.5_rkx*(-bb-dd)
+        root8b = 0.5_rkx*(-bb+dd)
         if ( zero<=root8a ) then
           root8 = root8a
         else
@@ -46144,7 +46191,7 @@ module mod_che_isorropia
 !
 !   ion concentrations ; corrections
 !
-      ki = max(waer(7)-2.D0*root9-root13-root14,zero)
+      ki = max(waer(7)-2._rkx*root9-root13-root14,zero)
       so4i = max(waer(2)-waer(6)-root9,zero)
       nh4i = max(waer(3)-root5,zero)
       no3i = max(waer(4)-root13-root8,zero)
@@ -46155,18 +46202,18 @@ module mod_che_isorropia
 !
 !   soltion acidic or basic?
 !
-      gg = 2.D0*so4i + no3i + cli - nai - nh4i - 2.D0*cai - ki - 2.D0*mgi
+      gg = 2._rkx*so4i + no3i + cli - nai - nh4i - 2._rkx*cai - ki - 2._rkx*mgi
       if ( gg>tiny1 ) then                        ! h+ in excess
         bb = -gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        hi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        hi = 0.5_rkx*(-bb+sqrt(dd))
         ohi = akw/hi
       else                                        ! oh- in excess
         bb = gg
         cc = -akw
-        dd = bb*bb - 4.D0*cc
-        ohi = 0.5D0*(-bb+sqrt(dd))
+        dd = bb*bb - 4._rkx*cc
+        ohi = 0.5_rkx*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
 !
@@ -46321,33 +46368,33 @@ module mod_che_isorropia
   subroutine calcw1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: cafr , clfr , frk , frmg , frna , frno3 , so4fr
+    real(rkx) :: cafr , clfr , frk , frmg , frna , frno3 , so4fr
 !
 ! *** calculate solids
 ! **************************************************
     ccaso4 = min(waer(2),waer(6))                   !solid caso4
     cafr = max(waer(6)-ccaso4,zero)
     so4fr = max(waer(2)-ccaso4,zero)
-    ck2so4 = min(so4fr,0.5D0*waer(7))                !solid k2so4
-    frk = max(waer(7)-2.D0*ck2so4,zero)
+    ck2so4 = min(so4fr,0.5_rkx*waer(7))                !solid k2so4
+    frk = max(waer(7)-2._rkx*ck2so4,zero)
     so4fr = max(so4fr-ck2so4,zero)
     cmgso4 = so4fr                                  !solid mgso4
     frmg = max(waer(8)-cmgso4,zero)
     cnacl = min(waer(1),waer(5))                    !solid nacl
     frna = max(waer(1)-cnacl,zero)
     clfr = max(waer(5)-cnacl,zero)
-    ccacl2 = min(cafr,0.5D0*clfr)                    !solid cacl2
+    ccacl2 = min(cafr,0.5_rkx*clfr)                    !solid cacl2
     cafr = max(cafr-ccacl2,zero)
-    clfr = max(waer(5)-2.D0*ccacl2,zero)
-    ccano32 = min(cafr,0.5D0*waer(4))                !solid ca(no3)2
+    clfr = max(waer(5)-2._rkx*ccacl2,zero)
+    ccano32 = min(cafr,0.5_rkx*waer(4))                !solid ca(no3)2
     cafr = max(cafr-ccano32,zero)
-    frno3 = max(waer(4)-2.D0*ccano32,zero)
-    cmgcl2 = min(frmg,0.5D0*clfr)                    !solid mgcl2
+    frno3 = max(waer(4)-2._rkx*ccano32,zero)
+    cmgcl2 = min(frmg,0.5_rkx*clfr)                    !solid mgcl2
     frmg = max(frmg-cmgcl2,zero)
-    clfr = max(clfr-2.D0*cmgcl2,zero)
-    cmgno32 = min(frmg,0.5D0*frno3)                  !solid mg(no3)2
+    clfr = max(clfr-2._rkx*cmgcl2,zero)
+    cmgno32 = min(frmg,0.5_rkx*frno3)                  !solid mg(no3)2
     frmg = max(frmg-cmgno32,zero)
-    frno3 = max(frno3-2.D0*cmgno32,zero)
+    frno3 = max(frno3-2._rkx*cmgno32,zero)
     cnano3 = min(frna,frno3)                         !solid nano3
     frna = max(frna-cnano3,zero)
     frno3 = max(frno3-cnano3,zero)

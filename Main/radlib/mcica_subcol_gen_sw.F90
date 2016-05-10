@@ -27,7 +27,7 @@ module mcica_subcol_gen_sw
 
 ! --------- Modules ----------
 
-      use parkind, only : im => kind_im, rb => kind_rb
+      use parkind, only : im => kind_im, rb => kind_rb , almostzero
       use parrrsw, only : nbndsw, ngptsw
       use rrsw_con, only: grav
       use rrsw_wvn, only: ngb
@@ -289,7 +289,7 @@ module mcica_subcol_gen_sw
 !      real(kind=rb), dimension(nlay) :: alpha=0.0_rb    ! overlap parameter
 
 ! Constants (min value for cloud fraction and cloud water and ice)
-      real(kind=rb), parameter :: cldmin = 1.0e-20_rb ! min cloud fraction
+      real(kind=rb), parameter :: cldmin = almostzero ! min cloud fraction
 !      real(kind=rb), parameter :: qmin   = 1.0e-10_rb   ! min cloud water and cloud ice (not used)
 
 ! Variables related to random number and seed

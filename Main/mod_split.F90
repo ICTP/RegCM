@@ -37,18 +37,18 @@ module mod_split
 
   public :: allocate_mod_split , spinit , splitf
 
-  real(rk8) , pointer , dimension(:) :: aam
-  real(rk8) , pointer , dimension(:) :: an
-  real(rk8) , pointer , dimension(:,:) :: am
-  real(rk8) , pointer , dimension(:,:,:) :: uuu , vvv
+  real(rkx) , pointer , dimension(:) :: aam
+  real(rkx) , pointer , dimension(:) :: an
+  real(rkx) , pointer , dimension(:,:) :: am
+  real(rkx) , pointer , dimension(:,:,:) :: uuu , vvv
 
-  real(rk8) , pointer , dimension(:,:,:) :: ddsum
-  real(rk8) , pointer , dimension(:,:,:) :: dhsum
-  real(rk8) , pointer , dimension(:,:,:,:) :: deld
-  real(rk8) , pointer , dimension(:,:,:,:) :: delh
-  real(rk8) , pointer , dimension(:,:,:) :: work
-  real(rk8) , pointer , dimension(:,:) :: uu , vv
-  real(rk8) , pointer , dimension(:,:) :: xdelh
+  real(rkx) , pointer , dimension(:,:,:) :: ddsum
+  real(rkx) , pointer , dimension(:,:,:) :: dhsum
+  real(rkx) , pointer , dimension(:,:,:,:) :: deld
+  real(rkx) , pointer , dimension(:,:,:,:) :: delh
+  real(rkx) , pointer , dimension(:,:,:) :: work
+  real(rkx) , pointer , dimension(:,:) :: uu , vv
+  real(rkx) , pointer , dimension(:,:) :: xdelh
 
   contains
 
@@ -73,7 +73,7 @@ module mod_split
   !
   subroutine spinit
     implicit none
-    real(rk8) :: eps , eps1 , fac , pdlog
+    real(rkx) :: eps , eps1 , fac , pdlog
     integer(ik4) :: i , ijlx , j , k , l , n , ns
     logical :: lstand
 #ifdef DEBUG
@@ -85,7 +85,7 @@ module mod_split
     ! Compute m.
     !
     do ns = 1 , nsplit
-      aam(ns) = dnint(dtsec/dtau(ns))
+      aam(ns) = nint(dtsec/dtau(ns))
     end do
     !
     ! lstand = .true. if standard atmosphere t to be used (ignore input
@@ -237,7 +237,7 @@ module mod_split
   !
   subroutine splitf
     implicit none
-    real(rk8) :: eps , eps1 , fac , gnuam , gnuan , gnuzm , pdlog , x , y
+    real(rkx) :: eps , eps1 , fac , gnuam , gnuan , gnuzm , pdlog , x , y
     integer(ik4) :: i , j , k , l , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'splitf'
@@ -473,7 +473,7 @@ module mod_split
 
   subroutine spstep
     implicit none
-    real(rk8) :: dtau2 , fac
+    real(rkx) :: dtau2 , fac
     integer(ik4) :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'spstep'
@@ -493,7 +493,7 @@ module mod_split
       n0 = 1
       n1 = 2
       n2 = n0
-      m2 = idint(aam(ns))*2
+      m2 = int(aam(ns))*2
       dtau2 = dtau(ns)*d_two
       !
       ! below follows Madala (1987)

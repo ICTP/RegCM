@@ -67,12 +67,12 @@ module mod_scrip_remap_distwgt
   integer(ik4) , parameter :: num_neighbors = 4
 
   ! cosine, sine of grid lats, lons (for distance)
-  real(rk8) , dimension(:) , allocatable , save :: coslat
-  real(rk8) , dimension(:) , allocatable , save :: sinlat
-  real(rk8) , dimension(:) , allocatable , save :: coslon
-  real(rk8) , dimension(:) , allocatable , save :: sinlon
+  real(rkx) , dimension(:) , allocatable , save :: coslat
+  real(rkx) , dimension(:) , allocatable , save :: sinlat
+  real(rkx) , dimension(:) , allocatable , save :: coslon
+  real(rkx) , dimension(:) , allocatable , save :: sinlon
   ! an array to hold the link weight
-  real(rk8) , dimension(:) , allocatable , save :: wgtstmp
+  real(rkx) , dimension(:) , allocatable , save :: wgtstmp
 
   public :: remap_distwgt
 
@@ -90,12 +90,12 @@ module mod_scrip_remap_distwgt
       ! source address at nearest neighbors
       integer(ik4) , dimension(num_neighbors) :: nbr_add
       ! angular distance four nearest neighbors
-      real(rk8) , dimension(num_neighbors) :: nbr_dist
-      real(rk8) :: coslat_dst ! cos(lat) of destination grid point
-      real(rk8) :: coslon_dst ! cos(lon) of destination grid point
-      real(rk8) :: sinlat_dst ! sin(lat) of destination grid point
-      real(rk8) :: sinlon_dst ! sin(lon) of destination grid point
-      real(rk8) :: dist_tot   ! sum of neighbor distances (for normalizing)
+      real(rkx) , dimension(num_neighbors) :: nbr_dist
+      real(rkx) :: coslat_dst ! cos(lat) of destination grid point
+      real(rkx) :: coslon_dst ! cos(lon) of destination grid point
+      real(rkx) :: sinlat_dst ! sin(lat) of destination grid point
+      real(rkx) :: sinlon_dst ! sin(lon) of destination grid point
+      real(rkx) :: dist_tot   ! sum of neighbor distances (for normalizing)
       !
       ! compute mappings from grid1 to grid2
       !
@@ -237,21 +237,21 @@ module mod_scrip_remap_distwgt
       ! address of each of the closest points
       integer(ik4) , dimension(num_neighbors) , intent(out) :: nbr_add
       ! distance to each of the closest points
-      real(rk8) , dimension(num_neighbors) , intent(out) :: nbr_dist
+      real(rkx) , dimension(num_neighbors) , intent(out) :: nbr_dist
 
       ! search bins for restricting search
       integer(ik4) , dimension(:,:) , intent(in) :: src_bin_add
       integer(ik4) , dimension(:,:) , intent(in) :: dst_bin_add
-      real(rk8) , intent(in) :: plat         ! latitude  of the search point
-      real(rk8) , intent(in) :: plon         ! longitude of the search point
-      real(rk8) , intent(in) :: coslat_dst   ! cos(lat)  of the search point
-      real(rk8) , intent(in) :: coslon_dst   ! cos(lon)  of the search point
-      real(rk8) , intent(in) :: sinlat_dst   ! sin(lat)  of the search point
-      real(rk8) , intent(in) :: sinlon_dst   ! sin(lon)  of the search point
+      real(rkx) , intent(in) :: plat         ! latitude  of the search point
+      real(rkx) , intent(in) :: plon         ! longitude of the search point
+      real(rkx) , intent(in) :: coslat_dst   ! cos(lat)  of the search point
+      real(rkx) , intent(in) :: coslon_dst   ! cos(lon)  of the search point
+      real(rkx) , intent(in) :: sinlat_dst   ! sin(lat)  of the search point
+      real(rkx) , intent(in) :: sinlon_dst   ! sin(lon)  of the search point
 
       integer(ik4) :: n , nmax , nadd , nchk , & ! dummy indices
               min_add , max_add , nm1 , np1 , i , j , ip1 , im1 , jp1 , jm1
-      real(rk8) :: distance      ! angular distance
+      real(rkx) :: distance      ! angular distance
       !
       ! loop over source grid and find nearest neighbors
       !
@@ -341,7 +341,7 @@ module mod_scrip_remap_distwgt
       integer(ik4) , intent(in) :: add2 ! address on grid2
       integer(ik4) , intent(in) :: nmap ! identifies which direction for mapping
       ! array of remapping weights for this link
-      real(rk8) , dimension(:) , intent(in) :: weights
+      real(rkx) , dimension(:) , intent(in) :: weights
       !
       ! increment number of links and check to see if remap arrays need
       ! to be increased to accomodate the new link.  then store the

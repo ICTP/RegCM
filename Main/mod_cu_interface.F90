@@ -98,8 +98,8 @@ module mod_cu_interface
     call getmem2d(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( mddom%lndcat(j,i) > 14.5D0 .and. &
-             mddom%lndcat(j,i) < 15.5D0 ) then
+        if ( mddom%lndcat(j,i) > 14.5_rkx .and. &
+             mddom%lndcat(j,i) < 15.5_rkx ) then
           cuscheme(j,i) = icup_ocn
         else
           cuscheme(j,i) = icup_lnd
@@ -136,6 +136,7 @@ module mod_cu_interface
     call assignpnt(mddom%ht,m2c%ht)
     call assignpnt(mddom%ldmsk,m2c%ldmsk)
     call assignpnt(sfs%psb,m2c%psb)
+    call assignpnt(sfs%psa,m2c%psa)
     call assignpnt(sfs%psdotb,m2c%psdotb)
     call assignpnt(atms%za,m2c%zas)
     call assignpnt(atms%zq,m2c%zfs)
@@ -154,6 +155,7 @@ module mod_cu_interface
     call assignpnt(atms%rhob3d,m2c%rhoas)
     call assignpnt(atms%chib3d,m2c%chias)
     call assignpnt(qdot,m2c%qdot)
+    call assignpnt(atm1%qx,m2c%qq1,iqv)
     call assignpnt(sfs%qfx,m2c%qfx)
     call assignpnt(sfs%hfx,m2c%hfx)
     call assignpnt(ktrop,m2c%ktrop)
@@ -352,7 +354,7 @@ module mod_cu_interface
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            c2m%cldfrc(j,i,k) = max(cu_cldfrc(j,i,k),1D-10)
+            c2m%cldfrc(j,i,k) = max(cu_cldfrc(j,i,k),1e-10_rkx)
             c2m%cldlwc(j,i,k) = cu_cldlwc(j,i,k)
           end do
         end do

@@ -48,7 +48,7 @@ program chem_icbc
   integer(ik4) :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
         ichsolver , idirect , ichdustemd , ichdiag , ichsursrc ,  &
         iindirect , ichebdy , ichjphcld , ichbion
-  real(rk8) :: rdstemfac
+  real(rkx) :: rdstemfac
   logical :: dochem , dooxcl , doaero
   data dochem /.false./
   data dooxcl /.false./
@@ -116,7 +116,7 @@ program chem_icbc
 
   tdif = globidate2-globidate1
   tbdy = rcm_time_interval(ibdyfrq,uhrs)
-  nsteps = idnint(tohours(tdif))/ibdyfrq + 1
+  nsteps = nint(tohours(tdif))/ibdyfrq + 1
 
   write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
   write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)

@@ -35,9 +35,9 @@ module mod_bats_bndry
 
   public :: soilbc , bndry
 
-  real(rk8) , parameter :: lowsice = 1.0D-22
-  real(rk8) , parameter :: rainsnowtemp = 2.2D0
-  real(rk8) , parameter :: xnu = twopi/secpd
+  real(rkx) , parameter :: lowsice = 1.0e-22_rkx
+  real(rkx) , parameter :: rainsnowtemp = 2.2_rkx
+  real(rkx) , parameter :: xnu = twopi/secpd
 
   contains
 
@@ -54,7 +54,7 @@ module mod_bats_bndry
   !
   subroutine soilbc
     implicit none
-    real(rk8) :: ck , dmax , dmin , dmnor , phi0 , tweak1
+    real(rkx) :: ck , dmax , dmin , dmnor , phi0 , tweak1
     integer(ik4) :: itex , i
     !
     ! ================================================================
@@ -71,23 +71,23 @@ module mod_bats_bndry
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ilndbeg , ilndend
-      freza(lveg(i)) = 0.15D0*deprv(lveg(i))
-      frezu(lveg(i)) = 0.15D0*depuv(lveg(i))
+      freza(lveg(i)) = 0.15_rkx*deprv(lveg(i))
+      frezu(lveg(i)) = 0.15_rkx*depuv(lveg(i))
       itex = iexsol(lveg(i))
       texrat(i) = skrat(itex)
       porsl(i) = xmopor(itex)
       xkmx(i) = xmohyd(itex)
       bsw(i) = bee(itex)
-      bfc(i) = 5.8D0 - bsw(i)*(0.8D0+0.12D0*(bsw(i)-d_four) * &
-               log10(1.0D2*xkmx(i)))
+      bfc(i) = 5.8_rkx - bsw(i)*(0.8_rkx+0.12_rkx*(bsw(i)-d_four) * &
+               log10(1.0e2_rkx*xkmx(i)))
       phi0 = xmosuc(itex)
       dmax = bsw(i)*phi0*xkmx(i)/porsl(i)
-      dmin = 1.0D-3
-      dmnor = 1550.0D0*dmin/dmax
-      tweak1 = (bsw(i)*(bsw(i)-6.0D0)+10.3D0) / &
-               (bsw(i)*bsw(i)+40.0D0*bsw(i))
-      ck = (d_one+dmnor)*tweak1*0.23D0/0.02356D0
-      evmx0(i) = 1.02D0*dmax*ck/sqrt(depuv(lveg(i))*deprv(lveg(i)))
+      dmin = 1.0e-3_rkx
+      dmnor = 1550.0_rkx*dmin/dmax
+      tweak1 = (bsw(i)*(bsw(i)-6.0_rkx)+10.3_rkx) / &
+               (bsw(i)*bsw(i)+40.0_rkx*bsw(i))
+      ck = (d_one+dmnor)*tweak1*0.23_rkx/0.02356_rkx
+      evmx0(i) = 1.02_rkx*dmax*ck/sqrt(depuv(lveg(i))*deprv(lveg(i)))
       gwmx0(i) = depuv(lveg(i))*porsl(i)
       gwmx1(i) = deprv(lveg(i))*porsl(i)
       gwmx2(i) = deptv(lveg(i))*porsl(i)
@@ -97,7 +97,7 @@ module mod_bats_bndry
       ! Imported Lara Kuepper's Irrigated Crop modification from RegCM3
       ! see Kueppers et al. (2008)
       ! relaw is between field capacity and wilting point
-      ! relaw(i) = 0.75D0*(xmofc(itex)-xmowil(itex))+xmowil(itex)
+      ! relaw(i) = 0.75_rkx*(xmofc(itex)-xmowil(itex))+xmowil(itex)
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -149,7 +149,7 @@ module mod_bats_bndry
   subroutine bndry
     implicit none
 
-    real(rk8) :: qsatd , rai
+    real(rkx) :: qsatd , rai
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bndry'
@@ -324,7 +324,7 @@ module mod_bats_bndry
   subroutine drip
     implicit none
     integer(ik4) :: i
-    real(rk8) :: xrun
+    real(rkx) :: xrun
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'drip'
     integer(ik4) , save :: idindx = 0
@@ -386,7 +386,7 @@ module mod_bats_bndry
   subroutine water
     implicit none
 !
-    real(rk8) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr , &
+    real(rkx) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr , &
                evmxt , rap , vakb , wtg2c , xxkb , gwatr , rsubsr , &
                rsubss , xkmx1 , xkmx2 , xkmxr , wata
     integer(ik4) :: i
@@ -427,15 +427,15 @@ module mod_bats_bndry
       b = bsw(i)
       bfac = watr(i)**(d_three+bfc(i)) * watu(i)**(b-bfc(i)-d_one)
       bfac2 = watt(i)**(d_two+bfc(i)) * watr(i)**(b-bfc(i))
-      wfluxc(i) = evmxr*(depuv(lveg(i))/deprv(lveg(i)))**0.4D0*bfac
+      wfluxc(i) = evmxr*(depuv(lveg(i))/deprv(lveg(i)))**0.4_rkx*bfac
       wflux1(i) = wfluxc(i)*(watr(i)-watu(i))
       wflux2(i) = evmxt*sqrt(depuv(lveg(i))/deprv(lveg(i)))* &
                   bfac2*(watt(i)-watr(i))
       !
       ! 1.3  gravitational drainage
       !
-      rsubss = xkmxr*watr(i)**(b+d_half) * watu(i)**(b+2.5D0)
-      rsubsr = xkmx1*watt(i)**(b+d_half) * watr(i)**(b+2.5D0)
+      rsubss = xkmxr*watr(i)**(b+d_half) * watu(i)**(b+2.5_rkx)
+      rsubsr = xkmx1*watt(i)**(b+d_half) * watr(i)**(b+2.5_rkx)
       rsubst(i) = xkmx2*watt(i)**(d_two*b+d_three)
       !
       ! 1.32 bog
@@ -537,7 +537,7 @@ module mod_bats_bndry
       !
       ! 4.4  check for negative water in top layer
       !
-      if ( ssw(i) <= 1.0D-2 ) ssw(i) = 1.0D-2
+      if ( ssw(i) <= 1.0e-2_rkx ) ssw(i) = 1.0e-2_rkx
       !
       !=================================================================
       !         5.   accumulate leaf interception
@@ -576,7 +576,7 @@ module mod_bats_bndry
       bfac = watr(i)**(d_three+bfc(i)) * watu(i)**(bsw(i)-bfc(i)-d_one)
       est0 = evmx0(i)*bfac*watu(i)
       evmax = max(est0,d_zero)
-      gwet(i) = min(d_one,evmax/max(1.0D-14,rap))
+      gwet(i) = min(d_one,evmax/max(1.0e-14_rkx,rap))
       gwet(i) = scvk(i) + gwet(i)*(d_one-scvk(i))
     end do
 #ifdef DEBUG
@@ -609,10 +609,10 @@ module mod_bats_bndry
   subroutine snow
     implicit none
 
-    real(rk8) :: age1 , age2 , arg , arg2 , dela , dela0 , &
+    real(rkx) :: age1 , age2 , arg , arg2 , dela , dela0 , &
                  dels , tage , sold
     integer(ik4) :: i
-    real(rk8) , parameter :: age3 = 0.3D0
+    real(rkx) , parameter :: age3 = 0.3_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'snow'
     integer(ik4) , save :: idindx = 0
@@ -655,19 +655,19 @@ module mod_bats_bndry
       !       10 mm snow restores surface to that of new snow.
       !==================================================================
       if ( sncv(i) > d_zero ) then
-        arg = 5.0D3*(d_one/tzero-d_one/tgrd(i))
+        arg = 5.0e3_rkx*(d_one/tzero-d_one/tgrd(i))
         age1 = exp(arg)
         arg2 = min(d_zero,d_10*arg)
         age2 = exp(arg2)
         tage = age1 + age2 + age3
-        dela0 = 1.0D-6*dtbat
+        dela0 = 1.0e-6_rkx*dtbat
         dela = dela0*tage
         dels = d_r10*max(d_zero,sncv(i)-sold)
         snag(i) = (snag(i)+dela)*(d_one-dels)
         if ( snag(i) < dlowval ) snag(i) = d_zero
       end if
       ! antarctica
-      if ( sncv(i) > 800.0D0 ) snag(i) = d_zero
+      if ( sncv(i) > 800.0_rkx ) snag(i) = d_zero
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -711,14 +711,14 @@ module mod_bats_bndry
 !
   subroutine tgrund
     implicit none
-    real(rk8) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr , &
+    real(rkx) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr , &
              depu , xdt2 , xdtime , dtimea , froze2 , frozen , rscss ,   &
              tbef , tg , tinc , wtas , wtax , wtd , wtds , hs , depann , &
              depdiu , rscsa , rscsd , ska , skd , sks
-    real(rk8) :: dtbat2 , rdtbat2 , xlexp , xnua , swtrta , swtrtd
+    real(rkx) :: dtbat2 , rdtbat2 , xlexp , xnua , swtrta , swtrtd
     integer(ik4) :: i
-    real(rk8) , parameter :: xkperi = 1.4D-6
-    real(rk8) , parameter :: t3 = 271.0D0 ! permafrost temperature
+    real(rkx) , parameter :: xkperi = 1.4e-6_rkx
+    real(rkx) , parameter :: t3 = 271.0_rkx ! permafrost temperature
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tgrund'
     integer(ik4) , save :: idindx = 0
@@ -744,18 +744,18 @@ module mod_bats_bndry
       !      specific heat only 0.49 that of water
       swtrtd = watu(i)*porsl(i)
       if ( tgrd(i) < tzero ) then
-        frozen = 0.85D0*min(d_one,d_rfour*(tzero-tgrd(i)))
+        frozen = 0.85_rkx*min(d_one,d_rfour*(tzero-tgrd(i)))
         skd = xkperi
-        rscsd = fsc(swtrtd*(d_one-0.51D0*frozen))
+        rscsd = fsc(swtrtd*(d_one-0.51_rkx*frozen))
       else
         skd = fsk(swtrtd)*texrat(i)
         rscsd = fsc(swtrtd)
       end if
       swtrta = watr(i)*porsl(i)
       if ( tgbrd(i) < tzero ) then
-        froze2 = 0.85D0*min(d_one,d_rfour*(tzero-tgbrd(i)))
+        froze2 = 0.85_rkx*min(d_one,d_rfour*(tzero-tgbrd(i)))
         ska = xkperi
-        rscsa = fsc(swtrta*(d_one-0.51D0*froze2))
+        rscsa = fsc(swtrta*(d_one-0.51_rkx*froze2))
       else
         ska = fsk(swtrta)*texrat(i)
         rscsa = fsc(swtrta)
@@ -764,16 +764,16 @@ module mod_bats_bndry
       depdiu = sqrt(d_two*skd/xnu)
       bcoef(i) = xdtime*depdiu/(rscsd*skd)
       sks = d_zero
-      if ( scrat(i) > 0.001D0 ) then
+      if ( scrat(i) > 0.001_rkx ) then
         xlexp = d_two*scrat(i)/depdiu
         ! Graziano : Limit exponential argument
-        if ( xlexp < 25.0D0 ) then
+        if ( xlexp < 25.0_rkx ) then
           wtd = exp(-xlexp)
         else
           wtd = d_zero
         end if
         rscss = csnw*rhosw(i)
-        sks = 7.0D-7*cws*rhosw(i)
+        sks = 7.0e-7_rkx*cws*rhosw(i)
         bcoefs = sqrt(d_two*sks/xnu)/(rscss*sks)
         wtds = (d_one-wtd)*scvk(i)
         bcoefd = sqrt(d_two*skd/xnu)/(rscsd*skd)
@@ -781,9 +781,9 @@ module mod_bats_bndry
         depdiu = wtds*sqrt(d_two*sks/xnu) + (d_one-wtds)*depdiu
       end if
       depann = sqrt(d_two*ska/xnua)
-      if ( scrat(i) > 0.02D0 ) then
+      if ( scrat(i) > 0.02_rkx ) then
         xlexp = d_two*scrat(i)/depann
-        if ( xlexp < 25.0D0 ) then
+        if ( xlexp < 25.0_rkx ) then
           wtax = exp(-xlexp)
         else
           wtax = d_zero
@@ -866,20 +866,20 @@ module mod_bats_bndry
 #endif
   contains
 
-    pure real(rk8) function fsk(x)
+    pure real(rkx) function fsk(x)
       implicit none
-      real(rk8) , intent(in) :: x
-      fsk = (2.9D-7*x+4.0D-9)/(((d_one-0.6D0*x)*x+0.09D0)*(0.23D0+x))
+      real(rkx) , intent(in) :: x
+      fsk = (2.9e-7_rkx*x+4.0e-9_rkx)/(((d_one-0.6_rkx*x)*x+0.09_rkx)*(0.23_rkx+x))
     end function fsk
-    pure real(rk8) function fsc(x)
+    pure real(rkx) function fsc(x)
       implicit none
-      real(rk8) , intent(in) :: x
-      fsc = (0.23D0+x)*4.186D6
+      real(rkx) , intent(in) :: x
+      fsc = (0.23_rkx+x)*4.186e6_rkx
     end function fsc
-    pure real(rk8) function fct1(x)
+    pure real(rkx) function fct1(x)
       implicit none
-      real(rk8) , intent(in) :: x
-      fct1 = wlhf*d_rfour*1.414D0/x
+      real(rkx) , intent(in) :: x
+      fct1 = wlhf*d_rfour*1.414_rkx/x
     end function fct1
 
   end subroutine tgrund

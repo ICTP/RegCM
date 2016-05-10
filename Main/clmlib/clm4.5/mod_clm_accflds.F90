@@ -62,76 +62,76 @@ module mod_clm_accflds
 
     call init_accum_field(fname='TREFAV', units='K', &
          desc='average over an hour of 2-m temperature', &
-         accum_type='timeavg', accum_period=nint(3600.D0/dtsrf), &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         accum_type='timeavg', accum_period=nint(3600.0_rkx/dtsrf), &
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! Hourly average of Urban 2m temperature.
 
     call init_accum_field(fname='TREFAV_U', units='K', &
          desc='average over an hour of urban 2-m temperature', &
-         accum_type='timeavg', accum_period=nint(3600.D0/dtsrf), &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         accum_type='timeavg', accum_period=nint(3600.0_rkx/dtsrf), &
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! Hourly average of Rural 2m temperature.
 
     call init_accum_field(fname='TREFAV_R', units='K', &
          desc='average over an hour of rural 2-m temperature', &
-         accum_type='timeavg', accum_period=nint(3600.D0/dtsrf), &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         accum_type='timeavg', accum_period=nint(3600.0_rkx/dtsrf), &
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! 24hr average of vegetation temperature (heald, 04/06)
     call init_accum_field (fname='T_VEG24', units='K', &
          desc='24hr average of vegetation temperature', &
          accum_type='runmean', accum_period=-1, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! 240hr average of vegetation temperature (heald, 04/06)
     call init_accum_field (fname='T_VEG240', units='K', &
          desc='240hr average of vegetation temperature', &
          accum_type='runmean', accum_period=-10, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! 24hr average of direct solar radiation (heald, 04/06)
     call init_accum_field (fname='FSD24', units='W/m2', &
          desc='24hr average of direct solar radiation', &
          accum_type='runmean', accum_period=-1, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! 240hr average of direct solar radiation (heald, 04/06)
     call init_accum_field (fname='FSD240', units='W/m2', &
          desc='240hr average of direct solar radiation', &
          accum_type='runmean', accum_period=-10, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! 24hr average of diffuse solar radiation (heald, 04/06)
     call init_accum_field (fname='FSI24', units='W/m2', &
          desc='24hr average of diffuse solar radiation', &
          accum_type='runmean', accum_period=-1, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! 240hr average of diffuse solar radiation (heald, 04/06)
     call init_accum_field (fname='FSI240', units='W/m2', &
          desc='240hr average of diffuse solar radiation', &
          accum_type='runmean', accum_period=-10, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! 24hr average of fraction of canopy that is sunlit (heald, 04/06)
     call init_accum_field (fname='FSUN24', units='fraction', &
          desc='24hr average of diffuse solar radiation', &
          accum_type='runmean', accum_period=-1, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! 240hr average of fraction of canopy that is sunlit (heald, 04/06)
     call init_accum_field (fname='FSUN240', units='fraction', &
          desc='240hr average of diffuse solar radiation', &
          accum_type='runmean', accum_period=-10, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! Average of LAI from previous and current timestep (heald, 04/06)
     call init_accum_field (fname='LAIP', units='m2/m2', &
          desc='leaf area index average over timestep', &
          accum_type='runmean', accum_period=1, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! The following is a running mean.
     ! The accumulation period is set to -10 for a 10-day running mean.
@@ -139,7 +139,7 @@ module mod_clm_accflds
     call init_accum_field (fname='T10', units='K', &
          desc='10-day running mean of 2-m temperature', &
          accum_type='runmean', accum_period=-10, &
-         subgrid_type='pft', numlev=1,init_value=tfrz+20.D0)
+         subgrid_type='pft', numlev=1,init_value=tfrz+20.0_rkx)
 
 #if (defined CNDV)
     ! 30-day average of 2m temperature.
@@ -147,7 +147,7 @@ module mod_clm_accflds
     call init_accum_field (fname='TDA', units='K', &
          desc='30-day average of 2-m temperature', &
          accum_type='timeavg', accum_period=-30, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! The following are running means.
     ! The accumulation period is set to -365 for a 365-day running mean.
@@ -155,7 +155,7 @@ module mod_clm_accflds
     call init_accum_field (fname='PREC365', units='MM H2O/S', &
          desc='365-day running mean of total precipitation', &
          accum_type='runmean', accum_period=-365, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     ! The following are accumulated fields.
     ! These types of fields are accumulated until a trigger value resets
@@ -165,23 +165,23 @@ module mod_clm_accflds
     call init_accum_field (fname='AGDDTW', units='K', &
          desc='growing degree-days base twmax', &
          accum_type='runaccum', accum_period=not_used, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     call init_accum_field (fname='AGDD', units='K', &
          desc='growing degree-days base 5C', &
          accum_type='runaccum', accum_period=not_used,  &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 #endif
 
       call init_accum_field (fname='PREC60', units='MM H2O/S', &
          desc='60-day running mean of total precipitation', &
          accum_type='runmean', accum_period=-60, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
          call init_accum_field (fname='PREC10', units='MM H2O/S', &
          desc='10-day running mean of total precipitation', &
          accum_type='runmean', accum_period=-10, &
-         subgrid_type='pft', numlev=1, init_value=0.D0)
+         subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
     if ( crop_prog )then
        ! 10-day average of min 2m temperature.
@@ -204,27 +204,27 @@ module mod_clm_accflds
        call init_accum_field (fname='GDD0', units='K', &
             desc='growing degree-days base 0C from planting', &
             accum_type='runaccum', accum_period=not_used, &
-            subgrid_type='pft', numlev=1, init_value=0.D0)
+            subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
        call init_accum_field (fname='GDD8', units='K', &
             desc='growing degree-days base 8C from planting', &
             accum_type='runaccum', accum_period=not_used, &
-            subgrid_type='pft', numlev=1, init_value=0.D0)
+            subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
        call init_accum_field (fname='GDD10', units='K', &
             desc='growing degree-days base 10C from planting', &
             accum_type='runaccum', accum_period=not_used,  &
-            subgrid_type='pft', numlev=1, init_value=0.D0)
+            subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
        call init_accum_field (fname='GDDPLANT', units='K', &
             desc='growing degree-days from planting', &
             accum_type='runaccum', accum_period=not_used,  &
-            subgrid_type='pft', numlev=1, init_value=0.D0)
+            subgrid_type='pft', numlev=1, init_value=0.0_rkx)
 
        call init_accum_field (fname='GDDTSOI', units='K', &
             desc='growing degree-days from planting (top two soil layers)', &
             accum_type='runaccum', accum_period=not_used,  &
-            subgrid_type='pft', numlev=1, init_value=0.D0)
+            subgrid_type='pft', numlev=1, init_value=0.0_rkx)
     end if
 
     ! Print output of accumulated fields
@@ -241,107 +241,107 @@ module mod_clm_accflds
     ! index into gridcell level quantities
     integer(ik4) , pointer :: pgridcell(:)
     integer(ik4) , pointer :: plandunit(:)
-    real(rk8), pointer :: forc_t(:)     ! atmospheric temperature (Kelvin)
-    real(rk8), pointer :: forc_rain(:)  ! rain rate [mm/s]
-    real(rk8), pointer :: forc_snow(:)  ! snow rate [mm/s]
+    real(rkx), pointer :: forc_t(:)     ! atmospheric temperature (Kelvin)
+    real(rkx), pointer :: forc_rain(:)  ! rain rate [mm/s]
+    real(rkx), pointer :: forc_snow(:)  ! snow rate [mm/s]
     ! 2 m height surface air temperature (Kelvin)
-    real(rk8), pointer :: t_ref2m(:)
+    real(rkx), pointer :: t_ref2m(:)
     ! Urban 2 m height surface air temperature (Kelvin)
-    real(rk8), pointer :: t_ref2m_u(:)
+    real(rkx), pointer :: t_ref2m_u(:)
     ! Rural 2 m height surface air temperature (Kelvin)
-    real(rk8), pointer :: t_ref2m_r(:)
+    real(rkx), pointer :: t_ref2m_r(:)
     logical , pointer :: urbpoi(:)     ! true => landunit is an urban point
     logical , pointer :: ifspecial(:)  ! true => landunit is not vegetated
     ! landunit index associated with each pft
-    real(rk8), pointer :: vf(:)         ! vernalization factor
-    real(rk8), pointer :: t_soisno(:,:) ! soil temperature (K)
-    real(rk8), pointer :: h2osoi_liq(:,:) ! liquid water (kg/m2)
+    real(rkx), pointer :: vf(:)         ! vernalization factor
+    real(rkx), pointer :: t_soisno(:,:) ! soil temperature (K)
+    real(rkx), pointer :: h2osoi_liq(:,:) ! liquid water (kg/m2)
     ! volumetric soil water at saturation (porosity) (nlevgrnd)
-    real(rk8), pointer :: watsat(:,:)
-    real(rk8), pointer :: dz(:,:)       ! layer thickness depth (m)
-    real(rk8), pointer :: latdeg(:)     ! latitude (radians)
+    real(rkx), pointer :: watsat(:,:)
+    real(rkx), pointer :: dz(:,:)       ! layer thickness depth (m)
+    real(rkx), pointer :: latdeg(:)     ! latitude (radians)
     logical , pointer :: croplive(:)   ! Flag, true if planted, not harvested
     integer(ik4) , pointer :: pcolumn(:)    ! index into column level quantities
     ! heald (04/06): variables to be accumulated for VOC emissions
-    real(rk8), pointer :: t_veg(:)  ! pft vegetation temperature (Kelvin)
+    real(rkx), pointer :: t_veg(:)  ! pft vegetation temperature (Kelvin)
     ! direct beam radiation (visible only)
-    real(rk8), pointer :: forc_solad(:,:)
+    real(rkx), pointer :: forc_solad(:,:)
     ! diffuse radiation     (visible only)
-    real(rk8), pointer :: forc_solai(:,:)
-    real(rk8), pointer :: fsun(:) ! sunlit fraction of canopy
+    real(rkx), pointer :: forc_solai(:,:)
+    real(rkx), pointer :: fsun(:) ! sunlit fraction of canopy
     ! one-sided leaf area index with burying by snow
-    real(rk8), pointer :: elai(:)
+    real(rkx), pointer :: elai(:)
     ! heald (04/06): accumulated variables for VOC emissions
     ! 24hr average vegetation temperature (K)
-    real(rk8), pointer :: t_veg24(:)
+    real(rkx), pointer :: t_veg24(:)
     ! 240hr average vegetation temperature (Kelvin)
-    real(rk8), pointer :: t_veg240(:)
-    real(rk8), pointer :: fsd24(:)  ! 24hr average of direct beam radiation
-    real(rk8), pointer :: fsd240(:) ! 240hr average of direct beam radiation
-    real(rk8), pointer :: fsi24(:)  ! 24hr average of diffuse beam radiation
-    real(rk8), pointer :: fsi240(:) ! 240hr average of diffuse beam radiation
-    real(rk8), pointer :: fsun24(:) ! 24hr average of sunlit fraction of canopy
-    real(rk8), pointer :: fsun240(:)! 240hr average of sunlit fraction of canopy
-    real(rk8), pointer :: elai_p(:) ! leaf area index average over timestep
+    real(rkx), pointer :: t_veg240(:)
+    real(rkx), pointer :: fsd24(:)  ! 24hr average of direct beam radiation
+    real(rkx), pointer :: fsd240(:) ! 240hr average of direct beam radiation
+    real(rkx), pointer :: fsi24(:)  ! 24hr average of diffuse beam radiation
+    real(rkx), pointer :: fsi240(:) ! 240hr average of diffuse beam radiation
+    real(rkx), pointer :: fsun24(:) ! 24hr average of sunlit fraction of canopy
+    real(rkx), pointer :: fsun240(:)! 240hr average of sunlit fraction of canopy
+    real(rkx), pointer :: elai_p(:) ! leaf area index average over timestep
 
     ! daily minimum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_min(:)
+    real(rkx), pointer :: t_ref2m_min(:)
     ! daily maximum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_max(:)
+    real(rkx), pointer :: t_ref2m_max(:)
     ! instantaneous daily min of average 2 m height surface air temp (K)
-    real(rk8), pointer :: t_ref2m_min_inst(:)
+    real(rkx), pointer :: t_ref2m_min_inst(:)
     ! instantaneous daily max of average 2 m height surface air temp (K)
-    real(rk8), pointer :: t_ref2m_max_inst(:)
+    real(rkx), pointer :: t_ref2m_max_inst(:)
     ! Urban daily minimum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_min_u(:)
+    real(rkx), pointer :: t_ref2m_min_u(:)
     ! Rural daily minimum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_min_r(:)
+    real(rkx), pointer :: t_ref2m_min_r(:)
     ! Urban daily maximum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_max_u(:)
+    real(rkx), pointer :: t_ref2m_max_u(:)
     ! Rural daily maximum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_max_r(:)
+    real(rkx), pointer :: t_ref2m_max_r(:)
     ! Urban instantaneous daily min of average 2 m height surface air temp (K)
-    real(rk8), pointer :: t_ref2m_min_inst_u(:)
+    real(rkx), pointer :: t_ref2m_min_inst_u(:)
     ! Rural instantaneous daily min of average 2 m height surface air temp (K)
-    real(rk8), pointer :: t_ref2m_min_inst_r(:)
+    real(rkx), pointer :: t_ref2m_min_inst_r(:)
     ! Urban instantaneous daily max of average 2 m height surface air temp (K)
-    real(rk8), pointer :: t_ref2m_max_inst_u(:)
+    real(rkx), pointer :: t_ref2m_max_inst_u(:)
     ! Rural instantaneous daily max of average 2 m height surface air temp (K)
-    real(rk8), pointer :: t_ref2m_max_inst_r(:)
+    real(rkx), pointer :: t_ref2m_max_inst_r(:)
     ! 10-day running mean of the 2 m temperature (K)
-    real(rk8), pointer :: t10(:)
+    real(rkx), pointer :: t10(:)
 #if (defined CNDV)
     ! 30-day average temperature (Kelvin)
-    real(rk8), pointer :: t_mo(:)
+    real(rkx), pointer :: t_mo(:)
     ! annual min of t_mo (Kelvin)
-    real(rk8), pointer :: t_mo_min(:)
+    real(rkx), pointer :: t_mo_min(:)
     ! 365-day running mean of tot. precipitation
-    real(rk8), pointer :: prec365(:)
+    real(rkx), pointer :: prec365(:)
     ! accumulated growing degree days above twmax
-    real(rk8), pointer :: agddtw(:)
+    real(rkx), pointer :: agddtw(:)
     ! accumulated growing degree days above 5
-    real(rk8), pointer :: agdd(:)
+    real(rkx), pointer :: agdd(:)
     ! upper limit of temperature of the warmest month
-    real(rk8), pointer :: twmax(:)
+    real(rkx), pointer :: twmax(:)
 #endif
     ! 10-day running mean of tot. precipitation
-    real(rk8), pointer :: prec10(:)
+    real(rkx), pointer :: prec10(:)
     ! 60-day running mean of tot. precipitation
-    real(rk8), pointer :: prec60(:)
+    real(rkx), pointer :: prec60(:)
     ! growing degree-days base 0C'
-    real(rk8), pointer :: gdd0(:)
+    real(rkx), pointer :: gdd0(:)
     ! growing degree-days base 8C from planting
-    real(rk8), pointer :: gdd8(:)
+    real(rkx), pointer :: gdd8(:)
     ! growing degree-days base 10C from planting
-    real(rk8), pointer :: gdd10(:)
+    real(rkx), pointer :: gdd10(:)
     ! growing degree-days from planting
-    real(rk8), pointer :: gddplant(:)
+    real(rkx), pointer :: gddplant(:)
     ! growing degree-days from planting (top two soil layers)
-    real(rk8), pointer :: gddtsoi(:)
+    real(rkx), pointer :: gddtsoi(:)
     ! 10-day running mean of min 2-m temperature
-    real(rk8), pointer :: a10tmin(:)
+    real(rkx), pointer :: a10tmin(:)
     ! 5-day running mean of min 2-m temperature
-    real(rk8), pointer :: a5tmin(:)
+    real(rkx), pointer :: a5tmin(:)
     integer(ik4) :: g , l , c , p ! indices
     integer(ik4) :: itypveg  ! vegetation type
     integer(ik4) :: year     ! year (0, ...) for nstep
@@ -354,7 +354,7 @@ module mod_clm_accflds
     integer(ik4) :: begc, endc !  per-proc beginning and ending column indices
     integer(ik4) :: begl, endl !  per-proc beginning and ending landunit indices
     integer(ik4) :: begg, endg !  per-proc gridcell ending gridcell indices
-    real(rk8), pointer :: rbufslp(:)      ! temporary single level - pft level
+    real(rkx), pointer :: rbufslp(:)      ! temporary single level - pft level
     integer(ik8) :: kkincr
 
     ! Determine necessary indices
@@ -621,11 +621,11 @@ module mod_clm_accflds
     ! for boreal woody pfts)
     if (month == 1 .and. day == 1 .and. secs <= int(dtsrf)) then
       do p = begp , endp
-        rbufslp(p) = -99999.D0
+        rbufslp(p) = -99999.0_rkx
       end do
     else
       do p = begp , endp
-        rbufslp(p) = max(0.D0, (t10(p) - tfrz - twmax(ndllf_dcd_brl_tree)) &
+        rbufslp(p) = max(0.0_rkx, (t10(p) - tfrz - twmax(ndllf_dcd_brl_tree)) &
                      * dtsrf/secspday)
       end do
     end if
@@ -636,7 +636,7 @@ module mod_clm_accflds
     ! Accumulate and extract AGDD
 
     do p = begp , endp
-      rbufslp(p) = max(0.0D0, (t_ref2m(p) - (tfrz + 5.0D0)) &
+      rbufslp(p) = max(0.0_rkx, (t_ref2m(p) - (tfrz + 5.0_rkx)) &
             * dtsrf/secspday)
     end do
     call update_accum_field  ('AGDD', rbufslp, kkincr)
@@ -664,7 +664,7 @@ module mod_clm_accflds
 
       do p = begp , endp
         rbufslp(p) = min(t_ref2m_min(p),t_ref2m_min_inst(p)) !slevis: ok choice?
-        if (rbufslp(p) > 1.D30) rbufslp(p) = tfrz !and were 'min'&
+        if (rbufslp(p) > 1.e30_rkx) rbufslp(p) = tfrz !and were 'min'&
       end do                                       !'min_inst' not initialized?
       call update_accum_field  ('TDM10', rbufslp, kkincr)
       call extract_accum_field ('TDM10', a10tmin, kkincr)
@@ -673,7 +673,7 @@ module mod_clm_accflds
 
       do p = begp , endp
         rbufslp(p) = min(t_ref2m_min(p),t_ref2m_min_inst(p)) !slevis: ok choice?
-        if (rbufslp(p) > 1.D30) rbufslp(p) = tfrz !and were 'min'&
+        if (rbufslp(p) > 1.e30_rkx) rbufslp(p) = tfrz !and were 'min'&
       end do    !'min_inst' not initialized?
       call update_accum_field  ('TDM5', rbufslp, kkincr)
       call extract_accum_field ('TDM5', a5tmin, kkincr)
@@ -682,18 +682,18 @@ module mod_clm_accflds
 
       if (month == 1 .and. day == 1 .and. secs <= int(dtsrf)) then
         do p = begp , endp
-          rbufslp(p) = -99999.D0
+          rbufslp(p) = -99999.0_rkx
         end do
       else
         do p = begp , endp
           g = pgridcell(p)
-          if ( ( month > 3 .and. month < 10 .and. latdeg(g) >= 0.D0) .or. &
-               ( (month > 9 .or.  month < 4) .and. latdeg(g) < 0.D0) ) then
-            rbufslp(p) = max(0.D0, min(26.D0, t_ref2m(p)-tfrz)) &
+          if ( ( month > 3 .and. month < 10 .and. latdeg(g) >= 0.0_rkx) .or. &
+               ( (month > 9 .or.  month < 4) .and. latdeg(g) < 0.0_rkx) ) then
+            rbufslp(p) = max(0.0_rkx, min(26.0_rkx, t_ref2m(p)-tfrz)) &
                              * dtsrf/secspday
           else
             ! keeps gdd unchanged at other times (eg, through Dec in NH)
-            rbufslp(p) = 0.D0
+            rbufslp(p) = 0.0_rkx
           end if
         end do
       end if
@@ -704,18 +704,18 @@ module mod_clm_accflds
 
       if (month == 1 .and. day == 1 .and. secs <= int(dtsrf)) then
         do p = begp , endp
-          rbufslp(p) = -99999.D0
+          rbufslp(p) = -99999.0_rkx
         end do
       else
         do p = begp , endp
           g = pgridcell(p)
-          if ( ( month > 3 .and. month < 10 .and. latdeg(g) >= 0.D0) .or. &
-               ( (month > 9 .or.  month < 4) .and. latdeg(g) < 0.D0) ) then
-            rbufslp(p) = max(0.D0, min(30.D0, &
-                         t_ref2m(p)-(tfrz + 8.D0))) * dtsrf/secspday
+          if ( ( month > 3 .and. month < 10 .and. latdeg(g) >= 0.0_rkx) .or. &
+               ( (month > 9 .or.  month < 4) .and. latdeg(g) < 0.0_rkx) ) then
+            rbufslp(p) = max(0.0_rkx, min(30.0_rkx, &
+                         t_ref2m(p)-(tfrz + 8.0_rkx))) * dtsrf/secspday
           else
             ! keeps gdd unchanged at other times (eg, through Dec in NH)
-            rbufslp(p) = 0.D0
+            rbufslp(p) = 0.0_rkx
           end if
         end do
       end if
@@ -726,18 +726,18 @@ module mod_clm_accflds
 
       if (month == 1 .and. day == 1 .and. secs <= int(dtsrf)) then
         do p = begp , endp
-          rbufslp(p) = -99999.D0
+          rbufslp(p) = -99999.0_rkx
         end do
       else
         do p = begp , endp
           g = pgridcell(p)
-          if ( ( month > 3 .and. month < 10 .and. latdeg(g) >= 0.D0) .or. &
-               ( (month > 9 .or.  month < 4) .and. latdeg(g) < 0.D0) ) then
-            rbufslp(p) = max(0.D0, min(30.D0, &
-                         t_ref2m(p)-(tfrz + 10.D0))) * dtsrf/secspday
+          if ( ( month > 3 .and. month < 10 .and. latdeg(g) >= 0.0_rkx) .or. &
+               ( (month > 9 .or.  month < 4) .and. latdeg(g) < 0.0_rkx) ) then
+            rbufslp(p) = max(0.0_rkx, min(30.0_rkx, &
+                         t_ref2m(p)-(tfrz + 10.0_rkx))) * dtsrf/secspday
           else
             ! keeps gdd unchanged at other times (eg, through Dec in NH)
-            rbufslp(p) = 0.D0
+            rbufslp(p) = 0.0_rkx
           end if
         end do
       end if
@@ -749,14 +749,14 @@ module mod_clm_accflds
       do p = begp , endp
         if (croplive(p)) then ! relative to planting date
           itypveg = itype(p)
-          rbufslp(p) = max(0.D0, min(mxtmp(itypveg), &
+          rbufslp(p) = max(0.0_rkx, min(mxtmp(itypveg), &
                            t_ref2m(p)-(tfrz + baset(itypveg)))) &
                           * dtsrf/secspday
           if ( itypveg == nwcereal .or. itypveg == nwcerealirrig) then
             rbufslp(p) = rbufslp(p)*vf(p)
           end if
         else
-          rbufslp(p) = -99999.D0
+          rbufslp(p) = -99999.0_rkx
         end if
       end do
       call update_accum_field  ('GDDPLANT', rbufslp, kkincr)
@@ -770,14 +770,14 @@ module mod_clm_accflds
         if (croplive(p)) then ! relative to planting date
           itypveg = itype(p)
           c = pcolumn(p)
-          rbufslp(p) = max(0.D0, min(mxtmp(itypveg), &
+          rbufslp(p) = max(0.0_rkx, min(mxtmp(itypveg), &
              ((t_soisno(c,1)*dz(c,1)+t_soisno(c,2)*dz(c,2))/ &
              (dz(c,1)+dz(c,2))) - (tfrz + baset(itypveg)))) * dtsrf/secspday
           if (itypveg == nwcereal .or. itypveg == nwcerealirrig) then
             rbufslp(p) = rbufslp(p)*vf(p)
           end if
         else
-          rbufslp(p) = -99999.D0
+          rbufslp(p) = -99999.0_rkx
         end if
       end do
       call update_accum_field  ('GDDTSOI', rbufslp, kkincr)
@@ -801,78 +801,78 @@ module mod_clm_accflds
   subroutine initAccClmtype
     implicit none
     ! daily minimum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_min(:)
+    real(rkx), pointer :: t_ref2m_min(:)
     ! daily maximum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_max(:)
+    real(rkx), pointer :: t_ref2m_max(:)
     ! instantaneous daily min of average 2 m height surface air temp (K)
-    real(rk8), pointer :: t_ref2m_min_inst(:)
+    real(rkx), pointer :: t_ref2m_min_inst(:)
     ! instantaneous daily max of average 2 m height surface air temp (K)
-    real(rk8), pointer :: t_ref2m_max_inst(:)
+    real(rkx), pointer :: t_ref2m_max_inst(:)
     ! Urban daily minimum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_min_u(:)
+    real(rkx), pointer :: t_ref2m_min_u(:)
     ! Rural daily minimum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_min_r(:)
+    real(rkx), pointer :: t_ref2m_min_r(:)
     ! Urban daily maximum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_max_u(:)
+    real(rkx), pointer :: t_ref2m_max_u(:)
     ! Rural daily maximum of average 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_ref2m_max_r(:)
+    real(rkx), pointer :: t_ref2m_max_r(:)
     ! Urban instantaneous daily min of average 2 m height surface air temp (K)
-    real(rk8), pointer :: t_ref2m_min_inst_u(:)
+    real(rkx), pointer :: t_ref2m_min_inst_u(:)
     ! Rural instantaneous daily min of average 2 m height surface air temp (K)
-    real(rk8), pointer :: t_ref2m_min_inst_r(:)
+    real(rkx), pointer :: t_ref2m_min_inst_r(:)
     ! Urban instantaneous daily max of average 2 m height surface air temp (K)
-    real(rk8), pointer :: t_ref2m_max_inst_u(:)
+    real(rkx), pointer :: t_ref2m_max_inst_u(:)
     ! Rural instantaneous daily max of average 2 m height surface air temp (K)
-    real(rk8), pointer :: t_ref2m_max_inst_r(:)
+    real(rkx), pointer :: t_ref2m_max_inst_r(:)
     ! 10-day running mean of the 2 m temperature (K)
-    real(rk8), pointer :: t10(:)
+    real(rkx), pointer :: t10(:)
 #ifdef CNDV
     ! 30-day average temperature (Kelvin)
-    real(rk8), pointer :: t_mo(:)
+    real(rkx), pointer :: t_mo(:)
     ! 365-day running mean of tot. precipitation
-    real(rk8), pointer :: prec365(:)
+    real(rkx), pointer :: prec365(:)
     ! accumulated growing degree days above twmax
-    real(rk8), pointer :: agddtw(:)
+    real(rkx), pointer :: agddtw(:)
     ! accumulated growing degree days above 5
-    real(rk8), pointer :: agdd(:)
+    real(rkx), pointer :: agdd(:)
 #endif
     ! 60-day running mean of tot. precipitation
-    real(rk8), pointer :: prec60(:)
+    real(rkx), pointer :: prec60(:)
     ! 10-day running mean of tot. precipitation
-    real(rk8), pointer :: prec10(:)
+    real(rkx), pointer :: prec10(:)
     ! growing degree-days base 0C'
-    real(rk8), pointer :: gdd0(:)
+    real(rkx), pointer :: gdd0(:)
     ! growing degree-days base 8C from planting
-    real(rk8), pointer :: gdd8(:)
+    real(rkx), pointer :: gdd8(:)
     ! growing degree-days base 10C from planting
-    real(rk8), pointer :: gdd10(:)
+    real(rkx), pointer :: gdd10(:)
     ! growing degree-days from planting
-    real(rk8), pointer :: gddplant(:)
+    real(rkx), pointer :: gddplant(:)
     ! growing degree-days from planting (top two soil layers)
-    real(rk8), pointer :: gddtsoi(:)
+    real(rkx), pointer :: gddtsoi(:)
     ! 10-day running mean of min 2-m temperature
-    real(rk8), pointer :: a10tmin(:)
+    real(rkx), pointer :: a10tmin(:)
     ! 5-day running mean of min 2-m temperature
-    real(rk8), pointer :: a5tmin(:)
+    real(rkx), pointer :: a5tmin(:)
     ! heald (04/06): accumulated variables for VOC emissions
-    real(rk8), pointer :: t_veg24(:) ! 24hr average vegetation temperature (K)
+    real(rkx), pointer :: t_veg24(:) ! 24hr average vegetation temperature (K)
     ! 240hr average vegetation temperature (Kelvin)
-    real(rk8), pointer :: t_veg240(:)
-    real(rk8), pointer :: fsd24(:)   ! 24hr average of direct beam radiation
-    real(rk8), pointer :: fsd240(:)  ! 240hr average of direct beam radiation
-    real(rk8), pointer :: fsi24(:)   ! 24hr average of diffuse beam radiation
-    real(rk8), pointer :: fsi240(:)  ! 240hr average of diffuse beam radiation
-    real(rk8), pointer :: fsun24(:)  ! 24hr average of sunlit fraction of canopy
+    real(rkx), pointer :: t_veg240(:)
+    real(rkx), pointer :: fsd24(:)   ! 24hr average of direct beam radiation
+    real(rkx), pointer :: fsd240(:)  ! 240hr average of direct beam radiation
+    real(rkx), pointer :: fsi24(:)   ! 24hr average of diffuse beam radiation
+    real(rkx), pointer :: fsi240(:)  ! 240hr average of diffuse beam radiation
+    real(rkx), pointer :: fsun24(:)  ! 24hr average of sunlit fraction of canopy
     ! 240hr average of sunlit fraction of canopy
-    real(rk8), pointer :: fsun240(:)
-    real(rk8), pointer :: elai_p(:)  ! leaf area index average over timestep
+    real(rkx), pointer :: fsun240(:)
+    real(rkx), pointer :: elai_p(:)  ! leaf area index average over timestep
     integer(ik4) :: p          ! indices
     integer(ik4) :: ier        ! error status
     integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg, endg   ! per-proc gridcell ending gridcell indices
-    real(rk8), pointer :: rbufslp(:)  ! temporary
+    real(rkx), pointer :: rbufslp(:)  ! temporary
     character(len=32) :: subname = 'initAccClmtype'  ! subroutine name
     integer(ik8) :: kkincr
 

@@ -30,19 +30,19 @@ module mod_che_seasalt
   private
 
   ! sea-salt density
-  real(rk8) , parameter :: rhosslt = 1000.0D0
-  real(rk8) , dimension(sbin,2) :: ssltbsiz
+  real(rkx) , parameter :: rhosslt = 1000.0_rkx
+  real(rkx) , dimension(sbin,2) :: ssltbsiz
 
-  data ssltbsiz /0.05D0, 1.0D0, 1.0D0, 10.0D0/
+  data ssltbsiz /0.05_rkx, 1.0_rkx, 1.0_rkx, 10.0_rkx/
 !
-  real(rk8) , dimension(sbin) :: ssltbed
+  real(rkx) , dimension(sbin) :: ssltbed
 
 
  ! solubility of od dust aer for param of giorgi and chameides
-  real(rk8) , dimension(sbin) :: solsslt
+  real(rkx) , dimension(sbin) :: solsslt
 
-  data ssltbed /0.6D0, 6.0D0/
-  data solsslt /0.8D0, 0.8D0/
+  data ssltbed /0.6_rkx, 6.0_rkx/
+  data solsslt /0.8_rkx, 0.8_rkx/
 
   public :: sea_salt , rhosslt , ssltbsiz , solsslt , ssltbed
 
@@ -70,29 +70,29 @@ module mod_che_seasalt
 
     integer(ik4) , intent(in) :: j
     integer(ik4) , dimension(ici1:ici2) :: ivegcov
-    real(rk8) , dimension(ici1:ici2) :: wind10
-    real(rk8) , dimension(ici1:ici2,sbin) , intent(out) :: seasalt_flx
+    real(rkx) , dimension(ici1:ici2) :: wind10
+    real(rkx) , dimension(ici1:ici2,sbin) , intent(out) :: seasalt_flx
 
-    real(rk8) :: dumu10
-    real(rk8) :: dplo_acc , dphi_acc , dplo_cor , dphi_cor
-    real(rk8) , dimension(ici1:ici2,2) :: qflxm , qflxn
-    real(rk8) :: seasalt_emfac_mascor , seasalt_emfac_numcor
-    real(rk8) :: seasalt_emfac_masacc , seasalt_emfac_numacc
+    real(rkx) :: dumu10
+    real(rkx) :: dplo_acc , dphi_acc , dplo_cor , dphi_cor
+    real(rkx) , dimension(ici1:ici2,2) :: qflxm , qflxn
+    real(rkx) :: seasalt_emfac_mascor , seasalt_emfac_numcor
+    real(rkx) :: seasalt_emfac_masacc , seasalt_emfac_numacc
     integer(ik4) :: modeptr_coarseas
     integer(ik4) :: modeptr_accum
     integer(ik4) :: i , iflg , ib
 
-    real(rk8) :: specmw_seasalt_amode
-    real(rk8) :: dum_mw
+    real(rkx) :: specmw_seasalt_amode
+    real(rkx) :: dum_mw
 
-    specmw_seasalt_amode = 1.0D0
+    specmw_seasalt_amode = 1.0_rkx
     modeptr_coarseas = 1
     modeptr_accum = 1
 
-    dplo_acc = ssltbsiz(1,1)*1.0D-04
-    dphi_acc = ssltbsiz(1,2)*1.0D-04
-    dplo_cor = ssltbsiz(2,1)*1.0D-04
-    dphi_cor = ssltbsiz(2,2)*1.0D-04
+    dplo_acc = ssltbsiz(1,1)*1.0e-4_rkx
+    dphi_acc = ssltbsiz(1,2)*1.0e-4_rkx
+    dplo_cor = ssltbsiz(2,1)*1.0e-4_rkx
+    dphi_cor = ssltbsiz(2,2)*1.0e-4_rkx
 
     !************************************************************
     !* initialization -- compute seasalt emissions factors    ***
@@ -117,16 +117,16 @@ module mod_che_seasalt
     !* convert number factors from (#/m2/s) to ((k#)/m2/s)    ***
     !************************************************************
 
-    seasalt_emfac_numacc = seasalt_emfac_numacc * 1.0D-3
-    seasalt_emfac_numcor = seasalt_emfac_numcor * 1.0D-3
+    seasalt_emfac_numacc = seasalt_emfac_numacc * 1.0e-3_rkx
+    seasalt_emfac_numcor = seasalt_emfac_numcor * 1.0e-3_rkx
 
     !************************************************************
     !* convert mass factors from (g/m2/s) to (kmol/m2/s)     ****
     !************************************************************
 
     dum_mw = specmw_seasalt_amode
-    seasalt_emfac_masacc = seasalt_emfac_masacc * (1.0D-3/dum_mw)
-    seasalt_emfac_mascor = seasalt_emfac_mascor * (1.0D-3/dum_mw)
+    seasalt_emfac_masacc = seasalt_emfac_masacc * (1.0e-3_rkx/dum_mw)
+    seasalt_emfac_mascor = seasalt_emfac_mascor * (1.0e-3_rkx/dum_mw)
 
     ! print*, seasalt_emfac_masacc, seasalt_emfac_mascor
 
@@ -141,8 +141,8 @@ module mod_che_seasalt
       seasalt_flx(i,2) = seasalt_emfac_mascor * iflg
 
       if ( wind10(i) > d_zero ) then
-        dumu10 = dmax1( d_zero, dmin1( 100.0D0, wind10(i) ))
-        dumu10 = dumu10**3.41D0
+        dumu10 = max( d_zero, min( 100.0_rkx, wind10(i) ))
+        dumu10 = dumu10**3.41_rkx
         qflxm(i,1) = seasalt_emfac_mascor * dumu10
         qflxn(i,1) = seasalt_emfac_numcor * dumu10
         qflxm(i,2) = seasalt_emfac_masacc * dumu10
@@ -163,7 +163,7 @@ module mod_che_seasalt
         ! chemsrc(i,j,lmonth,isslt(ib)) = seasalt_flx(i,ib)
 
         chiten(j,i,kz,isslt(ib)) = chiten(j,i,kz,isslt(ib)) + &
-                seasalt_flx(i,ib)*egrav/(dsigma(kz)*1.D3)
+                seasalt_flx(i,ib)*egrav/(dsigma(kz)*1.e3_rkx)
         ! diagnostic source
         cemtrac(j,i,isslt(ib)) = cemtrac(j,i,isslt(ib)) + &
                  seasalt_flx(i,ib)*cfdout
@@ -180,25 +180,25 @@ module mod_che_seasalt
     implicit none
 
     integer(ik4) , intent(in) :: ireduce_smallr_emit
-    real(rk8) , intent(in) :: dpdrylo_cm , dpdryhi_cm
-    real(rk8) , intent(out) :: emitfact_numb , emitfact_mass
+    real(rkx) , intent(in) :: dpdrylo_cm , dpdryhi_cm
+    real(rkx) , intent(out) :: emitfact_numb , emitfact_mass
 
     integer(ik4) :: nsub_bin , isub_bin
-    real(rk8) :: drydens , drydens_f
-    real(rk8) :: relhum
-    real(rk8) :: rdry_star , sigmag_star
-    real(rk8) :: dumsum_na , dumsum_ma
-    real(rk8) :: rdrylowermost , rdryuppermost
-    real(rk8) :: rdrylo , rdryhi
-    real(rk8) :: alnrdrylo , dlnrdry
-    real(rk8) :: rdrybb , rwetbb
-    real(rk8) :: rdryaa , rwetaa
-    real(rk8) :: rdry_cm , rwet_cm
-    real(rk8) :: rdry , rwet , drwet
-    real(rk8) :: dum,xmdry , dumb,dumexpb
-    real(rk8) :: dumadjust , df0dlnrdry
-    real(rk8) :: df0drwet
-    real(rk8) :: df0dlnrdry_star
+    real(rkx) :: drydens , drydens_f
+    real(rkx) :: relhum
+    real(rkx) :: rdry_star , sigmag_star
+    real(rkx) :: dumsum_na , dumsum_ma
+    real(rkx) :: rdrylowermost , rdryuppermost
+    real(rkx) :: rdrylo , rdryhi
+    real(rkx) :: alnrdrylo , dlnrdry
+    real(rkx) :: rdrybb , rwetbb
+    real(rkx) :: rdryaa , rwetaa
+    real(rkx) :: rdry_cm , rwet_cm
+    real(rkx) :: rdry , rwet , drwet
+    real(rkx) :: dum,xmdry , dumb,dumexpb
+    real(rkx) :: dumadjust , df0dlnrdry
+    real(rkx) :: df0drwet
+    real(rkx) :: df0dlnrdry_star
 
     !************************************************************
     !*  c1-c4 are constants for sea-salt hygroscopi!growth  ****
@@ -206,43 +206,43 @@ module mod_che_seasalt
     !* (1997)                                                ****
     !************************************************************
 
-    real(rk8) , parameter :: c1 = 0.7674D0
-    real(rk8) , parameter :: c2 = 3.079D0
-    real(rk8) , parameter :: c3 = 2.573D-11
-    real(rk8) , parameter :: c4 = -1.424D0
+    real(rkx) , parameter :: c1 = 0.7674_rkx
+    real(rkx) , parameter :: c2 = 3.079_rkx
+    real(rkx) , parameter :: c3 = 2.573e-11_rkx
+    real(rkx) , parameter :: c4 = -1.424_rkx
 
     !************************************************************
     !*  dry particle density (g/cm3)                          ***
     !************************************************************
 
-    drydens = 2.165D0
+    drydens = 2.165_rkx
 
     !************************************************************
     !* factor for radius (micrometers) to mass (g)            ***
     !************************************************************
 
-    drydens_f = drydens * fourt * mathpi * 1.0D-12
+    drydens_f = drydens * fourt * mathpi * 1.0e-12_rkx
 
     !************************************************************
     !*   bubble emissions formula assume RH=80%              ****
     !************************************************************
 
-    relhum = 0.80D0
+    relhum = 0.80_rkx
 
     !************************************************************
     !* rdry star = dry radius (micrometers) below which the *****
     !* dF0/dr emission formula is adjusted downwards        *****
     !************************************************************
-    rdry_star = 0.1D0
+    rdry_star = 0.1_rkx
 
-    if ( ireduce_smallr_emit <= 0 ) rdry_star = -1.0D20
+    if ( ireduce_smallr_emit <= 0 ) rdry_star = -1.0e20_rkx
 
     !************************************************************
     !* sigmag_star  = geometri!standard deviation used for  ****
     !*   rdry < rdry_star                                    ****
     !************************************************************
 
-    sigmag_star = 1.9D0
+    sigmag_star = 1.9_rkx
 
     !************************************************************
     !*                  i n i t i a l i z e    s u m s       ****
@@ -256,8 +256,8 @@ module mod_che_seasalt
     !* radii (micrometers) for overall integration          *****
     !************************************************************
 
-    rdrylowermost = dpdrylo_cm*0.5D4
-    rdryuppermost = dpdryhi_cm*0.5D4
+    rdrylowermost = dpdrylo_cm*0.5e4_rkx
+    rdryuppermost = dpdryhi_cm*0.5e4_rkx
 
     !************************************************************
     !*                    "S E C T I O N  1"               ******
@@ -282,18 +282,18 @@ module mod_che_seasalt
 
       nsub_bin = 1000
 
-      alnrdrylo = dlog( rdrylo )
-      dlnrdry = (dlog( rdryhi ) - alnrdrylo)/nsub_bin
+      alnrdrylo = log( rdrylo )
+      dlnrdry = (log( rdryhi ) - alnrdrylo)/nsub_bin
 
       !************************************************************
       !*  compute rdry, rwet (micrometers) at lowest size       ***
       !************************************************************
 
-      rdrybb = dexp( alnrdrylo )
-      rdry_cm = rdrybb*1.0D-4
+      rdrybb = exp( alnrdrylo )
+      rdry_cm = rdrybb*1.0e-4_rkx
       rwet_cm = ( rdry_cm**3 + (c1*(rdry_cm**c2)) / &
-                ( (c3*(rdry_cm**c4)) - dlog10(relhum) ) )**onet
-      rwetbb = rwet_cm*1.0D4
+                ( (c3*(rdry_cm**c4)) - log10(relhum) ) )**onet
+      rwetbb = rwet_cm*1.0e4_rkx
 
       do isub_bin = 1 , nsub_bin
 
@@ -311,12 +311,12 @@ module mod_che_seasalt
         !************************************************************
 
         dum = alnrdrylo + isub_bin*dlnrdry
-        rdrybb = dexp( dum )
+        rdrybb = exp( dum )
 
-        rdry_cm = rdrybb*1.0D-4
+        rdry_cm = rdrybb*1.0e-4_rkx
         rwet_cm = ( rdry_cm**3 + (c1*(rdry_cm**c2)) / &
-                 ( (c3*(rdry_cm**c4)) - dlog10(relhum) ) )**onet
-        rwetbb = rwet_cm*1.0D4
+                 ( (c3*(rdry_cm**c4)) - log10(relhum) ) )**onet
+        rwetbb = rwet_cm*1.0e4_rkx
 
         !************************************************************
         !* geometric mean rdry, rwet (micrometers) for sub_bin   ****
@@ -337,11 +337,11 @@ module mod_che_seasalt
         !* df0drwet is "dF0/dr" in Gong's Eqn 5a                 ****
         !************************************************************
 
-        dumb = ( 0.380D0 - dlog10(rwet) ) / 0.650D0
-        dumexpb = dexp( -dumb*dumb)
-        df0drwet = 1.373D0 * (rwet**(-d_three)) *       &
-                  (1.0D0 + 0.057D0*(rwet**1.05D0)) *    &
-                  (10.0D0**(1.19D0*dumexpb))
+        dumb = ( 0.380_rkx - log10(rwet) ) / 0.650_rkx
+        dumexpb = exp( -dumb*dumb)
+        df0drwet = 1.373_rkx * (rwet**(-d_three)) *       &
+                  (1.0_rkx + 0.057_rkx*(rwet**1.05_rkx)) *    &
+                  (10.0_rkx**(1.19_rkx*dumexpb))
 
         dumsum_na = dumsum_na + drwet*df0drwet
         dumsum_ma = dumsum_ma + drwet*df0drwet*xmdry
@@ -370,24 +370,24 @@ module mod_che_seasalt
       !* compute dF0/dln(rdry) at rdry_star                    ****
       !************************************************************
 
-      rdryaa = 0.99D0*rdry_star
-      rdry_cm = rdryaa*1.0D-4
+      rdryaa = 0.99_rkx*rdry_star
+      rdry_cm = rdryaa*1.0e-4_rkx
       rwet_cm = ( rdry_cm**3 + (c1*(rdry_cm**c2)) / &
-                ( (c3*(rdry_cm**c4)) - dlog10(relhum) ) )**onet
-      rwetaa = rwet_cm*1.0D4
-      rdrybb = 1.01D0*rdry_star
-      rdry_cm = rdrybb*1.0D-4
+                ( (c3*(rdry_cm**c4)) - log10(relhum) ) )**onet
+      rwetaa = rwet_cm*1.0e4_rkx
+      rdrybb = 1.01_rkx*rdry_star
+      rdry_cm = rdrybb*1.0e-4_rkx
       rwet_cm = ( rdry_cm**3 + (c1*(rdry_cm**c2)) / &
-                ( (c3*(rdry_cm**c4)) - dlog10(relhum) ) )**onet
-      rwetbb = rwet_cm*1.0D4
+                ( (c3*(rdry_cm**c4)) - log10(relhum) ) )**onet
+      rwetbb = rwet_cm*1.0e4_rkx
       rwet = d_half*(rwetaa + rwetbb)
-      dumb = ( 0.380D0 - dlog10(rwet) ) / 0.650D0
-      dumexpb = dexp( -dumb*dumb)
-      df0drwet = 1.373D0 * (rwet**(-d_three)) *     &
-                 (1.0D0 + 0.057D0*(rwet**1.05D0)) * &
-                 (10.0D0**(1.19D0*dumexpb))
+      dumb = ( 0.380_rkx - log10(rwet) ) / 0.650_rkx
+      dumexpb = exp( -dumb*dumb)
+      df0drwet = 1.373_rkx * (rwet**(-d_three)) *     &
+                 (1.0_rkx + 0.057_rkx*(rwet**1.05_rkx)) * &
+                 (10.0_rkx**(1.19_rkx*dumexpb))
       drwet = rwetbb - rwetaa
-      dlnrdry = dlog( rdrybb/rdryaa )
+      dlnrdry = log( rdrybb/rdryaa )
       df0dlnrdry_star = df0drwet * (drwet/dlnrdry)
 
       !************************************************************
@@ -398,8 +398,8 @@ module mod_che_seasalt
       rdrylo = rdrylowermost
       rdryhi = min( rdryuppermost, rdry_star )
       nsub_bin = 1000
-      alnrdrylo = dlog( rdrylo )
-      dlnrdry = (dlog( rdryhi ) - alnrdrylo)/nsub_bin
+      alnrdrylo = log( rdrylo )
+      dlnrdry = (log( rdryhi ) - alnrdrylo)/nsub_bin
 
       do isub_bin = 1 , nsub_bin
 
@@ -408,7 +408,7 @@ module mod_che_seasalt
         !************************************************************
 
         dum = alnrdrylo + (isub_bin-d_half)*dlnrdry
-        rdry = dexp( dum )
+        rdry = exp( dum )
 
         !************************************************************
         !*  xmdry is dry mass in g                               ****
@@ -420,8 +420,8 @@ module mod_che_seasalt
         !* dumadjust is adjustment factor to reduce dF0/dr      *****
         !************************************************************
 
-        dum = dlog( rdry/rdry_star ) / dlog( sigmag_star )
-        dumadjust = dexp( -d_half*dum*dum )
+        dum = log( rdry/rdry_star ) / log( sigmag_star )
+        dumadjust = exp( -d_half*dum*dum )
         df0dlnrdry = df0dlnrdry_star * dumadjust
         dumsum_na = dumsum_na + dlnrdry*df0dlnrdry
         dumsum_ma = dumsum_ma + dlnrdry*df0dlnrdry*xmdry

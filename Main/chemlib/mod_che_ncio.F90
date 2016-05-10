@@ -72,10 +72,10 @@ module mod_che_ncio
   integer(ik4) , public , parameter :: ifrqmon = 1
   integer(ik4) , public , parameter :: ifrqday = 2
   integer(ik4) , public , parameter :: ifrqhrs = 3
-  real(rk8) , dimension(:,:) , pointer :: rspace2
-  real(rk8) , dimension(:,:) , pointer :: rspace2_loc
-  real(rk8) , dimension(:,:,:) , pointer :: rspace3
-  real(rk8) , dimension(:,:,:) , pointer :: rspace3_loc
+  real(rkx) , dimension(:,:) , pointer :: rspace2
+  real(rkx) , dimension(:,:) , pointer :: rspace2_loc
+  real(rkx) , dimension(:,:,:) , pointer :: rspace3
+  real(rkx) , dimension(:,:,:) , pointer :: rspace3_loc
 
   character(256) :: icbcname
 
@@ -147,11 +147,11 @@ module mod_che_ncio
     subroutine read_texture(nats,texture)
       implicit none
       integer(ik4) , intent(in) :: nats
-      real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: texture
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: texture
       integer(ik4) :: idmin
       integer(ik4) , dimension(3) :: istart , icount
       character(len=256) :: dname
-      real(rk8) , pointer , dimension(:,:,:) ::  rspace
+      real(rkx) , pointer , dimension(:,:,:) ::  rspace
 
       dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
 
@@ -167,7 +167,7 @@ module mod_che_ncio
         call read_var3d_static(idmin,'texture_fraction',rspace, &
           istart=istart,icount=icount)
         texture(jci1:jci2,ici1:ici2,:) = &
-          max(rspace(jci1:jci2,ici1:ici2,:)*0.01D0,d_zero)
+          max(rspace(jci1:jci2,ici1:ici2,:)*0.01_rkx,d_zero)
         call closefile(idmin)
       else
         if ( myid == iocpu ) then
@@ -181,7 +181,7 @@ module mod_che_ncio
           allocate(rspace(icount(1),icount(2),icount(3)))
           call read_var3d_static(idmin,'texture_fraction',rspace, &
             istart=istart,icount=icount)
-          rspace = max(rspace*0.01D0,d_zero)
+          rspace = max(rspace*0.01_rkx,d_zero)
           call grid_distribute(rspace,texture,jci1,jci2,ici1,ici2,1,nats)
           call closefile(idmin)
         else
@@ -193,13 +193,13 @@ module mod_che_ncio
    subroutine read_bionem(nfert,nmanure,soilph)
       implicit none
 
-      real(rk8) , pointer , dimension(:,:) , intent(inout) :: nfert
-      real(rk8) , pointer , dimension(:,:) , intent(inout) :: nmanure
-      real(rk8) , pointer , dimension(:,:) , intent(inout) :: soilph
+      real(rkx) , pointer , dimension(:,:) , intent(inout) :: nfert
+      real(rkx) , pointer , dimension(:,:) , intent(inout) :: nmanure
+      real(rkx) , pointer , dimension(:,:) , intent(inout) :: soilph
       integer(ik4) :: idmin
       integer(ik4) , dimension(2) :: istart , icount
       character(len=256) :: dname
-      real(rk8) , pointer , dimension(:,:) ::  rspace
+      real(rkx) , pointer , dimension(:,:) ::  rspace
 
       dname = trim(dirter)//pthsep//trim(domname)//'_BIONEM.nc'
 
@@ -265,11 +265,11 @@ module mod_che_ncio
       implicit none
       integer(ik4) , intent(in) :: lyear , lmonth , lday , lhour
       integer(ik4) , intent(out) :: ifreq
-      real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
       character(256) :: aername
       integer(ik4) :: n,ncid , itvar, idimid, chmnrec,sdim
       character(64) ::chemi_timeunits , chemi_timecal
-      real(rk8) , dimension(:) , allocatable :: emtimeval
+      real(rkx) , dimension(:) , allocatable :: emtimeval
       integer(ik4) , dimension(4) :: istart , icount
       integer(ik4) :: year , month , day , hour
       type(rcm_time_and_date) :: tchdate
@@ -317,7 +317,7 @@ module mod_che_ncio
         call check_ok(__FILE__,__LINE__, &
                       'variable time read error', 'ICBC FILE')
 
-        
+
 
         recc = 0
         looprec: &
@@ -479,8 +479,8 @@ module mod_che_ncio
       if ( ino2 /= 0 ) then
 !       call rvar(ncid,istart,icount,ino2,echemsrc, &
 !                 'NO_flux',.false.,sdim)
-!        echemsrc(:,:,ino2) = 0.1D0 * echemsrc(:,:,ino)
-!        echemsrc(:,:,ino)  = 0.9D0 * echemsrc(:,:,ino)
+!        echemsrc(:,:,ino2) = 0.1_rkx * echemsrc(:,:,ino)
+!        echemsrc(:,:,ino)  = 0.9_rkx * echemsrc(:,:,ino)
       end if
 
       if (ipollen /=0 ) then
@@ -505,6 +505,9 @@ module mod_che_ncio
         end if
         call bcast(ifreq)
       end if
+      if ( myid == italk ) then
+        write(stdout,*) 'Emission read in success.'
+      end if
     end subroutine read_emission
 
     subroutine rvar(ncid,istart,icount,ind,echemsrc,cna,lh,sdim,cnb,cnc,cnd)
@@ -512,7 +515,7 @@ module mod_che_ncio
 
       integer(ik4) , intent(in) :: ncid,sdim
       integer(ik4) , dimension(4) , intent(in) :: istart , icount
-      real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
       logical , intent(in) :: lh
       character(len=*) , intent(in) :: cna
       character(len=*) , intent(in) , optional :: cnb
@@ -708,7 +711,7 @@ module mod_che_ncio
         chbc_search = -1
       else
         tdif = idate - chbc_idate(1)
-        ibcrec = (idnint(tohours(tdif))/ibdyfrq)+1
+        ibcrec = (nint(tohours(tdif))/ibdyfrq)+1
         if ( ibcrec < 1 .or. ibcrec > ibcnrec ) then
           appdat1 = tochar(idate)
           write (stderr,*) 'Record is not found in CHBC file for ',appdat1
@@ -727,7 +730,7 @@ module mod_che_ncio
       type(rcm_time_and_date) , intent(in) :: idate
       character(len=10) :: ctime
       integer(ik4) :: ibcid , idimid , itvar , i , chkdiff
-      real(rk8) , dimension(:) , allocatable :: icbc_nctime
+      real(rkx) , dimension(:) , allocatable :: icbc_nctime
       character(len=64) :: icbc_timeunits , icbc_timecal
 
       if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
@@ -797,7 +800,7 @@ module mod_che_ncio
                                      icbc_timeunits,icbc_timecal)
       end do
       if ( ibcnrec > 1 ) then
-        chkdiff = idnint(icbc_nctime(2) - icbc_nctime(1))
+        chkdiff = nint(icbc_nctime(2) - icbc_nctime(1))
         if (chkdiff /= ibdyfrq) then
           write (stderr,*) 'Time var in ICBC inconsistency.'
           write (stderr,*) 'Expecting ibdyfrq = ', ibdyfrq
@@ -840,7 +843,7 @@ module mod_che_ncio
 
     subroutine read_chbc(chebdio)
       implicit none
-      real(rk8) , dimension (:,:,:,:) , pointer , intent(out) :: chebdio
+      real(rkx) , dimension (:,:,:,:) , pointer , intent(out) :: chebdio
       integer(ik4) , dimension(4) :: istart , icount
       integer(ik4) :: i , j , k, n , iafter
 

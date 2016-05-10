@@ -41,8 +41,8 @@ module mod_cbmz_chemmech
 !   c_cdim and c_rdim = maximum number of species and reactions
 !                       (Currently 1511,3211. Can be increased.)
 !
-!   Real vs real(rk8):  (Double precision is standard)
-!   If real(rk8), change 'real' to 'double precision'
+!   Real vs real(rkx):  (Double precision is standard)
+!   If real(rkx), change 'real' to 'double precision'
 !    throughout this file and all fortran files.
 !    also change exponents (DO vs EO) in BOD and YTN
 ! ----------------------------
@@ -104,18 +104,18 @@ module mod_cbmz_chemmech
 !  c_accom(c_rdim)   Accomodation coefficients
 !  c_molwt(c_rdim)   Molecular weights
 
-  real(rk8) :: c_rk(7,c_rdim)   ! gas-phase rate parameters
-  real(rk8) :: c_rkh(2,c_rdim)  ! Henry's law parameters
-  real(rk8) :: c_rkq(2,c_rdim)  ! Aqueous equilib. params.
-  real(rk8) :: c_rkqq(2,c_rdim) ! Special equilib. params.
+  real(rkx) :: c_rk(7,c_rdim)   ! gas-phase rate parameters
+  real(rkx) :: c_rkh(2,c_rdim)  ! Henry's law parameters
+  real(rkx) :: c_rkq(2,c_rdim)  ! Aqueous equilib. params.
+  real(rkx) :: c_rkqq(2,c_rdim) ! Special equilib. params.
 !
   integer(ik4) :: c_nrk(c_rdim)     ! Format index for reaction rate
   integer(ik4) :: c_nrkh(c_rdim)    ! Format index for Henry's law coef.
   integer(ik4) :: c_nrkq(c_rdim)    ! Format index for equilibrium constant
   integer(ik4) :: c_nrkqq(c_rdim)   ! Format index for special eq constant
 !
-  real(rk8) :: c_accom(c_rdim)  ! Accomodation coefficients
-  real(rk8) :: c_molwt(c_rdim)  ! Molecular weights
+  real(rkx) :: c_accom(c_rdim)  ! Accomodation coefficients
+  real(rkx) :: c_molwt(c_rdim)  ! Molecular weights
 
 ! CHEMICAL MECHANISM AND SPECIES INDICES
 !  c_reactant(c_rdim,2):   Index for reactant species in A+B=C..
@@ -148,8 +148,8 @@ module mod_cbmz_chemmech
   integer(ik4) :: c_reactant(c_rdim,2)       ! Reactant species numbers
   integer(ik4) :: c_product(c_rdim,20)       ! Product  species numbers
   integer(ik4) :: c_nnpro(c_rdim)            ! Number of reaction products
-  real(rk8) :: c_stoich(c_rdim,20)       ! Stoich. for products
-  real(rk8) :: c_prodarr(c_rdim,c_cdim)  ! Stoich. nr for ic
+  real(rkx) :: c_stoich(c_rdim,20)       ! Stoich. for products
+  real(rkx) :: c_prodarr(c_rdim,c_cdim)  ! Stoich. nr for ic
   integer(ik4) :: c_henry(c_rdim,2)          ! Henry's law species numbers
   integer(ik4) :: c_aqueous(c_rdim,3)        ! Aqueous equil. species numbers
   integer(ik4) :: c_aqspec(c_rdim,3)         ! Special equil. species numbers
@@ -225,12 +225,12 @@ module mod_cbmz_chemmech
 ! c_multfac(c_cdim)  Multi group conservation  of mass factor per spec.
 !                    Counts double for C=A+B, for A, B in pair group
 !
-  real(rk8) :: c_stoiloss(c_rdim)  ! net reactant loss
-  real(rk8) :: c_oddhx(c_rdim,2)   ! counter for net odd-H
-  real(rk8) :: c_pronox(c_rdim)    ! counter for net P(NOx)
+  real(rkx) :: c_stoiloss(c_rdim)  ! net reactant loss
+  real(rkx) :: c_oddhx(c_rdim,2)   ! counter for net odd-H
+  real(rkx) :: c_pronox(c_rdim)    ! counter for net P(NOx)
 
-  real(rk8) :: c_pairfac(c_cdim)  ! Pair group net rp factor
-  real(rk8) :: c_multfac(c_cdim)  ! Multi group net rp factor
+  real(rkx) :: c_pairfac(c_cdim)  ! Pair group net rp factor
+  real(rkx) :: c_multfac(c_cdim)  ! Multi group net rp factor
 
 ! INDICES AND POINTERS FOR AQUEOUS EQUILIBRIA
 ! c_nequil(c_cdim)   Number of aqueous/eq species linked to gas ic
@@ -309,23 +309,23 @@ module mod_cbmz_chemmech
 !                 and 80 conditions (k): 1=base value, >1 adjustments
 
    integer(ik4) :: c_nhv(22)
-   real(rk8) :: c_hvmat(22,40)
-   real(rk8) :: c_hvmatb(22)
-   real(rk8) :: c_jarray(80,510,56)
+   real(rkx) :: c_hvmat(22,40)
+   real(rkx) :: c_hvmatb(22)
+   real(rkx) :: c_jarray(80,510,56)
 
 !!NUMERICAL SOLUTION  PARAMETERS
 !  c_numitr              Maximum number of iterations
 !  c_converge            Convergence criteria (1e-02)
 
   integer(ik4) :: c_numitr               ! Maximum number of iterations
-  real(rk8) :: c_converge    ! Convergence criteria (1E-02)
+  real(rkx) :: c_converge    ! Convergence criteria (1E-02)
 
 ! NOTE  OPTIONAL OUTPUTS RELATING TO NUMERICS:
 !    currently in chemvars.EXT
 !    xohtest, xnotest, fohtest, final iter, history, geomavg
 
-!     real(rk8) c_ohtest       ! test: dOH/OH or dOH/HO2
-!     real(rk8) c_notest       ! test: dNO2/NO2
+!     real(rkx) c_ohtest       ! test: dOH/OH or dOH/HO2
+!     real(rkx) c_notest       ! test: dNO2/NO2
 !     integer c_iter                  ! chem. number of iterations
 ! NOVEMBER 2007 ADDITION:
 !   chemistry mechanism parameters to be used in tracer calculations
@@ -342,7 +342,7 @@ module mod_cbmz_chemmech
 !  c_nro3no   = nr for O3+NO=>NO2
 !  c_nrno2x   = nr for NO2+hv=>NO+O3
 
-   real(rk8) :: c_noxchem(13,c_rdim) ! net rp Ox NOx PAN HNO3 RNO3
+   real(rkx) :: c_noxchem(13,c_rdim) ! net rp Ox NOx PAN HNO3 RNO3
    integer(ik4) :: c_nro3no              ! nr for O3+NO=>NO2
    integer(ik4) :: c_nrno2x              ! nr for NO2+hv
    integer(ik4) :: c_nro3hv              ! nr for  O3+hv->2OH

@@ -36,9 +36,9 @@ module mod_sst_ersst
 
   integer(ik4) :: ilon , jlat
   integer(ik4) , parameter :: idtbc = 6
-  real(rk8) , pointer , dimension(:,:) :: sst
-  real(rk8) , pointer , dimension(:) :: lati
-  real(rk8) , pointer , dimension(:) :: loni
+  real(rkx) , pointer , dimension(:,:) :: sst
+  real(rkx) , pointer , dimension(:) :: lati
+  real(rkx) , pointer , dimension(:) :: loni
   integer(2) , pointer , dimension(:,:) :: work
 
   integer(ik4) :: inet
@@ -71,7 +71,7 @@ module mod_sst_ersst
 
     itbc = rcm_time_interval(idtbc,uhrs)
     tdiff = globidate2-globidate1
-    nsteps = idnint(tohours(tdiff))/idtbc + 1
+    nsteps = nint(tohours(tdiff))/idtbc + 1
 
     write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
     write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
@@ -142,7 +142,7 @@ module mod_sst_ersst
       end if
 
       tdiff = idate-ierastart
-      ierrec = idnint(tohours(tdiff))/idtbc+1
+      ierrec = nint(tohours(tdiff))/idtbc+1
 
       if ( ssttyp == 'ERSKT' ) then
         call sst_erain(ierrec,lfirst,2)
@@ -166,7 +166,7 @@ module mod_sst_ersst
     character(len=4) , dimension(2) :: varname
     integer(ik4) :: istatus
     integer(ik4) , save :: ivar
-    real(rk8) , save :: xadd , xscale , xmiss
+    real(rkx) , save :: xadd , xscale , xmiss
     integer(ik4) , dimension(3) , save :: icount , istart
     !
     ! The data are packed into short integers (INTEGER*2).  The array
@@ -203,11 +203,11 @@ module mod_sst_ersst
     do j = 1 , jlat
       do i = 1 , ilon
         if (work(i,j) /= xmiss) then
-          sst(i,j) = dble(work(i,j))*xscale + xadd
+          sst(i,j) = real(work(i,j),rkx)*xscale + xadd
           ! Respect convention for ice
-          if ( sst(i,j) < 271.5D0 ) sst(i,j) = 271.0D0
+          if ( sst(i,j) < 271.5_rkx ) sst(i,j) = 271.0_rkx
         else
-          sst(i,j) = -9999.0D0
+          sst(i,j) = -9999.0_rkx
         end if
         ! Respect convention on seaice
       end do

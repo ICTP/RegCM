@@ -77,15 +77,15 @@ module mod_scrip_remap
       integer(ik4), dimension(:), intent(in) :: &
            dst_add, &   ! destination address for each link
            src_add      ! source      address for each link
-      real(rk8), dimension(:,:), intent(in) :: &
+      real(rkx), dimension(:,:), intent(in) :: &
            map_wts      ! remapping weights for each link
-      real(rk8), dimension(:), intent(in) ::   &
+      real(rkx), dimension(:), intent(in) ::   &
            src_array    ! array with source field to be remapped
-      real(rk8), dimension(:), intent(in), optional :: &
+      real(rkx), dimension(:), intent(in), optional :: &
            src_grad1, & ! gradient arrays on source grid necessary for
            src_grad2, & ! higher-order remappings
            src_grad3
-      real(rk8), dimension(:), intent(inout) :: &
+      real(rkx), dimension(:), intent(inout) :: &
            dst_array    ! array for remapped field on destination grid
       integer(ik4) :: n , iorder
       !

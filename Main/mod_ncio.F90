@@ -51,13 +51,13 @@ module mod_ncio
   data somin   /-1/
   data somrec  / 1/
 
-  real(rk8) , dimension(:,:) , pointer :: rspacesom => null()
-  real(rk8) , dimension(:,:) , pointer :: rspacesom_io => null()
-  real(rk8) , dimension(:,:) , pointer :: rspace2 => null()
-  real(rk8) , dimension(:,:,:) , pointer :: rspace3 => null()
+  real(rkx) , dimension(:,:) , pointer :: rspacesom => null()
+  real(rkx) , dimension(:,:) , pointer :: rspacesom_io => null()
+  real(rkx) , dimension(:,:) , pointer :: rspace2 => null()
+  real(rkx) , dimension(:,:,:) , pointer :: rspace3 => null()
 
-  real(rk8) , dimension(:,:,:) , pointer :: tempw => null()
-  real(rk8) , dimension(:,:) , pointer :: tempwtop => null()
+  real(rkx) , dimension(:,:,:) , pointer :: tempw => null()
+  real(rkx) , dimension(:,:) , pointer :: tempwtop => null()
 
   contains
 
@@ -66,27 +66,27 @@ module mod_ncio
   subroutine read_domain_info(ht,lnd,mask,xlat,xlon,dlat,dlon, &
                               msfx,msfd,coriol,snowam,smoist,rmoist,hlake)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ht
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: lnd
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mask
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: xlat
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: xlon
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: dlat
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: dlon
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: msfx
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: msfd
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: coriol
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: snowam
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: smoist
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: rmoist
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: hlake
-    real(rk8) , dimension(:,:) , pointer :: tempmoist
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ht
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: lnd
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: mask
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xlat
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xlon
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: dlat
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: dlon
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: msfx
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: msfd
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: coriol
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: snowam
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: smoist
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: rmoist
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: hlake
+    real(rkx) , dimension(:,:) , pointer :: tempmoist
     character(len=256) :: dname
     character(len=8) :: csmoist
     integer(ik4) :: idmin , ilev
     integer(ik4) , dimension(2) :: istart , icount
     integer(ik4) , dimension(3) :: istart3 , icount3
-    real(rk8) , dimension(:,:) , pointer :: rspace
+    real(rkx) , dimension(:,:) , pointer :: rspace
     logical :: has_snow = .true.
     logical :: has_dhlake = .true.
 
@@ -268,17 +268,17 @@ module mod_ncio
 
   subroutine read_subdomain_info(ht,lnd,mask,xlat,xlon,hlake)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ht
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: lnd
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mask
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: xlat
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: xlon
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: hlake
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ht
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: lnd
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: mask
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xlat
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xlon
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: hlake
     character(len=256) :: dname
     integer(ik4) :: idmin
     integer(ik4) , dimension(2) :: istart , icount
-    real(rk8) , dimension(:,:) , pointer :: rspace
-    real(rk8) , dimension(:,:,:) , pointer :: rspace0
+    real(rkx) , dimension(:,:) , pointer :: rspace
+    real(rkx) , dimension(:,:,:) , pointer :: rspace0
     logical :: has_dhlake = .true.
     character(len=3) :: sbstring
 
@@ -394,7 +394,7 @@ module mod_ncio
       icbc_search = -1
     else
       tdif = idate-icbc_idate(1)
-      ibcrec = (idnint(tohours(tdif))/ibdyfrq)+1
+      ibcrec = (nint(tohours(tdif))/ibdyfrq)+1
       if ( ibcrec < 1 .or. ibcrec > ibcnrec ) then
         appdat1 = tochar(idate)
         write (stderr,*) 'Record is not found in ICBC file for ',appdat1
@@ -434,7 +434,7 @@ module mod_ncio
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=10) :: ctime
     integer(ik4) :: idimid , itvar , i , chkdiff , nnj , nni
-    real(rk8) , dimension(:) , allocatable :: icbc_nctime
+    real(rkx) , dimension(:) , allocatable :: icbc_nctime
     character(len=64) :: icbc_timeunits , icbc_timecal
     character(len=256) :: icbcname
     if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
@@ -477,7 +477,7 @@ module mod_ncio
       icbc_idate(i) = timeval2date(icbc_nctime(i),icbc_timeunits,icbc_timecal)
     end do
     if ( ibcnrec > 1 ) then
-      chkdiff = idnint(icbc_nctime(2) - icbc_nctime(1))
+      chkdiff = nint(icbc_nctime(2) - icbc_nctime(1))
       if (chkdiff /= ibdyfrq) then
         write (stderr,*) 'Time var in ICBC inconsistency.'
         write (stderr,*) 'Expecting ibdyfrq = ', ibdyfrq
@@ -550,18 +550,18 @@ module mod_ncio
 
   subroutine read_icbc(ps,ts,u,v,t,qv,pp,ww)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ps
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ts
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: u
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: v
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: t
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: qv
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) , optional :: pp
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) , optional :: ww
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ps
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ts
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: v
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: t
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: qv
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) , optional :: pp
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) , optional :: ww
 
     integer(ik4) , dimension(4) :: istart , icount
     integer(ik4) :: i , j , k
-    real(rk8) :: told , pold , rhold , satvp , tnew , pnew
+    real(rkx) :: told , pold , rhold , satvp , tnew , pnew
 
     if ( do_parallel_netcdf_in ) then
       istart(1) = global_dot_jstart
@@ -808,7 +808,7 @@ module mod_ncio
 
   subroutine read_som(qflx)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: qflx
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: qflx
     integer(ik4) , dimension(4) :: istart , icount
     character(len=3) , dimension(12) :: cmon = &
       (/'jan','feb','mar','apr','may','jun', &

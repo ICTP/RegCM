@@ -41,9 +41,9 @@ module mod_sst_gnmnc
   integer(ik4) :: istatus
   integer(ik4) , dimension(3) :: istart , icount
   integer(ik4) , dimension(1) :: istart_t , icount_t
-  real(rk8) , pointer ::  work1(:)
-  real(rk8) , pointer , dimension (:, :) :: work2 , work3
-  real(rk8) , pointer , dimension(:,:) :: sst
+  real(rkx) , pointer ::  work1(:)
+  real(rkx) , pointer , dimension (:, :) :: work2 , work3
+  real(rkx) , pointer , dimension(:,:) :: sst
   type(rcm_time_and_date) , save :: fidate1
   character(len=64) :: cunit , ccal
   character(len=256) :: inpfile
@@ -51,10 +51,10 @@ module mod_sst_gnmnc
 
   data varname/'time', 'TOBESET'/
 
-  real(rk8) , pointer , dimension(:) :: glat
-  real(rk8) , pointer , dimension(:) :: glon
-  real(rk8) , pointer , dimension(:,:) :: glat2
-  real(rk8) , pointer , dimension(:,:) :: glon2
+  real(rkx) , pointer , dimension(:) :: glat
+  real(rkx) , pointer , dimension(:) :: glon
+  real(rkx) , pointer , dimension(:,:) :: glat2
+  real(rkx) , pointer , dimension(:,:) :: glon2
 
   logical :: lref
 
@@ -80,7 +80,7 @@ module mod_sst_gnmnc
     type(rcm_time_and_date) :: idate , idatef , idateo , imm1
     integer(ik4) :: i , j , k , nsteps
     integer(ik4) :: year , month , day , hour , y1 , y2
-    real(rk8) :: ufac
+    real(rkx) :: ufac
 
     imm1 = prevmon(globidate1)
     call split_idate(imm1, year, month, day, hour)
@@ -252,7 +252,7 @@ module mod_sst_gnmnc
   subroutine gnmnc_sst(idate)
     implicit none
     type(rcm_time_and_date) , intent (in) :: idate
-    real(rk8) :: wt1 , wt2
+    real(rkx) :: wt1 , wt2
     type(rcm_time_and_date) :: prev , next
 
     integer(ik4) :: it , i , j
@@ -425,7 +425,7 @@ module mod_sst_gnmnc
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) , intent(inout) :: it
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vv
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: vv
     integer(ik4) :: year , month , day , hour , y1 , y2
     logical :: lswitch
     icount(1) = ilon

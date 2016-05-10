@@ -35,13 +35,13 @@ module mod_bats_albedo
   !
   ! Solar flux partitioned at wavelength of 0.7micr
   !
-  real(rk8) , parameter :: fsol1 = 0.5D0
-  real(rk8) , parameter :: fsol2 = 0.5D0
+  real(rkx) , parameter :: fsol1 = 0.5_rkx
+  real(rkx) , parameter :: fsol2 = 0.5_rkx
   !
   ! Short and long wave albedo for new snow
   !
-  real(rk8) , parameter :: snal0 = 0.95D0
-  real(rk8) , parameter :: snal1 = 0.65D0
+  real(rkx) , parameter :: snal0 = 0.95_rkx
+  real(rkx) , parameter :: snal1 = 0.65_rkx
 
   logical :: ldesseas = .false.
 
@@ -75,11 +75,11 @@ module mod_bats_albedo
 !
   subroutine albedo
     implicit none
-    real(rk8) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
+    real(rkx) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
                  albld , albs , albsd , alwet , cf1 , cff ,     &
                  conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
                  dralbs , sl , sl2 , sli , wet
-    ! real(rk8) :: sfac
+    ! real(rkx) :: sfac
     integer(ik4) :: kolour , i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'albedo'
@@ -98,16 +98,16 @@ module mod_bats_albedo
     !
     if ( ldesseas ) then
       if ( xmonth == 1 .or. xmonth == 2 .or. xmonth == 12 ) then
-        solour(1) = 0.12D0
+        solour(1) = 0.12_rkx
       endif
       if ( xmonth == 3 .or. xmonth == 4 .or. xmonth == 5 ) then
-        solour(1) = 0.15D0
+        solour(1) = 0.15_rkx
       endif
       if ( xmonth == 6 .or. xmonth == 7 .or. xmonth == 8) then
-        solour(1) = 0.18D0
+        solour(1) = 0.18_rkx
       endif
       if ( xmonth == 9 .or. xmonth == 10 .or. xmonth == 11) then
-        solour(1) = 0.15D0
+        solour(1) = 0.15_rkx
       endif
     end if
     !
@@ -144,7 +144,7 @@ module mod_bats_albedo
         !      (soil albedo depends on moisture)
         kolour = kolsol(lveg(i))
         wet = ssw(i)/depuv(lveg(i))
-        alwet = max((11.0D0-40.0D0*wet),d_zero)*0.01D0
+        alwet = max((11.0_rkx-40.0_rkx*wet),d_zero)*0.01_rkx
         alwet = min(alwet,solour(kolour))
         albg = solour(kolour) + alwet
         albgs = albg
@@ -158,13 +158,13 @@ module mod_bats_albedo
         lwal(i) = albl
       else if ( lveg(i) == 12 ) then
         ! 2.2   permanent ice sheet
-        albgs = 0.8D0
-        albgsd = 0.8D0
-        albgl = 0.55D0
-        albgld = 0.55D0
+        albgs = 0.8_rkx
+        albgsd = 0.8_rkx
+        albgl = 0.55_rkx
+        albgld = 0.55_rkx
       else
         ! 2.3  inland water, swamps, rice paddies etc.
-        albg = 0.05D0/(czeta+0.15D0)
+        albg = 0.05_rkx/(czeta+0.15_rkx)
         albgs = albg
         albgsd = albg
         albgl = albg
@@ -178,8 +178,8 @@ module mod_bats_albedo
         ! of snow. snow albedoes for visible and ir solar rad visible
         ! albedo depends on snow age
         ! age gives reduction of visible rad snow albedo due to age
-        cons = 0.2D0
-        conn = 0.5D0
+        cons = 0.2_rkx
+        conn = 0.5_rkx
         age = (d_one-d_one/(d_one+snag(i)))
         ! sl helps control albedo zenith dependence
         sl = d_two
@@ -191,12 +191,12 @@ module mod_bats_albedo
         ! czf corrects albedo of new snow for solar zenith
         cf1 = ((d_one+sli)/(d_one+sl2*czeta)-sli)
         cff = max(cf1,d_zero)
-        czf = 0.4D0*cff*(d_one-dfalbs)
+        czf = 0.4_rkx*cff*(d_one-dfalbs)
         dralbs = dfalbs + czf
         dfalbl = snal1*(d_one-conn*age)
-        czf = 0.4D0*cff*(d_one-dfalbl)
+        czf = 0.4_rkx*cff*(d_one-dfalbl)
         dralbl = dfalbl + czf
-        if ( lncl(i) > 0.001D0 ) then
+        if ( lncl(i) > 0.001_rkx ) then
           ! effective albedo over vegetation with snow
           albl = (d_one-wt(i))*albl + dralbl*wt(i)
           albld = (d_one-wt(i))*albld + dfalbl*wt(i)

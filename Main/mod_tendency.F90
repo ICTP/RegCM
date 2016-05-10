@@ -53,22 +53,22 @@ module mod_tendency
   private
 
   public :: allocate_mod_tend , tend
-  real(rk8) , pointer , dimension(:,:,:) :: ttld , td , &
+  real(rkx) , pointer , dimension(:,:,:) :: ttld , td , &
          phi , ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc , th , tha
-  real(rk8) , pointer , dimension(:,:,:) :: ps4
-  real(rk8) , pointer , dimension(:,:,:) :: ps_4
-  real(rk8) , pointer , dimension(:,:) :: pten
-  real(rk8) , pointer , dimension(:,:,:) :: thten
-  real(rk8) , pointer , dimension(:,:) :: dummy , rpsa , rpsb , rpsc
-  real(rk8) , pointer , dimension(:,:) :: rpsda
+  real(rkx) , pointer , dimension(:,:,:) :: ps4
+  real(rkx) , pointer , dimension(:,:,:) :: ps_4
+  real(rkx) , pointer , dimension(:,:) :: pten
+  real(rkx) , pointer , dimension(:,:,:) :: thten
+  real(rkx) , pointer , dimension(:,:) :: dummy , rpsa , rpsb , rpsc
+  real(rkx) , pointer , dimension(:,:) :: rpsda
 
   integer :: ithadv = 1
   integer(ik4) :: iqvvadv , iqxvadv , itrvadv
 #ifdef DEBUG
-  real(rk8) , pointer , dimension(:,:,:) :: wten
+  real(rkx) , pointer , dimension(:,:,:) :: wten
 #endif
 
-  real(rk8) :: rptn ! Total number of internal points
+  real(rkx) :: rptn ! Total number of internal points
 
   contains
 
@@ -96,7 +96,7 @@ module mod_tendency
       call getmem3d(td,jce1,jce2,ice1,ice2,1,kz,'tendency:td')
       call getmem3d(phi,jce1ga,jce2,ice1ga,ice2,1,kz,'tendency:phi')
       call getmem2d(rpsc,jce1,jce2,ice1,ice2,'tendency:rpsc')
-      rptn = d_one/dble((jout2-jout1+1)*(iout2-iout1+1))
+      rptn = d_one/real((jout2-jout1+1)*(iout2-iout1+1),rkx)
     else if ( idynamic == 2 ) then
       call getmem3d(ucc,jce1,jce2,ice1,ice2,1,kz,'tendency:ucc')
       call getmem3d(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
@@ -138,7 +138,7 @@ module mod_tendency
   !
   subroutine tend
     implicit none
-    real(rk8) :: chias , chibs , duv , pt2bar , pt2tot , ptnbar , &
+    real(rkx) :: chias , chibs , duv , pt2bar , pt2tot , ptnbar , &
                  maxv , ptntot , rovcpm , rtbar , tv , tva ,      &
                  tvavg , tvb , tvc , rho0s , cpm , rofac , uaq ,  &
                  vaq , wabar , amfac , wadot , wadotp1
@@ -354,8 +354,8 @@ module mod_tendency
         pt2tot = d_zero
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ptntot = ptntot + dabs(pten(j,i))
-            pt2tot = pt2tot + dabs((sfs%psc(j,i)+sfs%psb(j,i)- &
+            ptntot = ptntot + abs(pten(j,i))
+            pt2tot = pt2tot + abs((sfs%psc(j,i)+sfs%psb(j,i)- &
                      d_two*sfs%psa(j,i))/(dt*dt*d_rfour))
           end do
         end do
@@ -479,7 +479,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            th(j,i,k) = atmx%t(j,i,k) * (1.0D5/atm1%pr(j,i,k))**rovcp
+            th(j,i,k) = atmx%t(j,i,k) * (1.0e5_rkx/atm1%pr(j,i,k))**rovcp
             tha(j,i,k) = th(j,i,k) * sfs%psa(j,i)
           end do
         end do
@@ -1003,7 +1003,7 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv)
-          atmc%qx(j,i,k,iqv) = max(atmc%qx(j,i,k,iqv),minqv)
+          atmc%qx(j,i,k,iqv) = max(atmc%qx(j,i,k,iqv)*rpsb(j,i),minqq)*sfs%psb(j,i)
         end do
       end do
     end do
@@ -1012,10 +1012,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
-            if ( atmc%qx(j,i,k,n) < minqx ) then
-              atmc%qx(j,i,k,iqv) = atmc%qx(j,i,k,iqv) + atmc%qx(j,i,k,n)
-              atmc%qx(j,i,k,n) = d_zero
-            end if
+            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n)*rpsb(j,i),minqx)*sfs%psb(j,i)
           end do
         end do
       end do
@@ -1197,9 +1194,9 @@ module mod_tendency
             !     (3rd RHS term in Eq.2.2.1, Eq.2.2.2, Eq.2.2.9,
             !      Eq.2.2.10, Eq.2.3.3, Eq.2.3.4)
             !
-            wadot   = 0.125D0 * (atm1%w(j-1,i-1,k) + atm1%w(j-1,i,k)     + &
+            wadot   = 0.125_rkx * (atm1%w(j-1,i-1,k) + atm1%w(j-1,i,k)     + &
                                  atm1%w(j,i-1,k)   + atm1%w(j,i,k))
-            wadotp1 = 0.125D0 * (atm1%w(j-1,i-1,k+1) + atm1%w(j-1,i,k+1) + &
+            wadotp1 = 0.125_rkx * (atm1%w(j-1,i-1,k+1) + atm1%w(j-1,i,k+1) + &
                                  atm1%w(j,i-1,k+1)   + atm1%w(j,i,k+1))
             wabar = wadot + wadotp1
             amfac = wabar * rpsda(j,i) * rearthrad
@@ -1603,12 +1600,12 @@ module mod_tendency
             do j = jci1 , jci2
               chias = chic(j,i,k,itr)
               if ( chias < mintr ) then
-                chias = d_zero
+                chias = mintr
               end if
               chibs = (omu * chia(j,i,k,itr) + &
                        gnu * (chib(j,i,k,itr)+chic(j,i,k,itr)))
               if ( chibs < mintr ) then
-                chibs = d_zero
+                chibs = mintr
               end if
               chia(j,i,k,itr) = chias
               chib(j,i,k,itr) = chibs
@@ -1635,7 +1632,7 @@ module mod_tendency
       call split_idate(idatex,xyear,xmonth,xday,xhour)
     end if
     if ( ktau == 2 ) then
-      dtbat = dt*dble(ntsrf)
+      dtbat = dt*real(ntsrf,rkx)
       dt = dt2
       rdt = d_one/dt
       dtsq = dt*dt
@@ -1646,10 +1643,10 @@ module mod_tendency
     !
     if ( idynamic == 1 .and. ktau > 1 ) then
       if ( is_nan(ptntot) ) then
-        maxv = dabs(maxval(aten%t))
-        if ( (maxv/dtsec) > 0.01D0 ) then ! 50 K per hour
+        maxv = abs(maxval(aten%t))
+        if ( (maxv/dtsec) > 0.01_rkx ) then ! 50 K per hour
           write(stderr,*) 'MAXVAL ATEN T :', maxv
-          maxv = maxv - 0.001D0
+          maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
@@ -1660,10 +1657,10 @@ module mod_tendency
             end do
           end do
         end if
-        maxv = dabs(maxval(aten%u))
-        if ( (maxv/dtsec) > 0.005D0 ) then  ! 25 m/s per hour
+        maxv = abs(maxval(aten%u))
+        if ( (maxv/dtsec) > 0.005_rkx ) then  ! 25 m/s per hour
           write(stderr,*) 'MAXVAL ATEN U :', maxv
-          maxv = maxv - 0.001D0
+          maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
@@ -1674,10 +1671,10 @@ module mod_tendency
             end do
           end do
         end if
-        maxv = dabs(maxval(aten%v))
-        if ( (maxv/dtsec) > 0.005D0 ) then  ! 25 m/s per hour
+        maxv = abs(maxval(aten%v))
+        if ( (maxv/dtsec) > 0.005_rkx ) then  ! 25 m/s per hour
           write(stderr,*) 'MAXVAL ATEN V :', maxv
-          maxv = maxv - 0.001D0
+          maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
@@ -1688,10 +1685,10 @@ module mod_tendency
             end do
           end do
         end if
-        maxv = dabs(maxval(aten%qx(:,:,:,iqv)))
-        if ( (maxv/dtsec) > 0.001D0 ) then !
+        maxv = abs(maxval(aten%qx(:,:,:,iqv)))
+        if ( (maxv/dtsec) > 0.001_rkx ) then !
           write(stderr,*) 'MAXVAL ATEN QV :', maxv
-          maxv = maxv - 0.001D0
+          maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
@@ -1702,10 +1699,10 @@ module mod_tendency
             end do
           end do
         end if
-        maxv = dabs(maxval(aten%qx(:,:,:,iqc)))
-        if ( (maxv/dtsec) > 0.001D0 ) then !
+        maxv = abs(maxval(aten%qx(:,:,:,iqc)))
+        if ( (maxv/dtsec) > 0.001_rkx ) then !
           write(stderr,*) 'MAXVAL ATEN QC :', maxv
-          maxv = maxv - 0.001D0
+          maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
@@ -1762,14 +1759,14 @@ module mod_tendency
       implicit none
       character(len=*) , intent(in) :: loc
       integer(ik4) :: i , j , k , kk , ierr
-      real(rk8) :: check_tt , mean_tt
+      real(rkx) :: check_tt , mean_tt
       ierr = 0
       mean_tt = (maxval(aten%t)+minval(aten%t))/d_two
       do k = 1 , kz
         do i = ici1, ici2
           do j = jci1 , jci2
             check_tt = (aten%t(j,i,k)-mean_tt)*rpsb(j,i)
-            if ( dabs(check_tt) > temp_tend_maxval ) then
+            if ( abs(check_tt) > temp_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at ktau = ', ktau
               write(stderr,*) 'TEMP tendency out of order : ', check_tt
               write(stderr,*) 'At J = ',j
@@ -1799,16 +1796,16 @@ module mod_tendency
       implicit none
       character(len=*) , intent(in) :: loc
       integer(ik4) :: i , j , k , kk , ierr
-      real(rk8) :: check_ww , mean_ww
+      real(rkx) :: check_ww , mean_ww
       ierr = 0
-      wten = sqrt(aten%u(jde1:jde2,ide1:ide2,:)**2 + &
-                  aten%v(jde1:jde2,ide1:ide2,:)**2)
+      wten = sqrt(max(aten%u(jde1:jde2,ide1:ide2,:),epsilon(d_one))**2 + &
+                  max(aten%v(jde1:jde2,ide1:ide2,:),epsilon(d_one))**2)
       mean_ww = (maxval(wten)+minval(wten))/d_two
       do k = 1 , kz
         do i = ici1, ici2
           do j = jci1 , jci2
             check_ww = (wten(j,i,k)-mean_ww)/sfs%psdotb(j,i)
-            if ( dabs(check_ww) > wind_tend_maxval ) then
+            if ( abs(check_ww) > wind_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at ktau = ', ktau
               write(stderr,*) 'WIND tendency out of order : ', check_ww
               write(stderr,*) 'At J = ',j
@@ -2066,7 +2063,7 @@ module mod_tendency
         do k = 1 , kz
           do i = ice1ga , ice2ga
             do j = jce1ga , jce2ga
-              atmx%qx(j,i,k,n) = max(atm1%qx(j,i,k,n)*rpsa(j,i),minqx)
+              atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)*rpsa(j,i)
             end do
           end do
         end do

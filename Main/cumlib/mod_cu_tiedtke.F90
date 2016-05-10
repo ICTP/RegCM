@@ -43,14 +43,14 @@ module mod_cu_tiedtke
 
   public :: allocate_mod_cu_tiedtke , tiedtkedrv
 
-  real(rk8) , parameter :: rhow = 1000.0D0
-  real(rk8) , parameter :: rkap = 0.4D0
-  real(rk8) , parameter :: ratm = 100000.0D0
-  real(rk8) , parameter :: qsmax = 0.5D0
-  real(rk8) , parameter :: cwdrag = (3.0D0/8.0D0)*0.506D0/0.200D0
+  real(rkx) , parameter :: rhow = 1000.0_rkx
+  real(rkx) , parameter :: rkap = 0.4_rkx
+  real(rkx) , parameter :: ratm = 100000.0_rkx
+  real(rkx) , parameter :: qsmax = 0.5_rkx
+  real(rkx) , parameter :: cwdrag = (3.0_rkx/8.0_rkx)*0.506_rkx/0.200_rkx
 
-  real(rk8) :: rtau
-  real(rk8) :: rmfcfl ! Massflux multiple of cfl stability criterium
+  real(rkx) :: rtau
+  real(rkx) :: rmfcfl ! Massflux multiple of cfl stability criterium
   integer(ik4) :: nk350 , nk060 , nk950
 
   logical , parameter :: lmfpen    = .true.  ! penetrative conv is switched on
@@ -64,50 +64,50 @@ module mod_cu_tiedtke
   logical , parameter :: lmfsmooth = .false. ! smoot of mass fluxes for tracers
   logical , parameter :: lmfwstar  = .false. ! Grant w* closure for shallow conv
 
-  real(rk8) , parameter :: rlpal1 = 0.15D0  ! Smoothing coefficient
-  real(rk8) , parameter :: rlpal2 = 20.0D0  ! Smoothing coefficient
+  real(rkx) , parameter :: rlpal1 = 0.15_rkx  ! Smoothing coefficient
+  real(rkx) , parameter :: rlpal2 = 20.0_rkx  ! Smoothing coefficient
 
   ! Use CFL mass flux limit (1) or absolut limit (0)
-  real(rk8) , parameter :: rmflic = 1.0D0
+  real(rkx) , parameter :: rmflic = 1.0_rkx
   ! Mass flux solver for momentum (1) or no (0)
-  real(rk8) , parameter :: rmfsoluv = 1.0D0
+  real(rkx) , parameter :: rmfsoluv = 1.0_rkx
   ! Mass flux solver for T and q (1) or no (0)
-  real(rk8) , parameter :: rmfsoltq = 1.0D0
+  real(rkx) , parameter :: rmfsoltq = 1.0_rkx
   ! Mass flux solver for tracer (1) or no (0)
-  real(rk8) , parameter :: rmfsolct = 1.0D0
+  real(rkx) , parameter :: rmfsolct = 1.0_rkx
 
   ! Value of absolut mass flux limit
-  real(rk8) , parameter :: rmflia = 0.0D0
+  real(rkx) , parameter :: rmflia = 0.0_rkx
 
   ! Relaxation time for melting of snow
-  real(rk8) , parameter :: rtaumel = 5.0D0*3600.0D0 ! five hours
+  real(rkx) , parameter :: rtaumel = 5.0_rkx*3600.0_rkx ! five hours
 
   ! Factor for time step weighting in *vdf....*
-  real(rk8) , parameter :: rvdifts = 1.5D0
+  real(rkx) , parameter :: rvdifts = 1.5_rkx
 
   ! Updraught velocity perturbation for implicit (m/s)
-  real(rk8) , parameter :: ruvper = 0.3D0
+  real(rkx) , parameter :: ruvper = 0.3_rkx
 
   ! Maximum allowed cloud thickness for shallow cloud (Pa)
-  real(rk8) , parameter :: rdepths = 2.0D4
+  real(rkx) , parameter :: rdepths = 2.0e4_rkx
 
   ! Fractional massflux for downdrafts at lfs
-  real(rk8) , parameter :: rmfdeps = 0.3D0
+  real(rkx) , parameter :: rmfdeps = 0.3_rkx
 
   ! evaporation coefficient for kuo0
-  real(rk8) , pointer , dimension(:) :: cevapcu
+  real(rkx) , pointer , dimension(:) :: cevapcu
   integer(ik4) , pointer , dimension(:,:) :: ilab
   integer(ik4) , pointer , dimension(:) :: ktype
   logical , pointer , dimension(:) :: ldland
-  real(rk8) , pointer , dimension(:,:,:) :: pxtm1 , pxtte
-  real(rk8) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 ,    &
+  real(rkx) , pointer , dimension(:,:,:) :: pxtm1 , pxtte
+  real(rkx) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 ,    &
         pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec , zlude , &
         pmflxr , pccn
-  real(rk8) , pointer , dimension(:) :: prsfc , pssfc , &
+  real(rkx) , pointer , dimension(:) :: prsfc , pssfc , &
         ptopmax , xphfx , xpqfx
-  real(rk8) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
+  real(rkx) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
         pxlte , pverv , pmfu , xpg , xpgh
-  real(rk8) , pointer , dimension(:) :: pmean
+  real(rkx) , pointer , dimension(:) :: pmean
   integer(ik4) , pointer , dimension(:) :: kctop , kcbot
   integer(ik4) :: nipoi , nmctop
   integer(ik4) , pointer , dimension(:) :: imap , jmap
@@ -115,23 +115,25 @@ module mod_cu_tiedtke
   integer(ik4) :: nskmax
 
   ! CAPE adjustment timescale
-  real(rk8) , parameter :: cmtcape = 453600.D0
+  real(rkx) , parameter :: cmtcape = 453600._rkx
   ! Max massflux value
-  real(rk8) , parameter :: cmfcmax = 1.0D0
+  real(rkx) , parameter :: cmfcmax = 1.0_rkx
   ! Min massflux value (for safety)
-  real(rk8) , parameter :: cmfcmin = 1.0D-10
+  real(rkx) , parameter :: cmfcmin = 1.0e-10_rkx
   ! Rainfall max elevation
-  real(rk8) , parameter :: zdlev   = 1.5D4
+  real(rkx) , parameter :: zdlev   = 1.5e4_rkx
   ! Midlevel convection top pressure
-  real(rk8) , parameter :: cmcptop = 30000.0D0
+  real(rkx) , parameter :: cmcptop = 30000.0_rkx
   ! Relat. cloud massflux at level above nonbuoyancy
-  real(rk8) , parameter :: cmfctop = 0.35D0
+  real(rkx) , parameter :: cmfctop = 0.35_rkx
 
   ! Fractional massflux for downdrafts at lfs
-  real(rk8) , parameter :: cmfdeps = 0.3D0
+  real(rkx) , parameter :: cmfdeps = 0.3_rkx
 
   ! Trigger parameter for the convection 0.0 <-> 1.0
-  real(rk8) , parameter :: ctrigger = -1.1D0
+  real(rkx) , parameter :: ctrigger = -1.1_rkx
+
+  real(rkx) , parameter :: almostzero = 1.0e-10_rkx
 
   contains
   !
@@ -376,7 +378,7 @@ module mod_cu_tiedtke
           cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqte(ii,k)) - &
                                avg_qten(j,i,k,iqv)
           cu_qten(j,i,k,iqc) = pxlte(ii,k) - avg_qten(j,i,k,iqc)
-          cu_qdetr(j,i,k) = max(zlude(ii,k),dlowval)
+          cu_qdetr(j,i,k) = max(zlude(ii,k),almostzero)
           cu_raincc(j,i,k) = pmflxr(ii,k)
         end if
       end do
@@ -429,13 +431,13 @@ module mod_cu_tiedtke
         cu_kbot(j,i) = kcbot(ii)
         do k = kctop(ii) , kcbot(ii)
           if ( ktype(ii) == 1 ) then
-            cu_cldfrc(j,i,k) = 0.140D0*log(d_one+(500.0D0*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = 0.140_rkx*log(d_one+(500.0_rkx*pmfu(ii,k)))
           else if ( ktype(ii) == 2 ) then
-            cu_cldfrc(j,i,k) = 0.105D0*log(d_one+(500.0D0*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = 0.105_rkx*log(d_one+(500.0_rkx*pmfu(ii,k)))
           else
-            cu_cldfrc(j,i,k) = 0.070D0*log(d_one+(500.0D0*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = 0.070_rkx*log(d_one+(500.0_rkx*pmfu(ii,k)))
           end if
-          cu_cldfrc(j,i,k) = min(max(0.0D0,cu_cldfrc(j,i,k)),clfrcv)
+          cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),clfrcv)
         end do
       end if
     end do
@@ -451,22 +453,22 @@ module mod_cu_tiedtke
     subroutine setup(smax,pmean)
       implicit none
       integer(ik4) , intent(in) :: smax
-      real(rk8) , dimension(kz) , intent(in) :: pmean
+      real(rkx) , dimension(kz) , intent(in) :: pmean
       integer(ik4) :: klev
-      rtau = d_one+264.0D0/dble(smax)
-      rtau = min(3.0D0,rtau)
+      rtau = d_one+264.0_rkx/real(smax,rkx)
+      rtau = min(3.0_rkx,rtau)
       if ( smax >= 511 ) then
-        rmfcfl = 3.0D0
+        rmfcfl = 3.0_rkx
       else
-        rmfcfl = 5.0D0
+        rmfcfl = 5.0_rkx
       end if
       nk350 = kz
       nk060 = kz
       nk950 = kz
       do klev = kz , 2 , -1
-        if ( pmean(klev)/pmean(kz)*stdp > 350.D2 ) nk350 = klev
-        if ( pmean(klev)/pmean(kz)*stdp >  60.D2 ) nk060 = klev
-        if ( pmean(klev)/pmean(kz)*stdp > 950.D2 ) nk950 = klev
+        if ( pmean(klev)/pmean(kz)*stdp > 350.e2_rkx ) nk350 = klev
+        if ( pmean(klev)/pmean(kz)*stdp >  60.e2_rkx ) nk060 = klev
+        if ( pmean(klev)/pmean(kz)*stdp > 950.e2_rkx ) nk950 = klev
       end do
     end subroutine setup
 
@@ -489,15 +491,15 @@ module mod_cu_tiedtke
     integer(ik4) , dimension(kbdim,klev) :: ilab
     integer(ik4) , dimension(kbdim) :: ktype
     logical , dimension(kbdim) :: ldland
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1 , pgeoh
-    real(rk8) , dimension(kbdim,klevp1) , intent(out) :: pmflxr
-    real(rk8) , dimension(kbdim,klev) :: papp1 , pgeo , pqm1 , pqte ,   &
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1 , pgeoh
+    real(rkx) , dimension(kbdim,klevp1) , intent(out) :: pmflxr
+    real(rkx) , dimension(kbdim,klev) :: papp1 , pgeo , pqm1 , pqte ,   &
            pqtec , ptm1 , ptte , pum1 , pverv , pvm1 , pvol , pvom ,  &
            pxim1 , pxite , pxlm1 , pxlte , pxtec , pmfu , zlude , pccn
-    real(rk8) , dimension(kbdim) :: pqhfla , pshfla , prsfc , &
+    real(rkx) , dimension(kbdim) :: pqhfla , pshfla , prsfc , &
            pssfc , ptopmax
     integer(ik4) , dimension(kbdim) , intent(out) :: kctop , kcbot
-    real(rk8) , dimension(kbdim,klev,ktrac) :: pxtm1 , pxtte
+    real(rkx) , dimension(kbdim,klev,ktrac) :: pxtm1 , pxtte
     intent (in) papp1 , pqm1 , ptm1 , pum1 , pvm1 , pxim1 , &
            pxlm1 , pxlte , pxtm1 , pccn
     intent(out) :: zlude
@@ -505,17 +507,17 @@ module mod_cu_tiedtke
     integer(ik4) , dimension(kbdim) :: itopec2
     integer(ik4) :: ilevmin , it , jk , jl , jt
     logical , dimension(kbdim) :: locum
-    real(rk8) , dimension(kbdim,klev) :: zlu , zmfd , zqp1 , zqsat , zqu , &
+    real(rkx) , dimension(kbdim,klev) :: zlu , zmfd , zqp1 , zqsat , zqu , &
       zqude , ztp1 , ztu , ztvp1 , zup1 , zvp1 , zxp1
-    real(rk8) , dimension(kbdim) :: zrain , ztopmax
-    real(rk8) :: zxip1 , zxlp1
+    real(rkx) , dimension(kbdim) :: zrain , ztopmax
+    real(rkx) :: zxip1 , zxlp1
     integer(ik4) , dimension(kbdim) :: kbotsc
     logical , dimension(kbdim) :: ldsc
-    real(rk8) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
-    real(rk8) , dimension(kbdim,klev+1) :: pmflxs
-    real(rk8) , dimension(kbdim,klev) :: pmfude_rate , pmfdde_rate
-    real(rk8) , dimension(kbdim) :: pcape
-    real(rk8) , dimension(kbdim,klev+1) :: pqhfl , pahfs
+    real(rkx) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
+    real(rkx) , dimension(kbdim,klev+1) :: pmflxs
+    real(rkx) , dimension(kbdim,klev) :: pmfude_rate , pmfdde_rate
+    real(rkx) , dimension(kbdim) :: pcape
+    real(rkx) , dimension(kbdim,klev+1) :: pqhfl , pahfs
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cucall'
     integer(ik4) , save :: idindx = 0
@@ -639,8 +641,8 @@ module mod_cu_tiedtke
       ! ### for this test case we just specify an arbitrary decrease of
       ! turb. fluxes with height ###
       do jk = klev , 1 , -1
-        pqhfl(:,jk) = 0.9D0*pqhfl(:,jk+1)
-        pahfs(:,jk) = 0.9D0*pahfs(:,jk+1)
+        pqhfl(:,jk) = 0.9_rkx*pqhfl(:,jk+1)
+        pahfs(:,jk) = 0.9_rkx*pahfs(:,jk+1)
       end do
       pmflxr = d_zero
       pmflxs = d_zero
@@ -651,8 +653,8 @@ module mod_cu_tiedtke
                     zlu,pmflxr,pmflxs,zrain,pmfu,zmfd,zlude,       &
                     pmfude_rate,pmfdde_rate,pcape,ktrac,pxtm1,     &
                     pxtte,pccn)
-      prsfc = pmflxr(:,klev+1)*1.D3
-      pssfc = pmflxs(:,klev+1)*1.D3
+      prsfc = pmflxr(:,klev+1)*1.e3_rkx
+      pssfc = pmflxs(:,klev+1)*1.e3_rkx
     case default
       call fatal(__FILE__,__LINE__, &
                  'ICONV must be in the range 1-4')
@@ -679,7 +681,7 @@ module mod_cu_tiedtke
         else if ( itopec2(jl) /= klevp1 ) then
           ptopmax(jl) = paphp1(jl,itopec2(jl))
         else
-          ptopmax(jl) = 99999.0D0
+          ptopmax(jl) = 99999.0_rkx
         end if
         ptopmax(jl) = min(ptopmax(jl),ztopmax(jl))
       end do
@@ -764,31 +766,31 @@ module mod_cu_tiedtke
     integer(ik4) , dimension(kbdim,klev) :: ilab
     integer(ik4) , dimension(kbdim) :: kcbot , kctop , ktype
     logical , dimension(kbdim) :: ldcum , ldland
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim) :: pqhfla , prain , prsfc , pssfc
-    real(rk8) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim) :: pqhfla , prain , prsfc , pssfc
+    real(rkx) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
            pmfu , pqen , pqsen , pqte , pqtec , pqu , pqude , pten ,  &
            ptte , ptu , ptven , puen , pven , pverv , pvol , pvom ,   &
            pxen , pxtec
-    real(rk8) , dimension(kbdim,klev,ktrac) :: pxten , pxtte , pxtu
+    real(rkx) , dimension(kbdim,klev,ktrac) :: pxten , pxtte , pxtu
     intent (in) pqhfla
     intent (inout) ktype , ldcum , pmfd
     integer(ik4) , dimension(kbdim) :: ictop0 , idtop , ihmin , ilwmin
     integer(ik4) :: ikb , it , it1 , itopm2 , jk , jl , jt
     logical :: llo1 , lo
     logical , dimension(kbdim) :: loddraf
-    real(rk8) :: zalvdcp , zalvs , zb , zbi , zcons2 , zcor , zdepth ,  &
+    real(rkx) :: zalvdcp , zalvs , zb , zbi , zcons2 , zcor , zdepth ,  &
                zdhdz , zdqmin , zdqsdt , zdz , zeps , zes , zfac ,    &
                zgam , zhhat , zhsat , zmfmax , zpbmpt , zqalv ,       &
                zqsat , zqst1 , qumqe , zrh , zro , ztau , zzz
-    real(rk8) , dimension(kbdim) :: zcape , zdqcv , zdqpbl , zentr ,    &
+    real(rkx) , dimension(kbdim) :: zcape , zdqcv , zdqpbl , zentr ,    &
                                   zhcbase , zheat , zhmin , zmfub ,   &
                                   zmfub1 , zrfl , zsfl
-    real(rk8) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
+    real(rkx) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
            zdmfup , zdpmel , zgeoh , zhhatt , zmfdq , zmfds , zmful , &
            zmfuq , zmfus , zqd , zqenh , zqsenh , ztd , ztenh , zud , &
            zuu , zvd , zvu , zxenh
-    real(rk8) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
+    real(rkx) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
            zxtenh
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cumastr'
@@ -810,7 +812,7 @@ module mod_cu_tiedtke
     ! (nn wavenumber of a spectral model)
     ! this is translated roughly into horizontal resolution in meters
     !
-    ztau = min(3.0D0*3600.0D0,cmtcape/nskmax)
+    ztau = min(3.0_rkx*3600.0_rkx,cmtcape/nskmax)
     !
     !--------------------------------------------------------
     ! 2. INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -840,7 +842,7 @@ module mod_cu_tiedtke
     !
     jk = 1
     do jl = 1 , kproma
-      zdqpbl(jl) = 0.00D0
+      zdqpbl(jl) = 0.00_rkx
       zdqcv(jl) = pqte(jl,jk)*(paphp1(jl,jk+1)-paphp1(jl,jk))
       idtop(jl) = 0
     end do
@@ -861,9 +863,9 @@ module mod_cu_tiedtke
     do jl = 1 , kproma
       ikb = kcbot(jl)
       qumqe = pqu(jl,ikb) + plu(jl,ikb) - zqenh(jl,ikb)
-      zdqmin = max(0.010D0*zqenh(jl,ikb),1.D-10)
+      zdqmin = max(0.010_rkx*zqenh(jl,ikb),almostzero)
       llo1 = zdqpbl(jl) > d_zero .and. qumqe > zdqmin .and. ldcum(jl)
-      zmfub(jl) = merge(zdqpbl(jl)/(egrav*max(qumqe,zdqmin)),0.010D0,llo1)
+      zmfub(jl) = merge(zdqpbl(jl)/(egrav*max(qumqe,zdqmin)),0.010_rkx,llo1)
       zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
       zmfub(jl) = min(zmfub(jl),zmfmax)
       if ( .not.llo1 ) ldcum(jl) = .false.
@@ -897,7 +899,7 @@ module mod_cu_tiedtke
         it = max(min(it,jptlucu2),jptlucu1)
         zes = tlucua(it)/paphp1(jl,jk)
         zes = min(qsmax,zes)
-        lo = zes < 0.40D0
+        lo = zes < 0.40_rkx
         zcor = d_one/(d_one-ep1*zes)
         zqsat = zes*zcor
         it1 = it + 1
@@ -919,7 +921,7 @@ module mod_cu_tiedtke
     ! (CLOUD DEPTH FROM NON-ENTRAINIG PLUME)
     !
     do jl = 1 , kproma
-      ktype(jl) = merge(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl))>2.0D4)
+      ktype(jl) = merge(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl))>2.0e4_rkx)
       zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
     end do
 
@@ -941,7 +943,7 @@ module mod_cu_tiedtke
       end if
     end do
 
-    zb = 25.0D0
+    zb = 25.0_rkx
     zbi = d_one/(zb*egrav)
     do jk = klev , 1 , -1
       do jl = 1 , kproma
@@ -986,7 +988,7 @@ module mod_cu_tiedtke
     !
     do jl = 1 , kproma
       zpbmpt = paphp1(jl,kcbot(jl)) - paphp1(jl,kctop(jl))
-      if ( ldcum(jl) .and. ktype(jl) == 1 .and. zpbmpt < 2.D4 ) then
+      if ( ldcum(jl) .and. ktype(jl) == 1 .and. zpbmpt < 2.e4_rkx ) then
         ktype(jl) = 2
       end if
       if ( ldcum(jl) ) ictop0(jl) = kctop(jl)
@@ -1058,7 +1060,7 @@ module mod_cu_tiedtke
       if ( ldcum(jl) .and. ktype(jl) == 1 ) then
         ikb = kcbot(jl)
         zmfub1(jl) = (zcape(jl)*zmfub(jl))/(zheat(jl)*ztau)
-        zmfub1(jl) = max(zmfub1(jl),0.0010D0)
+        zmfub1(jl) = max(zmfub1(jl),0.0010_rkx)
         zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
         zmfub1(jl) = min(zmfub1(jl),zmfmax)
       end if
@@ -1076,20 +1078,20 @@ module mod_cu_tiedtke
         zeps = merge(cmfdeps,d_zero,llo1)
         qumqe = pqu(jl,ikb) + plu(jl,ikb) - zeps*zqd(jl,ikb) &
                  - (d_one-zeps)*zqenh(jl,ikb)
-        zdqmin = max(0.010D0*zqenh(jl,ikb),1.D-10)
+        zdqmin = max(0.010_rkx*zqenh(jl,ikb),almostzero)
         zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
         llo1 = zdqpbl(jl) > d_zero .and. qumqe > zdqmin .and. &
                ldcum(jl) .and. zmfub(jl) < zmfmax
         zmfub1(jl) = merge(zdqpbl(jl)/(egrav*            &
                      max(qumqe,zdqmin)),zmfub(jl),llo1)
         zmfub1(jl) = merge(zmfub1(jl),zmfub(jl),abs(zmfub1(jl)  &
-                     -zmfub(jl)) < 0.20D0*zmfub(jl))
+                     -zmfub(jl)) < 0.20_rkx*zmfub(jl))
       end if
     end do
     do jk = 1 , klev
       do jl = 1 , kproma
         if ( ldcum(jl) ) then
-          zfac = zmfub1(jl)/max(zmfub(jl),1.D-10)
+          zfac = zmfub1(jl)/max(zmfub(jl),almostzero)
           pmfd(jl,jk) = pmfd(jl,jk)*zfac
           zmfds(jl,jk) = zmfds(jl,jk)*zfac
           zmfdq(jl,jk) = zmfdq(jl,jk)*zfac
@@ -1100,7 +1102,7 @@ module mod_cu_tiedtke
       do jt = 1 , ktrac
         do jl = 1 , kproma
           if ( ldcum(jl) ) then
-            zfac = zmfub1(jl)/max(zmfub(jl),1.D-10)
+            zfac = zmfub1(jl)/max(zmfub(jl),almostzero)
             zmfdxt(jl,jk,jt) = zmfdxt(jl,jk,jt)*zfac
           end if
         end do
@@ -1239,31 +1241,31 @@ module mod_cu_tiedtke
     integer(ik4) , dimension(kbdim,klev) :: ilab
     integer(ik4) , dimension(kbdim) :: kcbot , kctop , ktype
     logical , dimension(kbdim) :: ldcum , ldland
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim) :: pqhfla , prain , prsfc , pssfc
-    real(rk8) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim) :: pqhfla , prain , prsfc , pssfc
+    real(rkx) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
            pmfu , pqen , pqsen , pqte , pqtec , pqu , pqude , pten ,  &
            ptte , ptu , ptven , puen , pven , pverv , pvol , pvom ,   &
            pxen , pxtec
-    real(rk8) , dimension(kbdim,klev,ktrac) :: pxten , pxtte , pxtu
+    real(rkx) , dimension(kbdim,klev,ktrac) :: pxten , pxtte , pxtu
     intent (in) pqhfla
     intent (inout) ktype , ldcum , pmfd
     integer(ik4) , dimension(kbdim) :: ictop0 , idtop , ilwmin
     integer(ik4) :: ikb , it , it1 , itopm2 , jk , jl , jt
     logical :: llo1 , lo
     logical , dimension(kbdim) :: loddraf
-    real(rk8) :: zalvdcp , zalvs , zcons2 , zcor , zdqmin , zdqsdt ,    &
+    real(rkx) :: zalvdcp , zalvs , zcons2 , zcor , zdqmin , zdqsdt ,    &
                zdz , zeps , zes , zfac , zgam , zhhat , zhsat ,       &
                zmfmax , zpbmpt , zqalv , zqsat , zqst1 , zqumqe ,     &
                zro , ztau , zzz
-    real(rk8) , dimension(kbdim) :: zcape , zdqcv , zdqpbl , zentr ,    &
+    real(rkx) , dimension(kbdim) :: zcape , zdqcv , zdqpbl , zentr ,    &
                                   zhcbase , zheat , zmfub , zmfub1 ,  &
                                   zrfl , zsfl
-    real(rk8) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
+    real(rkx) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
            zdmfup , zdpmel , zgeoh , zmfdq , zmfds , zmful , zmfuq ,  &
            zmfus , zqd , zqenh , zqsenh , ztd , ztenh , zud , zuu ,   &
            zvd , zvu , zxenh
-    real(rk8) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
+    real(rkx) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
            zxtenh
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cumastrh'
@@ -1285,7 +1287,7 @@ module mod_cu_tiedtke
     ! (nn wavenumber of a spectral model)
     ! this is translated roughly into horizontal resolution in meters
     !
-    ztau = min(3.0D0*3600.0D0,cmtcape/nskmax)
+    ztau = min(3.0_rkx*3600.0_rkx,cmtcape/nskmax)
     !
     !--------------------------------------------------------
     ! 2. INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -1315,7 +1317,7 @@ module mod_cu_tiedtke
     !
     jk = 1
     do jl = 1 , kproma
-      zdqpbl(jl) = 0.00D0
+      zdqpbl(jl) = 0.00_rkx
       zdqcv(jl) = pqte(jl,jk)*(paphp1(jl,jk+1)-paphp1(jl,jk))
       idtop(jl) = 0
     end do
@@ -1336,9 +1338,9 @@ module mod_cu_tiedtke
     do jl = 1 , kproma
       ikb = kcbot(jl)
       zqumqe = pqu(jl,ikb) + plu(jl,ikb) - zqenh(jl,ikb)
-      zdqmin = max(0.010D0*zqenh(jl,ikb),1.D-10)
+      zdqmin = max(0.010_rkx*zqenh(jl,ikb),almostzero)
       llo1 = zdqpbl(jl) > d_zero .and. zqumqe > zdqmin .and. ldcum(jl)
-      zmfub(jl) = merge(zdqpbl(jl)/(egrav*max(zqumqe,zdqmin)),0.010D0,llo1)
+      zmfub(jl) = merge(zdqpbl(jl)/(egrav*max(zqumqe,zdqmin)),0.010_rkx,llo1)
       zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
       zmfub(jl) = min(zmfub(jl),zmfmax)
       if ( .not.llo1 ) ldcum(jl) = .false.
@@ -1372,7 +1374,7 @@ module mod_cu_tiedtke
         it = max(min(it,jptlucu2),jptlucu1)
         zes = tlucua(it)/paphp1(jl,jk)
         zes = min(qsmax,zes)
-        lo = zes < 0.40D0
+        lo = zes < 0.40_rkx
         zcor = d_one/(d_one-ep1*zes)
         zqsat = zes*zcor
         it1 = it + 1
@@ -1398,7 +1400,7 @@ module mod_cu_tiedtke
     !! (CLOUD DEPTH FROM NON-ENTRAINIG PLUME)
     !!
     !  do jl = 1 , kproma
-    !    ktype(jl) = merge(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl))>2.D4)
+    !    ktype(jl) = merge(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl))>2.e4_rkx)
     !    zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
     !  end do
     !!
@@ -1418,7 +1420,7 @@ module mod_cu_tiedtke
     !
     do jl = 1 , kproma
       zpbmpt = paphp1(jl,kcbot(jl)) - paphp1(jl,kctop(jl))
-      if ( ldcum(jl) .and. ktype(jl) == 1 .and. zpbmpt < 2.D4 ) then
+      if ( ldcum(jl) .and. ktype(jl) == 1 .and. zpbmpt < 2.e4_rkx ) then
         ktype(jl) = 2
       end if
       if ( ldcum(jl) ) ictop0(jl) = kctop(jl)
@@ -1490,7 +1492,7 @@ module mod_cu_tiedtke
       if ( ldcum(jl) .and. ktype(jl) == 1 ) then
         ikb = kcbot(jl)
         zmfub1(jl) = (zcape(jl)*zmfub(jl))/(zheat(jl)*ztau)
-        zmfub1(jl) = max(zmfub1(jl),0.0010D0)
+        zmfub1(jl) = max(zmfub1(jl),0.0010_rkx)
         zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
         zmfub1(jl) = min(zmfub1(jl),zmfmax)
       end if
@@ -1508,20 +1510,20 @@ module mod_cu_tiedtke
         zeps = merge(cmfdeps,d_zero,llo1)
         zqumqe = pqu(jl,ikb) + plu(jl,ikb) - zeps*zqd(jl,ikb)  &
                  - (d_one-zeps)*zqenh(jl,ikb)
-        zdqmin = max(0.010D0*zqenh(jl,ikb),1.D-10)
+        zdqmin = max(0.010_rkx*zqenh(jl,ikb),almostzero)
         zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
         llo1 = zdqpbl(jl) > d_zero .and. zqumqe > zdqmin .and. &
                ldcum(jl) .and. zmfub(jl) < zmfmax
         zmfub1(jl) = merge(zdqpbl(jl)/(egrav*                  &
                max(zqumqe,zdqmin)),zmfub(jl),llo1)
         zmfub1(jl) = merge(zmfub1(jl),zmfub(jl),abs(zmfub1(jl) &
-                     -zmfub(jl)) < 0.20D0*zmfub(jl))
+                     -zmfub(jl)) < 0.20_rkx*zmfub(jl))
       end if
     end do
     do jk = 1 , klev
       do jl = 1 , kproma
         if ( ldcum(jl) ) then
-          zfac = zmfub1(jl)/max(zmfub(jl),1.D-10)
+          zfac = zmfub1(jl)/max(zmfub(jl),almostzero)
           pmfd(jl,jk) = pmfd(jl,jk)*zfac
           zmfds(jl,jk) = zmfds(jl,jk)*zfac
           zmfdq(jl,jk) = zmfdq(jl,jk)*zfac
@@ -1532,7 +1534,7 @@ module mod_cu_tiedtke
       do jt = 1 , ktrac
         do jl = 1 , kproma
           if ( ldcum(jl) ) then
-            zfac = zmfub1(jl)/max(zmfub(jl),1.D-10)
+            zfac = zmfub1(jl)/max(zmfub(jl),almostzero)
             zmfdxt(jl,jk,jt) = zmfdxt(jl,jk,jt)*zfac
           end if
         end do
@@ -1549,9 +1551,9 @@ module mod_cu_tiedtke
     !
     !------------------------------------------------------
     ! 6.0 DETERMINE FINAL CLOUD ASCENT FOR ENTRAINING PLUME
-    ! FOR PENETRATIVE CONVECTION (TYPE=1),
-    ! FOR SHALLOW TO MEDIUM CONVECTION (TYPE=2)
-    ! AND FOR MID-LEVEL CONVECTION (TYPE=3).
+    !     FOR PENETRATIVE CONVECTION (TYPE=1),
+    !     FOR SHALLOW TO MEDIUM CONVECTION (TYPE=2)
+    !     AND FOR MID-LEVEL CONVECTION (TYPE=3).
     ! -----------------------------------------------------
     !
     call cuasct(kproma,kbdim,klev,klevp1,klevm1,ztenh,zqenh,puen,pven,&
@@ -1664,13 +1666,13 @@ module mod_cu_tiedtke
     integer(ik4) , dimension(kbdim,klev) :: ilab
     integer(ik4) , dimension(kbdim) :: kcbot , kctop , ktype
     logical , dimension(kbdim) :: ldcum , ldland
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim) :: pqhfla , prain , prsfc , pssfc
-    real(rk8) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim) :: pqhfla , prain , prsfc , pssfc
+    real(rkx) , dimension(kbdim,klev) :: pgeo , plu , plude , pmfd ,    &
            pmfu , pqen , pqsen , pqte , pqtec , pqu , pqude , pten ,  &
            ptte , ptu , ptven , puen , pven , pverv , pvol , pvom ,   &
            pxen , pxtec
-    real(rk8) , dimension(kbdim,klev,ktrac) :: pxten , pxtte , pxtu
+    real(rkx) , dimension(kbdim,klev,ktrac) :: pxten , pxtte , pxtu
     intent (in) pqhfla
     intent (inout) ktype , ldcum , pmfd
 
@@ -1678,16 +1680,16 @@ module mod_cu_tiedtke
     integer(ik4) :: ikb , it , it1 , itopm2 , jk , jl , jt
     logical :: llo1 , lo
     logical , dimension(kbdim) :: loddraf
-    real(rk8) :: zalvdcp , zalvs , zcons2 , zcor , zdqmin , zdqsdt ,    &
+    real(rkx) :: zalvdcp , zalvs , zcons2 , zcor , zdqmin , zdqsdt ,    &
                zeps , zes , zfac , zgam , zhhat , zhsat , zmfmax ,    &
                zpbmpt , zqalv , zqsat , zqst1 , zqumqe , zzz
-    real(rk8) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
+    real(rkx) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
            zdmfup , zdpmel , zgeoh , zmfdq , zmfds , zmful , zmfuq ,  &
            zmfus , zqd , zqenh , zqsenh , ztd , ztenh , zud , zuu ,   &
            zvd , zvu , zxenh
-    real(rk8) , dimension(kbdim) :: zdqcv , zdqpbl , zentr , zhcbase ,  &
+    real(rkx) , dimension(kbdim) :: zdqcv , zdqpbl , zentr , zhcbase ,  &
                                   zmfub , zmfub1 , zrfl , zsfl
-    real(rk8) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
+    real(rkx) , dimension(kbdim,klev,ktrac) :: zmfdxt , zmfuxt , zxtd , &
            zxtenh
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cumastrt'
@@ -1732,7 +1734,7 @@ module mod_cu_tiedtke
     !
     jk = 1
     do jl = 1 , kproma
-      zdqpbl(jl) = 0.00D0
+      zdqpbl(jl) = 0.00_rkx
       zdqcv(jl) = pqte(jl,jk)*(paphp1(jl,jk+1)-paphp1(jl,jk))
       idtop(jl) = 0
     end do
@@ -1753,9 +1755,9 @@ module mod_cu_tiedtke
     do jl = 1 , kproma
       ikb = kcbot(jl)
       zqumqe = pqu(jl,ikb) + plu(jl,ikb) - zqenh(jl,ikb)
-      zdqmin = max(0.010D0*zqenh(jl,ikb),1.D-10)
+      zdqmin = max(0.010_rkx*zqenh(jl,ikb),almostzero)
       llo1 = zdqpbl(jl) > d_zero .and. zqumqe > zdqmin .and. ldcum(jl)
-      zmfub(jl) = merge(zdqpbl(jl)/(egrav*max(zqumqe,zdqmin)),0.010D0,llo1)
+      zmfub(jl) = merge(zdqpbl(jl)/(egrav*max(zqumqe,zdqmin)),0.010_rkx,llo1)
       zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
       zmfub(jl) = min(zmfub(jl),zmfmax)
       if ( .not.llo1 ) ldcum(jl) = .false.
@@ -1791,7 +1793,7 @@ module mod_cu_tiedtke
         it = max(min(it,jptlucu2),jptlucu1)
         zes = tlucua(it)/paphp1(jl,jk)
         zes = min(qsmax,zes)
-        lo = zes < 0.40D0
+        lo = zes < 0.40_rkx
         zcor = d_one/(d_one-ep1*zes)
         zqsat = zes*zcor
         it1 = it + 1
@@ -1817,7 +1819,7 @@ module mod_cu_tiedtke
     !! (CLOUD DEPTH FROM NON-ENTRAINIG PLUME)
     !!
     ! do jl = 1 , kproma
-    !   ktype(jl) = merge(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl))>2.D4)
+    !   ktype(jl) = merge(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl))>2.e4_rkx)
     !   zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
     ! end do
     !!
@@ -1837,7 +1839,7 @@ module mod_cu_tiedtke
     !
     do jl = 1 , kproma
       zpbmpt = paphp1(jl,kcbot(jl)) - paphp1(jl,kctop(jl))
-      if ( ldcum(jl) .and. ktype(jl) == 1 .and. zpbmpt < 2.D4 ) then
+      if ( ldcum(jl) .and. ktype(jl) == 1 .and. zpbmpt < 2.e4_rkx ) then
         ktype(jl) = 2
       end if
       if ( ldcum(jl) ) ictop0(jl) = kctop(jl)
@@ -1882,7 +1884,7 @@ module mod_cu_tiedtke
           zeps = merge(cmfdeps,d_zero,llo1)
           zqumqe = pqu(jl,ikb) + plu(jl,ikb) - zeps*zqd(jl,ikb)       &
                    - (d_one-zeps)*zqenh(jl,ikb)
-          zdqmin = max(0.010D0*zqenh(jl,ikb),1.D-10)
+          zdqmin = max(0.010_rkx*zqenh(jl,ikb),almostzero)
           zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
           llo1 = zdqpbl(jl) > d_zero .and. zqumqe > zdqmin .and. ldcum(jl) &
                  .and. zmfub(jl) < zmfmax
@@ -1890,13 +1892,13 @@ module mod_cu_tiedtke
                         (egrav*max(zqumqe,zdqmin)),zmfub(jl),llo1)
           zmfub1(jl) = merge(zmfub1(jl),zmfub(jl),(ktype(jl) == 1 .or.  &
                        ktype(jl) == 2) .and. &
-                       abs(zmfub1(jl)-zmfub(jl)) < 0.20D0*zmfub(jl))
+                       abs(zmfub1(jl)-zmfub(jl)) < 0.20_rkx*zmfub(jl))
         end if
       end do
       do jk = 1 , klev
         do jl = 1 , kproma
           if ( loddraf(jl) ) then
-            zfac = zmfub1(jl)/max(zmfub(jl),1.D-10)
+            zfac = zmfub1(jl)/max(zmfub(jl),almostzero)
             pmfd(jl,jk) = pmfd(jl,jk)*zfac
             zmfds(jl,jk) = zmfds(jl,jk)*zfac
             zmfdq(jl,jk) = zmfdq(jl,jk)*zfac
@@ -1906,7 +1908,7 @@ module mod_cu_tiedtke
         do jt = 1 , ktrac
           do jl = 1 , kproma
             if ( loddraf(jl) ) then
-              zfac = zmfub1(jl)/max(zmfub(jl),1.D-10)
+              zfac = zmfub1(jl)/max(zmfub(jl),almostzero)
               zmfdxt(jl,jk,jt) = zmfdxt(jl,jk,jt)*zfac
             end if
           end do
@@ -1983,14 +1985,14 @@ module mod_cu_tiedtke
     integer(ik4) , intent(in) :: kbdim , klev , kproma , ktrac , klevm1 , klevp1
     integer(ik4) , dimension(kbdim,klev) :: klab
     integer(ik4) , dimension(kbdim) :: klwmin
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim,klev) :: pcpcu , pcpen , pdmfdp ,       &
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim,klev) :: pcpcu , pcpen , pdmfdp ,       &
            pdmfup , pdpmel , pgeo , pgeoh , plu , plude , pmfd ,      &
            pmfdq , pmfds , pmfu , pmfuq , pmfus , pqd , pqen , pqenh ,&
            pqsen , pqsenh , pqu , pqude , ptd , pten , ptenh , ptu ,  &
            ptven , pud , puen , puu , pvd , pven , pverv , pvu ,      &
            pxen , pxenh
-    real(rk8) , dimension(kbdim,klev,ktrac) :: pmfdxt , pmfuxt , pxtd , &
+    real(rkx) , dimension(kbdim,klev,ktrac) :: pmfdxt , pmfuxt , pxtd , &
            pxten , pxtenh , pxtu
     intent (in) paphp1 , pgeo , pqen , pqsen , pten , ptven , puen , &
                 pven , pverv , pxen , pxten
@@ -2002,8 +2004,8 @@ module mod_cu_tiedtke
                    pxtenh
     integer(ik4) :: icall , ik , jk , jl , jt
     logical , dimension(kbdim) :: loflag
-    real(rk8) :: zarg , zcpm , zzs
-    real(rk8) , dimension(kbdim) :: zph , zwmax
+    real(rkx) :: zarg , zcpm , zzs
+    real(rkx) , dimension(kbdim) :: zph , zwmax
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cumini'
     integer(ik4) , save :: idindx = 0
@@ -2018,7 +2020,7 @@ module mod_cu_tiedtke
     !
     do jk = 1 , klev
       do jl = 1 , kproma
-        ! pcpen(jl,jk) = cpd*(d_one+hcrm1*max(pqen(jl,jk),0.00D0))
+        ! pcpen(jl,jk) = cpd*(d_one+hcrm1*max(pqen(jl,jk),0.00_rkx))
         pcpen(jl,jk) = cpd
       end do
     end do
@@ -2184,14 +2186,14 @@ module mod_cu_tiedtke
                                   klwmin , ktype
     integer(ik4) , dimension(kbdim,klev) :: klab
     logical , dimension(kbdim) :: ldcum , ldland
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim,klev) :: pcpcu , pcpen , pdmfup , pgeo ,&
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim,klev) :: pcpcu , pcpen , pdmfup , pgeo ,&
            pgeoh , phhatt , plu , plude , pmfu , pmful , pmfuq ,      &
            pmfus , pqen , pqenh , pqsen , pqsenh , pqte , pqu ,       &
            pqude , pten , ptenh , ptu , puen , puu , pven , pverv ,   &
            pvu
-    real(rk8) , dimension(kbdim) :: pentr , phcbase , pmfub
-    real(rk8) , dimension(kbdim,klev,ktrac) :: pmfuxt , pxten , pxtenh ,&
+    real(rkx) , dimension(kbdim) :: pentr , phcbase , pmfub
+    real(rkx) , dimension(kbdim,klev,ktrac) :: pmfuxt , pxten , pxtenh ,&
            pxtu
     intent (in) ldland , pcpcu , phcbase , phhatt , pqsenh , pxtenh
     intent (inout) kcbot , kctop , kctop0 , klab , ktype , ldcum ,    &
@@ -2200,15 +2202,15 @@ module mod_cu_tiedtke
                    pxtu
     integer(ik4) :: icall , ik , ikb , ikt , jk , jl , jt
     logical , dimension(kbdim) :: loflag
-    real(rk8) :: zalvs , zbuo , zbuoyz , zcons2 , zdmfdu ,      &
+    real(rkx) :: zalvs , zbuo , zbuoyz , zcons2 , zdmfdu ,      &
                zdmfeu , zdnoprc , zdprho , zdrodz , zdt , zdz , zfac ,&
                zga , zlnew , zmfmax , zmftest , zmfulk , zmfuqk ,     &
                zmfusk , zmfuxtk , zmse , znevn , zodmax , zprcon ,    &
                zqcod , zqeen , zqude , zscde , zscod , zseen ,        &
                ztglace , zxteen , zxtude , zz , zzdmf
-    real(rk8) , dimension(kbdim) :: zbuoy , zdmfde , zdmfen , zmfuu ,   &
+    real(rkx) , dimension(kbdim) :: zbuoy , zdmfde , zdmfen , zmfuu ,   &
                                   zmfuv , zpbase , zph , zqold
-    real(rk8) , dimension(kbdim,klev) :: zodetr , zoentr
+    real(rkx) , dimension(kbdim,klev) :: zodetr , zoentr
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuasc'
     integer(ik4) , save :: idindx = 0
@@ -2220,20 +2222,20 @@ module mod_cu_tiedtke
     ! ---------------------
     !
     zcons2 = d_one/(egrav*dt)
-    ztglace = tzero - 13.0D0
+    ztglace = tzero - 13.0_rkx
     zqold(1:kproma) = d_zero
     !
     ! AMT NOTE!!! in the original scheme, this level which restricts rainfall
     ! below a certain pressure (from the surface) is hard wired according
     ! to the vertical resolution of the model
     ! if ( klev /= 11 ) then
-    !   zdlev = 3.0D4
+    !   zdlev = 3.0e4_rkx
     ! else if ( nn == 21 ) then
-    !   zdlev = 1.5D4
+    !   zdlev = 1.5e4_rkx
     ! else if ( nn == 31 ) then
-    !   zdlev = 2.0D4
+    !   zdlev = 2.0e4_rkx
     ! else
-    !   zdlev = 3.0D4
+    !   zdlev = 3.0e4_rkx
     ! end if
     !
     !----------------------
@@ -2256,7 +2258,7 @@ module mod_cu_tiedtke
         pqude(jl,jk) = d_zero
         pdmfup(jl,jk) = d_zero
         if ( .not.ldcum(jl) .or. ktype(jl) == 3 ) klab(jl,jk) = 0
-        if ( .not.ldcum(jl) .and. paphp1(jl,jk) < 4.D4 ) kctop0(jl) = jk
+        if ( .not.ldcum(jl) .and. paphp1(jl,jk) < 4.e4_rkx ) kctop0(jl) = jk
         if ( jk < kcbot(jl) ) klab(jl,jk) = 0
       end do
       do jt = 1 , ktrac
@@ -2412,7 +2414,7 @@ module mod_cu_tiedtke
             zdmfen(jl) = max(zdmfen(jl)-max(zmftest-zmfmax,d_zero),   &
                          d_zero)
           end if
-          zdmfde(jl) = min(zdmfde(jl),0.750D0*pmfu(jl,jk+1))
+          zdmfde(jl) = min(zdmfde(jl),0.750_rkx*pmfu(jl,jk+1))
           pmfu(jl,jk) = pmfu(jl,jk+1) + zdmfen(jl) - zdmfde(jl)
           if ( ktype(jl) == 1 .and. jk < kcbot(jl) ) then
             zdprho = (pgeoh(jl,jk)-pgeoh(jl,jk+1))*regrav
@@ -2439,7 +2441,7 @@ module mod_cu_tiedtke
             zodmax = max(zodmax,d_zero)
             zodetr(jl,jk) = min(zodetr(jl,jk),zodmax)
           end if
-          zodetr(jl,jk) = min(zodetr(jl,jk),0.750D0*pmfu(jl,jk))
+          zodetr(jl,jk) = min(zodetr(jl,jk),0.750_rkx*pmfu(jl,jk))
           pmfu(jl,jk) = pmfu(jl,jk) + zoentr(jl,jk) - zodetr(jl,jk)
           zqeen = pqenh(jl,jk+1)*zdmfen(jl)
           zqeen = zqeen + pqenh(jl,jk+1)*zoentr(jl,jk)
@@ -2470,8 +2472,8 @@ module mod_cu_tiedtke
           pqu(jl,jk) = zmfuqk*(d_one/max(cmfcmin,pmfu(jl,jk)))
           ptu(jl,jk) = (zmfusk*(d_one/max(cmfcmin,pmfu(jl,jk)))       &
                        -pgeoh(jl,jk))/pcpcu(jl,jk)
-          ptu(jl,jk) = max(100.0D0,ptu(jl,jk))
-          ptu(jl,jk) = min(400.0D0,ptu(jl,jk))
+          ptu(jl,jk) = max(100.0_rkx,ptu(jl,jk))
+          ptu(jl,jk) = min(400.0_rkx,ptu(jl,jk))
           zqold(jl) = pqu(jl,jk)
         end if
       end do
@@ -2503,11 +2505,11 @@ module mod_cu_tiedtke
             zbuo = ptu(jl,jk)*(d_one+ep1*pqu(jl,jk)-plu(jl,jk))    &
                    - ptenh(jl,jk)*(d_one+ep1*pqenh(jl,jk))
             if ( klab(jl,jk+1) == 1 ) zbuo = zbuo + d_half
-            if ( zbuo > d_zero .and. pmfu(jl,jk) >= 0.010D0*pmfub(jl) .and.&
+            if ( zbuo > d_zero .and. pmfu(jl,jk) >= 0.010_rkx*pmfub(jl) .and.&
                  jk >= kctop0(jl) ) then
               kctop(jl) = jk
               ldcum(jl) = .true.
-              zdnoprc = merge(zdlev,1.5D4,ldland(jl))
+              zdnoprc = merge(zdlev,1.5e4_rkx,ldland(jl))
               zprcon = merge(d_zero,cprcon,zpbase(jl)-paphp1(jl,jk) < zdnoprc)
               zlnew = plu(jl,jk)/(d_one+zprcon*(pgeoh(jl,jk)-pgeoh(jl,jk+1)))
               pdmfup(jl,jk) = max(d_zero,(plu(jl,jk)-zlnew)*pmfu(jl,jk))
@@ -2540,13 +2542,13 @@ module mod_cu_tiedtke
         do jl = 1 , kproma
           if ( loflag(jl) ) then
             if ( ktype(jl) == 1 .or. ktype(jl) == 3 ) then
-              zz = merge(3.0D0,2.0D0,zdmfen(jl) == d_zero)
+              zz = merge(3.0_rkx,2.0_rkx,zdmfen(jl) == d_zero)
             else
               zz = merge(d_one,d_zero,zdmfen(jl) == d_zero)
             end if
             zdmfeu = zdmfen(jl) + zz*zdmfde(jl)
             zdmfdu = zdmfde(jl) + zz*zdmfde(jl)
-            zdmfdu = min(zdmfdu,0.750D0*pmfu(jl,jk+1))
+            zdmfdu = min(zdmfdu,0.750_rkx*pmfu(jl,jk+1))
             zmfuu(jl) = zmfuu(jl) + zdmfeu*puen(jl,jk)                &
                         - zdmfdu*puu(jl,jk+1)
             zmfuv(jl) = zmfuv(jl) + zdmfeu*pven(jl,jk)                &
@@ -2568,7 +2570,7 @@ module mod_cu_tiedtke
           zbuoyz = egrav*(ptu(jl,jk)-ptenh(jl,jk))/ptenh(jl,jk)      &
                    + egrav*ep1*(pqu(jl,jk)-pqenh(jl,jk))             &
                    - egrav*plu(jl,jk)
-          zbuoyz = max(zbuoyz,0.00D0)
+          zbuoyz = max(zbuoyz,0.00_rkx)
           zdz = (pgeo(jl,jk-1)-pgeo(jl,jk))*regrav
           zdrodz = -log(pten(jl,jk-1)/pten(jl,jk))                   &
                    /zdz - egrav/(rgas*ptenh(jl,jk)                   &
@@ -2675,13 +2677,13 @@ module mod_cu_tiedtke
                                   ktype
     integer(ik4) , dimension(kbdim,klev) :: klab
     logical , dimension(kbdim) :: ldcum , ldland
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim,klev) :: pcpcu , pcpen , pdmfup , pgeo ,&
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim,klev) :: pcpcu , pcpen , pdmfup , pgeo ,&
            pgeoh , plu , plude , pmfu , pmful , pmfuq , pmfus , pqen ,&
            pqenh , pqsen , pqte , pqu , pqude , pten , ptenh , ptu ,  &
            puen , puu , pven , pverv , pvu
-    real(rk8) , dimension(kbdim) :: pentr , pmfub
-    real(rk8) , dimension(kbdim,klev,ktrac) :: pmfuxt , pxten , pxtenh ,&
+    real(rkx) , dimension(kbdim) :: pentr , pmfub
+    real(rkx) , dimension(kbdim,klev,ktrac) :: pmfuxt , pxten , pxtenh ,&
            pxtu
     intent (in) ldland , pcpcu , pxtenh
     intent (out) pqude
@@ -2690,11 +2692,11 @@ module mod_cu_tiedtke
                    pmfuxt , pqu , ptu , puu , pvu , pxtu
     integer(ik4) :: icall , ik , jk , jl , jt
     logical , dimension(kbdim) :: loflag
-    real(rk8) :: zbuo , zcons2 , zdmfdu , zdmfeu , zdnoprc ,    &
+    real(rkx) :: zbuo , zcons2 , zdmfdu , zdmfeu , zdnoprc ,    &
                zfac , zlnew , zmfmax , zmftest , zmfulk , zmfuqk ,    &
                zmfusk , zmfuxtk , zprcon , zqeen , zqude , zscde ,    &
                zseen , ztglace , zxteen , zxtude , zz , zzdmf
-    real(rk8) , dimension(kbdim) :: zdmfde , zdmfen , zmfuu , zmfuv ,   &
+    real(rkx) , dimension(kbdim) :: zdmfde , zdmfen , zmfuu , zmfuv ,   &
                                   zpbase , zph , zqold
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuasct'
@@ -2707,19 +2709,19 @@ module mod_cu_tiedtke
     ! ---------------------
     !
     zcons2 = d_one/(egrav*dt)
-    ztglace = tzero - 13.0D0
+    ztglace = tzero - 13.0_rkx
     !
     ! AMT NOTE!!! in the original scheme, this level which restricts rainfall
     ! below a certain pressure (from the surface) is hard wired according
     ! to the vertical resolution of the model
     ! if ( klev /= 11 ) then
-    !   zdlev = 3.0D4
+    !   zdlev = 3.0e4_rkx
     ! else if ( nn == 21 ) then
-    !   zdlev = 1.5D4
+    !   zdlev = 1.5e4_rkx
     ! else if ( nn == 31 ) then
-    !   zdlev = 2.0D4
+    !   zdlev = 2.0e4_rkx
     ! else
-    !   zdlev = 3.0D4
+    !   zdlev = 3.0e4_rkx
     ! end if
     !
     !----------------------
@@ -2742,7 +2744,7 @@ module mod_cu_tiedtke
         pqude(jl,jk) = d_zero
         pdmfup(jl,jk) = d_zero
         if ( .not.ldcum(jl) .or. ktype(jl) == 3 ) klab(jl,jk) = 0
-        if ( .not.ldcum(jl) .and. paphp1(jl,jk) < 4.D4 ) kctop0(jl) = jk
+        if ( .not.ldcum(jl) .and. paphp1(jl,jk) < 4.e4_rkx ) kctop0(jl) = jk
         if ( jk < kcbot(jl) ) klab(jl,jk) = 0
       end do
       do jt = 1 , ktrac
@@ -2859,7 +2861,7 @@ module mod_cu_tiedtke
             zmfmax = min(zmftest,(paphp1(jl,jk)-paphp1(jl,jk-1))*zcons2)
             zdmfen(jl) = max(zdmfen(jl)-max(zmftest-zmfmax,d_zero),d_zero)
           end if
-          zdmfde(jl) = min(zdmfde(jl),0.750D0*pmfu(jl,jk+1))
+          zdmfde(jl) = min(zdmfde(jl),0.750_rkx*pmfu(jl,jk+1))
           pmfu(jl,jk) = pmfu(jl,jk+1) + zdmfen(jl) - zdmfde(jl)
           zqeen = pqenh(jl,jk+1)*zdmfen(jl)
           zseen = (pcpcu(jl,jk+1)*ptenh(jl,jk+1)+pgeoh(jl,jk+1))*zdmfen(jl)
@@ -2874,8 +2876,8 @@ module mod_cu_tiedtke
           pqu(jl,jk) = zmfuqk*(d_one/max(cmfcmin,pmfu(jl,jk)))
           ptu(jl,jk) = (zmfusk*(d_one/max(cmfcmin,pmfu(jl,jk)))       &
                        -pgeoh(jl,jk))/pcpcu(jl,jk)
-          ptu(jl,jk) = max(100.0D0,ptu(jl,jk))
-          ptu(jl,jk) = min(400.0D0,ptu(jl,jk))
+          ptu(jl,jk) = max(100.0_rkx,ptu(jl,jk))
+          ptu(jl,jk) = min(400.0_rkx,ptu(jl,jk))
           zqold(jl) = pqu(jl,jk)
         end if
       end do
@@ -2906,10 +2908,10 @@ module mod_cu_tiedtke
           zbuo = ptu(jl,jk)*(d_one+ep1*pqu(jl,jk)-plu(jl,jk))      &
                  - ptenh(jl,jk)*(d_one+ep1*pqenh(jl,jk))
           if ( klab(jl,jk+1) == 1 ) zbuo = zbuo + d_half
-          if ( zbuo > d_zero .and. pmfu(jl,jk) >= 0.10D0*pmfub(jl) ) then
+          if ( zbuo > d_zero .and. pmfu(jl,jk) >= 0.10_rkx*pmfub(jl) ) then
             kctop(jl) = jk
             ldcum(jl) = .true.
-            zdnoprc = merge(zdlev,1.5D4,ldland(jl))
+            zdnoprc = merge(zdlev,1.5e4_rkx,ldland(jl))
             zprcon = merge(d_zero,cprcon,zpbase(jl)-paphp1(jl,jk) < zdnoprc)
             zlnew = plu(jl,jk)                                        &
                     /(d_one+zprcon*(pgeoh(jl,jk)-pgeoh(jl,jk+1)))
@@ -2938,13 +2940,13 @@ module mod_cu_tiedtke
         do jl = 1 , kproma
           if ( loflag(jl) ) then
             if ( ktype(jl) == 1 .or. ktype(jl) == 3 ) then
-              zz = merge(3.0D0,2.0D0,zdmfen(jl) == d_zero)
+              zz = merge(3.0_rkx,2.0_rkx,zdmfen(jl) == d_zero)
             else
               zz = merge(d_one,d_zero,zdmfen(jl) == d_zero)
             end if
             zdmfeu = zdmfen(jl) + zz*zdmfde(jl)
             zdmfdu = zdmfde(jl) + zz*zdmfde(jl)
-            zdmfdu = min(zdmfdu,0.750D0*pmfu(jl,jk+1))
+            zdmfdu = min(zdmfdu,0.750_rkx*pmfu(jl,jk+1))
             zmfuu(jl) = zmfuu(jl) + zdmfeu*puen(jl,jk) - zdmfdu*puu(jl,jk+1)
             zmfuv(jl) = zmfuv(jl) + zdmfeu*pven(jl,jk) - zdmfdu*pvu(jl,jk+1)
             if ( pmfu(jl,jk) > d_zero ) then
@@ -3030,15 +3032,15 @@ module mod_cu_tiedtke
     integer(ik4) , dimension(kbdim) :: kcbot
     integer(ik4) , dimension(kbdim,klev) :: klab
     logical , dimension(kbdim) :: ldcum
-    real(rk8) , dimension(kbdim,klevp1) :: paph
-    real(rk8) , dimension(kbdim,klev) :: pcpcu , pgeoh , plu , pqenh ,  &
+    real(rkx) , dimension(kbdim,klevp1) :: paph
+    real(rkx) , dimension(kbdim,klev) :: pcpcu , pgeoh , plu , pqenh ,  &
            pqu , ptenh , ptu , puen , puu , pven , pvu
     intent (in) paph , pcpcu , pgeoh , pqenh , ptenh , puen , pven
     intent (inout) kcbot , klab , ldcum , plu , pqu , ptu , puu , pvu
     integer(ik4) :: icall , ik , ikb , is , jk , jl
     logical , dimension(kbdim) :: loflag
-    real(rk8) :: zbuo , zz
-    real(rk8) , dimension(kbdim) :: zph , zqold
+    real(rkx) :: zbuo , zz
+    real(rkx) , dimension(kbdim) :: zph , zqold
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cubase'
     integer(ik4) , save :: idindx = 0
@@ -3149,11 +3151,11 @@ module mod_cu_tiedtke
     integer(ik4) , dimension(kbdim) :: kcbot , ktype
     integer(ik4) , dimension(kbdim,klev) :: klab
     logical , dimension(kbdim) :: ldcum
-    real(rk8) , dimension(kbdim,klev) :: pcpen , pdmfup , pgeo , pgeoh ,&
+    real(rkx) , dimension(kbdim,klev) :: pcpen , pdmfup , pgeo , pgeoh ,&
            plu , pmfu , pmful , pmfuq , pmfus , pqen , pqsen , pqu ,  &
            pten , ptu , puen , puu , pven , pverv , pvu
-    real(rk8) , dimension(kbdim) :: pentr , pmfub , pmfuu , pmfuv
-    real(rk8) , dimension(kbdim,klev,ktrac) :: pmfuxt , pxten , pxtu
+    real(rkx) , dimension(kbdim) :: pentr , pmfub , pmfuu , pmfuv
+    real(rkx) , dimension(kbdim,klev,ktrac) :: pmfuxt , pxten , pxtu
     intent (in) ldcum , pcpen , pgeo , pgeoh , pqen , pqsen , pten , &
                 puen , pven , pverv , pxten
     intent (out) kcbot , ktype , pdmfup , pentr , plu , pmfu , pmful ,&
@@ -3161,7 +3163,7 @@ module mod_cu_tiedtke
     intent (inout) klab , pmfub , pqu , ptu , puu , pvu , pxtu
     integer(ik4) :: jl , jt
     logical , dimension(kbdim) :: llo3
-    real(rk8) :: zzzmb
+    real(rkx) :: zzzmb
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cubasmc'
     integer(ik4) , save :: idindx = 0
@@ -3175,7 +3177,7 @@ module mod_cu_tiedtke
     do jl = 1 , kproma
       llo3(jl) = .false.
       if ( .not.ldcum(jl) .and. klab(jl,kk+1) == 0 .and. &
-            pqen(jl,kk) > 0.900D0*pqsen(jl,kk) ) then
+            pqen(jl,kk) > 0.900_rkx*pqsen(jl,kk) ) then
         llo3(jl) = .true.
         ptu(jl,kk+1) = (pcpen(jl,kk)*pten(jl,kk)+pgeo(jl,kk)- &
                         pgeoh(jl,kk+1))/pcpen(jl,kk)
@@ -3239,12 +3241,12 @@ module mod_cu_tiedtke
     implicit none
     integer(ik4) , intent(in) :: kbdim , klev , klevp1 , kproma , ktrac
     logical , dimension(kbdim) :: lddraf
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim,klev) :: pcpcu , pdmfdp , pgeoh , pmfd ,&
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim,klev) :: pcpcu , pdmfdp , pgeoh , pmfd ,&
            pmfdq , pmfds , pqd , pqenh , ptd , ptenh , pud , puen ,   &
            pvd , pven
-    real(rk8) , dimension(kbdim,klev,ktrac) :: pmfdxt , pxtd , pxtenh
-    real(rk8) , dimension(kbdim) :: prfl
+    real(rkx) , dimension(kbdim,klev,ktrac) :: pmfdxt , pxtd , pxtenh
+    real(rkx) , dimension(kbdim) :: prfl
     intent (in) lddraf , paphp1 , pcpcu , pgeoh , pqenh , ptenh , &
                 puen , pven , pxtenh
     intent (out) pdmfdp
@@ -3253,10 +3255,10 @@ module mod_cu_tiedtke
     integer(ik4) :: icall , ik , is , itopde , jk , jl , jt
     logical :: llo1
     logical , dimension(kbdim) :: llo2
-    real(rk8) :: zbuo , zdmfdp , zentr , zmfdqk , zmfdsk , zmfduk ,     &
+    real(rkx) :: zbuo , zdmfdp , zentr , zmfdqk , zmfdsk , zmfduk ,     &
                zmfdvk , zmfdxtk , zqdde , zqeen , zsdde , zseen ,     &
                zxtdde , zxteen
-    real(rk8) , dimension(kbdim) :: zcond , zdmfde , zdmfen , zph
+    real(rkx) , dimension(kbdim) :: zcond , zdmfde , zdmfen , zph
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuddraf'
     integer(ik4) , save :: idindx = 0
@@ -3312,8 +3314,8 @@ module mod_cu_tiedtke
           pqd(jl,jk) = zmfdqk*(d_one/min(-cmfcmin,pmfd(jl,jk)))
           ptd(jl,jk) = (zmfdsk*(d_one/min(-cmfcmin,pmfd(jl,jk)))    &
                        -pgeoh(jl,jk))/pcpcu(jl,jk)
-          ptd(jl,jk) = min(400.0D0,ptd(jl,jk))
-          ptd(jl,jk) = max(100.0D0,ptd(jl,jk))
+          ptd(jl,jk) = min(400.0_rkx,ptd(jl,jk))
+          ptd(jl,jk) = max(100.0_rkx,ptd(jl,jk))
           zcond(jl) = pqd(jl,jk)
         end if
       end do
@@ -3397,13 +3399,13 @@ module mod_cu_tiedtke
     integer(ik4) , intent(in) :: kbdim , klev , klevp1 , kproma , ktrac
     integer(ik4) , dimension(kbdim) :: kcbot , kctop , kdtop
     logical , dimension(kbdim) :: ldcum , lddraf
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim,klev) :: pcpcu , pdmfdp , pgeoh , pmfd ,&
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim,klev) :: pcpcu , pdmfdp , pgeoh , pmfd ,&
            pmfdq , pmfds , pqd , pqenh , pqu , ptd , ptenh , ptu ,    &
            pud , puen , puu , pvd , pven , pvu
-    real(rk8) , dimension(kbdim,klev,ktrac) :: pmfdxt , pxtd , pxtenh , &
+    real(rkx) , dimension(kbdim,klev,ktrac) :: pmfdxt , pxtd , pxtenh , &
            pxtu
-    real(rk8) , dimension(kbdim) :: pmfub , prfl
+    real(rkx) , dimension(kbdim) :: pmfub , prfl
     intent (in) kcbot , kctop , ldcum , paphp1 , pcpcu , pgeoh , &
                 pmfub , pqenh , pqu , ptenh , ptu , puen , puu , &
                 pven , pvu , pxtenh , pxtu
@@ -3411,9 +3413,9 @@ module mod_cu_tiedtke
     intent (inout) lddraf , pdmfdp , pmfd , pqd , prfl , ptd , pxtd
     integer(ik4) :: icall , ik , is , jk , jl , jt , ke
     logical , dimension(kbdim) :: llo2 , llo3
-    real(rk8) :: zbuo , zmftop , zqtest , zttest
-    real(rk8) , dimension(kbdim) :: zcond , zph
-    real(rk8) , dimension(kbdim,klev) :: zqenwb , ztenwb
+    real(rkx) :: zbuo , zmftop , zqtest , zttest
+    real(rkx) , dimension(kbdim) :: zcond , zph
+    real(rkx) , dimension(kbdim,klev) :: zqenwb , ztenwb
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cudlf'
     integer(ik4) , save :: idindx = 0
@@ -3488,7 +3490,7 @@ module mod_cu_tiedtke
                  *(d_one+ep1*pqenh(jl,jk))
           zcond(jl) = pqenh(jl,jk) - zqenwb(jl,jk)
           zmftop = -cmfdeps*pmfub(jl)
-          if ( zbuo < d_zero .and. prfl(jl) > 10.0D0*zmftop*zcond(jl) ) then
+          if ( zbuo < d_zero .and. prfl(jl) > 10.0_rkx*zmftop*zcond(jl) ) then
             llo3(jl) = .true.
             kdtop(jl) = jk
             lddraf(jl) = .true.
@@ -3538,12 +3540,12 @@ module mod_cu_tiedtke
     implicit none
     integer(ik4) , intent(in) :: kbdim , klev , klevp1 , kproma , ktopm2 , ktrac
     logical , dimension(kbdim) :: ldcum
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim) :: prfl , prsfc , psfl , pssfc
-    real(rk8) , dimension(kbdim,klev) :: pcpen , pdmfdp , pdmfup ,      &
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim) :: prfl , prsfc , psfl , pssfc
+    real(rkx) , dimension(kbdim,klev) :: pcpen , pdmfdp , pdmfup ,      &
            pdpmel , plude , pmfdq , pmfds , pmful , pmfuq , pmfus ,   &
            pqte , pqtec , pqude , pten , ptte , pxtec
-    real(rk8) , dimension(kbdim,klev,ktrac) :: pmfdxt , pmfuxt , pxtte
+    real(rkx) , dimension(kbdim,klev,ktrac) :: pmfdxt , pmfuxt , pxtte
     intent (in) ldcum , paphp1 , pcpen , pdmfdp , pdmfup , pdpmel ,   &
                 plude , pmfdq , pmfds , pmfdxt , pmful , pmfuq ,      &
                 pmfus , pmfuxt , pqude , prfl , psfl , pten
@@ -3551,8 +3553,8 @@ module mod_cu_tiedtke
     intent (inout) pqte , ptte , pxtte
     integer(ik4) :: jk , jl , jt
     logical :: llo1
-    real(rk8) :: zalv , zdqdt , zdtdt , zdxtdt , zrcpm
-    real(rk8) , dimension(kbdim) :: zmelt , zsheat
+    real(rkx) :: zalv , zdqdt , zdtdt , zdxtdt , zrcpm
+    real(rkx) , dimension(kbdim) :: zmelt , zsheat
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cudtdq'
     integer(ik4) , save :: idindx = 0
@@ -3664,15 +3666,15 @@ module mod_cu_tiedtke
     integer(ik4) , intent(in) :: kbdim , klev , klevp1 , kproma , ktopm2
     integer(ik4) , dimension(kbdim) :: kcbot , ktype
     logical , dimension(kbdim) :: ldcum
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim,klev) :: pmfd , pmfu , pud , puen ,     &
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim,klev) :: pmfd , pmfu , pud , puen ,     &
            puu , pvd , pven , pvol , pvom , pvu
     intent (in) kcbot , ktype , ldcum , paphp1 , pmfd , pmfu , pud , &
                 puen , puu , pvd , pven , pvu
     intent (inout) pvol , pvom
     integer(ik4) :: ik , ikb , jk , jl
-    real(rk8) :: zdudt , zdvdt , zp
-    real(rk8) , dimension(kbdim,klev) :: zmfdu , zmfdv , zmfuu , zmfuv
+    real(rkx) :: zdudt , zdvdt , zp
+    real(rkx) , dimension(kbdim,klev) :: zmfdu , zmfdv , zmfuu , zmfuv
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cududv'
     integer(ik4) , save :: idindx = 0
@@ -3782,9 +3784,9 @@ module mod_cu_tiedtke
     integer(ik4) , dimension(kbdim) :: kcbot , kctop0 , khmin , klwmin ,   &
                                   ktype
     logical , dimension(kbdim) :: ldcum
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim) :: pdmfde , pdmfen , pentr , ppbase
-    real(rk8) , dimension(kbdim,klev) :: pgeoh , pmfu , podetr , pqenh ,&
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim) :: pdmfde , pdmfen , pentr , ppbase
+    real(rkx) , dimension(kbdim,klev) :: pgeoh , pmfu , podetr , pqenh ,&
            pqte , ptenh
     intent (in) kcbot , kctop0 , khmin , klwmin , ktype , ldcum , &
                 paphp1 , pentr , pgeoh , pqenh , pqte , ptenh
@@ -3792,7 +3794,7 @@ module mod_cu_tiedtke
     intent (inout) pmfu , ppbase
     integer(ik4) :: ikb , ikh , iklwmin , ikt , jl
     logical :: llo1 , llo2
-    real(rk8) :: zarg , zdprho , zentest , zentr , zorgde , zpmid ,     &
+    real(rkx) :: zarg , zdprho , zentest , zentr , zorgde , zpmid ,     &
                zrrho , ztmzk , zzmzk
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuentr'
@@ -3820,13 +3822,13 @@ module mod_cu_tiedtke
       llo1 = kk < kcbot(jl) .and. ldcum(jl)
       pdmfde(jl) = merge(zentr,d_zero,llo1)
       llo2 = llo1 .and. ktype(jl) == 2 .and.                            &
-             (ppbase(jl)-paphp1(jl,kk) < 0.2D5 .or. paphp1(jl,kk) > zpmid)
+             (ppbase(jl)-paphp1(jl,kk) < 0.2e5_rkx .or. paphp1(jl,kk) > zpmid)
       pdmfen(jl) = merge(zentr,d_zero,llo2)
       iklwmin = max(klwmin(jl),kctop0(jl)+2)
       llo2 = llo1 .and. ktype(jl) == 3 .and. kk >= iklwmin
       if ( llo2 ) pdmfen(jl) = zentr
 
-      if ( llo2 .and. pqenh(jl,kk+1) > 1.D-5 ) then
+      if ( llo2 .and. pqenh(jl,kk+1) > 1.e-5_rkx ) then
         pmfu(jl,kk+1) = max(pmfu(jl,kk+1),cmfcmin)
         zentest = max(pqte(jl,kk),d_zero)/pqenh(jl,kk+1)
         zentest = min(entrmax,zentest/(pmfu(jl,kk+1)*zrrho))
@@ -3879,16 +3881,16 @@ module mod_cu_tiedtke
     integer(ik4) , intent(in) :: kbdim , kk , klev , klevp1 , kproma
     integer(ik4) , dimension(kbdim) :: kcbot , kctop0 , klwmin , ktype
     logical , dimension(kbdim) :: ldcum
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim) :: pdmfde , pdmfen , pentr , ppbase
-    real(rk8) , dimension(kbdim,klev) :: pmfu , pqenh , pqte , ptenh
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim) :: pdmfde , pdmfen , pentr , ppbase
+    real(rkx) , dimension(kbdim,klev) :: pmfu , pqenh , pqte , ptenh
     intent (in) kcbot , kctop0 , klwmin , ktype , ldcum , paphp1 , &
                 pentr , pqenh , pqte , ptenh
     intent (out) pdmfde , pdmfen
     intent (inout) pmfu , ppbase
     integer(ik4) :: iklwmin , jl
     logical :: llo1 , llo2
-    real(rk8) :: zdprho , zentest , zentr , zpmid , zrrho
+    real(rkx) :: zdprho , zentest , zentr , zpmid , zrrho
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuentrt'
     integer(ik4) , save :: idindx = 0
@@ -3914,13 +3916,13 @@ module mod_cu_tiedtke
       llo1 = kk < kcbot(jl) .and. ldcum(jl)
       pdmfde(jl) = merge(zentr,d_zero,llo1)
       llo2 = llo1 .and. ktype(jl) == 2 .and.                            &
-             (ppbase(jl)-paphp1(jl,kk) < 0.2D5 .or. paphp1(jl,kk) > zpmid)
+             (ppbase(jl)-paphp1(jl,kk) < 0.2e5_rkx .or. paphp1(jl,kk) > zpmid)
       pdmfen(jl) = merge(zentr,d_zero,llo2)
       iklwmin = max(klwmin(jl),kctop0(jl)+2)
       llo2 = llo1 .and. (ktype(jl) == 1 .or. ktype(jl) == 3) .and.        &
              (kk >= iklwmin .or. paphp1(jl,kk) > zpmid)
       if ( llo2 ) pdmfen(jl) = zentr
-      if ( llo2 .and. pqenh(jl,kk+1) > 1.D-5 ) then
+      if ( llo2 .and. pqenh(jl,kk+1) > 1.e-5_rkx ) then
         pmfu(jl,kk+1) = max(pmfu(jl,kk+1),cmfcmin)
         zentest = max(pqte(jl,kk),d_zero)/pqenh(jl,kk+1)
         zentest = min(entrmax,zentest/(pmfu(jl,kk+1)*zrrho))
@@ -3945,12 +3947,12 @@ module mod_cu_tiedtke
     integer(ik4) , intent(inout):: ktopm2
     integer(ik4) , dimension(kbdim) :: kcbot , kctop , kdtop , ktype
     logical , dimension(kbdim) :: ldcum , lddraf
-    real(rk8) , dimension(kbdim,klevp1) :: paphp1
-    real(rk8) , dimension(kbdim,klev) :: pcpcu , pdmfdp , pdmfup ,      &
+    real(rkx) , dimension(kbdim,klevp1) :: paphp1
+    real(rkx) , dimension(kbdim,klev) :: pcpcu , pdmfdp , pdmfup ,      &
            pdpmel , pgeoh , pmfd , pmfdq , pmfds , pmfu , pmful ,     &
            pmfuq , pmfus , pqen , pqenh , pqsen , pten , ptenh
-    real(rk8) , dimension(kbdim,klev,ktrac) :: pmfdxt , pmfuxt , pxtenh
-    real(rk8) , dimension(kbdim) :: prain , prfl , psfl
+    real(rkx) , dimension(kbdim,klev,ktrac) :: pmfdxt , pmfuxt , pxtenh
+    real(rkx) , dimension(kbdim) :: prain , prfl , psfl
     intent (in) kcbot , kctop , kdtop , ldcum , paphp1 , pcpcu , pgeoh , &
                 pqen , pqenh , pqsen , pten , ptenh , pxtenh
     intent (out) pdpmel
@@ -3958,10 +3960,10 @@ module mod_cu_tiedtke
                    pmfds , pmfdxt , pmfu , pmful , pmfuq , pmfus ,   &
                    pmfuxt , prain , prfl , psfl
     integer(ik4) :: ikb , jk , jl , jt
-    real(rk8) :: zcons1 , zcons2 , zcucov , zdpevap , zdrfl , zfac ,    &
+    real(rkx) :: zcons1 , zcons2 , zcucov , zdpevap , zdrfl , zfac ,    &
                zrfl , zrfln , zrmin , zrnew , zrsum , zsnmlt ,        &
                ztmelp2 , zzp
-    real(rk8) , dimension(kbdim) :: zpsubcl
+    real(rkx) , dimension(kbdim) :: zpsubcl
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuflx'
     integer(ik4) , save :: idindx = 0
@@ -3972,8 +3974,8 @@ module mod_cu_tiedtke
     !
     zcons1 = cpd/(wlhf*egrav*dt)
     zcons2 = d_one/(egrav*dt)
-    zcucov = 0.050D0
-    ztmelp2 = tzero + 2.0D0
+    zcucov = 0.050_rkx
+    ztmelp2 = tzero + 2.0_rkx
     !
     ! 1.0 DETERMINE FINAL CONVECTIVE FLUXES
     ! -------------------------------------
@@ -4090,12 +4092,12 @@ module mod_cu_tiedtke
     end do
     do jk = ktopm2 , klev
       do jl = 1 , kproma
-        if ( ldcum(jl) .and. jk >= kcbot(jl) .and. zpsubcl(jl) > 1.D-20 ) then
+        if ( ldcum(jl) .and. jk >= kcbot(jl) .and. zpsubcl(jl) > almostzero ) then
           zrfl = zpsubcl(jl)
           zrnew = (max(d_zero,sqrt(zrfl/zcucov)-cevapcu(jk)* &
                    (paphp1(jl,jk+1)-paphp1(jl,jk))           &
                   *max(d_zero,pqsen(jl,jk)-pqen(jl,jk))))**2*zcucov
-          zrmin = zrfl - zcucov*max(d_zero,0.80D0*pqsen(jl,jk)         &
+          zrmin = zrfl - zcucov*max(d_zero,0.80_rkx*pqsen(jl,jk)         &
                   -pqen(jl,jk))*zcons2*(paphp1(jl,jk+1)-paphp1(jl,jk))
           zrnew = max(zrnew,zrmin)
           zrfln = max(zrnew,d_zero)
@@ -4108,8 +4110,8 @@ module mod_cu_tiedtke
     do jl = 1 , kproma
       zrsum = prfl(jl) + psfl(jl)
       zdpevap = zpsubcl(jl) - zrsum
-      prfl(jl) = prfl(jl) + zdpevap*prfl(jl)*(d_one/max(1.D-20,zrsum))
-      psfl(jl) = psfl(jl) + zdpevap*psfl(jl)*(d_one/max(1.D-20,zrsum))
+      prfl(jl) = prfl(jl) + zdpevap*prfl(jl)*(d_one/max(almostzero,zrsum))
+      psfl(jl) = psfl(jl) + zdpevap*psfl(jl)*(d_one/max(almostzero,zrsum))
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -4137,13 +4139,13 @@ module mod_cu_tiedtke
   subroutine cuadjtq(kproma,kbdim,klev,kk,pp,pt,pq,ldflag,kcall)
     implicit none
     integer, intent (in) :: kcall, kk, klev, kproma, kbdim
-    real(rk8), intent (in) :: pp(kbdim)
+    real(rkx), intent (in) :: pp(kbdim)
     logical, intent (in) :: ldflag(kbdim)
-    real(rk8), intent (inout) :: pq(kbdim,klev), pt(kbdim,klev)
-    real(rk8):: zcond1, zqst1, zdqsdt, zqsat, zes, zcor, zlcdqsdt
+    real(rkx), intent (inout) :: pq(kbdim,klev), pt(kbdim,klev)
+    real(rkx):: zcond1, zqst1, zdqsdt, zqsat, zes, zcor, zlcdqsdt
     integer(ik4) :: isum, jl, it, it1, iv
     logical :: lo
-    real(rk8):: zcond(kbdim)
+    real(rkx):: zcond(kbdim)
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuadjtq'
     integer(ik4) , save :: idindx = 0
@@ -4170,7 +4172,7 @@ module mod_cu_tiedtke
             it = max(min(it,jptlucu2),jptlucu1)
             zes = tlucua(it)/pp(jl)
             zes = min(qsmax,zes)
-            lo = zes < 0.4D0
+            lo = zes < 0.4_rkx
             zcor = d_one/(d_one-ep1*zes)
             zqsat = zes*zcor
             it1 = it+1
@@ -4203,7 +4205,7 @@ module mod_cu_tiedtke
               it = max(min(it,jptlucu2),jptlucu1)
               zes = tlucua(it)/pp(jl)
               zes = min(qsmax,zes)
-              lo = zes < 0.4D0
+              lo = zes < 0.4_rkx
               zcor = d_one/(d_one-ep1*zes)
               zqsat = zes*zcor
               it1 = it+1
@@ -4238,7 +4240,7 @@ module mod_cu_tiedtke
             it = max(min(it,jptlucu2),jptlucu1)
             zes = tlucua(it)/pp(jl)
             zes = min(qsmax,zes)
-            lo = zes < 0.4D0
+            lo = zes < 0.4_rkx
             zcor = d_one/(d_one-ep1*zes)
             zqsat = zes*zcor
             it1 = it+1
@@ -4270,7 +4272,7 @@ module mod_cu_tiedtke
             it = max(min(it,jptlucu2),jptlucu1)
             zes = tlucua(it)/pp(jl)
             zes = min(qsmax,zes)
-            lo = zes < 0.4D0
+            lo = zes < 0.4_rkx
             zcor = d_one/(d_one-ep1*zes)
             zqsat = zes*zcor
             it1 = it+1
@@ -4303,7 +4305,7 @@ module mod_cu_tiedtke
           it = max(min(it,jptlucu2),jptlucu1)
           zes = tlucua(it)/pp(jl)
           zes = min(qsmax,zes)
-          lo = zes < 0.4D0
+          lo = zes < 0.4_rkx
           zcor = d_one/(d_one-ep1*zes)
           zqsat = zes*zcor
           it1 = it+1
@@ -4334,7 +4336,7 @@ module mod_cu_tiedtke
           it = max(min(it,jptlucu2),jptlucu1)
           zes = tlucua(it)/pp(jl)
           zes = min(qsmax,zes)
-          lo = zes < 0.4D0
+          lo = zes < 0.4_rkx
           zcor = d_one/(d_one-ep1*zes)
           zqsat = zes*zcor
           it1 = it+1
@@ -4363,7 +4365,7 @@ module mod_cu_tiedtke
         it = max(min(it,jptlucu2),jptlucu1)
         zes = tlucua(it)/pp(jl)
         zes = min(qsmax,zes)
-        lo = zes < 0.4D0
+        lo = zes < 0.4_rkx
         zcor = d_one/(d_one-ep1*zes)
         zqsat = zes*zcor
         it1 = it+1
@@ -4389,7 +4391,7 @@ module mod_cu_tiedtke
         it = max(min(it,jptlucu2),jptlucu1)
         zes = tlucua(it)/pp(jl)
         zes = min(qsmax,zes)
-        lo = zes < 0.4D0
+        lo = zes < 0.4_rkx
         zcor = d_one/(d_one-ep1*zes)
         zqsat = zes*zcor
         it1 = it+1
@@ -4455,57 +4457,57 @@ module mod_cu_tiedtke
     ! Land/sea mask flag
     logical , dimension(np) , intent(in) :: ldland
     ! Timestep s
-    real(rk8) , intent(in) :: dtcum
+    real(rkx) , intent(in) :: dtcum
     !-----------------------------------------------------
     ! ::::::::::: Input atmospheric condition ::::::::::::
     !-----------------------------------------------------
     ! Temperature K
-    real(rk8) , dimension(np,nk) , intent(inout) :: t
+    real(rkx) , dimension(np,nk) , intent(inout) :: t
     ! Water Vapor Specific Humidity kg/kg
-    real(rk8) , dimension(np,nk) , intent(inout) :: q
+    real(rkx) , dimension(np,nk) , intent(inout) :: q
     ! U wind m/s
-    real(rk8) , dimension(np,nk) , intent(in) :: u
+    real(rkx) , dimension(np,nk) , intent(in) :: u
     ! V wind m/s
-    real(rk8) , dimension(np,nk) , intent(in) :: v
+    real(rkx) , dimension(np,nk) , intent(in) :: v
     ! Total (Liquid + Ice) Mixing ratio kg/kg
-    real(rk8) , dimension(np,nk) , intent(in) :: qctot
+    real(rkx) , dimension(np,nk) , intent(in) :: qctot
     ! Vertical Pressure Pa/s
-    real(rk8) , dimension(np,nk) , intent(in) :: omega
+    real(rkx) , dimension(np,nk) , intent(in) :: omega
     ! Turbolent moisture flux kg/(m^2*s)
-    real(rk8) , dimension(np,nk+1) , intent(in) :: qhfl
+    real(rkx) , dimension(np,nk+1) , intent(in) :: qhfl
     ! Turbolent sensible heat flux W/(m^2*s)
-    real(rk8) , dimension(np,nk+1) , intent(in) :: ahfs
+    real(rkx) , dimension(np,nk+1) , intent(in) :: ahfs
     ! Pressure Pa
-    real(rk8) , dimension(np,nk) , intent(in) :: ph
+    real(rkx) , dimension(np,nk) , intent(in) :: ph
     ! Pressure on sigma levels Pa
-    real(rk8) , dimension(np,nk+1) , intent(in) :: pf
+    real(rkx) , dimension(np,nk+1) , intent(in) :: pf
     ! Geopotential m^2/s^2
-    real(rk8) , dimension(np,nk) , intent(in) :: geo
+    real(rkx) , dimension(np,nk) , intent(in) :: geo
     ! Geopotential m^2/s^2 on sigma levels
-    real(rk8) , dimension(np,nk+1) , intent(in) :: geof
+    real(rkx) , dimension(np,nk+1) , intent(in) :: geof
     ! Tracer Mixing ratio kg/kg
-    real(rk8) , dimension(np,nk,ntrac) , intent(in) :: qtrac
+    real(rkx) , dimension(np,nk,ntrac) , intent(in) :: qtrac
     !-----------------------------------------------------
     ! ::::::::::::::: Output Tendencies ::::::::::::::::::
     !-----------------------------------------------------
     ! Temperature  tendency K/s
-    real(rk8) , dimension(np,nk) , intent(inout) :: tent
+    real(rkx) , dimension(np,nk) , intent(inout) :: tent
     ! specific humidity tendency kg/(kg*s)
-    real(rk8) , dimension(np,nk) , intent(inout) :: tenq
+    real(rkx) , dimension(np,nk) , intent(inout) :: tenq
     ! Cloud liquid water mixing ratio tendency kg/(kg*s)
-    real(rk8) , dimension(np,nk) , intent(out) :: tenl
+    real(rkx) , dimension(np,nk) , intent(out) :: tenl
     ! Ice water mixing ratio tendency kg/(kg*s)
-    real(rk8) , dimension(np,nk) , intent(out) :: teni
+    real(rkx) , dimension(np,nk) , intent(out) :: teni
     ! U wind m/s^2
-    real(rk8) , dimension(np,nk) , intent(inout) :: tenu
+    real(rkx) , dimension(np,nk) , intent(inout) :: tenu
     ! V wind m/s^2
-    real(rk8) , dimension(np,nk) , intent(inout) :: tenv
+    real(rkx) , dimension(np,nk) , intent(inout) :: tenv
     ! Tracer mixing ratio tendency kg/(kg*s)
-    real(rk8) , dimension(np,nk,ntrac) , intent(inout) :: tenc
+    real(rkx) , dimension(np,nk,ntrac) , intent(inout) :: tenc
     ! Detrained liquid water kg/(m^2*s)
-    real(rk8) , dimension(np,nk) , intent(inout) :: lude
+    real(rkx) , dimension(np,nk) , intent(inout) :: lude
     ! Cloud condensation nuclei #
-    real(rk8) , dimension(np,nk) , intent(in) :: ccn
+    real(rkx) , dimension(np,nk) , intent(in) :: ccn
     ! Cumulus activation flag
     logical , dimension(np) , intent(out) :: ldcum
     ! Type of cumulus convection
@@ -4519,83 +4521,83 @@ module mod_cu_tiedtke
     ! Shallow cumulus flag
     logical , dimension(np) , intent(out) :: ldsc
     ! Updraft temperature K
-    real(rk8) , dimension(np,nk) , intent(inout) :: tu
+    real(rkx) , dimension(np,nk) , intent(inout) :: tu
     ! Updraft Water Vapor specific humidity kg/kg
-    real(rk8) , dimension(np,nk) , intent(inout) :: qu
+    real(rkx) , dimension(np,nk) , intent(inout) :: qu
     ! Updraft Cloud Liquid Water mixing ratio kg/kg
-    real(rk8) , dimension(np,nk) , intent(inout) :: lu
+    real(rkx) , dimension(np,nk) , intent(inout) :: lu
     ! Rain Mass Flux kg/(m^2*s)
-    real(rk8) , dimension(np,nk+1) , intent(inout) :: mflxr
+    real(rkx) , dimension(np,nk+1) , intent(inout) :: mflxr
     ! Snow Mass Flux kg/(m^2*s)
-    real(rk8) , dimension(np,nk+1) , intent(inout) :: mflxs
+    real(rkx) , dimension(np,nk+1) , intent(inout) :: mflxs
     ! Total precipitation produced in convective updrafts
-    real(rk8) , dimension(np) , intent(out) :: rain
+    real(rkx) , dimension(np) , intent(out) :: rain
     ! Massflux updrafts kg/(m^2*s)
-    real(rk8) , dimension(np,nk) , intent(inout) :: mfu
+    real(rkx) , dimension(np,nk) , intent(inout) :: mfu
     ! Massflux downdrafts kg/(m^2*s)
-    real(rk8) , dimension(np,nk) , intent(inout) :: mfd
+    real(rkx) , dimension(np,nk) , intent(inout) :: mfd
     ! Massflux updrafts rate kg/(m^3*s)
-    real(rk8) , dimension(np,nk) , intent(inout) :: mfude_rate
+    real(rkx) , dimension(np,nk) , intent(inout) :: mfude_rate
     ! Massflux downdrafts rate kg/(m^3*s)
-    real(rk8) , dimension(np,nk) , intent(inout) :: mfdde_rate
+    real(rkx) , dimension(np,nk) , intent(inout) :: mfdde_rate
     ! Convectve available potential energy J/kg
-    real(rk8) , dimension(np) , intent(out) :: cape
+    real(rkx) , dimension(np) , intent(out) :: cape
     !-----------------------------------------------------
     ! ::::::::::::::::: Local Variables ::::::::::::::::::
     !-----------------------------------------------------
     ! Vertically averaged updraught velocity m/s
-    real(rk8) , dimension(np) :: wmean
+    real(rkx) , dimension(np) :: wmean
     ! Increment of dry static energy J/(kg*s)
-    real(rk8) , dimension(np,nk) :: penth
+    real(rkx) , dimension(np,nk) :: penth
     ! Saturation mixing ratio kg/kg
-    real(rk8) , dimension(np,nk) :: qs
+    real(rkx) , dimension(np,nk) :: qs
     ! Temperature on full sigma levels (where massfluxes are computed) K
-    real(rk8) , dimension(np,nk) :: tf
+    real(rkx) , dimension(np,nk) :: tf
     ! Mixing ratio on full sigma levels kg/kg
-    real(rk8) , dimension(np,nk) :: qf
+    real(rkx) , dimension(np,nk) :: qf
     ! Saturation mixing ratio on full sigma levels kg/kg
-    real(rk8) , dimension(np,nk) :: qsf
+    real(rkx) , dimension(np,nk) :: qsf
     ! Temperature in Downdrafts K
-    real(rk8) , dimension(np,nk) :: td
+    real(rkx) , dimension(np,nk) :: td
     ! Mixing ratio in downdrafts kg/kg
-    real(rk8) , dimension(np,nk) :: qd
+    real(rkx) , dimension(np,nk) :: qd
     ! Flux of dry static energy in updrafts J/(m^2*s)
-    real(rk8) , dimension(np,nk) :: mfus
+    real(rkx) , dimension(np,nk) :: mfus
     ! Flux of dry static energy in downdrafts J/(m^2*s)
-    real(rk8) , dimension(np,nk) :: mfds
+    real(rkx) , dimension(np,nk) :: mfds
     ! Flux of humidity in updrafts kg/(m^2*s)
-    real(rk8) , dimension(np,nk) :: mfuq
+    real(rkx) , dimension(np,nk) :: mfuq
     ! Flux of humidity in downdrafts kg/(m^2*s)
-    real(rk8) , dimension(np,nk) :: mfdq
+    real(rkx) , dimension(np,nk) :: mfdq
     ! Flux difference of precipitation in updrafts kg/(m^2*s)
-    real(rk8) , dimension(np,nk) :: dmfup
+    real(rkx) , dimension(np,nk) :: dmfup
     ! Flux difference of precipitation in downdrafts kg/(m^2*s)
-    real(rk8) , dimension(np,nk) :: dmfdp
+    real(rkx) , dimension(np,nk) :: dmfdp
     ! Flux of liquid water in updrafts kg/(m^2*s)
-    real(rk8) , dimension(np,nk) :: mful
+    real(rkx) , dimension(np,nk) :: mful
     ! Updraft winds m/s
-    real(rk8) , dimension(np,nk) :: uu , vu
+    real(rkx) , dimension(np,nk) :: uu , vu
     ! Downdraft winds m/s
-    real(rk8) , dimension(np,nk) :: ud , vd
+    real(rkx) , dimension(np,nk) :: ud , vd
     ! Updraft kinetic energy m^2/s^2
-    real(rk8) , dimension(np,nk) :: kineu
+    real(rkx) , dimension(np,nk) :: kineu
     ! Downdraft kinetic energy m^2/s^2
-    real(rk8) , dimension(np,nk) :: kined
+    real(rkx) , dimension(np,nk) :: kined
     ! Precipitation Flux kg/(m^2*s)
-    real(rk8) , dimension(np) :: rfl
+    real(rkx) , dimension(np) :: rfl
     ! Mass Flux Updraft base of the cloud
-    real(rk8) , dimension(np) :: mfub , mfub1
+    real(rkx) , dimension(np) :: mfub , mfub1
     ! Change in precipitation fluxes due to melting kg/(m^2*s)
-    real(rk8) , dimension(np,nk) :: dpmel
+    real(rkx) , dimension(np,nk) :: dpmel
     ! Precipitation flux
-    real(rk8) , dimension(np,nk) :: xrain
+    real(rkx) , dimension(np,nk) :: xrain
     ! Flux of frozen cloudwater in updrafts kg/(m^2*s)
-    real(rk8) , dimension(np,nk) :: lglac
-    real(rk8) , dimension(np) :: dqcv
-    real(rk8) , dimension(np) :: dhpbl
-    real(rk8) , dimension(np) :: wubase
+    real(rkx) , dimension(np,nk) :: lglac
+    real(rkx) , dimension(np) :: dqcv
+    real(rkx) , dimension(np) :: dhpbl
+    real(rkx) , dimension(np) :: wubase
     ! Entrainment , detrainment
-    real(rk8) , dimension(np,nk) :: dmfen , dmfde
+    real(rkx) , dimension(np,nk) :: dmfen , dmfde
     ! Flag
     integer(ik4) , dimension(np,nk) :: ilab
     ! Level of max wind
@@ -4603,24 +4605,24 @@ module mod_cu_tiedtke
     integer(ik4) , dimension(np) :: idtop , ictop0
     ! Departure level for convection
     integer(ik4) , dimension(np) :: idpl
-    real(rk8) , dimension(np) :: xcape , rheat
+    real(rkx) , dimension(np) :: xcape , rheat
     logical , dimension(np) :: lddraf , llddraf3 , lldcum , llo2
     logical :: llo1
     integer(ik4) :: ikb , itopm2 , k , ik , n
-    real(rk8) :: cons2 , cons , dh , dqmin , dz , eps , fac , &
+    real(rkx) :: cons2 , cons , dh , dqmin , dz , eps , fac , &
                  mfmax , pbmpt , qumqe , xro , mfa , erate ,  &
                  derate , duten , dvten , tdis , xalv , rdtcum
-    real(rk8) , dimension(np) :: sfl
-    real(rk8) , dimension(np) :: tau ! adjustment time
+    real(rkx) , dimension(np) :: sfl
+    real(rkx) , dimension(np) :: tau ! adjustment time
     ! scaling factor for momentum and tracer massflux
-    real(rk8) , dimension(np) :: mfs , mfuub , mfuvb , xsum12 , xsum22
-    real(rk8) , dimension(np) :: mf_shal
-    real(rk8) , dimension(np,nk) :: mfuus , mfdus , mfudr , &
+    real(rkx) , dimension(np) :: mfs , mfuub , mfuvb , xsum12 , xsum22
+    real(rkx) , dimension(np) :: mf_shal
+    real(rkx) , dimension(np,nk) :: mfuus , mfdus , mfudr , &
                                     mfddr , xtenu , xtenv , uv2
     logical :: llconscheck = .false.
     integer(ik4) :: nt
-    real(rk8) , dimension(:,:) , allocatable :: xtent , xtenq , xsumc
-    real(rk8) , dimension(:,:,:) , allocatable :: xtenc
+    real(rkx) , dimension(:,:) , allocatable :: xtent , xtenq , xsumc
+    real(rkx) , dimension(:,:,:) , allocatable :: xtenc
 
     ! ---------------------------------------
     ! 0. Compute Saturation specific humidity
@@ -4700,10 +4702,10 @@ module mod_cu_tiedtke
       do n = n1 , n2
         if ( ldcum(n) ) then
           ikb = kcbot(n)
-          dz = max(d_zero,min(1.5D3,(geof(n,ikb)-geof(n,nk+1))*regrav))
-          mf_shal(n) = 0.07D0*(egrav/t(n,nk)*dz *      &
+          dz = max(d_zero,min(1.5e3_rkx,(geof(n,ikb)-geof(n,nk+1))*regrav))
+          mf_shal(n) = 0.07_rkx*(egrav/t(n,nk)*dz *      &
                        max(d_zero,-ahfs(n,nk+1)*rcpd - &
-                       ep1*t(n,nk)*qhfl(n,nk+1)))**.3333D0
+                       ep1*t(n,nk)*qhfl(n,nk+1)))**.3333_rkx
           mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
           mf_shal(n) = min(mf_shal(n),mfmax)
         end if
@@ -4715,23 +4717,23 @@ module mod_cu_tiedtke
         mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
         !     deep convection
         if ( ktype(n) == 1 ) then
-          mfub(n) = mfmax*0.1D0
+          mfub(n) = mfmax*0.1_rkx
         else if ( ktype(n) == 2 ) then
           !       shallow convection
           qumqe = qu(n,ikb) + lu(n,ikb) - qf(n,ikb)
-          dqmin = max(0.01D0*qf(n,ikb),1.D-10)
+          dqmin = max(0.01_rkx*qf(n,ikb),almostzero)
           dh = cpd*(tu(n,ikb)-tf(n,ikb)) + wlhv*qumqe
-          dh = egrav*max(dh,1.D5*dqmin)
+          dh = egrav*max(dh,1.e5_rkx*dqmin)
           if ( dhpbl(n) > d_zero ) then
             mfub(n) = dhpbl(n)/dh
             ! EPS: temporary solution for explicit
-            if ( dtcum > 1800.0D0 .and. abs(rmfcfl-d_one) < dlowval ) then
-              mfub(n) = min(mfub(n),3.0D0*mfmax)
+            if ( dtcum > 1800.0_rkx .and. abs(rmfcfl-d_one) < almostzero ) then
+              mfub(n) = min(mfub(n),3.0_rkx*mfmax)
             else
               mfub(n) = min(mfub(n),mfmax)
             end if
           else
-            mfub(n) = mfmax*0.1D0
+            mfub(n) = mfmax*0.1_rkx
             ldcum(n) = .false.
           end if
           if ( lmfwstar ) mfub(n) = mf_shal(n)
@@ -4829,14 +4831,14 @@ module mod_cu_tiedtke
       if ( ldcum(n) .and. ktype(n) == 1 ) then
         ikb = kcbot(n)
         ik = kctop(n)
-        xcape(n) = max(d_zero,min(xcape(n),5000.0D0))
-        rheat(n) = max(1.D-4,rheat(n))
+        xcape(n) = max(d_zero,min(xcape(n),5000.0_rkx))
+        rheat(n) = max(1.e-4_rkx,rheat(n))
         tau(n) = (geof(n,ik)-geof(n,ikb)) / &
-                   ((d_two+min(15.0D0,wmean(n)))*egrav)*rtau
-        tau(n) = max(dtcum,min(10800.0D0,tau(n)))
-        tau(n) = max(720.0D0,tau(n))
+                   ((d_two+min(15.0_rkx,wmean(n)))*egrav)*rtau
+        tau(n) = max(dtcum,min(10800.0_rkx,tau(n)))
+        tau(n) = max(720.0_rkx,tau(n))
         mfub1(n) = (xcape(n)*mfub(n))/(rheat(n)*tau(n))
-        mfub1(n) = max(mfub1(n),0.001D0)
+        mfub1(n) = max(mfub1(n),0.001_rkx)
         mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
         mfub1(n) = min(mfub1(n),mfmax)
       end if
@@ -4846,27 +4848,27 @@ module mod_cu_tiedtke
       if ( ldcum(n) .and. (ktype(n) == 2 .or. ktype(n) == 3) ) then
         ikb = kcbot(n)
         if ( mfd(n,ikb) < d_zero ) then
-          eps = -mfd(n,ikb)/max(mfub(n),1.D-10)
+          eps = -mfd(n,ikb)/max(mfub(n),almostzero)
         else
-          eps = 0.0D0
+          eps = 0.0_rkx
         end if
         qumqe = qu(n,ikb) + lu(n,ikb) - eps*qd(n,ikb) - (d_one-eps)*qf(n,ikb)
-        dqmin = max(0.01D0*qf(n,ikb),1.D-10)
+        dqmin = max(0.01_rkx*qf(n,ikb),almostzero)
         ! Maximum permisable value of ud base mass flux
         mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
         ! Shallow convection
         if ( ktype(n) == 2 ) then
           dh = cpd*(tu(n,ikb)-eps*td(n,ikb) - &
                    (d_one-eps)*tf(n,ikb)) + wlhv*qumqe
-          dh = egrav*max(dh,1.0D5*dqmin)
+          dh = egrav*max(dh,1.0e5_rkx*dqmin)
           if ( dhpbl(n) > d_zero ) then
             mfub1(n) = dhpbl(n)/dh
           else
             mfub1(n) = mfub(n)
           end if
           ! Temporary solution for explicit
-          if ( dtcum > 1800.0D0 .and. abs(rmfcfl-d_one) < dlowval ) then
-            mfub1(n) = min(mfub1(n),3.0D0*mfmax)
+          if ( dtcum > 1800.0_rkx .and. abs(rmfcfl-d_one) < almostzero ) then
+            mfub1(n) = min(mfub1(n),3.0_rkx*mfmax)
           else
             mfub1(n) = min(mfub1(n),mfmax)
           end if
@@ -4883,7 +4885,7 @@ module mod_cu_tiedtke
     do k = 1 , nk
       do n = n1 , n2
         if ( lddraf(n) .and. (ktype(n) == 1 .or. ktype(n) == 2) ) then
-          fac = mfub1(n)/max(mfub(n),1.D-10)
+          fac = mfub1(n)/max(mfub(n),almostzero)
           mfd(n,k) = mfd(n,k)*fac
           mfds(n,k) = mfds(n,k)*fac
           mfdq(n,k) = mfdq(n,k)*fac
@@ -4986,8 +4988,8 @@ module mod_cu_tiedtke
       ! change for stability
       do n = n1 , n2
         if ( lddraf(n) .and. k >= idtop(n)-1 ) then
-          mfmax = mfu(n,k)*0.98D0
-          if ( mfd(n,k)+mfmax+1.D-15 < d_zero ) then
+          mfmax = mfu(n,k)*0.98_rkx
+          if ( mfd(n,k)+mfmax+1.e-15_rkx < d_zero ) then
             mfs(n) = min(mfs(n),-mfmax/mfd(n,k))
           end if
         end if
@@ -5030,11 +5032,11 @@ module mod_cu_tiedtke
       if ( lddraf(n) ) then
         k = idtop(n)
         ik = min(k+1,nk)
-        if ( mfdq(n,k) < 0.3D0*mfdq(n,ik) ) then
-          if ( abs(rmfsoltq) < dlowval ) then
-            mfdq(n,k) = 0.3D0*mfdq(n,ik)
+        if ( mfdq(n,k) < 0.3_rkx*mfdq(n,ik) ) then
+          if ( abs(rmfsoltq) < almostzero ) then
+            mfdq(n,k) = 0.3_rkx*mfdq(n,ik)
           else
-            mfd(n,k) = 0.3D0*mfd(n,ik)
+            mfd(n,k) = 0.3_rkx*mfd(n,ik)
           end if
         end if
       end if
@@ -5054,7 +5056,7 @@ module mod_cu_tiedtke
           if ( lude(n,k) < d_zero ) lude(n,k) = d_zero
         end if
         if ( .not. ldcum(n) ) mfude_rate(n,k) = d_zero
-        if ( abs(mfd(n,k-1)) < dlowval ) mfdde_rate(n,k) = d_zero
+        if ( abs(mfd(n,k-1)) < almostzero ) mfdde_rate(n,k) = d_zero
       end do
     end do
     if ( llconscheck ) then
@@ -5093,13 +5095,13 @@ module mod_cu_tiedtke
         do n = n1 , n2
           if ( ldcum(n) ) then
             if ( k > kcbot(n) ) then
-              mfa = d_one/max(1.D-15,mfu(n,k))
+              mfa = d_one/max(1.e-15_rkx,mfu(n,k))
               qu(n,k) = qf(n,k) + mfuq(n,k)*mfa
               tu(n,k) = tf(n,k) + mfus(n,k)*mfa*rcpd
               mfus(n,k) = mfu(n,k)*(cpd*tu(n,k)+geof(n,k))
               mfuq(n,k) = mfu(n,k)*qu(n,k)
               if ( lddraf(n) ) then
-                mfa = d_one/min(-1.D-15,mfd(n,k))
+                mfa = d_one/min(-1.e-15_rkx,mfd(n,k))
                 qd(n,k) = qf(n,k) + mfdq(n,k)*mfa
                 td(n,k) = tf(n,k) + mfds(n,k)*mfa*rcpd
                 mfdq(n,k) = mfd(n,k)*qd(n,k)
@@ -5254,7 +5256,7 @@ module mod_cu_tiedtke
           do n = n1 , n2
             if ( ldcum(n) .and. k>=kctop(n)-1 ) then
               dz = (pf(n,k+1)-pf(n,k))
-              tdis = rcpd*xsum12(n)*uv2(n,k)/max(1.D-15,xsum22(n))
+              tdis = rcpd*xsum12(n)*uv2(n,k)/max(1.e-15_rkx,xsum22(n))
               tent(n,k) = tent(n,k) + tdis
             end if
           end do
@@ -5305,7 +5307,7 @@ module mod_cu_tiedtke
         do k = 2 , nk
           do n = n1 , n2
             if ( lldcum(n) .and. k >= kctop(n) ) then
-              mfmax = (pf(n,k)-pf(n,k-1))*0.8D0*cons
+              mfmax = (pf(n,k)-pf(n,k-1))*0.8_rkx*cons
               if ( mfu(n,k) > mfmax ) then
                 mfs(n) = min(mfs(n),mfmax/mfu(n,k))
               end if
@@ -5336,7 +5338,7 @@ module mod_cu_tiedtke
         do k = 2 , nk - 1
           do n = n1 , n2
             if ( llddraf3(n) .and. mfdus(n,k) < d_zero .and. &
-                 abs(mfdus(n,k+1)) < dlowval ) then
+                 abs(mfdus(n,k+1)) < almostzero ) then
               erate = min(d_zero,mfdus(n,k)-d_half*mfdus(n,k-1))
               mfdus(n,k) = mfdus(n,k) - erate
               mfddr(n,k) = mfddr(n,k) - erate
@@ -5353,7 +5355,7 @@ module mod_cu_tiedtke
         do k = nk - 1 , 2 , -1
           do n = n1 , n2
             if ( lldcum(n) ) then
-              if ( abs(mfudr(n,k)) < dlowval .and. mfudr(n,k-1) > d_zero ) then
+              if ( abs(mfudr(n,k)) < almostzero .and. mfudr(n,k-1) > d_zero ) then
                 mfudr(n,k) = d_half*mfudr(n,k-1)
               end if
             end if
@@ -5451,13 +5453,13 @@ module mod_cu_tiedtke
         tenl(n,k) = lude(n,k)*egrav/(pf(n,k+1)-pf(n,k))
         teni(n,k) = (d_one-xalpha(t(n,k)))*tenl(n,k)
         tenl(n,k) = tenl(n,k) - teni(n,k)
-        mflxr(n,k) = mflxr(n,k)*1.D-3
-        mflxs(n,k) = mflxs(n,k)*1.D-3
+        mflxr(n,k) = mflxr(n,k)*1.e-3_rkx
+        mflxs(n,k) = mflxs(n,k)*1.e-3_rkx
       end do
     end do
     do n = n1 , n2
-      mflxr(n,nk+1) = mflxr(n,nk+1)*1.D-3
-      mflxs(n,nk+1) = mflxs(n,nk+1)*1.D-3
+      mflxr(n,nk+1) = mflxr(n,nk+1)*1.e-3_rkx
+      mflxs(n,nk+1) = mflxs(n,nk+1)*1.e-3_rkx
     end do
 
     contains
@@ -5469,11 +5471,11 @@ module mod_cu_tiedtke
     !
     subroutine initcum
       implicit none
-      real(rk8) , dimension(np) :: wmax
-      real(rk8) , dimension(np) :: xph
+      real(rkx) , dimension(np) :: wmax
+      real(rkx) , dimension(np) :: xph
       logical , dimension(np) :: llflag
       integer(ik4) :: icall , ik , k , n
-      real(rk8) :: zs
+      real(rkx) :: zs
       !--------------------------------------------------
       ! 1. Specify large scale parameters at half levels
       !    adjust temperature fields if staticly unstable
@@ -5558,19 +5560,19 @@ module mod_cu_tiedtke
       implicit none
       integer(ik4) , dimension(np) , intent(in) :: ktop ! cloud top
       logical , dimension(np,nk) , intent(in) :: wmask  ! mask
-      real(rk8) , dimension(np,nk) , intent(in) :: a    ! lower diagonal
-      real(rk8) , dimension(np,nk) , intent(in) :: b    ! diagonal
-      real(rk8) , dimension(np,nk) , intent(in) :: r    ! right hand side
-      real(rk8) , dimension(np,nk) , intent(out) :: u   ! solution
+      real(rkx) , dimension(np,nk) , intent(in) :: a    ! lower diagonal
+      real(rkx) , dimension(np,nk) , intent(in) :: b    ! diagonal
+      real(rkx) , dimension(np,nk) , intent(in) :: r    ! right hand side
+      real(rkx) , dimension(np,nk) , intent(out) :: u   ! solution
       integer(ik4) :: k , n
       u(:,:) = d_zero
       do k = 2 , nk
         do n = n1 , n2
           if ( wmask(n,k) ) then
             if ( k == ktop(n)-1 ) then
-              u(n,k) = r(n,k)/(b(n,k)+dlowval)
+              u(n,k) = r(n,k)/(b(n,k)+almostzero)
             else if ( k > ktop(n)-1 ) then
-              u(n,k) = (r(n,k)-a(n,k)*u(n,k-1))/(b(n,k)+dlowval)
+              u(n,k) = (r(n,k)-a(n,k)*u(n,k-1))/(b(n,k)+almostzero)
             end if
           end if
         end do
@@ -5583,11 +5585,11 @@ module mod_cu_tiedtke
     subroutine satur(kt,pr,t,qsat)
       implicit none
       integer(ik4) , intent(in) :: kt                    ! top level
-      real(rk8) , dimension(np,nk) , intent(in) :: pr    ! Pressure Pa
-      real(rk8) , dimension(np,nk) , intent(in) :: t     ! Temperature K
-      real(rk8) , dimension(np,nk) , intent(out) :: qsat ! Satur. MXR kg/kg
+      real(rkx) , dimension(np,nk) , intent(in) :: pr    ! Pressure Pa
+      real(rkx) , dimension(np,nk) , intent(in) :: t     ! Temperature K
+      real(rkx) , dimension(np,nk) , intent(out) :: qsat ! Satur. MXR kg/kg
       integer(ik4) :: k , n
-      real(rk8) :: qs
+      real(rkx) :: qs
       do k = kt , nk
         do n = n1 , n2
           qs = min(qsmax,fesat(t(n,k))/pr(n,k))
@@ -5601,14 +5603,14 @@ module mod_cu_tiedtke
     subroutine moistadj(kk,sp,t,q,ldflag,jcall)
       implicit none
       integer(ik4) , intent(in) :: kk ! actual level
-      real(rk8) , dimension(np) , intent(in) :: sp ! Surface pressure Pa
-      real(rk8) , dimension(np,nk) , intent(inout) :: t
-      real(rk8) , dimension(np,nk) , intent(inout) :: q
+      real(rkx) , dimension(np) , intent(in) :: sp ! Surface pressure Pa
+      real(rkx) , dimension(np,nk) , intent(inout) :: t
+      real(rkx) , dimension(np,nk) , intent(inout) :: q
       logical , dimension(np) , intent(in) :: ldflag ! Active convection flag
       integer(ik4) , intent(in) :: jcall ! Calling method
       integer(ik4) :: jl
-      real(rk8) :: cond , cond1 , cor , qs , rp
-      real(rk8) :: zl , zi , zf
+      real(rkx) :: cond , cond1 , cor , qs , rp
+      real(rkx) :: zl , zi , zf
       !---------------------------------------------------------
       ! 1. Calculate condensation and adjust t and q accordingly
       ! --------------------------------------------------------
@@ -5640,7 +5642,7 @@ module mod_cu_tiedtke
               zf = xalpha(t(jl,kk))*c5alvcp*zl**2 + &
                    (d_one-xalpha(t(jl,kk)))*c5alscp*zi**2
               cond1 = (q(jl,kk)*cor**2-qs*cor)/(cor**2+qs*zf)
-              if ( abs(cond) < dlowval ) cond1 = d_zero
+              if ( abs(cond) < almostzero ) cond1 = d_zero
               t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
               q(jl,kk) = q(jl,kk) - cond1
             end if
@@ -5663,7 +5665,7 @@ module mod_cu_tiedtke
             cor = d_one/(d_one-ep1*qs)
             qs = qs*cor
             cond1 = (q(jl,kk)-qs)/(d_one+qs*cor*fdqsat(t(jl,kk)))
-            if ( abs(cond) < dlowval ) cond1 = min(cond1,d_zero)
+            if ( abs(cond) < almostzero ) cond1 = min(cond1,d_zero)
             t(jl,kk) = t(jl,kk) + mlwocp(t(jl,kk))*cond1
             q(jl,kk) = q(jl,kk) - cond1
           end if
@@ -5761,30 +5763,30 @@ module mod_cu_tiedtke
     !
     subroutine ascent
       implicit none
-      real(rk8) , dimension(np,nk) :: buo
-      real(rk8) , dimension(np) :: ndmfen , ndmfde , qold , luold , precip
-      real(rk8) , dimension(np) :: dpmean
-      real(rk8) , dimension(np) :: zoentr , xph
+      real(rkx) , dimension(np,nk) :: buo
+      real(rkx) , dimension(np) :: ndmfen , ndmfde , qold , luold , precip
+      real(rkx) , dimension(np) :: dpmean
+      real(rkx) , dimension(np) :: zoentr , xph
       logical , dimension(np) :: llflag , llflaguv , llo1
       logical :: llo3 , llo4
       integer(ik4) :: icall , ik , is , k , n , ikb
       integer(ik4) :: nll , nlm
       integer(ik4) , dimension(np) :: nlx
-      real(rk8) :: cldmax , cprc2 , cwifrac , alfaw , bc ,   &
+      real(rkx) :: cldmax , cprc2 , cwifrac , alfaw , bc ,   &
                    be , buoc , zc , cbf , cons2 , zd , zdfi , dkbuo , &
                    dken , dnoprc , zdt , fac , facbuo , zint ,       &
                    kedke , lcrit , leen , lnew , mfmax , mftest ,     &
                    mfulk , mfun , mfuqk , mfusk , prcdgw , prcon ,    &
                    qeen , qude , rnew , rold , scde , seen , &
                    zvi , zvv , zvw , zwu , zco , arg
-      real(rk8) :: change , zxs , zxe
+      real(rkx) :: change , zxs , zxe
       logical , dimension(np) :: llklab
       !----------------------
       ! 1. Specify parameters
       ! ---------------------
       cons2 = rmfcfl/(egrav*dtcum)
       facbuo = d_half/(d_one+d_half)
-      cldmax = 5.D-3
+      cldmax = 5.e-3_rkx
       cwifrac = d_half
       cprc2 = d_half
       !----------------------
@@ -5829,7 +5831,7 @@ module mod_cu_tiedtke
         do n = n1 , n2
           buo(n,k) = d_zero
           if ( llklab(n) ) ilab(n,k) = 0
-          if ( .not. ldcum(n) .and. ph(n,k) < 4.0D4 ) ictop0(n) = k
+          if ( .not. ldcum(n) .and. ph(n,k) < 4.0e4_rkx ) ictop0(n) = k
           dmfen(n,k) = d_zero
           mfude_rate(n,k) = d_zero
         end do
@@ -5904,21 +5906,21 @@ module mod_cu_tiedtke
         ! Do adiabatic ascent for entraining/detraining plume
         ! ---------------------------------------------------
         if ( llo3 ) then
-          llo4 = dtcum > 1800.0D0 .and. abs(rmfcfl-d_one) < dlowval
+          llo4 = dtcum > 1800.0_rkx .and. abs(rmfcfl-d_one) < almostzero
           do n = n1 , n2
             qold(n) = d_zero
           end do
           do nll = 1 , nlm
             n = nlx(nll)
-            ndmfde(n) = min(ndmfde(n),0.75D0*mfu(n,k+1))
+            ndmfde(n) = min(ndmfde(n),0.75_rkx*mfu(n,k+1))
             if ( k == kcbot(n) ) then
               zoentr(n) = -entrpen*(min(d_one,q(n,k)/qs(n,k)) - &
                            d_one)*(geof(n,k)-geof(n,k+1))*regrav
-              zoentr(n) = min(0.4D0,zoentr(n))*mfu(n,k+1)
+              zoentr(n) = min(0.4_rkx,zoentr(n))*mfu(n,k+1)
             end if
             if ( k < kcbot(n) ) then
               mfmax = (pf(n,k)-pf(n,k-1))*cons2*rmflic + rmflia
-              if ( ktype(n) == 2 .and. llo4 ) mfmax = mfmax*3.0D0
+              if ( ktype(n) == 2 .and. llo4 ) mfmax = mfmax*3.0_rkx
               zxs = max(mfu(n,k+1)-mfmax,d_zero)
               wmean(n) = wmean(n) + kineu(n,k+1)*(ph(n,k+1)-ph(n,k))
               dpmean(n) = dpmean(n) + ph(n,k+1) - ph(n,k)
@@ -5927,7 +5929,7 @@ module mod_cu_tiedtke
                 ndmfen(n) = entshalp*ndmfen(n)
                 ndmfde(n) = ndmfen(n)
               end if
-              ndmfde(n) = ndmfde(n) * (1.6D0-min(d_one,q(n,k)/qs(n,k)))
+              ndmfde(n) = ndmfde(n) * (1.6_rkx-min(d_one,q(n,k)/qs(n,k)))
               mftest = mfu(n,k+1) + ndmfen(n) - ndmfde(n)
               change = max(mftest-mfmax,d_zero)
               zxe = max(change-zxs,d_zero)
@@ -5954,8 +5956,8 @@ module mod_cu_tiedtke
             qu(n,k) = mfuqk*(d_one/max(cmfcmin,mfu(n,k)))
             tu(n,k) = (mfusk * &
               (d_one/max(cmfcmin,mfu(n,k)))-geof(n,k))*rcpd
-            tu(n,k) = max(100.0D0,tu(n,k))
-            tu(n,k) = min(400.0D0,tu(n,k))
+            tu(n,k) = max(100.0_rkx,tu(n,k))
+            tu(n,k) = min(400.0_rkx,tu(n,k))
             qold(n) = qu(n,k)
             xrain(n,k) = xrain(n,k+1)*(mfu(n,k+1)-ndmfde(n)) * &
                             (d_one/max(cmfcmin,mfu(n,k)))
@@ -6026,19 +6028,19 @@ module mod_cu_tiedtke
                 end if
                 kineu(n,k) = (kineu(n,k+1)*(d_one-dken)+dkbuo) / (d_one+dken)
                 if ( buo(n,k) < d_zero .and. ilab(n,k+1) == 2 ) then
-                  kedke = kineu(n,k)/max(1.D-10,kineu(n,k+1))
+                  kedke = kineu(n,k)/max(almostzero,kineu(n,k+1))
                   kedke = max(d_zero,min(d_one,kedke))
                   mfun = sqrt(kedke)*mfu(n,k+1)
                   ndmfde(n) = max(ndmfde(n),mfu(n,k+1)-mfun)
                   lude(n,k) = lu(n,k+1)*ndmfde(n)
                   mfu(n,k) = mfu(n,k+1) + ndmfen(n) - ndmfde(n)
                 end if
-                if ( buo(n,k) >- 0.2D0 .and. ilab(n,k+1) == 2 ) then
+                if ( buo(n,k) >- 0.2_rkx .and. ilab(n,k+1) == 2 ) then
                   ikb = kcbot(n)
-                  zoentr(n) = entrpen*(0.3D0-(min(d_one,q(n,k-1) /    &
+                  zoentr(n) = entrpen*(0.3_rkx-(min(d_one,q(n,k-1) /    &
                          qs(n,k-1))-d_one))*(geof(n,k-1)-geof(n,k)) * &
                          regrav*min(d_one,qs(n,k)/qs(n,ikb))**3
-                  zoentr(n) = min(0.4D0,zoentr(n))*mfu(n,k)
+                  zoentr(n) = min(0.4_rkx,zoentr(n))*mfu(n,k)
                 else
                   zoentr(n) = d_zero
                 end if
@@ -6074,20 +6076,20 @@ module mod_cu_tiedtke
           do n = n1 , n2
             if ( llo1(n) ) then
               if ( .false. ) then
-                dnoprc = ccn(n,k)*(4.0D0/3.0D0)*mathpi * &
-                         ((rcrit1*1D-4)**3)*(rhow*1D-3)*1D+3
+                dnoprc = ccn(n,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+                         ((rcrit1*1e-4_rkx)**3)*(rhow*1e-3_rkx)*1e3_rkx
               else
                 if ( ldland(n) ) then
-                  dnoprc = 5.D-4
+                  dnoprc = 5.e-4_rkx
                   prcdgw = rprc_lnd*regrav
                 else
-                  dnoprc = 3.D-4
+                  dnoprc = 3.e-4_rkx
                   prcdgw = rprc_ocn*regrav
                 end if
               end if
               if ( lu(n,k) > dnoprc ) then
-                zwu = min(15.0D0,sqrt(d_two*max(0.1D0,kineu(n,k+1))))
-                prcon = prcdgw/(0.75D0*zwu)
+                zwu = min(15.0_rkx,sqrt(d_two*max(0.1_rkx,kineu(n,k+1))))
+                prcon = prcdgw/(0.75_rkx*zwu)
                 ! Parameters for bergeron-findeisen process (T < -5C)
                 zdt = min(rtber-rtice,max(rtber-tu(n,k),d_zero))
                 cbf = d_one + cprc2*sqrt(zdt)
@@ -6096,7 +6098,7 @@ module mod_cu_tiedtke
                 zdfi = geof(n,k) - geof(n,k+1)
                 zc = (lu(n,k)-luold(n))
                 arg = (lu(n,k)/lcrit)**2
-                if ( arg < 25.0D0 ) then
+                if ( arg < 25.0_rkx ) then
                   zd = zco*(d_one-exp(-arg))*zdfi
                 else
                   zd = zco*zdfi
@@ -6115,13 +6117,13 @@ module mod_cu_tiedtke
           do n = n1 , n2
             if ( llo1(n) ) then
               if ( xrain(n,k) > d_zero ) then
-                zvw = 21.18D0*xrain(n,k)**0.2D0
+                zvw = 21.18_rkx*xrain(n,k)**0.2_rkx
                 zvi = cwifrac*zvw
                 alfaw = xalpha(tu(n,k))
                 zvv = alfaw*zvw + (d_one-alfaw)*zvi
                 rold = xrain(n,k) - precip(n)
                 zc = precip(n)
-                zwu = min(15.0D0,sqrt(d_two*max(0.1D0,kineu(n,k))))
+                zwu = min(15.0_rkx,sqrt(d_two*max(0.1_rkx,kineu(n,k))))
                 zd = zvv/zwu
                 zint = exp(-zd)
                 rnew = rold*zint + zc/zd*(d_one-zint)
@@ -6145,7 +6147,7 @@ module mod_cu_tiedtke
         if ( kctop(n) == -1 ) ldcum(n) = .false.
         kcbot(n) = max(kcbot(n),kctop(n))
         if ( ldcum(n) ) then
-          wmean(n) = max(1.D-2,wmean(n)/max(d_one,dpmean(n)))
+          wmean(n) = max(1.e-2_rkx,wmean(n)/max(d_one,dpmean(n)))
           wmean(n) = sqrt(d_two*wmean(n))
         end if
       end do
@@ -6161,10 +6163,10 @@ module mod_cu_tiedtke
       implicit none
       integer(ik4) , intent(in) :: kk ! input level
       logical , intent(in) :: ldwork                      ! enable/disable
-      real(rk8) , dimension(np) , intent(out) :: dmfen    ! Entrainment
-      real(rk8) , dimension(np) , intent(out) :: dmfde    ! Detrainment
+      real(rkx) , dimension(np) , intent(out) :: dmfen    ! Entrainment
+      real(rkx) , dimension(np) , intent(out) :: dmfde    ! Detrainment
       integer(ik4) :: n
-      real(rk8) :: mf
+      real(rkx) :: mf
       !-----------------------------------------------
       ! 1. Calculate entrainment and detrainment rates
       ! ----------------------------------------------
@@ -6198,9 +6200,9 @@ module mod_cu_tiedtke
       ! ----------------------------------------------
       do n = n1 , n2
         if ( .not.ldcum(n) .and. ilab(n,kk+1) == 0 ) then
-          if ( lmfmid .and. geo(n,kk) >  5000.0D0 .and. &
-                            geo(n,kk) < 10000.0D0 .and. &
-                            q(n,kk) > 0.80D0*qs(n,kk) ) then
+          if ( lmfmid .and. geo(n,kk) >  5000.0_rkx .and. &
+                            geo(n,kk) < 10000.0_rkx .and. &
+                            q(n,kk) > 0.80_rkx*qs(n,kk) ) then
             tu(n,kk+1) = (cpd*t(n,kk)+geo(n,kk)-geof(n,kk+1))*rcpd
             qu(n,kk+1) = q(n,kk)
             lu(n,kk+1) = d_zero
@@ -6228,11 +6230,11 @@ module mod_cu_tiedtke
     subroutine lfs
       implicit none
       integer(ik4) , dimension(np) :: ikhsmin
-      real(rk8) , dimension(np,nk) :: tenwb , qenwb
-      real(rk8) , dimension(np) :: cond , xph , hsmin
+      real(rkx) , dimension(np,nk) :: tenwb , qenwb
+      real(rkx) , dimension(np) :: cond , xph , hsmin
       logical , dimension(np) :: llo2
       integer(ik4) :: icall , ik , ike , is , k , n
-      real(rk8) :: buo , hsk , mftop , qtest , ttest
+      real(rkx) :: buo , hsk , mftop , qtest , ttest
       !-------------------------------------
       ! 1. Set default values for downdrafts
       ! ------------------------------------
@@ -6240,7 +6242,7 @@ module mod_cu_tiedtke
         lddraf(n) = .false.
         idtop(n) = nk + 1
         ikhsmin(n) = nk + 1
-        hsmin(n) = 1.D8
+        hsmin(n) = 1.e8_rkx
       end do
       if ( lmfdd ) then
         !------------------------------------------------------------------
@@ -6300,7 +6302,7 @@ module mod_cu_tiedtke
               buo = ttest*(d_one+ep1*qtest) - tf(n,k)*(d_one+ep1*qf(n,k))
               cond(n) = qf(n,k) - qenwb(n,k)
               mftop = -rmfdeps*mfub(n)
-              if ( buo < d_zero .and. rfl(n) > 10.0D0*mftop*cond(n) ) then
+              if ( buo < d_zero .and. rfl(n) > 10.0_rkx*mftop*cond(n) ) then
                 idtop(n) = k
                 lddraf(n) = .true.
                 td(n,k) = ttest
@@ -6325,11 +6327,11 @@ module mod_cu_tiedtke
     !
     subroutine ddrafdsc
       implicit none
-      real(rk8) , dimension(np) :: dmfen , xdmfde , cond , oentr , buoy
-      real(rk8) , dimension(np) :: xph
+      real(rkx) , dimension(np) :: dmfen , xdmfde , cond , oentr , buoy
+      real(rkx) , dimension(np) :: xph
       logical , dimension(np) :: llo2
       integer(ik4) :: icall , ik , is , itopde , k , n
-      real(rk8) :: buo , buoyz , buoyv , xdmfdp , dz , entr , mfdqk ,  &
+      real(rkx) :: buo , buoyz , buoyv , xdmfdp , dz , entr , mfdqk ,  &
                    mfdsk , qdde , qeen , rain , sdde , seen , zentr , &
                    facbuo , dkbuo , dken
       itopde = nk950
@@ -6384,9 +6386,9 @@ module mod_cu_tiedtke
               dz = -(geof(n,k-1)-geof(n,k))*regrav
               zentr = oentr(n)*dz*mfd(n,k-1)
               dmfen(n) = dmfen(n) + zentr
-              dmfen(n) = max(dmfen(n),0.3D0*mfd(n,k-1))
+              dmfen(n) = max(dmfen(n),0.3_rkx*mfd(n,k-1))
               dmfen(n) = max(dmfen(n), &
-                -0.75D0*mfu(n,k)-(mfd(n,k-1)-xdmfde(n)))
+                -0.75_rkx*mfu(n,k)-(mfd(n,k-1)-xdmfde(n)))
               dmfen(n) = min(dmfen(n),d_zero)
             end if
             dmfde(n,k) = dmfen(n) - xdmfde(n)
@@ -6403,8 +6405,8 @@ module mod_cu_tiedtke
             mfdqk = mfdq(n,k-1) + qeen - qdde
             qd(n,k) = mfdqk*(d_one/min(-cmfcmin,mfd(n,k)))
             td(n,k) = (mfdsk*(d_one/min(-cmfcmin,mfd(n,k)))-geof(n,k))*rcpd
-            td(n,k) = min(400.0D0,td(n,k))
-            td(n,k) = max(100.0D0,td(n,k))
+            td(n,k) = min(400.0_rkx,td(n,k))
+            td(n,k) = max(100.0_rkx,td(n,k))
             cond(n) = qd(n,k)
           end if
         end do
@@ -6459,10 +6461,10 @@ module mod_cu_tiedtke
       implicit none
       logical :: lltest
       integer(ik4) :: k , ik , n
-      real(rk8) :: ximp , xalv , zp , gq , gs , gh , zs , zq
-      real(rk8) , dimension(np,nk) :: xmfus , xmfuq , xmfds , xmfdq
-      real(rk8) , dimension(:,:) , allocatable :: dtdt , dqdt , dp
-      real(rk8) , dimension(:,:) , allocatable :: bb , r1 , r2
+      real(rkx) :: ximp , xalv , zp , gq , gs , gh , zs , zq
+      real(rkx) , dimension(np,nk) :: xmfus , xmfuq , xmfds , xmfdq
+      real(rkx) , dimension(:,:) , allocatable :: dtdt , dqdt , dp
+      real(rkx) , dimension(:,:) , allocatable :: bb , r1 , r2
       logical , dimension(:,:) , allocatable :: llcumbas
       !-----------------------------
       ! 1. Setup and initializations
@@ -6555,7 +6557,7 @@ module mod_cu_tiedtke
           end do
         end if
       end do
-      if ( abs(rmfsoltq) < dlowval ) then
+      if ( abs(rmfsoltq) < almostzero ) then
         !----------------------
         ! 3.1 Update tendencies
         ! ---------------------
@@ -6635,13 +6637,13 @@ module mod_cu_tiedtke
     !
     subroutine dudvx(mfu,mfd)
       implicit none
-      real(rk8) , dimension(np,nk) , intent(in) :: mfu   ! Mass Flux Updraft
-      real(rk8) , dimension(np,nk) , intent(in) :: mfd   ! Mass Flux Downdraft
-      real(rk8) , dimension(np,nk) :: uen , ven , mfuu , mfdu , mfuv , mfdv
+      real(rkx) , dimension(np,nk) , intent(in) :: mfu   ! Mass Flux Updraft
+      real(rkx) , dimension(np,nk) , intent(in) :: mfd   ! Mass Flux Downdraft
+      real(rkx) , dimension(np,nk) :: uen , ven , mfuu , mfdu , mfuv , mfdv
       integer(ik4) :: ik , ikb , k , n
-      real(rk8) :: zp , ximp
-      real(rk8) , dimension(:,:) , allocatable :: dudt , dvdt , dp
-      real(rk8) , dimension(:,:) , allocatable :: bb , r1 , r2
+      real(rkx) :: zp , ximp
+      real(rkx) , dimension(:,:) , allocatable :: dudt , dvdt , dp
+      real(rkx) , dimension(:,:) , allocatable :: bb , r1 , r2
       logical , dimension(:,:) , allocatable :: llcumbas
       ximp = d_one - rmfsoluv
       allocate (dudt(np,nk))
@@ -6671,7 +6673,7 @@ module mod_cu_tiedtke
         end do
       end do
       ! linear fluxes below cloud
-      if ( abs(rmfsoluv) < dlowval ) then
+      if ( abs(rmfsoluv) < almostzero ) then
         do k = itopm2 , nk
           do n = n1 , n2
             if ( ldcum(n) .and. k > kcbot(n) ) then
@@ -6707,7 +6709,7 @@ module mod_cu_tiedtke
           end do
         end if
       end do
-      if ( abs(rmfsoluv) < dlowval ) then
+      if ( abs(rmfsoluv) < almostzero ) then
         !----------------------
         ! 1.3 Update tendencies
         ! ---------------------
@@ -6776,11 +6778,11 @@ module mod_cu_tiedtke
     !
     subroutine cfluxes
       implicit none
-      real(rk8) , dimension(np) :: rhebc
+      real(rkx) , dimension(np) :: rhebc
       integer(ik4) :: ik , ikb , k , n
       integer(ik4) , dimension(np) :: idbas
       logical :: llddraf
-      real(rk8) :: alfaw , cons1 , cons1a , cons2 , denom , drfl , &
+      real(rkx) :: alfaw , cons1 , cons1a , cons2 , denom , drfl , &
                    drfl1 , fac , pdr , pds , xrfl , xrfln , rmin ,  &
                    rnew , snmlt , zp , rcpecons , rcucov
       !-------------------
@@ -6826,7 +6828,7 @@ module mod_cu_tiedtke
             end if
             if ( llddraf .and.           &
                  mfd(n,k) < d_zero .and. &
-                 abs(mfd(n,ikb)) < dlowval ) then
+                 abs(mfd(n,ikb)) < almostzero ) then
               idbas(n) = k
             end if
           else
@@ -6909,10 +6911,9 @@ module mod_cu_tiedtke
               lglac(n,k) = lglac(n,k)+alfaw*(dmfup(n,k)+dmfdp(n,k))
               alfaw = d_zero
             end if
-            mflxr(n,k+1) = mflxr(n,k) + &
-              alfaw*(dmfup(n,k)+dmfdp(n,k))+dpmel(n,k)
+            mflxr(n,k+1) = mflxr(n,k) + alfaw*(dmfup(n,k)+dmfdp(n,k))+dpmel(n,k)
             mflxs(n,k+1) = mflxs(n,k) + &
-              (d_one-alfaw)*(dmfup(n,k)+dmfdp(n,k)) - dpmel(n,k)
+                      (d_one-alfaw)*(dmfup(n,k)+dmfdp(n,k)) - dpmel(n,k)
             if ( mflxr(n,k+1)+mflxs(n,k+1) < d_zero ) then
               dmfdp(n,k) = -(mflxr(n,k)+mflxs(n,k)+dmfup(n,k))
               mflxr(n,k+1) = d_zero
@@ -6932,12 +6933,12 @@ module mod_cu_tiedtke
         do n = n1 , n2
           if ( ldcum(n) .and. k >= kcbot(n) ) then
             xrfl = mflxr(n,k) + mflxs(n,k)
-            if ( xrfl > 1.D-20 ) then
+            if ( xrfl > almostzero ) then
               rcpecons = merge(rcpec_lnd,rcpec_ocn,ldland(n))
               rcucov = merge(rcuc_lnd,rcuc_ocn,ldland(n))
               drfl1 = rcpecons * max(d_zero,qs(n,k)-q(n,k))*rcucov * &
                       (sqrt(pf(n,k)/pf(n,nk+1)) / &
-                      5.09D-3*xrfl/rcucov)**0.5777D0*(pf(n,k+1)-pf(n,k))
+                      5.09e-3_rkx*xrfl/rcucov)**0.5777_rkx*(pf(n,k+1)-pf(n,k))
               rnew = xrfl - drfl1
               rmin = xrfl - rcucov*max(d_zero,rhebc(n)*qs(n,k) - &
                       q(n,k))*cons2*(pf(n,k+1)-pf(n,k))
@@ -6948,7 +6949,7 @@ module mod_cu_tiedtke
               if ( t(n,k) < tzero ) alfaw = d_zero
               pdr = alfaw*dmfdp(n,k)
               pds = (d_one-alfaw)*dmfdp(n,k)
-              denom = d_one/max(1.D-20,mflxr(n,k)+mflxs(n,k))
+              denom = d_one/max(almostzero,mflxr(n,k)+mflxs(n,k))
               mflxr(n,k+1) = mflxr(n,k) + pdr + dpmel(n,k) + &
                              drfl*mflxr(n,k)*denom
               mflxs(n,k+1) = mflxs(n,k) + pds - dpmel(n,k) + &
@@ -6996,39 +6997,39 @@ module mod_cu_tiedtke
                 lldsc , llfirst , llresetn
       logical :: llreset
       integer(ik4) :: icall , ik , is , k , n , kk , kt1 , kt2 , kt , kb
-      real(rk8) , dimension(np,nk) :: xs , suh , wu2h , buoh
-      real(rk8) , dimension(np,nk+1) :: xsenh , xqenh
-      real(rk8) , dimension(np) :: qold , xph
-      real(rk8) , dimension(np) :: zmix
-      real(rk8) , dimension(np) :: dz , cbase
-      real(rk8) , dimension(np,nk) :: xlu , xqu , xtu , xuu , xvu
+      real(rkx) , dimension(np,nk) :: xs , suh , wu2h , buoh
+      real(rkx) , dimension(np,nk+1) :: xsenh , xqenh
+      real(rkx) , dimension(np) :: qold , xph
+      real(rkx) , dimension(np) :: zmix
+      real(rkx) , dimension(np) :: dz , cbase
+      real(rkx) , dimension(np,nk) :: xlu , xqu , xtu , xuu , xvu
       ! local for CAPE at every departure level
-      real(rk8) , dimension(np,nk) :: xcape
-      real(rk8) :: buof , c2 , epsadd
-      real(rk8) :: rho    ! Density at surface (kg/m^3)
-      real(rk8) :: khvfl  ! Surface buoyancy flux (K m/s)
-      real(rk8) :: ws     ! Sigma_w at lowest model level (m/s)
-      real(rk8) :: qexc   ! Humidity excess at lowest model level (kg/kg)
-      real(rk8) :: texc   ! Temperature excess at lowest model level (K)
-      real(rk8) :: eps    ! Fractional entrainment rate [m^-1]
-      real(rk8) :: tvenh  ! Environment virtual temperature (K)
-      real(rk8) :: tvuh   ! Updraft virtual temperature (K)
-      real(rk8) :: xlglac ! Updraft liquid water frozen in one layer
-      real(rk8) :: qsu , cor , dq , alfaw , facw , faci , fac ,     &
+      real(rkx) , dimension(np,nk) :: xcape
+      real(rkx) :: buof , c2 , epsadd
+      real(rkx) :: rho    ! Density at surface (kg/m^3)
+      real(rkx) :: khvfl  ! Surface buoyancy flux (K m/s)
+      real(rkx) :: ws     ! Sigma_w at lowest model level (m/s)
+      real(rkx) :: qexc   ! Humidity excess at lowest model level (kg/kg)
+      real(rkx) :: texc   ! Temperature excess at lowest model level (K)
+      real(rkx) :: eps    ! Fractional entrainment rate [m^-1]
+      real(rkx) :: tvenh  ! Environment virtual temperature (K)
+      real(rkx) :: tvuh   ! Updraft virtual temperature (K)
+      real(rkx) :: xlglac ! Updraft liquid water frozen in one layer
+      real(rkx) :: qsu , cor , dq , alfaw , facw , faci , fac ,     &
                    esdp , dqsdt , dtdp , dp , pdifftop , pdiffbot , &
                    sf , xqf , xaw , xbw
-      real(rk8) , dimension(np) :: tven1 , tvu1
-      real(rk8) :: tven2 , tvu2 ! pseudoadiabatic T_v
-      real(rk8) , dimension(np) :: dtvtrig ! virtual temperatures
-      real(rk8) :: work1 , work2 ! work for T and w perturbations
-      real(rk8) :: xtmp
+      real(rkx) , dimension(np) :: tven1 , tvu1
+      real(rkx) :: tven2 , tvu2 ! pseudoadiabatic T_v
+      real(rkx) , dimension(np) :: dtvtrig ! virtual temperatures
+      real(rkx) :: work1 , work2 ! work for T and w perturbations
+      real(rkx) :: xtmp
       !-----------------------------------
       ! 0. Initialize constants and fields
       ! ----------------------------------
-      c2 = 0.55D0
+      c2 = 0.55_rkx
       xaw = d_one
       xbw = d_one
-      epsadd = 1.D-4
+      epsadd = 1.e-4_rkx
       do n = n1 , n2
         wubase(n) = d_zero
         llgo_on(n) = .true.
@@ -7098,13 +7099,13 @@ module mod_cu_tiedtke
               if ( llgo_on(n) ) then
                 rho = pf(n,kk+1)/(rgas*(t(n,kk) * (d_one+ep1*q(n,kk))))
                 khvfl = (ahfs(n,kk+1)*rcpd + ep1*t(n,kk)*qhfl(n,kk+1))/rho
-                ws = 0.001D0 - 1.5D0*rkap*khvfl * &
+                ws = 0.001_rkx - 1.5_rkx*rkap*khvfl * &
                          (geof(n,nk)-geof(n,nk+1))/t(n,nk)
                 if ( khvfl < d_zero ) then
-                  ws = 1.2D0*ws**.3333D0
+                  ws = 1.2_rkx*ws**.3333_rkx
                   iilab(n,kk) = 1
-                  texc = max(-1.5D0*ahfs(n,kk+1)/(rho*ws*cpd),d_zero)
-                  qexc = max(-1.5D0*qhfl(n,kk+1)/(rho*ws),d_zero)
+                  texc = max(-1.5_rkx*ahfs(n,kk+1)/(rho*ws*cpd),d_zero)
+                  qexc = max(-1.5_rkx*qhfl(n,kk+1)/(rho*ws),d_zero)
                   xqu(n,kk) = xqenh(n,kk) + qexc
                   suh(n,kk) = xsenh(n,kk) + cpd*texc
                   xtu(n,kk) = (xsenh(n,kk)-geof(n,kk))*rcpd + texc
@@ -7127,19 +7128,19 @@ module mod_cu_tiedtke
               if ( llgo_on(n) ) then
                 rho = pf(n,kk+1) / (rgas*(t(n,kk)*(d_one+ep1*q(n,kk))))
                 iilab(n,kk) = 1
-                texc = 0.2D0
-                qexc = 1.D-4
+                texc = 0.2_rkx
+                qexc = 1.e-4_rkx
                 xqu(n,kk) = xqenh(n,kk) + qexc
                 suh(n,kk) = xsenh(n,kk) + cpd*texc
                 xtu(n,kk) = (xsenh(n,kk)-geof(n,kk))*rcpd + texc
                 xlu(n,kk) = d_zero
                 ! Construct mixed layer for parcels emanating in lowest 60 hPa
-                if ( pf(n,nk+1)-pf(n,kk-1) < 60.D2 ) then
+                if ( pf(n,nk+1)-pf(n,kk-1) < 60.e2_rkx ) then
                   xqu(n,kk) = d_zero
                   suh(n,kk) = d_zero
                   work1 = d_zero
                   do k = kk + 1 , kk - 1 , -1
-                    if ( work1 < 50.D2 ) then
+                    if ( work1 < 50.e2_rkx ) then
                       work2 = pf(n,k) - pf(n,k-1)
                       work1 = work1 + work2
                       xqu(n,kk) = xqu(n,kk) + xqenh(n,k)*work2
@@ -7200,7 +7201,7 @@ module mod_cu_tiedtke
                 dz(n) = (geof(n,k)-geof(n,k+1))*regrav
                 xqf = (qf(n,k+1)+qf(n,k))*d_half
                 sf = (xsenh(n,k+1)+xsenh(n,k))*d_half
-                zmix(n) = 0.4D0*entrpen*dz(n) * &
+                zmix(n) = 0.4_rkx*entrpen*dz(n) * &
                            min(d_one,(qs(n,k)/qs(n,nk))**3)
                 xqu(n,k) = xqu(n,k+1)*(d_one-zmix(n)) + xqf*zmix(n)
                 suh(n,k) = suh(n,k+1)*(d_one-zmix(n)) + sf*zmix(n)
@@ -7225,7 +7226,7 @@ module mod_cu_tiedtke
               ! Pseudo-Microphysics
               if ( kk == nk ) then
                 ! No precip for shallow
-                xlu(n,k) = min(xlu(n,k),5.D-3)
+                xlu(n,k) = min(xlu(n,k),5.e-3_rkx)
                 ! Chose a more pseudo-adiabatic formulation as
                 ! original overestimates water loading effect and
                 ! therefore strongly underestimates cloud thickness
@@ -7443,14 +7444,14 @@ module mod_cu_tiedtke
       implicit none
       logical , dimension(np) , intent(in) :: ldcum
       logical , dimension(np) , intent(in) :: lddraf
-      real(rk8) , dimension(np,nk) , intent(in) :: mfu
-      real(rk8) , dimension(np,nk) , intent(in) :: mfd
-      real(rk8) , dimension(np,nk) , intent(in) :: pudrate
-      real(rk8) , dimension(np,nk) , intent(in) :: pddrate
+      real(rkx) , dimension(np,nk) , intent(in) :: mfu
+      real(rkx) , dimension(np,nk) , intent(in) :: mfd
+      real(rkx) , dimension(np,nk) , intent(in) :: pudrate
+      real(rkx) , dimension(np,nk) , intent(in) :: pddrate
       integer(ik4) :: ik , k , n , nt
-      real(rk8) :: zp , mfa , ximp , erate , posi
-      real(rk8) , dimension(:,:,:) , allocatable :: cen , cu , cd , xtenc , mfc
-      real(rk8) , dimension(:,:) , allocatable :: dp , bb , r1
+      real(rkx) :: zp , mfa , ximp , erate , posi
+      real(rkx) , dimension(:,:,:) , allocatable :: cen , cu , cd , xtenc , mfc
+      real(rkx) , dimension(:,:) , allocatable :: dp , bb , r1
       logical , dimension(:,:) , allocatable :: llcumask , llcumbas
 
       ximp = d_one - rmfsolct
@@ -7517,7 +7518,7 @@ module mod_cu_tiedtke
               ! Note: in order to avoid final negative tracer values
               ! the allowed value of cd depends on the jump in mass flux
               ! at the LFS
-              cd(n,k,nt) = 0.1D0*cu(n,k,nt) + 0.9D0*qtrac(n,ik,nt)
+              cd(n,k,nt) = 0.1_rkx*cu(n,k,nt) + 0.9_rkx*qtrac(n,ik,nt)
             else if ( lddraf(n) .and. k > idtop(n) ) then
               erate = -mfd(n,k) + mfd(n,ik) + pddrate(n,k)
               mfa = d_one/min(-cmfcmin,mfd(n,k))
@@ -7574,7 +7575,7 @@ module mod_cu_tiedtke
           if ( ldcum(n) ) xtenc(n,k,nt) = -dp(n,k)*mfc(n,k,nt)
         end do
       end do
-      if ( abs(rmfsolct) < dlowval ) then
+      if ( abs(rmfsolct) < almostzero ) then
         !---------------------
         ! 6. Update tendencies
         ! --------------------
@@ -7644,56 +7645,56 @@ module mod_cu_tiedtke
       deallocate (cen)
     end subroutine ctracer
 
-    pure real(rk8) function xmin(x,y)
+    pure real(rkx) function xmin(x,y)
       implicit none
-      real(rk8) , intent(in) :: x , y
+      real(rkx) , intent(in) :: x , y
       xmin = y - d_half*(abs(x-y)-(x-y))
     end function xmin
-    pure real(rk8) function lwocp(t)
+    pure real(rkx) function lwocp(t)
       implicit none
-      real(rk8) , intent(in) :: t
-      real(rk8) :: gtzero
+      real(rkx) , intent(in) :: t
+      real(rkx) :: gtzero
       gtzero = max(d_zero,sign(d_one,t-tzero))
       lwocp = gtzero*wlhvocp + (d_one-gtzero)*wlhsocp
     end function lwocp
-    pure real(rk8) function xalpha(t)
+    pure real(rkx) function xalpha(t)
       implicit none
-      real(rk8) , intent(in) :: t
+      real(rkx) , intent(in) :: t
       xalpha = min(d_one,((max(rtice,min(rtwat,t))-rtice)*rtwat_rtice_r)**2)
     end function xalpha
     !
     ! Magnus Tetens formula
     !
-    pure real(rk8) function fesat(t)
+    pure real(rkx) function fesat(t)
       implicit none
-      real(rk8) , intent(in) :: t
+      real(rkx) , intent(in) :: t
       fesat = c2es*(xalpha(t)*exp(c3les*(t-tzero)/(t-c4les))+ &
             (d_one-xalpha(t))*exp(c3ies*(t-tzero)/(t-c4ies)))
     end function fesat
-    pure real(rk8) function fdqsat(t)
+    pure real(rkx) function fdqsat(t)
       implicit none
-      real(rk8) , intent(in) :: t
+      real(rkx) , intent(in) :: t
       fdqsat = xalpha(t)*c5alvcp*(d_one/(t-c4les)**2) + &
               (d_one-xalpha(t))*c5alscp*(d_one/(t-c4ies)**2)
     end function fdqsat
-    pure real(rk8) function mlwocp(t)
+    pure real(rkx) function mlwocp(t)
       implicit none
-      real(rk8) , intent(in) :: t
+      real(rkx) , intent(in) :: t
       mlwocp = xalpha(t)*wlhvocp+(d_one-xalpha(t))*wlhsocp
     end function mlwocp
-    pure real(rk8) function mlw(t)
+    pure real(rkx) function mlw(t)
       implicit none
-      real(rk8) , intent(in) :: t
+      real(rkx) , intent(in) :: t
       mlw = xalpha(t)*wlhv+(d_one-xalpha(t))*wlhs
     end function mlw
-    pure real(rk8) function esw(t)
+    pure real(rkx) function esw(t)
       implicit none
-      real(rk8) , intent(in) :: t
+      real(rkx) , intent(in) :: t
       esw = c3les*(t-tzero)/(t-c4les)
     end function esw
-    pure real(rk8) function esi(t)
+    pure real(rkx) function esi(t)
       implicit none
-      real(rk8) , intent(in) :: t
+      real(rkx) , intent(in) :: t
       esi = c3ies*(t-tzero)/(t-c4ies)
     end function esi
   end subroutine ntiedtke

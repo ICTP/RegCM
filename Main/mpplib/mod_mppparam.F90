@@ -110,6 +110,16 @@ module mod_mppparam
 
   public :: grid_nc_var2d , grid_nc_var3d , grid_nc_var4d
 
+  interface exchange_array
+    module procedure exchange_array_r8 , &
+                     exchange_array_r4
+  end interface exchange_array
+
+  interface cyclic_exchange_array
+    module procedure cyclic_exchange_array_r8 , &
+                     cyclic_exchange_array_r4
+  end interface cyclic_exchange_array
+
   interface grid_nc_create
     module procedure grid_nc_create_var2d , &
                      grid_nc_create_var3d , &
@@ -181,32 +191,45 @@ module mod_mppparam
   interface exchange
     module procedure real8_2d_exchange , &
                      real8_3d_exchange , &
-                     real8_4d_exchange
+                     real8_4d_exchange , &
+                     real4_2d_exchange , &
+                     real4_3d_exchange , &
+                     real4_4d_exchange
   end interface exchange
 
   interface exchange_lb
     module procedure real8_2d_exchange_left_bottom , &
                      real8_3d_exchange_left_bottom , &
-                     real8_4d_exchange_left_bottom
+                     real8_4d_exchange_left_bottom , &
+                     real4_2d_exchange_left_bottom , &
+                     real4_3d_exchange_left_bottom , &
+                     real4_4d_exchange_left_bottom
   end interface exchange_lb
 
   interface exchange_rt
     module procedure real8_2d_exchange_right_top , &
                      real8_3d_exchange_right_top , &
-                     real8_4d_exchange_right_top
+                     real8_4d_exchange_right_top , &
+                     real4_2d_exchange_right_top , &
+                     real4_3d_exchange_right_top , &
+                     real4_4d_exchange_right_top
   end interface exchange_rt
 
   interface exchange_bdy_lr
-    module procedure real8_bdy_exchange_left_right
+    module procedure real8_bdy_exchange_left_right , &
+                     real4_bdy_exchange_left_right
   end interface exchange_bdy_lr
 
   interface exchange_bdy_tb
-    module procedure real8_bdy_exchange_top_bottom
+    module procedure real8_bdy_exchange_top_bottom , &
+                     real4_bdy_exchange_top_bottom
   end interface exchange_bdy_tb
 
   interface grid_fill
-    module procedure real8_2d_grid_fill_extend1
-    module procedure real8_2d_grid_fill_extend2
+    module procedure real8_2d_grid_fill_extend1 , &
+                     real8_2d_grid_fill_extend2 , &
+                     real4_2d_grid_fill_extend1 , &
+                     real4_2d_grid_fill_extend2
   end interface grid_fill
 
   interface bcast
@@ -223,11 +246,13 @@ module mod_mppparam
                      bcast_arr_real4,     &
                      bcast_arr_real8,     &
                      bcast_matr_real8,    &
+                     bcast_matr_real4,    &
                      bcast_rcm_time_and_date
   end interface bcast
 
   interface sumall
     module procedure sumall_real8 , &
+                     sumall_real4 , &
                      sumall_int4 ,  &
                      sumall_int4_array
   end interface sumall
@@ -247,43 +272,53 @@ module mod_mppparam
   end interface recv_array
 
   interface c2l_ss
-    module procedure cartesian_to_linear_integer_subgrid_subgrid, &
-                     cartesian_to_linear_logical_subgrid_subgrid, &
-                     cartesian_to_linear_real8_subgrid_subgrid,   &
-                     cartesian_to_linear_real8_subgrid_subgrid_4d
+    module procedure cartesian_to_linear_integer_subgrid_subgrid,  &
+                     cartesian_to_linear_logical_subgrid_subgrid,  &
+                     cartesian_to_linear_real8_subgrid_subgrid,    &
+                     cartesian_to_linear_real8_subgrid_subgrid_4d, &
+                     cartesian_to_linear_real4_subgrid_subgrid,    &
+                     cartesian_to_linear_real4_subgrid_subgrid_4d
   end interface c2l_ss
 
   interface c2l_gs
     module procedure cartesian_to_linear_integer_grid_subgrid, &
                      cartesian_to_linear_logical_grid_subgrid, &
-                     cartesian_to_linear_real8_grid_subgrid
+                     cartesian_to_linear_real8_grid_subgrid,   &
+                     cartesian_to_linear_real4_grid_subgrid
   end interface c2l_gs
 
   interface l2c_ss
-    module procedure linear_to_cartesian_integer_subgrid_subgrid, &
-                     linear_to_cartesian_logical_subgrid_subgrid, &
-                     linear_to_cartesian_real8_subgrid_subgrid,   &
-                     linear_to_cartesian_real8_subgrid_subgrid_4d
+    module procedure linear_to_cartesian_integer_subgrid_subgrid,  &
+                     linear_to_cartesian_logical_subgrid_subgrid,  &
+                     linear_to_cartesian_real8_subgrid_subgrid,    &
+                     linear_to_cartesian_real8_subgrid_subgrid_4d, &
+                     linear_to_cartesian_real4_subgrid_subgrid,    &
+                     linear_to_cartesian_real4_subgrid_subgrid_4d
   end interface l2c_ss
 
   interface glb_c2l_ss
-    module procedure global_to_linear_integer_subgrid_subgrid, &
-                     global_to_linear_logical_subgrid_subgrid, &
-                     global_to_linear_real8_subgrid_subgrid,   &
-                     global_to_linear_real8_subgrid_subgrid_4d
+    module procedure global_to_linear_integer_subgrid_subgrid,  &
+                     global_to_linear_logical_subgrid_subgrid,  &
+                     global_to_linear_real8_subgrid_subgrid,    &
+                     global_to_linear_real8_subgrid_subgrid_4d, &
+                     global_to_linear_real4_subgrid_subgrid,    &
+                     global_to_linear_real4_subgrid_subgrid_4d
   end interface glb_c2l_ss
 
   interface glb_c2l_gs
     module procedure global_to_linear_integer_grid_subgrid, &
                      global_to_linear_logical_grid_subgrid, &
-                     global_to_linear_real8_grid_subgrid
+                     global_to_linear_real8_grid_subgrid,   &
+                     global_to_linear_real4_grid_subgrid
   end interface glb_c2l_gs
 
   interface glb_l2c_ss
-    module procedure linear_to_global_integer_subgrid_subgrid, &
-                     linear_to_global_logical_subgrid_subgrid, &
-                     linear_to_global_real8_subgrid_subgrid,   &
-                     linear_to_global_real8_subgrid_subgrid_4d
+    module procedure linear_to_global_integer_subgrid_subgrid,  &
+                     linear_to_global_logical_subgrid_subgrid,  &
+                     linear_to_global_real8_subgrid_subgrid,    &
+                     linear_to_global_real8_subgrid_subgrid_4d, &
+                     linear_to_global_real4_subgrid_subgrid,    &
+                     linear_to_global_real4_subgrid_subgrid_4d
   end interface glb_l2c_ss
 
   interface reorder_glb_subgrid
@@ -291,62 +326,100 @@ module mod_mppparam
   end interface reorder_glb_subgrid
 
   interface reorder_subgrid
-    module procedure reorder_subgrid_2d ,        &
-                     reorder_subgrid_2d3d ,      &
-                     reorder_subgrid_3d ,        &
-                     reorder_subgrid_4d ,        &
+    module procedure reorder_subgrid_2d_real8,   &
+                     reorder_subgrid_2d3d_real8, &
+                     reorder_subgrid_3d_real8,   &
+                     reorder_subgrid_4d_real8,   &
+                     reorder_subgrid_2d_real4,   &
+                     reorder_subgrid_2d3d_real4, &
+                     reorder_subgrid_3d_real4,   &
+                     reorder_subgrid_4d_real4,   &
                      reorder_subgrid_2d_logical
   end interface reorder_subgrid
 
   interface reorder_add_subgrid
-    module procedure reorder_add_subgrid_2d , &
-                     reorder_add_subgrid_2d3d , &
-                     reorder_add_subgrid_3d
+    module procedure reorder_add_subgrid_2d_real8 ,  &
+                     reorder_add_subgrid_2d3d_real8, &
+                     reorder_add_subgrid_3d_real8,   &
+                     reorder_add_subgrid_2d_real4,   &
+                     reorder_add_subgrid_2d3d_real4, &
+                     reorder_add_subgrid_3d_real4
   end interface reorder_add_subgrid
 
+  interface input_reorder
+    module procedure input_reorder_real8 , &
+                     input_reorder_real4
+  end interface input_reorder
+
   interface mypack
-    module procedure mypack_logical_grid,       &
-                     mypack_logical_subgrid,    &
-                     mypack_integer_grid,       &
-                     mypack_integer_subgrid,    &
-                     mypack_real8_grid,         &
-                     mypack_real8_subgrid,      &
-                     mypack_real8_subgrid_4d,   &
-                     mypack_real8_subgrid_slice
+    module procedure mypack_logical_grid,        &
+                     mypack_logical_subgrid,     &
+                     mypack_integer_grid,        &
+                     mypack_integer_subgrid,     &
+                     mypack_real8_grid,          &
+                     mypack_real8_subgrid,       &
+                     mypack_real8_subgrid_4d,    &
+                     mypack_real8_subgrid_slice, &
+                     mypack_real4_grid,          &
+                     mypack_real4_subgrid,       &
+                     mypack_real4_subgrid_4d,    &
+                     mypack_real4_subgrid_slice
   end interface mypack
 
   interface myunpack
-    module procedure myunpack_logical_grid,       &
-                     myunpack_logical_subgrid,    &
-                     myunpack_integer_grid,       &
-                     myunpack_integer_subgrid,    &
-                     myunpack_real8_grid,         &
-                     myunpack_real8_subgrid,      &
-                     myunpack_real8_subgrid_4d,   &
-                     myunpack_real8_subgrid_slice
+    module procedure myunpack_logical_grid,        &
+                     myunpack_logical_subgrid,     &
+                     myunpack_integer_grid,        &
+                     myunpack_integer_subgrid,     &
+                     myunpack_real8_grid,          &
+                     myunpack_real8_subgrid,       &
+                     myunpack_real8_subgrid_4d,    &
+                     myunpack_real8_subgrid_slice, &
+                     myunpack_real4_grid,          &
+                     myunpack_real4_subgrid,       &
+                     myunpack_real4_subgrid_4d,    &
+                     myunpack_real4_subgrid_slice
   end interface myunpack
 
   interface mypack_global
-    module procedure mypack_global_logical_grid,       &
-                     mypack_global_logical_subgrid,    &
-                     mypack_global_integer_grid,       &
-                     mypack_global_integer_subgrid,    &
-                     mypack_global_real8_grid,         &
-                     mypack_global_real8_subgrid,      &
-                     mypack_global_real8_subgrid_4d,   &
-                     mypack_global_real8_subgrid_slice
+    module procedure mypack_global_logical_grid,        &
+                     mypack_global_logical_subgrid,     &
+                     mypack_global_integer_grid,        &
+                     mypack_global_integer_subgrid,     &
+                     mypack_global_real8_grid,          &
+                     mypack_global_real8_subgrid,       &
+                     mypack_global_real8_subgrid_4d,    &
+                     mypack_global_real8_subgrid_slice, &
+                     mypack_global_real4_grid,          &
+                     mypack_global_real4_subgrid,       &
+                     mypack_global_real4_subgrid_4d,    &
+                     mypack_global_real4_subgrid_slice
   end interface mypack_global
 
   interface myunpack_global
-    module procedure myunpack_global_logical_grid,       &
-                     myunpack_global_logical_subgrid,    &
-                     myunpack_global_integer_grid,       &
-                     myunpack_global_integer_subgrid,    &
-                     myunpack_global_real8_grid,         &
-                     myunpack_global_real8_subgrid,      &
-                     myunpack_global_real8_subgrid_4d,   &
-                     myunpack_global_real8_subgrid_slice
+    module procedure myunpack_global_logical_grid,        &
+                     myunpack_global_logical_subgrid,     &
+                     myunpack_global_integer_grid,        &
+                     myunpack_global_integer_subgrid,     &
+                     myunpack_global_real8_grid,          &
+                     myunpack_global_real8_subgrid,       &
+                     myunpack_global_real8_subgrid_4d,    &
+                     myunpack_global_real8_subgrid_slice, &
+                     myunpack_global_real4_grid,          &
+                     myunpack_global_real4_subgrid,       &
+                     myunpack_global_real4_subgrid_4d,    &
+                     myunpack_global_real4_subgrid_slice
   end interface myunpack_global
+
+  interface cl_setup
+    module procedure cl_setup_real8
+    module procedure cl_setup_real4
+  end interface cl_setup
+
+  interface maxall
+    module procedure maxall_real8
+    module procedure maxall_real4
+  end interface maxall
 
   type(model_area) , public :: ma
 
@@ -361,12 +434,15 @@ module mod_mppparam
   integer(ik4) , dimension(4) :: window
   integer(ik4) :: mpierr
   real(rk8) , pointer , dimension(:,:,:) :: r8subgrid
+  real(rk4) , pointer , dimension(:,:,:) :: r4subgrid
   integer(ik4) , pointer , dimension(:,:,:) :: i4subgrid
   logical , pointer , dimension(:,:,:) :: lsubgrid
   real(rk8) , pointer , dimension(:,:,:) :: global_r8subgrid
+  real(rk4) , pointer , dimension(:,:,:) :: global_r4subgrid
   integer(ik4) , pointer , dimension(:,:,:) :: global_i4subgrid
   logical , pointer , dimension(:,:,:) :: global_lsubgrid
   real(rk8) , pointer , dimension(:,:) :: global_r8grid
+  real(rk4) , pointer , dimension(:,:) :: global_r4grid
   integer(ik4) , pointer , dimension(:,:) :: global_i4grid
   logical , pointer , dimension(:,:) :: global_lgrid
 !
@@ -453,7 +529,7 @@ module mod_mppparam
 
   subroutine bcast_int8(ival)
     implicit none
-    integer(ik8) , intent(inout) :: ival
+    integer(rk8) , intent(inout) :: ival
     call mpi_bcast(ival,1,mpi_integer8,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
@@ -518,7 +594,7 @@ module mod_mppparam
 
   subroutine bcast_arr_int8(ival)
     implicit none
-    integer(ik8) , dimension(:) , intent(inout) :: ival
+    integer(rk8) , dimension(:) , intent(inout) :: ival
     call mpi_bcast(ival,size(ival),mpi_integer8,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
@@ -553,6 +629,16 @@ module mod_mppparam
     end if
   end subroutine bcast_matr_real8
 
+  subroutine bcast_matr_real4(rval)
+    implicit none
+    real(rk4) , dimension(:,:) , intent(inout) :: rval
+    call mpi_bcast(rval,size(rval,1)*size(rval,2), &
+                   mpi_real4,iocpu,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    end if
+  end subroutine bcast_matr_real4
+
   subroutine bcast_rcm_time_and_date(x)
     implicit none
     type (rcm_time_and_date) , intent(inout) :: x
@@ -581,7 +667,17 @@ module mod_mppparam
     end if
   end subroutine sumall_real8
 
-  subroutine maxall(rlval,rtval)
+  subroutine sumall_real4(rlval,rtval)
+    implicit none
+    real(rk4) , intent(in) :: rlval
+    real(rk4) , intent(out) :: rtval
+    call mpi_allreduce(rlval,rtval,1,mpi_real4,mpi_sum,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+  end subroutine sumall_real4
+
+  subroutine maxall_real8(rlval,rtval)
     implicit none
     real(rk8) , intent(in) :: rlval
     real(rk8) , intent(out) :: rtval
@@ -589,7 +685,17 @@ module mod_mppparam
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
-  end subroutine maxall
+  end subroutine maxall_real8
+
+  subroutine maxall_real4(rlval,rtval)
+    implicit none
+    real(rk4) , intent(in) :: rlval
+    real(rk4) , intent(out) :: rtval
+    call mpi_allreduce(rlval,rtval,1,mpi_real4,mpi_max,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+  end subroutine maxall_real4
 
   subroutine sumall_int4(ilval,itval)
     implicit none
@@ -700,16 +806,18 @@ module mod_mppparam
     end if
   end subroutine recv_array_real8
 
-  subroutine exchange_array(isize,icpu,tag1,tag2)
+  subroutine exchange_array_r8(rv1,rv2,isize,icpu,tag1,tag2)
     implicit none
+    real(rk8) , pointer , dimension(:) , intent(in) :: rv1
+    real(rk8) , pointer , dimension(:) , intent(inout) :: rv2
     integer(ik4) , intent(in) :: isize , icpu , tag1 , tag2
     integer(ik4) :: ireq
-    call mpi_irecv(r8vector2,isize,mpi_real8,icpu,tag1, &
+    call mpi_irecv(rv2,isize,mpi_real8,icpu,tag1, &
                    cartesian_communicator,ireq,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
-    call mpi_send(r8vector1,isize,mpi_real8,icpu,tag2, &
+    call mpi_send(rv1,isize,mpi_real8,icpu,tag2, &
                   cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_send error.')
@@ -718,18 +826,55 @@ module mod_mppparam
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_wait error.')
     end if
-  end subroutine exchange_array
+  end subroutine exchange_array_r8
 
-  subroutine cyclic_exchange_array(isize,icpu1,icpu2,itag)
+  subroutine exchange_array_r4(rv1,rv2,isize,icpu,tag1,tag2)
     implicit none
+    real(rk4) , pointer , dimension(:) , intent(in) :: rv1
+    real(rk4) , pointer , dimension(:) , intent(inout) :: rv2
+    integer(ik4) , intent(in) :: isize , icpu , tag1 , tag2
+    integer(ik4) :: ireq
+    call mpi_irecv(rv2,isize,mpi_real4,icpu,tag1, &
+                   cartesian_communicator,ireq,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_irecv error.')
+    end if
+    call mpi_send(rv1,isize,mpi_real4,icpu,tag2, &
+                  cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_send error.')
+    end if
+    call mpi_wait(ireq,mpi_status_ignore,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_wait error.')
+    end if
+  end subroutine exchange_array_r4
+
+  subroutine cyclic_exchange_array_r8(rv1,rv2,isize,icpu1,icpu2,itag)
+    implicit none
+    real(rk8) , pointer , dimension(:) , intent(in) :: rv1
+    real(rk8) , pointer , dimension(:) , intent(inout) :: rv2
     integer(ik4) , intent(in) :: isize , icpu1 , icpu2 , itag
-    call mpi_sendrecv(r8vector1,isize,mpi_real8,icpu1,itag, &
-                      r8vector2,isize,mpi_real8,icpu2,itag, &
+    call mpi_sendrecv(rv1,isize,mpi_real8,icpu1,itag, &
+                      rv2,isize,mpi_real8,icpu2,itag, &
                       cartesian_communicator,mpi_status_ignore,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_sendrecv error.')
     end if
-  end subroutine cyclic_exchange_array
+  end subroutine cyclic_exchange_array_r8
+
+  subroutine cyclic_exchange_array_r4(rv1,rv2,isize,icpu1,icpu2,itag)
+    implicit none
+    real(rk4) , pointer , dimension(:) , intent(in) :: rv1
+    real(rk4) , pointer , dimension(:) , intent(inout) :: rv2
+    integer(ik4) , intent(in) :: isize , icpu1 , icpu2 , itag
+    call mpi_sendrecv(rv1,isize,mpi_real4,icpu1,itag, &
+                      rv2,isize,mpi_real4,icpu2,itag, &
+                      cartesian_communicator,mpi_status_ignore,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_sendrecv error.')
+    end if
+  end subroutine cyclic_exchange_array_r4
 
   subroutine set_nproc
     implicit none
@@ -1832,6 +1977,89 @@ module mod_mppparam
     end if
   end subroutine real8_2d_sub_distribute
 !
+  subroutine real4_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
+    if ( ccid == ccio ) then
+      ! Copy in memory my piece.
+      if ( present(mask) ) then
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
+            end do
+          end do
+        end do
+      else
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i) = mg(n,j,i)
+            end do
+          end do
+        end do
+      end if
+      ! Send to other nodes the piece they request.
+      do icpu = 0 , nproc-1
+        if ( icpu == ccio ) cycle
+        call recv_array(window,4,icpu,tag_w)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*nnsg
+        if ( size(r4vector1) < lsize ) then
+          call getmem1d(r4vector1,1,lsize,'real4_2d_sub_distribute')
+        end if
+        ib = 1
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            do n = 1 , nnsg
+              r4vector1(ib) = mg(n,j,i)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call send_array(r4vector1,lsize,icpu,tag_base)
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize*nnsg
+      if ( size(r4vector2) < lsize ) then
+        call getmem1d(r4vector2,1,lsize,'real4_2d_sub_distribute')
+      end if
+      window(1) = i1
+      window(2) = window(1)+isize-1
+      window(3) = j1
+      window(4) = window(3)+jsize-1
+      call send_array(window,4,ccio,tag_w)
+      call recv_array(r4vector2,lsize,ccio,tag_base)
+      ib = 1
+      if ( present(mask) ) then
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              if ( mask(n,j,i) ) ml(n,j,i) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      else
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+    end if
+  end subroutine real4_2d_sub_distribute
+!
   subroutine real8_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
@@ -1928,84 +2156,37 @@ module mod_mppparam
     end if
   end subroutine real8_3d_sub_distribute
 !
-  subroutine real4_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
-    implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            ml(n,j,i) = mg(n,j,i)
-          end do
-        end do
-      end do
-      ! Send to other nodes the piece they request.
-      do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*nnsg
-        if ( size(r4vector1) < lsize ) then
-          call getmem1d(r4vector1,1,lsize,'real4_2d_sub_distribute')
-        end if
-        ib = 1
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            do n = 1 , nnsg
-              r4vector1(ib) = mg(n,j,i)
-              ib = ib + 1
-            end do
-          end do
-        end do
-        call send_array(r4vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize*nnsg
-      if ( size(r4vector2) < lsize ) then
-        call getmem1d(r4vector2,1,lsize,'real4_2d_sub_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(r4vector2,lsize,ccio,tag_base)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            ml(n,j,i) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine real4_2d_sub_distribute
-!
-  subroutine real4_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
+  subroutine real4_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( ccid == ccio ) then
       ! Copy in memory my piece.
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i,k) = mg(n,j,i,k)
+      if ( present(mask) ) then
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                if (mask(n,j,i) ) ml(n,j,i,k) = mg(n,j,i,k)
+              end do
             end do
           end do
         end do
-      end do
+      else
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                ml(n,j,i,k) = &
+                        mg(n,j,i,k)
+              end do
+            end do
+          end do
+        end do
+      end if
       ! Send to other nodes the piece they request.
       do icpu = 0 , nproc-1
         if ( icpu == ccio ) cycle
@@ -2045,16 +2226,29 @@ module mod_mppparam
       call send_array(window,4,ccio,tag_w)
       call recv_array(r4vector2,lsize,ccio,tag_base)
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i,k) = r4vector2(ib)
-              ib = ib + 1
+      if ( present(mask) ) then
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                if ( mask(n,j,i) ) ml(n,j,i,k) = r4vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
         end do
-      end do
+      else
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                ml(n,j,i,k) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine real4_3d_sub_distribute
 !
@@ -3585,7 +3779,8 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call cyclic_exchange_array(ssize,ma%right,ma%left,tag_lr)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -3600,7 +3795,8 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call cyclic_exchange_array(ssize,ma%left,ma%right,tag_rl)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -3624,7 +3820,7 @@ module mod_mppparam
             ib = ib + 1
           end do
         end do
-        call exchange_array(ssize,ma%right,tag_rl,tag_lr)
+        call exchange_array(r8vector1,r8vector2,ssize,ma%right,tag_rl,tag_lr)
         ib = 1
         do i = i1 , i2
           do j = 1 , nex
@@ -3648,7 +3844,7 @@ module mod_mppparam
             ib = ib + 1
           end do
         end do
-        call exchange_array(ssize,ma%left,tag_lr,tag_rl)
+        call exchange_array(r8vector1,r8vector2,ssize,ma%left,tag_lr,tag_rl)
         ib = 1
         do i = i1 , i2
           do j = 1 , nex
@@ -3673,7 +3869,7 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call exchange_array(ssize,ma%top,tag_tb,tag_bt)
+      call exchange_array(r8vector1,r8vector2,ssize,ma%top,tag_tb,tag_bt)
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -3697,7 +3893,7 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call exchange_array(ssize,ma%bottom,tag_bt,tag_tb)
+      call exchange_array(r8vector1,r8vector2,ssize,ma%bottom,tag_bt,tag_tb)
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -3721,7 +3917,8 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call exchange_array(ssize,ma%topleft,tag_tlbr,tag_brtl)
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%topleft,tag_tlbr,tag_brtl)
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3745,7 +3942,8 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call exchange_array(ssize,ma%bottomright,tag_brtl,tag_tlbr)
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3769,7 +3967,8 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call exchange_array(ssize,ma%topright,tag_trbl,tag_bltr)
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%topright,tag_trbl,tag_bltr)
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3793,7 +3992,8 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call exchange_array(ssize,ma%bottomleft,tag_bltr,tag_trbl)
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3803,6 +4003,253 @@ module mod_mppparam
       end do
     end if
   end subroutine real8_2d_exchange
+!
+  subroutine real4_2d_exchange(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: isize , jsize , ssize , j , i , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          r4vector1(ib) = ml(j2-j+1,i)
+          ib = ib + 1
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          ml(j1-j,i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          r4vector1(ib) = ml(j1+j-1,i)
+          ib = ib + 1
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          ml(j2+j,i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+        end if
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+        end if
+        ib = 1
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i)
+            ib = ib + 1
+          end do
+        end do
+        call exchange_array(r4vector1,r4vector2,ssize,ma%right,tag_rl,tag_lr)
+        ib = 1
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j2+j,i) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+        end if
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+        end if
+        ib = 1
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i)
+            ib = ib + 1
+          end do
+        end do
+        call exchange_array(r4vector1,r4vector2,ssize,ma%left,tag_lr,tag_rl)
+        ib = 1
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j1-j,i) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          r4vector1(ib) = ml(j,i2-i+1)
+          ib = ib + 1
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2,ssize,ma%top,tag_tb,tag_bt)
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,i2+i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          r4vector1(ib) = ml(j,i1+i-1)
+          ib = ib + 1
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2,ssize,ma%bottom,tag_bt,tag_tb)
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,i1-i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    if ( ma%topleft /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r4vector1(ib) = ml(j1+j-1,i2-i+1)
+          ib = ib + 1
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%topleft,tag_tlbr,tag_brtl)
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(j1-j,i2+i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    if ( ma%bottomright /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r4vector1(ib) = ml(j2-j+1,i1+i-1)
+          ib = ib + 1
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(j2+j,i1-i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r4vector1(ib) = ml(j2-j+1,i2-i+1)
+          ib = ib + 1
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%topright,tag_trbl,tag_bltr)
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(j2+j,i2+i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r4vector1(ib) = ml(j1+j-1,i1+i-1)
+          ib = ib + 1
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(j1-j,i1-i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+  end subroutine real4_2d_exchange
 !
   subroutine real8_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
@@ -3829,7 +4276,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call cyclic_exchange_array(ssize,ma%right,ma%left,tag_lr)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -3848,7 +4296,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call cyclic_exchange_array(ssize,ma%left,ma%right,tag_rl)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -3876,7 +4325,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call exchange_array(ssize,ma%right,tag_rl,tag_lr)
+        call exchange_array(r8vector1,r8vector2,ssize,ma%right,tag_rl,tag_lr)
         ib = 1
         do k = k1 , k2
           do i = i1 , i2
@@ -3904,7 +4353,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call exchange_array(ssize,ma%left,tag_lr,tag_rl)
+        call exchange_array(r8vector1,r8vector2,ssize,ma%left,tag_lr,tag_rl)
         ib = 1
         do k = k1 , k2
           do i = i1 , i2
@@ -3933,7 +4382,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call exchange_array(ssize,ma%top,tag_tb,tag_bt)
+      call exchange_array(r8vector1,r8vector2,ssize,ma%top,tag_tb,tag_bt)
       ib = 1
       do k = k1 , k2
         do i = 1 , nex
@@ -3961,7 +4410,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call exchange_array(ssize,ma%bottom,tag_bt,tag_tb)
+      call exchange_array(r8vector1,r8vector2,ssize,ma%bottom,tag_bt,tag_tb)
       ib = 1
       do k = k1 , k2
         do i = 1 , nex
@@ -3989,7 +4438,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call exchange_array(ssize,ma%topleft,tag_tlbr,tag_brtl)
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%topleft,tag_tlbr,tag_brtl)
       ib = 1
       do k = k1 , k2
         do i = 1 , nex
@@ -4017,7 +4467,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call exchange_array(ssize,ma%bottomright,tag_brtl,tag_tlbr)
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
       ib = 1
       do k = k1 , k2
         do i = 1 , nex
@@ -4045,7 +4496,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call exchange_array(ssize,ma%topright,tag_trbl,tag_bltr)
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%topright,tag_trbl,tag_bltr)
       ib = 1
       do k = k1 , k2
         do i = 1 , nex
@@ -4073,7 +4525,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call exchange_array(ssize,ma%bottomleft,tag_bltr,tag_trbl)
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
       ib = 1
       do k = k1 , k2
         do i = 1 , nex
@@ -4085,6 +4538,294 @@ module mod_mppparam
       end do
     end if
   end subroutine real8_3d_exchange
+!
+  subroutine real4_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j1-j,i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j2+j,i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+        end if
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+        end if
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call exchange_array(r4vector1,r4vector2,ssize,ma%right,tag_rl,tag_lr)
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+        end if
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+        end if
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call exchange_array(r4vector1,r4vector2,ssize,ma%left,tag_lr,tag_rl)
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r4vector1(ib) = ml(j,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2,ssize,ma%top,tag_tb,tag_bt)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i2+i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r4vector1(ib) = ml(j,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2,ssize,ma%bottom,tag_bt,tag_tb)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i1-i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%topleft,tag_tlbr,tag_brtl)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j1-j,i2+i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j2+j,i1-i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%topright,tag_trbl,tag_bltr)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j2+j,i2+i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j1-j,i1-i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine real4_3d_exchange
 !
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
@@ -4115,7 +4856,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call cyclic_exchange_array(ssize,ma%right,ma%left,tag_lr)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -4138,7 +4880,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call cyclic_exchange_array(ssize,ma%left,ma%right,tag_rl)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -4170,7 +4913,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call exchange_array(ssize,ma%right,tag_rl,tag_lr)
+        call exchange_array(r8vector1,r8vector2,ssize,ma%right,tag_rl,tag_lr)
         ib = 1
         do n = n1 , n2
           do k = k1 , k2
@@ -4202,7 +4945,7 @@ module mod_mppparam
             end do
           end do
         end do
-        call exchange_array(ssize,ma%left,tag_lr,tag_rl)
+        call exchange_array(r8vector1,r8vector2,ssize,ma%left,tag_lr,tag_rl)
         ib = 1
         do n = n1 , n2
           do k = k1 , k2
@@ -4235,7 +4978,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call exchange_array(ssize,ma%top,tag_tb,tag_bt)
+      call exchange_array(r8vector1,r8vector2,ssize,ma%top,tag_tb,tag_bt)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -4267,7 +5010,7 @@ module mod_mppparam
           end do
         end do
       end do
-      call exchange_array(ssize,ma%bottom,tag_bt,tag_tb)
+      call exchange_array(r8vector1,r8vector2,ssize,ma%bottom,tag_bt,tag_tb)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -4299,7 +5042,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call exchange_array(ssize,ma%topleft,tag_tlbr,tag_brtl)
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%topleft,tag_tlbr,tag_brtl)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -4331,7 +5075,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call exchange_array(ssize,ma%bottomright,tag_brtl,tag_tlbr)
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -4363,7 +5108,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call exchange_array(ssize,ma%topright,tag_trbl,tag_bltr)
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%topright,tag_trbl,tag_bltr)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -4395,7 +5141,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call exchange_array(ssize,ma%bottomleft,tag_bltr,tag_trbl)
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -4409,6 +5156,336 @@ module mod_mppparam
       end do
     end if
   end subroutine real8_4d_exchange
+!
+  subroutine real4_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: isize , jsize , ksize , nsize , ssize
+    integer(ik4) :: j , i , k , n , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+        end if
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+        end if
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r4vector1(ib) = ml(j2-j+1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call exchange_array(r4vector1,r4vector2,ssize,ma%right,tag_rl,tag_lr)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j2+j,i,k,n) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+        end if
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+        end if
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r4vector1(ib) = ml(j1+j-1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call exchange_array(r4vector1,r4vector2,ssize,ma%left,tag_lr,tag_rl)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j1-j,i,k,n) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2,ssize,ma%top,tag_tb,tag_bt)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2,ssize,ma%bottom,tag_bt,tag_tb)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%topleft,tag_tlbr,tag_brtl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j1-j,i2+i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j2+j,i1-i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%topright,tag_trbl,tag_bltr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j2+j,i2+i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j1-j,i1-i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine real4_4d_exchange
 !
   subroutine real8_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
     implicit none
@@ -4432,7 +5509,8 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call cyclic_exchange_array(ssize,ma%right,ma%left,tag_lr)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -4528,6 +5606,125 @@ module mod_mppparam
     end if
   end subroutine real8_2d_exchange_left_bottom
 !
+  subroutine real4_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: isize , jsize , ssize , j , i , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_bottom')
+      end if
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          r4vector1(ib) = ml(j2-j+1,i)
+          ib = ib + 1
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          ml(j1-j,i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
+        end if
+        ib = 1
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i)
+            ib = ib + 1
+          end do
+        end do
+        call send_array(r4vector1,ssize,ma%right,tag_lr)
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_bottom')
+        end if
+        call recv_array(r4vector2,ssize,ma%left,tag_lr)
+        ib = 1
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j1-j,i) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
+      end if
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          r4vector1(ib) = ml(j,i2-i+1)
+          ib = ib + 1
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%top,tag_bt)
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_bottom')
+      end if
+      call recv_array(r4vector2,ssize,ma%bottom,tag_bt)
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,i1-i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
+      end if
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r4vector1(ib) = ml(j2-j+1,i2-i+1)
+          ib = ib + 1
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%topright,tag_bltr)
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
+      end if
+      call recv_array(r4vector2,ssize,ma%bottomleft,tag_bltr)
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(j1-j,i1-i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+  end subroutine real4_2d_exchange_left_bottom
+!
   subroutine real8_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
@@ -4553,7 +5750,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call cyclic_exchange_array(ssize,ma%right,ma%left,tag_lr)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -4663,6 +5861,142 @@ module mod_mppparam
     end if
   end subroutine real8_3d_exchange_left_bottom
 !
+  subroutine real4_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_bottom')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j1-j,i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+        end if
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call send_array(r4vector1,ssize,ma%right,tag_lr)
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_bottom')
+        end if
+        call recv_array(r4vector2,ssize,ma%left,tag_lr)
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r4vector1(ib) = ml(j,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%top,tag_bt)
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_bottom')
+      end if
+      call recv_array(r4vector2,ssize,ma%bottom,tag_bt)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i1-i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%topright,tag_bltr)
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+      end if
+      call recv_array(r4vector2,ssize,ma%bottomleft,tag_bltr)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j1-j,i1-i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine real4_3d_exchange_left_bottom
+!
   subroutine real8_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
@@ -4691,7 +6025,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call cyclic_exchange_array(ssize,ma%right,ma%left,tag_lr)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -4815,6 +6150,159 @@ module mod_mppparam
     end if
   end subroutine real8_4d_exchange_left_bottom
 !
+  subroutine real4_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_bottom')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
+        end if
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r4vector1(ib) = ml(j2-j+1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call send_array(r4vector1,ssize,ma%right,tag_lr)
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_bottom')
+        end if
+        call recv_array(r4vector2,ssize,ma%left,tag_lr)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j1-j,i,k,n) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%top,tag_bt)
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_bottom')
+      end if
+      call recv_array(r4vector2,ssize,ma%bottom,tag_bt)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%topright,tag_bltr)
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
+      end if
+      call recv_array(r4vector2,ssize,ma%bottomleft,tag_bltr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j1-j,i1-i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine real4_4d_exchange_left_bottom
+!
   subroutine real8_2d_exchange_right_top(ml,nex,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
@@ -4837,7 +6325,8 @@ module mod_mppparam
           ib = ib + 1
         end do
       end do
-      call cyclic_exchange_array(ssize,ma%left,ma%right,tag_rl)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -4933,6 +6422,125 @@ module mod_mppparam
     end if
   end subroutine real8_2d_exchange_right_top
 !
+  subroutine real4_2d_exchange_right_top(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: isize , jsize , ssize , j , i , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
+      end if
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          r4vector1(ib) = ml(j1+j-1,i)
+          ib = ib + 1
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          ml(j2+j,i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    else
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
+        end if
+        ib = 1
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i)
+            ib = ib + 1
+          end do
+        end do
+        call send_array(r4vector1,ssize,ma%left,tag_rl)
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
+        end if
+        call recv_array(r4vector2,ssize,ma%right,tag_rl)
+        ib = 1
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j2+j,i) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end if
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
+      end if
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          r4vector1(ib) = ml(j,i1+i-1)
+          ib = ib + 1
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%bottom,tag_tb)
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
+      end if
+      call recv_array(r4vector2,ssize,ma%top,tag_tb)
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,i2+i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
+      end if
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          r4vector1(ib) = ml(j1+j-1,i1+i-1)
+          ib = ib + 1
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%bottomleft,tag_trbl)
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
+      end if
+      call recv_array(r4vector2,ssize,ma%topright,tag_trbl)
+      ib = 1
+      do i = 1 , nex
+        do j = 1 , nex
+          ml(j2+j,i2+i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end if
+  end subroutine real4_2d_exchange_right_top
+!
   subroutine real8_3d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
@@ -4958,7 +6566,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call cyclic_exchange_array(ssize,ma%left,ma%right,tag_rl)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -5068,6 +6677,142 @@ module mod_mppparam
     end if
   end subroutine real8_3d_exchange_right_top
 !
+  subroutine real4_3d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j2+j,i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
+        end if
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call send_array(r4vector1,ssize,ma%left,tag_rl)
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
+        end if
+        call recv_array(r4vector2,ssize,ma%right,tag_rl)
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r4vector1(ib) = ml(j,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%bottom,tag_tb)
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
+      end if
+      call recv_array(r4vector2,ssize,ma%top,tag_tb)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i2+i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%bottomleft,tag_trbl)
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
+      end if
+      call recv_array(r4vector2,ssize,ma%topright,tag_trbl)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j2+j,i2+i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine real4_3d_exchange_right_top
+!
   subroutine real8_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
@@ -5096,7 +6841,8 @@ module mod_mppparam
           end do
         end do
       end do
-      call cyclic_exchange_array(ssize,ma%left,ma%right,tag_rl)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -5220,6 +6966,159 @@ module mod_mppparam
     end if
   end subroutine real8_4d_exchange_right_top
 !
+  subroutine real4_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
+        end if
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r4vector1(ib) = ml(j1+j-1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call send_array(r4vector1,ssize,ma%left,tag_rl)
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
+        end if
+        call recv_array(r4vector2,ssize,ma%right,tag_rl)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j2+j,i,k,n) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%bottom,tag_tb)
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
+      end if
+      call recv_array(r4vector2,ssize,ma%top,tag_tb)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%bottomleft,tag_trbl)
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
+      end if
+      call recv_array(r4vector2,ssize,ma%topright,tag_trbl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j2+j,i2+i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine real4_4d_exchange_right_top
+!
   subroutine real8_bdy_exchange_left_right(ml,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
@@ -5238,7 +7137,8 @@ module mod_mppparam
         r8vector1(ib) = ml(jde2,k)
         ib = ib + 1
       end do
-      call cyclic_exchange_array(ksize,ma%left,ma%right,tag_lr)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ksize,ma%left,ma%right,tag_lr)
       ib = 1
       do k = k1 , k2
         ml(jde1-1,k) = r8vector2(ib)
@@ -5249,7 +7149,8 @@ module mod_mppparam
         r8vector1(ib) = ml(jde1,k)
         ib = ib + 1
       end do
-      call cyclic_exchange_array(ksize,ma%right,ma%left,tag_rl)
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ksize,ma%right,ma%left,tag_rl)
       ib = 1
       do k = k1 , k2
         ml(jde2+1,k) = r8vector2(ib)
@@ -5268,7 +7169,7 @@ module mod_mppparam
           r8vector1(ib) = ml(jde2,k)
           ib = ib + 1
         end do
-        call exchange_array(ksize,ma%right,tag_rl,tag_lr)
+        call exchange_array(r8vector1,r8vector2,ksize,ma%right,tag_rl,tag_lr)
         ib = 1
         do k = k1 , k2
           ml(jde2+1,k) = r8vector2(ib)
@@ -5287,7 +7188,7 @@ module mod_mppparam
           r8vector1(ib) = ml(jde1,k)
           ib = ib + 1
         end do
-        call exchange_array(ksize,ma%left,tag_lr,tag_rl)
+        call exchange_array(r8vector1,r8vector2,ksize,ma%left,tag_lr,tag_rl)
         ib = 1
         do k = k1 , k2
           ml(jde1-1,k) = r8vector2(ib)
@@ -5296,6 +7197,85 @@ module mod_mppparam
       end if
     end if
   end subroutine real8_bdy_exchange_left_right
+!
+  subroutine real4_bdy_exchange_left_right(ml,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: k1 , k2
+    integer(ik4) :: ksize , k , ib
+    ksize = k2-k1+1
+    if ( ma%bandflag ) then
+      if ( size(r4vector1) < ksize ) then
+        call getmem1d(r4vector1,1,ksize,'real4_bdy_exchange_left_right')
+      end if
+      if ( size(r4vector2) < ksize ) then
+        call getmem1d(r4vector2,1,ksize,'real4_bdy_exchange_left_right')
+      end if
+      ib = 1
+      do k = k1 , k2
+        r4vector1(ib) = ml(jde2,k)
+        ib = ib + 1
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ksize,ma%left,ma%right,tag_lr)
+      ib = 1
+      do k = k1 , k2
+        ml(jde1-1,k) = r4vector2(ib)
+        ib = ib + 1
+      end do
+      ib = 1
+      do k = k1 , k2
+        r4vector1(ib) = ml(jde1,k)
+        ib = ib + 1
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ksize,ma%right,ma%left,tag_rl)
+      ib = 1
+      do k = k1 , k2
+        ml(jde2+1,k) = r4vector2(ib)
+        ib = ib + 1
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        if ( size(r4vector1) < ksize ) then
+          call getmem1d(r4vector1,1,ksize,'real4_bdy_exchange_left_right')
+        end if
+        if ( size(r4vector2) < ksize ) then
+          call getmem1d(r4vector2,1,ksize,'real4_bdy_exchange_left_right')
+        end if
+        ib = 1
+        do k = k1 , k2
+          r4vector1(ib) = ml(jde2,k)
+          ib = ib + 1
+        end do
+        call exchange_array(r4vector1,r4vector2,ksize,ma%right,tag_rl,tag_lr)
+        ib = 1
+        do k = k1 , k2
+          ml(jde2+1,k) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        if ( size(r4vector2) < ksize ) then
+          call getmem1d(r4vector2,1,ksize,'real4_bdy_exchange_left_right')
+        end if
+        if ( size(r4vector1) < ksize ) then
+          call getmem1d(r4vector1,1,ksize,'real4_bdy_exchange_left_right')
+        end if
+        ib = 1
+        do k = k1 , k2
+          r4vector1(ib) = ml(jde1,k)
+          ib = ib + 1
+        end do
+        call exchange_array(r4vector1,r4vector2,ksize,ma%left,tag_lr,tag_rl)
+        ib = 1
+        do k = k1 , k2
+          ml(jde1-1,k) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end if
+    end if
+  end subroutine real4_bdy_exchange_left_right
 !
   subroutine real8_bdy_exchange_top_bottom(ml,k1,k2)
     implicit none
@@ -5315,7 +7295,7 @@ module mod_mppparam
         r8vector1(ib) = ml(ide2,k)
         ib = ib + 1
       end do
-      call exchange_array(ksize,ma%top,tag_tb,tag_bt)
+      call exchange_array(r8vector1,r8vector2,ksize,ma%top,tag_tb,tag_bt)
       ib = 1
       do k = k1 , k2
         ml(ide2+1,k) = r8vector2(ib)
@@ -5334,7 +7314,7 @@ module mod_mppparam
         r8vector1(ib) = ml(ide1,k)
         ib = ib + 1
       end do
-      call exchange_array(ksize,ma%bottom,tag_bt,tag_tb)
+      call exchange_array(r8vector1,r8vector2,ksize,ma%bottom,tag_bt,tag_tb)
       ib = 1
       do k = k1 , k2
         ml(ide1-1,k) = r8vector2(ib)
@@ -5342,6 +7322,52 @@ module mod_mppparam
       end do
     end if
   end subroutine real8_bdy_exchange_top_bottom
+!
+  subroutine real4_bdy_exchange_top_bottom(ml,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: k1 , k2
+    integer(ik4) :: ksize , k , ib
+    ksize = k2-k1+1
+    if ( ma%top /= mpi_proc_null) then
+      if ( size(r4vector1) < ksize ) then
+        call getmem1d(r4vector1,1,ksize,'real4_bdy_exchange_top_bottom')
+      end if
+      if ( size(r4vector2) < ksize ) then
+        call getmem1d(r4vector2,1,ksize,'real4_bdy_exchange_top_bottom')
+      end if
+      ib = 1
+      do k = k1 , k2
+        r4vector1(ib) = ml(ide2,k)
+        ib = ib + 1
+      end do
+      call exchange_array(r4vector1,r4vector2,ksize,ma%top,tag_tb,tag_bt)
+      ib = 1
+      do k = k1 , k2
+        ml(ide2+1,k) = r4vector2(ib)
+        ib = ib + 1
+      end do
+    end if
+    if ( ma%bottom /= mpi_proc_null ) then
+      if ( size(r4vector2) < ksize ) then
+        call getmem1d(r4vector2,1,ksize,'real4_bdy_exchange_top_bottom')
+      end if
+      if ( size(r4vector1) < ksize ) then
+        call getmem1d(r4vector1,1,ksize,'real4_bdy_exchange_top_bottom')
+      end if
+      ib = 1
+      do k = k1 , k2
+        r4vector1(ib) = ml(ide1,k)
+        ib = ib + 1
+      end do
+      call exchange_array(r4vector1,r4vector2,ksize,ma%bottom,tag_bt,tag_tb)
+      ib = 1
+      do k = k1 , k2
+        ml(ide1-1,k) = r4vector2(ib)
+        ib = ib + 1
+      end do
+    end if
+  end subroutine real4_bdy_exchange_top_bottom
 !
   subroutine real8_2d_grid_fill_extend1(a,b)
     implicit none
@@ -5369,18 +7395,55 @@ module mod_mppparam
     end if
   end subroutine real8_2d_grid_fill_extend1
 !
+  subroutine real4_2d_grid_fill_extend1(a,b)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: a
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: b
+    call grid_collect(a,b,max(jce1,lbound(a,1)),min(jce2,ubound(a,1)), &
+                          max(ice1,lbound(a,2)),min(ice2,ubound(a,2)))
+    ! Extend on a 'fake' filled cross grid (+1)
+    b(1,:) = b(2,:)
+    b(jx,:) = b(jx-2,:)
+    b(jx-1,:) = b(jx-2,:)
+    b(:,1) = b(:,2)
+    b(:,iy) = b(:,iy-2)
+    b(:,iy-1) = b(:,iy-2)
+    b(1,1) = b(2,2)
+    b(jx,1) = b(jx-1,2)
+    b(jx-1,1) = b(jx-1,2)
+    b(1,iy) = b(2,iy-2)
+    b(1,iy-1) = b(2,iy-2)
+    b(jx,iy) = b(jx-2,iy-2)
+    b(jx-1,iy-1) = b(jx-2,iy-2)
+    call mpi_bcast(b,iy*jx,mpi_real4,iocpu,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    end if
+  end subroutine real4_2d_grid_fill_extend1
+!
   subroutine real8_2d_grid_fill_extend2(a,b,i1,i2,j1,j2)
     implicit none
     integer , intent(in) :: i1 , i2 , j1 , j2
     real(rk8) , pointer , dimension(:,:) , intent(in) :: a
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: b
-    integer :: i , j
     call grid_collect(a,b,i1,i2,j1,j2)
     call mpi_bcast(b,product(shape(b)),mpi_real8,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
   end subroutine real8_2d_grid_fill_extend2
+!
+  subroutine real4_2d_grid_fill_extend2(a,b,i1,i2,j1,j2)
+    implicit none
+    integer , intent(in) :: i1 , i2 , j1 , j2
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: a
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: b
+    call grid_collect(a,b,i1,i2,j1,j2)
+    call mpi_bcast(b,product(shape(b)),mpi_real4,iocpu,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    end if
+  end subroutine real4_2d_grid_fill_extend2
 !
 ! Takes u and v tendencies on the cross grid (the same grid as t, qv, qc, etc.)
 ! and interpolates the u and v to the dot grid.
@@ -5391,8 +7454,8 @@ module mod_mppparam
 !
   subroutine uvcross2dot(ux,vx,ud,vd)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
     integer(ik4) :: i , j , k
 
     call exchange_lb(ux,1,jci1,jci2,ici1,ici2,1,kz)
@@ -5484,8 +7547,8 @@ module mod_mppparam
 
   subroutine uvdot2cross(ud,vd,ux,vx)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
     integer(ik4) :: i , j , k
 
     call exchange(ud,1,jdi1,jdi2,idi1,idi2,1,kz)
@@ -5526,8 +7589,8 @@ module mod_mppparam
 
   subroutine psc2psd(pc,pd)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in)  :: pc
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: pd
+    real(rkx) , pointer , dimension(:,:) , intent(in)  :: pc
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: pd
     integer(ik4) :: i , j
     !
     ! Internal points
@@ -6009,7 +8072,7 @@ module mod_mppparam
     end if
   end subroutine allgather_i
 
-  subroutine reorder_add_subgrid_2d(var3,var2,mask)
+  subroutine reorder_add_subgrid_2d_real8(var3,var2,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: var2
@@ -6044,9 +8107,46 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine reorder_add_subgrid_2d
+  end subroutine reorder_add_subgrid_2d_real8
 
-  subroutine reorder_subgrid_2d(var3,var2,mask)
+  subroutine reorder_add_subgrid_2d_real4(var3,var2,mask)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: var3
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: var2
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , ii , jj , n1 , n2
+    if ( present(mask) ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                var2(jj,ii) = var2(jj,ii) + var3((n2-1)*nsg+n1,j,i)
+              else
+                var2(jj,ii) = dmissval
+              end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              var2(jj,ii) = var2(jj,ii) + var3((n2-1)*nsg+n1,j,i)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_add_subgrid_2d_real4
+
+  subroutine reorder_subgrid_2d_real8(var3,var2,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: var2
@@ -6081,7 +8181,44 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine reorder_subgrid_2d
+  end subroutine reorder_subgrid_2d_real8
+
+  subroutine reorder_subgrid_2d_real4(var3,var2,mask)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: var3
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: var2
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , ii , jj , n1 , n2
+    if ( present(mask) ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
+              else
+                var2(jj,ii) = dmissval
+              end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_subgrid_2d_real4
 
   subroutine reorder_logical_global_subgrid_2d(var3,var2)
     implicit none
@@ -6119,7 +8256,7 @@ module mod_mppparam
     end do
   end subroutine reorder_subgrid_2d_logical
 
-  subroutine reorder_add_subgrid_2d3d(var3,var2_3,l,mask)
+  subroutine reorder_add_subgrid_2d3d_real8(var3,var2_3,l,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: var2_3
@@ -6157,9 +8294,49 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine reorder_add_subgrid_2d3d
+  end subroutine reorder_add_subgrid_2d3d_real8
 
-  subroutine reorder_subgrid_2d3d(var3,var2_3,l,mask)
+  subroutine reorder_add_subgrid_2d3d_real4(var3,var2_3,l,mask)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: var3
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: var2_3
+    integer(ik4) , optional , intent(in) :: l
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , ii , jj , n1 , n2 , ll
+    ll = 1
+    if ( present(l) ) ll = l
+    if ( present(mask) ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                var2_3(jj,ii,ll) = var2_3(jj,ii,ll) + var3((n2-1)*nsg+n1,j,i)
+              else
+                var2_3(jj,ii,ll) = dmissval
+              end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              var2_3(jj,ii,ll) = var2_3(jj,ii,ll) + var3((n2-1)*nsg+n1,j,i)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_add_subgrid_2d3d_real4
+
+  subroutine reorder_subgrid_2d3d_real8(var3,var2_3,l,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: var2_3
@@ -6197,9 +8374,49 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine reorder_subgrid_2d3d
+  end subroutine reorder_subgrid_2d3d_real8
 
-  subroutine reorder_add_subgrid_3d(var4,var2,l,mask)
+  subroutine reorder_subgrid_2d3d_real4(var3,var2_3,l,mask)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: var3
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: var2_3
+    integer(ik4) , optional , intent(in) :: l
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , ii , jj , n1 , n2 , ll
+    ll = 1
+    if ( present(l) ) ll = l
+    if ( present(mask) ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                var2_3(jj,ii,ll) = var3((n2-1)*nsg+n1,j,i)
+              else
+                var2_3(jj,ii,ll) = dmissval
+              end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              var2_3(jj,ii,ll) = var3((n2-1)*nsg+n1,j,i)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_subgrid_2d3d_real4
+
+  subroutine reorder_add_subgrid_3d_real8(var4,var2,l,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var4
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: var2
@@ -6235,9 +8452,47 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine reorder_add_subgrid_3d
+  end subroutine reorder_add_subgrid_3d_real8
 
-  subroutine reorder_subgrid_3d(var4,var2,l,mask)
+  subroutine reorder_add_subgrid_3d_real4(var4,var2,l,mask)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: var4
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: var2
+    integer(ik4) , intent(in) :: l
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , ii , jj , n1 , n2
+    if ( present(mask) ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                var2(jj,ii) = var2(jj,ii) + var4((n2-1)*nsg+n1,j,i,l)
+              else
+                var2(jj,ii) = dmissval
+              end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              var2(jj,ii) = var2(jj,ii) + var4((n2-1)*nsg+n1,j,i,l)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_add_subgrid_3d_real4
+
+  subroutine reorder_subgrid_3d_real8(var4,var2,l,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var4
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: var2
@@ -6273,9 +8528,47 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine reorder_subgrid_3d
+  end subroutine reorder_subgrid_3d_real8
 
-  subroutine reorder_subgrid_4d(var4,var3,mask)
+  subroutine reorder_subgrid_3d_real4(var4,var2,l,mask)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: var4
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: var2
+    integer(ik4) , intent(in) :: l
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , ii , jj , n1 , n2
+    if ( present(mask) ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                var2(jj,ii) = var4((n2-1)*nsg+n1,j,i,l)
+              else
+                var2(jj,ii) = dmissval
+              end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n2 = 1 , nsg
+            ii = (i-1) * nsg + n2
+            do n1 = 1 , nsg
+              jj = (j-1) * nsg + n1
+              var2(jj,ii) = var4((n2-1)*nsg+n1,j,i,l)
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_subgrid_3d_real4
+
+  subroutine reorder_subgrid_4d_real8(var4,var3,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var4
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: var3
@@ -6314,9 +8607,50 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine reorder_subgrid_4d
+  end subroutine reorder_subgrid_4d_real8
 
-  subroutine input_reorder(m1,m2,j1,j2,i1,i2)
+  subroutine reorder_subgrid_4d_real4(var4,var3,mask)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: var4
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: var3
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) :: i , j , l , ii , jj , n1 , n2
+    if ( present(mask) ) then
+      do l = 1 , size(var4,4)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            do n2 = 1 , nsg
+              ii = (i-1) * nsg + n2
+              do n1 = 1 , nsg
+                jj = (j-1) * nsg + n1
+                if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
+                  var3(jj,ii,l) = var4((n2-1)*nsg+n1,j,i,l)
+                else
+                  var3(jj,ii,l) = dmissval
+                end if
+              end do
+            end do
+          end do
+        end do
+      end do
+    else
+      do l = 1 , size(var4,4)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            do n2 = 1 , nsg
+              ii = (i-1) * nsg + n2
+              do n1 = 1 , nsg
+                jj = (j-1) * nsg + n1
+                var3(jj,ii,l) = var4((n2-1)*nsg+n1,j,i,l)
+              end do
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine reorder_subgrid_4d_real4
+
+  subroutine input_reorder_real8(m1,m2,j1,j2,i1,i2)
     implicit none
     real(rk8) , dimension(:,:) , intent(in) :: m1
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: m2
@@ -6333,7 +8667,26 @@ module mod_mppparam
         end do
       end do
     end do
-  end subroutine input_reorder
+  end subroutine input_reorder_real8
+
+  subroutine input_reorder_real4(m1,m2,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , dimension(:,:) , intent(in) :: m1
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: m2
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: i , j , ii , jj , n1 , n2
+    do i = i1 , i2
+      do j = j1 , j2
+        do n2 = 1 , nsg
+          ii = (i-1) * nsg + n2
+          do n1 = 1 , nsg
+            jj = (j-1) * nsg + n1
+            m2((n2-1)*nsg+n1,j,i) = m1(jj,ii)
+          end do
+        end do
+      end do
+    end do
+  end subroutine input_reorder_real4
 
   subroutine allsync
     implicit none
@@ -6427,20 +8780,24 @@ module mod_mppparam
       cl%linear_displ_sg = cl%linear_displ_g
     end if
     call getmem3d(r8subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:r8subgrid')
+    call getmem3d(r4subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:r4subgrid')
     call getmem3d(i4subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:i4subgrid')
     call getmem3d(lsubgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:lsubgrid')
     call getmem3d(global_r8subgrid,1,nnsg,jout1,jout2, &
             iout1,iout2,'mpp:global_r8subgrid')
+    call getmem3d(global_r4subgrid,1,nnsg,jout1,jout2, &
+            iout1,iout2,'mpp:global_r4subgrid')
     call getmem3d(global_i4subgrid,1,nnsg,jout1,jout2, &
             iout1,iout2,'mpp:global_i4subgrid')
     call getmem3d(global_lsubgrid,1,nnsg,jout1,jout2, &
             iout1,iout2,'mpp:global_lsubgrid')
     call getmem2d(global_r8grid,jout1,jout2,iout1,iout2,'mpp:global_r8grid')
+    call getmem2d(global_r4grid,jout1,jout2,iout1,iout2,'mpp:global_r4grid')
     call getmem2d(global_i4grid,jout1,jout2,iout1,iout2,'mpp:global_i4grid')
     call getmem2d(global_lgrid,jout1,jout2,iout1,iout2,'mpp:global_lgrid')
   end subroutine clset
 
-  subroutine cl_setup(cl,gmask,sgmask,lrev)
+  subroutine cl_setup_real8(cl,gmask,sgmask,lrev)
     implicit none
     type(masked_comm) , intent(inout) :: cl
     real(rk8) , pointer , dimension(:,:) , intent(in) :: gmask
@@ -6482,7 +8839,51 @@ module mod_mppparam
     ncart_tot_g = count(cl%gmask)
     ncart_tot_sg = count(cl%sgmask)
     call clset(ncart_tot_g,ncart_tot_sg,cl)
-  end subroutine cl_setup
+  end subroutine cl_setup_real8
+
+  subroutine cl_setup_real4(cl,gmask,sgmask,lrev)
+    implicit none
+    type(masked_comm) , intent(inout) :: cl
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: gmask
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: sgmask
+    logical , optional , intent(in) :: lrev
+    integer(ik4) :: ncart_tot_g , ncart_tot_sg
+    if ( .not. associated(cl%linear_npoint_g) ) then
+      call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
+      end if
+      call getmem1d(cl%linear_npoint_g,1,nproc,'cl:linear_npoint_g')
+      call getmem1d(cl%linear_displ_g,1,nproc,'cl:linear_displ_g')
+      call getmem1d(cl%cartesian_npoint_g,1,nproc,'cl:cartesian_npoint_g')
+      call getmem1d(cl%cartesian_displ_g,1,nproc,'cl:cartesian_displ_g')
+      call getmem1d(cl%linear_npoint_sg,1,nproc,'cl:linear_npoint_sg')
+      call getmem1d(cl%linear_displ_sg,1,nproc,'cl:linear_displ_sg')
+      call getmem1d(cl%cartesian_npoint_sg,1,nproc,'cl:cartesian_npoint_sg')
+      call getmem1d(cl%cartesian_displ_sg,1,nproc,'cl:cartesian_displ_sg')
+      call getmem2d(cl%gmask,jci1,jci2,ici1,ici2,'cl:gmask')
+      call getmem3d(cl%sgmask,1,nnsg,jci1,jci2,ici1,ici2,'cl:sgmask')
+      call getmem2d(cl%global_gmask,jout1,jout2,iout1,iout2,'cl:global_gmask')
+      call getmem3d(cl%global_sgmask,1,nnsg,jout1,jout2, &
+                                            iout1,iout2,'cl:global_sgmask')
+      call getmem2d(cl%global_out_sgmask,joutsg1,joutsg2, &
+                                         ioutsg1,ioutsg2,'cl:global_out_sgmask')
+    end if
+    cl%gmask = gmask(jci1:jci2,ici1:ici2) > 0.0D0
+    cl%sgmask = sgmask(1:nnsg,jci1:jci2,ici1:ici2) > 0.0D0
+    if ( present(lrev) ) then
+      if ( lrev ) then
+        cl%gmask = .not. cl%gmask
+        cl%sgmask = .not. cl%sgmask
+      end if
+    end if
+    call grid_collect(cl%gmask,cl%global_gmask,jci1,jci2,ici1,ici2)
+    call subgrid_collect(cl%sgmask,cl%global_sgmask,jci1,jci2,ici1,ici2)
+    call reorder_glb_subgrid(cl%global_sgmask,cl%global_out_sgmask)
+    ncart_tot_g = count(cl%gmask)
+    ncart_tot_sg = count(cl%sgmask)
+    call clset(ncart_tot_g,ncart_tot_sg,cl)
+  end subroutine cl_setup_real4
 
   subroutine cartesian_to_linear_logical_subgrid_subgrid(cl,matrix,vector)
     implicit none
@@ -6634,6 +9035,38 @@ module mod_mppparam
     end do
   end subroutine cartesian_to_linear_real8_subgrid_subgrid_4d
 
+  subroutine cartesian_to_linear_real4_subgrid_subgrid_4d(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: vector
+    integer(ik4) :: nval , npt , nlev , k
+    nval = cl%cartesian_npoint_sg(ccid+1)
+    npt  = cl%linear_npoint_sg(myid+1)
+    nlev = size(matrix,4)
+    if ( nproc == 1 ) then
+      call mypack(cl,matrix,vector,nlev)
+      return
+    end if
+    do k = 1 , nlev
+      if ( nval > 0 ) then
+        call mypack(cl,matrix,r4vector1,k)
+      end if
+      call mpi_gatherv(r4vector1,nval,mpi_real4,                               &
+                       r4vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
+                       mpi_real4,ccio,cartesian_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+      call mpi_scatterv(r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                        mpi_real4,vector(:,k),npt,mpi_real4,              &
+                        iocpu,cl%linear_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+      end if
+    end do
+  end subroutine cartesian_to_linear_real4_subgrid_subgrid_4d
+
   subroutine linear_to_cartesian_real8_subgrid_subgrid_4d(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
@@ -6667,6 +9100,39 @@ module mod_mppparam
     end do
   end subroutine linear_to_cartesian_real8_subgrid_subgrid_4d
 
+  subroutine linear_to_cartesian_real4_subgrid_subgrid_4d(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) :: nval , npt , nlev , k
+    nval = cl%cartesian_npoint_sg(ccid+1)
+    npt  = cl%linear_npoint_sg(myid+1)
+    nlev = size(vector,2)
+    if ( nproc == 1 ) then
+      call myunpack(cl,vector,matrix,nlev)
+      return
+    end if
+    do k = 1 , nlev
+      call mpi_gatherv(vector(:,k),npt,mpi_real4,                        &
+                       r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                       mpi_real4,iocpu,cl%linear_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+      call mpi_scatterv(r4vector2,cl%cartesian_npoint_sg, &
+                        cl%cartesian_displ_sg,mpi_real4,  &
+                        r4vector1,nval,mpi_real4,         &
+                        ccio,cartesian_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+      end if
+      if ( nval > 0 ) then
+        call myunpack(cl,r4vector1,matrix,k)
+      end if
+    end do
+  end subroutine linear_to_cartesian_real4_subgrid_subgrid_4d
+
   subroutine cartesian_to_linear_real8_subgrid_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
@@ -6695,6 +9161,35 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
   end subroutine cartesian_to_linear_real8_subgrid_subgrid
+
+  subroutine cartesian_to_linear_real4_subgrid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: matrix
+    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
+    integer(ik4) :: nval , npt
+    nval = cl%cartesian_npoint_sg(ccid+1)
+    npt  = cl%linear_npoint_sg(myid+1)
+    if ( nproc == 1 ) then
+      call mypack(cl,matrix,vector)
+      return
+    end if
+    if ( nval > 0 ) then
+      call mypack(cl,matrix,r4vector1)
+    end if
+    call mpi_gatherv(r4vector1,nval,mpi_real4,                               &
+                     r4vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
+                     mpi_real4,ccio,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call mpi_scatterv(r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                      mpi_real4,vector,npt,mpi_real4,                   &
+                      iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine cartesian_to_linear_real4_subgrid_subgrid
 
   subroutine linear_to_cartesian_real8_subgrid_subgrid(cl,vector,matrix)
     implicit none
@@ -6725,6 +9220,36 @@ module mod_mppparam
       call myunpack(cl,r8vector1,matrix)
     end if
   end subroutine linear_to_cartesian_real8_subgrid_subgrid
+
+  subroutine linear_to_cartesian_real4_subgrid_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    integer(ik4) :: nval , npt
+    nval = cl%cartesian_npoint_sg(ccid+1)
+    npt  = cl%linear_npoint_sg(myid+1)
+    if ( nproc == 1 ) then
+      call myunpack(cl,vector,matrix)
+      return
+    end if
+    call mpi_gatherv(vector,npt,mpi_real4,                             &
+                     r4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                     mpi_real4,iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call mpi_scatterv(r4vector2,cl%cartesian_npoint_sg, &
+                      cl%cartesian_displ_sg,mpi_real4,  &
+                      r4vector1,nval,mpi_real4,         &
+                      ccio,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    if ( nval > 0 ) then
+      call myunpack(cl,r4vector1,matrix)
+    end if
+  end subroutine linear_to_cartesian_real4_subgrid_subgrid
 
   subroutine cartesian_to_linear_logical_grid_subgrid(cl,matrix,vector)
     implicit none
@@ -6773,6 +9298,22 @@ module mod_mppparam
     end do
     call cartesian_to_linear_real8_subgrid_subgrid(cl,r8subgrid,vector)
   end subroutine cartesian_to_linear_real8_grid_subgrid
+
+  subroutine cartesian_to_linear_real4_grid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
+    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
+    integer(ik4) :: i , j , n
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          r4subgrid(n,j,i) = matrix(j,i)
+        end do
+      end do
+    end do
+    call cartesian_to_linear_real4_subgrid_subgrid(cl,r4subgrid,vector)
+  end subroutine cartesian_to_linear_real4_grid_subgrid
 
   subroutine global_to_linear_logical_subgrid_subgrid(cl,matrix,vector)
     implicit none
@@ -6878,6 +9419,27 @@ module mod_mppparam
     end if
   end subroutine global_to_linear_real8_subgrid_subgrid
 
+  subroutine global_to_linear_real4_subgrid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: matrix
+    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
+    integer(ik4) :: npt
+    if ( nproc == 1 ) then
+      call mypack_global(cl,matrix,vector)
+      return
+    end if
+    call subgrid_collect(matrix,global_r4subgrid,jci1,jci2,ici1,ici2)
+    call mypack_global(cl,global_r4subgrid,r4vector1)
+    npt  = cl%linear_npoint_sg(myid+1)
+    call mpi_scatterv(r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                      mpi_real4,vector,npt,mpi_real4,                   &
+                      iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine global_to_linear_real4_subgrid_subgrid
+
   subroutine linear_to_global_real8_subgrid_subgrid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
@@ -6897,6 +9459,26 @@ module mod_mppparam
     call subgrid_distribute(global_r8subgrid,matrix, &
             jci1,jci2,ici1,ici2,cl%sgmask)
   end subroutine linear_to_global_real8_subgrid_subgrid
+
+  subroutine linear_to_global_real4_subgrid_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    if ( nproc == 1 ) then
+      call myunpack_global(cl,vector,matrix)
+      return
+    end if
+    call mpi_gatherv(vector,cl%linear_npoint_sg(myid+1),mpi_real4,  &
+                     r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                     mpi_real4,iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call myunpack_global(cl,r4vector1,global_r4subgrid)
+    call subgrid_distribute(global_r4subgrid,matrix, &
+            jci1,jci2,ici1,ici2,cl%sgmask)
+  end subroutine linear_to_global_real4_subgrid_subgrid
 
   subroutine global_to_linear_real8_subgrid_subgrid_4d(cl,matrix,vector)
     implicit none
@@ -6922,6 +9504,31 @@ module mod_mppparam
       end if
     end do
   end subroutine global_to_linear_real8_subgrid_subgrid_4d
+
+  subroutine global_to_linear_real4_subgrid_subgrid_4d(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: vector
+    integer(ik4) :: npt , k , nlev
+    nlev = size(matrix,4)
+    if ( nproc == 1 ) then
+      call mypack_global(cl,matrix,vector,nlev)
+      return
+    end if
+    npt  = cl%linear_npoint_sg(myid+1)
+    do k = 1 , nlev
+      r4subgrid = matrix(:,jci1:jci2,ici1:ici2,k)
+      call subgrid_collect(r4subgrid,global_r4subgrid,jci1,jci2,ici1,ici2)
+      call mypack_global(cl,global_r4subgrid,r4vector1)
+      call mpi_scatterv(r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                        mpi_real4,vector(:,k),npt,mpi_real4,                   &
+                        iocpu,cl%linear_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+      end if
+    end do
+  end subroutine global_to_linear_real4_subgrid_subgrid_4d
 
   subroutine linear_to_global_real8_subgrid_subgrid_4d(cl,vector,matrix)
     implicit none
@@ -6950,6 +9557,34 @@ module mod_mppparam
       end where
     end do
   end subroutine linear_to_global_real8_subgrid_subgrid_4d
+
+  subroutine linear_to_global_real4_subgrid_subgrid_4d(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) :: npt , nlev , k
+    nlev = size(vector,2)
+    if ( nproc == 1 ) then
+      call myunpack(cl,vector,matrix,nlev)
+      return
+    end if
+    npt  = cl%linear_npoint_sg(myid+1)
+    do k = 1 , nlev
+      call mpi_gatherv(vector(:,k),npt,mpi_real4,                        &
+                       r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                       mpi_real4,iocpu,cl%linear_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+      call myunpack_global(cl,r4vector1,global_r4subgrid)
+      call subgrid_distribute(global_r4subgrid,r4subgrid, &
+              jci1,jci2,ici1,ici2,cl%sgmask)
+      where ( cl%sgmask )
+        matrix(:,jci1:jci2,ici1:ici2,k) = r4subgrid
+      end where
+    end do
+  end subroutine linear_to_global_real4_subgrid_subgrid_4d
 
   subroutine global_to_linear_logical_grid_subgrid(cl,matrix,vector)
     implicit none
@@ -6998,6 +9633,22 @@ module mod_mppparam
     end do
     call global_to_linear_real8_subgrid_subgrid(cl,r8subgrid,vector)
   end subroutine global_to_linear_real8_grid_subgrid
+
+  subroutine global_to_linear_real4_grid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
+    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
+    integer(ik4) :: i , j , n
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          r4subgrid(n,j,i) = matrix(j,i)
+        end do
+      end do
+    end do
+    call global_to_linear_real4_subgrid_subgrid(cl,r4subgrid,vector)
+  end subroutine global_to_linear_real4_grid_subgrid
 
   subroutine cl_dispose(cl)
     implicit none
@@ -7097,8 +9748,8 @@ module mod_mppparam
   subroutine mypack_real8_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(inout) :: vector
-    real(ik8) , pointer , dimension(:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , iv
     iv = 1
     do i = ici1 , ici2
@@ -7111,11 +9762,28 @@ module mod_mppparam
     end do
   end subroutine mypack_real8_grid
 
+  subroutine mypack_real4_grid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( cl%gmask(j,i) ) then
+          vector(iv) = matrix(j,i)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine mypack_real4_grid
+
   subroutine mypack_real8_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(inout) :: vector
-    real(ik8) , pointer , dimension(:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , n , iv
     iv = 1
     do i = ici1 , ici2
@@ -7130,11 +9798,30 @@ module mod_mppparam
     end do
   end subroutine mypack_real8_subgrid
 
+  subroutine mypack_real4_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: matrix
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( cl%sgmask(n,j,i) ) then
+            vector(iv) = matrix(n,j,i)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine mypack_real4_subgrid
+
   subroutine mypack_real8_subgrid_4d(cl,matrix,vector,klev)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:,:) , intent(inout) :: vector
-    real(ik8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vector
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
     integer(ik4) , intent(in) :: klev
     integer(ik4) :: i , j , k , n , iv
     do k = 1 , klev
@@ -7152,11 +9839,33 @@ module mod_mppparam
     end do
   end subroutine mypack_real8_subgrid_4d
 
+  subroutine mypack_real4_subgrid_4d(cl,matrix,vector,klev)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) :: i , j , k , n , iv
+    do k = 1 , klev
+      iv = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
+            if ( cl%sgmask(n,j,i) ) then
+              vector(iv,k) = matrix(n,j,i,k)
+              iv = iv + 1
+            end if
+          end do
+        end do
+      end do
+    end do
+  end subroutine mypack_real4_subgrid_4d
+
   subroutine mypack_real8_subgrid_slice(cl,matrix,vector,k)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(inout) :: vector
-    real(ik8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
     integer(ik4) , intent(in) :: k
     integer(ik4) :: i , j , n , iv
     iv = 1
@@ -7171,6 +9880,26 @@ module mod_mppparam
       end do
     end do
   end subroutine mypack_real8_subgrid_slice
+
+  subroutine mypack_real4_subgrid_slice(cl,matrix,vector,k)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    integer(ik4) , intent(in) :: k
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( cl%sgmask(n,j,i) ) then
+            vector(iv) = matrix(n,j,i,k)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine mypack_real4_subgrid_slice
 
   subroutine myunpack_logical_grid(cl,vector,matrix)
     implicit none
@@ -7247,8 +9976,8 @@ module mod_mppparam
   subroutine myunpack_real8_grid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(in) :: vector
-    real(ik8) , pointer , dimension(:,:) , intent(inout) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: matrix
     integer(ik4) :: i , j , iv
     iv = 1
     do i = ici1 , ici2
@@ -7261,11 +9990,28 @@ module mod_mppparam
     end do
   end subroutine myunpack_real8_grid
 
+  subroutine myunpack_real4_grid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( cl%gmask(j,i) ) then
+          matrix(j,i) = vector(iv)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine myunpack_real4_grid
+
   subroutine myunpack_real8_subgrid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(in) :: vector
-    real(ik8) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: matrix
     integer(ik4) :: i , j , n , iv
     iv = 1
     do i = ici1 , ici2
@@ -7280,11 +10026,30 @@ module mod_mppparam
     end do
   end subroutine myunpack_real8_subgrid
 
+  subroutine myunpack_real4_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( cl%sgmask(n,j,i) ) then
+            matrix(n,j,i) = vector(iv)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine myunpack_real4_subgrid
+
   subroutine myunpack_real8_subgrid_4d(cl,vector,matrix,klev)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:,:) , intent(in) :: vector
-    real(ik8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
     integer(ik4) , intent(in) :: klev
     integer(ik4) :: i , j , k , n , iv
     do k = 1 , klev
@@ -7302,11 +10067,33 @@ module mod_mppparam
     end do
   end subroutine myunpack_real8_subgrid_4d
 
+  subroutine myunpack_real4_subgrid_4d(cl,vector,matrix,klev)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) :: i , j , k , n , iv
+    do k = 1 , klev
+      iv = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
+            if ( cl%sgmask(n,j,i) ) then
+              matrix(n,j,i,k) = vector(iv,k)
+              iv = iv + 1
+            end if
+          end do
+        end do
+      end do
+    end do
+  end subroutine myunpack_real4_subgrid_4d
+
   subroutine myunpack_real8_subgrid_slice(cl,vector,matrix,k)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(in) :: vector
-    real(ik8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
     integer(ik4) , intent(in) :: k
     integer(ik4) :: i , j , n , iv
     iv = 1
@@ -7321,6 +10108,26 @@ module mod_mppparam
       end do
     end do
   end subroutine myunpack_real8_subgrid_slice
+
+  subroutine myunpack_real4_subgrid_slice(cl,vector,matrix,k)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) , intent(in) :: k
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( cl%sgmask(n,j,i) ) then
+            matrix(n,j,i,k) = vector(iv)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine myunpack_real4_subgrid_slice
 
   subroutine mypack_global_logical_grid(cl,matrix,vector)
     implicit none
@@ -7397,8 +10204,8 @@ module mod_mppparam
   subroutine mypack_global_real8_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(inout) :: vector
-    real(ik8) , pointer , dimension(:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , iv
     iv = 1
     do i = iout1 , iout2
@@ -7411,11 +10218,28 @@ module mod_mppparam
     end do
   end subroutine mypack_global_real8_grid
 
+  subroutine mypack_global_real4_grid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        if ( cl%global_gmask(j,i) ) then
+          vector(iv) = matrix(j,i)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine mypack_global_real4_grid
+
   subroutine mypack_global_real8_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(inout) :: vector
-    real(ik8) , pointer , dimension(:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , n , iv
     iv = 1
     do i = iout1 , iout2
@@ -7430,11 +10254,30 @@ module mod_mppparam
     end do
   end subroutine mypack_global_real8_subgrid
 
+  subroutine mypack_global_real4_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: matrix
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            vector(iv) = matrix(n,j,i)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine mypack_global_real4_subgrid
+
   subroutine mypack_global_real8_subgrid_4d(cl,matrix,vector,klev)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:,:) , intent(inout) :: vector
-    real(ik8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vector
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
     integer(ik4) , intent(in) :: klev
     integer(ik4) :: i , j , k , n , iv
     do k = 1 , klev
@@ -7452,11 +10295,33 @@ module mod_mppparam
     end do
   end subroutine mypack_global_real8_subgrid_4d
 
+  subroutine mypack_global_real4_subgrid_4d(cl,matrix,vector,klev)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) :: i , j , k , n , iv
+    do k = 1 , klev
+      iv = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          do n = 1 , nnsg
+            if ( cl%global_sgmask(n,j,i) ) then
+              vector(iv,k) = matrix(n,j,i,k)
+              iv = iv + 1
+            end if
+          end do
+        end do
+      end do
+    end do
+  end subroutine mypack_global_real4_subgrid_4d
+
   subroutine mypack_global_real8_subgrid_slice(cl,matrix,vector,k)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(inout) :: vector
-    real(ik8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
     integer(ik4) , intent(in) :: k
     integer(ik4) :: i , j , n , iv
     iv = 1
@@ -7471,6 +10336,26 @@ module mod_mppparam
       end do
     end do
   end subroutine mypack_global_real8_subgrid_slice
+
+  subroutine mypack_global_real4_subgrid_slice(cl,matrix,vector,k)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    integer(ik4) , intent(in) :: k
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            vector(iv) = matrix(n,j,i,k)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine mypack_global_real4_subgrid_slice
 
   subroutine myunpack_global_logical_grid(cl,vector,matrix)
     implicit none
@@ -7547,8 +10432,8 @@ module mod_mppparam
   subroutine myunpack_global_real8_grid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(in) :: vector
-    real(ik8) , pointer , dimension(:,:) , intent(inout) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: matrix
     integer(ik4) :: i , j , iv
     iv = 1
     do i = iout1 , iout2
@@ -7561,11 +10446,28 @@ module mod_mppparam
     end do
   end subroutine myunpack_global_real8_grid
 
+  subroutine myunpack_global_real4_grid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        if ( cl%global_gmask(j,i) ) then
+          matrix(j,i) = vector(iv)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine myunpack_global_real4_grid
+
   subroutine myunpack_global_real8_subgrid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(in) :: vector
-    real(ik8) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: matrix
     integer(ik4) :: i , j , n , iv
     iv = 1
     do i = iout1 , iout2
@@ -7580,11 +10482,30 @@ module mod_mppparam
     end do
   end subroutine myunpack_global_real8_subgrid
 
+  subroutine myunpack_global_real4_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            matrix(n,j,i) = vector(iv)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine myunpack_global_real4_subgrid
+
   subroutine myunpack_global_real8_subgrid_4d(cl,vector,matrix,klev)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:,:) , intent(in) :: vector
-    real(ik8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
     integer(ik4) , intent(in) :: klev
     integer(ik4) :: i , j , k , n , iv
     do k = 1 , klev
@@ -7602,11 +10523,33 @@ module mod_mppparam
     end do
   end subroutine myunpack_global_real8_subgrid_4d
 
+  subroutine myunpack_global_real4_subgrid_4d(cl,vector,matrix,klev)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) :: i , j , k , n , iv
+    do k = 1 , klev
+      iv = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          do n = 1 , nnsg
+            if ( cl%global_sgmask(n,j,i) ) then
+              matrix(n,j,i,k) = vector(iv,k)
+              iv = iv + 1
+            end if
+          end do
+        end do
+      end do
+    end do
+  end subroutine myunpack_global_real4_subgrid_4d
+
   subroutine myunpack_global_real8_subgrid_slice(cl,vector,matrix,k)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(in) :: vector
-    real(ik8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
     integer(ik4) , intent(in) :: k
     integer(ik4) :: i , j , n , iv
     iv = 1
@@ -7621,6 +10564,26 @@ module mod_mppparam
       end do
     end do
   end subroutine myunpack_global_real8_subgrid_slice
+
+  subroutine myunpack_global_real4_subgrid_slice(cl,vector,matrix,k)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) , intent(in) :: k
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            matrix(n,j,i,k) = vector(iv)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine myunpack_global_real4_subgrid_slice
 
 end module mod_mppparam
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

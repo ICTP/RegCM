@@ -39,26 +39,26 @@ module mod_sldepparam
        xnnm2dp_x , xnnp1dp_x , yndp_x , ynnm1dp_x , ynnm2dp_x , ynnp1dp_x
 
   ! GTD the weighting coefficient of interpolation) for dot points
-  real(rk8) , pointer , dimension(:,:,:) :: alfdp_d , alfp1dp_d , &
+  real(rkx) , pointer , dimension(:,:,:) :: alfdp_d , alfp1dp_d , &
        alfm1dp_d , alfm2dp_d , betdp_d , betp1dp_d , betm1dp_d ,  &
        betm2dp_d , alffbl_d
 
   ! GTD the weighting coefficient of interpolation) for dot points
-  real(rk8) , pointer , dimension(:,:,:) :: alfdp_x , alfp1dp_x , &
+  real(rkx) , pointer , dimension(:,:,:) :: alfdp_x , alfp1dp_x , &
        alfm1dp_x , alfm2dp_x , betdp_x , betp1dp_x , betm1dp_x ,  &
        betm2dp_x , alffbl_x
 
   ! GTD the advective velocity for the dot and cross points
-  real(rk8) , pointer , dimension(:,:,:) :: vadvy_d , uadvx_d
-  real(rk8) , pointer , dimension(:,:,:) :: vadvy_x , uadvx_x
+  real(rkx) , pointer , dimension(:,:,:) :: vadvy_d , uadvx_d
+  real(rkx) , pointer , dimension(:,:,:) :: vadvy_x , uadvx_x
 
   ! GTD the advective velocity near the arrival point for mcgregor calculation
-  real(rk8) , pointer , dimension(:,:,:) :: uadxp1_d , uadxm1_d
-  real(rk8) , pointer , dimension(:,:,:) :: vadyp1_d , vadym1_d
+  real(rkx) , pointer , dimension(:,:,:) :: uadxp1_d , uadxm1_d
+  real(rkx) , pointer , dimension(:,:,:) :: vadyp1_d , vadym1_d
 
   ! GTD the advective velocity near the arrival point for mcgregor calculation
-  real(rk8) , pointer , dimension(:,:,:) :: uadxp1_x , uadxm1_x
-  real(rk8) , pointer , dimension(:,:,:) :: vadyp1_x , vadym1_x
+  real(rkx) , pointer , dimension(:,:,:) :: uadxp1_x , uadxm1_x
+  real(rkx) , pointer , dimension(:,:,:) :: vadyp1_x , vadym1_x
 
   contains
 

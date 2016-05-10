@@ -42,26 +42,26 @@ module mod_erahi
   integer(ik4) , parameter :: nlons = 320
   integer(ik4) , parameter :: nlev2 = 18
 
-  real(rk8) , dimension(nlev1+1) :: ak , bk
-  real(rk8) , dimension(nlev2) :: pplev , sigma1 , sigmar
-  real(rk8) , parameter :: pss = 100.0D0
-  real(rk8) , dimension(nlats) :: slat
-  real(rk8) , dimension(nlons) :: slon
+  real(rkx) , dimension(nlev1+1) :: ak , bk
+  real(rkx) , dimension(nlev2) :: pplev , sigma1 , sigmar
+  real(rkx) , parameter :: pss = 100.0_rkx
+  real(rkx) , dimension(nlats) :: slat
+  real(rkx) , dimension(nlons) :: slon
 
   real(rk4) , dimension(nlons,nlats) :: iobuf
-  real(rk8) , dimension(nlons,nlats) :: lsm , ps2 , zs2
-  real(rk8) , dimension(nlons,nlats,nlev1) :: q2 , t2 , u2 , v2
-  real(rk8) , dimension(nlons,nlats,nlev1) :: pp3d , z1
+  real(rkx) , dimension(nlons,nlats) :: lsm , ps2 , zs2
+  real(rkx) , dimension(nlons,nlats,nlev1) :: q2 , t2 , u2 , v2
+  real(rkx) , dimension(nlons,nlats,nlev1) :: pp3d , z1
 
-  real(rk8) , target , dimension(nlons,nlats,nlev2*3) :: b2
-  real(rk8) , target , dimension(nlons,nlats,nlev2*2) :: d2
-  real(rk8) , pointer , dimension(:,:,:) :: b3
-  real(rk8) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , target , dimension(nlons,nlats,nlev2*3) :: b2
+  real(rkx) , target , dimension(nlons,nlats,nlev2*2) :: d2
+  real(rkx) , pointer , dimension(:,:,:) :: b3
+  real(rkx) , pointer , dimension(:,:,:) :: d3
 
-  real(rk8) , pointer , dimension(:,:,:) :: tp , qp , hp
-  real(rk8) , pointer , dimension(:,:,:) :: up , vp
-  real(rk8) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-  real(rk8) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rkx) , pointer , dimension(:,:,:) :: tp , qp , hp
+  real(rkx) , pointer , dimension(:,:,:) :: up , vp
+  real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
 
   public :: geterahi , headerehi
 
@@ -73,12 +73,12 @@ module mod_erahi
     character(len=256) :: finame
     integer(ik4) :: i , j , k , nrec
     logical :: there
-    real(rk8) :: slonmax , slonmin , xlonmax , xlonmin
+    real(rkx) :: slonmax , slonmin , xlonmax , xlonmin
     integer :: hireclen
 
     if ( idate == globidate1 ) then
-      xlonmin = 400.
-      xlonmax = -400.
+      xlonmin = 400.0_rkx
+      xlonmax = -400.0_rkx
       do j = 1 , iy
         do i = 1 , jx
           if ( xlon(i,j) < xlonmin ) xlonmin = xlon(i,j)
@@ -86,8 +86,8 @@ module mod_erahi
         end do
       end do
       write (stdout,*) 'XLONMIN,XLONMAX = ' , xlonmin , xlonmax
-      slonmin = 400.
-      slonmax = -400.
+      slonmin = 400.0_rkx
+      slonmax = -400.0_rkx
       do i = 1 , nlons
         if ( slon(i) < slonmin ) slonmin = slon(i)
         if ( slon(i) > slonmax ) slonmax = slon(i)
@@ -164,7 +164,7 @@ module mod_erahi
     ! 3. For Temperatures
     call intlog(tp,t2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
     ! 4. For Moisture
-    call mxr2rh(t2,q2,pp3d,nlons,nlats,nlev1,-9999.0D0)
+    call mxr2rh(t2,q2,pp3d,nlons,nlats,nlev1,-9999.0_rkx)
     call intlin(qp,q2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
     !
     ! Horizontal interpolation of both the scalar and vector fields

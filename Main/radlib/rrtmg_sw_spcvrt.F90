@@ -401,7 +401,7 @@
                      zdbtmc = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                   else
                      tblind = ze1 / (bpade + ze1)
-                     itind = idint(tblint * tblind + 0.5_rb)
+                     itind = int(tblint * tblind + 0.5_rb)
                      zdbtmc = exp_tbl(itind)
                   endif
 
@@ -418,7 +418,7 @@
                      zdbtmo = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                   else
                      tblind = ze1 / (bpade + ze1)
-                     itind = idint(tblint * tblind + 0.5_rb)
+                     itind = int(tblint * tblind + 0.5_rb)
                      zdbtmo = exp_tbl(itind)
                   endif
 
@@ -503,7 +503,7 @@
                   zdbtmc = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = idint(tblint * tblind + 0.5_rb)
+                  itind = int(tblint * tblind + 0.5_rb)
                   zdbtmc = exp_tbl(itind)
                endif
 
@@ -520,7 +520,7 @@
                   zdbtmo = 1._rb - ze1 + 0.5_rb * ze1 * ze1
                else
                   tblind = ze1 / (bpade + ze1)
-                  itind = idint(tblint * tblind + 0.5_rb)
+                  itind = int(tblint * tblind + 0.5_rb)
                   zdbtmo = exp_tbl(itind)
                endif
 

@@ -33,7 +33,7 @@ module mod_che_output
 
   public :: fill_chem_outvars
 
-  real(rk8) , parameter :: cfd = 1.D6 * 86400.D0
+  real(rkx) , parameter :: cfd = 1.e6_rkx * 86400._rkx
 
   contains
 
@@ -69,7 +69,7 @@ module mod_che_output
         end do
       end if
       if ( associated(che_burden_out) ) then
-        che_burden_out = dtrace(jci1:jci2,ici1:ici2,itr)*1.0D6
+        che_burden_out = dtrace(jci1:jci2,ici1:ici2,itr)*1.0e6_rkx
       end if
       if ( ichdiag > 0 ) then
         if ( associated(che_cheten_out) ) then

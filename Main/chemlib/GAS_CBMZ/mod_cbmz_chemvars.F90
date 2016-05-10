@@ -71,12 +71,12 @@ module mod_cbmz_chemvars
 ! c_xcwdep:     Wet deposition in solver - Not used.
 ! c_time:       time step (sec)
 !
-   real(rk8) :: c_xcin(c_kvec,c_cdim)   ! concentration molec/cm3
-   real(rk8) :: c_xcout(c_kvec,c_cdim)  ! concentration, mol/cm3
-   real(rk8) :: c_xcav(c_kvec,c_cdim)   ! concentration, mol/cm3
-   real(rk8) :: c_xcemit(c_kvec,c_cdim) ! emissions, molec/cm3
-   real(rk8) :: c_time                  ! time step (sec)
-   real(rk8) :: c_jval(c_kvec,56)
+   real(rkx) :: c_xcin(c_kvec,c_cdim)   ! concentration molec/cm3
+   real(rkx) :: c_xcout(c_kvec,c_cdim)  ! concentration, mol/cm3
+   real(rkx) :: c_xcav(c_kvec,c_cdim)   ! concentration, mol/cm3
+   real(rkx) :: c_xcemit(c_kvec,c_cdim) ! emissions, molec/cm3
+   real(rkx) :: c_time                  ! time step (sec)
+   real(rkx) :: c_jval(c_kvec,56)
 !
 ! (note = separate out TIME?)
 
@@ -99,15 +99,15 @@ module mod_cbmz_chemvars
 ! c_lexpo(kvec)         Flag for modified backward Euler solution
 !                        with exponential decay
 !
-   real(rk8) :: c_temp(c_kvec)          ! temperature K
-   real(rk8) :: c_dens(c_kvec)          ! density molec cm-3
-   real(rk8) :: c_h2oliq(c_kvec)        ! LWC grams cm-3
-   real(rk8) :: c_rainfr(c_kvec)        ! rainout fraction
-   real(rk8) :: c_saersa(c_kvec)        ! s aerosol surf area cm2/cm3
-   real(rk8) :: c_h2ogas(c_kvec)        ! H2O absolute humidity molec/cm3
+   real(rkx) :: c_temp(c_kvec)          ! temperature K
+   real(rkx) :: c_dens(c_kvec)          ! density molec cm-3
+   real(rkx) :: c_h2oliq(c_kvec)        ! LWC grams cm-3
+   real(rkx) :: c_rainfr(c_kvec)        ! rainout fraction
+   real(rkx) :: c_saersa(c_kvec)        ! s aerosol surf area cm2/cm3
+   real(rkx) :: c_h2ogas(c_kvec)        ! H2O absolute humidity molec/cm3
 
-   real(rk8) :: c_rgasaq(c_kvec,c_rdim) ! Input gas->aq rate
-   real(rk8) :: c_DROPLET(c_kvec)       ! droplet radius, cm
+   real(rkx) :: c_rgasaq(c_kvec,c_rdim) ! Input gas->aq rate
+   real(rkx) :: c_DROPLET(c_kvec)       ! droplet radius, cm
    logical :: c_lgasaq(c_kvec)         ! Flag to calc. gas-aq rate
    logical :: c_lstsaq(c_kvec)         ! Flag for steady state gas-aq
    logical :: c_lexpo(c_kvec)          ! Flag for expo decay solution
@@ -147,11 +147,11 @@ module mod_cbmz_chemvars
 !                   Note, ZEN1 has alt.for YYYYDDD
 !        (lat, lon, hour and date used in SOLAR ZENITH ANGLE  calc.)
 !
-  real(rk8) :: c_lat(c_kvec) ! Latitude, degrees
-  real(rk8) :: c_lon(c_kvec) ! Longitude, degrees
-  real(rk8) :: c_hour        ! Hour at end , EST (hrs)
+  real(rkx) :: c_lat(c_kvec) ! Latitude, degrees
+  real(rkx) :: c_lon(c_kvec) ! Longitude, degrees
+  real(rkx) :: c_hour        ! Hour at end , EST (hrs)
   integer(ik4) :: c_idate        ! Date YYMMDD (YY=100 for 2000)
-  real(rk8) :: c_jparam(22)  ! J-value input parameters
+  real(rkx) :: c_jparam(22)  ! J-value input parameters
 
 ! OPTIONAL CHEM OUTPUT VALUES:
 !  May be used for subsequent analysis but not necessary.
@@ -161,16 +161,16 @@ module mod_cbmz_chemvars
 !  c_rl(c_kvec,c_cdim)  Rate of loss  of species ic, molec/cm3/timestep
 !  c_rr(c_kvec,c_rdim)    Rate of reaction, molec/cm3/timestep
 
-  real(rk8) :: c_rp(c_kvec,c_cdim)  ! Production, molec/cm3
-  real(rk8) :: c_rl(c_kvec,c_cdim)  ! Loss, molec/cm3
-  real(rk8) :: c_rr(c_kvec,c_rdim)  ! Reaction rate m/cm3
+  real(rkx) :: c_rp(c_kvec,c_cdim)  ! Production, molec/cm3
+  real(rkx) :: c_rl(c_kvec,c_cdim)  ! Loss, molec/cm3
+  real(rkx) :: c_rr(c_kvec,c_rdim)  ! Reaction rate m/cm3
 
 ! OPTIONAL OUTPUTS RELATING TO NUMERICS:
 !   Currently in chemlocal:
 !    xohtest, xnotest, fohtest, final iter, history, geomavg
 
-  real(rk8) :: c_ohtest   ! test: dOH/OH or dOH/HO2
-  real(rk8) :: c_notest   ! test: dNO2/NO2
+  real(rkx) :: c_ohtest   ! test: dOH/OH or dOH/HO2
+  real(rkx) :: c_notest   ! test: dNO2/NO2
   integer(ik4) :: c_iter      ! chem. number of iterations
 
 end module mod_cbmz_chemvars

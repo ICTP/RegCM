@@ -39,30 +39,30 @@ module mod_fvgcm
     integer(ik4) , parameter :: nlev = 18
     integer(ik4) :: numx , numy
 
-    real(rk8) , dimension(nlev+1) :: ak , bk
-    real(rk8) , dimension(nlev) :: pplev , sigma1 , sigmar
-    real(rk8) , parameter :: pss = 100.0D0
+    real(rkx) , dimension(nlev+1) :: ak , bk
+    real(rkx) , dimension(nlev) :: pplev , sigma1 , sigmar
+    real(rkx) , parameter :: pss = 100.0_rkx
 
-    real(rk8) , pointer , dimension(:) :: vlat
-    real(rk8) , pointer , dimension(:) :: vlon
+    real(rkx) , pointer , dimension(:) :: vlat
+    real(rkx) , pointer , dimension(:) :: vlon
 
-    real(rk8) , pointer , dimension(:,:,:) :: bb
-    real(rk8) , pointer , dimension(:,:,:) :: b2
-    real(rk8) , pointer , dimension(:,:,:) :: d2
-    real(rk8) , pointer , dimension(:,:,:) :: b3
-    real(rk8) , pointer , dimension(:,:,:) :: d3
+    real(rkx) , pointer , dimension(:,:,:) :: bb
+    real(rkx) , pointer , dimension(:,:,:) :: b2
+    real(rkx) , pointer , dimension(:,:,:) :: d2
+    real(rkx) , pointer , dimension(:,:,:) :: b3
+    real(rkx) , pointer , dimension(:,:,:) :: d3
     real(rk4) , pointer , dimension(:,:) :: temp
     integer(2) , pointer , dimension(:,:) :: itmp
 
-    real(rk8) , pointer , dimension(:,:) :: zs2
-    real(rk8) , pointer , dimension(:,:,:) :: pp3d , z1
+    real(rkx) , pointer , dimension(:,:) :: zs2
+    real(rkx) , pointer , dimension(:,:,:) :: pp3d , z1
 
-    real(rk8) , pointer , dimension(:,:) :: ps2
-    real(rk8) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
-    real(rk8) , pointer , dimension(:,:,:) :: tp , qp , hp
-    real(rk8) , pointer , dimension(:,:,:) :: up , vp
-    real(rk8) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-    real(rk8) , pointer , dimension(:,:,:) :: u3 , v3
+    real(rkx) , pointer , dimension(:,:) :: ps2
+    real(rkx) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
+    real(rkx) , pointer , dimension(:,:,:) :: tp , qp , hp
+    real(rkx) , pointer , dimension(:,:,:) :: up , vp
+    real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+    real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
 
     public :: getfvgcm , headerfv
 
@@ -75,7 +75,7 @@ module mod_fvgcm
       character(len=20) :: finm , fips
       character(len=5) :: fn_a2 , fn_rf , pn_a2 , pn_rf
       integer(ik4) :: i , j , k , mrec , nrec
-      real(rk8) :: offset , xscale
+      real(rkx) :: offset , xscale
       logical :: there
       character(len=4) , dimension(30) :: yr_a2 , yr_rf
       integer(ik4) :: year , month , day , hour
@@ -245,7 +245,7 @@ module mod_fvgcm
 
     call intlog(tp,t2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
 
-    call mxr2rh(t2,q2,pp3d,numx,numy,nlev,-9999.0D0)
+    call mxr2rh(t2,q2,pp3d,numx,numy,nlev,-9999.0_rkx)
     call intlin(qp,q2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
 
     call bilinx2(b3,b2,xlon,xlat,vlon,vlat,numx,numy,jx,iy,nlev*3)
@@ -286,10 +286,10 @@ module mod_fvgcm
     call getmem1d(vlon,1,numx,'fvgc:vlon')
 
     do j = 1 , numy
-      vlat(j) = lat0 + dble(j-1)*1.0D0
+      vlat(j) = lat0 + real(j-1,rkx)*1.0_rkx
     end do
     do i = 1 , numx
-      vlon(i) = lon0 + dble(i-1)*1.25D0
+      vlon(i) = lon0 + real(i-1,rkx)*1.25_rkx
     end do
 
     pplev(1) = 30.

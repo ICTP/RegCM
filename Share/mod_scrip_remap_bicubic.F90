@@ -68,13 +68,13 @@ module mod_scrip_remap_bicubic
   integer(ik4) , parameter :: max_iter = 100
 
   ! convergence criterion
-  real(rk8) , parameter :: converge = 1.D-10
+  real(rkx) , parameter :: converge = 1.e-10_rkx
 
   public :: remap_bicub , calculate_gradients
 
-  real(rk8) , allocatable , dimension(:) :: grad1_lat , grad1_lon
-  real(rk8) , allocatable , dimension(:) :: grad1_lon_zero , grad1_lat_zero
-  real(rk8) , allocatable , dimension(:) :: grad1_latlon
+  real(rkx) , allocatable , dimension(:) :: grad1_lat , grad1_lon
+  real(rkx) , allocatable , dimension(:) :: grad1_lon_zero , grad1_lat_zero
+  real(rkx) , allocatable , dimension(:) :: grad1_latlon
 
   public :: grad1_lat , grad1_lon , grad1_latlon
 
@@ -82,12 +82,12 @@ module mod_scrip_remap_bicubic
 
     subroutine calculate_gradients(grid1_array)
       implicit none
-      real(rk8) , dimension(:) , intent(in) :: grid1_array
+      real(rkx) , dimension(:) , intent(in) :: grid1_array
       integer(ik4) :: n , nx , ny
       integer(ik4) :: i , j , ip1 , im1 , jp1 , jm1
       integer(ik4) :: iin , iis , iie , iiw
       integer(ik4) :: ine , inw , ise , isw
-      real(rk8) :: delew , delns , dels
+      real(rkx) :: delew , delns , dels
 
       allocate(grad1_lat(grid1_size))
       allocate(grad1_lon(grid1_size))
@@ -228,11 +228,11 @@ module mod_scrip_remap_bicubic
       ! address for the four source points
       integer(ik4) , dimension(4) :: src_add
       ! coordinates of four bilinear corners
-      real(rk8) , dimension(4)  :: src_lats , src_lons
+      real(rkx) , dimension(4)  :: src_lats , src_lons
       ! bicubic weights for four corners
-      real(rk8) , dimension(4,4) :: wgts
+      real(rkx) , dimension(4,4) :: wgts
 
-      real(rk8) :: &
+      real(rkx) :: &
            plat , plon,         &! lat/lon coords of destination point
            iguess , jguess,     &! current guess for bilinear coordinate
            deli , delj,         &! corrections to i,j
@@ -577,15 +577,15 @@ module mod_scrip_remap_bicubic
       ! address of each corner point enclosing P
       integer(ik4) , dimension(4) , intent(out) :: src_add
       ! coordinates of the four corner points
-      real(rk8) , dimension(4) , intent(out) ::  src_lats , src_lons
+      real(rkx) , dimension(4) , intent(out) ::  src_lats , src_lons
       ! coordinates of the search point
-      real(rk8) , intent(in) :: plat , plon
+      real(rkx) , intent(in) :: plat , plon
       ! size of each src grid dimension
       integer(ik4) , dimension(2) , intent(in) :: src_grid_dims
       ! coordinates of each src grid center
-      real(rk8) , dimension(:) , intent(in) :: src_center_lat , src_center_lon
+      real(rkx) , dimension(:) , intent(in) :: src_center_lat , src_center_lon
       ! bounding box for src grid search
-      real(rk8) , dimension(:,:) , intent(in) :: src_bound_box
+      real(rkx) , dimension(:,:) , intent(in) :: src_bound_box
       ! search bins for restricting searches
       integer(ik4) , dimension(:,:) , intent(in) :: src_bin_add , dst_bin_add
 
@@ -594,11 +594,11 @@ module mod_scrip_remap_bicubic
                       min_add , max_add ,     & ! address for restricting search
                       i , j , jp1 , ip1 , n_add , e_add , ne_add  ! addresses
 
-      real(rk8) :: vec1_lat , vec1_lon ! vectors for cross-product check
-      real(rk8) :: vec2_lat , vec2_lon ! vectors for cross-product check
-      real(rk8) :: cross_product , cross_product_last
-      real(rk8) :: coslat_dst , sinlat_dst , coslon_dst , sinlon_dst
-      real(rk8) :: dist_min , distance ! for computing dist-weighted avg
+      real(rkx) :: vec1_lat , vec1_lon ! vectors for cross-product check
+      real(rkx) :: vec2_lat , vec2_lon ! vectors for cross-product check
+      real(rkx) :: cross_product , cross_product_last
+      real(rkx) :: coslat_dst , sinlat_dst , coslon_dst , sinlon_dst
+      real(rkx) :: dist_min , distance ! for computing dist-weighted avg
       !
       ! restrict search first using search bins.
       !
@@ -780,7 +780,7 @@ module mod_scrip_remap_bicubic
       ! addresses on source grid
       integer(ik4) , dimension(4) , intent(in) :: src_add
       ! array of remapping weights for these links
-      real(rk8) , dimension(4,4) , intent(in) :: weights
+      real(rkx) , dimension(4,4) , intent(in) :: weights
 
       integer(ik4) :: n ! dummy index
       integer(ik4) :: num_links_old ! placeholder for old link number

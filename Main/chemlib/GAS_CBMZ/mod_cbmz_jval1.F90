@@ -35,22 +35,22 @@ module mod_cbmz_jval1
     subroutine jvalpro(nhv,hvmat,jarray,jparam,jval)
       implicit none
 !
-      real(rk8) , dimension(22,40) :: hvmat
-      real(rk8) , dimension(22) :: jparam
-      real(rk8) , dimension(80,510,56) :: jarray
-      real(rk8) , dimension(56) :: jval
+      real(rkx) , dimension(22,40) :: hvmat
+      real(rkx) , dimension(22) :: jparam
+      real(rkx) , dimension(80,510,56) :: jarray
+      real(rkx) , dimension(56) :: jval
       integer(ik4) , dimension(22) :: nhv
       intent (in) hvmat , jarray , jparam , nhv
       intent (inout) jval
 !
-      real(rk8) , dimension(56) :: cfac , jfaerz , jfsur
-      real(rk8) :: falt , fzen , x
-      real(rk8) :: fkn
+      real(rkx) , dimension(56) :: cfac , jfaerz , jfsur
+      real(rkx) :: falt , fzen , x
+      real(rkx) :: fkn
       integer(ik4) :: i , ialt , id , ig01 , ig02 , ig11 , ig12 , ig21 ,     &
                  ig22 , ij , im , iwri , iy , izen , j , jaer , jalb ,  &
                  jc , jcld , jct , jtem , k , kn
-      real(rk8) , dimension(20,56) :: jfrac
-      real(rk8) , dimension(20) :: jfx
+      real(rkx) , dimension(20,56) :: jfrac
+      real(rkx) , dimension(20) :: jfx
 !
 !     This Subroutine takes jparams (zenith, altitude, etc.)
 !     and generates jvals from table, for up to 56 species.
@@ -73,18 +73,18 @@ module mod_cbmz_jval1
 !     cfac = 2CLOUD ABOVE-BELOW FACTOR  (link to OPTION below)
 
 !     CORRECT FACTORS BASED ON JTAB AND (jclb*jclbm-1)*(1-jcla*jclam)
-      data cfac/0.000D+00 , 6.175D-01 , 2.079D+00 , 1.774D+00 , 2.407D+00 , &
-                2.479D+00 , 2.365D+00 , 1.495D+00 , 0.000D+00 , 0.000D+00 , &
-                1.424D+00 , 1.732D+00 , 1.180D+00 , 1.202D+00 , 1.373D+00 , &
-                1.538D+00 , 9.732D-01 , 0.000D+00 , 0.000D+00 , 1.228D+00 , &
-                1.911D+00 , 1.831D+00 , 8.667D-01 , 1.481D+00 , 1.170D+00 , &
-                1.336D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , &
-                0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , &
-                0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , &
-                0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , &
-                0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , &
-                0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , &
-                0.000D+00/
+      data cfac/0.000_rkx , 6.175e-1_rkx , 2.079_rkx , 1.774_rkx , 2.407_rkx , &
+                2.479_rkx , 2.365_rkx , 1.495_rkx , 0.000_rkx , 0.000_rkx , &
+                1.424_rkx , 1.732_rkx , 1.180_rkx , 1.202_rkx , 1.373_rkx , &
+                1.538_rkx , 9.732e-1_rkx , 0.000_rkx , 0.000_rkx , 1.228_rkx , &
+                1.911_rkx , 1.831_rkx , 8.667e-1_rkx , 1.481_rkx , 1.170_rkx , &
+                1.336_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+                0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+                0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+                0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+                0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+                0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
+                0.000_rkx/
 
 !     ORIGINAL (OLD) FACTORS CALCULATED BASED  ON JTAB (old correct)
 !     (4=1.319, 1.699,  1.839 2.147)
@@ -153,9 +153,9 @@ module mod_cbmz_jval1
 !         Test to exit if matrix intervals are zero
 !         (note:  matrix must be monotonically increasing or decreasing)
 
-          if ( dabs(hvmat(i,1)-hvmat(i,nhv(i))) > dlowval ) then
+          if ( abs(hvmat(i,1)-hvmat(i,nhv(i))) > dlowval ) then
             do j = 1 , (nhv(i)-1)
-              if ( dabs(hvmat(i,j)-hvmat(i,j+1)) < dlowval ) then
+              if ( abs(hvmat(i,j)-hvmat(i,j+1)) < dlowval ) then
                 exit jparamloop
               end if
             end do
@@ -163,11 +163,11 @@ module mod_cbmz_jval1
 !           Enter fraction for parameter outside matrix range
             if ( hvmat(i,1) < hvmat(i,nhv(i)) ) then
               if ( jparam(i) <= hvmat(i,1) ) jfx(i) = d_one
-              if ( jparam(i) >= hvmat(i,nhv(i)) ) jfx(i) = dble(nhv(i))
+              if ( jparam(i) >= hvmat(i,nhv(i)) ) jfx(i) = real(nhv(i),rkx)
             end if
             if ( hvmat(i,1) > hvmat(i,nhv(i)) ) then
               if ( jparam(i) >= hvmat(i,1) ) jfx(i) = d_one
-              if ( jparam(i) <= hvmat(i,nhv(i)) ) jfx(i) = dble(nhv(i))
+              if ( jparam(i) <= hvmat(i,nhv(i)) ) jfx(i) = real(nhv(i),rkx)
             end if
 
 !           Enter fraction for parameter inside matrix range
@@ -176,7 +176,7 @@ module mod_cbmz_jval1
                     jparam(i) <= hvmat(i,j+1)) .or. &
                    (jparam(i) <= hvmat(i,j) .and. &
                     jparam(i) >= hvmat(i,j+1)) ) then
-                jfx(i) = dble(j) + &
+                jfx(i) = real(j,rkx) + &
                      (jparam(i)-hvmat(i,j))/(hvmat(i,j+1)-hvmat(i,j))
               end if
             end do
@@ -214,12 +214,12 @@ module mod_cbmz_jval1
 !     NOTE:  TO VECTORIZE:  fzen, falt, izen, ialt, ig11, etc
 !     must all be vectors.  Skip.
 
-      izen = idint(jfx(1))
+      izen = int(jfx(1))
       if ( izen == nhv(1) ) izen = izen - 1
-      fzen = d_one + dble(izen) - jfx(1)
-      ialt = idint(jfx(2))
+      fzen = d_one + real(izen,rkx) - jfx(1)
+      ialt = int(jfx(2))
       if ( ialt == nhv(2) ) ialt = ialt - 1
-      falt = d_one + dble(ialt) - jfx(2)
+      falt = d_one + real(ialt,rkx) - jfx(2)
 
       ig11 = izen + nhv(1)*(ialt-1)
       ig12 = ig11
@@ -299,9 +299,9 @@ module mod_cbmz_jval1
 
 !         value. Establish adjustment factor and k-index for jarray
 !         (VECTORIZE)
-          kn = k + idint(jfx(i))
-          if ( idint(jfx(i)) == nhv(i) ) kn = kn - 1
-          fkn = d_one + dble(kn-k) - jfx(i)
+          kn = k + int(jfx(i))
+          if ( int(jfx(i)) == nhv(i) ) kn = kn - 1
+          fkn = d_one + real(kn-k,rkx) - jfx(i)
 !
 !         TEST WRITE:
           if ( fkn < d_zero .or. fkn > d_one ) then
@@ -418,8 +418,8 @@ module mod_cbmz_jval1
             ij = i - 2
             do jc = 1 , jct
               jfrac(i,jc) = d_one - jfrac(i,jc)*(d_one-jfrac((ij),jc))
-              if ( jfrac(i,jc) < 0.1D0 ) jfrac(i,jc) = 0.1D0
-              if ( jfrac(i,jc) > 10.0D0 ) jfrac(i,jc) = 10.0D0
+              if ( jfrac(i,jc) < 0.1_rkx ) jfrac(i,jc) = 0.1_rkx
+              if ( jfrac(i,jc) > 10.0_rkx ) jfrac(i,jc) = 10.0_rkx
             end do
 !           TEST WRITE
             if ( iwri == 1 ) then
@@ -453,8 +453,8 @@ module mod_cbmz_jval1
               else
                 jfrac(i,jc) = d_one - jfrac(i,jc)*(d_one-jfrac((ij),jc))
               end if
-              if ( jfrac(i,jc) < 0.1D0 ) jfrac(i,jc) = 0.1D0
-              if ( jfrac(i,jc) > 10.0D0 ) jfrac(i,jc) = 10.0D0
+              if ( jfrac(i,jc) < 0.1_rkx ) jfrac(i,jc) = 0.1_rkx
+              if ( jfrac(i,jc) > 10.0_rkx ) jfrac(i,jc) = 10.0_rkx
             end do
 !           TEST WRITE
             if ( iwri == 1 ) then
@@ -567,7 +567,7 @@ module mod_cbmz_jval1
                                    hvmat(jtem,ialt) , hvmat(jtem,ialt+1)
             end if
             do jc = 1 , jct
-              jfrac(jtem,jc) = d_one + 0.1D0*x*jfrac(jtem,jc)
+              jfrac(jtem,jc) = d_one + 0.1_rkx*x*jfrac(jtem,jc)
             end do
 
 !           TEST WRITE
@@ -601,8 +601,8 @@ module mod_cbmz_jval1
           end do
 !         TEST J-VALUE  FINAL FRACTIONAL ADJUSTMENT
           if ( iwri == 1 .and. &
-               dabs(jfrac(i,1)-d_one) < dlowval .and. &
-               dabs(jfrac(i,2)-d_one) < dlowval ) then
+               abs(jfrac(i,1)-d_one) < dlowval .and. &
+               abs(jfrac(i,2)-d_one) < dlowval ) then
             write (57,99019) i , jfrac(i,2) , jval(2) , jfrac(i,4) , jval(4)
           end if
         end if
@@ -616,18 +616,18 @@ module mod_cbmz_jval1
 !     DAY FACTOR (X) IS cos(nd*2.*pi/365)
 
       x = jparam(20)
-      if ( x > d_one .and. x < 10000.0D0 ) then
-        x = dcos(d_two*mathpi*(jparam(20)/dayspy))
+      if ( x > d_one .and. x < 10000.0_rkx ) then
+        x = cos(d_two*mathpi*(jparam(20)/dayspy))
       end if
-      if ( x >= 10000.0D0 ) then
-        iy = idint((x+0.001D0)/10000.0D0)
-        im = idint((x+0.001D0-10000.0D0*dble(iy))/100.0D0)
-        id = idint((x+0.001D0-10000.0D0*dble(iy)-100.0D0*dble(im)))
-        x = dcos(d_two*mathpi*(dble(id+30*(im-1))/dayspy))
+      if ( x >= 10000.0_rkx ) then
+        iy = int((x+0.001_rkx)/10000.0_rkx)
+        im = int((x+0.001_rkx-10000.0_rkx*real(iy,rkx))/100.0_rkx)
+        id = int((x+0.001_rkx-10000.0_rkx*real(iy,rkx)-100.0_rkx*real(im,rkx)))
+        x = cos(d_two*mathpi*(real(id+30*(im-1),rkx)/dayspy))
       end if
 
 !     ADJUSTMENT:  x IS DAY FACTOR, -1. to +1.  NOW MAKE DAY ADJUSTMENT.
-      x = d_one + 0.0344D0*x
+      x = d_one + 0.0344_rkx*x
 !     ADJUST BASE J-VALUE FOR DATE
       do jc = 1 , jct
         jval(jc) = jval(jc)*x
@@ -700,18 +700,18 @@ module mod_cbmz_jval1
       implicit none
 !
       integer(ik4) :: lsin
-      real(rk8) , dimension(22,40) :: hvmat
-      real(rk8) , dimension(22) :: hvmatb
-      real(rk8) , dimension(80,510,56) :: jarray
+      real(rkx) , dimension(22,40) :: hvmat
+      real(rkx) , dimension(22) :: hvmatb
+      real(rkx) , dimension(80,510,56) :: jarray
       integer(ik4) , dimension(22) :: nhv
       intent (in) lsin
       intent (inout) hvmat , hvmatb , jarray , nhv
 !
       character(4) :: aaa
-      real(rk8) , dimension(22) :: hvmatz
+      real(rkx) , dimension(22) :: hvmatz
       integer(ik4) :: i , ig , iwri , iz , j , jaer , jalb , jc , jcld ,     &
                  jct , jtem , k , m , n , nmax
-      real(rk8) :: x , y
+      real(rkx) :: x , y
 !
 !     Output matrix:  jarray(k,ig,jc) for
 !     k=cases:  k=1 base case, k>1 adjustment factors
@@ -841,7 +841,7 @@ module mod_cbmz_jval1
 !           SKIPS BASE CASE ADJUSTMENT FACTOR IN ALL SUBSEQUENT LOOPS
 !           BUT INCLUDES IT IN FIRST LOOP (m=2, k=2 was early error)
 !           if(k.eq.2.or.(hvmat(m,n).ne.hvmatb(m))) then
-            if ( m == 2 .or. dabs((hvmat(m,n)-hvmatb(m))) > dlowval ) then
+            if ( m == 2 .or. abs((hvmat(m,n)-hvmatb(m))) > dlowval ) then
 !             CASE HEADING
               read (lsin,99001) aaa
               if ( iwri == 1 ) write (57,*) k

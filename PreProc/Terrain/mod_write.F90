@@ -205,22 +205,22 @@ module mod_write
     character (len=*) , intent(in) :: fname
     logical , intent(in) :: lsub , lndfudge , texfudge , lakfudge
     integer(ik4) , intent(in) :: ntype
-    real(rk8) , dimension(:) , pointer , intent(in) :: sigma
-    real(rk8) , dimension(:,:) , pointer , intent(in) :: xlat , xlon
-    real(rk8) , dimension(:,:) , pointer , intent(in) :: dlat , dlon
-    real(rk8) , dimension(:,:) , pointer , intent(in) :: xmap , dmap , coriol
-    real(rk8) , dimension(:,:) , pointer , intent(in) :: mask
-    real(rk8) , dimension(:,:) , pointer , intent(in) :: htgrid , lndout
-    real(rk8) , dimension(:,:) , pointer , intent(in) :: snowam
-    real(rk8) , dimension(:,:) , pointer , intent(in) :: smoist
-    real(rk8) , dimension(:,:) , pointer , intent(in) :: dpth
-    real(rk8) , dimension(:,:) , pointer , intent(in) :: texout
-    real(rk8) , dimension(:,:) , pointer , intent(in) :: ps0
-    real(rk8) , dimension(:,:,:) , pointer , intent(in) :: rmoist
-    real(rk8) , dimension(:,:,:) , pointer , intent(in) :: frac_tex
-    real(rk8) , dimension(:,:,:) , pointer , intent(in) :: pr0
-    real(rk8) , dimension(:,:,:) , pointer , intent(in) :: t0
-    real(rk8) , dimension(:,:,:) , pointer , intent(in) :: rho0
+    real(rkx) , dimension(:) , pointer , intent(in) :: sigma
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: xlat , xlon
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: dlat , dlon
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: xmap , dmap , coriol
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: mask
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: htgrid , lndout
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: snowam
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: smoist
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: dpth
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: texout
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: ps0
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: rmoist
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: frac_tex
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: pr0
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: t0
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: rho0
 
     type(nc_output_stream) :: ncout
     type(ncoutstream_params) :: opar

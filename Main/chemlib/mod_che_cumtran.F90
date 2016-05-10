@@ -36,7 +36,7 @@ module mod_che_cumtran
 
   subroutine cumtran
     implicit none
-    real(rk8) :: chiabar , chibbar , deltas , cumfrc
+    real(rkx) :: chiabar , chibbar , deltas , cumfrc
     integer(ik4) :: i , j , k , kctop , n
 
     if ( ichdiag == 1 ) then

@@ -62,14 +62,14 @@ module mod_sst_1deg
   subroutine sst_1deg
     implicit none
     integer(ik4) , parameter :: ilon = 360 , jlat = 180
-    real(rk8) , dimension(ilon,jlat) :: sst , ice
+    real(rkx) , dimension(ilon,jlat) :: sst , ice
     real(rk4) , dimension(ilon,jlat) :: gisst
     integer(ik4) :: i , j , k , iwk , nrec
     integer(ik4) :: nsteps
     integer :: gireclen
     type(rcm_time_and_date) :: idate , idateo , idatef , idatem , irefd
-    real(rk8) , dimension(jlat) :: lati
-    real(rk8) , dimension(ilon) :: loni
+    real(rkx) , dimension(jlat) :: lati
+    real(rkx) , dimension(ilon) :: loni
     character(len=256) :: inpfile
     logical :: there
 
@@ -243,7 +243,7 @@ module mod_sst_1deg
     integer(ik4) , intent(in) :: ilon , jlat
     type(rcm_time_and_date) :: idate , idate0
     character(len=256) , intent(in) :: pathaddname
-    real(rk8) , dimension(ilon,jlat) :: sst
+    real(rkx) , dimension(ilon,jlat) :: sst
     intent (out) :: sst
     integer(ik4) :: i , it , j
     character(len=5) :: varname
@@ -251,7 +251,7 @@ module mod_sst_1deg
     integer(ik4) :: istatus
     integer(ik4) , dimension(3) , save :: icount , istart
     integer(ik4) , save :: inet , ivar
-    real(rk8) , save :: xadd , xscale
+    real(rkx) , save :: xadd , xscale
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -309,7 +309,7 @@ module mod_sst_1deg
     integer(ik4) , intent(in) :: ilon , jlat
     type(rcm_time_and_date) :: idate , idate0
     character(len=256) , intent(in) :: pathaddname
-    real(rk8) , dimension(ilon,jlat) :: ice
+    real(rkx) , dimension(ilon,jlat) :: ice
     intent (out) :: ice
     integer(ik4) :: i , it , j
     character(len=5) :: varname
@@ -317,7 +317,7 @@ module mod_sst_1deg
     integer(ik4) :: istatus
     integer(ik4) , dimension(3) , save :: icount , istart
     integer(ik4) , save :: inet , ivar
-    real(rk8) , save :: xadd , xscale
+    real(rkx) , save :: xadd , xscale
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -373,14 +373,14 @@ module mod_sst_1deg
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) , intent(in) :: kkk , ilon , jlat
     character(len=256) , intent(in) :: pathaddname
-    real(rk8) , dimension(ilon,jlat) , intent(out) :: sst
+    real(rkx) , dimension(ilon,jlat) , intent(out) :: sst
     integer(ik4) :: i , j
     character(len=3) :: varname
     integer(ik4) :: istatus
     integer(2) , dimension(ilon,jlat) :: work , work1
     integer(ik4) , dimension(3) , save :: icount , istart
     integer(ik4) , save :: inet , ivar
-    real(rk8) , save :: xadd , xscale
+    real(rkx) , save :: xadd , xscale
     character(len=256) , save :: usename
     !
     ! This is the latitude, longitude dimension of the grid to be read.
@@ -461,14 +461,14 @@ module mod_sst_1deg
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) , intent(in) :: kkk , ilon , jlat
     character(len=256) , intent(in) :: pathaddname
-    real(rk8) , dimension(ilon,jlat) , intent(out) :: ice
+    real(rkx) , dimension(ilon,jlat) , intent(out) :: ice
     integer(ik4) :: i , j
     character(len=4) :: varname
     integer(2) , dimension(ilon,jlat) :: work , work1
     integer(ik4) :: istatus
     integer(ik4) , dimension(3) , save :: icount , istart
     integer(ik4) , save :: inet , ivar
-    real(rk8) , save :: xadd , xscale
+    real(rkx) , save :: xadd , xscale
     character(len=256) , save :: usename
     !
     ! This is the latitude, longitude dimension of the grid to be read.

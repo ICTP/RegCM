@@ -27,9 +27,9 @@ module mod_rdldtr
 
   private
 
-  real(rk8) , dimension(:,:) , pointer :: readbuf
-  real(rk8) , dimension(:) , pointer :: copybuf
-  real(rk8) , dimension(:,:) , pointer :: values
+  real(rkx) , dimension(:,:) , pointer :: readbuf
+  real(rkx) , dimension(:) , pointer :: copybuf
+  real(rkx) , dimension(:,:) , pointer :: values
 
   public :: values , read_ncglob
 
@@ -66,7 +66,7 @@ module mod_rdldtr
     integer(ik4) :: nlogb , nlagb , hnlogb , hnlagb , nfrac
     integer(ik4) , parameter :: secpd = 3600
     integer(ik4) , parameter :: secpm = 60
-    real(rk8) :: delta
+    real(rkx) :: delta
 
     if ( iores <= 0 ) then
       iosec = iires
@@ -91,7 +91,7 @@ module mod_rdldtr
 
     ireg = 0
     if ( lreg ) ireg = 1
-    delta = ((dble(iires)/d_two)/dble(secpd))*dble(ireg)
+    delta = ((real(iires,rkx)/d_two)/real(secpd,rkx))*real(ireg,rkx)
 
     grdltmn = floor(xminlat)  -delta
     grdltma = ceiling(xmaxlat)+delta
@@ -110,14 +110,14 @@ module mod_rdldtr
     write(stderr,*) 'BOUNDS IN LON: ', grdlnmn , grdlnma
 #endif
 
-    nlat = idnint((grdltma-grdltmn)*dble(inpsec))
+    nlat = nint((grdltma-grdltmn)*real(inpsec,rkx))
     if (lonwrap) then
       nlon = nlogb + 1 - ireg
     else if (lcrosstime) then
-      nlon = idnint(((deg180-delta-grdlnmn)+ &
-                     (deg180-delta+grdlnma))*dble(inpsec))
+      nlon = nint(((deg180-delta-grdlnmn)+ &
+                     (deg180-delta+grdlnma))*real(inpsec,rkx))
     else
-      nlon = idnint((grdlnma-grdlnmn)*dble(inpsec))
+      nlon = nint((grdlnma-grdlnmn)*real(inpsec,rkx))
     end if
 
     nlatin = (nlat/ifrac)+1
@@ -152,11 +152,11 @@ module mod_rdldtr
     else
       l3d = .false.
     end if
-    istart(2) = hnlagb+idnint(grdltmn*dble(inpsec))+1
+    istart(2) = hnlagb+nint(grdltmn*real(inpsec,rkx))+1
     if (lonwrap) then
       istart(1) = 1
     else
-      istart(1) = hnlogb+idnint(grdlnmn*dble(inpsec))+1
+      istart(1) = hnlogb+nint(grdlnmn*real(inpsec,rkx))+1
     end if
     if (.not. lcrosstime) then
       ! Simple case: not crossing timeline
@@ -217,7 +217,7 @@ module mod_rdldtr
             do j = 1 , nlonin
               call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                            (i-1)*ifrac+1,ifrac,lcrosstime)
-              values(j,i) = sum(copybuf)/dble(size(copybuf))
+              values(j,i) = sum(copybuf)/real(size(copybuf),rkx)
             end do
           end do
         case (2)
@@ -237,7 +237,7 @@ module mod_rdldtr
             do j = 1 , nlonin
               call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                            (i-1)*ifrac+1,ifrac,lcrosstime)
-              values(j,i) = dble(mpindex(copybuf))
+              values(j,i) = real(mpindex(copybuf),rkx)
             end do
           end do
         case default
@@ -263,8 +263,8 @@ module mod_rdldtr
   subroutine fillbuf(copybuf,readbuf,ni,nj,i,j,isize,lwrap)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , isize
-    real(rk8) , dimension(isize*isize) , intent(out) :: copybuf
-    real(rk8) , dimension(ni,nj) , intent(in) :: readbuf
+    real(rkx) , dimension(isize*isize) , intent(out) :: copybuf
+    real(rkx) , dimension(ni,nj) , intent(in) :: readbuf
     integer(ik4) , intent(in) :: i , j
     logical , intent(in) :: lwrap
     integer(ik4) :: hsize , imin , imax , jmin , jmax , icnt , jcnt , ip
@@ -298,7 +298,7 @@ module mod_rdldtr
 
   pure integer(ik4) function mpindex(x) result(res)
     implicit none
-    real(rk8) , dimension(:) , intent(in) :: x
+    real(rkx) , dimension(:) , intent(in) :: x
     integer(ik4) , dimension(32) :: cnt
     integer(ik4) :: i
     cnt = 0
@@ -310,7 +310,7 @@ module mod_rdldtr
 
   recursive subroutine qsort(a)
     implicit none
-    real(rk8) , dimension(:) , intent(in out) :: a
+    real(rkx) , dimension(:) , intent(in out) :: a
     integer(ik4) :: np , isplit
 
     np = size(a)
@@ -323,10 +323,10 @@ module mod_rdldtr
 
   subroutine partition(a, marker)
     implicit none
-    real(rk8) , dimension(:) , intent(inout) :: a
+    real(rkx) , dimension(:) , intent(inout) :: a
     integer(ik4) , intent(out) :: marker
     integer(ik4) :: np , left , right
-    real(rk8) :: temp , pivot
+    real(rkx) :: temp , pivot
 
     np = size(a)
     pivot = (a(1) + a(np))/2.0E0

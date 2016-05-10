@@ -40,42 +40,42 @@ module mod_pbl_holtbl
 
   public :: allocate_mod_pbl_holtbl , holtbl
 
-  real(rk8) , pointer , dimension(:,:,:) :: vv , cgh , kvc , kvh ,   &
+  real(rkx) , pointer , dimension(:,:,:) :: vv , cgh , kvc , kvh ,   &
                                           kvm , kvq ! , cgq
-  real(rk8) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &
+  real(rkx) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &
                                        ustr , xhfx , xqfx , pfcor
 
-  real(rk8) , pointer , dimension(:,:,:) :: alphak , betak , &
+  real(rkx) , pointer , dimension(:,:,:) :: alphak , betak , &
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
                         coeff2 , tpred1 , tpred2
-  real(rk8) , pointer , dimension(:,:,:) :: kzm , rc , ttnp
-  real(rk8) , pointer , dimension(:,:) :: govrth , uvdrage
-  real(rk8) , pointer , dimension(:) :: hydf
+  real(rkx) , pointer , dimension(:,:,:) :: kzm , rc , ttnp
+  real(rkx) , pointer , dimension(:,:) :: govrth , uvdrage
+  real(rkx) , pointer , dimension(:) :: hydf
 
-  real(rk8) , pointer , dimension(:,:,:) :: dza , thvx
-  real(rk8) , pointer , dimension(:,:,:) :: akzz1 , akzz2
-  real(rk8) , pointer , dimension(:,:,:) :: rhohf
+  real(rkx) , pointer , dimension(:,:,:) :: dza , thvx
+  real(rkx) , pointer , dimension(:,:,:) :: akzz1 , akzz2
+  real(rkx) , pointer , dimension(:,:,:) :: rhohf
 
-  real(rk8) , pointer , dimension(:,:,:) :: ri
-  real(rk8) , pointer , dimension(:,:) :: therm
+  real(rkx) , pointer , dimension(:,:,:) :: ri
+  real(rkx) , pointer , dimension(:,:) :: therm
 
   ! minimum eddy diffusivity
-  real(rk8) , parameter :: kzo = d_one
-  real(rk8) , parameter :: szkm = 1600.0D0
+  real(rkx) , parameter :: kzo = d_one
+  real(rkx) , parameter :: szkm = 1600.0_rkx
   ! coef. of proportionality and lower % of bl in sfc layer
-  real(rk8) , parameter :: fak = 8.5D0
-  real(rk8) , parameter :: sffrac = 0.1D0
+  real(rkx) , parameter :: fak = 8.5_rkx
+  real(rkx) , parameter :: sffrac = 0.1_rkx
   ! beta coefs. for momentum, stable conditions and heat
-  real(rk8) , parameter :: betam = 15.0D0
-  real(rk8) , parameter :: betas = 5.0D0
-  real(rk8) , parameter :: betah = 15.0D0
-  real(rk8) , parameter :: ccon = fak*sffrac*vonkar
-  real(rk8) , parameter :: gvk = egrav*vonkar
-  real(rk8) , parameter :: gpcf = egrav/d_1000 ! Grav and pressure conversion
-  real(rk8) , parameter :: binm = betam*sffrac
-  real(rk8) , parameter :: binh = betah*sffrac
+  real(rkx) , parameter :: betam = 15.0_rkx
+  real(rkx) , parameter :: betas = 5.0_rkx
+  real(rkx) , parameter :: betah = 15.0_rkx
+  real(rkx) , parameter :: ccon = fak*sffrac*vonkar
+  real(rkx) , parameter :: gvk = egrav*vonkar
+  real(rkx) , parameter :: gpcf = egrav/d_1000 ! Grav and pressure conversion
+  real(rkx) , parameter :: binm = betam*sffrac
+  real(rkx) , parameter :: binh = betah*sffrac
   ! power in formula for k and critical ri for judging stability
-  real(rk8) , parameter :: pink = d_two
+  real(rkx) , parameter :: pink = d_two
 
   contains
 
@@ -130,7 +130,7 @@ module mod_pbl_holtbl
     implicit none
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
-    real(rk8) :: drgdot , kzmax , oblen , xps , ps2 , ri , sf , sh10 , &
+    real(rkx) :: drgdot , kzmax , oblen , xps , ps2 , ri , sf , sh10 , &
                  ss , uflxsf , uflxsfx , vflxsf , vflxsfx
     integer(ik4) :: i , j , k , itr
 #ifdef DEBUG
@@ -183,7 +183,7 @@ module mod_pbl_holtbl
     do k = 2 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rc(j,i,k) = 0.257D0*m2p%dzq(j,i,k)**0.175D0
+          rc(j,i,k) = 0.257_rkx*m2p%dzq(j,i,k)**0.175_rkx
         end do
       end do
     end do
@@ -194,14 +194,14 @@ module mod_pbl_holtbl
     do k = 2 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          kzmax = 0.8D0*dza(j,i,k-1)*m2p%dzq(j,i,k)*rdt
+          kzmax = 0.8_rkx*dza(j,i,k-1)*m2p%dzq(j,i,k)*rdt
           vv(j,i,k) = m2p%uxatm(j,i,k)*m2p%uxatm(j,i,k) + &
                       m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k)
           ss = ((m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))*   &
                 (m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))+   &
                 (m2p%vxatm(j,i,k-1)-m2p%vxatm(j,i,k))*   &
                 (m2p%vxatm(j,i,k-1)-m2p%vxatm(j,i,k)))/  &
-                (dza(j,i,k-1)*dza(j,i,k-1)) + 1.0D-9
+                (dza(j,i,k-1)*dza(j,i,k-1)) + 1.0e-9_rkx
           ri = govrth(j,i)*(thvx(j,i,k-1)-thvx(j,i,k))/(ss*dza(j,i,k-1))
           if ( (ri-rc(j,i,k)) >= d_zero ) then
             kzm(j,i,k) = kzo
@@ -244,9 +244,9 @@ module mod_pbl_holtbl
         xhfx(j,i) = m2p%hfx(j,i)/(cpd*m2p%rhox2d(j,i))
         xqfx(j,i) = m2p%qfx(j,i)/m2p%rhox2d(j,i)
         ! compute virtual heat flux at surface
-        hfxv(j,i) = xhfx(j,i) + 0.61D0 *m2p%tpatm(j,i,kz)*xqfx(j,i)
+        hfxv(j,i) = xhfx(j,i) + 0.61_rkx *m2p%tpatm(j,i,kz)*xqfx(j,i)
         ! limit coriolis parameter to value at 10 deg. latitude
-        pfcor(j,i) = max(abs(m2p%coriol(j,i)),2.546D-5)
+        pfcor(j,i) = max(abs(m2p%coriol(j,i)),2.546e-5_rkx)
       end do
     end do
     !
@@ -265,8 +265,8 @@ module mod_pbl_holtbl
         else
           ! first approximation for obhukov length
           if ( ifaholtth10 == 2 ) then
-            th10(j,i) = (0.25D0*m2p%tpatm(j,i,kz) + &
-                         0.75D0*m2p%tgb(j,i))*(d_one+ep1*sh10)
+            th10(j,i) = (0.25_rkx*m2p%tpatm(j,i,kz) + &
+                         0.75_rkx*m2p%tgb(j,i))*(d_one+ep1*sh10)
           else if ( ifaholtth10 == 3 ) then
             th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
                         log(m2p%za(j,i,kz)*d_r10))
@@ -275,7 +275,7 @@ module mod_pbl_holtbl
                          (d_one + ep1*sh10)
           end if
           oblen = -(th10(j,i)*ustr(j,i)**3) /  &
-                  (gvk*(hfxv(j,i)+sign(1.0D-10,hfxv(j,i))))
+                  (gvk*(hfxv(j,i)+sign(1.0e-10_rkx,hfxv(j,i))))
           if ( oblen >= m2p%za(j,i,kz) ) then
             th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
                (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
@@ -283,10 +283,10 @@ module mod_pbl_holtbl
             if ( oblen < m2p%za(j,i,kz) .and. oblen > d_10 ) then
               th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
                   (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
-                  6.0D0*log(m2p%za(j,i,kz)/oblen))
+                  6.0_rkx*log(m2p%za(j,i,kz)/oblen))
             else
               th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)) * &
-                          6.0D0*log(m2p%za(j,i,kz)*d_r10)
+                          6.0_rkx*log(m2p%za(j,i,kz)*d_r10)
             end if
           end if
         end if
@@ -297,7 +297,7 @@ module mod_pbl_holtbl
         end if
         ! obklen compute obukhov length
         obklen(j,i) = -(th10(j,i)*ustr(j,i)**3) / &
-                (gvk*(hfxv(j,i)+sign(1.0D-10,hfxv(j,i))))
+                (gvk*(hfxv(j,i)+sign(1.0e-10_rkx,hfxv(j,i))))
       end do
     end do
 
@@ -745,6 +745,8 @@ module mod_pbl_holtbl
           do j = jci1 , jci2
             coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
             coeff1(j,i,1) = m2p%chib(j,i,1,itr)/coef2(j,i,1)
+            if ( abs(coeff1(j,i,1)) < epsilon(d_one) ) coeff1(j,i,1) = d_zero
+            if ( abs(coefe(j,i,1)) < epsilon(d_one) ) coefe(j,i,1) = d_zero
           end do
         end do
         do k = 2 , kz - 1
@@ -755,6 +757,8 @@ module mod_pbl_holtbl
               coeff1(j,i,k) = (m2p%chib(j,i,k,itr) + &
                       coef3(j,i,k)*coeff1(j,i,k-1)) / &
                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+              if ( abs(coeff1(j,i,k)) < epsilon(d_one) ) coeff1(j,i,k) = d_zero
+              if ( abs(coefe(j,i,k)) < epsilon(d_one) ) coefe(j,i,k) = d_zero
             end do
           end do
         end do
@@ -766,6 +770,7 @@ module mod_pbl_holtbl
                   m2p%chib(j,i,kz,itr)*m2p%drydepv(j,i,itr)*m2p%rhox2d(j,i) + &
                   coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                   (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+            if ( abs(coeff1(j,i,kz)) < epsilon(d_one) ) coeff1(j,i,kz) = d_zero
           end do
         end do
         !
@@ -780,7 +785,12 @@ module mod_pbl_holtbl
         do k = kz - 1 , 1 , -1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
+              if ( abs(coefe(j,i,k)) > 1.0e-5 .and. &
+                   abs(tpred1(j,i,k+1)) > 1.0e-5 ) then
+                tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
+              else
+                tpred1(j,i,k) = coeff1(j,i,k)
+              end if
             end do
           end do
         end do
@@ -848,7 +858,7 @@ module mod_pbl_holtbl
   implicit none
   type(mod_2_pbl) , intent(in) :: m2p
   type(pbl_2_mod) , intent(inout) :: p2m
-  real(rk8) :: fak1 , fak2 , fht , xfmt , pblk , pblk1 , pblk2 , &
+  real(rkx) :: fak1 , fak2 , fht , xfmt , pblk , pblk1 , pblk2 , &
              phpblm , pr , therm2 , tkv , tlv , wsc , z , zh , &
              zl , zm , zp , zzh , zzhnew , zzhnew2
   integer(ik4) :: i , j , k , k2
@@ -960,7 +970,7 @@ module mod_pbl_holtbl
   do i = ici1 , ici2
     do j = jci1 , jci2
       ! compute mechanical mixing depth, set to lowest model level if lower
-      phpblm = 0.07D0*ustr(j,i)/pfcor(j,i)
+      phpblm = 0.07_rkx*ustr(j,i)/pfcor(j,i)
       phpblm = max(phpblm,m2p%za(j,i,kz))
       p2m%zpbl(j,i) = max(p2m%zpbl(j,i),phpblm)
     end do
@@ -1018,7 +1028,7 @@ module mod_pbl_holtbl
             kvh(j,i,k) = kvm(j,i,k)
             kvq(j,i,k) = max(pblk1,kzo)
             ! Erika put k=0 in very stable conditions
-            if ( zl <= 0.1D0 ) then
+            if ( zl <= 0.1_rkx ) then
               kvm(j,i,k) = d_zero
               kvh(j,i,k) = d_zero
               kvq(j,i,k) = d_zero

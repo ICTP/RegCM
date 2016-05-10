@@ -31,16 +31,16 @@ module mod_rad_common
   ! emstot  - Total emissivity
 
   ! Those need to be saved in output file
-  real(rk8) , pointer , dimension(:,:,:) :: o3prof
-  real(rk8) , pointer , dimension(:,:,:,:)  :: gasabsnxt
-  real(rk8) , pointer , dimension(:,:,:,:)  :: gasabstot
-  real(rk8) , pointer , dimension(:,:,:) :: gasemstot
-  real(rk8) , pointer , dimension(:,:,:,:) :: taucldsp
+  real(rkx) , pointer , dimension(:,:,:) :: o3prof
+  real(rkx) , pointer , dimension(:,:,:,:)  :: gasabsnxt
+  real(rkx) , pointer , dimension(:,:,:,:)  :: gasabstot
+  real(rkx) , pointer , dimension(:,:,:) :: gasemstot
+  real(rkx) , pointer , dimension(:,:,:,:) :: taucldsp
 
   logical :: doabsems , dolw , dosw
   integer(ik4) :: ichso4 , ichbc , ichoc
 
-  real(rk8) :: chfrovrradfr ! chfrq/rafrq
+  real(rkx) :: chfrovrradfr ! chfrq/rafrq
 
 end module mod_rad_common
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

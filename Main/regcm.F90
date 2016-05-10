@@ -34,7 +34,7 @@ program regcm
 
   implicit none
 
-  real(rk8) :: timestr, timeend
+  real(rkx) :: timestr, timeend
   type(rcm_time_interval) :: tdif
   integer(ik4) :: ierr
 !

@@ -42,25 +42,25 @@ module mod_ncep
   integer(ik4) :: jlat
   integer(ik4) :: ilon
 
-  real(rk8) , pointer , dimension(:) :: glat , glat1
-  real(rk8) , pointer , dimension(:) :: glon
-  real(rk8) , pointer , dimension(:) :: sigmar , sigma1
-  real(rk8) :: pss
+  real(rkx) , pointer , dimension(:) :: glat , glat1
+  real(rkx) , pointer , dimension(:) :: glon
+  real(rkx) , pointer , dimension(:) :: sigmar , sigma1
+  real(rkx) :: pss
 
-  real(rk8) , pointer , dimension(:,:,:) :: b2
-  real(rk8) , pointer , dimension(:,:,:) :: d2
-  real(rk8) , pointer , dimension(:,:,:) :: b3
-  real(rk8) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , pointer , dimension(:,:,:) :: b2
+  real(rkx) , pointer , dimension(:,:,:) :: d2
+  real(rkx) , pointer , dimension(:,:,:) :: b3
+  real(rkx) , pointer , dimension(:,:,:) :: d3
   !
   ! The data are packed into short integers (INTEGER*2).  The array
   ! work will be used to hold the packed integers.
   !
   integer(2) , pointer , dimension(:,:,:) :: work
 
-  real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rk8) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rk8) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+  real(rkx) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
   integer(ik4) :: year , month , day , hour
   integer(ik4) :: itcfs = 0
@@ -121,10 +121,10 @@ module mod_ncep
     integer(ik4) :: i , j , k , inet , it , kkrec , istatus
     character(len=256) :: pathaddname
     character(len=5) , dimension(5) :: varname
-    real(rk8) :: xadd , xscale
+    real(rkx) :: xadd , xscale
     integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) , dimension(5) , save :: inet5 , ivar5
-    real(rk8) , dimension(5) , save :: xoff , xscl
+    real(rkx) , dimension(5) , save :: xoff , xscl
     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd'/
     !
     if ( itcfs == 0 ) then
@@ -178,7 +178,7 @@ module mod_ncep
         do k = 1 , klev
           do j = 1 , jlat
             do i = 1 , ilon
-              tvar(i,j,k) = dble(work(i,j,k))*xscale+xadd
+              tvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
             end do
           end do
         end do
@@ -186,7 +186,7 @@ module mod_ncep
         do k = 1 , klev
           do j = 1 , jlat
             do i = 1 , ilon
-              hvar(i,j,k) = dble(work(i,j,k))*xscale+xadd
+              hvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
             end do
           end do
         end do
@@ -194,8 +194,7 @@ module mod_ncep
         do k = 1 , klev
           do j = 1 , jlat
             do i = 1 , ilon
-              rhvar(i,j,k) = dmin1((dble(work(i,j,k))* &
-                            xscale+xadd)*0.01D0,1.D0)
+              rhvar(i,j,k) = min((real(work(i,j,k),rkx)*xscale+xadd)*0.01_rkx,1._rkx)
             end do
           end do
         end do
@@ -203,7 +202,7 @@ module mod_ncep
         do k = 1 , klev
           do j = 1 , jlat
             do i = 1 , ilon
-              uvar(i,j,k) = dble(work(i,j,k))*xscale+xadd
+              uvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
             end do
           end do
         end do
@@ -211,7 +210,7 @@ module mod_ncep
         do k = 1 , klev
           do j = 1 , jlat
             do i = 1 , ilon
-              vvar(i,j,k) = dble(work(i,j,k))*xscale+xadd
+              vvar(i,j,k) = real(work(i,j,k),rkx)*xscale+xadd
             end do
           end do
         end do
@@ -226,14 +225,14 @@ module mod_ncep
     integer(ik4) :: i , ilev , inet , it , j , kkrec , k , nlev , istatus
     character(len=256) :: pathaddname
     character(len=5) , dimension(5) :: varname
-    real(rk8) :: xadd , xscale
+    real(rkx) :: xadd , xscale
     integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) , dimension(5) , save :: inet5 , ivar5
-    real(rk8) , dimension(5) , save :: xoff , xscl
+    real(rkx) , dimension(5) , save :: xoff , xscl
     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd'/
     !
-    xadd = 0.0D0
-    xscale = 1.0D0
+    xadd = 0.0_rkx
+    xscale = 1.0_rkx
     nlev = 0
     do kkrec = 1 , 5
       nlev = klev
@@ -299,32 +298,32 @@ module mod_ncep
         if ( kkrec == 1 ) then
           do j = 1 , jlat
             do i = 1 , ilon
-              tvar(i,jlat+1-j,ilev) = dble(work(i,j,ilev))*xscale+xadd
+              tvar(i,jlat+1-j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
             end do
           end do
         else if ( kkrec == 2 ) then
           do j = 1 , jlat
             do i = 1 , ilon
-              hvar(i,jlat+1-j,ilev) = dble(work(i,j,ilev))*xscale+xadd
+              hvar(i,jlat+1-j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
             end do
           end do
         else if ( kkrec == 3 ) then
           do j = 1 , jlat
             do i = 1 , ilon
-              rhvar(i,jlat+1-j,ilev) = dmin1((dble(work(i,j,ilev))* &
-                            xscale+xadd)*0.01D0,1.D0)
+              rhvar(i,jlat+1-j,ilev) = min((real(work(i,j,ilev),rkx)* &
+                            xscale+xadd)*0.01_rkx,1._rkx)
             end do
           end do
         else if ( kkrec == 4 ) then
           do j = 1 , jlat
             do i = 1 , ilon
-              uvar(i,jlat+1-j,ilev) = dble(work(i,j,ilev))*xscale+xadd
+              uvar(i,jlat+1-j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
             end do
           end do
         else if ( kkrec == 5 ) then
           do j = 1 , jlat
             do i = 1 , ilon
-              vvar(i,jlat+1-j,ilev) = dble(work(i,j,ilev))*xscale+xadd
+              vvar(i,jlat+1-j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
             end do
           end do
         end if

@@ -108,13 +108,13 @@ module mod_ocn_common
         where ( xmask == 0 )
           emiss = ocn_sfcemiss
         else where
-          emiss = 0.97D0
+          emiss = 0.97_rkx
         end where
       else
         emiss(:) = ocn_sfcemiss
       end if
       call l2c_ss(ocncomm,emiss,lms%emisv)
-      um10 = 1.0D0 ! Assume a mean of 1m/s wind for init.
+      um10 = 1.0_rkx ! Assume a mean of 1m/s wind for init.
     else
       call c2l_ss(ocncomm,lm%xlat1,lat)
       call c2l_ss(ocncomm,lms%tgrd,tgrd)
@@ -247,7 +247,7 @@ module mod_ocn_common
           where ( xmask == 0 )
             emiss = ocn_sfcemiss
           else where
-            emiss = 0.97D0
+            emiss = 0.97_rkx
           end where
           call l2c_ss(ocncomm,emiss,lms%emisv)
         end if

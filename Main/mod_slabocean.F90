@@ -33,15 +33,15 @@ module mod_slabocean
 
   private
 
-  real(rk8) :: mixed_layer_salin = d_100/d_three
-  real(rk8) :: mlcp , dtocean
+  real(rkx) :: mixed_layer_salin = d_100/d_three
+  real(rkx) :: mlcp , dtocean
 
   ! the actual prognotic sst pointing on tg2
-  real(rk8) , pointer , dimension(:,:) :: sstemp
-  real(ik8) , pointer , dimension(:,:) :: ohfx , oqfx , ofsw , oflw
-  real(rk8) , pointer , dimension(:,:) :: olndcat
-  real(rk8) , pointer , dimension(:,:,:) :: qflux_restore_sst
-  real(rk8) , pointer , dimension (:,:) :: qflux_sst , qflux_adj , net_hflx , &
+  real(rkx) , pointer , dimension(:,:) :: sstemp
+  real(rkx) , pointer , dimension(:,:) :: ohfx , oqfx , ofsw , oflw
+  real(rkx) , pointer , dimension(:,:) :: olndcat
+  real(rkx) , pointer , dimension(:,:,:) :: qflux_restore_sst
+  real(rkx) , pointer , dimension (:,:) :: qflux_sst , qflux_adj , net_hflx , &
     hflx , qflb0 , qflb1 , qflbt
   integer(ik4) , pointer , dimension (:,:) :: ocmask
 
@@ -71,10 +71,10 @@ module mod_slabocean
       ! interface for regcm variable / slab ocean
       type(surfstate) , intent(in) :: sfs
       integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk
-      real(rk8) , pointer , intent(in) , dimension(:,:) :: fsw , flw
+      real(rkx) , pointer , intent(in) , dimension(:,:) :: fsw , flw
 
       ! water heat capacity ~ 4 J/g/K
-      mlcp = mixed_layer_depth*4.0D6
+      mlcp = mixed_layer_depth*4.0e6_rkx
 
       call assignpnt(sfs%tgb,sstemp)
       call assignpnt(ldmsk,ocmask)
@@ -86,11 +86,11 @@ module mod_slabocean
 
     subroutine update_slabocean(xt)
       implicit none
-      real(rk8) , intent(in) :: xt
+      real(rkx) , intent(in) :: xt
       ! mlcp is the heat capacity of the mixed layer [J / m3 / deg C] * m
       integer(ik4) :: i , j
 #ifdef DEBUG
-      real(rk8) , dimension(5) :: pval , pval1
+      real(rkx) , dimension(5) :: pval , pval1
 #endif
       if ( do_restore_sst ) then
         stepcount(xmonth) = stepcount(xmonth)+1
@@ -98,7 +98,7 @@ module mod_slabocean
           do j = jci1 , jci2
             if ( ocmask(j,i) == 0 ) then
               qflux_sst(j,i) = (ts1(j,i) - sstemp(j,i)) * &
-                mlcp / (sst_restore_timescale * 86400.0D0) ! w/m2
+                mlcp / (sst_restore_timescale * 86400.0_rkx) ! w/m2
               qflux_restore_sst(j,i,xmonth) = &
                 qflux_restore_sst(j,i,xmonth) + qflux_sst(j,i)
             end if
@@ -124,7 +124,7 @@ module mod_slabocean
         pval(1) = maxval(ofsw)
         pval(2) = maxval(oflw)
         pval(3) = maxval(ohfx)
-        pval(4) = maxval(2.26D6*oqfx)
+        pval(4) = maxval(2.26e6_rkx*oqfx)
         pval(5) = maxval(qflux_adj)
         do i = 1 , size(pval)
           call maxall(pval(i),pval1(i))
@@ -164,7 +164,7 @@ module mod_slabocean
               do j = jci1 , jci2
                 if ( ocmask(j,i) == 0 ) then
                   slab_qflx_out(j,i,imon) = &
-                        qflux_restore_sst(j,i,imon)/dble(stepcount(imon))
+                        qflux_restore_sst(j,i,imon)/real(stepcount(imon),rkx)
                 else
                   slab_qflx_out(j,i,imon) = dmissval
                 end if

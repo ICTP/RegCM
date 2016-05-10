@@ -55,8 +55,8 @@ program sigma2z
   real(rk4) , allocatable , dimension(:) :: avar
   character , allocatable , dimension(:) :: tvar
   real(rk4) , allocatable , dimension(:) :: azvar
-  real(rk8) , allocatable , dimension(:) :: times
-  real(rk8) , allocatable , dimension(:) :: sigfix
+  real(rkx) , allocatable , dimension(:) :: times
+  real(rkx) , allocatable , dimension(:) :: sigfix
   logical , allocatable , dimension(:) :: lkvarflag , ltvarflag , lchnameflag
   integer(ik4) , allocatable , dimension(:) :: varsize
   integer(ik4) , allocatable , dimension(:) :: intscheme
@@ -68,7 +68,7 @@ program sigma2z
   integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , itvarid , ikvarid
   integer(ik4) :: ipsvarid , ishvarid , ippvarid , ip0varid
   integer(ik4) :: jx , iy , kz , nt
-  real(rk8) :: ptop
+  real(rkx) :: ptop
   integer(ik4) , dimension(4) :: tdimids
   integer(ik4) , dimension(3) :: psdimids
   integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
@@ -669,68 +669,68 @@ program sigma2z
 
     subroutine getsigma(sig)
       implicit none
-      real(rk8) , dimension(kz+1) , intent(out) :: sig
+      real(rkx) , dimension(kz+1) , intent(out) :: sig
       if ( kz==14 ) then                      ! RegCM2
-        sig(1) = 0.0D0
-        sig(2) = 0.04D0
-        sig(3) = 0.10D0
-        sig(4) = 0.17D0
-        sig(5) = 0.25D0
-        sig(6) = 0.35D0
-        sig(7) = 0.46D0
-        sig(8) = 0.56D0
-        sig(9) = 0.67D0
-        sig(10) = 0.77D0
-        sig(11) = 0.86D0
-        sig(12) = 0.93D0
-        sig(13) = 0.97D0
-        sig(14) = 0.99D0
-        sig(15) = 1.0D0
+        sig(1) = 0.0_rkx
+        sig(2) = 0.04_rkx
+        sig(3) = 0.10_rkx
+        sig(4) = 0.17_rkx
+        sig(5) = 0.25_rkx
+        sig(6) = 0.35_rkx
+        sig(7) = 0.46_rkx
+        sig(8) = 0.56_rkx
+        sig(9) = 0.67_rkx
+        sig(10) = 0.77_rkx
+        sig(11) = 0.86_rkx
+        sig(12) = 0.93_rkx
+        sig(13) = 0.97_rkx
+        sig(14) = 0.99_rkx
+        sig(15) = 1.0_rkx
       else if ( kz==18 ) then                 ! RegCM3, default
-        sig(1) = 0.0D0
-        sig(2) = 0.05D0
-        sig(3) = 0.10D0
-        sig(4) = 0.16D0
-        sig(5) = 0.23D0
-        sig(6) = 0.31D0
-        sig(7) = 0.39D0
-        sig(8) = 0.47D0
-        sig(9) = 0.55D0
-        sig(10) = 0.63D0
-        sig(11) = 0.71D0
-        sig(12) = 0.78D0
-        sig(13) = 0.84D0
-        sig(14) = 0.89D0
-        sig(15) = 0.93D0
-        sig(16) = 0.96D0
-        sig(17) = 0.98D0
-        sig(18) = 0.99D0
-        sig(19) = 1.0D0
+        sig(1) = 0.0_rkx
+        sig(2) = 0.05_rkx
+        sig(3) = 0.10_rkx
+        sig(4) = 0.16_rkx
+        sig(5) = 0.23_rkx
+        sig(6) = 0.31_rkx
+        sig(7) = 0.39_rkx
+        sig(8) = 0.47_rkx
+        sig(9) = 0.55_rkx
+        sig(10) = 0.63_rkx
+        sig(11) = 0.71_rkx
+        sig(12) = 0.78_rkx
+        sig(13) = 0.84_rkx
+        sig(14) = 0.89_rkx
+        sig(15) = 0.93_rkx
+        sig(16) = 0.96_rkx
+        sig(17) = 0.98_rkx
+        sig(18) = 0.99_rkx
+        sig(19) = 1.0_rkx
       else if ( kz==23 ) then                 ! MM5V3
-        sig(1) = 0.0D0
-        sig(2) = 0.05D0
-        sig(3) = 0.1D0
-        sig(4) = 0.15D0
-        sig(5) = 0.2D0
-        sig(6) = 0.25D0
-        sig(7) = 0.3D0
-        sig(8) = 0.35D0
-        sig(9) = 0.4D0
-        sig(10) = 0.45D0
-        sig(11) = 0.5D0
-        sig(12) = 0.55D0
-        sig(13) = 0.6D0
-        sig(14) = 0.65D0
-        sig(15) = 0.7D0
-        sig(16) = 0.75D0
-        sig(17) = 0.8D0
-        sig(18) = 0.85D0
-        sig(19) = 0.89D0
-        sig(20) = 0.93D0
-        sig(21) = 0.96D0
-        sig(22) = 0.98D0
-        sig(23) = 0.99D0
-        sig(24) = 1.0D0
+        sig(1) = 0.0_rkx
+        sig(2) = 0.05_rkx
+        sig(3) = 0.1_rkx
+        sig(4) = 0.15_rkx
+        sig(5) = 0.2_rkx
+        sig(6) = 0.25_rkx
+        sig(7) = 0.3_rkx
+        sig(8) = 0.35_rkx
+        sig(9) = 0.4_rkx
+        sig(10) = 0.45_rkx
+        sig(11) = 0.5_rkx
+        sig(12) = 0.55_rkx
+        sig(13) = 0.6_rkx
+        sig(14) = 0.65_rkx
+        sig(15) = 0.7_rkx
+        sig(16) = 0.75_rkx
+        sig(17) = 0.8_rkx
+        sig(18) = 0.85_rkx
+        sig(19) = 0.89_rkx
+        sig(20) = 0.93_rkx
+        sig(21) = 0.96_rkx
+        sig(22) = 0.98_rkx
+        sig(23) = 0.99_rkx
+        sig(24) = 1.0_rkx
       else
         write(stderr,*) 'CDO has screwed up sigma levels.'
         write(stderr,*) 'Not an hardcoded number of levels, so no help here.'

@@ -25,8 +25,8 @@ module mod_block
   use mod_message
   use mod_constants
 
-  real(rk8) :: grdlnmn , grdltmn , grdlnma , grdltma
-  real(rk8) :: xmaxlat , xmaxlon , xminlat , xminlon
+  real(rkx) :: grdlnmn , grdltmn , grdlnma , grdltma
+  real(rkx) :: xmaxlat , xmaxlon , xminlat , xminlon
   integer(ik4) :: nlatin , nlonin
   logical :: lonwrap , lcrosstime
 
@@ -35,10 +35,10 @@ module mod_block
   subroutine mxmnll(jx,iy,xlon,xlat,iband)
     implicit none
     integer(ik4) , intent(in) :: iy , jx , iband
-    real(rk8) , dimension(jx,iy) , intent(in) :: xlat , xlon
+    real(rkx) , dimension(jx,iy) , intent(in) :: xlat , xlon
 
-    real(rk8) :: xtstlon1 , xtstlon2
-    real(rk8) , parameter :: coord_eps = 0.001D0
+    real(rkx) :: xtstlon1 , xtstlon2
+    real(rkx) , parameter :: coord_eps = 0.001_rkx
     !
     ! PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
     !
@@ -63,7 +63,7 @@ module mod_block
       xtstlon2 = ceiling(minval(xlon(jx,:)))
     end if
 
-    if ( dabs(xminlon-xmaxlon) < coord_eps ) then
+    if ( abs(xminlon-xmaxlon) < coord_eps ) then
       xminlon  = -deg180
       xmaxlon  =  deg180
       xtstlon1 = xminlon

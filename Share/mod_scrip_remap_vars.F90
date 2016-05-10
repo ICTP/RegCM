@@ -90,7 +90,7 @@ module mod_scrip_remap_vars
      grid1_add_map2, & ! grid1 address for each link in mapping 2
      grid2_add_map2    ! grid2 address for each link in mapping 2
 
-  real(rk8) , dimension(:,:) , allocatable , public :: &
+  real(rkx) , dimension(:,:) , allocatable , public :: &
      wts_map1, & ! map weights for each link (num_wts,max_links)
      wts_map2    ! map weights for each link (num_wts,max_links)
 
@@ -163,7 +163,7 @@ module mod_scrip_remap_vars
 
       ! temp arrays for resizing address arrays
       integer(ik4) , dimension(:) , allocatable :: add1_tmp , add2_tmp
-      real(rk8) , dimension(:,:) , allocatable :: wts_tmp
+      real(rkx) , dimension(:,:) , allocatable :: wts_tmp
 
       select case (nmap)
         !

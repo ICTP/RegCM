@@ -38,19 +38,19 @@ module mod_ocn_lake
 
   integer(ik4) :: nlakep = 0
 
-  real(rk8) , dimension(ndpmax) :: de , dnsty , tt
+  real(rkx) , dimension(ndpmax) :: de , dnsty , tt
 
   ! surface thickness
-  real(rk8) , parameter :: surf = d_one
+  real(rkx) , parameter :: surf = d_one
   ! vertical grid spacing in m
-  real(rk8) , parameter :: dz = surf
+  real(rkx) , parameter :: dz = surf
   ! reference hgt in mm for latent heat removal from ice
-  real(rk8) , parameter :: href = d_two * iceminh
+  real(rkx) , parameter :: href = d_two * iceminh
   ! steepness factor of latent heat removal
-  real(rk8) , parameter :: steepf = 1.0D0  ! Tuning needed !
+  real(rkx) , parameter :: steepf = 1.0_rkx  ! Tuning needed !
 !
-  real(rk8) , pointer , dimension(:,:) :: tlak
-  real(rk8) , pointer , dimension(:) :: hi , eta
+  real(rkx) , pointer , dimension(:,:) :: tlak
+  real(rkx) , pointer , dimension(:) :: hi , eta
   logical , pointer , public , dimension(:) :: lakmsk
   integer(ik4) , pointer , dimension(:) :: idep , ilp
 
@@ -117,7 +117,7 @@ module mod_ocn_lake
     if ( ktau /= 0 ) then
       do lp = 1 , nlakep
         i = ilp(lp)
-        idep(lp) = idint(dmax1(d_two,dmin1(dhlake(i),dble(ndpmax)))/dz)
+        idep(lp) = int(max(d_two,min(dhlake(i),real(ndpmax,rkx)))/dz)
       end do
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
@@ -131,7 +131,7 @@ module mod_ocn_lake
 
     do lp = 1 , nlakep
       i = ilp(lp)
-      idep(lp) = idint(dmax1(d_two,dmin1(dhlake(i),dble(ndpmax)))/dz)
+      idep(lp) = int(max(d_two,min(dhlake(i),real(ndpmax,rkx)))/dz)
       hi(lp) = iceminh
       ! Azar Zarrin: Fixed unrealistic high ice tickness and
       ! high water temperatures during warm months.
@@ -146,49 +146,49 @@ module mod_ocn_lake
         ! A High eutrophic lake with suspended sediments can
         ! reach even value of vertical extinction coefficient of 4 !!!
         ! This means euphotic zone very limited.
-        eta(lp) = -1.20D0
+        eta(lp) = -1.20_rkx
       else if ( idep(lp) > 5 .and. idep(lp) < 10) then
         ! Something like Mesotrophic
-        eta(lp) = -0.80D0
+        eta(lp) = -0.80_rkx
       else if ( idep(lp) >= 10 .and. idep(lp) < 40) then
-        eta(lp) = -0.60D0
+        eta(lp) = -0.60_rkx
       else if ( idep(lp) >= 40 .and. idep(lp) < 100) then
-        eta(lp) = -0.40D0
+        eta(lp) = -0.40_rkx
       else
         ! This is a mean value for Great Lakes.
         ! Oligotropic lake value.
-        eta(lp) = -0.20D0
+        eta(lp) = -0.20_rkx
       end if
       ! Put winter surface water a bit colder and summer or tropical
       ! surface water a little warmer to ease spinup nudging in the
       ! correct direction the profile.
       if ( abs(lat(i)) > 25.0 ) then
-        tlak(lp,1) = min(max(tgrd(i)-tzero+d_one,4.0D0),20.0D0)
-        tlak(lp,2) = min(max(tlak(lp,1)-d_half,4.0D0),20.0D0)
+        tlak(lp,1) = min(max(tgrd(i)-tzero+d_one,4.0_rkx),20.0_rkx)
+        tlak(lp,2) = min(max(tlak(lp,1)-d_half,4.0_rkx),20.0_rkx)
         if ( idep(lp) >= 3 ) then
           do k = 3 , idep(lp)
-            tlak(lp,k) = min(max(tlak(lp,k-1)-d_half,4.0D0),20.0D0)
+            tlak(lp,k) = min(max(tlak(lp,k-1)-d_half,4.0_rkx),20.0_rkx)
           end do
         end if
       else
         ! This needs tuning for tropical lakes.
         ! Lake Malawi bottom temperature can be as high as 22.75 Celsius
         ! with surface as hot as 25.5 degrees.
-        tlak(lp,1) = min(max(tgrd(i)-tzero+d_one,18.0D0),25.0D0)
-        tlak(lp,2) = min(max(tlak(lp,1)-d_half,18.0D0),25.0D0)
+        tlak(lp,1) = min(max(tgrd(i)-tzero+d_one,18.0_rkx),25.0_rkx)
+        tlak(lp,2) = min(max(tlak(lp,1)-d_half,18.0_rkx),25.0_rkx)
         if ( idep(lp) >= 3 ) then
           do k = 3 , idep(lp)
-            tlak(lp,k) = min(max(tlak(lp,k-1)-d_half,18.0D0),25.0D0)
+            tlak(lp,k) = min(max(tlak(lp,k-1)-d_half,18.0_rkx),25.0_rkx)
           end do
         end if
       end if
       ! Ice over lake from the start
       if ( mask(i) == 4 ) then
-        tlak(lp,1) = -2.0D0
-        tlak(lp,2) = -1.5D0
-        hi(lp) = 0.20D0 ! Set this to 20 cm of ice
+        tlak(lp,1) = -2.0_rkx
+        tlak(lp,2) = -1.5_rkx
+        hi(lp) = 0.20_rkx ! Set this to 20 cm of ice
         sfice(i) = hi(lp)
-        sncv(i) = 1.0D0 ! Put 1 cm of snow on top.
+        sncv(i) = 1.0_rkx ! Put 1 cm of snow on top.
       else
         sfice(i) = d_zero
         sncv(i) = d_zero
@@ -201,14 +201,14 @@ module mod_ocn_lake
 !
   subroutine lakedrv
     implicit none
-    real(rk8) :: flwx , fswx , hsen , prec , qs , tgl , tl , vl , zl
-    real(rk8) :: xl , toth
-    real(rk8) :: age , age1 , age2 , arg , arg2 , cdr , cdrmin , cdrn
-    real(rk8) :: cdrx , clead , dela , dela0 , delq , dels , delt
-    real(rk8) :: fact , factuv , qgrd , qgrnd , qice , rhosw , rhosw3
-    real(rk8) :: rib , ribd , ribl , ribn , scrat , tage , tgrnd
-    real(rk8) :: sold , vspda , u1
-    real(rk8) , dimension(ndpmax) :: tp
+    real(rkx) :: flwx , fswx , hsen , prec , qs , tgl , tl , vl , zl
+    real(rkx) :: xl , toth
+    real(rkx) :: age , age1 , age2 , arg , arg2 , cdr , cdrmin , cdrn
+    real(rkx) :: cdrx , clead , dela , dela0 , delq , dels , delt
+    real(rkx) :: fact , factuv , qgrd , qgrnd , qice , rhosw , rhosw3
+    real(rkx) :: rib , ribd , ribl , ribn , scrat , tage , tgrnd
+    real(rkx) :: sold , vspda , u1
+    real(rkx) , dimension(ndpmax) :: tp
 
     integer(ik4) :: lp , i
 #ifdef DEBUG
@@ -228,7 +228,7 @@ module mod_ocn_lake
       i = ilp(lp)
       tl = sts(i)
       sold = sncv(i)
-      vl = dsqrt(usw(i)**2+vsw(i)**2)
+      vl = sqrt(usw(i)**2+vsw(i)**2)
       zl = ht(i)
       qs = qv(i)
       fswx = rswf(i)
@@ -260,16 +260,16 @@ module mod_ocn_lake
         snag(i) = d_zero
         sm(i) = d_zero
         ribd = usw(i)**2 + vsw(i)**2 + wtur**2
-        vspda = dsqrt(ribd)
-        cdrn = (vonkar/dlog(ht(i)/zoce))**2
+        vspda = sqrt(ribd)
+        cdrn = (vonkar/log(ht(i)/zoce))**2
         ribn = ht(i)*egrav*(delt/sts(i))
         rib = ribn/ribd
         if ( rib < d_zero ) then
-          cdrx = cdrn*(d_one+24.5D0*dsqrt(-cdrn*rib))
+          cdrx = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*rib))
         else
-          cdrx = cdrn/(d_one+11.5D0*rib)
+          cdrx = cdrn/(d_one+11.5_rkx*rib)
         end if
-        cdrmin = dmax1(0.25D0*cdrn,6.0D-4)
+        cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
         if ( cdrx < cdrmin ) cdrx = cdrmin
         drag(i) = cdrx*vspda*rhox(i)
         evpr(i) = -drag(i)*delq
@@ -287,60 +287,60 @@ module mod_ocn_lake
           sncv(i) = d_zero
           snag(i) = d_zero
         else
-          arg = 5.0D3*(d_one/tzero-d_one/tgrd(i))
-          age1 = dexp(arg)
-          arg2 = dmin1(d_zero,d_10*arg)
-          age2 = dexp(arg2)
+          arg = 5.0e3_rkx*(d_one/tzero-d_one/tgrd(i))
+          age1 = exp(arg)
+          arg2 = min(d_zero,d_10*arg)
+          age2 = exp(arg2)
           tage = age1 + age2 + age3
-          dela0 = 1.0D-6*dtocn
+          dela0 = 1.0e-6_rkx*dtocn
           dela = dela0*tage
-          dels = d_r10*dmax1(d_zero,sncv(i)-sold)
+          dels = d_r10*max(d_zero,sncv(i)-sold)
           snag(i) = (snag(i)+dela)*(d_one-dels)
           if ( snag(i) < dlowval ) snag(i) = d_zero
         end if
-        if ( sncv(i) > 800.0D0 ) snag(i) = d_zero
+        if ( sncv(i) > 800.0_rkx ) snag(i) = d_zero
         age = (d_one-d_one/(d_one+snag(i)))
-        scrat = sncv(i)*0.01D0/(d_one+d_three*age)
-        scvk(i) = scrat/(0.1D0+scrat)
-        cdrn = (vonkar/dlog(ht(i)/zlnd))**2
+        scrat = sncv(i)*0.01_rkx/(d_one+d_three*age)
+        scvk(i) = scrat/(0.1_rkx+scrat)
+        cdrn = (vonkar/log(ht(i)/zlnd))**2
         if ( delt < d_zero ) then
-          u1 = wtur + d_two*dsqrt(-delt)
+          u1 = wtur + d_two*sqrt(-delt)
         else
           u1 = wtur
         end if
         ribd = usw(i)**2 + vsw(i)**2 + u1**2
-        vspda = dsqrt(ribd)
+        vspda = sqrt(ribd)
         ribn = ht(i)*egrav*(delt/sts(i))
         rib = ribn/ribd
         if ( rib < d_zero ) then
-          cdr = cdrn*(d_one+24.5D0*dsqrt(-cdrn*rib))
+          cdr = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*rib))
         else
-          cdr = cdrn/(d_one+11.5D0*rib)
+          cdr = cdrn/(d_one+11.5_rkx*rib)
         end if
-        cdrmin = dmax1(0.25D0*cdrn,6.0D-4)
+        cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
         if ( cdr < cdrmin ) cdr = cdrmin
-        rhosw = 0.10D0*(d_one+d_three*age)
+        rhosw = 0.10_rkx*(d_one+d_three*age)
         rhosw3 = rhosw**3
-        cdrn = (vonkar/dlog(ht(i)/zsno))**2
-        ribl = (d_one-271.5D0/sts(i))*ht(i)*egrav/ribd
+        cdrn = (vonkar/log(ht(i)/zsno))**2
+        ribl = (d_one-271.5_rkx/sts(i))*ht(i)*egrav/ribd
         if ( ribl < d_zero ) then
-          clead = cdrn*(d_one+24.5D0*dsqrt(-cdrn*ribl))
+          clead = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*ribl))
         else
-          clead = cdrn/(d_one+11.5D0*rib)
+          clead = cdrn/(d_one+11.5_rkx*rib)
         end if
         cdrx = (d_one-aarea)*cdr + aarea*clead
         drag(i) = cdrx*vspda*rhox(i)
-        qice = 3.3D-3 * stdp/sfps(i)
+        qice = 3.3e-3_rkx * stdp/sfps(i)
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
-        tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*(tzero-1.8D0))/cdrx
+        tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*(tzero-1.8_rkx))/cdrx
         fact = -drag(i)
         delt = sts(i) - tgrnd
         delq = qs - qgrnd
       end if
-      if ( dabs(sent(i)) < dlowval ) sent(i) = d_zero
-      if ( dabs(evpr(i)) < dlowval ) evpr(i) = d_zero
-      fact = dlog(ht(i)*d_half)/dlog(ht(i)/zoce)
-      factuv = dlog(ht(i)*d_r10)/dlog(ht(i)/zoce)
+      if ( abs(sent(i)) < dlowval ) sent(i) = d_zero
+      if ( abs(evpr(i)) < dlowval ) evpr(i) = d_zero
+      fact = log(ht(i)*d_half)/log(ht(i)/zoce)
+      factuv = log(ht(i)*d_r10)/log(ht(i)/zoce)
       u10m(i) = usw(i)*(d_one-factuv)
       v10m(i) = vsw(i)*(d_one-factuv)
       taux(i) = dmissval
@@ -359,26 +359,26 @@ module mod_ocn_lake
   subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen,xl,tgl,  &
                   prec,ndpt,eta,hi,aveice,hsnow,evl,tprof,ps)
     implicit none
-    real(rk8) :: dtlake , evl , aveice , hsen , hsnow , flw , &
+    real(rkx) :: dtlake , evl , aveice , hsen , hsnow , flw , &
                prec , ql , fsw , tl , tgl , vl , zl , eta , hi , xl , ps
-    real(rk8) , dimension(ndpmax) :: tprof
+    real(rkx) , dimension(ndpmax) :: tprof
     integer(ik4) :: ndpt
     intent (in) hsen , ql , tl , vl , zl , ps
     intent (in) ndpt , eta
     intent (out) tgl
     intent (inout) tprof , evl , aveice , hsnow
-    real(rk8) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
+    real(rkx) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
     ! zo: surface roughness length
-    real(rk8) , parameter :: zo = 0.001D0
-    real(rk8) , parameter :: z2 = d_two
-    real(rk8) , parameter :: tcutoff = -0.001D0
-    real(rk8) , parameter :: twatui = 1.78D0
+    real(rkx) , parameter :: zo = 0.001_rkx
+    real(rkx) , parameter :: z2 = d_two
+    real(rkx) , parameter :: tcutoff = -0.001_rkx
+    real(rkx) , parameter :: twatui = 1.78_rkx
     logical , parameter :: lfreeze = .true.
     integer(ik4) , parameter :: kmin = 1
     integer(ik4) , parameter :: kmax = 200
 !
     ! interpolate winds at z1 m to 2m via log wind profile
-    u2 = vl*dlog(z2/zo)/dlog(zl/zo)
+    u2 = vl*log(z2/zo)/log(zl/zo)
     if ( u2 < d_half ) u2 = d_half
 
     ! Check if conditions not exist for lake ice
@@ -403,7 +403,7 @@ module mod_ocn_lake
     else
       ! Lake ice
       ! convert mixing ratio to air vapor pressure
-      ea  = ql*88.0D0/(ep2+0.378D0*ql)
+      ea  = ql*88.0_rkx/(ep2+0.378_rkx*ql)
       tac = tl - tzero
       tk  = tzero + tprof(1)
       lu  = -emsw*sigm*tk**4
@@ -438,22 +438,22 @@ module mod_ocn_lake
     implicit none
 !
     integer(ik4) , intent (in) :: ndpt
-    real(rk8) , intent (in) :: dtlake , u2 , xl
-    real(rk8) , dimension(ndpmax) , intent (in) :: tprof
+    real(rkx) , intent (in) :: dtlake , u2 , xl
+    real(rkx) , dimension(ndpmax) , intent (in) :: tprof
 !
-    real(rk8) :: demax , demin , dpdz , ks , n2 , po
-    real(rk8) :: zmax , rad , ri , ws , z
+    real(rkx) :: demax , demin , dpdz , ks , n2 , po
+    real(rkx) :: zmax , rad , ri , ws , z
     integer(ik4) :: k
 !
     ! demin molecular diffusion of heat in water
     demin = hdmw
 !
     ! Added to keep numerical stability of code
-    demax = .50D0*dz**2/dtlake
-    demax = .99D0*demax
+    demax = .50_rkx*dz**2/dtlake
+    demax = .99_rkx*demax
 !
     do k = 1 , ndpt
-      dnsty(k) = d_1000*(d_one-1.9549D-05*(dabs(tprof(k)-4.0D0))**1.68D0)
+      dnsty(k) = d_1000*(d_one-1.9549e-5_rkx*(abs(tprof(k)-4.0_rkx))**1.68_rkx)
     end do
 !
 ! Compute eddy diffusion profile
@@ -465,17 +465,17 @@ module mod_ocn_lake
 !  Appl. Math. Modelling, 1985, Vol. 9 December, pp. 441-446
 !
     ! Decay constant of shear velocity - Ekman profile parameter
-    if ( xl > 25.0D0 ) then
-      ks = 6.6D0*dsqrt(dsin(xl*degrad))*u2**(-1.84D0)
+    if ( xl > 25.0_rkx ) then
+      ks = 6.6_rkx*sqrt(sin(xl*degrad))*u2**(-1.84_rkx)
     else
       ks = 0.001
     end if
 
     ! Ekman layer depth where eddy diffusion happens
-    zmax = dble(ceiling(surf+40.0D0/(vonkar*ks)))
+    zmax = real(ceiling(surf+40.0_rkx/(vonkar*ks)),rkx)
 
     ! Surface shear velocity
-    ws = 0.0012D0*u2
+    ws = 0.0012_rkx*u2
 
     ! Inverse of turbulent Prandtl number
     po = d_one
@@ -483,7 +483,7 @@ module mod_ocn_lake
     do k = 1 , ndpt - 1
 
       ! Actual depth from surface
-      z = surf + dble(k-1)*dz
+      z = surf + real(k-1,rkx)*dz
       if (z >= zmax) then
         de(k) = demin
         cycle
@@ -497,23 +497,24 @@ module mod_ocn_lake
 
       ! Brunt Vaisala frequency squared : we do not mind stability,
       ! we just look for energy here.
-      ! n2 = dabs((dpdz/dnsty(k))*egrav)
+      ! n2 = abs((dpdz/dnsty(k))*egrav)
       n2 = (dpdz/dnsty(k))*egrav
-      if (dabs(n2) < dlowval) then
+      if (abs(n2) < dlowval) then
         de(k) = demin
         cycle
       end if
 
       ! Richardson number estimate
-      rad = d_one+40.0D0*n2*((vonkar*z)/(ws*dexp(-ks*z)))**2
-      if (rad < d_zero) rad = d_zero
-      ri = (-d_one+dsqrt(rad))/20.0D0
-
       ! Total diffusion coefficient for heat: molecular + eddy (Eqn 42)
-      de(k) = demin + vonkar*ws*z*po*dexp(-ks*z) / (d_one+37.0D0*ri**2)
+      if ( ks*z > 12.0_rkx ) then
+        de(k) = demin
+      else
+        rad = max(d_zero,d_one+40.0_rkx*n2*((vonkar*z)/(ws*exp(-ks*z)))**2)
+        ri = (-d_one+sqrt(rad))/20.0_rkx
+        de(k) = demin + vonkar*ws*z*po*exp(-ks*z) / (d_one+37.0_rkx*ri**2)
+      end if
       if ( de(k) < demin ) de(k) = demin
       if ( de(k) > demax ) de(k) = demax
-
     end do
     de(ndpt) = demin
   end subroutine lakeeddy
@@ -523,9 +524,9 @@ module mod_ocn_lake
   subroutine laketemp(ndpt,dtlake,fsw,flw,qe,qh,eta,tprof)
     implicit none
     integer(ik4) , intent(in) :: ndpt
-    real(rk8) , intent(in) :: dtlake , eta , flw , qe , qh , fsw
-    real(rk8) , dimension(ndpmax) , intent(inout) :: tprof
-    real(rk8) :: bot , dt1 , dt2 , top
+    real(rkx) , intent(in) :: dtlake , eta , flw , qe , qh , fsw
+    real(rkx) , dimension(ndpmax) , intent(inout) :: tprof
+    real(rkx) :: bot , dt1 , dt2 , top
     integer(ik4) :: k
 
     ! Computes temperature profile
@@ -533,7 +534,7 @@ module mod_ocn_lake
 
     tt(1:ndpt) = tprof(1:ndpt)
 
-    dt1 = (fsw*(d_one-dexp(eta*surf))+(flw+qe+qh)) / &
+    dt1 = (fsw*(d_one-exp(eta*surf))+(flw+qe+qh)) / &
             (surf*dnsty(1)*cpw)
     dt2 = -de(1)*(tprof(1)-tprof(2))/surf
     tt(1) = tt(1) + (dt1+dt2)*dtlake
@@ -541,20 +542,20 @@ module mod_ocn_lake
     do k = 2 , ndpt - 1
       top = (surf+(k-2)*dz)
       bot = (surf+(k-1)*dz)
-      dt1 = fsw*(dexp(eta*top)-dexp(eta*bot))/(dz*dnsty(k)*cpw)
+      dt1 = fsw*(exp(eta*top)-exp(eta*bot))/(dz*dnsty(k)*cpw)
       dt2 = (de(k-1)*(tprof(k-1)-tprof(k))    -    &
              de(k)  *(tprof(k)  -tprof(k+1))) / dz
       tt(k) = tt(k) + (dt1+dt2)*dtlake
     end do
 
     top = (surf+(ndpt-2)*dz)
-    dt1 = fsw*dexp(eta*top)/(dz*dnsty(ndpt)*cpw)
+    dt1 = fsw*exp(eta*top)/(dz*dnsty(ndpt)*cpw)
     dt2 = de(ndpt-1)*(tprof(ndpt-1)-tprof(ndpt))/dz
     tt(ndpt) = tt(ndpt) + (dt1+dt2)*dtlake
 
     do k = 1 , ndpt
       tprof(k) = tt(k)
-      dnsty(k) = d_1000*(d_one-1.9549D-05*(dabs(tprof(k)-4.0D0))**1.68D0)
+      dnsty(k) = d_1000*(d_one-1.9549e-5_rkx*(abs(tprof(k)-4.0_rkx))**1.68_rkx)
     end do
   end subroutine laketemp
 !
@@ -563,8 +564,8 @@ module mod_ocn_lake
   subroutine lakemixer(kmin,kmax,ndpt,tprof)
     implicit none
     integer(ik4) , intent(in) :: ndpt , kmin , kmax
-    real(rk8) , intent(inout) , dimension(ndpmax) :: tprof
-    real(rk8) :: avet , avev , tav , vol
+    real(rkx) , intent(inout) , dimension(ndpmax) :: tprof
+    real(rkx) :: avet , avev , tav , vol
     integer(ik4) :: k , k2
 !
     ! Simulates convective mixing
@@ -590,7 +591,7 @@ module mod_ocn_lake
 
         do k2 = k - 1 , k + 1
           tt(k2) = tav
-          dnsty(k2) = d_1000*(d_one-1.9549D-05*(dabs(tav-4.0D0))**1.68D0)
+          dnsty(k2) = d_1000*(d_one-1.9549e-5_rkx*(abs(tav-4.0_rkx))**1.68_rkx)
         end do
       end if
 
@@ -603,36 +604,36 @@ module mod_ocn_lake
 !
   subroutine lakeice(dtx,fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,ps,tprof)
     implicit none
-    real(rk8) , intent(in) :: ea , ld , prec , tac , u2 , dtx , ps
-    real(rk8) , intent(out) :: evl
-    real(rk8) , intent(inout) :: hi , aveice , hs , fsw
-    real(rk8) , dimension(ndpmax) , intent(inout) :: tprof
-    real(rk8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
+    real(rkx) , intent(in) :: ea , ld , prec , tac , u2 , dtx , ps
+    real(rkx) , intent(out) :: evl
+    real(rkx) , intent(inout) :: hi , aveice , hs , fsw
+    real(rkx) , dimension(ndpmax) , intent(inout) :: tprof
+    real(rkx) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
                  t2 , tf , theta , rho
-    real(rk8) , parameter :: isurf = 0.6D0
+    real(rkx) , parameter :: isurf = 0.6_rkx
     ! attenuation coeff for ice in visible band (m-1)
-    real(rk8) , parameter :: lami1 = 1.5D0
+    real(rkx) , parameter :: lami1 = 1.5_rkx
     ! attenuation coeff for ice in infrared band (m-1)
-    real(rk8) , parameter :: lami2 = 20.0D0
+    real(rkx) , parameter :: lami2 = 20.0_rkx
     ! attenuation coeff for snow in visible band (m-1)
-    real(rk8) , parameter :: lams1 = 6.0D0
+    real(rkx) , parameter :: lams1 = 6.0_rkx
     ! attenuation coeff for snow in infrared band (m-1)
-    real(rk8) , parameter :: lams2 = 20.0D0
+    real(rkx) , parameter :: lams2 = 20.0_rkx
     ! thermal conductivity of ice (W/m/C)
-    real(rk8) , parameter :: ki = 2.3D0
+    real(rkx) , parameter :: ki = 2.3_rkx
     ! thermal conductivity of snow (W/m/C)
     ! 0.078 W m−1 K−1 for new snow
     ! 0.290 W m−1 K−1 for an ubiquitous wind slab
     ! the average bulk value for the full snowpack is 0.14 W m−1 K−1
     ! Sturm, Perovich and Holmgren
     ! Journal of Geophysical Research: Oceans (1978–2012)
-    real(rk8) , parameter :: ks = 0.14D0
+    real(rkx) , parameter :: ks = 0.14_rkx
     ! heat flux from water to ice (w m-2)
-    real(rk8) , parameter :: qw = 1.389D0
+    real(rkx) , parameter :: qw = 1.389_rkx
     ! latent heat of fusion (J/kg)
-    real(rk8) , parameter :: li = 334.0D03
+    real(rkx) , parameter :: li = 334.0e3_rkx
     ! drag coefficient for the turbulent momentum flux.
-    real(rk8) , parameter :: cd = 0.001D0
+    real(rkx) , parameter :: cd = 0.001_rkx
 
     if ( (tac <= d_zero) .and. (aveice > d_zero) ) then
       ! National Weather Service indicates the average snowfall is in a
@@ -654,20 +655,20 @@ module mod_ocn_lake
     psi = wlhv*rho*cd*u2*ep2/ps
     evl = psi*(eomb(t0)-ea)/(wlhv*rho)
     ! amount of radiation that penetrates through the ice (W/m2)
-    qpen = fsw * 0.7D0 * &
-       ((d_one-dexp(-lams1*hs))                   / (ks*lams1) + &
-        (dexp(-lams1*hs))*(d_one-dexp(-lami1*hi)) / (ki*lami1)) + &
-           fsw * 0.3D0 * &
-       ((d_one-dexp(-lams2*hs))                   / (ks*lams2) + &
-        (dexp(-lams2*hs))*(d_one-dexp(-lami2*hi)) / (ki*lami2))
+    qpen = fsw * 0.7_rkx * &
+       ((d_one-exp(-lams1*hs))                   / (ks*lams1) + &
+        (exp(-lams1*hs))*(d_one-exp(-lami1*hi)) / (ki*lami1)) + &
+           fsw * 0.3_rkx * &
+       ((d_one-exp(-lams2*hs))                   / (ks*lams2) + &
+        (exp(-lams2*hs))*(d_one-exp(-lami2*hi)) / (ki*lami2))
     ! radiation absorbed at the ice surface
     fsw = fsw - qpen
-    t1 = -20.0D0
+    t1 = -20.0_rkx
     f0 = f(t0)
     f1 = f(t1)
     do
       t2 = t1 - (t1-t0)*f1/(f1-f0)
-      if ( (t2-t1)/t1 >= 0.001D0 ) then
+      if ( (t2-t1)/t1 >= 0.001_rkx ) then
         t0 = t1
         t1 = t2
         f0 = f1
@@ -681,28 +682,28 @@ module mod_ocn_lake
     if ( t0 >= tf ) then
       if ( hs > d_zero ) then
         ds = dtx *                                                  &
-             ( (-ld + 0.97D0*sigm*t4(tf) + psi * (eomb(tf)-ea) +    &
+             ( (-ld + 0.97_rkx*sigm*t4(tf) + psi * (eomb(tf)-ea) +    &
                 theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) / &
               (rhosnow*li)
         if ( ds > d_zero ) ds = d_zero
-        hs = hs + ds * 10.0D0
+        hs = hs + ds * 10.0_rkx
         if ( hs < d_zero ) then
           hs = d_zero
         end if
       end if
-      if ( (dabs(hs) < dlowval) .and. (aveice > d_zero) ) then
+      if ( (abs(hs) < dlowval) .and. (aveice > d_zero) ) then
         di = dtx *                                                  &
-            ( (-ld + 0.97D0*sigm*t4(tf) + psi * (eomb(tf)-ea)     + &
+            ( (-ld + 0.97_rkx*sigm*t4(tf) + psi * (eomb(tf)-ea)     + &
               theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) /   &
              (rhoice*li)
         if ( di > d_zero ) di = d_zero
         hi = hi + di
       end if
     else
-      q0 = -ld + 0.97D0*sigm*t4(t0) + psi*(eomb(t0)-ea) + &
+      q0 = -ld + 0.97_rkx*sigm*t4(t0) + psi*(eomb(t0)-ea) + &
            theta*(t0-tac) - fsw
-      qpen = fsw*0.7D0*(d_one-dexp(-(lams1*hs+lami1*hi))) + &
-             fsw*0.3D0*(d_one-dexp(-(lams2*hs+lami2*hi)))
+      qpen = fsw*0.7_rkx*(d_one-exp(-(lams1*hs+lami1*hi))) + &
+             fsw*0.3_rkx*(d_one-exp(-(lams2*hs+lami2*hi)))
       di = dtx*(q0-qw-qpen)/(rhoice*li)
       hi = hi + di
     end if
@@ -719,25 +720,25 @@ module mod_ocn_lake
 
     contains
 
-    pure real(rk8) function t4(x)
+    pure real(rkx) function t4(x)
       implicit none
-      real(rk8) , intent(in) :: x
+      real(rkx) , intent(in) :: x
       t4 = (x+tzero)**4
     end function t4
 
     ! Computes air vapor pressure as a function of temp (in K)
-    pure real(rk8) function eomb(x)
+    pure real(rkx) function eomb(x)
       implicit none
-      real(rk8) , intent(in) :: x
-      real(rk8) :: tr1
+      real(rkx) , intent(in) :: x
+      real(rkx) :: tr1
       tr1 = d_one - (tboil/(x+tzero))
-      eomb = stdpmb*dexp(13.3185D0*tr1 - 1.976D0*tr1**2 - &
-                         0.6445D0*tr1**3 - 0.1299D0*tr1**4)
+      eomb = stdpmb*exp(13.3185_rkx*tr1 - 1.976_rkx*tr1**2 - &
+                         0.6445_rkx*tr1**3 - 0.1299_rkx*tr1**4)
      end function eomb
-    pure real(rk8) function f(x)
+    pure real(rkx) function f(x)
       implicit none
-      real(rk8) , intent(in) :: x
-      f = (-ld + 0.97D0*sigm*t4(x) + psi*(eomb(x)-ea) + &
+      real(rkx) , intent(in) :: x
+      f = (-ld + 0.97_rkx*sigm*t4(x) + psi*(eomb(x)-ea) + &
            theta*(x-tac)-fsw) - d_one/khat*(qpen+tf-x)
     end function f
 
@@ -748,8 +749,8 @@ module mod_ocn_lake
   subroutine lake_fillvar_real8_1d(ivar,rvar,idir)
     implicit none
     integer(ik4) , intent(in) :: ivar , idir
-    real(rk8) , intent(inout) , pointer , dimension(:) :: rvar
-    real(rk8) , pointer , dimension(:) :: p
+    real(rkx) , intent(inout) , pointer , dimension(:) :: rvar
+    real(rkx) , pointer , dimension(:) :: p
 
     if ( nlakep == 0 ) then
       if ( idir == 0 ) rvar = dmissval
@@ -774,8 +775,8 @@ module mod_ocn_lake
   subroutine lake_fillvar_real8_2d(ivar,rvar,idir)
     implicit none
     integer(ik4) , intent(in) :: ivar , idir
-    real(rk8) , intent(inout) , pointer , dimension(:,:) :: rvar
-    real(rk8) , pointer , dimension(:,:) :: p
+    real(rkx) , intent(inout) , pointer , dimension(:,:) :: rvar
+    real(rkx) , pointer , dimension(:,:) :: p
     integer(ik4) :: k
 
     if ( nlakep == 0 ) then

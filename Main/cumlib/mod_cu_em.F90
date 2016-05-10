@@ -38,21 +38,21 @@ module mod_cu_em
 
   public :: allocate_mod_cu_em , cupemandrv
 
-  real(rk8) , parameter :: cl = 2500.0D0
-  real(rk8) , parameter :: cpvmcl = cl - cpv
-  real(rk8) , parameter :: mincbmf = 1.0D-30
+  real(rkx) , parameter :: cl = 2500.0_rkx
+  real(rkx) , parameter :: cpvmcl = cl - cpv
+  real(rkx) , parameter :: mincbmf = 1.0e-30_rkx
 
-  real(rk8) , public , pointer , dimension(:,:) :: cbmf2d
-  real(rk8) , public , pointer , dimension(:,:) :: elcrit2d
-  real(rk8) , public , pointer , dimension(:,:) :: epmax2d
+  real(rkx) , public , pointer , dimension(:,:) :: cbmf2d
+  real(rkx) , public , pointer , dimension(:,:) :: elcrit2d
+  real(rkx) , public , pointer , dimension(:,:) :: epmax2d
 
   integer :: ncp , nap
 
-  real(rk8) , pointer , dimension(:) :: cbmf , pret , qprime , &
+  real(rkx) , pointer , dimension(:) :: cbmf , pret , qprime , &
     tprime , wd , elcrit , epmax
-  real(rk8) , pointer , dimension(:,:) :: fq , ft , fu , fv , pcup , &
+  real(rkx) , pointer , dimension(:,:) :: fq , ft , fu , fv , pcup , &
     qcup , qscup , tcup , ucup , vcup , cldfra , phcup
-  real(rk8) , pointer , dimension(:,:,:) :: ftra , tra
+  real(rkx) , pointer , dimension(:,:,:) :: ftra , tra
   integer(ik4) , pointer , dimension(:) :: iflag , kbase , ktop , &
     imap , jmap
 
@@ -379,19 +379,19 @@ module mod_cu_em
                      elcrit,epmax)
     implicit none
     integer , intent(in) :: np , nd , ntra
-    real(rk8) , pointer , dimension(:) , intent(inout) :: cbmf
-    real(rk8) , pointer , dimension(:) , intent(in) :: elcrit , epmax
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: p , q , qs , t , u , v
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: tra
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: ph
-    real(rk8) , pointer , dimension(:) , intent(out) :: precip
-    real(rk8) , pointer , dimension(:) , intent(out) :: qprime , tprime , wd
+    real(rkx) , pointer , dimension(:) , intent(inout) :: cbmf
+    real(rkx) , pointer , dimension(:) , intent(in) :: elcrit , epmax
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: p , q , qs , t , u , v
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: tra
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ph
+    real(rkx) , pointer , dimension(:) , intent(out) :: precip
+    real(rkx) , pointer , dimension(:) , intent(out) :: qprime , tprime , wd
     integer(ik4) , pointer , dimension(:) , intent(out) :: iflag , kcb , kct
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: fq , ft , fu , fv
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: cldfra
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ftra
+    real(rkx) , pointer , dimension(:,:) , intent(out) :: fq , ft , fu , fv
+    real(rkx) , pointer , dimension(:,:) , intent(out) :: cldfra
+    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: ftra
 
-    real(rk8) :: ad , afac , ahmax , ahmin , alt , altem , am , amp1 ,   &
+    real(rkx) :: ad , afac , ahmax , ahmin , alt , altem , am , amp1 ,   &
                  anum , asij , awat , b6 , bf2 , bsum , by , byp , c6 ,  &
                  cape , capem , cbmfold , chi , coeff , cpinv , cwat ,   &
                  damps , dbo , dbosum , defrac , dei , delm , delp ,     &
@@ -401,14 +401,14 @@ module mod_cu_em
                  rdcp , revap , rh , scrit , sigt , sjmax , sjmin ,      &
                  smid , smin , stemp , tca , traav , tvaplcl , tvpplcl , &
                  tvx , tvy , uav , vav , wdtrain
-    real(rk8) , dimension(nd+1) :: clw , cpn , ep , evap , gz , h , hm , &
+    real(rkx) , dimension(nd+1) :: clw , cpn , ep , evap , gz , h , hm , &
                                    hp , lv , lvcp , m , mp , qp , sigp , &
                                    th , tp , tv , tvp , up , vp , water , wt
     integer(ik4) :: n , nl , i , ihmin , icb , ict , ict1 , j , jtt , k , nk
     integer(ik4) , dimension(nd+1) :: nent
-    real(rk8) , dimension(nd+1,nd+1) :: elij , ment , qent , sij , uent , vent
-    real(rk8) , dimension(nd+1,nd+1,ntra) :: traent
-    real(rk8) , dimension(nd+1,ntra) :: trap
+    real(rkx) , dimension(nd+1,nd+1) :: elij , ment , qent , sij , uent , vent
+    real(rkx) , dimension(nd+1,nd+1,ntra) :: traent
+    real(rkx) , dimension(nd+1,ntra) :: trap
     !
     !   specify switches
     !
@@ -436,7 +436,7 @@ module mod_cu_em
       lv(1) = wlhv - cpvmcl*(t(n,1)-tzero)
       hm(1) = lv(1)*q(n,1)
       tv(1) = t(n,1)*(d_one+q(n,1)*rgowi-q(n,1))
-      ahmin = 1.0D12
+      ahmin = 1.0e12_rkx
       ihmin = nl
       do i = 2 , nl + 1
         tvx = t(n,i)*(d_one+q(n,i)*rgowi-q(n,i))
@@ -473,7 +473,7 @@ module mod_cu_em
       ! Check whether parcel level temperature and specific humidity are
       ! reasonable. Skip convection if hm increases monotonically upward
       !
-      if ( t(n,nk) < 250.0D0 .or. q(n,nk) <= d_zero .or. &
+      if ( t(n,nk) < 250.0_rkx .or. q(n,nk) <= d_zero .or. &
         ihmin == (nl-1) ) then
         iflag(n) = 0
         cbmf(n) = d_zero
@@ -484,9 +484,9 @@ module mod_cu_em
       ! (within 0.2% of formula of bolton, mon. wea. rev.,1980)
       !
       rh = q(n,nk)/qs(n,nk)
-      chi = t(n,nk)/(1669.0D0-122.0D0*rh-t(n,nk))
+      chi = t(n,nk)/(1669.0_rkx-122.0_rkx*rh-t(n,nk))
       plcl = p(n,nk)*(rh**chi)
-      if ( plcl < 200.0D0 .or. plcl >= 2000.0D0 ) then
+      if ( plcl < 200.0_rkx .or. plcl >= 2000.0_rkx ) then
         iflag(n) = 2
         cbmf(n) = d_zero
         cycle pointloop
@@ -547,7 +547,7 @@ module mod_cu_em
           elacrit = elcrit(n)*(d_one-tca/tlcrit)
         end if
         elacrit = max(elacrit,d_zero)
-        ep(i) = epmax(n)*(d_one-elacrit/max(clw(i),1.0D-8))
+        ep(i) = epmax(n)*(d_one-elacrit/max(clw(i),1.0e-8_rkx))
         ep(i) = max(ep(i),d_zero)
         ep(i) = min(ep(i),epmax(n))
         sigp(i) = sigs
@@ -620,7 +620,7 @@ module mod_cu_em
       ict = max(ict,ict1)
       cape = capem + byp
       defrac = capem - cape
-      defrac = max(defrac,0.001D0)
+      defrac = max(defrac,0.001_rkx)
       frac = -cape/defrac
       frac = min(frac,d_one)
       frac = max(frac,d_zero)
@@ -654,9 +654,9 @@ module mod_cu_em
       ! Adjust cloud base mass flux
       !
       cbmfold = cbmf(n)
-      delt0 = 300.0D0
+      delt0 = 300.0_rkx
       damps = damp*dt/delt0
-      cbmf(n) = (d_one-damps)*cbmf(n) + 0.1D0*alphae*dtma
+      cbmf(n) = (d_one-damps)*cbmf(n) + 0.1_rkx*alphae*dtma
       cbmf(n) = max(cbmf(n),d_zero)
       !
       ! If cloud base mass flux is zero, skip rest of calculation
@@ -671,7 +671,7 @@ module mod_cu_em
       m(icb) = d_zero
       do i = icb + 1 , ict
         k = min(i,ict1)
-        dbo = abs(tv(k)-tvp(k)) + entp*0.02D0*(ph(n,k)-ph(n,k+1))
+        dbo = abs(tv(k)-tvp(k)) + entp*0.02_rkx*(ph(n,k)-ph(n,k+1))
         dbosum = dbosum + dbo
         m(i) = cbmf(n)*dbo
       end do
@@ -690,7 +690,7 @@ module mod_cu_em
           anum = h(j) - hp(i) + (cpv-cpd)*t(n,j)*(qti-q(n,j))
           denom = h(i) - hp(i) + (cpd-cpv)*(q(n,i)-qti)*t(n,j)
           dei = denom
-          if ( abs(dei) < 0.01D0 ) dei = 0.01D0
+          if ( abs(dei) < 0.01_rkx ) dei = 0.01_rkx
           sij(i,j) = anum/dei
           sij(i,i) = d_one
           altem = sij(i,j)*q(n,i) + (d_one-sij(i,j))*qti - qs(n,j)
@@ -701,12 +701,12 @@ module mod_cu_em
                 altem > cwat) .and. j > i ) then
             anum = anum - lv(j)*(qti-qs(n,j)-cwat*bf2)
             denom = denom + lv(j)*(q(n,i)-qti)
-            if ( abs(denom) < 0.01D0 ) denom = 0.01D0
+            if ( abs(denom) < 0.01_rkx ) denom = 0.01_rkx
             sij(i,j) = anum/denom
             altem = sij(i,j)*q(n,i) + (d_one-sij(i,j))*qti - qs(n,j)
             altem = altem - (bf2-d_one)*cwat
           end if
-          if ( sij(i,j) > d_zero .and. sij(i,j) < 0.9D0 ) then
+          if ( sij(i,j) > d_zero .and. sij(i,j) < 0.9_rkx ) then
             qent(i,j) = sij(i,j)*q(n,i) + (d_one-sij(i,j))*qti
             uent(i,j) = sij(i,j)*u(n,i) + (d_one-sij(i,j))*u(n,nk)
             vent(i,j) = sij(i,j)*v(n,i) + (d_one-sij(i,j))*v(n,nk)
@@ -747,7 +747,7 @@ module mod_cu_em
           qp1 = q(n,nk) - ep(i)*clw(i)
           anum = h(i) - hp(i) - lv(i)*(qp1-qs(n,i))
           denom = h(i) - hp(i) + lv(i)*(q(n,i)-qp1)
-          if ( abs(denom) < 0.01D0 ) denom = 0.01D0
+          if ( abs(denom) < 0.01_rkx ) denom = 0.01_rkx
           scrit = anum/denom
           alt = qp1 - qs(n,i) + scrit*(q(n,i)-qp1)
           if ( alt < d_zero ) scrit = d_one
@@ -755,7 +755,7 @@ module mod_cu_em
           asij = d_zero
           smin = d_one
           do j = icb , ict
-            if ( sij(i,j) > d_zero .and. sij(i,j) < 0.9D0 ) then
+            if ( sij(i,j) > d_zero .and. sij(i,j) < 0.9_rkx ) then
               if ( j > i ) then
                 smid = min(sij(i,j),scrit)
                 sjmax = smid
@@ -779,7 +779,7 @@ module mod_cu_em
               ment(i,j) = ment(i,j)*(delp+delm)*(ph(n,j)-ph(n,j+1))
             end if
           end do
-          asij = max(1.0D-21,asij)
+          asij = max(1.0e-21_rkx,asij)
           asij = d_one/asij
           do j = icb , ict
             ment(i,j) = ment(i,j)*asij
@@ -788,7 +788,7 @@ module mod_cu_em
           do j = icb , ict
             bsum = bsum + ment(i,j)
           end do
-          if ( bsum < 1.0D-18 ) then
+          if ( bsum < 1.0e-18_rkx ) then
             nent(i) = 0
             ment(i,i) = m(i)
             qent(i,i) = q(n,nk) - ep(i)*clw(i)
@@ -806,7 +806,7 @@ module mod_cu_em
       ! Check whether ep(ict)=0, if so, skip precipitating
       ! downdraft calculation
       !
-      if ( ep(ict) >= 0.0001D0 ) then
+      if ( ep(ict) >= 0.0001_rkx ) then
         !
         ! Integrate liquid water equation to find condensed water
         ! and condensed water flux
@@ -843,7 +843,7 @@ module mod_cu_em
             wt(i) = omtsnow
           end if
           qsm = d_half*(q(n,i)+qp(i+1))
-          afac = coeff*ph(n,i)*(qs(n,i)-qsm)/(1.0D4+2.0D3*ph(n,i)*qs(n,i))
+          afac = coeff*ph(n,i)*(qs(n,i)-qsm)/(1.0e4_rkx+2.0e3_rkx*ph(n,i)*qs(n,i))
           afac = max(afac,d_zero)
           sigt = sigp(i)
           sigt = max(d_zero,sigt)
@@ -865,13 +865,13 @@ module mod_cu_em
             !
             ! Add small amount of inertia to downdraft
             !
-            fac = 20.0D0/(ph(n,i-1)-ph(n,i))
+            fac = 20.0_rkx/(ph(n,i-1)-ph(n,i))
             mp(i) = (fac*mp(i+1)+mp(i))/(d_one+fac)
             !
             ! Force mp to decrease linearly to zero
             ! between about 950 mb and the surface
             !
-            if ( p(n,i) > (0.949D0*p(n,1)) ) then
+            if ( p(n,i) > (0.949_rkx*p(n,1)) ) then
               jtt = max(jtt,i)
               mp(i) = mp(jtt)*(p(n,1)-p(n,i))/(p(n,1)-p(n,jtt))
             end if
@@ -916,14 +916,14 @@ module mod_cu_em
       ! Calculate downdraft velocity scale and surface temperature and
       ! water vapor fluctuations
       !
-      wd = betae*abs(mp(icb))*0.01D0*rgas*t(n,icb)/(sigd*p(n,icb))
+      wd = betae*abs(mp(icb))*0.01_rkx*rgas*t(n,icb)/(sigd*p(n,icb))
       qprime = d_half*(qp(1)-q(n,1))
       tprime = wlhv*qprime*rcpd
       !
       ! Calculate tendencies of lowest level potential temperature
       ! and mixing ratio
       !
-      dpinv = 0.01D0/(ph(n,1)-ph(n,2))
+      dpinv = 0.01_rkx/(ph(n,1)-ph(n,2))
       am = d_zero
       if ( nk == 1 ) then
         do k = 2 , ict
@@ -959,7 +959,7 @@ module mod_cu_em
       ! through each level
       !
       do i = 2 , ict
-        dpinv = 0.01D0/(ph(n,i)-ph(n,i+1))
+        dpinv = 0.01_rkx/(ph(n,i)-ph(n,i+1))
         cpinv = d_one/cpn(i)
         amp1 = d_zero
         ad = d_zero
@@ -1091,8 +1091,8 @@ module mod_cu_em
       !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
       !
       do i = icb , ict
-        cldfra(n,i) = 0.105D0*log(d_one+(500.0D0*d_half*(mp(i)+mp(i+1))))
-        cldfra(n,i) = min(max(0.0D0,cldfra(n,i)),clfrcv)
+        cldfra(n,i) = 0.105_rkx*log(d_one+(500.0_rkx*d_half*(mp(i)+mp(i+1))))
+        cldfra(n,i) = min(max(0.0_rkx,cldfra(n,i)),clfrcv)
       end do
       kcb(n) = icb
       kct(n) = ict
@@ -1106,10 +1106,10 @@ module mod_cu_em
         implicit none
         integer , intent(in) :: n , nd , nk , nl , kk
         integer(ik4) , intent(in) :: icb
-        real(rk8) , dimension(:,:) , intent(in) :: p , q , qs , t
-        real(rk8) , dimension(nd) , intent(in) :: gz
-        real(rk8) , dimension(nd) , intent(inout) :: clw , tpk , tvp
-        real(rk8) :: ah0 , ahg , alv , cpinv , cpp , ppa , &
+        real(rkx) , dimension(:,:) , intent(in) :: p , q , qs , t
+        real(rkx) , dimension(nd) , intent(in) :: gz
+        real(rkx) , dimension(nd) , intent(inout) :: clw , tpk , tvp
+        real(rkx) :: ah0 , ahg , alv , cpinv , cpp , ppa , &
                      qg , rg , s , tg
         integer(ik4) :: i , j , nsb , nst
         !
@@ -1147,8 +1147,8 @@ module mod_cu_em
           do j = 1 , 2
             s = d_one/(cpd + alv*alv*qg/(rwat*t(n,i)*t(n,i)))
             ahg = cpd*tg + (cl-cpd)*q(n,nk)*t(n,i) + alv*qg + gz(i)
-            tg = max(tg + s*(ah0-ahg),35.0D0)
-            ppa = p(n,i)*100.0D0
+            tg = max(tg + s*(ah0-ahg),35.0_rkx)
+            ppa = p(n,i)*100.0_rkx
             qg = pfqsat(tg,ppa)
           end do
           tpk(i) = (ah0-(cl-cpd)*q(n,nk)*t(n,i)-gz(i)-alv*qg)*rcpd

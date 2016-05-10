@@ -31,104 +31,104 @@ module mod_clm_cngapmortality
     integer(ik4), intent(in) :: filter_soilp(:) ! pft filter for soil points
 
     integer(ik4) , pointer :: ivt(:) ! pft vegetation type
-    real(rk8), pointer :: woody(:)   ! binary flag for woody lifeform
+    real(rkx), pointer :: woody(:)   ! binary flag for woody lifeform
                                      ! (1=woody, 0=not woody)
-    real(rk8), pointer :: leafc(:)              ! (gC/m2) leaf C
-    real(rk8), pointer :: frootc(:)             ! (gC/m2) fine root C
-    real(rk8), pointer :: livestemc(:)          ! (gC/m2) live stem C
-    real(rk8), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
-    real(rk8), pointer :: livecrootc(:)         ! (gC/m2) live coarse root C
-    real(rk8), pointer :: deadcrootc(:)         ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
-    real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
-    real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
-    real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live corse root C stge
-    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead corse root C stge
-    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth respir. stge
-    real(rk8), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
-    real(rk8), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live corse root C trfr
-    real(rk8), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead corse root C trfr
-    real(rk8), pointer :: gresp_xfer(:)         ! (gC/m2) growth resp trfr
-    real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N
-    real(rk8), pointer :: frootn(:)             ! (gN/m2) fine root N
-    real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
-    real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
-    real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: retransn(:)           ! (gN/m2) plant pool of
+    real(rkx), pointer :: leafc(:)              ! (gC/m2) leaf C
+    real(rkx), pointer :: frootc(:)             ! (gC/m2) fine root C
+    real(rkx), pointer :: livestemc(:)          ! (gC/m2) live stem C
+    real(rkx), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
+    real(rkx), pointer :: livecrootc(:)         ! (gC/m2) live coarse root C
+    real(rkx), pointer :: deadcrootc(:)         ! (gC/m2) dead coarse root C
+    real(rkx), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
+    real(rkx), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
+    real(rkx), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
+    real(rkx), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
+    real(rkx), pointer :: livecrootc_storage(:) ! (gC/m2) live corse root C stge
+    real(rkx), pointer :: deadcrootc_storage(:) ! (gC/m2) dead corse root C stge
+    real(rkx), pointer :: gresp_storage(:)      ! (gC/m2) growth respir. stge
+    real(rkx), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
+    real(rkx), pointer :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
+    real(rkx), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
+    real(rkx), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
+    real(rkx), pointer :: livecrootc_xfer(:)    ! (gC/m2) live corse root C trfr
+    real(rkx), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead corse root C trfr
+    real(rkx), pointer :: gresp_xfer(:)         ! (gC/m2) growth resp trfr
+    real(rkx), pointer :: leafn(:)              ! (gN/m2) leaf N
+    real(rkx), pointer :: frootn(:)             ! (gN/m2) fine root N
+    real(rkx), pointer :: livestemn(:)          ! (gN/m2) live stem N
+    real(rkx), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
+    real(rkx), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
+    real(rkx), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
+    real(rkx), pointer :: retransn(:)           ! (gN/m2) plant pool of
                                                 ! retranslocated N
-    real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
-    real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
-    real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
-    real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N stge
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N stge
-    real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
-    real(rk8), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
-    real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
-    real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live coarse root N trfr
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead coarse root N trfr
+    real(rkx), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
+    real(rkx), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
+    real(rkx), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
+    real(rkx), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
+    real(rkx), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N stge
+    real(rkx), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N stge
+    real(rkx), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
+    real(rkx), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
+    real(rkx), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
+    real(rkx), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
+    real(rkx), pointer :: livecrootn_xfer(:)    ! (gN/m2) live coarse root N trfr
+    real(rkx), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead coarse root N trfr
 #if (defined CNDV)
-    real(rk8), pointer :: greffic(:)
-    real(rk8), pointer :: heatstress(:)
+    real(rkx), pointer :: greffic(:)
+    real(rkx), pointer :: heatstress(:)
     ! number of individuals (#/m2) added by F. Li and S. Levis
-    real(rk8), pointer :: nind(:)
+    real(rkx), pointer :: nind(:)
 #endif
 
-    real(rk8), pointer :: m_leafc_to_litter(:)
-    real(rk8), pointer :: m_frootc_to_litter(:)
-    real(rk8), pointer :: m_livestemc_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_to_litter(:)
-    real(rk8), pointer :: m_leafc_storage_to_litter(:)
-    real(rk8), pointer :: m_frootc_storage_to_litter(:)
-    real(rk8), pointer :: m_livestemc_storage_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_storage_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_storage_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_storage_to_litter(:)
-    real(rk8), pointer :: m_gresp_storage_to_litter(:)
-    real(rk8), pointer :: m_leafc_xfer_to_litter(:)
-    real(rk8), pointer :: m_frootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_livestemc_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_xfer_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_gresp_xfer_to_litter(:)
-    real(rk8), pointer :: m_leafn_to_litter(:)
-    real(rk8), pointer :: m_frootn_to_litter(:)
-    real(rk8), pointer :: m_livestemn_to_litter(:)
-    real(rk8), pointer :: m_deadstemn_to_litter(:)
-    real(rk8), pointer :: m_livecrootn_to_litter(:)
-    real(rk8), pointer :: m_deadcrootn_to_litter(:)
-    real(rk8), pointer :: m_retransn_to_litter(:)
-    real(rk8), pointer :: m_leafn_storage_to_litter(:)
-    real(rk8), pointer :: m_frootn_storage_to_litter(:)
-    real(rk8), pointer :: m_livestemn_storage_to_litter(:)
-    real(rk8), pointer :: m_deadstemn_storage_to_litter(:)
-    real(rk8), pointer :: m_livecrootn_storage_to_litter(:)
-    real(rk8), pointer :: m_deadcrootn_storage_to_litter(:)
-    real(rk8), pointer :: m_leafn_xfer_to_litter(:)
-    real(rk8), pointer :: m_frootn_xfer_to_litter(:)
-    real(rk8), pointer :: m_livestemn_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadstemn_xfer_to_litter(:)
-    real(rk8), pointer :: m_livecrootn_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadcrootn_xfer_to_litter(:)
+    real(rkx), pointer :: m_leafc_to_litter(:)
+    real(rkx), pointer :: m_frootc_to_litter(:)
+    real(rkx), pointer :: m_livestemc_to_litter(:)
+    real(rkx), pointer :: m_deadstemc_to_litter(:)
+    real(rkx), pointer :: m_livecrootc_to_litter(:)
+    real(rkx), pointer :: m_deadcrootc_to_litter(:)
+    real(rkx), pointer :: m_leafc_storage_to_litter(:)
+    real(rkx), pointer :: m_frootc_storage_to_litter(:)
+    real(rkx), pointer :: m_livestemc_storage_to_litter(:)
+    real(rkx), pointer :: m_deadstemc_storage_to_litter(:)
+    real(rkx), pointer :: m_livecrootc_storage_to_litter(:)
+    real(rkx), pointer :: m_deadcrootc_storage_to_litter(:)
+    real(rkx), pointer :: m_gresp_storage_to_litter(:)
+    real(rkx), pointer :: m_leafc_xfer_to_litter(:)
+    real(rkx), pointer :: m_frootc_xfer_to_litter(:)
+    real(rkx), pointer :: m_livestemc_xfer_to_litter(:)
+    real(rkx), pointer :: m_deadstemc_xfer_to_litter(:)
+    real(rkx), pointer :: m_livecrootc_xfer_to_litter(:)
+    real(rkx), pointer :: m_deadcrootc_xfer_to_litter(:)
+    real(rkx), pointer :: m_gresp_xfer_to_litter(:)
+    real(rkx), pointer :: m_leafn_to_litter(:)
+    real(rkx), pointer :: m_frootn_to_litter(:)
+    real(rkx), pointer :: m_livestemn_to_litter(:)
+    real(rkx), pointer :: m_deadstemn_to_litter(:)
+    real(rkx), pointer :: m_livecrootn_to_litter(:)
+    real(rkx), pointer :: m_deadcrootn_to_litter(:)
+    real(rkx), pointer :: m_retransn_to_litter(:)
+    real(rkx), pointer :: m_leafn_storage_to_litter(:)
+    real(rkx), pointer :: m_frootn_storage_to_litter(:)
+    real(rkx), pointer :: m_livestemn_storage_to_litter(:)
+    real(rkx), pointer :: m_deadstemn_storage_to_litter(:)
+    real(rkx), pointer :: m_livecrootn_storage_to_litter(:)
+    real(rkx), pointer :: m_deadcrootn_storage_to_litter(:)
+    real(rkx), pointer :: m_leafn_xfer_to_litter(:)
+    real(rkx), pointer :: m_frootn_xfer_to_litter(:)
+    real(rkx), pointer :: m_livestemn_xfer_to_litter(:)
+    real(rkx), pointer :: m_deadstemn_xfer_to_litter(:)
+    real(rkx), pointer :: m_livecrootn_xfer_to_litter(:)
+    real(rkx), pointer :: m_deadcrootn_xfer_to_litter(:)
 
     integer(ik4) :: p  ! pft index
     integer(ik4) :: fp ! pft filter index
-    real(rk8):: am     ! rate for fractional mortality (1/yr)
-    real(rk8):: m      ! rate for fractional mortality (1/s)
+    real(rkx):: am     ! rate for fractional mortality (1/yr)
+    real(rkx):: m      ! rate for fractional mortality (1/s)
 #ifdef CNDV
     ! asymptotic max mortality rate (/yr)
-    real(rk8):: mort_max
+    real(rkx):: mort_max
     !coeff of growth efficiency in mortality equation
-    real(rk8), parameter :: k_mort = 0.3D0
+    real(rkx), parameter :: k_mort = 0.3_rkx
 #endif
 
     ! assign local pointers
@@ -229,7 +229,7 @@ module mod_clm_cngapmortality
 #endif
 
     ! set the mortality rate based on annual rate
-    am = 0.02D0
+    am = 0.02_rkx
 
     ! pft loop
     do fp = 1,num_soilp
@@ -238,24 +238,24 @@ module mod_clm_cngapmortality
 #if (defined CNDV)
       ! Stress mortality from lpj's subr Mortality.
 
-      if (woody(ivt(p)) == 1.D0) then
+      if (woody(ivt(p)) == 1._rkx) then
 
         if (ivt(p) == 8) then
-          mort_max = 0.03D0 ! BDT boreal
+          mort_max = 0.03_rkx ! BDT boreal
         else
-          mort_max = 0.01D0 ! original value for all pfts
+          mort_max = 0.01_rkx ! original value for all pfts
         end if
 
         ! heatstress and greffic calculated in Establishment once/yr
 
         ! Mortality rate inversely related to growth efficiency
         ! (Prentice et al 1993)
-        am = mort_max / (1.D0 + k_mort * greffic(p))
+        am = mort_max / (1._rkx + k_mort * greffic(p))
 
-        am = min(1.D0, am + heatstress(p))
+        am = min(1._rkx, am + heatstress(p))
       else ! lpj didn't set this for grasses; cn does
         ! set the mortality rate based on annual rate
-        am = 0.02D0
+        am = 0.02_rkx
       end if
 #endif
       m  = am/(dayspy * secspday)
@@ -315,11 +315,11 @@ module mod_clm_cngapmortality
 
 #if (defined CNDV)
       ! added by F. Li and S. Levis
-      if (woody(ivt(p)) == 1.D0)then
-        if (livestemc(p)+deadstemc(p)> 0.D0)then
-          nind(p)=nind(p)*(1.D0-m)
+      if (woody(ivt(p)) == 1._rkx)then
+        if (livestemc(p)+deadstemc(p)> 0._rkx)then
+          nind(p)=nind(p)*(1._rkx-m)
         else
-          nind(p) = 0.D0
+          nind(p) = 0._rkx
         end if
       end if
 #endif
@@ -346,75 +346,75 @@ module mod_clm_cngapmortality
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer :: pactive(:)
     integer(ik4) , pointer :: ivt(:)      ! pft vegetation type
-    real(rk8), pointer :: wtcol(:)    ! pft weight relative to column (0-1)
-    real(rk8), pointer :: lf_flab(:)  ! leaf litter labile fraction
-    real(rk8), pointer :: lf_fcel(:)  ! leaf litter cellulose fraction
-    real(rk8), pointer :: lf_flig(:)  ! leaf litter lignin fraction
-    real(rk8), pointer :: fr_flab(:)  ! fine root litter labile fraction
-    real(rk8), pointer :: fr_fcel(:)  ! fine root litter cellulose fraction
-    real(rk8), pointer :: fr_flig(:)  ! fine root litter lignin fraction
+    real(rkx), pointer :: wtcol(:)    ! pft weight relative to column (0-1)
+    real(rkx), pointer :: lf_flab(:)  ! leaf litter labile fraction
+    real(rkx), pointer :: lf_fcel(:)  ! leaf litter cellulose fraction
+    real(rkx), pointer :: lf_flig(:)  ! leaf litter lignin fraction
+    real(rkx), pointer :: fr_flab(:)  ! fine root litter labile fraction
+    real(rkx), pointer :: fr_fcel(:)  ! fine root litter cellulose fraction
+    real(rkx), pointer :: fr_flig(:)  ! fine root litter lignin fraction
     integer(ik4) , pointer :: npfts(:)    ! number of pfts for each column
     integer(ik4) , pointer :: pfti(:)     ! beginning pft index for each column
-    real(rk8), pointer :: m_leafc_to_litter(:)
-    real(rk8), pointer :: m_frootc_to_litter(:)
-    real(rk8), pointer :: m_livestemc_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_to_litter(:)
-    real(rk8), pointer :: m_leafc_storage_to_litter(:)
-    real(rk8), pointer :: m_frootc_storage_to_litter(:)
-    real(rk8), pointer :: m_livestemc_storage_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_storage_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_storage_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_storage_to_litter(:)
-    real(rk8), pointer :: m_gresp_storage_to_litter(:)
-    real(rk8), pointer :: m_leafc_xfer_to_litter(:)
-    real(rk8), pointer :: m_frootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_livestemc_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_xfer_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_gresp_xfer_to_litter(:)
-    real(rk8), pointer :: m_leafn_to_litter(:)
-    real(rk8), pointer :: m_frootn_to_litter(:)
-    real(rk8), pointer :: m_livestemn_to_litter(:)
-    real(rk8), pointer :: m_deadstemn_to_litter(:)
-    real(rk8), pointer :: m_livecrootn_to_litter(:)
-    real(rk8), pointer :: m_deadcrootn_to_litter(:)
-    real(rk8), pointer :: m_retransn_to_litter(:)
-    real(rk8), pointer :: m_leafn_storage_to_litter(:)
-    real(rk8), pointer :: m_frootn_storage_to_litter(:)
-    real(rk8), pointer :: m_livestemn_storage_to_litter(:)
-    real(rk8), pointer :: m_deadstemn_storage_to_litter(:)
-    real(rk8), pointer :: m_livecrootn_storage_to_litter(:)
-    real(rk8), pointer :: m_deadcrootn_storage_to_litter(:)
-    real(rk8), pointer :: m_leafn_xfer_to_litter(:)
-    real(rk8), pointer :: m_frootn_xfer_to_litter(:)
-    real(rk8), pointer :: m_livestemn_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadstemn_xfer_to_litter(:)
-    real(rk8), pointer :: m_livecrootn_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadcrootn_xfer_to_litter(:)
+    real(rkx), pointer :: m_leafc_to_litter(:)
+    real(rkx), pointer :: m_frootc_to_litter(:)
+    real(rkx), pointer :: m_livestemc_to_litter(:)
+    real(rkx), pointer :: m_deadstemc_to_litter(:)
+    real(rkx), pointer :: m_livecrootc_to_litter(:)
+    real(rkx), pointer :: m_deadcrootc_to_litter(:)
+    real(rkx), pointer :: m_leafc_storage_to_litter(:)
+    real(rkx), pointer :: m_frootc_storage_to_litter(:)
+    real(rkx), pointer :: m_livestemc_storage_to_litter(:)
+    real(rkx), pointer :: m_deadstemc_storage_to_litter(:)
+    real(rkx), pointer :: m_livecrootc_storage_to_litter(:)
+    real(rkx), pointer :: m_deadcrootc_storage_to_litter(:)
+    real(rkx), pointer :: m_gresp_storage_to_litter(:)
+    real(rkx), pointer :: m_leafc_xfer_to_litter(:)
+    real(rkx), pointer :: m_frootc_xfer_to_litter(:)
+    real(rkx), pointer :: m_livestemc_xfer_to_litter(:)
+    real(rkx), pointer :: m_deadstemc_xfer_to_litter(:)
+    real(rkx), pointer :: m_livecrootc_xfer_to_litter(:)
+    real(rkx), pointer :: m_deadcrootc_xfer_to_litter(:)
+    real(rkx), pointer :: m_gresp_xfer_to_litter(:)
+    real(rkx), pointer :: m_leafn_to_litter(:)
+    real(rkx), pointer :: m_frootn_to_litter(:)
+    real(rkx), pointer :: m_livestemn_to_litter(:)
+    real(rkx), pointer :: m_deadstemn_to_litter(:)
+    real(rkx), pointer :: m_livecrootn_to_litter(:)
+    real(rkx), pointer :: m_deadcrootn_to_litter(:)
+    real(rkx), pointer :: m_retransn_to_litter(:)
+    real(rkx), pointer :: m_leafn_storage_to_litter(:)
+    real(rkx), pointer :: m_frootn_storage_to_litter(:)
+    real(rkx), pointer :: m_livestemn_storage_to_litter(:)
+    real(rkx), pointer :: m_deadstemn_storage_to_litter(:)
+    real(rkx), pointer :: m_livecrootn_storage_to_litter(:)
+    real(rkx), pointer :: m_deadcrootn_storage_to_litter(:)
+    real(rkx), pointer :: m_leafn_xfer_to_litter(:)
+    real(rkx), pointer :: m_frootn_xfer_to_litter(:)
+    real(rkx), pointer :: m_livestemn_xfer_to_litter(:)
+    real(rkx), pointer :: m_deadstemn_xfer_to_litter(:)
+    real(rkx), pointer :: m_livecrootn_xfer_to_litter(:)
+    real(rkx), pointer :: m_deadcrootn_xfer_to_litter(:)
     ! C fluxes associated with gap mortality to litter metabolic pool (gC/m3/s)
-    real(rk8), pointer :: gap_mortality_c_to_litr_met_c(:,:)
+    real(rkx), pointer :: gap_mortality_c_to_litr_met_c(:,:)
     ! C fluxes associated with gap mortality to litter cellulose pool (gC/m3/s)
-    real(rk8), pointer :: gap_mortality_c_to_litr_cel_c(:,:)
+    real(rkx), pointer :: gap_mortality_c_to_litr_cel_c(:,:)
     ! C fluxes associated with gap mortality to litter lignin pool (gC/m3/s)
-    real(rk8), pointer :: gap_mortality_c_to_litr_lig_c(:,:)
+    real(rkx), pointer :: gap_mortality_c_to_litr_lig_c(:,:)
     ! C fluxes associated with gap mortality to CWD pool (gC/m3/s)
-    real(rk8), pointer :: gap_mortality_c_to_cwdc(:,:)
+    real(rkx), pointer :: gap_mortality_c_to_cwdc(:,:)
     ! N fluxes associated with gap mortality to litter metabolic pool (gN/m3/s)
-    real(rk8), pointer :: gap_mortality_n_to_litr_met_n(:,:)
+    real(rkx), pointer :: gap_mortality_n_to_litr_met_n(:,:)
     ! N fluxes associated with gap mortality to litter cellulose pool (gN/m3/s)
-    real(rk8), pointer :: gap_mortality_n_to_litr_cel_n(:,:)
+    real(rkx), pointer :: gap_mortality_n_to_litr_cel_n(:,:)
     ! N fluxes associated with gap mortality to litter lignin pool (gN/m3/s)
-    real(rk8), pointer :: gap_mortality_n_to_litr_lig_n(:,:)
+    real(rkx), pointer :: gap_mortality_n_to_litr_lig_n(:,:)
     ! N fluxes associated with gap mortality to CWD pool (gN/m3/s)
-    real(rk8), pointer :: gap_mortality_n_to_cwdn(:,:)
+    real(rkx), pointer :: gap_mortality_n_to_cwdn(:,:)
 
-    real(rk8), pointer :: leaf_prof(:,:)  ! (1/m) profile of leaves
-    real(rk8), pointer :: froot_prof(:,:) ! (1/m) profile of fine roots
-    real(rk8), pointer :: croot_prof(:,:) ! (1/m) profile of coarse roots
-    real(rk8), pointer :: stem_prof(:,:)  ! (1/m) profile of stems
+    real(rkx), pointer :: leaf_prof(:,:)  ! (1/m) profile of leaves
+    real(rkx), pointer :: froot_prof(:,:) ! (1/m) profile of fine roots
+    real(rkx), pointer :: croot_prof(:,:) ! (1/m) profile of coarse roots
+    real(rkx), pointer :: stem_prof(:,:)  ! (1/m) profile of stems
 
     integer(ik4) :: fc,c,pi,p,j  ! indices
 

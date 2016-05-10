@@ -30,10 +30,10 @@ module mod_grid
 
   private
 
-  real(rk8) , public :: clatx , clonx
+  real(rkx) , public :: clatx , clonx
 
-  real(rk8) , public , pointer , dimension(:,:) :: xlat , xlon , xmask , topo
-  real(rk8) , public , pointer , dimension(:) :: sigx
+  real(rkx) , public , pointer , dimension(:,:) :: xlat , xlon , xmask , topo
+  real(rkx) , public , pointer , dimension(:) :: sigx
   real(rk4) , public , pointer , dimension(:,:) :: rxlat , rxlon
   real(rk4) , public , pointer , dimension(:) :: rsigx
   logical , public , pointer , dimension(:,:,:) :: sgmask
@@ -143,7 +143,7 @@ module mod_grid
           ii = (i-1) * nsg + n2
           do n1 = 1 , nsg
             jj = (j-1) * nsg + n1
-            sgmask((n2-1)*nsg+n1,j,i) = (xmask(jj,ii) > 0.5D0)
+            sgmask((n2-1)*nsg+n1,j,i) = (xmask(jj,ii) > 0.5_rkx)
           end do
         end do
       end do

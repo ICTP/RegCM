@@ -20,58 +20,50 @@
 !
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 ! MAIN - Main program - driver routine
 !   Arguments :
 !
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 module mod_cbmz_main1
-  use mod_cbmz_Model
-  use mod_cbmz_Global
-  use mod_cbmz_Parameters
+  use mod_cbmz_model
+  use mod_cbmz_global
+  use mod_cbmz_parameters
 
   public :: chemmain
 
   contains
 
   subroutine chemmain(jday,dtche)
-    use mod_cbmz_Model
-    use mod_cbmz_Global
-    use mod_cbmz_Parameters
+    use mod_cbmz_model
+    use mod_cbmz_global
+    use mod_cbmz_parameters
     use mod_cbmz_jval1
+    use mod_cbmz_hvread
     implicit none
 
     real(kind=dp) , intent(in) :: jday , dtche
-
     real(kind=dp) :: t
     real(kind=dp) :: rstate(20)
     integer :: i
 
     !------------------Declaration part for jval----------
 
-    integer :: c_hvin
-    integer , dimension(22) :: c_nhv(22)
     real(kind=dp) , dimension(22) :: jparam
-    real(kind=dp) , dimension(22,40) :: c_hvmat
-    real(kind=dp) , dimension(22) :: c_hvmatb
-    real(kind=dp) , dimension(80,510,56) :: c_jarray
-
-    common /hvrvars/ c_hvmat , c_hvmatb , c_jarray
-    common /HVINT/ c_hvin , c_nhv
     real(kind=dp) , dimension(56) :: jval
 
-    integer , parameter :: jO2       = 1
+    !integer , parameter :: jO2       = 1
     integer , parameter :: jO31D     = 2
     integer , parameter :: jO33P     = 3
     integer , parameter :: jNO2      = 4
     integer , parameter :: jNO3a     = 5
     integer , parameter :: jNO3b     = 6
-    integer , parameter :: jN2O5a    = 7
+    !integer , parameter :: jN2O5a    = 7
     integer , parameter :: jN2O5b    = 8
-    integer , parameter :: jN2O      = 9
-    integer , parameter :: jHO2      = 10
+    !integer , parameter :: jN2O      = 9
+    !integer , parameter :: jHO2      = 10
     integer , parameter :: jH2O2     = 11
     integer , parameter :: jHNO2     = 12
     integer , parameter :: jHNO3     = 13
@@ -79,14 +71,14 @@ module mod_cbmz_main1
     integer , parameter :: jCH2Oa    = 15
     integer , parameter :: jCH2Ob    = 16
     integer , parameter :: jCH3CHOa  = 17
-    integer , parameter :: jCH3CHOb  = 18
-    integer , parameter :: jCH3CHOc  = 19
+    !integer , parameter :: jCH3CHOb  = 18
+    !integer , parameter :: jCH3CHOc  = 19
     integer , parameter :: jC2H5CHO  = 20
     integer , parameter :: jCHOCHO   = 21
-    integer , parameter :: jCH3COCHO = 22
+    !integer , parameter :: jCH3COCHO = 22
     integer , parameter :: jCH3COCH3 = 23
-    integer , parameter :: jCH3OOH   = 24
-    integer , parameter :: jCH3ONO2  = 25
+    !integer , parameter :: jCH3OOH   = 24
+    !integer , parameter :: jCH3ONO2  = 25
     integer , parameter :: jPAN      = 26
 
     !~~~> Initialization
@@ -94,52 +86,52 @@ module mod_cbmz_main1
     var => c(1:nvar)
     fix => c(nvar+1:)
 
-    stepmin = 0.0d0
-    stepmax = 0.0d0
+    stepmin = 0.0_dp
+    stepmax = 0.0_dp
 
     do i = 1 , nvar
-      rtol(i) = 0.1D0
-      atol(i) = 0.1D0
+      rtol(i) = 0.1_dp
+      atol(i) = 0.1_dp
     end do
-    fix(1) = (0.22D0)*C_M
-    fix(2) = (0.78D0)*C_M
+    fix(1) = (0.22_dp)*C_M
+    fix(2) = (0.78_dp)*C_M
 
     call loadperoxyparameters
 
     ! constant rate coefficients
-    rconst(11) = 2.2D-10
-    rconst(24) = 2.2D-11
-    rconst(34) = 5D-16
-    rconst(40) = 3.5D-12
-    rconst(41) = 2D-21
-    rconst(48) = 8.1D-13
-    rconst(52) = 1D-11
-    rconst(60) = 1.7D-11
-    rconst(69) = 2.5D-12
-    rconst(72) = 8.1D-12
-    rconst(73) = 4.1D-11
-    rconst(74) = 2.2D-11
-    rconst(75) = 1.4D-11
-    rconst(76) = 3D-11
-    rconst(82) = 3.3D-11
-    rconst(83) = 7D-18
-    rconst(85) = 1D-15
-    rconst(98) = 4D-12
-    rconst(100) = 4D-12
-    rconst(101) = 4D-12
-    rconst(102) = 4D-12
-    rconst(103) = 4D-12
-    rconst(104) = 4D-12
-    rconst(105) = 4D-12
-    rconst(106) = 1.1D-12
-    rconst(107) = 2.5D-12
-    rconst(108) = 2.5D-12
-    rconst(109) = 4D-12
-    rconst(110) = 1.2D-12
-    rconst(111) = 4D-12
-    rconst(112) = 2.5D-12
+    rconst(11) = 2.2e-10_dp
+    rconst(24) = 2.2e-11_dp
+    rconst(34) = 5e-16_dp
+    rconst(40) = 3.5e-12_dp
+    rconst(41) = 2e-21_dp
+    rconst(48) = 8.1e-13_dp
+    rconst(52) = 1e-11_dp
+    rconst(60) = 1.7e-11_dp
+    rconst(69) = 2.5e-12_dp
+    rconst(72) = 8.1e-12_dp
+    rconst(73) = 4.1e-11_dp
+    rconst(74) = 2.2e-11_dp
+    rconst(75) = 1.4e-11_dp
+    rconst(76) = 3e-11_dp
+    rconst(82) = 3.3e-11_dp
+    rconst(83) = 7e-18_dp
+    rconst(85) = 1e-15_dp
+    rconst(98) = 4e-12_dp
+    rconst(100) = 4e-12_dp
+    rconst(101) = 4e-12_dp
+    rconst(102) = 4e-12_dp
+    rconst(103) = 4e-12_dp
+    rconst(104) = 4e-12_dp
+    rconst(105) = 4e-12_dp
+    rconst(106) = 1.1e-12_dp
+    rconst(107) = 2.5e-12_dp
+    rconst(108) = 2.5e-12_dp
+    rconst(109) = 4e-12_dp
+    rconst(110) = 1.2e-12_dp
+    rconst(111) = 4e-12_dp
+    rconst(112) = 2.5e-12_dp
 
-    tstart = 0.0D0*3600.0D0
+    tstart = 0.0_dp*3600.0_dp
     dt = dtche
 
     do i = 1 , nvar

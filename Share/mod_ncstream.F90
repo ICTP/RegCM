@@ -157,7 +157,7 @@ module mod_ncstream
             write(stderr,*) 'for file ',trim(stream%filename)
             stream%tcal = 'gregorian'
           end if
-          stream%refdate = timeval2date(0.0D0,stream%tunit,stream%tcal)
+          stream%refdate = timeval2date(0.0_rkx,stream%tunit,stream%tcal)
           stream%istart(1) = 1
           stream%icount(1) = stream%nrec
           stream%istride(1) = stream%nrec-1
@@ -344,7 +344,7 @@ module mod_ncstream
     subroutine outstream_enable(ncout,sigma)
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
-      real(rk8) , dimension(:) , pointer , intent(in) :: sigma
+      real(rkx) , dimension(:) , pointer , intent(in) :: sigma
 
       type(ncoutstream) , pointer :: stream
       type(internal_obuffer) , pointer :: buffer
@@ -354,7 +354,7 @@ module mod_ncstream
       integer(ik4) :: nl
 #endif
       character(len=16) , dimension(8) :: tempstr
-      real(rk8) :: xds , x0
+      real(rkx) :: xds , x0
       type(ncattribute_string) :: attc
       type(ncattribute_real8) :: attr
       type(ncattribute_real8_array) :: attra
@@ -393,7 +393,7 @@ module mod_ncstream
         end if
       end if
       if ( stream%l_hasgrid ) then
-        x0 = -ds*1000.0D0/2.0 ! Cross grid
+        x0 = -ds*1000.0_rkx/2.0_rkx ! Cross grid
         stvar%map_var%vname = 'crs'
         stvar%map_var%vunit = ''
         stvar%map_var%long_name = ''
@@ -615,25 +615,27 @@ module mod_ncstream
 #endif
       ! Put "basic" information in the file
       if ( stream%l_subgrid ) then
-        xds = ds/dble(nsg)
+        xds = ds/real(nsg,rkx)
       else
         xds = ds
       end if
       buffer%realbuff(1) = &
-        -real(((dble(stream%len_dims(jx_dim))-d_one)/d_two) * xds * d_1000)
+        -real(((real(stream%len_dims(jx_dim),rkx)-d_one)/d_two) * &
+                  xds * d_1000,rk4)
       do i = 2 , stream%len_dims(jx_dim)
-        buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds*d_1000)
+        buffer%realbuff(i) = real(real(buffer%realbuff(i-1),rkx)+xds*d_1000,rk4)
       end do
       call outstream_writevar(ncout,stvar%jx_var,nocopy)
       buffer%realbuff(1) = &
-        -real(((dble(stream%len_dims(iy_dim))-d_one)/d_two) * xds * d_1000)
+        -real(((real(stream%len_dims(iy_dim),rkx)-d_one)/d_two) * &
+                  xds * d_1000,rk4)
       do i = 2 , stream%len_dims(iy_dim)
-        buffer%realbuff(i) = real(dble(buffer%realbuff(i-1))+xds*d_1000)
+        buffer%realbuff(i) = real(real(buffer%realbuff(i-1),rkx)+xds*d_1000,rk4)
       end do
       call outstream_writevar(ncout,stvar%iy_var,nocopy)
       buffer%realbuff(1:size(sigma)) = real(sigma)
       call outstream_writevar(ncout,stvar%sigma_var,nocopy)
-      stvar%ptop_var%rval(1) = real(ptop*10.0D0)
+      stvar%ptop_var%rval(1) = real(ptop*10.0_rkx,rk4)
       call outstream_writevar(ncout,stvar%ptop_var)
       if ( stream%l_has2mlev ) then
         buffer%realbuff(1) = 2.0
@@ -646,7 +648,8 @@ module mod_ncstream
       if ( stream%l_hassoillev ) then
 #ifdef CLM45
         do nl = 1 , num_soil_layers
-          buffer%realbuff(nl) = real(scalez*(exp(0.5D0*(nl-0.5D0))-1.D0))
+          buffer%realbuff(nl) = real(scalez*(exp(0.5_rkx * &
+            (real(nl,rkx)-0.5_rkx))-1._rkx),rk4)
         end do
 #else
         buffer%realbuff(1) = 0.10
@@ -686,10 +689,10 @@ module mod_ncstream
       implicit none
       type(nc_input_stream) , intent(inout) :: ncin
       type(rcm_time_and_date) , intent(in) :: dtime
-      real(rk8) , intent(out) :: record
+      real(rkx) , intent(out) :: record
       type(ncinstream) , pointer :: stream
-      real(rk8) :: search
-      record = -1.0D0
+      real(rkx) :: search
+      record = -1.0_rkx
       if ( .not. associated(ncin%ncp%xs) ) return
       stream => ncin%ncp%xs
       if ( stream%nrec > 0 ) then
@@ -697,7 +700,7 @@ module mod_ncstream
         if ( search < stream%xtime(1) .or. search > stream%xtime(2) ) then
           return
         end if
-        record = 1.0D0+(search-stream%xtime(1))/stream%deltat
+        record = 1.0_rkx+(search-stream%xtime(1))/stream%deltat
       end if
     end subroutine instream_findrec
 
@@ -705,7 +708,7 @@ module mod_ncstream
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
       type(rcm_time_and_date) , intent(in) :: dtime
-      real(rk8) :: val
+      real(rkx) :: val
       val = hourdiff(dtime,reference_date)
       call outstream_addrec_value(ncout,val)
     end subroutine outstream_addrec_date
@@ -713,7 +716,7 @@ module mod_ncstream
     subroutine outstream_addrec_value(ncout,val)
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
-      real(rk8) , intent(in) :: val
+      real(rkx) , intent(in) :: val
       type(ncoutstream) , pointer :: stream
       type(basic_variables) , pointer :: stvar
       type(internal_obuffer) , pointer :: buffer
@@ -1927,7 +1930,7 @@ module mod_ncstream
       call add_attribute(stream,attc)
       if ( stream%l_subgrid ) then
         attr%aname = 'grid_size_in_meters'
-        attr%theval = (ds*d_1000)/dble(nsg)
+        attr%theval = (ds*d_1000)/real(nsg,rkx)
         call add_attribute(stream,attr)
         attc%aname = 'model_subgrid'
         attc%theval = 'Yes'
@@ -2770,7 +2773,7 @@ program test
   type(ncinstream_params) :: ipar
 
   type(rcm_time_and_date) :: idate
-  real(rk8) :: xrec
+  real(rkx) :: xrec
 
   type(ncvariable0d_integer) :: var0dint
   type(ncvariable1d_real) :: var1dreal
@@ -2779,21 +2782,21 @@ program test
 
   type(ncvariable2d_real) :: var2read
 
-  real(rk8) , target , dimension(18) :: sigma
-  real(rk8) , target , dimension(16,12) :: d2dvar
-  real(rk8) , target , dimension(16,12,18) :: d3dvar
+  real(rkx) , target , dimension(18) :: sigma
+  real(rkx) , target , dimension(16,12) :: d2dvar
+  real(rkx) , target , dimension(16,12,18) :: d3dvar
   integer(ik4) :: i , k
 
-  data sigma /0.025000000372529, 0.0750000011175871, 0.129999998956919, &
-              0.195000000298023, 0.270000003278255, 0.349999994039536, &
-              0.429999992251396, 0.510000005364418, 0.590000003576279, &
-              0.669999986886978, 0.744999974966049, 0.809999972581863, &
-              0.864999979734421, 0.909999996423721, 0.944999992847443, &
-              0.969999998807907, 0.985000014305115, 0.995000004768372 /
+  data sigma /0.025_rkx, 0.075_rkx, 0.130_rkx, &
+              0.195_rkx, 0.270_rkx, 0.359_rkx, &
+              0.430_rkx, 0.510_rkx, 0.590_rkx, &
+              0.670_rkx, 0.750_rkx, 0.810_rkx, &
+              0.865_rkx, 0.910_rkx, 0.950_rkx, &
+              0.970_rkx, 0.985_rkx, 0.995_rkx /
   jx = 16
   iy = 12
   kz = 18
-  ds = 50.0D0
+  ds = 50.0_rkx
   domname = 'domname'
   calendar = 'gregorian'
   ical = 1
@@ -2850,14 +2853,14 @@ program test
   call outstream_addatt(ncout,ncattribute_string('boundary_smoothing','No'))
   call outstream_addatt(ncout,ncattribute_string('lake_fudging','No'))
   call outstream_addatt(ncout, &
-    ncattribute_real8('minimum_h2o_pct_for_water',50.0D0))
+    ncattribute_real8('minimum_h2o_pct_for_water',50.0_rkx))
 
   ! Enable the output stream for write
   call outstream_enable(ncout,sigma)
 
   var1dreal%rval => sigma
-  d2dvar(1:jx,1:iy) = 1.0D0
-  d2dvar(jx/2,iy/2) = 2.0D0
+  d2dvar(1:jx,1:iy) = 1.0_rkx
+  d2dvar(jx/2,iy/2) = 2.0_rkx
   var2dreal%rval => d2dvar
 
   ! Write some static variables
@@ -2865,9 +2868,9 @@ program test
   call outstream_writevar(ncout,var2dreal)
 
   var0dint%ival(1) = 12
-  d3dvar(1:jx,1:iy,:) = 1.0D0
+  d3dvar(1:jx,1:iy,:) = 1.0_rkx
   do k = 1 , kz
-    d3dvar(jx/4,iy/4,k) = dble(k)
+    d3dvar(jx/4,iy/4,k) = real(k,rkx)
   end do
   var3dreal%rval => d3dvar
 
@@ -2878,9 +2881,9 @@ program test
   call outstream_writevar(ncout,var3dreal)
 
   var0dint%ival(1) = 13
-  d3dvar(1:jx,1:iy,:) = 1.0D0
+  d3dvar(1:jx,1:iy,:) = 1.0_rkx
   do k = 1 , kz
-    d3dvar(jx/4,iy/4,k) = dble(k)*1.5D0
+    d3dvar(jx/4,iy/4,k) = real(k,rkx)*1.5_rkx
   end do
 
   ! Add a new record
@@ -2901,7 +2904,7 @@ program test
 
   print *, 'Record ',trim(tochar(idate)),' is at ', xrec
 
-  d2dvar(:,:) = -1.0D0
+  d2dvar(:,:) = -1.0_rkx
   var2read%vname = 'real2dvar'
   var2read%lgridded = .true.
   var2read%rval => d2dvar

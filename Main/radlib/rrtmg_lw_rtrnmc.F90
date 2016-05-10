@@ -17,7 +17,7 @@
 
 ! --------- Modules ----------
 
-      use parkind, only : im => kind_im, rb => kind_rb
+      use parkind, only : im => kind_im, rb => kind_rb , almostzero
       use parrrtm, only : mg, nbndlw, ngptlw
       use rrlw_con, only: fluxfac, heatfac
       use rrlw_wvn, only: delwave, ngb, ngs
@@ -336,11 +336,12 @@
                dplankup = planklev(lev,iband) - blay
                dplankdn = planklev(lev-1,iband) - blay
                odepth = secdiff(iband) * taut(lev,igc)
-               if (odepth .lt. 0.0_rb) odepth = 0.0_rb
+               if ( odepth .lt. almostzero ) odepth = 0.0_rb
 !  Cloudy layer
                if (icldlyr(lev).eq.1) then
                   iclddn = 1
                   odtot = odepth + odcld(lev,igc)
+                  if ( odtot < almostzero ) odtot = 0.0_rb
                   if (odtot .lt. 0.06_rb) then
                      atrans(lev) = odepth - 0.5_rb*odepth*odepth
                      odepth_rec = rec_6*odepth

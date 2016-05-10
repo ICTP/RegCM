@@ -18,9 +18,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_che_dust
-!
-! DUST module
-!
+  !
+  ! DUST module
+  !
   use mod_intkinds
   use mod_realkinds
   use mod_constants
@@ -36,54 +36,54 @@ module mod_che_dust
 
   private
 
-  real(rk8) , dimension(4,2) :: dustbsiz1
-  real(rk8) , dimension(12,2) :: dustbsiz2
+  real(rkx) , dimension(4,2) :: dustbsiz1
+  real(rkx) , dimension(12,2) :: dustbsiz2
 
   ! Fix the actual dust aerosol bin size: diameter in microm
 
-!  data  dustbsiz1 / 0.01D0,  1.00D0,  2.50D0,  5.00D0,  1.00D0, &
-!                   2.50D0,  5.00D0, 20.00D0/
+  !  data  dustbsiz1 / 0.01_rkx,  1.00_rkx,  2.50_rkx,  5.00_rkx,  1.00_rkx, &
+  !                   2.50_rkx,  5.00_rkx, 20.00_rkx/
 
-  data  dustbsiz1 / 0.09D0,  1.00D0,  2.50D0,  5.00D0,  1.00D0, &
-                   2.50D0,  5.00D0, 63.00D0/
+  data  dustbsiz1 / 0.09_rkx,  1.00_rkx,  2.50_rkx,  5.00_rkx,  1.00_rkx, &
+                   2.50_rkx,  5.00_rkx, 63.00_rkx/
 
 
   ! new option defined from LISA optimized distribution
-  data  dustbsiz2 /0.09D0,0.18D0, 0.60D0, 1.55D0, 2.50D0, 3.75D0,   &
-                   4.70D0, 5.70D0, 7.50D0, 14.50D0, 26.0D0, 41.0D0, &
-                   0.18D0,0.60D0, 1.55D0, 2.50D0, 3.75D0, 4.70D0,   &
-                   5.70D0, 7.50D0, 14.50D0, 26.0D0, 41.0D0, 63.0D0 /
+  data  dustbsiz2 /0.09_rkx,0.18_rkx, 0.60_rkx, 1.55_rkx, 2.50_rkx, 3.75_rkx,   &
+                   4.70_rkx, 5.70_rkx, 7.50_rkx, 14.50_rkx, 26.0_rkx, 41.0_rkx, &
+                   0.18_rkx,0.60_rkx, 1.55_rkx, 2.50_rkx, 3.75_rkx, 4.70_rkx,   &
+                   5.70_rkx, 7.50_rkx, 14.50_rkx, 26.0_rkx, 41.0_rkx, 63.0_rkx /
 
   ! dust effective diameter
 
-  real(rk8) , dimension(4)    ::  dustbed1
-  real(rk8) , dimension(12)   ::  dustbed2
+  real(rkx) , dimension(4)    ::  dustbed1
+  real(rkx) , dimension(12)   ::  dustbed2
 
   ! has to be calculated from an assumed sub-bin distribution
-!  data dustbed1 /0.82D0 , 1.8D0 , 3.7D0 , 12.5D0 /
+  !  data dustbed1 /0.82_rkx , 1.8_rkx , 3.7_rkx , 12.5_rkx /
 
-!FAB
-! if calculated from Kok distribution
-  data dustbed1 /0.658184, 1.75093D0, 3.67936D0, 8.46347D0 /
+  !FAB
+  ! if calculated from Kok distribution
+  data dustbed1 /0.658184_rkx, 1.75093_rkx, 3.67936_rkx, 8.46347_rkx /
 
   ! 12 bins option calculated from Kok Distibution
-  data dustbed2 / 0.14062217D0, 0.4300415D0,  1.10404692D0,   &
-                  2.02166018D0, 3.10952699D0, 4.21185749D0,   &
-                  5.18438211D0, 6.55182088D0, 9.96016755D0,   &
-                 16.19150734D0, 26.74151275D0,  41.32554485D0 /
+  data dustbed2 / 0.14062217_rkx, 0.4300415_rkx,  1.10404692_rkx,   &
+                  2.02166018_rkx, 3.10952699_rkx, 4.21185749_rkx,   &
+                  5.18438211_rkx, 6.55182088_rkx, 9.96016755_rkx,   &
+                 16.19150734_rkx, 26.74151275_rkx,  41.32554485_rkx /
 
   ! solubility of od dust aer for param of giorgi and chameides
 
-  real(rk8) , dimension(4) ::  soldust1
-  real(rk8) , dimension(12) ::  soldust2
+  real(rkx) , dimension(4) ::  soldust1
+  real(rkx) , dimension(12) ::  soldust2
 
-  data  soldust1 /0.1D0 , 0.1D0 , 0.1D0 , 0.1D0 /
-  data  soldust2 /0.1D0 , 0.1D0 , 0.1D0 , 0.1D0, &
-                  0.1D0 , 0.1D0 , 0.1D0 , 0.1D0, &
-                  0.1D0 , 0.1D0 , 0.1D0 , 0.1D0 /
+  data  soldust1 /0.1_rkx , 0.1_rkx , 0.1_rkx , 0.1_rkx /
+  data  soldust2 /0.1_rkx , 0.1_rkx , 0.1_rkx , 0.1_rkx, &
+                  0.1_rkx , 0.1_rkx , 0.1_rkx , 0.1_rkx, &
+                  0.1_rkx , 0.1_rkx , 0.1_rkx , 0.1_rkx /
 
   ! Basic dust aerosol density (ACE-2 ) in kg/m3
-  real(rk8) , parameter :: rhodust = 2650.0D0
+  real(rkx) , parameter :: rhodust = 2650.0_rkx
 
   integer(ik4) , parameter :: nsoil = 152
   integer(ik4) , parameter :: mode = 5
@@ -99,50 +99,50 @@ module mod_che_dust
   ! define the aerosol distribution at the emission and the corresponding
   ! weighting factors in fuction of bin sizes
   !
-  real(rk8) , parameter :: d1 = 1.5D0
-  real(rk8) , parameter :: d2 = 6.7D0
-  real(rk8) , parameter :: d3 = 14.2D0
-  real(rk8) , parameter :: sigma1 = 1.7D0
-  real(rk8) , parameter :: sigma2 = 1.2D0
-  real(rk8) , parameter :: sigma3 = 1.5D0
+  real(rkx) , parameter :: d1 = 1.5_rkx
+  real(rkx) , parameter :: d2 = 6.7_rkx
+  real(rkx) , parameter :: d3 = 14.2_rkx
+  real(rkx) , parameter :: sigma1 = 1.7_rkx
+  real(rkx) , parameter :: sigma2 = 1.2_rkx
+  real(rkx) , parameter :: sigma3 = 1.5_rkx
 
   ! corresponding binding energies/
-  real(rk8) , parameter  :: e1 = 3.61D0
-  real(rk8) , parameter  :: e2 = 3.52D0
-  real(rk8) , parameter  :: e3 = 3.46D0
+  real(rkx) , parameter  :: e1 = 3.61_rkx
+  real(rkx) , parameter  :: e2 = 3.52_rkx
+  real(rkx) , parameter  :: e3 = 3.46_rkx
   !
   ! parameter for alternative Kok emission distribution
-  real(rk8) , parameter :: d = 3.4D0
-  real(rk8) , parameter :: sigmas = 3.0D0
+  real(rkx) , parameter :: d = 3.4_rkx
+  real(rkx) , parameter :: sigmas = 3.0_rkx
   ! Normalization constant
-  real(rk8) , parameter :: cv = 12.62D0
-  real(rk8) , parameter :: lambda = 12.0D0
+  real(rkx) , parameter :: cv = 12.62_rkx
+  real(rkx) , parameter :: lambda = 12.0_rkx
 
   !FENNEC distribution parameters(Ryder et. al. 2013)
-  real(rk8) , parameter :: d1F = 0.05D0
-  real(rk8) , parameter :: d2F = 0.71D0
-  real(rk8) , parameter :: d3F = 2.04D0
-  real(rk8) , parameter :: d4F = 5.28D0
+  real(rkx) , parameter :: d1F = 0.05_rkx
+  real(rkx) , parameter :: d2F = 0.71_rkx
+  real(rkx) , parameter :: d3F = 2.04_rkx
+  real(rkx) , parameter :: d4F = 5.28_rkx
 
-  real(rk8) , parameter :: sigma1F = 2.5D0
-  real(rk8) , parameter :: sigma2F = 1.33D0
-  real(rk8) , parameter :: sigma3F = 1.45D0
-  real(rk8) , parameter :: sigma4F = 2.0D0
+  real(rkx) , parameter :: sigma1F = 2.5_rkx
+  real(rkx) , parameter :: sigma2F = 1.33_rkx
+  real(rkx) , parameter :: sigma3F = 1.45_rkx
+  real(rkx) , parameter :: sigma4F = 2.0_rkx
 
-  real(rk8) , parameter :: N1 = 508.27D0
-  real(rk8) , parameter :: N2 = 8.84D0
-  real(rk8) , parameter :: N3 = 1.89D0
-  real(rk8) , parameter :: N4 = 0.54D0
+  real(rkx) , parameter :: N1 = 508.27_rkx
+  real(rkx) , parameter :: N2 = 8.84_rkx
+  real(rkx) , parameter :: N3 = 1.89_rkx
+  real(rkx) , parameter :: N4 = 0.54_rkx
   ! soil variable, srel 2 d corresponds to the soil aggregate size distribution
   ! in each texture type.
-  real(rk8) , pointer,  dimension(:) :: dustbed , soldust
-  real(rk8) , pointer,  dimension(:) :: frac1 , frac2 , frac3 , frac
-  real(rk8) , pointer , dimension(:,:,:) :: clay2row2 , sand2row2 , silt2row2
-  real(rk8) , pointer , dimension(:,:) :: clayrow2 , sandrow2 , dustbsiz
-  real(rk8) , pointer , dimension(:,:,:,:) :: srel2d
-  real(rk8) , pointer , dimension(:,:,:) :: dustsotex
+  real(rkx) , pointer,  dimension(:) :: dustbed , soldust
+  real(rkx) , pointer,  dimension(:) :: frac1 , frac2 , frac3 , frac
+  real(rkx) , pointer , dimension(:,:,:) :: clay2row2 , sand2row2 , silt2row2
+  real(rkx) , pointer , dimension(:,:) :: clayrow2 , sandrow2 , dustbsiz
+  real(rkx) , pointer , dimension(:,:,:,:) :: srel2d
+  real(rkx) , pointer , dimension(:,:,:) :: dustsotex
   ! Name of variable changed ! SC. 06.10.2010
-  real(rk8) , dimension(nsoil) :: dp_array
+  real(rkx) , dimension(nsoil) :: dp_array
 
   public :: sandrow2
   public :: rhodust
@@ -151,6 +151,14 @@ module mod_che_dust
   integer(ik4) :: ilg
 
   public :: allocate_mod_che_dust , inidust , sfflux , clm_dust_tend
+
+#ifdef SINGLE_PRECISION_REAL
+  real(rkx) , parameter :: mxarg = 15.0_rkx
+#else
+  real(rkx) , parameter :: mxarg = 25.0_rkx
+#endif
+
+  real(rkx) , parameter :: eps = 1.0e-7_rkx
 
   contains
 
@@ -197,26 +205,27 @@ module mod_che_dust
     !
     subroutine inidust
       implicit none
-      real(rk8) , dimension(nats) :: bcly , bslt , bsnd
-      real(rk8) :: deldp , eps , stotal , xk , xl , xm , xn
+      real(rkx) , dimension(nats) :: bcly , bslt , bsnd
+      real(rkx) :: deldp , stotal , xk , xl , xm , xn
       integer(ik4) :: i , j , n , nm , ns , nt , itr
-      real(rk8) , dimension(mode,nats) :: mmdd , pcentd , sigmad
-      real(rk8) , dimension(mode,nats) :: mmd , pcent , sigma
-      real(rk8) , dimension(iy,nsoil,nats) :: srel
-      real(rk8) , dimension(nsoil) :: ss
-      real(rk8) , dimension(ndi) :: di
+      real(rkx) , dimension(mode,nats) :: mmdd , pcentd , sigmad
+      real(rkx) , dimension(mode,nats) :: mmd , pcent , sigma
+      real(rkx) , dimension(iy,nsoil,nats) :: srel
+      real(rkx) , dimension(nsoil) :: ss
+      real(rkx) , dimension(ndi) :: di
       ! modif new distribution
       ! for each category, this is the percent of Coarse sand,
       ! Fine mode sand, silt , clay and salt ( cf Menut et al. ,2012)
-      real(rk8) , dimension (mode,12) :: soiltexpc
-      real(rk8) , dimension (mode)    :: texmmd , texstd
+      real(rkx) , dimension (mode,12) :: soiltexpc
+      real(rkx) , dimension (mode)    :: texmmd , texstd
 
       logical :: rd_tex
       character(6) :: aerctl
-      real(rk8) :: alogdi , amean1 , amean2 , amean3 , asigma1 , &
-             asigma2 , asigma3 , totv1 , totv2 , totv3 , totv
+      real(rkx) :: alogdi , amean1 , amean2 , amean3 , asigma1 , &
+             asigma2 , asigma3 , totv1 , totv2 , totv3 , totv ,  &
+             exp1 , exp2 , exp3
 #ifdef __PGI
-      real(rk8) , external :: derf
+      real(rkx) , external :: erf
 #endif
       !
       ! FAB update
@@ -228,79 +237,78 @@ module mod_che_dust
       ! Values are derived from Laurent et al. typical ranged adapted
       ! for our USDA texture types.
       !
-      ! data bcly/0.00D0 , 0.4D-2 ,0.7D-2  , 0.7D-2 , 0.4D-2 , 1.D-2 , &
-      !           3.D-2 , 3D-2 , 5.D-2 , 8.D-2 , 8.D-2 , 1.D-2/
+      ! data bcly/0.00_rkx , 0.4e-2_rkx ,0.7e-2_rkx  , 0.7e-2_rkx , 0.4e-2_rkx , &
+      !           1.e-2_rkx , 3.e-2_rkx , 3e-2_rkx , 5.e-2_rkx , 8.e-2_rkx , &
+      !           8.e-2_rkx , 1.e-2_rkx/
 
-      ! data bcly / 4.3D-2, 2.3D-2, 7.3D-2, 0.0D0,0.0D0,0.0D-2,0.0D0, &
-      !             0.0D0,0.0D0,0.0D0,0.0D0,0.0D0/
-      data bcly / 6.D-2, 2.3D-2, 7.3D-2, 0.0D0,0.0D0,0.0D-2,0.0D0, &
-                  0.0D0,0.0D0,0.0D0,0.0D0,0.0D0/
+      ! data bcly / 4.3e-2_rkx, 2.3e-2_rkx, 7.3e-2_rkx, 0.0_rkx,0.0_rkx, &
+      !             0.0e-2_rkx,0.0_rkx, 0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx/
+      data bcly / 6.e-2_rkx, 2.3e-2_rkx, 7.3e-2_rkx, 0.0_rkx,0.0_rkx, &
+                  0.0e-2_rkx,0.0_rkx, 0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx/
 
       ! bsnd and bslt are not really used after /
       ! the data here are not consistent with clay.
-      data bsnd/0.90D0 , 0.85D0 , 0.80D0 , 0.50D0 , 0.45D0 , 0.35D0 , &
-                0.30D0 , 0.30D0 , 0.20D0 , 0.65D0 , 0.60D0 , 0.50D0/
-      data bslt/0.05D0 , 0.05D0 , 0.051D0 , 0.35D0 , 0.40D0 , 0.60D0 , &
-                0.65D0 , 0.50D0 , 0.05D0 , 0.00D0 , 0.00D0 , 0.00D0/
+      data bsnd/0.90_rkx , 0.85_rkx , 0.80_rkx , 0.50_rkx , 0.45_rkx , 0.35_rkx , &
+                0.30_rkx , 0.30_rkx , 0.20_rkx , 0.65_rkx , 0.60_rkx , 0.50_rkx/
+      data bslt/0.05_rkx , 0.05_rkx , 0.051_rkx , 0.35_rkx , 0.40_rkx , 0.60_rkx , &
+                0.65_rkx , 0.50_rkx , 0.05_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx/
 
-      data eps/1.0D-7/
+      data mmdd/690.0_rkx ,  0.0_rkx ,   0.0_rkx , 0.0_rkx ,   0.0_rkx, &
+               690.0_rkx , 210.0_rkx ,   0.0_rkx , 0.0_rkx ,   0.0_rkx, &
+               690.0_rkx , 210.0_rkx ,   0.0_rkx , 0.0_rkx ,   0.0_rkx, &
+               520.0_rkx , 100.0_rkx ,   5.0_rkx , 0.0_rkx ,   0.0_rkx, &
+               520.0_rkx ,  75.0_rkx ,   2.5_rkx , 0.0_rkx ,   0.0_rkx, &
+               520.0_rkx ,  75.0_rkx ,   2.5_rkx , 0.0_rkx ,   0.0_rkx, &
+               210.0_rkx ,  75.0_rkx ,   2.5_rkx , 0.0_rkx ,   0.0_rkx, &
+               210.0_rkx ,  50.0_rkx ,   2.5_rkx , 0.0_rkx ,   0.0_rkx, &
+               125.0_rkx ,  50.0_rkx ,   1.0_rkx , 0.0_rkx ,   0.0_rkx, &
+               100.0_rkx ,  10.0_rkx ,   1.0_rkx , 0.0_rkx ,   0.0_rkx, &
+               100.0_rkx ,  10.0_rkx ,   0.5_rkx , 0.0_rkx ,   0.0_rkx, &
+               100.0_rkx ,  10.0_rkx ,   0.5_rkx, 0.0_rkx ,   0.0_rkx /
 
-      data mmdd/690.0D0 ,  0.0D0 ,   0.0D0 , 0.0D0 ,   0.0D0, &
-               690.0D0 , 210.0D0 ,   0.0D0 , 0.0D0 ,   0.0D0, &
-               690.0D0 , 210.0D0 ,   0.0D0 , 0.0D0 ,   0.0D0, &
-               520.0D0 , 100.0D0 ,   5.0D0 , 0.0D0 ,   0.0D0, &
-               520.0D0 ,  75.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0, &
-               520.0D0 ,  75.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0, &
-               210.0D0 ,  75.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0, &
-               210.0D0 ,  50.0D0 ,   2.5D0 , 0.0D0 ,   0.0D0, &
-               125.0D0 ,  50.0D0 ,   1.0D0 , 0.0D0 ,   0.0D0, &
-               100.0D0 ,  10.0D0 ,   1.0D0 , 0.0D0 ,   0.0D0, &
-               100.0D0 ,  10.0D0 ,   0.5D0 , 0.0D0 ,   0.0D0, &
-               100.0D0 ,  10.0D0 ,   0.5D0, 0.0D0 ,   0.0D0 /
+      data sigmad/1.6_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,  &
+                 1.6_rkx , 1.8_rkx , 1.8_rkx ,  0.0_rkx ,   0.0_rkx,  &
+                 1.6_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
+                 1.6_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
+                 1.6_rkx , 1.7_rkx , 1.8_rkx ,  0.0_rkx ,   0.0_rkx,  &
+                 1.6_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
+                 1.7_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
+                 1.7_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
+                 1.7_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
+                 1.8_rkx , 1.8_rkx , 1.8_rkx ,  0.0_rkx ,   0.0_rkx,  &
+                 1.8_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
+                 1.8_rkx , 1.8_rkx , 1.8_rkx,  0.0_rkx ,   0.0_rkx /
 
-      data sigmad/1.6D0 , 1.8D0 , 1.8D0 , 0.0D0 ,   0.0D0,  &
-                 1.6D0 , 1.8D0 , 1.8D0 ,  0.0D0 ,   0.0D0,  &
-                 1.6D0 , 1.8D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
-                 1.6D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
-                 1.6D0 , 1.7D0 , 1.8D0 ,  0.0D0 ,   0.0D0,  &
-                 1.6D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
-                 1.7D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
-                 1.7D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
-                 1.7D0 , 1.7D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
-                 1.8D0 , 1.8D0 , 1.8D0 ,  0.0D0 ,   0.0D0,  &
-                 1.8D0 , 1.8D0 , 1.8D0 , 0.0D0 ,   0.0D0,   &
-                 1.8D0 , 1.8D0 , 1.8D0,  0.0D0 ,   0.0D0 /
-
-       data pcentd/1.00D0 , 0.00D0 , 0.00D0 ,  0.0D0 ,   0.0D0, &
-                  0.90D0 , 0.10D0 , 0.00D0 ,  0.0D0 ,   0.0D0,  &
-                  0.80D0 , 0.20D0 , 0.00D0 , 0.0D0 ,   0.0D0,   &
-                  0.50D0 , 0.35D0 , 0.15D0 ,  0.0D0 ,   0.0D0,  &
-                  0.45D0 , 0.40D0 , 0.15D0 , 0.0D0 ,   0.0D0,   &
-                  0.35D0 , 0.50D0 , 0.15D0 , 0.0D0 ,   0.0D0,   &
-                  0.30D0 , 0.50D0 , 0.20D0 , 0.0D0 ,   0.0D0,   &
-                  0.30D0 , 0.50D0 , 0.20D0 ,  0.0D0 ,   0.0D0,  &
-                  0.20D0 , 0.50D0 , 0.30D0 , 0.0D0 ,   0.0D0,   &
-                  0.65D0 , 0.00D0 , 0.35D0 ,  0.0D0 ,   0.0D0,  &
-                  0.60D0 , 0.00D0 , 0.40D0 , 0.0D0 ,   0.0D0,   &
-                  0.50D0 , 0.00D0 , 0.50D0, 0.0D0 ,   0.0D0 /
+       data pcentd/1.00_rkx , 0.00_rkx , 0.00_rkx ,  0.0_rkx ,   0.0_rkx, &
+                  0.90_rkx , 0.10_rkx , 0.00_rkx ,  0.0_rkx ,   0.0_rkx,  &
+                  0.80_rkx , 0.20_rkx , 0.00_rkx , 0.0_rkx ,   0.0_rkx,   &
+                  0.50_rkx , 0.35_rkx , 0.15_rkx ,  0.0_rkx ,   0.0_rkx,  &
+                  0.45_rkx , 0.40_rkx , 0.15_rkx , 0.0_rkx ,   0.0_rkx,   &
+                  0.35_rkx , 0.50_rkx , 0.15_rkx , 0.0_rkx ,   0.0_rkx,   &
+                  0.30_rkx , 0.50_rkx , 0.20_rkx , 0.0_rkx ,   0.0_rkx,   &
+                  0.30_rkx , 0.50_rkx , 0.20_rkx ,  0.0_rkx ,   0.0_rkx,  &
+                  0.20_rkx , 0.50_rkx , 0.30_rkx , 0.0_rkx ,   0.0_rkx,   &
+                  0.65_rkx , 0.00_rkx , 0.35_rkx ,  0.0_rkx ,   0.0_rkx,  &
+                  0.60_rkx , 0.00_rkx , 0.40_rkx , 0.0_rkx ,   0.0_rkx,   &
+                  0.50_rkx , 0.00_rkx , 0.50_rkx, 0.0_rkx ,   0.0_rkx /
        !!
        !! new option
        !!
-       data   soiltexpc / 0.46D0, 0.46D0, 0.05D0,  0.03D0, 0.0D0, &
-                          0.41D0, 0.41D0, 0.18D0,  0.00D0, 0.0D0, &
-                          0.29D0, 0.29D0, 0.32D0,  0.10D0, 0.0D0, &
-                          0.00D0, 0.17D0, 0.70D0,  0.13D0, 0.0D0, &
-                          0.00D0, 0.10D0, 0.85D0,  0.05D0, 0.0D0, &
-                          0.00D0, 0.43D0, 0.39D0,  0.18D0, 0.0D0, &
-                          0.29D0, 0.29D0, 0.15D0,  0.27D0, 0.0D0, &
-                          0.00D0, 0.10D0, 0.56D0,  0.34D0, 0.0D0, &
-                          0.00D0, 0.32D0, 0.34D0,  0.34D0, 0.0D0, &
-                          0.00D0, 0.52D0, 0.06D0,  0.42D0, 0.0D0, &
-                          0.00D0, 0.06D0, 0.47D0,  0.47D0, 0.0D0, &
-                          0.00D0, 0.22D0, 0.20D0,  0.58D0, 0.0D0/
+       data   soiltexpc / 0.46_rkx, 0.46_rkx, 0.05_rkx,  0.03_rkx, 0.0_rkx, &
+                          0.41_rkx, 0.41_rkx, 0.18_rkx,  0.00_rkx, 0.0_rkx, &
+                          0.29_rkx, 0.29_rkx, 0.32_rkx,  0.10_rkx, 0.0_rkx, &
+                          0.00_rkx, 0.17_rkx, 0.70_rkx,  0.13_rkx, 0.0_rkx, &
+                          0.00_rkx, 0.10_rkx, 0.85_rkx,  0.05_rkx, 0.0_rkx, &
+                          0.00_rkx, 0.43_rkx, 0.39_rkx,  0.18_rkx, 0.0_rkx, &
+                          0.29_rkx, 0.29_rkx, 0.15_rkx,  0.27_rkx, 0.0_rkx, &
+                          0.00_rkx, 0.10_rkx, 0.56_rkx,  0.34_rkx, 0.0_rkx, &
+                          0.00_rkx, 0.32_rkx, 0.34_rkx,  0.34_rkx, 0.0_rkx, &
+                          0.00_rkx, 0.52_rkx, 0.06_rkx,  0.42_rkx, 0.0_rkx, &
+                          0.00_rkx, 0.06_rkx, 0.47_rkx,  0.47_rkx, 0.0_rkx, &
+                          0.00_rkx, 0.22_rkx, 0.20_rkx,  0.58_rkx, 0.0_rkx/
 
-      data  texmmd  / 690.0D0, 210.0D0, 125.0D0,2.0D0, 520.0D0 /
-      data  texstd  / 1.6D0,   1.6D0,   1.8D0,  2.0D0, 1.50D0 /
+      data  texmmd  / 690.0_rkx, 210.0_rkx, 125.0_rkx,2.0_rkx, 520.0_rkx /
+      data  texstd  / 1.6_rkx,   1.6_rkx,   1.8_rkx,  2.0_rkx, 1.50_rkx /
 
      mmd = d_zero
      sigma = d_zero
@@ -315,7 +323,7 @@ module mod_che_dust
         sigma(nm,:) = texstd(nm)
         pcent(nm,:) = soiltexpc(nm,:)
       end do
-      where ( dabs(soiltexpc(:,:)) < dlowval )
+      where ( abs(soiltexpc(:,:)) < dlowval )
         mmd (:,:) = d_zero
         sigma(:,:) = d_zero
       end where
@@ -354,38 +362,42 @@ module mod_che_dust
         end do
       end do ! end j loop
 
-      dp_array(1) = 0.0001D0  !cm
+      dp_array(1) = 0.0001_rkx  !cm
       do ns = 2 , nsoil
-        dp_array(ns) = dp_array(ns-1)*dexp(0.0460517018598807D0)
+        dp_array(ns) = dp_array(ns-1)*exp(0.0460517018598807_rkx)
         deldp = dp_array(ns) - dp_array(ns-1)
       end do
 
-      di(1) = 0.01D0 !microm
+      di(1) = 0.01_rkx !microm
       do ns = 2 , ndi
-        di(ns) = di(ns-1) + 0.01D0
+        di(ns) = di(ns-1) + 0.01_rkx
       end do
 
       do j = jci1 , jci2
         srel(:,:,:) = d_zero
         do i = ici1 , ici2
           do nt = 1 , nats
-            ss(:) =d_zero
+            ss(:) = d_zero
             stotal = d_zero
             if ( sand2row2(i,nt,j) > d_zero ) then
               do ns = 1 , nsoil          !soil size segregatoin no
                 do nm = 1 , mode       !soil mode = 5
                   if ( (pcent(nm,nt) > eps) .and.                    &
-                         (sigma(nm,nt) /= d_zero) ) then
-                    xk = pcent(nm,nt)/(dsqrt(twopi)*dlog(sigma(nm,nt)))
-                    xl = ((dlog(dp_array(ns))- &
-                           dlog(mmd(nm,nt)*1.0D-4))**2) &
-                           /(d_two*(dlog(sigma(nm,nt)))**2)
-                    xm = xk*dexp(-xl)
+                       (sigma(nm,nt) /= d_zero) ) then
+                    xk = pcent(nm,nt)/(sqrt(twopi)*log(sigma(nm,nt)))
+                    xl = ((log(dp_array(ns))- &
+                           log(mmd(nm,nt)*1.0e-4_rkx))**2) / &
+                           (d_two*(log(sigma(nm,nt)))**2)
+                    if ( xl > mxarg ) then
+                      xm = d_zero
+                    else
+                      xm = xk*exp(-xl)
+                    end if
                   else
                     xm = d_zero
                   end if
                   xn = rhodust*twot*(dp_array(ns)*d_half)
-                  deldp = 0.0460517018598807D0
+                  deldp = 0.0460517018598807_rkx
                   ! dp_array(2)-dp_array(1) ss(nsoil)
                   ss(ns) = ss(ns) + (xm*deldp/xn)
                 end do
@@ -425,33 +437,42 @@ module mod_che_dust
         totv1 = d_zero
         totv2 = d_zero
         totv3 = d_zero
-        amean1 = dlog10(d1)
-        amean2 = dlog10(d2)
-        amean3 = dlog10(d3)
-        asigma1 = dlog10(sigma1)
-        asigma2 = dlog10(sigma2)
-        asigma3 = dlog10(sigma3)
+        amean1 = log10(d1)
+        amean2 = log10(d2)
+        amean3 = log10(d3)
+        asigma1 = log10(sigma1)
+        asigma2 = log10(sigma2)
+        asigma3 = log10(sigma3)
         do ns = 1, ndi
-          alogdi = dlog10(di(ns))
+          alogdi = log10(di(ns))
+          exp1 = (alogdi-amean1)**2/(d_two*asigma1**2)
+          exp2 = (alogdi-amean2)**2/(d_two*asigma2**2)
+          exp3 = (alogdi-amean3)**2/(d_two*asigma3**2)
           do n = 1 , nbin
             if ( di(ns) > dustbsiz(n,1) .and. &
                  di(ns) <= dustbsiz(n,2) ) then
               ! the independant variable is diameter so going from
-              ! dV/dlog10D to dV/dD implies a factor 1/(2.303)D
-              frac1(n) = frac1(n) + (d_one/di(ns)) * &
-                dexp(-(alogdi-amean1)**2/(d_two*asigma1**2))
-              frac2(n) = frac2(n) + (d_one/di(ns)) * &
-                dexp(-(alogdi-amean2)**2/(d_two*asigma2**2))
-              frac3(n) = frac3(n) + (d_one/di(ns)) * &
-                dexp(-(alogdi-amean3)**2/(d_two*asigma3**2))
+              ! dV/log10D to dV/dD implies a factor 1/(2.303)D
+              if ( exp1 < mxarg ) then
+                frac1(n) = frac1(n) + (d_one/di(ns)) * exp(-exp1)
+              end if
+              if ( exp2 < mxarg ) then
+                frac2(n) = frac2(n) + (d_one/di(ns)) * exp(-exp2)
+              end if
+              if ( exp3 < mxarg ) then
+                frac3(n) = frac3(n) + (d_one/di(ns)) * exp(-exp3)
+              end if
             end if
           end do
-          totv1 = totv1 + (d_one/di(ns)) * &
-            dexp(-(alogdi-amean1)**2/(d_two*asigma1**2))
-          totv2 = totv2 + (d_one/di(ns)) * &
-            dexp(-(alogdi-amean2)**2/(d_two*asigma2**2))
-          totv3 = totv3 + (d_one/di(ns)) * &
-            dexp(-(alogdi-amean3)**2/(d_two*asigma3**2))
+          if ( exp1 < mxarg ) then
+            totv1 = totv1 + (d_one/di(ns)) * exp(-exp1)
+          end if
+          if ( exp2 < mxarg ) then
+            totv2 = totv2 + (d_one/di(ns)) * exp(-exp2)
+          end if
+          if ( exp3 < mxarg ) then
+            totv3 = totv3 + (d_one/di(ns)) * exp(-exp3)
+          end if
         end do
         frac1(:) = frac1(:) / totv1
         frac2(:) = frac2(:) / totv2
@@ -461,17 +482,17 @@ module mod_che_dust
         ! distribution ( mass distribution).
         ! the independant variable is diameter so going from
         ! dV/dlnD to dV/dD implies a factor 1/D
-        frac = 0.D0
-        totv = 0.D0
+        frac = 0._rkx
+        totv = 0._rkx
         do ns = 1, ndi
           do n = 1, nbin
              if ( di(ns) > dustbsiz(n,1) .and. di(ns) <= dustbsiz(n,2) ) then
                 frac(n) = frac(n) + d_one/cv * &
-                  (d_one+derf(log(di(ns)/d)/sqrt(d_two)/ &
+                  (d_one+erf(log(di(ns)/d)/sqrt(d_two)/ &
                   log(sigmas)))*exp(-(di(ns)/lambda)**3)  !see Kok (2011)
              end if
            end do
-           totv = totv + d_one / cv * (d_one+derf(log(di(ns)/d)/sqrt(d_two)/ &
+           totv = totv + d_one / cv * (d_one+erf(log(di(ns)/d)/sqrt(d_two)/ &
                   log(sigmas)))*exp(-(di(ns)/lambda)**3)
         end do
         frac(:) = frac(:) / totv
@@ -486,30 +507,28 @@ module mod_che_dust
     !   * ustar0 : threshold frication velocity [m/s]                ****
     !   *****************************************************************
     !
-    real(rk8) function ustart01(rhodust,dum,rhair)
+    real(rkx) function ustart01(rhodust,dum,rhair)
       implicit none
-!
-      real(rk8) , parameter :: a2 = 0.129D0 , c1 = 0.006D0 , c2 = 1.928D0 , &
-                              c3 = 0.0858D0 , c4 = -0.0617D0 , c5 = 2.5D0 ,&
-                              y1 = 1331.647D0 , y2 = 1.561228D0 ,          &
-                              y3 = 0.38194D0
-!
-      real(rk8) , intent(in) :: dum , rhair , rhodust
-      real(rk8) :: dm , rep , term , term1 , term2
-!
+      real(rkx) , intent(in) :: dum , rhair , rhodust
+      real(rkx) , parameter :: a2 = 0.129_rkx , c1 = 0.006_rkx , c2 = 1.928_rkx , &
+                               c3 = 0.0858_rkx , c4 = -0.0617_rkx , c5 = 2.5_rkx ,&
+                               y1 = 1331.647_rkx , y2 = 1.561228_rkx ,          &
+                               y3 = 0.38194_rkx
+      real(rkx) :: dm , rep , term , term1 , term2
+
       dm = dum  !* 1.0e-4      ! cm
       rep = y1*(dm**y2) + y3
-      term1 = dsqrt(d_one+(c1/(rhodust*egrav*0.1D0*(dm**c5))))
-      term2 = dsqrt(rhodust*egrav*d_100*dm/rhair)
+      term1 = sqrt(d_one+(c1/(rhodust*egrav*0.1_rkx*(dm**c5))))
+      term2 = sqrt(rhodust*egrav*d_100*dm/rhair)
       term = term1*term2
-      ustart01 = cvmgt(a2*term*(d_one-c3*dexp(c4*(rep-d_10))),  &
-                 a2*term/dsqrt(c2*(rep**0.092D0)-d_one),rep > d_10)
+      ustart01 = cvmgt(a2*term*(d_one-c3*exp(c4*(rep-d_10))),  &
+                 a2*term/sqrt(c2*(rep**0.092_rkx)-d_one),rep > d_10)
     contains
-!
-      real(rk8) function cvmgt(val1,val2,cond)
+
+      real(rkx) function cvmgt(val1,val2,cond)
         implicit none
         logical , intent(in) :: cond
-        real(rk8) , intent(in) :: val1 , val2
+        real(rkx) , intent(in) :: val1 , val2
         if ( cond ) then
           cvmgt = val1
         else
@@ -518,55 +537,52 @@ module mod_che_dust
       end function cvmgt
 
     end function ustart01
-!
-!   *****************************************************************
-!   *                                                            ****
-!   * y. shao, 13 june 2000                                      ****
-!   * calculate ustar0(d) using shao and lu (2000) for uncovered ****
-!   * dry surface                                                ****
-!   * dum:    particle diameter                   [um]           ****
-!   * ustar0: threshold friction velocity       [cm/s]           ****
-!   *****************************************************************
-!
-    real(rk8) function ustart0(rhodust,dum,rhoa)
+    !
+    !   *****************************************************************
+    !   *                                                            ****
+    !   * y. shao, 13 june 2000                                      ****
+    !   * calculate ustar0(d) using shao and lu (2000) for uncovered ****
+    !   * dry surface                                                ****
+    !   * dum:    particle diameter                   [um]           ****
+    !   * ustar0: threshold friction velocity       [cm/s]           ****
+    !   *****************************************************************
+    !
+    real(rkx) function ustart0(rhodust,dum,rhoa)
       implicit none
-      real(rk8) , intent(in) :: dum , rhoa , rhodust
-      real(rk8) , parameter :: agamma = 3.0D-4 , f = 0.0123D0
-      real(rk8) :: dm , sigma
+      real(rkx) , intent(in) :: dum , rhoa , rhodust
+      real(rkx) , parameter :: agamma = 3.0e-4_rkx , f = 0.0123_rkx
+      real(rkx) :: dm , sigma
       sigma = rhodust/rhoa
-      dm = dum*1.0D-2
+      dm = dum*1.0e-2_rkx
       ustart0 = f*(sigma*egrav*dm+agamma/(rhoa*dm))
-      ustart0 = dsqrt(ustart0)
+      ustart0 = sqrt(ustart0)
       ustart0 = ustart0*d_100
     end function ustart0
-!
-!   **********************************************************
-!   *  dust emission scheme                             ******
-!   *                                                   ******
-!   * this scheme based on marticorena and bergametti,  ******
-!   * 1995; gong et al.,(2003); alfaro et al.,(1997)    ******
-!   * Zakey et al., 2006                                                  ******
-!   **********************************************************
-!
+    !
+    !   **********************************************************
+    !   *  dust emission scheme                             ******
+    !   *                                                   ******
+    !   * this scheme based on marticorena and bergametti,  ******
+    !   * 1995; gong et al.,(2003); alfaro et al.,(1997)    ******
+    !   * Zakey et al., 2006                                ******
+    !   **********************************************************
+    !
     subroutine sfflux(jloop,ivegcov,vegfrac,ustarnd,z0,soilw, &
                       surfwd,roarow,trsize,rsfrow)
-!
       implicit none
-!
       integer(ik4) , intent(in) :: jloop
       integer(ik4) , intent(in) , dimension(ici1:ici2) ::  ivegcov
-      real(rk8) , intent(in) , dimension(ici1:ici2) :: roarow , soilw , &
+      real(rkx) , intent(in) , dimension(ici1:ici2) :: roarow , soilw , &
                 surfwd , vegfrac , z0 , ustarnd
-      real(rk8) , intent(out) , dimension(ici1:ici2,nbin) :: rsfrow
-      real(rk8) , intent(in) , dimension(nbin,2) :: trsize
-!
-      real(rk8) , dimension(ilg) :: xclayrow , xroarow , xsoilw , &
+      real(rkx) , intent(out) , dimension(ici1:ici2,nbin) :: rsfrow
+      real(rkx) , intent(in) , dimension(nbin,2) :: trsize
+      real(rkx) , dimension(ilg) :: xclayrow , xroarow , xsoilw , &
                 xsurfwd , xvegfrac , xz0 , xustarnd , xsnowfrac
-      real(rk8) , dimension(ilg,nbin) :: xrsfrow
-      real(rk8) , dimension(ilg,nats) :: xftex , xalphaprop
-      real(rk8) , dimension(ilg,nsoil,nats) :: xsrel2d
+      real(rkx) , dimension(ilg,nbin) :: xrsfrow
+      real(rkx) , dimension(ilg,nats) :: xftex , xalphaprop
+      real(rkx) , dimension(ilg,nsoil,nats) :: xsrel2d
       integer(ik4) :: i , ieff , n , ns
-!
+
       rsfrow = d_zero
       ! effective emitter cell ( depending on ivegcov)
       xvegfrac = d_zero
@@ -598,13 +614,13 @@ module mod_che_dust
             xftex(ieff,n) = dustsotex(jloop,i,n)
             if ( ichdustemd == 2 ) then
               if ( clay2row2(i,n,jloop) <= 20 ) then
-                xalphaprop(ieff,n) = d_10**(0.134D0 * &
-                              clay2row2(i,n,jloop)-6.0D0)
-!                             clay2row2(i,n,jloop)-6.0D0)*0.035D0
+                xalphaprop(ieff,n) = d_10**(0.134_rkx * &
+                              clay2row2(i,n,jloop)-6.0_rkx)
+!                             clay2row2(i,n,jloop)-6.0_rkx)*0.035_rkx
               else
-                xalphaprop(ieff,n) = d_10**(-0.1D0 * &
-                              clay2row2(i,n,jloop)-6.0D0)
-!                             clay2row2(i,n,jloop)-1.2D0)*0.035D0
+                xalphaprop(ieff,n) = d_10**(-0.1_rkx * &
+                              clay2row2(i,n,jloop)-6.0_rkx)
+!                             clay2row2(i,n,jloop)-1.2_rkx)*0.035_rkx
               end if
             end if
             do  ns = 1 , nsoil
@@ -629,7 +645,7 @@ module mod_che_dust
             rsfrow(i,n) = xrsfrow(ieff,n)
             if ( ichdrdepo == 1 ) then
               chiten(jloop,i,kz,idust(n)) = chiten(jloop,i,kz,idust(n)) + &
-                   rsfrow(i,n)*egrav/(dsigma(kz)*1.D3)
+                   rsfrow(i,n)*egrav/(dsigma(kz)*1.e3_rkx)
             elseif ( ichdrdepo == 2 ) then
               ! pass the flux to BL scheme
               chifxuw(jloop,i,idust(n)) = chifxuw(jloop,i,idust(n)) + &
@@ -649,30 +665,29 @@ module mod_che_dust
       end do
 
     end subroutine sfflux
-!
+
     subroutine dust_module(il1,il2,trsize,soilw,vegfrac,snowfrac,surfwd,ftex, &
                            clayrow,roarow,alphaprop,z0,srel,ustarnd,rsfrow)
       implicit none
-!
       integer(ik4) :: il1 , il2
-      real(rk8) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
+      real(rkx) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
                                    vegfrac , z0 , ustarnd , snowfrac
-      real(rk8) , dimension(ilg,nbin) :: rsfrow
-      real(rk8) , dimension(ilg,nats) :: ftex , alphaprop
-      real(rk8) , dimension(ilg,nsoil,nats) :: srel
-      real(rk8) , dimension(nbin,2) :: trsize
+      real(rkx) , dimension(ilg,nbin) :: rsfrow
+      real(rkx) , dimension(ilg,nats) :: ftex , alphaprop
+      real(rkx) , dimension(ilg,nsoil,nats) :: srel
+      real(rkx) , dimension(nbin,2) :: trsize
       intent (in) clayrow , soilw , surfwd , z0 , ustarnd , ftex
-!
-      real(rk8) , dimension(ilg) :: alamda , hc , rc , srl , wprim
-      real(rk8) :: arc1 , arc2 , br , cly1 , cly2 , sigr , tempd ,   &
+
+      real(rkx) , dimension(ilg) :: alamda , hc , rc , srl , wprim
+      real(rkx) :: arc1 , arc2 , br , cly1 , cly2 , sigr , tempd ,   &
           umin , ustarns , uth , utmin , x , xz , ym , z0s , ustarfw
       integer(ik4) :: i
-      real(rk8) , dimension(ilg) :: ustar
-      real(rk8) , dimension(ilg,nsoil) :: utheff
-!
-      data umin/15.0D0/
-      data xz/0.25D0/ , br/202.0D0/ , ym/0.16D0/ , sigr/1.45D0/
-      data z0s/3.0D-3/ , x/d_10/
+      real(rkx) , dimension(ilg) :: ustar
+      real(rkx) , dimension(ilg,nsoil) :: utheff
+
+      data umin/15.0_rkx/
+      data xz/0.25_rkx/ , br/202.0_rkx/ , ym/0.16_rkx/ , sigr/1.45_rkx/
+      data z0s/3.0e-3_rkx/ , x/d_10/
 
       do i = il1 , il2
 
@@ -682,38 +697,38 @@ module mod_che_dust
         if ( jfs == 0 ) then
           ! * raupach et al. (1993)
           if ( vegfrac(i) < d_one ) then
-            alamda(i) = xz*(dlog(d_one-vegfrac(i)))*(-d_one)
+            alamda(i) = xz*(log(d_one-vegfrac(i)))*(-d_one)
             arc1 = sigr*ym*alamda(i)
             arc2 = br*ym*alamda(i)
             if ( arc1 <= d_one .and. arc2 <= d_one ) then
-              rc(i) = (dsqrt(d_one-arc1)*dsqrt(d_one+arc2))
+              rc(i) = (sqrt(d_one-arc1)*sqrt(d_one+arc2))
             end if
           end if
         else if ( jfs == 1 ) then
           ! Marticorena et al., 1997: correction factor for non
           ! erodible elements
-          rc(i) = d_one - (dlog(0.5D-2/z0s)/(dlog(0.35D0*(x/z0s)**0.8D0)))
+          rc(i) = d_one - (log(0.5e-2_rkx/z0s)/(log(0.35_rkx*(x/z0s)**0.8_rkx)))
         end if
         ! threshold velocity correction for soil humidity hc
         if ( jsoilm == 0 ) then
           if ( soilw(i) < d_zero ) then
             write(stderr,*) 'hc, rc = ' , soilw(i) , ' less than zero'
             call fatal(__FILE__,__LINE__,'NEGATIVE SOILW')
-          else if ( soilw(i) < 0.03D0 ) then
-            hc(i) = dexp(22.7D0*soilw(i))
-          else if ( soilw(i) >= 0.03D0 ) then
-            hc(i) = dexp(95.3D0*soilw(i)-2.029D0)
+          else if ( soilw(i) < 0.03_rkx ) then
+            hc(i) = exp(22.7_rkx*soilw(i))
+          else if ( soilw(i) >= 0.03_rkx ) then
+            hc(i) = exp(95.3_rkx*soilw(i)-2.029_rkx)
           else
             hc(i) = d_one
           end if
         else if ( jsoilm == 1 ) then
           cly1 = clayrow(i)
           cly2 = cly1*cly1
-          wprim(i) = 0.0014D0*cly2 + 0.17D0*cly1
-          tempd =  dmax1(0.00001D0,soilw(i)*d_100 -wprim(i))
+          wprim(i) = 0.0014_rkx*cly2 + 0.17_rkx*cly1
+          tempd =  max(0.00001_rkx,soilw(i)*d_100 -wprim(i))
 !         print*,'humidity',i,cly1,soilw(i)*100,wprim(i),tempd
           if ( soilw(i)*d_100 > wprim(i) ) then
-            hc(i) = dsqrt(d_one+1.21D0*tempd**0.68D0)
+            hc(i) = sqrt(d_one+1.21_rkx*tempd**0.68_rkx)
 !           print*,'hc',i,hc(i)
           else
             hc(i) = d_one
@@ -728,11 +743,11 @@ module mod_che_dust
         ! * accounting for the increase of the roughness length
         ! * due to the saltation layer (gillette etal. jgr 103,
         ! * no. d6, p6203-6209, 1998
-        ustarfw = (vonkar*100.0D0*surfwd(i))/(dlog(1000.0D0/srl(i)))
+        ustarfw = (vonkar*100.0_rkx*surfwd(i))/(log(1000.0_rkx/srl(i)))
         ustarns = ustarnd(i)*d_100 !cm.s-1
-        utmin = (umin/(d_100*vonkar*rc(i)))*dlog(d_1000/srl(i))
+        utmin = (umin/(d_100*vonkar*rc(i)))*log(d_1000/srl(i))
         if ( surfwd(i) >= utmin ) then
-          ustar(i) = ustarns + 0.3D0*(surfwd(i)-utmin)*(surfwd(i)-utmin)
+          ustar(i) = ustarns + 0.3_rkx*(surfwd(i)-utmin)*(surfwd(i)-utmin)
         else
           ustar(i) = ustarns
         end if
@@ -748,9 +763,9 @@ module mod_che_dust
     subroutine uthefft(il1,il2,ust,nsoil,roarow,utheff,rhodust)
       implicit none
       integer(ik4) :: il1 , il2 , nsoil , ust
-      real(rk8) :: rhodust
-      real(rk8) , dimension(ilg) :: roarow
-      real(rk8) , dimension(ilg,nsoil) :: utheff
+      real(rkx) :: rhodust
+      real(rkx) , dimension(ilg) :: roarow
+      real(rkx) , dimension(ilg,nsoil) :: utheff
       intent (in) il1 , il2 , nsoil , ust
       intent (out) utheff
       integer(ik4) :: n , i
@@ -766,22 +781,22 @@ module mod_che_dust
                         utheff,ustar,srel,rsfrow,vegfrac,snowfrac)
       implicit none
       integer(ik4) :: il1 , il2
-      real(rk8) :: rhodust , uth
-      real(rk8) , dimension(ilg) :: rc , ustar, roarow , vegfrac , snowfrac
-      real(rk8) , dimension(ilg,nbin) :: rsfrow
-      real(rk8) , dimension(ilg,nats) :: ftex , alphaprop
-      real(rk8) , dimension(ilg,nsoil,nats) :: srel
-      real(rk8) , dimension(ilg,nsoil) :: utheff
+      real(rkx) :: rhodust , uth
+      real(rkx) , dimension(ilg) :: rc , ustar, roarow , vegfrac , snowfrac
+      real(rkx) , dimension(ilg,nbin) :: rsfrow
+      real(rkx) , dimension(ilg,nats) :: ftex , alphaprop
+      real(rkx) , dimension(ilg,nsoil,nats) :: srel
+      real(rkx) , dimension(ilg,nsoil) :: utheff
       intent (in)  il1 , il2 , rc , rhodust , roarow , srel ,  &
                    ustar , utheff , vegfrac, ftex
       intent (inout) rsfrow , uth
-      real(rk8) :: beta , p1 , p2 , p3 , dec , ec , fdp1 , fdp2
-      real(rk8) , dimension(ilg,nats) :: fsoil , fsoil1 , fsoil2 , fsoil3
+      real(rkx) :: beta , p1 , p2 , p3 , dec , ec , fdp1 , fdp2
+      real(rkx) , dimension(ilg,nats) :: fsoil , fsoil1 , fsoil2 , fsoil3
       integer(ik4) :: i , k , n , nt , ns
 
-      real(rk8), dimension(ilg,nbin,nats):: rsfrowt
+      real(rkx), dimension(ilg,nbin,nats):: rsfrowt
 
-      data beta  /16300.0D0/
+      data beta  /16300.0_rkx/
 
       !
       ! Put rdstemfac consistent with soil parameters and Laurent et al., 08
@@ -798,13 +813,13 @@ module mod_che_dust
 
       do nt = 1 , nats
          do i = il1 , il2
-           if (ftex(i,nt) < 1.D-10) cycle
+           if (ftex(i,nt) < 1.e-10_rkx) cycle
            do ns = 1 , nsoil
             if ( rc(i) > d_zero .and. ustar(i) /= d_zero ) then
               uth = utheff(i,ns)/(rc(i)*ustar(i))
               if ( uth <= d_one ) then
                 fdp1 = ustar(i)**3*(d_one-uth*uth)
-                fdp2 = (d_one+uth)*rdstemfac*(1.0D-5)*roarow(i)*regrav
+                fdp2 = (d_one+uth)*rdstemfac*(1.0e-5_rkx)*roarow(i)*regrav
                 if ( fdp2 <= d_zero ) fdp2 = d_zero
                 ! FAB: with subgrid soil texture, the aggregation of vertical
                 ! fluxes per texture type at the grid cell level is done in
@@ -817,8 +832,8 @@ module mod_che_dust
                   dec = fsoil(i,nt)*beta
                   ! individual kinetic energy for an aggregate of size dp (
                   ! g cm2 s-2) cf alfaro (dp) is in cm
-                  ec = (mathpi/12.0D0)*rhodust*1.0D-3*(dp_array(ns)**3)* &
-                        (20.0D0*ustar(i))**2
+                  ec = (mathpi/12.0_rkx)*rhodust*1.0e-3_rkx*(dp_array(ns)**3)* &
+                        (20.0_rkx*ustar(i))**2
                   if ( ec > e1 ) then
                     p1 = (ec-e1)/(ec-e3)
                     p2 = (d_one-p1)*(ec-e2)/(ec-e3)
@@ -836,12 +851,12 @@ module mod_che_dust
                     p2 = d_zero
                     p3 = d_zero
                   end if
-                  fsoil1(i,nt) = fsoil1(i,nt) + 1.0D-2*p1*(dec/e1)* &
-                            (mathpi/6.0D0)*rhodust*((d1*1.0D-04)**3)
-                  fsoil2(i,nt) = fsoil2(i,nt) + 1.0D-2*p2*(dec/e2)* &
-                            (mathpi/6.0D0)*rhodust*((d2*1.0D-04)**3)
-                  fsoil3(i,nt) = fsoil3(i,nt) + 1.0D-2*p3*(dec/e3)* &
-                            (mathpi/6.0D0)*rhodust*((d3*1.0D-04)**3)
+                  fsoil1(i,nt) = fsoil1(i,nt) + 1.0e-2_rkx*p1*(dec/e1)* &
+                            (mathpi/6.0_rkx)*rhodust*((d1*1.0e-4_rkx)**3)
+                  fsoil2(i,nt) = fsoil2(i,nt) + 1.0e-2_rkx*p2*(dec/e2)* &
+                            (mathpi/6.0_rkx)*rhodust*((d2*1.0e-4_rkx)**3)
+                  fsoil3(i,nt) = fsoil3(i,nt) + 1.0e-2_rkx*p3*(dec/e3)* &
+                            (mathpi/6.0_rkx)*rhodust*((d3*1.0e-4_rkx)**3)
                 else if ( ichdustemd == 2 ) then
                   fsoil(i,nt) = fsoil(i,nt) + alphaprop(i,nt)* &
                                 srel(i,ns,nt)*fdp1*fdp2
@@ -903,8 +918,8 @@ module mod_che_dust
     subroutine clm_dust_tend
       implicit none
       integer(ik4) :: i,j,n
-      real(rk8) , pointer , dimension(:,:) :: sumdflux
-      real(rk8) :: cdsfrq
+      real(rkx) , pointer , dimension(:,:) :: sumdflux
+      real(rkx) :: cdsfrq
       ! Update dust tendency with dust fluxes calculated in CLM
       ! here sump up the total flux from clm ( initially defined on 4 bins)
       ! and re-distribute it according to the selected dust emission size
@@ -923,7 +938,7 @@ module mod_che_dust
            do n = 1 , nbin
             if ( ichdrdepo == 1 ) then
               chiten(j,i,kz,idust(n)) = chiten(j,i,kz,idust(n)) + &
-                   sumdflux(j,i)*frac(n) * egrav/(dsigma(kz)*1.D3)
+                   sumdflux(j,i)*frac(n) * egrav/(dsigma(kz)*1.e3_rkx)
             else if ( ichdrdepo == 2 ) then
               ! pass the flux to BL scheme
               chifxuw(j,i,idust(n)) = chifxuw(j,i,idust(n)) + &
@@ -931,7 +946,7 @@ module mod_che_dust
             end if
             ! diagnostic source (accumulated)
 
-            cdsfrq = dble(ntsrf) / kche
+            cdsfrq = real(ntsrf,rkx) / kche
             cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
                     sumdflux(j,i)*frac(n) * cdsfrq
              if ( ichdiag == 1 ) then

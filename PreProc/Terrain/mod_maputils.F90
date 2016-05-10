@@ -34,25 +34,25 @@ module mod_maputils
     use mod_projections
     implicit none
     integer(ik4) , intent(in) :: idot , iy , jx
-    real(rk8) , intent(in) :: clat , clon , ds , truelath , truelatl
-    real(rk8) , dimension(jx,iy) , intent(out) :: coriol , smap , xlat , xlon
-    real(rk8) , intent(out) :: xn
-    real(rk8) :: cntri , cntrj
+    real(rkx) , intent(in) :: clat , clon , ds , truelath , truelatl
+    real(rkx) , dimension(jx,iy) , intent(out) :: coriol , smap , xlat , xlon
+    real(rkx) , intent(out) :: xn
+    real(rkx) :: cntri , cntrj
     integer(ik4) :: i , j
 
-    cntrj = dble(jx+idot)/d_two
-    cntri = dble(iy+idot)/d_two
+    cntrj = real(jx+idot,rkx)/d_two
+    cntri = real(iy+idot,rkx)/d_two
     call setup_lcc(clat,clon,cntrj,cntri,ds,clon,truelath,truelatl)
     do i = 1 , iy
       do j = 1 , jx
-        call ijll_lc(dble(j),dble(i),xlat(j,i),xlon(j,i))
+        call ijll_lc(real(j,rkx),real(i,rkx),xlat(j,i),xlon(j,i))
         call mapfac_lc(xlat(j,i), smap(j,i))
       end do
     end do
     if ( idot==1 ) then
       do i = 1 , iy
         do j = 1 , jx
-          coriol(j,i) = eomeg2*dsin(xlat(j,i)*degrad)
+          coriol(j,i) = eomeg2*sin(xlat(j,i)*degrad)
         end do
       end do
     end if
@@ -62,25 +62,25 @@ module mod_maputils
   subroutine mappol(xlon,xlat,xmap,coriol,jx,iy,clon,clat,delx,idot)
     use mod_projections
     implicit none
-    real(rk8) , intent(in) :: clat , clon , delx
+    real(rkx) , intent(in) :: clat , clon , delx
     integer(ik4) , intent(in) :: idot , iy , jx
-    real(rk8) , intent(out) , dimension(jx,iy) :: coriol , xlat , xlon , xmap
-    real(rk8) :: cntrj , cntri
+    real(rkx) , intent(out) , dimension(jx,iy) :: coriol , xlat , xlon , xmap
+    real(rkx) :: cntrj , cntri
     integer(ik4) :: i , j
 
-    cntrj = dble(jx+idot)/d_two
-    cntri = dble(iy+idot)/d_two
+    cntrj = real(jx+idot,rkx)/d_two
+    cntri = real(iy+idot,rkx)/d_two
     call setup_plr(clat,clon,cntrj,cntri,delx,clon)
     do i = 1 , iy
       do j = 1 , jx
-        call ijll_ps(dble(j),dble(i),xlat(j,i),xlon(j,i))
+        call ijll_ps(real(j,rkx),real(i,rkx),xlat(j,i),xlon(j,i))
         call mapfac_ps(xlat(j,i), xmap(j,i))
       end do
     end do
     if ( idot==1 ) then
       do i = 1 , iy
         do j = 1 , jx
-          coriol(j,i) = eomeg2*dsin(xlat(j,i)*degrad)
+          coriol(j,i) = eomeg2*sin(xlat(j,i)*degrad)
         end do
       end do
     end if
@@ -89,25 +89,25 @@ module mod_maputils
   subroutine normer(xlon,xlat,xmap,coriol,jx,iy,clon,clat,delx,idot)
     use mod_projections
     implicit none
-    real(rk8) , intent(in) :: clat , clon , delx
+    real(rkx) , intent(in) :: clat , clon , delx
     integer(ik4) , intent(in) :: idot , iy , jx
-    real(rk8) , dimension(jx,iy) , intent(out) :: coriol , xlat , xlon , xmap
-    real(rk8) :: cntri , cntrj
+    real(rkx) , dimension(jx,iy) , intent(out) :: coriol , xlat , xlon , xmap
+    real(rkx) :: cntri , cntrj
     integer(ik4) :: i , j
 
-    cntrj = dble(jx+idot)/d_two
-    cntri = dble(iy+idot)/d_two
+    cntrj = real(jx+idot,rkx)/d_two
+    cntri = real(iy+idot,rkx)/d_two
     call setup_mrc(clat,clon,cntrj,cntri,delx)
     do i = 1 , iy
       do j = 1 , jx
-        call ijll_mc(dble(j),dble(i),xlat(j,i),xlon(j,i))
+        call ijll_mc(real(j,rkx),real(i,rkx),xlat(j,i),xlon(j,i))
         call mapfac_mc(xlat(j,i), xmap(j,i))
       end do
     end do
     if ( idot==1 ) then
       do i = 1 , iy
         do j = 1 , jx
-          coriol(j,i) = eomeg2*dsin(xlat(j,i)*degrad)
+          coriol(j,i) = eomeg2*sin(xlat(j,i)*degrad)
         end do
       end do
     end if
@@ -118,25 +118,25 @@ module mod_maputils
 
     use mod_projections
     implicit none
-    real(rk8) , intent(in) :: clat , clon , ds , pollat , pollon
+    real(rkx) , intent(in) :: clat , clon , ds , pollat , pollon
     integer(ik4) , intent(in) :: idot , iy , jx
-    real(rk8) , dimension(jx,iy) , intent(out) :: coriol , xlat , xlon , xmap
-    real(rk8) :: cntri , cntrj
+    real(rkx) , dimension(jx,iy) , intent(out) :: coriol , xlat , xlon , xmap
+    real(rkx) :: cntri , cntrj
     integer(ik4) :: i , j
 
-    cntrj = dble(jx+idot)/d_two
-    cntri = dble(iy+idot)/d_two
+    cntrj = real(jx+idot,rkx)/d_two
+    cntri = real(iy+idot,rkx)/d_two
     call setup_rmc(clat,clon,cntrj,cntri,ds,pollon,pollat)
     do i = 1 , iy
       do j = 1 , jx
-        call ijll_rc(dble(j),dble(i),xlat(j,i),xlon(j,i))
-        call mapfac_rc(dble(i), xmap(j,i))
+        call ijll_rc(real(j,rkx),real(i,rkx),xlat(j,i),xlon(j,i))
+        call mapfac_rc(real(i,rkx), xmap(j,i))
       end do
     end do
     if ( idot == 1 ) then
       do i = 1 , iy
         do j = 1 , jx
-          coriol(j,i) = eomeg2*dsin(xlat(j,i)*degrad)
+          coriol(j,i) = eomeg2*sin(xlat(j,i)*degrad)
         end do
       end do
     end if

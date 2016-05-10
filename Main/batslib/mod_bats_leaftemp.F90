@@ -97,7 +97,7 @@ module mod_bats_leaftemp
 !
   subroutine lftemp
     implicit none
-    real(rk8) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare , &
+    real(rkx) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare , &
                qcan , qsatdg , rppdry , sf1 , sf2 , sgtg3 , vakb ,  &
                xxkb , efpot , tbef
     integer(ik4) :: iter , itfull , itmax , i
@@ -179,13 +179,13 @@ module mod_bats_leaftemp
       ! 2.4  canopy evapotranspiration
       if ( iter == 0 ) call condcq
 
-      epss = 1.0D-10
+      epss = 1.0e-10_rkx
       do i = ilndbeg , ilndend
         if ( sigf(i) > minsigf ) then
           efpot = cn1(i)*(wtgaq(i)*qsatl(i) - wtgq0(i)*qgrd(i) - wtaq0(i)*qs(i))
           if ( efpot > d_zero ) then
             etr(i) = efpot*lftra(i)*fdry(i)/(lftrs(i)+lftra(i))
-            rpp(i) = dmin1(rpp(i),(etr(i)+ldew(i)/dtbat)/efpot-epss)
+            rpp(i) = min(rpp(i),(etr(i)+ldew(i)/dtbat)/efpot-epss)
           else
             etr(i) = d_zero
             rpp(i) = d_one
@@ -199,11 +199,11 @@ module mod_bats_leaftemp
             ! recalculate stomatl resistance and rpp
             lftrs(i) = lftra(i)*(fdry(i)/rppdry-d_one)
             rpp(i) = rppdry + fwet(i)
-            rpp(i) = dmin1(rpp(i),(etr(i)+ldew(i)/dtbat)/efpot-epss)
+            rpp(i) = min(rpp(i),(etr(i)+ldew(i)/dtbat)/efpot-epss)
           end if
           rppq(i) = wlhv*rpp(i)
           efe(i) = rppq(i)*efpot
-          if ( efe(i)*efeb < d_zero ) efe(i) = 0.1D0*efe(i)
+          if ( efe(i)*efeb < d_zero ) efe(i) = 0.1_rkx*efe(i)
         else
           etr(i) = etrc(i)
         end if
@@ -235,8 +235,8 @@ module mod_bats_leaftemp
           !
           ! 3.5  chk magnitude of change; limit to max allowed value
           dels(i) = tlef(i) - tbef
-          if ( dabs(dels(i)) > delmax ) then
-            tlef(i) = tbef + delmax*dels(i)/dabs(dels(i))
+          if ( abs(dels(i)) > delmax ) then
+            tlef(i) = tbef + delmax*dels(i)/abs(dels(i))
           end if
           ! 3.6  update dependence of stomatal resistance
           !      on vapor pressure deficit
@@ -264,7 +264,7 @@ module mod_bats_leaftemp
         delq(i) = wtglq(i)*qs(i) - (wtlq0(i)*qsatl(i) + wtgq0(i)*qgrd(i))
         sgtg3 = emiss(i)*(sigm*tgrd(i)**3)
         flnet(i) = sgtg3*(tlef(i)-tgrd(i))*d_four
-        xxkb = dmin1(rough(lveg(i)),d_one)
+        xxkb = min(rough(lveg(i)),d_one)
         vakb = (d_one-sigf(i))*vspda(i) + sigf(i) * &
                (xxkb*uaf(i)+(d_one-xxkb)*vspda(i))
         wtg2(i) = (d_one-sigf(i))*cdr(i)*vakb
@@ -295,8 +295,8 @@ module mod_bats_leaftemp
         qbare = wtg2(i)*(qgrd(i)-qs(i))
         sent(i) = cpd*rhs(i)*(-wta(i)*delt(i)+fbare)
         evpr(i) = rhs(i)*(-wta(i)*delq(i) + rgr(i)*qbare)
-        if ( dabs(sent(i)) < dlowval ) sent(i) = d_zero
-        if ( dabs(evpr(i)) < dlowval ) evpr(i) = d_zero
+        if ( abs(sent(i)) < dlowval ) sent(i) = d_zero
+        if ( abs(evpr(i)) < dlowval ) evpr(i) = d_zero
       end if
     end do
 #ifdef DEBUG
@@ -323,7 +323,7 @@ module mod_bats_leaftemp
 !     radfi = average of upper and lower canopy light factors
 !        rs = stomatal resistance = min.res. * rad.factor * leaf factor
 !      trup = transmission of the upper canopy, assumed to be the same
-!             for the lower canopy,i.e., trup=dexp(-0.5*g*rlai/czenith),
+!             for the lower canopy,i.e., trup=exp(-0.5*g*rlai/czenith),
 !             where g = attenuation factor
 !
 !     documented in NCAR Tech Note, Dickinson et al., 1986
@@ -333,11 +333,11 @@ module mod_bats_leaftemp
 !
   subroutine stomat
     implicit none
-    real(rk8) :: difzen , g , radf , radfi , seas , vpdf , rilmax , &
-                 rmini , fsol0 , fsold
-    real(rk8) :: trup , trupd
+    real(rkx) :: difzen , g , radf , radfi , seas , vpdf , rilmax , &
+                 rmini , fsol0 , fsold , maxarg
+    real(rkx) :: trup , trupd
     integer(ik4) :: il , ilmax , i
-    real(rk8) , dimension(10) :: rad , radd
+    real(rkx) , dimension(10) :: rad , radd
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'stomat'
     integer(ik4) , save :: idindx = 0
@@ -357,35 +357,49 @@ module mod_bats_leaftemp
     difzen = d_two
     ilmax = 4
     rilmax = d_four
+    maxarg = -log(epsilon(d_one))
     call fseas(tlef,bseas)
     do i = ilndbeg , ilndend
       if ( sigf(i) > minsigf ) then
-        ! zenith angle set in zenitm
-        if ( (czenith(i)/rilmax) > 0.001D0 ) then
-          trup = dexp(-g*rlai(i)/(rilmax*czenith(i)))
-          trupd = dexp(-difzen*g*rlai(i)/rilmax)
-          if ( trup  < dlowval ) trup  = d_zero
-          if ( trupd < dlowval ) trupd = d_zero
+        if ( czenith(i) > 1.e-3_rkx ) then
           fsold = fracd(i)*swsi(i)*fc(lveg(i))
           fsol0 = (d_one-fracd(i))*swsi(i)*fc(lveg(i))
+          if ( g*rlai(i)/(rilmax*czenith(i)) > maxarg ) then
+            rad(1) = fsol0*rilmax/rlai(i)
+            do il = 2 , ilmax
+              rad(il) = dlowval
+            end do
+          else
+            trup = exp(-g*rlai(i)/(rilmax*czenith(i)))
+            rad(1)  = (d_one-trup) *fsol0*rilmax/rlai(i)
+            do il = 2 , ilmax
+              rad(il)  = trup* rad(il-1)
+            end do
+          end if
+          if ( difzen*g*rlai(i)/rilmax > maxarg ) then
+            radd(1) = fsold*rilmax/rlai(i)
+            do il = 2 , ilmax
+              radd(il) = dlowval
+            end do
+          else
+            trupd = exp(-difzen*g*rlai(i)/rilmax)
+            radd(1) = (d_one-trupd)*fsold*rilmax/rlai(i)
+            do il = 2 , ilmax
+              radd(il) = trupd*radd(il-1)
+            end do
+          end if
           rmini = rsmin(lveg(i))/rmax0
-          rad(1)  = (d_one-trup) *fsol0*rilmax/rlai(i)
-          radd(1) = (d_one-trupd)*fsold*rilmax/rlai(i)
-          do il = 2 , ilmax
-            rad(il)  = trup* rad(il-1)
-            radd(il) = trupd*radd(il-1)
-          end do
           radfi = d_zero
           do il = 1 , ilmax
             radfi = radfi+(rmini+rad(il)+radd(il))/(d_one+rad(il)+radd(il))
           end do
           radf = rilmax/radfi
-          vpdf = d_one/dmax1(0.3D0,d_one-vpdc(i)*0.025D0)
+          vpdf = d_one/max(0.3_rkx,d_one-vpdc(i)*0.025_rkx)
           seas = d_one/(rmini+bseas(i))
           lftrs(i) = rsmin(lveg(i))*radf*seas*vpdf
-          lftrs(i) = dmin1(lftrs(i),rmax0)
+          lftrs(i) = min(lftrs(i),rmax0)
         else
-          lftrs(i) = rmax0
+          lftrs(i) = rsmin(lveg(i))
         end if
       end if
     end do
@@ -423,7 +437,7 @@ module mod_bats_leaftemp
         fwet(i) = d_zero
         if ( ldew(i) > d_zero ) then
           fwet(i) = ((dewmaxi/vegt(i))*ldew(i))**twot
-          fwet(i) = dmin1(fwet(i),d_one)
+          fwet(i) = min(fwet(i),d_one)
         end if
         fdry(i) = (d_one-fwet(i))*xlai(i)/xlsai(i)
       end if
@@ -462,7 +476,7 @@ module mod_bats_leaftemp
 !
   subroutine root
     implicit none
-    real(rk8) :: bneg , rotf , trsmx , wlttb , wltub , wmli
+    real(rkx) :: bneg , rotf , trsmx , wlttb , wltub , wmli
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'root'
@@ -479,12 +493,12 @@ module mod_bats_leaftemp
         wmli = d_one/(wiltr(i)**bneg-d_one)
         wlttb = (watr(i)**bneg-d_one)*wmli
         wltub = (watu(i)**bneg-d_one)*wmli
-        wlttb = dmin1(wlttb,d_one)
-        wltub = dmin1(wltub,d_one)
+        wlttb = min(wlttb,d_one)
+        wltub = min(wltub,d_one)
         etrc(i) = trsmx*(d_one-(d_one-rotf)*wlttb-rotf*wltub)
         efpr(i) = trsmx*rotf*(d_one-wltub)
-        if ( etrc(i) < 1.0D-12 ) then
-          etrc(i) = 1.0D-12
+        if ( etrc(i) < 1.0e-12_rkx ) then
+          etrc(i) = 1.0e-12_rkx
           efpr(i) = d_one
         else
           efpr(i) = efpr(i)/etrc(i)
@@ -506,8 +520,8 @@ module mod_bats_leaftemp
 !
   subroutine satur(qsat,t,p)
     implicit none
-    real(rk8) , pointer , dimension(:) , intent(in) :: p , t
-    real(rk8) , pointer , dimension(:) , intent(inout) :: qsat
+    real(rkx) , pointer , dimension(:) , intent(in) :: p , t
+    real(rkx) , pointer , dimension(:) , intent(inout) :: qsat
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'satur'
@@ -535,8 +549,8 @@ module mod_bats_leaftemp
 !
   subroutine lfdrag
     implicit none
-    real(rk8) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild , cdrmin
-    real(rk8) :: dlstaf , rib1
+    real(rkx) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild , cdrmin
+    real(rkx) :: dlstaf , rib1
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'lfdrag'
@@ -549,13 +563,17 @@ module mod_bats_leaftemp
         dlstaf = sts(i) - sigf(i)*tkb - (d_one-sigf(i))*tgrd(i)
         if ( dlstaf <= d_zero ) then
           dthdz = (d_one-sigf(i))*tgrd(i) + sigf(i)*tkb-sts(i)
-          u1 = wtur + d_two*dsqrt(dthdz)
+          if ( dthdz > dlowval ) then
+            u1 = wtur + d_two*sqrt(dthdz)
+          else
+            u1 = wtur
+          end if
           ribd(i) = usw(i)**2 + vsw(i)**2 + u1**2
         else
           u2 = wtur
           ribd(i) = usw(i)**2 + vsw(i)**2 + u2**2
         end if
-        vspda(i) = dsqrt(ribd(i))
+        vspda(i) = sqrt(ribd(i))
         if ( vspda(i) < d_one ) then
           vspda(i) = d_one
           ribd(i) = d_one
@@ -564,14 +582,14 @@ module mod_bats_leaftemp
         rib1 = egrav*zatild/(ribd(i)*sts(i))
         rib(i) = rib1*dlstaf
         if ( rib(i) < d_zero ) then
-          cdr(i) = cdrn(i)*(d_one+24.5D0 * dsqrt(-cdrn(i)*rib(i)))
-          sqrtf = dmin1(dsqrt(-cdrn(i)/rib(i)),11.5D0/12.25D0)
-          cdrd(i) = cdrn(i)*12.25D0*wtl0(i)*rib1*sigf(i)*sqrtf
+          cdr(i) = cdrn(i)*(d_one+24.5_rkx * sqrt(-cdrn(i)*rib(i)))
+          sqrtf = min(sqrt(-cdrn(i)/rib(i)),11.5_rkx/12.25_rkx)
+          cdrd(i) = cdrn(i)*12.25_rkx*wtl0(i)*rib1*sigf(i)*sqrtf
         else
-          ribi = d_one/(d_one+11.5D0*rib(i))
+          ribi = d_one/(d_one+11.5_rkx*rib(i))
           cdr(i) = cdrn(i)*ribi
-          cdrd(i) = cdr(i)*ribi*11.5D0*rib1*wtl0(i)*sigf(i)
-          cdrmin = dmax1(cdrn(i)*d_rfour,6.0D-4)
+          cdrd(i) = cdr(i)*ribi*11.5_rkx*rib1*wtl0(i)*sigf(i)
+          cdrmin = max(cdrn(i)*d_rfour,6.0e-4_rkx)
           if ( (cdr(i) < cdrmin) ) then
             cdr(i) = cdrmin
             cdrd(i) = d_zero
@@ -613,8 +631,8 @@ module mod_bats_leaftemp
     !
     do i = ilndbeg , ilndend
       if ( sigf(i) > minsigf ) then
-        uaf(i) = vspda(i)*dsqrt(cdr(i))
-        cf(i) = 0.01D0*sqrtdi(lveg(i))/dsqrt(uaf(i))
+        uaf(i) = vspda(i)*sqrt(cdr(i))
+        cf(i) = 0.01_rkx*sqrtdi(lveg(i))/sqrt(uaf(i))
         wta(i) = sigf(i)*cdr(i)*vspda(i)
         wtlh(i) = cf(i)*uaf(i)*vegt(i)
         wtg(i) = csoilc*uaf(i)*sigf(i)
@@ -691,7 +709,7 @@ module mod_bats_leaftemp
 !
   subroutine deriv
     implicit none
-    real(rk8) :: hfl , xkb , qsatld
+    real(rkx) :: hfl , xkb , qsatld
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'deriv'
@@ -708,8 +726,8 @@ module mod_bats_leaftemp
         hfl = df(i)*(wtga(i)*tlef(i) - wtg0(i)*tgrd(i) - wta0(i)*sts(i))
         dcd(i) = cn1(i)*rppq(i)*wtgaq(i) * qsatld + (d_one-wtgaq(i)) *   &
                  efe(i) * xkb + (d_one-wtga(i)) * hfl * xkb
-        dcd(i) = dmax1(dcd(i),d_zero)
-        dcd(i) = dmin1(dcd(i),500.0D0)
+        dcd(i) = max(dcd(i),d_zero)
+        dcd(i) = min(dcd(i),500.0_rkx)
       end if
     end do
 #ifdef DEBUG
@@ -723,8 +741,8 @@ module mod_bats_leaftemp
     ! If the temperature is less than 298.0, it is less than 1
     ! If the temperature is less than 273.0, it is zero
     implicit none
-    real(rk8) , pointer , dimension(:) , intent(in) :: temp
-    real(rk8) , pointer , dimension(:) , intent(out) :: ffsea
+    real(rkx) , pointer , dimension(:) , intent(in) :: temp
+    real(rkx) , pointer , dimension(:) , intent(out) :: ffsea
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'fseas'
@@ -734,17 +752,17 @@ module mod_bats_leaftemp
     if ( lcrop_cutoff ) then
       do i = ilndbeg , ilndend
         if ( lveg(i) == 1 ) then
-          ffsea(i) = dmax1(d_zero,d_one-0.0016D0* &
-                     dmax1(298.0D0-temp(i),d_zero)**4)
+          ffsea(i) = max(d_zero,d_one-0.0016_rkx* &
+                     max(298.0_rkx-temp(i),d_zero)**4)
         else
-          ffsea(i) = dmax1(d_zero,d_one-0.0016D0* &
-                     dmax1(298.0D0-temp(i),d_zero)**2)
+          ffsea(i) = max(d_zero,d_one-0.0016_rkx* &
+                     max(298.0_rkx-temp(i),d_zero)**2)
         end if
       end do
     else
       do i = ilndbeg , ilndend
-        ffsea(i) = dmax1(d_zero,d_one-0.0016D0* &
-                   dmax1(298.0D0-temp(i),d_zero)**2)
+        ffsea(i) = max(d_zero,d_one-0.0016_rkx* &
+                   max(298.0_rkx-temp(i),d_zero)**2)
       end do
     end if
 #ifdef DEBUG

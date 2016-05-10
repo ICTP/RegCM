@@ -58,19 +58,19 @@ module mod_bdycod
   ! gnydge : are the coefficients for the diffusion term.
   public :: fnudge , gnudge
   !
-  real(rk8) , pointer , dimension(:,:) :: sue , sui , nue , nui , &
+  real(rkx) , pointer , dimension(:,:) :: sue , sui , nue , nui , &
                                          sve , svi , nve , nvi
-  real(rk8) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
+  real(rkx) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
                                          wve , wvi , eve , evi
-  real(rk8) , pointer , dimension(:,:) :: psdot
-  real(rk8) , pointer , dimension(:) :: fcx , gcx
-  real(rk8) , pointer , dimension(:) :: fcd , gcd
-  real(rk8) , pointer , dimension(:,:) :: hefc , hegc
-  real(rk8) , pointer , dimension(:,:) :: fefc , fegc
-  real(rk8) , pointer , dimension(:,:) :: efc , egc
-  real(rk8) , pointer , dimension(:) :: wgtd
-  real(rk8) , pointer , dimension(:) :: wgtx
-  real(rk8) :: fnudge , gnudge , rdtbdy
+  real(rkx) , pointer , dimension(:,:) :: psdot
+  real(rkx) , pointer , dimension(:) :: fcx , gcx
+  real(rkx) , pointer , dimension(:) :: fcd , gcd
+  real(rkx) , pointer , dimension(:,:) :: hefc , hegc
+  real(rkx) , pointer , dimension(:,:) :: fefc , fegc
+  real(rkx) , pointer , dimension(:,:) :: efc , egc
+  real(rkx) , pointer , dimension(:) :: wgtd
+  real(rkx) , pointer , dimension(:) :: wgtx
+  real(rkx) :: fnudge , gnudge , rdtbdy
   integer(ik4) :: nbdm
   integer(ik4) :: som_month
 
@@ -150,8 +150,8 @@ module mod_bdycod
     !
     rdtbdy = d_one / dtbdys
     if ( iboudy == 1 .or. iboudy == 5 ) then
-      fnudge = 0.1D0/dt2
-      gnudge = (dxsq/dt)/50.0D0
+      fnudge = 0.1_rkx/dt2
+      gnudge = (dxsq/dt)/50.0_rkx
     end if
     if ( iboudy == 1 ) then
       do n = 2 , nspgx-1
@@ -163,26 +163,26 @@ module mod_bdycod
         gcd(n) = gnudge*xfun(n,.true.)
       end do
     else if ( iboudy == 4 ) then
-      wgtd(1) = 0.00D0
-      wgtd(2) = 0.20D0
-      wgtd(3) = 0.55D0
-      wgtd(4) = 0.80D0
-      wgtd(5) = 0.95D0
+      wgtd(1) = 0.00_rkx
+      wgtd(2) = 0.20_rkx
+      wgtd(3) = 0.55_rkx
+      wgtd(4) = 0.80_rkx
+      wgtd(5) = 0.95_rkx
       do k = 4 , nspgd
         wgtd(k) = d_one
       end do
-      wgtx(1) = 0.0D0
-      wgtx(2) = 0.4D0
-      wgtx(3) = 0.7D0
-      wgtx(4) = 0.9D0
+      wgtx(1) = 0.0_rkx
+      wgtx(2) = 0.4_rkx
+      wgtx(3) = 0.7_rkx
+      wgtx(4) = 0.9_rkx
       do k = 5 , nspgx
-        wgtx(k) = 1.0D0
+        wgtx(k) = 1.0_rkx
       end do
     else if ( iboudy == 5 ) then
       do k = 1 , kzp1
-        if ( sigma(k) < 0.4D0 ) then
+        if ( sigma(k) < 0.4_rkx ) then
           anudgf(k) = high_nudge
-        else if ( sigma(k) < 0.8D0 ) then
+        else if ( sigma(k) < 0.8_rkx ) then
           anudgf(k) = medium_nudge
         else
           anudgf(k) = low_nudge
@@ -193,9 +193,9 @@ module mod_bdycod
         end do
       end do
       do k = 1 , kz
-        if ( hsigma(k) < 0.4D0 ) then
+        if ( hsigma(k) < 0.4_rkx ) then
           anudgh(k) = high_nudge
-        else if ( hsigma(k) < 0.8D0 ) then
+        else if ( hsigma(k) < 0.8_rkx ) then
           anudgh(k) = medium_nudge
         else
           anudgh(k) = low_nudge
@@ -241,22 +241,22 @@ module mod_bdycod
 #endif
     contains
 
-      pure real(rk8) function xfun(mm,ldot)
+      pure real(rkx) function xfun(mm,ldot)
         implicit none
         integer(ik4) , intent(in) :: mm
         logical , intent(in) :: ldot
         if ( ldot ) then
-          xfun = dble(nspgd-mm)/dble(nspgd-2)
+          xfun = real(nspgd-mm,rkx)/real(nspgd-2,rkx)
         else
-          xfun = dble(nspgx-mm)/dble(nspgx-2)
+          xfun = real(nspgx-mm,rkx)/real(nspgx-2,rkx)
         end if
       end function xfun
 
-      pure real(rk8) function xfune(mm,kk,an)
+      pure real(rkx) function xfune(mm,kk,an)
         implicit none
         integer(ik4) , intent(in) :: mm , kk
-        real(rk8) , dimension(:) , intent(in) :: an
-        xfune = dexp(-dble(mm-2)/an(kk))
+        real(rkx) , dimension(:) , intent(in) :: an
+        xfune = exp(-real(mm-2,rkx)/an(kk))
       end function xfune
 
   end subroutine setup_bdycon
@@ -458,7 +458,7 @@ module mod_bdycod
     integer(ik4) :: i , j , n , datefound
     character(len=32) :: appdat
     logical :: update_slabocn
-    real(rk8) :: sfice_temp
+    real(rkx) :: sfice_temp
     type (rcm_time_interval) :: tdif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
@@ -606,7 +606,7 @@ module mod_bdycod
               do n = 1 , nnsg
                 if ( mdsub%ldmsk(n,j,i) == 0 ) then
                   mdsub%ldmsk(n,j,i) = 2
-                  lms%sfice(n,j,i) = 0.50D0 ! 10 cm
+                  lms%sfice(n,j,i) = 0.50_rkx ! 10 cm
                 end if
               end do
             else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then
@@ -647,7 +647,7 @@ module mod_bdycod
   !
   subroutine bdyuv(xt)
     implicit none
-    real(rk8) , intent(in) :: xt
+    real(rkx) , intent(in) :: xt
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyuv'
@@ -860,10 +860,10 @@ module mod_bdycod
   !
   subroutine bdyval
     implicit none
-    real(rk8) :: qxint , tkeint , qext , qint
+    real(rkx) :: qxint , tkeint , qext , qint
     integer(ik4) :: i , j , k , n
-    real(rk8) :: windavg
-    real(rk8) :: xt
+    real(rkx) :: windavg
+    real(rkx) :: xt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyval'
     integer(ik4) , save :: idindx = 0
@@ -1361,8 +1361,8 @@ module mod_bdycod
       !
       !do j = jci1 , jci2
       !  do i = ici1 , ici2
-      !    atm1%qx(j,i,1,iqv) = (0.10D0 * atm1%qx(j,i,1,iqv) + &
-      !              0.90D0 * (xqb%b0(j,i,1) + xt*xqb%bt(j,i,1)))
+      !    atm1%qx(j,i,1,iqv) = (0.10_rkx * atm1%qx(j,i,1,iqv) + &
+      !              0.90_rkx * (xqb%b0(j,i,1) + xt*xqb%bt(j,i,1)))
       !    atm1%qx(j,i,1,iqv) = max(atm1%qx(j,i,1,iqv), &
       !                xqb%b0(j,i,1) + xt*xqb%bt(j,i,1))
       !    atm1%qx(j,i,1,iqv) = xqb%b0(j,i,1) + xt*xqb%bt(j,i,1)
@@ -1462,7 +1462,7 @@ module mod_bdycod
             qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
             windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
             if ( windavg >= d_zero ) then
-              atm1%qx(jce1,i,k,n) = d_half*(minqx+qxint*sfs%psa(jce1,i))
+              atm1%qx(jce1,i,k,n) = d_half*((minqx+qxint)*sfs%psa(jce1,i))
             else
               atm1%qx(jce1,i,k,n) = qxint*sfs%psa(jce1,i)
             end if
@@ -1480,7 +1480,7 @@ module mod_bdycod
             qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
             windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
             if ( windavg <= d_zero ) then
-              atm1%qx(jce2,i,k,n) = d_half*(minqx+qxint*sfs%psa(jce2,i))
+              atm1%qx(jce2,i,k,n) = d_half*((minqx+qxint)*sfs%psa(jce2,i))
             else
               atm1%qx(jce2,i,k,n) = qxint*sfs%psa(jce2,i)
             end if
@@ -1498,7 +1498,7 @@ module mod_bdycod
             qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
             windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
             if ( windavg >= d_zero ) then
-              atm1%qx(j,ice1,k,n) = d_half*(minqx+qxint*sfs%psa(j,ice1))
+              atm1%qx(j,ice1,k,n) = d_half*((minqx+qxint)*sfs%psa(j,ice1))
             else
               atm1%qx(j,ice1,k,n) = qxint*sfs%psa(j,ice1)
             end if
@@ -1516,7 +1516,7 @@ module mod_bdycod
             qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
             windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
             if ( windavg <= d_zero ) then
-              atm1%qx(j,ice2,k,n) = d_half*(minqx+qxint*sfs%psa(j,ice2))
+              atm1%qx(j,ice2,k,n) = d_half*((minqx+qxint)*sfs%psa(j,ice2))
             else
               atm1%qx(j,ice2,k,n) = qxint*sfs%psa(j,ice2)
             end if
@@ -1653,7 +1653,7 @@ module mod_bdycod
     implicit none
     integer(ik4) , intent(in) :: m
     type(v3dbound) , intent(in) :: bnd
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
 
     integer(ik4) :: i , j , k
     integer(ik4) :: ib
@@ -1726,7 +1726,7 @@ module mod_bdycod
   subroutine spongeuv(bndu,bndv,ftenu,ftenv)
     implicit none
     type(v3dbound) , intent(in) :: bndu , bndv
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ftenu , ftenv
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ftenu , ftenv
     integer(ik4) :: i , j , k
     integer(ik4) :: ib
 #ifdef DEBUG
@@ -1806,7 +1806,7 @@ module mod_bdycod
   subroutine sponge3d(bnd,ften)
     implicit none
     type(v3dbound) , intent(in) :: bnd
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ften
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
     integer(ik4) :: i , j , k
     integer(ik4) :: ib , nk
 #ifdef DEBUG
@@ -1875,7 +1875,7 @@ module mod_bdycod
   subroutine sponge2d(bnd,ften)
     implicit none
     type(v2dbound) , intent(in) :: bnd
-    real(rk8) , pointer , intent(inout) , dimension(:,:) :: ften
+    real(rkx) , pointer , intent(inout) , dimension(:,:) :: ften
     integer(ik4) :: i , j
     integer(ik4) :: ib
 #ifdef DEBUG
@@ -1957,10 +1957,10 @@ module mod_bdycod
   subroutine nudge4d3d(ibdy,f,bnd,ften,n)
     implicit none
     integer(ik4) , intent(in) :: ibdy , n
-    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: f
+    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-    real(rk8) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
     integer(ik4) :: i , j , k , ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge4d3d'
@@ -2139,10 +2139,10 @@ module mod_bdycod
   subroutine nudgeuv(ibdy,fu,fv,bndu,bndv,ftenu,ftenv)
     implicit none
     integer(ik4) , intent(in) :: ibdy
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: fu , fv
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: fu , fv
     type(v3dbound) , intent(in) :: bndu , bndv
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ftenu , ftenv
-    real(rk8) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ftenu , ftenv
+    real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
     integer(ik4) :: i , j , k , ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudgeuv'
@@ -2378,9 +2378,9 @@ module mod_bdycod
   subroutine nudge4d(ibdy,f,bnd,ften,n1,n2)
     implicit none
     integer(ik4) , intent(in) :: ibdy , n1 , n2
-    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: f
+    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
     integer(ik4) :: n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge4d'
@@ -2404,10 +2404,10 @@ module mod_bdycod
   subroutine nudge3d(ibdy,f,bnd,ften)
     implicit none
     integer(ik4) , intent(in) :: ibdy
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: f
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ften
-    real(rk8) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
+    real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
     integer(ik4) :: i , j , k , ib , nk
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge3d'
@@ -2595,10 +2595,10 @@ module mod_bdycod
   subroutine nudge2d(ibdy,f,bnd,ften)
     implicit none
     integer(ik4) , intent(in) :: ibdy
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: f
+    real(rkx) , pointer , intent(in) , dimension(:,:) :: f
     type(v2dbound) , intent(in) :: bnd
-    real(rk8) , pointer , intent(inout) , dimension(:,:) :: ften
-    real(rk8) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
+    real(rkx) , pointer , intent(inout) , dimension(:,:) :: ften
+    real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
     integer(ik4) :: i , j , ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge2d'
@@ -2760,8 +2760,8 @@ module mod_bdycod
 
   subroutine couple(a,c,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: a
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: c
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: a
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: c
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: i , j , k
     do k = k1 , k2
@@ -2775,8 +2775,8 @@ module mod_bdycod
 
   subroutine timeint2(a,b,c,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: a , b
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: c
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: a , b
+    real(rkx) , pointer , dimension(:,:) , intent(out) :: c
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: i , j
     do i = i1 , i2
@@ -2788,8 +2788,8 @@ module mod_bdycod
 
   subroutine timeint3(a,b,c,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a , b
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: c
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: a , b
+    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: c
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: i , j , k
     do k = k1 , k2

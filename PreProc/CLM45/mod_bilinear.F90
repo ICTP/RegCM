@@ -55,17 +55,17 @@ module mod_bilinear
   !
   subroutine bilinear2d(mti,lmsk,loni,lati,mto,lono,lato,xming,vmisdat)
     implicit none
-    real(rk8) , intent(in) , dimension(:,:) :: mti
-    real(rk8) , intent(in) , dimension(:,:) :: lmsk
-    real(rk8) , intent(in) , dimension(:) :: lati , loni
-    real(rk8) , intent(out) , dimension(:,:) :: mto
-    real(rk8) , intent(in) , dimension(:,:) :: lato , lono
-    real(rk8) , intent(in) :: vmisdat , xming
+    real(rkx) , intent(in) , dimension(:,:) :: mti
+    real(rkx) , intent(in) , dimension(:,:) :: lmsk
+    real(rkx) , intent(in) , dimension(:) :: lati , loni
+    real(rkx) , intent(out) , dimension(:,:) :: mto
+    real(rkx) , intent(in) , dimension(:,:) :: lato , lono
+    real(rkx) , intent(in) :: vmisdat , xming
 
     integer(ik4) :: ni , nj , nloni , nlati
     integer(ik4) :: i , ip , ipp1 , j , jq , jqp1
-    real(rk8) :: lon360 , p , q , temp1 , temp2 , xind , yind
-    real(rk8) , dimension(size(loni)) :: xloni
+    real(rkx) :: lon360 , p , q , temp1 , temp2 , xind , yind
+    real(rkx) , dimension(size(loni)) :: xloni
     logical :: gt1 , gt2 , timeline
 
     nj = size(mto,1)
@@ -83,8 +83,8 @@ module mod_bilinear
     end if
 
     if ( loni(1) > loni(nloni) ) then
-      where ( loni < 0.0D0 )
-        xloni = loni+360.0D0
+      where ( loni < 0.0_rkx )
+        xloni = loni+360.0_rkx
       else where
         xloni = loni
       end where
@@ -96,16 +96,16 @@ module mod_bilinear
     do i = 1 , ni
       do j = 1 , nj
         yind = (((lato(j,i)-lati(1))/(lati(nlati)-lati(1))) * &
-                dble(nlati-1)) + 1.0D0
+                real(nlati-1,rkx)) + 1.0_rkx
         jq = int(yind)
         jqp1 = min0(jq+1,nlati)
         q = yind - real(jq)
         lon360 = lono(j,i)
         if ( timeline ) then
-          if ( lon360 < 0.0D0 ) lon360 = lon360+360.0D0
+          if ( lon360 < 0.0_rkx ) lon360 = lon360+360.0_rkx
         end if
         xind = (((lon360-xloni(1))/(xloni(nloni)-xloni(1))) * &
-                dble(nloni-1)) + 1.0D0
+                real(nloni-1,rkx)) + 1.0_rkx
         ip = int(xind)
         ipp1 = min(ip+1,nloni)
         p = xind - real(ip)
@@ -113,40 +113,40 @@ module mod_bilinear
         gt2 = .false.
         temp1 = vmisdat
         temp2 = vmisdat
-        if ( (lmsk(ip,jq)   < 0.5D0 .or.  mti(ip,jq)   <= xming)  .and. &
-             (lmsk(ipp1,jq) > 0.5D0 .and. mti(ipp1,jq) >  xming) )  then
+        if ( (lmsk(ip,jq)   < 0.5_rkx .or.  mti(ip,jq)   <= xming)  .and. &
+             (lmsk(ipp1,jq) > 0.5_rkx .and. mti(ipp1,jq) >  xming) )  then
           temp1 = mti(ipp1,jq)
           gt1 = .true.
-        else if ( (lmsk(ip,jq)   > 0.5D0 .and. mti(ip,jq)   >  xming) .and. &
-                  (lmsk(ipp1,jq) < 0.5D0 .or.  mti(ipp1,jq) <= xming) )  then
+        else if ( (lmsk(ip,jq)   > 0.5_rkx .and. mti(ip,jq)   >  xming) .and. &
+                  (lmsk(ipp1,jq) < 0.5_rkx .or.  mti(ipp1,jq) <= xming) )  then
           temp1 = mti(ip,jq)
           gt1 = .true.
-        else if ( (lmsk(ip,jq)   > 0.5D0 .and. mti(ip,jq)   >  xming) .and. &
-                  (lmsk(ipp1,jq) > 0.5D0 .and. mti(ipp1,jq) >  xming) ) then
-          temp1 = (1.0D0-p)*mti(ip,jq) + p*mti(ipp1,jq)
+        else if ( (lmsk(ip,jq)   > 0.5_rkx .and. mti(ip,jq)   >  xming) .and. &
+                  (lmsk(ipp1,jq) > 0.5_rkx .and. mti(ipp1,jq) >  xming) ) then
+          temp1 = (1.0_rkx-p)*mti(ip,jq) + p*mti(ipp1,jq)
           gt1 = .true.
         end if
-        if ( (lmsk(ipp1,jqp1) < 0.5D0 .or.  mti(ipp1,jqp1) <= xming) .and. &
-             (lmsk(ip,  jqp1) > 0.5D0 .and. mti(ip,jqp1)   >  xming) )  then
+        if ( (lmsk(ipp1,jqp1) < 0.5_rkx .or.  mti(ipp1,jqp1) <= xming) .and. &
+             (lmsk(ip,  jqp1) > 0.5_rkx .and. mti(ip,jqp1)   >  xming) )  then
           temp2 = mti(ip,jqp1)
           gt2 = .true.
-        else if ( (lmsk(ipp1,jqp1) > 0.5D0 .and. mti(ipp1,jqp1) > xming) .and. &
-                  (lmsk(ip,jqp1)   < 0.5D0 .or.  mti(ip,jqp1)  <= xming) )  then
+        else if ( (lmsk(ipp1,jqp1) > 0.5_rkx .and. mti(ipp1,jqp1) > xming) .and. &
+                  (lmsk(ip,jqp1)   < 0.5_rkx .or.  mti(ip,jqp1)  <= xming) )  then
           temp2 = mti(ipp1,jqp1)
           gt2 = .true.
-        else if ( (lmsk(ipp1,jqp1) > 0.5D0 .and. mti(ipp1,jqp1) > xming) .and. &
-                  (lmsk(ip,jqp1)   > 0.5D0 .and. mti(ip,jqp1)   > xming) ) then
-          temp2 = (1.0D0-p)*mti(ip,jqp1) + p*mti(ipp1,jqp1)
+        else if ( (lmsk(ipp1,jqp1) > 0.5_rkx .and. mti(ipp1,jqp1) > xming) .and. &
+                  (lmsk(ip,jqp1)   > 0.5_rkx .and. mti(ip,jqp1)   > xming) ) then
+          temp2 = (1.0_rkx-p)*mti(ip,jqp1) + p*mti(ipp1,jqp1)
           gt2 = .true.
         end if
         if ( .not. gt1 .and. .not. gt2 ) then
           mto(j,i) = vmisdat
         else if ( .not. gt1 ) then
-          mto(j,i) = max(temp2,0.0D0)
+          mto(j,i) = max(temp2,0.0_rkx)
         else if ( .not. gt2 ) then
-          mto(j,i) = max(temp1,0.0D0)
+          mto(j,i) = max(temp1,0.0_rkx)
         else
-          mto(j,i) = max((1.0D0-q)*temp1 + q*temp2,0.0D0)
+          mto(j,i) = max((1.0_rkx-q)*temp1 + q*temp2,0.0_rkx)
         end if
       end do
     end do
@@ -154,12 +154,12 @@ module mod_bilinear
 
   subroutine bilinear2d_3d_in(mti,lmsk,loni,lati,mto,lono,lato,xming,vmisdat)
     implicit none
-    real(rk8) , intent(in) , dimension(:,:,:) :: mti
-    real(rk8) , intent(in) , dimension(:,:) :: lmsk
-    real(rk8) , intent(in) , dimension(:) :: lati , loni
-    real(rk8) , intent(out) , dimension(:,:,:) :: mto
-    real(rk8) , intent(in) , dimension(:,:) :: lato , lono
-    real(rk8) , intent(in) :: vmisdat , xming
+    real(rkx) , intent(in) , dimension(:,:,:) :: mti
+    real(rkx) , intent(in) , dimension(:,:) :: lmsk
+    real(rkx) , intent(in) , dimension(:) :: lati , loni
+    real(rkx) , intent(out) , dimension(:,:,:) :: mto
+    real(rkx) , intent(in) , dimension(:,:) :: lato , lono
+    real(rkx) , intent(in) :: vmisdat , xming
     integer(ik4) :: k , nk
     nk = size(mti,3)
     if ( size(mto,3) /= nk ) then
@@ -175,12 +175,12 @@ module mod_bilinear
 
   subroutine bilinear2d_4d_in(mti,lmsk,loni,lati,mto,lono,lato,xming,vmisdat)
     implicit none
-    real(rk8) , intent(in) , dimension(:,:,:,:) :: mti
-    real(rk8) , intent(in) , dimension(:,:) :: lmsk
-    real(rk8) , intent(in) , dimension(:) :: lati , loni
-    real(rk8) , intent(out) , dimension(:,:,:,:) :: mto
-    real(rk8) , intent(in) , dimension(:,:) :: lato , lono
-    real(rk8) , intent(in) :: vmisdat , xming
+    real(rkx) , intent(in) , dimension(:,:,:,:) :: mti
+    real(rkx) , intent(in) , dimension(:,:) :: lmsk
+    real(rkx) , intent(in) , dimension(:) :: lati , loni
+    real(rkx) , intent(out) , dimension(:,:,:,:) :: mto
+    real(rkx) , intent(in) , dimension(:,:) :: lato , lono
+    real(rkx) , intent(in) :: vmisdat , xming
     integer(ik4) :: k , l , nk , nl
     nk = size(mti,3)
     nl = size(mti,4)
@@ -198,12 +198,12 @@ module mod_bilinear
 
   subroutine bilinear2d_5d_in(mti,lmsk,loni,lati,mto,lono,lato,xming,vmisdat)
     implicit none
-    real(rk8) , intent(in) , dimension(:,:,:,:,:) :: mti
-    real(rk8) , intent(in) , dimension(:,:) :: lmsk
-    real(rk8) , intent(in) , dimension(:) :: lati , loni
-    real(rk8) , intent(out) , dimension(:,:,:,:,:) :: mto
-    real(rk8) , intent(in) , dimension(:,:) :: lato , lono
-    real(rk8) , intent(in) :: vmisdat , xming
+    real(rkx) , intent(in) , dimension(:,:,:,:,:) :: mti
+    real(rkx) , intent(in) , dimension(:,:) :: lmsk
+    real(rkx) , intent(in) , dimension(:) :: lati , loni
+    real(rkx) , intent(out) , dimension(:,:,:,:,:) :: mto
+    real(rkx) , intent(in) , dimension(:,:) :: lato , lono
+    real(rkx) , intent(in) :: vmisdat , xming
     integer(ik4) :: k , l , m , nk , nl , nm
     nk = size(mti,3)
     nl = size(mti,4)

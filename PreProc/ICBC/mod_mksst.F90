@@ -37,9 +37,9 @@ module mod_mksst
   integer(ik4) :: ncst , ntime
   integer(ik4) , dimension(3) :: ivar
   type(rcm_time_and_date) , dimension(:) , pointer :: itime
-  real(rk8) , dimension(:,:) , pointer :: work1 , work2
-  real(rk8) , dimension(:,:) , pointer :: work3 , work4
-  real(rk8) , dimension(:) , pointer :: xtime
+  real(rkx) , dimension(:,:) , pointer :: work1 , work2
+  real(rkx) , dimension(:,:) , pointer :: work3 , work4
+  real(rkx) , dimension(:) , pointer :: xtime
 
   data lopen/.false./
   character(len=256) :: sstfile
@@ -52,7 +52,7 @@ module mod_mksst
 !
   subroutine readsst(tsccm, idate)
     implicit none
-    real(rk8) , dimension(jx,iy) , intent(inout) :: tsccm
+    real(rkx) , dimension(jx,iy) , intent(inout) :: tsccm
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: istatus , idimid , itvar
     integer(ik4) , dimension(3) :: istart , icount
@@ -60,7 +60,7 @@ module mod_mksst
     integer(ik4) :: i , j , irec
     integer(ik4) :: iyy , im , id , ih
     type(rcm_time_interval) :: ks1 , ks2
-    real(rk8) :: wt , a , b
+    real(rkx) :: wt , a , b
 
     call split_idate(idate,iyy,im,id,ih)
 
@@ -187,7 +187,7 @@ module mod_mksst
       end if
       ks1 = itime(irec+1)-idate
       ks2 = itime(irec+1)-itime(irec)
-      wt = dble(tohours(ks1)/tohours(ks2))
+      wt = real(tohours(ks1)/tohours(ks2),rkx)
       do i = 1 , iy
         do j = 1 , jx
           if ( (landuse(j,i) > 13.9 .and. landuse(j,i) < 15.1) ) then
@@ -220,20 +220,20 @@ module mod_mksst
     end if
   end subroutine readsst
 
-  real(rk8) function nearn(jp,ip,sst)
+  real(rkx) function nearn(jp,ip,sst)
     implicit none
     integer(ik4) , intent(in) :: jp , ip
-    real(rk8) , dimension(:,:) , intent(in) :: sst
-    real(rk8) :: wt , wtsum , distsig
+    real(rkx) , dimension(:,:) , intent(in) :: sst
+    real(rkx) :: wt , wtsum , distsig
     integer(ik4) :: i , j , nr , np
-    if ( all(sst < -900) ) then
-      nearn = -999.0
+    if ( all(sst < -900_rkx) ) then
+      nearn = -999.0_rkx
       return
     end if
     nr = 1
     np = -1
-    nearn = 0.0D0
-    wtsum = 0.0D0
+    nearn = 0.0_rkx
+    wtsum = 0.0_rkx
     do while ( np < 0 )
       do i = ip - nr , ip + nr
         do j = jp - nr , jp + nr
@@ -241,16 +241,16 @@ module mod_mksst
           if ( i < 1 .or. i > iy ) cycle
           if ( j < 1 .or. j > jx ) cycle
           if ( sst(j,i) > -900.0 ) then
-            wt = 1.0D0/sqrt(dble(i-ip)**2+dble(j-jp)**2)
-            distsig = sign(1.0D0,xlat(jp,ip)-xlat(j,i))
-            if ( (xlat(jp,ip) - xlat(j,i)) > 2.0D0*epsilon(d_zero) ) then
+            wt = 1.0_rkx/sqrt(real(i-ip,rkx)**2+real(j-jp,rkx)**2)
+            distsig = sign(1.0_rkx,xlat(jp,ip)-xlat(j,i))
+            if ( (xlat(jp,ip) - xlat(j,i)) > 2.0_rkx*epsilon(d_zero) ) then
               nearn = nearn + (max(icetemp,sst(j,i) - lrate * &
-               (max(0.0D0,topogm(jp,ip)-topogm(j,i))) - distsig * &
+               (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))) - distsig * &
                gcdist(xlat(jp,ip),xlon(jp,ip), &
-                      xlat(j,i),xlon(jp,ip))/100000.0D0))*wt
+                      xlat(j,i),xlon(jp,ip))/100000.0_rkx))*wt
             else
               nearn = nearn + max(icetemp,sst(j,i) - lrate * &
-               (max(0.0D0,topogm(jp,ip)-topogm(j,i))))*wt
+               (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))))*wt
             end if
             wtsum = wtsum + wt
             np = np + 1

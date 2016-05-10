@@ -54,7 +54,7 @@ module rrtmg_sw_rad
 
 ! --------- Modules ---------
 
-  use parkind, only : im => kind_im, rb => kind_rb
+  use parkind, only : im => kind_im, rb => kind_rb , almostzero
   use rrsw_vsn
   use mcica_subcol_gen_sw, only: mcica_subcol_sw
   use rrtmg_sw_cldprmc, only: cldprmc_sw
@@ -475,7 +475,7 @@ module rrtmg_sw_rad
     ! Initializations
 
     zepsec = 1.e-06_rb
-    zepzen = 1.e-10_rb
+    zepzen = almostzero
     oneminus = 1.0_rb - zepsec
     pi = 2._rb * asin(1._rb)
 
@@ -531,7 +531,15 @@ module rrtmg_sw_rad
     ! This is the main longitude/column loop in RRTMG.
     ! Modify to loop over all columns (nlon) or over daylight columns
 
+    lonloop: &
     do iplon = 1, ncol
+
+      ! Cosine of the solar zenith angle
+      ! Prevent using value of zero; ideally, SW model is not called
+      ! from host model when sun is below horizon
+
+      cossza = coszrs(iplon)
+      if (cossza .lt. zepzen) cycle lonloop
 
       ! Prepare atmosphere profile from GCM for use in RRTMG, and define
       ! other input parameters
@@ -568,13 +576,6 @@ module rrtmg_sw_rad
             colo2, colo3, fac00, fac01, fac10, fac11, &
             selffac, selffrac, indself, forfac, forfrac, indfor)
 
-
-      ! Cosine of the solar zenith angle
-      !  Prevent using value of zero; ideally, SW model is not called from host model when sun
-      !  is below horizon
-
-      cossza = coszrs(iplon)
-      if (cossza .lt. zepzen) cossza = zepzen
 
 
       ! Transfer albedo, cloud and aerosol properties into arrays for 2-stream radiative transfer
@@ -820,7 +821,8 @@ module rrtmg_sw_rad
       swhr(iplon,nlayers) = 0._rb
 
       ! End longitude loop
-    end do
+    end do lonloop
+
   end subroutine rrtmg_sw
   !
   !  Purpose: Function to calculate the correction factor of Earth's orbit

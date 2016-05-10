@@ -34,18 +34,18 @@ module mod_che_pollen
   ! Parameter usefull for wet and dry deposition of carbon aerosol
   ! densities in kg/m3
 
-  real(rk8) , public , parameter :: rhopollen   = 1200.0D0
+  real(rkx) , public , parameter :: rhopollen   = 1200.0_rkx
 
 
   ! effctive dimaters ( and not radius!)  in micrometer
   ! ( should they be defined intercatively in the future ? )
-  real(rk8) , public , parameter :: reffpollen   = 20.D0
+  real(rkx) , public , parameter :: reffpollen   = 20._rkx
 
 
   !
   ! solubility of carbon aer for rain out param of giorgi and chameides
   !
-  real(rk8) , parameter :: solpollen = 0.05D0
+  real(rkx) , parameter :: solpollen = 0.05_rkx
 
   public :: solpollen, pollen_emission
 
@@ -55,45 +55,46 @@ module mod_che_pollen
     subroutine pollen_emission(j, ustar, wind10, rh10, prec, convprec )
       implicit none
       integer, intent(in) :: j
-      real(rk8) , dimension(ici1:ici2) , intent(in) ::ustar, wind10, rh10, prec,convprec
-      real(rk8) , dimension(ici1:ici2) :: precip,emispol
+      real(rkx) , dimension(ici1:ici2) , intent(in) ::ustar, wind10, rh10, prec,convprec
+      real(rkx) , dimension(ici1:ici2) :: precip,emispol
      integer(ik4) :: i
-      real (rk8) :: emispot, fh,fw,fr,uconv,htc,ce
+      real (rkx) :: emispot, fh,fw,fr,uconv,htc,ce
 
 ! calculate the actual pollen flux corrected for meteo
 ! receive emission potential in grain/m2/hr
 !
       htc = d_one ! cover height
       uconv = d_zero
-      precip = (prec + convprec ) * 3600.D0
+      precip = (prec + convprec ) * 3600._rkx
       emispol = d_zero
-      ce = 1.D-4 ! flowering factor, a raffiner en fonction calendrier floraison
+      ce = 1.e-4_rkx ! flowering factor, a raffiner en fonction calendrier floraison
 
       do i = ici1 , ici2
 
-       emispot = chemsrc(j,i,ipollen) * 24.D0 ! in particle/m2 + derniere correction
-       if (emispot < 1.D-20) cycle
-       emispol(i) = emispot * mathpi / 6.D0 * (reffpollen * 1.D-06)**3  *  rhopollen   ! in kg/m2
+       emispot = chemsrc(j,i,ipollen) * 24._rkx ! in particle/m2 + derniere correction
+       if (emispot < 1.e-20_rkx) cycle
+       ! in kg/m2
+       emispol(i) = emispot * mathpi / 6._rkx * (reffpollen * 1.e-6_rkx)**3 * rhopollen
 
-       if (  rh10(i)*100.0D0 < 50.D0 ) then
+       if (  rh10(i)*100.0_rkx < 50._rkx ) then
          fh =d_one
-       elseif (  rh10(i)*100.0D0 > 80.D0 ) then
+       elseif (  rh10(i)*100.0_rkx > 80._rkx ) then
          fh=d_zero
        else
-       fh = (80.D0 - rh10(i)*100.0D0 )/ (80.D0 - 50.D0)
+       fh = (80._rkx - rh10(i)*100.0_rkx )/ (80._rkx - 50._rkx)
        end if
 
-       if (  precip(i) < 1.0D-5 ) then
+       if (  precip(i) < 1.0e-5_rkx ) then
          fr =d_one
-       elseif ( precip(i) > 0.5D0 ) then
+       elseif ( precip(i) > 0.5_rkx ) then
          fr=d_zero
        else
-         fr = (0.5D0 - precip(i))/0.5D0
+         fr = (0.5_rkx - precip(i))/0.5_rkx
        end if
 
 ! Sofiev et al., 2006
 
-       fw = 0.5D0 + 1.0D0 * ( 1.D0 - dexp( -(wind10(i) + uconv) / 5.D0 ))
+       fw = 0.5_rkx + 1.0_rkx * ( 1._rkx - exp( -(wind10(i) + uconv) / 5._rkx ))
 
        emispol(i) = emispol(i) * ustar(i)/ htc  * ce * fh * fw * fr
 
@@ -103,7 +104,7 @@ module mod_che_pollen
        if ( ichdrdepo /= 2 ) then
         do i = ici1 , ici2
             chiten(j,i,kz,ipollen) = chiten(j,i,kz,ipollen) + &
-            emispol(i)*egrav/(dsigma(kz)*1.0D3)
+            emispol(i)*egrav/(dsigma(kz)*1.0e3_rkx)
             ! diagnostic for source, cumul
             cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(i)*cfdout
         end do

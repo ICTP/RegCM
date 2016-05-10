@@ -1647,7 +1647,7 @@ module mod_clm_nchelper
     real(rk8) , intent(out) :: xval
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , mpierr
-    real(rk8) , dimension(1) :: rval
+    real(rkx) , dimension(1) :: rval
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
@@ -2071,23 +2071,47 @@ module mod_clm_nchelper
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readvar_real4_1d_par_sg
 
-  subroutine clm_readvar_real4_2d_par_sg(ncid,vname,xval,sg)
+  subroutine clm_readvar_real4_2d_par_sg(ncid,vname,xval,sg,switchdim)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk4) , dimension(:,:) , intent(out) :: xval
     type(subgrid_type) , intent(in) :: sg
+    logical , intent(in) , optional :: switchdim
     real(rk4) , dimension(:,:) , allocatable :: rval
+    real(rk4) , dimension(:,:) , allocatable :: sval
     integer(ik4) :: ivarid ,  mpierr , k , nv2
+    logical :: doswitch
+    doswitch = .false.
     nv2 = size(xval,2)
+    if ( present(switchdim) ) then
+      if ( switchdim ) then
+        doswitch = .true.
+      end if
+    end if
+    if ( doswitch ) then
+      if ( myid == iocpu ) then
+        allocate(rval(sg%ns,nv2))
+        allocate(sval(nv2,sg%ns))
+      end if
+    else
+      if ( myid == iocpu ) then
+        allocate(rval(sg%ns,nv2))
+      end if
+    end if
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv2))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error search '//vname//' in file '//trim(ncid%fname))
-      incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+      if ( doswitch ) then
+        incstat = nf90_get_var(ncid%ncid,ivarid,sval)
+        rval = transpose(sval)
+        deallocate(sval)
+      else
+        incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+      end if
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' from file '//trim(ncid%fname))
+         'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real4, &
                           xval(:,lbound(xval,2)+(k-1)),    &
@@ -4010,15 +4034,27 @@ module mod_clm_nchelper
     deallocate(rval)
   end subroutine clm_writevar_real4_1d_par_sg
 
-  subroutine clm_writevar_real4_2d_par_sg(ncid,vname,xval,sg)
+  subroutine clm_writevar_real4_2d_par_sg(ncid,vname,xval,sg,switchdim)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk4) , dimension(:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
+    logical , optional , intent(in) :: switchdim
     integer(ik4) :: ivarid , mpierr , nk , k
     real(rk4) , dimension(:,:) , allocatable :: rval
+    real(rk4) , dimension(:,:) , allocatable :: sval
+    logical :: doswitch
+    doswitch = .false.
     nk = size(xval,2)
+    if ( present(switchdim) ) then
+      if ( switchdim ) then
+        doswitch = .true.
+        if ( myid == iocpu ) then
+          allocate(sval(nk,sg%ns))
+        end if
+      end if
+    end if
     if ( myid == iocpu ) then
       allocate(rval(sg%ns,nk))
       ivarid = searchvar(ncid,vname)
@@ -4041,9 +4077,15 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
-     return
+      return
     end if
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+    if ( doswitch ) then
+      sval = transpose(rval)
+      incstat = nf90_put_var(ncid%ncid,ivarid,sval)
+      deallocate(sval)
+    else
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+    end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)

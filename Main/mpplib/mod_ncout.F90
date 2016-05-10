@@ -412,9 +412,9 @@ module mod_ncout
 
   integer(ik4) , public , parameter :: slab_qflx    = 1
 
-  real(rk8) , pointer , dimension(:,:) :: io2d , io2dsg
-  real(rk8) , pointer , dimension(:,:,:) :: io3d , io3dsg
-  real(rk8) , pointer , dimension(:,:,:,:) :: io4d
+  real(rkx) , pointer , dimension(:,:) :: io2d , io2dsg
+  real(rkx) , pointer , dimension(:,:,:) :: io3d , io3dsg
+  real(rkx) , pointer , dimension(:,:,:,:) :: io4d
 
   interface setup_var
     module procedure setup_var_2d
@@ -2285,10 +2285,10 @@ module mod_ncout
     character(len=36) :: fbname
     character(len=36) :: cdate
     class(ncvariable_standard) , pointer :: vp
-    real(rk8) , pointer , dimension(:,:) :: tmp2d
-    real(rk8) , pointer , dimension(:,:) :: pnt2d => null()
+    real(rkx) , pointer , dimension(:,:) :: tmp2d
+    real(rkx) , pointer , dimension(:,:) :: pnt2d => null()
     integer(ik4) :: i , j , ivar
-    real(rk8) :: dummy
+    real(rkx) :: dummy
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
       stream_loop: &
@@ -3146,12 +3146,12 @@ module mod_ncout
     integer(ik4) , intent(in) :: istream
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) , intent(in) , optional :: ifile
-    real(rk8) , pointer , dimension(:,:) :: tmp2d
-    real(rk8) , pointer , dimension(:,:,:) :: tmp3d
-    real(rk8) , pointer , dimension(:,:,:,:) :: tmp4d
-    real(rk8) , pointer , dimension(:,:) :: pnt2d => null( )
-    real(rk8) , pointer , dimension(:,:,:) :: pnt3d => null( )
-    real(rk8) , pointer , dimension(:,:,:,:) :: pnt4d => null( )
+    real(rkx) , pointer , dimension(:,:) :: tmp2d
+    real(rkx) , pointer , dimension(:,:,:) :: tmp3d
+    real(rkx) , pointer , dimension(:,:,:,:) :: tmp4d
+    real(rkx) , pointer , dimension(:,:) :: pnt2d => null( )
+    real(rkx) , pointer , dimension(:,:,:) :: pnt3d => null( )
+    real(rkx) , pointer , dimension(:,:,:,:) :: pnt4d => null( )
     class(ncvariable_standard) , pointer :: vp
     integer(ik4) :: ivar , jfile
 
@@ -3325,8 +3325,8 @@ module mod_ncout
     integer(ik4) , intent(in) :: istream
     integer(ik4) , intent(in) , optional :: ifile
     type(ncvariable2d_real) , intent(inout) :: vp
-    real(rk8) , pointer , dimension(:,:) :: tmp2d
-    real(rk8) , pointer , dimension(:,:) :: pnt2d => null( )
+    real(rkx) , pointer , dimension(:,:) :: tmp2d
+    real(rkx) , pointer , dimension(:,:) :: pnt2d => null( )
     integer(ik4) :: jfile
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
@@ -3386,8 +3386,8 @@ module mod_ncout
     integer(ik4) , intent(in) :: istream
     integer(ik4) , intent(in) , optional :: ifile
     type(ncvariable3d_real) , intent(inout) :: vp
-    real(rk8) , pointer , dimension(:,:,:) :: tmp3d
-    real(rk8) , pointer , dimension(:,:,:) :: pnt3d => null( )
+    real(rkx) , pointer , dimension(:,:,:) :: tmp3d
+    real(rkx) , pointer , dimension(:,:,:) :: pnt3d => null( )
     integer(ik4) :: jfile
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
@@ -3446,8 +3446,8 @@ module mod_ncout
     integer(ik4) , intent(in) :: istream
     integer(ik4) , intent(in) , optional :: ifile
     type(ncvariable4d_real) , intent(inout) :: vp
-    real(rk8) , pointer , dimension(:,:,:,:) :: tmp4d
-    real(rk8) , pointer , dimension(:,:,:,:) :: pnt4d => null( )
+    real(rkx) , pointer , dimension(:,:,:,:) :: tmp4d
+    real(rkx) , pointer , dimension(:,:,:,:) :: pnt4d => null( )
     integer(ik4) :: jfile
 
     if ( .not. parallel_out .and. myid /= iocpu ) then

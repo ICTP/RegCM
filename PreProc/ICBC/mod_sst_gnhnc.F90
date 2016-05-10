@@ -44,10 +44,10 @@ module mod_sst_gnhnc
   integer(ik4) , dimension(3) :: istart , icount
   integer(ik2) , pointer , dimension (:, :) :: work
   integer(ik2) :: fillvalue
-  real(rk8) , pointer ::  work1(:)
-  real(rk8) , pointer , dimension (:, :) :: work2
-  real(rk8) , pointer , dimension(:,:) :: sst
-  real(rk8) :: add_offset , scale_factor
+  real(rkx) , pointer ::  work1(:)
+  real(rkx) , pointer , dimension (:, :) :: work2
+  real(rkx) , pointer , dimension(:,:) :: sst
+  real(rkx) :: add_offset , scale_factor
   type(rcm_time_and_date) , save :: fidate1
   character(len=64) :: cunit , ccal
   character(len=256) :: inpfile
@@ -68,10 +68,10 @@ module mod_sst_gnhnc
   !**************************************************************************
   subroutine sst_gnhnc
     implicit none
-    real(rk8) , pointer , dimension(:) :: glat
-    real(rk8) , pointer , dimension(:) :: glon
-    real(rk8) , pointer , dimension(:,:) :: glat2
-    real(rk8) , pointer , dimension(:,:) :: glon2
+    real(rkx) , pointer , dimension(:) :: glat
+    real(rkx) , pointer , dimension(:) :: glon
+    real(rkx) , pointer , dimension(:,:) :: glat2
+    real(rkx) , pointer , dimension(:,:) :: glon2
     type(rcm_time_and_date) :: idate , idatef , idateo
     type(rcm_time_interval) :: tdif
     integer(ik4) :: i , j , k , nsteps , latid , lonid

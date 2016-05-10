@@ -50,14 +50,14 @@ program ncplot
 
   character(256) :: charatt
   character(6) :: iproj
-  real(rk8) :: clat , clon , plat , plon , ds , centeri , centerj
-  real(rk8) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
-  real(rk8) , dimension(2) :: trlat
-  real(rk8) , allocatable , dimension(:,:) :: xlat , xlon
-  real(rk8) , allocatable , dimension(:) :: level , tmplon
-  real(rk8) , allocatable , dimension(:) :: times
-  real(rk8) :: time1
-  real(rk8) , allocatable , dimension(:,:) :: rin , rjn , ruv
+  real(rkx) :: clat , clon , plat , plon , ds , centeri , centerj
+  real(rkx) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
+  real(rkx) , dimension(2) :: trlat
+  real(rkx) , allocatable , dimension(:,:) :: xlat , xlon
+  real(rkx) , allocatable , dimension(:) :: level , tmplon
+  real(rkx) , allocatable , dimension(:) :: times
+  real(rkx) :: time1
+  real(rkx) , allocatable , dimension(:,:) :: rin , rjn , ruv
   real(rk4) , allocatable , dimension(:,:) :: r4in , r4jn , r4uv
   logical , allocatable , dimension(:) :: lvarflag
   integer(ik4) , allocatable , dimension(:) :: dimids
@@ -65,7 +65,7 @@ program ncplot
   integer(ik4) :: ivarid , idimid , xtype
   integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , dptdimid
   integer(ik4) :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
-  real(rk8) :: alat , alon , angle
+  real(rkx) :: alat , alon , angle
   integer(ik4) :: i , j
   integer(ik4) :: year , month , day , hour
   logical :: lvarsplit , lsigma , ldepth , lu , lua , luas , lclm
@@ -325,22 +325,22 @@ program ncplot
     end if
     minlon = rounder(minval(tmplon),.false.)
   end if
-  rlatinc = rounder(ds/111000.0/2.0,.false.)
-  rloninc = rounder(ds/111000.0/2.0,.false.)
+  rlatinc = rounder(ds/111000.0_rkx/2.0_rkx,.false.)
+  rloninc = rounder(ds/111000.0_rkx/2.0_rkx,.false.)
   nlat = nint(abs(maxlat-minlat)/rlatinc)
-  if (minlon > 0.0 .and. maxlon < 0.0) then
-    nlon = nint(abs((maxlon+360.0)-minlon)/rloninc) + 1
-  else if (minlon > 0.0 .and. maxlon < 1e-30) then
-    nlon = nint(360.0/rloninc) + 1
+  if (minlon > 0.0_rkx .and. maxlon < 0.0_rkx) then
+    nlon = nint(abs((maxlon+360.0_rkx)-minlon)/rloninc) + 1
+  else if (minlon > 0.0_rkx .and. maxlon < 1e-30_rkx) then
+    nlon = nint(360.0_rkx/rloninc) + 1
   else
     nlon = nint(abs(maxlon-minlon)/rloninc) + 1
   end if
   if ( is_model_output ) then
-    centeri = dble(iy)/2.0D0+0.5
-    centerj = dble(jx)/2.0D0+0.5
+    centeri = real(iy,rkx)/2.0_rkx+0.5_rkx
+    centerj = real(jx,rkx)/2.0_rkx+0.5_rkx
   else
-    centeri = dble(iy)/2.0D0
-    centerj = dble(jx)/2.0D0
+    centeri = real(iy,rkx)/2.0_rkx
+    centerj = real(jx,rkx)/2.0_rkx
   end if
   deallocate(xlat)
   deallocate(xlon)
@@ -504,7 +504,7 @@ program ncplot
     idate1 = timeval2date(times(1),timeunit,timecal)
     idate2 = timeval2date(times(2),timeunit,timecal)
     tdif = idate2 - idate1
-    delta = idnint(tohours(tdif))
+    delta = nint(tohours(tdif))
     deallocate(times)
     call split_idate(idate1,year,month,day,hour)
     if (delta == 24) then

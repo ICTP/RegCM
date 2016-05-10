@@ -85,7 +85,10 @@ module mod_date
 
   interface assignment(=)
     module procedure initfromintdt , initfromtypedt
-    module procedure initfromintit , initfromdbleit , initfromtypeit
+    module procedure initfromintit ,    &
+                     initfromsingleit , &
+                     initfromdoubleit , &
+                     initfromtypeit
   end interface assignment(=)
 
   interface operator(==)
@@ -136,6 +139,10 @@ module mod_date
   interface time_is
     module procedure time_complete_is , time_of_day_is
   end interface time_is
+
+  interface timeval2date
+    module procedure timeval2date_single , timeval2date_double
+  end interface
 
   public :: timeval2ym
   public :: rcm_time_and_date , assignment(=) , operator(==)
@@ -427,13 +434,21 @@ module mod_date
     x%iunit = usec
   end subroutine initfromintit
 
-  subroutine initfromdbleit(x, d)
+  subroutine initfromsingleit(x, d)
+    implicit none
+    type (rcm_time_interval) , intent(out) :: x
+    real(rk4) , intent(in) :: d
+    x%ival = int(d,ik8)
+    x%iunit = usec
+  end subroutine initfromsingleit
+
+  subroutine initfromdoubleit(x, d)
     implicit none
     type (rcm_time_interval) , intent(out) :: x
     real(rk8) , intent(in) :: d
     x%ival = int(d,ik8)
     x%iunit = usec
-  end subroutine initfromdbleit
+  end subroutine initfromdoubleit
 
   subroutine set_caltype(x, y)
     implicit none
@@ -746,7 +761,7 @@ module mod_date
     type (rcm_time_interval) , intent(in) :: y
     type (rcm_time_and_date) :: z
     type (iadate) :: d
-    real(rk8) :: dm
+    real(rkx) :: dm
     integer(ik8) :: tmp
     z = x
     tmp = y%ival
@@ -786,11 +801,11 @@ module mod_date
         ! It is to have 14 as February middle month for Gregorian.
         select case (z%calendar)
           case (gregorian)
-            dm = dble(d%day-1)/dble(mdays_leap(d%year, d%month))
+            dm = real(d%day-1,rkx)/real(mdays_leap(d%year, d%month),rkx)
           case (noleap)
-            dm = dble(d%day-1)/dble(mlen(d%month))
+            dm = real(d%day-1,rkx)/real(mlen(d%month),rkx)
           case default
-            dm = dble(d%day-1)/30.0D0
+            dm = real(d%day-1,rkx)/30.0_rkx
         end select
         d%month = d%month+int(mod(tmp,i8mpy),ik4)
         call adjustpm(d%month,d%year,12)
@@ -800,11 +815,11 @@ module mod_date
         ! It is to have 14 as February middle month for Gregorian.
         select case (z%calendar)
           case (gregorian)
-            d%day = idnint(dble(mdays_leap(d%year, d%month)) * dm)+1
+            d%day = nint(real(mdays_leap(d%year, d%month),rkx) * dm)+1
           case (noleap)
-            d%day = idnint(dble(mlen(d%month)) * dm)+1
+            d%day = nint(real(mlen(d%month),rkx) * dm)+1
           case default
-            d%day = idnint(30.0D0*dm)+1
+            d%day = nint(30.0_rkx*dm)+1
         end select
         call date_to_days_from_reference(d,z)
       case (uyrs)
@@ -820,7 +835,7 @@ module mod_date
 
   function julianday(iy, im, id)
     implicit none
-    real(rk8) :: julianday
+    real(rkx) :: julianday
     integer(ik4) , intent(in) :: iy , im , id
     integer(ik4) :: ia , ib , iiy , iim
     iiy = iy
@@ -835,9 +850,9 @@ module mod_date
     else
       ib = 0
     end if
-    julianday = dint(365.25D+00*dble(iiy+4716)) + &
-                dint(30.6001D+00*dble(iim+1))   + &
-                dble(id + ib) - 1524.5D+00
+    julianday = int(365.25_rkx*real(iiy+4716,rkx)) + &
+                int(30.6001_rkx*real(iim+1,rkx))   + &
+                real(id + ib,rkx) - 1524.5_rkx
     contains
       function lcaltype(iy, im, id)
       implicit none
@@ -1009,12 +1024,12 @@ module mod_date
     z = (d1%year-d2%year)*12+(d1%month-d2%month)
   end function imondiff
 
-  real(rk8) function hourdiff(x,y) result(z)
+  real(rkx) function hourdiff(x,y) result(z)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
-    z = dble(x%days_from_reference-y%days_from_reference)*24.0D0 + &
-        dble(x%second_of_day-y%second_of_day)/3600.0D0
+    z = real(x%days_from_reference-y%days_from_reference,rkx)*24.0_rkx + &
+        real(x%second_of_day-y%second_of_day,rkx)/3600.0_rkx
   end function hourdiff
 
   logical function lfhomonth(x) result(lf)
@@ -1031,14 +1046,14 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (iadate) :: d
-    real(rk8) :: jd
+    real(rkx) :: jd
     if (x%calendar /= gregorian) then
       call die('mod_date', &
                'Error: week concept works only for gregorian calendar.',1)
     end if
     call days_from_reference_to_date(x,d)
     jd = julianday(d%year, d%month, d%day)
-    iday = idint(dmod(jd+1.5D+00, 7.0D+00))+1
+    iday = int(mod(jd+1.5_rkx, 7.0_rkx))+1
   end function idayofweek
 
   function setmidnight(x) result(mx)
@@ -1190,7 +1205,7 @@ module mod_date
 
   subroutine timeval2ym(xval,cunit,year,month)
     implicit none
-    real(rk8) , intent(in) :: xval
+    real(rkx) , intent(in) :: xval
     character(*) , intent(in) :: cunit
     integer(ik4) , intent(out) :: year , month
     type (iadate) , save :: d
@@ -1201,8 +1216,8 @@ module mod_date
     data csave /'months since XXXX-XX-XX XX:XX:XX XXX'/
 
     if (csave == cunit) then
-      year = d%year+idint(xval/12.0D0)
-      month = d%month+idint(mod(xval,12.0D0))
+      year = d%year+int(xval/12.0_rkx)
+      month = d%month+int(mod(xval,12.0_rkx))
       if ( month > 12 ) then
         month = month - 12
         year = year + 1
@@ -1238,8 +1253,8 @@ module mod_date
        call die('mod_date','TIME UNIT IN TIMEVAL2YM MUST BE MONTHS')
     end if
     csave = cunit
-    year = d%year+idint(xval/12.0D0)
-    month = d%month+idint(mod(xval,12.0D0))
+    year = d%year+int(xval/12.0_rkx)
+    month = d%month+int(mod(xval,12.0_rkx))
     if ( month > 12 ) then
       month = month - 12
       year = year + 1
@@ -1249,9 +1264,9 @@ module mod_date
     end if
   end subroutine timeval2ym
 
-  function timeval2date(xval,cunit,ccal) result(dd)
+  function timeval2date_single(xval,cunit,ccal) result(dd)
     implicit none
-    real(rk8) , intent(in) :: xval
+    real(rk4) , intent(in) :: xval
     character(*) , intent(in) :: cunit
     character(*) , intent(in) :: ccal
 
@@ -1276,7 +1291,7 @@ module mod_date
     if ( csave == cunit .and. csavecal == ccal ) then
       z = abs(xval)
       z%iunit = iunit
-      if ( xval >= 0.0D0 ) then
+      if ( xval >= 0.0_rkx ) then
         dd = dref + z
       else
         dd = dref - z
@@ -1286,10 +1301,10 @@ module mod_date
       ! Never seen fraction of minutes or hours.
       ! Months fraction are almost nonsense.
       if (iunit == uday) then
-        zz%ival = (idint((abs(xval)-abs(dble(z%ival)))*24.0D0))
+        zz%ival = (int((abs(xval)-abs(real(z%ival,rkx)))*24.0_rkx))
         zz%iunit = uhrs
         if ( zz%ival /= 0 ) then
-          if ( xval >= 0.0D0 ) then
+          if ( xval >= 0.0_rkx ) then
             dd = dd + zz
           else
             dd = dd - zz
@@ -1426,7 +1441,7 @@ module mod_date
       end if
       call date_time_to_internal(d,t,dref)
       z%iunit = iunit
-      if ( xval >= 0.0D0 ) then
+      if ( xval >= 0.0_rkx ) then
         dd = dref + z
       else
         dd = dref - z
@@ -1436,7 +1451,7 @@ module mod_date
       ! Never seen fraction of minutes or hours.
       ! Months fraction are almost nonsense.
       if (iunit == uday) then
-        zz%ival = idint((abs(xval)-abs(dble(z%ival)))*24.0D0)
+        zz%ival = int((abs(xval)-abs(real(z%ival,rkx)))*24.0_rkx)
         zz%iunit = uhrs
         if ( zz%ival > 0 ) then
           if ( xval > 0 ) then
@@ -1447,7 +1462,207 @@ module mod_date
         end if
       end if
     end if
-  end function timeval2date
+  end function timeval2date_single
+
+  function timeval2date_double(xval,cunit,ccal) result(dd)
+    implicit none
+    real(rk8) , intent(in) :: xval
+    character(*) , intent(in) :: cunit
+    character(*) , intent(in) :: ccal
+
+    type (rcm_time_and_date) :: dd
+    type (rcm_time_interval) :: z , zz
+    character(len=64) , save :: csave
+    character(len=16) , save :: csavecal
+    integer(ik4) , save :: iunit
+    type (rcm_time_and_date) , save :: dref
+    character(len=16) :: cdum
+    type (iadate) :: d
+    type (iatime) :: t
+    integer(ik4) :: istat
+
+    data csave/'none'/
+    data csavecal/'none'/
+
+    t%hour = 0
+    t%minute = 0
+    t%second = 0
+
+    if ( csave == cunit .and. csavecal == ccal ) then
+      z = abs(xval)
+      z%iunit = iunit
+      if ( xval >= 0.0_rkx ) then
+        dd = dref + z
+      else
+        dd = dref - z
+      end if
+      ! Some datasets have fraction of days as hours.
+      ! I.e. 15.5 days from a date means 15 days + 12 hours.
+      ! Never seen fraction of minutes or hours.
+      ! Months fraction are almost nonsense.
+      if (iunit == uday) then
+        zz%ival = (int((abs(xval)-abs(real(z%ival,rkx)))*24.0_rkx))
+        zz%iunit = uhrs
+        if ( zz%ival /= 0 ) then
+          if ( xval >= 0.0_rkx ) then
+            dd = dd + zz
+          else
+            dd = dd - zz
+          end if
+        end if
+      end if
+    else
+      csave = cunit
+      csavecal = ccal
+      z = abs(xval)
+      if (cunit(1:5) == 'hours') then
+        ! Unit is hours since reference
+        if (len_trim(cunit) >= 30) then
+          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)',iostat=istat) &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute, cdum, t%second
+          if ( istat /= 0 ) then
+            ! Erain fix
+            read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i1)',iostat=istat) &
+              cdum, d%year, cdum, d%month, cdum, d%day, &
+              cdum, t%hour, cdum, t%minute, cdum, t%second
+            if ( istat /= 0 ) then
+              call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
+            end if
+          end if
+        else if (len_trim(cunit) >= 27) then
+          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute
+        else if (len_trim(cunit) >= 24) then
+          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
+        else
+          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
+        end if
+        iunit = uhrs
+      else if (cunit(1:7) == 'minutes') then
+        ! Unit is minutes since reference
+        if (len_trim(cunit) >= 32) then
+          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute, cdum, t%second
+        else if (len_trim(cunit) >= 29) then
+          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute
+        else if (len_trim(cunit) >= 26) then
+          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
+        else
+          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
+        end if
+        iunit = umin
+      else if (cunit(1:7) == 'seconds') then
+        ! Unit is seconds since reference
+        if (len_trim(cunit) >= 32) then
+          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute, cdum, t%second
+        else if (len_trim(cunit) >= 29) then
+          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute
+        else if (len_trim(cunit) >= 26) then
+          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
+        else
+          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
+        end if
+        iunit = usec
+      else if (cunit(1:4) == 'days') then
+        ! Unit is days since reference
+        if (len_trim(cunit) >= 30) then
+          if ( cunit(30:30) == '.' ) then
+            read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i1)') &
+              cdum, d%year, cdum, d%month, cdum, d%day, &
+              cdum, t%hour, cdum, t%minute, cdum, t%second
+          else
+            read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
+              cdum, d%year, cdum, d%month, cdum, d%day, &
+              cdum, t%hour, cdum, t%minute, cdum, t%second
+          end if
+        else if (len_trim(cunit) >= 27) then
+          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute
+        else if (len_trim(cunit) >= 24) then
+          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
+        else if (len_trim(cunit) >= 21) then
+          read(cunit,'(a11,i4,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day
+        else if (len_trim(cunit) >= 19) then
+          read(cunit,'(a11,i4,a1,i1,a1,i1)') &
+            cdum, d%year, cdum, d%month, cdum, d%day
+        else
+          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
+        end if
+        iunit = uday
+      else if (cunit(1:6) == 'months') then
+        ! Unit is months since reference
+        if (len_trim(cunit) >= 31) then
+          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute, cdum, t%second
+        else if (len_trim(cunit) >= 28) then
+          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, &
+            cdum, t%hour, cdum, t%minute
+        else if (len_trim(cunit) >= 25) then
+          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
+        else if (len_trim(cunit) >= 22) then
+          read(cunit,'(a13,i4,a1,i2,a1,i2)') &
+            cdum, d%year, cdum, d%month, cdum, d%day
+        else if (len_trim(cunit) >= 19) then
+          read(cunit,'(a13,i4,a1,i2)') &
+            cdum, d%year, cdum, d%month
+        else
+          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
+        end if
+        iunit = umnt
+      else
+        call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
+      end if
+      if ( csavecal(1:6) == 'noleap' .or.   &
+           csavecal(1:8) == 'days_365' .or. &
+           csavecal(1:7) == '365_day' ) then
+        d%calendar = noleap
+      else if (csavecal(1:7) == '360_day') then
+        d%calendar = y360
+      else
+        d%calendar = gregorian
+      end if
+      call date_time_to_internal(d,t,dref)
+      z%iunit = iunit
+      if ( xval >= 0.0_rkx ) then
+        dd = dref + z
+      else
+        dd = dref - z
+      end if
+      ! Some datasets have fraction of days as hours.
+      ! I.e. 15.5 days from a date means 15 days + 12 hours.
+      ! Never seen fraction of minutes or hours.
+      ! Months fraction are almost nonsense.
+      if (iunit == uday) then
+        zz%ival = int((abs(xval)-abs(real(z%ival,rkx)))*24.0_rkx)
+        zz%iunit = uhrs
+        if ( zz%ival > 0 ) then
+          if ( xval > 0 ) then
+            dd = dd + zz
+          else if ( xval < 0 ) then
+            dd = dd -zz
+          end if
+        end if
+      end if
+    end if
+  end function timeval2date_double
 !
   logical function interval_greater(x, y)
     implicit none
@@ -1739,32 +1954,34 @@ module mod_date
     ln = date_ne(x,yy)
   end function idate_ne
 
-  real(rk8) function tohours(x) result(hs)
+  real(rkx) function tohours(x) result(hs)
     implicit none
     type (rcm_time_interval) , intent(in) :: x
     select case (x%iunit)
       case (usec)
-        hs = dble(x%ival)/3600.0D0
+        hs = real(x%ival,rkx)/3600.0_rkx
       case (umin)
-        hs = dble(x%ival)/60.0D0
+        hs = real(x%ival,rkx)/60.0_rkx
       case (uhrs)
-        hs = dble(x%ival)
+        hs = real(x%ival,rkx)
       case (uday)
-        hs = dble(x%ival)*24.0D0
+        hs = real(x%ival,rkx)*24.0_rkx
       case default
-        hs = 0.0D0
+        hs = 0.0_rkx
         call die('mod_date','Interval unit conversion depend on calendar',1)
     end select
   end function tohours
 
-  real(rk8) function yeardayfrac(x)
+  real(rkx) function yeardayfrac(x)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (iadate) :: d
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
-    yeardayfrac = dble(idayofyear(d)) + dble(t%hour)/24.0D+00 + &
-                  dble(t%minute/1440.0D0) + dble(t%second/86400.0D0)-1.0D0
+    yeardayfrac = real(idayofyear(d),rkx) + &
+                  real(t%hour,rkx)/24.0_rkx + &
+                  real(t%minute/1440.0_rkx,rkx) + &
+                  real(t%second/86400.0_rkx,rkx) - 1.0_rkx
   end function yeardayfrac
 
   integer(ik4) function getyear(x)
@@ -1927,7 +2144,7 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     integer(ik4) , intent(in) :: h , m , s
-    real(rk8) , optional , intent(in) :: delta
+    real(rkx) , optional , intent(in) :: delta
     type(iatime) :: t
     type (rcm_time_and_date) :: y
     t%hour = h
@@ -1945,7 +2162,7 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     integer(ik4) , intent(in) :: s
-    real(rk8) , optional , intent(in) :: delta
+    real(rkx) , optional , intent(in) :: delta
     if ( present(delta) ) then
       time_of_day_is = ( abs(s - x%second_of_day) < delta )
     else

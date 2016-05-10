@@ -30,7 +30,7 @@ module mod_cu_kuo
   use mod_cu_common
   use mod_constants
   use mod_service
-  use mod_runparams , only : iqv , dt , ichem , dsigma , hsigma , qcon
+  use mod_runparams , only : iqv , dt , ichem , dsigma , hsigma , qcon , rhmax , rhmin
   use mod_regcm_types
 
   implicit none
@@ -45,23 +45,23 @@ module mod_cu_kuo
   ! dlt    : temperature difference used to allow over shooting.
   ! cdscld : critical cloud depth in delta sigma.
   !
-  real(rk8) , parameter :: qdcrit = 3.0D-7
-  real(rk8) , parameter :: pert   = 1.0D0
-  real(rk8) , parameter :: perq   = 1.0D-3
-  real(rk8) , parameter :: dlt    = 3.0D0
-  real(rk8) , parameter :: cdscld = 0.3D0
-  real(rk8) , parameter :: bfac   = 2.0D0
+  real(rkx) , parameter :: qdcrit = 3.0e-7_rkx
+  real(rkx) , parameter :: pert   = 1.0_rkx
+  real(rkx) , parameter :: perq   = 1.0e-3_rkx
+  real(rkx) , parameter :: dlt    = 3.0_rkx
+  real(rkx) , parameter :: cdscld = 0.3_rkx
+  real(rkx) , parameter :: bfac   = 2.0_rkx
 
-  real(rk8) , public , pointer , dimension(:) :: qwght
-  real(rk8) , public , pointer , dimension(:,:,:) :: twght , vqflx
+  real(rkx) , public , pointer , dimension(:) :: qwght
+  real(rkx) , public , pointer , dimension(:,:,:) :: twght , vqflx
 
   integer(ik4) , public :: k700
 
-  real(rk8) , parameter :: svpt0 = tzero
-  real(rk8) , parameter :: svp1 = 0.6112D0
-  real(rk8) , parameter :: svp3 = 29.65D0
-  real(rk8) , parameter :: svp2 = 17.67D0
-  real(rk8) , parameter :: tauht = 7200.0D+00
+  real(rkx) , parameter :: svpt0 = tzero
+  real(rkx) , parameter :: svp1 = 0.6112_rkx
+  real(rkx) , parameter :: svp3 = 29.65_rkx
+  real(rkx) , parameter :: svp2 = 17.67_rkx
+  real(rkx) , parameter :: tauht = 7200.0_rkx
 
   contains
 
@@ -75,14 +75,14 @@ module mod_cu_kuo
   subroutine cupara(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    real(rk8) :: apcnt , arh , c301 , dalr , deqt , dlnp , dplr , dsc ,   &
+    real(rkx) :: apcnt , arh , c301 , dalr , deqt , dlnp , dplr , dsc ,   &
             ee , eddyf , emax , eqt , eqtm , plcl , pmax , pratec , psg , &
             psx , q , qmax , qs , rh , sca , siglcl , ff ,  suma , sumb , &
             t1 , tdmax , tdpt , tlcl , tmax , tmean , ttconv , ttp ,      &
             ttsum , xsav , zlcl
     integer(ik4) :: i , j , k , kbase , kk , ktop
     logical :: lconv
-    real(rk8) , dimension(kz) :: tux , pux , qux , seqt
+    real(rkx) , dimension(kz) :: tux , pux , qux , seqt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cupara'
     integer(ik4) , save :: idindx = 0
@@ -127,9 +127,9 @@ module mod_cu_kuo
             q = qux(k) + perq
             t1 = ttp*(d_100/psg)**rovcp
             ee = psg * q/(ep2+q)
-            tdpt = min((d_one/(d_one/svpt0-rwat/wlhv*log(ee/0.611D0))),ttp)
-            tlcl = tdpt - (0.212D0 + 1.571D-3*(tdpt-svpt0) - &
-                                     4.36D-4*(ttp-svpt0)) * (ttp-tdpt)
+            tdpt = min((d_one/(d_one/svpt0-rwat/wlhv*log(ee/0.611_rkx))),ttp)
+            tlcl = tdpt - (0.212_rkx + 1.571e-3_rkx*(tdpt-svpt0) - &
+                           4.36e-4_rkx*(ttp-svpt0)) * (ttp-tdpt)
             eqt = t1 * exp(wlhvocp*q/tlcl)
             if ( eqt > eqtm ) then
               eqtm = eqt
@@ -175,6 +175,7 @@ module mod_cu_kuo
           ! 4) when seqt = eqt + deqt, cloud top is reached.
           !    eqt is the eqt of cloud (same as lcl eqt).
           !
+          ktop = max(kbase-3,1)
           do k = 1 , kbase
             kk = kbase + 1 - k
             deqt = seqt(kk) - eqtm
@@ -183,7 +184,7 @@ module mod_cu_kuo
           !
           ! cloud top has been reached
           !
-          ktop = max(min(kk,kbase-3),1)
+          ktop = min(kk,ktop)
           !
           ! 5) check cloud depth
           !    if cloud depth is less than critical depth (cdscld = 0.3),
@@ -221,7 +222,7 @@ module mod_cu_kuo
                 ee = svp1*exp(svp2*(tux(k)-svpt0)/(tux(k)-svp3))
                 qs = ep2*ee/(pux(k)-ee)
                 rh = qux(k)/qs
-                rh = max(min(rh,d_one),d_zero)
+                rh = max(min(rh,rhmax),rhmin)
                 xsav = (d_one-rh)*qs
                 qwght(k) = xsav
                 sumb = sumb + qs*dsigma(k)
@@ -241,7 +242,7 @@ module mod_cu_kuo
               end do
               do k = ktop , kbase
                 ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
-                apcnt = (d_one-c301)*sca/4.3D-3
+                apcnt = (d_one-c301)*sca/4.3e-3_rkx
                 eddyf = apcnt*vqflx(k,kbase,ktop)
                 cu_qten(j,i,k,iqv) = (c301*qwght(k)*sca + eddyf) / psx
                 cu_tten(j,i,k) = ttconv / psx
@@ -269,8 +270,10 @@ module mod_cu_kuo
           ! convection do not exist, compute the vertical advection term:
           !
           do k = 2 , kz
-            if ( qux(k) > minqq .and. qux(k-1) > minqq ) then
-              ff = (qux(k)*(qux(k-1)/qux(k))**qcon(k)) * m2c%qdot(j,i,k)
+            if ( m2c%qq1(j,i,k)   / m2c%psa(j,i) > minqq .and. &
+                 m2c%qq1(j,i,k-1) / m2c%psa(j,i) > minqq ) then
+              ff = ((m2c%qq1(j,i,k)*(m2c%qq1(j,i,k-1)/m2c%qq1(j,i,k))**qcon(k)) * &
+                        m2c%qdot(j,i,k))/m2c%psa(j,i)
               cu_qten(j,i,k-1,iqv) = cu_qten(j,i,k-1,iqv) - ff/dsigma(k-1)
               cu_qten(j,i,k,iqv)   = cu_qten(j,i,k,iqv) + ff/dsigma(k)
             end if

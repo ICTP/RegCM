@@ -32,9 +32,9 @@ module mod_smooth
   subroutine smth121(htgrid,jx,iy,n)
     implicit none
     integer(ik4) , intent(in) :: jx , iy , n
-    real(rk8) , intent(inout) , dimension(jx,iy) :: htgrid
+    real(rkx) , intent(inout) , dimension(jx,iy) :: htgrid
     integer(ik4) :: i , j
-    real(rk8) , dimension(jx,iy) :: hscr1
+    real(rkx) , dimension(jx,iy) :: hscr1
     !
     ! PURPOSE :  PERFORMS THE 1-2-1 SMOOTHING TO REMOVE PRIMARILY THE
     ! 2DX WAVES FROM THE FIELDS htgrid. n IS THE NUMBER OF POINTS NOT
@@ -60,10 +60,10 @@ module mod_smooth
   subroutine smther(slab,nj,ni,npass,iflg)
     implicit none
     integer(ik4) , intent(in) :: iflg , ni , nj , npass
-    real(rk8) , intent(inout) , dimension(nj,ni) :: slab
-    real(rk8) :: aplus , asv , cell
+    real(rkx) , intent(inout) , dimension(nj,ni) :: slab
+    real(rkx) :: aplus , asv , cell
     integer(ik4) :: i , ie , iem , j , je , jem , k , kp
-    real(rk8) , dimension(2) :: xnu
+    real(rkx) , dimension(2) :: xnu
     !
     ! purpose: spatially smooth data in slab to dampen short
     ! wavelength components
@@ -119,7 +119,7 @@ module mod_smooth
   subroutine smthtr(slab1,nj,ni)
     implicit none
     integer(ik4) , intent(in) :: nj , ni
-    real(rk8) , intent(inout) , dimension(nj,ni) :: slab1
+    real(rkx) , intent(inout) , dimension(nj,ni) :: slab1
     integer(ik4) :: i , iflg , j , k , n , n1 , npass
     integer(ik4) , allocatable , dimension(:) :: ii , jj
     !
@@ -154,7 +154,7 @@ module mod_smooth
     do k = 1 , n - 1
       i = ii(k)
       j = jj(k)
-      slab1(j,i) = -0.001D0
+      slab1(j,i) = -0.001_rkx
     end do
     deallocate(ii)
     deallocate(jj)
@@ -163,19 +163,19 @@ module mod_smooth
   subroutine h2oelev(nj,ni,xt,mask)
     implicit none
     integer(ik4) , intent(in) :: nj , ni
-    real(rk8) , intent(in) , dimension(nj,ni) :: mask
-    real(rk8) , intent(inout) , dimension(nj,ni) :: xt
-    real(rk8) , dimension(nj,ni) :: xtn
-    real(rk8) :: np , sump
+    real(rkx) , intent(in) , dimension(nj,ni) :: mask
+    real(rkx) , intent(inout) , dimension(nj,ni) :: xt
+    real(rkx) , dimension(nj,ni) :: xtn
+    real(rkx) :: np , sump
     integer(ik4) :: i , j , ii , jj , iii , jjj , ipass
     integer , parameter :: npass = 1
 
     do ipass = 1 , npass
       do i = 1 , ni
         do j = 1 , nj
-          if ( mask(j,i) < 1.0 ) then
-            np = 4.0D0
-            sump = 4.0D0 * xt(j,i)
+          if ( mask(j,i) < 1.0_rkx ) then
+            np = 4.0_rkx
+            sump = 4.0_rkx * xt(j,i)
             do ii = i-1 , i+1
               do jj = j-1 , j+1
                 iii = max(1,min(ii,ni))
@@ -197,16 +197,16 @@ module mod_smooth
   subroutine remove_high_gradients(nj,ni,xt)
     implicit none
     integer(ik4) , intent(in) :: nj , ni
-    real(rk8) , intent(inout) , dimension(nj,ni) :: xt
-    real(rk8) , dimension(nj,ni) :: xtn
-    real(rk8) , dimension(nj,ni) :: dhdx1
-    real(rk8) , dimension(nj,ni) :: dhdx2
-    real(rk8) , dimension(nj,ni) :: dhdy1
-    real(rk8) , dimension(nj,ni) :: dhdy2
-    real(rk8) :: np , sump
+    real(rkx) , intent(inout) , dimension(nj,ni) :: xt
+    real(rkx) , dimension(nj,ni) :: xtn
+    real(rkx) , dimension(nj,ni) :: dhdx1
+    real(rkx) , dimension(nj,ni) :: dhdx2
+    real(rkx) , dimension(nj,ni) :: dhdy1
+    real(rkx) , dimension(nj,ni) :: dhdy2
+    real(rkx) :: np , sump
     integer(ik4) :: i , j , ii , jj , iii , jjj , ipass
     integer , parameter :: npass = 2
-    real(rk8) , parameter :: maxgra = 750.0D0
+    real(rkx) , parameter :: maxgra = 750.0_rkx
     dhdx1(:,:) = d_zero
     dhdy1(:,:) = d_zero
     dhdx2(:,:) = d_zero
@@ -226,8 +226,8 @@ module mod_smooth
                dhdx2(j,i) > maxgra .or. &
                dhdy1(j,i) > maxgra .or. &
                dhdy2(j,i) > maxgra ) then
-            np = 0.0D0
-            sump = 0.0D0
+            np = 0.0_rkx
+            sump = 0.0_rkx
             do ii = i-1 , i+1
               do jj = j-1 , j+1
                 iii = max(1,min(ii,ni))
@@ -236,7 +236,7 @@ module mod_smooth
                 sump = sump + xt(jjj,iii)
               end do
             end do
-            if ( np > 0.0D0 ) then
+            if ( np > 0.0_rkx ) then
               xtn(j,i) = xt(j,i) + (sump - xt(j,i) * np)/np
             else
               xtn(j,i) = xt(j,i)
@@ -253,18 +253,18 @@ module mod_smooth
   subroutine cleanpeaks(nj,ni,xt)
     implicit none
     integer(ik4) , intent(in) :: nj , ni
-    real(rk8) , intent(inout) , dimension(nj,ni) :: xt
-    real(rk8) , dimension(nj,ni) :: xtn
-    real(rk8) :: np , sump
+    real(rkx) , intent(inout) , dimension(nj,ni) :: xt
+    real(rkx) , dimension(nj,ni) :: xtn
+    real(rkx) :: np , sump
     integer(ik4) :: i , j , ii , jj , iii , jjj , ipass
     integer , parameter :: npass = 1
-    real(rk8) , parameter :: mhgt = 5.0D0
+    real(rkx) , parameter :: mhgt = 5.0_rkx
 
     do ipass = 1 , npass
       do i = 1 , ni
         do j = 1 , nj
-          np = 0.0D0
-          sump = 0.0D0
+          np = 0.0_rkx
+          sump = 0.0_rkx
           do ii = i-1 , i+1
             do jj = j-1 , j+1
               iii = max(1,min(ii,ni))
@@ -275,7 +275,7 @@ module mod_smooth
               end if
             end do
           end do
-          if ( np > 0.0D0 ) then
+          if ( np > 0.0_rkx ) then
             xtn(j,i) = xt(j,i) + (sump - xt(j,i) * np)/np
           else
             xtn(j,i) = xt(j,i)

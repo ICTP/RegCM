@@ -83,44 +83,44 @@ module mod_pbl_uwtcm
 
   private
 
-  real(rk8) , public , parameter :: tkemin = 1.0D-3
+  real(rkx) , public , parameter :: tkemin = 1.0e-3_rkx
 
   ! Model constants
   ! fraction of turb layer to be considered in bbls
-  real(rk8) , parameter :: xfr = 0.1D0
+  real(rkx) , parameter :: xfr = 0.1_rkx
   ! see gb01 regarding the next three lines, atwo and rstbl can be tweaked
-  real(rk8) , parameter :: aone = 1.9D0*xfr
+  real(rkx) , parameter :: aone = 1.9_rkx*xfr
   ! b1/2**(3/2) from Mellor and Yamada (1982)
-  real(rk8) , parameter :: rcrit = 0.3D0
-  real(rk8) , parameter :: etal =  0.085D0
-  real(rk8) , parameter :: minn2 =  1.0D-7
+  real(rkx) , parameter :: rcrit = 0.3_rkx
+  real(rkx) , parameter :: etal =  0.085_rkx
+  real(rkx) , parameter :: minn2 =  1.0e-7_rkx
 
   ! Variables that hold frequently-done calculations
-  real(rk8) :: rczero
+  real(rkx) :: rczero
 
   ! local variables on full levels
-  real(rk8) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
+  real(rkx) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
                  tke , tkes , rrhoxfl , bbls , nsquar , richnum , &
                  bouyan , rdza , dza , svs , presfl , exnerfl ,   &
                  shear , rexnerfl , rcldb , epop , sm , sh, xkchi
 
   ! local variables on half levels
-  real(rk8) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,   &
+  real(rkx) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,   &
                  zax , kethl , thlx , thlxs, thxs , tx , tvx ,         &
                  rttenx , preshl , qcx , qwx , qwxs , udzq , rrhoxhl , &
                  uxs , qxs , rhoxhl , exnerhl , rexnerhl , rdzq ,      &
                  vxs , qcxs , aimp , bimp , cimp , uimp1 , rimp1 ,     &
                  uimp2 , rimp2 , qix , qixs
-  real(rk8) , pointer , dimension(:,:) :: chix , chixs
+  real(rkx) , pointer , dimension(:,:) :: chix , chixs
 
   integer(ik4) , pointer , dimension(:) :: isice , ktop , kbot
 
   ! local scalars
-  real(rk8) :: uflxp , vflxp , rhoxsf , tgbx , tvcon , fracz , dudz , &
+  real(rkx) :: uflxp , vflxp , rhoxsf , tgbx , tvcon , fracz , dudz , &
               dvdz , rvls , thv0 , dthv , psbx , templ , temps ,     &
               cell , thgb , pblx , ustxsq , qfxx , hfxx , dth ,      &
               uvdragx , thvflx , kh0 , q0s
-  real(rk8) , pointer , dimension(:) :: chifxx
+  real(rkx) , pointer , dimension(:) :: chifxx
 
   integer(ik4) :: kpbl2dx  ! Top of PBL
   integer(ik4) :: kmix2dx  ! Top of mixed layer (decoupled layer)
@@ -324,7 +324,7 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay , kpbconv , iteration
-    real(rk8) :: temps , templ , deltat , rvls , pfac
+    real(rkx) :: temps , templ , deltat , rvls , pfac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
@@ -376,21 +376,25 @@ module mod_pbl_uwtcm
           tke(k) = m2p%tkests(j,i,k)
           rttenx(k) = m2p%heatrt(j,i,k)
         end do
+        where ( qx < minqq ) qx = minqq
+        where ( qcx < minqx ) qcx = minqx
+
         if ( ipptls == 2 ) then
           do k = 1 , kz
-            qix(k) = m2p%qxatm(j,i,k,iqi)
+            qix(k) = m2p%qxatm(j,i,k,iqi) + p2m%qxten(j,i,k,iqi) * pfac
           end do
+          where ( qix < minqx ) qix = minqx
         else
           do k = 1 , kz
-            qix(k) = d_zero
+            qix(k) = minqx
           end do
         end if
 
         if ( ichem == 1 ) then
           do itr = 1 , ntr
-            chifxx(itr) = m2p%chifxuw(j,i,itr)
+            chifxx(itr) = max(m2p%chifxuw(j,i,itr),mintr)
             do k = 1 , kz
-              chix(k,itr) = m2p%chib(j,i,k,itr)
+              chix(k,itr) = max(m2p%chib(j,i,k,itr),mintr)
             end do
           end do
         end if
@@ -405,7 +409,7 @@ module mod_pbl_uwtcm
           udzq(k) = m2p%dzq(j,i,k)
           rdzq(k) = d_one/udzq(k)
           ! Exner function
-          exnerhl(k) = (preshl(k)/1.0D5)**rovcp
+          exnerhl(k) = (preshl(k)/1.0e5_rkx)**rovcp
           rexnerhl(k) = d_one/exnerhl(k)
           ! Potential temperature
           thx(k) = tx(k)*rexnerhl(k)
@@ -447,7 +451,7 @@ module mod_pbl_uwtcm
           dza(k) = zax(k-1)-zax(k)
           rdza(k) = d_one/dza(k)
           ! Exner function
-          exnerfl(k) = (presfl(k)/1.0D5)**rovcp
+          exnerfl(k) = (presfl(k)/1.0e5_rkx)**rovcp
           rexnerfl(k) = d_one/exnerfl(k)
           ! Density
           fracz = (zqx(k)-zax(k))*rdza(k)
@@ -460,7 +464,7 @@ module mod_pbl_uwtcm
         end do
 
         ! Surface exner function
-        exnerfl(kzp1) = (presfl(kzp1)/1.0D5)**rovcp
+        exnerfl(kzp1) = (presfl(kzp1)/1.0e5_rkx)**rovcp
         rexnerfl(kzp1) = d_one/exnerfl(kzp1)
         ! density at the surface
         rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
@@ -498,7 +502,7 @@ module mod_pbl_uwtcm
         thvflx = hfxx/rhoxsf*rcpd*(d_one+ep1*q0s) + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
-        kh0 = vonkar*d_one*sqrt(max(tkemin,3.25D0 * ustxsq))
+        kh0 = vonkar*d_one*sqrt(max(tkemin,3.25_rkx * ustxsq))
 
 !*******************************************************************************
 !*******************************************************************************
@@ -514,7 +518,7 @@ module mod_pbl_uwtcm
         nsquar(kzp1) = -egrav/thgb*thvflx/kh0
 
         ! Calculate the bulk richardson number
-        richnum = nsquar/max(svs,1.0D-8)
+        richnum = nsquar/max(svs,1.0e-8_rkx)
 
         ! Calculate the boundary layer height
         call pblhgt(kzp1,m2p%ktrop(j,i),kpbconv)
@@ -597,7 +601,7 @@ module mod_pbl_uwtcm
             rvls = ep2/(preshl(k)/pfesat(temps)-d_one)
           end do
           if ( ipptls == 2 ) then
-            qcx(k) = min(1.0D-3,max(qwx(k)-rvls, minqx))
+            qcx(k) = min(1.0e-3_rkx,max(qwx(k)-rvls, minqx))
           else
             qcx(k) = max(qwx(k)-rvls, minqx)
           end if
@@ -776,7 +780,7 @@ module mod_pbl_uwtcm
         ! tke at top is fixed
         tke(1) = d_zero
         ! diagnose tke at surface, following my 82, b1 ** (2/3) / 2 = 3.25
-        tke(kzp1) = 3.25D0 * ustxsq ! normal
+        tke(kzp1) = 3.25_rkx * ustxsq ! normal
 
         ! now the implicit calculations
         ! first find the coefficients that apply for full levels
@@ -885,10 +889,10 @@ module mod_pbl_uwtcm
       ! Written and validated by Travis A. O'Brien 01/04/11
       implicit none
       integer(ik4) , intent(in) :: n
-      real(rk8) , dimension(n) , intent(in) :: a , b , c , v
-      real(rk8) , dimension(n) , intent(out) :: x
-      real(rk8) , dimension(n) :: bp , vp
-      real(rk8) :: m
+      real(rkx) , dimension(n) , intent(in) :: a , b , c , v
+      real(rkx) , dimension(n) , intent(out) :: x
+      real(rkx) , dimension(n) :: bp , vp
+      real(rkx) :: m
       integer(ik4) :: i
 
       bp(1) = b(1)
@@ -909,9 +913,9 @@ module mod_pbl_uwtcm
     subroutine n2(thlxin,qwxin,ktmax)
       implicit none
       integer(ik4) , intent(in) :: ktmax
-      real(rk8) , intent(in) , dimension(ktmax) :: thlxin , qwxin
+      real(rkx) , intent(in) , dimension(ktmax) :: thlxin , qwxin
       ! local variables
-      real(rk8) :: tempv , tvbl , rcld , tvab , thvxfl , dtvdz
+      real(rkx) :: tempv , tvbl , rcld , tvab , thvxfl , dtvdz
       integer(ik4) :: k
 
       do k = 2 , ktmax
@@ -947,11 +951,11 @@ module mod_pbl_uwtcm
     subroutine melloryamada(ktmax,kpbconv)
       implicit none
       integer(ik4) , intent(in) :: ktmax , kpbconv
-      real(rk8) :: gh , a1ob1 , delthvl , elambda , bige , biga
-      real(rk8) , parameter :: a1 = 0.92D0 , b1 = 16.6D0 , c1 = 0.08D0 , &
-                               a2 = 0.74D0 , b2 = 10.1D0
+      real(rkx) :: gh , a1ob1 , delthvl , elambda , bige , biga
+      real(rkx) , parameter :: a1 = 0.92_rkx , b1 = 16.6_rkx , c1 = 0.08_rkx , &
+                               a2 = 0.74_rkx , b2 = 10.1_rkx
       integer(ik4) :: k , ilay
-      real(rk8) , parameter :: kthmax = 1.0D3
+      real(rkx) , parameter :: kthmax = 1.0e3_rkx
 
       a1ob1 = a1/b1
 
@@ -970,11 +974,11 @@ module mod_pbl_uwtcm
 
       kloop: &
       do k = ktmax - 1, 2, -1
-        gh = -bbls(k)*bbls(k)*nsquar(k)/(d_two*tke(k)+1.0D-9)
-        ! gh = min(gh,0.0233D0)
+        gh = -bbls(k)*bbls(k)*nsquar(k)/(d_two*tke(k)+1.0e-9_rkx)
+        ! gh = min(gh,0.0233_rkx)
         ! TAO: Added the -0.28 minimum for the G function, as stated
         ! in Galperin (1988), eq 30
-        gh = max(min(gh,0.0233D0),-0.28D0)
+        gh = max(min(gh,0.0233_rkx),-0.28_rkx)
 
         sm(k) = a1 * (d_one - d_three*c1 - d_six*a1ob1 - d_three*a2*gh*   &
                      ((b2-d_three*a2)*(d_one - d_six*a1ob1) -             &
@@ -983,15 +987,15 @@ module mod_pbl_uwtcm
                       (d_one - d_nine*a1*a2*gh))
         sh(k) = a2 * (d_one-d_six*a1ob1) / (d_one-d_three*a2*gh*(d_six*a1+b2))
 
-        ! kzm(k) = min(bbls(k)*sqrt(2*tke(k))*sm(k),10000.0D0)
-        ! kth(k) = min(bbls(k)*sqrt(2*tke(k))*sh(k),10000.0D0)
+        ! kzm(k) = min(bbls(k)*sqrt(2*tke(k))*sm(k),10000.0_rkx)
+        ! kth(k) = min(bbls(k)*sqrt(2*tke(k))*sh(k),10000.0_rkx)
 
         ! Limit the diffusivity to be the vertical grid spacing squared
         ! over the time step; this implies that the entrainment rate
         ! can only be so large that the BL height would change by
         ! one grid level over one time step -- TAO
-        ! kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.0D4),1.0D3)
-        ! kthmax = 1.0D4
+        ! kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.0e4_rkx),1.0e3_rkx)
+        ! kthmax = 1.0e4_rkx
 
         ! Calculate the diffusion coefficients
         kzm(k) = min(bbls(k)*sqrt(d_two*tke(k))*sm(k),kthmax)
@@ -1010,21 +1014,21 @@ module mod_pbl_uwtcm
         if ( nsquar(k) > minn2 ) then
           kethl(k) = nuk*kzm(k+1)
           if ( k >= 3 ) then
-            kethl(k-1) = 0.0D0
+            kethl(k-1) = 0.0_rkx
             delthvl = (thlx(k-2)+thx(k-2)*ep1*qwx(k-2)) -   &
                       (thlx(k) + thx(k) * ep1 * qwx(k))
-            elambda = wlhvocp*rcldb(k)*rexnerhl(k)/max(delthvl,0.1D0)
-            bige = 0.8D0 * elambda
+            elambda = wlhvocp*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
+            bige = 0.8_rkx * elambda
             biga = aone * (d_one + atwo * bige)
 
-            ! kth(k) = min(10000.0D0, biga * sqrt(tke(k)**3)/nsquar(k)/    &
+            ! kth(k) = min(10000.0_rkx, biga * sqrt(tke(k)**3)/nsquar(k)/    &
             !          max(bbls(k),bbls(k+1)))
             ! Limit the diffusivity to be the vertical grid spacing squared
             ! over the time step; this implies that the entrainment rate
             ! can only be so large that the BL height would change by
             ! one grid level over one time step -- TAO
-            ! kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.0D4),1.0D3)
-            ! kthmax = 1.0D4
+            ! kthmax = max(min((zax(k-1)-zax(k))**2/dt,1.0e4_rkx),1.0e3_rkx)
+            ! kthmax = 1.0e4_rkx
             kth(k) = min(kth(k), biga*sqrt(tke(k)**3)/nsquar(k)/ &
                      max(bbls(k),bbls(k+1)))
             ! kth(k) = biga * sqrt(tke(k)**3)/nsquar(k)/max(bbls(k),bbls(k+1))
@@ -1049,7 +1053,7 @@ module mod_pbl_uwtcm
       integer(ik4) , intent(out) :: kpbconv
       integer(ik4) , dimension(kz) :: ktop_save
       integer(ik4) :: istabl , ibeg , ilay , nlev , k , itemp , kstart
-      real(rk8) :: blinf , rnnll , tkeavg , trnnll , radnnll , delthvl , &
+      real(rkx) :: blinf , rnnll , tkeavg , trnnll , radnnll , delthvl , &
                   elambda , bige , biga , entnnll , tbbls
 
       ! find noncontiguous convectively unstable layers
@@ -1067,7 +1071,7 @@ module mod_pbl_uwtcm
           istabl = 1
           bbls(k) = min(rstbl*sqrt(tke(k)/nsquar(k)),vonkar*zqx(k))
           ! bbls(k) = max(min(rstbl*sqrt(tke(k)/nsquar(k)), &
-          !           vonkar*zqx(k)),1.0D-8)
+          !           vonkar*zqx(k)),1.0e-8_rkx)
         end if
       end do
 
@@ -1130,8 +1134,8 @@ module mod_pbl_uwtcm
             if ( k >= 3 ) then
               delthvl = (thlx(k-2)+thx(k-2)*ep1*qwx(k-2))   &
                       - (thlx(k) + thx(k)*ep1*qwx(k))
-              elambda = wlhvocp*rcldb(k)*rexnerhl(k)/max(delthvl,0.1D0)
-              bige = 0.8D0 * elambda
+              elambda = wlhvocp*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
+              bige = 0.8_rkx * elambda
               biga = aone * (d_one + atwo * bige)
               entnnll = biga * sqrt(tkeavg**3) / bbls(k)
             end if
@@ -1221,18 +1225,18 @@ module mod_pbl_uwtcm
     ! Modified from Buck (1981), J. App. Met. v 20
     function esatw(p,t)
       implicit none
-      real(rk8) , intent(in) :: p , t
-      real(rk8) :: esatw
-      real(rk8) :: dum , arg , tdum
+      real(rkx) , intent(in) :: p , t
+      real(rkx) :: esatw
+      real(rkx) :: dum , arg , tdum
       ! Limit T to reasonable values.  I believe that this is necessary because
       ! in the iterative calculation of T and QV from the liquid water
       ! temperature, the temperature can take on some crazy values before it
       ! converges. --TAO 01/05/2011
-      tdum = max(100.0D0,min(399.99D0,t))
-      dum = 1.0007D0 + 3.46D-5*p
-      ! arg = 17.502D0*(t-tzero)/(t-32.18D0)
-      arg = 17.502D0*(tdum-tzero)/(tdum-32.18D0)
-      esatw = dum*0.61121D0*dexp(arg)
+      tdum = max(100.0_rkx,min(399.99_rkx,t))
+      dum = 1.0007_rkx + 3.46e-5_rkx*p
+      ! arg = 17.502_rkx*(t-tzero)/(t-32.18_rkx)
+      arg = 17.502_rkx*(tdum-tzero)/(tdum-32.18_rkx)
+      esatw = dum*0.61121_rkx*exp(arg)
     end function esatw
 
     ! Returns the saturation vapor pressure over ice in units (cb)
@@ -1240,26 +1244,26 @@ module mod_pbl_uwtcm
     ! Modified from Buck (1981), J. App. Met. v 20
     function esati(p,t)
       implicit none
-      real(rk8) , intent(in) :: p , t
-      real(rk8) :: esati
-      real(rk8) :: dum , arg , tdum
+      real(rkx) , intent(in) :: p , t
+      real(rkx) :: esati
+      real(rkx) :: dum , arg , tdum
       ! Limit T to reasonable values.  I believe that this is necessary because
       ! in the iterative calculation of T and QV from the liquid water
       ! temperature, the temperature can take on some crazy values before it
       ! converges. --TAO 01/05/2011
-      tdum = max(100.0D0,min(399.99D0,t))
-      dum = 1.0003D0 + 4.18D-5*p
-      ! arg = 22.452D0*(t-tzero)/(t-0.6D0)
-      arg = 22.452D0*(tdum-tzero)/(tdum-0.6D0)
-      esati = dum*0.61115D0*dexp(arg)
+      tdum = max(100.0_rkx,min(399.99_rkx,t))
+      dum = 1.0003_rkx + 4.18e-5_rkx*p
+      ! arg = 22.452_rkx*(t-tzero)/(t-0.6_rkx)
+      arg = 22.452_rkx*(tdum-tzero)/(tdum-0.6_rkx)
+      esati = dum*0.61115_rkx*exp(arg)
     end function esati
 
     subroutine pblhgt_tao(ktmax,kpbconv)
       implicit none
       integer(ik4) , intent(in) :: ktmax
       integer(ik4) , intent(out) :: kpbconv
-      real(rk8) , dimension(ktmax) :: ktimesz
-      real(rk8) :: lambda
+      real(rkx) , dimension(ktmax) :: ktimesz
+      real(rkx) :: lambda
       logical , dimension(ktmax) :: isSaturated1D , isStable1D , isBelow7001D
       logical :: foundlayer
       integer(ik4) :: k
@@ -1273,7 +1277,7 @@ module mod_pbl_uwtcm
       where ( richnum > rcrit )
         isStable1D = .true.
       end where
-      where ( presfl >= 70000.0D0 )
+      where ( presfl >= 70000.0_rkx )
         isBelow7001D = .true.
       end where
       ! First see if there is a cloud-topped boundary layer: its top will be
@@ -1325,7 +1329,7 @@ module mod_pbl_uwtcm
       ! Otherwise use a Stability-related length scale
       do k = kmix2dx-1 , 1 , -1
         if ( nsquar(k) > d_zero ) then
-          bbls(k) = max(min(rstbl*sqrt(tke(k)/nsquar(k)),ktimesz(k)),1.0D-8)
+          bbls(k) = max(min(rstbl*sqrt(tke(k)/nsquar(k)),ktimesz(k)),1.0e-8_rkx)
         else
           bbls(k) = ktimesz(k) - ktimesz(k+1)
         end if

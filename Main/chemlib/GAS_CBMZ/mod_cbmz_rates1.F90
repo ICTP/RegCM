@@ -127,16 +127,16 @@ module mod_cbmz_rates1
       integer(ik4) :: kk
       ! General counters
       integer(ik4) :: j
-      real(rk8) :: cbeta(c_kvec)  ! General vector variable
-      real(rk8) :: cgamma(c_kvec) ! General vector variable
+      real(rkx) :: cbeta(c_kvec)  ! General vector variable
+      real(rkx) :: cgamma(c_kvec) ! General vector variable
       ! temperature K
-      real(rk8) :: tempx
+      real(rkx) :: tempx
       ! density, molec/cm3
-      real(rk8) :: denx
+      real(rkx) :: denx
       ! Function: 3-bodyreaction rate cm3-sec
-    !  real(rk8) :: bod
+    !  real(rkx) :: bod
       ! Function: RNO3 yield from RO2+NO
-    !  real(rk8) :: ytn
+    !  real(rkx) :: ytn
 
       kk = 1
       !
@@ -158,21 +158,21 @@ module mod_cbmz_rates1
         ! Standard 2-body reaction format
         !
         if ( c_nrk(j) == 0 ) then
-          ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk))
+          ratek(kk,j) = c_rk(1,j)*exp(-c_rk(2,j)/c_temp(kk))
         end if
         !
         ! Standard 2-body reaction format with input rate at 298 K.
         !
         if ( c_nrk(j) == -1 ) then
-          ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j) * &
-                     (d_one/c_temp(kk)-0.0033557047D0))
+          ratek(kk,j) = c_rk(1,j)*exp(-c_rk(2,j) * &
+                     (d_one/c_temp(kk)-0.0033557047_rkx))
         end if
         !
         ! Standard format *T/300
         !
         if ( c_nrk(j) == -2 ) then
-          ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk)) * &
-                        (c_temp(kk)/300.0D0)**c_rk(3,j)
+          ratek(kk,j) = c_rk(1,j)*exp(-c_rk(2,j)/c_temp(kk)) * &
+                        (c_temp(kk)/300.0_rkx)**c_rk(3,j)
         end if
         !
         ! Standard 3-body reaction format - bod function
@@ -191,13 +191,13 @@ module mod_cbmz_rates1
           denx = c_dens(kk)
           ratek(kk,j) = bod(c_rk(3,j),c_rk(4,j),c_rk(5,j), &
                             c_rk(6,j),c_rk(7,j),tempx, denx)
-          ratek(kk,j)= ratek(kk,j)*c_rk(1,j)*dexp(-c_rk(2,j)/tempx)
+          ratek(kk,j)= ratek(kk,j)*c_rk(1,j)*exp(-c_rk(2,j)/tempx)
         end if
         !
         ! 2-body reaction format with nitrate yield subtracted
         !
         if ( c_nrk(j) == -5 ) then
-          ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk))
+          ratek(kk,j) = c_rk(1,j)*exp(-c_rk(2,j)/c_temp(kk))
           ratek(kk,j) = ratek(kk,j) * &
             (d_one-ytn(c_rk(3,j),c_temp(kk),c_dens(kk)))
         end if
@@ -205,7 +205,7 @@ module mod_cbmz_rates1
         ! 2-body reaction format for  nitrate yield
         !
         if ( c_nrk(j) == -6 ) then
-          ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk))
+          ratek(kk,j) = c_rk(1,j)*exp(-c_rk(2,j)/c_temp(kk))
           ratek(kk,j) = ratek(kk,j)*(ytn(c_rk(3,j),c_temp(kk),c_dens(kk)))
         end if
         !
@@ -213,7 +213,7 @@ module mod_cbmz_rates1
         !    for CO, GLYX+OH
         !
         if ( c_nrk(j) == -7 ) then
-          ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk))
+          ratek(kk,j) = c_rk(1,j)*exp(-c_rk(2,j)/c_temp(kk))
           ratek(kk,j) = ratek(kk,j)*(c_rk(3,j)+c_rk(4,j)*c_dens(kk)) / &
                                     (c_rk(5,j)+c_rk(6,j)*c_dens(kk))
         end if
@@ -223,10 +223,10 @@ module mod_cbmz_rates1
         ! A exp(-B/T) / (1 + (C+E*dens)* exp(-D/T))
         !
         if ( c_nrk(j) == -8 ) then
-          ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk))
+          ratek(kk,j) = c_rk(1,j)*exp(-c_rk(2,j)/c_temp(kk))
           ratek(kk,j) = ratek(kk,j) / &
             (d_one+(c_rk(3,j)+c_rk(5,j)*c_dens(kk)) * &
-            dexp(-c_rk(4,j)/c_temp(kk)))
+            exp(-c_rk(4,j)/c_temp(kk)))
         end if
         !
         ! Special HO2+HO2 rate:
@@ -234,11 +234,11 @@ module mod_cbmz_rates1
         !  from Chameides around 1996
         !
         if ( c_nrk(j) == -9 ) then
-          ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk))
+          ratek(kk,j) = c_rk(1,j)*exp(-c_rk(2,j)/c_temp(kk))
           ratek(kk,j) = ratek(kk,j) + &
-                        c_rk(3,j)*dexp(-c_rk(4,j)/c_temp(kk)) * c_dens(kk)
+                        c_rk(3,j)*exp(-c_rk(4,j)/c_temp(kk)) * c_dens(kk)
           ratek(kk,j) = ratek(kk,j) * &
-            (d_one+c_rk(3,j)*dexp(-c_rk(4,j)/c_temp(kk))*xc(kk,14))
+            (d_one+c_rk(3,j)*exp(-c_rk(4,j)/c_temp(kk))*xc(kk,14))
         end if
         !
         ! Special HNO3+OH rate:
@@ -246,9 +246,9 @@ module mod_cbmz_rates1
         !  from Evans, Fiore 2003
         !
         if ( c_nrk(j) == -10 ) then
-          ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk))
-          cbeta(kk) = c_rk(3,j)*dexp(-c_rk(4,j)/c_temp(kk))*c_dens(kk)
-          cgamma(kk) = c_rk(5,j)*dexp(-c_rk(6,j)/c_temp(kk))
+          ratek(kk,j) = c_rk(1,j)*exp(-c_rk(2,j)/c_temp(kk))
+          cbeta(kk) = c_rk(3,j)*exp(-c_rk(4,j)/c_temp(kk))*c_dens(kk)
+          cgamma(kk) = c_rk(5,j)*exp(-c_rk(6,j)/c_temp(kk))
           ratek(kk,j) = ratek(kk,j) + &
             cbeta(kk)*cgamma(kk)/(cbeta(kk)+cgamma(kk))
         end if
@@ -257,18 +257,18 @@ module mod_cbmz_rates1
         !        Aexp(-B/t)/(1+C*T/300^(D*exp(-E/t))
         !
         if ( c_nrk(j) == -11 ) then
-          ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk))
-          cbeta(kk) = c_rk(4,j)*dexp(-c_rk(5,j)/c_temp(kk))
+          ratek(kk,j) = c_rk(1,j)*exp(-c_rk(2,j)/c_temp(kk))
+          cbeta(kk) = c_rk(4,j)*exp(-c_rk(5,j)/c_temp(kk))
           ratek(kk,j) = ratek(kk,j) / &
-            (d_one+c_rk(3,j)*(c_temp(kk)/300.0D0)**cbeta(kk))
+            (d_one+c_rk(3,j)*(c_temp(kk)/300.0_rkx)**cbeta(kk))
         end if
         !
         ! Sum of two reactions (for ACET+OH, JPL 2002):
         !       A exp(-B/T) + C exp(-D/
         !
         if ( c_nrk(j) == -12 ) then
-          ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk)) + &
-                        c_rk(3,j)*dexp(-c_rk(4,j)/c_temp(kk))
+          ratek(kk,j) = c_rk(1,j)*exp(-c_rk(2,j)/c_temp(kk)) + &
+                        c_rk(3,j)*exp(-c_rk(4,j)/c_temp(kk))
         end if
         !
         ! Parameterized RO2-RO2 reactions
@@ -277,9 +277,9 @@ module mod_cbmz_rates1
         !
         if ( c_nrk(j) == -13 ) then
           nr1 = nr1+1
-          ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk))
+          ratek(kk,j) = c_rk(1,j)*exp(-c_rk(2,j)/c_temp(kk))
           ratero2(kk,nr1,1) = ratek(kk,j)
-          ratero2(kk,nr1,2) = sqrt(c_rk(3,j)*dexp(-c_rk(4,j)/c_temp(kk)))
+          ratero2(kk,nr1,2) = sqrt(c_rk(3,j)*exp(-c_rk(4,j)/c_temp(kk)))
         end if
         !
         ! REACTION ON SULFATE AEROSOL SURFACES.  c_nrk(j) = -20
@@ -289,8 +289,8 @@ module mod_cbmz_rates1
         !   MW = molecular weight (input)
         !
         if ( c_nrk(j) == -20 ) then
-          ratek(kk,j) = c_saersa(kk) * (0.25D0*c_rk(1,j)) * &
-             sqrt((8.0D0*rumolec*c_temp(kk))/(mathpi*c_rk(2,j)))
+          ratek(kk,j) = c_saersa(kk) * (0.25_rkx*c_rk(1,j)) * &
+             sqrt((8.0_rkx*rumolec*c_temp(kk))/(mathpi*c_rk(2,j)))
         end if
         !
         ! END SET ALL RATE CONSTANTS LOOP
@@ -315,8 +315,8 @@ module mod_cbmz_rates1
       !  FUTURE CHANGE: ADD ALT. SPECIAL FORMULAS FOR HENRYS LAW CONSTANTS
       !   AS NEEDED, CONTROLLED BY   c_nrkh()
       do j = 1 , c_nreach
-        rateh(kk,j) = c_rkh(1,j)*dexp(d_zero-c_rkh(2,j) * &
-                                      (d_one/c_temp(kk)-d_one/298.0D0))
+        rateh(kk,j) = c_rkh(1,j)*exp(d_zero-c_rkh(2,j) * &
+                                      (d_one/c_temp(kk)-d_one/298.0_rkx))
         rateh(kk,j) = rateh(kk,j)*rtcon*c_temp(kk)*c_h2oliq(kk)
         !
         ! (OLDER CONVERSION)
@@ -331,8 +331,8 @@ module mod_cbmz_rates1
       ! AS NEEDED, CONTROLLED BY   c_nrkq()
       !
       do j = 1 , c_nreacq
-        rateq(kk,j) = c_rkq(1,j)*dexp(d_zero-c_rkq(2,j) * &
-                                      (d_one/c_temp(kk)-d_one/298.0D0))
+        rateq(kk,j) = c_rkq(1,j)*exp(d_zero-c_rkq(2,j) * &
+                                      (d_one/c_temp(kk)-d_one/298.0_rkx))
       end do
       !
       ! (CONVERSION:  AQUEOUS K1 IS MULTIPLIED BY HENRY'S LAW CONSTANT
@@ -342,8 +342,8 @@ module mod_cbmz_rates1
       !  FUTURE CHANGE: ADD ALT. SPECIAL FORMULAS FOR SPECIAL EQ  COEFFICIENTS
       !   AS NEEDED, CONTROLLED BY   c_nrkqq()
       do j = 1 , c_nreaqq
-        rateqq(kk,j) = c_rkqq(1,j)*dexp(d_zero-c_rkqq(2,j) * &
-                                       (d_one/c_temp(kk)-d_one/298.0D0))
+        rateqq(kk,j) = c_rkqq(1,j)*exp(d_zero-c_rkqq(2,j) * &
+                                       (d_one/c_temp(kk)-d_one/298.0_rkx))
       end do
       !
       ! ---------------------------
@@ -433,18 +433,18 @@ module mod_cbmz_rates1
 !   zen(kk)           Zenith angle (degrees) (90=horizon)
 !
       ! Interp hv over time interval
-      real(rk8) :: hvrate(c_kvec,56)
+      real(rkx) :: hvrate(c_kvec,56)
       ! j-value output from jval2.f
-      real(rk8) :: jval(56)
+      real(rkx) :: jval(56)
       ! Partition btwen time intervals
-      real(rk8) :: fhvint
+      real(rkx) :: fhvint
       ! Counter for time intervals
       integer(ik4) :: ihour
       ! Number of time intervals
       integer(ik4) :: ihvint
       ! Species index for hv array
       integer(ik4) :: jc
-      real(rk8) :: xhouro
+      real(rkx) :: xhouro
 !
       kk = 1
       !
@@ -457,7 +457,7 @@ module mod_cbmz_rates1
       ! X-TIME-INTERVAL ADDITION (1050 and 1600 AT START OF HV RATE CALC.).
 
       xhouro = c_hour
-      ihvint = int(dabs(c_time)/1800.0D0)
+      ihvint = int(abs(c_time)/1800.0_rkx)
       if ( ihvint < 1 ) ihvint = 1
       fhvint = d_one/(d_zero+ihvint)
       do ij = 1 , 56
@@ -471,7 +471,7 @@ module mod_cbmz_rates1
       !      Correct - ENDING with hv TIME INTERVAL CALCULATION = 1).
       !
       do ihour = 1 , ihvint
-        c_hour = xhouro+(c_time/3600.0D0)*fhvint*(ihour-0.5D0-(1.0D0*ihvint))
+        c_hour = xhouro+(c_time/3600.0_rkx)*fhvint*(ihour-0.5_rkx-(1.0_rkx*ihvint))
         !
         ! END X-TIME-INTERVAL ADDITION
         !
@@ -523,7 +523,7 @@ module mod_cbmz_rates1
           if ( c_nh2o > d_zero ) then
             if ( c_h2ogas(kk) > d_zero ) then
               ratek(kk,j) = hvrate(kk,2)*c_rk(1,j) / &
-                (d_one+0.13181D0*c_dens(kk)/c_h2ogas(kk))
+                (d_one+0.13181_rkx*c_dens(kk)/c_h2ogas(kk))
             else
               ratek(kk,j) = hvrate(kk,2)
             end if
@@ -565,40 +565,40 @@ module mod_cbmz_rates1
 !
 ! Output reaction rate in cm3-sec
 !
-    real(rk8) function bod(u,b,c,d,e,tempx,denx)
+    real(rkx) function bod(u,b,c,d,e,tempx,denx)
 !
       implicit none
 !
       ! ko(300) = Low pressure limit at 300 K.
-      real(rk8) , intent(in) :: b
+      real(rkx) , intent(in) :: b
       ! exponent for temperature, -n in JPL.
-      real(rk8) , intent(in) :: c
+      real(rkx) , intent(in) :: c
       ! kinf(300), High pressure limit at 300 K
-      real(rk8) , intent(in) :: d
+      real(rkx) , intent(in) :: d
       ! exponent for temperature, -m in JPL.
-      real(rk8) , intent(in) :: e
+      real(rkx) , intent(in) :: e
       ! Fc, base for log-T-P adjustment (0.6)
-      real(rk8) , intent(in) :: u
+      real(rkx) , intent(in) :: u
       ! temperature K
-      real(rk8) , intent(in) :: tempx
+      real(rkx) , intent(in) :: tempx
       ! density, molec/cm3
-      real(rk8) , intent(in) :: denx
+      real(rkx) , intent(in) :: denx
 !
       ! Interim parameter
-      real(rk8) :: f1
+      real(rkx) :: f1
       ! Interim parameter
-      real(rk8) :: f2
+      real(rkx) :: f2
       ! Interim parameter
-      real(rk8) :: ee
+      real(rkx) :: ee
 !
 !     f1 = b*(tempx**c)*denx
 !     f2 = f1 / (d*(tempx**e))
       !
       ! MODIFICATION TO TEMPX/300.
       !
-      f1 = b*((tempx/300.0D0)**c)*denx
-      f2 = f1 / (d*((tempx/300.0D0)**e))
-      ee = d_one / ( d_one + (dlog10(f2))**2 )
+      f1 = b*((tempx/300.0_rkx)**c)*denx
+      f2 = f1 / (d*((tempx/300.0_rkx)**e))
+      ee = d_one / ( d_one + (log10(f2))**2 )
       bod = (f1/(d_one+f2) ) * u**ee
     end function bod
 !
@@ -623,25 +623,25 @@ module mod_cbmz_rates1
 !
 ! -------------------------------------------------------------------
 !
-    real(rk8) function ytn(c,tempx,denx)
+    real(rkx) function ytn(c,tempx,denx)
 !
       implicit none
       ! Number of carbon atoms in RO2
-      real(rk8) , intent(in) :: c
+      real(rkx) , intent(in) :: c
       ! temperature K
-      real(rk8) , intent(in) :: tempx
+      real(rkx) , intent(in) :: tempx
       ! density, molec/cm3
-      real(rk8) , intent(in) :: denx
+      real(rkx) , intent(in) :: denx
 !
-      real(rk8) :: x
-      real(rk8) :: y
-      real(rk8) :: z
-      real(rk8) , parameter :: par = 4.3D-25
+      real(rkx) :: x
+      real(rkx) :: y
+      real(rkx) :: z
+      real(rkx) , parameter :: par = 4.3e-25_rkx
 
-      x = par*tempx*dexp(1.08D0*c)*denx*(300.0D0/tempx)**5.05D0
-      y = 0.384D0*(300.0D0/tempx)**4.16D0
-      z = d_one / ( d_one + (dlog10(x/y))**2 )
-      ytn = ( x / (d_one + x/y ))*(0.467D0**z)
+      x = par*tempx*exp(1.08_rkx*c)*denx*(300.0_rkx/tempx)**5.05_rkx
+      y = 0.384_rkx*(300.0_rkx/tempx)**4.16_rkx
+      z = d_one / ( d_one + (log10(x/y))**2 )
+      ytn = ( x / (d_one + x/y ))*(0.467_rkx**z)
     end function ytn
 !
 end module mod_cbmz_rates1

@@ -149,7 +149,7 @@ program clm2rcm
   istatus = nf90_enddef(ncid)
   call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error End Definitions NetCDF output')
-  hptop = real(ptop*10.0D0)
+  hptop = real(ptop*10.0_rkx,rk4)
   call write_vertical_coord(ncid,sigx,hptop,izvar)
   call write_horizontal_coord(ncid,xjx,yiy,ihvar)
   ipnt = 1

@@ -20,18 +20,14 @@
 !
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+module mod_cbmz_jacobiansp
 
+  public
+  save
 
-MODULE mod_cbmz_JacobianSP
+  ! sparse jacobian data
 
-  PUBLIC
-  SAVE
-
-
-! Sparse Jacobian Data
-
-
-  INTEGER, PARAMETER, DIMENSION(360) :: LU_IROW_0 = (/ &
+  integer , parameter , dimension(360) :: lu_irow_0 = (/ &
        1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  3,  3, &
        3,  3,  4,  4,  4,  4,  4,  4,  4,  4,  5,  5, &
        5,  6,  6,  6,  7,  7,  7,  8,  8,  9,  9,  9, &
@@ -62,7 +58,7 @@ MODULE mod_cbmz_JacobianSP
       47, 47, 47, 47, 47, 47, 47, 47, 47, 48, 48, 48, &
       48, 48, 48, 48, 48, 48, 48, 48, 48, 49, 49, 49, &
       49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 50, 50 /)
-  INTEGER, PARAMETER, DIMENSION(240) :: LU_IROW_1 = (/ &
+  integer , parameter , dimension(240) :: lu_irow_1 = (/ &
       50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, &
       50, 50, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, &
       51, 51, 51, 51, 51, 51, 52, 52, 52, 52, 52, 52, &
@@ -83,10 +79,10 @@ MODULE mod_cbmz_JacobianSP
       57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, &
       57, 57, 57, 57, 58, 58, 58, 58, 58, 58, 58, 58, &
       58, 58, 58, 58, 58, 58, 58, 58, 58, 58, 58, 58 /)
-  INTEGER, PARAMETER, DIMENSION(600) :: LU_IROW = (/&
-    LU_IROW_0, LU_IROW_1 /)
+  integer , parameter , dimension(600) :: lu_irow = (/&
+    lu_irow_0, lu_irow_1 /)
 
-  INTEGER, PARAMETER, DIMENSION(360) :: LU_ICOL_0 = (/ &
+  integer , parameter , dimension(360) :: lu_icol_0 = (/ &
        1, 25, 37, 40, 53, 55, 58,  2, 11, 54,  3, 25, &
       40, 53,  4, 37, 38, 40, 47, 52, 53, 58,  5, 16, &
       54,  6, 41, 52,  7, 56, 58,  8, 54,  9, 35, 53, &
@@ -117,7 +113,7 @@ MODULE mod_cbmz_JacobianSP
       32, 33, 38, 47, 52, 53, 54, 55, 57, 36, 37, 47, &
       48, 49, 50, 51, 52, 53, 54, 55, 57, 33, 34, 38, &
       47, 48, 49, 50, 51, 52, 53, 54, 55, 57, 30, 32 /)
-  INTEGER, PARAMETER, DIMENSION(240) :: LU_ICOL_1 = (/ &
+  integer , parameter , dimension(240) :: lu_icol_1 = (/ &
       33, 37, 38, 40, 44, 47, 49, 50, 51, 52, 53, 54, &
       55, 57, 15, 19, 26, 32, 33, 38, 44, 47, 50, 51, &
       52, 53, 54, 55, 56, 57,  8, 10, 11, 12, 16, 17, &
@@ -138,24 +134,23 @@ MODULE mod_cbmz_JacobianSP
       43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, &
       55, 56, 57, 58,  7, 31, 36, 37, 38, 40, 42, 45, &
       47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58 /)
-  INTEGER, PARAMETER, DIMENSION(600) :: LU_ICOL = (/&
-    LU_ICOL_0, LU_ICOL_1 /)
+  integer , parameter , dimension(600) :: lu_icol = (/&
+    lu_icol_0, lu_icol_1 /)
 
-  INTEGER, PARAMETER, DIMENSION(59) :: LU_CROW = (/ &
+  integer , parameter , dimension(59) :: lu_crow = (/ &
        1,  8, 11, 15, 23, 26, 29, 32, 34, 37, 41, 45, &
       47, 52, 57, 62, 65, 69, 73, 78, 83, 88, 92, 96, &
      100,103,108,115,130,143,159,166,171,176,181,191, &
      203,207,211,230,234,253,266,279,288,308,325,334, &
      346,359,375,391,432,447,493,519,553,581,601 /)
 
-  INTEGER, PARAMETER, DIMENSION(59) :: LU_DIAG = (/ &
+  integer , parameter , dimension(59) :: lu_diag = (/ &
        1,  8, 11, 15, 23, 26, 29, 32, 34, 37, 41, 45, &
       47, 52, 57, 62, 65, 69, 75, 78, 83, 88, 92, 96, &
      100,105,109,116,133,144,161,166,171,176,184,192, &
      203,207,219,230,242,258,270,281,298,314,328,337, &
      351,368,384,425,441,488,515,550,579,600,601 /)
 
-
-END MODULE mod_cbmz_JacobianSP
+end module mod_cbmz_jacobiansp
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

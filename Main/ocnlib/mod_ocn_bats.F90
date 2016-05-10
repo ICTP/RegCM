@@ -39,9 +39,9 @@ module mod_ocn_bats
 
   subroutine ocnbats
     implicit none
-    real(rk8) :: ribd , cdrn , rib , qgrd
-    real(rk8) :: qs , delq , delt , fact , factuv
-    real(rk8) :: cdrmin , cdrx , ribn
+    real(rkx) :: ribd , cdrn , rib , qgrd
+    real(rkx) :: qs , delq , delt , fact , factuv
+    real(rkx) :: cdrmin , cdrx , ribn
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'ocnbats'
@@ -64,25 +64,25 @@ module mod_ocn_bats
       delq = (qs/(d_one+qs) - qgrd/(d_one+qgrd))
       ! Comnpute drag coefficient over ocean
       ribd = usw(i)**2 + vsw(i)**2 + wtur**2
-      cdrn = (vonkar/dlog(ht(i)/zoce))**2
+      cdrn = (vonkar/log(ht(i)/zoce))**2
       ribn = ht(i)*egrav*(d_one - tgrd(i)/sts(i))
       rib = ribn/ribd
       if ( rib < d_zero ) then
-        cdrx = cdrn*(d_one+24.5D0*dsqrt(-cdrn*rib))
+        cdrx = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*rib))
       else
-        cdrx = cdrn/(d_one+11.5D0*rib)
+        cdrx = cdrn/(d_one+11.5_rkx*rib)
       end if
-      cdrmin = max(0.25D0*cdrn,6.0D-4)
+      cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
       if ( cdrx < cdrmin ) cdrx = cdrmin
-      drag(i) = cdrx*dsqrt(ribd)*rhox(i)
+      drag(i) = cdrx*sqrt(ribd)*rhox(i)
 
       ! Update output variables
       evpr(i) = -drag(i)*delq
       sent(i) = -drag(i)*cpd*delt
-      if ( dabs(sent(i)) < dlowval ) sent(i) = d_zero
-      if ( dabs(evpr(i)) < dlowval ) evpr(i) = d_zero
-      fact = dlog(ht(i)*d_half)/dlog(ht(i)/zoce)
-      factuv = dlog(ht(i)*d_r10)/dlog(ht(i)/zoce)
+      if ( abs(sent(i)) < dlowval ) sent(i) = d_zero
+      if ( abs(evpr(i)) < dlowval ) evpr(i) = d_zero
+      fact = log(ht(i)*d_half)/log(ht(i)/zoce)
+      factuv = log(ht(i)*d_r10)/log(ht(i)/zoce)
       u10m(i) = usw(i)*(d_one-factuv)
       v10m(i) = vsw(i)*(d_one-factuv)
       t2m(i) = sts(i) - delt*fact
@@ -95,15 +95,15 @@ module mod_ocn_bats
 
   subroutine seaice
     implicit none
-    real(rk8) :: age , scrat , u1 , ribd
-    real(rk8) :: cdrn , rib , cdr , qgrd
-    real(rk8) :: ps , qs , delq , delt , rhosw , ribl
-    real(rk8) :: bb , fact , fss , hrl , hs , hsl
-    real(rk8) :: rhosw3 , rsd1 , smc4 , smt , tg , tgrnd , qice
-    real(rk8) :: ksnow , rsi , uv995 , sficemm
-    real(rk8) :: arg , arg2 , age1 , age2 , tage
-    real(rk8) :: cdrmin , cdrx , clead , dela , dela0 , dels
-    real(rk8) :: factuv , fevpg , fseng , qgrnd , ribn , sold , vspda
+    real(rkx) :: age , scrat , u1 , ribd
+    real(rkx) :: cdrn , rib , cdr , qgrd
+    real(rkx) :: ps , qs , delq , delt , rhosw , ribl
+    real(rkx) :: bb , fact , fss , hrl , hs , hsl
+    real(rkx) :: rhosw3 , rsd1 , smc4 , smt , tg , tgrnd , qice
+    real(rkx) :: ksnow , rsi , uv995 , sficemm
+    real(rkx) :: arg , arg2 , age1 , age2 , tage
+    real(rkx) :: cdrmin , cdrx , clead , dela , dela0 , dels
+    real(rkx) :: factuv , fevpg , fseng , qgrnd , ribn , sold , vspda
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'seaice'
@@ -119,7 +119,7 @@ module mod_ocn_bats
         tgrd(i) = tgb(i)
       end if
 
-      uv995 = dsqrt(usw(i)**2+vsw(i)**2)
+      uv995 = sqrt(usw(i)**2+vsw(i)**2)
 
       ! Update Snow Cover
       delt = sts(i) - tgrd(i)
@@ -138,53 +138,53 @@ module mod_ocn_bats
         sncv(i) = d_zero
         snag(i) = d_zero
       else
-        arg = 5.0D3*(d_one/tzero-d_one/tgrd(i))
-        age1 = dexp(arg)
-        arg2 = dmin1(d_zero,d_10*arg)
-        age2 = dexp(arg2)
+        arg = 5.0e3_rkx*(d_one/tzero-d_one/tgrd(i))
+        age1 = exp(arg)
+        arg2 = min(d_zero,d_10*arg)
+        age2 = exp(arg2)
         tage = age1 + age2 + age3
-        dela0 = 1.0D-6*dtocn
+        dela0 = 1.0e-6_rkx*dtocn
         dela = dela0*tage
-        dels = d_r10*dmax1(d_zero,sncv(i)-sold)
+        dels = d_r10*max(d_zero,sncv(i)-sold)
         snag(i) = (snag(i)+dela)*(d_one-dels)
         if ( snag(i) < dlowval ) snag(i) = d_zero
       end if
-      if ( sncv(i) > 800.0D0 ) snag(i) = d_zero
+      if ( sncv(i) > 800.0_rkx ) snag(i) = d_zero
 
       ! Scvk is used to compute albedo over seaice
       ! Is the fraction of seaice covered by snow
       age = (d_one-d_one/(d_one+snag(i)))
-      scrat = sncv(i)*0.01D0/(d_one+d_three*age)
-      scvk(i) = scrat/(0.1D0+scrat)
+      scrat = sncv(i)*0.01_rkx/(d_one+d_three*age)
+      scvk(i) = scrat/(0.1_rkx+scrat)
 
       ! Compute drag velocity over seaice
-      cdrn = (vonkar/dlog(ht(i)/zlnd))**2
+      cdrn = (vonkar/log(ht(i)/zlnd))**2
       if ( delt < d_zero ) then
-        u1 = wtur + d_two*dsqrt(-delt)
+        u1 = wtur + d_two*sqrt(-delt)
       else
         u1 = wtur
       end if
       ribd = usw(i)**2 + vsw(i)**2 + u1**2
-      vspda = dsqrt(ribd)
+      vspda = sqrt(ribd)
       ribn = ht(i)*egrav*(delt/sts(i))
       rib = ribn/ribd
       if ( rib < d_zero ) then
-        cdr = cdrn*(d_one+24.5D0*dsqrt(-cdrn*rib))
+        cdr = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*rib))
       else
-        cdr = cdrn/(d_one+11.5D0*rib)
+        cdr = cdrn/(d_one+11.5_rkx*rib)
       end if
-      cdrmin = dmax1(0.25D0*cdrn,6.0D-4)
+      cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
       if ( cdr < cdrmin ) cdr = cdrmin
       ! Over snow
       ! rhosw = density of snow relative to water
-      rhosw = 0.10D0*(d_one+d_three*age)
+      rhosw = 0.10_rkx*(d_one+d_three*age)
       rhosw3 = rhosw**3
-      cdrn = (vonkar/dlog(ht(i)/zsno))**2
-      ribl = (d_one-271.5D0/sts(i))*ht(i)*egrav/ribd
+      cdrn = (vonkar/log(ht(i)/zsno))**2
+      ribl = (d_one-271.5_rkx/sts(i))*ht(i)*egrav/ribd
       if ( ribl < d_zero ) then
-        clead = cdrn*(d_one+24.5D0*dsqrt(-cdrn*ribl))
+        clead = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*ribl))
       else
-        clead = cdrn/(d_one+11.5D0*rib)
+        clead = cdrn/(d_one+11.5_rkx*rib)
       end if
       cdrx = (d_one-aarea)*cdr + aarea*clead
       drag(i) = cdrx*vspda*rhox(i)
@@ -206,15 +206,15 @@ module mod_ocn_bats
         rsd1 = rsd1 + csnw*sncv(i)*d_r1000
         ! subsurface heat flux through ice
         ! Following Maykut and Untersteiner (1971) and Semtner (1976)
-        rsi = 1.4D0*rhosw3*sficemm/sncv(i)
-        ksnow = 7.0D-4*rhosw3/sncv(i)
+        rsi = 1.4_rkx*rhosw3*sficemm/sncv(i)
+        ksnow = 7.0e-4_rkx*rhosw3/sncv(i)
         fss = ksnow * (tgbrd(i)-tgrd(i)) / (d_one + rsi)
       else
         ! Slack, 1980
-        fss = 2.14D0*(tgbrd(i)-tgrd(i))/sficemm
+        fss = 2.14_rkx*(tgbrd(i)-tgrd(i))/sficemm
       end if
       if ( icpl(i) == 0 ) then
-        sfice(i) = (sficemm + 1.087D0*(fss/wlhf)*dtocn) * d_r1000
+        sfice(i) = (sficemm + 1.087_rkx*(fss/wlhf)*dtocn) * d_r1000
       end if
       ! set sea ice parameter for melting if seaice less than 2 cm
       if ( sfice(i) <= iceminh ) then
@@ -233,10 +233,10 @@ module mod_ocn_bats
         ! assume lead ocean temp is -1.8c
         ! flux of heat and moisture through leads
         ! sat. mixing ratio at t=-1.8c is 3.3e-3
-        qice = 3.3D-3 * stdp/sfps(i)
+        qice = 3.3e-3_rkx * stdp/sfps(i)
         !
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
-        tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*(tzero-1.8D0))/cdrx
+        tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*(tzero-1.8_rkx))/cdrx
         fact = -drag(i)
         delt = sts(i) - tgrnd
         delq = qs - qgrnd
@@ -244,7 +244,7 @@ module mod_ocn_bats
         evpr(i) = fact*delq
         sent(i) = fact*cpd*delt
         hrl = rhox(i)*vspda*clead * (qice-qs)
-        hsl = rhox(i)*vspda*clead * (tzero-1.8D0-sts(i))*cpd
+        hsl = rhox(i)*vspda*clead * (tzero-1.8_rkx-sts(i))*cpd
         ! get fluxes over ice for sublimation (subrout snow)
         ! and melt (below) calculation
         fseng = (sent(i)-aarea*hsl)/(d_one-aarea)
@@ -261,7 +261,7 @@ module mod_ocn_bats
           smt = (sncv(i)/dtocn)
           ! rho(h2o)/rho(ice) = 1.087
           if ( icpl(i) == 0 ) then
-            sfice(i) = sfice(i) + dtocn*(smt-sm(i))*1.087D0*d_r1000
+            sfice(i) = sfice(i) + dtocn*(smt-sm(i))*1.087_rkx*d_r1000
           end if
           sm(i) = sm(i)+smt
           ! set sea ice parameter for melting if less than 2 cm
@@ -283,10 +283,10 @@ module mod_ocn_bats
           tgb(i) = tgrd(i)
         end if
       end if
-      if ( dabs(sent(i)) < dlowval ) sent(i) = d_zero
-      if ( dabs(evpr(i)) < dlowval ) evpr(i) = d_zero
-      fact = dlog(ht(i)*d_half)/dlog(ht(i)/zoce)
-      factuv = dlog(ht(i)*d_r10)/dlog(ht(i)/zoce)
+      if ( abs(sent(i)) < dlowval ) sent(i) = d_zero
+      if ( abs(evpr(i)) < dlowval ) evpr(i) = d_zero
+      fact = log(ht(i)*d_half)/log(ht(i)/zoce)
+      factuv = log(ht(i)*d_r10)/log(ht(i)/zoce)
       u10m(i) = usw(i)*(d_one-factuv)
       v10m(i) = vsw(i)*(d_one-factuv)
       taux(i) = dmissval

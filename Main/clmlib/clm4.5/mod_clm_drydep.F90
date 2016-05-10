@@ -40,7 +40,7 @@ module mod_clm_drydep
   character(16) , public :: drydep_method = DD_XLND
 
   ! measure of the acidity (dimensionless)
-  real(rk8), public, parameter :: ph     = 1.D-5
+  real(rkx), public, parameter :: ph     = 1.e-5_rkx
 
   logical, public  :: lnd_drydep  ! If dry-dep fields passed
   integer(ik4), public  :: n_drydep = 0 ! Number in drypdep list
@@ -52,9 +52,9 @@ module mod_clm_drydep
   character(len=80), public :: drydep_fields_token = ''
 
   ! reactivity factor for oxidation (dimensioness)
-  real(rk8), public, allocatable, dimension(:) :: foxd
+  real(rkx), public, allocatable, dimension(:) :: foxd
   ! ratio of molecular diffusivity (D_H2O/D_species; dimensionless)
-  real(rk8), public, allocatable, dimension(:) :: drat
+  real(rkx), public, allocatable, dimension(:) :: drat
   ! mapping to species table
   integer(ik4),  public, allocatable, dimension(:) :: mapping
   ! --- Indices for each species ---
@@ -97,17 +97,17 @@ module mod_clm_drydep
   !---------------------------------------------------------------------------
 
   !--- deposition of h2 and CO on soils ---
-  real(rk8), parameter, public :: h2_a(NLUse) = &
-                (/  0.000D0,  0.000D0, 0.270D0,  0.000D0,  0.000D0,  &
-                    0.000D0,  0.000D0, 0.000D0,  0.000D0,  0.000D0, 0.000D0/)
+  real(rkx), parameter, public :: h2_a(NLUse) = &
+                (/  0.000_rkx,  0.000_rkx, 0.270_rkx,  0.000_rkx,  0.000_rkx,  &
+                    0.000_rkx,  0.000_rkx, 0.000_rkx,  0.000_rkx,  0.000_rkx, 0.000_rkx/)
   !--- deposition of h2 and CO on soils ---
-  real(rk8), parameter, public :: h2_b(NLUse) = &
-                (/  0.000D0,-41.390D0, -0.472D0,-41.900D0,-41.900D0,  &
-                  -41.900D0,  0.000D0,  0.000D0,  0.000D0,-41.390D0,  0.000D0/)
+  real(rkx), parameter, public :: h2_b(NLUse) = &
+                (/  0.000_rkx,-41.390_rkx, -0.472_rkx,-41.900_rkx,-41.900_rkx,  &
+                  -41.900_rkx,  0.000_rkx,  0.000_rkx,  0.000_rkx,-41.390_rkx,  0.000_rkx/)
   !--- deposition of h2 and CO on soils ---
-  real(rk8), parameter, public :: h2_c(NLUse) = &
-                (/  0.000D0, 16.850D0, 1.235D0, 19.700D0, 19.700D0, &
-                   19.700D0,  0.000D0, 0.000D0,  0.000D0, 17.700D0, 1.000D0/)
+  real(rkx), parameter, public :: h2_c(NLUse) = &
+                (/  0.000_rkx, 16.850_rkx, 1.235_rkx, 19.700_rkx, 19.700_rkx, &
+                   19.700_rkx,  0.000_rkx, 0.000_rkx,  0.000_rkx, 17.700_rkx, 1.000_rkx/)
 
   !--- deposition of h2 and CO on soils
   !
@@ -119,138 +119,138 @@ module mod_clm_drydep
   !--- rcls: Lower canopy resistance for SO2        (s.m-1)
   !--- rclo: Lower canopy resistance for O3         (s.m-1)
   !
-  real(rk8), public, dimension(NSeas,NLUse) :: ri, rlu, rac, &
+  real(rkx), public, dimension(NSeas,NLUse) :: ri, rlu, rac, &
           rgss, rgso, rcls, rclo
 
   data ri  (1,1:NLUse) &
-       /1.D36,  60.D0, 120.D0,  70.D0, 130.D0, 100.D0,1.D36,1.D36,  &
-        80.D0, 100.D0, 150.D0/
+       /1.e36_rkx,  60._rkx, 120._rkx,  70._rkx, 130._rkx, 100._rkx,1.e36_rkx,1.e36_rkx,  &
+        80._rkx, 100._rkx, 150._rkx/
   data rlu (1,1:NLUse) &
-       /1.D36,2000.D0,2000.D0,2000.D0,2000.D0,2000.D0,1.D36,1.D36,&
-        2500.D0,2000.D0,4000.D0/
+       /1.e36_rkx,2000._rkx,2000._rkx,2000._rkx,2000._rkx,2000._rkx,1.e36_rkx,1.e36_rkx,&
+        2500._rkx,2000._rkx,4000._rkx/
   data rac (1,1:NLUse) &
-       / 100.D0, 200.D0, 100.D0,2000.D0,2000.D0,2000.D0,   0.D0,   &
-         0.D0, 300.D0, 150.D0, 200.D0/
+       / 100._rkx, 200._rkx, 100._rkx,2000._rkx,2000._rkx,2000._rkx,   0._rkx,   &
+         0._rkx, 300._rkx, 150._rkx, 200._rkx/
   data rgss(1,1:NLUse) &
-       / 400.D0, 150.D0, 350.D0, 500.D0, 500.D0, 100.D0,   0.D0, &
-         1000.D0,  0.D0, 220.D0, 400.D0/
+       / 400._rkx, 150._rkx, 350._rkx, 500._rkx, 500._rkx, 100._rkx,   0._rkx, &
+         1000._rkx,  0._rkx, 220._rkx, 400._rkx/
   data rgso(1,1:NLUse) &
-       / 300.D0, 150.D0, 200.D0, 200.D0, 200.D0, 300.D0,2000.D0, &
-         400.D0,1000.D0, 180.D0, 200.D0/
+       / 300._rkx, 150._rkx, 200._rkx, 200._rkx, 200._rkx, 300._rkx,2000._rkx, &
+         400._rkx,1000._rkx, 180._rkx, 200._rkx/
   data rcls(1,1:NLUse) &
-       /1.D36,2000.D0,2000.D0,2000.D0,2000.D0,2000.D0,1.D36,1.D36, &
-        2500.D0,2000.D0,4000.D0/
+       /1.e36_rkx,2000._rkx,2000._rkx,2000._rkx,2000._rkx,2000._rkx,1.e36_rkx,1.e36_rkx, &
+        2500._rkx,2000._rkx,4000._rkx/
   data rclo(1,1:NLUse) &
-       /1.D36,1000.D0,1000.D0,1000.D0,1000.D0,1000.D0,1.D36,1.D36,&
-        1000.D0,1000.D0,1000.D0/
+       /1.e36_rkx,1000._rkx,1000._rkx,1000._rkx,1000._rkx,1000._rkx,1.e36_rkx,1.e36_rkx,&
+        1000._rkx,1000._rkx,1000._rkx/
 
   data ri  (2,1:NLUse) &
-       /1.D36,1.D36,1.D36,1.D36, 250.D0, 500.D0,1.D36,1.D36,1.D36,1.D36,1.D36/
+       /1.e36_rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx, 250._rkx, 500._rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx/
   data rlu (2,1:NLUse) &
-       /1.D36,9000.D0,9000.D0,9000.D0,4000.D0,8000.D0,1.D36,1.D36,&
-       9000.D0,9000.D0,9000.D0/
+       /1.e36_rkx,9000._rkx,9000._rkx,9000._rkx,4000._rkx,8000._rkx,1.e36_rkx,1.e36_rkx,&
+       9000._rkx,9000._rkx,9000._rkx/
   data rac (2,1:NLUse) &
-       / 100.D0, 150.D0, 100.D0,1500.D0,2000.D0,1700.D0,   0.D0,  &
-         0.D0, 200.D0, 120.D0, 140.D0/
+       / 100._rkx, 150._rkx, 100._rkx,1500._rkx,2000._rkx,1700._rkx,   0._rkx,  &
+         0._rkx, 200._rkx, 120._rkx, 140._rkx/
   data rgss(2,1:NLUse) &
-       / 400.D0, 200.D0, 350.D0, 500.D0, 500.D0, 100.D0,   0.D0, &
-        1000.D0,   0.D0, 300.D0, 400.D0/
+       / 400._rkx, 200._rkx, 350._rkx, 500._rkx, 500._rkx, 100._rkx,   0._rkx, &
+        1000._rkx,   0._rkx, 300._rkx, 400._rkx/
   data rgso(2,1:NLUse) &
-       / 300.D0, 150.D0, 200.D0, 200.D0, 200.D0, 300.D0,2000.D0, &
-         400.D0, 800.D0, 180.D0, 200.D0/
+       / 300._rkx, 150._rkx, 200._rkx, 200._rkx, 200._rkx, 300._rkx,2000._rkx, &
+         400._rkx, 800._rkx, 180._rkx, 200._rkx/
   data rcls(2,1:NLUse) &
-       /1.D36,9000.D0,9000.D0,9000.D0,2000.D0,4000.D0,1.D36,1.D36, &
-        9000.D0,9000.D0,9000.D0/
+       /1.e36_rkx,9000._rkx,9000._rkx,9000._rkx,2000._rkx,4000._rkx,1.e36_rkx,1.e36_rkx, &
+        9000._rkx,9000._rkx,9000._rkx/
   data rclo(2,1:NLUse) &
-       /1.D36, 400.D0, 400.D0, 400.D0,1000.D0, 600.D0,1.D36,1.D36, &
-       400.D0, 400.D0, 400.D0/
+       /1.e36_rkx, 400._rkx, 400._rkx, 400._rkx,1000._rkx, 600._rkx,1.e36_rkx,1.e36_rkx, &
+       400._rkx, 400._rkx, 400._rkx/
 
   data ri  (3,1:NLUse) &
-       /1.D36,1.D36,1.D36,1.D36, 250.D0, 500.D0,1.D36,1.D36,1.D36,1.D36,1.D36/
+       /1.e36_rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx, 250._rkx, 500._rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx/
   data rlu (3,1:NLUse) &
-       /1.D36,1.D36,9000.D0,9000.D0,4000.D0,8000.D0,1.D36,1.D36, &
-       9000.D0,9000.D0,9000.D0/
+       /1.e36_rkx,1.e36_rkx,9000._rkx,9000._rkx,4000._rkx,8000._rkx,1.e36_rkx,1.e36_rkx, &
+       9000._rkx,9000._rkx,9000._rkx/
   data rac (3,1:NLUse) &
-       / 100.D0,  10.D0, 100.D0,1000.D0,2000.D0,1500.D0,   0.D0, &
-         0.D0, 100.D0, 50.D0, 120.D0/
+       / 100._rkx,  10._rkx, 100._rkx,1000._rkx,2000._rkx,1500._rkx,   0._rkx, &
+         0._rkx, 100._rkx, 50._rkx, 120._rkx/
   data rgss(3,1:NLUse) &
-       / 400.D0, 150.D0, 350.D0, 500.D0, 500.D0, 200.D0,   0.D0, &
-        1000.D0,   0.D0, 200.D0, 400.D0/
+       / 400._rkx, 150._rkx, 350._rkx, 500._rkx, 500._rkx, 200._rkx,   0._rkx, &
+        1000._rkx,   0._rkx, 200._rkx, 400._rkx/
   data rgso(3,1:NLUse) &
-       / 300.D0, 150.D0, 200.D0, 200.D0, 200.D0, 300.D0,2000.D0, &
-         400.D0,1000.D0, 180.D0, 200.D0/
+       / 300._rkx, 150._rkx, 200._rkx, 200._rkx, 200._rkx, 300._rkx,2000._rkx, &
+         400._rkx,1000._rkx, 180._rkx, 200._rkx/
   data rcls(3,1:NLUse) &
-       /1.D36,1.D36,9000.D0,9000.D0,3000.D0,6000.D0,1.D36,1.D36, &
-        9000.D0,9000.D0,9000.D0/
+       /1.e36_rkx,1.e36_rkx,9000._rkx,9000._rkx,3000._rkx,6000._rkx,1.e36_rkx,1.e36_rkx, &
+        9000._rkx,9000._rkx,9000._rkx/
   data rclo(3,1:NLUse) &
-       /1.D36,1000.D0, 400.D0, 400.D0,1000.D0, 600.D0,1.D36,1.D36, &
-        800.D0, 600.D0, 600.D0/
+       /1.e36_rkx,1000._rkx, 400._rkx, 400._rkx,1000._rkx, 600._rkx,1.e36_rkx,1.e36_rkx, &
+        800._rkx, 600._rkx, 600._rkx/
 
   data ri  (4,1:NLUse) &
-       /1.D36,1.D36,1.D36,1.D36, 400.D0, 800.D0,1.D36,1.D36,1.D36,1.D36,1.D36/
+       /1.e36_rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx, 400._rkx, 800._rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx/
   data rlu (4,1:NLUse) &
-       /1.D36,1.D36,1.D36,1.D36,6000.D0,9000.D0,1.D36,1.D36, &
-        9000.D0,9000.D0,9000.D0/
+       /1.e36_rkx,1.e36_rkx,1.e36_rkx,1.e36_rkx,6000._rkx,9000._rkx,1.e36_rkx,1.e36_rkx, &
+        9000._rkx,9000._rkx,9000._rkx/
   data rac (4,1:NLUse) &
-       / 100.D0,  10.D0,  10.D0,1000.D0,2000.D0,1500.D0,   0.D0, &
-          0.D0,  50.D0,  10.D0,  50.D0/
+       / 100._rkx,  10._rkx,  10._rkx,1000._rkx,2000._rkx,1500._rkx,   0._rkx, &
+          0._rkx,  50._rkx,  10._rkx,  50._rkx/
   data rgss(4,1:NLUse) &
-       / 100.D0, 100.D0, 100.D0, 100.D0, 100.D0, 100.D0,   0.D0, &
-        1000.D0, 100.D0, 100.D0,  50.D0/
+       / 100._rkx, 100._rkx, 100._rkx, 100._rkx, 100._rkx, 100._rkx,   0._rkx, &
+        1000._rkx, 100._rkx, 100._rkx,  50._rkx/
   data rgso(4,1:NLUse) &
-       / 600.D0,3500.D0,3500.D0,3500.D0,3500.D0,3500.D0,2000.D0, &
-         400.D0,3500.D0,3500.D0,3500.D0/
+       / 600._rkx,3500._rkx,3500._rkx,3500._rkx,3500._rkx,3500._rkx,2000._rkx, &
+         400._rkx,3500._rkx,3500._rkx,3500._rkx/
   data rcls(4,1:NLUse) &
-       /1.D36,1.D36,1.D36,9000.D0, 200.D0, 400.D0,1.D36,1.D36, &
-        9000.D0,1.D36,9000.D0/
+       /1.e36_rkx,1.e36_rkx,1.e36_rkx,9000._rkx, 200._rkx, 400._rkx,1.e36_rkx,1.e36_rkx, &
+        9000._rkx,1.e36_rkx,9000._rkx/
   data rclo(4,1:NLUse) &
-       /1.D36,1000.D0,1000.D0, 400.D0,1500.D0, 600.D0,1.D36,1.D36, &
-        800.D0,1000.D0, 800.D0/
+       /1.e36_rkx,1000._rkx,1000._rkx, 400._rkx,1500._rkx, 600._rkx,1.e36_rkx,1.e36_rkx, &
+        800._rkx,1000._rkx, 800._rkx/
 
   data ri  (5,1:NLUse) &
-       /1.D36, 120.D0, 240.D0, 140.D0, 250.D0, 190.D0,1.D36,1.D36, &
-       160.D0, 200.D0, 300.D0/
+       /1.e36_rkx, 120._rkx, 240._rkx, 140._rkx, 250._rkx, 190._rkx,1.e36_rkx,1.e36_rkx, &
+       160._rkx, 200._rkx, 300._rkx/
   data rlu (5,1:NLUse) &
-       /1.D36,4000.D0,4000.D0,4000.D0,2000.D0,3000.D0,1.D36,1.D36, &
-        4000.D0,4000.D0,8000.D0/
+       /1.e36_rkx,4000._rkx,4000._rkx,4000._rkx,2000._rkx,3000._rkx,1.e36_rkx,1.e36_rkx, &
+        4000._rkx,4000._rkx,8000._rkx/
   data rac (5,1:NLUse) &
-       / 100.D0,  50.D0,  80.D0,1200.D0,2000.D0,1500.D0,   0.D0,  &
-         0.D0, 200.D0, 60.D0, 120.D0/
+       / 100._rkx,  50._rkx,  80._rkx,1200._rkx,2000._rkx,1500._rkx,   0._rkx,  &
+         0._rkx, 200._rkx, 60._rkx, 120._rkx/
   data rgss(5,1:NLUse) &
-       / 500.D0, 150.D0, 350.D0, 500.D0, 500.D0, 200.D0,   0.D0, &
-        1000.D0,   0.D0, 250.D0, 400.D0/
+       / 500._rkx, 150._rkx, 350._rkx, 500._rkx, 500._rkx, 200._rkx,   0._rkx, &
+        1000._rkx,   0._rkx, 250._rkx, 400._rkx/
   data rgso(5,1:NLUse) &
-       / 300.D0, 150.D0, 200.D0, 200.D0, 200.D0, 300.D0,2000.D0, &
-         400.D0,1000.D0, 180.D0, 200.D0/
+       / 300._rkx, 150._rkx, 200._rkx, 200._rkx, 200._rkx, 300._rkx,2000._rkx, &
+         400._rkx,1000._rkx, 180._rkx, 200._rkx/
   data rcls(5,1:NLUse) &
-       /1.D36,4000.D0,4000.D0,4000.D0,2000.D0,3000.D0,1.D36,1.D36, &
-         4000.D0,4000.D0,8000.D0/
+       /1.e36_rkx,4000._rkx,4000._rkx,4000._rkx,2000._rkx,3000._rkx,1.e36_rkx,1.e36_rkx, &
+         4000._rkx,4000._rkx,8000._rkx/
   data rclo(5,1:NLUse) &
-       /1.D36,1000.D0, 500.D0, 500.D0,1500.D0, 700.D0,1.D36,1.D36, &
-         600.D0, 800.D0, 800.D0/
+       /1.e36_rkx,1000._rkx, 500._rkx, 500._rkx,1500._rkx, 700._rkx,1.e36_rkx,1.e36_rkx, &
+         600._rkx, 800._rkx, 800._rkx/
 
   !---------------------------------------------------------------------------
   !         ... roughness length
   !---------------------------------------------------------------------------
-  real(rk8), public, dimension(NSeas,NLUse) :: z0
+  real(rkx), public, dimension(NSeas,NLUse) :: z0
 
   data z0  (1,1:NLUse) &
-       /1.000D0,0.250D0,0.050D0,1.000D0,1.000D0,1.000D0, &
-        0.0006D0,0.002D0,0.150D0,0.100D0,0.100D0/
+       /1.000_rkx,0.250_rkx,0.050_rkx,1.000_rkx,1.000_rkx,1.000_rkx, &
+        0.0006_rkx,0.002_rkx,0.150_rkx,0.100_rkx,0.100_rkx/
   data z0  (2,1:NLUse) &
-       /1.000D0,0.100D0,0.050D0,1.000D0,1.000D0,1.000D0, &
-        0.0006D0,0.002D0,0.100D0,0.080D0,0.080D0/
+       /1.000_rkx,0.100_rkx,0.050_rkx,1.000_rkx,1.000_rkx,1.000_rkx, &
+        0.0006_rkx,0.002_rkx,0.100_rkx,0.080_rkx,0.080_rkx/
   data z0  (3,1:NLUse) &
-       /1.000D0,0.005D0,0.050D0,1.000D0,1.000D0,1.000D0, &
-        0.0006D0,0.002D0,0.100D0,0.020D0,0.060D0/
+       /1.000_rkx,0.005_rkx,0.050_rkx,1.000_rkx,1.000_rkx,1.000_rkx, &
+        0.0006_rkx,0.002_rkx,0.100_rkx,0.020_rkx,0.060_rkx/
   data z0  (4,1:NLUse) &
-       /1.000D0,0.001D0,0.001D0,1.000D0,1.000D0,1.000D0, &
-        0.0006D0,0.002D0,0.001D0,0.001D0,0.040D0/
+       /1.000_rkx,0.001_rkx,0.001_rkx,1.000_rkx,1.000_rkx,1.000_rkx, &
+        0.0006_rkx,0.002_rkx,0.001_rkx,0.001_rkx,0.040_rkx/
   data z0  (5,1:NLUse) &
-       /1.000D0,0.030D0,0.020D0,1.000D0,1.000D0,1.000D0, &
-        0.0006D0,0.002D0,0.010D0,0.030D0,0.060D0/
+       /1.000_rkx,0.030_rkx,0.020_rkx,1.000_rkx,1.000_rkx,1.000_rkx, &
+        0.0006_rkx,0.002_rkx,0.010_rkx,0.030_rkx,0.060_rkx/
 
-  !real(rk8), private, dimension(11,5), parameter :: z0xxx = reshape ( &
+  !real(rkx), private, dimension(11,5), parameter :: z0xxx = reshape ( &
   ! (/   1.000,0.250,0.050,1.000,1.000,1.000,0.0006,0.002,0.150,0.100,0.100 ,  &
   !      1.000,0.100,0.050,1.000,1.000,1.000,0.0006,0.002,0.100,0.080,0.080 ,  &
   !      1.000,0.005,0.050,1.000,1.000,1.000,0.0006,0.002,0.100,0.020,0.060 ,  &
@@ -262,62 +262,62 @@ module mod_clm_drydep
   !---------------------------------------------------------------------------
 
   !--- data for foxd (reactivity factor for oxidation) ----
-  real(rk8), public, parameter :: dfoxd(n_species_table) = &
-          (/  1.D0     &
-             ,1.D0     &
-             ,1.D0     &
-             ,.1D0     &
-             ,1.D-36 &
-             ,1.D-36 &
-             ,1.D0     &
-             ,.1D0     &
-             ,1.D-36 &
-             ,0.D0     &
-             ,0.D0     &
-             ,.1D0     &
-             ,1.D-36 &
-             ,1.D-36 &
-             ,1.D-36 &
-             ,.1D0     &
-             ,1.D0     &
-             ,1.D-36 &
-             ,.1D0     &
-             ,1.D0     &
-             ,1.D-36 &
-             ,.1D0     &
-             ,.1D0     &
-             ,.1D0     &
-             ,.1D0     &
-             ,1.D-36 &
-             ,1.D-36 &
-             ,.1D0     &
-             ,1.D-36 &
-             ,.1D0     &
-             ,1.D-36 &
-             ,.1D0     &
-             ,.1D0     &
-             ,1.D-36 &
-             ,1.D-36 &
-             ,1.D-36 &
-             ,1.D-36 &
-             ,.1D0     &
-             ,1.D-36 &
-             ,.1D0     &
-             ,1.D-36 &
-             ,.1D0     &
-             ,.1D0     &
-             ,.1D0     &
-             ,1.D-36 &
-             ,1.D-36 &
-             ,1.D-36 &
-             ,1.D-36 &
-             ,1.D-36 &
-             ,.1D0     &
-             ,.1D0     &
-             ,.1D0     &
-             ,1.D-36 &
-             ,1.D-36 & ! HCN
-             ,1.D-36 & ! CH3CN
+  real(rkx), public, parameter :: dfoxd(n_species_table) = &
+          (/  1._rkx     &
+             ,1._rkx     &
+             ,1._rkx     &
+             ,.1_rkx     &
+             ,1.e-36_rkx &
+             ,1.e-36_rkx &
+             ,1._rkx     &
+             ,.1_rkx     &
+             ,1.e-36_rkx &
+             ,0._rkx     &
+             ,0._rkx     &
+             ,.1_rkx     &
+             ,1.e-36_rkx &
+             ,1.e-36_rkx &
+             ,1.e-36_rkx &
+             ,.1_rkx     &
+             ,1._rkx     &
+             ,1.e-36_rkx &
+             ,.1_rkx     &
+             ,1._rkx     &
+             ,1.e-36_rkx &
+             ,.1_rkx     &
+             ,.1_rkx     &
+             ,.1_rkx     &
+             ,.1_rkx     &
+             ,1.e-36_rkx &
+             ,1.e-36_rkx &
+             ,.1_rkx     &
+             ,1.e-36_rkx &
+             ,.1_rkx     &
+             ,1.e-36_rkx &
+             ,.1_rkx     &
+             ,.1_rkx     &
+             ,1.e-36_rkx &
+             ,1.e-36_rkx &
+             ,1.e-36_rkx &
+             ,1.e-36_rkx &
+             ,.1_rkx     &
+             ,1.e-36_rkx &
+             ,.1_rkx     &
+             ,1.e-36_rkx &
+             ,.1_rkx     &
+             ,.1_rkx     &
+             ,.1_rkx     &
+             ,1.e-36_rkx &
+             ,1.e-36_rkx &
+             ,1.e-36_rkx &
+             ,1.e-36_rkx &
+             ,1.e-36_rkx &
+             ,.1_rkx     &
+             ,.1_rkx     &
+             ,.1_rkx     &
+             ,1.e-36_rkx &
+             ,1.e-36_rkx & ! HCN
+             ,1.e-36_rkx & ! CH3CN
             /)
 
   Interface seq_drydep_setHCoeff                      ! overload subroutine
@@ -326,7 +326,7 @@ module mod_clm_drydep
   End Interface
 
   !--- smallest value to use ---
-  real(rk8), private, parameter :: small_value = 1.D-36
+  real(rkx), private, parameter :: small_value = 1.e-36_rkx
 
   !---------------------------------------------------------------------------
   ! private chemical data
@@ -393,77 +393,77 @@ module mod_clm_drydep
                            /)
 
   !--- data for effective Henry's Law coefficient ---
-  real(rk8), public, parameter :: dheff(n_species_table*6) = &
-            (/1.15D-02, 2560.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,8.33D+04, 7379.D0,2.2D-12,-3730.D0,0.D0     ,    0.D0  &
-             ,3.00D+01,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,2.00D+03, 6600.D0,3.5D-05,    0.D0,0.D0     ,    0.D0  &
-             ,1.00D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.70D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,7.47D+00, 5241.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,3.11D+02, 5241.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,6.30D+03, 6425.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,5.53D+03, 5700.D0,1.8D-04,-1510.D0,0.D0     ,    0.D0  &
-             ,1.90D-03, 1480.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,6.40D-03, 2500.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,0.D0      ,    0.D0,2.6D+06, 8700.D0,0.D0     ,    0.D0  &
-             ,3.40D-02, 2420.D0,4.5D-07,-1000.D0,3.6D-11,-1760.D0  &
-             ,7.40D+01, 3400.D0,1.7D-05, -450.D0,1.0D-14,-6716.D0  &
-             ,2.14D+00, 3362.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,0.65D+00,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,2.20D+02, 4934.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,0.D0      ,    0.D0,3.2D+01,    0.D0,0.D0     ,    0.D0  &
-             ,1.00D-16,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.70D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,7.47D+00, 5241.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,7.47D+00, 5241.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,7.47D+00, 5241.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,7.47D+00, 5241.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.70D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.14D+01, 6267.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,3.36D+02, 5995.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.70D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,2.20D+02, 5653.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.70D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,5.00D+00,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,8.37D+02, 5308.D0,1.8D-04,-1510.D0,0.D0     ,    0.D0  &
-             ,1.70D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,3.00D+05,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,3.71D+03, 7541.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,4.14D+04, 4630.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,7.47D+00, 5241.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.45D-03, 2700.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,3.00D+06,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,2.70D+01, 5300.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,3.36D+02, 5995.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,7.47D+00, 5241.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,3.36D+02, 5995.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,0.00D+00,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.70D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.70D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.70D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,2.00D+02, 6500.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,7.51D+03, 6485.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.00D+03, 6000.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.00D+01,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,7.00D+01, 6000.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.20D+01, 5000.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,5.00D+01, 4000.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
+  real(rkx), public, parameter :: dheff(n_species_table*6) = &
+            (/1.15e-2_rkx, 2560._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,8.33e4_rkx, 7379._rkx,2.2e-12_rkx,-3730._rkx,0._rkx     ,    0._rkx  &
+             ,3.00e1_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,2.00e3_rkx, 6600._rkx,3.5e-5_rkx,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.00e-3_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.70e-3_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,7.47e0_rkx, 5241._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,3.11e2_rkx, 5241._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,6.30e3_rkx, 6425._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,5.53e3_rkx, 5700._rkx,1.8e-4_rkx,-1510._rkx,0._rkx     ,    0._rkx  &
+             ,1.90e-3_rkx, 1480._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,6.40e-3_rkx, 2500._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,0._rkx      ,    0._rkx,2.6e6_rkx, 8700._rkx,0._rkx     ,    0._rkx  &
+             ,3.40e-2_rkx, 2420._rkx,4.5e-7_rkx,-1000._rkx,3.6e-11_rkx,-1760._rkx  &
+             ,7.40e1_rkx, 3400._rkx,1.7e-5_rkx, -450._rkx,1.0e-14_rkx,-6716._rkx  &
+             ,2.14e0_rkx, 3362._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,0.65e0_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,2.20e2_rkx, 4934._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,0._rkx      ,    0._rkx,3.2e1_rkx,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.00e-16_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.70e-3_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,7.47e0_rkx, 5241._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,7.47e0_rkx, 5241._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,7.47e0_rkx, 5241._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,7.47e0_rkx, 5241._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.70e-3_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.14e1_rkx, 6267._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,3.36e2_rkx, 5995._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.70e-3_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,2.20e2_rkx, 5653._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.70e-3_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,5.00e0_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,8.37e2_rkx, 5308._rkx,1.8e-4_rkx,-1510._rkx,0._rkx     ,    0._rkx  &
+             ,1.70e-3_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,3.00e5_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,3.71e3_rkx, 7541._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,4.14e4_rkx, 4630._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,7.47e0_rkx, 5241._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.45e-3_rkx, 2700._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,3.00e6_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,2.70e1_rkx, 5300._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,3.36e2_rkx, 5995._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,7.47e0_rkx, 5241._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,3.36e2_rkx, 5995._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,0.00e0_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.70e-3_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.70e-3_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.70e-3_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,2.00e2_rkx, 6500._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,7.51e3_rkx, 6485._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.00e3_rkx, 6000._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.00e1_rkx,    0._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,7.00e1_rkx, 6000._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,1.20e1_rkx, 5000._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
+             ,5.00e1_rkx, 4000._rkx,0._rkx     ,    0._rkx,0._rkx     ,    0._rkx  &
             /)
 
-  real(rk8), private, parameter :: wh2o = amw
-  real(rk8), private, parameter :: mol_wgts(n_species_table) = &
-     (/ 47.9981995D0, 34.0135994D0, 17.0067997D0, 33.0061989D0, 28.0104008D0, &
-        16.0405998D0, 47.0320015D0, 48.0393982D0, 30.0251999D0, 46.0246010D0, &
-        30.0061398D0, 46.0055389D0, 63.0123405D0, 44.0098000D0, 17.0289402D0, &
-        108.010483D0, 62.0049400D0, 32.0400009D0, 79.0117416D0, 15.9994001D0, &
-        30.0664005D0, 61.0578003D0, 91.0830002D0, 119.093399D0, 117.119797D0, &
-        58.1180000D0, 44.0509987D0, 62.0652008D0, 42.0774002D0, 92.0904007D0, &
-        28.0515995D0, 121.047943D0, 76.0497971D0, 136.228394D0, 58.0355988D0, &
-        72.0614014D0, 60.0503998D0, 75.0423965D0, 44.0922012D0, 75.0836029D0, &
-        58.0768013D0, 76.0910034D0, 31.9988003D0, 33.0061989D0, 222.000000D0, &
-        68.1141968D0, 70.0877991D0, 70.0877991D0, 46.0657997D0, 147.125946D0, &
-        119.074341D0, 162.117935D0, 100.112999D0, 27.0256D0   , 41.0524D0  /)
+  real(rkx), private, parameter :: wh2o = amw
+  real(rkx), private, parameter :: mol_wgts(n_species_table) = &
+     (/ 47.9981995_rkx, 34.0135994_rkx, 17.0067997_rkx, 33.0061989_rkx, 28.0104008_rkx, &
+        16.0405998_rkx, 47.0320015_rkx, 48.0393982_rkx, 30.0251999_rkx, 46.0246010_rkx, &
+        30.0061398_rkx, 46.0055389_rkx, 63.0123405_rkx, 44.0098000_rkx, 17.0289402_rkx, &
+        108.010483_rkx, 62.0049400_rkx, 32.0400009_rkx, 79.0117416_rkx, 15.9994001_rkx, &
+        30.0664005_rkx, 61.0578003_rkx, 91.0830002_rkx, 119.093399_rkx, 117.119797_rkx, &
+        58.1180000_rkx, 44.0509987_rkx, 62.0652008_rkx, 42.0774002_rkx, 92.0904007_rkx, &
+        28.0515995_rkx, 121.047943_rkx, 76.0497971_rkx, 136.228394_rkx, 58.0355988_rkx, &
+        72.0614014_rkx, 60.0503998_rkx, 75.0423965_rkx, 44.0922012_rkx, 75.0836029_rkx, &
+        58.0768013_rkx, 76.0910034_rkx, 31.9988003_rkx, 33.0061989_rkx, 222.000000_rkx, &
+        68.1141968_rkx, 70.0877991_rkx, 70.0877991_rkx, 46.0657997_rkx, 147.125946_rkx, &
+        119.074341_rkx, 162.117935_rkx, 100.112999_rkx, 27.0256_rkx   , 41.0524_rkx  /)
 
   contains
   !
@@ -724,8 +724,8 @@ module mod_clm_drydep
       end if
     end do
 
-    where( rgss < 1.D0 )
-      rgss = 1.D0
+    where( rgss < 1._rkx )
+      rgss = 1._rkx
     endwhere
 
     where( rac < small_value)
@@ -739,10 +739,10 @@ module mod_clm_drydep
   !
   subroutine set_hcoeff_scalar( sfc_temp, heff )
     implicit none
-    real(rk8), intent(in) :: sfc_temp        ! Input surface temperature
-    real(rk8), intent(out) :: heff(n_drydep) ! Output Henry's law coefficients
+    real(rkx), intent(in) :: sfc_temp        ! Input surface temperature
+    real(rkx), intent(out) :: heff(n_drydep) ! Output Henry's law coefficients
 
-    real(rk8) :: sfc_temp_tmp(1)    ! surface temp
+    real(rkx) :: sfc_temp_tmp(1)    ! surface temp
 
     sfc_temp_tmp(:) = sfc_temp
     call set_hcoeff_vector( 1, sfc_temp_tmp, heff(:n_drydep) )
@@ -755,17 +755,17 @@ module mod_clm_drydep
   subroutine set_hcoeff_vector( ncol, sfc_temp, heff )
     implicit none
     integer(ik4), intent(in) :: ncol ! Input size of surface-temp vector
-    real(rk8), intent(in) :: sfc_temp(ncol)        ! Surface temperature
-    real(rk8), intent(out) :: heff(ncol,n_drydep)  ! Henry's law coefficients
+    real(rkx), intent(in) :: sfc_temp(ncol)        ! Surface temperature
+    real(rkx), intent(out) :: heff(ncol,n_drydep)  ! Henry's law coefficients
 
-    real(rk8), parameter :: t0     = 298.D0    ! Standard Temperature
-    real(rk8), parameter :: ph_inv = 1.D0/ph   ! Inverse of PH
+    real(rkx), parameter :: t0     = 298._rkx    ! Standard Temperature
+    real(rkx), parameter :: ph_inv = 1._rkx/ph   ! Inverse of PH
     integer(ik4)  :: m, l, id   ! indices
-    real(rk8) :: e298  ! Henry's law coefficient @ standard temperature (298K)
-    real(rk8) :: dhr   ! temperature dependence of Henry's law coefficient
-    real(rk8) :: dk1s(ncol)  ! DK Work array 1
-    real(rk8) :: dk2s(ncol)  ! DK Work array 2
-    real(rk8) :: wrk(ncol)   ! Work array
+    real(rkx) :: e298  ! Henry's law coefficient @ standard temperature (298K)
+    real(rkx) :: dhr   ! temperature dependence of Henry's law coefficient
+    real(rkx) :: dk1s(ncol)  ! DK Work array 1
+    real(rkx) :: dk2s(ncol)  ! DK Work array 2
+    real(rkx) :: wrk(ncol)   ! Work array
 
     character(*),parameter :: subName = '(seq_drydep_set_hcoeff) '
     character(*),parameter :: F00   = "('(seq_drydep_set_hcoeff) ',8a)"
@@ -778,19 +778,19 @@ module mod_clm_drydep
       dhr  = dheff(id+2)
       heff(:,m) = e298*exp( dhr*wrk(:) )
       !--- Calculate coefficients based on the drydep tables ---
-      if ( dheff(id+3) /= 0.D0 .and. dheff(id+5) == 0.D0 ) then
+      if ( dheff(id+3) /= 0._rkx .and. dheff(id+5) == 0._rkx ) then
         e298 = dheff(id+3)
         dhr  = dheff(id+4)
         dk1s(:) = e298*exp( dhr*wrk(:) )
-        where( heff(:,m) /= 0.D0 )
-          heff(:,m) = heff(:,m)*(1.D0 + dk1s(:)*ph_inv)
+        where( heff(:,m) /= 0._rkx )
+          heff(:,m) = heff(:,m)*(1._rkx + dk1s(:)*ph_inv)
         elsewhere
           heff(:,m) = dk1s(:)*ph_inv
         end where
       end if
       !--- For coefficients that are non-zero AND CO2 or NH3 handle
       !--- things this way ---
-      if ( dheff(id+5) /= 0.D0 ) then
+      if ( dheff(id+5) /= 0._rkx ) then
         if ( trim( drydep_list(m) ) == 'CO2' .or. &
              trim( drydep_list(m) ) == 'NH3' ) then
           e298 = dheff(id+3)
@@ -801,11 +801,11 @@ module mod_clm_drydep
           dk2s(:) = e298*exp( dhr*wrk(:) )
           !--- For Carbon dioxide ---
           if ( trim(drydep_list(m)) == 'CO2' ) then
-            heff(:,m) = heff(:,m)*(1.D0 + dk1s(:)*ph_inv) * &
-                    (1.D0 + dk2s(:)*ph_inv)
+            heff(:,m) = heff(:,m)*(1._rkx + dk1s(:)*ph_inv) * &
+                    (1._rkx + dk2s(:)*ph_inv)
             !--- For NH3 ---
           else if ( trim( drydep_list(m) ) == 'NH3' ) then
-            heff(:,m) = heff(:,m)*(1.D0 + dk1s(:)*ph/dk2s(:))
+            heff(:,m) = heff(:,m)*(1._rkx + dk1s(:)*ph/dk2s(:))
             !--- This can't happen ---
           else
             write(stdout,F00) 'Bad species ',drydep_list(m)

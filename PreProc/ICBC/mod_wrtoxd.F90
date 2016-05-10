@@ -50,7 +50,7 @@ module mod_wrtoxd
   character(len=8) , dimension(nchsp) :: chspec      !Names of Mozart species
   character(len=8) , dimension(ncbmz) :: cbmzspec    !Name of CBMZ species
   character(len=8) , dimension(noxsp) :: oxspec
-  real(rk8) , dimension(nchsp) :: mw
+  real(rkx) , dimension(nchsp) :: mw
 
   character(len=8) , pointer , dimension(:) :: aespec
   character(len=8) , target , dimension(4) :: aedust
@@ -63,9 +63,9 @@ module mod_wrtoxd
   character(len=8) , target , dimension(7) :: aesuca
   character(len=8) , target , dimension(15) :: aeaero
 
-  real(rk8) , pointer , dimension(:,:,:,:) :: chv4
-  real(rk8) , pointer , dimension(:,:,:,:) :: oxv4
-  real(rk8) , pointer , dimension(:,:,:,:) :: aev4
+  real(rkx) , pointer , dimension(:,:,:,:) :: chv4
+  real(rkx) , pointer , dimension(:,:,:,:) :: oxv4
+  real(rkx) , pointer , dimension(:,:,:,:) :: aev4
 
   data oxspec / 'OH' , 'HO2' , 'O3' , 'NO3' , 'H2O2' /
 

@@ -27,15 +27,15 @@ module mod_clm_domain
     ! land mask: 1 = land, 0 = ocean
     integer(ik4) , pointer , dimension(:) :: mask
     ! fractional land
-    real(rk8) , pointer , dimension(:) :: frac
+    real(rkx) , pointer , dimension(:) :: frac
     ! topography
-    real(rk8) , pointer , dimension(:) :: topo
+    real(rkx) , pointer , dimension(:) :: topo
     ! latitude of grid cell (deg)
-    real(rk8) , pointer , dimension(:) :: latc
+    real(rkx) , pointer , dimension(:) :: latc
     ! longitude of grid cell (deg)
-    real(rk8) , pointer , dimension(:) :: lonc
+    real(rkx) , pointer , dimension(:) :: lonc
     ! grid cell area (km**2)
-    real(rk8) , pointer , dimension(:) :: area
+    real(rkx) , pointer , dimension(:) :: area
     ! pft mask: 1=real, 0=fake, -1=notset
     integer(ik4) , pointer , dimension(:) :: pftm
     character(len=16) :: set ! flag to check if domain is set
@@ -97,7 +97,7 @@ module mod_clm_domain
     domain%nend     = ne
     domain%mask     = -9999
     domain%frac     = -1.0e36
-    domain%topo     = 0.0D0
+    domain%topo     = 0.0_rkx
     domain%latc     = nan
     domain%lonc     = nan
     domain%area     = nan

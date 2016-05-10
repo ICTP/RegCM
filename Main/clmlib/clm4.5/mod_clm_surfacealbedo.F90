@@ -18,7 +18,7 @@ module mod_clm_surfacealbedo
   implicit none
 
   ! undefined real
-  real(rk8) , public , parameter :: SHR_ORB_UNDEF_REAL = 1.D36
+  real(rkx) , public , parameter :: SHR_ORB_UNDEF_REAL = 1.e36_rkx
   ! undefined int
   integer(ik4) , public , parameter :: SHR_ORB_UNDEF_INT  = 2000000000
 
@@ -29,13 +29,13 @@ module mod_clm_surfacealbedo
 
   save
 
-  real(rk8) , parameter :: pi                 = mathpi
-  real(rk8) , parameter :: SHR_ORB_ECCEN_MIN  =   0.0D0 ! min value for eccen
-  real(rk8) , parameter :: SHR_ORB_ECCEN_MAX  =   0.1D0 ! max value for eccen
-  real(rk8) , parameter :: SHR_ORB_OBLIQ_MIN  = -90.0D0 ! min value for obliq
-  real(rk8) , parameter :: SHR_ORB_OBLIQ_MAX  = +90.0D0 ! max value for obliq
-  real(rk8) , parameter :: SHR_ORB_MVELP_MIN  =   0.0D0 ! min value for mvelp
-  real(rk8) , parameter :: SHR_ORB_MVELP_MAX  = 360.0D0 ! max value for mvelp
+  real(rkx) , parameter :: pi                 = mathpi
+  real(rkx) , parameter :: SHR_ORB_ECCEN_MIN  =   0.0_rkx ! min value for eccen
+  real(rkx) , parameter :: SHR_ORB_ECCEN_MAX  =   0.1_rkx ! max value for eccen
+  real(rkx) , parameter :: SHR_ORB_OBLIQ_MIN  = -90.0_rkx ! min value for obliq
+  real(rkx) , parameter :: SHR_ORB_OBLIQ_MAX  = +90.0_rkx ! max value for obliq
+  real(rkx) , parameter :: SHR_ORB_MVELP_MIN  =   0.0_rkx ! min value for mvelp
+  real(rkx) , parameter :: SHR_ORB_MVELP_MAX  = 360.0_rkx ! max value for mvelp
 
   public :: SurfaceAlbedo  ! Surface albedo and two-stream fluxes
   !
@@ -45,7 +45,7 @@ module mod_clm_surfacealbedo
   ! This is the value used in CAM3 by Pritchard et al., GRL, 35, 2008.
 
   ! albedo land ice by waveband (1=vis, 2=nir)
-  real(rk8) , public :: albice(numrad) = (/ 0.80D0, 0.55D0 /)
+  real(rkx) , public :: albice(numrad) = (/ 0.80_rkx, 0.55_rkx /)
 
   private :: SoilAlbedo    ! Determine ground surface albedo
   private :: TwoStream     ! Two-stream fluxes for canopy radiative transfer
@@ -85,9 +85,9 @@ module mod_clm_surfacealbedo
     ! pft filter for non-urban points
     integer(ik4) , intent(in) , dimension(ubp-lbp+1) :: filter_nourbanp
     ! calendar day at Greenwich (1.00, ..., days/year)
-    real(rk8) , intent(in) :: nextsw_cday
+    real(rkx) , intent(in) :: nextsw_cday
     ! declination angle (radians) for next time step
-    real(rk8) , intent(in) :: declinp1
+    real(rkx) , intent(in) :: declinp1
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer , dimension(:) :: pactive
     ! gridcell of corresponding pft
@@ -101,171 +101,171 @@ module mod_clm_surfacealbedo
     ! gridcell of corresponding column
     integer(ik4) , pointer , dimension(:) :: cgridcell
     ! gridcell latitude (radians)
-    real(rk8) , pointer , dimension(:) :: lat
+    real(rkx) , pointer , dimension(:) :: lat
     ! gridcell longitude (radians)
-    real(rk8) , pointer , dimension(:) :: lon
+    real(rkx) , pointer , dimension(:) :: lon
     ! one-sided leaf area index, no burying by snow
-    real(rk8) , pointer , dimension(:) :: tlai
+    real(rkx) , pointer , dimension(:) :: tlai
     ! one-sided stem area index, no burying by snow
-    real(rk8) , pointer , dimension(:) :: tsai
+    real(rkx) , pointer , dimension(:) :: tsai
     ! one-sided leaf area index with burying by snow
-    real(rk8) , pointer , dimension(:) :: elai
+    real(rkx) , pointer , dimension(:) :: elai
     ! one-sided stem area index with burying by snow
-    real(rk8) , pointer , dimension(:) :: esai
+    real(rkx) , pointer , dimension(:) :: esai
     ! snow water (mm H2O)
-    real(rk8) , pointer , dimension(:) :: h2osno
+    real(rkx) , pointer , dimension(:) :: h2osno
     ! leaf reflectance: 1=vis, 2=nir
-    real(rk8) , pointer , dimension(:,:) :: rhol
+    real(rkx) , pointer , dimension(:,:) :: rhol
     ! stem reflectance: 1=vis, 2=nir
-    real(rk8) , pointer , dimension(:,:) :: rhos
+    real(rkx) , pointer , dimension(:,:) :: rhos
     ! leaf transmittance: 1=vis, 2=nir
-    real(rk8) , pointer , dimension(:,:) :: taul
+    real(rkx) , pointer , dimension(:,:) :: taul
     ! stem transmittance: 1=vis, 2=nir
-    real(rk8) , pointer , dimension(:,:) :: taus
+    real(rkx) , pointer , dimension(:,:) :: taus
     ! pft vegetation type
     integer(ik4) , pointer , dimension(:) :: ivt
     !
     ! local pointers toimplicit out arguments
     !
     ! cosine of solar zenith angle
-    real(rk8) , pointer , dimension(:) :: coszen
+    real(rkx) , pointer , dimension(:) :: coszen
     ! ground albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albgrd
+    real(rkx) , pointer , dimension(:,:) :: albgrd
     ! ground albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albgri
+    real(rkx) , pointer , dimension(:,:) :: albgri
     ! surface albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albd
+    real(rkx) , pointer , dimension(:,:) :: albd
     ! surface albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albi
+    real(rkx) , pointer , dimension(:,:) :: albi
     ! flux absorbed by canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: fabd
+    real(rkx) , pointer , dimension(:,:) :: fabd
     ! flux absorbed by sunlit canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: fabd_sun
+    real(rkx) , pointer , dimension(:,:) :: fabd_sun
     ! flux absorbed by shaded canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: fabd_sha
+    real(rkx) , pointer , dimension(:,:) :: fabd_sha
     ! flux absorbed by canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: fabi
+    real(rkx) , pointer , dimension(:,:) :: fabi
     ! flux absorbed by sunlit canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: fabi_sun
+    real(rkx) , pointer , dimension(:,:) :: fabi_sun
     ! flux absorbed by shaded canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: fabi_sha
+    real(rkx) , pointer , dimension(:,:) :: fabi_sha
     ! down direct flux below canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: ftdd
+    real(rkx) , pointer , dimension(:,:) :: ftdd
     ! down diffuse flux below canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: ftid
+    real(rkx) , pointer , dimension(:,:) :: ftid
     ! down diffuse flux below canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: ftii
+    real(rkx) , pointer , dimension(:,:) :: ftii
     ! leaf to canopy scaling coefficient, sunlit leaf vcmax
-    real(rk8) , pointer , dimension(:) :: vcmaxcintsun
+    real(rkx) , pointer , dimension(:) :: vcmaxcintsun
     ! leaf to canopy scaling coefficient, shaded leaf vcmax
-    real(rk8) , pointer , dimension(:) :: vcmaxcintsha
+    real(rkx) , pointer , dimension(:) :: vcmaxcintsha
     ! number of canopy layers
     integer(ik4) , pointer , dimension(:) :: ncan
     ! number of canopy layers, above snow for radiative transfer
     integer(ik4) , pointer , dimension(:) :: nrad
     ! absorbed sunlit leaf direct  PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabd_sun_z
+    real(rkx) , pointer , dimension(:,:) :: fabd_sun_z
     ! absorbed shaded leaf direct  PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabd_sha_z
+    real(rkx) , pointer , dimension(:,:) :: fabd_sha_z
     ! absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabi_sun_z
+    real(rkx) , pointer , dimension(:,:) :: fabi_sun_z
     ! absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabi_sha_z
+    real(rkx) , pointer , dimension(:,:) :: fabi_sha_z
     ! sunlit fraction of canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fsun_z
+    real(rkx) , pointer , dimension(:,:) :: fsun_z
     ! tlai increment for canopy layer
-    real(rk8) , pointer , dimension(:,:) :: tlai_z
+    real(rkx) , pointer , dimension(:,:) :: tlai_z
     ! tsai increment for canopy layer
-    real(rk8) , pointer , dimension(:,:) :: tsai_z
+    real(rkx) , pointer , dimension(:,:) :: tsai_z
     ! solar declination angle (radians)
-    real(rk8) , pointer , dimension(:) :: decl
+    real(rkx) , pointer , dimension(:) :: decl
     ! fraction of ground covered by snow (0 to 1)
-    real(rk8) , pointer , dimension(:) :: frac_sno
+    real(rkx) , pointer , dimension(:) :: frac_sno
     ! liquid water content (col,lyr) [kg/m2]
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_liq
+    real(rkx) , pointer , dimension(:,:) :: h2osoi_liq
     ! ice lens content (col,lyr) [kg/m2]
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_ice
+    real(rkx) , pointer , dimension(:,:) :: h2osoi_ice
     ! mass concentration of hydrophilic BC (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_bcphi
+    real(rkx) , pointer , dimension(:,:) :: mss_cnc_bcphi
     ! mass concentration of hydrophobic BC (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_bcpho
+    real(rkx) , pointer , dimension(:,:) :: mss_cnc_bcpho
     ! mass concentration of hydrophilic OC (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_ocphi
+    real(rkx) , pointer , dimension(:,:) :: mss_cnc_ocphi
     ! mass concentration of hydrophobic OC (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_ocpho
+    real(rkx) , pointer , dimension(:,:) :: mss_cnc_ocpho
     ! mass concentration of dust aerosol species 1 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst1
+    real(rkx) , pointer , dimension(:,:) :: mss_cnc_dst1
     ! mass concentration of dust aerosol species 2 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst2
+    real(rkx) , pointer , dimension(:,:) :: mss_cnc_dst2
     ! mass concentration of dust aerosol species 3 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst3
+    real(rkx) , pointer , dimension(:,:) :: mss_cnc_dst3
     ! mass concentration of dust aerosol species 4 (col,lyr) [kg/kg]
-    real(rk8) , pointer , dimension(:,:) :: mss_cnc_dst4
+    real(rkx) , pointer , dimension(:,:) :: mss_cnc_dst4
     ! direct-beam soil albedo (col,bnd) [frc]
-    real(rk8) , pointer , dimension(:,:) :: albsod
+    real(rkx) , pointer , dimension(:,:) :: albsod
     ! diffuse soil albedo (col,bnd) [frc]
-    real(rk8) , pointer , dimension(:,:) :: albsoi
+    real(rkx) , pointer , dimension(:,:) :: albsoi
     ! direct flux absorption factor (col,lyr): VIS [frc]
-    real(rk8) , pointer , dimension(:,:) :: flx_absdv
+    real(rkx) , pointer , dimension(:,:) :: flx_absdv
     ! direct flux absorption factor (col,lyr): NIR [frc]
-    real(rk8) , pointer , dimension(:,:) :: flx_absdn
+    real(rkx) , pointer , dimension(:,:) :: flx_absdn
     ! diffuse flux absorption factor (col,lyr): VIS [frc]
-    real(rk8) , pointer , dimension(:,:) :: flx_absiv
+    real(rkx) , pointer , dimension(:,:) :: flx_absiv
     ! diffuse flux absorption factor (col,lyr): NIR [frc]
-    real(rk8) , pointer , dimension(:,:) :: flx_absin
+    real(rkx) , pointer , dimension(:,:) :: flx_absin
     ! snow grain radius (col,lyr) [microns]
-    real(rk8) , pointer , dimension(:,:) :: snw_rds
+    real(rkx) , pointer , dimension(:,:) :: snw_rds
     ! pure snow ground albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albgrd_pur
+    real(rkx) , pointer , dimension(:,:) :: albgrd_pur
     ! pure snow ground albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albgri_pur
+    real(rkx) , pointer , dimension(:,:) :: albgri_pur
     ! ground albedo without BC (direct)
-    real(rk8) , pointer , dimension(:,:) :: albgrd_bc
+    real(rkx) , pointer , dimension(:,:) :: albgrd_bc
     ! ground albedo without BC (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albgri_bc
+    real(rkx) , pointer , dimension(:,:) :: albgri_bc
     ! ground albedo without OC (direct)
-    real(rk8) , pointer , dimension(:,:) :: albgrd_oc
+    real(rkx) , pointer , dimension(:,:) :: albgrd_oc
     ! ground albedo without OC (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albgri_oc
+    real(rkx) , pointer , dimension(:,:) :: albgri_oc
     ! ground albedo without dust (direct)
-    real(rk8) , pointer , dimension(:,:) :: albgrd_dst
+    real(rkx) , pointer , dimension(:,:) :: albgrd_dst
     ! ground albedo without dust (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albgri_dst
+    real(rkx) , pointer , dimension(:,:) :: albgri_dst
     ! snow albedo, direct, for history files (col,bnd) [frc]
-    real(rk8) , pointer , dimension(:,:) :: albsnd_hst
+    real(rkx) , pointer , dimension(:,:) :: albsnd_hst
     ! snow ground albedo, diffuse, for history files (col,bnd) [frc]
-    real(rk8) , pointer , dimension(:,:) :: albsni_hst
+    real(rkx) , pointer , dimension(:,:) :: albsni_hst
 
     ! prevents overflow for division by zero
-    real(rk8) , parameter :: mpe = 1.D-06
-    real(rk8) :: extkn   ! nitrogen allocation coefficient
+    real(rkx) , parameter :: mpe = 1.e-6_rkx
+    real(rkx) :: extkn   ! nitrogen allocation coefficient
     integer(ik4) :: fp , fc , g , c , p , iv  ! indices
     integer(ik4) :: ib   ! band index
-    real(rk8) , dimension(lbp:ubp) :: wl ! fraction of LAI+SAI that is LAI
-    real(rk8) , dimension(lbp:ubp) :: ws ! fraction of LAI+SAI that is SAI
-    real(rk8) :: dinc       ! lai+sai increment for canopy layer
-    real(rk8) :: dincmax    ! maximum lai+sai increment for canopy layer
+    real(rkx) , dimension(lbp:ubp) :: wl ! fraction of LAI+SAI that is LAI
+    real(rkx) , dimension(lbp:ubp) :: ws ! fraction of LAI+SAI that is SAI
+    real(rkx) :: dinc       ! lai+sai increment for canopy layer
+    real(rkx) :: dincmax    ! maximum lai+sai increment for canopy layer
     ! cumulative sum of maximum lai+sai increment for canopy layer
-    real(rk8) :: dincmax_sum
+    real(rkx) :: dincmax_sum
     ! sum of canopy layer lai for error check
-    real(rk8) :: laisum
-    real(rk8) :: saisum ! sum of canopy layer sai for error check
+    real(rkx) :: laisum
+    real(rkx) :: saisum ! sum of canopy layer sai for error check
     ! lai buried by snow: tlai - elai
-    real(rk8) , dimension(lbp:ubp) :: blai
+    real(rkx) , dimension(lbp:ubp) :: blai
     ! sai buried by snow: tsai - esai
-    real(rk8) , dimension(lbp:ubp) :: bsai
+    real(rkx) , dimension(lbp:ubp) :: bsai
     ! leaf/stem refl weighted by fraction LAI and SAI
-    real(rk8) , dimension(lbp:ubp,numrad) :: rho
+    real(rkx) , dimension(lbp:ubp,numrad) :: rho
     ! leaf/stem tran weighted by fraction LAI and SAI
-    real(rk8) , dimension(lbp:ubp,numrad) :: tau
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsnd    ! snow albedo (direct)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsni    ! snow albedo (diffuse)
+    real(rkx) , dimension(lbp:ubp,numrad) :: tau
+    real(rkx) , dimension(lbc:ubc,numrad) :: albsnd    ! snow albedo (direct)
+    real(rkx) , dimension(lbc:ubc,numrad) :: albsni    ! snow albedo (diffuse)
     ! cosine solar zenith angle for next time step (gridcell level)
-    real(rk8) , dimension(lbg:ubg) :: coszen_gcell
+    real(rkx) , dimension(lbg:ubg) :: coszen_gcell
     ! cosine solar zenith angle for next time step (pft level)
-    real(rk8) , dimension(lbc:ubc) :: coszen_col
+    real(rkx) , dimension(lbc:ubc) :: coszen_col
     ! cosine solar zenith angle for next time step (pft level)
-    real(rk8) , dimension(lbp:ubp) :: coszen_pft
+    real(rkx) , dimension(lbp:ubp) :: coszen_pft
     ! number of vegetated pfts where coszen>0
     integer(ik4) :: num_vegsol
     ! pft filter where vegetated and coszen>0
@@ -282,53 +282,53 @@ module mod_clm_surfacealbedo
     integer(ik4) :: flg_snw_ice
     integer(ik4) :: i ! index for layers [idx]
     ! flux absorption factor for just snow (direct) [frc]
-    real(rk8) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: flx_absd_snw
+    real(rkx) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: flx_absd_snw
     ! flux absorption factor for just snow (diffuse) [frc]
-    real(rk8) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: flx_absi_snw
+    real(rkx) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: flx_absi_snw
 #ifdef SNICAR_FRC
     ! direct pure snow albedo (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsnd_pur
+    real(rkx) , dimension(lbc:ubc,numrad) :: albsnd_pur
     ! direct snow albedo without BC (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsnd_bc
+    real(rkx) , dimension(lbc:ubc,numrad) :: albsnd_bc
     ! diffuse snow albedo without BC (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsni_bc
+    real(rkx) , dimension(lbc:ubc,numrad) :: albsni_bc
     ! direct snow albedo without OC (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsnd_oc
+    real(rkx) , dimension(lbc:ubc,numrad) :: albsnd_oc
     ! diffuse pure snow albedo (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsni_pur
+    real(rkx) , dimension(lbc:ubc,numrad) :: albsni_pur
     ! diffuse snow albedo without OC (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsni_oc
+    real(rkx) , dimension(lbc:ubc,numrad) :: albsni_oc
     ! direct snow albedo without dust (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsnd_dst
+    real(rkx) , dimension(lbc:ubc,numrad) :: albsnd_dst
     ! diffuse snow albedo without dust (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsni_dst
+    real(rkx) , dimension(lbc:ubc,numrad) :: albsni_dst
     ! dummy array for forcing calls
-    real(rk8) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: foo_snw
+    real(rkx) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: foo_snw
 #endif
     ! albedo of surface underneath snow (col,bnd)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsfc
+    real(rkx) , dimension(lbc:ubc,numrad) :: albsfc
     ! liquid snow content (col,lyr) [kg m-2]
-    real(rk8) , dimension(lbc:ubc,-nlevsno+1:0) :: h2osno_liq
+    real(rkx) , dimension(lbc:ubc,-nlevsno+1:0) :: h2osno_liq
     ! ice content in snow (col,lyr) [kg m-2]
-    real(rk8) , dimension(lbc:ubc,-nlevsno+1:0) :: h2osno_ice
+    real(rkx) , dimension(lbc:ubc,-nlevsno+1:0) :: h2osno_ice
     ! snow grain size sent to SNICAR (col,lyr) [microns]
     integer(ik4) , dimension(lbc:ubc,-nlevsno+1:0) :: snw_rds_in
 
     ! mass concentration of aerosol species for forcing calculation
     ! (zero) (col,lyr,aer) [kg kg-1]
-    real(rk8) :: mss_cnc_aer_in_frc_pur(lbc:ubc,-nlevsno+1:0,sno_nbr_aer)
+    real(rkx) :: mss_cnc_aer_in_frc_pur(lbc:ubc,-nlevsno+1:0,sno_nbr_aer)
     ! mass concentration of aerosol species for BC forcing
     ! (col,lyr,aer) [kg kg-1]
-    real(rk8) :: mss_cnc_aer_in_frc_bc(lbc:ubc,-nlevsno+1:0,sno_nbr_aer)
+    real(rkx) :: mss_cnc_aer_in_frc_bc(lbc:ubc,-nlevsno+1:0,sno_nbr_aer)
     ! mass concentration of aerosol species for OC forcing
     ! (col,lyr,aer) [kg kg-1]
-    real(rk8) :: mss_cnc_aer_in_frc_oc(lbc:ubc,-nlevsno+1:0,sno_nbr_aer)
+    real(rkx) :: mss_cnc_aer_in_frc_oc(lbc:ubc,-nlevsno+1:0,sno_nbr_aer)
     ! mass concentration of aerosol species for dust forcing
     ! (col,lyr,aer) [kg kg-1]
-    real(rk8) :: mss_cnc_aer_in_frc_dst(lbc:ubc,-nlevsno+1:0,sno_nbr_aer)
+    real(rkx) :: mss_cnc_aer_in_frc_dst(lbc:ubc,-nlevsno+1:0,sno_nbr_aer)
     ! mass concentration of all aerosol species for feedback calculation
     ! (col,lyr,aer) [kg kg-1]
-    real(rk8) :: mss_cnc_aer_in_fdb(lbc:ubc,-nlevsno+1:0,sno_nbr_aer)
+    real(rkx) :: mss_cnc_aer_in_fdb(lbc:ubc,-nlevsno+1:0,sno_nbr_aer)
 
     ! Assign local pointers to derived subtypes components (gridcell-level)
 
@@ -418,7 +418,7 @@ module mod_clm_surfacealbedo
 
     do g = lbg , ubg
       coszen_gcell(g) = orb_cosz(nextsw_cday,lat(g),lon(g),declinp1)
-      coszen_gcell(g) = min(max(0.0D0,coszen_gcell(g)),1.0D0)
+      coszen_gcell(g) = min(max(0.0_rkx,coszen_gcell(g)),1.0_rkx)
     end do
 
     ! Save coszen and declination values to  clm3 data structures for
@@ -433,7 +433,7 @@ module mod_clm_surfacealbedo
 
     do fp = 1 , num_nourbanp
       p = filter_nourbanp(fp)
-      ! if (pwtgcell(p)>0.D0) then ! "if" added due to chg in filter definition
+      ! if (pwtgcell(p)>0._rkx) then ! "if" added due to chg in filter definition
       g = pgridcell(p)
       coszen_pft(p) = coszen_gcell(g)
       ! end if ! then removed for CNDV (and dyn. landuse?) cases to work
@@ -444,54 +444,54 @@ module mod_clm_surfacealbedo
     do ib = 1 , numrad
       do fc = 1 , num_nourbanc
         c = filter_nourbanc(fc)
-        albsod(c,ib)     = 0.D0
-        albsoi(c,ib)     = 0.D0
-        albgrd(c,ib)     = 0.D0
-        albgri(c,ib)     = 0.D0
-        albgrd_pur(c,ib) = 0.D0
-        albgri_pur(c,ib) = 0.D0
-        albgrd_bc(c,ib)  = 0.D0
-        albgri_bc(c,ib)  = 0.D0
-        albgrd_oc(c,ib)  = 0.D0
-        albgri_oc(c,ib)  = 0.D0
-        albgrd_dst(c,ib) = 0.D0
-        albgri_dst(c,ib) = 0.D0
-        albsni(c,ib) = 0.0D0
-        albsnd(c,ib) = 0.0D0
+        albsod(c,ib)     = 0._rkx
+        albsoi(c,ib)     = 0._rkx
+        albgrd(c,ib)     = 0._rkx
+        albgri(c,ib)     = 0._rkx
+        albgrd_pur(c,ib) = 0._rkx
+        albgri_pur(c,ib) = 0._rkx
+        albgrd_bc(c,ib)  = 0._rkx
+        albgri_bc(c,ib)  = 0._rkx
+        albgrd_oc(c,ib)  = 0._rkx
+        albgri_oc(c,ib)  = 0._rkx
+        albgrd_dst(c,ib) = 0._rkx
+        albgri_dst(c,ib) = 0._rkx
+        albsni(c,ib) = 0.0_rkx
+        albsnd(c,ib) = 0.0_rkx
         do i = -nlevsno+1 , 1 , 1
-          flx_absdv(c,i) = 0.D0
-          flx_absdn(c,i) = 0.D0
-          flx_absiv(c,i) = 0.D0
-          flx_absin(c,i) = 0.D0
-          flx_absd_snw(c,i,ib) = 0.D0
-          flx_absi_snw(c,i,ib) = 0.D0
+          flx_absdv(c,i) = 0._rkx
+          flx_absdn(c,i) = 0._rkx
+          flx_absiv(c,i) = 0._rkx
+          flx_absin(c,i) = 0._rkx
+          flx_absd_snw(c,i,ib) = 0._rkx
+          flx_absi_snw(c,i,ib) = 0._rkx
         end do
       end do
       do fp = 1 , num_nourbanp
         p = filter_nourbanp(fp)
-!       if (pwtgcell(p)>0.D0) then ! "if" added due to chg in filter definition
-        albd(p,ib) = 1.D0
-        albi(p,ib) = 1.D0
-        fabd(p,ib) = 0.D0
-        fabd_sun(p,ib) = 0.D0
-        fabd_sha(p,ib) = 0.D0
-        fabi(p,ib) = 0.D0
-        fabi_sun(p,ib) = 0.D0
-        fabi_sha(p,ib) = 0.D0
-        ftdd(p,ib) = 0.D0
-        ftid(p,ib) = 0.D0
-        ftii(p,ib) = 0.D0
+!       if (pwtgcell(p)>0._rkx) then ! "if" added due to chg in filter definition
+        albd(p,ib) = 1._rkx
+        albi(p,ib) = 1._rkx
+        fabd(p,ib) = 0._rkx
+        fabd_sun(p,ib) = 0._rkx
+        fabd_sha(p,ib) = 0._rkx
+        fabi(p,ib) = 0._rkx
+        fabi_sun(p,ib) = 0._rkx
+        fabi_sha(p,ib) = 0._rkx
+        ftdd(p,ib) = 0._rkx
+        ftid(p,ib) = 0._rkx
+        ftii(p,ib) = 0._rkx
 !       if (ib==1) then
 !         ncan(p) = 0
 !         nrad(p) = 0
 !         do iv = 1, nlevcan
-!           fabd_sun_z(p,iv) = 0.D0
-!           fabd_sha_z(p,iv) = 0.D0
-!           fabi_sun_z(p,iv) = 0.D0
-!           fabi_sha_z(p,iv) = 0.D0
-!           fsun_z(p,iv) = 0.D0
-!           tlai_z(p,iv) = 0.D0
-!           tsai_z(p,iv) = 0.D0
+!           fabd_sun_z(p,iv) = 0._rkx
+!           fabd_sha_z(p,iv) = 0._rkx
+!           fabi_sun_z(p,iv) = 0._rkx
+!           fabi_sha_z(p,iv) = 0._rkx
+!           fsun_z(p,iv) = 0._rkx
+!           tlai_z(p,iv) = 0._rkx
+!           tsai_z(p,iv) = 0._rkx
 !         end do
 !       end if
 !       end if ! then removed for CNDV (and dyn. landuse?) cases to work
@@ -522,11 +522,11 @@ module mod_clm_surfacealbedo
       snw_rds_in(c,:) = nint(snw_rds(c,:))
 
       ! zero aerosol input arrays
-      mss_cnc_aer_in_frc_pur(c,:,:) = 0.D0
-      mss_cnc_aer_in_frc_bc(c,:,:)  = 0.D0
-      mss_cnc_aer_in_frc_oc(c,:,:)  = 0.D0
-      mss_cnc_aer_in_frc_dst(c,:,:) = 0.D0
-      mss_cnc_aer_in_fdb(c,:,:)     = 0.D0
+      mss_cnc_aer_in_frc_pur(c,:,:) = 0._rkx
+      mss_cnc_aer_in_frc_bc(c,:,:)  = 0._rkx
+      mss_cnc_aer_in_frc_oc(c,:,:)  = 0._rkx
+      mss_cnc_aer_in_frc_dst(c,:,:) = 0._rkx
+      mss_cnc_aer_in_fdb(c,:,:)     = 0._rkx
     end do
 
     ! Set aerosol input arrays
@@ -649,40 +649,40 @@ module mod_clm_surfacealbedo
     do ib = 1 , nband
       do fc = 1 , num_nourbanc
         c = filter_nourbanc(fc)
-        if (coszen(c) > 0.D0) then
+        if (coszen(c) > 0._rkx) then
           ! ground albedo was originally computed in SoilAlbedo, but is now
           ! computed here because the order of SoilAlbedo and SNICAR_RT was
           ! switched for SNICAR.
-          albgrd(c,ib) = albsod(c,ib)*(1.D0-frac_sno(c)) + &
+          albgrd(c,ib) = albsod(c,ib)*(1._rkx-frac_sno(c)) + &
                   albsnd(c,ib)*frac_sno(c)
-          albgri(c,ib) = albsoi(c,ib)*(1.D0-frac_sno(c)) + &
+          albgri(c,ib) = albsoi(c,ib)*(1._rkx-frac_sno(c)) + &
                   albsni(c,ib)*frac_sno(c)
 
           ! albedos for radiative forcing calculations:
 #if (defined SNICAR_FRC)
           ! BC forcing albedo
-          albgrd_bc(c,ib) = albsod(c,ib)*(1.0D0-frac_sno(c)) + &
+          albgrd_bc(c,ib) = albsod(c,ib)*(1.0_rkx-frac_sno(c)) + &
                   albsnd_bc(c,ib)*frac_sno(c)
-          albgri_bc(c,ib) = albsoi(c,ib)*(1.0D0-frac_sno(c)) + &
+          albgri_bc(c,ib) = albsoi(c,ib)*(1.0_rkx-frac_sno(c)) + &
                   albsni_bc(c,ib)*frac_sno(c)
           if ( DO_SNO_OC ) then
             ! OC forcing albedo
-            albgrd_oc(c,ib) = albsod(c,ib)*(1.0D0-frac_sno(c)) + &
+            albgrd_oc(c,ib) = albsod(c,ib)*(1.0_rkx-frac_sno(c)) + &
                     albsnd_oc(c,ib)*frac_sno(c)
-            albgri_oc(c,ib) = albsoi(c,ib)*(1.0D0-frac_sno(c)) + &
+            albgri_oc(c,ib) = albsoi(c,ib)*(1.0_rkx-frac_sno(c)) + &
                     albsni_oc(c,ib)*frac_sno(c)
           end if
 
           ! dust forcing albedo
-          albgrd_dst(c,ib) = albsod(c,ib)*(1.0D0-frac_sno(c)) + &
+          albgrd_dst(c,ib) = albsod(c,ib)*(1.0_rkx-frac_sno(c)) + &
                   albsnd_dst(c,ib)*frac_sno(c)
-          albgri_dst(c,ib) = albsoi(c,ib)*(1.0D0-frac_sno(c)) + &
+          albgri_dst(c,ib) = albsoi(c,ib)*(1.0_rkx-frac_sno(c)) + &
                   albsni_dst(c,ib)*frac_sno(c)
 
           ! pure snow albedo for all-aerosol radiative forcing
-          albgrd_pur(c,ib) = albsod(c,ib)*(1.0D0-frac_sno(c)) + &
+          albgrd_pur(c,ib) = albsod(c,ib)*(1.0_rkx-frac_sno(c)) + &
                   albsnd_pur(c,ib)*frac_sno(c)
-          albgri_pur(c,ib) = albsoi(c,ib)*(1.0D0-frac_sno(c)) + &
+          albgri_pur(c,ib) = albsoi(c,ib)*(1.0_rkx-frac_sno(c)) + &
                   albsni_pur(c,ib)*frac_sno(c)
 #endif
 
@@ -694,26 +694,26 @@ module mod_clm_surfacealbedo
             if ( subgridflag == 0 ) then
               if ( ib == 1 ) then
                 flx_absdv(c,i) = flx_absd_snw(c,i,ib)*frac_sno(c) + &
-                        ((1.0D0-frac_sno(c))*(1.0D0-albsod(c,ib)) * &
-                        (flx_absd_snw(c,i,ib)/(1.0D0-albsnd(c,ib))))
+                        ((1.0_rkx-frac_sno(c))*(1.0_rkx-albsod(c,ib)) * &
+                        (flx_absd_snw(c,i,ib)/(1.0_rkx-albsnd(c,ib))))
                 flx_absiv(c,i) = flx_absi_snw(c,i,ib)*frac_sno(c) + &
-                        ((1.0D0-frac_sno(c))*(1.0D0-albsoi(c,ib)) * &
-                        (flx_absi_snw(c,i,ib)/(1.0D0-albsni(c,ib))))
+                        ((1.0_rkx-frac_sno(c))*(1.0_rkx-albsoi(c,ib)) * &
+                        (flx_absi_snw(c,i,ib)/(1.0_rkx-albsni(c,ib))))
               else if ( ib == 2 ) then
                 flx_absdn(c,i) = flx_absd_snw(c,i,ib)*frac_sno(c) + &
-                        ((1.0D0-frac_sno(c))*(1.0D0-albsod(c,ib)) * &
-                        (flx_absd_snw(c,i,ib)/(1.0D0-albsnd(c,ib))))
+                        ((1.0_rkx-frac_sno(c))*(1.0_rkx-albsod(c,ib)) * &
+                        (flx_absd_snw(c,i,ib)/(1.0_rkx-albsnd(c,ib))))
                 flx_absin(c,i) = flx_absi_snw(c,i,ib)*frac_sno(c) + &
-                        ((1.0D0-frac_sno(c))*(1.0D0-albsoi(c,ib)) * &
-                        (flx_absi_snw(c,i,ib)/(1.0D0-albsni(c,ib))))
+                        ((1.0_rkx-frac_sno(c))*(1.0_rkx-albsoi(c,ib)) * &
+                        (flx_absi_snw(c,i,ib)/(1.0_rkx-albsni(c,ib))))
               end if
             else
               if ( ib == 1 ) then
-                flx_absdv(c,i) = flx_absd_snw(c,i,ib)*(1.0D0-albsnd(c,ib))
-                flx_absiv(c,i) = flx_absi_snw(c,i,ib)*(1.0D0-albsni(c,ib))
+                flx_absdv(c,i) = flx_absd_snw(c,i,ib)*(1.0_rkx-albsnd(c,ib))
+                flx_absiv(c,i) = flx_absi_snw(c,i,ib)*(1.0_rkx-albsni(c,ib))
               else if ( ib == 2 ) then
-                flx_absdn(c,i) = flx_absd_snw(c,i,ib)*(1.0D0-albsnd(c,ib))
-                flx_absin(c,i) = flx_absi_snw(c,i,ib)*(1.0D0-albsni(c,ib))
+                flx_absdn(c,i) = flx_absd_snw(c,i,ib)*(1.0_rkx-albsnd(c,ib))
+                flx_absin(c,i) = flx_absi_snw(c,i,ib)*(1.0_rkx-albsni(c,ib))
               end if
             end if
           end do
@@ -727,12 +727,12 @@ module mod_clm_surfacealbedo
     do ib = 1 , nband
       do fc = 1 , num_nourbanc
         c = filter_nourbanc(fc)
-        if ( (coszen(c) > 0.D0) .and. (h2osno(c) > 0.D0) ) then
+        if ( (coszen(c) > 0._rkx) .and. (h2osno(c) > 0._rkx) ) then
           albsnd_hst(c,ib) = albsnd(c,ib)
           albsni_hst(c,ib) = albsni(c,ib)
         else
-          albsnd_hst(c,ib) = 0.D0
-          albsni_hst(c,ib) = 0.D0
+          albsnd_hst(c,ib) = 0._rkx
+          albsni_hst(c,ib) = 0._rkx
         end if
       end do
     end do
@@ -743,10 +743,10 @@ module mod_clm_surfacealbedo
     num_novegsol = 0
     do fp = 1 , num_nourbanp
       p = filter_nourbanp(fp)
-      if ( coszen_pft(p) > 0.D0 ) then
+      if ( coszen_pft(p) > 0._rkx ) then
         if ( (itypelun(plandunit(p)) == istsoil .or.        &
               itypelun(plandunit(p)) == istcrop     ) .and. &
-              (elai(p) + esai(p)) > 0.D0 .and. pactive(p) ) then
+              (elai(p) + esai(p)) > 0._rkx .and. pactive(p) ) then
           num_vegsol = num_vegsol + 1
           filter_vegsol(num_vegsol) = p
         else
@@ -799,7 +799,7 @@ module mod_clm_surfacealbedo
     ! Sun/shade big leaf code uses only one layer (nrad = ncan = 1), triggered
     ! by nlevcan = 1
 
-    dincmax = 0.25D0
+    dincmax = 0.25_rkx
     do fp = 1 , num_nourbanp
       p = filter_nourbanp(fp)
 
@@ -809,13 +809,13 @@ module mod_clm_surfacealbedo
         tlai_z(p,1) = elai(p)
         tsai_z(p,1) = esai(p)
       else if (nlevcan > 1) then
-        if ( elai(p)+esai(p) == 0.D0 ) then
+        if ( elai(p)+esai(p) == 0._rkx ) then
           nrad(p) = 0
         else
-          dincmax_sum = 0.D0
+          dincmax_sum = 0._rkx
           do iv = 1 , nlevcan
             dincmax_sum = dincmax_sum + dincmax
-            if ( ((elai(p)+esai(p))-dincmax_sum) > 1.D-06 ) then
+            if ( ((elai(p)+esai(p))-dincmax_sum) > 1.e-6_rkx ) then
               nrad(p) = iv
               dinc = dincmax
               tlai_z(p,iv) = dinc * elai(p) / max(elai(p)+esai(p), mpe)
@@ -843,14 +843,14 @@ module mod_clm_surfacealbedo
 
       ! Error check: make sure cumulative of increments does not exceed total
 
-      laisum = 0.D0
-      saisum = 0.D0
+      laisum = 0._rkx
+      saisum = 0._rkx
       do iv = 1 , nrad(p)
         laisum = laisum + tlai_z(p,iv)
         saisum = saisum + tsai_z(p,iv)
       end do
-      if ( abs(laisum-elai(p)) > 1.D-06 .or. &
-           abs(saisum-esai(p)) > 1.D-06) then
+      if ( abs(laisum-elai(p)) > 1.e-6_rkx .or. &
+           abs(saisum-esai(p)) > 1.e-6_rkx) then
         write (stderr,*) &
                 'multi-layer canopy error 01 in SurfaceAlbedo: ', &
                 nrad(p),elai(p),laisum,esai(p),saisum
@@ -862,13 +862,13 @@ module mod_clm_surfacealbedo
       if ( nlevcan > 1 ) then
         blai(p) = tlai(p) - elai(p)
         bsai(p) = tsai(p) - esai(p)
-        if ( blai(p)+bsai(p) == 0.D0 ) then
+        if ( blai(p)+bsai(p) == 0._rkx ) then
           ncan(p) = nrad(p)
         else
-          dincmax_sum = 0.D0
+          dincmax_sum = 0._rkx
           do iv = nrad(p)+1 , nlevcan
             dincmax_sum = dincmax_sum + dincmax
-            if ( ((blai(p)+bsai(p))-dincmax_sum) > 1.D-06 ) then
+            if ( ((blai(p)+bsai(p))-dincmax_sum) > 1.e-6_rkx ) then
               ncan(p) = iv
               dinc = dincmax
               tlai_z(p,iv) = dinc * blai(p) / max(blai(p)+bsai(p), mpe)
@@ -885,14 +885,14 @@ module mod_clm_surfacealbedo
 
         ! Error check: make sure cumulative of increments does not exceed total
 
-        laisum = 0.D0
-        saisum = 0.D0
+        laisum = 0._rkx
+        saisum = 0._rkx
         do iv = 1 , ncan(p)
           laisum = laisum + tlai_z(p,iv)
           saisum = saisum + tsai_z(p,iv)
         end do
-        if ( abs(laisum-tlai(p)) > 1.D-06 .or. &
-             abs(saisum-tsai(p)) > 1.D-06) then
+        if ( abs(laisum-tlai(p)) > 1.e-6_rkx .or. &
+             abs(saisum-tsai(p)) > 1.e-6_rkx) then
           write (stderr,*) 'multi-layer canopy error 02 in SurfaceAlbedo: ', &
                   nrad(p),ncan(p)
           write (stderr,*) tlai(p),elai(p),blai(p),laisum,tsai(p), &
@@ -907,11 +907,11 @@ module mod_clm_surfacealbedo
     do fp = 1 , num_nourbanp
       p = filter_nourbanp(fp)
       do iv = 1 , nrad(p)
-        fabd_sun_z(p,iv) = 0.D0
-        fabd_sha_z(p,iv) = 0.D0
-        fabi_sun_z(p,iv) = 0.D0
-        fabi_sha_z(p,iv) = 0.D0
-        fsun_z(p,iv) = 0.D0
+        fabd_sun_z(p,iv) = 0._rkx
+        fabd_sha_z(p,iv) = 0._rkx
+        fabi_sun_z(p,iv) = 0._rkx
+        fabi_sha_z(p,iv) = 0._rkx
+        fsun_z(p,iv) = 0._rkx
       end do
     end do
 
@@ -921,20 +921,20 @@ module mod_clm_surfacealbedo
     ! because sunlit fraction is 0. Canopy scaling coefficients are set in
     ! TwoStream for coszen > 0. So kn must be set here and in TwoStream.
 
-    extkn = 0.30D0
+    extkn = 0.30_rkx
     do fp = 1 , num_nourbanp
       p = filter_nourbanp(fp)
       if ( nlevcan == 1 ) then
-        vcmaxcintsun(p) = 0.D0
-        vcmaxcintsha(p) = (1.D0 - exp(-extkn*elai(p))) / extkn
-        if ( elai(p) > 0.D0 ) then
+        vcmaxcintsun(p) = 0._rkx
+        vcmaxcintsha(p) = (1._rkx - exp(-extkn*elai(p))) / extkn
+        if ( elai(p) > 0._rkx ) then
           vcmaxcintsha(p) = vcmaxcintsha(p) / elai(p)
         else
-          vcmaxcintsha(p) = 0.D0
+          vcmaxcintsha(p) = 0._rkx
         end if
       else if ( nlevcan > 1 ) then
-        vcmaxcintsun(p) = 0.D0
-        vcmaxcintsha(p) = 0.D0
+        vcmaxcintsun(p) = 0._rkx
+        vcmaxcintsha(p) = 0._rkx
       end if
     end do
 
@@ -949,24 +949,24 @@ module mod_clm_surfacealbedo
       do fp = 1 , num_novegsol
         p = filter_novegsol(fp)
         c = pcolumn(p)
-        fabd(p,ib) = 0.D0
-        fabd_sun(p,ib) = 0.D0
-        fabd_sha(p,ib) = 0.D0
-        fabi(p,ib) = 0.D0
-        fabi_sun(p,ib) = 0.D0
-        fabi_sha(p,ib) = 0.D0
-        ftdd(p,ib) = 1.D0
-        ftid(p,ib) = 0.D0
-        ftii(p,ib) = 1.D0
+        fabd(p,ib) = 0._rkx
+        fabd_sun(p,ib) = 0._rkx
+        fabd_sha(p,ib) = 0._rkx
+        fabi(p,ib) = 0._rkx
+        fabi_sun(p,ib) = 0._rkx
+        fabi_sha(p,ib) = 0._rkx
+        ftdd(p,ib) = 1._rkx
+        ftid(p,ib) = 0._rkx
+        ftii(p,ib) = 1._rkx
         albd(p,ib) = albgrd(c,ib)
         albi(p,ib) = albgri(c,ib)
 !       if (ib == 1) then
 !         do iv = 1, nrad(p)
-!           fabd_sun_z(p,iv) = 0.D0
-!           fabd_sha_z(p,iv) = 0.D0
-!           fabi_sun_z(p,iv) = 0.D0
-!           fabi_sha_z(p,iv) = 0.D0
-!           fsun_z(p,iv) = 0.D0
+!           fabd_sun_z(p,iv) = 0._rkx
+!           fabd_sha_z(p,iv) = 0._rkx
+!           fabi_sun_z(p,iv) = 0._rkx
+!           fabi_sha_z(p,iv) = 0._rkx
+!           fsun_z(p,iv) = 0._rkx
 !         end do
 !       end if
       end do
@@ -989,7 +989,7 @@ module mod_clm_surfacealbedo
     ! column filter for non-urban points
     integer(ik4) , dimension(ubc-lbc+1) , intent(in) :: filter_nourbanc
     ! cos solar zenith angle next time step (column-level)
-    real(rk8) , dimension(lbc:ubc) , intent(in) :: coszen
+    real(rkx) , dimension(lbc:ubc) , intent(in) :: coszen
 
     ! landunit of corresponding column
     integer(ik4) , pointer , dimension(:) :: clandunit
@@ -998,36 +998,36 @@ module mod_clm_surfacealbedo
     ! soil color class
     integer(ik4) , pointer , dimension(:) :: isoicol
     ! ground temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_grnd
+    real(rkx) , pointer , dimension(:) :: t_grnd
     ! volumetric soil water [m3/m3]
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
+    real(rkx) , pointer , dimension(:,:) :: h2osoi_vol
     ! mass fraction of lake layer that is frozen
-    real(rk8) , pointer , dimension(:,:) :: lake_icefrac
+    real(rkx) , pointer , dimension(:,:) :: lake_icefrac
     ! number of snow layers
     integer(ik4) , pointer , dimension(:) :: snl
 
     ! ground albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albgrd
+    real(rkx) , pointer , dimension(:,:) :: albgrd
     ! ground albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albgri
+    real(rkx) , pointer , dimension(:,:) :: albgri
     ! albsod and albsoi are now clm_type variables so they can
     ! be used by SNICAR.
     ! soil albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albsod
+    real(rkx) , pointer , dimension(:,:) :: albsod
     ! soil albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albsoi
+    real(rkx) , pointer , dimension(:,:) :: albsoi
     ! number of solar radiation waveband classes
     integer(ik4) , parameter :: nband = numrad
     integer(ik4) :: fc         ! non-urban filter column index
     integer(ik4) :: c , l      ! indices
     integer(ik4) :: ib         ! waveband number (1=vis, 2=nir)
-    real(rk8) :: inc           ! soil water correction factor for soil albedo
+    real(rkx) :: inc           ! soil water correction factor for soil albedo
     ! albsod and albsoi are now clm_type variables so they can be
     ! used by SNICAR.
-    !real(rk8) :: albsod       ! soil albedo (direct)
-    !real(rk8) :: albsoi       ! soil albedo (diffuse)
+    !real(rkx) :: albsod       ! soil albedo (direct)
+    !real(rkx) :: albsoi       ! soil albedo (diffuse)
     integer(ik4) :: soilcol    ! soilcolor
-    real(rk8) :: sicefr        ! Lake surface ice fraction
+    real(rkx) :: sicefr        ! Lake surface ice fraction
                                ! (based on D. Mironov 2010)
 
     ! Assign local pointers to derived subtypes components (column-level)
@@ -1052,10 +1052,10 @@ module mod_clm_surfacealbedo
     do ib = 1 , nband
       do fc = 1 , num_nourbanc
         c = filter_nourbanc(fc)
-        if ( coszen(c) > 0.D0 ) then
+        if ( coszen(c) > 0._rkx ) then
           l = clandunit(c)
           if ( ltype(l) == istsoil .or. ltype(l) == istcrop )  then ! soil
-            inc    = max(0.11D0-0.40D0*h2osoi_vol(c,1), 0.D0)
+            inc    = max(0.11_rkx-0.40_rkx*h2osoi_vol(c,1), 0._rkx)
             soilcol = isoicol(c)
             ! changed from local variable to clm_type:
             !albsod = min(albsat(soilcol,ib)+inc, albdry(soilcol,ib))
@@ -1071,9 +1071,9 @@ module mod_clm_surfacealbedo
             ! unfrozen lake, wetland
           else if ( t_grnd(c) > tfrz .or. &
                   (lakepuddling .and. ltype(l) == istdlak .and. &
-                   t_grnd(c) == tfrz .and. lake_icefrac(c,1) < 1.D0 .and. &
-                   lake_icefrac(c,2) > 0.D0) ) then
-            albsod(c,ib) = 0.05D0/(max(0.001D0,coszen(c)) + 0.15D0)
+                   t_grnd(c) == tfrz .and. lake_icefrac(c,1) < 1._rkx .and. &
+                   lake_icefrac(c,2) > 0._rkx) ) then
+            albsod(c,ib) = 0.05_rkx/(max(0.001_rkx,coszen(c)) + 0.15_rkx)
             ! This expression is apparently from BATS according to Yongjiu Dai.
             ! The diffuse albedo should be an average over the whole sky of
             ! an angular-dependent direct expression.
@@ -1086,7 +1086,7 @@ module mod_clm_surfacealbedo
             ! bfb baseline comparison when no lakes are present. I'm assuming
             ! wetlands will be phased out anyway.
             if ( ltype(l) == istdlak ) then
-              albsoi(c,ib) = 0.10D0
+              albsoi(c,ib) = 0.10_rkx
             else
               albsoi(c,ib) = albsod(c,ib)
             end if
@@ -1104,12 +1104,12 @@ module mod_clm_surfacealbedo
               ! Need to reference snow layers here because t_grnd could be
               ! over snow or ice but we really want the ice surface temperature
               ! with no snow
-              sicefr = 1.D0 - exp(-calb * (tfrz - t_grnd(c))/tfrz)
+              sicefr = 1._rkx - exp(-calb * (tfrz - t_grnd(c))/tfrz)
               albsod(c,ib) = sicefr*alblak(ib) + &
-                      (1.D0-sicefr)*max(alblakwi(ib), &
-                       0.05D0/(max(0.001D0,coszen(c)) + 0.15D0))
+                      (1._rkx-sicefr)*max(alblakwi(ib), &
+                       0.05_rkx/(max(0.001_rkx,coszen(c)) + 0.15_rkx))
               albsoi(c,ib) = sicefr*alblak(ib) + &
-                      (1.D0-sicefr)*max(alblakwi(ib), 0.10D0)
+                      (1._rkx-sicefr)*max(alblakwi(ib), 0.10_rkx)
               ! Make sure this is no less than the open water albedo above.
               ! Setting lake_melt_icealb(:) = alblak(:) in namelist reverts
               ! the melting albedo to the cold snow-free value.
@@ -1149,119 +1149,119 @@ module mod_clm_surfacealbedo
     ! number of vegetated pfts where coszen>0
     integer(ik4) , intent(in) :: num_vegsol
     ! cosine solar zenith angle for next time step
-    real(rk8) , dimension(lbp:ubp) , intent(in) :: coszen
+    real(rkx) , dimension(lbp:ubp) , intent(in) :: coszen
     ! leaf/stem refl weighted by fraction LAI and SAI
-    real(rk8) , dimension(lbp:ubp,numrad) , intent(in) :: rho
+    real(rkx) , dimension(lbp:ubp,numrad) , intent(in) :: rho
     ! leaf/stem tran weighted by fraction LAI and SAI
-    real(rk8) , dimension(lbp:ubp,numrad) , intent(in) :: tau
+    real(rkx) , dimension(lbp:ubp,numrad) , intent(in) :: tau
     ! column of corresponding pft
     integer(ik4) , pointer , dimension(:) :: pcolumn
     ! ground albedo (direct) (column-level)
-    real(rk8) , pointer , dimension(:,:) :: albgrd
+    real(rkx) , pointer , dimension(:,:) :: albgrd
     ! ground albedo (diffuse)(column-level)
-    real(rk8) , pointer , dimension(:,:) :: albgri
+    real(rkx) , pointer , dimension(:,:) :: albgri
     ! vegetation temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_veg
+    real(rkx) , pointer , dimension(:) :: t_veg
     ! fraction of canopy that is wet (0 to 1)
-    real(rk8) , pointer , dimension(:) :: fwet
+    real(rkx) , pointer , dimension(:) :: fwet
     ! pft vegetation type
     integer(ik4) , pointer , dimension(:) :: ivt
     ! ecophys const - leaf/stem orientation index
-    real(rk8) , pointer , dimension(:) :: xl
+    real(rkx) , pointer , dimension(:) :: xl
     ! one-sided leaf area index with burying by snow
-    real(rk8) , pointer , dimension(:) :: elai
+    real(rkx) , pointer , dimension(:) :: elai
     ! one-sided stem area index with burying by snow
-    real(rk8) , pointer , dimension(:) :: esai
+    real(rkx) , pointer , dimension(:) :: esai
     ! number of canopy layers, above snow for radiative transfer
     integer(ik4) , pointer , dimension(:) :: nrad
     ! tlai increment for canopy layer
-    real(rk8) , pointer , dimension(:,:) :: tlai_z
+    real(rkx) , pointer , dimension(:,:) :: tlai_z
     ! tsai increment for canopy layer
-    real(rk8) , pointer , dimension(:,:) :: tsai_z
+    real(rkx) , pointer , dimension(:,:) :: tsai_z
     ! surface albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albd
+    real(rkx) , pointer , dimension(:,:) :: albd
     ! surface albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albi
+    real(rkx) , pointer , dimension(:,:) :: albi
     ! flux absorbed by canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: fabd
+    real(rkx) , pointer , dimension(:,:) :: fabd
     ! flux absorbed by sunlit canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: fabd_sun
+    real(rkx) , pointer , dimension(:,:) :: fabd_sun
     ! flux absorbed by shaded canopy per unit direct flux
-    real(rk8) , pointer , dimension(:,:) :: fabd_sha
+    real(rkx) , pointer , dimension(:,:) :: fabd_sha
     ! flux absorbed by canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: fabi
+    real(rkx) , pointer , dimension(:,:) :: fabi
     ! flux absorbed by sunlit canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: fabi_sun
+    real(rkx) , pointer , dimension(:,:) :: fabi_sun
     ! flux absorbed by shaded canopy per unit diffuse flux
-    real(rk8) , pointer , dimension(:,:) :: fabi_sha
+    real(rkx) , pointer , dimension(:,:) :: fabi_sha
     ! down direct flux below canopy per unit direct flx
-    real(rk8) , pointer , dimension(:,:) :: ftdd
+    real(rkx) , pointer , dimension(:,:) :: ftdd
     ! down diffuse flux below canopy per unit direct flx
-    real(rk8) , pointer , dimension(:,:) :: ftid
+    real(rkx) , pointer , dimension(:,:) :: ftid
     ! down diffuse flux below canopy per unit diffuse flx
-    real(rk8) , pointer , dimension(:,:) :: ftii
+    real(rkx) , pointer , dimension(:,:) :: ftii
     ! absorbed sunlit leaf direct  PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabd_sun_z
+    real(rkx) , pointer , dimension(:,:) :: fabd_sun_z
     ! absorbed shaded leaf direct  PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabd_sha_z
+    real(rkx) , pointer , dimension(:,:) :: fabd_sha_z
     ! absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabi_sun_z
+    real(rkx) , pointer , dimension(:,:) :: fabi_sun_z
     ! absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fabi_sha_z
+    real(rkx) , pointer , dimension(:,:) :: fabi_sha_z
     ! sunlit fraction of canopy layer
-    real(rk8) , pointer , dimension(:,:) :: fsun_z
+    real(rkx) , pointer , dimension(:,:) :: fsun_z
     ! leaf to canopy scaling coefficient, sunlit leaf vcmax
-    real(rk8) , pointer , dimension(:) :: vcmaxcintsun
+    real(rkx) , pointer , dimension(:) :: vcmaxcintsun
     ! leaf to canopy scaling coefficient, shaded leaf vcmax
-    real(rk8) , pointer , dimension(:) :: vcmaxcintsha
+    real(rkx) , pointer , dimension(:) :: vcmaxcintsha
     integer(ik4) :: fp , p , c , iv  ! array indices
     integer(ik4) :: ib               ! waveband number
-    real(rk8) :: cosz ! 0.001 <= coszen <= 1.000
-    real(rk8) :: asu  ! single scattering albedo
-    real(rk8) , dimension(lbp:ubp) :: chil    ! -0.4 <= xl <= 0.6
+    real(rkx) :: cosz ! 0.001 <= coszen <= 1.000
+    real(rkx) :: asu  ! single scattering albedo
+    real(rkx) , dimension(lbp:ubp) :: chil    ! -0.4 <= xl <= 0.6
     ! leaf projection in solar direction (0 to 1)
-    real(rk8) , dimension(lbp:ubp) :: gdir
+    real(rkx) , dimension(lbp:ubp) :: gdir
     ! optical depth of direct beam per unit leaf area
-    real(rk8) , dimension(lbp:ubp) :: twostext
+    real(rkx) , dimension(lbp:ubp) :: twostext
     ! average diffuse optical depth
-    real(rk8) , dimension(lbp:ubp) :: avmu
+    real(rkx) , dimension(lbp:ubp) :: avmu
     ! fraction of intercepted radiation that is scattered (0 to 1)
-    real(rk8) , dimension(lbp:ubp,numrad) :: omega
-    real(rk8) :: omegal ! omega for leaves
-    real(rk8) :: betai  ! upscatter parameter for diffuse radiation
-    real(rk8) :: betail ! betai for leaves
-    real(rk8) :: betad  ! upscatter parameter for direct beam radiation
-    real(rk8) :: betadl ! betad for leaves
-    real(rk8) :: tmp0 , tmp1 , tmp2 , tmp3 , tmp4 , tmp5 , tmp6
-    real(rk8) :: tmp7 , tmp8 , tmp9 ! temporary
-    real(rk8) :: p1 , p2 , p3 , p4 , s1 , s2 , u1 , u2 , u3 ! temporary
-    real(rk8) :: b , c1 , d , d1 , d2 , f , h
-    real(rk8) :: h1 , h2 , h3 , h4 , h5 , h6 , h7 , h8 , h9 , h10   ! temporary
-    real(rk8) :: phi1 , phi2 , sigma , temp1   ! temporary
-    real(rk8) , dimension(lbp:ubp) :: temp0 , temp2       ! temporary
-    real(rk8) :: t1  ! temporary
+    real(rkx) , dimension(lbp:ubp,numrad) :: omega
+    real(rkx) :: omegal ! omega for leaves
+    real(rkx) :: betai  ! upscatter parameter for diffuse radiation
+    real(rkx) :: betail ! betai for leaves
+    real(rkx) :: betad  ! upscatter parameter for direct beam radiation
+    real(rkx) :: betadl ! betad for leaves
+    real(rkx) :: tmp0 , tmp1 , tmp2 , tmp3 , tmp4 , tmp5 , tmp6
+    real(rkx) :: tmp7 , tmp8 , tmp9 ! temporary
+    real(rkx) :: p1 , p2 , p3 , p4 , s1 , s2 , u1 , u2 , u3 ! temporary
+    real(rkx) :: b , c1 , d , d1 , d2 , f , h
+    real(rkx) :: h1 , h2 , h3 , h4 , h5 , h6 , h7 , h8 , h9 , h10   ! temporary
+    real(rkx) :: phi1 , phi2 , sigma , temp1   ! temporary
+    real(rkx) , dimension(lbp:ubp) :: temp0 , temp2       ! temporary
+    real(rkx) :: t1  ! temporary
     ! parameter for sunlit/shaded leaf radiation absorption
-    real(rk8) :: a1 , a2
+    real(rkx) :: a1 , a2
     ! temporary for flux derivatives
-    real(rk8) :: v , dv , u , du
+    real(rkx) :: v , dv , u , du
     ! temporary for flux derivatives
-    real(rk8) :: dh2 , dh3 , dh5 , dh6 , dh7 , dh8 , dh9 , dh10
+    real(rkx) :: dh2 , dh3 , dh5 , dh6 , dh7 , dh8 , dh9 , dh10
     ! temporary for flux derivatives
-    real(rk8) :: da1 , da2
+    real(rkx) :: da1 , da2
     ! ftid, ftii derivative with respect to lai+sai
-    real(rk8) :: d_ftid , d_ftii
+    real(rkx) :: d_ftid , d_ftii
     ! fabd, fabi derivative with respect to lai+sai
-    real(rk8) :: d_fabd , d_fabi
+    real(rkx) :: d_fabd , d_fabi
     ! fabd_sun, fabd_sha derivative with respect to lai+sai
-    real(rk8) :: d_fabd_sun , d_fabd_sha
+    real(rkx) :: d_fabd_sun , d_fabd_sha
     ! fabi_sun, fabi_sha derivative with respect to lai+sai
-    real(rk8) :: d_fabi_sun , d_fabi_sha
+    real(rkx) :: d_fabi_sun , d_fabi_sha
     ! cumulative lai+sai for canopy layer (at middle of layer)
-    real(rk8) :: laisum
+    real(rkx) :: laisum
     ! direct beam extinction coefficient
-    real(rk8) :: extkb
+    real(rkx) :: extkb
     ! nitrogen allocation coefficient
-    real(rk8) :: extkn
+    real(rkx) :: extkn
 
     ! Assign local pointers to derived subtypes components (column-level)
 
@@ -1308,18 +1308,18 @@ module mod_clm_surfacealbedo
       ! note that the following limit only acts on cosz values > 0 and
       ! less than 0.001, not on values cosz = 0, since these zero have
       ! already been filtered out in filter_vegsol
-      cosz = max(0.001D0, coszen(p))
+      cosz = max(0.001_rkx, coszen(p))
 
-      chil(p) = min( max(xl(ivt(p)), -0.4D0), 0.6D0 )
-      if (abs(chil(p)) <= 0.01D0) chil(p) = 0.01D0
-      phi1 = 0.5D0 - 0.633D0*chil(p) - 0.330D0*chil(p)*chil(p)
-      phi2 = 0.877D0 * (1.D0-2.D0*phi1)
+      chil(p) = min( max(xl(ivt(p)), -0.4_rkx), 0.6_rkx )
+      if (abs(chil(p)) <= 0.01_rkx) chil(p) = 0.01_rkx
+      phi1 = 0.5_rkx - 0.633_rkx*chil(p) - 0.330_rkx*chil(p)*chil(p)
+      phi2 = 0.877_rkx * (1._rkx-2._rkx*phi1)
       gdir(p) = phi1 + phi2*cosz
       twostext(p) = gdir(p)/cosz
-      avmu(p) = ( 1.D0 - phi1/phi2 * log((phi1+phi2)/phi1) ) / phi2
+      avmu(p) = ( 1._rkx - phi1/phi2 * log((phi1+phi2)/phi1) ) / phi2
       temp0(p) = gdir(p) + phi2*cosz
       temp1 = phi1*cosz
-      temp2(p) = ( 1.D0 - temp1/temp0(p) * log((temp1+temp0(p))/temp1) )
+      temp2(p) = ( 1._rkx - temp1/temp0(p) * log((temp1+temp0(p))/temp1) )
     end do
     !
     ! Loop over all wavebands to calculate for the full canopy the scattered
@@ -1369,21 +1369,21 @@ module mod_clm_surfacealbedo
         ! Also, the transmittances and reflectances (tau, rho) are linear
         ! weights of leaf and stem values.
         omegal = rho(p,ib) + tau(p,ib)
-        asu = 0.5D0*omegal*gdir(p)/temp0(p) *temp2(p)
-        betadl = (1.D0+avmu(p)*twostext(p))/(omegal*avmu(p)*twostext(p))*asu
-        betail = 0.5D0 * ((rho(p,ib)+tau(p,ib)) + (rho(p,ib)-tau(p,ib)) * &
-                 ((1.D0+chil(p))/2.D0)**2) / omegal
+        asu = 0.5_rkx*omegal*gdir(p)/temp0(p) *temp2(p)
+        betadl = (1._rkx+avmu(p)*twostext(p))/(omegal*avmu(p)*twostext(p))*asu
+        betail = 0.5_rkx * ((rho(p,ib)+tau(p,ib)) + (rho(p,ib)-tau(p,ib)) * &
+                 ((1._rkx+chil(p))/2._rkx)**2) / omegal
         ! Adjust omega, betad, and betai for intercepted snow
         if (t_veg(p) > tfrz) then                             !no snow
           tmp0 = omegal
           tmp1 = betadl
           tmp2 = betail
         else
-          tmp0 =   (1.D0-fwet(p))*omegal        + &
+          tmp0 =   (1._rkx-fwet(p))*omegal        + &
                   fwet(p)*omegas(ib)
-          tmp1 = ( (1.D0-fwet(p))*omegal*betadl + &
+          tmp1 = ( (1._rkx-fwet(p))*omegal*betadl + &
                   fwet(p)*omegas(ib)*betads ) / tmp0
-          tmp2 = ( (1.D0-fwet(p))*omegal*betail + &
+          tmp2 = ( (1._rkx-fwet(p))*omegal*betail + &
                   fwet(p)*omegas(ib)*betais ) / tmp0
         end if
         omega(p,ib) = tmp0
@@ -1392,11 +1392,11 @@ module mod_clm_surfacealbedo
 
         ! Common terms
 
-        b = 1.D0 - omega(p,ib) + omega(p,ib)*betai
+        b = 1._rkx - omega(p,ib) + omega(p,ib)*betai
         c1 = omega(p,ib)*betai
         tmp0 = avmu(p)*twostext(p)
         d = tmp0 * omega(p,ib)*betad
-        f = tmp0 * omega(p,ib)*(1.D0-betad)
+        f = tmp0 * omega(p,ib)*(1._rkx-betad)
         tmp1 = b*b - c1*c1
         h = sqrt(tmp1) / avmu(p)
         sigma = tmp0*tmp0 - tmp1
@@ -1408,9 +1408,9 @@ module mod_clm_surfacealbedo
         ! Absorbed, reflected, transmitted fluxes per unit incoming radiation
         ! for full canopy
 
-        t1 = min(h*(elai(p)+esai(p)), 40.D0)
+        t1 = min(h*(elai(p)+esai(p)), 40._rkx)
         s1 = exp(-t1)
-        t1 = min(twostext(p)*(elai(p)+esai(p)), 40.D0)
+        t1 = min(twostext(p)*(elai(p)+esai(p)), 40._rkx)
         s2 = exp(-t1)
 
         ! Direct beam
@@ -1438,19 +1438,19 @@ module mod_clm_surfacealbedo
         albd(p,ib) = h1/sigma + h2 + h3
         ftid(p,ib) = h4*s2/sigma + h5*s1 + h6/s1
         ftdd(p,ib) = s2
-        fabd(p,ib) = 1.D0 - albd(p,ib) - &
-                (1.D0-albgrd(c,ib))*ftdd(p,ib) - (1.D0-albgri(c,ib))*ftid(p,ib)
+        fabd(p,ib) = 1._rkx - albd(p,ib) - &
+                (1._rkx-albgrd(c,ib))*ftdd(p,ib) - (1._rkx-albgri(c,ib))*ftid(p,ib)
 
-        a1 = h1 / sigma * (1.D0 - s2*s2) / (2.D0 * twostext(p)) &
-             + h2         * (1.D0 - s2*s1) / (twostext(p) + h) &
-             + h3         * (1.D0 - s2/s1) / (twostext(p) - h)
+        a1 = h1 / sigma * (1._rkx - s2*s2) / (2._rkx * twostext(p)) &
+             + h2         * (1._rkx - s2*s1) / (twostext(p) + h) &
+             + h3         * (1._rkx - s2/s1) / (twostext(p) - h)
 
-        a2 = h4 / sigma * (1.D0 - s2*s2) / (2.D0 * twostext(p)) &
-             + h5         * (1.D0 - s2*s1) / (twostext(p) + h) &
-             + h6         * (1.D0 - s2/s1) / (twostext(p) - h)
+        a2 = h4 / sigma * (1._rkx - s2*s2) / (2._rkx * twostext(p)) &
+             + h5         * (1._rkx - s2*s1) / (twostext(p) + h) &
+             + h6         * (1._rkx - s2/s1) / (twostext(p) - h)
 
-        fabd_sun(p,ib) = (1.D0 - omega(p,ib)) * &
-                ( 1.D0 - s2 + 1.D0 / avmu(p) * (a1 + a2) )
+        fabd_sun(p,ib) = (1._rkx - omega(p,ib)) * &
+                ( 1._rkx - s2 + 1._rkx / avmu(p) * (a1 + a2) )
         fabd_sha(p,ib) = fabd(p,ib) - fabd_sun(p,ib)
 
         ! Diffuse
@@ -1470,14 +1470,14 @@ module mod_clm_surfacealbedo
 
         albi(p,ib) = h7 + h8
         ftii(p,ib) = h9*s1 + h10/s1
-        fabi(p,ib) = 1.D0 - albi(p,ib) - (1.D0-albgri(c,ib))*ftii(p,ib)
+        fabi(p,ib) = 1._rkx - albi(p,ib) - (1._rkx-albgri(c,ib))*ftii(p,ib)
 
-        a1 = h7 * (1.D0 - s2*s1) / (twostext(p) + h) +  &
-                h8 * (1.D0 - s2/s1) / (twostext(p) - h)
-        a2 = h9 * (1.D0 - s2*s1) / (twostext(p) + h) + &
-                h10 * (1.D0 - s2/s1) / (twostext(p) - h)
+        a1 = h7 * (1._rkx - s2*s1) / (twostext(p) + h) +  &
+                h8 * (1._rkx - s2/s1) / (twostext(p) - h)
+        a2 = h9 * (1._rkx - s2*s1) / (twostext(p) + h) + &
+                h10 * (1._rkx - s2/s1) / (twostext(p) - h)
 
-        fabi_sun(p,ib) = (1.D0 - omega(p,ib)) / avmu(p) * (a1 + a2)
+        fabi_sun(p,ib) = (1._rkx - omega(p,ib)) / avmu(p) * (a1 + a2)
         fabi_sha(p,ib) = fabi(p,ib) - fabi_sun(p,ib)
 
         ! Repeat two-stream calculations for each canopy layer to
@@ -1497,36 +1497,36 @@ module mod_clm_surfacealbedo
           if ( nlevcan == 1 ) then
 
             ! sunlit fraction of canopy
-            fsun_z(p,1) = (1.D0 - s2) / t1
+            fsun_z(p,1) = (1._rkx - s2) / t1
 
             ! absorbed PAR (per unit sun/shade lai+sai)
             laisum = elai(p)+esai(p)
             fabd_sun_z(p,1) = fabd_sun(p,ib) / (fsun_z(p,1)*laisum)
             fabi_sun_z(p,1) = fabi_sun(p,ib) / (fsun_z(p,1)*laisum)
-            fabd_sha_z(p,1) = fabd_sha(p,ib) / ((1.D0 - fsun_z(p,1))*laisum)
-            fabi_sha_z(p,1) = fabi_sha(p,ib) / ((1.D0 - fsun_z(p,1))*laisum)
+            fabd_sha_z(p,1) = fabd_sha(p,ib) / ((1._rkx - fsun_z(p,1))*laisum)
+            fabi_sha_z(p,1) = fabi_sha(p,ib) / ((1._rkx - fsun_z(p,1))*laisum)
 
             ! leaf to canopy scaling coefficients
-            extkn = 0.30D0
+            extkn = 0.30_rkx
             extkb = twostext(p)
-            if ( (extkn+extkb)*elai(p) > 25.0D0 ) then
-              vcmaxcintsun(p) = 1.0D0 / ( extkn + extkb )
+            if ( (extkn+extkb)*elai(p) > 25.0_rkx ) then
+              vcmaxcintsun(p) = 1.0_rkx / ( extkn + extkb )
             else
-              vcmaxcintsun(p) = (1.D0 - exp(-(extkn+extkb)*elai(p))) / &
+              vcmaxcintsun(p) = (1._rkx - exp(-(extkn+extkb)*elai(p))) / &
                                 (extkn + extkb)
             end if
-            if ( extkn*elai(p) > 25.0D0 ) then
-              vcmaxcintsha(p) = 1.0D0 / extkn - vcmaxcintsun(p)
+            if ( extkn*elai(p) > 25.0_rkx ) then
+              vcmaxcintsha(p) = 1.0_rkx / extkn - vcmaxcintsun(p)
             else
-              vcmaxcintsha(p) = (1.D0 - exp(-extkn*elai(p))) / &
+              vcmaxcintsha(p) = (1._rkx - exp(-extkn*elai(p))) / &
                       extkn - vcmaxcintsun(p)
             end if
-            if ( elai(p) > 0.D0 ) then
+            if ( elai(p) > 0._rkx ) then
               vcmaxcintsun(p) = vcmaxcintsun(p) / (fsun_z(p,1)*elai(p))
-              vcmaxcintsha(p) = vcmaxcintsha(p) / ((1.D0 - fsun_z(p,1))*elai(p))
+              vcmaxcintsha(p) = vcmaxcintsha(p) / ((1._rkx - fsun_z(p,1))*elai(p))
             else
-              vcmaxcintsun(p) = 0.D0
-              vcmaxcintsha(p) = 0.D0
+              vcmaxcintsun(p) = 0._rkx
+              vcmaxcintsha(p) = 0._rkx
             end if
 
           else if ( nlevcan > 1 ) then
@@ -1535,9 +1535,9 @@ module mod_clm_surfacealbedo
               ! Cumulative lai+sai at center of layer
 
               if ( iv == 1 ) then
-                laisum = 0.5D0 * (tlai_z(p,iv)+tsai_z(p,iv))
+                laisum = 0.5_rkx * (tlai_z(p,iv)+tsai_z(p,iv))
               else
-                laisum = laisum + 0.5D0 * &
+                laisum = laisum + 0.5_rkx * &
                      ((tlai_z(p,iv-1)+tsai_z(p,iv-1)) + &
                       (tlai_z(p,iv)+tsai_z(p,iv)))
               end if
@@ -1545,9 +1545,9 @@ module mod_clm_surfacealbedo
               ! Coefficients s1 and s2 depend on cumulative lai+sai.
               ! s2 is the sunlit fraction
 
-              t1 = min(h*laisum, 40.D0)
+              t1 = min(h*laisum, 40._rkx)
               s1 = exp(-t1)
-              t1 = min(twostext(p)*laisum, 40.D0)
+              t1 = min(twostext(p)*laisum, 40._rkx)
               s2 = exp(-t1)
               fsun_z(p,iv) = s2
 
@@ -1577,13 +1577,13 @@ module mod_clm_surfacealbedo
               h5 = - ( tmp8*tmp4/s1 + tmp9 ) / d2
               h6 = ( tmp8*tmp5*s1 + tmp9 ) / d2
 
-              a1 = h1 / sigma * (1.D0 - s2*s2) / (2.D0 * twostext(p)) &
-                   + h2         * (1.D0 - s2*s1) / (twostext(p) + h) &
-                   + h3         * (1.D0 - s2/s1) / (twostext(p) - h)
+              a1 = h1 / sigma * (1._rkx - s2*s2) / (2._rkx * twostext(p)) &
+                   + h2         * (1._rkx - s2*s1) / (twostext(p) + h) &
+                   + h3         * (1._rkx - s2/s1) / (twostext(p) - h)
 
-              a2 = h4 / sigma * (1.D0 - s2*s2) / (2.D0 * twostext(p)) &
-                   + h5         * (1.D0 - s2*s1) / (twostext(p) + h) &
-                   + h6         * (1.D0 - s2/s1) / (twostext(p) - h)
+              a2 = h4 / sigma * (1._rkx - s2*s2) / (2._rkx * twostext(p)) &
+                   + h5         * (1._rkx - s2*s1) / (twostext(p) + h) &
+                   + h6         * (1._rkx - s2/s1) / (twostext(p) - h)
 
               ! Derivatives for h2, h3, h5, h6 and a1, a2
 
@@ -1610,25 +1610,25 @@ module mod_clm_surfacealbedo
               dh6 = (v * du - u * dv) / (v * v)
 
               da1 = h1/sigma * s2*s2 + h2 * s2*s1 + h3 * s2/s1 &
-                    + (1.D0 - s2*s1) / (twostext(p) + h) * dh2 &
-                    + (1.D0 - s2/s1) / (twostext(p) - h) * dh3
+                    + (1._rkx - s2*s1) / (twostext(p) + h) * dh2 &
+                    + (1._rkx - s2/s1) / (twostext(p) - h) * dh3
               da2 = h4/sigma * s2*s2 + h5 * s2*s1 + h6 * s2/s1 &
-                    + (1.D0 - s2*s1) / (twostext(p) + h) * dh5 &
-                    + (1.D0 - s2/s1) / (twostext(p) - h) * dh6
+                    + (1._rkx - s2*s1) / (twostext(p) + h) * dh5 &
+                    + (1._rkx - s2/s1) / (twostext(p) - h) * dh6
 
               ! Flux derivatives
 
               d_ftid = -twostext(p)*h4/sigma*s2 - &
                       h*h5*s1 + h*h6/s1 + dh5*s1 + dh6/s1
               d_fabd = -(dh2+dh3) + &
-                      (1.D0-albgrd(c,ib))*twostext(p)*s2 - &
-                      (1.D0-albgri(c,ib))*d_ftid
-              d_fabd_sun = (1.D0 - omega(p,ib)) * &
-                      (twostext(p)*s2 + 1.D0 / avmu(p) * (da1 + da2))
+                      (1._rkx-albgrd(c,ib))*twostext(p)*s2 - &
+                      (1._rkx-albgri(c,ib))*d_ftid
+              d_fabd_sun = (1._rkx - omega(p,ib)) * &
+                      (twostext(p)*s2 + 1._rkx / avmu(p) * (da1 + da2))
               d_fabd_sha = d_fabd - d_fabd_sun
 
-              fabd_sun_z(p,iv) = max(d_fabd_sun, 0.D0)
-              fabd_sha_z(p,iv) = max(d_fabd_sha, 0.D0)
+              fabd_sun_z(p,iv) = max(d_fabd_sun, 0._rkx)
+              fabd_sha_z(p,iv) = max(d_fabd_sha, 0._rkx)
 
               ! Flux derivatives are APARsun and APARsha per unit (LAI+SAI).
               ! Need to normalize derivatives by sunlit or shaded fraction
@@ -1636,7 +1636,7 @@ module mod_clm_surfacealbedo
               ! (LAI+SAI)sha
 
               fabd_sun_z(p,iv) = fabd_sun_z(p,iv) / fsun_z(p,iv)
-              fabd_sha_z(p,iv) = fabd_sha_z(p,iv) / (1.D0 - fsun_z(p,iv))
+              fabd_sha_z(p,iv) = fabd_sha_z(p,iv) / (1._rkx - fsun_z(p,iv))
 
               ! ===============
               ! Diffuse
@@ -1657,10 +1657,10 @@ module mod_clm_surfacealbedo
               h9 = tmp4 / (d2*s1)
               h10 = (-tmp5*s1) / d2
 
-              a1 = h7 * (1.D0 - s2*s1) / (twostext(p) + h) +  &
-                      h8 * (1.D0 - s2/s1) / (twostext(p) - h)
-              a2 = h9 * (1.D0 - s2*s1) / (twostext(p) + h) + &
-                      h10 * (1.D0 - s2/s1) / (twostext(p) - h)
+              a1 = h7 * (1._rkx - s2*s1) / (twostext(p) + h) +  &
+                      h8 * (1._rkx - s2/s1) / (twostext(p) - h)
+              a2 = h9 * (1._rkx - s2*s1) / (twostext(p) + h) + &
+                      h10 * (1._rkx - s2/s1) / (twostext(p) - h)
 
               ! Derivatives for h7, h8, h9, h10 and a1, a2
 
@@ -1687,21 +1687,21 @@ module mod_clm_surfacealbedo
               dh10 = (v * du - u * dv) / (v * v)
 
               da1 = h7*s2*s1 +  &
-                      h8*s2/s1 + (1.D0-s2*s1)/(twostext(p)+h)*dh7 + &
-                      (1.D0-s2/s1)/(twostext(p)-h)*dh8
+                      h8*s2/s1 + (1._rkx-s2*s1)/(twostext(p)+h)*dh7 + &
+                      (1._rkx-s2/s1)/(twostext(p)-h)*dh8
               da2 = h9*s2*s1 + h10*s2/s1 + &
-                      (1.D0-s2*s1)/(twostext(p)+h)*dh9 + &
-                      (1.D0-s2/s1)/(twostext(p)-h)*dh10
+                      (1._rkx-s2*s1)/(twostext(p)+h)*dh9 + &
+                      (1._rkx-s2/s1)/(twostext(p)-h)*dh10
 
               ! Flux derivatives
 
               d_ftii = -h * h9 * s1 + h * h10 / s1 + dh9 * s1 + dh10 / s1
-              d_fabi = -(dh7+dh8) - (1.D0-albgri(c,ib))*d_ftii
-              d_fabi_sun = (1.D0 - omega(p,ib)) / avmu(p) * (da1 + da2)
+              d_fabi = -(dh7+dh8) - (1._rkx-albgri(c,ib))*d_ftii
+              d_fabi_sun = (1._rkx - omega(p,ib)) / avmu(p) * (da1 + da2)
               d_fabi_sha = d_fabi - d_fabi_sun
 
-              fabi_sun_z(p,iv) = max(d_fabi_sun, 0.D0)
-              fabi_sha_z(p,iv) = max(d_fabi_sha, 0.D0)
+              fabi_sun_z(p,iv) = max(d_fabi_sun, 0._rkx)
+              fabi_sha_z(p,iv) = max(d_fabi_sha, 0._rkx)
 
               ! Flux derivatives are APARsun and APARsha per unit (LAI+SAI).
               ! Need to normalize derivatives by sunlit or shaded fraction
@@ -1709,7 +1709,7 @@ module mod_clm_surfacealbedo
               ! (LAI+SAI)sha
 
               fabi_sun_z(p,iv) = fabi_sun_z(p,iv) / fsun_z(p,iv)
-              fabi_sha_z(p,iv) = fabi_sha_z(p,iv) / (1.D0 - fsun_z(p,iv))
+              fabi_sha_z(p,iv) = fabi_sha_z(p,iv) / (1._rkx - fsun_z(p,iv))
 
             end do   ! end of canopy layer loop
           end if

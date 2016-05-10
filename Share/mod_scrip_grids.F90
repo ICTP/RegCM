@@ -76,20 +76,20 @@ module mod_scrip_grids
 
   logical , pointer , dimension(:) :: grid1_mask ! flag which cells participate
   logical , pointer , dimension(:) :: grid2_mask ! flag which cells participate
-  real(rk8) , pointer , dimension(:) :: grid1_center_lat  ! coordinates for
-  real(rk8) , pointer , dimension(:) :: grid1_center_lon  ! each grid center
-  real(rk8) , pointer , dimension(:) :: grid2_center_lat  ! lon coordinates for
-  real(rk8) , pointer , dimension(:) :: grid2_center_lon  ! each grid center
-  real(rk8) , pointer , dimension(:) :: grid1_area  ! tot area of each cell
-  real(rk8) , pointer , dimension(:) :: grid2_area  ! tot area of each cell
-  real(rk8) , pointer , dimension(:) :: grid1_frac  ! fractional area of grid
-  real(rk8) , pointer , dimension(:) :: grid2_frac  ! fractional area of grid
-  real(rk8) , pointer , dimension(:,:) :: grid1_corner_lat  ! coordinates for
-  real(rk8) , pointer , dimension(:,:) :: grid1_corner_lon  ! each grid corner
-  real(rk8) , pointer , dimension(:,:) :: grid2_corner_lat  ! coordinates for
-  real(rk8) , pointer , dimension(:,:) :: grid2_corner_lon  ! each grid corner
-  real(rk8) , pointer , dimension(:,:) :: grid1_bound_box ! lat/lon bounding box
-  real(rk8) , pointer , dimension(:,:) :: grid2_bound_box ! lat/lon bounding box
+  real(rkx) , pointer , dimension(:) :: grid1_center_lat  ! coordinates for
+  real(rkx) , pointer , dimension(:) :: grid1_center_lon  ! each grid center
+  real(rkx) , pointer , dimension(:) :: grid2_center_lat  ! lon coordinates for
+  real(rkx) , pointer , dimension(:) :: grid2_center_lon  ! each grid center
+  real(rkx) , pointer , dimension(:) :: grid1_area  ! tot area of each cell
+  real(rkx) , pointer , dimension(:) :: grid2_area  ! tot area of each cell
+  real(rkx) , pointer , dimension(:) :: grid1_frac  ! fractional area of grid
+  real(rkx) , pointer , dimension(:) :: grid2_frac  ! fractional area of grid
+  real(rkx) , pointer , dimension(:,:) :: grid1_corner_lat  ! coordinates for
+  real(rkx) , pointer , dimension(:,:) :: grid1_corner_lon  ! each grid corner
+  real(rkx) , pointer , dimension(:,:) :: grid2_corner_lat  ! coordinates for
+  real(rkx) , pointer , dimension(:,:) :: grid2_corner_lon  ! each grid corner
+  real(rkx) , pointer , dimension(:,:) :: grid1_bound_box ! lat/lon bounding box
+  real(rkx) , pointer , dimension(:,:) :: grid2_bound_box ! lat/lon bounding box
 
   public :: grid1_size , grid1_rank , grid1_corners
   public :: grid1_dims , grid1_mask
@@ -107,8 +107,8 @@ module mod_scrip_grids
   ! min,max adds for grid1 cells in this lat bin
   integer(ik4) , public , pointer , dimension(:,:) :: bin_addr1
   integer(ik4) , public , pointer , dimension(:,:) :: bin_addr2
-  real(rk8) , public , pointer , dimension(:,:) :: bin_lats
-  real(rk8) , public , pointer , dimension(:,:) :: bin_lons
+  real(rkx) , public , pointer , dimension(:,:) :: bin_lats
+  real(rkx) , public , pointer , dimension(:,:) :: bin_lons
 
   character(len=80) , public :: restrict_type = 'latlon'  ! type of bins to use
   integer(ik4) , public :: num_srch_bins = 90 ! num of bins for restricted srch
@@ -143,20 +143,20 @@ module mod_scrip_grids
     subroutine scrip_grid_init(gaclat,gaclon,gadlat,gadlon,gamask, &
                                gbclat,gbclon,gbdlat,gbdlon,gbmask)
       implicit none
-      real(rk8) , dimension(:) , intent(in) :: gaclat , gaclon
-      real(rk8) , dimension(:,:) , intent(in) :: gadlat , gadlon
+      real(rkx) , dimension(:) , intent(in) :: gaclat , gaclon
+      real(rkx) , dimension(:,:) , intent(in) :: gadlat , gadlon
       integer(ik4) , dimension(:) , intent(in) :: gamask
-      real(rk8) , dimension(:) , intent(in) :: gbclat , gbclon
-      real(rk8) , dimension(:,:) , intent(in) :: gbdlat , gbdlon
+      real(rkx) , dimension(:) , intent(in) :: gbclat , gbclon
+      real(rkx) , dimension(:,:) , intent(in) :: gbdlat , gbdlon
       integer(ik4) , dimension(:) , intent(in) :: gbmask
 
       integer(ik4) :: nx , ny , i , j , ip1 , jp1 , n
       integer(ik4) :: n_add , e_add , ne_add , nele , nsbsq
 
       ! lat/lon intervals for search bins
-      real(rk8) :: dlat , dlon
+      real(rkx) :: dlat , dlon
       ! temps for computing bounding boxes
-      real(rk8) , dimension(4) :: tmp_lats , tmp_lons
+      real(rkx) , dimension(4) :: tmp_lats , tmp_lons
 
       if ( .not. init_sizes ) then
         call die('scrip_grid_init','Grid dimensions unknown',1)

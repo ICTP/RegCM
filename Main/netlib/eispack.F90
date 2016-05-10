@@ -108,6 +108,8 @@
 !
 module eispack
 
+  use mod_realkinds
+
   implicit none
 
 contains
@@ -165,37 +167,37 @@ function pythag ( a, b )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) A, B, the two legs of a right triangle.
+!    Input, real ( kind = rkx ) A, B, the two legs of a right triangle.
 !
-!    Output, real ( kind = 8 ) PYTHAG, the length of the hypotenuse.
+!    Output, real ( kind = rkx ) PYTHAG, the length of the hypotenuse.
 !
   implicit none
 
-  real    ( kind = 8 ) a
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) p
-  real    ( kind = 8 ) pythag
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) t
-  real    ( kind = 8 ) u
+  real    ( kind = rkx ) a
+  real    ( kind = rkx ) b
+  real    ( kind = rkx ) p
+  real    ( kind = rkx ) pythag
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) t
+  real    ( kind = rkx ) u
 
   p = max ( abs ( a ), abs ( b ) )
 
-  if ( p /= 0.0D+00 ) then
+  if ( p /= 0.0_rkx ) then
 
     r = ( min ( abs ( a ), abs ( b ) ) / p )**2
 
     do
 
-      t = 4.0D+00 + r
+      t = 4.0_rkx + r
 
-      if ( t == 4.0D+00 ) then
+      if ( t == 4.0_rkx ) then
         exit
       end if
 
       s = r / t
-      u = 1.0D+00 + 2.0D+00 * s
+      u = 1.0_rkx + 2.0_rkx * s
       p = u * p
       r = ( s / u )**2 * r
 
@@ -255,20 +257,20 @@ subroutine bakvec ( n, t, e, m, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) T(N,3), contains the nonsymmetric matrix.  Its
+!    Input, real ( kind = rkx ) T(N,3), contains the nonsymmetric matrix.  Its
 !    subdiagonal is stored in the positions 2:N of the first column,
 !    its diagonal in positions 1:N of the second column,
 !    and its superdiagonal in positions 1:N-1 of the third column.
 !    T(1,1) and T(N,3) are arbitrary.
 !
-!    Input/output, real ( kind = 8 ) E(N).  On input, E(2:N) contains the
+!    Input/output, real ( kind = rkx ) E(N).  On input, E(2:N) contains the
 !    subdiagonal elements of the symmetric matrix.  E(1) is arbitrary.
 !    On output, the contents of E have been destroyed.
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back
 !    transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M), contains the eigenvectors.
+!    Input/output, real ( kind = rkx ) Z(N,M), contains the eigenvectors.
 !    On output, they have been transformed as requested.
 !
 !    Output, integer ( kind = 4 ) IERR, an error flag.
@@ -283,12 +285,12 @@ subroutine bakvec ( n, t, e, m, z, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) e(n)
+  real    ( kind = rkx ) e(n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) j
-  real    ( kind = 8 ) t(n,3)
-  real    ( kind = 8 ) z(n,m)
+  real    ( kind = rkx ) t(n,3)
+  real    ( kind = rkx ) z(n,m)
 
   ierr = 0
 
@@ -296,18 +298,18 @@ subroutine bakvec ( n, t, e, m, z, ierr )
     return
   end if
 
-  e(1) = 1.0D+00
+  e(1) = 1.0_rkx
   if ( n == 1 ) then
     return
   end if
 
   do i = 2, n
-    if ( e(i) == 0.0D+00 ) then
-      if ( t(i,1) /= 0.0D+00 .or. t(i-1,3) /= 0.0D+00 ) then
+    if ( e(i) == 0.0_rkx ) then
+      if ( t(i,1) /= 0.0_rkx .or. t(i-1,3) /= 0.0_rkx ) then
         ierr = 2 * n + i
         return
       end if
-      e(i) = 1.0D+00
+      e(i) = 1.0_rkx
     else
       e(i) = e(i-1) * e(i) / t(i-1,3)
     end if
@@ -380,7 +382,7 @@ subroutine balanc ( n, a, low, igh, xscale )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) A(N,N), the N by N matrix.  On output,
+!    Input/output, real ( kind = rkx ) A(N,N), the N by N matrix.  On output,
 !    the matrix has been balanced.
 !
 !    Output, integer ( kind = 4 ) LOW, IGH, indicate that A(I,J) is equal to
@@ -388,18 +390,18 @@ subroutine balanc ( n, a, low, igh, xscale )
 !    (1) I is greater than J and
 !    (2) J=1,...,LOW-1 or I=IGH+1,...,N.
 !
-!    Output, real ( kind = 8 ) SCALE(N), contains information determining the
+!    Output, real ( kind = rkx ) SCALE(N), contains information determining the
 !    permutations and scaling factors used.
 !
   implicit none
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) b2
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) b2
+  real    ( kind = rkx ) c
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
   integer ( kind = 4 ) i
   integer ( kind = 4 ) iexc
   integer ( kind = 4 ) igh
@@ -409,12 +411,12 @@ subroutine balanc ( n, a, low, igh, xscale )
   integer ( kind = 4 ) low
   integer ( kind = 4 ) m
   logical              noconv
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) rdx
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) xscale(n)
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) rdx
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) xscale(n)
 
-  rdx = 16.0D+00
+  rdx = 16.0_rkx
 
   iexc = 0
   j = 0
@@ -427,7 +429,7 @@ subroutine balanc ( n, a, low, igh, xscale )
 
 20 continue
 
-  xscale(m) = dble(j)
+  xscale(m) = real(j,rkx)
 
   if ( j /= m ) then
 
@@ -461,7 +463,7 @@ subroutine balanc ( n, a, low, igh, xscale )
 
      do i = 1, l
        if ( i /= j ) then
-         if ( a(j,i) /= 0.0D+00 ) then
+         if ( a(j,i) /= 0.0_rkx ) then
            go to 120
          end if
        end if
@@ -489,7 +491,7 @@ subroutine balanc ( n, a, low, igh, xscale )
 
     do i = k, l
       if ( i /= j ) then
-        if ( a(i,j) /= 0.0D+00 ) then
+        if ( a(i,j) /= 0.0_rkx ) then
           go to 170
         end if
       end if
@@ -505,7 +507,7 @@ subroutine balanc ( n, a, low, igh, xscale )
 !
 !  Balance the submatrix in rows K to L.
 !
-  xscale(k:l) = 1.0D+00
+  xscale(k:l) = 1.0_rkx
 !
 !  Iterative loop for norm reduction.
 !
@@ -517,8 +519,8 @@ subroutine balanc ( n, a, low, igh, xscale )
 
     do i = k, l
 
-      c = 0.0D+00
-      r = 0.0D+00
+      c = 0.0_rkx
+      r = 0.0_rkx
 
       do j = k, l
         if ( j /= i ) then
@@ -529,10 +531,10 @@ subroutine balanc ( n, a, low, igh, xscale )
 !
 !  Guard against zero C or R due to underflow.
 !
-      if ( c /= 0.0D+00 .and. r /= 0.0D+00 ) then
+      if ( c /= 0.0_rkx .and. r /= 0.0_rkx ) then
 
         g = r / rdx
-        f = 1.0D+00
+        f = 1.0_rkx
         s = c + r
 
         do while ( c < g )
@@ -549,9 +551,9 @@ subroutine balanc ( n, a, low, igh, xscale )
 !
 !  Balance.
 !
-        if ( ( c + r ) / f < 0.95D+00 * s ) then
+        if ( ( c + r ) / f < 0.95_rkx * s ) then
 
-          g = 1.0D+00 / f
+          g = 1.0_rkx / f
           xscale(i) = xscale(i) * f
           noconv = .true.
 
@@ -625,13 +627,13 @@ subroutine balbak ( n, low, igh, xscale, m, z )
 !
 !    Input, integer ( kind = 4 ) LOW, IGH, column indices determined by BALANC.
 !
-!    Input, real ( kind = 8 ) SCALE(N), contains information determining
+!    Input, real ( kind = rkx ) SCALE(N), contains information determining
 !    the permutations and scaling factors used by BALANC.
 !
 !    Input, integer ( kind = 4 ) M, the number of columns of Z to be
 !    back-transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M), contains the real and imaginary parts
+!    Input/output, real ( kind = rkx ) Z(N,M), contains the real and imaginary parts
 !    of the eigenvectors, which, on return, have been back-transformed.
 !
   implicit none
@@ -645,8 +647,8 @@ subroutine balbak ( n, low, igh, xscale, m, z )
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) low
-  real    ( kind = 8 ) xscale(n)
-  real    ( kind = 8 ) z(n,m)
+  real    ( kind = rkx ) xscale(n)
+  real    ( kind = rkx ) z(n,m)
 
   if ( m <= 0 ) then
     return
@@ -737,7 +739,7 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 !    diagonal, required to specify the non-zero portion of the
 !    lower triangle of the matrix.
 !
-!    Input/output, real ( kind = 8 ) A(N,MB).  On input, contains the lower triangle of
+!    Input/output, real ( kind = rkx ) A(N,MB).  On input, contains the lower triangle of
 !    the symmetric band input matrix stored as an N by MB array.  Its lowest
 !    subdiagonal is stored in the last N+1-MB positions of the first column,
 !    its next subdiagonal in the last N+2-MB positions of the second column,
@@ -746,18 +748,18 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 !    the matrix are arbitrary.  On output, A has been destroyed, except for
 !    its last two columns which contain a copy of the tridiagonal matrix.
 !
-!    Output, real ( kind = 8 ) D(N), the diagonal elements of the tridiagonal matrix.
+!    Output, real ( kind = rkx ) D(N), the diagonal elements of the tridiagonal matrix.
 !
-!    Output, real ( kind = 8 ) E(N), the subdiagonal elements of the tridiagonal
+!    Output, real ( kind = rkx ) E(N), the subdiagonal elements of the tridiagonal
 !    matrix in E(2:N).  E(1) is set to zero.
 !
-!    Output, real ( kind = 8 ) E2(N), contains the squares of the corresponding elements
+!    Output, real ( kind = rkx ) E2(N), contains the squares of the corresponding elements
 !    of E.  E2 may coincide with E if the squares are not needed.
 !
 !    Input, logical MATZ, should be set to TRUE if the transformation matrix is
 !    to be accumulated, and to FALSE otherwise.
 !
-!    Output, real ( kind = 8 ) Z(N,N), the orthogonal transformation matrix produced in
+!    Output, real ( kind = rkx ) Z(N,N), the orthogonal transformation matrix produced in
 !    the reduction if MATZ has been set to TRUE.  Otherwise, Z is not
 !    referenced.
 !
@@ -766,18 +768,18 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
   integer ( kind = 4 ) mb
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,mb)
-  real    ( kind = 8 ) b1
-  real    ( kind = 8 ) b2
-  real    ( kind = 8 ) c2
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) dmin
-  real    ( kind = 8 ) dminrt
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) e2(n)
-  real    ( kind = 8 ) f1
-  real    ( kind = 8 ) f2
-  real    ( kind = 8 ) g
+  real    ( kind = rkx ) a(n,mb)
+  real    ( kind = rkx ) b1
+  real    ( kind = rkx ) b2
+  real    ( kind = rkx ) c2
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) dmin
+  real    ( kind = rkx ) dminrt
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) e2(n)
+  real    ( kind = rkx ) f1
+  real    ( kind = rkx ) f2
+  real    ( kind = rkx ) g
   integer ( kind = 4 ) i
   integer ( kind = 4 ) i1
   integer ( kind = 4 ) i2
@@ -794,24 +796,24 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
   integer ( kind = 4 ) mr
   integer ( kind = 4 ) r
   integer ( kind = 4 ) r1
-  real    ( kind = 8 ) s2
-  real    ( kind = 8 ) u
+  real    ( kind = rkx ) s2
+  real    ( kind = rkx ) u
   integer ( kind = 4 ) ugl
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) z(n,n)
 
   dmin = epsilon ( dmin )
   dminrt = sqrt ( dmin )
 !
 !  Initialize the diagonal scaling matrix.
 !
-  d(1:n) = 1.0D+00
+  d(1:n) = 1.0_rkx
 
   if ( matz ) then
 
-    a(1:n,1:n) = 0.0D+00
+    a(1:n,1:n) = 0.0_rkx
 
     do i = 1, n
-      z(i,i) = 1.0D+00
+      z(i,i) = 1.0_rkx
     end do
 
   end if
@@ -820,8 +822,8 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 
   if ( m1 < 1 ) then
     d(1:n) = a(1:n,mb)
-    e(1:n) = 0.0D+00
-    e2(1:n) = 0.0D+00
+    e(1:n) = 0.0_rkx
+    e2(1:n) = 0.0_rkx
     return
   end if
 
@@ -847,22 +849,22 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
         j1 = j - 1
         j2 = j1 - 1
 
-        if ( g == 0.0D+00 ) then
+        if ( g == 0.0_rkx ) then
           go to 600
         end if
 
         b1 = a(j1,1) / g
         b2 = b1 * d(j1) / d(j)
-        s2 = 1.0D+00 / ( 1.0D+00 + b1 * b2 )
+        s2 = 1.0_rkx / ( 1.0_rkx + b1 * b2 )
 
-        if ( s2 < 0.5D+00 ) then
+        if ( s2 < 0.5_rkx ) then
 
           b1 = g / a(j1,1)
           b2 = b1 * d(j) / d(j1)
-          c2 = 1.0D+00 - s2
+          c2 = 1.0_rkx - s2
           d(j1) = c2 * d(j1)
           d(j) = c2 * d(j)
-          f1 = 2.0D+00 * a(j,m1)
+          f1 = 2.0_rkx * a(j,m1)
           f2 = b1 * a(j1,mb)
           a(j,m1) = -b2 * ( b1 * a(j,m1) - a(j,mb) ) - f2 + a(j,m1)
           a(j1,mb) = b2 * ( b2 * a(j,mb) + f1 ) + a(j1,mb)
@@ -913,7 +915,7 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
           u = d(j1)
           d(j1) = s2 * d(j)
           d(j) = s2 * u
-          f1 = 2.0D+00 * a(j,m1)
+          f1 = 2.0_rkx * a(j,m1)
           f2 = b1 * a(j,mb)
           u = b1 * ( f2 - f1 ) + a(j1,mb)
           a(j,m1) = b2 * ( b1 * a(j,m1) - a(j1,mb) ) + f2 - a(j,m1)
@@ -1022,7 +1024,7 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 
   end if
 
-  u = 1.0D+00
+  u = 1.0_rkx
 
   do j = 2, n
     a(j,m1) = u * e(j) * a(j,m1)
@@ -1034,8 +1036,8 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
   end do
 
   d(1) = a(1,mb)
-  e(1) = 0.0D+00
-  e2(1) = 0.0D+00
+  e(1) = 0.0_rkx
+  e2(1) = 0.0_rkx
 
   return
 end subroutine bandr
@@ -1100,7 +1102,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !    diagonals above the main diagonal as below, and in this
 !    case, MBW=2*MB-1.
 !
-!    Input, real ( kind = 8 ) A(N,MBW), the lower triangle of the symmetric band input
+!    Input, real ( kind = rkx ) A(N,MBW), the lower triangle of the symmetric band input
 !    atrix stored as an N by MB array.  Its lowest subdiagonal is stored
 !    in the last N+1-MB positions of the first column, its next subdiagonal
 !    in the last N+2-MB positions of the second column, further subdiagonals
@@ -1114,21 +1116,21 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !    the first N+1-MB positions of the last column.  Contents of storages
 !    not part of the matrix are arbitrary.
 !
-!    Input, real ( kind = 8 ) E21, specifies the ordering of the eigenvalues and contains
-!    0.0D+00 if the eigenvalues are in ascending order, or 2.0D+00 if the
+!    Input, real ( kind = rkx ) E21, specifies the ordering of the eigenvalues and contains
+!    0.0_rkx if the eigenvalues are in ascending order, or 2.0_rkx if the
 !    eigenvalues are in descending order.  If the subroutine is being used
-!    to solve systems of linear equations, E21 should be set to 1.0D+00
-!    if the coefficient matrix is symmetric and to -1.0D+00 if not.
+!    to solve systems of linear equations, E21 should be set to 1.0_rkx
+!    if the coefficient matrix is symmetric and to -1.0_rkx if not.
 !
 !    Input, integer ( kind = 4 ) M, the number of specified eigenvalues or the number of
 !    systems of linear equations.
 !
-!    Input, real ( kind = 8 ) W(M), contains the M eigenvalues in ascending or descending
+!    Input, real ( kind = rkx ) W(M), contains the M eigenvalues in ascending or descending
 !    order.  If the subroutine is being used to solve systems of linear
 !    equations (A-W(1:M)*I) * X(1:M) = B(1:M), where I is the identity matrix,
 !    W should be set accordingly.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the constant matrix
+!    Input/output, real ( kind = rkx ) Z(N,M).  On input, the constant matrix
 !    columns B(1:M), if the subroutine is used to solve systems of linear
 !    equations.  On output, the associated set of orthogonal eigenvectors.
 !    Any vector which fails to converge is set to zero.  If the
@@ -1145,11 +1147,11 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
   integer ( kind = 4 ) mbw
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,mbw)
-  real    ( kind = 8 ) e21
-  real    ( kind = 8 ) eps2
-  real    ( kind = 8 ) eps3
-  real    ( kind = 8 ) eps4
+  real    ( kind = rkx ) a(n,mbw)
+  real    ( kind = rkx ) e21
+  real    ( kind = rkx ) eps2
+  real    ( kind = rkx ) eps3
+  real    ( kind = rkx ) eps4
   integer ( kind = 4 ) group
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
@@ -1168,19 +1170,19 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
   integer ( kind = 4 ) maxj
   integer ( kind = 4 ) maxk
   integer ( kind = 4 ) mb
-  real    ( kind = 8 ) norm
-  real    ( kind = 8 ) order
+  real    ( kind = rkx ) norm
+  real    ( kind = rkx ) order
   integer ( kind = 4 ) r
-  real    ( kind = 8 ) rv(n*(2*mbw-1))
-  real    ( kind = 8 ) rv6(n)
-  real    ( kind = 8 ) u
-  real    ( kind = 8 ) uk
-  real    ( kind = 8 ) v
-  real    ( kind = 8 ) w(m)
-  real    ( kind = 8 ) x0
-  real    ( kind = 8 ) x1
-  real    ( kind = 8 ) xu
-  real    ( kind = 8 ) z(n,m)
+  real    ( kind = rkx ) rv(n*(2*mbw-1))
+  real    ( kind = rkx ) rv6(n)
+  real    ( kind = rkx ) u
+  real    ( kind = rkx ) uk
+  real    ( kind = rkx ) v
+  real    ( kind = rkx ) w(m)
+  real    ( kind = rkx ) x0
+  real    ( kind = rkx ) x1
+  real    ( kind = rkx ) xu
+  real    ( kind = rkx ) z(n,m)
 
   ierr = 0
 
@@ -1188,9 +1190,9 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
     return
   end if
 
-  x0 = 0.0D+00
+  x0 = 0.0_rkx
 
-  if ( e21 < 0.0D+00 ) then
+  if ( e21 < 0.0_rkx ) then
     mb = ( mbw + 1 ) / 2
   else
     mb = mbw
@@ -1198,7 +1200,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 
   m1 = mb - 1
   m21 = m1 + mb
-  order = 1.0D+00 - abs ( e21 )
+  order = 1.0_rkx - abs ( e21 )
 !
 !  Find vectors by inverse iteration.
 !
@@ -1210,20 +1212,20 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !
 !  Compute norm of matrix.
 !
-     norm = 0.0D+00
+     norm = 0.0_rkx
 
      do j = 1, mb
 
         jj = mb + 1 - j
         kj = jj + m1
         ij = 1
-        v = 0.0D+00
+        v = 0.0_rkx
 
         do i = jj, n
 
           v = v + abs ( a(i,j) )
 
-          if ( e21 < 0.0D+00 ) then
+          if ( e21 < 0.0_rkx ) then
             v = v + abs ( a(ij,kj) )
             ij = ij + 1
           end if
@@ -1234,21 +1236,21 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 
      end do
 
-     if ( e21 < 0.0D+00 ) then
-       norm = 0.5D+00 * norm
+     if ( e21 < 0.0_rkx ) then
+       norm = 0.5_rkx * norm
      end if
 !
 !  EPS2 is the criterion for grouping,
 !  EPS3 replaces zero pivots and equal roots are modified by eps3,
 !  EPS4 is taken very small to avoid overflow.
 !
-     if ( norm == 0.0D+00 ) then
-       norm = 1.0D+00
+     if ( norm == 0.0_rkx ) then
+       norm = 1.0_rkx
      end if
 
-     eps2 = 0.001D+00 * norm * abs ( order)
+     eps2 = 0.001_rkx * norm * abs ( order)
      eps3 = abs ( norm ) * epsilon ( norm )
-     uk = dble(n)
+     uk = real(n,rkx)
      uk = sqrt ( uk )
      eps4 = uk * eps3
 
@@ -1267,7 +1269,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 
      group = group + 1
 
-     if ( order * ( x1 - x0 ) <= 0.0D+00 ) then
+     if ( order * ( x1 - x0 ) <= 0.0_rkx ) then
        x1 = x0 + order * eps3
      end if
 !
@@ -1287,7 +1289,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 
           if ( ij <= m1 ) then
             if ( ij <= 0 ) then
-              rv(ij1) = 0.0D+00
+              rv(ij1) = 0.0_rkx
               ij1 = ij1 + n
             end if
           else
@@ -1301,7 +1303,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 
             jj = mb - j
 
-            if ( e21 < 0.0D+00 ) then
+            if ( e21 < 0.0_rkx ) then
               ii = i
               jj = mb + j
             end if
@@ -1317,7 +1319,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 
         rv(ij) = a(i,mb) - x1
         rv6(i) = eps4
-        if ( order == 0.0D+00 ) then
+        if ( order == 0.0_rkx ) then
           rv6(i) = z(i,r)
         end if
 
@@ -1344,13 +1346,13 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
              kj1 = kj
            end do
 
-           rv(kj1) = 0.0D+00
+           rv(kj1) = 0.0_rkx
 
         end do
 
         if ( i /= n ) then
 
-        u = 0.0D+00
+        u = 0.0_rkx
         maxk = min ( i+m1, n )
         maxj = min ( n-ii, m21-2 ) * n
 
@@ -1373,13 +1375,13 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
             kj = kj + n
           end do
 
-          if ( order == 0.0D+00 ) then
+          if ( order == 0.0_rkx ) then
             call r8_swap ( rv6(i), rv6(k) )
           end if
 
         end if
 
-        if ( u /= 0.0D+00 ) then
+        if ( u /= 0.0_rkx ) then
 
         do k = ii, maxk
 
@@ -1391,7 +1393,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
              rv(kj) = rv(kj) - v * rv(ij)
            end do
 
-           if ( order == 0.0D+00 ) then
+           if ( order == 0.0_rkx ) then
              rv6(k) = rv6(k) - v * rv6(i)
            end if
 
@@ -1432,7 +1434,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !  Error: nearly singular linear system.
 !
         if ( abs ( v ) < eps3) then
-          if ( order == 0.0D+00 ) then
+          if ( order == 0.0_rkx ) then
             ierr = -r
           end if
           v = sign ( eps3, v )
@@ -1442,9 +1444,9 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 
      end do
 
-     xu = 1.0D+00
+     xu = 1.0_rkx
 
-     if ( order == 0.0D+00 ) go to 870
+     if ( order == 0.0_rkx ) go to 870
 !
 !  Orthogonalize with respect to previous members of group.
 !
@@ -1462,18 +1464,18 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !
 !  Choose a new starting vector.
 !
-     if ( norm < 0.1D+00 ) then
+     if ( norm < 0.1_rkx ) then
 
        if ( its < n ) then
          its = its + 1
-         xu = eps4 / ( uk + 1.0D+00 )
+         xu = eps4 / ( uk + 1.0_rkx )
          rv6(1) = eps4
          rv6(2:n) = xu
          rv6(its) = rv6(its) - eps4 * uk
          go to 600
        else
          ierr = -r
-         xu = 0.0D+00
+         xu = 0.0_rkx
          go to 870
        end if
 
@@ -1481,12 +1483,12 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !
 !   Normalize so that sum of squares is 1 and expand to full order.
 !
-     u = 0.0D+00
+     u = 0.0_rkx
      do i = 1, n
        u = pythag ( u, rv6(i) )
      end do
 
-     xu = 1.0D+00 / u
+     xu = 1.0_rkx / u
 
  870 continue
 
@@ -1545,23 +1547,23 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) EPS1, is an absolute error tolerance for the computed
+!    Input/output, real ( kind = rkx ) EPS1, is an absolute error tolerance for the computed
 !    eigenvalues.  If the input EPS1 is non-positive, it is reset for each
 !    submatrix to a default value, namely, minus the product of the relative
 !    machine precision and the 1-norm of the submatrix.
 !
-!    Input, real ( kind = 8 ) D(N), the diagonal elements of the input matrix.
+!    Input, real ( kind = rkx ) D(N), the diagonal elements of the input matrix.
 !
-!    Input, real ( kind = 8 ) E(N), contains in E(2:N) the subdiagonal elements of the
+!    Input, real ( kind = rkx ) E(N), contains in E(2:N) the subdiagonal elements of the
 !    matrix.  E(1) is arbitrary.
 !
-!    Input/output, real ( kind = 8 ) E2(N).  On input, the squares of the corresponding
+!    Input/output, real ( kind = rkx ) E2(N).  On input, the squares of the corresponding
 !    elements of E.  E2(1) is arbitrary.  On output, elements of E2,
 !    corresponding to elements of E regarded as negligible, have been
 !    replaced by zero, causing the matrix to split into a direct sum of
 !    submatrices.  E2(1) is also set to zero.
 !
-!    Input, real ( kind = 8 ) LB, UB, define the interval to be searched for eigenvalues.
+!    Input, real ( kind = rkx ) LB, UB, define the interval to be searched for eigenvalues.
 !    If LB is not less than UB, no eigenvalues will be found.
 !
 !    Input, integer ( kind = 4 ) MM, an upper bound for the number of eigenvalues in the
@@ -1571,7 +1573,7 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 !    Output, integer ( kind = 4 ) M, the number of eigenvalues determined to lie
 !    in (LB,UB).
 !
-!    Output, real ( kind = 8 ) W(M), the eigenvalues in ascending order.
+!    Output, real ( kind = rkx ) W(M), the eigenvalues in ascending order.
 !
 !    Output, integer ( kind = 4 ) IND(MM), contains in its first M positions the submatrix
 !    indices associated with the corresponding eigenvalues in W:
@@ -1587,10 +1589,10 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
   integer ( kind = 4 ) mm
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) e2(n)
-  real    ( kind = 8 ) eps1
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) e2(n)
+  real    ( kind = rkx ) eps1
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) ii
@@ -1599,28 +1601,28 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) l
-  real    ( kind = 8 ) lb
+  real    ( kind = rkx ) lb
   integer ( kind = 4 ) m
   integer ( kind = 4 ) m1
   integer ( kind = 4 ) m2
   integer ( kind = 4 ) p
   integer ( kind = 4 ) q
   integer ( kind = 4 ) r
-  real    ( kind = 8 ) rv4(n)
-  real    ( kind = 8 ) rv5(n)
+  real    ( kind = rkx ) rv4(n)
+  real    ( kind = rkx ) rv5(n)
   integer ( kind = 4 ) s
-  real    ( kind = 8 ) t1
-  real    ( kind = 8 ) t2
+  real    ( kind = rkx ) t1
+  real    ( kind = rkx ) t2
   integer ( kind = 4 ) tag
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) u
-  real    ( kind = 8 ) ub
-  real    ( kind = 8 ) v
-  real    ( kind = 8 ) w(mm)
-  real    ( kind = 8 ) x0
-  real    ( kind = 8 ) x1
-  real    ( kind = 8 ) xu
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) u
+  real    ( kind = rkx ) ub
+  real    ( kind = rkx ) v
+  real    ( kind = rkx ) w(mm)
+  real    ( kind = rkx ) x0
+  real    ( kind = rkx ) x1
+  real    ( kind = rkx ) xu
 
   ierr = 0
   s = 0
@@ -1630,7 +1632,7 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 !
 !  Look for small sub-diagonal entries.
 !
-  e2(1) = 0.0D+00
+  e2(1) = 0.0_rkx
 
   do i = 2, n
 
@@ -1638,7 +1640,7 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
     tst2 = tst1 + abs ( e(i) )
 
     if ( tst2 <= tst1 ) then
-      e2(i) = 0.0D+00
+      e2(i) = 0.0_rkx
     end if
 
   end do
@@ -1680,13 +1682,13 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
   p = q + 1
   xu = d(p)
   x0 = d(p)
-  u = 0.0D+00
+  u = 0.0_rkx
 
   do q = p, n
 
     x1 = u
-    u = 0.0D+00
-    v = 0.0D+00
+    u = 0.0_rkx
+    v = 0.0_rkx
 
     if ( q /= n ) then
       u = abs ( e(q+1) )
@@ -1696,14 +1698,14 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
     xu = min ( d(q) - ( x1 + u ), xu )
     x0 = max ( d(q) + ( x1 + u ), x0 )
 
-    if ( v == 0.0D+00 ) then
+    if ( v == 0.0_rkx ) then
       exit
     end if
 
   end do
 
   x1 = max ( abs ( xu ), abs ( x0 ) ) * epsilon ( x1 )
-  if ( eps1 <= 0.0D+00 ) then
+  if ( eps1 <= 0.0_rkx ) then
     eps1 = -x1
   end if
 
@@ -1774,11 +1776,11 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 !
   300    continue
 
-     x1 = ( xu + x0 ) * 0.5D+00
+     x1 = ( xu + x0 ) * 0.5_rkx
 
      if ( (x0 - xu) <= abs ( eps1 ) ) go to 420
 
-     tst1 = 2.0D+00 * ( abs ( xu ) + abs ( x0 ) )
+     tst1 = 2.0_rkx * ( abs ( xu ) + abs ( x0 ) )
      tst2 = tst1 + ( x0 - xu )
      if ( tst2 == tst1 ) go to 420
 !
@@ -1787,19 +1789,19 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 320  continue
 
      s = p - 1
-     u = 1.0D+00
+     u = 1.0_rkx
 
      do i = p, q
 
-        if ( u == 0.0D+00 ) then
+        if ( u == 0.0_rkx ) then
           v = abs ( e(i) ) / epsilon ( v )
-          if ( e2(i) == 0.0D+00 ) v = 0.0D+00
+          if ( e2(i) == 0.0_rkx ) v = 0.0_rkx
         else
           v = e2(i) / u
         end if
 
         u = d(i) - x1 - v
-        if ( u < 0.0D+00 ) then
+        if ( u < 0.0_rkx ) then
           s = s + 1
         end if
 
@@ -1965,7 +1967,7 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !    diagonal, required to specify the non-zero portion of the
 !    lower triangle of the matrix.
 !
-!    Input/output, real ( kind = 8 ) A(N,MB).  On input, A contains the lower triangle
+!    Input/output, real ( kind = rkx ) A(N,MB).  On input, A contains the lower triangle
 !    of the symmetric band input matrix stored as an N by MB array.  Its
 !    lowest subdiagonal is stored in the last N+1-MB positions of the first
 !    column, its next subdiagonal in the last N+2-MB positions of the
@@ -1977,7 +1979,7 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !    parameters is similar to the input A+T*I to within rounding errors.
 !    Its last row and column are null as long as IERR is zero.
 !
-!    Input/output, real ( kind = 8 ) T.  On input, T specifies the shift (of eigenvalues)
+!    Input/output, real ( kind = rkx ) T.  On input, T specifies the shift (of eigenvalues)
 !    applied to the diagonal of A in forming the input matrix.  What is
 !    actually determined is the eigenvalue nearest to T of A+T*I, where I
 !    is the identity matrix.  On a subsequent call, the output value of T
@@ -1985,7 +1987,7 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !    is sought.  On output, T contains the computed eigenvalue of A+T*I,
 !    as long as IERR is zero.
 !
-!    Input/output, real ( kind = 8 ) R.  On input for the first call, R should be
+!    Input/output, real ( kind = rkx ) R.  On input for the first call, R should be
 !    specified as zero, and as its output value from the previous call
 !    on a subsequent call.  It is used to determine when the last row and
 !    column of the transformed band matrix can be regarded as negligible.
@@ -2001,9 +2003,9 @@ subroutine bqr ( n, mb, a, t, r, ierr )
   integer ( kind = 4 ) mb
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,mb)
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
+  real    ( kind = rkx ) a(n,mb)
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) ii
@@ -2031,14 +2033,14 @@ subroutine bqr ( n, mb, a, t, r, ierr )
   integer ( kind = 4 ) mn
   integer ( kind = 4 ) mz
   integer ( kind = 4 ) ni
-  real    ( kind = 8 ) q
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) rv(2*mb*mb+4*mb-3)
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) xscale
-  real    ( kind = 8 ) t
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
+  real    ( kind = rkx ) q
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) rv(2*mb*mb+4*mb-3)
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) xscale
+  real    ( kind = rkx ) t
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
 
   ierr = 0
   m1 = min ( mb, n )
@@ -2060,7 +2062,7 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 
   if ( m == 0 ) go to 360
 
-  f = 0.0D+00
+  f = 0.0_rkx
   do k = 1, m
     mk = k + mz
     f = f + abs ( a(n,mk) )
@@ -2084,13 +2086,13 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !
 !  Form shift from bottom 2 by 2 minor.
 !
-  if ( f <= 0.25D+00 * r .or. its >= 5 ) then
+  if ( f <= 0.25_rkx * r .or. its >= 5 ) then
 
     f = a(n,mb-1)
 
-    if ( f /= 0.0D+00 ) then
-      q = ( a(n-1,mb) - g ) / ( 2.0D+00 * f )
-      s = pythag ( q, 1.0D+00 )
+    if ( f /= 0.0_rkx ) then
+      q = ( a(n-1,mb) - g ) / ( 2.0_rkx * f )
+      s = pythag ( q, 1.0_rkx )
       g = g - f / ( q + sign ( s, q ) )
     end if
 
@@ -2100,7 +2102,7 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 
   end if
 
-  rv(m31:m4) = 0.0D+00
+  rv(m31:m4) = 0.0_rkx
 
   do ii = 1, mn
 
@@ -2113,7 +2115,7 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !
      l = max ( 1, 2-i )
 
-     rv(1:m3) = 0.0D+00
+     rv(1:m3) = 0.0_rkx
 
      do k = l, m1
        km = k + m
@@ -2146,9 +2148,9 @@ subroutine bqr ( n, mb, a, t, r, ierr )
         kj = kj + m1
         jm = j + m3
 
-        if ( rv(jm) /= 0.0D+00 ) then
+        if ( rv(jm) /= 0.0_rkx ) then
 
-          f = 0.0D+00
+          f = 0.0_rkx
 
           do k = 1, m1
             kj = kj + 1
@@ -2176,11 +2178,11 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !  Householder reflection.
 !
      f = rv(m21)
-     s = 0.0D+00
-     rv(m4) = 0.0D+00
+     s = 0.0_rkx
+     rv(m4) = 0.0_rkx
      xscale = sum ( abs ( rv(m21:m3) ) )
 
-     if ( xscale == 0.0D+00 ) then
+     if ( xscale == 0.0_rkx ) then
        go to 210
      end if
 
@@ -2218,7 +2220,7 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !
 !  Perform additional steps.
 !
-     rv(1:m21) = 0.0D+00
+     rv(1:m21) = 0.0_rkx
      ll = min ( m1, ni+m1 )
 !
 !  Get row of triangular factor R.
@@ -2282,7 +2284,7 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 
   do k = 1, m1
     mk = k + mz
-    a(n,mk) = 0.0D+00
+    a(n,mk) = 0.0_rkx
   end do
 
   return
@@ -2337,12 +2339,12 @@ subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
 !
 !    Input, integer ( kind = 4 ) LOW, IGH, values determined by CBAL.
 !
-!    Input, real ( kind = 8 ) SCALE(N), information determining the permutations
+!    Input, real ( kind = rkx ) SCALE(N), information determining the permutations
 !    and scaling factors used by CBAL.
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) ZR(N,M), ZI(N,M).  On input, the real and imaginary
+!    Input/output, real ( kind = rkx ) ZR(N,M), ZI(N,M).  On input, the real and imaginary
 !    parts, respectively, of the eigenvectors to be back transformed in
 !    their first M columns.  On output, the transformed eigenvectors.
 !
@@ -2357,10 +2359,10 @@ subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) low
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) xscale(n)
-  real    ( kind = 8 ) zi(n,m)
-  real    ( kind = 8 ) zr(n,m)
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) xscale(n)
+  real    ( kind = rkx ) zi(n,m)
+  real    ( kind = rkx ) zr(n,m)
 
   if ( m == 0 ) then
     return
@@ -2389,7 +2391,7 @@ subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
         i = low - ii
       end if
 
-      k = idint(xscale(i))
+      k = int(xscale(i))
 
       if ( k /= i ) then
 
@@ -2465,7 +2467,7 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and
+!    Input/output, real ( kind = rkx ) AR(N,N), AI(N,N).  On input, the real and
 !    imaginary parts of the complex matrix to be balanced.  On output,
 !    the real and imaginary parts of the balanced matrix.
 !
@@ -2473,19 +2475,19 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 !    are zero if I is greater than J and either J=1,...,LOW-1 or
 !    I=IGH+1,...,N.
 !
-!    Output, real ( kind = 8 ) SCALE(N), information determining the
+!    Output, real ( kind = rkx ) SCALE(N), information determining the
 !    permutations and scaling factors used.
 !
   implicit none
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) ai(n,n)
-  real    ( kind = 8 ) ar(n,n)
-  real    ( kind = 8 ) b2
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
+  real    ( kind = rkx ) ai(n,n)
+  real    ( kind = rkx ) ar(n,n)
+  real    ( kind = rkx ) b2
+  real    ( kind = rkx ) c
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
   integer ( kind = 4 ) i
   integer ( kind = 4 ) iexc
   integer ( kind = 4 ) igh
@@ -2496,12 +2498,12 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
   integer ( kind = 4 ) low
   integer ( kind = 4 ) m
   logical              noconv
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) rdx
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) xscale(n)
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) rdx
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) xscale(n)
 
-  rdx = 16.0D+00
+  rdx = 16.0_rkx
 
   iexc = 0
   j = 0
@@ -2514,7 +2516,7 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 
 20 continue
 
-  xscale(m) = dble(j)
+  xscale(m) = real(j,rkx)
 
   if ( j /= m ) then
 
@@ -2550,7 +2552,7 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 
      do i = 1, l
        if ( i /= j ) then
-         if ( ar(j,i) /= 0.0D+00 .or. ai(j,i) /= 0.0D+00 ) go to 120
+         if ( ar(j,i) /= 0.0_rkx .or. ai(j,i) /= 0.0_rkx ) go to 120
        end if
      end do
 
@@ -2576,7 +2578,7 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 
      do i = k, l
        if ( i /= j ) then
-         if ( ar(i,j) /= 0.0D+00 .or. ai(i,j) /= 0.0D+00 ) go to 170
+         if ( ar(i,j) /= 0.0_rkx .or. ai(i,j) /= 0.0_rkx ) go to 170
        end if
      end do
 
@@ -2589,7 +2591,7 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 !
 !  Now balance the submatrix in rows k to l.
 !
-  xscale(k:l) = 1.0D+00
+  xscale(k:l) = 1.0_rkx
 !
 !  Iterative loop for norm reduction.
 !
@@ -2599,8 +2601,8 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 
   do i = k, l
 
-    c = 0.0D+00
-    r = 0.0D+00
+    c = 0.0_rkx
+    r = 0.0_rkx
 
     do j = k, l
       if ( j /= i ) then
@@ -2611,10 +2613,10 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 !
 !  Guard against zero C or R due to underflow.
 !
-     if ( c == 0.0D+00 .or. r == 0.0D+00 ) go to 270
+     if ( c == 0.0_rkx .or. r == 0.0_rkx ) go to 270
 
      g = r / rdx
-     f = 1.0D+00
+     f = 1.0_rkx
      s = c + r
 
      do while ( c < g )
@@ -2631,9 +2633,9 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 !
 !  Now balance.
 !
-     if ( ( c + r ) / f < 0.95D+00 * s ) then
+     if ( ( c + r ) / f < 0.95_rkx * s ) then
 
-       g = 1.0D+00 / f
+       g = 1.0_rkx / f
        xscale(i) = xscale(i) * f
        noconv = .true.
 
@@ -2704,25 +2706,25 @@ subroutine cdiv ( ar, ai, br, bi, cr, ci )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) AR, AI, the real and imaginary parts of the numerator.
+!    Input, real ( kind = rkx ) AR, AI, the real and imaginary parts of the numerator.
 !
-!    Input, real ( kind = 8 ) BR, BI, the real and imaginary parts of the denominator.
+!    Input, real ( kind = rkx ) BR, BI, the real and imaginary parts of the denominator.
 !
-!    Output, real ( kind = 8 ) CR, CI, the real and imaginary parts of the result.
+!    Output, real ( kind = rkx ) CR, CI, the real and imaginary parts of the result.
 !
   implicit none
 
-  real    ( kind = 8 ) ai
-  real    ( kind = 8 ) ais
-  real    ( kind = 8 ) ar
-  real    ( kind = 8 ) ars
-  real    ( kind = 8 ) bi
-  real    ( kind = 8 ) bis
-  real    ( kind = 8 ) br
-  real    ( kind = 8 ) brs
-  real    ( kind = 8 ) ci
-  real    ( kind = 8 ) cr
-  real    ( kind = 8 ) s
+  real    ( kind = rkx ) ai
+  real    ( kind = rkx ) ais
+  real    ( kind = rkx ) ar
+  real    ( kind = rkx ) ars
+  real    ( kind = rkx ) bi
+  real    ( kind = rkx ) bis
+  real    ( kind = rkx ) br
+  real    ( kind = rkx ) brs
+  real    ( kind = rkx ) ci
+  real    ( kind = rkx ) cr
+  real    ( kind = rkx ) s
 
   s = abs ( br ) + abs ( bi )
 
@@ -2785,17 +2787,17 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and
+!    Input/output, real ( kind = rkx ) AR(N,N), AI(N,N).  On input, the real and
 !    imaginary parts of the complex matrix.  On output, AR and AI
 !    have been overwritten by other information.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts
+!    Output, real ( kind = rkx ) WR(N), WI(N), the real and imaginary parts
 !    of the eigenvalues.
 !
 !    Input, integer ( kind = 4 ) MATZ, is 0 if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are to be computed.
 !
-!    Output, real ( kind = 8 ) ZR(N,N), ZI(N,N), the real and imaginary parts,
+!    Output, real ( kind = rkx ) ZR(N,N), ZI(N,N), the real and imaginary parts,
 !    respectively, of the eigenvectors, if MATZ is not zero.
 !
 !    Output, integer ( kind = 4 ) IERR, an error completion code described in the
@@ -2805,19 +2807,19 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) ai(n,n)
-  real    ( kind = 8 ) ar(n,n)
-  real    ( kind = 8 ) fv1(n)
-  real    ( kind = 8 ) fv2(n)
-  real    ( kind = 8 ) fv3(n)
+  real    ( kind = rkx ) ai(n,n)
+  real    ( kind = rkx ) ar(n,n)
+  real    ( kind = rkx ) fv1(n)
+  real    ( kind = rkx ) fv2(n)
+  real    ( kind = rkx ) fv3(n)
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) is1
   integer ( kind = 4 ) is2
   integer ( kind = 4 ) matz
-  real    ( kind = 8 ) wi(n)
-  real    ( kind = 8 ) wr(n)
-  real    ( kind = 8 ) zi(n,n)
-  real    ( kind = 8 ) zr(n,n)
+  real    ( kind = rkx ) wi(n)
+  real    ( kind = rkx ) wr(n)
+  real    ( kind = rkx ) zi(n,n)
+  real    ( kind = rkx ) zr(n,n)
 
   call cbal ( n, ar, ai, is1, is2, fv1 )
 
@@ -2896,16 +2898,16 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and
+!    Input/output, real ( kind = rkx ) AR(N,N), AI(N,N).  On input, the real and
 !    imaginary parts of the complex matrix.  On output, AR and AI
 !    have been overwritten by other information.
 !
-!    Output, real ( kind = 8 ) W(N), the eigenvalues in ascending order.
+!    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
 !    Input, integer ( kind = 4 ) MATZ, is 0 if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are to be computed.
 !
-!    Output, real ( kind = 8 ) ZR(N,N), ZI(N,N), the real and imaginary parts,
+!    Output, real ( kind = rkx ) ZR(N,N), ZI(N,N), the real and imaginary parts,
 !    respectively, of the eigenvectors, if MATZ is not zero.
 !
 !    Output, integer ( kind = 4 ) IERR, an error completion code described in the
@@ -2915,17 +2917,17 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) ai(n,n)
-  real    ( kind = 8 ) ar(n,n)
-  real    ( kind = 8 ) fm1(2,n)
-  real    ( kind = 8 ) fv1(n)
-  real    ( kind = 8 ) fv2(n)
+  real    ( kind = rkx ) ai(n,n)
+  real    ( kind = rkx ) ar(n,n)
+  real    ( kind = rkx ) fm1(2,n)
+  real    ( kind = rkx ) fv1(n)
+  real    ( kind = rkx ) fv2(n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) matz
-  real    ( kind = 8 ) w(n)
-  real    ( kind = 8 ) zi(n,n)
-  real    ( kind = 8 ) zr(n,n)
+  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) zi(n,n)
+  real    ( kind = rkx ) zr(n,n)
 
   call htridi ( n, ar, ai, w, fv1, fv2, fm1 )
 
@@ -2935,10 +2937,10 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 
   else
 
-    zr(1:n,1:n) = 0.0D+00
+    zr(1:n,1:n) = 0.0_rkx
 
     do i = 1, n
-      zr(i,i) = 1.0D+00
+      zr(i,i) = 1.0_rkx
     end do
 
     call tql2 ( n, w, fv1, zr, ierr )
@@ -3001,10 +3003,10 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) AR(N,N), AI(N,N), the real and imaginary parts of
+!    Input, real ( kind = rkx ) AR(N,N), AI(N,N), the real and imaginary parts of
 !    the complex Hessenberg matrix.
 !
-!    Input/output, real ( kind = 8 ) WR(N), WI(N).  On input, the real and imaginary parts
+!    Input/output, real ( kind = rkx ) WR(N), WI(N).  On input, the real and imaginary parts
 !    of the eigenvalues of the matrix.  The eigenvalues must be stored in a
 !    manner identical to that of subroutine COMLR, which recognizes possible
 !    splitting of the matrix.  On output, WR may have been altered since
@@ -3020,7 +3022,7 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !
 !    Output, integer ( kind = 4 ) M, the number of eigenvectors actually found.
 !
-!    Output, real ( kind = 8 ) ZR(N,MM), ZI(N,MM), the real and imaginary parts
+!    Output, real ( kind = rkx ) ZR(N,MM), ZI(N,MM), the real and imaginary parts
 !    of the eigenvectors.  The eigenvectors are normalized so that the
 !    component of largest magnitude is 1.
 !    Any vector which fails the acceptance test is set to zero.
@@ -3036,37 +3038,37 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
   integer ( kind = 4 ) mm
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) ai(n,n)
-  real    ( kind = 8 ) ar(n,n)
-  real    ( kind = 8 ) eps3
-  real    ( kind = 8 ) growto
+  real    ( kind = rkx ) ai(n,n)
+  real    ( kind = rkx ) ar(n,n)
+  real    ( kind = rkx ) eps3
+  real    ( kind = rkx ) growto
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) ii
-  real    ( kind = 8 ) ilambd
+  real    ( kind = rkx ) ilambd
   integer ( kind = 4 ) its
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) km1
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mp
-  real    ( kind = 8 ) norm
-  real    ( kind = 8 ) normv
-  real    ( kind = 8 ) rlambd
-  real    ( kind = 8 ) rm1(n,n)
-  real    ( kind = 8 ) rm2(n,n)
-  real    ( kind = 8 ) rv1(n)
-  real    ( kind = 8 ) rv2(n)
+  real    ( kind = rkx ) norm
+  real    ( kind = rkx ) normv
+  real    ( kind = rkx ) rlambd
+  real    ( kind = rkx ) rm1(n,n)
+  real    ( kind = rkx ) rm2(n,n)
+  real    ( kind = rkx ) rv1(n)
+  real    ( kind = rkx ) rv2(n)
   integer ( kind = 4 ) s
   logical              select(n)
   integer ( kind = 4 ) uk
-  real    ( kind = 8 ) ukroot
-  real    ( kind = 8 ) wi(n)
-  real    ( kind = 8 ) wr(n)
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) y
-  real    ( kind = 8 ) zi(n,mm)
-  real    ( kind = 8 ) zr(n,mm)
+  real    ( kind = rkx ) ukroot
+  real    ( kind = rkx ) wi(n)
+  real    ( kind = rkx ) wr(n)
+  real    ( kind = rkx ) x
+  real    ( kind = rkx ) y
+  real    ( kind = rkx ) zi(n,mm)
+  real    ( kind = rkx ) zr(n,mm)
 
   ierr = 0
   uk = 0
@@ -3086,7 +3088,7 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !
      do uk = k, n - 1
 
-       if ( ar(uk+1,uk) == 0.0D+00 .and. ai(uk+1,uk) == 0.0D+00 ) then
+       if ( ar(uk+1,uk) == 0.0_rkx .and. ai(uk+1,uk) == 0.0_rkx ) then
          exit
        end if
 
@@ -3094,12 +3096,12 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !
 !  Compute infinity norm of leading UK by UK (Hessenberg) matrix.
 !
-     norm = 0.0D+00
+     norm = 0.0_rkx
      mp = 1
 
      do i = 1, uk
 
-       x = 0.0D+00
+       x = 0.0_rkx
        do j = mp, uk
          x = x + pythag ( ar(i,j), ai(i,j) )
        end do
@@ -3112,14 +3114,14 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !  EPS3 replaces zero pivot in decomposition
 !  and close roots are modified by EPS3.
 !
-     if ( norm == 0.0D+00 ) norm = 1.0D+00
+     if ( norm == 0.0_rkx ) norm = 1.0_rkx
      eps3 = abs ( norm ) * epsilon ( eps3 )
 !
 !  GROWTO is the criterion for growth.
 !
-     ukroot = dble(uk)
+     ukroot = real(uk,rkx)
      ukroot = sqrt ( ukroot )
-     growto = 0.1D+00 / ukroot
+     growto = 0.1_rkx / ukroot
 
 200  continue
 
@@ -3184,13 +3186,13 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 
         end if
 
-        if ( rm1(mp,mp) == 0.0D+00 .and. rm2(mp,mp) == 0.0D+00 ) then
+        if ( rm1(mp,mp) == 0.0_rkx .and. rm2(mp,mp) == 0.0_rkx ) then
           rm1(mp,mp) = eps3
         end if
 
         call cdiv ( rm1(i,mp), rm2(i,mp), rm1(mp,mp), rm2(mp,mp), x, y )
 
-        if ( x /= 0.0D+00 .or. y /= 0.0D+00 ) then
+        if ( x /= 0.0_rkx .or. y /= 0.0_rkx ) then
 
           do j = i, uk
             rm1(i,j) = rm1(i,j) - x * rm1(mp,j) + y * rm2(mp,j)
@@ -3201,7 +3203,7 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 
      end do
 
-     if ( rm1(uk,uk) == 0.0D+00 .and. rm2(uk,uk) == 0.0D+00 ) then
+     if ( rm1(uk,uk) == 0.0_rkx .and. rm2(uk,uk) == 0.0_rkx ) then
        rm1(uk,uk) = eps3
      end if
 
@@ -3215,7 +3217,7 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 
         i = uk + 1 - ii
         x = rv1(i)
-        y = 0.0D+00
+        y = 0.0_rkx
 
         do j = i+1, uk
           x = x - rm1(i,j) * rv1(j) + rm2(i,j) * rv2(j)
@@ -3229,8 +3231,8 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !  Acceptance test for eigenvector and normalization.
 !
      its = its + 1
-     norm = 0.0D+00
-     normv = 0.0D+00
+     norm = 0.0_rkx
+     normv = 0.0_rkx
 
      do i = 1, uk
         x = pythag ( rv1(i), rv2(i) )
@@ -3266,7 +3268,7 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
      if ( its < uk ) then
 
        x = ukroot
-       y = eps3 / ( x + 1.0D+00 )
+       y = eps3 / ( x + 1.0_rkx )
 
        rv1(1) = eps3
        rv1(2:uk) = y
@@ -3286,8 +3288,8 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !
 900    continue
 
-       zr(j:n,s) = 0.0D+00
-       zi(j:n,s) = 0.0D+00
+       zr(j:n,s) = 0.0_rkx
+       zi(j:n,s) = 0.0_rkx
 
 940    continue
 
@@ -3357,7 +3359,7 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = to the order of the matrix.
 !
-!    Input, real ( kind = 8 ) AR(N,IGH), AI(N,IGH), the multipliers which were used in the
+!    Input, real ( kind = rkx ) AR(N,IGH), AI(N,IGH), the multipliers which were used in the
 !    reduction by COMHES in their lower triangles below the subdiagonal.
 !
 !    Input, integer ( kind = 4 ) INT(IGH), information on the rows and columns interchanged
@@ -3365,7 +3367,7 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) ZR(N,M), ZI(N,M).  On input, the real and imaginary
+!    Input/output, real ( kind = rkx ) ZR(N,M), ZI(N,M).  On input, the real and imaginary
 !    parts of the eigenvectors to be back transformed.  On output, the real
 !    and imaginary parts of the transformed eigenvectors.
 !
@@ -3375,8 +3377,8 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) ai(n,igh)
-  real    ( kind = 8 ) ar(n,igh)
+  real    ( kind = rkx ) ai(n,igh)
+  real    ( kind = rkx ) ar(n,igh)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ia(igh)
   integer ( kind = 4 ) j
@@ -3384,10 +3386,10 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
   integer ( kind = 4 ) low
   integer ( kind = 4 ) mm
   integer ( kind = 4 ) mp
-  real    ( kind = 8 ) xi
-  real    ( kind = 8 ) xr
-  real    ( kind = 8 ) zi(n,m)
-  real    ( kind = 8 ) zr(n,m)
+  real    ( kind = rkx ) xi
+  real    ( kind = rkx ) xr
+  real    ( kind = rkx ) zi(n,m)
+  real    ( kind = rkx ) zr(n,m)
 
   if ( m == 0 ) then
     return
@@ -3408,7 +3410,7 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
         xr = ar(i,mp-1)
         xi = ai(i,mp-1)
 
-        if ( xr /= 0.0D+00 .or. xi /= 0.0D+00 ) then
+        if ( xr /= 0.0_rkx .or. xi /= 0.0_rkx ) then
           zr(i,1:m) = zr(i,1:m) + xr * zr(mp,1:m) - xi * zi(mp,1:m)
           zi(i,1:m) = zi(i,1:m) + xr * zi(mp,1:m) + xi * zr(mp,1:m)
        end if
@@ -3482,7 +3484,7 @@ subroutine comhes ( n, low, igh, ar, ai, ia )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
-!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and imaginary
+!    Input/output, real ( kind = rkx ) AR(N,N), AI(N,N).  On input, the real and imaginary
 !    parts of the complex input matrix.  On output, the real and imaginary
 !    parts of the Hessenberg matrix.  The multipliers which were used in the
 !    reduction are stored in the remaining triangles under the
@@ -3496,25 +3498,25 @@ subroutine comhes ( n, low, igh, ar, ai, ia )
   integer ( kind = 4 ) igh
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) ai(n,n)
-  real    ( kind = 8 ) ar(n,n)
+  real    ( kind = rkx ) ai(n,n)
+  real    ( kind = rkx ) ar(n,n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ia(igh)
   integer ( kind = 4 ) j
   integer ( kind = 4 ) la
   integer ( kind = 4 ) low
   integer ( kind = 4 ) m
-  real    ( kind = 8 ) xi
-  real    ( kind = 8 ) xr
-  real    ( kind = 8 ) yi
-  real    ( kind = 8 ) yr
+  real    ( kind = rkx ) xi
+  real    ( kind = rkx ) xr
+  real    ( kind = rkx ) yi
+  real    ( kind = rkx ) yr
 
   la = igh - 1
 
   do m = low + 1, la
 
-     xr = 0.0D+00
-     xi = 0.0D+00
+     xr = 0.0_rkx
+     xi = 0.0_rkx
      i = m
 
      do j = m, igh
@@ -3546,14 +3548,14 @@ subroutine comhes ( n, low, igh, ar, ai, ia )
 
      end if
 
-    if ( xr /= 0.0D+00 .or. xi /= 0.0D+00 ) then
+    if ( xr /= 0.0_rkx .or. xi /= 0.0_rkx ) then
 
       do i = m+1, igh
 
         yr = ar(i,m-1)
         yi = ai(i,m-1)
 
-        if ( yr /= 0.0D+00 .or. yi /= 0.0D+00 ) then
+        if ( yr /= 0.0_rkx .or. yi /= 0.0_rkx ) then
 
           call cdiv ( yr, yi, xr, xi, yr, yi )
           ar(i,m-1) = yr
@@ -3627,7 +3629,7 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
-!    Input/output, real ( kind = 8 ) HR(N,N), HI(N,N).  On input, the real and imaginary
+!    Input/output, real ( kind = rkx ) HR(N,N), HI(N,N).  On input, the real and imaginary
 !    parts of the complex upper Hessenberg matrix.  Their lower triangles
 !    below the subdiagonal contain the multipliers which were used in the
 !    reduction by COMHES if performed.  On output, the upper Hessenberg
@@ -3635,7 +3637,7 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    saved before calling COMLR if subsequent calculation of eigenvectors
 !    is to be performed.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the
+!    Output, real ( kind = rkx ) WR(N), WI(N), the real and imaginary parts of the
 !    eigenvalues.  If an error exit is made, the eigenvalues should be correct
 !    for indices IERR+1,...,N.
 !
@@ -3650,8 +3652,8 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 
   integer ( kind = 4 ) en
   integer ( kind = 4 ) enm1
-  real    ( kind = 8 ) hi(n,n)
-  real    ( kind = 8 ) hr(n,n)
+  real    ( kind = rkx ) hi(n,n)
+  real    ( kind = rkx ) hr(n,n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) igh
@@ -3663,20 +3665,20 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
   integer ( kind = 4 ) low
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mm
-  real    ( kind = 8 ) si
-  real    ( kind = 8 ) sr
-  real    ( kind = 8 ) ti
-  real    ( kind = 8 ) tr
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) wi(n)
-  real    ( kind = 8 ) wr(n)
-  real    ( kind = 8 ) xi
-  real    ( kind = 8 ) xr
-  real    ( kind = 8 ) yi
-  real    ( kind = 8 ) yr
-  real    ( kind = 8 ) zzi
-  real    ( kind = 8 ) zzr
+  real    ( kind = rkx ) si
+  real    ( kind = rkx ) sr
+  real    ( kind = rkx ) ti
+  real    ( kind = rkx ) tr
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) wi(n)
+  real    ( kind = rkx ) wr(n)
+  real    ( kind = rkx ) xi
+  real    ( kind = rkx ) xr
+  real    ( kind = rkx ) yi
+  real    ( kind = rkx ) yr
+  real    ( kind = rkx ) zzi
+  real    ( kind = rkx ) zzr
 
   ierr = 0
 !
@@ -3690,8 +3692,8 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
   end do
 
   en = igh
-  tr = 0.0D+00
-  ti = 0.0D+00
+  tr = 0.0_rkx
+  ti = 0.0_rkx
   itn = 30 * n
 !
 !  Search for next eigenvalue.
@@ -3736,12 +3738,12 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
   si = hi(en,en)
   xr = hr(enm1,en) * hr(en,enm1) - hi(enm1,en) * hi(en,enm1)
   xi = hr(enm1,en) * hi(en,enm1) + hi(enm1,en) * hr(en,enm1)
-  if ( xr == 0.0D+00 .and. xi == 0.0D+00 ) go to 340
-  yr = ( hr(enm1,enm1) - sr) / 2.0D+00
-  yi = ( hi(enm1,enm1) - si) / 2.0D+00
-  call csroot ( yr**2-yi**2+xr, 2.0D+00*yr*yi+xi, zzr, zzi )
+  if ( xr == 0.0_rkx .and. xi == 0.0_rkx ) go to 340
+  yr = ( hr(enm1,enm1) - sr) / 2.0_rkx
+  yi = ( hi(enm1,enm1) - si) / 2.0_rkx
+  call csroot ( yr**2-yi**2+xr, 2.0_rkx*yr*yi+xi, zzr, zzi )
 
-  if ( yr * zzr + yi * zzi < 0.0D+00 ) then
+  if ( yr * zzr + yi * zzi < 0.0_rkx ) then
     zzr = -zzr
     zzi = -zzi
   end if
@@ -3811,13 +3813,13 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
      end do
 
      call cdiv ( xr, xi, yr, yi, zzr, zzi )
-     wr(i) = 1.0D+00
+     wr(i) = 1.0_rkx
      go to 480
 
 460 continue
 
      call cdiv ( yr, yi, xr, xi, zzr, zzi )
-     wr(i) = -1.0D+00
+     wr(i) = -1.0_rkx
 
 480  continue
 
@@ -3837,12 +3839,12 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 
     xr = hr(j,j-1)
     xi = hi(j,j-1)
-    hr(j,j-1) = 0.0D+00
-    hi(j,j-1) = 0.0D+00
+    hr(j,j-1) = 0.0_rkx
+    hi(j,j-1) = 0.0_rkx
 !
 !  Interchange columns of HR and HI, if necessary.
 !
-    if ( wr(j) > 0.0D+00 ) then
+    if ( wr(j) > 0.0_rkx ) then
 
       do i = l, j
         call r8_swap ( hr(i,j-1), hr(i,j) )
@@ -3925,7 +3927,7 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 !    in the reduction by COMHES, if performed.  If the eigenvectors of the
 !    Hessenberg matrix are desired, set INT(J)=J for these elements.
 !
-!    Input/output, real ( kind = 8 ) HR(N,N), HI(N,N).  On input, the real and imaginary
+!    Input/output, real ( kind = rkx ) HR(N,N), HI(N,N).  On input, the real and imaginary
 !    parts of the complex upper Hessenberg matrix.  Their lower triangles
 !    below the subdiagonal contain the multipliers which were used in the
 !    reduction by COMHES, if performed.  If the eigenvectors of the Hessenberg
@@ -3933,11 +3935,11 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 !    the upper Hessenberg portions of HR and HI have been destroyed, but the
 !    location HR(1,1) contains the norm of the triangularized matrix.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the
+!    Output, real ( kind = rkx ) WR(N), WI(N), the real and imaginary parts of the
 !    eigenvalues.  If an error exit is made, the eigenvalues should be
 !    correct for indices IERR+1,...,N.
 !
-!    Output, real ( kind = 8 ) ZR(N,N), ZI(N,N), the real and imaginary parts of the
+!    Output, real ( kind = rkx ) ZR(N,N), ZI(N,N), the real and imaginary parts of the
 !    eigenvectors.  The eigenvectors are unnormalized.  If an error exit
 !    is made, none of the eigenvectors has been found.
 !
@@ -3952,8 +3954,8 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 
   integer ( kind = 4 ) en
   integer ( kind = 4 ) enm1
-  real    ( kind = 8 ) hi(n,n)
-  real    ( kind = 8 ) hr(n,n)
+  real    ( kind = rkx ) hi(n,n)
+  real    ( kind = rkx ) hr(n,n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) iend
   integer ( kind = 4 ) ierr
@@ -3971,35 +3973,35 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mm
   integer ( kind = 4 ) nn
-  real    ( kind = 8 ) norm
-  real    ( kind = 8 ) si
-  real    ( kind = 8 ) sr
-  real    ( kind = 8 ) ti
-  real    ( kind = 8 ) tr
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) wi(n)
-  real    ( kind = 8 ) wr(n)
-  real    ( kind = 8 ) xi
-  real    ( kind = 8 ) xr
-  real    ( kind = 8 ) yi
-  real    ( kind = 8 ) yr
-  real    ( kind = 8 ) zi(n,n)
-  real    ( kind = 8 ) zr(n,n)
-  real    ( kind = 8 ) zzi
-  real    ( kind = 8 ) zzr
+  real    ( kind = rkx ) norm
+  real    ( kind = rkx ) si
+  real    ( kind = rkx ) sr
+  real    ( kind = rkx ) ti
+  real    ( kind = rkx ) tr
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) wi(n)
+  real    ( kind = rkx ) wr(n)
+  real    ( kind = rkx ) xi
+  real    ( kind = rkx ) xr
+  real    ( kind = rkx ) yi
+  real    ( kind = rkx ) yr
+  real    ( kind = rkx ) zi(n,n)
+  real    ( kind = rkx ) zr(n,n)
+  real    ( kind = rkx ) zzi
+  real    ( kind = rkx ) zzr
 
   ierr = 0
 !
 !  Initialize the eigenvector matrix.
 !
-  zr(1:n,1:n) = 0.0D+00
+  zr(1:n,1:n) = 0.0_rkx
 
   do i = 1, n
-    zr(i,i) = 1.0D+00
+    zr(i,i) = 1.0_rkx
   end do
 
-  zi(1:n,1:n) = 0.0D+00
+  zi(1:n,1:n) = 0.0_rkx
 !
 !  Form the matrix of accumulated transformations from the information left
 !  by COMHES.
@@ -4022,11 +4024,11 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
       do k = i, igh
         zr(i,k) = zr(j,k)
         zi(i,k) = zi(j,k)
-        zr(j,k) = 0.0D+00
-        zi(j,k) = 0.0D+00
+        zr(j,k) = 0.0_rkx
+        zi(j,k) = 0.0_rkx
       end do
 
-      zr(j,i) = 1.0D+00
+      zr(j,i) = 1.0_rkx
 
     end if
 
@@ -4042,8 +4044,8 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
   end do
 
   en = igh
-  tr = 0.0D+00
-  ti = 0.0D+00
+  tr = 0.0_rkx
+  ti = 0.0_rkx
   itn = 30 * n
 !
 !  Search for next eigenvalue.
@@ -4088,12 +4090,12 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
   si = hi(en,en)
   xr = hr(enm1,en) * hr(en,enm1) - hi(enm1,en) * hi(en,enm1)
   xi = hr(enm1,en) * hi(en,enm1) + hi(enm1,en) * hr(en,enm1)
-  if ( xr == 0.0D+00 .and. xi == 0.0D+00 ) go to 340
-  yr = (hr(enm1,enm1) - sr) / 2.0D+00
-  yi = (hi(enm1,enm1) - si) / 2.0D+00
-  call csroot ( yr**2-yi**2+xr, 2.0D+00*yr*yi+xi, zzr, zzi )
+  if ( xr == 0.0_rkx .and. xi == 0.0_rkx ) go to 340
+  yr = (hr(enm1,enm1) - sr) / 2.0_rkx
+  yi = (hi(enm1,enm1) - si) / 2.0_rkx
+  call csroot ( yr**2-yi**2+xr, 2.0_rkx*yr*yi+xi, zzr, zzi )
 
-  if ( yr * zzr + yi * zzi < 0.0D+00 ) then
+  if ( yr * zzr + yi * zzi < 0.0_rkx ) then
     zzr = -zzr
     zzi = -zzi
   end if
@@ -4163,12 +4165,12 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
     end do
 
      call cdiv ( xr, xi, yr, yi, zzr, zzi )
-     wr(i) = 1.0D+00
+     wr(i) = 1.0_rkx
      go to 480
 460  continue
 
      call cdiv ( yr, yi, xr, xi, zzr, zzi )
-     wr(i) = -1.0D+00
+     wr(i) = -1.0_rkx
 
 480  continue
 
@@ -4188,12 +4190,12 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 
      xr = hr(j,j-1)
      xi = hi(j,j-1)
-     hr(j,j-1) = 0.0D+00
-     hi(j,j-1) = 0.0D+00
+     hr(j,j-1) = 0.0_rkx
+     hi(j,j-1) = 0.0_rkx
 !
 !  Interchange columns of HR, HI, ZR, and ZI.
 !
-     if ( wr(j) > 0.0D+00 ) then
+     if ( wr(j) > 0.0_rkx ) then
 
        do i = 1, j
          call r8_swap ( hr(i,j-1), hr(i,j) )
@@ -4239,7 +4241,7 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 !
   680 continue
 
-  norm = 0.0D+00
+  norm = 0.0_rkx
 
   do i = 1, n
     do j = i, n
@@ -4253,7 +4255,7 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
     return
   end if
 
-  if ( norm == 0.0D+00 ) then
+  if ( norm == 0.0_rkx ) then
     return
   end if
 
@@ -4262,15 +4264,15 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
      en = n + 2 - nn
      xr = wr(en)
      xi = wi(en)
-     hr(en,en) = 1.0D+00
-     hi(en,en) = 0.0D+00
+     hr(en,en) = 1.0_rkx
+     hi(en,en) = 0.0_rkx
      enm1 = en - 1
 
      do ii = 1, enm1
 
         i = en - ii
-        zzr = 0.0D+00
-        zzi = 0.0D+00
+        zzr = 0.0_rkx
+        zzi = 0.0_rkx
 
         do j = i+1, en
           zzr = zzr + hr(i,j) * hr(j,en) - hi(i,j) * hi(j,en)
@@ -4280,13 +4282,13 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
         yr = xr - wr(i)
         yi = xi - wi(i)
 
-        if ( yr == 0.0D+00 .and. yi == 0.0D+00 ) then
+        if ( yr == 0.0_rkx .and. yi == 0.0_rkx ) then
 
           tst1 = norm
           yr = tst1
 
           do
-            yr = 0.01D+00 * yr
+            yr = 0.01_rkx * yr
             tst2 = norm + yr
             if ( tst2 <=  tst1 ) then
               exit
@@ -4301,10 +4303,10 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 !
         tr = abs ( hr(i,en) ) + abs ( hi(i,en) )
 
-        if ( tr /= 0.0D+00 ) then
+        if ( tr /= 0.0_rkx ) then
 
           tst1 = tr
-          tst2 = tst1 + 1.0D+00 / tst1
+          tst2 = tst1 + 1.0_rkx / tst1
 
           if ( tst2 <= tst1 ) then
 
@@ -4344,8 +4346,8 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
     m = min ( j, igh )
 
     do i = low, igh
-      zzr = 0.0D+00
-      zzi = 0.0D+00
+      zzr = 0.0_rkx
+      zzi = 0.0_rkx
       do k = low, m
         zzr = zzr + zr(i,k) * hr(k,j) - zi(i,k) * hi(k,j)
         zzi = zzi + zr(i,k) * hi(k,j) + zi(i,k) * hr(k,j)
@@ -4415,7 +4417,7 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
-!    Input/output, real ( kind = 8 ) HR(N,N), HI(N,N).  On input, the real and imaginary
+!    Input/output, real ( kind = rkx ) HR(N,N), HI(N,N).  On input, the real and imaginary
 !    parts of the complex upper Hessenberg matrix.  Their lower triangles
 !    below the subdiagonal contain information about the unitary
 !    transformations used in the reduction by CORTH, if performed.  On output,
@@ -4423,7 +4425,7 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    Therefore, they must be saved before calling COMQR if subsequent
 !    calculation of eigenvectors is to be performed.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the
+!    Output, real ( kind = rkx ) WR(N), WI(N), the real and imaginary parts of the
 !    eigenvalues.  If an error exit is made, the eigenvalues should be
 !    correct for indices IERR+1,...,N.
 !
@@ -4438,8 +4440,8 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 
   integer ( kind = 4 ) en
   integer ( kind = 4 ) enm1
-  real    ( kind = 8 ) hi(n,n)
-  real    ( kind = 8 ) hr(n,n)
+  real    ( kind = rkx ) hi(n,n)
+  real    ( kind = rkx ) hr(n,n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) igh
@@ -4449,21 +4451,21 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
   integer ( kind = 4 ) l
   integer ( kind = 4 ) ll
   integer ( kind = 4 ) low
-  real    ( kind = 8 ) norm
-  real    ( kind = 8 ) si
-  real    ( kind = 8 ) sr
-  real    ( kind = 8 ) ti
-  real    ( kind = 8 ) tr
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) wi(n)
-  real    ( kind = 8 ) wr(n)
-  real    ( kind = 8 ) xi
-  real    ( kind = 8 ) xr
-  real    ( kind = 8 ) yi
-  real    ( kind = 8 ) yr
-  real    ( kind = 8 ) zzi
-  real    ( kind = 8 ) zzr
+  real    ( kind = rkx ) norm
+  real    ( kind = rkx ) si
+  real    ( kind = rkx ) sr
+  real    ( kind = rkx ) ti
+  real    ( kind = rkx ) tr
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) wi(n)
+  real    ( kind = rkx ) wr(n)
+  real    ( kind = rkx ) xi
+  real    ( kind = rkx ) xr
+  real    ( kind = rkx ) yi
+  real    ( kind = rkx ) yr
+  real    ( kind = rkx ) zzi
+  real    ( kind = rkx ) zzr
 
   ierr = 0
 !
@@ -4475,13 +4477,13 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 
      ll = min ( i+1, igh )
 
-     if ( hi(i,i-1) /= 0.0D+00 ) then
+     if ( hi(i,i-1) /= 0.0_rkx ) then
 
      norm = pythag ( hr(i,i-1), hi(i,i-1) )
      yr = hr(i,i-1) / norm
      yi = hi(i,i-1) / norm
      hr(i,i-1) = norm
-     hi(i,i-1) = 0.0D+00
+     hi(i,i-1) = 0.0_rkx
 
      do j = i, igh
        si = yr * hi(i,j) - yi * hr(i,j)
@@ -4509,8 +4511,8 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
   end do
 
   en = igh
-  tr = 0.0D+00
-  ti = 0.0D+00
+  tr = 0.0_rkx
+  ti = 0.0_rkx
   itn = 30 * n
 !
 !  Search for next eigenvalue.
@@ -4554,13 +4556,13 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
   si = hi(en,en)
   xr = hr(enm1,en) * hr(en,enm1)
   xi = hi(enm1,en) * hr(en,enm1)
-  if ( xr == 0.0D+00 .and. xi == 0.0D+00 ) go to 340
-  yr = (hr(enm1,enm1) - sr) / 2.0D+00
-  yi = (hi(enm1,enm1) - si) / 2.0D+00
+  if ( xr == 0.0_rkx .and. xi == 0.0_rkx ) go to 340
+  yr = (hr(enm1,enm1) - sr) / 2.0_rkx
+  yi = (hi(enm1,enm1) - si) / 2.0_rkx
 
-  call csroot ( yr**2-yi**2+xr, 2.0D+00*yr*yi+xi, zzr, zzi )
+  call csroot ( yr**2-yi**2+xr, 2.0_rkx*yr*yi+xi, zzr, zzi )
 
-  if ( yr * zzr + yi * zzi < 0.0D+00 ) then
+  if ( yr * zzr + yi * zzi < 0.0_rkx ) then
     zzr = -zzr
     zzi = -zzi
   end if
@@ -4575,7 +4577,7 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 320 continue
 
   sr = abs ( hr(en,enm1) ) + abs ( hr(enm1,en-2) )
-  si = 0.0D+00
+  si = 0.0_rkx
 
 340 continue
 
@@ -4594,14 +4596,14 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
   do i = l+1, en
 
      sr = hr(i,i-1)
-     hr(i,i-1) = 0.0D+00
+     hr(i,i-1) = 0.0_rkx
      norm = pythag ( pythag ( hr(i-1,i-1), hi(i-1,i-1) ), sr )
      xr = hr(i-1,i-1) / norm
      wr(i-1) = xr
      xi = hi(i-1,i-1) / norm
      wi(i-1) = xi
      hr(i-1,i-1) = norm
-     hi(i-1,i-1) = 0.0D+00
+     hi(i-1,i-1) = 0.0_rkx
      hi(i,i-1) = sr / norm
 
      do j = i, en
@@ -4619,12 +4621,12 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 
   si = hi(en,en)
 
-  if ( si /= 0.0D+00 ) then
+  if ( si /= 0.0_rkx ) then
     norm = pythag ( hr(en,en), si )
     sr = hr(en,en) / norm
     si = si / norm
     hr(en,en) = norm
-    hi(en,en) = 0.0D+00
+    hi(en,en) = 0.0_rkx
   end if
 !
 !  Inverse operation (columns).
@@ -4637,7 +4639,7 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
      do i = l, j
 
         yr = hr(i,j-1)
-        yi = 0.0D+00
+        yi = 0.0_rkx
         zzr = hr(i,j)
         zzi = hi(i,j)
         if ( i /= j ) then
@@ -4652,7 +4654,7 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 
   end do
 
-  if ( si /= 0.0D+00 ) then
+  if ( si /= 0.0_rkx ) then
 
     do i = l, en
       yr = hr(i,en)
@@ -4734,24 +4736,24 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
-!    Input/output, real ( kind = 8 ) ORTR(N), ORTI(N).  On input, information about the
+!    Input/output, real ( kind = rkx ) ORTR(N), ORTI(N).  On input, information about the
 !    unitary transformations used in the reduction by CORTH, if performed.
 !    If the eigenvectors of the Hessenberg matrix are desired, set ORTR(J) and
-!    ORTI(J) to 0.0D+00 for these elements.  On output, these arrays
+!    ORTI(J) to 0.0_rkx for these elements.  On output, these arrays
 !    have been overwritten.
 !
-!    Input/output, real ( kind = 8 ) HR(N,N), HI(N,N).  On input, the real and imaginary
+!    Input/output, real ( kind = rkx ) HR(N,N), HI(N,N).  On input, the real and imaginary
 !    parts of the complex upper Hessenberg matrix.  Their lower triangles
 !    below the subdiagonal contain further information about the
 !    transformations which were used in the reduction by CORTH, if performed.
 !    If the eigenvectors of the Hessenberg matrix are desired, these elements
 !    may be arbitrary.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the
+!    Output, real ( kind = rkx ) WR(N), WI(N), the real and imaginary parts of the
 !    eigenvalues.  If an error exit is made, the eigenvalues should be
 !    correct for indices IERR+1,...,N.
 !
-!    Output, real ( kind = 8 ) ZR(N,N), ZI(N,N), the real and imaginary parts of the
+!    Output, real ( kind = rkx ) ZR(N,N), ZI(N,N), the real and imaginary parts of the
 !    eigenvectors.  The eigenvectors are unnormalized.  If an error exit
 !    is made, none of the eigenvectors has been found.
 !
@@ -4767,8 +4769,8 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 
   integer ( kind = 4 ) en
   integer ( kind = 4 ) enm1
-  real    ( kind = 8 ) hi(n,n)
-  real    ( kind = 8 ) hr(n,n)
+  real    ( kind = rkx ) hi(n,n)
+  real    ( kind = rkx ) hr(n,n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) iend
   integer ( kind = 4 ) ierr
@@ -4783,37 +4785,37 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
   integer ( kind = 4 ) low
   integer ( kind = 4 ) m
   integer ( kind = 4 ) nn
-  real    ( kind = 8 ) norm
-  real    ( kind = 8 ) orti(igh)
-  real    ( kind = 8 ) ortr(igh)
-  real    ( kind = 8 ) si
-  real    ( kind = 8 ) sr
-  real    ( kind = 8 ) ti
-  real    ( kind = 8 ) tr
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) wi(n)
-  real    ( kind = 8 ) wr(n)
-  real    ( kind = 8 ) xi
-  real    ( kind = 8 ) xr
-  real    ( kind = 8 ) yi
-  real    ( kind = 8 ) yr
-  real    ( kind = 8 ) zi(n,n)
-  real    ( kind = 8 ) zr(n,n)
-  real    ( kind = 8 ) zzi
-  real    ( kind = 8 ) zzr
+  real    ( kind = rkx ) norm
+  real    ( kind = rkx ) orti(igh)
+  real    ( kind = rkx ) ortr(igh)
+  real    ( kind = rkx ) si
+  real    ( kind = rkx ) sr
+  real    ( kind = rkx ) ti
+  real    ( kind = rkx ) tr
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) wi(n)
+  real    ( kind = rkx ) wr(n)
+  real    ( kind = rkx ) xi
+  real    ( kind = rkx ) xr
+  real    ( kind = rkx ) yi
+  real    ( kind = rkx ) yr
+  real    ( kind = rkx ) zi(n,n)
+  real    ( kind = rkx ) zr(n,n)
+  real    ( kind = rkx ) zzi
+  real    ( kind = rkx ) zzr
 
   ierr = 0
 !
 !  Initialize eigenvector matrix.
 !
-  zr(1:n,1:n) = 0.0D+00
+  zr(1:n,1:n) = 0.0_rkx
 
   do i = 1, n
-    zr(i,i) = 1.0D+00
+    zr(i,i) = 1.0_rkx
   end do
 
-  zi(1:n,1:n) = 0.0D+00
+  zi(1:n,1:n) = 0.0_rkx
 !
 !  Form the matrix of accumulated transformations from the information
 !  left by CORTH.
@@ -4832,8 +4834,8 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
   do ii = 1, iend
 
      i = igh - ii
-     if ( ortr(i) == 0.0D+00 .and. orti(i) == 0.0D+00 ) go to 140
-     if ( hr(i,i-1) == 0.0D+00 .and. hi(i,i-1) == 0.0D+00 ) go to 140
+     if ( ortr(i) == 0.0_rkx .and. orti(i) == 0.0_rkx ) go to 140
+     if ( hr(i,i-1) == 0.0_rkx .and. hi(i,i-1) == 0.0_rkx ) go to 140
 !
 !  Norm below is negative of H formed in CORTH.
 !
@@ -4846,8 +4848,8 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 
      do j = i, igh
 
-        sr = 0.0D+00
-        si = 0.0D+00
+        sr = 0.0_rkx
+        si = 0.0_rkx
 
         do k = i, igh
           sr = sr + ortr(k) * zr(k,j) + orti(k) * zi(k,j)
@@ -4878,7 +4880,7 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 
      ll = min ( i+1, igh )
 
-     if ( hi(i,i-1) == 0.0D+00 ) then
+     if ( hi(i,i-1) == 0.0_rkx ) then
        go to 170
      end if
 
@@ -4886,7 +4888,7 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
      yr = hr(i,i-1) / norm
      yi = hi(i,i-1) / norm
      hr(i,i-1) = norm
-     hi(i,i-1) = 0.0D+00
+     hi(i,i-1) = 0.0_rkx
 
      do j = i, n
        si = yr * hi(i,j) - yi * hr(i,j)
@@ -4922,8 +4924,8 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
   end do
 
   en = igh
-  tr = 0.0D+00
-  ti = 0.0D+00
+  tr = 0.0_rkx
+  ti = 0.0_rkx
   itn = 30 * n
 !
 !  Search for next eigenvalue.
@@ -4960,13 +4962,13 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
   si = hi(en,en)
   xr = hr(enm1,en) * hr(en,enm1)
   xi = hi(enm1,en) * hr(en,enm1)
-  if ( xr == 0.0D+00 .and. xi == 0.0D+00 ) go to 340
-  yr = ( hr(enm1,enm1) - sr ) / 2.0D+00
-  yi = ( hi(enm1,enm1) - si ) / 2.0D+00
+  if ( xr == 0.0_rkx .and. xi == 0.0_rkx ) go to 340
+  yr = ( hr(enm1,enm1) - sr ) / 2.0_rkx
+  yi = ( hi(enm1,enm1) - si ) / 2.0_rkx
 
-  call csroot ( yr**2-yi**2+xr, 2.0D+00*yr*yi+xi, zzr, zzi )
+  call csroot ( yr**2-yi**2+xr, 2.0_rkx*yr*yi+xi, zzr, zzi )
 
-  if ( yr * zzr + yi * zzi < 0.0D+00 ) then
+  if ( yr * zzr + yi * zzi < 0.0_rkx ) then
     zzr = -zzr
     zzi = -zzi
   end if
@@ -4981,7 +4983,7 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 320 continue
 
   sr = abs ( hr(en,enm1) ) + abs ( hr(enm1,en-2) )
-  si = 0.0D+00
+  si = 0.0_rkx
 
 340 continue
 
@@ -5000,14 +5002,14 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
   do i = l+1, en
 
      sr = hr(i,i-1)
-     hr(i,i-1) = 0.0D+00
+     hr(i,i-1) = 0.0_rkx
      norm = pythag ( pythag ( hr(i-1,i-1), hi(i-1,i-1) ), sr )
      xr = hr(i-1,i-1) / norm
      wr(i-1) = xr
      xi = hi(i-1,i-1) / norm
      wi(i-1) = xi
      hr(i-1,i-1) = norm
-     hi(i-1,i-1) = 0.0D+00
+     hi(i-1,i-1) = 0.0_rkx
      hi(i,i-1) = sr / norm
 
      do j = i, n
@@ -5025,13 +5027,13 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 
   si = hi(en,en)
 
-  if ( si /= 0.0D+00 ) then
+  if ( si /= 0.0_rkx ) then
 
     norm = pythag ( hr(en,en), si )
     sr = hr(en,en) / norm
     si = si / norm
     hr(en,en) = norm
-    hi(en,en) = 0.0D+00
+    hi(en,en) = 0.0_rkx
 
     do j = en+1, n
       yr = hr(en,j)
@@ -5052,7 +5054,7 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
      do i = 1, j
 
        yr = hr(i,j-1)
-       yi = 0.0D+00
+       yi = 0.0_rkx
        zzr = hr(i,j)
        zzi = hi(i,j)
 
@@ -5080,7 +5082,7 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 
   end do
 
-  if ( si /= 0.0D+00 ) then
+  if ( si /= 0.0_rkx ) then
 
     do i = 1, en
       yr = hr(i,en)
@@ -5116,7 +5118,7 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 !
 680 continue
 
-  norm = 0.0D+00
+  norm = 0.0_rkx
 
   do i = 1, n
     do j = i, n
@@ -5129,7 +5131,7 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
     return
   end if
 
-  if ( norm == 0.0D+00 ) then
+  if ( norm == 0.0_rkx ) then
     return
   end if
 
@@ -5138,15 +5140,15 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
      en = n + 2 - nn
      xr = wr(en)
      xi = wi(en)
-     hr(en,en) = 1.0D+00
-     hi(en,en) = 0.0D+00
+     hr(en,en) = 1.0_rkx
+     hi(en,en) = 0.0_rkx
      enm1 = en - 1
 
      do ii = 1, enm1
 
         i = en - ii
-        zzr = 0.0D+00
-        zzi = 0.0D+00
+        zzr = 0.0_rkx
+        zzi = 0.0_rkx
 
         do j = i+1, en
           zzr = zzr + hr(i,j) * hr(j,en) - hi(i,j) * hi(j,en)
@@ -5156,12 +5158,12 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
         yr = xr - wr(i)
         yi = xi - wi(i)
 
-        if ( yr == 0.0D+00 .and. yi == 0.0D+00 ) then
+        if ( yr == 0.0_rkx .and. yi == 0.0_rkx ) then
 
            tst1 = norm
            yr = tst1
            do
-             yr = 0.01D+00 * yr
+             yr = 0.01_rkx * yr
              tst2 = norm + yr
              if ( tst2 <= tst1 ) then
                exit
@@ -5176,10 +5178,10 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 !
         tr = abs ( hr(i,en) ) + abs ( hi(i,en) )
 
-        if ( tr /= 0.0D+00 ) then
+        if ( tr /= 0.0_rkx ) then
 
           tst1 = tr
-          tst2 = tst1 + 1.0D+00 / tst1
+          tst2 = tst1 + 1.0_rkx / tst1
 
           if ( tst2 <= tst1 ) then
 
@@ -5224,8 +5226,8 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 
      do i = low, igh
 
-        zzr = 0.0D+00
-        zzi = 0.0D+00
+        zzr = 0.0_rkx
+        zzi = 0.0_rkx
         do k = low, m
           zzr = zzr + zr(i,k) * hr(k,j) - zi(i,k) * hi(k,j)
           zzi = zzi + zr(i,k) * hi(k,j) + zi(i,k) * hr(k,j)
@@ -5298,18 +5300,18 @@ subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH to the order of the matrix.
 !
-!    Input, real ( kind = 8 ) AR(N,IGH), AI(N,IGH), information about the unitary
+!    Input, real ( kind = rkx ) AR(N,IGH), AI(N,IGH), information about the unitary
 !    transformations used in the reduction by CORTH in their strict lower
 !    triangles.
 !
-!    Input/output, real ( kind = 8 ) ORTR(IGH), ORTI(IGH).  On input, further information
+!    Input/output, real ( kind = rkx ) ORTR(IGH), ORTI(IGH).  On input, further information
 !    about the transformations used in the reduction by CORTH.  On output,
 !    ORTR and ORTI have been further altered.
 !
 !    Input, integer ( kind = 4 ) M, the number of columns of ZR and ZI to be back
 !    transformed.
 !
-!    Input/output, real ( kind = 8 ) ZR(N,M), ZI(N,M).  On input, the real and imaginary
+!    Input/output, real ( kind = rkx ) ZR(N,M), ZI(N,M).  On input, the real and imaginary
 !    parts of the eigenvectors to be back transformed.  On output, the real
 !    and imaginary parts of the transformed eigenvectors.
 !
@@ -5319,21 +5321,21 @@ subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) ai(n,igh)
-  real    ( kind = 8 ) ar(n,igh)
-  real    ( kind = 8 ) gi
-  real    ( kind = 8 ) gr
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) ai(n,igh)
+  real    ( kind = rkx ) ar(n,igh)
+  real    ( kind = rkx ) gi
+  real    ( kind = rkx ) gr
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) j
   integer ( kind = 4 ) la
   integer ( kind = 4 ) low
   integer ( kind = 4 ) mm
   integer ( kind = 4 ) mp
-  real    ( kind = 8 ) orti(igh)
-  real    ( kind = 8 ) ortr(igh)
-  real    ( kind = 8 ) zi(n,m)
-  real    ( kind = 8 ) zr(n,m)
+  real    ( kind = rkx ) orti(igh)
+  real    ( kind = rkx ) ortr(igh)
+  real    ( kind = rkx ) zi(n,m)
+  real    ( kind = rkx ) zr(n,m)
 
   if ( m == 0 ) then
     return
@@ -5349,7 +5351,7 @@ subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
 
     mp = low + igh - mm
 
-    if ( ar(mp,mp-1) /= 0.0D+00 .or. ai(mp,mp-1) /= 0.0D+00 ) then
+    if ( ar(mp,mp-1) /= 0.0_rkx .or. ai(mp,mp-1) /= 0.0_rkx ) then
 
       h = ar(mp,mp-1) * ortr(mp) + ai(mp,mp-1) * orti(mp)
 
@@ -5429,13 +5431,13 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
-!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and imaginary
+!    Input/output, real ( kind = rkx ) AR(N,N), AI(N,N).  On input, the real and imaginary
 !    parts of the complex input matrix.  On output, the real and imaginary
 !    parts of the Hessenberg matrix.  Information about the unitary
 !    transformations used in the reduction is stored in the remaining
 !    triangles under the Hessenberg matrix.
 !
-!    Output, real ( kind = 8 ) ORTR(IGH), ORTI(IGH), further information about the
+!    Output, real ( kind = rkx ) ORTR(IGH), ORTI(IGH), further information about the
 !    transformations.
 !
   implicit none
@@ -5443,22 +5445,22 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
   integer ( kind = 4 ) igh
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) ai(n,n)
-  real    ( kind = 8 ) ar(n,n)
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) fi
-  real    ( kind = 8 ) fr
-  real    ( kind = 8 ) g
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) ai(n,n)
+  real    ( kind = rkx ) ar(n,n)
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) fi
+  real    ( kind = rkx ) fr
+  real    ( kind = rkx ) g
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ii
   integer ( kind = 4 ) j
   integer ( kind = 4 ) jj
   integer ( kind = 4 ) la
   integer ( kind = 4 ) m,mp,low
-  real    ( kind = 8 ) orti(igh)
-  real    ( kind = 8 ) ortr(igh)
-  real    ( kind = 8 ) xscale
+  real    ( kind = rkx ) orti(igh)
+  real    ( kind = rkx ) ortr(igh)
+  real    ( kind = rkx ) xscale
 
   la = igh - 1
 
@@ -5468,10 +5470,10 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
 
   do m = low + 1, la
 
-    h = 0.0D+00
-    ortr(m) = 0.0D+00
-    orti(m) = 0.0D+00
-    xscale = 0.0D+00
+    h = 0.0_rkx
+    ortr(m) = 0.0_rkx
+    orti(m) = 0.0_rkx
+    xscale = 0.0_rkx
 !
 !  Scale column.
 !
@@ -5479,7 +5481,7 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
       xscale = xscale + abs ( ar(i,m-1) ) + abs ( ai(i,m-1) )
     end do
 
-    if ( xscale == 0.0D+00 ) then
+    if ( xscale == 0.0_rkx ) then
       cycle
     end if
 
@@ -5495,11 +5497,11 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
     g = sqrt ( h )
     f = pythag ( ortr(m), orti(m) )
 
-    if ( f /= 0.0D+00 ) then
+    if ( f /= 0.0_rkx ) then
       h = h + f * g
       g = g / f
-      ortr(m) = ( 1.0D+00 + g ) * ortr(m)
-      orti(m) = ( 1.0D+00 + g ) * orti(m)
+      ortr(m) = ( 1.0_rkx + g ) * ortr(m)
+      orti(m) = ( 1.0_rkx + g ) * orti(m)
     else
       ortr(m) = g
       ar(m,m-1) = xscale
@@ -5509,8 +5511,8 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
 !
     do j = m, n
 
-      fr = 0.0D+00
-      fi = 0.0D+00
+      fr = 0.0_rkx
+      fi = 0.0_rkx
 
       do ii = m, igh
         i = mp - ii
@@ -5530,8 +5532,8 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
 !
     do i = 1, igh
 
-      fr = 0.0D+00
-      fi = 0.0D+00
+      fr = 0.0_rkx
+      fi = 0.0_rkx
 
       do jj = m, igh
         j = mp - jj
@@ -5566,7 +5568,7 @@ subroutine csroot ( xr, xi, yr, yi )
 !  Discussion:
 !
 !    The branch of the square function is chosen so that
-!      YR >= 0.0D+00
+!      YR >= 0.0_rkx
 !    and
 !      sign ( YI ) == sign ( XI )
 !
@@ -5603,33 +5605,33 @@ subroutine csroot ( xr, xi, yr, yi )
 !
 !  Parameters:
 !
-!    Input, real ( kind = 8 ) XR, XI, the real and imaginary parts of the quantity
+!    Input, real ( kind = rkx ) XR, XI, the real and imaginary parts of the quantity
 !    whose square root is desired.
 !
-!    Output, real ( kind = 8 ) YR, YI, the real and imaginary parts of the square root.
+!    Output, real ( kind = rkx ) YR, YI, the real and imaginary parts of the square root.
 !
   implicit none
 
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) ti
-  real    ( kind = 8 ) tr
-  real    ( kind = 8 ) xi
-  real    ( kind = 8 ) xr
-  real    ( kind = 8 ) yi
-  real    ( kind = 8 ) yr
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) ti
+  real    ( kind = rkx ) tr
+  real    ( kind = rkx ) xi
+  real    ( kind = rkx ) xr
+  real    ( kind = rkx ) yi
+  real    ( kind = rkx ) yr
 
   tr = xr
   ti = xi
-  s = sqrt ( 0.5D+00 * ( pythag ( tr, ti ) + abs ( tr ) ) )
+  s = sqrt ( 0.5_rkx * ( pythag ( tr, ti ) + abs ( tr ) ) )
 
-  if ( tr >= 0.0D+00 ) yr = s
-  if ( ti < 0.0D+00 ) s = -s
-  if ( tr <= 0.0D+00 ) yi = s
+  if ( tr >= 0.0_rkx ) yr = s
+  if ( ti < 0.0_rkx ) s = -s
+  if ( tr <= 0.0_rkx ) yi = s
 
-  if ( tr < 0.0D+00 ) then
-    yr = 0.5D+00 * ( ti / yi )
-  else if ( tr > 0.0D+00 ) then
-    yi = 0.5D+00 * ( ti / yr )
+  if ( tr < 0.0_rkx ) then
+    yr = 0.5_rkx * ( ti / yi )
+  else if ( tr > 0.0_rkx ) then
+    yi = 0.5_rkx * ( ti / yr )
   end if
 
   return
@@ -5686,7 +5688,7 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
 !    routine BALANC.  If BALANC has not been used, set LOW = 1 and
 !    IGH equal to the order of the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,IGH), the multipliers which were used in the
+!    Input, real ( kind = rkx ) A(N,IGH), the multipliers which were used in the
 !    reduction by ELMHES in its lower triangle below the subdiagonal.
 !
 !    Input, integer ( kind = 4 ) IND(IGH), information on the rows and columns
@@ -5694,7 +5696,7 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
 !
 !    Input, integer ( kind = 4 ) M, the number of columns of Z to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the real and imaginary parts
+!    Input/output, real ( kind = rkx ) Z(N,M).  On input, the real and imaginary parts
 !    of the eigenvectors to be back transformed.  On output, the real and
 !    imaginary parts of the transformed eigenvectors.
 !
@@ -5704,7 +5706,7 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,igh)
+  real    ( kind = rkx ) a(n,igh)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ind(igh)
   integer ( kind = 4 ) j
@@ -5712,8 +5714,8 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
   integer ( kind = 4 ) low
   integer ( kind = 4 ) mm
   integer ( kind = 4 ) mp
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) z(n,m)
+  real    ( kind = rkx ) x
+  real    ( kind = rkx ) z(n,m)
 
   if ( m == 0 ) then
     return
@@ -5732,7 +5734,7 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
      do i = mp+1, igh
 
        x = a(i,mp-1)
-       if ( x /= 0.0D+00 ) then
+       if ( x /= 0.0_rkx ) then
          do j = 1, m
            z(i,j) = z(i,j) + x * z(mp,j)
          end do
@@ -5810,7 +5812,7 @@ subroutine elmhes ( n, low, igh, a, ind )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine
 !    BALANC.  If BALANC has not been used, set LOW = 1, IGH = N.
 !
-!    Input/output, real ( kind = 8 ) A(N,N).  On input, the matrix to be reduced.
+!    Input/output, real ( kind = rkx ) A(N,N).  On input, the matrix to be reduced.
 !    On output, the Hessenberg matrix.  The multipliers
 !    which were used in the reduction are stored in the
 !    remaining triangle under the Hessenberg matrix.
@@ -5823,21 +5825,21 @@ subroutine elmhes ( n, low, igh, a, ind )
   integer ( kind = 4 ) igh
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
+  real    ( kind = rkx ) a(n,n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ind(igh)
   integer ( kind = 4 ) j
   integer ( kind = 4 ) la
   integer ( kind = 4 ) low
   integer ( kind = 4 ) m
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) y
+  real    ( kind = rkx ) x
+  real    ( kind = rkx ) y
 
   la = igh - 1
 
   do m = low + 1, la
 
-    x = 0.0D+00
+    x = 0.0_rkx
     i = m
 
     do j = m, igh
@@ -5863,13 +5865,13 @@ subroutine elmhes ( n, low, igh, a, ind )
 
     end if
 
-    if ( x /= 0.0D+00 ) then
+    if ( x /= 0.0_rkx ) then
 
       do i = m+1, igh
 
         y = a(i,m-1)
 
-        if ( y /= 0.0D+00 ) then
+        if ( y /= 0.0_rkx ) then
 
           y = y / x
           a(i,m-1) = y
@@ -5946,13 +5948,13 @@ subroutine eltran ( n, low, igh, a, ind, z )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine
 !    BALANC.  If BALANC has not been used, set LOW = 1, IGH = N.
 !
-!    Input, real ( kind = 8 ) A(N,IGH), the multipliers which were used in the
+!    Input, real ( kind = rkx ) A(N,IGH), the multipliers which were used in the
 !    reduction by ELMHES in its lower triangle below the subdiagonal.
 !
 !    Input, integer ( kind = 4 ) IND(IGH), information on the rows and columns
 !    interchanged in the reduction by ELMHES.
 !
-!    Output, real ( kind = 8 ) Z(N,N), the transformation matrix produced in the
+!    Output, real ( kind = rkx ) Z(N,N), the transformation matrix produced in the
 !    reduction by ELMHES.
 !
   implicit none
@@ -5960,21 +5962,21 @@ subroutine eltran ( n, low, igh, a, ind, z )
   integer ( kind = 4 ) igh
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,igh)
+  real    ( kind = rkx ) a(n,igh)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ind(igh)
   integer ( kind = 4 ) kl
   integer ( kind = 4 ) low
   integer ( kind = 4 ) mm
   integer ( kind = 4 ) mp
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) z(n,n)
 !
 !  Initialize Z to the identity matrix.
 !
-  z(1:n,1:n) = 0.0D+00
+  z(1:n,1:n) = 0.0_rkx
 
   do i = 1, n
-    z(i,i) = 1.0D+00
+    z(i,i) = 1.0_rkx
   end do
 
   kl = igh - low - 1
@@ -5997,8 +5999,8 @@ subroutine eltran ( n, low, igh, a, ind, z )
 
        z(mp,mp:igh) = z(i,mp:igh)
 
-       z(i,mp) = 1.0D+00
-       z(i,mp+1:igh) = 0.0D+00
+       z(i,mp) = 1.0_rkx
+       z(i,mp+1:igh) = 0.0_rkx
 
      end if
 
@@ -6057,17 +6059,17 @@ subroutine figi ( n, t, d, e, e2, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) T(N,3) contains the input matrix.  Its subdiagonal is
+!    Input, real ( kind = rkx ) T(N,3) contains the input matrix.  Its subdiagonal is
 !    stored in the last N-1 positions of the first column, its diagonal in
 !    the N positions of the second column, and its superdiagonal in the
 !    first N-1 positions of the third column.  T(1,1) and T(N,3) are arbitrary.
 !
-!    Output, real ( kind = 8 ) D(N), the diagonal elements of the symmetric matrix.
+!    Output, real ( kind = rkx ) D(N), the diagonal elements of the symmetric matrix.
 !
-!    Output, real ( kind = 8 ) E(N), contains the subdiagonal elements of the symmetric
+!    Output, real ( kind = rkx ) E(N), contains the subdiagonal elements of the symmetric
 !    matrix in E(2:N).  E(1) is not set.
 !
-!    Output, real ( kind = 8 ) E2(N), the squares of the corresponding elements of E.
+!    Output, real ( kind = rkx ) E2(N), the squares of the corresponding elements of E.
 !    E2 may coincide with E if the squares are not needed.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
@@ -6081,12 +6083,12 @@ subroutine figi ( n, t, d, e, e2, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) e2(n)
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) e2(n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
-  real    ( kind = 8 ) t(n,3)
+  real    ( kind = rkx ) t(n,3)
 
   ierr = 0
 
@@ -6096,19 +6098,19 @@ subroutine figi ( n, t, d, e, e2, ierr )
 
       e2(i) = t(i,1) * t(i-1,3)
 
-      if ( e2(i) < 0.0D+00 ) then
+      if ( e2(i) < 0.0_rkx ) then
 
         ierr = n + i
         return
 
-      else if ( e2(i) == 0.0D+00 ) then
+      else if ( e2(i) == 0.0_rkx ) then
 
-        if ( t(i,1) /= 0.0D+00 .or. t(i-1,3) /= 0.0D+00 ) then
+        if ( t(i,1) /= 0.0_rkx .or. t(i-1,3) /= 0.0_rkx ) then
           ierr = - 3 * n - i
           return
         end if
 
-        e(i) = 0.0D+00
+        e(i) = 0.0_rkx
 
       else
 
@@ -6174,17 +6176,17 @@ subroutine figi2 ( n, t, d, e, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) T(N,3) contains the input matrix.  Its subdiagonal is
+!    Input, real ( kind = rkx ) T(N,3) contains the input matrix.  Its subdiagonal is
 !    stored in the last N-1 positions of the first column, its diagonal in
 !    the N positions of the second column, and its superdiagonal in the
 !    first N-1 positions of the third column.  T(1,1) and T(N,3) are arbitrary.
 !
-!    Output, real ( kind = 8 ) D(N), the diagonal elements of the symmetric matrix.
+!    Output, real ( kind = rkx ) D(N), the diagonal elements of the symmetric matrix.
 !
-!    Output, real ( kind = 8 ) E(N), contains the subdiagonal elements of the symmetric
+!    Output, real ( kind = rkx ) E(N), contains the subdiagonal elements of the symmetric
 !    matrix in E(2:N).  E(1) is not set.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the transformation matrix produced in
+!    Output, real ( kind = rkx ) Z(N,N), contains the transformation matrix produced in
 !    the reduction.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
@@ -6196,42 +6198,42 @@ subroutine figi2 ( n, t, d, e, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
-  real    ( kind = 8 ) t(n,3)
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) t(n,3)
+  real    ( kind = rkx ) z(n,n)
 
   ierr = 0
 
   do i = 1, n
 
-    z(i,1:n) = 0.0D+00
+    z(i,1:n) = 0.0_rkx
 
     if ( i == 1 ) then
 
-      z(i,i) = 1.0D+00
+      z(i,i) = 1.0_rkx
 
     else
 
       h = t(i,1) * t(i-1,3)
 
-      if ( h < 0.0D+00 ) then
+      if ( h < 0.0_rkx ) then
 
         ierr = n + i
         return
 
       else if ( h == 0 ) then
 
-        if ( t(i,1) /= 0.0D+00 .or. t(i-1,3) /= 0.0D+00 ) then
+        if ( t(i,1) /= 0.0_rkx .or. t(i-1,3) /= 0.0_rkx ) then
           ierr = 2 * n + i
           return
         end if
 
-        e(i) = 0.0D+00
-        z(i,i) = 1.0D+00
+        e(i) = 0.0_rkx
+        z(i,i) = 1.0_rkx
 
       else
 
@@ -6303,13 +6305,13 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 !    Input, integer ( kind = 4 ) LOW, IGH, two integers determined by the routine
 !    BALANC.  If BALANC is not used, set LOW=1, IGH=N.
 !
-!    Input/output, real ( kind = 8 ) H(N,N), the N by N upper Hessenberg matrix.
+!    Input/output, real ( kind = rkx ) H(N,N), the N by N upper Hessenberg matrix.
 !    Information about the transformations used in the reduction to
 !    Hessenberg form by ELMHES or ORTHES, if performed, is stored
 !    in the remaining triangle under the Hessenberg matrix.
 !    On output, the information in H has been destroyed.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the
+!    Output, real ( kind = rkx ) WR(N), WI(N), the real and imaginary parts of the
 !    eigenvalues.  The eigenvalues are unordered, except that complex
 !    conjugate pairs of values appear consecutively, with the eigenvalue
 !    having positive imaginary part listed first.  If an error exit
@@ -6327,7 +6329,7 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 
   integer ( kind = 4 ) en
   integer ( kind = 4 ) enm2
-  real    ( kind = 8 ) h(n,n)
+  real    ( kind = rkx ) h(n,n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) igh
@@ -6341,24 +6343,24 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mm
   integer ( kind = 4 ) na
-  real    ( kind = 8 ) norm
+  real    ( kind = rkx ) norm
   logical              notlas
-  real    ( kind = 8 ) p
-  real    ( kind = 8 ) q
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) t
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) w
-  real    ( kind = 8 ) wi(n)
-  real    ( kind = 8 ) wr(n)
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) y
-  real    ( kind = 8 ) zz
+  real    ( kind = rkx ) p
+  real    ( kind = rkx ) q
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) t
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) w
+  real    ( kind = rkx ) wi(n)
+  real    ( kind = rkx ) wr(n)
+  real    ( kind = rkx ) x
+  real    ( kind = rkx ) y
+  real    ( kind = rkx ) zz
 
   ierr = 0
-  norm = 0.0D+00
+  norm = 0.0_rkx
   k = 1
 !
 !  Store roots isolated by BALANC and compute matrix norm.
@@ -6372,13 +6374,13 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
     k = i
     if ( i < low .or. i > igh ) then
       wr(i) = h(i,i)
-      wi(i) = 0.0D+00
+      wi(i) = 0.0_rkx
     end if
 
   end do
 
   en = igh
-  t = 0.0D+00
+  t = 0.0_rkx
   itn = 30 * n
 !
 !  Search for next eigenvalues.
@@ -6403,7 +6405,7 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
       exit
     end if
     s = abs ( h(l-1,l-1) ) + abs ( h(l,l) )
-    if ( s == 0.0D+00 ) then
+    if ( s == 0.0_rkx ) then
       s = norm
     end if
     tst1 = s
@@ -6443,9 +6445,9 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
     end do
 
     s = abs ( h(en,na) ) + abs ( h(na,enm2) )
-    x = 0.75D+00 * s
+    x = 0.75_rkx * s
     y = x
-    w = -0.4375D+00 * s * s
+    w = -0.4375_rkx * s * s
 
   end if
 
@@ -6482,9 +6484,9 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
   end do
 
   do i = m+2, en
-    h(i,i-2) = 0.0D+00
+    h(i,i-2) = 0.0_rkx
     if ( i /= m+2 ) then
-      h(i,i-3) = 0.0D+00
+      h(i,i-3) = 0.0_rkx
     end if
   end do
 !
@@ -6502,12 +6504,12 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
       if ( notlas ) then
         r = h(k+2,k-1)
       else
-        r = 0.0D+00
+        r = 0.0_rkx
       end if
 
       x = abs ( p ) + abs ( q ) + abs ( r )
 
-      if ( x == 0.0D+00 ) then
+      if ( x == 0.0_rkx ) then
         cycle
       end if
 
@@ -6585,7 +6587,7 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 270 continue
 
   wr(en) = x + t
-  wi(en) = 0.0D+00
+  wi(en) = 0.0_rkx
   en = na
   go to 60
 !
@@ -6593,24 +6595,24 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 !
 280 continue
 
-  p = ( y - x ) / 2.0D+00
+  p = ( y - x ) / 2.0_rkx
   q = p * p + w
   zz = sqrt ( abs ( q ) )
   x = x + t
 !
 !  Real root, or complex pair.
 !
-  if ( q >= 0.0D+00 ) then
+  if ( q >= 0.0_rkx ) then
 
     zz = p + sign ( zz, p )
     wr(na) = x + zz
-    if ( zz == 0.0D+00 ) then
+    if ( zz == 0.0_rkx ) then
       wr(en) = wr(na)
     else
       wr(en) = x - w / zz
     end if
-    wi(na) = 0.0D+00
-    wi(en) = 0.0D+00
+    wi(na) = 0.0_rkx
+    wi(en) = 0.0_rkx
 
   else
 
@@ -6678,17 +6680,17 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 !    Input, integer ( kind = 4 ) LOW, IGH, determined by the balancing routine BALANC.
 !    If BALANC has not been used, set LOW = 1, IGH = N.
 !
-!    Input/output, real ( kind = 8 ) H(N,N), the N by N upper Hessenberg matrix.
+!    Input/output, real ( kind = rkx ) H(N,N), the N by N upper Hessenberg matrix.
 !    On output, the information in H has been destroyed.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the
+!    Output, real ( kind = rkx ) WR(N), WI(N), the real and imaginary parts of the
 !    eigenvalues.  The eigenvalues are unordered, except that complex
 !    conjugate pairs of values appear consecutively, with the eigenvalue
 !    having positive imaginary part listed first.  If an error exit
 !    occurred, then the eigenvalues should be correct for indices
 !    IERR+1 through N.
 !
-!    Input/output, real ( kind = 8 ) Z(N,N).  On input, the transformation matrix
+!    Input/output, real ( kind = rkx ) Z(N,N).  On input, the transformation matrix
 !    produced by ELTRAN after the reduction by ELMHES, or by ORTRAN after the
 !    reduction by ORTHES, if performed.  If the eigenvectors of the Hessenberg
 !    matrix are desired, Z must contain the identity matrix.  On output,
@@ -6710,7 +6712,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 
   integer ( kind = 4 ) en
   integer ( kind = 4 ) enm2
-  real    ( kind = 8 ) h(n,n)
+  real    ( kind = rkx ) h(n,n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) igh
@@ -6727,29 +6729,29 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
   integer ( kind = 4 ) mm
   integer ( kind = 4 ) na
   integer ( kind = 4 ) nn
-  real    ( kind = 8 ) norm
+  real    ( kind = rkx ) norm
   logical              notlas
-  real    ( kind = 8 ) p
-  real    ( kind = 8 ) q
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) ra
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) sa
-  real    ( kind = 8 ) t
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) vi
-  real    ( kind = 8 ) vr
-  real    ( kind = 8 ) w
-  real    ( kind = 8 ) wi(n)
-  real    ( kind = 8 ) wr(n)
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) y
-  real    ( kind = 8 ) z(n,n)
-  real    ( kind = 8 ) zz
+  real    ( kind = rkx ) p
+  real    ( kind = rkx ) q
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) ra
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) sa
+  real    ( kind = rkx ) t
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) vi
+  real    ( kind = rkx ) vr
+  real    ( kind = rkx ) w
+  real    ( kind = rkx ) wi(n)
+  real    ( kind = rkx ) wr(n)
+  real    ( kind = rkx ) x
+  real    ( kind = rkx ) y
+  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) zz
 
   ierr = 0
-  norm = 0.0D+00
+  norm = 0.0_rkx
   k = 1
 !
 !  Store roots isolated by BALANC and compute the matrix norm.
@@ -6763,13 +6765,13 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
     k = i
     if ( i < low .or. i > igh ) then
       wr(i) = h(i,i)
-      wi(i) = 0.0D+00
+      wi(i) = 0.0_rkx
     end if
 
   end do
 
   en = igh
-  t = 0.0D+00
+  t = 0.0_rkx
   itn = 30 * n
 !
 !  Search for next eigenvalues.
@@ -6797,7 +6799,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
     end if
 
     s = abs ( h(l-1,l-1) ) + abs ( h(l,l) )
-    if ( s == 0.0D+00 ) then
+    if ( s == 0.0_rkx ) then
       s = norm
     end if
 
@@ -6840,9 +6842,9 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
     end do
 
     s = abs ( h(en,na) ) + abs ( h(na,enm2) )
-    x = 0.75D+00 * s
+    x = 0.75_rkx * s
     y = x
-    w = -0.4375D+00 * s * s
+    w = -0.4375_rkx * s * s
 
   end if
 
@@ -6876,9 +6878,9 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
   end do
 
   do i = m+2, en
-    h(i,i-2) = 0.0D+00
+    h(i,i-2) = 0.0_rkx
     if ( i /= m+2 ) then
-      h(i,i-3) = 0.0D+00
+      h(i,i-3) = 0.0_rkx
     end if
   end do
 !
@@ -6892,13 +6894,13 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 
        p = h(k,k-1)
        q = h(k+1,k-1)
-       r = 0.0D+00
+       r = 0.0_rkx
        if ( notlas ) then
          r = h(k+2,k-1)
        end if
 
        x = abs ( p ) + abs ( q ) + abs ( r )
-       if ( x == 0.0D+00 ) then
+       if ( x == 0.0_rkx ) then
          cycle
        end if
 
@@ -6995,7 +6997,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 
   h(en,en) = x + t
   wr(en) = h(en,en)
-  wi(en) = 0.0D+00
+  wi(en) = 0.0_rkx
   en = na
   go to 60
 !
@@ -7003,14 +7005,14 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 !
 280 continue
 
-  p = ( y - x ) / 2.0D+00
+  p = ( y - x ) / 2.0_rkx
   q = p * p + w
   zz = sqrt ( abs ( q ) )
   h(en,en) = x + t
   x = h(en,en)
   h(na,na) = y + t
 
-  if ( q < 0.0D+00 ) go to 320
+  if ( q < 0.0_rkx ) go to 320
 !
 !  Real pair.
 !
@@ -7018,12 +7020,12 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
   wr(na) = x + zz
   wr(en) = wr(na)
 
-  if ( zz /= 0.0D+00 ) then
+  if ( zz /= 0.0_rkx ) then
     wr(en) = x - w / zz
   end if
 
-  wi(na) = 0.0D+00
-  wi(en) = 0.0D+00
+  wi(na) = 0.0_rkx
+  wi(en) = 0.0_rkx
   x = h(en,na)
   s = abs ( x ) + abs ( zz )
   p = x / s
@@ -7077,7 +7079,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 !
 340 continue
 
-  if ( norm == 0.0D+00 ) then
+  if ( norm == 0.0_rkx ) then
     return
   end if
 
@@ -7102,7 +7104,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 600  continue
 
      m = en
-     h(en,en) = 1.0D+00
+     h(en,en) = 1.0_rkx
 
      if ( na == 0 ) go to 800
 
@@ -7112,23 +7114,23 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
         w = h(i,i) - p
         r = dot_product ( h(i,m:en), h(m:en,en) )
 
-        if ( wi(i) < 0.0D+00 ) then
+        if ( wi(i) < 0.0_rkx ) then
           zz = w
           s = r
           go to 700
         end if
 
         m = i
-        if ( wi(i) /= 0.0D+00 ) go to 640
+        if ( wi(i) /= 0.0_rkx ) go to 640
         t = w
 
-        if ( t == 0.0D+00 ) then
+        if ( t == 0.0_rkx ) then
 
           tst1 = norm
           t = tst1
 
           do
-            t = 0.01D+00 * t
+            t = 0.01_rkx * t
             tst2 = norm + t
             if ( tst2 <= tst1 ) then
               exit
@@ -7162,10 +7164,10 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 
         t = abs ( h(i,en) )
 
-        if ( t /= 0.0D+00 ) then
+        if ( t /= 0.0_rkx ) then
 
           tst1 = t
-          tst2 = tst1 + 1.0D+00 / tst1
+          tst2 = tst1 + 1.0_rkx / tst1
 
           if ( tst2 <= tst1 ) then
             h(i:en,en) = h(i:en,en) / t
@@ -7197,12 +7199,12 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 
      else
 
-       call cdiv ( 0.0D+00, -h(na,en), h(na,na)-p, q, h(na,na), h(na,en) )
+       call cdiv ( 0.0_rkx, -h(na,en), h(na,na)-p, q, h(na,na), h(na,en) )
 
      end if
 
-     h(en,na) = 0.0D+00
-     h(en,en) = 1.0D+00
+     h(en,na) = 0.0_rkx
+     h(en,en) = 1.0_rkx
      enm2 = na - 1
 
      do ii = 1, enm2
@@ -7212,7 +7214,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
         ra = dot_product ( h(i,m:en), h(m:en,na) )
         sa = dot_product ( h(i,m:en), h(m:en,en) )
 
-        if ( wi(i) < 0.0D+00 ) then
+        if ( wi(i) < 0.0_rkx ) then
           zz = w
           r = ra
           s = sa
@@ -7220,7 +7222,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 
          m = i
 
-        if ( wi(i) == 0.0D+00 ) then
+        if ( wi(i) == 0.0_rkx ) then
           call cdiv ( -ra, -sa, w, q, h(i,na), h(i,en) )
           go to 790
         end if
@@ -7230,16 +7232,16 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
         x = h(i,i+1)
         y = h(i+1,i)
         vr = ( wr(i) - p ) * ( wr(i) - p ) + wi(i) * wi(i) - q * q
-        vi = ( wr(i) - p ) * 2.0D+00 * q
+        vi = ( wr(i) - p ) * 2.0_rkx * q
 
-        if ( vr == 0.0D+00 .and. vi == 0.0D+00 ) then
+        if ( vr == 0.0_rkx .and. vi == 0.0_rkx ) then
 
           tst1 = norm * ( abs ( w ) + abs ( q ) + abs ( x ) &
             + abs ( y ) + abs ( zz ) )
           vr = tst1
 
           do
-            vr = 0.01D+00 * vr
+            vr = 0.01_rkx * vr
             tst2 = tst1 + vr
             if ( tst2 <= tst1 ) then
               exit
@@ -7263,9 +7265,9 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 
         t = max ( abs ( h(i,na) ), abs ( h(i,en) ) )
 
-        if ( t /= 0.0D+00 ) then
+        if ( t /= 0.0_rkx ) then
           tst1 = t
-          tst2 = tst1 + 1.0D+00 / tst1
+          tst2 = tst1 + 1.0_rkx / tst1
           if ( tst2 <= tst1 ) then
             h(i:en,na) = h(i:en,na) / t
             h(i:en,en) = h(i:en,en) / t
@@ -7355,15 +7357,15 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
 !
 !    Input, integer ( kind = 4 ) N, is the order of the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,N), contains information about the unitary
+!    Input, real ( kind = rkx ) A(N,N), contains information about the unitary
 !    transformations used in the reduction by HTRID3.
 !
-!    Input, real ( kind = 8 ) TAU(2,N), contains further information about the
+!    Input, real ( kind = rkx ) TAU(2,N), contains further information about the
 !    transformations.
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) ZR(N,M), ZI(N,M).  On input, ZR contains the
+!    Input/output, real ( kind = rkx ) ZR(N,M), ZI(N,M).  On input, ZR contains the
 !    eigenvectors to be back transformed.  On output, ZR and ZI contain
 !    the real and imaginary parts of the transformed eigenvectors.
 !
@@ -7372,17 +7374,17 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) l
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) si
-  real    ( kind = 8 ) tau(2,n)
-  real    ( kind = 8 ) zi(n,m)
-  real    ( kind = 8 ) zr(n,m)
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) si
+  real    ( kind = rkx ) tau(2,n)
+  real    ( kind = rkx ) zi(n,m)
+  real    ( kind = rkx ) zr(n,m)
 
   if ( m == 0 ) then
     return
@@ -7405,12 +7407,12 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
     l = i - 1
     h = a(i,i)
 
-    if ( h /= 0.0D+00 ) then
+    if ( h /= 0.0_rkx ) then
 
       do j = 1, m
 
-        s = 0.0D+00
-        si = 0.0D+00
+        s = 0.0_rkx
+        si = 0.0_rkx
 
         do k = 1, l
           s = s + a(i,k) * zr(k,j) - a(k,i) * zi(k,j)
@@ -7479,16 +7481,16 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) AR(N,N), AI(N,N), contain information about
+!    Input, real ( kind = rkx ) AR(N,N), AI(N,N), contain information about
 !    the unitary transformations used in the reduction by HTRIDI in their
 !    full lower triangles, except for the diagonal of AR.
 !
-!    Input, real ( kind = 8 ) TAU(2,N), contains further information about the
+!    Input, real ( kind = rkx ) TAU(2,N), contains further information about the
 !    transformations.
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) ZR(N,M), ZI(N,M).  On input, ZR contains the
+!    Input/output, real ( kind = rkx ) ZR(N,M), ZI(N,M).  On input, ZR contains the
 !    eigenvectors to be back transformed.  On output, ZR and ZI contain
 !    the real and imaginary parts of the transformed eigenvectors.
 !
@@ -7497,18 +7499,18 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) ai(n,n)
-  real    ( kind = 8 ) ar(n,n)
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) ai(n,n)
+  real    ( kind = rkx ) ar(n,n)
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) l
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) si
-  real    ( kind = 8 ) tau(2,n)
-  real    ( kind = 8 ) zi(n,m)
-  real    ( kind = 8 ) zr(n,m)
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) si
+  real    ( kind = rkx ) tau(2,n)
+  real    ( kind = rkx ) zi(n,m)
+  real    ( kind = rkx ) zr(n,m)
 
   if ( m == 0 ) then
     return
@@ -7531,12 +7533,12 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
     l = i - 1
     h = ai(i,i)
 
-    if ( h /= 0.0D+00 ) then
+    if ( h /= 0.0_rkx ) then
 
       do j = 1, m
 
-        s = 0.0D+00
-        si = 0.0D+00
+        s = 0.0_rkx
+        si = 0.0_rkx
         do k = 1, l
           s = s + ar(i,k) * zr(k,j) - ai(i,k) * zi(k,j)
           si = si + ar(i,k) * zi(k,j) + ai(i,k) * zr(k,j)
@@ -7604,7 +7606,7 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) A(N,N).  On input, the lower triangle of the complex
+!    Input/output, real ( kind = rkx ) A(N,N).  On input, the lower triangle of the complex
 !    hermitian input matrix.  The real parts of the matrix elements are stored
 !    in the full lower triangle of A, and the imaginary parts are stored in
 !    the transposed positions of the strict upper triangle of A.  No storage
@@ -7612,53 +7614,53 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
 !    On output, A contains information about the unitary transformations
 !    used in the reduction.
 !
-!    Output, real ( kind = 8 ) D(N), the diagonal elements of the the tridiagonal matrix.
+!    Output, real ( kind = rkx ) D(N), the diagonal elements of the the tridiagonal matrix.
 !
-!    Output, real ( kind = 8 ) E(N), the subdiagonal elements of the tridiagonal
+!    Output, real ( kind = rkx ) E(N), the subdiagonal elements of the tridiagonal
 !    matrix in E(2:N).  E(1) is set to zero.
 !
-!    Output, real ( kind = 8 ) E2(N), the squares of the corresponding elements of E.
+!    Output, real ( kind = rkx ) E2(N), the squares of the corresponding elements of E.
 !    E2 may coincide with E if the squares are not needed.
 !
-!    Output, real ( kind = 8 ) TAU(2,N), contains further information about the
+!    Output, real ( kind = rkx ) TAU(2,N), contains further information about the
 !    transformations.
 !
   implicit none
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) e2(n)
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) fi
-  real    ( kind = 8 ) g
-  real    ( kind = 8 ) gi
-  real    ( kind = 8 ) h
-  real    ( kind = 8 ) hh
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) e2(n)
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) fi
+  real    ( kind = rkx ) g
+  real    ( kind = rkx ) gi
+  real    ( kind = rkx ) h
+  real    ( kind = rkx ) hh
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ii
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) l
-  real    ( kind = 8 ) xscale
-  real    ( kind = 8 ) si
-  real    ( kind = 8 ) tau(2,n)
+  real    ( kind = rkx ) xscale
+  real    ( kind = rkx ) si
+  real    ( kind = rkx ) tau(2,n)
 
-  tau(1,n) = 1.0D+00
-  tau(2,n) = 0.0D+00
+  tau(1,n) = 1.0_rkx
+  tau(2,n) = 0.0_rkx
 
   do ii = 1, n
 
     i = n + 1 - ii
     l = i - 1
-    h = 0.0D+00
-    xscale = 0.0D+00
+    h = 0.0_rkx
+    xscale = 0.0_rkx
 
     if ( l < 1 ) then
-      e(i) = 0.0D+00
-      e2(i) = 0.0D+00
+      e(i) = 0.0_rkx
+      e2(i) = 0.0_rkx
       go to 290
     end if
 !
@@ -7668,11 +7670,11 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
        xscale = xscale + abs ( a(i,k) ) + abs ( a(k,i) )
      end do
 
-     if ( xscale == 0.0D+00 ) then
-       tau(1,l) = 1.0D+00
-       tau(2,l) = 0.0D+00
-       e(i) = 0.0D+00
-       e2(i) = 0.0D+00
+     if ( xscale == 0.0_rkx ) then
+       tau(1,l) = 1.0_rkx
+       tau(2,l) = 0.0_rkx
+       e(i) = 0.0_rkx
+       e2(i) = 0.0_rkx
        go to 290
      end if
 
@@ -7689,12 +7691,12 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
 !
 !  Form next diagonal element of matrix T.
 !
-     if ( f /= 0.0D+00 ) then
+     if ( f /= 0.0_rkx ) then
 
        tau(1,l) = ( a(l,i) * tau(2,i) - a(i,l) * tau(1,i) ) / f
        si = ( a(i,l) * tau(2,i) + a(l,i) * tau(1,i) ) / f
        h = h + f * g
-       g = 1.0D+00 + g / f
+       g = 1.0_rkx + g / f
        a(i,l) = g * a(i,l)
        a(l,i) = g * a(l,i)
 
@@ -7708,12 +7710,12 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
 
      end if
 
-     f = 0.0D+00
+     f = 0.0_rkx
 
      do j = 1, l
 
-        g = 0.0D+00
-        gi = 0.0D+00
+        g = 0.0_rkx
+        gi = 0.0_rkx
 !
 !  Form element of A*U.
 !
@@ -7750,7 +7752,7 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
         fi = -a(j,i)
         gi = tau(2,j) - hh * fi
         tau(2,j) = -gi
-        a(j,j) = a(j,j) - 2.0D+00 * ( f * g + fi * gi )
+        a(j,j) = a(j,j) - 2.0_rkx * ( f * g + fi * gi )
 
         do k = 1, j-1
           a(j,k) = a(j,k) - f * e(k) - g * a(i,k) + fi * tau(2,k) + gi * a(k,i)
@@ -7821,50 +7823,50 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real
+!    Input/output, real ( kind = rkx ) AR(N,N), AI(N,N).  On input, the real
 !    and imaginary parts, respectively, of the complex hermitian input matrix.
 !    Only the lower triangle of the matrix need be supplied.
 !    On output, information about the unitary transformations used in the
 !    reduction in their full lower triangles.  Their strict upper triangles
 !    and the diagonal of AR are unaltered.
 !
-!    Output, real ( kind = 8 ) D(N), the diagonal elements of the the tridiagonal matrix.
+!    Output, real ( kind = rkx ) D(N), the diagonal elements of the the tridiagonal matrix.
 !
-!    Output, real ( kind = 8 ) E(N), the subdiagonal elements of the tridiagonal
+!    Output, real ( kind = rkx ) E(N), the subdiagonal elements of the tridiagonal
 !    matrix in its last N-1 positions.  E(1) is set to zero.
 !
-!    Output, real ( kind = 8 ) E2(N), the squares of the corresponding elements of E.
+!    Output, real ( kind = rkx ) E2(N), the squares of the corresponding elements of E.
 !    E2 may coincide with E if the squares are not needed.
 !
-!    Output, real ( kind = 8 ) TAU(2,N), contains further information about the
+!    Output, real ( kind = rkx ) TAU(2,N), contains further information about the
 !    transformations.
 !
   implicit none
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) ai(n,n)
-  real    ( kind = 8 ) ar(n,n)
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) e2(n)
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) fi
-  real    ( kind = 8 ) g
-  real    ( kind = 8 ) gi
-  real    ( kind = 8 ) h
-  real    ( kind = 8 ) hh
+  real    ( kind = rkx ) ai(n,n)
+  real    ( kind = rkx ) ar(n,n)
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) e2(n)
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) fi
+  real    ( kind = rkx ) g
+  real    ( kind = rkx ) gi
+  real    ( kind = rkx ) h
+  real    ( kind = rkx ) hh
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ii
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) l
-  real    ( kind = 8 ) xscale
-  real    ( kind = 8 ) si
-  real    ( kind = 8 ) tau(2,n)
+  real    ( kind = rkx ) xscale
+  real    ( kind = rkx ) si
+  real    ( kind = rkx ) tau(2,n)
 
-  tau(1,n) = 1.0D+00
-  tau(2,n) = 0.0D+00
+  tau(1,n) = 1.0_rkx
+  tau(2,n) = 0.0_rkx
 
   do i = 1, n
     d(i) = ar(i,i)
@@ -7874,12 +7876,12 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
 
     i = n + 1 - ii
     l = i - 1
-    h = 0.0D+00
-    xscale = 0.0D+00
+    h = 0.0_rkx
+    xscale = 0.0_rkx
 
     if ( l < 1 ) then
-      e(i) = 0.0D+00
-      e2(i) = 0.0D+00
+      e(i) = 0.0_rkx
+      e2(i) = 0.0_rkx
       go to 290
     end if
 !
@@ -7889,11 +7891,11 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
       xscale = xscale + abs ( ar(i,k) ) + abs ( ai(i,k) )
     end do
 
-    if ( xscale == 0.0D+00 ) then
-      tau(1,l) = 1.0D+00
-      tau(2,l) = 0.0D+00
-      e(i) = 0.0D+00
-      e2(i) = 0.0D+00
+    if ( xscale == 0.0_rkx ) then
+      tau(1,l) = 1.0_rkx
+      tau(2,l) = 0.0_rkx
+      e(i) = 0.0_rkx
+      e2(i) = 0.0_rkx
       go to 290
     end if
 
@@ -7911,11 +7913,11 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
 !
 !  Form next diagonal element of matrix T.
 !
-    if ( f /= 0.0D+00 ) then
+    if ( f /= 0.0_rkx ) then
       tau(1,l) = ( ai(i,l) * tau(2,i) - ar(i,l) * tau(1,i) ) / f
       si = ( ar(i,l) * tau(2,i) + ai(i,l) * tau(1,i) ) / f
       h = h + f * g
-      g = 1.0D+00 + g / f
+      g = 1.0_rkx + g / f
       ar(i,l) = g * ar(i,l)
       ai(i,l) = g * ai(i,l)
       if ( l == 1 ) go to 270
@@ -7925,12 +7927,12 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
       ar(i,l) = g
     end if
 
-    f = 0.0D+00
+    f = 0.0_rkx
 
     do j = 1, l
 
-      g = 0.0D+00
-      gi = 0.0D+00
+      g = 0.0_rkx
+      gi = 0.0_rkx
 !
 !  Form element of A*U.
 !
@@ -8038,12 +8040,12 @@ subroutine imtql1 ( n, d, e, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) D(N).  On input, the diagonal elements of
+!    Input/output, real ( kind = rkx ) D(N).  On input, the diagonal elements of
 !    the matrix.  On output, the eigenvalues in ascending order.  If an error
 !    exit is made, the eigenvalues are correct and ordered for indices
 !    1,2,...IERR-1, but may not be the smallest eigenvalues.
 !
-!    Input/output, real ( kind = 8 ) E(N).  On input, the subdiagonal elements
+!    Input/output, real ( kind = rkx ) E(N).  On input, the subdiagonal elements
 !    of the matrix in its last N-1 positions.  E(1) is arbitrary.  On output,
 !    E has been overwritten.
 !
@@ -8055,12 +8057,12 @@ subroutine imtql1 ( n, d, e, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
+  real    ( kind = rkx ) b
+  real    ( kind = rkx ) c
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) ii
@@ -8068,11 +8070,11 @@ subroutine imtql1 ( n, d, e, ierr )
   integer ( kind = 4 ) l
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mml
-  real    ( kind = 8 ) p
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
+  real    ( kind = rkx ) p
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
 
   ierr = 0
 
@@ -8083,7 +8085,7 @@ subroutine imtql1 ( n, d, e, ierr )
   do i = 2, n
     e(i-1) = e(i)
   end do
-  e(n) = 0.0D+00
+  e(n) = 0.0_rkx
 
   do l = 1, n
 
@@ -8123,12 +8125,12 @@ subroutine imtql1 ( n, d, e, ierr )
 !
 !  Form shift.
 !
-    g = ( d(l+1) - p ) / ( 2.0D+00 * e(l) )
-    r = pythag ( g, 1.0D+00 )
+    g = ( d(l+1) - p ) / ( 2.0_rkx * e(l) )
+    r = pythag ( g, 1.0_rkx )
     g = d(m) - p + e(l) / ( g + sign ( r, g ) )
-    s = 1.0D+00
-    c = 1.0D+00
-    p = 0.0D+00
+    s = 1.0_rkx
+    c = 1.0_rkx
+    p = 0.0_rkx
     mml = m - l
 
     do ii = 1, mml
@@ -8141,16 +8143,16 @@ subroutine imtql1 ( n, d, e, ierr )
 !
 !  Recover from underflow.
 !
-      if ( r == 0.0D+00 ) then
+      if ( r == 0.0_rkx ) then
         d(i+1) = d(i+1) - p
-        e(m) = 0.0D+00
+        e(m) = 0.0_rkx
         go to 105
       end if
 
       s = f / r
       c = g / r
       g = d(i+1) - p
-      r = ( d(i) - g ) * s + 2.0D+00 * c * b
+      r = ( d(i) - g ) * s + 2.0_rkx * c * b
       p = s * r
       d(i+1) = g + p
       g = c * r - b
@@ -8159,7 +8161,7 @@ subroutine imtql1 ( n, d, e, ierr )
 
     d(l) = d(l) - p
     e(l) = g
-    e(m) = 0.0D+00
+    e(m) = 0.0_rkx
     go to 105
 !
 !  Order the eigenvalues.
@@ -8234,16 +8236,16 @@ subroutine imtql2 ( n, d, e, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) D(N).  On input, the diagonal elements of
+!    Input/output, real ( kind = rkx ) D(N).  On input, the diagonal elements of
 !    the input matrix.  On output, the eigenvalues in ascending order.  If an
 !    error exit is made, the eigenvalues are correct but
 !    unordered for indices 1,2,...,IERR-1.
 !
-!    Input/output, real ( kind = 8 ) E(N).  On input, the subdiagonal elements
+!    Input/output, real ( kind = rkx ) E(N).  On input, the subdiagonal elements
 !    of the input matrix in E(2:N).  E(1) is arbitrary.  On output, E is
 !    overwritten.
 !
-!    Input/output, real ( kind = 8 ) Z(N,N).  On input, the transformation
+!    Input/output, real ( kind = rkx ) Z(N,N).  On input, the transformation
 !    matrix produced in the reduction by TRED2, if performed.  If the
 !    eigenvectors of the tridiagonal matrix are desired, Z must contain the
 !    identity matrix.  On output, Z contains orthonormal eigenvectors of the
@@ -8258,12 +8260,12 @@ subroutine imtql2 ( n, d, e, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
+  real    ( kind = rkx ) b
+  real    ( kind = rkx ) c
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) ii
@@ -8272,13 +8274,13 @@ subroutine imtql2 ( n, d, e, z, ierr )
   integer ( kind = 4 ) l
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mml
-  real    ( kind = 8 ) p
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) t(n)
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) p
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) t(n)
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) z(n,n)
 
   ierr = 0
 
@@ -8289,7 +8291,7 @@ subroutine imtql2 ( n, d, e, z, ierr )
   do i = 2, n
     e(i-1) = e(i)
   end do
-  e(n) = 0.0D+00
+  e(n) = 0.0_rkx
 
   do l = 1, n
 
@@ -8329,12 +8331,12 @@ subroutine imtql2 ( n, d, e, z, ierr )
 !
 !  Form shift.
 !
-    g = ( d(l+1) - p ) / ( 2.0D+00 * e(l) )
-    r = pythag ( g, 1.0D+00 )
+    g = ( d(l+1) - p ) / ( 2.0_rkx * e(l) )
+    r = pythag ( g, 1.0_rkx )
     g = d(m) - p + e(l) / ( g + sign ( r, g ) )
-    s = 1.0D+00
-    c = 1.0D+00
-    p = 0.0D+00
+    s = 1.0_rkx
+    c = 1.0_rkx
+    p = 0.0_rkx
     mml = m - l
 
     do ii = 1, mml
@@ -8347,16 +8349,16 @@ subroutine imtql2 ( n, d, e, z, ierr )
 !
 !  Recover from underflow.
 !
-      if ( r == 0.0D+00 ) then
+      if ( r == 0.0_rkx ) then
         d(i+1) = d(i+1) - p
-        e(m) = 0.0D+00
+        e(m) = 0.0_rkx
         go to 105
       end if
 
       s = f / r
       c = g / r
       g = d(i+1) - p
-      r = ( d(i) - g ) * s + 2.0D+00 * c * b
+      r = ( d(i) - g ) * s + 2.0_rkx * c * b
       p = s * r
       d(i+1) = g + p
       g = c * r - b
@@ -8373,7 +8375,7 @@ subroutine imtql2 ( n, d, e, z, ierr )
 
     d(l) = d(l) - p
     e(l) = g
-    e(m) = 0.0D+00
+    e(m) = 0.0_rkx
     go to 105
 
   end do
@@ -8456,18 +8458,18 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) D(N), the diagonal elements of the input matrix.
+!    Input, real ( kind = rkx ) D(N), the diagonal elements of the input matrix.
 !
-!    Input, real ( kind = 8 ) E(N), the subdiagonal elements of the input matrix
+!    Input, real ( kind = rkx ) E(N), the subdiagonal elements of the input matrix
 !    in E(2:N).  E(1) is arbitrary.
 !
-!    Input/output, real ( kind = 8 ) E2(N).  On input, the squares of the corresponding
+!    Input/output, real ( kind = rkx ) E2(N).  On input, the squares of the corresponding
 !    elements of E.  E2(1) is arbitrary.  On output, elements of E2
 !    corresponding to elements of E regarded as negligible have been
 !    replaced by zero, causing the matrix to split into a direct sum of
 !    submatrices.  E2(1) is also set to zero.
 !
-!    Output, real ( kind = 8 ) W(N), the eigenvalues in ascending order.  If an
+!    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.  If an
 !    error exit is made, the eigenvalues are correct and ordered for
 !    indices 1,2,...IERR-1, but may not be the smallest eigenvalues.
 !
@@ -8484,13 +8486,13 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) e2(n)
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
+  real    ( kind = rkx ) b
+  real    ( kind = rkx ) c
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) e2(n)
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) ii
@@ -8500,22 +8502,22 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
   integer ( kind = 4 ) l
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mml
-  real    ( kind = 8 ) p
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) rv1(n)
-  real    ( kind = 8 ) s
+  real    ( kind = rkx ) p
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) rv1(n)
+  real    ( kind = rkx ) s
   integer ( kind = 4 ) tag
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) w(n)
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) w(n)
 
   ierr = 0
   k = 0
   tag = 0
   w(1:n) = d(1:n)
-  e2(1) = 0.0D+00
+  e2(1) = 0.0_rkx
   rv1(1:n-1) = e(2:n)
-  rv1(n) = 0.0D+00
+  rv1(n) = 0.0_rkx
 
   do l = 1, n
 
@@ -8540,13 +8542,13 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 !
 !  Guard against underflowed element of E2.
 !
-       if ( e2(m+1) == 0.0D+00 ) go to 125
+       if ( e2(m+1) == 0.0_rkx ) go to 125
 
      end do
 
      if ( m <= k ) go to 130
 
-     if ( m /= n ) e2(m+1) = 0.0D+00
+     if ( m /= n ) e2(m+1) = 0.0_rkx
 
 125  continue
 
@@ -8568,12 +8570,12 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 !
 !  Form shift.
 !
-     g = ( w(l+1) - p ) / ( 2.0D+00 * rv1(l) )
-     r = pythag ( g, 1.0D+00 )
+     g = ( w(l+1) - p ) / ( 2.0_rkx * rv1(l) )
+     r = pythag ( g, 1.0_rkx )
      g = w(m) - p + rv1(l) / (g + sign ( r, g ) )
-     s = 1.0D+00
-     c = 1.0D+00
-     p = 0.0D+00
+     s = 1.0_rkx
+     c = 1.0_rkx
+     p = 0.0_rkx
      mml = m - l
 
      do ii = 1, mml
@@ -8583,12 +8585,12 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
        r = pythag ( f, g )
        rv1(i+1) = r
 
-       if ( r == 0.0D+00 ) go to 210
+       if ( r == 0.0_rkx ) go to 210
 
        s = f / r
        c = g / r
        g = w(i+1) - p
-       r = ( w(i) - g ) * s + 2.0D+00 * c * b
+       r = ( w(i) - g ) * s + 2.0_rkx * c * b
        p = s * r
        w(i+1) = g + p
        g = c * r - b
@@ -8596,7 +8598,7 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 
      w(l) = w(l) - p
      rv1(l) = g
-     rv1(m) = 0.0D+00
+     rv1(m) = 0.0_rkx
      go to 105
 !
 !  Recover from underflow.
@@ -8604,7 +8606,7 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 210  continue
 
      w(i+1) = w(i+1) - p
-     rv1(m) = 0.0D+00
+     rv1(m) = 0.0_rkx
      go to 105
 !
 !  Order the eigenvalues.
@@ -8676,9 +8678,9 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,N), the Hessenberg matrix.
+!    Input, real ( kind = rkx ) A(N,N), the Hessenberg matrix.
 !
-!    Input/output, real ( kind = 8 ) WR(N), WI(N).  On input, the real and imaginary
+!    Input/output, real ( kind = rkx ) WR(N), WI(N).  On input, the real and imaginary
 !    parts, respectively, of the eigenvalues of the matrix.  The eigenvalues
 !    must be stored in a manner identical to that of subroutine HQR,
 !    which recognizes possible splitting of the matrix.  On output,
@@ -8699,7 +8701,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !    Input, integer ( kind = 4 ) M, the number of columns actually used to store
 !    the eigenvectors.
 !
-!    Output, real ( kind = 8 ) Z(N,MM), the real and imaginary parts of the eigenvectors.
+!    Output, real ( kind = rkx ) Z(N,MM), the real and imaginary parts of the eigenvectors.
 !    If the next selected eigenvalue is real, the next column
 !    of Z contains its eigenvector.  If the eigenvalue is complex, the next
 !    two columns of Z contain the real and imaginary parts of its eigenvector.
@@ -8717,13 +8719,13 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) eps3
-  real    ( kind = 8 ) growto
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) eps3
+  real    ( kind = rkx ) growto
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) ii
-  real    ( kind = 8 ) ilambd
+  real    ( kind = rkx ) ilambd
   integer ( kind = 4 ) ip
   integer ( kind = 4 ) its
   integer ( kind = 4 ) j
@@ -8734,24 +8736,24 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
   integer ( kind = 4 ) mm
   integer ( kind = 4 ) mp
   integer ( kind = 4 ) n1
-  real    ( kind = 8 ) norm
-  real    ( kind = 8 ) normv
+  real    ( kind = rkx ) norm
+  real    ( kind = rkx ) normv
   integer ( kind = 4 ) ns
-  real    ( kind = 8 ) rlambd
-  real    ( kind = 8 ) rm1(n,n)
-  real    ( kind = 8 ) rv1(n)
-  real    ( kind = 8 ) rv2(n)
+  real    ( kind = rkx ) rlambd
+  real    ( kind = rkx ) rm1(n,n)
+  real    ( kind = rkx ) rv1(n)
+  real    ( kind = rkx ) rv2(n)
   integer ( kind = 4 ) s
   logical              select(n)
-  real    ( kind = 8 ) t
+  real    ( kind = rkx ) t
   integer ( kind = 4 ) uk
-  real    ( kind = 8 ) ukroot
-  real    ( kind = 8 ) w
-  real    ( kind = 8 ) wi(n)
-  real    ( kind = 8 ) wr(n)
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) y
-  real    ( kind = 8 ) z(n,mm)
+  real    ( kind = rkx ) ukroot
+  real    ( kind = rkx ) w
+  real    ( kind = rkx ) wi(n)
+  real    ( kind = rkx ) wr(n)
+  real    ( kind = rkx ) x
+  real    ( kind = rkx ) y
+  real    ( kind = rkx ) z(n,mm)
 
   ierr = 0
   uk = 0
@@ -8768,14 +8770,14 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 
   do k = 1, n
 
-     if ( wi(k) /= 0.0D+00 .and. ip >= 0 ) then
+     if ( wi(k) /= 0.0_rkx .and. ip >= 0 ) then
        ip = 1
        if ( select(k) .and. select(k+1) ) select(k+1) = .false.
      end if
 
      if ( .not. select(k) ) go to 960
 
-     if ( wi(k) /= 0.0D+00 ) then
+     if ( wi(k) /= 0.0_rkx ) then
        s = s + 1
      end if
 
@@ -8789,14 +8791,14 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
        if ( uk == n ) then
          exit
        end if
-       if ( a(uk+1,uk) == 0.0D+00 ) then
+       if ( a(uk+1,uk) == 0.0_rkx ) then
          exit
        end if
      end do
 !
 !  Compute infinity norm of leading UK by UK (Hessenberg) matrix.
 !
-     norm = 0.0D+00
+     norm = 0.0_rkx
      mp = 1
 
      do i = 1, uk
@@ -8810,17 +8812,17 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !  EPS3 replaces zero pivot in decomposition and close roots are modified
 !  by EPS3.
 !
-     if ( norm == 0.0D+00 ) then
-       norm = 1.0D+00
+     if ( norm == 0.0_rkx ) then
+       norm = 1.0_rkx
      end if
 
      eps3 = abs ( norm ) * epsilon ( eps3 )
 !
 !  GROWTO is the criterion for the growth.
 !
-     ukroot = dble(uk)
+     ukroot = real(uk,rkx)
      ukroot = sqrt ( ukroot )
-     growto = 0.1D+00 / ukroot
+     growto = 0.1_rkx / ukroot
 
 200  continue
 
@@ -8870,7 +8872,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 
      its = 0
 
-     if ( ilambd /= 0.0D+00 ) go to 520
+     if ( ilambd /= 0.0_rkx ) go to 520
 !
 !  Real eigenvalue.
 !
@@ -8888,19 +8890,19 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 
         end if
 
-        if ( rm1(mp,mp) == 0.0D+00 ) then
+        if ( rm1(mp,mp) == 0.0_rkx ) then
           rm1(mp,mp) = eps3
         end if
 
         x = rm1(mp,i) / rm1(mp,mp)
 
-        if ( x /= 0.0D+00 ) then
+        if ( x /= 0.0_rkx ) then
           rm1(i:uk,i) = rm1(i:uk,i) - x * rm1(i:uk,mp)
         end if
 
       end do
 
-      if ( rm1(uk,uk) == 0.0D+00 ) then
+      if ( rm1(uk,uk) == 0.0_rkx ) then
         rm1(uk,uk) = eps3
       end if
 !
@@ -8933,12 +8935,12 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 
      ns = n - s
      z(1,s-1) = -ilambd
-     z(1,s) = 0.0D+00
+     z(1,s) = 0.0_rkx
 
      if ( n /= 2 ) then
        rm1(1,3) = -ilambd
-       z(1,s-1) = 0.0D+00
-       rm1(1,4:n) = 0.0D+00
+       z(1,s-1) = 0.0_rkx
+       rm1(1,4:n) = 0.0_rkx
      end if
 
      do i = 2, uk
@@ -8961,9 +8963,9 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
         rm1(mp,mp) = w
 
         if ( i < n ) then
-          rm1(mp,i+1) = 0.0D+00
+          rm1(mp,i+1) = 0.0_rkx
         else if ( i == n ) then
-          z(mp,s-1) = 0.0D+00
+          z(mp,s-1) = 0.0_rkx
         end if
 
         do j = i, uk
@@ -8975,10 +8977,10 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
           if ( j >= n1 ) then
             l = j - ns
             z(i,l) = z(mp,l) - y * w
-            z(mp,l) = 0.0D+00
+            z(mp,l) = 0.0_rkx
           else
             rm1(i,j+2) = rm1(mp,j+2) - y * w
-            rm1(mp,j+2) = 0.0D+00
+            rm1(mp,j+2) = 0.0_rkx
           end if
 
         end do
@@ -8998,14 +9000,14 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 
 580     continue
 
-        if ( x == 0.0D+00 ) then
+        if ( x == 0.0_rkx ) then
           rm1(mp,mp) = eps3
           if ( i < n ) then
-            rm1(mp,i+1) = 0.0D+00
+            rm1(mp,i+1) = 0.0_rkx
           else if ( i == n ) then
-            z(mp,s-1) = 0.0D+00
+            z(mp,s-1) = 0.0_rkx
           end if
-          t = 0.0D+00
+          t = 0.0_rkx
           x = eps3**2
         end if
 
@@ -9043,7 +9045,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
        t = rm1(uk,uk+2)
      end if
 
-     if ( rm1(uk,uk) == 0.0D+00 .and. t == 0.0D+00 ) then
+     if ( rm1(uk,uk) == 0.0_rkx .and. t == 0.0_rkx ) then
        rm1(uk,uk) = eps3
      end if
 !
@@ -9055,7 +9057,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 
         i = uk + 1 - ii
         x = rv1(i)
-        y = 0.0D+00
+        y = 0.0_rkx
 
         do j = i+1, uk
 
@@ -9085,11 +9087,11 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 740  continue
 
      its = its + 1
-     norm = 0.0D+00
-     normv = 0.0D+00
+     norm = 0.0_rkx
+     normv = 0.0_rkx
 
      do i = 1, uk
-       if ( ilambd == 0.0D+00 ) then
+       if ( ilambd == 0.0_rkx ) then
          x = abs ( rv1(i) )
        else
          x = pythag ( rv1(i), rv2(i) )
@@ -9106,14 +9108,14 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !  Accept vector.
 !
      x = rv1(j)
-     if ( ilambd == 0.0D+00 ) then
-       x = 1.0D+00 / x
+     if ( ilambd == 0.0_rkx ) then
+       x = 1.0_rkx / x
      else
        y = rv2(j)
      end if
 
      do i = 1, uk
-       if ( ilambd == 0.0D+00 ) then
+       if ( ilambd == 0.0_rkx ) then
          z(i,s) = rv1(i) * x
        else
          call cdiv ( rv1(i), rv2(i), x, y, z(i,s-1), z(i,s) )
@@ -9131,14 +9133,14 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
      if ( its >= uk ) go to 880
 
      x = ukroot
-     y = eps3 / ( x + 1.0D+00 )
+     y = eps3 / ( x + 1.0_rkx )
 
      rv1(1) = eps3
      rv1(2:uk) = y
 
      j = uk - its + 1
      rv1(j) = rv1(j) - eps3 * x
-     if ( ilambd == 0.0D+00 ) go to 440
+     if ( ilambd == 0.0_rkx ) go to 440
      go to 660
 !
 !  Set error: unaccepted eigenvector.
@@ -9153,8 +9155,8 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 900  continue
 
      do i = j, n
-       z(i,s) = 0.0D+00
-       if ( ilambd /= 0.0D+00 ) z(i,s-1) = 0.0D+00
+       z(i,s) = 0.0_rkx
+       if ( ilambd /= 0.0_rkx ) z(i,s-1) = 0.0_rkx
      end do
 
 940  continue
@@ -9251,19 +9253,19 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the number of columns of A, and the order of V.
 !
-!    Input/output, real ( kind = 8 ) A(NM,N). On input, the rectangular coefficient matrix.
+!    Input/output, real ( kind = rkx ) A(NM,N). On input, the rectangular coefficient matrix.
 !    On output, A has been overwritten by the orthogonal matrix V of the
 !    decomposition in its first N rows and columns.  If an error exit is made,
 !    the columns of V corresponding to indices of correct singular values
 !    should be correct.
 !
-!    Output, real ( kind = 8 ) W(N), the singular values of A.  These are the diagonal
+!    Output, real ( kind = rkx ) W(N), the singular values of A.  These are the diagonal
 !    elements of S.  They are unordered.  If an error exit is made, the
 !    singular values should be correct for indices IERR+1, IERR+2,...,N.
 !
 !    Input, integer ( kind = 4 ) IP, is the number of columns of B.  IP can be zero.
 !
-!    Input/output, real ( kind = 8 ) B(NM,IP).  On input, the constant column matrix,
+!    Input/output, real ( kind = rkx ) B(NM,IP).  On input, the constant column matrix,
 !    On output, B has been overwritten by U'*B.  If an error exit is made,
 !    the rows of U'*B corresponding to indices of correct singular values
 !    should be correct.
@@ -9278,12 +9280,12 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
   integer ( kind = 4 ) n
   integer ( kind = 4 ) nm
 
-  real    ( kind = 8 ) a(nm,n)
-  real    ( kind = 8 ) b(nm,ip)
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) a(nm,n)
+  real    ( kind = rkx ) b(nm,ip)
+  real    ( kind = rkx ) c
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) i1
   integer ( kind = 4 ) ierr
@@ -9297,37 +9299,37 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
   integer ( kind = 4 ) l1
   integer ( kind = 4 ) ll
   integer ( kind = 4 ) m
-  real    ( kind = 8 ) rv1(n)
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) xscale
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) w(n)
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) y
-  real    ( kind = 8 ) z
+  real    ( kind = rkx ) rv1(n)
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) xscale
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) x
+  real    ( kind = rkx ) y
+  real    ( kind = rkx ) z
 
   ierr = 0
 !
 !  Householder reduction to bidiagonal form.
 !
-  g = 0.0D+00
-  xscale = 0.0D+00
-  x = 0.0D+00
+  g = 0.0_rkx
+  xscale = 0.0_rkx
+  x = 0.0_rkx
 
   do i = 1, n
 
     l = i + 1
     rv1(i) = xscale * g
-    g = 0.0D+00
-    s = 0.0D+00
-    xscale = 0.0D+00
+    g = 0.0_rkx
+    s = 0.0_rkx
+    xscale = 0.0_rkx
 
     if ( i <= m ) then
 
       xscale = sum ( abs ( a(i:m,i) ) )
 
-      if ( xscale /= 0.0D+00 ) then
+      if ( xscale /= 0.0_rkx ) then
 
         a(i:m,i) = a(i:m,i) / xscale
 
@@ -9362,9 +9364,9 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
     end if
 
     w(i) = xscale * g
-    g = 0.0D+00
-    s = 0.0D+00
-    xscale = 0.0D+00
+    g = 0.0_rkx
+    s = 0.0_rkx
+    xscale = 0.0_rkx
 
     if ( i <= m .and. i /= n ) then
 
@@ -9372,7 +9374,7 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
         xscale = xscale + abs ( a(i,k) )
       end do
 
-      if ( xscale /= 0.0D+00 ) then
+      if ( xscale /= 0.0_rkx ) then
 
         a(i,l:n) = a(i,l:n) / xscale
 
@@ -9410,7 +9412,7 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 
     if ( i /= n ) then
 
-      if ( g /= 0.0D+00 ) then
+      if ( g /= 0.0_rkx ) then
 
         a(l:n,i) = ( a(i,l:n) / a(i,l) ) / g
 
@@ -9424,19 +9426,19 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 
       end if
 
-      a(i,l:n) = 0.0D+00
-      a(l:n,i) = 0.0D+00
+      a(i,l:n) = 0.0_rkx
+      a(l:n,i) = 0.0_rkx
 
     end if
 
-    a(i,i) = 1.0D+00
+    a(i,i) = 1.0_rkx
     g = rv1(i)
     l = i
 
   end do
 
   if ( m < n .and. ip /= 0 ) then
-    b(m+1:n,1:ip) = 0.0D+00
+    b(m+1:n,1:ip) = 0.0_rkx
   end if
 !
 !  Diagonalization of the bidiagonal form.
@@ -9473,8 +9475,8 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 !
 !  Cancellation of RV1(l) if l greater than 1.
 !
-    c = 0.0D+00
-    s = 1.0D+00
+    c = 0.0_rkx
+    s = 1.0_rkx
 
     do i = l, k
 
@@ -9521,14 +9523,14 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
      y = w(k1)
      g = rv1(k1)
      h = rv1(k)
-     f = 0.5D+00 * ( ( ( g + z ) / h ) * ( ( g - z ) / y ) + y / h - h / y )
-     g = pythag ( f, 1.0D+00 )
+     f = 0.5_rkx * ( ( ( g + z ) / h ) * ( ( g - z ) / y ) + y / h - h / y )
+     g = pythag ( f, 1.0_rkx )
      f = x - ( z / x ) * z + ( h / x ) * ( y / ( f + sign ( g, f ) ) - h )
 !
 !  Next QR transformation.
 !
-     c = 1.0D+00
-     s = 1.0D+00
+     c = 1.0_rkx
+     s = 1.0_rkx
 
      do i1 = l, k1
 
@@ -9556,7 +9558,7 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
         z = pythag ( f, h )
         w(i1) = z
 
-        if ( z /= 0.0D+00 ) then
+        if ( z /= 0.0_rkx ) then
           c = f / z
           s = h / z
         end if
@@ -9573,7 +9575,7 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 
      end do
 
-     rv1(l) = 0.0D+00
+     rv1(l) = 0.0_rkx
      rv1(k) = f
      w(k) = x
      go to 520
@@ -9582,7 +9584,7 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 !
 650 continue
 
-    if ( z < 0.0D+00 ) then
+    if ( z < 0.0_rkx ) then
       w(k) = - z
       a(1:n,k) = - a(1:n,k)
     end if
@@ -9643,17 +9645,17 @@ subroutine ortbak ( n, low, igh, a, ort, m, z )
 !    If BALANC has not been used, set LOW = 1 and IGH equal to the order of
 !    the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,IGH), contains information about the orthogonal
+!    Input, real ( kind = rkx ) A(N,IGH), contains information about the orthogonal
 !    transformations used in the reduction by ORTHES in its strict
 !    lower triangle.
 !
-!    Input/output, real ( kind = 8 ) ORT(IGH), contains further information about the
+!    Input/output, real ( kind = rkx ) ORT(IGH), contains further information about the
 !    transformations used in the reduction by ORTHES.  On output, ORT
 !    has been altered.
 !
 !    Input, integer ( kind = 4 ) M, the number of columns of Z to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,N).  On input, the real and imaginary parts of
+!    Input/output, real ( kind = rkx ) Z(N,N).  On input, the real and imaginary parts of
 !    the eigenvectors to be back transformed in the first M columns.  On
 !    output, the real and imaginary parts of the transformed eigenvectors.
 !
@@ -9663,14 +9665,14 @@ subroutine ortbak ( n, low, igh, a, ort, m, z )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,igh)
-  real    ( kind = 8 ) g
+  real    ( kind = rkx ) a(n,igh)
+  real    ( kind = rkx ) g
   integer ( kind = 4 ) i
   integer ( kind = 4 ) j
   integer ( kind = 4 ) low
   integer ( kind = 4 ) mp
-  real    ( kind = 8 ) ort(igh)
-  real    ( kind = 8 ) z(n,m)
+  real    ( kind = rkx ) ort(igh)
+  real    ( kind = rkx ) z(n,m)
 
   if ( m == 0 ) then
     return
@@ -9678,7 +9680,7 @@ subroutine ortbak ( n, low, igh, a, ort, m, z )
 
   do mp = igh - 1, low + 1, -1
 
-    if ( a(mp,mp-1) /= 0.0D+00 ) then
+    if ( a(mp,mp-1) /= 0.0_rkx ) then
 
       ort(mp+1:igh) = a(mp+1:igh,mp-1)
 
@@ -9741,12 +9743,12 @@ subroutine orthes ( n, low, igh, a, ort )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine BALANC.
 !    If BALANC has not been used, set LOW = 1 and IGH = N.
 !
-!    Input/output, real ( kind = 8 ) A(N,N).  On input, the matrix.  On output,
+!    Input/output, real ( kind = rkx ) A(N,N).  On input, the matrix.  On output,
 !    the Hessenberg matrix.  Information about the orthogonal transformations
 !    used in the reduction is stored in the remaining triangle under the
 !    Hessenberg matrix.
 !
-!    Output, real ( kind = 8 ) ORT(IGH), contains further information about the
+!    Output, real ( kind = rkx ) ORT(IGH), contains further information about the
 !    transformations.
 !
   implicit none
@@ -9754,10 +9756,10 @@ subroutine orthes ( n, low, igh, a, ort )
   integer ( kind = 4 ) igh
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ii
   integer ( kind = 4 ) j
@@ -9766,16 +9768,16 @@ subroutine orthes ( n, low, igh, a, ort )
   integer ( kind = 4 ) low
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mp
-  real    ( kind = 8 ) ort(igh)
-  real    ( kind = 8 ) xscale
+  real    ( kind = rkx ) ort(igh)
+  real    ( kind = rkx ) xscale
 
   la = igh - 1
 
   do m = low + 1, la
 
-     h = 0.0D+00
-     ort(m) = 0.0D+00
-     xscale = 0.0D+00
+     h = 0.0_rkx
+     ort(m) = 0.0_rkx
+     xscale = 0.0_rkx
 !
 !  Scale the column.
 !
@@ -9783,7 +9785,7 @@ subroutine orthes ( n, low, igh, a, ort )
        xscale = xscale + abs ( a(i,m-1) )
      end do
 
-     if ( xscale /= 0.0D+00 ) then
+     if ( xscale /= 0.0_rkx ) then
 
      mp = m + igh
 
@@ -9801,7 +9803,7 @@ subroutine orthes ( n, low, igh, a, ort )
 !
      do j = m, n
 
-        f = 0.0D+00
+        f = 0.0_rkx
 
         do ii = m, igh
           i = mp - ii
@@ -9820,7 +9822,7 @@ subroutine orthes ( n, low, igh, a, ort )
 !
      do i = 1, igh
 
-        f = 0.0D+00
+        f = 0.0_rkx
         do jj = m, igh
           j = mp - jj
           f = f + ort(j) * a(i,j)
@@ -9890,15 +9892,15 @@ subroutine ortran ( n, low, igh, a, ort, z )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing
 !    routine BALANC.  If BALANC has not been used, set LOW = 1, IGH = N.
 !
-!    Input, real ( kind = 8 ) A(N,IGH), contains information about the orthogonal
+!    Input, real ( kind = rkx ) A(N,IGH), contains information about the orthogonal
 !    transformations used in the reduction by ORTHES in its strict lower
 !    triangle.
 !
-!    Input/output, real ( kind = 8 ) ORT(IGH), contains further information about the
+!    Input/output, real ( kind = rkx ) ORT(IGH), contains further information about the
 !    transformations used in the reduction by ORTHES.  On output, ORT
 !    has been further altered.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the transformation matrix produced in the
+!    Output, real ( kind = rkx ) Z(N,N), contains the transformation matrix produced in the
 !    reduction by ORTHES.
 !
   implicit none
@@ -9906,23 +9908,23 @@ subroutine ortran ( n, low, igh, a, ort, z )
   integer ( kind = 4 ) igh
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,igh)
-  real    ( kind = 8 ) g
+  real    ( kind = rkx ) a(n,igh)
+  real    ( kind = rkx ) g
   integer ( kind = 4 ) i
   integer ( kind = 4 ) j
   integer ( kind = 4 ) kl
   integer ( kind = 4 ) low
   integer ( kind = 4 ) mm
   integer ( kind = 4 ) mp
-  real    ( kind = 8 ) ort(igh)
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) ort(igh)
+  real    ( kind = rkx ) z(n,n)
 !
 !  Initialize Z to the identity matrix.
 !
-  z(1:n,1:n) = 0.0D+00
+  z(1:n,1:n) = 0.0_rkx
 
   do i = 1, n
-    z(i,i) = 1.0D+00
+    z(i,i) = 1.0_rkx
   end do
 
   kl = igh - low - 1
@@ -9935,7 +9937,7 @@ subroutine ortran ( n, low, igh, a, ort, z )
 
     mp = igh - mm
 
-    if ( a(mp,mp-1) /= 0.0D+00 ) then
+    if ( a(mp,mp-1) /= 0.0_rkx ) then
 
       ort(mp+1:igh) = a(mp+1:igh,mp-1)
 
@@ -10007,26 +10009,26 @@ subroutine qzhes ( n, a, b, matz, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrices.
 !
-!    Input/output, real ( kind = 8 ) A(N,N).  On input, the first real general matrix.
+!    Input/output, real ( kind = rkx ) A(N,N).  On input, the first real general matrix.
 !    On output, A has been reduced to upper Hessenberg form.  The elements
 !    below the first subdiagonal have been set to zero.
 !
-!    Input/output, real ( kind = 8 ) B(N,N).  On input, a real general matrix.
+!    Input/output, real ( kind = rkx ) B(N,N).  On input, a real general matrix.
 !    On output, B has been reduced to upper triangular form.  The elements
 !    below the main diagonal have been set to zero.
 !
 !    Input, logical MATZ, should be TRUE if the right hand transformations
 !    are to be accumulated for later use in computing eigenvectors.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the product of the right hand
+!    Output, real ( kind = rkx ) Z(N,N), contains the product of the right hand
 !    transformations if MATZ is TRUE.
 !
   implicit none
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) b(n,n)
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) b(n,n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
@@ -10036,24 +10038,24 @@ subroutine qzhes ( n, a, b, matz, z )
   logical              matz
   integer ( kind = 4 ) nk1
   integer ( kind = 4 ) nm1
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) rho
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) t
-  real    ( kind = 8 ) u1
-  real    ( kind = 8 ) u2
-  real    ( kind = 8 ) v1
-  real    ( kind = 8 ) v2
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) rho
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) t
+  real    ( kind = rkx ) u1
+  real    ( kind = rkx ) u2
+  real    ( kind = rkx ) v1
+  real    ( kind = rkx ) v2
+  real    ( kind = rkx ) z(n,n)
 !
 !  Set Z to the identity matrix.
 !
   if ( matz ) then
 
-    z(1:n,1:n) = 0.0D+00
+    z(1:n,1:n) = 0.0_rkx
 
     do i = 1, n
-      z(i,i) = 1.0D+00
+      z(i,i) = 1.0_rkx
     end do
 
   end if
@@ -10072,7 +10074,7 @@ subroutine qzhes ( n, a, b, matz, z )
 
     s = sum ( abs ( b(l+1:n,l) ) )
 
-    if ( s /= 0.0D+00 ) then
+    if ( s /= 0.0_rkx ) then
 
       s = s + abs ( b(l,l) )
       b(l:n,l) = b(l:n,l) / s
@@ -10099,7 +10101,7 @@ subroutine qzhes ( n, a, b, matz, z )
       end do
 
       b(l,l) = - s * r
-      b(l+1:n,l) = 0.0D+00
+      b(l+1:n,l) = 0.0_rkx
 
     end if
 
@@ -10124,7 +10126,7 @@ subroutine qzhes ( n, a, b, matz, z )
 !
         s = abs ( a(l,k) ) + abs ( a(l1,k) )
 
-        if ( s /= 0.0D+00 ) then
+        if ( s /= 0.0_rkx ) then
 
         u1 = a(l,k) / s
         u2 = a(l1,k) / s
@@ -10139,7 +10141,7 @@ subroutine qzhes ( n, a, b, matz, z )
           a(l1,j) = a(l1,j) + t * v2
         end do
 
-        a(l1,k) = 0.0D+00
+        a(l1,k) = 0.0_rkx
 
         do j = l, n
           t = b(l,j) + u2 * b(l1,j)
@@ -10166,7 +10168,7 @@ subroutine qzhes ( n, a, b, matz, z )
           b(i,l) = b(i,l) + t * v2
         end do
 
-        b(l1,l) = 0.0D+00
+        b(l1,l) = 0.0_rkx
 
         do i = 1, n
           t = a(i,l1) + u2 * a(i,l)
@@ -10248,18 +10250,18 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrices.
 !
-!    Input/output, real ( kind = 8 ) A(N,N).  On input, a real upper Hessenberg matrix.
+!    Input/output, real ( kind = rkx ) A(N,N).  On input, a real upper Hessenberg matrix.
 !    On output, A has been reduced to quasi-triangular form.  The elements
 !    below the first subdiagonal are still zero and no two consecutive
 !    subdiagonal elements are nonzero.
 !
-!    Input/output, real ( kind = 8 ) B(N,N).  On input, a real upper triangular matrix.
+!    Input/output, real ( kind = rkx ) B(N,N).  On input, a real upper triangular matrix.
 !    On output, B is still in upper triangular form, although its elements
 !    have been altered.  The location B(N,1) is used to store EPS1 times
 !    the norm of B for later use by QZVAL and QZVEC.
 !
-!    Input, real ( kind = 8 ) EPS1, a tolerance used to determine negligible elements.
-!    EPS1 = 0.0D+00 (or negative) may be input, in which case an element
+!    Input, real ( kind = rkx ) EPS1, a tolerance used to determine negligible elements.
+!    EPS1 = 0.0_rkx (or negative) may be input, in which case an element
 !    will be neglected only if it is less than roundoff error times the
 !    norm of its matrix.  If the input EPS1 is positive, then an element
 !    will be considered negligible if it is less than EPS1 times the norm
@@ -10269,7 +10271,7 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 !    Input, logical MATZ, should be TRUE if the right hand transformations
 !    are to be accumulated for later use in computing eigenvectors.
 !
-!    Input/output, real ( kind = 8 ) Z(N,N).  If MATZ is FALSE, Z is not referenced.
+!    Input/output, real ( kind = rkx ) Z(N,N).  If MATZ is FALSE, Z is not referenced.
 !    Otherwise, on input, the transformation matrix produced in the reduction
 !    by QZHES, if performed, or else the identity matrix.  On output, Z
 !    contains the product of the right hand transformations for both steps.
@@ -10283,36 +10285,36 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) a1
-  real    ( kind = 8 ) a11
-  real    ( kind = 8 ) a12
-  real    ( kind = 8 ) a2
-  real    ( kind = 8 ) a21
-  real    ( kind = 8 ) a22
-  real    ( kind = 8 ) a3
-  real    ( kind = 8 ) a33
-  real    ( kind = 8 ) a34
-  real    ( kind = 8 ) a43
-  real    ( kind = 8 ) a44
-  real    ( kind = 8 ) ani
-  real    ( kind = 8 ) anorm
-  real    ( kind = 8 ) b(n,n)
-  real    ( kind = 8 ) b11
-  real    ( kind = 8 ) b12
-  real    ( kind = 8 ) b22
-  real    ( kind = 8 ) b33
-  real    ( kind = 8 ) b34
-  real    ( kind = 8 ) b44
-  real    ( kind = 8 ) bni
-  real    ( kind = 8 ) bnorm
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) a1
+  real    ( kind = rkx ) a11
+  real    ( kind = rkx ) a12
+  real    ( kind = rkx ) a2
+  real    ( kind = rkx ) a21
+  real    ( kind = rkx ) a22
+  real    ( kind = rkx ) a3
+  real    ( kind = rkx ) a33
+  real    ( kind = rkx ) a34
+  real    ( kind = rkx ) a43
+  real    ( kind = rkx ) a44
+  real    ( kind = rkx ) ani
+  real    ( kind = rkx ) anorm
+  real    ( kind = rkx ) b(n,n)
+  real    ( kind = rkx ) b11
+  real    ( kind = rkx ) b12
+  real    ( kind = rkx ) b22
+  real    ( kind = rkx ) b33
+  real    ( kind = rkx ) b34
+  real    ( kind = rkx ) b44
+  real    ( kind = rkx ) bni
+  real    ( kind = rkx ) bnorm
   integer ( kind = 4 ) en
   integer ( kind = 4 ) enm2
   integer ( kind = 4 ) enorn
-  real    ( kind = 8 ) ep
-  real    ( kind = 8 ) eps1
-  real    ( kind = 8 ) epsa
-  real    ( kind = 8 ) epsb
+  real    ( kind = rkx ) ep
+  real    ( kind = rkx ) eps1
+  real    ( kind = rkx ) epsa
+  real    ( kind = rkx ) epsb
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) ish
@@ -10332,34 +10334,34 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
   logical              matz
   integer ( kind = 4 ) na
   logical              notlas
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) sh
-  real    ( kind = 8 ) t
-  real    ( kind = 8 ) u1
-  real    ( kind = 8 ) u2
-  real    ( kind = 8 ) u3
-  real    ( kind = 8 ) v1
-  real    ( kind = 8 ) v2
-  real    ( kind = 8 ) v3
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) sh
+  real    ( kind = rkx ) t
+  real    ( kind = rkx ) u1
+  real    ( kind = rkx ) u2
+  real    ( kind = rkx ) u3
+  real    ( kind = rkx ) v1
+  real    ( kind = rkx ) v2
+  real    ( kind = rkx ) v3
+  real    ( kind = rkx ) z(n,n)
 
   ierr = 0
 !
 !  Compute EPSA and EPSB.
 !
-  anorm = 0.0D+00
-  bnorm = 0.0D+00
+  anorm = 0.0_rkx
+  bnorm = 0.0_rkx
 
   do i = 1, n
 
     if ( i == 1 ) then
-      ani = 0.0D+00
+      ani = 0.0_rkx
     else
       ani = abs ( a(i,i-1) )
     end if
 
-    bni = 0.0D+00
+    bni = 0.0_rkx
 
     do j = i, n
       ani = ani + abs ( a(i,j) )
@@ -10371,17 +10373,17 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 
   end do
 
-  if ( anorm == 0.0D+00 ) then
-    anorm = 1.0D+00
+  if ( anorm == 0.0_rkx ) then
+    anorm = 1.0_rkx
   end if
 
-  if ( bnorm == 0.0D+00 ) then
-    bnorm = 1.0D+00
+  if ( bnorm == 0.0_rkx ) then
+    bnorm = 1.0_rkx
   end if
 
   ep = eps1
 
-  if ( ep > 0.0D+00 ) then
+  if ( ep > 0.0_rkx ) then
     go to 50
   end if
 !
@@ -10431,7 +10433,7 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 
 90 continue
 
-  a(l,lm1) = 0.0D+00
+  a(l,lm1) = 0.0_rkx
   if ( l < na ) go to 95
 !
 !  1-by-1 or 2-by-2 block isolated.
@@ -10452,7 +10454,7 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 
   if ( abs ( b11 ) > epsb ) go to 120
 
-  b(l,l) = 0.0D+00
+  b(l,l) = 0.0_rkx
   s = abs ( a(l,l) ) + abs ( a(l1,l) )
   u1 = a(l,l) / s
   u2 = a(l1,l) / s
@@ -10501,10 +10503,10 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
   a43 = a(en,na) / b33
   a44 = a(en,en) / b44
   b34 = b(na,en) / b44
-  t = 0.5D+00 * (a43 * b34 - a33 - a44)
+  t = 0.5_rkx * (a43 * b34 - a33 - a44)
   r = t * t + a34 * a43 - a33 * a44
 
-  if ( r < 0.0D+00 ) go to 150
+  if ( r < 0.0_rkx ) go to 150
 !
 !  Determine single shift zeroth column of A.
 !
@@ -10556,9 +10558,9 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 !
 155 continue
 
-  a1 = 0.0D+00
-  a2 = 1.0D+00
-  a3 = 1.1605D+00
+  a1 = 0.0_rkx
+  a2 = 1.0_rkx
+  a3 = 1.1605_rkx
 
   160 continue
   its = its + 1
@@ -10586,7 +10588,7 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 
      s = abs ( a1 ) + abs ( a2 )
 
-     if ( s == 0.0D+00 ) go to 70
+     if ( s == 0.0_rkx ) go to 70
 
      u1 = a1 / s
      u2 = a2 / s
@@ -10605,7 +10607,7 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
      end do
 
      if ( k /= l ) then
-       a(k1,km1) = 0.0D+00
+       a(k1,km1) = 0.0_rkx
      end if
 
      go to 240
@@ -10622,7 +10624,7 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 
      s = abs ( a1 ) + abs ( a2 ) + abs ( a3 )
 
-     if ( s == 0.0D+00 ) go to 260
+     if ( s == 0.0_rkx ) go to 260
 
      u1 = a1 / s
      u2 = a2 / s
@@ -10646,14 +10648,14 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
      end do
 
      if ( k /= l ) then
-       a(k1,km1) = 0.0D+00
-       a(k2,km1) = 0.0D+00
+       a(k1,km1) = 0.0_rkx
+       a(k2,km1) = 0.0_rkx
      end if
 !
 !  Zero B(k+2,k+1) and B(k+2,k).
 !
      s = abs ( b(k2,k2) ) + abs ( b(k2,k1) ) + abs ( b(k2,k) )
-     if ( s == 0.0D+00 ) go to 240
+     if ( s == 0.0_rkx ) go to 240
      u1 = b(k2,k2) / s
      u2 = b(k2,k1) / s
      u3 = b(k2,k) / s
@@ -10675,8 +10677,8 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
        b(i,k) = b(i,k) + t * v3
      end do
 
-     b(k2,k) = 0.0D+00
-     b(k2,k1) = 0.0D+00
+     b(k2,k) = 0.0_rkx
+     b(k2,k1) = 0.0_rkx
 
      if ( matz ) then
 
@@ -10695,7 +10697,7 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 
      s = abs ( b(k1,k1) ) + abs ( b(k1,k) )
 
-     if ( s /= 0.0D+00 ) then
+     if ( s /= 0.0_rkx ) then
 
      u1 = b(k1,k1) / s
      u2 = b(k1,k) / s
@@ -10713,7 +10715,7 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
        b(i,k) = b(i,k) + t * v2
      end do
 
-     b(k1,k) = 0.0D+00
+     b(k1,k) = 0.0_rkx
 
      if ( matz ) then
 
@@ -10804,23 +10806,23 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrices.
 !
-!    Input/output, real ( kind = 8 ) A(N,N).  On input, a real upper quasi-triangular
+!    Input/output, real ( kind = rkx ) A(N,N).  On input, a real upper quasi-triangular
 !    matrix.  On output, A has been reduced further to a quasi-triangular
 !    matrix in which all nonzero subdiagonal elements correspond to
 !    pairs of complex eigenvalues.
 !
-!    Input/output, real ( kind = 8 ) B(N,N).  On input, a real upper triangular matrix.
+!    Input/output, real ( kind = rkx ) B(N,N).  On input, a real upper triangular matrix.
 !    In addition, location B(n,1) contains the tolerance quantity EPSB
 !    computed and saved in QZIT.  On output, B is still in upper triangular
 !    form, although its elements have been altered.  B(N,1) is unaltered.
 !
-!    Output, real ( kind = 8 ) ALFR(N), ALFI(N), the real and imaginary parts of the
+!    Output, real ( kind = rkx ) ALFR(N), ALFI(N), the real and imaginary parts of the
 !    diagonal elements of the triangular matrix that would be obtained
 !    if A were reduced completely to triangular form by unitary
 !    transformations.  Non-zero values of ALFI occur in pairs, the first
 !    member positive and the second negative.
 !
-!    Output, real ( kind = 8 ) BETA(N), the diagonal elements of the corresponding B,
+!    Output, real ( kind = rkx ) BETA(N), the diagonal elements of the corresponding B,
 !    normalized to be real and non-negative.  The generalized eigenvalues
 !    are then the ratios (ALFR + I * ALFI) / BETA.
 !
@@ -10828,7 +10830,7 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 !    are to be accumulated for later use in computing eigenvectors, and
 !    to FALSE otherwise.
 !
-!    Input/output, real ( kind = 8 ) Z(N,N), is only used if MATZ is TRUE.
+!    Input/output, real ( kind = rkx ) Z(N,N), is only used if MATZ is TRUE.
 !    On input, the transformation matrix produced in the reductions by QZHES
 !    and QZIT, if performed, or else the identity matrix.  On output,
 !    the product of the right hand transformations for all three steps.
@@ -10837,62 +10839,62 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) a1
-  real    ( kind = 8 ) a11
-  real    ( kind = 8 ) a11i
-  real    ( kind = 8 ) a11r
-  real    ( kind = 8 ) a12
-  real    ( kind = 8 ) a12i
-  real    ( kind = 8 ) a12r
-  real    ( kind = 8 ) a1i
-  real    ( kind = 8 ) a2
-  real    ( kind = 8 ) a21
-  real    ( kind = 8 ) a22
-  real    ( kind = 8 ) a22i
-  real    ( kind = 8 ) a22r
-  real    ( kind = 8 ) a2i
-  real    ( kind = 8 ) an
-  real    ( kind = 8 ) alfi(n)
-  real    ( kind = 8 ) alfr(n)
-  real    ( kind = 8 ) b(n,n)
-  real    ( kind = 8 ) b11
-  real    ( kind = 8 ) b12
-  real    ( kind = 8 ) b22
-  real    ( kind = 8 ) beta(n)
-  real    ( kind = 8 ) bn
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) cq
-  real    ( kind = 8 ) cz
-  real    ( kind = 8 ) d
-  real    ( kind = 8 ) di
-  real    ( kind = 8 ) dr
-  real    ( kind = 8 ) e
-  real    ( kind = 8 ) ei
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) a1
+  real    ( kind = rkx ) a11
+  real    ( kind = rkx ) a11i
+  real    ( kind = rkx ) a11r
+  real    ( kind = rkx ) a12
+  real    ( kind = rkx ) a12i
+  real    ( kind = rkx ) a12r
+  real    ( kind = rkx ) a1i
+  real    ( kind = rkx ) a2
+  real    ( kind = rkx ) a21
+  real    ( kind = rkx ) a22
+  real    ( kind = rkx ) a22i
+  real    ( kind = rkx ) a22r
+  real    ( kind = rkx ) a2i
+  real    ( kind = rkx ) an
+  real    ( kind = rkx ) alfi(n)
+  real    ( kind = rkx ) alfr(n)
+  real    ( kind = rkx ) b(n,n)
+  real    ( kind = rkx ) b11
+  real    ( kind = rkx ) b12
+  real    ( kind = rkx ) b22
+  real    ( kind = rkx ) beta(n)
+  real    ( kind = rkx ) bn
+  real    ( kind = rkx ) c
+  real    ( kind = rkx ) cq
+  real    ( kind = rkx ) cz
+  real    ( kind = rkx ) d
+  real    ( kind = rkx ) di
+  real    ( kind = rkx ) dr
+  real    ( kind = rkx ) e
+  real    ( kind = rkx ) ei
   integer ( kind = 4 ) en
-  real    ( kind = 8 ) epsb
+  real    ( kind = rkx ) epsb
   integer ( kind = 4 ) i
   integer ( kind = 4 ) isw
   integer ( kind = 4 ) j
   logical              matz
   integer ( kind = 4 ) na
   integer ( kind = 4 ) nn
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) sqi
-  real    ( kind = 8 ) sqr
-  real    ( kind = 8 ) ssi
-  real    ( kind = 8 ) ssr
-  real    ( kind = 8 ) szi
-  real    ( kind = 8 ) szr
-  real    ( kind = 8 ) t
-  real    ( kind = 8 ) ti
-  real    ( kind = 8 ) tr
-  real    ( kind = 8 ) u1
-  real    ( kind = 8 ) u2
-  real    ( kind = 8 ) v1
-  real    ( kind = 8 ) v2
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) sqi
+  real    ( kind = rkx ) sqr
+  real    ( kind = rkx ) ssi
+  real    ( kind = rkx ) ssr
+  real    ( kind = rkx ) szi
+  real    ( kind = rkx ) szr
+  real    ( kind = rkx ) t
+  real    ( kind = rkx ) ti
+  real    ( kind = rkx ) tr
+  real    ( kind = rkx ) u1
+  real    ( kind = rkx ) u2
+  real    ( kind = rkx ) v1
+  real    ( kind = rkx ) v2
+  real    ( kind = rkx ) z(n,n)
 
   epsb = b(n,1)
   isw = 1
@@ -10908,16 +10910,16 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 
      if ( en == 1 ) go to 410
 
-     if ( a(en,na) /= 0.0D+00 ) go to 420
+     if ( a(en,na) /= 0.0_rkx ) go to 420
 !
 !  1-by-1 block, one real root.
 !
 410  continue
 
      alfr(en) = a(en,en)
-     if ( b(en,en) < 0.0D+00 ) alfr(en) = -alfr(en)
+     if ( b(en,en) < 0.0_rkx ) alfr(en) = -alfr(en)
      beta(en) = abs ( b(en,en) )
-     alfi(en) = 0.0D+00
+     alfi(en) = 0.0_rkx
      go to 510
 !
 !  2-by-2 block.
@@ -10933,7 +10935,7 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
      if ( abs ( b(en,en) ) <= epsb ) then
        a1 = a(en,en)
        a2 = a(en,na)
-       bn = 0.0D+00
+       bn = 0.0_rkx
        go to 435
      end if
 
@@ -10957,10 +10959,10 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
        t = ( a11 - e * b11 ) / b11
      end if
 
-     c = 0.5D+00 * ( t - s * b12 )
+     c = 0.5_rkx * ( t - s * b12 )
      d = c**2 + s * ( a12 - e * b12 )
 
-     if ( d < 0.0D+00 ) then
+     if ( d < 0.0_rkx ) then
        go to 480
      end if
 !
@@ -11011,7 +11013,7 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 
      end if
 
-     if ( bn == 0.0D+00 ) go to 475
+     if ( bn == 0.0_rkx ) go to 475
 
      if ( an >= abs ( e ) * bn ) then
        a1 = b(na,na)
@@ -11026,7 +11028,7 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 460  continue
 
      s = abs ( a1 ) + abs ( a2 )
-     if ( s == 0.0D+00 ) go to 475
+     if ( s == 0.0_rkx ) go to 475
      u1 = a1 / s
      u2 = a2 / s
      r = sign ( sqrt ( u1**2 + u2**2 ), u1 )
@@ -11045,16 +11047,16 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 
 475  continue
 
-     a(en,na) = 0.0D+00
-     b(en,na) = 0.0D+00
+     a(en,na) = 0.0_rkx
+     b(en,na) = 0.0_rkx
      alfr(na) = a(na,na)
      alfr(en) = a(en,en)
-     if ( b(na,na) < 0.0D+00 ) alfr(na) = -alfr(na)
-     if ( b(en,en) < 0.0D+00 ) alfr(en) = -alfr(en)
+     if ( b(na,na) < 0.0_rkx ) alfr(na) = -alfr(na)
+     if ( b(en,en) < 0.0_rkx ) alfr(en) = -alfr(en)
      beta(na) = abs ( b(na,na) )
      beta(en) = abs ( b(en,en) )
-     alfi(en) = 0.0D+00
-     alfi(na) = 0.0D+00
+     alfi(en) = 0.0_rkx
+     alfi(na) = 0.0_rkx
      go to 505
 !
 !  Two complex roots.
@@ -11080,14 +11082,14 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
        a1 = a22r
        a1i = a22i
        a2 = -a21
-       a2i = 0.0D+00
+       a2i = 0.0_rkx
      end if
 !
 !  Choose complex Z.
 !
      cz = sqrt ( a1**2 + a1i**2 )
 
-     if ( cz /= 0.0D+00 ) then
+     if ( cz /= 0.0_rkx ) then
        szr = ( a1 * a2 + a1i * a2i) / cz
        szi = ( a1 * a2i - a1i * a2) / cz
        r = sqrt ( cz**2 + szr**2 + szi**2 )
@@ -11095,8 +11097,8 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
        szr = szr / r
        szi = szi / r
      else
-       szr = 1.0D+00
-       szi = 0.0D+00
+       szr = 1.0_rkx
+       szi = 0.0_rkx
      end if
 
      if ( an >= ( abs ( e ) + ei ) * bn ) then
@@ -11115,7 +11117,7 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 !
      cq = sqrt ( a1**2 + a1i**2 )
 
-     if ( cq /= 0.0D+00 ) then
+     if ( cq /= 0.0_rkx ) then
        sqr = ( a1 * a2 + a1i * a2i ) / cq
        sqi = ( a1 * a2i - a1i * a2 ) / cq
        r = sqrt ( cq**2 + sqr**2 + sqi**2 )
@@ -11123,8 +11125,8 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
        sqr = sqr / r
        sqi = sqi / r
      else
-       sqr = 1.0D+00
-       sqi = 0.0D+00
+       sqr = 1.0_rkx
+       sqi = 0.0_rkx
      end if
 !
 !  Compute diagonal elements that would result if transformations were applied.
@@ -11150,7 +11152,7 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 
      t = ti * dr - tr * di
 
-     if ( t < 0.0D+00 ) then
+     if ( t < 0.0_rkx ) then
        j = en
      else
        j = na
@@ -11229,19 +11231,19 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrices.
 !
-!    Input, real ( kind = 8 ) A(N,N), contains a real upper quasi-triangular matrix.
+!    Input, real ( kind = rkx ) A(N,N), contains a real upper quasi-triangular matrix.
 !    Its subdiagonal elements provide information about the storage of
 !    the complex eigenvectors.
 !
-!    Input/output, real ( kind = 8 ) B(N,N).  On input, a real upper triangular matrix.
+!    Input/output, real ( kind = rkx ) B(N,N).  On input, a real upper triangular matrix.
 !    In addition, location B(N,1) contains the tolerance quantity EPSB
 !    computed and saved in QZIT.  On output, B has been destroyed.
 !
-!    Input, real ( kind = 8 ) ALFR(N), ALFI(N), BETA(N), vectors whose ratios
+!    Input, real ( kind = rkx ) ALFR(N), ALFI(N), BETA(N), vectors whose ratios
 !      ( ALFR + I * ALFI ) / BETA
 !    are the generalized eigenvalues.  They are usually obtained from QZVAL.
 !
-!    Input/output, real ( kind = 8 ) Z(N,N).  On input, the transformation matrix produced
+!    Input/output, real ( kind = rkx ) Z(N,N).  On input, the transformation matrix produced
 !    in the reductions by QZHES, QZIT, and QZVAL, if performed.  If the
 !    eigenvectors of the triangular problem are desired, Z must contain the
 !    identity matrix.  On output, Z contains the real and imaginary parts of
@@ -11253,27 +11255,27 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 !    If ALFI(I) < 0.0, the eigenvalue is the second of a complex pair and the
 !    (I-1)-th and I-th columns of Z contain the conjugate of its eigenvector.
 !    Each eigenvector is normalized so that the modulus of its largest
-!    component is 1.0D+00 .
+!    component is 1.0_rkx .
 !
   implicit none
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) alfi(n)
-  real    ( kind = 8 ) alfm
-  real    ( kind = 8 ) alfr(n)
-  real    ( kind = 8 ) almi
-  real    ( kind = 8 ) almr
-  real    ( kind = 8 ) b(n,n)
-  real    ( kind = 8 ) beta(n)
-  real    ( kind = 8 ) betm
-  real    ( kind = 8 ) d
-  real    ( kind = 8 ) di
-  real    ( kind = 8 ) dr
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) alfi(n)
+  real    ( kind = rkx ) alfm
+  real    ( kind = rkx ) alfr(n)
+  real    ( kind = rkx ) almi
+  real    ( kind = rkx ) almr
+  real    ( kind = rkx ) b(n,n)
+  real    ( kind = rkx ) beta(n)
+  real    ( kind = rkx ) betm
+  real    ( kind = rkx ) d
+  real    ( kind = rkx ) di
+  real    ( kind = rkx ) dr
   integer ( kind = 4 ) en
   integer ( kind = 4 ) enm2
-  real    ( kind = 8 ) epsb
+  real    ( kind = rkx ) epsb
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ii
   integer ( kind = 4 ) isw
@@ -11283,25 +11285,25 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) na
   integer ( kind = 4 ) nn
-  real    ( kind = 8 ) q
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) ra
-  real    ( kind = 8 ) rr
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) sa
-  real    ( kind = 8 ) t
-  real    ( kind = 8 ) t1
-  real    ( kind = 8 ) t2
-  real    ( kind = 8 ) ti
-  real    ( kind = 8 ) tr
-  real    ( kind = 8 ) w
-  real    ( kind = 8 ) w1
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) x1
-  real    ( kind = 8 ) y
-  real    ( kind = 8 ) z(n,n)
-  real    ( kind = 8 ) z1
-  real    ( kind = 8 ) zz
+  real    ( kind = rkx ) q
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) ra
+  real    ( kind = rkx ) rr
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) sa
+  real    ( kind = rkx ) t
+  real    ( kind = rkx ) t1
+  real    ( kind = rkx ) t2
+  real    ( kind = rkx ) ti
+  real    ( kind = rkx ) tr
+  real    ( kind = rkx ) w
+  real    ( kind = rkx ) w1
+  real    ( kind = rkx ) x
+  real    ( kind = rkx ) x1
+  real    ( kind = rkx ) y
+  real    ( kind = rkx ) z(n,n)
+  real    ( kind = rkx ) z1
+  real    ( kind = rkx ) zz
 
   epsb = b(n,1)
   isw = 1
@@ -11313,12 +11315,12 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 
      if ( isw == 2 ) go to 795
 
-     if ( alfi(en) /= 0.0D+00 ) go to 710
+     if ( alfi(en) /= 0.0_rkx ) go to 710
 !
 !  Real vector.
 !
      m = en
-     b(en,en) = 1.0D+00
+     b(en,en) = 1.0_rkx
 
      if ( na == 0 ) go to 800
 
@@ -11329,7 +11331,7 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 
         i = en - ii
         w = betm * a(i,i) - alfm * b(i,i)
-        r = 0.0D+00
+        r = 0.0_rkx
 
         do j = m, en
           r = r + ( betm * a(i,j) - alfm * b(i,j) ) * b(j,en)
@@ -11337,7 +11339,7 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 
         if ( i == 1 .or. isw == 2 ) go to 630
 
-        if ( betm * a(i,i-1) == 0.0D+00 ) go to 630
+        if ( betm * a(i,i-1) == 0.0_rkx ) go to 630
 
         zz = w
         s = r
@@ -11352,7 +11354,7 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 !  Real 1-by-1 block.
 !
         t = w
-        if ( w == 0.0D+00 ) t = epsb
+        if ( w == 0.0_rkx ) t = epsb
         b(i,en) = - r / t
         go to 700
 !
@@ -11402,8 +11404,8 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
      y = betm * a(en,na)
      b(na,na) = -almi * b(en,en) / y
      b(na,en) = ( almr * b(en,en) - betm * a(en,en) ) / y
-     b(en,na) = 0.0D+00
-     b(en,en) = 1.0D+00
+     b(en,na) = 0.0_rkx
+     b(en,en) = 1.0_rkx
      enm2 = na - 1
 
      do ii = 1, enm2
@@ -11411,8 +11413,8 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
         i = na - ii
         w = betm * a(i,i) - almr * b(i,i)
         w1 = -almi * b(i,i)
-        ra = 0.0D+00
-        sa = 0.0D+00
+        ra = 0.0_rkx
+        sa = 0.0_rkx
 
         do j = m, en
           x = betm * a(i,j) - almr * b(i,j)
@@ -11422,7 +11424,7 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
         end do
 
         if ( i == 1 .or. isw == 2 ) go to 770
-        if ( betm * a(i,i-1) == 0.0D+00 ) go to 770
+        if ( betm * a(i,i-1) == 0.0_rkx ) go to 770
 
         zz = w
         z1 = w1
@@ -11485,7 +11487,7 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
         ti = y * sa - w * s - w1 * r
         dr = w * zz - w1 * z1 - x * y
         di = w * z1 + w1 * zz - x1 * y
-        if ( dr == 0.0D+00 .and. di == 0.0D+00 ) dr = epsb
+        if ( dr == 0.0_rkx .and. di == 0.0_rkx ) dr = epsb
         go to 775
 
 782     continue
@@ -11531,7 +11533,7 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 
      do i = 1, n
 
-        zz = 0.0D+00
+        zz = 0.0_rkx
 
         do k = 1, j
           zz = zz + z(i,k) * b(k,j)
@@ -11548,9 +11550,9 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 !
   do j = 1, n
 
-     d = 0.0D+00
+     d = 0.0_rkx
      if ( isw == 2 ) go to 920
-     if ( alfi(j) /= 0.0D+00 ) go to 945
+     if ( alfi(j) /= 0.0_rkx ) go to 945
 
      do i = 1, n
        d = max ( d, abs ( z(i,j) ) )
@@ -11564,7 +11566,7 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 
      do i = 1, n
        r = abs ( z(i,j-1) ) + abs ( z(i,j) )
-       if ( r /= 0.0D+00 ) then
+       if ( r /= 0.0_rkx ) then
          r = r * sqrt ( ( z(i,j-1) / r )**2 + ( z(i,j) / r )**2 )
        end if
        if ( r > d ) d = r
@@ -11604,14 +11606,14 @@ subroutine r8_swap ( x, y )
 !
 !  Parameters:
 !
-!    Input/output, real ( kind = 8 ) X, Y.  On output, the values of X and
+!    Input/output, real ( kind = rkx ) X, Y.  On output, the values of X and
 !    Y have been interchanged.
 !
   implicit none
 
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) y
-  real    ( kind = 8 ) z
+  real    ( kind = rkx ) x
+  real    ( kind = rkx ) y
+  real    ( kind = rkx ) z
 
   z = x
   x = y
@@ -11648,7 +11650,7 @@ subroutine r8mat_print ( m, n, a, title )
 !
 !    Input, integer ( kind = 4 ) N, the number of columns in A.
 !
-!    Input, real ( kind = 8 ) A(M,N), the matrix.
+!    Input, real ( kind = rkx ) A(M,N), the matrix.
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
@@ -11657,7 +11659,7 @@ subroutine r8mat_print ( m, n, a, title )
   integer   ( kind = 4 ) m
   integer   ( kind = 4 ) n
 
-  real      ( kind = 8 ) a(m,n)
+  real      ( kind = rkx ) a(m,n)
   character ( len = * )  title
 
   call r8mat_print_some ( m, n, a, 1, 1, m, n, title )
@@ -11691,7 +11693,7 @@ subroutine r8mat_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 !
 !    Input, integer ( kind = 4 ) M, N, the number of rows and columns.
 !
-!    Input, real ( kind = 8 ) A(M,N), an M by N matrix to be printed.
+!    Input, real ( kind = rkx ) A(M,N), an M by N matrix to be printed.
 !
 !    Input, integer ( kind = 4 ) ILO, JLO, the first row and column to print.
 !
@@ -11705,7 +11707,7 @@ subroutine r8mat_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
   integer   ( kind = 4 ) m
   integer   ( kind = 4 ) n
 
-  real      ( kind = 8 ) a(m,n)
+  real      ( kind = rkx ) a(m,n)
   character ( len = 14 ) ctemp(incx)
   integer   ( kind = 4 ) i
   integer   ( kind = 4 ) i2hi
@@ -11752,7 +11754,7 @@ subroutine r8mat_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
 
         j = j2lo - 1 + j2
 
-        if ( a(i,j) == real ( int ( a(i,j) ), kind = 8 ) ) then
+        if ( a(i,j) == real ( int ( a(i,j) ), kind = rkx ) ) then
           write ( ctemp(j2), '(f8.0,6x)' ) a(i,j)
         else
           write ( ctemp(j2), '(g14.6)' ) a(i,j)
@@ -11791,7 +11793,7 @@ subroutine r8vec_print ( n, a, title )
 !
 !    Input, integer ( kind = 4 ) N, the number of components of the vector.
 !
-!    Input, real ( kind = 8 ) A(N), the vector to be printed.
+!    Input, real ( kind = rkx ) A(N), the vector to be printed.
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
@@ -11799,7 +11801,7 @@ subroutine r8vec_print ( n, a, title )
 
   integer   ( kind = 4 ) n
 
-  real      ( kind = 8 ) a(n)
+  real      ( kind = rkx ) a(n)
   integer   ( kind = 4 ) i
   character ( len = * ) title
 
@@ -11836,7 +11838,7 @@ subroutine r8vec2_print ( n, a1, a2, title )
 !
 !    Input, integer ( kind = 4 ) N, the number of components of the vector.
 !
-!    Input, real ( kind = 8 ) A1(N), A2(N), the vectors to be printed.
+!    Input, real ( kind = rkx ) A1(N), A2(N), the vectors to be printed.
 !
 !    Input, character ( len = * ) TITLE, a title.
 !
@@ -11844,8 +11846,8 @@ subroutine r8vec2_print ( n, a1, a2, title )
 
   integer   ( kind = 4 ) n
 
-  real      ( kind = 8 ) a1(n)
-  real      ( kind = 8 ) a2(n)
+  real      ( kind = rkx ) a1(n)
+  real      ( kind = rkx ) a2(n)
   integer   ( kind = 4 ) i
   character ( len = * )  title
 
@@ -11858,8 +11860,8 @@ subroutine r8vec2_print ( n, a1, a2, title )
     do i = 1, n
       write ( *, '(i8,2i8)' ) i, int ( a1(i) ), int ( a2(i) )
     end do
-  else if ( all ( abs ( a1(1:n) ) < 1000000.0D+00 ) .and. &
-            all ( abs ( a2(1:n) ) < 1000000.0D+00 ) ) then
+  else if ( all ( abs ( a1(1:n) ) < 1000000.0_rkx ) .and. &
+            all ( abs ( a2(1:n) ) < 1000000.0_rkx ) ) then
     do i = 1, n
       write ( *, '(i8,2f14.6)' ) i, a1(i), a2(i)
     end do
@@ -11919,7 +11921,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) EPS1.  On input, a theoretical absolute
+!    Input/output, real ( kind = rkx ) EPS1.  On input, a theoretical absolute
 !    error tolerance for the computed eigenvalues.  If the input EPS1 is
 !    non-positive, or indeed smaller than its default value, it is reset at
 !    each iteration to the respective default value, namely, the product of
@@ -11928,22 +11930,22 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !    not greater than K times EPS1.  On output, EPS1 is unaltered unless it has
 !    been reset to its (last) default value.
 !
-!    Input, real ( kind = 8 ) D(N), the diagonal elements of the input matrix.
+!    Input, real ( kind = rkx ) D(N), the diagonal elements of the input matrix.
 !
-!    Input, real ( kind = 8 ) E(N), the subdiagonal elements of the input matrix
+!    Input, real ( kind = rkx ) E(N), the subdiagonal elements of the input matrix
 !    in E(2:N).  E(1) is arbitrary.
 !
-!    Input/output, real ( kind = 8 ) E2(N).  On input, E2(2:N-1) contains the
+!    Input/output, real ( kind = rkx ) E2(N).  On input, E2(2:N-1) contains the
 !    squares of the corresponding elements of E, and E2(1) is arbitrary.  On
 !    output, elements of E2 corresponding to elements of E regarded as
 !    negligible have been replaced by zero, causing the matrix to split into
-!    a direct sum of submatrices.  E2(1) is set to 0.0D+00 if the smallest
-!    eigenvalues have been found, and to 2.0D+00 if the largest eigenvalues
+!    a direct sum of submatrices.  E2(1) is set to 0.0_rkx if the smallest
+!    eigenvalues have been found, and to 2.0_rkx if the largest eigenvalues
 !    have been found.  E2 is otherwise unaltered (unless overwritten by BD).
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvalues to be found.
 !
-!    Output, real ( kind = 8 ) W(M), the M algebraically smallest eigenvalues in
+!    Output, real ( kind = rkx ) W(M), the M algebraically smallest eigenvalues in
 !    ascending order, or the M largest eigenvalues in descending order.
 !    If an error exit is made because of an incorrect specification of IDEF,
 !    no eigenvalues are found.  If the Newton iterates for a particular
@@ -11955,7 +11957,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !    1 for eigenvalues belonging to the first submatrix from the top, 2 for
 !    those belonging to the second submatrix, and so on.
 !
-!    Output, real ( kind = 8 ) BD(N), contains refined bounds for the
+!    Output, real ( kind = rkx ) BD(N), contains refined bounds for the
 !    theoretical errors of the corresponding eigenvalues in W.  These bounds
 !    are usually within the tolerance specified by EPS1.  BD may coincide
 !    with E2.
@@ -11979,15 +11981,15 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) bd(n)
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) delta
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) e2(n)
-  real    ( kind = 8 ) ep
-  real    ( kind = 8 ) eps1
-  real    ( kind = 8 ) err
-  real    ( kind = 8 ) f
+  real    ( kind = rkx ) bd(n)
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) delta
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) e2(n)
+  real    ( kind = rkx ) ep
+  real    ( kind = rkx ) eps1
+  real    ( kind = rkx ) err
+  real    ( kind = rkx ) f
   integer ( kind = 4 ) i
   integer ( kind = 4 ) idef
   integer ( kind = 4 ) ierr
@@ -11998,14 +12000,14 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
   integer ( kind = 4 ) jj
   integer ( kind = 4 ) k
   integer ( kind = 4 ) m
-  real    ( kind = 8 ) p
-  real    ( kind = 8 ) q
-  real    ( kind = 8 ) qp
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) tot
+  real    ( kind = rkx ) p
+  real    ( kind = rkx ) q
+  real    ( kind = rkx ) qp
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) tot
   logical              type
-  real    ( kind = 8 ) w(n)
+  real    ( kind = rkx ) w(n)
 
   ierr = 0
   jdef = idef
@@ -12018,8 +12020,8 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 
 40 continue
 
-  err = 0.0D+00
-  s = 0.0D+00
+  err = 0.0_rkx
+  s = 0.0_rkx
 !
 !  Look for small sub-diagonal entries and define initial shift
 !  from lower Gerschgorin bound.
@@ -12027,7 +12029,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !  Copy E2 array into BD.
 !
   tot = w(1)
-  q = 0.0D+00
+  q = 0.0_rkx
   j = 0
 
   do i = 1, n
@@ -12042,7 +12044,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 
 60   continue
 
-     e2(i) = 0.0D+00
+     e2(i) = 0.0_rkx
 
 80   continue
 
@@ -12050,15 +12052,15 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !
 !  Count also if element of E2 has underflowed.
 !
-     if ( e2(i) == 0.0D+00 ) j = j + 1
+     if ( e2(i) == 0.0_rkx ) j = j + 1
      ind(i) = j
-     q = 0.0D+00
+     q = 0.0_rkx
      if ( i /= n ) q = abs ( e(i+1) )
      tot = min ( w(i)-p-q, tot )
 
   end do
 
-  if ( jdef == 1 .and. tot < 0.0D+00 ) then
+  if ( jdef == 1 .and. tot < 0.0_rkx ) then
     go to 140
   end if
 
@@ -12068,7 +12070,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 
 140 continue
 
-  tot = 0.0D+00
+  tot = 0.0_rkx
 
 160 continue
 
@@ -12094,20 +12096,20 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 
      do j = k+1, n
        if ( bd(j) <= ( abs (  w(j) + w(j-1) ) * epsilon ( bd(j) ) ) ** 2 ) then
-         bd(j) = 0.0D+00
+         bd(j) = 0.0_rkx
        end if
      end do
 
      f = bd(n) / delta
      qp = delta + f
-     p = 1.0D+00
+     p = 1.0_rkx
 
      do ii = 1, n-k
 
        i = n - ii
        q = w(i) - s - f
        r = q / qp
-       p = p * r + 1.0D+00
+       p = p * r + 1.0_rkx
        ep = f * r
        w(i+1) = qp + ep
        delta = q - ep
@@ -12133,7 +12135,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !  Deflate minimum diagonal element.
 !
      ierr = 5 * n + k
-     s = 0.0D+00
+     s = 0.0_rkx
      delta = qp
 
      do j = k, n
@@ -12169,7 +12171,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
   end if
 
   f = bd(1)
-  e2(1) = 2.0D+00
+  e2(1) = 2.0_rkx
   bd(1) = f
   j = 2
 !
@@ -12241,15 +12243,15 @@ subroutine rebak ( n, b, dl, m, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) B(N,N), contains information about the similarity
+!    Input, real ( kind = rkx ) B(N,N), contains information about the similarity
 !    transformation (Cholesky decomposition) used in the reduction by REDUC
 !    in its strict lower triangle.
 !
-!    Input, real ( kind = 8 ) DL(N), further information about the transformation.
+!    Input, real ( kind = rkx ) DL(N), further information about the transformation.
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the eigenvectors to be back
+!    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed in its first M columns.  On output, the transformed
 !    eigenvectors.
 !
@@ -12258,11 +12260,11 @@ subroutine rebak ( n, b, dl, m, z )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) b(n,n)
-  real    ( kind = 8 ) dl(n)
+  real    ( kind = rkx ) b(n,n)
+  real    ( kind = rkx ) dl(n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) j
-  real    ( kind = 8 ) z(n,m)
+  real    ( kind = rkx ) z(n,m)
 
   do j = 1, m
     do i = n, 1, -1
@@ -12320,15 +12322,15 @@ subroutine rebakb ( n, b, dl, m, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) B(N,N), contains information about the similarity
+!    Input, real ( kind = rkx ) B(N,N), contains information about the similarity
 !    transformation (Cholesky decomposition) used in the reduction by REDUC2
 !    in its strict lower triangle.
 !
-!    Input, real ( kind = 8 ) DL(N), further information about the transformation.
+!    Input, real ( kind = rkx ) DL(N), further information about the transformation.
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the eigenvectors to be back
+!    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed in its first M columns.  On output, the transformed
 !    eigenvectors.
 !
@@ -12337,11 +12339,11 @@ subroutine rebakb ( n, b, dl, m, z )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) b(n,n)
-  real    ( kind = 8 ) dl(n)
+  real    ( kind = rkx ) b(n,n)
+  real    ( kind = rkx ) dl(n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) j
-  real    ( kind = 8 ) z(n,m)
+  real    ( kind = rkx ) z(n,m)
 
   do j = 1, m
 
@@ -12404,20 +12406,20 @@ subroutine reduc ( n, a, b, dl, ierr )
 !    Input, integer ( kind = 4 ) N, the order of the matrices A and B.  If the Cholesky
 !    factor L of B is already available, N should be prefixed with a minus sign.
 !
-!    Input/output, real ( kind = 8 ) A(N,N).  On input, A contains a real symmetric matrix.
+!    Input/output, real ( kind = rkx ) A(N,N).  On input, A contains a real symmetric matrix.
 !    Only the full upper triangle of the matrix need be supplied.
 !    On output, A contains in its full lower triangle the full lower triangle
 !    of the symmetric matrix derived from the reduction to the
 !    standard form.  The strict upper triangle of a is unaltered.
 !
-!    Input/output, real ( kind = 8 ) B(N,N).  On input, the real symmetric input matrix.
+!    Input/output, real ( kind = rkx ) B(N,N).  On input, the real symmetric input matrix.
 !    Only the full upper triangle of the matrix need be supplied.  If
 !    N is negative, the strict lower triangle of B contains, instead, the
 !    strict lower triangle of its Cholesky factor L.  In any case, on output,
 !    B contains in its strict lower triangle the strict lower triangle of
 !    its Cholesky factor L.  The full upper triangle of B is unaltered.
 !
-!    Input/output, real ( kind = 8 ) DL(N).  If N is negative, then the DL contains
+!    Input/output, real ( kind = rkx ) DL(N).  If N is negative, then the DL contains
 !    the diagonal elements of L on input.  In any case, DL will contain
 !    the diagonal elements of L on output,
 !
@@ -12429,16 +12431,16 @@ subroutine reduc ( n, a, b, dl, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) b(n,n)
-  real    ( kind = 8 ) dl(n)
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) b(n,n)
+  real    ( kind = rkx ) dl(n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) nn
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) y
+  real    ( kind = rkx ) x
+  real    ( kind = rkx ) y
 
   ierr = 0
   nn = abs ( n )
@@ -12457,7 +12459,7 @@ subroutine reduc ( n, a, b, dl, ierr )
 
         if ( j == i ) then
 
-          if ( x <= 0.0D+00 ) then
+          if ( x <= 0.0_rkx ) then
             write ( *, '(a)' ) ' '
             write ( *, '(a)' ) 'REDUC - Fatal error!'
             write ( *, '(a)' ) '  The matrix is not positive definite.'
@@ -12570,20 +12572,20 @@ subroutine reduc2 ( n, a, b, dl, ierr )
 !    Input, integer ( kind = 4 ) N, the order of the matrices A and B.  If the Cholesky
 !    factor L of B is already available, N should be prefixed with a minus sign.
 !
-!    Input/output, real ( kind = 8 ) A(N,N).  On input, A contains a real symmetric matrix.
+!    Input/output, real ( kind = rkx ) A(N,N).  On input, A contains a real symmetric matrix.
 !    Only the full upper triangle of the matrix need be supplied.
 !    On output, A contains in its full lower triangle the full lower triangle
 !    of the symmetric matrix derived from the reduction to the
 !    standard form.  The strict upper triangle of a is unaltered.
 !
-!    Input/output, real ( kind = 8 ) B(N,N).  On input, the real symmetric input matrix.
+!    Input/output, real ( kind = rkx ) B(N,N).  On input, the real symmetric input matrix.
 !    Only the full upper triangle of the matrix need be supplied.  If
 !    N is negative, the strict lower triangle of B contains, instead, the
 !    strict lower triangle of its Cholesky factor L.  In any case, on output,
 !    B contains in its strict lower triangle the strict lower triangle of
 !    its Cholesky factor L.  The full upper triangle of B is unaltered.
 !
-!    Input/output, real ( kind = 8 ) DL(N).  If N is negative, then the DL contains
+!    Input/output, real ( kind = rkx ) DL(N).  If N is negative, then the DL contains
 !    the diagonal elements of L on input.  In any case, DL will contain
 !    the diagonal elements of L on output,
 !
@@ -12595,16 +12597,16 @@ subroutine reduc2 ( n, a, b, dl, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) b(n,n)
-  real    ( kind = 8 ) dl(n)
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) b(n,n)
+  real    ( kind = rkx ) dl(n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) nn
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) y
+  real    ( kind = rkx ) x
+  real    ( kind = rkx ) y
 
   ierr = 0
   nn = abs ( n )
@@ -12623,7 +12625,7 @@ subroutine reduc2 ( n, a, b, dl, ierr )
 
         if ( j == i ) then
 
-          if ( x <= 0.0D+00 ) then
+          if ( x <= 0.0_rkx ) then
             write ( *, '(a)' ) ' '
             write ( *, '(a)' ) 'REDUC2 - Fatal error!'
             write ( *, '(a)' ) '  The matrix is not positive definite.'
@@ -12737,17 +12739,17 @@ subroutine rg ( n, a, wr, wi, matz, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) A(N,N), the real general matrix.  On output,
+!    Input/output, real ( kind = rkx ) A(N,N), the real general matrix.  On output,
 !    A has been overwritten.
 !
 !    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts, respectively,
+!    Output, real ( kind = rkx ) WR(N), WI(N), the real and imaginary parts, respectively,
 !    of the eigenvalues.  Complex conjugate pairs of eigenvalues appear
 !    consecutively with the eigenvalue having the positive imaginary part first.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the real and imaginary parts of the
+!    Output, real ( kind = rkx ) Z(N,N), contains the real and imaginary parts of the
 !    eigenvectors if MATZ is not zero.  If the J-th eigenvalue is real, the
 !    J-th column of Z contains its eigenvector.  If the J-th eigenvalue is
 !    complex with positive imaginary part, the J-th and (J+1)-th columns of
@@ -12761,16 +12763,16 @@ subroutine rg ( n, a, wr, wi, matz, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) fv1(n)
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) fv1(n)
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) is1
   integer ( kind = 4 ) is2
   integer ( kind = 4 ) iv1(n)
   integer ( kind = 4 ) matz
-  real    ( kind = 8 ) wi(n)
-  real    ( kind = 8 ) wr(n)
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) wi(n)
+  real    ( kind = rkx ) wr(n)
+  real    ( kind = rkx ) z(n,n)
 
   call balanc ( n, a, is1, is2, fv1 )
 
@@ -12851,21 +12853,21 @@ subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrices A and B.
 !
-!    Input/output, real ( kind = 8 ) A(N,N), B(N,N), the two real general matrices.
+!    Input/output, real ( kind = rkx ) A(N,N), B(N,N), the two real general matrices.
 !    On output, A and B have been overwritten.
 !
 !    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
-!    Output, real ( kind = 8 ) ALFR(N), ALFI(N), the real and imaginary parts,
+!    Output, real ( kind = rkx ) ALFR(N), ALFI(N), the real and imaginary parts,
 !    respectively, of the numerators of the eigenvalues.
 !
-!    Output, real ( kind = 8 ) BETA(N), the denominators of the eigenvalues,
+!    Output, real ( kind = rkx ) BETA(N), the denominators of the eigenvalues,
 !    which are thus given by the ratios (ALFR + I * ALFI ) / BETA.
 !    Complex conjugate pairs of eigenvalues appear consecutively
 !    with the eigenvalue having the positive imaginary part first.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the real and imaginary parts of the
+!    Output, real ( kind = rkx ) Z(N,N), contains the real and imaginary parts of the
 !    eigenvectors if MATZ is not zero.  If the J-th eigenvalue is real, the
 !    J-th column of Z contains its eigenvector.  If the J-th eigenvalue is
 !    complex with positive imaginary part, the J-th and (J+1)-th columns of
@@ -12880,18 +12882,18 @@ subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) alfi(n)
-  real    ( kind = 8 ) alfr(n)
-  real    ( kind = 8 ) b(n,n)
-  real    ( kind = 8 ) beta(n)
-  real    ( kind = 8 ) eps1
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) alfi(n)
+  real    ( kind = rkx ) alfr(n)
+  real    ( kind = rkx ) b(n,n)
+  real    ( kind = rkx ) beta(n)
+  real    ( kind = rkx ) eps1
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) matz
   logical              tf
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) z(n,n)
 
-  eps1 = 0.0D+00
+  eps1 = 0.0_rkx
 
   if ( matz == 0 ) then
     tf = .false.
@@ -12964,14 +12966,14 @@ subroutine rs ( n, a, w, matz, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,N), the real symmetric matrix.
+!    Input, real ( kind = rkx ) A(N,N), the real symmetric matrix.
 !
 !    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
-!    Output, real ( kind = 8 ) W(N), the eigenvalues in ascending order.
+!    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
+!    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set equal to an error
 !    completion code described in the documentation for TQLRAT and TQL2.
@@ -12981,13 +12983,13 @@ subroutine rs ( n, a, w, matz, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) fv1(n)
-  real    ( kind = 8 ) fv2(n)
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) fv1(n)
+  real    ( kind = rkx ) fv2(n)
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) matz
-  real    ( kind = 8 ) w(n)
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) z(n,n)
 
   if ( matz == 0 ) then
 
@@ -13058,7 +13060,7 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
 !    number of adjacent diagonals, including the principal diagonal, required
 !    to specify the non-zero portion of the lower triangle of the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,MB), contains the lower triangle of the real symmetric
+!    Input, real ( kind = rkx ) A(N,MB), contains the lower triangle of the real symmetric
 !    band matrix.  Its lowest subdiagonal is stored in the last N+1-MB
 !    positions of the first column, its next subdiagonal in the last
 !    N+2-MB positions of the second column, further subdiagonals similarly,
@@ -13068,9 +13070,9 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
 !    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
-!    Output, real ( kind = 8 ) W(N), the eigenvalues in ascending order.
+!    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
+!    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
 !    completion code described in the documentation for TQLRAT and TQL2.
@@ -13081,14 +13083,14 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
   integer ( kind = 4 ) mb
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,mb)
-  real    ( kind = 8 ) fv1(n)
-  real    ( kind = 8 ) fv2(n)
+  real    ( kind = rkx ) a(n,mb)
+  real    ( kind = rkx ) fv1(n)
+  real    ( kind = rkx ) fv2(n)
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) matz
   logical              tf
-  real    ( kind = 8 ) w(n)
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) z(n,n)
 
   if ( mb <= 0 ) then
     ierr = 12 * n
@@ -13173,16 +13175,16 @@ subroutine rsg ( n, a, b, w, matz, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrices A and B.
 !
-!    Input, real ( kind = 8 ) A(N,N), contains a real symmetric matrix.
+!    Input, real ( kind = rkx ) A(N,N), contains a real symmetric matrix.
 !
-!    Input, real ( kind = 8 ) B(N,N), contains a positive definite real symmetric matrix.
+!    Input, real ( kind = rkx ) B(N,N), contains a positive definite real symmetric matrix.
 !
 !    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
-!    Output, real ( kind = 8 ) W(N), the eigenvalues in ascending order.
+!    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
+!    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
 !    completion code described in the documentation for TQLRAT and TQL2.
@@ -13192,14 +13194,14 @@ subroutine rsg ( n, a, b, w, matz, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) b(n,n)
-  real    ( kind = 8 ) fv1(n)
-  real    ( kind = 8 ) fv2(n)
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) b(n,n)
+  real    ( kind = rkx ) fv1(n)
+  real    ( kind = rkx ) fv2(n)
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) matz
-  real    ( kind = 8 ) w(n)
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) z(n,n)
 
   call reduc ( n, a, b, fv2, ierr )
 
@@ -13291,16 +13293,16 @@ subroutine rsgab ( n, a, b, w, matz, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrices A and B.
 !
-!    Input, real ( kind = 8 ) A(N,N), contains a real symmetric matrix.
+!    Input, real ( kind = rkx ) A(N,N), contains a real symmetric matrix.
 !
-!    Input, real ( kind = 8 ) B(N,N), contains a positive definite real symmetric matrix.
+!    Input, real ( kind = rkx ) B(N,N), contains a positive definite real symmetric matrix.
 !
 !    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
-!    Output, real ( kind = 8 ) W(N), the eigenvalues in ascending order.
+!    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
+!    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
 !    completion code described in the documentation for TQLRAT and TQL2.
@@ -13310,14 +13312,14 @@ subroutine rsgab ( n, a, b, w, matz, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) b(n,n)
-  real    ( kind = 8 ) fv1(n)
-  real    ( kind = 8 ) fv2(n)
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) b(n,n)
+  real    ( kind = rkx ) fv1(n)
+  real    ( kind = rkx ) fv2(n)
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) matz
-  real    ( kind = 8 ) w(n)
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) z(n,n)
 
   call reduc2 ( n, a, b, fv2, ierr )
 
@@ -13398,16 +13400,16 @@ subroutine rsgba ( n, a, b, w, matz, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrices A and B.
 !
-!    Input, real ( kind = 8 ) A(N,N), a real symmetric matrix.
+!    Input, real ( kind = rkx ) A(N,N), a real symmetric matrix.
 !
-!    Input, real ( kind = 8 ) B(N,N), a positive definite symmetric matrix.
+!    Input, real ( kind = rkx ) B(N,N), a positive definite symmetric matrix.
 !
 !    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
-!    Output, real ( kind = 8 ) W(N), the eigenvalues in ascending order.
+!    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
+!    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
 !    completion code described in the documentation for TQLRAT and TQL2.
@@ -13417,14 +13419,14 @@ subroutine rsgba ( n, a, b, w, matz, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) b(n,n)
-  real    ( kind = 8 ) fv1(n)
-  real    ( kind = 8 ) fv2(n)
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) b(n,n)
+  real    ( kind = rkx ) fv1(n)
+  real    ( kind = rkx ) fv2(n)
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) matz
-  real    ( kind = 8 ) w(n)
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) z(n,n)
 
   call reduc2 ( n, a, b, fv2, ierr )
 
@@ -13503,13 +13505,13 @@ subroutine rsm ( n, a, w, m, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,N), the symmetric matrix.
+!    Input, real ( kind = rkx ) A(N,N), the symmetric matrix.
 !
 !    Input, integer ( kind = 4 ) M, specifies the number of eigenvectors to compute.
 !
-!    Output, real ( kind = 8 ) W(N), the eigenvalues in ascending order.
+!    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
-!    Output, real ( kind = 8 ) Z(N,M), contains the orthonormal eigenvectors associated
+!    Output, real ( kind = rkx ) Z(N,M), contains the orthonormal eigenvectors associated
 !    with the first M eigenvalues.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
@@ -13521,14 +13523,14 @@ subroutine rsm ( n, a, w, m, z, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) fwork1(n)
-  real    ( kind = 8 ) fwork2(n)
-  real    ( kind = 8 ) fwork3(n)
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) fwork1(n)
+  real    ( kind = rkx ) fwork2(n)
+  real    ( kind = rkx ) fwork3(n)
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) iwork(n)
-  real    ( kind = 8 ) w(n)
-  real    ( kind = 8 ) z(n,m)
+  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) z(n,m)
 
   if ( m <= 0 ) then
 
@@ -13602,15 +13604,15 @@ subroutine rsp ( n, nv, a, w, matz, z, ierr )
 !    Input, integer ( kind = 4 ) NV, the dimension of the array A, which
 !    must be at least (N*(N+1))/2.
 !
-!    Input, real ( kind = 8 ) A(NV), contains the lower triangle of the real symmetric
+!    Input, real ( kind = rkx ) A(NV), contains the lower triangle of the real symmetric
 !    packed matrix stored row-wise.
 !
 !    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
-!    Output, real ( kind = 8 ) W(N), the eigenvalues in ascending order.
+!    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
+!    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
 !    completion code described in the documentation for TQLRAT and TQL2.
@@ -13621,14 +13623,14 @@ subroutine rsp ( n, nv, a, w, matz, z, ierr )
   integer ( kind = 4 ) n
   integer ( kind = 4 ) nv
 
-  real    ( kind = 8 ) a(nv)
-  real    ( kind = 8 ) fv1(n)
-  real    ( kind = 8 ) fv2(n)
+  real    ( kind = rkx ) a(nv)
+  real    ( kind = rkx ) fv1(n)
+  real    ( kind = rkx ) fv2(n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) matz
-  real    ( kind = 8 ) w(n)
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) z(n,n)
 
   if ( ( n * ( n + 1 ) ) / 2 > nv ) then
     ierr = 20 * n
@@ -13650,10 +13652,10 @@ subroutine rsp ( n, nv, a, w, matz, z, ierr )
 
   else
 
-    z(1:n,1:n) = 0.0D+00
+    z(1:n,1:n) = 0.0_rkx
 
     do i = 1, n
-      z(i,i) = 1.0D+00
+      z(i,i) = 1.0_rkx
     end do
 
     call tql2 ( n, w, fv1, z, ierr )
@@ -13726,18 +13728,18 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
 !    Input, integer ( kind = 4 ) NV, is the of the array A as specified in the
 !    calling program.  NV must not be less than N*(N+1)/2.
 !
-!    Input, real ( kind = 8 ) A((N*(N+1))/2), on input the lower triangle of the
+!    Input, real ( kind = rkx ) A((N*(N+1))/2), on input the lower triangle of the
 !    real symmetric matrix, stored row-wise in the vector,
 !    in the order A(1,1), / A(2,1), A(2,2), / A(3,1), A(3,2), A(3,3)/
 !    and so on.
 !
-!    Output, real ( kind = 8 ) W(M), the eigenvalues requested.
+!    Output, real ( kind = rkx ) W(M), the eigenvalues requested.
 !
 !    Input, integer ( kind = 4 ) MATZ, is set to 0 if only eigenvalues are
 !    desired.  Otherwise it is set to any non-zero integer for both eigenvalues
 !    and eigenvectors.
 !
-!    Output, real ( kind = 8 ) Z(N,M), the eigenvectors.
+!    Output, real ( kind = rkx ) Z(N,M), the eigenvectors.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag from RATQR.  IERR=0 on
 !    normal return.  IERR nonzero, in this case, means that the algorithm broke
@@ -13754,19 +13756,19 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
   integer ( kind = 4 ) n
   integer ( kind = 4 ) nv
 
-  real    ( kind = 8 ) a(nv)
-  real    ( kind = 8 ) bd(n)
-  real    ( kind = 8 ) eps1
+  real    ( kind = rkx ) a(nv)
+  real    ( kind = rkx ) bd(n)
+  real    ( kind = rkx ) eps1
   integer ( kind = 4 ) idef
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) iwork(n)
   integer ( kind = 4 ) matz
   logical              type
-  real    ( kind = 8 ) w(m)
-  real    ( kind = 8 ) work1(n)
-  real    ( kind = 8 ) work2(n)
-  real    ( kind = 8 ) work3(n)
-  real    ( kind = 8 ) z(n,m)
+  real    ( kind = rkx ) w(m)
+  real    ( kind = rkx ) work1(n)
+  real    ( kind = rkx ) work2(n)
+  real    ( kind = rkx ) work3(n)
+  real    ( kind = rkx ) z(n,m)
 !
 !  IDEF =
 !    -1 if the matrix is known to be negative definite,
@@ -13781,7 +13783,7 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
 !
 !  Find the eigenvalues.
 !
-  eps1 = 0.0D+00
+  eps1 = 0.0_rkx
 
   call ratqr ( n, eps1, work1, work2, work3, m, w, iwork, &
     bd, type, idef, ierr )
@@ -13862,17 +13864,17 @@ subroutine rst ( n, w, e, matz, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) W(N).  On input, the diagonal elements
+!    Input/output, real ( kind = rkx ) W(N).  On input, the diagonal elements
 !    of the real symmetric tridiagonal matrix.  On output, the eigenvalues in
 !    ascending order.
 !
-!    Input, real ( kind = 8 ) E(N), the subdiagonal elements of the matrix in
+!    Input, real ( kind = rkx ) E(N), the subdiagonal elements of the matrix in
 !    E(2:N).  E(1) is arbitrary.
 !
 !    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired,
 !    and nonzero if both eigenvalues and eigenvectors are desired.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ
+!    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ
 !    is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
@@ -13883,12 +13885,12 @@ subroutine rst ( n, w, e, matz, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) e(n)
+  real    ( kind = rkx ) e(n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) matz
-  real    ( kind = 8 ) w(n)
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) z(n,n)
 
   if ( matz == 0 ) then
 
@@ -13903,10 +13905,10 @@ subroutine rst ( n, w, e, matz, z, ierr )
 
   else
 
-    z(1:n,1:n) = 0.0D+00
+    z(1:n,1:n) = 0.0_rkx
 
     do i = 1, n
-      z(i,i) = 1.0D+00
+      z(i,i) = 1.0_rkx
     end do
 
     call imtql2 ( n, w, e, z, ierr )
@@ -13970,7 +13972,7 @@ subroutine rt ( n, a, w, matz, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,N), contains the special real tridiagonal
+!    Input, real ( kind = rkx ) A(N,N), contains the special real tridiagonal
 !    matrix in its first three columns.  The subdiagonal elements are stored
 !    in the last N-1 positions of the first column, the diagonal elements
 !    in the second column, and the superdiagonal elements in the first N-1
@@ -13979,9 +13981,9 @@ subroutine rt ( n, a, w, matz, z, ierr )
 !    Input, integer ( kind = 4 ) MATZ, is 0 if only eigenvalues are desired,
 !    and nonzero if both eigenvalues and eigenvectors are desired.
 !
-!    Output, real ( kind = 8 ) W(N), the eigenvalues in ascending order.
+!    Output, real ( kind = rkx ) W(N), the eigenvalues in ascending order.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ
+!    Output, real ( kind = rkx ) Z(N,N), contains the eigenvectors, if MATZ
 !    is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
@@ -13992,12 +13994,12 @@ subroutine rt ( n, a, w, matz, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) fv1(n)
+  real    ( kind = rkx ) fv1(n)
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) matz
-  real    ( kind = 8 ) a(n,3)
-  real    ( kind = 8 ) w(n)
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) a(n,3)
+  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) z(n,n)
 
   if ( matz == 0 ) then
 
@@ -14101,9 +14103,9 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !    Input, integer ( kind = 4 ) N, the number of columns of A and U, and
 !    the order of V.
 !
-!    Input, real ( kind = 8 ) A(M,N), the M by N matrix to be decomposed.
+!    Input, real ( kind = rkx ) A(M,N), the M by N matrix to be decomposed.
 !
-!    Output, real ( kind = 8 ) W(N), the singular values of A.  These are the
+!    Output, real ( kind = rkx ) W(N), the singular values of A.  These are the
 !    diagonal elements of S.  They are unordered.  If an error exit is
 !    made, the singular values should be correct for indices
 !    IERR+1, IERR+2,..., N.
@@ -14111,7 +14113,7 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !    Input, logical MATU, should be set to TRUE if the U matrix in the
 !    decomposition is desired, and to FALSE otherwise.
 !
-!    Output, real ( kind = 8 ) U(M,N), contains the matrix U, with orthogonal
+!    Output, real ( kind = rkx ) U(M,N), contains the matrix U, with orthogonal
 !    columns, of the decomposition, if MATU has been set to TRUE.  Otherwise
 !    U is used as a temporary array.  U may coincide with A.
 !    If an error exit is made, the columns of U corresponding
@@ -14120,7 +14122,7 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !    Input, logical MATV, should be set to TRUE if the V matrix in the
 !    decomposition is desired, and to FALSE otherwise.
 !
-!    Output, real ( kind = 8 ) V(N,N), the orthogonal matrix V of the decomposition if
+!    Output, real ( kind = rkx ) V(N,N), the orthogonal matrix V of the decomposition if
 !    MATV has been set to TRUE.  Otherwise V is not referenced.
 !    V may also coincide with A if U is not needed.  If an error
 !    exit is made, the columns of V corresponding to indices of
@@ -14135,11 +14137,11 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(m,n)
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) a(m,n)
+  real    ( kind = rkx ) c
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) its
@@ -14154,40 +14156,40 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
   logical              matu
   logical              matv
   integer ( kind = 4 ) mn
-  real    ( kind = 8 ) rv1(n)
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) xscale
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) u(m,n)
-  real    ( kind = 8 ) v(n,n)
-  real    ( kind = 8 ) w(n)
-  real    ( kind = 8 ) x
-  real    ( kind = 8 ) y
-  real    ( kind = 8 ) z
+  real    ( kind = rkx ) rv1(n)
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) xscale
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) u(m,n)
+  real    ( kind = rkx ) v(n,n)
+  real    ( kind = rkx ) w(n)
+  real    ( kind = rkx ) x
+  real    ( kind = rkx ) y
+  real    ( kind = rkx ) z
 
   ierr = 0
   u(1:m,1:n) = a(1:m,1:n)
 !
 !  Householder reduction to bidiagonal form.
 !
-  g = 0.0D+00
-  xscale = 0.0D+00
-  x = 0.0D+00
+  g = 0.0_rkx
+  xscale = 0.0_rkx
+  x = 0.0_rkx
 
   do i = 1, n
 
     l = i + 1
     rv1(i) = xscale * g
-    g = 0.0D+00
-    s = 0.0D+00
-    xscale = 0.0D+00
+    g = 0.0_rkx
+    s = 0.0_rkx
+    xscale = 0.0_rkx
 
     if ( i <= m ) then
 
       xscale = sum ( abs ( u(i:m,i) ) )
 
-      if ( xscale /= 0.0D+00 ) then
+      if ( xscale /= 0.0_rkx ) then
 
         u(i:m,i) = u(i:m,i) / xscale
 
@@ -14214,15 +14216,15 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
     end if
 
     w(i) = xscale * g
-    g = 0.0D+00
-    s = 0.0D+00
-    xscale = 0.0D+00
+    g = 0.0_rkx
+    s = 0.0_rkx
+    xscale = 0.0_rkx
 
     if ( i <= m .and. i /= n ) then
 
       xscale = sum ( abs ( u(i,l:n) ) )
 
-      if ( xscale /= 0.0D+00 ) then
+      if ( xscale /= 0.0_rkx ) then
 
         u(i,l:n) = u(i,l:n) / xscale
         s = sum ( u(i,l:n)**2 )
@@ -14262,7 +14264,7 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 
       if ( i /= n ) then
 
-         if ( g /= 0.0D+00 ) then
+         if ( g /= 0.0_rkx ) then
 
           v(l:n,i) = ( u(i,l:n) / u(i,l) ) / g
 
@@ -14276,12 +14278,12 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 
         end if
 
-        v(i,l:n) = 0.0D+00
-        v(l:n,i) = 0.0D+00
+        v(i,l:n) = 0.0_rkx
+        v(l:n,i) = 0.0_rkx
 
       end if
 
-      v(i,i) = 1.0D+00
+      v(i,i) = 1.0_rkx
       g = rv1(i)
       l = i
 
@@ -14301,10 +14303,10 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
       g = w(i)
 
       if ( i /= n ) then
-        u(i,l:n) = 0.0D+00
+        u(i,l:n) = 0.0_rkx
       end if
 
-      if ( g /= 0.0D+00 ) then
+      if ( g /= 0.0_rkx ) then
 
         if ( i /= mn ) then
 
@@ -14320,11 +14322,11 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 
       else
 
-        u(i:m,i) = 0.0D+00
+        u(i:m,i) = 0.0_rkx
 
       end if
 
-      u(i,i) = u(i,i) + 1.0D+00
+      u(i,i) = u(i,i) + 1.0_rkx
 
     end do
 
@@ -14364,8 +14366,8 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !
 !  Cancellation of rv1(l) if L greater than 1.
 !
-     c = 0.0D+00
-     s = 1.0D+00
+     c = 0.0_rkx
+     s = 1.0_rkx
 
      do i = l, k
 
@@ -14416,14 +14418,14 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
     y = w(k1)
     g = rv1(k1)
     h = rv1(k)
-    f = 0.5D+00 * ( ( ( g + z ) / h ) * ( ( g - z ) / y ) + y / h - h / y )
-    g = pythag ( f, 1.0D+00 )
+    f = 0.5_rkx * ( ( ( g + z ) / h ) * ( ( g - z ) / y ) + y / h - h / y )
+    g = pythag ( f, 1.0_rkx )
     f = x - ( z / x ) * z + ( h / x ) * ( y / ( f + sign ( g, f ) ) - h)
 !
 !  Next QR transformation.
 !
-    c = 1.0D+00
-    s = 1.0D+00
+    c = 1.0_rkx
+    s = 1.0_rkx
 
     do i1 = l, k1
 
@@ -14457,7 +14459,7 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !
 !  Rotation can be arbitrary if Z is zero.
 !
-      if ( z /= 0.0D+00 ) then
+      if ( z /= 0.0_rkx ) then
         c = f / z
         s = h / z
       end if
@@ -14478,7 +14480,7 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 
     end do
 
-    rv1(l) = 0.0D+00
+    rv1(l) = 0.0_rkx
     rv1(k) = f
     w(k) = x
     go to 520
@@ -14487,7 +14489,7 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !
 650 continue
 
-    if ( z <= 0.0D+00 ) then
+    if ( z <= 0.0_rkx ) then
 
       w(k) = - z
 
@@ -14627,30 +14629,30 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) D(N), the diagonal elements of the matrix.
+!    Input, real ( kind = rkx ) D(N), the diagonal elements of the matrix.
 !
-!    Input, real ( kind = 8 ) E(N), contains the subdiagonal elements of the input matrix
+!    Input, real ( kind = rkx ) E(N), contains the subdiagonal elements of the input matrix
 !    in E(2:N).  E(1) is arbitrary.
 !
-!    Input, real ( kind = 8 ) E2(N), contains the squares of the corresponding elements
+!    Input, real ( kind = rkx ) E2(N), contains the squares of the corresponding elements
 !    of E, with zeros corresponding to negligible elements of E.
 !    E(I) is considered negligible if it is not larger than the product of
 !    the relative machine precision and the sum of the magnitudes of D(I)
-!    and D(I-1).  E2(1) must contain 0.0D+00 if the eigenvalues are in
-!    ascending order, or 2.0D+00 if the eigenvalues are in descending order.
+!    and D(I-1).  E2(1) must contain 0.0_rkx if the eigenvalues are in
+!    ascending order, or 2.0_rkx if the eigenvalues are in descending order.
 !    If BISECT, TRIDIB, or IMTQLV has been used to find the eigenvalues,
 !    their output E2 array is exactly what is expected here.
 !
 !    Input, integer ( kind = 4 ) M, the number of specified eigenvalues.
 !
-!    Input, real ( kind = 8 ) W(M), the eigenvalues.
+!    Input, real ( kind = rkx ) W(M), the eigenvalues.
 !
 !    Input, integer ( kind = 4 ) IND(M), the submatrix indices associated with the
 !    corresponding eigenvalues in W: 1 for eigenvalues belonging to the
 !    first submatrix from the top, 2 for those belonging to the second
 !    submatrix, and so on.
 !
-!    Output, real ( kind = 8 ) Z(N,M), the associated set of orthonormal eigenvectors.
+!    Output, real ( kind = rkx ) Z(N,M), the associated set of orthonormal eigenvectors.
 !    Any vector which fails to converge is set to zero.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
@@ -14663,12 +14665,12 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) e2(n)
-  real    ( kind = 8 ) eps2
-  real    ( kind = 8 ) eps3
-  real    ( kind = 8 ) eps4
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) e2(n)
+  real    ( kind = rkx ) eps2
+  real    ( kind = rkx ) eps3
+  real    ( kind = rkx ) eps4
   integer ( kind = 4 ) group
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
@@ -14678,26 +14680,26 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
   integer ( kind = 4 ) its
   integer ( kind = 4 ) j
   integer ( kind = 4 ) jj
-  real    ( kind = 8 ) norm
-  real    ( kind = 8 ) order
+  real    ( kind = rkx ) norm
+  real    ( kind = rkx ) order
   integer ( kind = 4 ) p
   integer ( kind = 4 ) q
   integer ( kind = 4 ) r
-  real    ( kind = 8 ) rv1(n)
-  real    ( kind = 8 ) rv2(n)
-  real    ( kind = 8 ) rv3(n)
-  real    ( kind = 8 ) rv4(n)
-  real    ( kind = 8 ) rv6(n)
+  real    ( kind = rkx ) rv1(n)
+  real    ( kind = rkx ) rv2(n)
+  real    ( kind = rkx ) rv3(n)
+  real    ( kind = rkx ) rv4(n)
+  real    ( kind = rkx ) rv6(n)
   integer ( kind = 4 ) s
   integer ( kind = 4 ) tag
-  real    ( kind = 8 ) u
-  real    ( kind = 8 ) uk
-  real    ( kind = 8 ) v
-  real    ( kind = 8 ) w(m)
-  real    ( kind = 8 ) x0
-  real    ( kind = 8 ) x1
-  real    ( kind = 8 ) xu
-  real    ( kind = 8 ) z(n,m)
+  real    ( kind = rkx ) u
+  real    ( kind = rkx ) uk
+  real    ( kind = rkx ) v
+  real    ( kind = rkx ) w(m)
+  real    ( kind = rkx ) x0
+  real    ( kind = rkx ) x1
+  real    ( kind = rkx ) xu
+  real    ( kind = rkx ) z(n,m)
 
   ierr = 0
 
@@ -14705,11 +14707,11 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
     return
   end if
 
-  u = 0.0D+00
-  x0 = 0.0D+00
+  u = 0.0_rkx
+  x0 = 0.0_rkx
 
   tag = 0
-  order = 1.0D+00 - e2(1)
+  order = 1.0_rkx - e2(1)
   q = 0
 !
 !  Establish and process next submatrix.
@@ -14722,7 +14724,7 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
     if ( q == n ) then
       exit
     end if
-    if ( e2(q+1) == 0.0D+00 ) then
+    if ( e2(q+1) == 0.0_rkx ) then
       exit
     end if
   end do
@@ -14743,10 +14745,10 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !
 !  Check for isolated root.
 !
-     xu = 1.0D+00
+     xu = 1.0_rkx
 
      if ( p == q ) then
-       rv6(p) = 1.0D+00
+       rv6(p) = 1.0_rkx
        go to 870
      end if
 
@@ -14761,9 +14763,9 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !  EPS3 replaces zero pivots and equal roots are modified by EPS3,
 !  EPS4 is taken very small to avoid overflow.
 !
-     eps2 = 0.001D+00 * norm
+     eps2 = 0.001_rkx * norm
      eps3 = abs ( norm ) * epsilon ( eps3 )
-     uk = dble(q - p + 1)
+     uk = real(q - p + 1,rkx)
      eps4 = uk * eps3
      uk = eps4 / sqrt ( uk )
      s = p
@@ -14781,7 +14783,7 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 
      group = group + 1
 
-     if ( order * (x1 - x0) <= 0.0D+00 ) then
+     if ( order * (x1 - x0) <= 0.0_rkx ) then
        x1 = x0 + order * eps3
      end if
 !
@@ -14789,7 +14791,7 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !
 520  continue
 
-     v = 0.0D+00
+     v = 0.0_rkx
 
      do i = p, q
 
@@ -14803,7 +14805,7 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
         rv4(i) = xu
         rv1(i-1) = e(i)
         rv2(i-1) = d(i) - x1
-        rv3(i-1) = 0.0D+00
+        rv3(i-1) = 0.0_rkx
         if ( i /= q ) rv3(i-1) = e(i+1)
         u = v - xu * rv2(i-1)
         v = - xu * rv3(i-1)
@@ -14815,7 +14817,7 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
         rv4(i) = xu
         rv1(i-1) = u
         rv2(i-1) = v
-        rv3(i-1) = 0.0D+00
+        rv3(i-1) = 0.0_rkx
 
 560     continue
 
@@ -14826,13 +14828,13 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 
      end do
 
-     if ( u == 0.0D+00 ) then
+     if ( u == 0.0_rkx ) then
        u = eps3
      end if
 
      rv1(q) = u
-     rv2(q) = 0.0D+00
-     rv3(q) = 0.0D+00
+     rv2(q) = 0.0_rkx
+     rv3(q) = 0.0_rkx
 !
 !  Back substitution.
 !
@@ -14869,13 +14871,13 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 
      norm = sum ( abs ( rv6(p:q) ) )
 
-     if ( norm >= 1.0D+00 ) go to 840
+     if ( norm >= 1.0_rkx ) go to 840
 !
 !  Forward substitution.
 !
      if ( its == 5 ) go to 830
 
-     if ( norm == 0.0D+00 ) then
+     if ( norm == 0.0_rkx ) then
        rv6(s) = eps4
        s = s + 1
        if ( s > q ) s = p
@@ -14913,23 +14915,23 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 830  continue
 
      ierr = -r
-     xu = 0.0D+00
+     xu = 0.0_rkx
      go to 870
 !
 !  Normalize so that sum of squares is 1 and expand to full order.
 !
 840  continue
 
-     u = 0.0D+00
+     u = 0.0_rkx
      do i = p, q
        u = pythag ( u, rv6(i) )
      end do
 
-     xu = 1.0D+00 / u
+     xu = 1.0_rkx / u
 
 870  continue
 
-     z(1:n,r) = 0.0D+00
+     z(1:n,r) = 0.0_rkx
      z(p:q,r) = rv6(p:q) * xu
 
      x0 = x1
@@ -14993,14 +14995,14 @@ subroutine tql1 ( n, d, e, ierr )
 !
 !    Input, integer ( kind = 4 ) N, is the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) D(N).
+!    Input/output, real ( kind = rkx ) D(N).
 !    On input, the diagonal elements of the matrix.
 !    On output, the eigenvalues in ascending order.
 !    If an error exit is made, the eigenvalues are correct and
 !    ordered for indices 1, 2,... IERR-1, but may not be
 !    the smallest eigenvalues.
 !
-!    Input/output, real ( kind = 8 ) E(N).  On input, E(2:N) contains the subdiagonal
+!    Input/output, real ( kind = rkx ) E(N).  On input, E(2:N) contains the subdiagonal
 !    elements of the input matrix, and E(1) is arbitrary.
 !    On output, E has been destroyed.
 !
@@ -15013,16 +15015,16 @@ subroutine tql1 ( n, d, e, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) c2
-  real    ( kind = 8 ) c3
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) dl1
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) el1
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) c
+  real    ( kind = rkx ) c2
+  real    ( kind = rkx ) c3
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) dl1
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) el1
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) ii
@@ -15032,12 +15034,12 @@ subroutine tql1 ( n, d, e, ierr )
   integer ( kind = 4 ) l2
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mml
-  real    ( kind = 8 ) p
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) s2
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
+  real    ( kind = rkx ) p
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) s2
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
 
   ierr = 0
   if ( n == 1 ) then
@@ -15048,9 +15050,9 @@ subroutine tql1 ( n, d, e, ierr )
     e(i-1) = e(i)
   end do
 
-  f = 0.0D+00
-  tst1 = 0.0D+00
-  e(n) = 0.0D+00
+  f = 0.0_rkx
+  tst1 = 0.0_rkx
+  e(n) = 0.0_rkx
 
   do l = 1, n
 
@@ -15086,8 +15088,8 @@ subroutine tql1 ( n, d, e, ierr )
     l1 = l + 1
     l2 = l1 + 1
     g = d(l)
-    p = ( d(l1) - g ) / ( 2.0D+00 * e(l) )
-    r = pythag ( p, 1.0D+00 )
+    p = ( d(l1) - g ) / ( 2.0_rkx * e(l) )
+    r = pythag ( p, 1.0_rkx )
     d(l) = e(l) / ( p + sign ( r, p ) )
     d(l1) = e(l) * ( p + sign ( r, p ) )
     dl1 = d(l1)
@@ -15100,10 +15102,10 @@ subroutine tql1 ( n, d, e, ierr )
 !  QL transformation.
 !
     p = d(m)
-    c = 1.0D+00
+    c = 1.0_rkx
     c2 = c
     el1 = e(l1)
-    s = 0.0D+00
+    s = 0.0_rkx
     mml = m - l
 
     do ii = 1, mml
@@ -15205,15 +15207,15 @@ subroutine tql2 ( n, d, e, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) D(N).  On input, the diagonal elements of the matrix.
+!    Input/output, real ( kind = rkx ) D(N).  On input, the diagonal elements of the matrix.
 !    On output, the eigenvalues in ascending order.  If an error exit is
 !    made, the eigenvalues are correct but unordered for indices 1,2,...,IERR-1.
 !
-!    Input/output, real ( kind = 8 ) E(N).  On input, E(2:N) contains the subdiagonal
+!    Input/output, real ( kind = rkx ) E(N).  On input, E(2:N) contains the subdiagonal
 !    elements of the input matrix, and E(1) is arbitrary.
 !    On output, E has been destroyed.
 !
-!    Input, real ( kind = 8 ) Z(N,N).  On input, the transformation matrix produced in
+!    Input, real ( kind = rkx ) Z(N,N).  On input, the transformation matrix produced in
 !    the reduction by TRED2, if performed.  If the eigenvectors of the
 !    tridiagonal matrix are desired, Z must contain the identity matrix.
 !    On output, Z contains the orthonormal eigenvectors of the symmetric
@@ -15229,16 +15231,16 @@ subroutine tql2 ( n, d, e, z, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) c2
-  real    ( kind = 8 ) c3
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) dl1
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) el1
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) c
+  real    ( kind = rkx ) c2
+  real    ( kind = rkx ) c3
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) dl1
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) el1
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) ii
@@ -15249,13 +15251,13 @@ subroutine tql2 ( n, d, e, z, ierr )
   integer ( kind = 4 ) l2
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mml
-  real    ( kind = 8 ) p
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) s2
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) p
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) s2
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) z(n,n)
 !
   ierr = 0
 
@@ -15267,9 +15269,9 @@ subroutine tql2 ( n, d, e, z, ierr )
     e(i-1) = e(i)
   end do
 
-  f = 0.0D+00
-  tst1 = 0.0D+00
-  e(n) = 0.0D+00
+  f = 0.0_rkx
+  tst1 = 0.0_rkx
+  e(n) = 0.0_rkx
 
   do l = 1, n
 
@@ -15302,8 +15304,8 @@ subroutine tql2 ( n, d, e, z, ierr )
      l1 = l + 1
      l2 = l1 + 1
      g = d(l)
-     p = ( d(l1) - g ) / ( 2.0D+00 * e(l) )
-     r = pythag ( p, 1.0D+00 )
+     p = ( d(l1) - g ) / ( 2.0_rkx * e(l) )
+     r = pythag ( p, 1.0_rkx )
      d(l) = e(l) / ( p + sign ( r, p ) )
      d(l1) = e(l) * ( p + sign ( r, p ) )
      dl1 = d(l1)
@@ -15314,10 +15316,10 @@ subroutine tql2 ( n, d, e, z, ierr )
 !  QL transformation.
 !
      p = d(m)
-     c = 1.0D+00
+     c = 1.0_rkx
      c2 = c
      el1 = e(l1)
-     s = 0.0D+00
+     s = 0.0_rkx
      mml = m - l
 
      do ii = 1, mml
@@ -15444,12 +15446,12 @@ subroutine tqlrat ( n, d, e2, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) D(N).  On input, D contains the diagonal elements
+!    Input/output, real ( kind = rkx ) D(N).  On input, D contains the diagonal elements
 !    of the matrix.  On output, D contains the eigenvalues in ascending
 !    order.  If an error exit was made, then the eigenvalues are correct
 !    in positions 1 through IERR-1, but may not be the smallest eigenvalues.
 !
-!    Input/output, real ( kind = 8 ) E2(N), contains in positions 2 through N the
+!    Input/output, real ( kind = rkx ) E2(N), contains in positions 2 through N the
 !    squares of the subdiagonal elements of the matrix.  E2(1) is
 !    arbitrary.  On output, E2 has been overwritten by workspace
 !    information.
@@ -15462,13 +15464,13 @@ subroutine tqlrat ( n, d, e2, ierr )
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) b
-  real    ( kind = 8 ) c
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e2(n)
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) b
+  real    ( kind = rkx ) c
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e2(n)
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) ii
@@ -15477,10 +15479,10 @@ subroutine tqlrat ( n, d, e2, ierr )
   integer ( kind = 4 ) l1
   integer ( kind = 4 ) m
   integer ( kind = 4 ) mml
-  real    ( kind = 8 ) p
-  real    ( kind = 8 ) r
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) t
+  real    ( kind = rkx ) p
+  real    ( kind = rkx ) r
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) t
 
   ierr = 0
 
@@ -15492,9 +15494,9 @@ subroutine tqlrat ( n, d, e2, ierr )
     e2(i-1) = e2(i)
   end do
 
-  f = 0.0D+00
-  t = 0.0D+00
-  e2(n) = 0.0D+00
+  f = 0.0_rkx
+  t = 0.0_rkx
+  e2(n) = 0.0_rkx
 
   do l = 1, n
 
@@ -15533,8 +15535,8 @@ subroutine tqlrat ( n, d, e2, ierr )
      l1 = l + 1
      s = sqrt ( e2(l) )
      g = d(l)
-     p = ( d(l1) - g ) / ( 2.0D+00 * s )
-     r = pythag ( p, 1.0D+00 )
+     p = ( d(l1) - g ) / ( 2.0_rkx * s )
+     r = pythag ( p, 1.0_rkx )
      d(l) = s / ( p + sign ( r, p ) )
      h = g - d(l)
      d(l1:n) = d(l1:n) - h
@@ -15543,9 +15545,9 @@ subroutine tqlrat ( n, d, e2, ierr )
 !  Rational QL transformation.
 !
      g = d(m)
-     if ( g == 0.0D+00 ) g = b
+     if ( g == 0.0_rkx ) g = b
      h = g
-     s = 0.0D+00
+     s = 0.0_rkx
      mml = m - l
 
      do ii = 1, mml
@@ -15556,7 +15558,7 @@ subroutine tqlrat ( n, d, e2, ierr )
        s = e2(i) / r
        d(i+1) = h + s * ( h + d(i) )
        g = d(i) - e2(i) / g
-       if ( g == 0.0D+00 ) g = b
+       if ( g == 0.0_rkx ) g = b
        h = g * p / r
      end do
 
@@ -15565,10 +15567,10 @@ subroutine tqlrat ( n, d, e2, ierr )
 !
 !  Guard against underflow in convergence test.
 !
-     if ( h == 0.0D+00 ) go to 210
+     if ( h == 0.0_rkx ) go to 210
      if ( abs ( e2(l) ) <= abs ( c / h ) ) go to 210
      e2(l) = h * e2(l)
-     if ( e2(l) /= 0.0D+00 ) go to 130
+     if ( e2(l) /= 0.0_rkx ) go to 130
 
 210  continue
 
@@ -15639,16 +15641,16 @@ subroutine trbak1 ( n, a, e, m, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,N), contains information about the orthogonal
+!    Input, real ( kind = rkx ) A(N,N), contains information about the orthogonal
 !    transformations used in the reduction by TRED1 in its strict lower
 !    triangle.
 !
-!    Input, real ( kind = 8 ) E(N), the subdiagonal elements of the tridiagonal
+!    Input, real ( kind = rkx ) E(N), the subdiagonal elements of the tridiagonal
 !    matrix in E(2:N).  E(1) is arbitrary.
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the eigenvectors to be back
+!    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed.  On output, the transformed eigenvectors.
 !
   implicit none
@@ -15656,13 +15658,13 @@ subroutine trbak1 ( n, a, e, m, z )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) e(n)
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) e(n)
   integer ( kind = 4 ) i
   integer ( kind = 4 ) j
   integer ( kind = 4 ) l
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) z(n,m)
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) z(n,m)
 
   if ( m <= 0 ) then
     return
@@ -15676,7 +15678,7 @@ subroutine trbak1 ( n, a, e, m, z )
 
     l = i - 1
 
-    if ( e(i) /= 0.0D+00 ) then
+    if ( e(i) /= 0.0_rkx ) then
 
       do j = 1, m
 
@@ -15747,12 +15749,12 @@ subroutine trbak3 ( n, nv, a, m, z )
 !    Input, integer ( kind = 4 ) NV, the dimension of the array paramater A,
 !    which must be at least N*(N+1)/2.
 !
-!    Input, real ( kind = 8 ) A(NV), information about the orthogonal transformations
+!    Input, real ( kind = rkx ) A(NV), information about the orthogonal transformations
 !    used in the reduction by TRED3.
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the eigenvectors to be back
+!    Input/output, real ( kind = rkx ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed.  On output, the transformed eigenvectors.
 !
   implicit none
@@ -15760,8 +15762,8 @@ subroutine trbak3 ( n, nv, a, m, z )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) nv
 
-  real    ( kind = 8 ) a(nv)
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) a(nv)
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ik
   integer ( kind = 4 ) iz
@@ -15769,8 +15771,8 @@ subroutine trbak3 ( n, nv, a, m, z )
   integer ( kind = 4 ) k
   integer ( kind = 4 ) l
   integer ( kind = 4 ) n
-  real    ( kind = 8 ) s
-  real    ( kind = 8 ) z(n,m)
+  real    ( kind = rkx ) s
+  real    ( kind = rkx ) z(n,m)
 
   if ( m == 0 ) then
     return
@@ -15783,11 +15785,11 @@ subroutine trbak3 ( n, nv, a, m, z )
     ik = iz + i
     h = a(ik)
 
-    if ( h /= 0.0D+00 ) then
+    if ( h /= 0.0_rkx ) then
 
       do j = 1, m
 
-        s = 0.0D+00
+        s = 0.0_rkx
         ik = iz
 
         do k = 1, l
@@ -15863,38 +15865,38 @@ subroutine tred1 ( n, a, d, e, e2 )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix A.
 !
-!    Input/output, real ( kind = 8 ) A(N,N), on input, contains the real symmetric matrix.
+!    Input/output, real ( kind = rkx ) A(N,N), on input, contains the real symmetric matrix.
 !    Only the lower triangle of the matrix need be supplied.
 !    On output, A contains information about the orthogonal transformations
 !    used in the reduction in its strict lower triangle.
 !    The full upper triangle of A is unaltered.
 !
-!    Output, real ( kind = 8 ) D(N), contains the diagonal elements of the tridiagonal
+!    Output, real ( kind = rkx ) D(N), contains the diagonal elements of the tridiagonal
 !    matrix.
 !
-!    Output, real ( kind = 8 ) E(N), contains the subdiagonal elements of the tridiagonal
+!    Output, real ( kind = rkx ) E(N), contains the subdiagonal elements of the tridiagonal
 !    matrix in its last n-1 positions.  e(1) is set to zero.
 !
-!    Output, real ( kind = 8 ) E2(N), contains the squares of the corresponding
+!    Output, real ( kind = rkx ) E2(N), contains the squares of the corresponding
 !    elements of E.  E2 may coincide with E if the squares are not needed.
 !
   implicit none
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) e2(n)
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
-  real    ( kind = 8 ) h
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) e2(n)
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
+  real    ( kind = rkx ) h
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ii
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) l
-  real    ( kind = 8 ) xscale
+  real    ( kind = rkx ) xscale
 
   d(1:n) = a(n,1:n)
 
@@ -15906,22 +15908,22 @@ subroutine tred1 ( n, a, d, e, e2 )
 
     i = n + 1 - ii
     l = i - 1
-    h = 0.0D+00
+    h = 0.0_rkx
 !
 !  Scale row.
 !
     xscale = sum ( abs ( d(1:l) ) )
 
-    if ( xscale == 0.0D+00 ) then
+    if ( xscale == 0.0_rkx ) then
 
       do j = 1, l
         d(j) = a(l,j)
         a(l,j) = a(i,j)
-        a(i,j) = 0.0D+00
+        a(i,j) = 0.0_rkx
       end do
 
-      e(i) = 0.0D+00
-      e2(i) = 0.0D+00
+      e(i) = 0.0_rkx
+      e2(i) = 0.0_rkx
 
       cycle
 
@@ -15944,7 +15946,7 @@ subroutine tred1 ( n, a, d, e, e2 )
 !
 !  Form A * U.
 !
-      e(1:l) = 0.0D+00
+      e(1:l) = 0.0_rkx
 
       do j = 1, l
 
@@ -15962,7 +15964,7 @@ subroutine tred1 ( n, a, d, e, e2 )
 !
 !  Form P.
 !
-      f = 0.0D+00
+      f = 0.0_rkx
 
       do j = 1, l
         e(j) = e(j) / h
@@ -16056,35 +16058,35 @@ subroutine tred2 ( n, a, d, e, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,N), the real symmetric input matrix.  Only the
+!    Input, real ( kind = rkx ) A(N,N), the real symmetric input matrix.  Only the
 !    lower triangle of the matrix need be supplied.
 !
-!    Output, real ( kind = 8 ) D(N), the diagonal elements of the tridiagonal matrix.
+!    Output, real ( kind = rkx ) D(N), the diagonal elements of the tridiagonal matrix.
 !
-!    Output, real ( kind = 8 ) E(N), contains the subdiagonal elements of the tridiagonal
+!    Output, real ( kind = rkx ) E(N), contains the subdiagonal elements of the tridiagonal
 !    matrix in E(2:N).  E(1) is set to zero.
 !
-!    Output, real ( kind = 8 ) Z(N,N), the orthogonal transformation matrix produced
+!    Output, real ( kind = rkx ) Z(N,N), the orthogonal transformation matrix produced
 !    in the reduction.
 !
   implicit none
 
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) a(n,n)
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
-  real    ( kind = 8 ) h
-  real    ( kind = 8 ) hh
+  real    ( kind = rkx ) a(n,n)
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
+  real    ( kind = rkx ) h
+  real    ( kind = rkx ) hh
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ii
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) l
-  real    ( kind = 8 ) xscale
-  real    ( kind = 8 ) z(n,n)
+  real    ( kind = rkx ) xscale
+  real    ( kind = rkx ) z(n,n)
 
   do i = 1, n
     z(i:n,i) = a(i:n,i)
@@ -16096,8 +16098,8 @@ subroutine tred2 ( n, a, d, e, z )
 
     i = n + 2 - ii
     l = i - 1
-    h = 0.0D+00
-    xscale = 0.0D+00
+    h = 0.0_rkx
+    xscale = 0.0_rkx
 !
 !  Scale row.
 !
@@ -16105,14 +16107,14 @@ subroutine tred2 ( n, a, d, e, z )
       xscale = xscale + abs ( d(k) )
     end do
 
-    if ( xscale == 0.0D+00 ) then
+    if ( xscale == 0.0_rkx ) then
 
       e(i) = d(l)
 
       do j = 1, l
         d(j) = z(l,j)
-        z(i,j) = 0.0D+00
-        z(j,i) = 0.0D+00
+        z(i,j) = 0.0_rkx
+        z(j,i) = 0.0_rkx
       end do
 
       go to 290
@@ -16131,7 +16133,7 @@ subroutine tred2 ( n, a, d, e, z )
 !
 !  Form A*U.
 !
-    e(1:l) = 0.0D+00
+    e(1:l) = 0.0_rkx
 
     do j = 1, l
 
@@ -16154,7 +16156,7 @@ subroutine tred2 ( n, a, d, e, z )
 
     f = dot_product ( e(1:l), d(1:l) )
 
-    hh = 0.5D+00 * f / h
+    hh = 0.5_rkx * f / h
 !
 !  Form Q.
 !
@@ -16170,7 +16172,7 @@ subroutine tred2 ( n, a, d, e, z )
       z(j:l,j) = z(j:l,j) - f * e(j:l) - g * d(j:l)
 
       d(j) = z(l,j)
-      z(i,j) = 0.0D+00
+      z(i,j) = 0.0_rkx
 
     end do
 
@@ -16187,9 +16189,9 @@ subroutine tred2 ( n, a, d, e, z )
 
     l = i - 1
     z(n,l) = z(l,l)
-    z(l,l) = 1.0D+00
+    z(l,l) = 1.0_rkx
     h = d(i)
-    if ( h /= 0.0D+00 ) then
+    if ( h /= 0.0_rkx ) then
 
       d(1:l) = z(1:l,i) / h
 
@@ -16205,16 +16207,16 @@ subroutine tred2 ( n, a, d, e, z )
 
     end if
 
-    z(1:l,i) = 0.0D+00
+    z(1:l,i) = 0.0_rkx
 
   end do
 
   d(1:n) = z(n,1:n)
 
-  z(n,1:n-1) = 0.0D+00
-  z(n,n) = 1.0D+00
+  z(n,1:n-1) = 0.0_rkx
+  z(n,n) = 1.0_rkx
 
-  e(1) = 0.0D+00
+  e(1) = 0.0_rkx
 
   return
 end subroutine tred2
@@ -16274,16 +16276,16 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
 !    Input, integer ( kind = 4 ) NV, the dimension of A, which must be at least
 !    (N*(N+1))/2.
 !
-!    Input/output, real ( kind = 8 ) A(NV).  On input, the lower triangle of the real
+!    Input/output, real ( kind = rkx ) A(NV).  On input, the lower triangle of the real
 !    symmetric matrix, stored row-wise.  On output, information about the
 !    orthogonal transformations used in the reduction.
 !
-!    Output, real ( kind = 8 ) D(N), the diagonal elements of the tridiagonal matrix.
+!    Output, real ( kind = rkx ) D(N), the diagonal elements of the tridiagonal matrix.
 !
-!    Output, real ( kind = 8 ) E(N), the subdiagonal elements of the tridiagonal
+!    Output, real ( kind = rkx ) E(N), the subdiagonal elements of the tridiagonal
 !    matrix in E(2:N).  E(1) is set to zero.
 !
-!    Output, real ( kind = 8 ) E2(N),  the squares of the corresponding elements of E.
+!    Output, real ( kind = rkx ) E2(N),  the squares of the corresponding elements of E.
 !    E2 may coincide with E if the squares are not needed.
 !
   implicit none
@@ -16291,14 +16293,14 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
   integer ( kind = 4 ) n
   integer ( kind = 4 ) nv
 
-  real    ( kind = 8 ) a(nv)
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) e2(n)
-  real    ( kind = 8 ) f
-  real    ( kind = 8 ) g
-  real    ( kind = 8 ) h
-  real    ( kind = 8 ) hh
+  real    ( kind = rkx ) a(nv)
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) e2(n)
+  real    ( kind = rkx ) f
+  real    ( kind = rkx ) g
+  real    ( kind = rkx ) h
+  real    ( kind = rkx ) hh
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ii
   integer ( kind = 4 ) iz
@@ -16306,15 +16308,15 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
   integer ( kind = 4 ) jk
   integer ( kind = 4 ) k
   integer ( kind = 4 ) l
-  real    ( kind = 8 ) xscale
+  real    ( kind = rkx ) xscale
 
   do ii = 1, n
 
      i = n + 1 - ii
      l = i - 1
      iz = ( i * l ) / 2
-     h = 0.0D+00
-     xscale = 0.0D+00
+     h = 0.0_rkx
+     xscale = 0.0_rkx
 !
 !  Scale row.
 !
@@ -16324,9 +16326,9 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
        xscale = xscale + abs ( d(k) )
      end do
 
-     if ( xscale == 0.0D+00 ) then
-       e(i) = 0.0D+00
-       e2(i) = 0.0D+00
+     if ( xscale == 0.0_rkx ) then
+       e(i) = 0.0_rkx
+       e2(i) = 0.0_rkx
        go to 290
      end if
 
@@ -16350,7 +16352,7 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
      do j = 1, l
 
         f = d(j)
-        g = 0.0D+00
+        g = 0.0_rkx
 
         do k = 1, j-1
           g = g + a(jk) * d(k)
@@ -16442,19 +16444,19 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) EPS1.  On input, an absolute error tolerance for
+!    Input/output, real ( kind = rkx ) EPS1.  On input, an absolute error tolerance for
 !    the computed eigenvalues.  It should be chosen commensurate with
 !    relative perturbations in the matrix elements of the order of the
 !    relative machine precision.  If the input EPS1 is non-positive, it
 !    is reset for each submatrix to a default value, namely, minus the
 !    product of the relative machine precision and the 1-norm of the submatrix.
 !
-!    Input, real ( kind = 8 ) D(N), the diagonal elements of the input matrix.
+!    Input, real ( kind = rkx ) D(N), the diagonal elements of the input matrix.
 !
-!    Input, real ( kind = 8 ) E(N), the subdiagonal elements of the input matrix
+!    Input, real ( kind = rkx ) E(N), the subdiagonal elements of the input matrix
 !    in E(2:N).  E(1) is arbitrary.
 !
-!    Input/output, real ( kind = 8 ) E2(N).  On input, the squares of the corresponding
+!    Input/output, real ( kind = rkx ) E2(N).  On input, the squares of the corresponding
 !    elements of E.  E2(1) is arbitrary.  On output, elements of E2
 !    corresponding to elements of E regarded as negligible, have been
 !    replaced by zero, causing the matrix to split into a direct sum of
@@ -16465,10 +16467,10 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !    Input, integer ( kind = 4 ) M, the number of eigenvalues desired.  The upper
 !    boundary index M22 is then obtained as M22 = M11 + M - 1.
 !
-!    Output, real ( kind = 8 ) LB, UB, define an interval containing exactly the desired
+!    Output, real ( kind = rkx ) LB, UB, define an interval containing exactly the desired
 !    eigenvalues.
 !
-!    Output, real ( kind = 8 ) W(M), the eigenvalues between indices M11 and M22
+!    Output, real ( kind = rkx ) W(M), the eigenvalues between indices M11 and M22
 !    in ascending order.
 !
 !    Output, integer ( kind = 4 ) IND(M), the submatrix indices associated with the
@@ -16488,10 +16490,10 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
   integer ( kind = 4 ) m
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) e2(n)
-  real    ( kind = 8 ) eps1
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) e2(n)
+  real    ( kind = rkx ) eps1
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
   integer ( kind = 4 ) ii
@@ -16500,7 +16502,7 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
   integer ( kind = 4 ) j
   integer ( kind = 4 ) k
   integer ( kind = 4 ) l
-  real    ( kind = 8 ) lb
+  real    ( kind = rkx ) lb
   integer ( kind = 4 ) m1
   integer ( kind = 4 ) m11
   integer ( kind = 4 ) m2
@@ -16508,28 +16510,28 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
   integer ( kind = 4 ) p
   integer ( kind = 4 ) q
   integer ( kind = 4 ) r
-  real    ( kind = 8 ) rv4(n)
-  real    ( kind = 8 ) rv5(n)
+  real    ( kind = rkx ) rv4(n)
+  real    ( kind = rkx ) rv5(n)
   integer ( kind = 4 ) s
-  real    ( kind = 8 ) t1
-  real    ( kind = 8 ) t2
+  real    ( kind = rkx ) t1
+  real    ( kind = rkx ) t2
   integer ( kind = 4 ) tag
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) u
-  real    ( kind = 8 ) ub
-  real    ( kind = 8 ) v
-  real    ( kind = 8 ) w(m)
-  real    ( kind = 8 ) x0
-  real    ( kind = 8 ) x1
-  real    ( kind = 8 ) xu
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) u
+  real    ( kind = rkx ) ub
+  real    ( kind = rkx ) v
+  real    ( kind = rkx ) w(m)
+  real    ( kind = rkx ) x0
+  real    ( kind = rkx ) x1
+  real    ( kind = rkx ) xu
 
   ierr = 0
   tag = 0
   xu = d(1)
   x0 = d(1)
   s = 0
-  u = 0.0D+00
+  u = 0.0_rkx
 !
 !  Look for small sub-diagonal entries and determine an
 !  interval containing all the eigenvalues.
@@ -16539,7 +16541,7 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
      x1 = u
 
      if ( i == n ) then
-       u = 0.0D+00
+       u = 0.0_rkx
      else
        u = abs ( e(i+1) )
      end if
@@ -16551,15 +16553,15 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
        tst1 = abs ( d(i) ) + abs ( d(i-1) )
        tst2 = tst1 + abs ( e(i) )
        if ( tst2 <= tst1 ) then
-         e2(i) = 0.0D+00
+         e2(i) = 0.0_rkx
        end if
      else
-       e2(i) = 0.0D+00
+       e2(i) = 0.0_rkx
      end if
 
   end do
 
-  x1 = dble(n)
+  x1 = real(n,rkx)
   x1 = x1 * max ( abs ( xu ), abs ( x0 ) ) * epsilon ( x1 )
   xu = xu - x1
   t1 = xu
@@ -16577,7 +16579,7 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 50 continue
 
   v = x1
-  x1 = xu + (x0 - xu) * 0.5D+00
+  x1 = xu + (x0 - xu) * 0.5_rkx
   if ( x1 == v ) go to 980
   go to 320
 
@@ -16646,13 +16648,13 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
   p = q + 1
   xu = d(p)
   x0 = d(p)
-  u = 0.0D+00
+  u = 0.0_rkx
 
   do q = p, n
 
     x1 = u
-    u = 0.0D+00
-    v = 0.0D+00
+    u = 0.0_rkx
+    v = 0.0_rkx
 
     if ( q < n ) then
       u = abs ( e(q+1) )
@@ -16662,14 +16664,14 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
     xu = min ( d(q)-(x1+u), xu )
     x0 = max ( d(q)+(x1+u), x0 )
 
-    if ( v == 0.0D+00 ) then
+    if ( v == 0.0_rkx ) then
       exit
     end if
 
   end do
 
   x1 = max ( abs ( xu ), abs ( x0 ) ) * epsilon ( x1 )
-  if ( eps1 <= 0.0D+00 ) eps1 = -x1
+  if ( eps1 <= 0.0_rkx ) eps1 = -x1
   if ( p /= q ) go to 180
 !
 !  Check for isolated root within interval.
@@ -16733,9 +16735,9 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !
 300  continue
 
-     x1 = ( xu + x0 ) * 0.5D+00
+     x1 = ( xu + x0 ) * 0.5_rkx
      if ( ( x0 - xu ) <= abs ( eps1) ) go to 420
-     tst1 = 2.0D+00 * ( abs ( xu ) + abs ( x0 ) )
+     tst1 = 2.0_rkx * ( abs ( xu ) + abs ( x0 ) )
      tst2 = tst1 + (x0 - xu)
      if ( tst2 == tst1 ) go to 420
 !
@@ -16744,20 +16746,20 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 320  continue
 
      s = p - 1
-     u = 1.0D+00
+     u = 1.0_rkx
 
      do i = p, q
 
-       if ( u == 0.0D+00 ) then
+       if ( u == 0.0_rkx ) then
          v = abs ( e(i) ) / epsilon ( v )
-         if ( e2(i) == 0.0D+00 ) v = 0.0D+00
+         if ( e2(i) == 0.0_rkx ) v = 0.0_rkx
        else
          v = e2(i) / u
        end if
 
        u = d(i) - x1 - v
 
-       if ( u < 0.0D+00 ) then
+       if ( u < 0.0_rkx ) then
          s = s + 1
        end if
 
@@ -16910,25 +16912,25 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) EPS1.  On input, an absolute error tolerance for
+!    Input/output, real ( kind = rkx ) EPS1.  On input, an absolute error tolerance for
 !    the computed eigenvalues.  It should be chosen commensurate with
 !    relative perturbations in the matrix elements of the order of the
 !    relative machine precision.  If the input EPS1 is non-positive, it
 !    is reset for each submatrix to a default value, namely, minus the
 !    product of the relative machine precision and the 1-norm of the submatrix.
 !
-!    Input, real ( kind = 8 ) D(N), the diagonal elements of the input matrix.
+!    Input, real ( kind = rkx ) D(N), the diagonal elements of the input matrix.
 !
-!    Input, real ( kind = 8 ) E(N), the subdiagonal elements of the input matrix
+!    Input, real ( kind = rkx ) E(N), the subdiagonal elements of the input matrix
 !    in E(2:N).  E(1) is arbitrary.
 !
-!    Input/output, real ( kind = 8 ) E2(N).  On input, the squares of the corresponding
+!    Input/output, real ( kind = rkx ) E2(N).  On input, the squares of the corresponding
 !    elements of E.  E2(1) is arbitrary.  On output, elements of E2
 !    corresponding to elements of E regarded as negligible have been
 !    replaced by zero, causing the matrix to split into a direct sum of
 !    submatrices.  E2(1) is also set to zero.
 !
-!    Input, real ( kind = 8 ) LB, UB, define the interval to be searched for eigenvalues.
+!    Input, real ( kind = rkx ) LB, UB, define the interval to be searched for eigenvalues.
 !    If LB is not less than UB, no eigenvalues will be found.
 !
 !    Input, integer ( kind = 4 ) MM, an upper bound for the number of eigenvalues in
@@ -16938,12 +16940,12 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !    Output, integer ( kind = 4 ) M, the number of eigenvalues determined to lie
 !    in (LB, UB).
 !
-!    Output, real ( kind = 8 ) W(M), the eigenvalues in ascending order if the matrix
+!    Output, real ( kind = rkx ) W(M), the eigenvalues in ascending order if the matrix
 !    does not split.  If the matrix splits, the eigenvalues are in ascending
 !    order for each submatrix.  If a vector error exit is made, W contains
 !    those values already found.
 !
-!    Output, real ( kind = 8 ) Z(N,MM), the associated set of orthonormal eigenvectors.
+!    Output, real ( kind = rkx ) Z(N,MM), the associated set of orthonormal eigenvectors.
 !    If an error exit is made, Z contains those vectors already found.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
@@ -16957,13 +16959,13 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
   integer ( kind = 4 ) mm
   integer ( kind = 4 ) n
 
-  real    ( kind = 8 ) d(n)
-  real    ( kind = 8 ) e(n)
-  real    ( kind = 8 ) e2(n)
-  real    ( kind = 8 ) eps1
-  real    ( kind = 8 ) eps2
-  real    ( kind = 8 ) eps3
-  real    ( kind = 8 ) eps4
+  real    ( kind = rkx ) d(n)
+  real    ( kind = rkx ) e(n)
+  real    ( kind = rkx ) e2(n)
+  real    ( kind = rkx ) eps1
+  real    ( kind = rkx ) eps2
+  real    ( kind = rkx ) eps3
+  real    ( kind = rkx ) eps4
   integer ( kind = 4 ) group
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ierr
@@ -16974,34 +16976,34 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
   integer ( kind = 4 ) j
   integer ( kind = 4 ) jj
   integer ( kind = 4 ) k
-  real    ( kind = 8 ) lb
+  real    ( kind = rkx ) lb
   integer ( kind = 4 ) m
   integer ( kind = 4 ) m1
   integer ( kind = 4 ) m2
-  real    ( kind = 8 ) norm
+  real    ( kind = rkx ) norm
   integer ( kind = 4 ) p
   integer ( kind = 4 ) q
   integer ( kind = 4 ) r
-  real    ( kind = 8 ) rv1(n)
-  real    ( kind = 8 ) rv2(n)
-  real    ( kind = 8 ) rv3(n)
-  real    ( kind = 8 ) rv4(n)
-  real    ( kind = 8 ) rv5(n)
-  real    ( kind = 8 ) rv6(n)
+  real    ( kind = rkx ) rv1(n)
+  real    ( kind = rkx ) rv2(n)
+  real    ( kind = rkx ) rv3(n)
+  real    ( kind = rkx ) rv4(n)
+  real    ( kind = rkx ) rv5(n)
+  real    ( kind = rkx ) rv6(n)
   integer ( kind = 4 ) s
-  real    ( kind = 8 ) t1
-  real    ( kind = 8 ) t2
-  real    ( kind = 8 ) tst1
-  real    ( kind = 8 ) tst2
-  real    ( kind = 8 ) u
-  real    ( kind = 8 ) ub
-  real    ( kind = 8 ) uk
-  real    ( kind = 8 ) v
-  real    ( kind = 8 ) w(mm)
-  real    ( kind = 8 ) x0
-  real    ( kind = 8 ) x1
-  real    ( kind = 8 ) xu
-  real    ( kind = 8 ) z(n,mm)
+  real    ( kind = rkx ) t1
+  real    ( kind = rkx ) t2
+  real    ( kind = rkx ) tst1
+  real    ( kind = rkx ) tst2
+  real    ( kind = rkx ) u
+  real    ( kind = rkx ) ub
+  real    ( kind = rkx ) uk
+  real    ( kind = rkx ) v
+  real    ( kind = rkx ) w(mm)
+  real    ( kind = rkx ) x0
+  real    ( kind = rkx ) x1
+  real    ( kind = rkx ) xu
+  real    ( kind = rkx ) z(n,mm)
 
   ierr = 0
   s = 0
@@ -17010,7 +17012,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !
 !  Look for small sub-diagonal entries.
 !
-  e2(1) = 0.0D+00
+  e2(1) = 0.0_rkx
 
   do i = 2, n
 
@@ -17018,7 +17020,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
     tst2 = tst1 + abs ( e(i) )
 
     if ( tst2 <= tst1 ) then
-      e2(i) = 0.0D+00
+      e2(i) = 0.0_rkx
     end if
 
   end do
@@ -17057,13 +17059,13 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
   p = q + 1
   xu = d(p)
   x0 = d(p)
-  u = 0.0D+00
+  u = 0.0_rkx
 
   do q = p, n
 
      x1 = u
-     u = 0.0D+00
-     v = 0.0D+00
+     u = 0.0_rkx
+     v = 0.0_rkx
 
      if ( q /= n ) then
        u = abs ( e(q+1) )
@@ -17073,7 +17075,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
      xu = min ( d(q)-(x1+u), xu )
      x0 = max ( d(q)+(x1+u), x0 )
 
-     if ( v == 0.0D+00 ) then
+     if ( v == 0.0_rkx ) then
        exit
      end if
 
@@ -17081,7 +17083,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 
   x1 = max ( abs ( xu ), abs ( x0 ) ) * epsilon ( x1 )
 
-  if ( eps1 <= 0.0D+00 ) then
+  if ( eps1 <= 0.0_rkx ) then
     eps1 = -x1
   end if
 
@@ -17093,15 +17095,15 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 
   r = r + 1
 
-  z(1:n,r) = 0.0D+00
+  z(1:n,r) = 0.0_rkx
 
   w(r) = d(p)
-  z(p,r) = 1.0D+00
+  z(p,r) = 1.0_rkx
   go to 940
 
 180 continue
 
-  u = dble(q - p + 1)
+  u = real(q - p + 1,rkx)
   x1 = u * x1
   lb = max ( t1, xu-x1 )
   ub = min ( t2, x0+x1 )
@@ -17154,9 +17156,9 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !
 300 continue
 
-     x1 = ( xu + x0 ) * 0.5D+00
+     x1 = ( xu + x0 ) * 0.5_rkx
      if ( ( x0 - xu ) <= abs ( eps1 ) ) go to 420
-     tst1 = 2.0D+00 * ( abs ( xu ) + abs ( x0 ) )
+     tst1 = 2.0_rkx * ( abs ( xu ) + abs ( x0 ) )
      tst2 = tst1 + (x0 - xu)
      if ( tst2 == tst1 ) go to 420
 !
@@ -17165,13 +17167,13 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 320  continue
 
      s = p - 1
-     u = 1.0D+00
+     u = 1.0_rkx
 
      do i = p, q
 
-        if ( u /= 0.0D+00 ) go to 325
+        if ( u /= 0.0_rkx ) go to 325
         v = abs ( e(i) ) / epsilon ( v )
-        if ( e2(i) == 0.0D+00 ) v = 0.0D+00
+        if ( e2(i) == 0.0_rkx ) v = 0.0_rkx
         go to 330
 
 325     continue
@@ -17180,7 +17182,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 330     continue
 
         u = d(i) - x1 - v
-        if ( u < 0.0D+00 ) s = s + 1
+        if ( u < 0.0_rkx ) s = s + 1
 
      end do
 
@@ -17241,9 +17243,9 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !  EPS3 replaces zero pivots and equal roots are modified by eps3,
 !  EPS4 is taken very small to avoid overflow.
 !
-  eps2 = 0.001D+00 * norm
+  eps2 = 0.001_rkx * norm
   eps3 = abs ( norm ) * epsilon ( eps3 )
-  uk = dble(q - p + 1)
+  uk = real(q - p + 1,rkx)
   eps4 = uk * eps3
   uk = eps4 / sqrt ( uk )
   group = 0
@@ -17268,7 +17270,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !
 !  Elimination with interchanges and initialization of vector.
 !
-     v = 0.0D+00
+     v = 0.0_rkx
 
      do i = p, q
 
@@ -17281,7 +17283,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
           rv4(i) = xu
           rv1(i-1) = e(i)
           rv2(i-1) = d(i) - x1
-          rv3(i-1) = 0.0D+00
+          rv3(i-1) = 0.0_rkx
           if ( i /= q ) rv3(i-1) = e(i+1)
           u = v - xu * rv2(i-1)
           v = -xu * rv3(i-1)
@@ -17292,7 +17294,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
         rv4(i) = xu
         rv1(i-1) = u
         rv2(i-1) = v
-        rv3(i-1) = 0.0D+00
+        rv3(i-1) = 0.0_rkx
 
 560     continue
 
@@ -17304,10 +17306,10 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 
      end do
 
-     if ( u == 0.0D+00 ) u = eps3
+     if ( u == 0.0_rkx ) u = eps3
      rv1(q) = u
-     rv2(q) = 0.0D+00
-     rv3(q) = 0.0D+00
+     rv2(q) = 0.0_rkx
+     rv3(q) = 0.0_rkx
 !
 !  Back substitution.
 !
@@ -17330,7 +17332,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 
      norm = sum ( abs ( rv6(p:q) ) )
 
-     if ( norm >= 1.0D+00 ) then
+     if ( norm >= 1.0_rkx ) then
        go to 840
      end if
 !
@@ -17341,7 +17343,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
        go to 1001
      end if
 
-     if ( norm == 0.0D+00 ) then
+     if ( norm == 0.0_rkx ) then
        rv6(s) = eps4
        s = s + 1
        if ( s > q ) then
@@ -17381,15 +17383,15 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !
 840  continue
 
-     u = 0.0D+00
+     u = 0.0_rkx
 
      do i = p, q
        u = pythag ( u, rv6(i) )
      end do
 
-     xu = 1.0D+00 / u
+     xu = 1.0_rkx / u
 
-     z(1:n,r) = 0.0D+00
+     z(1:n,r) = 0.0_rkx
      z(p:q,r) = rv6(p:q) * xu
 
      x0 = x1

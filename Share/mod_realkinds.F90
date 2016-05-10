@@ -27,7 +27,19 @@ module mod_realkinds
   integer , parameter :: rk16 = selected_real_kind(P=27,R=2400)
   integer , parameter :: rk8 = selected_real_kind(P=13,R=300)
   integer , parameter :: rk4 = selected_real_kind(P= 6,R=37)
-
+#ifdef SINGLE_PRECISION_REAL
+  integer , parameter :: rkx = rk4
+#ifdef __PGI
+  ! quiet nan for portland group compilers
+  real(rk4), parameter :: inf = O'07760000000'
+  real(rk4), parameter :: nan = O'07770000000'
+#else
+  ! signaling nan otherwise
+  real(rk4), parameter :: inf = O'07760000000'
+  real(rk4), parameter :: nan = O'07761000000'
+#endif
+#else
+  integer , parameter :: rkx = rk8
 #ifdef __PGI
   ! quiet nan for portland group compilers
   real(rk8), parameter :: inf = O'0777600000000000000000'
@@ -36,6 +48,7 @@ module mod_realkinds
   ! signaling nan otherwise
   real(rk8), parameter :: inf = O'0777600000000000000000'
   real(rk8), parameter :: nan = O'0777610000000000000000'
+#endif
 #endif
 
   interface is_nan

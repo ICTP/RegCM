@@ -45,7 +45,7 @@ module mod_clm_surfrd
   private :: surfrd_wtxy_veg_dgvm
 
   ! default multiplication factor for epsilon for error checks
-  real(rk8) , private, parameter :: eps_fact = 2.D0
+  real(rkx) , private, parameter :: eps_fact = 2._rkx
 
   contains
   !
@@ -102,7 +102,7 @@ module mod_clm_surfrd
 
     ! We receive only GOOD land points !
 
-    ldomain%frac = 100.0D0
+    ldomain%frac = 100.0_rkx
     ldomain%mask = 1
     ldomain%lonc = adomain%xlon
     ldomain%latc = adomain%xlat
@@ -112,8 +112,8 @@ module mod_clm_surfrd
 
     ! Check lat limited to -90,90
 
-    if (minval(ldomain%latc) < -90.0D0 .or. &
-        maxval(ldomain%latc) >  90.0D0) then
+    if (minval(ldomain%latc) < -90.0_rkx .or. &
+        maxval(ldomain%latc) >  90.0_rkx) then
       write(stderr,*) trim(subname),' WARNING: lat/lon min/max is ', &
            minval(ldomain%latc),maxval(ldomain%latc)
       call fatal(__FILE__,__LINE__, &
@@ -172,8 +172,8 @@ module mod_clm_surfrd
     allocate(xclon(begg:endg))
 
     vegxy(:,:) = noveg
-    wtxy(:,:)  = 0.D0
-    pctspec(:) = 0.D0
+    wtxy(:,:)  = 0._rkx
+    pctspec(:) = 0._rkx
 
     ! Read surface data
 
@@ -184,8 +184,8 @@ module mod_clm_surfrd
 
     ierr = 0
     do n = begg , endg
-      if ( xclon(n) /= ldomain%lonc(n) .or. &
-           yclat(n) /= ldomain%latc(n) ) then
+      if ( abs(xclon(n) - ldomain%lonc(n)) > epsilon(1.0_rkx) .or. &
+           abs(yclat(n) - ldomain%latc(n)) > epsilon(1.0_rkx) ) then
         write(stderr,*) 'ERROR coordinates at n ', &
             n, xclon(n), yclat(n) , ldomain%lonc(n), ldomain%latc(n)
         ierr = 1
@@ -246,15 +246,15 @@ module mod_clm_surfrd
     integer(ik4) :: nlev             ! level
     integer(ik4) :: dindx            ! temporary for error check
     ! percent of grid cell is glacier
-    real(rk8) , pointer , dimension(:) :: pctgla
+    real(rkx) , pointer , dimension(:) :: pctgla
     ! percent of grid cell is lake
-    real(rk8) , pointer , dimension(:) :: pctlak
+    real(rkx) , pointer , dimension(:) :: pctlak
     ! percent of grid cell is wetland
-    real(rk8) , pointer , dimension(:) :: pctwet
+    real(rkx) , pointer , dimension(:) :: pctwet
     ! percent of grid cell is urbanized
-    real(rk8) , pointer , dimension(:,:) :: pcturb
+    real(rkx) , pointer , dimension(:,:) :: pcturb
     ! percent of grid cell is urban (sum over density classes)
-    real(rk8) , pointer , dimension(:) :: pcturb_tot
+    real(rkx) , pointer , dimension(:) :: pcturb_tot
     character(len=32) :: subname = 'surfrd_wtxy_special'  ! subroutine name
 
     call get_proc_bounds(begg,endg)
@@ -293,7 +293,7 @@ module mod_clm_surfrd
 
     ! If PCT_URBAN is not multi-density then set pcturb and nlevurb to zero
     if (nlevurb == 0) then
-      pcturb = 0.D0
+      pcturb = 0._rkx
       if ( myid == italk ) then
         write(stdout,*)'PCT_URBAN is not multi-density, pcturb set to 0'
       end if
@@ -306,30 +306,30 @@ module mod_clm_surfrd
       end if
     end if
     if ( nlevurb == 0 )then
-      if ( any(pcturb > 0.0D0) ) then
+      if ( any(pcturb > 0.0_rkx) ) then
         call fatal(__FILE__,__LINE__, &
           trim(subname)//' ERROR: PCT_URBAN MUST be zero when nlevurb=0' )
       end if
     end if
 
-    pcturb_tot(:) = 0.D0
+    pcturb_tot(:) = 0._rkx
     do n = 1 , numurbl
       do nl = begg , endg
         pcturb_tot(nl) = pcturb_tot(nl) + pcturb(nl,n)
       end do
     end do
 
-    where (pctwet < eps_fact*epsilon(1.D0) )
-      pctwet = 0.0D0
+    where (pctwet < eps_fact*epsilon(1._rkx) )
+      pctwet = 0.0_rkx
     end where
-    where (pctlak < eps_fact*epsilon(1.D0) )
-      pctlak = 0.0D0
+    where (pctlak < eps_fact*epsilon(1._rkx) )
+      pctlak = 0.0_rkx
     end where
-    where (pctgla < eps_fact*epsilon(1.D0) )
-      pctgla = 0.0D0
+    where (pctgla < eps_fact*epsilon(1._rkx) )
+      pctgla = 0.0_rkx
     end where
-    where (pcturb_tot < eps_fact*epsilon(1.D0) )
-      pcturb_tot = 0.0D0
+    where (pcturb_tot < eps_fact*epsilon(1._rkx) )
+      pcturb_tot = 0.0_rkx
     end where
 
     pctspec = pctwet + pctlak + pcturb_tot + pctgla
@@ -338,7 +338,7 @@ module mod_clm_surfrd
 
     found = .false.
     do nl = begg , endg
-      if (pctspec(nl) > 100.D0+1.D-04) then
+      if (pctspec(nl) > 100._rkx+1.e-4_rkx) then
         found = .true.
         nindx = nl
         exit
@@ -358,32 +358,32 @@ module mod_clm_surfrd
 
     do nl = begg , endg
       vegxy(nl,npatch_lake)   = noveg
-      wtxy(nl,npatch_lake)    = pctlak(nl)/100.D0
+      wtxy(nl,npatch_lake)    = pctlak(nl)/100._rkx
 
       vegxy(nl,npatch_wet)    = noveg
-      wtxy(nl,npatch_wet)     = pctwet(nl)/100.D0
+      wtxy(nl,npatch_wet)     = pctwet(nl)/100._rkx
 
       vegxy(nl,npatch_glacier)= noveg
-      wtxy(nl,npatch_glacier) = pctgla(nl)/100.D0
+      wtxy(nl,npatch_glacier) = pctgla(nl)/100._rkx
 
       ! Initialize urban tall building district weights
       n = udens_tbd - udens_base
       do nurb = npatch_urban_tbd , npatch_urban_hd-1
         vegxy(nl,nurb) = noveg
-        wtxy(nl,nurb)  = pcturb(nl,n) / 100.D0
+        wtxy(nl,nurb)  = pcturb(nl,n) / 100._rkx
       end do
-      if ( pcturb(nl,n) > 0.0D0 )then
+      if ( pcturb(nl,n) > 0.0_rkx )then
         wtxy(nl,npatch_urban_tbd) = wtxy(nl,npatch_urban_tbd) * &
                 urbinp%wtlunit_roof(nl,n)
         wtxy(nl,npatch_urban_tbd+1) = wtxy(nl,npatch_urban_tbd+1) * &
-                (1.0D0 - urbinp%wtlunit_roof(nl,n))/3.0D0
+                (1.0_rkx - urbinp%wtlunit_roof(nl,n))/3.0_rkx
         wtxy(nl,npatch_urban_tbd+2) = wtxy(nl,npatch_urban_tbd+2) * &
-                (1.0D0 - urbinp%wtlunit_roof(nl,n))/3.0D0
+                (1.0_rkx - urbinp%wtlunit_roof(nl,n))/3.0_rkx
         wtxy(nl,npatch_urban_tbd+3) = wtxy(nl,npatch_urban_tbd+3) * &
-                (1.0D0 - urbinp%wtlunit_roof(nl,n))/3.0D0 * &
-                (1.0D0 - urbinp%wtroad_perv(nl,n))
+                (1.0_rkx - urbinp%wtlunit_roof(nl,n))/3.0_rkx * &
+                (1.0_rkx - urbinp%wtroad_perv(nl,n))
         wtxy(nl,npatch_urban_tbd+4) = wtxy(nl,npatch_urban_tbd+4) * &
-                (1.0D0 - urbinp%wtlunit_roof(nl,n))/3.0D0 * &
+                (1.0_rkx - urbinp%wtlunit_roof(nl,n))/3.0_rkx * &
                  urbinp%wtroad_perv(nl,n)
       end if
 
@@ -391,20 +391,20 @@ module mod_clm_surfrd
       n = udens_hd - udens_base
       do nurb = npatch_urban_hd , npatch_urban_md-1
         vegxy(nl,nurb) = noveg
-        wtxy(nl,nurb)  = pcturb(nl,n) / 100.D0
+        wtxy(nl,nurb)  = pcturb(nl,n) / 100._rkx
       end do
-      if ( pcturb(nl,n) > 0.0D0 ) then
+      if ( pcturb(nl,n) > 0.0_rkx ) then
         wtxy(nl,npatch_urban_hd) = wtxy(nl,npatch_urban_hd) * &
                 urbinp%wtlunit_roof(nl,n)
         wtxy(nl,npatch_urban_hd+1) = wtxy(nl,npatch_urban_hd+1) * &
-                (1.0D0 - urbinp%wtlunit_roof(nl,n))/3.0D0
+                (1.0_rkx - urbinp%wtlunit_roof(nl,n))/3.0_rkx
         wtxy(nl,npatch_urban_hd+2) = wtxy(nl,npatch_urban_hd+2) * &
-                (1.0D0 - urbinp%wtlunit_roof(nl,n))/3.0D0
+                (1.0_rkx - urbinp%wtlunit_roof(nl,n))/3.0_rkx
         wtxy(nl,npatch_urban_hd+3) = wtxy(nl,npatch_urban_hd+3) * &
-                (1.0D0 - urbinp%wtlunit_roof(nl,n))/3.0D0 * &
-                (1.0D0 - urbinp%wtroad_perv(nl,n))
+                (1.0_rkx - urbinp%wtlunit_roof(nl,n))/3.0_rkx * &
+                (1.0_rkx - urbinp%wtroad_perv(nl,n))
         wtxy(nl,npatch_urban_hd+4) = wtxy(nl,npatch_urban_hd+4) * &
-                (1.0D0 - urbinp%wtlunit_roof(nl,n))/3.0D0 * &
+                (1.0_rkx - urbinp%wtlunit_roof(nl,n))/3.0_rkx * &
                  urbinp%wtroad_perv(nl,n)
       end if
 
@@ -412,20 +412,20 @@ module mod_clm_surfrd
       n = udens_md - udens_base
       do nurb = npatch_urban_md , npatch_lake-1
         vegxy(nl,nurb) = noveg
-        wtxy(nl,nurb)  = pcturb(nl,n) / 100.D0
+        wtxy(nl,nurb)  = pcturb(nl,n) / 100._rkx
       end do
-      if ( pcturb(nl,n) > 0.0D0 )then
+      if ( pcturb(nl,n) > 0.0_rkx )then
         wtxy(nl,npatch_urban_md) = wtxy(nl,npatch_urban_md) * &
                 urbinp%wtlunit_roof(nl,n)
         wtxy(nl,npatch_urban_md+1) = wtxy(nl,npatch_urban_md+1) * &
-                (1.0D0 - urbinp%wtlunit_roof(nl,n))/3.0D0
+                (1.0_rkx - urbinp%wtlunit_roof(nl,n))/3.0_rkx
         wtxy(nl,npatch_urban_md+2) = wtxy(nl,npatch_urban_md+2) * &
-                (1.0D0 - urbinp%wtlunit_roof(nl,n))/3.0D0
+                (1.0_rkx - urbinp%wtlunit_roof(nl,n))/3.0_rkx
         wtxy(nl,npatch_urban_md+3) = wtxy(nl,npatch_urban_md+3) * &
-                (1.0D0 - urbinp%wtlunit_roof(nl,n))/3.0D0 * &
-                (1.0D0 - urbinp%wtroad_perv(nl,n))
+                (1.0_rkx - urbinp%wtlunit_roof(nl,n))/3.0_rkx * &
+                (1.0_rkx - urbinp%wtroad_perv(nl,n))
         wtxy(nl,npatch_urban_md+4) = wtxy(nl,npatch_urban_md+4) * &
-                (1.0D0 - urbinp%wtlunit_roof(nl,n))/3.0D0 * &
+                (1.0_rkx - urbinp%wtlunit_roof(nl,n))/3.0_rkx * &
                  urbinp%wtroad_perv(nl,n)
       end if
     end do
@@ -435,32 +435,32 @@ module mod_clm_surfrd
     found = .false.
     do nl = begg , endg
       do n = 1 , numurbl
-        if ( pcturb(nl,n) > 0.0D0 ) then
-          if (urbinp%canyon_hwr(nl,n)            <= 0.D0 .or. &
-              urbinp%em_improad(nl,n)            <= 0.D0 .or. &
-              urbinp%em_perroad(nl,n)            <= 0.D0 .or. &
-              urbinp%em_roof(nl,n)               <= 0.D0 .or. &
-              urbinp%em_wall(nl,n)               <= 0.D0 .or. &
-              urbinp%ht_roof(nl,n)               <= 0.D0 .or. &
-              urbinp%thick_roof(nl,n)            <= 0.D0 .or. &
-              urbinp%thick_wall(nl,n)            <= 0.D0 .or. &
-              urbinp%t_building_max(nl,n)        <= 0.D0 .or. &
-              urbinp%t_building_min(nl,n)        <= 0.D0 .or. &
-              urbinp%wind_hgt_canyon(nl,n)       <= 0.D0 .or. &
-              urbinp%wtlunit_roof(nl,n)          <= 0.D0 .or. &
-              urbinp%wtroad_perv(nl,n)           <= 0.D0 .or. &
-              any(urbinp%alb_improad_dir(nl,n,:) <= 0.D0) .or. &
-              any(urbinp%alb_improad_dif(nl,n,:) <= 0.D0) .or. &
-              any(urbinp%alb_perroad_dir(nl,n,:) <= 0.D0) .or. &
-              any(urbinp%alb_perroad_dif(nl,n,:) <= 0.D0) .or. &
-              any(urbinp%alb_roof_dir(nl,n,:)    <= 0.D0) .or. &
-              any(urbinp%alb_roof_dif(nl,n,:)    <= 0.D0) .or. &
-              any(urbinp%alb_wall_dir(nl,n,:)    <= 0.D0) .or. &
-              any(urbinp%alb_wall_dif(nl,n,:)    <= 0.D0) .or. &
-              any(urbinp%tk_roof(nl,n,:)         <= 0.D0) .or. &
-              any(urbinp%tk_wall(nl,n,:)         <= 0.D0) .or. &
-              any(urbinp%cv_roof(nl,n,:)         <= 0.D0) .or. &
-              any(urbinp%cv_wall(nl,n,:)         <= 0.D0)) then
+        if ( pcturb(nl,n) > 0.0_rkx ) then
+          if (urbinp%canyon_hwr(nl,n)            <= 0._rkx .or. &
+              urbinp%em_improad(nl,n)            <= 0._rkx .or. &
+              urbinp%em_perroad(nl,n)            <= 0._rkx .or. &
+              urbinp%em_roof(nl,n)               <= 0._rkx .or. &
+              urbinp%em_wall(nl,n)               <= 0._rkx .or. &
+              urbinp%ht_roof(nl,n)               <= 0._rkx .or. &
+              urbinp%thick_roof(nl,n)            <= 0._rkx .or. &
+              urbinp%thick_wall(nl,n)            <= 0._rkx .or. &
+              urbinp%t_building_max(nl,n)        <= 0._rkx .or. &
+              urbinp%t_building_min(nl,n)        <= 0._rkx .or. &
+              urbinp%wind_hgt_canyon(nl,n)       <= 0._rkx .or. &
+              urbinp%wtlunit_roof(nl,n)          <= 0._rkx .or. &
+              urbinp%wtroad_perv(nl,n)           <= 0._rkx .or. &
+              any(urbinp%alb_improad_dir(nl,n,:) <= 0._rkx) .or. &
+              any(urbinp%alb_improad_dif(nl,n,:) <= 0._rkx) .or. &
+              any(urbinp%alb_perroad_dir(nl,n,:) <= 0._rkx) .or. &
+              any(urbinp%alb_perroad_dif(nl,n,:) <= 0._rkx) .or. &
+              any(urbinp%alb_roof_dir(nl,n,:)    <= 0._rkx) .or. &
+              any(urbinp%alb_roof_dif(nl,n,:)    <= 0._rkx) .or. &
+              any(urbinp%alb_wall_dir(nl,n,:)    <= 0._rkx) .or. &
+              any(urbinp%alb_wall_dif(nl,n,:)    <= 0._rkx) .or. &
+              any(urbinp%tk_roof(nl,n,:)         <= 0._rkx) .or. &
+              any(urbinp%tk_wall(nl,n,:)         <= 0._rkx) .or. &
+              any(urbinp%cv_roof(nl,n,:)         <= 0._rkx) .or. &
+              any(urbinp%cv_wall(nl,n,:)         <= 0._rkx)) then
             found = .true.
             nindx = nl
             dindx = n
@@ -468,8 +468,8 @@ module mod_clm_surfrd
           else
             if (urbinp%nlev_improad(nl,n) > 0) then
                nlev = urbinp%nlev_improad(nl,n)
-               if (any(urbinp%tk_improad(nl,n,1:nlev) <= 0.D0) .or. &
-                   any(urbinp%cv_improad(nl,n,1:nlev) <= 0.D0)) then
+               if (any(urbinp%tk_improad(nl,n,1:nlev) <= 0._rkx) .or. &
+                   any(urbinp%cv_improad(nl,n,1:nlev) <= 0._rkx)) then
                   found = .true.
                   nindx = nl
                   dindx = n
@@ -517,7 +517,7 @@ module mod_clm_surfrd
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
     do nl = begg , endg
-      if ( pctspec(nl) > 100.D0 * (1.D0 - eps_fact*epsilon(1.D0)) ) then
+      if ( pctspec(nl) > 100._rkx * (1._rkx - eps_fact*epsilon(1._rkx)) ) then
         ldomain%pftm(nl) = 0
       end if
     end do
@@ -538,9 +538,9 @@ module mod_clm_surfrd
     integer(ik4) :: m , nl         ! indices
     integer(ik4) :: begg , endg    ! beg/end gcell index
     integer(ik4) :: ier , tot_ier  ! error status
-    real(rk8) :: sumpct            ! sum of %pft over maxpatch_pft
+    real(rkx) :: sumpct            ! sum of %pft over maxpatch_pft
     ! percent of vegetated gridcell area for PFTs
-    real(rk8) , allocatable , dimension(:,:) :: pctpft
+    real(rkx) , allocatable , dimension(:,:) :: pctpft
     logical  :: crop = .false.  ! if crop data on this section of file
     character(len=32) :: subname = 'surfrd_wtxy_veg_all'  ! subroutine name
 
@@ -560,7 +560,7 @@ module mod_clm_surfrd
     end if
 
     where (pctpft < eps_fact*epsilon(1.0) )
-      pctpft = 0.0D0
+      pctpft = 0.0_rkx
     end where
 
     ier = 0
@@ -570,37 +570,37 @@ module mod_clm_surfrd
         ! (convert pctpft from percent with respect to gridcel to percent with
         ! respect to vegetated landunit)
         ! THESE CHECKS NEEDS TO BE THE SAME AS IN pftdynMod.F90!
-        if ( pctspec(nl) < 100.D0 * (1.D0 - eps_fact*epsilon(1.D0)) ) then
+        if ( pctspec(nl) < 100._rkx * (1._rkx - eps_fact*epsilon(1._rkx)) ) then
           ! pctspec not within eps_fact*epsilon of 100
-          sumpct = 0.D0
+          sumpct = 0._rkx
           do m = 0 , numpft
-            sumpct = sumpct + pctpft(nl,m) * 100.D0/(100.D0-pctspec(nl))
+            sumpct = sumpct + pctpft(nl,m) * 100._rkx/(100._rkx-pctspec(nl))
           end do
-          if ( abs(sumpct - 100.D0) > 1.0D-4 ) then
+          if ( abs(sumpct - 100._rkx) > 1.0e-4_rkx ) then
             write(stderr,*) 'SUMPFT  = ',sum(pctpft(nl,:))
             write(stderr,*) 'PCTSPEC = ',pctspec(nl)
             write(stderr,*) 'SUMPCT  = ',sumpct
             write(stderr,*) trim(subname)// &
                     ' ERROR: sum(pct) over numpft+1 is not = 100.'
-            write(stderr,*) 'Unbalance ', sumpct-100.D0, ' AT LAT,LON ', &
+            write(stderr,*) 'Unbalance ', sumpct-100._rkx, ' AT LAT,LON ', &
                     ldomain%latc(nl), ldomain%lonc(nl)
             ier = ier + 1
           end if
-          if ( sumpct < -0.000001D0 ) then
+          if ( sumpct < -0.000001_rkx ) then
             write(stderr,*) trim(subname)// &
                     ' ERROR: sum(pct) over numpft+1 is < 0.'
             write(stderr,*) 'SUMPCT = ', sumpct, ' at nl : ',nl
             ier = ier + 100000
           end if
           do m = npcropmin , numpft
-            if ( pctpft(nl,m) > 0.0D0 ) crop = .true.
+            if ( pctpft(nl,m) > 0.0_rkx ) crop = .true.
           end do
         end if
         ! Set weight of each pft wrt gridcell
         ! (note that maxpatch_pft = numpft+1 here)
         do m = 1 , numpft+1
           vegxy(nl,m) = m - 1 ! 0 (bare ground) to numpft
-          wtxy(nl,m) = pctpft(nl,m-1) / 100.D0
+          wtxy(nl,m) = pctpft(nl,m-1) / 100._rkx
         end do
       end if
     end do
@@ -642,7 +642,7 @@ module mod_clm_surfrd
 
     do nl = begg , endg
       if ( ldomain%pftm(nl) >= 0 ) then
-        if ( pctspec(nl) < 100.D0 * (1.D0 - eps_fact*epsilon(1.D0)) ) then
+        if ( pctspec(nl) < 100._rkx * (1._rkx - eps_fact*epsilon(1._rkx)) ) then
           ! pctspec not within eps_fact*epsilon of 100
           if ( .not. crop_prog .and. &
                 wtxy(nl,nc3irrig+1) > eps_fact*epsilon(1.0) ) then
@@ -653,15 +653,15 @@ module mod_clm_surfrd
           end if
           if ( crop_prog .and. .not. irrigate ) then
             wtxy(nl,nc3crop+1) = wtxy(nl,nc3crop+1) + wtxy(nl,nc3irrig+1)
-            wtxy(nl,nc3irrig+1) = 0.D0
+            wtxy(nl,nc3irrig+1) = 0._rkx
             wtxy(nl,ncorn+1) = wtxy(nl,ncorn+1) + wtxy(nl,ncornirrig+1)
-            wtxy(nl,ncornirrig+1) = 0.D0
+            wtxy(nl,ncornirrig+1) = 0._rkx
             wtxy(nl,nscereal+1) = wtxy(nl,nscereal+1) + wtxy(nl,nscerealirrig+1)
-            wtxy(nl,nscerealirrig+1) = 0.D0
+            wtxy(nl,nscerealirrig+1) = 0._rkx
             wtxy(nl,nwcereal+1) = wtxy(nl,nwcereal+1) + wtxy(nl,nwcerealirrig+1)
-            wtxy(nl,nwcerealirrig+1) = 0.D0
+            wtxy(nl,nwcerealirrig+1) = 0._rkx
             wtxy(nl,nsoybean+1) = wtxy(nl,nsoybean+1) + wtxy(nl,nsoybeanirrig+1)
-            wtxy(nl,nsoybeanirrig+1) = 0.D0
+            wtxy(nl,nsoybeanirrig+1) = 0._rkx
           end if
         end if
       end if
@@ -683,16 +683,16 @@ module mod_clm_surfrd
       do m = 1 , maxpatch_pft ! CNDV means allocate_all_vegpfts = .true.
         if ( create_crop_landunit ) then ! been through surfrd_wtxy_veg_all
           if ( crop(m-1) == 0 ) then     ! so update natural vegetation only
-            wtxy(nl,m) = 0.D0       ! crops should have values >= 0.
+            wtxy(nl,m) = 0._rkx       ! crops should have values >= 0.
           end if
         else                        ! not been through surfrd_wtxy_veg_all
-          wtxy(nl,m) = 0.D0   ! so update all vegetation
+          wtxy(nl,m) = 0._rkx   ! so update all vegetation
           vegxy(nl,m) = m - 1 ! 0 (bare ground) to maxpatch_pft-1 (= 16)
         end if
       end do
       ! bare ground weights
-      wtxy(nl,noveg+1) = max(0.D0, 1.D0 - sum(wtxy(nl,:)))
-      if (abs(sum(wtxy(nl,:)) - 1.D0) > 1.D-5) then
+      wtxy(nl,noveg+1) = max(0._rkx, 1._rkx - sum(wtxy(nl,:)))
+      if (abs(sum(wtxy(nl,:)) - 1._rkx) > 1.e-5_rkx) then
         write(stderr,*) 'all wtxy =', wtxy(nl,:)
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if ! error check

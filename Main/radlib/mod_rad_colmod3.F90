@@ -39,29 +39,29 @@ module mod_rad_colmod3
   !
   ! Longwave absorption coeff (m**2/g)
   !
-  real(rk8) , parameter :: kabsl = 0.090361D0
-  real(rk8) , parameter :: nearone  = 0.99D+00
+  real(rkx) , parameter :: kabsl = 0.090361_rkx
+  real(rkx) , parameter :: nearone  = 0.99_rkx
   !
-  real(rk8) , pointer , dimension(:) :: alb , albc , &
+  real(rkx) , pointer , dimension(:) :: alb , albc , &
     flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq ,  &
     fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,      &
     sols , solsd , ps , ts , emiss , totcf , totcl , totci , xptrop , &
     dlat , czen
-  real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos
-  real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
-  real(rk8) , pointer , dimension(:) :: adirsw , adifsw , adirlw , adiflw
-  real(rk8) , pointer , dimension(:) :: asw , alw
-  real(rk8) , pointer , dimension(:) :: abv , sol
-  real(rk8) , pointer , dimension(:,:) :: cld , effcld , pilnm1 , pintm1
-  real(rk8) , pointer , dimension(:,:) :: clwp , fice , &
+  real(rkx) , pointer , dimension(:) :: aeradfo , aeradfos
+  real(rkx) , pointer , dimension(:) :: aerlwfo , aerlwfos
+  real(rkx) , pointer , dimension(:) :: adirsw , adifsw , adirlw , adiflw
+  real(rkx) , pointer , dimension(:) :: asw , alw
+  real(rkx) , pointer , dimension(:) :: abv , sol
+  real(rkx) , pointer , dimension(:,:) :: cld , effcld , pilnm1 , pintm1
+  real(rkx) , pointer , dimension(:,:) :: clwp , fice , &
     o3vmr , pmidm1 , pmlnm1 , qm1 , ql1 , qi1 , qrl ,  &
     qrs , rei , rel , deltaz , tm1 , rh1
-  real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
-  real(rk8) , pointer , dimension(:,:,:) :: aermmr
-  real(rk8) , pointer , dimension(:,:,:) :: absgasnxt
-  real(rk8) , pointer , dimension(:,:,:) :: absgastot
-  real(rk8) , pointer , dimension(:,:) :: emsgastot
-  real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
+  real(rkx) , pointer , dimension(:,:,:) :: tauxcl , tauxci
+  real(rkx) , pointer , dimension(:,:,:) :: aermmr
+  real(rkx) , pointer , dimension(:,:,:) :: absgasnxt
+  real(rkx) , pointer , dimension(:,:,:) :: absgastot
+  real(rkx) , pointer , dimension(:,:) :: emsgastot
+  real(rkx) , pointer , dimension(:,:,:) :: outtaucl , outtauci
   logical , pointer , dimension(:) :: czengt0
   integer(ik4) , pointer , dimension(:) :: ioro
 
@@ -457,19 +457,19 @@ module mod_rad_colmod3
     implicit none
 
     integer(ik4) :: n , k , nt
-    real(rk8) :: pnrml , weight , rhoa , nc , aerc , lwc , kparam
-    ! real(rk8) :: tpara
+    real(rkx) :: pnrml , weight , rhoa , nc , aerc , lwc , kparam
+    ! real(rkx) :: tpara
     ! reimax - maximum ice effective radius
-    real(rk8) , parameter :: reimax = 30.0D0
+    real(rkx) , parameter :: reimax = 30.0_rkx
     ! rirnge - range of ice radii (reimax - 10 microns)
-    real(rk8) , parameter :: rirnge = 20.0D0
+    real(rkx) , parameter :: rirnge = 20.0_rkx
     ! pirnge - nrmlzd pres range for ice particle changes
-    real(rk8) , parameter :: pirnge = 0.4D0
+    real(rkx) , parameter :: pirnge = 0.4_rkx
     ! picemn - normalized pressure below which rei=reimax
-    real(rk8) , parameter :: picemn = 0.4D0
+    real(rkx) , parameter :: picemn = 0.4_rkx
     ! Temperatures in K (263.16 , 243.16)
-    real(rk8) , parameter :: minus10 = wattp-d_10
-    real(rk8) , parameter :: minus30 = wattp-(d_three*d_10)
+    real(rkx) , parameter :: minus10 = wattp-d_10
+    real(rkx) , parameter :: minus30 = wattp-(d_three*d_10)
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cldefr'
     integer(ik4) :: indx = 0
@@ -493,16 +493,16 @@ module mod_rad_colmod3
         ! Toward the poles, for colder temperature, large droplets freeze
         ! and only the smaller ones are kept liquid.
         !
-        ! tpara = min(d_one,max(d_zero,(minus10-tm1(n,k))*0.05D0))
+        ! tpara = min(d_one,max(d_zero,(minus10-tm1(n,k))*0.05_rkx))
         !
         if ( ioro(n) == 0 ) then
           ! Effective liquid radius over ocean and sea ice
-          ! rel(n,k) = 7.0D0 + 5.0D0 * tpara
-          rel(n,k) = 11.0D0
+          ! rel(n,k) = 7.0_rkx + 5.0_rkx * tpara
+          rel(n,k) = 11.0_rkx
         else
           ! Effective liquid radius over land
-          ! rel(n,k) = 6.0D0 + 5.0D0 * tpara
-          rel(n,k) = 8.50D0
+          ! rel(n,k) = 6.0_rkx + 5.0_rkx * tpara
+          rel(n,k) = 8.50_rkx
         end if
         ! Determine rei as function of normalized pressure
         pnrml = pmidm1(n,k)/ps(n)
@@ -525,7 +525,7 @@ module mod_rad_colmod3
             if ( tm1(n,k) <= minus10 .and. tm1(n,k) >= minus30 ) then
               ! if colder than -10 degrees C but warmer than -30 C mixed phase
               ! fice : fractional ice content within cloud
-              fice(n,k) = (minus10-tm1(n,k))/20.0D0
+              fice(n,k) = (minus10-tm1(n,k))/20.0_rkx
               !  if colder than -30 degrees C then ice phase
             else
               fice(n,k) = d_one
@@ -547,26 +547,26 @@ module mod_rad_colmod3
         if ( chtrname(nt) /= 'SO4' ) cycle
         do k = 1 , kz
           do n = 1 , npr
-            rhoa = pmidm1(n,k)* amdk / (tm1(n,k) * 8.314D0)
-            aerc = rhoa * aermmr(n,k,nt) * 1.D9 !microg/m3
+            rhoa = pmidm1(n,k)* amdk / (tm1(n,k) * 8.314_rkx)
+            aerc = rhoa * aermmr(n,k,nt) * 1.e9_rkx !microg/m3
             ! thershold of 0.1 microg/m3 for activation of indirect effect
-            if ( aerc > 0.1D0 ) then
+            if ( aerc > 0.1_rkx ) then
               ! ccn number concentration in cm-3
-              nc = 90.7D0 * aerc**0.45D0 + 23.D0
+              nc = 90.7_rkx * aerc**0.45_rkx + 23._rkx
               ! kg/m3, already account fro cum and ls clouds
               lwc = clwp(n,k) / deltaz(n,k) * d_r1000
-              if ( lwc < 1.D-6 ) cycle
+              if ( lwc < 1.e-6_rkx ) cycle
               if ( ioro(n) /= 1 ) then
                 ! Martin et al.(1994) parameter over ocean and sea ice
-                kparam = 0.80D0
+                kparam = 0.80_rkx
               else
                 ! and over land
-                kparam = 0.67D0
+                kparam = 0.67_rkx
               end if
               !finally modify effective radius
-              !(1.D6 to convert to rel to microm, 1D6 to vonvert nc in m-3)
-              rel(n,k) = 1.D6 * ( d_three*lwc / &
-                   (d_four*mathpi*rhoh2o*kparam*nc*1.D6 ) )**(d_one/d_three)
+              !(1.e6_rkx to convert to rel to microm, 1e6_rkx to vonvert nc in m-3)
+              rel(n,k) = 1.e6_rkx * ( d_three*lwc / &
+                   (d_four*mathpi*rhoh2o*kparam*nc*1.e6_rkx ) )**(d_one/d_three)
             end if
           end do
         end do
@@ -586,7 +586,7 @@ module mod_rad_colmod3
   subroutine cldems
     implicit none
     integer(ik4) :: n , k
-    real(rk8) :: kabs , kabsi , emis
+    real(rkx) :: kabs , kabsi , emis
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cldems'
     integer(ik4) :: indx = 0
@@ -595,11 +595,11 @@ module mod_rad_colmod3
     do k = 1 , kz
       do n = 1 , npr
         ! ice absorption coefficient
-        kabsi = 0.005D0 + d_one/rei(n,k)
+        kabsi = 0.005_rkx + d_one/rei(n,k)
         ! longwave absorption coeff (m**2/g)
         kabs = kabsl*(d_one-fice(n,k)) + kabsi*fice(n,k)
         ! cloud emissivity (fraction)
-        emis = d_one - dexp(-min(1.66D0*kabs*clwp(n,k),25.0D0))
+        emis = d_one - exp(-min(1.66_rkx*kabs*clwp(n,k),25.0_rkx))
         ! Effective cloud cover
         effcld(n,k) = cld(n,k)*emis
       end do
@@ -620,9 +620,9 @@ module mod_rad_colmod3
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
     integer(ik4) :: n , m , i , j , k , k2 , itr , kmincld , kmaxcld
-    real(rk8) , parameter :: amd = 28.9644D0
-    real(rk8) , parameter :: amo = 48.0000D0
-    real(rk8) , parameter :: vmmr = amo/amd
+    real(rkx) , parameter :: amd = 28.9644_rkx
+    real(rkx) , parameter :: amo = 48.0000_rkx
+    real(rkx) , parameter :: vmmr = amo/amd
     logical , save :: ifirst = .true.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'getdat'
@@ -636,7 +636,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          dlat(n) = dabs(m2r%xlat(j,i))
+          dlat(n) = abs(m2r%xlat(j,i))
           xptrop(n) = m2r%ptrop(j,i)
           n = n + 1
         end do
@@ -665,8 +665,8 @@ module mod_rad_colmod3
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        czen(n) = m2r%coszrs(j,i)
-        if ( czen(n) > d_zero ) czengt0(n) = .true.
+        czen(n) = max(m2r%coszrs(j,i),1.e-3_rkx)
+        if ( m2r%coszrs(j,i) > 1.e-2_rkx ) czengt0(n) = .true.
         n = n + 1
       end do
     end do
@@ -726,7 +726,7 @@ module mod_rad_colmod3
         end do
       end do
     end do
-    pmlnm1(:,:) = dlog(pmidm1(:,:))
+    pmlnm1(:,:) = log(pmidm1(:,:))
     do k = 1 , kzp1
       n = 1
       do i = ici1 , ici2
@@ -736,7 +736,7 @@ module mod_rad_colmod3
         end do
       end do
     end do
-    pilnm1(:,:) = dlog(pintm1(:,:))
+    pilnm1(:,:) = log(pintm1(:,:))
     !
     ! Air temperature and relative humidity
     !
@@ -810,8 +810,8 @@ module mod_rad_colmod3
     !
     !   do k = 1 , kz
     !     do n = 1 , npr
-    !       if ( pintm1(n,k+1) < 40000.0D0 ) then
-    !         cld(n,k) = min(cld(n,k),0.25d0)
+    !       if ( pintm1(n,k+1) < 40000.0_rkx ) then
+    !         cld(n,k) = min(cld(n,k),0.25_rkx)
     !       else
     !         cld(n,k) = min(cld(n,k),cftotmax)
     !       end if

@@ -19,6 +19,8 @@
 
 include $(REGCM_ROOT)/makeinc
 
+vpath %.o $(REGCM_ROOT)/Share:.
+
 noinst_LIBRARIES = librrtmgsw.a
 librrtmgsw_a_SOURCES = \
 parkind.F90    rrlw_kg06.F90  rrlw_kg16.F90   rrsw_kg17.F90  rrsw_kg27.F90  \
@@ -43,7 +45,7 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on i.
-parkind.o : parkind.F90
+parkind.o : parkind.F90 mod_realkinds.o
 parrrsw.o : parrrsw.F90 parkind.o
 parrrtm.o : parrrtm.F90 parkind.o
 rrlw_cld.o : rrlw_cld.F90 parkind.o

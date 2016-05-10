@@ -146,9 +146,9 @@ module mod_clm_driver
   subroutine clm_drv(doalb,nextsw_cday,declinp1,declin,rstwr,nlend,nlomon,rdate)
     implicit none
     logical , intent(in) :: doalb     ! true if time for surface albedo calc
-    real(rk8) , intent(in) :: nextsw_cday ! calendar day
-    real(rk8) , intent(in) :: declinp1 ! declination angle for next time step
-    real(rk8) , intent(in) :: declin   ! declination angle for current time step
+    real(rkx) , intent(in) :: nextsw_cday ! calendar day
+    real(rkx) , intent(in) :: declinp1 ! declination angle for next time step
+    real(rkx) , intent(in) :: declin   ! declination angle for current time step
     logical , intent(in) :: rstwr     ! true => write restart file this step
     logical , intent(in) :: nlend     ! true => end of run on this step
     logical , intent(in) :: nlomon    ! true => end of month on this step
@@ -222,15 +222,15 @@ module mod_clm_driver
 
     ! initialize heat and water content and dynamic balance fields to zero
     do g = begg , endg
-      clm3%g%gwf%qflx_liq_dynbal(g) = 0.D0
-      clm3%g%gws%gc_liq2(g)         = 0.D0
-      clm3%g%gws%gc_liq1(g)         = 0.D0
-      clm3%g%gwf%qflx_ice_dynbal(g) = 0.D0
-      clm3%g%gws%gc_ice2(g)         = 0.D0
-      clm3%g%gws%gc_ice1(g)         = 0.D0
-      clm3%g%gef%eflx_dynbal(g)     = 0.D0
-      clm3%g%ges%gc_heat2(g)        = 0.D0
-      clm3%g%ges%gc_heat1(g)        = 0.D0
+      clm3%g%gwf%qflx_liq_dynbal(g) = 0._rkx
+      clm3%g%gws%gc_liq2(g)         = 0._rkx
+      clm3%g%gws%gc_liq1(g)         = 0._rkx
+      clm3%g%gwf%qflx_ice_dynbal(g) = 0._rkx
+      clm3%g%gws%gc_ice2(g)         = 0._rkx
+      clm3%g%gws%gc_ice1(g)         = 0._rkx
+      clm3%g%gef%eflx_dynbal(g)     = 0._rkx
+      clm3%g%ges%gc_heat2(g)        = 0._rkx
+      clm3%g%ges%gc_heat1(g)        = 0._rkx
     end do
 
     !--- get initial heat,water content ---
@@ -351,8 +351,8 @@ module mod_clm_driver
 
     ! initialize intracellular CO2 (Pa) parameters each timestep for use
     ! in VOCEmission
-    clm3%g%l%c%p%pcf%cisun_z(begp:endp,:) = -999.D0
-    clm3%g%l%c%p%pcf%cisha_z(begp:endp,:) = -999.D0
+    clm3%g%l%c%p%pcf%cisun_z(begp:endp,:) = -999._rkx
+    clm3%g%l%c%p%pcf%cisha_z(begp:endp,:) = -999._rkx
 
     ! initialize declination for current timestep
     do c = begc , endc
@@ -517,7 +517,7 @@ module mod_clm_driver
       l = clandunit(c)
       if ( itypelun(l) == isturb ) then
         ! Urban landunit use Bonan 1996 (LSM Technical Note)
-        cptr%cps%frac_sno(c) = min( cptr%cps%snow_depth(c)/0.05D0, 1.D0)
+        cptr%cps%frac_sno(c) = min( cptr%cps%snow_depth(c)/0.05_rkx, 1._rkx)
       end if
     end do
 
@@ -650,7 +650,7 @@ module mod_clm_driver
 
 #if (defined CNDV)
     if ( ktau > 0 ) then
-      tdif = int(dtsrf + dt/2.0D0)
+      tdif = int(dtsrf + dt/2.0_rkx)
     else
       tdif = int(dtsrf)
     end if

@@ -353,10 +353,10 @@ module mod_mtrxclm
           end if
           if ( ktau == 0 ) then
             ! Set initial albedos to clm dry soil values for mid-colored soils
-            lms%swdiralb(n,j,i) = 0.16D0
-            lms%swdifalb(n,j,i) = 0.16D0
-            lms%lwdiralb(n,j,i) = 0.32D0
-            lms%lwdifalb(n,j,i) = 0.32D0
+            lms%swdiralb(n,j,i) = 0.16_rkx
+            lms%swdifalb(n,j,i) = 0.16_rkx
+            lms%lwdiralb(n,j,i) = 0.32_rkx
+            lms%lwdifalb(n,j,i) = 0.32_rkx
             lms%swalb(n,j,i) = (lms%swdiralb(n,j,i)+lms%swdifalb(n,j,i)) * &
                 clm_fracveg(j,i)
             lms%lwalb(n,j,i) = (lms%lwdiralb(n,j,i)+lms%lwdifalb(n,j,i)) * &
@@ -369,8 +369,8 @@ module mod_mtrxclm
     ! Correct landmask
     do i = 1 , iy
       do j = 1 , jx
-        if ( dabs(landfrac(j,i)-d_one) >= 0.1D0 .and. &
-             dabs(landfrac(j,i))       >= 0.1D0 ) then
+        if ( dabs(landfrac(j,i)-d_one) >= 0.1_rkx .and. &
+             dabs(landfrac(j,i))       >= 0.1_rkx ) then
           landmask(j,i) = 3
         end if
       end do
@@ -406,10 +406,10 @@ module mod_mtrxclm
           ! used in RegCM.  Make sure all are consistent
           !
           lm%lndcat(j,i) = clm2bats_veg(j,i)
-          if ( clm2bats_veg(j,i) < 0.1D0 ) lm%lndcat(j,i) = 15.0D0
+          if ( clm2bats_veg(j,i) < 0.1_rkx ) lm%lndcat(j,i) = 15.0_rkx
           do n = 1 , nnsg
             lm%lndcat1(n,j,i) = clm2bats_veg(j,i)
-            if ( clm2bats_veg(j,i) < 0.1D0 ) lm%lndcat1(n,j,i) = 15.0D0
+            if ( clm2bats_veg(j,i) < 0.1_rkx ) lm%lndcat1(n,j,i) = 15.0_rkx
           end do
         end do
       end do
@@ -648,8 +648,8 @@ module mod_mtrxclm
 !
   subroutine fill_frame2d(a,b)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: a
-    real(rk8) , pointer , intent(out) , dimension(:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:) :: a
+    real(rkx) , pointer , intent(out) , dimension(:,:) :: b
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2)
     if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2)
@@ -686,8 +686,8 @@ module mod_mtrxclm
 
   subroutine fill_frame3d(a,b)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rk8) , pointer , intent(out) , dimension(:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rkx) , pointer , intent(out) , dimension(:,:) :: b
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2,kz)
     if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2,kz)
@@ -724,8 +724,8 @@ module mod_mtrxclm
 
   subroutine fill_frame4d(a,b,l)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: a
-    real(rk8) , pointer , intent(out) , dimension(:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: a
+    real(rkx) , pointer , intent(out) , dimension(:,:) :: b
     integer(ik4) , intent(in) :: l
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2,kz,l)
     if ( ma%has_bdyleft ) then

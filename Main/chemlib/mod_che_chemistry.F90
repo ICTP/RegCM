@@ -36,12 +36,12 @@ module mod_che_chemistry
 
   private
 
-  real(rk8) :: dtchsolv
+  real(rkx) :: dtchsolv
   integer(ik8) :: kchsolv
 
   integer(ik4) , parameter :: kmin = 2
-  real(rk8) , parameter :: kb = 1.380658D-19
-  real(rk8) , parameter :: mwa = 28.97D0
+  real(rkx) , parameter :: kb = 1.380658e-19_rkx
+  real(rkx) , parameter :: mwa = 28.97_rkx
 
   public :: chemistry , dtchsolv , kchsolv
 
@@ -50,7 +50,8 @@ module mod_che_chemistry
     subroutine chemistry(j)
       implicit none
       integer(ik4) , intent(in) :: j
-      real(rk8) :: cfactor , pfact
+      real(rkx) :: cfactor , pfact
+      real(rk8) :: change
       integer(ik4) :: i , k , ic , n
 
       time = dtchsolv
@@ -63,10 +64,10 @@ module mod_che_chemistry
           ! Skip stratosphere ( ? Should we ? )
           if ( altmid < cptrop(j,i) - d_100 ) cycle
           temp     = ctb3d(j,i,k)
-          zenith   = dacos(czen(j,i))*raddeg
-          cfactor  = crhob3d(j,i,k) * 1.D-03 * navgdr
+          zenith   = acos(czen(j,i))*raddeg
+          cfactor  = crhob3d(j,i,k) * 1.e-3_rkx * navgdr
           dens     = cfactor / amd
-          C_M      = altmid*10.0D0/(kb*temp)
+          C_M      = altmid*10.0_rkx/(kb*temp)
           deptha   = d_zero
           depthb   = d_zero
           altabove = d_zero
@@ -87,8 +88,13 @@ module mod_che_chemistry
           xrout(:) = d_zero
           ! 1 : initialise xrin with the concentrations from
           !     previous chemsolv step
-!  FAB: this fix a stability bug , but the solver might slower since        
+!  FAB: this fix a stability bug , but the solver might slower since
 !  other option is to transport all the species.
+          if ( ktau > 0 ) then
+            do ic = 1 , totsp
+              xrin(ic) = real(chemall(j,i,k,ic),rk8)
+            end do
+          end if
 !          do ic = 1 , totsp
 !           xrin(ic) = chemall(j,i,k,ic)
 !          end do
@@ -101,15 +107,23 @@ module mod_che_chemistry
           ! update for water vapor
           xrin(ind_H2O)  = cqxb3d(j,i,k,iqv) * cfactor / amw
 
-          call chemmain(calday,dtchsolv)
+          call chemmain(real(calday,rk8),real(dtchsolv,rk8))
 
           ! save the concentrations of all species for next chemistry step
           do ic = 1 , totsp
-            chemall(j,i,k,ic) = xrout(ic)
+            if ( abs(xrout(ic)) > 1.e-20_rkx ) then
+              chemall(j,i,k,ic) = real(xrout(ic),rkx)
+            else
+              chemall(j,i,k,ic) = d_zero
+            end if
           end do
           ! Store photolysis rates for diagnostic
           do ic = 1 , nphoto
-            jphoto(j,i,k,ic) = c_jval(1,ic)
+            if ( c_jval(1,ic) > 1.e-20_rkx ) then
+              jphoto(j,i,k,ic) = real(c_jval(1,ic),rkx)
+            else
+              jphoto(j,i,k,ic) = d_zero
+            end if
           end do
           !
           ! Now calculate chemical tendencies
@@ -118,8 +132,12 @@ module mod_che_chemistry
 
           do n = 1 , ntr
             if ( trac%indcbmz(n) > 0 ) then
-              chemten(j,i,k,n) = (xrout(trac%indcbmz(n)) - &
-                                  xrin(trac%indcbmz(n))) * pfact * trac%mw(n)
+              change = xrout(trac%indcbmz(n)) - xrin(trac%indcbmz(n))
+              if ( change > 1.e-20_rkx ) then
+                chemten(j,i,k,n) = real(change,rkx) * pfact * trac%mw(n)
+              else
+                chemten(j,i,k,n) = d_zero
+              end if
             end if
           end do
         end do ! end i , k loop

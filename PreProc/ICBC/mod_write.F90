@@ -33,10 +33,10 @@ module mod_write
 
   private
 
-  real(rk8) , pointer , dimension(:,:) :: ps4 , ts4 , wtop4 , psd0 , topod
-  real(rk8) , pointer , dimension(:,:,:) :: q4
-  real(rk8) , pointer , dimension(:,:,:) :: t4 , u4 , v4
-  real(rk8) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4 , tvd4
+  real(rkx) , pointer , dimension(:,:) :: ps4 , ts4 , wtop4 , psd0 , topod
+  real(rkx) , pointer , dimension(:,:,:) :: q4
+  real(rkx) , pointer , dimension(:,:,:) :: t4 , u4 , v4
+  real(rkx) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4 , tvd4
 
   public :: ps4 , ts4 , q4 , t4 , u4 , v4 , pp4 , ww4
   public :: init_output , close_output , dispose_output , newfile , writef
@@ -216,7 +216,7 @@ module mod_write
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: ivar , k
-    real(rk8) :: dx
+    real(rkx) :: dx
 
     if ( idynamic == 2 ) then
       dx = ds * d_1000

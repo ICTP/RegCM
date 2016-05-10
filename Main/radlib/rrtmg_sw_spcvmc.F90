@@ -16,7 +16,7 @@
 
 ! ------- Modules -------
 
-      use parkind, only : im => kind_im, rb => kind_rb
+      use parkind, only : im => kind_im, rb => kind_rb , almostzero
       use parrrsw, only : nbndsw, ngptsw, mxmol, jpband
       use rrsw_tbl, only : tblint, bpade, od_lo, exp_tbl
       use rrsw_vsn, only : hvrspc, hnamspc
@@ -501,8 +501,13 @@
                endif
 
                zdbtc(jk) = zdbtmc
-               ztdbtc(jk+1) = zdbtc(jk)*ztdbtc(jk)
-               if (ztdbtc(jk+1) < 1.D-100) ztdbtc(jk+1) = 0.0D0
+               if ( zdbtc(jk) < almostzero ) then
+                 zdbtc(jk) = 0.0_rb
+                 ztdbtc(jk+1) = 0.0_rb
+               else
+                 ztdbtc(jk+1) = zdbtc(jk)*ztdbtc(jk)
+                 if ( ztdbtc(jk+1) < almostzero ) ztdbtc(jk+1) = 0.0_rb
+               end if
 
 ! Clear + Cloud
 !                zdbtmo = exp(-ztauo(jk) / prmu0)
@@ -519,8 +524,13 @@
                endif
 
                zdbt(jk) = zclear*zdbtmc + zcloud*zdbtmo
-               ztdbt(jk+1) = zdbt(jk)*ztdbt(jk)
-               if (ztdbt(jk+1) < 1.D-100) ztdbt(jk+1) = 0.0D0
+               if ( zdbt(jk) < almostzero ) then
+                 zdbt(jk) = 0.0_rb
+                 ztdbt(jk+1) = 0.0_rb
+               else
+                 ztdbt(jk+1) = zdbt(jk)*ztdbt(jk)
+                 if ( ztdbt(jk+1) < almostzero ) ztdbt(jk+1) = 0._rb
+               end if
 
             enddo
 

@@ -51,22 +51,22 @@ program ncprepare
 
   character(256) :: charatt
   character(6) :: iproj
-  real(rk8) :: clat , clon , plat , plon , ds , centeri , centerj
-  real(rk8) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
-  real(rk8) , dimension(2) :: trlat
-  real(rk8) , allocatable , dimension(:,:) :: xlat , xlon
-  real(rk8) , allocatable , dimension(:) :: level , tmplon
-  real(rk8) , allocatable , dimension(:) :: times
-  real(rk8) :: time1
+  real(rkx) :: clat , clon , plat , plon , ds , centeri , centerj
+  real(rkx) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
+  real(rkx) , dimension(2) :: trlat
+  real(rkx) , allocatable , dimension(:,:) :: xlat , xlon
+  real(rkx) , allocatable , dimension(:) :: level , tmplon
+  real(rkx) , allocatable , dimension(:) :: times
+  real(rkx) :: time1
   real(rk4) , allocatable , dimension(:,:) :: r4in , r4jn , r4uv
-  real(rk8) , allocatable , dimension(:,:) :: rin , rjn , ruv
+  real(rkx) , allocatable , dimension(:,:) :: rin , rjn , ruv
   logical , allocatable , dimension(:) :: lvarflag
   integer(ik4) , allocatable , dimension(:) :: dimids
   integer(ik4) :: ndims , nvars , natts , udimid , totvars
   integer(ik4) :: ivarid , idimid , xtype
   integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , dptdimid
   integer(ik4) :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
-  real(rk8) :: alat , alon , angle
+  real(rkx) :: alat , alon , angle
   integer(ik4) :: i , j , iid
   integer(ik4) :: year , month , day , hour
   logical :: lvarsplit , existing , lsigma , ldepth , lu , lua , luas , lclm
@@ -303,46 +303,46 @@ program ncprepare
 
   minlat = rounder(minval(xlat),.false.)
   maxlat = rounder(maxval(xlat),.true.)
-  if (abs(minlat+90.0)<0.001 .or. abs(maxlat-90.0)<0.001) then
-    minlon = -180.0
-    maxlon = 180.0
+  if (abs(minlat+90.0_rkx)<0.001_rkx .or. abs(maxlat-90.0_rkx)<0.001_rkx) then
+    minlon = -180.0_rkx
+    maxlon = 180.0_rkx
   else if ( (xlon(jx,iy) - xlon(1,1)) < dlowval ) then
-    minlon = -180.0
-    maxlon = 180.0
+    minlon = -180.0_rkx
+    maxlon = 180.0_rkx
   else
     tmplon(:) = xlon(jx,:)
-    if ( (tmplon(1 ) > 0.0 .and. tmplon(iy) < 0.0) .or. &
-         (tmplon(iy) > 0.0 .and. tmplon(1 ) < 0.0) ) then
-      where ( tmplon < 0.0 )
-        tmplon = tmplon + 360.0
+    if ( (tmplon(1 ) > 0.0_rkx .and. tmplon(iy) < 0.0_rkx) .or. &
+         (tmplon(iy) > 0.0_rkx .and. tmplon(1 ) < 0.0_rkx) ) then
+      where ( tmplon < 0.0_rkx )
+        tmplon = tmplon + 360.0_rkx
       endwhere
     end if
     maxlon = rounder(maxval(tmplon),.true.)
     tmplon(:) = xlon(1,:)
-    if ( (tmplon(1 ) > 180.0 .and. tmplon(iy) < 0.0) .or. &
-         (tmplon(iy) > 180.0 .and. tmplon(1 ) < 0.0) ) then
-      where ( tmplon > 180.0 )
-        tmplon = tmplon - 360.0
+    if ( (tmplon(1 ) > 180.0_rkx .and. tmplon(iy) < 0.0_rkx) .or. &
+         (tmplon(iy) > 180.0_rkx .and. tmplon(1 ) < 0.0_rkx) ) then
+      where ( tmplon > 180.0_rkx )
+        tmplon = tmplon - 360.0_rkx
       endwhere
     end if
     minlon = rounder(minval(tmplon),.false.)
   end if
-  rlatinc = rounder(ds/111000.0/2.0,.false.)
-  rloninc = rounder(ds/111000.0/2.0,.false.)
+  rlatinc = rounder(ds/111000.0_rkx/2.0_rkx,.false.)
+  rloninc = rounder(ds/111000.0_rkx/2.0_rkx,.false.)
   nlat = nint(abs(maxlat-minlat)/rlatinc)
-  if (minlon > 0.0 .and. maxlon < 0.0) then
-    nlon = nint(abs((maxlon+360.0)-minlon)/rloninc) + 1
-  else if (minlon > 0.0 .and. maxlon < 1e-30) then
-    nlon = nint(360.0/rloninc) + 1
+  if (minlon > 0.0_rkx .and. maxlon < 0.0_rkx) then
+    nlon = nint(abs((maxlon+360.0_rkx)-minlon)/rloninc) + 1
+  else if (minlon > 0.0_rkx .and. maxlon < 1e-30_rkx) then
+    nlon = nint(360.0_rkx/rloninc) + 1
   else
     nlon = nint(abs(maxlon-minlon)/rloninc) + 1
   end if
   if ( is_model_output ) then
-    centeri = dble(iy)/2.0D0+0.5
-    centerj = dble(jx)/2.0D0+0.5
+    centeri = real(iy,rkx)/2.0_rkx+0.5_rkx
+    centerj = real(jx,rkx)/2.0_rkx+0.5_rkx
   else
-    centeri = dble(iy)/2.0D0
-    centerj = dble(jx)/2.0D0
+    centeri = real(iy,rkx)/2.0_rkx
+    centerj = real(jx,rkx)/2.0_rkx
   end if
   deallocate(xlat)
   deallocate(xlon)
@@ -518,7 +518,7 @@ program ncprepare
     idate1 = timeval2date(times(1), timeunit, timecal)
     idate2 = timeval2date(times(2), timeunit, timecal)
     tdif = idate2-idate1
-    delta = idnint(tohours(tdif))
+    delta = nint(tohours(tdif))
     deallocate(times)
     call split_idate(idate1,year,month,day,hour)
     if (delta == 24) then

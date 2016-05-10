@@ -25,7 +25,7 @@ module mod_cu_bm
   use mod_memutil
   use mod_service
   use mod_cu_common
-  use mod_runparams , only : iqv , dt , ichem , hsigma , dsigma
+  use mod_runparams , only : iqv , dt , ichem , hsigma , dsigma , rhmin , rhmax
   use mod_regcm_types
 
 !*****************************************************************
@@ -66,17 +66,17 @@ module mod_cu_bm
   integer(ik4) , parameter :: itb = 100
   integer(ik4) , parameter :: jtb = 150
 
-  real(rk8) :: pl
-  real(rk8) , pointer , dimension(:,:,:) :: tbase
-  real(rk8) , pointer , dimension(:,:) :: cldefi
-  real(rk8) , pointer , dimension(:,:,:) :: ape , q , qqmod , t , &
+  real(rkx) :: pl , mxarg
+  real(rkx) , pointer , dimension(:,:,:) :: tbase
+  real(rkx) , pointer , dimension(:,:) :: cldefi
+  real(rkx) , pointer , dimension(:,:,:) :: ape , q , qqmod , t , &
                                            tmod , tref , z0
-  real(rk8) , pointer , dimension(:) :: apek , apesk , difq , dift , ddzq , &
+  real(rkx) , pointer , dimension(:) :: apek , apesk , difq , dift , ddzq , &
          fpk , pdp , pk , psk , qk , qrefk , qsatk , therk , thsk ,       &
          thvref , tk , trefk
-  real(rk8) , pointer , dimension(:,:) :: cldhgt , dsp0 , dspb , dspt , p , &
+  real(rkx) , pointer , dimension(:,:) :: cldhgt , dsp0 , dspb , dspt , p , &
          pbot , prtop , psp , xsm , thbt , thesp , ths , tthbt , tthes
-  integer(ik4) , pointer , dimension(:,:) :: ifbuoy , ip300 , lbot , ltop , ml
+  integer(ik4) , pointer , dimension(:,:) :: ifbuoy , lbot , ltop , ml
   integer(ik4) , pointer , dimension(:) :: kdp , nbotd , nbots , ndpthd ,      &
          ndpths , ntopd , ntops , ideep , ishal , jdeep , jshal
 
@@ -125,7 +125,6 @@ module mod_cu_bm
     call getmem3d(tref,jci1,jci2,ici1,ici2,1,kz,'cu_bm:tref')
     call getmem3d(z0,jci1,jci2,ici1,ici2,1,kz,'cu_bm:z0')
     call getmem2d(ifbuoy,jci1,jci2,ici1,ici2,'cu_bm:ifbuoy')
-    call getmem2d(ip300,jci1,jci2,ici1,ici2,'cu_bm:ip300')
     call getmem2d(lbot,jci1,jci2,ici1,ici2,'cu_bm:lbot')
     call getmem2d(ltop,jci1,jci2,ici1,ici2,'cu_bm:ltop')
     call getmem2d(ml,jci1,jci2,ici1,ici2,'cu_bm:ml')
@@ -148,88 +147,86 @@ module mod_cu_bm
     call getmem1d(ishal,1,intall,'cu_bm:ishal')
     call getmem1d(jdeep,1,intall,'cu_bm:jdeep')
     call getmem1d(jshal,1,intall,'cu_bm:jshal')
+    mxarg = -log(epsilon(d_one))
   end subroutine allocate_mod_cu_bm
 
   subroutine bmpara(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    real(rk8) , parameter :: h1 = 1.0D0
-    real(rk8) , parameter :: h3000 = 3000.0D0
-    real(rk8) , parameter :: h10e5 = 100000.0D0
-    real(rk8) , parameter :: d608 = 0.608D0
-    real(rk8) , parameter :: dm2859 = -rovcp
-    real(rk8) , parameter :: epsq = 2.0D-12
-    real(rk8) , parameter :: row = d_1000
-    real(rk8) , parameter :: t1 = tzero+1.0D0
-    real(rk8) , parameter :: stresh = 1.10D0
-    real(rk8) , parameter :: stabs = 1.0D0
-    real(rk8) , parameter :: stabd = 0.90D0
-    real(rk8) , parameter :: rhf = 0.20D0
-    real(rk8) , parameter :: pmn = 6500.0D0
-    real(rk8) , parameter :: epsdn = 1.05D0
-    real(rk8) , parameter :: epsth = 6.0D00
-    real(rk8) , parameter :: pbm = 30000.0D0
-    real(rk8) , parameter :: pqm = 20000.0D0
-    real(rk8) , parameter :: pone = 2500.0D0
-    real(rk8) , parameter :: pfrz = 15000.0D0
-    real(rk8) , parameter :: pshu = 45000.0D0
-    real(rk8) , parameter :: zno = 750.0D0
-    real(rk8) , parameter :: zsh = 3999.0D0
-    real(rk8) , parameter :: fss = 0.60D0
-    real(rk8) , parameter :: efimn = 0.20D0
-    real(rk8) , parameter :: efmnt = 0.70D0
-    real(rk8) , parameter :: fcc1 = 0.50D0
-    real(rk8) , parameter :: fcp = h1 - fcc1
-    real(rk8) , parameter :: dspbfl = -3875.0D0
-    real(rk8) , parameter :: dsp0fl = -5875.0D0
-    real(rk8) , parameter :: dsptfl = -1875.0D0
-    real(rk8) , parameter :: fsl = 1.0D0
-    real(rk8) , parameter :: dspbfs = -3875.0D0
-    real(rk8) , parameter :: dsp0fs = -5875.0D0
-    real(rk8) , parameter :: dsptfs = -1875.0D0
-    real(rk8) , parameter :: dspbsl = dspbfl*fsl
-    real(rk8) , parameter :: dsp0sl = dsp0fl*fsl
-    real(rk8) , parameter :: dsptsl = dsptfl*fsl
-    real(rk8) , parameter :: dspbss = dspbfs*fss
-    real(rk8) , parameter :: dsp0ss = dsp0fs*fss
-    real(rk8) , parameter :: dsptss = dsptfs*fss
-    real(rk8) , parameter :: epsntp = 0.0010D0
-    real(rk8) , parameter :: efifc = 5.0D0
-    real(rk8) , parameter :: avgefi = (efimn+1.0D0)*d_half
-    real(rk8) , parameter :: dspc = -3000.0D0
-    real(rk8) , parameter :: epsp = 1.0D-7
-    real(rk8) , parameter :: stefi = avgefi
-    real(rk8) , parameter :: slopbl = (dspbfl-dspbsl)/(h1-efimn)
-    real(rk8) , parameter :: slop0l = (dsp0fl-dsp0sl)/(h1-efimn)
-    real(rk8) , parameter :: sloptl = (dsptfl-dsptsl)/(h1-efimn)
-    real(rk8) , parameter :: slopbs = (dspbfs-dspbss)/(h1-efimn)
-    real(rk8) , parameter :: slop0s = (dsp0fs-dsp0ss)/(h1-efimn)
-    real(rk8) , parameter :: slopts = (dsptfs-dsptss)/(h1-efimn)
-    real(rk8) , parameter :: slope = (h1-efmnt)/(h1-efimn)
-    real(rk8) , parameter :: a23m4l = c3les*(tzero-c4les)*wlhv
-    real(rk8) , parameter :: cporng = d_one/dm2859
-    real(rk8) , parameter :: elocp = wlhvocp
-    real(rk8) , parameter :: cprlg = cpd/(row*egrav*wlhv)
+    real(rkx) , parameter :: h1 = 1.0_rkx
+    real(rkx) , parameter :: h3000 = 3000.0_rkx
+    real(rkx) , parameter :: h10e5 = 100000.0_rkx
+    real(rkx) , parameter :: d608 = 0.608_rkx
+    real(rkx) , parameter :: dm2859 = -rovcp
+    real(rkx) , parameter :: row = d_1000
+    real(rkx) , parameter :: stresh = 1.10_rkx
+    real(rkx) , parameter :: stabs = 1.0_rkx
+    real(rkx) , parameter :: stabd = 0.90_rkx
+    real(rkx) , parameter :: rhf = 0.20_rkx
+    real(rkx) , parameter :: pmn = 6500.0_rkx
+    real(rkx) , parameter :: epsdn = 1.05_rkx
+    real(rkx) , parameter :: epsth = 6.0_rkx
+    real(rkx) , parameter :: pbm = 30000.0_rkx
+    real(rkx) , parameter :: pqm = 20000.0_rkx
+    real(rkx) , parameter :: pone = 2500.0_rkx
+    real(rkx) , parameter :: pfrz = 15000.0_rkx
+    real(rkx) , parameter :: pshu = 45000.0_rkx
+    real(rkx) , parameter :: zno = 750.0_rkx
+    real(rkx) , parameter :: zsh = 3999.0_rkx
+    real(rkx) , parameter :: fss = 0.60_rkx
+    real(rkx) , parameter :: efimn = 0.20_rkx
+    real(rkx) , parameter :: efmnt = 0.70_rkx
+    real(rkx) , parameter :: fcc1 = 0.50_rkx
+    real(rkx) , parameter :: fcp = h1 - fcc1
+    real(rkx) , parameter :: dspbfl = -3875.0_rkx
+    real(rkx) , parameter :: dsp0fl = -5875.0_rkx
+    real(rkx) , parameter :: dsptfl = -1875.0_rkx
+    real(rkx) , parameter :: fsl = 1.0_rkx
+    real(rkx) , parameter :: dspbfs = -3875.0_rkx
+    real(rkx) , parameter :: dsp0fs = -5875.0_rkx
+    real(rkx) , parameter :: dsptfs = -1875.0_rkx
+    real(rkx) , parameter :: dspbsl = dspbfl*fsl
+    real(rkx) , parameter :: dsp0sl = dsp0fl*fsl
+    real(rkx) , parameter :: dsptsl = dsptfl*fsl
+    real(rkx) , parameter :: dspbss = dspbfs*fss
+    real(rkx) , parameter :: dsp0ss = dsp0fs*fss
+    real(rkx) , parameter :: dsptss = dsptfs*fss
+    real(rkx) , parameter :: epsntp = 0.0010_rkx
+    real(rkx) , parameter :: efifc = 5.0_rkx
+    real(rkx) , parameter :: avgefi = (efimn+1.0_rkx)*d_half
+    real(rkx) , parameter :: dspc = -3000.0_rkx
+    real(rkx) , parameter :: epsp = 1.0e-7_rkx
+    real(rkx) , parameter :: stefi = avgefi
+    real(rkx) , parameter :: slopbl = (dspbfl-dspbsl)/(h1-efimn)
+    real(rkx) , parameter :: slop0l = (dsp0fl-dsp0sl)/(h1-efimn)
+    real(rkx) , parameter :: sloptl = (dsptfl-dsptsl)/(h1-efimn)
+    real(rkx) , parameter :: slopbs = (dspbfs-dspbss)/(h1-efimn)
+    real(rkx) , parameter :: slop0s = (dsp0fs-dsp0ss)/(h1-efimn)
+    real(rkx) , parameter :: slopts = (dsptfs-dsptss)/(h1-efimn)
+    real(rkx) , parameter :: slope = (h1-efmnt)/(h1-efimn)
+    real(rkx) , parameter :: a23m4l = c3les*(tzero-c4les)*wlhv
+    real(rkx) , parameter :: cporng = d_one/dm2859
+    real(rkx) , parameter :: elocp = wlhvocp
+    real(rkx) , parameter :: cprlg = cpd/(row*egrav*wlhv)
     logical , save :: efinit = .false.
     logical , parameter :: unis = .false.
     logical , parameter :: unil = .true.
     logical , parameter :: oct90 = .true.
 !
-    real(rk8) :: ak , apekl , avrgt , avrgtl , cell , &
-               cthrs , den , dentpy , dhdt , difql , diftl , dpkl ,   &
-               dpmix , dqref , drheat , dsp , dsp0k , dspbk , dsptk , &
-               dst , dstq , dtdeta , dthem , ee , efi , fefi ,        &
-               fptk , hcorr , otsum , pdiff , pdiffk , pflag , pk0 ,  &
-               pkb , pkl , pkt , potsum , pppk , pratec , preck ,     &
-               psfck , psum , pthrs , ptpk , qkl , qnew , qotsum ,    &
-               qrfkl , qrftp , qs , qsum , rdp0t , rdpsum , rhh ,     &
-               rhl , rotsum , rtbar , smix , stabdl , sumde , sumdp , &
-               sumdt , tauk , tcorr , tdpt , thskl , thtpk , thvmkl , &
-               tkl , tlcl , trfkl , tskl , ztop
-    integer(ik4) :: i , j , iter , ivi , k , kb , kbaseb ,    &
-               khdeep , khshal , kk , l , l0 , l0m1 , lb ,    &
-               lbm1 , lbtk , lcor , lqm , lshu , ltp1 , ltpk , ltsh , &
-               n , ndeep , ndepth , ndstn , ndstp , nshal , nswap , ll
+    real(rkx) :: ak , apekl , avrgt , avrgtl , cthrs , den , dentpy , &
+               dhdt , difql , diftl , dpkl , dpmix , dqref , drheat , &
+               dsp , dsp0k , dspbk , dsptk , dst , dstq , dtdeta ,    &
+               ee , efi , fefi , fptk , hcorr , otsum , pdiff ,       &
+               pflag , pk0 , pkb , pkl , pkt , potsum , pratec ,      &
+               preck , psfck , psum , pthrs , ptpk , qnew ,  qotsum , &
+               qrfkl , qrftp , qs , qsum , rdpsum , rhh , rhl ,       &
+               rotsum , rtbar , smix , sumde , sumdp , sumdt , tauk , &
+               tcorr , tdpt , thskl , thtpk , thvmkl , tlcl , trfkl , &
+               tskl , ztop
+    integer(ik4) :: i , j , iter , ivi , k , kb , kbaseb , khdeep ,    &
+               khshal , kk , l , l0 , l0m1 , lb , lbm1 , lbtk , lcor , &
+               lqm , lshu , ltp1 , ltpk , ltsh , n , ndeep , ndepth ,  &
+               ndstn , ndstp , nshal , nswap
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bmpara'
     integer(ik4) , save :: idindx = 0
@@ -237,7 +234,7 @@ module mod_cu_bm
 #endif
 
     tauk = dt/trel
-    cthrs = (6.350D0/secpd)*dt/cprlg
+    cthrs = (6.350_rkx/secpd)*dt/cprlg
     !
     ! xsm is surface mask: =1 water; =0 land
     !
@@ -279,43 +276,39 @@ module mod_cu_bm
       end do
     end do
 
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          t(j,i,k) = m2c%tas(j,i,k)
+          q(j,i,k) = max(m2c%qxas(j,i,k,iqv),minqq)
+          ape(j,i,k) = (m2c%pas(j,i,k)/h10e5)**dm2859
+        end do
+      end do
+    end do
     do i = ici1 , ici2
       do j = jci1 , jci2
         do k = 1 , kz
-          t(j,i,k) = m2c%tas(j,i,k) + avg_tten(j,i,k)*dt
           if ( t(j,i,k) > tzero .and. ml(j,i) == kzp1 ) ml(j,i) = k
-          q(j,i,k) = m2c%qxas(j,i,k,iqv) + avg_qten(j,i,k,iqv)*dt
-          pppk = m2c%pas(j,i,k)
-          ape(j,i,k) = (pppk/h10e5)**dm2859
         end do
+      end do
+    end do
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         lbot(j,i) = kz
         thesp(j,i) = d_zero
         thbt(j,i) = d_zero
-        psp(j,i) = 9.5D4
+        psp(j,i) = 9.5e4_rkx
         tref(j,i,1) = t(j,i,1)
         ! fbuoy = 0 means no positive buoyancy; ifbuoy(j,i) means yes...
         ! p300 is the highest model level in the lowest 300 mb...
         ifbuoy(j,i) = 0
-        ip300(j,i) = 0
-        cell = (ptop*d_1000)/m2c%psf(j,i)
-        do k = 1 , kz
-          ddzq(k) = m2c%dzq(j,i,k)
-        end do
-        z0(j,i,kz) = d_half*ddzq(kz)
-        do k = kz - 1 , 1 , -1
-          z0(j,i,k) = z0(j,i,k+1) + d_half*(ddzq(k)+ddzq(k+1))
-        end do
       end do
     end do
-    !
-    ! padding specific humidity if too small
-    !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( q(j,i,k) < epsq ) q(j,i,k) = epsq
-          pdiff = m2c%pas(j,i,k) - m2c%psf(j,i)
-          if ( pdiff < 30000.0D0 .and. ip300(j,i) == 0 ) ip300(j,i) = k
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        z0(j,i,kz) = d_half*m2c%dzq(j,i,kz)
+        do k = kz - 1 , 1 , -1
+          z0(j,i,k) = z0(j,i,k+1) + d_half*(m2c%dzq(j,i,k)+m2c%dzq(j,i,k+1))
         end do
       end do
     end do
@@ -330,11 +323,11 @@ module mod_cu_bm
           if ( pkl >= psfck-pbm ) then
             tthbt(j,i) = t(j,i,kb)*ape(j,i,kb)
             ee = pkl*q(j,i,kb)/(ep2+q(j,i,kb))
-            tdpt = d_one/(rtzero-rwat*rwlhv*dlog(ee/611.D0))
-            tdpt = dmin1(tdpt,t(j,i,kb))
-            tlcl = tdpt - (0.212D0+1.571D-3*(tdpt-tzero) - &
-                           4.36D-4*(t(j,i,kb)-tzero))*(t(j,i,kb)-tdpt)
-            tthes(j,i) = tthbt(j,i)*dexp(elocp*q(j,i,kb)/tlcl)
+            tdpt = d_one/(rtzero-rwat*rwlhv*log(ee/611._rkx))
+            tdpt = min(tdpt,t(j,i,kb))
+            tlcl = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-tzero) - &
+                           4.36e-4_rkx*(t(j,i,kb)-tzero))*(t(j,i,kb)-tdpt)
+            tthes(j,i) = tthbt(j,i)*exp(elocp*q(j,i,kb)/tlcl)
             ! check for maximum buoyancy
             if ( tthes(j,i) > thesp(j,i) ) then
               psp(j,i) = h10e5*(tthbt(j,i)/tlcl)**cporng
@@ -392,7 +385,7 @@ module mod_cu_bm
         do j = jci1 , jci2
           p(j,i) = m2c%pas(j,i,l)
           qs = pfqsat(t(j,i,l),p(j,i))
-          ths(j,i) = t(j,i,l)*ape(j,i,l)*dexp(elocp*qs/t(j,i,l))
+          ths(j,i) = t(j,i,l)*ape(j,i,l)*exp(elocp*qs/t(j,i,l))
         end do
       end do
       ! buoyancy check
@@ -400,7 +393,7 @@ module mod_cu_bm
         do j = jci1 , jci2
           if ( l <= lbot(j,i) ) then
             if ( thesp(j,i) > ths(j,i) ) ifbuoy(j,i) = 1
-            if ( thesp(j,i) > ths(j,i)-1.5D0 .and. &
+            if ( thesp(j,i) > ths(j,i)-1.5_rkx .and. &
                  ifbuoy(j,i) == 1 ) ltop(j,i) = l + 1
           end if
         end do
@@ -512,12 +505,10 @@ module mod_cu_bm
       do k = 1 , kz
         dift(k) = d_zero
         difq(k) = d_zero
-        tkl = t(j,i,k)
-        tk(k) = tkl
-        trefk(k) = tkl
-        qkl = q(j,i,k)
-        qk(k) = qkl
-        qrefk(k) = qkl
+        tk(k) = t(j,i,k)
+        trefk(k) = t(j,i,k)
+        qk(k) = q(j,i,k)
+        qrefk(k) = q(j,i,k)
         pkl = m2c%pas(j,i,k)
         tref(j,i,k) = tpfc(pkl,thesp(j,i),t(j,i,k),ape(j,i,k))
         pk(k) = pkl
@@ -529,8 +520,8 @@ module mod_cu_bm
       !
       ! deep convection reference temperature profile
       !
-      ltp1 = ltpk + 1
-      lbm1 = lb - 1
+      ltp1 = min(ltpk + 1,kz)
+      lbm1 = max(lb - 1,1)
       pkb = pk(lb)
       pkt = pk(ltpk)
       !
@@ -542,23 +533,10 @@ module mod_cu_bm
       tprofbfl: &
       do l = ltpk , lbm1
         ivi = ltpk + lbm1 - l
-        if ( trefk(ivi+1) <= t1 ) then
-          !
-          ! temperature reference profile above freezing level
-          !
-          rdp0t = h1/(pk0-pkt)
-          dthem = therk(l0) - trefk(l0)*apek(l0)
-          do ll = ltpk , l0m1
-            trefk(l) = (therk(l)-(pk(l)-pkt)*dthem*rdp0t)/apek(l)
-          end do
-          exit tprofbfl
-        else
-          stabdl = stabd
-          trefk(ivi) = ((therk(ivi)-therk(ivi+1))*stabdl + &
-                         trefk(ivi+1)*apek(ivi+1))/apek(ivi)
-          l0 = ivi
-          pk0 = pk(l0)
-        end if
+        trefk(ivi) = ((therk(ivi)-therk(ivi+1))*stabd + &
+                       trefk(ivi+1)*apek(ivi+1))/apek(ivi)
+        l0 = ivi
+        pk0 = pk(l0)
       end do tprofbfl
       !
       ! deep convection reference humidity profile
@@ -582,7 +560,7 @@ module mod_cu_bm
           psk(l) = pk(l) + dsp
           apesk(l) = (psk(l)/h10e5)**dm2859
           thsk(l) = trefk(l)*apek(l)
-          qrefk(l) = pq0/psk(l)*dexp(c3les*(thsk(l)-tzero*apesk(l)) / &
+          qrefk(l) = pq0/psk(l)*exp(c3les*(thsk(l)-tzero*apesk(l)) / &
                      (thsk(l)-c4les*apesk(l)))
         else
           qrefk(l) = q(j,i,l)
@@ -624,7 +602,7 @@ module mod_cu_bm
           dhdt = qrefk(l)*a23m4l/(tskl-c4les)**2 + cpd
           trefk(l) = hcorr/dhdt + trefk(l)
           thskl = trefk(l)*apek(l)
-          qrefk(l) = pq0/psk(l)*dexp(c3les*(thskl-tzero*apesk(l)) / &
+          qrefk(l) = pq0/psk(l) * exp(c3les*(thskl-tzero*apesk(l)) / &
                      (thskl-c4les*apesk(l)))
         end do
       end do
@@ -635,10 +613,9 @@ module mod_cu_bm
       ! heating, moistening, precipitation
       !
       do l = ltpk , lb
-        tkl = tk(l)
-        diftl = (trefk(l)-tkl)*tauk
+        diftl = (trefk(l)-tk(l))*tauk
         difql = (qrefk(l)-qk(l))*tauk
-        avrgtl = (tkl+tkl+diftl)
+        avrgtl = (tk(l)+tk(l)+diftl)
         dentpy = (diftl*cpd+difql*wlhv)*dsigma(l)/avrgtl + dentpy
         avrgt = avrgtl*dsigma(l) + avrgt
         preck = dsigma(l)*diftl + preck
@@ -653,7 +630,7 @@ module mod_cu_bm
         else
           cldefi(j,i) = efimn*xsm(j,i) + stefi*(h1-xsm(j,i))
         end if
-        ztop = z0(j,i,lbot(j,i)) + zsh - 0.000001D0
+        ztop = z0(j,i,lbot(j,i)) + zsh - 0.000001_rkx
         do l = 1 , lb
           if ( z0(j,i,l) >= ztop ) ltop(j,i) = l + 1
         end do
@@ -674,7 +651,7 @@ module mod_cu_bm
       ! keep the land value of efi equal to 1 until precip surpasses
       ! a threshold value, currently set to 0.25 inches per 24 hrs
       pthrs = cthrs/m2c%psf(j,i)
-      drheat = (preck*xsm(j,i)+dmax1(epsp,preck-pthrs)*(h1-xsm(j,i)))*cpd/avrgt
+      drheat = (preck*xsm(j,i)+max(epsp,preck-pthrs)*(h1-xsm(j,i)))*cpd/avrgt
       efi = efifc*dentpy/drheat
       !
       ! unified or separate land/sea conv.
@@ -758,18 +735,16 @@ module mod_cu_bm
       i = ishal(n)
       j = jshal(n)
       do k = 1 , kz
-        tkl = t(j,i,k)
-        tk(k) = tkl
-        trefk(k) = tkl
-        qkl = q(j,i,k)
-        qk(k) = qkl
-        qrefk(k) = qkl
-        qsatk(k) = qkl
+        tk(k) = t(j,i,k)
+        trefk(k) = t(j,i,k)
+        qk(k) = q(j,i,k)
+        qrefk(k) = q(j,i,k)
+        qsatk(k) = q(j,i,k)
         pkl = m2c%pas(j,i,k)
         pk(k) = pkl
         apekl = ape(j,i,k)
         apek(k) = apekl
-        thvmkl = tkl*apekl*(qkl*d608+h1)
+        thvmkl = t(j,i,k)*apekl*(q(j,i,k)*d608+h1)
         thvref(k) = thvmkl
         pdp(k) = pk(k) - pmn
       end do
@@ -779,11 +754,11 @@ module mod_cu_bm
       ! estimate shallow cloud top... see do 545...
       !
       do kk = kz , 1 , -1
-        pflag = dabs(pk(kz)-pdp(kk))
+        pflag = abs(pk(kz)-pdp(kk))
         do k = kz - 1 , 1 , -1
-          pdiffk = dabs(pk(k)-pdp(kk))
-          if ( pdiffk < pflag ) then
-            pflag = pdiffk
+          pdiff = abs(pk(k)-pdp(kk))
+          if ( pdiff < pflag ) then
+            pflag = pdiff
             if ( kk == k ) then
               kdp(kk) = k - 1
             else
@@ -799,7 +774,7 @@ module mod_cu_bm
       lbtk = lbot(j,i)
       ltsh = lbtk
       lbm1 = lbtk - 1
-      ztop = z0(j,i,lbot(j,i)) + zsh - 0.000001D0
+      ztop = z0(j,i,lbot(j,i)) + zsh - 0.000001_rkx
       !
       ! cloud top is level just above pbtk-psh
       !
@@ -824,8 +799,8 @@ module mod_cu_bm
         qsatk(l) = pfqsat(tk(l),pk(l))
       end do
       do l = ltp1 , lbm1
-        rhl = qk(l)/qsatk(l)
-        rhh = qk(kdp(l))/qsatk(kdp(l))
+        rhl = min(max(qk(l)/qsatk(l),rhmin),rhmax)
+        rhh = min(max(qk(kdp(l))/qsatk(kdp(l)),rhmin),rhmax)
         if ( rhh+rhf < rhl ) ltsh = l
       end do
       ltop(j,i) = ltsh
@@ -843,13 +818,13 @@ module mod_cu_bm
       thtpk = t(j,i,ltp1)*ape(j,i,ltp1)
       pkl = m2c%pas(j,i,ltp1)
       ee = pkl*q(j,i,ltp1)/(ep2+q(j,i,ltp1))
-      tdpt = d_one/(rtzero-rwat*rwlhv*dlog(ee/611.D0))
-      tdpt = dmin1(tdpt,t(j,i,ltp1))
-      tlcl = tdpt - (0.212D0+1.571D-3*(tdpt-tzero) - &
-             4.36D-4*(t(j,i,ltp1)-tzero))*(t(j,i,ltp1)-tdpt)
+      tdpt = d_one/(rtzero-rwat*rwlhv*log(ee/611._rkx))
+      tdpt = min(tdpt,t(j,i,ltp1))
+      tlcl = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-tzero) - &
+             4.36e-4_rkx*(t(j,i,ltp1)-tzero))*(t(j,i,ltp1)-tdpt)
       ptpk = h10e5*(thtpk/tlcl)**cporng
       dpmix = ptpk - psp(j,i)
-      if ( dabs(dpmix) < h3000 ) dpmix = -h3000
+      if ( abs(dpmix) < h3000 ) dpmix = -h3000
       !
       ! temperature propfile slope
       !
@@ -890,7 +865,7 @@ module mod_cu_bm
         dpkl = fpk(l) - fptk
         psum = dpkl*dsigma(l) + psum
         qsum = qk(l)*dsigma(l) + qsum
-        rtbar = 2.0D0/(trefk(l)+tk(l))
+        rtbar = 2.0_rkx/(trefk(l)+tk(l))
         otsum = dsigma(l)*rtbar + otsum
         potsum = dpkl*rtbar*dsigma(l) + potsum
         qotsum = qk(l)*rtbar*dsigma(l) + qotsum
@@ -918,7 +893,7 @@ module mod_cu_bm
       ! check for isothermal atmosphere
       !
       den = potsum - psum
-      if ( -den/psum < 0.00005D0 ) then
+      if ( -den/psum < 0.00005_rkx ) then
         ltop(j,i) = lbot(j,i)
         prtop(j,i) = pbot(j,i)
         cycle
@@ -1028,10 +1003,10 @@ module mod_cu_bm
       !
       ! Calculates tpfc
       !
-      real(rk8) function tpfc(press,thetae,tgs,pi)
+      real(rkx) function tpfc(press,thetae,tgs,pi)
         implicit none
-        real(rk8) , intent(in) :: pi , press , tgs , thetae
-        real(rk8) :: qs , dtx , f1 , fo , rl , rp , t1 , tguess
+        real(rkx) , intent(in) :: pi , press , tgs , thetae
+        real(rkx) :: qs , dtx , f1 , fo , rl , rp , t1 , tguess
         integer(ik4) :: iloop
         !
         ! iteratively extract temperature from equivalent potential temperature.
@@ -1047,7 +1022,7 @@ module mod_cu_bm
           qs = pfqsat(t1,press)
           rl = elocp
           f1 = t1*exp(rl*qs/t1) - rp
-          if ( abs(f1) < 0.1D0 ) then
+          if ( abs(f1) < 0.1_rkx ) then
             tpfc = t1
             exit
           else
@@ -1056,7 +1031,7 @@ module mod_cu_bm
             fo = f1
             t1 = t1 - dtx
             iloop = iloop + 1
-            if ( iloop > 10 .or. abs(dtx) > 100.0D0 ) then
+            if ( iloop > 10 .or. abs(dtx) > 100.0_rkx ) then
               write(stderr,*) 'Convergence problem at line ',__LINE__, &
                       ' in file ',__FILE__ , dtx , iloop
               write(stderr,*) press , thetae , tgs , rl , qs , pi
@@ -1073,17 +1048,17 @@ module mod_cu_bm
   !
   subroutine lutbl(ptop)
     implicit none
-    real(rk8) , parameter :: eps = 2.0D-12 ! little number
-    real(rk8) :: ptop
+    real(rkx) , parameter :: eps = 2.0e-12_rkx ! little number
+    real(rkx) :: ptop
     intent (in) ptop
-    real(rk8) :: ape , xdp , dqs , dth , dthe , p , pt , qs , qs0k , &
+    real(rkx) :: ape , xdp , dqs , dth , dthe , p , pt , qs , qs0k , &
                sqsk , sthek , th , the0k
-    real(rk8) , dimension(jtb) :: pnew , pold , qsnew , qsold ,  &
+    real(rkx) , dimension(jtb) :: pnew , pold , qsnew , qsold ,  &
                thenew , theold , tnew , told , y2p , y2t
     integer(ik4) :: kp , kpm , kpm1 , kth , kthm , kthm1
-    real(rk8) , parameter :: thl = 210.0D0
-    real(rk8) , parameter :: thh = 385.0D0
-    real(rk8) , parameter :: ph = 105000.0D0
+    real(rkx) , parameter :: thl = 210.0_rkx
+    real(rkx) , parameter :: thh = 385.0_rkx
+    real(rkx) , parameter :: ph = 105000.0_rkx
     !
     ! coarse look-up table for saturation point
     !
@@ -1097,8 +1072,8 @@ module mod_cu_bm
 
     pl = pt
 
-    dth = (thh-thl)/dble(kthm-1)
-    xdp = (ph-pl)/dble(kpm-1)
+    dth = (thh-thl)/real(kthm-1,rkx)
+    xdp = (ph-pl)/real(kpm-1,rkx)
 
     th = thl - dth
 
@@ -1107,8 +1082,8 @@ module mod_cu_bm
       p = pl - xdp
       do kp = 1 , kpm
         p = p + xdp
-        ape = (100000.0D0/p)**(rovcp)
-        qsold(kp) = pq0/p*dexp(c3les*(th-tzero*ape)/(th-c4les*ape))
+        ape = (100000.0_rkx/p)**(rovcp)
+        qsold(kp) = pq0/p*exp(c3les*(th-tzero*ape)/(th-c4les*ape))
         pold(kp) = p
       end do
 
@@ -1127,7 +1102,7 @@ module mod_cu_bm
 
       qsnew(1) = d_zero
       qsnew(kpm) = d_one
-      dqs = d_one/dble(kpm-1)
+      dqs = d_one/real(kpm-1,rkx)
 
       do kp = 2 , kpm1
         qsnew(kp) = qsnew(kp-1) + dqs
@@ -1148,10 +1123,10 @@ module mod_cu_bm
       th = thl - dth
       do kth = 1 , kthm
         th = th + dth
-        ape = (100000.0D0/p)**(rovcp)
-        qs = pq0/p*dexp(c3les*(th-tzero*ape)/(th-c4les*ape))
+        ape = (100000.0_rkx/p)**(rovcp)
+        qs = pq0/p*exp(c3les*(th-tzero*ape)/(th-c4les*ape))
         told(kth) = th/ape
-        theold(kth) = th*dexp(eliwv*qs/(cpd*told(kth)))
+        theold(kth) = th*exp(eliwv*qs/(cpd*told(kth)))
       end do
 
       the0k = theold(1)
@@ -1169,7 +1144,7 @@ module mod_cu_bm
 
       thenew(1) = d_zero
       thenew(kthm) = d_one
-      dthe = d_one/dble(kthm-1)
+      dthe = d_one/real(kthm-1,rkx)
 
       do kth = 2 , kthm1
         thenew(kth) = thenew(kth-1) + dthe
@@ -1209,13 +1184,13 @@ module mod_cu_bm
     subroutine spline(nold,xold,yold,y2,nnew,xnew,ynew)
       implicit none
       integer(ik4) :: nnew , nold
-      real(rk8) , dimension(nold) :: xold , yold , y2
-      real(rk8) , dimension(nnew) :: xnew, ynew
+      real(rkx) , dimension(nold) :: xold , yold , y2
+      real(rkx) , dimension(nnew) :: xnew, ynew
       intent (in) nnew , nold , xnew , xold , yold
       intent (out) ynew
       intent (inout) y2
-      real(rk8) , dimension(nold-2) :: p , q
-      real(rk8) :: ak , bk , ck , den , dx , dxc , dxl , dxr , dydxl ,    &
+      real(rkx) , dimension(nold-2) :: p , q
+      real(rkx) :: ak , bk , ck , den , dx , dxc , dxl , dxr , dydxl ,    &
                    dydxr , rdx , rtdxc , x , xk , xsq , y2k , y2kp1
       integer(ik4) :: k , k1 , k2 , kold , noldm1
       ak = d_zero
@@ -1227,7 +1202,7 @@ module mod_cu_bm
       dydxl = (yold(2)-yold(1))/dxl
       dydxr = (yold(3)-yold(2))/dxr
       rtdxc = d_half/(dxl+dxr)
-      p(1) = rtdxc*(6.0D0*(dydxr-dydxl)-dxl*y2(1))
+      p(1) = rtdxc*(6.0_rkx*(dydxr-dydxl)-dxl*y2(1))
       q(1) = -rtdxc*dxr
       if ( nold == 3 ) then
         k = noldm1
@@ -1240,7 +1215,7 @@ module mod_cu_bm
           dydxr = (yold(k+1)-yold(k))/dxr
           dxc = dxl + dxr
           den = d_one/(dxl*q(k-2)+dxc+dxc)
-          p(k-1) = den*(6.0D0*(dydxr-dydxl)-dxl*p(k-2))
+          p(k-1) = den*(6.0_rkx*(dydxr-dydxl)-dxl*p(k-2))
           q(k-1) = -den*dxr
           k = k + 1
           if ( k >= nold ) then

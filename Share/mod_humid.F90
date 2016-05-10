@@ -58,7 +58,7 @@ module mod_humid
     do k = 1 , nk
       do j = 1 , nj
         do i = 1 , ni
-          q(i,j,k) = q(i,j,k) / (d_one - q(i,j,k))
+          q(i,j,k) = q(i,j,k) / (1.0D0 - q(i,j,k))
         end do
       end do
     end do
@@ -72,7 +72,7 @@ module mod_humid
     do k = 1 , nk
       do j = 1 , nj
         do i = 1 , ni
-          q(i,j,k) = q(i,j,k) / (d_one - q(i,j,k))
+          q(i,j,k) = q(i,j,k) / (1.0 - q(i,j,k))
         end do
       end do
     end do
@@ -81,7 +81,7 @@ module mod_humid
   subroutine mxr2sph(q,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
-    real(rk8) , intent(inout) , dimension(ni,nj,nk) :: q
+    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
     integer(ik4) :: i , j , k
     do k = 1 , nk
       do j = 1 , nj
@@ -95,11 +95,11 @@ module mod_humid
   subroutine mxr2rh(t,q,ps,ptop,sigma,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
-    real(rk8) , intent(in) :: ps , ptop
-    real(rk8) , intent(in) , dimension(ni,nj,nk) :: t
-    real(rk8) , intent(inout) , dimension(ni,nj,nk) :: q
-    real(rk8) , intent(in) , dimension(nk) :: sigma
-    real(rk8) :: p , qs
+    real(rkx) , intent(in) :: ps , ptop
+    real(rkx) , intent(in) , dimension(ni,nj,nk) :: t
+    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
+    real(rkx) , intent(in) , dimension(nk) :: sigma
+    real(rkx) :: p , qs
     integer(ik4) :: i , j , k
     !
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
@@ -136,9 +136,9 @@ module mod_humid
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           ! PS in output file is ps + ptop
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-          p = (sigma(k)*(ps(i,j)-ptop*d_100)) + ptop * d_100
-          qs = pfqsat(t(i,j,k),p)
-          q(i,j,k) = max(q(i,j,k)/qs,d_zero)
+          p = (sigma(k)*(ps(i,j)-ptop*100.0D0)) + ptop * 100.0D0
+          qs = pfqsat(real(t(i,j,k),rkx),real(p,rkx))
+          q(i,j,k) = max(q(i,j,k)/qs,0.0D0)
         end do
       end do
     end do
@@ -147,14 +147,14 @@ module mod_humid
   subroutine mxr2rh_o_single(t,q,ps,sigma,ptop,im,jm,km)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km
-    real(rk8) , intent(in) :: ptop
+    real(rkx) , intent(in) :: ptop
     real(rk4) , intent(in) , dimension(im,jm) :: ps
     real(rk4) , intent(in) , dimension(im,jm,km) :: t
     real(rk4) , intent(in) , dimension(km) :: sigma
     real(rk4) , intent(inout) , dimension(im,jm,km) :: q
 
     real(rk4) :: qs
-    real(rk8) :: p
+    real(rkx) :: p
     integer(ik4) :: i , j , k
     !
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
@@ -166,8 +166,8 @@ module mod_humid
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           ! PS in output file is ps + ptop
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-          p = dble(sigma(k))*(dble(ps(i,j)) - ptop*d_100) + ptop * d_100
-          qs = real(pfqsat(dble(t(i,j,k)),p))
+          p = real(sigma(k),rkx)*(real(ps(i,j),rkx) - ptop*d_100) + ptop * d_100
+          qs = real(pfqsat(real(t(i,j,k),rkx),p))
           q(i,j,k) = max(q(i,j,k)/qs,0.0)
         end do
       end do
@@ -177,11 +177,11 @@ module mod_humid
   subroutine mxr2rhfv(t,q,p3d,ni,nj,nk,mval)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
-    real(rk8) , intent(in) , dimension(ni,nj,nk) :: p3d , t
-    real(rk8) , intent(inout) , dimension(ni,nj,nk) :: q
-    real(rk8) , intent(in) :: mval
+    real(rkx) , intent(in) , dimension(ni,nj,nk) :: p3d , t
+    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
+    real(rkx) , intent(in) :: mval
 
-    real(rk8) :: qs
+    real(rkx) :: qs
     integer(ik4) :: i , j , k
     !
     ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
@@ -214,8 +214,8 @@ module mod_humid
     do k = 1 , nk
       do j = 1 , nj
         do i = 1 , ni
-          qs = pfqsat(t(i,j,k),p3d(i,j,k))
-          q(i,j,k) = max(q(i,j,k)/qs,d_zero)
+          qs = pfqsat(real(t(i,j,k),rkx),real(p3d(i,j,k),rkx))
+          q(i,j,k) = max(q(i,j,k)/qs,0.0D0)
         end do
       end do
     end do
@@ -235,7 +235,7 @@ module mod_humid
     do k = 1 , nk
       do j = 1 , nj
         do i = 1 , ni
-          qs = real(pfqsat(dble(t(i,j,k)),dble(p3d(i,j,k))))
+          qs = real(pfqsat(real(t(i,j,k),rkx),real(p3d(i,j,k),rkx)))
           q(i,j,k) = max(q(i,j,k)/qs,0.0)
         end do
       end do
@@ -245,13 +245,13 @@ module mod_humid
   subroutine rh2mxr(t,q,ps,ptop,sigma,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
-    real(rk8) , intent(in) :: ptop
-    real(rk8) , intent(in) , dimension(ni,nj) :: ps
-    real(rk8) , intent(in) , dimension(ni,nj,nk) :: t
-    real(rk8) , intent(inout) , dimension(ni,nj,nk) :: q
-    real(rk8) , intent(in) , dimension(nk) :: sigma
+    real(rkx) , intent(in) :: ptop
+    real(rkx) , intent(in) , dimension(ni,nj) :: ps
+    real(rkx) , intent(in) , dimension(ni,nj,nk) :: t
+    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
+    real(rkx) , intent(in) , dimension(nk) :: sigma
 
-    real(rk8) :: p , qs
+    real(rkx) :: p , qs
     integer(ik4) :: i , j , k
     !
     ! THIS ROUTINE REPLACES RELATIVE HUMIDITY BY MIXING RATIO
@@ -267,20 +267,20 @@ module mod_humid
     end do
   end subroutine rh2mxr
 
-  real(rk8) function clwfromt(t) result(clw)
+  real(rkx) function clwfromt(t) result(clw)
     implicit none
-    real(rk8) , intent(in) :: t
-    real(rk8) :: tcel
+    real(rkx) , intent(in) :: t
+    real(rkx) :: tcel
     ! Temperature dependency for cloud water content
     ! in g/m3 (Lemus et al., 1997)
     ! NOTE : THIS IS IN-CLOUD VARIABLE.
     tcel = t - tzero
-    if ( tcel < -50.0D0 ) then
-      clw = 0.001D0
+    if ( tcel < -50.0_rkx ) then
+      clw = 0.001_rkx
     else
-      clw = 0.127D+00 + 6.78D-03 * tcel +    &
-                        1.29D-04 * tcel**2 + &
-                        8.36D-07 * tcel**3
+      clw = 0.127_rkx + 6.78e-03_rkx * tcel +    &
+                        1.29e-04_rkx * tcel**2 + &
+                        8.36e-07_rkx * tcel**3
     end if
   end function clwfromt
 

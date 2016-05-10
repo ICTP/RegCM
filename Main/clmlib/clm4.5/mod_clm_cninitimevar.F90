@@ -30,10 +30,10 @@ module mod_clm_cninitimevar
 !
     implicit none
 !
-    real(rk8), pointer :: evergreen(:) ! binary flag for evergreen leaf habit (0 or 1)
-    real(rk8), pointer :: woody(:)     ! binary flag for woody lifeform (1=woody, 0=not woody)
-    real(rk8), pointer :: leafcn(:)    ! leaf C:N (gC/gN)
-    real(rk8), pointer :: deadwdcn(:)  ! dead wood (xylem and heartwood) C:N (gC/gN)
+    real(rkx), pointer :: evergreen(:) ! binary flag for evergreen leaf habit (0 or 1)
+    real(rkx), pointer :: woody(:)     ! binary flag for woody lifeform (1=woody, 0=not woody)
+    real(rkx), pointer :: leafcn(:)    ! leaf C:N (gC/gN)
+    real(rkx), pointer :: deadwdcn(:)  ! dead wood (xylem and heartwood) C:N (gC/gN)
     integer(ik4) , pointer :: ivt(:)       ! pft vegetation type
     logical , pointer :: lakpoi(:)    ! true => landunit is a lake point
     integer(ik4) , pointer :: plandunit(:) ! landunit index associated with each pft
@@ -42,277 +42,277 @@ module mod_clm_cninitimevar
 !
 ! local pointers to implicit out arguments
 !
-    real(rk8), pointer :: forc_hgt_u_pft(:)    !observational height of wind at pft-level [m]
-    real(rk8), pointer :: annsum_counter(:) ! seconds since last annual accumulator turnover
-    real(rk8), pointer :: cannsum_npp(:)    ! annual sum of NPP, averaged from pft-level (gC/m2/yr)
-    real(rk8), pointer :: cannavg_t2m(:)    !annual average of 2m air temperature, averaged from pft-level (K)
-    real(rk8), pointer :: sminn(:)              ! (gN/m2) soil mineral N
-    real(rk8), pointer :: cwdc(:)               ! (gC/m2) coarse woody debris C
-    real(rk8), pointer :: cwdn(:)               ! (gN/m2) coarse woody debris N
-    real(rk8), pointer :: decomp_cpools(:,:)         ! (gC/m2)  decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_cpools_vr(:,:,:)    ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_cpools_1m(:,:)           ! (gC/m2)  Diagnostic: decomposing (litter, cwd, soil) c pools to 1 meter
-    real(rk8), pointer :: decomp_npools(:,:)         ! (gC/m2)  decomposing (litter, cwd, soil) N pools
-    real(rk8), pointer :: decomp_npools_vr(:,:,:)    ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
-    real(rk8), pointer :: decomp_npools_1m(:,:)           ! (gN/m2)  diagnostic: decomposing (litter, cwd, soil) N pools to 1 meter
-    real(rk8), pointer :: sminn_vr(:,:)              ! (gN/m3) soil mineral N
-    real(rk8), pointer :: col_ctrunc(:)              ! (gC/m2) column-level sink for C truncation (diagnostic)
-    real(rk8), pointer :: col_ctrunc_vr(:,:)         ! (gC/m3) column-level sink for C truncation (prognostic)
-    real(rk8), pointer :: col_ntrunc_vr(:,:)         ! (gN/m3) column-level sink for N truncation
-    real(rk8), pointer :: nfixation_prof(:,:)     ! (1/m) profile for N fixation additions
-    real(rk8), pointer :: ndep_prof(:,:)     ! (1/m) profile for N fixation additions
+    real(rkx), pointer :: forc_hgt_u_pft(:)    !observational height of wind at pft-level [m]
+    real(rkx), pointer :: annsum_counter(:) ! seconds since last annual accumulator turnover
+    real(rkx), pointer :: cannsum_npp(:)    ! annual sum of NPP, averaged from pft-level (gC/m2/yr)
+    real(rkx), pointer :: cannavg_t2m(:)    !annual average of 2m air temperature, averaged from pft-level (K)
+    real(rkx), pointer :: sminn(:)              ! (gN/m2) soil mineral N
+    real(rkx), pointer :: cwdc(:)               ! (gC/m2) coarse woody debris C
+    real(rkx), pointer :: cwdn(:)               ! (gN/m2) coarse woody debris N
+    real(rkx), pointer :: decomp_cpools(:,:)         ! (gC/m2)  decomposing (litter, cwd, soil) c pools
+    real(rkx), pointer :: decomp_cpools_vr(:,:,:)    ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
+    real(rkx), pointer :: decomp_cpools_1m(:,:)           ! (gC/m2)  Diagnostic: decomposing (litter, cwd, soil) c pools to 1 meter
+    real(rkx), pointer :: decomp_npools(:,:)         ! (gC/m2)  decomposing (litter, cwd, soil) N pools
+    real(rkx), pointer :: decomp_npools_vr(:,:,:)    ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
+    real(rkx), pointer :: decomp_npools_1m(:,:)           ! (gN/m2)  diagnostic: decomposing (litter, cwd, soil) N pools to 1 meter
+    real(rkx), pointer :: sminn_vr(:,:)              ! (gN/m3) soil mineral N
+    real(rkx), pointer :: col_ctrunc(:)              ! (gC/m2) column-level sink for C truncation (diagnostic)
+    real(rkx), pointer :: col_ctrunc_vr(:,:)         ! (gC/m3) column-level sink for C truncation (prognostic)
+    real(rkx), pointer :: col_ntrunc_vr(:,:)         ! (gN/m3) column-level sink for N truncation
+    real(rkx), pointer :: nfixation_prof(:,:)     ! (1/m) profile for N fixation additions
+    real(rkx), pointer :: ndep_prof(:,:)     ! (1/m) profile for N fixation additions
 
-    real(rk8), pointer :: fpi_vr(:,:)
-    real(rk8), pointer :: alt(:)
-    real(rk8), pointer :: altmax(:)
-    real(rk8), pointer :: altmax_lastyear(:)
+    real(rkx), pointer :: fpi_vr(:,:)
+    real(rkx), pointer :: alt(:)
+    real(rkx), pointer :: altmax(:)
+    real(rkx), pointer :: altmax_lastyear(:)
     integer(ik4), pointer :: alt_indx(:)
     integer(ik4), pointer :: altmax_indx(:)
     integer(ik4), pointer :: altmax_lastyear_indx(:)
-    real(rk8), pointer :: som_adv_coef(:,:)
-    real(rk8), pointer :: som_diffus_coef(:,:)
+    real(rkx), pointer :: som_adv_coef(:,:)
+    real(rkx), pointer :: som_diffus_coef(:,:)
 #ifdef NITRIF_DENITRIF
-    real(rk8), pointer :: smin_nh4_vr(:,:)           ! (gN/m3) soil mineral NH4 pool
-    real(rk8), pointer :: smin_no3_vr(:,:)           ! (gN/m3) soil mineral NO3 pool
-    real(rk8), pointer :: smin_nh4(:)           ! (gN/m2) soil mineral NH4 pool
-    real(rk8), pointer :: smin_no3(:)           ! (gN/m2) soil mineral NO3 pool
+    real(rkx), pointer :: smin_nh4_vr(:,:)           ! (gN/m3) soil mineral NH4 pool
+    real(rkx), pointer :: smin_no3_vr(:,:)           ! (gN/m3) soil mineral NO3 pool
+    real(rkx), pointer :: smin_nh4(:)           ! (gN/m2) soil mineral NH4 pool
+    real(rkx), pointer :: smin_no3(:)           ! (gN/m2) soil mineral NO3 pool
 #endif
 
-    real(rk8), pointer :: leafc(:)              ! (gC/m2) leaf C
-    real(rk8), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
-    real(rk8), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: grainc(:)             ! (gC/m2) grain C
-    real(rk8), pointer :: grainc_storage(:)     ! (gC/m2) grain C storage
-    real(rk8), pointer :: grainc_xfer(:)        ! (gC/m2) grain C transfer
-    real(rk8), pointer :: frootc(:)             ! (gC/m2) fine root C
-    real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
-    real(rk8), pointer :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: livestemc(:)          ! (gC/m2) live stem C
-    real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
-    real(rk8), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
-    real(rk8), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
-    real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: livecrootc(:)         ! (gC/m2) live coarse root C
-    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live coarse root C storage
-    real(rk8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live coarse root C transfer
-    real(rk8), pointer :: deadcrootc(:)         ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead coarse root C storage
-    real(rk8), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead coarse root C transfer
-    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth respiration storage
-    real(rk8), pointer :: gresp_xfer(:)         ! (gC/m2) growth respiration transfer
-    real(rk8), pointer :: cpool(:)              ! (gC/m2) temporary photosynthate C pool
-    real(rk8), pointer :: xsmrpool(:)           ! (gC/m2) abstract C pool to meet excess MR demand
-    real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N
-    real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
-    real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
-    real(rk8), pointer :: grainn(:)             ! (gN/m2) grain N
-    real(rk8), pointer :: grainn_storage(:)     ! (gN/m2) grain N storage
-    real(rk8), pointer :: grainn_xfer(:)        ! (gN/m2) grain N transfer
-    real(rk8), pointer :: frootn(:)             ! (gN/m2) fine root N
-    real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
-    real(rk8), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
-    real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
-    real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
-    real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
-    real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
-    real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
-    real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live coarse root N storage
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live coarse root N transfer
-    real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coarse root N storage
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead coarse root N transfer
-    real(rk8), pointer :: retransn(:)           ! (gN/m2) plant pool of retranslocated N
-    real(rk8), pointer :: npool(:)              ! (gN/m2) temporary plant N pool
-    real(rk8), pointer :: psnsun(:)             ! sunlit leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: psnsha(:)             ! shaded leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: c13_psnsun(:)             ! sunlit leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: c13_psnsha(:)             ! shaded leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: c14_psnsun(:)             ! sunlit leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: c14_psnsha(:)             ! shaded leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: laisun(:)             ! sunlit projected leaf area index
-    real(rk8), pointer :: laisha(:)             ! shaded projected leaf area index
-    real(rk8), pointer :: dormant_flag(:)       ! dormancy flag
-    real(rk8), pointer :: days_active(:)        ! number of days since last dormancy
-    real(rk8), pointer :: onset_flag(:)         ! onset flag
-    real(rk8), pointer :: onset_counter(:)      ! onset days counter
-    real(rk8), pointer :: onset_gddflag(:)      ! onset flag for growing degree day sum
-    real(rk8), pointer :: onset_fdd(:)          ! onset freezing degree days counter
-    real(rk8), pointer :: onset_gdd(:)          ! onset growing degree days
-    real(rk8), pointer :: onset_swi(:)          ! onset soil water index
-    real(rk8), pointer :: offset_flag(:)        ! offset flag
-    real(rk8), pointer :: offset_counter(:)     ! offset days counter
-    real(rk8), pointer :: offset_fdd(:)         ! offset freezing degree days counter
-    real(rk8), pointer :: offset_swi(:)         ! offset soil water index
-    real(rk8), pointer :: lgsf(:)               ! long growing season factor [0-1]
-    real(rk8), pointer :: bglfr(:)              ! background litterfall rate (1/s)
-    real(rk8), pointer :: bgtr(:)               ! background transfer rate (1/s)
-    real(rk8), pointer :: dayl(:)               ! daylength (seconds)
-    real(rk8), pointer :: prev_dayl(:)          ! daylength from previous timestep (seconds)
-    real(rk8), pointer :: annavg_t2m(:)         ! annual average 2m air temperature (K)
-    real(rk8), pointer :: tempavg_t2m(:)        ! temporary average 2m air temperature (K)
-    real(rk8), pointer :: gpp(:)                ! GPP flux before downregulation (gC/m2/s)
-    real(rk8), pointer :: availc(:)             ! C flux available for allocation (gC/m2/s)
-    real(rk8), pointer :: xsmrpool_recover(:)   ! C flux assigned to recovery of negative cpool (gC/m2/s)
-    real(rk8), pointer :: xsmrpool_c13ratio(:)  ! C flux assigned to recovery of negative cpool (gC/m2/s)
-    real(rk8), pointer :: alloc_pnow(:)         ! fraction of current allocation to display as new growth (DIM)
-    real(rk8), pointer :: c_allometry(:)        ! C allocation index (DIM)
-    real(rk8), pointer :: n_allometry(:)        ! N allocation index (DIM)
-    real(rk8), pointer :: plant_ndemand(:)      ! N flux required to support initial GPP (gN/m2/s)
-    real(rk8), pointer :: tempsum_potential_gpp(:) ! temporary annual sum of plant_ndemand
-    real(rk8), pointer :: annsum_potential_gpp(:)  ! annual sum of plant_ndemand
-    real(rk8), pointer :: tempmax_retransn(:)   ! temporary max of retranslocated N pool (gN/m2)
-    real(rk8), pointer :: annmax_retransn(:)    ! annual max of retranslocated N pool (gN/m2)
-    real(rk8), pointer :: avail_retransn(:)     ! N flux available from retranslocation pool (gN/m2/s)
-    real(rk8), pointer :: plant_nalloc(:)       ! total allocated N flux (gN/m2/s)
-    real(rk8), pointer :: plant_calloc(:)       ! total allocated C flux (gC/m2/s)
-    real(rk8), pointer :: excess_cflux(:)       ! C flux not allocated due to downregulation (gC/m2/s)
-    real(rk8), pointer :: downreg(:)            ! fractional reduction in GPP due to N limitation (DIM)
-    real(rk8), pointer :: tempsum_npp(:)        ! temporary annual sum of NPP
-    real(rk8), pointer :: annsum_npp(:)         ! annual sum of NPP
+    real(rkx), pointer :: leafc(:)              ! (gC/m2) leaf C
+    real(rkx), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
+    real(rkx), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
+    real(rkx), pointer :: grainc(:)             ! (gC/m2) grain C
+    real(rkx), pointer :: grainc_storage(:)     ! (gC/m2) grain C storage
+    real(rkx), pointer :: grainc_xfer(:)        ! (gC/m2) grain C transfer
+    real(rkx), pointer :: frootc(:)             ! (gC/m2) fine root C
+    real(rkx), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
+    real(rkx), pointer :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
+    real(rkx), pointer :: livestemc(:)          ! (gC/m2) live stem C
+    real(rkx), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
+    real(rkx), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
+    real(rkx), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
+    real(rkx), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
+    real(rkx), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
+    real(rkx), pointer :: livecrootc(:)         ! (gC/m2) live coarse root C
+    real(rkx), pointer :: livecrootc_storage(:) ! (gC/m2) live coarse root C storage
+    real(rkx), pointer :: livecrootc_xfer(:)    ! (gC/m2) live coarse root C transfer
+    real(rkx), pointer :: deadcrootc(:)         ! (gC/m2) dead coarse root C
+    real(rkx), pointer :: deadcrootc_storage(:) ! (gC/m2) dead coarse root C storage
+    real(rkx), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead coarse root C transfer
+    real(rkx), pointer :: gresp_storage(:)      ! (gC/m2) growth respiration storage
+    real(rkx), pointer :: gresp_xfer(:)         ! (gC/m2) growth respiration transfer
+    real(rkx), pointer :: cpool(:)              ! (gC/m2) temporary photosynthate C pool
+    real(rkx), pointer :: xsmrpool(:)           ! (gC/m2) abstract C pool to meet excess MR demand
+    real(rkx), pointer :: leafn(:)              ! (gN/m2) leaf N
+    real(rkx), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
+    real(rkx), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
+    real(rkx), pointer :: grainn(:)             ! (gN/m2) grain N
+    real(rkx), pointer :: grainn_storage(:)     ! (gN/m2) grain N storage
+    real(rkx), pointer :: grainn_xfer(:)        ! (gN/m2) grain N transfer
+    real(rkx), pointer :: frootn(:)             ! (gN/m2) fine root N
+    real(rkx), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
+    real(rkx), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
+    real(rkx), pointer :: livestemn(:)          ! (gN/m2) live stem N
+    real(rkx), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
+    real(rkx), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
+    real(rkx), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
+    real(rkx), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
+    real(rkx), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
+    real(rkx), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
+    real(rkx), pointer :: livecrootn_storage(:) ! (gN/m2) live coarse root N storage
+    real(rkx), pointer :: livecrootn_xfer(:)    ! (gN/m2) live coarse root N transfer
+    real(rkx), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
+    real(rkx), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coarse root N storage
+    real(rkx), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead coarse root N transfer
+    real(rkx), pointer :: retransn(:)           ! (gN/m2) plant pool of retranslocated N
+    real(rkx), pointer :: npool(:)              ! (gN/m2) temporary plant N pool
+    real(rkx), pointer :: psnsun(:)             ! sunlit leaf photosynthesis (umol CO2 /m**2/ s)
+    real(rkx), pointer :: psnsha(:)             ! shaded leaf photosynthesis (umol CO2 /m**2/ s)
+    real(rkx), pointer :: c13_psnsun(:)             ! sunlit leaf photosynthesis (umol CO2 /m**2/ s)
+    real(rkx), pointer :: c13_psnsha(:)             ! shaded leaf photosynthesis (umol CO2 /m**2/ s)
+    real(rkx), pointer :: c14_psnsun(:)             ! sunlit leaf photosynthesis (umol CO2 /m**2/ s)
+    real(rkx), pointer :: c14_psnsha(:)             ! shaded leaf photosynthesis (umol CO2 /m**2/ s)
+    real(rkx), pointer :: laisun(:)             ! sunlit projected leaf area index
+    real(rkx), pointer :: laisha(:)             ! shaded projected leaf area index
+    real(rkx), pointer :: dormant_flag(:)       ! dormancy flag
+    real(rkx), pointer :: days_active(:)        ! number of days since last dormancy
+    real(rkx), pointer :: onset_flag(:)         ! onset flag
+    real(rkx), pointer :: onset_counter(:)      ! onset days counter
+    real(rkx), pointer :: onset_gddflag(:)      ! onset flag for growing degree day sum
+    real(rkx), pointer :: onset_fdd(:)          ! onset freezing degree days counter
+    real(rkx), pointer :: onset_gdd(:)          ! onset growing degree days
+    real(rkx), pointer :: onset_swi(:)          ! onset soil water index
+    real(rkx), pointer :: offset_flag(:)        ! offset flag
+    real(rkx), pointer :: offset_counter(:)     ! offset days counter
+    real(rkx), pointer :: offset_fdd(:)         ! offset freezing degree days counter
+    real(rkx), pointer :: offset_swi(:)         ! offset soil water index
+    real(rkx), pointer :: lgsf(:)               ! long growing season factor [0-1]
+    real(rkx), pointer :: bglfr(:)              ! background litterfall rate (1/s)
+    real(rkx), pointer :: bgtr(:)               ! background transfer rate (1/s)
+    real(rkx), pointer :: dayl(:)               ! daylength (seconds)
+    real(rkx), pointer :: prev_dayl(:)          ! daylength from previous timestep (seconds)
+    real(rkx), pointer :: annavg_t2m(:)         ! annual average 2m air temperature (K)
+    real(rkx), pointer :: tempavg_t2m(:)        ! temporary average 2m air temperature (K)
+    real(rkx), pointer :: gpp(:)                ! GPP flux before downregulation (gC/m2/s)
+    real(rkx), pointer :: availc(:)             ! C flux available for allocation (gC/m2/s)
+    real(rkx), pointer :: xsmrpool_recover(:)   ! C flux assigned to recovery of negative cpool (gC/m2/s)
+    real(rkx), pointer :: xsmrpool_c13ratio(:)  ! C flux assigned to recovery of negative cpool (gC/m2/s)
+    real(rkx), pointer :: alloc_pnow(:)         ! fraction of current allocation to display as new growth (DIM)
+    real(rkx), pointer :: c_allometry(:)        ! C allocation index (DIM)
+    real(rkx), pointer :: n_allometry(:)        ! N allocation index (DIM)
+    real(rkx), pointer :: plant_ndemand(:)      ! N flux required to support initial GPP (gN/m2/s)
+    real(rkx), pointer :: tempsum_potential_gpp(:) ! temporary annual sum of plant_ndemand
+    real(rkx), pointer :: annsum_potential_gpp(:)  ! annual sum of plant_ndemand
+    real(rkx), pointer :: tempmax_retransn(:)   ! temporary max of retranslocated N pool (gN/m2)
+    real(rkx), pointer :: annmax_retransn(:)    ! annual max of retranslocated N pool (gN/m2)
+    real(rkx), pointer :: avail_retransn(:)     ! N flux available from retranslocation pool (gN/m2/s)
+    real(rkx), pointer :: plant_nalloc(:)       ! total allocated N flux (gN/m2/s)
+    real(rkx), pointer :: plant_calloc(:)       ! total allocated C flux (gC/m2/s)
+    real(rkx), pointer :: excess_cflux(:)       ! C flux not allocated due to downregulation (gC/m2/s)
+    real(rkx), pointer :: downreg(:)            ! fractional reduction in GPP due to N limitation (DIM)
+    real(rkx), pointer :: tempsum_npp(:)        ! temporary annual sum of NPP
+    real(rkx), pointer :: annsum_npp(:)         ! annual sum of NPP
 #if (defined CNDV)
-    real(rk8), pointer :: tempsum_litfall(:)    ! temporary annual sum of litfall
-    real(rk8), pointer :: annsum_litfall(:)     ! annual sum of litfall
+    real(rkx), pointer :: tempsum_litfall(:)    ! temporary annual sum of litfall
+    real(rkx), pointer :: annsum_litfall(:)     ! annual sum of litfall
 #endif
-    real(rk8), pointer :: rc13_canair(:)        !C13O2/C12O2 in canopy air
-    real(rk8), pointer :: rc13_psnsun(:)        !C13O2/C12O2 in sunlit canopy psn flux
-    real(rk8), pointer :: rc13_psnsha(:)        !C13O2/C12O2 in shaded canopy psn flux
-    real(rk8), pointer :: alphapsnsun(:)        !sunlit 13c fractionation ([])
-    real(rk8), pointer :: alphapsnsha(:)        !shaded 13c fractionation ([])
-    real(rk8), pointer :: qflx_drain(:)         ! sub-surface runoff (mm H2O /s)
-    real(rk8), pointer :: qflx_surf(:)          ! surface runoff (mm H2O /s)
-    real(rk8), pointer :: qflx_irrig(:)         !irrigation flux (mm H2O/s)
+    real(rkx), pointer :: rc13_canair(:)        !C13O2/C12O2 in canopy air
+    real(rkx), pointer :: rc13_psnsun(:)        !C13O2/C12O2 in sunlit canopy psn flux
+    real(rkx), pointer :: rc13_psnsha(:)        !C13O2/C12O2 in shaded canopy psn flux
+    real(rkx), pointer :: alphapsnsun(:)        !sunlit 13c fractionation ([])
+    real(rkx), pointer :: alphapsnsha(:)        !shaded 13c fractionation ([])
+    real(rkx), pointer :: qflx_drain(:)         ! sub-surface runoff (mm H2O /s)
+    real(rkx), pointer :: qflx_surf(:)          ! surface runoff (mm H2O /s)
+    real(rkx), pointer :: qflx_irrig(:)         !irrigation flux (mm H2O/s)
 
     ! fire-related variables changed by F. Li and S. Levis
-    real(rk8), pointer :: wf(:)                 ! soil moisture in top 0.05 m
-    real(rk8), pointer :: wf2(:)
-    real(rk8), pointer :: nfire(:)              ! fire counts/km2/timestep
-    real(rk8), pointer :: baf_crop(:)          ! burned area fraction in crop
-    real(rk8), pointer :: baf_peatf(:)         ! burned area fraction in peatland
-    real(rk8), pointer :: fbac(:)
-    real(rk8), pointer :: fbac1(:)
-    real(rk8), pointer :: farea_burned(:)       ! timestep fractional area burned (proportion)
+    real(rkx), pointer :: wf(:)                 ! soil moisture in top 0.05 m
+    real(rkx), pointer :: wf2(:)
+    real(rkx), pointer :: nfire(:)              ! fire counts/km2/timestep
+    real(rkx), pointer :: baf_crop(:)          ! burned area fraction in crop
+    real(rkx), pointer :: baf_peatf(:)         ! burned area fraction in peatland
+    real(rkx), pointer :: fbac(:)
+    real(rkx), pointer :: fbac1(:)
+    real(rkx), pointer :: farea_burned(:)       ! timestep fractional area burned (proportion)
 
-    real(rk8), pointer :: totcolc(:)            ! (gC/m2) total column carbon, incl veg and cpool
-    real(rk8), pointer :: totecosysc(:)         ! (gC/m2) total ecosystem carbon, incl veg but excl cpool
-    real(rk8), pointer :: totlitc(:)            ! (gC/m2) total litter carbon
-    real(rk8), pointer :: totsomc(:)            ! (gC/m2) total soil organic matter carbon
-    real(rk8), pointer :: totlitc_1m(:)         ! (gC/m2) total litter carbon to 1 meter
-    real(rk8), pointer :: totsomc_1m(:)         ! (gC/m2) total soil organic matter carbon to 1 meter
+    real(rkx), pointer :: totcolc(:)            ! (gC/m2) total column carbon, incl veg and cpool
+    real(rkx), pointer :: totecosysc(:)         ! (gC/m2) total ecosystem carbon, incl veg but excl cpool
+    real(rkx), pointer :: totlitc(:)            ! (gC/m2) total litter carbon
+    real(rkx), pointer :: totsomc(:)            ! (gC/m2) total soil organic matter carbon
+    real(rkx), pointer :: totlitc_1m(:)         ! (gC/m2) total litter carbon to 1 meter
+    real(rkx), pointer :: totsomc_1m(:)         ! (gC/m2) total soil organic matter carbon to 1 meter
 
-    real(rk8), pointer :: woodc(:)              ! (gC/m2) pft-level wood C
-    real(rk8), pointer :: totcoln(:)            ! (gN/m2) total column nitrogen, incl veg
-    real(rk8), pointer :: totecosysn(:)         ! (gN/m2) total ecosystem nitrogen, incl veg
-    real(rk8), pointer :: totlitn(:)            ! (gN/m2) total litter nitrogen
-    real(rk8), pointer :: totsomn(:)            ! (gN/m2) total soil organic matter nitrogen
-    real(rk8), pointer :: totlitn_1m(:)         ! (gN/m2) total litter nitrogen to 1 meter
-    real(rk8), pointer :: totsomn_1m(:)         ! (gN/m2) total soil organic matter nitrogen to 1 meter
-    real(rk8), pointer :: dispvegc(:)           ! (gC/m2) displayed veg carbon, excluding storage and cpool
-    real(rk8), pointer :: pft_ctrunc(:)         ! (gC/m2) pft-level sink for C truncation
-    real(rk8), pointer :: storvegc(:)           ! (gC/m2) stored vegetation carbon, excluding cpool
-    real(rk8), pointer :: totpftc(:)            ! (gC/m2) total pft-level carbon, including cpool
-    real(rk8), pointer :: totvegc(:)            ! (gC/m2) total vegetation carbon, excluding cpool
-    real(rk8), pointer :: prev_frootc_to_litter(:)!previous timestep froot C litterfall flux (gC/m2/s)
-    real(rk8), pointer :: prev_leafc_to_litter(:) !previous timestep leaf C litterfall flux (gC/m2/s)
-    real(rk8), pointer :: dispvegn(:)           ! (gN/m2) displayed veg nitrogen, excluding storage
-    real(rk8), pointer :: pft_ntrunc(:)         ! (gN/m2) pft-level sink for N truncation
-    real(rk8), pointer :: storvegn(:)           ! (gN/m2) stored vegetation nitrogen
-    real(rk8), pointer :: totpftn(:)            ! (gN/m2) total pft-level nitrogen
-    real(rk8), pointer :: totvegn(:)            ! (gN/m2) total vegetation nitrogen
+    real(rkx), pointer :: woodc(:)              ! (gC/m2) pft-level wood C
+    real(rkx), pointer :: totcoln(:)            ! (gN/m2) total column nitrogen, incl veg
+    real(rkx), pointer :: totecosysn(:)         ! (gN/m2) total ecosystem nitrogen, incl veg
+    real(rkx), pointer :: totlitn(:)            ! (gN/m2) total litter nitrogen
+    real(rkx), pointer :: totsomn(:)            ! (gN/m2) total soil organic matter nitrogen
+    real(rkx), pointer :: totlitn_1m(:)         ! (gN/m2) total litter nitrogen to 1 meter
+    real(rkx), pointer :: totsomn_1m(:)         ! (gN/m2) total soil organic matter nitrogen to 1 meter
+    real(rkx), pointer :: dispvegc(:)           ! (gC/m2) displayed veg carbon, excluding storage and cpool
+    real(rkx), pointer :: pft_ctrunc(:)         ! (gC/m2) pft-level sink for C truncation
+    real(rkx), pointer :: storvegc(:)           ! (gC/m2) stored vegetation carbon, excluding cpool
+    real(rkx), pointer :: totpftc(:)            ! (gC/m2) total pft-level carbon, including cpool
+    real(rkx), pointer :: totvegc(:)            ! (gC/m2) total vegetation carbon, excluding cpool
+    real(rkx), pointer :: prev_frootc_to_litter(:)!previous timestep froot C litterfall flux (gC/m2/s)
+    real(rkx), pointer :: prev_leafc_to_litter(:) !previous timestep leaf C litterfall flux (gC/m2/s)
+    real(rkx), pointer :: dispvegn(:)           ! (gN/m2) displayed veg nitrogen, excluding storage
+    real(rkx), pointer :: pft_ntrunc(:)         ! (gN/m2) pft-level sink for N truncation
+    real(rkx), pointer :: storvegn(:)           ! (gN/m2) stored vegetation nitrogen
+    real(rkx), pointer :: totpftn(:)            ! (gN/m2) total pft-level nitrogen
+    real(rkx), pointer :: totvegn(:)            ! (gN/m2) total vegetation nitrogen
     !!! C13
-    real(rk8), pointer :: cwdc13(:)               ! (gC/m2) coarse woody debris C
-    real(rk8), pointer :: decomp_c13pools(:,:)              ! (gC/m2)  decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_c13pools_vr(:,:,:)         ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_c13pools_1m(:,:)           ! (gC/m2)  Diagnostic: decomposing (litter, cwd, soil) c pools to 1 meter
-    real(rk8), pointer :: c13_col_ctrunc_vr(:,:)            ! (gC/m3) C truncation term
-    real(rk8), pointer :: leafc13(:)              ! (gC/m2) leaf C
-    real(rk8), pointer :: leafc13_storage(:)      ! (gC/m2) leaf C storage
-    real(rk8), pointer :: leafc13_xfer(:)         ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: frootc13(:)             ! (gC/m2) fine root C
-    real(rk8), pointer :: frootc13_storage(:)     ! (gC/m2) fine root C storage
-    real(rk8), pointer :: frootc13_xfer(:)        ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: livestemc13(:)          ! (gC/m2) live stem C
-    real(rk8), pointer :: livestemc13_storage(:)  ! (gC/m2) live stem C storage
-    real(rk8), pointer :: livestemc13_xfer(:)     ! (gC/m2) live stem C transfer
-    real(rk8), pointer :: deadstemc13(:)          ! (gC/m2) dead stem C
-    real(rk8), pointer :: deadstemc13_storage(:)  ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: deadstemc13_xfer(:)     ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: livecrootc13(:)         ! (gC/m2) live coarse root C
-    real(rk8), pointer :: livecrootc13_storage(:) ! (gC/m2) live coarse root C storage
-    real(rk8), pointer :: livecrootc13_xfer(:)    ! (gC/m2) live coarse root C transfer
-    real(rk8), pointer :: deadcrootc13(:)         ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: deadcrootc13_storage(:) ! (gC/m2) dead coarse root C storage
-    real(rk8), pointer :: deadcrootc13_xfer(:)    ! (gC/m2) dead coarse root C transfer
-    real(rk8), pointer :: c13_gresp_storage(:)    ! (gC/m2) growth respiration storage
-    real(rk8), pointer :: c13_gresp_xfer(:)       ! (gC/m2) growth respiration transfer
-    real(rk8), pointer :: c13pool(:)              ! (gC/m2) temporary photosynthate C pool
-    real(rk8), pointer :: c13xsmrpool(:)          ! (gC/m2) temporary photosynthate C pool
-    real(rk8), pointer :: c13_pft_ctrunc(:)       ! (gC/m2) C truncation term
-    real(rk8), pointer :: totvegc13(:)            ! (gC/m2) total vegetation carbon, excluding cpool
+    real(rkx), pointer :: cwdc13(:)               ! (gC/m2) coarse woody debris C
+    real(rkx), pointer :: decomp_c13pools(:,:)              ! (gC/m2)  decomposing (litter, cwd, soil) c pools
+    real(rkx), pointer :: decomp_c13pools_vr(:,:,:)         ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
+    real(rkx), pointer :: decomp_c13pools_1m(:,:)           ! (gC/m2)  Diagnostic: decomposing (litter, cwd, soil) c pools to 1 meter
+    real(rkx), pointer :: c13_col_ctrunc_vr(:,:)            ! (gC/m3) C truncation term
+    real(rkx), pointer :: leafc13(:)              ! (gC/m2) leaf C
+    real(rkx), pointer :: leafc13_storage(:)      ! (gC/m2) leaf C storage
+    real(rkx), pointer :: leafc13_xfer(:)         ! (gC/m2) leaf C transfer
+    real(rkx), pointer :: frootc13(:)             ! (gC/m2) fine root C
+    real(rkx), pointer :: frootc13_storage(:)     ! (gC/m2) fine root C storage
+    real(rkx), pointer :: frootc13_xfer(:)        ! (gC/m2) fine root C transfer
+    real(rkx), pointer :: livestemc13(:)          ! (gC/m2) live stem C
+    real(rkx), pointer :: livestemc13_storage(:)  ! (gC/m2) live stem C storage
+    real(rkx), pointer :: livestemc13_xfer(:)     ! (gC/m2) live stem C transfer
+    real(rkx), pointer :: deadstemc13(:)          ! (gC/m2) dead stem C
+    real(rkx), pointer :: deadstemc13_storage(:)  ! (gC/m2) dead stem C storage
+    real(rkx), pointer :: deadstemc13_xfer(:)     ! (gC/m2) dead stem C transfer
+    real(rkx), pointer :: livecrootc13(:)         ! (gC/m2) live coarse root C
+    real(rkx), pointer :: livecrootc13_storage(:) ! (gC/m2) live coarse root C storage
+    real(rkx), pointer :: livecrootc13_xfer(:)    ! (gC/m2) live coarse root C transfer
+    real(rkx), pointer :: deadcrootc13(:)         ! (gC/m2) dead coarse root C
+    real(rkx), pointer :: deadcrootc13_storage(:) ! (gC/m2) dead coarse root C storage
+    real(rkx), pointer :: deadcrootc13_xfer(:)    ! (gC/m2) dead coarse root C transfer
+    real(rkx), pointer :: c13_gresp_storage(:)    ! (gC/m2) growth respiration storage
+    real(rkx), pointer :: c13_gresp_xfer(:)       ! (gC/m2) growth respiration transfer
+    real(rkx), pointer :: c13pool(:)              ! (gC/m2) temporary photosynthate C pool
+    real(rkx), pointer :: c13xsmrpool(:)          ! (gC/m2) temporary photosynthate C pool
+    real(rkx), pointer :: c13_pft_ctrunc(:)       ! (gC/m2) C truncation term
+    real(rkx), pointer :: totvegc13(:)            ! (gC/m2) total vegetation carbon, excluding cpool
 
     !!! C14
-    real(rk8), pointer :: cwdc14(:)               ! (gC/m2) coarse woody debris C
-    real(rk8), pointer :: decomp_c14pools(:,:)              ! (gC/m2)  decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_c14pools_vr(:,:,:)         ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_c14pools_1m(:,:)           ! (gC/m2)  Diagnostic: decomposing (litter, cwd, soil) c pools to 1 meter
-    real(rk8), pointer :: c14_col_ctrunc_vr(:,:)            ! (gC/m3) C truncation term
-    real(rk8), pointer :: leafc14(:)              ! (gC/m2) leaf C
-    real(rk8), pointer :: leafc14_storage(:)      ! (gC/m2) leaf C storage
-    real(rk8), pointer :: leafc14_xfer(:)         ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: frootc14(:)             ! (gC/m2) fine root C
-    real(rk8), pointer :: frootc14_storage(:)     ! (gC/m2) fine root C storage
-    real(rk8), pointer :: frootc14_xfer(:)        ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: livestemc14(:)          ! (gC/m2) live stem C
-    real(rk8), pointer :: livestemc14_storage(:)  ! (gC/m2) live stem C storage
-    real(rk8), pointer :: livestemc14_xfer(:)     ! (gC/m2) live stem C transfer
-    real(rk8), pointer :: deadstemc14(:)          ! (gC/m2) dead stem C
-    real(rk8), pointer :: deadstemc14_storage(:)  ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: deadstemc14_xfer(:)     ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: livecrootc14(:)         ! (gC/m2) live coarse root C
-    real(rk8), pointer :: livecrootc14_storage(:) ! (gC/m2) live coarse root C storage
-    real(rk8), pointer :: livecrootc14_xfer(:)    ! (gC/m2) live coarse root C transfer
-    real(rk8), pointer :: deadcrootc14(:)         ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: deadcrootc14_storage(:) ! (gC/m2) dead coarse root C storage
-    real(rk8), pointer :: deadcrootc14_xfer(:)    ! (gC/m2) dead coarse root C transfer
-    real(rk8), pointer :: c14_gresp_storage(:)    ! (gC/m2) growth respiration storage
-    real(rk8), pointer :: c14_gresp_xfer(:)       ! (gC/m2) growth respiration transfer
-    real(rk8), pointer :: c14pool(:)              ! (gC/m2) temporary photosynthate C pool
-    real(rk8), pointer :: c14xsmrpool(:)          ! (gC/m2) temporary photosynthate C pool
-    real(rk8), pointer :: c14_pft_ctrunc(:)       ! (gC/m2) C truncation term
-    real(rk8), pointer :: totvegc14(:)            ! (gC/m2) total vegetation carbon, excluding cpool
-    real(rk8), pointer :: rc14_atm(:)             !C14O2/C12O2 in atmosphere
+    real(rkx), pointer :: cwdc14(:)               ! (gC/m2) coarse woody debris C
+    real(rkx), pointer :: decomp_c14pools(:,:)              ! (gC/m2)  decomposing (litter, cwd, soil) c pools
+    real(rkx), pointer :: decomp_c14pools_vr(:,:,:)         ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
+    real(rkx), pointer :: decomp_c14pools_1m(:,:)           ! (gC/m2)  Diagnostic: decomposing (litter, cwd, soil) c pools to 1 meter
+    real(rkx), pointer :: c14_col_ctrunc_vr(:,:)            ! (gC/m3) C truncation term
+    real(rkx), pointer :: leafc14(:)              ! (gC/m2) leaf C
+    real(rkx), pointer :: leafc14_storage(:)      ! (gC/m2) leaf C storage
+    real(rkx), pointer :: leafc14_xfer(:)         ! (gC/m2) leaf C transfer
+    real(rkx), pointer :: frootc14(:)             ! (gC/m2) fine root C
+    real(rkx), pointer :: frootc14_storage(:)     ! (gC/m2) fine root C storage
+    real(rkx), pointer :: frootc14_xfer(:)        ! (gC/m2) fine root C transfer
+    real(rkx), pointer :: livestemc14(:)          ! (gC/m2) live stem C
+    real(rkx), pointer :: livestemc14_storage(:)  ! (gC/m2) live stem C storage
+    real(rkx), pointer :: livestemc14_xfer(:)     ! (gC/m2) live stem C transfer
+    real(rkx), pointer :: deadstemc14(:)          ! (gC/m2) dead stem C
+    real(rkx), pointer :: deadstemc14_storage(:)  ! (gC/m2) dead stem C storage
+    real(rkx), pointer :: deadstemc14_xfer(:)     ! (gC/m2) dead stem C transfer
+    real(rkx), pointer :: livecrootc14(:)         ! (gC/m2) live coarse root C
+    real(rkx), pointer :: livecrootc14_storage(:) ! (gC/m2) live coarse root C storage
+    real(rkx), pointer :: livecrootc14_xfer(:)    ! (gC/m2) live coarse root C transfer
+    real(rkx), pointer :: deadcrootc14(:)         ! (gC/m2) dead coarse root C
+    real(rkx), pointer :: deadcrootc14_storage(:) ! (gC/m2) dead coarse root C storage
+    real(rkx), pointer :: deadcrootc14_xfer(:)    ! (gC/m2) dead coarse root C transfer
+    real(rkx), pointer :: c14_gresp_storage(:)    ! (gC/m2) growth respiration storage
+    real(rkx), pointer :: c14_gresp_xfer(:)       ! (gC/m2) growth respiration transfer
+    real(rkx), pointer :: c14pool(:)              ! (gC/m2) temporary photosynthate C pool
+    real(rkx), pointer :: c14xsmrpool(:)          ! (gC/m2) temporary photosynthate C pool
+    real(rkx), pointer :: c14_pft_ctrunc(:)       ! (gC/m2) C truncation term
+    real(rkx), pointer :: totvegc14(:)            ! (gC/m2) total vegetation carbon, excluding cpool
+    real(rkx), pointer :: rc14_atm(:)             !C14O2/C12O2 in atmosphere
 
     ! dynamic landuse variables
-    real(rk8), pointer :: seedc(:)              ! (gC/m2) column-level pool for seeding new PFTs
-    real(rk8), pointer :: prod10c(:)            ! (gC/m2) wood product C pool, 10-year lifespan
-    real(rk8), pointer :: prod100c(:)           ! (gC/m2) wood product C pool, 100-year lifespan
-    real(rk8), pointer :: totprodc(:)           ! (gC/m2) total wood product C
+    real(rkx), pointer :: seedc(:)              ! (gC/m2) column-level pool for seeding new PFTs
+    real(rkx), pointer :: prod10c(:)            ! (gC/m2) wood product C pool, 10-year lifespan
+    real(rkx), pointer :: prod100c(:)           ! (gC/m2) wood product C pool, 100-year lifespan
+    real(rkx), pointer :: totprodc(:)           ! (gC/m2) total wood product C
 
     !!! C13
-    real(rk8), pointer :: seedc13(:)              ! (gC/m2) column-level pool for seeding new PFTs
-    real(rk8), pointer :: prod10c13(:)          ! (gC/m2) wood product C13 pool, 10-year lifespan
-    real(rk8), pointer :: prod100c13(:)         ! (gC/m2) wood product C13 pool, 100-year lifespan
-    real(rk8), pointer :: totprodc13(:)         ! (gC/m2) total wood product C13
+    real(rkx), pointer :: seedc13(:)              ! (gC/m2) column-level pool for seeding new PFTs
+    real(rkx), pointer :: prod10c13(:)          ! (gC/m2) wood product C13 pool, 10-year lifespan
+    real(rkx), pointer :: prod100c13(:)         ! (gC/m2) wood product C13 pool, 100-year lifespan
+    real(rkx), pointer :: totprodc13(:)         ! (gC/m2) total wood product C13
     !!! C14
-    real(rk8), pointer :: seedc14(:)              ! (gC/m2) column-level pool for seeding new PFTs
-    real(rk8), pointer :: prod10c14(:)          ! (gC/m2) wood product C14 pool, 10-year lifespan
-    real(rk8), pointer :: prod100c14(:)         ! (gC/m2) wood product C14 pool, 100-year lifespan
-    real(rk8), pointer :: totprodc14(:)         ! (gC/m2) total wood product C14
+    real(rkx), pointer :: seedc14(:)              ! (gC/m2) column-level pool for seeding new PFTs
+    real(rkx), pointer :: prod10c14(:)          ! (gC/m2) wood product C14 pool, 10-year lifespan
+    real(rkx), pointer :: prod100c14(:)         ! (gC/m2) wood product C14 pool, 100-year lifespan
+    real(rkx), pointer :: totprodc14(:)         ! (gC/m2) total wood product C14
 
-    real(rk8), pointer :: seedn(:)              ! (gN/m2) column-level pool for seeding new PFTs
-    real(rk8), pointer :: prod10n(:)            ! (gN/m2) wood product N pool, 10-year lifespan
-    real(rk8), pointer :: prod100n(:)           ! (gN/m2) wood product N pool, 100-year lifespan
-    real(rk8), pointer :: totprodn(:)           ! (gN/m2) total wood product N
-    real(rk8), pointer :: initial_cn_ratio(:)               ! c:n ratio for initialization of pools
-    real(rk8), pointer :: initial_stock(:)                  ! initial concentration for seeding at spinup
+    real(rkx), pointer :: seedn(:)              ! (gN/m2) column-level pool for seeding new PFTs
+    real(rkx), pointer :: prod10n(:)            ! (gN/m2) wood product N pool, 10-year lifespan
+    real(rkx), pointer :: prod100n(:)           ! (gN/m2) wood product N pool, 100-year lifespan
+    real(rkx), pointer :: totprodn(:)           ! (gN/m2) total wood product N
+    real(rkx), pointer :: initial_cn_ratio(:)               ! c:n ratio for initialization of pools
+    real(rkx), pointer :: initial_stock(:)                  ! initial concentration for seeding at spinup
 
     ! crop
-    real(rk8), pointer :: fert_counter(:)
-    real(rk8), pointer :: fert(:)
-    real(rk8), pointer :: soyfixn(:)
-    real(rk8), pointer :: grain_flag(:)
+    real(rkx), pointer :: fert_counter(:)
+    real(rkx), pointer :: fert(:)
+    real(rkx), pointer :: soyfixn(:)
+    real(rkx), pointer :: grain_flag(:)
 !
     integer(ik4) :: l,c,p,j,k   ! indices
     integer(ik4) :: begp, endp  ! per-proc beginning and ending pft indices
@@ -616,7 +616,7 @@ module mod_clm_cninitimevar
     ! to set this properly (e.g., pft-level displacement height and roughness
     ! length). So leave at 30m.
     do p = begp, endp
-      forc_hgt_u_pft(p) = 30.D0
+      forc_hgt_u_pft(p) = 30._rkx
     end do
 
     ! initialize column-level variables
@@ -625,24 +625,24 @@ module mod_clm_cninitimevar
       if (itypelun(l) == istsoil .or. itypelun(l) == istcrop) then
 
         ! column physical state variables
-        annsum_counter(c) = 0.D0
-        cannsum_npp(c)    = 0.D0
-        cannavg_t2m(c)    = 280.D0
+        annsum_counter(c) = 0._rkx
+        cannsum_npp(c)    = 0._rkx
+        cannavg_t2m(c)    = 280._rkx
         ! fire related variables changed by F. Li and S. Levis
         ! it needs to be non zero so the first time step has no fires
-        wf(c) = 1.0D0
-        wf2(c) = 1.0D0
-        nfire(c) = 0.D0
-        baf_crop(c) = 0.D0
-        baf_peatf(c) = 0.D0
-        fbac(c) = 0.D0
-        fbac1(c) = 0.D0
-        farea_burned(c) = 0.D0
+        wf(c) = 1.0_rkx
+        wf2(c) = 1.0_rkx
+        nfire(c) = 0._rkx
+        baf_crop(c) = 0._rkx
+        baf_peatf(c) = 0._rkx
+        fbac(c) = 0._rkx
+        fbac1(c) = 0._rkx
+        farea_burned(c) = 0._rkx
 
         ! needed for CNNLeaching
-        qflx_drain(c) = 0.D0
-        qflx_surf(c) = 0.D0
-        qflx_irrig(c) = 0.D0
+        qflx_drain(c) = 0._rkx
+        qflx_surf(c) = 0._rkx
+        qflx_irrig(c) = 0._rkx
 
         ! column carbon state variable initialization
         do j = 1, nlevdecomp
@@ -650,17 +650,17 @@ module mod_clm_cninitimevar
             if (zsoi(j) < 0.3 ) then  !! only initialize upper soil column
               decomp_cpools_vr(c,j,k) = initial_stock(k)
             else
-              decomp_cpools_vr(c,j,k) = 0.D0
+              decomp_cpools_vr(c,j,k) = 0._rkx
             end if
           end do
-          col_ctrunc_vr(c,j) = 0.D0
+          col_ctrunc_vr(c,j) = 0._rkx
         end do
         if ( nlevdecomp > 1 ) then
           do j = nlevdecomp+1, nlevdecomp_full
             do k = 1, ndecomp_pools
-              decomp_cpools_vr(c,j,k) = 0.D0
+              decomp_cpools_vr(c,j,k) = 0._rkx
             end do
-            col_ctrunc_vr(c,j) = 0.D0
+            col_ctrunc_vr(c,j) = 0._rkx
           end do
         end if
         do k = 1, ndecomp_pools
@@ -670,31 +670,31 @@ module mod_clm_cninitimevar
 
         do j = 1, nlevdecomp_full
           ! initialize fpi_vr so that levels below nlevsoi are not nans
-          fpi_vr(c,j) = 0.D0
-          som_adv_coef(c,j) = 0.D0
-          som_diffus_coef(c,j) = 0.D0
+          fpi_vr(c,j) = 0._rkx
+          som_adv_coef(c,j) = 0._rkx
+          som_diffus_coef(c,j) = 0._rkx
           ! here initialize the profiles for converting to
           ! vertically resolved carbon pools
-          nfixation_prof(c,j) = 0.D0
-          ndep_prof(c,j) = 0.D0
+          nfixation_prof(c,j) = 0._rkx
+          ndep_prof(c,j) = 0._rkx
         end do
 
         ! and define alt variables to be zero
-        alt(c) = 0.D0
-        altmax(c) = 0.D0
-        altmax_lastyear(c) = 0.D0
+        alt(c) = 0._rkx
+        altmax(c) = 0._rkx
+        altmax_lastyear(c) = 0._rkx
         alt_indx(c) = 0
         altmax_indx(c) = 0
         altmax_lastyear_indx = 0
 
-        cwdc(c)       = 0.D0
-        col_ctrunc(c) = 0.D0
-        totlitc(c)    = 0.D0
-        totsomc(c)    = 0.D0
-        totlitc_1m(c) = 0.D0
-        totsomc_1m(c) = 0.D0
-        totecosysc(c) = 0.D0
-        totcolc(c)    = 0.D0
+        cwdc(c)       = 0._rkx
+        col_ctrunc(c) = 0._rkx
+        totlitc(c)    = 0._rkx
+        totsomc(c)    = 0._rkx
+        totlitc_1m(c) = 0._rkx
+        totsomc_1m(c) = 0._rkx
+        totecosysc(c) = 0._rkx
+        totcolc(c)    = 0._rkx
 
         if ( use_c13 ) then
           do j = 1, nlevdecomp
@@ -706,9 +706,9 @@ module mod_clm_cninitimevar
           if ( nlevdecomp > 1 ) then
             do j = nlevdecomp+1, nlevdecomp_full
               do k = 1, ndecomp_pools
-                decomp_c13pools_vr(c,j,k) = 0.D0
+                decomp_c13pools_vr(c,j,k) = 0._rkx
               end do
-              c13_col_ctrunc_vr(c,j) = 0.D0
+              c13_col_ctrunc_vr(c,j) = 0._rkx
             end do
           end if
           cwdc13(c) = cwdc(c) * c13ratio
@@ -728,9 +728,9 @@ module mod_clm_cninitimevar
           if ( nlevdecomp > 1 ) then
             do j = nlevdecomp+1, nlevdecomp_full
               do k = 1, ndecomp_pools
-                decomp_c14pools_vr(c,j,k) = 0.D0
+                decomp_c14pools_vr(c,j,k) = 0._rkx
               end do
-              c14_col_ctrunc_vr(c,j) = 0.D0
+              c14_col_ctrunc_vr(c,j) = 0._rkx
             end do
           end if
           cwdc14(c) = cwdc(c) * c14ratio
@@ -741,22 +741,22 @@ module mod_clm_cninitimevar
         end if
 
         ! column nitrogen state variables
-        sminn(c) = 0.D0
+        sminn(c) = 0._rkx
         do j = 1, nlevdecomp
           do k = 1, ndecomp_pools
             decomp_npools_vr(c,j,k) = &
                     decomp_cpools_vr(c,j,k) / initial_cn_ratio(k)
           end do
-          sminn_vr(c,j) = 0.D0
-          col_ntrunc_vr(c,j) = 0.D0
+          sminn_vr(c,j) = 0._rkx
+          col_ntrunc_vr(c,j) = 0._rkx
         end do
         if ( nlevdecomp > 1 ) then
           do j = nlevdecomp+1, nlevdecomp_full
             do k = 1, ndecomp_pools
-              decomp_npools_vr(c,j,k) = 0.D0
+              decomp_npools_vr(c,j,k) = 0._rkx
             end do
-            sminn_vr(c,j) = 0.D0
-            col_ntrunc_vr(c,j) = 0.D0
+            sminn_vr(c,j) = 0._rkx
+            col_ntrunc_vr(c,j) = 0._rkx
           end do
         end if
         do k = 1, ndecomp_pools
@@ -766,115 +766,115 @@ module mod_clm_cninitimevar
 
 #ifdef NITRIF_DENITRIF
         do j = 1, nlevdecomp_full
-          smin_nh4_vr(c,j) = 0.D0
-          smin_no3_vr(c,j) = 0.D0
+          smin_nh4_vr(c,j) = 0._rkx
+          smin_no3_vr(c,j) = 0._rkx
         end do
-        smin_nh4(c) = 0.D0
-        smin_no3(c) = 0.D0
+        smin_nh4(c) = 0._rkx
+        smin_no3(c) = 0._rkx
 #endif
-        totlitn(c)    = 0.D0
-        totsomn(c)    = 0.D0
-        totlitn_1m(c) = 0.D0
-        totsomn_1m(c) = 0.D0
-        totecosysn(c) = 0.D0
-        totcoln(c)    = 0.D0
-        cwdn(c)       = 0.D0
+        totlitn(c)    = 0._rkx
+        totsomn(c)    = 0._rkx
+        totlitn_1m(c) = 0._rkx
+        totsomn_1m(c) = 0._rkx
+        totecosysn(c) = 0._rkx
+        totcoln(c)    = 0._rkx
+        cwdn(c)       = 0._rkx
 
         ! dynamic landcover state variables
-        seedc(c)  = 0.D0
-        prod10c(c)    = 0.D0
-        prod100c(c)   = 0.D0
-        totprodc(c)   = 0.D0
+        seedc(c)  = 0._rkx
+        prod10c(c)    = 0._rkx
+        prod100c(c)   = 0._rkx
+        totprodc(c)   = 0._rkx
 
         if ( use_c13 ) then
-          seedc13(c)    = 0.D0
-          prod10c13(c)  = 0.D0
-          prod100c13(c) = 0.D0
-          totprodc13(c) = 0.D0
+          seedc13(c)    = 0._rkx
+          prod10c13(c)  = 0._rkx
+          prod100c13(c) = 0._rkx
+          totprodc13(c) = 0._rkx
         end if
 
         if ( use_c14 ) then
-          seedc14(c)    = 0.D0
-          prod10c14(c)  = 0.D0
-          prod100c14(c) = 0.D0
-          totprodc14(c) = 0.D0
+          seedc14(c)    = 0._rkx
+          prod10c14(c)  = 0._rkx
+          prod100c14(c) = 0._rkx
+          totprodc14(c) = 0._rkx
         end if
 
-        seedn(c)      = 0.D0
-        prod10n(c)    = 0.D0
-        prod100n(c)   = 0.D0
-        totprodn(c)   = 0.D0
+        seedn(c)      = 0._rkx
+        prod10n(c)    = 0._rkx
+        prod100n(c)   = 0._rkx
+        totprodn(c)   = 0._rkx
 
         ! also initialize dynamic landcover fluxes so that they have
         ! real values on first timestep, prior to calling pftdyn_cnbal
-        clm3%g%l%c%ccf%dwt_seedc_to_leaf(c) = 0.D0
-        clm3%g%l%c%ccf%dwt_seedc_to_deadstem(c) = 0.D0
-        clm3%g%l%c%ccf%dwt_conv_cflux(c) = 0.D0
-        clm3%g%l%c%ccf%lf_conv_cflux(c) = 0.D0
-        clm3%g%l%c%ccf%dwt_prod10c_gain(c) = 0.D0
-        clm3%g%l%c%ccf%prod10c_loss(c) = 0.D0
-        clm3%g%l%c%ccf%dwt_prod100c_gain(c) = 0.D0
-        clm3%g%l%c%ccf%prod100c_loss(c) = 0.D0
+        clm3%g%l%c%ccf%dwt_seedc_to_leaf(c) = 0._rkx
+        clm3%g%l%c%ccf%dwt_seedc_to_deadstem(c) = 0._rkx
+        clm3%g%l%c%ccf%dwt_conv_cflux(c) = 0._rkx
+        clm3%g%l%c%ccf%lf_conv_cflux(c) = 0._rkx
+        clm3%g%l%c%ccf%dwt_prod10c_gain(c) = 0._rkx
+        clm3%g%l%c%ccf%prod10c_loss(c) = 0._rkx
+        clm3%g%l%c%ccf%dwt_prod100c_gain(c) = 0._rkx
+        clm3%g%l%c%ccf%prod100c_loss(c) = 0._rkx
         do j = 1, nlevdecomp_full
-          clm3%g%l%c%ccf%dwt_frootc_to_litr_met_c(c,j) = 0.D0
-          clm3%g%l%c%ccf%dwt_frootc_to_litr_cel_c(c,j) = 0.D0
-          clm3%g%l%c%ccf%dwt_frootc_to_litr_lig_c(c,j) = 0.D0
-          clm3%g%l%c%ccf%dwt_livecrootc_to_cwdc(c,j) = 0.D0
-          clm3%g%l%c%ccf%dwt_deadcrootc_to_cwdc(c,j) = 0.D0
+          clm3%g%l%c%ccf%dwt_frootc_to_litr_met_c(c,j) = 0._rkx
+          clm3%g%l%c%ccf%dwt_frootc_to_litr_cel_c(c,j) = 0._rkx
+          clm3%g%l%c%ccf%dwt_frootc_to_litr_lig_c(c,j) = 0._rkx
+          clm3%g%l%c%ccf%dwt_livecrootc_to_cwdc(c,j) = 0._rkx
+          clm3%g%l%c%ccf%dwt_deadcrootc_to_cwdc(c,j) = 0._rkx
         end do
-        clm3%g%l%c%ccf%dwt_closs(c) = 0.D0
+        clm3%g%l%c%ccf%dwt_closs(c) = 0._rkx
 
         if ( use_c13 ) then
-          clm3%g%l%c%cc13f%dwt_seedc_to_leaf(c) = 0.D0
-          clm3%g%l%c%cc13f%dwt_seedc_to_deadstem(c) = 0.D0
-          clm3%g%l%c%cc13f%dwt_conv_cflux(c) = 0.D0
-          clm3%g%l%c%cc13f%dwt_prod10c_gain(c) = 0.D0
-          clm3%g%l%c%cc13f%prod10c_loss(c) = 0.D0
-          clm3%g%l%c%cc13f%dwt_prod100c_gain(c) = 0.D0
-          clm3%g%l%c%cc13f%prod100c_loss(c) = 0.D0
+          clm3%g%l%c%cc13f%dwt_seedc_to_leaf(c) = 0._rkx
+          clm3%g%l%c%cc13f%dwt_seedc_to_deadstem(c) = 0._rkx
+          clm3%g%l%c%cc13f%dwt_conv_cflux(c) = 0._rkx
+          clm3%g%l%c%cc13f%dwt_prod10c_gain(c) = 0._rkx
+          clm3%g%l%c%cc13f%prod10c_loss(c) = 0._rkx
+          clm3%g%l%c%cc13f%dwt_prod100c_gain(c) = 0._rkx
+          clm3%g%l%c%cc13f%prod100c_loss(c) = 0._rkx
           do j = 1, nlevdecomp_full
-            clm3%g%l%c%cc13f%dwt_frootc_to_litr_met_c(c,j) = 0.D0
-            clm3%g%l%c%cc13f%dwt_frootc_to_litr_cel_c(c,j) = 0.D0
-            clm3%g%l%c%cc13f%dwt_frootc_to_litr_lig_c(c,j) = 0.D0
-            clm3%g%l%c%cc13f%dwt_livecrootc_to_cwdc(c,j) = 0.D0
-            clm3%g%l%c%cc13f%dwt_deadcrootc_to_cwdc(c,j) = 0.D0
+            clm3%g%l%c%cc13f%dwt_frootc_to_litr_met_c(c,j) = 0._rkx
+            clm3%g%l%c%cc13f%dwt_frootc_to_litr_cel_c(c,j) = 0._rkx
+            clm3%g%l%c%cc13f%dwt_frootc_to_litr_lig_c(c,j) = 0._rkx
+            clm3%g%l%c%cc13f%dwt_livecrootc_to_cwdc(c,j) = 0._rkx
+            clm3%g%l%c%cc13f%dwt_deadcrootc_to_cwdc(c,j) = 0._rkx
           end do
-          clm3%g%l%c%cc13f%dwt_closs(c) = 0.D0
+          clm3%g%l%c%cc13f%dwt_closs(c) = 0._rkx
         end if
 
         if ( use_c14 ) then
-          clm3%g%l%c%cc14f%dwt_seedc_to_leaf(c) = 0.D0
-          clm3%g%l%c%cc14f%dwt_seedc_to_deadstem(c) = 0.D0
-          clm3%g%l%c%cc14f%dwt_conv_cflux(c) = 0.D0
-          clm3%g%l%c%cc14f%dwt_prod10c_gain(c) = 0.D0
-          clm3%g%l%c%cc14f%prod10c_loss(c) = 0.D0
-          clm3%g%l%c%cc14f%dwt_prod100c_gain(c) = 0.D0
-          clm3%g%l%c%cc14f%prod100c_loss(c) = 0.D0
+          clm3%g%l%c%cc14f%dwt_seedc_to_leaf(c) = 0._rkx
+          clm3%g%l%c%cc14f%dwt_seedc_to_deadstem(c) = 0._rkx
+          clm3%g%l%c%cc14f%dwt_conv_cflux(c) = 0._rkx
+          clm3%g%l%c%cc14f%dwt_prod10c_gain(c) = 0._rkx
+          clm3%g%l%c%cc14f%prod10c_loss(c) = 0._rkx
+          clm3%g%l%c%cc14f%dwt_prod100c_gain(c) = 0._rkx
+          clm3%g%l%c%cc14f%prod100c_loss(c) = 0._rkx
           do j = 1 , nlevdecomp_full
-            clm3%g%l%c%cc14f%dwt_frootc_to_litr_met_c(c,j) = 0.D0
-            clm3%g%l%c%cc14f%dwt_frootc_to_litr_cel_c(c,j) = 0.D0
-            clm3%g%l%c%cc14f%dwt_frootc_to_litr_lig_c(c,j) = 0.D0
-            clm3%g%l%c%cc14f%dwt_livecrootc_to_cwdc(c,j) = 0.D0
-            clm3%g%l%c%cc14f%dwt_deadcrootc_to_cwdc(c,j) = 0.D0
+            clm3%g%l%c%cc14f%dwt_frootc_to_litr_met_c(c,j) = 0._rkx
+            clm3%g%l%c%cc14f%dwt_frootc_to_litr_cel_c(c,j) = 0._rkx
+            clm3%g%l%c%cc14f%dwt_frootc_to_litr_lig_c(c,j) = 0._rkx
+            clm3%g%l%c%cc14f%dwt_livecrootc_to_cwdc(c,j) = 0._rkx
+            clm3%g%l%c%cc14f%dwt_deadcrootc_to_cwdc(c,j) = 0._rkx
           end do
-          clm3%g%l%c%cc14f%dwt_closs(c) = 0.D0
+          clm3%g%l%c%cc14f%dwt_closs(c) = 0._rkx
         end if
 
-        clm3%g%l%c%cnf%dwt_seedn_to_leaf(c) = 0.D0
-        clm3%g%l%c%cnf%dwt_seedn_to_deadstem(c) = 0.D0
-        clm3%g%l%c%cnf%dwt_conv_nflux(c) = 0.D0
-        clm3%g%l%c%cnf%dwt_prod10n_gain(c) = 0.D0
-        clm3%g%l%c%cnf%prod10n_loss(c) = 0.D0
-        clm3%g%l%c%cnf%dwt_prod100n_gain(c) = 0.D0
-        clm3%g%l%c%cnf%prod100n_loss(c) = 0.D0
+        clm3%g%l%c%cnf%dwt_seedn_to_leaf(c) = 0._rkx
+        clm3%g%l%c%cnf%dwt_seedn_to_deadstem(c) = 0._rkx
+        clm3%g%l%c%cnf%dwt_conv_nflux(c) = 0._rkx
+        clm3%g%l%c%cnf%dwt_prod10n_gain(c) = 0._rkx
+        clm3%g%l%c%cnf%prod10n_loss(c) = 0._rkx
+        clm3%g%l%c%cnf%dwt_prod100n_gain(c) = 0._rkx
+        clm3%g%l%c%cnf%prod100n_loss(c) = 0._rkx
         do j = 1 , nlevdecomp_full
-          clm3%g%l%c%cnf%dwt_frootn_to_litr_met_n(c,j) = 0.D0
-          clm3%g%l%c%cnf%dwt_frootn_to_litr_cel_n(c,j) = 0.D0
-          clm3%g%l%c%cnf%dwt_frootn_to_litr_lig_n(c,j) = 0.D0
-          clm3%g%l%c%cnf%dwt_livecrootn_to_cwdn(c,j) = 0.D0
-          clm3%g%l%c%cnf%dwt_deadcrootn_to_cwdn(c,j) = 0.D0
+          clm3%g%l%c%cnf%dwt_frootn_to_litr_met_n(c,j) = 0._rkx
+          clm3%g%l%c%cnf%dwt_frootn_to_litr_cel_n(c,j) = 0._rkx
+          clm3%g%l%c%cnf%dwt_frootn_to_litr_lig_n(c,j) = 0._rkx
+          clm3%g%l%c%cnf%dwt_livecrootn_to_cwdn(c,j) = 0._rkx
+          clm3%g%l%c%cnf%dwt_deadcrootn_to_cwdn(c,j) = 0._rkx
         end do
-        clm3%g%l%c%cnf%dwt_nloss(c) = 0.D0
+        clm3%g%l%c%cnf%dwt_nloss(c) = 0._rkx
       end if
     end do
 
@@ -884,60 +884,60 @@ module mod_clm_cninitimevar
       if ( itypelun(l) == istsoil .or. itypelun(l) == istcrop ) then
         ! carbon state variables
         if (ivt(p) == noveg) then
-          leafc(p) = 0.D0
-          leafc_storage(p) = 0.D0
+          leafc(p) = 0._rkx
+          leafc_storage(p) = 0._rkx
         else
-          if (evergreen(ivt(p)) == 1.D0) then
-            leafc(p) = 1.D0
-            leafc_storage(p) = 0.D0
+          if (evergreen(ivt(p)) == 1._rkx) then
+            leafc(p) = 1._rkx
+            leafc_storage(p) = 0._rkx
           else if (ivt(p) >= npcropmin) then ! prognostic crop types
-            leafc(p) = 0.D0
-            leafc_storage(p) = 0.D0
+            leafc(p) = 0._rkx
+            leafc_storage(p) = 0._rkx
           else
-            leafc(p) = 0.D0
-            leafc_storage(p) = 1.D0
+            leafc(p) = 0._rkx
+            leafc_storage(p) = 1._rkx
           end if
         end if
-        leafc_xfer(p) = 0.D0
+        leafc_xfer(p) = 0._rkx
         if ( crop_prog )then
-          grainc(p) = 0.D0
-          grainc_storage(p) = 0.D0
-          grainc_xfer(p) = 0.D0
-          fert(p) = 0.D0
-          soyfixn(p) = 0.D0
+          grainc(p) = 0._rkx
+          grainc_storage(p) = 0._rkx
+          grainc_xfer(p) = 0._rkx
+          fert(p) = 0._rkx
+          soyfixn(p) = 0._rkx
         end if
-        frootc(p) = 0.D0
-        frootc_storage(p) = 0.D0
-        frootc_xfer(p) = 0.D0
-        livestemc(p) = 0.D0
-        livestemc_storage(p) = 0.D0
-        livestemc_xfer(p) = 0.D0
+        frootc(p) = 0._rkx
+        frootc_storage(p) = 0._rkx
+        frootc_xfer(p) = 0._rkx
+        livestemc(p) = 0._rkx
+        livestemc_storage(p) = 0._rkx
+        livestemc_xfer(p) = 0._rkx
 
         ! tree types need to be initialized with some stem mass so that
         ! roughness length is not zero in canopy flux calculation
 
-        if (woody(ivt(p)) == 1.D0) then
-          deadstemc(p) = 0.1D0
+        if (woody(ivt(p)) == 1._rkx) then
+          deadstemc(p) = 0.1_rkx
         else
-          deadstemc(p) = 0.D0
+          deadstemc(p) = 0._rkx
         end if
 
-        deadstemc_storage(p) = 0.D0
-        deadstemc_xfer(p) = 0.D0
-        livecrootc(p) = 0.D0
-        livecrootc_storage(p) = 0.D0
-        livecrootc_xfer(p) = 0.D0
-        deadcrootc(p) = 0.D0
-        deadcrootc_storage(p) = 0.D0
-        deadcrootc_xfer(p) = 0.D0
-        gresp_storage(p) = 0.D0
-        gresp_xfer(p) = 0.D0
-        cpool(p) = 0.D0
-        xsmrpool(p) = 0.D0
-        pft_ctrunc(p) = 0.D0
-        dispvegc(p) = 0.D0
-        storvegc(p) = 0.D0
-        totpftc(p)  = 0.D0
+        deadstemc_storage(p) = 0._rkx
+        deadstemc_xfer(p) = 0._rkx
+        livecrootc(p) = 0._rkx
+        livecrootc_storage(p) = 0._rkx
+        livecrootc_xfer(p) = 0._rkx
+        deadcrootc(p) = 0._rkx
+        deadcrootc_storage(p) = 0._rkx
+        deadcrootc_xfer(p) = 0._rkx
+        gresp_storage(p) = 0._rkx
+        gresp_xfer(p) = 0._rkx
+        cpool(p) = 0._rkx
+        xsmrpool(p) = 0._rkx
+        pft_ctrunc(p) = 0._rkx
+        dispvegc(p) = 0._rkx
+        storvegc(p) = 0._rkx
+        totpftc(p)  = 0._rkx
         ! calculate totvegc explicitly so that it is available for the isotope
         ! code on the first time step.
         totvegc(p)  = leafc(p) + leafc_storage(p) + &
@@ -956,7 +956,7 @@ module mod_clm_cninitimevar
                   grainc_storage(p) + grainc_xfer(p)
         end if
 
-        woodc(p)    = 0.D0
+        woodc(p)    = 0._rkx
 
         if ( use_c13 ) then
           leafc13(p)               = leafc(p)               * c13ratio
@@ -1041,126 +1041,126 @@ module mod_clm_cninitimevar
 
         ! nitrogen state variables
         if (ivt(p) == noveg) then
-          leafn(p) = 0.D0
-          leafn_storage(p) = 0.D0
+          leafn(p) = 0._rkx
+          leafn_storage(p) = 0._rkx
         else
           leafn(p) = leafc(p) / leafcn(ivt(p))
           leafn_storage(p) = leafc_storage(p) / leafcn(ivt(p))
         end if
 
-        leafn_xfer(p) = 0.D0
+        leafn_xfer(p) = 0._rkx
         if ( crop_prog )then
-          grainn(p) = 0.D0
-          grainn_storage(p) = 0.D0
-          grainn_xfer(p) = 0.D0
+          grainn(p) = 0._rkx
+          grainn_storage(p) = 0._rkx
+          grainn_xfer(p) = 0._rkx
         end if
-        frootn(p) = 0.D0
-        frootn_storage(p) = 0.D0
-        frootn_xfer(p) = 0.D0
-        livestemn(p) = 0.D0
-        livestemn_storage(p) = 0.D0
-        livestemn_xfer(p) = 0.D0
+        frootn(p) = 0._rkx
+        frootn_storage(p) = 0._rkx
+        frootn_xfer(p) = 0._rkx
+        livestemn(p) = 0._rkx
+        livestemn_storage(p) = 0._rkx
+        livestemn_xfer(p) = 0._rkx
 
         ! tree types need to be initialized with some stem mass so that
         ! roughness length is not zero in canopy flux calculation
 
-        if (woody(ivt(p)) == 1.D0) then
+        if (woody(ivt(p)) == 1._rkx) then
           deadstemn(p) = deadstemc(p) / deadwdcn(ivt(p))
         else
-          deadstemn(p) = 0.D0
+          deadstemn(p) = 0._rkx
         end if
 
-        deadstemn_storage(p) = 0.D0
-        deadstemn_xfer(p) = 0.D0
-        livecrootn(p) = 0.D0
-        livecrootn_storage(p) = 0.D0
-        livecrootn_xfer(p) = 0.D0
-        deadcrootn(p) = 0.D0
-        deadcrootn_storage(p) = 0.D0
-        deadcrootn_xfer(p) = 0.D0
-        retransn(p) = 0.D0
-        npool(p) = 0.D0
-        pft_ntrunc(p) = 0.D0
-        dispvegn(p) = 0.D0
-        storvegn(p) = 0.D0
-        totvegn(p)  = 0.D0
-        totpftn(p)  = 0.D0
+        deadstemn_storage(p) = 0._rkx
+        deadstemn_xfer(p) = 0._rkx
+        livecrootn(p) = 0._rkx
+        livecrootn_storage(p) = 0._rkx
+        livecrootn_xfer(p) = 0._rkx
+        deadcrootn(p) = 0._rkx
+        deadcrootn_storage(p) = 0._rkx
+        deadcrootn_xfer(p) = 0._rkx
+        retransn(p) = 0._rkx
+        npool(p) = 0._rkx
+        pft_ntrunc(p) = 0._rkx
+        dispvegn(p) = 0._rkx
+        storvegn(p) = 0._rkx
+        totvegn(p)  = 0._rkx
+        totpftn(p)  = 0._rkx
 
         ! initialization for psnsun and psnsha required for
         ! proper arbitrary initialization of allocation routine
         ! in initial ecosysdyn call
 
-        psnsun(p) = 0.D0
-        psnsha(p) = 0.D0
+        psnsun(p) = 0._rkx
+        psnsha(p) = 0._rkx
 
         if ( use_c13 ) then
-          c13_psnsun(p) = 0.D0
-          c13_psnsha(p) = 0.D0
+          c13_psnsun(p) = 0._rkx
+          c13_psnsha(p) = 0._rkx
         end if
 
         if ( use_c14 ) then
-          c14_psnsun(p) = 0.D0
-          c14_psnsha(p) = 0.D0
+          c14_psnsun(p) = 0._rkx
+          c14_psnsha(p) = 0._rkx
         end if
 
-        laisun(p) = 0.D0
-        laisha(p) = 0.D0
+        laisun(p) = 0._rkx
+        laisha(p) = 0._rkx
 
         ! ecophysiological variables
         ! phenology variables
-        dormant_flag(p) = 1.D0
-        days_active(p) = 0.D0
-        onset_flag(p) = 0.D0
-        onset_counter(p) = 0.D0
-        onset_gddflag(p) = 0.D0
-        onset_fdd(p) = 0.D0
-        onset_gdd(p) = 0.D0
-        onset_swi(p) = 0.0D0
-        offset_flag(p) = 0.D0
-        offset_counter(p) = 0.D0
-        offset_fdd(p) = 0.D0
-        offset_swi(p) = 0.D0
-        lgsf(p) = 0.D0
-        bglfr(p) = 0.D0
-        bgtr(p) = 0.D0
-        annavg_t2m(p) = 280.D0
-        tempavg_t2m(p) = 0.D0
-        fert_counter(p) = 0.D0
-        grain_flag(p) = 0.D0
+        dormant_flag(p) = 1._rkx
+        days_active(p) = 0._rkx
+        onset_flag(p) = 0._rkx
+        onset_counter(p) = 0._rkx
+        onset_gddflag(p) = 0._rkx
+        onset_fdd(p) = 0._rkx
+        onset_gdd(p) = 0._rkx
+        onset_swi(p) = 0.0_rkx
+        offset_flag(p) = 0._rkx
+        offset_counter(p) = 0._rkx
+        offset_fdd(p) = 0._rkx
+        offset_swi(p) = 0._rkx
+        lgsf(p) = 0._rkx
+        bglfr(p) = 0._rkx
+        bgtr(p) = 0._rkx
+        annavg_t2m(p) = 280._rkx
+        tempavg_t2m(p) = 0._rkx
+        fert_counter(p) = 0._rkx
+        grain_flag(p) = 0._rkx
 
         ! non-phenology variables
-        gpp(p) = 0.D0
-        availc(p) = 0.D0
-        xsmrpool_recover(p) = 0.D0
-        alloc_pnow(p) = 1.D0
-        c_allometry(p) = 0.D0
-        n_allometry(p) = 0.D0
-        plant_ndemand(p) = 0.D0
-        tempsum_potential_gpp(p) = 0.D0
-        annsum_potential_gpp(p) = 0.D0
-        tempmax_retransn(p) = 0.D0
-        annmax_retransn(p) = 0.D0
-        avail_retransn(p) = 0.D0
-        plant_nalloc(p) = 0.D0
-        plant_calloc(p) = 0.D0
-        excess_cflux(p) = 0.D0
-        downreg(p) = 0.D0
-        prev_leafc_to_litter(p) = 0.D0
-        prev_frootc_to_litter(p) = 0.D0
-        tempsum_npp(p) = 0.D0
-        annsum_npp(p) = 0.D0
+        gpp(p) = 0._rkx
+        availc(p) = 0._rkx
+        xsmrpool_recover(p) = 0._rkx
+        alloc_pnow(p) = 1._rkx
+        c_allometry(p) = 0._rkx
+        n_allometry(p) = 0._rkx
+        plant_ndemand(p) = 0._rkx
+        tempsum_potential_gpp(p) = 0._rkx
+        annsum_potential_gpp(p) = 0._rkx
+        tempmax_retransn(p) = 0._rkx
+        annmax_retransn(p) = 0._rkx
+        avail_retransn(p) = 0._rkx
+        plant_nalloc(p) = 0._rkx
+        plant_calloc(p) = 0._rkx
+        excess_cflux(p) = 0._rkx
+        downreg(p) = 0._rkx
+        prev_leafc_to_litter(p) = 0._rkx
+        prev_frootc_to_litter(p) = 0._rkx
+        tempsum_npp(p) = 0._rkx
+        annsum_npp(p) = 0._rkx
 #if (defined CNDV)
-        tempsum_litfall(p) = 0.D0
-        annsum_litfall(p) = 0.D0
+        tempsum_litfall(p) = 0._rkx
+        annsum_litfall(p) = 0._rkx
 #endif
 
         if ( use_c13 ) then
           xsmrpool_c13ratio(p) = c13ratio
-          rc13_canair(p) = 0.D0
-          rc13_psnsun(p) = 0.D0
-          rc13_psnsha(p) = 0.D0
-          alphapsnsun(p) = 0.D0
-          alphapsnsha(p) = 0.D0
+          rc13_canair(p) = 0._rkx
+          rc13_psnsun(p) = 0._rkx
+          rc13_psnsha(p) = 0._rkx
+          alphapsnsun(p) = 0._rkx
+          alphapsnsha(p) = 0._rkx
         end if
       end if   ! end of if-istsoil block
     end do   ! end of loop over pfts

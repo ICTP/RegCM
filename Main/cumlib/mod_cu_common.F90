@@ -33,38 +33,38 @@ module mod_cu_common
 
   public
 
-  real(rk8) , pointer , dimension(:,:,:) :: cu_tten
-  real(rk8) , pointer , dimension(:,:,:) :: avg_tten
-  real(rk8) , pointer , dimension(:,:,:) :: cu_uten
-  real(rk8) , pointer , dimension(:,:,:) :: cu_vten
-  real(rk8) , pointer , dimension(:,:,:) :: cu_utenx
-  real(rk8) , pointer , dimension(:,:,:) :: cu_vtenx
-  real(rk8) , pointer , dimension(:,:,:) :: avg_uten
-  real(rk8) , pointer , dimension(:,:,:) :: avg_vten
-  real(rk8) , pointer , dimension(:,:,:,:) :: cu_qten
-  real(rk8) , pointer , dimension(:,:,:,:) :: avg_qten
-  real(rk8) , pointer , dimension(:,:,:,:) :: cu_chiten
-  real(rk8) , pointer , dimension(:,:,:,:) :: avg_chiten
-  real(rk8) , pointer , dimension(:,:) :: cu_prate
-  real(rk8) , pointer , dimension(:,:,:) :: cu_qdetr
-  real(rk8) , pointer , dimension(:,:,:) :: cu_raincc
-  real(rk8) , pointer , dimension(:,:,:) :: cu_convpr
-  real(rk8) , pointer , dimension(:,:,:) :: cu_cldfrc
-  real(rk8) , pointer , dimension(:,:,:) :: cu_cldlwc
+  real(rkx) , pointer , dimension(:,:,:) :: cu_tten
+  real(rkx) , pointer , dimension(:,:,:) :: avg_tten
+  real(rkx) , pointer , dimension(:,:,:) :: cu_uten
+  real(rkx) , pointer , dimension(:,:,:) :: cu_vten
+  real(rkx) , pointer , dimension(:,:,:) :: cu_utenx
+  real(rkx) , pointer , dimension(:,:,:) :: cu_vtenx
+  real(rkx) , pointer , dimension(:,:,:) :: avg_uten
+  real(rkx) , pointer , dimension(:,:,:) :: avg_vten
+  real(rkx) , pointer , dimension(:,:,:,:) :: cu_qten
+  real(rkx) , pointer , dimension(:,:,:,:) :: avg_qten
+  real(rkx) , pointer , dimension(:,:,:,:) :: cu_chiten
+  real(rkx) , pointer , dimension(:,:,:,:) :: avg_chiten
+  real(rkx) , pointer , dimension(:,:) :: cu_prate
+  real(rkx) , pointer , dimension(:,:,:) :: cu_qdetr
+  real(rkx) , pointer , dimension(:,:,:) :: cu_raincc
+  real(rkx) , pointer , dimension(:,:,:) :: cu_convpr
+  real(rkx) , pointer , dimension(:,:,:) :: cu_cldfrc
+  real(rkx) , pointer , dimension(:,:,:) :: cu_cldlwc
   integer(ik4) , pointer , dimension(:,:) :: cu_ktop
   integer(ik4) , pointer , dimension(:,:) :: cu_kbot
 
-  real(rk8) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
-  real(rk8) :: rdt
+  real(rkx) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+  real(rkx) :: rdt
 
   integer(ik4) , pointer , dimension(:,:) :: cuscheme ! which scheme to use
   integer(ik4) :: total_precip_points
 
-  real(rk8) , dimension(10) :: cld_profile
-  real(rk8) , dimension(10) :: fixed_cld_profile
-  real(rk8) , dimension(10) :: rnum
+  real(rkx) , dimension(10) :: cld_profile
+  real(rkx) , dimension(10) :: fixed_cld_profile
+  real(rkx) , dimension(10) :: rnum
 
-  real(rk8) , parameter :: maxcloud_dp =  60000.0D0 ! In Pa
+  real(rkx) , parameter :: maxcloud_dp =  60000.0_rkx ! In Pa
   logical , parameter :: addnoise = .false.
 
   contains
@@ -109,16 +109,16 @@ module mod_cu_common
       !
       ! Free hand draw of a generic ten layer cumulus cloud shape.
       !
-      fixed_cld_profile(1)  = 0.130D0
-      fixed_cld_profile(2)  = 0.125D0
-      fixed_cld_profile(3)  = 0.120D0
-      fixed_cld_profile(4)  = 0.080D0
-      fixed_cld_profile(5)  = 0.080D0
-      fixed_cld_profile(6)  = 0.080D0
-      fixed_cld_profile(7)  = 0.085D0
-      fixed_cld_profile(8)  = 0.085D0
-      fixed_cld_profile(9)  = 0.105D0
-      fixed_cld_profile(10) = 0.110D0
+      fixed_cld_profile(1)  = 0.130_rkx
+      fixed_cld_profile(2)  = 0.125_rkx
+      fixed_cld_profile(3)  = 0.120_rkx
+      fixed_cld_profile(4)  = 0.080_rkx
+      fixed_cld_profile(5)  = 0.080_rkx
+      fixed_cld_profile(6)  = 0.080_rkx
+      fixed_cld_profile(7)  = 0.085_rkx
+      fixed_cld_profile(8)  = 0.085_rkx
+      fixed_cld_profile(9)  = 0.105_rkx
+      fixed_cld_profile(10) = 0.110_rkx
       if ( addnoise ) then
         call random_seed(size=nseed)
         call cpu_time(cputime)
@@ -135,7 +135,7 @@ module mod_cu_common
   subroutine model_cumulus_cloud(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    real(rk8) :: akclth , scalep , scalef
+    real(rkx) :: akclth , scalep , scalef
     integer(ik4):: i , j , k , ktop , kbot , kclth , ikh
     scalef = (d_one-clfrcv)
     if ( icumcloud <= 1 ) then
@@ -149,7 +149,7 @@ module mod_cu_common
           kbot = cu_kbot(j,i)
           kclth = kbot - ktop + 1
           if ( kclth < 2 ) cycle jloop1
-          akclth = d_one/dble(kclth)
+          akclth = d_one/real(kclth,rkx)
           do k = ktop , kbot
             cu_cldfrc(j,i,k) = d_one - scalef**akclth
           end do
@@ -159,7 +159,7 @@ module mod_cu_common
       if ( addnoise ) then
         ! Put 25% noise level. Update cld_profile each time.
         call random_number(rnum)
-        cld_profile = (0.75D0+(rnum/2.0D0))*fixed_cld_profile
+        cld_profile = (0.75_rkx+(rnum/2.0_rkx))*fixed_cld_profile
       end if
       iloop3: &
       do i = ici1 , ici2
@@ -173,7 +173,7 @@ module mod_cu_common
           scalep = min((m2c%pas(j,i,kbot)-m2c%pas(j,i,ktop)) / &
                   maxcloud_dp,d_one)
           do k = ktop , kbot
-            ikh = max(1,min(10,int((dble(k-ktop+1)/dble(kclth))*d_10)))
+            ikh = max(1,min(10,int((real(k-ktop+1,rkx)/real(kclth,rkx))*d_10)))
             cu_cldfrc(j,i,k) = cld_profile(ikh)*clfrcv*scalep
           end do
         end do jloop3
@@ -187,9 +187,9 @@ module mod_cu_common
           if ( ktop > 1 .and. kbot > 1 ) then
             do k = ktop , kbot
               if ( cuscheme(j,i) == 4 ) then
-                cu_cldlwc(j,i,k) = 0.5D-4
+                cu_cldlwc(j,i,k) = 0.5e-4_rkx
               else
-                cu_cldlwc(j,i,k) = 0.3D-3
+                cu_cldlwc(j,i,k) = 0.3e-3_rkx
               end if
             end do
           end if
@@ -199,7 +199,7 @@ module mod_cu_common
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( cu_cldfrc(j,i,k) > 0.001D0 ) then
+            if ( cu_cldfrc(j,i,k) > 0.001_rkx ) then
               cu_cldlwc(j,i,k) = clwfromt(m2c%tas(j,i,k))
             else
               cu_cldlwc(j,i,k) = d_zero

@@ -45,23 +45,23 @@ module mod_mkvocef
   character(len=16) , parameter :: varname6 = 'ef_shr'
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real(rk8) :: vmin = 0.0D0
-  real(rk8) :: vmisdat = -9999.0D0
+  real(rkx) :: vmin = 0.0_rkx
+  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
   subroutine mkvocef(vocfile,vocef)
     implicit none
     character(len=*) , intent(in) :: vocfile
-    real(rk8) , dimension(:,:,:) , intent(out) :: vocef
+    real(rkx) , dimension(:,:,:) , intent(out) :: vocef
     integer(ik4) :: nlat , nlon
     integer(ik4) :: idimid , ivarmask , ncid
     integer(ik4) , dimension(6) :: ivarid
     integer(ik4) , dimension(2) :: istart , icount
     integer(ik4) :: istatus , i , j , li , lo
-    real(rk8) , dimension(:,:,:) , allocatable :: rvar
-    real(rk8) , dimension(:,:) , allocatable :: rmask
-    real(rk8) , dimension(:) , allocatable :: glat , glon , rlat , rlon
+    real(rkx) , dimension(:,:,:) , allocatable :: rvar
+    real(rkx) , dimension(:,:) , allocatable :: rmask
+    real(rkx) , dimension(:) , allocatable :: glat , glon , rlat , rlon
     type(global_domain) :: domain
 
     character(len=256) :: inpfile
@@ -105,11 +105,11 @@ module mod_mkvocef
       'Cannot read variable lon in file '//trim(inpfile))
 
     ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0D0 )
-      glon = glon - 360.0D0
+    where ( glon >  180.0_rkx )
+      glon = glon - 360.0_rkx
     end where
-    where ( glon < -180.0D0 )
-      glon = glon + 360.0D0
+    where ( glon < -180.0_rkx )
+      glon = glon + 360.0_rkx
     end where
 
     call get_window(glat,glon,domain)

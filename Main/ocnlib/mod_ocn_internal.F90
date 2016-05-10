@@ -30,10 +30,10 @@ module mod_ocn_internal
 
   public
 
-  real(rk8) :: dtocn , dtlake , dtsst
+  real(rkx) :: dtocn , dtlake , dtsst
 
-  real(rk8) , parameter :: aarea = 0.02D0
-  real(rk8) , parameter :: age3 = 0.3D0
+  real(rkx) , parameter :: aarea = 0.02_rkx
+  real(rkx) , parameter :: age3 = 0.3_rkx
 
   integer(ik4) :: nocnp
   integer(ik4) :: iocnbeg , iocnend
@@ -42,61 +42,61 @@ module mod_ocn_internal
   logical :: ldcsst = .false.
   logical :: lseaice = .false.
 
-  real(rk8) , pointer , dimension(:) :: cprate
-  real(rk8) , pointer , dimension(:) :: czenith
-  real(rk8) , pointer , dimension(:) :: deltas
-  real(rk8) , pointer , dimension(:) :: dhlake
-  real(rk8) , pointer , dimension(:) :: drag
-  real(rk8) , pointer , dimension(:) :: tskin
-  real(rk8) , pointer , dimension(:) :: dwrlwf
-  real(rk8) , pointer , dimension(:) :: emiss
-  real(rk8) , pointer , dimension(:) :: evpr
-  real(rk8) , pointer , dimension(:) :: ht      ! hgt
-  real(rk8) , pointer , dimension(:) :: hpbl    ! hpbl
-  real(rk8) , pointer , dimension(:) :: lat     ! xlat
-  real(rk8) , pointer , dimension(:) :: ncprate
-  real(rk8) , pointer , dimension(:) :: prcp
-  real(rk8) , pointer , dimension(:) :: q2m
-  real(rk8) , pointer , dimension(:) :: qv      ! qvatm
-  real(rk8) , pointer , dimension(:) :: rhox    ! rhox
-  real(rk8) , pointer , dimension(:) :: rlwf    ! rlwf
-  real(rk8) , pointer , dimension(:) :: rswf    ! rswf
-  real(rk8) , pointer , dimension(:) :: scvk
-  real(rk8) , pointer , dimension(:) :: sent
-  real(rk8) , pointer , dimension(:) :: sfice
-  real(rk8) , pointer , dimension(:) :: sts     ! tatm
-  real(rk8) , pointer , dimension(:) :: sfps    ! sfps
-  real(rk8) , pointer , dimension(:) :: snag
-  real(rk8) , pointer , dimension(:) :: sncv
-  real(rk8) , pointer , dimension(:) :: sm
-  real(rk8) , pointer , dimension(:) :: sst
-  real(rk8) , pointer , dimension(:) :: t2m
-  real(rk8) , pointer , dimension(:) :: tatm
-  real(rk8) , pointer , dimension(:) :: taux
-  real(rk8) , pointer , dimension(:) :: tauy
-  real(rk8) , pointer , dimension(:) :: tdeltas
-  real(rk8) , pointer , dimension(:) :: tgb     ! tground2
-  real(rk8) , pointer , dimension(:) :: tgbrd
-  real(rk8) , pointer , dimension(:) :: tgrd
-  real(rk8) , pointer , dimension(:) :: u10m
-  real(rk8) , pointer , dimension(:) :: v10m
-  real(rk8) , pointer , dimension(:) :: um10
-  real(rk8) , pointer , dimension(:) :: usw     ! uatm
-  real(rk8) , pointer , dimension(:) :: vsw     ! vatm
-  real(rk8) , pointer , dimension(:) :: ustr    ! ustar
-  real(rk8) , pointer , dimension(:) :: zoo     ! zo
-  real(rk8) , pointer , dimension(:) :: rhoa    ! xdens
+  real(rkx) , pointer , dimension(:) :: cprate
+  real(rkx) , pointer , dimension(:) :: czenith
+  real(rkx) , pointer , dimension(:) :: deltas
+  real(rkx) , pointer , dimension(:) :: dhlake
+  real(rkx) , pointer , dimension(:) :: drag
+  real(rkx) , pointer , dimension(:) :: tskin
+  real(rkx) , pointer , dimension(:) :: dwrlwf
+  real(rkx) , pointer , dimension(:) :: emiss
+  real(rkx) , pointer , dimension(:) :: evpr
+  real(rkx) , pointer , dimension(:) :: ht      ! hgt
+  real(rkx) , pointer , dimension(:) :: hpbl    ! hpbl
+  real(rkx) , pointer , dimension(:) :: lat     ! xlat
+  real(rkx) , pointer , dimension(:) :: ncprate
+  real(rkx) , pointer , dimension(:) :: prcp
+  real(rkx) , pointer , dimension(:) :: q2m
+  real(rkx) , pointer , dimension(:) :: qv      ! qvatm
+  real(rkx) , pointer , dimension(:) :: rhox    ! rhox
+  real(rkx) , pointer , dimension(:) :: rlwf    ! rlwf
+  real(rkx) , pointer , dimension(:) :: rswf    ! rswf
+  real(rkx) , pointer , dimension(:) :: scvk
+  real(rkx) , pointer , dimension(:) :: sent
+  real(rkx) , pointer , dimension(:) :: sfice
+  real(rkx) , pointer , dimension(:) :: sts     ! tatm
+  real(rkx) , pointer , dimension(:) :: sfps    ! sfps
+  real(rkx) , pointer , dimension(:) :: snag
+  real(rkx) , pointer , dimension(:) :: sncv
+  real(rkx) , pointer , dimension(:) :: sm
+  real(rkx) , pointer , dimension(:) :: sst
+  real(rkx) , pointer , dimension(:) :: t2m
+  real(rkx) , pointer , dimension(:) :: tatm
+  real(rkx) , pointer , dimension(:) :: taux
+  real(rkx) , pointer , dimension(:) :: tauy
+  real(rkx) , pointer , dimension(:) :: tdeltas
+  real(rkx) , pointer , dimension(:) :: tgb     ! tground2
+  real(rkx) , pointer , dimension(:) :: tgbrd
+  real(rkx) , pointer , dimension(:) :: tgrd
+  real(rkx) , pointer , dimension(:) :: u10m
+  real(rkx) , pointer , dimension(:) :: v10m
+  real(rkx) , pointer , dimension(:) :: um10
+  real(rkx) , pointer , dimension(:) :: usw     ! uatm
+  real(rkx) , pointer , dimension(:) :: vsw     ! vatm
+  real(rkx) , pointer , dimension(:) :: ustr    ! ustar
+  real(rkx) , pointer , dimension(:) :: zoo     ! zo
+  real(rkx) , pointer , dimension(:) :: rhoa    ! xdens
 
-  real(rk8) , pointer , dimension(:) :: laketa
-  real(rk8) , pointer , dimension(:) :: lakhi
-  real(rk8) , pointer , dimension(:) :: lakaveice
-  real(rk8) , pointer , dimension(:,:) :: laktlake
+  real(rkx) , pointer , dimension(:) :: laketa
+  real(rkx) , pointer , dimension(:) :: lakhi
+  real(rkx) , pointer , dimension(:) :: lakaveice
+  real(rkx) , pointer , dimension(:,:) :: laktlake
   integer(ik4) , pointer , dimension(:) :: ilake
 
-  real(rk8) , pointer , dimension(:) :: swdiral
-  real(rk8) , pointer , dimension(:) :: lwdiral
-  real(rk8) , pointer , dimension(:) :: swdifal
-  real(rk8) , pointer , dimension(:) :: lwdifal
+  real(rkx) , pointer , dimension(:) :: swdiral
+  real(rkx) , pointer , dimension(:) :: lwdiral
+  real(rkx) , pointer , dimension(:) :: swdifal
+  real(rkx) , pointer , dimension(:) :: lwdifal
 
   integer(ik4) , pointer , dimension(:) :: mask
   integer(ik4) , pointer , dimension(:) :: xmask

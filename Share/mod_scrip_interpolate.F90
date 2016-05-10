@@ -38,8 +38,8 @@ module mod_scrip_interpolate
   public :: interpolate
   public :: release_scrip_library
 
-  real(rk8) , pointer , dimension(:) :: inpgrid1d
-  real(rk8) , pointer , dimension(:) :: outgrid1d
+  real(rkx) , pointer , dimension(:) :: inpgrid1d
+  real(rkx) , pointer , dimension(:) :: outgrid1d
   integer , dimension(1) :: inpgridsize
   integer , dimension(1) :: outgridsize
 
@@ -51,14 +51,14 @@ module mod_scrip_interpolate
       integer(ik4), intent(in) :: map
       integer(ik4), intent(in) :: g1sn , g1we
       integer(ik4), intent(in) :: g2sn , g2we
-      real(rk8) , pointer , dimension(:,:) , intent(in) :: g1lat , g1lon
-      real(rk8) , pointer , dimension(:,:) , intent(in) :: g2lat , g2lon
-      real(rk8) , pointer , dimension(:,:) , intent(in) :: g1mask , g2mask
+      real(rkx) , pointer , dimension(:,:) , intent(in) :: g1lat , g1lon
+      real(rkx) , pointer , dimension(:,:) , intent(in) :: g2lat , g2lon
+      real(rkx) , pointer , dimension(:,:) , intent(in) :: g1mask , g2mask
 
-      real(rk8) , allocatable , dimension(:) :: a1lat , a1lon
-      real(rk8) , allocatable , dimension(:) :: a2lat , a2lon
-      real(rk8) , allocatable , dimension(:,:) :: a1dlat , a1dlon
-      real(rk8) , allocatable , dimension(:,:) :: a2dlat , a2dlon
+      real(rkx) , allocatable , dimension(:) :: a1lat , a1lon
+      real(rkx) , allocatable , dimension(:) :: a2lat , a2lon
+      real(rkx) , allocatable , dimension(:,:) :: a1dlat , a1dlon
+      real(rkx) , allocatable , dimension(:,:) :: a2dlat , a2dlon
       integer(ik4) , allocatable , dimension(:) :: a1mask , a2mask
 
       map_type = map
@@ -71,8 +71,8 @@ module mod_scrip_interpolate
 
     subroutine interpolate_2d(inpgrid,outgrid)
       implicit none
-      real(rk8), pointer , dimension(:,:) :: inpgrid
-      real(rk8), pointer , dimension(:,:) :: outgrid
+      real(rkx), pointer , dimension(:,:) :: inpgrid
+      real(rkx), pointer , dimension(:,:) :: outgrid
 
       inpgrid1d = reshape(inpgrid, inpgridsize)
 

@@ -45,10 +45,10 @@ module mod_clm_cndecomp
 
     ! all c pools involved in decomposition
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_cpools_vr(:,:,:)
+    real(rkx), pointer :: decomp_cpools_vr(:,:,:)
     ! all n pools involved in decomposition
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
-    real(rk8), pointer :: decomp_npools_vr(:,:,:)
+    real(rkx), pointer :: decomp_npools_vr(:,:,:)
 
     ! index into landunit level quantities
     integer(ik4), pointer :: clandunit(:)
@@ -56,68 +56,68 @@ module mod_clm_cndecomp
     integer(ik4) , pointer :: itypelun(:)
     ! pft level
     ! fraction of roots in each soil layer  (nlevgrnd)
-    real(rk8), pointer :: rootfr(:,:)
+    real(rkx), pointer :: rootfr(:,:)
 
     ! fraction of potential immobilization (no units)
-    real(rk8), pointer :: fpi_vr(:,:)
+    real(rkx), pointer :: fpi_vr(:,:)
     ! vertically-resolved het. resp. from decomposing C pools (gC/m3/s)
-    real(rk8), pointer :: decomp_cascade_hr_vr(:,:,:)
+    real(rkx), pointer :: decomp_cascade_hr_vr(:,:,:)
     ! vertically-resolved het. resp. from decomposing C pools (gC/m3/s)
-    real(rk8), pointer :: decomp_cascade_ctransfer_vr(:,:,:)
+    real(rkx), pointer :: decomp_cascade_ctransfer_vr(:,:,:)
     ! vert-res transfer of N from donor to receiver pool along
     ! decomp. cascade (gN/m3/s)
-    real(rk8), pointer :: decomp_cascade_ntransfer_vr(:,:,:)
+    real(rkx), pointer :: decomp_cascade_ntransfer_vr(:,:,:)
     ! vert-res mineral N flux for transition along
     ! decomposition cascade (gN/m3/s)
-    real(rk8), pointer :: decomp_cascade_sminn_flux_vr(:,:,:)
+    real(rkx), pointer :: decomp_cascade_sminn_flux_vr(:,:,:)
 
-    real(rk8), pointer :: potential_immob_vr(:,:)
+    real(rkx), pointer :: potential_immob_vr(:,:)
 #ifndef NITRIF_DENITRIF
-    real(rk8), pointer :: sminn_to_denit_decomp_cascade_vr(:,:,:)
-    real(rk8), pointer :: sminn_to_denit_excess_vr(:,:)
+    real(rkx), pointer :: sminn_to_denit_decomp_cascade_vr(:,:,:)
+    real(rkx), pointer :: sminn_to_denit_excess_vr(:,:)
 #endif
-    real(rk8), pointer :: gross_nmin_vr(:,:)
-    real(rk8), pointer :: net_nmin_vr(:,:)
+    real(rkx), pointer :: gross_nmin_vr(:,:)
+    real(rkx), pointer :: net_nmin_vr(:,:)
     ! gross rate of N mineralization (gN/m2/s)
-    real(rk8), pointer :: gross_nmin(:)
+    real(rkx), pointer :: gross_nmin(:)
     ! net rate of N mineralization (gN/m2/s)
-    real(rk8), pointer :: net_nmin(:)
+    real(rkx), pointer :: net_nmin(:)
     ! For methane code
 #ifdef LCH4
     ! fraction of potential SOM + LITTER heterotrophic respiration
-    real(rk8), pointer :: fphr(:,:)
+    real(rkx), pointer :: fphr(:,:)
     ! fraction by which decomposition is limited by moisture availability
-    real(rk8), pointer :: w_scalar(:,:)
+    real(rkx), pointer :: w_scalar(:,:)
 #endif
     ! rate constant for decomposition (1./sec)
-    real(rk8), pointer :: decomp_k(:,:,:)
+    real(rkx), pointer :: decomp_k(:,:,:)
     ! respired fraction in decomposition step (frac)
-    real(rk8), pointer :: rf_decomp_cascade(:,:,:)
+    real(rkx), pointer :: rf_decomp_cascade(:,:,:)
     ! which pool is C taken from for a given decomposition step
     integer(ik4),  pointer :: cascade_donor_pool(:)
     ! which pool is C added to for a given decomposition step
     integer(ik4),  pointer :: cascade_receiver_pool(:)
     ! what fraction of C leaving a given pool passes through
     ! a given transition (frac)
-    real(rk8), pointer :: pathfrac_decomp_cascade(:,:,:)
+    real(rkx), pointer :: pathfrac_decomp_cascade(:,:,:)
     ! TRUE => pool has fixed C:N ratio
     logical,  pointer :: floating_cn_ratio_decomp_pools(:)
 
     integer(ik4) :: c,j,k,l    !indices
     integer(ik4) :: fc           !lake filter column index
     !potential C loss from one pool to another
-    real(rk8):: p_decomp_cpool_loss(lbc:ubc,1:nlevdecomp, &
+    real(rkx):: p_decomp_cpool_loss(lbc:ubc,1:nlevdecomp, &
                                             1:ndecomp_cascade_transitions)
     !potential mineral N flux, from one pool to another
-    real(rk8):: pmnf_decomp_cascade(lbc:ubc,1:nlevdecomp, &
+    real(rkx):: pmnf_decomp_cascade(lbc:ubc,1:nlevdecomp, &
                                             1:ndecomp_cascade_transitions)
     !potential N immobilization
-    real(rk8):: immob(lbc:ubc,1:nlevdecomp)
-    real(rk8):: ratio        !temporary variable
-    real(rk8):: dnp          !denitrification proportion
-    real(rk8):: cn_decomp_pools(lbc:ubc,1:nlevdecomp,1:ndecomp_pools)
+    real(rkx):: immob(lbc:ubc,1:nlevdecomp)
+    real(rkx):: ratio        !temporary variable
+    real(rkx):: dnp          !denitrification proportion
+    real(rkx):: cn_decomp_pools(lbc:ubc,1:nlevdecomp,1:ndecomp_pools)
     ! c:n ratio for initialization of pools
-    real(rk8), pointer :: initial_cn_ratio(:)
+    real(rkx), pointer :: initial_cn_ratio(:)
     integer(ik4), parameter :: i_atm = 0
     ! maximum annual depth of thaw
     integer(ik4), pointer :: altmax_indx(:)
@@ -126,12 +126,12 @@ module mod_clm_cndecomp
 
     ! For methane code
 #ifndef NITRIF_DENITRIF
-    real(rk8):: phr_vr(lbc:ubc,1:nlevdecomp) !potential HR (gC/m3/s)
+    real(rkx):: phr_vr(lbc:ubc,1:nlevdecomp) !potential HR (gC/m3/s)
 #else
-    real(rk8), pointer :: phr_vr(:,:)        !potential HR (gC/m3/s)
+    real(rkx), pointer :: phr_vr(:,:)        !potential HR (gC/m3/s)
 #endif
 #ifdef LCH4
-    real(rk8):: hrsum(lbc:ubc,1:nlevdecomp)  !sum of HR (gC/m2/s)
+    real(rkx):: hrsum(lbc:ubc,1:nlevdecomp)  !sum of HR (gC/m2/s)
 #endif
 
     decomp_cpools_vr             => clm3%g%l%c%ccs%decomp_cpools_vr
@@ -178,8 +178,8 @@ module mod_clm_cndecomp
     call decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
 
     ! set initial values for potential C and N fluxes
-    p_decomp_cpool_loss(:,:,:) = 0.D0
-    pmnf_decomp_cascade(:,:,:) = 0.D0
+    p_decomp_cpool_loss(:,:,:) = 0._rkx
+    pmnf_decomp_cascade(:,:,:) = 0._rkx
 
     ! column loop to calculate potential decomp rates and total immobilization
     ! demand.
@@ -190,7 +190,7 @@ module mod_clm_cndecomp
         do j = 1 , nlevdecomp
           do fc = 1 , num_soilc
             c = filter_soilc(fc)
-            if ( decomp_npools_vr(c,j,l) > 0.D0 ) then
+            if ( decomp_npools_vr(c,j,l) > 0._rkx ) then
               cn_decomp_pools(c,j,l) = decomp_cpools_vr(c,j,l) / &
                 decomp_npools_vr(c,j,l)
             end if
@@ -217,8 +217,8 @@ module mod_clm_cndecomp
         do fc = 1 , num_soilc
           c = filter_soilc(fc)
 
-          if ( decomp_cpools_vr(c,j,cascade_donor_pool(k)) > 0.D0 .and. &
-               decomp_k(c,j,cascade_donor_pool(k)) > 0.D0 ) then
+          if ( decomp_cpools_vr(c,j,cascade_donor_pool(k)) > 0._rkx .and. &
+               decomp_k(c,j,cascade_donor_pool(k)) > 0._rkx ) then
            p_decomp_cpool_loss(c,j,k) = &
              decomp_cpools_vr(c,j,cascade_donor_pool(k)) * &
              decomp_k(c,j,cascade_donor_pool(k)) * &
@@ -230,20 +230,20 @@ module mod_clm_cndecomp
 
              if (cascade_receiver_pool(k) /= i_atm ) then
                ! not 100% respiration
-               ratio = 0.D0
-               if ( decomp_npools_vr(c,j,cascade_donor_pool(k)) > 0.D0 ) then
+               ratio = 0._rkx
+               if ( decomp_npools_vr(c,j,cascade_donor_pool(k)) > 0._rkx ) then
                  ratio = cn_decomp_pools(c,j,cascade_receiver_pool(k)) / &
                    cn_decomp_pools(c,j,cascade_donor_pool(k))
                endif
                pmnf_decomp_cascade(c,j,k) = (p_decomp_cpool_loss(c,j,k) * &
-                 (1.0D0 - rf_decomp_cascade(c,j,k) - ratio) / &
+                 (1.0_rkx - rf_decomp_cascade(c,j,k) - ratio) / &
                   cn_decomp_pools(c,j,cascade_receiver_pool(k)) )
              else   ! 100% respiration
                pmnf_decomp_cascade(c,j,k) = - p_decomp_cpool_loss(c,j,k) / &
                  cn_decomp_pools(c,j,cascade_donor_pool(k))
              end if
            else   ! CWD -> litter
-             pmnf_decomp_cascade(c,j,k) = 0.D0
+             pmnf_decomp_cascade(c,j,k) = 0._rkx
            end if
          end if
        end do
@@ -255,14 +255,14 @@ module mod_clm_cndecomp
    do j = 1 , nlevdecomp
      do fc = 1 , num_soilc
        c = filter_soilc(fc)
-       immob(c,j) = 0.D0
+       immob(c,j) = 0._rkx
      end do
    end do
    do k = 1 , ndecomp_cascade_transitions
      do j = 1 , nlevdecomp
        do fc = 1 , num_soilc
          c = filter_soilc(fc)
-         if (pmnf_decomp_cascade(c,j,k) > 0.D0) then
+         if (pmnf_decomp_cascade(c,j,k) > 0._rkx) then
            immob(c,j) = immob(c,j) + pmnf_decomp_cascade(c,j,k)
          else
            gross_nmin_vr(c,j) = gross_nmin_vr(c,j) - pmnf_decomp_cascade(c,j,k)
@@ -282,7 +282,7 @@ module mod_clm_cndecomp
    do j = 1 , nlevdecomp
      do fc = 1 , num_soilc
        c = filter_soilc(fc)
-       phr_vr(c,j) = 0.D0
+       phr_vr(c,j) = 0._rkx
      end do
    end do
    do k = 1 , ndecomp_cascade_transitions
@@ -313,7 +313,7 @@ module mod_clm_cndecomp
    ! column loop to calculate actual immobilization and decomp rates, following
    ! resolution of plant/heterotroph  competition for mineral N
 
-   dnp = 0.01D0
+   dnp = 0.01_rkx
 
    ! calculate c:n ratios of applicable pools
    do l = 1 , ndecomp_pools
@@ -321,7 +321,7 @@ module mod_clm_cndecomp
        do j = 1 , nlevdecomp
          do fc = 1 , num_soilc
            c = filter_soilc(fc)
-           if ( decomp_npools_vr(c,j,l) > 0.D0 ) then
+           if ( decomp_npools_vr(c,j,l) > 0._rkx ) then
              cn_decomp_pools(c,j,l) = decomp_cpools_vr(c,j,l) / &
                decomp_npools_vr(c,j,l)
            end if
@@ -348,14 +348,14 @@ module mod_clm_cndecomp
        do fc = 1 , num_soilc
          c = filter_soilc(fc)
 
-         if ( decomp_cpools_vr(c,j,cascade_donor_pool(k)) > 0.D0 ) then
-           if ( pmnf_decomp_cascade(c,j,k) > 0.D0 ) then
+         if ( decomp_cpools_vr(c,j,cascade_donor_pool(k)) > 0._rkx ) then
+           if ( pmnf_decomp_cascade(c,j,k) > 0._rkx ) then
              p_decomp_cpool_loss(c,j,k) = &
                p_decomp_cpool_loss(c,j,k) * fpi_vr(c,j)
              pmnf_decomp_cascade(c,j,k) = &
                pmnf_decomp_cascade(c,j,k) * fpi_vr(c,j)
 #ifndef NITRIF_DENITRIF
-             sminn_to_denit_decomp_cascade_vr(c,j,k) = 0.D0
+             sminn_to_denit_decomp_cascade_vr(c,j,k) = 0._rkx
            else
              sminn_to_denit_decomp_cascade_vr(c,j,k) = -dnp * &
                pmnf_decomp_cascade(c,j,k)
@@ -363,14 +363,14 @@ module mod_clm_cndecomp
            end if
            decomp_cascade_hr_vr(c,j,k) = rf_decomp_cascade(c,j,k) * &
              p_decomp_cpool_loss(c,j,k)
-           decomp_cascade_ctransfer_vr(c,j,k) = (1.D0 - &
+           decomp_cascade_ctransfer_vr(c,j,k) = (1._rkx - &
              rf_decomp_cascade(c,j,k)) * p_decomp_cpool_loss(c,j,k)
-           if ( decomp_npools_vr(c,j,cascade_donor_pool(k)) > 0.D0 .and. &
+           if ( decomp_npools_vr(c,j,cascade_donor_pool(k)) > 0._rkx .and. &
                 cascade_receiver_pool(k) /= i_atm ) then
              decomp_cascade_ntransfer_vr(c,j,k) = p_decomp_cpool_loss(c,j,k) / &
                cn_decomp_pools(c,j,cascade_donor_pool(k))
            else
-             decomp_cascade_ntransfer_vr(c,j,k) = 0.D0
+             decomp_cascade_ntransfer_vr(c,j,k) = 0._rkx
            endif
            if ( cascade_receiver_pool(k) /= 0 ) then
              decomp_cascade_sminn_flux_vr(c,j,k) = pmnf_decomp_cascade(c,j,k)
@@ -379,11 +379,11 @@ module mod_clm_cndecomp
            endif
            net_nmin_vr(c,j) = net_nmin_vr(c,j) - pmnf_decomp_cascade(c,j,k)
          else
-           decomp_cascade_ntransfer_vr(c,j,k) = 0.D0
+           decomp_cascade_ntransfer_vr(c,j,k) = 0._rkx
 #ifndef NITRIF_DENITRIF
-           sminn_to_denit_decomp_cascade_vr(c,j,k) = 0.D0
+           sminn_to_denit_decomp_cascade_vr(c,j,k) = 0._rkx
 #endif
-           decomp_cascade_sminn_flux_vr(c,j,k) = 0.D0
+           decomp_cascade_sminn_flux_vr(c,j,k) = 0._rkx
          end if
        end do
      end do
@@ -394,7 +394,7 @@ module mod_clm_cndecomp
    do j = 1,nlevdecomp
      do fc = 1,num_soilc
        c = filter_soilc(fc)
-       hrsum(c,j) = 0.D0
+       hrsum(c,j) = 0._rkx
      end do
    end do
    do k = 1 , ndecomp_cascade_transitions
@@ -411,12 +411,12 @@ module mod_clm_cndecomp
    do j = 1 , nlevdecomp
      do fc = 1 , num_soilc
        c = filter_soilc(fc)
-       if (phr_vr(c,j) > 0.D0) then
+       if (phr_vr(c,j) > 0._rkx) then
          fphr(c,j) = hrsum(c,j) / phr_vr(c,j) * w_scalar(c,j)
          ! Prevent overflow errors for 0 respiration
-         fphr(c,j) = max(fphr(c,j), 0.01D0)
+         fphr(c,j) = max(fphr(c,j), 0.01_rkx)
        else
-         fphr(c,j) = 1.D0
+         fphr(c,j) = 1._rkx
        end if
      end do
    end do

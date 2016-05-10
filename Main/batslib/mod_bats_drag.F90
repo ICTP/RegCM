@@ -51,7 +51,7 @@ module mod_bats_drag
 !
   subroutine dragc
     implicit none
-    real(rk8) :: dthdz , u1 , ribn , zatild , cdrmin
+    real(rkx) :: dthdz , u1 , ribn , zatild , cdrmin
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'dragc'
@@ -81,12 +81,12 @@ module mod_bats_drag
       !===========================================================
       if ( ribn <= d_zero ) then
         dthdz = (d_one-sigf(i))*tgrd(i) + sigf(i)*taf(i) - sts(i)
-        u1 = wtur + d_two*dsqrt(dthdz)
+        u1 = wtur + d_two*sqrt(dthdz)
       else
         u1 = wtur
       end if
       ribd(i) = usw(i)**2 + vsw(i)**2 + u1**2
-      vspda(i) = dsqrt(ribd(i))
+      vspda(i) = sqrt(ribd(i))
       if ( vspda(i) < d_one ) then
         vspda(i) = d_one
         ribd(i) = d_one
@@ -98,12 +98,12 @@ module mod_bats_drag
       !=========================================================
       ! -0.4 < rib < 0.2   (deardorff, jgr, 1968, 2549-2557)
       if ( rib(i) < d_zero ) then
-        cdr(i) = cdrn(i)*(d_one+24.5D0*dsqrt(-cdrn(i)*rib(i)))
+        cdr(i) = cdrn(i)*(d_one+24.5_rkx*sqrt(-cdrn(i)*rib(i)))
       else
-        cdr(i) = cdrn(i)/(d_one+11.5D0*rib(i))
+        cdr(i) = cdrn(i)/(d_one+11.5_rkx*rib(i))
       end if
       ! 3.1  apply lower limit to drag coefficient value
-      cdrmin = max(0.25D0*cdrn(i),6.0D-4)
+      cdrmin = max(0.25_rkx*cdrn(i),6.0e-4_rkx)
       if ( cdr(i) < cdrmin ) cdr(i) = cdrmin
       cdrx(i) = cdr(i)
     end do
@@ -135,7 +135,7 @@ module mod_bats_drag
 !
   subroutine dragdn
     implicit none
-    real(rk8) :: asigf , cdb , cds , cdv , frab , fras , frav
+    real(rkx) :: asigf , cdb , cds , cdv , frab , fras , frav
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'dragdn'
@@ -182,7 +182,7 @@ module mod_bats_drag
 !
   subroutine depth
     implicit none
-    real(rk8) :: age , densi
+    real(rkx) :: age , densi
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'depth'
@@ -192,13 +192,13 @@ module mod_bats_drag
     !
     do i = ilndbeg , ilndend
       age = (d_one-d_one/(d_one+snag(i)))
-      densi = 0.01D0/(d_one+d_three*age)
+      densi = 0.01_rkx/(d_one+d_three*age)
       scrat(i) = sncv(i)*densi
-      wt(i) = 0.1D0*scrat(i)/rough(lveg(i))
+      wt(i) = 0.1_rkx*scrat(i)/rough(lveg(i))
       wt(i) = wt(i)/(d_one+wt(i))
       sigf(i) = (d_one-wt(i))*lncl(i)
-      scvk(i) = scrat(i)/(0.1D0+scrat(i))
-      rhosw(i) = 0.10D0*(d_one+d_three*age)
+      scvk(i) = scrat(i)/(0.1_rkx+scrat(i))
+      rhosw(i) = 0.10_rkx*(d_one+d_three*age)
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

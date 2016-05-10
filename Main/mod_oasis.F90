@@ -63,13 +63,13 @@ module mod_oasis
 
   private
 
-  real(rk8) , pointer , dimension(:,:) :: dot_point_grid_lat
-  real(rk8) , pointer , dimension(:,:) :: dot_point_grid_lon
-  real(rk8) , pointer , dimension(:,:) :: cross_point_grid_lat
-  real(rk8) , pointer , dimension(:,:) :: cross_point_grid_lon
+  real(rkx) , pointer , dimension(:,:) :: dot_point_grid_lat
+  real(rkx) , pointer , dimension(:,:) :: dot_point_grid_lon
+  real(rkx) , pointer , dimension(:,:) :: cross_point_grid_lat
+  real(rkx) , pointer , dimension(:,:) :: cross_point_grid_lon
 
-  real(rk8) , pointer , dimension(:,:) :: global_cross_lats
-  real(rk8) , pointer , dimension(:,:) :: global_cross_lons
+  real(rkx) , pointer , dimension(:,:) :: global_cross_lats
+  real(rkx) , pointer , dimension(:,:) :: global_cross_lons
 
   public :: oasis_init
 

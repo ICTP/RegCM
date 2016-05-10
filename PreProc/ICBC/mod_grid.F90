@@ -30,22 +30,22 @@ module mod_grid
 
   private
 
-  real(rk8) , public , pointer , dimension(:,:) :: xlat , xlon , dlat , dlon
-  real(rk8) , public , pointer , dimension(:,:) :: topogm , mask , landuse
-  real(rk8) , public , pointer , dimension(:,:) :: msfx , msfd
-  real(rk8) , public , pointer , dimension(:,:) :: pa , tlayer , za
-  real(rk8) , public , pointer , dimension(:,:) :: pd4
-  real(rk8) , public , pointer , dimension(:) :: sigmah
-  real(rk8) , public , pointer , dimension(:) :: sigmaf
-  real(rk8) , public , pointer , dimension(:) :: dsigma
-  real(rk8) , public , pointer , dimension(:,:,:) :: pr0, t0, rho0
-  real(rk8) , public , pointer , dimension(:,:) :: ps0
+  real(rkx) , public , pointer , dimension(:,:) :: xlat , xlon , dlat , dlon
+  real(rkx) , public , pointer , dimension(:,:) :: topogm , mask , landuse
+  real(rkx) , public , pointer , dimension(:,:) :: msfx , msfd
+  real(rkx) , public , pointer , dimension(:,:) :: pa , tlayer , za
+  real(rkx) , public , pointer , dimension(:,:) :: pd4
+  real(rkx) , public , pointer , dimension(:) :: sigmah
+  real(rkx) , public , pointer , dimension(:) :: sigmaf
+  real(rkx) , public , pointer , dimension(:) :: dsigma
+  real(rkx) , public , pointer , dimension(:,:,:) :: pr0, t0, rho0
+  real(rkx) , public , pointer , dimension(:,:) :: ps0
 
-  real(rk8) , public :: delx
+  real(rkx) , public :: delx
   integer(ik4) , public :: i0 , i1 , j0 , j1
-  real(rk8) , public :: lat0 , lat1 , lon0 , lon1
+  real(rkx) , public :: lat0 , lat1 , lon0 , lon1
 
-  real(rk8) , public :: logp_lrate = 50.0D0
+  real(rkx) , public :: logp_lrate = 50.0_rkx
 
   public :: init_grid
 

@@ -80,17 +80,17 @@ module mod_rad_outrad
 ! solsd  - Downward solar rad onto surface (sw diffuse)
 !
     logical , intent(in) :: lout ! Preapre data for outfile
-    real(rk8) , pointer , dimension(:) :: clrls , clrlt ,  &
+    real(rkx) , pointer , dimension(:) :: clrls , clrlt ,  &
                 clrss , clrst , firtp , frla , frsa ,      &
                 sabtp , slwd , solin , soll , solld ,      &
                 sols , solsd , totcf , totcl , totci , abv , sol
-    real(rk8) , pointer , dimension(:,:) :: cld , clwp , qrl , qrs , deltaz
-    real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
-    real(rk8) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
-    real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos
-    real(rk8) , optional, pointer , dimension(:) :: asaeradfo , &
+    real(rkx) , pointer , dimension(:,:) :: cld , clwp , qrl , qrs , deltaz
+    real(rkx) , pointer , dimension(:,:,:) :: outtaucl , outtauci
+    real(rkx) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
+    real(rkx) , pointer , dimension(:) :: aeradfo , aeradfos
+    real(rkx) , optional, pointer , dimension(:) :: asaeradfo , &
       asaeradfos , asaerlwfo , asaerlwfos
-    real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
+    real(rkx) , pointer , dimension(:) :: aerlwfo , aerlwfos
     intent (in) cld , clrls , clrlt , clrss , clrst ,            &
                 clwp , firtp , frla , frsa , qrl , qrs , sabtp , &
                 slwd , solin , soll , solld , sols , solsd ,     &
@@ -201,8 +201,8 @@ module mod_rad_outrad
 
   subroutine copy2d(a,b)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:) :: a
-    real(rk8) , pointer , intent(inout) , dimension(:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:) :: a
+    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
     integer(ik4) :: i , j , n
     if ( associated(b) ) then
       n = 1
@@ -217,8 +217,8 @@ module mod_rad_outrad
 
   subroutine copy2d_integrate_from3(a,b,l)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rk8) , pointer , intent(inout) , dimension(:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
     integer(ik4) , intent(in) :: l
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
@@ -237,15 +237,15 @@ module mod_rad_outrad
 
   subroutine copy3d(a,b)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: a
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:) :: a
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
     call copy3d1(a,b,1,kz)
   end subroutine copy3d
 
   subroutine copy3d1(a,b,k1,k2)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: a
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:) :: a
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) , intent(in) :: k1 , k2
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
@@ -263,8 +263,8 @@ module mod_rad_outrad
 
   subroutine copy4d(a,b,l)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) , intent(in) :: l
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
@@ -282,8 +282,8 @@ module mod_rad_outrad
 
   subroutine copy4d1(a,b,nl)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: b
     integer(ik4) , intent(in) :: nl
     integer(ik4) :: i , j , l , k , n
     if ( associated(b) ) then
@@ -303,9 +303,9 @@ module mod_rad_outrad
 
   subroutine copy4d_mult(a,b,l,c)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: c
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rkx) , pointer , intent(in) , dimension(:,:) :: c
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) , intent(in) :: l
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
@@ -323,9 +323,9 @@ module mod_rad_outrad
 
   subroutine copy4d_div(a,b,l,c)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: c
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rkx) , pointer , intent(in) , dimension(:,:) :: c
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) , intent(in) :: l
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
@@ -343,8 +343,8 @@ module mod_rad_outrad
 
   subroutine copy2d_add(a,b)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:) :: a
-    real(rk8) , pointer , intent(inout) , dimension(:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:) :: a
+    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
     integer(ik4) :: i , j , n
     if ( associated(b) ) then
       n = 1
@@ -359,8 +359,8 @@ module mod_rad_outrad
 
   subroutine copy3d_add(a,b)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: a
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:) :: a
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
       do k = 1 , kz
@@ -377,8 +377,8 @@ module mod_rad_outrad
 
   subroutine copy4d_add(a,b,l)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) , intent(in) :: l
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then

@@ -1,5 +1,7 @@
       module parkind
 
+      use mod_realkinds , only : rkx
+
       implicit none
       save
 
@@ -23,9 +25,18 @@
 !     real kinds
 !     ----------
 !
-      integer, parameter :: kind_rb = selected_real_kind(12) ! 8 byte real
+      !integer, parameter :: kind_rb = selected_real_kind(12) ! 8 byte real
+      integer, parameter :: kind_rb = rkx
       integer, parameter :: kind_rm = selected_real_kind(6)  ! 4 byte real
       integer, parameter :: kind_rn = kind(1.0)              ! native real
+      !
+      ! Epsilon for numerical consistency
+      !
+#ifdef SINGLE_PRECISION_REAL
+      real(kind_rb) , parameter :: almostzero = 1.e-10_kind_rb
+#else
+      real(kind_rb) , parameter :: almostzero = 1.e-20_kind_rb
+#endif
 
       end module parkind
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -70,6 +70,17 @@ AC_ARG_ENABLE(mpiserial,
   [DONOTCHECKMPI="DONOTCHECKMPI"; PARALLEL="0"]
 )
 
+SP_REAL="0"
+AC_ARG_ENABLE(singleprecision,
+  AC_HELP_STRING([--enable-singleprecision],
+                 [Default real type is real4 single precision.]),
+                 [SP_REAL="1"]
+)
+if eval "test x"$SP_REAL" = x1"; then
+  AM_CPPFLAGS="\$(DEFINE)SINGLE_PRECISION_REAL $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
 AC_ARG_ENABLE(selectedrealkind,
   AC_HELP_STRING([--enable-selectedrealkind],
                  [define single precision and double precision numbers using the selected_real_kind function. Default uses the kind inquiry function.]),

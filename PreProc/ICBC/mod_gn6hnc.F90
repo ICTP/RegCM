@@ -52,43 +52,43 @@ module mod_gn6hnc
 
   ! Pressure levels to interpolate to if dataset is on model sigma levels.
   integer(ik4) , parameter :: nipl = 18
-  real(rk8) , target , dimension(nipl) :: fplev = &
+  real(rkx) , target , dimension(nipl) :: fplev = &
    (/  30.0,   50.0,   70.0,  100.0,  150.0,  200.0,  250.0, &
       300.0,  350.0,  420.0,  500.0,  600.0,  700.0,  780.0, &
       850.0,  920.0,  960.0, 1000.0 /)
 
   integer(ik4) :: npl , nrhlev
-  real(rk8) , pointer , dimension(:) :: pplev
-  real(rk8) , pointer , dimension(:) :: sigmar
-  real(rk8) :: pss
+  real(rkx) , pointer , dimension(:) :: pplev
+  real(rkx) , pointer , dimension(:) :: sigmar
+  real(rkx) :: pss
 
   ! Whole space
-  real(rk8) , pointer , dimension(:,:,:) :: b2
-  real(rk8) , pointer , dimension(:,:,:) :: d2
-  real(rk8) , pointer , dimension(:,:,:) :: b3
-  real(rk8) , pointer , dimension(:,:,:) :: d3
-  real(rk8) , pointer , dimension(:,:,:) :: ha_d2_1
-  real(rk8) , pointer , dimension(:,:,:) :: ha_d2_2
+  real(rkx) , pointer , dimension(:,:,:) :: b2
+  real(rkx) , pointer , dimension(:,:,:) :: d2
+  real(rkx) , pointer , dimension(:,:,:) :: b3
+  real(rkx) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , pointer , dimension(:,:,:) :: ha_d2_1
+  real(rkx) , pointer , dimension(:,:,:) :: ha_d2_2
 
-  real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rk8) , pointer :: up(:,:,:) , vp(:,:,:)
-  real(rk8) , pointer :: hp(:,:,:) , qp(:,:,:) , tp(:,:,:)
+  real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rkx) , pointer :: up(:,:,:) , vp(:,:,:)
+  real(rkx) , pointer :: hp(:,:,:) , qp(:,:,:) , tp(:,:,:)
 
   ! Input space
-  real(rk8) :: p0
-  real(rk8) , pointer , dimension(:,:) :: psvar , zsvar , pmslvar
-  real(rk8) , pointer , dimension(:) :: ak , bk
-  real(rk8) , pointer , dimension(:) :: glat , gltemp , uglon
-  real(rk8) , pointer , dimension(:) :: glon , vglat
-  real(rk8) , pointer , dimension(:,:) :: glat2
-  real(rk8) , pointer , dimension(:,:) :: glon2
-  real(rk8) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
+  real(rkx) :: p0
+  real(rkx) , pointer , dimension(:,:) :: psvar , zsvar , pmslvar
+  real(rkx) , pointer , dimension(:) :: ak , bk
+  real(rkx) , pointer , dimension(:) :: glat , gltemp , uglon
+  real(rkx) , pointer , dimension(:) :: glon , vglat
+  real(rkx) , pointer , dimension(:,:) :: glat2
+  real(rkx) , pointer , dimension(:,:) :: glon2
+  real(rkx) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
                                            uvar , vvar , pp3d , vwork
   integer(ik4) :: timlen , pstimlen
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   type(rcm_time_and_date) , pointer , dimension(:) :: ipstimes
-  real(rk8) , pointer , dimension(:) :: xtimes
+  real(rkx) , pointer , dimension(:) :: xtimes
 
   ! Shared by netcdf I/O routines
   integer(ik4) , dimension(4) :: icount , istart
@@ -939,12 +939,12 @@ module mod_gn6hnc
       do k = 1 , klev
         sigmar(k) = pplev(klev-k+1)/pplev(1)
       end do
-      pss = pplev(1)/1000.0 ! Pa -> cb
+      pss = pplev(1)/1000.0_rkx ! Pa -> cb
     else
       do k = 1 , klev
         sigmar(k) = pplev(k)/pplev(klev)
       end do
-      pss = pplev(klev)/10.0D0 ! mb -> cb
+      pss = pplev(klev)/10.0_rkx ! mb -> cb
     end if
 
     write (stdout,*) 'Read in Static fields OK'
@@ -1191,7 +1191,7 @@ module mod_gn6hnc
         end do
       end if
       tdif = idate - itimes(1)
-      it = idnint(tohours(tdif))/6 + 1
+      it = nint(tohours(tdif))/6 + 1
       icount(1) = nlon
       icount(2) = nlat
       icount(3) = klev
@@ -1229,12 +1229,12 @@ module mod_gn6hnc
       end do
       ! Less levels for relative humidity !
       icount(3) = 27
-      vwork = 0.0D0
+      vwork = 0.0_rkx
       istatus = nf90_get_var(inet(3),ivar(3),vwork,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//jra55vars(3))
       do j = 1 , nlat
-        qvar(:,nlat-j+1,:) = vwork(:,j,:)*0.01D0
+        qvar(:,nlat-j+1,:) = vwork(:,j,:)*0.01_rkx
       end do
     else if ( dattyp(1:2) == 'E5' ) then
       varname => ec5vars
@@ -1289,7 +1289,7 @@ module mod_gn6hnc
         end do
       end if
       tdif = idate - itimes(1)
-      it = idnint(tohours(tdif))/6 + 1
+      it = nint(tohours(tdif))/6 + 1
       icount(1) = nlon
       icount(2) = nlat
       icount(3) = klev
@@ -1370,7 +1370,7 @@ module mod_gn6hnc
         end do
       end if
       tdif = idate - itimes(1)
-      it = idnint(tohours(tdif))/6 + 1
+      it = nint(tohours(tdif))/6 + 1
       icount(1) = nlon
       icount(2) = nlat
       icount(3) = klev
@@ -1403,7 +1403,7 @@ module mod_gn6hnc
         pp3d(:,:,k) = pplev(k)*0.01 ! Get in hPa
       end do
       ! Replace with relative humidity for internal calculation
-      call mxr2rh(tvar,qvar,pp3d,nlon,nlat,klev,-9999.0D0)
+      call mxr2rh(tvar,qvar,pp3d,nlon,nlat,klev,-9999.0_rkx)
     else
       ! Even more difficult. Each data type has its own quirks.
       tdif = rcm_time_interval(180,uhrs)
@@ -2006,7 +2006,7 @@ module mod_gn6hnc
       end do
 
       tdif = idate - itimes(1)
-      it = idnint(tohours(tdif))/6 + 1
+      it = nint(tohours(tdif))/6 + 1
 
       icount(1) = nlon
       icount(2) = nlat
@@ -2016,7 +2016,7 @@ module mod_gn6hnc
       istart(3) = it
       if ( dattyp(1:3) == 'HA_' ) then
         tdif = idate - ipstimes(1)
-        itps = idnint(tohours(tdif))/6 + 1
+        itps = nint(tohours(tdif))/6 + 1
         istart(3) = itps
         istatus = nf90_get_var(inet(6),ivar(6),pmslvar,istart(1:3),icount(1:3))
         call checkncerr(istatus,__FILE__,__LINE__, &
@@ -2025,7 +2025,7 @@ module mod_gn6hnc
       else if ( dattyp(1:3) == 'CS_' .or. &
                 dattyp(1:3) == 'MI_' ) then
         tdif = idate - ipstimes(1)
-        itps = idnint(tohours(tdif))/6 + 1
+        itps = nint(tohours(tdif))/6 + 1
         istart(3) = itps
         istatus = nf90_get_var(inet(6),ivar(6),psvar,istart(1:3),icount(1:3))
         call checkncerr(istatus,__FILE__,__LINE__, &
@@ -2104,7 +2104,7 @@ module mod_gn6hnc
       end if
 
       ! Replace with relative humidity for internal calculation
-      call mxr2rh(tvar,qvar,pp3d,nlon,nlat,klev,-9999.0D0)
+      call mxr2rh(tvar,qvar,pp3d,nlon,nlat,klev,-9999.0_rkx)
 
       if ( dattyp(1:3) == 'HA_' ) then
         icount(1) = nulon

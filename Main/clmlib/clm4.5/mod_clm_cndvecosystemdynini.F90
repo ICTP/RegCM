@@ -43,16 +43,16 @@ module mod_clm_cndvecosystemdynini
 
     do p = begp , endp
       pptr%pdgvs%present(p)   = .false.
-      pptr%pdgvs%crownarea(p) = 0.D0
-      pptr%pdgvs%nind(p)      = 0.D0
-      pptr%pcs%leafcmax(p)    = 0.D0
-      pptr%pdgvs%t_mo_min(p)  = 1.0D+36
+      pptr%pdgvs%crownarea(p) = 0._rkx
+      pptr%pdgvs%nind(p)      = 0._rkx
+      pptr%pcs%leafcmax(p)    = 0._rkx
+      pptr%pdgvs%t_mo_min(p)  = 1.0e+36_rkx
     end do
 
     do g = begg , endg
-      gptr%gdgvs%agdd20(g)   = 0.D0
+      gptr%gdgvs%agdd20(g)   = 0._rkx
       !initialize this way for Phenology code
-      gptr%gdgvs%tmomin20(g) = adomain%tgrd(g) - 5.D0
+      gptr%gdgvs%tmomin20(g) = adomain%tgrd(g) - 5._rkx
     end do
   end subroutine CNDVEcosystemDynini
 

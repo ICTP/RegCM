@@ -53,8 +53,8 @@ module mod_params
 
   private
 
-  real(rk8) , parameter :: maxdt = 600.0D0
-  real(rk8) , parameter :: mindt = 2.0D0
+  real(rkx) , parameter :: maxdt = 600.0_rkx
+  real(rkx) , parameter :: mindt = 2.0_rkx
 
   public :: param
 
@@ -64,13 +64,13 @@ module mod_params
   !
   subroutine param
     implicit none
-    real(rk8) :: afracl , afracs , bb , cc , chibot , delsig , &
+    real(rkx) :: afracl , afracs , bb , cc , chibot , delsig , &
                dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
                qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
                wkp1 , xbot , xtop , xx , yy
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
-    real(rk8) , dimension(nsplit) :: dtsplit
+    real(rkx) , dimension(nsplit) :: dtsplit
     integer(ik4) :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
     integer(ik4) :: hspan
     integer(ik8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
@@ -86,7 +86,7 @@ module mod_params
 !----------------------------------------------------------------------
 !-----vqrang is the range limit on vqflx.
 !
-    data vqrang /5.0D-4/
+    data vqrang /5.0e-4_rkx/
 !
 !----------------------------------------------------------------------
 !-----namelist:
@@ -182,16 +182,15 @@ module mod_params
     !
     ! timeparam ;
     !
-    dt = 100.0D0  ! time step in seconds
-    dtrad = 0.0D0 ! time interval in min solar rad caluclated
-    dtsrf = 0.0D0 ! time interval at which bats is called (secs)
-    dtcum = 0.0D0 ! time interval at which cumulus is called (secs)
-    dtabem = 0.0D0 ! time interval absorption-emission calculated (hours)
-    dtche = 900.0D0 ! time interval at which bats is called (secs)
+    dt = 100.0_rkx  ! time step in seconds
+    dtrad = 0.0_rkx ! time interval in min solar rad caluclated
+    dtsrf = 0.0_rkx ! time interval at which bats is called (secs)
+    dtcum = 0.0_rkx ! time interval at which cumulus is called (secs)
+    dtabem = 0.0_rkx ! time interval absorption-emission calculated (hours)
+    dtche = 900.0_rkx ! time interval at which bats is called (secs)
     !
     ! outparam ;
     !
-    rfstrt = .false.
     ifsave = .false.
     ifatm  = .true.
     ifrad  = .true.
@@ -201,13 +200,13 @@ module mod_params
     iflak  = .false.
     ifopt  = .false.
     ifchem = .false.
-    savfrq  = 0.0D0 ! time interval for disposing sav output (hrs)
-    atmfrq  = 6.0D0 ! time interval for disposing atm output (hrs)
-    radfrq  = 6.0D0 ! time interval for disposing rad output (hrs)
-    srffrq  = 3.0D0 ! time interval for disposing srf output (hrs)
-    lakfrq  = 6.0D0 ! time interval for disposing lake output (hrs)
-    subfrq  = 6.0D0 ! time interval for disposing lake output (hrs)
-    chemfrq = 6.0D0 ! time interval for disposing chem output (hrs)
+    savfrq  = 0.0_rkx ! time interval for disposing sav output (hrs)
+    atmfrq  = 6.0_rkx ! time interval for disposing atm output (hrs)
+    radfrq  = 6.0_rkx ! time interval for disposing rad output (hrs)
+    srffrq  = 3.0_rkx ! time interval for disposing srf output (hrs)
+    lakfrq  = 6.0_rkx ! time interval for disposing lake output (hrs)
+    subfrq  = 6.0_rkx ! time interval for disposing lake output (hrs)
+    chemfrq = 6.0_rkx ! time interval for disposing chem output (hrs)
     enable_atm_vars(:) = .true.
     enable_srf_vars(:) = .true.
     enable_sts_vars(:) = .true.
@@ -253,8 +252,8 @@ module mod_params
     iclimao3 = 0
     isolconst = 0
     icumcloud = 1
-    temp_tend_maxval = 1.0D0*(dt/secpm)
-    wind_tend_maxval = 1.0D0*(dt/secpm)
+    temp_tend_maxval = 5.0_rkx*(dt/secpm)
+    wind_tend_maxval = 5.0_rkx*(dt/secpm)
     !
     ! Non hydrostatic param ;
     !
@@ -265,9 +264,9 @@ module mod_params
       diffu_hgtf = 1
     end if
     ckh = d_one
-    logp_lrate = 50.0D0
-    nhbet = 0.4D0
-    nhxkd = 0.1D0
+    logp_lrate = 50.0_rkx
+    nhbet = 0.4_rkx
+    nhxkd = 0.1_rkx
     !
     ! Rrtm radiation param ;
     !
@@ -286,26 +285,26 @@ module mod_params
     ! From Pal et al, 2000
     !
     ncld      = 1        ! # of bottom model levels with no clouds (rad only)
-    qck1land  = 0.0005D0 ! Autoconversion Rate for Land
-    qck1oce   = 0.0005D0 ! Autoconversion Rate for Ocean
-    gulland   = 0.65D0   ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
-    guloce    = 0.30D0   ! Fract of Gultepe eqn (qcth) for ocean
-    rhmax     = 1.01D0   ! RH at whicn FCC = 1.0
-    rhmin     = 0.01D0   ! RH min value
-    rh0land   = 0.80D0   ! Relative humidity threshold for land
-    rh0oce    = 0.90D0   ! Relative humidity threshold for ocean
-    tc0       = 238.0D0  ! Below this temp, rh0 begins to approach unity
-    cevaplnd  = 1.0D-5   ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
-    cevapoce  = 1.0D-5   ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
-    caccrlnd  = 6.0D0    ! Raindrop accretion rate land  [m3/kg/s]
-    caccroce  = 6.0D0    ! Raindrop accretion rate ocean [m3/kg/s]
-    cllwcv    = 0.3D-3   ! Cloud liquid water content for convective precip.
-    clfrcvmax = 0.75D0   ! Max cloud fractional cover for convective precip.
-    cftotmax  = 0.75D0   ! Max total cover cloud fraction for radiation
-    conf      = 1.00D0   ! Condensation efficiency
-    rcrit     = 13.5D0   ! Mean critical radius
-    coef_ccn  = 2.0D0    ! Geometric mean Diameter and standard deviation
-    abulk     = 0.9D0    ! Bulk activation ratio
+    qck1land  = 0.0005_rkx ! Autoconversion Rate for Land
+    qck1oce   = 0.0005_rkx ! Autoconversion Rate for Ocean
+    gulland   = 0.65_rkx   ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
+    guloce    = 0.30_rkx   ! Fract of Gultepe eqn (qcth) for ocean
+    rhmax     = 1.01_rkx   ! RH at whicn FCC = 1.0
+    rhmin     = 0.01_rkx   ! RH min value
+    rh0land   = 0.80_rkx   ! Relative humidity threshold for land
+    rh0oce    = 0.90_rkx   ! Relative humidity threshold for ocean
+    tc0       = 238.0_rkx  ! Below this temp, rh0 begins to approach unity
+    cevaplnd  = 1.0e-5_rkx   ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
+    cevapoce  = 1.0e-5_rkx   ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
+    caccrlnd  = 6.0_rkx    ! Raindrop accretion rate land  [m3/kg/s]
+    caccroce  = 6.0_rkx    ! Raindrop accretion rate ocean [m3/kg/s]
+    cllwcv    = 0.3e-3_rkx   ! Cloud liquid water content for convective precip.
+    clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
+    cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
+    conf      = 1.00_rkx   ! Condensation efficiency
+    rcrit     = 13.5_rkx   ! Mean critical radius
+    coef_ccn  = 2.0_rkx    ! Geometric mean Diameter and standard deviation
+    abulk     = 0.9_rkx    ! Bulk activation ratio
     lsrfhack  = .false.  ! Surface radiation hack
     !
     ! microparam ;
@@ -326,122 +325,122 @@ module mod_params
     rsemi = d_one ! 0 => fully explicit
                   ! 1 => fully implict
                   ! 0<rsemi<1 => semi-implicit
-    vfqr = 4.0D0
-    vfqi = 0.15D0
-    vfqs = 1.0D0
-    auto_rate_khair = 0.355D0
-    auto_rate_kessl = 1.D-3
-    auto_rate_klepi = 0.5D-3
-    rkconv = 1.666D-4 ! d_one/6000.0D0
-    rcovpmin = 0.1D0
-    rpecons = 5.547D-5
+    vfqr = 4.0_rkx
+    vfqi = 0.15_rkx
+    vfqs = 1.0_rkx
+    auto_rate_khair = 0.355_rkx
+    auto_rate_kessl = 1.e-3_rkx
+    auto_rate_klepi = 0.5e-3_rkx
+    rkconv = 1.666e-4_rkx ! d_one/6000.0_rkx
+    rcovpmin = 0.1_rkx
+    rpecons = 5.547e-5_rkx
     !
     ! grellparam ;
     ! Taken from MM5 Grell implementation
     !
-    gcr0 = 0.0020D0      ! Conversion rate from cloud to rain
-    edtmin      = 0.20D0 ! Minimum Precipitation Efficiency land
-    edtmin_ocn  = 0.20D0 ! Minimum Precipitation Efficiency ocean
-    edtmax      = 0.80D0 ! Maximum Precipitation Efficiency land
-    edtmax_ocn  = 0.80D0 ! Maximum Precipitation Efficiency ocean
-    edtmino     = 0.20D0 ! Minimum Tendency Efficiency (o var) land
-    edtmino_ocn = 0.20D0 ! Minimum Tendency Efficiency (o var) ocean
-    edtmaxo     = 0.80D0 ! Maximum Tendency Efficiency (o var) land
-    edtmaxo_ocn = 0.80D0 ! Maximum Tendency Efficiency (o var) ocean
-    edtminx     = 0.20D0 ! Minimum Tendency Efficiency (x var) land
-    edtminx_ocn = 0.20D0 ! Minimum Tendency Efficiency (x var) ocean
-    edtmaxx     = 0.80D0 ! Maximum Tendency Efficiency (x var) land
-    edtmaxx_ocn = 0.80D0 ! Maximum Tendency Efficiency (x var) ocean
-    shrmin      = 0.30D0 ! Minimum Shear effect on precip eff. land
-    shrmin_ocn  = 0.30D0 ! Minimum Shear effect on precip eff. ocean
-    shrmax      = 0.90D0 ! Maximum Shear effect on precip eff. land
-    shrmax_ocn  = 0.90D0 ! Maximum Shear effect on precip eff. ocean
-    pbcmax = 50.0D0      ! Max depth (mb) of stable layer b/twn LCL & LFC
-    mincld = 150.0D0     ! Min cloud depth (mb).
-    htmin = -250.0D0     ! Min convective heating
-    htmax = 500.0D0      ! Max convective heating
-    skbmax = 0.4D0       ! Max cloud base height in sigma
-    dtauc = 30.0D0       ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
+    gcr0 = 0.0020_rkx      ! Conversion rate from cloud to rain
+    edtmin      = 0.20_rkx ! Minimum Precipitation Efficiency land
+    edtmin_ocn  = 0.20_rkx ! Minimum Precipitation Efficiency ocean
+    edtmax      = 0.80_rkx ! Maximum Precipitation Efficiency land
+    edtmax_ocn  = 0.80_rkx ! Maximum Precipitation Efficiency ocean
+    edtmino     = 0.20_rkx ! Minimum Tendency Efficiency (o var) land
+    edtmino_ocn = 0.20_rkx ! Minimum Tendency Efficiency (o var) ocean
+    edtmaxo     = 0.80_rkx ! Maximum Tendency Efficiency (o var) land
+    edtmaxo_ocn = 0.80_rkx ! Maximum Tendency Efficiency (o var) ocean
+    edtminx     = 0.20_rkx ! Minimum Tendency Efficiency (x var) land
+    edtminx_ocn = 0.20_rkx ! Minimum Tendency Efficiency (x var) ocean
+    edtmaxx     = 0.80_rkx ! Maximum Tendency Efficiency (x var) land
+    edtmaxx_ocn = 0.80_rkx ! Maximum Tendency Efficiency (x var) ocean
+    shrmin      = 0.30_rkx ! Minimum Shear effect on precip eff. land
+    shrmin_ocn  = 0.30_rkx ! Minimum Shear effect on precip eff. ocean
+    shrmax      = 0.90_rkx ! Maximum Shear effect on precip eff. land
+    shrmax_ocn  = 0.90_rkx ! Maximum Shear effect on precip eff. ocean
+    pbcmax = 50.0_rkx      ! Max depth (mb) of stable layer b/twn LCL & LFC
+    mincld = 150.0_rkx     ! Min cloud depth (mb).
+    htmin = -250.0_rkx     ! Min convective heating
+    htmax = 500.0_rkx      ! Max convective heating
+    skbmax = 0.4_rkx       ! Max cloud base height in sigma
+    dtauc = 30.0_rkx       ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
     !
     ! emanparam ;
     ! From Kerry Emanuel convect 4.3c original code
     !
-    minsig = 0.950D0    ! Lowest sigma level from which convection can originate
-    elcrit_ocn = 1.1D-3 ! Autoconversion threshold water content (gm/gm)
-    elcrit_lnd = 1.1D-3 ! Autoconversion threshold water content (gm/gm)
-    tlcrit = -55.0D0    ! Below tlcrit auto-conversion threshold is zero
-    entp = 1.5D0        ! Coefficient of mixing in the entrainment formulation
-    sigd = 0.05D0       ! Fractional area covered by unsaturated dndraft
-    sigs = 0.12D0       ! Fraction of precipitation falling outside of cloud
-    omtrain = 50.0D0    ! Fall speed of rain (P/s)
-    omtsnow = 5.5D0     ! Fall speed of snow (P/s)
-    coeffr = 1.0D0      ! Coefficient governing the rate of rain evaporation
-    coeffs = 0.8D0      ! Coefficient governing the rate of snow evaporation
-    cu = 0.7D0          ! Coefficient governing convective momentum transport
-    betae = 10.0D0      ! Controls downdraft velocity scale
-    dtmax = 0.9D0       ! Max negative parcel temperature perturbation below LFC
-    alphae = 0.2D0      ! Controls the approach rate to quasi-equilibrium
-    damp = 0.1D0        ! Controls the approach rate to quasi-equilibrium
-    epmax_ocn = 0.999D0 ! Maximum precipitation efficiency over land
-    epmax_lnd = 0.999D0 ! Maximum precipitation efficiency over ocean
+    minsig = 0.950_rkx    ! Lowest sigma level from which convection can originate
+    elcrit_ocn = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
+    elcrit_lnd = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
+    tlcrit = -55.0_rkx    ! Below tlcrit auto-conversion threshold is zero
+    entp = 1.5_rkx        ! Coefficient of mixing in the entrainment formulation
+    sigd = 0.05_rkx       ! Fractional area covered by unsaturated dndraft
+    sigs = 0.12_rkx       ! Fraction of precipitation falling outside of cloud
+    omtrain = 50.0_rkx    ! Fall speed of rain (P/s)
+    omtsnow = 5.5_rkx     ! Fall speed of snow (P/s)
+    coeffr = 1.0_rkx      ! Coefficient governing the rate of rain evaporation
+    coeffs = 0.8_rkx      ! Coefficient governing the rate of snow evaporation
+    cu = 0.7_rkx          ! Coefficient governing convective momentum transport
+    betae = 10.0_rkx      ! Controls downdraft velocity scale
+    dtmax = 0.9_rkx       ! Max negative parcel temperature perturbation below LFC
+    alphae = 0.2_rkx      ! Controls the approach rate to quasi-equilibrium
+    damp = 0.1_rkx        ! Controls the approach rate to quasi-equilibrium
+    epmax_ocn = 0.999_rkx ! Maximum precipitation efficiency over land
+    epmax_lnd = 0.999_rkx ! Maximum precipitation efficiency over ocean
     !
     ! tiedtkeparam ;
     ! Taken from MPI Echam settings
     !
     iconv    = 4        ! Selects the actual scheme
-    entrmax  = 1.75D-3  ! Max entrainment iconv=[1,2,3]
-    entrdd   = 3.0D-4   ! Entrainment rate for cumulus downdrafts
-    entrpen  = 1.75D-3  ! Entrainment rate for penetrative convection
-    entrscv  = 3.0D-4   ! Entrainment rate for shallow convection iconv=[1,2,3]
-    entrmid  = 1.0D-4   ! Entrainment rate for midlevel convection iconv=[1,2,3]
-    cprcon   = 1.0D-4   ! Coefficient for determining conversion iconv=[1,2,3]
-    detrpen = 0.75D-4   ! Detrainment rate for penetrative convection
-    entshalp = 2.0D0    ! shallow entrainment factor for entrpen
-    rcuc_lnd = 0.05D0   ! Convective cloud cover for rain evporation
-    rcuc_ocn = 0.05D0   ! Convective cloud cover for rain evporation
-    rcpec_ocn = 5.55D-5 ! Coefficient for rain evaporation below cloud
-    rcpec_lnd = 5.55D-5 ! Coefficient for rain evaporation below cloud
-    rhebc_lnd = 0.7D0   ! Critical relative humidity below
+    entrmax  = 1.75e-3_rkx  ! Max entrainment iconv=[1,2,3]
+    entrdd   = 3.0e-4_rkx   ! Entrainment rate for cumulus downdrafts
+    entrpen  = 1.75e-3_rkx  ! Entrainment rate for penetrative convection
+    entrscv  = 3.0e-4_rkx   ! Entrainment rate for shallow convection iconv=[1,2,3]
+    entrmid  = 1.0e-4_rkx   ! Entrainment rate for midlevel convection iconv=[1,2,3]
+    cprcon   = 1.0e-4_rkx   ! Coefficient for determining conversion iconv=[1,2,3]
+    detrpen = 0.75e-4_rkx   ! Detrainment rate for penetrative convection
+    entshalp = 2.0_rkx    ! shallow entrainment factor for entrpen
+    rcuc_lnd = 0.05_rkx   ! Convective cloud cover for rain evporation
+    rcuc_ocn = 0.05_rkx   ! Convective cloud cover for rain evporation
+    rcpec_ocn = 5.55e-5_rkx ! Coefficient for rain evaporation below cloud
+    rcpec_lnd = 5.55e-5_rkx ! Coefficient for rain evaporation below cloud
+    rhebc_lnd = 0.7_rkx   ! Critical relative humidity below
                         ! cloud at which evaporation starts for land
-    rhebc_ocn = 0.9D0   ! Critical relative humidity below
+    rhebc_ocn = 0.9_rkx   ! Critical relative humidity below
                         ! cloud at which evaporation starts for ocean
-    rprc_lnd = 1.4D-3   ! coefficient for conversion from cloud water
-    rprc_ocn = 1.4D-3   ! coefficient for conversion from cloud water
-    rcrit1   = 13.5D0   ! Mean critical radius for ccn
+    rprc_lnd = 1.4e-3_rkx   ! coefficient for conversion from cloud water
+    rprc_ocn = 1.4e-3_rkx   ! coefficient for conversion from cloud water
+    rcrit1   = 13.5_rkx   ! Mean critical radius for ccn
     !
     ! kfparam ;
     ! Taken from WRF KFeta parametrization
     !
-    kf_entrate = 0.03D0 ! Kain Fritsch entrainment rate
-    kf_min_pef = 0.2D0  ! Minimum precipitation efficiency
-    kf_max_pef = 0.9D0  ! Maximum precipitation efficiency
-    kf_dpp = 150.0D0    ! Starting height of downdraft above updraft source (mb)
-    kf_tkemax = 5.0D0   ! Maximum turbolent kinetic energy in sub cloud layer
-    kf_min_dtcape = 1800.0D0 ! Consumption time of CAPE low limit
-    kf_max_dtcape = 3600.0D0 ! Consumption time of CAPE high limit
+    kf_entrate = 0.03_rkx ! Kain Fritsch entrainment rate
+    kf_min_pef = 0.2_rkx  ! Minimum precipitation efficiency
+    kf_max_pef = 0.9_rkx  ! Maximum precipitation efficiency
+    kf_dpp = 150.0_rkx    ! Starting height of downdraft above updraft source (mb)
+    kf_tkemax = 5.0_rkx   ! Maximum turbolent kinetic energy in sub cloud layer
+    kf_min_dtcape = 1800.0_rkx ! Consumption time of CAPE low limit
+    kf_max_dtcape = 3600.0_rkx ! Consumption time of CAPE high limit
     !
     ! uwparam ;
     ! Original settings from Travis O'Brian
     !
     iuwvadv = 0
-    atwo  = 10.0D0
-    rstbl = 1.5D0
-    czero = 5.869D0
-    nuk   = 5.0D0
+    atwo  = 10.0_rkx
+    rstbl = 1.5_rkx
+    czero = 5.869_rkx
+    nuk   = 5.0_rkx
     !
     ! holtslagparam ;
     ! Settings from C. Torma
     !
-    ricr_ocn = 0.25D0
-    ricr_lnd = 0.25D0
-    zhnew_fac = 0.25D0
+    ricr_ocn = 0.25_rkx
+    ricr_lnd = 0.25_rkx
+    zhnew_fac = 0.25_rkx
     ifaholtth10 = 1
     ifaholt = 1
     !
     ! slabocparam ;
     !
-    mixed_layer_depth     = 50.0D0
-    sst_restore_timescale = 5.0D0 !days
+    mixed_layer_depth     = 50.0_rkx
+    sst_restore_timescale = 5.0_rkx !days
     do_restore_sst = .true.
     do_qflux_adj = .false.
     !
@@ -452,10 +451,10 @@ module mod_params
     itweak_temperature = 0
     itweak_solar_irradiance = 0
     itweak_greenhouse_gases = 0
-    sst_tweak = 0.0D0
-    temperature_tweak = 0.0D0
-    solar_tweak = 0.0D0
-    gas_tweak_factors(:) = 1.0D0
+    sst_tweak = 0.0_rkx
+    temperature_tweak = 0.0_rkx
+    solar_tweak = 0.0_rkx
+    gas_tweak_factors(:) = 1.0_rkx
     !
     ! chemparam ; ( 0 = none, 1 = activated)
     !
@@ -480,14 +479,14 @@ module mod_params
     !
     imask = 1
     ilawrence_albedo = 1
-    clmfrq = 24.0D0
+    clmfrq = 24.0_rkx
 #endif
     !
     ! cplparam ;
     !
-    cpldt = 21600.0D0  ! coupling time step in seconds (seconds)
-    zomax = 0.02D0     ! maximum allowed surface roughness from wave comp.
-    ustarmax = 0.02D0  ! maximum allowed friction velocity from wave comp.
+    cpldt = 21600.0_rkx  ! coupling time step in seconds (seconds)
+    zomax = 0.02_rkx     ! maximum allowed surface roughness from wave comp.
+    ustarmax = 0.02_rkx  ! maximum allowed friction velocity from wave comp.
 
 #ifdef CLM
     if ( myid == italk ) then
@@ -531,7 +530,7 @@ module mod_params
       call setcal(idate1,ical)
       call setcal(idate2,ical)
       bdif = idate2 - idate1
-      hspan = idnint(tohours(bdif))
+      hspan = nint(tohours(bdif))
       if ( mod(hspan,24) /= 0 ) then
         call fatal(__FILE__,__LINE__,  &
                    'Runtime increments must be modulus 24 hours')
@@ -630,9 +629,15 @@ module mod_params
             write(stdout,*) 'Will set iconvlwp == 0'
             iconvlwp = 0
           end if
-          if ( cftotmax < d_one ) then
-            write(stdout,*) 'Will set cftotmax == 1'
-            cftotmax = d_one
+          if ( cftotmax < 0.99_rkx ) then
+            write(stdout,*) 'Will set cftotmax == 0.99'
+            cftotmax = 0.99_rkx
+          end if
+        else
+          if ( cftotmax < 0.0 ) then
+            cftotmax = 0.1_rkx
+          else if ( cftotmax >= 1.0_rkx ) then
+            cftotmax = 0.99_rkx
           end if
         end if
       end if
@@ -680,21 +685,21 @@ module mod_params
           write(stdout,*) 'Read kfparam OK'
 #endif
         end if
-        if ( kf_min_dtcape < 600.0D0 ) then
+        if ( kf_min_dtcape < 600.0_rkx ) then
           write(stdout,*) 'Resetting kf_min_dtcape to 600 s'
-          kf_min_dtcape = 600.0D0
+          kf_min_dtcape = 600.0_rkx
         end if
-        if ( kf_max_dtcape > 7200.0D0 ) then
+        if ( kf_max_dtcape > 7200.0_rkx ) then
           write(stdout,*) 'Resetting kf_max_dtcape to 7200 s'
-          kf_max_dtcape = 7200.0D0
+          kf_max_dtcape = 7200.0_rkx
         end if
-        if ( kf_tkemax > 12.0D0 ) then
+        if ( kf_tkemax > 12.0_rkx ) then
           write(stdout,*) 'Resetting kf_tkemax to 12 m2 s-2'
-          kf_tkemax = 12.0D0
+          kf_tkemax = 12.0_rkx
         end if
-        if ( kf_tkemax < 3.0D0 ) then
+        if ( kf_tkemax < 3.0_rkx ) then
           write(stdout,*) 'Resetting kf_tkemax to 3 m2 s-2'
-          kf_tkemax = 3.0D0
+          kf_tkemax = 3.0_rkx
         end if
       end if
       if ( any(icup < 0) .or. any(icup > 6) ) then
@@ -828,44 +833,44 @@ module mod_params
 
       close(ipunit)
 
-      if ( dt > maxdt .or. dt > 3.0D0 * ds ) then
-        dt = min(maxdt,3.0D0*ds)
+      if ( dt > maxdt .or. dt > 3.0_rkx * ds ) then
+        dt = min(maxdt,3.0_rkx*ds)
       end if
       if ( dt < mindt ) then
         write(stderr,*) 'DT very small , ',dt,' s !!!!'
       end if
 
-      dt = check_against_outparams(dt,1.0D0)
+      dt = check_against_outparams(dt,1.0_rkx)
       if ( dtcum < d_zero ) dtcum = dt
 
-      if ( dt < 2.0D0 ) then
+      if ( dt < 2.0_rkx ) then
         call fatal(__FILE__,__LINE__, &
            'Cannot match all output frequencies with chosen dt')
       end if
       if ( dtsrf < dt ) then
-        if ( dt > 600.0D0 ) then
+        if ( dt > 600.0_rkx ) then
           dtsrf = dt
         else
-          dtsrf = min(int(600.0D0 / dt) * dt + dt,600.0D0)
+          dtsrf = min(int(600.0_rkx / dt) * dt + dt,600.0_rkx)
           dtsrf = check_against_outparams(dtsrf,dt)
         end if
       end if
       if ( dtcum < dt ) then
-        if ( dt > 300.0D0 ) then
+        if ( dt > 300.0_rkx ) then
           dtcum = dt
         else
-          dtcum = min(int(300.0D0 / dt) * dt + dt,300.0D0)
+          dtcum = min(int(300.0_rkx / dt) * dt + dt,300.0_rkx)
           dtcum = check_against_outparams_cum(dtcum,dt)
         end if
       end if
-      if ( dtrad*60.0D0 < dt ) then
+      if ( dtrad*60.0_rkx < dt ) then
         dtrad = int(1800.0 / dt) * dt + dt
         dtrad = check_against_outparams_rad(dtrad,dt)
-        dtrad = dtrad / 60.0D0
+        dtrad = dtrad / 60.0_rkx
       end if
-      if ( dtabem*3600.0D0 < dt ) then
-        dtabem = int(1080.0D0 / dtrad) * dtrad
-        dtabem = dtabem / 60.0D0
+      if ( dtabem*3600.0_rkx < dt ) then
+        dtabem = int(1080.0_rkx / dtrad) * dtrad
+        dtabem = dtabem / 60.0_rkx
       end if
     end if
     !
@@ -1296,40 +1301,40 @@ module mod_params
     call allocate_mod_diffusion
 
     if ( myid == italk ) then
-      if ( mod(idnint(dtrad*60.0D0),idnint(dt)) /= 0 ) then
+      if ( mod(nint(dtrad*60.0_rkx),nint(dt)) /= 0 ) then
         write (stderr,*) 'DTRAD=' , dtrad , ' DT=' , dt
         call fatal(__FILE__,__LINE__, &
                 'DTRAD /= N*DT : INCONSISTENT RADIATION TIMESTEP SPECIFIED')
       end if
-      if ( mod(idnint(dtsrf),idnint(dt)) /= 0 ) then
+      if ( mod(nint(dtsrf),nint(dt)) /= 0 ) then
         write (stderr,*) 'DTSRF=' , dtsrf , ' DT=' , dt
         call fatal(__FILE__,__LINE__, &
                 'DTSRF /= N*DT : INCONSISTENT SURFACE TIMESTEP SPECIFIED')
       end if
-      if ( mod(idnint(dtcum),idnint(dt)) /= 0 ) then
+      if ( mod(nint(dtcum),nint(dt)) /= 0 ) then
         write (stderr,*) 'DTCUM=' , dtcum , ' DT=' , dt
         call fatal(__FILE__,__LINE__, &
                 'DTCUM /= N*DT : INCONSISTENT CUMULUS TIMESTEP SPECIFIED')
       end if
-      if ( idnint(dtcum) > idnint(dtsrf) ) then
+      if ( nint(dtcum) > nint(dtsrf) ) then
         write (stderr,*) 'DTCUM=' , dtcum , ' DTSRF=' , dtsrf
         call fatal(__FILE__,__LINE__, &
                 'DTCUM > DTSRF : INCONSISTENT CUMULUS TIMESTEP SPECIFIED')
       end if
       if ( ichem == 1 ) then
-        if ( mod(idnint(dtche),idnint(dt)) /= 0 ) then
+        if ( mod(nint(dtche),nint(dt)) /= 0 ) then
           write (stderr,*) 'DTCHE=' , dtche , ' DT=' , dt
           call fatal(__FILE__,__LINE__, &
                   'DTCHE /= N*DT : INCONSISTENT CHEMISTRY TIMESTEP SPECIFIED')
         end if
       end if
       if ( ifsrf ) then
-        if ( mod(idnint(srffrq*secph),idnint(dtsrf)) /= 0 ) then
+        if ( mod(nint(srffrq*secph),nint(dtsrf)) /= 0 ) then
           write (stderr,*) 'SRFFRQ=' , srffrq , ' DTSRF=' , dtsrf
           call fatal(__FILE__,__LINE__, &
                      'INCONSISTENT SURFACE OUTPUT FREQUENCY SPECIFIED')
         end if
-        if ( ifsts .and. srffrq > 24.0D0 ) then
+        if ( ifsts .and. srffrq > 24.0_rkx ) then
           call fatal(__FILE__,__LINE__, &
                      'NEED SRF FREQUENCY LESS THAN 24H FOR STS OUTPUT')
         end if
@@ -1339,12 +1344,12 @@ module mod_params
                      'TO ENABLE STS, ENABLE SRF OUTPUT IS REQUIRED')
         end if
       end if
-      if ( mod(idnint(dtabem*secph),idnint(dt)) /= 0 ) then
+      if ( mod(nint(dtabem*secph),nint(dt)) /= 0 ) then
         write (stderr,*) 'DTABEM=' , dtabem , ' DT=' , dt
         call fatal(__FILE__,__LINE__, &
                    'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
       end if
-      if ( mod(idnint(dtabem*60.0D0),idnint(dtrad)) /= 0 ) then
+      if ( mod(nint(dtabem*60.0_rkx),nint(dtrad)) /= 0 ) then
         write (stderr,*) 'DTABEM=' , dtabem , ' DTRAD=' , dtrad
         call fatal(__FILE__,__LINE__,                                   &
                    'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
@@ -1355,7 +1360,7 @@ module mod_params
           write (stderr,*) 'CHEMFRQ=', chemfrq
           call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
         end if
-        if ( mod(idnint(chemfrq*secph),idnint(dtche)) /= 0 ) then
+        if ( mod(nint(chemfrq*secph),nint(dtche)) /= 0 ) then
           write (stderr,*) 'CHEMFRQ=' , chemfrq , ' DTCHE=', dtche
           call fatal(__FILE__,__LINE__, &
                      'INCONSISTENT CHEMISTRY OUTPUT FREQUENCY SPECIFIED')
@@ -1380,78 +1385,78 @@ module mod_params
     dtsec = dt
     dtbat = dt
     rdt   = d_one/dt
-    dtbdys = dble(ibdyfrq)*secph
-    ntsec = idnint(dt)
+    dtbdys = real(ibdyfrq,rkx)*secph
+    ntsec = nint(dt)
     !
     ! Reset the options/calculate variables using namelist info:
     !
     bdydate1 = idate1
 
-    nsavfrq = idnint(secph*savfrq)
-    natmfrq = idnint(secph*atmfrq)
-    nradfrq = idnint(secph*radfrq)
-    ndbgfrq = idnint(secph*dbgfrq)
-    nsrffrq = idnint(secph*srffrq)
-    nlakfrq = idnint(secph*lakfrq)
-    nsubfrq = idnint(secph*subfrq)
-    nchefrq = idnint(secph*chemfrq)
-    nslabfrq = idnint(dtbdys)
-    nbdyfrq = idnint(dtbdys)
+    nsavfrq = nint(secph*savfrq)
+    natmfrq = nint(secph*atmfrq)
+    nradfrq = nint(secph*radfrq)
+    ndbgfrq = nint(secph*dbgfrq)
+    nsrffrq = nint(secph*srffrq)
+    nlakfrq = nint(secph*lakfrq)
+    nsubfrq = nint(secph*subfrq)
+    nchefrq = nint(secph*chemfrq)
+    nslabfrq = nint(dtbdys)
+    nbdyfrq = nint(dtbdys)
 
     cfdout =  dtsec/(secph*chemfrq)
     afdout =  dtsec/(secph*atmfrq)
 
-    ntsrf = idnint(dtsrf/dtsec)
-    rtsrf = d_one/dble(ntsrf)
-    ntrad = idnint((dtrad*secpm)/dtsec)
-    rtrad = d_one/dble(ntrad)
-    ntche = idnint(dtche/dtsec)
-    ntcum = idnint(dtcum/dtsec)
+    ntsrf = nint(dtsrf/dtsec)
+    rtsrf = d_one/real(ntsrf,rkx)
+    ntrad = nint((dtrad*secpm)/dtsec)
+    rtrad = d_one/real(ntrad,rkx)
+    ntche = nint(dtche/dtsec)
+    ntcum = nint(dtcum/dtsec)
 
     ktau = 0
 
-    khour = 3600_8/idnint(dtsec)
-    kday  = 86400_8/idnint(dtsec)
+    khour = 3600_8/nint(dtsec)
+    kday  = 86400_8/nint(dtsec)
     krep  = khour*3
-    kbdy  = nbdyfrq/idnint(dtsec)
-    katm  = natmfrq/idnint(dtsec)
-    ksrf  = nsrffrq/idnint(dtsec)
-    klak  = nlakfrq/idnint(dtsec)
-    ksub  = nsubfrq/idnint(dtsec)
+    kbdy  = nbdyfrq/nint(dtsec)
+    katm  = natmfrq/nint(dtsec)
+    ksrf  = nsrffrq/nint(dtsec)
+    klak  = nlakfrq/nint(dtsec)
+    ksub  = nsubfrq/nint(dtsec)
     ksts  = khour*24
-    krad  = nradfrq/idnint(dtsec)
-    kche  = nchefrq/idnint(dtsec)
-    kdbg  = ndbgfrq/idnint(dtsec)
+    krad  = nradfrq/nint(dtsec)
+    kche  = nchefrq/nint(dtsec)
+    kdbg  = ndbgfrq/nint(dtsec)
     if ( nsavfrq > 0 ) then
-      ksav = nsavfrq/idnint(dtsec)
+      ksav = nsavfrq/nint(dtsec)
     else
       ksav = -1
     end if
 
-    rnsrf_for_srffrq = d_one/(dble(ksrf)*rtsrf)
-    rnsrf_for_lakfrq = d_one/(dble(klak)*rtsrf)
-    rnsrf_for_subfrq = d_one/(dble(ksub)*rtsrf)
-    rnsrf_for_day = d_one/(dble(kday)*rtsrf)
-    rnrad_for_radfrq = d_one/(dble(krad)*rtrad)
-    rnrad_for_chem = dble(ntrad)/dble(kche)
+    rnsrf_for_srffrq = d_one/(real(ksrf,rkx)*rtsrf)
+    rnsrf_for_lakfrq = d_one/(real(klak,rkx)*rtsrf)
+    rnsrf_for_subfrq = d_one/(real(ksub,rkx)*rtsrf)
+    rnsrf_for_day = d_one/(real(kday,rkx)*rtsrf)
+    rnrad_for_radfrq = d_one/(real(krad,rkx)*rtrad)
+    rnrad_for_chem = real(ntrad,rkx)/real(kche,rkx)
 
-    if ( irrtm == 1 ) rnrad_for_chem = dble(ntrad*nradfo)/dble(kche)
+    if ( irrtm == 1 ) rnrad_for_chem = real(ntrad*nradfo,rkx)/real(kche,rkx)
 
-    rsrf_in_atm = dble(ntsrf)/dble(katm)
+    rsrf_in_atm = real(ntsrf,rkx)/real(katm,rkx)
     rsrffrq_sec = d_one/(srffrq*secph)
 
-    mtau = idnint((hspan*secph)/dt)
+    mtau = nint((hspan*secph)/dt)
 
     do ns = 1 , nsplit
-      dtsplit(ns) = dt*(d_half/dble(nsplit-ns+1))
+      dtsplit(ns) = dt*(d_half/real(nsplit-ns+1,rkx))
       dtau(ns) = dtsplit(ns)
     end do
-    ntabem = idnint(secph*dtabem/dt) !dtabem is time interval abs./emis. calc.
+    ntabem = nint(secph*dtabem/dt) !dtabem is time interval abs./emis. calc.
     dt2 = d_two*dt
     dtsq = dt*dt
     dtcb = dt*dt*dt
 
-    intmdl = rcm_time_interval(idnint(dt),usec)
+    intmdl = rcm_time_interval(nint(dt),usec)
     intbdy = rcm_time_interval(ibdyfrq,uhrs)
     intsom = rcm_time_interval(1,umnt)
     deltmx = dt
@@ -1484,10 +1489,10 @@ module mod_params
     dx = ds * d_1000
     dx2 = d_two*dx
     dx4 = d_four*dx
-    dx8 = 8.0D0*dx
-    dx16 = 16.0D0*dx
+    dx8 = 8.0_rkx*dx
+    dx16 = 16.0_rkx*dx
     dxsq = dx*dx
-    rdxsq = 1.0D0/dxsq
+    rdxsq = 1.0_rkx/dxsq
     !
     ! Calculate boundary areas per processor
     !
@@ -1702,7 +1707,7 @@ module mod_params
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( mddom%mask(j,i) > 0.1D0 ) then
+        if ( mddom%mask(j,i) > 0.1_rkx ) then
           mddom%ldmsk(j,i) = 1
         else
           mddom%ldmsk(j,i) = 0
@@ -1712,7 +1717,7 @@ module mod_params
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
-          if ( mdsub%mask(n,j,i) > 0.1D0 ) then
+          if ( mdsub%mask(n,j,i) > 0.1_rkx ) then
             mdsub%ldmsk(n,j,i) = 1
           else
             mdsub%ldmsk(n,j,i) = 0
@@ -1726,7 +1731,7 @@ module mod_params
     !-----   allowed pbl, and 1013mb as standard surface pressure. (sigtbl)
     !-----2. find first model sigma level above sigtbl.
     !
-    sigtbl = (70.0D0-ptop)/(101.3D0-ptop)
+    sigtbl = (70.0_rkx-ptop)/(101.3_rkx-ptop)
     kmxpbl = kz
     do k = kz , 2 , -1
       delsig = hsigma(k) - sigtbl
@@ -1918,8 +1923,8 @@ module mod_params
 
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( mddom%lndcat(j,i) > 14.5D0 .and. &
-               mddom%lndcat(j,i) < 15.5D0) then
+          if ( mddom%lndcat(j,i) > 14.5_rkx .and. &
+               mddom%lndcat(j,i) < 15.5_rkx) then
             shrmax2d(j,i) = shrmax_ocn
             shrmin2d(j,i) = shrmin_ocn
             edtmax2d(j,i) = edtmax_ocn
@@ -2040,13 +2045,13 @@ module mod_params
     !
     ! Convective Cloud Cover
     !
-    afracl = 0.25D0    ! frac. cover for conv. precip. when dx=dxlarg
+    afracl = 0.25_rkx    ! frac. cover for conv. precip. when dx=dxlarg
     afracs = clfrcvmax !   "     "    "    "      "     "   dx=dxsmal
-    dlargc = 100.0D0
-    dsmalc = 10.0D0
-    dxtemc = dmin1(dmax1(ds,dsmalc),dlargc)
+    dlargc = 100.0_rkx
+    dsmalc = 10.0_rkx
+    dxtemc = min(max(ds,dsmalc),dlargc)
     clfrcv = afracl + (afracs-afracl)*((dlargc-dxtemc)/(dlargc-dsmalc))**2
-    clfrcv = dmin1(clfrcv,d_one)
+    clfrcv = min(clfrcv,d_one)
     if ( myid == italk ) then
       write(stdout,*) &
         'Convective Cloud Cover parameters after resolution scaling'
@@ -2065,7 +2070,7 @@ module mod_params
       qcon(k) = (sigma(k)-hsigma(k))/(hsigma(k-1)-hsigma(k))
     end do
 
-    chibot = 450.0D0
+    chibot = 450.0_rkx
     ptmb = d_10*ptop
     pz = hsigma(1)*(d_1000-ptmb) + ptmb
     if ( pz > chibot ) then
@@ -2080,8 +2085,8 @@ module mod_params
     if ( ipptls > 0 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( mddom%lndcat(j,i) > 14.5D0 .and. &
-               mddom%lndcat(j,i) < 15.5D0) then
+          if ( mddom%lndcat(j,i) > 14.5_rkx .and. &
+               mddom%lndcat(j,i) < 15.5_rkx) then
             qck1(j,i)  = qck1oce  ! OCEAN
             cgul(j,i)  = guloce
             rh0(j,i)   = rh0oce
@@ -2128,7 +2133,7 @@ module mod_params
       end do
     end if
     if ( any(icup == 1) ) then
-      sig700 = (70.0D0-ptop)/(d_100-ptop)
+      sig700 = (70.0_rkx-ptop)/(d_100-ptop)
       do k = 1 , kz
         k700 = k
         if ( sig700 <= sigma(k+1) .and. sig700 > sigma(k) ) exit
@@ -2308,17 +2313,17 @@ module mod_params
       subroutine compute_full_coriolis_coefficients
         implicit none
         integer(ik4) :: i , j
-        real(rk8) :: rotang , dlat , dlatdy , dlondy
+        real(rkx) :: rotang , dlat , dlatdy , dlondy
         do i = idi1 , idi2
           do j = jdi1 , jdi2
             dlat = mddom%dlat(j,i)
             dlatdy = d_half * (mddom%xlat(j-1,i)   + mddom%xlat(j,i) - &
                                mddom%xlat(j-1,i-1) - mddom%xlat(j,i-1))
-            if ( abs(dlatdy) < 1.0D-5 ) dlatdy = 1.0D-5
+            if ( abs(dlatdy) < 1.0e-5_rkx ) dlatdy = 1.0e-5_rkx
             dlondy = d_half * (mddom%xlon(j-1,i)   + mddom%xlon(j,i) - &
                                mddom%xlon(j-1,i-1) - mddom%xlon(j,i-1))
-            if ( dlondy >  180.0D0 ) dlondy = dlondy - 360.0D0
-            if ( dlondy < -180.0D0 ) dlondy = dlondy + 360.0D0
+            if ( dlondy >  180.0_rkx ) dlondy = dlondy - 360.0_rkx
+            if ( dlondy < -180.0_rkx ) dlondy = dlondy + 360.0_rkx
             rotang = -atan(dlondy/dlatdy*cos(degrad*dlat))
             if ( dlatdy < 0.0 ) rotang = rotang + mathpi
             mddom%ef(j,i) = eomeg2*cos(degrad*dlat)
@@ -2362,9 +2367,9 @@ module mod_params
         end if
       end function gcd_rec
 
-      real(rk8) function check_against_outparams(dt,dec) result(newdt)
+      real(rkx) function check_against_outparams(dt,dec) result(newdt)
         implicit none
-        real(rk8) , intent(in) :: dt , dec
+        real(rkx) , intent(in) :: dt , dec
         newdt = int(dt/dec)*dec
         do
           if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
@@ -2402,9 +2407,9 @@ module mod_params
         end do
       end function check_against_outparams
 
-      real(rk8) function check_against_outparams_cum(dt,dec) result(newdt)
+      real(rkx) function check_against_outparams_cum(dt,dec) result(newdt)
         implicit none
-        real(rk8) , intent(in) :: dt , dec
+        real(rkx) , intent(in) :: dt , dec
         newdt = int(dt/dec)*dec
         do
           if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
@@ -2450,9 +2455,9 @@ module mod_params
         end do
       end function check_against_outparams_cum
 
-      real(rk8) function check_against_outparams_rad(dt,dec) result(newdt)
+      real(rkx) function check_against_outparams_rad(dt,dec) result(newdt)
         implicit none
-        real(rk8) , intent(in) :: dt , dec
+        real(rkx) , intent(in) :: dt , dec
         newdt = int(dt/dec)*dec
         do
           if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
@@ -2470,9 +2475,9 @@ module mod_params
         end do
       end function check_against_outparams_rad
 
-      real(rk8) function check_against_outparams_abe(dt,dec) result(newdt)
+      real(rkx) function check_against_outparams_abe(dt,dec) result(newdt)
         implicit none
-        real(rk8) , intent(in) :: dt , dec
+        real(rkx) , intent(in) :: dt , dec
         newdt = int(dt/dec) * dec
       end function check_against_outparams_abe
 

@@ -53,7 +53,7 @@
 ! ****************************************************************************
 
 ! --------- Modules ---------
-      use parkind, only : im => kind_im, rb => kind_rb
+      use parkind, only : im => kind_im, rb => kind_rb , almostzero
       use rrsw_vsn
       use rrtmg_sw_cldprop, only: cldprop_sw
 ! *** Move the required call to rrtmg_sw_ini below and the following
@@ -451,7 +451,7 @@
 ! Initializations
 
       zepsec = 1.e-06_rb
-      zepzen = 1.e-10_rb
+      zepzen = almostzero
       oneminus = 1.0_rb - zepsec
       pi = 2._rb * asin(1._rb)
 

@@ -30,22 +30,22 @@ module mod_ecwcp
 
   integer(ik4) , parameter :: nlev = 15 , jlat = 64 , ilon = 128
 
-  real(rk8) , dimension(jlat) :: hlat
-  real(rk8) , dimension(ilon) :: hlon
-  real(rk8) , dimension(nlev) :: sigma1 , sigmar
-  real(rk8) , parameter :: pss = 100.0D0
+  real(rkx) , dimension(jlat) :: hlat
+  real(rkx) , dimension(ilon) :: hlon
+  real(rkx) , dimension(nlev) :: sigma1 , sigmar
+  real(rkx) , parameter :: pss = 100.0_rkx
 
   real(rk4) , dimension(ilon,jlat) :: r2
 
-  real(rk8) , target , dimension(ilon,jlat,nlev*3) :: b2
-  real(rk8) , target , dimension(ilon,jlat,nlev*2) :: d2
-  real(rk8) , pointer , dimension(:,:,:) :: b3
-  real(rk8) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , target , dimension(ilon,jlat,nlev*3) :: b2
+  real(rkx) , target , dimension(ilon,jlat,nlev*2) :: d2
+  real(rkx) , pointer , dimension(:,:,:) :: b3
+  real(rkx) , pointer , dimension(:,:,:) :: d3
 
-  real(rk8) , pointer , dimension(:,:,:) :: t1 , q1 , h1
-  real(rk8) , pointer , dimension(:,:,:) :: u1 , v1
-  real(rk8) , pointer , dimension(:,:,:) :: t3 , q3 , h3
-  real(rk8) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rkx) , pointer , dimension(:,:,:) :: t1 , q1 , h1
+  real(rkx) , pointer , dimension(:,:,:) :: u1 , v1
+  real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , h3
+  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
 
   public :: getecwcp , headerec
 

@@ -34,21 +34,21 @@ module mod_interp
   public :: bilinx , bilinx2 , cressmcr , cressmdt , distwgtcr , distwgtdt
   public :: gcdist , kernsmooth
 
-  real(rk8) :: alatmn , alatmx , alonmn , alonmx
-  real(rk8) :: glatmn , glatmx , glonmn , glonmx
+  real(rkx) :: alatmn , alatmx , alonmn , alonmx
+  real(rkx) :: glatmn , glatmx , glonmn , glonmx
 
   integer(ik4) :: imxmn = 0
   integer(ik4) :: lcross = 0
   integer(ik4) :: ldot = 0
 
-  real(rk8) , parameter :: deg720 = d_two*deg360
-  real(rk8) , parameter :: missl = -9999.0D0
-  real(rk8) , parameter :: missc = -9990.0D0
-  real(rk8) , parameter :: mindist = 0.001D0 ! 1 meter
-  real(rk8) , parameter :: p_factor = 2.00D0
+  real(rkx) , parameter :: deg720 = d_two*deg360
+  real(rkx) , parameter :: missl = -9999.0_rkx
+  real(rkx) , parameter :: missc = -9990.0_rkx
+  real(rkx) , parameter :: mindist = 0.001_rkx ! 1 meter
+  real(rkx) , parameter :: p_factor = 2.00_rkx
 
-  real(rk8) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
-  real(rk8) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
+  real(rkx) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
+  real(rkx) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
   integer(ik4) , pointer , dimension(:,:) :: ic1dl , ic1dr , ic1ul , ic1ur , &
                                        jc1dl , jc1dr , jc1ul , jc1ur
   integer(ik4) , pointer , dimension(:,:) :: id1dl , id1dr , id1ul , id1ur , &
@@ -76,16 +76,16 @@ module mod_interp
   subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,jx,iy,nflds)
     implicit none
     integer(ik4) :: jx , iy , nflds , nlati , nloni
-    real(rk8) , dimension(nloni,nlati,nflds) :: fin
-    real(rk8) , dimension(nlati) :: lati
-    real(rk8) , dimension(jx,iy) :: lato , lono
-    real(rk8) , dimension(nloni) :: loni
-    real(rk8) , dimension(jx,iy,nflds) :: fout
+    real(rkx) , dimension(nloni,nlati,nflds) :: fin
+    real(rkx) , dimension(nlati) :: lati
+    real(rkx) , dimension(jx,iy) :: lato , lono
+    real(rkx) , dimension(nloni) :: loni
+    real(rkx) , dimension(jx,iy,nflds) :: fout
     intent (in) fin , jx , iy , lati , lato , loni , lono , nflds ,   &
                 nlati , nloni
     intent (out) fout
 
-    real(rk8) :: bas , lon360 , p , q , xsum , xind , yind
+    real(rkx) :: bas , lon360 , p , q , xsum , xind , yind
     integer(ik4) :: i , ip , ipp1 , j , jq , jqp1 , l
     logical :: lg
     !
@@ -114,14 +114,16 @@ module mod_interp
     lg = .true.
     do i = 1 , iy
       do j = 1 , jx
-        yind = (((lato(j,i)-lati(1))/(lati(nlati)-lati(1)))*dble(nlati-1))+d_one
+        yind = (((lato(j,i)-lati(1))/(lati(nlati)-lati(1))) * &
+                   real(nlati-1,rkx))+d_one
         jq = int(yind)
-        jq = max0(jq,1)
-        jqp1 = min0(jq+1,nlati)
+        jq = max(jq,1)
+        jqp1 = min(jq+1,nlati)
         q = yind - jq
         lon360 = lono(j,i)
         if ( lono(j,i) < deg00 ) lon360 = lono(j,i) + deg360
-        xind = (((lon360-loni(1))/(loni(nloni)-loni(1)))*dble(nloni-1))+d_one
+        xind = (((lon360-loni(1))/(loni(nloni)-loni(1))) * &
+                    real(nloni-1,rkx))+d_one
         if ( xind < d_one .and. lg ) then
           ip = nloni
           ipp1 = 1
@@ -132,8 +134,8 @@ module mod_interp
           p = xind - nloni
         else
           ip = int(xind)
-          ip = max0(ip,1)
-          ipp1 = min0(ip+1,nloni)
+          ip = max(ip,1)
+          ipp1 = min(ip+1,nloni)
           p = xind - ip
         end if
         do l = 1 , nflds
@@ -159,7 +161,11 @@ module mod_interp
               xsum = xsum + q*(d_one-p)*fin(ip,jqp1,l)
               bas = bas + q*(d_one-p)
             end if
-            fout(j,i,l) = xsum/bas
+            if ( bas > dlowval ) then
+              fout(j,i,l) = xsum/bas
+            else
+              fout(j,i,l) = missl
+            end if
           end if
         end do
       end do
@@ -169,14 +175,14 @@ module mod_interp
   subroutine bilinx2_3d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy,llev)
     implicit none
     integer(ik4) :: iy , jx , llev , nlat , nlon
-    real(rk8) , dimension(jx,iy) :: alat , alon
-    real(rk8) , dimension(nlon,nlat,llev) :: b2
-    real(rk8) , dimension(jx,iy,llev) :: b3
-    real(rk8) , dimension(nlat) :: hlat
-    real(rk8) , dimension(nlon) :: hlon
+    real(rkx) , dimension(jx,iy) :: alat , alon
+    real(rkx) , dimension(nlon,nlat,llev) :: b2
+    real(rkx) , dimension(jx,iy,llev) :: b3
+    real(rkx) , dimension(nlat) :: hlat
+    real(rkx) , dimension(nlon) :: hlon
     intent (in) alat , alon , b2 , hlat , hlon , iy , jx , llev , nlat , nlon
     intent (out) b3
-    real(rk8) :: ave , p1 , p2 , q1 , q2
+    real(rkx) :: ave , p1 , p2 , q1 , q2
     integer(ik4) :: i , i1 , i2 , ii , j , j1 , j2 , jj , l
     !
     ! PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
@@ -295,7 +301,7 @@ module mod_interp
             do ii = 1 , nlon
               ave = ave + b2(ii,1,l)
             end do
-            ave = ave/dble(nlon)
+            ave = ave/real(nlon,rkx)
             b3(j,i,l) = ((ave*(p1+p2))*q2+(b2(i1,j2,l)*p2+b2(i2,j2,l)* &
                                        p1)*q1)/(p1+p2)/(q1+q2)
           end do
@@ -305,7 +311,7 @@ module mod_interp
             do ii = 1 , nlon
               ave = ave + b2(ii,nlat,l)
             end do
-            ave = ave/dble(nlon)
+            ave = ave/real(nlon,rkx)
             b3(j,i,l) = ((b2(i1,j1,l)*p2+b2(i2,j1,l)*p1)*q2+ &
                          (ave*(p1+p2))*q1)/(p1+p2)/(q1+q2)
           end do
@@ -318,14 +324,14 @@ module mod_interp
   subroutine bilinx2_2d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlon
-    real(rk8) , dimension(jx,iy) :: alat , alon
-    real(rk8) , dimension(nlon,nlat) :: b2
-    real(rk8) , dimension(jx,iy) :: b3
-    real(rk8) , dimension(nlat) :: hlat
-    real(rk8) , dimension(nlon) :: hlon
+    real(rkx) , dimension(jx,iy) :: alat , alon
+    real(rkx) , dimension(nlon,nlat) :: b2
+    real(rkx) , dimension(jx,iy) :: b3
+    real(rkx) , dimension(nlat) :: hlat
+    real(rkx) , dimension(nlon) :: hlon
     intent (in) alat , alon , b2 , hlat , hlon , iy , jx , nlat , nlon
     intent (out) b3
-    real(rk8) :: ave , p1 , p2 , q1 , q2
+    real(rkx) :: ave , p1 , p2 , q1 , q2
     integer(ik4) :: i , i1 , i2 , ii , j , j1 , j2 , jj
     !
     ! PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
@@ -441,7 +447,7 @@ module mod_interp
           do ii = 1 , nlon
             ave = ave + b2(ii,1)
           end do
-          ave = ave/dble(nlon)
+          ave = ave/real(nlon,rkx)
           b3(j,i) = ((ave*(p1+p2))*q2+(b2(i1,j2)*p2 + &
                       b2(i2,j2)*p1)*q1)/(p1+p2)/(q1+q2)
         else if ( j1 == nlat ) then
@@ -449,7 +455,7 @@ module mod_interp
           do ii = 1 , nlon
             ave = ave + b2(ii,nlat)
           end do
-          ave = ave/dble(nlon)
+          ave = ave/real(nlon,rkx)
           b3(j,i) = ((b2(i1,j1)*p2+b2(i2,j1)*p1)*q2 + &
                      (ave*(p1+p2))*q1)/(p1+p2)/(q1+q2)
         end if
@@ -461,20 +467,20 @@ module mod_interp
                      i1dl,i1dr,i1ul,i1ur,j1dl,j1dr,j1ul,j1ur, &
                      jx,iy,nlon,nlat)
     integer(ik4) , intent(in) :: iy , jx , nlat , nlon
-    real(rk8) , dimension(jx,iy) , intent(in) :: alat , alon
-    real(rk8) , dimension(nlon,nlat) , intent(in) :: glat , glon
-    real(rk8) , dimension(jx,iy) , intent(out) :: d1xa , d1xb , d1xc , d1xd
+    real(rkx) , dimension(jx,iy) , intent(in) :: alat , alon
+    real(rkx) , dimension(nlon,nlat) , intent(in) :: glat , glon
+    real(rkx) , dimension(jx,iy) , intent(out) :: d1xa , d1xb , d1xc , d1xd
     integer(ik4) , dimension(jx,iy) , intent(out) :: i1dl , i1dr , &
       i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
-    real(rk8) :: dist , wa , wb , wc , wd , distx
-    real(rk8) , dimension(2) :: dists
+    real(rkx) :: dist , wa , wb , wc , wd , distx
+    real(rkx) , dimension(2) :: dists
     integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
                ndr , nul , nur , mx , nx , mm , nn
     logical , dimension(4) :: q
     do i = 1 , iy
       do j = 1 , jx
         ! Find nearest point
-        distx = 1.0D+20
+        distx = 1.0e+20_rkx
         mx = -1
         nx = -1
         do n = 1 , nlat
@@ -676,13 +682,13 @@ module mod_interp
                   i1dl,i1dr,i1ul,i1ur,j1dl,j1dr,j1ul,j1ur)
     implicit none
     integer(ik4) , intent(in) :: nlon , nlat , jx , iy
-    real(rk8) , dimension(nlon,nlat) , intent(in) :: b2
-    real(rk8) , dimension(jx,iy) , intent(out) :: b3
-    real(rk8) , dimension(jx,iy) , intent(in) :: d1xa , d1xb , d1xc , d1xd
+    real(rkx) , dimension(nlon,nlat) , intent(in) :: b2
+    real(rkx) , dimension(jx,iy) , intent(out) :: b3
+    real(rkx) , dimension(jx,iy) , intent(in) :: d1xa , d1xb , d1xc , d1xd
     integer(ik4) , dimension(jx,iy) , intent(in) :: i1dl , i1dr , &
       i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
-    real(rk8) :: wa , wb , wc , wd , wg
-    real(rk8) , dimension(4) :: vv
+    real(rkx) :: wa , wb , wc , wd , wg
+    real(rkx) , dimension(4) :: vv
     integer(ik4) :: ifound
     integer(ik4) :: i , j , mdl , mdr , mul , mur , ndl , ndr , nul , nur
 
@@ -735,10 +741,10 @@ module mod_interp
   subroutine distwgtcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlon
-    real(rk8) , dimension(jx,iy) :: alat , alon
-    real(rk8) , dimension(jx,iy) :: b3
-    real(rk8) , dimension(nlon,nlat) :: glat , glon
-    real(rk8) , dimension(nlon,nlat) :: b2
+    real(rkx) , dimension(jx,iy) :: alat , alon
+    real(rkx) , dimension(jx,iy) :: b3
+    real(rkx) , dimension(nlon,nlat) :: glat , glon
+    real(rkx) , dimension(nlon,nlat) :: b2
     intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
     intent (out) b3
     !
@@ -767,8 +773,8 @@ module mod_interp
       write (stdout,*) glonmn , alonmn , alonmx , glonmx
       write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX= '
       write (stdout,*) glatmn , alatmn , alatmx , glatmx
-      if ( glonmx - glonmn > 350.0D0 ) lonwrap = .true.
-      if ( glatmx - glatmn > 170.0D0 ) latpole = .true.
+      if ( glonmx - glonmn > 350.0_rkx ) lonwrap = .true.
+      if ( glatmx - glatmn > 170.0_rkx ) latpole = .true.
       imxmn = 1
     end if
     if ( lcross == 0 ) then
@@ -799,10 +805,10 @@ module mod_interp
   subroutine distwgtdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlon
-    real(rk8) , dimension(jx,iy) :: alat , alon
-    real(rk8) , dimension(jx,iy) :: b3
-    real(rk8) , dimension(nlon,nlat) :: glat , glon
-    real(rk8) , dimension(nlon,nlat) :: b2
+    real(rkx) , dimension(jx,iy) :: alat , alon
+    real(rkx) , dimension(jx,iy) :: b3
+    real(rkx) , dimension(nlon,nlat) :: glat , glon
+    real(rkx) , dimension(nlon,nlat) :: b2
     intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
     intent (out) b3
     !
@@ -831,8 +837,8 @@ module mod_interp
       write (stdout,*) glonmn , alonmn , alonmx , glonmx
       write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX= '
       write (stdout,*) glatmn , alatmn , alatmx , glatmx
-      if ( glonmx - glonmn > 350.0D0 ) lonwrap = .true.
-      if ( glatmx - glatmn > 170.0D0 ) latpole = .true.
+      if ( glonmx - glonmn > 350.0_rkx ) lonwrap = .true.
+      if ( glatmx - glatmn > 170.0_rkx ) latpole = .true.
       imxmn = 1
     end if
     if ( ldot == 0 ) then
@@ -863,10 +869,10 @@ module mod_interp
   subroutine cressmcr3d(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlev , nlon , nf
-    real(rk8) , dimension(jx,iy) :: alat , alon
-    real(rk8) , dimension(jx,iy,nlev*nf) :: b3
-    real(rk8) , dimension(nlon,nlat) :: glat , glon
-    real(rk8) , dimension(nlon,nlat,nlev*nf) :: b2
+    real(rkx) , dimension(jx,iy) :: alat , alon
+    real(rkx) , dimension(jx,iy,nlev*nf) :: b3
+    real(rkx) , dimension(nlon,nlat) :: glat , glon
+    real(rkx) , dimension(nlon,nlat,nlev*nf) :: b2
     intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
                 nlev , nlon , nf
     intent (out) b3
@@ -883,10 +889,10 @@ module mod_interp
   subroutine cressmcr2d(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlon
-    real(rk8) , dimension(jx,iy) :: alat , alon
-    real(rk8) , dimension(jx,iy) :: b3
-    real(rk8) , dimension(nlon,nlat) :: glat , glon
-    real(rk8) , dimension(nlon,nlat) :: b2
+    real(rkx) , dimension(jx,iy) :: alat , alon
+    real(rkx) , dimension(jx,iy) :: b3
+    real(rkx) , dimension(nlon,nlat) :: glat , glon
+    real(rkx) , dimension(nlon,nlat) :: b2
     intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
     intent (out) b3
 
@@ -896,10 +902,10 @@ module mod_interp
   subroutine cressmdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlev , nlon , nf
-    real(rk8) , dimension(jx,iy) :: alat , alon
-    real(rk8) , dimension(jx,iy,nlev*nf) :: b3
-    real(rk8) , dimension(nlon,nlat) :: glat , glon
-    real(rk8) , dimension(nlon,nlat,nlev*nf) :: b2
+    real(rkx) , dimension(jx,iy) :: alat , alon
+    real(rkx) , dimension(jx,iy,nlev*nf) :: b3
+    real(rkx) , dimension(nlon,nlat) :: glat , glon
+    real(rkx) , dimension(nlon,nlat,nlev*nf) :: b2
     intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat ,     &
                 nlev , nlon , nf
     intent (out) b3
@@ -913,10 +919,10 @@ module mod_interp
     end do
   end subroutine cressmdt
 
-  real(rk8) function gcdist_simple(lat1,lon1,lat2,lon2)
+  real(rkx) function gcdist_simple(lat1,lon1,lat2,lon2)
     implicit none
-    real(rk8) , intent(in) :: lat1 , lon1 , lat2, lon2
-    real(rk8) :: clat1 , slat1 , clat2 , slat2 , cdlon , crd
+    real(rkx) , intent(in) :: lat1 , lon1 , lat2, lon2
+    real(rkx) :: clat1 , slat1 , clat2 , slat2 , cdlon , crd
     clat1 = cos(lat1*degrad)
     slat1 = sin(lat1*degrad)
     clat2 = cos(lat2*degrad)
@@ -927,11 +933,11 @@ module mod_interp
     gcdist_simple = earthrad*acos(crd)*d_r1000
   end function gcdist_simple
 
-  real(rk8) function gcdist(lat1,lon1,lat2,lon2)
+  real(rkx) function gcdist(lat1,lon1,lat2,lon2)
     implicit none
-    real(rk8) , intent(in) :: lat1 , lon1 , lat2, lon2
-    real(rk8) :: clat1 , slat1 , clat2 , slat2 , cdlon , sdlon
-    real(rk8) :: y , x
+    real(rkx) , intent(in) :: lat1 , lon1 , lat2, lon2
+    real(rkx) :: clat1 , slat1 , clat2 , slat2 , cdlon , sdlon
+    real(rkx) :: y , x
     clat1 = cos(lat1*degrad)
     slat1 = sin(lat1*degrad)
     clat2 = cos(lat2*degrad)
@@ -947,28 +953,28 @@ module mod_interp
   subroutine kernsmooth2(f,nx,ny,npass)
     implicit none
     integer(ik4) , intent(in) :: nx , ny , npass
-    real(rk8) , dimension(nx,ny) , intent(inout) :: f
+    real(rkx) , dimension(nx,ny) , intent(inout) :: f
     integer(ik4) :: i , j , n
-    real(rk8) , dimension(nx,ny) :: newf
+    real(rkx) , dimension(nx,ny) :: newf
     do n = 1 , npass
       do j = 2 , ny - 1
         do i = 2 , nx - 1
           newf(i,j) = (f(i+1,j-1) + f(i+1,j) + f(i+1,j+1) + &
-            f(i,j-1) + f(i,j) * 4.0D0 + f(i,j+1) + &
-            f(i-1,j-1) + f(i-1,j) + f(i-1,j+1)) / 12.0D0
+            f(i,j-1) + f(i,j) * 4.0_rkx + f(i,j+1) + &
+            f(i-1,j-1) + f(i-1,j) + f(i-1,j+1)) / 12.0_rkx
         end do
       end do
       do j = 2 , ny-1
-        newf(1,j) = (f(1,j-1) + f(1,j) * 7.0D0 + f(1,j+1) + &
-          f(2,j-1) + f(2,j) + f(2,j+1)) / 12.0D0
-        newf(nx,j) = (f(nx,j-1) + f(nx,j) * 7.0D0 + f(nx,j+1) + &
-          f(nx-1,j-1) + f(nx-1,j) + f(nx-1,j+1)) / 12.0D0
+        newf(1,j) = (f(1,j-1) + f(1,j) * 7.0_rkx + f(1,j+1) + &
+          f(2,j-1) + f(2,j) + f(2,j+1)) / 12.0_rkx
+        newf(nx,j) = (f(nx,j-1) + f(nx,j) * 7.0_rkx + f(nx,j+1) + &
+          f(nx-1,j-1) + f(nx-1,j) + f(nx-1,j+1)) / 12.0_rkx
       end do
       do i = 2 , nx-1
-        newf(i,1) = (f(i-1,1) + f(i,1) * 7.0D0 + f(i+1,1) + &
-          f(i-1,2) + f(i,2) + f(i+1,2)) / 12.0D0
-        newf(i,ny) = (f(i-1,ny) + f(i,ny) * 7.0D0 + f(i+1,ny) + &
-          f(i-1,ny-1) + f(i,ny-1) + f(i+1,ny-1)) / 12.0D0
+        newf(i,1) = (f(i-1,1) + f(i,1) * 7.0_rkx + f(i+1,1) + &
+          f(i-1,2) + f(i,2) + f(i+1,2)) / 12.0_rkx
+        newf(i,ny) = (f(i-1,ny) + f(i,ny) * 7.0_rkx + f(i+1,ny) + &
+          f(i-1,ny-1) + f(i,ny-1) + f(i+1,ny-1)) / 12.0_rkx
       end do
       newf(1,1) = f(1,1)
       newf(nx,1) = f(nx,1)
@@ -981,29 +987,29 @@ module mod_interp
   subroutine kernsmooth3(f,nx,ny,nz,npass)
     implicit none
     integer(ik4) , intent(in) :: nx , ny , nz , npass
-    real(rk8) , dimension(nx,ny,nz) , intent(inout) :: f
+    real(rkx) , dimension(nx,ny,nz) , intent(inout) :: f
     integer(ik4) :: i , j , k , n
-    real(rk8) , dimension(nx,ny) :: newf
+    real(rkx) , dimension(nx,ny) :: newf
     do n = 1 , npass
       do k = 1 , nz
         do j = 2 , ny - 1
           do i = 2 , nx - 1
             newf(i,j) = (f(i+1,j-1,k) + f(i+1,j,k) + f(i+1,j+1,k) + &
-              f(i,j-1,k) + f(i,j,k) * 4.0D0 + f(i,j+1,k) + &
-              f(i-1,j-1,k) + f(i-1,j,k) + f(i-1,j+1,k)) / 12.0D0
+              f(i,j-1,k) + f(i,j,k) * 4.0_rkx + f(i,j+1,k) + &
+              f(i-1,j-1,k) + f(i-1,j,k) + f(i-1,j+1,k)) / 12.0_rkx
           end do
         end do
         do j = 2 , ny-1
-          newf(1,j) = (f(1,j-1,k) + f(1,j,k) * 7.0D0 + f(1,j+1,k) + &
-            f(2,j-1,k) + f(2,j,k) + f(2,j+1,k)) / 12.0D0
-          newf(nx,j) = (f(nx,j-1,k) + f(nx,j,k) * 7.0D0 + f(nx,j+1,k) + &
-            f(nx-1,j-1,k) + f(nx-1,j,k) + f(nx-1,j+1,k)) / 12.0D0
+          newf(1,j) = (f(1,j-1,k) + f(1,j,k) * 7.0_rkx + f(1,j+1,k) + &
+            f(2,j-1,k) + f(2,j,k) + f(2,j+1,k)) / 12.0_rkx
+          newf(nx,j) = (f(nx,j-1,k) + f(nx,j,k) * 7.0_rkx + f(nx,j+1,k) + &
+            f(nx-1,j-1,k) + f(nx-1,j,k) + f(nx-1,j+1,k)) / 12.0_rkx
         end do
         do i = 2 , nx-1
-          newf(i,1) = (f(i-1,1,k) + f(i,1,k) * 7.0D0 + f(i+1,1,k) + &
-            f(i-1,2,k) + f(i,2,k) + f(i+1,2,k)) / 12.0D0
-          newf(i,ny) = (f(i-1,ny,k) + f(i,ny,k) * 7.0D0 + f(i+1,ny,k) + &
-            f(i-1,ny-1,k) + f(i,ny-1,k) + f(i+1,ny-1,k)) / 12.0D0
+          newf(i,1) = (f(i-1,1,k) + f(i,1,k) * 7.0_rkx + f(i+1,1,k) + &
+            f(i-1,2,k) + f(i,2,k) + f(i+1,2,k)) / 12.0_rkx
+          newf(i,ny) = (f(i-1,ny,k) + f(i,ny,k) * 7.0_rkx + f(i+1,ny,k) + &
+            f(i-1,ny-1,k) + f(i,ny-1,k) + f(i+1,ny-1,k)) / 12.0_rkx
         end do
         newf(1,1) = f(1,1,k)
         newf(nx,1) = f(nx,1,k)

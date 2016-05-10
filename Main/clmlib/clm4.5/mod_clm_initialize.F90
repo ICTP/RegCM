@@ -215,11 +215,11 @@ module mod_clm_initialize
     integer(ik4) :: begl , endl   ! beg and ending landunit indices
     integer(ik4) :: begg , endg   ! beg and ending gridcell indices
     character(len=256) :: fnamer  ! name of netcdf restart file
-    real(rk8) :: calday           ! calendar day
-    real(rk8) :: caldaym1         ! calendar day for nstep-1
-    real(rk8) :: declin           ! solar declination angle in radians
-    real(rk8) :: declinm1         ! solar declination angle in radians
-    real(rk8) :: eccf             ! earth orbit eccentricity factor
+    real(rkx) :: calday           ! calendar day
+    real(rkx) :: caldaym1         ! calendar day for nstep-1
+    real(rkx) :: declin           ! solar declination angle in radians
+    real(rkx) :: declinm1         ! solar declination angle in radians
+    real(rkx) :: eccf             ! earth orbit eccentricity factor
 
     ! ------------------------------------------------------------------------
     ! Initialize time constant variables

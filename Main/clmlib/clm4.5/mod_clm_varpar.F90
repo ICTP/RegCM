@@ -102,7 +102,7 @@ module mod_clm_varpar
   ! biogeochemically inactive)
   integer(ik4) , public :: nlevdecomp_full
 
-  real(rk8) , public :: outfrq
+  real(rkx) , public :: outfrq
 
   ! -------------------------------------------------------
   ! Module Varaibles (initialized in clm_varpar_init)
@@ -150,7 +150,7 @@ module mod_clm_varpar
   integer(ik4) , public :: npatch_urban_md
 
   ! Machine epsilon
-  real(rk8) , public :: mach_eps
+  real(rkx) , public :: mach_eps
 
   public :: clm_varpar_init          ! set parameters
 
@@ -168,7 +168,7 @@ module mod_clm_varpar
     npatch_wet     = npatch_lake  + 1
     npatch_glacier = npatch_wet   + 1
     maxpatch       = npatch_glacier
-    mach_eps       = epsilon(1.0D0)
+    mach_eps       = epsilon(1.0_rkx)
 
     max_pft_per_gcell = numpft+1 + 3 + maxpatch_urb*numurbl
 #if (defined CROP)

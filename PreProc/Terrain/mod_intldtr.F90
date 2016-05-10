@@ -30,37 +30,37 @@ module mod_intldtr
 
   public :: interp , filter1plakes
 
-  real(rk8) , dimension(4,4) :: c
-  real(rk8) , dimension(16,16) :: wt
+  real(rkx) , dimension(4,4) :: c
+  real(rkx) , dimension(16,16) :: wt
   integer(ik4) , parameter :: maxbins = 20
   integer(ik4) , dimension(maxbins) :: bincnt
-  real(rk8) , dimension(maxbins) :: bmindist
+  real(rkx) , dimension(maxbins) :: bmindist
   logical , dimension(2,maxbins) :: lndwt
 
-  data wt/1.0D0 , 0.0D0 , -3.0D0 , 2.0D0 , 4*0.0D0 , -3.0D0 ,   &
-          0.0D0 , 9.0D0 , -6.0D0 , 2.0D0 , 0.0D0 , -6.0D0 ,     &
-          4.0D0 , 8*0.0D0 , 3.0D0 , 0.0D0 , -9.0D0 , 6.0D0 ,    &
-         -2.0D0 , 0.0D0 , 6.0D0 , -4.0D0 , 10*0.0D0 , 9.0D0 ,   &
-         -6.0D0 , 2*0.0D0 , -6.0D0 , 4.0D0 , 2*0.0D0 , 3.0D0 ,  &
-         -2.0D0 , 6*0.0D0 , -9.0D0 , 6.0D0 , 2*0.0D0 , 6.0D0 ,  &
-         -4.0D0 , 4*0.0D0 , 1.0D0 , 0.0D0 , -3.0D0 , 2.0D0 ,    &
-         -2.0D0 , 0.0D0 , 6.0D0 , -4.0D0 , 1.0D0 , 0.0D0 ,      &
-         -3.0D0 , 2.0D0 , 8*0.0D0 , -1.0D0 , 0.0D0 , 3.0D0 ,    &
-         -2.0D0 , 1.0D0 , 0.0D0 , -3.0D0 , 2.0D0 , 10*0.0D0 ,   &
-         -3.0D0 , 2.0D0 , 2*0.0D0 , 3.0D0 , -2.0D0 , 6*0.0D0 ,  &
-          3.0D0 , -2.0D0 , 2*0.0D0 , -6.0D0 , 4.0D0 , 2*0.0D0 , &
-          3.0D0 , -2.0D0 , 0.0D0 , 1.0D0 , -2.0D0 , 1.0D0 ,     &
-          5*0.0D0 , -3.0D0 , 6.0D0 , -3.0D0 , 0.0D0 , 2.0D0 ,   &
-         -4.0D0 , 2.0D0 , 9*0.0D0 , 3.0D0 , -6.0D0 , 3.0D0 ,    &
-          0.0D0 , -2.0D0 , 4.0D0 , -2.0D0 , 10*0.0D0 , -3.0D0 , &
-          3.0D0 , 2*0.0D0 , 2.0D0 , -2.0D0 , 2*0.0D0 , -1.0D0 , &
-          1.0D0 , 6*0.0D0 , 3.0D0 , -3.0D0 , 2*0.0D0 , -2.0D0 , &
-          2.0D0 , 5*0.0D0 , 1.0D0 , -2.0D0 , 1.0D0 , 0.0D0 ,    &
-         -2.0D0 , 4.0D0 , -2.0D0 , 0.0D0 , 1.0D0 , -2.0D0 ,     &
-          1.0D0 , 9*0.0D0 , -1.0D0 , 2.0D0 , -1.0D0 , 0.0D0 ,   &
-          1.0D0 , -2.0D0 , 1.0D0 , 10*0.0D0 , 1.0D0 , -1.0D0 ,  &
-          2*0.0D0 , -1.0D0 , 1.0D0 , 6*0.0D0 , -1.0D0 , 1.0D0 , &
-          2*0.0D0 , 2.0D0 , -2.0D0 , 2*0.0D0 , -1.0D0 , 1.0D0/
+  data wt/1.0_rkx , 0.0_rkx , -3.0_rkx , 2.0_rkx , 4*0.0_rkx , -3.0_rkx ,   &
+          0.0_rkx , 9.0_rkx , -6.0_rkx , 2.0_rkx , 0.0_rkx , -6.0_rkx ,     &
+          4.0_rkx , 8*0.0_rkx , 3.0_rkx , 0.0_rkx , -9.0_rkx , 6.0_rkx ,    &
+         -2.0_rkx , 0.0_rkx , 6.0_rkx , -4.0_rkx , 10*0.0_rkx , 9.0_rkx ,   &
+         -6.0_rkx , 2*0.0_rkx , -6.0_rkx , 4.0_rkx , 2*0.0_rkx , 3.0_rkx ,  &
+         -2.0_rkx , 6*0.0_rkx , -9.0_rkx , 6.0_rkx , 2*0.0_rkx , 6.0_rkx ,  &
+         -4.0_rkx , 4*0.0_rkx , 1.0_rkx , 0.0_rkx , -3.0_rkx , 2.0_rkx ,    &
+         -2.0_rkx , 0.0_rkx , 6.0_rkx , -4.0_rkx , 1.0_rkx , 0.0_rkx ,      &
+         -3.0_rkx , 2.0_rkx , 8*0.0_rkx , -1.0_rkx , 0.0_rkx , 3.0_rkx ,    &
+         -2.0_rkx , 1.0_rkx , 0.0_rkx , -3.0_rkx , 2.0_rkx , 10*0.0_rkx ,   &
+         -3.0_rkx , 2.0_rkx , 2*0.0_rkx , 3.0_rkx , -2.0_rkx , 6*0.0_rkx ,  &
+          3.0_rkx , -2.0_rkx , 2*0.0_rkx , -6.0_rkx , 4.0_rkx , 2*0.0_rkx , &
+          3.0_rkx , -2.0_rkx , 0.0_rkx , 1.0_rkx , -2.0_rkx , 1.0_rkx ,     &
+          5*0.0_rkx , -3.0_rkx , 6.0_rkx , -3.0_rkx , 0.0_rkx , 2.0_rkx ,   &
+         -4.0_rkx , 2.0_rkx , 9*0.0_rkx , 3.0_rkx , -6.0_rkx , 3.0_rkx ,    &
+          0.0_rkx , -2.0_rkx , 4.0_rkx , -2.0_rkx , 10*0.0_rkx , -3.0_rkx , &
+          3.0_rkx , 2*0.0_rkx , 2.0_rkx , -2.0_rkx , 2*0.0_rkx , -1.0_rkx , &
+          1.0_rkx , 6*0.0_rkx , 3.0_rkx , -3.0_rkx , 2*0.0_rkx , -2.0_rkx , &
+          2.0_rkx , 5*0.0_rkx , 1.0_rkx , -2.0_rkx , 1.0_rkx , 0.0_rkx ,    &
+         -2.0_rkx , 4.0_rkx , -2.0_rkx , 0.0_rkx , 1.0_rkx , -2.0_rkx ,     &
+          1.0_rkx , 9*0.0_rkx , -1.0_rkx , 2.0_rkx , -1.0_rkx , 0.0_rkx ,   &
+          1.0_rkx , -2.0_rkx , 1.0_rkx , 10*0.0_rkx , 1.0_rkx , -1.0_rkx ,  &
+          2*0.0_rkx , -1.0_rkx , 1.0_rkx , 6*0.0_rkx , -1.0_rkx , 1.0_rkx , &
+          2*0.0_rkx , 2.0_rkx , -2.0_rkx , 2*0.0_rkx , -1.0_rkx , 1.0_rkx/
 
    data lndwt /26*.false.,.true.,.true.,.true.,11*.false./
 
@@ -68,7 +68,7 @@ module mod_intldtr
 
   integer(ik4) function inear(x,m,lwrap)
     implicit none
-    real(rk8) , intent(in) :: x
+    real(rkx) , intent(in) :: x
     integer(ik4) , intent(in) :: m
     logical , intent(in) :: lwrap
     if (.not. lwrap) then
@@ -86,14 +86,14 @@ module mod_intldtr
 
   integer(ik4) function jnear(y,n)
     implicit none
-    real(rk8) , intent(in) :: y
+    real(rkx) , intent(in) :: y
     integer(ik4) , intent(in) :: n
     jnear = min(max(nint(y),1),n)
   end function jnear
 
   integer(ik4) function ifloor(x,m,lwrap)
     implicit none
-    real(rk8) , intent(in) :: x
+    real(rkx) , intent(in) :: x
     integer(ik4) , intent(in) :: m
     logical , intent(in) :: lwrap
     if (.not. lwrap) then
@@ -111,30 +111,30 @@ module mod_intldtr
 
   integer(ik4) function jfloor(y,n)
     implicit none
-    real(rk8) , intent(in) :: y
+    real(rkx) , intent(in) :: y
     integer(ik4) , intent(in) :: n
     jfloor = min(max(floor(y),1),n)
   end function jfloor
 
-  real(rk8) function nearpoint(x,y,m,n,grid,lwrap)
+  real(rkx) function nearpoint(x,y,m,n,grid,lwrap)
     implicit none
     integer(ik4) , intent(in) :: m , n
-    real(rk8) , intent(in) :: x , y
+    real(rkx) , intent(in) :: x , y
     logical , intent(in) :: lwrap
-    real(rk8) , intent(in) , dimension(m,n) :: grid
+    real(rkx) , intent(in) , dimension(m,n) :: grid
     nearpoint = grid(inear(x,m,lwrap),jnear(y,n))
   end function nearpoint
 
-  real(rk8) function mostaround(x,y,m,n,grid,nbox,ibnty,h2opct,lwrap)
+  real(rkx) function mostaround(x,y,m,n,grid,nbox,ibnty,h2opct,lwrap)
     implicit none
     integer(ik4) , intent(in) :: m , n , nbox , ibnty
-    real(rk8) , intent(in) :: x , y
+    real(rkx) , intent(in) :: x , y
     logical , intent(in) :: lwrap
-    real(rk8) , intent(in) , dimension(m,n) :: grid
-    real(rk8) , intent(in) :: h2opct
+    real(rkx) , intent(in) , dimension(m,n) :: grid
+    real(rkx) , intent(in) :: h2opct
 
-    real(rk8) , dimension(nbox*nbox) :: binval , bindist
-    real(rk8) :: dist , rx , ry , wtp
+    real(rkx) , dimension(nbox*nbox) :: binval , bindist
+    real(rkx) :: dist , rx , ry , wtp
     integer(ik4) :: ii0 , jj0 , ii , jj
     integer(ik4) :: totpoints , i , j , lastc , hbox
 
@@ -144,8 +144,8 @@ module mod_intldtr
     jj0 = jfloor(y,n)-hbox
     do i = 1 , nbox
       do j = 1 , nbox
-        rx = dble(ii0 + i - 1)
-        ry = dble(jj0 + j - 1)
+        rx = real(ii0 + i - 1,rkx)
+        ry = real(jj0 + j - 1,rkx)
         ii = ifloor(rx,m,lwrap)
         jj = jfloor(ry,n)
         binval((i-1)*nbox+j) = grid(ii,jj)
@@ -153,15 +153,15 @@ module mod_intldtr
       end do
     end do
     bincnt = 0
-    bmindist = d_two*dble(nbox)
+    bmindist = d_two*real(nbox,rkx)
     do i = 1 , totpoints
       bincnt(int(binval(i))) = bincnt(int(binval(i))) + 1
       if (bindist(i) < bmindist(int(binval(i)))) &
         bmindist(int(binval(i))) = bindist(i)
     end do
     ! Set point to land if less than fixed percent of water
-    wtp = (dble(sum(bincnt,mask=lndwt(ibnty,:)))/dble(totpoints))*d_100
-    if (wtp > d_zero .and. wtp < 100.0D0-h2opct) then
+    wtp = (real(sum(bincnt,mask=lndwt(ibnty,:)),rkx)/real(totpoints,rkx))*d_100
+    if (wtp > d_zero .and. wtp < 100.0_rkx-h2opct) then
       if (ibnty == 1) then
         bincnt(14) = 0
         bincnt(15) = 0
@@ -175,12 +175,12 @@ module mod_intldtr
     do i = 1 , maxbins
       if (bincnt(i) > 0) then
         if (bincnt(i) > lastc) then
-          mostaround = dble(i)
+          mostaround = real(i,rkx)
           dist = bmindist(i)
           lastc = bincnt(i)
         else if (bincnt(i) == lastc) then
           if (bmindist(i) < dist) then
-            mostaround = dble(i)
+            mostaround = real(i,rkx)
             dist = bmindist(i)
             lastc = bincnt(i)
           end if
@@ -189,24 +189,24 @@ module mod_intldtr
     end do
   end function mostaround
 
-  real(rk8) function pctaround(x,y,m,n,grid,nbox,ival,lwrap)
+  real(rkx) function pctaround(x,y,m,n,grid,nbox,ival,lwrap)
     implicit none
     integer(ik4) , intent(in) :: m , n , ival , nbox
-    real(rk8) , intent(in) :: x , y
+    real(rkx) , intent(in) :: x , y
     logical , intent(in) :: lwrap
-    real(rk8) , intent(in) , dimension(m,n) :: grid
+    real(rkx) , intent(in) , dimension(m,n) :: grid
     integer(ik4) :: ii0 , jj0 , ii , jj
     integer(ik4) :: i , j
-    real(rk8) :: rx , ry , pc
+    real(rkx) :: rx , ry , pc
 
     pctaround = d_zero
-    pc = dble(nbox*nbox)
+    pc = real(nbox*nbox,rkx)
     ii0 = ifloor(x,m,lwrap)
     jj0 = jfloor(y,n)
     do i = 1 , nbox
       do j = 1 , nbox
-        rx = dble(ii0 + i - nbox/2)
-        ry = dble(jj0 + j - nbox/2)
+        rx = real(ii0 + i - nbox/2,rkx)
+        ry = real(jj0 + j - nbox/2,rkx)
         ii = ifloor(rx,m,lwrap)
         jj = jfloor(ry,n)
         if (int(grid(ii,jj)) == ival) then
@@ -217,29 +217,29 @@ module mod_intldtr
     pctaround = (pctaround / pc) * d_100
   end function pctaround
 
-  real(rk8) function bilinear(x,y,m,n,grid,lwrap)
+  real(rkx) function bilinear(x,y,m,n,grid,lwrap)
     implicit none
     integer(ik4) , intent(in) :: m , n
-    real(rk8) , intent(in) :: x , y
+    real(rkx) , intent(in) :: x , y
     logical , intent(in) :: lwrap
-    real(rk8) , intent(in) , dimension(m,n) :: grid
+    real(rkx) , intent(in) , dimension(m,n) :: grid
 
-    real(rk8) :: dx, dy, p12, p03
-    real(rk8) :: ii0, jj0, ii1, jj1, ii2, jj2, ii3, jj3
+    real(rkx) :: dx, dy, p12, p03
+    real(rkx) :: ii0, jj0, ii1, jj1, ii2, jj2, ii3, jj3
     integer(ik4) :: i0, j0, i1, j1, i2, j2, i3, j3
 
     !-----bilinear interpolation among four grid values
 
     if (.not. lwrap) then
-      ii0 = dble(min(max(floor(x),1),m))
-      ii2 = dble(min(max(ceiling(x),1),m))
+      ii0 = real(min(max(floor(x),1),m),rkx)
+      ii2 = real(min(max(ceiling(x),1),m),rkx)
       dx = (x-ii0)
     else
       ii0 = floor(x)
       ii2 = ceiling(x)
       dx = (x-ii0)
       if (ii0 < 1) then
-        ii0 = dble(m)
+        ii0 = real(m,rkx)
       end if
       if (ii2 > m) then
         ii2 = d_one
@@ -247,10 +247,10 @@ module mod_intldtr
     end if
     ii1 = ii0
     ii3 = ii2
-    jj0 = dble(min(max(floor(y),1),n))
+    jj0 = real(min(max(floor(y),1),n),rkx)
     dy = (y-jj0)
     jj3 = jj0
-    jj1 = dble(min(max(ceiling(y),1),n))
+    jj1 = real(min(max(ceiling(y),1),n),rkx)
     jj2 = jj1
 
     i0 = int(ii0)
@@ -266,14 +266,14 @@ module mod_intldtr
     bilinear = dy*p12+(1-dy)*p03
   end function bilinear
 
-  real(rk8) function bicubic(x,y,m,n,grid,lwrap)
+  real(rkx) function bicubic(x,y,m,n,grid,lwrap)
     implicit none
     integer(ik4) , intent(in) :: m , n
-    real(rk8) , intent(in) :: x , y
+    real(rkx) , intent(in) :: x , y
     logical , intent(in) :: lwrap
-    real(rk8) , intent(in) , dimension(m,n) :: grid
-    real(rk8) , dimension(4) :: f , f1 , f12 , f2
-    real(rk8) :: xl , xu , yl , yu
+    real(rkx) , intent(in) , dimension(m,n) :: grid
+    real(rkx) , dimension(4) :: f , f1 , f12 , f2
+    real(rkx) :: xl , xu , yl , yu
     integer(ik4) :: i , ii , j , mm , nn , im , imp1 , imn1
 
     mm = int(x)
@@ -283,10 +283,10 @@ module mod_intldtr
     end if
     nn = max(2, min(n-2,nn))
 
-    xl = dble(mm)
-    xu = dble(mm + 1)
-    yl = dble(nn)
-    yu = dble(nn + 1)
+    xl = real(mm,rkx)
+    xu = real(mm + 1,rkx)
+    yl = real(nn,rkx)
+    yu = real(nn + 1,rkx)
     do j = nn , nn + 1
       do i = mm , mm + 1
         ii = 1 + (i-mm) + 3*(j-nn)
@@ -318,11 +318,11 @@ module mod_intldtr
 
   subroutine bcuint(y,y1,y2,y12,x1l,x1u,x2l,x2u,x1,x2,a)
     implicit none
-    real(rk8) , intent(in) :: x1 , x1l , x1u , x2 , x2l , x2u
-    real(rk8) , intent(out) :: a
-    real(rk8) , intent(in) , dimension(4) :: y , y1 , y12 , y2
+    real(rkx) , intent(in) :: x1 , x1l , x1u , x2 , x2l , x2u
+    real(rkx) , intent(out) :: a
+    real(rkx) , intent(in) , dimension(4) :: y , y1 , y12 , y2
     integer(ik4) :: i
-    real(rk8) :: t , u
+    real(rkx) :: t , u
 
     call bcucof(y,y1,y2,y12,x1u-x1l,x2u-x2l)
     t = (x1-x1l)/(x1u-x1l)
@@ -335,10 +335,10 @@ module mod_intldtr
 
   subroutine bcucof(y,y1,y2,y12,d1,d2)
     implicit none
-    real(rk8) , intent(in) :: d1 , d2
-    real(rk8) , intent(in) , dimension(4) :: y , y1 , y12 , y2
-    real(rk8) , dimension(16) :: cl , x
-    real(rk8) :: d1d2 , xx
+    real(rkx) , intent(in) :: d1 , d2
+    real(rkx) , intent(in) , dimension(4) :: y , y1 , y12 , y2
+    real(rkx) , dimension(16) :: cl , x
+    real(rkx) :: d1d2 , xx
     integer(ik4) :: i , j , k , l
     d1d2 = d1*d2
     do i = 1 , 4
@@ -369,19 +369,19 @@ module mod_intldtr
                     ntypec,itype,lwrap,lcross,ival,ibnty,h2opct)
     implicit none
     integer(ik4) , intent(in) :: iy , jx , iniy , injx , ntypec , itype
-    real(rk8) , intent(in) , dimension(jx,iy) :: xlat , xlon
-    real(rk8) , intent(in) , dimension(injx,iniy) :: imt
-    real(rk8) , intent(in) :: milat , milon
+    real(rkx) , intent(in) , dimension(jx,iy) :: xlat , xlon
+    real(rkx) , intent(in) , dimension(injx,iniy) :: imt
+    real(rkx) , intent(in) :: milat , milon
     logical , intent(in) :: lwrap , lcross
     integer(ik4) , intent(in) , optional :: ival
     integer(ik4) , intent(in) , optional :: ibnty
-    real(rk8) , intent(in) , optional :: h2opct
-    real(rk8) , intent(out) , dimension(jx,iy) :: omt
+    real(rkx) , intent(in) , optional :: h2opct
+    real(rkx) , intent(out) , dimension(jx,iy) :: omt
 
     integer(ik4) :: nbox , ii , jj
-    real(rk8) :: xx , yy , rinc , dd , dd1
+    real(rkx) :: xx , yy , rinc , dd , dd1
 
-    rinc = 60.0D0/dble(ntypec)
+    rinc = 60.0_rkx/real(ntypec,rkx)
 
     if (itype < 1 .or. itype > 5) then
       write(stderr,*) 'Unknown interpolation type'
@@ -461,7 +461,7 @@ module mod_intldtr
   subroutine filter1plakes(jx,iy,omt)
     implicit none
     integer(ik4) , intent(in) :: jx , iy
-    real(rk8) , intent(inout) , dimension(jx,iy) :: omt
+    real(rkx) , intent(inout) , dimension(jx,iy) :: omt
     integer(ik4) , dimension(maxbins) :: cnt
     integer(ik4) , dimension(9) :: around
     integer(ik4) , parameter :: ilake = 14
@@ -492,7 +492,7 @@ module mod_intldtr
               if (cnt(k) > mpindex) mpindex = k
             end do
             if (mpindex == 0) mpindex = iocn
-            omt(j,i) = dble(mpindex)
+            omt(j,i) = real(mpindex,rkx)
           end if
         end if
       end do

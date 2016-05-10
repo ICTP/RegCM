@@ -35,16 +35,16 @@ module mod_moist
   subroutine read_moist(fname,rmoist,snow,jx,iy,ns,lrmoist)
     implicit none
     character(len=256) , intent(in) :: fname
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: rmoist
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: snow
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: rmoist
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: snow
     integer(ik4) , intent(in) :: jx , iy , ns
     logical , intent(out) :: lrmoist
     integer(ik4) :: ncid , istat
     integer(ik4) :: dimid , njx , niy , nlev , ntime
     integer(ik4) :: idmoist , idsnow
     integer(ik4) :: istart(4) , icount(4)
-    real(rk8) , dimension(:,:,:) , allocatable :: moist_in
-    real(rk8) , dimension(:,:) , allocatable :: snow_in
+    real(rkx) , dimension(:,:,:) , allocatable :: moist_in
+    real(rkx) , dimension(:,:) , allocatable :: snow_in
 
     lrmoist = .false.
 

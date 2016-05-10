@@ -52,7 +52,7 @@ module mod_lm_interface
   private
 
   ! Coupling variables
-  real(rk8) :: runoffcount = 0.0D0
+  real(rkx) :: runoffcount = 0.0_rkx
   public :: lms
 
   public :: dtbat
@@ -81,7 +81,7 @@ module mod_lm_interface
 #endif
 
 #ifdef CLM45
-  real(rk8) , pointer , dimension(:,:) :: patm , tatm , uatm , vatm , &
+  real(rkx) , pointer , dimension(:,:) :: patm , tatm , uatm , vatm , &
     thatm , qvatm , zatm
 #endif
 
@@ -96,7 +96,7 @@ module mod_lm_interface
   subroutine allocate_surface_model
     implicit none
 
-    rdnnsg = d_one/dble(nnsg)
+    rdnnsg = d_one/real(nnsg,rkx)
 
     call getmem3d(lms%sent,1,nnsg,jci1,jci2,ici1,ici2,'lm:sent')
     call getmem3d(lms%evpr,1,nnsg,jci1,jci2,ici1,ici2,'lm:evpr')
@@ -276,7 +276,7 @@ module mod_lm_interface
     call allocate_mod_bats_internal(lndcomm)
     call allocate_mod_ocn_internal(ocncomm)
 
-    ntcpl  = idnint(cpldt/dtsec)
+    ntcpl  = nint(cpldt/dtsec)
     if ( idcsst   == 1 ) ldcsst   = .true.
     if ( lakemod  == 1 ) llake    = .true.
     if ( idesseas == 1 ) ldesseas = .true.
@@ -399,7 +399,7 @@ module mod_lm_interface
       ! CLM may have changed the landuse again !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          lm%iveg(j,i) = idnint(lm%lndcat(j,i))
+          lm%iveg(j,i) = nint(lm%lndcat(j,i))
         end do
       end do
       ! Correct land/water misalign : set to short grass
@@ -427,7 +427,7 @@ module mod_lm_interface
     implicit none
     integer(ik4) :: i , j , n , nn , ierr , i1 , i2
 #ifdef CLM45
-    real(rk8) :: tm , dz , dlnp , z1 , z2 , w1 , w2
+    real(rkx) :: tm , dz , dlnp , z1 , z2 , w1 , w2
 #endif
 #ifdef CLM
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
@@ -454,13 +454,13 @@ module mod_lm_interface
         vatm(j,i) = atms%vbx3d(j,i,kz)
         qvatm(j,i) = atms%qxb3d(j,i,kz,iqv)
         if ( zatm(j,i) < 35.0 ) then
-          zatm(j,i) = 35.0D0
+          zatm(j,i) = 35.0_rkx
           dz = zatm(j,i) - atms%za(j,i,kz)
           tm = d_half*(atms%tb3d(j,i,kz)+atms%tb3d(j,i,kzm1))
           dlnp = ((egrav*dz)/(rgas*tm))
           z1 = atms%za(j,i,kz)
           z2 = atms%za(j,i,kzm1)
-          w1 = (z2-35.0D0)/(z2-z1)
+          w1 = (z2-35.0_rkx)/(z2-z1)
           w2 = d_one - w1
           tatm(j,i) = atms%tb3d(j,i,kz)*w1 + atms%tb3d(j,i,kzm1)*w2
           thatm(j,i) = atms%th3d(j,i,kz)*w1 + atms%th3d(j,i,kzm1)*w2
@@ -545,7 +545,7 @@ module mod_lm_interface
           lm%sfracb2d(j,i) = d_one - (c2rfvegnosno(j,i)+c2rfracsno(j,i))
           lm%sfracs2d(j,i) = c2rfracsno(j,i)
           lm%ssw2da = sum(lms%ssw,1)*rdnnsg
-          lm%sxlai2d = 0.0D0
+          lm%sxlai2d = 0.0_rkx
         end do
       end do
 #else
@@ -566,7 +566,7 @@ module mod_lm_interface
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
-          if ( lms%tgrd(n,j,i) < 150.0D0 ) then
+          if ( lms%tgrd(n,j,i) < 150.0_rkx ) then
             write(stderr,*) 'Likely error: Surface temperature too low'
             write(stderr,*) 'MYID = ', myid
             write(stderr,*) 'J    = ',j
@@ -636,7 +636,7 @@ module mod_lm_interface
         expfie%tauy(j,i) = sum(lms%tauy(:,j,i))*rdnnsg
         expfie%sflx(j,i) = (sum(lms%evpr(:,j,i))-sum(lms%prcp(:,j,i)))*rdnnsg
         expfie%snow(j,i) = sum(lms%sncv(:,j,i))*rdnnsg
-        expfie%wspd(j,i) = dsqrt(expfie%wndu(j,i)**2+expfie%wndv(j,i)**2)
+        expfie%wspd(j,i) = sqrt(expfie%wndu(j,i)**2+expfie%wndv(j,i)**2)
         expfie%wdir(j,i) = atan2(expfie%wndu(j,i), expfie%wndv(j,i))
         if (expfie%wdir(j,i) < d_zero) then
           expfie%wdir(j,i) = expfie%wdir(j,i)+twopi
@@ -667,13 +667,13 @@ module mod_lm_interface
     use mod_atm_interface
     implicit none
     type(imp_data) , intent(in) :: impfie
-    real(rk8) , intent(in) :: tol
+    real(rkx) , intent(in) :: tol
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmskb , wetdry
     integer :: i , j , n
     logical :: flag = .false.
-    ! real(rk8) :: toth
-    ! real(rk8) , parameter :: href = d_two * iceminh
-    ! real(rk8) , parameter :: steepf = 1.0D0
+    ! real(rkx) :: toth
+    ! real(rkx) , parameter :: href = d_two * iceminh
+    ! real(rkx) , parameter :: steepf = 1.0_rkx
     ! integer(ik4) :: ix , jy , imin , imax , jmin , jmax , srad , hveg(22)
     !
     !-----------------------------------------------------------------------
@@ -859,7 +859,7 @@ module mod_lm_interface
     integer(ik4) :: k
 #endif
     integer(ik4) :: i , j , n
-    real(rk8) :: qas , tas , ps , qs
+    real(rkx) :: qas , tas , ps , qs
 
     ! Fill accumulators
 
@@ -882,7 +882,7 @@ module mod_lm_interface
         if ( associated(srf_scv_out) ) &
           srf_scv_out = srf_scv_out + sum(lms%sncv,1)*rdnnsg
         if ( associated(srf_sund_out) ) then
-          where( lm%rswf > 120.0D0 )
+          where( lm%rswf > 120.0_rkx )
             srf_sund_out = srf_sund_out + dtbat
           end where
         end if
@@ -946,7 +946,7 @@ module mod_lm_interface
         if ( associated(sts_trunoff_out) ) &
           sts_trunoff_out = sts_trunoff_out+sum(lms%trnof,1)*rdnnsg
         if ( associated(sts_sund_out) ) then
-          where( lm%rswf > 120.0D0 )
+          where( lm%rswf > 120.0_rkx )
             sts_sund_out = sts_sund_out + dtbat
           end where
         end if

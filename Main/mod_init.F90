@@ -55,8 +55,8 @@ module mod_init
 
   public :: init
 
-  real(rk8) , parameter :: tlp = 50.0D0
-  real(rk8) , parameter :: ts00 = 288.0D0
+  real(rkx) , parameter :: tlp = 50.0_rkx
+  real(rkx) , parameter :: ts00 = 288.0_rkx
 
   contains
   !
@@ -69,9 +69,9 @@ module mod_init
   subroutine init
     implicit none
     integer(ik4) :: i , j , k , n
-    real(rk8) :: sfice_temp
+    real(rkx) :: sfice_temp
     character(len=32) :: appdat
-    real(rk8) , dimension(kzp1) :: ozprnt
+    real(rkx) , dimension(kzp1) :: ozprnt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init'
     integer(ik4) , save :: idindx = 0
@@ -175,8 +175,8 @@ module mod_init
                 do n = 1, nnsg
                   if ( mdsub%ldmsk(n,j,i) == 0 ) then
                     mdsub%ldmsk(n,j,i) = 2
-                    lms%sfice(n,j,i) = 0.50D0 ! This is in m -> 10 cm
-                    lms%sncv(n,j,i) = 10.0D0  ! 1 cm of snow over the ice
+                    lms%sfice(n,j,i) = 0.50_rkx ! This is in m -> 10 cm
+                    lms%sncv(n,j,i) = 10.0_rkx  ! 1 cm of snow over the ice
                   end if
                 end do
               end if
@@ -214,7 +214,7 @@ module mod_init
       !
       ! Initialize PBL Hgt
       !
-      zpbl(:,:) = 500.0D0
+      zpbl(:,:) = 500.0_rkx
       !
       ! Inizialize the surface atmospheric temperature
       !
@@ -245,13 +245,13 @@ module mod_init
           lms%sst(n,jci1:jci2,ici1:ici2) = ts0(jci1:jci2,ici1:ici2)
         end do
         lms%tskin(:,:,:) = lms%sst
-        lms%deltas(:,:,:) = 0.001D0
+        lms%deltas(:,:,:) = 0.001_rkx
         lms%tdeltas(:,:,:) = lms%sst(:,:,:) - lms%deltas(:,:,:)
       end if
       do n = 1 , nnsg
         do i = ici1 , ici2
           do j = jci1 , jci2
-            lms%um10(n,j,i) = 0.5D0
+            lms%um10(n,j,i) = 0.5_rkx
           end do
         end do
       end do
@@ -498,7 +498,7 @@ module mod_init
                 do n = 1 , nnsg
                   if ( mdsub%ldmsk(n,j,i) == 0 ) then
                     mdsub%ldmsk(n,j,i) = 2
-                    lms%sfice(n,j,i) = 0.50D0 ! 10 cm
+                    lms%sfice(n,j,i) = 0.50_rkx ! 10 cm
                   end if
                 end do
               else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then
@@ -525,7 +525,7 @@ module mod_init
       !
       ! Setup all timeseps for a restart
       !
-      dtbat = dt*dble(ntsrf)
+      dtbat = dt*real(ntsrf,rkx)
       dt = dt2
       rdt = d_one/dt
       dtsq = dt*dt
@@ -566,7 +566,7 @@ module mod_init
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              tbase(j,i,k) = ts00 + tlp*dlog(atm1%pr(j,i,k))
+              tbase(j,i,k) = ts00 + tlp*log(atm1%pr(j,i,k))
             end do
           end do
         end do
@@ -590,9 +590,9 @@ module mod_init
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        mddom%iveg(j,i) = idnint(mddom%lndcat(j,i))
+        mddom%iveg(j,i) = nint(mddom%lndcat(j,i))
         do n = 1 , nnsg
-          mdsub%iveg(n,j,i) = idnint(mdsub%lndcat(n,j,i))
+          mdsub%iveg(n,j,i) = nint(mdsub%lndcat(n,j,i))
         end do
       end do
     end do
@@ -601,7 +601,7 @@ module mod_init
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        ptrop(j,i) = 250.0D2 - 150.0D2*dcos(mddom%xlat(j,i)*degrad)**2
+        ptrop(j,i) = 250.0e2_rkx - 150.0e2_rkx*cos(mddom%xlat(j,i)*degrad)**2
       end do
     end do
     !

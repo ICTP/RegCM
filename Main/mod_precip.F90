@@ -41,39 +41,40 @@ module mod_precip
   !
   ! Precip sum beginning from top
   !
-  real(rk8) , pointer , dimension(:,:) :: pptsum
+  real(rkx) , pointer , dimension(:,:) :: pptsum
   integer(ik4) , pointer , dimension(:,:) :: ldmsk
-  real(rk8) , pointer , dimension(:,:) :: psb , psc , rainnc , lsmrnc , th700
-  real(rk8) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten , chi3
-  real(rk8) , pointer , dimension(:,:,:) :: t3 , t2 , tten , th3
-  real(rk8) , pointer , dimension(:,:,:) :: p3 , p2 , qs3 , rh3 , rho3
-  real(rk8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
-  real(rk8) , pointer , dimension(:,:,:) :: pfcc
-  real(rk8) , pointer , dimension(:,:,:) :: premrat
-  real(rk8) , pointer , dimension(:,:,:) :: prembc
-  real(rk8) , pointer , dimension(:,:,:) :: ptotc , pccn
-  real(rk8) , pointer , dimension(:,:,:) :: dia_qcr , dia_qcl , dia_acr
+  real(rkx) , pointer , dimension(:,:) :: psb , psc , rainnc , lsmrnc , th700
+  real(rkx) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten , chi3
+  real(rkx) , pointer , dimension(:,:,:) :: t3 , t2 , tten , th3
+  real(rkx) , pointer , dimension(:,:,:) :: p3 , p2 , qs3 , rh3 , rho3
+  real(rkx) , pointer , dimension(:,:,:) :: radcldf , radlqwc
+  real(rkx) , pointer , dimension(:,:,:) :: pfcc
+  real(rkx) , pointer , dimension(:,:,:) :: premrat
+  real(rkx) , pointer , dimension(:,:,:) :: prembc
+  real(rkx) , pointer , dimension(:,:,:) :: ptotc , pccn
+  real(rkx) , pointer , dimension(:,:,:) :: dia_qcr , dia_qcl , dia_acr
 
-  real(rk8) :: qcth
-  real(rk8) :: maxlat
+  real(rkx) :: qcth
+  real(rkx) :: maxlat
 
-  real(rk8) , parameter :: thog = d_1000*regrav
-  real(rk8) , parameter :: uch = thog*secph
-  real(rk8) , parameter :: alphaice = d_four
+  real(rkx) , parameter :: thog = d_1000*regrav
+  real(rkx) , parameter :: uch = thog*secph
+  real(rkx) , parameter :: alphaice = d_four
 
-  real(rk8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
+  real(rkx) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
     cevap , caccr
 
   logical :: l_lat_hack = .false.
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
 
-  real(rk8) , parameter :: rhos = 1800.0D0
-  real(rk8) , parameter :: rhow = 1000.0D0
-  real(rk8) , parameter :: rhosslt = 1000.0D0
-  real(rk8) , parameter :: rhoochl = 1200.0D0
-  real(rk8) , parameter :: rhobchl = 1600.0D0
-  real(rk8) , parameter :: qcmin = 1.0D-10
-  real(rk8) , parameter :: qvmin = 1.0D-8
+  real(rkx) , parameter :: rhos = 1800.0_rkx
+  real(rkx) , parameter :: rhow = 1000.0_rkx
+  real(rkx) , parameter :: rhosslt = 1000.0_rkx
+  real(rkx) , parameter :: rhoochl = 1200.0_rkx
+  real(rkx) , parameter :: rhobchl = 1600.0_rkx
+  real(rkx) , parameter :: qcmin = 1.0e-10_rkx
+  real(rkx) , parameter :: qvmin = 1.0e-8_rkx
+  real(rkx) , parameter :: verynearzero = 1.0e-10_rkx
 
   contains
 
@@ -150,7 +151,7 @@ module mod_precip
   !
   subroutine pcp
     implicit none
-    real(rk8) :: dpovg , afc , ppa , pptacc , pptkm1 , pptmax , &
+    real(rkx) :: dpovg , afc , ppa , pptacc , pptkm1 , pptmax , &
                 pptnew , qcincld , qcleft , qcw , qs , rdevap , &
                 rh , rhcs , rho , tcel , tk , prainx
     integer(ik4) :: i , j , k , kk
@@ -171,7 +172,7 @@ module mod_precip
       do j = jci1 , jci2
         afc = pfcc(j,i,1)                                  ![frac][avg]
         qcw = qx3(j,i,1,iqc)                               ![kg/kg][avg]
-        if ( afc > 0.01D0 .and. qcw > qcmin ) then ! if there is a cloud
+        if ( afc > 0.01_rkx .and. qcw > qcmin ) then ! if there is a cloud
           ! 1aa. Compute temperature and humidities with the adjustments
           !      due to convection.
           tk = t3(j,i,1)                                     ![k][avg]
@@ -188,8 +189,8 @@ module mod_precip
                            calc_ccn(rhoochl,chi3(j,i,1,iochl)) + &
                            calc_ccn(rhos,chi3(j,i,1,6))    + &
                            calc_ccn(rhosslt,chi3(j,i,1,11))) * abulk
-            qcth = pccn(j,i,1)*(4.0D0/3.0D0)*mathpi * &
-                       ((rcrit*1D-4)**3)*(rhow*1D-3)*1D+3
+            qcth = pccn(j,i,1)*(4.0_rkx/3.0_rkx)*mathpi * &
+                       ((rcrit*1e-4_rkx)**3)*(rhow*1e-3_rkx)*1e3_rkx
             if ( idiag == 1 ) then
               dia_qcr(j,i,1) = qcth
               dia_qcl(j,i,1) = qcincld
@@ -201,7 +202,7 @@ module mod_precip
             !   - The factor of cgul accounts for the fact that the Gultepe
             !     and Isaac equation is for mean cloud water while qcth is the
             !     theshhold for auto-conversion.
-            qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000
+            qcth = cgul(j,i)*(d_10**(-0.489_rkx+0.0134_rkx*tcel))*d_r1000
           end if
           ! 1ae. Compute the gridcell average autoconversion [kg/k g/s]
           pptnew = qck1(j,i)*(qcincld-qcth)*afc   ![kg/kg/s][avg]
@@ -260,22 +261,26 @@ module mod_precip
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
           dpovg = dsigma(k)*psb(j,i)*thog                    ![kg/m2][avg]
-          pptkm1 = pptsum(j,i)/dpovg                         ![kg/kg/s][avg]
+          if ( pptsum(j,i) > verynearzero ) then
+            pptkm1 = pptsum(j,i)/dpovg                         ![kg/kg/s][avg]
+          else
+            pptkm1 = d_zero
+          end if
           ! 1bc. Compute the raindrop evaporation in the clear portion of
           !      the gridcell.
           !  - It is assumed that raindrops do not evaporate in clouds
           !    and the rainfall from above is evenly distributed in
           !    gridcell (i.e. the gridcell average precipitation is used).
-          if ( pptsum(j,i) > d_zero .and. afc < 0.99D0 ) then
+          if ( pptsum(j,i) > verynearzero .and. afc < 0.99_rkx ) then
             ! 2bca. Compute the clear sky relative humidity
             rhcs = (rh-afc*rhmax)/(d_one-afc)            ![frac][clr]
             rhcs = max(min(rhcs,rhmax),rhmin)            ![frac][clr]
             ! 2bcb. Raindrop evaporation [kg/kg/s]
             if ( l_lat_hack ) then
               rdevap = sun_cevap(j,i)*(rhmax-rhcs) * &
-                dsqrt(pptsum(j,i))*(d_one-afc)
+                sqrt(pptsum(j,i))*(d_one-afc)
             else
-              rdevap = cevap(j,i)*(rhmax-rhcs)*dsqrt(pptsum(j,i))*(d_one-afc)
+              rdevap = cevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(d_one-afc)
             end if
             rdevap = min((qs-qx3(j,i,k,iqv))/dt,rdevap)  ![kg/kg/s][avg]
             rdevap = min(max(rdevap,d_zero),pptkm1)    ![kg/kg/s][avg]
@@ -293,7 +298,7 @@ module mod_precip
             rdevap = d_zero                                  ![kg/kg/s][avg]
           end if
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
-          if ( afc > 0.01D0 .and. qcw > qcmin ) then ! if there is a cloud
+          if ( afc > 0.01_rkx .and. qcw > qcmin ) then ! if there is a cloud
             ! 1bda. Calculate the in cloud mixing ratio [kg/kg]
             qcincld = qcw/afc                                ![kg/kg][cld]
             ! 1bdb. Compute the maximum precipation rate
@@ -304,8 +309,8 @@ module mod_precip
                              calc_ccn(rhoochl,chi3(j,i,k,iochl)) + &
                              calc_ccn(rhos,chi3(j,i,k,6))    + &
                              calc_ccn(rhosslt,chi3(j,i,k,11))) * abulk
-              qcth = pccn(j,i,k)*(4.0D0/3.0D0)*mathpi * &
-                         ((rcrit*1D-4)**3)*(rhow*1D-3)*1D+3
+              qcth = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+                         ((rcrit*1e-4_rkx)**3)*(rhow*1e-3_rkx)*1e3_rkx
               if ( idiag == 1 ) then
                 dia_qcr(j,i,k) = qcth
                 dia_qcl(j,i,k) = qcincld
@@ -313,7 +318,7 @@ module mod_precip
             else
               ! 1bdc. Implement the Gultepe & Isaac formula for qcth.
               ![kg/kg][cld]
-              qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000
+              qcth = cgul(j,i)*(d_10**(-0.489_rkx+0.0134_rkx*tcel))*d_r1000
             end if
             ! 1bdd. Compute the gridcell average autoconversion [kg/kg/s]
             pptnew = qck1(j,i)*(qcincld-qcth)*afc            ![kg/kg/s][avg]
@@ -323,13 +328,13 @@ module mod_precip
               dia_acr(j,i,k) = pptnew
             end if
             ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
-            if ( ichem == 1  .and. pptnew > d_zero ) then
+            if ( ichem == 1  .and. pptnew > verynearzero ) then
               premrat(j,i,k) = pptnew/qcw
             end if
             ! 1bf. Compute the amount of cloud water removed by raindrop
             !      accretion [kg/kg/s].  In the layer where the precipitation
             !      is formed, only half of the precipitation can accrete.
-            if ( pptkm1 > d_zero .or. pptnew > d_zero ) then
+            if ( pptkm1 > verynearzero .or. pptnew > verynearzero ) then
               ! 1bfa. Compute the amount of water remaining in the cloud [kg/kg]
               qcleft = qcw-pptnew*dt                         ![kg/kg][avg]
               ! 1bfb. Add 1/2 of the new precipitation to the accumulated
@@ -376,7 +381,7 @@ module mod_precip
               end do
               ! the below cloud precipitation rate is now used
               ! directly in chemistry
-!             prembc(j,i,k) = 6.5D0*1.0D-5*prembc(j,i,k)**0.68D0   ![s^-1]
+!             prembc(j,i,k) = 6.5_rkx*1.0e-5_rkx*prembc(j,i,k)**0.68_rkx   ![s^-1]
             end if
           end do
         end do
@@ -400,43 +405,43 @@ module mod_precip
 
   contains
 
-    pure real(rk8) function calc_ccn(denx,mrat) result(res)
+    pure real(rkx) function calc_ccn(denx,mrat) result(res)
       implicit none
-      real(rk8) , intent(in) :: denx , mrat
-      res = (1D+6/(denx*1D-3))*(6.0D0/mathpi)*coef_ccn*mrat*1D+03
+      real(rkx) , intent(in) :: denx , mrat
+      res = (1e3_rkx/(denx*1e-3_rkx))*(6.0_rkx/mathpi)*coef_ccn*mrat*1e3_rkx
     end function calc_ccn
 
-    pure real(rk8) function season_factor(lat) result(sf)
+    pure real(rkx) function season_factor(lat) result(sf)
       implicit none
-      real(rk8) , intent(in) :: lat
-      real(rk8) :: theta , delta
+      real(rkx) , intent(in) :: lat
+      real(rkx) :: theta , delta
       ! Maximum abs value for the declination angle
-      real(rk8) , parameter :: dmax = 0.40910517666747085282D0
+      real(rkx) , parameter :: dmax = 0.40910517666747085282_rkx
       ! Different phase in the two emispheres
       if ( lat > d_zero ) then
         theta = twopi*mod(calday+(dayspy*d_half),dayspy)/dayspy
       else
         theta = twopi*calday/dayspy
       end if
-      delta = 0.006918D0 - 0.399912D0*dcos(theta) + &
-              0.070257D0*dsin(theta) -              &
-              0.006758D0*dcos(2.0D0*theta) +        &
-              0.000907D0*dsin(2.0D0*theta) -        &
-              0.002697D0*dcos(3.0D0*theta) +        &
-              0.001480D0*dsin(3.0D0*theta)
+      delta = 0.006918_rkx - 0.399912_rkx*cos(theta) + &
+              0.070257_rkx*sin(theta) -              &
+              0.006758_rkx*cos(2.0_rkx*theta) +        &
+              0.000907_rkx*sin(2.0_rkx*theta) -        &
+              0.002697_rkx*cos(3.0_rkx*theta) +        &
+              0.001480_rkx*sin(3.0_rkx*theta)
       sf = (d_one + delta/dmax)/d_two
     end function season_factor
 
-    pure real(rk8) function sun_cevap(j,i) result(sc)
+    pure real(rkx) function sun_cevap(j,i) result(sc)
       use mod_atm_interface , only : mddom
       implicit none
       integer , intent(in) :: i , j
-      real(rk8) :: xxlat
+      real(rkx) :: xxlat
       ! cevap minimum seasonal paraneter
-      real(rk8) , parameter :: mincevap = 1.0D-5
+      real(rkx) , parameter :: mincevap = 1.0e-5_rkx
       xxlat = mddom%xlat(j,i)
       sc = max(cevap(j,i) * (d_one - &
-        (sin(abs(xxlat*90.0D0/maxlat)*degrad) * &
+        (sin(abs(xxlat*90.0_rkx/maxlat)*degrad) * &
          season_factor(xxlat))), mincevap)
     end function sun_cevap
 
@@ -473,9 +478,9 @@ module mod_precip
   !
   subroutine cldfrac
     implicit none
-    real(rk8) :: exlwc , rh0adj
+    real(rkx) :: exlwc , rh0adj
     integer(ik4) :: i , j , k
-    real(rk8) :: botm , rm , qcld
+    real(rkx) :: botm , rm , qcld
 
     if ( ipptls == 2 ) then
       do k = 1 , kz
@@ -506,7 +511,7 @@ module mod_precip
             ! To calculate cloud fraction using the semi-empirical formula
             ! of Xu and Randall (1996, JAS)
             qcld = ptotc(j,i,k)
-            if ( qcld < 1.0D-12 ) then         ! no cloud cover
+            if ( qcld < 1.0e-12_rkx ) then         ! no cloud cover
               pfcc(j,i,k) = d_zero
             else
               if ( rh3(j,i,k) >= rhmax ) then  ! full cloud cover
@@ -514,13 +519,13 @@ module mod_precip
               else if ( rh3(j,i,k) <= rhmin ) then
                 pfcc(j,i,k) = d_zero
               else                             ! partial cloud cover
-                botm = exp( 0.49D0*log((d_one-rh3(j,i,k))*qs3(j,i,k)) )
-                rm = exp(0.25D0*log(rh3(j,i,k)))
-                if ( 100.D0*(qcld/botm) > 25.0D0 ) then
-                  pfcc(j,i,k) = min(0.99D0, max(0.01D0 , rm))
+                botm = exp( 0.49_rkx*log((d_one-rh3(j,i,k))*qs3(j,i,k)) )
+                rm = exp(0.25_rkx*log(rh3(j,i,k)))
+                if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
+                  pfcc(j,i,k) = min(0.99_rkx, max(0.01_rkx , rm))
                 else
-                  pfcc(j,i,k) = min(0.99D0, max(0.01D0 , &
-                          rm*(d_one-exp(-100.D0*(qcld/botm)))))
+                  pfcc(j,i,k) = min(0.99_rkx, max(0.01_rkx , &
+                          rm*(d_one-exp(-100._rkx*(qcld/botm)))))
                 end if
               end if
             end if
@@ -535,7 +540,7 @@ module mod_precip
             if ( t3(j,i,k) > tc0 ) then
               rh0adj = rh0(j,i)
             else ! high cloud (less subgrid variability)
-              rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-t3(j,i,k)))
+              rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t3(j,i,k)))
             end if
             if ( rh3(j,i,k) >= rhmax ) then     ! full cloud cover
               pfcc(j,i,k) = d_one
@@ -545,9 +550,9 @@ module mod_precip
               if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
                 pfcc(j,i,k) = d_zero
               else                              ! partial cloud cover
-                pfcc(j,i,k) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
+                pfcc(j,i,k) = d_one-sqrt(d_one-(rh3(j,i,k)-rh0adj) / &
                              (rhmax-rh0adj))
-                pfcc(j,i,k) = min(max(pfcc(j,i,k),0.01D0),0.99D0)
+                pfcc(j,i,k) = min(max(pfcc(j,i,k),0.01_rkx),0.99_rkx)
               end if
             end if
           end do
@@ -567,16 +572,16 @@ module mod_precip
           do j = jci1 , jci2
             ! clouds below 750hPa, extremely cold conditions,
             !  when no cld microphy
-            if ( p3(j,i,k) >= 75000.0D0 .and. &
-                 qx3(j,i,k,iqv) <= 0.003D0 ) then
+            if ( p3(j,i,k) >= 75000.0_rkx .and. &
+                 qx3(j,i,k,iqv) <= 0.003_rkx ) then
               pfcc(j,i,k) = pfcc(j,i,k) * &
-                     max(0.15D0,min(d_one,qx3(j,i,k,iqv)/0.003D0))
+                     max(0.15_rkx,min(d_one,qx3(j,i,k,iqv)/0.003_rkx))
               !
               ! Tuğba Öztürk mod for Siberia
               !
-              ! pfcc(j,i,k) = (rh3(j,i,k)**0.25D0)* &
-              !      (d_one-dexp((-100.0D0*qx3(j,i,k,iqc)) / &
-              !     ((d_one-rh3(j,i,k))*qs3(j,i,k))**0.49D0))
+              ! pfcc(j,i,k) = (rh3(j,i,k)**0.25_rkx)* &
+              !      (d_one-dexp((-100.0_rkx*qx3(j,i,k,iqc)) / &
+              !     ((d_one-rh3(j,i,k))*qs3(j,i,k))**0.49_rkx))
               !
               !
             end if
@@ -594,12 +599,12 @@ module mod_precip
         do i = ici1 , ici2
           do j = jci1 , jci2
             if ( ldmsk(j,i) == 0 ) then
-              if ( p3(j,i,k) >= 70000.0D0 ) then
+              if ( p3(j,i,k) >= 70000.0_rkx ) then
                 ! Klein, S. A., and D. L. Hartmann,
                 ! The seasonal cycle of low stratiform clouds,
                 ! J. Climate, 6, 1587-1606, 1993
                 pfcc(j,i,k) = min(hicld,max(pfcc(j,i,k), &
-                      (th700(j,i)-th3(j,i,k)) * 0.057D0 - 0.5573D0))
+                      (th700(j,i)-th3(j,i,k)) * 0.057_rkx - 0.5573_rkx))
               end if
             end if
           end do
@@ -675,8 +680,8 @@ module mod_precip
     ! rh0adj - Adjusted relative humidity threshold at ktau+1
     ! fccc   - Cloud fraction at ktau+1
     !
-    real(rk8) :: qccs , qvcs , tmp1 , tmp2 , tmp3
-    real(rk8) :: dqv , exces , fccc , pres , qvc_cld , qvs , &
+    real(rkx) :: qccs , qvcs , tmp1 , tmp2 , tmp3
+    real(rkx) :: dqv , exces , fccc , pres , qvc_cld , qvs , &
                r1 , rh0adj , rhc
     integer(ik4) :: i , j , k
 
@@ -696,8 +701,8 @@ module mod_precip
             write(stderr,*) 'At global K : ',k
           end if
 #endif
-          qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),d_zero)/psc(j,i)
-          qccs = max((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc)),d_zero)/psc(j,i)
+          qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),verynearzero)/psc(j,i)
+          qccs = max((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc)),verynearzero)/psc(j,i)
           !-----------------------------------------------------------
           !     2.  Compute the cloud condensation/evaporation term.
           !-----------------------------------------------------------
@@ -712,7 +717,7 @@ module mod_precip
           if ( tmp3 > tc0 ) then
             rh0adj = rh0(j,i)
           else ! high cloud (less subgrid variability)
-            rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-tmp3))
+            rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
           end if
           rh0adj = max(rhmin,min(rh0adj,rhmax))
 
@@ -721,10 +726,10 @@ module mod_precip
           else if ( rhc >= rhmax ) then ! Full or no cloud cover
             dqv = max((qvcs-qvmin),d_zero) - qvs*conf
           else
-            fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
-            if ( pres >= 75000.0D0 .and. qvcs <= 0.003D0 ) then
-              fccc = fccc * max(0.15D0, &
-                          min(d_one,max((qvcs-qvmin),d_zero)/0.003D0))
+            fccc = d_one - sqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
+            if ( pres >= 75000.0_rkx .and. qvcs <= 0.003_rkx ) then
+              fccc = fccc * max(0.15_rkx, &
+                          min(d_one,max((qvcs-qvmin),d_zero)/0.003_rkx))
             end if
             fccc = min(max(fccc,d_zero),d_one)
             qvc_cld = max((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)

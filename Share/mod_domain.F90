@@ -32,26 +32,26 @@ module mod_domain
   private
 
   type domain_io
-    real(rk8) , pointer , dimension(:) :: sigma
-    real(rk8) , pointer , dimension(:,:) :: xlat
-    real(rk8) , pointer , dimension(:,:) :: xlon
-    real(rk8) , pointer , dimension(:,:) :: dlat
-    real(rk8) , pointer , dimension(:,:) :: dlon
-    real(rk8) , pointer , dimension(:,:) :: ht
-    real(rk8) , pointer , dimension(:,:) :: mask
-    real(rk8) , pointer , dimension(:,:) :: lndcat
-    real(rk8) , pointer , dimension(:,:) :: msfx
-    real(rk8) , pointer , dimension(:,:) :: msfd
-    real(rk8) , pointer , dimension(:,:) :: coriol
-    real(rk8) , pointer , dimension(:,:) :: snowam
-    real(rk8) , pointer , dimension(:,:) :: hlake
+    real(rkx) , pointer , dimension(:) :: sigma
+    real(rkx) , pointer , dimension(:,:) :: xlat
+    real(rkx) , pointer , dimension(:,:) :: xlon
+    real(rkx) , pointer , dimension(:,:) :: dlat
+    real(rkx) , pointer , dimension(:,:) :: dlon
+    real(rkx) , pointer , dimension(:,:) :: ht
+    real(rkx) , pointer , dimension(:,:) :: mask
+    real(rkx) , pointer , dimension(:,:) :: lndcat
+    real(rkx) , pointer , dimension(:,:) :: msfx
+    real(rkx) , pointer , dimension(:,:) :: msfd
+    real(rkx) , pointer , dimension(:,:) :: coriol
+    real(rkx) , pointer , dimension(:,:) :: snowam
+    real(rkx) , pointer , dimension(:,:) :: hlake
   end type domain_io
 
   type (domain_io) :: mddom_io
 
   interface read_domain
     module procedure read_domain_type
-    module procedure read_domain_array
+    module procedure read_domain_array_double
     module procedure read_domain_array_single
   end interface read_domain
 
@@ -82,9 +82,9 @@ module mod_domain
     call read_var2d_static(ncid,'dhlake',mddom_io%hlake,has_dhlake)
   end subroutine read_domain_type
 
-  subroutine read_domain_array(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
-                               lndcat,msfx,msfd,coriol,snowam,hlake,   &
-                               lsubgrid)
+  subroutine read_domain_array_double(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
+                                      lndcat,msfx,msfd,coriol,snowam,hlake,   &
+                                      lsubgrid)
     implicit none
     integer(ik4) , intent(in) :: ncid
     real(rk8) , pointer , dimension(:) , intent(out) :: sigma
@@ -121,28 +121,34 @@ module mod_domain
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
     if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,has_snow)
     if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,has_dhlake)
-  end subroutine read_domain_array
+  end subroutine read_domain_array_double
 
   subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
-                                      lndcat,msfx,msfd,coriol,snowam,hlake)
+                                      lndcat,msfx,msfd,coriol,snowam,hlake,   &
+                                      lsubgrid)
     implicit none
     integer(ik4) , intent(in) :: ncid
-    real(rk4) , pointer , dimension(:) , intent(inout) :: sigma
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: xlat
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: xlon
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: dlat
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: dlon
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: ht
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: mask
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: lndcat
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: msfx
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: msfd
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: coriol
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: snowam
-    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: hlake
+    real(rk4) , pointer , dimension(:) , intent(out) :: sigma
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: xlat
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: xlon
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: dlat
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: dlon
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: ht
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: mask
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: lndcat
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfx
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfd
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: coriol
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: snowam
+    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: hlake
+    logical , intent(in) , optional :: lsubgrid
     logical :: has_snow = .true.
     logical :: has_dhlake = .true.
-    call check_domain(ncid)
+    if ( present(lsubgrid) ) then
+      call check_domain(ncid,lsubgrid=lsubgrid)
+    else
+      call check_domain(ncid)
+    end if
     call read_var1d_static(ncid,'sigma',sigma)
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
     if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
@@ -161,10 +167,10 @@ module mod_domain
   subroutine read_reference_state(ncid,ps0,pr0,t0,rho0)
     implicit none
     integer , intent(in) :: ncid
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: ps0
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) , optional :: pr0
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) , optional :: t0
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) , optional :: rho0
+    real(rkx) , pointer , dimension(:,:) , intent(out) , optional :: ps0
+    real(rkx) , pointer , dimension(:,:,:) , intent(out) , optional :: pr0
+    real(rkx) , pointer , dimension(:,:,:) , intent(out) , optional :: t0
+    real(rkx) , pointer , dimension(:,:,:) , intent(out) , optional :: rho0
     call read_var2d_static(ncid,'ps0',ps0)
     call read_var3d_static(ncid,'pr0',pr0)
     call read_var3d_static(ncid,'t0',t0)
@@ -197,7 +203,7 @@ module mod_domain
     integer(ik4) :: iyy , jxx , kzz , kcheck , jcheck , icheck
     character(len=6) :: proj
     logical :: lh , lb , ls
-    real(rk8) :: dsx , iclat , iclon , ptsp
+    real(rkx) :: dsx , iclat , iclon , ptsp
 
     lh = .false.
     lb = .false.
@@ -264,7 +270,7 @@ module mod_domain
     istatus = nf90_get_var(ncid, ivarid, ptsp)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read variable ptop')
-    if ( dabs(dble(ptsp*d_r10)-dble(ptop)) > 0.001D+00 ) then
+    if ( abs(real(ptsp*d_r10,rkx)-real(ptop,rkx)) > 0.001_rkx ) then
       write(stderr,*) 'DOMAIN FILE : ', ptsp
       write(stderr,*) 'NAMELIST    : ', ptop
       call die('Mismatch: PTOP in DOMAIN file /= PTOP in namelist')
@@ -281,8 +287,8 @@ module mod_domain
     istatus = nf90_get_att(ncid, nf90_global,'grid_size_in_meters', dsx)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read attribute grid_size_in_meters')
-    if ( ls ) dsx = dsx * dble(nsg)
-    if (dabs(dble(dsx*d_r1000)-dble(ds)) > 0.001D+00 ) then
+    if ( ls ) dsx = dsx * real(nsg,rkx)
+    if (abs(real(dsx*d_r1000,rkx)-real(ds,rkx)) > 0.001_rkx ) then
       write(stderr,*) 'DOMAIN FILE : ', dsx/1000.0
       write(stderr,*) 'NAMELIST    : ', ds
       call die('Mismatch: DS in DOMAIN file /= DS in namelist')
@@ -291,7 +297,7 @@ module mod_domain
                            'latitude_of_projection_origin', iclat)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read attribute latitude_of_projection_origin')
-    if (dabs(dble(iclat)-dble(clat)) > 0.001D+00 ) then
+    if (abs(real(iclat,rkx)-real(clat,rkx)) > 0.001_rkx ) then
       write(stderr,*) 'DOMAIN FILE : ', iclat
       write(stderr,*) 'NAMELIST    : ', clat
       call die('Mismatch: CLAT in DOMAIN file /= CLAT in namelist')
@@ -300,7 +306,7 @@ module mod_domain
                            'longitude_of_projection_origin', iclon)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read attribute longitude_of_projection_origin')
-    if (dabs(dble(iclon)-dble(clon)) > 0.001D+00 ) then
+    if (abs(real(iclon,rkx)-real(clon,rkx)) > 0.001_rkx ) then
       write(stderr,*) 'DOMAIN FILE : ', iclon
       write(stderr,*) 'NAMELIST    : ', clon
       call die('Mismatch: CLON in DOMAIN file /= CLON in namelist')

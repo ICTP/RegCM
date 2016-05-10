@@ -64,30 +64,30 @@
     subroutine tractend2(ktau,lyear,lmonth,lday,calday,declin)
       implicit none
       integer(ik4) , intent(in) :: lmonth , lday , lyear
-      real(rk8) , intent(in) :: calday , declin
+      real(rkx) , intent(in) :: calday , declin
       integer(ik8) , intent(in) :: ktau
 
-      real(rk8) :: facb , facs , fact , facv , pres10 , qsat10 , &
+      real(rkx) :: facb , facs , fact , facv , pres10 , qsat10 , &
                   shu10 , u10 , v10
-      real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec , &
+      real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec , &
                                                       convprec
-      real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: hgt
-      real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: fracloud, fracum
+      real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: hgt
+      real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: fracloud, fracum
       integer(ik4) , dimension(ici1:ici2,jci1:jci2) :: ivegcov
-      real(rk8) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: pdepv
-      real(rk8) , dimension(ici1:ici2,ntr,jci1:jci2) :: ddepa ! , ddepg
-      real(rk8) , dimension(ici1:ici2,jci1:jci2) :: psurf , rh10 , soilw , &
+      real(rkx) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: pdepv
+      real(rkx) , dimension(ici1:ici2,ntr,jci1:jci2) :: ddepa ! , ddepg
+      real(rkx) , dimension(ici1:ici2,jci1:jci2) :: psurf , rh10 , soilw , &
                  srad , temp10 , tsurf , vegfrac , wid10 , zeff , ustar , &
                  hsurf
-      real(rk8) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: bchi
-      real(rk8) , dimension(ici1:ici2,1) :: xra
-      real(rk8) , dimension(ici1:ici2,nbin,jci1:jci2) :: dust_flx
-      real(rk8) , dimension(ici1:ici2,sbin,jci1:jci2) :: seasalt_flx
+      real(rkx) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: bchi
+      real(rkx) , dimension(ici1:ici2,1) :: xra
+      real(rkx) , dimension(ici1:ici2,nbin,jci1:jci2) :: dust_flx
+      real(rkx) , dimension(ici1:ici2,sbin,jci1:jci2) :: seasalt_flx
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
-      real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: chevap
-!     real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: checum
-      real(rk8) , dimension (1) :: polrftab
+      real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: chevap
+!     real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: checum
+      real(rkx) , dimension (1) :: polrftab
       integer(ik4) , dimension (1) :: poltab
       integer(ik4) :: i , j , ibin , k
       !
@@ -123,7 +123,7 @@
             ttb(i,k,j)  = ctb3d(j,i,k)
             ! precipiation rate is a rquired variable for deposition routines.
             ! It is directly taken as rembc (saved in precip routine) in mm/hr !
-            prec(i,k,j) = crembc(j,i,k) / 3600.D0 !passed in mm/s
+            prec(i,k,j) = crembc(j,i,k) / 3600._rkx !passed in mm/s
             !and the quivalent for convective prec
             convprec(i,k,j) = cconvpr(j,i,k) ! already in mm/s
           end do
@@ -170,10 +170,10 @@
           ! method based on bats diagnostic in routine interf.
           !
           if ( ivegcov(i,j) /= 0 ) then
-            facv = dlog(cza(j,i,kz)/d_10) / &
-                   dlog(cza(j,i,kz)/crough(ivegcov(i,j)))
-            facb = dlog(cza(j,i,kz)/d_10)/dlog(cza(j,i,kz)/zlnd)
-            facs = dlog(cza(j,i,kz)/d_10)/dlog(cza(j,i,kz)/zsno)
+            facv = log(cza(j,i,kz)/d_10) / &
+                   log(cza(j,i,kz)/crough(ivegcov(i,j)))
+            facb = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zlnd)
+            facs = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zsno)
             fact = csfracv2d(j,i)*facv + csfracb2d(j,i)*facb + &
                    csfracs2d(j,i)*facs
             !
@@ -182,7 +182,7 @@
                        zlnd * csfracb2d(j,i) + zsno * csfracs2d(j,i)
           else
             ! water surface
-            fact = dlog(cza(j,i,kz)/d_10)/dlog(cza(j,i,kz)/zoce)
+            fact = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zoce)
             zeff(i,j) = zoce
           end if
           ! 10 m wind
@@ -197,15 +197,15 @@
           ! back to mixing ratio
           shu10 = shu10/(d_one-shu10)
           ! saturation mixing ratio at 10m
-          pres10 = psurf(i,j) - 98.0D0
+          pres10 = psurf(i,j) - 98.0_rkx
           qsat10 = pfqsat(temp10(i,j),pres10)
           ! relative humidity at 10m
           rh10(i,j) = d_zero
           if ( qsat10 > d_zero ) rh10(i,j) = shu10/qsat10
           !
           ! soil wetness
-          soilw(i,j) = cssw2da(j,i)/cdepuv(idnint(clndcat(j,i)))/(2650.0D0 * &
-                       (d_one-cxmopor(ciexsol(idnint(clndcat(j,i))))))
+          soilw(i,j) = cssw2da(j,i)/cdepuv(nint(clndcat(j,i)))/(2650.0_rkx * &
+                       (d_one-cxmopor(ciexsol(nint(clndcat(j,i))))))
           ! fraction of vegetation
           vegfrac(i,j) = cvegfrac(j,i)
           ! surface temperature
@@ -267,7 +267,7 @@
       if ( idust(1) > 0 .and. ichdustemd < 3 .and.  ichsursrc == 1 ) then
         do j = jci1 , jci2
           where (ivegcov(:,j) == 11)
-            zeff(:,j) = 0.01D0 ! value set to desert type for semi-arid)
+            zeff(:,j) = 0.01_rkx ! value set to desert type for semi-arid)
           end where
           call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
             rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))

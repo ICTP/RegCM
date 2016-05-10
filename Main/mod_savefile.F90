@@ -19,6 +19,7 @@
 
 module mod_savefile
 
+  use mod_nchelper , only : regcm_vartype
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
@@ -63,101 +64,101 @@ module mod_savefile
   integer(ik4) , public , pointer , dimension(:,:,:) :: ldmsk1_io
   integer(ik4) , public , pointer , dimension(:,:) :: ldmsk_io
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: atm1_u_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: atm2_u_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: atm1_v_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: atm2_v_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: atm1_t_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: atm2_t_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: atm1_w_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: atm2_w_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: atm1_pp_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: atm2_pp_io
-  real(rk8) , public , pointer , dimension(:,:,:,:) :: atm1_qx_io
-  real(rk8) , public , pointer , dimension(:,:,:,:) :: atm2_qx_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: atm1_tke_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: atm2_tke_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_u_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_u_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_v_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_v_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_t_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_t_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_w_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_w_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_pp_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_pp_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm1_qx_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm2_qx_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_tke_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_tke_io
 
-  real(rk8) , public , pointer , dimension(:,:) :: psa_io
-  real(rk8) , public , pointer , dimension(:,:) :: psb_io
-  real(rk8) , public , pointer , dimension(:,:) :: tga_io
-  real(rk8) , public , pointer , dimension(:,:) :: tgb_io
-  real(rk8) , public , pointer , dimension(:,:) :: hfx_io
-  real(rk8) , public , pointer , dimension(:,:) :: qfx_io
-  real(rk8) , public , pointer , dimension(:,:) :: rainc_io
-  real(rk8) , public , pointer , dimension(:,:) :: rainnc_io
-  real(rk8) , public , pointer , dimension(:,:) :: snownc_io
-  real(rk8) , public , pointer , dimension(:,:) :: tgbb_io
-  real(rk8) , public , pointer , dimension(:,:) :: uvdrag_io
+  real(rkx) , public , pointer , dimension(:,:) :: psa_io
+  real(rkx) , public , pointer , dimension(:,:) :: psb_io
+  real(rkx) , public , pointer , dimension(:,:) :: tga_io
+  real(rkx) , public , pointer , dimension(:,:) :: tgb_io
+  real(rkx) , public , pointer , dimension(:,:) :: hfx_io
+  real(rkx) , public , pointer , dimension(:,:) :: qfx_io
+  real(rkx) , public , pointer , dimension(:,:) :: rainc_io
+  real(rkx) , public , pointer , dimension(:,:) :: rainnc_io
+  real(rkx) , public , pointer , dimension(:,:) :: snownc_io
+  real(rkx) , public , pointer , dimension(:,:) :: tgbb_io
+  real(rkx) , public , pointer , dimension(:,:) :: uvdrag_io
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: ldew_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: snag_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: sncv_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: sfice_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: gwet_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: rsw_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: ssw_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: tsw_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: taf_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: tgrd_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: tgbrd_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: tlef_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: emisv_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: scvk_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: um10_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: eta_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: hi_io
-  real(rk8) , public , pointer , dimension(:,:,:,:) :: tlak_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: ldew_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: snag_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: sncv_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: sfice_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: gwet_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: rsw_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: ssw_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tsw_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: taf_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tgrd_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tgbrd_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tlef_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: emisv_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: scvk_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: um10_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: eta_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: hi_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: tlak_io
 
-  real(rk8) , public , pointer , dimension(:,:) :: flw_io
-  real(rk8) , public , pointer , dimension(:,:) :: flwd_io
-  real(rk8) , public , pointer , dimension(:,:) :: fsw_io
-  real(rk8) , public , pointer , dimension(:,:) :: sabveg_io
-  real(rk8) , public , pointer , dimension(:,:) :: sinc_io
-  real(rk8) , public , pointer , dimension(:,:) :: solis_io
-  real(rk8) , public , pointer , dimension(:,:) :: solvs_io
-  real(rk8) , public , pointer , dimension(:,:) :: solvsd_io
-  real(rk8) , public , pointer , dimension(:,:) :: solvl_io
-  real(rk8) , public , pointer , dimension(:,:) :: solvld_io
+  real(rkx) , public , pointer , dimension(:,:) :: flw_io
+  real(rkx) , public , pointer , dimension(:,:) :: flwd_io
+  real(rkx) , public , pointer , dimension(:,:) :: fsw_io
+  real(rkx) , public , pointer , dimension(:,:) :: sabveg_io
+  real(rkx) , public , pointer , dimension(:,:) :: sinc_io
+  real(rkx) , public , pointer , dimension(:,:) :: solis_io
+  real(rkx) , public , pointer , dimension(:,:) :: solvs_io
+  real(rkx) , public , pointer , dimension(:,:) :: solvsd_io
+  real(rkx) , public , pointer , dimension(:,:) :: solvl_io
+  real(rkx) , public , pointer , dimension(:,:) :: solvld_io
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: sst_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: tskin_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: tdeltas_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: deltas_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: sst_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tskin_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tdeltas_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: deltas_io
 
   integer(ik4) , public , pointer , dimension(:,:) :: kpbl_io
-  real(rk8) , public , pointer , dimension(:,:) :: zpbl_io
+  real(rkx) , public , pointer , dimension(:,:) :: zpbl_io
 
-  real(rk8) , public , pointer , dimension(:,:) :: cbmf2d_io
+  real(rkx) , public , pointer , dimension(:,:) :: cbmf2d_io
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: fcc_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: fcc_io
 
-  real(rk8) , public , pointer , dimension(:,:,:,:) :: gasabsnxt_io
-  real(rk8) , public , pointer , dimension(:,:,:,:) :: gasabstot_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: gasemstot_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: gasabsnxt_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: gasabstot_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: gasemstot_io
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: heatrt_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: o3prof_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: heatrt_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: o3prof_io
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: dstor_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: hstor_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: dstor_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: hstor_io
 
-  real(rk8) , public , pointer , dimension(:,:) :: cldefi_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: tbase_io
+  real(rkx) , public , pointer , dimension(:,:) :: cldefi_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tbase_io
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: kfwavg_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: kfwavg_io
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: qflux_restore_sst_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: qflux_restore_sst_io
 
 #ifdef CLM
-  real(rk8) , public , pointer , dimension(:,:) :: lndcat_io
+  real(rkx) , public , pointer , dimension(:,:) :: lndcat_io
 #endif
 
 #ifdef CLM45
-  real(rk8) , public , pointer , dimension(:,:,:) :: swdiralb_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: swdifalb_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: lwdiralb_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: lwdifalb_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: swdiralb_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: swdifalb_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: lwdiralb_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: lwdifalb_io
 #endif
 
   interface myputvar
@@ -331,7 +332,7 @@ module mod_savefile
     integer(ik4) :: ncid
     integer(ik4) :: int10d , ical
     integer(ik8) :: idt1 , idt2
-    real(rk8) :: odtsec
+    real(rkx) :: odtsec
     character(256) :: ffin
     character(32) :: fbname
 
@@ -349,8 +350,8 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot get attribute idatex')
       ncstatus = nf90_get_att(ncid,nf90_global,'calendar',ical)
       call check_ok(__FILE__,__LINE__,'Cannot get attribute calendar')
-      idt1 = idnint(odtsec)
-      idt2 = idnint(dtsec)
+      idt1 = nint(odtsec)
+      idt2 = nint(dtsec)
       if ( idt1 /= idt2 ) then
         write (stdout,*) 'Recalculating ktau for the new dt'
         write (stdout,*) 'Restart file ktau is       = ', ktau
@@ -669,160 +670,160 @@ module mod_savefile
       wrkdim(1) = dimids(idjdot)
       wrkdim(2) = dimids(ididot)
       wrkdim(3) = dimids(idkh)
-      call mydefvar(ncid,'atm1_u',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'atm2_u',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'atm1_v',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'atm2_v',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm1_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm2_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm1_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm2_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
       wrkdim(1) = dimids(idjcross)
       wrkdim(2) = dimids(idicross)
       wrkdim(3) = dimids(idkh)
-      call mydefvar(ncid,'atm1_t',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'atm2_t',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm1_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm2_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
       wrkdim(4) = dimids(idnqx)
-      call mydefvar(ncid,'atm1_qx',nf90_double,wrkdim,1,4,varids,ivcc)
-      call mydefvar(ncid,'atm2_qx',nf90_double,wrkdim,1,4,varids,ivcc)
+      call mydefvar(ncid,'atm1_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      call mydefvar(ncid,'atm2_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
       if ( ibltyp == 2 ) then
         wrkdim(3) = dimids(idkf)
-        call mydefvar(ncid,'atm1_tke',nf90_double,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'atm2_tke',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'atm1_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'atm2_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
         call mydefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
       end if
       if ( idynamic == 2 ) then
         wrkdim(3) = dimids(idkf)
-        call mydefvar(ncid,'atm1_w',nf90_double,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'atm2_w',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'atm1_w',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'atm2_w',regcm_vartype,wrkdim,1,3,varids,ivcc)
         wrkdim(3) = dimids(idkh)
-        call mydefvar(ncid,'atm1_pp',nf90_double,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'atm2_pp',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'atm1_pp',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'atm2_pp',regcm_vartype,wrkdim,1,3,varids,ivcc)
       end if
-      call mydefvar(ncid,'psa',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'psb',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'tga',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'tgb',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'hfx',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'qfx',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'rainc',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'rainnc',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'tgbb',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'uvdrag',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'psa',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'psb',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'tga',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'tgb',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'hfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'qfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'rainc',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'rainnc',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'tgbb',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'uvdrag',regcm_vartype,wrkdim,1,2,varids,ivcc)
       wrkdim(3) = dimids(idkh)
       if ( any(icup == 3) ) then
-        call mydefvar(ncid,'cldefi',nf90_double,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'tbase',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'cldefi',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'tbase',regcm_vartype,wrkdim,1,3,varids,ivcc)
       end if
       if ( any(icup == 6) ) then
-        call mydefvar(ncid,'kfwavg',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'kfwavg',regcm_vartype,wrkdim,1,3,varids,ivcc)
       end if
       if ( any(icup == 4) ) then
-        call mydefvar(ncid,'cbmf2d',nf90_double,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'cbmf2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
       end if
       if ( irrtm == 0 ) then
         wrkdim(3) = dimids(idkh)
         wrkdim(4) = dimids(idspw)
-        call mydefvar(ncid,'gasabsnxt',nf90_double,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'gasabsnxt',regcm_vartype,wrkdim,1,4,varids,ivcc)
         wrkdim(3) = dimids(idkf)
         wrkdim(4) = dimids(idkf)
-        call mydefvar(ncid,'gasabstot',nf90_double,wrkdim,1,4,varids,ivcc)
-        call mydefvar(ncid,'gasemstot',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'gasabstot',regcm_vartype,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'gasemstot',regcm_vartype,wrkdim,1,3,varids,ivcc)
       end if
       if ( ipptls > 0 ) then
         wrkdim(3) = dimids(idkh)
-        call mydefvar(ncid,'fcc',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'fcc',regcm_vartype,wrkdim,1,3,varids,ivcc)
         if ( ipptls == 2 ) then
-          call mydefvar(ncid,'snownc',nf90_double,wrkdim,1,2,varids,ivcc)
+          call mydefvar(ncid,'snownc',regcm_vartype,wrkdim,1,2,varids,ivcc)
         end if
       end if
-      call mydefvar(ncid,'solis',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'solvs',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'solvsd',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'solvl',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'solvld',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'sabveg',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solis',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solvs',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solvsd',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solvl',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solvld',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'sabveg',regcm_vartype,wrkdim,1,2,varids,ivcc)
       wrkdim(1) = dimids(idnnsg)
       wrkdim(2) = dimids(idjcross)
       wrkdim(3) = dimids(idicross)
-      call mydefvar(ncid,'tlef',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'ssw',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'rsw',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'tsw',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'tgrd',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'tgbrd',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'sncv',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'gwet',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'snag',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'sfice',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'ldew',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'tlef',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'ssw',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'rsw',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'tsw',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'tgrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'tgbrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'sncv',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'gwet',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'snag',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'sfice',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'ldew',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'ldmsk1',nf90_int,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'taf',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'emiss',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'scvk',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'um10',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'taf',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'emiss',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'scvk',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'um10',regcm_vartype,wrkdim,1,3,varids,ivcc)
       if ( idcsst == 1 ) then
-        call mydefvar(ncid,'sst',nf90_double,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'tskin',nf90_double,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'deltas',nf90_double,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'tdeltas',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'sst',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'tskin',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'deltas',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'tdeltas',regcm_vartype,wrkdim,1,3,varids,ivcc)
       end if
 #ifndef CLM
       if ( lakemod == 1 ) then
-        call mydefvar(ncid,'eta',nf90_double,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'hi',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'eta',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'hi',regcm_vartype,wrkdim,1,3,varids,ivcc)
         wrkdim(4) = dimids(iddpt)
-        call mydefvar(ncid,'tlak',nf90_double,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'tlak',regcm_vartype,wrkdim,1,4,varids,ivcc)
       end if
 #endif
       wrkdim(1) = dimids(idjcross)
       wrkdim(2) = dimids(idicross)
       wrkdim(3) = dimids(idkh)
-      call mydefvar(ncid,'heatrt',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'heatrt',regcm_vartype,wrkdim,1,3,varids,ivcc)
       wrkdim(3) = dimids(idkf)
-      call mydefvar(ncid,'o3prof',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'flw',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'flwd',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'fsw',nf90_double,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'sinc',nf90_double,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'o3prof',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'flw',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'flwd',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'fsw',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'sinc',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'ldmsk',nf90_int,wrkdim,1,2,varids,ivcc)
       if ( iocnflx == 2 ) then
-        call mydefvar(ncid,'zpbl',nf90_double,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'zpbl',regcm_vartype,wrkdim,1,2,varids,ivcc)
       end if
       if ( ichem == 1 ) then
         wrkdim(3) = dimids(idkh)
         wrkdim(4) = dimids(idntr)
-        call mydefvar(ncid,'chia',nf90_double,wrkdim,1,4,varids,ivcc)
-        call mydefvar(ncid,'chib',nf90_double,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'chia',regcm_vartype,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'chib',regcm_vartype,wrkdim,1,4,varids,ivcc)
         if ( igaschem == 1 .and. ichsolver > 0 ) then
           wrkdim(3) = dimids(idkh)
           wrkdim(4) = dimids(idtotsp)
-          call mydefvar(ncid,'chemall',nf90_double,wrkdim,1,4,varids,ivcc)
+          call mydefvar(ncid,'chemall',regcm_vartype,wrkdim,1,4,varids,ivcc)
           wrkdim(3) = dimids(idkf)
           wrkdim(4) = dimids(idspi)
-          call mydefvar(ncid,'taucldsp',nf90_double,wrkdim,1,4,varids,ivcc)
+          call mydefvar(ncid,'taucldsp',regcm_vartype,wrkdim,1,4,varids,ivcc)
         end if
         wrkdim(3) = dimids(idkh)
         wrkdim(4) = dimids(idntr)
-        call mydefvar(ncid,'rainout',nf90_double,wrkdim,1,4,varids,ivcc)
-        call mydefvar(ncid,'washout',nf90_double,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'rainout',regcm_vartype,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'washout',regcm_vartype,wrkdim,1,4,varids,ivcc)
         wrkdim(3) = dimids(idntr)
-        call mydefvar(ncid,'remdrd',nf90_double,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'ssw2da',nf90_double,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'sdelq',nf90_double,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'sdelt',nf90_double,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'sfracb2d',nf90_double,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'sfracs2d',nf90_double,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'sfracv2d',nf90_double,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'svegfrac2d',nf90_double,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'remdrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'ssw2da',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sdelq',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sdelt',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sfracb2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sfracs2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sfracv2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'svegfrac2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
       end if
       if ( idynamic == 1 ) then
         wrkdim(1) = dimids(idjdot)
         wrkdim(2) = dimids(ididot)
         wrkdim(3) = dimids(idnsplit)
-        call mydefvar(ncid,'dstor',nf90_double,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'hstor',nf90_double,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'dstor',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'hstor',regcm_vartype,wrkdim,1,3,varids,ivcc)
       end if
       if ( islab_ocean == 1 .and. do_restore_sst ) then
         wrkdim(1) = dimids(idjcross)
         wrkdim(2) = dimids(idicross)
-        call mydefvar(ncid,'qflux_restore_sst',nf90_double, &
+        call mydefvar(ncid,'qflux_restore_sst',regcm_vartype, &
                       wrkdim,1,2,varids,ivcc)
         wrkdim(1) = dimids(idmonth)
         call mydefvar(ncid,'stepcount',nf90_int,wrkdim,1,1,varids,ivcc)
@@ -831,22 +832,22 @@ module mod_savefile
       wrkdim(1) = dimids(idjcross)
       wrkdim(2) = dimids(idicross)
       if ( imask == 2 ) then
-        call mydefvar(ncid,'lndcat',nf90_double,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'lndcat',regcm_vartype,wrkdim,1,2,varids,ivcc)
       end if
 #endif
 #ifdef CLM45
       wrkdim(1) = dimids(idnnsg)
       wrkdim(2) = dimids(idjcross)
       wrkdim(3) = dimids(idicross)
-      call mydefvar(ncid,'swdiralb',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'swdifalb',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'lwdiralb',nf90_double,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'lwdifalb',nf90_double,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'swdiralb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'swdifalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'lwdiralb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'lwdifalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
 #endif
       if ( idynamic == 2 .and. ifupr == 1 ) then
         wrkdim(1) = dimids(ikern)
         wrkdim(2) = dimids(ikern)
-        call mydefvar(ncid,'tmask',nf90_double,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'tmask',regcm_vartype,wrkdim,1,2,varids,ivcc)
       end if
 
       ncstatus = nf90_put_att(ncid,nf90_global,'ktau',ktau)
@@ -1055,7 +1056,7 @@ module mod_savefile
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: str
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: var
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: var
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
     iivar = iivar + 1
@@ -1068,7 +1069,7 @@ module mod_savefile
     implicit none
     integer(ik4) , intent(in) :: ncid , nx , ny
     character(len=*) , intent(in) :: str
-    real(rk8) , dimension(nx,ny) , intent(in) :: var
+    real(rkx) , dimension(nx,ny) , intent(in) :: var
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
     iivar = iivar + 1
@@ -1081,7 +1082,7 @@ module mod_savefile
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: str
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
     iivar = iivar + 1
@@ -1094,7 +1095,7 @@ module mod_savefile
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: str
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: var
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
     iivar = iivar + 1

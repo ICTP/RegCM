@@ -1,15 +1,16 @@
   ! Latent heat for condensation/sublimation of water in J/kg
-  pure real(rk8) function wlh(t)
+  pure real(rkx) function wlh(t)
     implicit none
-    real(rk8) , intent(in) :: t
-    real(rk8) :: tc
+    real(rkx) , intent(in) :: t
+    real(rkx) :: tc
     tc = t - tzero
     if ( tc > d_zero ) then
-      wlh = 2500.79D0 - 2.36418D0*tc + 1.58927D-3*tc*tc - 6.14342D-5*tc*tc*tc
+      wlh = 2500.79_rkx - 2.36418_rkx*tc + &
+            1.58927e-3_rkx*tc*tc - 6.14342e-5_rkx*tc*tc*tc
     else
-      wlh = 2834.1D0 - 0.29D0*tc - 0.004D0*tc*tc
+      wlh = 2834.1_rkx - 0.29_rkx*tc - 0.004_rkx*tc*tc
     end if
-    wlh = wlh*1.0D3
+    wlh = wlh*1.0e3_rkx
   end function wlh
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

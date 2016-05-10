@@ -37,17 +37,17 @@ module mod_clm_banddiagonal
     integer(ik4) , intent(in)    :: nband  ! band width
     integer(ik4) , intent(in)    :: filter(ubc-lbc+1)       ! filter
     ! compact band matrix
-    real(rk8), intent(in)    :: b(lbc:ubc,nband,lbj:ubj)
+    real(rkx), intent(in)    :: b(lbc:ubc,nband,lbj:ubj)
     ! "r" rhs of linear system
-    real(rk8), intent(in)    :: r(lbc:ubc, lbj:ubj)
+    real(rkx), intent(in)    :: r(lbc:ubc, lbj:ubj)
     ! solution
-    real(rk8), intent(inout) :: u(lbc:ubc, lbj:ubj)
+    real(rkx), intent(inout) :: u(lbc:ubc, lbj:ubj)
 
     integer(ik4)  :: j,ci,fc,info,m,n          !indices
     integer(ik4)  :: kl,ku                     !number of sub/super diagonals
     integer(ik4), allocatable :: ipiv(:)       !temporary
-    real(rk8),allocatable :: ab(:,:),temp(:,:) !compact storage array
-    real(rk8),allocatable :: result(:)
+    real(rkx),allocatable :: ab(:,:),temp(:,:) !compact storage array
+    real(rkx),allocatable :: result(:)
 
 !!$     SUBROUTINE DGBSV( N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, INFO )
 !!$*
@@ -164,7 +164,7 @@ module mod_clm_banddiagonal
       n = jbot(ci)-jtop(ci)+1
 
       allocate(ab(m,n))
-      ab = 0.0D0
+      ab = 0.0_rkx
 
       ab(kl+ku-1,3:n) = b(ci,1,jtop(ci):jbot(ci)-2)   ! 2nd superdiagonal
       ab(kl+ku+0,2:n) = b(ci,2,jtop(ci):jbot(ci)-1)   ! 1st superdiagonal

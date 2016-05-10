@@ -68,9 +68,7 @@
       integer(kind=im) :: igcsm, iprsm
 
       real(kind=rb) :: wtsum, wtsm(mg)        !
-      real(kind=rb) :: tfn                    !
-
-      real(kind=rb), parameter :: expeps = 1.e-20_rb   ! Smallest value for exponential table
+      real(kind=rb) :: tfn , mxarg
 
 ! ------- Definitions -------
 !     Arrays for 10000-point look-up tables:
@@ -119,20 +117,21 @@
 ! are computed at intervals of 0.001.  The inverse of the constant used
 ! in the Pade approximation to the tau transition function is set to b.
 
+      mxarg = - log(epsilon(1.0_rb))
       tau_tbl(0) = 0.0_rb
       tau_tbl(ntbl) = 1.e10_rb
       exp_tbl(0) = 1.0_rb
-      exp_tbl(ntbl) = expeps
+      exp_tbl(ntbl) = 1.e-7_rb
       tfn_tbl(0) = 0.0_rb
       tfn_tbl(ntbl) = 1.0_rb
       bpade = 1.0_rb / pade
       do itr = 1 , ntbl-1
          tfn = float(itr) / float(ntbl)
          tau_tbl(itr) = bpade * tfn / (1._rb - tfn)
-         if ( tau_tbl(itr) .ge. 100._rb ) then
-           exp_tbl(itr) = expeps
+         if ( tau_tbl(itr) .ge. mxarg ) then
+           exp_tbl(itr) = 1.e-7_rb
          else
-           exp_tbl(itr) = dexp(-tau_tbl(itr))
+           exp_tbl(itr) = max(exp(-tau_tbl(itr)),1.e-7_rb)
          end if
          if (tau_tbl(itr) .lt. 0.06_rb) then
             tfn_tbl(itr) = tau_tbl(itr)/6._rb

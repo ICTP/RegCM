@@ -64,127 +64,127 @@ module mod_clm_snowhydrology
     ! column filter for non-snow points
     integer(ik4), intent(in) :: filter_nosnowc(ubc-lbc+1)
 
-    real(rk8), pointer :: qflx_snow_melt(:)  ! net snow melt
+    real(rkx), pointer :: qflx_snow_melt(:)  ! net snow melt
     integer(ik4), pointer :: clandunit(:)         ! columns's landunit
     integer(ik4), pointer :: ltype(:)             ! landunit type
     ! eff. fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno_eff(:)
+    real(rkx), pointer :: frac_sno_eff(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno(:)
-    real(rk8), pointer :: int_snow(:)       ! integrated snowfall [mm]
-    real(rk8), pointer :: h2osno(:)         ! snow water (mm H2O)
+    real(rkx), pointer :: frac_sno(:)
+    real(rkx), pointer :: int_snow(:)       ! integrated snowfall [mm]
+    real(rkx), pointer :: h2osno(:)         ! snow water (mm H2O)
     ! evaporation flux from snow (W/m**2) [+ to atm]
-    real(rk8), pointer :: qflx_ev_snow(:)
+    real(rkx), pointer :: qflx_ev_snow(:)
     ! evaporation flux from soil (W/m**2) [+ to atm]
-    real(rk8), pointer :: qflx_ev_soil(:)
+    real(rkx), pointer :: qflx_ev_soil(:)
     ! evaporation flux from soil (W/m**2) [+ to atm]
-    real(rk8), pointer :: qflx_evap_soi(:)
+    real(rkx), pointer :: qflx_evap_soi(:)
     integer(ik4) , pointer :: snl(:)            !number of snow layers
     logical , pointer :: do_capsnow(:)     !true => do snow capping
-    real(rk8), pointer :: qflx_snomelt(:)  !snow melt (mm H2O /s)
+    real(rkx), pointer :: qflx_snomelt(:)  !snow melt (mm H2O /s)
     !rain on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_rain_grnd(:)
+    real(rkx), pointer :: qflx_rain_grnd(:)
     !sublimation rate from snow pack (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_sub_snow(:)
+    real(rkx), pointer :: qflx_sub_snow(:)
     !ground surface evaporation rate (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_evap_grnd(:)
+    real(rkx), pointer :: qflx_evap_grnd(:)
     !surface dew added to snow pack (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_dew_snow(:)
+    real(rkx), pointer :: qflx_dew_snow(:)
     !ground surface dew formation (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_dew_grnd(:)
-    real(rk8), pointer :: dz(:,:) !layer depth (m)
+    real(rkx), pointer :: qflx_dew_grnd(:)
+    real(rkx), pointer :: dz(:,:) !layer depth (m)
 
     !net water input into soil from top (mm/s)
-    real(rk8), pointer :: qflx_top_soil(:)
+    real(rkx), pointer :: qflx_top_soil(:)
 
-    real(rk8), pointer :: h2osoi_ice(:,:)  !ice lens (kg/m2)
-    real(rk8), pointer :: h2osoi_liq(:,:)  !liquid water (kg/m2)
+    real(rkx), pointer :: h2osoi_ice(:,:)  !ice lens (kg/m2)
+    real(rkx), pointer :: h2osoi_liq(:,:)  !liquid water (kg/m2)
     integer(ik4) , pointer :: cgridcell(:)      ! columns's gridcell (col)
     ! hydrophillic BC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcphi(:,:)
+    real(rkx), pointer :: mss_bcphi(:,:)
     ! hydrophobic BC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcpho(:,:)
+    real(rkx), pointer :: mss_bcpho(:,:)
     ! hydrophillic OC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocphi(:,:)
+    real(rkx), pointer :: mss_ocphi(:,:)
     ! hydrophobic OC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocpho(:,:)
+    real(rkx), pointer :: mss_ocpho(:,:)
     ! mass of dust species 1 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst1(:,:)
+    real(rkx), pointer :: mss_dst1(:,:)
     ! mass of dust species 2 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst2(:,:)
+    real(rkx), pointer :: mss_dst2(:,:)
     ! mass of dust species 3 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst3(:,:)
+    real(rkx), pointer :: mss_dst3(:,:)
     ! mass of dust species 4 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst4(:,:)
+    real(rkx), pointer :: mss_dst4(:,:)
     ! dry BC deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_bc_dep_dry(:)
+    real(rkx), pointer :: flx_bc_dep_dry(:)
     ! wet BC deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_bc_dep_wet(:)
+    real(rkx), pointer :: flx_bc_dep_wet(:)
     ! total BC deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_bc_dep(:)
+    real(rkx), pointer :: flx_bc_dep(:)
     ! hydrophobic BC deposition (col) [kg m-1 s-1]
-    real(rk8), pointer :: flx_bc_dep_pho(:)
+    real(rkx), pointer :: flx_bc_dep_pho(:)
     ! hydrophillic BC deposition (col) [kg m-1 s-1]
-    real(rk8), pointer :: flx_bc_dep_phi(:)
+    real(rkx), pointer :: flx_bc_dep_phi(:)
     ! dry OC deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_oc_dep_dry(:)
+    real(rkx), pointer :: flx_oc_dep_dry(:)
     ! wet OC deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_oc_dep_wet(:)
+    real(rkx), pointer :: flx_oc_dep_wet(:)
     ! total OC deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_oc_dep(:)
+    real(rkx), pointer :: flx_oc_dep(:)
     ! hydrophobic OC deposition (col) [kg m-1 s-1]
-    real(rk8), pointer :: flx_oc_dep_pho(:)
+    real(rkx), pointer :: flx_oc_dep_pho(:)
     ! hydrophillic OC deposition (col) [kg m-1 s-1]
-    real(rk8), pointer :: flx_oc_dep_phi(:)
+    real(rkx), pointer :: flx_oc_dep_phi(:)
     ! dry dust (species 1) deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_dst_dep_dry1(:)
+    real(rkx), pointer :: flx_dst_dep_dry1(:)
     ! wet dust (species 1) deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_dst_dep_wet1(:)
+    real(rkx), pointer :: flx_dst_dep_wet1(:)
     ! dry dust (species 2) deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_dst_dep_dry2(:)
+    real(rkx), pointer :: flx_dst_dep_dry2(:)
     ! wet dust (species 2) deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_dst_dep_wet2(:)
+    real(rkx), pointer :: flx_dst_dep_wet2(:)
     ! dry dust (species 3) deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_dst_dep_dry3(:)
+    real(rkx), pointer :: flx_dst_dep_dry3(:)
     ! wet dust (species 3) deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_dst_dep_wet3(:)
+    real(rkx), pointer :: flx_dst_dep_wet3(:)
     ! dry dust (species 4) deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_dst_dep_dry4(:)
+    real(rkx), pointer :: flx_dst_dep_dry4(:)
     ! wet dust (species 4) deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_dst_dep_wet4(:)
+    real(rkx), pointer :: flx_dst_dep_wet4(:)
     ! total dust deposition (col) [kg m-2 s-1]
-    real(rk8), pointer :: flx_dst_dep(:)
+    real(rkx), pointer :: flx_dst_dep(:)
     ! aerosol deposition from atmosphere model (grd,aer) [kg m-1 s-1]
-    real(rk8), pointer :: forc_aer(:,:)
+    real(rkx), pointer :: forc_aer(:,:)
 
     integer(ik4)  :: c, j, fc, l        !do loop/array indices
-    real(rk8) :: qin(lbc:ubc)      !water flow into the elmement (mm/s)
-    real(rk8) :: qout(lbc:ubc)     !water flow out of the elmement (mm/s)
-    real(rk8) :: wgdif             !ice mass after minus sublimation
+    real(rkx) :: qin(lbc:ubc)      !water flow into the elmement (mm/s)
+    real(rkx) :: qout(lbc:ubc)     !water flow out of the elmement (mm/s)
+    real(rkx) :: wgdif             !ice mass after minus sublimation
     !partial volume of liquid water in layer
-    real(rk8) :: vol_liq(lbc:ubc,-nlevsno+1:0)
+    real(rkx) :: vol_liq(lbc:ubc,-nlevsno+1:0)
     !partial volume of ice lens in layer
-    real(rk8) :: vol_ice(lbc:ubc,-nlevsno+1:0)
+    real(rkx) :: vol_ice(lbc:ubc,-nlevsno+1:0)
     !effective porosity = porosity - vol_ice
-    real(rk8) :: eff_porosity(lbc:ubc,-nlevsno+1:0)
+    real(rkx) :: eff_porosity(lbc:ubc,-nlevsno+1:0)
     integer(ik4)  :: g         ! gridcell loop index
-    real(rk8) :: qin_bc_phi(lbc:ubc)  ! flux of hydrophilic BC into layer [kg]
-    real(rk8) :: qout_bc_phi(lbc:ubc) ! flux of hydrophilic BC out of layer [kg]
-    real(rk8) :: qin_bc_pho(lbc:ubc)  ! flux of hydrophobic BC into layer [kg]
-    real(rk8) :: qout_bc_pho(lbc:ubc) ! flux of hydrophobic BC out of layer [kg]
-    real(rk8) :: qin_oc_phi(lbc:ubc)  ! flux of hydrophilic OC into layer [kg]
-    real(rk8) :: qout_oc_phi(lbc:ubc) ! flux of hydrophilic OC out of layer [kg]
-    real(rk8) :: qin_oc_pho(lbc:ubc)  ! flux of hydrophobic OC into layer [kg]
-    real(rk8) :: qout_oc_pho(lbc:ubc) ! flux of hydrophobic OC out of layer [kg]
-    real(rk8) :: qin_dst1(lbc:ubc)    ! flux of dust species 1 into layer [kg]
-    real(rk8) :: qout_dst1(lbc:ubc)   ! flux of dust species 1 out of layer [kg]
-    real(rk8) :: qin_dst2(lbc:ubc)    ! flux of dust species 2 into layer [kg]
-    real(rk8) :: qout_dst2(lbc:ubc)   ! flux of dust species 2 out of layer [kg]
-    real(rk8) :: qin_dst3(lbc:ubc)    ! flux of dust species 3 into layer [kg]
-    real(rk8) :: qout_dst3(lbc:ubc)   ! flux of dust species 3 out of layer [kg]
-    real(rk8) :: qin_dst4(lbc:ubc)    ! flux of dust species 4 into layer [kg]
-    real(rk8) :: qout_dst4(lbc:ubc)   ! flux of dust species 4 out of layer [kg]
-    real(rk8) :: mss_liqice           ! mass of liquid+ice in a layer
+    real(rkx) :: qin_bc_phi(lbc:ubc)  ! flux of hydrophilic BC into layer [kg]
+    real(rkx) :: qout_bc_phi(lbc:ubc) ! flux of hydrophilic BC out of layer [kg]
+    real(rkx) :: qin_bc_pho(lbc:ubc)  ! flux of hydrophobic BC into layer [kg]
+    real(rkx) :: qout_bc_pho(lbc:ubc) ! flux of hydrophobic BC out of layer [kg]
+    real(rkx) :: qin_oc_phi(lbc:ubc)  ! flux of hydrophilic OC into layer [kg]
+    real(rkx) :: qout_oc_phi(lbc:ubc) ! flux of hydrophilic OC out of layer [kg]
+    real(rkx) :: qin_oc_pho(lbc:ubc)  ! flux of hydrophobic OC into layer [kg]
+    real(rkx) :: qout_oc_pho(lbc:ubc) ! flux of hydrophobic OC out of layer [kg]
+    real(rkx) :: qin_dst1(lbc:ubc)    ! flux of dust species 1 into layer [kg]
+    real(rkx) :: qout_dst1(lbc:ubc)   ! flux of dust species 1 out of layer [kg]
+    real(rkx) :: qin_dst2(lbc:ubc)    ! flux of dust species 2 into layer [kg]
+    real(rkx) :: qout_dst2(lbc:ubc)   ! flux of dust species 2 out of layer [kg]
+    real(rkx) :: qin_dst3(lbc:ubc)    ! flux of dust species 3 into layer [kg]
+    real(rkx) :: qout_dst3(lbc:ubc)   ! flux of dust species 3 out of layer [kg]
+    real(rkx) :: qin_dst4(lbc:ubc)    ! flux of dust species 4 into layer [kg]
+    real(rkx) :: qout_dst4(lbc:ubc)   ! flux of dust species 4 out of layer [kg]
+    real(rkx) :: mss_liqice           ! mass of liquid+ice in a layer
 
     ! Assign local pointers to derived subtype components (column-level)
 
@@ -252,8 +252,8 @@ module mod_clm_snowhydrology
         wgdif = h2osoi_ice(c,snl(c)+1) - &
              frac_sno_eff(c)*qflx_sub_snow(c)*dtsrf
         h2osoi_ice(c,snl(c)+1) = wgdif
-        if (wgdif < 0.D0) then
-          h2osoi_ice(c,snl(c)+1) = 0.D0
+        if (wgdif < 0._rkx) then
+          h2osoi_ice(c,snl(c)+1) = 0._rkx
           h2osoi_liq(c,snl(c)+1) = h2osoi_liq(c,snl(c)+1) + wgdif
         end if
         h2osoi_liq(c,snl(c)+1) = h2osoi_liq(c,snl(c)+1) &
@@ -263,8 +263,8 @@ module mod_clm_snowhydrology
                   + frac_sno_eff(c) * (qflx_dew_snow(c) - &
                     qflx_sub_snow(c)) * dtsrf
         h2osoi_ice(c,snl(c)+1) = wgdif
-        if (wgdif < 0.D0) then
-          h2osoi_ice(c,snl(c)+1) = 0.D0
+        if (wgdif < 0._rkx) then
+          h2osoi_ice(c,snl(c)+1) = 0._rkx
           h2osoi_liq(c,snl(c)+1) = h2osoi_liq(c,snl(c)+1) + wgdif
         end if
         h2osoi_liq(c,snl(c)+1) = h2osoi_liq(c,snl(c)+1) +  &
@@ -272,11 +272,11 @@ module mod_clm_snowhydrology
                   - qflx_evap_grnd(c)) * dtsrf
       end if
       ! if negative, reduce deeper layer's liquid water content sequentially
-      if ( h2osoi_liq(c,snl(c)+1) < 0.D0) then
+      if ( h2osoi_liq(c,snl(c)+1) < 0._rkx) then
         do j = snl(c)+1, 1
           wgdif=h2osoi_liq(c,j)
-          if (wgdif >= 0.D0) exit
-          h2osoi_liq(c,j) = 0.D0
+          if (wgdif >= 0._rkx) exit
+          h2osoi_liq(c,j) = 0._rkx
           h2osoi_liq(c,j+1) = h2osoi_liq(c,j+1) + wgdif
         enddo
       end if
@@ -290,9 +290,9 @@ module mod_clm_snowhydrology
         c = filter_snowc(fc)
         if (j >= snl(c)+1) then
           ! need to scale dz by frac_sno to convert to grid cell average depth
-          vol_ice(c,j) = min(1.D0, h2osoi_ice(c,j) / &
+          vol_ice(c,j) = min(1._rkx, h2osoi_ice(c,j) / &
                   (dz(c,j)*frac_sno_eff(c)*denice))
-          eff_porosity(c,j) = 1.D0 - vol_ice(c,j)
+          eff_porosity(c,j) = 1._rkx - vol_ice(c,j)
           vol_liq(c,j) = min(eff_porosity(c,j),h2osoi_liq(c,j) / &
                   (dz(c,j)*frac_sno_eff(c)*denh2o))
         end if
@@ -316,15 +316,15 @@ module mod_clm_snowhydrology
     ! 4) update mass of aerosol in top layer, accordingly
     ! 5) update mass concentration of aerosol accordingly
 
-    qin(:) = 0.D0
-    qin_bc_phi(:) = 0.D0
-    qin_bc_pho(:) = 0.D0
-    qin_oc_phi(:) = 0.D0
-    qin_oc_pho(:) = 0.D0
-    qin_dst1(:)   = 0.D0
-    qin_dst2(:)   = 0.D0
-    qin_dst3(:)   = 0.D0
-    qin_dst4(:)   = 0.D0
+    qin(:) = 0._rkx
+    qin_bc_phi(:) = 0._rkx
+    qin_bc_pho(:) = 0._rkx
+    qin_oc_phi(:) = 0._rkx
+    qin_oc_pho(:) = 0._rkx
+    qin_dst1(:)   = 0._rkx
+    qin_dst2(:)   = 0._rkx
+    qin_dst3(:)   = 0._rkx
+    qin_dst4(:)   = 0._rkx
 
     do j = -nlevsno+1, 0
       do fc = 1, num_snowc
@@ -344,19 +344,19 @@ module mod_clm_snowhydrology
           if (j <= -1) then
             ! No runoff over snow surface, just ponding on surface
             if (eff_porosity(c,j) < wimp .OR. eff_porosity(c,j+1) < wimp) then
-              qout(c) = 0.D0
+              qout(c) = 0._rkx
             else
               ! dz must be scaled by frac_sno to obtain gridcell average value
-              qout(c) = max(0.D0,(vol_liq(c,j) &
+              qout(c) = max(0._rkx,(vol_liq(c,j) &
                         - ssi*eff_porosity(c,j))*dz(c,j)*frac_sno_eff(c))
-              qout(c) = min(qout(c),(1.D0-vol_ice(c,j+1) &
+              qout(c) = min(qout(c),(1._rkx-vol_ice(c,j+1) &
                         - vol_liq(c,j+1))*dz(c,j+1)*frac_sno_eff(c))
             end if
           else
-            qout(c) = max(0.D0,(vol_liq(c,j) &
+            qout(c) = max(0._rkx,(vol_liq(c,j) &
                      - ssi*eff_porosity(c,j))*dz(c,j)*frac_sno_eff(c))
           end if
-          qout(c) = qout(c)*1000.D0
+          qout(c) = qout(c)*1000._rkx
           h2osoi_liq(c,j) = h2osoi_liq(c,j) - qout(c)
           qin(c) = qout(c)
 
@@ -365,8 +365,8 @@ module mod_clm_snowhydrology
           ! this case, set the mass to a very small value to
           ! prevent division by zero.
           mss_liqice = h2osoi_liq(c,j)+h2osoi_ice(c,j)
-          if (mss_liqice < 1D-30) then
-            mss_liqice = 1D-30
+          if (mss_liqice < 1e-30_rkx) then
+            mss_liqice = 1e-30_rkx
           endif
 
           ! BCPHI:
@@ -473,7 +473,7 @@ module mod_clm_snowhydrology
       qflx_snow_melt(c) = qflx_snow_melt(c) + (qout(c) / dtsrf)
 
       qflx_top_soil(c) = (qout(c) / dtsrf) &
-            + (1.0D0 - frac_sno_eff(c)) * qflx_rain_grnd(c)
+            + (1.0_rkx - frac_sno_eff(c)) * qflx_rain_grnd(c)
       int_snow(c) = int_snow(c) + frac_sno_eff(c) * qflx_dew_snow(c) * dtsrf &
             + frac_sno_eff(c) * qflx_rain_grnd(c) * dtsrf
     end do
@@ -567,51 +567,51 @@ module mod_clm_snowhydrology
     ! column filter for snow points
     integer(ik4), intent(in) :: filter_snowc(ubc-lbc+1)
 
-    real(rk8), pointer :: frac_sno(:)    !snow covered fraction
-    real(rk8), pointer :: swe_old(:,:)   !initial swe values
-    real(rk8), pointer :: int_snow(:)    !integrated snowfall [mm]
-    real(rk8), pointer :: n_melt(:)      !SCA shape parameter
+    real(rkx), pointer :: frac_sno(:)    !snow covered fraction
+    real(rkx), pointer :: swe_old(:,:)   !initial swe values
+    real(rkx), pointer :: int_snow(:)    !integrated snowfall [mm]
+    real(rkx), pointer :: n_melt(:)      !SCA shape parameter
     integer(ik4),  pointer :: snl(:)          !number of snow layers
 
     !flag for melting (=1), freezing (=2), Not=0
     integer(ik4),  pointer :: imelt(:,:)
     !fraction of ice relative to the tot water
-    real(rk8), pointer :: frac_iceold(:,:)
-    real(rk8), pointer :: t_soisno(:,:)   !soil temperature (Kelvin)
-    real(rk8), pointer :: h2osoi_ice(:,:) !ice lens (kg/m2)
-    real(rk8), pointer :: h2osoi_liq(:,:) !liquid water (kg/m2)
+    real(rkx), pointer :: frac_iceold(:,:)
+    real(rkx), pointer :: t_soisno(:,:)   !soil temperature (Kelvin)
+    real(rkx), pointer :: h2osoi_ice(:,:) !ice lens (kg/m2)
+    real(rkx), pointer :: h2osoi_liq(:,:) !liquid water (kg/m2)
 
-    real(rk8), pointer :: dz(:,:)           !layer depth (m)
+    real(rkx), pointer :: dz(:,:)           !layer depth (m)
 
     integer(ik4) :: j, l, c, fc                 ! indices
-    real(rk8), parameter :: c2 = 23.D-3    ! [m3/kg]
-    real(rk8), parameter :: c3 = 2.777D-6  ! [1/s]
-    real(rk8), parameter :: c4 = 0.04D0    ! [1/K]
-    real(rk8), parameter :: c5 = 2.0D0     !
+    real(rkx), parameter :: c2 = 23.e-3_rkx    ! [m3/kg]
+    real(rkx), parameter :: c3 = 2.777e-6_rkx  ! [1/s]
+    real(rkx), parameter :: c4 = 0.04_rkx    ! [1/K]
+    real(rkx), parameter :: c5 = 2.0_rkx     !
     ! Upper Limit on Destructive Metamorphism Compaction [kg/m3]
-    real(rk8), parameter :: dm = 100.0D0
+    real(rkx), parameter :: dm = 100.0_rkx
     ! The Viscosity Coefficient Eta0 [kg-s/m2]
-    real(rk8), parameter :: eta0 = 9.D+5
-    real(rk8) :: burden(lbc:ubc) ! pressure of overlying snow [kg/m2]
+    real(rkx), parameter :: eta0 = 9.e5_rkx
+    real(rkx) :: burden(lbc:ubc) ! pressure of overlying snow [kg/m2]
     ! Rate of settling of snowpack due to destructive metamorphism.
-    real(rk8) :: ddz1
-    real(rk8) :: ddz2   ! Rate of compaction of snowpack due to overburden.
-    real(rk8) :: ddz3   ! Rate of compaction of snowpack due to melt [1/s]
-    real(rk8) :: dexpf  ! expf=exp(-c4*(273.15-t_soisno)).
+    real(rkx) :: ddz1
+    real(rkx) :: ddz2   ! Rate of compaction of snowpack due to overburden.
+    real(rkx) :: ddz3   ! Rate of compaction of snowpack due to melt [1/s]
+    real(rkx) :: dexpf  ! expf=exp(-c4*(273.15-t_soisno)).
     ! Fraction of ice relative to the total water content at current time step
-    real(rk8) :: fi
-    real(rk8) :: td     ! t_soisno - tfrz [K]
+    real(rkx) :: fi
+    real(rkx) :: td     ! t_soisno - tfrz [K]
     ! Nodal rate of change in fractional-thickness due to
     ! compaction [fraction/s]
-    real(rk8) :: pdzdtc
-    real(rk8) :: void   ! void (1 - vol_ice - vol_liq)
-    real(rk8) :: wx     ! water mass (ice+liquid) [kg/m2]
-    real(rk8) :: bi     ! partial density of ice [kg/m3]
-    real(rk8) :: wsum   ! snowpack total water mass (ice+liquid) [kg/m2]
-    real(rk8) :: fsno_melt
+    real(rkx) :: pdzdtc
+    real(rkx) :: void   ! void (1 - vol_ice - vol_liq)
+    real(rkx) :: wx     ! water mass (ice+liquid) [kg/m2]
+    real(rkx) :: bi     ! partial density of ice [kg/m3]
+    real(rkx) :: wsum   ! snowpack total water mass (ice+liquid) [kg/m2]
+    real(rkx) :: fsno_melt
     integer(ik4), pointer :: clandunit(:)       !landunit index for each column
     integer(ik4), pointer :: ltype(:)           !landunit type
-    real(rk8), pointer :: snow_depth(:)    ! snow height (m)
+    real(rkx), pointer :: snow_depth(:)    ! snow height (m)
 
     ! Assign local pointers to derived subtypes (column-level)
 
@@ -635,7 +635,7 @@ module mod_clm_snowhydrology
     ! Begin calculation - note that the following column loops
     ! are only invoked if snl(c) < 0
 
-    burden(:) = 0.D0
+    burden(:) = 0._rkx
 
     do j = -nlevsno+1, 0
       do fc = 1, num_snowc
@@ -643,10 +643,10 @@ module mod_clm_snowhydrology
         if (j >= snl(c)+1) then
 
           wx = h2osoi_ice(c,j) + h2osoi_liq(c,j)
-          void = 1.D0 - (h2osoi_ice(c,j)/denice + &
+          void = 1._rkx - (h2osoi_ice(c,j)/denice + &
                          h2osoi_liq(c,j)/denh2o) / dz(c,j)
           wx = (h2osoi_ice(c,j) + h2osoi_liq(c,j))
-          void = 1.D0 - (h2osoi_ice(c,j)/denice + &
+          void = 1._rkx - (h2osoi_ice(c,j)/denice + &
                          h2osoi_liq(c,j)/denh2o)/(frac_sno(c) * dz(c,j))
           ! If void is negative, then increase dz such that void = 0.
           ! This should be done for any landunit
@@ -654,7 +654,7 @@ module mod_clm_snowhydrology
 
           ! Allow compaction only for non-saturated node and
           ! higher ice lens node.
-          if (void > 0.001D0 .and. h2osoi_ice(c,j) > .1D0) then
+          if (void > 0.001_rkx .and. h2osoi_ice(c,j) > .1_rkx) then
 
             bi = h2osoi_ice(c,j) / (frac_sno(c) * dz(c,j))
             fi = h2osoi_ice(c,j) / wx
@@ -664,15 +664,15 @@ module mod_clm_snowhydrology
             ! Settling as a result of destructive metamorphism
 
             ddz1 = -c3*dexpf
-            if (bi > dm) ddz1 = ddz1*exp(-46.0D-3*(bi-dm))
+            if (bi > dm) ddz1 = ddz1*exp(-46.0e-3_rkx*(bi-dm))
 
             ! Liquid water term
 
-            if (h2osoi_liq(c,j) > 0.01D0*dz(c,j)*frac_sno(c)) ddz1=ddz1*c5
+            if (h2osoi_liq(c,j) > 0.01_rkx*dz(c,j)*frac_sno(c)) ddz1=ddz1*c5
 
             ! Compaction due to overburden
 
-            ddz2 = -(burden(c)+wx/2.D0)*exp(-0.08D0*td - c2*bi)/eta0
+            ddz2 = -(burden(c)+wx/2._rkx)*exp(-0.08_rkx*td - c2*bi)/eta0
 
             ! Compaction occurring during melt
 
@@ -681,24 +681,24 @@ module mod_clm_snowhydrology
                  (ltype(clandunit(c)) == istsoil .or. &
                   ltype(clandunit(c)) == istcrop)) then
                 ! first term is delta mass over mass
-                ddz3 = max(0.D0,min(1.D0,(swe_old(c,j) - wx)/wx))
+                ddz3 = max(0._rkx,min(1._rkx,(swe_old(c,j) - wx)/wx))
 
                 ! 2nd term is delta fsno over fsno, allowing for
                 ! negative values for ddz3
                 wsum = sum(h2osoi_liq(c,snl(c)+1:0) + &
                            h2osoi_ice(c,snl(c)+1:0))
-                fsno_melt = 1.0D0 - &
-                        (acos(2.0D0*min(1.D0,wsum/int_snow(c)) - &
-                        1.D0)/rpi)**(n_melt(c))
+                fsno_melt = 1.0_rkx - &
+                        (acos(2.0_rkx*min(1._rkx,wsum/int_snow(c)) - &
+                        1._rkx)/rpi)**(n_melt(c))
 
-                ddz3 = ddz3 - max(0.D0,(fsno_melt - frac_sno(c))/frac_sno(c))
-                ddz3 = -1.D0/dtsrf * ddz3
+                ddz3 = ddz3 - max(0._rkx,(fsno_melt - frac_sno(c))/frac_sno(c))
+                ddz3 = -1._rkx/dtsrf * ddz3
               else
-                ddz3 = - 1.D0/dtsrf * &
-                        max(0.D0,(frac_iceold(c,j) - fi)/frac_iceold(c,j))
+                ddz3 = - 1._rkx/dtsrf * &
+                        max(0._rkx,(frac_iceold(c,j) - fi)/frac_iceold(c,j))
               endif
             else
-              ddz3 = 0.D0
+              ddz3 = 0._rkx
             end if
 
             ! Time rate of fractional change in dz (units of s-1)
@@ -710,7 +710,7 @@ module mod_clm_snowhydrology
             ! layer thickness
 
             dz(c,j) = max(dz(c,j) * &
-                    (1.D0+pdzdtc*dtsrf),(h2osoi_ice(c,j) / &
+                    (1._rkx+pdzdtc*dtsrf),(h2osoi_ice(c,j) / &
                     denice+ h2osoi_liq(c,j)/denh2o)/frac_sno(c))
           end if
 
@@ -742,44 +742,44 @@ module mod_clm_snowhydrology
     integer(ik4), intent(inout) :: filter_snowc(ubc-lbc+1)
 
     !fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno(:)
+    real(rkx), pointer :: frac_sno(:)
     !fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno_eff(:)
-    real(rk8), pointer :: int_snow(:)   !integrated snowfall [mm]
+    real(rkx), pointer :: frac_sno_eff(:)
+    real(rkx), pointer :: int_snow(:)   !integrated snowfall [mm]
     integer(ik4), pointer :: clandunit(:)    !landunit index for each column
     integer(ik4), pointer :: ltype(:)        !landunit type
 
     integer(ik4) , pointer :: snl(:)         !number of snow layers
-    real(rk8), pointer :: h2osno(:)     !snow water (mm H2O)
-    real(rk8), pointer :: snow_depth(:) !snow height (m)
-    real(rk8), pointer :: dz(:,:)       !layer depth (m)
-    real(rk8), pointer :: zi(:,:)       !interface level below a "z" level (m)
-    real(rk8), pointer :: t_soisno(:,:)   !soil temperature (Kelvin)
-    real(rk8), pointer :: h2osoi_ice(:,:) !ice lens (kg/m2)
-    real(rk8), pointer :: h2osoi_liq(:,:) !liquid water (kg/m2)
+    real(rkx), pointer :: h2osno(:)     !snow water (mm H2O)
+    real(rkx), pointer :: snow_depth(:) !snow height (m)
+    real(rkx), pointer :: dz(:,:)       !layer depth (m)
+    real(rkx), pointer :: zi(:,:)       !interface level below a "z" level (m)
+    real(rkx), pointer :: t_soisno(:,:)   !soil temperature (Kelvin)
+    real(rkx), pointer :: h2osoi_ice(:,:) !ice lens (kg/m2)
+    real(rkx), pointer :: h2osoi_liq(:,:) !liquid water (kg/m2)
 
-    real(rk8), pointer :: z(:,:)  ! layer thickness (m)
+    real(rkx), pointer :: z(:,:)  ! layer thickness (m)
     ! hydrophilic BC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcphi(:,:)
+    real(rkx), pointer :: mss_bcphi(:,:)
     ! hydrophobic BC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcpho(:,:)
+    real(rkx), pointer :: mss_bcpho(:,:)
     ! hydrophilic OC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocphi(:,:)
+    real(rkx), pointer :: mss_ocphi(:,:)
     ! hydrophobic OC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocpho(:,:)
+    real(rkx), pointer :: mss_ocpho(:,:)
     ! dust species 1 mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst1(:,:)
+    real(rkx), pointer :: mss_dst1(:,:)
     ! dust species 2 mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst2(:,:)
+    real(rkx), pointer :: mss_dst2(:,:)
     ! dust species 3 mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst3(:,:)
+    real(rkx), pointer :: mss_dst3(:,:)
     ! dust species 4 mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst4(:,:)
+    real(rkx), pointer :: mss_dst4(:,:)
     ! effective snow grain radius (col,lyr) [microns, m^-6]
-    real(rk8), pointer :: snw_rds(:,:)
+    real(rkx), pointer :: snw_rds(:,:)
     ! liquid water + ice from layer above soil to top soil layer or
     ! sent to qflx_qrgwl (mm H2O/s)
-    real(rk8), pointer :: qflx_sl_top_soil(:)
+    real(rkx), pointer :: qflx_sl_top_soil(:)
 
     integer(ik4) :: c, fc             ! column indices
     integer(ik4) :: i,k               ! loop indices
@@ -787,12 +787,12 @@ module mod_clm_snowhydrology
     integer(ik4) :: msn_old(lbc:ubc)  ! number of top snow layer
     integer(ik4) :: mssi(lbc:ubc)     ! node index
     integer(ik4) :: neibor            ! adjacent node selected for combination
-    real(rk8):: zwice(lbc:ubc)        ! total ice mass in snow
-    real(rk8):: zwliq (lbc:ubc)       ! total liquid water in snow
-    real(rk8):: dzmin(5)              ! minimum of top snow layer
-    real(rk8):: dzminloc(5)           ! minimum of top snow layer (local)
+    real(rkx):: zwice(lbc:ubc)        ! total ice mass in snow
+    real(rkx):: zwliq (lbc:ubc)       ! total liquid water in snow
+    real(rkx):: dzmin(5)              ! minimum of top snow layer
+    real(rkx):: dzminloc(5)           ! minimum of top snow layer (local)
 
-    data dzmin /0.010D0, 0.015D0, 0.025D0, 0.055D0, 0.115D0/
+    data dzmin /0.010_rkx, 0.015_rkx, 0.025_rkx, 0.055_rkx, 0.115_rkx/
 
     ! Assign local pointers to derived subtypes (landunit-level)
 
@@ -844,7 +844,7 @@ module mod_clm_snowhydrology
     do fc = 1, num_snowc
       c = filter_snowc(fc)
       msn_old(c) = snl(c)
-      qflx_sl_top_soil(c) = 0.D0
+      qflx_sl_top_soil(c) = 0._rkx
     end do
 
     ! The following loop is NOT VECTORIZED
@@ -854,7 +854,7 @@ module mod_clm_snowhydrology
       l = clandunit(c)
       do j = msn_old(c)+1,0
         ! use 0.01 to avoid runaway ice buildup
-        if (h2osoi_ice(c,j) <= .01D0) then
+        if (h2osoi_ice(c,j) <= .01_rkx) then
           if (ltype(l) == istsoil .or. &
               ltype(l)==isturb .or. &
               ltype(l) == istcrop) then
@@ -942,10 +942,10 @@ module mod_clm_snowhydrology
 
     do fc = 1, num_snowc
       c = filter_snowc(fc)
-      h2osno(c) = 0.D0
-      snow_depth(c) = 0.D0
-      zwice(c)  = 0.D0
-      zwliq(c)  = 0.D0
+      h2osno(c) = 0._rkx
+      snow_depth(c) = 0._rkx
+      zwice(c)  = 0._rkx
+      zwliq(c)  = 0._rkx
     end do
 
     do j = -nlevsno+1,0
@@ -966,46 +966,46 @@ module mod_clm_snowhydrology
     do fc = 1, num_snowc
       c = filter_snowc(fc)
       l = clandunit(c)
-      if (snow_depth(c) > 0.D0) then
-        if ((ltype(l) == istdlak .and. snow_depth(c) < 0.01D0 + lsadz ) .or. &
+      if (snow_depth(c) > 0._rkx) then
+        if ((ltype(l) == istdlak .and. snow_depth(c) < 0.01_rkx + lsadz ) .or. &
            ((ltype(l) /= istdlak) .and. &
-           ((frac_sno_eff(c)*snow_depth(c) < 0.01D0) .or. &
-            (h2osno(c)/(frac_sno_eff(c)*snow_depth(c)) < 50.D0)))) then
+           ((frac_sno_eff(c)*snow_depth(c) < 0.01_rkx) .or. &
+            (h2osno(c)/(frac_sno_eff(c)*snow_depth(c)) < 50._rkx)))) then
 
           snl(c) = 0
           h2osno(c) = zwice(c)
 
-          mss_bcphi(c,:) = 0.D0
-          mss_bcpho(c,:) = 0.D0
-          mss_ocphi(c,:) = 0.D0
-          mss_ocpho(c,:) = 0.D0
-          mss_dst1(c,:)  = 0.D0
-          mss_dst2(c,:)  = 0.D0
-          mss_dst3(c,:)  = 0.D0
-          mss_dst4(c,:)  = 0.D0
+          mss_bcphi(c,:) = 0._rkx
+          mss_bcpho(c,:) = 0._rkx
+          mss_ocphi(c,:) = 0._rkx
+          mss_ocpho(c,:) = 0._rkx
+          mss_dst1(c,:)  = 0._rkx
+          mss_dst2(c,:)  = 0._rkx
+          mss_dst3(c,:)  = 0._rkx
+          mss_dst4(c,:)  = 0._rkx
 
-          if (h2osno(c) <= 0.D0) snow_depth(c) = 0.D0
+          if (h2osno(c) <= 0._rkx) snow_depth(c) = 0._rkx
           ! this is where water is transfered from layer 0 (snow)
           ! to layer 1 (soil)
           if (ltype(l) == istsoil .or. &
               ltype(l) == isturb .or. &
               ltype(l) == istcrop) then
-            h2osoi_liq(c,0) = 0.0D0
+            h2osoi_liq(c,0) = 0.0_rkx
             h2osoi_liq(c,1) = h2osoi_liq(c,1) + zwliq(c)
           end if
           if (ltype(l) == istwet) then
-            h2osoi_liq(c,0) = 0.0D0
+            h2osoi_liq(c,0) = 0.0_rkx
           endif
           if ( ltype(l) == istice ) then
-            h2osoi_liq(c,0) = 0.0D0
+            h2osoi_liq(c,0) = 0.0_rkx
           endif
         endif
       end if
-      if (h2osno(c) <= 0.D0) then
-        snow_depth(c) = 0.D0
-        frac_sno(c) = 0.D0
-        frac_sno_eff(c) = 0.D0
-        int_snow(c) = 0.D0
+      if (h2osno(c) <= 0._rkx) then
+        snow_depth(c) = 0._rkx
+        frac_sno(c) = 0._rkx
+        frac_sno_eff(c) = 0._rkx
+        int_snow(c) = 0._rkx
       endif
     end do
 
@@ -1025,7 +1025,7 @@ module mod_clm_snowhydrology
         do i = msn_old(c)+1,0
           if ((frac_sno_eff(c)*dz(c,i) < dzminloc(mssi(c))) .or. &
               ((h2osoi_ice(c,i) + h2osoi_liq(c,i))/ &
-                (frac_sno_eff(c)*dz(c,i)) < 50.D0)) then
+                (frac_sno_eff(c)*dz(c,i)) < 50._rkx)) then
             if (i == snl(c)+1) then
               ! If top node is removed, combine with bottom neighbor.
               neibor = i + 1
@@ -1111,7 +1111,7 @@ module mod_clm_snowhydrology
       do fc = 1, num_snowc
         c = filter_snowc(fc)
         if (j >= snl(c) + 1) then
-          z(c,j) = zi(c,j) - 0.5D0*dz(c,j)
+          z(c,j) = zi(c,j) - 0.5_rkx*dz(c,j)
           zi(c,j-1) = zi(c,j) - dz(c,j)
         end if
       end do
@@ -1132,65 +1132,65 @@ module mod_clm_snowhydrology
     integer(ik4), intent(inout) :: filter_snowc(ubc-lbc+1)
 
     !fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno(:)
+    real(rkx), pointer :: frac_sno(:)
     integer(ik4) , pointer :: snl(:)        !number of snow layers
-    real(rk8), pointer :: dz(:,:)      !layer depth (m)
-    real(rk8), pointer :: zi(:,:)      !interface level below a "z" level (m)
-    real(rk8), pointer :: t_soisno(:,:)   !soil temperature (Kelvin)
-    real(rk8), pointer :: h2osoi_ice(:,:) !ice lens (kg/m2)
-    real(rk8), pointer :: h2osoi_liq(:,:) !liquid water (kg/m2)
+    real(rkx), pointer :: dz(:,:)      !layer depth (m)
+    real(rkx), pointer :: zi(:,:)      !interface level below a "z" level (m)
+    real(rkx), pointer :: t_soisno(:,:)   !soil temperature (Kelvin)
+    real(rkx), pointer :: h2osoi_ice(:,:) !ice lens (kg/m2)
+    real(rkx), pointer :: h2osoi_liq(:,:) !liquid water (kg/m2)
 
-    real(rk8), pointer :: z(:,:)          ! layer thickness (m)
+    real(rkx), pointer :: z(:,:)          ! layer thickness (m)
     ! hydrophilic BC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcphi(:,:)
+    real(rkx), pointer :: mss_bcphi(:,:)
     ! hydrophobic BC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcpho(:,:)
+    real(rkx), pointer :: mss_bcpho(:,:)
     ! hydrophilic OC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocphi(:,:)
+    real(rkx), pointer :: mss_ocphi(:,:)
     ! hydrophobic OC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocpho(:,:)
+    real(rkx), pointer :: mss_ocpho(:,:)
     ! dust species 1 mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst1(:,:)
+    real(rkx), pointer :: mss_dst1(:,:)
     ! dust species 2 mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst2(:,:)
+    real(rkx), pointer :: mss_dst2(:,:)
     ! dust species 3 mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst3(:,:)
+    real(rkx), pointer :: mss_dst3(:,:)
     ! dust species 4 mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst4(:,:)
+    real(rkx), pointer :: mss_dst4(:,:)
     ! effective snow grain radius (col,lyr) [microns, m^-6]
-    real(rk8), pointer :: snw_rds(:,:)
+    real(rkx), pointer :: snw_rds(:,:)
 
     integer(ik4)  :: j, c, fc ! indices
-    real(rk8) :: drr          ! thickness of the combined [m]
+    real(rkx) :: drr          ! thickness of the combined [m]
     integer(ik4)  :: msno     ! number of snow layer 1 (top) to msno (bottom)
-    real(rk8) :: dzsno(lbc:ubc,nlevsno) ! Snow layer thickness [m]
-    real(rk8) :: swice(lbc:ubc,nlevsno) ! Partial volume of ice [m3/m3]
-    real(rk8) :: swliq(lbc:ubc,nlevsno) ! Partial volume of liquid water [m3/m3]
-    real(rk8) :: tsno(lbc:ubc ,nlevsno) ! Nodel temperature [K]
-    real(rk8) :: zwice                  ! temporary
-    real(rk8) :: zwliq                  ! temporary
-    real(rk8) :: propor                 ! temporary
-    real(rk8) :: dtdz                   ! temporary
+    real(rkx) :: dzsno(lbc:ubc,nlevsno) ! Snow layer thickness [m]
+    real(rkx) :: swice(lbc:ubc,nlevsno) ! Partial volume of ice [m3/m3]
+    real(rkx) :: swliq(lbc:ubc,nlevsno) ! Partial volume of liquid water [m3/m3]
+    real(rkx) :: tsno(lbc:ubc ,nlevsno) ! Nodel temperature [K]
+    real(rkx) :: zwice                  ! temporary
+    real(rkx) :: zwliq                  ! temporary
+    real(rkx) :: propor                 ! temporary
+    real(rkx) :: dtdz                   ! temporary
 
     ! temporary variables mimicking the structure of other layer
     ! division variables
-    real(rk8) :: mbc_phi(lbc:ubc,nlevsno) ! mass of BC in each snow layer
-    real(rk8) :: zmbc_phi                 ! temporary
-    real(rk8) :: mbc_pho(lbc:ubc,nlevsno) ! mass of BC in each snow layer
-    real(rk8) :: zmbc_pho                 ! temporary
-    real(rk8) :: moc_phi(lbc:ubc,nlevsno) ! mass of OC in each snow layer
-    real(rk8) :: zmoc_phi                 ! temporary
-    real(rk8) :: moc_pho(lbc:ubc,nlevsno) ! mass of OC in each snow layer
-    real(rk8) :: zmoc_pho                 ! temporary
-    real(rk8) :: mdst1(lbc:ubc,nlevsno)   ! mass of dust 1 in each snow layer
-    real(rk8) :: zmdst1                   ! temporary
-    real(rk8) :: mdst2(lbc:ubc,nlevsno)   ! mass of dust 2 in each snow layer
-    real(rk8) :: zmdst2                   ! temporary
-    real(rk8) :: mdst3(lbc:ubc,nlevsno)   ! mass of dust 3 in each snow layer
-    real(rk8) :: zmdst3                   ! temporary
-    real(rk8) :: mdst4(lbc:ubc,nlevsno)   ! mass of dust 4 in each snow layer
-    real(rk8) :: zmdst4                   ! temporary
-    real(rk8) :: rds(lbc:ubc,nlevsno)
+    real(rkx) :: mbc_phi(lbc:ubc,nlevsno) ! mass of BC in each snow layer
+    real(rkx) :: zmbc_phi                 ! temporary
+    real(rkx) :: mbc_pho(lbc:ubc,nlevsno) ! mass of BC in each snow layer
+    real(rkx) :: zmbc_pho                 ! temporary
+    real(rkx) :: moc_phi(lbc:ubc,nlevsno) ! mass of OC in each snow layer
+    real(rkx) :: zmoc_phi                 ! temporary
+    real(rkx) :: moc_pho(lbc:ubc,nlevsno) ! mass of OC in each snow layer
+    real(rkx) :: zmoc_pho                 ! temporary
+    real(rkx) :: mdst1(lbc:ubc,nlevsno)   ! mass of dust 1 in each snow layer
+    real(rkx) :: zmdst1                   ! temporary
+    real(rkx) :: mdst2(lbc:ubc,nlevsno)   ! mass of dust 2 in each snow layer
+    real(rkx) :: zmdst2                   ! temporary
+    real(rkx) :: mdst3(lbc:ubc,nlevsno)   ! mass of dust 3 in each snow layer
+    real(rkx) :: zmdst3                   ! temporary
+    real(rkx) :: mdst4(lbc:ubc,nlevsno)   ! mass of dust 4 in each snow layer
+    real(rkx) :: zmdst4                   ! temporary
+    real(rkx) :: rds(lbc:ubc,nlevsno)
 
     ! Assign local pointers to derived subtype components (column-level)
 
@@ -1245,31 +1245,31 @@ module mod_clm_snowhydrology
 
       if (msno == 1) then
         ! Specify a new snow layer
-        if (dzsno(c,1) > 0.03D0) then
+        if (dzsno(c,1) > 0.03_rkx) then
           msno = 2
-          dzsno(c,1) = dzsno(c,1)/2.D0
-          swice(c,1) = swice(c,1)/2.D0
-          swliq(c,1) = swliq(c,1)/2.D0
+          dzsno(c,1) = dzsno(c,1)/2._rkx
+          swice(c,1) = swice(c,1)/2._rkx
+          swliq(c,1) = swliq(c,1)/2._rkx
           dzsno(c,2) = dzsno(c,1)
           swice(c,2) = swice(c,1)
           swliq(c,2) = swliq(c,1)
           tsno(c,2)  = tsno(c,1)
 
-          mbc_phi(c,1) = mbc_phi(c,1)/2.D0
+          mbc_phi(c,1) = mbc_phi(c,1)/2._rkx
           mbc_phi(c,2) = mbc_phi(c,1)
-          mbc_pho(c,1) = mbc_pho(c,1)/2.D0
+          mbc_pho(c,1) = mbc_pho(c,1)/2._rkx
           mbc_pho(c,2) = mbc_pho(c,1)
-          moc_phi(c,1) = moc_phi(c,1)/2.D0
+          moc_phi(c,1) = moc_phi(c,1)/2._rkx
           moc_phi(c,2) = moc_phi(c,1)
-          moc_pho(c,1) = moc_pho(c,1)/2.D0
+          moc_pho(c,1) = moc_pho(c,1)/2._rkx
           moc_pho(c,2) = moc_pho(c,1)
-          mdst1(c,1) = mdst1(c,1)/2.D0
+          mdst1(c,1) = mdst1(c,1)/2._rkx
           mdst1(c,2) = mdst1(c,1)
-          mdst2(c,1) = mdst2(c,1)/2.D0
+          mdst2(c,1) = mdst2(c,1)/2._rkx
           mdst2(c,2) = mdst2(c,1)
-          mdst3(c,1) = mdst3(c,1)/2.D0
+          mdst3(c,1) = mdst3(c,1)/2._rkx
           mdst3(c,2) = mdst3(c,1)
-          mdst4(c,1) = mdst4(c,1)/2.D0
+          mdst4(c,1) = mdst4(c,1)/2._rkx
           mdst4(c,2) = mdst4(c,1)
           rds(c,2) = rds(c,1)
 
@@ -1277,8 +1277,8 @@ module mod_clm_snowhydrology
       end if
 
       if (msno > 1) then
-        if (dzsno(c,1) > 0.02D0) then
-          drr = dzsno(c,1) - 0.02D0
+        if (dzsno(c,1) > 0.02_rkx) then
+          drr = dzsno(c,1) - 0.02_rkx
           propor = drr/dzsno(c,1)
           zwice = propor*swice(c,1)
           zwliq = propor*swliq(c,1)
@@ -1292,7 +1292,7 @@ module mod_clm_snowhydrology
           zmdst3 = propor*mdst3(c,1)
           zmdst4 = propor*mdst4(c,1)
 
-          propor = 0.02D0/dzsno(c,1)
+          propor = 0.02_rkx/dzsno(c,1)
           swice(c,1) = propor*swice(c,1)
           swliq(c,1) = propor*swliq(c,1)
 
@@ -1305,7 +1305,7 @@ module mod_clm_snowhydrology
           mdst3(c,1) = propor*mdst3(c,1)
           mdst4(c,1) = propor*mdst4(c,1)
 
-          dzsno(c,1) = 0.02D0
+          dzsno(c,1) = 0.02_rkx
 
           mbc_phi(c,2) = mbc_phi(c,2)+zmbc_phi  ! (combo)
           mbc_pho(c,2) = mbc_pho(c,2)+zmbc_pho  ! (combo)
@@ -1321,37 +1321,37 @@ module mod_clm_snowhydrology
                   zwliq, zwice, tsno(c,1))
 
           ! Subdivide a new layer
-          if (msno <= 2 .and. dzsno(c,2) > 0.07D0) then
+          if (msno <= 2 .and. dzsno(c,2) > 0.07_rkx) then
             msno = 3
-            dtdz = (tsno(c,1) - tsno(c,2))/((dzsno(c,1)+dzsno(c,2))/2.D0)
-            dzsno(c,2) = dzsno(c,2)/2.D0
-            swice(c,2) = swice(c,2)/2.D0
-            swliq(c,2) = swliq(c,2)/2.D0
+            dtdz = (tsno(c,1) - tsno(c,2))/((dzsno(c,1)+dzsno(c,2))/2._rkx)
+            dzsno(c,2) = dzsno(c,2)/2._rkx
+            swice(c,2) = swice(c,2)/2._rkx
+            swliq(c,2) = swliq(c,2)/2._rkx
             dzsno(c,3) = dzsno(c,2)
             swice(c,3) = swice(c,2)
             swliq(c,3) = swliq(c,2)
-            tsno(c,3) = tsno(c,2) - dtdz*dzsno(c,2)/2.D0
+            tsno(c,3) = tsno(c,2) - dtdz*dzsno(c,2)/2._rkx
             if (tsno(c,3) >= tfrz) then
               tsno(c,3)  = tsno(c,2)
             else
-              tsno(c,2) = tsno(c,2) + dtdz*dzsno(c,2)/2.D0
+              tsno(c,2) = tsno(c,2) + dtdz*dzsno(c,2)/2._rkx
             endif
 
-            mbc_phi(c,2) = mbc_phi(c,2)/2.D0
+            mbc_phi(c,2) = mbc_phi(c,2)/2._rkx
             mbc_phi(c,3) = mbc_phi(c,2)
-            mbc_pho(c,2) = mbc_pho(c,2)/2.D0
+            mbc_pho(c,2) = mbc_pho(c,2)/2._rkx
             mbc_pho(c,3) = mbc_pho(c,2)
-            moc_phi(c,2) = moc_phi(c,2)/2.D0
+            moc_phi(c,2) = moc_phi(c,2)/2._rkx
             moc_phi(c,3) = moc_phi(c,2)
-            moc_pho(c,2) = moc_pho(c,2)/2.D0
+            moc_pho(c,2) = moc_pho(c,2)/2._rkx
             moc_pho(c,3) = moc_pho(c,2)
-            mdst1(c,2) = mdst1(c,2)/2.D0
+            mdst1(c,2) = mdst1(c,2)/2._rkx
             mdst1(c,3) = mdst1(c,2)
-            mdst2(c,2) = mdst2(c,2)/2.D0
+            mdst2(c,2) = mdst2(c,2)/2._rkx
             mdst2(c,3) = mdst2(c,2)
-            mdst3(c,2) = mdst3(c,2)/2.D0
+            mdst3(c,2) = mdst3(c,2)/2._rkx
             mdst3(c,3) = mdst3(c,2)
-            mdst4(c,2) = mdst4(c,2)/2.D0
+            mdst4(c,2) = mdst4(c,2)/2._rkx
             mdst4(c,3) = mdst4(c,2)
             rds(c,3) = rds(c,2)
 
@@ -1360,8 +1360,8 @@ module mod_clm_snowhydrology
       end if
 
       if (msno > 2) then
-        if (dzsno(c,2) > 0.05D0) then
-          drr = dzsno(c,2) - 0.05D0
+        if (dzsno(c,2) > 0.05_rkx) then
+          drr = dzsno(c,2) - 0.05_rkx
           propor = drr/dzsno(c,2)
           zwice = propor*swice(c,2)
           zwliq = propor*swliq(c,2)
@@ -1375,7 +1375,7 @@ module mod_clm_snowhydrology
           zmdst3 = propor*mdst3(c,2)
           zmdst4 = propor*mdst4(c,2)
 
-          propor = 0.05D0/dzsno(c,2)
+          propor = 0.05_rkx/dzsno(c,2)
           swice(c,2) = propor*swice(c,2)
           swliq(c,2) = propor*swliq(c,2)
 
@@ -1388,7 +1388,7 @@ module mod_clm_snowhydrology
           mdst3(c,2) = propor*mdst3(c,2)
           mdst4(c,2) = propor*mdst4(c,2)
 
-          dzsno(c,2) = 0.05D0
+          dzsno(c,2) = 0.05_rkx
 
           mbc_phi(c,3) = mbc_phi(c,3)+zmbc_phi  ! (combo)
           mbc_pho(c,3) = mbc_pho(c,3)+zmbc_pho  ! (combo)
@@ -1404,37 +1404,37 @@ module mod_clm_snowhydrology
                   zwliq, zwice, tsno(c,2))
 
              ! Subdivided a new layer
-          if (msno <= 3 .and. dzsno(c,3) > 0.18D0) then
+          if (msno <= 3 .and. dzsno(c,3) > 0.18_rkx) then
             msno =  4
-            dtdz = (tsno(c,2) - tsno(c,3))/((dzsno(c,2)+dzsno(c,3))/2.D0)
-            dzsno(c,3) = dzsno(c,3)/2.D0
-            swice(c,3) = swice(c,3)/2.D0
-            swliq(c,3) = swliq(c,3)/2.D0
+            dtdz = (tsno(c,2) - tsno(c,3))/((dzsno(c,2)+dzsno(c,3))/2._rkx)
+            dzsno(c,3) = dzsno(c,3)/2._rkx
+            swice(c,3) = swice(c,3)/2._rkx
+            swliq(c,3) = swliq(c,3)/2._rkx
             dzsno(c,4) = dzsno(c,3)
             swice(c,4) = swice(c,3)
             swliq(c,4) = swliq(c,3)
-            tsno(c,4) = tsno(c,3) - dtdz*dzsno(c,3)/2.D0
+            tsno(c,4) = tsno(c,3) - dtdz*dzsno(c,3)/2._rkx
             if (tsno(c,4) >= tfrz) then
               tsno(c,4)  = tsno(c,3)
             else
-              tsno(c,3) = tsno(c,3) + dtdz*dzsno(c,3)/2.D0
+              tsno(c,3) = tsno(c,3) + dtdz*dzsno(c,3)/2._rkx
             endif
 
-            mbc_phi(c,3) = mbc_phi(c,3)/2.D0
+            mbc_phi(c,3) = mbc_phi(c,3)/2._rkx
             mbc_phi(c,4) = mbc_phi(c,3)
-            mbc_pho(c,3) = mbc_pho(c,3)/2.D0
+            mbc_pho(c,3) = mbc_pho(c,3)/2._rkx
             mbc_pho(c,4) = mbc_pho(c,3)
-            moc_phi(c,3) = moc_phi(c,3)/2.D0
+            moc_phi(c,3) = moc_phi(c,3)/2._rkx
             moc_phi(c,4) = moc_phi(c,3)
-            moc_pho(c,3) = moc_pho(c,3)/2.D0
+            moc_pho(c,3) = moc_pho(c,3)/2._rkx
             moc_pho(c,4) = moc_pho(c,3)
-            mdst1(c,3) = mdst1(c,3)/2.D0
+            mdst1(c,3) = mdst1(c,3)/2._rkx
             mdst1(c,4) = mdst1(c,3)
-            mdst2(c,3) = mdst2(c,3)/2.D0
+            mdst2(c,3) = mdst2(c,3)/2._rkx
             mdst2(c,4) = mdst2(c,3)
-            mdst3(c,3) = mdst3(c,3)/2.D0
+            mdst3(c,3) = mdst3(c,3)/2._rkx
             mdst3(c,4) = mdst3(c,3)
-            mdst4(c,3) = mdst4(c,3)/2.D0
+            mdst4(c,3) = mdst4(c,3)/2._rkx
             mdst4(c,4) = mdst4(c,3)
             rds(c,4) = rds(c,3)
 
@@ -1443,8 +1443,8 @@ module mod_clm_snowhydrology
       end if
 
       if (msno > 3) then
-        if (dzsno(c,3) > 0.11D0) then
-          drr = dzsno(c,3) - 0.11D0
+        if (dzsno(c,3) > 0.11_rkx) then
+          drr = dzsno(c,3) - 0.11_rkx
           propor = drr/dzsno(c,3)
           zwice = propor*swice(c,3)
           zwliq = propor*swliq(c,3)
@@ -1458,7 +1458,7 @@ module mod_clm_snowhydrology
           zmdst3 = propor*mdst3(c,3)
           zmdst4 = propor*mdst4(c,3)
 
-          propor = 0.11D0/dzsno(c,3)
+          propor = 0.11_rkx/dzsno(c,3)
           swice(c,3) = propor*swice(c,3)
           swliq(c,3) = propor*swliq(c,3)
 
@@ -1471,7 +1471,7 @@ module mod_clm_snowhydrology
           mdst3(c,3) = propor*mdst3(c,3)
           mdst4(c,3) = propor*mdst4(c,3)
 
-          dzsno(c,3) = 0.11D0
+          dzsno(c,3) = 0.11_rkx
 
           mbc_phi(c,4) = mbc_phi(c,4)+zmbc_phi  ! (combo)
           mbc_pho(c,4) = mbc_pho(c,4)+zmbc_pho  ! (combo)
@@ -1487,37 +1487,37 @@ module mod_clm_snowhydrology
                   zwliq, zwice, tsno(c,3))
 
           ! Subdivided a new layer
-          if (msno <= 4 .and. dzsno(c,4) > 0.41D0) then
+          if (msno <= 4 .and. dzsno(c,4) > 0.41_rkx) then
             msno = 5
-            dtdz = (tsno(c,3) - tsno(c,4))/((dzsno(c,3)+dzsno(c,4))/2.D0)
-            dzsno(c,4) = dzsno(c,4)/2.D0
-            swice(c,4) = swice(c,4)/2.D0
-            swliq(c,4) = swliq(c,4)/2.D0
+            dtdz = (tsno(c,3) - tsno(c,4))/((dzsno(c,3)+dzsno(c,4))/2._rkx)
+            dzsno(c,4) = dzsno(c,4)/2._rkx
+            swice(c,4) = swice(c,4)/2._rkx
+            swliq(c,4) = swliq(c,4)/2._rkx
             dzsno(c,5) = dzsno(c,4)
             swice(c,5) = swice(c,4)
             swliq(c,5) = swliq(c,4)
-            tsno(c,5) = tsno(c,4) - dtdz*dzsno(c,4)/2.D0
+            tsno(c,5) = tsno(c,4) - dtdz*dzsno(c,4)/2._rkx
             if (tsno(c,5) >= tfrz) then
               tsno(c,5)  = tsno(c,4)
             else
-              tsno(c,4) = tsno(c,4) + dtdz*dzsno(c,4)/2.D0
+              tsno(c,4) = tsno(c,4) + dtdz*dzsno(c,4)/2._rkx
             endif
 
-            mbc_phi(c,4) = mbc_phi(c,4)/2.D0
+            mbc_phi(c,4) = mbc_phi(c,4)/2._rkx
             mbc_phi(c,5) = mbc_phi(c,4)
-            mbc_pho(c,4) = mbc_pho(c,4)/2.D0
+            mbc_pho(c,4) = mbc_pho(c,4)/2._rkx
             mbc_pho(c,5) = mbc_pho(c,4)
-            moc_phi(c,4) = moc_phi(c,4)/2.D0
+            moc_phi(c,4) = moc_phi(c,4)/2._rkx
             moc_phi(c,5) = moc_phi(c,4)
-            moc_pho(c,4) = moc_pho(c,4)/2.D0
+            moc_pho(c,4) = moc_pho(c,4)/2._rkx
             moc_pho(c,5) = moc_pho(c,4)
-            mdst1(c,4) = mdst1(c,4)/2.D0
+            mdst1(c,4) = mdst1(c,4)/2._rkx
             mdst1(c,5) = mdst1(c,4)
-            mdst2(c,4) = mdst2(c,4)/2.D0
+            mdst2(c,4) = mdst2(c,4)/2._rkx
             mdst2(c,5) = mdst2(c,4)
-            mdst3(c,4) = mdst3(c,4)/2.D0
+            mdst3(c,4) = mdst3(c,4)/2._rkx
             mdst3(c,5) = mdst3(c,4)
-            mdst4(c,4) = mdst4(c,4)/2.D0
+            mdst4(c,4) = mdst4(c,4)/2._rkx
             mdst4(c,5) = mdst4(c,4)
             rds(c,5) = rds(c,4)
 
@@ -1526,8 +1526,8 @@ module mod_clm_snowhydrology
       end if
 
       if (msno > 4) then
-        if (dzsno(c,4) > 0.23D0) then
-          drr = dzsno(c,4) - 0.23D0
+        if (dzsno(c,4) > 0.23_rkx) then
+          drr = dzsno(c,4) - 0.23_rkx
           propor = drr/dzsno(c,4)
           zwice = propor*swice(c,4)
           zwliq = propor*swliq(c,4)
@@ -1541,7 +1541,7 @@ module mod_clm_snowhydrology
           zmdst3 = propor*mdst3(c,4)
           zmdst4 = propor*mdst4(c,4)
 
-          propor = 0.23D0/dzsno(c,4)
+          propor = 0.23_rkx/dzsno(c,4)
           swice(c,4) = propor*swice(c,4)
           swliq(c,4) = propor*swliq(c,4)
 
@@ -1554,7 +1554,7 @@ module mod_clm_snowhydrology
           mdst3(c,4) = propor*mdst3(c,4)
           mdst4(c,4) = propor*mdst4(c,4)
 
-          dzsno(c,4) = 0.23D0
+          dzsno(c,4) = 0.23_rkx
 
           mbc_phi(c,5) = mbc_phi(c,5)+zmbc_phi  ! (combo)
           mbc_pho(c,5) = mbc_pho(c,5)+zmbc_pho  ! (combo)
@@ -1600,7 +1600,7 @@ module mod_clm_snowhydrology
       do fc = 1, num_snowc
         c = filter_snowc(fc)
         if (j >= snl(c)+1) then
-          z(c,j)    = zi(c,j) - 0.5D0*dz(c,j)
+          z(c,j)    = zi(c,j) - 0.5_rkx*dz(c,j)
           zi(c,j-1) = zi(c,j) - dz(c,j)
         end if
       end do
@@ -1618,23 +1618,23 @@ module mod_clm_snowhydrology
     use mod_clm_varcon,  only : cpice, cpliq, tfrz, hfus
     implicit none
     ! nodal thickness of 2 elements being combined [m]
-    real(rk8), intent(in) :: dz2
-    real(rk8), intent(in)    :: wliq2 ! liquid water of element 2 [kg/m2]
-    real(rk8), intent(in)    :: wice2 ! ice of element 2 [kg/m2]
-    real(rk8), intent(in)    :: t2    ! nodal temperature of element 2 [K]
+    real(rkx), intent(in) :: dz2
+    real(rkx), intent(in)    :: wliq2 ! liquid water of element 2 [kg/m2]
+    real(rkx), intent(in)    :: wice2 ! ice of element 2 [kg/m2]
+    real(rkx), intent(in)    :: t2    ! nodal temperature of element 2 [K]
     ! nodal thickness of 1 elements being combined [m]
-    real(rk8), intent(inout) :: dz
-    real(rk8), intent(inout) :: wliq  ! liquid water of element 1
-    real(rk8), intent(inout) :: wice  ! ice of element 1 [kg/m2]
-    real(rk8), intent(inout) :: t     ! nodel temperature of elment 1 [K]
+    real(rkx), intent(inout) :: dz
+    real(rkx), intent(inout) :: wliq  ! liquid water of element 1
+    real(rkx), intent(inout) :: wice  ! ice of element 1 [kg/m2]
+    real(rkx), intent(inout) :: t     ! nodel temperature of elment 1 [K]
 
-    real(rk8) :: dzc   ! Total thickness of nodes 1 and 2 (dzc=dz+dz2).
-    real(rk8) :: wliqc ! Combined liquid water [kg/m2]
-    real(rk8) :: wicec ! Combined ice [kg/m2]
-    real(rk8) :: tc    ! Combined node temperature [K]
-    real(rk8) :: h     ! enthalpy of element 1 [J/m2]
-    real(rk8) :: h2    ! enthalpy of element 2 [J/m2]
-    real(rk8) :: hc    ! temporary
+    real(rkx) :: dzc   ! Total thickness of nodes 1 and 2 (dzc=dz+dz2).
+    real(rkx) :: wliqc ! Combined liquid water [kg/m2]
+    real(rkx) :: wicec ! Combined ice [kg/m2]
+    real(rkx) :: tc    ! Combined node temperature [K]
+    real(rkx) :: h     ! enthalpy of element 1 [J/m2]
+    real(rkx) :: h2    ! enthalpy of element 2 [J/m2]
+    real(rkx) :: hc    ! temporary
 
     dzc = dz+dz2
     wicec = (wice+wice2)
@@ -1710,66 +1710,66 @@ module mod_clm_snowhydrology
     integer(ik4), intent(inout) :: filter_snowc(ubc-lbc+1)
 
     integer(ik4) , pointer :: snl(:)     !number of snow layers
-    real(rk8), pointer :: dz(:,:)   !layer depth (m)
-    real(rk8), pointer :: zi(:,:)   !interface level below a "z" level (m)
-    real(rk8), pointer :: t_soisno(:,:)     !soil temperature (Kelvin)
-    real(rk8), pointer :: h2osoi_ice(:,:)   !ice lens (kg/m2)
-    real(rk8), pointer :: h2osoi_liq(:,:)   !liquid water (kg/m2)
+    real(rkx), pointer :: dz(:,:)   !layer depth (m)
+    real(rkx), pointer :: zi(:,:)   !interface level below a "z" level (m)
+    real(rkx), pointer :: t_soisno(:,:)     !soil temperature (Kelvin)
+    real(rkx), pointer :: h2osoi_ice(:,:)   !ice lens (kg/m2)
+    real(rkx), pointer :: h2osoi_liq(:,:)   !liquid water (kg/m2)
 
-    real(rk8), pointer :: z(:,:)          ! layer thickness (m)
+    real(rkx), pointer :: z(:,:)          ! layer thickness (m)
     ! hydrophilic BC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcphi(:,:)
+    real(rkx), pointer :: mss_bcphi(:,:)
     ! hydrophobic BC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcpho(:,:)
+    real(rkx), pointer :: mss_bcpho(:,:)
     ! hydrophilic OC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocphi(:,:)
+    real(rkx), pointer :: mss_ocphi(:,:)
     ! hydrophobic OC mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocpho(:,:)
+    real(rkx), pointer :: mss_ocpho(:,:)
     ! dust species 1 mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst1(:,:)
+    real(rkx), pointer :: mss_dst1(:,:)
     ! dust species 2 mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst2(:,:)
+    real(rkx), pointer :: mss_dst2(:,:)
     ! dust species 3 mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst3(:,:)
+    real(rkx), pointer :: mss_dst3(:,:)
     ! dust species 4 mass in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst4(:,:)
+    real(rkx), pointer :: mss_dst4(:,:)
     ! effective snow grain radius (col,lyr) [microns, m^-6]
-    real(rk8), pointer :: snw_rds(:,:)
+    real(rkx), pointer :: snw_rds(:,:)
 
     integer(ik4)  :: j, c, fc   ! indices
-    real(rk8) :: drr       ! thickness of the combined [m]
+    real(rkx) :: drr       ! thickness of the combined [m]
     integer(ik4)  :: msno       ! number of snow layer 1 (top) to msno (bottom)
-    real(rk8) :: dzsno(lbc:ubc,nlevsno) ! Snow layer thickness [m]
-    real(rk8) :: swice(lbc:ubc,nlevsno) ! Partial volume of ice [m3/m3]
-    real(rk8) :: swliq(lbc:ubc,nlevsno) ! Partial volume of liquid water [m3/m3]
-    real(rk8) :: tsno(lbc:ubc ,nlevsno) ! Nodel temperature [K]
-    real(rk8) :: zwice                  ! temporary
-    real(rk8) :: zwliq                  ! temporary
-    real(rk8) :: propor                 ! temporary
-    real(rk8) :: dtdz                   ! temporary
+    real(rkx) :: dzsno(lbc:ubc,nlevsno) ! Snow layer thickness [m]
+    real(rkx) :: swice(lbc:ubc,nlevsno) ! Partial volume of ice [m3/m3]
+    real(rkx) :: swliq(lbc:ubc,nlevsno) ! Partial volume of liquid water [m3/m3]
+    real(rkx) :: tsno(lbc:ubc ,nlevsno) ! Nodel temperature [K]
+    real(rkx) :: zwice                  ! temporary
+    real(rkx) :: zwliq                  ! temporary
+    real(rkx) :: propor                 ! temporary
+    real(rkx) :: dtdz                   ! temporary
 
     ! temporary variables mimicking the structure of other
     ! layer division variables
-    real(rk8) :: mbc_phi(lbc:ubc,nlevsno) ! mass of BC in each snow layer
-    real(rk8) :: zmbc_phi                 ! temporary
-    real(rk8) :: mbc_pho(lbc:ubc,nlevsno) ! mass of BC in each snow layer
-    real(rk8) :: zmbc_pho                 ! temporary
-    real(rk8) :: moc_phi(lbc:ubc,nlevsno) ! mass of OC in each snow layer
-    real(rk8) :: zmoc_phi                 ! temporary
-    real(rk8) :: moc_pho(lbc:ubc,nlevsno) ! mass of OC in each snow layer
-    real(rk8) :: zmoc_pho                 ! temporary
-    real(rk8) :: mdst1(lbc:ubc,nlevsno)   ! mass of dust 1 in each snow layer
-    real(rk8) :: zmdst1                   ! temporary
-    real(rk8) :: mdst2(lbc:ubc,nlevsno)   ! mass of dust 2 in each snow layer
-    real(rk8) :: zmdst2                   ! temporary
-    real(rk8) :: mdst3(lbc:ubc,nlevsno)   ! mass of dust 3 in each snow layer
-    real(rk8) :: zmdst3                   ! temporary
-    real(rk8) :: mdst4(lbc:ubc,nlevsno)   ! mass of dust 4 in each snow layer
-    real(rk8) :: zmdst4                   ! temporary
-    real(rk8) :: rds(lbc:ubc,nlevsno)
+    real(rkx) :: mbc_phi(lbc:ubc,nlevsno) ! mass of BC in each snow layer
+    real(rkx) :: zmbc_phi                 ! temporary
+    real(rkx) :: mbc_pho(lbc:ubc,nlevsno) ! mass of BC in each snow layer
+    real(rkx) :: zmbc_pho                 ! temporary
+    real(rkx) :: moc_phi(lbc:ubc,nlevsno) ! mass of OC in each snow layer
+    real(rkx) :: zmoc_phi                 ! temporary
+    real(rkx) :: moc_pho(lbc:ubc,nlevsno) ! mass of OC in each snow layer
+    real(rkx) :: zmoc_pho                 ! temporary
+    real(rkx) :: mdst1(lbc:ubc,nlevsno)   ! mass of dust 1 in each snow layer
+    real(rkx) :: zmdst1                   ! temporary
+    real(rkx) :: mdst2(lbc:ubc,nlevsno)   ! mass of dust 2 in each snow layer
+    real(rkx) :: zmdst2                   ! temporary
+    real(rkx) :: mdst3(lbc:ubc,nlevsno)   ! mass of dust 3 in each snow layer
+    real(rkx) :: zmdst3                   ! temporary
+    real(rkx) :: mdst4(lbc:ubc,nlevsno)   ! mass of dust 4 in each snow layer
+    real(rkx) :: zmdst4                   ! temporary
+    real(rkx) :: rds(lbc:ubc,nlevsno)
 
     ! Variables for consistency check
-    real(rk8) :: dztot(lbc:ubc), snwicetot(lbc:ubc), snwliqtot(lbc:ubc)
+    real(rkx) :: dztot(lbc:ubc), snwicetot(lbc:ubc), snwliqtot(lbc:ubc)
 
     ! Assign local pointers to derived subtype components (column-level)
 
@@ -1796,9 +1796,9 @@ module mod_clm_snowhydrology
         c = filter_snowc(fc)
 
         if (j == -nlevsno+1) then
-          dztot(c) = 0.D0
-          snwicetot(c) = 0.D0
-          snwliqtot(c) = 0.D0
+          dztot(c) = 0._rkx
+          snwicetot(c) = 0._rkx
+          snwliqtot(c) = 0._rkx
         end if
 
         if (j >= snl(c)+1) then
@@ -1842,31 +1842,31 @@ module mod_clm_snowhydrology
 
       if (msno == 1) then
         ! Specify a new snow layer
-        if (dzsno(c,1) > 0.03D0 + 2.D0 * lsadz) then
+        if (dzsno(c,1) > 0.03_rkx + 2._rkx * lsadz) then
           msno = 2
-          dzsno(c,1) = dzsno(c,1)/2.D0
-          swice(c,1) = swice(c,1)/2.D0
-          swliq(c,1) = swliq(c,1)/2.D0
+          dzsno(c,1) = dzsno(c,1)/2._rkx
+          swice(c,1) = swice(c,1)/2._rkx
+          swliq(c,1) = swliq(c,1)/2._rkx
           dzsno(c,2) = dzsno(c,1)
           swice(c,2) = swice(c,1)
           swliq(c,2) = swliq(c,1)
           tsno(c,2)  = tsno(c,1)
 
-          mbc_phi(c,1) = mbc_phi(c,1)/2.D0
+          mbc_phi(c,1) = mbc_phi(c,1)/2._rkx
           mbc_phi(c,2) = mbc_phi(c,1)
-          mbc_pho(c,1) = mbc_pho(c,1)/2.D0
+          mbc_pho(c,1) = mbc_pho(c,1)/2._rkx
           mbc_pho(c,2) = mbc_pho(c,1)
-          moc_phi(c,1) = moc_phi(c,1)/2.D0
+          moc_phi(c,1) = moc_phi(c,1)/2._rkx
           moc_phi(c,2) = moc_phi(c,1)
-          moc_pho(c,1) = moc_pho(c,1)/2.D0
+          moc_pho(c,1) = moc_pho(c,1)/2._rkx
           moc_pho(c,2) = moc_pho(c,1)
-          mdst1(c,1) = mdst1(c,1)/2.D0
+          mdst1(c,1) = mdst1(c,1)/2._rkx
           mdst1(c,2) = mdst1(c,1)
-          mdst2(c,1) = mdst2(c,1)/2.D0
+          mdst2(c,1) = mdst2(c,1)/2._rkx
           mdst2(c,2) = mdst2(c,1)
-          mdst3(c,1) = mdst3(c,1)/2.D0
+          mdst3(c,1) = mdst3(c,1)/2._rkx
           mdst3(c,2) = mdst3(c,1)
-          mdst4(c,1) = mdst4(c,1)/2.D0
+          mdst4(c,1) = mdst4(c,1)/2._rkx
           mdst4(c,2) = mdst4(c,1)
           rds(c,2) = rds(c,1)
 
@@ -1874,8 +1874,8 @@ module mod_clm_snowhydrology
       end if
 
       if (msno > 1) then
-        if (dzsno(c,1) > 0.02D0 + lsadz) then
-          drr = dzsno(c,1) - 0.02D0 - lsadz
+        if (dzsno(c,1) > 0.02_rkx + lsadz) then
+          drr = dzsno(c,1) - 0.02_rkx - lsadz
           propor = drr/dzsno(c,1)
           zwice = propor*swice(c,1)
           zwliq = propor*swliq(c,1)
@@ -1889,7 +1889,7 @@ module mod_clm_snowhydrology
           zmdst3 = propor*mdst3(c,1)
           zmdst4 = propor*mdst4(c,1)
 
-          propor = (0.02D0+lsadz)/dzsno(c,1)
+          propor = (0.02_rkx+lsadz)/dzsno(c,1)
           swice(c,1) = propor*swice(c,1)
           swliq(c,1) = propor*swliq(c,1)
 
@@ -1902,7 +1902,7 @@ module mod_clm_snowhydrology
           mdst3(c,1) = propor*mdst3(c,1)
           mdst4(c,1) = propor*mdst4(c,1)
 
-          dzsno(c,1) = 0.02D0 + lsadz
+          dzsno(c,1) = 0.02_rkx + lsadz
 
           mbc_phi(c,2) = mbc_phi(c,2)+zmbc_phi  ! (combo)
           mbc_pho(c,2) = mbc_pho(c,2)+zmbc_pho  ! (combo)
@@ -1918,37 +1918,37 @@ module mod_clm_snowhydrology
                   zwliq, zwice, tsno(c,1))
 
           ! Subdivide a new layer
-          if (msno <= 2 .and. dzsno(c,2) > 0.07D0+2.D0*lsadz) then
+          if (msno <= 2 .and. dzsno(c,2) > 0.07_rkx+2._rkx*lsadz) then
             msno = 3
-            dtdz = (tsno(c,1) - tsno(c,2))/((dzsno(c,1)+dzsno(c,2))/2.D0)
-            dzsno(c,2) = dzsno(c,2)/2.D0
-            swice(c,2) = swice(c,2)/2.D0
-            swliq(c,2) = swliq(c,2)/2.D0
+            dtdz = (tsno(c,1) - tsno(c,2))/((dzsno(c,1)+dzsno(c,2))/2._rkx)
+            dzsno(c,2) = dzsno(c,2)/2._rkx
+            swice(c,2) = swice(c,2)/2._rkx
+            swliq(c,2) = swliq(c,2)/2._rkx
             dzsno(c,3) = dzsno(c,2)
             swice(c,3) = swice(c,2)
             swliq(c,3) = swliq(c,2)
-            tsno(c,3) = tsno(c,2) - dtdz*dzsno(c,2)/2.D0
+            tsno(c,3) = tsno(c,2) - dtdz*dzsno(c,2)/2._rkx
             if (tsno(c,3) >= tfrz) then
               tsno(c,3)  = tsno(c,2)
             else
-              tsno(c,2) = tsno(c,2) + dtdz*dzsno(c,2)/2.D0
+              tsno(c,2) = tsno(c,2) + dtdz*dzsno(c,2)/2._rkx
             endif
 
-            mbc_phi(c,2) = mbc_phi(c,2)/2.D0
+            mbc_phi(c,2) = mbc_phi(c,2)/2._rkx
             mbc_phi(c,3) = mbc_phi(c,2)
-            mbc_pho(c,2) = mbc_pho(c,2)/2.D0
+            mbc_pho(c,2) = mbc_pho(c,2)/2._rkx
             mbc_pho(c,3) = mbc_pho(c,2)
-            moc_phi(c,2) = moc_phi(c,2)/2.D0
+            moc_phi(c,2) = moc_phi(c,2)/2._rkx
             moc_phi(c,3) = moc_phi(c,2)
-            moc_pho(c,2) = moc_pho(c,2)/2.D0
+            moc_pho(c,2) = moc_pho(c,2)/2._rkx
             moc_pho(c,3) = moc_pho(c,2)
-            mdst1(c,2) = mdst1(c,2)/2.D0
+            mdst1(c,2) = mdst1(c,2)/2._rkx
             mdst1(c,3) = mdst1(c,2)
-            mdst2(c,2) = mdst2(c,2)/2.D0
+            mdst2(c,2) = mdst2(c,2)/2._rkx
             mdst2(c,3) = mdst2(c,2)
-            mdst3(c,2) = mdst3(c,2)/2.D0
+            mdst3(c,2) = mdst3(c,2)/2._rkx
             mdst3(c,3) = mdst3(c,2)
-            mdst4(c,2) = mdst4(c,2)/2.D0
+            mdst4(c,2) = mdst4(c,2)/2._rkx
             mdst4(c,3) = mdst4(c,2)
             rds(c,3) = rds(c,2)
 
@@ -1957,8 +1957,8 @@ module mod_clm_snowhydrology
       end if
 
       if (msno > 2) then
-        if (dzsno(c,2) > 0.05D0 + lsadz) then
-          drr = dzsno(c,2) - 0.05D0 - lsadz
+        if (dzsno(c,2) > 0.05_rkx + lsadz) then
+          drr = dzsno(c,2) - 0.05_rkx - lsadz
           propor = drr/dzsno(c,2)
           zwice = propor*swice(c,2)
           zwliq = propor*swliq(c,2)
@@ -1972,7 +1972,7 @@ module mod_clm_snowhydrology
           zmdst3 = propor*mdst3(c,2)
           zmdst4 = propor*mdst4(c,2)
 
-          propor = (0.05D0+lsadz)/dzsno(c,2)
+          propor = (0.05_rkx+lsadz)/dzsno(c,2)
           swice(c,2) = propor*swice(c,2)
           swliq(c,2) = propor*swliq(c,2)
 
@@ -1985,7 +1985,7 @@ module mod_clm_snowhydrology
           mdst3(c,2) = propor*mdst3(c,2)
           mdst4(c,2) = propor*mdst4(c,2)
 
-          dzsno(c,2) = 0.05D0+lsadz
+          dzsno(c,2) = 0.05_rkx+lsadz
 
           mbc_phi(c,3) = mbc_phi(c,3)+zmbc_phi  ! (combo)
           mbc_pho(c,3) = mbc_pho(c,3)+zmbc_pho  ! (combo)
@@ -2001,37 +2001,37 @@ module mod_clm_snowhydrology
                   zwliq, zwice, tsno(c,2))
 
           ! Subdivided a new layer
-          if (msno <= 3 .and. dzsno(c,3) > 0.18D0+2.D0*lsadz) then
+          if (msno <= 3 .and. dzsno(c,3) > 0.18_rkx+2._rkx*lsadz) then
             msno =  4
-            dtdz = (tsno(c,2) - tsno(c,3))/((dzsno(c,2)+dzsno(c,3))/2.D0)
-            dzsno(c,3) = dzsno(c,3)/2.D0
-            swice(c,3) = swice(c,3)/2.D0
-            swliq(c,3) = swliq(c,3)/2.D0
+            dtdz = (tsno(c,2) - tsno(c,3))/((dzsno(c,2)+dzsno(c,3))/2._rkx)
+            dzsno(c,3) = dzsno(c,3)/2._rkx
+            swice(c,3) = swice(c,3)/2._rkx
+            swliq(c,3) = swliq(c,3)/2._rkx
             dzsno(c,4) = dzsno(c,3)
             swice(c,4) = swice(c,3)
             swliq(c,4) = swliq(c,3)
-            tsno(c,4) = tsno(c,3) - dtdz*dzsno(c,3)/2.D0
+            tsno(c,4) = tsno(c,3) - dtdz*dzsno(c,3)/2._rkx
             if (tsno(c,4) >= tfrz) then
               tsno(c,4)  = tsno(c,3)
             else
-              tsno(c,3) = tsno(c,3) + dtdz*dzsno(c,3)/2.D0
+              tsno(c,3) = tsno(c,3) + dtdz*dzsno(c,3)/2._rkx
             endif
 
-            mbc_phi(c,3) = mbc_phi(c,3)/2.D0
+            mbc_phi(c,3) = mbc_phi(c,3)/2._rkx
             mbc_phi(c,4) = mbc_phi(c,3)
-            mbc_pho(c,3) = mbc_pho(c,3)/2.D0
+            mbc_pho(c,3) = mbc_pho(c,3)/2._rkx
             mbc_pho(c,4) = mbc_pho(c,3)
-            moc_phi(c,3) = moc_phi(c,3)/2.D0
+            moc_phi(c,3) = moc_phi(c,3)/2._rkx
             moc_phi(c,4) = moc_phi(c,3)
-            moc_pho(c,3) = moc_pho(c,3)/2.D0
+            moc_pho(c,3) = moc_pho(c,3)/2._rkx
             moc_pho(c,4) = moc_pho(c,3)
-            mdst1(c,3) = mdst1(c,3)/2.D0
+            mdst1(c,3) = mdst1(c,3)/2._rkx
             mdst1(c,4) = mdst1(c,3)
-            mdst2(c,3) = mdst2(c,3)/2.D0
+            mdst2(c,3) = mdst2(c,3)/2._rkx
             mdst2(c,4) = mdst2(c,3)
-            mdst3(c,3) = mdst3(c,3)/2.D0
+            mdst3(c,3) = mdst3(c,3)/2._rkx
             mdst3(c,4) = mdst3(c,3)
-            mdst4(c,3) = mdst4(c,3)/2.D0
+            mdst4(c,3) = mdst4(c,3)/2._rkx
             mdst4(c,4) = mdst4(c,3)
             rds(c,4) = rds(c,3)
 
@@ -2040,8 +2040,8 @@ module mod_clm_snowhydrology
       end if
 
       if (msno > 3) then
-        if (dzsno(c,3) > 0.11D0 + lsadz) then
-          drr = dzsno(c,3) - 0.11D0 - lsadz
+        if (dzsno(c,3) > 0.11_rkx + lsadz) then
+          drr = dzsno(c,3) - 0.11_rkx - lsadz
           propor = drr/dzsno(c,3)
           zwice = propor*swice(c,3)
           zwliq = propor*swliq(c,3)
@@ -2055,7 +2055,7 @@ module mod_clm_snowhydrology
           zmdst3 = propor*mdst3(c,3)
           zmdst4 = propor*mdst4(c,3)
 
-          propor = (0.11D0+lsadz)/dzsno(c,3)
+          propor = (0.11_rkx+lsadz)/dzsno(c,3)
           swice(c,3) = propor*swice(c,3)
           swliq(c,3) = propor*swliq(c,3)
 
@@ -2068,7 +2068,7 @@ module mod_clm_snowhydrology
           mdst3(c,3) = propor*mdst3(c,3)
           mdst4(c,3) = propor*mdst4(c,3)
 
-          dzsno(c,3) = 0.11D0 + lsadz
+          dzsno(c,3) = 0.11_rkx + lsadz
 
           mbc_phi(c,4) = mbc_phi(c,4)+zmbc_phi  ! (combo)
           mbc_pho(c,4) = mbc_pho(c,4)+zmbc_pho  ! (combo)
@@ -2084,37 +2084,37 @@ module mod_clm_snowhydrology
                   zwliq, zwice, tsno(c,3))
 
           ! Subdivided a new layer
-          if (msno <= 4 .and. dzsno(c,4) > 0.41D0 + 2.D0*lsadz) then
+          if (msno <= 4 .and. dzsno(c,4) > 0.41_rkx + 2._rkx*lsadz) then
             msno = 5
-            dtdz = (tsno(c,3) - tsno(c,4))/((dzsno(c,3)+dzsno(c,4))/2.D0)
-            dzsno(c,4) = dzsno(c,4)/2.D0
-            swice(c,4) = swice(c,4)/2.D0
-            swliq(c,4) = swliq(c,4)/2.D0
+            dtdz = (tsno(c,3) - tsno(c,4))/((dzsno(c,3)+dzsno(c,4))/2._rkx)
+            dzsno(c,4) = dzsno(c,4)/2._rkx
+            swice(c,4) = swice(c,4)/2._rkx
+            swliq(c,4) = swliq(c,4)/2._rkx
             dzsno(c,5) = dzsno(c,4)
             swice(c,5) = swice(c,4)
             swliq(c,5) = swliq(c,4)
-            tsno(c,5) = tsno(c,4) - dtdz*dzsno(c,4)/2.D0
+            tsno(c,5) = tsno(c,4) - dtdz*dzsno(c,4)/2._rkx
             if (tsno(c,5) >= tfrz) then
               tsno(c,5)  = tsno(c,4)
             else
-              tsno(c,4) = tsno(c,4) + dtdz*dzsno(c,4)/2.D0
+              tsno(c,4) = tsno(c,4) + dtdz*dzsno(c,4)/2._rkx
             endif
 
-            mbc_phi(c,4) = mbc_phi(c,4)/2.D0
+            mbc_phi(c,4) = mbc_phi(c,4)/2._rkx
             mbc_phi(c,5) = mbc_phi(c,4)
-            mbc_pho(c,4) = mbc_pho(c,4)/2.D0
+            mbc_pho(c,4) = mbc_pho(c,4)/2._rkx
             mbc_pho(c,5) = mbc_pho(c,4)
-            moc_phi(c,4) = moc_phi(c,4)/2.D0
+            moc_phi(c,4) = moc_phi(c,4)/2._rkx
             moc_phi(c,5) = moc_phi(c,4)
-            moc_pho(c,4) = moc_pho(c,4)/2.D0
+            moc_pho(c,4) = moc_pho(c,4)/2._rkx
             moc_pho(c,5) = moc_pho(c,4)
-            mdst1(c,4) = mdst1(c,4)/2.D0
+            mdst1(c,4) = mdst1(c,4)/2._rkx
             mdst1(c,5) = mdst1(c,4)
-            mdst2(c,4) = mdst2(c,4)/2.D0
+            mdst2(c,4) = mdst2(c,4)/2._rkx
             mdst2(c,5) = mdst2(c,4)
-            mdst3(c,4) = mdst3(c,4)/2.D0
+            mdst3(c,4) = mdst3(c,4)/2._rkx
             mdst3(c,5) = mdst3(c,4)
-            mdst4(c,4) = mdst4(c,4)/2.D0
+            mdst4(c,4) = mdst4(c,4)/2._rkx
             mdst4(c,5) = mdst4(c,4)
             rds(c,5) = rds(c,4)
 
@@ -2123,8 +2123,8 @@ module mod_clm_snowhydrology
       end if
 
       if (msno > 4) then
-        if (dzsno(c,4) > 0.23D0 + lsadz) then
-          drr = dzsno(c,4) - 0.23D0 - lsadz
+        if (dzsno(c,4) > 0.23_rkx + lsadz) then
+          drr = dzsno(c,4) - 0.23_rkx - lsadz
           propor = drr/dzsno(c,4)
           zwice = propor*swice(c,4)
           zwliq = propor*swliq(c,4)
@@ -2138,7 +2138,7 @@ module mod_clm_snowhydrology
           zmdst3 = propor*mdst3(c,4)
           zmdst4 = propor*mdst4(c,4)
 
-          propor = (0.23D0+lsadz)/dzsno(c,4)
+          propor = (0.23_rkx+lsadz)/dzsno(c,4)
           swice(c,4) = propor*swice(c,4)
           swliq(c,4) = propor*swliq(c,4)
 
@@ -2151,7 +2151,7 @@ module mod_clm_snowhydrology
           mdst3(c,4) = propor*mdst3(c,4)
           mdst4(c,4) = propor*mdst4(c,4)
 
-          dzsno(c,4) = 0.23D0 + lsadz
+          dzsno(c,4) = 0.23_rkx + lsadz
 
           mbc_phi(c,5) = mbc_phi(c,5)+zmbc_phi  ! (combo)
           mbc_pho(c,5) = mbc_pho(c,5)+zmbc_pho  ! (combo)
@@ -2205,9 +2205,9 @@ module mod_clm_snowhydrology
         end if
 
         if (j == 0) then
-          if ( abs(dztot(c)) > 1.D-10 .or. &
-               abs(snwicetot(c)) > 1.D-7 .or. &
-               abs(snwliqtot(c)) > 1.D-7 ) then
+          if ( abs(dztot(c)) > 1.e-10_rkx .or. &
+               abs(snwicetot(c)) > 1.e-7_rkx .or. &
+               abs(snwliqtot(c)) > 1.e-7_rkx ) then
             write(stderr,*) &
                     'Inconsistency in SnowDivision_Lake! c, remainders', &
                     'dztot, snwicetot, snwliqtot = ', &
@@ -2222,7 +2222,7 @@ module mod_clm_snowhydrology
       do fc = 1, num_snowc
         c = filter_snowc(fc)
         if (j >= snl(c)+1) then
-          z(c,j)    = zi(c,j) - 0.5D0*dz(c,j)
+          z(c,j)    = zi(c,j) - 0.5_rkx*dz(c,j)
           zi(c,j-1) = zi(c,j) - dz(c,j)
         end if
       end do

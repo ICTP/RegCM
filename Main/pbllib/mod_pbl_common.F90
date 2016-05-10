@@ -29,7 +29,7 @@ module mod_pbl_common
 
   public
 
-  real(rk8) , public , pointer , dimension(:,:) :: ricr
+  real(rkx) , public , pointer , dimension(:,:) :: ricr
 
   integer(ik4) , public :: kmxpbl
 
@@ -37,7 +37,7 @@ module mod_pbl_common
   ! Pointers to the TCM state variables
   !
   type(tcm_state) , public :: uwstatea , uwstateb
-  real(rk8) , public , pointer , dimension(:,:,:,:) :: chiuwten
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: chiuwten
 
 end module mod_pbl_common
 

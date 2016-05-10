@@ -33,14 +33,14 @@ module mod_clm_cndecompcascadecentury
 #if (defined VERTSOILC)
   ! (meters) e-folding depth for reduction in decomposition
   ! [set to large number for depth-independance]
-  real(rk8), public :: decomp_depth_efolding = 0.50D0
+  real(rkx), public :: decomp_depth_efolding = 0.50_rkx
 #endif
 
   ! do we normalize the century decomp. rates so that they match the
   ! CLM Q10 at a given tep?
   logical, public :: normalize_q10_to_century_tfunc = .true.
   ! reference temperature for normalizaion (degrees C)
-  real(rk8), public :: normalization_tref = 15.0D0
+  real(rkx), public :: normalization_tref = 15.0_rkx
   logical, public :: use_century_tfunc = .false.
 #ifdef LCH4
   ! true ==> weight anoxia by inundated fraction
@@ -48,14 +48,14 @@ module mod_clm_cndecompcascadecentury
 #endif
   ! separate q10 for frozen soil respiration rates.
   !  default to same as above zero rates
-  real(rk8), public :: froz_q10 = 1.50D0
+  real(rkx), public :: froz_q10 = 1.50_rkx
   ! used here and in ch4Mod
   integer(ik4), public :: nlev_soildecomp_standard
 
   !! parameters for AD spinup
   ! multipliers for soil decomp during accelerated spinup
-  real(rk8), public, parameter :: spinup_vector(nsompools) = &
-           (/ 1.00D0, 15.00D0, 675.00D0 /)
+  real(rkx), public, parameter :: spinup_vector(nsompools) = &
+           (/ 1.00_rkx, 15.00_rkx, 675.00_rkx /)
 
   contains
   !
@@ -74,14 +74,14 @@ module mod_clm_cndecompcascadecentury
     ! name of transition
     character(len=8), pointer :: cascade_step_name(:)
     ! respired fraction in decomposition step (frac)
-    real(rk8), pointer :: rf_decomp_cascade(:,:,:)
+    real(rkx), pointer :: rf_decomp_cascade(:,:,:)
     ! which pool is C taken from for a given decomposition step
     integer(ik4),  pointer :: cascade_donor_pool(:)
     ! which pool is C added to for a given decomposition step
     integer(ik4),  pointer :: cascade_receiver_pool(:)
     ! what fraction of C leaving a given pool passes through a given
     ! transition (frac)
-    real(rk8), pointer :: pathfrac_decomp_cascade(:,:,:)
+    real(rkx), pointer :: pathfrac_decomp_cascade(:,:,:)
     !-- properties of each decomposing pool
     ! TRUE => pool has fixed C:N ratio
     logical,  pointer :: floating_cn_ratio_decomp_pools(:)
@@ -97,36 +97,36 @@ module mod_clm_cndecompcascadecentury
     logical, pointer :: is_soil(:)    ! TRUE => pool is a soil pool
     logical, pointer :: is_cwd(:)     ! TRUE => pool is a cwd pool
     ! c:n ratio for initialization of pools
-    real(rk8), pointer :: initial_cn_ratio(:)
+    real(rkx), pointer :: initial_cn_ratio(:)
     ! initial concentration for seeding at spinup
-    real(rk8), pointer :: initial_stock(:)
+    real(rkx), pointer :: initial_stock(:)
     logical, pointer :: is_metabolic(:) ! TRUE => pool is metabolic material
     logical, pointer :: is_cellulose(:) ! TRUE => pool is cellulose
     logical, pointer :: is_lignin(:)    ! TRUE => pool is lignin
-    real(rk8), pointer :: cellclay(:,:)  ! column 3D clay
-    real(rk8), pointer :: cellsand(:,:)  ! column 3D sand
+    real(rkx), pointer :: cellclay(:,:)  ! column 3D clay
+    real(rkx), pointer :: cellsand(:,:)  ! column 3D sand
     ! factor for AD spinup associated with each pool
-    real(rk8), pointer :: spinup_factor(:)
-    real(rk8) :: rf_l1s1
-    real(rk8) :: rf_l2s1
-    real(rk8) :: rf_l3s2
-    real(rk8) :: rf_s1s2(begc:endc,1:nlevdecomp)
-    real(rk8) :: rf_s1s3(begc:endc,1:nlevdecomp)
-    real(rk8) :: rf_s2s1
-    real(rk8) :: rf_s2s3
-    real(rk8) :: rf_s3s1
-    real(rk8) :: rf_cwdl2
-    real(rk8) :: rf_cwdl3
-    real(rk8):: cwd_fcel
-    real(rk8):: cwd_flig
-    real(rk8) :: cn_s1
-    real(rk8) :: cn_s2
-    real(rk8) :: cn_s3
-    real(rk8) :: cn_s4
-    real(rk8) :: f_s1s2(begc:endc,1:nlevdecomp)
-    real(rk8) :: f_s1s3(begc:endc,1:nlevdecomp)
-    real(rk8) :: f_s2s1
-    real(rk8) :: f_s2s3
+    real(rkx), pointer :: spinup_factor(:)
+    real(rkx) :: rf_l1s1
+    real(rkx) :: rf_l2s1
+    real(rkx) :: rf_l3s2
+    real(rkx) :: rf_s1s2(begc:endc,1:nlevdecomp)
+    real(rkx) :: rf_s1s3(begc:endc,1:nlevdecomp)
+    real(rkx) :: rf_s2s1
+    real(rkx) :: rf_s2s3
+    real(rkx) :: rf_s3s1
+    real(rkx) :: rf_cwdl2
+    real(rkx) :: rf_cwdl3
+    real(rkx):: cwd_fcel
+    real(rkx):: cwd_flig
+    real(rkx) :: cn_s1
+    real(rkx) :: cn_s2
+    real(rkx) :: cn_s3
+    real(rkx) :: cn_s4
+    real(rkx) :: f_s1s2(begc:endc,1:nlevdecomp)
+    real(rkx) :: f_s1s3(begc:endc,1:nlevdecomp)
+    real(rkx) :: f_s2s1
+    real(rkx) :: f_s2s3
 
     integer(ik4) :: i_litr1
     integer(ik4) :: i_litr2
@@ -146,7 +146,7 @@ module mod_clm_cndecompcascadecentury
     integer(ik4) :: i_cwdl3
 
     integer(ik4) :: c, j     ! indices
-    real(rk8) :: t       ! temporary variable
+    real(rkx) :: t       ! temporary variable
 
     cascade_step_name       => decomp_cascade_con%cascade_step_name
     rf_decomp_cascade       => clm3%g%l%c%cps%rf_decomp_cascade
@@ -173,34 +173,34 @@ module mod_clm_cndecompcascadecentury
 
     !------- time-constant coefficients ---------- !
     ! set soil organic matter compartment C:N ratios
-    cn_s1 = 8.00D0
-    cn_s2 = 11.00D0
-    cn_s3 = 11.00D0
+    cn_s1 = 8.00_rkx
+    cn_s2 = 11.00_rkx
+    cn_s3 = 11.00_rkx
 
     ! set respiration fractions for fluxes between compartments
-    rf_l1s1 = 0.550D0
-    rf_l2s1 = 0.50D0
-    rf_l3s2 = 0.50D0
-    rf_s2s1 = 0.550D0
-    rf_s2s3 = 0.550D0
-    rf_s3s1 = 0.550D0
-    rf_cwdl2 = 0.0D0
-    rf_cwdl3 = 0.0D0
+    rf_l1s1 = 0.550_rkx
+    rf_l2s1 = 0.50_rkx
+    rf_l3s2 = 0.50_rkx
+    rf_s2s1 = 0.550_rkx
+    rf_s2s3 = 0.550_rkx
+    rf_s3s1 = 0.550_rkx
+    rf_cwdl2 = 0.0_rkx
+    rf_cwdl3 = 0.0_rkx
 
     ! set the cellulose and lignin fractions for coarse woody debris
-    cwd_fcel = 0.760D0
-    cwd_flig = 0.240D0
+    cwd_fcel = 0.760_rkx
+    cwd_flig = 0.240_rkx
 
     ! set path fractions
-    f_s2s1 = 0.420D0/(0.450D0)
-    f_s2s3 = 0.030D0/(0.450D0)
+    f_s2s1 = 0.420_rkx/(0.450_rkx)
+    f_s2s3 = 0.030_rkx/(0.450_rkx)
 
     ! some of these are dependent on the soil texture properties
     do c = begc , endc
       do j = 1 , nlevdecomp
-        t = 0.850D0 - 0.680D0 * 0.010D0 * (100.0D0 - cellsand(c,j))
-        f_s1s2(c,j) = 1.0D0 - .0040D0 / (1.0D0 - t)
-        f_s1s3(c,j) = .0040D0 / (1.0D0 - t)
+        t = 0.850_rkx - 0.680_rkx * 0.010_rkx * (100.0_rkx - cellsand(c,j))
+        f_s1s2(c,j) = 1.0_rkx - .0040_rkx / (1.0_rkx - t)
+        f_s1s3(c,j) = .0040_rkx / (1.0_rkx - t)
         rf_s1s2(c,j) = t
         rf_s1s3(c,j) = t
       end do
@@ -217,8 +217,8 @@ module mod_clm_cndecompcascadecentury
     is_litter(i_litr1) = .true.
     is_soil(i_litr1) = .false.
     is_cwd(i_litr1) = .false.
-    initial_cn_ratio(i_litr1) = 90.0D0
-    initial_stock(i_litr1) = 0.0D0
+    initial_cn_ratio(i_litr1) = 90.0_rkx
+    initial_stock(i_litr1) = 0.0_rkx
     is_metabolic(i_litr1) = .true.
     is_cellulose(i_litr1) = .false.
     is_lignin(i_litr1) = .false.
@@ -232,8 +232,8 @@ module mod_clm_cndecompcascadecentury
     is_litter(i_litr2) = .true.
     is_soil(i_litr2) = .false.
     is_cwd(i_litr2) = .false.
-    initial_cn_ratio(i_litr2) = 90.0D0
-    initial_stock(i_litr2) = 0.0D0
+    initial_cn_ratio(i_litr2) = 90.0_rkx
+    initial_stock(i_litr2) = 0.0_rkx
     is_metabolic(i_litr2) = .false.
     is_cellulose(i_litr2) = .true.
     is_lignin(i_litr2) = .false.
@@ -247,8 +247,8 @@ module mod_clm_cndecompcascadecentury
     is_litter(i_litr3) = .true.
     is_soil(i_litr3) = .false.
     is_cwd(i_litr3) = .false.
-    initial_cn_ratio(i_litr3) = 90.0D0
-    initial_stock(i_litr3) = 0.0D0
+    initial_cn_ratio(i_litr3) = 90.0_rkx
+    initial_stock(i_litr3) = 0.0_rkx
     is_metabolic(i_litr3) = .false.
     is_cellulose(i_litr3) = .false.
     is_lignin(i_litr3) = .true.
@@ -262,8 +262,8 @@ module mod_clm_cndecompcascadecentury
     is_litter(i_cwd) = .false.
     is_soil(i_cwd) = .false.
     is_cwd(i_cwd) = .true.
-    initial_cn_ratio(i_cwd) = 90.0D0
-    initial_stock(i_cwd) = 0.0D0
+    initial_cn_ratio(i_cwd) = 90.0_rkx
+    initial_stock(i_cwd) = 0.0_rkx
     is_metabolic(i_cwd) = .false.
     is_cellulose(i_cwd) = .false.
     is_lignin(i_cwd) = .false.
@@ -278,7 +278,7 @@ module mod_clm_cndecompcascadecentury
     is_soil(i_soil1) = .true.
     is_cwd(i_soil1) = .false.
     initial_cn_ratio(i_soil1) = cn_s1
-    initial_stock(i_soil1) = 20.0D0
+    initial_stock(i_soil1) = 20.0_rkx
     is_metabolic(i_soil1) = .false.
     is_cellulose(i_soil1) = .false.
     is_lignin(i_soil1) = .false.
@@ -293,7 +293,7 @@ module mod_clm_cndecompcascadecentury
     is_soil(i_soil2) = .true.
     is_cwd(i_soil2) = .false.
     initial_cn_ratio(i_soil2) = cn_s2
-    initial_stock(i_soil2) = 20.0D0
+    initial_stock(i_soil2) = 20.0_rkx
     is_metabolic(i_soil2) = .false.
     is_cellulose(i_soil2) = .false.
     is_lignin(i_soil2) = .false.
@@ -308,15 +308,15 @@ module mod_clm_cndecompcascadecentury
     is_soil(i_soil3) = .true.
     is_cwd(i_soil3) = .false.
     initial_cn_ratio(i_soil3) = cn_s3
-    initial_stock(i_soil3) = 20.0D0
+    initial_stock(i_soil3) = 20.0_rkx
     is_metabolic(i_soil3) = .false.
     is_cellulose(i_soil3) = .false.
     is_lignin(i_soil3) = .false.
 
-    spinup_factor(i_litr1) = 1.0D0
-    spinup_factor(i_litr2) = 1.0D0
-    spinup_factor(i_litr3) = 1.0D0
-    spinup_factor(i_cwd) = 1.0D0
+    spinup_factor(i_litr1) = 1.0_rkx
+    spinup_factor(i_litr2) = 1.0_rkx
+    spinup_factor(i_litr3) = 1.0_rkx
+    spinup_factor(i_cwd) = 1.0_rkx
     spinup_factor(i_soil1) = spinup_vector(1)
     spinup_factor(i_soil2) = spinup_vector(2)
     spinup_factor(i_soil3) = spinup_vector(3)
@@ -327,21 +327,21 @@ module mod_clm_cndecompcascadecentury
     rf_decomp_cascade(begc:endc,1:nlevdecomp,i_l1s1) = rf_l1s1
     cascade_donor_pool(i_l1s1) = i_litr1
     cascade_receiver_pool(i_l1s1) = i_soil1
-    pathfrac_decomp_cascade(begc:endc,1:nlevdecomp,i_l1s1) = 1.00D0
+    pathfrac_decomp_cascade(begc:endc,1:nlevdecomp,i_l1s1) = 1.00_rkx
 
     i_l2s1 = 2
     cascade_step_name(i_l2s1) = 'L2S1'
     rf_decomp_cascade(begc:endc,1:nlevdecomp,i_l2s1) = rf_l2s1
     cascade_donor_pool(i_l2s1) = i_litr2
     cascade_receiver_pool(i_l2s1) = i_soil1
-    pathfrac_decomp_cascade(begc:endc,1:nlevdecomp,i_l2s1)= 1.00D0
+    pathfrac_decomp_cascade(begc:endc,1:nlevdecomp,i_l2s1)= 1.00_rkx
 
     i_l3s2 = 3
     cascade_step_name(i_l3s2) = 'L3S2'
     rf_decomp_cascade(begc:endc,1:nlevdecomp,i_l3s2) = rf_l3s2
     cascade_donor_pool(i_l3s2) = i_litr3
     cascade_receiver_pool(i_l3s2) = i_soil2
-    pathfrac_decomp_cascade(begc:endc,1:nlevdecomp,i_l3s2) = 1.00D0
+    pathfrac_decomp_cascade(begc:endc,1:nlevdecomp,i_l3s2) = 1.00_rkx
 
     i_s1s2 = 4
     cascade_step_name(i_s1s2) = 'S1S2'
@@ -380,7 +380,7 @@ module mod_clm_cndecompcascadecentury
     rf_decomp_cascade(begc:endc,1:nlevdecomp,i_s3s1) = rf_s3s1
     cascade_donor_pool(i_s3s1) = i_soil3
     cascade_receiver_pool(i_s3s1) = i_soil1
-    pathfrac_decomp_cascade(begc:endc,1:nlevdecomp,i_s3s1) = 1.00D0
+    pathfrac_decomp_cascade(begc:endc,1:nlevdecomp,i_s3s1) = 1.00_rkx
 
     i_cwdl2 = 9
     cascade_step_name(i_cwdl2) = 'CWDL2'
@@ -412,57 +412,57 @@ module mod_clm_cndecompcascadecentury
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     ! column level
     ! rate constant for decomposition (1./sec)
-    real(rk8), pointer :: decomp_k(:,:,:)
-    real(rk8), pointer :: t_scalar(:,:)  ! soil temperature scalar for decomp
-    real(rk8), pointer :: w_scalar(:,:)  ! soil water scalar for decomp
+    real(rkx), pointer :: decomp_k(:,:,:)
+    real(rkx), pointer :: t_scalar(:,:)  ! soil temperature scalar for decomp
+    real(rkx), pointer :: w_scalar(:,:)  ! soil water scalar for decomp
     ! fraction by which decomposition is limited by anoxia
-    real(rk8), pointer :: o_scalar(:,:)
+    real(rkx), pointer :: o_scalar(:,:)
 
-    real(rk8), pointer :: dz(:,:)        ! soil layer thickness (m)
+    real(rkx), pointer :: dz(:,:)        ! soil layer thickness (m)
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rk8), pointer :: t_soisno(:,:)
-    real(rk8), pointer :: sucsat(:,:)    ! minimum soil suction (mm)
+    real(rkx), pointer :: t_soisno(:,:)
+    real(rkx), pointer :: sucsat(:,:)    ! minimum soil suction (mm)
     ! soil water potential in each soil layer (MPa)
-    real(rk8), pointer :: soilpsi(:,:)
+    real(rkx), pointer :: soilpsi(:,:)
 #ifdef LCH4
     ! Ratio of oxygen available to that demanded by roots, aerobes, &
     ! methanotrophs (nlevsoi)
-    real(rk8), pointer :: o2stress_unsat(:,:)
+    real(rkx), pointer :: o2stress_unsat(:,:)
     ! Ratio of oxygen available to that demanded by roots, aerobes, &
     ! methanotrophs (nlevsoi)
-    real(rk8), pointer :: o2stress_sat(:,:)
-    real(rk8), pointer :: finundated(:)  ! fractional inundated area
+    real(rkx), pointer :: o2stress_sat(:,:)
+    real(rkx), pointer :: finundated(:)  ! fractional inundated area
 #endif
     integer(ik4), pointer :: alt_indx(:) ! current depth of thaw
 
-    real(rk8):: frw(lbc:ubc)     ! rooting fraction weight
-    real(rk8), pointer:: fr(:,:) ! column-level rooting fraction by soil depth
-    real(rk8):: minpsi, maxpsi   ! limits for soil water scalar for decomp
-    real(rk8):: psi              ! temporary soilpsi for water scalar
-    ! real(rk8):: w_scalar(lbc:ubc,1:nlevdecomp)  !soil water scalar for decomp
-    real(rk8):: rate_scalar      ! combined rate scalar for decomp
+    real(rkx):: frw(lbc:ubc)     ! rooting fraction weight
+    real(rkx), pointer:: fr(:,:) ! column-level rooting fraction by soil depth
+    real(rkx):: minpsi, maxpsi   ! limits for soil water scalar for decomp
+    real(rkx):: psi              ! temporary soilpsi for water scalar
+    ! real(rkx):: w_scalar(lbc:ubc,1:nlevdecomp)  !soil water scalar for decomp
+    real(rkx):: rate_scalar      ! combined rate scalar for decomp
     ! decomposition rate constant litter 1 (1/sec)
-    real(rk8):: k_l1
+    real(rkx):: k_l1
     ! decomposition rate constant litter 2 and litter 3 (1/sec)
-    real(rk8):: k_l2_l3
+    real(rkx):: k_l2_l3
     ! decomposition rate constant SOM 1 (1/sec)
-    real(rk8):: k_s1
+    real(rkx):: k_s1
     ! decomposition rate constant SOM 2 (1/sec)
-    real(rk8):: k_s2
+    real(rkx):: k_s2
     ! decomposition rate constant SOM 3 (1/sec)
-    real(rk8):: k_s3
-    real(rk8):: k_frag     ! fragmentation rate constant CWD (1/sec)
-    real(rk8):: tau_l1     ! turnover time of  litter 1 (yr)
-    real(rk8):: tau_l2_l3  ! turnover time of  litter 2 and litter 3 (yr)
-    real(rk8):: tau_l3     ! turnover time of  litter 3 (yr)
-    real(rk8):: tau_s1     ! turnover time of  SOM 1 (yr)
-    real(rk8):: tau_s2     ! turnover time of  SOM 2 (yr)
-    real(rk8):: tau_s3     ! turnover time of  SOM 3 (yr)
-    real(rk8):: tau_cwd    ! corrected fragmentation rate constant CWD
-    real(rk8):: cwd_fcel   ! cellulose fraction of coarse woody debris
-    real(rk8):: cwd_flig   ! lignin fraction of coarse woody debris
-    real(rk8):: cwdc_loss  ! fragmentation rate for CWD carbon (gC/m2/s)
-    real(rk8):: cwdn_loss  ! fragmentation rate for CWD nitrogen (gN/m2/s)
+    real(rkx):: k_s3
+    real(rkx):: k_frag     ! fragmentation rate constant CWD (1/sec)
+    real(rkx):: tau_l1     ! turnover time of  litter 1 (yr)
+    real(rkx):: tau_l2_l3  ! turnover time of  litter 2 and litter 3 (yr)
+    real(rkx):: tau_l3     ! turnover time of  litter 3 (yr)
+    real(rkx):: tau_s1     ! turnover time of  SOM 1 (yr)
+    real(rkx):: tau_s2     ! turnover time of  SOM 2 (yr)
+    real(rkx):: tau_s3     ! turnover time of  SOM 3 (yr)
+    real(rkx):: tau_cwd    ! corrected fragmentation rate constant CWD
+    real(rkx):: cwd_fcel   ! cellulose fraction of coarse woody debris
+    real(rkx):: cwd_flig   ! lignin fraction of coarse woody debris
+    real(rkx):: cwdc_loss  ! fragmentation rate for CWD carbon (gC/m2/s)
+    real(rkx):: cwdn_loss  ! fragmentation rate for CWD nitrogen (gN/m2/s)
 
     integer(ik4) :: i_litr1
     integer(ik4) :: i_litr2
@@ -471,22 +471,22 @@ module mod_clm_cndecompcascadecentury
     integer(ik4) :: i_soil2
     integer(ik4) :: i_soil3
     integer(ik4) :: c, fc, j, k, l
-    real(rk8) :: q10 = 1.50D0
-    real(rk8) :: catanf    ! hyperbolic temperature function from CENTURY
-    real(rk8) :: catanf_30 ! reference rate at 30C
-    real(rk8) :: t1        ! temperature argument
+    real(rkx) :: q10 = 1.50_rkx
+    real(rkx) :: catanf    ! hyperbolic temperature function from CENTURY
+    real(rkx) :: catanf_30 ! reference rate at 30C
+    real(rkx) :: t1        ! temperature argument
 
     ! factor by which to offset the decomposition rates frm century to
     ! a q10 formulation
-    real(rk8) :: normalization_factor
+    real(rkx) :: normalization_factor
 
 #if (defined VERTSOILC)
-    real(rk8) :: depth_scalar(lbc:ubc,1:nlevdecomp)
+    real(rkx) :: depth_scalar(lbc:ubc,1:nlevdecomp)
 #endif
 
     !----- CENTURY T response function
-    catanf(t1) = 11.750D0 +(29.70D0 / rpi) * &
-            atan( rpi * 0.0310D0  * ( t1 - 15.40D0 ))
+    catanf(t1) = 11.750_rkx +(29.70_rkx / rpi) * &
+            atan( rpi * 0.0310_rkx  * ( t1 - 15.40_rkx ))
 
     ! Assign local pointers to derived type arrays
     t_soisno    => clm3%g%l%c%ces%t_soisno
@@ -519,25 +519,25 @@ module mod_clm_cndecompcascadecentury
     ! tau_l3 = 1./.0045
 
     ! the belowground parameters from century
-    tau_l1 = 1.0D0/18.5D0
-    tau_l2_l3 = 1.0D0/4.9D0
-    tau_s1 = 1.0D0/7.3D0
-    tau_s2 = 1.0D0/0.2D0
-    tau_s3 = 1.0D0/.0045D0
+    tau_l1 = 1.0_rkx/18.5_rkx
+    tau_l2_l3 = 1.0_rkx/4.9_rkx
+    tau_s1 = 1.0_rkx/7.3_rkx
+    tau_s2 = 1.0_rkx/0.2_rkx
+    tau_s3 = 1.0_rkx/.0045_rkx
 
     ! century leaves wood decomposition rates open, within range of 0-0.5 yr^-1
-    tau_cwd  = 1.0D0/0.3D0
+    tau_cwd  = 1.0_rkx/0.3_rkx
 
     ! translate to per-second time constant
-    k_l1 = 1.0D0 / (secspday * dayspy * tau_l1)
-    k_l2_l3 = 1.0D0 / (secspday * dayspy * tau_l2_l3)
-    k_s1 = 1.0D0 / (secspday * dayspy * tau_s1)
-    k_s2 = 1.0D0 / (secspday * dayspy * tau_s2)
-    k_s3 = 1.0D0 / (secspday * dayspy * tau_s3)
-    k_frag = 1.0D0 / (secspday * dayspy * tau_cwd)
+    k_l1 = 1.0_rkx / (secspday * dayspy * tau_l1)
+    k_l2_l3 = 1.0_rkx / (secspday * dayspy * tau_l2_l3)
+    k_s1 = 1.0_rkx / (secspday * dayspy * tau_s1)
+    k_s2 = 1.0_rkx / (secspday * dayspy * tau_s2)
+    k_s3 = 1.0_rkx / (secspday * dayspy * tau_s3)
+    k_frag = 1.0_rkx / (secspday * dayspy * tau_cwd)
 
     ! calc ref rate
-    catanf_30 = catanf(30.0D0)
+    catanf_30 = catanf(30.0_rkx)
     ! The following code implements the acceleration part of the AD
     ! spinup algorithm
 
@@ -561,7 +561,7 @@ module mod_clm_cndecompcascadecentury
 
       ! the following normalizes values in fr so that they
       ! sum to 1.0 across top nlevdecomp levels on a column
-      frw(lbc:ubc) = 0.0D0
+      frw(lbc:ubc) = 0.0_rkx
       nlev_soildecomp_standard=5
       allocate(fr(lbc:ubc,nlev_soildecomp_standard))
       do j = 1 , nlev_soildecomp_standard
@@ -573,10 +573,10 @@ module mod_clm_cndecompcascadecentury
       do j = 1 , nlev_soildecomp_standard
         do fc = 1 , num_soilc
           c = filter_soilc(fc)
-          if (frw(c) /= 0.0D0) then
+          if (frw(c) /= 0.0_rkx) then
             fr(c,j) = dz(c,j) / frw(c)
           else
-            fr(c,j) = 0.0D0
+            fr(c,j) = 0.0_rkx
           end if
         end do
       end do
@@ -589,17 +589,17 @@ module mod_clm_cndecompcascadecentury
         do j = 1 , nlev_soildecomp_standard
           do fc = 1 , num_soilc
             c = filter_soilc(fc)
-            if (j==1) t_scalar(c,:) = 0.0D0
+            if (j==1) t_scalar(c,:) = 0.0_rkx
             !! use separate (possibly equal) t funcs above and below
             !! freezing point
             !! t_scalar(c,1) = t_scalar(c,1) + &
-            !!   (q10**((t_soisno(c,j)-(tfrz+25.0D0))/10.0D0))*fr(c,j)
+            !!   (q10**((t_soisno(c,j)-(tfrz+25.0_rkx))/10.0_rkx))*fr(c,j)
             if (t_soisno(c,j) >= tfrz) then
               t_scalar(c,1) = t_scalar(c,1) + &
-                      (q10**((t_soisno(c,j)-(tfrz+25.0D0))/10.0D0))*fr(c,j)
+                      (q10**((t_soisno(c,j)-(tfrz+25.0_rkx))/10.0_rkx))*fr(c,j)
             else
-              t_scalar(c,1) = t_scalar(c,1) + (q10**(-25.0D0/10.0D0))* &
-                      (froz_q10**((t_soisno(c,j)-tfrz)/10.0D0))*fr(c,j)
+              t_scalar(c,1) = t_scalar(c,1) + (q10**(-25.0_rkx/10.0_rkx))* &
+                      (froz_q10**((t_soisno(c,j)-tfrz)/10.0_rkx))*fr(c,j)
             end if
           end do
         end do
@@ -609,9 +609,9 @@ module mod_clm_cndecompcascadecentury
         do j = 1 , nlev_soildecomp_standard
           do fc = 1 , num_soilc
             c = filter_soilc(fc)
-            if (j==1) t_scalar(c,:) = 0.0D0
+            if (j==1) t_scalar(c,:) = 0.0_rkx
             t_scalar(c,1) = t_scalar(c,1) + &
-                    max(catanf(t_soisno(c,j)-tfrz)/catanf_30*fr(c,j),0.010D0)
+                    max(catanf(t_soisno(c,j)-tfrz)/catanf_30*fr(c,j),0.010_rkx)
           end do
         end do
       end if
@@ -626,13 +626,13 @@ module mod_clm_cndecompcascadecentury
       ! Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
 
-      minpsi = -10.00D0;
+      minpsi = -10.00_rkx;
 
       do j = 1 , nlev_soildecomp_standard
         do fc = 1 , num_soilc
           c = filter_soilc(fc)
-          if (j==1) w_scalar(c,:) = 0.0D0
-          maxpsi = sucsat(c,j) * (-9.8D-6)
+          if (j==1) w_scalar(c,:) = 0.0_rkx
+          maxpsi = sucsat(c,j) * (-9.8e-6_rkx)
           psi = min(soilpsi(c,j),maxpsi)
           ! decomp only if soilpsi is higher than minpsi
           if (psi > minpsi) then
@@ -649,7 +649,7 @@ module mod_clm_cndecompcascadecentury
           if ( alt_indx(c) >= nlev_soildecomp_standard .and. &
                t_soisno(c,1) > tfrz) then
             w_scalar(c,1) = w_scalar(c,1) * &
-                    (1.0D0 - finundated(c)) + finundated(c)
+                    (1.0_rkx - finundated(c)) + finundated(c)
           end if
         end do
       end if
@@ -664,23 +664,23 @@ module mod_clm_cndecompcascadecentury
           do fc = 1 , num_soilc
             c = filter_soilc(fc)
 
-            if (j==1) o_scalar(c,:) = 0.0D0
+            if (j==1) o_scalar(c,:) = 0.0_rkx
 
             if (.not. anoxia_wtsat) then
               o_scalar(c,1) = o_scalar(c,1) + &
                       fr(c,j) * max(o2stress_unsat(c,j), mino2lim)
             else
               o_scalar(c,1) = o_scalar(c,1) + fr(c,j) * &
-                (max(o2stress_unsat(c,j), mino2lim)*(1.0D0 - finundated(c)) + &
+                (max(o2stress_unsat(c,j), mino2lim)*(1.0_rkx - finundated(c)) + &
                  max(o2stress_sat(c,j), mino2lim)*finundated(c) )
             end if
           end do
         end do
       else
-        o_scalar(lbc:ubc,1:nlevdecomp) = 1.0D0
+        o_scalar(lbc:ubc,1:nlevdecomp) = 1.0_rkx
       end if
 #else
-      o_scalar(lbc:ubc,1:nlevdecomp) = 1.0D0
+      o_scalar(lbc:ubc,1:nlevdecomp) = 1.0_rkx
 #endif
 
       deallocate(fr)
@@ -703,12 +703,12 @@ module mod_clm_cndecompcascadecentury
             c = filter_soilc(fc)
             !! use separate (possibly equal) t funcs above and below
             !! freezing point
-            !! t_scalar(c,j)= (q10**((t_soisno(c,j)-(tfrz+25.0D0))/10.0D0))
+            !! t_scalar(c,j)= (q10**((t_soisno(c,j)-(tfrz+25.0_rkx))/10.0_rkx))
             if (t_soisno(c,j) >= tfrz) then
-              t_scalar(c,j)= (q10**((t_soisno(c,j)-(tfrz+25.0D0))/10.0D0))
+              t_scalar(c,j)= (q10**((t_soisno(c,j)-(tfrz+25.0_rkx))/10.0_rkx))
             else
-              t_scalar(c,j)= (q10**(-25.0D0/10.0D0)) * &
-                      (froz_q10**((t_soisno(c,j)-tfrz)/10.0D0))
+              t_scalar(c,j)= (q10**(-25.0_rkx/10.0_rkx)) * &
+                      (froz_q10**((t_soisno(c,j)-tfrz)/10.0_rkx))
             end if
           end do
         end do
@@ -716,7 +716,7 @@ module mod_clm_cndecompcascadecentury
         do j = 1 , nlevdecomp
           do fc = 1 , num_soilc
             c = filter_soilc(fc)
-            t_scalar(c,j)= max(catanf(t_soisno(c,j)-tfrz)/catanf_30, 0.010D0)
+            t_scalar(c,j)= max(catanf(t_soisno(c,j)-tfrz)/catanf_30, 0.010_rkx)
           end do
         end do
       endif
@@ -731,23 +731,23 @@ module mod_clm_cndecompcascadecentury
       ! Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
 
-      minpsi = -10.00D0;
+      minpsi = -10.00_rkx;
       do j = 1 , nlevdecomp
         do fc = 1 , num_soilc
           c = filter_soilc(fc)
-          maxpsi = sucsat(c,j) * (-9.8D-6)
+          maxpsi = sucsat(c,j) * (-9.8e-6_rkx)
           psi = min(soilpsi(c,j),maxpsi)
           ! decomp only if soilpsi is higher than minpsi
           if (psi > minpsi) then
             w_scalar(c,j) = (log(minpsi/psi)/log(minpsi/maxpsi))
           else
-            w_scalar(c,j) = 0.0D0
+            w_scalar(c,j) = 0.0_rkx
           end if
 #ifdef LCH4
           if (anoxia_wtsat .and. t_soisno(c,j) > tfrz) then
             ! wet area will have w_scalar of 1 if unfrozen
             w_scalar(c,j) = w_scalar(c,j) * &
-                    (1.0D0 - finundated(c)) + finundated(c)
+                    (1.0_rkx - finundated(c)) + finundated(c)
           end if
 #endif
         end do
@@ -764,16 +764,16 @@ module mod_clm_cndecompcascadecentury
               o_scalar(c,j) = max(o2stress_unsat(c,j), mino2lim)
             else
               o_scalar(c,j) = max(o2stress_unsat(c,j), mino2lim) * &
-                      (1.0D0 - finundated(c)) + &
+                      (1.0_rkx - finundated(c)) + &
                        max(o2stress_sat(c,j), mino2lim) * finundated(c)
             end if
           end do
         end do
       else
-        o_scalar(lbc:ubc,1:nlevdecomp) = 1.0D0
+        o_scalar(lbc:ubc,1:nlevdecomp) = 1.0_rkx
       end if
 #else
-      o_scalar(lbc:ubc,1:nlevdecomp) = 1.0D0
+      o_scalar(lbc:ubc,1:nlevdecomp) = 1.0_rkx
 #endif
     end if
 
@@ -781,7 +781,7 @@ module mod_clm_cndecompcascadecentury
       ! scale all decomposition rates by a constant to compensate for
       ! offset between original CENTURY temp func and Q10
       normalization_factor = (catanf(normalization_tref)/catanf_30) / &
-              (q10**((normalization_tref-25.0D0)/10.0D0))
+              (q10**((normalization_tref-25.0_rkx)/10.0_rkx))
       do j = 1 , nlevdecomp
         do fc = 1 , num_soilc
           c = filter_soilc(fc)

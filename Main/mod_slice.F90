@@ -44,10 +44,10 @@ module mod_slice
 
   subroutine mkslice
     implicit none
-    real(rk8) :: cell
+    real(rkx) :: cell
     integer(ik4) :: i , j , k , n
-    real(rk8) , dimension(jce1gb:jce2gb,ice1gb:ice2gb) :: rpsb
-    real(rk8) , dimension(jde1gb:jde2gb,ide1gb:ide2gb) :: rpsdotb
+    real(rkx) , dimension(jce1gb:jce2gb,ice1gb:ice2gb) :: rpsb
+    real(rkx) , dimension(jde1gb:jde2gb,ide1gb:ide2gb) :: rpsdotb
 
     do i = ice1gb , ice2gb
       do j = jce1gb , jce2gb
@@ -90,11 +90,7 @@ module mod_slice
     do k = 1 , kz
       do i = ice1gb , ice2gb
         do j = jce1gb , jce2gb
-          if ( atm2%qx(j,i,k,iqv) > minqv ) then
-            atms%qxb3d(j,i,k,iqv) = atm2%qx(j,i,k,iqv)*rpsb(j,i)
-          else
-            atms%qxb3d(j,i,k,iqv) = minqq
-          end if
+          atms%qxb3d(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv)*rpsb(j,i),minqq)
         end do
       end do
     end do
@@ -102,11 +98,7 @@ module mod_slice
       do k = 1 , kz
         do i = ice1gb , ice2gb
           do j = jce1gb , jce2gb
-            if ( atm2%qx(j,i,k,n) > minqx ) then
-              atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)*rpsb(j,i)
-            else
-              atms%qxb3d(j,i,k,n) = minqx
-            end if
+            atms%qxb3d(j,i,k,n) = max(atm2%qx(j,i,k,n)*rpsb(j,i),minqx*rpsb(j,i))
           end do
         end do
       end do
@@ -116,11 +108,7 @@ module mod_slice
         do k = 1 , kz
           do i = ice1gb , ice2gb
             do j = jce1gb , jce2gb
-              if ( chib(j,i,k,n) > mintr ) then
-                atms%chib3d(j,i,k,n) = chib(j,i,k,n)*rpsb(j,i)
-              else
-                atms%chib3d(j,i,k,n) = d_zero
-              end if
+              atms%chib3d(j,i,k,n) = max(chib(j,i,k,n)*rpsb(j,i),mintr*rpsb(j,i))
             end do
           end do
         end do
@@ -181,7 +169,7 @@ module mod_slice
           atms%pb3d(j,i,k) = atm2%pr(j,i,k)
           atms%rhob3d(j,i,k) = atms%pb3d(j,i,k)/(rgas*atms%tb3d(j,i,k))
           atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
-                      (1.0D5/atms%pb3d(j,i,k))**rovcp
+                      (1.0e5_rkx/atms%pb3d(j,i,k))**rovcp
           atms%tp3d(j,i,k) = atms%tb3d(j,i,k) * &
                       (atms%ps2d(j,i)/atms%pb3d(j,i,k))**rovcp
         end do

@@ -23,7 +23,7 @@ module mod_update
 !-----------------------------------------------------------------------
 !
   use mod_intkinds, only : ik4
-  use mod_realkinds, only : rk8
+  use mod_realkinds, only : rkx
   use mod_regcm_types , only : exp_data , imp_data
   use mod_memutil
 
@@ -39,9 +39,9 @@ module mod_update
   integer(ik4) , pointer :: ldmskb(:,:)
   integer(ik4) , pointer :: wetdry(:,:)
 !
-  real(rk8) , parameter :: zeroval = 0.0d0
-  real(rk8) , parameter :: missing_r8 = 1.0d20
-  real(rk8) , parameter :: tol = missing_r8/2.0d0
+  real(rkx) , parameter :: zeroval = 0.0_rkx
+  real(rkx) , parameter :: missing_r8 = 1.0e20_rkx
+  real(rkx) , parameter :: tol = missing_r8/2.0_rkx
 !
 !-----------------------------------------------------------------------
 !     Public subroutines
@@ -55,11 +55,11 @@ module mod_update
 !     Module constants
 !-----------------------------------------------------------------------
 !
-  real(rk8), parameter :: beta = 1.25 ! gustiness coeff
-  real(rk8), parameter :: von  = 0.4  ! von Karman constant
-  real(rk8), parameter :: fdg  = 1.00 ! ratio of thermal to wind von Karman
-  real(rk8), parameter :: tdk  = 273.16
-  real(rk8), parameter :: grav = 9.82 ! accel of earth grav
+  real(rkx), parameter :: beta = 1.25 ! gustiness coeff
+  real(rkx), parameter :: von  = 0.4  ! von Karman constant
+  real(rkx), parameter :: fdg  = 1.00 ! ratio of thermal to wind von Karman
+  real(rkx), parameter :: tdk  = 273.16
+  real(rkx), parameter :: grav = 9.82 ! accel of earth grav
 !
   contains
 !
@@ -80,8 +80,8 @@ module mod_update
 !-----------------------------------------------------------------------
 !
     integer :: i, j
-    real(rk8), parameter :: initval = 1.0d20
-    real(rk8), parameter :: zeroval = 0.0d20
+    real(rkx), parameter :: initval = 1.0e20_rkx
+    real(rkx), parameter :: zeroval = 0.0e20_rkx
 !
 !-----------------------------------------------------------------------
 !     Allocate arrays
@@ -144,7 +144,7 @@ module mod_update
         exportFields%wspd(j,i) = initval
         exportFields%wdir(j,i) = initval
         exportFields%ustr(j,i) = initval
-        exportFields%nflx(j,i) = initval 
+        exportFields%nflx(j,i) = initval
         exportFields%sflx(j,i) = initval
         exportFields%snow(j,i) = initval
         exportFields%dswr(j,i) = initval

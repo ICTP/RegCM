@@ -167,7 +167,7 @@ module mod_cbmz_main1
       !
       ! WARNING IF xcemit NOT LESS THAN xcin.
       !   if ( c_xcemit(1,ic) > 0 .and. &
-      !        c_xcemit(1,ic) > 0.9999D0*c_xcin(1,ic) then
+      !        c_xcemit(1,ic) > 0.9999_rkx*c_xcin(1,ic) then
       !     write(6,101) iit, c_tchem(ic), c_xcemit(1,ic), c_xcin(1,ic)
       ! 101 format(/,'WARNING:  EMISSIONS COMPONENT IN CHEMISTRY SOLVER ',&
       !              ' MAY BE SET TOO HIGH.',/,                           &
@@ -219,8 +219,8 @@ module mod_cbmz_main1
       !
       ! PROTECTION AGAINST ERRONEOUS RAINOUT FRACTION (0<=rainfr<1)
       !
-      if ( c_rainfr(1) < 0.0D0 ) c_rainfr(1) = d_zero
-      if ( c_rainfr(1) > 0.9999D0 ) c_rainfr(1) = 0.9999D0
+      if ( c_rainfr(1) < 0.0_rkx ) c_rainfr(1) = d_zero
+      if ( c_rainfr(1) > 0.9999_rkx ) c_rainfr(1) = 0.9999_rkx
       !
       ! Sulfate aerosol surface area, cm2 cm-3
       !    (used for reaction rates on aerosol surfaces)
@@ -230,7 +230,7 @@ module mod_cbmz_main1
       ! Water droplet radius, cm  (default  .001 = 10 mcm)
       !
       c_droplet(1) = droplet(1)
-      c_droplet(1) = 0.001D0
+      c_droplet(1) = 0.001_rkx
       !
       ! Gas-aqueous transfer rate
       !    enter -1 to cancel and use calculated value from Lelieveld, 1991
@@ -298,7 +298,7 @@ module mod_cbmz_main1
       !   Note, this format may be different from c_IDATE, used in zenith.
       !
       ! Date, entered above.
-      c_jparam(20) = dble(c_idate)
+      c_jparam(20) = real(c_idate,rkx)
       !
       !  ALTITUDE AT THE MIDDLE OF THE LAYER (km). (future option, kPa)
       !
@@ -402,7 +402,7 @@ module mod_cbmz_main1
       !   ! Identifies ic1 as aqueous species
       !   if ( ic /= icq ) then
       !     xrwdep(ic) = xrwdep(ic) + c_xcav(1,icq) * &
-      !                   c_rainfr(1) * c_h2oliq(1) * alt * 0.01D0
+      !                   c_rainfr(1) * c_h2oliq(1) * alt * 0.01_rkx
       !   end if
       ! end do
       !
@@ -412,7 +412,7 @@ module mod_cbmz_main1
       !      icq = ncequil(ic,neq)
       !      if ( icq > 0 ) then
       !        xrwdep(ic) = xrwdep(ic) + c_xcav(1,icq) * &
-      !                     c_rainfr(1) * c_h2oliq(1) * alt * 0.01D0
+      !                     c_rainfr(1) * c_h2oliq(1) * alt * 0.01_rkx
       !      end if
       !    end do
       !  end do
@@ -428,7 +428,7 @@ module mod_cbmz_main1
       !  if ( c_nhplus > 0 ) then
       !    xrwdep(c_nhplus) = xrwdep(c_nhplus) + c_xcav(1,c_nhplus) + &
       !                       c_xcav(1,c_nhplus) * c_rainfr( 1 ) * &
-      !                       c_h2oliq(1) * alt * 0.01D0
+      !                       c_h2oliq(1) * alt * 0.01_rkx
       !  end if
       !
 !

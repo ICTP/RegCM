@@ -77,15 +77,15 @@ module mod_scrip_remap_conserv
   integer(ik4) , public :: num_srch_cells
 
   ! thresholds for coord transf.
-  real(rk8) , parameter :: north_thresh =  1.45D0
-  real(rk8) , parameter :: south_thresh = -2.00D0
+  real(rkx) , parameter :: north_thresh =  1.45_rkx
+  real(rkx) , parameter :: south_thresh = -2.00_rkx
 
   ! global address of cells in srch arrays
   integer(ik4) , dimension(:) , allocatable , save :: srch_add
 
   ! coordinates of each corner of srch cells
-  real(rk8) , dimension(:,:) , allocatable , save :: srch_corner_lat
-  real(rk8) , dimension(:,:) , allocatable , save :: srch_corner_lon
+  real(rkx) , dimension(:,:) , allocatable , save :: srch_corner_lat
+  real(rkx) , dimension(:,:) , allocatable , save :: srch_corner_lon
 
   public :: remap_conserv
 
@@ -114,18 +114,18 @@ module mod_scrip_remap_conserv
       logical :: lbegin   ! flag for first integration of a segment
       ! mask for restricting searches
       logical , dimension(:) , allocatable :: srch_mask
-      real(rk8) :: intrsct_lat , intrsct_lon ! lat/lon of next intersect
-      real(rk8) :: beglat , endlat           ! endpoints of current seg.
-      real(rk8) :: beglon , endlon           ! endpoints of current seg.
-      real(rk8) :: norm_factor               ! factor for normalizing wts
+      real(rkx) :: intrsct_lat , intrsct_lon ! lat/lon of next intersect
+      real(rkx) :: beglat , endlat           ! endpoints of current seg.
+      real(rkx) :: beglon , endlon           ! endpoints of current seg.
+      real(rkx) :: norm_factor               ! factor for normalizing wts
       ! centroid coords on each grid
-      real(rk8) , dimension(:) , allocatable :: grid1_centroid_lat
-      real(rk8) , dimension(:) , allocatable :: grid1_centroid_lon
-      real(rk8) , dimension(:) , allocatable :: grid2_centroid_lat
-      real(rk8) , dimension(:) , allocatable :: grid2_centroid_lon
-      real(rk8) , dimension(2) :: begseg ! begin lat/lon for
+      real(rkx) , dimension(:) , allocatable :: grid1_centroid_lat
+      real(rkx) , dimension(:) , allocatable :: grid1_centroid_lon
+      real(rkx) , dimension(:) , allocatable :: grid2_centroid_lat
+      real(rkx) , dimension(:) , allocatable :: grid2_centroid_lon
+      real(rkx) , dimension(2) :: begseg ! begin lat/lon for
                                          ! full segment
-      real(rk8) , dimension(6) :: weights ! local wgt array
+      real(rkx) , dimension(6) :: weights ! local wgt array
       !
       ! initialize centroid arrays
       !
@@ -673,22 +673,22 @@ module mod_scrip_remap_conserv
       grid2_centroid_lat = d_zero
       grid2_centroid_lon = d_zero
       do n = 1 , grid1_size
-        if ( grid1_area(n) < -.01D0 ) then
+        if ( grid1_area(n) < -.01_rkx ) then
           write(stderr,*) 'Grid 1 area error: ',n,grid1_area(n)
         end if
-        if ( grid1_centroid_lat(n) < -halfpi-.01D0 .or. &
-             grid1_centroid_lat(n) >  halfpi+.01D0 ) then
+        if ( grid1_centroid_lat(n) < -halfpi-.01_rkx .or. &
+             grid1_centroid_lat(n) >  halfpi+.01_rkx ) then
           write(stderr,*) 'Grid 1 centroid lat error: ',n,grid1_centroid_lat(n)
         end if
         grid1_centroid_lat(n) = d_zero
         grid1_centroid_lon(n) = d_zero
       end do
       do n = 1 , grid2_size
-        if ( grid2_area(n) < -.01D0 ) then
+        if ( grid2_area(n) < -.01_rkx ) then
           write(stderr,*) 'Grid 2 area error: ',n,grid2_area(n)
         end if
-        if ( grid2_centroid_lat(n) < -halfpi-.01D0 .or. &
-             grid2_centroid_lat(n) >  halfpi+.01D0 ) then
+        if ( grid2_centroid_lat(n) < -halfpi-.01_rkx .or. &
+             grid2_centroid_lat(n) >  halfpi+.01_rkx ) then
           write(stderr,*) 'Grid 2 centroid lat error: ',n,grid2_centroid_lat(n)
         end if
         grid2_centroid_lat(n) = d_zero
@@ -697,20 +697,20 @@ module mod_scrip_remap_conserv
       do n = 1 , num_links_map1
         grid1_add = grid1_add_map1(n)
         grid2_add = grid2_add_map1(n)
-        if ( wts_map1(1,n) < -.01D0 ) then
+        if ( wts_map1(1,n) < -.01_rkx ) then
           write(stderr,*) 'Map 1 weight < 0 ',grid1_add,grid2_add,wts_map1(1,n)
         end if
-        if ( norm_opt /= norm_opt_none .and. wts_map1(1,n) > 1.01D0 ) then
+        if ( norm_opt /= norm_opt_none .and. wts_map1(1,n) > 1.01_rkx ) then
           write(stderr,*) 'Map 1 weight > 1 ',grid1_add,grid2_add,wts_map1(1,n)
         end if
         grid2_centroid_lat(grid2_add) = &
           grid2_centroid_lat(grid2_add) + wts_map1(1,n)
         if ( num_maps > 1 ) then
-          if ( wts_map2(1,n) < -.01D0 ) then
+          if ( wts_map2(1,n) < -.01_rkx ) then
             write(stderr,*) &
               'Map 2 weight < 0 ',grid1_add,grid2_add,wts_map2(1,n)
           end if
-          if ( norm_opt /= norm_opt_none .and. wts_map2(1,n) > 1.01D0 ) then
+          if ( norm_opt /= norm_opt_none .and. wts_map2(1,n) > 1.01_rkx ) then
             write(stderr,*) &
               'Map 2 weight < 0 ',grid1_add,grid2_add,wts_map2(1,n)
           end if
@@ -727,7 +727,7 @@ module mod_scrip_remap_conserv
           case (norm_opt_none)
             norm_factor = grid2_area(grid2_add)
         end select
-        if ( abs(grid2_centroid_lat(grid2_add)-norm_factor) > .01D0 ) then
+        if ( abs(grid2_centroid_lat(grid2_add)-norm_factor) > .01_rkx ) then
           write(stderr,*) 'Error: sum of wts for map1 ',grid2_add, &
                   grid2_centroid_lat(grid2_add),norm_factor
         end if
@@ -742,7 +742,7 @@ module mod_scrip_remap_conserv
             case (norm_opt_none)
               norm_factor = grid1_area(grid1_add)
           end select
-          if ( abs(grid1_centroid_lat(grid1_add)-norm_factor) > .01D0 ) then
+          if ( abs(grid1_centroid_lat(grid1_add)-norm_factor) > .01_rkx ) then
             write(stderr,*) 'Error: sum of wts for map2 ',grid1_add, &
                     grid1_centroid_lat(grid1_add),norm_factor
           end if
@@ -766,36 +766,36 @@ module mod_scrip_remap_conserv
       logical , intent(in) :: lbegin
       ! flag whether segment integrated in reverse
       logical , intent(in) :: lrevers
-      real(rk8) , intent(in) :: beglat , beglon ! beginning lat/lon for segment
-      real(rk8) , intent(in) :: endlat , endlon ! ending lat/lon for segment
+      real(rkx) , intent(in) :: beglat , beglon ! beginning lat/lon for segment
+      real(rkx) , intent(in) :: endlat , endlon ! ending lat/lon for segment
       ! begin lat/lon of full segment
-      real(rk8) , dimension(2) , intent(inout) :: begseg
+      real(rkx) , dimension(2) , intent(inout) :: begseg
 
       ! address in destination array containing this segment
       integer(ik4) , intent(out) :: location
       ! flag segments which are entirely coincident with a grid line
       logical , intent(out) :: lcoinc
       ! lat/lon coords of next intersect.
-      real(rk8) , intent(out) :: intrsct_lat , intrsct_lon
+      real(rkx) , intent(out) :: intrsct_lat , intrsct_lon
 
       integer(ik4) :: n , next_n , cell , srch_corners
       integer(ik4) , save :: last_loc ! save location when crossing threshold
       logical :: loutside             ! flags points outside grid
       ! flags segments crossing threshold bndy
       logical , save :: lthresh = .false.
-      real(rk8) :: lon1 , lon2         ! local longitude variables for segment
-      real(rk8) :: lat1 , lat2         ! local latitude  variables for segment
-      real(rk8) :: grdlon1 , grdlon2   ! local longitude variables for grid cell
-      real(rk8) :: grdlat1 , grdlat2   ! local latitude  variables for grid cell
-      real(rk8) :: vec1_lat , vec1_lon ! vectors and cross products used
-      real(rk8) :: vec2_lat , vec2_lon ! during grid search
-      real(rk8) :: cross_product
-      real(rk8) :: eps , offset        ! small offset away from intersect
-      real(rk8) :: s1 , s2 , determ    ! variables used for linear solve to
-      real(rk8) :: mat1 , mat2 , mat3
-      real(rk8) :: mat4 , rhs1 , rhs2  ! find intersection
+      real(rkx) :: lon1 , lon2         ! local longitude variables for segment
+      real(rkx) :: lat1 , lat2         ! local latitude  variables for segment
+      real(rkx) :: grdlon1 , grdlon2   ! local longitude variables for grid cell
+      real(rkx) :: grdlat1 , grdlat2   ! local latitude  variables for grid cell
+      real(rkx) :: vec1_lat , vec1_lon ! vectors and cross products used
+      real(rkx) :: vec2_lat , vec2_lon ! during grid search
+      real(rkx) :: cross_product
+      real(rkx) :: eps , offset        ! small offset away from intersect
+      real(rkx) :: s1 , s2 , determ    ! variables used for linear solve to
+      real(rkx) :: mat1 , mat2 , mat3
+      real(rkx) :: mat4 , rhs1 , rhs2  ! find intersection
       ! lat/lon coords offset for next search
-      real(rk8) , save :: intrsct_lat_off , intrsct_lon_off
+      real(rkx) , save :: intrsct_lat_off , intrsct_lon_off
       !
       ! initialize defaults, flags, etc.
       !
@@ -880,8 +880,8 @@ module mod_scrip_remap_conserv
             ! the endpoint
             !
             if ( vec2_lat == 0 .and. vec2_lon == 0 ) then
-              lat1 = lat1 + 1.D-10*(lat2-lat1)
-              lon1 = lon1 + 1.D-10*(lon2-lon1)
+              lat1 = lat1 + 1.e-10_rkx*(lat2-lat1)
+              lon1 = lon1 + 1.e-10_rkx*(lon2-lon1)
               vec2_lat = lat1 - srch_corner_lat(n,cell)
               vec2_lon = lon1 - srch_corner_lon(n,cell)
             end if
@@ -911,7 +911,7 @@ module mod_scrip_remap_conserv
             !   dot product and only choose the cell if the dot
             !   product is positive (parallel vs anti-parallel).
             !
-            if ( dabs(cross_product) < dlowval ) then
+            if ( abs(cross_product) < dlowval ) then
               if ( vec1_lat /= d_zero .or. vec1_lon /= d_zero ) then
                 vec2_lat = lat2 - lat1
                 vec2_lon = lon2 - lon1
@@ -924,7 +924,7 @@ module mod_scrip_remap_conserv
               else
                 cross_product = d_one
               end if
-              if ( dabs(cross_product) < dlowval ) then
+              if ( abs(cross_product) < dlowval ) then
                 lcoinc = .true.
                 cross_product = vec1_lon*vec2_lon + vec1_lat*vec2_lat
                 if ( lrevers ) cross_product = -cross_product
@@ -966,7 +966,7 @@ module mod_scrip_remap_conserv
         !   part of the segment lies inside the grid.
         !
         loutside = .true.
-        s1 = s1 + 0.001D0
+        s1 = s1 + 0.001_rkx
         lat1 = beglat + s1*(endlat - beglat)
         lon1 = beglon + s1*(lon2   - beglon)
         !
@@ -1025,7 +1025,7 @@ module mod_scrip_remap_conserv
         !   return the point of intersection (adding a small
         !   number so the intersection is off the grid line).
         !
-        if ( abs(determ) > 1.D-30 ) then
+        if ( abs(determ) > 1.e-30_rkx ) then
           s1 = (rhs1*mat4 - mat2*rhs2)/determ
           s2 = (mat1*rhs2 - rhs1*mat3)/determ
           if ( s2 >= d_zero .and. s2 <= d_one .and. &
@@ -1127,11 +1127,11 @@ module mod_scrip_remap_conserv
       ! accurately.
       !
       ! beginning lat/lon endpoints for segment
-      real(rk8) , intent(in) :: beglat , beglon
+      real(rkx) , intent(in) :: beglat , beglon
       ! ending    lat/lon endpoints for segment
-      real(rk8) , intent(in) :: endlat , endlon
+      real(rkx) , intent(in) :: endlat , endlon
       ! begin lat/lon of full segment
-      real(rk8) , dimension(2) , intent(inout) :: begseg
+      real(rkx) , dimension(2) , intent(inout) :: begseg
       ! flag true if segment integrated in reverse
       logical , intent(in) :: lrevers
 
@@ -1143,11 +1143,11 @@ module mod_scrip_remap_conserv
       ! flag segment crossing threshold boundary
       logical , intent(inout) :: lthresh
       ! lat/lon coords of next intersect.
-      real(rk8) , intent(out) :: intrsct_lat , intrsct_lon
+      real(rkx) , intent(out) :: intrsct_lat , intrsct_lon
 
       integer(ik4) :: n , next_n , cell , srch_corners
       logical :: loutside ! flags points outside grid
-      real(rk8) :: pi4 , rns, & ! north/south conversion
+      real(rkx) :: pi4 , rns, & ! north/south conversion
            x1, x2,       & ! local x variables for segment
            y1, y2,       & ! local y variables for segment
            begx, begy,   & ! beginning x,y variables for segment
@@ -1161,21 +1161,21 @@ module mod_scrip_remap_conserv
            s1, s2, determ,     & ! variables used for linear solve to
            mat1, mat2, mat3, mat4, rhs1, rhs2  ! find intersection
       ! x,y of each corner of srch cells
-      real(rk8) , dimension(:,:) , allocatable :: srch_corner_x
-      real(rk8) , dimension(:,:) , allocatable :: srch_corner_y
+      real(rkx) , dimension(:,:) , allocatable :: srch_corner_x
+      real(rkx) , dimension(:,:) , allocatable :: srch_corner_y
       !
       ! save last intersection to avoid roundoff during coord
       ! transformation
       !
       logical , save :: luse_last = .false.
-      real(rk8) , save :: intrsct_x, intrsct_y  ! x,y for intersection
+      real(rkx) , save :: intrsct_x, intrsct_y  ! x,y for intersection
       !
       ! variables necessary if segment manages to hit pole
       !
       ! count attempts to avoid pole
       integer(ik4) , save :: avoid_pole_count = 0
       ! endpoint offset to avoid pole
-      real(rk8) , save :: avoid_pole_offset = dlowval
+      real(rkx) , save :: avoid_pole_offset = dlowval
       !
       ! initialize defaults, flags, etc.
       !
@@ -1188,10 +1188,10 @@ module mod_scrip_remap_conserv
       !
       ! convert coordinates
       !
-      allocate(srch_corner_x(size(srch_corner_lat,DIM=1),  &
-                             size(srch_corner_lat,DIM=2)), &
-               srch_corner_y(size(srch_corner_lat,DIM=1),  &
-                             size(srch_corner_lat,DIM=2)))
+      allocate(srch_corner_x(size(srch_corner_lat,dim=1),  &
+                             size(srch_corner_lat,dim=2)), &
+               srch_corner_y(size(srch_corner_lat,dim=1),  &
+                             size(srch_corner_lat,dim=2)))
       if (beglat > d_zero) then
         pi4 = d_rfour*mathpi
         rns = d_one
@@ -1226,7 +1226,7 @@ module mod_scrip_remap_conserv
       ! product method to determine whether a point is enclosed by a cell
       !
       ! call timer_start(12)
-      srch_corners = size(srch_corner_lat,DIM=1)
+      srch_corners = size(srch_corner_lat,dim=1)
       srch_loop: &
       do
         !
@@ -1265,8 +1265,8 @@ module mod_scrip_remap_conserv
             ! the endpoint
             !
             if ( vec2_x == 0 .and. vec2_y == 0 ) then
-              x1 = x1 + 1.D-10*(x2-x1)
-              y1 = y1 + 1.D-10*(y2-y1)
+              x1 = x1 + 1.e-10_rkx*(x2-x1)
+              y1 = y1 + 1.e-10_rkx*(y2-y1)
               vec2_x = x1 - srch_corner_x(n,cell)
               vec2_y = y1 - srch_corner_y(n,cell)
             end if
@@ -1283,7 +1283,7 @@ module mod_scrip_remap_conserv
             !   product is positive (parallel vs anti-parallel).
             !
 
-            if ( dabs(cross_product) < dlowval ) then
+            if ( abs(cross_product) < dlowval ) then
               if ( vec1_x /= d_zero .or. vec1_y /= 0 ) then
                 vec2_x = x2 - x1
                 vec2_y = y2 - y1
@@ -1292,7 +1292,7 @@ module mod_scrip_remap_conserv
                 cross_product = d_one
               end if
 
-              if ( dabs(cross_product) < dlowval ) then
+              if ( abs(cross_product) < dlowval ) then
                 lcoinc = .true.
                 cross_product = vec1_x*vec2_x + vec1_y*vec2_y
                 if ( lrevers ) cross_product = -cross_product
@@ -1334,7 +1334,7 @@ module mod_scrip_remap_conserv
         !   part of the segment lies inside the grid.
         !
         loutside = .true.
-        s1 = s1 + 0.001D0
+        s1 = s1 + 0.001_rkx
         x1 = begx + s1*(x2 - begx)
         y1 = begy + s1*(y2 - begy)
         !
@@ -1382,7 +1382,7 @@ module mod_scrip_remap_conserv
         !   return the point of intersection (adding a small
         !   number so the intersection is off the grid line).
         !
-        if ( abs(determ) > 1.D-30 ) then
+        if ( abs(determ) > 1.e-30_rkx ) then
           s1 = (rhs1*mat4 - mat2*rhs2)/determ
           s2 = (mat1*rhs2 - rhs1*mat3)/determ
           if ( s2 >= d_zero .and. s2 <= d_one .and. &
@@ -1425,10 +1425,10 @@ module mod_scrip_remap_conserv
               intrsct_lon = rns*atan2(intrsct_y,intrsct_x)
               if ( intrsct_lon < d_zero ) &
                 intrsct_lon = intrsct_lon + twopi
-              if ( abs(intrsct_x) > 1.D-10 ) then
+              if ( abs(intrsct_x) > 1.e-10_rkx ) then
                 intrsct_lat = (pi4 - &
                   asin(rns*d_half*intrsct_x/cos(intrsct_lon)))*d_two
-              else if ( abs(intrsct_y) > 1.D-10 ) then
+              else if ( abs(intrsct_y) > 1.e-10_rkx ) then
                 intrsct_lat = (pi4 - &
                   asin(d_half*intrsct_y/sin(intrsct_lon)))*d_two
               else
@@ -1468,11 +1468,12 @@ module mod_scrip_remap_conserv
       ! endpoint in order to avoid hitting pole directly
       ! (it is ok for endpoint to be pole point)
       !
-      if ( abs(intrsct_x) < 1.D-10 .and. abs(intrsct_y) < 1.D-10 .and. &
+      if ( abs(intrsct_x) < 1.e-10_rkx .and. &
+           abs(intrsct_y) < 1.e-10_rkx .and. &
           (endx /= d_zero .and. endy /=0) ) then
         if ( avoid_pole_count > 2 ) then
           avoid_pole_count = 0
-          avoid_pole_offset = 10.0D0*avoid_pole_offset
+          avoid_pole_offset = 10.0_rkx*avoid_pole_offset
         end if
         cross_product = begsegx*(endy-begsegy) - begsegy*(endx-begsegx)
         intrsct_lat = begseg(1)
@@ -1540,19 +1541,19 @@ module mod_scrip_remap_conserv
       !
       integer(ik4) , intent(in) :: num_wts  ! number of weights to compute
       ! longitude endpoints for the segment
-      real(rk8) , intent(in) :: in_phi1, in_phi2
+      real(rkx) , intent(in) :: in_phi1, in_phi2
       ! latitude  endpoints for the segment
-      real(rk8) , intent(in) :: theta1 , theta2
+      real(rkx) , intent(in) :: theta1 , theta2
       ! reference coordinates for each grid (to ensure correct 0,2pi interv.)
-      real(rk8) , intent(in) :: grid1_lat , grid1_lon
-      real(rk8) , intent(in) :: grid2_lat , grid2_lon
+      real(rkx) , intent(in) :: grid1_lat , grid1_lon
+      real(rkx) , intent(in) :: grid2_lat , grid2_lon
 
       ! line integral contribution to weights
-      real(rk8) , dimension(2*num_wts) , intent(out) :: weights
+      real(rkx) , dimension(2*num_wts) , intent(out) :: weights
 
-      real(rk8) :: dphi , sinth1 , sinth2 , costh1 , costh2 , fac , &
+      real(rkx) :: dphi , sinth1 , sinth2 , costh1 , costh2 , fac , &
                    phi1 , phi2
-      real(rk8) :: f1 , f2 , fint
+      real(rkx) :: f1 , f2 , fint
       !
       ! weights for the general case based on a trapezoidal approx to
       ! the integrals.
@@ -1645,7 +1646,7 @@ module mod_scrip_remap_conserv
       !
       integer(ik4) , intent(in) :: add1 , add2
       ! array of remapping weights for this link
-      real(rk8) , dimension(:) , intent(in) :: weights
+      real(rkx) , dimension(:) , intent(in) :: weights
       integer(ik4) :: nlink , min_link , max_link ! link index
       ! min,max link add to restrict search
       integer(ik4) , dimension(:,:) , allocatable , save :: link_add1
@@ -1654,7 +1655,7 @@ module mod_scrip_remap_conserv
       !
       ! if all weights are zero, do not bother storing the link
       !
-      if ( all(dabs(weights) < dlowval) ) return
+      if ( all(abs(weights) < dlowval) ) return
       !
       ! restrict the range of links to search for existing links
       !

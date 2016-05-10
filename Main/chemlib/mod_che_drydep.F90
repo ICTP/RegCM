@@ -42,22 +42,22 @@ module mod_che_drydep
 !
 ! Dynamic Viscosity Parameters
 !
-  real(rk8) , parameter :: a1 = 145.8D0
-  real(rk8) , parameter :: a2 = 1.5D0
-  real(rk8) , parameter :: a3 = 110.4D0
+  real(rkx) , parameter :: a1 = 145.8_rkx
+  real(rkx) , parameter :: a2 = 1.5_rkx
+  real(rkx) , parameter :: a3 = 110.4_rkx
 !
 ! Molecular Free Path calculation parameters
 !
-  real(rk8) , parameter :: c1 = 6.54D-8
-  real(rk8) , parameter :: c2 = 1.818D-5
-  real(rk8) , parameter :: c3 = 1.013D5
-  real(rk8) , parameter :: c4 = 293.15D0
+  real(rkx) , parameter :: c1 = 6.54e-8_rkx
+  real(rkx) , parameter :: c2 = 1.818e-5_rkx
+  real(rkx) , parameter :: c3 = 1.013e5_rkx
+  real(rkx) , parameter :: c4 = 293.15_rkx
 !
 ! Cunningham slip correction factor parameters
 !
-  real(rk8) , parameter :: aa1 = 1.257D0
-  real(rk8) , parameter :: aa2 = 0.4D0
-  real(rk8) , parameter :: aa3 = 1.1D0
+  real(rkx) , parameter :: aa1 = 1.257_rkx
+  real(rkx) , parameter :: aa2 = 0.4_rkx
+  real(rkx) , parameter :: aa3 = 1.1_rkx
 !
 ! Only one cover type per grid cell for now
 !
@@ -69,7 +69,7 @@ module mod_che_drydep
 !
 ! threshold of rainfall intensity to activate water covered canopy option
 !
-  real(rk8), parameter :: rainthr = 0.1D0
+  real(rkx), parameter :: rainthr = 0.1_rkx
 !
 ! DATA section for the Zhang drydep scheme
 !
@@ -92,212 +92,212 @@ module mod_che_drydep
 !
 !NOTENOTENOTENOTENOTENOTENOTENOTEONOTENOTENOTENOTENOTENOTENOTENOTENOTENOTENOTE
 !
-  real(rk8) lai(20,15)
-  real(rk8) z01(20) , z02(20)
+  real(rkx) lai(20,15)
+  real(rkx) z01(20) , z02(20)
   integer(ik4) :: kk
 
   data (lai(1,kk), kk = 1, 15)/                    &
-           0.1D0 , 0.1D0 , 0.1D0 , 0.5D0 , 1.0D0 , &
-           2.0D0 , 3.0D0 , 3.5D0 , 4.0D0 , 0.1D0 , &
-           0.1D0 , 0.1D0 , 0.1D0 , 0.1D0 , 4.0D0 /
+           0.1_rkx , 0.1_rkx , 0.1_rkx , 0.5_rkx , 1.0_rkx , &
+           2.0_rkx , 3.0_rkx , 3.5_rkx , 4.0_rkx , 0.1_rkx , &
+           0.1_rkx , 0.1_rkx , 0.1_rkx , 0.1_rkx , 4.0_rkx /
 
   data (lai(2,kk), kk = 1, 15)/                    &
-           1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , &
-           1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , &
-           1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 /
+           1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , &
+           1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , &
+           1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx /
 
   data (lai(3,kk), kk = 1, 15)/                    &
-           5.0D0 , 5.0D0 , 5.0D0 , 5.0D0 , 5.0D0 , &
-           5.0D0 , 5.0D0 , 5.0D0 , 5.0D0 , 5.0D0 , &
-           5.0D0 , 5.0D0 , 5.0D0 , 5.0D0 , 5.0D0 /
+           5.0_rkx , 5.0_rkx , 5.0_rkx , 5.0_rkx , 5.0_rkx , &
+           5.0_rkx , 5.0_rkx , 5.0_rkx , 5.0_rkx , 5.0_rkx , &
+           5.0_rkx , 5.0_rkx , 5.0_rkx , 5.0_rkx , 5.0_rkx /
 
   data (lai(4,kk), kk = 1, 15)/                    &
-           0.1D0 , 0.1D0 , 0.5D0 , 1.0D0 , 2.0D0 , &
-           4.0D0 , 5.0D0 , 5.0D0 , 4.0D0 , 2.0D0 , &
-           1.0D0 , 0.1D0 , 0.1D0 , 0.1D0 , 5.0D0 /
+           0.1_rkx , 0.1_rkx , 0.5_rkx , 1.0_rkx , 2.0_rkx , &
+           4.0_rkx , 5.0_rkx , 5.0_rkx , 4.0_rkx , 2.0_rkx , &
+           1.0_rkx , 0.1_rkx , 0.1_rkx , 0.1_rkx , 5.0_rkx /
 
   data (lai(5,kk), kk = 1, 15)/                    &
-           0.1D0 , 0.1D0 , 0.5D0 , 1.0D0 , 2.0D0 , &
-           4.0D0 , 5.0D0 , 5.0D0 , 4.0D0 , 2.0D0 , &
-           1.0D0 , 0.1D0 , 0.1D0 , 0.1D0 , 5.0D0 /
+           0.1_rkx , 0.1_rkx , 0.5_rkx , 1.0_rkx , 2.0_rkx , &
+           4.0_rkx , 5.0_rkx , 5.0_rkx , 4.0_rkx , 2.0_rkx , &
+           1.0_rkx , 0.1_rkx , 0.1_rkx , 0.1_rkx , 5.0_rkx /
 
   data (lai(6,kk), kk = 1, 15)/                    &
-           6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , &
-           6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , &
-           6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 , 6.0D0 /
+           6.0_rkx , 6.0_rkx , 6.0_rkx , 6.0_rkx , 6.0_rkx , &
+           6.0_rkx , 6.0_rkx , 6.0_rkx , 6.0_rkx , 6.0_rkx , &
+           6.0_rkx , 6.0_rkx , 6.0_rkx , 6.0_rkx , 6.0_rkx /
 
   data (lai(7,kk), kk = 1, 15)/                    &
-           0.5D0 , 0.5D0 , 0.5D0 , 0.5D0 , 0.5D0 , &
-           0.5D0 , 1.0D0 , 2.0D0 , 2.0D0 , 1.5D0 , &
-           1.0D0 , 1.0D0 , 0.5D0 , 0.5D0 , 2.0D0  /
+           0.5_rkx , 0.5_rkx , 0.5_rkx , 0.5_rkx , 0.5_rkx , &
+           0.5_rkx , 1.0_rkx , 2.0_rkx , 2.0_rkx , 1.5_rkx , &
+           1.0_rkx , 1.0_rkx , 0.5_rkx , 0.5_rkx , 2.0_rkx  /
 
   data (lai(8,kk), kk = 1, 15)/                    &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 /
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx /
 
   data (lai(9,kk), kk = 1, 15)/                    &
-           1.0D0 , 1.0D0 , 0.5D0 , 0.1D0 , 0.1D0 , &
-           0.1D0 , 0.1D0 , 1.0D0 , 2.0D0 , 1.5D0 , &
-           1.5D0 , 1.0D0 , 1.0D0 , 0.1D0 , 2.0D0 /
+           1.0_rkx , 1.0_rkx , 0.5_rkx , 0.1_rkx , 0.1_rkx , &
+           0.1_rkx , 0.1_rkx , 1.0_rkx , 2.0_rkx , 1.5_rkx , &
+           1.5_rkx , 1.0_rkx , 1.0_rkx , 0.1_rkx , 2.0_rkx /
 
   data (lai(10,kk), kk = 1, 15)/                   &
-           1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , &
-           1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , &
-           1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 /
+           1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , &
+           1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , &
+           1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx , 1.0_rkx /
 
   data (lai(11,kk), kk = 1, 15)/                   &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 /
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx /
 
   data (lai(12,kk), kk = 1, 15)/                   &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 /
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx /
 
   data (lai(13,kk), kk = 1, 15)/                   &
-           4.0D0 , 4.0D0 , 4.0D0 , 4.0D0 , 4.0D0 , &
-           4.0D0 , 4.0D0 , 4.0D0 , 4.0D0 , 4.0D0 , &
-           4.0D0 , 4.0D0 , 4.0D0 , 4.0D0 , 4.0D0 /
+           4.0_rkx , 4.0_rkx , 4.0_rkx , 4.0_rkx , 4.0_rkx , &
+           4.0_rkx , 4.0_rkx , 4.0_rkx , 4.0_rkx , 4.0_rkx , &
+           4.0_rkx , 4.0_rkx , 4.0_rkx , 4.0_rkx , 4.0_rkx /
 
   data (lai(14,kk), kk = 1, 15)/                   &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 /
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx /
 
   data (lai(15,kk), kk = 1, 15)/                   &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 /
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , &
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx /
 
   data (lai(16,kk), kk = 1, 15)/                   &
-           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , &
-           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , &
-           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 /
+           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , &
+           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , &
+           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx /
 
   data (lai(17,kk), kk = 1, 15)/                   &
-           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , &
-           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , &
-           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 /
+           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , &
+           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , &
+           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx /
 
   data (lai(18,kk), kk = 1, 15)/                  &
-           3.0D0 , 3.0D0 , 3.0D0 , 4.0D0 , 4.5D0 ,&
-           5.0D0 , 5.0D0 , 5.0D0 , 4.0D0 , 3.0D0 ,&
-           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 5.0D0 /
+           3.0_rkx , 3.0_rkx , 3.0_rkx , 4.0_rkx , 4.5_rkx ,&
+           5.0_rkx , 5.0_rkx , 5.0_rkx , 4.0_rkx , 3.0_rkx ,&
+           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 5.0_rkx /
 
   data (lai(19,kk), kk = 1, 15)/                  &
-           3.0D0 , 3.0D0 , 3.0D0 , 4.0D0 , 4.5D0 ,&
-           5.0D0 , 5.0D0 , 5.0D0 , 4.0D0 , 3.0D0 ,&
-           3.0D0 , 3.0D0 , 3.0D0 , 3.0D0 , 5.0D0 /
+           3.0_rkx , 3.0_rkx , 3.0_rkx , 4.0_rkx , 4.5_rkx ,&
+           5.0_rkx , 5.0_rkx , 5.0_rkx , 4.0_rkx , 3.0_rkx ,&
+           3.0_rkx , 3.0_rkx , 3.0_rkx , 3.0_rkx , 5.0_rkx /
 
   data (lai(20,kk), kk = 1, 15)/                  &
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 ,&
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 ,&
-           0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 , 0.0D0 /
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx ,&
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx ,&
+           0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx /
 
-  data  z01/0.02D0, 0.04D0, 0.90D0, 0.40D0, 0.40D0, 2.00D0,&
-            0.02D0, 0.04D0, 0.03D0, 0.05D0, 0.04D0, 0.01D0,&
-            0.10D0, 0.00D0, 0.00D0, 0.20D0, 0.20D0, 0.60D0,&
-            0.60D0, 0.00D0 /
+  data  z01/0.02_rkx, 0.04_rkx, 0.90_rkx, 0.40_rkx, 0.40_rkx, 2.00_rkx,&
+            0.02_rkx, 0.04_rkx, 0.03_rkx, 0.05_rkx, 0.04_rkx, 0.01_rkx,&
+            0.10_rkx, 0.00_rkx, 0.00_rkx, 0.20_rkx, 0.20_rkx, 0.60_rkx,&
+            0.60_rkx, 0.00_rkx /
 
-  data  z02/0.10D0, 0.04D0, 0.90D0, 0.90D0, 1.00D0, 2.00D0,&
-            0.10D0, 0.04D0, 0.03D0, 0.05D0, 0.04D0, 0.01D0,&
-            0.10D0, 0.00D0, 0.00D0, 0.20D0, 0.20D0, 0.90D0,&
-            0.90D0, 0.00D0 /
+  data  z02/0.10_rkx, 0.04_rkx, 0.90_rkx, 0.90_rkx, 1.00_rkx, 2.00_rkx,&
+            0.10_rkx, 0.04_rkx, 0.03_rkx, 0.05_rkx, 0.04_rkx, 0.01_rkx,&
+            0.10_rkx, 0.00_rkx, 0.00_rkx, 0.20_rkx, 0.20_rkx, 0.90_rkx,&
+            0.90_rkx, 0.00_rkx /
 !
 ! Zhang stomatal resistance parameters
 !
-  real(rk8) :: tmin(20) , tmax(20)
-  real(rk8) :: rsminz(20) , brs(20)
-  real(rk8) :: topt(20) , bvpd(20)
-  real(rk8) :: psi1(20) , psi2(20)
-  real(rk8) :: rac1(20) , rac2(20)
-  real(rk8) :: rgo(20) , rcutdO(20)
-  real(rk8) :: rcutwO(20) , rcutdS(20)
-  real(rk8) :: rgs(20) , sdmax(20)
-  real(rk8) :: mw(31) , rm(31)
-  real(rk8) :: alphaz(31) , betaz(31)
+  real(rkx) :: tmin(20) , tmax(20)
+  real(rkx) :: rsminz(20) , brs(20)
+  real(rkx) :: topt(20) , bvpd(20)
+  real(rkx) :: psi1(20) , psi2(20)
+  real(rkx) :: rac1(20) , rac2(20)
+  real(rkx) :: rgo(20) , rcutdO(20)
+  real(rkx) :: rcutwO(20) , rcutdS(20)
+  real(rkx) :: rgs(20) , sdmax(20)
+  real(rkx) :: mw(31) , rm(31)
+  real(rkx) :: alphaz(31) , betaz(31)
 
-  data tmin /  5.0D0,    5.0D0,   -5.0D0,   -5.0D0,    0.0D0, &
-               0.0D0,    5.0D0, -999.0D0,   -5.0D0,    5.0D0, &
-            -999.0D0, -999.0D0,    0.0D0, -999.0D0, -999.0D0, &
-               0.0D0,    0.0D0,   -3.0D0,    0.0D0, -999.0D0 /
+  data tmin /  5.0_rkx,    5.0_rkx,   -5.0_rkx,   -5.0_rkx,    0.0_rkx, &
+               0.0_rkx,    5.0_rkx, -999.0_rkx,   -5.0_rkx,    5.0_rkx, &
+            -999.0_rkx, -999.0_rkx,    0.0_rkx, -999.0_rkx, -999.0_rkx, &
+               0.0_rkx,    0.0_rkx,   -3.0_rkx,    0.0_rkx, -999.0_rkx /
 
-  data tmax / 45.0D0,   40.0D0,   40.0D0,   40.0D0,   45.0D0, &
-              45.0D0,   45.0D0, -999.0D0,   40.0D0,   45.0D0, &
-            -999.0D0, -999.0D0,   45.0D0, -999.0D0, -999.0D0, &
-              45.0D0,   45.0D0,   42.0D0,   45.0D0, -999.0D0 /
+  data tmax / 45.0_rkx,   40.0_rkx,   40.0_rkx,   40.0_rkx,   45.0_rkx, &
+              45.0_rkx,   45.0_rkx, -999.0_rkx,   40.0_rkx,   45.0_rkx, &
+            -999.0_rkx, -999.0_rkx,   45.0_rkx, -999.0_rkx, -999.0_rkx, &
+              45.0_rkx,   45.0_rkx,   42.0_rkx,   45.0_rkx, -999.0_rkx /
 
-  data rsminz / 120.0D0, 150.0D0, 250.0D0, 250.0D0, 150.0D0, &
-                150.0D0, 100.0D0,-999.0D0, 150.0D0, 150.0D0, &
-               -999.0D0,-999.0D0, 150.0D0,-999.0D0,-999.0D0, &
-                150.0D0, 250.0D0, 150.0D0, 150.0D0,-999.0D0 /
+  data rsminz / 120.0_rkx, 150.0_rkx, 250.0_rkx, 250.0_rkx, 150.0_rkx, &
+                150.0_rkx, 100.0_rkx,-999.0_rkx, 150.0_rkx, 150.0_rkx, &
+               -999.0_rkx,-999.0_rkx, 150.0_rkx,-999.0_rkx,-999.0_rkx, &
+                150.0_rkx, 250.0_rkx, 150.0_rkx, 150.0_rkx,-999.0_rkx /
 
-  data brs / 40.0D0,  50.0D0,  44.0D0,  44.0D0,  43.0D0, &
-             40.0D0,  20.0D0,-999.0D0,  25.0D0,  40.0D0, &
-           -999.0D0,-999.0D0,  40.0D0,-999.0D0,-999.0D0, &
-             40.0D0,  44.0D0,  44.0D0,  43.0D0,-999.0D0 /
+  data brs / 40.0_rkx,  50.0_rkx,  44.0_rkx,  44.0_rkx,  43.0_rkx, &
+             40.0_rkx,  20.0_rkx,-999.0_rkx,  25.0_rkx,  40.0_rkx, &
+           -999.0_rkx,-999.0_rkx,  40.0_rkx,-999.0_rkx,-999.0_rkx, &
+             40.0_rkx,  44.0_rkx,  44.0_rkx,  43.0_rkx,-999.0_rkx /
 
-  data topt / 27.0D0,  30.0D0,  15.0D0,  15.0D0,  27.0D0, &
-              30.0D0,  25.0D0,-999.0D0,  20.0D0,  25.0D0, &
-            -999.0D0,-999.0D0,  20.0D0,-999.0D0,-999.0D0, &
-              30.0D0,  25.0D0,  21.0D0,  25.0D0,-999.0D0 /
+  data topt / 27.0_rkx,  30.0_rkx,  15.0_rkx,  15.0_rkx,  27.0_rkx, &
+              30.0_rkx,  25.0_rkx,-999.0_rkx,  20.0_rkx,  25.0_rkx, &
+            -999.0_rkx,-999.0_rkx,  20.0_rkx,-999.0_rkx,-999.0_rkx, &
+              30.0_rkx,  25.0_rkx,  21.0_rkx,  25.0_rkx,-999.0_rkx /
 
-  data bvpd /  0.00D0,   0.00D0,   0.31D0,   0.31D0,   0.36D0, &
-               0.27D0,   0.00D0,-999.00D0,   0.24D0,   0.09D0, &
-            -999.00D0,-999.00D0,   0.27D0,-999.00D0,-999.00D0, &
-               0.27D0,   0.27D0,   0.34D0,   0.31D0,-999.00D0 /
+  data bvpd /  0.00_rkx,   0.00_rkx,   0.31_rkx,   0.31_rkx,   0.36_rkx, &
+               0.27_rkx,   0.00_rkx,-999.00_rkx,   0.24_rkx,   0.09_rkx, &
+            -999.00_rkx,-999.00_rkx,   0.27_rkx,-999.00_rkx,-999.00_rkx, &
+               0.27_rkx,   0.27_rkx,   0.34_rkx,   0.31_rkx,-999.00_rkx /
 
-  data psi1 / -1.5D0,  -1.5D0,  -2.0D0,  -2.0D0,  -1.9D0, &
-              -1.0D0,  -1.5D0,-999.0D0,   0.0D0,  -1.5D0, &
-            -999.0D0,-999.0D0,  -1.5D0,-999.0D0,-999.0D0, &
-              -2.0D0,  -2.0D0,  -2.0D0,  -2.0D0,-999.0D0 /
+  data psi1 / -1.5_rkx,  -1.5_rkx,  -2.0_rkx,  -2.0_rkx,  -1.9_rkx, &
+              -1.0_rkx,  -1.5_rkx,-999.0_rkx,   0.0_rkx,  -1.5_rkx, &
+            -999.0_rkx,-999.0_rkx,  -1.5_rkx,-999.0_rkx,-999.0_rkx, &
+              -2.0_rkx,  -2.0_rkx,  -2.0_rkx,  -2.0_rkx,-999.0_rkx /
 
-  data psi2 / -2.5D0,  -2.5D0,  -2.5D0,  -2.5D0,  -2.5D0, &
-              -5.0D0,  -2.5D0,-999.0D0,  -1.5D0,  -2.5D0, &
-            -999.0D0,-999.0D0,  -2.5D0,-999.0D0,-999.0D0, &
-              -4.0D0,  -3.5D0,  -2.5D0,  -3.0D0,-999.0D0 /
+  data psi2 / -2.5_rkx,  -2.5_rkx,  -2.5_rkx,  -2.5_rkx,  -2.5_rkx, &
+              -5.0_rkx,  -2.5_rkx,-999.0_rkx,  -1.5_rkx,  -2.5_rkx, &
+            -999.0_rkx,-999.0_rkx,  -2.5_rkx,-999.0_rkx,-999.0_rkx, &
+              -4.0_rkx,  -3.5_rkx,  -2.5_rkx,  -3.0_rkx,-999.0_rkx /
 
-  data rac1 / 10.0D0, 20.0D0,100.0D0, 60.0D0, 40.0D0, &
-             250.0D0, 10.0D0,  0.0D0, 40.0D0, 20.0D0, &
-               0.0D0,  0.0D0, 20.0D0,  0.0D0,  0.0D0, &
-              60.0D0, 40.0D0,100.0D0,100.0D0,  0.0D0 /
+  data rac1 / 10.0_rkx, 20.0_rkx,100.0_rkx, 60.0_rkx, 40.0_rkx, &
+             250.0_rkx, 10.0_rkx,  0.0_rkx, 40.0_rkx, 20.0_rkx, &
+               0.0_rkx,  0.0_rkx, 20.0_rkx,  0.0_rkx,  0.0_rkx, &
+              60.0_rkx, 40.0_rkx,100.0_rkx,100.0_rkx,  0.0_rkx /
 
-  data rac2 / 40.0D0, 20.0D0,100.0D0,100.0D0, 40.0D0, &
-             250.0D0, 40.0D0,  0.0D0, 40.0D0, 20.0D0, &
-               0.0D0,  0.0D0, 20.0D0,  0.0D0,  0.0D0, &
-              60.0D0, 40.0D0,100.0D0,100.0D0,  0.0D0 /
+  data rac2 / 40.0_rkx, 20.0_rkx,100.0_rkx,100.0_rkx, 40.0_rkx, &
+             250.0_rkx, 40.0_rkx,  0.0_rkx, 40.0_rkx, 20.0_rkx, &
+               0.0_rkx,  0.0_rkx, 20.0_rkx,  0.0_rkx,  0.0_rkx, &
+              60.0_rkx, 40.0_rkx,100.0_rkx,100.0_rkx,  0.0_rkx /
 
-  data rcutdO / 4000.0D0, 4000.0D0, 4000.0D0, 4000.0D0, 6000.0D0, &
-                6000.0D0, 4000.0D0, -999.0D0, 8000.0D0, 4000.0D0, &
-                -999.0D0, -999.0D0, 5000.0D0, -999.0D0, -999.0D0, &
-                6000.0D0, 5000.0D0, 4000.0D0, 4000.0D0, -999.0D0 /
+  data rcutdO / 4000.0_rkx, 4000.0_rkx, 4000.0_rkx, 4000.0_rkx, 6000.0_rkx, &
+                6000.0_rkx, 4000.0_rkx, -999.0_rkx, 8000.0_rkx, 4000.0_rkx, &
+                -999.0_rkx, -999.0_rkx, 5000.0_rkx, -999.0_rkx, -999.0_rkx, &
+                6000.0_rkx, 5000.0_rkx, 4000.0_rkx, 4000.0_rkx, -999.0_rkx /
 
-  data rcutwO / 200.0D0, 200.0D0, 200.0D0, 200.0D0, 400.0D0, &
-                400.0D0, 200.0D0,-999.0D0, 400.0D0, 200.0D0, &
-               -999.0D0,-999.0D0, 300.0D0,-999.0D0,-999.0D0, &
-                400.0D0, 300.0D0, 200.0D0, 200.0D0,-999.0D0 /
+  data rcutwO / 200.0_rkx, 200.0_rkx, 200.0_rkx, 200.0_rkx, 400.0_rkx, &
+                400.0_rkx, 200.0_rkx,-999.0_rkx, 400.0_rkx, 200.0_rkx, &
+               -999.0_rkx,-999.0_rkx, 300.0_rkx,-999.0_rkx,-999.0_rkx, &
+                400.0_rkx, 300.0_rkx, 200.0_rkx, 200.0_rkx,-999.0_rkx /
 
-  data rgO / 200.0D0,  200.0D0,  200.0D0,  200.0D0,  200.0D0, &
-             200.0D0,  200.0D0,  500.0D0,  500.0D0,  500.0D0, &
-             500.0D0, 2000.0D0,  500.0D0, 2000.0D0, 2000.0D0, &
-             200.0D0,  200.0D0,  200.0D0,  200.0D0, 2000.0D0 /
+  data rgO / 200.0_rkx,  200.0_rkx,  200.0_rkx,  200.0_rkx,  200.0_rkx, &
+             200.0_rkx,  200.0_rkx,  500.0_rkx,  500.0_rkx,  500.0_rkx, &
+             500.0_rkx, 2000.0_rkx,  500.0_rkx, 2000.0_rkx, 2000.0_rkx, &
+             200.0_rkx,  200.0_rkx,  200.0_rkx,  200.0_rkx, 2000.0_rkx /
 
-  data rcutds / 1500.0D0, 1000.0D0, 2000.0D0, 2000.0D0, 2500.0D0, &
-                2500.0D0, 1000.0D0, -999.0D0, 2000.0D0, 2000.0D0, &
-                -999.0D0, -999.0D0, 1500.0D0, -999.0D0, -999.0D0, &
-                2000.0D0, 2000.0D0, 2500.0D0, 2500.0D0, -999.0D0 /
+  data rcutds / 1500.0_rkx, 1000.0_rkx, 2000.0_rkx, 2000.0_rkx, 2500.0_rkx, &
+                2500.0_rkx, 1000.0_rkx, -999.0_rkx, 2000.0_rkx, 2000.0_rkx, &
+                -999.0_rkx, -999.0_rkx, 1500.0_rkx, -999.0_rkx, -999.0_rkx, &
+                2000.0_rkx, 2000.0_rkx, 2500.0_rkx, 2500.0_rkx, -999.0_rkx /
 
-  data rgs / 200.0D0, 200.0D0, 200.0D0, 200.0D0, 200.0D0, &
-             100.0D0, 200.0D0, 700.0D0, 300.0D0,  50.0D0, &
-             700.0D0,  70.0D0,  50.0D0,  20.0D0,  20.0D0, &
-             200.0D0, 200.0D0, 200.0D0, 200.0D0,  20.0D0 /
+  data rgs / 200.0_rkx, 200.0_rkx, 200.0_rkx, 200.0_rkx, 200.0_rkx, &
+             100.0_rkx, 200.0_rkx, 700.0_rkx, 300.0_rkx,  50.0_rkx, &
+             700.0_rkx,  70.0_rkx,  50.0_rkx,  20.0_rkx,  20.0_rkx, &
+             200.0_rkx, 200.0_rkx, 200.0_rkx, 200.0_rkx,  20.0_rkx /
 
-  data sdmax /  10.0D0,  5.0D0, 200.0D0,   1.1D0, 200.0D0, &
-               400.0D0, 20.0D0,   2.0D0,   2.0D0,  10.0D0, &
-                 2.0D0,  1.0D0,  10.0D0,-999.0D0,-999.0D0, &
-                50.0D0, 50.0D0, 200.0D0, 200.0D0,-999.0D0 /
+  data sdmax /  10.0_rkx,  5.0_rkx, 200.0_rkx,   1.1_rkx, 200.0_rkx, &
+               400.0_rkx, 20.0_rkx,   2.0_rkx,   2.0_rkx,  10.0_rkx, &
+                 2.0_rkx,  1.0_rkx,  10.0_rkx,-999.0_rkx,-999.0_rkx, &
+                50.0_rkx, 50.0_rkx, 200.0_rkx, 200.0_rkx,-999.0_rkx /
 
 ! *****************************************************************
 ! * Gas Properties (Total 31 species)                          ****
@@ -313,38 +313,38 @@ module mod_che_drydep
 ! CRES   FORM    ACAC   ROOH
 ! ONIT   INIT
 
-  data rm / 0.0D0 ,   0.0D0 ,   0.0D0 ,   0.0D0 ,    0.0D0 , &
-            0.0D0 ,   0.0D0 ,   0.0D0 ,   0.0D0 ,    0.0D0 , &
-            0.0D0 ,   0.0D0 ,   0.0D0 ,   0.0D0 ,  100.0D0 , &
-          100.0D0 , 100.0D0 , 100.0D0 , 100.0D0 ,    0.0D0 , &
-          100.0D0 ,   0.0D0   , 0.0D0 ,   0.0D0 ,    0.0D0 , &
-            0.0D0 ,   0.0D0   , 0.0D0 ,   0.0D0 ,  100.0D0 , &
-          100.0D0 /
+  data rm / 0.0_rkx ,   0.0_rkx ,   0.0_rkx ,   0.0_rkx ,    0.0_rkx , &
+            0.0_rkx ,   0.0_rkx ,   0.0_rkx ,   0.0_rkx ,    0.0_rkx , &
+            0.0_rkx ,   0.0_rkx ,   0.0_rkx ,   0.0_rkx ,  100.0_rkx , &
+          100.0_rkx , 100.0_rkx , 100.0_rkx , 100.0_rkx ,    0.0_rkx , &
+          100.0_rkx ,   0.0_rkx   , 0.0_rkx ,   0.0_rkx ,    0.0_rkx , &
+            0.0_rkx ,   0.0_rkx   , 0.0_rkx ,   0.0_rkx ,  100.0_rkx , &
+          100.0_rkx /
 
-  data alphaz /  1.00D0 , 1.00D0 , 0.00D0 , 0.00D0 , 1.00D0 , &
-                10.00D0 , 2.00D0 , 5.00D0 , 1.00D0 , 0.00D0 , &
-                 0.00D0 , 0.00D0 , 0.00D0 , 0.80D0 , 0.00D0 , &
-                 0.00D0 , 0.00D0 , 0.00D0 , 0.00D0 , 0.00D0 , &
-                 0.00D0 , 0.01D0 , 0.60D0 , 0.60D0 , 0.40D0 , &
-                 0.01D0 , 2.00D0 , 1.50D0 , 0.10D0 , 0.00D0 , &
-                 0.00D0 /
+  data alphaz /  1.00_rkx , 1.00_rkx , 0.00_rkx , 0.00_rkx , 1.00_rkx , &
+                10.00_rkx , 2.00_rkx , 5.00_rkx , 1.00_rkx , 0.00_rkx , &
+                 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.80_rkx , 0.00_rkx , &
+                 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , &
+                 0.00_rkx , 0.01_rkx , 0.60_rkx , 0.60_rkx , 0.40_rkx , &
+                 0.01_rkx , 2.00_rkx , 1.50_rkx , 0.10_rkx , 0.00_rkx , &
+                 0.00_rkx /
 
-  data betaz /  0.00D0 , 1.00D0 , 0.80D0 , 1.00D0 , 1.00D0 , &
-               10.00D0 , 2.00D0 , 5.00D0 , 0.00D0 , 0.60D0 , &
-                0.60D0 , 0.80D0 , 0.30D0 , 0.20D0 , 0.05D0 , &
-                0.05D0 , 0.05D0 , 0.05D0 , 0.05D0 , 0.05D0 , &
-                0.05D0 , 0.00D0 , 0.10D0 , 0.00D0 , 0.00D0 , &
-                0.00D0 , 0.00D0 , 0.00D0 , 0.80D0 , 0.50D0 , &
-                0.50D0 /
+  data betaz /  0.00_rkx , 1.00_rkx , 0.80_rkx , 1.00_rkx , 1.00_rkx , &
+               10.00_rkx , 2.00_rkx , 5.00_rkx , 0.00_rkx , 0.60_rkx , &
+                0.60_rkx , 0.80_rkx , 0.30_rkx , 0.20_rkx , 0.05_rkx , &
+                0.05_rkx , 0.05_rkx , 0.05_rkx , 0.05_rkx , 0.05_rkx , &
+                0.05_rkx , 0.00_rkx , 0.10_rkx , 0.00_rkx , 0.00_rkx , &
+                0.00_rkx , 0.00_rkx , 0.00_rkx , 0.80_rkx , 0.50_rkx , &
+                0.50_rkx /
 
 
-  data mw / 64.0D0 ,  98.0D0 ,  46.0D0 ,  48.0D0 ,  34.0D0 , &
-            63.0D0 ,  47.0D0 ,  79.0D0 ,  17.0D0 , 121.0D0 , &
-           135.0D0 , 183.0D0 , 147.0D0 ,  30.0D0 ,  44.0D0 , &
-            58.0D0 ,  72.0D0 , 128.0D0 , 106.0D0 ,  70.0D0 , &
-            70.0D0 ,  72.0D0 ,  32.0D0 ,  46.0D0 ,  60.0D0 , &
-           104.0D0 ,  46.0D0 ,  60.0D0 ,  48.0D0 ,  77.0D0 , &
-           147.0D0 /
+  data mw / 64.0_rkx ,  98.0_rkx ,  46.0_rkx ,  48.0_rkx ,  34.0_rkx , &
+            63.0_rkx ,  47.0_rkx ,  79.0_rkx ,  17.0_rkx , 121.0_rkx , &
+           135.0_rkx , 183.0_rkx , 147.0_rkx ,  30.0_rkx ,  44.0_rkx , &
+            58.0_rkx ,  72.0_rkx , 128.0_rkx , 106.0_rkx ,  70.0_rkx , &
+            70.0_rkx ,  72.0_rkx ,  32.0_rkx ,  46.0_rkx ,  60.0_rkx , &
+           104.0_rkx ,  46.0_rkx ,  60.0_rkx ,  48.0_rkx ,  77.0_rkx , &
+           147.0_rkx /
 
   contains
 
@@ -357,28 +357,28 @@ module mod_che_drydep
       integer(ik4) , intent(in) :: j , mbin
       integer(ik4) , intent(in) , dimension(mbin) :: indsp
       integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
-      real(rk8) , dimension(ici1:ici2) , intent(in) :: pressg , rh10 , &
+      real(rkx) , dimension(ici1:ici2) , intent(in) :: pressg , rh10 , &
                        srad , sutemp , temp2 , wind10 , zeff
-      real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: roarow , throw
-      real(rk8) , dimension(kz) , intent(in) :: shj
-      real(rk8) , dimension(mbin) , intent(in) :: beffdiam
-      real(rk8) , intent(in) :: rhop
+      real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: roarow , throw
+      real(rkx) , dimension(kz) , intent(in) :: shj
+      real(rkx) , dimension(mbin) , intent(in) :: beffdiam
+      real(rkx) , intent(in) :: rhop
 
 ! output table to be passed out. Care dimension is ntr
 
-      real(rk8) , intent(out) , dimension(ici1:ici2,kz,ntr) :: pdepv
-      real(rk8) , intent(out) , dimension(ici1:ici2,ntr) :: ddepv
+      real(rkx) , intent(out) , dimension(ici1:ici2,kz,ntr) :: pdepv
+      real(rkx) , intent(out) , dimension(ici1:ici2,ntr) :: ddepv
 !
-      real(rk8) :: amfp , amob , eb , eim , ein , frx1
-      real(rk8) :: pre , prii , priiv , r1 , st
-      real(rk8) , dimension(ici1:ici2,kz) :: amu
-      real(rk8) , dimension(ici1:ici2) :: anu , schm
-      real(rk8) , dimension(ici1:ici2,kz,mbin) :: cfac , pdepvsub , pdiff , &
+      real(rkx) :: amfp , amob , eb , eim , ein , frx1
+      real(rkx) :: pre , prii , priiv , r1 , st
+      real(rkx) , dimension(ici1:ici2,kz) :: amu
+      real(rkx) , dimension(ici1:ici2) :: anu , schm
+      real(rkx) , dimension(ici1:ici2,kz,mbin) :: cfac , pdepvsub , pdiff , &
                   rhsize , taurel
-      real(rk8) , dimension(ici1:ici2,luc) :: ra , ustar
-      real(rk8) , dimension(ici1:ici2,luc,mbin) :: rs
-      real(rk8), dimension(ici1:ici2,kz) :: wk, settend
-      real(rk8) , dimension(mbin) :: avesize
+      real(rkx) , dimension(ici1:ici2,luc) :: ra , ustar
+      real(rkx) , dimension(ici1:ici2,luc,mbin) :: rs
+      real(rkx), dimension(ici1:ici2,kz) :: wk, settend
+      real(rkx) , dimension(mbin) :: avesize
       integer(ik4) :: i , k , kcov , l , n , ib
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_aero'
@@ -388,7 +388,7 @@ module mod_che_drydep
       ! here avesize is a RADIUS of the particle bin in m :
       ! calculated here from bin effective diameter in micrometer
       do n = 1 , mbin
-        avesize(n) = beffdiam(n)* 1.D-06 * d_half
+        avesize(n) = beffdiam(n)* 1.e-6_rkx * d_half
       end do
 !
 !======================================================================
@@ -408,7 +408,7 @@ module mod_che_drydep
             ! * air's dynamic viscosity                           ****
             ! ********************************************************
             !
-            amu(i,l) = a1*1.D-8*throw(i,l)**a2/(throw(i,l)+a3)
+            amu(i,l) = a1*1.e-8_rkx*throw(i,l)**a2/(throw(i,l)+a3)
             ! mid layer pressure in [pascal].
             pre = pressg(i)*shj(l)
             !
@@ -418,7 +418,7 @@ module mod_che_drydep
             ! ********************************************************
             !
             amfp = c1*(amu(i,l)/c2)*(c3/pre)*sqrt(throw(i,l)/c4)
-            prii = 2.0D0/9.0D0*egrav/amu(i,l)
+            prii = 2.0_rkx/9.0_rkx*egrav/amu(i,l)
             priiv = prii*(rhop-roarow(i,l))
             !
             ! ********************************************************
@@ -426,10 +426,10 @@ module mod_che_drydep
             ! * relaxation time = vg/grav.                        ****
             ! ********************************************************
             !
-            cfac(i,l,n) = 1.0D0 + amfp/avesize(n) * &
+            cfac(i,l,n) = 1.0_rkx + amfp/avesize(n) * &
                          (aa1+aa2*exp(-aa3*avesize(n)/amfp))
-            taurel(i,l,n) = dmax1(priiv*avesize(n)**2*cfac(i,l,n) * &
-                            regrav,0.D0)
+            taurel(i,l,n) = max(priiv*avesize(n)**2*cfac(i,l,n) * &
+                            regrav,0._rkx)
             !
             ! ********************************************************
             ! * stokes friction                                  *****
@@ -461,10 +461,10 @@ module mod_che_drydep
             ! * i.e. only dry particles                        ****
             ! *****************************************************
             !
-            frx1 = 1.0D0
+            frx1 = 1.0_rkx
             rhsize(i,l,n) = avesize(n)*frx1 ! still a radius
             anu(i) = amu(i,l)/roarow(i,l)
-            amob = 6.0D0*mathpi*amu(i,l)*rhsize(i,l,n)/cfac(i,l,n)
+            amob = 6.0_rkx*mathpi*amu(i,l)*rhsize(i,l,n)/cfac(i,l,n)
             pdiff(i,l,n) = boltzk*throw(i,l)/amob
             schm(i) = anu(i)/pdiff(i,l,n)
             !
@@ -504,18 +504,18 @@ module mod_che_drydep
                 ! ******************************************************
                 !
                 st = taurel(i,l,n)*ustar(i,k)*ustar(i,k)/anu(i)
-                eb = schm(i)**(-0.666667D0)
+                eb = schm(i)**(-0.666667_rkx)
 !               eim=(st/(st+aest(k)))**2
                 eim = (st/(st+aest(kcov)))**2
-                eim = dmin1(eim,0.6D0)
-                ein = 0.0D0
-!               if (arye(k) > 0.0001D0) then
-!                 ein = (1000.0D0*2.0D0*avesize(n)/arye(k))**1.5D0
+                eim = min(eim,0.6_rkx)
+                ein = 0.0_rkx
+!               if (arye(k) > 0.0001_rkx) then
+!                 ein = (1000.0_rkx*2.0_rkx*avesize(n)/arye(k))**1.5_rkx
 !               end if
-                if ( arye(kcov) > 0.0001D0 ) then
-                  ein = (1000.0D0*2.0D0*avesize(n)/arye(kcov))**1.5D0
+                if ( arye(kcov) > 0.0001_rkx ) then
+                  ein = (1000.0_rkx*2.0_rkx*avesize(n)/arye(kcov))**1.5_rkx
                 end if
-                ein = dmin1(ein,0.5D0)
+                ein = min(ein,0.5_rkx)
                 !
                 ! *****************************************************
                 ! * partickes larger than 5 micro may rebounded   *****
@@ -527,9 +527,9 @@ module mod_che_drydep
                 ! * r = exp (- st^0.2)                            *****
                 ! *****************************************************
 
-                r1 = dmax1(0.5D0,exp(-(min(sqrt(st),25.0D0))))
-                if ( kcov >= 11 .and. r1 < 0.5D0 ) r1 = 0.5D0
-                if ( r1 < 0.4D0 ) r1 = 0.4D0
+                r1 = max(0.5_rkx,exp(-(min(sqrt(st),25.0_rkx))))
+                if ( kcov >= 11 .and. r1 < 0.5_rkx ) r1 = 0.5_rkx
+                if ( r1 < 0.4_rkx ) r1 = 0.4_rkx
                 ! ***************************************************
                 ! * calculation of rs: the surface resistance   *****
                 ! * which depends on the collection efficiency  *****
@@ -537,7 +537,7 @@ module mod_che_drydep
                 ! * various deposition processes                *****
                 ! ***************************************************
 !               rs= 1.0/ustar(i,k)/(eb+eim+ein)/r1
-                rs(i,k,n) = 1.0D0/3.0D0/ustar(i,k)/(eb+eim+ein)/r1
+                rs(i,k,n) = 1.0_rkx/3.0_rkx/ustar(i,k)/(eb+eim+ein)/r1
               end do
             end do
           end if
@@ -552,8 +552,8 @@ module mod_che_drydep
       ! and not mbin !
       do ib = 1 , mbin
         ! there isw no sub-bin anymore / we consider directly effective radius
-        pdepv(:,:,indsp(ib)) = 0.0D0
-        ddepv(:,indsp(ib))   = 0.0D0
+        pdepv(:,:,indsp(ib)) = 0.0_rkx
+        ddepv(:,indsp(ib))   = 0.0_rkx
         do i = ici1 , ici2
           pdepv(i,:,indsp(ib)) = pdepvsub(i,:,ib)
           ! agregate the dry deposition velocity, remember one cover per grid
@@ -561,7 +561,7 @@ module mod_che_drydep
           ! the dry deposition deposition velocity must accound also for the
           ! settling vrlocity at kz
           ! simple form now add the vs
-          ddepv(i,indsp(ib)) = 1.0D0/(ra(i,1)+rs(i,1,ib)) + pdepvsub(i,kz,ib)
+          ddepv(i,indsp(ib)) = 1.0_rkx/(ra(i,1)+rs(i,1,ib)) + pdepvsub(i,kz,ib)
         end do
       end do
       !
@@ -583,9 +583,9 @@ module mod_che_drydep
             !                wk(i,k)*pdepv(i,k,indsp(ib))) / cdzq(j,i,k)
             ! use exponential form for stability
             settend(i,k) =  wk(i,k+1) * (d_one - &
-              dexp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt ))/dt  - &
+              exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt ))/dt  - &
                             wk(i,k)   * (d_one - &
-              dexp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt ))/dt
+              exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt ))/dt
 
             chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
             if ( ichdiag == 1 ) then
@@ -607,9 +607,9 @@ module mod_che_drydep
             ! settend(i,kz) =  (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
             !                   wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
             settend(i,kz) =  chib(j,i,kz,indsp(ib)) * &
-              (d_one - dexp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt ))/dt -  &
+              (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt ))/dt -  &
                              wk(i,kz) * &
-              (d_one - dexp(-pdepv(i,kz,indsp(ib))/cdzq(j,i,kz)*dt ))/dt
+              (d_one - exp(-pdepv(i,kz,indsp(ib))/cdzq(j,i,kz)*dt ))/dt
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
 
             ! save the dry deposition flux for coupling with
@@ -671,17 +671,17 @@ module mod_che_drydep
       integer(ik4) , intent(in) :: j
       integer, intent(in) :: lmonth , lday
       integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
-      real(rk8) , intent(in) , dimension(ici1:ici2) :: rh10 , srad , tsurf , &
+      real(rkx) , intent(in) , dimension(ici1:ici2) :: rh10 , srad , tsurf , &
                                             prec, temp10 , wind10 , zeff
-      real(rk8),  dimension(ici1:ici2,ntr) :: drydepvg
+      real(rkx),  dimension(ici1:ici2,ntr) :: drydepvg
 
       integer(ik4) :: n , i , im , kcov
-      real(rk8) , dimension(ici1:ici2,luc) :: ustar, resa
-      real(rk8) , dimension(ngasd,ici1:ici2,luc) :: resb, resc
-      real(rk8) , dimension(ngasd,ici1:ici2,luc) :: vdg
-      real(rk8) , dimension(ici1:ici2) :: icz , ddrem
-      real(rk8) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
-      real(rk8) :: kd
+      real(rkx) , dimension(ici1:ici2,luc) :: ustar, resa
+      real(rkx) , dimension(ngasd,ici1:ici2,luc) :: resb, resc
+      real(rkx) , dimension(ngasd,ici1:ici2,luc) :: vdg
+      real(rkx) , dimension(ici1:ici2) :: icz , ddrem
+      real(rkx) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
+      real(rkx) :: kd
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_gas'
       integer(ik4) , save :: idindx = 0
@@ -702,10 +702,10 @@ module mod_che_drydep
         if ( lmonth == 1 ) im = 12
         if (lday <= 15 ) then
           lai_f(i) = lai(kcov,im) + (lai(kcov,lmonth) - &
-                     lai(kcov,im))/30.D0 * dble(15 + lday)
+                     lai(kcov,im))/30._rkx * real(15 + lday,rkx)
         else
           lai_f(i) = lai(kcov,lmonth) + (lai(kcov,lmonth+1) - &
-                     lai(kcov,lmonth))/30.D0 * dble(lday - 15)
+                     lai(kcov,lmonth))/30._rkx * real(lday - 15,rkx)
         end if
         if ( lai_f(i) < d_zero) lai_f(i) = d_zero
         laimin(i) = lai(kcov,14)
@@ -756,9 +756,9 @@ module mod_che_drydep
 #endif
            do n = 1 , ntr
              kd =  drydepvg(i,n) / cdzq(j,i,kz) !Kd removal rate in s-1
-             if ( kd*dt < 25.0D0 ) then
+             if ( kd*dt < 25.0_rkx ) then
                ! dry dep removal tendency (+)
-               ddrem(i) = chib(j,i,kz,n) * (d_one-dexp(-kd*dt))/dt
+               ddrem(i) = chib(j,i,kz,n) * (d_one-exp(-kd*dt))/dt
              else
                ddrem(i) = d_zero
              end if
@@ -811,23 +811,23 @@ module mod_che_drydep
     subroutine aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
       implicit none
       integer(ik4) , dimension(ici1:ici2) , intent(in) :: ivegcov
-      real(rk8) , dimension(ici1:ici2) , intent(in) :: temp2 , wind10 , rh10
-      real(rk8) , dimension(ici1:ici2) , intent(in) :: sutemp , srad , zeff
-      real(rk8) , dimension(ici1:ici2,luc) , intent(out) :: ustar , ra
+      real(rkx) , dimension(ici1:ici2) , intent(in) :: temp2 , wind10 , rh10
+      real(rkx) , dimension(ici1:ici2) , intent(in) :: sutemp , srad , zeff
+      real(rkx) , dimension(ici1:ici2,luc) , intent(out) :: ustar , ra
 !
       integer(ik4) :: i , j
-      real(rk8) :: vp , tsv
-      real(rk8) :: z , zl , ww
-      real(rk8) :: ptemp2 , es , qs
-      real(rk8) :: wvpm , vptemp , tsw , mol
-      real(rk8) :: z0water , dthv , cun , zdl
-      real(rk8) :: psiu , psit , x , y
-      real(rk8) :: thstar , rib , dtemp , tbar
-      real(rk8) :: ustarsq , utstar , kui
-      real(rk8) :: ratioz , logratio , asq
-      real(rk8) :: aa , cm , ch , fm , fh
-      real(rk8) , dimension(ici1:ici2) :: zz0
-      real(rk8) , parameter :: z10 = 10.0D0
+      real(rkx) :: vp , tsv
+      real(rkx) :: z , zl , ww
+      real(rkx) :: ptemp2 , es , qs
+      real(rkx) :: wvpm , vptemp , tsw , mol
+      real(rkx) :: z0water , dthv , cun , zdl
+      real(rkx) :: psiu , psit , x , y
+      real(rkx) :: thstar , rib , dtemp , tbar
+      real(rkx) :: ustarsq , utstar , kui
+      real(rkx) :: ratioz , logratio , asq
+      real(rkx) :: aa , cm , ch , fm , fh
+      real(rkx) , dimension(ici1:ici2) :: zz0
+      real(rkx) , parameter :: z10 = 10.0_rkx
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'aerodyresis'
       integer(ik4) , save :: idindx = 0
@@ -853,12 +853,12 @@ module mod_che_drydep
       ! ****************************************************
       do j = 1 , luc
         do i = ici1 , ici2
-          ww = dmax1(wind10(i),1.0D0)
+          ww = max(wind10(i),1.0_rkx)
           zz0(i) = zeff(i)
           ! ***************************************************************
           ! * potential temperature at z2  (deg. k)
           ! ***************************************************************
-          ptemp2 = temp2(i) + z10*0.0098D0
+          ptemp2 = temp2(i) + z10*0.0098_rkx
           ! ***************************************************************
           ! * for calculations over water compute values of critical
           ! * profile variables: l and ustar
@@ -870,10 +870,10 @@ module mod_che_drydep
             ! * wvpm- water vapour mixing ratio at  z2
             ! * vptemp- virtual potential temperature at z2
             ! **************************************************************
-            es = 6.108D0*exp(17.27D0*(temp2(i)-tzero)/(temp2(i)-35.86D0))
+            es = 6.108_rkx*exp(17.27_rkx*(temp2(i)-tzero)/(temp2(i)-35.86_rkx))
             vp = rh10(i)*es
             wvpm = ep2*vp/(stdpmb-vp)
-            vptemp = ptemp2*(1.0D0+0.61D0*wvpm)
+            vptemp = ptemp2*(1.0_rkx+0.61_rkx*wvpm)
             ! **************************************************************
             ! * assume rh10 at water surface is 100%
             ! *   vp = es(tsw-tzero) !sat. vap press at surface
@@ -882,10 +882,10 @@ module mod_che_drydep
             ! *   tsv - virtual potential temperature at surface (deg. k)
             ! **************************************************************
             tsw = sutemp(i)
-            vp = 6.108D0*exp(17.27D0*(tsw-tzero)/(tsw-35.86D0))
+            vp = 6.108_rkx*exp(17.27_rkx*(tsw-tzero)/(tsw-35.86_rkx))
             qs = ep2*vp/(stdpmb-vp)
-            tsv = tsw*(1.0D0+0.61D0*qs)
-            z0water = 1.0D-4
+            tsv = tsw*(1.0_rkx+0.61_rkx*qs)
+            z0water = 1.0e-4_rkx
             ! **************************************************************
             ! * scalet  :  not required if  z2 = 10m
             ! **************************************************************
@@ -894,34 +894,34 @@ module mod_che_drydep
             ! * calculate drag coefficient cun with neutral condition
             ! * assumption  garratt (1977)
             ! **************************************************************
-            cun = 7.5D-4 + 6.7D-5*ww
-            mol = 9999.0D0
-            if ( abs(dthv) > 1.0D-6 ) then
-              mol = vptemp*cun**1.5D0*ww**2/(5.096D-3*dthv)
+            cun = 7.5e-4_rkx + 6.7e-5_rkx*ww
+            mol = 9999.0_rkx
+            if ( abs(dthv) > 1.0e-6_rkx ) then
+              mol = vptemp*cun**1.5_rkx*ww**2/(5.096e-3_rkx*dthv)
             end if
-            if ( mol > 0.0D0  .and. mol < 5.0D0 ) mol =  5.0D0
-            if ( mol > -5.0D0 .and. mol < 0.0D0 ) mol = -5.0D0
+            if ( mol > 0.0_rkx  .and. mol < 5.0_rkx ) mol =  5.0_rkx
+            if ( mol > -5.0_rkx .and. mol < 0.0_rkx ) mol = -5.0_rkx
             zdl = z10/mol
-            if ( zdl < 0.0D0 ) then
+            if ( zdl < 0.0_rkx ) then
               ! **************************************************************
               ! * wind speed
               ! **************************************************************
-              x = (1.0D0-15.0D0*zdl)**0.25D0
-              psiu = 2.0D0*dlog(0.5D0*(1.0D0+x))+dlog(0.5D0*(1.0D0+x*x)) - &
-                     2.0D0*atan(x) + 0.5D0*mathpi
+              x = (1.0_rkx-15.0_rkx*zdl)**0.25_rkx
+              psiu = 2.0_rkx*log(0.5_rkx*(1.0_rkx+x))+log(0.5_rkx*(1.0_rkx+x*x)) - &
+                     2.0_rkx*atan(x) + 0.5_rkx*mathpi
               ! **************************************************************
               ! * pot temp
               ! **************************************************************
-              y = sqrt(1.0D0-9.0D0*zdl)
-              psit = 2.0D0*0.74D0*dlog((1.0D0+y)/2.0D0)
+              y = sqrt(1.0_rkx-9.0_rkx*zdl)
+              psit = 2.0_rkx*0.74_rkx*log((1.0_rkx+y)/2.0_rkx)
             else
-              psiu = -4.7D0*zdl
+              psiu = -4.7_rkx*zdl
               psit = psiu
             end if
-            z0water = 0.000002D0*ww**2.5D0
-            ustar(i,j) = vonkar*ww/(dlog(z10/z0water)-psiu)
+            z0water = 0.000002_rkx*ww**2.5_rkx
+            ustar(i,j) = vonkar*ww/(log(z10/z0water)-psiu)
             thstar = vonkar*(ptemp2-sutemp(i)) / &
-                     (0.74D0*dlog(z10/z0water)-psit)
+                     (0.74_rkx*log(z10/z0water)-psit)
             zz0(i) = z0water
           else
             ! **************************************************************
@@ -934,45 +934,45 @@ module mod_che_drydep
             ! * ensure that conditions over land are never stable when
             ! * there is incoming solar radiation
             ! ***************************************************************
-            if ( srad(i) > 0.0D0 .and. rib > 0.0D0 ) rib = 1.D-15
+            if ( srad(i) > 0.0_rkx .and. rib > 0.0_rkx ) rib = 1.e-15_rkx
             dtemp = ptemp2 - sutemp(i)
-            if ( dabs(dtemp) < 1.D-10 ) dtemp = dsign(1.D-10,dtemp)
-            tbar = 0.5D0*(ptemp2+sutemp(i))
+            if ( abs(dtemp) < 1.e-10_rkx ) dtemp = sign(1.e-10_rkx,dtemp)
+            tbar = 0.5_rkx*(ptemp2+sutemp(i))
             ratioz = z10/zz0(i)
-            logratio = dlog(ratioz)
-            asq = 0.16D0/(logratio**2)
-            if ( rib <= 0.0D0 ) then
-              aa = asq*9.4D0*dsqrt(ratioz)
-              cm = 7.4D0*aa
-              ch = 5.3D0*aa
-              fm = 1.0D0 - (9.4D0*rib/(1.0D0+cm*dsqrt(dabs(rib))))
-              fh = 1.0D0 - (9.4D0*rib/(1.0D0+ch*dsqrt(dabs(rib))))
+            logratio = log(ratioz)
+            asq = 0.16_rkx/(logratio**2)
+            if ( rib <= 0.0_rkx ) then
+              aa = asq*9.4_rkx*sqrt(ratioz)
+              cm = 7.4_rkx*aa
+              ch = 5.3_rkx*aa
+              fm = 1.0_rkx - (9.4_rkx*rib/(1.0_rkx+cm*sqrt(abs(rib))))
+              fh = 1.0_rkx - (9.4_rkx*rib/(1.0_rkx+ch*sqrt(abs(rib))))
             else
-              fm = 1.0D0/((1.0D0+4.7D0*rib)**2)
+              fm = 1.0_rkx/((1.0_rkx+4.7_rkx*rib)**2)
               fh = fm
             end if
             ustarsq = asq*ww**2*fm
-            utstar = asq*ww*dtemp*fh/0.74D0
-            ustar(i,j) = dsqrt(ustarsq)
+            utstar = asq*ww*dtemp*fh/0.74_rkx
+            ustar(i,j) = sqrt(ustarsq)
             thstar = utstar/ustar(i,j)
             mol = tbar*ustarsq/(vonkar*egrav*thstar)
           end if
 
-          kui = 1.0D0/(vonkar*ustar(i,j))
+          kui = 1.0_rkx/(vonkar*ustar(i,j))
 
           ! **************************************************************
           ! * compute the values of  ra                            *******
           ! **************************************************************
           z = z10
           zl = z/mol
-          if ( zl >= 0.0D0 ) then
-            ra(i,j) = kui*(0.74D0*dlog(z/zz0(i))+4.7D0*zl)
+          if ( zl >= 0.0_rkx ) then
+            ra(i,j) = kui*(0.74_rkx*log(z/zz0(i))+4.7_rkx*zl)
           else
-            ra(i,j) = kui*0.74D0*(dlog(z/zz0(i))- &
-                      2.0D0*dlog((1.0D0+sqrt(1.0D0-9.0D0*zl))*0.5D0))
+            ra(i,j) = kui*0.74_rkx*(log(z/zz0(i))- &
+                      2.0_rkx*log((1.0_rkx+sqrt(1.0_rkx-9.0_rkx*zl))*0.5_rkx))
           end if
-          ra(i,j) = dmax1(ra(i,j),0.99D0)
-          ra(i,j) = dmin1(ra(i,j),999.9D0)
+          ra(i,j) = max(ra(i,j),0.99_rkx)
+          ra(i,j) = min(ra(i,j),999.9_rkx)
         end do
       end do
 #ifdef DEBUG
@@ -989,34 +989,34 @@ module mod_che_drydep
 
       integer(ik4) , intent(in) :: igas
       integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
-      real(rk8) , dimension(ici1:ici2) , intent(in) :: coszen, srad , ts , rh , &
+      real(rkx) , dimension(ici1:ici2) , intent(in) :: coszen, srad , ts , rh , &
                                                prec , sd , t2
-      real(rk8) , dimension(ici1:ici2) , intent(in) :: lai_f , laimin , laimax
-      real(rk8) , intent(in) , dimension(ici1:ici2,luc) :: ustar
-      real(rk8) , intent(out) , dimension(igas,ici1:ici2,luc) :: rb , rc
+      real(rkx) , dimension(ici1:ici2) , intent(in) :: lai_f , laimin , laimax
+      real(rkx) , intent(in) , dimension(ici1:ici2,luc) :: ustar
+      real(rkx) , intent(out) , dimension(igas,ici1:ici2,luc) :: rb , rc
 !
       integer(ik4) :: i , j , kcov , ig
-      real(rk8) :: rst , wst , rac , rgs_f
-      real(rk8) :: rdu , rdv , rgo_f
-      real(rk8) :: rcuto_f , rcuts_f
-      real(rk8) :: ww1 , ww2 , ww3
-      real(rk8) :: rdm , rdn , rv , rn
-      real(rk8) :: ratio , sv , fv , fvv
-      real(rk8) :: pardir , pardif
-      real(rk8) :: tmaxk , tmink
-      real(rk8) :: pshad , psun , rshad , rsun
-      real(rk8) :: gshad , gsun , fsun , fshad
-      real(rk8) :: gspar , temps !C
-      real(rk8) :: bt , gt , gw , ryx
-      real(rk8) :: es , d0 , gd , psi
-      real(rk8) :: coedew , dq , usmin
-      real(rk8) :: fsnow , rsnows
-      real(rk8) :: dgas , di , vi
-      real(rk8) :: dvh2o , rstom
-      real(rk8) :: rcut , rg , xp
+      real(rkx) :: rst , wst , rac , rgs_f
+      real(rkx) :: rdu , rdv , rgo_f
+      real(rkx) :: rcuto_f , rcuts_f
+      real(rkx) :: ww1 , ww2 , ww3
+      real(rkx) :: rdm , rdn , rv , rn
+      real(rkx) :: ratio , sv , fv , fvv
+      real(rkx) :: pardir , pardif
+      real(rkx) :: tmaxk , tmink
+      real(rkx) :: pshad , psun , rshad , rsun
+      real(rkx) :: gshad , gsun , fsun , fshad
+      real(rkx) :: gspar , temps !C
+      real(rkx) :: bt , gt , gw , ryx
+      real(rkx) :: es , d0 , gd , psi
+      real(rkx) :: coedew , dq , usmin
+      real(rkx) :: fsnow , rsnows
+      real(rkx) :: dgas , di , vi
+      real(rkx) :: dvh2o , rstom
+      real(rkx) :: rcut , rg , xp
       logical :: is_dew , is_rain
-      real(rk8) , parameter :: dair = 0.369D0 * 29.0D0 + 6.29D0
-      real(rk8) , parameter :: dh2o = 0.369D0 * 18.0D0 + 6.29D0
+      real(rkx) , parameter :: dair = 0.369_rkx * 29.0_rkx + 6.29_rkx
+      real(rkx) , parameter :: dh2o = 0.369_rkx * 18.0_rkx + 6.29_rkx
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'stomtresis'
       integer(ik4) , save :: idindx = 0
@@ -1040,35 +1040,35 @@ module mod_che_drydep
           tmink = tmin(kcov) + tzero
 !         print *, ' tmax, tmin ==== ', tmaxk, tmink
           ! initialise rst as undef
-          rst = -999.0D0
-          if (srad(i)   >= 0.1D0  .and. &
-              ts(i)     <  tmaxk  .and. &
-              ts(i)     >  tmink  .and. &
-              lai_f(i)  > 0.001D0 .and. &
-              coszen(i) > 0.001D0 ) then
+          rst = -999.0_rkx
+          if (srad(i)   >= 0.1_rkx  .and. &
+              ts(i)     <  tmaxk    .and. &
+              ts(i)     >  tmink    .and. &
+              lai_f(i)  > 0.001_rkx .and. &
+              coszen(i) > 0.01_rkx ) then
             !================================================================
             ! Calculate direct and diffuse PAR from solar radiation and
             ! solar zenith angle
             !================================================================
-            rdu   = 600.0D0 * dexp(-0.185D0/coszen(i))*coszen(i)
-            rdv   = 0.4D0 * (600.0D0 - rdu ) * coszen(i)
-            ww1   = -dlog(coszen(i))/2.302585D0
+            rdu   = 600.0_rkx * exp(-0.185_rkx/coszen(i))*coszen(i)
+            rdv   = 0.4_rkx * (600.0_rkx - rdu ) * coszen(i)
+            ww1   = -log(coszen(i))/2.302585_rkx
 !           print *, ' ww1 = ', ww1
-            ww2   = -1.195D0 + 0.4459D0 * ww1 - 0.0345D0 * ww1**2
-            ww3   = 1320.0D0*10.0D0**ww2
+            ww2   = -1.195_rkx + 0.4459_rkx * ww1 - 0.0345_rkx * ww1**2
+            ww3   = 1320.0_rkx*10.0_rkx**ww2
 !           print *, 'ww= ', ww
-            rdm   = (720.0D0*dexp(-0.06D0/coszen(i))-ww3)*coszen(i)
+            rdm   = (720.0_rkx*exp(-0.06_rkx/coszen(i))-ww3)*coszen(i)
 !           print *, 'ww3= ', ww3, rdm
-            rdn   = 0.6D0 * (720.0D0 - rdm - ww3) * coszen(i)
-            rv    = dmax1(0.1D0,  rdu + rdv)
-            rn    = dmax1(0.01D0, rdm + rdn)
-            ratio = dmin1(0.9D0,srad(i)/( rv + rn))
+            rdn   = 0.6_rkx * (720.0_rkx - rdm - ww3) * coszen(i)
+            rv    = max(0.1_rkx,  rdu + rdv)
+            rn    = max(0.01_rkx, rdm + rdn)
+            ratio = min(0.9_rkx,srad(i)/( rv + rn))
 !           print *, 'ratio= ', ratio, rdn, rv, rn
             sv    = ratio * rv                            ! Total PAR
-            fv    = dmin1(0.99D0, (0.901D0 - ratio)/0.7D0)
+            fv    = min(0.99_rkx, (0.901_rkx - ratio)/0.7_rkx)
 !           print *, 'sv  fv  = ', sv, fv
 !           print *, 'rv  xxxxx  = ', rv, (1.0 - fv**0.6667)
-            fvv   = dmax1(0.01D0,rdu/rv*(1.0D0 - fv**0.6667D0))
+            fvv   = max(0.01_rkx,rdu/rv*(1.0_rkx - fv**0.6667_rkx))
 !           print *, 'fvv  = ', fvv
             ! fraction of PAR in the direct beam
             pardir = fvv * sv
@@ -1080,31 +1080,31 @@ module mod_che_drydep
             ! Calculate sunlit and shaded leaf area, PAR for sunlit and
             ! shaded leaves
             !===============================================================
-            if ( lai_f(i) > 2.5D0 .and. srad(i) > 200.0D0 ) then
-              pshad = pardif * dexp(-0.5D0 * lai_f(i)**0.8D0) + &
-                      0.07D0 * pardir * (1.1D0-0.1D0*lai_f(i))* &
-                      dexp(-coszen(i))
-              psun = pardir**0.8D0*0.5D0/coszen(i) + pshad
+            if ( lai_f(i) > 2.5_rkx .and. srad(i) > 200.0_rkx ) then
+              pshad = pardif * exp(-0.5_rkx * lai_f(i)**0.8_rkx) + &
+                      0.07_rkx * pardir * (1.1_rkx-0.1_rkx*lai_f(i))* &
+                      exp(-coszen(i))
+              psun = pardir**0.8_rkx*0.5_rkx/coszen(i) + pshad
             else
-              pshad = pardif * dexp(-0.5D0 * lai_f(i)**0.7D0) + &
-                      0.07D0 * pardir *(1.1D0-0.1D0*lai_f(i)) * &
-                      dexp(-coszen(i))
-              psun = pardir * 0.5D0/coszen(i) + pshad
+              pshad = pardif * exp(-0.5_rkx * lai_f(i)**0.7_rkx) + &
+                      0.07_rkx * pardir *(1.1_rkx-0.1_rkx*lai_f(i)) * &
+                      exp(-coszen(i))
+              psun = pardir * 0.5_rkx/coszen(i) + pshad
             end if
 !           print *, 'pshad   psun   ', pshad , psun
             rshad = rsminz(kcov) + brs(kcov) * rsminz(kcov)/pshad
             rsun  = rsminz(kcov) + brs(kcov) * rsminz(kcov)/psun
-            gshad = 1.0D0/rshad
-            gsun  = 1.0D0/rsun
+            gshad = 1.0_rkx/rshad
+            gsun  = 1.0_rkx/rsun
 !           print *, 'rshad  ----< ', rshad, rsun, ' >---------rsun'
 !           print *, 'gshad  ----< ', gshad, gsun, ' >-------- gsun'
             !================================================================
             ! Fsun, Fshade are the total sunlit and shaded leaf area
             ! index
             !================================================================
-            xp = 0.5D0*lai_f(i)/coszen(i)
-            if ( xp < 25.0D0 ) then
-              fsun  = 2.0D0*coszen(i)*(1.0D0-dexp(-xp))
+            xp = 0.5_rkx*lai_f(i)/coszen(i)
+            if ( xp < 25.0_rkx ) then
+              fsun  = 2.0_rkx*coszen(i)*(1.0_rkx-exp(-xp))
             else
               fsun = d_zero
             end if
@@ -1129,34 +1129,34 @@ module mod_che_drydep
             !================================================================
             ! function for vapor pressure deficit
             !================================================================
-            es = 6.108D0*dexp(17.27D0*(ts(i)-tzero)/(ts(i)-35.86D0))
-            d0 = es*(d_one-rh(i))/10.0D0 ! kPa
-            gd = 1.0D0 - bvpd(kcov) * d0
+            es = 6.108_rkx*exp(17.27_rkx*(ts(i)-tzero)/(ts(i)-35.86_rkx))
+            d0 = es*(d_one-rh(i))/10.0_rkx ! kPa
+            gd = 1.0_rkx - bvpd(kcov) * d0
 !           print *, 'gd===',gd
             !================================================================
             ! function for water stress
             !================================================================
-            psi = (-0.72D0 - 0.0013D0 * srad(i))
-!           psi_s = (-0.395D0-0.043D0*(ts-tzero))*102.0D0
+            psi = (-0.72_rkx - 0.0013_rkx * srad(i))
+!           psi_s = (-0.395_rkx-0.043_rkx*(ts-tzero))*102.0_rkx
             gw = (psi - psi2(kcov))/(psi1(kcov) - psi2(kcov))
 !           print *, 'gw==',gw
 !           TEST
 !           gw = 1
-            if ( gw > 1.0D0 ) gw = 1.0D0
-            if ( gw < 0.1D0 ) gw = 0.1D0
-            if ( gd > 1.0D0 ) gd = 1.0D0
-            if ( gd < 0.1D0 ) gd = 0.1D0
+            if ( gw > 1.0_rkx ) gw = 1.0_rkx
+            if ( gw < 0.1_rkx ) gw = 0.1_rkx
+            if ( gd > 1.0_rkx ) gd = 1.0_rkx
+            if ( gd < 0.1_rkx ) gd = 0.1_rkx
             !================================================================
             ! Stomatal resistance for water vapor
             !================================================================
-            rst = 1.0D0 / (gspar * gt * gd * gw)
+            rst = 1.0_rkx / (gspar * gt * gd * gw)
 !           print *, 'rst===',rst
           end if
-          coedew = 0.1D0  ! for clear cloud
-          es = 6.108D0*dexp(17.27D0*(ts(i)-tzero)/(ts(i)-35.86D0))
-          dq = 0.622D0/1000.0D0*es*(1.0D0-rh(i))*1000.0D0 ! unit g/kg
-          dq = dmax1(0.0001D0,dq)
-          usmin = 1.5D0/dq*coedew
+          coedew = 0.1_rkx  ! for clear cloud
+          es = 6.108_rkx*exp(17.27_rkx*(ts(i)-tzero)/(ts(i)-35.86_rkx))
+          dq = 0.622_rkx/1000.0_rkx*es*(1.0_rkx-rh(i))*1000.0_rkx ! unit g/kg
+          dq = max(0.0001_rkx,dq)
+          usmin = 1.5_rkx/dq*coedew
 !         print *, 'prec===== ', prec(i)
 !         print *, 'usmin   ===  ', usmin
 !         what is the unit of precipitation threshold
@@ -1171,25 +1171,25 @@ module mod_che_drydep
           !================================================================
           ! Decide fraction of stomatal blocking due to wet conditions
           !================================================================
-          wst = 0.0D0
-          if ( (is_dew .or. is_rain) .and. srad(i) > 200.0D0 ) then
-            wst = (srad(i) - 200.0D0)/800.0D0
-            wst = dmin1(wst, 0.5D0)
+          wst = 0.0_rkx
+          if ( (is_dew .or. is_rain) .and. srad(i) > 200.0_rkx ) then
+            wst = (srad(i) - 200.0_rkx)/800.0_rkx
+            wst = min(wst, 0.5_rkx)
           end if
           !================================================================
           ! In-canopy aerodynamic resistance
           !================================================================
           rac = rac1(kcov)+(lai_f(i)-laimin(i))/ &
-                (laimax(i)-laimin(i)+1.D-10)*(rac2(kcov)-rac1(kcov))
+                (laimax(i)-laimin(i)+1.e-10_rkx)*(rac2(kcov)-rac1(kcov))
 !         print *, 'rac1 = ', rac
-          rac = rac*lai_f(i)**0.25D0/ustar(i,j)/ustar(i,j)
+          rac = rac*lai_f(i)**0.25_rkx/ustar(i,j)/ustar(i,j)
 !         print *, 'rac2 = ', rac
           !================================================================
           ! Ground resistance for O3
           !================================================================
-          if (ts(i) < 272.15D0 .and. kcov /= 14 ) then
-            rgo_f = dmin1( rgo(kcov)*2.0D0, rgo(kcov) *     &
-                           dexp(0.2D0*(272.15D0-ts(i))))
+          if (ts(i) < 272.15_rkx .and. kcov /= 14 ) then
+            rgo_f = min( rgo(kcov)*2.0_rkx, rgo(kcov) *     &
+                           exp(0.2_rkx*(272.15_rkx-ts(i))))
 !           print *, 'rgo_f1 =',rgo_f, ts(i)
           else
             rgo_f = rgo(kcov)
@@ -1198,18 +1198,18 @@ module mod_che_drydep
           ! Ground resistance for SO2
           !================================================================
           if ( kcov == 12 ) then
-            rgs_f = dmin1(rgs(kcov)*(275.15D0 - ts(i)), 500.D0)
-            rgs_f = dmax1(rgs(kcov), 100.D0)
+            rgs_f = min(rgs(kcov)*(275.15_rkx - ts(i)), 500._rkx)
+            rgs_f = max(rgs(kcov), 100._rkx)
 !           print *, 'rgs_f ==== ', rgs_f
           else if ( is_rain .and. kcov /= 14 ) then
-            rgs_f = 50.0D0
+            rgs_f = 50.0_rkx
 !           print *, 'rgs_f ==== ', rgs_f
           else if ( is_dew .and. kcov /= 14 ) then
-            rgs_f = 100.0D0
+            rgs_f = 100.0_rkx
 !           print *, 'rgs_f ==== ', rgs_f
-          else if ( ts(i) < 272.156D0 .and. kcov /= 14 ) then
-            rgs_f = dmin1(rgs(kcov)*2.0D0, rgs(kcov) *     &
-                          dexp(0.2D0*(272.156D0 - ts(i))))
+          else if ( ts(i) < 272.156_rkx .and. kcov /= 14 ) then
+            rgs_f = min(rgs(kcov)*2.0_rkx, rgs(kcov) *     &
+                          exp(0.2_rkx*(272.156_rkx - ts(i))))
 !           print *, 'rgs_f ==== ', rgs_f
           else
             rgs_f = rgs(kcov)
@@ -1218,38 +1218,38 @@ module mod_che_drydep
           !================================================================
           ! Cuticle resistance for O3 AND SO2
           !================================================================
-          if ( rcutdo(kcov) <= -1.0D0 ) then
-            rcuto_f = 1.D25
-            rcuts_f = 1.D25
+          if ( rcutdo(kcov) <= -1.0_rkx ) then
+            rcuto_f = 1.e25_rkx
+            rcuts_f = 1.e25_rkx
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if ( is_rain ) then
             rcuto_f = rcutwo(kcov)/sqrt(lai_f(i))/ustar(i,j)
-            rcuts_f = 50.0D0/sqrt(lai_f(i))/ustar(i,j)
-            rcuts_f = dmax1(rcuts_f, 20.D0)
+            rcuts_f = 50.0_rkx/sqrt(lai_f(i))/ustar(i,j)
+            rcuts_f = max(rcuts_f, 20._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if ( is_dew ) then
             rcuto_f = rcutwo(kcov)/sqrt(lai_f(i))/ustar(i,j)
-            rcuts_f = 100.0D0/sqrt(lai_f(i))/ustar(i,j)
-            rcuts_f = dmax1(rcuts_f, 20.D0)
+            rcuts_f = 100.0_rkx/sqrt(lai_f(i))/ustar(i,j)
+            rcuts_f = max(rcuts_f, 20._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
-          else if (ts(i) < 272.156D0 ) then
-            ryx = dexp(0.2D0 * (272.156D0 - ts(i) ))
-            rcuto_f = rcutdo(kcov)/dexp(3.0D0 * rh(i))/     &
-                      lai_f(i)**0.25D0/ustar(i,j)
-            rcuts_f = rcutds(kcov)/dexp(3.0D0 * rh(i))/     &
-                      lai_f(i)**0.25D0/ustar(i,j)
-            rcuto_f = dmin1(rcuto_f * 2.0D0, rcuto_f * ryx )
-            rcuts_f = dmin1(rcuts_f * 2.0D0, rcuts_f * ryx )
-            rcuto_f = dmax1(rcuto_f,100.D0)
-            rcuts_f = dmax1(rcuts_f,100.D0)
+          else if (ts(i) < 272.156_rkx ) then
+            ryx = exp(0.2_rkx * (272.156_rkx - ts(i) ))
+            rcuto_f = rcutdo(kcov)/exp(3.0_rkx * rh(i))/     &
+                      lai_f(i)**0.25_rkx/ustar(i,j)
+            rcuts_f = rcutds(kcov)/exp(3.0_rkx * rh(i))/     &
+                      lai_f(i)**0.25_rkx/ustar(i,j)
+            rcuto_f = min(rcuto_f * 2.0_rkx, rcuto_f * ryx )
+            rcuts_f = min(rcuts_f * 2.0_rkx, rcuts_f * ryx )
+            rcuto_f = max(rcuto_f,100._rkx)
+            rcuts_f = max(rcuts_f,100._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else
-            rcuto_f = rcutdo(kcov)/exp(3.0D0*rh(i)) / &
-                      lai_f(i)**0.25D0/ustar(i,j)
-            rcuts_f = rcutds(kcov)/exp(3.0D0*rh(i)) / &
-                      lai_f(i)**0.25D0/ustar(i,j)
-            rcuto_f = dmax1(rcuto_f, 100.D0)
-            rcuts_f = dmax1(rcuts_f, 100.D0)
+            rcuto_f = rcutdo(kcov)/exp(3.0_rkx*rh(i)) / &
+                      lai_f(i)**0.25_rkx/ustar(i,j)
+            rcuts_f = rcutds(kcov)/exp(3.0_rkx*rh(i)) / &
+                      lai_f(i)**0.25_rkx/ustar(i,j)
+            rcuto_f = max(rcuto_f, 100._rkx)
+            rcuts_f = max(rcuts_f, 100._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           end if
           !================================================================
@@ -1257,59 +1257,59 @@ module mod_che_drydep
           ! fraction
           !================================================================
           fsnow = sd(i)/sdmax(kcov)
-          fsnow = dmin1(1.0D0, fsnow)   !snow cover fraction for leaves
+          fsnow = min(1.0_rkx, fsnow)   !snow cover fraction for leaves
 !         print *, ' fsnow=  ', fsnow
-          if ( fsnow > 0.0001D0 .and. kcov /= 20 .or. &
+          if ( fsnow > 0.0001_rkx .and. kcov /= 20 .or. &
                                       kcov /= 15 .or. &
                                       kcov /= 14 .or. &
                                       kcov /= 12 ) then
-            rsnows = dmin1(70.0D0*(275.15D0-ts(i)), 500.D0)
-            rsnows = dmax1(rsnows, 100.D0)
-            rcuts_f = 1.0D0/((1.0D0 - fsnow)/rcuts_f + fsnow/rsnows)
-            rcuto_f = 1.0D0/((1.0D0 - fsnow)/rcuto_f + fsnow/2000.0D0)
-            fsnow = dmin1(1.0D0, fsnow*2.0D0)
+            rsnows = min(70.0_rkx*(275.15_rkx-ts(i)), 500._rkx)
+            rsnows = max(rsnows, 100._rkx)
+            rcuts_f = 1.0_rkx/((1.0_rkx - fsnow)/rcuts_f + fsnow/rsnows)
+            rcuto_f = 1.0_rkx/((1.0_rkx - fsnow)/rcuto_f + fsnow/2000.0_rkx)
+            fsnow = min(1.0_rkx, fsnow*2.0_rkx)
             ! snow cover fraction for ground
-            rgs_f = 1.0D0/((1.0D0 - fsnow)/rgs_f + fsnow/rsnows)
-            rgo_f = 1.0D0/((1.0D0 - fsnow)/rgo_f + fsnow/2000.0D0)
+            rgs_f = 1.0_rkx/((1.0_rkx - fsnow)/rgs_f + fsnow/rsnows)
+            rgo_f = 1.0_rkx/((1.0_rkx - fsnow)/rgo_f + fsnow/2000.0_rkx)
 !           print *, 'rsnows= ', rsnows, ' fsnow=  ', fsnow
           end if
           !================================================================
           ! Calculate diffusivity for each gas species
           !================================================================
           do ig = 1 , igas
-            dgas = 0.369D0 * mw(ig) + 6.29D0
-            di = 0.001D0*ts(i)**1.75D0*sqrt((29.0D0 + mw(ig))/mw(ig)/29.D0)
-            di = di/1.0D0/(dair**0.3333D0 + dgas**0.3333D0)**2
-            vi = 145.8D0 * 1.D-4 * (ts(i) * 0.5D0 + t2(i) *0.5D0)**1.5D0/ &
-                 (ts(i) * 0.5D0 + t2(i) *0.5D0 + 110.4D0)
+            dgas = 0.369_rkx * mw(ig) + 6.29_rkx
+            di = 0.001_rkx*ts(i)**1.75_rkx*sqrt((29.0_rkx + mw(ig))/mw(ig)/29._rkx)
+            di = di/1.0_rkx/(dair**0.3333_rkx + dgas**0.3333_rkx)**2
+            vi = 145.8_rkx * 1.e-4_rkx * (ts(i) * 0.5_rkx + t2(i) *0.5_rkx)**1.5_rkx/ &
+                 (ts(i) * 0.5_rkx + t2(i) *0.5_rkx + 110.4_rkx)
             !================================================================
             ! Calculate quasi-laminar resistance
             !================================================================
-            rb(ig,i,j) = 5.0D0/ustar(i,j) * (vi/di)**.666667D0
+            rb(ig,i,j) = 5.0_rkx/ustar(i,j) * (vi/di)**.666667_rkx
 !           print *, 'rb==', rb(ig,i,j)
             !================================================================
             ! Calculate stomatal resistance for each species from the ratio
             ! of  diffusity of water vapor to the gas species
             !================================================================
-            dvh2o = 0.001D0*ts(i)**1.75D0*sqrt((29.0D0+18.0D0)/29.0D0/18.0D0)
-            dvh2o = dvh2o/(dair**0.3333D0 + dh2o**0.3333D0)**2
+            dvh2o = 0.001_rkx*ts(i)**1.75_rkx*sqrt((29.0_rkx+18.0_rkx)/29.0_rkx/18.0_rkx)
+            dvh2o = dvh2o/(dair**0.3333_rkx + dh2o**0.3333_rkx)**2
             rstom = rst * dVh2o/di + rm(ig)
             ! (rst <999) for bare surfaces)
             !================================================================
             ! Scale cuticle and ground resistances for each species
             !================================================================
-            rcut = 1.0D0/(alphaz(ig)/rcuts_f+betaz(ig)/rcuto_f)
-            rg   = 1.0D0/(alphaz(ig)/rgs_f+betaz(ig)/rgo_f)
+            rcut = 1.0_rkx/(alphaz(ig)/rcuts_f+betaz(ig)/rcuto_f)
+            rg   = 1.0_rkx/(alphaz(ig)/rgs_f+betaz(ig)/rgo_f)
             !================================================================
             ! Calculate total surface resistance
             !================================================================
             ! account for zero stomatal resistance (rst and rstom are zero
             ! for bare surfaces)
             ! set wst to 1 also in that case (total stomatal blocking).
-            if ( rst == -999.0 ) wst = 1.0D0
-!           rc(ig,i,j) = (1.0D0 - wst)/rstom + 1.0D0/(rg)+1.0D0/rcut
-            rc(ig,i,j) = (1.0D0 - wst)/rstom + 1.0D0/(rac+rg)+1.0D0/rcut
-            rc(ig,i,j) = dmax1(10.D0,1.0D0/rc(ig,i,j))
+            if ( rst == -999.0 ) wst = 1.0_rkx
+!           rc(ig,i,j) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rg)+1.0_rkx/rcut
+            rc(ig,i,j) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rac+rg)+1.0_rkx/rcut
+            rc(ig,i,j) = max(10._rkx,1.0_rkx/rc(ig,i,j))
           end do !igas
         end do !ilg
       end do !luc

@@ -100,9 +100,9 @@ module mod_che_emission
     integer(ik4) , intent(in) :: j , lmonth
     integer(ik8) , intent(in) :: ktau
 
-    real(rk8) , intent(in) ::declin
+    real(rkx) , intent(in) ::declin
     integer(ik4)  :: i , itr
-    real(rk8) :: daylen , fact , maxelev , amp,dayhr
+    real(rkx) :: daylen , fact , maxelev , amp,dayhr
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'emis_tend'
     integer(ik4) , save :: idindx = 0
@@ -154,14 +154,14 @@ module mod_che_emission
         else
         daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
         daylen = d_two*acos(dayhr)*raddeg
-        daylen = daylen*24.0D0/360.0D0
+        daylen = daylen*24.0_rkx/360.0_rkx
         ! Maximum sun elevation
         maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
         fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
-        amp = 12.0D0*mathpi/daylen
+        amp = 12.0_rkx*mathpi/daylen
         tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
         chemsrc(j,i,iisop) = (amp)*chemsrc(j,i,iisop) * &
-                            sin(mathpi*fact)*egrav/(dsigma(kz)*1.0D3)
+                            sin(mathpi*fact)*egrav/(dsigma(kz)*1.0e3_rkx)
         end if
       end do
 #endif
@@ -199,7 +199,7 @@ module mod_che_emission
                chtrname(itr)(1:4) == 'SSLT' .or. &
                chtrname(itr)(1:6) == 'POLLEN' ) cycle
           chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
-              chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0D3)
+              chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0e3_rkx)
           ! diagnostic for source, cumul
           cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
           if ( ichdiag == 1 ) then
@@ -217,7 +217,7 @@ module mod_che_emission
             ! if PBL scheme is not UW then calculate emission tendency
             if ( ibltyp /= 2 ) then
               chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
-                 chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0D3)
+                 chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0e3_rkx)
             end if
             ! otherwise emission is injected in the PBL scheme ( together
             ! with dry deposition) for tend calculation

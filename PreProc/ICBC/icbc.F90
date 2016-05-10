@@ -217,7 +217,7 @@ program icbc
 
   tdiff = globidate2-globidate1
   tbdy = rcm_time_interval(ibdyfrq,uhrs)
-  nsteps = idnint(tohours(tdiff))/ibdyfrq + 1
+  nsteps = nint(tohours(tdiff))/ibdyfrq + 1
 
   write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
   write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)

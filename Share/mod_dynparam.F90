@@ -51,7 +51,7 @@ module mod_dynparam
 
   ! If not 14 , 18 or 23 (precalculated), hint for custom calculation
 
-  real(rk8) :: dsmax , dsmin
+  real(rkx) :: dsmax , dsmin
 
   ! Sub grid decomposition
 
@@ -89,39 +89,39 @@ module mod_dynparam
 
   ! Grid point horizontal resolution in km
 
-  real(rk8) :: ds
+  real(rkx) :: ds
 
   ! Pressure of model top in cbar
 
-  real(rk8) :: ptop
+  real(rkx) :: ptop
 
   ! Central latitude  of model domain in degrees, north hem. is positive
 
-  real(rk8) :: clat
+  real(rkx) :: clat
 
   ! Central longitude of model domain in degrees, west is negative
 
-  real(rk8) :: clon
+  real(rkx) :: clon
 
   ! Pole latitude (only for rotated Mercator Proj, else set = clat)
 
-  real(rk8) :: plat
+  real(rkx) :: plat
 
   ! Pole longitude (only for rotated Mercator Proj, else set = clon)
 
-  real(rk8) :: plon
+  real(rkx) :: plon
 
   ! Lambert / Polar Cone factor
 
-  real(rk8) :: xcone
+  real(rkx) :: xcone
 
   ! Lambert true latitude (low latitude side)
 
-  real(rk8) :: truelatl
+  real(rkx) :: truelatl
 
   ! Lambert true latitude (high latitude side)
 
-  real(rk8) :: truelath
+  real(rkx) :: truelath
 
   ! Smoothness level
 
@@ -145,9 +145,9 @@ module mod_dynparam
 
   ! Nudge control coefficients
 
-  real(rk8) :: high_nudge   = 3.0D0
-  real(rk8) :: medium_nudge = 2.0D0
-  real(rk8) :: low_nudge    = 1.0D0
+  real(rkx) :: high_nudge   = 3.0_rkx
+  real(rkx) :: medium_nudge = 2.0_rkx
+  real(rkx) :: low_nudge    = 1.0_rkx
 
   ! Number od split exp modes
 
@@ -286,7 +286,7 @@ module mod_dynparam
 
   ! Surface minimum H2O percent to be considered water
 
-  real(rk8) :: h2opct
+  real(rkx) :: h2opct
 
   ! Allow water pixels to have an elevation
 
@@ -319,10 +319,10 @@ module mod_dynparam
 
   character(len=12) :: calendar
   integer(ik4) :: ical
-  real(rk8) :: dayspy
-  real(rk8) :: half_dayspy
-  real(rk8) :: sixteenth_dayspy
-  real(rk8) :: dpd
+  real(rkx) :: dayspy
+  real(rkx) :: half_dayspy
+  real(rkx) :: sixteenth_dayspy
+  real(rkx) :: dpd
 
   ! Fixed dimensions
 
@@ -343,7 +343,7 @@ module mod_dynparam
 
 #ifdef CLM45
   ! Soil layer thickness discretization (m)
-  real(rk8) , parameter :: scalez = 0.025D0
+  real(rkx) , parameter :: scalez = 0.025_rkx
   integer(ik4) , parameter :: num_soil_layers = 10
 #else
   integer(ik4) , parameter :: num_soil_layers = 2
@@ -380,13 +380,13 @@ module mod_dynparam
   logical :: ifopt
   logical :: ifchem
 
-  real(rk8) :: savfrq
-  real(rk8) :: atmfrq
-  real(rk8) :: radfrq
-  real(rk8) :: lakfrq
-  real(rk8) :: subfrq
-  real(rk8) :: srffrq
-  real(rk8) :: chemfrq
+  real(rkx) :: savfrq
+  real(rkx) :: atmfrq
+  real(rkx) :: radfrq
+  real(rkx) :: lakfrq
+  real(rkx) :: subfrq
+  real(rkx) :: srffrq
+  real(rkx) :: chemfrq
 
   integer(ik4) :: ibdyfrq
 
@@ -400,13 +400,13 @@ module mod_dynparam
   logical :: lperturb_u
   logical :: lperturb_v
 
-  real(rk8) :: perturb_frac_topo
-  real(rk8) :: perturb_frac_ts
-  real(rk8) :: perturb_frac_ps
-  real(rk8) :: perturb_frac_t
-  real(rk8) :: perturb_frac_q
-  real(rk8) :: perturb_frac_u
-  real(rk8) :: perturb_frac_v
+  real(rkx) :: perturb_frac_topo
+  real(rkx) :: perturb_frac_ts
+  real(rkx) :: perturb_frac_ps
+  real(rkx) :: perturb_frac_t
+  real(rkx) :: perturb_frac_q
+  real(rkx) :: perturb_frac_u
+  real(rkx) :: perturb_frac_v
 
 #ifdef CLM45
   logical :: enable_megan_emission = .false.
@@ -453,8 +453,8 @@ module mod_dynparam
       return
     end if
 
-    dsmax = 0.05D0
-    dsmin = 0.01D0
+    dsmax = 0.05_rkx
+    dsmin = 0.01_rkx
     njxcpus = -1
     niycpus = -1
 
@@ -541,10 +541,10 @@ module mod_dynparam
     nveg = 22
 
     if ( i_band.eq.1 ) then
-      ds = (2.0D0*mathpi*erkm)/dble(jx)
+      ds = (2.0_rkx*mathpi*erkm)/real(jx,rkx)
       iproj = 'NORMER'
-      clat  =   0.0D0
-      clon  = 180.0D0
+      clat  =   0.0_rkx
+      clon  = 180.0_rkx
     end if
 
     ! Defaults to have SAME behaviour of V3 if not specified
@@ -556,7 +556,7 @@ module mod_dynparam
     tersrc = 'GMTED'
 
     h2ohgt = .true.
-    h2opct = 50.0D0
+    h2opct = 50.0_rkx
     ismthlev = 1
     rewind(ipunit)
     read(ipunit, nml=terrainparam, iostat=iresult)
@@ -578,8 +578,8 @@ module mod_dynparam
     ! Let us assume a "default" for the selected ds, not getting less
     ! than the OK number of points. If the domain is REALLY small,
     ! use 1/4 of the overall points, or AT LEAST 3 points...
-    nspgx = max(min(max(int(dble(nspgx*50)/ds),nspgx),min(jx,iy)/4),3)
-    nspgd = max(min(max(int(dble(nspgd*50)/ds),nspgd),min(jx,iy)/4),3)
+    nspgx = max(min(max(int(real(nspgx*50,rkx)/ds),nspgx),min(jx,iy)/4),3)
+    nspgd = max(min(max(int(real(nspgd*50,rkx)/ds),nspgd),min(jx,iy)/4),3)
     ! Anyway the user specify this...
     rewind(ipunit)
     read(ipunit, nml=boundaryparam, iostat=iresult)
@@ -597,7 +597,7 @@ module mod_dynparam
     ibdyfrq = 6 ! Convenient default
     calendar = 'gregorian'
     ensemble_run = .false.
-
+    chemtyp = 'MZCLM'
     rewind(ipunit)
     read(ipunit, nml=globdatparam, iostat=iresult)
     if ( iresult /= 0 ) then
@@ -606,22 +606,22 @@ module mod_dynparam
       return
     end if
     if (calendar == 'gregorian') then
-      dayspy = 365.2422D+00
+      dayspy = 365.2422_rkx
       ical = gregorian
     else if (calendar == 'noleap' .or. calendar == '365_day') then
-      dayspy = 365.0D+00
+      dayspy = 365.0_rkx
       ical = noleap
     else if (calendar == '360_day') then
-      dayspy = 360.0D+00
+      dayspy = 360.0_rkx
       ical = y360
     else
       write(stderr,*) 'No calendar specified. Assuming gregorian'
-      dayspy = 365.2422D+00
+      dayspy = 365.2422_rkx
       ical = gregorian
     end if
-    dpd = 360.0D0/dayspy
-    half_dayspy = dayspy/2.0D0
-    sixteenth_dayspy = dayspy/16.0D0
+    dpd = 360.0_rkx/dayspy
+    half_dayspy = dayspy/2.0_rkx
+    sixteenth_dayspy = dayspy/16.0_rkx
     globidate1 = gdate1
     globidate2 = gdate2
     call setcal(globidate1,ical)
@@ -690,14 +690,14 @@ module mod_dynparam
   subroutine init_globwindow(filename,lat0,lon0,lat1,lon1)
     implicit none
     character(len=*) , intent(in) :: filename
-    real(rk8) , intent(out) :: lat0 , lat1 , lon0 , lon1
+    real(rkx) , intent(out) :: lat0 , lat1 , lon0 , lon1
     integer(ik4) :: iresult
     namelist /globwindow/ lat0 , lat1 , lon0 , lon1
 
-    lat0 = 0.0D0
-    lon0 = 0.0D0
-    lat1 = 0.0D0
-    lon1 = 0.0D0
+    lat0 = 0.0_rkx
+    lon0 = 0.0_rkx
+    lat1 = 0.0_rkx
+    lon1 = 0.0_rkx
 
     open(ipunit, file=filename, status='old', &
                  action='read', iostat=iresult)

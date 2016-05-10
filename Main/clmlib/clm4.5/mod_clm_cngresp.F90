@@ -28,62 +28,62 @@ module mod_clm_cngresp
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
     integer(ik4) , pointer :: ivt(:)  ! pft vegetation type
-    real(rk8), pointer :: cpool_to_leafc(:)
-    real(rk8), pointer :: cpool_to_leafc_storage(:)
-    real(rk8), pointer :: cpool_to_frootc(:)
-    real(rk8), pointer :: cpool_to_frootc_storage(:)
-    real(rk8), pointer :: cpool_to_livestemc(:)
-    real(rk8), pointer :: cpool_to_livestemc_storage(:)
-    real(rk8), pointer :: cpool_to_deadstemc(:)
-    real(rk8), pointer :: cpool_to_deadstemc_storage(:)
-    real(rk8), pointer :: cpool_to_livecrootc(:)
-    real(rk8), pointer :: cpool_to_livecrootc_storage(:)
+    real(rkx), pointer :: cpool_to_leafc(:)
+    real(rkx), pointer :: cpool_to_leafc_storage(:)
+    real(rkx), pointer :: cpool_to_frootc(:)
+    real(rkx), pointer :: cpool_to_frootc_storage(:)
+    real(rkx), pointer :: cpool_to_livestemc(:)
+    real(rkx), pointer :: cpool_to_livestemc_storage(:)
+    real(rkx), pointer :: cpool_to_deadstemc(:)
+    real(rkx), pointer :: cpool_to_deadstemc_storage(:)
+    real(rkx), pointer :: cpool_to_livecrootc(:)
+    real(rkx), pointer :: cpool_to_livecrootc_storage(:)
     ! allocation to dead coarse root C (gC/m2/s)
-    real(rk8), pointer :: cpool_to_deadcrootc(:)
+    real(rkx), pointer :: cpool_to_deadcrootc(:)
     ! allocation to dead coarse root C storage (gC/m2/s)
-    real(rk8), pointer :: cpool_to_deadcrootc_storage(:)
+    real(rkx), pointer :: cpool_to_deadcrootc_storage(:)
     ! allocation to grain C (gC/m2/s)
-    real(rk8), pointer :: cpool_to_grainc(:)
+    real(rkx), pointer :: cpool_to_grainc(:)
     ! allocation to grain C storage (gC/m2/s)
-    real(rk8), pointer :: cpool_to_grainc_storage(:)
+    real(rkx), pointer :: cpool_to_grainc_storage(:)
     ! grain C growth from storage (gC/m2/s)
-    real(rk8), pointer :: grainc_xfer_to_grainc(:)
+    real(rkx), pointer :: grainc_xfer_to_grainc(:)
     ! leaf C growth from storage (gC/m2/s)
-    real(rk8), pointer :: leafc_xfer_to_leafc(:)
+    real(rkx), pointer :: leafc_xfer_to_leafc(:)
     ! fine root C growth from storage (gC/m2/s)
-    real(rk8), pointer :: frootc_xfer_to_frootc(:)
+    real(rkx), pointer :: frootc_xfer_to_frootc(:)
     ! live stem C growth from storage (gC/m2/s)
-    real(rk8), pointer :: livestemc_xfer_to_livestemc(:)
+    real(rkx), pointer :: livestemc_xfer_to_livestemc(:)
     ! dead stem C growth from storage (gC/m2/s)
-    real(rk8), pointer :: deadstemc_xfer_to_deadstemc(:)
+    real(rkx), pointer :: deadstemc_xfer_to_deadstemc(:)
     ! live coarse root C growth from storage (gC/m2/s)
-    real(rk8), pointer :: livecrootc_xfer_to_livecrootc(:)
+    real(rkx), pointer :: livecrootc_xfer_to_livecrootc(:)
     ! dead coarse root C growth from storage (gC/m2/s)
-    real(rk8), pointer :: deadcrootc_xfer_to_deadcrootc(:)
+    real(rkx), pointer :: deadcrootc_xfer_to_deadcrootc(:)
     ! binary flag for woody lifeform (1=woody, 0=not woody)
-    real(rk8), pointer :: woody(:)
+    real(rkx), pointer :: woody(:)
 
-    real(rk8), pointer :: cpool_grain_gr(:)
-    real(rk8), pointer :: cpool_grain_storage_gr(:)
-    real(rk8), pointer :: transfer_grain_gr(:)
-    real(rk8), pointer :: cpool_leaf_gr(:)
-    real(rk8), pointer :: cpool_leaf_storage_gr(:)
-    real(rk8), pointer :: transfer_leaf_gr(:)
-    real(rk8), pointer :: cpool_froot_gr(:)
-    real(rk8), pointer :: cpool_froot_storage_gr(:)
-    real(rk8), pointer :: transfer_froot_gr(:)
-    real(rk8), pointer :: cpool_livestem_gr(:)
-    real(rk8), pointer :: cpool_livestem_storage_gr(:)
-    real(rk8), pointer :: transfer_livestem_gr(:)
-    real(rk8), pointer :: cpool_deadstem_gr(:)
-    real(rk8), pointer :: cpool_deadstem_storage_gr(:)
-    real(rk8), pointer :: transfer_deadstem_gr(:)
-    real(rk8), pointer :: cpool_livecroot_gr(:)
-    real(rk8), pointer :: cpool_livecroot_storage_gr(:)
-    real(rk8), pointer :: transfer_livecroot_gr(:)
-    real(rk8), pointer :: cpool_deadcroot_gr(:)
-    real(rk8), pointer :: cpool_deadcroot_storage_gr(:)
-    real(rk8), pointer :: transfer_deadcroot_gr(:)
+    real(rkx), pointer :: cpool_grain_gr(:)
+    real(rkx), pointer :: cpool_grain_storage_gr(:)
+    real(rkx), pointer :: transfer_grain_gr(:)
+    real(rkx), pointer :: cpool_leaf_gr(:)
+    real(rkx), pointer :: cpool_leaf_storage_gr(:)
+    real(rkx), pointer :: transfer_leaf_gr(:)
+    real(rkx), pointer :: cpool_froot_gr(:)
+    real(rkx), pointer :: cpool_froot_storage_gr(:)
+    real(rkx), pointer :: transfer_froot_gr(:)
+    real(rkx), pointer :: cpool_livestem_gr(:)
+    real(rkx), pointer :: cpool_livestem_storage_gr(:)
+    real(rkx), pointer :: transfer_livestem_gr(:)
+    real(rkx), pointer :: cpool_deadstem_gr(:)
+    real(rkx), pointer :: cpool_deadstem_storage_gr(:)
+    real(rkx), pointer :: transfer_deadstem_gr(:)
+    real(rkx), pointer :: cpool_livecroot_gr(:)
+    real(rkx), pointer :: cpool_livecroot_storage_gr(:)
+    real(rkx), pointer :: transfer_livecroot_gr(:)
+    real(rkx), pointer :: cpool_deadcroot_gr(:)
+    real(rkx), pointer :: cpool_deadcroot_storage_gr(:)
+    real(rkx), pointer :: transfer_deadcroot_gr(:)
 
     integer(ik4) :: p      ! indices
     integer(ik4) :: fp     ! lake filter pft index
@@ -148,12 +148,12 @@ module mod_clm_cngresp
         cpool_livestem_storage_gr(p) = cpool_to_livestemc_storage(p) * &
                                        grperc(ivt(p)) * grpnow(ivt(p))
         transfer_livestem_gr(p)      = livestemc_xfer_to_livestemc(p) * &
-                                       grperc(ivt(p)) * (1.D0 - grpnow(ivt(p)))
+                                       grperc(ivt(p)) * (1._rkx - grpnow(ivt(p)))
         cpool_grain_gr(p)            = cpool_to_grainc(p) * grperc(ivt(p))
         cpool_grain_storage_gr(p)    = cpool_to_grainc_storage(p) * &
                                        grperc(ivt(p)) * grpnow(ivt(p))
         transfer_grain_gr(p)         = grainc_xfer_to_grainc(p) * &
-                                       grperc(ivt(p)) * (1.D0 - grpnow(ivt(p)))
+                                       grperc(ivt(p)) * (1._rkx - grpnow(ivt(p)))
       end if
 
       ! leaf and fine root growth respiration
@@ -161,34 +161,34 @@ module mod_clm_cngresp
       cpool_leaf_storage_gr(p)  = cpool_to_leafc_storage(p) * grperc(ivt(p)) * &
                                   grpnow(ivt(p))
       transfer_leaf_gr(p)       = leafc_xfer_to_leafc(p) * grperc(ivt(p)) * &
-                                  (1.D0 - grpnow(ivt(p)))
+                                  (1._rkx - grpnow(ivt(p)))
       cpool_froot_gr(p)         = cpool_to_frootc(p) * grperc(ivt(p))
       cpool_froot_storage_gr(p) = cpool_to_frootc_storage(p) * &
                                   grperc(ivt(p)) * grpnow(ivt(p))
       transfer_froot_gr(p)      = frootc_xfer_to_frootc(p) * grperc(ivt(p)) * &
-                                  (1.D0 - grpnow(ivt(p)))
+                                  (1._rkx - grpnow(ivt(p)))
 
-      if ( woody(ivt(p)) == 1.D0 ) then
+      if ( woody(ivt(p)) == 1._rkx ) then
         cpool_livestem_gr(p)          = cpool_to_livestemc(p) * grperc(ivt(p))
         cpool_livestem_storage_gr(p)  = cpool_to_livestemc_storage(p) * &
                                         grperc(ivt(p)) * grpnow(ivt(p))
         transfer_livestem_gr(p)       = livestemc_xfer_to_livestemc(p) * &
-                                        grperc(ivt(p)) * (1.D0 - grpnow(ivt(p)))
+                                        grperc(ivt(p)) * (1._rkx - grpnow(ivt(p)))
         cpool_deadstem_gr(p)          = cpool_to_deadstemc(p) * grperc(ivt(p))
         cpool_deadstem_storage_gr(p)  = cpool_to_deadstemc_storage(p) * &
                                         grperc(ivt(p)) * grpnow(ivt(p))
         transfer_deadstem_gr(p)       = deadstemc_xfer_to_deadstemc(p) * &
-                                        grperc(ivt(p)) * (1.D0 - grpnow(ivt(p)))
+                                        grperc(ivt(p)) * (1._rkx - grpnow(ivt(p)))
         cpool_livecroot_gr(p)         = cpool_to_livecrootc(p) * grperc(ivt(p))
         cpool_livecroot_storage_gr(p) = cpool_to_livecrootc_storage(p) * &
                                         grperc(ivt(p)) * grpnow(ivt(p))
         transfer_livecroot_gr(p)      = livecrootc_xfer_to_livecrootc(p) * &
-                                        grperc(ivt(p)) * (1.D0 - grpnow(ivt(p)))
+                                        grperc(ivt(p)) * (1._rkx - grpnow(ivt(p)))
         cpool_deadcroot_gr(p)         = cpool_to_deadcrootc(p) * grperc(ivt(p))
         cpool_deadcroot_storage_gr(p) = cpool_to_deadcrootc_storage(p) * &
                                         grperc(ivt(p)) * grpnow(ivt(p))
         transfer_deadcroot_gr(p)      = deadcrootc_xfer_to_deadcrootc(p) * &
-                                        grperc(ivt(p)) * (1.D0 - grpnow(ivt(p)))
+                                        grperc(ivt(p)) * (1._rkx - grpnow(ivt(p)))
       end if
     end do
   end subroutine CNGResp

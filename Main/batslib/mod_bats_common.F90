@@ -46,9 +46,9 @@ module mod_bats_common
   public :: allocate_mod_bats_internal
   public :: interf , initbats , vecbats , albedobats
 
-  real(rk8) , public :: rdnnsg
+  real(rkx) , public :: rdnnsg
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: xqs
+  real(rkx) , public , pointer , dimension(:,:,:) :: xqs
 
   contains
 
@@ -85,8 +85,9 @@ module mod_bats_common
       tlef  = tgrd
       taf   = tgrd
       if ( snowhack ) then
-        where ( tgrd < 273.0D0 .and. ht > 500.0D0 )
-          sncv = hts/10.0D0*(1.0-(min(1.0D0,max((tgrd-253.0D0)/20.0D0,0.0D0))))
+        where ( tgrd < 273.0_rkx .and. ht > 500.0_rkx )
+          sncv = hts/10.0_rkx*(1.0_rkx - &
+                 (min(1.0_rkx,max((tgrd-253.0_rkx)/20.0_rkx,0.0_rkx))))
         end where
       end if
 
@@ -311,7 +312,7 @@ module mod_bats_common
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     integer(ik4) , intent (in) :: ivers
-    real(rk8) :: facb , facs , fact , factuv , facv , fracb ,  &
+    real(rkx) :: facb , facs , fact , factuv , facv , fracb ,  &
                  fracs , fracv , rh0 , solvt , xqs0 , xqsdif
     integer(ik4) :: i , j , n
 #ifdef DEBUG
@@ -340,11 +341,11 @@ module mod_bats_common
       call c2l_gs(lndcomm,lm%rlwf,lwflx)
       call c2l_gs(lndcomm,lm%vegswab,abswveg)
 
-      z1log  = dlog(zh)
-      z2fra  = dlog(zh*d_half)
-      z10fra = dlog(zh*d_r10)
-      zlglnd = dlog(zh/zlnd)
-      zlgsno = dlog(zh/zsno)
+      z1log  = log(zh)
+      z2fra  = log(zh*d_half)
+      z10fra = log(zh*d_r10)
+      zlglnd = log(zh/zlnd)
+      zlgsno = log(zh/zsno)
 
       call fseas(tgbrd,aseas)
 
@@ -370,7 +371,7 @@ module mod_bats_common
         if ( solvt > d_zero ) then
           fracd(i) = swf0(i)/solvt
         else
-          fracd(i) = 0.2D0
+          fracd(i) = 0.2_rkx
         end if
       end do
 

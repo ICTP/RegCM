@@ -49,26 +49,25 @@ module mod_ocn_coare
     !
     subroutine coare3_drv()
       implicit none
-      real(rk8) :: ts , qs , us , uv995 , t995 , q995 , z995 , ta
-      real(rk8) :: zu , zt , zq , zi , du , dt , dq , ut , dter
-      real(rk8) :: ug , zogs , u10 , cdhg , zo10 , zot10
-      real(rk8) :: usr , qsr , tsr , zetu , l10 , wetc , zet
-      real(rk8) :: cd10 , ch10 , ct10 , cc , cd , ct , ribcu , ribu
-      real(rk8) :: rr , rt , rq , zo , zot , zoq , dels , bigc , Al
-      real(rk8) :: l , Bf , tkt , qout , qcol , alq , xlamx , dqer
-      real(rk8) :: le , visa , rhoa , cpv , Rns , Rnl
-      real(rk8) :: hsb , hlb , tau , uv10 , facttq
+      real(rkx) :: ts , qs , us , uv995 , t995 , q995 , z995 , ta
+      real(rkx) :: zu , zt , zq , zi , du , dt , dq , ut , dter
+      real(rkx) :: ug , zogs , u10 , cdhg , zo10 , zot10
+      real(rkx) :: usr , qsr , tsr , zetu , l10 , wetc , zet
+      real(rkx) :: cd10 , ch10 , ct10 , cc , cd , ct , ribcu , ribu
+      real(rkx) :: rr , rt , rq , zo , zot , zoq , dels , bigc , Al
+      real(rkx) :: l , Bf , tkt , qout , qcol , alq , xlamx , dqer
+      real(rkx) :: le , visa , rhoa , cpv , Rns , Rnl
+      real(rkx) :: hsb , hlb , tau , uv10 , facttq
       integer(ik4) :: i , k , niter
       logical :: iflag
 
-      real(rk8) , parameter :: beta = 1.25D0 ! gustiness coeff.
-      real(rk8) , parameter :: fdg  = 1.0D0 ! ratio of thermal to wind VonKarman
-      real(rk8) , parameter :: visw = 1.0d-6 ! water kinematic viscosity
-      real(rk8) , parameter :: tcw  = 0.6D0     ! water thermal diffusivity
-      real(rk8) , parameter :: rhow = 1022.0    ! water density
-      real(rk8) , parameter :: be   = 0.026D0   ! sal. expans. coef. of water
-      real(rk8) , parameter :: cpw  = 4.0d3     ! spec. heat of water
-
+      real(rkx) , parameter :: beta = 1.25_rkx   ! gustiness coeff.
+      real(rkx) , parameter :: fdg  = 1.0_rkx    ! ratio of thermal to wind VonKarman
+      real(rkx) , parameter :: visw = 1.0e-6_rkx ! water kinematic viscosity
+      real(rkx) , parameter :: tcw  = 0.6_rkx    ! water thermal diffusivity
+      real(rkx) , parameter :: rhow = 1022.0     ! water density
+      real(rkx) , parameter :: be   = 0.026_rkx  ! sal. expans. coef. of water
+      real(rkx) , parameter :: cpw  = 4.0e3_rkx  ! spec. heat of water
 
       do i = iocnbeg , iocnend
         if ( mask(i) /= 1 ) cycle
@@ -83,12 +82,12 @@ module mod_ocn_coare
         !
         iflag = .false.
         if ( lseaice .or. llake ) then
-          if (sfice(i) > 0.0D0) iflag = .true.
+          if (sfice(i) > 0.0_rkx) iflag = .true.
         end if
         ts = tgrd(i) - tzero
         ! comes from coupled model
-        us = 0.0D0 ! current speed
-        uv995 = dsqrt(usw(i)**2+vsw(i)**2)
+        us = 0.0_rkx ! current speed
+        uv995 = sqrt(usw(i)**2+vsw(i)**2)
         t995 = sts(i)-tzero
         q995 = qv(i)
         z995 = ht(i)
@@ -115,16 +114,16 @@ module mod_ocn_coare
         rhoa = sfps(i)/(rgas*ta*(d_one+ep1*q995))
 
         ! kinematic viscosity of dry air (m2/s), Andreas (1989)
-        visa = 1.326d-5*(d_one+6.542d-3*t995+8.301d-6*t995*t995- &
-               4.84d-9*t995*t995*t995)
+        visa = 1.326e-5_rkx*(d_one+6.542e-3_rkx*t995+8.301e-6_rkx*t995*t995- &
+               4.84e-9_rkx*t995*t995*t995)
 
         bigc = 16.0*egrav*cpw*(rhow*visw)**3/(tcw*tcw*rhoa*rhoa)
 
         ! water thermal expansion coefft
-        if (ts > -2.0D0) then
-          Al = 2.1d-5*(ts+3.2D0)**0.79D0
+        if (ts > -2.0_rkx) then
+          Al = 2.1e-5_rkx*(ts+3.2_rkx)**0.79_rkx
         else
-          Al = 2.4253d-05
+          Al = 2.4253e-05_rkx
         end if
         !
         !-----------------------------------------------------
@@ -138,7 +137,7 @@ module mod_ocn_coare
         ! Begin bulk loop - first guess
         !--------------------------------
         !
-        qs = pfqsat(tgrd(i),sfps(i))*0.98D0
+        qs = pfqsat(tgrd(i),sfps(i))*0.98_rkx
         wetc = pfqsdt(tgrd(i),sfps(i))
 
         ! Move all to specific humidities
@@ -154,59 +153,59 @@ module mod_ocn_coare
         ! assume that wind is measured relative to sea surface
         ! and include gustiness
         ug = d_half
-        ut = dsqrt(du*du+ug*ug)
+        ut = sqrt(du*du+ug*ug)
 
         if (iflag) then
           dter = d_zero
         else
-          dter = 0.3D0
+          dter = 0.3_rkx
         end if
         !
         !-----------------------
         ! Neutral coefficients
         !-----------------------
         !
-        zogs = 1D-4
+        zogs = 1e-4_rkx
         if ( iflag ) then
-          zogs = 4.5D-4
+          zogs = 4.5e-4_rkx
         end if
 
-        u10 = ut*dlog(10.0D0/zogs)/dlog(zu/zogs)
-        cdhg = vonkar/dlog(10.0D0/zogs)
+        u10 = ut*log(10.0_rkx/zogs)/log(zu/zogs)
+        cdhg = vonkar/log(10.0_rkx/zogs)
         usr = cdhg*u10
 
         ! initial guess for the friction velocity
         if ( iflag ) then
           zo10 = zogs
         else
-          zo10 = 0.011D0*usr*usr*regrav+0.11D0*visa/usr
+          zo10 = 0.011_rkx*usr*usr*regrav+0.11_rkx*visa/usr
         end if
 
         ! initial guess for drag coefficents
-        cd10 = (vonkar/dlog(10.0D0/zo10))**2
+        cd10 = (vonkar/log(10.0_rkx/zo10))**2
         if ( iflag ) then
-          ch10 = 0.0015D0
+          ch10 = 0.0015_rkx
         else
-          ch10 = 0.00115D0
+          ch10 = 0.00115_rkx
         end if
-        ct10 = ch10/dsqrt(cd10)
-        zot10 = 10.0D0/dexp(vonkar/ct10)
-        cd = (vonkar/dlog(zu/zo10))**2
+        ct10 = ch10/sqrt(cd10)
+        zot10 = 10.0_rkx/exp(vonkar/ct10)
+        cd = (vonkar/log(zu/zo10))**2
         !
         !----------------------------
         ! Compute Richardson number
         !----------------------------
         !
-        ct = vonkar/dlog(zt/zot10)
+        ct = vonkar/log(zt/zot10)
         cc = vonkar*ct/cd
-        ribcu = -zu/zi/0.004D0/beta**3
+        ribcu = -zu/zi/0.004_rkx/beta**3
         ribu = -egrav*zu/ta*((dt-dter)+ep1*ta*dq)/ut**2
 
         niter = 3
-        if (ribu < 0.0D0) then
-          zetu = cc*ribu/(1.0D0+ribu/ribcu) ! unstable
+        if (ribu < 0.0_rkx) then
+          zetu = cc*ribu/(1.0_rkx+ribu/ribcu) ! unstable
         else
-          zetu = cc*ribu*(1.0D0+3.0D0*ribu/cc) ! stable
+          zetu = cc*ribu*(1.0_rkx+3.0_rkx*ribu/cc) ! stable
         end if
         l10 = zu/zetu
         if (zetu > 50.0) niter = 1
@@ -215,10 +214,10 @@ module mod_ocn_coare
         ! First guesses for Monon-Obukhov similarity scales
         !---------------------------------------------------
         !
-        usr = ut*vonkar/(dlog(zu/zo10)-psiuo(zu/l10))
-        tsr = -(dt-dter)*vonkar*fdg/(dlog(zt/zot10)-psit(zt/l10))
-        qsr = -(dq-wetc*dter)*vonkar*fdg/(dlog(zq/zot10)-psit(zq/l10))
-        tkt = 0.001D0 ! cool skin thickness
+        usr = ut*vonkar/(log(zu/zo10)-psiuo(zu/l10))
+        tsr = -(dt-dter)*vonkar*fdg/(log(zt/zot10)-psit(zt/l10))
+        qsr = -(dq-wetc*dter)*vonkar*fdg/(log(zq/zot10)-psit(zq/l10))
+        tkt = 0.001_rkx ! cool skin thickness
         !
         !------------------------------------------
         ! Main loop - limited with three iteration
@@ -229,7 +228,7 @@ module mod_ocn_coare
           if ( iflag ) then
             zo = zogs
           else
-            zo = 0.011D0*usr*usr*regrav+0.11D0*visa/usr
+            zo = 0.011_rkx*usr*usr*regrav+0.11_rkx*visa/usr
           end if
 
           rr = zo*usr/visa
@@ -238,42 +237,42 @@ module mod_ocn_coare
           rt = d_one
           rq = d_one
           if ( iflag ) then
-            if ( rr <= 0.135D0 ) then
-              rt = rr*dexp(1.250D0)
-              rq = rr*dexp(1.610D0)
-            else if ( rr <= 2.5D0 ) then
-              rt = rr*dexp(0.149D0-0.550D0*dlog(rr))
-              rq = rr*dexp(0.351D0-0.628D0*dlog(rr))
-            else if ( rr <= 1000D0 ) then
-              rt = rr*dexp(0.317D0-0.565D0*dlog(rr)-0.183D0*dlog(rr)*dlog(rr))
-              rq = rr*dexp(0.396D0-0.512D0*dlog(rr)-0.180D0*dlog(rr)*dlog(rr))
+            if ( rr <= 0.135_rkx ) then
+              rt = rr*exp(1.250_rkx)
+              rq = rr*exp(1.610_rkx)
+            else if ( rr <= 2.5_rkx ) then
+              rt = rr*exp(0.149_rkx-0.550_rkx*log(rr))
+              rq = rr*exp(0.351_rkx-0.628_rkx*log(rr))
+            else if ( rr <= 1000_rkx ) then
+              rt = rr*exp(0.317_rkx-0.565_rkx*log(rr)-0.183_rkx*log(rr)*log(rr))
+              rq = rr*exp(0.396_rkx-0.512_rkx*log(rr)-0.180_rkx*log(rr)*log(rr))
             end if
             ! for ocean, Lui et al., 1979
           else
-            if ( rr <= 0.11D0 ) then
-              rt = 0.177D0
-              rq = 0.292D0
-            else if ( rr <= 0.8D0 ) then
-              rt = 1.376D0*rr**0.929D0
-              rq = 1.808D0*rr**0.826D0
-            else if ( rr <= 3.0D0 ) then
-              rt = 1.026D0*rr**(-0.599D0)
-              rq = 1.393D0*rr**(-0.528D0)
-            else if ( rr <= 10.0D0 ) then
-              rt = 1.625D0*rr**(-1.018D0)
-              rq = 1.956D0*rr**(-0.870D0)
-            else if ( rr <= 30.0D0 ) then
-              rt = 4.661D0*rr**(-1.475D0)
-              rq = 4.994D0*rr**(-1.297D0)
-            else if (rr <= 100.0D0) then
-              rt = 34.904D0*rr**(-2.067D0)
-              rq = 30.709D0*rr**(-1.845D0)
-            else if ( rr <= 300.0D0 ) then
-              rt = 1667.19D0*rr**(-2.907D0)
-              rq = 1448.68D0*rr**(-2.682D0)
-            else if ( rr <= 1000.0D0 ) then
-              rt = 5.88d5*rr**(-3.935D0)
-              rq = 2.98d5*rr**(-3.616D0)
+            if ( rr <= 0.11_rkx ) then
+              rt = 0.177_rkx
+              rq = 0.292_rkx
+            else if ( rr <= 0.8_rkx ) then
+              rt = 1.376_rkx*rr**0.929_rkx
+              rq = 1.808_rkx*rr**0.826_rkx
+            else if ( rr <= 3.0_rkx ) then
+              rt = 1.026_rkx*rr**(-0.599_rkx)
+              rq = 1.393_rkx*rr**(-0.528_rkx)
+            else if ( rr <= 10.0_rkx ) then
+              rt = 1.625_rkx*rr**(-1.018_rkx)
+              rq = 1.956_rkx*rr**(-0.870_rkx)
+            else if ( rr <= 30.0_rkx ) then
+              rt = 4.661_rkx*rr**(-1.475_rkx)
+              rq = 4.994_rkx*rr**(-1.297_rkx)
+            else if (rr <= 100.0_rkx) then
+              rt = 34.904_rkx*rr**(-2.067_rkx)
+              rq = 30.709_rkx*rr**(-1.845_rkx)
+            else if ( rr <= 300.0_rkx ) then
+              rt = 1667.19_rkx*rr**(-2.907_rkx)
+              rq = 1448.68_rkx*rr**(-2.682_rkx)
+            else if ( rr <= 1000.0_rkx ) then
+              rt = 5.88e5_rkx*rr**(-3.935_rkx)
+              rq = 2.98e5_rkx*rr**(-3.616_rkx)
             end if
           end if
 
@@ -283,18 +282,18 @@ module mod_ocn_coare
           zoq = rq*visa/usr
 
           ! update scaling params
-          usr = ut*vonkar/(dlog(zu/zo)-psiuo(zu/L))
-          tsr = -(dt-dter)*vonkar*fdg/(dlog(zt/zot)-psit(zt/L))
-          qsr = -(dq-wetc*dter)*vonkar*fdg/(dlog(zq/zoq)-psit(zq/L))
+          usr = ut*vonkar/(log(zu/zo)-psiuo(zu/L))
+          tsr = -(dt-dter)*vonkar*fdg/(log(zt/zot)-psit(zt/L))
+          qsr = -(dq-wetc*dter)*vonkar*fdg/(log(zq/zoq)-psit(zq/L))
 
           ! compute gustiness in wind speed
           Bf = -egrav/ta*usr*(tsr+ep1*ta*qsr)
-          if ( Bf > 0.0D0 ) then
-            ug = beta*(Bf*zi)**0.333D0
+          if ( Bf > 0.0_rkx ) then
+            ug = beta*(Bf*zi)**0.333_rkx
           else
-            ug = 0.2D0
+            ug = 0.2_rkx
           end if
-          ut = dsqrt(du*du+ug*ug)
+          ut = sqrt(du*du+ug*ug)
 
           ! background sensible and latent heat flux
           hsb = -rhoa*cpd*usr*tsr
@@ -302,19 +301,20 @@ module mod_ocn_coare
 
           ! total cooling at the interface
           qout = Rnl+hsb+hlb
-          dels = Rns*(0.137D0+11.0D0*tkt-6.6d-5/tkt*(1.0D0-dexp(-tkt/8.0d-4)))
+          dels = Rns*(0.137_rkx+11.0_rkx*tkt-6.6e-5_rkx / &
+                   tkt*(1.0_rkx-exp(-tkt/8.0e-4_rkx)))
           qcol = qout-dels
 
           if ( qcol > 0 ) then
             ! buoy flux water, Eq. 7
             alq = Al*qcol+be*hlb*cpw/Le
             ! Saunders, Eq. 13
-            if ( alq < 0.0D0 ) then
+            if ( alq < 0.0_rkx ) then
               dter = d_zero
             else
-              xlamx = 6.0D0/(1.0D0+(bigc*alq/usr**4)**0.75D0)**0.333D0
+              xlamx = 6.0_rkx/(1.0_rkx+(bigc*alq/usr**4)**0.75_rkx)**0.333_rkx
               ! sub. thk, Eq. 11
-              tkt = xlamx*visw/(dsqrt(rhoa/rhow)*usr)
+              tkt = xlamx*visw/(sqrt(rhoa/rhow)*usr)
               ! cool skin, Eq. 12
               dter = qcol*tkt/tcw
             end if
@@ -330,10 +330,10 @@ module mod_ocn_coare
         end do
         !
         if ( zetu < d_zero ) then
-          uv10 = uv995+(usr/vonkar)*(dlog(10.0D0/zu)- &
+          uv10 = uv995+(usr/vonkar)*(log(10.0_rkx/zu)- &
                        (psiuo(zetu)-psiuo(zu/l10)))
         else
-          uv10 = uv995+(usr/vonkar)*(dlog(10.0D0/zu)+ &
+          uv10 = uv995+(usr/vonkar)*(log(10.0_rkx/zu)+ &
                        d_five*zetu-d_five*zu/l10)
         end if
         !
@@ -346,7 +346,7 @@ module mod_ocn_coare
         evpr(i) = hlb/Le
 
         ! drag coefficents
-        facttq = dlog(z995*d_half)/dlog(z995/zo)
+        facttq = log(z995*d_half)/log(z995/zo)
         drag(i) = usr**2*rhox(i)/uv995
 
         ! wind stress components
@@ -364,44 +364,44 @@ module mod_ocn_coare
       end do
     end subroutine coare3_drv
 
-    pure real(rk8) function psiuo(zet)
+    pure real(rkx) function psiuo(zet)
       implicit none
-      real(rk8) , intent (in) :: zet
-      real(rk8) :: x, psik, f, psic, c
-      if (zet < 0.0D0) then
-        x = (1.0D0-15.0D0*zet)**0.25D0
-        psik = 2.0D0*dlog((1.0D0+x)/2.0D0)+dlog((1.0D0+x*x)/2.0D0)- &
-               2.0D0*datan(x)+2.0D0*datan(1.0D0)
-        x = (1.0D0-10.15D0*zet)**0.3333D0
-        psic = 1.5D0*dlog((1.0D0+x+x*x)/3.0D0)-dsqrt(3.0D0)*        &
-               datan((1.0D0+2.0D0*x)/dsqrt(3.0D0))+4.0D0*           &
-               datan(1.0D0)/dsqrt(3.0D0)
-        f = zet*zet/(1.0D0+zet*zet)
-        psiuo = (1.0D0-f)*psik+f*psic
+      real(rkx) , intent (in) :: zet
+      real(rkx) :: x, psik, f, psic, c
+      if (zet < 0.0_rkx) then
+        x = (1.0_rkx-15.0_rkx*zet)**0.25_rkx
+        psik = 2.0_rkx*log((1.0_rkx+x)/2.0_rkx)+log((1.0_rkx+x*x)/2.0_rkx)- &
+               2.0_rkx*atan(x)+2.0_rkx*atan(1.0_rkx)
+        x = (1.0_rkx-10.15_rkx*zet)**0.3333_rkx
+        psic = 1.5_rkx*log((1.0_rkx+x+x*x)/3.0_rkx)-sqrt(3.0_rkx)*        &
+               atan((1.0_rkx+2.0_rkx*x)/sqrt(3.0_rkx))+4.0_rkx*           &
+               atan(1.0_rkx)/sqrt(3.0_rkx)
+        f = zet*zet/(1.0_rkx+zet*zet)
+        psiuo = (1.0_rkx-f)*psik+f*psic
       else
-        c = dmin1(50.0D0,0.35D0*zet)
-        psiuo = -((1.0D0+1.0D0*zet)**1.0D0+0.667D0*                 &
-                (zet-14.28D0)/dexp(c)+8.525D0)
+        c = min(50.0_rkx,0.35_rkx*zet)
+        psiuo = -((1.0_rkx+1.0_rkx*zet)**1.0_rkx+0.667_rkx*                 &
+                (zet-14.28_rkx)/exp(c)+8.525_rkx)
       end if
     end function psiuo
 
-    pure real(rk8) function psit(zet)
+    pure real(rkx) function psit(zet)
       implicit none
-      real(rk8) , intent (in) :: zet
-      real(rk8) :: x, psik, f, psic, c
-      if (zet < 0.0D0) then
-        x = (1.0D0-15.0D0*zet)**0.5D0
-        psik = 2.0D0*dlog((1.0D0+x)/2.0D0)
-        x = (1.0D0-34.15D0*zet)**0.3333D0
-        psic = 1.5D0*dlog((1.0D0+x+x*x)/3.0D0)-dsqrt(3.0D0)* &
-               datan((1.0D0+2.0D0*x)/dsqrt(3.0D0))+4.0D0*    &
-               datan(1.0D0)/dsqrt(3.0D0)
-        f = zet*zet/(1.0D0+zet*zet)
-        psit = (1.0D0-f)*psik+f*psic
+      real(rkx) , intent (in) :: zet
+      real(rkx) :: x, psik, f, psic, c
+      if (zet < 0.0_rkx) then
+        x = (1.0_rkx-15.0_rkx*zet)**0.5_rkx
+        psik = 2.0_rkx*log((1.0_rkx+x)/2.0_rkx)
+        x = (1.0_rkx-34.15_rkx*zet)**0.3333_rkx
+        psic = 1.5_rkx*log((1.0_rkx+x+x*x)/3.0_rkx)-sqrt(3.0_rkx)* &
+               atan((1.0_rkx+2.0_rkx*x)/sqrt(3.0_rkx))+4.0_rkx*    &
+               atan(1.0_rkx)/sqrt(3.0_rkx)
+        f = zet*zet/(1.0_rkx+zet*zet)
+        psit = (1.0_rkx-f)*psik+f*psic
       else
-        c = dmin1(50.0D0,0.35D0*zet)
-        psit = -((1.0D0+2.0D0/3.0D0*zet)**1.5D0+0.667D0*     &
-                (zet-14.28D0)/dexp(c)+8.525D0)
+        c = min(50.0_rkx,0.35_rkx*zet)
+        psit = -((1.0_rkx+2.0_rkx/3.0_rkx*zet)**1.5_rkx+0.667_rkx*     &
+                (zet-14.28_rkx)/exp(c)+8.525_rkx)
       end if
     end function psit
 

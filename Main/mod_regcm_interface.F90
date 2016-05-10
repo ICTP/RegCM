@@ -37,7 +37,6 @@ module mod_regcm_interface
   use mod_header
   use mod_params
   use mod_tendency
-  use mod_tstep
   use mod_service
   use mod_cloud_s1
 #ifdef CPL
@@ -51,7 +50,7 @@ module mod_regcm_interface
   public :: RCM_run
   public :: RCM_finalize
 
-  real(rk8) :: extime
+  real(rkx) :: extime
 
   data extime /d_zero/
   contains
@@ -163,8 +162,8 @@ module mod_regcm_interface
   !
   subroutine RCM_run(timestr, timeend)
     implicit none
-    real(rk8) , intent(in) :: timestr   ! starting time-step
-    real(rk8) , intent(in) :: timeend   ! ending   time-step
+    real(rkx) , intent(in) :: timestr   ! starting time-step
+    real(rkx) , intent(in) :: timeend   ! ending   time-step
     character(len=32) :: appdat
 
 #ifdef DEBUG
@@ -175,20 +174,6 @@ module mod_regcm_interface
 #ifdef DEBUG
       ! call grid_nc_write(nc_4d)
 #endif
-      !
-      ! Refined start
-      !
-      if ( .not. ifrest ) then
-        if ( rfstrt ) then
-          if ( (ktau == 0) .or. dtsec /= deltmx ) then
-            call tstep(extime,dtsec)
-            if ( myid == italk ) then
-              write(stdout, 99001) extime , dtsec , dt , dt2 , &
-                                   dtsec , ktau , xyear
-            end if
-          end if
-        end if
-      end if
       !
       ! Retrieve information from the driver
       !

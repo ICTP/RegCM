@@ -32,18 +32,18 @@ module mod_ocn_albedo
   !
   ! Solar flux partitioned at wavelength of 0.7micr
   !
-  real(rk8) , parameter :: fsol1 = 0.5D0
-  real(rk8) , parameter :: fsol2 = 0.5D0
+  real(rkx) , parameter :: fsol1 = 0.5_rkx
+  real(rkx) , parameter :: fsol2 = 0.5_rkx
   !
   ! Short and long wave albedo for new snow
   !
-  real(rk8) , parameter :: snal0 = 0.95D0
-  real(rk8) , parameter :: snal1 = 0.65D0
+  real(rkx) , parameter :: snal0 = 0.95_rkx
+  real(rkx) , parameter :: snal1 = 0.65_rkx
   !
   ! Short and long wave albedo for sea ice
   !
-  real(rk8) , parameter :: sical0 = 0.6D0
-  real(rk8) , parameter :: sical1 = 0.4D0
+  real(rkx) , parameter :: sical0 = 0.6_rkx
+  real(rkx) , parameter :: sical1 = 0.4_rkx
 
   public :: ocn_albedo
 
@@ -55,7 +55,7 @@ module mod_ocn_albedo
   subroutine ocn_albedo
     implicit none
 !
-    real(rk8) :: age , albg , albgl , albgld , albgs , albgsd , &
+    real(rkx) :: age , albg , albgl , albgld , albgs , albgsd , &
                  cf1 , cff , conn , cons ,       &
                  czeta , czf , dfalbl , dfalbs , dralbl , dralbs , sl , &
                  sl2 , sli , tdiff , tdiffs
@@ -76,25 +76,25 @@ module mod_ocn_albedo
         ! ocean albedo depends on zenith angle
         if ( czeta >= d_zero ) then
           ! albedo independent of wavelength
-          albg = 0.05D0/(czeta+0.15D0)
+          albg = 0.05_rkx/(czeta+0.15_rkx)
           albgs = albg
           albgl = albg
-          albgsd = 0.08D0
-          albgld = 0.08D0
+          albgsd = 0.08_rkx
+          albgld = 0.08_rkx
         else
-          albg = 0.05D0
+          albg = 0.05_rkx
           albgs = albg
           albgl = albg
-          albgsd = 0.08D0
-          albgld = 0.08D0
+          albgsd = 0.08_rkx
+          albgld = 0.08_rkx
         end if
       else if ( mask(i) == 2 .or. mask(i) == 4 ) then
         ! Ice over ocean or lake
         tdiffs = sts(i) - tzero
-        tdiff = dmax1(tdiffs,d_zero)
-        tdiffs = dmin1(tdiff,20.0D0)
-        albgl = sical1 - 1.1D-2*tdiffs
-        albgs = sical0 - 2.45D-2*tdiffs
+        tdiff = max(tdiffs,d_zero)
+        tdiffs = min(tdiff,20.0_rkx)
+        albgl = sical1 - 1.1e-2_rkx*tdiffs
+        albgs = sical0 - 2.45e-2_rkx*tdiffs
         albg = fsol1*albgs + fsol2*albgl
         albgsd = albgs
         albgld = albgl
@@ -103,8 +103,8 @@ module mod_ocn_albedo
           ! of snow. snow albedoes for visible and ir solar rad visible
           ! albedo depends on snow age
           ! age gives reduction of visible rad snow albedo due to age
-          cons = 0.2D0
-          conn = 0.5D0
+          cons = 0.2_rkx
+          conn = 0.5_rkx
           age = (d_one-d_one/(d_one+snag(i)))
           ! sl helps control albedo zenith dependence
           sl = d_two
@@ -115,11 +115,11 @@ module mod_ocn_albedo
           dfalbs = snal0*(d_one-cons*age)
           ! czf corrects albedo of new snow for solar zenith
           cf1 = ((d_one+sli)/(d_one+sl2*czeta)-sli)
-          cff = dmax1(cf1,d_zero)
-          czf = 0.4D0*cff*(d_one-dfalbs)
+          cff = max(cf1,d_zero)
+          czf = 0.4_rkx*cff*(d_one-dfalbs)
           dralbs = dfalbs + czf
           dfalbl = snal1*(d_one-conn*age)
-          czf = 0.4D0*cff*(d_one-dfalbl)
+          czf = 0.4_rkx*cff*(d_one-dfalbl)
           dralbl = dfalbl + czf
           !------------------------------------------
           ! 4.1  compute albedo for snow on sea ice

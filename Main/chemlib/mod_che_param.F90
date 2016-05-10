@@ -29,38 +29,38 @@ module mod_che_param
   integer(ik4) :: ichaer
 
   !FAB : temporaire car defini dans les modules de deposts
-  real(rk8) , dimension(22) :: aest , arye
+  real(rkx) , dimension(22) :: aest , arye
   ! Stokes parameters
 
-  real(rk8) , dimension(12) :: cxmopor
-  real(rk8) , dimension(22) :: cdepuv , crough
+  real(rkx) , dimension(12) :: cxmopor
+  real(rkx) , dimension(22) :: cdepuv , crough
   integer(ik4) , dimension(22) :: ciexsol
   !
   !FAB : redefine soil prop. similar to bats for chemistry externalisation.
   ! think about an interface!
   !
   !     ******      xmopor is fraction of soil that is voids
-  data cxmopor/0.33D0 , 0.36D0 , 0.39D0 , 0.42D0 , 0.45D0 , 0.48D0 , &
-               0.51D0 , 0.54D0 , 0.57D0 , 0.60D0 , 0.63D0 , 0.66D0/
+  data cxmopor/0.33_rkx , 0.36_rkx , 0.39_rkx , 0.42_rkx , 0.45_rkx , 0.48_rkx , &
+               0.51_rkx , 0.54_rkx , 0.57_rkx , 0.60_rkx , 0.63_rkx , 0.66_rkx/
   data ciexsol/6 , 6 , 6 , 6 , 7 , 8 , 6 , 1 , 6 , 6 , 5 , 12, 6 ,  &
                6 , 6 , 6 , 5 , 6 , 6 , 6 , 12, 8/
-  data cdepuv /22*100.0D0/
+  data cdepuv /22*100.0_rkx/
   !
   ! rough is an aerodynamic roughness length (m) =approx 0.1*veg*height
   ! also used snow masking depth in subrout albedo
-  data crough /0.08D0 , 0.05D0 , 2*1.0D0 , 0.8D0 , 2.0D0  , 0.1D0  , &
-               0.05D0 , 0.04D0 , 0.06D0 ,  0.1D0 , 0.01D0 , 0.03D0 , &
-               2*0.0004D0 , 2*0.1D0 , 0.8D0 , 2*0.3D0, 1.5D0, 0.40D0 /
+  data crough /0.08_rkx , 0.05_rkx , 2*1.0_rkx , 0.8_rkx , 2.0_rkx  , 0.1_rkx  , &
+               0.05_rkx , 0.04_rkx , 0.06_rkx ,  0.1_rkx , 0.01_rkx , 0.03_rkx , &
+               2*0.0004_rkx , 2*0.1_rkx , 0.8_rkx , 2*0.3_rkx, 1.5_rkx, 0.40_rkx /
 
-  data aest /0.80D0 , 0.80D0 , 0.8D0 , 0.8D0 , 1.2D0 , 1.20D0 , &
-       2.0D0 , 1.5D0 ,  1.5D0 , 2.0D0 , 15.0D0 , 15.0D0 , 1.5D0 ,   &
-       1.5D0 , 1.5D0 , 15.0D0 , 1.2D0 , 1.2D0 , 1.2D0 , 1.2D0 ,     &
-       1.2D0 , 1.2D0 /
+  data aest /0.80_rkx , 0.80_rkx , 0.8_rkx , 0.8_rkx , 1.2_rkx , 1.20_rkx , &
+       2.0_rkx , 1.5_rkx ,  1.5_rkx , 2.0_rkx , 15.0_rkx , 15.0_rkx , 1.5_rkx ,   &
+       1.5_rkx , 1.5_rkx , 15.0_rkx , 1.2_rkx , 1.2_rkx , 1.2_rkx , 1.2_rkx ,     &
+       1.2_rkx , 1.2_rkx /
 !
-  data arye /0.5D0 , 5.0D0 , 0.5D0 , 5.0D0 , 1.0D0 , 1.0D0 ,    &
-     0.0001D0 , 5.0D0 , 10.0D0 , 10.0D0 , 0.0001D0 , 0.0001D0 ,     &
-     0.56D0 , 0.56D0 , 0.56D0 , 0.56D0 ,  0.56D0 , 0.56D0 , 0.56D0 ,&
-     0.56D0 , 1.0D0 , 1.0D0 /
+  data arye /0.5_rkx , 5.0_rkx , 0.5_rkx , 5.0_rkx , 1.0_rkx , 1.0_rkx ,    &
+     0.0001_rkx , 5.0_rkx , 10.0_rkx , 10.0_rkx , 0.0001_rkx , 0.0001_rkx ,     &
+     0.56_rkx , 0.56_rkx , 0.56_rkx , 0.56_rkx ,  0.56_rkx , 0.56_rkx , 0.56_rkx ,&
+     0.56_rkx , 1.0_rkx , 1.0_rkx /
 !
 end module mod_che_param
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

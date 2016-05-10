@@ -46,44 +46,44 @@ module mod_nest
 
   integer(ik4) :: nrec
 
-  real(rk8) , pointer , dimension(:,:,:) :: b3
-  real(rk8) , pointer , dimension(:,:,:) :: d3
-  real(rk8) , pointer , dimension(:,:,:) :: z1
+  real(rkx) , pointer , dimension(:,:,:) :: b3
+  real(rkx) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , pointer , dimension(:,:,:) :: z1
 
-  real(rk8) , pointer , dimension(:,:,:) :: b2
-  real(rk8) , pointer , dimension(:,:,:) :: d2
+  real(rkx) , pointer , dimension(:,:,:) :: b2
+  real(rkx) , pointer , dimension(:,:,:) :: d2
 
-  real(rk8) , pointer , dimension(:,:,:) :: q , t
-  real(rk8) , pointer , dimension(:,:,:) :: u , v
-  real(rk8) , pointer , dimension(:,:,:) :: pp3d , p3d , t0_in
-  real(rk8) , pointer , dimension(:,:) :: ts
-  real(rk8) , pointer , dimension(:,:) :: ps , xts , p0_in , pstar0
-  real(rk8) , pointer , dimension(:,:) :: ht_in
-  real(rk8) , pointer , dimension(:,:) :: xlat_in , xlon_in
+  real(rkx) , pointer , dimension(:,:,:) :: q , t
+  real(rkx) , pointer , dimension(:,:,:) :: u , v
+  real(rkx) , pointer , dimension(:,:,:) :: pp3d , p3d , t0_in
+  real(rkx) , pointer , dimension(:,:) :: ts
+  real(rkx) , pointer , dimension(:,:) :: ps , xts , p0_in , pstar0
+  real(rkx) , pointer , dimension(:,:) :: ht_in
+  real(rkx) , pointer , dimension(:,:) :: xlat_in , xlon_in
 
-  real(rk8) , pointer , dimension(:,:,:) :: h3 , q3 , t3
-  real(rk8) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rkx) , pointer , dimension(:,:,:) :: h3 , q3 , t3
+  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
 
-  real(rk8) , pointer , dimension(:,:,:) :: hp , qp , tp
-  real(rk8) , pointer , dimension(:,:,:) :: up , vp
+  real(rkx) , pointer , dimension(:,:,:) :: hp , qp , tp
+  real(rkx) , pointer , dimension(:,:,:) :: up , vp
 
-  real(rk8) , pointer , dimension(:) :: plev , sigmar
-  real(rk8) :: pss
-  real(rk8) , pointer , dimension(:) :: sigma_in
+  real(rkx) , pointer , dimension(:) :: plev , sigmar
+  real(rkx) :: pss
+  real(rkx) , pointer , dimension(:) :: sigma_in
 
   integer(ik4) :: iy_in , jx_in , kz_in
   integer(ik4) :: np
 
   integer(ik4) :: oidyn
   character(len=6) :: iproj_in
-  real(rk8) :: clat_in , clon_in , plat_in , plon_in , ptop_in , xcone_in
+  real(rkx) :: clat_in , clon_in , plat_in , plon_in , ptop_in , xcone_in
 
   character(len=14) :: fillin
   character(len=256) :: inpfile
 
   integer(ik4) :: ncinp
   type(rcm_time_and_date) , dimension(:) , pointer :: itimes
-  real(rk8) , dimension(:) , pointer :: xtimes
+  real(rkx) , dimension(:) , pointer :: xtimes
   character(len=64) :: timeunits , timecal
 
   contains
@@ -98,7 +98,7 @@ module mod_nest
     integer(ik4) , dimension(4) :: istart , icount
     type(rcm_time_and_date) :: imf
     logical :: lspch
-    real(rk8) :: ptoppa
+    real(rkx) :: ptoppa
 
     ptoppa = ptop * d_1000
 
@@ -368,12 +368,12 @@ module mod_nest
     use netcdf
     implicit none
 
-    real(rk8) :: xsign
+    real(rkx) :: xsign
     integer(ik4) :: i , j , k , ip , istatus , idimid , ivarid
     type(rcm_time_and_date) :: imf
-    real(rk8) , dimension(2) :: trlat
-    real(rk8) , dimension(:) , allocatable :: sigfix
-    real(rk8) :: tlp , pr0_in
+    real(rkx) , dimension(2) :: trlat
+    real(rkx) , dimension(:) , allocatable :: sigfix
+    real(rkx) :: tlp , pr0_in
 
     imf = monfirst(globidate1)
     write (fillin,'(a,i10)') 'ATM.', toint10(imf)
@@ -511,9 +511,9 @@ module mod_nest
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'attribure truelat read error')
       if ( clat_in < 0. ) then
-        xsign = -1.0D0       ! SOUTH HEMESPHERE
+        xsign = -1.0_rkx       ! SOUTH HEMESPHERE
       else
-        xsign = 1.0D0        ! NORTH HEMESPHERE
+        xsign = 1.0_rkx        ! NORTH HEMESPHERE
       end if
       if ( abs(trlat(1)-trlat(2)) > 1.E-1 ) then
         xcone_in = (log10(cos(trlat(1)*degrad))                    &
@@ -521,12 +521,12 @@ module mod_nest
                     (log10(tan((45.0-xsign*trlat(1)/2.0)*degrad))  &
                     -log10(tan((45.0-xsign*trlat(2)/2.0)*degrad)))
       else
-        xcone_in = xsign*sin(dble(trlat(1))*degrad)
+        xcone_in = xsign*sin(real(trlat(1),rkx)*degrad)
       end if
     else if ( iproj_in == 'POLSTR' ) then
-      xcone_in = 1.0D0
+      xcone_in = 1.0_rkx
     else if ( iproj_in == 'NORMER' ) then
-      xcone_in = 0.0D0
+      xcone_in = 0.0_rkx
     else
       istatus = nf90_get_att(ncinp, nf90_global, &
                       'grid_north_pole_latitude', plat_in)
@@ -536,10 +536,10 @@ module mod_nest
                       'grid_north_pole_longitude', plon_in)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'attribure plon read error')
-      xcone_in = 0.0D0
+      xcone_in = 0.0_rkx
     end if
 
-    if ( ptop_in > ptop*10.0D0 ) then
+    if ( ptop_in > ptop*10.0_rkx ) then
       write(stderr,*) 'WARNING : top pressure higher than PTOP detected.'
       write(stderr,*) 'WARNING : Extrapolation will be performed.'
     end if

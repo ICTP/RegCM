@@ -49,62 +49,61 @@ module mod_cloud_s1
   logical , parameter :: fscheme = .true.
 
   ! critical autoconversion
-  real(rk8) , parameter :: rcldiff = 3.D-4
-  real(rk8) , parameter :: rlcritsnow = 3.D-5
+  real(rkx) , parameter :: rcldiff = 3.e-4_rkx
+  real(rkx) , parameter :: rlcritsnow = 3.e-5_rkx
 
-  real(rk8) , parameter :: auto_expon_khair = 1.47D0
-  real(rk8) , parameter :: rldcp = d_one/(wlhsocp-wlhvocp)  ! Cp/Lf
+  real(rkx) , parameter :: auto_expon_khair = 1.47_rkx
+  real(rkx) , parameter :: rldcp = d_one/(wlhsocp-wlhvocp)  ! Cp/Lf
   ! 1/autoconversion time scale (s)
-  !real(rk8) , parameter :: rkconv = d_one/6000.0D0
-  real(rk8) , parameter :: autocrit_kessl = 5.D-4
-  real(rk8) , parameter :: epsec = 1.D-14
-  ! real(rk8) , parameter :: qs0 = 1.0D-3             !g g^(-1)
-  ! real(rk8) , parameter :: rcovpmin = 0.1
-  real(rk8) , parameter :: rclcrit_land = 5.D-4
-  real(rk8) , parameter :: rclcrit_sea = 3.D-4
-  real(rk8) , parameter :: rprc1 = 3.D2  ! in Sundqvist = 300
-  real(rk8) , parameter :: ramid = 0.8D0
-  ! real(rk8) , parameter :: rlmin = 1.D-8
+  !real(rkx) , parameter :: rkconv = d_one/6000.0_rkx
+  real(rkx) , parameter :: autocrit_kessl = 5.e-4_rkx
+  ! real(rkx) , parameter :: qs0 = 1.0e-3_rkx             !g g^(-1)
+  ! real(rkx) , parameter :: rcovpmin = 0.1
+  real(rkx) , parameter :: rclcrit_land = 5.e-4_rkx
+  real(rkx) , parameter :: rclcrit_sea = 3.e-4_rkx
+  real(rkx) , parameter :: rprc1 = 3.e2_rkx  ! in Sundqvist = 300
+  real(rkx) , parameter :: ramid = 0.8_rkx
+  ! real(rkx) , parameter :: rlmin = 1.D-8
   ! max threshold rh for evaporation for a precip coverage of zero
-  real(rk8) , parameter :: rprecrhmax = 0.7D0
+  real(rkx) , parameter :: rprecrhmax = 0.7_rkx
   ! evaporation rate coefficient Numerical fit to wet bulb temperature
-  ! real(rk8) , parameter :: tw1 = 1329.31D0
-  ! real(rk8) , parameter :: tw2 = 0.0074615D0
-  ! real(rk8) , parameter :: tw3 = 0.85D5
-  ! real(rk8) , parameter :: tw4 = 40.637D0
-  ! real(rk8) , parameter :: tw5 = 275.0D0
-  ! real(rk8) , parameter :: rtaumel = 1.1880D4
+  ! real(rkx) , parameter :: tw1 = 1329.31_rkx
+  ! real(rkx) , parameter :: tw2 = 0.0074615_rkx
+  ! real(rkx) , parameter :: tw3 = 0.85e5_rkx
+  ! real(rkx) , parameter :: tw4 = 40.637_rkx
+  ! real(rkx) , parameter :: tw5 = 275.0_rkx
+  ! real(rkx) , parameter :: rtaumel = 1.1880e4_rkx
   ! temperature homogeneous freezing
-  real(rk8) , parameter :: thomo = 235.16D0  ! -38.00 Celsius
+  real(rkx) , parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
   ! Cloud fraction threshold that defines cloud top
-  real(rk8), parameter :: cldtopcf = d_r100
+  real(rkx), parameter :: cldtopcf = d_r100
   ! Fraction of deposition rate in cloud top layer
-  real(rk8), parameter :: depliqrefrate = d_r10
+  real(rkx), parameter :: depliqrefrate = d_r10
   ! Depth of supercooled liquid water layer (m)
-  real(rk8), parameter :: depliqrefdepth = 500.0D0
+  real(rkx), parameter :: depliqrefdepth = 500.0_rkx
   ! initial mass of ice particle
-  real(rk8), parameter :: iceinit = 1.D-12
+  real(rkx), parameter :: iceinit = 1.e-12_rkx
 
   public :: allocate_mod_cloud_s1 , init_cloud_s1 , microphys
 
-  real(rk8) :: oneodt                                 ! 1/dt
+  real(rkx) :: oneodt                                 ! 1/dt
   integer(ik4) , pointer , dimension(:,:) :: ldmsk    ! mddom
-  real(rk8) , pointer , dimension(:,:) :: psb         ! sfc
-  real(rk8) , pointer , dimension(:,:) :: rainnc      ! sfc
-  real(rk8) , pointer , dimension(:,:) :: lsmrnc      ! sfc
-  real(rk8) , pointer , dimension(:,:) :: snownc      ! sfc
-  real(rk8) , pointer , dimension(:,:,:) :: pfcc      ! from atm
-  real(rk8) , pointer , dimension(:,:,:) :: phs       ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: pfs       ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: t         ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: rho       ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: pverv     ! from atms
-  real(rk8) , pointer , dimension(:,:,:,:) :: qxx     ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: radheatrt ! radiation heat rate
-  real(rk8) , pointer , dimension(:,:,:) :: tten      ! tendency of temperature
-  real(rk8) , pointer , dimension(:,:,:) :: qdetr     ! conv. detr. water
-  real(rk8) , pointer , dimension(:,:,:) :: rainls    ! Rain from here
-  real(rk8) , pointer , dimension(:,:,:,:) :: qxten   ! tendency of qx
+  real(rkx) , pointer , dimension(:,:) :: psb         ! sfc
+  real(rkx) , pointer , dimension(:,:) :: rainnc      ! sfc
+  real(rkx) , pointer , dimension(:,:) :: lsmrnc      ! sfc
+  real(rkx) , pointer , dimension(:,:) :: snownc      ! sfc
+  real(rkx) , pointer , dimension(:,:,:) :: pfcc      ! from atm
+  real(rkx) , pointer , dimension(:,:,:) :: phs       ! from atms
+  real(rkx) , pointer , dimension(:,:,:) :: pfs       ! from atms
+  real(rkx) , pointer , dimension(:,:,:) :: t         ! from atms
+  real(rkx) , pointer , dimension(:,:,:) :: rho       ! from atms
+  real(rkx) , pointer , dimension(:,:,:) :: pverv     ! from atms
+  real(rkx) , pointer , dimension(:,:,:,:) :: qxx     ! from atms
+  real(rkx) , pointer , dimension(:,:,:) :: radheatrt ! radiation heat rate
+  real(rkx) , pointer , dimension(:,:,:) :: tten      ! tendency of temperature
+  real(rkx) , pointer , dimension(:,:,:) :: qdetr     ! conv. detr. water
+  real(rkx) , pointer , dimension(:,:,:) :: rainls    ! Rain from here
+  real(rkx) , pointer , dimension(:,:,:,:) :: qxten   ! tendency of qx
 
   ! Total water and enthalpy budget diagnostics variables
   ! marker for water phase of each species
@@ -119,125 +118,125 @@ module mod_cloud_s1
   logical , pointer , dimension(:,:,:) ::   lind1
   logical , pointer , dimension(:,:,:,:) :: lind3
 
-  real(rk8) , pointer , dimension(:,:,:):: sumh0 , sumq0
-  real(rk8) , pointer , dimension(:,:,:) :: sumh1 , sumq1
-  real(rk8) , pointer , dimension(:,:,:) :: errorq , errorh
-  real(rk8) , pointer , dimension(:,:,:):: tentkeep
-  real(rk8) , pointer , dimension(:,:,:,:) :: tenkeep
+  real(rkx) , pointer , dimension(:,:,:):: sumh0 , sumq0
+  real(rkx) , pointer , dimension(:,:,:) :: sumh1 , sumq1
+  real(rkx) , pointer , dimension(:,:,:) :: errorq , errorh
+  real(rkx) , pointer , dimension(:,:,:):: tentkeep
+  real(rkx) , pointer , dimension(:,:,:,:) :: tenkeep
   ! Mass variables
-  real(rk8) , pointer , dimension(:,:) :: dp     ! dp
-  real(rk8) , pointer , dimension(:,:) :: dtgdp  ! dt * g/dp
-  real(rk8) , pointer , dimension(:,:) :: rdtgdp ! dp / (dt * g)  [Kg/(m*s)]
+  real(rkx) , pointer , dimension(:,:) :: dp     ! dp
+  real(rkx) , pointer , dimension(:,:) :: dtgdp  ! dt * g/dp
+  real(rkx) , pointer , dimension(:,:) :: rdtgdp ! dp / (dt * g)  [Kg/(m*s)]
   ! Microphysics
-  real(rk8) , pointer , dimension(:,:) :: qexc
-  real(rk8) , pointer , dimension(:,:) :: chng
-  real(rk8) , pointer , dimension(:,:) :: chngmax
-  real(rk8) , pointer , dimension(:,:) :: qicetot
-  real(rk8) , pointer , dimension(:,:) :: prcflxw
-  real(rk8) , pointer , dimension(:,:) :: prcflxc
-  real(rk8) , pointer , dimension(:,:,:) :: dqsatdt
+  real(rkx) , pointer , dimension(:,:) :: qexc
+  real(rkx) , pointer , dimension(:,:) :: chng
+  real(rkx) , pointer , dimension(:,:) :: chngmax
+  real(rkx) , pointer , dimension(:,:) :: qicetot
+  real(rkx) , pointer , dimension(:,:) :: prcflxw
+  real(rkx) , pointer , dimension(:,:) :: prcflxc
+  real(rkx) , pointer , dimension(:,:,:) :: dqsatdt
   ! for sedimentation source/sink terms
-  real(rk8) , pointer , dimension(:,:,:) :: fallsink
-  real(rk8) , pointer , dimension(:,:,:) :: fallsrce
+  real(rkx) , pointer , dimension(:,:,:) :: fallsink
+  real(rkx) , pointer , dimension(:,:,:) :: fallsrce
   ! for convection detrainment source and subsidence source/sink terms
-  real(rk8) , pointer , dimension(:,:) :: corqsice
-  real(rk8) , pointer , dimension(:,:) :: corqsliq
-  real(rk8) , pointer , dimension(:,:) :: corqsmix
-  real(rk8) , pointer , dimension(:,:) :: evaplimmix
-  real(rk8) , pointer , dimension(:,:,:) :: convsrce
-  real(rk8) , pointer , dimension(:,:,:) :: convsink
+  real(rkx) , pointer , dimension(:,:) :: corqsice
+  real(rkx) , pointer , dimension(:,:) :: corqsliq
+  real(rkx) , pointer , dimension(:,:) :: corqsmix
+  real(rkx) , pointer , dimension(:,:) :: evaplimmix
+  real(rkx) , pointer , dimension(:,:,:) :: convsrce
+  real(rkx) , pointer , dimension(:,:,:) :: convsink
   ! total rain frac: fractional occurence of precipitation (%)
-  real(rk8) , pointer , dimension(:,:) :: covptot
+  real(rkx) , pointer , dimension(:,:) :: covptot
   ! for condensation
-  real(rk8) , pointer , dimension(:,:) :: covpclr
-  real(rk8) , pointer , dimension(:,:) :: qpretot
-  real(rk8) , pointer , dimension(:,:) :: liqcld
-  real(rk8) , pointer , dimension(:,:) :: icecld
-  real(rk8) , pointer , dimension(:,:) :: supsat
-  real(rk8) , pointer , dimension(:,:) :: subsat
-  real(rk8) , pointer , dimension(:,:) :: licld
-  real(rk8) , pointer , dimension(:,:) :: ldefr
-  real(rk8) , pointer , dimension(:,:) :: qold
-  real(rk8) , pointer , dimension(:,:) :: told
-  real(rk8) , pointer , dimension(:,:) :: dqs
-  real(rk8) , pointer , dimension(:,:,:) :: tcond
+  real(rkx) , pointer , dimension(:,:) :: covpclr
+  real(rkx) , pointer , dimension(:,:) :: qpretot
+  real(rkx) , pointer , dimension(:,:) :: liqcld
+  real(rkx) , pointer , dimension(:,:) :: icecld
+  real(rkx) , pointer , dimension(:,:) :: supsat
+  real(rkx) , pointer , dimension(:,:) :: subsat
+  real(rkx) , pointer , dimension(:,:) :: licld
+  real(rkx) , pointer , dimension(:,:) :: ldefr
+  real(rkx) , pointer , dimension(:,:) :: qold
+  real(rkx) , pointer , dimension(:,:) :: told
+  real(rkx) , pointer , dimension(:,:) :: dqs
+  real(rkx) , pointer , dimension(:,:,:) :: tcond
   ! distance from the top of the cloud
-  real(rk8) , pointer , dimension(:,:) :: cldtopdist
+  real(rkx) , pointer , dimension(:,:) :: cldtopdist
   ! ice nuclei concentration
-  real(rk8) , pointer , dimension(:,:) :: icenuclei
-  real(rk8) , pointer , dimension(:,:,:) :: eewmt
-  real(rk8) , pointer , dimension(:,:,:) :: qliq
-  real(rk8) , pointer , dimension(:,:,:) :: qliqfrac
-  real(rk8) , pointer , dimension(:,:,:) :: qicefrac
-  real(rk8) , pointer , dimension(:,:,:) :: qlt
+  real(rkx) , pointer , dimension(:,:) :: icenuclei
+  real(rkx) , pointer , dimension(:,:,:) :: eewmt
+  real(rkx) , pointer , dimension(:,:,:) :: qliq
+  real(rkx) , pointer , dimension(:,:,:) :: qliqfrac
+  real(rkx) , pointer , dimension(:,:,:) :: qicefrac
+  real(rkx) , pointer , dimension(:,:,:) :: qlt
   ! fluxes convergence of species
-  real(rk8) , pointer , dimension(:,:,:) :: fluxq
-  real(rk8) , pointer , dimension(:,:,:) :: ratio
-  real(rk8) , pointer , dimension(:,:,:) :: sinksum
-  real(rk8) , pointer , dimension(:,:,:) :: eew
+  real(rkx) , pointer , dimension(:,:,:) :: fluxq
+  real(rkx) , pointer , dimension(:,:,:) :: ratio
+  real(rkx) , pointer , dimension(:,:,:) :: sinksum
+  real(rkx) , pointer , dimension(:,:,:) :: eew
   ! ice water saturation
-  real(rk8) , pointer , dimension(:,:,:) :: qsice
+  real(rkx) , pointer , dimension(:,:,:) :: qsice
   ! diagnostic mixed phase RH
-  real(rk8) , pointer , dimension(:,:,:) :: qsmix
+  real(rkx) , pointer , dimension(:,:,:) :: qsmix
   ! water saturation mixing ratio
-  real(rk8) , pointer , dimension(:,:,:) :: eeliqt
+  real(rkx) , pointer , dimension(:,:,:) :: eeliqt
   ! liq+rain sedim flux
-  real(rk8) , pointer , dimension(:,:,:) :: pfplsl
+  real(rkx) , pointer , dimension(:,:,:) :: pfplsl
   ! ice+snow sedim flux
-  real(rk8) , pointer , dimension(:,:,:) :: pfplsn
+  real(rkx) , pointer , dimension(:,:,:) :: pfplsn
   ! Flux of liquid
-  real(rk8) , pointer , dimension(:,:,:) :: pfsqlf
+  real(rkx) , pointer , dimension(:,:,:) :: pfsqlf
   ! Flux of ice
-  real(rk8) , pointer , dimension(:,:,:) :: pfsqif
+  real(rkx) , pointer , dimension(:,:,:) :: pfsqif
   ! decoupled temperature tendency
-  real(rk8) , pointer , dimension(:,:,:) :: ttendc
+  real(rkx) , pointer , dimension(:,:,:) :: ttendc
   ! detrainment from tiedtke scheme
-  real(rk8) , pointer , dimension(:,:,:) :: xqdetr
-  ! real(rk8) , pointer , dimension(:,:,:) :: xqdetr2
+  real(rkx) , pointer , dimension(:,:,:) :: xqdetr
+  ! real(rkx) , pointer , dimension(:,:,:) :: xqdetr2
   ! fall speeds of three categories
-  real(rk8) , pointer , dimension(:) :: vqx
+  real(rkx) , pointer , dimension(:) :: vqx
   ! n x n matrix storing the LHS of implicit solver
-  real(rk8) , pointer , dimension(:,:,:,:) :: qlhs
+  real(rkx) , pointer , dimension(:,:,:,:) :: qlhs
   ! explicit sources and sinks
-  real(rk8) , pointer , dimension(:,:,:,:) :: solqa
+  real(rkx) , pointer , dimension(:,:,:,:) :: solqa
   ! implicit sources and sinks
-  real(rk8) , pointer , dimension(:,:,:,:) :: solqb
+  real(rkx) , pointer , dimension(:,:,:,:) :: solqb
   ! decoupled mixing ratios tendency
-  real(rk8) , pointer , dimension(:,:,:,:) :: qxtendc
+  real(rkx) , pointer , dimension(:,:,:,:) :: qxtendc
   ! j,i,n ! generalized precipitation flux
-  real(rk8) , pointer , dimension(:,:,:,:) :: pfplsx
-  real(rk8) , public  , pointer, dimension(:,:,:,:) :: qx0
+  real(rkx) , pointer , dimension(:,:,:,:) :: pfplsx
+  real(rkx) , public  , pointer, dimension(:,:,:,:) :: qx0
   ! new values for qxx at time+1
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: qxn
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: qxn
   ! first guess values including precip
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: qxfg
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: qxfg
   ! first guess value for cloud fraction
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: fccfg
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: fccfg
   ! relative humidity
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: relh
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: relh
   ! saturation mixing ratio with respect to water
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: qsliq
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: qsliq
   ! turbulent erosion rate
-  real(rk8) , pointer , dimension(:,:) :: ldifdt
+  real(rkx) , pointer , dimension(:,:) :: ldifdt
 
   ! statistic only if stas =.true.
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statssupw
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statssupc
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statserosw
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statserosc
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsdetrw
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsdetrc
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsevapw
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsevapc
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statscond1w
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statscond1c
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statscond2w
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statscond2c
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsdepos
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsmelt
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsfrz
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsrainev
-  real(rk8) , public  , pointer, dimension(:,:,:)   :: statssnowev
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statssupw
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statssupc
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statserosw
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statserosc
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statsdetrw
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statsdetrc
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statsevapw
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statsevapc
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statscond1w
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statscond1c
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statscond2w
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statscond2c
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statsdepos
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statsmelt
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statsfrz
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statsrainev
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: statssnowev
 #ifdef USE_LAPACK
   integer(ik4) , pointer , dimension(:) :: ipivot
 #endif
@@ -247,9 +246,9 @@ module mod_cloud_s1
 !    module procedure addpath_real
 !  end interface
 
-  real(rk8) , parameter :: clfeps = 1.0D-6
-  real(rk8) , parameter :: zerocf = lowcld - clfeps
-  real(rk8) , parameter :: onecf  = hicld + clfeps
+  real(rkx) , parameter :: clfeps = 1.0e-6_rkx
+  real(rkx) , parameter :: zerocf = lowcld - clfeps
+  real(rkx) , parameter :: onecf  = hicld + clfeps
 
   contains
 
@@ -403,11 +402,11 @@ module mod_cloud_s1
     imelt(iqqs) = iqqr
 
     ! Set the fall velocities
-    vqx(iqqv) = d_zero ! * sqrt(ZQX(JL,JK,IQV))
-    vqx(iqql) = d_zero ! * sqrt(ZQX(JL,JK,IQL))
-    vqx(iqqr) = vfqr   !4.0D0  * sqrt(ZQX(JL,JK,IQR))
-    vqx(iqqi) = vfqi   !0.15D0 * sqrt(ZQX(JL,JK,IQI))
-    vqx(iqqs) = vfqs   !1.0D0  * sqrt(ZQX(JL,JK,IQS))
+    vqx(iqqv) = d_zero ! * sqrt(QX(JL,JK,IQV))
+    vqx(iqql) = d_zero ! * sqrt(QX(JL,JK,IQL))
+    vqx(iqqr) = vfqr   !4.0_rkx  * sqrt(QX(JL,JK,IQR))
+    vqx(iqqi) = vfqi   !0.15_rkx * sqrt(QX(JL,JK,IQI))
+    vqx(iqqs) = vfqs   !1.0_rkx  * sqrt(QX(JL,JK,IQS))
 
     ! Set lfall
     do n = 1 , nqx
@@ -428,36 +427,36 @@ module mod_cloud_s1
     implicit none
     integer(ik4) :: i , j , k , n , m , jn , jo
     logical :: lactiv
-    real(rk8) :: rexplicit
-    real(rk8) :: fac , faci , facw , corr , koop , gdp
-    real(rk8) :: alfaw , phases , qice , zdelta , tmpl , &
+    real(rkx) :: rexplicit
+    real(rkx) :: fac , faci , facw , corr , koop , gdp
+    real(rkx) :: alfaw , phases , qice , zdelta , tmpl , &
                  tmpi , tnew , qe , rain , preclr , arg
     ! local real variables for autoconversion rate constants
-    real(rk8) :: alpha1 ! coefficient autoconversion cold cloud
-    real(rk8) :: tmpa
-    real(rk8) :: cfpr
-    real(rk8) :: xlcrit
-    real(rk8) :: precip
-    ! real(rk8) :: zqadj
-    real(rk8) :: zrh
-    real(rk8) :: beta , beta1
+    real(rkx) :: alpha1 ! coefficient autoconversion cold cloud
+    real(rkx) :: tmpa
+    real(rkx) :: cfpr
+    real(rkx) :: xlcrit
+    real(rkx) :: precip
+    ! real(rkx) :: zqadj
+    real(rkx) :: zrh
+    real(rkx) :: beta , beta1
     ! local variables for condensation
-    real(rk8) :: cond , dtdp , cdmax , rhc , zsig , &
+    real(rkx) :: cond , dtdp , cdmax , rhc , zsig , &
                  acond , zdl , xlcondlim
     ! local variables for melting
-    real(rk8) :: tdiff
-    real(rk8) :: cons1
+    real(rkx) :: tdiff
+    real(rkx) :: cons1
     ! constant for converting the fluxes unit measures
-    real(rk8) :: prainx , psnowx
+    real(rkx) :: prainx , psnowx
     ! local real constants for evaporation
-    real(rk8) :: dpr , denom , dpevap , evapi , evapl , excess
-    real(rk8) :: dqsmixdt , dqsicedt , dqsliqdt
-    ! real(rk8) :: gdph_r
+    real(rkx) :: dpr , denom , dpevap , evapi , evapl , excess
+    real(rkx) :: dqsmixdt , dqsicedt , dqsliqdt
+    ! real(rkx) :: gdph_r
     ! constants for deposition process
-    real(rk8) :: vpice , vpliq , xadd , xbdd , cvds , &
+    real(rkx) :: vpice , vpliq , xadd , xbdd , cvds , &
                  qice0 , qinew , infactor , rainaut , snowaut
     ! constants for condensation and turbulent mixing erosion of clouds
-    real(rk8) :: dpmxdt , wtot , dtdiab , dtforc , &
+    real(rkx) :: dpmxdt , wtot , dtdiab , dtforc , &
                  qp , qsat , cond1 , levap , leros
 #ifdef USE_LAPACK
     integer :: ires
@@ -477,16 +476,16 @@ module mod_cloud_s1
 
     oneodt = d_one/dt
 
-    ! Set the default 1.D-14 = d_zero
+    ! Set the default 1.e-14_rkx = d_zero
     ! Define the inizial array qx0
     do n = 1 , nqx
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( qxx(j,i,k,n) > epsec ) then
+            if ( qxx(j,i,k,n) > minqx ) then
               qx0(j,i,k,n) = qxx(j,i,k,n)
             else
-              qx0(j,i,k,n) = epsec
+              qx0(j,i,k,n) = minqx
             end if
           end do
         end do
@@ -497,7 +496,7 @@ module mod_cloud_s1
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qdetr(j,i,k) > epsec ) then
+          if ( qdetr(j,i,k) > minqx ) then
             xqdetr(j,i,k) = qdetr(j,i,k)
           else
             xqdetr(j,i,k) = d_zero
@@ -510,12 +509,12 @@ module mod_cloud_s1
     ! initialization for cloud variables
     ! -------------------------------------
     ! Define qliq the function for mixed phase
-    !     PHASES is calculated to distinguish the three cases:
-    !     PHASES = 1            water phase
-    !     PHASES = 0            ice phase
-    !     0 < PHASES < 1        mixed phase
+    !     PHASE is calculated to distinguish the three cases:
+    !     PHASE = 1            water phase
+    !     PHASE = 0            ice phase
+    !     0 < PHASE < 1        mixed phase
     ! Define pressure at full levels
-    ! PAPH = PROVISIONAL PRESSURE ON HALF LEVELS            (Pa)
+    ! pf = Pressure on fuLL levels (Pa)
     ! Define a new array for detrainment
     do k = 1 , kz
       do i = ici1 , ici2
@@ -845,7 +844,7 @@ module mod_cloud_s1
           subsat(j,i) = min((qx0(j,i,k,iqqv)-fac*qsmix(j,i,k))/  &
                               corqsliq(j,i),d_zero)
 
-          if ( supsat(j,i) > epsec ) then
+          if ( supsat(j,i) > dlowval ) then
             if ( t(j,i,k) > thomo ) then
               ! turn supersaturation into liquid water
               solqa(j,i,iqql,iqqv) = solqa(j,i,iqql,iqqv)+supsat(j,i)
@@ -860,7 +859,7 @@ module mod_cloud_s1
           else
             if ( subsat(j,i) < d_zero .and. &
                  fccfg(j,i,k) < zerocf .and. &
-                 qlt(j,i,k) > epsec ) then
+                 qlt(j,i,k) > minqx ) then
               ! turn subsaturation into vapor, where there is no cloud
               excess = qlt(j,i,k)+subsat(j,i)
               if ( excess < d_zero ) then
@@ -885,7 +884,7 @@ module mod_cloud_s1
       if ( stats ) then
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( supsat(j,i) > epsec ) then
+            if ( supsat(j,i) > dlowval ) then
               if ( t(j,i,k) > thomo ) then
                 statssupw(j,i,k) = supsat(j,i)
               else
@@ -894,7 +893,7 @@ module mod_cloud_s1
             else
               if ( subsat(j,i) < d_zero .and. &
                    fccfg(j,i,k) < zerocf .and. &
-                   qlt(j,i,k) > epsec ) then
+                   qlt(j,i,k) > minqx ) then
                 excess = qlt(j,i,k)+subsat(j,i)
                 if ( excess < d_zero ) then
                   if ( t(j,i,k) > thomo ) then
@@ -924,14 +923,14 @@ module mod_cloud_s1
       !             |   Sink of this variable
       !             |   |
       !             V   V
-      ! ZSOLQA/B:q(IQa,IQb)
+      ! SOLQA/B:q(IQa,IQb)
       !
-      ! Thus if ZSOLQA/B(IQL,IQV) = K where K > 0 then this is
+      ! Thus if SOLQA/B(IQL,IQV) = K where K > 0 then this is
       ! a source of IQL and a sink of IQV
       !
-      ! put 'magic' source terms such as PLUDE from
+      ! put 'magic' source terms such as LUDE from
       ! detrainment into explicit source/sink array diagnognal
-      ! ZSOLQA(IQL,IQL)=PLUDE
+      ! SOLQA(IQL,IQL)=LUDE
       !--------------------------------------------------------
       ! Define the microphysics
       ! the matrix will be sparse is this a problem ?
@@ -968,11 +967,11 @@ module mod_cloud_s1
               !        qsice(j,i,k)) / (d_one-fccfg(j,i,k))
               ! qe = max(d_zero,min(qe,qsmix(j,i,k))) !qsice(j,i,k)))
               ! define the new cloud
-              ! fccfg(j,i,k) = (relh(j,i,k)**0.25D0)* &
-              !                (d_one-dexp((-100.0D0*(qxfg(j,i,iqql) + &
+              ! fccfg(j,i,k) = (relh(j,i,k)**0.25_rkx)* &
+              !                (d_one-dexp((-100.0_rkx*(qxfg(j,i,iqql) + &
               !                 qxfg(j,i,iqqi))/qx3(j,i,k,iqi)
               !                sqrt((d_one-relh(j,i,k))*qsice(j,i,k)))))
-              ! fccfg(j,i,k) = dmin1(dmax1(fccfg(j,i,k),0.01D0),0.99D0)
+              ! fccfg(j,i,k) = dmin1(dmax1(fccfg(j,i,k),0.01_rkx),0.99_rkx)
               ! chng(j,i) = min(xqdetr(j,i,k),(fccfg(j,i,k) - &
               !                            fccfg(j,i,k))*(qsice(j,i,k)-qe))
               ! chng(j,i) = max(chng(j,i),d_zero)
@@ -1011,17 +1010,17 @@ module mod_cloud_s1
         ! EROSION OF CLOUDS BY TURBULENT MIXING
         !--------------------------------------
         ! rcldiff  : Diffusion coefficient for evaporation by turbulent
-        ! mixing (IBID., EQU. 30) rcldiff = 3.0D-06
+        ! mixing (IBID., EQU. 30) rcldiff = 3.0e-6_rkx
         do i = ici1 , ici2
           do j = jci1 , jci2
             ldifdt(j,i) = rcldiff*dt
-            if ( xqdetr(j,i,k) > d_zero ) ldifdt(j,i) = 5.0D0*ldifdt(j,i)
+            if ( xqdetr(j,i,k) > d_zero ) ldifdt(j,i) = 5.0_rkx*ldifdt(j,i)
           end do
         end do
         !Increase by factor of 5 for convective points
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( qlt(j,i,k) > epsec ) then
+            if ( qlt(j,i,k) > minqx ) then
               leros = fccfg(j,i,k) * ldifdt(j,i) * &
                       max(qsmix(j,i,k)-qx0(j,i,k,iqqv),d_zero)
               leros = min(leros,evaplimmix(j,i))
@@ -1041,7 +1040,7 @@ module mod_cloud_s1
         if ( stats ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              if ( qlt(j,i,k) > epsec ) then
+              if ( qlt(j,i,k) > minqx ) then
                 leros = fccfg(j,i,k)*ldifdt(j,i) * &
                         max(qsmix(j,i,k)-qx0(j,i,k,iqqv),d_zero)
                 leros = min(leros,evaplimmix(j,i))
@@ -1088,7 +1087,7 @@ module mod_cloud_s1
             qold(j,i)    = qsmix(j,i,k)
             told(j,i)    = t(j,i,k)
             tcond(j,i,k) = t(j,i,k)+dtforc
-            tcond(j,i,k) = max(tcond(j,i,k),160.0D0)
+            tcond(j,i,k) = max(tcond(j,i,k),160.0_rkx)
           end do
         end do
         !this loop's goal is to produce dqs = qsmix - qold, where qsmix is
@@ -1265,8 +1264,8 @@ module mod_cloud_s1
               rhc = ramid !=0.8
               zsig = phs(j,i,k)/pfs(j,i,kz+1)
               ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
-              if ( zsig > 0.8D0 ) then
-                rhc = ramid+(d_one-ramid)*((zsig-0.8D0)/0.2D0)**2
+              if ( zsig > 0.8_rkx ) then
+                rhc = ramid+(d_one-ramid)*((zsig-0.8_rkx)/0.2_rkx)**2
               end if
               !---------------------------
               ! supersaturation options
@@ -1283,7 +1282,7 @@ module mod_cloud_s1
                 ! note: not **2 on 1-a term if qe is used.
                 ! added correction term fac to numerator 15/03/2010
                 acond = -(d_one-fccfg(j,i,k))*fac*dqs(j,i) / &
-                          max(d_two*(fac*qsmix(j,i,k)-qexc(j,i)),epsec)
+                          max(d_two*(fac*qsmix(j,i,k)-qexc(j,i)),dlowval)
                 acond = min(acond,d_one-fccfg(j,i,k)) ! put the limiter back
                 ! linear term:
                 ! added correction term fac 15/03/2010
@@ -1354,7 +1353,7 @@ module mod_cloud_s1
             !--------------------------------------------------------------
             ! Calculate distance from cloud top
             ! defined by cloudy layer below a layer with cloud frac <0.01
-            ! ZDZ = ZDP(JL)/(ZRHO(JL)*RG)
+            ! DZ = DP(JL)/(RHO(JL)*RG)
             !--------------------------------------------------------------
             if ( k > 1 ) then
               if ( fccfg(j,i,k-1) < cldtopcf .and. &
@@ -1382,15 +1381,15 @@ module mod_cloud_s1
               vpliq = eeliq(t(j,i,k)) !saturation vapor pressure wrt liq
               ! Meyers et al 1992
               icenuclei(j,i) = d_1000 * &
-                exp(12.96D0*((vpliq-vpice)/vpice)-0.639D0)
+                exp(12.96_rkx*((vpliq-vpice)/vpice)-0.639_rkx)
               !------------------------------------------------
               !   2.4e-2 is conductivity of air
               !   8.87 = 700**1/3 = density of ice to the third
               !------------------------------------------------
-              xadd  = wlhs*(wlhs/(rwat*t(j,i,k))-d_one)/(2.4D-2*t(j,i,k))
-              xbdd  = rwat*t(j,i,k)*phs(j,i,k)/(2.21D0*vpice)
-              cvds = 7.8D0*(icenuclei(j,i)/rho(j,i,k))** &
-                       0.666D0*(vpliq-vpice)/(8.87D0*(xadd+xbdd)*vpice)
+              xadd  = wlhs*(wlhs/(rwat*t(j,i,k))-d_one)/(2.4e-2_rkx*t(j,i,k))
+              xbdd  = rwat*t(j,i,k)*phs(j,i,k)/(2.21_rkx*vpice)
+              cvds = 7.8_rkx*(icenuclei(j,i)/rho(j,i,k))** &
+                       0.666_rkx*(vpliq-vpice)/(8.87_rkx*(xadd+xbdd)*vpice)
               !-----------------------------------------------------
               ! iceinit = 1.e-12 is initial mass of ice particle
               !-----------------------------------------------------
@@ -1400,11 +1399,11 @@ module mod_cloud_s1
               !------------------
               qice0 = max(qice0,d_zero)
               cvds = max(cvds,d_zero)
-              qinew = (0.666D0*cvds*dt+qice0**0.666D0)**1.5D0
+              qinew = (0.666_rkx*cvds*dt+qice0**0.666_rkx)**1.5_rkx
               !---------------------------
               ! grid-mean deposition rate:
               !---------------------------
-              chng(j,i) = max(fccfg(j,i,k)*(qinew-qice0),d_zero)*2.0D0
+              chng(j,i) = max(fccfg(j,i,k)*(qinew-qice0),d_zero)*2.0_rkx
               ! above increased by factor of 2 to retain similar mixed
               ! phase liq as in diagnostic scheme
               !---------------------------------------------------------------
@@ -1427,8 +1426,8 @@ module mod_cloud_s1
               ! Fraction of deposition rate in cloud top layer
               ! depliqrefrate  = d_r10
               ! Depth of supercooled liquid water layer (m)
-              ! depliqrefdepth = 500.0D0
-              infactor = min(icenuclei(j,i)/15000.0D0, d_one)
+              ! depliqrefdepth = 500.0_rkx
+              infactor = min(icenuclei(j,i)/15000.0_rkx, d_one)
               chng(j,i) = chng(j,i)*min(infactor + (d_one-infactor)* &
                      (depliqrefrate+cldtopdist(j,i)/depliqrefdepth),d_one)
               !--------------
@@ -1488,7 +1487,7 @@ module mod_cloud_s1
         !   2) abandon the 2-flux clr/cld treatment
         !   3) Thus, since we have no memory of the clear sky precip
         !      fraction, we mimic the previous method by reducing
-        !      ZCOVPTOT(JL), which has the memory, proportionally with
+        !      COVPTOT(JL), which has the memory, proportionally with
         !      the precip evaporation rate, taking cloud fraction
         !      into account
         !   #3 above leads to much smoother vertical profiles of
@@ -1501,7 +1500,7 @@ module mod_cloud_s1
         !---------------------------------------------------------------
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( qpretot(j,i) > epsec ) then
+            if ( qpretot(j,i) > dlowval ) then
               covptot(j,i) = d_one - ((d_one-covptot(j,i)) * &
                               (d_one - max(fccfg(j,i,k),fccfg(j,i,k-1))) / &
                               (d_one - min(fccfg(j,i,k-1),hicld)))
@@ -1524,10 +1523,10 @@ module mod_cloud_s1
           case (1) ! Klein & Pincus (2000)
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( liqcld(j,i) > epsec ) then
+                if ( liqcld(j,i) > minqx ) then
                   solqb(j,i,iqql,iqqv) = d_zero
                   solqb(j,i,iqqr,iqql) = solqb(j,i,iqqr,iqql) + &
-                    dt*auto_rate_klepi * (qx0(j,i,k,iqql)**(2.3D0))
+                    dt*auto_rate_klepi * (qx0(j,i,k,iqql)**(2.3_rkx))
                   solqa(j,i,iqqr,iqql) = d_zero
                 end if
               end do
@@ -1535,7 +1534,7 @@ module mod_cloud_s1
           case (2) ! Khairoutdinov and Kogan (2000)
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( liqcld(j,i) > epsec ) then
+                if ( liqcld(j,i) > minqx ) then
                   solqb(j,i,iqql,iqqv) = d_zero
                   solqb(j,i,iqqr,iqql) = solqb(j,i,iqqr,iqql) + &
                     dt*auto_rate_khair*(qx0(j,i,k,iqql)**(auto_expon_khair))
@@ -1545,7 +1544,7 @@ module mod_cloud_s1
           case (3) ! Kessler(1969)
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( liqcld(j,i) > epsec ) then
+                if ( liqcld(j,i) > minqx ) then
                   solqb(j,i,iqql,iqqv) = d_zero
                   if ( qx0(j,i,k,iqql) > autocrit_kessl ) then
                     solqa(j,i,iqqr,iqql) = solqa(j,i,iqqr,iqql) - &
@@ -1561,7 +1560,7 @@ module mod_cloud_s1
           case (4) ! Sundqvist
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( liqcld(j,i) > epsec ) then
+                if ( liqcld(j,i) > minqx ) then
                   solqb(j,i,iqql,iqqv) = d_zero
                   alpha1 = rkconv*dt
                   ! modify autoconversion threshold dependent on:
@@ -1580,12 +1579,12 @@ module mod_cloud_s1
                   ! to replace this with an explicit collection parametrization
                   !-----------------------------------------------------------
                   precip = (pfplsx(j,i,k,iqqs)+pfplsx(j,i,k,iqqr)) / &
-                             max(epsec,covptot(j,i))
+                             max(dlowval,covptot(j,i))
                   cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
                   alpha1 = alpha1*cfpr
-                  xlcrit = xlcrit/max(cfpr,epsec)
+                  xlcrit = xlcrit/max(cfpr,dlowval)
                   ! security for exp for some compilers
-                  if ( liqcld(j,i)/xlcrit < 25.0D0 ) then
+                  if ( (liqcld(j,i)/xlcrit)**2 < 25.0_rkx ) then
                     rainaut = alpha1*(d_one - exp(-(liqcld(j,i)/xlcrit)**2))
                   else
                     rainaut = alpha1
@@ -1608,11 +1607,11 @@ module mod_cloud_s1
         do i = ici1 , ici2
           do j = jci1 , jci2
             if ( t(j,i,k) <= tzero ) then
-              if ( icecld(j,i) > epsec ) then
-                alpha1 = dt*1.0D-3*exp(0.025*(t(j,i,k)-tzero))
+              if ( icecld(j,i) > minqx ) then
+                alpha1 = dt*1.0e-3_rkx*exp(0.025*(t(j,i,k)-tzero))
                 xlcrit = rlcritsnow
                 arg = (icecld(j,i)/xlcrit)**2
-                if ( arg < 25.0D0 ) then
+                if ( arg < 25.0_rkx ) then
                   snowaut = alpha1 * (d_one - exp(-arg))
                 else
                   snowaut = alpha1
@@ -1647,7 +1646,7 @@ module mod_cloud_s1
 
         do i = ici1, ici2
           do j = jci1, jci2
-            if ( qicetot(j,i) > epsec .and. t(j,i,k) > tzero ) then
+            if ( qicetot(j,i) > minqx .and. t(j,i,k) > tzero ) then
               ! Calculate subsaturation
               ! qsice(j,i,k)-qx0(j,i,k,iqqv),d_zero)
               subsat(j,i) = max(qsmix(j,i,k)-qx0(j,i,k,iqqv),d_zero)
@@ -1666,7 +1665,7 @@ module mod_cloud_s1
               ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
               tdiff = t(j,i,k)-tzero ! - subsat * &
               !    (tw1+tw2*(phs(j,i,k)-tw3)-tw4*(t(j,i,k)-tw5))
-              ! Ensure ZCONS1 is positive so that ZMELTMAX = 0 if ZTDMTW0 < 0
+              ! Ensure CONS1 is positive so that MELTMAX = 0 if TDMTW0 < 0
               cons1 = d_one ! abs(dt*(d_one + d_half*tdiff)/rtaumel)
               chngmax(j,i) = max(tdiff*cons1*rldcp,d_zero)
             end if
@@ -1682,7 +1681,7 @@ module mod_cloud_s1
             if ( m < 0 ) cycle
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( chngmax(j,i) > epsec .and. qicetot(j,i) > epsec ) then
+                if ( chngmax(j,i) > dlowval .and. qicetot(j,i) > minqx ) then
                   phases = qxfg(j,i,n)/qicetot(j,i)
                   chng(j,i) = min(qxfg(j,i,n),phases*chngmax(j,i))
                   chng(j,i) = max(chng(j,i),d_zero)
@@ -1722,7 +1721,7 @@ module mod_cloud_s1
 
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( chngmax(j,i) > epsec .and. qxfg(j,i,iqqr) > epsec ) then
+            if ( chngmax(j,i) > dlowval .and. qxfg(j,i,iqqr) > minqx ) then
               chng(j,i) = min(qxfg(j,i,iqqr),chngmax(j,i))
               chng(j,i) = max(chng(j,i),d_zero)
               solqa(j,i,iqqs,iqqr) = solqa(j,i,iqqs,iqqr) + chng(j,i)
@@ -1751,7 +1750,7 @@ module mod_cloud_s1
 
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( chngmax(j,i) > epsec .and. qxfg(j,i,iqql) > epsec ) then
+            if ( chngmax(j,i) > dlowval .and. qxfg(j,i,iqql) > minqx ) then
               chng(j,i) = min(qxfg(j,i,iqql),chngmax(j,i))
               chng(j,i) = max(chng(j,i),d_zero)
               solqa(j,i,iqqi,iqql) = solqa(j,i,iqqi,iqql) + chng(j,i)
@@ -1806,23 +1805,23 @@ module mod_cloud_s1
             ! humidity in moistest covpclr part of domain
             !---------------------------------------------
             qe = max(d_zero,min(qe,qsliq(j,i,k)))
-            lactiv = covpclr(j,i) > epsec .and. &
-            !      qpretot(jl) > epsec .and. &
+            lactiv = covpclr(j,i) > dlowval .and. &
+            !      qpretot(jl) > dlowval .and. &
                    qxfg(j,i,iqqr) > minqq .and. qe < zrh*qsliq(j,i,k)
             if ( lactiv ) then
               ! note: units of preclr and qpretot differ
               !       qpretot is a mixing ratio (hence "q" in name)
               !       preclr is a rain flux
-              preclr = qpretot(j,i)*covpclr(j,i)/(covptot(j,i)*dtgdp(j,i))
+              preclr = qpretot(j,i)*covpclr(j,i)/(max(dlowval,covptot(j,i))*dtgdp(j,i))
               !--------------------------------------
               ! actual microphysics formula in beta
               !--------------------------------------
               ! sensitivity test showed multiply rain evap rate by 0.5
-              beta1 = sqrt(phs(j,i,k)/pfs(j,i,kz+1))/5.09D-3*preclr / &
-                       max(covpclr(j,i),epsec)
+              beta1 = sqrt(phs(j,i,k)/pfs(j,i,kz+1))/5.09e-3_rkx*preclr / &
+                       max(covpclr(j,i),dlowval)
 
               if ( beta1 >= d_zero ) then
-                 beta = egrav*rpecons*d_half*(beta1)**0.5777D0
+                 beta = egrav*rpecons*d_half*(beta1)**0.5777_rkx
                  denom = d_one + beta*dt*corqsliq(j,i)
                  dpr = covpclr(j,i) * beta * &
                    (qsliq(j,i,k)-qe)/denom*dp(j,i)*regrav
@@ -1874,22 +1873,22 @@ module mod_cloud_s1
             ! humidity in moistest covpclr part of domain
             !---------------------------------------------
             qe = max(d_zero,min(qe,qsice(j,i,k)))
-            lactiv = covpclr(j,i) > epsec .and. &
+            lactiv = covpclr(j,i) > dlowval .and. &
                    qxfg(j,i,iqqs) > minqq .and. &
                    qe < zrh*qsice(j,i,k)
             if ( lactiv ) then
               ! note: units of preclr and qpretot differ
               !       qpretot is a mixing ratio (hence "q" in name)
               !       preclr is a rain flux
-              preclr = qpretot(j,i)*covpclr(j,i)/(covptot(j,i)*dtgdp(j,i))
+              preclr = qpretot(j,i)*covpclr(j,i)/(max(dlowval,covptot(j,i))*dtgdp(j,i))
               !--------------------------------------
               ! actual microphysics formula in beta
               !--------------------------------------
                beta1 = sqrt(phs(j,i,k)/pfs(j,i,kz+1)) / &
-                    5.09D-3*preclr/max(covpclr(j,i),epsec)
+                    5.09e-3_rkx*preclr/max(covpclr(j,i),dlowval)
 
               if ( beta1 >= d_zero ) then
-                beta = egrav*rpecons*(beta1)**0.5777D0
+                beta = egrav*rpecons*(beta1)**0.5777_rkx
                 !rpecons = alpha1
                 denom = d_one + beta*dt*corqsice(j,i)
                 dpr = covpclr(j,i) * beta * &
@@ -2239,16 +2238,16 @@ module mod_cloud_s1
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( abs(errorq(j,i,kz)) > 1.D-12 .or. &
-                 abs(errorh(j,i,kz)) > 1.D-12) then
-              if ( abs(errorq(j,i,kz)) > 1.D-12 ) then
+            if ( abs(errorq(j,i,kz)) > 1.e-12_rkx .or. &
+                 abs(errorh(j,i,kz)) > 1.e-12_rkx) then
+              if ( abs(errorq(j,i,kz)) > 1.e-12_rkx ) then
                 write(stderr,*) 'WATER NON CONSERVED AT '
                 write(stderr,*) 'J = ',j
                 write(stderr,*) 'I = ',i
                 write(stderr,*) 'K = ',k
                 write(stderr,*) 'ERROR IS : ',errorq(j,i,kz)
               end if
-              if ( abs(errorh(j,i,kz)) > 1.D-12 ) then
+              if ( abs(errorh(j,i,kz)) > 1.e-12_rkx ) then
                 write(stderr,*) 'ENTHALPY NON CONSERVED AT '
                 write(stderr,*) 'J = ',j
                 write(stderr,*) 'I = ',i
@@ -2272,7 +2271,7 @@ module mod_cloud_s1
     rainls(:,:,:) = d_zero
 
     !--------------------------------------------------------------------
-    ! Copy general precip arrays back into PFP arrays for GRIB archiving
+    ! Copy general precip arrays back into FP arrays
     ! Add rain and liquid fluxes, ice and snow fluxes
     !--------------------------------------------------------------------
     !Rain+liquid, snow+ice
@@ -2324,56 +2323,56 @@ module mod_cloud_s1
 
     contains
 
-      pure real(rk8) function delta(t)
+      pure real(rkx) function delta(t)
         !delta = 1 if t > tzero
         !delta = 0 if t < tzero
         implicit none
-        real(rk8) , intent(in):: t
+        real(rkx) , intent(in):: t
         delta = max(d_zero,sign(d_one,t-tzero))
       end function delta
 
-      pure real(rk8) function phase(t)
+      pure real(rkx) function phase(t)
         !phase = 1      if t > tzero
         !phase = 0      if t < rtice
         !0<phase < 1    if rtice < t < tzero
         implicit none
-        real(rk8) , intent(in):: t
+        real(rkx) , intent(in):: t
         phase = max(min(d_one,((max(rtice,min(tzero,t))-rtice)* &
                                 rtwat_rtice_r)**2),d_zero)
       end function phase
 
-      pure real(rk8) function edem(t,phase)
+      pure real(rkx) function edem(t,phase)
         implicit none
-        real(rk8) , intent(in):: t , phase
+        real(rkx) , intent(in):: t , phase
         edem = phase * c5alvcp * (d_one/(t-c4les)**2) + &
                  (d_one - phase) * c5alscp * (d_one/(t-c4ies)**2)
       end function edem
 
-      pure real(rk8) function eldcpm(t)
+      pure real(rkx) function eldcpm(t)
         implicit none
-        real(rk8) , intent(in):: t
+        real(rkx) , intent(in):: t
         eldcpm = phase(t)*wlhvocp+(d_one-phase(t))*wlhsocp
       end function eldcpm
 
-      pure real(rk8) function eeliq(t) ! = 0.622*esw  !Teten's formula
+      pure real(rkx) function eeliq(t) ! = 0.622*esw  !Teten's formula
         implicit none
-        real(rk8) , intent(in):: t
+        real(rkx) , intent(in):: t
         eeliq = c2es*exp(c3les*(t-tzero)/(t-c4les))
       end function eeliq
 
-      pure real(rk8) function eeice(t) ! = 0.622*esi
+      pure real(rkx) function eeice(t) ! = 0.622*esi
         implicit none
-        real(rk8) , intent(in):: t
+        real(rkx) , intent(in):: t
         eeice = c2es*exp(c3ies*((t-tzero)/(t-c4ies)))
       end function eeice
 
-      pure real(rk8) function eewm(t,phase)
+      pure real(rkx) function eewm(t,phase)
         implicit none
-        real(rk8) , intent(in):: t , phase
+        real(rkx) , intent(in):: t , phase
         eewm = phase * eeliq(t) + (d_one-phase) * eeice(t)
       end function eewm
 
-      pure real(rk8) function fkoop(t,eeliq,eeice)
+      pure real(rkx) function fkoop(t,eeliq,eeice)
         implicit none
         ! se T < 0 la nuvola si forma o quando q e' maggiore della liquid
         ! water saturation minima, oppure se e' maggiore del mixing ratio
@@ -2394,20 +2393,20 @@ module mod_cloud_s1
         ! a source for cloud ice.
         ! fkoop modifies the ice saturation mixing ratio for homogeneous
         ! nucleation
-        real(rk8) , parameter :: rkoop1 = 2.583D0
-        real(rk8) , parameter :: rkoop2 = 0.48116D-02 ! 1/207.8
-        real(rk8) , intent(in) :: t , eeliq , eeice
+        real(rkx) , parameter :: rkoop1 = 2.583_rkx
+        real(rkx) , parameter :: rkoop2 = 0.48116e-2_rkx ! 1/207.8
+        real(rkx) , intent(in) :: t , eeliq , eeice
         fkoop = min(rkoop1-rkoop2*t,eeliq/eeice)
       end function fkoop
 
       subroutine mysolve(aam,bbm)
         implicit none
-        real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: aam
-        real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: bbm
+        real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: aam
+        real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: bbm
         integer(ik4) :: i , j , k , ii , jj , ll , imax , m , n
-        real(rk8) :: aamax , dum , xsum , swap
+        real(rkx) :: aamax , dum , xsum , swap
         integer(ik4) , dimension(nqx) :: indx
-        real(rk8) , dimension(nqx) :: vv
+        real(rkx) , dimension(nqx) :: vv
 
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -2517,12 +2516,12 @@ module mod_cloud_s1
 
 !  subroutine addpath_array(src,snk,proc2,zsqa,zsqb,beta,fg,j,i)
 !    implicit none
-!    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: zsqa , zsqb
-!    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: fg
-!    real(rk8) , pointer , intent(in) , dimension(:,:)  :: proc2
+!    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: zsqa , zsqb
+!    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: fg
+!    real(rkx) , pointer , intent(in) , dimension(:,:)  :: proc2
 !    integer(ik4) , intent(in) :: src, snk
 !    integer(ik4), intent(in)  :: i , j
-!    real(rk8) , intent(in) :: beta
+!    real(rkx) , intent(in) :: beta
 !    zsqa(j,i,src,snk) = zsqa(j,i,src,snk) + (d_one-beta)*proc2(j,i)
 !    zsqa(j,i,snk,src) = zsqa(j,i,snk,src) - (d_one-beta)*proc2(j,i)
 !    fg(j,i,src) = fg(j,i,src) + (d_one-beta)*proc2(j,i)
@@ -2532,12 +2531,12 @@ module mod_cloud_s1
 !
 !  subroutine addpath_real(src,snk,proc,zsqa,zsqb,beta,fg)
 !    implicit none
-!    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: zsqa , zsqb
-!    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: fg
-!    real(rk8) , intent(in) :: proc
+!    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: zsqa , zsqb
+!    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: fg
+!    real(rkx) , intent(in) :: proc
 !    integer(ik4) , intent(in) :: src , snk
 !    integer(ik4) :: i , j
-!    real(rk8) , intent(in) :: beta
+!    real(rkx) , intent(in) :: beta
 !    do i = ici1 , ici2
 !      do j = jci1 , jci2
 !        zsqa(j,i,src,snk) = zsqa(j,i,src,snk) + (d_one-beta)*proc

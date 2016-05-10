@@ -38,7 +38,7 @@ module mod_cbmz_init1
 !
 !    4-2009: error with ifort, but not with -C compile option.
 !      indices c_noh, etc. are written incorrectly, possibly related to
-!       warning message about real(rk8) :: in COMMON.
+!       warning message about real(rkx) :: in COMMON.
 !
 !     Nov 2007 addition: save net RP stoich for tracers.
 !  NOTE CHANGES:  rbchemmech.EXT, quadinit.f
@@ -305,7 +305,7 @@ module mod_cbmz_init1
       ! SUMMARY WRITE:  INPUT/OUTPUT SPECIES
       !
       write(c_out,1301)
-      ncf = idint(0.2D0*(dble(c_nchem1)-0.01D0))+1
+      ncf = int(0.2_rkx*(real(c_nchem1,rkx)-0.01_rkx))+1
       do nc = 1 , ncf
         nc1 = 5*(nc-1) + 1
         nc2 = nc1 + 4
@@ -442,8 +442,8 @@ module mod_cbmz_init1
         !
         if ( nlump == 1 ) write(c_out, 1310)
         write(c_out,1311) c_tchem(c_lump(nlump,1))
-        ncf = idint(0.2D0*(dble(c_lump(nlump,3) - &
-                                c_lump(nlump,2)+d_one)-0.01D0))+1
+        ncf = int(0.2_rkx*(real(c_lump(nlump,3) - &
+                                c_lump(nlump,2)+d_one,rkx)-0.01_rkx))+1
         do nc = 1 , ncf
           nc1 = 5*(nc-1) + c_lump(nlump,2)
           nc2 = nc1 + 4
@@ -530,8 +530,8 @@ module mod_cbmz_init1
         !
         ! DEFAULT ACCOMODATION COEFFICIENT AND MOLECULAR WEIGHT
         !
-        c_accom(nrh) = 0.05D0
-        c_molwt(nrh) = 30.0D0
+        c_accom(nrh) = 0.05_rkx
+        c_molwt(nrh) = 30.0_rkx
         !
         !  READ RATE PARAMETERS
         !
@@ -1389,8 +1389,8 @@ module mod_cbmz_init1
           ! FORWARD RATE CONSTANT:  1e8 s-1.
           ! OPTION - maybe  this causes cncn-> 0.  alt 1e2 s-1
           !
-!         c_rk(1,nr) = 1.0D+08
-          c_rk(1,nr) = 1.0D+02
+!         c_rk(1,nr) = 1.0e8_rkx
+          c_rk(1,nr) = 1.0e2_rkx
           !
           ! ENTER BACKWARD REACTION
           !
@@ -1415,7 +1415,7 @@ module mod_cbmz_init1
           !  A<->B+C  KA = BC  K in moles/liter
           !  k1a = k2BC, k1/k2=K, k2=k1/K, k2 as A2 exp(-B2/temp) also moles/li
           !  k1=1e8 s-1.  A2=k1/(Aexp(+B/298),  B2=-B
-          c_rk(1,nr) = 1.0D+08/(c_rkqq(1,nrqq)*dexp(c_rkqq(2,nrqq)/298.0D0))
+          c_rk(1,nr) = 1.0e8_rkx/(c_rkqq(1,nrqq)*exp(c_rkqq(2,nrqq)/298.0_rkx))
           c_rk(2,nr) = d_zero - c_rkqq(2,nrqq)
         end if
       end do
@@ -2114,11 +2114,11 @@ module mod_cbmz_init1
       ! Flag for id exchange production reaction
       logical :: lpro
       ! Counter for odd hydrogen RO2 only
-      real(rk8) :: xoddhx
+      real(rkx) :: xoddhx
       ! Counter for odd hydrogen w/o RO2
-      real(rk8) :: xoddhx2
+      real(rkx) :: xoddhx2
       ! Counter for odd nitrogen
-      real(rk8) :: xpronox
+      real(rkx) :: xpronox
       ! Counter for product reactions
       integer nrp
       !
@@ -3194,15 +3194,15 @@ module mod_cbmz_init1
       ! General counters
       integer(ik4) :: i , j
 
-      real(rk8) :: calpha(c_kvec) ! General vector variable
-      real(rk8) :: cbeta(c_kvec)  ! General vector variable
-      real(rk8) :: cgamma(c_kvec) ! General vector variable
+      real(rkx) :: calpha(c_kvec) ! General vector variable
+      real(rkx) :: cbeta(c_kvec)  ! General vector variable
+      real(rkx) :: cgamma(c_kvec) ! General vector variable
       ! 'SUM' name for output
       character(len=8) :: tsum
       ! Gas phase concentration
-      real(rk8) :: xcgas
+      real(rkx) :: xcgas
       ! Aqueous   concentration
-      real(rk8) :: acquacon
+      real(rkx) :: acquacon
 !
       if ( kw <= 0 ) return
       kk = 1
@@ -3210,7 +3210,7 @@ module mod_cbmz_init1
       ! SPECIES CONCENTRATIONS.
       !
       write(c_out,1141) c_hour
-      ncf = idint(0.2D0*(dble(c_nchem2)-0.01D0))+1
+      ncf = int(0.2_rkx*(real(c_nchem2,rkx)-0.01_rkx))+1
       do nc = 1 , ncf
         nc1 = 4*(nc-1) + 1
         nc2 = nc1 + 3
@@ -3406,31 +3406,31 @@ module mod_cbmz_init1
       integer(ik4) :: i , n
 
       ! Gas phase concentration
-      real(rk8) :: xcgas
+      real(rkx) :: xcgas
       ! Aqueous   concentration
-      real(rk8) :: acquacon
+      real(rkx) :: acquacon
       ! Dimensionless Henry coefficient
-      real(rk8) :: xcoeff
+      real(rkx) :: xcoeff
       ! Droplet diffusion factor
-      real(rk8) :: xcoeff2
+      real(rkx) :: xcoeff2
       ! Chem. reaction rate molec/cm3/step
-      real(rk8) :: tpro
+      real(rkx) :: tpro
       ! Species production  molec/cm3/step
-      real(rk8) :: xpro
+      real(rkx) :: xpro
       ! Stoichiometry for spec. production
-      real(rk8) :: stopro
+      real(rkx) :: stopro
 !
       ! Chem. reaction loss molec/cm3/step
-      real(rk8) :: tloss
+      real(rkx) :: tloss
       ! Species loss rate   molec/cm3/step
-      real(rk8) :: xloss
+      real(rkx) :: xloss
       ! Stoichiometry for species loss
-      real(rk8) :: stoloss
+      real(rkx) :: stoloss
 !
       ! Net production minus loss /cm3/step
-      real(rk8) :: tnetpro
+      real(rkx) :: tnetpro
       ! Change in species conc molec/cm3
-      real(rk8) :: tdelta
+      real(rkx) :: tdelta
 !
       ! counter for  aqueous  spec
       integer(ik4) :: neq1

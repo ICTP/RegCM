@@ -34,10 +34,10 @@ module mod_diffusion
 
   private
 
-  real(rk8) , pointer , dimension(:,:,:) :: xkc , xkd , xkcf
-  real(rk8) , public , pointer , dimension(:,:) :: hgfact
+  real(rkx) , pointer , dimension(:,:,:) :: xkc , xkd , xkcf
+  real(rkx) , public , pointer , dimension(:,:) :: hgfact
 
-  real(rk8) :: dydc , xkhmax
+  real(rkx) :: dydc , xkhmax
 
   interface diffu_x
     module procedure diffu_x3df
@@ -53,10 +53,10 @@ module mod_diffusion
   public :: diffu_x
 
   ! Set this to zero to remove dynamical dependency of diffusion
-  real(rk8) , parameter :: aflag = d_one
+  real(rkx) , parameter :: aflag = d_one
 
-  real(rk8) , pointer , dimension(:,:,:) :: ud , vd
-  real(rk8) , pointer , dimension(:,:) :: pc , pd
+  real(rkx) , pointer , dimension(:,:,:) :: ud , vd
+  real(rkx) , pointer , dimension(:,:) :: pc , pd
 
   contains
 
@@ -72,18 +72,18 @@ module mod_diffusion
     use mod_atm_interface , only : mddom , sfs , atms
     implicit none
     integer(ik4) :: i , j
-    real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax , xkhz
+    real(rkx) :: hg1 , hg2 , hg3 , hg4 , hgmax , xkhz
     !
     ! Diffusion coefficients: for non-hydrostatic, follow the MM5
     ! The hydrostatic diffusion is following the RegCM3 formulation
     !
-    xkhmax = d_two*dxsq/(64.0D0*dtsec)    ! Computation stability
+    xkhmax = d_two*dxsq/(64.0_rkx*dtsec)    ! Computation stability
     dydc = aflag*vonkar*vonkar*dx*d_rfour ! Deformation term coefficient
     ! (Xu et al., MWR, 2001, 502-516)
     if ( idynamic == 1 ) then
-      xkhz = 1.5D-3*dxsq/dtsec
+      xkhz = 1.5e-3_rkx*dxsq/dtsec
     else
-      xkhz = ckh * 3.0D-3*dxsq/dtsec ! ckh * dx ! 3.0D-3*dxsq/dtsec
+      xkhz = ckh * 3.0e-3_rkx*dxsq/dtsec ! ckh * dx ! 3.0e-3_rkx*dxsq/dtsec
     end if
     if ( myid == 0 ) then
       write(stdout,'(a,e13.6,a)') &
@@ -107,7 +107,7 @@ module mod_diffusion
           hg3 = abs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
           hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
           hgmax = max(hg1,hg2,hg3,hg4)*regrav
-          hgfact(j,i) = xkhz/(d_one+(hgmax/0.001D0)**2)
+          hgfact(j,i) = xkhz/(d_one+(hgmax/0.001_rkx)**2)
         end do
       end do
     end if
@@ -119,7 +119,7 @@ module mod_diffusion
 
   subroutine calc_coeff
     implicit none
-    real(rk8) :: dudx , dvdx , dudy , dvdy , duv
+    real(rkx) :: dudx , dvdx , dudy , dvdy , duv
     integer(ik4) :: i , j , k
 
     xkc(:,:,:)  = d_zero
@@ -182,8 +182,8 @@ module mod_diffusion
   !
   subroutine diffu_d(uten,vten,u,v)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: u , v
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_d'
@@ -272,9 +272,9 @@ module mod_diffusion
 
   subroutine diffu_x3df(ften,f,fac)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: f
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ften
-    real(rk8) , intent(in) :: fac
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: f
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ften
+    real(rkx) , intent(in) :: fac
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_x3df'
@@ -353,8 +353,8 @@ module mod_diffusion
 
   subroutine diffu_x3d(ften,f)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: f
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ften
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: f
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ften
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_x3d'
@@ -434,8 +434,8 @@ module mod_diffusion
   subroutine diffu_x4d(ften,f,n1,n2)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: f
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: f
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
     integer(ik4) ::  n
     !
     do n = n1 , n2
@@ -446,8 +446,8 @@ module mod_diffusion
   subroutine diffu_x4d3d(ften,f,n)
     implicit none
     integer(ik4) , intent(in) :: n
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: f
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: f
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
 
     integer(ik4) :: i , j , k
 #ifdef DEBUG

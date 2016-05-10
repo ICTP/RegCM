@@ -41,27 +41,27 @@ module mod_ein
 
   integer(ik4) :: jlat , ilon , klev , timlen
 
-  real(rk8) , pointer , dimension(:,:,:) :: b3
-  real(rk8) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , pointer , dimension(:,:,:) :: b3
+  real(rkx) , pointer , dimension(:,:,:) :: d3
 
-  real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rk8) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rk8) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+  real(rkx) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-  real(rk8) , pointer , dimension(:,:,:) :: b2
-  real(rk8) , pointer , dimension(:,:,:) :: d2
-  real(rk8) , pointer , dimension(:) :: glat
-  real(rk8) , pointer , dimension(:) :: grev
-  real(rk8) , pointer , dimension(:) :: glon
+  real(rkx) , pointer , dimension(:,:,:) :: b2
+  real(rkx) , pointer , dimension(:,:,:) :: d2
+  real(rkx) , pointer , dimension(:) :: glat
+  real(rkx) , pointer , dimension(:) :: grev
+  real(rkx) , pointer , dimension(:) :: glon
   integer(ik4) , pointer , dimension(:) :: plevs
-  real(rk8) , pointer , dimension(:) :: sigma1 , sigmar
-  real(rk8) :: pss
+  real(rkx) , pointer , dimension(:) :: sigma1 , sigmar
+  real(rkx) :: pss
   integer(2) , pointer , dimension(:,:,:) :: work
 
   integer(ik4) , dimension(5,4) :: inet5
   integer(ik4) , dimension(5,4) :: ivar5
-  real(rk8) , dimension(5,4) :: xoff , xscl
+  real(rkx) , dimension(5,4) :: xoff , xscl
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   integer(ik4) , pointer , dimension(:) :: xtimes
 
@@ -133,7 +133,7 @@ module mod_ein
     character(len=4) , dimension(5) :: fname
     character(len=4) , dimension(4) :: hname
     character(len=64) :: cunit , ccal
-    real(rk8) :: xadd , xscale
+    real(rkx) :: xadd , xscale
     integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) :: year , month , day , hour , monthp1
     integer(ik4) , save :: lastmonth , lastyear
@@ -202,7 +202,7 @@ module mod_ein
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error read time')
             do it = 1 , timlen
-              itimes(it) = timeval2date(dble(xtimes(it)),cunit,ccal)
+              itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
             end do
           end if
         end do
@@ -210,7 +210,7 @@ module mod_ein
       xdate = 1979000000 + month*10000+day*100+hour
       call setcal(xdate,'noleap')
       tdif = xdate - itimes(1)
-      it = idnint(tohours(tdif))/6 + 1
+      it = nint(tohours(tdif))/6 + 1
     else
       if ( idate == idate0 .or. year /= lastyear ) then
         lastyear = year
@@ -256,7 +256,7 @@ module mod_ein
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error read time')
               do it = 1 , timlen
-                itimes(it) = timeval2date(dble(xtimes(it)),cunit,ccal)
+                itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
               end do
             end if
           end do
@@ -264,7 +264,7 @@ module mod_ein
       end if
       k4 = hour/6 + 1
       tdif = idate - itimes(1)
-      it = idnint(tohours(tdif))/24 + 1
+      it = nint(tohours(tdif))/24 + 1
     end if
 
     do k = 1 , 4
@@ -287,32 +287,32 @@ module mod_ein
       if ( kkrec == 1 ) then
         do j = 1 , jlat
           do i = 1 , ilon
-            tvar(i,jlat+1-j,:) = real(dble(work(i,j,:))*xscale+xadd)
+            tvar(i,jlat+1-j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
       else if ( kkrec == 2 ) then
         do j = 1 , jlat
           do i = 1 , ilon
-            hvar(i,jlat+1-j,:) = real(dble(work(i,j,:))*xscale+xadd)/9.80616
+            hvar(i,jlat+1-j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)/9.80616
           end do
         end do
       else if ( kkrec == 3 ) then
         do j = 1 , jlat
           do i = 1 , ilon
             rhvar(i,jlat+1-j,:) = &
-                amax1(real(dble(work(i,j,:))*xscale+xadd)*0.01,0.0)
+                max(real(real(work(i,j,:),rkx)*xscale+xadd,rkx)*0.01,0.0)
           end do
         end do
       else if ( kkrec == 4 ) then
         do j = 1 , jlat
           do i = 1 , ilon
-            uvar(i,jlat+1-j,:) = real(dble(work(i,j,:))*xscale+xadd)
+            uvar(i,jlat+1-j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
       else if ( kkrec == 5 ) then
         do j = 1 , jlat
           do i = 1 , ilon
-            vvar(i,jlat+1-j,:) = real(dble(work(i,j,:))*xscale+xadd)
+            vvar(i,jlat+1-j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
       end if
@@ -412,8 +412,8 @@ module mod_ein
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    sigmar(:) = dble(plevs(:))/plevs(klev)
-    pss = plevs(klev)/10.0D0 ! mb -> cb
+    sigmar(:) = real(plevs(:),rkx)/plevs(klev)
+    pss = plevs(klev)/10.0_rkx ! mb -> cb
     !
     ! CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
     !

@@ -84,12 +84,12 @@ program terrain
   integer(ik4) :: i , j , k , ierr , ism , mmx
   integer(ik4) :: year , month , day , hour
   logical :: ibndry
-  real(rk8) :: clong , dsinm
+  real(rkx) :: clong , dsinm
   integer(ik4) :: ntypec , ntypec_s
-  real(rk8) , allocatable , dimension(:,:) :: tmptex
-  real(rk8) :: psig , zsig , pstar , tswap
+  real(rkx) , allocatable , dimension(:,:) :: tmptex
+  real(rkx) :: psig , zsig , pstar , tswap
   integer(ik4) :: ifupr
-  real(rk8) :: logp_lrate = 50.0D0
+  real(rkx) :: logp_lrate = 50.0_rkx
   data ibndry /.true./
 
   namelist /nonhydroparam/ ifupr , logp_lrate
@@ -164,7 +164,7 @@ program terrain
     write (stdout,*) 'clat   = ' , clat
     write (stdout,*) 'clon   = ' , clong
     write (stdout,*) 'iproj  = ' , iproj
-    dsinm = (ds/dble(nsg))*d_1000
+    dsinm = (ds/real(nsg,rkx))*d_1000
     write(stdout,*) 'Subgrid setup done'
 
     if ( iproj=='LAMCON' ) then
@@ -202,7 +202,7 @@ program terrain
     call mxmnll(jxsg,iysg,xlon_s,xlat_s,i_band)
     write(stdout,*) 'Determined Subgrid coordinate range'
 
-    ntypec_s = idnint((ds/dble(nsg)/d_two)*60.0D0/110.0)
+    ntypec_s = nint((ds/real(nsg,rkx)/d_two)*60.0_rkx/110.0_rkx)
     do while ( mod(3600,ntypec_s*60) /= 0 )
       ntypec_s = ntypec_s -1
     end do
@@ -365,7 +365,7 @@ program terrain
   call mxmnll(jx,iy,xlon,xlat,i_band)
   write(stdout,*)'Determined Grid coordinate range'
 
-  ntypec = idnint((ds/d_two)*60.0D0/110.0)
+  ntypec = nint((ds/d_two)*60.0_rkx/110.0_rkx)
   do while ( mod(3600,ntypec*60) /= 0 .and. ntypec > 1 )
     ntypec = ntypec - 1
   end do
@@ -712,23 +712,23 @@ program terrain
   subroutine findaround(xx,i,j,imax,jmax,mmx)
     implicit none
     integer(ik4) , intent(in) :: i , j , imax , jmax , mmx
-    real(rk8) , dimension(:,:) , intent(inout) :: xx
-    real(rk8) , dimension (mmx) :: vals
+    real(rkx) , dimension(:,:) , intent(inout) :: xx
+    real(rkx) , dimension (mmx) :: vals
     integer(ik4) :: ii , jj , js , is , ip , il , maxil
-    real(rk8) :: mincc , maxcc , countcc
-    countcc = 1.0D0
-    maxcc = 0.0D0
-    mincc = 0.0D0
+    real(rkx) :: mincc , maxcc , countcc
+    countcc = 1.0_rkx
+    maxcc = 0.0_rkx
+    mincc = 0.0_rkx
     do ii = 1 , imax
       do jj = 1 , jmax
-        if ( xx(jj,ii) > 0.0D0 ) then
-          countcc = countcc + 1.0D0
+        if ( xx(jj,ii) > 0.0_rkx ) then
+          countcc = countcc + 1.0_rkx
           if ( maxcc < xx(jj,ii) ) maxcc = xx(jj,ii)
           if ( mincc > xx(jj,ii) ) mincc = xx(jj,ii)
         end if
       end do
     end do
-    if ( countcc > 0.0D0 ) then
+    if ( countcc > 0.0_rkx ) then
       mincc = mincc / countcc
       maxcc = maxcc / countcc
     end if
@@ -736,7 +736,7 @@ program terrain
     il = 1
     do
       ip = 0
-      vals(:) = 0.0D0
+      vals(:) = 0.0_rkx
       do ii = i - il , i + il
         do jj = j - il , j + il
           is = ii

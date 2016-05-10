@@ -58,113 +58,113 @@ module mod_atm_interface
   public :: allocate_v3dbound , allocate_v2dbound
   public :: setup_boundaries , setup_model_indexes
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: dstor
-  real(rk8) , public , pointer , dimension(:,:,:) :: hstor
-  real(rk8) , public , pointer , dimension(:,:) :: ts0 , ts1
-  real(rk8) , public , pointer , dimension(:,:) :: hyps0 , hyps1
+  real(rkx) , public , pointer , dimension(:,:,:) :: dstor
+  real(rkx) , public , pointer , dimension(:,:,:) :: hstor
+  real(rkx) , public , pointer , dimension(:,:) :: ts0 , ts1
+  real(rkx) , public , pointer , dimension(:,:) :: hyps0 , hyps1
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: qdot , omega
+  real(rkx) , public , pointer , dimension(:,:,:) :: qdot , omega
 
   ! Sun
   ! Cosine of zenithal solar angle
-  real(rk8) , public , pointer , dimension(:,:) :: coszrs
+  real(rkx) , public , pointer , dimension(:,:) :: coszrs
 
   ! Cumulus
   integer(ik4) , pointer , public , dimension(:,:) :: icumbot
   integer(ik4) , pointer , public , dimension(:,:) :: icumtop
   integer(ik4) , pointer , public , dimension(:,:) :: ktrop
-  real(rk8) , pointer , public , dimension(:,:,:) :: convpr
-  real(rk8) , pointer , public , dimension(:,:) :: pptc
-  real(rk8) , pointer , public , dimension(:,:) :: prca
+  real(rkx) , pointer , public , dimension(:,:,:) :: convpr
+  real(rkx) , pointer , public , dimension(:,:) :: pptc
+  real(rkx) , pointer , public , dimension(:,:) :: prca
 
   ! Radiation
-  real(rk8) , pointer , public , dimension(:,:) :: ptrop
+  real(rkx) , pointer , public , dimension(:,:) :: ptrop
   ! vegetation absorbed radiation (full solar spectrum)
-  real(rk8) , pointer , public , dimension(:,:) :: sabveg
+  real(rkx) , pointer , public , dimension(:,:) :: sabveg
   ! Incident solar flux
-  real(rk8) , pointer , public , dimension(:,:) :: solis
-  real(rk8) , pointer , public , dimension(:,:) :: solvs
-  real(rk8) , pointer , public , dimension(:,:) :: solvsd
-  real(rk8) , pointer , public , dimension(:,:) :: solvl
-  real(rk8) , pointer , public , dimension(:,:) :: solvld
-  real(rk8) , pointer , public , dimension(:,:) :: flw
-  real(rk8) , pointer , public , dimension(:,:) :: fsw
-  real(rk8) , pointer , public , dimension(:,:) :: flwd
-  real(rk8) , pointer , public , dimension(:,:,:) :: cldfra
-  real(rk8) , pointer , public , dimension(:,:,:) :: cldlwc
-  real(rk8) , pointer , public , dimension(:,:,:) :: heatrt
+  real(rkx) , pointer , public , dimension(:,:) :: solis
+  real(rkx) , pointer , public , dimension(:,:) :: solvs
+  real(rkx) , pointer , public , dimension(:,:) :: solvsd
+  real(rkx) , pointer , public , dimension(:,:) :: solvl
+  real(rkx) , pointer , public , dimension(:,:) :: solvld
+  real(rkx) , pointer , public , dimension(:,:) :: flw
+  real(rkx) , pointer , public , dimension(:,:) :: fsw
+  real(rkx) , pointer , public , dimension(:,:) :: flwd
+  real(rkx) , pointer , public , dimension(:,:,:) :: cldfra
+  real(rkx) , pointer , public , dimension(:,:,:) :: cldlwc
+  real(rkx) , pointer , public , dimension(:,:,:) :: heatrt
 
   ! Dynamic 2
-  real(rk8) , pointer , public , dimension(:,:) :: dpsdxm , dpsdym
-  real(rk8) , pointer , public , dimension(:,:) :: estore , estore_g
-  real(rk8) , pointer , public , dimension(:,:) :: wtbdy , wtbdy_g
-  real(rk8) , public , dimension(-6:6,-6:6) :: tmask
+  real(rkx) , pointer , public , dimension(:,:) :: dpsdxm , dpsdym
+  real(rkx) , pointer , public , dimension(:,:) :: estore , estore_g
+  real(rkx) , pointer , public , dimension(:,:) :: wtbdy , wtbdy_g
+  real(rkx) , public , dimension(-6:6,-6:6) :: tmask
 
   ! Surface
   ! Total Long wave albedo (0.7-5.0 micro-meter)
-  real(rk8) , pointer , public , dimension(:,:) :: albvl
+  real(rkx) , pointer , public , dimension(:,:) :: albvl
   ! Total Short wave albedo (0.2-0.7 micro-meter)
-  real(rk8) , pointer , public , dimension(:,:) :: albvs
+  real(rkx) , pointer , public , dimension(:,:) :: albvs
   ! 0.2-0.7 micro-meter srfc alb to direct radiation
-  real(rk8) , pointer , public , dimension(:,:) :: aldirs
+  real(rkx) , pointer , public , dimension(:,:) :: aldirs
   ! 0.2-0.7 micro-meter srfc alb to diffuse radiation
-  real(rk8) , pointer , public , dimension(:,:) :: aldifs
+  real(rkx) , pointer , public , dimension(:,:) :: aldifs
   ! 0.7-5.0 micro-meter srfc alb to direct radiation
-  real(rk8) , pointer , public , dimension(:,:) :: aldirl
+  real(rkx) , pointer , public , dimension(:,:) :: aldirl
   ! 0.7-5.0 micro-meter srfc alb to diffuse radiation
-  real(rk8) , pointer , public , dimension(:,:) :: aldifl
+  real(rkx) , pointer , public , dimension(:,:) :: aldifl
   ! Emissivity at surface
-  real(rk8) , pointer , public , dimension(:,:) :: emiss
+  real(rkx) , pointer , public , dimension(:,:) :: emiss
   ! Total solar incoming radiation
-  real(rk8) , pointer , public , dimension(:,:) :: sinc
+  real(rkx) , pointer , public , dimension(:,:) :: sinc
 
   ! Precip
-  real(rk8) , pointer , public , dimension(:,:) :: pptnc
-  real(rk8) , pointer , public , dimension(:,:) :: prnca
-  real(rk8) , pointer , public , dimension(:,:,:) :: fcc
-  real(rk8) , pointer , public , dimension(:,:,:) :: remrat
-  real(rk8) , pointer , public , dimension(:,:,:) :: rembc
-  real(rk8) , pointer , public , dimension(:,:,:) :: totc
-  real(rk8) , pointer , public , dimension(:,:,:) :: ccn
-  real(rk8) , pointer , public , dimension(:,:,:) :: rain_ls
+  real(rkx) , pointer , public , dimension(:,:) :: pptnc
+  real(rkx) , pointer , public , dimension(:,:) :: prnca
+  real(rkx) , pointer , public , dimension(:,:,:) :: fcc
+  real(rkx) , pointer , public , dimension(:,:,:) :: remrat
+  real(rkx) , pointer , public , dimension(:,:,:) :: rembc
+  real(rkx) , pointer , public , dimension(:,:,:) :: totc
+  real(rkx) , pointer , public , dimension(:,:,:) :: ccn
+  real(rkx) , pointer , public , dimension(:,:,:) :: rain_ls
 
   ! PBL
   integer(ik4) , public , pointer , dimension(:,:) :: kpbl
-  real(rk8) , public , pointer , dimension(:,:) :: zpbl
+  real(rkx) , public , pointer , dimension(:,:) :: zpbl
 
   ! Cumulus
-  real(rk8) , public , pointer , dimension(:,:,:) :: q_detr
-  real(rk8) , public , pointer , dimension(:,:,:) :: rain_cc
+  real(rkx) , public , pointer , dimension(:,:,:) :: q_detr
+  real(rkx) , public , pointer , dimension(:,:,:) :: rain_cc
 
   ! Surface for chemistry
-  real(rk8) , pointer , public , dimension(:,:) :: sdelq
-  real(rk8) , pointer , public , dimension(:,:) :: sdelt
-  real(rk8) , public , pointer , dimension(:,:) :: ssw2da
-  real(rk8) , public , pointer , dimension(:,:) :: sfracv2d
-  real(rk8) , public , pointer , dimension(:,:) :: sfracb2d
-  real(rk8) , public , pointer , dimension(:,:) :: sfracs2d
-  real(rk8) , public , pointer , dimension(:,:) :: svegfrac2d
-  real(rk8) , public , pointer , dimension(:,:) :: sxlai2d
+  real(rkx) , pointer , public , dimension(:,:) :: sdelq
+  real(rkx) , pointer , public , dimension(:,:) :: sdelt
+  real(rkx) , public , pointer , dimension(:,:) :: ssw2da
+  real(rkx) , public , pointer , dimension(:,:) :: sfracv2d
+  real(rkx) , public , pointer , dimension(:,:) :: sfracb2d
+  real(rkx) , public , pointer , dimension(:,:) :: sfracs2d
+  real(rkx) , public , pointer , dimension(:,:) :: svegfrac2d
+  real(rkx) , public , pointer , dimension(:,:) :: sxlai2d
 #ifdef CLM45
-  real(rk8) , public , pointer , dimension(:,:,:) :: voc_em_clm
-  real(rk8) , public , pointer , dimension(:,:,:) :: dustflx_clm
+  real(rkx) , public , pointer , dimension(:,:,:) :: voc_em_clm
+  real(rkx) , public , pointer , dimension(:,:,:) :: dustflx_clm
 #endif
 #ifdef CLM
-  real(rk8) , public , pointer , dimension(:,:,:) :: dep_vels
+  real(rkx) , public , pointer , dimension(:,:,:) :: dep_vels
 #ifdef VOC
-  real(rk8) , public , pointer , dimension(:,:) :: voc_em0
-  real(rk8) , public , pointer , dimension(:,:) :: voc_em1
-  real(rk8) , public , pointer , dimension(:,:) :: voc_em2
+  real(rkx) , public , pointer , dimension(:,:) :: voc_em0
+  real(rkx) , public , pointer , dimension(:,:) :: voc_em1
+  real(rkx) , public , pointer , dimension(:,:) :: voc_em2
 #endif
 #endif
 
   !chemistry for surface
-  real(rk8) , public , pointer , dimension(:,:,:) :: wetdepflx
-  real(rk8) , public , pointer , dimension(:,:,:) :: drydepflx
+  real(rkx) , public , pointer , dimension(:,:,:) :: wetdepflx
+  real(rkx) , public , pointer , dimension(:,:,:) :: drydepflx
   integer (ik4), public, pointer, dimension(:) :: idusts
 
   ! Coupling
-  real(rk8) , public , pointer , dimension(:,:,:) :: dailyrnf
+  real(rkx) , public , pointer , dimension(:,:,:) :: dailyrnf
   integer(ik4) , public , pointer , dimension(:,:) :: cplmsk
 
 #ifdef DEBUG

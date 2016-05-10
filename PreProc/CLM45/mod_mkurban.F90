@@ -106,22 +106,22 @@ module mod_mkurban
 
   integer(ik4) , dimension(nparam) , parameter :: parmdim = &
     (/3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,5,5,5,5/)
-  real(rk8) :: vmin = 0.0D0
-  real(rk8) :: vmisdat = -9999.0D0
+  real(rkx) :: vmin = 0.0_rkx
+  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
   subroutine mkurban_base(urbanfile,urban)
     implicit none
     character(len=*) , intent(in) :: urbanfile
-    real(rk8) , dimension(:,:,:) , intent(out) :: urban
+    real(rkx) , dimension(:,:,:) , intent(out) :: urban
     integer(ik4) :: nlat , nlon
     integer(ik4) :: idimid , ivarid , ivarmask , ncid
     integer(ik4) , dimension(3) :: istart , icount
     integer(ik4) :: istatus , i , ip , ipt , li , lo
-    real(rk8) , dimension(:,:) , allocatable :: rmask
-    real(rk8) , dimension(:,:,:) , allocatable :: rvar
-    real(rk8) , dimension(:) , allocatable :: glat , glon , rlat , rlon
+    real(rkx) , dimension(:,:) , allocatable :: rmask
+    real(rkx) , dimension(:,:,:) , allocatable :: rvar
+    real(rkx) , dimension(:) , allocatable :: glat , glon , rlat , rlon
     type(global_domain) :: domain
 
     character(len=256) :: inpfile
@@ -177,11 +177,11 @@ module mod_mkurban
     call checkncerr(istatus,__FILE__,__LINE__, &
       'Cannot read variable lon in file '//trim(inpfile))
     ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0D0 )
-      glon = glon - 360.0D0
+    where ( glon >  180.0_rkx )
+      glon = glon - 360.0_rkx
     end where
-    where ( glon < -180.0D0 )
-      glon = glon + 360.0D0
+    where ( glon < -180.0_rkx )
+      glon = glon + 360.0_rkx
     end where
 
     istatus = nf90_inq_dimid(ncid,densdim,idimid)
@@ -241,22 +241,22 @@ module mod_mkurban
   subroutine mkurban_param(urbanfile,urban3d,urban4d,urban5d)
     implicit none
     character(len=*) , intent(in) :: urbanfile
-    real(rk8) , dimension(:,:,:,:) , intent(out) :: urban3d
-    real(rk8) , dimension(:,:,:,:,:) , intent(out) :: urban4d
-    real(rk8) , dimension(:,:,:,:,:,:) , intent(out) :: urban5d
+    real(rkx) , dimension(:,:,:,:) , intent(out) :: urban3d
+    real(rkx) , dimension(:,:,:,:,:) , intent(out) :: urban4d
+    real(rkx) , dimension(:,:,:,:,:,:) , intent(out) :: urban5d
     integer(ik4) :: nlat , nlon
     integer(ik4) :: idimid , ivarid , ivarmask , ivarreg , ncid
     integer(ik4) , dimension(5) :: istart , icount
     integer(ik4) :: istatus , i , j , ic , il , ir , is , n , li , lo
     integer(ik4) :: nurb , nrad , nsol
-    real(rk8) , dimension(:,:,:) , allocatable :: rvar3d
-    real(rk8) , dimension(:,:,:,:) , allocatable :: rvar4d
-    real(rk8) , dimension(:,:,:,:,:) , allocatable :: rvar5d
+    real(rkx) , dimension(:,:,:) , allocatable :: rvar3d
+    real(rkx) , dimension(:,:,:,:) , allocatable :: rvar4d
+    real(rkx) , dimension(:,:,:,:,:) , allocatable :: rvar5d
     integer(ik4) :: i4 , i5 , i6
-    real(rk8) , dimension(:,:) , allocatable :: mread
+    real(rkx) , dimension(:,:) , allocatable :: mread
     integer(ik4) , dimension(:,:) , allocatable :: region
-    real(rk8) , dimension(:,:) , allocatable :: rmask
-    real(rk8) , dimension(:) , allocatable :: glat , glon , rlat , rlon
+    real(rkx) , dimension(:,:) , allocatable :: rmask
+    real(rkx) , dimension(:) , allocatable :: glat , glon , rlat , rlon
     type(global_domain) :: domain
 
     character(len=256) :: inpfile
@@ -300,11 +300,11 @@ module mod_mkurban
       'Cannot read variable lon in file '//trim(inpfile))
 
     ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0D0 )
-      glon = glon - 360.0D0
+    where ( glon >  180.0_rkx )
+      glon = glon - 360.0_rkx
     end where
-    where ( glon < -180.0D0 )
-      glon = glon + 360.0D0
+    where ( glon < -180.0_rkx )
+      glon = glon + 360.0_rkx
     end where
 
     istatus = nf90_inq_dimid(ncid,levurbdim,idimid)

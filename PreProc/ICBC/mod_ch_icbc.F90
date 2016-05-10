@@ -37,24 +37,24 @@ module mod_ch_icbc
 
   integer(ik4) :: chilon , chjlat , chilev
 
-  real(rk8) , pointer , dimension(:) :: cht42lon
-  real(rk8) , pointer , dimension(:) :: cht42lat
-  real(rk8) , pointer , dimension(:) :: cht42hyam , cht42hybm
+  real(rkx) , pointer , dimension(:) :: cht42lon
+  real(rkx) , pointer , dimension(:) :: cht42lat
+  real(rkx) , pointer , dimension(:) :: cht42hyam , cht42hybm
   !
   ! Oxidant climatology variables
   !
-  real(rk8) , pointer , dimension(:) :: xtimes
+  real(rkx) , pointer , dimension(:) :: xtimes
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
-  real(rk8) :: p0
-  real(rk8) , pointer , dimension(:,:) :: pchem_3
-  real(rk8) , pointer , dimension(:,:,:,:) :: chv3
-  real(rk8) , pointer , dimension(:,:) :: xps
-  real(rk8) , pointer , dimension(:,:,:,:) :: xinp
-  real(rk8) , pointer , dimension(:,:,:,:) :: chv4_1
-  real(rk8) , pointer , dimension(:,:,:,:) :: chv4_2
+  real(rkx) :: p0
+  real(rkx) , pointer , dimension(:,:) :: pchem_3
+  real(rkx) , pointer , dimension(:,:,:,:) :: chv3
+  real(rkx) , pointer , dimension(:,:) :: xps
+  real(rkx) , pointer , dimension(:,:,:,:) :: xinp
+  real(rkx) , pointer , dimension(:,:,:,:) :: chv4_1
+  real(rkx) , pointer , dimension(:,:,:,:) :: chv4_2
 
-  real(rk8) :: prcm , pmpi , pmpj
-  real(rk8) :: r4pt
+  real(rkx) :: prcm , pmpi , pmpj
+  real(rkx) :: r4pt
   integer(ik4) :: ism
   type (rcm_time_and_date) , save :: iref1 , iref2
 
@@ -239,7 +239,7 @@ module mod_ch_icbc
     integer, parameter                   ::nfile=127
     type(rcm_time_and_date) , intent(in) :: idate
     type(rcm_time_and_date) , intent(in) :: idate0
-    real(rk8) , dimension(nfile,124),save :: timearray
+    real(rkx) , dimension(nfile,124),save :: timearray
 
     character(len=256),intent(out) :: chfilename
     character(len=44),dimension(nfile),save:: filename
@@ -335,7 +335,7 @@ module mod_ch_icbc
     integer(ik4) :: i , is , j , k , l , k0,recc
     integer(ik4) :: timid , timlen
     character(len=64) :: cunit , ccal
-    real(rk8) :: wt1 , wt2
+    real(rkx) :: wt1 , wt2
     integer(ik4) :: ncid , istatus , ivarid
     integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) :: year , month , day , hour

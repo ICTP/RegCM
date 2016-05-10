@@ -68,7 +68,7 @@ module mod_scrip_remap_bilinear
   ! max iteration count for i,j iteration
   integer(ik4) , parameter :: max_iter = 100
 
-  real(rk8) , parameter :: converge = 1.D-10 ! convergence criterion
+  real(rkx) , parameter :: converge = 1.e-10_rkx ! convergence criterion
 
   public :: remap_bilin
 
@@ -88,18 +88,18 @@ module mod_scrip_remap_bilinear
       integer(ik4) , dimension(4) :: src_add
 
       ! coordinates of four bilinear corners
-      real(rk8) , dimension(4) :: src_lats , src_lons
+      real(rkx) , dimension(4) :: src_lats , src_lons
       ! bilinear weights for four corners
-      real(rk8) , dimension(4) :: wgts
+      real(rkx) , dimension(4) :: wgts
 
-      real(rk8) :: plat , plon        ! lat/lon coords of destination point
-      real(rk8) :: iguess , jguess    ! current guess for bilinear coordinate
-      real(rk8) :: deli , delj        ! corrections to i,j
-      real(rk8) :: dth1 , dth2 , dth3 ! some latitude  differences
-      real(rk8) :: dph1 , dph2 , dph3 ! some longitude differences
-      real(rk8) :: dthp , dphp        ! difference between point and sw corner
-      real(rk8) :: mat1 , mat2 , mat3 , mat4 ! matrix elements
-      real(rk8) :: determinant , sum_wgts    ! matrix determinant , sum of
+      real(rkx) :: plat , plon        ! lat/lon coords of destination point
+      real(rkx) :: iguess , jguess    ! current guess for bilinear coordinate
+      real(rkx) :: deli , delj        ! corrections to i,j
+      real(rkx) :: dth1 , dth2 , dth3 ! some latitude  differences
+      real(rkx) :: dph1 , dph2 , dph3 ! some longitude differences
+      real(rkx) :: dthp , dphp        ! difference between point and sw corner
+      real(rkx) :: mat1 , mat2 , mat3 , mat4 ! matrix elements
+      real(rkx) :: determinant , sum_wgts    ! matrix determinant , sum of
       !
       ! compute mappings from grid1 to grid2
       !
@@ -386,16 +386,16 @@ module mod_scrip_remap_bilinear
       ! address of each corner point enclosing P
       integer(ik4) , dimension(4) , intent(out) :: src_add
       ! coordinates of the four corner points
-      real(rk8) , dimension(4) , intent(out) :: src_lats , src_lons
+      real(rkx) , dimension(4) , intent(out) :: src_lats , src_lons
 
       ! coordinates of the search point
-      real(rk8) , intent(in) :: plat , plon
+      real(rkx) , intent(in) :: plat , plon
       ! size of each src grid dimension
       integer(ik4) , dimension(2) , intent(in) :: src_grid_dims
       ! coordinates of each src grid center
-      real(rk8) , dimension(:) , intent(in) :: src_center_lat , src_center_lon
+      real(rkx) , dimension(:) , intent(in) :: src_center_lat , src_center_lon
       ! bound box for source grid
-      real(rk8) , dimension(:,:) , intent(in) :: src_grid_bound_box
+      real(rkx) , dimension(:,:) , intent(in) :: src_grid_bound_box
       ! latitude bins for restricting searches
       integer(ik4) , dimension(:,:) , intent(in) :: src_bin_add , dst_bin_add
 
@@ -406,10 +406,10 @@ module mod_scrip_remap_bilinear
       integer(ik4) :: n_add , e_add , ne_add ! addresses
 
       ! vectors for cross-product check
-      real(rk8) :: vec1_lat , vec1_lon , vec2_lat , vec2_lon
-      real(rk8) :: cross_product , cross_product_last
-      real(rk8) :: coslat_dst , sinlat_dst , coslon_dst , sinlon_dst
-      real(rk8) :: dist_min , distance ! for computing dist-weighted avg
+      real(rkx) :: vec1_lat , vec1_lon , vec2_lat , vec2_lon
+      real(rkx) :: cross_product , cross_product_last
+      real(rkx) :: coslat_dst , sinlat_dst , coslon_dst , sinlon_dst
+      real(rkx) :: dist_min , distance ! for computing dist-weighted avg
       !
       ! restrict search first using bins
       !
@@ -595,7 +595,7 @@ module mod_scrip_remap_bilinear
       ! addresses on source grid
       integer(ik4) , dimension(4) , intent(in) :: src_add
       ! array of remapping weights for these links
-      real(rk8) , dimension(4) , intent(in) :: weights
+      real(rkx) , dimension(4) , intent(in) :: weights
 
       integer(ik4) :: n , num_links_old ! placeholder for old link number
       !

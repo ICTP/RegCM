@@ -39,62 +39,62 @@ module mod_clm_cncstateupdate2
     character(len=*), intent(in) :: isotope  ! 'bulk', 'c13' or 'c14'
 
     ! C fluxes associated with gap mortality to litter metabolic pool (gC/m3/s)
-    real(rk8), pointer :: gap_mortality_c_to_litr_met_c(:,:)
+    real(rkx), pointer :: gap_mortality_c_to_litr_met_c(:,:)
     ! C fluxes associated with gap mortality to litter cellulose pool (gC/m3/s)
-    real(rk8), pointer :: gap_mortality_c_to_litr_cel_c(:,:)
+    real(rkx), pointer :: gap_mortality_c_to_litr_cel_c(:,:)
     ! C fluxes associated with gap mortality to litter lignin pool (gC/m3/s)
-    real(rk8), pointer :: gap_mortality_c_to_litr_lig_c(:,:)
+    real(rkx), pointer :: gap_mortality_c_to_litr_lig_c(:,:)
     ! C fluxes associated with gap mortality to CWD pool (gC/m3/s)
-    real(rk8), pointer :: gap_mortality_c_to_cwdc(:,:)
-    real(rk8), pointer :: m_deadcrootc_storage_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_to_litter(:)
-    real(rk8), pointer :: m_deadcrootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_storage_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_to_litter(:)
-    real(rk8), pointer :: m_deadstemc_xfer_to_litter(:)
-    real(rk8), pointer :: m_frootc_storage_to_litter(:)
-    real(rk8), pointer :: m_frootc_to_litter(:)
-    real(rk8), pointer :: m_frootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_gresp_storage_to_litter(:)
-    real(rk8), pointer :: m_gresp_xfer_to_litter(:)
-    real(rk8), pointer :: m_leafc_storage_to_litter(:)
-    real(rk8), pointer :: m_leafc_to_litter(:)
-    real(rk8), pointer :: m_leafc_xfer_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_storage_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_to_litter(:)
-    real(rk8), pointer :: m_livecrootc_xfer_to_litter(:)
-    real(rk8), pointer :: m_livestemc_storage_to_litter(:)
-    real(rk8), pointer :: m_livestemc_to_litter(:)
-    real(rk8), pointer :: m_livestemc_xfer_to_litter(:)
+    real(rkx), pointer :: gap_mortality_c_to_cwdc(:,:)
+    real(rkx), pointer :: m_deadcrootc_storage_to_litter(:)
+    real(rkx), pointer :: m_deadcrootc_to_litter(:)
+    real(rkx), pointer :: m_deadcrootc_xfer_to_litter(:)
+    real(rkx), pointer :: m_deadstemc_storage_to_litter(:)
+    real(rkx), pointer :: m_deadstemc_to_litter(:)
+    real(rkx), pointer :: m_deadstemc_xfer_to_litter(:)
+    real(rkx), pointer :: m_frootc_storage_to_litter(:)
+    real(rkx), pointer :: m_frootc_to_litter(:)
+    real(rkx), pointer :: m_frootc_xfer_to_litter(:)
+    real(rkx), pointer :: m_gresp_storage_to_litter(:)
+    real(rkx), pointer :: m_gresp_xfer_to_litter(:)
+    real(rkx), pointer :: m_leafc_storage_to_litter(:)
+    real(rkx), pointer :: m_leafc_to_litter(:)
+    real(rkx), pointer :: m_leafc_xfer_to_litter(:)
+    real(rkx), pointer :: m_livecrootc_storage_to_litter(:)
+    real(rkx), pointer :: m_livecrootc_to_litter(:)
+    real(rkx), pointer :: m_livecrootc_xfer_to_litter(:)
+    real(rkx), pointer :: m_livestemc_storage_to_litter(:)
+    real(rkx), pointer :: m_livestemc_to_litter(:)
+    real(rkx), pointer :: m_livestemc_xfer_to_litter(:)
 
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_cpools_vr(:,:,:)
+    real(rkx), pointer :: decomp_cpools_vr(:,:,:)
     ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: deadcrootc(:)
+    real(rkx), pointer :: deadcrootc(:)
     ! (gC/m2) dead coarse root C storage
-    real(rk8), pointer :: deadcrootc_storage(:)
+    real(rkx), pointer :: deadcrootc_storage(:)
     !(gC/m2) dead coarse root C transfer
-    real(rk8), pointer :: deadcrootc_xfer(:)
-    real(rk8), pointer :: deadstemc(:)         ! (gC/m2) dead stem C
-    real(rk8), pointer :: deadstemc_storage(:) ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: deadstemc_xfer(:)  ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: frootc(:)          ! (gC/m2) fine root C
-    real(rk8), pointer :: frootc_storage(:)  ! (gC/m2) fine root C storage
-    real(rk8), pointer :: frootc_xfer(:)     ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: gresp_storage(:) ! (gC/m2) growth respiration storage
-    real(rk8), pointer :: gresp_xfer(:)    ! (gC/m2) growth respiration transfer
-    real(rk8), pointer :: leafc(:)          ! (gC/m2) leaf C
-    real(rk8), pointer :: leafc_storage(:)  ! (gC/m2) leaf C storage
-    real(rk8), pointer :: leafc_xfer(:)     ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: livecrootc(:)     ! (gC/m2) live coarse root C
+    real(rkx), pointer :: deadcrootc_xfer(:)
+    real(rkx), pointer :: deadstemc(:)         ! (gC/m2) dead stem C
+    real(rkx), pointer :: deadstemc_storage(:) ! (gC/m2) dead stem C storage
+    real(rkx), pointer :: deadstemc_xfer(:)  ! (gC/m2) dead stem C transfer
+    real(rkx), pointer :: frootc(:)          ! (gC/m2) fine root C
+    real(rkx), pointer :: frootc_storage(:)  ! (gC/m2) fine root C storage
+    real(rkx), pointer :: frootc_xfer(:)     ! (gC/m2) fine root C transfer
+    real(rkx), pointer :: gresp_storage(:) ! (gC/m2) growth respiration storage
+    real(rkx), pointer :: gresp_xfer(:)    ! (gC/m2) growth respiration transfer
+    real(rkx), pointer :: leafc(:)          ! (gC/m2) leaf C
+    real(rkx), pointer :: leafc_storage(:)  ! (gC/m2) leaf C storage
+    real(rkx), pointer :: leafc_xfer(:)     ! (gC/m2) leaf C transfer
+    real(rkx), pointer :: livecrootc(:)     ! (gC/m2) live coarse root C
     ! (gC/m2) live coarse root C storage
-    real(rk8), pointer :: livecrootc_storage(:)
+    real(rkx), pointer :: livecrootc_storage(:)
     !(gC/m2) live coarse root C transfer
-    real(rk8), pointer :: livecrootc_xfer(:)
-    real(rk8), pointer :: livestemc(:)       ! (gC/m2) live stem C
+    real(rkx), pointer :: livecrootc_xfer(:)
+    real(rkx), pointer :: livestemc(:)       ! (gC/m2) live stem C
     ! (gC/m2) live stem C storage
-    real(rk8), pointer :: livestemc_storage(:)
-    real(rk8), pointer :: livestemc_xfer(:)  ! (gC/m2) live stem C transfer
+    real(rkx), pointer :: livestemc_storage(:)
+    real(rkx), pointer :: livestemc_xfer(:)  ! (gC/m2) live stem C transfer
 
     type(pft_cflux_type), pointer :: pcisof
     type(pft_cstate_type), pointer :: pcisos
@@ -102,7 +102,7 @@ module mod_clm_cncstateupdate2
     type(column_cstate_type), pointer :: ccisos
     integer(ik4) :: c,p,j      ! indices
     integer(ik4) :: fp,fc    ! lake filter indices
-    real(rk8):: dt       ! radiation time step (seconds)
+    real(rkx):: dt       ! radiation time step (seconds)
 
     ! select which isotope
     select case (isotope)
@@ -254,65 +254,65 @@ module mod_clm_cncstateupdate2
     character(len=*), intent(in) :: isotope     ! 'bulk', 'c13' or 'c14'
 
     ! C fluxes associated with harvest to litter metabolic pool (gC/m3/s)
-    real(rk8), pointer :: harvest_c_to_litr_met_c(:,:)
+    real(rkx), pointer :: harvest_c_to_litr_met_c(:,:)
     ! C fluxes associated with harvest to litter cellulose pool (gC/m3/s)
-    real(rk8), pointer :: harvest_c_to_litr_cel_c(:,:)
+    real(rkx), pointer :: harvest_c_to_litr_cel_c(:,:)
     ! C fluxes associated with harvest to litter lignin pool (gC/m3/s)
-    real(rk8), pointer :: harvest_c_to_litr_lig_c(:,:)
+    real(rkx), pointer :: harvest_c_to_litr_lig_c(:,:)
     ! C fluxes associated with harvest to CWD pool (gC/m3/s)
-    real(rk8), pointer :: harvest_c_to_cwdc(:,:)
-    real(rk8), pointer :: hrv_deadcrootc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_deadcrootc_to_litter(:)
-    real(rk8), pointer :: hrv_deadcrootc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_deadstemc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_deadstemc_to_prod10c(:)
-    real(rk8), pointer :: hrv_deadstemc_to_prod100c(:)
-    real(rk8), pointer :: hrv_deadstemc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_frootc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_frootc_to_litter(:)
-    real(rk8), pointer :: hrv_frootc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_gresp_storage_to_litter(:)
-    real(rk8), pointer :: hrv_gresp_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_leafc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_leafc_to_litter(:)
-    real(rk8), pointer :: hrv_leafc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_livecrootc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_livecrootc_to_litter(:)
-    real(rk8), pointer :: hrv_livecrootc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_livestemc_storage_to_litter(:)
-    real(rk8), pointer :: hrv_livestemc_to_litter(:)
-    real(rk8), pointer :: hrv_livestemc_xfer_to_litter(:)
-    real(rk8), pointer :: hrv_xsmrpool_to_atm(:)
+    real(rkx), pointer :: harvest_c_to_cwdc(:,:)
+    real(rkx), pointer :: hrv_deadcrootc_storage_to_litter(:)
+    real(rkx), pointer :: hrv_deadcrootc_to_litter(:)
+    real(rkx), pointer :: hrv_deadcrootc_xfer_to_litter(:)
+    real(rkx), pointer :: hrv_deadstemc_storage_to_litter(:)
+    real(rkx), pointer :: hrv_deadstemc_to_prod10c(:)
+    real(rkx), pointer :: hrv_deadstemc_to_prod100c(:)
+    real(rkx), pointer :: hrv_deadstemc_xfer_to_litter(:)
+    real(rkx), pointer :: hrv_frootc_storage_to_litter(:)
+    real(rkx), pointer :: hrv_frootc_to_litter(:)
+    real(rkx), pointer :: hrv_frootc_xfer_to_litter(:)
+    real(rkx), pointer :: hrv_gresp_storage_to_litter(:)
+    real(rkx), pointer :: hrv_gresp_xfer_to_litter(:)
+    real(rkx), pointer :: hrv_leafc_storage_to_litter(:)
+    real(rkx), pointer :: hrv_leafc_to_litter(:)
+    real(rkx), pointer :: hrv_leafc_xfer_to_litter(:)
+    real(rkx), pointer :: hrv_livecrootc_storage_to_litter(:)
+    real(rkx), pointer :: hrv_livecrootc_to_litter(:)
+    real(rkx), pointer :: hrv_livecrootc_xfer_to_litter(:)
+    real(rkx), pointer :: hrv_livestemc_storage_to_litter(:)
+    real(rkx), pointer :: hrv_livestemc_to_litter(:)
+    real(rkx), pointer :: hrv_livestemc_xfer_to_litter(:)
+    real(rkx), pointer :: hrv_xsmrpool_to_atm(:)
 
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_cpools_vr(:,:,:)
+    real(rkx), pointer :: decomp_cpools_vr(:,:,:)
     ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: deadcrootc(:)
+    real(rkx), pointer :: deadcrootc(:)
     ! (gC/m2) dead coarse root C storage
-    real(rk8), pointer :: deadcrootc_storage(:)
+    real(rkx), pointer :: deadcrootc_storage(:)
     ! (gC/m2) dead coarse root C transfer
-    real(rk8), pointer :: deadcrootc_xfer(:)
-    real(rk8), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
-    real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: frootc(:)             ! (gC/m2) fine root C
-    real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
-    real(rk8), pointer :: frootc_xfer(:)   ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: gresp_storage(:) ! (gC/m2) growth respiration storage
-    real(rk8), pointer :: gresp_xfer(:)    ! (gC/m2) growth respiration transfer
-    real(rk8), pointer :: leafc(:)         ! (gC/m2) leaf C
-    real(rk8), pointer :: leafc_storage(:) ! (gC/m2) leaf C storage
-    real(rk8), pointer :: leafc_xfer(:)    ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: livecrootc(:)    ! (gC/m2) live coarse root C
+    real(rkx), pointer :: deadcrootc_xfer(:)
+    real(rkx), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
+    real(rkx), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
+    real(rkx), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
+    real(rkx), pointer :: frootc(:)             ! (gC/m2) fine root C
+    real(rkx), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
+    real(rkx), pointer :: frootc_xfer(:)   ! (gC/m2) fine root C transfer
+    real(rkx), pointer :: gresp_storage(:) ! (gC/m2) growth respiration storage
+    real(rkx), pointer :: gresp_xfer(:)    ! (gC/m2) growth respiration transfer
+    real(rkx), pointer :: leafc(:)         ! (gC/m2) leaf C
+    real(rkx), pointer :: leafc_storage(:) ! (gC/m2) leaf C storage
+    real(rkx), pointer :: leafc_xfer(:)    ! (gC/m2) leaf C transfer
+    real(rkx), pointer :: livecrootc(:)    ! (gC/m2) live coarse root C
     ! (gC/m2) live coarse root C storage
-    real(rk8), pointer :: livecrootc_storage(:)
+    real(rkx), pointer :: livecrootc_storage(:)
     ! (gC/m2) live coarse root C transfer
-    real(rk8), pointer :: livecrootc_xfer(:)
-    real(rk8), pointer :: livestemc(:)         ! (gC/m2) live stem C
-    real(rk8), pointer :: livestemc_storage(:) ! (gC/m2) live stem C storage
-    real(rk8), pointer :: livestemc_xfer(:)    ! (gC/m2) live stem C transfer
+    real(rkx), pointer :: livecrootc_xfer(:)
+    real(rkx), pointer :: livestemc(:)         ! (gC/m2) live stem C
+    real(rkx), pointer :: livestemc_storage(:) ! (gC/m2) live stem C storage
+    real(rkx), pointer :: livestemc_xfer(:)    ! (gC/m2) live stem C transfer
     ! (gC/m2) abstract C pool to meet excess MR demand
-    real(rk8), pointer :: xsmrpool(:)
+    real(rkx), pointer :: xsmrpool(:)
 
     type(pft_cflux_type), pointer :: pcisof
     type(pft_cstate_type), pointer :: pcisos
@@ -320,7 +320,7 @@ module mod_clm_cncstateupdate2
     type(column_cstate_type), pointer :: ccisos
     integer(ik4) :: c,p,j    ! indices
     integer(ik4) :: fp,fc    ! lake filter indices
-    real(rk8):: dt       ! radiation time step (seconds)
+    real(rkx):: dt       ! radiation time step (seconds)
 
     ! select which isotope
     select case (isotope)

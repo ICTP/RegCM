@@ -151,14 +151,14 @@
 
       stpfac = 296._rb/1013._rb
 
-      indbound = idnint(tbound - 159._rb)
+      indbound = nint(tbound - 159._rb)
       if (indbound .lt. 1) then
          indbound = 1
       elseif (indbound .gt. 180) then
          indbound = 180
       endif
       tbndfrac = tbound - 159._rb - float(indbound)
-      indlev0 = idnint(tz(0) - 159._rb)
+      indlev0 = nint(tz(0) - 159._rb)
       if (indlev0 .lt. 1) then
          indlev0 = 1
       elseif (indlev0 .gt. 180) then
@@ -171,14 +171,14 @@
 !  Calculate the integrated Planck functions for each band at the
 !  surface, level, and layer temperatures.
       do lay = 1, nlayers
-         indlay = idnint(tavel(lay) - 159._rb)
+         indlay = nint(tavel(lay) - 159._rb)
          if (indlay .lt. 1) then
             indlay = 1
          elseif (indlay .gt. 180) then
             indlay = 180
          endif
          tlayfrac = tavel(lay) - 159._rb - float(indlay)
-         indlev = idnint(tz(lay)-159._rb)
+         indlev = nint(tz(lay)-159._rb)
          if (indlev .lt. 1) then
             indlev = 1
          elseif (indlev .gt. 180) then
@@ -254,7 +254,7 @@
 !  fraction of the difference (in ln(pressure)) between these
 !  two values that the layer pressure lies.
 !         plog = alog(pavel(lay))
-         plog = dlog(pavel(lay))
+         plog = log(pavel(lay))
          jp(lay) = int(36._rb - 5*(plog+0.04_rb))
          if (jp(lay) .lt. 1) then
             jp(lay) = 1

@@ -23,10 +23,10 @@ module mod_clm_cnverticalprofile
   logical , public :: pftspecific_rootingprofile = .true.
   ! parameter for how steep the profile is for root C inputs
   ! (1/ e-folding depth) (1/m)
-  real(rk8) , public :: rootprof_exp  = 3.0D0
+  real(rkx) , public :: rootprof_exp  = 3.0_rkx
   ! parameter for how steep the profile is for surface components
   ! (1/ e_folding depth) (1/m)
-  real(rk8) , public :: surfprof_exp  = 10.0D0
+  real(rkx) , public :: surfprof_exp  = 10.0_rkx
 #endif
 
   contains
@@ -48,9 +48,9 @@ module mod_clm_cnverticalprofile
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     ! column level
     ! (1/m) profile for N fixation additions
-    real(rk8), pointer :: nfixation_prof(:,:)
+    real(rkx), pointer :: nfixation_prof(:,:)
     ! (1/m) profile for N fixation additions
-    real(rk8), pointer :: ndep_prof(:,:)
+    real(rkx), pointer :: ndep_prof(:,:)
     integer(ik4), pointer :: altmax_lastyear_indx(:)  ! frost table depth (m)
     integer(ik4) , pointer :: npfts(:)  ! number of pfts for each column
     integer(ik4) , pointer :: pfti(:)   ! beginning pft index for each column
@@ -58,37 +58,37 @@ module mod_clm_cnverticalprofile
     ! pft level
     integer(ik4) , pointer :: ivt(:)    ! pft vegetation type
     ! fraction of roots in each soil layer  (nlevgrnd)
-    real(rk8), pointer :: rootfr(:,:)
+    real(rkx), pointer :: rootfr(:,:)
     integer(ik4) , pointer :: pcolumn(:)   ! pft's column index
-    real(rk8), pointer :: leaf_prof(:,:)   ! (1/m) profile of leaves
-    real(rk8), pointer :: froot_prof(:,:)  ! (1/m) profile of fine roots
-    real(rk8), pointer :: croot_prof(:,:)  ! (1/m) profile of coarse roots
-    real(rk8), pointer :: stem_prof(:,:)   ! (1/m) profile of stems
-    real(rk8), pointer :: wtcol(:)         ! pft weight relative to column (0-1)
+    real(rkx), pointer :: leaf_prof(:,:)   ! (1/m) profile of leaves
+    real(rkx), pointer :: froot_prof(:,:)  ! (1/m) profile of fine roots
+    real(rkx), pointer :: croot_prof(:,:)  ! (1/m) profile of coarse roots
+    real(rkx), pointer :: stem_prof(:,:)   ! (1/m) profile of stems
+    real(rkx), pointer :: wtcol(:)         ! pft weight relative to column (0-1)
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer :: pactive(:)
 
     ! local variables
-    real(rk8) :: surface_prof(1:nlevdecomp)
+    real(rkx) :: surface_prof(1:nlevdecomp)
     ! pft-native root fraction used for calculating inputs
-    real(rk8) :: cinput_rootfr(lbp:ubp, 1:nlevdecomp_full)
+    real(rkx) :: cinput_rootfr(lbp:ubp, 1:nlevdecomp_full)
 #ifdef VERTSOILC
-    real(rk8) :: surface_prof_tot
-    real(rk8) :: rootfr_tot
+    real(rkx) :: surface_prof_tot
+    real(rkx) :: rootfr_tot
     ! col-native root fraction used for calculating inputs
-    real(rk8) :: col_cinput_rootfr(lbc:ubc, 1:nlevdecomp_full)
+    real(rkx) :: col_cinput_rootfr(lbc:ubc, 1:nlevdecomp_full)
     integer(ik4) :: pi
 #endif
     integer(ik4)  :: c, j, fc, p, fp
 
     ! debugging temp variables
-    real(rk8) :: froot_prof_sum
-    real(rk8) :: croot_prof_sum
-    real(rk8) :: leaf_prof_sum
-    real(rk8) :: stem_prof_sum
-    real(rk8) :: ndep_prof_sum
-    real(rk8) :: nfixation_prof_sum
-    real(rk8) :: delta = 1.e-10
+    real(rkx) :: froot_prof_sum
+    real(rkx) :: croot_prof_sum
+    real(rkx) :: leaf_prof_sum
+    real(rkx) :: stem_prof_sum
+    real(rkx) :: ndep_prof_sum
+    real(rkx) :: nfixation_prof_sum
+    real(rkx) :: delta = 1.e-10
 
     ! assign local pointers at the column level
     nfixation_prof       => clm3%g%l%c%cps%nfixation_prof
@@ -111,21 +111,21 @@ module mod_clm_cnverticalprofile
 #ifdef VERTSOILC
     ! define a single shallow surface profile for surface additions
     ! (leaves, stems, and N deposition)
-    surface_prof(:) = 0.D0
+    surface_prof(:) = 0._rkx
     do j = 1 , nlevdecomp
       surface_prof(j) = exp(-surfprof_exp * zsoi(j)) / dzsoi_decomp(j)
     end do
 
     ! initialize profiles to zero
-    leaf_prof(:,:) = 0.D0
-    froot_prof(:,:) = 0.D0
-    croot_prof(:,:) = 0.D0
-    stem_prof(:,:) = 0.D0
-    nfixation_prof(:,:) = 0.D0
-    ndep_prof(:,:) = 0.D0
+    leaf_prof(:,:) = 0._rkx
+    froot_prof(:,:) = 0._rkx
+    croot_prof(:,:) = 0._rkx
+    stem_prof(:,:) = 0._rkx
+    nfixation_prof(:,:) = 0._rkx
+    ndep_prof(:,:) = 0._rkx
 
-    cinput_rootfr(:,:) = 0.D0
-    col_cinput_rootfr(:,:) = 0.D0
+    cinput_rootfr(:,:) = 0._rkx
+    col_cinput_rootfr(:,:) = 0._rkx
 
     if ( exponential_rooting_profile ) then
       if ( .not. pftspecific_rootingprofile ) then
@@ -143,11 +143,11 @@ module mod_clm_cnverticalprofile
           if (ivt(p) /= noveg) then
             do j = 1, nlevdecomp
               cinput_rootfr(p,j) = ( rootprof_beta(ivt(p)) ** &
-                (zisoi(j-1)*100.D0) - rootprof_beta(ivt(p)) ** &
-                (zisoi(j)*100.D0) ) / dzsoi_decomp(j)
+                (zisoi(j-1)*100._rkx) - rootprof_beta(ivt(p)) ** &
+                (zisoi(j)*100._rkx) ) / dzsoi_decomp(j)
             end do
           else
-            cinput_rootfr(p,1) = 1.D0 / dzsoi_decomp(1)
+            cinput_rootfr(p,1) = 1._rkx / dzsoi_decomp(1)
           end if
         end do
       end if
@@ -165,14 +165,14 @@ module mod_clm_cnverticalprofile
       p = filter_soilp(fp)
       c = pcolumn(p)
       ! integrate rootfr over active layer of soil column
-      rootfr_tot = 0.D0
-      surface_prof_tot = 0.D0
+      rootfr_tot = 0._rkx
+      surface_prof_tot = 0._rkx
       do j = 1, min(max(altmax_lastyear_indx(c), 1), nlevdecomp)
         rootfr_tot = rootfr_tot + cinput_rootfr(p,j) * dzsoi_decomp(j)
         surface_prof_tot = surface_prof_tot + surface_prof(j)  * dzsoi_decomp(j)
       end do
       if ( (altmax_lastyear_indx(c) > 0) .and. &
-           (rootfr_tot > 0.D0) .and. (surface_prof_tot > 0.D0) ) then
+           (rootfr_tot > 0._rkx) .and. (surface_prof_tot > 0._rkx) ) then
         ! where there is not permafrost extending to the surface, integrate
         ! the profiles over the active layer
         ! this is equivalent to integrating over all soil layers outside
@@ -186,10 +186,10 @@ module mod_clm_cnverticalprofile
         end do
       else
         ! if fully frozen, or no roots, put everything in the top layer
-        froot_prof(p,1) = 1.0D0/dzsoi_decomp(1)
-        croot_prof(p,1) = 1.0D0/dzsoi_decomp(1)
-        leaf_prof(p,1) = 1.0D0/dzsoi_decomp(1)
-        stem_prof(p,1) = 1.0D0/dzsoi_decomp(1)
+        froot_prof(p,1) = 1.0_rkx/dzsoi_decomp(1)
+        croot_prof(p,1) = 1.0_rkx/dzsoi_decomp(1)
+        leaf_prof(p,1) = 1.0_rkx/dzsoi_decomp(1)
+        stem_prof(p,1) = 1.0_rkx/dzsoi_decomp(1)
       end if
     end do
 
@@ -214,15 +214,15 @@ module mod_clm_cnverticalprofile
     ! repeat for column-native profiles: Ndep and Nfix
     do fc = 1,num_soilc
       c = filter_soilc(fc)
-      rootfr_tot = 0.D0
-      surface_prof_tot = 0.D0
+      rootfr_tot = 0._rkx
+      surface_prof_tot = 0._rkx
       ! redo column ntegration over active layer for column-native profiles
       do j = 1, min(max(altmax_lastyear_indx(c), 1), nlevdecomp)
         rootfr_tot = rootfr_tot + col_cinput_rootfr(c,j) * dzsoi_decomp(j)
         surface_prof_tot = surface_prof_tot + surface_prof(j) * dzsoi_decomp(j)
       end do
       if ( (altmax_lastyear_indx(c) > 0) .and. &
-           (rootfr_tot > 0.D0) .and. (surface_prof_tot > 0.D0) ) then
+           (rootfr_tot > 0._rkx) .and. (surface_prof_tot > 0._rkx) ) then
         do j = 1,  min(max(altmax_lastyear_indx(c), 1), nlevdecomp)
           nfixation_prof(c,j) = col_cinput_rootfr(c,j) / rootfr_tot
           ndep_prof(c,j) = surface_prof(j)/ surface_prof_tot
@@ -234,12 +234,12 @@ module mod_clm_cnverticalprofile
     end do
 #else
     ! for one layer decomposition model, set profiles to unity
-    leaf_prof(:,:) = 1.D0
-    froot_prof(:,:) = 1.D0
-    croot_prof(:,:) = 1.D0
-    stem_prof(:,:) = 1.D0
-    nfixation_prof(:,:) = 1.D0
-    ndep_prof(:,:) = 1.D0
+    leaf_prof(:,:) = 1._rkx
+    froot_prof(:,:) = 1._rkx
+    croot_prof(:,:) = 1._rkx
+    stem_prof(:,:) = 1._rkx
+    nfixation_prof(:,:) = 1._rkx
+    ndep_prof(:,:) = 1._rkx
 #endif
 
     ! check to make sure integral of all profiles = 1.
@@ -252,8 +252,8 @@ module mod_clm_cnverticalprofile
         nfixation_prof_sum = nfixation_prof_sum + &
                 nfixation_prof(c,j) *  dzsoi_decomp(j)
       end do
-      if ( ( abs(ndep_prof_sum - 1.D0) > delta ) .or. &
-           ( abs(nfixation_prof_sum - 1.D0) > delta ) ) then
+      if ( ( abs(ndep_prof_sum - 1._rkx) > delta ) .or. &
+           ( abs(nfixation_prof_sum - 1._rkx) > delta ) ) then
         write(stderr, *) 'profile sums: ', ndep_prof_sum, nfixation_prof_sum
         write(stderr, *) 'c: ', c
         write(stderr, *) 'altmax_lastyear_indx: ', altmax_lastyear_indx(c)
@@ -274,20 +274,20 @@ module mod_clm_cnverticalprofile
 
     do fp = 1,num_soilp
       p = filter_soilp(fp)
-      froot_prof_sum = 0.0D0
-      croot_prof_sum = 0.0D0
-      leaf_prof_sum = 0.0D0
-      stem_prof_sum = 0.0D0
+      froot_prof_sum = 0.0_rkx
+      croot_prof_sum = 0.0_rkx
+      leaf_prof_sum = 0.0_rkx
+      stem_prof_sum = 0.0_rkx
       do j = 1, nlevdecomp
         froot_prof_sum = froot_prof_sum + froot_prof(p,j) *  dzsoi_decomp(j)
         croot_prof_sum = croot_prof_sum + croot_prof(p,j) *  dzsoi_decomp(j)
         leaf_prof_sum = leaf_prof_sum + leaf_prof(p,j) *  dzsoi_decomp(j)
         stem_prof_sum = stem_prof_sum + stem_prof(p,j) *  dzsoi_decomp(j)
       end do
-      if ( ( abs(froot_prof_sum - 1.D0) > delta ) .or. &
-           ( abs(croot_prof_sum - 1.D0) > delta ) .or. &
-           ( abs(stem_prof_sum - 1.D0) > delta ) .or.  &
-           ( abs(leaf_prof_sum - 1.D0) > delta ) ) then
+      if ( ( abs(froot_prof_sum - 1._rkx) > delta ) .or. &
+           ( abs(croot_prof_sum - 1._rkx) > delta ) .or. &
+           ( abs(stem_prof_sum - 1._rkx) > delta ) .or.  &
+           ( abs(leaf_prof_sum - 1._rkx) > delta ) ) then
         write(stderr, *) 'profile sums: ', froot_prof_sum, &
                 croot_prof_sum, leaf_prof_sum, stem_prof_sum
         call fatal(__FILE__,__LINE__, &

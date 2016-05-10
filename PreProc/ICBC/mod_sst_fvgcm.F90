@@ -49,10 +49,10 @@ module mod_sst_fvgcm
     implicit none
     integer(ik4) , parameter :: ilon = 192 , jlat = 145
     integer(ik4) :: i , it , j , k , nsteps
-    real(rk8) , dimension(jlat) :: lati
-    real(rk8) , dimension(ilon) :: loni
+    real(rkx) , dimension(jlat) :: lati
+    real(rkx) , dimension(ilon) :: loni
     real(rk4) , dimension(ilon,jlat) :: temp
-    real(rk8) , dimension(ilon,jlat) :: sst
+    real(rkx) , dimension(ilon,jlat) :: sst
     type(rcm_time_and_date) :: idate , idateo , idatef
     integer(ik4) :: year , month , day , hour
     integer :: ilenrec

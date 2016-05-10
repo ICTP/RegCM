@@ -76,6 +76,8 @@
 !
 module linpack
 
+  use mod_realkinds
+
   implicit none
 
 contains
@@ -143,7 +145,7 @@ function isamax ( n, x, incx )
 !
 !    Input, integer N, the number of entries in the vector.
 !
-!    Input, real(8) X(*), the vector to be examined.
+!    Input, real(rkx) X(*), the vector to be examined.
 !
 !    Input, integer INCX, the increment between successive entries of SX.
 !
@@ -157,8 +159,8 @@ function isamax ( n, x, incx )
   integer isamax
   integer ix
   integer n
-  real(8) x(*)
-  real(8) samax
+  real(rkx) x(*)
+  real(rkx) samax
 !
   if ( n <= 0 ) then
 
@@ -212,7 +214,7 @@ subroutine r_swap ( x, y )
 !
 !*******************************************************************************
 !
-!! R_SWAP swaps two real(8) values.
+!! R_SWAP swaps two real(rkx) values.
 !
 !
 !  Modified:
@@ -225,14 +227,14 @@ subroutine r_swap ( x, y )
 !
 !  Parameters:
 !
-!    Input/output, real(8) X, Y.  On output, the values of X and
+!    Input/output, real(rkx) X, Y.  On output, the values of X and
 !    Y have been interchanged.
 !
   implicit none
 !
-  real(8) x
-  real(8) y
-  real(8) z
+  real(rkx) x
+  real(rkx) y
+  real(rkx) z
 !
   z = x
   x = y
@@ -256,11 +258,11 @@ function samax ( n, x, incx )
 !
 !    Input, integer N, the number of entries in the vector.
 !
-!    Input, real(8) X(*), the vector to be examined.
+!    Input, real(rkx) X(*), the vector to be examined.
 !
 !    Input, integer INCX, the increment between successive entries of X.
 !
-!    Output, real(8) SAMAX, the maximum absolute value of an element of X.
+!    Output, real(rkx) SAMAX, the maximum absolute value of an element of X.
 !
   implicit none
 !
@@ -268,12 +270,12 @@ function samax ( n, x, incx )
   integer incx
   integer ix
   integer n
-  real(8) samax
-  real(8) x(*)
+  real(rkx) samax
+  real(rkx) x(*)
 !
   if ( n <= 0 ) then
 
-    samax = 0.0D+00
+    samax = 0.0_rkx
 
   else if ( n == 1 ) then
 
@@ -342,19 +344,19 @@ function sasum ( n, x, incx )
 !
 !    Input, integer N, the number of entries in the vector.
 !
-!    Input, real(8) X(*), the vector to be examined.
+!    Input, real(rkx) X(*), the vector to be examined.
 !
 !    Input, integer INCX, the increment between successive entries of X.
 !    INCX must not be negative.
 !
-!    Output, real(8) SASUM, the sum of the absolute values of X.
+!    Output, real(rkx) SASUM, the sum of the absolute values of X.
 !
   implicit none
 !
   integer incx
   integer n
-  real(8) sasum
-  real(8) x(*)
+  real(rkx) sasum
+  real(rkx) x(*)
 !
   sasum = sum ( abs ( x(1:1+(n-1)*incx:incx) ) )
 
@@ -391,13 +393,13 @@ subroutine saxpy ( n, sa, x, incx, y, incy )
 !
 !    Input, integer N, the number of entries in the vector.
 !
-!    Input, real(8) SA, the multiplier.
+!    Input, real(rkx) SA, the multiplier.
 !
-!    Input, real(8) X(*), the vector to be scaled and added to Y.
+!    Input, real(rkx) X(*), the vector to be scaled and added to Y.
 !
 !    Input, integer INCX, the increment between successive entries of X.
 !
-!    Input/output, real(8) Y(*), the vector to which a multiple of X is to
+!    Input/output, real(rkx) Y(*), the vector to which a multiple of X is to
 !    be added.
 !
 !    Input, integer INCY, the increment between successive entries of Y.
@@ -410,13 +412,13 @@ subroutine saxpy ( n, sa, x, incx, y, incy )
   integer ix
   integer iy
   integer n
-  real(8) sa
-  real(8) x(*)
-  real(8) y(*)
+  real(rkx) sa
+  real(rkx) x(*)
+  real(rkx) y(*)
 !
   if ( n <= 0 ) then
 
-  else if ( sa == 0.0D+00 ) then
+  else if ( sa == 0.0_rkx ) then
 
   else if ( incx == 1 .and. incy == 1 ) then
 
@@ -484,7 +486,7 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,P).
+!    Input/output, real(rkx) A(LDA,P).
 !    On input, A contains the matrix whose decomposition is to
 !    be computed.  Only the upper half of A need be stored.
 !    The lower part of the array a is not referenced.
@@ -495,7 +497,7 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
 !
 !    Input, integer P, the order of the matrix.
 !
-!    Input, real(8) WORK(P) is a work array.
+!    Input, real(rkx) WORK(P) is a work array.
 !
 !    Input/output, integer IPVT(P).
 !    On input, IPVT contains integers that control the selection
@@ -530,21 +532,21 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
   integer lda
   integer p
 !
-  real(8) a(lda,p)
+  real(rkx) a(lda,p)
   integer info
   integer j
   integer job
   integer ipvt(p)
   integer k
   integer l
-  real(8) maxdia
+  real(rkx) maxdia
   integer maxl
   logical negk
   integer pl
   integer pu
   logical swapk
-  real(8) temp
-  real(8) work(*)
+  real(rkx) temp
+  real(rkx) work(*)
 !
   pl = 1
   pu = 0
@@ -653,7 +655,7 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
 !
 !  Quit if the pivot element is not positive.
 !
-    if ( maxdia <= 0.0D+00 ) then
+    if ( maxdia <= 0.0_rkx ) then
       info = k - 1
       return
     end if
@@ -763,7 +765,7 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) R(LDR,P), the upper triangular matrix that is to be
+!    Input/output, real(rkx) R(LDR,P), the upper triangular matrix that is to be
 !    downdated.  The part of R below the diagonal is not referenced.
 !
 !    Input, integer LDR, the leading dimension of the array R.
@@ -771,9 +773,9 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !
 !    Input, integer P, the order of the matrix R.
 !
-!    Input, real(8) X(P), the row vector that is to be removed from R.
+!    Input, real(rkx) X(P), the row vector that is to be removed from R.
 !
-!    Input/output, real(8) Z(LDZ,NZ), an array of NZ P-vectors which are to
+!    Input/output, real(rkx) Z(LDZ,NZ), an array of NZ P-vectors which are to
 !    be downdated along with R.
 !
 !    Input, integer LDZ, the leading dimension of the array Z.
@@ -782,12 +784,12 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !    Input, integer NZ, the number of vectors to be downdated.
 !    NZ may be zero, in which case Z, Y, and RHO are not referenced.
 !
-!    Input, real(8) Y(NZ), the scalars for the downdating of the vectors Z.
+!    Input, real(rkx) Y(NZ), the scalars for the downdating of the vectors Z.
 !
-!    Input/output, real(8) RHO(NZ), the norms of the residual vectors.  On
+!    Input/output, real(rkx) RHO(NZ), the norms of the residual vectors.  On
 !    output these have been changed along with R and Z.
 !
-!    Output, real(8) C(P), S(P), the cosines and sines of the transforming
+!    Output, real(rkx) C(P), S(P), the cosines and sines of the transforming
 !    rotations.
 !
 !    Output, integer INFO, return flag.
@@ -804,26 +806,26 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
   integer nz
   integer p
 !
-  real(8) a
-  real(8) alpha
-  real(8) azeta
-  real(8) b
-  real(8) c(p)
+  real(rkx) a
+  real(rkx) alpha
+  real(rkx) azeta
+  real(rkx) b
+  real(rkx) c(p)
   integer i
   integer ii
   integer info
   integer j
-  real(8) norm
-  real(8) r(ldr,p)
-  real(8) rho(nz)
-  real(8) s(p)
-  real(8) scale
-  real(8) t
-  real(8) x(p)
-  real(8) xx
-  real(8) y(nz)
-  real(8) z(ldz,nz)
-  real(8) zeta
+  real(rkx) norm
+  real(rkx) r(ldr,p)
+  real(rkx) rho(nz)
+  real(rkx) s(p)
+  real(rkx) scale
+  real(rkx) t
+  real(rkx) x(p)
+  real(rkx) xx
+  real(rkx) y(nz)
+  real(rkx) z(ldz,nz)
+  real(rkx) zeta
 !
 !  Solve the system R'*A = X, placing the result in the array S.
 !
@@ -837,12 +839,12 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 
   norm = snrm2 ( p, s, 1 )
 
-  if ( norm >= 1.0D+00 ) then
+  if ( norm >= 1.0_rkx ) then
     info = -1
     return
   end if
 
-  alpha = sqrt ( 1.0D+00 - norm**2 )
+  alpha = sqrt ( 1.0_rkx - norm**2 )
 !
 !  Determine the transformations.
 !
@@ -860,7 +862,7 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !  Apply the transformations to R.
 !
   do j = 1, p
-    xx = 0.0D+00
+    xx = 0.0_rkx
     do ii = 1, j
       i = j - ii + 1
       t = c(i) * xx + s(i) * r(i,j)
@@ -883,9 +885,9 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 
     if ( azeta > rho(j) ) then
       info = 1
-      rho(j) = -1.0D+00
+      rho(j) = -1.0_rkx
     else
-      rho(j) = rho(j) * sqrt ( 1.0D+00 - ( azeta / rho(j) )**2 )
+      rho(j) = rho(j) * sqrt ( 1.0_rkx - ( azeta / rho(j) )**2 )
     end if
 
   end do
@@ -965,7 +967,7 @@ subroutine schex ( r, ldr, p, k, l, z, ldz, nz, c, s, job )
 !
 !  Parameters:
 !
-!    Input/output, real(8) R(LDR,P).  On input, the upper triangular factor
+!    Input/output, real(rkx) R(LDR,P).  On input, the upper triangular factor
 !    that is to be updated.  Elements of R below the diagonal are not
 !    referenced.  On output, R has been updated.
 !
@@ -979,7 +981,7 @@ subroutine schex ( r, ldr, p, k, l, z, ldz, nz, c, s, job )
 !    Input, integer L, the last column to be permuted.
 !    L must be strictly greater than K.
 !
-!    Input/output real(8) Z(LDZ,NZ), an array of NZ P-vectors into which the
+!    Input/output real(rkx) Z(LDZ,NZ), an array of NZ P-vectors into which the
 !    transformation U is multiplied.  Z is not referenced if NZ = 0.
 !    On output, Z has been updated.
 !
@@ -992,7 +994,7 @@ subroutine schex ( r, ldr, p, k, l, z, ldz, nz, c, s, job )
 !    1, right circular shift.
 !    2, left circular shift.
 !
-!    Output, real(8) C(P), S(P), the cosines and sines of the transforming
+!    Output, real(rkx) C(P), S(P), the cosines and sines of the transforming
 !    rotations.
 !
   implicit none
@@ -1002,7 +1004,7 @@ subroutine schex ( r, ldr, p, k, l, z, ldz, nz, c, s, job )
   integer p
   integer nz
 !
-  real(8) c(p)
+  real(rkx) c(p)
   integer job
   integer i
   integer ii
@@ -1014,10 +1016,10 @@ subroutine schex ( r, ldr, p, k, l, z, ldz, nz, c, s, job )
   integer l
   integer lm1
   integer lmk
-  real(8) r(ldr,p)
-  real(8) s(p)
-  real(8) t
-  real(8) z(ldz,nz)
+  real(rkx) r(ldr,p)
+  real(rkx) s(p)
+  real(rkx) t
+  real(rkx) z(ldz,nz)
 !
 !  Initialize
 !
@@ -1040,7 +1042,7 @@ subroutine schex ( r, ldr, p, k, l, z, ldz, nz, c, s, job )
        do i = 1, j
          r(i,j+1) = r(i,j)
        end do
-       r(j+1,j+1) = 0.0D+00
+       r(j+1,j+1) = 0.0_rkx
      end do
 
      do i = 1, k-1
@@ -1103,7 +1105,7 @@ subroutine schex ( r, ldr, p, k, l, z, ldz, nz, c, s, job )
        r(i,l) = s(ii)
      end do
 
-     r(k+1:l,l) = 0.0D+00
+     r(k+1:l,l) = 0.0_rkx
 !
 !  Reduction loop.
 !
@@ -1200,7 +1202,7 @@ subroutine schud ( r, ldr, p, x, z, ldz, nz, y, rho, c, s )
 !
 !  Parameters:
 !
-!    Input, real(8) R(LDR,P), the upper triangular matrix that is to be updated.
+!    Input, real(rkx) R(LDR,P), the upper triangular matrix that is to be updated.
 !    the part of R below the diagonal is not referenced.
 !
 !    Input, integer LDR, the leading dimension of the array R.
@@ -1208,9 +1210,9 @@ subroutine schud ( r, ldr, p, x, z, ldz, nz, y, rho, c, s )
 !
 !    Input, integer P, the order of the matrix R.
 !
-!    Input, real(8) X(P), the row to be added to R.
+!    Input, real(rkx) X(P), the row to be added to R.
 !
-!    Input/output, real(8) Z(LDZ,NZ), contains NZ P-vectors to be updated with R.
+!    Input/output, real(rkx) Z(LDZ,NZ), contains NZ P-vectors to be updated with R.
 !
 !    Input, integer LDZ, the leading dimension of the array Z.
 !    LDZ must be at least P.
@@ -1218,13 +1220,13 @@ subroutine schud ( r, ldr, p, x, z, ldz, nz, y, rho, c, s )
 !    Input, integer NZ, the number of vectors to be updated.  NZ may be
 !    zero, in which case Z, Y, and RHO are not referenced.
 !
-!    Input, real(8) Y(NZ), the scalars for updating the vectors Z.
+!    Input, real(rkx) Y(NZ), the scalars for updating the vectors Z.
 !
-!    Input/output, real(8) RHO(NZ).  On input, the norms of the residual
+!    Input/output, real(rkx) RHO(NZ).  On input, the norms of the residual
 !    vectors that are to be updated.  If RHO(J) is negative, it is left
 !    unaltered.
 !
-!    Output, real(8) C(P), S(P), the cosines and sines of the transforming
+!    Output, real(rkx) C(P), S(P), the cosines and sines of the transforming
 !    rotations.
 !
   implicit none
@@ -1234,20 +1236,20 @@ subroutine schud ( r, ldr, p, x, z, ldz, nz, y, rho, c, s )
   integer nz
   integer p
 !
-  real(8) azeta
-  real(8) c(p)
+  real(rkx) azeta
+  real(rkx) c(p)
   integer i
   integer j
-  real(8) r(ldr,p)
-  real(8) rho(nz)
-  real(8) s(p)
-  real(8) scale
-  real(8) t
-  real(8) x(p)
-  real(8) xj
-  real(8) y(nz)
-  real(8) z(ldz,nz)
-  real(8) zeta
+  real(rkx) r(ldr,p)
+  real(rkx) rho(nz)
+  real(rkx) s(p)
+  real(rkx) scale
+  real(rkx) t
+  real(rkx) x(p)
+  real(rkx) xj
+  real(rkx) y(nz)
+  real(rkx) z(ldz,nz)
+  real(rkx) zeta
 !
 !  Update R.
 !
@@ -1283,7 +1285,7 @@ subroutine schud ( r, ldr, p, x, z, ldz, nz, y, rho, c, s )
 
      azeta = abs ( zeta )
 
-     if ( azeta /= 0.0D+00 .and. rho(j) >= 0.0 ) then
+     if ( azeta /= 0.0_rkx .and. rho(j) >= 0.0 ) then
         scale = azeta + rho(j)
         rho(j) = scale * sqrt ( ( azeta / scale )**2 + ( rho(j) / scale )**2 )
      end if
@@ -1297,7 +1299,7 @@ subroutine scopy ( n, x, incx, y, incy )
 !
 !*******************************************************************************
 !
-!! SCOPY copies one real(8) vector into another.
+!! SCOPY copies one real(rkx) vector into another.
 !
 !
 !  Modified:
@@ -1323,11 +1325,11 @@ subroutine scopy ( n, x, incx, y, incy )
 !
 !    Input, integer N, the number of entries in the vector.
 !
-!    Input, real(8) X(*), the vector to be copied into Y.
+!    Input, real(rkx) X(*), the vector to be copied into Y.
 !
 !    Input, integer INCX, the increment between successive entries of X.
 !
-!    Output, real(8) Y(*), the copy of X.
+!    Output, real(rkx) Y(*), the copy of X.
 !
 !    Input, integer INCY, the increment between successive elements of Y.
 !
@@ -1339,8 +1341,8 @@ subroutine scopy ( n, x, incx, y, incy )
   integer ix
   integer iy
   integer n
-  real(8) x(*)
-  real(8) y(*)
+  real(rkx) x(*)
+  real(rkx) y(*)
 !
   if ( n <= 0 ) then
 
@@ -1408,15 +1410,15 @@ function sdot ( n, x, incx, y, incy )
 !
 !    Input, integer N, the number of entries in the vectors.
 !
-!    Input, real(8) X(*), one of the vectors to be multiplied.
+!    Input, real(rkx) X(*), one of the vectors to be multiplied.
 !
 !    Input, integer INCX, the increment between successive entries of X.
 !
-!    Input, real(8) Y(*), one of the vectors to be multiplied.
+!    Input, real(rkx) Y(*), one of the vectors to be multiplied.
 !
 !    Input, integer INCY, the increment between successive elements of Y.
 !
-!    Output, real(8) SDOT, the dot product of X and Y.
+!    Output, real(rkx) SDOT, the dot product of X and Y.
 !
   implicit none
 !
@@ -1426,14 +1428,14 @@ function sdot ( n, x, incx, y, incy )
   integer ix
   integer iy
   integer n
-  real(8) sdot
-  real(8) stemp
-  real(8) x(*)
-  real(8) y(*)
+  real(rkx) sdot
+  real(rkx) stemp
+  real(rkx) x(*)
+  real(rkx) y(*)
 !
   if ( n <= 0 ) then
 
-    sdot = 0.0D+00
+    sdot = 0.0_rkx
 
   else if ( incx == 1 .and. incy == 1 ) then
 
@@ -1453,7 +1455,7 @@ function sdot ( n, x, incx, y, incy )
       iy = ( - n + 1 ) * incy + 1
     end if
 
-    stemp = 0.0D+00
+    stemp = 0.0_rkx
     do i = 1, n
       stemp = stemp + x(ix) * y(iy)
       ix = ix + incx
@@ -1471,7 +1473,7 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
 !
 !*******************************************************************************
 !
-!! SGBCO factors a real(8) band matrix and estimates its condition.
+!! SGBCO factors a real(rkx) band matrix and estimates its condition.
 !
 !
 !  Discussion:
@@ -1542,7 +1544,7 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
 !
 !  Parameters:
 !
-!    Input/output, real(8) ABD(LDA,N).  On input, the matrix in band storage.
+!    Input/output, real(rkx) ABD(LDA,N).  On input, the matrix in band storage.
 !    The columns of the matrix are stored in the columns of ABD and
 !    the diagonals of the matrix are stored in rows ML+1 through 2*ML+MU+1
 !    of ABD.  On output, an upper triangular matrix in band storage and
@@ -1560,15 +1562,15 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
 !
 !    Output, integer IPVT(N), the pivot indices.
 !
-!    Output, real(8) RCOND, an estimate of the reciprocal condition of A.
+!    Output, real(rkx) RCOND, an estimate of the reciprocal condition of A.
 !    For the system A*X = B, relative perturbations in A and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
-!      1.0D+00 + RCOND == 1.0D+00
+!      1.0_rkx + RCOND == 1.0_rkx
 !    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
-!    Workspace, real(8) Z(N), a work vector whose contents are usually unimportant.
+!    Workspace, real(rkx) Z(N), a work vector whose contents are usually unimportant.
 !    If A is close to a singular matrix, then Z is an approximate null vector
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
@@ -1578,9 +1580,9 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
   integer lda
   integer n
 !
-  real(8) abd(lda,n)
-  real(8) anorm
-  real(8) ek
+  real(rkx) abd(lda,n)
+  real(rkx) anorm
+  real(rkx) ek
   integer info
   integer ipvt(n)
   integer is
@@ -1595,18 +1597,18 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
   integer ml
   integer mm
   integer mu
-  real(8) rcond
-  real(8) s
-  real(8) sm
-  real(8) t
-  real(8) wk
-  real(8) wkm
-  real(8) ynorm
-  real(8) z(n)
+  real(rkx) rcond
+  real(rkx) s
+  real(rkx) sm
+  real(rkx) t
+  real(rkx) wk
+  real(rkx) wkm
+  real(rkx) ynorm
+  real(rkx) z(n)
 !
 !  Compute the 1-norm of A.
 !
-  anorm = 0.0D+00
+  anorm = 0.0_rkx
   l = ml + 1
   is = l + mu
   do j = 1, n
@@ -1631,14 +1633,14 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
 !
 !  Solve U'*W = E.
 !
-  ek = 1.0D+00
-  z(1:n) = 0.0D+00
+  ek = 1.0_rkx
+  z(1:n) = 0.0_rkx
   m = ml + mu + 1
   ju = 0
 
   do k = 1, n
 
-     if ( z(k) /= 0.0D+00 ) then
+     if ( z(k) /= 0.0_rkx ) then
        ek = sign ( ek, -z(k) )
      end if
 
@@ -1653,12 +1655,12 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
      s = abs ( wk )
      sm = abs ( wkm )
 
-     if ( abd(m,k) /= 0.0D+00 ) then
+     if ( abd(m,k) /= 0.0_rkx ) then
        wk = wk / abd(m,k)
        wkm = wkm / abd(m,k)
      else
-       wk = 1.0D+00
-       wkm = 1.0D+00
+       wk = 1.0_rkx
+       wkm = 1.0_rkx
      end if
 
      ju = min ( max ( ju, mu+ipvt(k) ), n )
@@ -1701,8 +1703,8 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
        z(k) = z(k) + dot_product ( abd(m+1:m+lm,k), z(k+1:k+lm) )
      end if
 
-     if ( abs ( z(k) ) > 1.0D+00 ) then
-       s = 1.0D+00 / abs ( z(k) )
+     if ( abs ( z(k) ) > 1.0_rkx ) then
+       s = 1.0_rkx / abs ( z(k) )
        z(1:n) = s * z(1:n)
      end if
 
@@ -1713,7 +1715,7 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
   end do
 
   z(1:n) = z(1:n) / sum ( abs ( z(1:n) ) )
-  ynorm = 1.0D+00
+  ynorm = 1.0_rkx
 !
 !  Solve L*V = Y.
 !
@@ -1729,15 +1731,15 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
        call saxpy ( lm, t, abd(m+1,k), 1, z(k+1), 1 )
      end if
 
-     if ( abs ( z(k) ) > 1.0D+00 ) then
-       s = 1.0D+00 / abs ( z(k) )
+     if ( abs ( z(k) ) > 1.0_rkx ) then
+       s = 1.0_rkx / abs ( z(k) )
        z(1:n) = s * z(1:n)
        ynorm = s * ynorm
      end if
 
   end do
 
-  s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+  s = 1.0_rkx / sum ( abs ( z(1:n) ) )
   z(1:n) = s * z(1:n)
   ynorm = s * ynorm
 !
@@ -1751,10 +1753,10 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
        ynorm = s * ynorm
      end if
 
-     if ( abd(m,k) /= 0.0D+00 ) then
+     if ( abd(m,k) /= 0.0_rkx ) then
        z(k) = z(k) / abd(m,k)
      else
-       z(k) = 1.0D+00
+       z(k) = 1.0_rkx
      end if
 
      lm = min ( k, m ) - 1
@@ -1767,14 +1769,14 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
 !
 !  Make ZNORM = 1.0.
 !
-  s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+  s = 1.0_rkx / sum ( abs ( z(1:n) ) )
   z(1:n) = s * z(1:n)
   ynorm = s * ynorm
 
-  if ( anorm /= 0.0D+00 ) then
+  if ( anorm /= 0.0_rkx ) then
     rcond = ynorm / anorm
   else
-    rcond = 0.0D+00
+    rcond = 0.0_rkx
   end if
 
   return
@@ -1802,7 +1804,7 @@ subroutine sgbdi ( abd, lda, n, ml, mu, ipvt, det )
 !
 !  Parameters:
 !
-!    Input, real(8) ABD(LDA,N), the output from SGBCO or SGBFA.
+!    Input, real(rkx) ABD(LDA,N), the output from SGBCO or SGBFA.
 !
 !    Input, integer LDA, the leading dimension of the array ABD.
 !
@@ -1813,27 +1815,27 @@ subroutine sgbdi ( abd, lda, n, ml, mu, ipvt, det )
 !
 !    Input, integer IPVT(N), the pivot vector from SGBCO or SGBFA.
 !
-!    Output, real(8) DET(2), the determinant of the original matrix.
+!    Output, real(rkx) DET(2), the determinant of the original matrix.
 !      determinant = DET(1) * 10.0**DET(2)
-!    with  1.0D+00 <= abs ( DET(1) ) < 10.0D+00 or DET(1) = 0.0D+00.
+!    with  1.0_rkx <= abs ( DET(1) ) < 10.0_rkx or DET(1) = 0.0_rkx.
 !
   implicit none
 !
   integer lda
   integer n
 !
-  real(8) abd(lda,n)
-  real(8) det(2)
+  real(rkx) abd(lda,n)
+  real(rkx) det(2)
   integer i
   integer ipvt(n)
   integer m
   integer ml
   integer mu
-  real(8), parameter :: ten = 10.0D+00
+  real(rkx), parameter :: ten = 10.0_rkx
 !
   m = ml + mu + 1
-  det(1) = 1.0D+00
-  det(2) = 0.0D+00
+  det(1) = 1.0_rkx
+  det(2) = 0.0_rkx
 
   do i = 1, n
 
@@ -1843,18 +1845,18 @@ subroutine sgbdi ( abd, lda, n, ml, mu, ipvt, det )
 
      det(1) = abd(m,i) * det(1)
 
-     if ( det(1) == 0.0D+00 ) then
+     if ( det(1) == 0.0_rkx ) then
        return
      end if
 
-     do while ( abs ( det(1) ) < 1.0D+00 )
+     do while ( abs ( det(1) ) < 1.0_rkx )
        det(1) = ten * det(1)
-       det(2) = det(2) - 1.0D+00
+       det(2) = det(2) - 1.0_rkx
      end do
 
      do while ( abs ( det(1) ) >= ten )
        det(1) = det(1) / ten
-       det(2) = det(2) + 1.0D+00
+       det(2) = det(2) + 1.0_rkx
      end do
 
   end do
@@ -1866,7 +1868,7 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 !
 !*******************************************************************************
 !
-!! SGBFA factors a real(8) band matrix by elimination.
+!! SGBFA factors a real(rkx) band matrix by elimination.
 !
 !
 !  Discussion:
@@ -1885,7 +1887,7 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) ABD(LDA,N).  On input, contains the matrix in band
+!    Input/output, real(rkx) ABD(LDA,N).  On input, contains the matrix in band
 !    storage.  The columns of the matrix are stored in the columns of ABD
 !    and the diagonals of the matrix are stored in rows ML+1 through
 !    2*ML+MU+1 of ABD.  On output, an upper triangular matrix in band storage
@@ -1905,7 +1907,7 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 !
 !    Output, integer INFO, error flag.
 !    0, normal value.
-!    K, if U(K,K) == 0.0D+00.  This is not an error condition for this
+!    K, if U(K,K) == 0.0_rkx.  This is not an error condition for this
 !      subroutine, but it does indicate that SGBSL will divide by zero if
 !      called.  Use RCOND in SGBCO for a reliable indication of singularity.
 !
@@ -1914,7 +1916,7 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
   integer lda
   integer n
 !
-  real(8) abd(lda,n)
+  real(rkx) abd(lda,n)
   integer i0
   integer info
   integer ipvt(n)
@@ -1930,7 +1932,7 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
   integer ml
   integer mm
   integer mu
-  real(8) t
+  real(rkx) t
 !
   m = ml + mu + 1
   info = 0
@@ -1942,7 +1944,7 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 
   do jz = j0, j1
     i0 = m + 1 - jz
-    abd(i0:ml,jz) = 0.0D+00
+    abd(i0:ml,jz) = 0.0_rkx
   end do
 
   jz = j1
@@ -1956,7 +1958,7 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 !
      jz = jz + 1
      if ( jz <= n ) then
-       abd(1:ml,jz) = 0.0D+00
+       abd(1:ml,jz) = 0.0_rkx
      end if
 !
 !  Find L = pivot index.
@@ -1967,7 +1969,7 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 !
 !  Zero pivot implies this column already triangularized.
 !
-     if ( abd(l,k) == 0.0D+00 ) then
+     if ( abd(l,k) == 0.0_rkx ) then
 
        info = k
 !
@@ -1981,7 +1983,7 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 !
 !  Compute multipliers.
 !
-        t = -1.0D+00 / abd(m,k)
+        t = -1.0_rkx / abd(m,k)
         call sscal ( lm, t, abd(m+1,k), 1 )
 !
 !  Row elimination with column indexing.
@@ -2006,7 +2008,7 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 
   ipvt(n) = n
 
-  if ( abd(m,n) == 0.0D+00 ) then
+  if ( abd(m,n) == 0.0_rkx ) then
     info = n
   end if
 
@@ -2017,7 +2019,7 @@ subroutine sgbsl ( abd, lda, n, ml, mu, ipvt, b, job )
 !
 !*******************************************************************************
 !
-!! SGBSL solves a real(8) banded system factored by SGBCO or SGBFA.
+!! SGBSL solves a real(rkx) banded system factored by SGBCO or SGBFA.
 !
 !
 !  Discussion:
@@ -2028,7 +2030,7 @@ subroutine sgbsl ( abd, lda, n, ml, mu, ipvt, b, job )
 !    zero on the diagonal.  Technically this indicates singularity
 !    but it is often caused by improper arguments or improper
 !    setting of LDA.  It will not occur if the subroutines are
-!    called correctly and if SGBCO has set RCOND > 0.0D+00
+!    called correctly and if SGBCO has set RCOND > 0.0_rkx
 !    or SGBFA has set INFO == 0.
 !
 !    To compute inverse(A) * C  where C is a matrix with P columns:
@@ -2054,7 +2056,7 @@ subroutine sgbsl ( abd, lda, n, ml, mu, ipvt, b, job )
 !
 !  Parameters:
 !
-!    Input, real(8) ABD(LDA,N), the output from SGBCO or SGBFA.
+!    Input, real(rkx) ABD(LDA,N), the output from SGBCO or SGBFA.
 !
 !    Input, integer LDA, the leading dimension of the array ABD.
 !
@@ -2065,7 +2067,7 @@ subroutine sgbsl ( abd, lda, n, ml, mu, ipvt, b, job )
 !
 !    Input, integer IPVT(N), the pivot vector from SGBCO or SGBFA.
 !
-!    Input/output, real(8) B(N).  On input, the right hand side.
+!    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
 !    Input, integer JOB, job choice.
@@ -2077,8 +2079,8 @@ subroutine sgbsl ( abd, lda, n, ml, mu, ipvt, b, job )
   integer lda
   integer n
 !
-  real(8) abd(lda,n)
-  real(8) b(n)
+  real(rkx) abd(lda,n)
+  real(rkx) b(n)
   integer ipvt(n)
   integer job
   integer k
@@ -2089,7 +2091,7 @@ subroutine sgbsl ( abd, lda, n, ml, mu, ipvt, b, job )
   integer m
   integer ml
   integer mu
-  real(8) t
+  real(rkx) t
 !
   m = mu + ml + 1
 !
@@ -2161,7 +2163,7 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !
 !*******************************************************************************
 !
-!! SGECO factors a real(8) matrix and estimates its condition number.
+!! SGECO factors a real(rkx) matrix and estimates its condition number.
 !
 !
 !  Discussion:
@@ -2181,7 +2183,7 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !    EPSILON/RCOND.
 !
 !    If RCOND is so small that the logical expression
-!      1.0D+00 + RCOND == 1.0D+00
+!      1.0_rkx + RCOND == 1.0_rkx
 !    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate
 !    underflows.
@@ -2202,7 +2204,7 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).  On input, a matrix to be factored.
+!    Input/output, real(rkx) A(LDA,N).  On input, a matrix to be factored.
 !    On output, the LU factorization of the matrix.
 !
 !    Input, integer LDA, the leading dimension of the array A.
@@ -2211,9 +2213,9 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !
 !    Output, integer IPVT(N), the pivot indices.
 !
-!    Output, real(8) RCOND, an estimate of the reciprocal condition number of A.
+!    Output, real(rkx) RCOND, an estimate of the reciprocal condition number of A.
 !
-!    Output, real(8) Z(N), a work vector whose contents are usually unimportant.
+!    Output, real(rkx) Z(N), a work vector whose contents are usually unimportant.
 !    If A is close to a singular matrix, then Z is an approximate null vector
 !    in the sense that
 !      norm ( A * Z ) = RCOND * norm ( A ) * norm ( Z ).
@@ -2223,26 +2225,26 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
   integer lda
   integer n
 !
-  real(8) a(lda,n)
-  real(8) anorm
-  real(8) ek
+  real(rkx) a(lda,n)
+  real(rkx) anorm
+  real(rkx) ek
   integer info
   integer ipvt(n)
   integer j
   integer k
   integer l
-  real(8) rcond
-  real(8) s
-  real(8) sm
-  real(8) t
-  real(8) wk
-  real(8) wkm
-  real(8) ynorm
-  real(8) z(n)
+  real(rkx) rcond
+  real(rkx) s
+  real(rkx) sm
+  real(rkx) t
+  real(rkx) wk
+  real(rkx) wkm
+  real(rkx) ynorm
+  real(rkx) z(n)
 !
 !  Compute the L1 norm of A.
 !
-  anorm = 0.0D+00
+  anorm = 0.0_rkx
   do j = 1, n
     anorm = max ( anorm, sum ( abs ( a(1:n,j) ) ) )
   end do
@@ -2266,12 +2268,12 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !
 !  Solve U' * W = E.
 !
-  ek = 1.0D+00
-  z(1:n) = 0.0D+00
+  ek = 1.0_rkx
+  z(1:n) = 0.0_rkx
 
   do k = 1, n
 
-    if ( z(k) /= 0.0D+00 ) then
+    if ( z(k) /= 0.0_rkx ) then
       ek = sign ( ek, -z(k) )
     end if
 
@@ -2286,12 +2288,12 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
     s = abs ( wk )
     sm = abs ( wkm )
 
-    if ( a(k,k) /= 0.0D+00 ) then
+    if ( a(k,k) /= 0.0_rkx ) then
       wk = wk / a(k,k)
       wkm = wkm / a(k,k)
     else
-      wk = 1.0D+00
-      wkm = 1.0D+00
+      wk = 1.0_rkx
+      wkm = 1.0_rkx
     end if
 
     if ( k+1 <= n ) then
@@ -2322,7 +2324,7 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 
     z(k) = z(k) + dot_product ( a(k+1:n,k), z(k+1:n) )
 
-    if ( abs ( z(k) ) > 1.0D+00 ) then
+    if ( abs ( z(k) ) > 1.0_rkx ) then
       z(1:n) = z(1:n) / abs ( z(k) )
     end if
 
@@ -2336,7 +2338,7 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 
   z(1:n) = z(1:n) / sum ( abs ( z(1:n) ) )
 
-  ynorm = 1.0D+00
+  ynorm = 1.0_rkx
 !
 !  Solve L * V = Y.
 !
@@ -2350,7 +2352,7 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 
     z(k+1:n) = z(k+1:n) + t * a(k+1:n,k)
 
-    if ( abs ( z(k) ) > 1.0D+00 ) then
+    if ( abs ( z(k) ) > 1.0_rkx ) then
       ynorm = ynorm / abs ( z(k) )
       z(1:n) = z(1:n) / abs ( z(k) )
     end if
@@ -2371,10 +2373,10 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
       ynorm = s * ynorm
     end if
 
-    if ( a(k,k) /= 0.0D+00 ) then
+    if ( a(k,k) /= 0.0_rkx ) then
       z(k) = z(k) / a(k,k)
     else
-      z(k) = 1.0D+00
+      z(k) = 1.0_rkx
     end if
 
     z(1:k-1) = z(1:k-1) - z(k) * a(1:k-1,k)
@@ -2383,14 +2385,14 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !
 !  Normalize Z in the L1 norm.
 !
-  s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+  s = 1.0_rkx / sum ( abs ( z(1:n) ) )
   z(1:n) = s * z(1:n)
   ynorm = s * ynorm
 
-  if ( anorm /= 0.0D+00 ) then
+  if ( anorm /= 0.0_rkx ) then
     rcond = ynorm / anorm
   else
-    rcond = 0.0D+00
+    rcond = 0.0_rkx
   end if
 
   return
@@ -2408,7 +2410,7 @@ subroutine sgedi ( a, lda, n, ipvt, det, work, job )
 !    A division by zero will occur if the input factor contains
 !    a zero on the diagonal and the inverse is requested.
 !    It will not occur if the subroutines are called correctly
-!    and if SGECO has set RCOND > 0.0D+00 or SGEFA has set INFO == 0.
+!    and if SGECO has set RCOND > 0.0_rkx or SGEFA has set INFO == 0.
 !
 !  Reference:
 !
@@ -2421,7 +2423,7 @@ subroutine sgedi ( a, lda, n, ipvt, det, work, job )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N), on input, the N by N factored matrix.
+!    Input/output, real(rkx) A(LDA,N), on input, the N by N factored matrix.
 !    as output by SGECO or SGEFA.  On output, contains the inverse
 !    matrix if requested.
 !
@@ -2431,12 +2433,12 @@ subroutine sgedi ( a, lda, n, ipvt, det, work, job )
 !
 !    Input, integer IPVT(N), the pivot vector from SGECO or SGEFA.
 !
-!    Workspace, real(8) WORK(N).
+!    Workspace, real(rkx) WORK(N).
 !
-!    Output, real(8) DET(2), the determinant of original matrix if requested.
+!    Output, real(rkx) DET(2), the determinant of original matrix if requested.
 !    determinant = DET(1) * 10.0**DET(2)
-!    with  1.0D+00 <= abs ( DET(1) ) < 10.0D+00
-!    or DET(1) == 0.0D+00.
+!    with  1.0_rkx <= abs ( DET(1) ) < 10.0_rkx
+!    or DET(1) == 0.0_rkx.
 !
 !    Input, integer JOB, specifies what is to be computed.
 !    11, both determinant and inverse.
@@ -2448,24 +2450,24 @@ subroutine sgedi ( a, lda, n, ipvt, det, work, job )
   integer lda
   integer n
 !
-  real(8) a(lda,n)
-  real(8) det(2)
+  real(rkx) a(lda,n)
+  real(rkx) det(2)
   integer i
   integer ipvt(n)
   integer j
   integer job
   integer k
   integer l
-  real(8) t
-  real(8), parameter :: ten = 10.0D+00
-  real(8) work(n)
+  real(rkx) t
+  real(rkx), parameter :: ten = 10.0_rkx
+  real(rkx) work(n)
 !
 !  Compute the determinant.
 !
   if ( job / 10 /= 0 ) then
 
-     det(1) = 1.0D+00
-     det(2) = 0.0D+00
+     det(1) = 1.0_rkx
+     det(2) = 0.0_rkx
 
      do i = 1, n
 
@@ -2475,18 +2477,18 @@ subroutine sgedi ( a, lda, n, ipvt, det, work, job )
 
         det(1) = a(i,i) * det(1)
 
-        if ( det(1) == 0.0D+00 ) then
+        if ( det(1) == 0.0_rkx ) then
           exit
         end if
 
-        do while ( abs ( det(1) ) < 1.0D+00 )
+        do while ( abs ( det(1) ) < 1.0_rkx )
           det(1) = ten * det(1)
-          det(2) = det(2) - 1.0D+00
+          det(2) = det(2) - 1.0_rkx
         end do
 
         do while ( abs ( det(1) ) >= ten )
           det(1) = det(1) / ten
-          det(2) = det(2) + 1.0D+00
+          det(2) = det(2) + 1.0_rkx
         end do
 
     end do
@@ -2499,13 +2501,13 @@ subroutine sgedi ( a, lda, n, ipvt, det, work, job )
 
      do k = 1, n
 
-        a(k,k) = 1.0D+00 / a(k,k)
+        a(k,k) = 1.0_rkx / a(k,k)
         t = - a(k,k)
         call sscal ( k-1, t, a(1,k), 1 )
 
         do j = k+1, n
            t = a(k,j)
-           a(k,j) = 0.0D+00
+           a(k,j) = 0.0_rkx
            call saxpy ( k, t, a(1,k), 1, a(1,j), 1 )
         end do
 
@@ -2517,7 +2519,7 @@ subroutine sgedi ( a, lda, n, ipvt, det, work, job )
 
         do i = k+1, n
            work(i) = a(i,k)
-           a(i,k) = 0.0D+00
+           a(i,k) = 0.0_rkx
         end do
 
         do j = k+1, n
@@ -2541,7 +2543,7 @@ subroutine sgefa ( a, lda, n, ipvt, info )
 !
 !*******************************************************************************
 !
-!! SGEFA factors a real(8) matrix.
+!! SGEFA factors a real(rkx) matrix.
 !
 !
 !  Modified:
@@ -2559,7 +2561,7 @@ subroutine sgefa ( a, lda, n, ipvt, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).
+!    Input/output, real(rkx) A(LDA,N).
 !    On intput, the matrix to be factored.
 !    On output, an upper triangular matrix and the multipliers used to obtain
 !    it.  The factorization can be written A=L*U, where L is a product of
@@ -2582,13 +2584,13 @@ subroutine sgefa ( a, lda, n, ipvt, info )
   integer lda
   integer n
 !
-  real(8) a(lda,n)
+  real(rkx) a(lda,n)
   integer info
   integer ipvt(n)
   integer j
   integer k
   integer l
-  real(8) t
+  real(rkx) t
 !
 !  Gaussian elimination with partial pivoting.
 !
@@ -2603,7 +2605,7 @@ subroutine sgefa ( a, lda, n, ipvt, info )
 !
 !  Zero pivot implies this column already triangularized.
 !
-    if ( a(l,k) == 0.0D+00 ) then
+    if ( a(l,k) == 0.0_rkx ) then
       info = k
       cycle
     end if
@@ -2633,7 +2635,7 @@ subroutine sgefa ( a, lda, n, ipvt, info )
 
   ipvt(n) = n
 
-  if ( a(n,n) == 0.0D+00 ) then
+  if ( a(n,n) == 0.0_rkx ) then
     info = n
   end if
 
@@ -2644,7 +2646,7 @@ subroutine sgesl ( a, lda, n, ipvt, b, job )
 !
 !*******************************************************************************
 !
-!! SGESL solves a real(8) general linear system A * X = B.
+!! SGESL solves a real(rkx) general linear system A * X = B.
 !
 !
 !  Discussion:
@@ -2657,7 +2659,7 @@ subroutine sgesl ( a, lda, n, ipvt, b, job )
 !    zero on the diagonal.  Technically this indicates singularity
 !    but it is often caused by improper arguments or improper
 !    setting of LDA.  It will not occur if the subroutines are
-!    called correctly and if SGECO has set RCOND > 0.0D+00
+!    called correctly and if SGECO has set RCOND > 0.0_rkx
 !    or SGEFA has set INFO == 0.
 !
 !  Reference:
@@ -2675,7 +2677,7 @@ subroutine sgesl ( a, lda, n, ipvt, b, job )
 !
 !  Parameters:
 !
-!    Input, real(8) A(LDA,N), the output from SGECO or SGEFA.
+!    Input, real(rkx) A(LDA,N), the output from SGECO or SGEFA.
 !
 !    Input, integer LDA, the leading dimension of A.
 !
@@ -2683,7 +2685,7 @@ subroutine sgesl ( a, lda, n, ipvt, b, job )
 !
 !    Input, integer IPVT(N), the pivot vector from SGECO or SGEFA.
 !
-!    Input/output, real(8) B(N).
+!    Input/output, real(rkx) B(N).
 !    On input, the right hand side vector.
 !    On output, the solution vector.
 !
@@ -2696,13 +2698,13 @@ subroutine sgesl ( a, lda, n, ipvt, b, job )
   integer lda
   integer n
 !
-  real(8) a(lda,n)
-  real(8) b(n)
+  real(rkx) a(lda,n)
+  real(rkx) b(n)
   integer ipvt(n)
   integer job
   integer k
   integer l
-  real(8) t
+  real(rkx) t
 !
 !  Solve A * X = B.
 !
@@ -2777,16 +2779,16 @@ subroutine sgtsl ( n, c, d, e, b, info )
 !
 !    Input, integer N, the order of the tridiagonal matrix.
 !
-!    Input/output, real(8) C(N), contains the subdiagonal of the tridiagonal
+!    Input/output, real(rkx) C(N), contains the subdiagonal of the tridiagonal
 !    matrix in entries C(2:N).  On output, C is destroyed.
 !
-!    Input/output, real(8) D(N).  On input, the diagonal of the matrix.
+!    Input/output, real(rkx) D(N).  On input, the diagonal of the matrix.
 !    On output, D is destroyed.
 !
-!    Input/output, real(8) E(N), contains the superdiagonal of the tridiagonal
+!    Input/output, real(rkx) E(N), contains the superdiagonal of the tridiagonal
 !    matrix in entries E(1:N-1).  On output E is destroyed.
 !
-!    Input/output, real(8) B(N).  On input, the right hand side.  On output,
+!    Input/output, real(rkx) B(N).  On input, the right hand side.  On output,
 !    the solution.
 !
 !    Output, integer INFO, error flag.
@@ -2798,13 +2800,13 @@ subroutine sgtsl ( n, c, d, e, b, info )
 !
   integer n
 !
-  real(8) b(n)
-  real(8) c(n)
-  real(8) d(n)
-  real(8) e(n)
+  real(rkx) b(n)
+  real(rkx) c(n)
+  real(rkx) d(n)
+  real(rkx) e(n)
   integer info
   integer k
-  real(8) t
+  real(rkx) t
 !
   info = 0
   c(1) = d(1)
@@ -2812,8 +2814,8 @@ subroutine sgtsl ( n, c, d, e, b, info )
   if ( n >= 2 ) then
 
     d(1) = e(1)
-    e(1) = 0.0D+00
-    e(n) = 0.0D+00
+    e(1) = 0.0_rkx
+    e(n) = 0.0_rkx
 
     do k = 1, n - 1
 !
@@ -2828,7 +2830,7 @@ subroutine sgtsl ( n, c, d, e, b, info )
 !
 !  Fail if no nonzero pivot could be found.
 !
-      if ( c(k) == 0.0D+00 ) then
+      if ( c(k) == 0.0_rkx ) then
         info = k
         return
       end if
@@ -2838,14 +2840,14 @@ subroutine sgtsl ( n, c, d, e, b, info )
       t = -c(k+1) / c(k)
       c(k+1) = d(k+1) + t * d(k)
       d(k+1) = e(k+1) + t * e(k)
-      e(k+1) = 0.0D+00
+      e(k+1) = 0.0_rkx
       b(k+1) = b(k+1) + t * b(k)
 
     end do
 
   end if
 
-  if ( c(n) == 0.0D+00 ) then
+  if ( c(n) == 0.0_rkx ) then
     info = n
     return
   end if
@@ -2891,11 +2893,11 @@ function snrm2 ( n, x, incx )
 !
 !    Input, integer N, the number of entries in the vector.
 !
-!    Input, real(8) X(*), the vector whose norm is to be computed.
+!    Input, real(rkx) X(*), the vector whose norm is to be computed.
 !
 !    Input, integer INCX, the increment between successive entries of X.
 !
-!    Output, real(8) SNRM2, the Euclidean norm of X.
+!    Output, real(rkx) SNRM2, the Euclidean norm of X.
 !
   implicit none
 !
@@ -2903,22 +2905,22 @@ function snrm2 ( n, x, incx )
   integer incx
   integer ix
   integer n
-  real(8) snrm2
-  real(8) stemp
-  real(8) x(*)
-  real(8) xmax
+  real(rkx) snrm2
+  real(rkx) stemp
+  real(rkx) x(*)
+  real(rkx) xmax
 !
   if ( n <= 0 ) then
 
-    snrm2 = 0.0D+00
+    snrm2 = 0.0_rkx
 
   else
 
     xmax = samax ( n, x, incx )
 
-    if ( xmax == 0.0D+00 ) then
+    if ( xmax == 0.0_rkx ) then
 
-      snrm2 = 0.0D+00
+      snrm2 = 0.0_rkx
 
     else
 
@@ -2928,7 +2930,7 @@ function snrm2 ( n, x, incx )
         ix = ( - n + 1 ) * incx + 1
       end if
 
-      stemp = 0.0D+00
+      stemp = 0.0_rkx
       do i = 1, n
         stemp = stemp + ( x(ix) / xmax )**2
         ix = ix + incx
@@ -2947,7 +2949,7 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 !
 !*******************************************************************************
 !
-!! SPBCO factors a real(8) symmetric positive definite banded matrix.
+!! SPBCO factors a real(rkx) symmetric positive definite banded matrix.
 !
 !
 !  Discussion:
@@ -3005,7 +3007,7 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) ABD(LDA,N).  On input, the matrix to be factored.
+!    Input/output, real(rkx) ABD(LDA,N).  On input, the matrix to be factored.
 !    The columns of the upper triangle are stored in the columns of ABD and the
 !    diagonals of the upper triangle are stored in the rows of ABD.
 !    On output, an upper triangular matrix R, stored in band form, so that
@@ -3018,15 +3020,15 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 !
 !    Input, integer M, the number of diagonals above the main diagonal.
 !
-!    Output, real(8) RCOND, an estimate of the reciprocal condition of A.
+!    Output, real(rkx) RCOND, an estimate of the reciprocal condition of A.
 !    For the system A*X = B, relative perturbations in A and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
-!      1.0D+00 + RCOND == 1.0D+00
+!      1.0_rkx + RCOND == 1.0_rkx
 !    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
-!    Output, real(8) Z(N), a work vector whose contents are usually unimportant.
+!    Output, real(rkx) Z(N), a work vector whose contents are usually unimportant.
 !    If A is singular to working precision, then Z is an approximate null
 !    vector in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
@@ -3042,9 +3044,9 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
   integer lda
   integer n
 !
-  real(8) abd(lda,n)
-  real(8) anorm
-  real(8) ek
+  real(rkx) abd(lda,n)
+  real(rkx) anorm
+  real(rkx) ek
   integer i
   integer info
   integer j
@@ -3056,14 +3058,14 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
   integer lm
   integer m
   integer mu
-  real(8) rcond
-  real(8) s
-  real(8) sm
-  real(8) t
-  real(8) wk
-  real(8) wkm
-  real(8) ynorm
-  real(8) z(n)
+  real(rkx) rcond
+  real(rkx) s
+  real(rkx) sm
+  real(rkx) t
+  real(rkx) wk
+  real(rkx) wkm
+  real(rkx) ynorm
+  real(rkx) z(n)
 !
 !  Find the norm of A.
 !
@@ -3101,12 +3103,12 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 !
 !  Solve R'*W = E.
 !
-  ek = 1.0D+00
-  z(1:n) = 0.0D+00
+  ek = 1.0_rkx
+  z(1:n) = 0.0_rkx
 
   do k = 1, n
 
-    if ( z(k) /= 0.0D+00 ) then
+    if ( z(k) /= 0.0_rkx ) then
       ek = sign ( ek, -z(k) )
     end if
 
@@ -3175,7 +3177,7 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 
   z(1:n) = z(1:n) / sum ( abs ( z(1:n) ) )
 
-  ynorm = 1.0D+00
+  ynorm = 1.0_rkx
 !
 !  Solve R'*V = Y.
 !
@@ -3197,7 +3199,7 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 
   end do
 
-  s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+  s = 1.0_rkx / sum ( abs ( z(1:n) ) )
   z(1:n) = s * z(1:n)
   ynorm = s * ynorm
 !
@@ -3222,14 +3224,14 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 !
 !  Make ZNORM = 1.0.
 !
-  s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+  s = 1.0_rkx / sum ( abs ( z(1:n) ) )
   z(1:n) = s * z(1:n)
   ynorm = s * ynorm
 
-  if ( anorm /= 0.0D+00 ) then
+  if ( anorm /= 0.0_rkx ) then
     rcond = ynorm / anorm
   else
-    rcond = 0.0D+00
+    rcond = 0.0_rkx
   end if
 
   return
@@ -3257,7 +3259,7 @@ subroutine spbdi ( abd, lda, n, m, det )
 !
 !  Parameters:
 !
-!    Input, real(8) ABD(LDA,N), the output from SPBCO or SPBFA.
+!    Input, real(rkx) ABD(LDA,N), the output from SPBCO or SPBFA.
 !
 !    Input, integer LDA, the leading dimension of the array ABD.
 !
@@ -3265,43 +3267,43 @@ subroutine spbdi ( abd, lda, n, m, det )
 !
 !    Input, integer M, the number of diagonals above the main diagonal.
 !
-!    Output, real(8) DET(2), the determinant of the original matrix in the form
+!    Output, real(rkx) DET(2), the determinant of the original matrix in the form
 !      determinant = DET(1) * 10.0**DET(2)
-!    with 1.0D+00 <= DET(1) < 10.0D+00 or DET(1) == 0.0D+00.
+!    with 1.0_rkx <= DET(1) < 10.0_rkx or DET(1) == 0.0_rkx.
 !
   implicit none
 !
   integer lda
   integer n
 !
-  real(8) abd(lda,n)
-  real(8) det(2)
+  real(rkx) abd(lda,n)
+  real(rkx) det(2)
   integer i
   integer m
-  real(8) s
+  real(rkx) s
 !
 !  Compute the determinant.
 !
-  det(1) = 1.0D+00
-  det(2) = 0.0D+00
-  s = 10.0D+00
+  det(1) = 1.0_rkx
+  det(2) = 0.0_rkx
+  s = 10.0_rkx
 
   do i = 1, n
 
     det(1) = abd(m+1,i)**2 * det(1)
 
-    if ( det(1) == 0.0D+00 ) then
+    if ( det(1) == 0.0_rkx ) then
       return
     end if
 
-    do while ( det(1) < 1.0D+00 )
+    do while ( det(1) < 1.0_rkx )
       det(1) = s * det(1)
-      det(2) = det(2) - 1.0D+00
+      det(2) = det(2) - 1.0_rkx
     end do
 
     do while ( det(1) >= s )
       det(1) = det(1) / s
-      det(2) = det(2) + 1.0D+00
+      det(2) = det(2) + 1.0_rkx
     end do
 
   end do
@@ -3313,7 +3315,7 @@ subroutine spbfa ( abd, lda, n, m, info )
 !
 !*******************************************************************************
 !
-!! SPBFA factors a real(8) symmetric positive definite matrix stored in band form.
+!! SPBFA factors a real(rkx) symmetric positive definite matrix stored in band form.
 !
 !
 !  Discussion:
@@ -3346,7 +3348,7 @@ subroutine spbfa ( abd, lda, n, m, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) ABD(LDA,N).  On input, the matrix to be factored.
+!    Input/output, real(rkx) ABD(LDA,N).  On input, the matrix to be factored.
 !    The columns of the upper triangle are stored in the columns of ABD
 !    and the diagonals of the upper triangle are stored in the
 !    rows of ABD.  On output, an upper triangular matrix R, stored in band
@@ -3368,7 +3370,7 @@ subroutine spbfa ( abd, lda, n, m, info )
   integer lda
   integer n
 !
-  real(8) abd(lda,n)
+  real(rkx) abd(lda,n)
   integer ik
   integer info
   integer j
@@ -3376,12 +3378,12 @@ subroutine spbfa ( abd, lda, n, m, info )
   integer k
   integer m
   integer mu
-  real(8) s
-  real(8) t
+  real(rkx) s
+  real(rkx) t
 !
   do j = 1, n
 
-    s = 0.0D+00
+    s = 0.0_rkx
     ik = m + 1
     jk = max (j-m,1)
     mu = max (m+2-j,1)
@@ -3397,7 +3399,7 @@ subroutine spbfa ( abd, lda, n, m, info )
 
     s = abd(m+1,j) - s
 
-    if ( s <= 0.0D+00 ) then
+    if ( s <= 0.0_rkx ) then
       info = j
       return
     end if
@@ -3415,7 +3417,7 @@ subroutine spbsl ( abd, lda, n, m, b )
 !
 !*******************************************************************************
 !
-!! SPBSL solves a real(8) symmetric positive definite band factored by SPBCO or SPBFA.
+!! SPBSL solves a real(rkx) symmetric positive definite band factored by SPBCO or SPBFA.
 !
 !
 !  Discussion:
@@ -3447,7 +3449,7 @@ subroutine spbsl ( abd, lda, n, m, b )
 !
 !  Parameters:
 !
-!    Input, real(8) ABD(LDA,N), the output from SPBCO or SPBFA.
+!    Input, real(rkx) ABD(LDA,N), the output from SPBCO or SPBFA.
 !
 !    Input, integer LDA, the leading dimension of the array ABD.
 !
@@ -3455,7 +3457,7 @@ subroutine spbsl ( abd, lda, n, m, b )
 !
 !    Input, integer M, the number of diagonals above the main diagonal.
 !
-!    Input/output, real(8) B(N).  On input, the right hand side.
+!    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
   implicit none
@@ -3463,14 +3465,14 @@ subroutine spbsl ( abd, lda, n, m, b )
   integer lda
   integer n
 !
-  real(8) abd(lda,n)
-  real(8) b(n)
+  real(rkx) abd(lda,n)
+  real(rkx) b(n)
   integer k
   integer la
   integer lb
   integer lm
   integer m
-  real(8) t
+  real(rkx) t
 !
 !  Solve R'*Y = B.
 !
@@ -3498,7 +3500,7 @@ subroutine spoco ( a, lda, n, rcond, z, info )
 !
 !*******************************************************************************
 !
-!! SPOCO factors a real(8) symmetric positive definite matrix and estimates its condition.
+!! SPOCO factors a real(rkx) symmetric positive definite matrix and estimates its condition.
 !
 !
 !  Discussion:
@@ -3524,7 +3526,7 @@ subroutine spoco ( a, lda, n, rcond, z, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).  On input, the symmetric matrix to
+!    Input/output, real(rkx) A(LDA,N).  On input, the symmetric matrix to
 !    be factored.  Only the diagonal and upper triangle are used.
 !    On output, an upper triangular matrix R so that A = R'*R where R'
 !    is the transpose.  The strict lower triangle is unaltered.
@@ -3534,15 +3536,15 @@ subroutine spoco ( a, lda, n, rcond, z, info )
 !
 !    Input, integer N, the order of the matrix.
 !
-!    Output, real(8) RCOND, an estimate of the reciprocal condition of A.
+!    Output, real(rkx) RCOND, an estimate of the reciprocal condition of A.
 !    For the system A*X = B, relative perturbations in A and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
-!      1.0D+00 + RCOND == 1.0D+00
+!      1.0_rkx + RCOND == 1.0_rkx
 !    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
-!    Output, real(8) Z(N), a work vector whose contents are usually unimportant.
+!    Output, real(rkx) Z(N), a work vector whose contents are usually unimportant.
 !    If A is close to a singular matrix, then Z is an approximate null vector
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
@@ -3558,21 +3560,21 @@ subroutine spoco ( a, lda, n, rcond, z, info )
   integer lda
   integer n
 
-  real(8) a(lda,n)
-  real(8) anorm
-  real(8) ek
+  real(rkx) a(lda,n)
+  real(rkx) anorm
+  real(rkx) ek
   integer i
   integer info
   integer j
   integer k
-  real(8) rcond
-  real(8) s
-  real(8) sm
-  real(8) t
-  real(8) wk
-  real(8) wkm
-  real(8) ynorm
-  real(8) z(n)
+  real(rkx) rcond
+  real(rkx) s
+  real(rkx) sm
+  real(rkx) t
+  real(rkx) wk
+  real(rkx) wkm
+  real(rkx) ynorm
+  real(rkx) z(n)
 !
 !  Find norm of A using only upper half.
 !
@@ -3604,12 +3606,12 @@ subroutine spoco ( a, lda, n, rcond, z, info )
 !
 !  Solve R'*W = E.
 !
-     ek = 1.0D+00
-     z(1:n) = 0.0D+00
+     ek = 1.0_rkx
+     z(1:n) = 0.0_rkx
 
      do k = 1, n
 
-        if ( z(k) /= 0.0D+00 ) then
+        if ( z(k) /= 0.0_rkx ) then
           ek = sign ( ek, -z(k) )
         end if
 
@@ -3668,7 +3670,7 @@ subroutine spoco ( a, lda, n, rcond, z, info )
      end do
 
      z(1:n) = z(1:n) / sum ( abs ( z(1:n) ) )
-     ynorm = 1.0D+00
+     ynorm = 1.0_rkx
 !
 !  Solve R'*V = Y.
 !
@@ -3686,7 +3688,7 @@ subroutine spoco ( a, lda, n, rcond, z, info )
 
      end do
 
-     s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+     s = 1.0_rkx / sum ( abs ( z(1:n) ) )
      z(1:n) = s * z(1:n)
      ynorm = s * ynorm
 !
@@ -3708,14 +3710,14 @@ subroutine spoco ( a, lda, n, rcond, z, info )
 !
 !  Make ZNORM = 1.0.
 !
-     s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+     s = 1.0_rkx / sum ( abs ( z(1:n) ) )
      z(1:n) = s * z(1:n)
      ynorm = s * ynorm
 
-     if ( anorm /= 0.0D+00 ) then
+     if ( anorm /= 0.0_rkx ) then
        rcond = ynorm / anorm
      else
-       rcond = 0.0D+00
+       rcond = 0.0_rkx
      end if
 
   return
@@ -3730,7 +3732,7 @@ subroutine spodi ( a, lda, n, det, job )
 !
 !  Discussion:
 !
-!    The matrix is real(8) symmetric positive definite.
+!    The matrix is real(rkx) symmetric positive definite.
 !    SPODI uses the factors computed by SPOCO, SPOFA or SQRDC.
 !
 !    A division by zero will occur if the input factor contains
@@ -3749,7 +3751,7 @@ subroutine spodi ( a, lda, n, det, job )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).  On input, the output A from SPOCO
+!    Input/output, real(rkx) A(LDA,N).  On input, the output A from SPOCO
 !    or SPOFA, or the output X from SQRDC.  On output, if SPOCO or
 !    SPOFA was used to factor A then SPODI produces the upper half of
 !    inverse(A).  If SQRDC was used to decompose X then SPODI produces
@@ -3766,48 +3768,48 @@ subroutine spodi ( a, lda, n, det, job )
 !    01, inverse only.
 !    10, determinant only.
 !
-!    Output, real(8) DET(2), the determinant of A or of X'*X if requested.
+!    Output, real(rkx) DET(2), the determinant of A or of X'*X if requested.
 !      determinant = DET(1) * 10.0**DET(2)
-!    with 1.0D+00 <= DET(1) < 10.0D+00 or DET(1) == 0.0D+00.
+!    with 1.0_rkx <= DET(1) < 10.0_rkx or DET(1) == 0.0_rkx.
 !
   implicit none
 !
   integer lda
   integer n
 !
-  real(8) a(lda,n)
-  real(8) det(2)
+  real(rkx) a(lda,n)
+  real(rkx) det(2)
   integer i
   integer j
   integer job
   integer k
-  real(8) s
-  real(8) t
+  real(rkx) s
+  real(rkx) t
 !
 !  Compute the determinant.
 !
   if ( job / 10 /= 0 ) then
 
-     det(1) = 1.0D+00
-     det(2) = 0.0D+00
-     s = 10.0D+00
+     det(1) = 1.0_rkx
+     det(2) = 0.0_rkx
+     s = 10.0_rkx
 
      do i = 1, n
 
         det(1) = a(i,i)**2 * det(1)
 
-        if ( det(1) == 0.0D+00 ) then
+        if ( det(1) == 0.0_rkx ) then
           exit
         end if
 
-        do while ( det(1) < 1.0D+00 )
+        do while ( det(1) < 1.0_rkx )
           det(1) = s * det(1)
-          det(2) = det(2) - 1.0D+00
+          det(2) = det(2) - 1.0_rkx
         end do
 
         do while ( det(1) >= s )
           det(1) = det(1) / s
-          det(2) = det(2) + 1.0D+00
+          det(2) = det(2) + 1.0_rkx
         end do
 
     end do
@@ -3820,13 +3822,13 @@ subroutine spodi ( a, lda, n, det, job )
 
      do k = 1, n
 
-        a(k,k) = 1.0D+00 / a(k,k)
+        a(k,k) = 1.0_rkx / a(k,k)
         t = -a(k,k)
         call sscal ( k-1, t, a(1,k), 1 )
 
         do j = k+1, n
           t = a(k,j)
-          a(k,j) = 0.0D+00
+          a(k,j) = 0.0_rkx
           call saxpy ( k, t, a(1,k), 1, a(1,j), 1 )
         end do
 
@@ -3852,7 +3854,7 @@ subroutine spofa ( a, lda, n, info )
 !
 !*******************************************************************************
 !
-!! SPOFA factors a real(8) symmetric positive definite matrix.
+!! SPOFA factors a real(rkx) symmetric positive definite matrix.
 !
 !
 !  Discussion:
@@ -3875,7 +3877,7 @@ subroutine spofa ( a, lda, n, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).  On input, the symmetric matrix to be
+!    Input/output, real(rkx) A(LDA,N).  On input, the symmetric matrix to be
 !    factored.  Only the diagonal and upper triangle are used.
 !    On output, an upper triangular matrix R so that A = R'*R
 !    where R' is the transpose.  The strict lower triangle is unaltered.
@@ -3895,16 +3897,16 @@ subroutine spofa ( a, lda, n, info )
   integer lda
   integer n
 !
-  real(8) a(lda,n)
+  real(rkx) a(lda,n)
   integer info
   integer j
   integer k
-  real(8) s
-  real(8) t
+  real(rkx) s
+  real(rkx) t
 !
   do j = 1, n
 
-    s = 0.0D+00
+    s = 0.0_rkx
 
     do k = 1, j-1
       t = a(k,j) - dot_product ( a(1:k-1,k), a(1:k-1,j) )
@@ -3915,7 +3917,7 @@ subroutine spofa ( a, lda, n, info )
 
     s = a(j,j) - s
 
-    if ( s <= 0.0D+00 ) then
+    if ( s <= 0.0_rkx ) then
       info = j
       return
     end if
@@ -3965,13 +3967,13 @@ subroutine sposl ( a, lda, n, b )
 !
 !  Parameters:
 !
-!    Input, real(8) A(LDA,N), the output from SPOCO or SPOFA.
+!    Input, real(rkx) A(LDA,N), the output from SPOCO or SPOFA.
 !
 !    Input, integer LDA, the leading dimension of the array A.
 !
 !    Input, integer N, the order of the matrix.
 !
-!    Input/output, real(8) B(N).  On input, the right hand side.
+!    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
   implicit none
@@ -3979,10 +3981,10 @@ subroutine sposl ( a, lda, n, b )
   integer lda
   integer n
 !
-  real(8) a(lda,n)
-  real(8) b(n)
+  real(rkx) a(lda,n)
+  real(rkx) b(n)
   integer k
-  real(8) t
+  real(rkx) t
 !
 !  Solve R'*Y = B.
 !
@@ -4006,7 +4008,7 @@ subroutine sppco ( ap, n, rcond, z, info )
 !
 !*******************************************************************************
 !
-!! SPPCO factors a real(8) symmetric positive definite matrix in packed form.
+!! SPPCO factors a real(rkx) symmetric positive definite matrix in packed form.
 !
 !
 !  Discussion:
@@ -4047,7 +4049,7 @@ subroutine sppco ( ap, n, rcond, z, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) AP(N*(N+1)/2).  On input, the packed form of a
+!    Input/output, real(rkx) AP(N*(N+1)/2).  On input, the packed form of a
 !    symmetric matrix A.  The columns of the upper triangle are stored
 !    sequentially in a one-dimensional array.  On output, an upper
 !    triangular matrix R, stored in packed form, so that A = R'*R.
@@ -4055,15 +4057,15 @@ subroutine sppco ( ap, n, rcond, z, info )
 !
 !    Input, integer N, the order of the matrix.
 !
-!    Output, real(8) RCOND, an estimate of the reciprocal condition of A.
+!    Output, real(rkx) RCOND, an estimate of the reciprocal condition of A.
 !    For the system A*X = B, relative perturbations in A and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
-!      1.0D+00 + RCOND == 1.0D+00
+!      1.0_rkx + RCOND == 1.0_rkx
 !    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
-!    Output, real(8) Z(N), a work vector whose contents are usually unimportant.
+!    Output, real(rkx) Z(N), a work vector whose contents are usually unimportant.
 !    If A is singular to working precision, then Z is an approximate null
 !    vector in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
@@ -4078,9 +4080,9 @@ subroutine sppco ( ap, n, rcond, z, info )
 !
   integer n
 !
-  real(8) anorm
-  real(8) ap((n*(n+1))/2)
-  real(8) ek
+  real(rkx) anorm
+  real(rkx) ap((n*(n+1))/2)
+  real(rkx) ek
   integer i
   integer ij
   integer info
@@ -4089,14 +4091,14 @@ subroutine sppco ( ap, n, rcond, z, info )
   integer k
   integer kj
   integer kk
-  real(8) rcond
-  real(8) s
-  real(8) sm
-  real(8) t
-  real(8) wk
-  real(8) wkm
-  real(8) ynorm
-  real(8) z(n)
+  real(rkx) rcond
+  real(rkx) s
+  real(rkx) sm
+  real(rkx) t
+  real(rkx) wk
+  real(rkx) wkm
+  real(rkx) ynorm
+  real(rkx) z(n)
 !
 !  Find the norm of A.
 !
@@ -4132,8 +4134,8 @@ subroutine sppco ( ap, n, rcond, z, info )
 !
 !  Solve R'*W = E.
 !
-     ek = 1.0D+00
-     z(1:n) = 0.0D+00
+     ek = 1.0_rkx
+     z(1:n) = 0.0_rkx
 
      kk = 0
 
@@ -4141,7 +4143,7 @@ subroutine sppco ( ap, n, rcond, z, info )
 
         kk = kk + k
 
-        if ( z(k) /= 0.0D+00 ) then
+        if ( z(k) /= 0.0_rkx ) then
           ek = sign ( ek, -z(k) )
         end if
 
@@ -4207,7 +4209,7 @@ subroutine sppco ( ap, n, rcond, z, info )
 
      z(1:n) = z(1:n) / sum ( abs ( z(1:n) ) )
 
-     ynorm = 1.0D+00
+     ynorm = 1.0_rkx
 !
 !  Solve R'*V = Y.
 !
@@ -4226,7 +4228,7 @@ subroutine sppco ( ap, n, rcond, z, info )
 
      end do
 
-     s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+     s = 1.0_rkx / sum ( abs ( z(1:n) ) )
      z(1:n) = s * z(1:n)
      ynorm = s * ynorm
 !
@@ -4249,14 +4251,14 @@ subroutine sppco ( ap, n, rcond, z, info )
 !
 !  Make ZNORM = 1.0.
 !
-     s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+     s = 1.0_rkx / sum ( abs ( z(1:n) ) )
      z(1:n) = s * z(1:n)
      ynorm = s * ynorm
 
-     if ( anorm /= 0.0D+00 ) then
+     if ( anorm /= 0.0_rkx ) then
        rcond = ynorm / anorm
      else
-       rcond = 0.0D+00
+       rcond = 0.0_rkx
      end if
 
   return
@@ -4287,15 +4289,15 @@ subroutine sppdi ( ap, n, det, job )
 !
 !  Parameters:
 !
-!    Input/output, real(8) AP(N*(N+1)/2).  On input, the output from
+!    Input/output, real(rkx) AP(N*(N+1)/2).  On input, the output from
 !    SPPCO or SPPFA.  On output, the upper triangular half of the
 !    inverse, if requested.
 !
 !    Input, integer N, the order of the matrix.
 !
-!    Output, real(8) DET(2), the determinant of the original matrix if requested.
+!    Output, real(rkx) DET(2), the determinant of the original matrix if requested.
 !      determinant = DET(1) * 10.0**DET(2)
-!    with  1.0D+00 <= DET(1) < 10.0D+00 or DET(1) == 0.0D+00.
+!    with  1.0_rkx <= DET(1) < 10.0_rkx or DET(1) == 0.0_rkx.
 !
 !    Input, integer JOB, job request.
 !    11, both determinant and inverse.
@@ -4306,8 +4308,8 @@ subroutine sppdi ( ap, n, det, job )
 !
   integer n
 !
-  real(8) ap((n*(n+1))/2)
-  real(8) det(2)
+  real(rkx) ap((n*(n+1))/2)
+  real(rkx) det(2)
   integer i
   integer ii
   integer j
@@ -4318,16 +4320,16 @@ subroutine sppdi ( ap, n, det, job )
   integer k1
   integer kj
   integer kk
-  real(8) s
-  real(8) t
+  real(rkx) s
+  real(rkx) t
 !
 !  Compute the determinant.
 !
   if ( job/10 /= 0 ) then
 
-     det(1) = 1.0D+00
-     det(2) = 0.0D+00
-     s = 10.0D+00
+     det(1) = 1.0_rkx
+     det(2) = 0.0_rkx
+     s = 10.0_rkx
      ii = 0
 
      do i = 1, n
@@ -4336,18 +4338,18 @@ subroutine sppdi ( ap, n, det, job )
 
         det(1) = ap(ii)**2 * det(1)
 
-        if ( det(1) == 0.0D+00 ) then
+        if ( det(1) == 0.0_rkx ) then
           exit
         end if
 
-        do while ( det(1) < 1.0D+00 )
+        do while ( det(1) < 1.0_rkx )
           det(1) = s * det(1)
-          det(2) = det(2) - 1.0D+00
+          det(2) = det(2) - 1.0_rkx
         end do
 
         do while ( det(1) >= s )
           det(1) = det(1) / s
-          det(2) = det(2) + 1.0D+00
+          det(2) = det(2) + 1.0_rkx
         end do
 
     end do
@@ -4364,7 +4366,7 @@ subroutine sppdi ( ap, n, det, job )
 
         k1 = kk + 1
         kk = kk + k
-        ap(kk) = 1.0D+00 / ap(kk)
+        ap(kk) = 1.0_rkx / ap(kk)
         t = - ap(kk)
         call sscal ( k-1, t, ap(k1), 1 )
         j1 = kk + 1
@@ -4372,7 +4374,7 @@ subroutine sppdi ( ap, n, det, job )
 
         do j = k+1, n
            t = ap(kj)
-           ap(kj) = 0.0D+00
+           ap(kj) = 0.0_rkx
            call saxpy ( k, t, ap(k1), 1, ap(j1), 1 )
            j1 = j1 + j
            kj = kj + j
@@ -4412,7 +4414,7 @@ subroutine sppfa ( ap, n, info )
 !
 !*******************************************************************************
 !
-!! SPPFA factors a real(8) symmetric positive definite matrix in packed form.
+!! SPPFA factors a real(rkx) symmetric positive definite matrix in packed form.
 !
 !
 !  Discussion:
@@ -4444,7 +4446,7 @@ subroutine sppfa ( ap, n, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) AP(N*(N+1)/2).  On input, the packed form of a
+!    Input/output, real(rkx) AP(N*(N+1)/2).  On input, the packed form of a
 !    symmetric matrix A.  The columns of the upper triangle are stored
 !    sequentially in a one-dimensional array.  On output, an upper
 !    triangular matrix R, stored in packed form, so that A = R'*R.
@@ -4459,22 +4461,22 @@ subroutine sppfa ( ap, n, info )
 !
   integer n
 !
-  real(8) ap((n*(n+1))/2)
+  real(rkx) ap((n*(n+1))/2)
   integer info
   integer j
   integer jj
   integer k
   integer kj
   integer kk
-  real(8) s
-  real(8) t
+  real(rkx) s
+  real(rkx) t
 !
   info = 0
   jj = 0
 
   do j = 1, n
 
-    s = 0.0D+00
+    s = 0.0_rkx
     kj = jj
     kk = 0
 
@@ -4492,7 +4494,7 @@ subroutine sppfa ( ap, n, info )
     jj = jj + j
     s = ap(jj) - s
 
-    if ( s <= 0.0D+00 ) then
+    if ( s <= 0.0_rkx ) then
       info = j
       return
     end if
@@ -4508,7 +4510,7 @@ subroutine sppsl ( ap, n, b )
 !
 !*******************************************************************************
 !
-!! SPPSL solves a real(8) symmetric positive definite system factored by SPPCO or SPPFA.
+!! SPPSL solves a real(rkx) symmetric positive definite system factored by SPPCO or SPPFA.
 !
 !
 !  Discussion:
@@ -4542,22 +4544,22 @@ subroutine sppsl ( ap, n, b )
 !
 !  Parameters:
 !
-!    Input, real(8) AP(N*(N+1)/2), the output from SPPCO or SPPFA.
+!    Input, real(rkx) AP(N*(N+1)/2), the output from SPPCO or SPPFA.
 !
 !    Input, integer N, the order of the matrix.
 !
-!    Input/output, real(8) B(N).  On input, the right hand side.
+!    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
   implicit none
 !
   integer n
 !
-  real(8) ap((n*(n+1))/2)
-  real(8) b(n)
+  real(rkx) ap((n*(n+1))/2)
+  real(rkx) b(n)
   integer k
   integer kk
-  real(8) t
+  real(rkx) t
 !
   kk = 0
 
@@ -4597,30 +4599,30 @@ subroutine sptsl ( n, d, e, b )
 !
 !    Input, integer N, the order of the matrix.
 !
-!    Input/output, real(8) D(N), on input the diagonal of the tridiagonal matrix.
+!    Input/output, real(rkx) D(N), on input the diagonal of the tridiagonal matrix.
 !    On output, D is destroyed.
 !
-!    Input, real(8) E(N), the offdiagonal of the tridiagonal matrix in
+!    Input, real(rkx) E(N), the offdiagonal of the tridiagonal matrix in
 !    entries E(1:N-1).
 !
-!    Input/output, real(8) B(N).  On input, the right hand side.
+!    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
   implicit none
 !
   integer n
 !
-  real(8) b(n)
-  real(8) d(n)
-  real(8) e(n)
+  real(rkx) b(n)
+  real(rkx) d(n)
+  real(rkx) e(n)
   integer k
   integer kbm1
   integer ke
   integer kf
   integer kp1
   integer nm1d2
-  real(8) t1
-  real(8) t2
+  real(rkx) t1
+  real(rkx) t2
 !
 !  Check for 1 x 1 case.
 !
@@ -4688,7 +4690,7 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 !
 !*******************************************************************************
 !
-!! SQRDC computes the QR factorization of a real(8) rectangular matrix.
+!! SQRDC computes the QR factorization of a real(rkx) rectangular matrix.
 !
 !
 !  Discussion:
@@ -4709,7 +4711,7 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,P).  On input, the N by P matrix
+!    Input/output, real(rkx) A(LDA,P).  On input, the N by P matrix
 !    whose decomposition is to be computed.  On output, A contains in
 !    its upper triangle the upper triangular matrix R of the QR
 !    factorization.  Below its diagonal A contains information from
@@ -4725,7 +4727,7 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 !
 !    Input, integer P, the number of columns of the matrix A.
 !
-!    Output, real(8) QRAUX(P), contains further information required to recover
+!    Output, real(rkx) QRAUX(P), contains further information required to recover
 !    the orthogonal part of the decomposition.
 !
 !    Input/output, integer JPVT(P).  On input, JPVT contains integers that
@@ -4744,7 +4746,7 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 !    original matrix that has been interchanged into the K-th column, if
 !    pivoting was requested.
 !
-!    Workspace, real(8) WORK(P).  WORK is not referenced if JOB == 0.
+!    Workspace, real(rkx) WORK(P).  WORK is not referenced if JOB == 0.
 !
 !    Input, integer JOB, initiates column pivoting.
 !    0, no pivoting is done.
@@ -4756,22 +4758,22 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
   integer n
   integer p
 !
-  real(8) a(lda,p)
+  real(rkx) a(lda,p)
   integer jpvt(p)
-  real(8) qraux(p)
-  real(8) work(p)
+  real(rkx) qraux(p)
+  real(rkx) work(p)
   integer j
   integer job
   integer l
   integer lup
   integer maxj
-  real(8) maxnrm
-  real(8) nrmxl
+  real(rkx) maxnrm
+  real(rkx) nrmxl
   integer pl
   integer pu
   logical swapj
-  real(8) t
-  real(8) tt
+  real(rkx) t
+  real(rkx) tt
 !
   pl = 1
   pu = 0
@@ -4843,7 +4845,7 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 !
     if ( l >= pl .and. l < pu ) then
 
-      maxnrm = 0.0D+00
+      maxnrm = 0.0_rkx
       maxj = l
       do j = l, pu
         if ( qraux(j) > maxnrm ) then
@@ -4863,20 +4865,20 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 !
 !  Compute the Householder transformation for column L.
 !
-    qraux(l) = 0.0D+00
+    qraux(l) = 0.0_rkx
 
     if ( l /= n ) then
 
       nrmxl = snrm2 ( n-l+1, a(l,l), 1 )
 
-      if ( nrmxl /= 0.0D+00 ) then
+      if ( nrmxl /= 0.0_rkx ) then
 
-        if ( a(l,l) /= 0.0D+00 ) then
+        if ( a(l,l) /= 0.0_rkx ) then
           nrmxl = sign ( nrmxl, a(l,l) )
         end if
 
-        call sscal ( n-l+1, 1.0D+00 / nrmxl, a(l,l), 1 )
-        a(l,l) = 1.0D+00 + a(l,l)
+        call sscal ( n-l+1, 1.0_rkx / nrmxl, a(l,l), 1 )
+        a(l,l) = 1.0_rkx + a(l,l)
 !
 !  Apply the transformation to the remaining columns, updating the norms.
 !
@@ -4887,14 +4889,14 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 
           if ( j >= pl .and. j <= pu ) then
 
-            if ( qraux(j) /= 0.0D+00 ) then
+            if ( qraux(j) /= 0.0_rkx ) then
 
-              tt = 1.0D+00 - ( abs ( a(l,j) ) / qraux(j) )**2
-              tt = max ( tt, 0.0D+00 )
+              tt = 1.0_rkx - ( abs ( a(l,j) ) / qraux(j) )**2
+              tt = max ( tt, 0.0_rkx )
               t = tt
-              tt = 1.0D+00 + 0.05D+00 * tt * ( qraux(j) / work(j) )**2
+              tt = 1.0_rkx + 0.05_rkx * tt * ( qraux(j) / work(j) )**2
 
-              if ( tt /= 1.0D+00 ) then
+              if ( tt /= 1.0_rkx ) then
                 qraux(j) = qraux(j) * sqrt ( t )
               else
                 qraux(j) = snrm2 ( n-l, a(l+1,j), 1 )
@@ -4994,7 +4996,7 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 !
 !  Parameters:
 !
-!    Input, real(8) A(LDA,P), contains the output of SQRDC.
+!    Input, real(rkx) A(LDA,P), contains the output of SQRDC.
 !
 !    Input, integer LDA, the leading dimension of the array A.
 !
@@ -5005,26 +5007,26 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 !    must not be greater than min(N,P), where P is the same as in the
 !    calling sequence to SQRDC.
 !
-!    Input, real(8) QRAUX(P), the auxiliary output from SQRDC.
+!    Input, real(rkx) QRAUX(P), the auxiliary output from SQRDC.
 !
-!    Input, real(8) Y(N), a vector to be manipulated by SQRSL.
+!    Input, real(rkx) Y(N), a vector to be manipulated by SQRSL.
 !
-!    Output, real(8) QY(N), contains Q * Y, if requested.
+!    Output, real(rkx) QY(N), contains Q * Y, if requested.
 !
-!    Output, real(8) QTY(N), contains Q' * Y, if requested.
+!    Output, real(rkx) QTY(N), contains Q' * Y, if requested.
 !
-!    Output, real(8) B(K), the solution of the least squares problem
+!    Output, real(rkx) B(K), the solution of the least squares problem
 !      minimize norm2 ( Y - AK * B),
 !    if its computation has been requested.  Note that if pivoting was
 !    requested in SQRDC, the J-th component of B will be associated with
 !    column JPVT(J) of the original matrix A that was input into SQRDC.
 !
-!    Output, real(8) RSD(N), the least squares residual Y - AK * B,
+!    Output, real(rkx) RSD(N), the least squares residual Y - AK * B,
 !    if its computation has been requested.  RSD is also the orthogonal
 !    projection of Y onto the orthogonal complement of the column space
 !    of AK.
 !
-!    Output, real(8) AB(N), the least squares approximation Ak * B, if its
+!    Output, real(rkx) AB(N), the least squares approximation Ak * B, if its
 !    computation has been requested.  AB is also the orthogonal projection
 !    of Y onto the column space of A.
 !
@@ -5051,9 +5053,9 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
   integer lda
   integer n
 !
-  real(8) a(lda,*)
-  real(8) ab(n)
-  real(8) b(k)
+  real(rkx) a(lda,*)
+  real(rkx) ab(n)
+  real(rkx) b(k)
   logical cab
   logical cb
   logical cqty
@@ -5064,13 +5066,13 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
   integer jj
   integer job
   integer ju
-  real(8) qraux(*)
-  real(8) qty(n)
-  real(8) qy(n)
-  real(8) rsd(n)
-  real(8) t
-  real(8) temp
-  real(8) y(n)
+  real(rkx) qraux(*)
+  real(rkx) qty(n)
+  real(rkx) qy(n)
+  real(rkx) rsd(n)
+  real(rkx) t
+  real(rkx) temp
+  real(rkx) y(n)
 !
 !  set info flag.
 !
@@ -5104,7 +5106,7 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 
     if ( cb ) then
 
-      if ( a(1,1) == 0.0D+00 ) then
+      if ( a(1,1) == 0.0_rkx ) then
         info = 1
       else
         b(1) = y(1) / a(1,1)
@@ -5113,7 +5115,7 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
     end if
 
     if ( cr ) then
-      rsd(1) = 0.0D+00
+      rsd(1) = 0.0_rkx
     end if
 
     return
@@ -5138,7 +5140,7 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 
       j = ju - jj + 1
 
-      if ( qraux(j) /= 0.0D+00 ) then
+      if ( qraux(j) /= 0.0_rkx ) then
         temp = a(j,j)
         a(j,j) = qraux(j)
         t = - sdot ( n-j+1, a(j,j), 1, qy(j), 1 ) / a(j,j)
@@ -5155,7 +5157,7 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
      if ( cqty ) then
 
         do j = 1, ju
-           if ( qraux(j) /= 0.0D+00 ) then
+           if ( qraux(j) /= 0.0_rkx ) then
               temp = a(j,j)
               a(j,j) = qraux(j)
               t = - sdot ( n-j+1, a(j,j), 1, qty(j), 1 ) / a(j,j)
@@ -5181,11 +5183,11 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
      end if
 
      if ( cab .and. k+1 <= n ) then
-       ab(k+1:n) = 0.0D+00
+       ab(k+1:n) = 0.0_rkx
      end if
 
      if ( cr ) then
-       rsd(1:k) = 0.0D+00
+       rsd(1:k) = 0.0_rkx
      end if
 !
 !  Compute B.
@@ -5196,7 +5198,7 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 
           j = k - jj + 1
 
-          if ( a(j,j) == 0.0D+00 ) then
+          if ( a(j,j) == 0.0_rkx ) then
             info = j
             exit
           end if
@@ -5220,7 +5222,7 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 
            j = ju - jj + 1
 
-           if ( qraux(j) /= 0.0D+00 ) then
+           if ( qraux(j) /= 0.0_rkx ) then
 
               temp = a(j,j)
               a(j,j) = qraux(j)
@@ -5269,30 +5271,30 @@ subroutine srot ( n, x, incx, y, incy, c, s )
 !
 !    Input, integer N, the number of entries in the vectors.
 !
-!    Input/output, real(8) X(*), one of the vectors to be rotated.
+!    Input/output, real(rkx) X(*), one of the vectors to be rotated.
 !
 !    Input, integer INCX, the increment between successive entries of X.
 !
-!    Input/output, real(8) Y(*), one of the vectors to be rotated.
+!    Input/output, real(rkx) Y(*), one of the vectors to be rotated.
 !
 !    Input, integer INCY, the increment between successive elements of Y.
 !
-!    Input, real(8) C, S, parameters (presumably the cosine and sine of
+!    Input, real(rkx) C, S, parameters (presumably the cosine and sine of
 !    some angle) that define a plane rotation.
 !
   implicit none
 !
-  real(8) c
+  real(rkx) c
   integer i
   integer incx
   integer incy
   integer ix
   integer iy
   integer n
-  real(8) s
-  real(8) stemp
-  real(8) x(*)
-  real(8) y(*)
+  real(rkx) s
+  real(rkx) stemp
+  real(rkx) x(*)
+  real(rkx) y(*)
 !
   if ( n <= 0 ) then
 
@@ -5352,20 +5354,20 @@ subroutine srotg ( sa, sb, c, s )
 !
 !  Parameters:
 !
-!    Input/output, real(8) SA, SB, ...
+!    Input/output, real(rkx) SA, SB, ...
 !
-!    Output, real(8) C, S, ...
+!    Output, real(rkx) C, S, ...
 !
   implicit none
 !
-  real(8) c
-  real(8) r
-  real(8) roe
-  real(8) s
-  real(8) sa
-  real(8) sb
-  real(8) scale
-  real(8) z
+  real(rkx) c
+  real(rkx) r
+  real(rkx) roe
+  real(rkx) s
+  real(rkx) sa
+  real(rkx) sb
+  real(rkx) scale
+  real(rkx) z
 !
   if ( abs ( sa ) > abs ( sb ) ) then
     roe = sa
@@ -5375,19 +5377,19 @@ subroutine srotg ( sa, sb, c, s )
 
   scale = abs ( sa ) + abs ( sb )
 
-  if ( scale == 0.0D+00 ) then
-    c = 1.0D+00
-    s = 0.0D+00
-    r = 0.0D+00
+  if ( scale == 0.0_rkx ) then
+    c = 1.0_rkx
+    s = 0.0_rkx
+    r = 0.0_rkx
   else
     r = scale * sqrt ( ( sa / scale )**2 + ( sb / scale )**2 )
-    r = sign ( 1.0D+00, roe ) * r
+    r = sign ( 1.0_rkx, roe ) * r
     c = sa / r
     s = sb / r
   end if
 
-  if ( abs ( c ) > 0.0D+00 .and. abs ( c ) <= s ) then
-    z = 1.0D+00 / c
+  if ( abs ( c ) > 0.0_rkx .and. abs ( c ) <= s ) then
+    z = 1.0_rkx / c
   else
     z = s
   end if
@@ -5421,9 +5423,9 @@ subroutine sscal ( n, sa, x, incx )
 !
 !    Input, integer N, the number of entries in the vector.
 !
-!    Input, real(8) SA, the multiplier.
+!    Input, real(rkx) SA, the multiplier.
 !
-!    Input/output, real(8) X(*), the vector to be scaled.
+!    Input/output, real(rkx) X(*), the vector to be scaled.
 !
 !    Input, integer INCX, the increment between successive entries of X.
 !
@@ -5434,8 +5436,8 @@ subroutine sscal ( n, sa, x, incx )
   integer ix
   integer m
   integer n
-  real(8) sa
-  real(8) x(*)
+  real(rkx) sa
+  real(rkx) x(*)
 !
   if ( n <= 0 ) then
 
@@ -5475,7 +5477,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !
 !*******************************************************************************
 !
-!! SSICO factors a real(8) symmetric matrix and estimates its condition.
+!! SSICO factors a real(rkx) symmetric matrix and estimates its condition.
 !
 !
 !  Discussion:
@@ -5503,7 +5505,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).  On input, the symmetric matrix to be
+!    Input/output, real(rkx) A(LDA,N).  On input, the symmetric matrix to be
 !    factored.  Only the diagonal and upper triangle are used.
 !    On output, a block diagonal matrix and the multipliers which
 !    were used to obtain it.  The factorization can be written A = U*D*U'
@@ -5517,15 +5519,15 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !
 !    Output, integer KPVT(N), pivot indices.
 !
-!    Output, real(8) RCOND, an estimate of the reciprocal condition of A.
+!    Output, real(rkx) RCOND, an estimate of the reciprocal condition of A.
 !    For the system A*X = B, relative perturbations in A and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
-!      1.0D+00 + RCOND == 1.0D+00
+!      1.0_rkx + RCOND == 1.0_rkx
 !    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
-!    Output, real(8) Z(N), a work vector whose contents are usually unimportant.
+!    Output, real(rkx) Z(N), a work vector whose contents are usually unimportant.
 !    If A is close to a singular matrix, then Z is an approximate null vector
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
@@ -5535,14 +5537,14 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
   integer lda
   integer n
 !
-  real(8) a(lda,n)
-  real(8) ak
-  real(8) akm1
-  real(8) anorm
-  real(8) bk
-  real(8) bkm1
-  real(8) denom
-  real(8) ek
+  real(rkx) a(lda,n)
+  real(rkx) ak
+  real(rkx) akm1
+  real(rkx) anorm
+  real(rkx) bk
+  real(rkx) bkm1
+  real(rkx) denom
+  real(rkx) ek
   integer i
   integer info
   integer j
@@ -5551,10 +5553,10 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
   integer kps
   integer kpvt(n)
   integer ks
-  real(8) rcond
-  real(8) s
-  real(8) ynorm
-  real(8) z(n)
+  real(rkx) rcond
+  real(rkx) s
+  real(rkx) ynorm
+  real(rkx) z(n)
 !
 !  Find the norm of A, using only entries in the upper half of the matrix.
 !
@@ -5582,8 +5584,8 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !
 !  Solve U*D*W = E.
 !
-  ek = 1.0D+00
-  z(1:n) = 0.0D+00
+  ek = 1.0_rkx
+  z(1:n) = 0.0_rkx
   k = n
 
   do while ( k /= 0 )
@@ -5601,7 +5603,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
        call r_swap ( z(kps), z(kp) )
      end if
 
-     if ( z(k) /= 0.0D+00 ) then
+     if ( z(k) /= 0.0_rkx ) then
        ek = sign ( ek, z(k) )
      end if
 
@@ -5609,7 +5611,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
      call saxpy ( k-ks, z(k), a(1,k), 1, z(1), 1 )
 
      if ( ks /= 1 ) then
-       if ( z(k-1) /= 0.0D+00 ) then
+       if ( z(k-1) /= 0.0_rkx ) then
          ek = sign ( ek, z(k-1) )
        end if
        z(k-1) = z(k-1) + ek
@@ -5624,10 +5626,10 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
          ek = s * ek
        end if
 
-       if ( a(k,k) /= 0.0D+00 ) then
+       if ( a(k,k) /= 0.0_rkx ) then
          z(k) = z(k) / a(k,k)
        else
-         z(k) = 1.0D+00
+         z(k) = 1.0_rkx
        end if
 
      else
@@ -5636,7 +5638,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
        akm1 = a(k-1,k-1) / a(k-1,k)
        bk = z(k) / a(k-1,k)
        bkm1 = z(k-1) / a(k-1,k)
-       denom = ak * akm1 - 1.0D+00
+       denom = ak * akm1 - 1.0_rkx
        z(k) = ( akm1 * bk - bkm1 ) / denom
        z(k-1) = ( ak * bkm1 - bk ) / denom
 
@@ -5679,7 +5681,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 
   z(1:n) = z(1:n) / sum ( abs ( z(1:n) ) )
 
-  ynorm = 1.0D+00
+  ynorm = 1.0_rkx
 !
 !  Solve U*D*V = Y.
 !
@@ -5718,10 +5720,10 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
           ynorm = s * ynorm
         end if
 
-        if ( a(k,k) /= 0.0D+00 ) then
+        if ( a(k,k) /= 0.0_rkx ) then
           z(k) = z(k) / a(k,k)
         else
-          z(k) = 1.0D+00
+          z(k) = 1.0_rkx
         end if
 
      else
@@ -5730,7 +5732,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
         akm1 = a(k-1,k-1) / a(k-1,k)
         bk = z(k) / a(k-1,k)
         bkm1 = z(k-1) / a(k-1,k)
-        denom = ak * akm1 - 1.0D+00
+        denom = ak * akm1 - 1.0_rkx
         z(k) = ( akm1 * bk - bkm1 ) / denom
         z(k-1) = ( ak * bkm1 - bk ) / denom
 
@@ -5740,7 +5742,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 
   end do
 
-  s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+  s = 1.0_rkx / sum ( abs ( z(1:n) ) )
   z(1:n) = s * z(1:n)
   ynorm = s * ynorm
 !
@@ -5776,14 +5778,14 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !
 !  Make ZNORM = 1.0.
 !
-  s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+  s = 1.0_rkx / sum ( abs ( z(1:n) ) )
   z(1:n) = s * z(1:n)
   ynorm = s * ynorm
 
-  if ( anorm /= 0.0D+00 ) then
+  if ( anorm /= 0.0_rkx ) then
     rcond = ynorm / anorm
   else
-    rcond = 0.0D+00
+    rcond = 0.0_rkx
   end if
 
   return
@@ -5793,7 +5795,7 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
 !
 !*******************************************************************************
 !
-!! SSIDI computes the determinant, inertia and inverse of a real(8) symmetric matrix.
+!! SSIDI computes the determinant, inertia and inverse of a real(rkx) symmetric matrix.
 !
 !
 !  Discussion:
@@ -5801,7 +5803,7 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
 !    SSIDI uses the factors from SSIFA.
 !
 !    A division by zero may occur if the inverse is requested
-!    and SSICO has set RCOND == 0.0D+00 or SSIFA has set INFO /= 0.
+!    and SSICO has set RCOND == 0.0_rkx or SSIFA has set INFO /= 0.
 !
 !    Variables not requested by JOB are not used.
 !
@@ -5816,7 +5818,7 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).  On input, the output from SSIFA.
+!    Input/output, real(rkx) A(LDA,N).  On input, the output from SSIFA.
 !    On output, the upper triangle of the inverse of the original matrix.
 !    The strict lower triangle is never referenced.
 !
@@ -5826,16 +5828,16 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
 !
 !    Input, integer KPVT(N), the pivot vector from SSIFA.
 !
-!    Output, real(8) DET(2), the determinant of the original matrix.
+!    Output, real(rkx) DET(2), the determinant of the original matrix.
 !      determinant = DET(1) * 10.0**DET(2)
-!    with 1.0D+00 <= abs ( DET(1) ) < 10.0D+00 or DET(1) = 0.0.
+!    with 1.0_rkx <= abs ( DET(1) ) < 10.0_rkx or DET(1) = 0.0.
 !
 !    Output, integer INERT(3), the inertia of the original matrix.
 !    INERT(1) = number of positive eigenvalues.
 !    INERT(2) = number of negative eigenvalues.
 !    INERT(3) = number of zero eigenvalues.
 !
-!    Workspace, real(8) WORK(N).
+!    Workspace, real(rkx) WORK(N).
 !
 !    Input, integer JOB, specifies the tasks.
 !    JOB has the decimal expansion ABC where
@@ -5849,12 +5851,12 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
   integer lda
   integer n
 !
-  real(8) a(lda,n)
-  real(8) ak
-  real(8) akkp1
-  real(8) akp1
-  real(8) d
-  real(8) det(2)
+  real(rkx) a(lda,n)
+  real(rkx) ak
+  real(rkx) akkp1
+  real(rkx) akp1
+  real(rkx) d
+  real(rkx) det(2)
   logical dodet
   logical doert
   logical doinv
@@ -5866,9 +5868,9 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
   integer kpvt(n)
   integer ks
   integer kstep
-  real(8) t
-  real(8) , parameter :: ten = 10.0D+00
-  real(8) work(n)
+  real(rkx) t
+  real(rkx) , parameter :: ten = 10.0_rkx
+  real(rkx) work(n)
 !
   doinv = mod ( job,   10 )       /= 0
   dodet = mod ( job,  100 ) /  10 /= 0
@@ -5883,11 +5885,11 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
     end if
 
     if ( dodet ) then
-      det(1) = 1.0D+00
-      det(2) = 0.0D+00
+      det(1) = 1.0_rkx
+      det(2) = 0.0_rkx
     end if
 
-    t = 0.0D+00
+    t = 0.0_rkx
 
     do k = 1, n
 
@@ -5903,22 +5905,22 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
 !
       if ( kpvt(k) <= 0 ) then
 
-        if ( t == 0.0D+00 ) then
+        if ( t == 0.0_rkx ) then
           t = abs ( a(k,k+1) )
           d = ( d / t ) * a(k+1,k+1) - t
         else
           d = t
-          t = 0.0D+00
+          t = 0.0_rkx
         end if
 
       end if
 
       if ( doert ) then
-        if ( d > 0.0D+00 ) then
+        if ( d > 0.0_rkx ) then
           inert(1) = inert(1) + 1
-        else if ( d < 0.0D+00 ) then
+        else if ( d < 0.0_rkx ) then
           inert(2) = inert(2) + 1
-        else if ( d == 0.0D+00 ) then
+        else if ( d == 0.0_rkx ) then
           inert(3) = inert(3) + 1
         end if
       end if
@@ -5927,16 +5929,16 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
 
         det(1) = d * det(1)
 
-        if ( det(1) /= 0.0D+00 ) then
+        if ( det(1) /= 0.0_rkx ) then
 
-          do while ( abs ( det(1) ) < 1.0D+00 )
+          do while ( abs ( det(1) ) < 1.0_rkx )
             det(1) = ten * det(1)
-            det(2) = det(2) - 1.0D+00
+            det(2) = det(2) - 1.0_rkx
           end do
 
           do while ( abs ( det(1) ) >= ten )
             det(1) = det(1) / ten
-            det(2) = det(2) + 1.0D+00
+            det(2) = det(2) + 1.0_rkx
           end do
 
         end if
@@ -5959,7 +5961,7 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
 !
 !  1 by 1.
 !
-           a(k,k) = 1.0D+00 / a(k,k)
+           a(k,k) = 1.0_rkx / a(k,k)
 
            if ( k >= 2 ) then
 
@@ -5984,7 +5986,7 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
            ak = a(k,k) / t
            akp1 = a(k+1,k+1) / t
            akkp1 = a(k,k+1) / t
-           d = t * ( ak * akp1 - 1.0D+00 )
+           d = t * ( ak * akp1 - 1.0_rkx )
            a(k,k) = akp1 / d
            a(k+1,k+1) = ak / d
            a(k,k+1) = - akkp1 / d
@@ -6047,7 +6049,7 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 !
 !*******************************************************************************
 !
-!! SSIFA factors a real(8) symmetric matrix.
+!! SSIFA factors a real(rkx) symmetric matrix.
 !
 !
 !  Discussion:
@@ -6073,7 +6075,7 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).  On input, the symmetric matrix to be
+!    Input/output, real(rkx) A(LDA,N).  On input, the symmetric matrix to be
 !    factored.  Only the diagonal and upper triangle are used.
 !    On output, a block diagonal matrix and the multipliers which
 !    were used to obtain it.  The factorization can be written A = U*D*U'
@@ -6098,15 +6100,15 @@ subroutine ssifa ( a, lda, n, kpvt, info )
   integer lda
   integer n
 !
-  real(8) a(lda,n)
-  real(8) absakk
-  real(8) ak
-  real(8) akm1
-  real(8) alpha
-  real(8) bk
-  real(8) bkm1
-  real(8) colmax
-  real(8) denom
+  real(rkx) a(lda,n)
+  real(rkx) absakk
+  real(rkx) ak
+  real(rkx) akm1
+  real(rkx) alpha
+  real(rkx) bk
+  real(rkx) bkm1
+  real(rkx) colmax
+  real(rkx) denom
   integer imax
   integer imaxp1
   integer info
@@ -6116,15 +6118,15 @@ subroutine ssifa ( a, lda, n, kpvt, info )
   integer k
   integer kpvt(n)
   integer kstep
-  real(8) mulk
-  real(8) mulkm1
-  real(8) rowmax
+  real(rkx) mulk
+  real(rkx) mulkm1
+  real(rkx) rowmax
   logical swap
-  real(8) t
+  real(rkx) t
 !
 !  ALPHA is used in choosing pivot block size.
 !
-  alpha = ( 1.0D+00 + sqrt ( 17.0D+00 ) ) / 8.0D+00
+  alpha = ( 1.0_rkx + sqrt ( 17.0_rkx ) ) / 8.0_rkx
 
   info = 0
 !
@@ -6136,7 +6138,7 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 
     if ( k == 1 ) then
       kpvt(1) = 1
-      if ( a(1,1) == 0.0D+00 ) then
+      if ( a(1,1) == 0.0_rkx ) then
         info = 1
       end if
       return
@@ -6161,7 +6163,7 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 !
 !  Determine the largest off-diagonal element in row IMAX.
 !
-        rowmax = 0.0D+00
+        rowmax = 0.0_rkx
         imaxp1 = imax + 1
 
         do j = imaxp1, k
@@ -6189,7 +6191,7 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 !  Column K is zero.
 !  Set INFO and iterate the loop.
 !
-     if ( max ( absakk, colmax ) == 0.0D+00 ) then
+     if ( max ( absakk, colmax ) == 0.0_rkx ) then
 
         kpvt(k) = k
         info = k
@@ -6256,7 +6258,7 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 
            ak = a(k,k) / a(k-1,k)
            akm1 = a(k-1,k-1) / a(k-1,k)
-           denom = 1.0D+00 - ak * akm1
+           denom = 1.0_rkx - ak * akm1
 
            do jj = 1, k-2
 
@@ -6299,7 +6301,7 @@ subroutine ssisl ( a, lda, n, kpvt, b )
 !
 !*******************************************************************************
 !
-!! SSISL solves a real(8) symmetric system factored by SSIFA.
+!! SSISL solves a real(rkx) symmetric system factored by SSIFA.
 !
 !
 !  Discussion:
@@ -6315,7 +6317,7 @@ subroutine ssisl ( a, lda, n, kpvt, b )
 !      end if
 !
 !    A division by zero may occur if the inverse is requested
-!    and SSICO has set RCOND == 0.0D+00 or SSIFA has set INFO /= 0.
+!    and SSICO has set RCOND == 0.0_rkx or SSIFA has set INFO /= 0.
 !
 !  Reference:
 !
@@ -6328,7 +6330,7 @@ subroutine ssisl ( a, lda, n, kpvt, b )
 !
 !  Parameters:
 !
-!    Input, real(8) A(LDA,N), the output from SSIFA.
+!    Input, real(rkx) A(LDA,N), the output from SSIFA.
 !
 !    Input, integer LDA, the leading dimension of the array A.
 !
@@ -6336,7 +6338,7 @@ subroutine ssisl ( a, lda, n, kpvt, b )
 !
 !    Input, integer KPVT(N), the pivot vector from SSIFA.
 !
-!    Input/output, real(8) B(N).  On input, the right hand side.
+!    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
   implicit none
@@ -6344,13 +6346,13 @@ subroutine ssisl ( a, lda, n, kpvt, b )
   integer lda
   integer n
 !
-  real(8) a(lda,n)
-  real(8) ak
-  real(8) akm1
-  real(8) b(n)
-  real(8) bk
-  real(8) bkm1
-  real(8) denom
+  real(rkx) a(lda,n)
+  real(rkx) ak
+  real(rkx) akm1
+  real(rkx) b(n)
+  real(rkx) bk
+  real(rkx) bkm1
+  real(rkx) denom
   integer k
   integer kp
   integer kpvt(n)
@@ -6413,7 +6415,7 @@ subroutine ssisl ( a, lda, n, kpvt, b )
         akm1 = a(k-1,k-1) / a(k-1,k)
         bk = b(k) / a(k-1,k)
         bkm1 = b(k-1) / a(k-1,k)
-        denom = ak * akm1 - 1.0D+00
+        denom = ak * akm1 - 1.0_rkx
         b(k) = ( akm1 * bk - bkm1 ) / denom
         b(k-1) = ( ak * bkm1 - bk ) / denom
         k = k - 2
@@ -6482,7 +6484,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 !
 !*******************************************************************************
 !
-!! SSPCO factors a real(8) symmetric matrix stored in packed form.
+!! SSPCO factors a real(rkx) symmetric matrix stored in packed form.
 !
 !
 !  Discussion:
@@ -6526,7 +6528,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 !
 !  Parameters:
 !
-!    Input/output, real(8) AP(N*(N+1)/2).  On input, the packed form of a
+!    Input/output, real(rkx) AP(N*(N+1)/2).  On input, the packed form of a
 !    symmetric matrix A.  The columns of the upper triangle are stored
 !    sequentially in a one-dimensional array.  On output, a block diagonal
 !    matrix and the multipliers which were used to obtain it, stored in
@@ -6539,15 +6541,15 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 !
 !    Output, integer KPVT(N), the pivot indices.
 !
-!    Output, real(8) RCOND, an estimate of the reciprocal condition of A.
+!    Output, real(rkx) RCOND, an estimate of the reciprocal condition of A.
 !    For the system A*X = B, relative perturbations in A and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
-!      1.0D+00 + RCOND == 1.0D+00
+!      1.0_rkx + RCOND == 1.0_rkx
 !    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
-!    Output, real(8) Z(N) a work vector whose contents are usually unimportant.
+!    Output, real(rkx) Z(N) a work vector whose contents are usually unimportant.
 !    If A is close to a singular matrix, then Z is an approximate null
 !    vector in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
@@ -6556,14 +6558,14 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 !
   integer n
 !
-  real(8) ak
-  real(8) akm1
-  real(8) anorm
-  real(8) ap((n*(n+1))/2)
-  real(8) bk
-  real(8) bkm1
-  real(8) denom
-  real(8) ek
+  real(rkx) ak
+  real(rkx) akm1
+  real(rkx) anorm
+  real(rkx) ap((n*(n+1))/2)
+  real(rkx) bk
+  real(rkx) bkm1
+  real(rkx) denom
+  real(rkx) ek
   integer i
   integer ij
   integer ik
@@ -6580,11 +6582,11 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
   integer kps
   integer kpvt(n)
   integer ks
-  real(8) rcond
-  real(8) s
-  real(8) t
-  real(8) ynorm
-  real(8) z(n)
+  real(rkx) rcond
+  real(rkx) s
+  real(rkx) t
+  real(rkx) ynorm
+  real(rkx) z(n)
 !
 !  Find norm of A using only upper half.
 !
@@ -6616,8 +6618,8 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 !
 !  Solve U*D*W = E.
 !
-  ek = 1.0D+00
-  z(1:n) = 0.0D+00
+  ek = 1.0_rkx
+  z(1:n) = 0.0_rkx
 
   k = n
   ik = (n*(n - 1))/2
@@ -6637,7 +6639,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
         z(kp) = t
      end if
 
-     if ( z(k) /= 0.0D+00 ) then
+     if ( z(k) /= 0.0_rkx ) then
        ek = sign ( ek, z(k) )
      end if
 
@@ -6645,7 +6647,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
      call saxpy ( k-ks, z(k), ap(ik+1), 1, z(1), 1 )
 
      if ( ks /= 1 ) then
-        if ( z(k-1) /= 0.0D+00 ) then
+        if ( z(k-1) /= 0.0_rkx ) then
           ek = sign ( ek, z(k-1) )
         end if
         z(k-1) = z(k-1) + ek
@@ -6660,10 +6662,10 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
            ek = s * ek
         end if
 
-        if ( ap(kk) /= 0.0D+00 ) then
+        if ( ap(kk) /= 0.0_rkx ) then
           z(k) = z(k) / ap(kk)
         else
-          z(k) = 1.0D+00
+          z(k) = 1.0_rkx
         end if
 
      else
@@ -6674,7 +6676,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
         akm1 = ap(km1km1) / ap(km1k)
         bk = z(k) / ap(km1k)
         bkm1 = z(k-1) / ap(km1k)
-        denom = ak * akm1 - 1.0D+00
+        denom = ak * akm1 - 1.0_rkx
         z(k) = ( akm1 * bk - bkm1 ) / denom
         z(k-1) = ( ak * bkm1 - bk ) / denom
 
@@ -6728,9 +6730,9 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 
   end do
 
-  s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+  s = 1.0_rkx / sum ( abs ( z(1:n) ) )
   z(1:n) = s * z(1:n)
-  ynorm = 1.0D+00
+  ynorm = 1.0_rkx
 !
 !  Solve U*D*V = Y.
 !
@@ -6776,10 +6778,10 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
            ynorm = s * ynorm
         end if
 
-        if ( ap(kk) /= 0.0D+00 ) then
+        if ( ap(kk) /= 0.0_rkx ) then
           z(k) = z(k) / ap(kk)
         else
-          z(k) = 1.0D+00
+          z(k) = 1.0_rkx
         end if
 
      else
@@ -6790,7 +6792,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
         akm1 = ap(km1km1) / ap(km1k)
         bk = z(k) / ap(km1k)
         bkm1 = z(k-1) / ap(km1k)
-        denom = ak * akm1 - 1.0D+00
+        denom = ak * akm1 - 1.0_rkx
         z(k) = ( akm1 * bk - bkm1 ) / denom
         z(k-1) = ( ak * bkm1 - bk ) / denom
 
@@ -6802,7 +6804,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 
   end do
 
-  s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+  s = 1.0_rkx / sum ( abs ( z(1:n) ) )
   z(1:n) = s * z(1:n)
   ynorm = s * ynorm
 !
@@ -6843,14 +6845,14 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 !
 !  Make ZNORM = 1.0.
 !
-  s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+  s = 1.0_rkx / sum ( abs ( z(1:n) ) )
   z(1:n) = s * z(1:n)
   ynorm = s * ynorm
 
-  if ( anorm /= 0.0D+00 ) then
+  if ( anorm /= 0.0_rkx ) then
     rcond = ynorm / anorm
   else
-    rcond = 0.0D+00
+    rcond = 0.0_rkx
   end if
 
   return
@@ -6860,7 +6862,7 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 !
 !*******************************************************************************
 !
-!! SSPDI computes the determinant, inertia and inverse of a real(8) symmetric matrix.
+!! SSPDI computes the determinant, inertia and inverse of a real(rkx) symmetric matrix.
 !
 !
 !  Discussion:
@@ -6869,7 +6871,7 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 !    packed form.
 !
 !    A division by zero will occur if the inverse is requested
-!    and SSPCO has set RCOND == 0.0D+00 or SSPFA has set INFO /= 0.
+!    and SSPCO has set RCOND == 0.0_rkx or SSPFA has set INFO /= 0.
 !
 !    Variables not requested by JOB are not used.
 !
@@ -6884,7 +6886,7 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 !
 !  Parameters:
 !
-!    Input/output, real(8) AP(N*(N+1)/2).  On input, the output from SSPFA.
+!    Input/output, real(rkx) AP(N*(N+1)/2).  On input, the output from SSPFA.
 !    On output, the upper triangle of the inverse of the original matrix,
 !    stored in packed form.  The columns of the upper triangle are stored
 !    sequentially in a one-dimensional array.
@@ -6893,16 +6895,16 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 !
 !    Input, integer KPVT(N), the pivot vector from SSPFA.
 !
-!    Output, real(8) DET(2), the determinant of the original matrix.
+!    Output, real(rkx) DET(2), the determinant of the original matrix.
 !      determinant = DET(1) * 10.0**DET(2)
-!    with 1.0D+00 <= abs ( DET(1) ) < 10.0D+00 or DET(1) = 0.0.
+!    with 1.0_rkx <= abs ( DET(1) ) < 10.0_rkx or DET(1) = 0.0.
 !
 !    Output, integer INERT(3), the inertia of the original matrix.
 !    INERT(1) = number of positive eigenvalues.
 !    INERT(2) = number of negative eigenvalues.
 !    INERT(3) = number of zero eigenvalues.
 !
-!    Workspace, real(8) WORK(N).
+!    Workspace, real(rkx) WORK(N).
 !
 !    Input, integer JOB, has the decimal expansion ABC where:
 !      if A /= 0, the inertia is computed,
@@ -6914,12 +6916,12 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 !
   integer n
 !
-  real(8) ak
-  real(8) akkp1
-  real(8) akp1
-  real(8) ap((n*(n+1))/2)
-  real(8) d
-  real(8) det(2)
+  real(rkx) ak
+  real(rkx) akkp1
+  real(rkx) akp1
+  real(rkx) ap((n*(n+1))/2)
+  real(rkx) d
+  real(rkx) det(2)
   logical dodet
   logical doert
   logical doinv
@@ -6942,9 +6944,9 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
   integer ksj
   integer kskp1
   integer kstep
-  real(8) t
-  real(8) , parameter :: ten = 10.0D+00
-  real(8) work(n)
+  real(rkx) t
+  real(rkx) , parameter :: ten = 10.0_rkx
+  real(rkx) work(n)
 !
   doinv = mod ( job,   10 )       /= 0
   dodet = mod ( job,  100 ) /  10 /= 0
@@ -6959,11 +6961,11 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
      end if
 
      if ( dodet ) then
-       det(1) = 1.0D+00
-       det(2) = 0.0D+00
+       det(1) = 1.0_rkx
+       det(2) = 0.0_rkx
      end if
 
-     t = 0.0D+00
+     t = 0.0_rkx
      ik = 0
 
      do k = 1, n
@@ -6980,24 +6982,24 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 !
         if ( kpvt(k) <= 0 ) then
 
-           if ( t == 0.0D+00 ) then
+           if ( t == 0.0_rkx ) then
               ikp1 = ik + k
               kkp1 = ikp1 + k
               t = abs ( ap(kkp1) )
               d = ( d / t ) * ap(kkp1+1) - t
            else
               d = t
-              t = 0.0D+00
+              t = 0.0_rkx
            end if
 
         end if
 
         if ( doert ) then
-           if ( d > 0.0D+00 ) then
+           if ( d > 0.0_rkx ) then
              inert(1) = inert(1) + 1
-           else if ( d < 0.0D+00 ) then
+           else if ( d < 0.0_rkx ) then
              inert(2) = inert(2) + 1
-           else if ( d == 0.0D+00 ) then
+           else if ( d == 0.0_rkx ) then
              inert(3) = inert(3) + 1
            end if
         end if
@@ -7006,16 +7008,16 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 
            det(1) = d * det(1)
 
-           if ( det(1) /= 0.0D+00 ) then
+           if ( det(1) /= 0.0_rkx ) then
 
-             do while ( abs ( det(1) ) < 1.0D+00 )
+             do while ( abs ( det(1) ) < 1.0_rkx )
                det(1) = ten * det(1)
-               det(2) = det(2) - 1.0D+00
+               det(2) = det(2) - 1.0_rkx
              end do
 
              do while ( abs ( det(1) ) >= ten )
                det(1) = det(1) / ten
-               det(2) = det(2) + 1.0D+00
+               det(2) = det(2) + 1.0_rkx
              end do
 
           end if
@@ -7046,7 +7048,7 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 !
 !  1 by 1.
 !
-           ap(kk) = 1.0D+00 / ap(kk)
+           ap(kk) = 1.0_rkx / ap(kk)
 
            if ( k-1 >= 1 ) then
 
@@ -7074,7 +7076,7 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
            ak = ap(kk) / t
            akp1 = ap(kkp1+1) / t
            akkp1 = ap(kkp1) / t
-           d = t * ( ak * akp1 - 1.0D+00 )
+           d = t * ( ak * akp1 - 1.0_rkx )
            ap(kk) = akp1 / d
            ap(kkp1+1) = ak / d
            ap(kkp1) = -akkp1 / d
@@ -7150,7 +7152,7 @@ subroutine sspfa ( ap, n, kpvt, info )
 !
 !*******************************************************************************
 !
-!! SSPFA factors a real(8) symmetric matrix stored in packed form.
+!! SSPFA factors a real(rkx) symmetric matrix stored in packed form.
 !
 !
 !  Discussion:
@@ -7189,7 +7191,7 @@ subroutine sspfa ( ap, n, kpvt, info )
 !
 !  Parameters:
 !
-!    Input, real(8) AP(N*(N+1)/2).  On input, the packed form of a symmetric
+!    Input, real(rkx) AP(N*(N+1)/2).  On input, the packed form of a symmetric
 !    matrix A.  The columns of the upper triangle are stored sequentially
 !    in a one-dimensional array.  On output, a block diagonal matrix and
 !    the multipliers which were used to obtain it stored in packed form.
@@ -7211,15 +7213,15 @@ subroutine sspfa ( ap, n, kpvt, info )
 !
   integer n
 !
-  real(8) absakk
-  real(8) ak
-  real(8) akm1
-  real(8) alpha
-  real(8) ap((n*(n+1))/2)
-  real(8) bk
-  real(8) bkm1
-  real(8) colmax
-  real(8) denom
+  real(rkx) absakk
+  real(rkx) ak
+  real(rkx) akm1
+  real(rkx) alpha
+  real(rkx) ap((n*(n+1))/2)
+  real(rkx) bk
+  real(rkx) bkm1
+  real(rkx) colmax
+  real(rkx) denom
   integer ij
   integer ik
   integer ikm1
@@ -7243,15 +7245,15 @@ subroutine sspfa ( ap, n, kpvt, info )
   integer km1km1
   integer kpvt(n)
   integer kstep
-  real(8) mulk
-  real(8) mulkm1
-  real(8) rowmax
+  real(rkx) mulk
+  real(rkx) mulkm1
+  real(rkx) rowmax
   logical swap
-  real(8) t
+  real(rkx) t
 !
 !  ALPHA is used in choosing pivot block size.
 !
-  alpha = ( 1.0D+00 + sqrt ( 17.0D+00 ) ) / 8.0D+00
+  alpha = ( 1.0_rkx + sqrt ( 17.0_rkx ) ) / 8.0_rkx
 
   info = 0
 !
@@ -7270,7 +7272,7 @@ subroutine sspfa ( ap, n, kpvt, info )
 
   if ( k == 1 ) then
     kpvt(1) = 1
-    if ( ap(1) == 0.0D+00 ) then
+    if ( ap(1) == 0.0_rkx ) then
       info = 1
     end if
     return
@@ -7299,7 +7301,7 @@ subroutine sspfa ( ap, n, kpvt, info )
 !
   else
 
-    rowmax = 0.0D+00
+    rowmax = 0.0_rkx
     imaxp1 = imax + 1
     im = imax * ( imax - 1 ) / 2
     imj = im + 2 * imax
@@ -7331,7 +7333,7 @@ subroutine sspfa ( ap, n, kpvt, info )
 !
 !  Column K is zero.  Set INFO and iterate the loop.
 !
-     if ( max ( absakk, colmax ) == 0.0D+00 ) then
+     if ( max ( absakk, colmax ) == 0.0_rkx ) then
        kpvt(k) = k
        info = k
        go to 190
@@ -7417,7 +7419,7 @@ subroutine sspfa ( ap, n, kpvt, info )
            ak = ap(kk) / ap(km1k)
            km1km1 = ikm1 + k - 1
            akm1 = ap(km1km1) / ap(km1k)
-           denom = 1.0D+00 - ak * akm1
+           denom = 1.0_rkx - ak * akm1
            ij = ik - ( k - 1 ) - ( k - 2 )
 
            do jj = 1, k-2
@@ -7464,7 +7466,7 @@ subroutine sspsl ( ap, n, kpvt, b )
 !
 !*******************************************************************************
 !
-!! SSPSL solves the real(8) symmetric system factored by SSPFA.
+!! SSPSL solves the real(rkx) symmetric system factored by SSPFA.
 !
 !
 !  Discussion:
@@ -7479,7 +7481,7 @@ subroutine sspsl ( ap, n, kpvt, b )
 !        call sspsl ( ap, n, kpvt, c(1,j) )
 !      end do
 !
-!    A division by zero may occur if SSPCO has set RCOND == 0.0D+00
+!    A division by zero may occur if SSPCO has set RCOND == 0.0_rkx
 !    or SSPFA has set INFO /= 0.
 !
 !  Reference:
@@ -7493,26 +7495,26 @@ subroutine sspsl ( ap, n, kpvt, b )
 !
 !  Parameters:
 !
-!    Input, real(8) AP(N*(N+1)/2), the output from SSPFA.
+!    Input, real(rkx) AP(N*(N+1)/2), the output from SSPFA.
 !
 !    Input, integer N, the order of the matrix.
 !
 !    Input, integer KPVT(N), the pivot vector from SSPFA.
 !
-!    Input/output, real(8) B(N).  On input, the right hand side.
+!    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
   implicit none
 !
   integer n
 !
-  real(8) ak
-  real(8) akm1
-  real(8) ap((n*(n+1))/2)
-  real(8) b(n)
-  real(8) bk
-  real(8) bkm1
-  real(8) denom
+  real(rkx) ak
+  real(rkx) akm1
+  real(rkx) ap((n*(n+1))/2)
+  real(rkx) b(n)
+  real(rkx) bk
+  real(rkx) bkm1
+  real(rkx) denom
   integer ik
   integer ikm1
   integer ikp1
@@ -7590,7 +7592,7 @@ subroutine sspsl ( ap, n, kpvt, b )
         akm1 = ap(km1km1) / ap(km1k)
         bk = b(k) / ap(km1k)
         bkm1 = b(k-1) / ap(km1k)
-        denom = ak * akm1 - 1.0D+00
+        denom = ak * akm1 - 1.0_rkx
         b(k) = ( akm1 * bk - bkm1 ) / denom
         b(k-1) = ( ak * bkm1 - bk ) / denom
         k = k - 2
@@ -7664,12 +7666,12 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !
 !*******************************************************************************
 !
-!! SSVDC computes the singular value decomposition of a real(8) rectangular matrix.
+!! SSVDC computes the singular value decomposition of a real(rkx) rectangular matrix.
 !
 !
 !  Discussion:
 !
-!    SSVDC reduces a real(8) N by P matrix X to diagonal form by orthogonal
+!    SSVDC reduces a real(rkx) N by P matrix X to diagonal form by orthogonal
 !    transformations U and V.  The diagonal elements S(I) are the singular
 !    values of X.  The columns of U are the corresponding left singular
 !    vectors, and the columns of V the right singular vectors.
@@ -7685,7 +7687,7 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) X(LDX,P).  On input, the matrix whose singular value
+!    Input/output, real(rkx) X(LDX,P).  On input, the matrix whose singular value
 !    decomposition is to be computed.  On output, the matrix has been
 !    destroyed.
 !
@@ -7696,14 +7698,14 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !
 !    Input, integer P, the number of columns of the matrix X.
 !
-!    Output, real(8) S(MM), where MM = min(N+1,P).  The first min(N,P) entries
+!    Output, real(rkx) S(MM), where MM = min(N+1,P).  The first min(N,P) entries
 !    of S contain the singular values of X arranged in descending
 !    order of magnitude.
 !
-!    Output, real(8) E(P), ordinarily contains zeros.  However see the
+!    Output, real(rkx) E(P), ordinarily contains zeros.  However see the
 !    discussion of INFO for exceptions.
 !
-!    Output, real(8) U(LDU,K).  If JOBA = 1 then K = N; if JOBA >= 2 then
+!    Output, real(rkx) U(LDU,K).  If JOBA = 1 then K = N; if JOBA >= 2 then
 !    K = min(N,P).  U contains the matrix of left singular vectors.
 !    U is not referenced if JOBA = 0.  If N <= P or if JOBA = 2, then
 !    U may be identified with X in the subroutine call.
@@ -7711,14 +7713,14 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !    Input, integer LDU, the leading dimension of the array U.
 !    LDU must be at least N.
 !
-!    Output, real(8) V(LDV,P), the matrix of right singular vectors.
+!    Output, real(rkx) V(LDV,P), the matrix of right singular vectors.
 !    V is not referenced if JOB is 0.  If P <= N, then V may be identified
 !    with X in the subroutine call.
 !
 !    Input, integer LDV, the leading dimension of the array V.
 !    LDV must be at least P.
 !
-!    Workspace, real(8) WORK(N).
+!    Workspace, real(rkx) WORK(N).
 !
 !    Input, integer JOB, controls the computation of the singular
 !    vectors.  It has the decimal expansion AB with the following meaning:
@@ -7746,14 +7748,14 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
   integer n
   integer p
 !
-  real(8) b
-  real(8) c
-  real(8) cs
-  real(8) e(p)
-  real(8) el
-  real(8) emm1
-  real(8) f
-  real(8) g
+  real(rkx) b
+  real(rkx) c
+  real(rkx) cs
+  real(rkx) e(p)
+  real(rkx) el
+  real(rkx) emm1
+  real(rkx) f
+  real(rkx) g
   integer info
   integer iter
   integer j
@@ -7776,23 +7778,23 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
   integer ncu
   integer nrt
   integer nrtp1
-  real(8) s(*)
-  real(8) scale
-  real(8) shift
-  real(8) sl
-  real(8) sm
-  real(8) smm1
-  real(8) sn
-  real(8) t
-  real(8) t1
-  real(8) test
-  real(8) u(ldu,*)
-  real(8) v(ldv,p)
+  real(rkx) s(*)
+  real(rkx) scale
+  real(rkx) shift
+  real(rkx) sl
+  real(rkx) sm
+  real(rkx) smm1
+  real(rkx) sn
+  real(rkx) t
+  real(rkx) t1
+  real(rkx) test
+  real(rkx) u(ldu,*)
+  real(rkx) v(ldv,p)
   logical wantu
   logical wantv
-  real(8) work(n)
-  real(8) x(ldx,p)
-  real(8) ztest
+  real(rkx) work(n)
+  real(rkx) x(ldx,p)
+  real(rkx) ztest
 !
 !  Determine what is to be computed.
 !
@@ -7831,12 +7833,12 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 
         s(l) = snrm2 ( n-l+1, x(l,l), 1 )
 
-        if ( s(l) /= 0.0D+00 ) then
-          if (x(l,l) /= 0.0D+00 ) then
+        if ( s(l) /= 0.0_rkx ) then
+          if (x(l,l) /= 0.0_rkx ) then
             s(l) = sign ( s(l), x(l,l) )
           end if
-          call sscal ( n-l+1, 1.0D+00 / s(l), x(l,l), 1 )
-          x(l,l) = 1.0D+00 + x(l,l)
+          call sscal ( n-l+1, 1.0_rkx / s(l), x(l,l), 1 )
+          x(l,l) = 1.0_rkx + x(l,l)
         end if
 
         s(l) = -s(l)
@@ -7847,7 +7849,7 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !
 !  Apply the transformation.
 !
-        if ( l <= nct .and. s(l) /= 0.0D+00 ) then
+        if ( l <= nct .and. s(l) /= 0.0_rkx ) then
            t = - sdot ( n-l+1, x(l,l), 1, x(l,j), 1 ) / x(l,l)
            call saxpy ( n-l+1, t, x(l,l), 1, x(l,j), 1 )
         end if
@@ -7871,21 +7873,21 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !
         e(l) = snrm2 ( p-l, e(l+1), 1 )
 
-        if ( e(l) /= 0.0D+00 ) then
-          if ( e(l+1) /= 0.0D+00 ) then
+        if ( e(l) /= 0.0_rkx ) then
+          if ( e(l+1) /= 0.0_rkx ) then
             e(l) = sign ( e(l), e(l+1) )
           end if
-          call sscal ( p-l, 1.0D+00 / e(l), e(l+1), 1 )
-          e(l+1) = 1.0D+00 + e(l+1)
+          call sscal ( p-l, 1.0_rkx / e(l), e(l+1), 1 )
+          e(l+1) = 1.0_rkx + e(l+1)
         end if
 
         e(l) = -e(l)
 !
 !  Apply the transformation.
 !
-        if ( l+1 <= n .and. e(l) /= 0.0D+00 ) then
+        if ( l+1 <= n .and. e(l) /= 0.0_rkx ) then
 
-           work(l+1:n) = 0.0D+00
+           work(l+1:n) = 0.0_rkx
 
            do j = l+1, p
               call saxpy ( n-l, e(j), x(l+1,j), 1, work(l+1), 1 )
@@ -7918,44 +7920,44 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
   end if
 
   if ( n < m ) then
-    s(m) = 0.0D+00
+    s(m) = 0.0_rkx
   end if
 
   if ( nrtp1 < m ) then
     e(nrtp1) = x(nrtp1,m)
   end if
 
-  e(m) = 0.0D+00
+  e(m) = 0.0_rkx
 !
 !  If required, generate U.
 !
   if ( wantu ) then
 
-    u(1:n,nctp1:ncu) = 0.0D+00
+    u(1:n,nctp1:ncu) = 0.0_rkx
 
     do j = nctp1, ncu
-      u(j,j) = 1.0D+00
+      u(j,j) = 1.0_rkx
     end do
 
     do ll = 1, nct
 
       l = nct - ll + 1
 
-      if ( s(l) /= 0.0D+00 ) then
+      if ( s(l) /= 0.0_rkx ) then
 
         do j = l+1, ncu
           t = - sdot ( n-l+1, u(l,l), 1, u(l,j), 1 ) / u(l,l)
           call saxpy ( n-l+1, t, u(l,l), 1, u(l,j), 1 )
         end do
 
-        call sscal ( n-l+1, -1.0D+00, u(l,l), 1 )
-        u(l,l) = 1.0D+00 + u(l,l)
-        u(1:l-1,l) = 0.0D+00
+        call sscal ( n-l+1, -1.0_rkx, u(l,l), 1 )
+        u(l,l) = 1.0_rkx + u(l,l)
+        u(1:l-1,l) = 0.0_rkx
 
       else
 
-        u(1:n,l) = 0.0D+00
-        u(l,l) = 1.0D+00
+        u(1:n,l) = 0.0_rkx
+        u(l,l) = 1.0_rkx
 
       end if
 
@@ -7971,7 +7973,7 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 
         l = p - ll + 1
 
-        if ( l <= nrt .and. e(l) /= 0.0D+00 ) then
+        if ( l <= nrt .and. e(l) /= 0.0_rkx ) then
 
            do j = l+1, p
               t = - sdot ( p-l, v(l+1,l), 1, v(l+1,j), 1 ) / v(l+1,l)
@@ -7980,8 +7982,8 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 
         end if
 
-        v(1:p,l) = 0.0D+00
-        v(l,l) = 1.0D+00
+        v(1:p,l) = 0.0_rkx
+        v(l,l) = 1.0_rkx
 
      end do
 
@@ -8024,7 +8026,7 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
         ztest = test + abs ( e(l) )
 
         if ( ztest == test ) then
-           e(l) = 0.0D+00
+           e(l) = 0.0_rkx
            exit
         end if
 
@@ -8044,7 +8046,7 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
              exit
            end if
 
-           test = 0.0D+00
+           test = 0.0_rkx
            if ( ls /= m ) then
              test = test + abs ( e(ls) )
            end if
@@ -8056,7 +8058,7 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
            ztest = test + abs ( s(ls) )
 
            if ( ztest == test ) then
-              s(ls) = 0.0D+00
+              s(ls) = 0.0_rkx
               exit
            end if
 
@@ -8081,7 +8083,7 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 
         mm1 = m - 1
         f = e(m-1)
-        e(m-1) = 0.0D+00
+        e(m-1) = 0.0_rkx
 
         do kk = l, mm1
 
@@ -8106,7 +8108,7 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
      else if ( kase == 2 ) then
 
         f = e(l-1)
-        e(l-1) = 0.0D+00
+        e(l-1) = 0.0_rkx
 
         do k = l, m
 
@@ -8135,13 +8137,13 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
         emm1 = e(m-1) / scale
         sl = s(l) / scale
         el = e(l) / scale
-        b = ( ( smm1 + sm ) * ( smm1 - sm ) + emm1**2 ) / 2.0D+00
+        b = ( ( smm1 + sm ) * ( smm1 - sm ) + emm1**2 ) / 2.0_rkx
         c = ( sm * emm1 )**2
-        shift = 0.0D+00
+        shift = 0.0_rkx
 
-        if ( b /= 0.0D+00 .or. c /= 0.0D+00 ) then
+        if ( b /= 0.0_rkx .or. c /= 0.0_rkx ) then
            shift = sqrt ( b**2 + c )
-           if ( b < 0.0D+00 ) then
+           if ( b < 0.0_rkx ) then
              shift = - shift
            end if
            shift = c / ( b + shift )
@@ -8193,10 +8195,10 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !
 !  Make the singular value nonnegative.
 !
-        if ( s(l) < 0.0D+00 ) then
+        if ( s(l) < 0.0_rkx ) then
            s(l) = -s(l)
            if ( wantv ) then
-             call sscal ( p, -1.0D+00, v(1,l), 1 )
+             call sscal ( p, -1.0_rkx, v(1,l), 1 )
            end if
         end if
 !
@@ -8261,11 +8263,11 @@ subroutine sswap ( n, x, incx, y, incy )
 !
 !    Input, integer N, the number of entries in the vectors.
 !
-!    Input/output, real(8) X(*), one of the vectors to swap.
+!    Input/output, real(rkx) X(*), one of the vectors to swap.
 !
 !    Input, integer INCX, the increment between successive entries of X.
 !
-!    Input/output, real(8) Y(*), one of the vectors to swap.
+!    Input/output, real(rkx) Y(*), one of the vectors to swap.
 !
 !    Input, integer INCY, the increment between successive elements of Y.
 !
@@ -8278,9 +8280,9 @@ subroutine sswap ( n, x, incx, y, incy )
   integer iy
   integer m
   integer n
-  real(8) stemp
-  real(8) x(*)
-  real(8) y(*)
+  real(rkx) stemp
+  real(rkx) x(*)
+  real(rkx) y(*)
 !
   if ( n <= 0 ) then
 
@@ -8341,7 +8343,7 @@ subroutine strco ( t, ldt, n, rcond, z, job )
 !
 !*******************************************************************************
 !
-!! STRCO estimates the condition of a real(8) triangular matrix.
+!! STRCO estimates the condition of a real(rkx) triangular matrix.
 !
 !
 !  Reference:
@@ -8355,7 +8357,7 @@ subroutine strco ( t, ldt, n, rcond, z, job )
 !
 !  Parameters:
 !
-!    Input, real(8) T(LDT,N), the triangular matrix.  The zero elements of
+!    Input, real(rkx) T(LDT,N), the triangular matrix.  The zero elements of
 !    the matrix are not referenced, and the corresponding elements of the
 !    array can be used to store other information.
 !
@@ -8367,15 +8369,15 @@ subroutine strco ( t, ldt, n, rcond, z, job )
 !    0, T is lower triangular.
 !    nonzero, T is upper triangular.
 !
-!    Output, real(8) RCOND, an estimate of the reciprocal condition of T.
+!    Output, real(rkx) RCOND, an estimate of the reciprocal condition of T.
 !    For the system T*X = B, relative perturbations in T and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
-!      1.0D+00 + RCOND == 1.0D+00
+!      1.0_rkx + RCOND == 1.0_rkx
 !    is true, then T may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
-!    Output, real(8) Z(N) a work vector whose contents are usually unimportant.
+!    Output, real(rkx) Z(N) a work vector whose contents are usually unimportant.
 !    If T is close to a singular matrix, then Z is an approximate null vector
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
@@ -8385,7 +8387,7 @@ subroutine strco ( t, ldt, n, rcond, z, job )
   integer ldt
   integer n
 !
-  real(8) ek
+  real(rkx) ek
   integer i1
   integer j
   integer j1
@@ -8395,22 +8397,22 @@ subroutine strco ( t, ldt, n, rcond, z, job )
   integer kk
   integer l
   logical lower
-  real(8) rcond
-  real(8) s
-  real(8) sm
-  real(8) t(ldt,n)
-  real(8) tnorm
-  real(8) w
-  real(8) wk
-  real(8) wkm
-  real(8) ynorm
-  real(8) z(n)
+  real(rkx) rcond
+  real(rkx) s
+  real(rkx) sm
+  real(rkx) t(ldt,n)
+  real(rkx) tnorm
+  real(rkx) w
+  real(rkx) wk
+  real(rkx) wkm
+  real(rkx) ynorm
+  real(rkx) z(n)
 !
   lower = job == 0
 !
 !  Compute the 1-norm of T.
 !
-  tnorm = 0.0D+00
+  tnorm = 0.0_rkx
 
   do j = 1, n
 
@@ -8439,8 +8441,8 @@ subroutine strco ( t, ldt, n, rcond, z, job )
 !
 !  Solve T'*Y = E.
 !
-  ek = 1.0D+00
-  z(1:n) = 0.0D+00
+  ek = 1.0_rkx
+  z(1:n) = 0.0_rkx
 
   do kk = 1, n
 
@@ -8450,7 +8452,7 @@ subroutine strco ( t, ldt, n, rcond, z, job )
        k = kk
      end if
 
-     if ( z(k) /= 0.0D+00 ) then
+     if ( z(k) /= 0.0_rkx ) then
        ek = sign ( ek, -z(k) )
      end if
 
@@ -8465,12 +8467,12 @@ subroutine strco ( t, ldt, n, rcond, z, job )
      s = abs ( wk )
      sm = abs ( wkm )
 
-     if ( t(k,k) /= 0.0D+00 ) then
+     if ( t(k,k) /= 0.0_rkx ) then
        wk = wk / t(k,k)
        wkm = wkm / t(k,k)
      else
-       wk = 1.0D+00
-       wkm = 1.0D+00
+       wk = 1.0_rkx
+       wkm = 1.0_rkx
      end if
 
      if ( kk /= n ) then
@@ -8503,7 +8505,7 @@ subroutine strco ( t, ldt, n, rcond, z, job )
 
   z(1:n) = z(1:n) / sum ( abs ( z(1:n) ) )
 
-  ynorm = 1.0D+00
+  ynorm = 1.0_rkx
 !
 !  Solve T*Z = Y.
 !
@@ -8521,10 +8523,10 @@ subroutine strco ( t, ldt, n, rcond, z, job )
        ynorm = s * ynorm
      end if
 
-     if ( t(k,k) /= 0.0D+00 ) then
+     if ( t(k,k) /= 0.0_rkx ) then
        z(k) = z(k) / t(k,k)
      else
-       z(k) = 1.0D+00
+       z(k) = 1.0_rkx
      end if
 
      if ( lower ) then
@@ -8542,14 +8544,14 @@ subroutine strco ( t, ldt, n, rcond, z, job )
 !
 !  Make ZNORM = 1.0.
 !
-  s = 1.0D+00 / sum ( abs ( z(1:n) ) )
+  s = 1.0_rkx / sum ( abs ( z(1:n) ) )
   z(1:n) = s * z(1:n)
   ynorm = s * ynorm
 
-  if ( tnorm /= 0.0D+00 ) then
+  if ( tnorm /= 0.0_rkx ) then
     rcond = ynorm / tnorm
   else
-    rcond = 0.0D+00
+    rcond = 0.0_rkx
   end if
 
   return
@@ -8559,7 +8561,7 @@ subroutine strdi ( t, ldt, n, det, job, info )
 !
 !***********************************************************************
 !
-!! STRDI computes the determinant and inverse of a real(8) triangular matrix.
+!! STRDI computes the determinant and inverse of a real(rkx) triangular matrix.
 !
 !
 !  Modified:
@@ -8577,7 +8579,7 @@ subroutine strdi ( t, ldt, n, det, job, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) T(LDT,N).
+!    Input/output, real(rkx) T(LDT,N).
 !    On input, T contains the triangular matrix. The zero elements of the
 !    matrix are not referenced, and the corresponding elements of the array
 !    can be used to store other information.
@@ -8587,7 +8589,7 @@ subroutine strdi ( t, ldt, n, det, job, info )
 !
 !    Input, integer N, the order of the matrix.
 !
-!    Output, real(8) DET(2), the determinant of the matrix, if requested.
+!    Output, real(rkx) DET(2), the determinant of the matrix, if requested.
 !    The determinant = DET(1) * 10.0**DET(2), with 1.0 <= abs ( DET(1) ) < 10.0,
 !    or DET(1) == 0.
 !
@@ -8608,39 +8610,39 @@ subroutine strdi ( t, ldt, n, det, job, info )
   integer ldt
   integer n
 !
-  real(8) det(2)
+  real(rkx) det(2)
   integer i
   integer info
   integer j
   integer job
   integer k
-  real(8) t(ldt,n)
-  real(8) temp
-  real(8) , parameter :: ten = 10.0D+00
+  real(rkx) t(ldt,n)
+  real(rkx) temp
+  real(rkx) , parameter :: ten = 10.0_rkx
 !
 !  Determinant.
 !
   if ( job / 100 /= 0 ) then
 
-    det(1) = 1.0D+00
-    det(2) = 0.0D+00
+    det(1) = 1.0_rkx
+    det(2) = 0.0_rkx
 
     do i = 1, n
 
       det(1) = t(i,i) * det(1)
 
-      if ( det(1) == 0.0D+00 ) then
+      if ( det(1) == 0.0_rkx ) then
         exit
       end if
 
-      do while ( abs ( det(1) ) < 1.0D+00 )
+      do while ( abs ( det(1) ) < 1.0_rkx )
         det(1) = ten * det(1)
-        det(2) = det(2) - 1.0D+00
+        det(2) = det(2) - 1.0_rkx
       end do
 
       do while ( abs ( det(1) ) >= ten )
         det(1) = det(1) / ten
-        det(2) = det(2) + 1.0D+00
+        det(2) = det(2) + 1.0_rkx
       end do
 
     end do
@@ -8659,18 +8661,18 @@ subroutine strdi ( t, ldt, n, det, job, info )
 
     do k = 1, n
 
-      if ( t(k,k) == 0.0D+00 ) then
+      if ( t(k,k) == 0.0_rkx ) then
         info = k
         exit
       end if
 
-      t(k,k) = 1.0D+00 / t(k,k)
+      t(k,k) = 1.0_rkx / t(k,k)
       temp = -t(k,k)
       call sscal ( k-1, temp, t(1,k), 1 )
 
       do j = k + 1, n
         temp = t(k,j)
-        t(k,j) = 0.0D+00
+        t(k,j) = 0.0_rkx
         call saxpy ( k, temp, t(1,k), 1, t(1,j), 1 )
       end do
 
@@ -8684,12 +8686,12 @@ subroutine strdi ( t, ldt, n, det, job, info )
 
     do k = n, 1, -1
 
-      if ( t(k,k) == 0.0D+00 ) then
+      if ( t(k,k) == 0.0_rkx ) then
         info = k
         exit
       end if
 
-      t(k,k) = 1.0D+00 / t(k,k)
+      t(k,k) = 1.0_rkx / t(k,k)
       temp = -t(k,k)
 
       if ( k /= n ) then
@@ -8698,7 +8700,7 @@ subroutine strdi ( t, ldt, n, det, job, info )
 
       do j = 1, k-1
         temp = t(k,j)
-        t(k,j) = 0.0D+00
+        t(k,j) = 0.0_rkx
         call saxpy ( n-k+1, temp, t(k,k), 1, t(k,j), 1 )
       end do
 
@@ -8734,7 +8736,7 @@ subroutine strsl ( t, ldt, n, b, job, info )
 !
 !  Parameters:
 !
-!    Input, real(8) T(LDT,N), the matrix of the system.  The zero elements of
+!    Input, real(rkx) T(LDT,N), the matrix of the system.  The zero elements of
 !    the matrix are not referenced, and the corresponding elements of the
 !    array can be used to store other information.
 !
@@ -8742,7 +8744,7 @@ subroutine strsl ( t, ldt, n, b, job, info )
 !
 !    Input, integer N, the order of the matrix.
 !
-!    Input/output, real(8) B(N).  On input, the right hand side.
+!    Input/output, real(rkx) B(N).  On input, the right hand side.
 !    On output, the solution.
 !
 !    Input, integer JOB, specifies what kind of system is to be solved:
@@ -8761,19 +8763,19 @@ subroutine strsl ( t, ldt, n, b, job, info )
   integer ldt
   integer n
 !
-  real(8) b(n)
+  real(rkx) b(n)
   integer icase
   integer info
   integer j
   integer jj
   integer job
-  real(8) t(ldt,n)
-  real(8) temp
+  real(rkx) t(ldt,n)
+  real(rkx) temp
 !
 !  Check for zero diagonal elements.
 !
   do j = 1, n
-    if ( t(j,j) == 0.0D+00 ) then
+    if ( t(j,j) == 0.0_rkx ) then
       info = j
       return
     end if

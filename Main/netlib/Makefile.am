@@ -1,6 +1,8 @@
 
 include $(REGCM_ROOT)/makeinc
 
+vpath %.o $(REGCM_ROOT)/Share:.
+
 noinst_LIBRARIES = libnetlib.a
 libnetlib_a_SOURCES = linpack.F90 eispack.F90 lapack_dgbsv.F90
 
@@ -16,6 +18,6 @@ clean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-linpack.o : linpack.F90
-eispack.o : eispack.F90
-lapack_dgbsv.o : lapack_dgbsv.F90
+linpack.o : linpack.F90 mod_realkinds.o
+eispack.o : eispack.F90 mod_realkinds.o
+lapack_dgbsv.o : lapack_dgbsv.F90 mod_realkinds.o

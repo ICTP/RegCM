@@ -29,10 +29,10 @@ module mod_vertint
 
   private
 
-  real(rk8) , parameter :: rgas2 = rgas/d_two
+  real(rkx) , parameter :: rgas2 = rgas/d_two
   ! lrate is defined as a positive constant.
-  real(rk8) , parameter :: rglrog = rgas*lrate*regrav
-  real(rk8) , parameter :: b1 = -egrav/lrate
+  real(rkx) , parameter :: rglrog = rgas*lrate*regrav
+  real(rkx) , parameter :: b1 = -egrav/lrate
 
   interface intlin
     module procedure intlin_double
@@ -58,16 +58,16 @@ module mod_vertint
   subroutine intlinreg(fp,f,ps,p3d,im1,im2,jm1,jm2,km,p,kp)
     implicit none
     integer(ik4) , intent(in) :: im1 , im2 , jm1 , jm2 , km , kp
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: f
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: ps
-    real(rk8) , pointer , dimension(:) , intent(in) :: p
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: p3d
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: fp
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: f
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
+    real(rkx) , pointer , dimension(:) , intent(in) :: p
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p3d
+    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: fp
     integer(ik4) :: i , j , k , kx , knx , n
-    real(rk8) , dimension(im1:im2,jm1:jm2,kp) :: ff
-    real(rk8) , dimension(kp) :: pp
-    real(rk8) , dimension(kp) :: sig
-    real(rk8) :: sigp , w1 , wp
+    real(rkx) , dimension(im1:im2,jm1:jm2,kp) :: ff
+    real(rkx) , dimension(kp) :: pp
+    real(rkx) , dimension(kp) :: sig
+    real(rkx) :: sigp , w1 , wp
     logical :: same_order
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
@@ -97,7 +97,7 @@ module mod_vertint
       !
       do j = jm1 , jm2
         do i = im1 , im2
-          if ( ps(i,j) < 1.0D0 ) cycle
+          if ( ps(i,j) < 1.0_rkx ) cycle
           !
           ! Sigma values in this point
           !
@@ -149,7 +149,7 @@ module mod_vertint
       !
       do j = jm1 , jm2
         do i = im1 , im2
-          if ( ps(i,j) < 1.0D0 ) cycle
+          if ( ps(i,j) < 1.0_rkx ) cycle
           !
           ! Sigma values in this point
           !
@@ -198,16 +198,16 @@ module mod_vertint
   subroutine intlinprof(fp,f,ps,p3d,im1,im2,jm1,jm2,km,p,kp)
     implicit none
     integer(ik4) , intent(in) :: im1 , im2 , jm1 , jm2 , km , kp
-    real(rk8) , pointer , dimension(:) , intent(in) :: f
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: ps
-    real(rk8) , pointer , dimension(:) , intent(in) :: p
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: p3d
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: fp
+    real(rkx) , pointer , dimension(:) , intent(in) :: f
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
+    real(rkx) , pointer , dimension(:) , intent(in) :: p
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p3d
+    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: fp
     integer(ik4) :: i , j , k , kx , knx , n
-    real(rk8) , dimension(kp) :: ff
-    real(rk8) , dimension(kp) :: pp
-    real(rk8) , dimension(kp) :: sig
-    real(rk8) :: sigp , w1 , wp
+    real(rkx) , dimension(kp) :: ff
+    real(rkx) , dimension(kp) :: pp
+    real(rkx) , dimension(kp) :: sig
+    real(rkx) :: sigp , w1 , wp
     logical :: same_order
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
@@ -237,7 +237,7 @@ module mod_vertint
       !
       do j = jm1 , jm2
         do i = im1 , im2
-          if ( ps(i,j) < 1.0D0 ) cycle
+          if ( ps(i,j) < 1.0_rkx ) cycle
           !
           ! Sigma values in this point
           !
@@ -289,7 +289,7 @@ module mod_vertint
       !
       do j = jm1 , jm2
         do i = im1 , im2
-          if ( ps(i,j) < 1.0D0 ) cycle
+          if ( ps(i,j) < 1.0_rkx ) cycle
           !
           ! Sigma values in this point
           !
@@ -372,7 +372,7 @@ module mod_vertint
           !
           ! Discard missing values
           !
-          if ( ps(i,j) > -9995.0D0 ) then
+          if ( ps(i,j) > -9995.0_rkx ) then
             !
             ! Sigma values in this point
             !
@@ -440,7 +440,7 @@ module mod_vertint
           !
           ! Discard missing values
           !
-          if ( ps(i,j) > -9995.0D0 ) then
+          if ( ps(i,j) > -9995.0_rkx ) then
             !
             ! Sigma values in this point
             !
@@ -756,7 +756,7 @@ module mod_vertint
   subroutine intlin_o_single(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km , kp
-    real(rk8) , intent(in) :: ptop
+    real(rkx) , intent(in) :: ptop
     real(rk4) , dimension(im,jm,km) , intent(in) :: f
     real(rk4) , dimension(kp) , intent(in) :: p
     real(rk4) , dimension(im,jm) , intent(in) :: pstar
@@ -966,13 +966,13 @@ module mod_vertint
   subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,pss,sccm,ni,nj,nlev1)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nlev1
-    real(rk8) :: pss
-    real(rk8) , dimension(ni,nj) , intent(in) :: zrcm
-    real(rk8) , dimension(nlev1) , intent(in) :: sccm
-    real(rk8) , dimension(ni,nj,nlev1) , intent(in) :: tp , zp
-    real(rk8) , dimension(ni,nj) , intent(out) :: tlayer , pa , za
+    real(rkx) :: pss
+    real(rkx) , dimension(ni,nj) , intent(in) :: zrcm
+    real(rkx) , dimension(nlev1) , intent(in) :: sccm
+    real(rkx) , dimension(ni,nj,nlev1) , intent(in) :: tp , zp
+    real(rkx) , dimension(ni,nj) , intent(out) :: tlayer , pa , za
     integer(ik4) :: i , j , k , kb , kt
-    real(rk8) :: wu , wl
+    real(rkx) :: wu , wl
     !
     ! INTGTB CALCULATES ALL VARIABLES NEEDED TO COMPUTE P* ON THE RCM
     ! TOPOGRAPHY.  THE MEAN TEMPERATURE IN THE LAYER BETWEEN
@@ -1056,7 +1056,7 @@ module mod_vertint
           !
           ! Discard missing values
           !
-          if ( ps(i,j) > -9995.0D0 ) then
+          if ( ps(i,j) > -9995.0_rkx ) then
             !
             ! Sigma values in this point , and find boundary layer
             !
@@ -1133,7 +1133,7 @@ module mod_vertint
           !
           ! Discard missing values
           !
-          if ( ps(i,j) > -9995.0D0 ) then
+          if ( ps(i,j) > -9995.0_rkx ) then
             !
             ! Sigma values in this point , and find boundary layer
             !
@@ -1514,7 +1514,7 @@ module mod_vertint
   subroutine intlog_o_single(fp,f,pstar,sig,ptop,im,jm,km,p,kp)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km , kp
-    real(rk8) , intent(in) :: ptop
+    real(rkx) , intent(in) :: ptop
     real(rk4) , dimension(im,jm,km) , intent(in) :: f
     real(rk4) , dimension(kp) , intent(in) :: p
     real(rk4) , dimension(im,jm) , intent(in) :: pstar
@@ -1658,9 +1658,9 @@ module mod_vertint
   subroutine intpsn(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
     implicit none
     integer(ik4) , intent(in) :: ni , nj
-    real(rk8) , intent(in) :: pt
-    real(rk8) , dimension(ni,nj) , intent(in) :: pa , tlayer , za , zrcm
-    real(rk8) , dimension(ni,nj) , intent(out) :: psrcm
+    real(rkx) , intent(in) :: pt
+    real(rkx) , dimension(ni,nj) , intent(in) :: pa , tlayer , za , zrcm
+    real(rkx) , dimension(ni,nj) , intent(out) :: psrcm
     integer(ik4) :: i , j
     !
     ! EXTRAPOLATE SURFACE PRESSURE FROM CLOSEST PRESSURE LEVEL ABOVE.
@@ -1679,13 +1679,13 @@ module mod_vertint
   subroutine intv0(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
-    real(rk8) , intent(in) :: pt , pss
-    real(rk8) , dimension(ni,nj,kccm) , intent(in) :: fccm
-    real(rk8) , dimension(ni,nj) , intent(in) :: psrcm
-    real(rk8) , dimension(kccm) , intent(in) :: sccm
-    real(rk8) , dimension(krcm) , intent(in) :: srcm
-    real(rk8) , dimension(ni,nj,krcm) , intent(out) :: frcm
-    real(rk8) :: dp1 , pt1 , rc , rc1 , sc
+    real(rkx) , intent(in) :: pt , pss
+    real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm
+    real(rkx) , dimension(ni,nj) , intent(in) :: psrcm
+    real(rkx) , dimension(kccm) , intent(in) :: sccm
+    real(rkx) , dimension(krcm) , intent(in) :: srcm
+    real(rkx) , dimension(ni,nj,krcm) , intent(out) :: frcm
+    real(rkx) :: dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
     !
     ! INTV0 is for vertical interpolation of tracer where the tracer has
@@ -1721,13 +1721,13 @@ module mod_vertint
   subroutine intv1(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
-    real(rk8) , intent(in) :: pt , pss
-    real(rk8) , dimension(ni,nj,kccm) , intent(in) :: fccm
-    real(rk8) , dimension(ni,nj) , intent(in) :: psrcm
-    real(rk8) , dimension(kccm) , intent(in) :: sccm
-    real(rk8) , dimension(krcm) , intent(in) :: srcm
-    real(rk8) , dimension(ni,nj,krcm) , intent(out) :: frcm
-    real(rk8) :: dp1 , pt1 , rc , rc1 , sc
+    real(rkx) , intent(in) :: pt , pss
+    real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm
+    real(rkx) , dimension(ni,nj) , intent(in) :: psrcm
+    real(rkx) , dimension(kccm) , intent(in) :: sccm
+    real(rkx) , dimension(krcm) , intent(in) :: srcm
+    real(rkx) , dimension(ni,nj,krcm) , intent(out) :: frcm
+    real(rkx) :: dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
     !
     ! INTV1 is for vertical interpolation of U, V, and RH
@@ -1764,13 +1764,13 @@ module mod_vertint
   subroutine intv2(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
-    real(rk8) , intent(in) :: pt , pss
-    real(rk8) , dimension(ni,nj,kccm) , intent(in) :: fccm
-    real(rk8) , dimension(ni,nj) , intent(in) :: psrcm
-    real(rk8) , dimension(kccm) , intent(in) :: sccm
-    real(rk8) , dimension(krcm) , intent(in) :: srcm
-    real(rk8) , dimension(ni,nj,krcm) , intent(out) :: frcm
-    real(rk8) :: a1 , dp1 , pt1 , rc , rc1 , sc
+    real(rkx) , intent(in) :: pt , pss
+    real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm
+    real(rkx) , dimension(ni,nj) , intent(in) :: psrcm
+    real(rkx) , dimension(kccm) , intent(in) :: sccm
+    real(rkx) , dimension(krcm) , intent(in) :: srcm
+    real(rkx) , dimension(ni,nj,krcm) , intent(out) :: frcm
+    real(rkx) :: a1 , dp1 , pt1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
     !
     ! INTV2 is for vertical interpolation.  The interpolation is
@@ -1812,12 +1812,12 @@ module mod_vertint
   subroutine intv3(fsccm,fccm,psrccm,pss,sccm,ptop,ni,nj,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , ni , nj
-    real(rk8) , intent(in) :: ptop , pss
-    real(rk8) , dimension(ni,nj,kccm) , intent(in) :: fccm
-    real(rk8) , dimension(ni,nj) , intent(in) :: psrccm
-    real(rk8) , dimension(ni,nj) , intent(out) :: fsccm
-    real(rk8) , dimension(kccm) , intent(in) :: sccm
-    real(rk8) :: a1 , rc , rc1 , sc
+    real(rkx) , intent(in) :: ptop , pss
+    real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm
+    real(rkx) , dimension(ni,nj) , intent(in) :: psrccm
+    real(rkx) , dimension(ni,nj) , intent(out) :: fsccm
+    real(rkx) , dimension(kccm) , intent(in) :: sccm
+    real(rkx) :: a1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1
     !
     ! INTV3 is for vertical interpolation.  The interpolation

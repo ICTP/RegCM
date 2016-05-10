@@ -38,7 +38,7 @@ module mod_fudge
     character(len=*) :: char_lnd
     logical :: fudge , there
     integer(ik4) :: iy , jx
-    real(rk8) , dimension(jx,iy) :: htgrid , lndout
+    real(rkx) , dimension(jx,iy) :: htgrid , lndout
     intent (in) char_lnd , fudge , iy , jx
     intent (inout) htgrid , lndout
 !
@@ -191,12 +191,12 @@ module mod_fudge
     character(len=*) :: char_tex
     logical :: fudge, there
     integer(ik4) :: iy , jx
-    real(rk8) , dimension(jx,iy) :: texout , lnduse
+    real(rkx) , dimension(jx,iy) :: texout , lnduse
     intent (in) char_tex , fudge , iy , jx
     intent (inout) texout , lnduse
 !
     integer(ik4) :: i , j
-    real(rk8) :: oval
+    real(rkx) :: oval
     character(len=1) , dimension(jx,iy) :: ch
 !
     if ( fudge ) then
@@ -334,7 +334,7 @@ module mod_fudge
     character(len=*) , intent(in) :: char_lak
     logical , intent(in) :: fudge
     integer(ik4) , intent(in) :: iy , jx
-    real(rk8) , dimension(jx,iy) , intent(inout) :: dpth , lnd
+    real(rkx) , dimension(jx,iy) , intent(inout) :: dpth , lnd
     logical :: there
     integer(ik4) :: i , j
     character(len=1) , dimension(jx,iy) :: ch

@@ -37,26 +37,26 @@ module mod_sound
 
   public :: allocate_mod_sound , init_sound , sound
 
-  real(rk8) , pointer , dimension(:,:,:) :: aa
-  real(rk8) , pointer , dimension(:,:,:) :: b
-  real(rk8) , pointer , dimension(:,:,:) :: c
-  real(rk8) , pointer , dimension(:,:,:) :: rhs
-  real(rk8) , pointer , dimension(:,:,:) :: sigdot
-  real(rk8) , pointer , dimension(:,:,:) :: wo
-  real(rk8) , pointer , dimension(:,:,:) :: ca
-  real(rk8) , pointer , dimension(:,:,:) :: g1 , g2
-  real(rk8) , pointer , dimension(:,:,:) :: ptend , pxup , pyvp
-  real(rk8) , pointer , dimension(:,:,:) :: ucrs , vcrs
-  real(rk8) , pointer , dimension(:,:,:) :: tk
-  real(rk8) , pointer , dimension(:,:,:) :: cc , cdd , cj
-  real(rk8) , pointer , dimension(:,:,:) :: pi
-  real(rk8) , pointer , dimension(:,:,:) :: e , f
-  real(rk8) , pointer , dimension(:,:) :: astore
-  real(rk8) , pointer , dimension(:,:) :: rpsb
-  real(rk8) , pointer , dimension(:,:) :: wpval
+  real(rkx) , pointer , dimension(:,:,:) :: aa
+  real(rkx) , pointer , dimension(:,:,:) :: b
+  real(rkx) , pointer , dimension(:,:,:) :: c
+  real(rkx) , pointer , dimension(:,:,:) :: rhs
+  real(rkx) , pointer , dimension(:,:,:) :: sigdot
+  real(rkx) , pointer , dimension(:,:,:) :: wo
+  real(rkx) , pointer , dimension(:,:,:) :: ca
+  real(rkx) , pointer , dimension(:,:,:) :: g1 , g2
+  real(rkx) , pointer , dimension(:,:,:) :: ptend , pxup , pyvp
+  real(rkx) , pointer , dimension(:,:,:) :: ucrs , vcrs
+  real(rkx) , pointer , dimension(:,:,:) :: tk
+  real(rkx) , pointer , dimension(:,:,:) :: cc , cdd , cj
+  real(rkx) , pointer , dimension(:,:,:) :: pi
+  real(rkx) , pointer , dimension(:,:,:) :: e , f
+  real(rkx) , pointer , dimension(:,:) :: astore
+  real(rkx) , pointer , dimension(:,:) :: rpsb
+  real(rkx) , pointer , dimension(:,:) :: wpval
 
-  real(rk8) , dimension(-6:6) :: fi , fj
-  real(rk8) , dimension(0:6) :: fk , fl
+  real(rkx) , dimension(-6:6) :: fi , fj
+  real(rkx) , dimension(0:6) :: fk , fl
 
   !
   !  BET IS IKAWA BETA PARAMETER (0.=CENTERED, 1.=BACKWARD)
@@ -67,12 +67,12 @@ module mod_sound
   !  values of BET = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1). This
   !  time-weighting is applied on w and pp:
   !
-  real(rk8) :: bet = 0.4D0
-  real(rk8) :: xkd = 0.1D0
-  real(rk8) , parameter :: xgamma = d_one/(d_one-rovcp)
-  real(rk8) :: cs , bp , bm , bpxbm , bpxbp
-  real(rk8) :: dtsmax
-  real(rk8) :: npts
+  real(rkx) :: bet = 0.4_rkx
+  real(rkx) :: xkd = 0.1_rkx
+  real(rkx) , parameter :: xgamma = d_one/(d_one-rovcp)
+  real(rkx) :: cs , bp , bm , bpxbm , bpxbp
+  real(rkx) :: dtsmax
+  real(rkx) :: npts
 
   contains
 
@@ -145,12 +145,12 @@ module mod_sound
     bm = (d_one-bet)*d_half
     bpxbp = bp*bp
     bpxbm = bp*bm
-    npts = dble((nicross-2)*(njcross-2))
+    npts = real((nicross-2)*(njcross-2),rkx)
   end subroutine init_sound
 
   subroutine sound
     implicit none
-    real(rk8) :: cddtmp ,  cfl , check , chh , cjtmp , cpm , denom , &
+    real(rkx) :: cddtmp ,  cfl , check , chh , cjtmp , cpm , denom , &
       dppdp0 , dpterm , dts , ppold , rho , rho0s , rofac , maxcfl , &
       rll , rkk , ri , rj
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
@@ -159,9 +159,9 @@ module mod_sound
     !
     ! Variables to implement upper radiative bc
     !
-    real(rk8) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
+    real(rkx) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
                  xkleff , xleff , xmsftot , xmsf
-    real(rk8) :: loc_abar , loc_rhon , loc_xmsf
+    real(rkx) :: loc_abar , loc_rhon , loc_xmsf
     integer(ik4) :: inn , jnn , ll , kk , nsi , nsj
     !
     ! HT IS G*(TERR. HT.)
@@ -191,7 +191,7 @@ module mod_sound
         istep = max(4,istep)
       end if
     end if
-    dts = dt/dble(istep)
+    dts = dt/real(istep,rkx)
     !
     ! Calculate the loop boundaries
     !
@@ -365,14 +365,14 @@ module mod_sound
           cdd(j,i,1) = xgamma * atm1%pr(j,i,1) * atm0%rho(j,i,1) * &
                        egrav * dts / (atm0%ps(j,i)*dsigma(1))
           cj(j,i,1)  = d_half * atm0%rho(j,i,1) * egrav * dts
-          pxup(j,i,1) = 0.0625D0 *                              &
+          pxup(j,i,1) = 0.0625_rkx *                              &
                       ( atm0%pr(j+1,i,1) - atm0%pr(j-1,i,1) ) * &
                       ( atmc%u(j,i,1)   + atmc%u(j+1,i,1)   +   &
                         atmc%u(j,i+1,1) + atmc%u(j+1,i+1,1) -   &
                         atmc%u(j,i,2)   - atmc%u(j+1,i,2)   -   &
                         atmc%u(j,i+1,2) - atmc%u(j+1,i+1,2) ) / &
                       ( atm0%pr(j,i,1) - atm0%pr(j,i,2))
-          pyvp(j,i,1) = 0.0625D0 *                              &
+          pyvp(j,i,1) = 0.0625_rkx *                              &
                       ( atm0%pr(j,i+1,1) - atm0%pr(j,i-1,1) ) * &
                       ( atmc%v(j,i,1)   + atmc%v(j+1,i,1)   +   &
                         atmc%v(j,i+1,1) + atmc%v(j+1,i+1,1) -   &
@@ -428,13 +428,13 @@ module mod_sound
                        (cdd(j,i,k) - cj(j,i,k)) + g2(j,i,k) * &
                        (cdd(j,i,km1) + cj(j,i,km1)) ) * bpxbp
             aa(j,i,k) = -ca(j,i,k) * (cdd(j,i,k)+cj(j,i,k))*g1(j,i,k)*bpxbp
-            pyvp(j,i,k) = 0.125D0 * (atm0%pr(j,i+1,k) - atm0%pr(j,i-1,k)) * &
+            pyvp(j,i,k) = 0.125_rkx * (atm0%pr(j,i+1,k) - atm0%pr(j,i-1,k)) * &
                           ( atmc%v(j,i,km1)   + atmc%v(j+1,i,km1)   +       &
                             atmc%v(j,i+1,km1) + atmc%v(j+1,i+1,km1) -       &
                             atmc%v(j,i,kp1)   - atmc%v(j+1,i,kp1)   -       &
                             atmc%v(j,i+1,kp1) - atmc%v(j+1,i+1,kp1) ) /     &
                           ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
-            pxup(j,i,k) = 0.125D0 * (atm0%pr(j+1,i,k) - atm0%pr(j-1,i,k)) * &
+            pxup(j,i,k) = 0.125_rkx * (atm0%pr(j+1,i,k) - atm0%pr(j-1,i,k)) * &
                           ( atmc%u(j,i,km1)   + atmc%u(j+1,i,km1)   +       &
                             atmc%u(j,i+1,km1) + atmc%u(j+1,i+1,km1) -       &
                             atmc%u(j,i,kp1)   - atmc%u(j+1,i,kp1)   -       &
@@ -566,20 +566,20 @@ module mod_sound
           dxmsfb = d_two/dx/xmsf
           tmask(:,:) = d_zero
           do kk = 0 , 6
-            rkk = dble(kk)
+            rkk = real(kk,rkx)
             do ll = 0 , 6
-              rll = dble(ll)
-              xkeff = dxmsfb * sin(mathpi*rkk/12.0D0)*cos(mathpi*rll/12.0D0)
-              xleff = dxmsfb * sin(mathpi*rll/12.0D0)*cos(mathpi*rkk/12.0D0)
+              rll = real(ll,rkx)
+              xkeff = dxmsfb * sin(mathpi*rkk/12.0_rkx)*cos(mathpi*rll/12.0_rkx)
+              xleff = dxmsfb * sin(mathpi*rll/12.0_rkx)*cos(mathpi*rkk/12.0_rkx)
               xkleff = sqrt(xkeff*xkeff + xleff*xleff)
               do i = -6 , 6
-                ri = dble(i)
+                ri = real(i,rkx)
                 do j = -6 , 6
-                  rj = dble(j)
+                  rj = real(j,rkx)
                   tmask(j,i) = tmask(j,i) +                          &
-                               (fi(i)*fj(j)*fk(kk)*fl(ll))/144.0D0 * &
-                               cos(2.0D0*mathpi*rkk*ri/12.0D0) *     &
-                               cos(2.0D0*mathpi*rll*rj/12.0D0) *     &
+                               (fi(i)*fj(j)*fk(kk)*fl(ll))/144.0_rkx * &
+                               cos(2.0_rkx*mathpi*rkk*ri/12.0_rkx) *     &
+                               cos(2.0_rkx*mathpi*rll*rj/12.0_rkx) *     &
                                xkleff / (rhon-abar*xkleff)
                 end do
               end do

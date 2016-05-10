@@ -30,10 +30,10 @@ module mod_hgt
 
   integer(ik4) , parameter :: maxnlev = 100
 
-  real(rk4) , parameter :: srovg = real(rovg)
-  real(rk4) , parameter :: slrate = real(lrate)
-  real(rk4) , parameter :: segrav = real(egrav)
-  real(rk4) , parameter :: srgas = real(rgas)
+  real(rk4) , parameter :: srovg = real(rovg,rk4)
+  real(rk4) , parameter :: slrate = real(lrate,rk4)
+  real(rk4) , parameter :: segrav = real(egrav,rk4)
+  real(rk4) , parameter :: srgas = real(rgas,rk4)
 
   interface htsig_o
     module procedure htsig_o_double
@@ -105,7 +105,7 @@ module mod_hgt
   subroutine nonhydrost_double(h,t0,p0,ptop,topo,sigmah,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
-    real(rk8) , intent(in) :: ptop
+    real(rkx) , intent(in) :: ptop
     real(rk8) , intent(in) , dimension(nk) :: sigmah
     real(rk8) , intent(in) , dimension(ni,nj,nk) :: t0
     real(rk8) , intent(in) , dimension(ni,nj) :: p0 , topo
@@ -139,7 +139,7 @@ module mod_hgt
   subroutine nonhydrost_single(h,t0,p0,ptop,topo,sigmah,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
-    real(rk8) , intent(in) :: ptop
+    real(rkx) , intent(in) :: ptop
     real(rk4) , intent(in) , dimension(nk) :: sigmah
     real(rk4) , intent(in) , dimension(ni,nj,nk) :: t0
     real(rk4) , intent(in) , dimension(ni,nj) :: p0 , topo
@@ -174,15 +174,15 @@ module mod_hgt
   subroutine height(hp,h,t,ps,p3d,ht,im,jm,km,p,kp)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km , kp
-    real(rk8) , intent(in) , dimension(im,jm,km) :: h , p3d , t
-    real(rk8) , intent(in) , dimension(im,jm) :: ht , ps
-    real(rk8) , intent(in) , dimension(kp) :: p
-    real(rk8) , intent(out) , dimension(im,jm,kp) :: hp
-!
-    real(rk8) :: psfc , temp , wb , wt
+    real(rkx) , intent(in) , dimension(im,jm,km) :: h , p3d , t
+    real(rkx) , intent(in) , dimension(im,jm) :: ht , ps
+    real(rkx) , intent(in) , dimension(kp) :: p
+    real(rkx) , intent(out) , dimension(im,jm,kp) :: hp
+
+    real(rkx) :: psfc , temp , wb , wt
     integer(ik4) :: i , j , k , kb , kbc , kt , n
-    real(rk8) , dimension(km+1) :: psig
-    real(rk8) , dimension(km) :: sig
+    real(rkx) , dimension(km+1) :: psig
+    real(rkx) , dimension(km) :: sig
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
@@ -207,7 +207,7 @@ module mod_hgt
       do i = 1 , im
         psfc = ps(i,j)
         kbc = 1
-        if ( psfc > -9995.0D0 ) then
+        if ( psfc > -9995.0_rkx ) then
           do k = 1 , km
             sig(k) = p3d(i,j,k)/ps(i,j)
             if ( sig(k) < bltop ) kbc = k
@@ -221,25 +221,25 @@ module mod_hgt
             kb = kt + 1
             if ( p(n) <= psig(1) ) then
               temp = t(i,j,1)
-              hp(i,j,n) = h(i,j,1) + rovg*temp*dlog(psig(1)/p(n))
+              hp(i,j,n) = h(i,j,1) + rovg*temp*log(psig(1)/p(n))
             else if ( (p(n) > psig(1)) .and. (p(n) < psig(km)) ) then
-              wt = dlog(psig(kb)/p(n))/dlog(psig(kb)/psig(kt))
-              wb = dlog(p(n)/psig(kt))/dlog(psig(kb)/psig(kt))
+              wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
+              wb = log(p(n)/psig(kt))/log(psig(kb)/psig(kt))
               temp = wt*t(i,j,kt) + wb*t(i,j,kb)
               temp = (temp+t(i,j,kb))/d_two
-              hp(i,j,n) = h(i,j,kb) + rovg*temp*dlog(psig(kb)/p(n))
+              hp(i,j,n) = h(i,j,kb) + rovg*temp*log(psig(kb)/p(n))
             else if ( (p(n) >= psig(km)) .and. (p(n) <= psfc) ) then
               temp = t(i,j,km)
-              hp(i,j,n) = ht(i,j) + rovg*temp*dlog(psfc/p(n))
+              hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
             else if ( p(n) > psfc ) then
               temp = t(i,j,kbc) + lrate*(h(i,j,kbc)-ht(i,j))
               hp(i,j,n) = ht(i,j)+ &
-                      (temp/lrate)*(d_one-dexp(+rovg*lrate*dlog(p(n)/psfc)))
+                      (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
             end if
           end do
         else
           do n = 1 , kp
-            hp(i,j,n) = -9999.0D0
+            hp(i,j,n) = -9999.0_rkx
           end do
         end if
       end do
@@ -251,13 +251,13 @@ module mod_hgt
   subroutine height_o_double(hp,h,t,pstar,ht,sig,ptop,im,jm,km,p,kp)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km , kp
-    real(rk8) , intent(in) :: ptop
+    real(rkx) , intent(in) :: ptop
     real(rk8) , intent(in) , dimension(im,jm,km) :: h , t
     real(rk8) , intent(out) , dimension(im,jm,kp) :: hp
     real(rk8) , intent(in) , dimension(im,jm) :: ht , pstar
     real(rk8) , intent(in) , dimension(kp) :: p
     real(rk8) , intent(in) , dimension(km) :: sig
-!
+
     real(rk8) :: psfc , temp , wb , wt
     integer(ik4) :: i , j , k , kb , kbc , kt , n
     real(rk8) , dimension(km) :: psig
@@ -352,7 +352,7 @@ module mod_hgt
         psfc = ps(i,j)
         kbc = 1
         do k = 1 , km
-           if ( p3(i,j,k) < 96000.0D0 ) kbc = k
+           if ( p3(i,j,k) < 96000.0_rkx ) kbc = k
         end do
         do n = 1 , kp
           kt = 1
@@ -385,13 +385,13 @@ module mod_hgt
   subroutine height_o_single(hp,h,t,pstar,ht,sig,ptop,im,jm,km,p,kp)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km , kp
-    real(rk8) , intent(in) :: ptop
+    real(rkx) , intent(in) :: ptop
     real(rk4) , intent(in) , dimension(im,jm,km) :: h , t
     real(rk4) , intent(out) , dimension(im,jm,kp) :: hp
     real(rk4) , intent(in) , dimension(im,jm) :: ht , pstar
     real(rk4) , intent(in) , dimension(kp) :: p
     real(rk4) , intent(in) , dimension(km) :: sig
-!
+
     real(rk4) :: psfc , temp , wb , wt , ptp
     integer(ik4) :: i , j , k , kb , kbc , kt , n
     real(rk4) , dimension(km) :: psig
@@ -522,30 +522,30 @@ module mod_hgt
   subroutine htsig(t,h,p3d,ps,ht,im,jm,km)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km
-    real(rk8) , intent(in) , dimension(im,jm,km) :: p3d , t
-    real(rk8) , intent(out) , dimension(im,jm,km) :: h
-    real(rk8) , intent(in) , dimension(im,jm) :: ht , ps
-!
-    real(rk8) :: tbar
+    real(rkx) , intent(in) , dimension(im,jm,km) :: p3d , t
+    real(rkx) , intent(out) , dimension(im,jm,km) :: h
+    real(rkx) , intent(in) , dimension(im,jm) :: ht , ps
+
+    real(rkx) :: tbar
     integer(ik4) :: i , j , k
-!
+
     do j = 1 , jm
       do i = 1 , im
-        if ( ps(i,j) > -9995.0D0 ) then
-          h(i,j,km) = ht(i,j) + rovg*t(i,j,km)*dlog(ps(i,j)/p3d(i,j,km))
+        if ( ps(i,j) > -9995.0_rkx ) then
+          h(i,j,km) = ht(i,j) + rovg*t(i,j,km)*log(ps(i,j)/p3d(i,j,km))
         else
-          h(i,j,km) = -9999.0D0
+          h(i,j,km) = -9999.0_rkx
         end if
       end do
     end do
     do k = km - 1 , 1 , -1
       do j = 1 , jm
         do i = 1 , im
-          if ( h(i,j,k+1) > -9995.0D0 ) then
+          if ( h(i,j,k+1) > -9995.0_rkx ) then
             tbar = d_half*(t(i,j,k)+t(i,j,k+1))
-            h(i,j,k) = h(i,j,k+1)+rovg*tbar*dlog(p3d(i,j,k+1)/p3d(i,j,k))
+            h(i,j,k) = h(i,j,k+1)+rovg*tbar*log(p3d(i,j,k+1)/p3d(i,j,k))
           else
-            h(i,j,k) = -9999.0D0
+            h(i,j,k) = -9999.0_rkx
           end if
         end do
       end do
@@ -557,7 +557,7 @@ module mod_hgt
   subroutine htsig_o_double(t,h,pstar,ht,sig,ptop,im,jm,km)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km
-    real(rk8) , intent(in) :: ptop
+    real(rkx) , intent(in) :: ptop
     real(rk8) , intent(in) , dimension(im,jm,km) :: t
     real(rk8) , intent(in) , dimension(im,jm) :: ht , pstar
     real(rk8) , intent(in) , dimension(km) :: sig
@@ -581,11 +581,11 @@ module mod_hgt
       end do
     end do
   end subroutine htsig_o_double
-!
+
   subroutine htsig_o_single(t,h,pstar,ht,sig,ptop,im,jm,km)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km
-    real(rk8) , intent(in) :: ptop
+    real(rkx) , intent(in) :: ptop
     real(rk4) , intent(in) , dimension(im,jm,km) :: t
     real(rk4) , intent(in) , dimension(im,jm) :: ht , pstar
     real(rk4) , intent(in) , dimension(km) :: sig
@@ -614,12 +614,12 @@ module mod_hgt
   subroutine mslp2ps(h,t,slp,ht,ps,im,jm,km)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km
-    real(rk8) , dimension(im,jm,km) , intent(in) :: h , t
-    real(rk8) , dimension(im,jm) , intent(in) :: ht , slp
-    real(rk8) , dimension(im,jm) , intent(out) :: ps
+    real(rkx) , dimension(im,jm,km) , intent(in) :: h , t
+    real(rkx) , dimension(im,jm) , intent(in) :: ht , slp
+    real(rkx) , dimension(im,jm) , intent(out) :: ps
     integer(ik4) :: kbc , i , j  , k
-    real(rk8) :: tsfc
-    real(rk8) , parameter :: blhgt = 1000.0D0
+    real(rkx) :: tsfc
+    real(rkx) , parameter :: blhgt = 1000.0_rkx
 
     do j = 1 , jm
       kbc = km
@@ -631,8 +631,8 @@ module mod_hgt
           end if
         end do
         tsfc = t(i,j,kbc)-lrate*(h(i,j,kbc)-ht(i,j))
-        ps(i,j) = slp(i,j) / dexp(-egrav/(rgas*lrate)* &
-                             dlog(d_one-ht(i,j)*lrate/tsfc))
+        ps(i,j) = slp(i,j) / exp(-egrav/(rgas*lrate)* &
+                             log(d_one-ht(i,j)*lrate/tsfc))
       end do
     end do
   end subroutine mslp2ps
@@ -666,23 +666,22 @@ module mod_hgt
   subroutine psig(t,h,p3d,ps,ht,im,jm,km)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km
-    real(rk8) , intent(in) , dimension(im,jm,km) :: h , t
-    real(rk8) , intent(in) , dimension(im,jm) :: ht , ps
-    real(rk8) , intent(out) , dimension(im,jm,km) :: p3d
-!
-    real(rk8) :: tbar
+    real(rkx) , intent(in) , dimension(im,jm,km) :: h , t
+    real(rkx) , intent(in) , dimension(im,jm) :: ht , ps
+    real(rkx) , intent(out) , dimension(im,jm,km) :: p3d
+    real(rkx) :: tbar
     integer(ik4) :: i , j , k
-!
+
     do j = 1 , jm
       do i = 1 , im
-        p3d(i,j,1) = ps(i,j)*dexp(-(h(i,j,1)-ht(i,j))/rovg/t(i,j,km))
+        p3d(i,j,1) = ps(i,j)*exp(-(h(i,j,1)-ht(i,j))/rovg/t(i,j,km))
       end do
     end do
     do k = 2 , km
       do j = 1 , jm
         do i = 1 , im
           tbar = d_half*(t(i,j,k)+t(i,j,k-1))
-          p3d(i,j,k) = p3d(i,j,k-1)*dexp(-(h(i,j,k)-h(i,j,k-1))/rovg/tbar)
+          p3d(i,j,k) = p3d(i,j,k-1)*exp(-(h(i,j,k)-h(i,j,k-1))/rovg/tbar)
         end do
       end do
     end do

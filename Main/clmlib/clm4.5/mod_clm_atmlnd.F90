@@ -19,14 +19,14 @@ module mod_clm_atmlnd
   save
 
   type atm_domain
-    real(rk8) , pointer , dimension(:) :: xlat
-    real(rk8) , pointer , dimension(:) :: xlon
-    real(rk8) , pointer , dimension(:) :: topo
+    real(rkx) , pointer , dimension(:) :: xlat
+    real(rkx) , pointer , dimension(:) :: xlon
+    real(rkx) , pointer , dimension(:) :: topo
     integer(ik4) , pointer , dimension(:) :: luse
-    real(rk8) , pointer , dimension(:) :: snow
-    real(rk8) , pointer , dimension(:) :: smoist
-    real(rk8) , pointer , dimension(:,:) :: rmoist
-    real(rk8) , pointer , dimension(:) :: tgrd
+    real(rkx) , pointer , dimension(:) :: snow
+    real(rkx) , pointer , dimension(:) :: smoist
+    real(rkx) , pointer , dimension(:,:) :: rmoist
+    real(rkx) , pointer , dimension(:) :: tgrd
   end type atm_domain
 
   public :: atm_domain
@@ -36,68 +36,68 @@ module mod_clm_atmlnd
   !----------------------------------------------------
   type atm2lnd_type
     !atmospheric temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: forc_t
+    real(rkx) , pointer , dimension(:) :: forc_t
     !atm wind speed, east direction (m/s)
-    real(rk8) , pointer , dimension(:) :: forc_u
+    real(rkx) , pointer , dimension(:) :: forc_u
     !atm wind speed, north direction (m/s)
-    real(rk8) , pointer , dimension(:) :: forc_v
+    real(rkx) , pointer , dimension(:) :: forc_v
     !atmospheric wind speed
-    real(rk8) , pointer , dimension(:) :: forc_wind
+    real(rkx) , pointer , dimension(:) :: forc_wind
     !atmospheric specific humidity (kg/kg)
-    real(rk8) , pointer , dimension(:) :: forc_q
+    real(rkx) , pointer , dimension(:) :: forc_q
     !atmospheric reference height (m)
-    real(rk8) , pointer , dimension(:) :: forc_hgt
+    real(rkx) , pointer , dimension(:) :: forc_hgt
     !obs height of wind [m] (new)
-    real(rk8) , pointer , dimension(:) :: forc_hgt_u
+    real(rkx) , pointer , dimension(:) :: forc_hgt_u
     !obs height of temperature [m] (new)
-    real(rk8) , pointer , dimension(:) :: forc_hgt_t
+    real(rkx) , pointer , dimension(:) :: forc_hgt_t
     !obs height of humidity [m] (new)
-    real(rk8) , pointer , dimension(:) :: forc_hgt_q
+    real(rkx) , pointer , dimension(:) :: forc_hgt_q
     !atmospheric pressure (Pa)
-    real(rk8) , pointer , dimension(:) :: forc_pbot
+    real(rkx) , pointer , dimension(:) :: forc_pbot
     !atm potential temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: forc_th
+    real(rkx) , pointer , dimension(:) :: forc_th
     !atmospheric vapor pressure (Pa)
-    real(rk8) , pointer , dimension(:) :: forc_vp
+    real(rkx) , pointer , dimension(:) :: forc_vp
     !density (kg/m**3)
-    real(rk8) , pointer , dimension(:) :: forc_rho
+    real(rkx) , pointer , dimension(:) :: forc_rho
     !atmospheric relative humidity (%)
-    real(rk8) , pointer , dimension(:) :: forc_rh
+    real(rkx) , pointer , dimension(:) :: forc_rh
     !surface pressure (Pa)
-    real(rk8) , pointer , dimension(:) :: forc_psrf
+    real(rkx) , pointer , dimension(:) :: forc_psrf
     !CO2 partial pressure (Pa)
-    real(rk8) , pointer , dimension(:) :: forc_pco2
+    real(rkx) , pointer , dimension(:) :: forc_pco2
     !downwrd IR longwave radiation (W/m**2)
-    real(rk8) , pointer , dimension(:) :: forc_lwrad
+    real(rkx) , pointer , dimension(:) :: forc_lwrad
     !direct beam radiation (numrad) (vis=forc_sols , nir=forc_soll )
-    real(rk8) , pointer , dimension(:,:) :: forc_solad
+    real(rkx) , pointer , dimension(:,:) :: forc_solad
     !diffuse radiation (numrad) (vis=forc_solsd, nir=forc_solld)
-    real(rk8) , pointer , dimension(:,:) :: forc_solai
+    real(rkx) , pointer , dimension(:,:) :: forc_solai
     !incident solar radiation
-    real(rk8) , pointer , dimension(:) :: forc_solar
+    real(rkx) , pointer , dimension(:) :: forc_solar
     !rain rate [mm/s]
-    real(rk8) , pointer , dimension(:) :: forc_rain
+    real(rkx) , pointer , dimension(:) :: forc_rain
     !snow rate [mm/s]
-    real(rk8) , pointer , dimension(:) :: forc_snow
+    real(rkx) , pointer , dimension(:) :: forc_snow
     !nitrogen deposition rate (gN/m2/s)
-    real(rk8) , pointer , dimension(:) :: forc_ndep
+    real(rkx) , pointer , dimension(:) :: forc_ndep
     !ALMA rain+snow [mm/s]
-    real(rk8) , pointer , dimension(:) :: rainf
+    real(rkx) , pointer , dimension(:) :: rainf
     !C13O2 partial pressure (Pa)
-    real(rk8) , pointer , dimension(:) :: forc_pc13o2
+    real(rkx) , pointer , dimension(:) :: forc_pc13o2
     !O2 partial pressure (Pa)
-    real(rk8) , pointer , dimension(:) :: forc_po2
+    real(rkx) , pointer , dimension(:) :: forc_po2
     ! rof flood (mm/s)
-    real(rk8) , pointer , dimension(:) :: forc_flood
+    real(rkx) , pointer , dimension(:) :: forc_flood
     ! rof volr (m3)
-    real(rk8) , pointer , dimension(:) :: volr
+    real(rkx) , pointer , dimension(:) :: volr
     ! aerosol deposition array
-    real(rk8) , pointer , dimension(:,:) :: forc_aer
+    real(rkx) , pointer , dimension(:,:) :: forc_aer
 #ifdef LCH4
     !CH4 partial pressure (Pa)
-    real(rk8) , pointer , dimension(:) :: forc_pch4
+    real(rkx) , pointer , dimension(:) :: forc_pch4
 #endif
-    real(rk8) , pointer , dimension(:) :: notused
+    real(rkx) , pointer , dimension(:) :: notused
   end type atm2lnd_type
 
   public :: atm2lnd_type
@@ -107,69 +107,69 @@ module mod_clm_atmlnd
   !----------------------------------------------------
   type lnd2atm_type
     !radiative temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_rad
+    real(rkx) , pointer , dimension(:) :: t_rad
     !vegetation temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_veg
+    real(rkx) , pointer , dimension(:) :: t_veg
     !2m surface air temperature (Kelvin)
-    real(rk8) , pointer , dimension(:) :: t_ref2m
+    real(rkx) , pointer , dimension(:) :: t_ref2m
     !2m surface specific humidity (kg/kg)
-    real(rk8) , pointer , dimension(:) :: q_ref2m
+    real(rkx) , pointer , dimension(:) :: q_ref2m
     !10m surface wind speed (m/sec)
-    real(rk8) , pointer , dimension(:) :: u_ref10m
+    real(rkx) , pointer , dimension(:) :: u_ref10m
     !snow water (mm H2O)
-    real(rk8) , pointer , dimension(:) :: h2osno
+    real(rkx) , pointer , dimension(:) :: h2osno
     !(numrad) surface albedo (direct)
-    real(rk8) , pointer , dimension(:,:) :: albd
+    real(rkx) , pointer , dimension(:,:) :: albd
     !(numrad) surface albedo (diffuse)
-    real(rk8) , pointer , dimension(:,:) :: albi
+    real(rkx) , pointer , dimension(:,:) :: albi
     !wind stress: e-w (kg/m/s**2)
-    real(rk8) , pointer , dimension(:) :: taux
+    real(rkx) , pointer , dimension(:) :: taux
     !wind stress: n-s (kg/m/s**2)
-    real(rk8) , pointer , dimension(:) :: tauy
+    real(rkx) , pointer , dimension(:) :: tauy
     !total latent HF (W/m**2)  [+ to atm]
-    real(rk8) , pointer , dimension(:) :: eflx_lh_tot
+    real(rkx) , pointer , dimension(:) :: eflx_lh_tot
     !total sensible HF (W/m**2) [+ to atm]
-    real(rk8) , pointer , dimension(:) :: eflx_sh_tot
+    real(rkx) , pointer , dimension(:) :: eflx_sh_tot
     !IR (longwave) radiation (W/m**2)
-    real(rk8) , pointer , dimension(:) :: eflx_lwrad_out
+    real(rkx) , pointer , dimension(:) :: eflx_lwrad_out
     !qflx_evap_soi + qflx_evap_can + qflx_tran_veg
-    real(rk8) , pointer , dimension(:) :: qflx_evap_tot
+    real(rkx) , pointer , dimension(:) :: qflx_evap_tot
     !solar rad absorbed (total) (W/m**2)
-    real(rk8) , pointer , dimension(:) :: fsa
+    real(rkx) , pointer , dimension(:) :: fsa
     !net CO2 flux (kg CO2/m**2/s) [+ to atm]
-    real(rk8) , pointer , dimension(:) :: nee
+    real(rkx) , pointer , dimension(:) :: nee
     !aerodynamical resistance (s/m)
-    real(rk8) , pointer , dimension(:) :: ram1
+    real(rkx) , pointer , dimension(:) :: ram1
     !friction velocity (m/s) (for dust model)
-    real(rk8) , pointer , dimension(:) :: fv
+    real(rkx) , pointer , dimension(:) :: fv
     !Surface ground emissivity
-    real(rk8) , pointer , dimension(:) :: emg
+    real(rkx) , pointer , dimension(:) :: emg
     ! soil water
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
-    real(rk8) , pointer , dimension(:,:) :: soidpth
-    real(rk8) , pointer , dimension(:,:) :: dzsoi
-    real(rk8) , pointer , dimension(:,:) :: rootfr
+    real(rkx) , pointer , dimension(:,:) :: h2osoi_vol
+    real(rkx) , pointer , dimension(:,:) :: soidpth
+    real(rkx) , pointer , dimension(:,:) :: dzsoi
+    real(rkx) , pointer , dimension(:,:) :: rootfr
     ! Surface runoff
-    real(rk8) , pointer , dimension(:) :: qflx_surf
+    real(rkx) , pointer , dimension(:) :: qflx_surf
     ! Sub-surface runoff
-    real(rk8) , pointer , dimension(:) :: qflx_tot
+    real(rkx) , pointer , dimension(:) :: qflx_tot
     ! Snow melt
-    real(rk8) , pointer , dimension(:) :: qflx_snomelt
+    real(rkx) , pointer , dimension(:) :: qflx_snomelt
     ! rof liq forcing
-    real(rk8) , pointer , dimension(:) :: rofliq
+    real(rkx) , pointer , dimension(:) :: rofliq
     ! rof ice forcing
-    real(rk8) , pointer , dimension(:) :: rofice
+    real(rkx) , pointer , dimension(:) :: rofice
     !dust flux (size bins)
-    real(rk8) , pointer , dimension(:,:) :: flxdst
+    real(rkx) , pointer , dimension(:,:) :: flxdst
     !dry deposition velocities
-    real(rk8) , pointer , dimension(:,:) :: ddvel
+    real(rkx) , pointer , dimension(:,:) :: ddvel
     ! VOC flux (size bins)
-    real(rk8) , pointer , dimension(:,:) :: flxvoc
+    real(rkx) , pointer , dimension(:,:) :: flxvoc
 #ifdef LCH4
     !net CH4 flux (kg C/m**2/s) [+ to atm]
-    real(rk8) , pointer , dimension(:) :: flux_ch4
+    real(rkx) , pointer , dimension(:) :: flux_ch4
 #endif
-    real(rk8) , pointer , dimension(:) :: notused
+    real(rkx) , pointer , dimension(:) :: notused
   end type lnd2atm_type
 
   public :: lnd2atm_type
@@ -191,7 +191,7 @@ module mod_clm_atmlnd
     implicit none
     integer(ik4) , intent(in) :: ibeg , iend
     type (atm2lnd_type) , intent(inout):: a2l
-    real(rk8) :: ival   ! initial value
+    real(rkx) :: ival   ! initial value
 
     allocate(a2l%forc_t(ibeg:iend))
     allocate(a2l%forc_u(ibeg:iend))
@@ -230,7 +230,7 @@ module mod_clm_atmlnd
     allocate(a2l%notused(ibeg:iend))
 
     ! ival = nan      ! causes core dump in map_maparray, tcx fix
-    ival = 0.0D0
+    ival = 0.0_rkx
 
     a2l%forc_t(ibeg:iend) = ival
     a2l%forc_u(ibeg:iend) = ival
@@ -274,7 +274,7 @@ end subroutine init_atm2lnd_type
     implicit none
     integer(ik4) , intent(in) :: ibeg , iend
     type (lnd2atm_type) , intent(inout) :: l2a
-    real(rk8) :: ival   ! initial value
+    real(rkx) :: ival   ! initial value
 
     allocate(l2a%t_rad(ibeg:iend))
     allocate(l2a%t_veg(ibeg:iend))
@@ -317,7 +317,7 @@ end subroutine init_atm2lnd_type
     allocate(l2a%notused(ibeg:iend))
 
     ! ival = nan   ! causes core dump in map_maparray, tcx fix
-    ival = 0.0D0
+    ival = 0.0_rkx
 
     l2a%t_rad(ibeg:iend) = ival
     l2a%t_veg(ibeg:iend) = ival
@@ -385,12 +385,12 @@ end subroutine init_atm2lnd_type
     type(landunit_type) , pointer :: lptr  ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr    ! pointer to column derived subtype
     type(pft_type) , pointer :: pptr       ! pointer to pft derived subtype
-    real(rk8) , parameter :: amC = 12.0D0  ! Atomic mass number for Carbon
-    real(rk8) , parameter :: amO = 16.0D0  ! Atomic mass number for Oxygen
+    real(rkx) , parameter :: amC = 12.0_rkx  ! Atomic mass number for Carbon
+    real(rkx) , parameter :: amO = 16.0_rkx  ! Atomic mass number for Oxygen
     ! Atomic mass number for CO2
-    real(rk8) , parameter :: amCO2 = amC + 2.0D0*amO
+    real(rkx) , parameter :: amCO2 = amC + 2.0_rkx*amO
     ! The following converts g of C to kg of CO2
-    real(rk8) , parameter :: convertgC2kgCO2 = 1.0D-3 * (amCO2/amC)
+    real(rkx) , parameter :: convertgC2kgCO2 = 1.0e-3_rkx * (amCO2/amC)
 
     ! Set pointers into derived type
 
@@ -411,7 +411,7 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='urbanf',        &
                l2g_scale_type='unity')
       do g = begg,endg
-        clm_l2a%h2osno(g) = clm_l2a%h2osno(g)/1000.D0
+        clm_l2a%h2osno(g) = clm_l2a%h2osno(g)/1000._rkx
       end do
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                cptr%cps%z(:,1:nlevsoi),clm_l2a%soidpth, &
@@ -454,7 +454,7 @@ end subroutine init_atm2lnd_type
                c2l_scale_type='urbanf',        &
                l2g_scale_type='unity')
       do g = begg , endg
-        clm_l2a%h2osno(g) = clm_l2a%h2osno(g)/1000.D0
+        clm_l2a%h2osno(g) = clm_l2a%h2osno(g)/1000._rkx
       end do
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi,               &
                cptr%cws%h2osoi_vol(:,1:nlevsoi),clm_l2a%h2osoi_vol, &
@@ -561,7 +561,7 @@ end subroutine init_atm2lnd_type
       ! Note that fco2 in is umolC/m2/sec so units need to be
       ! changed to gC/m2/sec
       do g = begg , endg
-        clm_l2a%nee(g) = clm_l2a%nee(g)*12.011D-6
+        clm_l2a%nee(g) = clm_l2a%nee(g)*12.011e-6_rkx
       end do
 #endif
 

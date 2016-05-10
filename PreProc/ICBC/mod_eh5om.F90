@@ -41,23 +41,23 @@ module mod_eh5om
   integer(ik4) , parameter :: klev = 17 , jlat = 96 , ilon = 192
   integer(ik4) , parameter :: mlev = 31
 
-  real(rk8) , target , dimension(ilon,jlat,klev*3) :: b2
-  real(rk8) , target , dimension(ilon,jlat,klev*2) :: d2
-  real(rk8) , pointer , dimension(:,:,:) :: b3
-  real(rk8) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , target , dimension(ilon,jlat,klev*3) :: b2
+  real(rkx) , target , dimension(ilon,jlat,klev*2) :: d2
+  real(rkx) , pointer , dimension(:,:,:) :: b3
+  real(rkx) , pointer , dimension(:,:,:) :: d3
 
-  real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rk8) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rk8) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+  real(rkx) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-  real(rk8) , dimension(jlat) :: glat
-  real(rk8) , dimension(ilon) :: glon
-  real(rk8) , dimension(klev) :: sigma1 , sigmar
-  real(rk8) , parameter :: pss = 100.0
+  real(rkx) , dimension(jlat) :: glat
+  real(rkx) , dimension(ilon) :: glon
+  real(rkx) , dimension(klev) :: sigma1 , sigmar
+  real(rkx) , parameter :: pss = 100.0_rkx
 
-  real(rk8) , dimension(mlev+1) :: hyai , hybi
-  real(rk8) , dimension(mlev) :: hyam , hybm
+  real(rkx) , dimension(mlev+1) :: hyai , hybi
+  real(rkx) , dimension(mlev) :: hyam , hybm
 
   integer(4) , dimension(10) :: icount , istart
 
@@ -73,7 +73,7 @@ module mod_eh5om
     integer(ik4) :: i , i2 , ii , j , j2 , k , nrec , numx , numy
     integer(2) , dimension(ilon,jlat) :: itmp
     logical :: there
-    real(rk8) :: offset , xscale
+    real(rkx) :: offset , xscale
     character(len=4) , dimension(100) :: yr_a2
     character(len=4) , dimension(61) :: yr_rf
     character(len=4) :: namepart
@@ -124,10 +124,10 @@ module mod_eh5om
     end if
     if (abs(lon1-lon0) < 1D-30 .and. abs(lat1-lat0) < 1D-30) then
       write (stdout, *) 'Assuming You have global dataset EH5OM'
-      lon0 = 0.0D0
-      lon1 = 358.125D0
-      lat0 = -89.0625D0
-      lat1 = 89.0625D0
+      lon0 = 0.0_rkx
+      lon1 = 358.125_rkx
+      lat0 = -89.0625_rkx
+      lat1 = 89.0625_rkx
     end if
     numx = nint((lon1-lon0)/1.875) + 1
     numy = nint((lat1-lat0)/1.875) + 1
@@ -229,9 +229,9 @@ module mod_eh5om
           i2 = i - nint(lon0/1.875) + 1
           j2 = j - nint((lat0+.9375)/1.875) + 1
           if ( numx == ilon .and. numy == jlat ) then
-            hvar(ii,49-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
+            hvar(ii,49-j,k) = real(real(itmp(i2,j2),rkx)*xscale + offset)
           else
-            hvar(ii,j+jlat/2,k) = real(dble(itmp(i2,j2))*xscale + offset)
+            hvar(ii,j+jlat/2,k) = real(real(itmp(i2,j2),rkx)*xscale + offset)
           end if
         end do
       end do
@@ -247,11 +247,11 @@ module mod_eh5om
           i2 = i - nint(lon0/1.875) + 1
           j2 = j - nint((lat0+.9375)/1.875) + 1
           if ( numx == ilon .and. numy == jlat ) then
-            rhvar(ii,49-j,k) = real(dmin1(dmax1(dble(itmp(i2,j2))*xscale+ &
-                                      offset,0.D0),1.D0))
+            rhvar(ii,49-j,k) = real(min(max(real(itmp(i2,j2),rkx)*xscale+ &
+                                      offset,0._rkx),1._rkx))
           else
-            rhvar(ii,j+jlat/2,k) = real(dmin1(dmax1(dble(itmp(i2,j2))*xscale+ &
-                                          offset,0.D0),1.D0))
+            rhvar(ii,j+jlat/2,k) = real(min(max(real(itmp(i2,j2),rkx)*xscale+ &
+                                          offset,0._rkx),1._rkx))
           end if
         end do
       end do
@@ -267,9 +267,9 @@ module mod_eh5om
           i2 = i - nint(lon0/1.875) + 1
           j2 = j - nint((lat0+.9375)/1.875) + 1
           if ( numx == ilon .and. numy == jlat ) then
-            tvar(ii,49-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
+            tvar(ii,49-j,k) = real(real(itmp(i2,j2),rkx)*xscale + offset)
           else
-            tvar(ii,j+jlat/2,k) = real(dble(itmp(i2,j2))*xscale + offset)
+            tvar(ii,j+jlat/2,k) = real(real(itmp(i2,j2),rkx)*xscale + offset)
           end if
         end do
       end do
@@ -285,9 +285,9 @@ module mod_eh5om
           i2 = i - nint(lon0/1.875) + 1
           j2 = j - nint((lat0+.9375)/1.875) + 1
           if ( numx == ilon .and. numy == jlat ) then
-            uvar(ii,49-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
+            uvar(ii,49-j,k) = real(real(itmp(i2,j2),rkx)*xscale + offset)
           else
-            uvar(ii,j+jlat/2,k) = real(dble(itmp(i2,j2))*xscale + offset)
+            uvar(ii,j+jlat/2,k) = real(real(itmp(i2,j2),rkx)*xscale + offset)
           end if
         end do
       end do
@@ -303,9 +303,9 @@ module mod_eh5om
           i2 = i - nint(lon0/1.875) + 1
           j2 = j - nint((lat0+.9375)/1.875) + 1
           if ( numx == ilon .and. numy == jlat ) then
-            vvar(ii,49-j,k) = real(dble(itmp(i2,j2))*xscale + offset)
+            vvar(ii,49-j,k) = real(real(itmp(i2,j2),rkx)*xscale + offset)
           else
-            vvar(ii,j+jlat/2,k) = real(dble(itmp(i2,j2))*xscale + offset)
+            vvar(ii,j+jlat/2,k) = real(real(itmp(i2,j2),rkx)*xscale + offset)
           end if
         end do
       end do

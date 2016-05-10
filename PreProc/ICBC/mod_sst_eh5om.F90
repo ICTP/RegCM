@@ -68,16 +68,16 @@ module mod_sst_eh5om
     integer(ik4) , parameter :: idtbc = 6
     integer(ik4) :: it_base
     integer(2) , dimension(ilon,jlat) :: ivar
-    real(rk8) :: offset , xscale
-    real(rk8) , dimension(ilon,jlat) :: sst
+    real(rkx) :: offset , xscale
+    real(rkx) , dimension(ilon,jlat) :: sst
     type(rcm_time_and_date) :: idate
     integer(ik4) :: g1 , g2 , i1
     type(rcm_time_interval) :: tdiff , itbc
     integer(ik4) :: ieh5orec , nsteps
     integer(ik4) :: i , it , j
     integer :: ilenrec
-    real(rk8) , dimension(jlat) :: lati
-    real(rk8) , dimension(ilon) :: loni
+    real(rkx) , dimension(jlat) :: lati
+    real(rkx) , dimension(ilon) :: loni
     character(len=256) :: fname
     character(3) :: code
     character(3) :: numcode
@@ -147,7 +147,7 @@ module mod_sst_eh5om
     end if
 
     tdiff = globidate2 - globidate1
-    nsteps = idnint(tohours(tdiff))/idtbc + 1
+    nsteps = nint(tohours(tdiff))/idtbc + 1
     write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
     write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
     write (stdout,*) 'NSTEPS     : ' , nsteps
@@ -172,7 +172,7 @@ module mod_sst_eh5om
       open (11,file=fname, form='unformatted',recl=ilenrec, &
         access='direct', action='read',status='old')
       tdiff = idate-ieh5ostart
-      ieh5orec = idnint(tohours(tdiff))/ibdyfrq+1
+      ieh5orec = nint(tohours(tdiff))/ibdyfrq+1
       read (11,rec=ieh5orec-it_base) offset , xscale , ivar
       do j = 1 , jlat
         do i = 1 , ilon

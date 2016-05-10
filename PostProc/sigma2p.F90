@@ -55,8 +55,8 @@ program sigma2p
   real(rk4) , allocatable , dimension(:) :: avar
   character , allocatable , dimension(:) :: tvar
   real(rk4) , allocatable , dimension(:) :: apvar
-  real(rk8) , allocatable , dimension(:) :: times
-  real(rk8) , allocatable , dimension(:) :: sigfix
+  real(rkx) , allocatable , dimension(:) :: times
+  real(rkx) , allocatable , dimension(:) :: sigfix
   logical , allocatable , dimension(:) :: lkvarflag , ltvarflag , lchnameflag
   integer(ik4) , allocatable , dimension(:) :: varsize
   integer(ik4) , allocatable , dimension(:) :: intscheme
@@ -68,7 +68,7 @@ program sigma2p
   integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , itvarid , ikvarid
   integer(ik4) :: ipsvarid , ishvarid , ippvarid , ip0varid
   integer(ik4) :: jx , iy , kz , nt
-  real(rk8) :: ptop
+  real(rkx) :: ptop
   integer(ik4) , dimension(4) :: tdimids
   integer(ik4) , dimension(3) :: psdimids
   integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich

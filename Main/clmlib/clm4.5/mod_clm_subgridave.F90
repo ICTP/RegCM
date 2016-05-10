@@ -80,18 +80,18 @@ module mod_clm_subgridave
     implicit none
     integer(ik4) , intent(in) :: lbp , ubp  ! beginning and ending pft
     integer(ik4) , intent(in) :: lbc , ubc  ! beginning and ending column
-    real(rk8) , intent(in) , dimension(lbp:ubp) :: parr  ! pft array
-    real(rk8) , intent(out) , dimension(lbc:ubc) :: carr ! column array
+    real(rkx) , intent(in) , dimension(lbp:ubp) :: parr  ! pft array
+    real(rkx) , intent(out) , dimension(lbc:ubc) :: carr ! column array
     character(len=*) , intent(in) :: p2c_scale_type ! scale type
     integer(ik4) :: p , c , iind   ! indices
     ! scale factor for column->landunit mapping
-    real(rk8) , dimension(lbp:ubp) :: scale_p2c
+    real(rkx) , dimension(lbp:ubp) :: scale_p2c
     logical  :: found  ! temporary for error check
-    real(rk8) , dimension(lbc:ubc) :: sumwt  ! sum of weights
+    real(rkx) , dimension(lbc:ubc) :: sumwt  ! sum of weights
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer , dimension(:) :: pactive
     ! weight of pft relative to column
-    real(rk8) , pointer , dimension(:) :: wtcol
+    real(rkx) , pointer , dimension(:) :: wtcol
     ! column index of corresponding pft
     integer(ik4) , pointer , dimension(:) :: pcolumn
     ! number of pfts in column
@@ -107,7 +107,7 @@ module mod_clm_subgridave
 
     if (p2c_scale_type == 'unity') then
       do p = lbp,ubp
-        scale_p2c(p) = 1.0D0
+        scale_p2c(p) = 1.0_rkx
       end do
     else
       write(stderr,*)'p2c_1d error: scale type ',p2c_scale_type,' not supported'
@@ -115,12 +115,12 @@ module mod_clm_subgridave
     end if
 
     carr(lbc:ubc) = spval
-    sumwt(lbc:ubc) = 0.D0
+    sumwt(lbc:ubc) = 0._rkx
     do p = lbp , ubp
-      if ( pactive(p) .and. wtcol(p) /= 0.D0 ) then
+      if ( pactive(p) .and. wtcol(p) /= 0._rkx ) then
         if ( parr(p) /= spval ) then
           c = pcolumn(p)
-          if (sumwt(c) == 0.D0) carr(c) = 0.D0
+          if (sumwt(c) == 0._rkx) carr(c) = 0._rkx
           carr(c) = carr(c) + parr(p) * scale_p2c(p) * wtcol(p)
           sumwt(c) = sumwt(c) + wtcol(p)
         end if
@@ -128,10 +128,10 @@ module mod_clm_subgridave
     end do
     found = .false.
     do c = lbc , ubc
-      if ( sumwt(c) > 1.0D0 + 1.D-4 ) then
+      if ( sumwt(c) > 1.0_rkx + 1.e-4_rkx ) then
         found = .true.
         iind = c
-      else if ( sumwt(c) /= 0.D0 ) then
+      else if ( sumwt(c) /= 0._rkx ) then
         carr(c) = carr(c)/sumwt(c)
       end if
     end do
@@ -149,19 +149,19 @@ module mod_clm_subgridave
     integer(ik4) , intent(in) :: lbp , ubp  ! beginning and ending pft
     integer(ik4) , intent(in) :: lbc , ubc  ! beginning and ending column
     integer(ik4) , intent(in) :: num2d      ! size of second dimension
-    real(rk8) , intent(in) , dimension(lbp:ubp,num2d) :: parr  ! pft array
-    real(rk8) , intent(out) , dimension(lbc:ubc,num2d) :: carr ! column array
+    real(rkx) , intent(in) , dimension(lbp:ubp,num2d) :: parr  ! pft array
+    real(rkx) , intent(out) , dimension(lbc:ubc,num2d) :: carr ! column array
     character(len=*) , intent(in) :: p2c_scale_type ! scale type
     integer(ik4) :: j , p , c , iind         ! indices
     ! scale factor for column->landunit mapping
-    real(rk8) , dimension(lbp:ubp) :: scale_p2c
+    real(rkx) , dimension(lbp:ubp) :: scale_p2c
     logical :: found                  ! temporary for error check
     ! sum of weights
-    real(rk8) , dimension(lbc:ubc) :: sumwt(lbc:ubc)
+    real(rkx) , dimension(lbc:ubc) :: sumwt(lbc:ubc)
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer , dimension(:) :: pactive
     ! weight of pft relative to column
-    real(rk8) , pointer , dimension(:) :: wtcol
+    real(rkx) , pointer , dimension(:) :: wtcol
     ! column index of corresponding pft
     integer(ik4) , pointer , dimension(:) :: pcolumn
     ! number of pfts in column
@@ -177,7 +177,7 @@ module mod_clm_subgridave
 
     if (p2c_scale_type == 'unity') then
       do p = lbp,ubp
-        scale_p2c(p) = 1.0D0
+        scale_p2c(p) = 1.0_rkx
       end do
     else
       write(stderr,*)'p2c_2d error: scale type ',p2c_scale_type,' not supported'
@@ -186,12 +186,12 @@ module mod_clm_subgridave
 
     carr(:,:) = spval
     do j = 1 , num2d
-      sumwt(:) = 0.D0
+      sumwt(:) = 0._rkx
       do p = lbp , ubp
-        if (pactive(p) .and. wtcol(p) /= 0.D0) then
+        if (pactive(p) .and. wtcol(p) /= 0._rkx) then
           if (parr(p,j) /= spval) then
             c = pcolumn(p)
-            if (sumwt(c) == 0.D0) carr(c,j) = 0.D0
+            if (sumwt(c) == 0._rkx) carr(c,j) = 0._rkx
             carr(c,j) = carr(c,j) + parr(p,j) * scale_p2c(p) * wtcol(p)
             sumwt(c) = sumwt(c) + wtcol(p)
           end if
@@ -199,10 +199,10 @@ module mod_clm_subgridave
       end do
       found = .false.
       do c = lbc , ubc
-        if (sumwt(c) > 1.0D0 + 1.D-4) then
+        if (sumwt(c) > 1.0_rkx + 1.e-4_rkx) then
           found = .true.
           iind = c
-        else if (sumwt(c) /= 0.D0) then
+        else if (sumwt(c) /= 0._rkx) then
           carr(c,j) = carr(c,j)/sumwt(c)
         end if
       end do
@@ -220,15 +220,15 @@ module mod_clm_subgridave
     implicit none
     integer(ik4) , intent(in) :: numfc
     integer(ik4) , intent(in) , dimension(numfc) :: filterc
-    real(rk8) , pointer , dimension(:) :: pftarr
-    real(rk8) , pointer , dimension(:) :: colarr
+    real(rkx) , pointer , dimension(:) :: pftarr
+    real(rkx) , pointer , dimension(:) :: colarr
     integer(ik4) :: fc , c , p  ! indices
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer , dimension(:) :: pactive
     integer(ik4) , pointer , dimension(:) :: npfts
     integer(ik4) , pointer , dimension(:) :: pfti
     integer(ik4) , pointer , dimension(:) :: pftf
-    real(rk8) , pointer , dimension(:) :: wtcol
+    real(rkx) , pointer , dimension(:) :: wtcol
 
     pactive => clm3%g%l%c%p%active
     npfts   => clm3%g%l%c%npfts
@@ -238,7 +238,7 @@ module mod_clm_subgridave
 
     do fc = 1,numfc
       c = filterc(fc)
-      colarr(c) = 0.D0
+      colarr(c) = 0._rkx
       do p = pfti(c), pftf(c)
         if (pactive(p)) colarr(c) = colarr(c) + pftarr(p) * wtcol(p)
       end do
@@ -252,15 +252,15 @@ module mod_clm_subgridave
     integer(ik4) , intent(in) :: lev
     integer(ik4) , intent(in) :: numfc
     integer(ik4) , intent(in) , dimension(numfc) :: filterc
-    real(rk8) , pointer , dimension(:,:) :: pftarr
-    real(rk8) , pointer , dimension(:,:) :: colarr
+    real(rkx) , pointer , dimension(:,:) :: pftarr
+    real(rkx) , pointer , dimension(:,:) :: colarr
     integer(ik4) :: fc , c , p , j    ! indices
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer , dimension(:) :: pactive
     integer(ik4) , pointer , dimension(:) :: npfts
     integer(ik4) , pointer , dimension(:) :: pfti
     integer(ik4) , pointer , dimension(:) :: pftf
-    real(rk8) , pointer , dimension(:) :: wtcol
+    real(rkx) , pointer , dimension(:) :: wtcol
 
     pactive => clm3%g%l%c%p%active
     npfts   => clm3%g%l%c%npfts
@@ -271,7 +271,7 @@ module mod_clm_subgridave
     do j = 1,lev
       do fc = 1,numfc
         c = filterc(fc)
-        colarr(c,j) = 0.D0
+        colarr(c,j) = 0._rkx
         do p = pfti(c), pftf(c)
           if (pactive(p)) colarr(c,j) = colarr(c,j) + pftarr(p,j) * wtcol(p)
         end do
@@ -288,23 +288,23 @@ module mod_clm_subgridave
     integer(ik4) , intent(in) :: lbp , ubp ! beginning and ending pft indices
     integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
     integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
-    real(rk8) , intent(in) , dimension(lbp:ubp) :: parr  ! input column array
-    real(rk8) , intent(out) , dimension(lbl:ubl) :: larr ! output landunit array
+    real(rkx) , intent(in) , dimension(lbp:ubp) :: parr  ! input column array
+    real(rkx) , intent(out) , dimension(lbl:ubl) :: larr ! output landunit array
     ! scale factor type for averaging
     character(len=*) , intent(in) :: p2c_scale_type
     ! scale factor type for averaging
     character(len=*) , intent(in) :: c2l_scale_type
     integer(ik4) :: p , c , l , iind       ! indices
     logical :: found                            ! temporary for error check
-    real(rk8) , dimension(lbl:ubl) :: sumwt     ! sum of weights
+    real(rkx) , dimension(lbl:ubl) :: sumwt     ! sum of weights
     ! scale factor for pft->column mapping
-    real(rk8) , dimension(lbc:ubc) :: scale_p2c
+    real(rkx) , dimension(lbc:ubc) :: scale_p2c
     ! scale factor for column->landunit mapping
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l
+    real(rkx) , dimension(lbc:ubc) :: scale_c2l
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer , dimension(:) :: pactive
     ! weight of pft relative to landunit
-    real(rk8) , pointer , dimension(:) :: wtlunit
+    real(rkx) , pointer , dimension(:) :: wtlunit
     ! column of corresponding pft
     integer(ik4) , pointer , dimension(:) :: pcolumn
     ! landunit of corresponding pft
@@ -318,7 +318,7 @@ module mod_clm_subgridave
     integer(ik4) , pointer , dimension(:) :: ctype      ! column type
     integer(ik4) , pointer , dimension(:) :: ltype      ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rkx) , pointer , dimension(:) :: canyon_hwr
 
     pactive    => clm3%g%l%c%p%active
     canyon_hwr => clm3%g%l%canyon_hwr
@@ -333,24 +333,24 @@ module mod_clm_subgridave
 
     if ( c2l_scale_type == 'unity' ) then
       do c = lbc , ubc
-        scale_c2l(c) = 1.0D0
+        scale_c2l(c) = 1.0_rkx
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0
+            scale_c2l(c) = 3.0_rkx
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
@@ -358,17 +358,17 @@ module mod_clm_subgridave
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l))/(2.0D0*canyon_hwr(l)+1.0D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l))/(2.0_rkx*canyon_hwr(l)+1.0_rkx)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l))/(2.0D0*canyon_hwr(l)+1.0D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l))/(2.0_rkx*canyon_hwr(l)+1.0_rkx)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0 / (2.0D0*canyon_hwr(l) + 1.0D0)
+            scale_c2l(c) = 3.0_rkx / (2.0_rkx*canyon_hwr(l) + 1.0_rkx)
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else
@@ -378,7 +378,7 @@ module mod_clm_subgridave
 
     if ( p2c_scale_type == 'unity' ) then
       do p = lbp , ubp
-        scale_p2c(p) = 1.0D0
+        scale_p2c(p) = 1.0_rkx
       end do
     else
       write(stderr,*)'p2l_1d error: scale type ',p2c_scale_type,' not supported'
@@ -386,13 +386,13 @@ module mod_clm_subgridave
     end if
 
     larr(:) = spval
-    sumwt(:) = 0.D0
+    sumwt(:) = 0._rkx
     do p = lbp,ubp
-      if ( pactive(p) .and. wtlunit(p) /= 0.D0 ) then
+      if ( pactive(p) .and. wtlunit(p) /= 0._rkx ) then
         c = pcolumn(p)
         if ( parr(p) /= spval .and. scale_c2l(c) /= spval ) then
           l = plandunit(p)
-          if (sumwt(l) == 0.D0) larr(l) = 0.D0
+          if (sumwt(l) == 0._rkx) larr(l) = 0._rkx
           larr(l) = larr(l) + parr(p) * scale_p2c(p) * scale_c2l(c) * wtlunit(p)
           sumwt(l) = sumwt(l) + wtlunit(p)
         end if
@@ -400,10 +400,10 @@ module mod_clm_subgridave
     end do
     found = .false.
     do l = lbl , ubl
-      if ( sumwt(l) > 1.0D0 + 1.D-4 ) then
+      if ( sumwt(l) > 1.0_rkx + 1.e-4_rkx ) then
         found = .true.
         iind = l
-      else if ( sumwt(l) /= 0.D0 ) then
+      else if ( sumwt(l) /= 0._rkx ) then
         larr(l) = larr(l)/sumwt(l)
       end if
     end do
@@ -423,24 +423,24 @@ module mod_clm_subgridave
     integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
     integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
     integer(ik4) , intent(in)  :: num2d ! size of second dimension
-    real(rk8) , intent(in) , dimension(lbp:ubp,num2d) :: parr ! input pft array
+    real(rkx) , intent(in) , dimension(lbp:ubp,num2d) :: parr ! input pft array
     ! output gridcell array
-    real(rk8) , intent(out) , dimension(lbl:ubl,num2d) :: larr
+    real(rkx) , intent(out) , dimension(lbl:ubl,num2d) :: larr
     ! scale factor type for averaging
     character(len=*) , intent(in) :: p2c_scale_type
     ! scale factor type for averaging
     character(len=*) , intent(in) :: c2l_scale_type
     integer(ik4) :: j , p , c , l , iind ! indices
     logical :: found ! temporary for error check
-    real(rk8) , dimension(lbl:ubl) :: sumwt ! sum of weights
+    real(rkx) , dimension(lbl:ubl) :: sumwt ! sum of weights
     ! scale factor for pft->column mapping
-    real(rk8) , dimension(lbc:ubc) :: scale_p2c
+    real(rkx) , dimension(lbc:ubc) :: scale_p2c
     ! scale factor for column->landunit mapping
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l
+    real(rkx) , dimension(lbc:ubc) :: scale_c2l
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer , dimension(:) :: pactive
     ! weight of pft relative to landunit
-    real(rk8) , pointer , dimension(:) :: wtlunit
+    real(rkx) , pointer , dimension(:) :: wtlunit
     ! column of corresponding pft
     integer(ik4) , pointer , dimension(:) :: pcolumn
     ! landunit of corresponding pft
@@ -454,7 +454,7 @@ module mod_clm_subgridave
     integer(ik4) , pointer , dimension(:) :: ctype ! column type
     integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rkx) , pointer , dimension(:) :: canyon_hwr
 
     pactive    => clm3%g%l%c%p%active
     canyon_hwr => clm3%g%l%canyon_hwr
@@ -469,24 +469,24 @@ module mod_clm_subgridave
 
     if ( c2l_scale_type == 'unity' ) then
       do c = lbc , ubc
-        scale_c2l(c) = 1.0D0
+        scale_c2l(c) = 1.0_rkx
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0
+            scale_c2l(c) = 3.0_rkx
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
@@ -494,17 +494,17 @@ module mod_clm_subgridave
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0 / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = 3.0_rkx / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else
@@ -514,7 +514,7 @@ module mod_clm_subgridave
 
     if ( p2c_scale_type == 'unity' ) then
       do p = lbp , ubp
-        scale_p2c(p) = 1.0D0
+        scale_p2c(p) = 1.0_rkx
       end do
     else
       write(stderr,*)'p2l_2d error: scale type ',p2c_scale_type,' not supported'
@@ -523,13 +523,13 @@ module mod_clm_subgridave
 
     larr(:,:) = spval
     do j = 1,num2d
-      sumwt(:) = 0.D0
+      sumwt(:) = 0._rkx
       do p = lbp , ubp
-        if ( pactive(p) .and. wtlunit(p) /= 0.D0 ) then
+        if ( pactive(p) .and. wtlunit(p) /= 0._rkx ) then
           c = pcolumn(p)
           if ( parr(p,j) /= spval .and. scale_c2l(c) /= spval ) then
             l = plandunit(p)
-            if ( sumwt(l) == 0.D0 ) larr(l,j) = 0.D0
+            if ( sumwt(l) == 0._rkx ) larr(l,j) = 0._rkx
             larr(l,j) = larr(l,j) + &
                         parr(p,j) * scale_p2c(p) * scale_c2l(c) * wtlunit(p)
             sumwt(l) = sumwt(l) + wtlunit(p)
@@ -538,10 +538,10 @@ module mod_clm_subgridave
       end do
       found = .false.
       do l = lbl , ubl
-        if ( sumwt(l) > 1.0D0 + 1.D-4 ) then
+        if ( sumwt(l) > 1.0_rkx + 1.e-4_rkx ) then
           found = .true.
           iind = l
-        else if ( sumwt(l) /= 0.D0 ) then
+        else if ( sumwt(l) /= 0._rkx ) then
           larr(l,j) = larr(l,j)/sumwt(l)
         end if
       end do
@@ -563,8 +563,8 @@ module mod_clm_subgridave
     integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
     integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
     integer(ik4) , intent(in) :: lbg , ubg ! beginning and ending gdcell indices
-    real(rk8) , intent(in) , dimension(lbp:ubp) :: parr  ! input pft array
-    real(rk8) , intent(out) , dimension(lbg:ubg) :: garr ! output gridcell array
+    real(rkx) , intent(in) , dimension(lbp:ubp) :: parr  ! input pft array
+    real(rkx) , intent(out) , dimension(lbg:ubg) :: garr ! output gridcell array
     ! scale factor type for averaging
     character(len=*) , intent(in) :: p2c_scale_type
     ! scale factor type for averaging
@@ -573,14 +573,14 @@ module mod_clm_subgridave
     character(len=*) , intent(in) :: l2g_scale_type
     integer(ik4) :: p , c , l , g , iind       ! indices
     logical :: found                  ! temporary for error check
-    real(rk8) , dimension(lbp:ubp) :: scale_p2c    ! scale factor
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l    ! scale factor
-    real(rk8) , dimension(lbl:ubl) :: scale_l2g    ! scale factor
-    real(rk8) , dimension(lbg:ubg) :: sumwt        ! sum of weights
+    real(rkx) , dimension(lbp:ubp) :: scale_p2c    ! scale factor
+    real(rkx) , dimension(lbc:ubc) :: scale_c2l    ! scale factor
+    real(rkx) , dimension(lbl:ubl) :: scale_l2g    ! scale factor
+    real(rkx) , dimension(lbg:ubg) :: sumwt        ! sum of weights
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer , dimension(:) :: pactive
     ! weight of pfts relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtgcell
+    real(rkx) , pointer , dimension(:) :: wtgcell
     ! column of corresponding pft
     integer(ik4) , pointer , dimension(:) :: pcolumn
     ! landunit of corresponding pft
@@ -598,7 +598,7 @@ module mod_clm_subgridave
     ! landunit type
     integer(ik4) , pointer , dimension(:) :: ltype
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rkx) , pointer , dimension(:) :: canyon_hwr
 
     pactive    => clm3%g%l%c%p%active
     canyon_hwr => clm3%g%l%canyon_hwr
@@ -616,24 +616,24 @@ module mod_clm_subgridave
 
     if ( c2l_scale_type == 'unity' ) then
       do c = lbc , ubc
-        scale_c2l(c) = 1.0D0
+        scale_c2l(c) = 1.0_rkx
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0
+            scale_c2l(c) = 3.0_rkx
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
@@ -641,17 +641,17 @@ module mod_clm_subgridave
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0 / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = 3.0_rkx / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else
@@ -661,7 +661,7 @@ module mod_clm_subgridave
 
     if ( p2c_scale_type == 'unity' ) then
       do p = lbp , ubp
-        scale_p2c(p) = 1.0D0
+        scale_p2c(p) = 1.0_rkx
       end do
     else
       write(stderr,*)'p2g_1d error: scale type ',c2l_scale_type,' not supported'
@@ -669,15 +669,15 @@ module mod_clm_subgridave
     end if
 
     garr(:) = spval
-    sumwt(:) = 0.D0
+    sumwt(:) = 0._rkx
     do p = lbp , ubp
-      if ( pactive(p) .and. wtgcell(p) /= 0.D0 ) then
+      if ( pactive(p) .and. wtgcell(p) /= 0._rkx ) then
         c = pcolumn(p)
         l = plandunit(p)
         if ( parr(p) /= spval .and. &
              scale_c2l(c) /= spval .and. scale_l2g(l) /= spval ) then
           g = pgridcell(p)
-          if ( sumwt(g) == 0.D0 ) garr(g) = 0.D0
+          if ( sumwt(g) == 0._rkx ) garr(g) = 0._rkx
           garr(g) = garr(g) + &
               parr(p) * scale_p2c(p) * scale_c2l(c) * scale_l2g(l) * wtgcell(p)
           sumwt(g) = sumwt(g) + wtgcell(p)
@@ -686,10 +686,10 @@ module mod_clm_subgridave
     end do
     found = .false.
     do g = lbg , ubg
-      if ( sumwt(g) > 1.0D0 + 1.D-4 ) then
+      if ( sumwt(g) > 1.0_rkx + 1.e-4_rkx ) then
         found = .true.
         iind = g
-      else if ( sumwt(g) /= 0.D0 ) then
+      else if ( sumwt(g) /= 0._rkx ) then
         garr(g) = garr(g)/sumwt(g)
       end if
     end do
@@ -710,9 +710,9 @@ module mod_clm_subgridave
     integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
     integer(ik4) , intent(in) :: lbg , ubg ! beginning and ending gdcell indices
     integer(ik4) , intent(in) :: num2d ! size of second dimension
-    real(rk8) , intent(in) , dimension(lbp:ubp,num2d) :: parr  ! input pft array
+    real(rkx) , intent(in) , dimension(lbp:ubp,num2d) :: parr  ! input pft array
     ! output gridcell array
-    real(rk8) , intent(out) , dimension(lbg:ubg,num2d) :: garr
+    real(rkx) , intent(out) , dimension(lbg:ubg,num2d) :: garr
     ! scale factor type for averaging
     character(len=*) , intent(in) :: p2c_scale_type
     ! scale factor type for averaging
@@ -721,14 +721,14 @@ module mod_clm_subgridave
     character(len=*) , intent(in) :: l2g_scale_type
     integer(ik4) :: j , p , c , l , g , iind     ! indices
     logical :: found                  ! temporary for error check
-    real(rk8) , dimension(lbp:ubp) :: scale_p2c   ! scale factor
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l   ! scale factor
-    real(rk8) , dimension(lbl:ubl) :: scale_l2g   ! scale factor
-    real(rk8) , dimension(lbg:ubg) :: sumwt       ! sum of weights
+    real(rkx) , dimension(lbp:ubp) :: scale_p2c   ! scale factor
+    real(rkx) , dimension(lbc:ubc) :: scale_c2l   ! scale factor
+    real(rkx) , dimension(lbl:ubl) :: scale_l2g   ! scale factor
+    real(rkx) , dimension(lbg:ubg) :: sumwt       ! sum of weights
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer , dimension(:) :: pactive
     ! weight of pfts relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtgcell
+    real(rkx) , pointer , dimension(:) :: wtgcell
     ! column of corresponding pft
     integer(ik4) , pointer , dimension(:) :: pcolumn
     ! landunit of corresponding pft
@@ -744,7 +744,7 @@ module mod_clm_subgridave
     integer(ik4) , pointer , dimension(:) :: ctype ! column type
     integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rkx) , pointer , dimension(:) :: canyon_hwr
 
     pactive      => clm3%g%l%c%p%active
     canyon_hwr   => clm3%g%l%canyon_hwr
@@ -762,24 +762,24 @@ module mod_clm_subgridave
 
     if ( c2l_scale_type == 'unity' ) then
       do c = lbc , ubc
-        scale_c2l(c) = 1.0D0
+        scale_c2l(c) = 1.0_rkx
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0
+            scale_c2l(c) = 3.0_rkx
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
@@ -787,17 +787,17 @@ module mod_clm_subgridave
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0 / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = 3.0_rkx / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else
@@ -807,7 +807,7 @@ module mod_clm_subgridave
 
     if ( p2c_scale_type == 'unity' ) then
       do p = lbp , ubp
-        scale_p2c(p) = 1.0D0
+        scale_p2c(p) = 1.0_rkx
       end do
     else
       write(stderr,*)'p2g_2d error: scale type ',c2l_scale_type,' not supported'
@@ -816,15 +816,15 @@ module mod_clm_subgridave
 
     garr(:,:) = spval
     do j = 1 , num2d
-      sumwt(:) = 0.D0
+      sumwt(:) = 0._rkx
       do p = lbp , ubp
-        if ( pactive(p) .and. wtgcell(p) /= 0.D0 ) then
+        if ( pactive(p) .and. wtgcell(p) /= 0._rkx ) then
           c = pcolumn(p)
           l = plandunit(p)
           if ( parr(p,j) /= spval .and. &
                scale_c2l(c) /= spval .and. scale_l2g(l) /= spval ) then
             g = pgridcell(p)
-            if ( sumwt(g) == 0.D0 ) garr(g,j) = 0.D0
+            if ( sumwt(g) == 0._rkx ) garr(g,j) = 0._rkx
             garr(g,j) = garr(g,j) + &
                  parr(p,j)*scale_p2c(p)*scale_c2l(c)*scale_l2g(l)*wtgcell(p)
             sumwt(g) = sumwt(g) + wtgcell(p)
@@ -833,10 +833,10 @@ module mod_clm_subgridave
       end do
       found = .false.
       do g = lbg , ubg
-        if ( sumwt(g) > 1.0D0 + 1.D-4 ) then
+        if ( sumwt(g) > 1.0_rkx + 1.e-4_rkx ) then
           found = .true.
           iind = g
-        else if ( sumwt(g) /= 0.D0 ) then
+        else if ( sumwt(g) /= 0._rkx ) then
           garr(g,j) = garr(g,j)/sumwt(g)
         end if
       end do
@@ -855,19 +855,19 @@ module mod_clm_subgridave
     implicit none
     integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
     integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
-    real(rk8) , intent(in) , dimension(lbc:ubc) :: carr  ! input column array
-    real(rk8) , intent(out) , dimension(lbl:ubl) :: larr ! output landunit array
+    real(rkx) , intent(in) , dimension(lbc:ubc) :: carr  ! input column array
+    real(rkx) , intent(out) , dimension(lbl:ubl) :: larr ! output landunit array
     ! scale factor type for averaging
     character(len=*) , intent(in) :: c2l_scale_type
     integer(ik4) :: c , l , iind ! indices
     logical  :: found  ! temporary for error check
     ! scale factor for column->landunit mapping
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l
-    real(rk8) , dimension(lbl:ubl) :: sumwt ! sum of weights
+    real(rkx) , dimension(lbc:ubc) :: scale_c2l
+    real(rkx) , dimension(lbl:ubl) :: sumwt ! sum of weights
     ! true=>do computations on this column (see reweightMod for details)
     logical , pointer , dimension(:) :: cactive
     ! weight of landunits relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtlunit
+    real(rkx) , pointer , dimension(:) :: wtlunit
     ! gridcell of corresponding column
     integer(ik4) , pointer , dimension(:) :: clandunit
     ! number of columns in landunit
@@ -877,7 +877,7 @@ module mod_clm_subgridave
     integer(ik4) , pointer , dimension(:) :: ctype ! column type
     integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rkx) , pointer , dimension(:) :: canyon_hwr
 
     cactive    => clm3%g%l%c%active
     ctype      => clm3%g%l%c%itype
@@ -890,24 +890,24 @@ module mod_clm_subgridave
 
     if ( c2l_scale_type == 'unity' ) then
       do c = lbc , ubc
-        scale_c2l(c) = 1.0D0
+        scale_c2l(c) = 1.0_rkx
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0
+            scale_c2l(c) = 3.0_rkx
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
@@ -915,17 +915,17 @@ module mod_clm_subgridave
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0 / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = 3.0_rkx / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else
@@ -934,12 +934,12 @@ module mod_clm_subgridave
     end if
 
     larr(:) = spval
-    sumwt(:) = 0.D0
+    sumwt(:) = 0._rkx
     do c = lbc , ubc
-      if ( cactive(c) .and. wtlunit(c) /= 0.D0 ) then
+      if ( cactive(c) .and. wtlunit(c) /= 0._rkx ) then
         if ( carr(c) /= spval .and. scale_c2l(c) /= spval ) then
           l = clandunit(c)
-          if (sumwt(l) == 0.D0) larr(l) = 0.D0
+          if (sumwt(l) == 0._rkx) larr(l) = 0._rkx
           larr(l) = larr(l) + carr(c) * scale_c2l(c) * wtlunit(c)
           sumwt(l) = sumwt(l) + wtlunit(c)
         end if
@@ -947,10 +947,10 @@ module mod_clm_subgridave
     end do
     found = .false.
     do l = lbl , ubl
-      if ( sumwt(l) > 1.0D0 + 1.D-4 ) then
+      if ( sumwt(l) > 1.0_rkx + 1.e-4_rkx ) then
         found = .true.
         iind = l
-      else if ( sumwt(l) /= 0.D0 ) then
+      else if ( sumwt(l) /= 0._rkx ) then
         larr(l) = larr(l)/sumwt(l)
       end if
     end do
@@ -969,20 +969,20 @@ module mod_clm_subgridave
     integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
     integer(ik4) , intent(in) :: num2d     ! size of second dimension
     ! input column array
-    real(rk8) , intent(in) , dimension(lbc:ubc,num2d) :: carr
+    real(rkx) , intent(in) , dimension(lbc:ubc,num2d) :: carr
     ! output landunit array
-    real(rk8) , intent(out) , dimension(lbl:ubl,num2d) :: larr
+    real(rkx) , intent(out) , dimension(lbl:ubl,num2d) :: larr
     ! scale factor type for averaging
     character(len=*) , intent(in) :: c2l_scale_type
     integer(ik4) :: j , l , c , iind         ! indices
     logical :: found ! temporary for error check
     ! scale factor for column->landunit mapping
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l
-    real(rk8) , dimension(lbl:ubl) :: sumwt ! sum of weights
+    real(rkx) , dimension(lbc:ubc) :: scale_c2l
+    real(rkx) , dimension(lbl:ubl) :: sumwt ! sum of weights
     ! true=>do computations on this column (see reweightMod for details)
     logical , pointer , dimension(:) :: cactive
     ! weight of column relative to landunit
-    real(rk8) , pointer , dimension(:) :: wtlunit
+    real(rkx) , pointer , dimension(:) :: wtlunit
     ! landunit of corresponding column
     integer(ik4) , pointer , dimension(:) :: clandunit
     ! number of columns in landunit
@@ -992,7 +992,7 @@ module mod_clm_subgridave
     integer(ik4) , pointer , dimension(:) :: ctype ! column type
     integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rkx) , pointer , dimension(:) :: canyon_hwr
 
     cactive    => clm3%g%l%c%active
     ctype      => clm3%g%l%c%itype
@@ -1005,24 +1005,24 @@ module mod_clm_subgridave
 
     if ( c2l_scale_type == 'unity' ) then
       do c = lbc , ubc
-        scale_c2l(c) = 1.0D0
+        scale_c2l(c) = 1.0_rkx
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0
+            scale_c2l(c) = 3.0_rkx
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
@@ -1030,17 +1030,17 @@ module mod_clm_subgridave
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0 / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = 3.0_rkx / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else
@@ -1050,12 +1050,12 @@ module mod_clm_subgridave
 
     larr(:,:) = spval
     do j = 1 , num2d
-      sumwt(:) = 0.D0
+      sumwt(:) = 0._rkx
       do c = lbc , ubc
-        if ( cactive(c) .and. wtlunit(c) /= 0.D0 ) then
+        if ( cactive(c) .and. wtlunit(c) /= 0._rkx ) then
           if ( carr(c,j) /= spval .and. scale_c2l(c) /= spval ) then
             l = clandunit(c)
-            if ( sumwt(l) == 0.D0 ) larr(l,j) = 0.D0
+            if ( sumwt(l) == 0._rkx ) larr(l,j) = 0._rkx
             larr(l,j) = larr(l,j) + carr(c,j) * scale_c2l(c) * wtlunit(c)
             sumwt(l) = sumwt(l) + wtlunit(c)
           end if
@@ -1063,10 +1063,10 @@ module mod_clm_subgridave
       end do
       found = .false.
       do l = lbl , ubl
-        if ( sumwt(l) > 1.0D0 + 1.D-4 ) then
+        if ( sumwt(l) > 1.0_rkx + 1.e-4_rkx ) then
           found = .true.
           iind = l
-        else if ( sumwt(l) /= 0.D0 ) then
+        else if ( sumwt(l) /= 0._rkx ) then
           larr(l,j) = larr(l,j)/sumwt(l)
         end if
       end do
@@ -1087,21 +1087,21 @@ module mod_clm_subgridave
     integer(ik4) , intent(in) :: lbc , ubc ! beginning and ending column indices
     integer(ik4) , intent(in) :: lbl , ubl ! beginning and ending ldunit indices
     integer(ik4) , intent(in) :: lbg , ubg ! beginning and ending ldunit indices
-    real(rk8) , intent(in) , dimension(lbc:ubc) :: carr  ! input column array
-    real(rk8) , intent(out) , dimension(lbg:ubg) :: garr ! output gridcell array
+    real(rkx) , intent(in) , dimension(lbc:ubc) :: carr  ! input column array
+    real(rkx) , intent(out) , dimension(lbg:ubg) :: garr ! output gridcell array
     ! scale factor type for averaging
     character(len=*) , intent(in) :: c2l_scale_type
     ! scale factor type for averaging
     character(len=*) , intent(in) :: l2g_scale_type
     integer(ik4) :: c , l , g , iind  ! indices
     logical :: found ! temporary for error check
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l    ! scale factor
-    real(rk8) , dimension(lbl:ubl) :: scale_l2g    ! scale factor
-    real(rk8) , dimension(lbg:ubg) :: sumwt        ! sum of weights
+    real(rkx) , dimension(lbc:ubc) :: scale_c2l    ! scale factor
+    real(rkx) , dimension(lbl:ubl) :: scale_l2g    ! scale factor
+    real(rkx) , dimension(lbg:ubg) :: sumwt        ! sum of weights
     ! true=>do computations on this column (see reweightMod for details)
     logical , pointer , dimension(:) :: cactive
     ! weight of columns relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtgcell
+    real(rkx) , pointer , dimension(:) :: wtgcell
     ! landunit of corresponding column
     integer(ik4) , pointer , dimension(:) :: clandunit
     ! gridcell of corresponding column
@@ -1113,7 +1113,7 @@ module mod_clm_subgridave
     integer(ik4) , pointer , dimension(:) :: ctype ! column type
     integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rkx) , pointer , dimension(:) :: canyon_hwr
 
     cactive    => clm3%g%l%c%active
     ctype      => clm3%g%l%c%itype
@@ -1129,24 +1129,24 @@ module mod_clm_subgridave
 
     if ( c2l_scale_type == 'unity' ) then
       do c = lbc , ubc
-        scale_c2l(c) = 1.0D0
+        scale_c2l(c) = 1.0_rkx
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0
+            scale_c2l(c) = 3.0_rkx
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
@@ -1154,17 +1154,17 @@ module mod_clm_subgridave
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0 / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = 3.0_rkx / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else
@@ -1173,14 +1173,14 @@ module mod_clm_subgridave
     end if
 
     garr(:) = spval
-    sumwt(:) = 0.D0
+    sumwt(:) = 0._rkx
     do c = lbc , ubc
-      if ( cactive(c) .and. wtgcell(c) /= 0.D0 ) then
+      if ( cactive(c) .and. wtgcell(c) /= 0._rkx ) then
         l = clandunit(c)
         if ( carr(c) /= spval .and. &
              scale_c2l(c) /= spval .and. scale_l2g(l) /= spval ) then
           g = cgridcell(c)
-          if ( sumwt(g) == 0.D0 ) garr(g) = 0.D0
+          if ( sumwt(g) == 0._rkx ) garr(g) = 0._rkx
           garr(g) = garr(g) + carr(c) * scale_c2l(c) * scale_l2g(l) * wtgcell(c)
           sumwt(g) = sumwt(g) + wtgcell(c)
         end if
@@ -1188,10 +1188,10 @@ module mod_clm_subgridave
     end do
     found = .false.
     do g = lbg , ubg
-      if ( sumwt(g) > 1.0D0 + 1.D-4 ) then
+      if ( sumwt(g) > 1.0_rkx + 1.e-4_rkx ) then
         found = .true.
         iind = g
-      else if ( sumwt(g) /= 0.D0 ) then
+      else if ( sumwt(g) /= 0._rkx ) then
         garr(g) = garr(g)/sumwt(g)
       end if
     end do
@@ -1212,22 +1212,22 @@ module mod_clm_subgridave
     integer(ik4) , intent(in) :: lbg , ubg ! beginning and ending gdcell indices
     integer(ik4) , intent(in) :: num2d ! size of second dimension
     ! input column array
-    real(rk8) , intent(in) , dimension(lbc:ubc,num2d) :: carr
+    real(rkx) , intent(in) , dimension(lbc:ubc,num2d) :: carr
     ! output gridcell array
-    real(rk8) , intent(out) , dimension(lbg:ubg,num2d) :: garr
+    real(rkx) , intent(out) , dimension(lbg:ubg,num2d) :: garr
     ! scale factor type for averaging
     character(len=*) , intent(in) :: c2l_scale_type
     ! scale factor type for averaging
     character(len=*) , intent(in) :: l2g_scale_type
     integer(ik4) :: j , c , g , l , iind  ! indices
     logical :: found                  ! temporary for error check
-    real(rk8) , dimension(lbc:ubc) :: scale_c2l  ! scale factor
-    real(rk8) , dimension(lbl:ubl) :: scale_l2g  ! scale factor
-    real(rk8) , dimension(lbg:ubg) :: sumwt      ! sum of weights
+    real(rkx) , dimension(lbc:ubc) :: scale_c2l  ! scale factor
+    real(rkx) , dimension(lbl:ubl) :: scale_l2g  ! scale factor
+    real(rkx) , dimension(lbg:ubg) :: sumwt      ! sum of weights
     ! true=>do computations on this column (see reweightMod for details)
     logical , pointer , dimension(:) :: cactive
     ! weight of columns relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtgcell
+    real(rkx) , pointer , dimension(:) :: wtgcell
     ! landunit of corresponding column
     integer(ik4) , pointer , dimension(:) :: clandunit
     ! gridcell of corresponding column
@@ -1239,7 +1239,7 @@ module mod_clm_subgridave
     integer(ik4) , pointer , dimension(:) :: ctype ! column type
     integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
     ! urban canyon height to width ratio
-    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    real(rkx) , pointer , dimension(:) :: canyon_hwr
 
     cactive    => clm3%g%l%c%active
     ctype      => clm3%g%l%c%itype
@@ -1255,24 +1255,24 @@ module mod_clm_subgridave
 
     if ( c2l_scale_type == 'unity' ) then
       do c = lbc , ubc
-        scale_c2l(c) = 1.0D0
+        scale_c2l(c) = 1.0_rkx
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
+            scale_c2l(c) = 3.0_rkx * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0
+            scale_c2l(c) = 3.0_rkx
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else if ( c2l_scale_type == 'urbans' ) then
@@ -1280,17 +1280,17 @@ module mod_clm_subgridave
         l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = (3.0_rkx * canyon_hwr(l)) / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
-            scale_c2l(c) = 3.0D0 / (2.D0*canyon_hwr(l) + 1.D0)
+            scale_c2l(c) = 3.0_rkx / (2._rkx*canyon_hwr(l) + 1._rkx)
           else if ( ctype(c) == icol_roof ) then
-            scale_c2l(c) = 1.0D0
+            scale_c2l(c) = 1.0_rkx
           end if
         else
-          scale_c2l(c) = 1.0D0
+          scale_c2l(c) = 1.0_rkx
         end if
       end do
     else
@@ -1300,14 +1300,14 @@ module mod_clm_subgridave
 
     garr(:,:) = spval
     do j = 1 , num2d
-      sumwt(:) = 0.D0
+      sumwt(:) = 0._rkx
       do c = lbc , ubc
-        if ( cactive(c) .and. wtgcell(c) /= 0.D0 ) then
+        if ( cactive(c) .and. wtgcell(c) /= 0._rkx ) then
           l = clandunit(c)
           if ( carr(c,j) /= spval .and. &
                scale_c2l(c) /= spval .and. scale_l2g(l) /= spval) then
             g = cgridcell(c)
-            if ( sumwt(g) == 0.D0) garr(g,j ) = 0.D0
+            if ( sumwt(g) == 0._rkx) garr(g,j ) = 0._rkx
             garr(g,j) = garr(g,j) + &
                carr(c,j) * scale_c2l(c) * scale_l2g(l) * wtgcell(c)
             sumwt(g) = sumwt(g) + wtgcell(c)
@@ -1316,10 +1316,10 @@ module mod_clm_subgridave
       end do
       found = .false.
       do g = lbg, ubg
-        if ( sumwt(g) > 1.0D0 + 1.D-4 ) then
+        if ( sumwt(g) > 1.0_rkx + 1.e-4_rkx ) then
           found = .true.
           iind = g
-        else if ( sumwt(g) /= 0.D0 ) then
+        else if ( sumwt(g) /= 0._rkx ) then
           garr(g,j) = garr(g,j)/sumwt(g)
         end if
       end do
@@ -1337,18 +1337,18 @@ module mod_clm_subgridave
     implicit none
     integer(ik4) , intent(in) :: lbl , ubl ! sub landunit indices
     integer(ik4) , intent(in) :: lbg , ubg ! gridcell indices
-    real(rk8) , intent(in) , dimension(lbl:ubl) :: larr  ! input landunit array
-    real(rk8) , intent(out) , dimension(lbg:ubg) :: garr ! output gridcell array
+    real(rkx) , intent(in) , dimension(lbl:ubl) :: larr  ! input landunit array
+    real(rkx) , intent(out) , dimension(lbg:ubg) :: garr ! output gridcell array
     ! scale factor type for averaging
     character(len=*) , intent(in) :: l2g_scale_type
     integer(ik4) :: l , g , iind ! indices
     logical :: found ! temporary for error check
-    real(rk8) , dimension(lbl:ubl) :: scale_l2g     ! scale factor
-    real(rk8) , dimension(lbg:ubg) :: sumwt         ! sum of weights
+    real(rkx) , dimension(lbl:ubl) :: scale_l2g     ! scale factor
+    real(rkx) , dimension(lbg:ubg) :: sumwt         ! sum of weights
     ! true=>do computations on this landunit (see reweightMod for details)
     logical , pointer , dimension(:) :: lactive
     ! weight of landunits relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtgcell
+    real(rkx) , pointer , dimension(:) :: wtgcell
     ! gridcell of corresponding landunit
     integer(ik4) , pointer , dimension(:) :: lgridcell
     ! number of landunits in gridcell
@@ -1365,12 +1365,12 @@ module mod_clm_subgridave
     call build_scale_l2g(l2g_scale_type,lbl,ubl,scale_l2g)
 
     garr(:) = spval
-    sumwt(:) = 0.D0
+    sumwt(:) = 0._rkx
     do l = lbl , ubl
-      if ( lactive(l) .and. wtgcell(l) /= 0.D0 ) then
+      if ( lactive(l) .and. wtgcell(l) /= 0._rkx ) then
         if ( larr(l) /= spval .and. scale_l2g(l) /= spval ) then
           g = lgridcell(l)
-          if ( sumwt(g) == 0.D0 ) garr(g) = 0.D0
+          if ( sumwt(g) == 0._rkx ) garr(g) = 0._rkx
           garr(g) = garr(g) + larr(l) * scale_l2g(l) * wtgcell(l)
           sumwt(g) = sumwt(g) + wtgcell(l)
         end if
@@ -1378,10 +1378,10 @@ module mod_clm_subgridave
     end do
     found = .false.
     do g = lbg , ubg
-      if ( sumwt(g) > 1.0D0 + 1.D-4 ) then
+      if ( sumwt(g) > 1.0_rkx + 1.e-4_rkx ) then
         found = .true.
         iind = g
-      else if ( sumwt(g) /= 0.D0 ) then
+      else if ( sumwt(g) /= 0._rkx ) then
         garr(g) = garr(g)/sumwt(g)
       end if
     end do
@@ -1400,19 +1400,19 @@ module mod_clm_subgridave
     integer(ik4) , intent(in) :: lbg , ubg ! beginning and ending gdcell indices
     integer(ik4) , intent(in) :: num2d     ! size of second dimension
     ! input landunit array
-    real(rk8) , intent(in) , dimension(lbl:ubl,num2d) :: larr
+    real(rkx) , intent(in) , dimension(lbl:ubl,num2d) :: larr
     ! output gridcell array
-    real(rk8) , intent(out) , dimension(lbg:ubg,num2d) :: garr
+    real(rkx) , intent(out) , dimension(lbg:ubg,num2d) :: garr
     ! scale factor type for averaging
     character(len=*) , intent(in) :: l2g_scale_type
     integer(ik4) :: j , g , l , iind ! indices
     logical :: found ! temporary for error check
-    real(rk8) , dimension(lbl:ubl) :: scale_l2g     ! scale factor
-    real(rk8) , dimension(lbg:ubg) :: sumwt         ! sum of weights
+    real(rkx) , dimension(lbl:ubl) :: scale_l2g     ! scale factor
+    real(rkx) , dimension(lbg:ubg) :: sumwt         ! sum of weights
     ! true=>do computations on this landunit (see reweightMod for details)
     logical , pointer , dimension(:) :: lactive
     ! weight of landunits relative to gridcells
-    real(rk8) , pointer , dimension(:) :: wtgcell
+    real(rkx) , pointer , dimension(:) :: wtgcell
     ! gridcell of corresponding landunit
     integer(ik4) , pointer , dimension(:) :: lgridcell
     ! number of landunits in gridcell
@@ -1430,12 +1430,12 @@ module mod_clm_subgridave
 
     garr(:,:) = spval
     do j = 1 , num2d
-      sumwt(:) = 0.D0
+      sumwt(:) = 0._rkx
       do l = lbl , ubl
-        if ( lactive(l) .and. wtgcell(l) /= 0.D0 ) then
+        if ( lactive(l) .and. wtgcell(l) /= 0._rkx ) then
           if ( larr(l,j) /= spval .and. scale_l2g(l) /= spval ) then
             g = lgridcell(l)
-            if ( sumwt(g) == 0.D0 ) garr(g,j) = 0.D0
+            if ( sumwt(g) == 0._rkx ) garr(g,j) = 0._rkx
             garr(g,j) = garr(g,j) + larr(l,j) * scale_l2g(l) * wtgcell(l)
             sumwt(g) = sumwt(g) + wtgcell(l)
           end if
@@ -1443,10 +1443,10 @@ module mod_clm_subgridave
       end do
       found = .false.
       do g = lbg , ubg
-        if ( sumwt(g) > 1.0D0 + 1.D-4 ) then
+        if ( sumwt(g) > 1.0_rkx + 1.e-4_rkx ) then
           found = .true.
           iind= g
-        else if ( sumwt(g) /= 0.D0 ) then
+        else if ( sumwt(g) /= 0._rkx ) then
           garr(g,j) = garr(g,j)/sumwt(g)
         end if
       end do
@@ -1468,9 +1468,9 @@ module mod_clm_subgridave
      ! scale factor type for averaging
      character(len=*) , intent(in) :: l2g_scale_type
      integer(ik4) , intent(in) :: lbl , ubl ! column indices
-     real(rk8) , intent(out) , dimension(lbl:ubl) :: scale_l2g ! scale factor
+     real(rkx) , intent(out) , dimension(lbl:ubl) :: scale_l2g ! scale factor
      ! scale factor for each landunit type
-     real(rk8) , dimension(max_lunit) :: scale_lookup
+     real(rkx) , dimension(max_lunit) :: scale_lookup
      integer(ik4) :: l                       ! index
      integer(ik4) , pointer , dimension(:) :: ltype ! landunit type
 
@@ -1491,7 +1491,7 @@ module mod_clm_subgridave
     ! scale factor type for averaging
     character(len=*) , intent(in) :: l2g_scale_type
     ! scale factor for each landunit type
-    real(rk8) , dimension(max_lunit) , intent(out) :: scale_lookup
+    real(rkx) , dimension(max_lunit) , intent(out) :: scale_lookup
 
     ! ------------ WJS (10-14-11): IMPORTANT GENERAL NOTES ------------
     !
@@ -1520,17 +1520,17 @@ module mod_clm_subgridave
     scale_lookup(:) = spval
 
     if ( l2g_scale_type == 'unity' ) then
-      scale_lookup(:) = 1.0D0
+      scale_lookup(:) = 1.0_rkx
     else if ( l2g_scale_type == 'veg' ) then
-      scale_lookup(istsoil) = 1.0D0
-      scale_lookup(istcrop) = 1.0D0
+      scale_lookup(istsoil) = 1.0_rkx
+      scale_lookup(istcrop) = 1.0_rkx
     else if ( l2g_scale_type == 'ice' ) then
-      scale_lookup(istice) = 1.0D0
+      scale_lookup(istice) = 1.0_rkx
     else if ( l2g_scale_type == 'nonurb' ) then
-      scale_lookup(:) = 1.0D0
+      scale_lookup(:) = 1.0_rkx
       scale_lookup(isturb) = spval
     else if ( l2g_scale_type == 'lake' ) then
-      scale_lookup(istdlak) = 1.0D0
+      scale_lookup(istdlak) = 1.0_rkx
     else
       write(stderr,*) &
           'scale_l2g_lookup_array error: scale type ',l2g_scale_type, &

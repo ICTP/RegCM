@@ -32,10 +32,10 @@ module mod_sst_grid
 
   private
 
-  real(rk8) , public , pointer , dimension(:,:) :: sstmm , icemm
-  real(rk8) , public , pointer , dimension(:,:) :: xlat , xlon
-  real(rk8) , pointer , dimension(:,:) :: topo , mask
-  real(rk8) , pointer , dimension(:) :: sigma
+  real(rkx) , public , pointer , dimension(:,:) :: sstmm , icemm
+  real(rkx) , public , pointer , dimension(:,:) :: xlat , xlon
+  real(rkx) , pointer , dimension(:,:) :: topo , mask
+  real(rkx) , pointer , dimension(:) :: sigma
 
   type(nc_output_stream) , save :: ncout
   integer(ik4) , parameter :: nvar2d = 4

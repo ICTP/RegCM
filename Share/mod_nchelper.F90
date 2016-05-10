@@ -60,6 +60,12 @@ module mod_nchelper
   public :: check_dimlen
   public :: checkncerr
 
+#ifdef SINGLE_PRECISION_REAL
+  integer(ik4) , public :: regcm_vartype = nf90_real
+#else
+  integer(ik4) , public :: regcm_vartype = nf90_double
+#endif
+
   interface read_var1d_static
     module procedure read_var1d_static_double_fix
     module procedure read_var1d_static_single_fix
@@ -165,7 +171,7 @@ module mod_nchelper
                     'Error adding global projection')
     if ( lsub ) then
       incstat = nf90_put_att(ncid, nf90_global, &
-                             'grid_size_in_meters', (ds*1000.0)/dble(nsg))
+                             'grid_size_in_meters', (ds*1000.0)/real(nsg,rkx))
       call checkncerr(incstat,__FILE__,__LINE__, &
                       'Error adding global gridsize')
       incstat = nf90_put_att(ncid, nf90_global, 'model_subgrid', 'Yes');
@@ -216,13 +222,13 @@ module mod_nchelper
 
     call getmem1d(yiy,1,ny,'mod_write:yiy')
     call getmem1d(xjx,1,nx,'mod_write:xjx')
-    yiy(1) = -real((dble(iy-1)/d_two) * ds)
-    xjx(1) = -real((dble(jx-1)/d_two) * ds)
+    yiy(1) = -real((real(iy-1,rkx)/d_two) * ds,rk4)
+    xjx(1) = -real((real(jx-1,rkx)/d_two) * ds,rk4)
     do i = 2 , ny
-      yiy(i) = real(dble(yiy(i-1))+ds)
+      yiy(i) = real(real(yiy(i-1),rkx)+ds,rk4)
     end do
     do j = 2 , nx
-      xjx(j) = real(dble(xjx(j-1))+ds)
+      xjx(j) = real(real(xjx(j-1),rkx)+ds,rk4)
     end do
     incstat = nf90_def_var(ncid, 'jx', nf90_float, idims(1), ihvar(1))
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -1612,7 +1618,7 @@ module mod_nchelper
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , dimension(:) , intent(inout) :: ivars
     integer(ik4) :: incstat
-    incstat = nf90_def_var(ncid, varname, nf90_double, idims, ivars(ipnt))
+    incstat = nf90_def_var(ncid, varname, regcm_vartype, idims, ivars(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable '//varname)
     incstat = nf90_put_att(ncid, ivars(ipnt), 'long_name',long_name)

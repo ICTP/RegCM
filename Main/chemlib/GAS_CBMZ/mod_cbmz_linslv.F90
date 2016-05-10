@@ -68,14 +68,14 @@ module mod_cbmz_linslv
       implicit none
 !
       integer(ik4) :: n
-      real(rk8) , dimension(100,100) :: a
-      real(rk8) , dimension(100) :: b , x
+      real(rkx) , dimension(100,100) :: a
+      real(rkx) , dimension(100) :: b , x
       intent (inout) a
 !
-      real(rk8) :: div , smax
+      real(rkx) :: div , smax
       integer(ik4) :: i , j , jp , jp1 , k , kr , krm1 , krmax , krp1
       integer(ik4) , dimension(100) :: ipa
-      real(rk8) , dimension(100) :: s
+      real(rkx) , dimension(100) :: s
 !
       do kr = 1 , n
         do k = 1 , n
@@ -94,16 +94,16 @@ module mod_cbmz_linslv
           end do
         end if
         krmax = kr
-        smax = dabs(s(kr))
+        smax = abs(s(kr))
         do i = kr , n
-          if ( dabs(s(i)) > smax ) then
+          if ( abs(s(i)) > smax ) then
             krmax = i
-            smax = dabs(s(i))
+            smax = abs(s(i))
           end if
         end do
         ipa(kr) = krmax
         a(kr,kr) = s(krmax)
-        div = 1.0D0/s(krmax)
+        div = 1.0_rkx/s(krmax)
         s(krmax) = s(kr)
         if ( kr /= n ) then
           krp1 = kr + 1
@@ -120,15 +120,15 @@ module mod_cbmz_linslv
       implicit none
 !
       integer(ik4) :: n
-      real(rk8) , dimension(100,100) :: a
-      real(rk8) , dimension(100) :: b , x
+      real(rkx) , dimension(100,100) :: a
+      real(rkx) , dimension(100) :: b , x
       integer(ik4) , dimension(100) :: ipa
       intent (in) a , b , ipa , n
       intent (inout) x
 !
       integer(ik4) :: i , ii , iip1 , ip , ip1 , j
-      real(rk8) , dimension(100) :: s
-      real(rk8) :: summ
+      real(rkx) , dimension(100) :: s
+      real(rkx) :: summ
 !
       do i = 1 , n
         s(i) = b(i)

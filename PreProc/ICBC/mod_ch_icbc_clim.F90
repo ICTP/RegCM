@@ -37,23 +37,23 @@ module mod_ch_icbc_clim
 
   integer(ik4) :: chilon , chjlat , chilev
 
-  real(rk8) , pointer , dimension(:) :: cht42lon
-  real(rk8) , pointer , dimension(:) :: cht42lat
-  real(rk8) , pointer , dimension(:) :: cht42hyam , cht42hybm
+  real(rkx) , pointer , dimension(:) :: cht42lon
+  real(rkx) , pointer , dimension(:) :: cht42lat
+  real(rkx) , pointer , dimension(:) :: cht42hyam , cht42hybm
   !
   ! Oxidant climatology variables
   !
-  real(rk8) :: p0
-  real(rk8) , pointer , dimension(:,:) :: pchem_3
-  real(rk8) , pointer , dimension(:,:,:,:) :: chv3
-  real(rk8) , pointer , dimension(:,:) :: xps
-  real(rk8) , pointer , dimension(:,:,:,:) :: xinp
-  real(rk8) , pointer , dimension(:,:,:,:) :: chv4_1
-  real(rk8) , pointer , dimension(:,:,:,:) :: chv4_2
-  real(rk8) , pointer , dimension(:,:,:,:) :: chv4_3
+  real(rkx) :: p0
+  real(rkx) , pointer , dimension(:,:) :: pchem_3
+  real(rkx) , pointer , dimension(:,:,:,:) :: chv3
+  real(rkx) , pointer , dimension(:,:) :: xps
+  real(rkx) , pointer , dimension(:,:,:) :: xinp
+  real(rkx) , pointer , dimension(:,:,:,:) :: chv4_1
+  real(rkx) , pointer , dimension(:,:,:,:) :: chv4_2
+  real(rkx) , pointer , dimension(:,:,:,:) :: chv4_3
 
-  real(rk8) :: prcm , pmpi , pmpj
-  real(rk8) :: r4pt
+  real(rkx) :: prcm , pmpi , pmpj
+  real(rkx) :: r4pt
   integer(ik4) :: ism
   type (rcm_time_and_date) , save :: iref1 , iref2
 
@@ -122,7 +122,7 @@ module mod_ch_icbc_clim
     call getmem1d(cht42hyam,1,chilev,'mod_ch_icbc:cht42hyam')
     call getmem1d(cht42hybm,1,chilev,'mod_ch_icbc:cht42hybm')
     call getmem2d(xps,1,chilon,1,chjlat,'mod_ch_icbc:xps1')
-    call getmem4d(xinp,1,chilon,1,chjlat,1,chilev,1,nchsp,'mod_ch_icbc:xinp')
+    call getmem3d(xinp,1,chilon,1,chjlat,1,chilev,'mod_ch_icbc:xinp')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -173,7 +173,7 @@ module mod_ch_icbc_clim
     logical :: doread
     type (rcm_time_and_date) :: imonmidd
     type (rcm_time_interval) :: tdif
-    real(rk8) :: xfac1 , xfac2 , odist
+    real(rkx) :: xfac1 , xfac2 , odist
     integer(ik4) :: im1 , im2
 
     call split_idate(idate,nyear,month,nday,nhour)
@@ -260,7 +260,7 @@ module mod_ch_icbc_clim
     integer(ik4) , intent(in) :: im1 , im2
     integer(ik4) :: i , is , j , k , l , k0
     character(len=256) :: chfilename
-    real(rk8) :: wt1 , wt2
+    real(rkx) :: wt1 , wt2
     integer(ik4) :: ncid , istatus , ivarid
 
     write(chfilename,'(a,i0.2,a)') &
@@ -281,10 +281,11 @@ module mod_ch_icbc_clim
       istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_inst',ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find var '//trim(chspec(is)))
-      istatus = nf90_get_var(ncid,ivarid,xinp(:,:,:,is))
+      istatus = nf90_get_var(ncid,ivarid,xinp)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
-      call bilinx2(chv3(:,:,:,is),xinp(:,:,:,is),xlon,xlat,cht42lon,cht42lat, &
+      where ( xinp < mintr ) xinp = d_zero
+      call bilinx2(chv3(:,:,:,is),xinp,xlon,xlat,cht42lon,cht42lat, &
                    chilon,chjlat,jx,iy,chilev)
     end do
     call bilinx2(pchem_3,xps,xlon,xlat,cht42lon,cht42lat, &
@@ -340,10 +341,11 @@ module mod_ch_icbc_clim
       istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_inst',ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find var '//trim(chspec(is)))
-      istatus = nf90_get_var(ncid,ivarid,xinp(:,:,:,is))
+      istatus = nf90_get_var(ncid,ivarid,xinp)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
-      call bilinx2(chv3(:,:,:,is),xinp(:,:,:,is),xlon,xlat,cht42lon,cht42lat, &
+      where ( xinp < mintr ) xinp = d_zero
+      call bilinx2(chv3(:,:,:,is),xinp,xlon,xlat,cht42lon,cht42lat, &
                    chilon,chjlat,jx,iy,chilev)
     end do
     call bilinx2(pchem_3,xps,xlon,xlat,cht42lon,cht42lat, &

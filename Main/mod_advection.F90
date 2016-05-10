@@ -36,14 +36,14 @@ module mod_advection
   public :: init_advection, hadv , vadv , start_advect
 
   logical , parameter :: upstream_mode = .true.
-  real(rk8) , parameter :: upu = 0.2D0
-  real(rk8) , parameter :: umax = 200.0D0
-  real(rk8) , parameter :: uchu = upu/umax
+  real(rkx) , parameter :: upu = 0.2_rkx
+  real(rkx) , parameter :: umax = 200.0_rkx
+  real(rkx) , parameter :: uchu = upu/umax
 
   logical , parameter :: stability_enhance = .true.
-  real(rk8) , parameter :: t_extrema = 5.0D0
-  real(rk8) , parameter :: c_rel_extrema = 0.20D0
-  real(rk8) , parameter :: q_rel_extrema = 0.20D0
+  real(rkx) , parameter :: t_extrema = 5.0_rkx
+  real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
+  real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
 
   interface hadv
     module procedure hadvuv
@@ -60,26 +60,26 @@ module mod_advection
     module procedure vadv4d
   end interface vadv
 
-  real(rk8) , pointer , dimension(:,:,:) :: ua   ! U/m * ps
-  real(rk8) , pointer , dimension(:,:,:) :: va   ! V/m * ps
-  real(rk8) , pointer , dimension(:,:) :: ps     ! Surface pressure
-  real(rk8) , pointer , dimension(:,:) :: pd     ! Surface pressure dot points
-  real(rk8) , pointer , dimension(:,:) :: mapfx  ! Map factor Cross
-  real(rk8) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
-  real(rk8) , pointer , dimension(:,:) :: xmapf  ! 1/(mapfx**2 * 2dx)
-  real(rk8) , pointer , dimension(:,:) :: dmapf  ! 1/(mapfd**2 * 2dx)
-  real(rk8) , pointer , dimension(:,:,:) :: svv  ! Sigma Vertical Velocity
-  real(rk8) , pointer , dimension(:,:,:) :: pfs  ! Pressure full sigma levels
-  real(rk8) , pointer , dimension(:,:,:) :: phs  ! Pressure half sigma levels
-  real(rk8) , pointer , dimension(:,:,:) :: divx ! Mass divergence
+  real(rkx) , pointer , dimension(:,:,:) :: ua   ! U/m * ps
+  real(rkx) , pointer , dimension(:,:,:) :: va   ! V/m * ps
+  real(rkx) , pointer , dimension(:,:) :: ps     ! Surface pressure
+  real(rkx) , pointer , dimension(:,:) :: pd     ! Surface pressure dot points
+  real(rkx) , pointer , dimension(:,:) :: mapfx  ! Map factor Cross
+  real(rkx) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
+  real(rkx) , pointer , dimension(:,:) :: xmapf  ! 1/(mapfx**2 * 2dx)
+  real(rkx) , pointer , dimension(:,:) :: dmapf  ! 1/(mapfd**2 * 2dx)
+  real(rkx) , pointer , dimension(:,:,:) :: svv  ! Sigma Vertical Velocity
+  real(rkx) , pointer , dimension(:,:,:) :: pfs  ! Pressure full sigma levels
+  real(rkx) , pointer , dimension(:,:,:) :: phs  ! Pressure half sigma levels
+  real(rkx) , pointer , dimension(:,:,:) :: divx ! Mass divergence
   integer(ik4) , pointer , dimension(:,:) :: kpb ! Top of PBL
 
   ! working space used to store the interlated values in vadv.
 
-  real(rk8) , pointer , dimension(:) :: dds , xds
-  real(rk8) , pointer , dimension(:,:,:) :: fg
-  real(rk8) , pointer , dimension(:,:,:) :: uavg1 , uavg2
-  real(rk8) , pointer , dimension(:,:,:) :: vavg1 , vavg2
+  real(rkx) , pointer , dimension(:) :: dds , xds
+  real(rkx) , pointer , dimension(:,:,:) :: fg
+  real(rkx) , pointer , dimension(:,:,:) :: uavg1 , uavg2
+  real(rkx) , pointer , dimension(:,:,:) :: vavg1 , vavg2
 
   contains
 
@@ -152,12 +152,12 @@ module mod_advection
     !
     subroutine hadvuv(uten,vten,u,v)
       implicit none
-      real(rk8) , pointer , intent (in) , dimension(:,:,:) :: u , v
-      real(rk8) , pointer , intent (inout), dimension(:,:,:) :: uten , vten
+      real(rkx) , pointer , intent (in) , dimension(:,:,:) :: u , v
+      real(rkx) , pointer , intent (inout), dimension(:,:,:) :: uten , vten
 
-      real(rk8) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
-      real(rk8) :: divd , diag , f1 , f2
-      real(rk8) :: uub , uuc , vvb , vvc
+      real(rkx) :: ucmona , ucmonb , ucmonc , vcmona , vcmonb , vcmonc
+      real(rkx) :: divd , diag , f1 , f2
+      real(rkx) :: uub , uuc , vvb , vvc
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvuv'
@@ -179,10 +179,10 @@ module mod_advection
                 vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
                 vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
                 vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
-                ucmonb = (ucmona + ucmonb) * 0.125D0
-                ucmonc = (ucmonc + ucmona) * 0.125D0
-                vcmonb = (vcmona + vcmonb) * 0.125D0
-                vcmonc = (vcmonc + vcmona) * 0.125D0
+                ucmonb = (ucmona + ucmonb) * 0.125_rkx
+                ucmonc = (ucmonc + ucmona) * 0.125_rkx
+                vcmonb = (vcmona + vcmonb) * 0.125_rkx
+                vcmonc = (vcmonc + vcmona) * 0.125_rkx
                 diag = - dmapf(j,i) * ( ( ucmonb - ucmonc ) + &
                                         ( vcmonb - vcmonc ) )
                 uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag - dmapf(j,i) * &
@@ -206,10 +206,10 @@ module mod_advection
                 vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
                 vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
                 vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
-                ucmonb = (ucmona + ucmonb) * 0.125D0
-                ucmonc = (ucmonc + ucmona) * 0.125D0
-                vcmonb = (vcmona + vcmonb) * 0.125D0
-                vcmonc = (vcmonc + vcmona) * 0.125D0
+                ucmonb = (ucmona + ucmonb) * 0.125_rkx
+                ucmonc = (ucmonc + ucmona) * 0.125_rkx
+                vcmonb = (vcmona + vcmonb) * 0.125_rkx
+                vcmonc = (vcmonc + vcmona) * 0.125_rkx
                 diag = divd - dmapf(j,i) * &
                    ( ( ucmonb - ucmonc ) + ( vcmonb - vcmonc ) )
                 uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag - dmapf(j,i) * &
@@ -244,16 +244,16 @@ module mod_advection
               vvc = v(j,i-1,k)+v(j,i,k)
               f1 = d_half + max(min(uub*uchu,upu),-upu)
               f2 = d_one - f1
-              ucmonb = (f1*ucmona + f2*ucmonb) * 0.250D0
+              ucmonb = (f1*ucmona + f2*ucmonb) * 0.250_rkx
               f1 = d_half + max(min(uuc*uchu,upu),-upu)
               f2 = d_one - f1
-              ucmonc = (f1*ucmonc + f2*ucmona) * 0.250D0
+              ucmonc = (f1*ucmonc + f2*ucmona) * 0.250_rkx
               f1 = d_half + max(min(vvb*uchu,upu),-upu)
               f2 = d_one - f1
-              vcmonb = (f1*vcmona + f2*vcmonb) * 0.250D0
+              vcmonb = (f1*vcmona + f2*vcmonb) * 0.250_rkx
               f1 = d_half + max(min(vvc*uchu,upu),-upu)
               f2 = d_one - f1
-              vcmonc = (f1*vcmonc + f2*vcmona) * 0.250D0
+              vcmonc = (f1*vcmonc + f2*vcmona) * 0.250_rkx
               diag = - dmapf(j,i) * ( ( ucmonb - ucmonc ) + &
                                       ( vcmonb - vcmonc ) )
               uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag - dmapf(j,i) * &
@@ -283,16 +283,16 @@ module mod_advection
               vvc = v(j,i-1,k)+v(j,i,k)
               f1 = d_half + max(min(uub*uchu,upu),-upu)
               f2 = d_one - f1
-              ucmonb = (f1*ucmona + f2*ucmonb) * 0.250D0
+              ucmonb = (f1*ucmona + f2*ucmonb) * 0.250_rkx
               f1 = d_half + max(min(uuc*uchu,upu),-upu)
               f2 = d_one - f1
-              ucmonc = (f1*ucmonc + f2*ucmona) * 0.250D0
+              ucmonc = (f1*ucmonc + f2*ucmona) * 0.250_rkx
               f1 = d_half + max(min(vvb*uchu,upu),-upu)
               f2 = d_one - f1
-              vcmonb = (f1*vcmona + f2*vcmonb) * 0.250D0
+              vcmonb = (f1*vcmona + f2*vcmonb) * 0.250_rkx
               f1 = d_half + max(min(vvc*uchu,upu),-upu)
               f2 = d_one - f1
-              vcmonc = (f1*vcmonc + f2*vcmona) * 0.250D0
+              vcmonc = (f1*vcmonc + f2*vcmona) * 0.250_rkx
               diag = divd - dmapf(j,i) * &
                   ( ( ucmonb - ucmonc ) + ( vcmonb - vcmonc ) )
               uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag - dmapf(j,i) * &
@@ -312,10 +312,10 @@ module mod_advection
 
     subroutine vadvuv(uten,vten,ud,vd)
       implicit none
-      real(rk8) , pointer , intent (in) , dimension(:,:,:) :: ud , vd
-      real(rk8) , pointer , intent (inout), dimension(:,:,:) :: uten , vten
+      real(rkx) , pointer , intent (in) , dimension(:,:,:) :: ud , vd
+      real(rkx) , pointer , intent (inout), dimension(:,:,:) :: uten , vten
 
-      real(rk8) :: qq , uu , vv
+      real(rkx) :: qq , uu , vv
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadvuv'
@@ -352,11 +352,11 @@ module mod_advection
     !
     subroutine hadv_t(ften,f)
       implicit none
-      real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
-      real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
+      real(rkx) , pointer , intent (in) , dimension(:,:,:) :: f
+      real(rkx) , pointer , intent (inout), dimension(:,:,:) :: ften
       integer(ik4) :: i , j , k
-      real(rk8) :: advval , ul
-      real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
+      real(rkx) :: advval , ul
+      real(rkx) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvt'
       integer(ik4) , save :: idindx = 0
@@ -467,11 +467,11 @@ module mod_advection
     subroutine hadv3d(ften,f,ind)
       implicit none
       integer(ik4) , intent (in) :: ind
-      real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
-      real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
+      real(rkx) , pointer , intent (in) , dimension(:,:,:) :: f
+      real(rkx) , pointer , intent (inout), dimension(:,:,:) :: ften
       integer(ik4) :: i , j , k
-      real(rk8) :: ul , uaz1 , uaz2 , vaz1 , vaz2
-      real(rk8) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
+      real(rkx) :: ul , uaz1 , uaz2 , vaz1 , vaz2
+      real(rkx) :: f1 , f2 , fx1 , fx2 , fy1 , fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv3d'
       integer(ik4) , save :: idindx = 0
@@ -595,10 +595,10 @@ module mod_advection
     subroutine hadv_qv(ften,f,iv)
       implicit none
       integer , intent(in) :: iv
-      real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
-      real(rk8) :: advval
-      real(rk8) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
+      real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+      real(rkx) :: advval
+      real(rkx) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv_qv'
@@ -628,7 +628,7 @@ module mod_advection
               !
               if ( stability_enhance ) then
                 if ( abs(f(j,i+1,k,iv) + f(j,i-1,k,iv) - &
-                        d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
+                     d_two*f(j,i,k,iv))/max(f(j,i,k,iv),dlowval) > q_rel_extrema ) then
                   if ( (f(j,i,k,iv) > f(j,i+1,k,iv)) .and. &
                        (f(j,i,k,iv) > f(j,i-1,k,iv)) ) then
                     advval = min(advval,d_zero)
@@ -638,7 +638,7 @@ module mod_advection
                   end if
                 end if
                 if ( abs(f(j+1,i,k,iv) + f(j-1,i,k,iv) - &
-                       d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
+                     d_two*f(j,i,k,iv))/max(f(j,i,k,iv),dlowval) > q_rel_extrema ) then
                   if ( (f(j,i,k,iv) > f(j+1,i,k,iv)) .and. &
                        (f(j,i,k,iv) > f(j-1,i,k,iv)) ) then
                     advval = min(advval,d_zero)
@@ -681,7 +681,7 @@ module mod_advection
             !
             if ( stability_enhance ) then
               if ( abs(f(j,i+1,k,iv) + f(j,i-1,k,iv) - &
-                      d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
+                   d_two*f(j,i,k,iv))/max(f(j,i,k,iv),dlowval) > q_rel_extrema ) then
                 if ( (f(j,i,k,iv) > f(j,i+1,k,iv)) .and. &
                      (f(j,i,k,iv) > f(j,i-1,k,iv)) ) then
                   advval = min(advval,d_zero)
@@ -691,7 +691,7 @@ module mod_advection
                 end if
               end if
               if ( abs(f(j+1,i,k,iv) + f(j-1,i,k,iv) - &
-                     d_two*f(j,i,k,iv)) / f(j,i,k,iv) > q_rel_extrema ) then
+                     d_two*f(j,i,k,iv))/max(f(j,i,k,iv),dlowval) > q_rel_extrema ) then
                 if ( (f(j,i,k,iv) > f(j+1,i,k,iv)) .and. &
                      (f(j,i,k,iv) > f(j-1,i,k,iv)) ) then
                   advval = min(advval,d_zero)
@@ -715,12 +715,12 @@ module mod_advection
     subroutine hadv_qx(ften,f,n1,n2)
       implicit none
       integer , intent(in) :: n1 , n2
-      real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+      real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
       integer(ik4) :: i , j , k , n
-      real(rk8) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
-      real(rk8) :: advval
+      real(rkx) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
+      real(rkx) :: advval
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv_qx'
       integer(ik4) , save :: idindx = 0
@@ -749,7 +749,7 @@ module mod_advection
                   ! must not grow further due to advection
                   !
                   if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - &
-                          d_two*f(j,i,k,n)) / f(j,i,k,n) > c_rel_extrema ) then
+                       d_two*f(j,i,k,n))/max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
                     if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
                          (f(j,i,k,n) > f(j,i-1,k,n)) ) then
                       advval = min(advval,d_zero)
@@ -759,7 +759,7 @@ module mod_advection
                     end if
                   end if
                   if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - &
-                          d_two*f(j,i,k,n)) / f(j,i,k,n) > c_rel_extrema ) then
+                       d_two*f(j,i,k,n))/max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
                     if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
                          (f(j,i,k,n) > f(j-1,i,k,n)) ) then
                       advval = min(advval,d_zero)
@@ -804,7 +804,7 @@ module mod_advection
                 ! must not grow further due to advection
                 !
                 if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - &
-                        d_two*f(j,i,k,n)) / f(j,i,k,n) > c_rel_extrema ) then
+                     d_two*f(j,i,k,n))/max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
                   if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
                        (f(j,i,k,n) > f(j,i-1,k,n)) ) then
                     advval = min(advval,d_zero)
@@ -814,7 +814,7 @@ module mod_advection
                   end if
                 end if
                 if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - &
-                        d_two*f(j,i,k,n)) / f(j,i,k,n) > c_rel_extrema ) then
+                     d_two*f(j,i,k,n))/max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
                   if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
                        (f(j,i,k,n) > f(j-1,i,k,n)) ) then
                     advval = min(advval,d_zero)
@@ -838,11 +838,11 @@ module mod_advection
     !
     subroutine hadvtr(ften,f)
       implicit none
-      real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+      real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
       integer(ik4) :: i , j , k , n
-      real(rk8) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
+      real(rkx) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvtr'
       integer(ik4) , save :: idindx = 0
@@ -909,11 +909,11 @@ module mod_advection
     subroutine vadv3d(ften,f,nk,ind)
       implicit none
       integer(ik4) , intent(in) :: ind , nk
-      real(rk8) , pointer , intent (in) , dimension(:,:,:) :: f
-      real(rk8) , pointer , intent (inout), dimension(:,:,:) :: ften
+      real(rkx) , pointer , intent (in) , dimension(:,:,:) :: f
+      real(rkx) , pointer , intent (inout), dimension(:,:,:) :: ften
 
-      real(rk8) :: slope , rdphf , rdplf , ff , qq
-      real(rk8) , dimension(jci1:jci2,ici1:ici2,kz) :: dotqdot
+      real(rkx) :: slope , rdphf , rdplf , ff , qq
+      real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: dotqdot
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv3d'
@@ -1069,10 +1069,10 @@ module mod_advection
     subroutine vadv4d(ften,f,nk,n1,n2,ind)
       implicit none
       integer(ik4) , intent(in) :: ind , nk , n1 , n2
-      real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+      real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
-      real(rk8) :: slope , ff
+      real(rkx) :: slope , ff
       integer(ik4) :: i , j , k , n
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv4d'
@@ -1084,7 +1084,8 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n)   > minqv .and. f(j,i,k-1,n) > minqv ) then
+                if ( f(j,i,k,n)  /ps(j,i) > minqq .and. &
+                     f(j,i,k-1,n)/ps(j,i) > minqq ) then
                   ff = (f(j,i,k,n) * &
                     (f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)) * svv(j,i,k)
                   ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
@@ -1114,7 +1115,8 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
+                if ( f(j,i,k,n)  /ps(j,i) > minqx .and. &
+                     f(j,i,k-1,n)/ps(j,i) > minqx ) then
                   ff = (twt(k,1)*f(j,i,k,n) + &
                         twt(k,2)*f(j,i,k-1,n)) * svv(j,i,k)
                   ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)

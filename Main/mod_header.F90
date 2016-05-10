@@ -101,7 +101,7 @@ module mod_header
   subroutine finaltime(myid)
     implicit none
     integer(ik4) , intent (in) :: myid
-    real(rk8) :: finish_time
+    real(rkx) :: finish_time
 
     if ( myid == iocpu ) then
       call cpu_time(finish_time)

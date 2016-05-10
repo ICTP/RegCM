@@ -33,32 +33,32 @@ module mod_cu_grell
 
   private
 
-  real(rk8) , parameter :: xacact = -0.99999D0
-  real(rk8) , parameter :: zdetr = 1250.0D0
+  real(rkx) , parameter :: xacact = -0.99999_rkx
+  real(rkx) , parameter :: zdetr = 1250.0_rkx
 
-  real(rk8) , pointer , dimension(:,:) :: outq , outt , p , po ,  &
+  real(rkx) , pointer , dimension(:,:) :: outq , outt , p , po ,  &
                               q , qo , t , tn , vsp
-  real(rk8) , pointer , dimension(:,:) :: dby , dbyo , dellah ,       &
+  real(rkx) , pointer , dimension(:,:) :: dby , dbyo , dellah ,       &
               dellaq , dellat , dkk , he , heo , hes , heso , pwc , &
               pwcd , pwcdo , pwco , qc , qco , qes , qeso , qrcd ,  &
               qrcdo , tv , tvo , xdby , xhe , xhes , xpwc , xpwcd , &
               xq , xqc , xqes , xqrcd , xt , xtv , xz , z , zo , cldf
-  real(rk8) , pointer , dimension(:) :: pratec , psur , qcrit , ter11
+  real(rkx) , pointer , dimension(:) :: pratec , psur , qcrit , ter11
   integer(ik4) , pointer , dimension(:) :: kdet
   integer(ik4) , pointer , dimension(:) :: kmin , k22 , kb , kbcon , &
               kds , ktop , iac , jac
-  real(rk8) , pointer , dimension(:) :: xac , xao , bu , buo , edt ,  &
+  real(rkx) , pointer , dimension(:) :: xac , xao , bu , buo , edt ,  &
               edto , edtx , hcd , hcdo , hkb , hkbo , pwcav ,       &
               pwcavo , pwcev , pwcevo , qcd , qcdo , qck , qcko ,   &
               qkb , qkbo , vshear , xxac , xhcd , xhkb , xmb ,      &
               xpwcav , xpwcev , xqcd , xqck , xqkb
 
-  real(rk8) , pointer , dimension(:) :: dtauc , pbcmax ,   &
+  real(rkx) , pointer , dimension(:) :: dtauc , pbcmax ,   &
               mincld , shrmax , shrmin , edtmax , edtmin ,    &
               edtmaxo , edtmaxx , edtmino , edtminx , htmax , &
               htmin
   integer(ik4) , public , pointer , dimension(:) :: kbmax
-  real(rk8) , public , pointer , dimension(:,:) :: dtauc2d , pbcmax2d ,   &
+  real(rkx) , public , pointer , dimension(:,:) :: dtauc2d , pbcmax2d ,   &
               mincld2d , shrmax2d , shrmin2d , edtmax2d , edtmin2d ,    &
               edtmaxo2d , edtmaxx2d , edtmino2d , edtminx2d , htmax2d , &
               htmin2d
@@ -360,11 +360,11 @@ module mod_cu_grell
         vsp(n,k) = sqrt(m2c%uas(j,i,kk)**2 + m2c%vas(j,i,kk)**2)
         p(n,k) = m2c%pas(j,i,kk) * d_r100
         t(n,k) = m2c%tas(j,i,kk)
-        q(n,k) = max(m2c%qxas(j,i,kk,iqv),1.0D-08)
+        q(n,k) = m2c%qxas(j,i,kk,iqv)
         po(n,k) = p(n,k)
         tn(n,k) = t(n,k) + avg_tten(j,i,kk) * dt
         qo(n,k) = q(n,k) + avg_qten(j,i,kk,iqv) * dt
-        if ( qo(n,k) < 1.0D-08 ) qo(n,k) = 1.0D-08
+        if ( qo(n,k) < minqq ) qo(n,k) = minqq
         qcrit(n) = qcrit(n) + avg_qten(j,i,kk,iqv)
       end do
     end do
@@ -436,7 +436,7 @@ module mod_cu_grell
   !
   subroutine cup
     implicit none
-    real(rk8) :: adw , aup , detdo , detdoq , dg , dh ,   &
+    real(rkx) :: adw , aup , detdo , detdoq , dg , dh ,   &
                dhh , dp_s , dq , xdt , dv1 , dv1q , dv2 , dv2q , &
                dv3 , dv3q , dz , dz1 , dz2 , dzo , f ,  &
                agamma , agamma0 , agamma1 , agamma2 , agammo ,   &
@@ -483,7 +483,7 @@ module mod_cu_grell
     ! pwcev  = total normalized integrated evaoprate (I2)
     ! pwcd   = evaporate at that level
     !
-    mbdt = dt * 5.0D-03
+    mbdt = dt * 5.0e-03_rkx
     !
     ! environmental conditions, first heights
     !
@@ -560,7 +560,7 @@ module mod_cu_grell
       if ( xac(n) >= d_zero ) then
         do k = 1 , kdet(n)
           kk = kdet(n) - k + 1
-          dkk(n,k) = d_one - dble(kk)/dble(kdet(n))
+          dkk(n,k) = d_one - real(kk,rkx)/real(kdet(n),rkx)
         end do
         cloudbase: do
           kb(n) = k22(n)
@@ -735,10 +735,10 @@ module mod_cu_grell
     end do
     do n = 1 , nap
       if ( xac(n) > xacact ) then
-        vshear(n) = d_1000*vshear(n)/dble(kz/2)
+        vshear(n) = d_1000*vshear(n)/real(kz/2,rkx)
         edt(n) = d_one - &
-           (1.591D0-0.639D0*vshear(n)+0.0953D0*(vshear(n)**2) - &
-            0.00496D0*(vshear(n)**3))
+           (1.591_rkx-0.639_rkx*vshear(n)+0.0953_rkx*(vshear(n)**2) - &
+            0.00496_rkx*(vshear(n)**3))
         if ( edt(n) > shrmax(n) ) edt(n) = shrmax(n)
         if ( edt(n) < shrmin(n) ) edt(n) = shrmin(n)
 
@@ -807,7 +807,7 @@ module mod_cu_grell
       if ( xac(n) > xacact ) then
         k = 1
         dz = d_half*(z(n,2)-z(n,1))
-        dp_s = 50.0D0*(psur(n)-p(n,2))
+        dp_s = 50.0_rkx*(psur(n)-p(n,2))
         dellah(n,1) = edt(n)*(dkk(n,1)*hcd(n)-dkk(n,1) * &
                       d_half*(he(n,1)+he(n,2)))*egrav/dp_s
         dellaq(n,1) = edt(n)*(dkk(n,1)*qrcd(n,1)-dkk(n,1) * &
@@ -816,7 +816,7 @@ module mod_cu_grell
         xq(n,k) = dellaq(n,k)*mbdt + q(n,k)
         dellat(n,k) = rcpd*(dellah(n,k)-wlhv*dellaq(n,k))
         xt(n,k) = (mbdt*rcpd)*(dellah(n,k)-wlhv*dellaq(n,k))+t(n,k)
-        if ( xq(n,k) <= d_zero ) xq(n,k) = 1.0D-08
+        if ( xq(n,k) <= d_zero ) xq(n,k) = 1.0e-08_rkx
       end if
     end do
 
@@ -844,7 +844,7 @@ module mod_cu_grell
             if ( k <= k22(n) ) aup = d_zero
             adw = d_one
             if ( k > kmin(n) ) adw = d_zero
-            dp_s = 50.0D0*(p(n,k-1)-p(n,k+1))
+            dp_s = 50.0_rkx*(p(n,k-1)-p(n,k+1))
             dellah(n,k) = ((aup-adw*edt(n)) * (dv1-dv2)+(aup-adw*edt(n)) * &
                   (dv2-dv3))*egrav/dp_s + adw*edt(n)*detdo*egrav/dp_s
             dellaq(n,k) = ((aup-adw*edt(n)) * (dv1q-dv2q)+(aup-adw*edt(n)) * &
@@ -853,7 +853,7 @@ module mod_cu_grell
             xq(n,k) = dellaq(n,k)*mbdt + q(n,k)
             dellat(n,k) = rcpd*(dellah(n,k)-wlhv*dellaq(n,k))
             xt(n,k) = (mbdt*rcpd)*(dellah(n,k) - wlhv*dellaq(n,k)) + t(n,k)
-            if ( xq(n,k) <= d_zero ) xq(n,k) = 1.0D-08
+            if ( xq(n,k) <= d_zero ) xq(n,k) = 1.0e-08_rkx
           end if
         end if
       end do
@@ -874,10 +874,10 @@ module mod_cu_grell
         xq(n,k) = dellaq(n,k)*mbdt + q(n,k)
         dellat(n,k) = rcpd*(dellah(n,k)-wlhv*dellaq(n,k))
         xt(n,k) = (mbdt*rcpd)*(dellah(n,k)-wlhv*dellaq(n,k)) + t(n,k)
-        if ( xq(n,k) <= d_zero ) xq(n,k) = 1.0D-08
+        if ( xq(n,k) <= d_zero ) xq(n,k) = 1.0e-08_rkx
         xhkb(n) = dellah(n,kbcon(n))*mbdt + hkb(n)
         xqkb(n) = dellaq(n,kbcon(n))*mbdt + qkb(n)
-        if ( xqkb(n) <= d_zero ) xqkb(n) = 1.0D-08
+        if ( xqkb(n) <= d_zero ) xqkb(n) = 1.0e-08_rkx
       end if
     end do
     !
@@ -1066,7 +1066,7 @@ module mod_cu_grell
         if ( igcc == 1 ) then
           f = (xao(n)-xac(n))/dt ! Arakawa-Schubert closure
         else if ( igcc == 2 ) then
-          f = xac(n)/dtauc(n)       ! Fritsch-Chappell closure
+          f = xac(n)/dtauc(n)    ! Fritsch-Chappell closure
         end if
         xk = (xxac(n)-xac(n))/mbdt
         xmb(n) = -f/xk
@@ -1089,8 +1089,8 @@ module mod_cu_grell
               outt(n,k) = outt(n,k) + dellat(n,k)*xmb(n)
               outq(n,k) = outq(n,k) + dellaq(n,k)*xmb(n)
               mflx = max((p(n,k)/(rgas*t(n,k))) * dellah(n,k)*xmb(n),d_zero)
-              cldf(n,k) = 0.105D0*log(d_one+(500.0D0*mflx))
-              cldf(n,k) = min(max(0.0D0,cldf(n,k)),clfrcv)
+              cldf(n,k) = 0.105_rkx*log(d_one+(500.0_rkx*mflx))
+              cldf(n,k) = min(max(0.0_rkx,cldf(n,k)),clfrcv)
               pratec(n) = pratec(n) + (pwc(n,k)+edt(n)*pwcd(n,k))*xmb(n)
             end if
           end if
@@ -1105,11 +1105,11 @@ module mod_cu_grell
      subroutine minimi(array,ks,ke,kt)
        implicit none
        integer(ik4) , intent (in) :: ke
-       real(rk8) , intent(in) , pointer , dimension(:,:) :: array
+       real(rkx) , intent(in) , pointer , dimension(:,:) :: array
        integer(ik4) , intent(in) , pointer , dimension(:) :: ks
        integer(ik4) , intent(inout) , pointer , dimension(:) :: kt
        integer(ik4) :: n , k
-       real(rk8) :: x
+       real(rkx) :: x
 #ifdef DEBUG
        character(len=dbgslen) :: subroutine_name = 'minimi'
        integer(ik4) , save :: idindx = 0
@@ -1133,10 +1133,10 @@ module mod_cu_grell
      subroutine maximi1(array,ks,ke,imax)
       implicit none
       integer(ik4) , intent (in) :: ks , ke
-      real(rk8) , intent(in) , pointer , dimension(:,:) :: array
+      real(rkx) , intent(in) , pointer , dimension(:,:) :: array
       integer(ik4) , intent(inout) , pointer , dimension(:) :: imax
       integer(ik4) :: n , k
-      real(rk8) :: x , xar
+      real(rkx) :: x , xar
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'maximi1'
       integer(ik4) , save :: idindx = 0
@@ -1161,11 +1161,11 @@ module mod_cu_grell
     subroutine maximi2(array,ks,ke,imax)
       implicit none
       integer(ik4) , intent (in) :: ks
-      real(rk8) , intent(in) , pointer , dimension(:,:) :: array
+      real(rkx) , intent(in) , pointer , dimension(:,:) :: array
       integer(ik4) , intent(in) , pointer , dimension(:) :: ke
       integer(ik4) , intent(inout) , pointer , dimension(:) :: imax
       integer(ik4) :: n , k
-      real(rk8) :: x , xar
+      real(rkx) :: x , xar
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'maximi2'
       integer(ik4) , save :: idindx = 0

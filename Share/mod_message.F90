@@ -209,10 +209,10 @@ module mod_message
   end subroutine viz_pos
 
   subroutine viz_plot(val,rmax)
-    real(rk8) , intent(in) , dimension(:,:) :: val
-    real(rk8) , intent(in) , optional :: rmax
+    real(rkx) , intent(in) , dimension(:,:) :: val
+    real(rkx) , intent(in) , optional :: rmax
     integer(ik4) :: nx , ny , i , j , k , l , m , n , dx , dy
-    real(rk8) :: vmax , scalef , tmp
+    real(rkx) :: vmax , scalef , tmp
 
     nx = size(val,1)
     ny = size(val,2)
@@ -225,7 +225,7 @@ module mod_message
     dy = ny / mrows
 
     ! set or determine scaling factor for data points
-    vmax = 1.0D-30
+    vmax = 1.0e-30_rkx
     if ( present(rmax) ) then
       vmax = abs(rmax)
     else
@@ -233,7 +233,7 @@ module mod_message
       do j = 1 , mrows
         do i = 1 , mcols
           ! average over cells
-          tmp = 0.0D0
+          tmp = 0.0_rkx
           n = 0
           do k = (j-1)*dy+1 , j*dy
             do l = (i-1)*dx+1 , i*dx
@@ -241,19 +241,19 @@ module mod_message
               n = n + 1
             end do
           end do
-          tmp = abs(tmp)/dble(n)
+          tmp = abs(tmp)/real(n,rkx)
           if ( vmax < tmp ) vmax = tmp
         end do
       end do
     end if
-    scalef = dble(maxplot)/vmax
+    scalef = real(maxplot,rkx)/vmax
 
     ! now plot
     do j = mrows , 1 , -1
       call viz_pos(1,mrows-j)
       do i = 1 , mcols
         ! average over cells
-        tmp = 0.0D0
+        tmp = 0.0_rkx
         n = 0
         do k = (j-1)*dy+1 , j*dy
           do l = (i-1)*dx+1 , i*dx
@@ -262,9 +262,9 @@ module mod_message
           end do
         end do
         ! convert absolute value into character
-        m = int(scalef*abs(tmp)/dble(n)+0.5D0)
+        m = int(scalef*abs(tmp)/real(n,rkx)+0.5_rkx)
         m = max(0,min(maxplot,m))
-        if ( tmp < 0.0D0 ) then
+        if ( tmp < 0.0_rkx ) then
           if ( m > 5 ) then
             write(stdout,fmt='(a1,a,a1)',advance='no') esc,'[36m',plot(m)
           else

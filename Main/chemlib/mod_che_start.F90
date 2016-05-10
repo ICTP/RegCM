@@ -37,15 +37,15 @@ module mod_che_start
   use mod_che_sox
   use mod_che_seasalt
   use mod_mppparam
-  use mod_che_hvread
   use mod_che_molwg
   use mod_che_bionit
+  use mod_cbmz_hvread
 
   implicit none
 
   private
 
-  real(rk8) , parameter :: solso4 = 0.9D0
+  real(rkx) , parameter :: solso4 = 0.9_rkx
 
   public  :: start_chem
 

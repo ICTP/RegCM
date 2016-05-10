@@ -40,22 +40,22 @@ module mod_mkpopd
   character(len=16) , parameter :: lonvar = 'LON'
   character(len=16) , parameter :: varname = 'PDENS'
 
-  real(rk8) :: vmin = -0.0001D0
-  real(rk8) :: vmisdat = -9999.0D0
+  real(rkx) :: vmin = -0.0001_rkx
+  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
   subroutine mkpopd(popdfile,popd,it)
     implicit none
     character(len=*) , intent(in) :: popdfile
-    real(rk8) , dimension(:,:) , intent(out) :: popd
+    real(rkx) , dimension(:,:) , intent(out) :: popd
     integer(ik4) , intent(in) :: it
     integer(ik4) :: nlat , nlon
     integer(ik4) :: idimid , ivarid , ncid
     integer(ik4) , dimension(3) :: istart , icount
     integer(ik4) :: istatus , i , li , lo
-    real(rk8) , dimension(:,:) , allocatable :: rvar , rmask
-    real(rk8) , dimension(:) , allocatable :: glat , glon , rlat , rlon
+    real(rkx) , dimension(:,:) , allocatable :: rvar , rmask
+    real(rkx) , dimension(:) , allocatable :: glat , glon , rlat , rlon
     type(global_domain) :: domain
 
     character(len=256) :: inpfile
@@ -99,11 +99,11 @@ module mod_mkpopd
       'Cannot read variable lon in file '//trim(inpfile))
 
     ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0D0 )
-      glon = glon - 360.0D0
+    where ( glon >  180.0_rkx )
+      glon = glon - 360.0_rkx
     end where
-    where ( glon < -180.0D0 )
-      glon = glon + 360.0D0
+    where ( glon < -180.0_rkx )
+      glon = glon + 360.0_rkx
     end where
 
     call get_window(glat,glon,domain)
@@ -117,7 +117,7 @@ module mod_mkpopd
     call checkncerr(istatus,__FILE__,__LINE__, &
       'Cannot find variable popd in file '//trim(inpfile))
 
-    rmask(:,:) = 1.0D0
+    rmask(:,:) = 1.0_rkx
 
     li = 1
     do i = 1 , domain%ntiles

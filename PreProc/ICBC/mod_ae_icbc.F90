@@ -33,23 +33,23 @@ module mod_ae_icbc
   private
 !
   integer(ik4) :: aeilon , aejlat , aeilev , aeitime
-  real(rk8) , pointer , dimension(:) :: aet42lon
-  real(rk8) , pointer , dimension(:) :: aet42lat
-  real(rk8) , pointer , dimension(:) :: aet42hyam , aet42hybm
+  real(rkx) , pointer , dimension(:) :: aet42lon
+  real(rkx) , pointer , dimension(:) :: aet42lat
+  real(rkx) , pointer , dimension(:) :: aet42hyam , aet42hybm
 !
 ! Oxidant climatology variables
 !
-  real(rk8) :: p0 , r4pt
-  real(rk8) , pointer , dimension(:,:) :: xps
-  real(rk8) , pointer , dimension(:,:,:,:,:) :: aev2
-  real(rk8) , pointer , dimension(:,:,:) :: xps2
-  real(rk8) , pointer , dimension(:,:,:) :: xinp
-  real(rk8) , pointer , dimension(:,:) :: paeid_3
-  real(rk8) , pointer , dimension(:,:,:,:) :: aev3
+  real(rkx) :: p0 , r4pt
+  real(rkx) , pointer , dimension(:,:) :: xps
+  real(rkx) , pointer , dimension(:,:,:,:,:) :: aev2
+  real(rkx) , pointer , dimension(:,:,:) :: xps2
+  real(rkx) , pointer , dimension(:,:,:) :: xinp
+  real(rkx) , pointer , dimension(:,:) :: paeid_3
+  real(rkx) , pointer , dimension(:,:,:,:) :: aev3
   integer(ik4) :: iyear
   character(len=8) , dimension(4) :: scendir
 
-  real(rk8) :: prcm , pmpi , pmpj
+  real(rkx) :: prcm , pmpi , pmpj
   integer(ik4) :: ncid , istatus , iscen
 
   public :: header_ae_icbc , get_ae_icbc , close_ae_icbc
@@ -185,7 +185,7 @@ module mod_ae_icbc
 
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: i , l , is , j , k , k0
-    real(rk8) :: wt1 , wt2
+    real(rkx) :: wt1 , wt2
     type(rcm_time_and_date) :: d1 , d2
     type(rcm_time_interval) :: t1 , tt
     integer(ik4) :: m1 , m2

@@ -34,45 +34,45 @@ module mod_che_carbonaer
   ! Parameter usefull for wet and dry deposition of carbon aerosol
   ! densities in kg/m3
 
-  real(rk8) , public , parameter :: rhobc   = 2000.0D0
-  real(rk8) , public , parameter :: rhooc   = 1200.0D0
-  real(rk8) , public , parameter :: rhobchl = 1600.0D0
-  real(rk8) , public , parameter :: rhoochl = 1200.0D0
-  real(rk8) , public , parameter :: rhosm1 = 1200.0D0
-  real(rk8) , public , parameter :: rhosm2 = 1200.0D0
+  real(rkx) , public , parameter :: rhobc   = 2000.0_rkx
+  real(rkx) , public , parameter :: rhooc   = 1200.0_rkx
+  real(rkx) , public , parameter :: rhobchl = 1600.0_rkx
+  real(rkx) , public , parameter :: rhoochl = 1200.0_rkx
+  real(rkx) , public , parameter :: rhosm1 = 1200.0_rkx
+  real(rkx) , public , parameter :: rhosm2 = 1200.0_rkx
 
 
   ! effctive dimaters ( and not radius!)  in micrometer
   ! ( should they be defined intercatively in the future ? )
-  real(rk8) , public , parameter :: reffbc   = 0.05D0
-  real(rk8) , public , parameter :: reffbchl = 0.3D0
-  real(rk8) , public , parameter :: reffoc   = 0.2D0
-  real(rk8) , public , parameter :: reffochl = 0.3D0
-  real(rk8) , public , parameter :: reffsm1 = 0.3D0
-  real(rk8) , public , parameter :: reffsm2 = 0.3D0
+  real(rkx) , public , parameter :: reffbc   = 0.05_rkx
+  real(rkx) , public , parameter :: reffbchl = 0.3_rkx
+  real(rkx) , public , parameter :: reffoc   = 0.2_rkx
+  real(rkx) , public , parameter :: reffochl = 0.3_rkx
+  real(rkx) , public , parameter :: reffsm1 = 0.3_rkx
+  real(rkx) , public , parameter :: reffsm2 = 0.3_rkx
 
 
   ! aging efolding time (s), from hydrophobic to hydrophilic
   ! Cooke et al.
-  real(rk8) , parameter :: chagct = 1.15D0 * 86400.0D0
-  real(rk8) , parameter :: chsmct = 1.15D0 * 86400.0D0
+  real(rkx) , parameter :: chagct = 1.15_rkx * 86400.0_rkx
+  real(rkx) , parameter :: chsmct = 1.15_rkx * 86400.0_rkx
 
   !
   ! solubility of carbon aer for rain out param of giorgi and chameides
   !
-  real(rk8) , parameter :: solbc = 0.05D0
-  real(rk8) , parameter :: solbchl = 0.8D0
-  real(rk8) , parameter :: soloc = 0.05D0
-  real(rk8) , parameter :: solochl = 0.8D0
-  real(rk8) , parameter :: solsm1 = 0.05D0
-  real(rk8) , parameter :: solsm2 = 0.8D0
+  real(rkx) , parameter :: solbc = 0.05_rkx
+  real(rkx) , parameter :: solbchl = 0.8_rkx
+  real(rkx) , parameter :: soloc = 0.05_rkx
+  real(rkx) , parameter :: solochl = 0.8_rkx
+  real(rkx) , parameter :: solsm1 = 0.05_rkx
+  real(rkx) , parameter :: solsm2 = 0.8_rkx
 
 
   public :: aging_carb , solbc , solbchl , soloc , solochl, solsm1,solsm2
 
   ! bin size for carboneaceous aerosols
   ! ps add one dimension for sulfate too.
-  real(rk8) , public , dimension(9) :: carbed
+  real(rkx) , public , dimension(9) :: carbed
 
   contains
 
@@ -80,7 +80,7 @@ module mod_che_carbonaer
       implicit none
       integer, intent(in) :: j
       integer(ik4) :: i , k
-      real(rk8) :: agingtend1 , agingtend2
+      real(rkx) :: agingtend1 , agingtend2
       !
       ! aging o carbon species : Conversion from hydrophobic to
       ! hydrophilic: Carbonaceopus species time constant
@@ -89,7 +89,7 @@ module mod_che_carbonaer
       if ( ibchb > 0 .and. ibchl > 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            agingtend1 = -chib(j,i,k,ibchb)*(d_one-dexp(-dt/chagct))/dt
+            agingtend1 = -chib(j,i,k,ibchb)*(d_one-exp(-dt/chagct))/dt
             agingtend2 = -agingtend1
             chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend1
             chiten(j,i,k,ibchl) = chiten(j,i,k,ibchl) + agingtend2
@@ -99,7 +99,7 @@ module mod_che_carbonaer
       if ( iochb > 0  .and. iochl > 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            agingtend1 = -chib(j,i,k,iochb)*(d_one-dexp(-dt/chagct))/dt
+            agingtend1 = -chib(j,i,k,iochb)*(d_one-exp(-dt/chagct))/dt
             agingtend2 = -agingtend1
             chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend1
             chiten(j,i,k,iochl) = chiten(j,i,k,iochl) + agingtend2
@@ -110,7 +110,7 @@ module mod_che_carbonaer
       if ( ism1 > 0  .and. ism2 > 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            agingtend1 = -chib(j,i,k,iochb)*(d_one-dexp(-dt/chsmct))/dt
+            agingtend1 = -chib(j,i,k,iochb)*(d_one-exp(-dt/chsmct))/dt
             agingtend2 = -agingtend1
             chiten(j,i,k,ism1) = chiten(j,i,k,ism1) + agingtend1
             chiten(j,i,k,ism2) = chiten(j,i,k,ism2) + agingtend2

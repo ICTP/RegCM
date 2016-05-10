@@ -257,7 +257,7 @@ module mod_clm_control
 
       do i = 1 , max_tapes
         if (hist_nhtfrq(i) < 0) then
-          hist_nhtfrq(i) = nint(-hist_nhtfrq(i)*secspday/(24.D0*dtsrf))
+          hist_nhtfrq(i) = nint(-hist_nhtfrq(i)*secspday/(24._rkx*dtsrf))
         end if
       end do
 
@@ -500,7 +500,7 @@ module mod_clm_control
               trim(suplnitro)
     end if
 
-    if (nfix_timeconst /= 0.D0) then
+    if (nfix_timeconst /= 0._rkx) then
       write(stdout,*) &
         '   nfix_timeconst, timescale for smoothing npp in N fixation term: ', &
         nfix_timeconst
@@ -632,7 +632,7 @@ module mod_clm_control
       write(stdout,*) '   Namelist should not differ except for &
                       &ending time step and run type'
     end if
-    if ( pertlim /= 0.0D0 ) &
+    if ( pertlim /= 0.0_rkx ) &
       write(stdout,*) '   perturbation limit   = ',pertlim
     write(stdout,*) '   maxpatch_pft         = ',maxpatch_pft
     write(stdout,*) '   allocate_all_vegpfts = ',allocate_all_vegpfts

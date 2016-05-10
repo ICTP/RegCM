@@ -40,8 +40,8 @@ module mod_sladvection
   public :: trajcalc_x , trajcalc_d
   public :: slhadv_x, slhadv_d , hdvg_x , hdvg_d
 
-  real(rk8) , pointer , dimension(:,:,:) :: ua , va
-  real(rk8) , pointer , dimension(:,:) :: mapfx , mapfd
+  real(rkx) , pointer , dimension(:,:,:) :: ua , va
+  real(rkx) , pointer , dimension(:,:) :: mapfx , mapfd
 
   interface slhadv_x
     module procedure slhadv_x3d
@@ -91,22 +91,22 @@ module mod_sladvection
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            uadvx_x(j,i,k) = 0.25D0 * &
+            uadvx_x(j,i,k) = 0.25_rkx * &
               (ua(j,i,k)     + ua(j,i+1,k) + &
                ua(j+1,i+1,k) + ua(j+1,i,k)) / mapfx(j,i)
-            uadxp1_x(j,i,k) = 0.25D0 * &
+            uadxp1_x(j,i,k) = 0.25_rkx * &
               (ua(j+1,i,k)    + ua(j+1,i+1,k) + &
                ua(j+2,i+1,k)  + ua(j+2,i,k)) / mapfx(j+1,i)
-            uadxm1_x(j,i,k) = 0.25D0 * &
+            uadxm1_x(j,i,k) = 0.25_rkx * &
               (ua(j,i,k)     + ua(j,i+1,k) + &
                ua(j-1,i+1,k) + ua(j-1,i,k)) / mapfx(j-1,i)
-            vadvy_x(j,i,k) = 0.25D0 * &
+            vadvy_x(j,i,k) = 0.25_rkx * &
               (va(j,i,k)     + va(j,i+1,k) + &
                va(j+1,i+1,k) + va(j+1,i,k)) / mapfx(j,i)
-            vadyp1_x(j,i,k) = 0.25D0 * &
+            vadyp1_x(j,i,k) = 0.25_rkx * &
               (va(j,i+1,k)   + va(j+1,i+1,k) + &
                va(j+1,i+2,k) + va(j,i+2,k)) / mapfx(j,i+1)
-            vadym1_x(j,i,k) = 0.25D0 * &
+            vadym1_x(j,i,k) = 0.25_rkx * &
               (va(j,i,k)   + va(j,i-1,k) + &
                va(j+1,i,k) + va(j+1,i,k)) / mapfx(j,i-1)
           end do
@@ -120,7 +120,7 @@ module mod_sladvection
 
   subroutine trajcalc_x
     implicit none
-    real(rk8) :: ux , uxx , xdis , xn , alfax , vy , vyy , ydis , &
+    real(rkx) :: ux , uxx , xdis , xn , alfax , vy , vyy , ydis , &
                  yn , betay , ddx , ddy
     integer(ik4) :: i , j , k , xnp , xsn , ynp , ysn
 #ifdef DEBUG
@@ -139,11 +139,11 @@ module mod_sladvection
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ux = 0.5D0 * (uadxp1_x(j,i,k) - uadxm1_x(j,i,k))/ddx
+          ux = 0.5_rkx * (uadxp1_x(j,i,k) - uadxm1_x(j,i,k))/ddx
           uxx = (uadxp1_x(j,i,k) - &
-                  2.0D0*uadvx_x(j,i,k) + uadxm1_x(j,i,k))/(ddx*ddx)
-          xdis = - uadvx_x(j,i,k)*dt + 0.5D0 * (dtsq*uadvx_x(j,i,k)*ux) - &
-                   (dtcb*uadvx_x(j,i,k))*(ux*ux+uadvx_x(j,i,k)*uxx)/6.0D0
+                  2.0_rkx*uadvx_x(j,i,k) + uadxm1_x(j,i,k))/(ddx*ddx)
+          xdis = - uadvx_x(j,i,k)*dt + 0.5_rkx * (dtsq*uadvx_x(j,i,k)*ux) - &
+                   (dtcb*uadvx_x(j,i,k))*(ux*ux+uadvx_x(j,i,k)*uxx)/6.0_rkx
           xn = xdis/ddx
           xnp = int(xn)
           if ( abs(xnp) > 2 ) then
@@ -152,7 +152,7 @@ module mod_sladvection
             write(stderr,*) '                     I = ',i
             call fatal(__FILE__,__LINE__,'SLADVECTION')
           end if
-          alfax = dabs((xnp*ddx - xdis)/ddx)
+          alfax = abs((xnp*ddx - xdis)/ddx)
           xsn = int(sign(d_one,xn))
           xndp_x(j,i,k) = j + xnp
           xnnm1dp_x(j,i,k) = xndp_x(j,i,k) + xsn
@@ -173,11 +173,11 @@ module mod_sladvection
 
           ! for the y (meridional) direction
 
-          vy = 0.5D0*(vadyp1_x(j,i,k) - vadym1_x(j,i,k))/ddy
+          vy = 0.5_rkx*(vadyp1_x(j,i,k) - vadym1_x(j,i,k))/ddy
           vyy = (vadyp1_x(j,i,k) - &
-                  2.0D0*vadvy_x(j,i,k) + vadym1_x(j,i,k))/(ddy*ddy)
-          ydis = - vadvy_x(j,i,k)*dt + 0.5D0*(dtsq*vadvy_x(j,i,k)*vy) - &
-                  (dtcb*vadvy_x(j,i,k))*(vy*vy +vadvy_x(j,i,k)*vyy)/6.0D0
+                  2.0_rkx*vadvy_x(j,i,k) + vadym1_x(j,i,k))/(ddy*ddy)
+          ydis = - vadvy_x(j,i,k)*dt + 0.5_rkx*(dtsq*vadvy_x(j,i,k)*vy) - &
+                  (dtcb*vadvy_x(j,i,k))*(vy*vy +vadvy_x(j,i,k)*vyy)/6.0_rkx
           ! GTD ydis = - vadvy_x(j,i,k)*dt
           yn = ydis/ddy
           ynp = int(yn)
@@ -187,7 +187,7 @@ module mod_sladvection
             write(stderr,*) '                     I = ',i
             call fatal(__FILE__,__LINE__,'SLADVECTION')
           end if
-          betay = dabs((ynp*ddy - ydis)/ddy)
+          betay = abs((ynp*ddy - ydis)/ddy)
           ysn = int(sign(d_one,yn))
           yndp_x(j,i,k) = i + ynp
           ynnm1dp_x(j,i,k) = yndp_x(j,i,k) + ysn
@@ -212,14 +212,14 @@ module mod_sladvection
           ! weighting coefficients
 
           alffbl_x(j,i,k) = alfax
-          alfm2dp_x(j,i,k) = -(alfax*(1.0D0 - alfax*alfax))/6.0D0
-          alfm1dp_x(j,i,k) = (alfax*(1.0D0 + alfax)*(2.0D0 - alfax))/2.0D0
-          alfdp_x(j,i,k) = ((1.0D0 - alfax*alfax)*(2.0D0 - alfax))/2.0D0
-          alfp1dp_x(j,i,k) = -(alfax*(1.0D0 - alfax)*(2.0D0 - alfax))/6.0D0
-          betm2dp_x(j,i,k) = -(betay*(1.0D0 - betay*betay))/6.0D0
-          betm1dp_x(j,i,k) = (betay*(1.0D0 + betay)*(2.0D0 - betay))/2.0D0
-          betdp_x(j,i,k) = ((1.0D0 - betay*betay)*(2.0D0 - betay))/2.0D0
-          betp1dp_x(j,i,k) = -(betay*(1.0D0 - betay)*(2.0D0 - betay))/6.0D0
+          alfm2dp_x(j,i,k) = -(alfax*(1.0_rkx - alfax*alfax))/6.0_rkx
+          alfm1dp_x(j,i,k) = (alfax*(1.0_rkx + alfax)*(2.0_rkx - alfax))/2.0_rkx
+          alfdp_x(j,i,k) = ((1.0_rkx - alfax*alfax)*(2.0_rkx - alfax))/2.0_rkx
+          alfp1dp_x(j,i,k) = -(alfax*(1.0_rkx - alfax)*(2.0_rkx - alfax))/6.0_rkx
+          betm2dp_x(j,i,k) = -(betay*(1.0_rkx - betay*betay))/6.0_rkx
+          betm1dp_x(j,i,k) = (betay*(1.0_rkx + betay)*(2.0_rkx - betay))/2.0_rkx
+          betdp_x(j,i,k) = ((1.0_rkx - betay*betay)*(2.0_rkx - betay))/2.0_rkx
+          betp1dp_x(j,i,k) = -(betay*(1.0_rkx - betay)*(2.0_rkx - betay))/6.0_rkx
         end do
       end do
     end do
@@ -230,7 +230,7 @@ module mod_sladvection
 
   subroutine trajcalc_d
     implicit none
-    real(rk8) :: ux , uxx , xdis , xn , alfax , vy , vyy , ydis , &
+    real(rkx) :: ux , uxx , xdis , xn , alfax , vy , vyy , ydis , &
                  yn , betay , ddx , ddy
     integer(ik4) :: i , j , k , xnp , xsn , ynp , ysn
 #ifdef DEBUG
@@ -249,11 +249,11 @@ module mod_sladvection
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          ux = 0.5D0 * (uadxp1_d(j,i,k) - uadxm1_d(j,i,k))/ddx
+          ux = 0.5_rkx * (uadxp1_d(j,i,k) - uadxm1_d(j,i,k))/ddx
           uxx = (uadxp1_d(j,i,k) - &
-                  2.0D0*uadvx_d(j,i,k) + uadxm1_d(j,i,k))/(ddx*ddx)
-          xdis = - uadvx_d(j,i,k)*dt + 0.5D0* (dtsq*uadvx_d(j,i,k)*ux) - &
-                   (dtcb*uadvx_d(j,i,k))*(ux*ux+uadvx_d(j,i,k)*uxx)/6.0D0
+                  2.0_rkx*uadvx_d(j,i,k) + uadxm1_d(j,i,k))/(ddx*ddx)
+          xdis = - uadvx_d(j,i,k)*dt + 0.5_rkx* (dtsq*uadvx_d(j,i,k)*ux) - &
+                   (dtcb*uadvx_d(j,i,k))*(ux*ux+uadvx_d(j,i,k)*uxx)/6.0_rkx
           xn = xdis/ddx
           xnp = int(xn)
           if ( abs(xnp) > 2 ) then
@@ -281,11 +281,11 @@ module mod_sladvection
 
           ! for the y (meridional) direction
 
-          vy = 0.5D0*(vadyp1_d(j,i,k) - vadym1_d(j,i,k))/ddy
-          vyy = (vadyp1_d(j,i,k) - 2.0D0*vadvy_d(j,i,k) + &
+          vy = 0.5_rkx*(vadyp1_d(j,i,k) - vadym1_d(j,i,k))/ddy
+          vyy = (vadyp1_d(j,i,k) - 2.0_rkx*vadvy_d(j,i,k) + &
                  vadym1_d(j,i,k))/(ddy*ddy)
-          ydis = - vadvy_d(j,i,k)*dt + 0.5D0*(dtsq*vadvy_d(j,i,k)*vy) - &
-                 (dtcb*vadvy_d(j,i,k))*(vy*vy +vadvy_d(j,i,k)*vyy)/6.0D0
+          ydis = - vadvy_d(j,i,k)*dt + 0.5_rkx*(dtsq*vadvy_d(j,i,k)*vy) - &
+                 (dtcb*vadvy_d(j,i,k))*(vy*vy +vadvy_d(j,i,k)*vyy)/6.0_rkx
           yn = ydis/ddy
           ynp = int(yn)
           if ( abs(ynp) > 2 ) then
@@ -293,7 +293,7 @@ module mod_sladvection
             call fatal(__FILE__,__LINE__,'SLADVECTION')
           end if
           betay = abs((ynp*ddy - ydis)/ddy)
-          ysn = int(sign(1.0D0,yn))
+          ysn = int(sign(1.0_rkx,yn))
           yndp_d(j,i,k) = i + ynp
           ynnm1dp_d(j,i,k) = yndp_d(j,i,k) + ysn
           ynnm2dp_d(j,i,k) = ynnm1dp_d(j,i,k) + ysn
@@ -316,14 +316,14 @@ module mod_sladvection
 
           ! weighting coefficients
           alffbl_d(j,i,k) = alfax
-          alfm2dp_d(j,i,k) = -(alfax*(1.0D0 - alfax*alfax))/6.0D0
-          alfm1dp_d(j,i,k) = (alfax*(1.0D0 + alfax)*(2.0D0 - alfax))/2.0D0
-          alfdp_d(j,i,k) = ((1.0D0 - alfax*alfax)*(2.0D0 - alfax))/2.0D0
-          alfp1dp_d(j,i,k) = -(alfax*(1.0D0 - alfax)*(2.0D0 - alfax))/6.0D0
-          betm2dp_d(j,i,k) = -(betay*(1.0D0 - betay*betay))/6.0D0
-          betm1dp_d(j,i,k) = (betay*(1.0D0 + betay)*(2.0D0 - betay))/2.0D0
-          betdp_d(j,i,k) = ((1.0D0 - betay*betay)*(2.0D0 - betay))/2.0D0
-          betp1dp_d(j,i,k) = -(betay*(1.0D0 - betay)*(2.0D0 - betay))/6.0D0
+          alfm2dp_d(j,i,k) = -(alfax*(1.0_rkx - alfax*alfax))/6.0_rkx
+          alfm1dp_d(j,i,k) = (alfax*(1.0_rkx + alfax)*(2.0_rkx - alfax))/2.0_rkx
+          alfdp_d(j,i,k) = ((1.0_rkx - alfax*alfax)*(2.0_rkx - alfax))/2.0_rkx
+          alfp1dp_d(j,i,k) = -(alfax*(1.0_rkx - alfax)*(2.0_rkx - alfax))/6.0_rkx
+          betm2dp_d(j,i,k) = -(betay*(1.0_rkx - betay*betay))/6.0_rkx
+          betm1dp_d(j,i,k) = (betay*(1.0_rkx + betay)*(2.0_rkx - betay))/2.0_rkx
+          betdp_d(j,i,k) = ((1.0_rkx - betay*betay)*(2.0_rkx - betay))/2.0_rkx
+          betp1dp_d(j,i,k) = -(betay*(1.0_rkx - betay)*(2.0_rkx - betay))/6.0_rkx
         end do
       end do
     end do
@@ -334,9 +334,9 @@ module mod_sladvection
 
   subroutine slhadv_x3d(ften,var)
     implicit none
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ften
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: var
-    real(rk8) :: tbadp , tbmax , tbmin , tsla , bl1 , bl2 , cb1 , cb2
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: var
+    real(rkx) :: tbadp , tbmax , tbmin , tsla , bl1 , bl2 , cb1 , cb2
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'slhadv_x3d'
@@ -400,10 +400,10 @@ module mod_sladvection
 
   subroutine slhadv_x4d(ften,var,m,p)
     implicit none
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: var
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: var
     integer(ik4) , optional , intent(in) :: m , p
-    real(rk8) :: tbadp , tbmax , tbmin , tsla , bl1 , bl2 , cb1 , cb2
+    real(rkx) :: tbadp , tbmax , tbmin , tsla , bl1 , bl2 , cb1 , cb2
     integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'slhadv_x4d'
@@ -480,10 +480,10 @@ module mod_sladvection
 
   subroutine slhadv_d(ften,var)
     implicit none
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ften
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: var
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: var
 
-    real(rk8) :: tbadp , tbmax , tbmin , tsla , bl1 , bl2 , cb1 , cb2
+    real(rkx) :: tbadp , tbmax , tbmin , tsla , bl1 , bl2 , cb1 , cb2
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'slhadv_d'
@@ -544,11 +544,11 @@ module mod_sladvection
 
   subroutine hdvg_x3d(ften,var)
     implicit none
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ften
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: var
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: var
 
-    real(rk8) :: ucapf_x, ucapi_x , vcapf_x , vcapi_x
-    real(rk8) :: ducapdx , dvcapdy , hdvg , tatotdvtrm
+    real(rkx) :: ucapf_x, ucapi_x , vcapf_x , vcapi_x
+    real(rkx) :: ducapdx , dvcapdy , hdvg , tatotdvtrm
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'hdvg_x3d'
@@ -568,20 +568,20 @@ module mod_sladvection
                      va(j,i,k)     * mapfd(j,i))*d_half
           ducapdx = (ucapf_x - ucapi_x) / dx
           dvcapdy = (vcapf_x - vcapi_x) / dx
-          !ucapf_x = 0.25D0 * &
+          !ucapf_x = 0.25_rkx * &
           !  (ua(j+1,i,k)   + ua(j+1,i+1,k) + &
           !   ua(j+2,i+1,k) + ua(j+2,i,k)) * mapfx(j+1,i)
-          !ucapi_x = 0.25D0 * &
+          !ucapi_x = 0.25_rkx * &
           !  (ua(j,i,k)     + ua(j,i+1,k) + &
           !   ua(j-1,i+1,k) + ua(j-1,i,k)) * mapfx(j-1,i)
-          !vcapf_x = 0.25D0 * &
+          !vcapf_x = 0.25_rkx * &
           !  (va(j,i+1,k)   + va(j+1,i+1,k) + &
           !   va(j+1,i+2,k) + va(j,i+2,k)) * mapfx(j,i+1)
-          !vcapi_x = 0.25D0 * &
+          !vcapi_x = 0.25_rkx * &
           !  (va(j,i,k)     + va(j,i-1,k) + &
           !   va(j+1,i-1,k) + va(j+1,i,k)) * mapfx(j,i-1)
-          !ducapdx = (ucapf_x - ucapi_x) / (2.0D0*dx)
-          !dvcapdy = (vcapf_x - vcapi_x) / (2.0D0*dx)
+          !ducapdx = (ucapf_x - ucapi_x) / (2.0_rkx*dx)
+          !dvcapdy = (vcapf_x - vcapi_x) / (2.0_rkx*dx)
           hdvg = (ducapdx + dvcapdy) / (mapfx(j,i)*mapfx(j,i))
           tatotdvtrm = var(j,i,k)*hdvg
           ften(j,i,k) = ften(j,i,k) - tatotdvtrm
@@ -595,11 +595,11 @@ module mod_sladvection
 
   subroutine hdvg_x4d(ften,var,m,p)
     implicit none
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: var
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: var
     integer(ik4) , optional , intent(in) :: m , p
-    real(rk8) :: ucapf_x, ucapi_x , vcapf_x , vcapi_x
-    real(rk8) :: ducapdx , dvcapdy , hdvg , tatotdvtrm
+    real(rkx) :: ucapf_x, ucapi_x , vcapf_x , vcapi_x
+    real(rkx) :: ducapdx , dvcapdy , hdvg , tatotdvtrm
     integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'hdvg_x4d'
@@ -632,22 +632,27 @@ module mod_sladvection
                        va(j,i,k)     * mapfd(j,i))*d_half
             ducapdx = (ucapf_x - ucapi_x) / dx
             dvcapdy = (vcapf_x - vcapi_x) / dx
-            !ucapf_x = 0.25D0 * &
+            !ucapf_x = 0.25_rkx * &
             !  (ua(j+1,i,k) + ua(j+1,i+1,k) + &
             !   ua(j+2,i+1,k) + ua(j+2,i,k)) * mapfx(j+1,i)
-            !ucapi_x = 0.25D0 * &
+            !ucapi_x = 0.25_rkx * &
             !  (ua(j,i,k) + ua(j,i+1,k) + &
             !   ua(j-1,i+1,k) + ua(j-1,i,k)) * mapfx(j-1,i)
-            !vcapf_x = 0.25D0 * &
+            !vcapf_x = 0.25_rkx * &
             !  (va(j,i+1,k) + va(j+1,i+1,k) + &
             !   va(j+1,i+2,k) + va(j,i+2,k)) * mapfx(j,i+1)
-            !vcapi_x = 0.25D0 * &
+            !vcapi_x = 0.25_rkx * &
             !  (va(j,i,k) + va(j,i-1,k) + &
             !   va(j+1,i-1,k) + va(j+1,i,k)) * mapfx(j,i-1)
-            !ducapdx = (ucapf_x - ucapi_x) / (2.0D0*dx)
-            !dvcapdy = (vcapf_x - vcapi_x) / (2.0D0*dx)
+            !ducapdx = (ucapf_x - ucapi_x) / (2.0_rkx*dx)
+            !dvcapdy = (vcapf_x - vcapi_x) / (2.0_rkx*dx)
             hdvg = (ducapdx + dvcapdy) / (mapfx(j,i)*mapfx(j,i))
-            tatotdvtrm = var(j,i,k,n)*hdvg
+            ! Always positive values here !
+            if ( var(j,i,k,n) > epsilon(d_one) ) then
+              tatotdvtrm = var(j,i,k,n)*hdvg
+            else
+              tatotdvtrm = d_zero
+            end if
             ften(j,i,k,n) = ften(j,i,k,n) - tatotdvtrm
           end do
         end do
@@ -660,9 +665,9 @@ module mod_sladvection
 
   subroutine hdvg_d(ften,var)
     implicit none
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: ften
-    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: var
-    real(rk8) :: ucapf, ucapi , ducapdx , vcapf , vcapi ,   &
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
+    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: var
+    real(rkx) :: ucapf, ucapi , ducapdx , vcapf , vcapi ,   &
                  dvcapdy , hdvg , tatotdvtrm
     integer(ik4) :: i , j , k
 #ifdef DEBUG
@@ -675,10 +680,10 @@ module mod_sladvection
         do j = jdi1 , jdi2
           ucapf = ua(j+1,i,k) * mapfd(j+1,i)
           ucapi = ua(j-1,i,k) * mapfd(j-1,i)
-          ducapdx = (ucapf - ucapi) / (2.0D0*dx)
+          ducapdx = (ucapf - ucapi) / (2.0_rkx*dx)
           vcapf = va(j,i+1,k) * mapfd(j,i+1)
           vcapi = va(j,i-1,k) * mapfd(j,i-1)
-          dvcapdy = (vcapf - vcapi) / (2.0D0*dx)
+          dvcapdy = (vcapf - vcapi) / (2.0_rkx*dx)
           hdvg = (ducapdx + dvcapdy) / (mapfd(j,i)*mapfd(j,i))
           tatotdvtrm = var(j,i,k)*hdvg
           ften(j,i,k) = ften(j,i,k) - tatotdvtrm

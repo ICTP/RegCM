@@ -52,13 +52,13 @@ module mod_che_bdyco
 
   type(rcm_time_and_date) , save :: chbdydate1 , chbdydate2
 
-  real(rk8) , pointer , dimension(:,:,:,:) :: chib0 , chib1 , chibt , oxcl
-  real(rk8) , pointer , dimension(:,:) :: cefc , cegc
+  real(rkx) , pointer , dimension(:,:,:,:) :: chib0 , chib1 , chibt , oxcl
+  real(rkx) , pointer , dimension(:,:) :: cefc , cegc
   integer(ik4) , pointer , dimension(:) :: ichbdy2trac
   !
   ! Boundary conditions arrays
   !
-  real(rk8) , pointer , dimension(:,:,:,:) :: chebdy
+  real(rkx) , pointer , dimension(:,:,:,:) :: chebdy
 
   integer(ik4) , parameter :: max_input_tracers = 50
   integer(ik4) , parameter :: noxcl = 5
@@ -413,7 +413,7 @@ module mod_che_bdyco
 
   subroutine chem_bdyval
     implicit none
-    real(rk8) :: xt
+    real(rkx) :: xt
     integer(ik4) :: itr , j , k , i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_bdyval'
@@ -548,11 +548,11 @@ module mod_che_bdyco
   subroutine nudge_chi(nk,f,ften)
     implicit none
     integer(ik4) , intent(in) :: nk
-    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: f
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
+    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: f
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
 
-    real(rk8) :: xt , xf , xg
-    real(rk8), dimension(ntr) :: fls0 , fls1 , fls2 , fls3 , fls4
+    real(rkx) :: xt , xf , xg
+    real(rkx), dimension(ntr) :: fls0 , fls1 , fls2 , fls3 , fls4
 
     integer(ik4) :: i , j , k , ib
 #ifdef DEBUG
@@ -646,12 +646,12 @@ module mod_che_bdyco
   subroutine setup_che_bdycon
     implicit none
     integer(ik4) :: n , k
-    real(rk8) :: fnudge , gnudge
+    real(rkx) :: fnudge , gnudge
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
-    fnudge = 0.1D0/dt2
-    gnudge = (dxsq/dt)/50.0D0
+    fnudge = 0.1_rkx/dt2
+    gnudge = (dxsq/dt)/50.0_rkx
     do k = 1 , kz
       do n = 2 , nspgx-1
         cefc(n,k) = fnudge*xfune(n,k)
@@ -662,9 +662,9 @@ module mod_che_bdyco
 !
   function xfune(mm,kk)
     implicit none
-    real(rk8) :: xfune
+    real(rkx) :: xfune
     integer(ik4) , intent(in) :: mm , kk
-    xfune = dexp(-dble(mm-2)/anudgh(kk))
+    xfune = exp(-real(mm-2,rkx)/anudgh(kk))
   end function xfune
 !
 end module mod_che_bdyco

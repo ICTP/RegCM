@@ -96,23 +96,23 @@ module mod_clm_hydrology1
     ! pft filter for non-lake points
     integer(ik4), intent(in) :: filter_nolakep(ubp-lbp+1)
 
-    real(rk8), pointer :: swe_old(:,:)   ! snow water before update
+    real(rkx), pointer :: swe_old(:,:)   ! snow water before update
     ! eff. fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno_eff(:)
+    real(rkx), pointer :: frac_sno_eff(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno(:)
-    real(rk8), pointer :: h2osfc(:)         ! surface water (mm)
+    real(rkx), pointer :: frac_sno(:)
+    real(rkx), pointer :: h2osfc(:)         ! surface water (mm)
     ! fraction of ground covered by surface water (0 to 1)
-    real(rk8), pointer :: frac_h2osfc(:)
+    real(rkx), pointer :: frac_h2osfc(:)
     !snow falling on surface water (mm/s)
-    real(rk8), pointer :: qflx_snow_h2osfc(:)
+    real(rkx), pointer :: qflx_snow_h2osfc(:)
     ! integrated snowfall [mm]
-    real(rk8), pointer :: int_snow(:)
+    real(rkx), pointer :: int_snow(:)
     ! gridcell flux of flood water from RTM
-    real(rk8), pointer :: qflx_floodg(:)
-    real(rk8), pointer :: qflx_floodc(:) ! column flux of flood water from RTM
-    real(rk8), pointer :: qflx_snow_melt(:) ! snow melt from previous time step
-    real(rk8), pointer :: n_melt(:)         ! SCA shape parameter
+    real(rkx), pointer :: qflx_floodg(:)
+    real(rkx), pointer :: qflx_floodc(:) ! column flux of flood water from RTM
+    real(rkx), pointer :: qflx_snow_melt(:) ! snow melt from previous time step
+    real(rkx), pointer :: n_melt(:)         ! SCA shape parameter
     integer(ik4) , pointer :: cgridcell(:)  ! columns's gridcell
     integer(ik4) , pointer :: clandunit(:)  ! columns's landunit
     integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell
@@ -122,94 +122,94 @@ module mod_clm_hydrology1
     integer(ik4) , pointer :: pfti(:)       ! column's beginning pft index
     integer(ik4) , pointer :: ltype(:)      ! landunit type
     integer(ik4) , pointer :: ctype(:)      ! column type
-    real(rk8), pointer :: forc_rain(:)      ! rain rate [mm/s]
-    real(rk8), pointer :: forc_snow(:)      ! snow rate [mm/s]
-    real(rk8), pointer :: forc_t(:)         ! atmospheric temperature (Kelvin)
+    real(rkx), pointer :: forc_rain(:)      ! rain rate [mm/s]
+    real(rkx), pointer :: forc_snow(:)      ! snow rate [mm/s]
+    real(rkx), pointer :: forc_t(:)         ! atmospheric temperature (Kelvin)
     logical , pointer :: do_capsnow(:)      ! true => do snow capping
-    real(rk8), pointer :: t_grnd(:)         ! ground temperature (Kelvin)
-    real(rk8), pointer :: dewmx(:)          ! Maximum allowed dew [mm]
+    real(rkx), pointer :: t_grnd(:)         ! ground temperature (Kelvin)
+    real(rkx), pointer :: dewmx(:)          ! Maximum allowed dew [mm]
     ! fraction of veg not covered by snow (0/1 now) [-]
     integer(ik4) , pointer :: frac_veg_nosno(:)
     ! one-sided leaf area index with burying by snow
-    real(rk8), pointer :: elai(:)
+    real(rkx), pointer :: elai(:)
     ! one-sided stem area index with burying by snow
-    real(rk8), pointer :: esai(:)
+    real(rkx), pointer :: esai(:)
     ! canopy water mass balance term (column)
-    real(rk8), pointer :: h2ocan_loss(:)
+    real(rkx), pointer :: h2ocan_loss(:)
     ! current irrigation rate (applied if n_irrig_steps_left > 0) [mm/s]
-    real(rk8), pointer :: irrig_rate(:)
+    real(rkx), pointer :: irrig_rate(:)
 
     integer(ik4) , pointer :: snl(:)        ! number of snow layers
-    real(rk8), pointer :: snow_depth(:)     ! snow height (m)
-    real(rk8), pointer :: h2osno(:)         ! snow water (mm H2O)
-    real(rk8), pointer :: h2ocan(:)         ! total canopy water (mm H2O)
-    real(rk8), pointer :: qflx_irrig(:)     ! irrigation amount (mm/s)
+    real(rkx), pointer :: snow_depth(:)     ! snow height (m)
+    real(rkx), pointer :: h2osno(:)         ! snow water (mm H2O)
+    real(rkx), pointer :: h2ocan(:)         ! total canopy water (mm H2O)
+    real(rkx), pointer :: qflx_irrig(:)     ! irrigation amount (mm/s)
     ! number of time steps for which we still need to irrigate today
     integer(ik4), pointer  :: n_irrig_steps_left(:)
 
     ! interception of precipitation [mm/s]
-    real(rk8), pointer :: qflx_prec_intr(:)
+    real(rkx), pointer :: qflx_prec_intr(:)
     ! water onto ground including canopy runoff [kg/(m2 s)]
-    real(rk8), pointer :: qflx_prec_grnd(:)
+    real(rkx), pointer :: qflx_prec_grnd(:)
     ! excess rainfall due to snow capping (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_snwcp_liq(:)
+    real(rkx), pointer :: qflx_snwcp_liq(:)
     ! excess snowfall due to snow capping (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_snwcp_ice(:)
+    real(rkx), pointer :: qflx_snwcp_ice(:)
     ! snow on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_snow_grnd_pft(:)
+    real(rkx), pointer :: qflx_snow_grnd_pft(:)
     ! snow on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_snow_grnd_col(:)
+    real(rkx), pointer :: qflx_snow_grnd_col(:)
     ! rain on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_rain_grnd(:)
+    real(rkx), pointer :: qflx_rain_grnd(:)
     ! fraction of canopy that is wet (0 to 1)
-    real(rk8), pointer :: fwet(:)
+    real(rkx), pointer :: fwet(:)
     ! fraction of foliage that is green and dry [-] (new)
-    real(rk8), pointer :: fdry(:)
+    real(rkx), pointer :: fdry(:)
     ! interface level below a "z" level (m)
-    real(rk8), pointer :: zi(:,:)
-    real(rk8), pointer :: dz(:,:)   ! layer depth (m)
-    real(rk8), pointer :: z(:,:)    ! layer thickness (m)
-    real(rk8), pointer :: t_soisno(:,:)      ! soil temperature (Kelvin)
-    real(rk8), pointer :: h2osoi_ice(:,:)    ! ice lens (kg/m2)
-    real(rk8), pointer :: h2osoi_liq(:,:)    ! liquid water (kg/m2)
+    real(rkx), pointer :: zi(:,:)
+    real(rkx), pointer :: dz(:,:)   ! layer depth (m)
+    real(rkx), pointer :: z(:,:)    ! layer thickness (m)
+    real(rkx), pointer :: t_soisno(:,:)      ! soil temperature (Kelvin)
+    real(rkx), pointer :: h2osoi_ice(:,:)    ! ice lens (kg/m2)
+    real(rkx), pointer :: h2osoi_liq(:,:)    ! liquid water (kg/m2)
     ! fraction of ice relative to the tot water
-    real(rk8), pointer :: frac_iceold(:,:)
+    real(rkx), pointer :: frac_iceold(:,:)
     ! effective snow grain radius (col,lyr) [microns, m^-6]
-    real(rk8), pointer :: snw_rds(:,:)
+    real(rkx), pointer :: snw_rds(:,:)
     ! mass of hydrophobic BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcpho(:,:)
+    real(rkx), pointer :: mss_bcpho(:,:)
     ! mass of hydrophilic BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcphi(:,:)
+    real(rkx), pointer :: mss_bcphi(:,:)
     ! total mass of BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bctot(:,:)
+    real(rkx), pointer :: mss_bctot(:,:)
     ! total column mass of BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bc_col(:)
+    real(rkx), pointer :: mss_bc_col(:)
     ! total top-layer mass of BC (col,lyr) [kg]
-    real(rk8), pointer :: mss_bc_top(:)
+    real(rkx), pointer :: mss_bc_top(:)
     ! mass of hydrophobic OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocpho(:,:)
+    real(rkx), pointer :: mss_ocpho(:,:)
     ! mass of hydrophilic OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocphi(:,:)
+    real(rkx), pointer :: mss_ocphi(:,:)
     ! total mass of OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_octot(:,:)
+    real(rkx), pointer :: mss_octot(:,:)
     ! total column mass of OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_oc_col(:)
+    real(rkx), pointer :: mss_oc_col(:)
     ! total top-layer mass of OC (col,lyr) [kg]
-    real(rk8), pointer :: mss_oc_top(:)
+    real(rkx), pointer :: mss_oc_top(:)
     ! mass of dust species 1 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst1(:,:)
+    real(rkx), pointer :: mss_dst1(:,:)
     ! mass of dust species 2 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst2(:,:)
+    real(rkx), pointer :: mss_dst2(:,:)
     ! mass of dust species 3 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst3(:,:)
+    real(rkx), pointer :: mss_dst3(:,:)
     ! mass of dust species 4 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst4(:,:)
+    real(rkx), pointer :: mss_dst4(:,:)
     ! total mass of dust in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dsttot(:,:)
+    real(rkx), pointer :: mss_dsttot(:,:)
     ! total column mass of dust in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst_col(:)
+    real(rkx), pointer :: mss_dst_col(:)
     ! total top-layer mass of dust in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst_top(:)
+    real(rkx), pointer :: mss_dst_top(:)
 
     integer(ik4)  :: f     ! filter index
     integer(ik4)  :: p     ! pft index
@@ -217,31 +217,31 @@ module mod_clm_hydrology1
     integer(ik4)  :: l     ! landunit index
     integer(ik4)  :: g     ! gridcell index
     integer(ik4)  :: newnode ! flag when new snow node is set, (1=yes, 0=no)
-    real(rk8) :: h2ocanmx  ! maximum allowed water on canopy [mm]
-    real(rk8) :: fpi       ! coefficient of interception
-    real(rk8) :: xrun      ! excess water that exceeds the leaf capacity [mm/s]
+    real(rkx) :: h2ocanmx  ! maximum allowed water on canopy [mm]
+    real(rkx) :: fpi       ! coefficient of interception
+    real(rkx) :: xrun      ! excess water that exceeds the leaf capacity [mm/s]
     ! layer thickness rate change due to precipitation [mm/s]
-    real(rk8) :: dz_snowf
+    real(rkx) :: dz_snowf
     ! bulk density of newly fallen dry snow [kg/m3]
-    real(rk8) :: bifall
-    real(rk8) :: fracsnow(lbp:ubp)     ! frac of precipitation that is snow
-    real(rk8) :: fracrain(lbp:ubp)     ! frac of precipitation that is rain
+    real(rkx) :: bifall
+    real(rkx) :: fracsnow(lbp:ubp)     ! frac of precipitation that is snow
+    real(rkx) :: fracrain(lbp:ubp)     ! frac of precipitation that is rain
     ! rate of canopy runoff and snow falling off canopy [mm/s]
-    real(rk8) :: qflx_candrip(lbp:ubp)
-    real(rk8) :: qflx_through_rain(lbp:ubp)   ! direct rain throughfall [mm/s]
-    real(rk8) :: qflx_through_snow(lbp:ubp)   ! direct snow throughfall [mm/s]
+    real(rkx) :: qflx_candrip(lbp:ubp)
+    real(rkx) :: qflx_through_rain(lbp:ubp)   ! direct rain throughfall [mm/s]
+    real(rkx) :: qflx_through_snow(lbp:ubp)   ! direct snow throughfall [mm/s]
     ! snow precipitation incident on ground [mm/s]
-    real(rk8) :: qflx_prec_grnd_snow(lbp:ubp)
+    real(rkx) :: qflx_prec_grnd_snow(lbp:ubp)
     ! rain precipitation incident on ground [mm/s]
-    real(rk8) :: qflx_prec_grnd_rain(lbp:ubp)
-    real(rk8) :: z_avg                        ! grid cell average snow depth
-    real(rk8) :: temp_snow_depth,temp_intsnow ! temporary variables
-    real(rk8) :: fmelt
-    real(rk8) :: smr
-    real(rk8) :: fsno_new
-    real(rk8) :: accum_factor
-    real(rk8) :: newsnow(lbc:ubc)
-    real(rk8) :: snowmelt(lbc:ubc)
+    real(rkx) :: qflx_prec_grnd_rain(lbp:ubp)
+    real(rkx) :: z_avg                        ! grid cell average snow depth
+    real(rkx) :: temp_snow_depth,temp_intsnow ! temporary variables
+    real(rkx) :: fmelt
+    real(rkx) :: smr
+    real(rkx) :: fsno_new
+    real(rkx) :: accum_factor
+    real(rkx) :: newsnow(lbc:ubc)
+    real(rkx) :: snowmelt(lbc:ubc)
     integer(ik4)  :: j
 
     ! Assign local pointers to derived type members (gridcell-level)
@@ -343,17 +343,17 @@ module mod_clm_hydrology1
            ltype(l) == istwet .or.  &
            ltype(l) == isturb .or.  &
            ltype(l) == istcrop) then
-        qflx_candrip(p) = 0.D0      ! rate of canopy runoff
-        qflx_through_snow(p) = 0.D0 ! rain precipitation direct through canopy
-        qflx_through_rain(p) = 0.D0 ! snow precipitation direct through canopy
-        qflx_prec_intr(p) = 0.D0    ! total intercepted precipitation
-        fracsnow(p) = 0.D0          ! fraction of input precip that is snow
-        fracrain(p) = 0.D0          ! fraction of input precip that is rain
+        qflx_candrip(p) = 0._rkx      ! rate of canopy runoff
+        qflx_through_snow(p) = 0._rkx ! rain precipitation direct through canopy
+        qflx_through_rain(p) = 0._rkx ! snow precipitation direct through canopy
+        qflx_prec_intr(p) = 0._rkx    ! total intercepted precipitation
+        fracsnow(p) = 0._rkx          ! fraction of input precip that is snow
+        fracrain(p) = 0._rkx          ! fraction of input precip that is rain
 
         if ( ctype(c) /= icol_sunwall .and. &
              ctype(c) /= icol_shadewall ) then
           if ( frac_veg_nosno(p) == 1 .and. &
-               (forc_rain(g) + forc_snow(g)) > 0.D0 ) then
+               (forc_rain(g) + forc_snow(g)) > 0._rkx ) then
 
             ! determine fraction of input precipitation that is snow and rain
 
@@ -369,41 +369,41 @@ module mod_clm_hydrology1
 
             ! Coefficient of interception
             ! set fraction of potential interception to max 0.25
-            fpi = 0.25D0*(1.D0 - exp(-0.5D0*(elai(p) + esai(p))))
+            fpi = 0.25_rkx*(1._rkx - exp(-0.5_rkx*(elai(p) + esai(p))))
 
             ! Direct throughfall
-            qflx_through_snow(p) = forc_snow(g) * (1.D0-fpi)
-            qflx_through_rain(p) = forc_rain(g) * (1.D0-fpi)
+            qflx_through_snow(p) = forc_snow(g) * (1._rkx-fpi)
+            qflx_through_rain(p) = forc_rain(g) * (1._rkx-fpi)
 
             ! Intercepted precipitation [mm/s]
             qflx_prec_intr(p) = (forc_snow(g) + forc_rain(g)) * fpi
 
             ! Water storage of intercepted precipitation and dew
-            h2ocan(p) = max(0.D0, h2ocan(p) + dtsrf*qflx_prec_intr(p))
-            if ( h2ocan(p) < 1.0D-10 ) h2ocan(p) = 0.0D0
+            h2ocan(p) = max(0._rkx, h2ocan(p) + dtsrf*qflx_prec_intr(p))
+            if ( h2ocan(p) < 1.0e-10_rkx ) h2ocan(p) = 0.0_rkx
 
             ! Initialize rate of canopy runoff and snow falling off canopy
-            qflx_candrip(p) = 0.D0
+            qflx_candrip(p) = 0._rkx
 
             ! Excess water that exceeds the leaf capacity
             xrun = (h2ocan(p) - h2ocanmx)/dtsrf
 
             ! Test on maximum dew on leaf
             ! Note if xrun > 0 then h2ocan must be at least h2ocanmx
-            if ( xrun > 0.D0 ) then
+            if ( xrun > 0._rkx ) then
               qflx_candrip(p) = xrun
               h2ocan(p) = h2ocanmx
             end if
           end if
         end if
       else if ( ltype(l) == istice ) then
-        h2ocan(p)            = 0.D0
-        qflx_candrip(p)      = 0.D0
-        qflx_through_snow(p) = 0.D0
-        qflx_through_rain(p) = 0.D0
-        qflx_prec_intr(p)    = 0.D0
-        fracsnow(p)          = 0.D0
-        fracrain(p)          = 0.D0
+        h2ocan(p)            = 0._rkx
+        qflx_candrip(p)      = 0._rkx
+        qflx_through_snow(p) = 0._rkx
+        qflx_through_rain(p) = 0._rkx
+        qflx_prec_intr(p)    = 0._rkx
+        fracsnow(p)          = 0._rkx
+        fracrain(p)          = 0._rkx
       end if
 
       ! Precipitation onto ground (kg/(m2 s))
@@ -426,8 +426,8 @@ module mod_clm_hydrology1
         end if
       ! Urban sunwall and shadewall have no intercepted precipitation
       else
-        qflx_prec_grnd_snow(p) = 0.0D0
-        qflx_prec_grnd_rain(p) = 0.0D0
+        qflx_prec_grnd_snow(p) = 0.0_rkx
+        qflx_prec_grnd_rain(p) = 0.0_rkx
       end if
 
       ! Determine whether we're irrigating here; set qflx_irrig appropriately
@@ -435,7 +435,7 @@ module mod_clm_hydrology1
         qflx_irrig(c)         = irrig_rate(c)
         n_irrig_steps_left(c) = n_irrig_steps_left(c) - 1
       else
-        qflx_irrig(c) = 0.D0
+        qflx_irrig(c) = 0._rkx
       end if
 
       ! Add irrigation water directly onto ground (bypassing canopy
@@ -452,11 +452,11 @@ module mod_clm_hydrology1
         qflx_snwcp_liq(p) = qflx_prec_grnd_rain(p)
         qflx_snwcp_ice(p) = qflx_prec_grnd_snow(p)
 
-        qflx_snow_grnd_pft(p) = 0.D0
-        qflx_rain_grnd(p) = 0.D0
+        qflx_snow_grnd_pft(p) = 0._rkx
+        qflx_rain_grnd(p) = 0._rkx
       else
-        qflx_snwcp_liq(p) = 0.D0
-        qflx_snwcp_ice(p) = 0.D0
+        qflx_snwcp_liq(p) = 0._rkx
+        qflx_snwcp_ice(p) = 0._rkx
         ! ice onto ground (mm/s)
         qflx_snow_grnd_pft(p) = qflx_prec_grnd_snow(p)
         ! liquid water onto ground (mm/s)
@@ -481,7 +481,7 @@ module mod_clm_hydrology1
            ctype(c) /= icol_shadewall ) then
         qflx_floodc(c) = qflx_floodg(g)
       else
-        qflx_floodc(c) = 0.D0
+        qflx_floodc(c) = 0._rkx
       end if
     end do
 
@@ -496,33 +496,33 @@ module mod_clm_hydrology1
       ! U.S.Department of Agriculture Forest Service, Project F,
       ! Progress Rep. 1, Alta Avalanche Study Center:Snow Layer Densification.
 
-      qflx_snow_h2osfc(c) = 0.D0
+      qflx_snow_h2osfc(c) = 0._rkx
       ! set temporary variables prior to updating
       temp_snow_depth=snow_depth(c)
       ! save initial snow content
       do j = -nlevsno+1 , snl(c)
-        swe_old(c,j) = 0.0D0
+        swe_old(c,j) = 0.0_rkx
       end do
       do j = snl(c)+1 , 0
         swe_old(c,j) = h2osoi_liq(c,j)+h2osoi_ice(c,j)
       end do
 
       if ( do_capsnow(c) ) then
-        dz_snowf = 0.D0
-        newsnow(c) = (1.D0 - frac_h2osfc(c)) * qflx_snow_grnd_col(c) * dtsrf
-        frac_sno(c) = 1.D0
-        int_snow(c) = 5.D2
+        dz_snowf = 0._rkx
+        newsnow(c) = (1._rkx - frac_h2osfc(c)) * qflx_snow_grnd_col(c) * dtsrf
+        frac_sno(c) = 1._rkx
+        int_snow(c) = 5.e2_rkx
       else
-        if ( forc_t(c) > tfrz + 2.D0 ) then
-          bifall = 50.D0 + 1.7D0*(17.0D0)**1.5D0
-        else if ( forc_t(c) > tfrz - 15.D0 ) then
-          bifall = 50.D0 + 1.7D0*(forc_t(c) - tfrz + 15.D0)**1.5D0
+        if ( forc_t(c) > tfrz + 2._rkx ) then
+          bifall = 50._rkx + 1.7_rkx*(17.0_rkx)**1.5_rkx
+        else if ( forc_t(c) > tfrz - 15._rkx ) then
+          bifall = 50._rkx + 1.7_rkx*(forc_t(c) - tfrz + 15._rkx)**1.5_rkx
         else
-          bifall = 50.D0
+          bifall = 50._rkx
         end if
 
         ! newsnow is all snow that doesn't fall on h2osfc
-        newsnow(c) = (1.D0 - frac_h2osfc(c)) * qflx_snow_grnd_col(c) * dtsrf
+        newsnow(c) = (1._rkx - frac_h2osfc(c)) * qflx_snow_grnd_col(c) * dtsrf
 
         ! update int_snow
         !h2osno could be larger due to frost
@@ -532,40 +532,40 @@ module mod_clm_hydrology1
         snowmelt(c) = qflx_snow_melt(c) * dtsrf
 
         ! set shape factor for accumulation of snow
-        accum_factor = 0.1D0
+        accum_factor = 0.1_rkx
 
         if ( h2osno(c) > 0.0 ) then
 
           !==================  FSCA PARAMETERIZATIONS  ===================
           ! fsca parameterization based on *changes* in swe
           ! first compute change from melt during previous time step
-          if ( snowmelt(c) > 0.D0 ) then
-            smr = min(1.D0,(h2osno(c))/(int_snow(c)))
-            frac_sno(c) = 1.0D0 - &
-                    (acos(min(1.D0,(2.*smr - 1.D0)))/rpi)**(n_melt(c))
+          if ( snowmelt(c) > 0._rkx ) then
+            smr = min(1._rkx,(h2osno(c))/(int_snow(c)))
+            frac_sno(c) = 1.0_rkx - &
+                    (acos(min(1._rkx,(2.*smr - 1._rkx)))/rpi)**(n_melt(c))
           end if
 
           ! update fsca by new snow event, add to previous fsca
-          if ( newsnow(c) > 0.D0 ) then
-            fsno_new = 1.D0 - &
-                    (1.D0 - tanh(accum_factor*newsnow(c)))*(1.D0 - frac_sno(c))
+          if ( newsnow(c) > 0._rkx ) then
+            fsno_new = 1._rkx - &
+                    (1._rkx - tanh(accum_factor*newsnow(c)))*(1._rkx - frac_sno(c))
             frac_sno(c) = fsno_new
 
             ! reset int_snow after accumulation events
             temp_intsnow = (h2osno(c) + newsnow(c)) / &
-                   (0.5D0*(cos(rpi*(1.D0-max(frac_sno(c),1D-6))** &
-                   (1.0D0/n_melt(c)))+1.D0))
-            int_snow(c) = min(1.D8,temp_intsnow)
+                   (0.5_rkx*(cos(rpi*(1._rkx-max(frac_sno(c),1e-6_rkx))** &
+                   (1.0_rkx/n_melt(c)))+1._rkx))
+            int_snow(c) = min(1.e8_rkx,temp_intsnow)
           end if
 
           !====================================================================
 
           ! for subgrid fluxes
           if ( subgridflag == 1 .and. ltype(l) /= isturb ) then
-            if ( frac_sno(c) > 0.D0 )then
+            if ( frac_sno(c) > 0._rkx )then
               snow_depth(c)=snow_depth(c) + newsnow(c)/(bifall * frac_sno(c))
             else
-              snow_depth(c) = 0.D0
+              snow_depth(c) = 0._rkx
             end if
           else
             ! for uniform snow cover
@@ -575,28 +575,28 @@ module mod_clm_hydrology1
           ! use original fsca formulation (n&y 07)
           if ( oldfflag == 1 ) then
             ! snow cover fraction in Niu et al. 2007
-            if ( snow_depth(c) > 0.0D0 )  then
-              frac_sno(c) = tanh(snow_depth(c)/(2.5D0*zlnd* &
-                  (min(800.D0,(h2osno(c) + newsnow(c)) / &
-                                   snow_depth(c))/100.D0)**1.D0) )
+            if ( snow_depth(c) > 0.0_rkx )  then
+              frac_sno(c) = tanh(snow_depth(c)/(2.5_rkx*zlnd* &
+                  (min(800._rkx,(h2osno(c) + newsnow(c)) / &
+                                   snow_depth(c))/100._rkx)**1._rkx) )
             end if
-            if ( h2osno(c) < 1.0D0 ) then
+            if ( h2osno(c) < 1.0_rkx ) then
               frac_sno(c) = min(frac_sno(c),h2osno(c))
             end if
           end if
         else ! h2osno == 0
           ! initialize frac_sno and snow_depth when no snow present initially
-          if ( newsnow(c) > 0.D0 ) then
+          if ( newsnow(c) > 0._rkx ) then
             z_avg = newsnow(c)/bifall
             fmelt = newsnow(c)
             frac_sno(c) = tanh(accum_factor*newsnow(c))
 
             ! make int_snow consistent w/ new fsno, h2osno
-            int_snow(c) = 0.0D0 !reset prior to adding newsnow below
+            int_snow(c) = 0.0_rkx !reset prior to adding newsnow below
             temp_intsnow= (h2osno(c) + newsnow(c)) / &
-                     (0.5D0*(cos(rpi*(1.D0-max(frac_sno(c),1D-6))** &
-                     (1.0D0/n_melt(c)))+1.D0))
-            int_snow(c) = min(1.D8,temp_intsnow)
+                     (0.5_rkx*(cos(rpi*(1._rkx-max(frac_sno(c),1e-6_rkx))** &
+                     (1.0_rkx/n_melt(c)))+1._rkx))
+            int_snow(c) = min(1.e8_rkx,temp_intsnow)
 
             ! update snow_depth and h2osno to be consistent with frac_sno, z_avg
             if ( subgridflag == 1 .and. ltype(l) /= isturb ) then
@@ -607,15 +607,15 @@ module mod_clm_hydrology1
             ! use n&y07 formulation
             if ( oldfflag == 1 ) then
               ! snow cover fraction in Niu et al. 2007
-              if ( snow_depth(c) > 0.0D0 ) then
-                frac_sno(c) = tanh(snow_depth(c)/(2.5D0*zlnd* &
-                  (min(800.D0,newsnow(c)/snow_depth(c))/100.D0)**1.D0) )
+              if ( snow_depth(c) > 0.0_rkx ) then
+                frac_sno(c) = tanh(snow_depth(c)/(2.5_rkx*zlnd* &
+                  (min(800._rkx,newsnow(c)/snow_depth(c))/100._rkx)**1._rkx) )
               end if
             end if
           else
-            z_avg = 0.D0
-            snow_depth(c) = 0.D0
-            frac_sno(c) = 0.D0
+            z_avg = 0._rkx
+            snow_depth(c) = 0._rkx
+            frac_sno(c) = 0._rkx
           end if
         end if ! end of h2osno > 0
 
@@ -636,15 +636,15 @@ module mod_clm_hydrology1
         if ( subgridflag == 1 ) then
           frac_sno_eff(c) = frac_sno(c)
         else
-          frac_sno_eff(c) = 1.D0
+          frac_sno_eff(c) = 1._rkx
         end if
       else
-        frac_sno_eff(c) = 1.D0
+        frac_sno_eff(c) = 1._rkx
       end if
 
       if ( ltype(l) == istwet .and. t_grnd(c) > tfrz ) then
-        h2osno(c) = 0.D0
-        snow_depth(c) = 0.D0
+        h2osno(c) = 0._rkx
+        snow_depth(c) = 0._rkx
       end if
 
       ! When the snow accumulation exceeds 10 mm, initialize snow layer
@@ -653,40 +653,40 @@ module mod_clm_hydrology1
 
       newnode = 0    ! flag for when snow node will be initialized
       if ( snl(c) == 0 .and. &
-           qflx_snow_grnd_col(c) > 0.0D0 .and. &
-           frac_sno(c)*snow_depth(c) >= 0.01D0 ) then
+           qflx_snow_grnd_col(c) > 0.0_rkx .and. &
+           frac_sno(c)*snow_depth(c) >= 0.01_rkx ) then
         newnode = 1
         snl(c) = -1
         dz(c,0) = snow_depth(c)                       ! meter
-        z(c,0) = -0.5D0*dz(c,0)
+        z(c,0) = -0.5_rkx*dz(c,0)
         zi(c,-1) = -dz(c,0)
         t_soisno(c,0) = min(tfrz, forc_t(c))      ! K
         h2osoi_ice(c,0) = h2osno(c)               ! kg/m2
-        h2osoi_liq(c,0) = 0.D0                   ! kg/m2
-        frac_iceold(c,0) = 1.D0
+        h2osoi_liq(c,0) = 0._rkx                   ! kg/m2
+        frac_iceold(c,0) = 1._rkx
 
         ! intitialize SNICAR variables for fresh snow:
         snw_rds(c,0)    = snw_rds_min
 
-        mss_bcpho(c,:)  = 0.D0
-        mss_bcphi(c,:)  = 0.D0
-        mss_bctot(c,:)  = 0.D0
-        mss_bc_col(c)   = 0.D0
-        mss_bc_top(c)   = 0.D0
+        mss_bcpho(c,:)  = 0._rkx
+        mss_bcphi(c,:)  = 0._rkx
+        mss_bctot(c,:)  = 0._rkx
+        mss_bc_col(c)   = 0._rkx
+        mss_bc_top(c)   = 0._rkx
 
-        mss_ocpho(c,:)  = 0.D0
-        mss_ocphi(c,:)  = 0.D0
-        mss_octot(c,:)  = 0.D0
-        mss_oc_col(c)   = 0.D0
-        mss_oc_top(c)   = 0.D0
+        mss_ocpho(c,:)  = 0._rkx
+        mss_ocphi(c,:)  = 0._rkx
+        mss_octot(c,:)  = 0._rkx
+        mss_oc_col(c)   = 0._rkx
+        mss_oc_top(c)   = 0._rkx
 
-        mss_dst1(c,:)   = 0.D0
-        mss_dst2(c,:)   = 0.D0
-        mss_dst3(c,:)   = 0.D0
-        mss_dst4(c,:)   = 0.D0
-        mss_dsttot(c,:) = 0.D0
-        mss_dst_col(c)  = 0.D0
-        mss_dst_top(c)  = 0.D0
+        mss_dst1(c,:)   = 0._rkx
+        mss_dst2(c,:)   = 0._rkx
+        mss_dst3(c,:)   = 0._rkx
+        mss_dst4(c,:)   = 0._rkx
+        mss_dsttot(c,:) = 0._rkx
+        mss_dst_col(c)  = 0._rkx
+        mss_dst_top(c)  = 0._rkx
       end if
 
       ! The change of ice partial density of surface node due to precipitation.

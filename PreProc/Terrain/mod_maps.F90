@@ -23,20 +23,20 @@ module mod_maps
   use mod_realkinds
   use mod_memutil
 
-  real(rk8) , pointer , dimension(:,:) :: coriol , dlat , dlon ,   &
+  real(rkx) , pointer , dimension(:,:) :: coriol , dlat , dlon ,   &
                    dmap , htgrid , lndout , mask , dpth , snowam , &
                    smoist , texout , xlat , xlon , xmap , ps0
-  real(rk8) , pointer , dimension(:,:,:) :: frac_tex , rmoist
-  real(rk8) , pointer , dimension(:,:,:) :: pr0 , t0 , rho0
+  real(rkx) , pointer , dimension(:,:,:) :: frac_tex , rmoist
+  real(rkx) , pointer , dimension(:,:,:) :: pr0 , t0 , rho0
 
-  real(rk8) , pointer , dimension(:,:) :: coriol_s , dlat_s , &
+  real(rkx) , pointer , dimension(:,:) :: coriol_s , dlat_s , &
                       dlon_s , dmap_s , htgrid_s , lndout_s , &
                       mask_s , dpth_s , snowam_s , smoist_s , &
                       texout_s , xlat_s , xlon_s , xmap_s , ps0_s
-  real(rk8) , pointer , dimension(:,:,:) :: frac_tex_s , rmoist_s
-  real(rk8) , pointer , dimension(:,:,:) :: pr0_s , t0_s , rho0_s
+  real(rkx) , pointer , dimension(:,:,:) :: frac_tex_s , rmoist_s
+  real(rkx) , pointer , dimension(:,:,:) :: pr0_s , t0_s , rho0_s
 
-  real(rk8) , pointer , dimension(:) :: sigma
+  real(rkx) , pointer , dimension(:) :: sigma
 
   contains
 

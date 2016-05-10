@@ -17,7 +17,7 @@
 
 ! ------- Modules -------
 
-      use parkind, only: im => kind_im, rb => kind_rb
+      use parkind, only: im => kind_im, rb => kind_rb , almostzero
 !      use parrrsw, only: ngptsw
 
       implicit none
@@ -83,7 +83,7 @@
 
       integer(kind=im) :: ikp, ikx, jk
 
-      real(kind=rb) :: zreflect
+      real(kind=rb) :: zreflect , a1 , a2
       real(kind=rb) :: ztdn(klev+1)
 
 ! Definitions
@@ -131,24 +131,67 @@
 
       do jk = 2,klev
          ikp = jk+1
+         if ( ptra(jk) > 1.0e-5_rb ) then
+            ztdn(ikp) = ptdbt(jk) * ptra(jk)
+         else
+            ztdn(ikp) = 0.0_rb
+         end if
          zreflect = 1._rb / (1._rb - prefd(jk) * prdnd(jk))
-         ztdn(ikp) = ptdbt(jk) * ptra(jk) + &
-                    (ptrad(jk) * ((ztdn(jk) - ptdbt(jk)) + &
-                     ptdbt(jk) * pref(jk) * prdnd(jk))) * zreflect
-         if ( ztdn(ikp) < 1.D-100 ) ztdn(ikp) = 0.0D0
+         if ( zreflect > almostzero .and. ptrad(jk) > almostzero ) then
+           a1 = ztdn(jk) - ptdbt(jk)
+           if ( ptdbt(jk) > almostzero .and. &
+                pref(jk)  > almostzero .and. &
+                prdnd(jk) > almostzero ) then
+              a2 = ptdbt(jk) * pref(jk) * prdnd(jk)
+           else
+              a2 = 0.0_rb
+           end if
+           if ( a1 < almostzero ) a1 = 0.0_rb
+           if ( a2 < almostzero ) a2 = 0.0_rb
+           ztdn(ikp) = ztdn(ikp) + zreflect * ptrad(jk) * (a1 + a2)
+         end if
+         ! ztdn(ikp) = ptdbt(jk) * ptra(jk) + &
+         !            (ptrad(jk) * ((ztdn(jk) - ptdbt(jk)) + &
+         !             ptdbt(jk) * pref(jk) * prdnd(jk))) * zreflect
          prdnd(ikp) = prefd(jk) + ptrad(jk) * ptrad(jk) * &
                       prdnd(jk) * zreflect
-         if ( prdnd(ikp) < 1.D-100 ) prdnd(ikp) = 0.0D0
+         if ( prdnd(ikp) < almostzero ) prdnd(ikp) = 0.0_rb
       enddo
 
 ! Up and down-welling fluxes at levels
 
       do jk = 1,klev+1
          zreflect = 1._rb / (1._rb - prdnd(jk) * prupd(jk))
-         pfu(jk,kw) = (ptdbt(jk) * prup(jk) + &
-                      (ztdn(jk) - ptdbt(jk)) * prupd(jk)) * zreflect
-         pfd(jk,kw) = ptdbt(jk) + (ztdn(jk) - ptdbt(jk)+ &
-                      ptdbt(jk) * prup(jk) * prdnd(jk)) * zreflect
+         if ( zreflect > almostzero ) then
+            if ( ptdbt(jk) > almostzero .and. &
+                 prup(jk)  > almostzero ) then
+               a1 = ptdbt(jk) * prup(jk)
+            else
+               a1 = 0.0_rb
+            end if
+            if ( prupd(jk) > almostzero ) then
+               a2 = (ztdn(jk) - ptdbt(jk)) * prupd(jk)
+            else
+               a2 = 0.0_rb
+            end if
+            if ( a1 < almostzero ) a1 = 0.0_rb
+            if ( a2 < almostzero ) a2 = 0.0_rb
+            pfu(jk,kw) = (a1 + a2) * zreflect
+            a1 = ztdn(jk) - ptdbt(jk)
+            if ( ptdbt(jk) > almostzero .and. &
+                 prup(jk)  > almostzero .and. &
+                 prdnd(jk) > almostzero ) then
+               a2 = ptdbt(jk) * prup(jk) * prdnd(jk)
+            else
+               a2 = 0.0_rb
+            end if
+            if ( a1 < almostzero ) a1 = 0.0_rb
+            if ( a2 < almostzero ) a2 = 0.0_rb
+            pfd(jk,kw) = ptdbt(jk) + (a1 + a2) * zreflect
+         else
+            pfu(jk,kw) = 0.0_rb
+            pfd(jk,kw) = ptdbt(jk)
+         end if
       enddo
 
       end subroutine vrtqdr_sw

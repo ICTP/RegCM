@@ -375,7 +375,7 @@
 
                      odtot = odepth + odcld(lev,ib)
                      tblind = odtot/(bpade+odtot)
-                     ittot = idint(tblint*tblind + 0.5_rb)
+                     ittot = int(tblint*tblind + 0.5_rb)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+dplankdn*odepth_rec)
@@ -393,7 +393,7 @@
                   else
 
                      tblind = odepth/(bpade+odepth)
-                     itgas = idint(tblint*tblind+0.5_rb)
+                     itgas = int(tblint*tblind+0.5_rb)
                      odepth = tau_tbl(itgas)
                      atrans(lev) = 1._rb - exp_tbl(itgas)
                      tfacgas = tfn_tbl(itgas)
@@ -401,7 +401,7 @@
 
                      odtot = odepth + odcld(lev,ib)
                      tblind = odtot/(bpade+odtot)
-                     ittot = idint(tblint*tblind + 0.5_rb)
+                     ittot = int(tblint*tblind + 0.5_rb)
                      tfactot = tfn_tbl(ittot)
                      bbdtot = plfrac * (blay + tfactot*dplankdn)
                      bbd = plfrac*(blay+tfacgas*dplankdn)
@@ -424,7 +424,7 @@
                      bbugas(lev) = plfrac*(blay+dplankup*odepth)
                   else
                      tblind = odepth/(bpade+odepth)
-                     itr = idint(tblint*tblind+0.5_rb)
+                     itr = int(tblint*tblind+0.5_rb)
                      transc = exp_tbl(itr)
                      atrans(lev) = 1._rb-transc
                      tausfac = tfn_tbl(itr)

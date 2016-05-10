@@ -28,8 +28,8 @@ module mod_clm_cnc14decay
   ! file name of C14 input data
   character(len=256), public :: atm_c14_filename = ' '
 
-  real(rk8), allocatable, private :: atm_c14file_time(:)
-  real(rk8), allocatable, private :: atm_delta_c14(:)
+  real(rkx), allocatable, private :: atm_c14file_time(:)
+  real(rkx), allocatable, private :: atm_delta_c14(:)
 
   contains
   !
@@ -46,48 +46,48 @@ module mod_clm_cnc14decay
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rk8), pointer :: decomp_cpools_vr(:,:,:)
+    real(rkx), pointer :: decomp_cpools_vr(:,:,:)
     ! (gC/m2) temporary photosynthate C pool
-    real(rk8), pointer :: cpool(:)
+    real(rkx), pointer :: cpool(:)
     ! (gC/m2) execss maint resp C pool
-    real(rk8), pointer :: xsmrpool(:)
+    real(rkx), pointer :: xsmrpool(:)
     ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: deadcrootc(:)
+    real(rkx), pointer :: deadcrootc(:)
     ! (gC/m2) dead coarse root C storage
-    real(rk8), pointer :: deadcrootc_storage(:)
+    real(rkx), pointer :: deadcrootc_storage(:)
     ! (gC/m2) dead coarse root C transfer
-    real(rk8), pointer :: deadcrootc_xfer(:)
-    real(rk8), pointer :: deadstemc(:)         ! (gC/m2) dead stem C
-    real(rk8), pointer :: deadstemc_storage(:) ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: deadstemc_xfer(:)    ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: frootc(:)            ! (gC/m2) fine root C
-    real(rk8), pointer :: frootc_storage(:) ! (gC/m2) fine root C storage
-    real(rk8), pointer :: frootc_xfer(:)   ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: gresp_storage(:) ! (gC/m2) growth respiration storage
-    real(rk8), pointer :: gresp_xfer(:)    ! (gC/m2) growth respiration transfer
-    real(rk8), pointer :: leafc(:)         ! (gC/m2) leaf C
-    real(rk8), pointer :: leafc_storage(:) ! (gC/m2) leaf C storage
-    real(rk8), pointer :: leafc_xfer(:)    ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: livecrootc(:)    ! (gC/m2) live coarse root C
+    real(rkx), pointer :: deadcrootc_xfer(:)
+    real(rkx), pointer :: deadstemc(:)         ! (gC/m2) dead stem C
+    real(rkx), pointer :: deadstemc_storage(:) ! (gC/m2) dead stem C storage
+    real(rkx), pointer :: deadstemc_xfer(:)    ! (gC/m2) dead stem C transfer
+    real(rkx), pointer :: frootc(:)            ! (gC/m2) fine root C
+    real(rkx), pointer :: frootc_storage(:) ! (gC/m2) fine root C storage
+    real(rkx), pointer :: frootc_xfer(:)   ! (gC/m2) fine root C transfer
+    real(rkx), pointer :: gresp_storage(:) ! (gC/m2) growth respiration storage
+    real(rkx), pointer :: gresp_xfer(:)    ! (gC/m2) growth respiration transfer
+    real(rkx), pointer :: leafc(:)         ! (gC/m2) leaf C
+    real(rkx), pointer :: leafc_storage(:) ! (gC/m2) leaf C storage
+    real(rkx), pointer :: leafc_xfer(:)    ! (gC/m2) leaf C transfer
+    real(rkx), pointer :: livecrootc(:)    ! (gC/m2) live coarse root C
     ! (gC/m2) live coarse root C storage
-    real(rk8), pointer :: livecrootc_storage(:)
+    real(rkx), pointer :: livecrootc_storage(:)
     ! (gC/m2) live coarse root C transfer
-    real(rk8), pointer :: livecrootc_xfer(:)
-    real(rk8), pointer :: livestemc(:)       ! (gC/m2) live stem C
-    real(rk8), pointer :: livestemc_storage(:) ! (gC/m2) live stem C storage
-    real(rk8), pointer :: livestemc_xfer(:)    ! (gC/m2) live stem C transfer
+    real(rkx), pointer :: livecrootc_xfer(:)
+    real(rkx), pointer :: livestemc(:)       ! (gC/m2) live stem C
+    real(rkx), pointer :: livestemc_storage(:) ! (gC/m2) live stem C storage
+    real(rkx), pointer :: livestemc_xfer(:)    ! (gC/m2) live stem C transfer
     ! (gC/m2) pft-level sink for C truncation
-    real(rk8), pointer :: pft_ctrunc(:)
-    real(rk8), pointer :: seedc(:)
+    real(rkx), pointer :: pft_ctrunc(:)
+    real(rkx), pointer :: seedc(:)
 
     integer(ik4) :: fp,j,l,p,fc,c
-    real(rk8) :: dt              ! radiation time step (seconds)
-    real(rk8) :: half_life
-    real(rk8) :: decay_const
+    real(rkx) :: dt              ! radiation time step (seconds)
+    real(rkx) :: half_life
+    real(rkx) :: decay_const
     ! factor for AD spinup associated with each pool
-    real(rk8), pointer :: spinup_factor(:)
+    real(rkx), pointer :: spinup_factor(:)
     ! spinup accelerated decomposition factor, used to accelerate transport
-    real(rk8) :: spinup_term
+    real(rkx) :: spinup_term
 
     ! assign local pointers at the column level
     decomp_cpools_vr => clm3%g%l%c%cc14s%decomp_cpools_vr
@@ -127,14 +127,14 @@ module mod_clm_cnc14decay
 
     !! libby half-life value, for comparison against ages calculated
     !! with this value
-    half_life = 5568.D0 * secspday * dayspy
-    ! half_life = 5730.D0 * secspday * dayspy  !! recent half-life value
-    decay_const = - log(0.5D0) / half_life
+    half_life = 5568._rkx * secspday * dayspy
+    ! half_life = 5730._rkx * secspday * dayspy  !! recent half-life value
+    decay_const = - log(0.5_rkx) / half_life
 
     ! column loop
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
-      seedc(c) = seedc(c) *  (1.D0 - decay_const * dt)
+      seedc(c) = seedc(c) *  (1._rkx - decay_const * dt)
     end do ! end of columns loop
 
     do l = 1 , ndecomp_pools
@@ -149,7 +149,7 @@ module mod_clm_cnc14decay
         do fc = 1 , num_soilc
           c = filter_soilc(fc)
           decomp_cpools_vr(c,j,l) = decomp_cpools_vr(c,j,l) * &
-                   (1.D0 - decay_const * spinup_term * dt)
+                   (1._rkx - decay_const * spinup_term * dt)
         end do
       end do
     end do ! end of columns loop
@@ -157,29 +157,29 @@ module mod_clm_cnc14decay
     ! pft loop
     do fp = 1 , num_soilp
       p = filter_soilp(fp)
-      cpool(p)              = cpool(p)               * (1.D0 - decay_const * dt)
-      xsmrpool(p)           = xsmrpool(p)            * (1.D0 - decay_const * dt)
-      deadcrootc(p)         = deadcrootc(p)          * (1.D0 - decay_const * dt)
-      deadcrootc_storage(p) = deadcrootc_storage(p)  * (1.D0 - decay_const * dt)
-      deadcrootc_xfer(p)    = deadcrootc_xfer(p)     * (1.D0 - decay_const * dt)
-      deadstemc(p)          = deadstemc(p)           * (1.D0 - decay_const * dt)
-      deadstemc_storage(p)  = deadstemc_storage(p)   * (1.D0 - decay_const * dt)
-      deadstemc_xfer(p)     = deadstemc_xfer(p)      * (1.D0 - decay_const * dt)
-      frootc(p)             = frootc(p)              * (1.D0 - decay_const * dt)
-      frootc_storage(p)     = frootc_storage(p)      * (1.D0 - decay_const * dt)
-      frootc_xfer(p)        = frootc_xfer(p)         * (1.D0 - decay_const * dt)
-      gresp_storage(p)      = gresp_storage(p)       * (1.D0 - decay_const * dt)
-      gresp_xfer(p)         = gresp_xfer(p)          * (1.D0 - decay_const * dt)
-      leafc(p)              = leafc(p)               * (1.D0 - decay_const * dt)
-      leafc_storage(p)      = leafc_storage(p)       * (1.D0 - decay_const * dt)
-      leafc_xfer(p)         = leafc_xfer(p)          * (1.D0 - decay_const * dt)
-      livecrootc(p)         = livecrootc(p)          * (1.D0 - decay_const * dt)
-      livecrootc_storage(p) = livecrootc_storage(p)  * (1.D0 - decay_const * dt)
-      livecrootc_xfer(p)    = livecrootc_xfer(p)     * (1.D0 - decay_const * dt)
-      livestemc(p)          = livestemc(p)           * (1.D0 - decay_const * dt)
-      livestemc_storage(p)  = livestemc_storage(p)   * (1.D0 - decay_const * dt)
-      livestemc_xfer(p)     = livestemc_xfer(p)      * (1.D0 - decay_const * dt)
-      pft_ctrunc(p)         = pft_ctrunc(p)          * (1.D0 - decay_const * dt)
+      cpool(p)              = cpool(p)               * (1._rkx - decay_const * dt)
+      xsmrpool(p)           = xsmrpool(p)            * (1._rkx - decay_const * dt)
+      deadcrootc(p)         = deadcrootc(p)          * (1._rkx - decay_const * dt)
+      deadcrootc_storage(p) = deadcrootc_storage(p)  * (1._rkx - decay_const * dt)
+      deadcrootc_xfer(p)    = deadcrootc_xfer(p)     * (1._rkx - decay_const * dt)
+      deadstemc(p)          = deadstemc(p)           * (1._rkx - decay_const * dt)
+      deadstemc_storage(p)  = deadstemc_storage(p)   * (1._rkx - decay_const * dt)
+      deadstemc_xfer(p)     = deadstemc_xfer(p)      * (1._rkx - decay_const * dt)
+      frootc(p)             = frootc(p)              * (1._rkx - decay_const * dt)
+      frootc_storage(p)     = frootc_storage(p)      * (1._rkx - decay_const * dt)
+      frootc_xfer(p)        = frootc_xfer(p)         * (1._rkx - decay_const * dt)
+      gresp_storage(p)      = gresp_storage(p)       * (1._rkx - decay_const * dt)
+      gresp_xfer(p)         = gresp_xfer(p)          * (1._rkx - decay_const * dt)
+      leafc(p)              = leafc(p)               * (1._rkx - decay_const * dt)
+      leafc_storage(p)      = leafc_storage(p)       * (1._rkx - decay_const * dt)
+      leafc_xfer(p)         = leafc_xfer(p)          * (1._rkx - decay_const * dt)
+      livecrootc(p)         = livecrootc(p)          * (1._rkx - decay_const * dt)
+      livecrootc_storage(p) = livecrootc_storage(p)  * (1._rkx - decay_const * dt)
+      livecrootc_xfer(p)    = livecrootc_xfer(p)     * (1._rkx - decay_const * dt)
+      livestemc(p)          = livestemc(p)           * (1._rkx - decay_const * dt)
+      livestemc_storage(p)  = livestemc_storage(p)   * (1._rkx - decay_const * dt)
+      livestemc_xfer(p)     = livestemc_xfer(p)      * (1._rkx - decay_const * dt)
+      pft_ctrunc(p)         = pft_ctrunc(p)          * (1._rkx - decay_const * dt)
     end do
   end subroutine C14Decay
   !
@@ -193,22 +193,22 @@ module mod_clm_cnc14decay
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
     integer(ik4) :: yr, mon, day, tod
-    real(rk8) :: dateyear
+    real(rkx) :: dateyear
     !C14O2/C12O2 in atmosphere
-    real(rk8), pointer :: rc14_atm(:)
-    real(rk8) :: delc14o2_atm
+    real(rkx), pointer :: rc14_atm(:)
+    real(rkx) :: delc14o2_atm
     integer(ik4) :: fp, p, nt
     integer(ik4) :: ind_below
     integer(ik4) :: ntim_atm_ts
     ! weighting fractions for interpolating
-    real(rk8) :: twt_1, twt_2
+    real(rkx) :: twt_1, twt_2
 
     rc14_atm       => clm3%g%l%c%p%pepv%rc14_atm
 
     if ( use_c14_bombspike ) then
       ! get current date
       call curr_date(idatex,yr,mon,day,tod)
-      dateyear = real(yr) + real(mon)/12.D0 + real(day)/dayspy + &
+      dateyear = real(yr) + real(mon)/12._rkx + real(day)/dayspy + &
               real(tod)/(secspday*dayspy)
 
       ! find points in atm timeseries to interpolate between
@@ -226,9 +226,9 @@ module mod_clm_cnc14decay
       else if ( ind_below == ntim_atm_ts ) then
         delc14o2_atm = atm_delta_c14(ntim_atm_ts)
       else
-        twt_2 = min(1.D0, max(0.D0,(dateyear-atm_c14file_time(ind_below))/ &
+        twt_2 = min(1._rkx, max(0._rkx,(dateyear-atm_c14file_time(ind_below))/ &
                (atm_c14file_time(ind_below+1)-atm_c14file_time(ind_below))))
-        twt_1 = 1.D0 - twt_2
+        twt_1 = 1._rkx - twt_2
         delc14o2_atm = atm_delta_c14(ind_below) * twt_1 + &
                 atm_delta_c14(ind_below+1) * twt_2
       end if
@@ -236,7 +236,7 @@ module mod_clm_cnc14decay
       ! change delta units to ratio, put on pft loop
       do fp = 1 , num_soilp
         p = filter_soilp(fp)
-        rc14_atm(p) = (delc14o2_atm * 1.D-3 + 1.D0) * c14ratio
+        rc14_atm(p) = (delc14o2_atm * 1.e-3_rkx + 1._rkx) * c14ratio
       end do
     else
       ! for constant 14c concentration
@@ -277,7 +277,7 @@ module mod_clm_cnc14decay
 
       ! check to make sure that time dimension is well behaved
       do t = 2 , ntim
-        if ( atm_c14file_time(t) - atm_c14file_time(t-1) <= 0.D0 ) then
+        if ( atm_c14file_time(t) - atm_c14file_time(t-1) <= 0._rkx ) then
           write(stderr, *) 'C14_init_BombSpike: error.'
           write(stderr, *) 'Time axis must be monotonically increasing'
           call fatal(__FILE__,__LINE__,'clm now stopping')

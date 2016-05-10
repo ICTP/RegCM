@@ -51,49 +51,49 @@ module mod_rrtmg_driver
 !
   public :: allocate_mod_rad_rrtmg , rrtmg_driver
 
-  real(rk8) , pointer , dimension(:) :: frsa , sabtp , clrst , solin , &
+  real(rkx) , pointer , dimension(:) :: frsa , sabtp , clrst , solin , &
          clrss , firtp , frla , clrlt , clrls , empty1 , abv , sol ,  &
          sols , soll , solsd , solld , slwd , tsfc , psfc , asdir ,   &
          asdif , aldir , aldif , czen , dlat , xptrop , totcf ,       &
          totcl , totci
 
-  real(rk8) , pointer , dimension(:,:) :: qrs , qrl , clwp_int , pint,   &
-    rh , cld_int , empty2 , play , tlay , h2ovmr , o3vmr , co2vmr ,      &
+  real(rkx) , pointer , dimension(:,:) :: qrs , qrl , clwp_int , pint,   &
+    rh , cld_int , empty2 , tlay , h2ovmr , o3vmr , co2vmr , play ,      &
     ch4vmr , n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  ccl4vmr , &
     reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , rei , rel,cldf ,    &
     lwhr , lwhrc , duflx_dt , duflxc_dt , ql1 , qi1
 
-  real(rk8) , pointer , dimension(:,:) :: plev , tlev , swuflx , swdflx , &
+  real(rkx) , pointer , dimension(:,:) :: plev , tlev , swuflx , swdflx , &
     swuflxc , swdflxc , lwuflx , lwdflx , lwuflxc , lwdflxc ,             &
     swddiruviflx , swddifuviflx , swddirpirflx , swddifpirflx , swdvisflx
 
-  real(rk8) , pointer , dimension(:,:,:) :: cldfmcl , taucmcl , ssacmcl , &
+  real(rkx) , pointer , dimension(:,:,:) :: cldfmcl , taucmcl , ssacmcl , &
          asmcmcl , fsfcmcl , ciwpmcl , clwpmcl
-  real(rk8) , pointer , dimension(:,:,:) :: cldfmcl_lw , taucmcl_lw , &
+  real(rkx) , pointer , dimension(:,:,:) :: cldfmcl_lw , taucmcl_lw , &
          ciwpmcl_lw , clwpmcl_lw , aermmr
 
-  real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos , &
+  real(rkx) , pointer , dimension(:) :: aeradfo , aeradfos , &
     asaeradfo , asaeradfos
-  real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos , &
+  real(rkx) , pointer , dimension(:) :: aerlwfo , aerlwfos , &
     asaerlwfo , asaerlwfos
-  real(rk8) , pointer , dimension(:,:) :: fice , wcl , wci , gcl , gci , &
+  real(rkx) , pointer , dimension(:,:) :: fice , wcl , wci , gcl , gci , &
          fcl , fci , tauxcl , tauxci , h2ommr , n2ommr , ch4mmr ,       &
          cfc11mmr , cfc12mmr , deltaz , dzr
-  real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
+  real(rkx) , pointer , dimension(:,:,:) :: outtaucl , outtauci
 
   integer(ik4) , pointer , dimension(:) :: ioro
 
   ! spectral dependant quantities
 
-  real(rk8) , pointer , dimension(:,:,:) :: tauaer , ssaaer , asmaer , ecaer
+  real(rkx) , pointer , dimension(:,:,:) :: tauaer , ssaaer , asmaer , ecaer
   ! tauc = in-cloud optical depth
   ! ssac = in-cloud single scattering albedo (non-delta scaled)
   ! asmc = in-cloud asymmetry parameter (non-delta scaled)
   ! fsfc = in-cloud forward scattering fraction (non-delta scaled)
-  real(rk8) , pointer , dimension(:,:,:) :: tauc , ssac , asmc , fsfc
-  real(rk8) , pointer , dimension(:,:) :: emis_surf
-  real(rk8) , pointer , dimension(:,:,:) :: tauc_lw
-  real(rk8) , pointer , dimension(:,:,:) :: tauaer_lw
+  real(rkx) , pointer , dimension(:,:,:) :: tauc , ssac , asmc , fsfc
+  real(rkx) , pointer , dimension(:,:) :: emis_surf
+  real(rkx) , pointer , dimension(:,:,:) :: tauc_lw
+  real(rkx) , pointer , dimension(:,:,:) :: tauaer_lw
   integer(ik4) :: npr , kth , ktf , kclimf , kclimh
 
   integer(ik4) :: permuteseed = 1 , mypid
@@ -285,7 +285,23 @@ module mod_rrtmg_driver
     !
     ! Call to the shortwave radiation code as soon one element of czen is > 0.
     !
-    if ( maxval(m2r%coszrs) > dlowval) then
+    swuflx(:,:) = d_zero
+    swdflx(:,:) = d_zero
+    swuflxc(:,:) = d_zero
+    swdflxc(:,:) = d_zero
+    swhr(:,:) = d_zero        !
+    swhrc(:,:) = d_zero
+    swdvisflx(:,:) = d_zero
+    swddiruviflx(:,:) = d_zero
+    swddifuviflx(:,:) = d_zero
+    swddirpirflx(:,:) = d_zero
+    swddifpirflx(:,:) = d_zero
+    aeradfo(:) = d_zero
+    aeradfos(:) = d_zero
+    asaeradfo(:) = d_zero
+    asaeradfos(:) = d_zero
+
+    if ( maxval(m2r%coszrs) > 1.0e-3_rkx ) then
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -294,6 +310,7 @@ module mod_rrtmg_driver
           aldir(n) = m2r%aldirl(j,i)
           aldif(n) = m2r%aldifl(j,i)
           czen(n)  = m2r%coszrs(j,i)
+          if ( czen(n) < 1.0e-3_rkx ) czen(n) = 0.0_rb
           n = n + 1
         end do
       end do
@@ -330,22 +347,6 @@ module mod_rrtmg_driver
                               aeradfo,aeradfos,                 &
                               asaeradfo,asaeradfos)
       end if
-    else
-      swuflx(:,:) = d_zero
-      swdflx(:,:) = d_zero
-      swuflxc(:,:) = d_zero
-      swdflxc(:,:) = d_zero
-      swhr(:,:) = d_zero        !
-      swhrc(:,:) = d_zero
-      swdvisflx(:,:) = d_zero
-      swddiruviflx(:,:) = d_zero
-      swddifuviflx(:,:) = d_zero
-      swddirpirflx(:,:) = d_zero
-      swddifpirflx(:,:) = d_zero
-      aeradfo(:) = d_zero
-      aeradfos(:) = d_zero
-      asaeradfo(:) = d_zero
-      asaeradfos(:) = d_zero
     end if ! end shortwave call
 
     ! LW call :
@@ -453,9 +454,9 @@ module mod_rrtmg_driver
     type(mod_2_rad) , intent(in) :: m2r
     integer(ik4) , intent(in) :: iyear
     integer(ik4) :: i , j , k , kj , ns , n , itr
-    real(rk8) , parameter :: verynearone = 0.999999D0
-    real(rk8) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
-    real(rk8) :: w1 , w2 , p1 , p2
+    real(rkx) , parameter :: verynearone = 0.999999_rkx
+    real(rkx) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
+    real(rkx) :: w1 , w2 , p1 , p2
 !
 !   Set index for cloud particle properties based on the wavelength,
 !   according to A. Slingo (1989) equations 1-3:
@@ -493,25 +494,25 @@ module mod_rrtmg_driver
 !   bbari    - b coefficient for extinction o
 !
     integer, dimension (nbndsw) :: indsl
-    real(rk8) , dimension(4) ::  abari , abarl , bbari , bbarl , cbari , &
+    real(rkx) , dimension(4) ::  abari , abarl , bbari , bbarl , cbari , &
                                 cbarl , dbari , dbarl , ebari , ebarl , &
                                 fbari , fbarl
-    real(rk8) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
+    real(rkx) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
                 dbarii , dbarli , ebarii , ebarli , fbarii , fbarli
 
-    data abarl / 2.817D-02 ,  2.682D-02 , 2.264D-02 , 1.281D-02/
-    data bbarl / 1.305D+00 ,  1.346D+00 , 1.454D+00 , 1.641D+00/
-    data cbarl /-5.620D-08 , -6.940D-06 , 4.640D-04 , 0.201D+00/
-    data dbarl / 1.630D-07 ,  2.350D-05 , 1.240D-03 , 7.560D-03/
-    data ebarl / 0.829D+00 ,  0.794D+00 , 0.754D+00 , 0.826D+00/
-    data fbarl / 2.482D-03 ,  4.226D-03 , 6.560D-03 , 4.353D-03/
+    data abarl / 2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx/
+    data bbarl / 1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx/
+    data cbarl /-5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx/
+    data dbarl / 1.630e-7_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx/
+    data ebarl / 0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx/
+    data fbarl / 2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx/
 !
-    data abari / 3.4480D-03 , 3.4480D-03 , 3.4480D-03 , 3.44800D-03/
-    data bbari / 2.4310D+00 , 2.4310D+00 , 2.4310D+00 , 2.43100D+00/
-    data cbari / 1.0000D-05 , 1.1000D-04 , 1.8610D-02 , 0.46658D+00/
-    data dbari / 0.0000D+00 , 1.4050D-05 , 8.3280D-04 , 2.05000D-05/
-    data ebari / 0.7661D+00 , 0.7730D+00 , 0.7940D+00 , 0.95950D+00/
-    data fbari / 5.8510D-04 , 5.6650D-04 , 7.2670D-04 , 1.07600D-04/
+    data abari / 3.4480e-3_rkx , 3.4480e-3_rkx , 3.4480e-3_rkx , 3.44800e-3_rkx/
+    data bbari / 2.4310e+0_rkx , 2.4310e+0_rkx , 2.4310e+0_rkx , 2.43100e+0_rkx/
+    data cbari / 1.0000e-5_rkx , 1.1000e-4_rkx , 1.8610e-2_rkx , 0.46658e+0_rkx/
+    data dbari / 0.0000e+0_rkx , 1.4050e-5_rkx , 8.3280e-4_rkx , 2.05000e-5_rkx/
+    data ebari / 0.7661e+0_rkx , 0.7730e+0_rkx , 0.7940e+0_rkx , 0.95950e+0_rkx/
+    data fbari / 5.8510e-4_rkx , 5.6650e-4_rkx , 7.2670e-4_rkx , 1.07600e-4_rkx/
     !
     ! define index pointing on appropriate parameter in slingo's table
     ! for eachRRTM SW band
@@ -525,7 +526,7 @@ module mod_rrtmg_driver
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        dlat(n) = dabs(m2r%xlat(j,i))
+        dlat(n) = abs(m2r%xlat(j,i))
         xptrop(n) = m2r%ptrop(j,i) * d_r100
         n = n + 1
       end do
@@ -652,7 +653,7 @@ module mod_rrtmg_driver
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          h2ommr(n,k) = max(1.0D-8,m2r%qxatms(j,i,kj,iqv))
+          h2ommr(n,k) = max(1.0e-8_rkx,m2r%qxatms(j,i,kj,iqv))
           h2ovmr(n,k) = h2ommr(n,k) * rep2
           n = n + 1
         end do
@@ -703,10 +704,10 @@ module mod_rrtmg_driver
       !
       ! Transform in mass mixing ratios (g/g) for trcmix
       !
-      ch40 = cgas(igh_ch4,iyear)*1.0D-9*(amch4/amd)
-      n2o0 = cgas(igh_n2o,iyear)*1.0D-9*(amn2o/amd)
-      cfc110 = cgas(igh_cfc11,iyear)*1.0D-12*(amcfc11/amd)
-      cfc120 = cgas(igh_cfc12,iyear)*1.0D-12*(amcfc12/amd)
+      ch40 = cgas(igh_ch4,iyear)*1.0e-9_rkx*(amch4/amd)
+      n2o0 = cgas(igh_n2o,iyear)*1.0e-9_rkx*(amn2o/amd)
+      cfc110 = cgas(igh_cfc11,iyear)*1.0e-12_rkx*(amcfc11/amd)
+      cfc120 = cgas(igh_cfc12,iyear)*1.0e-12_rkx*(amcfc12/amd)
       call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
     else
       write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
@@ -716,11 +717,11 @@ module mod_rrtmg_driver
 
     do k = 1 , kth
       do n = 1 , npr
-        co2vmr(n,k)   = cgas(2,iyear) * 1.0D-6 ! in ppm
+        co2vmr(n,k)   = cgas(2,iyear) * 1.0e-6_rkx ! in ppm
         !
         ! Form mass mixing ratios to vomlume mixing ratios
         !
-        o2vmr(n,k)    = 0.209460D0
+        o2vmr(n,k)    = 0.209460_rkx
         n2ovmr(n,k)   = n2ommr(n,k) * (amd/amn2o)
         ch4vmr(n,k)   = ch4mmr(n,k) * (amd/amch4)
         cfc11vmr(n,k) = cfc11mmr(n,k) * (amd/amcfc11)
@@ -742,7 +743,7 @@ module mod_rrtmg_driver
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rh(n,k) = max(min(m2r%rhatms(j,i,k),0.99D0),d_zero)
+            rh(n,k) = max(min(m2r%rhatms(j,i,k),0.99_rkx),d_zero)
             n = n + 1
           end do
         end do
@@ -775,7 +776,7 @@ module mod_rrtmg_driver
          tauaer(n,k,:) = tauxar3d(n,kj,:)
          ssaaer(n,k,:) = tauasc3d(n,kj,:)
          asmaer(n,k,:) = gtota3d(n,kj,:)
-         ecaer(:,:,:)   = 0.78D0! not used
+         ecaer(:,:,:)   = 0.78_rkx! not used
          tauaer_lw(n,k,:) = tauxar3d_lw(n,kj,:)
         end do
       end do
@@ -879,8 +880,8 @@ module mod_rrtmg_driver
     !
     tauc  =  d_zero
     ssac  =  verynearone
-    asmc  =  0.850D0
-    fsfc  =  0.725D0
+    asmc  =  0.850_rkx
+    fsfc  =  0.725_rkx
 
 #if defined(CLM45) || defined(CLM)
     ! TS is the radiant temeprature
@@ -950,11 +951,11 @@ module mod_rrtmg_driver
               ! ciwp and clwp are already calculated
               !
               tauxcl(n,k) = clwp(n,k)*tmp1l*cldf(n,k) / &
-                          (d_one+(d_one-0.85D0)*(d_one-cldf(n,k))*      &
+                          (d_one+(d_one-0.85_rkx)*(d_one-cldf(n,k))*      &
                           clwp(n,k)*tmp1l)
               outtaucl(n,k,indsl(ns)) = outtaucl(n,k,indsl(ns)) + tauxcl(n,k)
               tauxci(n,k) = ciwp(n,k)*tmp1i*cldf(n,k) /     &
-                          (d_one+(d_one-0.78D0)*(d_one-cldf(n,k)) * &
+                          (d_one+(d_one-0.78_rkx)*(d_one-cldf(n,k)) * &
                           ciwp(n,k)*tmp1i)
               outtauci(n,k,indsl(ns)) = outtauci(n,k,indsl(ns)) + tauxci(n,k)
             end if
@@ -999,23 +1000,23 @@ module mod_rrtmg_driver
 !
   subroutine cldefr_rrtm(t,rel,rei,fice,pmid)
     implicit none
-    real(rk8) , pointer , dimension(:,:) :: fice , pmid , rei , rel , t
+    real(rkx) , pointer , dimension(:,:) :: fice , pmid , rei , rel , t
     intent (in) pmid , t
     intent (inout) fice , rei , rel
     integer(ik4) :: k , n
-    real(rk8) :: pnrml , weight
-    ! real(rk8) :: tpara
+    real(rkx) :: pnrml , weight
+    ! real(rkx) :: tpara
     ! reimax - maximum ice effective radius
-    real(rk8) , parameter :: reimax = 30.0D0
+    real(rkx) , parameter :: reimax = 30.0_rkx
     ! rirnge - range of ice radii (reimax - 10 microns)
-    real(rk8) , parameter :: rirnge = 20.0D0
+    real(rkx) , parameter :: rirnge = 20.0_rkx
     ! pirnge - nrmlzd pres range for ice particle changes
-    real(rk8) , parameter :: pirnge = 0.4D0
+    real(rkx) , parameter :: pirnge = 0.4_rkx
     ! picemn - normalized pressure below which rei=reimax
-    real(rk8) , parameter :: picemn = 0.4D0
+    real(rkx) , parameter :: picemn = 0.4_rkx
     ! Temperatures in K (263.16 , 243.16)
-    real(rk8) , parameter :: minus10 = wattp-d_10
-    real(rk8) , parameter :: minus30 = wattp-(d_three*d_10)
+    real(rkx) , parameter :: minus10 = wattp-d_10
+    real(rkx) , parameter :: minus30 = wattp-(d_three*d_10)
 
     do k = 1 , kth
       do n = 1 , npr
@@ -1033,16 +1034,16 @@ module mod_rrtmg_driver
         ! Toward the poles, for colder temperature, large droplets freeze
         ! and only the smaller ones are kept liquid.
         !
-        ! tpara = min(d_one,max(d_zero,(minus10-tm1(n,k))*0.05D0))
+        ! tpara = min(d_one,max(d_zero,(minus10-tm1(n,k))*0.05_rkx))
         !
         if ( ioro(n) == 0 ) then
           ! Effective liquid radius over ocean and sea ice
-          ! rel(n,k) = 7.0D0 + 5.0D0 * tpara
-          rel(n,k) = 11.0D0
+          ! rel(n,k) = 7.0_rkx + 5.0_rkx * tpara
+          rel(n,k) = 11.0_rkx
         else
           ! Effective liquid radius over land
-          ! rel(n,k) = 6.0D0 + 5.0D0 * tpara
-          rel(n,k) = 8.50D0
+          ! rel(n,k) = 6.0_rkx + 5.0_rkx * tpara
+          rel(n,k) = 8.50_rkx
         end if
         !
         ! Determine rei as function of normalized pressure
@@ -1065,7 +1066,7 @@ module mod_rrtmg_driver
             fice(n,k) = d_zero
           else if ( t(n,k) <= minus10 .and. t(n,k) >= minus30 ) then
             ! if colder than -10 degrees C but warmer than -30 C mixed phase
-            fice(n,k) = (minus10-t(n,k))/20.0D0
+            fice(n,k) = (minus10-t(n,k))/20.0_rkx
           else
             ! if colder than -30 degrees C then ice phase
             fice(n,k) = d_one

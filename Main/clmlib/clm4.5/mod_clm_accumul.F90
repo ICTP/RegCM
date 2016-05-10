@@ -72,8 +72,8 @@ module mod_clm_accumul
     integer(ik4) :: end1d  !subgrid type ending index
     integer(ik4) :: num1d  !total subgrid points
     integer(ik4) :: numlev !number of vertical levels in field
-    real(rk8):: initval    !initial value of accumulated field
-    real(rk8), pointer :: val(:,:)  !accumulated field
+    real(rkx):: initval    !initial value of accumulated field
+    real(rkx), pointer :: val(:,:)  !accumulated field
     integer(ik8) :: period  !field accumulation period (in model time steps)
     type(subgrid_type) , pointer :: gcomm
   end type accum_field
@@ -108,7 +108,7 @@ module mod_clm_accumul
     !number of vertical levels
     integer(ik4) , intent(in) :: numlev
     !field initial or reset value
-    real(rk8), intent(in) :: init_value
+    real(rkx), intent(in) :: init_value
     !level type (optional) - needed if numlev > 1
     character(len=*), intent(in), optional :: type2d
     integer(ik4) :: nf             ! field index
@@ -241,7 +241,7 @@ module mod_clm_accumul
     implicit none
     character(len=*) , intent(in) :: fname     !field name
     !field values for current time step
-    real(rk8) , pointer , dimension(:) :: field
+    real(rkx) , pointer , dimension(:) :: field
     integer(ik8) , intent(in) :: nstep         !timestep index
     integer(ik4) :: i , k , nf        !indices
     integer(ik4) :: ibeg , iend         !subgrid beginning,ending indices
@@ -292,7 +292,7 @@ module mod_clm_accumul
     implicit none
     character(len=*) , intent(in) :: fname       !field name
     !field values for current time step
-    real(rk8) , pointer , dimension(:,:) :: field
+    real(rkx) , pointer , dimension(:,:) :: field
     integer(ik8) , intent(in) :: nstep           !timestep index
     integer(ik4) :: i , j , k , nf     !indices
     integer(ik4) :: ibeg , iend        !subgrid beginning,ending indices
@@ -352,7 +352,7 @@ module mod_clm_accumul
     implicit none
     character(len=*) , intent(in) :: fname     !field name
     !field values for current time step
-    real(rk8) , pointer , dimension(:) :: field
+    real(rkx) , pointer , dimension(:) :: field
     integer(ik8) , intent(in) :: nstep   !time step index
     integer(ik4) :: i , k , nf           !indices
     integer(ik4) :: accper               !temporary accumulation period
@@ -406,7 +406,7 @@ module mod_clm_accumul
 
       if ( (mod(nstep,accum(nf)%period) == 1 .or. &
             accum(nf)%period == 1) .and. (nstep /= 0) ) then
-        accum(nf)%val(ibeg:iend,1) = 0.D0
+        accum(nf)%val(ibeg:iend,1) = 0._rkx
       end if
       accum(nf)%val(ibeg:iend,1) = accum(nf)%val(ibeg:iend,1) + field(ibeg:iend)
       if ( mod(nstep,accum(nf)%period) == 0 ) then
@@ -428,11 +428,11 @@ module mod_clm_accumul
 
       do k = ibeg , iend
         if ( nint(field(k)) == -99999 ) then
-          accum(nf)%val(k,1) = 0.D0
+          accum(nf)%val(k,1) = 0._rkx
         end if
       end do
       accum(nf)%val(ibeg:iend,1) = &
-        min(max(accum(nf)%val(ibeg:iend,1) + field(ibeg:iend), 0.D0), 99999.D0)
+        min(max(accum(nf)%val(ibeg:iend,1) + field(ibeg:iend), 0._rkx), 99999._rkx)
     end if
   end subroutine update_accum_field_sl
   !
@@ -442,7 +442,7 @@ module mod_clm_accumul
     implicit none
     character(len=*) , intent(in) :: fname        !field name
     !field values for current time step
-    real(rk8) , pointer , dimension(:,:) :: field
+    real(rkx) , pointer , dimension(:,:) :: field
     integer(ik8) , intent(in) :: nstep    !time step index
     integer(ik4) :: i , j , k , nf        !indices
     integer(ik4) :: accper                !temporary accumulation period
@@ -510,7 +510,7 @@ module mod_clm_accumul
 
       if (( mod(nstep,accum(nf)%period) == 1 .or. &
             accum(nf)%period == 1) .and. (nstep /= 0) ) then
-        accum(nf)%val(ibeg:iend,1:numlev) = 0.D0
+        accum(nf)%val(ibeg:iend,1:numlev) = 0._rkx
       end if
       accum(nf)%val(ibeg:iend,1:numlev) = &
               accum(nf)%val(ibeg:iend,1:numlev) + field(ibeg:iend,1:numlev)
@@ -535,13 +535,13 @@ module mod_clm_accumul
       do j = 1 , numlev
         do k = ibeg , iend
           if (nint(field(k,j)) == -99999) then
-            accum(nf)%val(k,j) = 0.D0
+            accum(nf)%val(k,j) = 0._rkx
           end if
         end do
       end do
       accum(nf)%val(ibeg:iend,1:numlev) = &
             min(max(accum(nf)%val(ibeg:iend,1:numlev) + &
-              field(ibeg:iend,1:numlev), 0.D0), 99999.D0)
+              field(ibeg:iend,1:numlev), 0._rkx), 99999._rkx)
     end if
   end subroutine update_accum_field_ml
   !
@@ -553,7 +553,7 @@ module mod_clm_accumul
     character(len=*) , intent(in) :: flag   !'define','read', or 'write'
     integer(ik4) :: nf , iper       ! indices
     integer(ik4) :: beg1d , end1d       ! buffer bounds
-    real(rk8), pointer :: rbuf1d(:) ! temporary 1d buffer
+    real(rkx), pointer :: rbuf1d(:) ! temporary 1d buffer
     character(len=128) :: varname  ! temporary
     do nf = 1 , naccflds
       ! Note = below need to allocate rbuf for single level variables, since

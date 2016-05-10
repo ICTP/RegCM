@@ -30,12 +30,12 @@ module mod_uvrot
   subroutine uvrot4(u,v,dlon,dlat,clon,clat,gridfc,jx,iy,ll,pollon, &
                     pollat,lgtype)
     implicit none
-    real(rk8) , intent(in) :: clat , clon , gridfc , pollat , pollon
+    real(rkx) , intent(in) :: clat , clon , gridfc , pollat , pollon
     integer(ik4) , intent(in) :: iy , jx , ll
     character(len=6) , intent(in) :: lgtype
-    real(rk8) , dimension(jx,iy) , intent(in) :: dlat , dlon
-    real(rk8) , dimension(jx,iy,ll) , intent(inout) :: u , v
-    real(rk8) :: cosdel , d , polcphi , pollam , polphi , polsphi ,  &
+    real(rkx) , dimension(jx,iy) , intent(in) :: dlat , dlon
+    real(rkx) , dimension(jx,iy,ll) , intent(inout) :: u , v
+    real(rkx) :: cosdel , d , polcphi , pollam , polphi , polsphi ,  &
             sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm , &
             zphi , zrla , zrlap
     integer(ik4) :: i , j , l
@@ -60,7 +60,7 @@ module mod_uvrot
         do i = 1 , jx
           zphi = dlat(i,j)*degrad
           zrla = dlon(i,j)*degrad
-          if ( dlat(i,j) > 89.999999D0 ) zrla = d_zero
+          if ( dlat(i,j) > 89.999999_rkx ) zrla = d_zero
           zrlap = pollam*degrad - zrla
           zarg1 = polcphi*sin(zrlap)
           zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
@@ -118,12 +118,12 @@ module mod_uvrot
                       pollon,pollat,lgtype)
     implicit none
 
-    real(rk8) , intent(in) :: clat , clon , gridfc , pollat , pollon
+    real(rkx) , intent(in) :: clat , clon , gridfc , pollat , pollon
     integer(ik4) , intent(in) :: iy , jx , ll
     character(len=6) , intent(in) :: lgtype
-    real(rk8) , dimension(jx,iy) , intent(in) :: dlat , dlon
-    real(rk8) , dimension(jx,iy,ll) , intent(inout) :: u , v
-    real(rk8) :: cosdel , d , polcphi , pollam , polphi , polsphi ,  &
+    real(rkx) , dimension(jx,iy) , intent(in) :: dlat , dlon
+    real(rkx) , dimension(jx,iy,ll) , intent(inout) :: u , v
+    real(rkx) :: cosdel , d , polcphi , pollam , polphi , polsphi ,  &
             sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm , &
             zphi , zrla , zrlap
     integer(ik4) :: i , j , l
@@ -145,7 +145,7 @@ module mod_uvrot
         do i = 1 , jx
           zphi = dlat(i,j)*degrad
           zrla = dlon(i,j)*degrad
-          if ( dlat(i,j) > 89.999999D0 ) zrla = d_zero
+          if ( dlat(i,j) > 89.999999_rkx ) zrla = d_zero
           zrlap = pollam*degrad - zrla
           zarg1 = polcphi*sin(zrlap)
           zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)

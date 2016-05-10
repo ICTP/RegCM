@@ -59,10 +59,10 @@ module mod_ensemble
   subroutine randify3D(dVariable3D,dFrac,imax,jmax,kmax)
     implicit none
     integer(ik4) , intent(in) :: imax , jmax , kmax
-    real(rk8) , dimension(imax,kmax,jmax) , intent(inout) :: dVariable3D
-    real(rk8) , intent(in) :: dFrac
+    real(rkx) , dimension(imax,kmax,jmax) , intent(inout) :: dVariable3D
+    real(rkx) , intent(in) :: dFrac
 
-    real(rk8) , dimension(imax,kmax,jmax) :: dChange3D , dRand3D
+    real(rkx) , dimension(imax,kmax,jmax) :: dChange3D , dRand3D
     integer(ik4) :: i
     integer(ik4) :: nseed
     real(rk4) :: cputime
@@ -121,10 +121,10 @@ module mod_ensemble
   subroutine randify2D(dVariable2D,dFrac,imax,jmax)
     implicit none
     integer(ik4) , intent(in) :: imax , jmax
-    real(rk8) , dimension(imax,jmax) , intent(inout) :: dVariable2D
-    real(rk8) , intent(in) :: dFrac
+    real(rkx) , dimension(imax,jmax) , intent(inout) :: dVariable2D
+    real(rkx) , intent(in) :: dFrac
 
-    real(8) , dimension(imax,jmax) :: dRand2D , dChange2D
+    real(rkx) , dimension(imax,jmax) :: dRand2D , dChange2D
     integer(ik4) :: i
     integer(ik4) :: nseed
     real(rk4) :: cputime

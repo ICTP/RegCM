@@ -1,7 +1,29 @@
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!
+!    This file is part of ICTP RegCM.
+!
+!    ICTP RegCM is free software: you can redistribute it and/or
+!    modify
+!    it under the terms of the GNU General Public License as
+!    published by
+!    the Free Software Foundation, either version 3 of the
+!    License, or
+!    (at your option) any later version.
+!
+!    ICTP RegCM is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty
+!    of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public
+!    License
+!    along with ICTP RegCM.  If not, see
+!    <http://www.gnu.org/licenses/>.
+!
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_che_bionit
-
-
   use mod_intkinds
   use mod_realkinds
   use mod_constants
@@ -14,57 +36,55 @@ module mod_che_bionit
 
   public :: allocate_mod_che_bionit, ini_bionit
 
-  real(rk8) , pointer, dimension(:,:) :: nmanure , nfert , soilph
+  real(rkx) , pointer, dimension(:,:) :: nmanure , nfert , soilph
 
   !coefficients and weights derived from neural net analysis
-  real(rk8), parameter :: xwgt0 =  0.561651794427011
-  real(rk8), parameter :: xwgt1 = -0.48932473825312
-  real(rk8), parameter :: xwgt2 = -0.73521035872982
-  real(rk8), parameter :: xwgt3 =  0.506600069632212
-  real(rk8), parameter :: xwgt4 = -0.784867014304196
-  real(rk8), parameter :: xwgt5 = -0.283241716518431
-  real(rk8), parameter :: xwgt6 =  0.132539461337082
-  real(rk8), parameter :: xwgt7 = -0.00839661549597702
-  real(rk8), parameter :: xwgt8 = -1.62075908632141
-  real(rk8), parameter :: xwgt9 =  0.638173941854311
-  real(rk8), parameter :: xwgt10 =  3.88469485689393
-  real(rk8), parameter :: xwgt11 = -0.942985468044301
-  real(rk8), parameter :: xwgt12 = -0.862455616914003
-  real(rk8), parameter :: xwgt13 = -2.68040193699105
-  real(rk8), parameter :: xwgt14 =  1.61126351888328
-  real(rk8), parameter :: xwgt15 =  0.134088164903734
-  real(rk8), parameter :: xwgt16 = -0.21261983875851
-  real(rk8), parameter :: xwgt17 =  0.901773966331639
-  real(rk8), parameter :: xwgt18 = -5.18779902340853
-  real(rk8), parameter :: xwgt19 =  1.23132977162784
-  real(rk8), parameter :: xwgt20 = -2.62451302093078
-  real(rk8), parameter :: xwgt21 = -0.27778477919531
-  real(rk8), parameter :: xwgt22 = 0.413060247967231
-  real(rk8), parameter :: xwgt23 = -0.560462552556124
-  real(rk8), parameter :: xwgt24 = 0.499562769416134
-  real(rk8), parameter :: xwgt25 = -1.23876483956298
-  real(rk8), parameter :: xwgt26 = -1.41295235373665
-  real(rk8), parameter :: xwgt27 = -1.20659105237301
+  real(rkx), parameter :: xwgt0 =  0.561651794427011_rkx
+  real(rkx), parameter :: xwgt1 = -0.48932473825312_rkx
+  real(rkx), parameter :: xwgt2 = -0.73521035872982_rkx
+  real(rkx), parameter :: xwgt3 =  0.506600069632212_rkx
+  real(rkx), parameter :: xwgt4 = -0.784867014304196_rkx
+  real(rkx), parameter :: xwgt5 = -0.283241716518431_rkx
+  real(rkx), parameter :: xwgt6 =  0.132539461337082_rkx
+  real(rkx), parameter :: xwgt7 = -0.00839661549597702_rkx
+  real(rkx), parameter :: xwgt8 = -1.62075908632141_rkx
+  real(rkx), parameter :: xwgt9 =  0.638173941854311_rkx
+  real(rkx), parameter :: xwgt10 =  3.88469485689393_rkx
+  real(rkx), parameter :: xwgt11 = -0.942985468044301_rkx
+  real(rkx), parameter :: xwgt12 = -0.862455616914003_rkx
+  real(rkx), parameter :: xwgt13 = -2.68040193699105_rkx
+  real(rkx), parameter :: xwgt14 =  1.61126351888328_rkx
+  real(rkx), parameter :: xwgt15 =  0.134088164903734_rkx
+  real(rkx), parameter :: xwgt16 = -0.21261983875851_rkx
+  real(rkx), parameter :: xwgt17 =  0.901773966331639_rkx
+  real(rkx), parameter :: xwgt18 = -5.18779902340853_rkx
+  real(rkx), parameter :: xwgt19 =  1.23132977162784_rkx
+  real(rkx), parameter :: xwgt20 = -2.62451302093078_rkx
+  real(rkx), parameter :: xwgt21 = -0.27778477919531_rkx
+  real(rkx), parameter :: xwgt22 = 0.413060247967231_rkx
+  real(rkx), parameter :: xwgt23 = -0.560462552556124_rkx
+  real(rkx), parameter :: xwgt24 = 0.499562769416134_rkx
+  real(rkx), parameter :: xwgt25 = -1.23876483956298_rkx
+  real(rkx), parameter :: xwgt26 = -1.41295235373665_rkx
+  real(rkx), parameter :: xwgt27 = -1.20659105237301_rkx
 
-  real(rk8), parameter :: xcoef1 = -2.453992
-  real(rk8), parameter :: xcoef2 =  0.142680
-  real(rk8), parameter :: xcoef3 = -4.609693
-  real(rk8), parameter :: xcoef4 =  0.115964
-  real(rk8), parameter :: xcoef5 = -2.717366
-  real(rk8), parameter :: xcoef6 =  0.163039
-  real(rk8), parameter :: xcoef7 = -0.364632
-  real(rk8), parameter :: xcoef8 =  5.577532
-  real(rk8), parameter :: xcoef9 = -1.535199
-  real(rk8), parameter :: xcoef10 = 0.054909
-  real(rk8), parameter :: xcoef11 = -25.554238
-  real(rk8), parameter :: xcoef12 =   3.158129
-  real(rk8), parameter :: xcoef13 =  -1.182905
-  real(rk8), parameter :: xcoef14 =   0.614317
-  real(rk8), parameter :: xcoef15 =   3.403007
-  real(rk8), parameter :: xcoef16s =  9.205080
-  real(rk8), parameter :: xcoef16l =  2.205080
-
-
+  real(rkx), parameter :: xcoef1 = -2.453992_rkx
+  real(rkx), parameter :: xcoef2 =  0.142680_rkx
+  real(rkx), parameter :: xcoef3 = -4.609693_rkx
+  real(rkx), parameter :: xcoef4 =  0.115964_rkx
+  real(rkx), parameter :: xcoef5 = -2.717366_rkx
+  real(rkx), parameter :: xcoef6 =  0.163039_rkx
+  real(rkx), parameter :: xcoef7 = -0.364632_rkx
+  real(rkx), parameter :: xcoef8 =  5.577532_rkx
+  real(rkx), parameter :: xcoef9 = -1.535199_rkx
+  real(rkx), parameter :: xcoef10 = 0.054909_rkx
+  real(rkx), parameter :: xcoef11 = -25.554238_rkx
+  real(rkx), parameter :: xcoef12 =   3.158129_rkx
+  real(rkx), parameter :: xcoef13 =  -1.182905_rkx
+  real(rkx), parameter :: xcoef14 =   0.614317_rkx
+  real(rkx), parameter :: xcoef15 =   3.403007_rkx
+  real(rkx), parameter :: xcoef16s =  9.205080_rkx
+  real(rkx), parameter :: xcoef16l =  2.205080_rkx
 
 contains
 
@@ -112,7 +132,7 @@ contains
     implicit none
 
     integer(ik4) , intent(in) :: j
-    real(rk8) , dimension(ici1:ici2) , intent(in) :: wid10
+    real(rkx) , dimension(ici1:ici2) , intent(in) :: wid10
     integer(ik4) , dimension(ici1:ici2), intent(in) :: ivegcov
     ! local variables
     integer(ik4) :: i
@@ -122,7 +142,7 @@ contains
 !!$      real, dimension(iy,jx), intent(in) :: fertrate       !fertiliser application rate (kg/m2/s)
 !!$      real, dimension(iy,jx), intent(in) :: soilph         !soilpH
 
-    real(rk8), dimension(ici1:ici2) :: soiltemp_surf ,&    !surface soil temperature (C)
+    real(rkx), dimension(ici1:ici2) :: soiltemp_surf ,&    !surface soil temperature (C)
          soiltemp_deep ,&      !deep soil temperature (C)
          sandper       ,&          !sand percentage (%)
          porewater     ,&     !pore space water content (%)
@@ -143,7 +163,7 @@ contains
 
     !      real(8), dimension(iy) :: soilph            !soil ph
 
-    real (rk8), dimension(ici1:ici2) :: man1d, fert1d, ph1d, lai_int,   &    !1D manure/fertiliser app. rate + pH
+    real (rkx), dimension(ici1:ici2) :: man1d, fert1d, ph1d, lai_int,   &    !1D manure/fertiliser app. rate + pH
          totN1d  , &            !1D total N app. rate
          fracnox ,&    !fraction emitted as NOx
          fracnh3 , &     !fraction emitted as NH3
@@ -198,7 +218,7 @@ contains
        ! coefficient of 0.45 derived from obs at Grignon(0.536),
        ! Hombori(0.4) and Escompte(0.43) = avg. 0.45
        ! in regcm/bats  this parameter would be cxmopor : consider replacing ?
-       porewater(i) = (porewater(i) * 0.45D0) * d_100
+       porewater(i) = (porewater(i) * 0.45_rkx) * d_100
 
        !converting temperature from Kelvin to Celsius
        soiltemp_deep(i) = ctg(j,i)
@@ -212,8 +232,8 @@ contains
 
        !calculating what percentage volatilised N gets incorporated into NH3 and NOx
 
-       fracnh3(i) = totN1d(i)*0.3D0
-       fracnox(i) = totN1d(i)*0.7D0
+       fracnh3(i) = totN1d(i)*0.3_rkx
+       fracnox(i) = totN1d(i)*0.7_rkx
 
        !calculation of NOx flux from soil
        !normalised centered entries
@@ -243,8 +263,8 @@ contains
             + xwgt22*norm_ph(i) + xwgt23*norm_wi(i)
 
        !hyperbolic tangent calculation
-       norm_no(i) = xwgt24 + xwgt25*dtanh(nsum1(i)) &
-            + xwgt26*dtanh(nsum2(i)) + xwgt27*dtanh(nsum3(i))
+       norm_no(i) = xwgt24 + xwgt25*tanh(nsum1(i)) &
+            + xwgt26*tanh(nsum2(i)) + xwgt27*tanh(nsum3(i))
 
        !flux calculation
        ! If sand > 50%, pulse effect, amplitude coefficient is maximum.
@@ -265,13 +285,13 @@ contains
        ! g to kg: /1000
        ! ha to m2: /100 /100
        ! d to s: /86400
-       noxflux(i) = noxflux(i)/ (1000.D0*100.D0*100.D0*86400.D0)
+       noxflux(i) = noxflux(i)/ (1000._rkx*100._rkx*100._rkx*86400._rkx)
 
        !flux reduction because of canopy absorption
-       if (lai_int(i) .gt. 1.9D0 .and. lai_int(i) .lt.  5.D0) then
-          canred(i) = 0.5D0
-       elseif (lai_int(i) .gt. 5.D0) then
-          canred(i) = 0.2D0
+       if (lai_int(i) .gt. 1.9_rkx .and. lai_int(i) .lt.  5._rkx) then
+          canred(i) = 0.5_rkx
+       elseif (lai_int(i) .gt. 5._rkx) then
+          canred(i) = 0.2_rkx
        else
           canred(i) = d_one
        endif
@@ -287,7 +307,7 @@ contains
        if (ivegcov(i) == 0) cycle
        if ( ichdrdepo == 1 ) then
           chiten(j,i,kz,ino) = chiten(j,i,kz,ino) + &
-               noxflux(i)*egrav/(dsigma(kz)*1.D3)
+               noxflux(i)*egrav/(dsigma(kz)*1.e3_rkx)
        elseif ( ichdrdepo == 2 ) then
           ! pass the flux to BL scheme
           chifxuw(j,i,ino) = chifxuw(j,i,ino) + &

@@ -29,11 +29,11 @@ module mod_pbl_thetal
 
   private
 
-  real(rk8) :: myp , mythetal , myqt , myexner
+  real(rkx) :: myp , mythetal , myqt , myexner
 
-  real(rk8) , parameter :: delta = 1.0D-8
-  real(rk8) , parameter :: mindt = 1.0D-3
-  real(rk8) , parameter :: mindq = 1.0D-3
+  real(rkx) , parameter :: delta = 1.0e-8_rkx
+  real(rkx) , parameter :: mindt = 1.0e-3_rkx
+  real(rkx) , parameter :: mindq = 1.0e-3_rkx
 
   public :: solve_for_t
 
@@ -42,11 +42,11 @@ module mod_pbl_thetal
 #include <pfesat.inc>
 #include <pfqsat.inc>
 
-  real(rk8) function zerofunc(t,bderiv)
+  real(rkx) function zerofunc(t,bderiv)
     implicit none
-    real(rk8) , intent(in) :: t
+    real(rkx) , intent(in) :: t
     logical , intent(in) :: bderiv
-    real(rk8) :: qc , qv , es
+    real(rkx) :: qc , qv , es
 
     es = pfesat(t)
     qv = max(ep2/(myp/es-d_one),d_zero)
@@ -67,20 +67,20 @@ module mod_pbl_thetal
   ! Determine temperature from the liquid water potential temperature,
   ! total water, and pressure.
 
-  real(rk8) function solve_for_t(thetal,qt,p,tprev,qtprev,   &
+  real(rkx) function solve_for_t(thetal,qt,p,tprev,qtprev,   &
                                  qcprev,thlprev,imax,imethod, &
                                  outqv,outqc)
     implicit none
-    real(rk8) , intent(in) :: thetal , qt , p , tprev , qtprev , &
+    real(rkx) , intent(in) :: thetal , qt , p , tprev , qtprev , &
                               qcprev , thlprev
     integer(ik4) , intent(in) :: imethod , imax
-    real(rk8) , intent(out) :: outqc , outqv
-    real(rk8) :: a , b , c , d , s , dum
-    real(rk8) :: fa , fb , fc , fs
-    real(rk8) :: smb , bmc , cmd
-    real(rk8) :: temps , templ , rvls
-    real(rk8) :: dthetal , dqt , qvprev , deltat , es , qcthresh
-    real(rk8) :: tempqv , tempqc , tempt , tempes , ddq
+    real(rkx) , intent(out) :: outqc , outqv
+    real(rkx) :: a , b , c , d , s , dum
+    real(rkx) :: fa , fb , fc , fs
+    real(rkx) :: smb , bmc , cmd
+    real(rkx) :: temps , templ , rvls
+    real(rkx) :: dthetal , dqt , qvprev , deltat , es , qcthresh
+    real(rkx) :: tempqv , tempqc , tempt , tempes , ddq
     logical :: mflag
     integer(ik4) :: iteration , itqt
     integer(ik4) , parameter :: itmax = 6
@@ -89,7 +89,7 @@ module mod_pbl_thetal
     mythetal = thetal
     myqt = qt
     myp = p
-    myexner = (myp/1.0D5)**rovcp
+    myexner = (myp/1.0e5_rkx)**rovcp
     templ = mythetal*myexner
 
     ! Use the Brent 1973 method to determine t from liquid water pot.
@@ -131,11 +131,11 @@ module mod_pbl_thetal
         fb = fa
       end if
       ! check if the previous timestep works as a solution
-      if ( dabs(fs) < dlowval ) then
+      if ( abs(fs) < dlowval ) then
         b = tprev
         fb = fs
       end if
-      if ( dabs(fb) < dlowval ) then
+      if ( abs(fb) < dlowval ) then
         solve_for_t = b
         call getqvqc(solve_for_t,es,outqv,outqc)
         return
@@ -201,7 +201,7 @@ module mod_pbl_thetal
         end if
 
         ! check for convergence; if we converged, return from this function
-        if ( dabs(fs) < dlowval ) then
+        if ( abs(fs) < dlowval ) then
           b = s
           fb = fs
         end if
@@ -256,7 +256,7 @@ module mod_pbl_thetal
           temps = temps + deltat
           ! re-calculate the saturation mixing ratio
           rvls = ep2/(myp/pfesat(temps)-d_one)
-          if ( dabs(deltat) < mindt ) exit
+          if ( abs(deltat) < mindt ) exit
         end do ! condenseliquid
         ! cloud water is the total minus the saturation
         ddq = max(myqt-rvls,d_zero)
@@ -351,18 +351,18 @@ module mod_pbl_thetal
   ! modified from buck (1981), j. app. met. v 20
   function esatw(p,t)
     implicit none
-    real(rk8) , intent(in) :: p , t
-    real(rk8) :: esatw
-    real(rk8) :: dum , arg , tdum
+    real(rkx) , intent(in) :: p , t
+    real(rkx) :: esatw
+    real(rkx) :: dum , arg , tdum
     ! Limit t to reasonable values.  I believe that this is necessary because
     ! in the iterative calculation of t and qv from the liquid water
     ! temperature, the temperature can take on some crazy values before it
     ! converges. --TAO 01/05/2011
-    tdum = max(100.0D0,min(399.99D0,t))
-    dum = 1.0007 + 3.46D-5*p
+    tdum = max(100.0_rkx,min(399.99_rkx,t))
+    dum = 1.0007 + 3.46e-5_rkx*p
     !arg = 17.502*(t-273.15)/(t-32.18)
-    arg = 17.502D0*(tdum-tzero)/(tdum-32.18D0)
-    esatw = dum*0.61121D0*dexp(arg)
+    arg = 17.502_rkx*(tdum-tzero)/(tdum-32.18_rkx)
+    esatw = dum*0.61121_rkx*exp(arg)
   end function esatw
 
   ! returns the saturation vapor pressure over ice in units (cb)
@@ -370,24 +370,24 @@ module mod_pbl_thetal
   ! modified from buck (1981), j. app. met. v 20
   function esati(p,t)
     implicit none
-    real(rk8) , intent(in) :: p , t
-    real(rk8) :: esati
-    real(rk8) :: dum , arg , tdum
+    real(rkx) , intent(in) :: p , t
+    real(rkx) :: esati
+    real(rkx) :: dum , arg , tdum
     ! Limit t to reasonable values.  I believe that this is necessary because
     ! in the iterative calculation of t and qv from the liquid water
     ! temperature, the temperature can take on some crazy values before it
     ! converges. --TAO 01/05/2011
-    tdum = max(100.0D0,min(399.99D0,t))
-    dum = 1.0003D0 + 4.18D-5*p
+    tdum = max(100.0_rkx,min(399.99_rkx,t))
+    dum = 1.0003_rkx + 4.18e-5_rkx*p
     !arg = 22.452*(t-273.15)/(t-0.6)
-    arg = 22.452D0*(tdum-tzero)/(tdum-0.6D0)
-    esati = dum*0.61115D0*dexp(arg)
+    arg = 22.452_rkx*(tdum-tzero)/(tdum-0.6_rkx)
+    esati = dum*0.61115_rkx*exp(arg)
   end function esati
 
   subroutine swap(a,b)
     implicit none
-    real(rk8) , intent(inout) :: a , b
-    real(rk8) :: c
+    real(rkx) , intent(inout) :: a , b
+    real(rkx) :: c
     c = a
     a = b
     b = c
@@ -395,8 +395,8 @@ module mod_pbl_thetal
 
   subroutine getqvqc(t,es,qv,qc)
     implicit none
-    real(rk8) , intent(in) :: t
-    real(rk8) , intent(out) :: es , qv , qc
+    real(rkx) , intent(in) :: t
+    real(rkx) , intent(out) :: es , qv , qc
     es = pfesat(t)
     qv = max(ep2/(myp/es-d_one),d_zero)
     if ( myqt > qv ) then

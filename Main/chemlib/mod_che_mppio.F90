@@ -34,15 +34,15 @@ module mod_che_mppio
 
   private
 
-  real(rk8) , pointer , public , dimension(:,:,:,:) :: rainout_io , washout_io
-  real(rk8) , pointer , public , dimension(:,:,:) :: remdrd_io
-  real(rk8) , pointer , public , dimension(:,:) :: ssw2da_io , sdelt_io ,   &
+  real(rkx) , pointer , public , dimension(:,:,:,:) :: rainout_io , washout_io
+  real(rkx) , pointer , public , dimension(:,:,:) :: remdrd_io
+  real(rkx) , pointer , public , dimension(:,:) :: ssw2da_io , sdelt_io ,   &
                                          sdelq_io , sfracv2d_io , &
                                          sfracb2d_io , sfracs2d_io , &
                                          svegfrac2d_io
-  real(rk8) , pointer , public , dimension(:,:,:,:) :: chia_io , chib_io
-  real(rk8) , pointer , public , dimension(:,:,:,:) :: chemall_io
-  real(rk8) , pointer , public , dimension(:,:,:,:) :: taucldsp_io
+  real(rkx) , pointer , public , dimension(:,:,:,:) :: chia_io , chib_io
+  real(rkx) , pointer , public , dimension(:,:,:,:) :: chemall_io
+  real(rkx) , pointer , public , dimension(:,:,:,:) :: taucldsp_io
 
   public :: allocate_mod_che_mppio
 

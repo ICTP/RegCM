@@ -41,28 +41,28 @@ module mod_era40
 
   integer(ik4) , parameter :: klev = 23 , jlat = 73 , ilon = 144
 
-  real(rk8) , target , dimension(ilon,jlat,klev*3) :: b2
-  real(rk8) , target , dimension(ilon,jlat,klev*2) :: d2
-  real(rk8) , target , dimension(ilon,jlat,4*3+1) :: s2
-  real(rk8) , pointer , dimension(:,:,:) :: b3
-  real(rk8) , pointer , dimension(:,:,:) :: d3
-  real(rk8) , pointer , dimension(:,:,:) :: s3
+  real(rkx) , target , dimension(ilon,jlat,klev*3) :: b2
+  real(rkx) , target , dimension(ilon,jlat,klev*2) :: d2
+  real(rkx) , target , dimension(ilon,jlat,4*3+1) :: s2
+  real(rkx) , pointer , dimension(:,:,:) :: b3
+  real(rkx) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , pointer , dimension(:,:,:) :: s3
 
-  real(rk8) , dimension(ilon,jlat,klev) :: wvar
+  real(rkx) , dimension(ilon,jlat,klev) :: wvar
 
-  real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rk8) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rk8) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
-  real(rk8) , pointer , dimension(:,:,:) :: qsoil , tsice , tsoil
-  real(rk8) , pointer , dimension(:,:) :: snw
-  real(rk8) , pointer , dimension(:,:,:) :: qs3 , ti3 , ts3
-  real(rk8) , pointer , dimension(:,:) :: snow
+  real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
+  real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:)
+  real(rkx) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rkx) , pointer , dimension(:,:,:) :: qsoil , tsice , tsoil
+  real(rkx) , pointer , dimension(:,:) :: snw
+  real(rkx) , pointer , dimension(:,:,:) :: qs3 , ti3 , ts3
+  real(rkx) , pointer , dimension(:,:) :: snow
 
-  real(rk8) , dimension(jlat) :: glat
-  real(rk8) , dimension(ilon) :: glon
-  real(rk8) , dimension(klev) :: sigma1 , sigmar
-  real(rk8) , parameter :: pss = 100.0D0
+  real(rkx) , dimension(jlat) :: glat
+  real(rkx) , dimension(ilon) :: glon
+  real(rkx) , dimension(klev) :: sigma1 , sigmar
+  real(rkx) , parameter :: pss = 100.0_rkx
 
   public :: getera40 , headerera
 
@@ -123,10 +123,10 @@ module mod_era40
     character(len=24) :: inname
     character(len=256) :: pathaddname
     integer(2) , dimension(ilon,jlat,klev) :: work
-    real(rk8) :: xadd , xscale
+    real(rkx) :: xadd , xscale
 
     integer(ik4) , dimension(10) , save :: icount , istart
-    real(rk8) , dimension(5,4) , save :: xoff , xscl
+    real(rkx) , dimension(5,4) , save :: xoff , xscl
     integer(ik4) , dimension(5,4) , save :: inet6
     integer(ik4) , dimension(5,4) , save :: ivar6
     character(len=5) , dimension(5) :: varname

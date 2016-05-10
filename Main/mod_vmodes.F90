@@ -43,13 +43,13 @@ module mod_vmodes
   public :: tau , varpa1
   public :: hydroc , hydros
 
-  real(rk8) :: xps , pd
-  real(rk8) , pointer , dimension(:,:) :: a0
-  real(rk8) , pointer , dimension(:) ::  sigmah , tbarh , hbar
-  real(rk8) , pointer , dimension(:,:) :: zmatx , zmatxr
-  real(rk8) , pointer , dimension(:,:) :: tau
-  real(rk8) , pointer , dimension(:,:) :: varpa1
-  real(rk8) , pointer , dimension(:,:) :: hydroc , hydros
+  real(rkx) :: xps , pd
+  real(rkx) , pointer , dimension(:,:) :: a0
+  real(rkx) , pointer , dimension(:) ::  sigmah , tbarh , hbar
+  real(rkx) , pointer , dimension(:,:) :: zmatx , zmatxr
+  real(rkx) , pointer , dimension(:,:) :: tau
+  real(rkx) , pointer , dimension(:,:) :: varpa1
+  real(rkx) , pointer , dimension(:,:) :: hydroc , hydros
 !
   contains
 
@@ -88,22 +88,19 @@ module mod_vmodes
   subroutine vmodes(lstand)
     implicit none
     logical , intent(in) :: lstand
-    real(rk8) , dimension(2) :: det
     integer(ik4) :: ier , k , k1 , k2 , l , mm , numerr
     logical :: lhydro , lprint , lsigma
-    real(rk8) :: ps2 , x
-    real(rk8) , dimension(kz) :: work
-    real(rk8) , dimension(1) :: pps
-    real(rk8) , dimension(kz,kz) :: a1 , a2 , a3 , a4 , d1 , d2 , &
+    real(rkx) :: ps2 , x
+    real(rkx) , dimension(1) :: pps
+    real(rkx) , dimension(kz,kz) :: a1 , a2 , a3 , a4 , d1 , d2 , &
                    e1 , e2 , e3 , g1 , g2 , g3 , s1 , s2 , w1 , w2 , x1
-    real(rk8) , dimension(kzp1,kz) :: w3
-    integer(ik4) , dimension(kz) :: iw2
-    real(rk8) , dimension(kzp1) :: tbarf , thetaf
-    real(rk8) , dimension(kz) :: thetah , tweigh
-    real(rk8) :: alpha1 , alpha2
-    real(rk8) , dimension(kz) :: cpfac , sdsigma , hweigh
-    real(rk8) , dimension(kzp1,kzp1) :: varpa2
-    real(rk8) , dimension(kz,kz) :: hydror
+    real(rkx) , dimension(kzp1,kz) :: w3
+    real(rkx) , dimension(kzp1) :: tbarf , thetaf
+    real(rkx) , dimension(kz) :: thetah , tweigh
+    real(rkx) :: alpha1 , alpha2
+    real(rkx) , dimension(kz) :: cpfac , sdsigma , hweigh
+    real(rkx) , dimension(kzp1,kzp1) :: varpa2
+    real(rkx) , dimension(kz,kz) :: hydror
     data lprint/.false./  ! true if all matrices to be printed
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'vmodes'
@@ -127,7 +124,6 @@ module mod_vmodes
     w1 = d_zero
     w2 = d_zero
     x1 = d_zero
-    iw2 = 0
     thetah = d_zero
     tweigh = d_zero
     tbarf = d_zero
@@ -158,8 +154,8 @@ module mod_vmodes
     ! standard xps in cb; otherwise xps set in tav
     pd = xps - ptop
     lsigma = .false.
-    if ( dabs(sigma(1)) > dlowval ) lsigma = .true.
-    if ( dabs(sigma(kzp1)-d_one) > dlowval ) lsigma = .true.
+    if ( abs(sigma(1)) > dlowval ) lsigma = .true.
+    if ( abs(sigma(kzp1)-d_one) > dlowval ) lsigma = .true.
     do k = 1 , kz
       if ( sigma(k+1) < sigma(k) ) then
         lsigma = .true.
@@ -251,7 +247,7 @@ module mod_vmodes
     !
     ! compute a1
     !
-    w2 = 0.0D0
+    w2 = 0.0_rkx
     do k = 1 , kz
       w2(k,k) = d_one/d1(k,k)
     end do
@@ -284,7 +280,7 @@ module mod_vmodes
     ! compute delta log p
     !
     do k = 2 , kz
-      w1(k,1) = dlog((sigmah(k)+ptop/pd)/(sigmah(k-1)+ptop/pd))
+      w1(k,1) = log((sigmah(k)+ptop/pd)/(sigmah(k-1)+ptop/pd))
     end do
     !
     ! compute matrix which multiples t vector
@@ -299,7 +295,7 @@ module mod_vmodes
       end do
     end do
     do k = 1 , kz
-      hydros(k,kz) = hydros(k,kz) + dlog((d_one+ptop/pd)/(sigmah(kz)+ptop/pd))
+      hydros(k,kz) = hydros(k,kz) + log((d_one+ptop/pd)/(sigmah(kz)+ptop/pd))
     end do
     !
     ! compute matirx which multiplies log(sigma*p+ptop) vector
@@ -333,18 +329,20 @@ module mod_vmodes
       do l = 1 , kz
         w1(k,1) = w1(k,1) + hydros(k,l)*tbarh(l)
       end do
-      w1(k,2) = -tbarh(k)*dlog(sigmah(k)*pd+ptop)
+      w1(k,2) = -tbarh(k)*log(sigmah(k)*pd+ptop)
       do l = 1 , kzp1
-        w1(k,2) = w1(k,2) + hydroc(k,l)*dlog(sigmah(l)*pd+ptop)
+        w1(k,2) = w1(k,2) + hydroc(k,l)*log(sigmah(l)*pd+ptop)
       end do
-      x = dabs(w1(k,1)-w1(k,2))/(dabs(w1(k,1))+dabs(w1(k,2)))
-      if ( x > 1.0D-8 ) lhydro = .true.
+      x = abs(w1(k,1)-w1(k,2))/(abs(w1(k,1))+abs(w1(k,2)))
+      if ( x > 1000.0_rkx * epsilon(d_one) ) then
+        lhydro = .true.
+      end if
     end do
     if ( lhydro ) then
       numerr = numerr + 1
       write(stderr,*) 'Problem with linearization of hydrostatic equation'
-      call vprntv(w1(1,1),kz,'test1   ')
-      call vprntv(w1(1,2),kz,'test2   ')
+      call vprntv(w1(:,1),kz,'test1   ')
+      call vprntv(w1(:,2),kz,'test2   ')
     end if
     !
     ! determine tau matrix
@@ -378,17 +376,17 @@ module mod_vmodes
     !
     ! compute inverse of zmatx
     !
-    call invmtrx(zmatx,kz,zmatxr,kz,kz,det,iw2,ier,work)
+    call invmtrx(zmatx,zmatxr,kz,ier)
     call vcheki(ier,numerr,'zmatxr  ')
     !
     ! compute inverse of hydros
     !
-    call invmtrx(hydros,kz,hydror,kz,kz,det,iw2,ier,work)
+    call invmtrx(hydros,hydror,kz,ier)
     call vcheki(ier,numerr,'hydror  ')
     !
     ! compute cpfac
     !
-    call invmtrx(tau,kz,w1,kz,kz,det,iw2,ier,work)
+    call invmtrx(tau,w1,kz,ier)
     call vcheki(ier,numerr,'taur    ')
     do k = 1 , kz
       cpfac(k) = d_zero
@@ -463,7 +461,7 @@ module mod_vmodes
       call vprntv(hweigh,kz,'hweigh  ')
       write(stdout,'(a,1x,1E16.5,a,1x,1E16.5)') 'alpha1 = ',alpha1, &
         ', alpha2 = ',alpha2
-      call vprntm(hsigma,kz,kz,'a       ')
+      call vprntv(hsigma,kz,'a       ')
       call vprntm(hydros,kz,kz,'hydros  ')
       call vprntm(hydror,kz,kz,'hydror  ')
       call vprntm(hydroc,kz,kzp1,'hydroc  ')
@@ -485,7 +483,7 @@ module mod_vmodes
     !
     subroutine vchekt
       implicit none
-      real(rk8) :: ds1 , ds2 , g1 , g2 , tb
+      real(rkx) :: ds1 , ds2 , g1 , g2 , tb
       integer(ik4) :: k
       logical :: lstab
       lstab = .true.
@@ -508,9 +506,9 @@ module mod_vmodes
     !
     subroutine vtlaps
       implicit none
-      real(rk8) , parameter :: tstrat = 218.15D0
-      real(rk8) , parameter :: zstrat = 10769.0D0
-      real(rk8) :: p0 , fac , p , z
+      real(rkx) , parameter :: tstrat = 218.15_rkx
+      real(rkx) , parameter :: zstrat = 10769.0_rkx
+      real(rkx) :: p0 , fac , p , z
       integer(ik4) :: k
       p0 = stdp*d_r1000
       fac = rgas*lrate*regrav
@@ -528,7 +526,7 @@ module mod_vmodes
     !
     subroutine vorder
       implicit none
-      real(rk8) :: hmax
+      real(rkx) :: hmax
       integer(ik4) :: k , kmax , l
       kmax = 1
       do k = 1 , kz
@@ -539,9 +537,9 @@ module mod_vmodes
         end do
       end do
       do l = 1 , kz
-        hmax = -1.0D100
+        hmax = -epsilon(d_one)
         do k = 1 , kz
-          if ( (dabs(w2(k,2)) < dlowval) .and. (w2(k,1) > hmax) ) then
+          if ( (abs(w2(k,2)) < dlowval) .and. (w2(k,1) > hmax) ) then
             hmax = w2(k,1)
             kmax = k
           end if
@@ -560,21 +558,21 @@ module mod_vmodes
     !
     subroutine vnorml
       implicit none
-      real(rk8) :: a , v , zmax
+      real(rkx) :: a , v , zmax
       integer(ik4) :: k , kmax , l
       kmax = 1
       do l = 1 , kz
         zmax = -d_one
         v = d_zero
         do k = 1 , kz
-          a = dabs(zmatx(k,l))
+          a = abs(zmatx(k,l))
           if ( a > zmax ) then
             zmax = a
             kmax = k
           end if
           v = (sigma(k+1)-sigma(k))*a*a + v
         end do
-        a = (zmatx(kmax,l)/zmax)/dsqrt(v)
+        a = (zmatx(kmax,l)/zmax)/sqrt(v)
         do k = 1 , kz
           zmatx(k,l) = a*zmatx(k,l)
         end do
@@ -585,8 +583,8 @@ module mod_vmodes
     !
     subroutine vcheke
       implicit none
-      real(rk8) , parameter :: tol = 1.0D-9
-      real(rk8) :: emax
+      real(rkx) , parameter :: tol = epsilon(d_one)
+      real(rkx) :: emax
       integer(ik4) :: n , nimag , numneg
       numneg = 0
       emax = d_zero
@@ -625,11 +623,14 @@ module mod_vmodes
   !
   ! Matrix inversion using linpack
   !
-  subroutine invmtrx(a,na,v,nv,n,d,ip,ier,work)
+  subroutine invmtrx(a,v,n,ier)
     implicit none
-    integer(ik4) :: na , nv , n , ier
+    integer(ik4) , intent(in) :: n , ier
+    real(rkx) , intent(in) , dimension(n,n) :: a
+    real(rkx) , intent(out) , dimension(n,n) :: v
     integer(ik4) , dimension(n) :: ip
-    real(rk8) :: a(n,n) , v(n,n) , work(n) , d(2)
+    real(rkx) , dimension(n) :: work
+    real(rkx) , dimension(2) :: d
     integer(ik4) :: i , j
     !
     ! 08/23/91 Version 1.0
@@ -642,9 +643,6 @@ module mod_vmodes
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    if ( n /= na .or. n /= nv ) then
-      call fatal(__FILE__,__LINE__,'invmtx: equate n, na, nv')
-    end if
     do j = 1 , n
       do i = 1 , n
         v(i,j) = a(i,j)

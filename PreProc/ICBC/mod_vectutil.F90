@@ -34,8 +34,8 @@ module mod_vectutil
     implicit none
     integer(ik4) , intent(in) :: ni , nj
     integer(ik4) , intent(in) :: iband
-    real(rk8) , intent(in) , dimension(ni,nj) :: px
-    real(rk8) , intent(out) , dimension(ni,nj) :: pd
+    real(rkx) , intent(in) , dimension(ni,nj) :: px
+    real(rkx) , intent(out) , dimension(ni,nj) :: pd
 
     integer(ik4) :: i , j , ni1 , nj1 , im1
     !
@@ -87,8 +87,8 @@ module mod_vectutil
   subroutine dot2crs(px,pd,ni,nj,iband)
     implicit none
     integer(ik4) , intent(in) :: ni , nj
-    real(rk8) , intent(in) , dimension(ni,nj) :: pd
-    real(rk8) , intent(out) , dimension(ni,nj) :: px
+    real(rkx) , intent(in) , dimension(ni,nj) :: pd
+    real(rkx) , intent(out) , dimension(ni,nj) :: px
     integer(ik4) , intent(in) :: iband
     integer(ik4) :: i , j
     do j = 1 , nj - 1
@@ -96,7 +96,7 @@ module mod_vectutil
         px(i,j) = ( pd(i  ,j  ) + &
                     pd(i+1,j  ) + &
                     pd(i  ,j+1) + &
-                    pd(i+1,j+1) ) * 0.25D0
+                    pd(i+1,j+1) ) * 0.25_rkx
       end do
     end do
     if ( iband == 1 ) then
@@ -104,7 +104,7 @@ module mod_vectutil
         px(ni,j) = ( pd(ni,j  ) + &
                      pd(1 ,j  ) + &
                      pd(ni,j+1) + &
-                     pd(1, j+1) ) * 0.25D0
+                     pd(1, j+1) ) * 0.25_rkx
       end do
     end if
   end subroutine dot2crs
@@ -114,10 +114,10 @@ module mod_vectutil
   subroutine top2btm(x,nlon1,nlat1,nlev1)
     implicit none
     integer(ik4) , intent(in) :: nlat1 , nlev1 , nlon1
-    real(rk8) , intent(inout) , dimension(nlon1,nlat1,nlev1) :: x
+    real(rkx) , intent(inout) , dimension(nlon1,nlat1,nlev1) :: x
 
     integer(ik4) :: i , j , k , kr
-    real(rk8) , dimension(nlev1) :: work
+    real(rkx) , dimension(nlev1) :: work
 
     do j = 1 , nlat1
       do i = 1 , nlon1
@@ -137,7 +137,7 @@ module mod_vectutil
   subroutine btm2top(x,nlon1,nlat1,nlev1)
     implicit none
     integer(ik4) , intent(in) :: nlat1 , nlev1 , nlon1
-    real(rk8) , intent(inout) , dimension(nlon1,nlat1,nlev1) :: x
+    real(rkx) , intent(inout) , dimension(nlon1,nlat1,nlev1) :: x
     call top2btm(x,nlon1,nlat1,nlev1)
   end subroutine btm2top
   !
@@ -146,18 +146,18 @@ module mod_vectutil
   subroutine relax(chi,ff,imx,jmx,ie,je,ds)
     implicit none
     integer(ik4) , intent(in) :: imx , jmx , ie , je
-    real(rk8) , intent(out) , dimension(imx,jmx) :: chi
-    real(rk8) , intent(inout) , dimension(imx,jmx) :: ff
-    real(rk8) , intent(in) :: ds
-    real(rk8) , parameter :: smallres = 1.0D-6
+    real(rkx) , intent(out) , dimension(imx,jmx) :: chi
+    real(rkx) , intent(inout) , dimension(imx,jmx) :: ff
+    real(rkx) , intent(in) :: ds
+    real(rkx) , parameter :: smallres = 1.0e-6_rkx
     integer(ik4) , parameter :: mm = 20000
-    real(rk8) , parameter :: alpha = 1.8D0
-    real(rk8) , parameter :: alphaov4 = alpha * d_rfour
+    real(rkx) , parameter :: alpha = 1.8_rkx
+    real(rkx) , parameter :: alphaov4 = alpha * d_rfour
     integer(ik4) :: i , j , iter
-    real(rk8) , dimension(jmx) :: chimx
-    real(rk8) , dimension(jmx) :: rdmax
-    real(rk8) , dimension(imx,jmx) :: rd
-    real(rk8) :: epx , fac
+    real(rkx) , dimension(jmx) :: chimx
+    real(rkx) , dimension(jmx) :: rdmax
+    real(rkx) , dimension(imx,jmx) :: rd
+    real(rkx) :: epx , fac
     logical :: converged
     converged = .false.
     fac = d_two * ds * ds
@@ -206,7 +206,7 @@ module mod_vectutil
     implicit none
     integer(ik4) , intent(in) :: ix , jx , imx , jmx , &
                                  ifirst , ilast , jfirst , jlast
-    real(rk8) , intent(inout) , dimension(ix,jx) :: f
+    real(rkx) , intent(inout) , dimension(ix,jx) :: f
     integer(ik4) :: i , j
     do j = jfirst , jlast
       do i = 1 , ifirst - 1
@@ -229,18 +229,18 @@ module mod_vectutil
   subroutine meandiv(u,v,psd,dm,sigh,dsg,imx,jmx,kxs,ds,imxm,jmxm)
     implicit none
     integer(ik4) , intent(in) :: imx , jmx , kxs , imxm , jmxm
-    real(rk8) , intent(inout) , dimension(imx,jmx,kxs) :: u , v
-    real(rk8) , intent(in) , dimension(imx,jmx) :: psd
-    real(rk8) , intent(in) , dimension(imx,jmx) :: dm
-    real(rk8) , intent(in) , dimension(kxs) :: sigh , dsg
-    real(rk8) , intent(in) :: ds
+    real(rkx) , intent(inout) , dimension(imx,jmx,kxs) :: u , v
+    real(rkx) , intent(in) , dimension(imx,jmx) :: psd
+    real(rkx) , intent(in) , dimension(imx,jmx) :: dm
+    real(rkx) , intent(in) , dimension(kxs) :: sigh , dsg
+    real(rkx) , intent(in) :: ds
     integer(ik4) :: i , j , k
-    real(rk8) , dimension(imx,jmx) :: chi , div
-    real(rk8) , dimension(imx,jmx) :: dudx , dvdy
-    real(rk8) , dimension(imx,jmx) :: udiverg , vdiverg
-    real(rk8) , dimension(imx,jmx) :: uslb , vslb
-    real(rk8) , dimension(kxs) :: weight
-    real(rk8) :: oneov2ds
+    real(rkx) , dimension(imx,jmx) :: chi , div
+    real(rkx) , dimension(imx,jmx) :: dudx , dvdy
+    real(rkx) , dimension(imx,jmx) :: udiverg , vdiverg
+    real(rkx) , dimension(imx,jmx) :: uslb , vslb
+    real(rkx) , dimension(kxs) :: weight
+    real(rkx) :: oneov2ds
 
     oneov2ds = d_one / (d_two * ds)
     do k = 1 , kxs

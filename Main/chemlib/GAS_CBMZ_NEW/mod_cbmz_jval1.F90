@@ -34,7 +34,6 @@ module mod_cbmz_jval1
 
     subroutine jvalpro(nhv,hvmat,jarray,jparam,jval)
       implicit none
-!
       real(rk8) , dimension(22,40) :: hvmat
       real(rk8) , dimension(22) :: jparam
       real(rk8) , dimension(80,510,56) :: jarray
@@ -42,7 +41,6 @@ module mod_cbmz_jval1
       integer(ik4) , dimension(22) :: nhv
       intent (in) hvmat , jarray , jparam , nhv
       intent (inout) jval
-!
       real(rk8) , dimension(56) :: cfac , jfaerz , jfsur
       real(rk8) :: falt , fzen , x
       real(rk8) :: fkn

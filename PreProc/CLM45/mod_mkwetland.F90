@@ -41,21 +41,21 @@ module mod_mkwetland
   character(len=16) , parameter :: varname2 = 'PCT_LAKE'
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real(rk8) :: vmin = 0.0D0
-  real(rk8) :: vmisdat = -9999.0D0
+  real(rkx) :: vmin = 0.0_rkx
+  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
   subroutine mkwetland(wetfile,wetland,lake)
     implicit none
     character(len=*) , intent(in) :: wetfile
-    real(rk8) , dimension(:,:) , intent(out) :: wetland , lake
+    real(rkx) , dimension(:,:) , intent(out) :: wetland , lake
     integer(ik4) :: nlat , nlon
     integer(ik4) :: idimid , ivarid1 , ivarid2 , ivarmask , ncid
     integer(ik4) , dimension(2) :: istart , icount
     integer(ik4) :: istatus , i , li , lo
-    real(rk8) , dimension(:,:) , allocatable :: rvar1 , rvar2 , rmask
-    real(rk8) , dimension(:) , allocatable :: glat , glon , rlat , rlon
+    real(rkx) , dimension(:,:) , allocatable :: rvar1 , rvar2 , rmask
+    real(rkx) , dimension(:) , allocatable :: glat , glon , rlat , rlon
     type(global_domain) :: domain
 
     character(len=256) :: inpfile
@@ -99,11 +99,11 @@ module mod_mkwetland
       'Cannot read variable lon in file '//trim(inpfile))
 
     ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0D0 )
-      glon = glon - 360.0D0
+    where ( glon >  180.0_rkx )
+      glon = glon - 360.0_rkx
     end where
-    where ( glon < -180.0D0 )
-      glon = glon + 360.0D0
+    where ( glon < -180.0_rkx )
+      glon = glon + 360.0_rkx
     end where
 
     call get_window(glat,glon,domain)

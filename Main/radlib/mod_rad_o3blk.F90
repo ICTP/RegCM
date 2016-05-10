@@ -41,44 +41,44 @@ module mod_rad_o3blk
 
   public :: allocate_mod_rad_o3blk , o3data , read_o3data
 
-  real(rk8) , dimension(31) :: o3ann , o3sum , o3win , ppann ,&
+  real(rkx) , dimension(31) :: o3ann , o3sum , o3win , ppann ,&
                               ppsum , ppwin
 
-  real(rk8) , pointer , dimension(:) :: plev
-  real(rk8) , pointer , dimension(:,:) :: alon , alat , aps
-  real(rk8) , pointer , dimension(:,:,:) :: ozone1 , ozone2
-  real(rk8) , pointer , dimension(:,:,:) :: ozone , pp3d
-  real(rk8) , pointer , dimension(:,:,:) :: yozone
+  real(rkx) , pointer , dimension(:) :: plev
+  real(rkx) , pointer , dimension(:,:) :: alon , alat , aps
+  real(rkx) , pointer , dimension(:,:,:) :: ozone1 , ozone2
+  real(rkx) , pointer , dimension(:,:,:) :: ozone , pp3d
+  real(rkx) , pointer , dimension(:,:,:) :: yozone
 
-  data o3sum/5.297D-8 , 5.852D-8 , 6.579D-8 , 7.505D-8 , 8.577D-8 , &
-             9.895D-8 , 1.175D-7 , 1.399D-7 , 1.677D-7 , 2.003D-7 , &
-             2.571D-7 , 3.325D-7 , 4.438D-7 , 6.255D-7 , 8.168D-7 , &
-             1.036D-6 , 1.366D-6 , 1.855D-6 , 2.514D-6 , 3.240D-6 , &
-             4.033D-6 , 4.854D-6 , 5.517D-6 , 6.089D-6 , 6.689D-6 , &
-             1.106D-5 , 1.462D-5 , 1.321D-5 , 9.856D-6 , 5.960D-6 , &
-             5.960D-6/
-  data ppsum      /955.890D0 , 850.532D0 , 754.599D0 , 667.742D0 , &
-       589.841D0 , 519.421D0 , 455.480D0 , 398.085D0 , 347.171D0 , &
-       301.735D0 , 261.310D0 , 225.360D0 , 193.419D0 , 165.490D0 , &
-       141.032D0 , 120.125D0 , 102.689D0 ,  87.829D0 ,  75.123D0 , &
-        64.306D0 ,  55.086D0 ,  47.209D0 ,  40.535D0 ,  34.795D0 , &
-        29.865D0 ,  19.122D0 ,   9.277D0 ,   4.660D0 ,   2.421D0 , &
-         1.294D0 ,   0.647D0/
+  data o3sum/5.297e-8_rkx , 5.852e-8_rkx , 6.579e-8_rkx , 7.505e-8_rkx , 8.577e-8_rkx ,&
+             9.895e-8_rkx , 1.175e-7_rkx , 1.399e-7_rkx , 1.677e-7_rkx , 2.003e-7_rkx ,&
+             2.571e-7_rkx , 3.325e-7_rkx , 4.438e-7_rkx , 6.255e-7_rkx , 8.168e-7_rkx ,&
+             1.036e-6_rkx , 1.366e-6_rkx , 1.855e-6_rkx , 2.514e-6_rkx , 3.240e-6_rkx ,&
+             4.033e-6_rkx , 4.854e-6_rkx , 5.517e-6_rkx , 6.089e-6_rkx , 6.689e-6_rkx ,&
+             1.106e-5_rkx , 1.462e-5_rkx , 1.321e-5_rkx , 9.856e-6_rkx , 5.960e-6_rkx ,&
+             5.960e-6_rkx/
+  data ppsum      /955.890_rkx , 850.532_rkx , 754.599_rkx , 667.742_rkx , &
+       589.841_rkx , 519.421_rkx , 455.480_rkx , 398.085_rkx , 347.171_rkx , &
+       301.735_rkx , 261.310_rkx , 225.360_rkx , 193.419_rkx , 165.490_rkx , &
+       141.032_rkx , 120.125_rkx , 102.689_rkx ,  87.829_rkx ,  75.123_rkx , &
+        64.306_rkx ,  55.086_rkx ,  47.209_rkx ,  40.535_rkx ,  34.795_rkx , &
+        29.865_rkx ,  19.122_rkx ,   9.277_rkx ,   4.660_rkx ,   2.421_rkx , &
+         1.294_rkx ,   0.647_rkx/
 
-  data o3win/4.629D-8 , 4.686D-8 , 5.017D-8 , 5.613D-8 , 6.871D-8 , &
-             8.751D-8 , 1.138D-7 , 1.516D-7 , 2.161D-7 , 3.264D-7 , &
-             4.968D-7 , 7.338D-7 , 1.017D-6 , 1.308D-6 , 1.625D-6 , &
-             2.011D-6 , 2.516D-6 , 3.130D-6 , 3.840D-6 , 4.703D-6 , &
-             5.486D-6 , 6.289D-6 , 6.993D-6 , 7.494D-6 , 8.197D-6 , &
-             9.632D-6 , 1.113D-5 , 1.146D-5 , 9.389D-6 , 6.135D-6 , &
-             6.135D-6/
-  data ppwin      /955.747D0 , 841.783D0 , 740.199D0 , 649.538D0 , &
-       568.404D0 , 495.815D0 , 431.069D0 , 373.464D0 , 322.354D0 , &
-       277.190D0 , 237.635D0 , 203.433D0 , 174.070D0 , 148.949D0 , &
-       127.408D0 , 108.915D0 ,  93.114D0 ,  79.551D0 ,  67.940D0 , &
-        58.072D0 ,  49.593D0 ,  42.318D0 ,  36.138D0 ,  30.907D0 , &
-        26.362D0 ,  16.423D0 ,   7.583D0 ,   3.620D0 ,   1.807D0 , &
-         0.938D0 ,   0.469D0/
+  data o3win/4.629e-8_rkx , 4.686e-8_rkx , 5.017e-8_rkx , 5.613e-8_rkx , 6.871e-8_rkx ,&
+             8.751e-8_rkx , 1.138e-7_rkx , 1.516e-7_rkx , 2.161e-7_rkx , 3.264e-7_rkx ,&
+             4.968e-7_rkx , 7.338e-7_rkx , 1.017e-6_rkx , 1.308e-6_rkx , 1.625e-6_rkx ,&
+             2.011e-6_rkx , 2.516e-6_rkx , 3.130e-6_rkx , 3.840e-6_rkx , 4.703e-6_rkx ,&
+             5.486e-6_rkx , 6.289e-6_rkx , 6.993e-6_rkx , 7.494e-6_rkx , 8.197e-6_rkx ,&
+             9.632e-6_rkx , 1.113e-5_rkx , 1.146e-5_rkx , 9.389e-6_rkx , 6.135e-6_rkx ,&
+             6.135e-6_rkx/
+  data ppwin      /955.747_rkx , 841.783_rkx , 740.199_rkx , 649.538_rkx , &
+       568.404_rkx , 495.815_rkx , 431.069_rkx , 373.464_rkx , 322.354_rkx , &
+       277.190_rkx , 237.635_rkx , 203.433_rkx , 174.070_rkx , 148.949_rkx , &
+       127.408_rkx , 108.915_rkx ,  93.114_rkx ,  79.551_rkx ,  67.940_rkx , &
+        58.072_rkx ,  49.593_rkx ,  42.318_rkx ,  36.138_rkx ,  30.907_rkx , &
+        26.362_rkx ,  16.423_rkx ,   7.583_rkx ,   3.620_rkx ,   1.807_rkx , &
+         0.938_rkx ,   0.469_rkx/
 
   contains
 
@@ -107,19 +107,19 @@ module mod_rad_o3blk
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
     integer(ik4) :: k
-    real(rk8) , dimension(kzp1) :: ozprnt
-    real(rk8) , pointer , dimension(:) :: o3wrk , ppwrk
+    real(rkx) , dimension(kzp1) :: ozprnt
+    real(rkx) , pointer , dimension(:) :: o3wrk , ppwrk
     allocate(o3wrk(31),ppwrk(31))
     do k = 1 , 31
       ppann(k) = ppsum(k)
     end do
-    o3ann(1) = 0.5D0*(o3sum(1)+o3win(1))
+    o3ann(1) = 0.5_rkx*(o3sum(1)+o3win(1))
     do k = 2 , 31
       o3ann(k) = o3win(k-1) + (o3win(k)-o3win(k-1)) / &
                  (ppwin(k)-ppwin(k-1))*(ppsum(k)-ppwin(k-1))
     end do
     do k = 2 , 31
-      o3ann(k) = 0.5D0*(o3ann(k)+o3sum(k))
+      o3ann(k) = 0.5_rkx*(o3ann(k)+o3sum(k))
     end do
     do k = 1 , 31
       o3wrk(k) = o3ann(k)
@@ -143,11 +143,11 @@ module mod_rad_o3blk
     character(len=64) :: infile
     logical , save :: ifirst
     logical :: dointerp
-    real(rk8) , dimension(kzp1) :: ozprnt
-    real(rk8) , dimension(72,37,24) :: xozone1 , xozone2
-    real(rk8) , save , dimension(37) :: lat
-    real(rk8) , save , dimension(72) :: lon
-    real(rk8) :: xfac1 , xfac2 , odist
+    real(rkx) , dimension(kzp1) :: ozprnt
+    real(rkx) , dimension(72,37,24) :: xozone1 , xozone2
+    real(rkx) , save , dimension(37) :: lat
+    real(rkx) , save , dimension(72) :: lon
+    real(rkx) :: xfac1 , xfac2 , odist
     type (rcm_time_and_date) :: imonmidd
     integer(ik4) :: iyear , imon , iday , ihour
     integer(ik4) , save :: ncid = -1
@@ -247,7 +247,7 @@ module mod_rad_o3blk
       odist = xfac1 - xfac2
       xfac1 = xfac1/odist
       xfac2 = d_one-xfac1
-      ozone = (ozone1*xfac2+ozone2*xfac1)*1.0D-06
+      ozone = (ozone1*xfac2+ozone2*xfac1)*1.0e-6_rkx
     end if
     call grid_distribute(ozone,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
     if ( myid == italk .and. dointerp ) then
@@ -280,7 +280,7 @@ module mod_rad_o3blk
     implicit none
     character(len=*) , intent(in) :: o3file
     integer(ik4) , intent(out) :: ncid
-    real(rk8) , intent(out) , dimension(:) :: lat , lon
+    real(rkx) , intent(out) , dimension(:) :: lat , lon
     integer(ik4) :: iret
     iret = nf90_open(o3file,nf90_nowrite,ncid)
     if ( iret /= nf90_noerr ) then
@@ -297,15 +297,15 @@ module mod_rad_o3blk
     implicit none
     integer(ik4) , intent(in) :: ncid , iyear , imon
     character(len=*) , intent(in) :: vname
-    real(rk8) , intent(out) , dimension(:,:,:) :: val
-    real(rk8) , save :: xscale , xfact
+    real(rkx) , intent(out) , dimension(:,:,:) :: val
+    real(rkx) , save :: xscale , xfact
     integer(ik4) , save :: ilastncid , icvar
     integer(ik4) , save , dimension(4) :: istart , icount
     integer(ik4) :: iret , irec
     data ilastncid /-1/
     data icvar /-1/
-    data xscale /1.0D0/
-    data xfact /0.0D0/
+    data xscale /1.0_rkx/
+    data xfact /0.0_rkx/
     data istart  /  1 ,  1 ,  1 ,  1/
     data icount  / 72 , 37 , 24 ,  1/
 
@@ -333,14 +333,14 @@ module mod_rad_o3blk
       write (stderr, *) nf90_strerror(iret)
       call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
     end if
-    val = dble(val*xscale+xfact)
+    val = real(val*xscale+xfact,rkx)
   end subroutine readvar3d_pack
 
   subroutine readvar1d(ncid,vname,val)
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
-    real(rk8) , intent(out) , dimension(:) :: val
+    real(rkx) , intent(out) , dimension(:) :: val
     integer(ik4) :: icvar , iret
     iret = nf90_inq_varid(ncid,vname,icvar)
     if ( iret /= nf90_noerr ) then
