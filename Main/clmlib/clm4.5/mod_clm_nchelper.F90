@@ -1647,7 +1647,7 @@ module mod_clm_nchelper
     real(rk8) , intent(out) :: xval
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , mpierr
-    real(rkx) , dimension(1) :: rval
+    real(rk8) , dimension(1) :: rval
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
