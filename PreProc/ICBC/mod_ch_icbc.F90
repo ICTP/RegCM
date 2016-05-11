@@ -49,7 +49,7 @@ module mod_ch_icbc
   real(rkx) , pointer , dimension(:,:) :: pchem_3
   real(rkx) , pointer , dimension(:,:,:,:) :: chv3
   real(rkx) , pointer , dimension(:,:) :: xps
-  real(rkx) , pointer , dimension(:,:,:,:) :: xinp
+  real(rkx) , pointer , dimension(:,:,:) :: xinp
   real(rkx) , pointer , dimension(:,:,:,:) :: chv4_1
   real(rkx) , pointer , dimension(:,:,:,:) :: chv4_2
 
@@ -107,7 +107,7 @@ module mod_ch_icbc
     call getmem1d(cht42hyam,1,chilev,'mod_ch_icbc:cht42hyam')
     call getmem1d(cht42hybm,1,chilev,'mod_ch_icbc:cht42hybm')
     call getmem2d(xps,1,chilon,1,chjlat,'mod_ch_icbc:xps1')
-    call getmem4d(xinp,1,chilon,1,chjlat,1,chilev,1,nchsp,'mod_ch_icbc:xinp')
+    call getmem3d(xinp,1,chilon,1,chjlat,1,chilev,'mod_ch_icbc:xinp')
 
     istatus = nf90_inq_varid(ncid,'lon',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -395,10 +395,11 @@ module mod_ch_icbc
       istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_inst',ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find var '//trim(chspec(is)))
-      istatus = nf90_get_var(ncid,ivarid,xinp(:,:,:,is),istart,icount)
+      istatus = nf90_get_var(ncid,ivarid,xinp(:,:,:),istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
-      call bilinx2(chv3(:,:,:,is),xinp(:,:,:,is),xlon,xlat,cht42lon,cht42lat, &
+      where ( xinp < mintr ) xinp = d_zero
+      call bilinx2(chv3(:,:,:,is),xinp(:,:,:),xlon,xlat,cht42lon,cht42lat, &
                    chilon,chjlat,jx,iy,chilev)
     end do
     do i = 1 , iy

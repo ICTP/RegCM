@@ -77,7 +77,7 @@ module mod_che_bdyco
   type(cbound_area) , public :: cba
 
   contains
-!
+
   subroutine allocate_mod_che_bdyco
     implicit none
     call getmem1d(ichbdy2trac,1,max_input_tracers,'che_bdyco:ichbdytrac')
@@ -469,16 +469,16 @@ module mod_che_bdyco
       end if
     end if  !end if (ktau > 1) test
 
-!.....time-dependent boundary conditions:
-! for chemistry relaxation towrds
-! time dependant boundary conditions is considered
-!    if ( iboudy.eq.0 ) then
-!.....fixed boundary conditions:
-!    end if
-!
-!.....time-dependent boundary conditions:
-! for chemistry relaxation towrds
-! time dependant boundary conditions is considered
+   !.....time-dependent boundary conditions:
+   ! for chemistry relaxation towrds
+   ! time dependant boundary conditions is considered
+   !    if ( iboudy.eq.0 ) then
+   !.....fixed boundary conditions:
+   !    end if
+   !
+   !.....time-dependent boundary conditions:
+   ! for chemistry relaxation towrds
+   ! time dependant boundary conditions is considered
 
     if ( ma%has_bdyleft ) then
       do k = 1 , kz
@@ -642,7 +642,7 @@ module mod_che_bdyco
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine nudge_chi
-!
+
   subroutine setup_che_bdycon
     implicit none
     integer(ik4) :: n , k
@@ -658,14 +658,17 @@ module mod_che_bdyco
         cegc(n,k) = gnudge*xfune(n,k)
       end do
     end do
+
+    contains
+
+      pure real(rkx) function xfune(mm,kk)
+        implicit none
+        integer(ik4) , intent(in) :: mm , kk
+        xfune = exp(-real(mm-2,rkx)/anudgh(kk))
+      end function xfune
+
   end subroutine setup_che_bdycon
-!
-  function xfune(mm,kk)
-    implicit none
-    real(rkx) :: xfune
-    integer(ik4) , intent(in) :: mm , kk
-    xfune = exp(-real(mm-2,rkx)/anudgh(kk))
-  end function xfune
-!
+
 end module mod_che_bdyco
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

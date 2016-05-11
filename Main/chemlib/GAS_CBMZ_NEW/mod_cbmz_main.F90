@@ -177,6 +177,7 @@ module mod_cbmz_main1
     jval_CHOCHO   =  jval(jCHOCHO)
     c_jval(1,:)   = jval(:)
 
+    call reset_integrate()
     kron: &
     do while (t < tend)
       call update_rconst()

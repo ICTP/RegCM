@@ -435,7 +435,6 @@
       ! tendency is still updated every dt ( =dt) time step
       ! ( insure smoothness)
       !
-
       if ( igaschem == 1 .and. ichsolver > 0 ) then
         if ( mod(ktau+1,kchsolv) == 0 ) then
           chemten(:,:,:,:) = d_zero
@@ -474,6 +473,6 @@
       end do
 
     end subroutine tractend2
-!
+
 end module mod_che_tend
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

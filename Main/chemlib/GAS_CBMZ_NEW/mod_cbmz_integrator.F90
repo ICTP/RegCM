@@ -26,34 +26,48 @@
 module mod_cbmz_integrator
 
   use mod_cbmz_precision
-  use mod_cbmz_global, only: fix, rconst, time, atol, rtol
-  use mod_cbmz_parameters, only: nvar, nfix, lu_nonzero
-  use mod_cbmz_jacobiansp, only: lu_diag
-  use mod_cbmz_linearalgebra, only: kppdecomp, kppsolve
+  use mod_cbmz_global , only : fix , rconst , time , atol , rtol
+  use mod_cbmz_parameters , only : nvar , nfix , lu_nonzero
+  use mod_cbmz_jacobiansp , only : lu_diag
+  use mod_cbmz_linearalgebra , only : kppdecomp , kppsolve
 
   implicit none
   public
   save
 
-  real(kind=dp) :: conit , crate , hold , rmax
-  real(kind=dp) , dimension(13) :: el
-  real(kind=dp) , dimension(13,12) :: elco
-  real(kind=dp) , dimension(3,12) :: tesco
-  real(kind=dp) :: ccmax , el0 , h , hmin , hmxi , hu , rc , tn , uround
+  real(kind=dp) , private :: conit , crate , hold , rmax
+  real(kind=dp) , private , dimension(13) :: el
+  real(kind=dp) , private , dimension(13,12) :: elco
+  real(kind=dp) , private , dimension(3,12) :: tesco
+  real(kind=dp) , private :: ccmax , el0 , h , hmin , hmxi , hu , rc , tn , uround
 
-  integer :: init , mxstep , mxhnil , nhnil , nslast , nyh
-  integer :: ialth , ipup , lmax , meo , nqnyh , nslp
-  integer :: icf, ierpj , iersl , jcur , jstart , kflag , l
-  integer :: lyh , lewt , lacor , lsavf , lwm , liwm , meth , miter
-  integer :: maxord , maxcor , msbp , mxncf , n , nq , nst , nfe , nje , nqu
+  integer , private :: init , mxstep , mxhnil , nhnil , nslast , nyh
+  integer , private :: ialth , ipup , lmax , meo , nqnyh , nslp
+  integer , private :: icf, ierpj , iersl , jcur , jstart , kflag , l
+  integer , private :: lyh , lewt , lacor , lsavf , lwm , liwm , meth , miter
+  integer , private :: maxord , maxcor , msbp , mxncf , n , nq , nst , nfe , nje , nqu
 
   !~~~>  statistics on the work performed by the lsode method
-  integer :: nfun,njac,nstp,nacc,nrej,ndec,nsol,nsng
-  integer, parameter :: ifun=1, ijac=2, istp=3, iacc=4,  &
-    irej=5, idec=6, isol=7, isng=8, itexit=1, ihexit=2
+  integer , private :: nfun , njac , nstp , nacc , nrej , ndec , nsol , nsng
+  integer , parameter :: ifun = 1
+  integer , parameter :: ijac = 2
+  integer , parameter :: istp = 3
+  integer , parameter :: iacc = 4
+  integer , parameter :: irej = 5
+  integer , parameter :: idec = 6
+  integer , parameter :: isol = 7
+  integer , parameter :: isng = 8
+
+  integer , parameter :: itexit = 1
+  integer , parameter :: ihexit = 2
+
   !  sdirk method coefficients
-  real(kind=dp) :: rkalpha(5,4), rkbeta(5,4), rkd(4,5),  &
-                   rkgamma, rka(5,5), rkb(5), rkc(5)
+  real(kind=dp) , dimension(5,4) :: rkalpha
+  real(kind=dp) , dimension(5,4) :: rkbeta
+  real(kind=dp) , dimension(4,5) :: rkd
+  real(kind=dp) , dimension(5,5) :: rka
+  real(kind=dp) , dimension(5) :: rkb , rkc
+  real(kind=dp) :: rkgamma
 
   ! mz_rs_20050717: todo: use strings of ierr_names for error messages
   ! description of the error numbers ierr
@@ -70,6 +84,63 @@ module mod_cbmz_integrator
     'success                                           ' /) !  1
 
   contains
+
+  subroutine reset_integrate
+    implicit none
+    conit = 0.0_dp
+    crate = 0.0_dp
+    hold = 0.0_dp
+    rmax = 0.0_dp
+    elco(:,:) = 0.0_dp
+    tesco(:,:) = 0.0_dp
+    el(:) = 0.0_dp
+    ccmax = 0.0_dp
+    el0 = 0.0_dp
+    h = 0.0_dp
+    hmin = 0.0_dp
+    hmxi = 0.0_dp
+    hu = 0.0_dp
+    rc = 0.0_dp
+    tn = 0.0_dp
+    uround = 0.0_dp
+    init = 0
+    mxstep = 0
+    mxhnil = 0
+    nhnil = 0
+    nslast = 0
+    nyh = 0
+    ialth = 0
+    ipup = 0
+    lmax = 0
+    meo = 0
+    nqnyh = 0
+    nslp = 0
+    icf = 0
+    ierpj = 0
+    iersl = 0
+    jcur = 0
+    jstart = 0
+    kflag = 0
+    l = 0
+    lyh = 0
+    lewt = 0
+    lacor = 0
+    lsavf = 0
+    lwm = 0
+    liwm = 0
+    meth = 0
+    miter = 0
+    maxord = 0
+    maxcor = 0
+    msbp = 0
+    mxncf = 0
+    n = 0
+    nq = 0
+    nst = 0
+    nfe = 0
+    nje = 0
+    nqu = 0
+  end subroutine reset_integrate
 
   subroutine integrate(tin,tout,icntrl_u,rcntrl_u,istatus_u,rstatus_u,ierr_u)
     use mod_cbmz_parameters
@@ -1896,55 +1967,11 @@ module mod_cbmz_integrator
       !end subroutine dlsode
       contains
 
+    real(kind=dp) function dumach ()
+      implicit none
+      dumach = epsilon(1.0_dp)
+    end function dumach
 
-!deck dumach
-      real(kind=dp) function dumach ()
-!***begin prologue  dumach
-!***purpose  compute the unit roundoff of the machine.
-!***category  r1
-!***type      real(kind=dp) (rumach-s, dumach-d)
-!***keywords  machine constants
-!***author  hindmarsh, alan c., (llnl)
-!***description
-! *usage:
-!        real(kind=dp)  a, dumach
-!        a = dumach()
-!
-! *function return values:
-!     a : the unit roundoff of the machine.
-!
-! *description:
-!     the unit roundoff is defined as the smallest positive machine
-!     number u such that  1.0 + u .ne. 1.0.  this is computed by dumach
-!     in a machine-independent manner.
-!
-!***references  (none)
-!***routines called  dumsum
-!***revision history  (yyyymmdd)
-!   19930216  date written
-!   19930818  added slatec-format prologue.  (fnf)
-!   20030707  added dumsum to force normal storage of comp.  (ach)
-!***end prologue  dumach
-!
-      real(kind=dp) u, comp
-!***first executable statement  dumach
-      u = 1.0d0
-   10 u = u*0.5d0
-      call dumsum(1.0d0, u, comp)
-      if (comp .ne. 1.0d0) go to 10
-      dumach = u*2.0d0
-      return
-!----------------------- end of function dumach ------------------------
-      end function dumach
-
-      subroutine dumsum(a,b,c)
-!     routine to force normal storing of a + b, for dumach.
-      real(kind=dp) a, b, c
-      c = a + b
-      return
-      end subroutine dumsum
-!deck dcfode
-      subroutine dcfode (meth, elco, tesco)
 !***begin prologue  dcfode
 !***subsidiary
 !***purpose  set ode integrator coefficients.
@@ -1979,26 +2006,20 @@ module mod_cbmz_integrator
 !
 !***see also  dlsode
 !***routines called  (none)
-!***revision history  (yymmdd)
-!   791129  date written
-!   890501  modified prologue to slatec/ldoc format.  (fnf)
-!   890503  minor cosmetic changes.  (fnf)
-!   930809  renamed to allow single/double precision versions. (ach)
 !***end prologue  dcfode
 !**end
-      integer meth
-      integer i, ib, nq, nqm1, nqp1
-      real(kind=dp) elco(13,12), tesco(3,12), pc(12)
-      real(kind=dp) agamq, fnq, fnqm1, pint, ragq, rqfac, rq1fac, tsign, xpin
-!
-!***first executable statement  dcfode
+    subroutine dcfode
+      integer :: i, ib , nq , nqm1 , nqp1
+      real(kind=dp) , dimension(12) :: pc
+      real(kind=dp) :: agamq , fnq , fnqm1 , pint , ragq , &
+                      rqfac , rq1fac , tsign , xpin
       select case (meth)
         case (1)
           goto 100
         case (2)
           goto 200
       end select
-!
+
   100 elco(1,1) = 1.0d0
       elco(2,1) = 1.0d0
       tesco(1,1) = 0.0d0
@@ -2075,11 +2096,8 @@ module mod_cbmz_integrator
         tesco(3,nq) = (nq+2)/elco(1,nq)
         rq1fac = rq1fac/fnq
   230   continue
-      return
-!----------------------- end of subroutine dcfode ----------------------
-      end subroutine dcfode
-!deck dintdy
-      subroutine dintdy (t, k, yh, nyh, dky, iflag)
+    end subroutine dcfode
+
 !***begin prologue  dintdy
 !***subsidiary
 !***purpose  interpolate solution derivatives.
@@ -2109,6 +2127,7 @@ module mod_cbmz_integrator
 !***routines called  xerrwd
 !***end prologue  dintdy
 !**end
+    subroutine dintdy (t, k, yh, nyh, dky, iflag)
       integer k, nyh, iflag
       real(kind=dp) t, yh(nyh,*), dky(*)
       integer i, ic, j, jb, jb2, jj, jj1, jp1
@@ -2441,7 +2460,7 @@ module mod_cbmz_integrator
       lmax = maxord + 1
       if (ialth .eq. 1) ialth = 2
       if (meth .eq. meo) go to 110
-      call dcfode (meth, elco, tesco)
+      call dcfode
       meo = meth
       if (nq .gt. maxord) go to 120
       ialth = l
@@ -2471,7 +2490,7 @@ module mod_cbmz_integrator
 ! current meth.  then the el vector and related constants are reset
 ! whenever the order nq is changed, or at the start of the problem.
 !-----------------------------------------------------------------------
-  140 call dcfode (meth, elco, tesco)
+  140 call dcfode
   150 do 155 i = 1,l
         el(i) = elco(i,nq)
   155   continue
