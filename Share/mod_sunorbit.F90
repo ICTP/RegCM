@@ -26,6 +26,7 @@ module mod_sunorbit
   use mod_message
   use mod_stdio
   use mod_constants , only : mathpi , degrad , d_zero , d_one , d_two , d_half
+  use mod_dynparam , only : dayspy , vernal_equinox
 
   implicit none
 
@@ -40,6 +41,16 @@ module mod_sunorbit
   real(rkx) , parameter :: ORB_UNDEF_REAL = 1.e36_rkx
   integer(ik4) , parameter :: ORB_UNDEF_INT  = 2000000000
 
+  interface orb_cosz
+    module procedure orb_cosz_r4
+    module procedure orb_cosz_r8
+  end interface orb_cosz
+
+  interface orb_decl
+    module procedure orb_decl_r4
+    module procedure orb_decl_r8
+  end interface orb_decl
+
   public :: orb_cosz , orb_decl , orb_params
 
   contains
@@ -47,15 +58,25 @@ module mod_sunorbit
   ! FUNCTION to return the cosine of the solar zenith angle.
   ! Assumes 365.0 days/year.
   !
-  real(rkx) function orb_cosz(jday,lat,lon,declin)
+  real(rk4) function orb_cosz_r4(jday,lat,lon,declin)
     implicit none
-    real(rkx) , intent(in) :: jday   ! Julian cal day (1.xx to 365.xx)
-    real(rkx) , intent(in) :: lat    ! Centered latitude (radians)
-    real(rkx) , intent(in) :: lon    ! Centered longitude (radians)
-    real(rkx) , intent(in) :: declin ! Solar declination (radians)
-    orb_cosz = sin(lat)*sin(declin) - &
-               cos(lat)*cos(declin)*cos(jday*2.0_rkx*mathpi + lon)
-  end function orb_cosz
+    real(rk4) , intent(in) :: jday   ! Julian cal day (1.xx to 365.xx)
+    real(rk4) , intent(in) :: lat    ! Centered latitude (radians)
+    real(rk4) , intent(in) :: lon    ! Centered longitude (radians)
+    real(rk4) , intent(in) :: declin ! Solar declination (radians)
+    orb_cosz_r4 = sin(lat)*sin(declin) - &
+                  cos(lat)*cos(declin)*cos(jday*2.0_rk4*mathpi + lon)
+  end function orb_cosz_r4
+
+  real(rk8) function orb_cosz_r8(jday,lat,lon,declin)
+    implicit none
+    real(rk8) , intent(in) :: jday   ! Julian cal day (1.xx to 365.xx)
+    real(rk8) , intent(in) :: lat    ! Centered latitude (radians)
+    real(rk8) , intent(in) :: lon    ! Centered longitude (radians)
+    real(rk8) , intent(in) :: declin ! Solar declination (radians)
+    orb_cosz_r8 = sin(lat)*sin(declin) - &
+                  cos(lat)*cos(declin)*cos(jday*2.0_rk8*mathpi + lon)
+  end function orb_cosz_r8
   !
   ! Calculate earths orbital parameters using Dave Threshers formula which
   ! came from Berger, Andre.  1978  "A Simple Algorithm to Compute Long-Term
@@ -468,27 +489,23 @@ module mod_sunorbit
   ! Compute earth/orbit parameters using formula suggested by
   ! Duane Thresher.
   !
-  subroutine orb_decl(calday,eccen,mvelpp,lambm0,obliqr,delta,eccf)
+  subroutine orb_decl_r4(calday,eccen,mvelpp,lambm0,obliqr,delta,eccf)
     implicit none
-    real(rkx) , intent(in) :: calday ! Calendar day, including fraction
-    real(rkx) , intent(in) :: eccen  ! Eccentricity
-    real(rkx) , intent(in) :: obliqr ! Earths obliquity in radians
-    real(rkx) , intent(in) :: lambm0 ! Mean long of perihelion at the
+    real(rk4) , intent(in) :: calday ! Calendar day, including fraction
+    real(rk4) , intent(in) :: eccen  ! Eccentricity
+    real(rk4) , intent(in) :: obliqr ! Earths obliquity in radians
+    real(rk4) , intent(in) :: lambm0 ! Mean long of perihelion at the
                                      ! vernal equinox (radians)
-    real(rkx) , intent(in) :: mvelpp ! moving vernal equinox longitude
+    real(rk4) , intent(in) :: mvelpp ! moving vernal equinox longitude
                                      ! of perihelion plus pi (radians)
-    real(rkx) , intent(out) :: delta ! Solar declination angle in rad
-    real(rkx) , intent(out) :: eccf  ! Earth-sun distance factor (ie. (1/r)**2)
+    real(rk4) , intent(out) :: delta ! Solar declination angle in rad
+    real(rk4) , intent(out) :: eccf  ! Earth-sun distance factor (ie. (1/r)**2)
 
-    real(rkx) , parameter :: dayspy = 365.0_rkx  ! days per year
-    real(rkx) , parameter :: ve     = 80.5_rkx   ! Calday of vernal equinox
-                                              ! assumes Jan 1 = calday 1
-
-    real(rkx) :: lambm  ! Lambda m, mean long of perihelion (rad)
-    real(rkx) :: lmm    ! Intermediate argument involving lambm
-    real(rkx) :: lamb   ! Lambda, the earths long of perihelion
-    real(rkx) :: invrho ! Inverse normalized sun/earth distance
-    real(rkx) :: sinl   ! Sine of lmm
+    real(rk4) :: lambm  ! Lambda m, mean long of perihelion (rad)
+    real(rk4) :: lmm    ! Intermediate argument involving lambm
+    real(rk4) :: lamb   ! Lambda, the earths long of perihelion
+    real(rk4) :: invrho ! Inverse normalized sun/earth distance
+    real(rk4) :: sinl   ! Sine of lmm
 
     ! Compute eccentricity factor and solar declination using
     ! day value where a round day (such as 213.0) refers to 0z at
@@ -507,15 +524,15 @@ module mod_sunorbit
     ! days past or before (a negative increment) the vernal equinox divided by
     ! the days in a model year times the 2*mathpi radians in a complete orbit.
 
-    lambm = lambm0 + (calday - ve)*d_two*mathpi/dayspy
+    lambm = lambm0 + (calday - vernal_equinox)*d_two*mathpi/dayspy
     lmm   = lambm  - mvelpp
 
     ! The earths true longitude, in radians, is then found from
     ! the formula in Berger 1978:
 
     sinl  = sin(lmm)
-    lamb  = lambm  + eccen*(d_two*sinl + eccen*(1.25_rkx*sin(d_two*lmm)  &
-          + eccen*((13.0_rkx/12.0_rkx)*sin(3._rkx*lmm) - 0.25_rkx*sinl)))
+    lamb  = lambm  + eccen*(d_two*sinl + eccen*(1.25_rk4*sin(d_two*lmm)  &
+          + eccen*((13.0_rk4/12.0_rk4)*sin(3._rk4*lmm) - 0.25_rk4*sinl)))
 
     ! Using the obliquity, eccentricity, moving vernal equinox longitude of
     ! perihelion (plus), and earths true longitude, the declination (delta)
@@ -529,7 +546,66 @@ module mod_sunorbit
 
     delta  = asin(sin(obliqr)*sin(lamb))
     eccf   = invrho*invrho
-  end subroutine orb_decl
+  end subroutine orb_decl_r4
+
+  subroutine orb_decl_r8(calday,eccen,mvelpp,lambm0,obliqr,delta,eccf)
+    implicit none
+    real(rk8) , intent(in) :: calday ! Calendar day, including fraction
+    real(rkx) , intent(in) :: eccen  ! Eccentricity
+    real(rkx) , intent(in) :: obliqr ! Earths obliquity in radians
+    real(rkx) , intent(in) :: lambm0 ! Mean long of perihelion at the
+                                     ! vernal equinox (radians)
+    real(rkx) , intent(in) :: mvelpp ! moving vernal equinox longitude
+                                     ! of perihelion plus pi (radians)
+    real(rk8) , intent(out) :: delta ! Solar declination angle in rad
+    real(rk8) , intent(out) :: eccf  ! Earth-sun distance factor (ie. (1/r)**2)
+
+    real(rk8) :: lambm  ! Lambda m, mean long of perihelion (rad)
+    real(rk8) :: lmm    ! Intermediate argument involving lambm
+    real(rk8) :: lamb   ! Lambda, the earths long of perihelion
+    real(rk8) :: invrho ! Inverse normalized sun/earth distance
+    real(rk8) :: sinl   ! Sine of lmm
+
+    ! Compute eccentricity factor and solar declination using
+    ! day value where a round day (such as 213.0) refers to 0z at
+    ! Greenwich longitude.
+    !
+    ! Use formulas from Berger, Andre 1978: Long-Term Variations of Daily
+    ! Insolation and Quaternary Climatic Changes. J. of the Atmo. Sci.
+    ! 35:2362-2367.
+    !
+    ! To get the earths true longitude (position in orbit; lambda in Berger
+    ! 1978) which is necessary to find the eccentricity factor and declination,
+    ! must first calculate the mean longitude (lambda m in Berger 1978) at
+    ! the present day.  This is done by adding to lambm0 (the mean longitude
+    ! at the vernal equinox, set as March 21 at noon, when lambda=0; in radians)
+    ! an increment (delta lambda m in Berger 1978) that is the number of
+    ! days past or before (a negative increment) the vernal equinox divided by
+    ! the days in a model year times the 2*mathpi radians in a complete orbit.
+
+    lambm = lambm0 + (calday - vernal_equinox)*d_two*mathpi/dayspy
+    lmm   = lambm  - mvelpp
+
+    ! The earths true longitude, in radians, is then found from
+    ! the formula in Berger 1978:
+
+    sinl  = sin(lmm)
+    lamb  = lambm  + eccen*(d_two*sinl + eccen*(1.25_rk8*sin(d_two*lmm)  &
+          + eccen*((13.0_rk8/12.0_rk8)*sin(3._rk8*lmm) - 0.25_rk8*sinl)))
+
+    ! Using the obliquity, eccentricity, moving vernal equinox longitude of
+    ! perihelion (plus), and earths true longitude, the declination (delta)
+    ! and the normalized earth/sun distance (rho in Berger 1978; actually
+    ! inverse rho will be used), and thus the eccentricity factor (eccf),
+    ! can be calculated from formulas given in Berger 1978.
+
+    invrho = (d_one + eccen*cos(lamb - mvelpp)) / (d_one - eccen*eccen)
+
+    ! Set solar declination and eccentricity factor
+
+    delta  = asin(sin(obliqr)*sin(lamb))
+    eccf   = invrho*invrho
+  end subroutine orb_decl_r8
 
 end module mod_sunorbit
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

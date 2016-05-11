@@ -319,7 +319,7 @@ module mod_dynparam
 
   character(len=12) :: calendar
   integer(ik4) :: ical
-  real(rkx) :: dayspy
+  real(rkx) :: dayspy , vernal_equinox
   real(rkx) :: half_dayspy
   real(rkx) :: sixteenth_dayspy
   real(rkx) :: dpd
@@ -607,16 +607,20 @@ module mod_dynparam
     end if
     if (calendar == 'gregorian') then
       dayspy = 365.2422_rkx
+      vernal_equinox = 80.447D0
       ical = gregorian
     else if (calendar == 'noleap' .or. calendar == '365_day') then
       dayspy = 365.0_rkx
+      vernal_equinox = 80.50D0
       ical = noleap
     else if (calendar == '360_day') then
       dayspy = 360.0_rkx
+      vernal_equinox = 81.618D0
       ical = y360
     else
       write(stderr,*) 'No calendar specified. Assuming gregorian'
       dayspy = 365.2422_rkx
+      vernal_equinox = 80.447D0
       ical = gregorian
     end if
     dpd = 360.0_rkx/dayspy
