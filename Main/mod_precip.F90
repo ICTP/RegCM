@@ -74,7 +74,7 @@ module mod_precip
   real(rkx) , parameter :: rhobchl = 1600.0_rkx
   real(rkx) , parameter :: qcmin = 1.0e-10_rkx
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
-  real(rkx) , parameter :: verynearzero = 1.0e-10_rkx
+  real(rkx) , parameter :: verynearzero = epsilon(d_one)
 
   contains
 
@@ -183,7 +183,7 @@ module mod_precip
           qcincld = qcw/afc                                  ![kg/kg][cld]
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
-          pptmax = max((qcw-qcmin),d_zero)/dt               ![kg/kg/s][avg]
+          pptmax = (qcw-qcmin)/dt               ![kg/kg/s][avg]
           if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
             pccn(j,i,1) = (calc_ccn(rhobchl,chi3(j,i,1,ibchl)) + &
                            calc_ccn(rhoochl,chi3(j,i,1,iochl)) + &
@@ -303,7 +303,7 @@ module mod_precip
             qcincld = qcw/afc                                ![kg/kg][cld]
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
-            pptmax = max((qcw-qcmin),d_zero)/dt             ![kg/kg/s][avg]
+            pptmax = (qcw-qcmin)/dt             ![kg/kg/s][avg]
             if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
               pccn(j,i,k) = (calc_ccn(rhobchl,chi3(j,i,k,ibchl)) + &
                              calc_ccn(rhoochl,chi3(j,i,k,iochl)) + &
@@ -732,7 +732,7 @@ module mod_precip
                           min(d_one,max((qvcs-qvmin),d_zero)/0.003_rkx))
             end if
             fccc = min(max(fccc,d_zero),d_one)
-            qvc_cld = max((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)
+            qvc_cld = max((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),qvmin)
             dqv = fccc * (qvc_cld - qvs*conf)  ! qv diff between predicted qv_c
           end if
 
