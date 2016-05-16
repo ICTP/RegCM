@@ -24,13 +24,13 @@ module mod_clm_organicfile
   !
   subroutine organicrd(organic)
     implicit none
-    real(rkx), pointer :: organic(:,:)  ! organic matter density (kg/m3)
+    real(rk8), pointer :: organic(:,:)  ! organic matter density (kg/m3)
     type(clm_filetype) :: ncid                  ! netcdf id
     character(len=32)  :: subname = 'organicrd' ! subroutine name
 
     ! Initialize data to zero - no organic matter dataset
 
-    organic(:,:)   = 0._rkx
+    organic(:,:)   = 0._rk8
 
     ! Read data if file was specified in namelist
 

@@ -265,10 +265,9 @@ module mod_sun
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    calday = yeardayfrac(idatex)
     call split_idate(idatex,iyear,imonth,iday,ihour)
     call orb_params(iyear,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
-    call orb_decl(calday,eccen,mvelpp,lambm0,obliqr,declin,eccf)
+    call orb_decl(yearpoint(idatex),eccen,mvelpp,lambm0,obliqr,declin,eccf)
     decdeg = declin/degrad
     if ( myid == italk .and. mod(ktau,kday) == 0 ) then
       write (stdout,'(a,f12.5,a,f12.8,a)') ' JDay ', calday , &
@@ -300,11 +299,12 @@ module mod_sun
     !
     ! Update solar constant for today
     !
-    if ( mod(ktau,kday) == 0 ) then
+    calday = yeardayfrac(idatex)
+    if ( ktau == 0 .or. doing_restart .or. mod(ktau,kday) == 0 ) then
+      call solar1( )
       solcon = solar_irradiance( )
       scon = solcon*d_1000
     end if
-    call solar1
     do i = ici1 , ici2
       do j = jci1 , jci2
         xxlat = mddom%xlat(j,i)*degrad
@@ -331,7 +331,6 @@ module mod_sun
     if ( isolconst == 1 ) then
       solar_irradiance = 1367.0_rkx
     else
-      calday = yeardayfrac(idatex)
       if ( calday > dayspy/2.0_rkx ) then
         w2 = calday/dayspy-0.5_rkx
         w1 = 1.0_rkx-w2

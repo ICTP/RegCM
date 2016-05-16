@@ -232,7 +232,7 @@ module mod_clm_histfile
     ! time averaging flag
     character(len=1) :: avgflag
     ! history buffer (dimensions: dim1d x num2d)
-    real(rkx) , pointer :: hbuf(:,:)
+    real(rk8) , pointer :: hbuf(:,:)
     ! accumulation counter (dimensions: dim1d x num2d)
     integer(ik4) , pointer :: nacs(:,:)
   end type history_entry
@@ -251,7 +251,7 @@ module mod_clm_histfile
     ! true => current time step is end of history interval
     logical :: is_endhist
     ! time at beginning of history averaging interval
-    real(rkx) :: begtime
+    real(rk8) :: begtime
     ! array of active history tape entries
     type(history_entry) :: hlist(max_flds)
   end type history_tape
@@ -259,11 +259,11 @@ module mod_clm_histfile
   integer(ik4) , dimension(max_tapes) :: tapes_ntimes
 
   type clmpoint_rs  ! Pointer to real scalar data (1D)
-    real(rkx) , pointer :: ptr(:)
+    real(rk8) , pointer :: ptr(:)
   end type clmpoint_rs
 
   type clmpoint_ra  ! Pointer to real array data (2D)
-    real(rkx) , pointer :: ptr(:,:)
+    real(rk8) , pointer :: ptr(:,:)
   end type clmpoint_ra
   !
   ! Pointers into clmtype arrays
@@ -504,7 +504,7 @@ module mod_clm_histfile
 
     call curr_time(idatex, day, sec)
     do t = 1 , ntapes
-      tape(t)%begtime = day*24.0_rkx + sec/secph
+      tape(t)%begtime = day*24.0_rk8 + sec/secph
     end do
 
     if (myid == italk) then
@@ -930,7 +930,7 @@ module mod_clm_histfile
     num2d = tape(t)%hlist(n)%field%num2d
     allocate (tape(t)%hlist(n)%hbuf(beg1d_out:end1d_out,num2d))
     allocate (tape(t)%hlist(n)%nacs(beg1d_out:end1d_out,num2d))
-    tape(t)%hlist(n)%hbuf(:,:) = 0._rkx
+    tape(t)%hlist(n)%hbuf(:,:) = 0._rk8
     tape(t)%hlist(n)%nacs(:,:) = 0
 
     ! Set time averaging flag based on masterlist setting or
@@ -1013,15 +1013,15 @@ module mod_clm_histfile
     character(len=8) :: c2l_scale_type
     ! scale type for subgrid averaging of landunits to gridcells
     character(len=8) :: l2g_scale_type
-    real(rkx) , pointer :: hbuf(:,:)      ! history buffer
+    real(rk8) , pointer :: hbuf(:,:)      ! history buffer
     integer(ik4) , pointer :: nacs(:,:)   ! accumulation counter
-    real(rkx) , pointer :: field(:)       ! clm 1d pointer field
+    real(rk8) , pointer :: field(:)       ! clm 1d pointer field
     ! flag saying whether each point is active
     ! (used for type1d = landunit/column/pft)
     ! (this refers to a point being active, NOT a history field being active)
     logical , pointer :: active(:)
     ! gricell level field (used if mapping to gridcell is done)
-    real(rkx) :: field_gcell(begg:endg)
+    real(rk8) :: field_gcell(begg:endg)
     character(len=*) , parameter :: subname = 'hist_update_hbuf_field_1d'
     ! offset for mapping sliced subarray pointers when outputting variables
     ! in PFT/col vector form
@@ -1074,7 +1074,7 @@ module mod_clm_histfile
         case ('A') ! Time average
           do k = begg , endg
             if ( field_gcell(k) /= spval ) then
-              if ( nacs(k,1) == 0 ) hbuf(k,1) = 0._rkx
+              if ( nacs(k,1) == 0 ) hbuf(k,1) = 0._rk8
               hbuf(k,1) = hbuf(k,1) + field_gcell(k)
               nacs(k,1) = nacs(k,1) + 1
             else
@@ -1084,7 +1084,7 @@ module mod_clm_histfile
         case ('X') ! Maximum over time
           do k = begg , endg
             if ( field_gcell(k) /= spval ) then
-              if ( nacs(k,1) == 0 ) hbuf(k,1) = -1.e50_rkx
+              if ( nacs(k,1) == 0 ) hbuf(k,1) = -1.e50_rk8
               hbuf(k,1) = max( hbuf(k,1), field_gcell(k) )
             else
               hbuf(k,1) = spval
@@ -1094,7 +1094,7 @@ module mod_clm_histfile
         case ('M') ! Minimum over time
           do k = begg , endg
             if ( field_gcell(k) /= spval ) then
-              if ( nacs(k,1) == 0 ) hbuf(k,1) = +1.e50_rkx
+              if ( nacs(k,1) == 0 ) hbuf(k,1) = +1.e50_rk8
               hbuf(k,1) = min( hbuf(k,1), field_gcell(k) )
             else
               hbuf(k,1) = spval
@@ -1157,7 +1157,7 @@ module mod_clm_histfile
             end if
             if ( valid ) then
               if ( field(k+k_offset) /= spval ) then   ! add k_offset
-                if ( nacs(k,1) == 0 ) hbuf(k,1) = 0._rkx
+                if ( nacs(k,1) == 0 ) hbuf(k,1) = 0._rk8
                 hbuf(k,1) = hbuf(k,1) + field(k+k_offset)   ! add k_offset
                 nacs(k,1) = nacs(k,1) + 1
               else
@@ -1175,7 +1175,7 @@ module mod_clm_histfile
             end if
             if ( valid ) then
               if ( field(k) /= spval ) then
-                if ( nacs(k,1) == 0 ) hbuf(k,1) = -1.e50_rkx
+                if ( nacs(k,1) == 0 ) hbuf(k,1) = -1.e50_rk8
                 hbuf(k,1) = max( hbuf(k,1), field(k) )
               else
                 if ( nacs(k,1) == 0 ) hbuf(k,1) = spval
@@ -1193,7 +1193,7 @@ module mod_clm_histfile
             end if
             if ( valid ) then
               if ( field(k) /= spval ) then
-                if ( nacs(k,1) == 0 ) hbuf(k,1) = +1.e50_rkx
+                if ( nacs(k,1) == 0 ) hbuf(k,1) = +1.e50_rk8
                 hbuf(k,1) = min( hbuf(k,1), field(k) )
               else
                 if ( nacs(k,1) == 0 ) hbuf(k,1) = spval
@@ -1250,15 +1250,15 @@ module mod_clm_histfile
     character(len=8) :: c2l_scale_type
     ! scale type for subgrid averaging of landunits to gridcells
     character(len=8) :: l2g_scale_type
-    real(rkx) , pointer :: hbuf(:,:)      ! history buffer
+    real(rk8) , pointer :: hbuf(:,:)      ! history buffer
     integer(ik4) , pointer :: nacs(:,:)   ! accumulation counter
-    real(rkx) , pointer :: field(:,:)     ! clm 2d pointer field
+    real(rk8) , pointer :: field(:,:)     ! clm 2d pointer field
     ! flag saying whether each point is active
     ! (used for type1d = landunit/column/pft)
     ! (this refers to a point being active, NOT a history field being active)
     logical , pointer :: active(:)
     ! gricell level field (used if mapping to gridcell is done)
-    real(rkx) :: field_gcell(begg:endg,num2d)
+    real(rk8) :: field_gcell(begg:endg,num2d)
     character(len=*) , parameter :: subname = 'hist_update_hbuf_field_2d'
 
     avgflag        =  tape(t)%hlist(f)%avgflag
@@ -1313,7 +1313,7 @@ module mod_clm_histfile
           do j = 1 , num2d
             do k = begg,endg
               if ( field_gcell(k,j) /= spval ) then
-                if ( nacs(k,j) == 0 ) hbuf(k,j) = 0._rkx
+                if ( nacs(k,j) == 0 ) hbuf(k,j) = 0._rk8
                 hbuf(k,j) = hbuf(k,j) + field_gcell(k,j)
                 nacs(k,j) = nacs(k,j) + 1
               else
@@ -1325,7 +1325,7 @@ module mod_clm_histfile
           do j = 1 , num2d
             do k = begg , endg
               if ( field_gcell(k,j) /= spval ) then
-                if ( nacs(k,j) == 0 ) hbuf(k,j) = -1.e50_rkx
+                if ( nacs(k,j) == 0 ) hbuf(k,j) = -1.e50_rk8
                 hbuf(k,j) = max( hbuf(k,j), field_gcell(k,j) )
               else
                 hbuf(k,j) = spval
@@ -1337,7 +1337,7 @@ module mod_clm_histfile
           do j = 1 , num2d
             do k = begg , endg
               if ( field_gcell(k,j) /= spval ) then
-                if ( nacs(k,j) == 0 ) hbuf(k,j) = +1.e50_rkx
+                if ( nacs(k,j) == 0 ) hbuf(k,j) = +1.e50_rk8
                 hbuf(k,j) = min( hbuf(k,j), field_gcell(k,j) )
               else
                 hbuf(k,j) = spval
@@ -1401,7 +1401,7 @@ module mod_clm_histfile
               end if
               if ( valid ) then
                 if ( field(k-beg1d+1,j) /= spval ) then
-                  if ( nacs(k,j) == 0 ) hbuf(k,j) = 0._rkx
+                  if ( nacs(k,j) == 0 ) hbuf(k,j) = 0._rk8
                   hbuf(k,j) = hbuf(k,j) + field(k-beg1d+1,j)
                   nacs(k,j) = nacs(k,j) + 1
                 else
@@ -1421,7 +1421,7 @@ module mod_clm_histfile
               end if
               if ( valid ) then
                 if ( field(k-beg1d+1,j) /= spval ) then
-                  if ( nacs(k,j) == 0 ) hbuf(k,j) = -1.e50_rkx
+                  if ( nacs(k,j) == 0 ) hbuf(k,j) = -1.e50_rk8
                   hbuf(k,j) = max( hbuf(k,j), field(k-beg1d+1,j) )
                 else
                   if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
@@ -1441,7 +1441,7 @@ module mod_clm_histfile
               end if
               if ( valid ) then
                 if ( field(k-beg1d+1,j) /= spval ) then
-                  if ( nacs(k,j) == 0 ) hbuf(k,j) = +1.e50_rkx
+                  if ( nacs(k,j) == 0 ) hbuf(k,j) = +1.e50_rk8
                   hbuf(k,j) = min( hbuf(k,j), field(k-beg1d+1,j))
                 else
                   if ( nacs(k,j) == 0 ) hbuf(k,j) = spval
@@ -1476,7 +1476,7 @@ module mod_clm_histfile
     ! hbuf size of second dimension (e.g. number of vertical levels)
     integer(ik4) :: num2d
     character(len=1) :: avgflag         ! averaging flag
-    real(rkx) , pointer :: hbuf(:,:)    ! history buffer
+    real(rk8) , pointer :: hbuf(:,:)    ! history buffer
     integer(ik4) , pointer :: nacs(:,:) ! accumulation counter
 
     ! Normalize by number of accumulations for time averaged case
@@ -1513,7 +1513,7 @@ module mod_clm_histfile
     integer(ik4) , intent(in) :: t    ! tape index
     integer(ik4) :: f                 ! field index
     do f = 1 , tape(t)%nflds
-      tape(t)%hlist(f)%hbuf(:,:) = 0._rkx
+      tape(t)%hlist(f)%hbuf(:,:) = 0._rk8
       tape(t)%hlist(f)%nacs(:,:) = 0
     end do
   end subroutine hfields_zero
@@ -1660,8 +1660,8 @@ module mod_clm_histfile
     character(len=max_namlen) :: units    ! variable units
     ! scale type for subgrid averaging of landunits to grid cells
     character(len=8) :: l2g_scale_type
-    real(rkx) , pointer :: histi(:,:)     ! temporary
-    real(rkx) , pointer :: histo(:,:)     ! temporary
+    real(rk8) , pointer :: histi(:,:)     ! temporary
+    real(rk8) , pointer :: histo(:,:)     ! temporary
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype
     integer(ik4) , parameter :: nflds = 6 ! Number of 3D time-constant fields
@@ -1675,8 +1675,8 @@ module mod_clm_histfile
                                                         'BSW   ', &
                                                         'HKSAT '  &
                                                     /)
-    real(rkx) , pointer :: histil(:,:)      ! temporary
-    real(rkx) , pointer :: histol(:,:)
+    real(rk8) , pointer :: histil(:,:)      ! temporary
+    real(rk8) , pointer :: histol(:,:)
     integer(ik4) , parameter :: nfldsl = 2
     character(len=*) , parameter :: varnamesl(nfldsl) = (/ &
                                                           'ZLAKE ', &
@@ -1902,8 +1902,8 @@ module mod_clm_histfile
     integer(ik4) :: hours , minutes , secs  ! hours,minutes,seconds of hh:mm:ss
     character(len= 10) :: basedate          ! base date (yyyymmdd)
     character(len=  8) :: basesec           ! base seconds
-    real(rkx) :: time                       ! current time
-    real(rkx) :: timedata(2)                ! time interval boundaries
+    real(rk8) :: time                       ! current time
+    real(rk8) :: timedata(2)                ! time interval boundaries
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
@@ -1911,7 +1911,7 @@ module mod_clm_histfile
     character(len=256) :: str             ! global attribute string
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype
-    real(rkx) :: zsoi_1d(1)
+    real(rk8) :: zsoi_1d(1)
 
     ! Time constant grid variables only on first time-sample of file
 
@@ -1934,7 +1934,7 @@ module mod_clm_histfile
 #ifdef VERTSOILC
         call clm_writevar(nfid(t),'levdcmp',zsoi)
 #else
-        zsoi_1d(1) = 1._rkx
+        zsoi_1d(1) = 1._rk8
         call clm_writevar(nfid(t),'levdcmp',zsoi_1d)
 #endif
       end if
@@ -1964,7 +1964,7 @@ module mod_clm_histfile
                       long_name='history time interval endpoints')
     else if (mode == 'write') then
       call curr_time(idatex,mdcur,mscur)
-      time = mdcur*24.0_rkx + (mscur+dtsec)/secph
+      time = mdcur*24.0_rk8 + (mscur+dtsec)/secph
       call clm_writevar(nfid(t),'time',time,tape(t)%ntimes)
       timedata(1) = tape(t)%begtime
       timedata(2) = time
@@ -2049,8 +2049,8 @@ module mod_clm_histfile
     character(len=16) :: dim1name        ! temporary
     character(len=16) :: dim2name        ! temporary
     character(len=16) :: tmpchar         ! temporary
-    real(rkx) , pointer :: histo(:,:)    ! temporary
-    real(rkx) , pointer :: hist1do(:)    ! temporary
+    real(rk8) , pointer :: histo(:,:)    ! temporary
+    real(rk8) , pointer :: hist1do(:)    ! temporary
     character(len=*) , parameter :: subname = 'hfields_write'
     type(subgrid_type) , pointer :: gcomm
 
@@ -2171,10 +2171,10 @@ module mod_clm_histfile
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
     integer(ik4) :: ier         ! errir status
-    real(rkx) , pointer :: rgarr(:)        ! temporary
-    real(rkx) , pointer :: rcarr(:)        ! temporary
-    real(rkx) , pointer :: rlarr(:)        ! temporary
-    real(rkx) , pointer :: rparr(:)        ! temporary
+    real(rk8) , pointer :: rgarr(:)        ! temporary
+    real(rk8) , pointer :: rcarr(:)        ! temporary
+    real(rk8) , pointer :: rlarr(:)        ! temporary
+    real(rk8) , pointer :: rparr(:)        ! temporary
     integer(ik4) , pointer :: igarr(:)     ! temporary
     integer(ik4) , pointer :: icarr(:)     ! temporary
     integer(ik4) , pointer :: ilarr(:)     ! temporary
@@ -2365,7 +2365,7 @@ module mod_clm_histfile
     integer(ik4) :: mdcur            ! current day
     integer(ik4) :: mscur            ! seconds of current day
     integer(ik8) :: temp
-    real(rkx):: time                 ! current time
+    real(rk8):: time                 ! current time
     logical :: if_stop               ! true => last time step of run
     ! true => write out 3D time-constant data
     logical , save :: do_3Dtconst = .true.
@@ -2549,8 +2549,8 @@ module mod_clm_histfile
     integer(ik4) :: t  ! tape index
     integer(ik4) :: f  ! field index
     integer(ik4) , allocatable :: itemp2d(:,:)     ! 2D temporary
-    real(rkx) , pointer :: hbuf(:,:)               ! history buffer
-    real(rkx) , pointer :: hbuf1d(:)               ! 1d history buffer
+    real(rk8) , pointer :: hbuf(:,:)               ! history buffer
+    real(rk8) , pointer :: hbuf1d(:)               ! 1d history buffer
     integer(ik4) , pointer :: nacs(:,:)            ! accumulation counter
     integer(ik4) , pointer :: nacs1d(:)            ! 1d accumulation counter
     character(len=*) , parameter :: subname = 'hist_restart_ncd'
@@ -2967,7 +2967,7 @@ module mod_clm_histfile
                     ' ERROR: allocation error for hbuf,nacs at t,f=',t,f
               call fatal(__FILE__,__LINE__,'clm now stopping.')
             end if
-            tape(t)%hlist(f)%hbuf(:,:) = 0._rkx
+            tape(t)%hlist(f)%hbuf(:,:) = 0._rk8
             tape(t)%hlist(f)%nacs(:,:) = 0
 
             type1d = tape(t)%hlist(f)%field%type1d
@@ -3135,17 +3135,17 @@ module mod_clm_histfile
     character(len=*) , intent(in)  :: long_name  ! long name of field
     ! output type (from clmtype)
     character(len=*) , optional , intent(in) :: type1d_out
-    real(rkx) , optional , pointer :: ptr_gcell(:)   ! pointer to gridcell array
-    real(rkx) , optional , pointer :: ptr_lunit(:)   ! pointer to landunit array
-    real(rkx) , optional , pointer :: ptr_col(:)     ! pointer to column array
-    real(rkx) , optional , pointer :: ptr_pft(:)     ! pointer to pft array
-    real(rkx) , optional , pointer :: ptr_lnd(:)     ! pointer to lnd array
-    real(rkx) , optional , intent(in) :: set_lake    ! value to set lakes to
-    real(rkx) , optional , intent(in) :: set_nolake  ! value to set non-lakes to
-    real(rkx) , optional , intent(in) :: set_urb     ! value to set urban to
-    real(rkx) , optional , intent(in) :: set_nourb   ! value to set non-urban to
+    real(rk8) , optional , pointer :: ptr_gcell(:)   ! pointer to gridcell array
+    real(rk8) , optional , pointer :: ptr_lunit(:)   ! pointer to landunit array
+    real(rk8) , optional , pointer :: ptr_col(:)     ! pointer to column array
+    real(rk8) , optional , pointer :: ptr_pft(:)     ! pointer to pft array
+    real(rk8) , optional , pointer :: ptr_lnd(:)     ! pointer to lnd array
+    real(rk8) , optional , intent(in) :: set_lake    ! value to set lakes to
+    real(rk8) , optional , intent(in) :: set_nolake  ! value to set non-lakes to
+    real(rk8) , optional , intent(in) :: set_urb     ! value to set urban to
+    real(rk8) , optional , intent(in) :: set_nourb   ! value to set non-urban to
     ! value to set non-glacier_mec to
-    real(rkx) , optional , intent(in) :: set_spec     ! value to set special to
+    real(rk8) , optional , intent(in) :: set_spec     ! value to set special to
     ! scale type for subgrid averaging of pfts to column
     character(len=*) , optional , intent(in) :: p2c_scale_type
     ! scale type for subgrid averaging of columns to landunits
@@ -3339,16 +3339,16 @@ module mod_clm_histfile
     character(len=*) , intent(in) :: long_name
     ! output type (from clmtype)
     character(len=*) , optional , intent(in) :: type1d_out
-    real(rkx) , optional , pointer :: ptr_lnd(:,:)   ! pointer to lnd array
-    real(rkx) , optional , pointer :: ptr_gcell(:,:) ! pointer to gridcell array
-    real(rkx) , optional , pointer :: ptr_lunit(:,:) ! pointer to landunit array
-    real(rkx) , optional , pointer :: ptr_col(:,:)   ! pointer to column array
-    real(rkx) , optional , pointer :: ptr_pft(:,:)   ! pointer to pft array
-    real(rkx) , optional , intent(in) :: set_lake    ! value to set lakes to
-    real(rkx) , optional , intent(in) :: set_nolake  ! value to set non-lakes to
-    real(rkx) , optional , intent(in) :: set_urb     ! value to set urban to
-    real(rkx) , optional , intent(in) :: set_nourb   ! value to set non-urban to
-    real(rkx) , optional , intent(in) :: set_spec    ! value to set special to
+    real(rk8) , optional , pointer :: ptr_lnd(:,:)   ! pointer to lnd array
+    real(rk8) , optional , pointer :: ptr_gcell(:,:) ! pointer to gridcell array
+    real(rk8) , optional , pointer :: ptr_lunit(:,:) ! pointer to landunit array
+    real(rk8) , optional , pointer :: ptr_col(:,:)   ! pointer to column array
+    real(rk8) , optional , pointer :: ptr_pft(:,:)   ! pointer to pft array
+    real(rk8) , optional , intent(in) :: set_lake    ! value to set lakes to
+    real(rk8) , optional , intent(in) :: set_nolake  ! value to set non-lakes to
+    real(rk8) , optional , intent(in) :: set_urb     ! value to set urban to
+    real(rk8) , optional , intent(in) :: set_nourb   ! value to set non-urban to
+    real(rk8) , optional , intent(in) :: set_spec    ! value to set special to
     ! scale type for subgrid averaging of pfts to column
     character(len=*) , optional , intent(in) :: p2c_scale_type
     ! scale type for subgrid averaging of columns to landunits

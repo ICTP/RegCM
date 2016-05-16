@@ -14,11 +14,11 @@ module mod_clm_varsur
   ! surface boundary data, these are all "gdc" local
   !
   ! percent of spec lunits wrt gcell
-  real(rkx) , public , allocatable , dimension(:) :: pctspec
+  real(rk8) , public , allocatable , dimension(:) :: pctspec
   ! vegetation type
   integer(ik4) , public , allocatable , dimension(:,:) :: vegxy
   ! subgrid weights
-  real(rkx) , public , allocatable , dimension(:,:) , target :: wtxy
+  real(rk8) , public , allocatable , dimension(:,:) , target :: wtxy
 
 end module mod_clm_varsur
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

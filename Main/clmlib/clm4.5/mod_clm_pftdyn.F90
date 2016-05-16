@@ -38,10 +38,10 @@ module mod_clm_pftdyn
   public :: CNHarvest
   public :: CNHarvestPftToColumn
 #endif
-  real(rkx) , pointer , dimension(:,:) :: wtpft1
-  real(rkx) , pointer , dimension(:,:) :: wtpft2
-  real(rkx) , pointer , dimension(:) :: harvest
-  real(rkx) , pointer , dimension(:) :: wtcol_old
+  real(rk8) , pointer , dimension(:,:) :: wtpft1
+  real(rk8) , pointer , dimension(:,:) :: wtpft2
+  real(rk8) , pointer , dimension(:) :: harvest
+  real(rk8) , pointer , dimension(:) :: wtcol_old
   integer(ik4) :: nt
   logical :: do_harvest
   type(clm_filetype) :: ncid   ! netcdf id
@@ -49,7 +49,7 @@ module mod_clm_pftdyn
   character(len=4) :: cy4
 
   ! default multiplication factor for epsilon for error checks
-  real(rkx) , private, parameter :: eps_fact = 2._rkx
+  real(rk8) , private, parameter :: eps_fact = 2._rk8
 
   contains
   !
@@ -157,8 +157,8 @@ module mod_clm_pftdyn
     ! convert weights from percent to proportion
     do m = 0 , numpft
       do g = begg , endg
-        wtpft1(g,m) = wtpft1(g,m)/100._rkx
-        wtpft2(g,m) = wtpft2(g,m)/100._rkx
+        wtpft1(g,m) = wtpft1(g,m)/100._rk8
+        wtpft2(g,m) = wtpft2(g,m)/100._rk8
       end do
     end do
   end subroutine pftdyn_init
@@ -189,14 +189,14 @@ module mod_clm_pftdyn
     integer(ik4)  :: mon       ! month (1, ..., 12) for nstep+1
     integer(ik4)  :: day       ! day of month (1, ..., 31) for nstep+1
     integer(ik4)  :: sec       ! seconds into current date for nstep+1
-    real(rkx) :: cday           ! current calendar day (1.0 = 0Z on Jan 1)
-    real(rkx) :: wt1    ! time interpolation weights
+    real(rk8) :: cday           ! current calendar day (1.0 = 0Z on Jan 1)
+    real(rk8) :: wt1    ! time interpolation weights
     ! summation of pft weights for renormalization
-    real(rkx) , pointer , dimension(:) :: wtpfttot1
+    real(rk8) , pointer , dimension(:) :: wtpfttot1
     ! summation of pft weights for renormalization
-    real(rkx) , pointer , dimension(:) :: wtpfttot2
+    real(rk8) , pointer , dimension(:) :: wtpfttot2
     ! tolerance for pft weight renormalization
-    real(rkx) , parameter :: wtpfttol = 1.e-10_rkx
+    real(rk8) , parameter :: wtpfttol = 1.e-10_rk8
     type(gridcell_type) , pointer :: gptr ! pointer to gridcell derived subtype
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
@@ -209,8 +209,8 @@ module mod_clm_pftdyn
     pptr => clm3%g%l%c%p
 
     allocate(wtpfttot1(begc:endc),wtpfttot2(begc:endc))
-    wtpfttot1(:) = 0._rkx
-    wtpfttot2(:) = 0._rkx
+    wtpfttot1(:) = 0._rk8
+    wtpfttot2(:) = 0._rk8
 
     ! Interpolat pctpft to current time step - output in pctpft_intp
     ! Map interpolated pctpft to subgrid weights
@@ -276,7 +276,7 @@ module mod_clm_pftdyn
 
       do m = 0 , numpft
         do g = begg , endg
-          wtpft2(g,m) = wtpft2(g,m)/100._rkx
+          wtpft2(g,m) = wtpft2(g,m)/100._rk8
         end do
       end do
     end if  ! end of need new data if-block
@@ -285,7 +285,7 @@ module mod_clm_pftdyn
 
     cday = get_curr_calday()
 
-    wt1 = ((dayspy + 1._rkx) - cday)/dayspy
+    wt1 = ((dayspy + 1._rk8) - cday)/dayspy
 
     do p = begp , endp
       c = pptr%column(p)
@@ -331,7 +331,7 @@ module mod_clm_pftdyn
     integer(ik4) , intent(in)  :: begg     ! beg indices for land gridcells
     integer(ik4) , intent(in)  :: endg     ! end indices for land gridcells
 
-    real(rkx) , pointer :: arrayl(:) ! temporary array
+    real(rk8) , pointer :: arrayl(:) ! temporary array
 
     allocate(arrayl(begg:endg))
 
@@ -373,7 +373,7 @@ module mod_clm_pftdyn
     ! term to 0 at the beginning of every timestep
 
     do c = begc , endc
-      cptr%cwf%h2ocan_loss(c) = 0._rkx
+      cptr%cwf%h2ocan_loss(c) = 0._rk8
     end do
   end subroutine pftdyn_wbal_init
   !
@@ -393,11 +393,11 @@ module mod_clm_pftdyn
 
     integer(ik4)  :: pi,p,c,l ! indices
     integer(ik4)  :: ier      ! error code
-    real(rkx) :: dwt          ! change in pft weight (relative to column)
-    real(rkx) :: init_h2ocan  ! initial canopy water mass
-    real(rkx) :: new_h2ocan   ! canopy water mass after weight shift
+    real(rk8) :: dwt          ! change in pft weight (relative to column)
+    real(rk8) :: init_h2ocan  ! initial canopy water mass
+    real(rk8) :: new_h2ocan   ! canopy water mass after weight shift
     ! canopy water mass loss due to weight shift
-    real(rkx) , allocatable :: loss_h2ocan(:)
+    real(rk8) , allocatable :: loss_h2ocan(:)
     type(landunit_type), pointer :: lptr  ! pointer to landunit derived subtype
     type(column_type),   pointer :: cptr  ! pointer to column derived subtype
     type(pft_type)   ,   pointer :: pptr  ! pointer to pft derived subtype
@@ -420,19 +420,19 @@ module mod_clm_pftdyn
     ! term to 0 at the beginning of every weight-shifting timestep
 
     do c = begc , endc
-      cptr%cwf%h2ocan_loss(c) = 0._rkx ! is this OR pftdyn_wbal_init redundant?
+      cptr%cwf%h2ocan_loss(c) = 0._rk8 ! is this OR pftdyn_wbal_init redundant?
     end do
 
     do p = begp , endp
       l = pptr%landunit(p)
-      loss_h2ocan(p) = 0._rkx
+      loss_h2ocan(p) = 0._rk8
 
       if (lptr%itype(l) == istsoil .or. lptr%itype(l) == istcrop) then
 
         ! calculate the change in weight for the timestep
         dwt = pptr%wtcol(p)-wtcol_old(p)
 
-        if (dwt > 0._rkx) then
+        if (dwt > 0._rk8) then
 
           ! if the pft gained weight, then the
           ! initial canopy water state is redistributed over the
@@ -440,7 +440,7 @@ module mod_clm_pftdyn
 
           pptr%pws%h2ocan(p) = pptr%pws%h2ocan(p) * (wtcol_old(p)/pptr%wtcol(p))
 
-        else if (dwt < 0._rkx) then
+        else if (dwt < 0._rk8) then
 
           ! if the pft lost weight on the timestep, then the canopy water
           ! mass associated with the lost weight is directed to a
@@ -450,14 +450,14 @@ module mod_clm_pftdyn
           init_h2ocan = pptr%pws%h2ocan(p) * wtcol_old(p)
           loss_h2ocan(p) = pptr%pws%h2ocan(p) * (-dwt)
           new_h2ocan = init_h2ocan - loss_h2ocan(p)
-          if (abs(new_h2ocan) < 1e-8_rkx) then
-            new_h2ocan = 0._rkx
+          if (abs(new_h2ocan) < 1e-8_rk8) then
+            new_h2ocan = 0._rk8
             loss_h2ocan(p) = init_h2ocan
           end if
-          if (pptr%wtcol(p) /= 0._rkx) then
+          if (pptr%wtcol(p) /= 0._rk8) then
             pptr%pws%h2ocan(p) = new_h2ocan/pptr%wtcol(p)
           else
-            pptr%pws%h2ocan(p) = 0._rkx
+            pptr%pws%h2ocan(p) = 0._rk8
             loss_h2ocan(p) = init_h2ocan
           end if
 
@@ -498,48 +498,48 @@ module mod_clm_pftdyn
     integer(ik4), intent(in)  :: begc, endc
     integer(ik4)  :: pi,p,c,l,j ! indices
     integer(ik4)  :: ier        ! error code
-    real(rkx) :: dwt            ! change in pft weight (relative to column)
+    real(rk8) :: dwt            ! change in pft weight (relative to column)
     ! pft-level mass gain due to seeding of new area
-    real(rkx) , allocatable :: dwt_leafc_seed(:)
+    real(rk8) , allocatable :: dwt_leafc_seed(:)
     ! pft-level mass gain due to seeding of new area
-    real(rkx) , allocatable :: dwt_leafn_seed(:)
+    real(rk8) , allocatable :: dwt_leafn_seed(:)
     ! pft-level mass gain due to seeding of new area
-    real(rkx) , allocatable :: dwt_deadstemc_seed(:)
+    real(rk8) , allocatable :: dwt_deadstemc_seed(:)
     ! pft-level mass gain due to seeding of new area
-    real(rkx) , allocatable :: dwt_deadstemn_seed(:)
+    real(rk8) , allocatable :: dwt_deadstemn_seed(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable :: dwt_frootc_to_litter(:)
+    real(rk8) , allocatable :: dwt_frootc_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable :: dwt_livecrootc_to_litter(:)
+    real(rk8) , allocatable :: dwt_livecrootc_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable :: dwt_deadcrootc_to_litter(:)
+    real(rk8) , allocatable :: dwt_deadcrootc_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: dwt_frootn_to_litter(:)
+    real(rk8) , allocatable, target :: dwt_frootn_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: dwt_livecrootn_to_litter(:)
+    real(rk8) , allocatable, target :: dwt_livecrootn_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: dwt_deadcrootn_to_litter(:)
+    real(rk8) , allocatable, target :: dwt_deadcrootn_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable :: conv_cflux(:)
+    real(rk8) , allocatable :: conv_cflux(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable :: prod10_cflux(:)
+    real(rk8) , allocatable :: prod10_cflux(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable :: prod100_cflux(:)
+    real(rk8) , allocatable :: prod100_cflux(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: conv_nflux(:)
+    real(rk8) , allocatable, target :: conv_nflux(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: prod10_nflux(:)
+    real(rk8) , allocatable, target :: prod10_nflux(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: prod100_nflux(:)
-    real(rkx) :: t1,t2,wt_new,wt_old
-    real(rkx) :: init_state, change_state, new_state
-    real(rkx) :: tot_leaf, pleaf, pstor, pxfer
-    real(rkx) :: leafc_seed, leafn_seed
-    real(rkx) :: deadstemc_seed, deadstemn_seed
-    real(rkx) , pointer :: dwt_ptr0, dwt_ptr1, dwt_ptr2, dwt_ptr3, ptr
+    real(rk8) , allocatable, target :: prod100_nflux(:)
+    real(rk8) :: t1,t2,wt_new,wt_old
+    real(rk8) :: init_state, change_state, new_state
+    real(rk8) :: tot_leaf, pleaf, pstor, pxfer
+    real(rk8) :: leafc_seed, leafn_seed
+    real(rk8) :: deadstemc_seed, deadstemn_seed
+    real(rk8) , pointer :: dwt_ptr0, dwt_ptr1, dwt_ptr2, dwt_ptr3, ptr
     ! pft vegetation type added by F. Li and S. Levis
     integer(ik4) , pointer :: ivt(:)
-    real(rkx) ,   pointer :: lfpftd(:) !F. Li and S. Levis
+    real(rk8) ,   pointer :: lfpftd(:) !F. Li and S. Levis
     type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
     type(column_type), pointer :: cptr   ! pointer to column derived subtype
     type(pft_type) , pointer :: pptr     ! pointer to pft derived subtype
@@ -548,48 +548,48 @@ module mod_clm_pftdyn
 
     !!! C13
     ! pft-level mass gain due to seeding of new area
-    real(rkx) , allocatable :: dwt_leafc13_seed(:)
+    real(rk8) , allocatable :: dwt_leafc13_seed(:)
     ! pft-level mass gain due to seeding of new area
-    real(rkx) , allocatable :: dwt_deadstemc13_seed(:)
+    real(rk8) , allocatable :: dwt_deadstemc13_seed(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: dwt_frootc13_to_litter(:)
+    real(rk8) , allocatable, target :: dwt_frootc13_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: dwt_livecrootc13_to_litter(:)
+    real(rk8) , allocatable, target :: dwt_livecrootc13_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: dwt_deadcrootc13_to_litter(:)
+    real(rk8) , allocatable, target :: dwt_deadcrootc13_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: conv_c13flux(:)
+    real(rk8) , allocatable, target :: conv_c13flux(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: prod10_c13flux(:)
+    real(rk8) , allocatable, target :: prod10_c13flux(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: prod100_c13flux(:)
+    real(rk8) , allocatable, target :: prod100_c13flux(:)
     ! typical del13C for C3 photosynthesis (permil, relative to PDB)
-    real(rkx) :: c3_del13c
+    real(rk8) :: c3_del13c
     ! typical del13C for C4 photosynthesis (permil, relative to PDB)
-    real(rkx) :: c4_del13c
-    real(rkx) :: c3_r1_c13 ! isotope ratio (13c/12c) for C3 photosynthesis
-    real(rkx) :: c4_r1_c13 ! isotope ratio (13c/12c) for C4 photosynthesis
-    real(rkx) :: c3_r2_c13 ! isotope ratio (13c/[12c+13c]) for C3 photosynthesis
-    real(rkx) :: c4_r2_c13 ! isotope ratio (13c/[12c+13c]) for C4 photosynthesis
-    real(rkx) :: leafc13_seed, deadstemc13_seed
+    real(rk8) :: c4_del13c
+    real(rk8) :: c3_r1_c13 ! isotope ratio (13c/12c) for C3 photosynthesis
+    real(rk8) :: c4_r1_c13 ! isotope ratio (13c/12c) for C4 photosynthesis
+    real(rk8) :: c3_r2_c13 ! isotope ratio (13c/[12c+13c]) for C3 photosynthesis
+    real(rk8) :: c4_r2_c13 ! isotope ratio (13c/[12c+13c]) for C4 photosynthesis
+    real(rk8) :: leafc13_seed, deadstemc13_seed
     !!! C14
     ! pft-level mass gain due to seeding of new area
-    real(rkx) , allocatable :: dwt_leafc14_seed(:)
+    real(rk8) , allocatable :: dwt_leafc14_seed(:)
     ! pft-level mass gain due to seeding of new area
-    real(rkx) , allocatable :: dwt_deadstemc14_seed(:)
+    real(rk8) , allocatable :: dwt_deadstemc14_seed(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: dwt_frootc14_to_litter(:)
+    real(rk8) , allocatable, target :: dwt_frootc14_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: dwt_livecrootc14_to_litter(:)
+    real(rk8) , allocatable, target :: dwt_livecrootc14_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: dwt_deadcrootc14_to_litter(:)
+    real(rk8) , allocatable, target :: dwt_deadcrootc14_to_litter(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: conv_c14flux(:)
+    real(rk8) , allocatable, target :: conv_c14flux(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: prod10_c14flux(:)
+    real(rk8) , allocatable, target :: prod10_c14flux(:)
     ! pft-level mass loss due to weight shift
-    real(rkx) , allocatable, target :: prod100_c14flux(:)
-    real(rkx) :: leafc14_seed, deadstemc14_seed
+    real(rk8) , allocatable, target :: prod100_c14flux(:)
+    real(rk8) :: leafc14_seed, deadstemc14_seed
 
     ! Set pointers into derived type
 
@@ -770,43 +770,43 @@ module mod_clm_pftdyn
     do p = begp , endp
       c = pcolumn(p)
       ! initialize all the pft-level local flux arrays
-      dwt_leafc_seed(p) = 0._rkx
-      dwt_leafn_seed(p) = 0._rkx
-      dwt_deadstemc_seed(p) = 0._rkx
-      dwt_deadstemn_seed(p) = 0._rkx
-      dwt_frootc_to_litter(p) = 0._rkx
-      dwt_livecrootc_to_litter(p) = 0._rkx
-      dwt_deadcrootc_to_litter(p) = 0._rkx
-      dwt_frootn_to_litter(p) = 0._rkx
-      dwt_livecrootn_to_litter(p) = 0._rkx
-      dwt_deadcrootn_to_litter(p) = 0._rkx
-      conv_cflux(p) = 0._rkx
-      prod10_cflux(p) = 0._rkx
-      prod100_cflux(p) = 0._rkx
-      conv_nflux(p) = 0._rkx
-      prod10_nflux(p) = 0._rkx
-      prod100_nflux(p) = 0._rkx
+      dwt_leafc_seed(p) = 0._rk8
+      dwt_leafn_seed(p) = 0._rk8
+      dwt_deadstemc_seed(p) = 0._rk8
+      dwt_deadstemn_seed(p) = 0._rk8
+      dwt_frootc_to_litter(p) = 0._rk8
+      dwt_livecrootc_to_litter(p) = 0._rk8
+      dwt_deadcrootc_to_litter(p) = 0._rk8
+      dwt_frootn_to_litter(p) = 0._rk8
+      dwt_livecrootn_to_litter(p) = 0._rk8
+      dwt_deadcrootn_to_litter(p) = 0._rk8
+      conv_cflux(p) = 0._rk8
+      prod10_cflux(p) = 0._rk8
+      prod100_cflux(p) = 0._rk8
+      conv_nflux(p) = 0._rk8
+      prod10_nflux(p) = 0._rk8
+      prod100_nflux(p) = 0._rk8
 
       if ( use_c13 ) then
-        dwt_leafc13_seed(p) = 0._rkx
-        dwt_deadstemc13_seed(p) = 0._rkx
-        dwt_frootc13_to_litter(p) = 0._rkx
-        dwt_livecrootc13_to_litter(p) = 0._rkx
-        dwt_deadcrootc13_to_litter(p) = 0._rkx
-        conv_c13flux(p) = 0._rkx
-        prod10_c13flux(p) = 0._rkx
-        prod100_c13flux(p) = 0._rkx
+        dwt_leafc13_seed(p) = 0._rk8
+        dwt_deadstemc13_seed(p) = 0._rk8
+        dwt_frootc13_to_litter(p) = 0._rk8
+        dwt_livecrootc13_to_litter(p) = 0._rk8
+        dwt_deadcrootc13_to_litter(p) = 0._rk8
+        conv_c13flux(p) = 0._rk8
+        prod10_c13flux(p) = 0._rk8
+        prod100_c13flux(p) = 0._rk8
       end if
 
       if ( use_c14 ) then
-        dwt_leafc14_seed(p) = 0._rkx
-        dwt_deadstemc14_seed(p) = 0._rkx
-        dwt_frootc14_to_litter(p) = 0._rkx
-        dwt_livecrootc14_to_litter(p) = 0._rkx
-        dwt_deadcrootc14_to_litter(p) = 0._rkx
-        conv_c14flux(p) = 0._rkx
-        prod10_c14flux(p) = 0._rkx
-        prod100_c14flux(p) = 0._rkx
+        dwt_leafc14_seed(p) = 0._rk8
+        dwt_deadstemc14_seed(p) = 0._rk8
+        dwt_frootc14_to_litter(p) = 0._rk8
+        dwt_livecrootc14_to_litter(p) = 0._rk8
+        dwt_deadcrootc14_to_litter(p) = 0._rk8
+        conv_c14flux(p) = 0._rk8
+        prod10_c14flux(p) = 0._rk8
+        prod100_c14flux(p) = 0._rk8
       end if
 
       l = pptr%landunit(p)
@@ -816,210 +816,210 @@ module mod_clm_pftdyn
         dwt = pptr%wtcol(p)-wtcol_old(p)
         lfpftd(p) = -dwt
         ! PFTs for which weight increases on this timestep
-        if (dwt > 0._rkx) then
+        if (dwt > 0._rk8) then
 
           ! first identify PFTs that are initiating on this timestep
           ! and set all the necessary state and flux variables
-          if (wtcol_old(p) == 0._rkx) then
+          if (wtcol_old(p) == 0._rk8) then
 
             ! set initial conditions for PFT that is being initiated
             ! in this time step.  Based on the settings in cnIniTimeVar.
 
             ! pft-level carbon state variables
-            pptr%pcs%leafc(p)              = 0._rkx
-            pptr%pcs%leafc_storage(p)      = 0._rkx
-            pptr%pcs%leafc_xfer(p)         = 0._rkx
-            pptr%pcs%frootc(p)             = 0._rkx
-            pptr%pcs%frootc_storage(p)     = 0._rkx
-            pptr%pcs%frootc_xfer(p)        = 0._rkx
-            pptr%pcs%livestemc(p)          = 0._rkx
-            pptr%pcs%livestemc_storage(p)  = 0._rkx
-            pptr%pcs%livestemc_xfer(p)     = 0._rkx
-            pptr%pcs%deadstemc(p)          = 0._rkx
-            pptr%pcs%deadstemc_storage(p)  = 0._rkx
-            pptr%pcs%deadstemc_xfer(p)     = 0._rkx
-            pptr%pcs%livecrootc(p)         = 0._rkx
-            pptr%pcs%livecrootc_storage(p) = 0._rkx
-            pptr%pcs%livecrootc_xfer(p)    = 0._rkx
-            pptr%pcs%deadcrootc(p)         = 0._rkx
-            pptr%pcs%deadcrootc_storage(p) = 0._rkx
-            pptr%pcs%deadcrootc_xfer(p)    = 0._rkx
-            pptr%pcs%gresp_storage(p)      = 0._rkx
-            pptr%pcs%gresp_xfer(p)         = 0._rkx
-            pptr%pcs%cpool(p)              = 0._rkx
-            pptr%pcs%xsmrpool(p)           = 0._rkx
-            pptr%pcs%pft_ctrunc(p)         = 0._rkx
-            pptr%pcs%dispvegc(p)           = 0._rkx
-            pptr%pcs%storvegc(p)           = 0._rkx
-            pptr%pcs%totvegc(p)            = 0._rkx
-            pptr%pcs%totpftc(p)            = 0._rkx
+            pptr%pcs%leafc(p)              = 0._rk8
+            pptr%pcs%leafc_storage(p)      = 0._rk8
+            pptr%pcs%leafc_xfer(p)         = 0._rk8
+            pptr%pcs%frootc(p)             = 0._rk8
+            pptr%pcs%frootc_storage(p)     = 0._rk8
+            pptr%pcs%frootc_xfer(p)        = 0._rk8
+            pptr%pcs%livestemc(p)          = 0._rk8
+            pptr%pcs%livestemc_storage(p)  = 0._rk8
+            pptr%pcs%livestemc_xfer(p)     = 0._rk8
+            pptr%pcs%deadstemc(p)          = 0._rk8
+            pptr%pcs%deadstemc_storage(p)  = 0._rk8
+            pptr%pcs%deadstemc_xfer(p)     = 0._rk8
+            pptr%pcs%livecrootc(p)         = 0._rk8
+            pptr%pcs%livecrootc_storage(p) = 0._rk8
+            pptr%pcs%livecrootc_xfer(p)    = 0._rk8
+            pptr%pcs%deadcrootc(p)         = 0._rk8
+            pptr%pcs%deadcrootc_storage(p) = 0._rk8
+            pptr%pcs%deadcrootc_xfer(p)    = 0._rk8
+            pptr%pcs%gresp_storage(p)      = 0._rk8
+            pptr%pcs%gresp_xfer(p)         = 0._rk8
+            pptr%pcs%cpool(p)              = 0._rk8
+            pptr%pcs%xsmrpool(p)           = 0._rk8
+            pptr%pcs%pft_ctrunc(p)         = 0._rk8
+            pptr%pcs%dispvegc(p)           = 0._rk8
+            pptr%pcs%storvegc(p)           = 0._rk8
+            pptr%pcs%totvegc(p)            = 0._rk8
+            pptr%pcs%totpftc(p)            = 0._rk8
 
             if ( use_c13 ) then
               ! pft-level carbon-13 state variables
-              pptr%pc13s%leafc(p)              = 0._rkx
-              pptr%pc13s%leafc_storage(p)      = 0._rkx
-              pptr%pc13s%leafc_xfer(p)         = 0._rkx
-              pptr%pc13s%frootc(p)             = 0._rkx
-              pptr%pc13s%frootc_storage(p)     = 0._rkx
-              pptr%pc13s%frootc_xfer(p)        = 0._rkx
-              pptr%pc13s%livestemc(p)          = 0._rkx
-              pptr%pc13s%livestemc_storage(p)  = 0._rkx
-              pptr%pc13s%livestemc_xfer(p)     = 0._rkx
-              pptr%pc13s%deadstemc(p)          = 0._rkx
-              pptr%pc13s%deadstemc_storage(p)  = 0._rkx
-              pptr%pc13s%deadstemc_xfer(p)     = 0._rkx
-              pptr%pc13s%livecrootc(p)         = 0._rkx
-              pptr%pc13s%livecrootc_storage(p) = 0._rkx
-              pptr%pc13s%livecrootc_xfer(p)    = 0._rkx
-              pptr%pc13s%deadcrootc(p)         = 0._rkx
-              pptr%pc13s%deadcrootc_storage(p) = 0._rkx
-              pptr%pc13s%deadcrootc_xfer(p)    = 0._rkx
-              pptr%pc13s%gresp_storage(p)      = 0._rkx
-              pptr%pc13s%gresp_xfer(p)         = 0._rkx
-              pptr%pc13s%cpool(p)              = 0._rkx
-              pptr%pc13s%xsmrpool(p)           = 0._rkx
-              pptr%pc13s%pft_ctrunc(p)         = 0._rkx
-              pptr%pc13s%dispvegc(p)           = 0._rkx
-              pptr%pc13s%storvegc(p)           = 0._rkx
-              pptr%pc13s%totvegc(p)            = 0._rkx
-              pptr%pc13s%totpftc(p)            = 0._rkx
+              pptr%pc13s%leafc(p)              = 0._rk8
+              pptr%pc13s%leafc_storage(p)      = 0._rk8
+              pptr%pc13s%leafc_xfer(p)         = 0._rk8
+              pptr%pc13s%frootc(p)             = 0._rk8
+              pptr%pc13s%frootc_storage(p)     = 0._rk8
+              pptr%pc13s%frootc_xfer(p)        = 0._rk8
+              pptr%pc13s%livestemc(p)          = 0._rk8
+              pptr%pc13s%livestemc_storage(p)  = 0._rk8
+              pptr%pc13s%livestemc_xfer(p)     = 0._rk8
+              pptr%pc13s%deadstemc(p)          = 0._rk8
+              pptr%pc13s%deadstemc_storage(p)  = 0._rk8
+              pptr%pc13s%deadstemc_xfer(p)     = 0._rk8
+              pptr%pc13s%livecrootc(p)         = 0._rk8
+              pptr%pc13s%livecrootc_storage(p) = 0._rk8
+              pptr%pc13s%livecrootc_xfer(p)    = 0._rk8
+              pptr%pc13s%deadcrootc(p)         = 0._rk8
+              pptr%pc13s%deadcrootc_storage(p) = 0._rk8
+              pptr%pc13s%deadcrootc_xfer(p)    = 0._rk8
+              pptr%pc13s%gresp_storage(p)      = 0._rk8
+              pptr%pc13s%gresp_xfer(p)         = 0._rk8
+              pptr%pc13s%cpool(p)              = 0._rk8
+              pptr%pc13s%xsmrpool(p)           = 0._rk8
+              pptr%pc13s%pft_ctrunc(p)         = 0._rk8
+              pptr%pc13s%dispvegc(p)           = 0._rk8
+              pptr%pc13s%storvegc(p)           = 0._rk8
+              pptr%pc13s%totvegc(p)            = 0._rk8
+              pptr%pc13s%totpftc(p)            = 0._rk8
             end if
 
             if ( use_c14 ) then
               ! pft-level carbon-14 state variables
-              pptr%pc14s%leafc(p)              = 0._rkx
-              pptr%pc14s%leafc_storage(p)      = 0._rkx
-              pptr%pc14s%leafc_xfer(p)         = 0._rkx
-              pptr%pc14s%frootc(p)             = 0._rkx
-              pptr%pc14s%frootc_storage(p)     = 0._rkx
-              pptr%pc14s%frootc_xfer(p)        = 0._rkx
-              pptr%pc14s%livestemc(p)          = 0._rkx
-              pptr%pc14s%livestemc_storage(p)  = 0._rkx
-              pptr%pc14s%livestemc_xfer(p)     = 0._rkx
-              pptr%pc14s%deadstemc(p)          = 0._rkx
-              pptr%pc14s%deadstemc_storage(p)  = 0._rkx
-              pptr%pc14s%deadstemc_xfer(p)     = 0._rkx
-              pptr%pc14s%livecrootc(p)         = 0._rkx
-              pptr%pc14s%livecrootc_storage(p) = 0._rkx
-              pptr%pc14s%livecrootc_xfer(p)    = 0._rkx
-              pptr%pc14s%deadcrootc(p)         = 0._rkx
-              pptr%pc14s%deadcrootc_storage(p) = 0._rkx
-              pptr%pc14s%deadcrootc_xfer(p)    = 0._rkx
-              pptr%pc14s%gresp_storage(p)      = 0._rkx
-              pptr%pc14s%gresp_xfer(p)         = 0._rkx
-              pptr%pc14s%cpool(p)              = 0._rkx
-              pptr%pc14s%xsmrpool(p)           = 0._rkx
-              pptr%pc14s%pft_ctrunc(p)         = 0._rkx
-              pptr%pc14s%dispvegc(p)           = 0._rkx
-              pptr%pc14s%storvegc(p)           = 0._rkx
-              pptr%pc14s%totvegc(p)            = 0._rkx
-              pptr%pc14s%totpftc(p)            = 0._rkx
+              pptr%pc14s%leafc(p)              = 0._rk8
+              pptr%pc14s%leafc_storage(p)      = 0._rk8
+              pptr%pc14s%leafc_xfer(p)         = 0._rk8
+              pptr%pc14s%frootc(p)             = 0._rk8
+              pptr%pc14s%frootc_storage(p)     = 0._rk8
+              pptr%pc14s%frootc_xfer(p)        = 0._rk8
+              pptr%pc14s%livestemc(p)          = 0._rk8
+              pptr%pc14s%livestemc_storage(p)  = 0._rk8
+              pptr%pc14s%livestemc_xfer(p)     = 0._rk8
+              pptr%pc14s%deadstemc(p)          = 0._rk8
+              pptr%pc14s%deadstemc_storage(p)  = 0._rk8
+              pptr%pc14s%deadstemc_xfer(p)     = 0._rk8
+              pptr%pc14s%livecrootc(p)         = 0._rk8
+              pptr%pc14s%livecrootc_storage(p) = 0._rk8
+              pptr%pc14s%livecrootc_xfer(p)    = 0._rk8
+              pptr%pc14s%deadcrootc(p)         = 0._rk8
+              pptr%pc14s%deadcrootc_storage(p) = 0._rk8
+              pptr%pc14s%deadcrootc_xfer(p)    = 0._rk8
+              pptr%pc14s%gresp_storage(p)      = 0._rk8
+              pptr%pc14s%gresp_xfer(p)         = 0._rk8
+              pptr%pc14s%cpool(p)              = 0._rk8
+              pptr%pc14s%xsmrpool(p)           = 0._rk8
+              pptr%pc14s%pft_ctrunc(p)         = 0._rk8
+              pptr%pc14s%dispvegc(p)           = 0._rk8
+              pptr%pc14s%storvegc(p)           = 0._rk8
+              pptr%pc14s%totvegc(p)            = 0._rk8
+              pptr%pc14s%totpftc(p)            = 0._rk8
             end if
 
             ! pft-level nitrogen state variables
-            pptr%pns%leafn(p)             = 0._rkx
-            pptr%pns%leafn_storage(p)      = 0._rkx
-            pptr%pns%leafn_xfer(p)         = 0._rkx
-            pptr%pns%frootn(p)             = 0._rkx
-            pptr%pns%frootn_storage(p)     = 0._rkx
-            pptr%pns%frootn_xfer(p)        = 0._rkx
-            pptr%pns%livestemn(p)         = 0._rkx
-            pptr%pns%livestemn_storage(p)  = 0._rkx
-            pptr%pns%livestemn_xfer(p)     = 0._rkx
-            pptr%pns%deadstemn(p)         = 0._rkx
-            pptr%pns%deadstemn_storage(p)  = 0._rkx
-            pptr%pns%deadstemn_xfer(p)     = 0._rkx
-            pptr%pns%livecrootn(p)         = 0._rkx
-            pptr%pns%livecrootn_storage(p) = 0._rkx
-            pptr%pns%livecrootn_xfer(p)    = 0._rkx
-            pptr%pns%deadcrootn(p)         = 0._rkx
-            pptr%pns%deadcrootn_storage(p) = 0._rkx
-            pptr%pns%deadcrootn_xfer(p)    = 0._rkx
-            pptr%pns%retransn(p)         = 0._rkx
-            pptr%pns%npool(p)             = 0._rkx
-            pptr%pns%pft_ntrunc(p)         = 0._rkx
-            pptr%pns%dispvegn(p)           = 0._rkx
-            pptr%pns%storvegn(p)           = 0._rkx
-            pptr%pns%totvegn(p)            = 0._rkx
-            pptr%pns%totpftn (p)           = 0._rkx
+            pptr%pns%leafn(p)             = 0._rk8
+            pptr%pns%leafn_storage(p)      = 0._rk8
+            pptr%pns%leafn_xfer(p)         = 0._rk8
+            pptr%pns%frootn(p)             = 0._rk8
+            pptr%pns%frootn_storage(p)     = 0._rk8
+            pptr%pns%frootn_xfer(p)        = 0._rk8
+            pptr%pns%livestemn(p)         = 0._rk8
+            pptr%pns%livestemn_storage(p)  = 0._rk8
+            pptr%pns%livestemn_xfer(p)     = 0._rk8
+            pptr%pns%deadstemn(p)         = 0._rk8
+            pptr%pns%deadstemn_storage(p)  = 0._rk8
+            pptr%pns%deadstemn_xfer(p)     = 0._rk8
+            pptr%pns%livecrootn(p)         = 0._rk8
+            pptr%pns%livecrootn_storage(p) = 0._rk8
+            pptr%pns%livecrootn_xfer(p)    = 0._rk8
+            pptr%pns%deadcrootn(p)         = 0._rk8
+            pptr%pns%deadcrootn_storage(p) = 0._rk8
+            pptr%pns%deadcrootn_xfer(p)    = 0._rk8
+            pptr%pns%retransn(p)         = 0._rk8
+            pptr%pns%npool(p)             = 0._rk8
+            pptr%pns%pft_ntrunc(p)         = 0._rk8
+            pptr%pns%dispvegn(p)           = 0._rk8
+            pptr%pns%storvegn(p)           = 0._rk8
+            pptr%pns%totvegn(p)            = 0._rk8
+            pptr%pns%totpftn (p)           = 0._rk8
 
             ! initialize same flux and epv variables that are set
             ! in CNiniTimeVar
-            pptr%pcf%psnsun(p) = 0._rkx
-            pptr%pcf%psnsha(p) = 0._rkx
-            pptr%pps%laisun(p) = 0._rkx
-            pptr%pps%laisha(p) = 0._rkx
+            pptr%pcf%psnsun(p) = 0._rk8
+            pptr%pcf%psnsha(p) = 0._rk8
+            pptr%pps%laisun(p) = 0._rk8
+            pptr%pps%laisha(p) = 0._rk8
 
-            pptr%pepv%dormant_flag(p) = 1._rkx
-            pptr%pepv%days_active(p) = 0._rkx
-            pptr%pepv%onset_flag(p) = 0._rkx
-            pptr%pepv%onset_counter(p) = 0._rkx
-            pptr%pepv%onset_gddflag(p) = 0._rkx
-            pptr%pepv%onset_fdd(p) = 0._rkx
-            pptr%pepv%onset_gdd(p) = 0._rkx
-            pptr%pepv%onset_swi(p) = 0.0_rkx
-            pptr%pepv%offset_flag(p) = 0._rkx
-            pptr%pepv%offset_counter(p) = 0._rkx
-            pptr%pepv%offset_fdd(p) = 0._rkx
-            pptr%pepv%offset_swi(p) = 0._rkx
-            pptr%pepv%lgsf(p) = 0._rkx
-            pptr%pepv%bglfr(p) = 0._rkx
-            pptr%pepv%bgtr(p) = 0._rkx
+            pptr%pepv%dormant_flag(p) = 1._rk8
+            pptr%pepv%days_active(p) = 0._rk8
+            pptr%pepv%onset_flag(p) = 0._rk8
+            pptr%pepv%onset_counter(p) = 0._rk8
+            pptr%pepv%onset_gddflag(p) = 0._rk8
+            pptr%pepv%onset_fdd(p) = 0._rk8
+            pptr%pepv%onset_gdd(p) = 0._rk8
+            pptr%pepv%onset_swi(p) = 0.0_rk8
+            pptr%pepv%offset_flag(p) = 0._rk8
+            pptr%pepv%offset_counter(p) = 0._rk8
+            pptr%pepv%offset_fdd(p) = 0._rk8
+            pptr%pepv%offset_swi(p) = 0._rk8
+            pptr%pepv%lgsf(p) = 0._rk8
+            pptr%pepv%bglfr(p) = 0._rk8
+            pptr%pepv%bgtr(p) = 0._rk8
             ! difference from CNiniTimeVar: using column-level
             ! information to initialize annavg_t2m.
             pptr%pepv%annavg_t2m(p) = cptr%cps%cannavg_t2m(c)
-            pptr%pepv%tempavg_t2m(p) = 0._rkx
-            pptr%pepv%gpp(p) = 0._rkx
-            pptr%pepv%availc(p) = 0._rkx
-            pptr%pepv%xsmrpool_recover(p) = 0._rkx
-            pptr%pepv%alloc_pnow(p) = 1._rkx
-            pptr%pepv%c_allometry(p) = 0._rkx
-            pptr%pepv%n_allometry(p) = 0._rkx
-            pptr%pepv%plant_ndemand(p) = 0._rkx
-            pptr%pepv%tempsum_potential_gpp(p) = 0._rkx
-            pptr%pepv%annsum_potential_gpp(p) = 0._rkx
-            pptr%pepv%tempmax_retransn(p) = 0._rkx
-            pptr%pepv%annmax_retransn(p) = 0._rkx
-            pptr%pepv%avail_retransn(p) = 0._rkx
-            pptr%pepv%plant_nalloc(p) = 0._rkx
-            pptr%pepv%plant_calloc(p) = 0._rkx
-            pptr%pepv%excess_cflux(p) = 0._rkx
-            pptr%pepv%downreg(p) = 0._rkx
-            pptr%pepv%prev_leafc_to_litter(p) = 0._rkx
-            pptr%pepv%prev_frootc_to_litter(p) = 0._rkx
-            pptr%pepv%tempsum_npp(p) = 0._rkx
-            pptr%pepv%annsum_npp(p) = 0._rkx
+            pptr%pepv%tempavg_t2m(p) = 0._rk8
+            pptr%pepv%gpp(p) = 0._rk8
+            pptr%pepv%availc(p) = 0._rk8
+            pptr%pepv%xsmrpool_recover(p) = 0._rk8
+            pptr%pepv%alloc_pnow(p) = 1._rk8
+            pptr%pepv%c_allometry(p) = 0._rk8
+            pptr%pepv%n_allometry(p) = 0._rk8
+            pptr%pepv%plant_ndemand(p) = 0._rk8
+            pptr%pepv%tempsum_potential_gpp(p) = 0._rk8
+            pptr%pepv%annsum_potential_gpp(p) = 0._rk8
+            pptr%pepv%tempmax_retransn(p) = 0._rk8
+            pptr%pepv%annmax_retransn(p) = 0._rk8
+            pptr%pepv%avail_retransn(p) = 0._rk8
+            pptr%pepv%plant_nalloc(p) = 0._rk8
+            pptr%pepv%plant_calloc(p) = 0._rk8
+            pptr%pepv%excess_cflux(p) = 0._rk8
+            pptr%pepv%downreg(p) = 0._rk8
+            pptr%pepv%prev_leafc_to_litter(p) = 0._rk8
+            pptr%pepv%prev_frootc_to_litter(p) = 0._rk8
+            pptr%pepv%tempsum_npp(p) = 0._rk8
+            pptr%pepv%annsum_npp(p) = 0._rk8
 
             if ( use_c13 ) then
-              pptr%pc13f%psnsun(p) = 0._rkx
-              pptr%pc13f%psnsha(p) = 0._rkx
+              pptr%pc13f%psnsun(p) = 0._rk8
+              pptr%pc13f%psnsha(p) = 0._rk8
 
-              pptr%pps%alphapsnsun(p) = 0._rkx
-              pptr%pps%alphapsnsha(p) = 0._rkx
+              pptr%pps%alphapsnsun(p) = 0._rk8
+              pptr%pps%alphapsnsha(p) = 0._rk8
 
               pptr%pepv%xsmrpool_c13ratio(p) = c13ratio
 
-              pptr%pepv%rc13_canair(p) = 0._rkx
-              pptr%pepv%rc13_psnsun(p) = 0._rkx
-              pptr%pepv%rc13_psnsha(p) = 0._rkx
+              pptr%pepv%rc13_canair(p) = 0._rk8
+              pptr%pepv%rc13_psnsun(p) = 0._rk8
+              pptr%pepv%rc13_psnsha(p) = 0._rk8
             end if
 
             if ( use_c14 ) then
-              pptr%pc14f%psnsun(p) = 0._rkx
-              pptr%pc14f%psnsha(p) = 0._rkx
+              pptr%pc14f%psnsun(p) = 0._rk8
+              pptr%pc14f%psnsha(p) = 0._rk8
 
               pptr%pepv%rc14_atm(p) = c14ratio
 
-              ! pptr%pps%alphapsnsun(p) = 0._rkx
-              ! pptr%pps%alphapsnsha(p) = 0._rkx
+              ! pptr%pps%alphapsnsun(p) = 0._rk8
+              ! pptr%pps%alphapsnsha(p) = 0._rk8
 
               ! pptr%pepv%xsmrpool_c14ratio(p) = c14ratio
 
-              pptr%pepv%rc14_atm(p) = 0._rkx
+              pptr%pepv%rc14_atm(p) = 0._rk8
 
-              ! pptr%pepv%rc14_canair(p) = 0._rkx
-              ! pptr%pepv%rc14_psnsun(p) = 0._rkx
-              ! pptr%pepv%rc14_psnsha(p) = 0._rkx
+              ! pptr%pepv%rc14_canair(p) = 0._rk8
+              ! pptr%pepv%rc14_psnsun(p) = 0._rk8
+              ! pptr%pepv%rc14_psnsha(p) = 0._rk8
             end if
 
           end if  ! end initialization of new pft
@@ -1028,23 +1028,23 @@ module mod_clm_pftdyn
 
           ! set the seed sources for leaf and deadstem
           ! leaf source is split later between leaf, leaf_storage, leaf_xfer
-          leafc_seed   = 0._rkx
-          leafn_seed   = 0._rkx
-          deadstemc_seed   = 0._rkx
-          deadstemn_seed   = 0._rkx
+          leafc_seed   = 0._rk8
+          leafn_seed   = 0._rk8
+          deadstemc_seed   = 0._rk8
+          deadstemn_seed   = 0._rk8
           if ( use_c13 ) then
-            leafc13_seed = 0._rkx
-            deadstemc13_seed = 0._rkx
+            leafc13_seed = 0._rk8
+            deadstemc13_seed = 0._rk8
           end if
           if ( use_c14 ) then
-            leafc14_seed = 0._rkx
-            deadstemc14_seed = 0._rkx
+            leafc14_seed = 0._rk8
+            deadstemc14_seed = 0._rk8
           end if
           if (pptr%itype(p) /= 0) then
-            leafc_seed = 1._rkx
+            leafc_seed = 1._rk8
             leafn_seed  = leafc_seed / pftcon%leafcn(pptr%itype(p))
-            if (pftcon%woody(pptr%itype(p)) == 1._rkx) then
-              deadstemc_seed = 0.1_rkx
+            if (pftcon%woody(pptr%itype(p)) == 1._rk8) then
+              deadstemc_seed = 0.1_rk8
               deadstemn_seed = deadstemc_seed / pftcon%deadwdcn(pptr%itype(p))
             end if
 
@@ -1058,14 +1058,14 @@ module mod_clm_pftdyn
               ! r2 (13/(13+12)) = r1/(1+r1)
               ! PDB = 0.0112372_R8
               ! (ratio of 13C/12C in Pee Dee Belemnite, C isotope standard)
-              c3_del13c = -28._rkx
-              c4_del13c = -13._rkx
-              c3_r1_c13 = pdbratio + ((c3_del13c*pdbratio)/1000._rkx)
-              c3_r2_c13 = c3_r1_c13/(1._rkx + c3_r1_c13)
-              c4_r1_c13 = pdbratio + ((c4_del13c*pdbratio)/1000._rkx)
-              c4_r2_c13 = c4_r1_c13/(1._rkx + c4_r1_c13)
+              c3_del13c = -28._rk8
+              c4_del13c = -13._rk8
+              c3_r1_c13 = pdbratio + ((c3_del13c*pdbratio)/1000._rk8)
+              c3_r2_c13 = c3_r1_c13/(1._rk8 + c3_r1_c13)
+              c4_r1_c13 = pdbratio + ((c4_del13c*pdbratio)/1000._rk8)
+              c4_r2_c13 = c4_r1_c13/(1._rk8 + c4_r1_c13)
 
-              if (pftcon%c3psn(pptr%itype(p)) == 1._rkx) then
+              if (pftcon%c3psn(pptr%itype(p)) == 1._rk8) then
                 leafc13_seed     = leafc_seed     * c3_r2_c13
                 deadstemc13_seed = deadstemc_seed * c3_r2_c13
               else
@@ -1076,7 +1076,7 @@ module mod_clm_pftdyn
 
             if ( use_c14 ) then
               ! 14c state is initialized assuming initial "modern" 14C of 1.e-12
-              if (pftcon%c3psn(pptr%itype(p)) == 1._rkx) then
+              if (pftcon%c3psn(pptr%itype(p)) == 1._rk8) then
                 leafc14_seed     = leafc_seed     * c14ratio
                 deadstemc14_seed = deadstemc_seed * c14ratio
               else
@@ -1095,10 +1095,10 @@ module mod_clm_pftdyn
 
           tot_leaf = pptr%pcs%leafc(p) + pptr%pcs%leafc_storage(p) + &
                   pptr%pcs%leafc_xfer(p)
-          pleaf = 0._rkx
-          pstor = 0._rkx
-          pxfer = 0._rkx
-          if (tot_leaf /= 0._rkx) then
+          pleaf = 0._rk8
+          pstor = 0._rk8
+          pxfer = 0._rk8
+          if (tot_leaf /= 0._rk8) then
             ! when adding seed source to non-zero leaf state, use
             ! current proportions
             pleaf = pptr%pcs%leafc(p)/tot_leaf
@@ -1107,10 +1107,10 @@ module mod_clm_pftdyn
           else
             ! when initiating from zero leaf state, use
             ! evergreen flag to set proportions
-            if (pftcon%evergreen(pptr%itype(p)) == 1._rkx) then
-              pleaf = 1._rkx
+            if (pftcon%evergreen(pptr%itype(p)) == 1._rk8) then
+              pleaf = 1._rk8
             else
-              pstor = 1._rkx
+              pstor = 1._rk8
             end if
           end if
           pptr%pcs%leafc(p) = pptr%pcs%leafc(p)*t1 + leafc_seed*pleaf*t2
@@ -1147,20 +1147,20 @@ module mod_clm_pftdyn
             ! pft-level carbon-13 state variables
             tot_leaf = pptr%pc13s%leafc(p) + &
                     pptr%pc13s%leafc_storage(p) + pptr%pc13s%leafc_xfer(p)
-            pleaf = 0._rkx
-            pstor = 0._rkx
-            pxfer = 0._rkx
-            if (tot_leaf /= 0._rkx) then
+            pleaf = 0._rk8
+            pstor = 0._rk8
+            pxfer = 0._rk8
+            if (tot_leaf /= 0._rk8) then
               pleaf = pptr%pc13s%leafc(p)/tot_leaf
               pstor = pptr%pc13s%leafc_storage(p)/tot_leaf
               pxfer = pptr%pc13s%leafc_xfer(p)/tot_leaf
             else
               ! when initiating from zero leaf state, use evergreen
               ! flag to set proportions
-              if (pftcon%evergreen(pptr%itype(p)) == 1._rkx) then
-                pleaf = 1._rkx
+              if (pftcon%evergreen(pptr%itype(p)) == 1._rk8) then
+                pleaf = 1._rk8
               else
-                pstor = 1._rkx
+                pstor = 1._rk8
               end if
             end if
             pptr%pc13s%leafc(p) = pptr%pc13s%leafc(p)*t1 + leafc13_seed*pleaf*t2
@@ -1203,20 +1203,20 @@ module mod_clm_pftdyn
             ! pft-level carbon-14 state variables
             tot_leaf = pptr%pc14s%leafc(p) + pptr%pc14s%leafc_storage(p) + &
                     pptr%pc14s%leafc_xfer(p)
-            pleaf = 0._rkx
-            pstor = 0._rkx
-            pxfer = 0._rkx
-            if (tot_leaf /= 0._rkx) then
+            pleaf = 0._rk8
+            pstor = 0._rk8
+            pxfer = 0._rk8
+            if (tot_leaf /= 0._rk8) then
               pleaf = pptr%pc14s%leafc(p)/tot_leaf
               pstor = pptr%pc14s%leafc_storage(p)/tot_leaf
               pxfer = pptr%pc14s%leafc_xfer(p)/tot_leaf
             else
               ! when initiating from zero leaf state, use evergreen
               ! flag to set proportions
-              if (pftcon%evergreen(pptr%itype(p)) == 1._rkx) then
-                pleaf = 1._rkx
+              if (pftcon%evergreen(pptr%itype(p)) == 1._rk8) then
+                pleaf = 1._rk8
               else
-                pstor = 1._rkx
+                pstor = 1._rk8
               end if
             end if
             pptr%pc14s%leafc(p) = pptr%pc14s%leafc(p)*t1 + leafc14_seed*pleaf*t2
@@ -1257,20 +1257,20 @@ module mod_clm_pftdyn
 
           tot_leaf = pptr%pns%leafn(p) + &
                   pptr%pns%leafn_storage(p) + pptr%pns%leafn_xfer(p)
-          pleaf = 0._rkx
-          pstor = 0._rkx
-          pxfer = 0._rkx
-          if (tot_leaf /= 0._rkx) then
+          pleaf = 0._rk8
+          pstor = 0._rk8
+          pxfer = 0._rk8
+          if (tot_leaf /= 0._rk8) then
             pleaf = pptr%pns%leafn(p)/tot_leaf
             pstor = pptr%pns%leafn_storage(p)/tot_leaf
             pxfer = pptr%pns%leafn_xfer(p)/tot_leaf
           else
             ! when initiating from zero leaf state, use evergreen
             ! flag to set proportions
-            if (pftcon%evergreen(pptr%itype(p)) == 1._rkx) then
-              pleaf = 1._rkx
+            if (pftcon%evergreen(pptr%itype(p)) == 1._rk8) then
+              pleaf = 1._rk8
             else
-              pstor = 1._rkx
+              pstor = 1._rk8
             end if
           end if
           ! pft-level nitrogen state variables
@@ -1319,7 +1319,7 @@ module mod_clm_pftdyn
           dwt_deadstemc_seed(p)   = deadstemc_seed   * dwt
           dwt_deadstemn_seed(p)   = deadstemn_seed   * dwt
 
-        else if (dwt < 0._rkx) then
+        else if (dwt < 0._rk8) then
 
           ! if the pft lost weight on the timestep, then the carbon and
           ! nitrogen state variables are directed to litter, CWD, and
@@ -1342,11 +1342,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1355,11 +1355,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1368,11 +1368,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1381,11 +1381,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_frootc_to_litter(p) = dwt_frootc_to_litter(p) - change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_frootc_to_litter(p) = dwt_frootc_to_litter(p) + init_state
           end if
 
@@ -1394,11 +1394,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1407,11 +1407,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1420,11 +1420,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1433,11 +1433,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1446,11 +1446,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1459,7 +1459,7 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state*pconv(pptr%itype(p))
             prod10_cflux(p) = prod10_cflux(p) + &
@@ -1467,7 +1467,7 @@ module mod_clm_pftdyn
             prod100_cflux(p) = prod100_cflux(p) + &
                     change_state*pprod100(pptr%itype(p))
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state*pconv(pptr%itype(p))
             prod10_cflux(p) = prod10_cflux(p) - &
                     init_state*pprod10(pptr%itype(p))
@@ -1480,11 +1480,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1493,11 +1493,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1506,12 +1506,12 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_livecrootc_to_litter(p) = dwt_livecrootc_to_litter(p) - &
                     change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_livecrootc_to_litter(p) = &
                     dwt_livecrootc_to_litter(p) + init_state
           end if
@@ -1521,11 +1521,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1534,11 +1534,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1547,12 +1547,12 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_deadcrootc_to_litter(p) = &
                     dwt_deadcrootc_to_litter(p) - change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_deadcrootc_to_litter(p) = &
                     dwt_deadcrootc_to_litter(p) + init_state
           end if
@@ -1562,11 +1562,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1575,11 +1575,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1588,11 +1588,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1601,11 +1601,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1614,11 +1614,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1627,11 +1627,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1640,11 +1640,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             conv_cflux(p) = conv_cflux(p) + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             conv_cflux(p) = conv_cflux(p) - init_state
           end if
 
@@ -1665,11 +1665,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1678,11 +1678,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1691,11 +1691,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1705,11 +1705,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr0 = dwt_ptr0 - change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr0 = dwt_ptr0 + init_state
             end if
 
@@ -1718,11 +1718,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1731,11 +1731,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1744,11 +1744,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1757,11 +1757,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1770,11 +1770,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1783,13 +1783,13 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state*pconv(pptr%itype(p))
               dwt_ptr2 = dwt_ptr2 + change_state*pprod10(pptr%itype(p))
               dwt_ptr3 = dwt_ptr3 + change_state*pprod100(pptr%itype(p))
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state*pconv(pptr%itype(p))
               dwt_ptr2 = dwt_ptr2 - init_state*pprod10(pptr%itype(p))
               dwt_ptr3 = dwt_ptr3 - init_state*pprod100(pptr%itype(p))
@@ -1800,11 +1800,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1813,11 +1813,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1827,11 +1827,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr0 = dwt_ptr0 - change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr0 = dwt_ptr0 + init_state
             end if
 
@@ -1840,11 +1840,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1853,11 +1853,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1867,11 +1867,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
                ptr = new_state/wt_new
                dwt_ptr0 = dwt_ptr0 - change_state
              else
-               ptr = 0._rkx
+               ptr = 0._rk8
                dwt_ptr0 = dwt_ptr0 + init_state
              end if
 
@@ -1880,11 +1880,11 @@ module mod_clm_pftdyn
              init_state = ptr*wt_old
              change_state = ptr*dwt
              new_state = init_state+change_state
-             if (wt_new /= 0._rkx) then
+             if (wt_new /= 0._rk8) then
                ptr = new_state/wt_new
                dwt_ptr1 = dwt_ptr1 + change_state
              else
-               ptr = 0._rkx
+               ptr = 0._rk8
                dwt_ptr1 = dwt_ptr1 - init_state
              end if
 
@@ -1893,11 +1893,11 @@ module mod_clm_pftdyn
              init_state = ptr*wt_old
              change_state = ptr*dwt
              new_state = init_state+change_state
-             if (wt_new /= 0._rkx) then
+             if (wt_new /= 0._rk8) then
                ptr = new_state/wt_new
                dwt_ptr1 = dwt_ptr1 + change_state
              else
-               ptr = 0._rkx
+               ptr = 0._rk8
                dwt_ptr1 = dwt_ptr1 - init_state
              end if
 
@@ -1906,11 +1906,11 @@ module mod_clm_pftdyn
              init_state = ptr*wt_old
              change_state = ptr*dwt
              new_state = init_state+change_state
-             if (wt_new /= 0._rkx) then
+             if (wt_new /= 0._rk8) then
                ptr = new_state/wt_new
                dwt_ptr1 = dwt_ptr1 + change_state
              else
-               ptr = 0._rkx
+               ptr = 0._rk8
                dwt_ptr1 = dwt_ptr1 - init_state
              end if
 
@@ -1919,11 +1919,11 @@ module mod_clm_pftdyn
              init_state = ptr*wt_old
              change_state = ptr*dwt
              new_state = init_state+change_state
-             if (wt_new /= 0._rkx) then
+             if (wt_new /= 0._rk8) then
                ptr = new_state/wt_new
                dwt_ptr1 = dwt_ptr1 + change_state
              else
-               ptr = 0._rkx
+               ptr = 0._rk8
                dwt_ptr1 = dwt_ptr1 - init_state
              end if
 
@@ -1932,11 +1932,11 @@ module mod_clm_pftdyn
              init_state = ptr*wt_old
              change_state = ptr*dwt
              new_state = init_state+change_state
-             if (wt_new /= 0._rkx) then
+             if (wt_new /= 0._rk8) then
                ptr = new_state/wt_new
                dwt_ptr1 = dwt_ptr1 + change_state
              else
-               ptr = 0._rkx
+               ptr = 0._rk8
                dwt_ptr1 = dwt_ptr1 - init_state
              end if
 
@@ -1945,11 +1945,11 @@ module mod_clm_pftdyn
              init_state = ptr*wt_old
              change_state = ptr*dwt
              new_state = init_state+change_state
-             if (wt_new /= 0._rkx) then
+             if (wt_new /= 0._rk8) then
                ptr = new_state/wt_new
                dwt_ptr1 = dwt_ptr1 + change_state
              else
-               ptr = 0._rkx
+               ptr = 0._rk8
                dwt_ptr1 = dwt_ptr1 - init_state
              end if
           end if
@@ -1971,11 +1971,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1984,11 +1984,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -1997,11 +1997,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2011,11 +2011,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr0 = dwt_ptr0 - change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr0 = dwt_ptr0 + init_state
             end if
 
@@ -2024,11 +2024,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2037,11 +2037,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2050,11 +2050,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2063,11 +2063,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2076,11 +2076,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2089,13 +2089,13 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state*pconv(pptr%itype(p))
               dwt_ptr2 = dwt_ptr2 + change_state*pprod10(pptr%itype(p))
               dwt_ptr3 = dwt_ptr3 + change_state*pprod100(pptr%itype(p))
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state*pconv(pptr%itype(p))
               dwt_ptr2 = dwt_ptr2 - init_state*pprod10(pptr%itype(p))
               dwt_ptr3 = dwt_ptr3 - init_state*pprod100(pptr%itype(p))
@@ -2106,11 +2106,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2119,11 +2119,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2133,11 +2133,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr0 = dwt_ptr0 - change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr0 = dwt_ptr0 + init_state
             end if
 
@@ -2146,11 +2146,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2159,11 +2159,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2173,11 +2173,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr0 = dwt_ptr0 - change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr0 = dwt_ptr0 + init_state
             end if
 
@@ -2186,11 +2186,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2199,11 +2199,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2212,11 +2212,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2225,11 +2225,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2238,11 +2238,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
@@ -2251,11 +2251,11 @@ module mod_clm_pftdyn
             init_state = ptr*wt_old
             change_state = ptr*dwt
             new_state = init_state+change_state
-            if (wt_new /= 0._rkx) then
+            if (wt_new /= 0._rk8) then
               ptr = new_state/wt_new
               dwt_ptr1 = dwt_ptr1 + change_state
             else
-              ptr = 0._rkx
+              ptr = 0._rk8
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
           end if
@@ -2276,11 +2276,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2289,11 +2289,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2302,11 +2302,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2316,11 +2316,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr0 = dwt_ptr0 - change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr0 = dwt_ptr0 + init_state
           end if
 
@@ -2329,11 +2329,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2342,11 +2342,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2355,11 +2355,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2368,11 +2368,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2381,11 +2381,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2394,13 +2394,13 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state*pconv(pptr%itype(p))
             dwt_ptr2 = dwt_ptr2 + change_state*pprod10(pptr%itype(p))
             dwt_ptr3 = dwt_ptr3 + change_state*pprod100(pptr%itype(p))
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state*pconv(pptr%itype(p))
             dwt_ptr2 = dwt_ptr2 - init_state*pprod10(pptr%itype(p))
             dwt_ptr3 = dwt_ptr3 - init_state*pprod100(pptr%itype(p))
@@ -2411,11 +2411,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2424,11 +2424,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2438,11 +2438,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr0 = dwt_ptr0 - change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr0 = dwt_ptr0 + init_state
           end if
 
@@ -2451,11 +2451,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2464,11 +2464,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2478,11 +2478,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr0 = dwt_ptr0 - change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr0 = dwt_ptr0 + init_state
           end if
 
@@ -2491,11 +2491,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2504,11 +2504,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2517,11 +2517,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2530,11 +2530,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
@@ -2543,11 +2543,11 @@ module mod_clm_pftdyn
           init_state = ptr*wt_old
           change_state = ptr*dwt
           new_state = init_state+change_state
-          if (wt_new /= 0._rkx) then
+          if (wt_new /= 0._rk8) then
             ptr = new_state/wt_new
             dwt_ptr1 = dwt_ptr1 + change_state
           else
-            ptr = 0._rkx
+            ptr = 0._rk8
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
         end if       ! weight decreasing
@@ -2840,8 +2840,8 @@ module mod_clm_pftdyn
     implicit none
     integer(ik4), intent(in)  :: begp,endp ! beg/end indices for land pfts
     integer(ik4)  :: c,g,l,p       ! indices
-    real(rkx) :: cday               ! current calendar day (1.0 = 0Z on Jan 1)
-    real(rkx) :: wt1                ! time interpolation weights
+    real(rk8) :: cday               ! current calendar day (1.0 = 0Z on Jan 1)
+    real(rk8) :: wt1                ! time interpolation weights
     integer(ik4)  :: year          ! year (0, ...) at nstep + 1
     integer(ik4)  :: mon           ! month (1, ..., 12) at nstep + 1
     integer(ik4)  :: day           ! day of month (1, ..., 31) at nstep + 1
@@ -2862,7 +2862,7 @@ module mod_clm_pftdyn
 
     cday = get_curr_calday( )
 
-    wt1 = ((dayspy + 1._rkx) - cday)/dayspy
+    wt1 = ((dayspy + 1._rk8) - cday)/dayspy
 
     call curr_date(idatex, year, mon, day, sec, offset=int(dtsrf))
 
@@ -2870,7 +2870,7 @@ module mod_clm_pftdyn
       g = pptr%gridcell(p)
       l = pptr%landunit(p)
 
-      if (lptr%itype(l) == istsoil .and. lptr%wtgcell(l) > 0._rkx) then
+      if (lptr%itype(l) == istsoil .and. lptr%wtgcell(l) > 0._rk8) then
         ! CNDV incompatible with dynLU
         wtcol_old(p)    = pptr%wtcol(p)
         pptr%wtcol(p)   = pptr%pdgvs%fpcgrid(p) + &
@@ -2903,102 +2903,102 @@ module mod_clm_pftdyn
    integer(ik4) , pointer :: pgridcell(:)
    integer(ik4) , pointer :: ivt(:)  ! pft vegetation type
 
-   real(rkx) , pointer :: leafc(:)    ! (gC/m2) leaf C
-   real(rkx) , pointer :: frootc(:)   ! (gC/m2) fine root C
-   real(rkx) , pointer :: livestemc(:) ! (gC/m2) live stem C
-   real(rkx) , pointer :: deadstemc(:) ! (gC/m2) dead stem C
-   real(rkx) , pointer :: livecrootc(:)  ! (gC/m2) live coarse root C
-   real(rkx) , pointer :: deadcrootc(:)  ! (gC/m2) dead coarse root C
+   real(rk8) , pointer :: leafc(:)    ! (gC/m2) leaf C
+   real(rk8) , pointer :: frootc(:)   ! (gC/m2) fine root C
+   real(rk8) , pointer :: livestemc(:) ! (gC/m2) live stem C
+   real(rk8) , pointer :: deadstemc(:) ! (gC/m2) dead stem C
+   real(rk8) , pointer :: livecrootc(:)  ! (gC/m2) live coarse root C
+   real(rk8) , pointer :: deadcrootc(:)  ! (gC/m2) dead coarse root C
    ! (gC/m2) abstract C pool to meet excess MR demand
-   real(rkx) , pointer :: xsmrpool(:)
-   real(rkx) , pointer :: leafc_storage(:)  ! (gC/m2) leaf C storage
-   real(rkx) , pointer :: frootc_storage(:) ! (gC/m2) fine root C storage
-   real(rkx) , pointer :: livestemc_storage(:) ! (gC/m2) live stem C storage
-   real(rkx) , pointer :: deadstemc_storage(:) ! (gC/m2) dead stem C storage
+   real(rk8) , pointer :: xsmrpool(:)
+   real(rk8) , pointer :: leafc_storage(:)  ! (gC/m2) leaf C storage
+   real(rk8) , pointer :: frootc_storage(:) ! (gC/m2) fine root C storage
+   real(rk8) , pointer :: livestemc_storage(:) ! (gC/m2) live stem C storage
+   real(rk8) , pointer :: deadstemc_storage(:) ! (gC/m2) dead stem C storage
    ! (gC/m2) live coarse root C storage
-   real(rkx) , pointer :: livecrootc_storage(:)
+   real(rk8) , pointer :: livecrootc_storage(:)
    ! (gC/m2) dead coarse root C storage
-   real(rkx) , pointer :: deadcrootc_storage(:)
-   real(rkx) , pointer :: gresp_storage(:) ! (gC/m2) growth respiration storage
-   real(rkx) , pointer :: leafc_xfer(:)  ! (gC/m2) leaf C transfer
-   real(rkx) , pointer :: frootc_xfer(:) ! (gC/m2) fine root C transfer
-   real(rkx) , pointer :: livestemc_xfer(:) ! (gC/m2) live stem C transfer
-   real(rkx) , pointer :: deadstemc_xfer(:) ! (gC/m2) dead stem C transfer
+   real(rk8) , pointer :: deadcrootc_storage(:)
+   real(rk8) , pointer :: gresp_storage(:) ! (gC/m2) growth respiration storage
+   real(rk8) , pointer :: leafc_xfer(:)  ! (gC/m2) leaf C transfer
+   real(rk8) , pointer :: frootc_xfer(:) ! (gC/m2) fine root C transfer
+   real(rk8) , pointer :: livestemc_xfer(:) ! (gC/m2) live stem C transfer
+   real(rk8) , pointer :: deadstemc_xfer(:) ! (gC/m2) dead stem C transfer
    ! (gC/m2) live coarse root C transfer
-   real(rkx) , pointer :: livecrootc_xfer(:)
+   real(rk8) , pointer :: livecrootc_xfer(:)
    ! (gC/m2) dead coarse root C transfer
-   real(rkx) , pointer :: deadcrootc_xfer(:)
-   real(rkx) , pointer :: gresp_xfer(:) ! (gC/m2) growth respiration transfer
-   real(rkx) , pointer :: leafn(:)  ! (gN/m2) leaf N
-   real(rkx) , pointer :: frootn(:) ! (gN/m2) fine root N
-   real(rkx) , pointer :: livestemn(:) ! (gN/m2) live stem N
-   real(rkx) , pointer :: deadstemn(:) ! (gN/m2) dead stem N
-   real(rkx) , pointer :: livecrootn(:) ! (gN/m2) live coarse root N
-   real(rkx) , pointer :: deadcrootn(:) ! (gN/m2) dead coarse root N
-   real(rkx) , pointer :: retransn(:) ! (gN/m2) plant pool of retranslocated N
-   real(rkx) , pointer :: leafn_storage(:) ! (gN/m2) leaf N storage
-   real(rkx) , pointer :: frootn_storage(:) ! (gN/m2) fine root N storage
-   real(rkx) , pointer :: livestemn_storage(:) ! (gN/m2) live stem N storage
-   real(rkx) , pointer :: deadstemn_storage(:) ! (gN/m2) dead stem N storage
+   real(rk8) , pointer :: deadcrootc_xfer(:)
+   real(rk8) , pointer :: gresp_xfer(:) ! (gC/m2) growth respiration transfer
+   real(rk8) , pointer :: leafn(:)  ! (gN/m2) leaf N
+   real(rk8) , pointer :: frootn(:) ! (gN/m2) fine root N
+   real(rk8) , pointer :: livestemn(:) ! (gN/m2) live stem N
+   real(rk8) , pointer :: deadstemn(:) ! (gN/m2) dead stem N
+   real(rk8) , pointer :: livecrootn(:) ! (gN/m2) live coarse root N
+   real(rk8) , pointer :: deadcrootn(:) ! (gN/m2) dead coarse root N
+   real(rk8) , pointer :: retransn(:) ! (gN/m2) plant pool of retranslocated N
+   real(rk8) , pointer :: leafn_storage(:) ! (gN/m2) leaf N storage
+   real(rk8) , pointer :: frootn_storage(:) ! (gN/m2) fine root N storage
+   real(rk8) , pointer :: livestemn_storage(:) ! (gN/m2) live stem N storage
+   real(rk8) , pointer :: deadstemn_storage(:) ! (gN/m2) dead stem N storage
    ! (gN/m2) live coarse root N storage
-   real(rkx) , pointer :: livecrootn_storage(:)
+   real(rk8) , pointer :: livecrootn_storage(:)
    ! (gN/m2) dead coarse root N storage
-   real(rkx) , pointer :: deadcrootn_storage(:)
-   real(rkx) , pointer :: leafn_xfer(:)   ! (gN/m2) leaf N transfer
-   real(rkx) , pointer :: frootn_xfer(:)  ! (gN/m2) fine root N transfer
-   real(rkx) , pointer :: livestemn_xfer(:) ! (gN/m2) live stem N transfer
-   real(rkx) , pointer :: deadstemn_xfer(:) ! (gN/m2) dead stem N transfer
+   real(rk8) , pointer :: deadcrootn_storage(:)
+   real(rk8) , pointer :: leafn_xfer(:)   ! (gN/m2) leaf N transfer
+   real(rk8) , pointer :: frootn_xfer(:)  ! (gN/m2) fine root N transfer
+   real(rk8) , pointer :: livestemn_xfer(:) ! (gN/m2) live stem N transfer
+   real(rk8) , pointer :: deadstemn_xfer(:) ! (gN/m2) dead stem N transfer
    ! (gN/m2) live coarse root N transfer
-   real(rkx) , pointer :: livecrootn_xfer(:)
+   real(rk8) , pointer :: livecrootn_xfer(:)
    ! (gN/m2) dead coarse root N transfer
-   real(rkx) , pointer :: deadcrootn_xfer(:)
-   real(rkx) , pointer :: hrv_leafc_to_litter(:)
-   real(rkx) , pointer :: hrv_frootc_to_litter(:)
-   real(rkx) , pointer :: hrv_livestemc_to_litter(:)
-   real(rkx) , pointer :: hrv_deadstemc_to_prod10c(:)
-   real(rkx) , pointer :: hrv_deadstemc_to_prod100c(:)
-   real(rkx) , pointer :: hrv_livecrootc_to_litter(:)
-   real(rkx) , pointer :: hrv_deadcrootc_to_litter(:)
-   real(rkx) , pointer :: hrv_xsmrpool_to_atm(:)
-   real(rkx) , pointer :: hrv_leafc_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_frootc_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_livestemc_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_deadstemc_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_livecrootc_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_deadcrootc_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_gresp_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_leafc_xfer_to_litter(:)
-   real(rkx) , pointer :: hrv_frootc_xfer_to_litter(:)
-   real(rkx) , pointer :: hrv_livestemc_xfer_to_litter(:)
-   real(rkx) , pointer :: hrv_deadstemc_xfer_to_litter(:)
-   real(rkx) , pointer :: hrv_livecrootc_xfer_to_litter(:)
-   real(rkx) , pointer :: hrv_deadcrootc_xfer_to_litter(:)
-   real(rkx) , pointer :: hrv_gresp_xfer_to_litter(:)
-   real(rkx) , pointer :: hrv_leafn_to_litter(:)
-   real(rkx) , pointer :: hrv_frootn_to_litter(:)
-   real(rkx) , pointer :: hrv_livestemn_to_litter(:)
-   real(rkx) , pointer :: hrv_deadstemn_to_prod10n(:)
-   real(rkx) , pointer :: hrv_deadstemn_to_prod100n(:)
-   real(rkx) , pointer :: hrv_livecrootn_to_litter(:)
-   real(rkx) , pointer :: hrv_deadcrootn_to_litter(:)
-   real(rkx) , pointer :: hrv_retransn_to_litter(:)
-   real(rkx) , pointer :: hrv_leafn_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_frootn_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_livestemn_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_deadstemn_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_livecrootn_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_deadcrootn_storage_to_litter(:)
-   real(rkx) , pointer :: hrv_leafn_xfer_to_litter(:)
-   real(rkx) , pointer :: hrv_frootn_xfer_to_litter(:)
-   real(rkx) , pointer :: hrv_livestemn_xfer_to_litter(:)
-   real(rkx) , pointer :: hrv_deadstemn_xfer_to_litter(:)
-   real(rkx) , pointer :: hrv_livecrootn_xfer_to_litter(:)
-   real(rkx) , pointer :: hrv_deadcrootn_xfer_to_litter(:)
+   real(rk8) , pointer :: deadcrootn_xfer(:)
+   real(rk8) , pointer :: hrv_leafc_to_litter(:)
+   real(rk8) , pointer :: hrv_frootc_to_litter(:)
+   real(rk8) , pointer :: hrv_livestemc_to_litter(:)
+   real(rk8) , pointer :: hrv_deadstemc_to_prod10c(:)
+   real(rk8) , pointer :: hrv_deadstemc_to_prod100c(:)
+   real(rk8) , pointer :: hrv_livecrootc_to_litter(:)
+   real(rk8) , pointer :: hrv_deadcrootc_to_litter(:)
+   real(rk8) , pointer :: hrv_xsmrpool_to_atm(:)
+   real(rk8) , pointer :: hrv_leafc_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_frootc_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_livestemc_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_deadstemc_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_livecrootc_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_deadcrootc_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_gresp_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_leafc_xfer_to_litter(:)
+   real(rk8) , pointer :: hrv_frootc_xfer_to_litter(:)
+   real(rk8) , pointer :: hrv_livestemc_xfer_to_litter(:)
+   real(rk8) , pointer :: hrv_deadstemc_xfer_to_litter(:)
+   real(rk8) , pointer :: hrv_livecrootc_xfer_to_litter(:)
+   real(rk8) , pointer :: hrv_deadcrootc_xfer_to_litter(:)
+   real(rk8) , pointer :: hrv_gresp_xfer_to_litter(:)
+   real(rk8) , pointer :: hrv_leafn_to_litter(:)
+   real(rk8) , pointer :: hrv_frootn_to_litter(:)
+   real(rk8) , pointer :: hrv_livestemn_to_litter(:)
+   real(rk8) , pointer :: hrv_deadstemn_to_prod10n(:)
+   real(rk8) , pointer :: hrv_deadstemn_to_prod100n(:)
+   real(rk8) , pointer :: hrv_livecrootn_to_litter(:)
+   real(rk8) , pointer :: hrv_deadcrootn_to_litter(:)
+   real(rk8) , pointer :: hrv_retransn_to_litter(:)
+   real(rk8) , pointer :: hrv_leafn_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_frootn_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_livestemn_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_deadstemn_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_livecrootn_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_deadcrootn_storage_to_litter(:)
+   real(rk8) , pointer :: hrv_leafn_xfer_to_litter(:)
+   real(rk8) , pointer :: hrv_frootn_xfer_to_litter(:)
+   real(rk8) , pointer :: hrv_livestemn_xfer_to_litter(:)
+   real(rk8) , pointer :: hrv_deadstemn_xfer_to_litter(:)
+   real(rk8) , pointer :: hrv_livecrootn_xfer_to_litter(:)
+   real(rk8) , pointer :: hrv_deadcrootn_xfer_to_litter(:)
    integer(ik4) :: p    ! pft index
    integer(ik4) :: g    ! gridcell index
    integer(ik4) :: fp   ! pft filter index
-   real(rkx):: am        ! rate for fractional harvest mortality (1/yr)
-   real(rkx):: m         ! rate for fractional harvest mortality (1/s)
+   real(rk8):: am        ! rate for fractional harvest mortality (1/yr)
+   real(rk8):: m         ! rate for fractional harvest mortality (1/s)
 
    ! assign local pointers to pft-level arrays
    pgridcell                      => clm3%g%l%c%p%gridcell
@@ -3118,7 +3118,7 @@ module mod_clm_pftdyn
          am = harvest(g)
          m  = am/(dayspy * secspday)
        else
-         m = 0._rkx
+         m = 0._rk8
        end if
 
        ! pft-level harvest carbon fluxes
@@ -3129,7 +3129,7 @@ module mod_clm_pftdyn
        hrv_deadstemc_to_prod10c(p)          = deadstemc(p)           * m * &
                                               pprodharv10(ivt(p))
        hrv_deadstemc_to_prod100c(p)         = deadstemc(p)           * m * &
-                                              (1.0_rkx - pprodharv10(ivt(p)))
+                                              (1.0_rk8 - pprodharv10(ivt(p)))
        hrv_livecrootc_to_litter(p)          = livecrootc(p)          * m
        hrv_deadcrootc_to_litter(p)          = deadcrootc(p)          * m
        hrv_xsmrpool_to_atm(p)               = xsmrpool(p)            * m
@@ -3160,7 +3160,7 @@ module mod_clm_pftdyn
        hrv_deadstemn_to_prod10n(p)          = deadstemn(p)           * m * &
                                               pprodharv10(ivt(p))
        hrv_deadstemn_to_prod100n(p)         = deadstemn(p)           * m * &
-                                             (1.0_rkx - pprodharv10(ivt(p)))
+                                             (1.0_rk8 - pprodharv10(ivt(p)))
        hrv_livecrootn_to_litter(p)          = livecrootn(p)          * m
        hrv_deadcrootn_to_litter(p)          = deadcrootn(p)          * m
        hrv_retransn_to_litter(p)            = retransn(p)            * m
@@ -3205,80 +3205,80 @@ module mod_clm_pftdyn
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer :: pactive(:)
     integer(ik4) , pointer :: ivt(:)  ! pft vegetation type
-    real(rkx) , pointer :: wtcol(:)    ! pft weight relative to column (0-1)
-    real(rkx) , pointer :: lf_flab(:)  ! leaf litter labile fraction
-    real(rkx) , pointer :: lf_fcel(:)  ! leaf litter cellulose fraction
-    real(rkx) , pointer :: lf_flig(:)  ! leaf litter lignin fraction
-    real(rkx) , pointer :: fr_flab(:)  ! fine root litter labile fraction
-    real(rkx) , pointer :: fr_fcel(:)  ! fine root litter cellulose fraction
-    real(rkx) , pointer :: fr_flig(:)  ! fine root litter lignin fraction
+    real(rk8) , pointer :: wtcol(:)    ! pft weight relative to column (0-1)
+    real(rk8) , pointer :: lf_flab(:)  ! leaf litter labile fraction
+    real(rk8) , pointer :: lf_fcel(:)  ! leaf litter cellulose fraction
+    real(rk8) , pointer :: lf_flig(:)  ! leaf litter lignin fraction
+    real(rk8) , pointer :: fr_flab(:)  ! fine root litter labile fraction
+    real(rk8) , pointer :: fr_fcel(:)  ! fine root litter cellulose fraction
+    real(rk8) , pointer :: fr_flig(:)  ! fine root litter lignin fraction
     integer(ik4) , pointer :: npfts(:)    ! number of pfts for each column
     integer(ik4) , pointer :: pfti(:)     ! beginning pft index for each column
-    real(rkx) , pointer :: hrv_leafc_to_litter(:)
-    real(rkx) , pointer :: hrv_frootc_to_litter(:)
-    real(rkx) , pointer :: hrv_livestemc_to_litter(:)
-    real(rkx) , pointer :: phrv_deadstemc_to_prod10c(:)
-    real(rkx) , pointer :: phrv_deadstemc_to_prod100c(:)
-    real(rkx) , pointer :: hrv_livecrootc_to_litter(:)
-    real(rkx) , pointer :: hrv_deadcrootc_to_litter(:)
-    real(rkx) , pointer :: hrv_leafc_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_frootc_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_livestemc_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_deadstemc_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_livecrootc_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_deadcrootc_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_gresp_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_leafc_xfer_to_litter(:)
-    real(rkx) , pointer :: hrv_frootc_xfer_to_litter(:)
-    real(rkx) , pointer :: hrv_livestemc_xfer_to_litter(:)
-    real(rkx) , pointer :: hrv_deadstemc_xfer_to_litter(:)
-    real(rkx) , pointer :: hrv_livecrootc_xfer_to_litter(:)
-    real(rkx) , pointer :: hrv_deadcrootc_xfer_to_litter(:)
-    real(rkx) , pointer :: hrv_gresp_xfer_to_litter(:)
-    real(rkx) , pointer :: hrv_leafn_to_litter(:)
-    real(rkx) , pointer :: hrv_frootn_to_litter(:)
-    real(rkx) , pointer :: hrv_livestemn_to_litter(:)
-    real(rkx) , pointer :: phrv_deadstemn_to_prod10n(:)
-    real(rkx) , pointer :: phrv_deadstemn_to_prod100n(:)
-    real(rkx) , pointer :: hrv_livecrootn_to_litter(:)
-    real(rkx) , pointer :: hrv_deadcrootn_to_litter(:)
-    real(rkx) , pointer :: hrv_retransn_to_litter(:)
-    real(rkx) , pointer :: hrv_leafn_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_frootn_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_livestemn_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_deadstemn_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_livecrootn_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_deadcrootn_storage_to_litter(:)
-    real(rkx) , pointer :: hrv_leafn_xfer_to_litter(:)
-    real(rkx) , pointer :: hrv_frootn_xfer_to_litter(:)
-    real(rkx) , pointer :: hrv_livestemn_xfer_to_litter(:)
-    real(rkx) , pointer :: hrv_deadstemn_xfer_to_litter(:)
-    real(rkx) , pointer :: hrv_livecrootn_xfer_to_litter(:)
-    real(rkx) , pointer :: hrv_deadcrootn_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_leafc_to_litter(:)
+    real(rk8) , pointer :: hrv_frootc_to_litter(:)
+    real(rk8) , pointer :: hrv_livestemc_to_litter(:)
+    real(rk8) , pointer :: phrv_deadstemc_to_prod10c(:)
+    real(rk8) , pointer :: phrv_deadstemc_to_prod100c(:)
+    real(rk8) , pointer :: hrv_livecrootc_to_litter(:)
+    real(rk8) , pointer :: hrv_deadcrootc_to_litter(:)
+    real(rk8) , pointer :: hrv_leafc_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_frootc_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_livestemc_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_deadstemc_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_livecrootc_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_deadcrootc_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_gresp_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_leafc_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_frootc_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_livestemc_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_deadstemc_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_livecrootc_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_deadcrootc_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_gresp_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_leafn_to_litter(:)
+    real(rk8) , pointer :: hrv_frootn_to_litter(:)
+    real(rk8) , pointer :: hrv_livestemn_to_litter(:)
+    real(rk8) , pointer :: phrv_deadstemn_to_prod10n(:)
+    real(rk8) , pointer :: phrv_deadstemn_to_prod100n(:)
+    real(rk8) , pointer :: hrv_livecrootn_to_litter(:)
+    real(rk8) , pointer :: hrv_deadcrootn_to_litter(:)
+    real(rk8) , pointer :: hrv_retransn_to_litter(:)
+    real(rk8) , pointer :: hrv_leafn_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_frootn_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_livestemn_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_deadstemn_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_livecrootn_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_deadcrootn_storage_to_litter(:)
+    real(rk8) , pointer :: hrv_leafn_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_frootn_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_livestemn_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_deadstemn_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_livecrootn_xfer_to_litter(:)
+    real(rk8) , pointer :: hrv_deadcrootn_xfer_to_litter(:)
     ! C fluxes associated with harvest to litter metabolic pool (gC/m3/s)
-    real(rkx) , pointer :: harvest_c_to_litr_met_c(:,:)
+    real(rk8) , pointer :: harvest_c_to_litr_met_c(:,:)
     ! C fluxes associated with harvest to litter cellulose pool (gC/m3/s)
-    real(rkx) , pointer :: harvest_c_to_litr_cel_c(:,:)
+    real(rk8) , pointer :: harvest_c_to_litr_cel_c(:,:)
     ! C fluxes associated with harvest to litter lignin pool (gC/m3/s)
-    real(rkx) , pointer :: harvest_c_to_litr_lig_c(:,:)
+    real(rk8) , pointer :: harvest_c_to_litr_lig_c(:,:)
     ! C fluxes associated with harvest to CWD pool (gC/m3/s)
-    real(rkx) , pointer :: harvest_c_to_cwdc(:,:)
+    real(rk8) , pointer :: harvest_c_to_cwdc(:,:)
     ! N fluxes associated with harvest to litter metabolic pool (gN/m3/s)
-    real(rkx) , pointer :: harvest_n_to_litr_met_n(:,:)
+    real(rk8) , pointer :: harvest_n_to_litr_met_n(:,:)
     ! N fluxes associated with harvest to litter cellulose pool (gN/m3/s)
-    real(rkx) , pointer :: harvest_n_to_litr_cel_n(:,:)
+    real(rk8) , pointer :: harvest_n_to_litr_cel_n(:,:)
     ! N fluxes associated with harvest to litter lignin pool (gN/m3/s)
-    real(rkx) , pointer :: harvest_n_to_litr_lig_n(:,:)
+    real(rk8) , pointer :: harvest_n_to_litr_lig_n(:,:)
     ! N fluxes associated with harvest to CWD pool (gN/m3/s)
-    real(rkx) , pointer :: harvest_n_to_cwdn(:,:)
-    real(rkx) , pointer :: chrv_deadstemc_to_prod10c(:)
-    real(rkx) , pointer :: chrv_deadstemc_to_prod100c(:)
-    real(rkx) , pointer :: chrv_deadstemn_to_prod10n(:)
-    real(rkx) , pointer :: chrv_deadstemn_to_prod100n(:)
-    real(rkx) , pointer :: leaf_prof(:,:)   ! (1/m) profile of leaves
-    real(rkx) , pointer :: froot_prof(:,:)  ! (1/m) profile of fine roots
-    real(rkx) , pointer :: croot_prof(:,:)  ! (1/m) profile of coarse roots
-    real(rkx) , pointer :: stem_prof(:,:)   ! (1/m) profile of stems
+    real(rk8) , pointer :: harvest_n_to_cwdn(:,:)
+    real(rk8) , pointer :: chrv_deadstemc_to_prod10c(:)
+    real(rk8) , pointer :: chrv_deadstemc_to_prod100c(:)
+    real(rk8) , pointer :: chrv_deadstemn_to_prod10n(:)
+    real(rk8) , pointer :: chrv_deadstemn_to_prod100n(:)
+    real(rk8) , pointer :: leaf_prof(:,:)   ! (1/m) profile of leaves
+    real(rk8) , pointer :: froot_prof(:,:)  ! (1/m) profile of fine roots
+    real(rk8) , pointer :: croot_prof(:,:)  ! (1/m) profile of coarse roots
+    real(rk8) , pointer :: stem_prof(:,:)   ! (1/m) profile of stems
     integer(ik4) :: fc , c , pi , p , j    ! indices
 
    ! assign local pointers

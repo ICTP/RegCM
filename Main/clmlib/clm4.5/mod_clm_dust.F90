@@ -32,12 +32,12 @@ module mod_clm_dust
   public :: DustEmission   ! Dust mobilization
   public :: DustDryDep     ! Turbulent dry deposition for dust
 
-  real(rkx) :: ovr_src_snk_mss(dst_src_nbr,ndst)
+  real(rk8) :: ovr_src_snk_mss(dst_src_nbr,ndst)
   !Factor in saltation computation (named as in Charlie's code)
-  real(rkx) :: tmp1
-  real(rkx) :: dmt_vwr(ndst) ![m] Mass-weighted mean diameter resolved
-  real(rkx) :: stk_crc(ndst) ![frc] Correction to Stokes settling velocity
-  real(rkx) :: dns_aer       ![kg m-3] Aerosol density
+  real(rk8) :: tmp1
+  real(rk8) :: dmt_vwr(ndst) ![m] Mass-weighted mean diameter resolved
+  real(rk8) :: stk_crc(ndst) ![frc] Correction to Stokes settling velocity
+  real(rk8) :: dns_aer       ![kg m-3] Aerosol density
 
   contains
   !
@@ -61,61 +61,61 @@ module mod_clm_dust
     integer(ik4) , pointer :: pgridcell(:) ! pft's gridcell index
     integer(ik4) , pointer :: ityplun(:)   ! landunit type
     ! one-sided leaf area index, no burying by snow
-    real(rkx), pointer :: tlai(:)
+    real(rk8), pointer :: tlai(:)
     ! one-sided stem area index, no burying by snow
-    real(rkx), pointer :: tsai(:)
+    real(rk8), pointer :: tsai(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rkx), pointer :: frac_sno(:)
+    real(rk8), pointer :: frac_sno(:)
     ! threshold gravimetric soil moisture based on clay content
-    real(rkx), pointer :: gwc_thr(:)
-    real(rkx), pointer :: forc_rho(:)   ! density (kg/m**3)
-    real(rkx), pointer :: fv(:) ! friction velocity (m/s) (for dust model)
-    real(rkx), pointer :: u10(:) ! 10-m wind (m/s) (created for dust model)
-    real(rkx), pointer :: mbl_bsn_fct(:)     ! basin factor
+    real(rk8), pointer :: gwc_thr(:)
+    real(rk8), pointer :: forc_rho(:)   ! density (kg/m**3)
+    real(rk8), pointer :: fv(:) ! friction velocity (m/s) (for dust model)
+    real(rk8), pointer :: u10(:) ! 10-m wind (m/s) (created for dust model)
+    real(rk8), pointer :: mbl_bsn_fct(:)     ! basin factor
     ! [frc] Mass fraction clay limited to 0.20
-    real(rkx), pointer :: mss_frc_cly_vld(:)
+    real(rk8), pointer :: mss_frc_cly_vld(:)
     ! volumetric soil water (0<=h2osoi_vol<=watsat)
-    real(rkx), pointer :: h2osoi_vol(:,:)
-    real(rkx), pointer :: h2osoi_liq(:,:)  ! liquid soil water (kg/m2)
-    real(rkx), pointer :: h2osoi_ice(:,:)  ! frozen soil water (kg/m2)
-    real(rkx), pointer :: watsat(:,:)      ! saturated volumetric soil water
+    real(rk8), pointer :: h2osoi_vol(:,:)
+    real(rk8), pointer :: h2osoi_liq(:,:)  ! liquid soil water (kg/m2)
+    real(rk8), pointer :: h2osoi_ice(:,:)  ! frozen soil water (kg/m2)
+    real(rk8), pointer :: watsat(:,:)      ! saturated volumetric soil water
 
     ! surface dust emission (kg/m**2/s)
-    real(rkx), pointer :: flx_mss_vrt_dst(:,:)
+    real(rk8), pointer :: flx_mss_vrt_dst(:,:)
     ! total dust flux into atmosphere
-    real(rkx), pointer :: flx_mss_vrt_dst_tot(:)
+    real(rk8), pointer :: flx_mss_vrt_dst_tot(:)
 
     integer(ik4)  :: fp,p,c,l,g,m,n  ! indices
     ! fraction of total water that is liquid
-    real(rkx) :: liqfrac
+    real(rk8) :: liqfrac
     ! [frc] Wind friction threshold over wind friction
-    real(rkx) :: wnd_frc_rat
+    real(rk8) :: wnd_frc_rat
     ! [m s-1] Friction velocity increase from saltatn
-    real(rkx) :: wnd_frc_slt_dlt
+    real(rk8) :: wnd_frc_slt_dlt
     ! [m s-1] Reference windspeed excess over threshld
-    real(rkx) :: wnd_rfr_dlt
-    real(rkx) :: dst_slt_flx_rat_ttl
-    real(rkx) :: flx_mss_hrz_slt_ttl
-    real(rkx) :: flx_mss_vrt_dst_ttl(lbp:ubp)
-    real(rkx) :: frc_thr_wet_fct
-    real(rkx) :: frc_thr_rgh_fct
-    real(rkx) :: wnd_frc_thr_slt
-    real(rkx) :: wnd_rfr_thr_slt
-    real(rkx) :: wnd_frc_slt
-    real(rkx) :: lnd_frc_mbl(lbp:ubp)
-    real(rkx) :: bd
-    real(rkx) :: gwc_sfc
-    real(rkx) :: ttlai(lbp:ubp)
-    real(rkx) :: tlai_lu(lbl:ubl)
+    real(rk8) :: wnd_rfr_dlt
+    real(rk8) :: dst_slt_flx_rat_ttl
+    real(rk8) :: flx_mss_hrz_slt_ttl
+    real(rk8) :: flx_mss_vrt_dst_ttl(lbp:ubp)
+    real(rk8) :: frc_thr_wet_fct
+    real(rk8) :: frc_thr_rgh_fct
+    real(rk8) :: wnd_frc_thr_slt
+    real(rk8) :: wnd_rfr_thr_slt
+    real(rk8) :: wnd_frc_slt
+    real(rk8) :: lnd_frc_mbl(lbp:ubp)
+    real(rk8) :: bd
+    real(rk8) :: gwc_sfc
+    real(rk8) :: ttlai(lbp:ubp)
+    real(rk8) :: tlai_lu(lbl:ubl)
 
     ! [frc] Saltation constant
-    real(rkx), parameter :: cst_slt = 2.61_rkx
+    real(rk8), parameter :: cst_slt = 2.61_rk8
     ! [frc] Empir. mass flx tuning eflx_lh_vegt
-    real(rkx), parameter :: flx_mss_fdg_fct = 5.0e-4_rkx
+    real(rk8), parameter :: flx_mss_fdg_fct = 5.0e-4_rk8
     ! [m2 m-2] VAI threshold quenching dust mobilization
-    real(rkx), parameter :: vai_mbl_thr = 0.3_rkx
-    real(rkx), pointer :: wtlunit(:)  ! weight of pft relative to landunit
-    real(rkx) :: sumwt(lbl:ubl)       ! sum of weights
+    real(rk8), parameter :: vai_mbl_thr = 0.3_rk8
+    real(rk8), pointer :: wtlunit(:)  ! weight of pft relative to landunit
+    real(rk8) :: sumwt(lbl:ubl)       ! sum of weights
     logical  :: found                 ! temporary for error check
     integer(ik4)  :: index
 
@@ -153,7 +153,7 @@ module mod_clm_dust
    !local pointers from subgridAveMod/p2l_1d
     wtlunit         => clm3%g%l%c%p%wtlunit
 
-    ttlai(:) = 0._rkx
+    ttlai(:) = 0._rk8
     ! make lai average at landunit level
     do fp = 1,num_nolakep
       p = filter_nolakep(fp)
@@ -161,23 +161,23 @@ module mod_clm_dust
     enddo
 
     tlai_lu(:) = spval
-    sumwt(:) = 0._rkx
+    sumwt(:) = 0._rk8
     do p = lbp,ubp
-      if (ttlai(p) /= spval .and. pactive(p) .and. wtlunit(p) /= 0._rkx) then
+      if (ttlai(p) /= spval .and. pactive(p) .and. wtlunit(p) /= 0._rk8) then
         c = pcolumn(p)
         l = plandunit(p)
-        if (sumwt(l) == 0._rkx) tlai_lu(l) = 0._rkx
+        if (sumwt(l) == 0._rk8) tlai_lu(l) = 0._rk8
         tlai_lu(l) = tlai_lu(l) + ttlai(p) * wtlunit(p)
         sumwt(l) = sumwt(l) + wtlunit(p)
       end if
     end do
     found = .false.
     do l = lbl,ubl
-      if (sumwt(l) > 1.0_rkx + 1.e-4_rkx) then
+      if (sumwt(l) > 1.0_rk8 + 1.e-4_rk8) then
         found = .true.
         index = l
         exit
-      else if (sumwt(l) /= 0._rkx) then
+      else if (sumwt(l) /= 0._rk8) then
         tlai_lu(l) = tlai_lu(l)/sumwt(l)
       end if
     end do
@@ -189,7 +189,7 @@ module mod_clm_dust
     ! Loop through pfts
 
     ! initialize variables which get passed to the atmosphere
-    flx_mss_vrt_dst(lbp:ubp,:)=0._rkx
+    flx_mss_vrt_dst(lbp:ubp,:)=0._rk8
 
     do fp = 1,num_nolakep
       p = filter_nolakep(fp)
@@ -204,19 +204,19 @@ module mod_clm_dust
 
       if (ityplun(l) == istsoil .or. ityplun(l) == istcrop) then
         if (tlai_lu(l) < vai_mbl_thr) then
-          lnd_frc_mbl(p) = 1.0_rkx - (tlai_lu(l))/vai_mbl_thr
+          lnd_frc_mbl(p) = 1.0_rk8 - (tlai_lu(l))/vai_mbl_thr
         else
-          lnd_frc_mbl(p) = 0.0_rkx
+          lnd_frc_mbl(p) = 0.0_rk8
         endif
-        lnd_frc_mbl(p) = lnd_frc_mbl(p) * (1.0_rkx - frac_sno(c))
+        lnd_frc_mbl(p) = lnd_frc_mbl(p) * (1.0_rk8 - frac_sno(c))
       else
-        lnd_frc_mbl(p) = 0.0_rkx
+        lnd_frc_mbl(p) = 0.0_rk8
       end if
     end do
 
     do fp = 1,num_nolakep
       p = filter_nolakep(fp)
-      if (lnd_frc_mbl(p)>1.0_rkx .or. lnd_frc_mbl(p)<0.0_rkx) then
+      if (lnd_frc_mbl(p)>1.0_rk8 .or. lnd_frc_mbl(p)<0.0_rk8) then
         write(stderr,*) &
                 'Error dstmbl: pft= ',p,' lnd_frc_mbl(p)= ',lnd_frc_mbl(p)
         call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -228,12 +228,12 @@ module mod_clm_dust
 
     do fp = 1,num_nolakep
       p = filter_nolakep(fp)
-      flx_mss_vrt_dst_tot(p) = 0.0_rkx
+      flx_mss_vrt_dst_tot(p) = 0.0_rk8
     end do
     do n = 1, ndst
       do fp = 1,num_nolakep
         p = filter_nolakep(fp)
-        flx_mss_vrt_dst(p,n) = 0.0_rkx
+        flx_mss_vrt_dst(p,n) = 0.0_rk8
       end do
     end do
 
@@ -245,13 +245,13 @@ module mod_clm_dust
 
       ! only perform the following calculations if lnd_frc_mbl is non-zero
 
-      if (lnd_frc_mbl(p) > 0.0_rkx) then
+      if (lnd_frc_mbl(p) > 0.0_rk8) then
 
         ! the following comes from subr. frc_thr_rgh_fct_get
         ! purpose: compute factor by which surface roughness increases threshold
         !          friction velocity (currently a constant)
 
-        frc_thr_rgh_fct = 1.0_rkx
+        frc_thr_rgh_fct = 1.0_rk8
 
         ! the following comes from subr. frc_thr_wet_fct_get
         ! purpose: compute factor by which soil moisture increases
@@ -261,21 +261,21 @@ module mod_clm_dust
         ! water content
 
         ![kg m-3] Bulk density of dry surface soil
-        bd = (1._rkx-watsat(c,1))*2.7e3_rkx
+        bd = (1._rk8-watsat(c,1))*2.7e3_rk8
         ![kg kg-1] Gravimetric H2O cont
         gwc_sfc = h2osoi_vol(c,1)*denh2o/bd
         if (gwc_sfc > gwc_thr(c)) then
-          frc_thr_wet_fct = sqrt(1.0_rkx + &
-                  1.21_rkx * (100.0_rkx*(gwc_sfc - gwc_thr(c)))**0.68_rkx)
+          frc_thr_wet_fct = sqrt(1.0_rk8 + &
+                  1.21_rk8 * (100.0_rk8*(gwc_sfc - gwc_thr(c)))**0.68_rk8)
         else
-          frc_thr_wet_fct = 1.0_rkx
+          frc_thr_wet_fct = 1.0_rk8
         end if
 
         ! slevis: adding liqfrac here, because related to effects
         ! from soil water
 
-        liqfrac = max( 0.0_rkx, min( 1.0_rkx,  &
-                h2osoi_liq(c,1) / (h2osoi_ice(c,1)+h2osoi_liq(c,1)+1.0e-6_rkx) ) )
+        liqfrac = max( 0.0_rk8, min( 1.0_rk8,  &
+                h2osoi_liq(c,1) / (h2osoi_ice(c,1)+h2osoi_liq(c,1)+1.0e-6_rk8) ) )
 
         ! the following lines come from subr. dst_mbl
         ! purpose: adjust threshold friction velocity to acct for moisture and
@@ -289,8 +289,8 @@ module mod_clm_dust
         ! reset these variables which will be updated in the following if-block
 
         wnd_frc_slt = fv(p)
-        flx_mss_hrz_slt_ttl = 0.0_rkx
-        flx_mss_vrt_dst_ttl(p) = 0.0_rkx
+        flx_mss_hrz_slt_ttl = 0.0_rk8
+        flx_mss_vrt_dst_ttl(p) = 0.0_rk8
 
         ! the following line comes from subr. dst_mbl
         ! purpose: threshold saltation wind speed
@@ -303,7 +303,7 @@ module mod_clm_dust
 
         if (u10(p) >= wnd_rfr_thr_slt) then
           wnd_rfr_dlt = u10(p) - wnd_rfr_thr_slt
-          wnd_frc_slt_dlt = 0.003_rkx * wnd_rfr_dlt * wnd_rfr_dlt
+          wnd_frc_slt_dlt = 0.003_rk8 * wnd_rfr_dlt * wnd_rfr_dlt
           wnd_frc_slt = fv(p) + wnd_frc_slt_dlt
         end if
 
@@ -313,9 +313,9 @@ module mod_clm_dust
 
         if (wnd_frc_slt > wnd_frc_thr_slt) then
           wnd_frc_rat = wnd_frc_thr_slt / wnd_frc_slt
-          flx_mss_hrz_slt_ttl = cst_slt * forc_rho(g) * (wnd_frc_slt**3.0_rkx) * &
-               (1.0_rkx - wnd_frc_rat) * (1.0_rkx + wnd_frc_rat) * &
-               (1.0_rkx + wnd_frc_rat) / grav
+          flx_mss_hrz_slt_ttl = cst_slt * forc_rho(g) * (wnd_frc_slt**3.0_rk8) * &
+               (1.0_rk8 - wnd_frc_rat) * (1.0_rk8 + wnd_frc_rat) * &
+               (1.0_rk8 + wnd_frc_rat) / grav
 
           ! the following loop originates from subr. dst_mbl
           ! purpose: apply land sfc and veg limitations and global tuning factor
@@ -331,8 +331,8 @@ module mod_clm_dust
         ! purpose: diagnose total vertical mass flux of dust from vertically
         !          integrated streamwise mass flux
 
-        dst_slt_flx_rat_ttl = 100.0_rkx * &
-                exp( log(10.0_rkx) * (13.4_rkx * mss_frc_cly_vld(c) - 6.0_rkx) )
+        dst_slt_flx_rat_ttl = 100.0_rk8 * &
+                exp( log(10.0_rk8) * (13.4_rk8 * mss_frc_cly_vld(c) - 6.0_rk8) )
         flx_mss_vrt_dst_ttl(p) = flx_mss_hrz_slt_ttl * dst_slt_flx_rat_ttl
 
       end if   ! lnd_frc_mbl > 0.0
@@ -345,7 +345,7 @@ module mod_clm_dust
       do m = 1, dst_src_nbr
         do fp = 1,num_nolakep
           p = filter_nolakep(fp)
-          if (lnd_frc_mbl(p) > 0.0_rkx) then
+          if (lnd_frc_mbl(p) > 0.0_rk8) then
             flx_mss_vrt_dst(p,n) = flx_mss_vrt_dst(p,n) + &
                     ovr_src_snk_mss(m,n) * flx_mss_vrt_dst_ttl(p)
           end if
@@ -356,7 +356,7 @@ module mod_clm_dust
     do n = 1, ndst
       do fp = 1,num_nolakep
         p = filter_nolakep(fp)
-        if (lnd_frc_mbl(p) > 0.0_rkx) then
+        if (lnd_frc_mbl(p) > 0.0_rk8) then
           flx_mss_vrt_dst_tot(p) = flx_mss_vrt_dst_tot(p) + flx_mss_vrt_dst(p,n)
         end if
       end do
@@ -385,33 +385,33 @@ module mod_clm_dust
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer :: pactive(:)
     integer(ik4) , pointer :: pgridcell(:)   ! pft's gridcell index
-    real(rkx), pointer :: forc_t(:)      ! atm temperature (K)
-    real(rkx), pointer :: forc_pbot(:)   ! atm pressure (Pa)
-    real(rkx), pointer :: forc_rho(:)    ! atm density (kg/m**3)
-    real(rkx), pointer :: fv(:)          ! friction velocity (m/s)
-    real(rkx), pointer :: ram1(:)        ! aerodynamical resistance (s/m)
-    real(rkx), pointer :: vlc_trb(:,:)   ! Turbulent deposn velocity (m/s)
-    real(rkx), pointer :: vlc_trb_1(:)   ! Turbulent deposition velocity 1
-    real(rkx), pointer :: vlc_trb_2(:)   ! Turbulent deposition velocity 2
-    real(rkx), pointer :: vlc_trb_3(:)   ! Turbulent deposition velocity 3
-    real(rkx), pointer :: vlc_trb_4(:)   ! Turbulent deposition velocity 4
+    real(rk8), pointer :: forc_t(:)      ! atm temperature (K)
+    real(rk8), pointer :: forc_pbot(:)   ! atm pressure (Pa)
+    real(rk8), pointer :: forc_rho(:)    ! atm density (kg/m**3)
+    real(rk8), pointer :: fv(:)          ! friction velocity (m/s)
+    real(rk8), pointer :: ram1(:)        ! aerodynamical resistance (s/m)
+    real(rk8), pointer :: vlc_trb(:,:)   ! Turbulent deposn velocity (m/s)
+    real(rk8), pointer :: vlc_trb_1(:)   ! Turbulent deposition velocity 1
+    real(rk8), pointer :: vlc_trb_2(:)   ! Turbulent deposition velocity 2
+    real(rk8), pointer :: vlc_trb_3(:)   ! Turbulent deposition velocity 3
+    real(rk8), pointer :: vlc_trb_4(:)   ! Turbulent deposition velocity 4
     integer(ik4)  :: p,g,m                 ! indices
-    real(rkx) :: vsc_dyn_atm(lbp:ubp)  ! [kg m-1 s-1] Dynamic viscosity of air
+    real(rk8) :: vsc_dyn_atm(lbp:ubp)  ! [kg m-1 s-1] Dynamic viscosity of air
     ! [m2 s-1] Kinematic viscosity of atmosphere
-    real(rkx) :: vsc_knm_atm(lbp:ubp)
+    real(rk8) :: vsc_knm_atm(lbp:ubp)
     ! [frc] Sfc-dep exponent for aerosol-diffusion dependence on Schmidt number
-    real(rkx) :: shm_nbr_xpn
-    real(rkx) :: shm_nbr      ! [frc] Schmidt number
-    real(rkx) :: stk_nbr      ! [frc] Stokes number
-    real(rkx) :: mfp_atm      ! [m] Mean free path of air
-    real(rkx) :: dff_aer      ! [m2 s-1] Brownian diffusivity of particle
-    real(rkx) :: rss_trb      ! [s m-1] Resistance to turbulent deposition
-    real(rkx) :: slp_crc(lbp:ubp,ndst) ! [frc] Slip correction factor
-    real(rkx) :: vlc_grv(lbp:ubp,ndst) ! [m s-1] Settling velocity
-    real(rkx) :: rss_lmn(lbp:ubp,ndst) ! [s m-1] Quasi-laminar layer resistance
-    real(rkx) :: tmp                   ! temporary
+    real(rk8) :: shm_nbr_xpn
+    real(rk8) :: shm_nbr      ! [frc] Schmidt number
+    real(rk8) :: stk_nbr      ! [frc] Stokes number
+    real(rk8) :: mfp_atm      ! [m] Mean free path of air
+    real(rk8) :: dff_aer      ! [m2 s-1] Brownian diffusivity of particle
+    real(rk8) :: rss_trb      ! [s m-1] Resistance to turbulent deposition
+    real(rk8) :: slp_crc(lbp:ubp,ndst) ! [frc] Slip correction factor
+    real(rk8) :: vlc_grv(lbp:ubp,ndst) ! [m s-1] Settling velocity
+    real(rk8) :: rss_lmn(lbp:ubp,ndst) ! [s m-1] Quasi-laminar layer resistance
+    real(rk8) :: tmp                   ! temporary
 
-    real(rkx),parameter::shm_nbr_xpn_lnd=-2._rkx/3._rkx ![frc] shm_nbr_xpn over land
+    real(rk8),parameter::shm_nbr_xpn_lnd=-2._rk8/3._rk8 ![frc] shm_nbr_xpn over land
 
     ! Assign local pointers to derived type members (gridcell-level)
 
@@ -444,25 +444,25 @@ module mod_clm_dust
         ! Quasi-laminar layer resistance: call rss_lmn_get
         ! Size-independent thermokinetic properties
 
-        vsc_dyn_atm(p) = 1.72e-5_rkx * ((forc_t(g)/273.0_rkx)**1.5_rkx) * 393.0_rkx / &
-               (forc_t(g)+120.0_rkx)      ![kg m-1 s-1] RoY94 p. 102
-        mfp_atm = 2.0_rkx * vsc_dyn_atm(p) / &   ![m] SeP97 p. 455
-               (forc_pbot(g)*sqrt(8.0_rkx/(rpi*rair*forc_t(g))))
+        vsc_dyn_atm(p) = 1.72e-5_rk8 * ((forc_t(g)/273.0_rk8)**1.5_rk8) * 393.0_rk8 / &
+               (forc_t(g)+120.0_rk8)      ![kg m-1 s-1] RoY94 p. 102
+        mfp_atm = 2.0_rk8 * vsc_dyn_atm(p) / &   ![m] SeP97 p. 455
+               (forc_pbot(g)*sqrt(8.0_rk8/(rpi*rair*forc_t(g))))
         ![m2 s-1] Kinematic viscosity of air
         vsc_knm_atm(p) = vsc_dyn_atm(p) / forc_rho(g)
 
         do m = 1, ndst
           ![frc] Slip correction factor SeP97 p. 464
-          if ( (1.1_rkx*dmt_vwr(m)/(2.0_rkx*mfp_atm)) > 25.0 ) then
-            slp_crc(p,m) = 1.0_rkx + 2.0_rkx * mfp_atm * &
-                    1.257_rkx / dmt_vwr(m)
+          if ( (1.1_rk8*dmt_vwr(m)/(2.0_rk8*mfp_atm)) > 25.0 ) then
+            slp_crc(p,m) = 1.0_rk8 + 2.0_rk8 * mfp_atm * &
+                    1.257_rk8 / dmt_vwr(m)
           else
-            slp_crc(p,m) = 1.0_rkx + 2.0_rkx * mfp_atm * &
-                    (1.257_rkx+0.4_rkx*exp(-1.1_rkx*dmt_vwr(m)/(2.0_rkx*mfp_atm))) / &
+            slp_crc(p,m) = 1.0_rk8 + 2.0_rk8 * mfp_atm * &
+                    (1.257_rk8+0.4_rk8*exp(-1.1_rk8*dmt_vwr(m)/(2.0_rk8*mfp_atm))) / &
                     dmt_vwr(m)
           end if
           ![m s-1] Stokes' settling velocity SeP97 p. 466
-          vlc_grv(p,m) = (1.0_rkx/18.0_rkx) * dmt_vwr(m) * dmt_vwr(m) * dns_aer * &
+          vlc_grv(p,m) = (1.0_rk8/18.0_rk8) * dmt_vwr(m) * dmt_vwr(m) * dns_aer * &
                   grav * slp_crc(p,m) / vsc_dyn_atm(p)
           ![m s-1] Correction to Stokes settling velocity
           vlc_grv(p,m) = vlc_grv(p,m) * stk_crc(m)
@@ -478,7 +478,7 @@ module mod_clm_dust
           ![frc] SeP97 p.965
           stk_nbr = vlc_grv(p,m) * fv(p) * fv(p) / (grav * vsc_knm_atm(p))
           dff_aer = boltzk * forc_t(g) * slp_crc(p,m) / &    ![m2 s-1]
-              (3.0_rkx*rpi * vsc_dyn_atm(p) * dmt_vwr(m))      !SeP97 p.474
+              (3.0_rk8*rpi * vsc_dyn_atm(p) * dmt_vwr(m))      !SeP97 p.474
           shm_nbr = vsc_knm_atm(p) / dff_aer                 ![frc] SeP97 p.972
              shm_nbr_xpn = shm_nbr_xpn_lnd                   ![frc]
 
@@ -491,12 +491,12 @@ module mod_clm_dust
           ! [frc] Surface-dependent exponent for aerosol-diffusion
           ! dependence on Schmidt #
 
-          if ( 3.0_rkx/stk_nbr < 25 ) then
-            tmp = shm_nbr**shm_nbr_xpn + 10.0_rkx**(-3.0_rkx/stk_nbr)
+          if ( 3.0_rk8/stk_nbr < 25 ) then
+            tmp = shm_nbr**shm_nbr_xpn + 10.0_rk8**(-3.0_rk8/stk_nbr)
           else
             tmp = shm_nbr**shm_nbr_xpn
           end if
-          rss_lmn(p,m) = 1.0_rkx / (tmp * fv(p)) ![s m-1] SeP97 p.972,965
+          rss_lmn(p,m) = 1.0_rk8 / (tmp * fv(p)) ![s m-1] SeP97 p.972,965
         end if
       end do
     end do
@@ -508,7 +508,7 @@ module mod_clm_dust
         if (pactive(p)) then
           rss_trb = ram1(p) + rss_lmn(p,m) + &
                   ram1(p) * rss_lmn(p,m) * vlc_grv(p,m) ![s m-1]
-          vlc_trb(p,m) = 1.0_rkx / rss_trb  ![m s-1]
+          vlc_trb(p,m) = 1.0_rk8 / rss_trb  ![m s-1]
         end if
       end do
     end do
@@ -537,78 +537,78 @@ module mod_clm_dust
     use mod_clm_varcon , only : rpi , rair
     use mod_clm_decomp , only : get_proc_bounds
     implicit none
-    real(rkx), pointer :: mbl_bsn_fct(:) !basin factor
+    real(rk8), pointer :: mbl_bsn_fct(:) !basin factor
     integer(ik4)  :: c,l,m,n              ! indices
-    real(rkx) :: ovr_src_snk_frc
-    real(rkx) :: sqrt2lngsdi             ! [frc] Factor in erf argument
-    real(rkx) :: lndmaxjovrdmdni         ! [frc] Factor in erf argument
-    real(rkx) :: lndminjovrdmdni         ! [frc] Factor in erf argument
+    real(rk8) :: ovr_src_snk_frc
+    real(rk8) :: sqrt2lngsdi             ! [frc] Factor in erf argument
+    real(rk8) :: lndmaxjovrdmdni         ! [frc] Factor in erf argument
+    real(rk8) :: lndminjovrdmdni         ! [frc] Factor in erf argument
     ! [frc] Threshold friction Reynolds number approximation for optimal size
-    real(rkx) :: ryn_nbr_frc_thr_prx_opt
+    real(rk8) :: ryn_nbr_frc_thr_prx_opt
     ! [frc] Threshold friction Reynolds factor for saltation calculation
-    real(rkx) :: ryn_nbr_frc_thr_opt_fnc
+    real(rk8) :: ryn_nbr_frc_thr_opt_fnc
     ! Interpartical cohesive forces factor for saltation calc
-    real(rkx) :: icf_fct
+    real(rk8) :: icf_fct
     ! Density ratio factor for saltation calculation
-    real(rkx) :: dns_fct
-    real(rkx) :: dmt_min(ndst)  ! [m] Size grid minimum
-    real(rkx) :: dmt_max(ndst)  ! [m] Size grid maximum
-    real(rkx) :: dmt_ctr(ndst)  ! [m] Diameter at bin center
-    real(rkx) :: dmt_dlt(ndst)  ! [m] Width of size bin
-    real(rkx) :: slp_crc(ndst)  ! [frc] Slip correction factor
-    real(rkx) :: vlm_rsl(ndst)  ! [m3 m-3] Volume concentration resolved
-    real(rkx) :: vlc_stk(ndst)  ! [m s-1] Stokes settling velocity
-    real(rkx) :: vlc_grv(ndst)  ! [m s-1] Settling velocity
-    real(rkx) :: ryn_nbr_grv(ndst) ! [frc] Reynolds number at terminal velocity
-    real(rkx) :: cff_drg_grv(ndst) ! [frc] Drag coefficient at terminal velocity
-    real(rkx) :: tmp      ! temporary
-    real(rkx) :: ln_gsd   ! [frc] ln(gsd)
-    real(rkx) :: gsd_anl  ! [frc] Geometric standard deviation
-    real(rkx) :: dmt_vma  ! [m] Mass median diameter analytic She84 p.75 Tabl.1
-    real(rkx) :: dmt_nma  ! [m] Number median particle diameter
-    real(rkx) :: lgn_dst  ! Lognormal distribution at sz_ctr
-    real(rkx) :: eps_max  ! [frc] Relative accuracy for convergence
-    real(rkx) :: eps_crr  ! [frc] Current relative accuracy
-    real(rkx) :: itr_idx  ! [idx] Counting index
-    real(rkx) :: dns_mdp  ! [kg m-3] Midlayer density
-    real(rkx) :: mfp_atm  ! [m] Mean free path of air
-    real(rkx) :: vsc_dyn_atm  ! [kg m-1 s-1] Dynamic viscosity of air
-    real(rkx) :: vsc_knm_atm  ! [kg m-1 s-1] Kinematic viscosity of air
-    real(rkx) :: vlc_grv_old  ! [m s-1] Previous gravitational settling velocity
-    real(rkx) :: series_ratio ! Factor for logarithmic grid
-    real(rkx) :: lngsdsqrttwopi_rcp   ! Factor in lognormal distribution
-    real(rkx) :: sz_min(sz_nbr)       ! [m] Size Bin minima
-    real(rkx) :: sz_max(sz_nbr)       ! [m] Size Bin maxima
-    real(rkx) :: sz_ctr(sz_nbr)       ! [m] Size Bin centers
-    real(rkx) :: sz_dlt(sz_nbr)       ! [m] Size Bin widths
+    real(rk8) :: dns_fct
+    real(rk8) :: dmt_min(ndst)  ! [m] Size grid minimum
+    real(rk8) :: dmt_max(ndst)  ! [m] Size grid maximum
+    real(rk8) :: dmt_ctr(ndst)  ! [m] Diameter at bin center
+    real(rk8) :: dmt_dlt(ndst)  ! [m] Width of size bin
+    real(rk8) :: slp_crc(ndst)  ! [frc] Slip correction factor
+    real(rk8) :: vlm_rsl(ndst)  ! [m3 m-3] Volume concentration resolved
+    real(rk8) :: vlc_stk(ndst)  ! [m s-1] Stokes settling velocity
+    real(rk8) :: vlc_grv(ndst)  ! [m s-1] Settling velocity
+    real(rk8) :: ryn_nbr_grv(ndst) ! [frc] Reynolds number at terminal velocity
+    real(rk8) :: cff_drg_grv(ndst) ! [frc] Drag coefficient at terminal velocity
+    real(rk8) :: tmp      ! temporary
+    real(rk8) :: ln_gsd   ! [frc] ln(gsd)
+    real(rk8) :: gsd_anl  ! [frc] Geometric standard deviation
+    real(rk8) :: dmt_vma  ! [m] Mass median diameter analytic She84 p.75 Tabl.1
+    real(rk8) :: dmt_nma  ! [m] Number median particle diameter
+    real(rk8) :: lgn_dst  ! Lognormal distribution at sz_ctr
+    real(rk8) :: eps_max  ! [frc] Relative accuracy for convergence
+    real(rk8) :: eps_crr  ! [frc] Current relative accuracy
+    real(rk8) :: itr_idx  ! [idx] Counting index
+    real(rk8) :: dns_mdp  ! [kg m-3] Midlayer density
+    real(rk8) :: mfp_atm  ! [m] Mean free path of air
+    real(rk8) :: vsc_dyn_atm  ! [kg m-1 s-1] Dynamic viscosity of air
+    real(rk8) :: vsc_knm_atm  ! [kg m-1 s-1] Kinematic viscosity of air
+    real(rk8) :: vlc_grv_old  ! [m s-1] Previous gravitational settling velocity
+    real(rk8) :: series_ratio ! Factor for logarithmic grid
+    real(rk8) :: lngsdsqrttwopi_rcp   ! Factor in lognormal distribution
+    real(rk8) :: sz_min(sz_nbr)       ! [m] Size Bin minima
+    real(rk8) :: sz_max(sz_nbr)       ! [m] Size Bin maxima
+    real(rk8) :: sz_ctr(sz_nbr)       ! [m] Size Bin centers
+    real(rk8) :: sz_dlt(sz_nbr)       ! [m] Size Bin widths
 
     ! constants
     ! [m] Mass median diameter
-    real(rkx) :: dmt_vma_src(dst_src_nbr) =    &
-         (/ 0.832e-6_rkx , 4.82e-6_rkx , 19.38e-6_rkx /)        ! BSM96 p. 73 Table 2
+    real(rk8) :: dmt_vma_src(dst_src_nbr) =    &
+         (/ 0.832e-6_rk8 , 4.82e-6_rk8 , 19.38e-6_rk8 /)        ! BSM96 p. 73 Table 2
     ! [frc] Geometric std deviation
-    real(rkx) :: gsd_anl_src(dst_src_nbr) =    &
-         (/ 2.10_rkx     ,  1.90_rkx   , 1.60_rkx     /)        ! BSM96 p. 73 Table 2
+    real(rk8) :: gsd_anl_src(dst_src_nbr) =    &
+         (/ 2.10_rk8     ,  1.90_rk8   , 1.60_rk8     /)        ! BSM96 p. 73 Table 2
     ! [frc] Mass fraction
-    real(rkx) :: mss_frc_src(dst_src_nbr) =    &
-         (/ 0.036_rkx, 0.957_rkx, 0.007_rkx /)                  ! BSM96 p. 73 Table 2
+    real(rk8) :: mss_frc_src(dst_src_nbr) =    &
+         (/ 0.036_rk8, 0.957_rk8, 0.007_rk8 /)                  ! BSM96 p. 73 Table 2
     ! [m] Particle diameter grid
-    real(rkx) :: dmt_grd(5) =                  &
-         (/ 0.1e-6_rkx, 1.0e-6_rkx, 2.5e-6_rkx, 5.0e-6_rkx, 10.0e-6_rkx /)
+    real(rk8) :: dmt_grd(5) =                  &
+         (/ 0.1e-6_rk8, 1.0e-6_rk8, 2.5e-6_rk8, 5.0e-6_rk8, 10.0e-6_rk8 /)
     ! [m] Optim diam for saltation
-    real(rkx), parameter :: dmt_slt_opt = 75.0e-6_rkx
+    real(rk8), parameter :: dmt_slt_opt = 75.0e-6_rk8
     ! [kg m-3] Density of optimal saltation particles
-    real(rkx), parameter :: dns_slt = 2650.0_rkx
+    real(rk8), parameter :: dns_slt = 2650.0_rk8
 
     ! declare erf intrinsic function
-    real(rkx) :: dum     ! dummy variable for erf test
+    real(rk8) :: dum     ! dummy variable for erf test
     integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
 
 #ifdef __PGI
-    real(rkx) , external :: erf
+    real(rk8) , external :: erf
 #endif
     ! Assign local pointers to derived type scalar members (column-level)
 
@@ -616,14 +616,14 @@ module mod_clm_dust
 
     ! Sanity check on erf: erf() in SGI /usr/lib64/mips4/libftn.so is bogus
 
-    dum = 1.0_rkx
-    if (abs(0.8427_rkx-erf(dum))/0.8427_rkx>0.001_rkx) then
+    dum = 1.0_rk8
+    if (abs(0.8427_rk8-erf(dum))/0.8427_rk8>0.001_rk8) then
        write(stderr,*) 'erf(1.0) = ',erf(dum)
        write(stderr,*) 'Dustini: Error function error'
        call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
-    dum = 0.0_rkx
-    if (erf(dum) /= 0.0_rkx) then
+    dum = 0.0_rk8
+    if (erf(dum) /= 0.0_rk8) then
        write(stderr,*) 'erf(0.0) = ',erf(dum)
        write(stderr,*) 'Dustini: Error function error'
        call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -637,11 +637,11 @@ module mod_clm_dust
     ! purpose(2): set important statistics of size distributions
 
     do m = 1, dst_src_nbr
-      sqrt2lngsdi = sqrt(2.0_rkx) * log(gsd_anl_src(m))
+      sqrt2lngsdi = sqrt(2.0_rk8) * log(gsd_anl_src(m))
       do n = 1, ndst
         lndmaxjovrdmdni = log(dmt_grd(n+1)/dmt_vma_src(m))
         lndminjovrdmdni = log(dmt_grd(n  )/dmt_vma_src(m))
-        ovr_src_snk_frc = 0.5_rkx * (erf(lndmaxjovrdmdni/sqrt2lngsdi) - &
+        ovr_src_snk_frc = 0.5_rk8 * (erf(lndmaxjovrdmdni/sqrt2lngsdi) - &
                                      erf(lndminjovrdmdni/sqrt2lngsdi))
         ovr_src_snk_mss(m,n) = ovr_src_snk_frc * mss_frc_src(m)
       end do
@@ -650,23 +650,23 @@ module mod_clm_dust
     ! The following code from subroutine wnd_frc_thr_slt_get was placed
     ! here because tmp1 needs to be defined just once
 
-    ryn_nbr_frc_thr_prx_opt = 0.38_rkx + 1331.0_rkx * (100.0_rkx*dmt_slt_opt)**1.56_rkx
+    ryn_nbr_frc_thr_prx_opt = 0.38_rk8 + 1331.0_rk8 * (100.0_rk8*dmt_slt_opt)**1.56_rk8
 
-    if (ryn_nbr_frc_thr_prx_opt < 0.03_rkx) then
+    if (ryn_nbr_frc_thr_prx_opt < 0.03_rk8) then
       write(stderr,*) 'dstmbl: ryn_nbr_frc_thr_prx_opt < 0.03'
       call fatal(__FILE__,__LINE__,'clm now stopping')
-    else if (ryn_nbr_frc_thr_prx_opt < 10.0_rkx) then
-      ryn_nbr_frc_thr_opt_fnc = -1.0_rkx + 1.928_rkx * &
-              (ryn_nbr_frc_thr_prx_opt**0.0922_rkx)
-      ryn_nbr_frc_thr_opt_fnc = 0.1291_rkx * 0.1291_rkx / ryn_nbr_frc_thr_opt_fnc
+    else if (ryn_nbr_frc_thr_prx_opt < 10.0_rk8) then
+      ryn_nbr_frc_thr_opt_fnc = -1.0_rk8 + 1.928_rk8 * &
+              (ryn_nbr_frc_thr_prx_opt**0.0922_rk8)
+      ryn_nbr_frc_thr_opt_fnc = 0.1291_rk8 * 0.1291_rk8 / ryn_nbr_frc_thr_opt_fnc
     else
-      ryn_nbr_frc_thr_opt_fnc = 1.0_rkx - 0.0858_rkx * &
-              exp(-0.0617_rkx*(ryn_nbr_frc_thr_prx_opt-10.0_rkx))
-      ryn_nbr_frc_thr_opt_fnc = 0.120_rkx * 0.120_rkx * &
+      ryn_nbr_frc_thr_opt_fnc = 1.0_rk8 - 0.0858_rk8 * &
+              exp(-0.0617_rk8*(ryn_nbr_frc_thr_prx_opt-10.0_rk8))
+      ryn_nbr_frc_thr_opt_fnc = 0.120_rk8 * 0.120_rk8 * &
               ryn_nbr_frc_thr_opt_fnc * ryn_nbr_frc_thr_opt_fnc
     end if
 
-    icf_fct = 1.0_rkx + 6.0e-7_rkx / (dns_slt * grav * (dmt_slt_opt**2.5_rkx))
+    icf_fct = 1.0_rk8 + 6.0e-7_rk8 / (dns_slt * grav * (dmt_slt_opt**2.5_rk8))
     dns_fct = dns_slt * grav * dmt_slt_opt
     tmp1 = sqrt(icf_fct * dns_fct * ryn_nbr_frc_thr_opt_fnc)
 
@@ -676,7 +676,7 @@ module mod_clm_dust
     do c = begc, endc
       l = clm3%g%l%c%landunit(c)
       if (.not. clm3%g%l%lakpoi(l)) then
-        mbl_bsn_fct(c) = 1.0_rkx
+        mbl_bsn_fct(c) = 1.0_rk8
       end if
     end do
 
@@ -699,7 +699,7 @@ module mod_clm_dust
       do n = 1, ndst
         dmt_min(n) = dmt_grd(n)                       ![m] Max diameter in bin
         dmt_max(n) = dmt_grd(n+1)                     ![m] Min diameter in bin
-        dmt_ctr(n) = 0.5_rkx * (dmt_min(n)+dmt_max(n)) ![m] Diameter at bin ctr
+        dmt_ctr(n) = 0.5_rk8 * (dmt_min(n)+dmt_max(n)) ![m] Diameter at bin ctr
         dmt_dlt(n) = dmt_max(n)-dmt_min(n)            ![m] Width of size bin
       end do
     else
@@ -709,25 +709,25 @@ module mod_clm_dust
 
     ! Bin physical properties
 
-    gsd_anl = 2.0_rkx    ! [frc] Geometric std dev PaG77 p. 2080 Table1
+    gsd_anl = 2.0_rk8    ! [frc] Geometric std dev PaG77 p. 2080 Table1
     ln_gsd = log(gsd_anl)
-    dns_aer = 2.5e3_rkx   ! [kg m-3] Aerosol density
+    dns_aer = 2.5e3_rk8   ! [kg m-3] Aerosol density
 
     ! Set a fundamental statistic for each bin
 
-    dmt_vma = 3.5000e-6_rkx ! [m] Mass median diameter analytic She84 p.75 Table1
+    dmt_vma = 3.5000e-6_rk8 ! [m] Mass median diameter analytic She84 p.75 Table1
 
     ! Compute analytic size statistics
     ! Convert mass median diameter to number median diameter (call vma2nma)
 
-    dmt_nma = dmt_vma * exp(-3.0_rkx*ln_gsd*ln_gsd) ! [m]
+    dmt_nma = dmt_vma * exp(-3.0_rk8*ln_gsd*ln_gsd) ! [m]
 
     ! Compute resolved size statistics for each size distribution
     ! In C. Zender's code call dst_sz_rsl
 
     do n = 1, ndst
 
-      series_ratio = (dmt_max(n)/dmt_min(n))**(1.0_rkx/sz_nbr)
+      series_ratio = (dmt_max(n)/dmt_min(n))**(1.0_rk8/sz_nbr)
       sz_min(1) = dmt_min(n)
       do m = 2, sz_nbr                            ! Loop starts at 2
         sz_min(m) = sz_min(m-1) * series_ratio
@@ -741,26 +741,26 @@ module mod_clm_dust
 
       ! Final derived grid values
       do m = 1, sz_nbr
-        sz_ctr(m) = 0.5_rkx * (sz_min(m)+sz_max(m))
+        sz_ctr(m) = 0.5_rk8 * (sz_min(m)+sz_max(m))
         sz_dlt(m) = sz_max(m)-sz_min(m)
       end do
 
-      lngsdsqrttwopi_rcp = 1.0_rkx / (ln_gsd*sqrt(2.0_rkx*rpi))
-      dmt_vwr(n) = 0.0_rkx ! [m] Mass wgted diameter resolved
-      vlm_rsl(n) = 0.0_rkx ! [m3 m-3] Volume concentration resolved
+      lngsdsqrttwopi_rcp = 1.0_rk8 / (ln_gsd*sqrt(2.0_rk8*rpi))
+      dmt_vwr(n) = 0.0_rk8 ! [m] Mass wgted diameter resolved
+      vlm_rsl(n) = 0.0_rk8 ! [m3 m-3] Volume concentration resolved
 
       do m = 1, sz_nbr
 
         ! Evaluate lognormal distribution for these sizes (call lgn_evl)
         tmp = log(sz_ctr(m)/dmt_nma) / ln_gsd
-        lgn_dst = lngsdsqrttwopi_rcp * exp(-0.5_rkx*tmp*tmp) / sz_ctr(m)
+        lgn_dst = lngsdsqrttwopi_rcp * exp(-0.5_rk8*tmp*tmp) / sz_ctr(m)
 
         ! Integrate moments of size distribution
         dmt_vwr(n) = dmt_vwr(n) + sz_ctr(m) *                    &
-               rpi / 6.0_rkx * (sz_ctr(m)**3.0_rkx) * & ![m3] Volume
+               rpi / 6.0_rk8 * (sz_ctr(m)**3.0_rk8) * & ![m3] Volume
                lgn_dst * sz_dlt(m)                ![# m-3] Number concentrn
         vlm_rsl(n) = vlm_rsl(n) +                                &
-               rpi / 6.0_rkx * (sz_ctr(m)**3.0_rkx) * & ![m3] Volume
+               rpi / 6.0_rk8 * (sz_ctr(m)**3.0_rk8) * & ![m3] Volume
                lgn_dst * sz_dlt(m)                ![# m-3] Number concentrn
 
       end do
@@ -769,22 +769,22 @@ module mod_clm_dust
 
     ! calculate correction to Stokes' settling velocity (subroutine stk_crc_get)
 
-    eps_max = 1.0e-4_rkx
-    dns_mdp = 100000._rkx / (295.0_rkx*rair) ![kg m-3] const prs_mdp & tpt_vrt
+    eps_max = 1.0e-4_rk8
+    dns_mdp = 100000._rk8 / (295.0_rk8*rair) ![kg m-3] const prs_mdp & tpt_vrt
 
     ! Size-independent thermokinetic properties
 
-    vsc_dyn_atm = 1.72e-5_rkx * ((295.0_rkx/273.0_rkx)**1.5_rkx) * 393.0_rkx / &
-         (295.0_rkx+120.0_rkx)      ![kg m-1 s-1] RoY94 p.102 tpt_mdp=295.0
-    mfp_atm = 2.0_rkx * vsc_dyn_atm / &  !SeP97 p. 455 constant prs_mdp, tpt_mdp
-         (100000._rkx*sqrt(8.0_rkx/(rpi*rair*295.0_rkx)))
+    vsc_dyn_atm = 1.72e-5_rk8 * ((295.0_rk8/273.0_rk8)**1.5_rk8) * 393.0_rk8 / &
+         (295.0_rk8+120.0_rk8)      ![kg m-1 s-1] RoY94 p.102 tpt_mdp=295.0
+    mfp_atm = 2.0_rk8 * vsc_dyn_atm / &  !SeP97 p. 455 constant prs_mdp, tpt_mdp
+         (100000._rk8*sqrt(8.0_rk8/(rpi*rair*295.0_rk8)))
     vsc_knm_atm = vsc_dyn_atm / dns_mdp ![m2 s-1] Kinematic viscosity of air
 
     do m = 1, ndst
-      slp_crc(m) = 1.0_rkx + 2.0_rkx * mfp_atm *                      &
-          (1.257_rkx+0.4_rkx*exp(-1.1_rkx*dmt_vwr(m)/(2.0_rkx*mfp_atm))) / &
+      slp_crc(m) = 1.0_rk8 + 2.0_rk8 * mfp_atm *                      &
+          (1.257_rk8+0.4_rk8*exp(-1.1_rk8*dmt_vwr(m)/(2.0_rk8*mfp_atm))) / &
           dmt_vwr(m)  ! [frc] Slip correction factor SeP97 p.464
-      vlc_stk(m) = (1.0_rkx/18.0_rkx) * dmt_vwr(m) * dmt_vwr(m) * dns_aer * &
+      vlc_stk(m) = (1.0_rk8/18.0_rk8) * dmt_vwr(m) * dmt_vwr(m) * dns_aer * &
           grav * slp_crc(m) / vsc_dyn_atm ! [m s-1] SeP97 p.466
     end do
 
@@ -800,7 +800,7 @@ module mod_clm_dust
     do m = 1, ndst
 
       ! Initialize accuracy and counter
-      eps_crr = eps_max + 1.0_rkx  ![frc] Current relative accuracy
+      eps_crr = eps_max + 1.0_rk8  ![frc] Current relative accuracy
       itr_idx = 0                 ![idx] Counting index
 
       ! Initial guess for vlc_grv is exact for Re < 0.1
@@ -813,19 +813,19 @@ module mod_clm_dust
         ryn_nbr_grv(m) = vlc_grv(m) * dmt_vwr(m) / vsc_knm_atm !SeP97 p.460
 
         ! Update drag coefficient based on new Reynolds number
-        if (ryn_nbr_grv(m) < 0.1_rkx) then
+        if (ryn_nbr_grv(m) < 0.1_rk8) then
           !Stokes' law Sep97 p.463 (8.32)
-          cff_drg_grv(m) = 24.0_rkx / ryn_nbr_grv(m)
-        else if (ryn_nbr_grv(m) < 2.0_rkx) then
-          cff_drg_grv(m) = (24.0_rkx/ryn_nbr_grv(m)) *    &
-                 (1.0_rkx + 3.0_rkx*ryn_nbr_grv(m)/16.0_rkx + &
-               9.0_rkx*ryn_nbr_grv(m)*ryn_nbr_grv(m)*     &
-                log(2.0_rkx*ryn_nbr_grv(m))/160.0_rkx)        !Sep97 p.463 (8.32)
-        else if (ryn_nbr_grv(m) < 500.0_rkx) then
-          cff_drg_grv(m) = (24.0_rkx/ryn_nbr_grv(m)) * &
-               (1.0_rkx + 0.15_rkx*ryn_nbr_grv(m)**0.687_rkx) !Sep97 p.463 (8.32)
-        else if (ryn_nbr_grv(m) < 2.0e5_rkx) then
-          cff_drg_grv(m) = 0.44_rkx                         !Sep97 p.463 (8.32)
+          cff_drg_grv(m) = 24.0_rk8 / ryn_nbr_grv(m)
+        else if (ryn_nbr_grv(m) < 2.0_rk8) then
+          cff_drg_grv(m) = (24.0_rk8/ryn_nbr_grv(m)) *    &
+                 (1.0_rk8 + 3.0_rk8*ryn_nbr_grv(m)/16.0_rk8 + &
+               9.0_rk8*ryn_nbr_grv(m)*ryn_nbr_grv(m)*     &
+                log(2.0_rk8*ryn_nbr_grv(m))/160.0_rk8)        !Sep97 p.463 (8.32)
+        else if (ryn_nbr_grv(m) < 500.0_rk8) then
+          cff_drg_grv(m) = (24.0_rk8/ryn_nbr_grv(m)) * &
+               (1.0_rk8 + 0.15_rk8*ryn_nbr_grv(m)**0.687_rk8) !Sep97 p.463 (8.32)
+        else if (ryn_nbr_grv(m) < 2.0e5_rk8) then
+          cff_drg_grv(m) = 0.44_rk8                         !Sep97 p.463 (8.32)
         else
           write(stderr,'(a,es9.2)') "ryn_nbr_grv(m) = ",ryn_nbr_grv(m)
           write(stderr,*) &
@@ -836,13 +836,13 @@ module mod_clm_dust
         ! Update terminal velocity based on new Reynolds number and drag coeff
         ! [m s-1] Terminal veloc SeP97 p.467 (8.44)
 
-        vlc_grv(m) = sqrt(4.0_rkx * grav * dmt_vwr(m) * slp_crc(m) * dns_aer / &
-             (3.0_rkx*cff_drg_grv(m)*dns_mdp))
+        vlc_grv(m) = sqrt(4.0_rk8 * grav * dmt_vwr(m) * slp_crc(m) * dns_aer / &
+             (3.0_rk8*cff_drg_grv(m)*dns_mdp))
         eps_crr = abs((vlc_grv(m)-vlc_grv_old)/vlc_grv(m)) !Relative convergence
         if (itr_idx == 12) then
           ! Numerical pingpong may occur when Re = 0.1, 2.0, or 500.0
           ! due to discontinuities in derivative of drag coefficient
-          vlc_grv(m) = 0.5_rkx * (vlc_grv(m)+vlc_grv_old)  ! [m s-1]
+          vlc_grv(m) = 0.5_rk8 * (vlc_grv(m)+vlc_grv_old)  ! [m s-1]
         end if
         if (itr_idx > 20) then
           write(stderr,*) 'Dustini error: Terminal velocity not converging ',&

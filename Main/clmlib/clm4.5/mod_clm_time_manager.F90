@@ -20,6 +20,8 @@ module mod_clm_time_manager
    public :: get_driver_start_ymd
    ! return calendar day at end of current timestep
    public :: get_curr_calday
+   ! return position in the earth orbit in days
+   public :: get_curr_yearpoint
    ! return calendar day from input date
    public :: get_calday
    ! return true on last timestep in current day
@@ -64,7 +66,7 @@ module mod_clm_time_manager
     if ( present(tod) ) tod = idate0%second_of_day
   end function get_driver_start_ymd
 
-  real(rkx) function get_curr_calday(offset)
+  real(rk8) function get_curr_calday(offset)
     implicit none
     ! Return calendar day at end of current timestep with optional offset.
     ! Calendar day 1.0 = 0Z on Jan 1.
@@ -82,7 +84,25 @@ module mod_clm_time_manager
     get_curr_calday = yeardayfrac(id)
   end function get_curr_calday
 
-  real(rkx) function get_calday(ymd, tod)
+  real(rk8) function get_curr_yearpoint(offset)
+   implicit none
+   ! Return calendar day at end of current timestep with optional offset.
+   ! Calendar day 1.0 = 0Z on Jan 1.
+    ! Offset from current time in seconds.
+    ! Positive for future times, negative for previous times.
+    integer(ik4), optional, intent(in) :: offset
+    type (rcm_time_and_date) :: id
+    type (rcm_time_interval) :: tdif
+
+    id = idatex
+    if ( present(offset) ) then
+      tdif = offset
+      id = id + tdif
+    end if
+    get_curr_yearpoint = yearpoint(id)
+  end function get_curr_yearpoint
+
+  real(rk8) function get_calday(ymd, tod)
     implicit none
     integer(ik4) , intent(in) :: ymd , tod
     ! Return calendar day corresponding to specified time instant.

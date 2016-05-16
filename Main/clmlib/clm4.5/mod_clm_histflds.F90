@@ -48,7 +48,7 @@ module mod_clm_histflds
     type(shr_megan_megcomp_t), pointer :: meg_cmp
     integer(ik4) :: imeg
     ! temp. pointers for slicing larger arrays
-    real(rkx) , pointer :: data2dptr(:,:) , data1dptr(:)
+    real(rk8) , pointer :: data2dptr(:,:) , data1dptr(:)
     integer(ik4) :: k , l , ii , jj
     character(len=24) :: fieldname
     character(len=100) :: longname
@@ -432,38 +432,38 @@ module mod_clm_histflds
     call hist_addfld1d (fname='BUILDHEAT', units='W/m^2',  &
          avgflag='A', long_name='heat flux from urban building interior to &
          &walls and roof', ptr_col=clm3%g%l%c%cef%eflx_building_heat, &
-         set_nourb=0._rkx, c2l_scale_type='urbanf')
+         set_nourb=0._rk8, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='URBAN_AC', units='W/m^2',  &
          avgflag='A', long_name='urban air conditioning flux', &
-         ptr_col=clm3%g%l%c%cef%eflx_urban_ac, set_nourb=0._rkx, &
+         ptr_col=clm3%g%l%c%cef%eflx_urban_ac, set_nourb=0._rk8, &
          c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='URBAN_HEAT', units='W/m^2',  &
          avgflag='A', long_name='urban heating flux', &
-         ptr_col=clm3%g%l%c%cef%eflx_urban_heat, set_nourb=0._rkx, &
+         ptr_col=clm3%g%l%c%cef%eflx_urban_heat, set_nourb=0._rk8, &
          c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='TRAFFICFLUX', units='W/m^2',  &
          avgflag='A', long_name='sensible heat flux from urban traffic', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_traffic_pft, set_nourb=0._rkx, &
+         ptr_pft=clm3%g%l%c%p%pef%eflx_traffic_pft, set_nourb=0._rk8, &
          c2l_scale_type='urbanf', default='inactive')
 
     call hist_addfld1d (fname='WASTEHEAT', units='W/m^2',  &
          avgflag='A', long_name='sensible heat flux from heating/cooling &
          &sources of urban waste heat', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_wasteheat_pft, set_nourb=0._rkx, &
+         ptr_pft=clm3%g%l%c%p%pef%eflx_wasteheat_pft, set_nourb=0._rk8, &
          c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='HEAT_FROM_AC', units='W/m^2',  &
          avgflag='A', long_name='sensible heat flux put into canyon due to &
          &heat removed from air conditioning', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_heat_from_ac_pft, set_nourb=0._rkx, &
+         ptr_pft=clm3%g%l%c%p%pef%eflx_heat_from_ac_pft, set_nourb=0._rk8, &
          c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='Qanth', units='W/m^2',  &
          avgflag='A', long_name='anthropogenic heat flux', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_anthro, set_nourb=0._rkx, &
+         ptr_pft=clm3%g%l%c%p%pef%eflx_anthro, set_nourb=0._rk8, &
          c2l_scale_type='urbanf', default='inactive')
 
     call hist_addfld1d (fname='Rnet', units='W/m^2',  &
@@ -485,12 +485,12 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='FCTR', units='W/m^2',  &
          avgflag='A', long_name='canopy transpiration', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_lh_vegt, set_lake=0._rkx, &
+         ptr_pft=clm3%g%l%c%p%pef%eflx_lh_vegt, set_lake=0._rk8, &
          c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FCEV', units='W/m^2',  &
          avgflag='A', long_name='canopy evaporation', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_lh_vege, set_lake=0._rkx, &
+         ptr_pft=clm3%g%l%c%p%pef%eflx_lh_vege, set_lake=0._rk8, &
          c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FGEV', units='W/m^2',  &
@@ -557,7 +557,7 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='FSH_V', units='W/m^2',  &
          avgflag='A', long_name='sensible heat from veg', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_sh_veg, set_lake=0._rkx, &
+         ptr_pft=clm3%g%l%c%p%pef%eflx_sh_veg, set_lake=0._rk8, &
          c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FSH_G', units='W/m^2',  &
@@ -626,11 +626,11 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='LAISUN', units='none', &
          avgflag='A', long_name='sunlit projected leaf area index', &
-         ptr_pft=clm3%g%l%c%p%pps%laisun, set_urb=0._rkx)
+         ptr_pft=clm3%g%l%c%p%pps%laisun, set_urb=0._rk8)
 
     call hist_addfld1d (fname='LAISHA', units='none', &
          avgflag='A', long_name='shaded projected leaf area index', &
-         ptr_pft=clm3%g%l%c%p%pps%laisha, set_urb=0._rkx)
+         ptr_pft=clm3%g%l%c%p%pps%laisha, set_urb=0._rk8)
 
     call hist_addfld1d (fname='TLAI', units='none', &
          avgflag='A', long_name='total projected leaf area index', &
@@ -658,24 +658,24 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='FPSN', units='umol/m2s',  &
          avgflag='A', long_name='photosynthesis', &
-         ptr_pft=clm3%g%l%c%p%pcf%fpsn, set_lake=0._rkx, set_urb=0._rkx)
+         ptr_pft=clm3%g%l%c%p%pcf%fpsn, set_lake=0._rk8, set_urb=0._rk8)
 
     call hist_addfld1d (fname='FPSN_WC', units='umol/m2s',  &
          avgflag='A', long_name='Rubisco-limited photosynthesis', &
-         ptr_pft=clm3%g%l%c%p%pcf%fpsn_wc, set_lake=0._rkx, set_urb=0._rkx)
+         ptr_pft=clm3%g%l%c%p%pcf%fpsn_wc, set_lake=0._rk8, set_urb=0._rk8)
 
     call hist_addfld1d (fname='FPSN_WJ', units='umol/m2s',  &
          avgflag='A', long_name='RuBP-limited photosynthesis', &
-         ptr_pft=clm3%g%l%c%p%pcf%fpsn_wj, set_lake=0._rkx, set_urb=0._rkx)
+         ptr_pft=clm3%g%l%c%p%pcf%fpsn_wj, set_lake=0._rk8, set_urb=0._rk8)
 
     call hist_addfld1d (fname='FPSN_WP', units='umol/m2s',  &
          avgflag='A', long_name='Product-limited photosynthesis', &
-         ptr_pft=clm3%g%l%c%p%pcf%fpsn_wp, set_lake=0._rkx, set_urb=0._rkx)
+         ptr_pft=clm3%g%l%c%p%pcf%fpsn_wp, set_lake=0._rk8, set_urb=0._rk8)
 
     call hist_addfld1d (fname='DSTFLXT', units='kg/m2/s',  &
          avgflag='A', long_name='total surface dust emission', &
-         ptr_pft=clm3%g%l%c%p%pdf%flx_mss_vrt_dst_tot, set_lake=0._rkx, &
-         set_urb=0._rkx)
+         ptr_pft=clm3%g%l%c%p%pdf%flx_mss_vrt_dst_tot, set_lake=0._rk8, &
+         set_urb=0._rk8)
     call hist_addfld1d (fname='DPVLTRB1', units='m/s',  &
          avgflag='A', long_name='turbulent deposition velocity 1', &
          ptr_pft=clm3%g%l%c%p%pdf%vlc_trb_1, default='inactive')
@@ -699,98 +699,98 @@ module mod_clm_histflds
 
           call hist_addfld1d ( fname='MEG_'//trim(meg_cmp%name), &
                units='kg/m2/sec',  avgflag='A', long_name='MEGAN flux', &
-               ptr_pft=clm3%g%l%c%p%pvf%meg(imeg)%flux_out, set_lake=0._rkx, &
-               set_urb=0._rkx )
+               ptr_pft=clm3%g%l%c%p%pvf%meg(imeg)%flux_out, set_lake=0._rk8, &
+               set_urb=0._rk8 )
 
           meg_cmp => meg_cmp%next_megcomp
        enddo
 
        call hist_addfld1d (fname='VOCFLXT', units='kg/m2/sec',  &
             avgflag='A', long_name='total VOC flux into atmosphere', &
-            ptr_pft=clm3%g%l%c%p%pvf%vocflx_tot, set_lake=0._rkx, set_urb=0._rkx)
+            ptr_pft=clm3%g%l%c%p%pvf%vocflx_tot, set_lake=0._rk8, set_urb=0._rk8)
 
        call hist_addfld1d (fname='GAMMA', units='non',  &
             avgflag='A', long_name='total gamma for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gamma_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%gamma_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='GAMMAL', units='non',  &
             avgflag='A', long_name='gamma L for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gammaL_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%gammaL_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='GAMMAT', units='non',  &
             avgflag='A', long_name='gamma T for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gammaT_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%gammaT_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='GAMMAP', units='non',  &
             avgflag='A', long_name='gamma P for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gammaP_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%gammaP_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='GAMMAA', units='non',  &
             avgflag='A', long_name='gamma A for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gammaA_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%gammaA_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='GAMMAS', units='non',  &
             avgflag='A', long_name='gamma S for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gammaS_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%gammaS_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='GAMMAC', units='non',  &
             avgflag='A', long_name='gamma C for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gammaC_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%gammaC_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='EOPT', units='non',  &
             avgflag='A', long_name='Eopt coefficient for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%Eopt_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%Eopt_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='TOPT', units='non',  &
             avgflag='A', long_name='topt coefficient for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%topt_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%topt_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='ALPHA', units='non',  &
             avgflag='A', long_name='alpha coefficient for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%alpha_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%alpha_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='CP', units='non',  &
             avgflag='A', long_name='cp coefficient for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%cp_out, set_lake=0._rkx, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%cp_out, set_lake=0._rk8, default='inactive')
 
        call hist_addfld1d (fname='PAR_sun', units='umol/m2/s', &
             avgflag='A', long_name='sunlit PAR', &
-            ptr_pft=clm3%g%l%c%p%pvf%paru_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%paru_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='PAR24_sun', units='umol/m2/s', &
             avgflag='A', long_name='sunlit PAR (24 hrs)', &
-            ptr_pft=clm3%g%l%c%p%pvf%par24u_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%par24u_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='PAR240_sun', units='umol/m2/s', &
             avgflag='A', long_name='sunlit PAR (240 hrs)', &
-            ptr_pft=clm3%g%l%c%p%pvf%par240u_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%par240u_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='PAR_shade', units='umol/m2/s', &
             avgflag='A', long_name='shade PAR', &
-            ptr_pft=clm3%g%l%c%p%pvf%para_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%para_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='PAR24_shade', units='umol/m2/s', &
             avgflag='A', long_name='shade PAR (24 hrs)', &
-            ptr_pft=clm3%g%l%c%p%pvf%par24a_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%par24a_out, set_lake=0._rk8, &
             default='inactive')
 
        call hist_addfld1d (fname='PAR240_shade', units='umol/m2/s', &
             avgflag='A', long_name='shade PAR (240 hrs)', &
-            ptr_pft=clm3%g%l%c%p%pvf%par240a_out, set_lake=0._rkx, &
+            ptr_pft=clm3%g%l%c%p%pvf%par240a_out, set_lake=0._rk8, &
             default='inactive')
 
     end if
@@ -911,7 +911,7 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='H2OCAN', units='mm',  &
          avgflag='A', long_name='intercepted water', &
-         ptr_pft=clm3%g%l%c%p%pws%h2ocan, set_lake=0._rkx)
+         ptr_pft=clm3%g%l%c%p%pws%h2ocan, set_lake=0._rk8)
 
     call hist_addfld2d (fname='H2OSOI',  units='mm3/mm3', type2d='levgrnd', &
          avgflag='A', &
@@ -1022,7 +1022,7 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='QINTR', units='mm/s',  &
          avgflag='A', long_name='interception', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_prec_intr, set_lake=0._rkx)
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_prec_intr, set_lake=0._rk8)
 
     call hist_addfld1d (fname='QDRIP', units='mm/s',  &
          avgflag='A', long_name='throughfall', &
@@ -1044,17 +1044,17 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='QVEGE', units='mm/s',  &
          avgflag='A', long_name='canopy evaporation', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_evap_can, set_lake=0._rkx, &
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_evap_can, set_lake=0._rk8, &
          c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QVEGT', units='mm/s',  &
          avgflag='A', long_name='canopy transpiration', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_tran_veg, set_lake=0._rkx, &
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_tran_veg, set_lake=0._rk8, &
          c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QIRRIG', units='mm/s', &
          avgflag='A', long_name='water added through irrigation', &
-         ptr_col=clm3%g%l%c%cwf%qflx_irrig, set_lake=0._rkx)
+         ptr_col=clm3%g%l%c%cwf%qflx_irrig, set_lake=0._rk8)
 
     ! Water and energy balance checks
 
@@ -6532,11 +6532,11 @@ module mod_clm_histflds
     character(len=*) , intent(in) :: units     ! units of field
     character(len=1) , intent(in) :: avgflag   ! time averaging flag
     character(len=*) , intent(in) :: long_name ! long name of field
-    real(rkx) , optional , pointer :: ptr_col(:,:) ! pointer to column array
-    real(rkx) , optional , pointer :: ptr_pft(:,:) ! pointer to pft array
+    real(rk8) , optional , pointer :: ptr_col(:,:) ! pointer to column array
+    real(rk8) , optional , pointer :: ptr_pft(:,:) ! pointer to pft array
     ! if set to 'inactive, field will not appear on primary tape
     character(len=*) , optional , intent(in) :: default
-    real(rkx) , pointer :: ptr_1d(:)
+    real(rk8) , pointer :: ptr_1d(:)
 
     if ( present(ptr_col) ) then
       ! column-level data

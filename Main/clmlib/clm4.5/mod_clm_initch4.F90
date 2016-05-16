@@ -62,33 +62,33 @@ module mod_clm_initch4
     ! landunit type
     integer(ik4) , pointer , dimension(:) :: ltype
     ! column 3D organic matter (kg/m^3, 58% by mass carbon) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: cellorg
+    real(rk8) , pointer , dimension(:,:) :: cellorg
     ! finundated from previous timestep
-    real(rkx) , pointer , dimension(:) :: fsat_bef
+    real(rk8) , pointer , dimension(:) :: fsat_bef
     ! CH4 conc in each soil layer (mol/m3) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: conc_ch4_sat
+    real(rk8) , pointer , dimension(:,:) :: conc_ch4_sat
     ! CH4 conc in each soil layer (mol/m3) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: conc_ch4_unsat
+    real(rk8) , pointer , dimension(:,:) :: conc_ch4_unsat
     ! O2 conc in each soil layer (mol/m3) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: conc_o2_sat
+    real(rk8) , pointer , dimension(:,:) :: conc_o2_sat
     ! O2 conc in each soil layer (mol/m3) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: conc_o2_unsat
+    real(rk8) , pointer , dimension(:,:) :: conc_o2_unsat
     ! total soil organic matter found in level (g C / m^3) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: lake_soilc
+    real(rk8) , pointer , dimension(:,:) :: lake_soilc
     ! time-lagged surface runoff (mm H2O /s)
-    real(rkx) , pointer , dimension(:) :: qflx_surf_lag
+    real(rk8) , pointer , dimension(:) :: qflx_surf_lag
     ! time-lagged fractional inundated area
-    real(rkx) , pointer , dimension(:) :: finundated_lag
+    real(rk8) , pointer , dimension(:) :: finundated_lag
     ! Ratio of oxygen available to that demanded by roots, aerobes,
     ! & methanotrophs (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: o2stress_unsat
+    real(rk8) , pointer , dimension(:,:) :: o2stress_unsat
     ! Ratio of oxygen available to that demanded by roots, aerobes,
     ! & methanotrophs (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: o2stress_sat
+    real(rk8) , pointer , dimension(:,:) :: o2stress_sat
     ! inundated gridcell fractional area (excluding dedicated wetland columns)
-    real(rkx) , pointer , dimension(:) :: finundated
+    real(rk8) , pointer , dimension(:) :: finundated
     ! Lagged saturation status of soil layer in the unsaturated zone (1 = sat)
-    real(rkx) , pointer , dimension(:,:) :: layer_sat_lag
+    real(rk8) , pointer , dimension(:,:) :: layer_sat_lag
     integer(ik4) :: j , l , c , p      ! indices
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
@@ -133,37 +133,37 @@ module mod_clm_initch4
       if ( ltype(l) == istsoil .or. ltype(l) == istcrop ) then
         do j = 1 , nlevsoi
           if ( conc_ch4_sat(c,j) == spval .or. arbinit )   &
-            conc_ch4_sat(c,j)   = 0._rkx
+            conc_ch4_sat(c,j)   = 0._rk8
           if ( conc_ch4_unsat(c,j) == spval .or. arbinit ) &
-            conc_ch4_unsat(c,j) = 0._rkx
+            conc_ch4_unsat(c,j) = 0._rk8
           if ( conc_o2_sat(c,j) == spval .or. arbinit )    &
-            conc_o2_sat(c,j)    = 0._rkx
+            conc_o2_sat(c,j)    = 0._rk8
           if ( conc_o2_unsat(c,j) == spval .or. arbinit )  &
-            conc_o2_unsat(c,j)  = 0._rkx
+            conc_o2_unsat(c,j)  = 0._rk8
           if ( o2stress_sat(c,j) == spval .or. arbinit )   &
-            o2stress_sat(c,j) = 1._rkx
+            o2stress_sat(c,j) = 1._rk8
           if ( o2stress_unsat(c,j) == spval .or. arbinit ) &
-            o2stress_unsat(c,j) = 1._rkx
+            o2stress_unsat(c,j) = 1._rk8
           if ( layer_sat_lag(c,j) == spval .or. arbinit )  &
-            layer_sat_lag(c,j) = 1._rkx
+            layer_sat_lag(c,j) = 1._rk8
         end do
-        if ( qflx_surf_lag(c) == spval .or. arbinit ) qflx_surf_lag(c) = 0._rkx
-        if ( finundated_lag(c) == spval .or. arbinit ) finundated_lag(c) = 0._rkx
+        if ( qflx_surf_lag(c) == spval .or. arbinit ) qflx_surf_lag(c) = 0._rk8
+        if ( finundated_lag(c) == spval .or. arbinit ) finundated_lag(c) = 0._rk8
         ! finundated will be used to calculate soil decomposition if
         ! anoxia is used
         if ( fsat_bef(c) == spval .or. arbinit ) then
-          finundated(c) = 0._rkx
+          finundated(c) = 0._rk8
         else
           finundated(c) = fsat_bef(c)
         end if
       else if ( ltype(l) == istdlak ) then
         do j = 1 , nlevsoi
           if ( conc_ch4_sat(c,j) == spval .or. arbinit ) &
-            conc_ch4_sat(c,j)   = 0._rkx
+            conc_ch4_sat(c,j)   = 0._rk8
           if ( conc_o2_sat(c,j) == spval .or. arbinit )  &
-            conc_o2_sat(c,j)    = 0._rkx
+            conc_o2_sat(c,j)    = 0._rk8
           if ( lake_soilc(c,j) == spval .or. arbinit )   &
-            lake_soilc(c,j) = 580._rkx*cellorg(c,j)
+            lake_soilc(c,j) = 580._rk8*cellorg(c,j)
           ! Need to convert from kg/m^3 organic matter to g C / m^3
           ! (org matter is defined to be 58% C)
         end do
@@ -171,14 +171,14 @@ module mod_clm_initch4
 
       ! Set values for all columns equal to zero below nlevsoi
       do j = nlevsoi+1 , nlevgrnd
-        conc_ch4_sat(c,j) = 0._rkx
-        conc_ch4_unsat(c,j) = 0._rkx
-        conc_o2_sat(c,j) = 0._rkx
-        conc_o2_unsat(c,j) = 0._rkx
-        lake_soilc(c,j) = 0._rkx
-        o2stress_sat(c,j) = 1._rkx
-        o2stress_unsat(c,j) = 1._rkx
-        layer_sat_lag(c,j) = 1._rkx
+        conc_ch4_sat(c,j) = 0._rk8
+        conc_ch4_unsat(c,j) = 0._rk8
+        conc_o2_sat(c,j) = 0._rk8
+        conc_o2_unsat(c,j) = 0._rk8
+        lake_soilc(c,j) = 0._rk8
+        o2stress_sat(c,j) = 1._rk8
+        o2stress_unsat(c,j) = 1._rk8
+        layer_sat_lag(c,j) = 1._rk8
       end do
     end do
   end subroutine makearbinit_ch4
@@ -195,116 +195,116 @@ module mod_clm_initch4
     ! landunit type index
     integer(ik4) , pointer , dimension(:) :: ltype
     ! volumetric soil water at saturation (porosity)
-    real(rkx) , pointer , dimension(:,:) :: watsat
+    real(rk8) , pointer , dimension(:,:) :: watsat
     ! column 3D organic matter (kg/m^3, 58% by mass carbon) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: cellorg
+    real(rk8) , pointer , dimension(:,:) :: cellorg
     ! CH4 surface flux (mol/m2/s)
-    real(rkx) , pointer , dimension(:) :: ch4_surf_diff_sat
+    real(rk8) , pointer , dimension(:) :: ch4_surf_diff_sat
     ! CH4 surface flux (mol/m2/s)
-    real(rkx) , pointer , dimension(:) :: ch4_surf_diff_unsat
+    real(rk8) , pointer , dimension(:) :: ch4_surf_diff_unsat
     ! CH4 surface flux (mol/m2/s)
-    real(rkx) , pointer , dimension(:) :: ch4_surf_diff_lake
+    real(rk8) , pointer , dimension(:) :: ch4_surf_diff_lake
     ! Total column CH4 aerenchyma (mol/m2/s)
-    real(rkx) , pointer , dimension(:) :: ch4_surf_aere_sat
+    real(rk8) , pointer , dimension(:) :: ch4_surf_aere_sat
     ! Total column CH4 aerenchyma (mol/m2/s)
-    real(rkx) , pointer , dimension(:) :: ch4_surf_aere_unsat
+    real(rk8) , pointer , dimension(:) :: ch4_surf_aere_unsat
     ! CH4 ebullition to atmosphere (mol/m2/s)
-    real(rkx) , pointer , dimension(:) :: ch4_surf_ebul_sat
+    real(rk8) , pointer , dimension(:) :: ch4_surf_ebul_sat
     ! CH4 ebullition to atmosphere (mol/m2/s)
-    real(rkx) , pointer , dimension(:) :: ch4_surf_ebul_unsat
+    real(rk8) , pointer , dimension(:) :: ch4_surf_ebul_unsat
     ! CH4 ebullition to atmosphere (mol/m2/s)
-    real(rkx) , pointer , dimension(:) :: ch4_surf_ebul_lake
+    real(rk8) , pointer , dimension(:) :: ch4_surf_ebul_lake
     ! CH4 consumption rate via oxidation in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: ch4_oxid_depth_sat
+    real(rk8) , pointer , dimension(:,:) :: ch4_oxid_depth_sat
     ! CH4 consumption rate via oxidation in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: ch4_oxid_depth_unsat
+    real(rk8) , pointer , dimension(:,:) :: ch4_oxid_depth_unsat
     ! CH4 consumption rate via oxidation in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: ch4_oxid_depth_lake
+    real(rk8) , pointer , dimension(:,:) :: ch4_oxid_depth_lake
     ! production of CH4 in each soil layer (nlevsoi) (mol/m3/s)
-    real(rkx) , pointer , dimension(:,:) :: ch4_prod_depth_sat
+    real(rk8) , pointer , dimension(:,:) :: ch4_prod_depth_sat
     ! production of CH4 in each soil layer (nlevsoi) (mol/m3/s)
-    real(rkx) , pointer , dimension(:,:) :: ch4_prod_depth_unsat
+    real(rk8) , pointer , dimension(:,:) :: ch4_prod_depth_unsat
     ! production of CH4 in each soil layer (nlevsoi) (mol/m3/s)
-    real(rkx) , pointer , dimension(:,:) :: ch4_prod_depth_lake
+    real(rk8) , pointer , dimension(:,:) :: ch4_prod_depth_lake
     ! Total column CH4 ebullition (mol/m2/s)
-    real(rkx) , pointer , dimension(:) :: ch4_ebul_total_sat
+    real(rk8) , pointer , dimension(:) :: ch4_ebul_total_sat
     ! Total column CH4 ebullition (mol/m2/s)
-    real(rkx) , pointer , dimension(:) :: ch4_ebul_total_unsat
+    real(rk8) , pointer , dimension(:) :: ch4_ebul_total_unsat
     ! CH4 loss rate via ebullition in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: ch4_ebul_depth_sat
+    real(rk8) , pointer , dimension(:,:) :: ch4_ebul_depth_sat
     ! CH4 loss rate via ebullition in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: ch4_ebul_depth_unsat
+    real(rk8) , pointer , dimension(:,:) :: ch4_ebul_depth_unsat
     ! CH4 loss rate via aerenchyma in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: ch4_aere_depth_sat
+    real(rk8) , pointer , dimension(:,:) :: ch4_aere_depth_sat
     ! CH4 loss rate via aerenchyma in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: ch4_aere_depth_unsat
+    real(rk8) , pointer , dimension(:,:) :: ch4_aere_depth_unsat
     ! CO2 loss rate via aerenchyma in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: co2_aere_depth_sat
+    real(rk8) , pointer , dimension(:,:) :: co2_aere_depth_sat
     ! CO2 loss rate via aerenchyma in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: co2_aere_depth_unsat
+    real(rk8) , pointer , dimension(:,:) :: co2_aere_depth_unsat
     ! CH4 loss rate via transpiration in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: ch4_tran_depth_sat
+    real(rk8) , pointer , dimension(:,:) :: ch4_tran_depth_sat
     ! CH4 loss rate via transpiration in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: ch4_tran_depth_unsat
+    real(rk8) , pointer , dimension(:,:) :: ch4_tran_depth_unsat
     ! O2 consumption rate via oxidation in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: o2_oxid_depth_sat
+    real(rk8) , pointer , dimension(:,:) :: o2_oxid_depth_sat
     ! O2 consumption rate via oxidation in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: o2_oxid_depth_unsat
+    real(rk8) , pointer , dimension(:,:) :: o2_oxid_depth_unsat
     ! O2 consumption during decomposition in each soil layer(nlevsoi) (mol/m3/s)
-    real(rkx) , pointer , dimension(:,:) :: o2_decomp_depth_sat
+    real(rk8) , pointer , dimension(:,:) :: o2_decomp_depth_sat
     ! O2 consumption during decomposition in each soil layer(nlevsoi) (mol/m3/s)
-    real(rkx) , pointer , dimension(:,:) :: o2_decomp_depth_unsat
+    real(rk8) , pointer , dimension(:,:) :: o2_decomp_depth_unsat
     ! O2 gain rate via aerenchyma in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: o2_aere_depth_sat
+    real(rk8) , pointer , dimension(:,:) :: o2_aere_depth_sat
     ! O2 gain rate via aerenchyma in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: o2_aere_depth_unsat
+    real(rk8) , pointer , dimension(:,:) :: o2_aere_depth_unsat
     ! CO2 production during decomposition in each soil layer(nlevsoi) (mol/m3/s)
-    real(rkx) , pointer , dimension(:,:) :: co2_decomp_depth_sat
+    real(rk8) , pointer , dimension(:,:) :: co2_decomp_depth_sat
     ! CO2 production during decomposition in each soil layer(nlevsoi) (mol/m3/s)
-    real(rkx) , pointer , dimension(:,:) :: co2_decomp_depth_unsat
+    real(rk8) , pointer , dimension(:,:) :: co2_decomp_depth_unsat
     ! CO2 production rate via oxidation in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: co2_oxid_depth_sat
+    real(rk8) , pointer , dimension(:,:) :: co2_oxid_depth_sat
     ! CO2 production rate via oxidation in each soil layer (mol/m3/s) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: co2_oxid_depth_unsat
+    real(rk8) , pointer , dimension(:,:) :: co2_oxid_depth_unsat
     ! CH4 flux to atm due to decreasing fsat (kg C/m^2/s) [+]
-    real(rkx) , pointer , dimension(:) :: ch4_dfsat_flux
+    real(rk8) , pointer , dimension(:) :: ch4_dfsat_flux
     ! depth of water table for unsaturated fraction (m)
-    real(rkx) , pointer , dimension(:) :: zwt_ch4_unsat
+    real(rk8) , pointer , dimension(:) :: zwt_ch4_unsat
     ! tracer conductance for boundary layer [m/s]
-    real(rkx) , pointer , dimension(:) :: grnd_ch4_cond
+    real(rk8) , pointer , dimension(:) :: grnd_ch4_cond
     ! CH4 conc in each soil layer (mol/m3) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: conc_ch4_lake
+    real(rk8) , pointer , dimension(:,:) :: conc_ch4_lake
     ! O2 conc in each soil layer (mol/m3) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: conc_o2_lake
+    real(rk8) , pointer , dimension(:,:) :: conc_o2_lake
     ! inundated gridcell fractional area
-    real(rkx) , pointer , dimension(:) :: finundated
+    real(rk8) , pointer , dimension(:) :: finundated
     ! fraction of potential HR
-    real(rkx) , pointer , dimension(:,:) :: fphr
+    real(rk8) , pointer , dimension(:,:) :: fphr
     ! (unitless) ratio applied to sat. prod. to account for seasonal inundation
-    real(rkx) , pointer , dimension(:) :: sif
+    real(rk8) , pointer , dimension(:) :: sif
     ! column-averaged root fraction
-    real(rkx) , pointer , dimension(:,:) :: rootfr
+    real(rk8) , pointer , dimension(:,:) :: rootfr
     ! Ratio of oxygen available to that demanded by roots, aerobes,
     ! & methanotrophs (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: o2stress_unsat
+    real(rk8) , pointer , dimension(:,:) :: o2stress_unsat
     ! Ratio of oxygen available to that demanded by roots, aerobes,
     ! & methanotrophs (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: o2stress_sat
+    real(rk8) , pointer , dimension(:,:) :: o2stress_sat
     ! Ratio of methane available to the total per-timestep methane
     ! sinks (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: ch4stress_unsat
+    real(rk8) , pointer , dimension(:,:) :: ch4stress_unsat
     ! Ratio of methane available to the total per-timestep methane
     ! sinks (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: ch4stress_sat
+    real(rk8) , pointer , dimension(:,:) :: ch4stress_sat
     ! total methane in soil column (g C / m^2)
-    real(rkx) , pointer , dimension(:) :: totcolch4
+    real(rk8) , pointer , dimension(:) :: totcolch4
     ! To avoid rare pathologies with allowlakeprod switching between restarts
     ! CH4 conc in each soil layer (mol/m3) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: conc_ch4_sat
+    real(rk8) , pointer , dimension(:,:) :: conc_ch4_sat
     ! O2 conc in each soil layer (mol/m3) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: conc_o2_sat
+    real(rk8) , pointer , dimension(:,:) :: conc_o2_sat
     ! total soil organic matter found in level (g C / m^3) (nlevsoi)
-    real(rkx) , pointer , dimension(:,:) :: lake_soilc
+    real(rk8) , pointer , dimension(:,:) :: lake_soilc
     integer(ik4)  :: g , l , c , p , j        ! indices
     integer(ik4)  :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4)  :: begc , endc ! per-proc beginning and ending column indices
@@ -386,36 +386,36 @@ module mod_clm_initch4
 
       ! First set levels from nlevsoi+1 to nlevgrnd = 0
 
-      ch4_prod_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4_prod_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4_prod_depth_lake(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4_oxid_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4_oxid_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4_oxid_depth_lake(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      o2_oxid_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      o2_oxid_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      o2_decomp_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      o2_decomp_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      o2_aere_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      o2_aere_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      co2_decomp_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      co2_decomp_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      co2_oxid_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      co2_oxid_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4_aere_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4_aere_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4_tran_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4_tran_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      co2_aere_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      co2_aere_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4_ebul_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4_ebul_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      conc_ch4_lake(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      conc_o2_lake(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      rootfr(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4stress_unsat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      ch4stress_sat(c,nlevsoi+1:nlevgrnd) = 0._rkx
-      fphr(c,nlevdecomp+1:nlevgrnd) = 0._rkx
+      ch4_prod_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4_prod_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4_prod_depth_lake(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4_oxid_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4_oxid_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4_oxid_depth_lake(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      o2_oxid_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      o2_oxid_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      o2_decomp_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      o2_decomp_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      o2_aere_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      o2_aere_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      co2_decomp_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      co2_decomp_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      co2_oxid_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      co2_oxid_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4_aere_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4_aere_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4_tran_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4_tran_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      co2_aere_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      co2_aere_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4_ebul_depth_sat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4_ebul_depth_unsat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      conc_ch4_lake(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      conc_o2_lake(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      rootfr(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4stress_unsat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      ch4stress_sat(c,nlevsoi+1:nlevgrnd) = 0._rk8
+      fphr(c,nlevdecomp+1:nlevgrnd) = 0._rk8
 
       if ( ltype(l) == istsoil .or. ltype(l) == istcrop ) then
         conc_ch4_lake(c,:) = spval
@@ -499,16 +499,16 @@ module mod_clm_initch4
         ! Set to zero for inactive columns so that this can be used
         ! as an appropriate area-weighted gridcell average soil methane
         ! content.
-        totcolch4(c) = 0._rkx
+        totcolch4(c) = 0._rk8
       end if
 
       if (ltype(l) == istdlak .and. .not. allowlakeprod) then
         ! To avoid rare pathologies with allowlakeprod switching
         ! between restarts
-        conc_ch4_sat(c,:) = 0._rkx
-        conc_o2_sat(c,:) = 0._rkx
+        conc_ch4_sat(c,:) = 0._rk8
+        conc_o2_sat(c,:) = 0._rk8
         do j = 1 , nlevsoi
-          lake_soilc(c,j) = 580._rkx*cellorg(c,j)
+          lake_soilc(c,j) = 580._rk8*cellorg(c,j)
         end do
       end if
     end do

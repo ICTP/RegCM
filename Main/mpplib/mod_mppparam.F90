@@ -297,28 +297,33 @@ module mod_mppparam
   end interface l2c_ss
 
   interface glb_c2l_ss
-    module procedure global_to_linear_integer_subgrid_subgrid,  &
-                     global_to_linear_logical_subgrid_subgrid,  &
-                     global_to_linear_real8_subgrid_subgrid,    &
-                     global_to_linear_real8_subgrid_subgrid_4d, &
-                     global_to_linear_real4_subgrid_subgrid,    &
-                     global_to_linear_real4_subgrid_subgrid_4d
+    module procedure global_to_linear_integer_subgrid_subgrid,       &
+                     global_to_linear_logical_subgrid_subgrid,       &
+                     global_to_linear_real8_subgrid_subgrid,         &
+                     global_to_linear_real8_subgrid_subgrid_4d,      &
+                     global_to_linear_real4_subgrid_subgrid,         &
+                     global_to_linear_real4_subgrid_subgrid_4d,      &
+                     global_to_linear_real4_real8_subgrid_subgrid,   &
+                     global_to_linear_real4_real8_subgrid_subgrid_4d
   end interface glb_c2l_ss
 
   interface glb_c2l_gs
-    module procedure global_to_linear_integer_grid_subgrid, &
-                     global_to_linear_logical_grid_subgrid, &
-                     global_to_linear_real8_grid_subgrid,   &
-                     global_to_linear_real4_grid_subgrid
+    module procedure global_to_linear_integer_grid_subgrid,    &
+                     global_to_linear_logical_grid_subgrid,    &
+                     global_to_linear_real8_grid_subgrid,      &
+                     global_to_linear_real4_grid_subgrid,      &
+                     global_to_linear_real4_real8_grid_subgrid
   end interface glb_c2l_gs
 
   interface glb_l2c_ss
-    module procedure linear_to_global_integer_subgrid_subgrid,  &
-                     linear_to_global_logical_subgrid_subgrid,  &
-                     linear_to_global_real8_subgrid_subgrid,    &
-                     linear_to_global_real8_subgrid_subgrid_4d, &
-                     linear_to_global_real4_subgrid_subgrid,    &
-                     linear_to_global_real4_subgrid_subgrid_4d
+    module procedure linear_to_global_integer_subgrid_subgrid,      &
+                     linear_to_global_logical_subgrid_subgrid,      &
+                     linear_to_global_real8_subgrid_subgrid,        &
+                     linear_to_global_real8_subgrid_subgrid_4d,     &
+                     linear_to_global_real4_subgrid_subgrid,        &
+                     linear_to_global_real4_subgrid_subgrid_4d,     &
+                     linear_to_global_real8_real4_subgrid_subgrid,  &
+                     linear_to_global_real8_real4_subgrid_subgrid_4d
   end interface glb_l2c_ss
 
   interface reorder_glb_subgrid
@@ -367,48 +372,60 @@ module mod_mppparam
   end interface mypack
 
   interface myunpack
-    module procedure myunpack_logical_grid,        &
-                     myunpack_logical_subgrid,     &
-                     myunpack_integer_grid,        &
-                     myunpack_integer_subgrid,     &
-                     myunpack_real8_grid,          &
-                     myunpack_real8_subgrid,       &
-                     myunpack_real8_subgrid_4d,    &
-                     myunpack_real8_subgrid_slice, &
-                     myunpack_real4_grid,          &
-                     myunpack_real4_subgrid,       &
-                     myunpack_real4_subgrid_4d,    &
-                     myunpack_real4_subgrid_slice
+    module procedure myunpack_logical_grid,              &
+                     myunpack_logical_subgrid,           &
+                     myunpack_integer_grid,              &
+                     myunpack_integer_subgrid,           &
+                     myunpack_real8_grid,                &
+                     myunpack_real8_subgrid,             &
+                     myunpack_real8_subgrid_4d,          &
+                     myunpack_real8_subgrid_slice,       &
+                     myunpack_real4_grid,                &
+                     myunpack_real4_subgrid,             &
+                     myunpack_real4_subgrid_4d,          &
+                     myunpack_real4_subgrid_slice,       &
+                     myunpack_real8_real4_grid,          &
+                     myunpack_real8_real4_subgrid,       &
+                     myunpack_real8_real4_subgrid_4d,    &
+                     myunpack_real8_real4_subgrid_slice
   end interface myunpack
 
   interface mypack_global
-    module procedure mypack_global_logical_grid,        &
-                     mypack_global_logical_subgrid,     &
-                     mypack_global_integer_grid,        &
-                     mypack_global_integer_subgrid,     &
-                     mypack_global_real8_grid,          &
-                     mypack_global_real8_subgrid,       &
-                     mypack_global_real8_subgrid_4d,    &
-                     mypack_global_real8_subgrid_slice, &
-                     mypack_global_real4_grid,          &
-                     mypack_global_real4_subgrid,       &
-                     mypack_global_real4_subgrid_4d,    &
-                     mypack_global_real4_subgrid_slice
+    module procedure mypack_global_logical_grid,            &
+                     mypack_global_logical_subgrid,         &
+                     mypack_global_integer_grid,            &
+                     mypack_global_integer_subgrid,         &
+                     mypack_global_real8_grid,              &
+                     mypack_global_real8_subgrid,           &
+                     mypack_global_real8_subgrid_4d,        &
+                     mypack_global_real8_subgrid_slice,     &
+                     mypack_global_real4_grid,              &
+                     mypack_global_real4_subgrid,           &
+                     mypack_global_real4_subgrid_4d,        &
+                     mypack_global_real4_subgrid_slice,     &
+                     mypack_global_real4_real8_grid,        &
+                     mypack_global_real4_real8_subgrid,     &
+                     mypack_global_real4_real8_subgrid_4d,  &
+                     mypack_global_real4_real8_subgrid_slice
   end interface mypack_global
 
   interface myunpack_global
-    module procedure myunpack_global_logical_grid,        &
-                     myunpack_global_logical_subgrid,     &
-                     myunpack_global_integer_grid,        &
-                     myunpack_global_integer_subgrid,     &
-                     myunpack_global_real8_grid,          &
-                     myunpack_global_real8_subgrid,       &
-                     myunpack_global_real8_subgrid_4d,    &
-                     myunpack_global_real8_subgrid_slice, &
-                     myunpack_global_real4_grid,          &
-                     myunpack_global_real4_subgrid,       &
-                     myunpack_global_real4_subgrid_4d,    &
-                     myunpack_global_real4_subgrid_slice
+    module procedure myunpack_global_logical_grid,              &
+                     myunpack_global_logical_subgrid,           &
+                     myunpack_global_integer_grid,              &
+                     myunpack_global_integer_subgrid,           &
+                     myunpack_global_real8_grid,                &
+                     myunpack_global_real8_subgrid,             &
+                     myunpack_global_real8_subgrid_4d,          &
+                     myunpack_global_real8_subgrid_slice,       &
+                     myunpack_global_real4_grid,                &
+                     myunpack_global_real4_subgrid,             &
+                     myunpack_global_real4_subgrid_4d,          &
+                     myunpack_global_real4_subgrid_slice,       &
+                     myunpack_global_real8_real4_grid,          &
+                     myunpack_global_real8_real4_subgrid,       &
+                     myunpack_global_real8_real4_subgrid_4d,    &
+                     myunpack_global_real8_real4_subgrid_slice
   end interface myunpack_global
 
   interface cl_setup
@@ -1258,7 +1275,7 @@ module mod_mppparam
     call bcast(calendar,12)
     call bcast(ical)
     call bcast(dayspy)
-    call bcast(dpd)
+    call bcast(vernal_equinox)
 
     call bcast(nsplit)
 
@@ -1321,6 +1338,9 @@ module mod_mppparam
       niout = iout2-iout1+1
       njoutsg = joutsg2-joutsg1+1
       nioutsg = ioutsg2-ioutsg1+1
+      dpd = 360.0_rkx/dayspy
+      half_dayspy = dayspy/2.0_rkx
+      sixteenth_dayspy = dayspy/16.0_rkx
     end if
   end subroutine broadcast_params
 !
@@ -9440,6 +9460,27 @@ module mod_mppparam
     end if
   end subroutine global_to_linear_real4_subgrid_subgrid
 
+  subroutine global_to_linear_real4_real8_subgrid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    integer(ik4) :: npt
+    if ( nproc == 1 ) then
+      call mypack_global(cl,matrix,vector)
+      return
+    end if
+    call subgrid_collect(matrix,global_r4subgrid,jci1,jci2,ici1,ici2)
+    call mypack_global(cl,global_r4subgrid,r8vector1)
+    npt  = cl%linear_npoint_sg(myid+1)
+    call mpi_scatterv(r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                      mpi_real8,vector,npt,mpi_real8,                   &
+                      iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine global_to_linear_real4_real8_subgrid_subgrid
+
   subroutine linear_to_global_real8_subgrid_subgrid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
@@ -9479,6 +9520,26 @@ module mod_mppparam
     call subgrid_distribute(global_r4subgrid,matrix, &
             jci1,jci2,ici1,ici2,cl%sgmask)
   end subroutine linear_to_global_real4_subgrid_subgrid
+
+  subroutine linear_to_global_real8_real4_subgrid_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    if ( nproc == 1 ) then
+      call myunpack_global(cl,vector,matrix)
+      return
+    end if
+    call mpi_gatherv(vector,cl%linear_npoint_sg(myid+1),mpi_real8,     &
+                     r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                     mpi_real8,iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call myunpack_global(cl,r8vector1,global_r4subgrid)
+    call subgrid_distribute(global_r4subgrid,matrix, &
+            jci1,jci2,ici1,ici2,cl%sgmask)
+  end subroutine linear_to_global_real8_real4_subgrid_subgrid
 
   subroutine global_to_linear_real8_subgrid_subgrid_4d(cl,matrix,vector)
     implicit none
@@ -9522,13 +9583,38 @@ module mod_mppparam
       call subgrid_collect(r4subgrid,global_r4subgrid,jci1,jci2,ici1,ici2)
       call mypack_global(cl,global_r4subgrid,r4vector1)
       call mpi_scatterv(r4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
-                        mpi_real4,vector(:,k),npt,mpi_real4,                   &
+                        mpi_real4,vector(:,k),npt,mpi_real4,              &
                         iocpu,cl%linear_communicator,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
       end if
     end do
   end subroutine global_to_linear_real4_subgrid_subgrid_4d
+
+  subroutine global_to_linear_real4_real8_subgrid_subgrid_4d(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vector
+    integer(ik4) :: npt , k , nlev
+    nlev = size(matrix,4)
+    if ( nproc == 1 ) then
+      call mypack_global(cl,matrix,vector,nlev)
+      return
+    end if
+    npt  = cl%linear_npoint_sg(myid+1)
+    do k = 1 , nlev
+      r4subgrid = matrix(:,jci1:jci2,ici1:ici2,k)
+      call subgrid_collect(r4subgrid,global_r4subgrid,jci1,jci2,ici1,ici2)
+      call mypack_global(cl,global_r4subgrid,r8vector1)
+      call mpi_scatterv(r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                        mpi_real8,vector(:,k),npt,mpi_real8,              &
+                        iocpu,cl%linear_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+      end if
+    end do
+  end subroutine global_to_linear_real4_real8_subgrid_subgrid_4d
 
   subroutine linear_to_global_real8_subgrid_subgrid_4d(cl,vector,matrix)
     implicit none
@@ -9585,6 +9671,34 @@ module mod_mppparam
       end where
     end do
   end subroutine linear_to_global_real4_subgrid_subgrid_4d
+
+  subroutine linear_to_global_real8_real4_subgrid_subgrid_4d(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) :: npt , nlev , k
+    nlev = size(vector,2)
+    if ( nproc == 1 ) then
+      call myunpack(cl,vector,matrix,nlev)
+      return
+    end if
+    npt  = cl%linear_npoint_sg(myid+1)
+    do k = 1 , nlev
+      call mpi_gatherv(vector(:,k),npt,mpi_real8,                        &
+                       r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                       mpi_real8,iocpu,cl%linear_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+      call myunpack_global(cl,r8vector1,global_r4subgrid)
+      call subgrid_distribute(global_r4subgrid,r4subgrid, &
+              jci1,jci2,ici1,ici2,cl%sgmask)
+      where ( cl%sgmask )
+        matrix(:,jci1:jci2,ici1:ici2,k) = r4subgrid
+      end where
+    end do
+  end subroutine linear_to_global_real8_real4_subgrid_subgrid_4d
 
   subroutine global_to_linear_logical_grid_subgrid(cl,matrix,vector)
     implicit none
@@ -9649,6 +9763,22 @@ module mod_mppparam
     end do
     call global_to_linear_real4_subgrid_subgrid(cl,r4subgrid,vector)
   end subroutine global_to_linear_real4_grid_subgrid
+
+  subroutine global_to_linear_real4_real8_grid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    integer(ik4) :: i , j , n
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          r4subgrid(n,j,i) = matrix(j,i)
+        end do
+      end do
+    end do
+    call global_to_linear_real4_real8_subgrid_subgrid(cl,r4subgrid,vector)
+  end subroutine global_to_linear_real4_real8_grid_subgrid
 
   subroutine cl_dispose(cl)
     implicit none
@@ -10007,6 +10137,23 @@ module mod_mppparam
     end do
   end subroutine myunpack_real4_grid
 
+  subroutine myunpack_real8_real4_grid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( cl%gmask(j,i) ) then
+          matrix(j,i) = real(vector(iv),rk4)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine myunpack_real8_real4_grid
+
   subroutine myunpack_real8_subgrid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
@@ -10044,6 +10191,25 @@ module mod_mppparam
       end do
     end do
   end subroutine myunpack_real4_subgrid
+
+  subroutine myunpack_real8_real4_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( cl%sgmask(n,j,i) ) then
+            matrix(n,j,i) = real(vector(iv),rk4)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine myunpack_real8_real4_subgrid
 
   subroutine myunpack_real8_subgrid_4d(cl,vector,matrix,klev)
     implicit none
@@ -10089,6 +10255,28 @@ module mod_mppparam
     end do
   end subroutine myunpack_real4_subgrid_4d
 
+  subroutine myunpack_real8_real4_subgrid_4d(cl,vector,matrix,klev)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) :: i , j , k , n , iv
+    do k = 1 , klev
+      iv = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
+            if ( cl%sgmask(n,j,i) ) then
+              matrix(n,j,i,k) = real(vector(iv,k),rk4)
+              iv = iv + 1
+            end if
+          end do
+        end do
+      end do
+    end do
+  end subroutine myunpack_real8_real4_subgrid_4d
+
   subroutine myunpack_real8_subgrid_slice(cl,vector,matrix,k)
     implicit none
     type(masked_comm) , intent(in) :: cl
@@ -10128,6 +10316,26 @@ module mod_mppparam
       end do
     end do
   end subroutine myunpack_real4_subgrid_slice
+
+  subroutine myunpack_real8_real4_subgrid_slice(cl,vector,matrix,k)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) , intent(in) :: k
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( cl%sgmask(n,j,i) ) then
+            matrix(n,j,i,k) = real(vector(iv),rk4)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine myunpack_real8_real4_subgrid_slice
 
   subroutine mypack_global_logical_grid(cl,matrix,vector)
     implicit none
@@ -10221,8 +10429,8 @@ module mod_mppparam
   subroutine mypack_global_real4_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
     real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
+    real(rk4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , iv
     iv = 1
     do i = iout1 , iout2
@@ -10234,6 +10442,23 @@ module mod_mppparam
       end do
     end do
   end subroutine mypack_global_real4_grid
+
+  subroutine mypack_global_real4_real8_grid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        if ( cl%global_gmask(j,i) ) then
+          vector(iv) = real(matrix(j,i),rk8)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine mypack_global_real4_real8_grid
 
   subroutine mypack_global_real8_subgrid(cl,matrix,vector)
     implicit none
@@ -10272,6 +10497,25 @@ module mod_mppparam
       end do
     end do
   end subroutine mypack_global_real4_subgrid
+
+  subroutine mypack_global_real4_real8_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            vector(iv) = real(matrix(n,j,i),rk8)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine mypack_global_real4_real8_subgrid
 
   subroutine mypack_global_real8_subgrid_4d(cl,matrix,vector,klev)
     implicit none
@@ -10317,6 +10561,28 @@ module mod_mppparam
     end do
   end subroutine mypack_global_real4_subgrid_4d
 
+  subroutine mypack_global_real4_real8_subgrid_4d(cl,matrix,vector,klev)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vector
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) :: i , j , k , n , iv
+    do k = 1 , klev
+      iv = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          do n = 1 , nnsg
+            if ( cl%global_sgmask(n,j,i) ) then
+              vector(iv,k) = real(matrix(n,j,i,k),rk8)
+              iv = iv + 1
+            end if
+          end do
+        end do
+      end do
+    end do
+  end subroutine mypack_global_real4_real8_subgrid_4d
+
   subroutine mypack_global_real8_subgrid_slice(cl,matrix,vector,k)
     implicit none
     type(masked_comm) , intent(in) :: cl
@@ -10356,6 +10622,26 @@ module mod_mppparam
       end do
     end do
   end subroutine mypack_global_real4_subgrid_slice
+
+  subroutine mypack_global_real4_real8_subgrid_slice(cl,matrix,vector,k)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
+    integer(ik4) , intent(in) :: k
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            vector(iv) = real(matrix(n,j,i,k),rk8)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine mypack_global_real4_real8_subgrid_slice
 
   subroutine myunpack_global_logical_grid(cl,vector,matrix)
     implicit none
@@ -10463,6 +10749,23 @@ module mod_mppparam
     end do
   end subroutine myunpack_global_real4_grid
 
+  subroutine myunpack_global_real8_real4_grid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        if ( cl%global_gmask(j,i) ) then
+          matrix(j,i) = real(vector(iv),rk4)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine myunpack_global_real8_real4_grid
+
   subroutine myunpack_global_real8_subgrid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
@@ -10500,6 +10803,25 @@ module mod_mppparam
       end do
     end do
   end subroutine myunpack_global_real4_subgrid
+
+  subroutine myunpack_global_real8_real4_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            matrix(n,j,i) = real(vector(iv),rk4)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine myunpack_global_real8_real4_subgrid
 
   subroutine myunpack_global_real8_subgrid_4d(cl,vector,matrix,klev)
     implicit none
@@ -10545,6 +10867,28 @@ module mod_mppparam
     end do
   end subroutine myunpack_global_real4_subgrid_4d
 
+  subroutine myunpack_global_real8_real4_subgrid_4d(cl,vector,matrix,klev)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) :: i , j , k , n , iv
+    do k = 1 , klev
+      iv = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          do n = 1 , nnsg
+            if ( cl%global_sgmask(n,j,i) ) then
+              matrix(n,j,i,k) = real(vector(iv,k),rk4)
+              iv = iv + 1
+            end if
+          end do
+        end do
+      end do
+    end do
+  end subroutine myunpack_global_real8_real4_subgrid_4d
+
   subroutine myunpack_global_real8_subgrid_slice(cl,vector,matrix,k)
     implicit none
     type(masked_comm) , intent(in) :: cl
@@ -10584,6 +10928,26 @@ module mod_mppparam
       end do
     end do
   end subroutine myunpack_global_real4_subgrid_slice
+
+  subroutine myunpack_global_real8_real4_subgrid_slice(cl,vector,matrix,k)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) , intent(in) :: k
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            matrix(n,j,i,k) = real(vector(iv),rk4)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine myunpack_global_real8_real4_subgrid_slice
 
 end module mod_mppparam
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

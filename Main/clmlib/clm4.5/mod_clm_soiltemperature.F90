@@ -70,45 +70,45 @@ module mod_clm_soiltemperature
     ! urban landunit filter
     integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1)
     ! total latent heat of phase change of ground water
-    real(rkx), intent(out) :: xmf(lbc:ubc)
+    real(rk8), intent(out) :: xmf(lbc:ubc)
     ! used in computing tridiagonal matrix
-    real(rkx), intent(out) :: fact(lbc:ubc, -nlevsno+1:nlevgrnd)
+    real(rk8), intent(out) :: fact(lbc:ubc, -nlevsno+1:nlevgrnd)
     !latent heat of phase change of surface water
-    real(rkx), intent(out) :: xmf_h2osfc(lbc:ubc)
+    real(rk8), intent(out) :: xmf_h2osfc(lbc:ubc)
     !heat capacity of surface water
-    real(rkx), intent(out) :: c_h2osfc(lbc:ubc)
+    real(rk8), intent(out) :: c_h2osfc(lbc:ubc)
 
-    real(rkx), pointer :: snow_depth(:)    ! snow height (m)
+    real(rk8), pointer :: snow_depth(:)    ! snow height (m)
     ! eff. fraction of ground covered by snow (0 to 1)
-    real(rkx), pointer :: frac_sno_eff(:)
+    real(rk8), pointer :: frac_sno_eff(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rkx), pointer :: frac_sno(:)
+    real(rk8), pointer :: frac_sno(:)
     ! fraction of ground covered by surface water (0 to 1)
-    real(rkx), pointer :: frac_h2osfc(:)
+    real(rk8), pointer :: frac_h2osfc(:)
     ! surface water (mm)
-    real(rkx), pointer :: h2osfc(:)
+    real(rk8), pointer :: h2osfc(:)
     ! surface water temperature
-    real(rkx), pointer :: t_h2osfc(:)
+    real(rk8), pointer :: t_h2osfc(:)
     ! saved surface water temperature
-    real(rkx), pointer :: t_h2osfc_bef(:)
+    real(rk8), pointer :: t_h2osfc_bef(:)
     ! sensible heat flux from snow (W/m**2) [+ to atm]
-    real(rkx), pointer :: eflx_sh_snow(:)
+    real(rk8), pointer :: eflx_sh_snow(:)
     ! sensible heat flux from soil (W/m**2) [+ to atm]
-    real(rkx), pointer :: eflx_sh_soil(:)
+    real(rk8), pointer :: eflx_sh_soil(:)
     ! sensible heat flux from surface water (W/m**2) [+ to atm]
-    real(rkx), pointer :: eflx_sh_h2osfc(:)
+    real(rk8), pointer :: eflx_sh_h2osfc(:)
     ! evaporation flux from snow (W/m**2) [+ to atm]
-    real(rkx), pointer :: qflx_ev_snow(:)
+    real(rk8), pointer :: qflx_ev_snow(:)
     ! evaporation flux from soil (W/m**2) [+ to atm]
-    real(rkx), pointer :: qflx_ev_soil(:)
+    real(rk8), pointer :: qflx_ev_soil(:)
     ! evaporation flux from h2osfc (W/m**2) [+ to atm]
-    real(rkx), pointer :: qflx_ev_h2osfc(:)
+    real(rk8), pointer :: qflx_ev_h2osfc(:)
     ! solar radiation absorbed by soil (W/m**2)
-    real(rkx), pointer :: sabg_soil(:)
+    real(rk8), pointer :: sabg_soil(:)
     ! solar radiation absorbed by snow (W/m**2)
-    real(rkx), pointer :: sabg_snow(:)
+    real(rk8), pointer :: sabg_snow(:)
     ! sum of soil/snow using current fsno, for balance check
-    real(rkx), pointer :: sabg_chk(:)
+    real(rk8), pointer :: sabg_chk(:)
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer :: pactive(:)
     integer(ik4) , pointer :: pgridcell(:) ! pft's gridcell index
@@ -118,153 +118,153 @@ module mod_clm_soiltemperature
     integer(ik4) , pointer :: ctype(:)     ! column type
     integer(ik4) , pointer :: npfts(:)     ! column's number of pfts
     integer(ik4) , pointer :: pfti(:)      ! column's beginning pft index
-    real(rkx), pointer :: pwtcol(:)        ! weight of pft relative to column
+    real(rk8), pointer :: pwtcol(:)        ! weight of pft relative to column
     ! downward infrared (longwave) radiation (W/m**2)
-    real(rkx), pointer :: forc_lwrad(:)
+    real(rk8), pointer :: forc_lwrad(:)
     integer(ik4) , pointer :: snl(:)    ! number of snow layers
     ! latent heat of vapor of water (or sublimation) [j/kg]
-    real(rkx), pointer :: htvp(:)
-    real(rkx), pointer :: emg(:)     ! ground emissivity
+    real(rk8), pointer :: htvp(:)
+    real(rk8), pointer :: emg(:)     ! ground emissivity
     ! deriv. of soil energy flux wrt to soil temp [w/m2/k]
-    real(rkx), pointer :: cgrnd(:)
+    real(rk8), pointer :: cgrnd(:)
     ! downward longwave radiation blow the canopy [W/m2]
-    real(rkx), pointer :: dlrad(:)
+    real(rk8), pointer :: dlrad(:)
     ! solar radiation absorbed by ground (W/m**2)
-    real(rkx), pointer :: sabg(:)
+    real(rk8), pointer :: sabg(:)
     ! fraction of vegetation not covered by snow (0 OR 1 now) [-] (new)
     integer(ik4) , pointer :: frac_veg_nosno(:)
     ! sensible heat flux from ground (W/m**2) [+ to atm]
-    real(rkx), pointer :: eflx_sh_grnd(:)
+    real(rk8), pointer :: eflx_sh_grnd(:)
     ! soil evaporation (mm H2O/s) (+ = to atm)
-    real(rkx), pointer :: qflx_evap_soi(:)
+    real(rk8), pointer :: qflx_evap_soi(:)
     ! vegetation transpiration (mm H2O/s) (+ = to atm)
-    real(rkx), pointer :: qflx_tran_veg(:)
+    real(rk8), pointer :: qflx_tran_veg(:)
     ! interface level below a "z" level (m)
-    real(rkx), pointer :: zi(:,:)
-    real(rkx), pointer :: dz(:,:)       ! layer depth (m)
-    real(rkx), pointer :: z(:,:)        ! layer thickness (m)
-    real(rkx), pointer :: t_soisno(:,:) ! soil temperature (Kelvin)
+    real(rk8), pointer :: zi(:,:)
+    real(rk8), pointer :: dz(:,:)       ! layer depth (m)
+    real(rk8), pointer :: z(:,:)        ! layer thickness (m)
+    real(rk8), pointer :: t_soisno(:,:) ! soil temperature (Kelvin)
     ! net infrared (longwave) rad (W/m**2) [+ = to atm]
-    real(rkx), pointer :: eflx_lwrad_net(:)
+    real(rk8), pointer :: eflx_lwrad_net(:)
     ! temperature at previous time step [K]
-    real(rkx), pointer :: tssbef(:,:)
+    real(rk8), pointer :: tssbef(:,:)
     ! internal building temperature (K)
-    real(rkx), pointer :: t_building(:)
+    real(rk8), pointer :: t_building(:)
     ! maximum internal building temperature (K)
-    real(rkx), pointer :: t_building_max(:)
+    real(rk8), pointer :: t_building_max(:)
     ! minimum internal building temperature (K)
-    real(rkx), pointer :: t_building_min(:)
+    real(rk8), pointer :: t_building_min(:)
     ! soil heat content (MJ/m2)
-    real(rkx), pointer :: hc_soi(:)
+    real(rk8), pointer :: hc_soi(:)
     ! soil plus snow plus lake heat content (MJ/m2)
-    real(rkx), pointer :: hc_soisno(:)
+    real(rk8), pointer :: hc_soisno(:)
     ! heat flux between soil layer 1 and 2 (W/m2)
-    real(rkx), pointer :: eflx_fgr12(:)
+    real(rk8), pointer :: eflx_fgr12(:)
     ! (rural) soil downward heat flux (W/m2) (1:nlevgrnd)
-    real(rkx), pointer :: eflx_fgr(:,:)
+    real(rk8), pointer :: eflx_fgr(:,:)
     ! traffic sensible heat flux (W/m**2)
-    real(rkx), pointer :: eflx_traffic(:)
+    real(rk8), pointer :: eflx_traffic(:)
     ! sensible heat flux from urban heating/cooling sources
     ! of waste heat (W/m**2)
-    real(rkx), pointer :: eflx_wasteheat(:)
+    real(rk8), pointer :: eflx_wasteheat(:)
     ! sensible heat flux from urban heating/cooling sources
     ! of waste heat (W/m**2)
-    real(rkx), pointer :: eflx_wasteheat_pft(:)
+    real(rk8), pointer :: eflx_wasteheat_pft(:)
     !sensible heat flux put back into canyon due to removal by AC (W/m**2)
-    real(rkx), pointer :: eflx_heat_from_ac(:)
+    real(rk8), pointer :: eflx_heat_from_ac(:)
     !sensible heat flux put back into canyon due to removal by AC (W/m**2)
-    real(rkx), pointer :: eflx_heat_from_ac_pft(:)
+    real(rk8), pointer :: eflx_heat_from_ac_pft(:)
     ! traffic sensible heat flux (W/m**2)
-    real(rkx), pointer :: eflx_traffic_pft(:)
+    real(rk8), pointer :: eflx_traffic_pft(:)
     ! total anthropogenic heat flux (W/m**2)
-    real(rkx), pointer :: eflx_anthro(:)
+    real(rk8), pointer :: eflx_anthro(:)
     ! urban canyon height to width ratio
-    real(rkx), pointer :: canyon_hwr(:)
+    real(rk8), pointer :: canyon_hwr(:)
     ! weight of roof with respect to landunit
-    real(rkx), pointer :: wtlunit_roof(:)
+    real(rk8), pointer :: wtlunit_roof(:)
     ! heat flux from beneath column (W/m**2) [+ = upward]
-    real(rkx), pointer :: eflx_bot(:)
+    real(rk8), pointer :: eflx_bot(:)
 
-    real(rkx), pointer :: t_grnd(:)   ! ground surface temperature [K]
+    real(rk8), pointer :: t_grnd(:)   ! ground surface temperature [K]
 
     ! net ground heat flux into the surface (W/m**2)
-    real(rkx), pointer :: eflx_gnet(:)
+    real(rk8), pointer :: eflx_gnet(:)
     ! temperature derivative of ground net heat flux
-    real(rkx), pointer :: dgnetdT(:)
+    real(rk8), pointer :: dgnetdT(:)
     ! heat flux from urban building interior to walls, roof (W/m**2)
-    real(rkx), pointer :: eflx_building_heat(:)
+    real(rk8), pointer :: eflx_building_heat(:)
 
     ! variables needed for SNICAR
     ! absorbed solar radiation (pft,lyr) [W/m2]
-    real(rkx), pointer :: sabg_lyr(:,:)
-    real(rkx), pointer :: h2osno(:)        ! total snow water (col) [kg/m2]
-    real(rkx), pointer :: h2osoi_liq(:,:)  ! liquid water (col,lyr) [kg/m2]
-    real(rkx), pointer :: h2osoi_ice(:,:)  ! ice content (col,lyr) [kg/m2]
+    real(rk8), pointer :: sabg_lyr(:,:)
+    real(rk8), pointer :: h2osno(:)        ! total snow water (col) [kg/m2]
+    real(rk8), pointer :: h2osoi_liq(:,:)  ! liquid water (col,lyr) [kg/m2]
+    real(rk8), pointer :: h2osoi_ice(:,:)  ! ice content (col,lyr) [kg/m2]
 
     ! Urban building HAC fluxes
     ! urban air conditioning flux (W/m**2)
-    real(rkx), pointer :: eflx_urban_ac(:)
+    real(rk8), pointer :: eflx_urban_ac(:)
     ! urban heating flux (W/m**2)
-    real(rkx), pointer :: eflx_urban_heat(:)
+    real(rk8), pointer :: eflx_urban_heat(:)
 
     integer(ik4)  :: j,c,p,l,g,pi   !  indices
     integer(ik4)  :: fc             ! lake filtered column indices
     integer(ik4)  :: fl             ! urban filtered landunit indices
     integer(ik4)  :: jtop(lbc:ubc)  ! top level at each column
     ! "a" vector for tridiagonal matrix
-    real(rkx) :: at (lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: at (lbc:ubc,-nlevsno+1:nlevgrnd)
     ! "b" vector for tridiagonal matrix
-    real(rkx) :: bt (lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: bt (lbc:ubc,-nlevsno+1:nlevgrnd)
     ! "c" vector for tridiagonal matrix
-    real(rkx) :: ct (lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: ct (lbc:ubc,-nlevsno+1:nlevgrnd)
     ! "r" vector for tridiagonal solution
-    real(rkx) :: rt (lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: rt (lbc:ubc,-nlevsno+1:nlevgrnd)
     ! heat capacity [J/(m2 K)]
-    real(rkx) :: cv (lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: cv (lbc:ubc,-nlevsno+1:nlevgrnd)
     ! thermal conductivity [W/(m K)]
-    real(rkx) :: tk (lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: tk (lbc:ubc,-nlevsno+1:nlevgrnd)
     ! heat diffusion through the layer interface [W/m2]
-    real(rkx) :: fn (lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: fn (lbc:ubc,-nlevsno+1:nlevgrnd)
     ! heat diffusion through the layer interface [W/m2]
-    real(rkx) :: fn1(lbc:ubc,-nlevsno+1:nlevgrnd)
-    real(rkx) :: dzm   ! used in computing tridiagonal matrix
-    real(rkx) :: dzp   ! used in computing tridiagonal matrix
-    real(rkx) :: hs(lbc:ubc)  ! net energy flux into the surface (w/m2)
-    real(rkx), pointer :: dhsdT(:) ! d(hs)/dT
-    real(rkx) :: lwrad_emit(lbc:ubc) ! emitted longwave radiation
+    real(rk8) :: fn1(lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: dzm   ! used in computing tridiagonal matrix
+    real(rk8) :: dzp   ! used in computing tridiagonal matrix
+    real(rk8) :: hs(lbc:ubc)  ! net energy flux into the surface (w/m2)
+    real(rk8), pointer :: dhsdT(:) ! d(hs)/dT
+    real(rk8) :: lwrad_emit(lbc:ubc) ! emitted longwave radiation
     ! time derivative of emitted longwave radiation
-    real(rkx) :: dlwrad_emit(lbc:ubc)
+    real(rk8) :: dlwrad_emit(lbc:ubc)
     ! index of top layer of snowpack (-4 to 0) [idx]
     integer(ik4)  :: lyr_top
     ! absorbed solar radiation (col,lyr) [W/m2]
-    real(rkx) :: sabg_lyr_col(lbc:ubc,-nlevsno+1:1)
+    real(rk8) :: sabg_lyr_col(lbc:ubc,-nlevsno+1:1)
     ! net energy flux into surface layer, pft-level [W/m2]
-    real(rkx) :: eflx_gnet_top
+    real(rk8) :: eflx_gnet_top
     ! net energy flux into surface layer (col) [W/m2]
-    real(rkx) :: hs_top(lbc:ubc)
+    real(rk8) :: hs_top(lbc:ubc)
     ! is urban air conditioning on?
     logical  :: cool_on(lbl:ubl)
     ! is urban heating on?
     logical  :: heat_on(lbl:ubl)
-    real(rkx), pointer :: tk_h2osfc(:)
-    real(rkx) :: fn_h2osfc(lbc:ubc)
-    real(rkx) :: fn1_h2osfc(lbc:ubc)
-    real(rkx) :: dz_h2osfc(lbc:ubc)
+    real(rk8), pointer :: tk_h2osfc(:)
+    real(rk8) :: fn_h2osfc(lbc:ubc)
+    real(rk8) :: fn1_h2osfc(lbc:ubc)
+    real(rk8) :: dz_h2osfc(lbc:ubc)
     integer(ik4), parameter :: nband=5
-    real(rkx),pointer :: bmatrix(:,:,:)
-    real(rkx),pointer :: tvector(:,:)
-    real(rkx),pointer :: rvector(:,:)
-    real(rkx),dimension(lbc:ubc) :: hs_snow
-    real(rkx),dimension(lbc:ubc) :: hs_soil
-    real(rkx),dimension(lbc:ubc) :: hs_top_snow
-    real(rkx),dimension(lbc:ubc) :: hs_top_soil
-    real(rkx),dimension(lbc:ubc) :: hs_h2osfc
-    real(rkx),dimension(lbc:ubc)  :: lwrad_emit_snow
-    real(rkx),dimension(lbc:ubc)  :: lwrad_emit_soil
-    real(rkx),dimension(lbc:ubc)  :: lwrad_emit_h2osfc
-    real(rkx) :: eflx_gnet_snow
-    real(rkx) :: eflx_gnet_soil
-    real(rkx) :: eflx_gnet_h2osfc
+    real(rk8),pointer :: bmatrix(:,:,:)
+    real(rk8),pointer :: tvector(:,:)
+    real(rk8),pointer :: rvector(:,:)
+    real(rk8),dimension(lbc:ubc) :: hs_snow
+    real(rk8),dimension(lbc:ubc) :: hs_soil
+    real(rk8),dimension(lbc:ubc) :: hs_top_snow
+    real(rk8),dimension(lbc:ubc) :: hs_top_soil
+    real(rk8),dimension(lbc:ubc) :: hs_h2osfc
+    real(rk8),dimension(lbc:ubc)  :: lwrad_emit_snow
+    real(rk8),dimension(lbc:ubc)  :: lwrad_emit_soil
+    real(rk8),dimension(lbc:ubc)  :: lwrad_emit_h2osfc
+    real(rk8) :: eflx_gnet_snow
+    real(rk8) :: eflx_gnet_soil
+    real(rk8) :: eflx_gnet_h2osfc
     integer(ik4)  :: jbot(lbc:ubc) ! bottom level at each column
 
     ! Assign local pointers to derived subtypes components (gridcell-level)
@@ -366,18 +366,18 @@ module mod_clm_soiltemperature
     do fc = 1,num_nolakec
       c = filter_nolakec(fc)
       lwrad_emit(c)  = emg(c) * sb * t_grnd(c)**4
-      dlwrad_emit(c) = 4._rkx*emg(c) * sb * t_grnd(c)**3
+      dlwrad_emit(c) = 4._rk8*emg(c) * sb * t_grnd(c)**3
       ! fractionate lwrad_emit; balanced in CanopyFluxes & Biogeophysics2
       lwrad_emit_snow(c)    = emg(c) * sb * t_soisno(c,snl(c)+1)**4
       lwrad_emit_soil(c)    = emg(c) * sb * t_soisno(c,1)**4
       lwrad_emit_h2osfc(c)  = emg(c) * sb * t_h2osfc(c)**4
     end do
 
-    hs_snow(lbc:ubc)   = 0._rkx
-    hs_soil(lbc:ubc)   = 0._rkx
-    hs_h2osfc(lbc:ubc) = 0._rkx
-    hs(lbc:ubc)        = 0._rkx
-    dhsdT(lbc:ubc)     = 0._rkx
+    hs_snow(lbc:ubc)   = 0._rk8
+    hs_soil(lbc:ubc)   = 0._rk8
+    hs_h2osfc(lbc:ubc) = 0._rk8
+    hs(lbc:ubc)        = 0._rk8
+    dhsdT(lbc:ubc)     = 0._rk8
     do pi = 1,max_pft_per_col
       do fc = 1,num_nolakec
         c = filter_nolakec(fc)
@@ -395,20 +395,20 @@ module mod_clm_soiltemperature
               ! save sabg for balancecheck, in case frac_sno is set
               ! to zero later
               sabg_chk(p) = frac_sno_eff(c) * sabg_snow(p) + &
-                (1._rkx - frac_sno_eff(c) ) * sabg_soil(p)
+                (1._rk8 - frac_sno_eff(c) ) * sabg_soil(p)
 
               eflx_gnet_snow = sabg_snow(p) + dlrad(p) + &
-                      real(1-frac_veg_nosno(p),rkx)*emg(c)*forc_lwrad(g) - &
+                      real(1-frac_veg_nosno(p),rk8)*emg(c)*forc_lwrad(g) - &
                       lwrad_emit_snow(c) - &
                       (eflx_sh_snow(p)+qflx_ev_snow(p)*htvp(c))
 
               eflx_gnet_soil = sabg_soil(p) + dlrad(p) + &
-                      real(1-frac_veg_nosno(p),rkx)*emg(c)*forc_lwrad(g) - &
+                      real(1-frac_veg_nosno(p),rk8)*emg(c)*forc_lwrad(g) - &
                       lwrad_emit_soil(c) - &
                       (eflx_sh_soil(p)+qflx_ev_soil(p)*htvp(c))
 
               eflx_gnet_h2osfc = sabg_soil(p) + dlrad(p) + &
-                      real(1-frac_veg_nosno(p),rkx)*emg(c)*forc_lwrad(g) - &
+                      real(1-frac_veg_nosno(p),rk8)*emg(c)*forc_lwrad(g) - &
                       lwrad_emit_h2osfc(c) - &
                       (eflx_sh_h2osfc(p)+qflx_ev_h2osfc(p)*htvp(c))
             else
@@ -418,14 +418,14 @@ module mod_clm_soiltemperature
               if (ctype(c) == icol_road_perv .or. &
                   ctype(c) == icol_road_imperv) then
                 eflx_wasteheat_pft(p) = eflx_wasteheat(l) / &
-                                     (1._rkx-wtlunit_roof(l))
+                                     (1._rk8-wtlunit_roof(l))
                 eflx_heat_from_ac_pft(p) = eflx_heat_from_ac(l) / &
-                                     (1._rkx-wtlunit_roof(l))
-                eflx_traffic_pft(p) = eflx_traffic(l)/(1._rkx-wtlunit_roof(l))
+                                     (1._rk8-wtlunit_roof(l))
+                eflx_traffic_pft(p) = eflx_traffic(l)/(1._rk8-wtlunit_roof(l))
               else
-                eflx_wasteheat_pft(p) = 0._rkx
-                eflx_heat_from_ac_pft(p) = 0._rkx
-                eflx_traffic_pft(p) = 0._rkx
+                eflx_wasteheat_pft(p) = 0._rk8
+                eflx_heat_from_ac_pft(p) = 0._rk8
+                eflx_traffic_pft(p) = 0._rk8
               end if
               ! Include transpiration term because needed for previous road
               ! and include wasteheat and traffic flux
@@ -461,10 +461,10 @@ module mod_clm_soiltemperature
     ! to each layer
 
     ! Initialize:
-    sabg_lyr_col(lbc:ubc,-nlevsno+1:1) = 0._rkx
-    hs_top(lbc:ubc)      = 0._rkx
-    hs_top_snow(lbc:ubc) = 0._rkx
-    hs_top_soil(lbc:ubc) = 0._rkx
+    sabg_lyr_col(lbc:ubc,-nlevsno+1:1) = 0._rk8
+    hs_top(lbc:ubc)      = 0._rk8
+    hs_top_snow(lbc:ubc) = 0._rk8
+    hs_top_soil(lbc:ubc) = 0._rk8
 
     do pi = 1 , max_pft_per_col
       do fc = 1 , num_nolakec
@@ -477,17 +477,17 @@ module mod_clm_soiltemperature
             l = plandunit(p)
             if (ltype(l) /= isturb ) then
               eflx_gnet_top = sabg_lyr(p,lyr_top) + dlrad(p) + &
-                real(1-frac_veg_nosno(p),rkx)*emg(c)*forc_lwrad(g) - &
+                real(1-frac_veg_nosno(p),rk8)*emg(c)*forc_lwrad(g) - &
                 lwrad_emit(c) - (eflx_sh_grnd(p)+qflx_evap_soi(p)*htvp(c))
 
               hs_top(c) = hs_top(c) + eflx_gnet_top*pwtcol(p)
 
               eflx_gnet_snow = sabg_lyr(p,lyr_top) + dlrad(p) + &
-                real(1-frac_veg_nosno(p),rkx)*emg(c)*forc_lwrad(g) - &
+                real(1-frac_veg_nosno(p),rk8)*emg(c)*forc_lwrad(g) - &
                 lwrad_emit_snow(c) - (eflx_sh_snow(p)+qflx_ev_snow(p)*htvp(c))
 
               eflx_gnet_soil = sabg_lyr(p,lyr_top) + dlrad(p) + &
-                real(1-frac_veg_nosno(p),rkx)*emg(c)*forc_lwrad(g) - &
+                real(1-frac_veg_nosno(p),rk8)*emg(c)*forc_lwrad(g) - &
                 lwrad_emit_soil(c) - (eflx_sh_soil(p)+qflx_ev_soil(p)*htvp(c))
 
               hs_top_snow(c) = hs_top_snow(c) + eflx_gnet_snow*pwtcol(p)
@@ -567,7 +567,7 @@ module mod_clm_soiltemperature
           if (j >= snl(c)+1) then
             if (j == snl(c)+1) then
               fact(c,j) = dtsrf/cv(c,j) * dz(c,j) / &
-                (0.5_rkx*(z(c,j)-zi(c,j-1)+capr*(z(c,j+1)-zi(c,j-1))))
+                (0.5_rk8*(z(c,j)-zi(c,j-1)+capr*(z(c,j+1)-zi(c,j-1))))
               fn(c,j) = tk(c,j) * &
                 (t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
             else if (j <= nlevgrnd-1) then
@@ -595,19 +595,19 @@ module mod_clm_soiltemperature
           if (j >= snl(c)+1) then
             if (j == snl(c)+1) then
               dzp = z(c,j+1)-z(c,j)
-              at(c,j) = 0._rkx
-              bt(c,j) = 1.0_rkx+(1._rkx-cnfac)*fact(c,j)*tk(c,j) / &
+              at(c,j) = 0._rk8
+              bt(c,j) = 1.0_rk8+(1._rk8-cnfac)*fact(c,j)*tk(c,j) / &
                          dzp-fact(c,j)*dhsdT(c)
-              ct(c,j) = -(1._rkx-cnfac)*fact(c,j)*tk(c,j)/dzp
+              ct(c,j) = -(1._rk8-cnfac)*fact(c,j)*tk(c,j)/dzp
               ! changed hs to hs_top
               rt(c,j) = t_soisno(c,j) + &
                 fact(c,j)*(hs_top(c) - dhsdT(c)*t_soisno(c,j) + cnfac*fn(c,j) )
             else if (j <= nlevurb-1) then
               dzm = (z(c,j)-z(c,j-1))
               dzp = (z(c,j+1)-z(c,j))
-              at(c,j) = -(1._rkx-cnfac)*fact(c,j)* tk(c,j-1)/dzm
-              bt(c,j) = 1._rkx+(1._rkx-cnfac)*fact(c,j)*(tk(c,j)/dzp+tk(c,j-1)/dzm)
-              ct(c,j) = -(1._rkx-cnfac)*fact(c,j)* tk(c,j)/dzp
+              at(c,j) = -(1._rk8-cnfac)*fact(c,j)* tk(c,j-1)/dzm
+              bt(c,j) = 1._rk8+(1._rk8-cnfac)*fact(c,j)*(tk(c,j)/dzp+tk(c,j-1)/dzm)
+              ct(c,j) = -(1._rk8-cnfac)*fact(c,j)* tk(c,j)/dzp
 
               ! if this is a snow layer or the top soil layer,
               ! add absorbed solar flux to factor 'rt'
@@ -627,9 +627,9 @@ module mod_clm_soiltemperature
               ! (See Oleson urban notes of 6/18/03).
               dzm = ( z(c,j)-z(c,j-1))
               dzp = (zi(c,j)-z(c,j))
-              at(c,j) = - (1._rkx-cnfac)*fact(c,j)*(tk(c,j-1)/dzm)
-              bt(c,j) = 1._rkx+(1._rkx-cnfac)*fact(c,j)*(tk(c,j-1)/dzm+tk(c,j)/dzp)
-              ct(c,j) = 0._rkx
+              at(c,j) = - (1._rk8-cnfac)*fact(c,j)*(tk(c,j-1)/dzm)
+              bt(c,j) = 1._rk8+(1._rk8-cnfac)*fact(c,j)*(tk(c,j-1)/dzm+tk(c,j)/dzp)
+              ct(c,j) = 0._rk8
               rt(c,j) = t_soisno(c,j) + fact(c,j)*( fn(c,j) - cnfac*fn(c,j-1) )
             end if
           end if
@@ -648,41 +648,41 @@ module mod_clm_soiltemperature
           if (j >= snl(c)+1) then
             if (j == snl(c)+1) then
               dzp = z(c,j+1)-z(c,j)
-              at(c,j) = 0._rkx
-              bt(c,j) = 1.0_rkx+(1._rkx-cnfac)*fact(c,j)*tk(c,j) / &
+              at(c,j) = 0._rk8
+              bt(c,j) = 1.0_rk8+(1._rk8-cnfac)*fact(c,j)*tk(c,j) / &
                 dzp-fact(c,j)*dhsdT(c)
-              ct(c,j) = -(1._rkx-cnfac)*fact(c,j)*tk(c,j)/dzp
+              ct(c,j) = -(1._rk8-cnfac)*fact(c,j)*tk(c,j)/dzp
               rt(c,j) = t_soisno(c,j) + fact(c,j)*( hs_top_snow(c) - &
                         dhsdT(c)*t_soisno(c,j) + cnfac*fn(c,j) )
             else if (j == 1) then
               ! this is the snow/soil interface layer
               dzm = (z(c,j)-z(c,j-1))
               dzp = (z(c,j+1)-z(c,j))
-              at(c,j) =  -frac_sno_eff(c) * (1._rkx-cnfac) * fact(c,j) * &
+              at(c,j) =  -frac_sno_eff(c) * (1._rk8-cnfac) * fact(c,j) * &
                          tk(c,j-1)/dzm
-              bt(c,j) = 1._rkx + (1._rkx-cnfac)*fact(c,j)*(tk(c,j)/dzp + &
+              bt(c,j) = 1._rk8 + (1._rk8-cnfac)*fact(c,j)*(tk(c,j)/dzp + &
                         frac_sno_eff(c) * tk(c,j-1)/dzm) - &
-                        (1._rkx - frac_sno_eff(c))*fact(c,j)*dhsdT(c)
-              ct(c,j) = -(1._rkx-cnfac)*fact(c,j)*tk(c,j)/dzp
+                        (1._rk8 - frac_sno_eff(c))*fact(c,j)*dhsdT(c)
+              ct(c,j) = -(1._rk8-cnfac)*fact(c,j)*tk(c,j)/dzp
               rt(c,j) = t_soisno(c,j) + fact(c,j) * &
-                    ((1._rkx-frac_sno_eff(c)) * &
+                    ((1._rk8-frac_sno_eff(c)) * &
                     (hs_soil(c) - dhsdT(c)*t_soisno(c,j)) + &
                      cnfac*(fn(c,j) - frac_sno_eff(c) * fn(c,j-1)))
               rt(c,j) = rt(c,j) + frac_sno_eff(c)*fact(c,j)*sabg_lyr_col(c,j)
             else if (j <= nlevgrnd-1) then
               dzm = (z(c,j)-z(c,j-1))
               dzp = (z(c,j+1)-z(c,j))
-              at(c,j) = -(1._rkx-cnfac)*fact(c,j)* tk(c,j-1)/dzm
-              bt(c,j) = 1._rkx+(1._rkx-cnfac) * &
+              at(c,j) = -(1._rk8-cnfac)*fact(c,j)* tk(c,j-1)/dzm
+              bt(c,j) = 1._rk8+(1._rk8-cnfac) * &
                 fact(c,j)*(tk(c,j)/dzp + tk(c,j-1)/dzm)
-              ct(c,j) =  -(1._rkx-cnfac)*fact(c,j)* tk(c,j)/dzp
+              ct(c,j) =  -(1._rk8-cnfac)*fact(c,j)* tk(c,j)/dzp
               rt(c,j) = t_soisno(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
               if (j < 1) rt(c,j) = rt(c,j) + fact(c,j)*sabg_lyr_col(c,j)
             else if (j == nlevgrnd) then
               dzm = (z(c,j)-z(c,j-1))
-              at(c,j) = -(1._rkx-cnfac)*fact(c,j)*tk(c,j-1)/dzm
-              bt(c,j) = 1._rkx+(1._rkx-cnfac)*fact(c,j)*tk(c,j-1)/dzm
-              ct(c,j) = 0._rkx
+              at(c,j) = -(1._rk8-cnfac)*fact(c,j)*tk(c,j-1)/dzm
+              bt(c,j) = 1._rk8+(1._rk8-cnfac)*fact(c,j)*tk(c,j-1)/dzm
+              ct(c,j) = 0._rk8
               rt(c,j) = t_soisno(c,j) - cnfac*fact(c,j) * &
                 fn(c,j-1) + fact(c,j)*fn(c,j)
             end if
@@ -694,7 +694,7 @@ module mod_clm_soiltemperature
     ! compute thermal properties of h2osfc
     do fc = 1 , num_nolakec
       c = filter_nolakec(fc)
-      dz_h2osfc(c) = max(1.0e-6_rkx,1.0e-3_rkx*h2osfc(c))
+      dz_h2osfc(c) = max(1.0e-6_rk8,1.0e-3_rk8*h2osfc(c))
       !"areametric" heat capacity [J/K/m^2]
       c_h2osfc(c) = cpliq*denh2o*dz_h2osfc(c)
     end do
@@ -736,14 +736,14 @@ module mod_clm_soiltemperature
         tvector(c,j-1) = t_soisno(c,j)
       end do
       ! bottom snow layer has super coef shifted to 2nd super diagonal
-      bmatrix(c,2,-1) = 0.0_rkx
+      bmatrix(c,2,-1) = 0.0_rk8
       bmatrix(c,1,-1) = ct(c,0) !flux to top soil layer
       ! surface water layer has two coefficients
-      dzm = (0.5_rkx*dz_h2osfc(c)+z(c,1))
+      dzm = (0.5_rk8*dz_h2osfc(c)+z(c,1))
       !flux to top soil layer
-      bmatrix(c,2,0)= -(1._rkx-cnfac)*(dtsrf/c_h2osfc(c))*tk_h2osfc(c)/dzm
+      bmatrix(c,2,0)= -(1._rk8-cnfac)*(dtsrf/c_h2osfc(c))*tk_h2osfc(c)/dzm
       !interaction from atm
-      bmatrix(c,3,0)= 1.0_rkx+(1._rkx-cnfac)*(dtsrf/c_h2osfc(c)) * &
+      bmatrix(c,3,0)= 1.0_rk8+(1._rk8-cnfac)*(dtsrf/c_h2osfc(c)) * &
             tk_h2osfc(c)/dzm -(dtsrf/c_h2osfc(c))*dhsdT(c)
       fn_h2osfc(c) = tk_h2osfc(c)*(t_soisno(c,1)-t_h2osfc(c))/dzm
       !rhs for h2osfc
@@ -755,22 +755,22 @@ module mod_clm_soiltemperature
       bmatrix(c,3,1:nlevgrnd) = bt(c,1:nlevgrnd)
       bmatrix(c,4,1:nlevgrnd) = at(c,1:nlevgrnd)
       ! top soil layer has sub coef shifted to 2nd super diagonal
-      if ( frac_h2osfc(c) /= 0.0_rkx )then
+      if ( frac_h2osfc(c) /= 0.0_rk8 )then
         !flux from h2osfc
-        bmatrix(c,4,1)=  -frac_h2osfc(c) * (1._rkx-cnfac) * fact(c,1) * &
+        bmatrix(c,4,1)=  -frac_h2osfc(c) * (1._rk8-cnfac) * fact(c,1) * &
                 tk_h2osfc(c)/dzm
       else
-        bmatrix(c,4,1) = 0.0_rkx
+        bmatrix(c,4,1) = 0.0_rk8
       end if
       bmatrix(c,5,1) = at(c,1)
       ! diagonal element correction for presence of h2osfc
-      if ( frac_h2osfc(c) /= 0.0_rkx )then
+      if ( frac_h2osfc(c) /= 0.0_rk8 )then
         bmatrix(c,3,1) = bmatrix(c,3,1)+ frac_h2osfc(c) * &
-              ((1._rkx-cnfac)*fact(c,1)*tk_h2osfc(c)/dzm + fact(c,1)*dhsdT(c))
+              ((1._rk8-cnfac)*fact(c,1)*tk_h2osfc(c)/dzm + fact(c,1)*dhsdT(c))
       end if
       rvector(c,1:nlevgrnd) = rt(c,1:nlevgrnd)
       ! rhs correction for h2osfc
-      if ( frac_h2osfc(c) /= 0.0_rkx )then
+      if ( frac_h2osfc(c) /= 0.0_rk8 )then
         rvector(c,1) = rvector(c,1) - frac_h2osfc(c)*fact(c,1) * &
           ((hs_soil(c) - dhsdT(c)*t_soisno(c,1))+cnfac*fn_h2osfc(c))
       end if
@@ -787,7 +787,7 @@ module mod_clm_soiltemperature
         t_soisno(c,j) = tvector(c,j-1) !snow layers
       end do
       t_soisno(c,1:nlevgrnd) = tvector(c,1:nlevgrnd)  !soil layers
-      if ( frac_h2osfc(c) == 0._rkx ) then
+      if ( frac_h2osfc(c) == 0._rk8 ) then
         t_h2osfc(c) = t_soisno(c,1)
       else
         t_h2osfc(c) = tvector(c,0)           !surface water
@@ -832,7 +832,7 @@ module mod_clm_soiltemperature
               fn1(c,j) = tk(c,j) * &
                 (t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
             else if (j == nlevgrnd) then
-              fn1(c,j) = 0._rkx
+              fn1(c,j) = 0._rk8
             end if
           end if
         end if
@@ -844,16 +844,16 @@ module mod_clm_soiltemperature
       l = clandunit(c)
       if (ltype(l) == isturb) then
         eflx_building_heat(c) = cnfac*fn(c,nlevurb) + &
-           (1.0_rkx-cnfac)*fn1(c,nlevurb)
+           (1.0_rk8-cnfac)*fn1(c,nlevurb)
         if (cool_on(l)) then
           eflx_urban_ac(c) = abs(eflx_building_heat(c))
-          eflx_urban_heat(c) = 0._rkx
+          eflx_urban_heat(c) = 0._rk8
         else if (heat_on(l)) then
-          eflx_urban_ac(c) = 0._rkx
+          eflx_urban_ac(c) = 0._rk8
           eflx_urban_heat(c) = abs(eflx_building_heat(c))
         else
-          eflx_urban_ac(c) = 0._rkx
-          eflx_urban_heat(c) = 0._rkx
+          eflx_urban_ac(c) = 0._rk8
+          eflx_urban_heat(c) = 0._rk8
         end if
       end if
     end do
@@ -861,11 +861,11 @@ module mod_clm_soiltemperature
     ! compute terms needed for phase change of h2osfc
     do fc = 1,num_nolakec
       c = filter_nolakec(fc)
-      dzp = (0.5_rkx*dz_h2osfc(c)+z(c,1))
+      dzp = (0.5_rk8*dz_h2osfc(c)+z(c,1))
       fn1_h2osfc(c)=tk_h2osfc(c)*(t_soisno(c,1)-t_h2osfc(c))/dzp
     end do
 
-    xmf_h2osfc = 0.0_rkx
+    xmf_h2osfc = 0.0_rk8
     ! compute phase change of h2osfc
     call PhaseChangeH2osfc (lbc, ubc, num_nolakec, &
       filter_nolakec, fact, dhsdT, c_h2osfc, xmf_h2osfc)
@@ -877,16 +877,16 @@ module mod_clm_soiltemperature
       c = filter_nolakec(fc)
       ! this expression will (should) work whether there is snow or not
       if (snl(c) < 0) then
-        if ( frac_h2osfc(c) /= 0._rkx ) then
+        if ( frac_h2osfc(c) /= 0._rk8 ) then
           t_grnd(c) = frac_sno_eff(c) * t_soisno(c,snl(c)+1) + &
-               (1.0_rkx - frac_sno_eff(c) - frac_h2osfc(c)) * t_soisno(c,1) + &
+               (1.0_rk8 - frac_sno_eff(c) - frac_h2osfc(c)) * t_soisno(c,1) + &
                 frac_h2osfc(c) * t_h2osfc(c)
         else
           t_grnd(c) = frac_sno_eff(c) * t_soisno(c,snl(c)+1) + &
-               (1.0_rkx - frac_sno_eff(c)) * t_soisno(c,1)
+               (1.0_rk8 - frac_sno_eff(c)) * t_soisno(c,1)
         end if
       else
-        if ( frac_h2osfc(c) /= 0._rkx ) then
+        if ( frac_h2osfc(c) /= 0._rk8 ) then
           t_grnd(c) = (1 - frac_h2osfc(c)) * t_soisno(c,1) + &
             frac_h2osfc(c) * t_h2osfc(c)
         else
@@ -900,10 +900,10 @@ module mod_clm_soiltemperature
       c = filter_nolakec(fc)
       l = clandunit(c)
       if (ltype(l) /= isturb) then
-        hc_soisno(c) = 0._rkx
-        hc_soi(c)    = 0._rkx
+        hc_soisno(c) = 0._rk8
+        hc_soi(c)    = 0._rk8
       end if
-      eflx_fgr12(c)= 0._rkx
+      eflx_fgr12(c)= 0._rk8
     end do
 
     ! Calculate soil heat content and soil plus snow heat content
@@ -912,21 +912,21 @@ module mod_clm_soiltemperature
         c = filter_nolakec(fc)
         l = clandunit(c)
         if (j == 1) then ! this only needs to be done once
-          eflx_fgr12(c) = -cnfac*fn(c,1) - (1._rkx-cnfac)*fn1(c,1)
+          eflx_fgr12(c) = -cnfac*fn(c,1) - (1._rk8-cnfac)*fn1(c,1)
         end if
         if (j > 0 .and. j < nlevgrnd .and. &
             (ltype(l) == istsoil .or. ltype(l) == istcrop)) then
-          eflx_fgr(c,j) = -cnfac*fn(c,j) - (1._rkx-cnfac)*fn1(c,j)
+          eflx_fgr(c,j) = -cnfac*fn(c,j) - (1._rk8-cnfac)*fn1(c,j)
         else if (j == nlevgrnd .and. &
             (ltype(l) == istsoil .or. ltype(l) == istcrop)) then
-          eflx_fgr(c,j) = 0._rkx
+          eflx_fgr(c,j) = 0._rk8
         end if
         if (ltype(l) /= isturb) then
           if (j >= snl(c)+1) then
-            hc_soisno(c) = hc_soisno(c) + cv(c,j)*t_soisno(c,j) / 1.e6_rkx
+            hc_soisno(c) = hc_soisno(c) + cv(c,j)*t_soisno(c,j) / 1.e6_rk8
           end if
           if (j >= 1) then
-            hc_soi(c) = hc_soi(c) + cv(c,j)*t_soisno(c,j) / 1.e6_rkx
+            hc_soi(c) = hc_soi(c) + cv(c,j)*t_soisno(c,j) / 1.e6_rk8
           end if
         end if
       end do
@@ -957,58 +957,58 @@ module mod_clm_soiltemperature
     ! column filter for non-lake points
     integer(ik4) , intent(in)  :: filter_nolakec(ubc-lbc+1)
     ! heat capacity [J/(m2 K)]
-    real(rkx), intent(out) :: cv(lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8), intent(out) :: cv(lbc:ubc,-nlevsno+1:nlevgrnd)
     ! thermal conductivity [W/(m K)]
-    real(rkx), intent(out) :: tk(lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8), intent(out) :: tk(lbc:ubc,-nlevsno+1:nlevgrnd)
     ! thermal conductivity of h2osfc [W/(m K)]
-    real(rkx), intent(out) :: tk_h2osfc(lbc:ubc)
+    real(rk8), intent(out) :: tk_h2osfc(lbc:ubc)
 
-    real(rkx), pointer :: h2osfc(:)    ! surface (mm H2O)
-    real(rkx), pointer :: frac_sno(:)  ! fractional snow covered area
+    real(rk8), pointer :: h2osfc(:)    ! surface (mm H2O)
+    real(rk8), pointer :: frac_sno(:)  ! fractional snow covered area
     integer(ik4) , pointer :: ctype(:)     ! column type
     integer(ik4) , pointer :: clandunit(:) ! column's landunit
     integer(ik4) , pointer :: ltype(:)     ! landunit type
     integer(ik4) , pointer :: snl(:)       ! number of snow layers
-    real(rkx), pointer :: h2osno(:)        ! snow water (mm H2O)
+    real(rk8), pointer :: h2osno(:)        ! snow water (mm H2O)
 
     ! volumetric soil water at saturation (porosity)
-    real(rkx), pointer :: watsat(:,:)
+    real(rk8), pointer :: watsat(:,:)
     ! thermal conductivity, saturated soil [W/m-K]
-    real(rkx), pointer :: tksatu(:,:)
+    real(rk8), pointer :: tksatu(:,:)
     ! thermal conductivity, soil minerals  [W/m-K]
-    real(rkx), pointer :: tkmg(:,:)
+    real(rk8), pointer :: tkmg(:,:)
     ! thermal conductivity, dry soil (W/m/Kelvin)
-    real(rkx), pointer :: tkdry(:,:)
+    real(rk8), pointer :: tkdry(:,:)
     ! heat capacity, soil solids (J/m**3/Kelvin)
-    real(rkx), pointer :: csol(:,:)
-    real(rkx), pointer :: dz(:,:)    ! layer depth (m)
-    real(rkx), pointer :: zi(:,:)    ! interface level below a "z" level (m)
-    real(rkx), pointer :: z(:,:)     ! layer thickness (m)
-    real(rkx), pointer :: t_soisno(:,:)    ! soil temperature (Kelvin)
-    real(rkx), pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
-    real(rkx), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
-    real(rkx), pointer :: tk_wall(:,:)     ! thermal conductivity of urban wall
-    real(rkx), pointer :: tk_roof(:,:)     ! thermal conductivity of urban roof
+    real(rk8), pointer :: csol(:,:)
+    real(rk8), pointer :: dz(:,:)    ! layer depth (m)
+    real(rk8), pointer :: zi(:,:)    ! interface level below a "z" level (m)
+    real(rk8), pointer :: z(:,:)     ! layer thickness (m)
+    real(rk8), pointer :: t_soisno(:,:)    ! soil temperature (Kelvin)
+    real(rk8), pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
+    real(rk8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
+    real(rk8), pointer :: tk_wall(:,:)     ! thermal conductivity of urban wall
+    real(rk8), pointer :: tk_roof(:,:)     ! thermal conductivity of urban roof
     ! thermal conductivity of urban impervious road
-    real(rkx), pointer :: tk_improad(:,:)
-    real(rkx), pointer :: cv_wall(:,:)     ! thermal conductivity of urban wall
-    real(rkx), pointer :: cv_roof(:,:)     ! thermal conductivity of urban roof
+    real(rk8), pointer :: tk_improad(:,:)
+    real(rk8), pointer :: cv_wall(:,:)     ! thermal conductivity of urban wall
+    real(rk8), pointer :: cv_roof(:,:)     ! thermal conductivity of urban roof
     ! thermal conductivity of urban impervious road
-    real(rkx), pointer :: cv_improad(:,:)
+    real(rk8), pointer :: cv_improad(:,:)
     ! number of impervious road layers
     integer(ik4),  pointer :: nlev_improad(:)
 
     integer(ik4)  :: l,c,j  ! indices
     integer(ik4)  :: fc     ! lake filtered column indices
-    real(rkx) :: bw       ! partial density of water (ice + liquid)
-    real(rkx) :: dksat    ! thermal conductivity for saturated soil (j/(k s m))
-    real(rkx) :: dke      ! kersten number
+    real(rk8) :: bw       ! partial density of water (ice + liquid)
+    real(rk8) :: dksat    ! thermal conductivity for saturated soil (j/(k s m))
+    real(rk8) :: dke      ! kersten number
     ! volume fraction of liquid or unfrozen water to total water
-    real(rkx) :: fl
-    real(rkx) :: satw     ! relative total water content of soil.
+    real(rk8) :: fl
+    real(rk8) :: satw     ! relative total water content of soil.
     ! thermal conductivity of layer
-    real(rkx) :: thk(lbc:ubc,-nlevsno+1:nlevgrnd)
-    real(rkx) :: zh2osfc
+    real(rk8) :: thk(lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: zh2osfc
 
     ! Assign local pointers to derived subtypes components (landunit-level)
 
@@ -1069,10 +1069,10 @@ module mod_clm_soiltemperature
                    ctype(c) /= icol_roof) then
             satw = (h2osoi_liq(c,j)/denh2o + &
               h2osoi_ice(c,j)/denice)/(dz(c,j)*watsat(c,j))
-            satw = min(1._rkx, satw)
-            if (satw > .1e-6_rkx) then
+            satw = min(1._rk8, satw)
+            if (satw > .1e-6_rk8) then
               if (t_soisno(c,j) >= tfrz) then       ! Unfrozen soil
-                dke = max(0._rkx, log10(satw) + 1.0_rkx)
+                dke = max(0._rk8, log10(satw) + 1.0_rk8)
               else                               ! Frozen soil
                 dke = satw
               end if
@@ -1080,8 +1080,8 @@ module mod_clm_soiltemperature
                     (h2osoi_liq(c,j)/(denh2o*dz(c,j)) + &
                      h2osoi_ice(c,j)/(denice*dz(c,j)))
               dksat = tkmg(c,j)*tkwat**(fl*watsat(c,j))* &
-                      tkice**((1._rkx-fl)*watsat(c,j))
-              thk(c,j) = dke*dksat + (1._rkx-dke)*tkdry(c,j)
+                      tkice**((1._rk8-fl)*watsat(c,j))
+              thk(c,j) = dke*dksat + (1._rk8-dke)*tkdry(c,j)
             else
               thk(c,j) = tkdry(c,j)
             end if
@@ -1103,7 +1103,7 @@ module mod_clm_soiltemperature
         ! Only examine levels from snl(c)+1 -> 0 where snl(c) < 1
         if (snl(c)+1 < 1 .AND. (j >= snl(c)+1) .AND. (j <= 0)) then
           bw = (h2osoi_ice(c,j)+h2osoi_liq(c,j))/(frac_sno(c)*dz(c,j))
-          thk(c,j) = tkair + (7.75e-5_rkx *bw + 1.105e-6_rkx*bw*bw)*(tkice-tkair)
+          thk(c,j) = tkair + (7.75e-5_rk8 *bw + 1.105e-6_rk8*bw*bw)*(tkice-tkair)
         end if
       end do
     end do
@@ -1134,7 +1134,7 @@ module mod_clm_soiltemperature
             tk(c,j) = thk(c,j)*thk(c,j+1)*(z(c,j+1)-z(c,j)) / &
                     (thk(c,j)*(z(c,j+1)-zi(c,j))+thk(c,j+1)*(zi(c,j)-z(c,j)))
           else if (j == nlevgrnd) then
-            tk(c,j) = 0._rkx
+            tk(c,j) = 0._rk8
           end if
         end if
       end do
@@ -1143,7 +1143,7 @@ module mod_clm_soiltemperature
     ! calculate thermal conductivity of h2osfc
     do fc = 1, num_nolakec
       c = filter_nolakec(fc)
-      zh2osfc = 1.0e-3_rkx*(0.5_rkx*h2osfc(c)) !convert to [m] from [mm]
+      zh2osfc = 1.0e-3_rk8*(0.5_rk8*h2osfc(c)) !convert to [m] from [mm]
       tk_h2osfc(c)= tkwat*thk(c,1)*(z(c,1)+zh2osfc) / &
                     (tkwat*z(c,1)+thk(c,1)*zh2osfc)
     end do
@@ -1179,7 +1179,7 @@ module mod_clm_soiltemperature
           cv(c,j) = (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
         end if
         if (j == 1) then
-          if (snl(c)+1 == 1 .AND. h2osno(c) > 0._rkx) then
+          if (snl(c)+1 == 1 .AND. h2osno(c) > 0._rk8) then
             cv(c,j) = cv(c,j) + cpice*h2osno(c)
           end if
         end if
@@ -1209,47 +1209,47 @@ module mod_clm_soiltemperature
     integer(ik4) , intent(in) :: num_nolakec
     ! column filter for non-lake points
     integer(ik4) , intent(in) :: filter_nolakec(ubc-lbc+1)
-    real(rkx), intent(inout) :: fact(lbc:ubc, -nlevsno+1:nlevgrnd) ! temporary
+    real(rk8), intent(inout) :: fact(lbc:ubc, -nlevsno+1:nlevgrnd) ! temporary
     ! temperature derivative of "hs"
-    real(rkx), intent(in) :: dhsdT(lbc:ubc)
+    real(rk8), intent(in) :: dhsdT(lbc:ubc)
     ! heat capacity of surface water
-    real(rkx), intent(in) :: c_h2osfc(lbc:ubc)
+    real(rk8), intent(in) :: c_h2osfc(lbc:ubc)
     ! latent heat of phase change of surface water
-    real(rkx), intent(out) :: xmf_h2osfc(lbc:ubc)
+    real(rk8), intent(out) :: xmf_h2osfc(lbc:ubc)
 
-    real(rkx), pointer :: qflx_h2osfc_to_ice(:) ! conversion of h2osfc to ice
+    real(rk8), pointer :: qflx_h2osfc_to_ice(:) ! conversion of h2osfc to ice
     ! fraction of ground covered by snow (0 to 1)
-    real(rkx), pointer :: frac_sno(:)
+    real(rk8), pointer :: frac_sno(:)
     ! fraction of ground covered by surface water (0 to 1)
-    real(rkx), pointer :: frac_h2osfc(:)
-    real(rkx), pointer :: t_h2osfc(:)     ! surface water temperature
-    real(rkx), pointer :: t_h2osfc_bef(:) ! saved surface water temperature
-    real(rkx), pointer :: h2osfc(:)       ! surface water (mm)
-    real(rkx), pointer :: int_snow(:)     ! integrated snowfall [mm]
+    real(rk8), pointer :: frac_h2osfc(:)
+    real(rk8), pointer :: t_h2osfc(:)     ! surface water temperature
+    real(rk8), pointer :: t_h2osfc_bef(:) ! saved surface water temperature
+    real(rk8), pointer :: h2osfc(:)       ! surface water (mm)
+    real(rk8), pointer :: int_snow(:)     ! integrated snowfall [mm]
     integer(ik4) , pointer :: snl(:)      ! number of snow layers
-    real(rkx), pointer :: h2osno(:)       ! snow water (mm H2O)
+    real(rk8), pointer :: h2osno(:)       ! snow water (mm H2O)
 
-    real(rkx), pointer :: snow_depth(:)   !snow height (m)
+    real(rk8), pointer :: snow_depth(:)   !snow height (m)
 
-    real(rkx), pointer :: h2osoi_ice(:,:) !ice lens (kg/m2) (new)
-    real(rkx), pointer :: tssbef(:,:)  !temperature at previous time step [K]
-    real(rkx), pointer :: dz(:,:)      !layer thickness (m)
+    real(rk8), pointer :: h2osoi_ice(:,:) !ice lens (kg/m2) (new)
+    real(rk8), pointer :: tssbef(:,:)  !temperature at previous time step [K]
+    real(rk8), pointer :: dz(:,:)      !layer thickness (m)
 
-    real(rkx), pointer :: t_soisno(:,:)   !soil temperature (Kelvin)
+    real(rk8), pointer :: t_soisno(:,:)   !soil temperature (Kelvin)
 
     integer(ik4)  :: c   !do loop index
     integer(ik4)  :: fc  !lake filtered column indices
-    real(rkx) :: temp1   !temporary variables [kg/m2]
-    real(rkx) :: hm(lbc:ubc) !energy residual [W/m2]
-    real(rkx) :: xm(lbc:ubc) !melting or freezing within a time step [kg/m2]
-    real(rkx) :: tinc        !t(n+1)-t(n) (K)
-    real(rkx) :: rho_avg
-    real(rkx) :: z_avg
-    real(rkx) :: dcv(lbc:ubc)
-    real(rkx) :: t_h2osfc_new
-    real(rkx) :: c1
-    real(rkx) :: c2
-    real(rkx) :: c_h2osfc_ice
+    real(rk8) :: temp1   !temporary variables [kg/m2]
+    real(rk8) :: hm(lbc:ubc) !energy residual [W/m2]
+    real(rk8) :: xm(lbc:ubc) !melting or freezing within a time step [kg/m2]
+    real(rk8) :: tinc        !t(n+1)-t(n) (K)
+    real(rk8) :: rho_avg
+    real(rk8) :: z_avg
+    real(rk8) :: dcv(lbc:ubc)
+    real(rk8) :: t_h2osfc_new
+    real(rk8) :: c1
+    real(rk8) :: c2
+    real(rk8) :: c_h2osfc_ice
 
     ! Assign local pointers to derived subtypes components (column-level)
 
@@ -1272,17 +1272,17 @@ module mod_clm_soiltemperature
 
     do fc = 1,num_nolakec
       c = filter_nolakec(fc)
-      xmf_h2osfc(c) = 0._rkx
-      hm(c) = 0._rkx
-      xm(c) = 0._rkx
-      qflx_h2osfc_to_ice(c) = 0._rkx
+      xmf_h2osfc(c) = 0._rk8
+      hm(c) = 0._rk8
+      xm(c) = 0._rk8
+      qflx_h2osfc_to_ice(c) = 0._rk8
     end do
 
     ! Freezing identification
     do fc = 1,num_nolakec
       c = filter_nolakec(fc)
       ! If liquid exists below melt point, freeze some to ice.
-      if ( frac_h2osfc(c) > 0._rkx .AND. t_h2osfc(c) <= tfrz) then
+      if ( frac_h2osfc(c) > 0._rk8 .AND. t_h2osfc(c) <= tfrz) then
         tinc = t_h2osfc(c)-tfrz
         t_h2osfc(c) = tfrz
         ! energy absorbed beyond freezing temperature
@@ -1296,13 +1296,13 @@ module mod_clm_soiltemperature
         dcv(c) = cpice*min(xm(c),h2osfc(c))
 
         z_avg = frac_sno(c)*snow_depth(c)
-        if (z_avg > 0._rkx) then
-          rho_avg = min(800._rkx,h2osno(c)/z_avg)
+        if (z_avg > 0._rk8) then
+          rho_avg = min(800._rk8,h2osno(c)/z_avg)
         else
-          rho_avg = 200._rkx
+          rho_avg = 200._rk8
         end if
         ! xm < h2osfc
-        if ( temp1 >= 0._rkx ) then ! add some frozen water to snow column
+        if ( temp1 >= 0._rk8 ) then ! add some frozen water to snow column
           ! add ice to snow column
           h2osno(c) = h2osno(c) + xm(c)
           int_snow(c) = int_snow(c) + xm(c)
@@ -1336,7 +1336,7 @@ module mod_clm_soiltemperature
           if ( snl(c) < 0 ) h2osoi_ice(c,0) = h2osoi_ice(c,0) + h2osfc(c)
 
           ! compute heat capacity of frozen h2osfc layer
-          c_h2osfc_ice = cpice*denice*(1.0e-3_rkx*h2osfc(c)) !h2osfc in [m]
+          c_h2osfc_ice = cpice*denice*(1.0e-3_rk8*h2osfc(c)) !h2osfc in [m]
 
           ! cool frozen h2osfc layer with extra heat
           t_h2osfc_new = t_h2osfc(c) - &
@@ -1348,10 +1348,10 @@ module mod_clm_soiltemperature
             t_soisno(c,0) = t_h2osfc_new
           else if ( snl(c) == -1 ) then
             c1 = frac_sno(c)/fact(c,0) - dhsdT(c)*dtsrf
-            if ( frac_h2osfc(c) /= 0.0_rkx ) then
+            if ( frac_h2osfc(c) /= 0.0_rk8 ) then
               c2 = frac_h2osfc(c)*(c_h2osfc_ice/dtsrf)
             else
-              c2 = 0.0_rkx
+              c2 = 0.0_rk8
             end if
             ! account for the change in t_soisno(c,0) via xmf_h2osfc(c)
             xmf_h2osfc(c) = xmf_h2osfc(c) + frac_sno(c)*t_soisno(c,0)/fact(c,0)
@@ -1359,10 +1359,10 @@ module mod_clm_soiltemperature
             xmf_h2osfc(c) = xmf_h2osfc(c) - frac_sno(c)*t_soisno(c,0)/fact(c,0)
           else
             c1 = frac_sno(c)/fact(c,0)
-            if ( frac_h2osfc(c) /= 0.0_rkx ) then
+            if ( frac_h2osfc(c) /= 0.0_rk8 ) then
               c2 = frac_h2osfc(c)*(c_h2osfc_ice/dtsrf)
             else
-              c2 = 0.0_rkx
+              c2 = 0.0_rk8
             end if
             xmf_h2osfc(c) = xmf_h2osfc(c) + c1*t_soisno(c,0)
             t_soisno(c,0) = (c1*t_soisno(c,0)+ c2*t_h2osfc_new)/(c1 + c2)
@@ -1370,7 +1370,7 @@ module mod_clm_soiltemperature
           end if
 
           ! set h2osfc to zero (all liquid converted to ice)
-          h2osfc(c) = 0._rkx
+          h2osfc(c) = 0._rk8
 
           ! update snow depth
           if ( frac_sno(c) > 0 .and. snl(c) < 0 ) then
@@ -1402,67 +1402,67 @@ module mod_clm_soiltemperature
     integer(ik4) , intent(in) :: num_nolakec
     ! column filter for non-lake points
     integer(ik4) , intent(in) :: filter_nolakec(ubc-lbc+1)
-    real(rkx), intent(in) :: fact  (lbc:ubc, -nlevsno+1:nlevgrnd) ! temporary
-    real(rkx), intent(in) :: dhsdT (lbc:ubc) ! temperature derivative of "hs"
-    real(rkx), intent(out):: xmf   (lbc:ubc) ! total latent heat of phase change
+    real(rk8), intent(in) :: fact  (lbc:ubc, -nlevsno+1:nlevgrnd) ! temporary
+    real(rk8), intent(in) :: dhsdT (lbc:ubc) ! temperature derivative of "hs"
+    real(rk8), intent(out):: xmf   (lbc:ubc) ! total latent heat of phase change
 
-    real(rkx), pointer :: qflx_snow_melt(:) ! net snow melt
+    real(rk8), pointer :: qflx_snow_melt(:) ! net snow melt
     ! eff. fraction of ground covered by snow (0 to 1)
-    real(rkx), pointer :: frac_sno_eff(:)
+    real(rk8), pointer :: frac_sno_eff(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rkx), pointer :: frac_sno(:)
+    real(rk8), pointer :: frac_sno(:)
     ! fraction of ground covered by surface water (0 to 1)
-    real(rkx), pointer :: frac_h2osfc(:)
+    real(rk8), pointer :: frac_h2osfc(:)
     integer(ik4) , pointer :: ctype(:)     !column type
     integer(ik4) , pointer :: ltype(:)     ! landunit type
     integer(ik4) , pointer :: clandunit(:) ! column's landunit
     integer(ik4) , pointer :: snl(:)       ! number of snow layers
-    real(rkx), pointer :: h2osno(:)        ! snow water (mm H2O)
+    real(rk8), pointer :: h2osno(:)        ! snow water (mm H2O)
 
-    real(rkx), pointer :: snow_depth(:)    ! snow height (m)
+    real(rk8), pointer :: snow_depth(:)    ! snow height (m)
 
-    real(rkx), pointer :: qflx_snomelt(:)   ! snow melt (mm H2O /s)
-    real(rkx), pointer :: eflx_snomelt(:)   !snow melt heat flux (W/m**2)
-    real(rkx), pointer :: eflx_snomelt_u(:) !urban snow melt heat flux (W/m**2)
-    real(rkx), pointer :: eflx_snomelt_r(:) !rural snow melt heat flux (W/m**2)
+    real(rk8), pointer :: qflx_snomelt(:)   ! snow melt (mm H2O /s)
+    real(rk8), pointer :: eflx_snomelt(:)   !snow melt heat flux (W/m**2)
+    real(rk8), pointer :: eflx_snomelt_u(:) !urban snow melt heat flux (W/m**2)
+    real(rk8), pointer :: eflx_snomelt_r(:) !rural snow melt heat flux (W/m**2)
     !snow freezing rate (positive definite) (col,lyr) [kg m-2 s-1]
-    real(rkx), pointer :: qflx_snofrz_lyr(:,:)
+    real(rk8), pointer :: qflx_snofrz_lyr(:,:)
     !column-integrated snow freezing rate (positive definite) [kg m-2 s-1]
-    real(rkx), pointer :: qflx_snofrz_col(:)
+    real(rk8), pointer :: qflx_snofrz_col(:)
 
-    real(rkx), pointer :: h2osoi_liq(:,:)  !liquid water (kg/m2) (new)
-    real(rkx), pointer :: h2osoi_ice(:,:)  !ice lens (kg/m2) (new)
-    real(rkx), pointer :: tssbef(:,:)   !temperature at previous time step [K]
-    real(rkx), pointer :: sucsat(:,:)   !minimum soil suction (mm)
+    real(rk8), pointer :: h2osoi_liq(:,:)  !liquid water (kg/m2) (new)
+    real(rk8), pointer :: h2osoi_ice(:,:)  !ice lens (kg/m2) (new)
+    real(rk8), pointer :: tssbef(:,:)   !temperature at previous time step [K]
+    real(rk8), pointer :: sucsat(:,:)   !minimum soil suction (mm)
     !volumetric soil water at saturation (porosity)
-    real(rkx), pointer :: watsat(:,:)
-    real(rkx), pointer :: bsw(:,:)      !Clapp and Hornberger "b"
-    real(rkx), pointer :: dz(:,:)       !layer thickness (m)
+    real(rk8), pointer :: watsat(:,:)
+    real(rk8), pointer :: bsw(:,:)      !Clapp and Hornberger "b"
+    real(rk8), pointer :: dz(:,:)       !layer thickness (m)
 
-    real(rkx), pointer :: t_soisno(:,:) !soil temperature (Kelvin)
+    real(rk8), pointer :: t_soisno(:,:) !soil temperature (Kelvin)
 
     !flag for melting (=1), freezing (=2), Not=0 (new)
     integer(ik4), pointer :: imelt(:,:)
-!   real(rkx), pointer :: eflx_snomelt_u(:)!urban snow melt heat flux (W/m**2)
+!   real(rk8), pointer :: eflx_snomelt_u(:)!urban snow melt heat flux (W/m**2)
 
     integer(ik4)  :: j,c,l !do loop index
     integer(ik4)  :: fc    !lake filtered column indices
-    real(rkx) :: heatr     !energy residual or loss after melting or freezing
-    real(rkx) :: temp1     !temporary variables [kg/m2]
-    real(rkx) :: hm(lbc:ubc,-nlevsno+1:nlevgrnd) !energy residual [W/m2]
+    real(rk8) :: heatr     !energy residual or loss after melting or freezing
+    real(rk8) :: temp1     !temporary variables [kg/m2]
+    real(rk8) :: hm(lbc:ubc,-nlevsno+1:nlevgrnd) !energy residual [W/m2]
     !melting or freezing within a time step [kg/m2]
-    real(rkx) :: xm(lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: xm(lbc:ubc,-nlevsno+1:nlevgrnd)
     !initial mass of ice and liquid (kg/m2)
-    real(rkx) :: wmass0(lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: wmass0(lbc:ubc,-nlevsno+1:nlevgrnd)
     !initial mass of ice (kg/m2)
-    real(rkx) :: wice0 (lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: wice0 (lbc:ubc,-nlevsno+1:nlevgrnd)
     !initial mass of liquid (kg/m2)
-    real(rkx) :: wliq0 (lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: wliq0 (lbc:ubc,-nlevsno+1:nlevgrnd)
     !supercooled water in soil (kg/m2)
-    real(rkx) :: supercool(lbc:ubc,nlevgrnd)
-    real(rkx) :: propor  !proportionality constant (-)
-    real(rkx) :: tinc(lbc:ubc,-nlevsno+1:nlevgrnd)  !t(n+1)-t(n) (K)
-    real(rkx) :: smp      !frozen water potential (mm)
+    real(rk8) :: supercool(lbc:ubc,nlevgrnd)
+    real(rk8) :: propor  !proportionality constant (-)
+    real(rk8) :: tinc(lbc:ubc,-nlevsno+1:nlevgrnd)  !t(n+1)-t(n) (K)
+    real(rk8) :: smp      !frozen water potential (mm)
 
     ! Assign local pointers to derived subtypes components (column-level)
 
@@ -1498,11 +1498,11 @@ module mod_clm_soiltemperature
       c = filter_nolakec(fc)
       l = clandunit(c)
 
-      qflx_snomelt(c) = 0._rkx
-      xmf(c) = 0._rkx
-      qflx_snofrz_lyr(c,-nlevsno+1:0) = 0._rkx
-      qflx_snofrz_col(c) = 0._rkx
-      qflx_snow_melt(c) = 0._rkx
+      qflx_snomelt(c) = 0._rk8
+      xmf(c) = 0._rk8
+      qflx_snofrz_lyr(c,-nlevsno+1:0) = 0._rk8
+      qflx_snofrz_col(c) = 0._rk8
+      qflx_snow_melt(c) = 0._rk8
     end do
 
     do j = -nlevsno+1 , nlevgrnd       ! all layers
@@ -1511,8 +1511,8 @@ module mod_clm_soiltemperature
         if ( j >= snl(c)+1 ) then
           ! Initialization
           imelt(c,j) = 0
-          hm(c,j) = 0._rkx
-          xm(c,j) = 0._rkx
+          hm(c,j) = 0._rk8
+          xm(c,j) = 0._rk8
           wice0(c,j) = h2osoi_ice(c,j)
           wliq0(c,j) = h2osoi_liq(c,j)
           wmass0(c,j) = h2osoi_ice(c,j) + h2osoi_liq(c,j)
@@ -1527,7 +1527,7 @@ module mod_clm_soiltemperature
         if ( j >= snl(c)+1 ) then
           ! Melting identification
           ! If ice exists above melt point, melt some to liquid.
-          if (h2osoi_ice(c,j) > 0._rkx .AND. t_soisno(c,j) > tfrz) then
+          if (h2osoi_ice(c,j) > 0._rk8 .AND. t_soisno(c,j) > tfrz) then
             imelt(c,j) = 1
             ! tinc(c,j) = t_soisno(c,j) - tfrz
             tinc(c,j) = tfrz - t_soisno(c,j)
@@ -1536,7 +1536,7 @@ module mod_clm_soiltemperature
 
           ! Freezing identification
           ! If liquid exists below melt point, freeze some to ice.
-          if ( h2osoi_liq(c,j) > 0._rkx .AND. t_soisno(c,j) < tfrz ) then
+          if ( h2osoi_liq(c,j) > 0._rk8 .AND. t_soisno(c,j) < tfrz ) then
             imelt(c,j) = 2
             ! tinc(c,j) = t_soisno(c,j) - tfrz
             tinc(c,j) = tfrz - t_soisno(c,j)
@@ -1551,7 +1551,7 @@ module mod_clm_soiltemperature
       do fc = 1 , num_nolakec
         c = filter_nolakec(fc)
         l = clandunit(c)
-        supercool(c,j) = 0.0_rkx
+        supercool(c,j) = 0.0_rk8
         ! add in urban condition if-block
         if ((ctype(c) /= icol_sunwall .and. &
              ctype(c) /= icol_shadewall .and. &
@@ -1564,15 +1564,15 @@ module mod_clm_soiltemperature
           end if
 
           ! from Zhao (1997) and Koren (1999)
-          supercool(c,j) = 0.0_rkx
+          supercool(c,j) = 0.0_rk8
           if (ltype(l) == istsoil .or. &
               ltype(l) == istcrop .or. &
               ctype(c) == icol_road_perv) then
             if ( t_soisno(c,j) < tfrz ) then
               smp = hfus*(tfrz-t_soisno(c,j)) / &
-                   (grav*t_soisno(c,j)) * 1000._rkx  !(mm)
-              supercool(c,j) = watsat(c,j)*(smp/sucsat(c,j))**(-1._rkx/bsw(c,j))
-              supercool(c,j) = supercool(c,j)*dz(c,j)*1000._rkx       ! (mm)
+                   (grav*t_soisno(c,j)) * 1000._rk8  !(mm)
+              supercool(c,j) = watsat(c,j)*(smp/sucsat(c,j))**(-1._rk8/bsw(c,j))
+              supercool(c,j) = supercool(c,j)*dz(c,j)*1000._rk8       ! (mm)
             end if
           end if
 
@@ -1586,7 +1586,7 @@ module mod_clm_soiltemperature
 
           ! If snow exists, but its thickness is less than
           ! the critical value (0.01 m)
-          if ( snl(c)+1 == 1 .AND. h2osno(c) > 0._rkx .AND. j == 1 ) then
+          if ( snl(c)+1 == 1 .AND. h2osno(c) > 0._rk8 .AND. j == 1 ) then
             if ( t_soisno(c,j) > tfrz ) then
               imelt(c,j) = 1
               ! tincc,j) = t_soisno(c,j) - tfrz
@@ -1615,11 +1615,11 @@ module mod_clm_soiltemperature
               if ( j == snl(c)+1 ) then ! top layer
                 hm(c,j) = dhsdT(c)*tinc(c,j) - tinc(c,j)/fact(c,j)
 
-                if ( j==1 .and. frac_h2osfc(c) /= 0.0_rkx ) then
+                if ( j==1 .and. frac_h2osfc(c) /= 0.0_rk8 ) then
                   hm(c,j) = hm(c,j) - frac_h2osfc(c)*(dhsdT(c)*tinc(c,j))
                 end if
               else if (j == 1) then
-                hm(c,j) = (1.0_rkx - frac_sno_eff(c) - frac_h2osfc(c)) * &
+                hm(c,j) = (1.0_rk8 - frac_sno_eff(c) - frac_h2osfc(c)) * &
                            dhsdT(c)*tinc(c,j) - tinc(c,j)/fact(c,j)
               else ! non-interfacial snow/soil layers
                 hm(c,j) = - tinc(c,j)/fact(c,j)
@@ -1629,55 +1629,55 @@ module mod_clm_soiltemperature
             ! These two errors were checked carefully (Y. Dai).
             ! They result from the computed error of "Tridiagonal-Matrix"
             ! in subroutine "thermal".
-            if (imelt(c,j) == 1 .AND. hm(c,j) < 0._rkx) then
-              hm(c,j) = 0._rkx
+            if (imelt(c,j) == 1 .AND. hm(c,j) < 0._rk8) then
+              hm(c,j) = 0._rk8
               imelt(c,j) = 0
             end if
-            if (imelt(c,j) == 2 .AND. hm(c,j) > 0._rkx) then
-              hm(c,j) = 0._rkx
+            if (imelt(c,j) == 2 .AND. hm(c,j) > 0._rk8) then
+              hm(c,j) = 0._rk8
               imelt(c,j) = 0
             end if
 
             ! The rate of melting and freezing
 
-            if (imelt(c,j) > 0 .and. abs(hm(c,j)) > 0._rkx) then
+            if (imelt(c,j) > 0 .and. abs(hm(c,j)) > 0._rk8) then
               xm(c,j) = hm(c,j)*dtsrf/hfus ! kg/m2
 
               ! If snow exists, but its thickness is less than
               ! the critical value (1 cm). Note: more work is needed
               ! to determine how to tune the snow depth for this case
               if (j == 1) then
-                if (snl(c)+1 == 1 .AND. h2osno(c) > 0._rkx .AND. &
-                    xm(c,j) > 0._rkx) then
+                if (snl(c)+1 == 1 .AND. h2osno(c) > 0._rk8 .AND. &
+                    xm(c,j) > 0._rk8) then
                   temp1 = h2osno(c)   ! kg/m2
-                  h2osno(c) = max(0._rkx,temp1-xm(c,j))
+                  h2osno(c) = max(0._rk8,temp1-xm(c,j))
                   propor = h2osno(c)/temp1
                   snow_depth(c) = propor * snow_depth(c)
                   heatr = hm(c,j) - hfus*(temp1-h2osno(c))/dtsrf   ! W/m2
-                  if (heatr > 0._rkx) then
+                  if (heatr > 0._rk8) then
                     xm(c,j) = heatr*dtsrf/hfus  ! kg/m2
                     hm(c,j) = heatr             ! W/m2
                   else
-                    xm(c,j) = 0._rkx
-                    hm(c,j) = 0._rkx
+                    xm(c,j) = 0._rk8
+                    hm(c,j) = 0._rk8
                   end if
                   ! kg/(m2 s)
-                  qflx_snomelt(c) = max(0._rkx,(temp1-h2osno(c)))/dtsrf
+                  qflx_snomelt(c) = max(0._rk8,(temp1-h2osno(c)))/dtsrf
                   xmf(c) = hfus*qflx_snomelt(c)
                   qflx_snow_melt(c) = qflx_snomelt(c)
                 end if
               end if
 
-              heatr = 0._rkx
-              if (xm(c,j) > 0._rkx) then
-                h2osoi_ice(c,j) = max(0._rkx, wice0(c,j)-xm(c,j))
+              heatr = 0._rk8
+              if (xm(c,j) > 0._rk8) then
+                h2osoi_ice(c,j) = max(0._rk8, wice0(c,j)-xm(c,j))
                 heatr = hm(c,j) - hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtsrf
-              else if (xm(c,j) < 0._rkx) then
+              else if (xm(c,j) < 0._rk8) then
                 if (j <= 0) then
                   h2osoi_ice(c,j) = min(wmass0(c,j), wice0(c,j)-xm(c,j))  ! snow
                 else
                   if (wmass0(c,j) < supercool(c,j)) then
-                    h2osoi_ice(c,j) = 0._rkx
+                    h2osoi_ice(c,j) = 0._rk8
                   else
                     h2osoi_ice(c,j) = min(wmass0(c,j) - &
                                supercool(c,j),wice0(c,j)-xm(c,j))
@@ -1686,27 +1686,27 @@ module mod_clm_soiltemperature
                 heatr = hm(c,j) - hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtsrf
               end if
 
-              h2osoi_liq(c,j) = max(0._rkx,wmass0(c,j)-h2osoi_ice(c,j))
+              h2osoi_liq(c,j) = max(0._rk8,wmass0(c,j)-h2osoi_ice(c,j))
 
-              if ( abs(heatr) > 0._rkx ) then
+              if ( abs(heatr) > 0._rk8 ) then
                 if ( j == snl(c)+1 ) then
                   if ( j == 1 ) then
                     t_soisno(c,j) = t_soisno(c,j) + fact(c,j)*heatr / &
-                            (1._rkx-(1.0_rkx - frac_h2osfc(c))*fact(c,j)*dhsdT(c))
+                            (1._rk8-(1.0_rk8 - frac_h2osfc(c))*fact(c,j)*dhsdT(c))
                   else
                     t_soisno(c,j) = t_soisno(c,j) + fact(c,j)*heatr / &
-                            (1._rkx-fact(c,j)*dhsdT(c))
+                            (1._rk8-fact(c,j)*dhsdT(c))
                   end if
                 else if (j == 1) then
                   t_soisno(c,j) = t_soisno(c,j) + fact(c,j)*heatr / &
-                            (1._rkx-(1.0_rkx - frac_sno_eff(c) - &
+                            (1._rk8-(1.0_rk8 - frac_sno_eff(c) - &
                             frac_h2osfc(c))*fact(c,j)*dhsdT(c))
                 else
                   t_soisno(c,j) = t_soisno(c,j) + fact(c,j)*heatr
                 end if
 
                 if ( j <= 0 ) then    ! snow
-                  if (h2osoi_liq(c,j)*h2osoi_ice(c,j) > 0._rkx) then
+                  if (h2osoi_liq(c,j)*h2osoi_ice(c,j) > 0._rk8) then
                     t_soisno(c,j) = tfrz
                   end if
                 end if
@@ -1721,12 +1721,12 @@ module mod_clm_soiltemperature
 
               if (imelt(c,j) == 1 .AND. j < 1) then
                 qflx_snomelt(c) = qflx_snomelt(c) + &
-                  max(0._rkx,(wice0(c,j)-h2osoi_ice(c,j)))/dtsrf
+                  max(0._rk8,(wice0(c,j)-h2osoi_ice(c,j)))/dtsrf
               end if
 
               ! layer freezing mass flux (positive):
               if (imelt(c,j) == 2 .AND. j < 1) then
-                qflx_snofrz_lyr(c,j) = max(0._rkx, &
+                qflx_snofrz_lyr(c,j) = max(0._rk8, &
                   (h2osoi_ice(c,j)-wice0(c,j)))/dtsrf
               end if
             end if

@@ -31,17 +31,17 @@ module mod_clm_cnmresp
 
     ! column level
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rkx), pointer :: t_soisno(:,:)
+    real(rk8), pointer :: t_soisno(:,:)
     ! pft level
     ! 2 m height surface air temperature (Kelvin)
-    real(rkx), pointer :: t_ref2m(:)
-    real(rkx), pointer :: leafn(:)      ! (gN/m2) leaf N
-    real(rkx), pointer :: frootn(:)     ! (gN/m2) fine root N
-    real(rkx), pointer :: livestemn(:)  ! (gN/m2) live stem N
-    real(rkx), pointer :: livecrootn(:) ! (gN/m2) live coarse root N
-    real(rkx), pointer :: grainn(:)     ! (kgN/m2) grain N
+    real(rk8), pointer :: t_ref2m(:)
+    real(rk8), pointer :: leafn(:)      ! (gN/m2) leaf N
+    real(rk8), pointer :: frootn(:)     ! (gN/m2) fine root N
+    real(rk8), pointer :: livestemn(:)  ! (gN/m2) live stem N
+    real(rk8), pointer :: livecrootn(:) ! (gN/m2) live coarse root N
+    real(rk8), pointer :: grainn(:)     ! (kgN/m2) grain N
     ! fraction of roots in each soil layer  (nlevgrnd)
-    real(rkx), pointer :: rootfr(:,:)
+    real(rk8), pointer :: rootfr(:,:)
     integer(ik4) , pointer :: ivt(:)       ! pft vegetation type
     integer(ik4) , pointer :: pcolumn(:)   ! index into column level quantities
     integer(ik4) , pointer :: plandunit(:) ! index into land level quantities
@@ -49,32 +49,32 @@ module mod_clm_cnmresp
     integer(ik4) , pointer :: itypelun(:)  ! landunit type
     ! ecophysiological constants
     ! binary flag for woody lifeform (1=woody, 0=not woody)
-    real(rkx), pointer :: woody(:)
+    real(rk8), pointer :: woody(:)
     logical , pointer :: croplive(:) ! Flag, true if planted, not harvested
 
     ! pft level
-    real(rkx), pointer :: leaf_mr(:)
-    real(rkx), pointer :: froot_mr(:)
-    real(rkx), pointer :: livestem_mr(:)
-    real(rkx), pointer :: livecroot_mr(:)
-    real(rkx), pointer :: grain_mr(:)
+    real(rk8), pointer :: leaf_mr(:)
+    real(rk8), pointer :: froot_mr(:)
+    real(rk8), pointer :: livestem_mr(:)
+    real(rk8), pointer :: livecroot_mr(:)
+    real(rk8), pointer :: grain_mr(:)
     ! sunlit leaf maintenance respiration rate (umol CO2/m**2/s)
-    real(rkx), pointer :: lmrsun(:)
+    real(rk8), pointer :: lmrsun(:)
     ! shaded leaf maintenance respiration rate (umol CO2/m**2/s)
-    real(rkx), pointer :: lmrsha(:)
-    real(rkx), pointer :: laisun(:)   ! sunlit projected leaf area index
-    real(rkx), pointer :: laisha(:)   ! shaded projected leaf area index
+    real(rk8), pointer :: lmrsha(:)
+    real(rk8), pointer :: laisun(:)   ! sunlit projected leaf area index
+    real(rk8), pointer :: laisha(:)   ! shaded projected leaf area index
     ! fraction of vegetation not covered by snow (0 OR 1) [-]
     integer(ik4) , pointer :: frac_veg_nosno(:)
 
     integer(ik4) :: c,p,j  ! indices
     integer(ik4) :: fp     ! soil filter pft index
     integer(ik4) :: fc     ! soil filter column index
-    real(rkx):: br   ! base rate (gC/gN/s)
-    real(rkx):: q10  ! temperature dependence
-    real(rkx):: tc   ! temperature correction, 2m air temp (unitless)
+    real(rk8):: br   ! base rate (gC/gN/s)
+    real(rk8):: q10  ! temperature dependence
+    real(rk8):: tc   ! temperature correction, 2m air temp (unitless)
     ! temperature correction by soil layer (unitless)
-    real(rkx):: tcsoi(lbc:ubc,nlevgrnd)
+    real(rk8):: tcsoi(lbc:ubc,nlevgrnd)
 
     ! Assign local pointers to derived type arrays
     t_soisno       => clm3%g%l%c%ces%t_soisno
@@ -108,12 +108,12 @@ module mod_clm_cnmresp
     ! Ecological Applications, 1(2), 157-167.
     ! Original expression is br = 0.0106 molC/(molN h)
     ! Conversion by molecular weights of C and N gives 2.525e-6 gC/(gN s)
-    br = 2.525e-6_rkx
+    br = 2.525e-6_rk8
     ! Peter Thornton: 3/13/09
     ! Q10 was originally set to 2.0, an arbitrary choice, but reduced to
     ! 1.5 as part of the tuning to improve seasonal cycle of atmospheric
     ! CO2 concentration in global simulatoins
-    q10 = 1.5_rkx
+    q10 = 1.5_rk8
 
     ! column loop to calculate temperature factors in each soil layer
     do j = 1 , nlevgrnd
@@ -123,7 +123,7 @@ module mod_clm_cnmresp
         ! calculate temperature corrections for each soil layer, for use in
         ! estimating fine root maintenance respiration with depth
 
-        tcsoi(c,j) = q10**((t_soisno(c,j)-tfrz - 20.0_rkx)/10.0_rkx)
+        tcsoi(c,j) = q10**((t_soisno(c,j)-tfrz - 20.0_rk8)/10.0_rk8)
       end do
     end do
 
@@ -135,12 +135,12 @@ module mod_clm_cnmresp
       ! gC/m2/s for each of the live plant tissues.
       ! Leaf and live wood MR
 
-      tc = q10**((t_ref2m(p)-tfrz - 20.0_rkx)/10.0_rkx)
+      tc = q10**((t_ref2m(p)-tfrz - 20.0_rk8)/10.0_rk8)
       if ( frac_veg_nosno(p) == 1 ) then
-        leaf_mr(p) = lmrsun(p) * laisun(p) * 12.011e-6_rkx + &
-                     lmrsha(p) * laisha(p) * 12.011e-6_rkx
+        leaf_mr(p) = lmrsun(p) * laisun(p) * 12.011e-6_rk8 + &
+                     lmrsha(p) * laisha(p) * 12.011e-6_rk8
       else
-        leaf_mr(p) = 0._rkx
+        leaf_mr(p) = 0._rk8
       end if
 
       if ( woody(ivt(p)) == 1 ) then

@@ -32,8 +32,8 @@ module mod_clm_pft2col
     integer(ik4) :: c , fc          ! indices
     integer(ik4) :: num_allc        ! number of total column points
     integer(ik4) :: filter_allc(ubc-lbc+1) ! filter for all column points
-    real(rkx) , pointer :: ptrp(:)         ! pointer to input pft array
-    real(rkx) , pointer :: ptrc(:)         ! pointer to output column array
+    real(rk8) , pointer :: ptrp(:)         ! pointer to input pft array
+    real(rk8) , pointer :: ptrc(:)         ! pointer to output column array
 
     ! Set up a filter for all column points
 

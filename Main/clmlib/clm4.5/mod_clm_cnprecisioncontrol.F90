@@ -35,156 +35,156 @@ module mod_clm_cnprecisioncontrol
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
     ! (gC/m3) column-level sink for C truncation
-    real(rkx), pointer :: col_ctrunc_vr(:,:)
+    real(rk8), pointer :: col_ctrunc_vr(:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rkx), pointer :: decomp_cpools_vr(:,:,:)
+    real(rk8), pointer :: decomp_cpools_vr(:,:,:)
     ! (gN/m3) column-level sink for N truncation
-    real(rkx), pointer :: col_ntrunc_vr(:,:)
+    real(rk8), pointer :: col_ntrunc_vr(:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
-    real(rkx), pointer :: decomp_npools_vr(:,:,:)
+    real(rk8), pointer :: decomp_npools_vr(:,:,:)
     ! (gC/m2) temporary photosynthate C pool
-    real(rkx), pointer :: cpool(:)
-    real(rkx), pointer :: deadcrootc(:)         ! (gC/m2) dead coarse root C
-    real(rkx), pointer :: deadcrootc_storage(:) ! (gC/m2) dead cors root C strg
-    real(rkx), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead cors root C trnf
-    real(rkx), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
-    real(rkx), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-    real(rkx), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
-    real(rkx), pointer :: frootc(:)             ! (gC/m2) fine root C
-    real(rkx), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
-    real(rkx), pointer :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
-    real(rkx), pointer :: gresp_storage(:)      ! (gC/m2) growth resp. strg
-    real(rkx), pointer :: gresp_xfer(:)         ! (gC/m2) growth resp. trnfr
-    real(rkx), pointer :: leafc(:)              ! (gC/m2) leaf C
-    real(rkx), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
-    real(rkx), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
-    real(rkx), pointer :: livecrootc(:)         ! (gC/m2) live coarse root C
-    real(rkx), pointer :: livecrootc_storage(:) ! (gC/m2) live cors root C strg
-    real(rkx), pointer :: livecrootc_xfer(:)    ! (gC/m2) live cors root C trnf
-    real(rkx), pointer :: livestemc(:)          ! (gC/m2) live stem C
-    real(rkx), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
-    real(rkx), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
-    real(rkx), pointer :: pft_ctrunc(:)         ! (gC/m2) pft-level sink for C
+    real(rk8), pointer :: cpool(:)
+    real(rk8), pointer :: deadcrootc(:)         ! (gC/m2) dead coarse root C
+    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead cors root C strg
+    real(rk8), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead cors root C trnf
+    real(rk8), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
+    real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
+    real(rk8), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
+    real(rk8), pointer :: frootc(:)             ! (gC/m2) fine root C
+    real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
+    real(rk8), pointer :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
+    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth resp. strg
+    real(rk8), pointer :: gresp_xfer(:)         ! (gC/m2) growth resp. trnfr
+    real(rk8), pointer :: leafc(:)              ! (gC/m2) leaf C
+    real(rk8), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
+    real(rk8), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
+    real(rk8), pointer :: livecrootc(:)         ! (gC/m2) live coarse root C
+    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live cors root C strg
+    real(rk8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live cors root C trnf
+    real(rk8), pointer :: livestemc(:)          ! (gC/m2) live stem C
+    real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
+    real(rk8), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
+    real(rk8), pointer :: pft_ctrunc(:)         ! (gC/m2) pft-level sink for C
                                                 ! truncation
-    real(rkx), pointer :: xsmrpool(:)     ! (gC/m2) execss maint resp C pool
-    real(rkx), pointer :: grainc(:)       ! (gC/m2) grain C
-    real(rkx), pointer :: grainc_storage(:)  ! (gC/m2) grain C storage
-    real(rkx), pointer :: grainc_xfer(:)     ! (gC/m2) grain C transfer
+    real(rk8), pointer :: xsmrpool(:)     ! (gC/m2) execss maint resp C pool
+    real(rk8), pointer :: grainc(:)       ! (gC/m2) grain C
+    real(rk8), pointer :: grainc_storage(:)  ! (gC/m2) grain C storage
+    real(rk8), pointer :: grainc_xfer(:)     ! (gC/m2) grain C transfer
 
     !!! C13
     ! (gC/m3) column-level sink for C truncation
-    real(rkx), pointer :: c13_col_ctrunc_vr(:,:)
+    real(rk8), pointer :: c13_col_ctrunc_vr(:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rkx), pointer :: decomp_c13pools_vr(:,:,:)
+    real(rk8), pointer :: decomp_c13pools_vr(:,:,:)
     ! (gC/m2) temporary photosynthate C pool
-    real(rkx), pointer :: c13_cpool(:)
+    real(rk8), pointer :: c13_cpool(:)
     ! (gC/m2) dead coarse root C
-    real(rkx), pointer :: c13_deadcrootc(:)
+    real(rk8), pointer :: c13_deadcrootc(:)
     ! (gC/m2) dead coarse root C storage
-    real(rkx), pointer :: c13_deadcrootc_storage(:)
+    real(rk8), pointer :: c13_deadcrootc_storage(:)
     ! (gC/m2) dead coarse root C transfer
-    real(rkx), pointer :: c13_deadcrootc_xfer(:)
-    real(rkx), pointer :: c13_deadstemc(:)          ! (gC/m2) dead stem C
-    real(rkx), pointer :: c13_deadstemc_storage(:)  ! (gC/m2) dead stem C stor
-    real(rkx), pointer :: c13_deadstemc_xfer(:)     ! (gC/m2) dead stem C trnsf
-    real(rkx), pointer :: c13_frootc(:)             ! (gC/m2) fine root C
-    real(rkx), pointer :: c13_frootc_storage(:)     ! (gC/m2) fine root C stor
-    real(rkx), pointer :: c13_frootc_xfer(:)        ! (gC/m2) fine root C trnsf
-    real(rkx), pointer :: c13_gresp_storage(:) ! (gC/m2) growth respiration strg
-    real(rkx), pointer :: c13_gresp_xfer(:)    ! (gC/m2) growth respiration trnf
-    real(rkx), pointer :: c13_leafc(:)           ! (gC/m2) leaf C
-    real(rkx), pointer :: c13_leafc_storage(:)   ! (gC/m2) leaf C storage
-    real(rkx), pointer :: c13_leafc_xfer(:)      ! (gC/m2) leaf C transfer
-    real(rkx), pointer :: c13_livecrootc(:)      ! (gC/m2) live coarse root C
+    real(rk8), pointer :: c13_deadcrootc_xfer(:)
+    real(rk8), pointer :: c13_deadstemc(:)          ! (gC/m2) dead stem C
+    real(rk8), pointer :: c13_deadstemc_storage(:)  ! (gC/m2) dead stem C stor
+    real(rk8), pointer :: c13_deadstemc_xfer(:)     ! (gC/m2) dead stem C trnsf
+    real(rk8), pointer :: c13_frootc(:)             ! (gC/m2) fine root C
+    real(rk8), pointer :: c13_frootc_storage(:)     ! (gC/m2) fine root C stor
+    real(rk8), pointer :: c13_frootc_xfer(:)        ! (gC/m2) fine root C trnsf
+    real(rk8), pointer :: c13_gresp_storage(:) ! (gC/m2) growth respiration strg
+    real(rk8), pointer :: c13_gresp_xfer(:)    ! (gC/m2) growth respiration trnf
+    real(rk8), pointer :: c13_leafc(:)           ! (gC/m2) leaf C
+    real(rk8), pointer :: c13_leafc_storage(:)   ! (gC/m2) leaf C storage
+    real(rk8), pointer :: c13_leafc_xfer(:)      ! (gC/m2) leaf C transfer
+    real(rk8), pointer :: c13_livecrootc(:)      ! (gC/m2) live coarse root C
     ! (gC/m2) live coarse root C storage
-    real(rkx), pointer :: c13_livecrootc_storage(:)
+    real(rk8), pointer :: c13_livecrootc_storage(:)
     ! (gC/m2) live coarse root C transfer
-    real(rkx), pointer :: c13_livecrootc_xfer(:)
-    real(rkx), pointer :: c13_livestemc(:)          ! (gC/m2) live stem C
-    real(rkx), pointer :: c13_livestemc_storage(:)  ! (gC/m2) live stem C stor
-    real(rkx), pointer :: c13_livestemc_xfer(:)     ! (gC/m2) live stem C transf
+    real(rk8), pointer :: c13_livecrootc_xfer(:)
+    real(rk8), pointer :: c13_livestemc(:)          ! (gC/m2) live stem C
+    real(rk8), pointer :: c13_livestemc_storage(:)  ! (gC/m2) live stem C stor
+    real(rk8), pointer :: c13_livestemc_xfer(:)     ! (gC/m2) live stem C transf
     ! (gC/m2) pft-level sink for C truncation
-    real(rkx), pointer :: c13_pft_ctrunc(:)
+    real(rk8), pointer :: c13_pft_ctrunc(:)
 
     !!! C14
     ! (gC/m3) column-level sink for C truncation
-    real(rkx), pointer :: c14_col_ctrunc_vr(:,:)
+    real(rk8), pointer :: c14_col_ctrunc_vr(:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
-    real(rkx), pointer :: decomp_c14pools_vr(:,:,:)
+    real(rk8), pointer :: decomp_c14pools_vr(:,:,:)
     ! (gC/m2) temporary photosynthate C pool
-    real(rkx), pointer :: c14_cpool(:)
+    real(rk8), pointer :: c14_cpool(:)
     ! (gC/m2) dead coarse root C
-    real(rkx), pointer :: c14_deadcrootc(:)
+    real(rk8), pointer :: c14_deadcrootc(:)
     ! (gC/m2) dead coarse root C storage
-    real(rkx), pointer :: c14_deadcrootc_storage(:)
+    real(rk8), pointer :: c14_deadcrootc_storage(:)
     ! (gC/m2) dead coarse root C transfer
-    real(rkx), pointer :: c14_deadcrootc_xfer(:)
-    real(rkx), pointer :: c14_deadstemc(:)         ! (gC/m2) dead stem C
-    real(rkx), pointer :: c14_deadstemc_storage(:) ! (gC/m2) dead stem C storage
-    real(rkx), pointer :: c14_deadstemc_xfer(:)    ! (gC/m2) dead stem C transf
-    real(rkx), pointer :: c14_frootc(:)            ! (gC/m2) fine root C
-    real(rkx), pointer :: c14_frootc_storage(:)    ! (gC/m2) fine root C storage
-    real(rkx), pointer :: c14_frootc_xfer(:)       ! (gC/m2) fine root C transf
-    real(rkx), pointer :: c14_gresp_storage(:) ! (gC/m2) growth respiration strg
-    real(rkx), pointer :: c14_gresp_xfer(:)    ! (gC/m2) growth respiration trnf
-    real(rkx), pointer :: c14_leafc(:)             ! (gC/m2) leaf C
-    real(rkx), pointer :: c14_leafc_storage(:)     ! (gC/m2) leaf C storage
-    real(rkx), pointer :: c14_leafc_xfer(:)        ! (gC/m2) leaf C transfer
-    real(rkx), pointer :: c14_livecrootc(:)        ! (gC/m2) live coarse root C
+    real(rk8), pointer :: c14_deadcrootc_xfer(:)
+    real(rk8), pointer :: c14_deadstemc(:)         ! (gC/m2) dead stem C
+    real(rk8), pointer :: c14_deadstemc_storage(:) ! (gC/m2) dead stem C storage
+    real(rk8), pointer :: c14_deadstemc_xfer(:)    ! (gC/m2) dead stem C transf
+    real(rk8), pointer :: c14_frootc(:)            ! (gC/m2) fine root C
+    real(rk8), pointer :: c14_frootc_storage(:)    ! (gC/m2) fine root C storage
+    real(rk8), pointer :: c14_frootc_xfer(:)       ! (gC/m2) fine root C transf
+    real(rk8), pointer :: c14_gresp_storage(:) ! (gC/m2) growth respiration strg
+    real(rk8), pointer :: c14_gresp_xfer(:)    ! (gC/m2) growth respiration trnf
+    real(rk8), pointer :: c14_leafc(:)             ! (gC/m2) leaf C
+    real(rk8), pointer :: c14_leafc_storage(:)     ! (gC/m2) leaf C storage
+    real(rk8), pointer :: c14_leafc_xfer(:)        ! (gC/m2) leaf C transfer
+    real(rk8), pointer :: c14_livecrootc(:)        ! (gC/m2) live coarse root C
     ! (gC/m2) live coarse root C storage
-    real(rkx), pointer :: c14_livecrootc_storage(:)
+    real(rk8), pointer :: c14_livecrootc_storage(:)
     ! (gC/m2) live coarse root C transfer
-    real(rkx), pointer :: c14_livecrootc_xfer(:)
-    real(rkx), pointer :: c14_livestemc(:)         ! (gC/m2) live stem C
-    real(rkx), pointer :: c14_livestemc_storage(:) ! (gC/m2) live stem C storage
-    real(rkx), pointer :: c14_livestemc_xfer(:)    ! (gC/m2) live stem C trans
+    real(rk8), pointer :: c14_livecrootc_xfer(:)
+    real(rk8), pointer :: c14_livestemc(:)         ! (gC/m2) live stem C
+    real(rk8), pointer :: c14_livestemc_storage(:) ! (gC/m2) live stem C storage
+    real(rk8), pointer :: c14_livestemc_xfer(:)    ! (gC/m2) live stem C trans
     ! (gC/m2) pft-level sink for C truncation
-    real(rkx), pointer :: c14_pft_ctrunc(:)
+    real(rk8), pointer :: c14_pft_ctrunc(:)
 
-    real(rkx), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rkx), pointer :: deadcrootn_storage(:) ! (gN/m2) dead cors root N strg
-    real(rkx), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead cors root N trnf
-    real(rkx), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
-    real(rkx), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rkx), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
-    real(rkx), pointer :: frootn(:)             ! (gN/m2) fine root N
-    real(rkx), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
-    real(rkx), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
-    real(rkx), pointer :: leafn(:)              ! (gN/m2) leaf N
-    real(rkx), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
-    real(rkx), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
-    real(rkx), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rkx), pointer :: livecrootn_storage(:) ! (gN/m2) live cors root N strg
-    real(rkx), pointer :: livecrootn_xfer(:)    ! (gN/m2) live cors root N trnf
-    real(rkx), pointer :: grainn(:)             ! (gC/m2) grain N
-    real(rkx), pointer :: grainn_storage(:)     ! (gC/m2) grain N storage
-    real(rkx), pointer :: grainn_xfer(:)        ! (gC/m2) grain N transfer
-    real(rkx), pointer :: livestemn(:)          ! (gN/m2) live stem N
-    real(rkx), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
-    real(rkx), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
-    real(rkx), pointer :: npool(:)              ! (gN/m2) temporary plant N pool
-    real(rkx), pointer :: pft_ntrunc(:)         ! (gN/m2) pft-level sink for
+    real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
+    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead cors root N strg
+    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead cors root N trnf
+    real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
+    real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
+    real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
+    real(rk8), pointer :: frootn(:)             ! (gN/m2) fine root N
+    real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
+    real(rk8), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
+    real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N
+    real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
+    real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
+    real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
+    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live cors root N strg
+    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live cors root N trnf
+    real(rk8), pointer :: grainn(:)             ! (gC/m2) grain N
+    real(rk8), pointer :: grainn_storage(:)     ! (gC/m2) grain N storage
+    real(rk8), pointer :: grainn_xfer(:)        ! (gC/m2) grain N transfer
+    real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
+    real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
+    real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
+    real(rk8), pointer :: npool(:)              ! (gN/m2) temporary plant N pool
+    real(rk8), pointer :: pft_ntrunc(:)         ! (gN/m2) pft-level sink for
                                                 ! N truncation
-    real(rkx), pointer :: retransn(:) ! (gN/m2) plant pool of retranslocated N
+    real(rk8), pointer :: retransn(:) ! (gN/m2) plant pool of retranslocated N
 #ifdef NITRIF_DENITRIF
-    real(rkx), pointer :: smin_no3_vr(:,:)   ! (gN/m3) soil mineral NO3
-    real(rkx), pointer :: smin_nh4_vr(:,:)   ! (gN/m3) soil mineral NH4
+    real(rk8), pointer :: smin_no3_vr(:,:)   ! (gN/m3) soil mineral NO3
+    real(rk8), pointer :: smin_nh4_vr(:,:)   ! (gN/m3) soil mineral NH4
 #endif
     integer(ik4) , pointer :: ivt(:)   ! pft vegetation type
 
     integer(ik4) :: c,p,j,k    ! indices
     integer(ik4) :: fp,fc    ! lake filter indices
-    real(rkx):: pc,pn    ! truncation terms for pft-level corrections
-    real(rkx):: cc,cn    ! truncation terms for column-level corrections
+    real(rk8):: pc,pn    ! truncation terms for pft-level corrections
+    real(rk8):: cc,cn    ! truncation terms for column-level corrections
     !!! C13
-    real(rkx):: pc13     ! truncation terms for pft-level corrections
-    real(rkx):: cc13     ! truncation terms for column-level corrections
+    real(rk8):: pc13     ! truncation terms for pft-level corrections
+    real(rk8):: cc13     ! truncation terms for column-level corrections
     !!! C14
-    real(rkx):: pc14     ! truncation terms for pft-level corrections
-    real(rkx):: cc14     ! truncation terms for column-level corrections
+    real(rk8):: pc14     ! truncation terms for pft-level corrections
+    real(rk8):: cc14     ! truncation terms for column-level corrections
 
-    real(rkx):: ccrit    ! critical carbon state value for truncation
-    real(rkx):: ncrit    ! critical nitrogen state value for truncation
+    real(rk8):: ccrit    ! critical carbon state value for truncation
+    real(rk8):: ncrit    ! critical nitrogen state value for truncation
 
     ! assign local pointers at the column level
     col_ctrunc_vr                  => clm3%g%l%c%ccs%col_ctrunc_vr
@@ -305,25 +305,25 @@ module mod_clm_cnprecisioncontrol
 #endif
 
     ! set the critical carbon state value for truncation (gC/m2)
-    ccrit = 1.e-8_rkx
+    ccrit = 1.e-8_rk8
     ! set the critical nitrogen state value for truncation (gN/m2)
-    ncrit = 1.e-8_rkx
+    ncrit = 1.e-8_rk8
 
     ! pft loop
     do fp = 1,num_soilp
       p = filter_soilp(fp)
 
       ! initialize the pft-level C and N truncation terms
-      pc = 0._rkx
+      pc = 0._rk8
 
       if ( use_c13 ) then
-        pc13 = 0._rkx
+        pc13 = 0._rk8
       end if
       if ( use_c14 ) then
-        pc14 = 0._rkx
+        pc14 = 0._rk8
       end if
 
-      pn = 0._rkx
+      pn = 0._rk8
 
       ! do tests on state variables for precision control
       ! for linked C-N state variables, perform precision test on
@@ -332,375 +332,375 @@ module mod_clm_cnprecisioncontrol
       ! leaf C and N
       if (abs(leafc(p)) < ccrit) then
         pc = pc + leafc(p)
-        leafc(p) = 0._rkx
+        leafc(p) = 0._rk8
 
         if ( use_c13 ) then
           pc13 = pc13 + c13_leafc(p)
-          c13_leafc(p) = 0._rkx
+          c13_leafc(p) = 0._rk8
         end if
 
         if ( use_c14 ) then
           pc14 = pc14 + c14_leafc(p)
-          c14_leafc(p) = 0._rkx
+          c14_leafc(p) = 0._rk8
         end if
         pn = pn + leafn(p)
-        leafn(p) = 0._rkx
+        leafn(p) = 0._rk8
       end if
 
       ! leaf storage C and N
       if (abs(leafc_storage(p)) < ccrit) then
         pc = pc + leafc_storage(p)
-        leafc_storage(p) = 0._rkx
+        leafc_storage(p) = 0._rk8
 
         if ( use_c13 ) then
           pc13 = pc13 + c13_leafc_storage(p)
-          c13_leafc_storage(p) = 0._rkx
+          c13_leafc_storage(p) = 0._rk8
         end if
 
         if ( use_c14 ) then
           pc14 = pc14 + c14_leafc_storage(p)
-          c14_leafc_storage(p) = 0._rkx
+          c14_leafc_storage(p) = 0._rk8
         end if
 
         pn = pn + leafn_storage(p)
-        leafn_storage(p) = 0._rkx
+        leafn_storage(p) = 0._rk8
       end if
 
       ! leaf transfer C and N
       if (abs(leafc_xfer(p)) < ccrit) then
         pc = pc + leafc_xfer(p)
-        leafc_xfer(p) = 0._rkx
+        leafc_xfer(p) = 0._rk8
 
         if ( use_c13 ) then
           pc13 = pc13 + c13_leafc_xfer(p)
-          c13_leafc_xfer(p) = 0._rkx
+          c13_leafc_xfer(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_leafc_xfer(p)
-          c14_leafc_xfer(p) = 0._rkx
+          c14_leafc_xfer(p) = 0._rk8
         end if
 
         pn = pn + leafn_xfer(p)
-        leafn_xfer(p) = 0._rkx
+        leafn_xfer(p) = 0._rk8
       end if
 
       ! froot C and N
       if (abs(frootc(p)) < ccrit) then
         pc = pc + frootc(p)
-        frootc(p) = 0._rkx
+        frootc(p) = 0._rk8
 
         if ( use_c13 ) then
           pc13 = pc13 + c13_frootc(p)
-          c13_frootc(p) = 0._rkx
+          c13_frootc(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_frootc(p)
-          c14_frootc(p) = 0._rkx
+          c14_frootc(p) = 0._rk8
         end if
 
         pn = pn + frootn(p)
-        frootn(p) = 0._rkx
+        frootn(p) = 0._rk8
       end if
 
       ! froot storage C and N
       if (abs(frootc_storage(p)) < ccrit) then
         pc = pc + frootc_storage(p)
-        frootc_storage(p) = 0._rkx
+        frootc_storage(p) = 0._rk8
 
         if ( use_c13 ) then
           pc13 = pc13 + c13_frootc_storage(p)
-          c13_frootc_storage(p) = 0._rkx
+          c13_frootc_storage(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_frootc_storage(p)
-          c14_frootc_storage(p) = 0._rkx
+          c14_frootc_storage(p) = 0._rk8
         end if
 
         pn = pn + frootn_storage(p)
-        frootn_storage(p) = 0._rkx
+        frootn_storage(p) = 0._rk8
       end if
 
       ! froot transfer C and N
       if (abs(frootc_xfer(p)) < ccrit) then
         pc = pc + frootc_xfer(p)
-        frootc_xfer(p) = 0._rkx
+        frootc_xfer(p) = 0._rk8
 
         if ( use_c13 ) then
           pc13 = pc13 + c13_frootc_xfer(p)
-          c13_frootc_xfer(p) = 0._rkx
+          c13_frootc_xfer(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_frootc_xfer(p)
-          c14_frootc_xfer(p) = 0._rkx
+          c14_frootc_xfer(p) = 0._rk8
         end if
 
         pn = pn + frootn_xfer(p)
-        frootn_xfer(p) = 0._rkx
+        frootn_xfer(p) = 0._rk8
       end if
 
       if ( crop_prog .and. ivt(p) >= nc3crop )then
         ! grain C and N
         if (abs(grainc(p)) < ccrit) then
           pc = pc + grainc(p)
-          grainc(p) = 0._rkx
+          grainc(p) = 0._rk8
           pn = pn + grainn(p)
-          grainn(p) = 0._rkx
+          grainn(p) = 0._rk8
         end if
 
         ! grain storage C and N
         if (abs(grainc_storage(p)) < ccrit) then
           pc = pc + grainc_storage(p)
-          grainc_storage(p) = 0._rkx
+          grainc_storage(p) = 0._rk8
           pn = pn + grainn_storage(p)
-          grainn_storage(p) = 0._rkx
+          grainn_storage(p) = 0._rk8
         end if
 
         ! grain transfer C and N
         if (abs(grainc_xfer(p)) < ccrit) then
           pc = pc + grainc_xfer(p)
-          grainc_xfer(p) = 0._rkx
+          grainc_xfer(p) = 0._rk8
           pn = pn + grainn_xfer(p)
-          grainn_xfer(p) = 0._rkx
+          grainn_xfer(p) = 0._rk8
         end if
       end if
 
       ! livestem C and N
       if (abs(livestemc(p)) < ccrit) then
         pc = pc + livestemc(p)
-        livestemc(p) = 0._rkx
+        livestemc(p) = 0._rk8
 
         if ( use_c13 ) then
           pc13 = pc13 + c13_livestemc(p)
-          c13_livestemc(p) = 0._rkx
+          c13_livestemc(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_livestemc(p)
-          c14_livestemc(p) = 0._rkx
+          c14_livestemc(p) = 0._rk8
         end if
 
         pn = pn + livestemn(p)
-        livestemn(p) = 0._rkx
+        livestemn(p) = 0._rk8
       end if
 
       ! livestem storage C and N
       if (abs(livestemc_storage(p)) < ccrit) then
         pc = pc + livestemc_storage(p)
-        livestemc_storage(p) = 0._rkx
+        livestemc_storage(p) = 0._rk8
         if ( use_c13 ) then
           pc13 = pc13 + c13_livestemc_storage(p)
-          c13_livestemc_storage(p) = 0._rkx
+          c13_livestemc_storage(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_livestemc_storage(p)
-          c14_livestemc_storage(p) = 0._rkx
+          c14_livestemc_storage(p) = 0._rk8
         end if
         pn = pn + livestemn_storage(p)
-        livestemn_storage(p) = 0._rkx
+        livestemn_storage(p) = 0._rk8
       end if
 
       ! livestem transfer C and N
       if (abs(livestemc_xfer(p)) < ccrit) then
         pc = pc + livestemc_xfer(p)
-        livestemc_xfer(p) = 0._rkx
+        livestemc_xfer(p) = 0._rk8
         if ( use_c13 ) then
           pc13 = pc13 + c13_livestemc_xfer(p)
-          c13_livestemc_xfer(p) = 0._rkx
+          c13_livestemc_xfer(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_livestemc_xfer(p)
-          c14_livestemc_xfer(p) = 0._rkx
+          c14_livestemc_xfer(p) = 0._rk8
         end if
         pn = pn + livestemn_xfer(p)
-        livestemn_xfer(p) = 0._rkx
+        livestemn_xfer(p) = 0._rk8
       end if
 
       ! deadstem C and N
       if (abs(deadstemc(p)) < ccrit) then
         pc = pc + deadstemc(p)
-        deadstemc(p) = 0._rkx
+        deadstemc(p) = 0._rk8
         if ( use_c13 ) then
           pc13 = pc13 + c13_deadstemc(p)
-          c13_deadstemc(p) = 0._rkx
+          c13_deadstemc(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_deadstemc(p)
-          c14_deadstemc(p) = 0._rkx
+          c14_deadstemc(p) = 0._rk8
         end if
         pn = pn + deadstemn(p)
-        deadstemn(p) = 0._rkx
+        deadstemn(p) = 0._rk8
       end if
 
       ! deadstem storage C and N
       if (abs(deadstemc_storage(p)) < ccrit) then
         pc = pc + deadstemc_storage(p)
-        deadstemc_storage(p) = 0._rkx
+        deadstemc_storage(p) = 0._rk8
         if ( use_c13 ) then
           pc13 = pc13 + c13_deadstemc_storage(p)
-          c13_deadstemc_storage(p) = 0._rkx
+          c13_deadstemc_storage(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_deadstemc_storage(p)
-          c14_deadstemc_storage(p) = 0._rkx
+          c14_deadstemc_storage(p) = 0._rk8
         end if
         pn = pn + deadstemn_storage(p)
-        deadstemn_storage(p) = 0._rkx
+        deadstemn_storage(p) = 0._rk8
       end if
 
       ! deadstem transfer C and N
       if (abs(deadstemc_xfer(p)) < ccrit) then
         pc = pc + deadstemc_xfer(p)
-        deadstemc_xfer(p) = 0._rkx
+        deadstemc_xfer(p) = 0._rk8
         if ( use_c13 ) then
           pc13 = pc13 + c13_deadstemc_xfer(p)
-          c13_deadstemc_xfer(p) = 0._rkx
+          c13_deadstemc_xfer(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_deadstemc_xfer(p)
-          c14_deadstemc_xfer(p) = 0._rkx
+          c14_deadstemc_xfer(p) = 0._rk8
         end if
         pn = pn + deadstemn_xfer(p)
-        deadstemn_xfer(p) = 0._rkx
+        deadstemn_xfer(p) = 0._rk8
       end if
 
       ! livecroot C and N
       if (abs(livecrootc(p)) < ccrit) then
         pc = pc + livecrootc(p)
-        livecrootc(p) = 0._rkx
+        livecrootc(p) = 0._rk8
 
         if ( use_c13 ) then
           pc13 = pc13 + c13_livecrootc(p)
-          c13_livecrootc(p) = 0._rkx
+          c13_livecrootc(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_livecrootc(p)
-          c14_livecrootc(p) = 0._rkx
+          c14_livecrootc(p) = 0._rk8
         end if
         pn = pn + livecrootn(p)
-        livecrootn(p) = 0._rkx
+        livecrootn(p) = 0._rk8
       end if
 
       ! livecroot storage C and N
       if (abs(livecrootc_storage(p)) < ccrit) then
         pc = pc + livecrootc_storage(p)
-        livecrootc_storage(p) = 0._rkx
+        livecrootc_storage(p) = 0._rk8
 
         if ( use_c13 ) then
           pc13 = pc13 + c13_livecrootc_storage(p)
-          c13_livecrootc_storage(p) = 0._rkx
+          c13_livecrootc_storage(p) = 0._rk8
         end if
 
         if ( use_c14 ) then
           pc14 = pc14 + c14_livecrootc_storage(p)
-          c14_livecrootc_storage(p) = 0._rkx
+          c14_livecrootc_storage(p) = 0._rk8
         end if
 
         pn = pn + livecrootn_storage(p)
-        livecrootn_storage(p) = 0._rkx
+        livecrootn_storage(p) = 0._rk8
       end if
 
       ! livecroot transfer C and N
       if (abs(livecrootc_xfer(p)) < ccrit) then
         pc = pc + livecrootc_xfer(p)
-        livecrootc_xfer(p) = 0._rkx
+        livecrootc_xfer(p) = 0._rk8
         if ( use_c13 ) then
           pc13 = pc13 + c13_livecrootc_xfer(p)
-          c13_livecrootc_xfer(p) = 0._rkx
+          c13_livecrootc_xfer(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_livecrootc_xfer(p)
-          c14_livecrootc_xfer(p) = 0._rkx
+          c14_livecrootc_xfer(p) = 0._rk8
         end if
         pn = pn + livecrootn_xfer(p)
-        livecrootn_xfer(p) = 0._rkx
+        livecrootn_xfer(p) = 0._rk8
       end if
 
       ! deadcroot C and N
       if (abs(deadcrootc(p)) < ccrit) then
         pc = pc + deadcrootc(p)
-        deadcrootc(p) = 0._rkx
+        deadcrootc(p) = 0._rk8
         if ( use_c13 ) then
           pc13 = pc13 + c13_deadcrootc(p)
-          c13_deadcrootc(p) = 0._rkx
+          c13_deadcrootc(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_deadcrootc(p)
-          c14_deadcrootc(p) = 0._rkx
+          c14_deadcrootc(p) = 0._rk8
         end if
         pn = pn + deadcrootn(p)
-        deadcrootn(p) = 0._rkx
+        deadcrootn(p) = 0._rk8
       end if
 
       ! deadcroot storage C and N
       if (abs(deadcrootc_storage(p)) < ccrit) then
         pc = pc + deadcrootc_storage(p)
-        deadcrootc_storage(p) = 0._rkx
+        deadcrootc_storage(p) = 0._rk8
         if ( use_c13 ) then
           pc13 = pc13 + c13_deadcrootc_storage(p)
-          c13_deadcrootc_storage(p) = 0._rkx
+          c13_deadcrootc_storage(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_deadcrootc_storage(p)
-          c14_deadcrootc_storage(p) = 0._rkx
+          c14_deadcrootc_storage(p) = 0._rk8
         end if
         pn = pn + deadcrootn_storage(p)
-        deadcrootn_storage(p) = 0._rkx
+        deadcrootn_storage(p) = 0._rk8
       end if
 
       ! deadcroot transfer C and N
       if (abs(deadcrootc_xfer(p)) < ccrit) then
         pc = pc + deadcrootc_xfer(p)
-        deadcrootc_xfer(p) = 0._rkx
+        deadcrootc_xfer(p) = 0._rk8
         if ( use_c13 ) then
           pc13 = pc13 + c13_deadcrootc_xfer(p)
-          c13_deadcrootc_xfer(p) = 0._rkx
+          c13_deadcrootc_xfer(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_deadcrootc_xfer(p)
-          c14_deadcrootc_xfer(p) = 0._rkx
+          c14_deadcrootc_xfer(p) = 0._rk8
         end if
         pn = pn + deadcrootn_xfer(p)
-        deadcrootn_xfer(p) = 0._rkx
+        deadcrootn_xfer(p) = 0._rk8
       end if
 
       ! gresp_storage (C only)
       if (abs(gresp_storage(p)) < ccrit) then
         pc = pc + gresp_storage(p)
-        gresp_storage(p) = 0._rkx
+        gresp_storage(p) = 0._rk8
         if ( use_c13 ) then
           pc13 = pc13 + c13_gresp_storage(p)
-          c13_gresp_storage(p) = 0._rkx
+          c13_gresp_storage(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_gresp_storage(p)
-          c14_gresp_storage(p) = 0._rkx
+          c14_gresp_storage(p) = 0._rk8
         end if
       end if
 
       ! gresp_xfer (C only)
       if (abs(gresp_xfer(p)) < ccrit) then
         pc = pc + gresp_xfer(p)
-        gresp_xfer(p) = 0._rkx
+        gresp_xfer(p) = 0._rk8
         if ( use_c13 ) then
           pc13 = pc13 + c13_gresp_xfer(p)
-          c13_gresp_xfer(p) = 0._rkx
+          c13_gresp_xfer(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_gresp_xfer(p)
-          c14_gresp_xfer(p) = 0._rkx
+          c14_gresp_xfer(p) = 0._rk8
         end if
       end if
 
       ! cpool (C only)
       if (abs(cpool(p)) < ccrit) then
         pc = pc + cpool(p)
-        cpool(p) = 0._rkx
+        cpool(p) = 0._rk8
         if ( use_c13 ) then
           pc13 = pc13 + c13_cpool(p)
-          c13_cpool(p) = 0._rkx
+          c13_cpool(p) = 0._rk8
         end if
         if ( use_c14 ) then
           pc14 = pc14 + c14_cpool(p)
-          c14_cpool(p) = 0._rkx
+          c14_cpool(p) = 0._rk8
         end if
       end if
 
@@ -708,20 +708,20 @@ module mod_clm_cnprecisioncontrol
         ! xsmrpool (C only)
         if (abs(xsmrpool(p)) < ccrit) then
           pc = pc + xsmrpool(p)
-          xsmrpool(p) = 0._rkx
+          xsmrpool(p) = 0._rk8
         end if
       end if
 
       ! retransn (N only)
       if (abs(retransn(p)) < ncrit) then
         pn = pn + retransn(p)
-        retransn(p) = 0._rkx
+        retransn(p) = 0._rk8
       end if
 
       ! npool (N only)
       if (abs(npool(p)) < ncrit) then
         pn = pn + npool(p)
-        npool(p) = 0._rkx
+        npool(p) = 0._rk8
       end if
 
       pft_ctrunc(p) = pft_ctrunc(p) + pc
@@ -740,14 +740,14 @@ module mod_clm_cnprecisioncontrol
       c = filter_soilc(fc)
       do j = 1 , nlevdecomp
         ! initialize the column-level C and N truncation terms
-        cc = 0._rkx
+        cc = 0._rk8
         if ( use_c13 ) then
-          cc13 = 0._rkx
+          cc13 = 0._rk8
         end if
         if ( use_c14 ) then
-          cc14 = 0._rkx
+          cc14 = 0._rk8
         end if
-        cn = 0._rkx
+        cn = 0._rk8
 
         ! do tests on state variables for precision control
         ! for linked C-N state variables, perform precision test on
@@ -758,17 +758,17 @@ module mod_clm_cnprecisioncontrol
 
           if (abs(decomp_cpools_vr(c,j,k)) < ccrit) then
             cc = cc + decomp_cpools_vr(c,j,k)
-            decomp_cpools_vr(c,j,k) = 0._rkx
+            decomp_cpools_vr(c,j,k) = 0._rk8
             if ( use_c13 ) then
               cc13 = cc13 + decomp_c13pools_vr(c,j,k)
-              decomp_c13pools_vr(c,j,k) = 0._rkx
+              decomp_c13pools_vr(c,j,k) = 0._rk8
             end if
             if ( use_c14 ) then
               cc14 = cc14 + decomp_c14pools_vr(c,j,k)
-              decomp_c14pools_vr(c,j,k) = 0._rkx
+              decomp_c14pools_vr(c,j,k) = 0._rk8
             end if
             cn = cn + decomp_npools_vr(c,j,k)
-            decomp_npools_vr(c,j,k) = 0._rkx
+            decomp_npools_vr(c,j,k) = 0._rk8
           end if
         end do
 
@@ -793,18 +793,18 @@ module mod_clm_cnprecisioncontrol
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
       do j = 1 , nlevdecomp
-        if (abs(smin_no3_vr(c,j)) < ncrit/1e4_rkx) then
-          if ( smin_no3_vr(c,j) < 0._rkx ) then
+        if (abs(smin_no3_vr(c,j)) < ncrit/1e4_rk8) then
+          if ( smin_no3_vr(c,j) < 0._rk8 ) then
             write(stderr, *) '-10^-12 < smin_no3 < 0. resetting to zero.'
             write(stderr, *) 'smin_no3_vr(c,j), c, j: ', smin_no3_vr(c,j), c, j
-            smin_no3_vr(c,j) = 0._rkx
+            smin_no3_vr(c,j) = 0._rk8
           end if
         end if
-        if (abs(smin_nh4_vr(c,j)) < ncrit/1e4_rkx) then
-          if ( smin_nh4_vr(c,j) < 0._rkx ) then
+        if (abs(smin_nh4_vr(c,j)) < ncrit/1e4_rk8) then
+          if ( smin_nh4_vr(c,j) < 0._rk8 ) then
             write(stderr, *) '-10^-12 < smin_nh4 < 0. resetting to zero.'
             write(stderr, *) 'smin_nh4_vr(c,j), c, j: ', smin_nh4_vr(c,j), c, j
-            smin_nh4_vr(c,j) = 0._rkx
+            smin_nh4_vr(c,j) = 0._rk8
           end if
         end if
       end do

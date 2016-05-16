@@ -82,40 +82,40 @@ module mod_clm_initslake
     ! true => landunit is a lake point
     logical , pointer , dimension(:) :: lakpoi
     ! layer thickness depth (m)
-    real(rkx) , pointer , dimension(:,:) :: dz
+    real(rk8) , pointer , dimension(:,:) :: dz
     ! volumetric soil water at saturation (porosity) (nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: watsat
+    real(rk8) , pointer , dimension(:,:) :: watsat
     ! ice lens (kg/m2)
-    real(rkx) , pointer , dimension(:,:) :: h2osoi_ice
+    real(rk8) , pointer , dimension(:,:) :: h2osoi_ice
     ! liquid water (kg/m2)
-    real(rkx) , pointer , dimension(:,:) :: h2osoi_liq
+    real(rk8) , pointer , dimension(:,:) :: h2osoi_liq
     ! lake temperature (Kelvin)  (1:nlevlak)
-    real(rkx) , pointer , dimension(:,:) :: t_lake
+    real(rk8) , pointer , dimension(:,:) :: t_lake
     ! ground temperature (Kelvin)
-    real(rkx) , pointer , dimension(:) :: t_grnd
+    real(rk8) , pointer , dimension(:) :: t_grnd
     ! snow water (mm H2O)
-    real(rkx) , pointer , dimension(:) :: h2osno
+    real(rk8) , pointer , dimension(:) :: h2osno
     ! number of snow layers
     integer(ik4) , pointer , dimension(:) :: snl
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: t_soisno
+    real(rk8) , pointer , dimension(:,:) :: t_soisno
     ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
-    real(rkx) , pointer , dimension(:,:) :: h2osoi_vol
+    real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
     ! mass fraction of lake layer that is frozen
-    real(rkx) , pointer , dimension(:,:) :: lake_icefrac
+    real(rk8) , pointer , dimension(:,:) :: lake_icefrac
     ! top level eddy conductivity (W/mK)
-    real(rkx) , pointer , dimension(:) :: savedtke1
+    real(rk8) , pointer , dimension(:) :: savedtke1
     ! friction velocity (m/s)
-    real(rkx) , pointer , dimension(:) :: ust_lake
+    real(rk8) , pointer , dimension(:) :: ust_lake
     !roughness length over ground, momentum [m]
-    real(rkx) , pointer , dimension(:) :: z0mg
+    real(rk8) , pointer , dimension(:) :: z0mg
     ! New SNICAR variables
     ! effective snow grain radius (col,lyr) [microns, m^-6]
-    real(rkx) , pointer , dimension(:,:) :: snw_rds
+    real(rk8) , pointer , dimension(:,:) :: snw_rds
     ! snow grain size, top (col) [microns]
-    real(rkx) , pointer , dimension(:) :: snw_rds_top
+    real(rk8) , pointer , dimension(:) :: snw_rds_top
     ! liquid water fraction (mass) in top snow layer (col) [frc]
-    real(rkx) , pointer , dimension(:) :: sno_liq_top
+    real(rk8) , pointer , dimension(:) :: sno_liq_top
     integer(ik4) :: j , l , c   ! indices
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
@@ -189,7 +189,7 @@ module mod_clm_initslake
       if ( lakpoi(l) ) then
         if (snl(c) < 0) then
           do j = snl(c)+1 , 0
-            if ( arbinit .or. t_soisno(c,j) == spval ) t_soisno(c,j) = 250._rkx
+            if ( arbinit .or. t_soisno(c,j) == spval ) t_soisno(c,j) = 250._rk8
           end do
         end if
         do j = 1 , nlevgrnd
@@ -201,7 +201,7 @@ module mod_clm_initslake
             ! initialization of SNICAR vars is fragile;
             ! set localarbinit = .true. if any layer is spval
             if ( lake_icefrac(c,j)==spval ) localarbinit = .true.
-            lake_icefrac(c,j) = 0._rkx
+            lake_icefrac(c,j) = 0._rk8
             ! Always initialize with no ice to prevent excessive
             ! ice sheets from forming when
             ! starting with old lake model that has unrealistically
@@ -216,8 +216,8 @@ module mod_clm_initslake
         if ( arbinit .or. savedtke1(c) == spval ) savedtke1(c) = tkwat
         ! For prognostic roughness length
         if ( arbinit .or. ust_lake(c) == spval ) then
-          ust_lake(c) = 0.1_rkx
-          z0mg(c) = 0.0004_rkx
+          ust_lake(c) = 0.1_rk8
+          z0mg(c) = 0.0004_rk8
         end if
       end if
     end do
@@ -233,7 +233,7 @@ module mod_clm_initslake
               h2osoi_liq(c,j) = spval
               h2osoi_ice(c,j) = spval
             else ! bedrock
-              h2osoi_vol(c,j) = 0._rkx
+              h2osoi_vol(c,j) = 0._rk8
             end if
           end if
           ! soil layers
@@ -241,9 +241,9 @@ module mod_clm_initslake
                h2osoi_liq(c,j) == spval) then
             if ( t_soisno(c,j) <= tfrz ) then
               h2osoi_ice(c,j)  = dz(c,j)*denice*h2osoi_vol(c,j)
-              h2osoi_liq(c,j) = 0._rkx
+              h2osoi_liq(c,j) = 0._rk8
             else
-              h2osoi_ice(c,j) = 0._rkx
+              h2osoi_ice(c,j) = 0._rk8
               h2osoi_liq(c,j) = dz(c,j)*denh2o*h2osoi_vol(c,j)
             endif
           end if
@@ -263,7 +263,7 @@ module mod_clm_initslake
               h2osoi_ice(c,j) = dz(c,j)*bdsno
             end if
             if ( arbinit .or. h2osoi_liq(c,j) == spval ) then
-              h2osoi_liq(c,j) = 0._rkx
+              h2osoi_liq(c,j) = 0._rk8
             end if
           end if
         end if
@@ -277,7 +277,7 @@ module mod_clm_initslake
         ! lakes have snl==0
         ! The rest of the fields will be initialized to zero in any case
         snw_rds(c,snl(c)+1:0)        = snw_rds_min
-        snw_rds(c,-nlevsno+1:snl(c)) = 0._rkx
+        snw_rds(c,-nlevsno+1:snl(c)) = 0._rk8
         snw_rds_top(c)               = snw_rds_min
         sno_liq_top(c) = h2osoi_liq(c,snl(c)+1) / &
                 (h2osoi_liq(c,snl(c)+1)+h2osoi_ice(c,snl(c)+1))
@@ -295,19 +295,19 @@ module mod_clm_initslake
     ! landunit index associated with each column
     integer(ik4) , pointer , dimension(:) :: clandunit
     ! snow height (m)
-    real(rkx) , pointer , dimension(:) :: snow_depth
+    real(rk8) , pointer , dimension(:) :: snow_depth
     ! true => landunit is a lake point
     logical , pointer , dimension(:) :: lakpoi
     ! mass fraction of lake layer that is frozen
-    real(rkx) , pointer , dimension(:,:) :: lake_icefrac
+    real(rk8) , pointer , dimension(:,:) :: lake_icefrac
     ! number of snow layers
     integer(ik4) , pointer , dimension(:) :: snl
     ! layer depth  (m) over snow only
-    real(rkx) , pointer , dimension(:,:) :: z
+    real(rk8) , pointer , dimension(:,:) :: z
     ! layer thickness depth (m) over snow only
-    real(rkx) , pointer , dimension(:,:) :: dz
+    real(rk8) , pointer , dimension(:,:) :: dz
     ! interface depth (m) over snow only
-    real(rkx) , pointer , dimension(:,:) :: zi
+    real(rk8) , pointer , dimension(:,:) :: zi
     integer(ik4) :: c , l , j      !indices
 
     ! Assign local pointers to derived subtypes components (landunit-level)
@@ -332,66 +332,66 @@ module mod_clm_initslake
     do c = lbc , ubc
       l = clandunit(c)
       if ( lakpoi(l) .and. (arbinit .or. lake_icefrac(c,1) == spval) ) then
-        if ( snow_depth(c) < 0.01_rkx + lsadz ) then
+        if ( snow_depth(c) < 0.01_rk8 + lsadz ) then
           snl(c) = 0
-          dz(c,-nlevsno+1:0) = 0._rkx
-          z (c,-nlevsno+1:0) = 0._rkx
-          zi(c,-nlevsno+0:0) = 0._rkx
+          dz(c,-nlevsno+1:0) = 0._rk8
+          z (c,-nlevsno+1:0) = 0._rk8
+          zi(c,-nlevsno+0:0) = 0._rk8
         else
-          if ( (snow_depth(c) >= 0.01_rkx + lsadz) .and. &
-               (snow_depth(c) <= 0.03_rkx + lsadz) ) then
+          if ( (snow_depth(c) >= 0.01_rk8 + lsadz) .and. &
+               (snow_depth(c) <= 0.03_rk8 + lsadz) ) then
             snl(c) = -1
             dz(c,0)  = snow_depth(c)
-          else if ( (snow_depth(c) > 0.03_rkx + 2._rkx*lsadz) .and. &
-                    (snow_depth(c) <= 0.04_rkx + 2._rkx*lsadz) ) then
+          else if ( (snow_depth(c) > 0.03_rk8 + 2._rk8*lsadz) .and. &
+                    (snow_depth(c) <= 0.04_rk8 + 2._rk8*lsadz) ) then
             snl(c) = -2
-            dz(c,-1) = snow_depth(c)/2._rkx
+            dz(c,-1) = snow_depth(c)/2._rk8
             dz(c, 0) = dz(c,-1)
-          else if ( (snow_depth(c) > 0.04_rkx + 2._rkx*lsadz) .and. &
-                    (snow_depth(c) <= 0.07_rkx + 2._rkx*lsadz) ) then
+          else if ( (snow_depth(c) > 0.04_rk8 + 2._rk8*lsadz) .and. &
+                    (snow_depth(c) <= 0.07_rk8 + 2._rk8*lsadz) ) then
             snl(c) = -2
-            dz(c,-1) = 0.02_rkx + lsadz
+            dz(c,-1) = 0.02_rk8 + lsadz
             dz(c, 0) = snow_depth(c) - dz(c,-1)
-          else if ( (snow_depth(c) > 0.07_rkx + 3._rkx*lsadz) .and. &
-                    (snow_depth(c) <= 0.12_rkx + 3._rkx*lsadz) ) then
+          else if ( (snow_depth(c) > 0.07_rk8 + 3._rk8*lsadz) .and. &
+                    (snow_depth(c) <= 0.12_rk8 + 3._rk8*lsadz) ) then
             snl(c) = -3
-            dz(c,-2) = 0.02_rkx + lsadz
-            dz(c,-1) = (snow_depth(c) - 0.02_rkx - lsadz)/2._rkx
+            dz(c,-2) = 0.02_rk8 + lsadz
+            dz(c,-1) = (snow_depth(c) - 0.02_rk8 - lsadz)/2._rk8
             dz(c, 0) = dz(c,-1)
-          else if ( (snow_depth(c) > 0.12_rkx + 3._rkx*lsadz) .and. &
-                    (snow_depth(c) <= 0.18_rkx + 3._rkx*lsadz) ) then
+          else if ( (snow_depth(c) > 0.12_rk8 + 3._rk8*lsadz) .and. &
+                    (snow_depth(c) <= 0.18_rk8 + 3._rk8*lsadz) ) then
             snl(c) = -3
-            dz(c,-2) = 0.02_rkx + lsadz
-            dz(c,-1) = 0.05_rkx + lsadz
+            dz(c,-2) = 0.02_rk8 + lsadz
+            dz(c,-1) = 0.05_rk8 + lsadz
             dz(c, 0) = snow_depth(c) - dz(c,-2) - dz(c,-1)
-          else if ( (snow_depth(c) > 0.18_rkx + 4._rkx*lsadz) .and. &
-                    (snow_depth(c) <= 0.29_rkx + 4._rkx*lsadz) ) then
+          else if ( (snow_depth(c) > 0.18_rk8 + 4._rk8*lsadz) .and. &
+                    (snow_depth(c) <= 0.29_rk8 + 4._rk8*lsadz) ) then
             snl(c) = -4
-            dz(c,-3) = 0.02_rkx + lsadz
-            dz(c,-2) = 0.05_rkx + lsadz
-            dz(c,-1) = (snow_depth(c) - dz(c,-3) - dz(c,-2))/2._rkx
+            dz(c,-3) = 0.02_rk8 + lsadz
+            dz(c,-2) = 0.05_rk8 + lsadz
+            dz(c,-1) = (snow_depth(c) - dz(c,-3) - dz(c,-2))/2._rk8
             dz(c, 0) = dz(c,-1)
-          else if ( (snow_depth(c) > 0.29_rkx + 4._rkx*lsadz) .and. &
-                    (snow_depth(c) <= 0.41_rkx + 4._rkx*lsadz) ) then
+          else if ( (snow_depth(c) > 0.29_rk8 + 4._rk8*lsadz) .and. &
+                    (snow_depth(c) <= 0.41_rk8 + 4._rk8*lsadz) ) then
             snl(c) = -4
-            dz(c,-3) = 0.02_rkx + lsadz
-            dz(c,-2) = 0.05_rkx + lsadz
-            dz(c,-1) = 0.11_rkx + lsadz
+            dz(c,-3) = 0.02_rk8 + lsadz
+            dz(c,-2) = 0.05_rk8 + lsadz
+            dz(c,-1) = 0.11_rk8 + lsadz
             dz(c, 0) = snow_depth(c) - dz(c,-3) - dz(c,-2) - dz(c,-1)
-          else if ( (snow_depth(c) > 0.41_rkx + 5._rkx*lsadz) .and. &
-                    (snow_depth(c) <= 0.64_rkx + 5._rkx*lsadz) ) then
+          else if ( (snow_depth(c) > 0.41_rk8 + 5._rk8*lsadz) .and. &
+                    (snow_depth(c) <= 0.64_rk8 + 5._rk8*lsadz) ) then
             snl(c) = -5
-            dz(c,-4) = 0.02_rkx + lsadz
-            dz(c,-3) = 0.05_rkx + lsadz
-            dz(c,-2) = 0.11_rkx + lsadz
-            dz(c,-1) = (snow_depth(c) - dz(c,-4) - dz(c,-3) - dz(c,-2))/2._rkx
+            dz(c,-4) = 0.02_rk8 + lsadz
+            dz(c,-3) = 0.05_rk8 + lsadz
+            dz(c,-2) = 0.11_rk8 + lsadz
+            dz(c,-1) = (snow_depth(c) - dz(c,-4) - dz(c,-3) - dz(c,-2))/2._rk8
             dz(c, 0) = dz(c,-1)
-          else if ( snow_depth(c) > 0.64_rkx + 5._rkx*lsadz ) then
+          else if ( snow_depth(c) > 0.64_rk8 + 5._rk8*lsadz ) then
             snl(c) = -5
-            dz(c,-4) = 0.02_rkx + lsadz
-            dz(c,-3) = 0.05_rkx + lsadz
-            dz(c,-2) = 0.11_rkx + lsadz
-            dz(c,-1) = 0.23_rkx + lsadz
+            dz(c,-4) = 0.02_rk8 + lsadz
+            dz(c,-3) = 0.05_rk8 + lsadz
+            dz(c,-2) = 0.11_rk8 + lsadz
+            dz(c,-1) = 0.23_rk8 + lsadz
             dz(c, 0)=snow_depth(c)-dz(c,-4)-dz(c,-3)-dz(c,-2)-dz(c,-1)
           end if
         end if
@@ -403,7 +403,7 @@ module mod_clm_initslake
       l = clandunit(c)
       if ( lakpoi(l) .and. (arbinit .or. lake_icefrac(c,1) == spval) ) then
         do j = 0 , snl(c)+1 , -1
-          z(c,j)    = zi(c,j) - 0.5_rkx*dz(c,j)
+          z(c,j)    = zi(c,j) - 0.5_rk8*dz(c,j)
           zi(c,j-1) = zi(c,j) - dz(c,j)
         end do
       end if
@@ -420,57 +420,57 @@ module mod_clm_initslake
     integer(ik4) , pointer , dimension(:) :: cgridcell
     ! landunit type index
     integer(ik4) , pointer , dimension(:) :: ltype
-    real(rkx) , pointer , dimension(:,:) :: cellsand  ! column 3D sand
-    real(rkx) , pointer , dimension(:,:) :: cellclay  ! column 3D clay
-    real(rkx) , pointer , dimension(:,:) :: cellorg   ! column 3D org
+    real(rk8) , pointer , dimension(:,:) :: cellsand  ! column 3D sand
+    real(rk8) , pointer , dimension(:,:) :: cellclay  ! column 3D clay
+    real(rk8) , pointer , dimension(:,:) :: cellorg   ! column 3D org
     ! liquid water (kg/m2) (-nlevsno+1:nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: h2osoi_liq
+    real(rk8) , pointer , dimension(:,:) :: h2osoi_liq
     ! ice lens (kg/m2) (-nlevsno+1:nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: h2osoi_ice
+    real(rk8) , pointer , dimension(:,:) :: h2osoi_ice
     ! variable lake depth (m)
-    real(rkx) , pointer , dimension(:) :: lakedepth
+    real(rk8) , pointer , dimension(:) :: lakedepth
     ! layer depth (m)
-    real(rkx) , pointer , dimension(:,:) :: z
+    real(rk8) , pointer , dimension(:,:) :: z
     ! interface level below a "z" level (m)
-    real(rkx) , pointer , dimension(:,:) :: zi
+    real(rk8) , pointer , dimension(:,:) :: zi
     ! layer thickness depth (m)
-    real(rkx) , pointer , dimension(:,:) :: dz
+    real(rk8) , pointer , dimension(:,:) :: dz
     ! layer thickness for lake (m)
-    real(rkx) , pointer , dimension(:,:) :: dz_lake
+    real(rk8) , pointer , dimension(:,:) :: dz_lake
     ! layer depth for lake (m)
-    real(rkx) , pointer , dimension(:,:) :: z_lake
+    real(rk8) , pointer , dimension(:,:) :: z_lake
     ! Clapp and Hornberger "b" (nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: bsw
+    real(rk8) , pointer , dimension(:,:) :: bsw
     ! volumetric soil water at saturation (porosity) (nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: watsat
+    real(rk8) , pointer , dimension(:,:) :: watsat
     ! btran parameter for btran=0
-    real(rkx) , pointer , dimension(:,:) :: watdry
+    real(rk8) , pointer , dimension(:,:) :: watdry
     ! btran parameter for btran = 1
-    real(rkx) , pointer , dimension(:,:) :: watopt
+    real(rk8) , pointer , dimension(:,:) :: watopt
     ! hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: hksat
+    real(rk8) , pointer , dimension(:,:) :: hksat
     ! minimum soil suction (mm) (nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: sucsat
+    real(rk8) , pointer , dimension(:,:) :: sucsat
     ! heat capacity, soil solids (J/m**3/Kelvin) (nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: csol
+    real(rk8) , pointer , dimension(:,:) :: csol
     ! thermal conductivity, soil minerals  [W/m-K] (new) (nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: tkmg
+    real(rk8) , pointer , dimension(:,:) :: tkmg
     ! thermal conductivity, dry soil (W/m/Kelvin) (nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: tkdry
+    real(rk8) , pointer , dimension(:,:) :: tkdry
     ! thermal conductivity, saturated soil [W/m-K] (new) (nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: tksatu
+    real(rk8) , pointer , dimension(:,:) :: tksatu
     ! volumetric soil water at field capacity (nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: watfc
+    real(rk8) , pointer , dimension(:,:) :: watfc
     !volumetric soil water [m3/m3]  (nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: h2osoi_vol
+    real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
     integer(ik4) :: lev
 #ifdef EXTRALAKELAYERS
     integer(ik4) :: i
 #endif
     integer(ik4) :: g , l , c  ! indices
-    real(rkx) :: bd    ! bulk density of dry soil material [kg/m^3]
-    real(rkx) :: tkm   ! mineral conductivity
-    real(rkx) :: xksat ! maximum hydraulic conductivity of soil [mm/s]
+    real(rk8) :: bd    ! bulk density of dry soil material [kg/m^3]
+    real(rk8) :: tkm   ! mineral conductivity
+    real(rk8) :: xksat ! maximum hydraulic conductivity of soil [mm/s]
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
@@ -479,43 +479,43 @@ module mod_clm_initslake
     integer(ik4) :: numl   ! total number of landunits across all processors
     integer(ik4) :: numc   ! total number of columns across all processors
     integer(ik4) :: nump   ! total number of pfts across all processors
-    real(rkx) :: depthratio ! ratio of lake depth to standard deep lake depth
-    real(rkx) :: clay    ! temporary
-    real(rkx) :: sand    ! temporary
+    real(rk8) :: depthratio ! ratio of lake depth to standard deep lake depth
+    real(rk8) :: clay    ! temporary
+    real(rk8) :: sand    ! temporary
     ! New CLM 4 variables
-    real(rkx) :: om_frac            ! organic matter fraction
-    real(rkx) :: om_watsat = 0.9_rkx  ! porosity of organic soil
+    real(rk8) :: om_frac            ! organic matter fraction
+    real(rk8) :: om_watsat = 0.9_rk8  ! porosity of organic soil
     ! saturated hydraulic conductivity of organic soil [mm/s]
-    real(rkx) :: om_hksat  = 0.1_rkx
+    real(rk8) :: om_hksat  = 0.1_rk8
     ! thermal conductivity of organic soil (Farouki, 1986) [W/m/K]
-    real(rkx) :: om_tkm    = 0.25_rkx
+    real(rk8) :: om_tkm    = 0.25_rk8
     ! saturated suction for organic matter (Letts, 2000)
-    real(rkx) :: om_sucsat = 10.3_rkx
+    real(rk8) :: om_sucsat = 10.3_rk8
     ! heat capacity of peat soil *10^6 (J/K m3) (Farouki, 1986)
-    real(rkx) :: om_csol = 2.5_rkx
+    real(rk8) :: om_csol = 2.5_rk8
     ! thermal conductivity of dry organic soil (Farouki, 1981)
-    real(rkx) :: om_tkd = 0.05_rkx
+    real(rk8) :: om_tkd = 0.05_rk8
     ! Clapp Hornberger paramater for oragnic soil (Letts, 2000)
-    real(rkx) :: om_b = 2.7_rkx
+    real(rk8) :: om_b = 2.7_rk8
     ! organic matter (kg/m3) where soil is assumed to act like peat
-    real(rkx) :: organic_max = 130._rkx
+    real(rk8) :: organic_max = 130._rk8
     ! vol. heat capacity of granite/sandstone  J/(m3 K)(Shabbir, 2000)
-    real(rkx) :: csol_bedrock = 2.0e6_rkx
+    real(rk8) :: csol_bedrock = 2.0e6_rk8
     ! percolation threshold
-    real(rkx) :: pc = 0.5_rkx
+    real(rk8) :: pc = 0.5_rk8
     ! percolation exponent
-    real(rkx) :: pcbeta = 0.139_rkx
+    real(rk8) :: pcbeta = 0.139_rk8
     ! Note: These constants should be shared with iniTimeConst.
-    real(rkx) :: perc_frac   ! "percolating" fraction of organic soil
-    real(rkx) :: perc_norm   ! normalize to 1 when 100% organic soil
-    real(rkx) :: uncon_hksat ! series conductivity of mineral/organic soil
-    real(rkx) :: uncon_frac  ! fraction of "unconnected" soil
+    real(rk8) :: perc_frac   ! "percolating" fraction of organic soil
+    real(rk8) :: perc_norm   ! normalize to 1 when 100% organic soil
+    real(rk8) :: uncon_hksat ! series conductivity of mineral/organic soil
+    real(rk8) :: uncon_frac  ! fraction of "unconnected" soil
 
     ! timestep used for nominal lsadz
-    real(rkx) , parameter :: dtime_lsadz = 1800._rkx
+    real(rk8) , parameter :: dtime_lsadz = 1800._rk8
     ! nominal minimum snow layer thickness
     ! used in SnowHydrology, etc. This should be a global constant.
-    real(rkx) , parameter :: snodzmin = 0.01_rkx
+    real(rk8) , parameter :: snodzmin = 0.01_rk8
 
     if ( myid == italk ) then
       write (stdout,*) 'Attempting to initialize time invariant '// &
@@ -562,15 +562,15 @@ module mod_clm_initslake
       ! critical dimensionless fetch for Charnock parameter.
       ! From Vickers & Mahrt 1997 but converted to use u instead of u*
       ! (Form used in Subin et al. 2011)
-      fcrit   = 22._rkx
+      fcrit   = 22._rk8
       ! (m) Minimum allowed roughness length for unfrozen lakes.
       ! (Used in Subin et al. 2011)
-      minz0lake = 1.e-5_rkx
+      minz0lake = 1.e-5_rk8
     else
-      fcrit   = 100._rkx  ! Vickers & Mahrt 1997
+      fcrit   = 100._rk8  ! Vickers & Mahrt 1997
       ! (m) Minimum allowed roughness length for unfrozen lakes.
       ! Now set low so it is only to avoid floating point exceptions.
-      minz0lake = 1.e-10_rkx
+      minz0lake = 1.e-10_rk8
     end if
 
     if ( lakepuddling ) then
@@ -593,8 +593,8 @@ module mod_clm_initslake
 
     ! Adjust lsadz (added to min. snow layer thickness) if dtsrf /= 1800 s.
     if ( dtsrf /= dtime_lsadz ) then
-      lsadz = (lsadz + snodzmin) * (dtsrf/dtime_lsadz)**0.5_rkx  - snodzmin
-      lsadz = max(lsadz, 0._rkx)
+      lsadz = (lsadz + snodzmin) * (dtsrf/dtime_lsadz)**0.5_rk8  - snodzmin
+      lsadz = max(lsadz, 0._rk8)
       if ( myid == italk ) then
         write(stdout,*) 'CLM timestep appears to differ from 1800s. '
         write(stdout,*) 'Adjusting minimum snow layer thickness over lakes '// &
@@ -611,57 +611,57 @@ module mod_clm_initslake
 
     ! Lake layers
 
-    dzlak(1) = 0.1_rkx
-    dzlak(2) = 1._rkx
-    dzlak(3) = 2._rkx
-    dzlak(4) = 3._rkx
-    dzlak(5) = 4._rkx
-    dzlak(6) = 5._rkx
-    dzlak(7) = 7._rkx
-    dzlak(8) = 7._rkx
-    dzlak(9) = 10.45_rkx
-    dzlak(10)= 10.45_rkx
+    dzlak(1) = 0.1_rk8
+    dzlak(2) = 1._rk8
+    dzlak(3) = 2._rk8
+    dzlak(4) = 3._rk8
+    dzlak(5) = 4._rk8
+    dzlak(6) = 5._rk8
+    dzlak(7) = 7._rk8
+    dzlak(8) = 7._rk8
+    dzlak(9) = 10.45_rk8
+    dzlak(10)= 10.45_rk8
 
-    zlak(1) =  0.05_rkx
-    zlak(2) =  0.6_rkx
-    zlak(3) =  2.1_rkx
-    zlak(4) =  4.6_rkx
-    zlak(5) =  8.1_rkx
-    zlak(6) = 12.6_rkx
-    zlak(7) = 18.6_rkx
-    zlak(8) = 25.6_rkx
-    zlak(9) = 34.325_rkx
-    zlak(10)= 44.775_rkx
+    zlak(1) =  0.05_rk8
+    zlak(2) =  0.6_rk8
+    zlak(3) =  2.1_rk8
+    zlak(4) =  4.6_rk8
+    zlak(5) =  8.1_rk8
+    zlak(6) = 12.6_rk8
+    zlak(7) = 18.6_rk8
+    zlak(8) = 25.6_rk8
+    zlak(9) = 34.325_rk8
+    zlak(10)= 44.775_rk8
 #else
-    dzlak(1) =0.1_rkx
-    dzlak(2) =0.25_rkx
-    dzlak(3) =0.25_rkx
-    dzlak(4) =0.25_rkx
-    dzlak(5) =0.25_rkx
-    dzlak(6) =0.5_rkx
-    dzlak(7) =0.5_rkx
-    dzlak(8) =0.5_rkx
-    dzlak(9) =0.5_rkx
-    dzlak(10) =0.75_rkx
-    dzlak(11) =0.75_rkx
-    dzlak(12) =0.75_rkx
-    dzlak(13) =0.75_rkx
-    dzlak(14) =2_rkx
-    dzlak(15) =2_rkx
-    dzlak(16) =2.5_rkx
-    dzlak(17) =2.5_rkx
-    dzlak(18) =3.5_rkx
-    dzlak(19) =3.5_rkx
-    dzlak(20) =3.5_rkx
-    dzlak(21) =3.5_rkx
-    dzlak(22) =5.225_rkx
-    dzlak(23) =5.225_rkx
-    dzlak(24) =5.225_rkx
-    dzlak(25) =5.225_rkx
+    dzlak(1) =0.1_rk8
+    dzlak(2) =0.25_rk8
+    dzlak(3) =0.25_rk8
+    dzlak(4) =0.25_rk8
+    dzlak(5) =0.25_rk8
+    dzlak(6) =0.5_rk8
+    dzlak(7) =0.5_rk8
+    dzlak(8) =0.5_rk8
+    dzlak(9) =0.5_rk8
+    dzlak(10) =0.75_rk8
+    dzlak(11) =0.75_rk8
+    dzlak(12) =0.75_rk8
+    dzlak(13) =0.75_rk8
+    dzlak(14) =2_rk8
+    dzlak(15) =2_rk8
+    dzlak(16) =2.5_rk8
+    dzlak(17) =2.5_rk8
+    dzlak(18) =3.5_rk8
+    dzlak(19) =3.5_rk8
+    dzlak(20) =3.5_rk8
+    dzlak(21) =3.5_rk8
+    dzlak(22) =5.225_rk8
+    dzlak(23) =5.225_rk8
+    dzlak(24) =5.225_rk8
+    dzlak(25) =5.225_rk8
 
-    zlak(1) = dzlak(1)/2._rkx
+    zlak(1) = dzlak(1)/2._rk8
     do i = 2 , nlevlak
-      zlak(i) = zlak(i-1) + (dzlak(i-1)+dzlak(i))/2._rkx
+      zlak(i) = zlak(i-1) + (dzlak(i-1)+dzlak(i))/2._rk8
     end do
 #endif
     ! --------------------------------------------------------------------
@@ -682,74 +682,74 @@ module mod_clm_initslake
           if ( lev <= nlevsoi )then
             clay    = cellclay(c,lev)
             sand    = cellsand(c,lev)
-            om_frac = (cellorg(c,lev)/organic_max)**2._rkx
+            om_frac = (cellorg(c,lev)/organic_max)**2._rk8
           else
             clay    = cellclay(c,nlevsoi)
             sand    = cellsand(c,nlevsoi)
-            om_frac = 0.0_rkx
+            om_frac = 0.0_rk8
           end if
-          watsat(c,lev) = 0.489_rkx - 0.00126_rkx*sand
+          watsat(c,lev) = 0.489_rk8 - 0.00126_rk8*sand
           bsw(c,lev)    = 2.91 + 0.159*clay
-          sucsat(c,lev) = 10._rkx * ( 10._rkx**(1.88_rkx-0.0131_rkx*sand) )
-          bd            = (1._rkx-watsat(c,lev))*2.7e3_rkx
-          watsat(c,lev) = (1._rkx - om_frac)*watsat(c,lev) + om_watsat*om_frac
-          tkm           = (1._rkx-om_frac)*(8.80_rkx*sand+2.92_rkx*clay) / &
+          sucsat(c,lev) = 10._rk8 * ( 10._rk8**(1.88_rk8-0.0131_rk8*sand) )
+          bd            = (1._rk8-watsat(c,lev))*2.7e3_rk8
+          watsat(c,lev) = (1._rk8 - om_frac)*watsat(c,lev) + om_watsat*om_frac
+          tkm           = (1._rk8-om_frac)*(8.80_rk8*sand+2.92_rk8*clay) / &
                   (sand+clay)+om_tkm*om_frac ! W/(m K)
-          bsw(c,lev)    = (1._rkx-om_frac)*(2.91_rkx + 0.159_rkx*clay) + &
+          bsw(c,lev)    = (1._rk8-om_frac)*(2.91_rk8 + 0.159_rk8*clay) + &
                   om_frac*om_b
-          sucsat(c,lev) = (1._rkx-om_frac)*sucsat(c,lev) + om_sucsat*om_frac
+          sucsat(c,lev) = (1._rk8-om_frac)*sucsat(c,lev) + om_sucsat*om_frac
           xksat         = 0.0070556 *( 10.**(-0.884+0.0153*sand) ) ! mm/s
 
           ! perc_frac is zero unless perf_frac greater than percolation
           ! threshold
           if ( om_frac > pc ) then
-            perc_norm=(1._rkx - pc)**(-pcbeta)
+            perc_norm=(1._rk8 - pc)**(-pcbeta)
             perc_frac=perc_norm*(om_frac - pc)**pcbeta
           else
-            perc_frac=0._rkx
+            perc_frac=0._rk8
           endif
           ! uncon_frac is fraction of mineral soil plus fraction of
           ! "nonpercolating" organic soil
-          uncon_frac = (1._rkx-om_frac)+(1._rkx-perc_frac)*om_frac
+          uncon_frac = (1._rk8-om_frac)+(1._rk8-perc_frac)*om_frac
           ! uncon_hksat is series addition of mineral/organic conductivites
-          if ( om_frac < 1._rkx ) then
-            uncon_hksat=uncon_frac/((1._rkx-om_frac)/xksat &
-                   +((1._rkx-perc_frac)*om_frac)/om_hksat)
+          if ( om_frac < 1._rk8 ) then
+            uncon_hksat=uncon_frac/((1._rk8-om_frac)/xksat &
+                   +((1._rk8-perc_frac)*om_frac)/om_hksat)
           else
-            uncon_hksat = 0._rkx
+            uncon_hksat = 0._rk8
           end if
           hksat(c,lev) = uncon_frac*uncon_hksat + (perc_frac*om_frac)*om_hksat
-          tkmg(c,lev) = tkm ** (1._rkx- watsat(c,lev))
-          tksatu(c,lev) = tkmg(c,lev)*0.57_rkx**watsat(c,lev)
-          tkdry(c,lev) = ((0.135_rkx*bd + 64.7_rkx) / &
-                  (2.7e3_rkx - 0.947_rkx*bd))*(1._rkx-om_frac) + om_tkd*om_frac
-          csol(c,lev) = ((1._rkx-om_frac)*(2.128_rkx*sand+2.385_rkx*clay) / &
-                  (sand+clay) + om_csol*om_frac)*1.e6_rkx  ! J/(m3 K)
+          tkmg(c,lev) = tkm ** (1._rk8- watsat(c,lev))
+          tksatu(c,lev) = tkmg(c,lev)*0.57_rk8**watsat(c,lev)
+          tkdry(c,lev) = ((0.135_rk8*bd + 64.7_rk8) / &
+                  (2.7e3_rk8 - 0.947_rk8*bd))*(1._rk8-om_frac) + om_tkd*om_frac
+          csol(c,lev) = ((1._rk8-om_frac)*(2.128_rk8*sand+2.385_rk8*clay) / &
+                  (sand+clay) + om_csol*om_frac)*1.e6_rk8  ! J/(m3 K)
           if ( lev > nlevsoi ) then
             csol(c,lev) = csol_bedrock
           end if
           watdry(c,lev) = watsat(c,lev) * &
-                  (316230._rkx/sucsat(c,lev)) ** (-1._rkx/bsw(c,lev))
+                  (316230._rk8/sucsat(c,lev)) ** (-1._rk8/bsw(c,lev))
           watopt(c,lev) = watsat(c,lev) * &
-                  (158490._rkx/sucsat(c,lev)) ** (-1._rkx/bsw(c,lev))
+                  (158490._rk8/sucsat(c,lev)) ** (-1._rk8/bsw(c,lev))
           !! added by K.Sakaguchi for beta from Lee and Pielke, 1992
           ! water content at field capacity, defined as hk = 0.1 mm/day
           ! used eqn (7.70) in CLM3 technote with
           ! k = 0.1 (mm/day) / (# seconds/day)
           watfc(c,lev) = watsat(c,lev) * &
-                  (0.1_rkx / (hksat(c,lev)*secspday))** &
-                  (1._rkx/(2._rkx*bsw(c,lev)+3._rkx))
+                  (0.1_rk8 / (hksat(c,lev)*secspday))** &
+                  (1._rk8/(2._rk8*bsw(c,lev)+3._rk8))
         end do
       endif
 
       ! Define levels
       if ( ltype(l) == istdlak ) then
         if ( lakedepth(c) == spval ) then
-          lakedepth(c) = zlak(nlevlak) + 0.5_rkx*dzlak(nlevlak)
+          lakedepth(c) = zlak(nlevlak) + 0.5_rk8*dzlak(nlevlak)
           z_lake(c,1:nlevlak) = zlak(1:nlevlak)
           dz_lake(c,1:nlevlak) = dzlak(1:nlevlak)
-        else if ( lakedepth(c) > 1._rkx .and. lakedepth(c) < 5000._rkx ) then
-          depthratio = lakedepth(c) / (zlak(nlevlak) + 0.5_rkx*dzlak(nlevlak))
+        else if ( lakedepth(c) > 1._rk8 .and. lakedepth(c) < 5000._rk8 ) then
+          depthratio = lakedepth(c) / (zlak(nlevlak) + 0.5_rk8*dzlak(nlevlak))
           z_lake(c,1) = zlak(1)
           dz_lake(c,1) = dzlak(1)
           dz_lake(c,2:nlevlak-1) = dzlak(2:nlevlak-1)*depthratio
@@ -757,14 +757,14 @@ module mod_clm_initslake
                               (dz_lake(c,1) - dzlak(1)*depthratio)
           do lev = 2 , nlevlak
             z_lake(c,lev) = z_lake(c,lev-1) + &
-                    (dz_lake(c,lev-1)+dz_lake(c,lev))/2._rkx
+                    (dz_lake(c,lev-1)+dz_lake(c,lev))/2._rk8
           end do
-        else if ( lakedepth(c) > 0._rkx .and. lakedepth(c) <= 1._rkx ) then
+        else if ( lakedepth(c) > 0._rk8 .and. lakedepth(c) <= 1._rk8 ) then
           dz_lake(c,:) = lakedepth(c) / nlevlak;
-          z_lake(c,1) = dz_lake(c,1) / 2._rkx;
+          z_lake(c,1) = dz_lake(c,1) / 2._rk8;
           do lev = 2 , nlevlak
             z_lake(c,lev) = z_lake(c,lev-1) + &
-                    (dz_lake(c,lev-1)+dz_lake(c,lev))/2._rkx
+                    (dz_lake(c,lev-1)+dz_lake(c,lev))/2._rk8
           end do
         else
           write(stderr,*) 'Bad lake depth: lakedepth, c: ', lakedepth(c), c

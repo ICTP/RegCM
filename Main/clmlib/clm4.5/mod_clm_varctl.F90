@@ -100,7 +100,7 @@ module mod_clm_varctl
   ! true => write global average diagnostics to std out
   logical , public :: wrtdia = .false.
   ! atmospheric CO2 molar ratio (by volume) (umol/mol)
-  real(rkx) , public :: co2_ppmv = 355._rkx
+  real(rk8) , public :: co2_ppmv = 355._rk8
 #if (defined LCH4 && defined VERTSOILC)
   ! true => anoxia is applied to heterotrophic respiration
   ! also considered in CH4 model
@@ -125,7 +125,7 @@ module mod_clm_varctl
   ! Error growth perturbation limit
   !
   ! perturbation limit when doing error growth test
-  real(rkx) , public :: pertlim = 0.0_rkx
+  real(rk8) , public :: pertlim = 0.0_rk8
   !
   logical , private :: clmvarctl_isset = .false.
 
@@ -214,7 +214,7 @@ module mod_clm_varctl
 
       ! Model physics
 
-      if ( (co2_ppmv <= 0.0_rkx) .or. (co2_ppmv > 3000.0_rkx) ) &
+      if ( (co2_ppmv <= 0.0_rk8) .or. (co2_ppmv > 3000.0_rk8) ) &
         call fatal(__FILE__,__LINE__, &
            subname//' ERROR: co2_ppmv is out of a reasonable range' )
 

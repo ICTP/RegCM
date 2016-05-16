@@ -30,9 +30,9 @@ module mod_clm_dynland
 
     ! proc beg & end gridcell indices
     integer(ik4) , intent(in)  :: begg , endg
-    real(rkx) , intent(out) :: gcell_liq(begg:endg)
-    real(rkx) , intent(out) :: gcell_ice(begg:endg)
-    real(rkx) , intent(out) :: gcell_heat(begg:endg)
+    real(rk8) , intent(out) :: gcell_liq(begg:endg)
+    real(rk8) , intent(out) :: gcell_ice(begg:endg)
+    real(rk8) , intent(out) :: gcell_heat(begg:endg)
 
     integer(ik4)  :: li , lf         ! loop initial/final indicies
     integer(ik4)  :: ci , cf         ! loop initial/final indicies
@@ -41,12 +41,12 @@ module mod_clm_dynland
     ! loop indicies (grid,lunit,column,pft,vertical level)
     integer(ik4)  :: g , l , c , p , k
 
-    real(rkx) :: wtgcell       ! weight relative to grid cell
-    real(rkx) :: wtcol         ! weight relative to column
-    real(rkx) :: liq           ! sum of liquid water at column level
-    real(rkx) :: ice           ! sum of frozen water at column level
-    real(rkx) :: heat          ! sum of heat content at column level
-    real(rkx) :: cv            ! heat capacity [J/(m^2 K)]
+    real(rk8) :: wtgcell       ! weight relative to grid cell
+    real(rk8) :: wtcol         ! weight relative to column
+    real(rk8) :: liq           ! sum of liquid water at column level
+    real(rk8) :: ice           ! sum of frozen water at column level
+    real(rk8) :: heat          ! sum of heat content at column level
+    real(rk8) :: cv            ! heat capacity [J/(m^2 K)]
 
     ! true=>do computations on this pft (see reweightMod for details)
     logical ,pointer :: pactive(:)
@@ -59,22 +59,22 @@ module mod_clm_dynland
     integer(ik4),  pointer :: nlev_improad(:)
 
     ! thermal conductivity of urban wall
-    real(rkx), pointer :: cv_wall(:,:)
+    real(rk8), pointer :: cv_wall(:,:)
     ! thermal conductivity of urban roof
-    real(rkx), pointer :: cv_roof(:,:)
+    real(rk8), pointer :: cv_roof(:,:)
     ! thermal conductivity of urban impervious road
-    real(rkx), pointer :: cv_improad(:,:)
+    real(rk8), pointer :: cv_improad(:,:)
 
     integer(ik4) , pointer :: snl(:)       ! number of snow layers
-    real(rkx), pointer :: t_soisno(:,:)    ! soil temperature (Kelvin)
-    real(rkx), pointer :: h2osno(:)        ! snow water (mm H2O)
-    real(rkx), pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
-    real(rkx), pointer :: h2osoi_ice(:,:)  ! frozen water (kg/m2)
+    real(rk8), pointer :: t_soisno(:,:)    ! soil temperature (Kelvin)
+    real(rk8), pointer :: h2osno(:)        ! snow water (mm H2O)
+    real(rk8), pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
+    real(rk8), pointer :: h2osoi_ice(:,:)  ! frozen water (kg/m2)
     ! volumetric soil water at saturation (porosity)
-    real(rkx), pointer :: watsat(:,:)
+    real(rk8), pointer :: watsat(:,:)
     ! heat capacity, soil solids (J/m**3/Kelvin)
-    real(rkx), pointer :: csol(:,:)
-    real(rkx), pointer :: dz(:,:)  ! layer depth (m)
+    real(rk8), pointer :: csol(:,:)
+    real(rk8), pointer :: dz(:,:)  ! layer depth (m)
 
     type(gridcell_type) , pointer :: gptr  ! pointer to gridcell derived subtype
     type(landunit_type) , pointer :: lptr  ! pointer to landunit derived subtype
@@ -114,9 +114,9 @@ module mod_clm_dynland
 
     do g = begg , endg ! loop over grid cells
 
-      gcell_liq  (g) = 0.0_rkx   ! sum for one grid cell
-      gcell_ice  (g) = 0.0_rkx   ! sum for one grid cell
-      gcell_heat (g) = 0.0_rkx   ! sum for one grid cell
+      gcell_liq  (g) = 0.0_rk8   ! sum for one grid cell
+      gcell_ice  (g) = 0.0_rk8   ! sum for one grid cell
+      gcell_heat (g) = 0.0_rk8   ! sum for one grid cell
 
       li = gptr%luni(g)
       lf = gptr%lunf(g)
@@ -126,9 +126,9 @@ module mod_clm_dynland
         cf = lptr%colf(l)
         do c = ci,cf   ! loop over columns
 
-          liq   = 0.0_rkx ! sum for one column
-          ice   = 0.0_rkx
-          heat  = 0.0_rkx
+          liq   = 0.0_rk8 ! sum for one column
+          ice   = 0.0_rk8
+          heat  = 0.0_rk8
 
           !--- water & ice, above ground only ---
           if ( (ltype(l) == istsoil .or. ltype(l) == istcrop         )  &
@@ -164,7 +164,7 @@ module mod_clm_dynland
           !--- water & ice, below ground, for lakes ---
           if ( ltype(l) == istdlak ) then
             do k = 1 , nlevlak
-              liq = liq + (1.0_rkx - &
+              liq = liq + (1.0_rk8 - &
                       cptr%cws%lake_icefrac(c,k))*cptr%cps%dz_lake(c,k)*denh2o
               ice = ice + &
                       cptr%cws%lake_icefrac(c,k)*cptr%cps%dz_lake(c,k)*denh2o
@@ -204,10 +204,10 @@ module mod_clm_dynland
               do k = 1,nlevurb
                 if (ctype(c)==icol_sunwall .or. ctype(c)==icol_shadewall) then
                   cv = cv_wall(l,k) * dz(c,k)
-                  heat = heat + cv*t_soisno(c,k) / 1.e6_rkx
+                  heat = heat + cv*t_soisno(c,k) / 1.e6_rk8
                 else if (ctype(c) == icol_roof) then
                   cv = cv_roof(l,k) * dz(c,k)
-                  heat = heat + cv*t_soisno(c,k) / 1.e6_rkx
+                  heat = heat + cv*t_soisno(c,k) / 1.e6_rk8
                 end if
               end do
             end if
@@ -220,7 +220,7 @@ module mod_clm_dynland
                 else
                   cv = (h2osoi_ice(c,k)*cpice + h2osoi_liq(c,k)*cpliq)
                 end if
-                heat = heat + cv*t_soisno(c,k) / 1.e6_rkx
+                heat = heat + cv*t_soisno(c,k) / 1.e6_rk8
               end if
             end do
 
@@ -229,8 +229,8 @@ module mod_clm_dynland
               if (ltype(l) == istdlak) then
                 cv = denh2o*cptr%cps%dz_lake(c,k) * &
                         ( cptr%cws%lake_icefrac(c,k)*cpice + &
-                          (1.0_rkx - cptr%cws%lake_icefrac(c,k))*cpliq )
-                heat = heat + cv*cptr%ces%t_lake(c,k) / 1.e6_rkx
+                          (1.0_rk8 - cptr%cws%lake_icefrac(c,k))*cpliq )
+                heat = heat + cv*cptr%ces%t_lake(c,k) / 1.e6_rk8
               end if
             end do
 
@@ -238,15 +238,15 @@ module mod_clm_dynland
             if ( snl(c) < 0 ) then
               do k = snl(c)+1,0 ! loop over snow layers
                 cv = cpliq*h2osoi_liq(c,k) + cpice*h2osoi_ice(c,k)
-                heat = heat + cv*t_soisno(c,k) / 1.e6_rkx
+                heat = heat + cv*t_soisno(c,k) / 1.e6_rk8
               end do
-            else if ( h2osno(c) > 0.0_rkx .and. ltype(l) /= istdlak) then
+            else if ( h2osno(c) > 0.0_rk8 .and. ltype(l) /= istdlak) then
               ! the heat capacity (not latent heat) of snow without
               ! snow layers is currently ignored in SLakeTemperature,
               ! so it should be ignored here
               k = 1
               cv = cpice*h2osno(c)
-              heat = heat + cv*t_soisno(c,k) / 1.e6_rkx
+              heat = heat + cv*t_soisno(c,k) / 1.e6_rk8
             end if
 
           end if

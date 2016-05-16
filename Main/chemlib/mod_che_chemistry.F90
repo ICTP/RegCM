@@ -90,14 +90,11 @@ module mod_che_chemistry
           !     previous chemsolv step
 !  FAB: this fix a stability bug , but the solver might slower since
 !  other option is to transport all the species.
-          if ( ktau > 0 ) then
-            do ic = 1 , totsp
-              xrin(ic) = real(chemall(j,i,k,ic),rk8)
-            end do
-          end if
-!          do ic = 1 , totsp
-!           xrin(ic) = chemall(j,i,k,ic)
-!          end do
+          !if ( ktau > 0 ) then
+          !  do ic = 1 , totsp
+          !    xrin(ic) = real(chemall(j,i,k,ic),rk8)
+          !  end do
+          !end if
           ! 2 : update input concentrations for transported species only
           do n = 1 , ntr
             if ( trac%indcbmz(n) > 0 ) then

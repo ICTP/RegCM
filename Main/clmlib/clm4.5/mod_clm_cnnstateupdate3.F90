@@ -33,90 +33,90 @@ module mod_clm_cnnstateupdate3
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
 #ifndef NITRIF_DENITRIF
-    real(rkx), pointer :: sminn_leached_vr(:,:)
+    real(rk8), pointer :: sminn_leached_vr(:,:)
 #else
-    real(rkx), pointer :: smin_no3_leached_vr(:,:)
+    real(rk8), pointer :: smin_no3_leached_vr(:,:)
     ! vertically-resolved rate of mineral NO3 loss with runoff (gN/m3/s)
-    real(rkx), pointer :: smin_no3_runoff_vr(:,:)
-    real(rkx), pointer :: smin_no3_vr(:,:)
-    real(rkx), pointer :: smin_nh4_vr(:,:)
+    real(rk8), pointer :: smin_no3_runoff_vr(:,:)
+    real(rk8), pointer :: smin_no3_vr(:,:)
+    real(rk8), pointer :: smin_nh4_vr(:,:)
 #endif
-    real(rkx), pointer :: m_leafn_to_fire(:)
-    real(rkx), pointer :: m_leafn_storage_to_fire(:)
-    real(rkx), pointer :: m_leafn_xfer_to_fire(:)
-    real(rkx), pointer :: m_livestemn_to_fire(:)
-    real(rkx), pointer :: m_livestemn_storage_to_fire(:)
-    real(rkx), pointer :: m_livestemn_xfer_to_fire(:)
-    real(rkx), pointer :: m_deadstemn_to_fire(:)
-    real(rkx), pointer :: m_deadstemn_storage_to_fire(:)
-    real(rkx), pointer :: m_deadstemn_xfer_to_fire(:)
-    real(rkx), pointer :: m_frootn_to_fire(:)
-    real(rkx), pointer :: m_frootn_storage_to_fire(:)
-    real(rkx), pointer :: m_frootn_xfer_to_fire(:)
-    real(rkx), pointer :: m_livecrootn_to_fire(:)
-    real(rkx), pointer :: m_livecrootn_storage_to_fire(:)
-    real(rkx), pointer :: m_livecrootn_xfer_to_fire(:)
-    real(rkx), pointer :: m_deadcrootn_to_fire(:)
-    real(rkx), pointer :: m_deadcrootn_storage_to_fire(:)
-    real(rkx), pointer :: m_deadcrootn_xfer_to_fire(:)
-    real(rkx), pointer :: m_retransn_to_fire(:)
-    real(rkx), pointer :: m_decomp_npools_to_fire_vr(:,:,:)
+    real(rk8), pointer :: m_leafn_to_fire(:)
+    real(rk8), pointer :: m_leafn_storage_to_fire(:)
+    real(rk8), pointer :: m_leafn_xfer_to_fire(:)
+    real(rk8), pointer :: m_livestemn_to_fire(:)
+    real(rk8), pointer :: m_livestemn_storage_to_fire(:)
+    real(rk8), pointer :: m_livestemn_xfer_to_fire(:)
+    real(rk8), pointer :: m_deadstemn_to_fire(:)
+    real(rk8), pointer :: m_deadstemn_storage_to_fire(:)
+    real(rk8), pointer :: m_deadstemn_xfer_to_fire(:)
+    real(rk8), pointer :: m_frootn_to_fire(:)
+    real(rk8), pointer :: m_frootn_storage_to_fire(:)
+    real(rk8), pointer :: m_frootn_xfer_to_fire(:)
+    real(rk8), pointer :: m_livecrootn_to_fire(:)
+    real(rk8), pointer :: m_livecrootn_storage_to_fire(:)
+    real(rk8), pointer :: m_livecrootn_xfer_to_fire(:)
+    real(rk8), pointer :: m_deadcrootn_to_fire(:)
+    real(rk8), pointer :: m_deadcrootn_storage_to_fire(:)
+    real(rk8), pointer :: m_deadcrootn_xfer_to_fire(:)
+    real(rk8), pointer :: m_retransn_to_fire(:)
+    real(rk8), pointer :: m_decomp_npools_to_fire_vr(:,:,:)
 
-    real(rkx), pointer :: m_leafn_to_litter_fire(:)
-    real(rkx), pointer :: m_leafn_storage_to_litter_fire(:)
-    real(rkx), pointer :: m_leafn_xfer_to_litter_fire(:)
-    real(rkx), pointer :: m_livestemn_to_litter_fire(:)
-    real(rkx), pointer :: m_livestemn_storage_to_litter_fire(:)
-    real(rkx), pointer :: m_livestemn_xfer_to_litter_fire(:)
-    real(rkx), pointer :: m_livestemn_to_deadstemn_fire(:)
-    real(rkx), pointer :: m_deadstemn_to_litter_fire(:)
-    real(rkx), pointer :: m_deadstemn_storage_to_litter_fire(:)
-    real(rkx), pointer :: m_deadstemn_xfer_to_litter_fire(:)
-    real(rkx), pointer :: m_frootn_to_litter_fire(:)
-    real(rkx), pointer :: m_frootn_storage_to_litter_fire(:)
-    real(rkx), pointer :: m_frootn_xfer_to_litter_fire(:)
-    real(rkx), pointer :: m_livecrootn_to_litter_fire(:)
-    real(rkx), pointer :: m_livecrootn_storage_to_litter_fire(:)
-    real(rkx), pointer :: m_livecrootn_xfer_to_litter_fire(:)
-    real(rkx), pointer :: m_livecrootn_to_deadcrootn_fire(:)
-    real(rkx), pointer :: m_deadcrootn_to_litter_fire(:)
-    real(rkx), pointer :: m_deadcrootn_storage_to_litter_fire(:)
-    real(rkx), pointer :: m_deadcrootn_xfer_to_litter_fire(:)
-    real(rkx), pointer :: m_retransn_to_litter_fire(:)
-    real(rkx), pointer :: m_n_to_litr_met_fire(:,:)
-    real(rkx), pointer :: m_n_to_litr_cel_fire(:,:)
-    real(rkx), pointer :: m_n_to_litr_lig_fire(:,:)
+    real(rk8), pointer :: m_leafn_to_litter_fire(:)
+    real(rk8), pointer :: m_leafn_storage_to_litter_fire(:)
+    real(rk8), pointer :: m_leafn_xfer_to_litter_fire(:)
+    real(rk8), pointer :: m_livestemn_to_litter_fire(:)
+    real(rk8), pointer :: m_livestemn_storage_to_litter_fire(:)
+    real(rk8), pointer :: m_livestemn_xfer_to_litter_fire(:)
+    real(rk8), pointer :: m_livestemn_to_deadstemn_fire(:)
+    real(rk8), pointer :: m_deadstemn_to_litter_fire(:)
+    real(rk8), pointer :: m_deadstemn_storage_to_litter_fire(:)
+    real(rk8), pointer :: m_deadstemn_xfer_to_litter_fire(:)
+    real(rk8), pointer :: m_frootn_to_litter_fire(:)
+    real(rk8), pointer :: m_frootn_storage_to_litter_fire(:)
+    real(rk8), pointer :: m_frootn_xfer_to_litter_fire(:)
+    real(rk8), pointer :: m_livecrootn_to_litter_fire(:)
+    real(rk8), pointer :: m_livecrootn_storage_to_litter_fire(:)
+    real(rk8), pointer :: m_livecrootn_xfer_to_litter_fire(:)
+    real(rk8), pointer :: m_livecrootn_to_deadcrootn_fire(:)
+    real(rk8), pointer :: m_deadcrootn_to_litter_fire(:)
+    real(rk8), pointer :: m_deadcrootn_storage_to_litter_fire(:)
+    real(rk8), pointer :: m_deadcrootn_xfer_to_litter_fire(:)
+    real(rk8), pointer :: m_retransn_to_litter_fire(:)
+    real(rk8), pointer :: m_n_to_litr_met_fire(:,:)
+    real(rk8), pointer :: m_n_to_litr_cel_fire(:,:)
+    real(rk8), pointer :: m_n_to_litr_lig_fire(:,:)
     ! N fluxes associated with fire mortality to CWD pool (gN/m3/s)
-    real(rkx), pointer :: fire_mortality_n_to_cwdn(:,:)
+    real(rk8), pointer :: fire_mortality_n_to_cwdn(:,:)
 
     ! (gN/m3) soil mineral N
-    real(rkx), pointer :: sminn_vr(:,:)
+    real(rk8), pointer :: sminn_vr(:,:)
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
-    real(rkx), pointer :: decomp_npools_vr(:,:,:)
-    real(rkx), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rkx), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
-    real(rkx), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead corse root N trfr
-    real(rkx), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
-    real(rkx), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rkx), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
-    real(rkx), pointer :: frootn(:)             ! (gN/m2) fine root N
-    real(rkx), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
-    real(rkx), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
-    real(rkx), pointer :: leafn(:)              ! (gN/m2) leaf N
-    real(rkx), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
-    real(rkx), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
-    real(rkx), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rkx), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
-    real(rkx), pointer :: livecrootn_xfer(:)    ! (gN/m2) live corse root N trfr
-    real(rkx), pointer :: livestemn(:)          ! (gN/m2) live stem N
-    real(rkx), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
-    real(rkx), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
-    real(rkx), pointer :: retransn(:)           ! (gN/m2) plant pool of
+    real(rk8), pointer :: decomp_npools_vr(:,:,:)
+    real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
+    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
+    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead corse root N trfr
+    real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
+    real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
+    real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
+    real(rk8), pointer :: frootn(:)             ! (gN/m2) fine root N
+    real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
+    real(rk8), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
+    real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N
+    real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
+    real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
+    real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
+    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
+    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live corse root N trfr
+    real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
+    real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
+    real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
+    real(rk8), pointer :: retransn(:)           ! (gN/m2) plant pool of
                                                 ! retranslocated N
 
     integer(ik4) :: c,p,j,l  ! indices
     integer(ik4) :: fp,fc    ! lake filter indices
-    real(rkx):: dt  ! radiation time step (seconds)
+    real(rk8):: dt  ! radiation time step (seconds)
 
     ! assign local pointers at the column level
     fire_mortality_n_to_cwdn => clm3%g%l%c%cnf%fire_mortality_n_to_cwdn
@@ -234,7 +234,7 @@ module mod_clm_cnnstateupdate3
 #else
         ! mineral N loss due to leaching and runoff
         smin_no3_vr(c,j) = max(smin_no3_vr(c,j) - &
-              ( smin_no3_leached_vr(c,j) + smin_no3_runoff_vr(c,j) ) * dt, 0._rkx)
+              ( smin_no3_leached_vr(c,j) + smin_no3_runoff_vr(c,j) ) * dt, 0._rk8)
         sminn_vr(c,j) = smin_no3_vr(c,j) + smin_nh4_vr(c,j)
 #endif
 

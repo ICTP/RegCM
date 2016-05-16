@@ -44,15 +44,15 @@ module mod_clm_staticecosysdyn
   private :: readMonthlyVegetation
 
   integer(ik4) :: InterpMonths1      ! saved month index
-  real(rkx) , dimension(2) :: timwt  ! time weights for month 1 and month 2
+  real(rk8) , dimension(2) :: timwt  ! time weights for month 1 and month 2
   ! lai for interpolation (2 months)
-  real(rkx) , allocatable , dimension(:,:) :: mlai2t
+  real(rk8) , allocatable , dimension(:,:) :: mlai2t
   ! sai for interpolation (2 months)
-  real(rkx) , allocatable , dimension(:,:) :: msai2t
+  real(rk8) , allocatable , dimension(:,:) :: msai2t
   ! top vegetation height for interpolation (2 months)
-  real(rkx) , allocatable , dimension(:,:) :: mhvt2t
+  real(rk8) , allocatable , dimension(:,:) :: mhvt2t
   ! bottom vegetation height for interpolation(2 months)
-  real(rkx) , allocatable , dimension(:,:) :: mhvb2t
+  real(rk8) , allocatable , dimension(:,:) :: mhvb2t
 
   contains
   !
@@ -97,30 +97,30 @@ module mod_clm_staticecosysdyn
     ! true = surface albedo calculation time step
     logical , intent(in) :: doalb
     ! fraction of ground covered by snow (0 to 1)
-    real(rkx) , pointer , dimension(:) :: frac_sno
+    real(rk8) , pointer , dimension(:) :: frac_sno
     ! column index associated with each pft
     integer(ik4) , pointer , dimension(:) :: pcolumn
     ! snow height (m)
-    real(rkx) , pointer , dimension(:) :: snow_depth
+    real(rk8) , pointer , dimension(:) :: snow_depth
     ! pft vegetation type
     integer(ik4) , pointer , dimension(:) :: ivt
     ! one-sided leaf area index, no burying by snow
-    real(rkx) , pointer , dimension(:) :: tlai
+    real(rk8) , pointer , dimension(:) :: tlai
     ! one-sided stem area index, no burying by snow
-    real(rkx) , pointer , dimension(:) :: tsai
+    real(rk8) , pointer , dimension(:) :: tsai
     ! canopy top (m)
-    real(rkx) , pointer , dimension(:) :: htop
+    real(rk8) , pointer , dimension(:) :: htop
     ! canopy bottom (m)
-    real(rkx) , pointer , dimension(:) :: hbot
+    real(rk8) , pointer , dimension(:) :: hbot
     ! one-sided leaf area index with burying by snow
-    real(rkx) , pointer , dimension(:) :: elai
+    real(rk8) , pointer , dimension(:) :: elai
     ! one-sided stem area index with burying by snow
-    real(rkx) , pointer , dimension(:) :: esai
+    real(rk8) , pointer , dimension(:) :: esai
     ! frac of vegetation not covered by snow [-]
     integer(ik4) , pointer , dimension(:) :: frac_veg_nosno_alb
     integer(ik4) :: fp , p , c   ! indices
-    real(rkx) :: ol   ! thickness of canopy layer covered by snow (m)
-    real(rkx) :: fb   ! fraction of canopy layer covered by snow
+    real(rk8) :: ol   ! thickness of canopy layer covered by snow (m)
+    real(rk8) :: fb   ! fraction of canopy layer covered by snow
 
     if ( doalb ) then
 
@@ -174,24 +174,24 @@ module mod_clm_staticecosysdyn
         ! Wang and Zeng, 2007.
 
         if ( ivt(p) > noveg .and. ivt(p) <= nbrdlf_dcd_brl_shrub ) then
-          ol = min( max(snow_depth(c)-hbot(p), 0._rkx), htop(p)-hbot(p))
-          fb = 1._rkx - ol / max(1.e-6_rkx, htop(p)-hbot(p))
+          ol = min( max(snow_depth(c)-hbot(p), 0._rk8), htop(p)-hbot(p))
+          fb = 1._rk8 - ol / max(1.e-6_rk8, htop(p)-hbot(p))
         else
           !depth of snow required for complete burial of grasses
-          fb = 1._rkx - max(min(snow_depth(c),0.2_rkx),0._rkx)/0.2_rkx ! 0.2m is assumed
+          fb = 1._rk8 - max(min(snow_depth(c),0.2_rk8),0._rk8)/0.2_rk8 ! 0.2m is assumed
         end if
 
         ! area weight by snow covered fraction
-        elai(p) = max(tlai(p)*(1.0_rkx - frac_sno(c)) &
-               +tlai(p)*fb*frac_sno(c), 0.0_rkx)
-        esai(p) = max(tsai(p)*(1.0_rkx - frac_sno(c)) &
-               +tsai(p)*fb*frac_sno(c), 0.0_rkx)
-        if ( elai(p) < 0.05_rkx ) elai(p) = 0._rkx
-        if ( esai(p) < 0.05_rkx ) esai(p) = 0._rkx
+        elai(p) = max(tlai(p)*(1.0_rk8 - frac_sno(c)) &
+               +tlai(p)*fb*frac_sno(c), 0.0_rk8)
+        esai(p) = max(tsai(p)*(1.0_rk8 - frac_sno(c)) &
+               +tsai(p)*fb*frac_sno(c), 0.0_rk8)
+        if ( elai(p) < 0.05_rk8 ) elai(p) = 0._rk8
+        if ( esai(p) < 0.05_rk8 ) esai(p) = 0._rk8
 
         ! Fraction of vegetation free of snow
 
-        if ( (elai(p) + esai(p)) >= 0.05_rkx ) then
+        if ( (elai(p) + esai(p)) >= 0.05_rk8 ) then
           frac_veg_nosno_alb(p) = 1
         else
           frac_veg_nosno_alb(p) = 0
@@ -210,20 +210,20 @@ module mod_clm_staticecosysdyn
     integer(ik4) :: kmo   ! month (1, ..., 12)
     integer(ik4) :: kda   ! day of month (1, ..., 31)
     integer(ik4) :: ksec  ! seconds into current date for nstep+1
-    real(rkx) :: t        ! a fraction: kda/ndaypm
+    real(rk8) :: t        ! a fraction: kda/ndaypm
     integer(ik4) , dimension(2) :: it     ! month 1 and month 2 (step 1)
     integer(ik4) , dimension(2) :: months ! months to be interpolated (1 to 12)
 
     call curr_date(idatex,kyr,kmo,kda,ksec,offset=int(dtsrf))
-    t = (kda-0.5_rkx) / ndaypm(kyr,kmo,idatex%calendar)
-    it(1) = int(t + 0.5_rkx)
+    t = (kda-0.5_rk8) / ndaypm(kyr,kmo,idatex%calendar)
+    it(1) = int(t + 0.5_rk8)
     it(2) = it(1) + 1
     months(1) = kmo + it(1) - 1
     months(2) = kmo + it(2) - 1
     if (months(1) <  1) months(1) = 12
     if (months(2) > 12) months(2) = 1
-    timwt(1) = (it(1)+0.5_rkx) - t
-    timwt(2) = 1._rkx-timwt(1)
+    timwt(1) = (it(1)+0.5_rk8) - t
+    timwt(2) = 1._rk8-timwt(1)
     if ( InterpMonths1 /= months(1) ) then
       if (myid == italk) then
         write(stdout,*) 'Attempting to read monthly vegetation data .....'
@@ -242,9 +242,9 @@ module mod_clm_staticecosysdyn
     implicit none
     type(clm_filetype) :: ncid  ! netcdf id
     ! 12 months of monthly lai from input data set
-    real(rkx) , pointer , dimension(:,:) :: annlai
+    real(rk8) , pointer , dimension(:,:) :: annlai
     ! lai read from input files
-    real(rkx) , pointer , dimension(:,:) :: mlai
+    real(rk8) , pointer , dimension(:,:) :: mlai
     integer(ik4) :: ier ! error code
     integer(ik4) :: g , k , l , p , ivt ! indices
     integer(ik4) :: ni , nj , ns   ! indices
@@ -300,7 +300,7 @@ module mod_clm_staticecosysdyn
             end if
           end do
         else                       !! non-vegetated pft
-          annlai(k,p) = 0._rkx
+          annlai(k,p) = 0._rk8
         end if
       end do   ! end of loop over pfts
     end do ! months loop
@@ -322,15 +322,15 @@ module mod_clm_staticecosysdyn
     integer(ik4) :: begg , endg    ! beg and end local g index
     integer(ik4) :: ier                        ! error code
     ! lai read from input files
-    real(rkx) , pointer , dimension(:,:) :: mlai
+    real(rk8) , pointer , dimension(:,:) :: mlai
     ! sai read from input files
-    real(rkx) , pointer , dimension(:,:) :: msai
+    real(rk8) , pointer , dimension(:,:) :: msai
     ! top vegetation height
-    real(rkx) , pointer , dimension(:,:) :: mhgtt
+    real(rk8) , pointer , dimension(:,:) :: mhgtt
     ! bottom vegetation height
-    real(rkx) , pointer , dimension(:,:) :: mhgtb
+    real(rk8) , pointer , dimension(:,:) :: mhgtb
     ! difference between lai month one and month two
-    real(rkx) , pointer , dimension(:) :: mlaidiff
+    real(rk8) , pointer , dimension(:) :: mlaidiff
     character(len=32) :: subname = 'readMonthlyVegetation'
 
     ! Determine necessary indices
@@ -376,10 +376,10 @@ module mod_clm_staticecosysdyn
             end if
           end do
         else                        ! non-vegetated pft
-          mlai2t(p,k) = 0._rkx
-          msai2t(p,k) = 0._rkx
-          mhvt2t(p,k) = 0._rkx
-          mhvb2t(p,k) = 0._rkx
+          mlai2t(p,k) = 0._rk8
+          msai2t(p,k) = 0._rk8
+          mhvt2t(p,k) = 0._rk8
+          mhvb2t(p,k) = 0._rk8
         end if
       end do   ! end of loop over pfts
     end do   ! end of loop over months

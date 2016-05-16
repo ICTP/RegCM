@@ -79,195 +79,195 @@ module mod_clm_slakehydrology
     ! pft filter for lake points
     integer(ik4), intent(in) :: filter_lakep(ubp-lbp+1)
 
-    real(rkx), pointer :: frac_sno_eff(:)  ! needed for snicar code
-    real(rkx), pointer :: qflx_floodg(:) ! gridcell flux of flood water from RTM
-    real(rkx), pointer :: qflx_floodc(:) ! column flux of flood water from RTM
-    real(rkx), pointer :: frost_table(:) ! frost table depth (m)
-    real(rkx), pointer :: zwt_perched(:) ! perched water table depth (m)
+    real(rk8), pointer :: frac_sno_eff(:)  ! needed for snicar code
+    real(rk8), pointer :: qflx_floodg(:) ! gridcell flux of flood water from RTM
+    real(rk8), pointer :: qflx_floodc(:) ! column flux of flood water from RTM
+    real(rk8), pointer :: frost_table(:) ! frost table depth (m)
+    real(rk8), pointer :: zwt_perched(:) ! perched water table depth (m)
     ! perched wt sub-surface runoff (mm H2O /s)
-    real(rkx), pointer :: qflx_drain_perched(:)
-    real(rkx), pointer :: qflx_h2osfc_surf(:) ! surface water runoff (mm H2O /s)
-    real(rkx), pointer :: qflx_snow_melt(:)! net snow melt
-    real(rkx), pointer :: qflx_rsub_sat(:) !soil saturation excess [mm h2o/s]
+    real(rk8), pointer :: qflx_drain_perched(:)
+    real(rk8), pointer :: qflx_h2osfc_surf(:) ! surface water runoff (mm H2O /s)
+    real(rk8), pointer :: qflx_snow_melt(:)! net snow melt
+    real(rk8), pointer :: qflx_rsub_sat(:) !soil saturation excess [mm h2o/s]
     integer(ik4) , pointer :: pcolumn(:)   ! pft's column index
     integer(ik4) , pointer :: pgridcell(:) ! pft's gridcell index
     integer(ik4) , pointer :: cgridcell(:) ! column's gridcell
     integer(ik4) , pointer :: clandunit(:) ! column's landunit
     ! volumetric soil water at saturation (porosity)
-    real(rkx), pointer :: watsat(:,:)
-    real(rkx), pointer :: z(:,:)       ! layer depth  (m)
-    real(rkx), pointer :: dz_lake(:,:) ! layer thickness for lake (m)
-    real(rkx), pointer :: forc_rain(:) ! rain rate [mm/s]
-    real(rkx), pointer :: forc_snow(:) ! snow rate [mm/s]
-    real(rkx), pointer :: begwb(:)     ! water mass begining of the time step
+    real(rk8), pointer :: watsat(:,:)
+    real(rk8), pointer :: z(:,:)       ! layer depth  (m)
+    real(rk8), pointer :: dz_lake(:,:) ! layer thickness for lake (m)
+    real(rk8), pointer :: forc_rain(:) ! rain rate [mm/s]
+    real(rk8), pointer :: forc_snow(:) ! snow rate [mm/s]
+    real(rk8), pointer :: begwb(:)     ! water mass begining of the time step
     ! qflx_evap_soi + qflx_evap_can + qflx_tran_veg
-    real(rkx), pointer :: qflx_evap_tot(:)
-    real(rkx), pointer :: forc_t(:)    ! atmospheric temperature (Kelvin)
+    real(rk8), pointer :: qflx_evap_tot(:)
+    real(rk8), pointer :: forc_t(:)    ! atmospheric temperature (Kelvin)
     logical , pointer :: do_capsnow(:) ! true => do snow capping
-    real(rkx), pointer :: t_grnd(:)    ! ground temperature (Kelvin)
+    real(rk8), pointer :: t_grnd(:)    ! ground temperature (Kelvin)
     ! soil evaporation (mm H2O/s) (+ = to atm)
-    real(rkx), pointer :: qflx_evap_soi(:)
+    real(rk8), pointer :: qflx_evap_soi(:)
 
-    real(rkx), pointer :: dz(:,:)     ! layer thickness depth (m)
-    real(rkx), pointer :: zi(:,:)     ! interface depth (m)
+    real(rk8), pointer :: dz(:,:)     ! layer thickness depth (m)
+    real(rk8), pointer :: zi(:,:)     ! interface depth (m)
     integer(ik4) , pointer :: snl(:)  ! number of snow layers
-    real(rkx), pointer :: h2osno(:)   ! snow water (mm H2O)
-    real(rkx), pointer :: snow_depth(:) ! snow height (m)
+    real(rk8), pointer :: h2osno(:)   ! snow water (mm H2O)
+    real(rk8), pointer :: snow_depth(:) ! snow height (m)
     ! mass fraction of lake layer that is frozen
-    real(rkx), pointer :: lake_icefrac(:,:)
-    real(rkx), pointer :: t_lake(:,:)      ! lake temperature (Kelvin)
-    real(rkx), pointer :: qflx_snomelt(:)  ! snow melt (mm H2O /s)
-    real(rkx), pointer :: eflx_snomelt(:)  ! snow melt heat flux (W/m**2)
+    real(rk8), pointer :: lake_icefrac(:,:)
+    real(rk8), pointer :: t_lake(:,:)      ! lake temperature (Kelvin)
+    real(rk8), pointer :: qflx_snomelt(:)  ! snow melt (mm H2O /s)
+    real(rk8), pointer :: eflx_snomelt(:)  ! snow melt heat flux (W/m**2)
     ! total sensible heat flux (W/m**2) [+ to atm]
-    real(rkx), pointer :: eflx_sh_tot(:)
+    real(rk8), pointer :: eflx_sh_tot(:)
     ! sensible heat flux from ground (W/m**2) [+ to atm]
-    real(rkx), pointer :: eflx_sh_grnd(:)
+    real(rk8), pointer :: eflx_sh_grnd(:)
     ! heat flux into snow / lake (W/m**2) [+ = into soil]
-    real(rkx), pointer :: eflx_soil_grnd(:)
+    real(rk8), pointer :: eflx_soil_grnd(:)
     ! Here this includes the whole lake radiation absorbed.
     ! net heat flux into ground (W/m**2)
-    real(rkx), pointer :: eflx_gnet(:)
+    real(rk8), pointer :: eflx_gnet(:)
     ! net heat flux into lake / snow surface, excluding light
     ! transmission (W/m**2)
-    real(rkx), pointer :: eflx_grnd_lake(:)
+    real(rk8), pointer :: eflx_grnd_lake(:)
 
-    real(rkx), pointer :: endwb(:)         ! water mass end of the time step
-    real(rkx), pointer :: snowice(:)       ! average snow ice lens
-    real(rkx), pointer :: snowliq(:)       ! average snow liquid water
-    real(rkx), pointer :: t_soisno(:,:)    ! snow temperature (Kelvin)
-    real(rkx), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
-    real(rkx), pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
-    real(rkx), pointer :: h2osoi_vol(:,:)  ! volumetric soil water [m3/m3]
-    real(rkx), pointer :: qflx_drain(:)    ! sub-surface runoff (mm H2O /s)
-    real(rkx), pointer :: qflx_surf(:)     ! surface runoff (mm H2O /s)
-    real(rkx), pointer :: qflx_infl(:)     ! infiltration (mm H2O /s)
+    real(rk8), pointer :: endwb(:)         ! water mass end of the time step
+    real(rk8), pointer :: snowice(:)       ! average snow ice lens
+    real(rk8), pointer :: snowliq(:)       ! average snow liquid water
+    real(rk8), pointer :: t_soisno(:,:)    ! snow temperature (Kelvin)
+    real(rk8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
+    real(rk8), pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
+    real(rk8), pointer :: h2osoi_vol(:,:)  ! volumetric soil water [m3/m3]
+    real(rk8), pointer :: qflx_drain(:)    ! sub-surface runoff (mm H2O /s)
+    real(rk8), pointer :: qflx_surf(:)     ! surface runoff (mm H2O /s)
+    real(rk8), pointer :: qflx_infl(:)     ! infiltration (mm H2O /s)
     ! qflx_surf at glaciers, wetlands, lakes
-    real(rkx), pointer :: qflx_qrgwl(:)
+    real(rk8), pointer :: qflx_qrgwl(:)
     ! total runoff (qflx_drain+qflx_surf+qflx_qrgwl) (mm H2O /s)
-    real(rkx), pointer :: qflx_runoff(:)
-    real(rkx), pointer :: qcharge(:)       ! aquifer recharge rate (mm/s)
+    real(rk8), pointer :: qflx_runoff(:)
+    real(rk8), pointer :: qcharge(:)       ! aquifer recharge rate (mm/s)
     ! net water input into soil from top (mm/s)
-    real(rkx), pointer :: qflx_top_soil(:)
+    real(rk8), pointer :: qflx_top_soil(:)
     ! liquid water + ice from layer above soil to top soil layer or
     ! sent to qflx_qrgwl (mm H2O/s)
-    real(rkx), pointer :: qflx_sl_top_soil(:)
+    real(rk8), pointer :: qflx_sl_top_soil(:)
     ! water onto ground including canopy runoff [kg/(m2 s)]
-    real(rkx), pointer :: qflx_prec_grnd(:)
+    real(rk8), pointer :: qflx_prec_grnd(:)
     ! water onto ground including canopy runoff [kg/(m2 s)]
-    real(rkx), pointer :: qflx_prec_grnd_col(:)
+    real(rk8), pointer :: qflx_prec_grnd_col(:)
     ! snow on ground after interception (mm H2O/s) [+]
-    real(rkx), pointer :: qflx_snow_grnd_pft(:)
+    real(rk8), pointer :: qflx_snow_grnd_pft(:)
     ! snow on ground after interception (mm H2O/s) [+]
-    real(rkx), pointer :: qflx_snow_grnd_col(:)
+    real(rk8), pointer :: qflx_snow_grnd_col(:)
     ! rain on ground after interception (mm H2O/s) [+]
-    real(rkx), pointer :: qflx_rain_grnd(:)
+    real(rk8), pointer :: qflx_rain_grnd(:)
     ! fraction of ice relative to the tot water
-    real(rkx), pointer :: frac_iceold(:,:)
+    real(rk8), pointer :: frac_iceold(:,:)
     ! pft quantity averaged to the column (assuming one pft)
-    real(rkx), pointer :: qflx_evap_tot_col(:)
+    real(rk8), pointer :: qflx_evap_tot_col(:)
     ! factor that reduces ground saturated specific humidity (-)
-    real(rkx) ,pointer :: soilalpha(:)
-    real(rkx), pointer :: zwt(:)    ! water table depth
+    real(rk8) ,pointer :: soilalpha(:)
+    real(rk8), pointer :: zwt(:)    ! water table depth
     ! fractional area with water table at surface
-    real(rkx), pointer :: fcov(:)
+    real(rk8), pointer :: fcov(:)
     ! fractional area with water table at surface
-    real(rkx), pointer :: fsat(:)
+    real(rk8), pointer :: fsat(:)
     ! effective fraction of roots in each soil layer
-    real(rkx), pointer :: rootr_column(:,:)
+    real(rk8), pointer :: rootr_column(:,:)
     ! ground surface evaporation rate (mm H2O/s) [+]
-    real(rkx), pointer :: qflx_evap_grnd(:)
+    real(rk8), pointer :: qflx_evap_grnd(:)
     ! ground surface evaporation rate (mm H2O/s) [+]
-    real(rkx), pointer :: qflx_evap_grnd_col(:)
+    real(rk8), pointer :: qflx_evap_grnd_col(:)
     ! sublimation rate from snow pack (mm H2O /s) [+]
-    real(rkx), pointer :: qflx_sub_snow(:)
+    real(rk8), pointer :: qflx_sub_snow(:)
     ! sublimation rate from snow pack (mm H2O /s) [+]
-    real(rkx), pointer :: qflx_sub_snow_col(:)
+    real(rk8), pointer :: qflx_sub_snow_col(:)
     ! surface dew added to snow pack (mm H2O /s) [+]
-    real(rkx), pointer :: qflx_dew_snow(:)
+    real(rk8), pointer :: qflx_dew_snow(:)
     ! surface dew added to snow pack (mm H2O /s) [+]
-    real(rkx), pointer :: qflx_dew_snow_col(:)
+    real(rk8), pointer :: qflx_dew_snow_col(:)
     ! ground surface dew formation (mm H2O /s) [+]
-    real(rkx), pointer :: qflx_dew_grnd(:)
+    real(rk8), pointer :: qflx_dew_grnd(:)
     ! ground surface dew formation (mm H2O /s) [+]
-    real(rkx), pointer :: qflx_dew_grnd_col(:)
+    real(rk8), pointer :: qflx_dew_grnd_col(:)
     ! rain on ground after interception (mm H2O/s) [+]
-    real(rkx), pointer :: qflx_rain_grnd_col(:)
+    real(rk8), pointer :: qflx_rain_grnd_col(:)
     ! excess snowfall due to snow capping (mm H2O /s) [+]
-    real(rkx), pointer :: qflx_snwcp_ice_col(:)
+    real(rk8), pointer :: qflx_snwcp_ice_col(:)
     ! excess snowfall due to snow capping (mm H2O /s) [+]
-    real(rkx), pointer :: qflx_snwcp_ice(:)
+    real(rk8), pointer :: qflx_snwcp_ice(:)
     ! excess rainfall due to snow capping (mm H2O /s) [+]
-    real(rkx), pointer :: qflx_snwcp_liq_col(:)
+    real(rk8), pointer :: qflx_snwcp_liq_col(:)
     ! excess rainfall due to snow capping (mm H2O /s) [+]
-    real(rkx), pointer :: qflx_snwcp_liq(:)
+    real(rk8), pointer :: qflx_snwcp_liq(:)
     ! irrigation flux (mm H2O /s)
-    real(rkx), pointer :: qflx_irrig(:)
+    real(rk8), pointer :: qflx_irrig(:)
     !New SNICAR variables from Hydrology1
     ! effective snow grain radius (col,lyr) [microns, m^-6]
-    real(rkx), pointer :: snw_rds(:,:)
+    real(rk8), pointer :: snw_rds(:,:)
     ! mass of hydrophobic BC in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_bcpho(:,:)
+    real(rk8), pointer :: mss_bcpho(:,:)
     ! mass of hydrophilic BC in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_bcphi(:,:)
+    real(rk8), pointer :: mss_bcphi(:,:)
     ! total mass of BC in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_bctot(:,:)
+    real(rk8), pointer :: mss_bctot(:,:)
     ! total column mass of BC in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_bc_col(:)
+    real(rk8), pointer :: mss_bc_col(:)
     ! total top-layer mass of BC (col,lyr) [kg]
-    real(rkx), pointer :: mss_bc_top(:)
+    real(rk8), pointer :: mss_bc_top(:)
     ! mass of hydrophobic OC in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_ocpho(:,:)
+    real(rk8), pointer :: mss_ocpho(:,:)
     ! mass of hydrophilic OC in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_ocphi(:,:)
+    real(rk8), pointer :: mss_ocphi(:,:)
     ! total mass of OC in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_octot(:,:)
+    real(rk8), pointer :: mss_octot(:,:)
     ! total column mass of OC in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_oc_col(:)
+    real(rk8), pointer :: mss_oc_col(:)
     ! total top-layer mass of OC (col,lyr) [kg]
-    real(rkx), pointer :: mss_oc_top(:)
+    real(rk8), pointer :: mss_oc_top(:)
     ! mass of dust species 1 in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_dst1(:,:)
+    real(rk8), pointer :: mss_dst1(:,:)
     ! mass of dust species 2 in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_dst2(:,:)
+    real(rk8), pointer :: mss_dst2(:,:)
     ! mass of dust species 3 in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_dst3(:,:)
+    real(rk8), pointer :: mss_dst3(:,:)
     ! mass of dust species 4 in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_dst4(:,:)
+    real(rk8), pointer :: mss_dst4(:,:)
     ! total mass of dust in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_dsttot(:,:)
+    real(rk8), pointer :: mss_dsttot(:,:)
     ! total column mass of dust in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_dst_col(:)
+    real(rk8), pointer :: mss_dst_col(:)
     ! total top-layer mass of dust in snow (col,lyr) [kg]
-    real(rkx), pointer :: mss_dst_top(:)
+    real(rk8), pointer :: mss_dst_top(:)
     !Additional SNICAR variables from Hydrology2
     ! mass concentration of BC species 1 (col,lyr) [kg/kg]
-    real(rkx), pointer :: mss_cnc_bcphi(:,:)
+    real(rk8), pointer :: mss_cnc_bcphi(:,:)
     ! mass concentration of BC species 2 (col,lyr) [kg/kg]
-    real(rkx), pointer :: mss_cnc_bcpho(:,:)
+    real(rk8), pointer :: mss_cnc_bcpho(:,:)
     ! mass concentration of OC species 1 (col,lyr) [kg/kg]
-    real(rkx), pointer :: mss_cnc_ocphi(:,:)
+    real(rk8), pointer :: mss_cnc_ocphi(:,:)
     ! mass concentration of OC species 2 (col,lyr) [kg/kg]
-    real(rkx), pointer :: mss_cnc_ocpho(:,:)
+    real(rk8), pointer :: mss_cnc_ocpho(:,:)
     ! mass concentration of dust species 1 (col,lyr) [kg/kg]
-    real(rkx), pointer :: mss_cnc_dst1(:,:)
+    real(rk8), pointer :: mss_cnc_dst1(:,:)
     ! mass concentration of dust species 2 (col,lyr) [kg/kg]
-    real(rkx), pointer :: mss_cnc_dst2(:,:)
+    real(rk8), pointer :: mss_cnc_dst2(:,:)
     ! mass concentration of dust species 3 (col,lyr) [kg/kg]
-    real(rkx), pointer :: mss_cnc_dst3(:,:)
+    real(rk8), pointer :: mss_cnc_dst3(:,:)
     ! mass concentration of dust species 4 (col,lyr) [kg/kg]
-    real(rkx), pointer :: mss_cnc_dst4(:,:)
+    real(rk8), pointer :: mss_cnc_dst4(:,:)
 
     ! New Diagnostics
     ! snow temperature in top layer (col) [K]
-    real(rkx), pointer :: snot_top(:)
+    real(rk8), pointer :: snot_top(:)
     ! temperature gradient in top layer (col) [K m-1]
-    real(rkx), pointer :: dTdz_top(:)
+    real(rk8), pointer :: dTdz_top(:)
     ! effective snow grain size, top layer(col) [microns]
-    real(rkx), pointer :: snw_rds_top(:)
+    real(rk8), pointer :: snw_rds_top(:)
     ! liquid water fraction in top snow layer (col) [frc]
-    real(rkx), pointer :: sno_liq_top(:)
+    real(rk8), pointer :: sno_liq_top(:)
     ! mass of snow in top layer (col) [kg]
-    real(rkx), pointer :: h2osno_top(:)
+    real(rk8), pointer :: h2osno_top(:)
 
     integer(ik4)  :: p,fp,g,c,j,fc,jtop   ! indices
     integer(ik4)  :: num_shlakesnowc      ! number of column snow points
@@ -280,29 +280,29 @@ module mod_clm_slakehydrology
     ! flag when new snow node is set, (1=yes, 0=no)
     integer(ik4)  :: newnode
     ! layer thickness rate change due to precipitation [mm/s]
-    real(rkx) :: dz_snowf
+    real(rk8) :: dz_snowf
     ! bulk density of newly fallen dry snow [kg/m3]
-    real(rkx) :: bifall
+    real(rk8) :: bifall
     ! snow precipitation incident on ground [mm/s]
-    real(rkx) :: qflx_prec_grnd_snow(lbp:ubp)
+    real(rk8) :: qflx_prec_grnd_snow(lbp:ubp)
     ! rain precipitation incident on ground [mm/s]
-    real(rkx) :: qflx_prec_grnd_rain(lbp:ubp)
+    real(rk8) :: qflx_prec_grnd_rain(lbp:ubp)
     ! temporary evap_soi limited by top snow layer content [mm/s]
-    real(rkx) :: qflx_evap_soi_lim
+    real(rk8) :: qflx_evap_soi_lim
     ! temporary h2osno [kg/m^2]
-    real(rkx) :: h2osno_temp
+    real(rk8) :: h2osno_temp
     ! sum of snow ice if snow layers found above unfrozen lake [kg/m&2]
-    real(rkx) :: sumsnowice(lbc:ubc)
+    real(rk8) :: sumsnowice(lbc:ubc)
     ! true if top lake layer is unfrozen with snow layers above
     logical  :: unfrozen(lbc:ubc)
-    real(rkx) :: heatrem           ! used in case above [J/m^2]
-    real(rkx) :: heatsum(lbc:ubc)  ! used in case above [J/m^2]
-    real(rkx) :: snowmass          ! liquid+ice snow mass in a layer [kg/m2]
+    real(rk8) :: heatrem           ! used in case above [J/m^2]
+    real(rk8) :: heatsum(lbc:ubc)  ! used in case above [J/m^2]
+    real(rk8) :: snowmass          ! liquid+ice snow mass in a layer [kg/m2]
     ! temporary factor used to correct for snow capping
-    real(rkx) :: snowcap_scl_fct
+    real(rk8) :: snowcap_scl_fct
     ! assumed snow bulk density (for lakes w/out resolved snow layers) [kg/m^3]
     ! Should only be used for frost below.
-    real(rkx), parameter :: snow_bd = 250._rkx
+    real(rk8), parameter :: snow_bd = 250._rk8
 
     ! Assign local pointers to derived subtypes components (gridcell-level)
 
@@ -456,11 +456,11 @@ module mod_clm_slakehydrology
        if (do_capsnow(c)) then
           qflx_snwcp_ice(p) = qflx_prec_grnd_snow(p)
           qflx_snwcp_liq(p) = qflx_prec_grnd_rain(p)
-          qflx_snow_grnd_pft(p) = 0._rkx
-          qflx_rain_grnd(p) = 0._rkx
+          qflx_snow_grnd_pft(p) = 0._rk8
+          qflx_rain_grnd(p) = 0._rk8
        else
-          qflx_snwcp_ice(p) = 0._rkx
-          qflx_snwcp_liq(p) = 0._rkx
+          qflx_snwcp_ice(p) = 0._rk8
+          qflx_snwcp_liq(p) = 0._rk8
           ! ice onto ground (mm/s)
           qflx_snow_grnd_pft(p) = qflx_prec_grnd_snow(p)
           ! liquid water onto ground (mm/s)
@@ -483,14 +483,14 @@ module mod_clm_slakehydrology
       ! Progress Rep. 1, Alta Avalanche Study Center:Snow Layer Densification.
 
       if (do_capsnow(c)) then
-        dz_snowf = 0._rkx
+        dz_snowf = 0._rk8
       else
-        if (forc_t(g) > tfrz + 2._rkx) then
-          bifall=50._rkx + 1.7_rkx*(17.0_rkx)**1.5_rkx
-        else if (forc_t(g) > tfrz - 15._rkx) then
-          bifall=50._rkx + 1.7_rkx*(forc_t(g) - tfrz + 15._rkx)**1.5_rkx
+        if (forc_t(g) > tfrz + 2._rk8) then
+          bifall=50._rk8 + 1.7_rk8*(17.0_rk8)**1.5_rk8
+        else if (forc_t(g) > tfrz - 15._rk8) then
+          bifall=50._rk8 + 1.7_rk8*(forc_t(g) - tfrz + 15._rk8)**1.5_rk8
         else
-          bifall=50._rkx
+          bifall=50._rk8
         end if
         dz_snowf = qflx_snow_grnd_col(c)/bifall
         snow_depth(c) = snow_depth(c) + dz_snowf*dtsrf
@@ -504,40 +504,40 @@ module mod_clm_slakehydrology
 
       newnode = 0    ! flag for when snow node will be initialized
       if ( snl(c) == 0 .and. &
-           qflx_snow_grnd_col(c) > 0.0_rkx .and. &
-           snow_depth(c) >= 0.01_rkx + lsadz) then
+           qflx_snow_grnd_col(c) > 0.0_rk8 .and. &
+           snow_depth(c) >= 0.01_rk8 + lsadz) then
         newnode = 1
         snl(c) = -1
         dz(c,0) = snow_depth(c)                       ! meter
-        z(c,0) = -0.5_rkx*dz(c,0)
+        z(c,0) = -0.5_rk8*dz(c,0)
         zi(c,-1) = -dz(c,0)
         t_soisno(c,0) = min(tfrz, forc_t(g))      ! K
         h2osoi_ice(c,0) = h2osno(c)               ! kg/m2
-        h2osoi_liq(c,0) = 0._rkx                   ! kg/m2
-        frac_iceold(c,0) = 1._rkx
+        h2osoi_liq(c,0) = 0._rk8                   ! kg/m2
+        frac_iceold(c,0) = 1._rk8
 
         ! intitialize SNICAR variables for fresh snow:
         snw_rds(c,0)    = snw_rds_min
 
-        mss_bcpho(c,:)  = 0._rkx
-        mss_bcphi(c,:)  = 0._rkx
-        mss_bctot(c,:)  = 0._rkx
-        mss_bc_col(c)   = 0._rkx
-        mss_bc_top(c)   = 0._rkx
+        mss_bcpho(c,:)  = 0._rk8
+        mss_bcphi(c,:)  = 0._rk8
+        mss_bctot(c,:)  = 0._rk8
+        mss_bc_col(c)   = 0._rk8
+        mss_bc_top(c)   = 0._rk8
 
-        mss_ocpho(c,:)  = 0._rkx
-        mss_ocphi(c,:)  = 0._rkx
-        mss_octot(c,:)  = 0._rkx
-        mss_oc_col(c)   = 0._rkx
-        mss_oc_top(c)   = 0._rkx
+        mss_ocpho(c,:)  = 0._rk8
+        mss_ocphi(c,:)  = 0._rk8
+        mss_octot(c,:)  = 0._rk8
+        mss_oc_col(c)   = 0._rk8
+        mss_oc_top(c)   = 0._rk8
 
-        mss_dst1(c,:)   = 0._rkx
-        mss_dst2(c,:)   = 0._rkx
-        mss_dst3(c,:)   = 0._rkx
-        mss_dst4(c,:)   = 0._rkx
-        mss_dsttot(c,:) = 0._rkx
-        mss_dst_col(c)  = 0._rkx
-        mss_dst_top(c)  = 0._rkx
+        mss_dst1(c,:)   = 0._rk8
+        mss_dst2(c,:)   = 0._rk8
+        mss_dst3(c,:)   = 0._rk8
+        mss_dst4(c,:)   = 0._rk8
+        mss_dsttot(c,:) = 0._rk8
+        mss_dst_col(c)  = 0._rk8
+        mss_dst_top(c)  = 0._rk8
       end if
 
       ! The change of ice partial density of surface node due to precipitation.
@@ -560,17 +560,17 @@ module mod_clm_slakehydrology
       c = pcolumn(p)
       jtop = snl(c)+1
 
-      qflx_evap_grnd(p) = 0._rkx
-      qflx_sub_snow(p) = 0._rkx
-      qflx_dew_snow(p) = 0._rkx
-      qflx_dew_grnd(p) = 0._rkx
+      qflx_evap_grnd(p) = 0._rk8
+      qflx_sub_snow(p) = 0._rk8
+      qflx_dew_snow(p) = 0._rk8
+      qflx_dew_grnd(p) = 0._rk8
 
       if (jtop <= 0) then ! snow layers
         j = jtop
         ! Assign ground evaporation to sublimation from soil ice or to dew
         ! on snow or ground
 
-        if (qflx_evap_soi(p) >= 0._rkx) then
+        if (qflx_evap_soi(p) >= 0._rk8) then
           ! for evaporation partitioning between liquid evap and ice
           ! sublimation, use the ratio of liquid to (liquid+ice) in the
           ! top layer to determine split Since we're not limiting evap
@@ -578,11 +578,11 @@ module mod_clm_slakehydrology
           ! snow layer than there is there, create temp. limited evap_soi.
           qflx_evap_soi_lim = min(qflx_evap_soi(p), &
                   (h2osoi_liq(c,j)+h2osoi_ice(c,j))/dtsrf)
-          if ((h2osoi_liq(c,j)+h2osoi_ice(c,j)) > 0._rkx) then
+          if ((h2osoi_liq(c,j)+h2osoi_ice(c,j)) > 0._rk8) then
             qflx_evap_grnd(p) = max(qflx_evap_soi_lim*(h2osoi_liq(c,j) / &
-                    (h2osoi_liq(c,j)+h2osoi_ice(c,j))), 0._rkx)
+                    (h2osoi_liq(c,j)+h2osoi_ice(c,j))), 0._rk8)
           else
-            qflx_evap_grnd(p) = 0._rkx
+            qflx_evap_grnd(p) = 0._rk8
           end if
           qflx_sub_snow(p) = qflx_evap_soi_lim - qflx_evap_grnd(p)
         else
@@ -612,13 +612,13 @@ module mod_clm_slakehydrology
       else
         ! No snow layers: do as in HydrologyLake but with actual
         ! clmtype variables
-        if (qflx_evap_soi(p) >= 0._rkx) then
+        if (qflx_evap_soi(p) >= 0._rk8) then
           ! Sublimation: do not allow for more sublimation than there is snow
           ! after melt.  Remaining surface evaporation used for infiltration.
           qflx_sub_snow(p) = min(qflx_evap_soi(p), h2osno(c)/dtsrf)
           qflx_evap_grnd(p) = qflx_evap_soi(p) - qflx_sub_snow(p)
         else
-          if (t_grnd(c) < tfrz-0.1_rkx) then
+          if (t_grnd(c) < tfrz-0.1_rk8) then
             qflx_dew_snow(p) = abs(qflx_evap_soi(p))
           else
             qflx_dew_grnd(p) = abs(qflx_evap_soi(p))
@@ -635,7 +635,7 @@ module mod_clm_slakehydrology
         else
           h2osno(c) = h2osno(c) + (-qflx_sub_snow(p)+qflx_dew_snow(p))*dtsrf
         end if
-        if (h2osno_temp > 0._rkx) then
+        if (h2osno_temp > 0._rk8) then
           snow_depth(c) = snow_depth(c) * h2osno(c) / h2osno_temp
         else
           !Assume a constant snow bulk density = 250.
@@ -643,10 +643,10 @@ module mod_clm_slakehydrology
         end if
 
 #if (defined PERGRO)
-        if (abs(h2osno(c)) < 1.e-10_rkx) h2osno(c) = 0._rkx
-        if (h2osno(c) == 0._rkx) snow_depth(c) = 0._rkx
+        if (abs(h2osno(c)) < 1.e-10_rk8) h2osno(c) = 0._rk8
+        if (h2osno(c) == 0._rk8) snow_depth(c) = 0._rk8
 #else
-        h2osno(c) = max(h2osno(c), 0._rkx)
+        h2osno(c) = max(h2osno(c), 0._rk8)
 #endif
 
       end if
@@ -681,10 +681,10 @@ module mod_clm_slakehydrology
     ! specify snow fraction
     do fc = 1, num_lakec
       c = filter_lakec(fc)
-      if (h2osno(c) > 0.0_rkx) then
-        frac_sno_eff(c)     = 1._rkx
+      if (h2osno(c) > 0.0_rk8) then
+        frac_sno_eff(c)     = 1._rk8
       else
-        frac_sno_eff(c)     = 0._rkx
+        frac_sno_eff(c)     = 0._rk8
       end if
     end do
 
@@ -766,7 +766,7 @@ module mod_clm_slakehydrology
 
       j = 0
 
-      if (snl(c) == -1 .and. h2osoi_ice(c,j) == 0._rkx) then
+      if (snl(c) == -1 .and. h2osoi_ice(c,j) == 0._rk8) then
         ! Remove layer
         ! Take extra heat of layer and release to sensible heat in
         ! order to maintain energy conservation.
@@ -779,8 +779,8 @@ module mod_clm_slakehydrology
         eflx_grnd_lake(p) = eflx_grnd_lake(p) - heatrem/dtsrf
         qflx_sl_top_soil(c) = qflx_sl_top_soil(c) + h2osno(c)
         snl(c) = 0
-        h2osno(c) = 0._rkx
-        snow_depth(c) = 0._rkx
+        h2osno(c) = 0._rk8
+        snow_depth(c) = 0._rk8
         ! Rest of snow layer book-keeping will be done below.
       end if
     end do
@@ -796,7 +796,7 @@ module mod_clm_slakehydrology
       c = filter_lakec(fc)
 
       if ( t_lake(c,1) > tfrz .and. &
-           lake_icefrac(c,1) == 0._rkx .and. snl(c) < 0) then
+           lake_icefrac(c,1) == 0._rk8 .and. snl(c) < 0) then
         unfrozen(c) = .true.
       else
         unfrozen(c) = .false.
@@ -809,8 +809,8 @@ module mod_clm_slakehydrology
 
         if (unfrozen(c)) then
           if (j == -nlevsno+1) then
-            sumsnowice(c) = 0._rkx
-            heatsum(c) = 0._rkx
+            sumsnowice(c) = 0._rk8
+            heatsum(c) = 0._rk8
           end if
           if (j >= snl(c)+1) then
             sumsnowice(c) = sumsnowice(c) + h2osoi_ice(c,j)
@@ -829,7 +829,7 @@ module mod_clm_slakehydrology
         heatsum(c) = heatsum(c) + sumsnowice(c)*hfus
         heatrem = (t_lake(c,1) - tfrz)*cpliq*denh2o*dz_lake(c,1) - heatsum(c)
 
-        if (heatrem + denh2o*dz_lake(c,1)*hfus > 0._rkx) then
+        if (heatrem + denh2o*dz_lake(c,1)*hfus > 0._rk8) then
           ! Remove snow and subtract the latent heat from the top layer.
           qflx_snomelt(c) = qflx_snomelt(c) + h2osno(c)/dtsrf
           eflx_snomelt(c) = eflx_snomelt(c) + h2osno(c)*hfus/dtsrf
@@ -838,11 +838,11 @@ module mod_clm_slakehydrology
 
           qflx_sl_top_soil(c) = qflx_sl_top_soil(c) + h2osno(c)
 
-          h2osno(c) = 0._rkx
-          snow_depth(c) = 0._rkx
+          h2osno(c) = 0._rk8
+          snow_depth(c) = 0._rk8
           snl(c) = 0
           ! The rest of the bookkeeping for the removed snow will be done below.
-          if (heatrem > 0._rkx) then ! simply subtract the heat from the layer
+          if (heatrem > 0._rk8) then ! simply subtract the heat from the layer
             t_lake(c,1) = t_lake(c,1) - heatrem/(cpliq*denh2o*dz_lake(c,1))
           else !freeze part of the layer
             t_lake(c,1) = tfrz
@@ -858,12 +858,12 @@ module mod_clm_slakehydrology
       do fc = 1 , num_shlakesnowc
         c = filter_shlakesnowc(fc)
         if (j <= snl(c) .and. snl(c) > -nlevsno) then
-          h2osoi_ice(c,j) = 0._rkx
-          h2osoi_liq(c,j) = 0._rkx
-          t_soisno(c,j) = 0._rkx
-          dz(c,j) = 0._rkx
-          z(c,j) = 0._rkx
-          zi(c,j-1) = 0._rkx
+          h2osoi_ice(c,j) = 0._rk8
+          h2osoi_liq(c,j) = 0._rk8
+          t_soisno(c,j) = 0._rk8
+          dz(c,j) = 0._rk8
+          z(c,j) = 0._rk8
+          zi(c,j-1) = 0._rk8
         end if
       end do
     end do
@@ -879,8 +879,8 @@ module mod_clm_slakehydrology
 
     do fc = 1 , num_lakec
       c = filter_lakec(fc)
-      snowice(c) = 0._rkx
-      snowliq(c) = 0._rkx
+      snowice(c) = 0._rk8
+      snowliq(c) = 0._rk8
     end do
 
     do j = -nlevsno+1 , 0
@@ -918,13 +918,13 @@ module mod_clm_slakehydrology
 
       zwt_perched(c)    = spval
       frost_table(c)    = spval
-      qflx_drain_perched(c)= 0._rkx
-      qflx_h2osfc_surf(c)  = 0._rkx
-      qflx_rsub_sat(c)     = 0._rkx
-      qflx_infl(c)      = 0._rkx
-      qflx_surf(c)      = 0._rkx
-      qflx_drain(c)     = 0._rkx
-      qflx_irrig(c)     = 0._rkx
+      qflx_drain_perched(c)= 0._rk8
+      qflx_h2osfc_surf(c)  = 0._rk8
+      qflx_rsub_sat(c)     = 0._rk8
+      qflx_infl(c)      = 0._rk8
+      qflx_surf(c)      = 0._rk8
+      qflx_drain(c)     = 0._rk8
+      qflx_irrig(c)     = 0._rk8
       rootr_column(c,:) = spval
       soilalpha(c)      = spval
       zwt(c)            = spval
@@ -953,9 +953,9 @@ module mod_clm_slakehydrology
       c = filter_shlakesnowc(fc)
 
       ! Zero column-integrated aerosol mass before summation
-      mss_bc_col(c)  = 0._rkx
-      mss_oc_col(c)  = 0._rkx
-      mss_dst_col(c) = 0._rkx
+      mss_bc_col(c)  = 0._rk8
+      mss_oc_col(c)  = 0._rk8
+      mss_dst_col(c) = 0._rk8
 
       do j = -nlevsno+1, 0
 
@@ -1004,29 +1004,29 @@ module mod_clm_slakehydrology
 
         else
           !set variables of empty snow layers to zero
-          snw_rds(c,j)       = 0._rkx
+          snw_rds(c,j)       = 0._rk8
 
-          mss_bcpho(c,j)     = 0._rkx
-          mss_bcphi(c,j)     = 0._rkx
-          mss_bctot(c,j)     = 0._rkx
-          mss_cnc_bcphi(c,j) = 0._rkx
-          mss_cnc_bcpho(c,j) = 0._rkx
+          mss_bcpho(c,j)     = 0._rk8
+          mss_bcphi(c,j)     = 0._rk8
+          mss_bctot(c,j)     = 0._rk8
+          mss_cnc_bcphi(c,j) = 0._rk8
+          mss_cnc_bcpho(c,j) = 0._rk8
 
-          mss_ocpho(c,j)     = 0._rkx
-          mss_ocphi(c,j)     = 0._rkx
-          mss_octot(c,j)     = 0._rkx
-          mss_cnc_ocphi(c,j) = 0._rkx
-          mss_cnc_ocpho(c,j) = 0._rkx
+          mss_ocpho(c,j)     = 0._rk8
+          mss_ocphi(c,j)     = 0._rk8
+          mss_octot(c,j)     = 0._rk8
+          mss_cnc_ocphi(c,j) = 0._rk8
+          mss_cnc_ocpho(c,j) = 0._rk8
 
-          mss_dst1(c,j)      = 0._rkx
-          mss_dst2(c,j)      = 0._rkx
-          mss_dst3(c,j)      = 0._rkx
-          mss_dst4(c,j)      = 0._rkx
-          mss_dsttot(c,j)    = 0._rkx
-          mss_cnc_dst1(c,j)  = 0._rkx
-          mss_cnc_dst2(c,j)  = 0._rkx
-          mss_cnc_dst3(c,j)  = 0._rkx
-          mss_cnc_dst4(c,j)  = 0._rkx
+          mss_dst1(c,j)      = 0._rk8
+          mss_dst2(c,j)      = 0._rk8
+          mss_dst3(c,j)      = 0._rk8
+          mss_dst4(c,j)      = 0._rk8
+          mss_dsttot(c,j)    = 0._rk8
+          mss_cnc_dst1(c,j)  = 0._rk8
+          mss_cnc_dst2(c,j)  = 0._rk8
+          mss_cnc_dst3(c,j)  = 0._rk8
+          mss_cnc_dst4(c,j)  = 0._rk8
         end if
       end do
 
@@ -1041,36 +1041,36 @@ module mod_clm_slakehydrology
     do fc = 1 , num_shlakenosnowc
       c = filter_shlakenosnowc(fc)
 
-      h2osno_top(c)      = 0._rkx
-      snw_rds(c,:)       = 0._rkx
+      h2osno_top(c)      = 0._rk8
+      snw_rds(c,:)       = 0._rk8
 
-      mss_bc_top(c)      = 0._rkx
-      mss_bc_col(c)      = 0._rkx
-      mss_bcpho(c,:)     = 0._rkx
-      mss_bcphi(c,:)     = 0._rkx
-      mss_bctot(c,:)     = 0._rkx
-      mss_cnc_bcphi(c,:) = 0._rkx
-      mss_cnc_bcpho(c,:) = 0._rkx
+      mss_bc_top(c)      = 0._rk8
+      mss_bc_col(c)      = 0._rk8
+      mss_bcpho(c,:)     = 0._rk8
+      mss_bcphi(c,:)     = 0._rk8
+      mss_bctot(c,:)     = 0._rk8
+      mss_cnc_bcphi(c,:) = 0._rk8
+      mss_cnc_bcpho(c,:) = 0._rk8
 
-      mss_oc_top(c)      = 0._rkx
-      mss_oc_col(c)      = 0._rkx
-      mss_ocpho(c,:)     = 0._rkx
-      mss_ocphi(c,:)     = 0._rkx
-      mss_octot(c,:)     = 0._rkx
-      mss_cnc_ocphi(c,:) = 0._rkx
-      mss_cnc_ocpho(c,:) = 0._rkx
+      mss_oc_top(c)      = 0._rk8
+      mss_oc_col(c)      = 0._rk8
+      mss_ocpho(c,:)     = 0._rk8
+      mss_ocphi(c,:)     = 0._rk8
+      mss_octot(c,:)     = 0._rk8
+      mss_cnc_ocphi(c,:) = 0._rk8
+      mss_cnc_ocpho(c,:) = 0._rk8
 
-      mss_dst_top(c)     = 0._rkx
-      mss_dst_col(c)     = 0._rkx
-      mss_dst1(c,:)      = 0._rkx
-      mss_dst2(c,:)      = 0._rkx
-      mss_dst3(c,:)      = 0._rkx
-      mss_dst4(c,:)      = 0._rkx
-      mss_dsttot(c,:)    = 0._rkx
-      mss_cnc_dst1(c,:)  = 0._rkx
-      mss_cnc_dst2(c,:)  = 0._rkx
-      mss_cnc_dst3(c,:)  = 0._rkx
-      mss_cnc_dst4(c,:)  = 0._rkx
+      mss_dst_top(c)     = 0._rk8
+      mss_dst_col(c)     = 0._rk8
+      mss_dst1(c,:)      = 0._rk8
+      mss_dst2(c,:)      = 0._rk8
+      mss_dst3(c,:)      = 0._rk8
+      mss_dst4(c,:)      = 0._rk8
+      mss_dsttot(c,:)    = 0._rk8
+      mss_cnc_dst1(c,:)  = 0._rk8
+      mss_cnc_dst2(c,:)  = 0._rk8
+      mss_cnc_dst3(c,:)  = 0._rk8
+      mss_cnc_dst4(c,:)  = 0._rk8
 
       ! top-layer diagnostics
       ! (spval is not averaged when computing history fields)

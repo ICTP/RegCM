@@ -23,14 +23,14 @@ module mod_clm_soillittverttransp
   public :: CNSoilLittVertTransp
 
   ! [m^2/sec] = 1 cm^2 / yr
-  real(rkx), public :: som_diffus = 1e-4_rkx / (secspday * 365._rkx)
-  real(rkx), public :: som_adv_flux =  0._rkx
+  real(rk8), public :: som_diffus = 1e-4_rk8 / (secspday * 365._rk8)
+  real(rk8), public :: som_adv_flux =  0._rk8
   ! [m^2/sec] = 5 cm^2 / yr = 1m^2 / 200 yr
-  real(rkx), public :: cryoturb_diffusion_k =  5e-4_rkx / (secspday * 365._rkx)
+  real(rk8), public :: cryoturb_diffusion_k =  5e-4_rk8 / (secspday * 365._rk8)
   ! (m) this is the maximum depth of cryoturbation
-  real(rkx), public :: max_depth_cryoturb = 3._rkx
+  real(rk8), public :: max_depth_cryoturb = 3._rk8
   ! (m) maximum active layer thickness for cryoturbation to occur
-  real(rkx), public :: max_altdepth_cryoturbation = 2._rkx
+  real(rk8), public :: max_altdepth_cryoturbation = 2._rk8
 
   contains
   !
@@ -47,65 +47,65 @@ module mod_clm_soillittverttransp
     integer(ik4) , intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4) , intent(in) :: lbc , ubc ! column-index bounds
     ! SOM advective flux (m/s)
-    real(rkx), pointer :: som_adv_coef(:,:)
+    real(rk8), pointer :: som_adv_coef(:,:)
     ! SOM diffusivity due to bio/cryo-turbation (m2/s)
-    real(rkx), pointer :: som_diffus_coef(:,:)
+    real(rk8), pointer :: som_diffus_coef(:,:)
     ! pointer for concentration state variable being transported
-    real(rkx), pointer :: conc_ptr(:,:,:)
+    real(rk8), pointer :: conc_ptr(:,:,:)
     ! pointer for source term
-    real(rkx), pointer :: source(:,:,:)
+    real(rk8), pointer :: source(:,:,:)
     ! TRUE => pool is a cwd pool
     logical, pointer  :: is_cwd(:)
 #ifdef VERTSOILC
     ! difference between nodes
-    real(rkx) :: dz_node(1:nlevdecomp+1)
+    real(rk8) :: dz_node(1:nlevdecomp+1)
     ! diffusivity (m2/s)  (includes spinup correction, if any)
-    real(rkx) :: diffus (lbc:ubc,1:nlevdecomp+1)
+    real(rk8) :: diffus (lbc:ubc,1:nlevdecomp+1)
     ! Weights for calculating harmonic mean of diffusivity
-    real(rkx) :: w_m1, w_p1
+    real(rk8) :: w_m1, w_p1
     ! Harmonic mean of diffusivity
-    real(rkx) :: d_m1, d_p1
+    real(rk8) :: d_m1, d_p1
     ! diffusivity/delta_z for next j (set to zero for no diffusion)
-    real(rkx) :: d_p1_zp1(lbc:ubc,1:nlevdecomp+1)
+    real(rk8) :: d_p1_zp1(lbc:ubc,1:nlevdecomp+1)
     ! diffusivity/delta_z for previous j (set to zero for no diffusion)
-    real(rkx) :: d_m1_zm1 (lbc:ubc,1:nlevdecomp+1)
+    real(rk8) :: d_m1_zm1 (lbc:ubc,1:nlevdecomp+1)
     ! advective flux (m/s)  (includes spinup correction, if any)
-    real(rkx) :: adv_flux(lbc:ubc,1:nlevdecomp+1)
+    real(rk8) :: adv_flux(lbc:ubc,1:nlevdecomp+1)
     ! "a" vector for tridiagonal matrix
-    real(rkx) :: a_tri(lbc:ubc,0:nlevdecomp+1)
+    real(rk8) :: a_tri(lbc:ubc,0:nlevdecomp+1)
     ! "b" vector for tridiagonal matrix
-    real(rkx) :: b_tri(lbc:ubc,0:nlevdecomp+1)
+    real(rk8) :: b_tri(lbc:ubc,0:nlevdecomp+1)
     ! "c" vector for tridiagonal matrix
-    real(rkx) :: c_tri(lbc:ubc,0:nlevdecomp+1)
+    real(rk8) :: c_tri(lbc:ubc,0:nlevdecomp+1)
     ! "r" vector for tridiagonal solution
-    real(rkx) :: r_tri(lbc:ubc,0:nlevdecomp+1)
-    real(rkx) :: a_p_0
-    real(rkx) :: deficit
-    real(rkx) :: conc_trcr(lbc:ubc,0:nlevdecomp+1)
-    real(rkx) :: f_p1(lbc:ubc,1:nlevdecomp+1)  ! water flux for next j
-    real(rkx) :: f_m1(lbc:ubc,1:nlevdecomp+1)  ! water flux for previous j
-    real(rkx) :: pe_p1(lbc:ubc,1:nlevdecomp+1) ! Peclet # for next j
-    real(rkx) :: pe_m1(lbc:ubc,1:nlevdecomp+1) ! Peclet # for previous j
+    real(rk8) :: r_tri(lbc:ubc,0:nlevdecomp+1)
+    real(rk8) :: a_p_0
+    real(rk8) :: deficit
+    real(rk8) :: conc_trcr(lbc:ubc,0:nlevdecomp+1)
+    real(rk8) :: f_p1(lbc:ubc,1:nlevdecomp+1)  ! water flux for next j
+    real(rk8) :: f_m1(lbc:ubc,1:nlevdecomp+1)  ! water flux for previous j
+    real(rk8) :: pe_p1(lbc:ubc,1:nlevdecomp+1) ! Peclet # for next j
+    real(rk8) :: pe_m1(lbc:ubc,1:nlevdecomp+1) ! Peclet # for previous j
     integer(ik4) :: jtop(lbc:ubc)     ! top level at each column
     integer(ik4) :: s ! indices
 #endif
     ! pointer to store the vertical tendency
     ! (gain/loss due to vertical transport)
-    real(rkx), pointer :: trcr_tendency_ptr(:,:,:)
+    real(rk8), pointer :: trcr_tendency_ptr(:,:,:)
     ! maximum annual depth of thaw
-    real(rkx), pointer :: altmax(:)
+    real(rk8), pointer :: altmax(:)
     ! prior year maximum annual depth of thaw
-    real(rkx), pointer :: altmax_lastyear(:)
+    real(rk8), pointer :: altmax_lastyear(:)
 
     integer(ik4) :: ntype
     integer(ik4) :: i_type , fc , c , j , l ! indices
     ! spinup accelerated decomposition factor, used to accelerate
     ! transport as well
-    real(rkx), pointer :: spinup_factor(:)
+    real(rk8), pointer :: spinup_factor(:)
     ! spinup accelerated decomposition factor, used to accelerate
     ! transport as well
-    real(rkx) :: spinup_term
-    real(rkx) :: epsilon  ! small number
+    real(rk8) :: spinup_term
+    real(rk8) :: epsilon  ! small number
 
     is_cwd             => decomp_cascade_con%is_cwd
     spinup_factor      => decomp_cascade_con%spinup_factor
@@ -121,7 +121,7 @@ module mod_clm_soillittverttransp
     if ( use_c14 ) then
       ntype = ntype+1
     end if
-    spinup_term = 1._rkx
+    spinup_term = 1._rk8
     epsilon = 1.e-30
 
 #ifdef VERTSOILC
@@ -131,23 +131,23 @@ module mod_clm_soillittverttransp
     do fc = 1, num_soilc
       c = filter_soilc (fc)
       if  ( (max(altmax(c),altmax_lastyear(c)) <= max_altdepth_cryoturbation) &
-              .and. ( max(altmax(c), altmax_lastyear(c)) > 0._rkx) ) then
+              .and. ( max(altmax(c), altmax_lastyear(c)) > 0._rk8) ) then
         ! use mixing profile modified slightly from Koven et al. (2009):
         !   constant through active layer, linear decrease from base of
         !   active layer to zero at a fixed depth
         do j = 1,nlevdecomp+1
           if ( zisoi(j) < max(altmax(c), altmax_lastyear(c)) ) then
             som_diffus_coef(c,j) = cryoturb_diffusion_k
-            som_adv_coef(c,j) = 0._rkx
+            som_adv_coef(c,j) = 0._rk8
           else
             ! go linearly to zero between ALT and max_depth_cryoturb
             som_diffus_coef(c,j) = max(cryoturb_diffusion_k * &
-              (1._rkx-( zisoi(j)-max(altmax(c),altmax_lastyear(c)) ) / &
-              (max_depth_cryoturb-max(altmax(c),altmax_lastyear(c)))), 0._rkx)
-            som_adv_coef(c,j) = 0._rkx
+              (1._rk8-( zisoi(j)-max(altmax(c),altmax_lastyear(c)) ) / &
+              (max_depth_cryoturb-max(altmax(c),altmax_lastyear(c)))), 0._rk8)
+            som_adv_coef(c,j) = 0._rk8
           end if
         end do
-      else if (  max(altmax(c), altmax_lastyear(c)) > 0._rkx ) then
+      else if (  max(altmax(c), altmax_lastyear(c)) > 0._rk8 ) then
         ! constant advection, constant diffusion
         do j = 1,nlevdecomp+1
           som_adv_coef(c,j) = som_adv_flux
@@ -156,8 +156,8 @@ module mod_clm_soillittverttransp
       else
         ! completely frozen soils--no mixing
         do j = 1,nlevdecomp+1
-           som_adv_coef(c,j) = 0._rkx
-           som_diffus_coef(c,j) = 0._rkx
+           som_adv_coef(c,j) = 0._rk8
+           som_diffus_coef(c,j) = 0._rk8
         end do
       end if
     end do
@@ -237,8 +237,8 @@ module mod_clm_soillittverttransp
           ! Set Pe (Peclet #) and D/dz throughout column
           do fc = 1, num_soilc ! dummy terms here
             c = filter_soilc (fc)
-            conc_trcr(c,0) = 0._rkx
-            conc_trcr(c,nlevdecomp+1) = 0._rkx
+            conc_trcr(c,0) = 0._rk8
+            conc_trcr(c,nlevdecomp+1) = 0._rk8
           end do
           do j = 1,nlevdecomp+1
             do fc = 1, num_soilc
@@ -251,53 +251,53 @@ module mod_clm_soillittverttransp
 
               ! Calculate the D and F terms in the Patankar algorithm
               if (j == 1) then
-                d_m1_zm1(c,j) = 0._rkx
+                d_m1_zm1(c,j) = 0._rk8
                 w_p1 = (zsoi(j+1) - zisoi(j)) / dz_node(j+1)
-                if ( diffus(c,j+1) > 0._rkx .and. diffus(c,j) > 0._rkx) then
-                  d_p1 = 1._rkx / ((1._rkx - w_p1) / diffus(c,j) + &
+                if ( diffus(c,j+1) > 0._rk8 .and. diffus(c,j) > 0._rk8) then
+                  d_p1 = 1._rk8 / ((1._rk8 - w_p1) / diffus(c,j) + &
                           w_p1 / diffus(c,j+1)) ! Harmonic mean of diffus
                 else
-                  d_p1 = 0._rkx
+                  d_p1 = 0._rk8
                 end if
                 d_p1_zp1(c,j) = d_p1 / dz_node(j+1)
                 f_m1(c,j) = adv_flux(c,j)  ! Include infiltration here
                 f_p1(c,j) = adv_flux(c,j+1)
-                pe_m1(c,j) = 0._rkx
+                pe_m1(c,j) = 0._rk8
                 pe_p1(c,j) = f_p1(c,j) / d_p1_zp1(c,j) ! Peclet #
               else if (j == nlevdecomp+1) then
                 ! At the bottom, assume no gradient in d_z
                 ! (i.e., they're the same)
                 w_m1 = (zisoi(j-1) - zsoi(j-1)) / dz_node(j)
-                if ( diffus(c,j) > 0._rkx .and. diffus(c,j-1) > 0._rkx) then
-                  d_m1 = 1._rkx / ((1._rkx - w_m1) / diffus(c,j) + &
+                if ( diffus(c,j) > 0._rk8 .and. diffus(c,j-1) > 0._rk8) then
+                  d_m1 = 1._rk8 / ((1._rk8 - w_m1) / diffus(c,j) + &
                           w_m1 / diffus(c,j-1)) ! Harmonic mean of diffus
                 else
-                  d_m1 = 0._rkx
+                  d_m1 = 0._rk8
                 end if
                 d_m1_zm1(c,j) = d_m1 / dz_node(j)
                 d_p1_zp1(c,j) = d_m1_zm1(c,j) ! Set to be the same
                 f_m1(c,j) = adv_flux(c,j)
                 !f_p1(c,j) = adv_flux(c,j+1)
-                f_p1(c,j) = 0._rkx
+                f_p1(c,j) = 0._rk8
                 pe_m1(c,j) = f_m1(c,j) / d_m1_zm1(c,j) ! Peclet #
                 pe_p1(c,j) = f_p1(c,j) / d_p1_zp1(c,j) ! Peclet #
               else
                 ! Use distance from j-1 node to interface with j divided
                 ! by distance between nodes
                 w_m1 = (zisoi(j-1) - zsoi(j-1)) / dz_node(j)
-                if ( diffus(c,j-1) > 0._rkx .and. diffus(c,j) > 0._rkx) then
-                  d_m1 = 1._rkx / ((1._rkx - w_m1) / diffus(c,j) + &
+                if ( diffus(c,j-1) > 0._rk8 .and. diffus(c,j) > 0._rk8) then
+                  d_m1 = 1._rk8 / ((1._rk8 - w_m1) / diffus(c,j) + &
                           w_m1 / diffus(c,j-1)) ! Harmonic mean of diffus
                 else
-                  d_m1 = 0._rkx
+                  d_m1 = 0._rk8
                 end if
                 w_p1 = (zsoi(j+1) - zisoi(j)) / dz_node(j+1)
-                if ( diffus(c,j+1) > 0._rkx .and. diffus(c,j) > 0._rkx) then
-                  d_p1 = 1._rkx / ((1._rkx - w_p1) / diffus(c,j) + &
+                if ( diffus(c,j+1) > 0._rk8 .and. diffus(c,j) > 0._rk8) then
+                  d_p1 = 1._rk8 / ((1._rk8 - w_p1) / diffus(c,j) + &
                           w_p1 / diffus(c,j+1)) ! Harmonic mean of diffus
                 else
                   ! Arithmetic mean of diffus
-                  d_p1 = (1._rkx - w_m1) * diffus(c,j) + w_p1 * diffus(c,j+1)
+                  d_p1 = (1._rk8 - w_m1) * diffus(c,j) + w_p1 * diffus(c,j+1)
                 end if
                 d_m1_zm1(c,j) = d_m1 / dz_node(j)
                 d_p1_zp1(c,j) = d_p1 / dz_node(j+1)
@@ -319,31 +319,31 @@ module mod_clm_soillittverttransp
               end if
 
               if (j == 0) then ! top layer (atmosphere)
-                a_tri(c,j) = 0._rkx
-                b_tri(c,j) = 1._rkx
-                c_tri(c,j) = -1._rkx
-                r_tri(c,j) = 0._rkx
+                a_tri(c,j) = 0._rk8
+                b_tri(c,j) = 1._rk8
+                c_tri(c,j) = -1._rk8
+                r_tri(c,j) = 0._rk8
               else if (j == 1) then
                 a_tri(c,j) = -(d_m1_zm1(c,j) * aaa(pe_m1(c,j)) + &
-                        max( f_m1(c,j), 0._rkx)) ! Eqn 5.47 Patankar
+                        max( f_m1(c,j), 0._rk8)) ! Eqn 5.47 Patankar
                 c_tri(c,j) = -(d_p1_zp1(c,j) * aaa(pe_p1(c,j)) + &
-                        max(-f_p1(c,j), 0._rkx))
+                        max(-f_p1(c,j), 0._rk8))
                 b_tri(c,j) = -a_tri(c,j) - c_tri(c,j) + a_p_0
                 r_tri(c,j) = source(c,j,s) * dzsoi_decomp(j) /dtsrf + &
                         (a_p_0 - adv_flux(c,j)) * conc_trcr(c,j)
               else if (j < nlevdecomp+1) then
                 a_tri(c,j) = -(d_m1_zm1(c,j) * aaa(pe_m1(c,j)) + &
-                        max( f_m1(c,j), 0._rkx)) ! Eqn 5.47 Patankar
+                        max( f_m1(c,j), 0._rk8)) ! Eqn 5.47 Patankar
                 c_tri(c,j) = -(d_p1_zp1(c,j) * aaa(pe_p1(c,j)) + &
-                        max(-f_p1(c,j), 0._rkx))
+                        max(-f_p1(c,j), 0._rk8))
                 b_tri(c,j) = -a_tri(c,j) - c_tri(c,j) + a_p_0
                 r_tri(c,j) = source(c,j,s) * dzsoi_decomp(j) /dtsrf + &
                         a_p_0 * conc_trcr(c,j)
               else ! j==nlevdecomp+1; 0 concentration gradient at bottom
-                a_tri(c,j) = -1._rkx
-                b_tri(c,j) = 1._rkx
-                c_tri(c,j) = 0._rkx
-                r_tri(c,j) = 0._rkx
+                a_tri(c,j) = -1._rk8
+                b_tri(c,j) = 1._rk8
+                c_tri(c,j) = 0._rk8
+                r_tri(c,j) = 0._rk8
               end if
             end do ! fc; column
           end do ! j; nlevdecomp
@@ -397,7 +397,7 @@ module mod_clm_soillittverttransp
           do fc = 1 , num_soilc
             c = filter_soilc (fc)
             conc_ptr(c,j,l) = conc_ptr(c,j,l) + source(c,j,l)
-            trcr_tendency_ptr(c,j,l) = 0._rkx
+            trcr_tendency_ptr(c,j,l) = 0._rk8
           end do
         end do
       end do
@@ -407,10 +407,10 @@ module mod_clm_soillittverttransp
     contains
 
       ! A function from Patankar, Table 5.2, pg 95
-      pure real(rkx) function aaa(pe)
+      pure real(rk8) function aaa(pe)
         implicit none
-        real(rkx) , intent(in) :: pe
-        aaa = max (0._rkx, (1._rkx - 0.1_rkx * abs(pe))**5)
+        real(rk8) , intent(in) :: pe
+        aaa = max (0._rk8, (1._rk8 - 0.1_rk8 * abs(pe))**5)
       end function aaa
 
   end subroutine CNSoilLittVertTransp

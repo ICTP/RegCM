@@ -79,114 +79,114 @@ module mod_clm_vocemission
     integer(ik4) , pointer :: ivt(:)       ! pft vegetation type for current
     integer(ik4) , pointer :: clandunit(:) ! gridcell of corresponding column
     integer(ik4) , pointer :: ltype(:)     ! landunit type
-    real(rkx), pointer :: t_veg(:)   ! pft vegetation temperature (Kelvin)
-    real(rkx), pointer :: fsun(:)    ! sunlit fraction of canopy
+    real(rk8), pointer :: t_veg(:)   ! pft vegetation temperature (Kelvin)
+    real(rk8), pointer :: fsun(:)    ! sunlit fraction of canopy
     ! one-sided leaf area index with burying by snow
-    real(rkx), pointer :: elai(:)
-    real(rkx), pointer :: clayfrac(:)      ! fraction of soil that is clay
-    real(rkx), pointer :: sandfrac(:)      ! fraction of soil that is sand
+    real(rk8), pointer :: elai(:)
+    real(rk8), pointer :: clayfrac(:)      ! fraction of soil that is clay
+    real(rk8), pointer :: sandfrac(:)      ! fraction of soil that is sand
     ! direct beam radiation (visible only)
-    real(rkx), pointer :: forc_solad(:,:)
+    real(rk8), pointer :: forc_solad(:,:)
     ! diffuse radiation     (visible only)
-    real(rkx), pointer :: forc_solai(:,:)
+    real(rk8), pointer :: forc_solai(:,:)
     ! one-sided leaf area index from previous timestep
-    real(rkx), pointer :: elai_p(:)
+    real(rk8), pointer :: elai_p(:)
     ! avg pft vegetation temperature for last 24 hrs
-    real(rkx), pointer :: t_veg24(:)
+    real(rk8), pointer :: t_veg24(:)
     ! avg pft vegetation temperature for last 240 hrs
-    real(rkx), pointer :: t_veg240(:)
+    real(rk8), pointer :: t_veg240(:)
     ! sunlit fraction of canopy last 24 hrs
-    real(rkx), pointer :: fsun24(:)
+    real(rk8), pointer :: fsun24(:)
     ! sunlit fraction of canopy last 240 hrs
-    real(rkx), pointer :: fsun240(:)
+    real(rk8), pointer :: fsun240(:)
     ! direct beam radiation last 24hrs  (visible only)
-    real(rkx), pointer :: forc_solad24(:)
+    real(rk8), pointer :: forc_solad24(:)
     ! diffuse radiation  last 24hrs     (visible only)
-    real(rkx), pointer :: forc_solai24(:)
+    real(rk8), pointer :: forc_solai24(:)
     ! direct beam radiation last 240hrs (visible only)
-    real(rkx), pointer :: forc_solad240(:)
+    real(rk8), pointer :: forc_solad240(:)
     ! diffuse radiation  last 240hrs    (visible only)
-    real(rkx), pointer :: forc_solai240(:)
-    real(rkx), pointer :: h2osoi_vol(:,:) ! volumetric soil water (m3/m3)
-    real(rkx), pointer :: h2osoi_ice(:,:) ! ice soil content (kg/m3)
-    real(rkx), pointer :: dz(:,:)         ! depth of layer (m)
-    real(rkx), pointer :: bsw(:,:)        ! Clapp and Hornberger "b" (nlevgrnd)
+    real(rk8), pointer :: forc_solai240(:)
+    real(rk8), pointer :: h2osoi_vol(:,:) ! volumetric soil water (m3/m3)
+    real(rk8), pointer :: h2osoi_ice(:,:) ! ice soil content (kg/m3)
+    real(rk8), pointer :: dz(:,:)         ! depth of layer (m)
+    real(rk8), pointer :: bsw(:,:)        ! Clapp and Hornberger "b" (nlevgrnd)
     ! volumetric soil water at saturation (porosity) (nlevgrnd)
-    real(rkx), pointer :: watsat(:,:)
-    real(rkx), pointer :: sucsat(:,:)  ! minimum soil suction (mm) (nlevgrnd)
-    real(rkx), pointer :: cisun_z(:,:) ! sunlit intracellular CO2 (Pa)
-    real(rkx), pointer :: cisha_z(:,:) ! shaded intracellular CO2 (Pa)
-    real(rkx), pointer :: forc_pbot(:) ! atmospheric pressure (Pa)
+    real(rk8), pointer :: watsat(:,:)
+    real(rk8), pointer :: sucsat(:,:)  ! minimum soil suction (mm) (nlevgrnd)
+    real(rk8), pointer :: cisun_z(:,:) ! sunlit intracellular CO2 (Pa)
+    real(rk8), pointer :: cisha_z(:,:) ! shaded intracellular CO2 (Pa)
+    real(rk8), pointer :: forc_pbot(:) ! atmospheric pressure (Pa)
 
-    real(rkx), pointer :: vocflx(:,:)   ! VOC flux [kg/m2/sec]
-    real(rkx), pointer :: vocflx_tot(:) ! VOC flux [kg/m2/sec]
+    real(rk8), pointer :: vocflx(:,:)   ! VOC flux [kg/m2/sec]
+    real(rk8), pointer :: vocflx_tot(:) ! VOC flux [kg/m2/sec]
 
     type(megan_out_type), pointer :: meg_out(:) ! fluxes for CLM history
 
-    real(rkx), pointer :: gamma_out(:)
-    real(rkx), pointer :: gammaT_out(:)
-    real(rkx), pointer :: gammaP_out(:)
-    real(rkx), pointer :: gammaL_out(:)
-    real(rkx), pointer :: gammaA_out(:)
-    real(rkx), pointer :: gammaS_out(:)
-    real(rkx), pointer :: gammaC_out(:)
+    real(rk8), pointer :: gamma_out(:)
+    real(rk8), pointer :: gammaT_out(:)
+    real(rk8), pointer :: gammaP_out(:)
+    real(rk8), pointer :: gammaL_out(:)
+    real(rk8), pointer :: gammaA_out(:)
+    real(rk8), pointer :: gammaS_out(:)
+    real(rk8), pointer :: gammaC_out(:)
 
-    real(rkx), pointer :: Eopt_out(:)
-    real(rkx), pointer :: topt_out(:)
-    real(rkx), pointer :: alpha_out(:)
-    real(rkx), pointer :: cp_out(:)
-    real(rkx), pointer :: paru_out(:)
-    real(rkx), pointer :: par24u_out(:)
-    real(rkx), pointer :: par240u_out(:)
-    real(rkx), pointer :: para_out(:)
-    real(rkx), pointer :: par24a_out(:)
-    real(rkx), pointer :: par240a_out(:)
+    real(rk8), pointer :: Eopt_out(:)
+    real(rk8), pointer :: topt_out(:)
+    real(rk8), pointer :: alpha_out(:)
+    real(rk8), pointer :: cp_out(:)
+    real(rk8), pointer :: paru_out(:)
+    real(rk8), pointer :: par24u_out(:)
+    real(rk8), pointer :: par240u_out(:)
+    real(rk8), pointer :: para_out(:)
+    real(rk8), pointer :: par24a_out(:)
+    real(rk8), pointer :: par240a_out(:)
     integer(ik4)  :: fp,p,g,c    ! indices
-    real(rkx) :: xepsilon        ! emission factor [ug m-2 h-1]
-    real(rkx) :: par_sun         ! temporary
-    real(rkx) :: par24_sun       ! temporary
-    real(rkx) :: par240_sun      ! temporary
-    real(rkx) :: par_sha         ! temporary
-    real(rkx) :: par24_sha       ! temporary
-    real(rkx) :: par240_sha      ! temporary
+    real(rk8) :: xepsilon        ! emission factor [ug m-2 h-1]
+    real(rk8) :: par_sun         ! temporary
+    real(rk8) :: par24_sun       ! temporary
+    real(rk8) :: par240_sun      ! temporary
+    real(rk8) :: par_sha         ! temporary
+    real(rk8) :: par24_sha       ! temporary
+    real(rk8) :: par240_sha      ! temporary
     ! activity factor (accounting for light, T, age, LAI conditions)
-    real(rkx) :: gamma_x
-    real(rkx) :: gamma_p   ! activity factor for PPFD
-    real(rkx) :: gamma_l   ! activity factor for PPFD & LAI
-    real(rkx) :: gamma_t   ! activity factor for temperature
-    real(rkx) :: gamma_a   ! activity factor for leaf age
-    real(rkx) :: gamma_sm  ! activity factor for soil moisture
-    real(rkx) :: gamma_c   ! activity factor for CO2 (only isoprene)
+    real(rk8) :: gamma_x
+    real(rk8) :: gamma_p   ! activity factor for PPFD
+    real(rk8) :: gamma_l   ! activity factor for PPFD & LAI
+    real(rk8) :: gamma_t   ! activity factor for temperature
+    real(rk8) :: gamma_a   ! activity factor for leaf age
+    real(rk8) :: gamma_sm  ! activity factor for soil moisture
+    real(rk8) :: gamma_c   ! activity factor for CO2 (only isoprene)
 
     integer(ik4) :: class_num, n_meg_comps, imech, imeg, ii
 
-    real(rkx) :: vocflx_meg(shr_megan_megcomps_n)
+    real(rk8) :: vocflx_meg(shr_megan_megcomps_n)
     type(shr_megan_megcomp_t), pointer :: meg_cmp
 
-    real(rkx) :: cp, alpha,  Eopt, topt  ! for history output
+    real(rk8) :: cp, alpha,  Eopt, topt  ! for history output
 
     ! factor used convert MEGAN units [micro-grams/m2/hr] to
     ! CAM srf emis units [g/m2/sec]
-    real(rkx), parameter :: megemis_units_factor = 1._rkx/3600._rkx/1.e6_rkx
+    real(rk8), parameter :: megemis_units_factor = 1._rk8/3600._rk8/1.e6_rk8
 
-!    real(rkx) :: root_depth(0:numpft)    ! Root depth [m]
+!    real(rk8) :: root_depth(0:numpft)    ! Root depth [m]
     character(len=32), parameter :: subname = "VOCEmission"
 !
 !    ! root depth (m) (defined based on Zeng et al., 2001, cf Guenther 2006)
 !    ! bare-soil
-!    root_depth(noveg) = 0._rkx
+!    root_depth(noveg) = 0._rk8
 !    ! evergreen tree
-!    root_depth(ndllf_evr_tmp_tree:ndllf_evr_brl_tree) = 1.8_rkx
+!    root_depth(ndllf_evr_tmp_tree:ndllf_evr_brl_tree) = 1.8_rk8
 !    ! needleleaf deciduous boreal tree
-!    root_depth(ndllf_dcd_brl_tree) = 2.0_rkx
+!    root_depth(ndllf_dcd_brl_tree) = 2.0_rk8
 !    ! broadleaf evergreen tree
-!    root_depth(nbrdlf_evr_trp_tree:nbrdlf_evr_tmp_tree) = 3.0_rkx
+!    root_depth(nbrdlf_evr_trp_tree:nbrdlf_evr_tmp_tree) = 3.0_rk8
 !    ! broadleaf deciduous tree
-!    root_depth(nbrdlf_dcd_trp_tree:nbrdlf_dcd_brl_tree) = 2.0_rkx
+!    root_depth(nbrdlf_dcd_trp_tree:nbrdlf_dcd_brl_tree) = 2.0_rk8
 !    ! shrub
-!    root_depth(nbrdlf_evr_shrub:nbrdlf_dcd_brl_shrub) = 2.5_rkx
+!    root_depth(nbrdlf_evr_shrub:nbrdlf_dcd_brl_shrub) = 2.5_rk8
 !    ! grass/crop
-!    root_depth(nc3_arctic_grass:numpft) = 1.5_rkx
+!    root_depth(nc3_arctic_grass:numpft) = 1.5_rk8
 !
     if ( shr_megan_mechcomps_n < 1) return
 
@@ -257,11 +257,11 @@ module mod_clm_vocemission
     elai_p           => clm3%g%l%c%p%pvs%elai_p
 
     ! initialize variables which get passed to the atmosphere
-    vocflx(lbp:ubp,:) = 0._rkx
-    vocflx_tot(lbp:ubp) = 0._rkx
+    vocflx(lbp:ubp,:) = 0._rk8
+    vocflx_tot(lbp:ubp) = 0._rk8
 
     do imeg=1,shr_megan_megcomps_n
-      meg_out(imeg)%flux_out(lbp:ubp) = 0._rkx
+      meg_out(imeg)%flux_out(lbp:ubp) = 0._rk8
     end do
 
     gamma_out(lbp:ubp) = spval
@@ -294,26 +294,26 @@ module mod_clm_vocemission
       c = pcolumn(p)
 
       ! initialize EF
-      xepsilon = 0._rkx
+      xepsilon = 0._rk8
 
       ! initalize to zero since this might not alway get set
-      vocflx_meg(:) = 0._rkx
+      vocflx_meg(:) = 0._rk8
 
       ! calculate VOC emissions for non-bare ground PFTs
       if (ivt(p) > 0) then
-        gamma_x = 0._rkx
+        gamma_x = 0._rk8
 
         ! Calculate PAR: multiply w/m2 by 4.6 to get umol/m2/s for par
         !    (added 8/14/02)
         !------------------------
         ! SUN:
-        par_sun = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_rkx
-        par24_sun = (forc_solad24(p) + fsun24(p) * forc_solai24(p)) * 4.6_rkx
-        par240_sun = (forc_solad240(p) + fsun240(p) * forc_solai240(p)) * 4.6_rkx
+        par_sun = (forc_solad(g,1) + fsun(p) * forc_solai(g,1)) * 4.6_rk8
+        par24_sun = (forc_solad24(p) + fsun24(p) * forc_solai24(p)) * 4.6_rk8
+        par240_sun = (forc_solad240(p) + fsun240(p) * forc_solai240(p)) * 4.6_rk8
         ! SHADE:
-        par_sha = ((1._rkx - fsun(p)) * forc_solai(g,1)) * 4.6_rkx
-        par24_sha = ((1._rkx - fsun24(p)) * forc_solai24(p)) * 4.6_rkx
-        par240_sha = ((1._rkx - fsun240(p)) * forc_solai240(p)) * 4.6_rkx
+        par_sha = ((1._rk8 - fsun(p)) * forc_solai(g,1)) * 4.6_rk8
+        par24_sha = ((1._rk8 - fsun24(p)) * forc_solai24(p)) * 4.6_rk8
+        par240_sha = ((1._rk8 - fsun240(p)) * forc_solai240(p)) * 4.6_rk8
 
         ! Activity factor for LAI (Guenther et al., 2006): all species
         gamma_l = get_gamma_L(fsun240(p), elai(p))
@@ -324,7 +324,7 @@ module mod_clm_vocemission
 !                  h2osoi_vol(c,:), h2osoi_ice(c,:), &
 !                  dz(c,:), bsw(c,:), watsat(c,:), sucsat(c,:), &
 !                  root_depth(ivt(p)))
-        gamma_sm = 1.0_rkx
+        gamma_sm = 1.0_rk8
         !
         ! Loop through VOCs for light, temperature and leaf age
         ! activity factor & apply all final activity factors to baseline
@@ -364,24 +364,24 @@ module mod_clm_vocemission
             gamma_c = get_gamma_C(cisun_z(p,1),cisha_z(p,1), &
                                   forc_pbot(g),fsun(p))
           else
-            gamma_c = 1._rkx
+            gamma_c = 1._rk8
           end if
 
           ! Calculate total scaling factor
           gamma_x = gamma_l * gamma_sm * gamma_a * gamma_p * gamma_T * gamma_c
 
-          if ( ( gamma_x >= 0.0_rkx ) .and. ( gamma_x < 100._rkx ) ) then
+          if ( ( gamma_x >= 0.0_rk8 ) .and. ( gamma_x < 100._rk8 ) ) then
 
             !vocflx_meg(imeg) = xepsilon * gamma_x * &
             !        megemis_units_factor / meg_cmp%molec_weight ! moles/m2/sec
             ! ICTP - Change to Kg/m2/sec
             vocflx_meg(imeg) = xepsilon * gamma_x * &
-                     megemis_units_factor * 1.e-3_rkx ! Kg/m2/sec
+                     megemis_units_factor * 1.e-3_rk8 ! Kg/m2/sec
 
             ! assign to arrays for history file output
             ! (not weighted by landfrac)
             meg_out(imeg)%flux_out(p) = meg_out(imeg)%flux_out(p) + &
-                     xepsilon * gamma_x * megemis_units_factor*1.e-3_rkx ! Kg/m2/sec
+                     xepsilon * gamma_x * megemis_units_factor*1.e-3_rk8 ! Kg/m2/sec
 
             if (imeg==1) then
               gamma_out(p) = gamma_x
@@ -407,7 +407,7 @@ module mod_clm_vocemission
               Eopt_out(p) = Eopt
             end if
           end if
-          if (debug .and. gamma_x > 0.0_rkx) then
+          if (debug .and. gamma_x > 0.0_rk8) then
             write(stdout,*) 'MEGAN: n, megan name, epsilon, gamma, vocflx: ', &
                 imeg, meg_cmp%name, xepsilon, gamma_x, vocflx_meg(imeg), &
                 gamma_p,gamma_t,gamma_a,gamma_sm,gamma_l
@@ -442,8 +442,8 @@ module mod_clm_vocemission
     implicit none
     type(shr_megan_megcomp_t), pointer :: meg_cmp
     integer(ik4)  :: class_num
-    real(rkx) :: factors(numpft)
-    real(rkx) :: molec_wght
+    real(rk8) :: factors(numpft)
+    real(rk8) :: molec_wght
 
     if ( shr_megan_mechcomps_n < 1) return
     call megan_factors_init( shr_megan_factors_file )
@@ -469,15 +469,15 @@ module mod_clm_vocemission
     implicit none
     integer(ik4) , intent(in) :: ivt_in
     integer(ik4) , intent(in) :: g_in
-    real(rkx) :: get_map_EF
+    real(rk8) :: get_map_EF
 
     ! emission factors for isoprene for each pft [ug m-2 h-1]
-    real(rkx) , pointer :: efisop(:,:)
+    real(rk8) , pointer :: efisop(:,:)
 
     ! assign local pointer
     efisop     => clm3%g%gve%efisop
 
-    get_map_EF = 0._rkx
+    get_map_EF = 0._rk8
     if ( ivt_in == ndllf_evr_tmp_tree .or. &
          ivt_in == ndllf_evr_brl_tree) then     !fineleaf evergreen
       get_map_EF = efisop(2,g_in)
@@ -512,62 +512,62 @@ module mod_clm_vocemission
   ! Avoid this problem by only doing calculations with fsun240 when fsun240 is
   ! between 0 and 1
   !
-  real(rkx) function get_gamma_P(par_sun_in,par24_sun_in,par240_sun_in, &
+  real(rk8) function get_gamma_P(par_sun_in,par24_sun_in,par240_sun_in, &
                   par_sha_in,par240_sha_in,fsun_in,fsun240_in, &
                   forc_solad240_in,forc_solai240_in,LDF_in,cp,alpha)
     implicit none
-    real(rkx) , intent(in) :: par_sun_in
-    real(rkx) , intent(in) :: par24_sun_in
-    real(rkx) , intent(in) :: par240_sun_in
-    real(rkx) , intent(in) :: par_sha_in
-    real(rkx) , intent(in) :: par240_sha_in
-    real(rkx) , intent(in) :: fsun_in
-    real(rkx) , intent(in) :: fsun240_in
-    real(rkx) , intent(in) :: forc_solad240_in
-    real(rkx) , intent(in) :: forc_solai240_in
-    real(rkx) , intent(in) :: LDF_in
-    real(rkx) , intent(out) :: cp                      ! temporary
-    real(rkx) , intent(out) :: alpha                   ! temporary
-    real(rkx) :: gamma_p_LDF             ! activity factor for PPFD
+    real(rk8) , intent(in) :: par_sun_in
+    real(rk8) , intent(in) :: par24_sun_in
+    real(rk8) , intent(in) :: par240_sun_in
+    real(rk8) , intent(in) :: par_sha_in
+    real(rk8) , intent(in) :: par240_sha_in
+    real(rk8) , intent(in) :: fsun_in
+    real(rk8) , intent(in) :: fsun240_in
+    real(rk8) , intent(in) :: forc_solad240_in
+    real(rk8) , intent(in) :: forc_solai240_in
+    real(rk8) , intent(in) :: LDF_in
+    real(rk8) , intent(out) :: cp                      ! temporary
+    real(rk8) , intent(out) :: alpha                   ! temporary
+    real(rk8) :: gamma_p_LDF             ! activity factor for PPFD
 
-    real(rkx), parameter :: ca1 = 0.004_rkx  ! empirical coefficent for alpha
-    real(rkx), parameter :: ca2 = 0.0005_rkx ! empirical coefficent for alpha
-    real(rkx), parameter :: ca3 = 0.0468_rkx ! empirical coefficent for cp
+    real(rk8), parameter :: ca1 = 0.004_rk8  ! empirical coefficent for alpha
+    real(rk8), parameter :: ca2 = 0.0005_rk8 ! empirical coefficent for alpha
+    real(rk8), parameter :: ca3 = 0.0468_rk8 ! empirical coefficent for cp
     ! std conditions for past 24 hrs [umol/m2/s]
-    real(rkx), parameter :: par0_sun = 200._rkx
+    real(rk8), parameter :: par0_sun = 200._rk8
     ! std conditions for past 24 hrs [umol/m2/s]
-    real(rkx), parameter :: par0_shade = 50._rkx
-    real(rkx), parameter :: alpha_fix = 0.001_rkx ! empirical coefficient
-    real(rkx), parameter :: cp_fix = 1.21_rkx     ! empirical coefficient
+    real(rk8), parameter :: par0_shade = 50._rk8
+    real(rk8), parameter :: alpha_fix = 0.001_rk8 ! empirical coefficient
+    real(rk8), parameter :: cp_fix = 1.21_rk8     ! empirical coefficient
 
-    if ( (fsun240_in > 0._rkx) .and. (fsun240_in < 1._rkx) .and. &
-         (forc_solad240_in > 0._rkx) .and. (forc_solai240_in > 0._rkx)) then
+    if ( (fsun240_in > 0._rk8) .and. (fsun240_in < 1._rk8) .and. &
+         (forc_solad240_in > 0._rk8) .and. (forc_solai240_in > 0._rk8)) then
       ! With alpha and cp calculated based on eq 6 and 7:
       ! Note indexing for accumulated variables is all at pft level
       ! SUN:
       alpha = ca1 - ca2 * log(par240_sun_in)
-      cp = ca3 * exp(ca2 * (par24_sun_in-par0_sun))*par240_sun_in**(0.6_rkx)
+      cp = ca3 * exp(ca2 * (par24_sun_in-par0_sun))*par240_sun_in**(0.6_rk8)
       gamma_p_LDF = fsun_in * ( cp * alpha * par_sun_in * &
-              (1._rkx + alpha*alpha*par_sun_in*par_sun_in)**(-0.5_rkx) )
+              (1._rk8 + alpha*alpha*par_sun_in*par_sun_in)**(-0.5_rk8) )
       ! SHADE:
       alpha = ca1 - ca2 * log(par240_sha_in)
-      cp = ca3 * exp(ca2 * (par_sha_in-par0_shade))*par240_sha_in**(0.6_rkx)
-      gamma_p_LDF = gamma_p_LDF + (1._rkx-fsun_in) * (cp*alpha*par_sha_in* &
-              (1._rkx + alpha*alpha*par_sha_in*par_sha_in)**(-0.5_rkx))
+      cp = ca3 * exp(ca2 * (par_sha_in-par0_shade))*par240_sha_in**(0.6_rk8)
+      gamma_p_LDF = gamma_p_LDF + (1._rk8-fsun_in) * (cp*alpha*par_sha_in* &
+              (1._rk8 + alpha*alpha*par_sha_in*par_sha_in)**(-0.5_rk8))
     else
       ! With fixed alpha and cp (from MEGAN User's Guide):
       ! SUN: direct + diffuse
       alpha = alpha_fix
       cp = cp_fix
       gamma_p_LDF = fsun_in * ( cp * alpha*par_sun_in * &
-              (1._rkx + alpha*alpha*par_sun_in*par_sun_in)**(-0.5_rkx) )
+              (1._rk8 + alpha*alpha*par_sun_in*par_sun_in)**(-0.5_rk8) )
       ! SHADE: diffuse
-      gamma_p_LDF = gamma_p_LDF + (1._rkx-fsun_in) * (cp*alpha*par_sha_in * &
-              (1._rkx + alpha*alpha*par_sha_in*par_sha_in)**(-0.5_rkx))
+      gamma_p_LDF = gamma_p_LDF + (1._rk8-fsun_in) * (cp*alpha*par_sha_in * &
+              (1._rk8 + alpha*alpha*par_sha_in*par_sha_in)**(-0.5_rk8))
     end if
     ! Calculate total activity factor for PPFD accounting for
     ! light-dependent fraction
-    get_gamma_P = (1._rkx - LDF_in) + LDF_in * gamma_p_LDF
+    get_gamma_P = (1._rk8 - LDF_in) + LDF_in * gamma_p_LDF
   end function get_gamma_P
   !
   ! Activity factor for LAI (Guenther et al., 2006): all species
@@ -577,16 +577,16 @@ module mod_clm_vocemission
     use mod_clm_varcon , only : denice
     use mod_clm_varpar , only : nlevsoi
     implicit none
-    real(rkx) , intent(in) :: fsun240_in
-    real(rkx) , intent(in) :: elai_in
-    real(rkx) :: get_gamma_L             ! return value
+    real(rk8) , intent(in) :: fsun240_in
+    real(rk8) , intent(in) :: elai_in
+    real(rk8) :: get_gamma_L             ! return value
     ! parameters
     ! factor to set emissions to unity @ std
-    real(rkx) , parameter :: cce = 0.30_rkx
+    real(rk8) , parameter :: cce = 0.30_rk8
     ! same as Cce but for non-accumulated vars
-    real(rkx) , parameter :: cce1 = 0.24_rkx
+    real(rk8) , parameter :: cce1 = 0.24_rk8
 
-    if ( (fsun240_in > 0.0_rkx) .and. (fsun240_in < 1.e30_rkx) ) then
+    if ( (fsun240_in > 0.0_rk8) .and. (fsun240_in < 1.e30_rk8) ) then
       get_gamma_L = cce * elai_in
     else
       get_gamma_L = cce1 * elai_in
@@ -606,57 +606,57 @@ module mod_clm_vocemission
     use mod_clm_varcon , only : denice
     use mod_clm_varpar , only : nlevsoi
     implicit none
-    real(rkx) , intent(in) :: clayfrac_in
-    real(rkx) , intent(in) :: sandfrac_in
-    real(rkx) , intent(in) :: h2osoi_vol_in(nlevsoi)
-    real(rkx) , intent(in) :: h2osoi_ice_in(nlevsoi)
-    real(rkx) , intent(in) :: dz_in(nlevsoi)
-    real(rkx) , intent(in) :: bsw_in(nlevsoi)
-    real(rkx) , intent(in) :: watsat_in(nlevsoi)
-    real(rkx) , intent(in) :: sucsat_in(nlevsoi)
-    real(rkx) , intent(in) :: root_depth_in
-    real(rkx) :: get_gamma_SM
+    real(rk8) , intent(in) :: clayfrac_in
+    real(rk8) , intent(in) :: sandfrac_in
+    real(rk8) , intent(in) :: h2osoi_vol_in(nlevsoi)
+    real(rk8) , intent(in) :: h2osoi_ice_in(nlevsoi)
+    real(rk8) , intent(in) :: dz_in(nlevsoi)
+    real(rk8) , intent(in) :: bsw_in(nlevsoi)
+    real(rk8) , intent(in) :: watsat_in(nlevsoi)
+    real(rk8) , intent(in) :: sucsat_in(nlevsoi)
+    real(rk8) , intent(in) :: root_depth_in
+    real(rk8) :: get_gamma_SM
     ! local variables
     integer(ik4) :: j
-    real(rkx) :: nl                      ! temporary number of soil levels
-    real(rkx) :: theta_ice               ! water content in ice in m3/m3
-    real(rkx) :: wilt                    ! wilting point in m3/m3
-    real(rkx) :: theta1                  ! temporary
+    real(rk8) :: nl                      ! temporary number of soil levels
+    real(rk8) :: theta_ice               ! water content in ice in m3/m3
+    real(rk8) :: wilt                    ! wilting point in m3/m3
+    real(rk8) :: theta1                  ! temporary
 
     ! parameters
-    real(rkx), parameter :: deltheta1=0.06_rkx ! empirical coefficient
-    real(rkx), parameter :: smpmax = 2.57e5_rkx  ! maximum soil matrix potential
+    real(rk8), parameter :: deltheta1=0.06_rk8 ! empirical coefficient
+    real(rk8), parameter :: smpmax = 2.57e5_rk8  ! maximum soil matrix potential
 
     if ((clayfrac_in > 0) .and. (sandfrac_in > 0)) then
-      get_gamma_SM = 0._rkx
-      nl=0._rkx
+      get_gamma_SM = 0._rk8
+      nl=0._rk8
       do j = 1,nlevsoi
         if  (sum(dz_in(1:j)) < root_depth_in)  then
           theta_ice = h2osoi_ice_in(j)/(dz_in(j)*denice)
-          wilt = ((smpmax/sucsat_in(j))**(-1._rkx/bsw_in(j))) * &
+          wilt = ((smpmax/sucsat_in(j))**(-1._rk8/bsw_in(j))) * &
                   (watsat_in(j) - theta_ice)
           theta1 = wilt + deltheta1
           if (h2osoi_vol_in(j) >= theta1) then
-            get_gamma_SM = get_gamma_SM + 1._rkx
+            get_gamma_SM = get_gamma_SM + 1._rk8
           else if ( (h2osoi_vol_in(j) > wilt) .and. &
                     (h2osoi_vol_in(j) < theta1) ) then
             get_gamma_SM = get_gamma_SM + &
                     ( h2osoi_vol_in(j) - wilt ) / deltheta1
           else
-            get_gamma_SM = get_gamma_SM + 0._rkx
+            get_gamma_SM = get_gamma_SM + 0._rk8
           end if
-          nl = nl+1._rkx
+          nl = nl+1._rk8
         end if
       end do
-      if (nl > 0._rkx) then
+      if (nl > 0._rk8) then
         get_gamma_SM = get_gamma_SM/nl
       end if
-      if (get_gamma_SM > 1.0_rkx) then
+      if (get_gamma_SM > 1.0_rk8) then
         write(stdout,*) 'healdSM > 1: gamma_SM, nl', get_gamma_SM, nl
-        get_gamma_SM=1.0_rkx
+        get_gamma_SM=1.0_rk8
       end if
     else
-      get_gamma_SM = 1.0_rkx
+      get_gamma_SM = 1.0_rk8
     end if
   end function get_gamma_SM
   !
@@ -672,36 +672,36 @@ module mod_clm_vocemission
                        betaT_in,LDF_in,Ceo_in,Eopt,topt)
     implicit none
     ! varibles in
-    real(rkx) , intent(in) :: t_veg240_in
-    real(rkx) , intent(in) :: t_veg24_in
-    real(rkx) , intent(in) :: t_veg_in
-    real(rkx) , intent(in) :: ct1_in
-    real(rkx) , intent(in) :: ct2_in
-    real(rkx) , intent(in) :: betaT_in
-    real(rkx) , intent(in) :: LDF_in
-    real(rkx) , intent(in) :: Ceo_in
-    real(rkx) , intent(out) :: Eopt                    ! temporary
-    real(rkx) , intent(out) :: topt                    ! temporary
+    real(rk8) , intent(in) :: t_veg240_in
+    real(rk8) , intent(in) :: t_veg24_in
+    real(rk8) , intent(in) :: t_veg_in
+    real(rk8) , intent(in) :: ct1_in
+    real(rk8) , intent(in) :: ct2_in
+    real(rk8) , intent(in) :: betaT_in
+    real(rk8) , intent(in) :: LDF_in
+    real(rk8) , intent(in) :: Ceo_in
+    real(rk8) , intent(out) :: Eopt                    ! temporary
+    real(rk8) , intent(out) :: topt                    ! temporary
 
     ! local variables
-    real(rkx) :: get_gamma_T
-    real(rkx) :: gamma_t_LDF             ! activity factor for temperature
-    real(rkx) :: gamma_t_LIF             ! activity factor for temperature
-    real(rkx) :: x                       ! temporary
+    real(rk8) :: get_gamma_T
+    real(rk8) :: gamma_t_LDF             ! activity factor for temperature
+    real(rk8) :: gamma_t_LIF             ! activity factor for temperature
+    real(rk8) :: x                       ! temporary
 
     ! parameters
-    real(rkx), parameter :: co1 = 313._rkx  ! empirical coefficient
-    real(rkx), parameter :: co2 = 0.6_rkx   ! empirical coefficient
-    real(rkx), parameter :: co4 = 0.05_rkx  ! empirical coefficient
-    real(rkx), parameter :: tstd0 = 297_rkx ! std temperature [K]
-    real(rkx), parameter :: topt_fix = 317._rkx ! std temperature [K]
-    real(rkx), parameter :: Eopt_fix = 2.26_rkx ! empirical coefficient
+    real(rk8), parameter :: co1 = 313._rk8  ! empirical coefficient
+    real(rk8), parameter :: co2 = 0.6_rk8   ! empirical coefficient
+    real(rk8), parameter :: co4 = 0.05_rk8  ! empirical coefficient
+    real(rk8), parameter :: tstd0 = 297_rk8 ! std temperature [K]
+    real(rk8), parameter :: topt_fix = 317._rk8 ! std temperature [K]
+    real(rk8), parameter :: Eopt_fix = 2.26_rk8 ! empirical coefficient
     ! empirical coefficient (0.0083 in User's Guide)
-    real(rkx), parameter :: ct3 = 0.00831_rkx
-    real(rkx), parameter :: tstd = 303.15_rkx  ! std temperature [K]
+    real(rk8), parameter :: ct3 = 0.00831_rk8
+    real(rk8), parameter :: tstd = 303.15_rk8  ! std temperature [K]
 
     ! Light dependent fraction (Guenther et al., 2006)
-    if ( (t_veg240_in > 0.0_rkx) .and. (t_veg240_in < 1.e30_rkx) ) then
+    if ( (t_veg240_in > 0.0_rk8) .and. (t_veg240_in < 1.e30_rk8) ) then
       ! topt and Eopt from eq 8 and 9:
       topt = co1 + (co2 * (t_veg240_in-tstd0))
       Eopt = Ceo_in * exp (co4 * (t_veg24_in-tstd0)) * &
@@ -710,9 +710,9 @@ module mod_clm_vocemission
       topt = topt_fix
       Eopt = Eopt_fix
     end if
-    x = ( (1._rkx/topt) - (1._rkx/(t_veg_in)) ) / ct3
+    x = ( (1._rk8/topt) - (1._rk8/(t_veg_in)) ) / ct3
     gamma_t_LDF = Eopt * ( ct2_in * exp(ct1_in * x) / &
-                          (ct2_in - ct1_in * (1._rkx - exp(ct2_in * x))) )
+                          (ct2_in - ct1_in * (1._rk8 - exp(ct2_in * x))) )
     ! Light independent fraction (of exp(beta T) form)
     gamma_t_LIF = exp(betaT_in * (t_veg_in - tstd))
     ! Calculate total activity factor for light as a function of
@@ -733,41 +733,41 @@ module mod_clm_vocemission
     ! varibles in
     integer(ik4) , intent(in)  :: ivt_in
     integer(ik4) , intent(in)  :: nclass_in
-    real(rkx) , intent(in) :: elai_p_in
-    real(rkx) , intent(in) :: elai_in
-    real(rkx) :: get_gamma_A
+    real(rk8) , intent(in) :: elai_p_in
+    real(rk8) , intent(in) :: elai_in
+    real(rk8) :: get_gamma_A
     ! local variables
-    real(rkx) :: elai_prev ! lai for previous timestep
+    real(rk8) :: elai_prev ! lai for previous timestep
     ! fractions of leaves at different phenological stages
-    real(rkx) :: fnew , fgro , fmat , fold
+    real(rk8) :: fnew , fgro , fmat , fold
     if ( (ivt_in == ndllf_dcd_brl_tree) .or. &
          (ivt_in >= nbrdlf_dcd_trp_tree) ) then  ! non-evergreen
-      if ( (elai_p_in > 0.0_rkx) .and. (elai_p_in < 1.e30_rkx) )then
+      if ( (elai_p_in > 0.0_rk8) .and. (elai_p_in < 1.e30_rk8) )then
         ! have accumulated average lai over last timestep
-        elai_prev = 2._rkx*elai_p_in-elai_in
+        elai_prev = 2._rk8*elai_p_in-elai_in
         if (elai_prev == elai_in) then
-          fnew = 0.0_rkx
-          fgro = 0.0_rkx
-          fmat = 1.0_rkx
-          fold = 0.0_rkx
+          fnew = 0.0_rk8
+          fgro = 0.0_rk8
+          fmat = 1.0_rk8
+          fold = 0.0_rk8
         else if (elai_prev > elai_in) then
-          fnew = 0.0_rkx
-          fgro = 0.0_rkx
-          fmat = 1.0_rkx - (elai_prev - elai_in)/elai_prev
+          fnew = 0.0_rk8
+          fgro = 0.0_rk8
+          fmat = 1.0_rk8 - (elai_prev - elai_in)/elai_prev
           fold = (elai_prev - elai_in)/elai_prev
         else if (elai_prev < elai_in) then
           fnew = 1 - (elai_prev / elai_in)
-          fgro = 0.0_rkx
+          fgro = 0.0_rk8
           fmat = (elai_prev / elai_in)
-          fold = 0.0_rkx
+          fold = 0.0_rk8
         end if
         get_gamma_A = fnew*Anew(nclass_in) + fgro*Agro(nclass_in) + &
                 fmat*Amat(nclass_in) + fold*Aold(nclass_in)
       else
-        get_gamma_A = 1.0_rkx
+        get_gamma_A = 1.0_rk8
       end if
     else
-      get_gamma_A = 1.0_rkx
+      get_gamma_A = 1.0_rk8
     end if
   end function get_gamma_A
   !
@@ -780,72 +780,72 @@ module mod_clm_vocemission
     ! corresponds to CCSM_CO2_PPMV set in env_conf.xml
     use mod_clm_varctl , only : co2_ppmv
     implicit none
-    real(rkx) , intent(in) :: cisun_in
-    real(rkx) , intent(in) :: cisha_in
-    real(rkx) , intent(in) :: forc_pbot_in
-    real(rkx) , intent(in) :: fsun_in
-    real(rkx) :: get_gamma_C
-    real(rkx) :: IEmin   ! empirical coeff for CO2
-    real(rkx) :: IEmax   ! empirical coeff for CO2
-    real(rkx) :: ECi50   ! empirical coeff for CO2
-    real(rkx) :: Cislope ! empirical coeff for CO2
-    real(rkx) :: fint    ! interpolation fraction for CO2
+    real(rk8) , intent(in) :: cisun_in
+    real(rk8) , intent(in) :: cisha_in
+    real(rk8) , intent(in) :: forc_pbot_in
+    real(rk8) , intent(in) :: fsun_in
+    real(rk8) :: get_gamma_C
+    real(rk8) :: IEmin   ! empirical coeff for CO2
+    real(rk8) :: IEmax   ! empirical coeff for CO2
+    real(rk8) :: ECi50   ! empirical coeff for CO2
+    real(rk8) :: Cislope ! empirical coeff for CO2
+    real(rk8) :: fint    ! interpolation fraction for CO2
     ! temporary sunlight/shade weighted cisun & cisha (umolCO2/mol)
-    real(rkx) :: ci
+    real(rk8) :: ci
 
     ! Determine long-term CO2 growth environment (ie. ambient CO2)
     ! and interpolate parameters
-    if ( co2_ppmv < 400._rkx ) then
-      IEmin   = 0.7301_rkx
-      IEmax   = 1.0542_rkx
-      ECi50   = 457._rkx
-      Cislope = 3.1665_rkx
-    else if ( (co2_ppmv > 400._rkx) .and. (co2_ppmv < 500._rkx) ) then
-      fint    = (co2_ppmv - 400._rkx)/100._rkx
-      IEmin   = fint*0.7301_rkx + (1._rkx - fint)*0.7034_rkx
-      IEmax   = fint*1.0542_rkx + (1._rkx - fint)*0.9897_rkx
-      ECi50   = fint*457._rkx + (1._rkx - fint)*472._rkx
-      Cislope = fint*3.1665_rkx + (1._rkx - fint)*3.0652_rkx
-    else if ( (co2_ppmv > 500._rkx) .and. (co2_ppmv < 600._rkx) ) then
-      fint = (co2_ppmv - 500._rkx)/100._rkx
-      IEmin   = fint*0.7034_rkx + (1._rkx - fint)*0.6768_rkx
-      IEmax   = fint*0.9897_rkx + (1._rkx - fint)*0.9253_rkx
-      ECi50   = fint*472._rkx + (1._rkx - fint)*488._rkx
-      Cislope = fint*3.0652_rkx + (1._rkx - fint)*2.9321_rkx
-    else if ( (co2_ppmv > 600._rkx) .and. (co2_ppmv < 700._rkx) ) then
-      fint = (co2_ppmv - 600._rkx)/100._rkx
-      IEmin   = fint*0.6768_rkx + (1._rkx - fint)*0.6500_rkx
-      IEmax   = fint*0.9253_rkx + (1._rkx - fint)*0.8611_rkx
-      ECi50   = fint*488._rkx + (1._rkx - fint)*508._rkx
-      Cislope = fint*2.9321_rkx + (1._rkx - fint)*2.7497_rkx
-    else if ( (co2_ppmv > 700._rkx) .and. (co2_ppmv < 800._rkx) ) then
-      fint = (co2_ppmv - 700._rkx)/100._rkx
-      IEmin   = fint*0.6500_rkx + (1._rkx - fint)*0.6063_rkx
-      IEmax   = fint*0.8611_rkx + (1._rkx - fint)*0.7976_rkx
-      ECi50   = fint*508._rkx + (1._rkx - fint)*575._rkx
-      Cislope = fint*2.7497_rkx + (1._rkx - fint)*2.3643_rkx
-    else if ( co2_ppmv > 800._rkx ) then
-      IEmin   = 0.6063_rkx
-      IEmax   = 0.7976_rkx
-      ECi50   = 575._rkx
-      Cislope = 2.3643_rkx
+    if ( co2_ppmv < 400._rk8 ) then
+      IEmin   = 0.7301_rk8
+      IEmax   = 1.0542_rk8
+      ECi50   = 457._rk8
+      Cislope = 3.1665_rk8
+    else if ( (co2_ppmv > 400._rk8) .and. (co2_ppmv < 500._rk8) ) then
+      fint    = (co2_ppmv - 400._rk8)/100._rk8
+      IEmin   = fint*0.7301_rk8 + (1._rk8 - fint)*0.7034_rk8
+      IEmax   = fint*1.0542_rk8 + (1._rk8 - fint)*0.9897_rk8
+      ECi50   = fint*457._rk8 + (1._rk8 - fint)*472._rk8
+      Cislope = fint*3.1665_rk8 + (1._rk8 - fint)*3.0652_rk8
+    else if ( (co2_ppmv > 500._rk8) .and. (co2_ppmv < 600._rk8) ) then
+      fint = (co2_ppmv - 500._rk8)/100._rk8
+      IEmin   = fint*0.7034_rk8 + (1._rk8 - fint)*0.6768_rk8
+      IEmax   = fint*0.9897_rk8 + (1._rk8 - fint)*0.9253_rk8
+      ECi50   = fint*472._rk8 + (1._rk8 - fint)*488._rk8
+      Cislope = fint*3.0652_rk8 + (1._rk8 - fint)*2.9321_rk8
+    else if ( (co2_ppmv > 600._rk8) .and. (co2_ppmv < 700._rk8) ) then
+      fint = (co2_ppmv - 600._rk8)/100._rk8
+      IEmin   = fint*0.6768_rk8 + (1._rk8 - fint)*0.6500_rk8
+      IEmax   = fint*0.9253_rk8 + (1._rk8 - fint)*0.8611_rk8
+      ECi50   = fint*488._rk8 + (1._rk8 - fint)*508._rk8
+      Cislope = fint*2.9321_rk8 + (1._rk8 - fint)*2.7497_rk8
+    else if ( (co2_ppmv > 700._rk8) .and. (co2_ppmv < 800._rk8) ) then
+      fint = (co2_ppmv - 700._rk8)/100._rk8
+      IEmin   = fint*0.6500_rk8 + (1._rk8 - fint)*0.6063_rk8
+      IEmax   = fint*0.8611_rk8 + (1._rk8 - fint)*0.7976_rk8
+      ECi50   = fint*508._rk8 + (1._rk8 - fint)*575._rk8
+      Cislope = fint*2.7497_rk8 + (1._rk8 - fint)*2.3643_rk8
+    else if ( co2_ppmv > 800._rk8 ) then
+      IEmin   = 0.6063_rk8
+      IEmax   = 0.7976_rk8
+      ECi50   = 575._rk8
+      Cislope = 2.3643_rk8
     end if
 
     ! Intracellular CO2 concentrations (ci) given in Pa, divide by atmos
     ! pressure to get mixing ratio (umolCO2/mol)
-    if ( (cisun_in > 0._rkx) .and. (cisha_in > 0._rkx) .and. &
-         (forc_pbot_in > 0._rkx) .and. (fsun_in > 0._rkx) ) then
+    if ( (cisun_in > 0._rk8) .and. (cisha_in > 0._rk8) .and. &
+         (forc_pbot_in > 0._rk8) .and. (fsun_in > 0._rk8) ) then
       ci = ( fsun_in*cisun_in + &
-            (1._rkx-fsun_in)*cisha_in )/forc_pbot_in * 1.e6_rkx
-      get_gamma_C = IEmin + ( (IEmax-IEmin)/(1._rkx+(ci/ECi50)**Cislope) )
-    else if ( (cisha_in > 0._rkx) .and. (forc_pbot_in > 0._rkx) ) then
-      ci = cisha_in/forc_pbot_in * 1.e6_rkx
-      get_gamma_C = IEmin + ( (IEmax-IEmin)/(1._rkx+(ci/ECi50)**Cislope) )
-    else if ( (cisun_in > 0._rkx) .and. (forc_pbot_in > 0._rkx) ) then
-      ci = cisun_in/forc_pbot_in * 1.e6_rkx
-      get_gamma_C = IEmin + ( (IEmax-IEmin)/(1._rkx+(ci/ECi50)**Cislope) )
+            (1._rk8-fsun_in)*cisha_in )/forc_pbot_in * 1.e6_rk8
+      get_gamma_C = IEmin + ( (IEmax-IEmin)/(1._rk8+(ci/ECi50)**Cislope) )
+    else if ( (cisha_in > 0._rk8) .and. (forc_pbot_in > 0._rk8) ) then
+      ci = cisha_in/forc_pbot_in * 1.e6_rk8
+      get_gamma_C = IEmin + ( (IEmax-IEmin)/(1._rk8+(ci/ECi50)**Cislope) )
+    else if ( (cisun_in > 0._rk8) .and. (forc_pbot_in > 0._rk8) ) then
+      ci = cisun_in/forc_pbot_in * 1.e6_rk8
+      get_gamma_C = IEmin + ( (IEmax-IEmin)/(1._rk8+(ci/ECi50)**Cislope) )
     else
-      get_gamma_C = 1._rkx
+      get_gamma_C = 1._rk8
     end if
   end function get_gamma_C
 

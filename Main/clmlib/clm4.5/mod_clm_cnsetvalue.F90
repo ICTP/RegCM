@@ -45,26 +45,26 @@ module mod_clm_cnsetvalue
     integer(ik4), intent(in) :: filterp(:)  ! pft filter
 
     ! zero the column-level C and N fluxes
-    call CNSetCcf(num_filterc, filterc, 0._rkx, clm3%g%l%c%ccf)
+    call CNSetCcf(num_filterc, filterc, 0._rk8, clm3%g%l%c%ccf)
 
-    if ( use_c13 ) call CNSetCcf(num_filterc, filterc, 0._rkx, clm3%g%l%c%cc13f)
+    if ( use_c13 ) call CNSetCcf(num_filterc, filterc, 0._rk8, clm3%g%l%c%cc13f)
 
-    if ( use_c14 ) call CNSetCcf(num_filterc, filterc, 0._rkx, clm3%g%l%c%cc14f)
+    if ( use_c14 ) call CNSetCcf(num_filterc, filterc, 0._rk8, clm3%g%l%c%cc14f)
 
-    call CNSetCnf(num_filterc, filterc, 0._rkx, clm3%g%l%c%cnf)
+    call CNSetCnf(num_filterc, filterc, 0._rk8, clm3%g%l%c%cnf)
 
     ! zero the column-average pft-level C and N fluxes
-    call CNSetPcf(num_filterc, filterc, 0._rkx, clm3%g%l%c%ccf%pcf_a)
-    call CNSetPnf(num_filterc, filterc, 0._rkx, clm3%g%l%c%cnf%pnf_a)
+    call CNSetPcf(num_filterc, filterc, 0._rk8, clm3%g%l%c%ccf%pcf_a)
+    call CNSetPnf(num_filterc, filterc, 0._rk8, clm3%g%l%c%cnf%pnf_a)
 
     ! zero the pft-level C and N fluxes
-    call CNSetPcf(num_filterp, filterp, 0._rkx, clm3%g%l%c%p%pcf)
+    call CNSetPcf(num_filterp, filterp, 0._rk8, clm3%g%l%c%p%pcf)
 
-    if ( use_c13 ) call CNSetPcf(num_filterp, filterp, 0._rkx, clm3%g%l%c%p%pc13f)
+    if ( use_c13 ) call CNSetPcf(num_filterp, filterp, 0._rk8, clm3%g%l%c%p%pc13f)
 
-    if ( use_c14 ) call CNSetPcf(num_filterp, filterp, 0._rkx, clm3%g%l%c%p%pc14f)
+    if ( use_c14 ) call CNSetPcf(num_filterp, filterp, 0._rk8, clm3%g%l%c%p%pc14f)
 
-    call CNSetPnf(num_filterp, filterp, 0._rkx, clm3%g%l%c%p%pnf)
+    call CNSetPnf(num_filterp, filterp, 0._rk8, clm3%g%l%c%p%pnf)
   end subroutine CNZeroFluxes
 
   subroutine CNZeroFluxes_dwt( begc, endc, begp, endp )
@@ -81,103 +81,103 @@ module mod_clm_cnsetvalue
 
     do c = begc , endc
       ! C fluxes
-      cptr%ccf%dwt_seedc_to_leaf(c) = 0._rkx
-      cptr%ccf%dwt_seedc_to_deadstem(c) = 0._rkx
-      cptr%ccf%dwt_conv_cflux(c) = 0._rkx
-      cptr%ccf%lf_conv_cflux(c) = 0._rkx
-      cptr%ccf%dwt_prod10c_gain(c) = 0._rkx
-      cptr%ccf%dwt_prod100c_gain(c) = 0._rkx
+      cptr%ccf%dwt_seedc_to_leaf(c) = 0._rk8
+      cptr%ccf%dwt_seedc_to_deadstem(c) = 0._rk8
+      cptr%ccf%dwt_conv_cflux(c) = 0._rk8
+      cptr%ccf%lf_conv_cflux(c) = 0._rk8
+      cptr%ccf%dwt_prod10c_gain(c) = 0._rk8
+      cptr%ccf%dwt_prod100c_gain(c) = 0._rk8
 
       ! N fluxes
-      cptr%cnf%dwt_seedn_to_leaf(c) = 0._rkx
-      cptr%cnf%dwt_seedn_to_deadstem(c) = 0._rkx
-      cptr%cnf%dwt_conv_nflux(c) = 0._rkx
-      cptr%cnf%dwt_prod10n_gain(c) = 0._rkx
-      cptr%cnf%dwt_prod100n_gain(c) = 0._rkx
+      cptr%cnf%dwt_seedn_to_leaf(c) = 0._rk8
+      cptr%cnf%dwt_seedn_to_deadstem(c) = 0._rk8
+      cptr%cnf%dwt_conv_nflux(c) = 0._rk8
+      cptr%cnf%dwt_prod10n_gain(c) = 0._rk8
+      cptr%cnf%dwt_prod100n_gain(c) = 0._rk8
     end do
     if ( use_c13 ) then
       do c = begc , endc
-        cptr%cc13f%dwt_seedc_to_leaf(c) = 0._rkx
-        cptr%cc13f%dwt_seedc_to_deadstem(c) = 0._rkx
-        cptr%cc13f%dwt_conv_cflux(c) = 0._rkx
-        cptr%cc13f%dwt_prod10c_gain(c) = 0._rkx
-        cptr%cc13f%dwt_prod100c_gain(c) = 0._rkx
+        cptr%cc13f%dwt_seedc_to_leaf(c) = 0._rk8
+        cptr%cc13f%dwt_seedc_to_deadstem(c) = 0._rk8
+        cptr%cc13f%dwt_conv_cflux(c) = 0._rk8
+        cptr%cc13f%dwt_prod10c_gain(c) = 0._rk8
+        cptr%cc13f%dwt_prod100c_gain(c) = 0._rk8
       end do
     end if
 
     if ( use_c14 ) then
       do c = begc , endc
-        cptr%cc14f%dwt_seedc_to_leaf(c) = 0._rkx
-        cptr%cc14f%dwt_seedc_to_deadstem(c) = 0._rkx
-        cptr%cc14f%dwt_conv_cflux(c) = 0._rkx
-        cptr%cc14f%dwt_prod10c_gain(c) = 0._rkx
-        cptr%cc14f%dwt_prod100c_gain(c) = 0._rkx
+        cptr%cc14f%dwt_seedc_to_leaf(c) = 0._rk8
+        cptr%cc14f%dwt_seedc_to_deadstem(c) = 0._rk8
+        cptr%cc14f%dwt_conv_cflux(c) = 0._rk8
+        cptr%cc14f%dwt_prod10c_gain(c) = 0._rk8
+        cptr%cc14f%dwt_prod100c_gain(c) = 0._rk8
       end do
     end if
 
     do j = 1 , nlevdecomp_full
       do c = begc , endc
         ! C fluxes
-        cptr%ccf%dwt_frootc_to_litr_met_c(c,j) = 0._rkx
-        cptr%ccf%dwt_frootc_to_litr_cel_c(c,j) = 0._rkx
-        cptr%ccf%dwt_frootc_to_litr_lig_c(c,j) = 0._rkx
-        cptr%ccf%dwt_livecrootc_to_cwdc(c,j) = 0._rkx
-        cptr%ccf%dwt_deadcrootc_to_cwdc(c,j) = 0._rkx
+        cptr%ccf%dwt_frootc_to_litr_met_c(c,j) = 0._rk8
+        cptr%ccf%dwt_frootc_to_litr_cel_c(c,j) = 0._rk8
+        cptr%ccf%dwt_frootc_to_litr_lig_c(c,j) = 0._rk8
+        cptr%ccf%dwt_livecrootc_to_cwdc(c,j) = 0._rk8
+        cptr%ccf%dwt_deadcrootc_to_cwdc(c,j) = 0._rk8
 
         ! N fluxes
-        cptr%cnf%dwt_frootn_to_litr_met_n(c,j) = 0._rkx
-        cptr%cnf%dwt_frootn_to_litr_cel_n(c,j) = 0._rkx
-        cptr%cnf%dwt_frootn_to_litr_lig_n(c,j) = 0._rkx
-        cptr%cnf%dwt_livecrootn_to_cwdn(c,j) = 0._rkx
-        cptr%cnf%dwt_deadcrootn_to_cwdn(c,j) = 0._rkx
+        cptr%cnf%dwt_frootn_to_litr_met_n(c,j) = 0._rk8
+        cptr%cnf%dwt_frootn_to_litr_cel_n(c,j) = 0._rk8
+        cptr%cnf%dwt_frootn_to_litr_lig_n(c,j) = 0._rk8
+        cptr%cnf%dwt_livecrootn_to_cwdn(c,j) = 0._rk8
+        cptr%cnf%dwt_deadcrootn_to_cwdn(c,j) = 0._rk8
       end do
     end do
     if ( use_c13 ) then
       do j = 1 , nlevdecomp_full
         do c = begc , endc
-          cptr%cc13f%dwt_frootc_to_litr_met_c(c,j) = 0._rkx
-          cptr%cc13f%dwt_frootc_to_litr_cel_c(c,j) = 0._rkx
-          cptr%cc13f%dwt_frootc_to_litr_lig_c(c,j) = 0._rkx
-          cptr%cc13f%dwt_livecrootc_to_cwdc(c,j) = 0._rkx
-          cptr%cc13f%dwt_deadcrootc_to_cwdc(c,j) = 0._rkx
+          cptr%cc13f%dwt_frootc_to_litr_met_c(c,j) = 0._rk8
+          cptr%cc13f%dwt_frootc_to_litr_cel_c(c,j) = 0._rk8
+          cptr%cc13f%dwt_frootc_to_litr_lig_c(c,j) = 0._rk8
+          cptr%cc13f%dwt_livecrootc_to_cwdc(c,j) = 0._rk8
+          cptr%cc13f%dwt_deadcrootc_to_cwdc(c,j) = 0._rk8
         end do
       end do
     end if
     if ( use_c14 ) then
       do j = 1 , nlevdecomp_full
         do c = begc , endc
-          cptr%cc14f%dwt_frootc_to_litr_met_c(c,j) = 0._rkx
-          cptr%cc14f%dwt_frootc_to_litr_cel_c(c,j) = 0._rkx
-          cptr%cc14f%dwt_frootc_to_litr_lig_c(c,j) = 0._rkx
-          cptr%cc14f%dwt_livecrootc_to_cwdc(c,j) = 0._rkx
-          cptr%cc14f%dwt_deadcrootc_to_cwdc(c,j) = 0._rkx
+          cptr%cc14f%dwt_frootc_to_litr_met_c(c,j) = 0._rk8
+          cptr%cc14f%dwt_frootc_to_litr_cel_c(c,j) = 0._rk8
+          cptr%cc14f%dwt_frootc_to_litr_lig_c(c,j) = 0._rk8
+          cptr%cc14f%dwt_livecrootc_to_cwdc(c,j) = 0._rk8
+          cptr%cc14f%dwt_deadcrootc_to_cwdc(c,j) = 0._rk8
         end do
       end do
     end if
 
 #if (defined CN)
     do p = begp , endp
-      cptr%p%pcs%dispvegc(p)   = 0._rkx
-      cptr%p%pcs%storvegc(p)   = 0._rkx
-      cptr%p%pcs%totpftc(p)    = 0._rkx
+      cptr%p%pcs%dispvegc(p)   = 0._rk8
+      cptr%p%pcs%storvegc(p)   = 0._rk8
+      cptr%p%pcs%totpftc(p)    = 0._rk8
 
-      cptr%p%pns%dispvegn(p)   = 0._rkx
-      cptr%p%pns%storvegn(p)   = 0._rkx
-      cptr%p%pns%totvegn(p)    = 0._rkx
-      cptr%p%pns%totpftn(p)    = 0._rkx
+      cptr%p%pns%dispvegn(p)   = 0._rk8
+      cptr%p%pns%storvegn(p)   = 0._rk8
+      cptr%p%pns%totvegn(p)    = 0._rk8
+      cptr%p%pns%totpftn(p)    = 0._rk8
     end do
     if ( use_c14 ) then
       do p = begp , endp
-        cptr%p%pc14s%dispvegc(p) = 0._rkx
-        cptr%p%pc14s%storvegc(p) = 0._rkx
-        cptr%p%pc14s%totpftc(p)  = 0._rkx
+        cptr%p%pc14s%dispvegc(p) = 0._rk8
+        cptr%p%pc14s%storvegc(p) = 0._rk8
+        cptr%p%pc14s%totpftc(p)  = 0._rk8
       end do
     end if
     if ( use_c13 ) then
       do p = begp , endp
-        cptr%p%pc13s%dispvegc(p) = 0._rkx
-        cptr%p%pc13s%storvegc(p) = 0._rkx
-        cptr%p%pc13s%totpftc(p)  = 0._rkx
+        cptr%p%pc13s%dispvegc(p) = 0._rk8
+        cptr%p%pc13s%storvegc(p) = 0._rk8
+        cptr%p%pc13s%totpftc(p)  = 0._rk8
       end do
     end if
 #endif
@@ -190,7 +190,7 @@ module mod_clm_cnsetvalue
     implicit none
     integer(ik4) , intent(in) :: num
     integer(ik4) , intent(in) :: filter(:)
-    real(rkx), intent(in) :: val
+    real(rk8), intent(in) :: val
     type (pft_pstate_type), intent(inout) :: pps
 
     ! currently NOT used
@@ -202,7 +202,7 @@ module mod_clm_cnsetvalue
     implicit none
     integer(ik4) , intent(in) :: num
     integer(ik4) , intent(in) :: filter(:)
-    real(rkx), intent(in) :: val
+    real(rk8), intent(in) :: val
     type (pft_epv_type), intent(inout) :: pepv
     integer(ik4) :: fi,i     ! loop index
 
@@ -272,7 +272,7 @@ module mod_clm_cnsetvalue
     implicit none
     integer(ik4) , intent(in) :: num
     integer(ik4) , intent(in) :: filter(:)
-    real(rkx), intent(in) :: val
+    real(rk8), intent(in) :: val
     type (pft_cstate_type), intent(inout) :: pcs
     integer(ik4) :: fi,i     ! loop index
 
@@ -324,7 +324,7 @@ module mod_clm_cnsetvalue
     implicit none
     integer(ik4) , intent(in) :: num
     integer(ik4) , intent(in) :: filter(:)
-    real(rkx), intent(in) :: val
+    real(rk8), intent(in) :: val
     type (pft_nstate_type), intent(inout) :: pns
     integer(ik4) :: fi,i     ! loop index
 
@@ -373,7 +373,7 @@ module mod_clm_cnsetvalue
     implicit none
     integer(ik4) , intent(in) :: num
     integer(ik4) , intent(in) :: filter(:)
-    real(rkx), intent(in) :: val
+    real(rk8), intent(in) :: val
     type (pft_cflux_type), intent(inout) :: pcf
     integer(ik4) :: fi,i     ! loop index
 
@@ -581,7 +581,7 @@ module mod_clm_cnsetvalue
     implicit none
     integer(ik4) , intent(in) :: num
     integer(ik4) , intent(in) :: filter(:)
-    real(rkx), intent(in) :: val
+    real(rk8), intent(in) :: val
     type (pft_nflux_type), intent(inout) :: pnf
     integer(ik4) :: fi,i     ! loop index
 
@@ -730,7 +730,7 @@ module mod_clm_cnsetvalue
     implicit none
     integer(ik4) , intent(in) :: num
     integer(ik4) , intent(in) :: filter(:)
-    real(rkx), intent(in) :: val
+    real(rk8), intent(in) :: val
     type (column_pstate_type), intent(inout) :: cps
     integer(ik4) :: fi,i,j     ! loop index
 
@@ -776,7 +776,7 @@ module mod_clm_cnsetvalue
     implicit none
     integer(ik4) , intent(in) :: num
     integer(ik4) , intent(in) :: filter(:)
-    real(rkx), intent(in) :: val
+    real(rk8), intent(in) :: val
     type (column_cstate_type), intent(inout) :: ccs
     integer(ik4) :: fi,i,j,k     ! loop index
 
@@ -832,7 +832,7 @@ module mod_clm_cnsetvalue
     implicit none
     integer(ik4) , intent(in) :: num
     integer(ik4) , intent(in) :: filter(:)
-    real(rkx), intent(in) :: val
+    real(rk8), intent(in) :: val
     type (column_nstate_type), intent(inout) :: cns
     integer(ik4) :: fi,i,j,k     ! loop index
 
@@ -894,7 +894,7 @@ module mod_clm_cnsetvalue
     implicit none
     integer(ik4) , intent(in) :: num
     integer(ik4) , intent(in) :: filter(:)
-    real(rkx), intent(in) :: val
+    real(rk8), intent(in) :: val
     type (column_cflux_type), intent(inout) :: ccf
     integer(ik4) :: fi,i,j,k,l     ! loop index
 
@@ -999,7 +999,7 @@ module mod_clm_cnsetvalue
     implicit none
     integer(ik4) , intent(in) :: num
     integer(ik4) , intent(in) :: filter(:)
-    real(rkx), intent(in) :: val
+    real(rk8), intent(in) :: val
     type (column_nflux_type), intent(inout) :: cnf
     integer(ik4) :: fi,i,j,k,l     ! loop index
 

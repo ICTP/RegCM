@@ -36,10 +36,10 @@ module mod_clm_subgridrest
     integer(ik4) :: begl , endl    ! per-proc beg/end landunit indices
     integer(ik4) :: begg , endg    ! per-proc beg/end gridcell indices
     integer(ik4) :: ier            ! error status
-    real(rkx) , pointer , dimension(:) :: rgarr     ! temporary
-    real(rkx) , pointer , dimension(:) :: rlarr     ! temporary
-    real(rkx) , pointer , dimension(:) :: rcarr     ! temporary
-    real(rkx) , pointer , dimension(:) :: rparr     ! temporary
+    real(rk8) , pointer , dimension(:) :: rgarr     ! temporary
+    real(rk8) , pointer , dimension(:) :: rlarr     ! temporary
+    real(rk8) , pointer , dimension(:) :: rcarr     ! temporary
+    real(rk8) , pointer , dimension(:) :: rparr     ! temporary
     integer(ik4) , pointer , dimension(:) :: igarr  ! temporary
     integer(ik4) , pointer , dimension(:) :: ilarr  ! temporary
     integer(ik4) , pointer , dimension(:) :: icarr  ! temporary

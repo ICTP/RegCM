@@ -43,123 +43,123 @@ module mod_clm_slakefluxes
     integer(ik4), intent(in) :: filter_lakep(ubp-lbp+1)
 
     ! sum of soil/snow using current fsno, for balance check
-    real(rkx), pointer :: sabg_chk(:)
+    real(rk8), pointer :: sabg_chk(:)
     integer(ik4) , pointer :: pcolumn(:)    ! pft's column index
     integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell index
     integer(ik4) , pointer :: cgridcell(:)  ! column's gridcell index
-    real(rkx), pointer :: forc_t(:)    ! atmospheric temperature (Kelvin)
+    real(rk8), pointer :: forc_t(:)    ! atmospheric temperature (Kelvin)
     ! atmospheric pressure (Pa)
-    real(rkx), pointer :: forc_pbot(:)
+    real(rk8), pointer :: forc_pbot(:)
     ! observational height of wind at pft level [m]
-    real(rkx), pointer :: forc_hgt_u_pft(:)
+    real(rk8), pointer :: forc_hgt_u_pft(:)
     ! observational height of temperature at pft level [m]
-    real(rkx), pointer :: forc_hgt_t_pft(:)
+    real(rk8), pointer :: forc_hgt_t_pft(:)
     ! observational height of specific humidity at pft level [m]
-    real(rkx), pointer :: forc_hgt_q_pft(:)
+    real(rk8), pointer :: forc_hgt_q_pft(:)
     ! atmospheric potential temperature (Kelvin)
-    real(rkx), pointer :: forc_th(:)
+    real(rk8), pointer :: forc_th(:)
     ! atmospheric specific humidity (kg/kg)
-    real(rkx), pointer :: forc_q(:)
+    real(rk8), pointer :: forc_q(:)
     ! atmospheric wind speed in east direction (m/s)
-    real(rkx), pointer :: forc_u(:)
+    real(rk8), pointer :: forc_u(:)
     ! atmospheric wind speed in north direction (m/s)
-    real(rkx), pointer :: forc_v(:)
+    real(rk8), pointer :: forc_v(:)
     ! downward infrared (longwave) radiation (W/m**2)
-    real(rkx), pointer :: forc_lwrad(:)
-    real(rkx), pointer :: forc_rho(:)   ! density (kg/m**3)
-    real(rkx), pointer :: forc_snow(:)  ! snow rate [mm/s]
-    real(rkx), pointer :: forc_rain(:)  ! rain rate [mm/s]
-    real(rkx), pointer :: t_grnd(:)     ! ground temperature (Kelvin)
+    real(rk8), pointer :: forc_lwrad(:)
+    real(rk8), pointer :: forc_rho(:)   ! density (kg/m**3)
+    real(rk8), pointer :: forc_snow(:)  ! snow rate [mm/s]
+    real(rk8), pointer :: forc_rain(:)  ! rain rate [mm/s]
+    real(rk8), pointer :: t_grnd(:)     ! ground temperature (Kelvin)
     ! solar radiation absorbed by ground (W/m**2)
-    real(rkx), pointer :: sabg(:)
-    real(rkx), pointer :: lat(:)        ! latitude (radians)
-    real(rkx), pointer :: dz(:,:)       ! layer thickness for soil or snow (m)
-    real(rkx), pointer :: dz_lake(:,:)  ! layer thickness for lake (m)
-    real(rkx), pointer :: t_soisno(:,:) ! soil (or snow) temperature (Kelvin)
-    real(rkx), pointer :: t_lake(:,:)   ! lake temperature (Kelvin)
+    real(rk8), pointer :: sabg(:)
+    real(rk8), pointer :: lat(:)        ! latitude (radians)
+    real(rk8), pointer :: dz(:,:)       ! layer thickness for soil or snow (m)
+    real(rk8), pointer :: dz_lake(:,:)  ! layer thickness for lake (m)
+    real(rk8), pointer :: t_soisno(:,:) ! soil (or snow) temperature (Kelvin)
+    real(rk8), pointer :: t_lake(:,:)   ! lake temperature (Kelvin)
     integer(ik4) , pointer :: snl(:)    ! number of snow layers
-    real(rkx), pointer :: h2osoi_liq(:,:) ! liquid water (kg/m2)
-    real(rkx), pointer :: h2osoi_ice(:,:) ! ice lens (kg/m2)
+    real(rk8), pointer :: h2osoi_liq(:,:) ! liquid water (kg/m2)
+    real(rk8), pointer :: h2osoi_ice(:,:) ! ice lens (kg/m2)
     ! top level eddy conductivity from previous timestep (W/mK)
-    real(rkx), pointer :: savedtke1(:)
-    real(rkx), pointer :: lakedepth(:) ! variable lake depth (m)
-    real(rkx), pointer :: lakefetch(:) ! lake fetch from surface data (m)
+    real(rk8), pointer :: savedtke1(:)
+    real(rk8), pointer :: lakedepth(:) ! variable lake depth (m)
+    real(rk8), pointer :: lakefetch(:) ! lake fetch from surface data (m)
     ! variables needed for SNICAR
     ! absorbed solar radiation (pft,lyr) [W/m2]
-    real(rkx), pointer :: sabg_lyr(:,:)
+    real(rk8), pointer :: sabg_lyr(:,:)
     ! Calculation of beta depending on NIR fraction of sabg
     ! incident direct beam nir solar radiation (W/m**2)
-    real(rkx), pointer :: fsds_nir_d(:)
+    real(rk8), pointer :: fsds_nir_d(:)
     ! incident diffuse nir solar radiation (W/m**2)
-    real(rkx), pointer :: fsds_nir_i(:)
+    real(rk8), pointer :: fsds_nir_i(:)
     ! reflected direct beam nir solar radiation (W/m**2)
-    real(rkx), pointer :: fsr_nir_d(:)
+    real(rk8), pointer :: fsr_nir_d(:)
     ! reflected diffuse nir solar radiation (W/m**2)
-    real(rkx), pointer :: fsr_nir_i(:)
+    real(rk8), pointer :: fsr_nir_i(:)
     ! water onto ground including canopy runoff [kg/(m2 s)]
-    real(rkx), pointer :: qflx_prec_grnd(:)
+    real(rk8), pointer :: qflx_prec_grnd(:)
     ! soil evaporation (mm H2O/s) (+ = to atm)
-    real(rkx), pointer :: qflx_evap_soi(:)
+    real(rk8), pointer :: qflx_evap_soi(:)
     ! qflx_evap_soi + qflx_evap_can + qflx_tran_veg
-    real(rkx), pointer :: qflx_evap_tot(:)
+    real(rk8), pointer :: qflx_evap_tot(:)
     ! sensible heat flux from ground (W/m**2) [+ to atm]
-    real(rkx), pointer :: eflx_sh_grnd(:)
+    real(rk8), pointer :: eflx_sh_grnd(:)
     ! emitted infrared (longwave) radiation (W/m**2)
-    real(rkx), pointer :: eflx_lwrad_out(:)
+    real(rk8), pointer :: eflx_lwrad_out(:)
     ! net infrared (longwave) rad (W/m**2) [+ = to atm]
-    real(rkx), pointer :: eflx_lwrad_net(:)
+    real(rk8), pointer :: eflx_lwrad_net(:)
     ! soil heat flux (W/m**2) [+ = into soil]
-    real(rkx), pointer :: eflx_soil_grnd(:)
+    real(rk8), pointer :: eflx_soil_grnd(:)
     ! total sensible heat flux (W/m**2) [+ to atm]
-    real(rkx), pointer :: eflx_sh_tot(:)
+    real(rk8), pointer :: eflx_sh_tot(:)
     ! total latent heat flux (W/m8*2)  [+ to atm]
-    real(rkx), pointer :: eflx_lh_tot(:)
+    real(rk8), pointer :: eflx_lh_tot(:)
     ! ground evaporation heat flux (W/m**2) [+ to atm]
-    real(rkx), pointer :: eflx_lh_grnd(:)
+    real(rk8), pointer :: eflx_lh_grnd(:)
     ! vegetation temperature (Kelvin)
-    real(rkx), pointer :: t_veg(:)
+    real(rk8), pointer :: t_veg(:)
     ! 2 m height surface air temperature (Kelvin)
-    real(rkx), pointer :: t_ref2m(:)
+    real(rk8), pointer :: t_ref2m(:)
     ! 2 m height surface specific humidity (kg/kg)
-    real(rkx), pointer :: q_ref2m(:)
+    real(rk8), pointer :: q_ref2m(:)
     ! 2 m height surface relative humidity (%)
-    real(rkx), pointer :: rh_ref2m(:)
+    real(rk8), pointer :: rh_ref2m(:)
     ! wind (shear) stress: e-w (kg/m/s**2)
-    real(rkx), pointer :: taux(:)
+    real(rk8), pointer :: taux(:)
     ! wind (shear) stress: n-s (kg/m/s**2)
-    real(rkx), pointer :: tauy(:)
+    real(rk8), pointer :: tauy(:)
     ! aerodynamical resistance (s/m)
-    real(rkx), pointer :: ram1(:)
+    real(rk8), pointer :: ram1(:)
     ! aerodynamical resistance (s/m)
-    real(rkx), pointer :: ram1_lake(:)
+    real(rk8), pointer :: ram1_lake(:)
     ! Ground emissivity
-    real(rkx), pointer :: emg(:)
-    real(rkx), pointer :: ws(:)  ! surface friction velocity (m/s)
+    real(rk8), pointer :: emg(:)
+    real(rk8), pointer :: ws(:)  ! surface friction velocity (m/s)
     ! coefficient passed to SLakeTemperature
     ! for calculation of decay of eddy diffusivity with depth
-    real(rkx), pointer :: ks(:)
-    real(rkx), pointer :: eflx_gnet(:)  ! net heat flux into ground (W/m**2)
-    real(rkx), pointer :: ust_lake(:)   ! friction velocity (m/s)
+    real(rk8), pointer :: ks(:)
+    real(rk8), pointer :: eflx_gnet(:)  ! net heat flux into ground (W/m**2)
+    real(rk8), pointer :: ust_lake(:)   ! friction velocity (m/s)
     ! roughness length over ground, momentum [m]
-    real(rkx), pointer :: z0mg_col(:)
+    real(rk8), pointer :: z0mg_col(:)
     ! roughness length over ground, sensible heat [m]
-    real(rkx), pointer :: z0hg_col(:)
+    real(rk8), pointer :: z0hg_col(:)
     ! roughness length over ground, latent heat [m]
-    real(rkx), pointer :: z0qg_col(:)
+    real(rk8), pointer :: z0qg_col(:)
     ! excess snowfall due to snow capping (mm H2O /s) [+]
-    real(rkx), pointer :: qflx_snwcp_ice(:)
+    real(rk8), pointer :: qflx_snwcp_ice(:)
     ! excess rainfall due to snow capping (mm H2O /s) [+]
-    real(rkx), pointer :: qflx_snwcp_liq(:)
+    real(rk8), pointer :: qflx_snwcp_liq(:)
 #ifdef LCH4
     ! aerodynamic resistance for moisture (s/m)
-    real(rkx), pointer :: lake_raw(:)
+    real(rk8), pointer :: lake_raw(:)
 #endif
     ! maximum number of iterations for surface temperature
     integer(ik4) , parameter  :: niters = 4
     ! coefficient of convective velocity (in computing W_*) [-]
-    real(rkx), parameter :: beta1 = 1._rkx
+    real(rk8), parameter :: beta1 = 1._rk8
     ! convective boundary height [m]
-    real(rkx), parameter :: zii = 1000._rkx
+    real(rk8), parameter :: zii = 1000._rk8
     integer(ik4)  :: fp,g,c,p           ! do loop or array index
     integer(ik4)  :: fncopy             ! number of values in pft filter copy
     integer(ik4)  :: fnold              ! previous number of pft filter values
@@ -168,99 +168,99 @@ module mod_clm_slakefluxes
     integer(ik4)  :: nmozsgn(lbp:ubp)   ! number of times moz changes sign
     integer(ik4)  :: jtop(lbc:ubc) ! top level for each column (no longer all 1)
     ! used in iteration loop for calculating t_grnd (numerator of NR solution)
-    real(rkx) :: ax
+    real(rk8) :: ax
     ! used in iteration loop for calculating t_grnd (denomin. of NR solution)
-    real(rkx) :: bx
-    real(rkx) :: degdT   ! d(eg)/dT
+    real(rk8) :: bx
+    real(rk8) :: degdT   ! d(eg)/dT
     ! diff of humidity between ref. height and surface
-    real(rkx) :: dqh(lbp:ubp)
+    real(rk8) :: dqh(lbp:ubp)
     ! diff of virtual temp. between ref. height and surface
-    real(rkx) :: dth(lbp:ubp)
+    real(rk8) :: dth(lbp:ubp)
     ! diff of vir. poten. temp. between ref. height and surface
-    real(rkx) :: dthv
+    real(rk8) :: dthv
     ! 1/2 the top layer thickness (m)
-    real(rkx) :: dzsur(lbc:ubc)
+    real(rk8) :: dzsur(lbc:ubc)
     ! water vapor pressure at temperature T [pa]
-    real(rkx) :: eg
+    real(rk8) :: eg
     ! latent heat of vapor of water (or sublimation) [j/kg]
-    real(rkx) :: htvp(lbc:ubc)
+    real(rk8) :: htvp(lbc:ubc)
     ! monin-obukhov length (m)
-    real(rkx) :: obu(lbp:ubp)
+    real(rk8) :: obu(lbp:ubp)
     ! monin-obukhov length of previous iteration
-    real(rkx) :: obuold(lbp:ubp)
-    real(rkx) :: qsatg(lbc:ubc)   ! saturated humidity [kg/kg]
-    real(rkx) :: qsatgdT(lbc:ubc) ! d(qsatg)/dT
-    real(rkx) :: qstar            ! moisture scaling parameter
-    real(rkx) :: ram(lbp:ubp)     ! aerodynamical resistance [s/m]
-    real(rkx) :: rah(lbp:ubp)     ! thermal resistance [s/m]
-    real(rkx) :: raw(lbp:ubp)     ! moisture resistance [s/m]
+    real(rk8) :: obuold(lbp:ubp)
+    real(rk8) :: qsatg(lbc:ubc)   ! saturated humidity [kg/kg]
+    real(rk8) :: qsatgdT(lbc:ubc) ! d(qsatg)/dT
+    real(rk8) :: qstar            ! moisture scaling parameter
+    real(rk8) :: ram(lbp:ubp)     ! aerodynamical resistance [s/m]
+    real(rk8) :: rah(lbp:ubp)     ! thermal resistance [s/m]
+    real(rk8) :: raw(lbp:ubp)     ! moisture resistance [s/m]
     ! derivative of fluxes w.r.t ground temperature
-    real(rkx) :: stftg3(lbp:ubp)
+    real(rk8) :: stftg3(lbp:ubp)
     ! relation for potential temperature profile
-    real(rkx) :: temp1(lbp:ubp)
+    real(rk8) :: temp1(lbp:ubp)
     ! relation for potential temperature profile applied at 2-m
-    real(rkx) :: temp12m(lbp:ubp)
+    real(rk8) :: temp12m(lbp:ubp)
     ! relation for specific humidity profile
-    real(rkx) :: temp2(lbp:ubp)
+    real(rk8) :: temp2(lbp:ubp)
     ! relation for specific humidity profile applied at 2-m
-    real(rkx) :: temp22m(lbp:ubp)
+    real(rk8) :: temp22m(lbp:ubp)
     ! initial ground temperature
-    real(rkx) :: tgbef(lbc:ubc)
+    real(rk8) :: tgbef(lbc:ubc)
     ! intermediate variable (forc_t+0.0098*forc_hgt_t_pft)
-    real(rkx) :: thm(lbp:ubp)
+    real(rk8) :: thm(lbp:ubp)
     ! virtual potential temperature (kelvin)
-    real(rkx) :: thv(lbc:ubc)
+    real(rk8) :: thv(lbc:ubc)
     ! virtual potential temperature scaling parameter
-    real(rkx) :: thvstar
+    real(rk8) :: thvstar
     ! thermal conductivity of snow/soil (w/m/kelvin)
-    real(rkx) :: tksur(lbc:ubc)
-    real(rkx) :: tsur(lbc:ubc)  ! top layer temperature
-    real(rkx) :: tstar          ! temperature scaling parameter
-    real(rkx) :: um(lbp:ubp)    ! wind speed including the stablity effect [m/s]
-    real(rkx) :: ur(lbp:ubp)    ! wind speed at reference height [m/s]
-    real(rkx) :: ustar(lbp:ubp) ! friction velocity [m/s]
-    real(rkx) :: wc             ! convective velocity [m/s]
+    real(rk8) :: tksur(lbc:ubc)
+    real(rk8) :: tsur(lbc:ubc)  ! top layer temperature
+    real(rk8) :: tstar          ! temperature scaling parameter
+    real(rk8) :: um(lbp:ubp)    ! wind speed including the stablity effect [m/s]
+    real(rk8) :: ur(lbp:ubp)    ! wind speed at reference height [m/s]
+    real(rk8) :: ustar(lbp:ubp) ! friction velocity [m/s]
+    real(rk8) :: wc             ! convective velocity [m/s]
     ! dimensionless height used in Monin-Obukhov theory
-    real(rkx) :: zeta
+    real(rk8) :: zeta
     ! reference height "minus" zero displacement height [m]
-    real(rkx) :: zldis(lbp:ubp)
-    real(rkx) :: displa(lbp:ubp)  ! displacement (always zero) [m]
-    real(rkx) :: z0mg(lbp:ubp)    ! roughness length over ground, momentum [m]
+    real(rk8) :: zldis(lbp:ubp)
+    real(rk8) :: displa(lbp:ubp)  ! displacement (always zero) [m]
+    real(rk8) :: z0mg(lbp:ubp)    ! roughness length over ground, momentum [m]
     ! roughness length over ground, sensible heat [m]
-    real(rkx) :: z0hg(lbp:ubp)
+    real(rk8) :: z0hg(lbp:ubp)
     ! roughness length over ground, latent heat [m]
-    real(rkx) :: z0qg(lbp:ubp)
-    real(rkx) :: u2m           ! 2 m wind speed (m/s)
-    real(rkx) :: fm(lbp:ubp)   ! needed for BGC only to diagnose 10m wind speed
-    real(rkx) :: bw            ! partial density of water (ice + liquid)
+    real(rk8) :: z0qg(lbp:ubp)
+    real(rk8) :: u2m           ! 2 m wind speed (m/s)
+    real(rk8) :: fm(lbp:ubp)   ! needed for BGC only to diagnose 10m wind speed
+    real(rk8) :: bw            ! partial density of water (ice + liquid)
     ! Used in surface flux correction over frozen ground
-    real(rkx) :: t_grnd_temp
+    real(rk8) :: t_grnd_temp
     ! Effective beta: sabg_lyr(p,jtop) for snow layers, beta otherwise
-    real(rkx) :: betaprime(lbc:ubc)
+    real(rk8) :: betaprime(lbc:ubc)
     ! 2 m height surface saturated vapor pressure [Pa]
-    real(rkx) :: e_ref2m
+    real(rk8) :: e_ref2m
     ! derivative of 2 m height surface saturated vapor pressure on t_ref2m
-    real(rkx) :: de2mdT
+    real(rk8) :: de2mdT
     ! 2 m height surface saturated specific humidity [kg/kg]
-    real(rkx) :: qsat_ref2m
+    real(rk8) :: qsat_ref2m
     ! derivative of 2 m height surface saturated specific humidity on t_ref2m
-    real(rkx) :: dqsat2mdT
-    real(rkx) :: sabg_nir       ! NIR that is absorbed (W/m^2)
+    real(rk8) :: dqsat2mdT
+    real(rk8) :: sabg_nir       ! NIR that is absorbed (W/m^2)
 
     ! For calculating roughness lengths
-    real(rkx) :: cur            ! Charnock parameter (-)
-    real(rkx) :: fetch(lbc:ubc) ! Fetch (m)
-    real(rkx) :: sqre0          ! root of roughness Reynolds number
+    real(rk8) :: cur            ! Charnock parameter (-)
+    real(rk8) :: fetch(lbc:ubc) ! Fetch (m)
+    real(rk8) :: sqre0          ! root of roughness Reynolds number
     ! kinematic viscosity of air (m^2/s) at 20C and 1.013e5 Pa
-    real(rkx), parameter :: kva0 = 1.51e-5_rkx
-    real(rkx) :: kva0temp ! (K) temperature for kva0; will be set below
-    real(rkx), parameter :: kva0pres = 1.013e5_rkx ! (Pa) pressure for kva0
+    real(rk8), parameter :: kva0 = 1.51e-5_rk8
+    real(rk8) :: kva0temp ! (K) temperature for kva0; will be set below
+    real(rk8), parameter :: kva0pres = 1.013e5_rk8 ! (Pa) pressure for kva0
     ! kinematic viscosity of air at ground temperature and forcing pressure
-    real(rkx) :: kva
+    real(rk8) :: kva
     ! Prandtl # for air at neutral stability
-    real(rkx), parameter :: prn = 0.713_rkx
+    real(rk8), parameter :: prn = 0.713_rk8
     ! Schmidt # for water in air at neutral stability
-    real(rkx), parameter :: sch = 0.66_rkx
+    real(rk8), parameter :: sch = 0.66_rk8
 
     ! Assign local pointers to derived type members (gridcell-level)
 
@@ -340,7 +340,7 @@ module mod_clm_slakefluxes
 
     ! Begin calculations
 
-    kva0temp = 20._rkx + tfrz
+    kva0temp = 20._rk8 + tfrz
 
     do fp = 1, num_lakep
       p = filter_lakep(fp)
@@ -359,13 +359,13 @@ module mod_clm_slakefluxes
       ! Physics and Chemistry,
       ! and Wetzel, R.G., and Likens, G.E.. 1991. Limnological Analyses,
       ! suggests lakes usually have depths less than 2% of their diameter.
-      if (lakefetch(c) > 0._rkx) then ! fetch available in surface data
+      if (lakefetch(c) > 0._rk8) then ! fetch available in surface data
         fetch(c) = lakefetch(c)
       else ! Estimate crudely based on lake depth
-        if (lakedepth(c) < 4._rkx) then
-          fetch(c) = 100._rkx ! Roughly the smallest lakes resolveable in the GLWD
+        if (lakedepth(c) < 4._rk8) then
+          fetch(c) = 100._rk8 ! Roughly the smallest lakes resolveable in the GLWD
         else
-          fetch(c) = 25._rkx*lakedepth(c)
+          fetch(c) = 25._rk8*lakedepth(c)
         end if
       end if
 
@@ -374,24 +374,24 @@ module mod_clm_slakefluxes
       if (t_grnd(c) > tfrz) then   ! for unfrozen lake
         z0mg(p) = z0mg_col(c)
         ! kinematic viscosity of air
-        kva = kva0 * (t_grnd(c)/kva0temp)**1.5_rkx * kva0pres/forc_pbot(g)
+        kva = kva0 * (t_grnd(c)/kva0temp)**1.5_rk8 * kva0pres/forc_pbot(g)
         ! Square root of roughness Reynolds number
-        sqre0 = (max(z0mg(p)*ust_lake(c)/kva,0.1_rkx))**0.5_rkx
+        sqre0 = (max(z0mg(p)*ust_lake(c)/kva,0.1_rk8))**0.5_rk8
         ! SH roughness length
-        z0hg(p) = z0mg(p) * exp( -vkc/prn*( 4._rkx*sqre0 - 3.2_rkx) )
+        z0hg(p) = z0mg(p) * exp( -vkc/prn*( 4._rk8*sqre0 - 3.2_rk8) )
         ! LH roughness length
-        z0qg(p) = z0mg(p) * exp( -vkc/sch*( 4._rkx*sqre0 - 4.2_rkx) )
+        z0qg(p) = z0mg(p) * exp( -vkc/sch*( 4._rk8*sqre0 - 4.2_rk8) )
         z0qg(p) = max(z0qg(p), minz0lake)
         z0hg(p) = max(z0hg(p), minz0lake)
       else if (snl(c) == 0) then    ! frozen lake with ice
         z0mg(p) = z0frzlake
         ! Consistent with BareGroundFluxes
-        z0hg(p) = z0mg(p)/exp(0.13_rkx * (ust_lake(c)*z0mg(p)/1.5e-5_rkx)**0.45_rkx)
+        z0hg(p) = z0mg(p)/exp(0.13_rk8 * (ust_lake(c)*z0mg(p)/1.5e-5_rk8)**0.45_rk8)
         z0qg(p) = z0hg(p)
       else ! use roughness over snow as in Biogeophysics1
         z0mg(p) = zsno
         ! Consistent with BareGroundFluxes
-        z0hg(p) = z0mg(p)/exp(0.13_rkx * (ust_lake(c)*z0mg(p)/1.5e-5_rkx)**0.45_rkx)
+        z0hg(p) = z0mg(p)/exp(0.13_rk8 * (ust_lake(c)*z0mg(p)/1.5e-5_rk8)**0.45_rk8)
         z0qg(p) = z0hg(p)
       end if
 
@@ -407,17 +407,17 @@ module mod_clm_slakefluxes
 
       if (snl(c) < 0) then
         ! Assuming one pft
-        betaprime(c) = sabg_lyr(p,jtop(c))/max(1.e-5_rkx,sabg(p))
-        dzsur(c) = dz(c,jtop(c))/2._rkx
+        betaprime(c) = sabg_lyr(p,jtop(c))/max(1.e-5_rk8,sabg(p))
+        dzsur(c) = dz(c,jtop(c))/2._rk8
       else ! no snow layers
         ! Calculate the NIR fraction of absorbed solar.
         ! Total NIR absorbed:
         sabg_nir = fsds_nir_d(p) + fsds_nir_i(p) - fsr_nir_d(p) - fsr_nir_i(p)
         sabg_nir = min(sabg_nir, sabg(p))
-        betaprime(c) = sabg_nir/max(1.e-5_rkx,sabg(p))
+        betaprime(c) = sabg_nir/max(1.e-5_rk8,sabg(p))
         ! Some fraction of the "visible" may be absorbed in the surface layer.
-        betaprime(c) = betaprime(c) + (1._rkx-betaprime(c))*betavis
-        dzsur(c) = dz_lake(c,1)/2._rkx
+        betaprime(c) = betaprime(c) + (1._rk8-betaprime(c))*betavis
+        dzsur(c) = dz_lake(c,1)/2._rk8
       end if
 
       sabg_chk(p)  = sabg(p)
@@ -431,8 +431,8 @@ module mod_clm_slakefluxes
       ! Potential, virtual potential temperature, and wind speed at the
       ! reference height
 
-      thm(p) = forc_t(g) + 0.0098_rkx*forc_hgt_t_pft(p) ! intermediate variable
-      thv(c) = forc_th(g)*(1._rkx+0.61_rkx*forc_q(g))     ! virtual potential T
+      thm(p) = forc_t(g) + 0.0098_rk8*forc_hgt_t_pft(p) ! intermediate variable
+      thv(c) = forc_th(g)*(1._rk8+0.61_rk8*forc_q(g))     ! virtual potential T
     end do
 
     do fp = 1, num_lakep
@@ -441,8 +441,8 @@ module mod_clm_slakefluxes
       g = pgridcell(p)
 
       nmozsgn(p) = 0
-      obuold(p) = 0._rkx
-      displa(p) = 0._rkx
+      obuold(p) = 0._rk8
+      displa(p) = 0._rk8
 
       ! Latent heat
 
@@ -462,14 +462,14 @@ module mod_clm_slakefluxes
 
       ! Initialize stability variables
 
-      ur(p)    = max(1.0_rkx,sqrt(forc_u(g)*forc_u(g)+forc_v(g)*forc_v(g)))
+      ur(p)    = max(1.0_rk8,sqrt(forc_u(g)*forc_u(g)+forc_v(g)*forc_v(g)))
       dth(p)   = thm(p)-t_grnd(c)
 !#if (defined PERGRO)
-!     dth(p)   = 0.0_rkx
+!     dth(p)   = 0.0_rk8
 !#endif
       dqh(p)   = forc_q(g)-qsatg(c)
-      dthv     = dth(p)*(1._rkx+0.61_rkx*forc_q(g))+0.61_rkx*forc_th(g)*dqh(p)
-      zldis(p) = forc_hgt_u_pft(p) - 0._rkx
+      dthv     = dth(p)*(1._rk8+0.61_rk8*forc_q(g))+0.61_rk8*forc_th(g)*dqh(p)
+      zldis(p) = forc_hgt_u_pft(p) - 0._rk8
 
       ! Initialize Monin-Obukhov length and wind speed
 
@@ -515,15 +515,15 @@ module mod_clm_slakefluxes
         else
           ! Need to calculate thermal conductivity of the top snow layer
           bw = (h2osoi_ice(c,jtop(c))+h2osoi_liq(c,jtop(c)))/dz(c,jtop(c))
-          tksur(c) = tkair + (7.75e-5_rkx *bw + 1.105e-6_rkx*bw*bw)*(tkice-tkair)
+          tksur(c) = tkair + (7.75e-5_rk8 *bw + 1.105e-6_rk8*bw*bw)*(tkice-tkair)
           tsur(c) = t_soisno(c,jtop(c))
         end if
 
         ! Determine aerodynamic resistances
 
-        ram(p)  = 1._rkx/(ustar(p)*ustar(p)/um(p))
-        rah(p)  = 1._rkx/(temp1(p)*ustar(p))
-        raw(p)  = 1._rkx/(temp2(p)*ustar(p))
+        ram(p)  = 1._rk8/(ustar(p)*ustar(p)/um(p))
+        rah(p)  = 1._rk8/(temp1(p)*ustar(p))
+        raw(p)  = 1._rk8/(temp2(p)*ustar(p))
 #if (defined LCH4)
         lake_raw(c) = raw(p) ! Pass out for calculating ground ch4 conductance
 #endif
@@ -540,13 +540,13 @@ module mod_clm_slakefluxes
         ! the top layer absorption from SNICAR is assigned to the
         ! surface skin.
         ax = betaprime(c)*sabg(p) + emg(c)*forc_lwrad(g) + &
-                 3._rkx*stftg3(p)*tgbef(c) + &
+                 3._rk8*stftg3(p)*tgbef(c) + &
                  forc_rho(g)*cpair/rah(p)*thm(p) - &
                  htvp(c)*forc_rho(g)/raw(p)* &
                  (qsatg(c)-qsatgdT(c)*tgbef(c) - forc_q(g)) + &
                  tksur(c)*tsur(c)/dzsur(c)
         ! Changed sabg(p) to betaprime(c)*sabg(p).
-        bx  = 4._rkx*stftg3(p) + forc_rho(g)*cpair/rah(p) &
+        bx  = 4._rk8*stftg3(p) + forc_rho(g)*cpair/rah(p) &
                + htvp(c)*forc_rho(g)/raw(p)*qsatgdT(c) + tksur(c)/dzsur(c)
 
         t_grnd(c) = ax/bx
@@ -574,27 +574,27 @@ module mod_clm_slakefluxes
 
         dth(p)=thm(p)-t_grnd(c)
 !#if (defined PERGRO)
-!       dth(p)   = 0.0_rkx
+!       dth(p)   = 0.0_rk8
 !#endif
         dqh(p)=forc_q(g)-qsatg(c)
 
         tstar = temp1(p)*dth(p)
         qstar = temp2(p)*dqh(p)
 
-        thvstar=tstar*(1._rkx+0.61_rkx*forc_q(g)) + 0.61_rkx*forc_th(g)*qstar
+        thvstar=tstar*(1._rk8+0.61_rk8*forc_q(g)) + 0.61_rk8*forc_th(g)*qstar
         zeta=zldis(p)*vkc * grav*thvstar/(ustar(p)**2*thv(c))
 
-        if (zeta >= 0._rkx) then     !stable
-          zeta = min(2._rkx,max(zeta,0.01_rkx))
-          um(p) = max(ur(p),0.1_rkx)
+        if (zeta >= 0._rk8) then     !stable
+          zeta = min(2._rk8,max(zeta,0.01_rk8))
+          um(p) = max(ur(p),0.1_rk8)
         else                     !unstable
-          zeta = max(-100._rkx,min(zeta,-0.01_rkx))
-          wc = beta1*(-grav*ustar(p)*thvstar*zii/thv(c))**0.333_rkx
+          zeta = max(-100._rk8,min(zeta,-0.01_rk8))
+          wc = beta1*(-grav*ustar(p)*thvstar*zii/thv(c))**0.333_rk8
           um(p) = sqrt(ur(p)*ur(p)+wc*wc)
         end if
         obu(p) = zldis(p)/zeta
 
-        if (obuold(p)*obu(p) < 0._rkx) nmozsgn(p) = nmozsgn(p)+1
+        if (obuold(p)*obu(p) < 0._rk8) nmozsgn(p) = nmozsgn(p)+1
 
         obuold(p) = obu(p)
 
@@ -611,42 +611,42 @@ module mod_clm_slakefluxes
             ! fetch as u* is often smaller than 0.1 u
             cur = cur0 + curm* &
                     exp( max( -(fetch(c)*grav/ur(p)/ur(p))** &
-                    (1._rkx/3._rkx)/fcrit, &                       ! Fetch-limited
-                   -(lakedepth(c)*grav/ur(p)/ur(p))**0.5_rkx ) ) ! depth-limited
+                    (1._rk8/3._rk8)/fcrit, &                       ! Fetch-limited
+                   -(lakedepth(c)*grav/ur(p)/ur(p))**0.5_rk8 ) ) ! depth-limited
             ! In this case fcrit is 22, not 100 in clm_varcon
           else
             ! Fetch relationship from Vickers & Mahrt 1997
             cur = cur0 + curm* &
                     exp( max( -(fetch(c)*grav/ustar(p)/ustar(p))** &
-                    (1._rkx/3._rkx)/fcrit, &                       ! Fetch-limited
-                   -(lakedepth(c)*grav/ur(p)/ur(p))**0.5_rkx ) ) ! depth-limited
+                    (1._rk8/3._rk8)/fcrit, &                       ! Fetch-limited
+                   -(lakedepth(c)*grav/ur(p)/ur(p))**0.5_rk8 ) ) ! depth-limited
           end if
           ! kinematic viscosity of air
-          kva = kva0 * (t_grnd(c)/kva0temp)**1.5_rkx * kva0pres/forc_pbot(g)
+          kva = kva0 * (t_grnd(c)/kva0temp)**1.5_rk8 * kva0pres/forc_pbot(g)
           ! momentum roughness length
           ! This lower limit on ustar is just to prevent floating point
           ! exceptions and should not be important
-          z0mg(p) = max(cus*kva/max(ustar(p),1.e-4_rkx),cur*ustar(p)*ustar(p)/grav)
+          z0mg(p) = max(cus*kva/max(ustar(p),1.e-4_rk8),cur*ustar(p)*ustar(p)/grav)
           ! This limit is redundant with current values.
           z0mg(p) = max(z0mg(p), minz0lake)
           ! Square root of roughness Reynolds number
-          sqre0 = (max(z0mg(p)*ustar(p)/kva,0.1_rkx))**0.5_rkx
+          sqre0 = (max(z0mg(p)*ustar(p)/kva,0.1_rk8))**0.5_rk8
           ! SH roughness length
-          z0hg(p) = z0mg(p) * exp( -vkc/prn*( 4._rkx*sqre0 - 3.2_rkx) )
+          z0hg(p) = z0mg(p) * exp( -vkc/prn*( 4._rk8*sqre0 - 3.2_rk8) )
           ! LH roughness length
-          z0qg(p) = z0mg(p) * exp( -vkc/sch*( 4._rkx*sqre0 - 4.2_rkx) )
+          z0qg(p) = z0mg(p) * exp( -vkc/sch*( 4._rk8*sqre0 - 4.2_rk8) )
           z0qg(p) = max(z0qg(p), minz0lake)
           z0hg(p) = max(z0hg(p), minz0lake)
         else if (snl(c) == 0) then
           ! in case it was above freezing and now below freezing
           z0mg(p) = z0frzlake
           ! Consistent with BareGroundFluxes
-          z0hg(p) = z0mg(p)/exp(0.13_rkx * (ustar(p)*z0mg(p)/1.5e-5_rkx)**0.45_rkx)
+          z0hg(p) = z0mg(p)/exp(0.13_rk8 * (ustar(p)*z0mg(p)/1.5e-5_rk8)**0.45_rk8)
           z0qg(p) = z0hg(p)
         else ! Snow layers
           ! z0mg won't have changed
           ! Consistent with BareGroundFluxes
-          z0hg(p) = z0mg(p)/exp(0.13_rkx * (ustar(p)*z0mg(p)/1.5e-5_rkx)**0.45_rkx)
+          z0hg(p) = z0mg(p)/exp(0.13_rk8 * (ustar(p)*z0mg(p)/1.5e-5_rk8)**0.45_rk8)
           z0qg(p) = z0hg(p)
         end if
 
@@ -715,12 +715,12 @@ module mod_clm_slakefluxes
 
       ! Net longwave from ground to atmosphere
 
-      ! eflx_lwrad_out(p) = (1._rkx-emg(c))*forc_lwrad(g) + &
-      !             stftg3(p)*(-3._rkx*tgbef(c)+4._rkx*t_grnd(c))
+      ! eflx_lwrad_out(p) = (1._rk8-emg(c))*forc_lwrad(g) + &
+      !             stftg3(p)*(-3._rk8*tgbef(c)+4._rk8*t_grnd(c))
       ! What is tgbef doing in this equation? Can't it be exact now?
       !  --Zack Subin, 4/14/09
-      eflx_lwrad_out(p) = (1._rkx-emg(c))*forc_lwrad(g) + &
-              emg(c)*sb*t_grnd(c)**4._rkx
+      eflx_lwrad_out(p) = (1._rk8-emg(c))*forc_lwrad(g) + &
+              emg(c)*sb*t_grnd(c)**4._rk8
 
       ! Ground heat flux
 
@@ -746,15 +746,15 @@ module mod_clm_slakefluxes
       eflx_lh_grnd(p)  = htvp(c)*qflx_evap_soi(p)
 
       ! 2 m height air temperature
-      t_ref2m(p) = thm(p) + temp1(p)*dth(p)*(1._rkx/temp12m(p) - 1._rkx/temp1(p))
+      t_ref2m(p) = thm(p) + temp1(p)*dth(p)*(1._rk8/temp12m(p) - 1._rk8/temp1(p))
 
       ! 2 m height specific humidity
-      q_ref2m(p) = forc_q(g) + temp2(p)*dqh(p)*(1._rkx/temp22m(p) - 1._rkx/temp2(p))
+      q_ref2m(p) = forc_q(g) + temp2(p)*dqh(p)*(1._rk8/temp22m(p) - 1._rk8/temp2(p))
 
       ! 2 m height relative humidity
 
       call QSat(t_ref2m(p),forc_pbot(g),e_ref2m,de2mdT,qsat_ref2m,dqsat2mdT)
-      rh_ref2m(p) = min(100._rkx, q_ref2m(p) / qsat_ref2m * 100._rkx)
+      rh_ref2m(p) = min(100._rk8, q_ref2m(p) / qsat_ref2m * 100._rk8)
 
       ! Energy residual used for melting snow
       ! Effectively moved to SLakeTemp
@@ -765,14 +765,14 @@ module mod_clm_slakefluxes
       ! This is the actual heat flux from the ground interface into
       ! the lake, not including the light that penetrates the surface.
 
-      ! u2m = max(1.0_rkx,ustar(p)/vkc*log(2._rkx/z0mg(p)))
+      ! u2m = max(1.0_rk8,ustar(p)/vkc*log(2._rk8/z0mg(p)))
       ! u2 often goes below 1 m/s; it seems like the only reason for
       ! this minimum is to keep it from being zero in the ks equation
       ! below; 0.1 m/s is a better limit for stable conditions --ZS
-      u2m = max(0.1_rkx,ustar(p)/vkc*log(2._rkx/z0mg(p)))
+      u2m = max(0.1_rk8,ustar(p)/vkc*log(2._rk8/z0mg(p)))
 
-      ws(c) = 1.2e-3_rkx * u2m
-      ks(c) = 6.6_rkx*sqrt(abs(sin(lat(g))))*(u2m**(-1.84_rkx))
+      ws(c) = 1.2e-3_rk8 * u2m
+      ks(c) = 6.6_rk8*sqrt(abs(sin(lat(g))))*(u2m**(-1.84_rk8))
 
       ! Update column roughness lengths and friction velocity
       z0mg_col(c) = z0mg(p)
@@ -794,8 +794,8 @@ module mod_clm_slakefluxes
 
       ! Because they will be used in pft2col initialize here.
       ! This will be overwritten in SLakeHydrology
-      qflx_snwcp_ice(p) = 0._rkx
-      qflx_snwcp_liq(p) = 0._rkx
+      qflx_snwcp_ice(p) = 0._rk8
+      qflx_snwcp_liq(p) = 0._rk8
 
     end do
   end subroutine SLakeFluxes

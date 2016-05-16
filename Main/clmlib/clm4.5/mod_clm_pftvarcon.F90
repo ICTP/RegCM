@@ -77,101 +77,101 @@ module mod_clm_pftvarcon
   integer(ik4) , public :: nc3irrig
 
   !characteristic leaf dimension (m)
-  real(rkx) , public , dimension(0:mxpft) :: dleaf
+  real(rk8) , public , dimension(0:mxpft) :: dleaf
   !photosynthetic pathway: 0. = c4, 1. = c3
-  real(rkx) , public , dimension(0:mxpft) :: c3psn
+  real(rk8) , public , dimension(0:mxpft) :: c3psn
   !leaf/stem orientation index
-  real(rkx) , public , dimension(0:mxpft) :: xl
+  real(rk8) , public , dimension(0:mxpft) :: xl
   !leaf reflectance: 1=vis, 2=nir
-  real(rkx) , public , dimension(0:mxpft,numrad) :: rhol
+  real(rk8) , public , dimension(0:mxpft,numrad) :: rhol
   !stem reflectance: 1=vis, 2=nir
-  real(rkx) , public , dimension(0:mxpft,numrad) :: rhos
+  real(rk8) , public , dimension(0:mxpft,numrad) :: rhos
   !leaf transmittance: 1=vis, 2=nir
-  real(rkx) , public , dimension(0:mxpft,numrad) :: taul
+  real(rk8) , public , dimension(0:mxpft,numrad) :: taul
   !stem transmittance: 1=vis, 2=nir
-  real(rkx) , public , dimension(0:mxpft,numrad) :: taus
+  real(rk8) , public , dimension(0:mxpft,numrad) :: taus
   !ratio of momentum roughness length to canopy top height (-)
-  real(rkx) , public , dimension(0:mxpft) :: z0mr
+  real(rk8) , public , dimension(0:mxpft) :: z0mr
   !ratio of displacement height to canopy top height (-)
-  real(rkx) , public , dimension(0:mxpft) :: displar
+  real(rk8) , public , dimension(0:mxpft) :: displar
   !CLM rooting distribution parameter [1/m]
-  real(rkx) , public , dimension(0:mxpft) :: roota_par
+  real(rk8) , public , dimension(0:mxpft) :: roota_par
   !CLM rooting distribution parameter [1/m]
-  real(rkx) , public , dimension(0:mxpft) :: rootb_par
+  real(rk8) , public , dimension(0:mxpft) :: rootb_par
   ! crop pft: 0. = not crop, 1. = crop pft
-  real(rkx) , public , dimension(0:mxpft) :: crop
+  real(rk8) , public , dimension(0:mxpft) :: crop
   ! irrigated pft: 0. = not, 1. = irrigated
-  real(rkx) , public , dimension(0:mxpft) :: irrigated
+  real(rk8) , public , dimension(0:mxpft) :: irrigated
   !soil water potential at full stomatal opening (mm)
-  real(rkx) , public , dimension(0:mxpft) :: smpso
+  real(rk8) , public , dimension(0:mxpft) :: smpso
   !soil water potential at full stomatal closure (mm)
-  real(rkx) , public , dimension(0:mxpft) :: smpsc
+  real(rk8) , public , dimension(0:mxpft) :: smpsc
   !foliage nitrogen limitation factor (-)
-  real(rkx) , public , dimension(0:mxpft) :: fnitr
+  real(rk8) , public , dimension(0:mxpft) :: fnitr
 
   ! begin new pft parameters for CN code
   !SLA at top of canopy [m^2/gC]
-  real(rkx) , public , dimension(0:mxpft) :: slatop
+  real(rk8) , public , dimension(0:mxpft) :: slatop
   !dSLA/dLAI [m^2/gC]
-  real(rkx) , public , dimension(0:mxpft) :: dsladlai
+  real(rk8) , public , dimension(0:mxpft) :: dsladlai
   !leaf C:N [gC/gN]
-  real(rkx) , public , dimension(0:mxpft) :: leafcn
+  real(rk8) , public , dimension(0:mxpft) :: leafcn
   !fraction of leaf N in Rubisco [no units]
-  real(rkx) , public , dimension(0:mxpft) :: flnr
+  real(rk8) , public , dimension(0:mxpft) :: flnr
   !woody lifeform flag (0 or 1)
-  real(rkx) , public , dimension(0:mxpft) :: woody
+  real(rk8) , public , dimension(0:mxpft) :: woody
   !leaf litter C:N (gC/gN)
-  real(rkx) , public , dimension(0:mxpft) :: lflitcn
+  real(rk8) , public , dimension(0:mxpft) :: lflitcn
   !fine root C:N (gC/gN)
-  real(rkx) , public , dimension(0:mxpft) :: frootcn
+  real(rk8) , public , dimension(0:mxpft) :: frootcn
   !live wood (phloem and ray parenchyma) C:N (gC/gN)
-  real(rkx) , public , dimension(0:mxpft) :: livewdcn
+  real(rk8) , public , dimension(0:mxpft) :: livewdcn
   !dead wood (xylem and heartwood) C:N (gC/gN)
-  real(rkx) , public , dimension(0:mxpft) :: deadwdcn
+  real(rk8) , public , dimension(0:mxpft) :: deadwdcn
   !growth respiration parameter
-  real(rkx) , public , dimension(0:mxpft) :: grperc
+  real(rk8) , public , dimension(0:mxpft) :: grperc
   !growth respiration parameter
-  real(rkx) , public , dimension(0:mxpft) :: grpnow
+  real(rk8) , public , dimension(0:mxpft) :: grpnow
   !CLM rooting distribution parameter for C and N inputs [unitless]
-  real(rkx) , public , dimension(0:mxpft) :: rootprof_beta
+  real(rk8) , public , dimension(0:mxpft) :: rootprof_beta
 
   ! for crop
   !grain C:N (gC/gN)
-  real(rkx) , public , dimension(0:mxpft) :: graincn
+  real(rk8) , public , dimension(0:mxpft) :: graincn
   !parameter used in accFlds
-  real(rkx) , public , dimension(0:mxpft) :: mxtmp
+  real(rk8) , public , dimension(0:mxpft) :: mxtmp
   !parameter used in accFlds
-  real(rkx) , public , dimension(0:mxpft) :: baset
+  real(rk8) , public , dimension(0:mxpft) :: baset
   !parameter used in CNAllocation
-  real(rkx) , public , dimension(0:mxpft) :: declfact
+  real(rk8) , public , dimension(0:mxpft) :: declfact
   !parameter used in CNAllocation
-  real(rkx) , public , dimension(0:mxpft) :: bfact
+  real(rk8) , public , dimension(0:mxpft) :: bfact
   !parameter used in CNAllocation
-  real(rkx) , public , dimension(0:mxpft) :: aleaff
+  real(rk8) , public , dimension(0:mxpft) :: aleaff
   !parameter used in CNAllocation
-  real(rkx) , public , dimension(0:mxpft) :: arootf
+  real(rk8) , public , dimension(0:mxpft) :: arootf
   !parameter used in CNAllocation
-  real(rkx) , public , dimension(0:mxpft) :: astemf
+  real(rk8) , public , dimension(0:mxpft) :: astemf
   !parameter used in CNAllocation
-  real(rkx) , public , dimension(0:mxpft) :: arooti
+  real(rk8) , public , dimension(0:mxpft) :: arooti
   !parameter used in CNAllocation
-  real(rkx) , public , dimension(0:mxpft) :: fleafi
+  real(rk8) , public , dimension(0:mxpft) :: fleafi
   !parameter used in CNAllocation
-  real(rkx) , public , dimension(0:mxpft) :: allconsl
+  real(rk8) , public , dimension(0:mxpft) :: allconsl
   !parameter used in CNAllocation
-  real(rkx) , public , dimension(0:mxpft) :: allconss
+  real(rk8) , public , dimension(0:mxpft) :: allconss
   !parameter used in CNVegStructUpdate
-  real(rkx) , public , dimension(0:mxpft) :: ztopmx
+  real(rk8) , public , dimension(0:mxpft) :: ztopmx
   !parameter used in CNVegStructUpdate
-  real(rkx) , public , dimension(0:mxpft) :: laimx
+  real(rk8) , public , dimension(0:mxpft) :: laimx
   !parameter used in CNPhenology
-  real(rkx) , public , dimension(0:mxpft) :: gddmin
+  real(rk8) , public , dimension(0:mxpft) :: gddmin
   !parameter used in CNPhenology
-  real(rkx) , public , dimension(0:mxpft) :: hybgdd
+  real(rk8) , public , dimension(0:mxpft) :: hybgdd
   !parameter used in CNPhenology
-  real(rkx) , public , dimension(0:mxpft) :: lfemerg
+  real(rk8) , public , dimension(0:mxpft) :: lfemerg
   !parameter used in CNPhenology
-  real(rkx) , public , dimension(0:mxpft) :: grnfill
+  real(rk8) , public , dimension(0:mxpft) :: grnfill
   !parameter used in CNPhenology
   integer(ik4) , public , dimension(0:mxpft) :: mxmat
   !minimum planting date for NorthHemisphere (YYYYMMDD)
@@ -183,99 +183,99 @@ module mod_clm_pftvarcon
   !maximum planting date for SouthHemisphere (YYYYMMDD)
   integer(ik4) , public , dimension(0:mxpft) :: mxSHplantdate
   !planting temperature used in CNPhenology (K)
-  real(rkx) , public , dimension(0:mxpft) :: planttemp
+  real(rk8) , public , dimension(0:mxpft) :: planttemp
   !mininum planting temperature used in CNPhenology (K)
-  real(rkx) , public , dimension(0:mxpft) :: minplanttemp
+  real(rk8) , public , dimension(0:mxpft) :: minplanttemp
   !allocation parameter: new fine root C per new leaf C (gC/gC)
-  real(rkx) , public , dimension(0:mxpft) :: froot_leaf
+  real(rk8) , public , dimension(0:mxpft) :: froot_leaf
   !allocation parameter: new stem c per new leaf C (gC/gC)
-  real(rkx) , public , dimension(0:mxpft) :: stem_leaf
+  real(rk8) , public , dimension(0:mxpft) :: stem_leaf
   !allocation parameter: new coarse root C per new stem C (gC/gC)
-  real(rkx) , public , dimension(0:mxpft) :: croot_stem
+  real(rk8) , public , dimension(0:mxpft) :: croot_stem
   !allocation parameter: fraction of new wood that is live
   ! (phloem and ray parenchyma) (no units)
-  real(rkx) , public , dimension(0:mxpft) :: flivewd
+  real(rk8) , public , dimension(0:mxpft) :: flivewd
   !allocation parameter: fraction of allocation that goes to
   ! currently displayed growth, remainder to storage
-  real(rkx) , public , dimension(0:mxpft) :: fcur
+  real(rk8) , public , dimension(0:mxpft) :: fcur
   !alternate fcur for use with cndv
-  real(rkx) , public , dimension(0:mxpft) :: fcurdv
+  real(rk8) , public , dimension(0:mxpft) :: fcurdv
   !leaf litter labile fraction
-  real(rkx) , public , dimension(0:mxpft) :: lf_flab
+  real(rk8) , public , dimension(0:mxpft) :: lf_flab
   !leaf litter cellulose fraction
-  real(rkx) , public , dimension(0:mxpft) :: lf_fcel
+  real(rk8) , public , dimension(0:mxpft) :: lf_fcel
   !leaf litter lignin fraction
-  real(rkx) , public , dimension(0:mxpft) :: lf_flig
+  real(rk8) , public , dimension(0:mxpft) :: lf_flig
   !fine root litter labile fraction
-  real(rkx) , public , dimension(0:mxpft) :: fr_flab
+  real(rk8) , public , dimension(0:mxpft) :: fr_flab
   !fine root litter cellulose fraction
-  real(rkx) , public , dimension(0:mxpft) :: fr_fcel
+  real(rk8) , public , dimension(0:mxpft) :: fr_fcel
   !fine root litter lignin fraction
-  real(rkx) , public , dimension(0:mxpft) :: fr_flig
+  real(rk8) , public , dimension(0:mxpft) :: fr_flig
   !leaf longevity (yrs)
-  real(rkx) , public , dimension(0:mxpft) :: leaf_long
+  real(rk8) , public , dimension(0:mxpft) :: leaf_long
   !binary flag for evergreen leaf habit (0 or 1)
-  real(rkx) , public , dimension(0:mxpft) :: evergreen
+  real(rk8) , public , dimension(0:mxpft) :: evergreen
   !binary flag for stress-deciduous leaf habit (0 or 1)
-  real(rkx) , public , dimension(0:mxpft) :: stress_decid
+  real(rk8) , public , dimension(0:mxpft) :: stress_decid
   !binary flag for seasonal-deciduous leaf habit (0 or 1)
-  real(rkx) , public , dimension(0:mxpft) :: season_decid
+  real(rk8) , public , dimension(0:mxpft) :: season_decid
   !proportion of deadstem to conversion flux
-  real(rkx) , public , dimension(0:mxpft) :: pconv
+  real(rk8) , public , dimension(0:mxpft) :: pconv
   !proportion of deadstem to 10-yr product pool
-  real(rkx) , public , dimension(0:mxpft) :: pprod10
+  real(rk8) , public , dimension(0:mxpft) :: pprod10
   !proportion of deadstem to 100-yr product pool
-  real(rkx) , public , dimension(0:mxpft) :: pprod100
+  real(rk8) , public , dimension(0:mxpft) :: pprod100
   !harvest mortality proportion of deadstem to 10-yr pool
-  real(rkx) , public , dimension(0:mxpft) :: pprodharv10
+  real(rk8) , public , dimension(0:mxpft) :: pprodharv10
 
   ! pft paraemeters for fire code
-  real(rkx) , public , dimension(0:mxpft) :: cc_leaf
-  real(rkx) , public , dimension(0:mxpft) :: cc_lstem
-  real(rkx) , public , dimension(0:mxpft) :: cc_dstem
-  real(rkx) , public , dimension(0:mxpft) :: cc_other
-  real(rkx) , public , dimension(0:mxpft) :: fm_leaf
-  real(rkx) , public , dimension(0:mxpft) :: fm_lstem
-  real(rkx) , public , dimension(0:mxpft) :: fm_dstem
-  real(rkx) , public , dimension(0:mxpft) :: fm_other
-  real(rkx) , public , dimension(0:mxpft) :: fm_root
-  real(rkx) , public , dimension(0:mxpft) :: fm_lroot
-  real(rkx) , public , dimension(0:mxpft) :: fm_droot
-  real(rkx) , public , dimension(0:mxpft) :: fsr_pft
-  real(rkx) , public , dimension(0:mxpft) :: fd_pft
+  real(rk8) , public , dimension(0:mxpft) :: cc_leaf
+  real(rk8) , public , dimension(0:mxpft) :: cc_lstem
+  real(rk8) , public , dimension(0:mxpft) :: cc_dstem
+  real(rk8) , public , dimension(0:mxpft) :: cc_other
+  real(rk8) , public , dimension(0:mxpft) :: fm_leaf
+  real(rk8) , public , dimension(0:mxpft) :: fm_lstem
+  real(rk8) , public , dimension(0:mxpft) :: fm_dstem
+  real(rk8) , public , dimension(0:mxpft) :: fm_other
+  real(rk8) , public , dimension(0:mxpft) :: fm_root
+  real(rk8) , public , dimension(0:mxpft) :: fm_lroot
+  real(rk8) , public , dimension(0:mxpft) :: fm_droot
+  real(rk8) , public , dimension(0:mxpft) :: fsr_pft
+  real(rk8) , public , dimension(0:mxpft) :: fd_pft
 
   ! pft parameters for crop code
   !fertilizer
-  real(rkx) , public , dimension(0:mxpft) :: fertnitro
+  real(rk8) , public , dimension(0:mxpft) :: fertnitro
   !C:N during grain fill; leaf
-  real(rkx) , public , dimension(0:mxpft) :: fleafcn
+  real(rk8) , public , dimension(0:mxpft) :: fleafcn
   !C:N during grain fill; fine root
-  real(rkx) , public , dimension(0:mxpft) :: ffrootcn
+  real(rk8) , public , dimension(0:mxpft) :: ffrootcn
   !C:N during grain fill; stem
-  real(rkx) , public , dimension(0:mxpft) :: fstemcn
+  real(rk8) , public , dimension(0:mxpft) :: fstemcn
 
   ! pft parameters for CNDV code
   ! from LPJ subroutine pftparameters
   !tree maximum crown area (m2)
-  real(rkx) , public , dimension(0:mxpft) :: pftpar20
+  real(rk8) , public , dimension(0:mxpft) :: pftpar20
   !min coldest monthly mean temperature
-  real(rkx) , public , dimension(0:mxpft) :: pftpar28
+  real(rk8) , public , dimension(0:mxpft) :: pftpar28
   !max coldest monthly mean temperature
-  real(rkx) , public , dimension(0:mxpft) :: pftpar29
+  real(rk8) , public , dimension(0:mxpft) :: pftpar29
   !min growing degree days (>= 5 deg C)
-  real(rkx) , public , dimension(0:mxpft) :: pftpar30
+  real(rk8) , public , dimension(0:mxpft) :: pftpar30
   !upper limit of temperature of the warmest month (twmax)
-  real(rkx) , public , dimension(0:mxpft) :: pftpar31
+  real(rk8) , public , dimension(0:mxpft) :: pftpar31
 
   !parameter in allometric equation
-  real(rkx) , public , parameter :: reinickerp = 1.6_rkx
+  real(rk8) , public , parameter :: reinickerp = 1.6_rk8
   !cn wood density (gC/m3); lpj:2.0e5
-  real(rkx) , public , parameter :: dwood  = 2.5e5_rkx
-  real(rkx) , public , parameter :: allom1 = 100.0_rkx   !parameters in
-  real(rkx) , public , parameter :: allom2 =  40.0_rkx   !...allometric
-  real(rkx) , public , parameter :: allom3 =   0.5_rkx   !...equations
-  real(rkx) , public , parameter :: allom1s = 250.0_rkx  !modified for shrubs by
-  real(rkx) , public , parameter :: allom2s =   8.0_rkx  !X.D.Z
+  real(rk8) , public , parameter :: dwood  = 2.5e5_rk8
+  real(rk8) , public , parameter :: allom1 = 100.0_rk8   !parameters in
+  real(rk8) , public , parameter :: allom2 =  40.0_rk8   !...allometric
+  real(rk8) , public , parameter :: allom3 =   0.5_rk8   !...equations
+  real(rk8) , public , parameter :: allom1s = 250.0_rk8  !modified for shrubs by
+  real(rk8) , public , parameter :: allom2s =   8.0_rk8  !X.D.Z
 
   public :: pftconrd ! Read and initialize vegetation (PFT) constants
 
@@ -513,33 +513,33 @@ module mod_clm_pftvarcon
               trim(subname)//' ERROR: npcropmax is NOT the last value' )
     end if
     do i = 0 , mxpft
-      if (      irrigated(i) == 1.0_rkx  .and. (i == nc3irrig .or. &
+      if (      irrigated(i) == 1.0_rk8  .and. (i == nc3irrig .or. &
                                               i == ncornirrig .or. &
                                               i == nscerealirrig .or. &
                                               i == nwcerealirrig .or. &
                                               i == nsoybeanirrig) ) then
         ! correct
-      else if ( irrigated(i) == 0.0_rkx ) then
+      else if ( irrigated(i) == 0.0_rk8 ) then
         ! correct
       else
         call fatal(__FILE__,__LINE__, &
                 trim(subname)//' ERROR: irrigated has wrong values' )
       end if
-      if (      crop(i) == 1.0_rkx .and. &
+      if (      crop(i) == 1.0_rk8 .and. &
               (i >= nc3crop .and. i <= npcropmax) ) then
         ! correct
-      else if ( crop(i) == 0.0_rkx ) then
+      else if ( crop(i) == 0.0_rk8 ) then
         ! correct
       else
         call fatal(__FILE__,__LINE__, &
                 trim(subname)//' ERROR: crop has wrong values' )
       end if
       if ( (i /= noveg) .and. (i < npcropmin) .and. &
-           abs(pconv(i)+pprod10(i)+pprod100(i) - 1.0_rkx) > 1.e-7_rkx ) then
+           abs(pconv(i)+pprod10(i)+pprod100(i) - 1.0_rk8) > 1.e-7_rk8 ) then
         call fatal(__FILE__,__LINE__, &
             trim(subname)//' ERROR: pconv+pprod10+pprod100 do NOT sum to one.' )
       end if
-      if ( pprodharv10(i) > 1.0_rkx .or. pprodharv10(i) < 0.0_rkx ) then
+      if ( pprodharv10(i) > 1.0_rk8 .or. pprodharv10(i) < 0.0_rk8 ) then
         call fatal(__FILE__,__LINE__, &
                 trim(subname)//' ERROR: pprodharv10 outside of range.' )
       end if

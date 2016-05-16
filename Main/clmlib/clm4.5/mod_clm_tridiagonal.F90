@@ -29,20 +29,20 @@ module mod_clm_tridiagonal
     integer(ik4) , intent(in)    :: numf          ! filter dimension
     integer(ik4) , intent(in)    :: filter(1:numf)  ! filter
     ! "a" left off diagonal of tridiagonal matrix
-    real(rkx), intent(in)    :: a(lbc:ubc, lbj:ubj)
+    real(rk8), intent(in)    :: a(lbc:ubc, lbj:ubj)
     ! "b" diagonal column for tridiagonal matrix
-    real(rkx), intent(in)    :: b(lbc:ubc, lbj:ubj)
+    real(rk8), intent(in)    :: b(lbc:ubc, lbj:ubj)
     ! "c" right off diagonal tridiagonal matrix
-    real(rkx), intent(in)    :: c(lbc:ubc, lbj:ubj)
+    real(rk8), intent(in)    :: c(lbc:ubc, lbj:ubj)
     ! "r" forcing term of tridiagonal matrix
-    real(rkx), intent(in)    :: r(lbc:ubc, lbj:ubj)
-    real(rkx), intent(inout) :: u(lbc:ubc, lbj:ubj)    ! solution
+    real(rk8), intent(in)    :: r(lbc:ubc, lbj:ubj)
+    real(rk8), intent(inout) :: u(lbc:ubc, lbj:ubj)    ! solution
 
     integer(ik4) , pointer :: ctype(:) ! column type
 
     integer(ik4) :: j , ci , fc        !indices
-    real(rkx) :: gam(lbc:ubc,lbj:ubj)  !temporary
-    real(rkx) :: bet(lbc:ubc)          !temporary
+    real(rk8) :: gam(lbc:ubc,lbj:ubj)  !temporary
+    real(rk8) :: bet(lbc:ubc)          !temporary
 
     ! Assign local pointers to derived subtypes components (column-level)
 

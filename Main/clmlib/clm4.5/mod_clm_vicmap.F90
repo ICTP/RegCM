@@ -33,18 +33,18 @@ module mod_clm_vicmap
     implicit none
     integer(ik4) , intent(in)  :: c
 
-    real(rkx), pointer :: dz(:,:)       ! layer depth (m)
-    real(rkx), pointer :: zi(:,:)       ! interface level below a "z" level (m)
-    real(rkx), pointer :: z(:,:)        ! layer thickness (m)
-    real(rkx), pointer :: depth(:,:)    ! layer depth of VIC (m)
+    real(rk8), pointer :: dz(:,:)       ! layer depth (m)
+    real(rk8), pointer :: zi(:,:)       ! interface level below a "z" level (m)
+    real(rk8), pointer :: z(:,:)        ! layer thickness (m)
+    real(rk8), pointer :: depth(:,:)    ! layer depth of VIC (m)
     ! fraction of VIC layers in clm layers
-    real(rkx), pointer :: vic_clm_fract(:,:,:)
+    real(rk8), pointer :: vic_clm_fract(:,:,:)
     ! sum of fraction for each layer
-    real(rkx) :: sum_frac(1:nlayer)
-    real(rkx) :: deltal(1:nlayer+1) ! temporary
-    real(rkx) :: zsum               ! temporary
-    real(rkx) :: lsum               ! temporary
-    real(rkx) :: temp               ! temporary
+    real(rk8) :: sum_frac(1:nlayer)
+    real(rk8) :: deltal(1:nlayer+1) ! temporary
+    real(rk8) :: zsum               ! temporary
+    real(rk8) :: lsum               ! temporary
+    real(rk8) :: temp               ! temporary
 
     integer(ik4) :: i, j, fc
 
@@ -60,36 +60,36 @@ module mod_clm_vicmap
 
     !  set fraction of VIC layer in each CLM layer
 
-    lsum = 0._rkx
+    lsum = 0._rk8
     do i = 1, nlayer
       deltal(i) = depth(c,i)
     end do
     do i = 1, nlayer
-      zsum = 0._rkx
-      sum_frac(i) = 0._rkx
+      zsum = 0._rk8
+      sum_frac(i) = 0._rk8
       do j = 1, nlevsoi
         if ( (zsum < lsum) .and. (zsum + dz(c,j) >= lsum ) )  then
-          temp = linear_interp(lsum, zsum, zsum + dz(c,j), 0._rkx, 1._rkx)
-          vic_clm_fract(c,i,j) = 1._rkx - temp
+          temp = linear_interp(lsum, zsum, zsum + dz(c,j), 0._rk8, 1._rk8)
+          vic_clm_fract(c,i,j) = 1._rk8 - temp
           if ( lsum + deltal(i) < zsum + dz(c,j) ) then
             temp = linear_interp(lsum + deltal(i), zsum, &
-                    zsum + dz(c,j), 1._rkx, 0._rkx)
+                    zsum + dz(c,j), 1._rk8, 0._rk8)
             vic_clm_fract(c,i,j) = vic_clm_fract(c,i,j) - temp
           end if
         else if ( (zsum < lsum + deltal(i)) .and. &
                   (zsum + dz(c,j) >= lsum + deltal(i)) ) then
           temp = linear_interp(lsum + deltal(i), zsum, &
-                  zsum + dz(c,j), 0._rkx, 1._rkx)
+                  zsum + dz(c,j), 0._rk8, 1._rk8)
           vic_clm_fract(c,i,j) = temp
           if ( zsum <= lsum ) then
-            temp = linear_interp(lsum, zsum, zsum + dz(c,j), 0._rkx, 1._rkx)
+            temp = linear_interp(lsum, zsum, zsum + dz(c,j), 0._rk8, 1._rk8)
             vic_clm_fract(c,i,j) = vic_clm_fract(c,i,j) - temp
           end if
         else if ( (zsum >= lsum .and. &
                   zsum + dz(c,j) <= lsum + deltal(i)) )  then
-          vic_clm_fract(c,i,j) = 1._rkx
+          vic_clm_fract(c,i,j) = 1._rk8
         else
-          vic_clm_fract(c,i,j) = 0._rkx
+          vic_clm_fract(c,i,j) = 0._rk8
         end if
         zsum = zsum + dz(c,j)
         sum_frac(i) = sum_frac(i) + vic_clm_fract(c,i,j)
@@ -99,9 +99,9 @@ module mod_clm_vicmap
     contains
 
     ! This subroutine provides linear interpolation
-    pure real(rkx) function linear_interp(x,x0,x1,y0,y1) result (y)
+    pure real(rk8) function linear_interp(x,x0,x1,y0,y1) result (y)
       implicit none
-      real(rkx) , intent(in) :: x , x0 , y0 , x1 , y1
+      real(rk8) , intent(in) :: x , x0 , y0 , x1 , y1
       y = y0 + (x - x0) * (y1 - y0) / (x1 - x0)
     end function linear_interp
 
@@ -120,26 +120,26 @@ module mod_clm_vicmap
     ! column filter for soil points
     integer(ik4) , intent(in)  :: filter(ubc-lbc+1)
 
-    real(rkx), pointer :: dz(:,:)  !layer depth (m)
-    real(rkx), pointer :: zi(:,:)  !interface level below a "z" level (m)
-    real(rkx), pointer :: z(:,:)   !layer thickness (m)
-    real(rkx), pointer :: h2osoi_liq(:,:)  !liquid water (kg/m2)
-    real(rkx), pointer :: h2osoi_ice(:,:)  !ice lens (kg/m2)
-    real(rkx), pointer :: moist(:,:)       !liquid water (mm)
-    real(rkx), pointer :: ice(:,:)         !ice lens (mm)
-    real(rkx), pointer :: depth(:,:)       !layer depth of upper layer (m)
-    real(rkx), pointer :: max_moist(:,:)   !max layer moist + ice (mm)
+    real(rk8), pointer :: dz(:,:)  !layer depth (m)
+    real(rk8), pointer :: zi(:,:)  !interface level below a "z" level (m)
+    real(rk8), pointer :: z(:,:)   !layer thickness (m)
+    real(rk8), pointer :: h2osoi_liq(:,:)  !liquid water (kg/m2)
+    real(rk8), pointer :: h2osoi_ice(:,:)  !ice lens (kg/m2)
+    real(rk8), pointer :: moist(:,:)       !liquid water (mm)
+    real(rk8), pointer :: ice(:,:)         !ice lens (mm)
+    real(rk8), pointer :: depth(:,:)       !layer depth of upper layer (m)
+    real(rk8), pointer :: max_moist(:,:)   !max layer moist + ice (mm)
     !volumetric soil moisture for VIC soil layers
-    real(rkx), pointer :: moist_vol(:,:)
+    real(rk8), pointer :: moist_vol(:,:)
     !volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]  (nlevgrnd)
-    real(rkx), pointer :: h2osoi_vol(:,:)
+    real(rk8), pointer :: h2osoi_vol(:,:)
     !soil porisity (1-bulk_density/soil_density)
-    real(rkx), pointer :: porosity(:,:)
+    real(rk8), pointer :: porosity(:,:)
     !fraction of VIC layers in each CLM layer
-    real(rkx), pointer :: vic_clm_fract(:,:,:)
+    real(rk8), pointer :: vic_clm_fract(:,:,:)
 
-    real(rkx) :: ice0(1:nlayer)            ! last step ice lens (mm)  (new)
-    real(rkx) :: moist0(1:nlayer)          ! last step soil water (mm)  (new)
+    real(rk8) :: ice0(1:nlayer)            ! last step ice lens (mm)  (new)
+    real(rk8) :: moist0(1:nlayer)          ! last step soil water (mm)  (new)
     integer(ik4)  :: i, j, c, fc
 
     ! note: in CLM3 h2osoil_liq unit is kg/m2, in VIC moist is mm
@@ -165,20 +165,20 @@ module mod_clm_vicmap
       do i = 1 , nlayer
         ice0(i) = ice(c,i)
         moist0(i) = moist(c,i)
-        ice(c,i) = 0._rkx
-        moist(c,i) = 0._rkx
+        ice(c,i) = 0._rk8
+        moist(c,i) = 0._rk8
         do j = 1, nlevsoi
           ice(c,i) = ice(c,i) + h2osoi_ice(c,j) * vic_clm_fract(c,i,j)
           moist(c,i) = moist(c,i) + h2osoi_liq(c,j) * vic_clm_fract(c,i,j)
         end do
         ice(c,i) = min((moist0(i) + ice0(i)), ice(c,i))
-        ice(c,i) = max(0._rkx, ice(c,i))
+        ice(c,i) = max(0._rk8, ice(c,i))
         moist(c,i) =max(watmin, moist(c,i))
         moist(c,i) =min(max_moist(c,i)-ice(c,i), moist(c,i))
         moist_vol(c,i) = moist(c,i)/(depth(c,i)*denice) &
                        + ice(c,i)/(depth(c,i)*denh2o)
         moist_vol(c,i) = min(porosity(c,i), moist_vol(c,i))
-        moist_vol(c,i) = max(0.01_rkx, moist_vol(c,i))
+        moist_vol(c,i) = max(0.01_rk8, moist_vol(c,i))
       end do
 
       ! hydrologic inactive layers

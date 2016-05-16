@@ -27,8 +27,7 @@ module mod_clm_regcm
 
   public :: initclm45 , runclm45 , albedoclm45
 
-  real(rkx) , dimension(:,:) , pointer :: rprec , rsnow
-  real(rkx) , dimension(:,:) , pointer :: chemdepflx
+  real(rk8) , dimension(:,:) , pointer :: temps
 
   contains
 
@@ -42,10 +41,9 @@ module mod_clm_regcm
     integer(ik4) :: i , j , n , begg , endg , ilev
     character(len=64) :: rdate
     real(rkx) , pointer , dimension(:,:) :: p2
-    real(rkx) , pointer , dimension(:) :: p1
+    real(rk8) , pointer , dimension(:) :: p1
 
-    call getmem2d(rprec,jci1,jci2,ici1,ici2,'initclm45:rprec')
-    call getmem2d(chemdepflx,jci1,jci2,ici1,ici2,'initclm45:chemdepflx')
+    call getmem2d(temps,jci1,jci2,ici1,ici2,'initclm45:temps')
 
     allocate(adomain%xlon(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%xlat(lndcomm%linear_npoint_sg(myid+1)))
@@ -120,7 +118,7 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    real(rkx) :: caldayp1 , declinp1 , eccfp1
+    real(rk8) :: caldayp1 , declinp1 , eccfp1 , declinp
     logical :: doalb , rstwr , nlend , nlomon
     type(rcm_time_interval) :: tdiff , triff
     type(rcm_time_and_date) :: nextt , nextr
@@ -133,8 +131,10 @@ module mod_clm_regcm
     triff = dtsec
     nextt = idatex+tdiff
     nextr = idatex+triff
+    declinp = declin
     caldayp1 = yeardayfrac(nextt)
-    call orb_decl(caldayp1,eccen,mvelpp,lambm0,obliqr,declinp1,eccfp1)
+    call orb_decl(real(yearpoint(nextt),rk8),eccen,mvelpp, &
+                  lambm0,obliqr,declinp1,eccfp1)
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
       doalb = .true.
     else
@@ -174,10 +174,7 @@ module mod_clm_regcm
     end if
 
     ! Run CLM
-    call orb_decl(caldayp1,eccen,mvelpp,lambm0,obliqr,declinp1,eccfp1)
-
-    call clm_drv(doalb,caldayp1,declinp1,declin,rstwr,nlend,nlomon,rdate)
-
+    call clm_drv(doalb,caldayp1,declinp1,declinp,rstwr,nlend,nlomon,rdate)
     call land_to_atmosphere(lms)
 
   end subroutine runclm45
@@ -186,7 +183,7 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    real(rkx) , dimension(1:nnsg,jci1:jci2,ici1:ici2) :: lastgood
+    real(rk4) , dimension(1:nnsg,jci1:jci2,ici1:ici2) :: lastgood
     ! Just get albedoes from clm_l2a
     clm_l2a%notused = clm_l2a%albd(:,1)
     lastgood = lms%swdiralb
@@ -223,8 +220,6 @@ module mod_clm_regcm
     integer(ik4) :: begg , endg , i
     real(rkx) :: satq , satp
 
-    rprec = (lm%cprate+lm%ncprate) * rtsrf
-
     call get_proc_bounds(begg,endg)
 
     ! Fill clm_a2l
@@ -239,7 +234,8 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
     call glb_c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
     call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
-    call glb_c2l_gs(lndcomm,rprec,clm_a2l%forc_rain)
+    temps = (lm%cprate+lm%ncprate) * rtsrf
+    call glb_c2l_gs(lndcomm,temps,clm_a2l%forc_rain)
 
     call glb_c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
     clm_a2l%forc_solad(:,1) = clm_a2l%notused
@@ -252,36 +248,38 @@ module mod_clm_regcm
 
     ! Compute or alias
     clm_a2l%forc_wind = sqrt(clm_a2l%forc_u**2 + clm_a2l%forc_v**2)
-    !clm_a2l%forc_th = clm_a2l%forc_t*(1.0e5_rkx/clm_a2l%forc_pbot)**rovcp
+    !clm_a2l%forc_th = clm_a2l%forc_t*(1.0e5_rk8/clm_a2l%forc_pbot)**rovcp
     clm_a2l%forc_hgt_u = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
 
     do i = begg , endg
-      satp = pfesat(clm_a2l%forc_t(i))
-      satq = pfqsat(clm_a2l%forc_t(i),clm_a2l%forc_pbot(i),satp)
-      clm_a2l%forc_rh(i) = min(max(clm_a2l%forc_q(i)/satq,rhmin),rhmax)
-      clm_a2l%forc_vp(i) = satp * clm_a2l%forc_rh(i)
-      clm_a2l%forc_rh(i) = clm_a2l%forc_rh(i) * 100.0_rkx
+      satp = pfesat(real(clm_a2l%forc_t(i),rkx))
+      satq = pfqsat(real(clm_a2l%forc_t(i),rkx), &
+                    real(clm_a2l%forc_pbot(i),rkx),satp)
+      clm_a2l%forc_rh(i) = min(max(clm_a2l%forc_q(i)/satq,real(rhmin,rk8)), &
+                               real(rhmax,rk8))
+      clm_a2l%forc_vp(i) = real(satp,rk8) * clm_a2l%forc_rh(i)
+      clm_a2l%forc_rh(i) = clm_a2l%forc_rh(i) * 100.0_rk8
       ! Set upper limit of air temperature for snowfall at 275.65K.
       ! This cut-off was selected based on Fig. 1, Plate 3-1, of Snow
       ! Hydrology (1956).
       if ( clm_a2l%forc_t(i) < tfrz + tcrit ) then
         clm_a2l%forc_snow(i) = clm_a2l%forc_rain(i)
-        clm_a2l%forc_rain(i) = 0.0_rkx
+        clm_a2l%forc_rain(i) = 0.0_rk8
       else
-        clm_a2l%forc_snow(i) = 0.0_rkx
+        clm_a2l%forc_snow(i) = 0.0_rk8
       end if
     end do
     ! Specific humidity
-    clm_a2l%forc_q = clm_a2l%forc_q/(1.0_rkx+clm_a2l%forc_q)
+    clm_a2l%forc_q = clm_a2l%forc_q/(1.0_rk8+clm_a2l%forc_q)
     clm_a2l%rainf = clm_a2l%forc_rain+clm_a2l%forc_snow
 
     ! interface chemistry / surface
 
     if ( ichem /= 1 ) then
-      clm_a2l%forc_pco2 = cgas(igh_co2,xyear)*1.e-6_rkx*clm_a2l%forc_psrf
-      clm_a2l%forc_ndep = 6.34e-5_rkx
+      clm_a2l%forc_pco2 = cgas(igh_co2,xyear)*1.e-6_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_ndep = 6.34e-5_rk8
       if ( use_c13 ) then
         clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
       end if
@@ -292,7 +290,7 @@ module mod_clm_regcm
       !
       ! interface with atmospheric chemistry
       ! CO2 partial pressure (Pa)
-      clm_a2l%forc_pco2 = cgas(igh_co2,xyear)*1.e-6_rkx*clm_a2l%forc_psrf
+      clm_a2l%forc_pco2 = cgas(igh_co2,xyear)*1.e-6_rk8*clm_a2l%forc_psrf
       if ( use_c13 ) then
        ! C13O2 partial pressure (Pa)
        clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
@@ -308,81 +306,81 @@ module mod_clm_regcm
       !    two surface call : needs to average with rtsrf
       ! c) dry deposition BC HL
       if ( ibchl > 0 ) then
-        chemdepflx(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,ibchl) * rtsrf
-        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+        temps(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,ibchl) * rtsrf
+        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         clm_a2l%forc_aer(:,1) = clm_a2l%notused
       end if
       ! drydeposition BCHB
       if ( ibchb > 0 ) then
-        chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,ibchb) * rtsrf
-        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+        temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,ibchb) * rtsrf
+        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         clm_a2l%forc_aer(:,2) = clm_a2l%notused
       end if
       ! wet dep BC (sum rainout and washout fluxes, sum hb amd hl)
       if ( ibchb > 0 .and. ibchl > 0 ) then
-        chemdepflx(:,:) =  (lm%wetdepflx(jci1:jci2,ici1:ici2,ibchb)  &
+        temps(:,:) =  (lm%wetdepflx(jci1:jci2,ici1:ici2,ibchb)  &
                          +  lm%wetdepflx(jci1:jci2,ici1:ici2,ibchl)) * rtsrf
-        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         clm_a2l%forc_aer(:,3) = clm_a2l%notused
       end if
       ! drydeposition OC HL
       if ( iochl > 0 ) then
-        chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,iochl)*  rtsrf
-        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+        temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,iochl)*  rtsrf
+        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         clm_a2l%forc_aer(:,4) = clm_a2l%notused
       end if
       ! drydeposition OC HB
       if ( iochb > 0 ) then
-        chemdepflx(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,iochb) *  rtsrf
-        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+        temps(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,iochb) *  rtsrf
+        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         clm_a2l%forc_aer(:,5) = clm_a2l%notused
       end if
       ! wet dep OC (sum rainout and washout fluxes, sum hb and hl)
       if(iochb >0 .and. iochl >0 ) then
-        chemdepflx(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,iochb)   &
+        temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,iochb)   &
                          +  lm%wetdepflx(jci1:jci2,ici1:ici2,iochl)) * rtsrf
-        call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         clm_a2l%forc_aer(:,6) = clm_a2l%notused
       end if
       if ( size(lm%idust) == 4 ) then
        ! wet dep dust 1
-       chemdepflx(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1)) &
+       temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1)) &
                       +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1))) * rtsrf
-       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+       call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,7) = clm_a2l%notused
        ! dry dep dust 1
-       chemdepflx(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(1))  * rtsrf
-       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+       temps(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(1))  * rtsrf
+       call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,8) = clm_a2l%notused
 
        ! wet dep dust 2
-       chemdepflx(:,:) =(lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2)) &
+       temps(:,:) =(lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2)) &
                       +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2))) * rtsrf
-       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+       call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,9) = clm_a2l%notused
        ! dry dep dust 2
-       chemdepflx(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(2))  * rtsrf
-       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+       temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(2))  * rtsrf
+       call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,10) = clm_a2l%notused
 
        ! wet dep dust 3
-       chemdepflx(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3)) &
+       temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3)) &
                       +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3))) * rtsrf
-       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+       call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,11) = clm_a2l%notused
        ! dry dep dust 3
-       chemdepflx(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(3))  * rtsrf
-       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+       temps(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(3))  * rtsrf
+       call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,12) = clm_a2l%notused
 
        ! wet dep dust 4
-       chemdepflx(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4)) &
+       temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4)) &
                       +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4))) * rtsrf
-       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+       call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,13) = clm_a2l%notused
        ! dry dep dust 4
-       chemdepflx(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,lm%idust(4))  * rtsrf
-       call glb_c2l_gs(lndcomm,chemdepflx,clm_a2l%notused)
+       temps(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,lm%idust(4))  * rtsrf
+       call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,14) = clm_a2l%notused
       end if
       ! FAB to do : treat the 12 bins case ..
@@ -390,8 +388,8 @@ module mod_clm_regcm
     end if ! end test on ichem
 
     if ( .true. ) then
-      clm_a2l%forc_flood = 0.000_rkx
-      clm_a2l%volr = 0.000_rkx
+      clm_a2l%forc_flood = 0.000_rk8
+      clm_a2l%volr = 0.000_rk8
     else
       ! Runoff in input ? Chym ?
       ! clm_a2l%forc_flood  ! flood (mm/s)
@@ -403,7 +401,7 @@ module mod_clm_regcm
     implicit none
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: k , g , begg , endg
-    real(rkx) , pointer , dimension(:,:,:) :: emis2d
+    real(rk8) , pointer , dimension(:,:,:) :: emis2d
 
     call get_proc_bounds(begg,endg)
 
@@ -434,11 +432,11 @@ module mod_clm_regcm
     lms%tgrd = lms%tgbb
     lms%tgbrd = lms%tgbb
 
-    clm_l2a%notused = 0.0_rkx
+    clm_l2a%notused = 0.0_rk8
     do k = 1 , nlevsoi
       do g = begg , endg
-        clm_l2a%notused(g) = max(clm_l2a%h2osoi_vol(g,k),0.0_rkx) * &
-             max(clm_l2a%dzsoi(g,k),0.0_rkx)*denh2o
+        clm_l2a%notused(g) = max(clm_l2a%h2osoi_vol(g,k),0.0_rk8) * &
+             max(clm_l2a%dzsoi(g,k),0.0_rk8)*denh2o
       end do
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
       lms%sw(:,:,:,k) = lms%tsw(:,:,:)
@@ -464,12 +462,12 @@ module mod_clm_regcm
 
     if ( ichem == 1 .and. enable_megan_emission ) then
       allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
-      emis2d = 0.0_rkx
+      emis2d = 0.0_rk8
       do k = 1 , shr_megan_mechcomps_n
         if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0) then
           clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
           call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-          lms%vocemiss(:,:,:,iisop) = emis2d
+          lms%vocemiss(:,:,:,iisop) = real(emis2d,rk4)
         end if
         ! add compatibility for other biogenic species !! /
         !
@@ -484,11 +482,11 @@ module mod_clm_regcm
     ! (chemlib/mod_che_dust)
     if ( ichem == 1 .and. ichdustemd == 3 ) then
       allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
-      emis2d = 0.0_rkx
+      emis2d = 0.0_rk8
       do k = 1 , 4
         clm_l2a%notused(:) = clm_l2a%flxdst(:,k)
         call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-        lms%dustemiss(:,:,:,k) = emis2d
+        lms%dustemiss(:,:,:,k) = real(emis2d,rk4)
       end do
       deallocate(emis2d)
     end if

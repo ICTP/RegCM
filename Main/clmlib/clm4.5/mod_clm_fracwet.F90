@@ -33,20 +33,20 @@ module mod_clm_fracwet
     ! fraction of veg not covered by snow (0/1 now) [-]
     integer(ik4) , pointer :: frac_veg_nosno(:)
     ! Maximum allowed dew [mm]
-    real(rkx) , pointer :: dewmx(:)
+    real(rk8) , pointer :: dewmx(:)
     ! one-sided leaf area index with burying by snow
-    real(rkx) , pointer :: elai(:)
+    real(rk8) , pointer :: elai(:)
     ! one-sided stem area index with burying by snow
-    real(rkx) , pointer :: esai(:)
+    real(rk8) , pointer :: esai(:)
     ! total canopy water (mm H2O)
-    real(rkx) , pointer :: h2ocan(:)
+    real(rk8) , pointer :: h2ocan(:)
     ! fraction of canopy that is wet (0 to 1)
-    real(rkx) , pointer :: fwet(:)
+    real(rk8) , pointer :: fwet(:)
     ! fraction of foliage that is green and dry [-] (new)
-    real(rkx) , pointer :: fdry(:)
+    real(rk8) , pointer :: fdry(:)
     integer(ik4) :: fp , p   ! indices
-    real(rkx) :: vegt        ! frac_veg_nosno*lsai
-    real(rkx) :: dewmxi      ! inverse of maximum allowed dew [1/mm]
+    real(rk8) :: vegt        ! frac_veg_nosno*lsai
+    real(rk8) :: dewmxi      ! inverse of maximum allowed dew [1/mm]
 
     ! Assign local pointers to derived subtypes components (pft-level)
 
@@ -63,22 +63,22 @@ module mod_clm_fracwet
     do fp = 1 , numf
       p = filter(fp)
       if ( frac_veg_nosno(p) == 1 ) then
-        if ( h2ocan(p) > 0._rkx ) then
+        if ( h2ocan(p) > 0._rk8 ) then
           vegt    = frac_veg_nosno(p)*(elai(p) + esai(p))
-          dewmxi  = 1.0_rkx/dewmx(p)
-          fwet(p) = ((dewmxi/vegt)*h2ocan(p))**0.666666666666_rkx
-          fwet(p) = min (fwet(p),1.0_rkx)   ! Check for maximum limit of fwet
+          dewmxi  = 1.0_rk8/dewmx(p)
+          fwet(p) = ((dewmxi/vegt)*h2ocan(p))**0.666666666666_rk8
+          fwet(p) = min (fwet(p),1.0_rk8)   ! Check for maximum limit of fwet
         else
-          fwet(p) = 0._rkx
+          fwet(p) = 0._rk8
         end if
-        fdry(p) = (1._rkx-fwet(p))*elai(p)/(elai(p)+esai(p))
+        fdry(p) = (1._rk8-fwet(p))*elai(p)/(elai(p)+esai(p))
 #if (defined PERGRO)
-        fwet(p) = 0._rkx
+        fwet(p) = 0._rk8
         fdry(p) = elai(p)/(elai(p)+esai(p))
 #endif
       else
-        fwet(p) = 0._rkx
-        fdry(p) = 0._rkx
+        fwet(p) = 0._rk8
+        fdry(p) = 0._rk8
       end if
     end do
   end subroutine FracWet

@@ -44,10 +44,10 @@ contains
   !
   subroutine initSurfalb(calday,declin,declinm1)
     implicit none
-    real(rkx) , intent(in) :: calday  ! calendar day for declin
-    real(rkx) , intent(in) :: declin  ! declination angle (radians) for calday
+    real(rk8) , intent(in) :: calday  ! calendar day for declin
+    real(rk8) , intent(in) :: declin  ! declination angle (radians) for calday
     ! declination angle (radians) for caldaym1
-    real(rkx) , intent(in) , optional :: declinm1
+    real(rk8) , intent(in) , optional :: declinm1
     ! landunit index associated with each pft
     integer(ik4) , pointer :: plandunit(:)
     ! column type
@@ -61,58 +61,58 @@ contains
     ! true => landunit is a lake point
     logical , pointer :: lakpoi(:)
     ! layer thickness depth (m)
-    real(rkx) , pointer :: dz(:,:)
+    real(rk8) , pointer :: dz(:,:)
     ! ice lens (kg/m2)
-    real(rkx) , pointer :: h2osoi_ice(:,:)
+    real(rk8) , pointer :: h2osoi_ice(:,:)
     ! liquid water (kg/m2)
-    real(rkx) , pointer :: h2osoi_liq(:,:)
+    real(rk8) , pointer :: h2osoi_liq(:,:)
     ! snow water (mm H2O)
-    real(rkx) , pointer :: h2osno(:)
+    real(rk8) , pointer :: h2osno(:)
     ! fraction of vegetation not covered by snow (0 OR 1) [-]
     integer(ik4) , pointer :: frac_veg_nosno_alb(:)
     ! daylength (seconds)
-    real(rkx) , pointer :: dayl(:)
+    real(rk8) , pointer :: dayl(:)
     ! latitude (degrees)
-    real(rkx) , pointer :: latdeg(:)
+    real(rk8) , pointer :: latdeg(:)
     ! index into column level quantities
     integer(ik4) , pointer :: pcolumn(:)
     ! soil water potential in each soil layer (MPa)
-    real(rkx) , pointer :: soilpsi(:,:)
+    real(rk8) , pointer :: soilpsi(:,:)
     ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
-    real(rkx) , pointer :: h2osoi_vol(:,:)
+    real(rk8) , pointer :: h2osoi_vol(:,:)
     ! snow height (m)
-    real(rkx) , pointer :: snow_depth(:)
+    real(rk8) , pointer :: snow_depth(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rkx) , pointer :: frac_sno(:)
+    real(rk8) , pointer :: frac_sno(:)
     ! fraction of vegetation not covered by snow (0 OR 1) [-]
     integer(ik4) , pointer :: frac_veg_nosno(:)
     ! fraction of canopy that is wet (0 to 1) (pft-level)
-    real(rkx) , pointer :: fwet(:)
+    real(rk8) , pointer :: fwet(:)
     ! solar declination angle (radians)
-    real(rkx) , pointer :: decl(:)
+    real(rk8) , pointer :: decl(:)
     ! fraction of foliage that is green and dry [-] (new)
-    real(rkx) , pointer :: fdry(:)
+    real(rk8) , pointer :: fdry(:)
     ! one-sided leaf area index, no burying by snow
-    real(rkx) , pointer :: tlai(:)
+    real(rk8) , pointer :: tlai(:)
     ! one-sided stem area index, no burying by snow
-    real(rkx) , pointer :: tsai(:)
+    real(rk8) , pointer :: tsai(:)
     ! canopy top (m)
-    real(rkx) , pointer :: htop(:)
+    real(rk8) , pointer :: htop(:)
     ! canopy bottom (m)
-    real(rkx) , pointer :: hbot(:)
+    real(rk8) , pointer :: hbot(:)
     ! one-sided leaf area index with burying by snow
-    real(rkx) , pointer :: elai(:)
+    real(rk8) , pointer :: elai(:)
     ! one-sided stem area index with burying by snow
-    real(rkx) , pointer :: esai(:)
+    real(rk8) , pointer :: esai(:)
     integer(ik4) :: j , l , c , p , fc ! indices
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending ldunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
-    real(rkx) :: lat    ! latitude (radians) for daylength calculation
-    real(rkx) :: temp   ! temporary variable for daylength
-    real(rkx) :: snowbd ! temporary calculation of snow bulk density (kg/m3)
-    real(rkx) :: fmelt  ! snowbd/100
+    real(rk8) :: lat    ! latitude (radians) for daylength calculation
+    real(rk8) :: temp   ! temporary variable for daylength
+    real(rk8) :: snowbd ! temporary calculation of snow bulk density (kg/m3)
+    real(rk8) :: fmelt  ! snowbd/100
 
     ! Assign local pointers to derived subtypes components (landunit-level)
 
@@ -181,14 +181,14 @@ contains
     do p = begp , endp
       l = plandunit(p)
       if ( lakpoi(l) ) then
-        fwet(p) = 0._rkx
-        fdry(p) = 0._rkx
-        elai(p) = 0._rkx
-        esai(p) = 0._rkx
-        htop(p) = 0._rkx
-        hbot(p) = 0._rkx
-        tlai(p) = 0._rkx
-        tsai(p) = 0._rkx
+        fwet(p) = 0._rk8
+        fdry(p) = 0._rk8
+        elai(p) = 0._rk8
+        esai(p) = 0._rk8
+        htop(p) = 0._rk8
+        hbot(p) = 0._rk8
+        tlai(p) = 0._rk8
+        tsai(p) = 0._rk8
         frac_veg_nosno_alb(p) = 0
         frac_veg_nosno(p) = 0
       end if
@@ -202,7 +202,7 @@ contains
     do j = 1 , nlevgrnd
       do fc = 1 , filter%num_soilc
         c = filter%soilc(fc)
-        soilpsi(c,j) = -15.0_rkx
+        soilpsi(c,j) = -15.0_rk8
       end do
     end do
 #endif
@@ -213,13 +213,13 @@ contains
       l = clandunit(c)
       if ( itypelun(l) == isturb ) then
         ! From Bonan 1996 (LSM technical note)
-        frac_sno(c) = min( snow_depth(c)/0.05_rkx, 1._rkx)
+        frac_sno(c) = min( snow_depth(c)/0.05_rk8, 1._rk8)
       else
-        frac_sno(c) = 0._rkx
+        frac_sno(c) = 0._rk8
         ! snow cover fraction as in Niu and Yang 2007
         if ( snow_depth(c) > 0.0 ) then
           !bulk density of snow (kg/m3)
-          snowbd = min(400._rkx,h2osno(c)/snow_depth(c))
+          snowbd = min(400._rk8,h2osno(c)/snow_depth(c))
           fmelt    = (snowbd/100.)**1.
           ! 100 is the assumed fresh snow density
           !   1 is a melting factor that could be reconsidered
@@ -258,8 +258,8 @@ contains
       if ( itypelun(l) == istsoil .or. itypelun(l) == istcrop ) then
         lat = latdeg(pgridcell(p)) * degrad
         temp = -(sin(lat)*sin(decl(c)))/(cos(lat) * cos(decl(c)))
-        temp = min(1._rkx,max(-1._rkx,temp))
-        dayl(p) = 2.0_rkx * 13750.9871_rkx * acos(temp)
+        temp = min(1._rk8,max(-1._rk8,temp))
+        dayl(p) = 2.0_rk8 * 13750.9871_rk8 * acos(temp)
       end if
     end do
 
@@ -285,7 +285,7 @@ contains
       l = plandunit(p)
       if ( .not. lakpoi(l) ) then
         frac_veg_nosno(p) = frac_veg_nosno_alb(p)
-        fwet(p) = 0._rkx
+        fwet(p) = 0._rk8
       end if
     end do
 

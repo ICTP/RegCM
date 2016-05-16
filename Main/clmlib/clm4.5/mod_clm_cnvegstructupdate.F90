@@ -34,70 +34,70 @@ module mod_clm_cnvegstructupdate
     integer(ik4), intent(in) :: filter_soilp(:)
 
 #if (defined CNDV)
-    real(rkx), pointer :: allom2(:) ! ecophys const
-    real(rkx), pointer :: allom3(:) ! ecophys const
-    real(rkx), pointer :: nind(:)   ! number of individuals (#/m**2)
+    real(rk8), pointer :: allom2(:) ! ecophys const
+    real(rk8), pointer :: allom3(:) ! ecophys const
+    real(rk8), pointer :: nind(:)   ! number of individuals (#/m**2)
     ! fractional area of pft (pft area/nat veg area)
-    real(rkx), pointer :: fpcgrid(:)
+    real(rk8), pointer :: fpcgrid(:)
 #endif
     integer(ik4) , pointer :: ivt(:)     ! pft vegetation type
     integer(ik4) , pointer :: pcolumn(:) ! column index associated with each pft
     integer(ik4) , pointer :: pgridcell(:) ! pft's gridcell index
-    real(rkx), pointer :: snow_depth(:)    ! snow height (m)
-    real(rkx), pointer :: leafc(:)      ! (gC/m2) leaf C
-    real(rkx), pointer :: deadstemc(:)  ! (gC/m2) dead stem C
+    real(rk8), pointer :: snow_depth(:)    ! snow height (m)
+    real(rk8), pointer :: leafc(:)      ! (gC/m2) leaf C
+    real(rk8), pointer :: deadstemc(:)  ! (gC/m2) dead stem C
     !binary flag for woody lifeform (1=woody, 0=not woody)
-    real(rkx), pointer :: woody(:)
+    real(rk8), pointer :: woody(:)
     !specific leaf area at top of canopy, projected area basis [m^2/gC]
-    real(rkx), pointer :: slatop(:)
+    real(rk8), pointer :: slatop(:)
     !dSLA/dLAI, projected area basis [m^2/gC]
-    real(rkx), pointer :: dsladlai(:)
+    real(rk8), pointer :: dsladlai(:)
     !ratio of momentum roughness length to canopy top height (-)
-    real(rkx), pointer :: z0mr(:)
+    real(rk8), pointer :: z0mr(:)
     !ratio of displacement height to canopy top height (-)
-    real(rkx), pointer :: displar(:)
+    real(rk8), pointer :: displar(:)
     ! observational height of wind at pft-level [m]
-    real(rkx), pointer :: forc_hgt_u_pft(:)
-    real(rkx), pointer :: dwood(:)      ! density of wood (gC/m^3)
-    real(rkx), pointer :: farea_burned(:) !F. Li and S. Levis
+    real(rk8), pointer :: forc_hgt_u_pft(:)
+    real(rk8), pointer :: dwood(:)      ! density of wood (gC/m^3)
+    real(rk8), pointer :: farea_burned(:) !F. Li and S. Levis
 
     ! frac of vegetation not covered by snow [-]
     integer(ik4) , pointer :: frac_veg_nosno_alb(:)
     !one-sided leaf area index, no burying by snow
-    real(rkx), pointer :: tlai(:)
+    real(rk8), pointer :: tlai(:)
     !one-sided stem area index, no burying by snow
-    real(rkx), pointer :: tsai(:)
-    real(rkx), pointer :: htop(:) !canopy top (m)
-    real(rkx), pointer :: hbot(:) !canopy bottom (m)
+    real(rk8), pointer :: tsai(:)
+    real(rk8), pointer :: htop(:) !canopy top (m)
+    real(rk8), pointer :: hbot(:) !canopy bottom (m)
     ! one-sided leaf area index with burying by snow
-    real(rkx), pointer :: elai(:)
+    real(rk8), pointer :: elai(:)
     ! one-sided stem area index with burying by snow
-    real(rkx), pointer :: esai(:)
+    real(rk8), pointer :: esai(:)
     ! max hgt attained by a crop during yr (m)
-    real(rkx), pointer :: htmx(:)
+    real(rk8), pointer :: htmx(:)
     integer(ik4) , pointer :: peaklai(:)  ! 1: max allowed lai; 0: not at max
     integer(ik4) , pointer :: harvdate(:) ! harvest date
 
     integer(ik4) :: p,c,g  !indices
     integer(ik4) :: fp     !lake filter indices
     ! ratio of height:radius_breast_height (tree allometry)
-    real(rkx):: taper
-    real(rkx):: stocking   ! #stems / ha (stocking density)
-    real(rkx):: ol         ! thickness of canopy layer covered by snow (m)
-    real(rkx):: fb         ! fraction of canopy layer covered by snow
-    real(rkx) :: tlai_old  ! for use in Zeng tsai formula
-    real(rkx) :: tsai_old  ! for use in Zeng tsai formula
-    real(rkx) :: tsai_min  ! PFT derived minimum tsai
-    real(rkx) :: tsai_alpha  ! monthly decay rate of tsai
-    real(rkx) dt             ! radiation time step (sec)
+    real(rk8):: taper
+    real(rk8):: stocking   ! #stems / ha (stocking density)
+    real(rk8):: ol         ! thickness of canopy layer covered by snow (m)
+    real(rk8):: fb         ! fraction of canopy layer covered by snow
+    real(rk8) :: tlai_old  ! for use in Zeng tsai formula
+    real(rk8) :: tsai_old  ! for use in Zeng tsai formula
+    real(rk8) :: tsai_min  ! PFT derived minimum tsai
+    real(rk8) :: tsai_alpha  ! monthly decay rate of tsai
+    real(rk8) dt             ! radiation time step (sec)
 
     ! number of seconds in a 30 day month (60x60x24x30)
-    real(rkx), parameter :: dtsmonth = 2592000._rkx
+    real(rk8), parameter :: dtsmonth = 2592000._rk8
     !-------------------------------------------------------------------
     ! tsai formula from Zeng et. al. 2002, Journal of Climate, p1835
     !
     ! tsai(p) = max( tsai_alpha(ivt(p))*tsai_old + &
-    !           max(tlai_old-tlai(p),0_rkx), tsai_min(ivt(p)) )
+    !           max(tlai_old-tlai(p),0_rk8), tsai_min(ivt(p)) )
     ! notes:
     ! * RHS tsai & tlai are from previous timestep
     ! * should create tsai_alpha(ivt(p)) & tsai_min(ivt(p))
@@ -144,11 +144,11 @@ module mod_clm_cnvegstructupdate
     dt = dtsrf
 
     ! constant allometric parameters
-    taper = 200._rkx
-    stocking = 1000._rkx
+    taper = 200._rk8
+    stocking = 1000._rk8
 
     ! convert from stems/ha -> stems/m^2
-    stocking = stocking / 10000._rkx
+    stocking = stocking / 10000._rk8
 
     ! pft loop
     do fp = 1 , num_soilp
@@ -163,13 +163,13 @@ module mod_clm_cnvegstructupdate
 
         ! update the leaf area index based on leafC and SLA
         ! Eq 3 from Thornton and Zimmerman, 2007, J Clim, 20, 3902-3923.
-        if ( dsladlai(ivt(p)) > 0._rkx ) then
+        if ( dsladlai(ivt(p)) > 0._rk8 ) then
           tlai(p) = (slatop(ivt(p)) * &
-            (exp(leafc(p)*dsladlai(ivt(p))) - 1._rkx))/dsladlai(ivt(p))
+            (exp(leafc(p)*dsladlai(ivt(p))) - 1._rk8))/dsladlai(ivt(p))
         else
           tlai(p) = slatop(ivt(p)) * leafc(p)
         end if
-        tlai(p) = max(0._rkx, tlai(p))
+        tlai(p) = max(0._rk8, tlai(p))
 
         ! update the stem area index and height based on LAI,
         ! stem mass, and veg type.
@@ -185,44 +185,44 @@ module mod_clm_cnvegstructupdate
         ! (seconds in average 30 day month)
         ! tsai_min scaled by 0.5 to match MODIS satellite derived values
         if (ivt(p) == nc3crop .or. ivt(p) == nc3irrig) then ! generic crops
-          tsai_alpha = 1.0_rkx-1.0_rkx*dt/dtsmonth
-          tsai_min = 0.1_rkx
+          tsai_alpha = 1.0_rk8-1.0_rk8*dt/dtsmonth
+          tsai_min = 0.1_rk8
         else
-          tsai_alpha = 1.0_rkx-0.5_rkx*dt/dtsmonth
-          tsai_min = 1.0_rkx
+          tsai_alpha = 1.0_rk8-0.5_rk8*dt/dtsmonth
+          tsai_min = 1.0_rk8
         end if
-        tsai_min = tsai_min * 0.5_rkx
-        tsai(p) = max(tsai_alpha*tsai_old+max(tlai_old-tlai(p),0._rkx),tsai_min)
+        tsai_min = tsai_min * 0.5_rk8
+        tsai(p) = max(tsai_alpha*tsai_old+max(tlai_old-tlai(p),0._rk8),tsai_min)
 
-        if ( woody(ivt(p)) == 1._rkx ) then
+        if ( woody(ivt(p)) == 1._rk8 ) then
 
           ! trees and shrubs
 
           ! if shrubs have a squat taper
           if ( ivt(p) >= nbrdlf_evr_shrub .and. &
                ivt(p) <= nbrdlf_dcd_brl_shrub ) then
-            taper = 10._rkx
+            taper = 10._rk8
             ! otherwise have a tall taper
           else
-            taper = 200._rkx
+            taper = 200._rk8
           end if
 
           ! trees and shrubs for now have a very simple allometry,
           ! with hard-wired stem taper (height:radius) and hard-wired
           ! stocking density (#individuals/area)
 #if (defined CNDV)
-          if ( fpcgrid(p) > 0._rkx .and. nind(p) > 0._rkx ) then
+          if ( fpcgrid(p) > 0._rk8 .and. nind(p) > 0._rk8 ) then
             !#ind/m2 nat veg area -> #ind/m2 pft area
             stocking = nind(p)/fpcgrid(p)
-            htop(p) = allom2(ivt(p)) * ( (24._rkx * deadstemc(p) / &
+            htop(p) = allom2(ivt(p)) * ( (24._rk8 * deadstemc(p) / &
                    (rpi * stocking * dwood(ivt(p)) * taper))** &
-                   (1._rkx/3._rkx) )**allom3(ivt(p)) ! lpj's htop w/ cn's stemdiam
+                   (1._rk8/3._rk8) )**allom3(ivt(p)) ! lpj's htop w/ cn's stemdiam
           else
-            htop(p) = 0._rkx
+            htop(p) = 0._rk8
           end if
 #else
-          htop(p) = ((3._rkx * deadstemc(p) * taper * taper)/ &
-                   (rpi * stocking * dwood(ivt(p))))**(1._rkx/3._rkx)
+          htop(p) = ((3._rk8 * deadstemc(p) * taper * taper)/ &
+                   (rpi * stocking * dwood(ivt(p))))**(1._rk8/3._rk8)
 #endif
 
           ! Peter Thornton, 5/3/2004
@@ -231,58 +231,58 @@ module mod_clm_cnvegstructupdate
           ! Also added for grass, below, although it is not likely
           ! to ever be an issue.
           htop(p) = min(htop(p), &
-            (forc_hgt_u_pft(p)/(displar(ivt(p))+z0mr(ivt(p))))-3._rkx)
+            (forc_hgt_u_pft(p)/(displar(ivt(p))+z0mr(ivt(p))))-3._rk8)
 
           ! Peter Thornton, 8/11/2004
           ! Adding constraint to keep htop from going to 0.0.
           ! This becomes an issue when fire mortality is pushing deadstemc
           ! to 0.0.
-          htop(p) = max(htop(p), 0.01_rkx)
-          hbot(p) = max(0._rkx, min(3._rkx, htop(p)-1._rkx))
+          htop(p) = max(htop(p), 0.01_rk8)
+          hbot(p) = max(0._rk8, min(3._rk8, htop(p)-1._rk8))
 
         else if ( ivt(p) >= npcropmin ) then ! prognostic crops
 
           if (tlai(p) >= laimx(ivt(p))) peaklai(p) = 1 ! used in CNAllocation
 
           if ( ivt(p) == ncorn .or. ivt(p) == ncornirrig ) then
-            tsai(p) = 0.1_rkx * tlai(p)
+            tsai(p) = 0.1_rk8 * tlai(p)
           else
-            tsai(p) = 0.2_rkx * tlai(p)
+            tsai(p) = 0.2_rk8 * tlai(p)
           end if
 
           ! "stubble" after harvest
-          if ( harvdate(p) < 999 .and. tlai(p) == 0._rkx ) then
+          if ( harvdate(p) < 999 .and. tlai(p) == 0._rk8 ) then
             !changed by F. Li and S. Levis
-            tsai(p) = 0.25_rkx*(1._rkx-farea_burned(c)*0.90_rkx)
-            htmx(p) = 0._rkx
+            tsai(p) = 0.25_rk8*(1._rk8-farea_burned(c)*0.90_rk8)
+            htmx(p) = 0._rk8
             peaklai(p) = 0
           end if
 
           ! canopy top and bottom heights
           htop(p) = ztopmx(ivt(p)) * &
-            (min(tlai(p)/(laimx(ivt(p))-1._rkx),1._rkx))**2
+            (min(tlai(p)/(laimx(ivt(p))-1._rk8),1._rk8))**2
           htmx(p) = max(htmx(p), htop(p))
-          htop(p) = max(0.05_rkx, max(htmx(p),htop(p)))
-          hbot(p) = 0.02_rkx
+          htop(p) = max(0.05_rk8, max(htmx(p),htop(p)))
+          hbot(p) = 0.02_rk8
         else ! generic crops and ...
           ! grasses
 
           ! height for grasses depends only on LAI
-          htop(p) = max(0.25_rkx, tlai(p) * 0.25_rkx)
+          htop(p) = max(0.25_rk8, tlai(p) * 0.25_rk8)
 
           htop(p) = min(htop(p), &
-            (forc_hgt_u_pft(p)/(displar(ivt(p))+z0mr(ivt(p))))-3._rkx)
+            (forc_hgt_u_pft(p)/(displar(ivt(p))+z0mr(ivt(p))))-3._rk8)
 
           ! Peter Thornton, 8/11/2004
           ! Adding constraint to keep htop from going to 0.0.
-          htop(p) = max(htop(p), 0.01_rkx)
-          hbot(p) = max(0.0_rkx, min(0.05_rkx, htop(p)-0.20_rkx))
+          htop(p) = max(htop(p), 0.01_rk8)
+          hbot(p) = max(0.0_rk8, min(0.05_rk8, htop(p)-0.20_rk8))
         end if
       else
-        tlai(p) = 0._rkx
-        tsai(p) = 0._rkx
-        htop(p) = 0._rkx
-        hbot(p) = 0._rkx
+        tlai(p) = 0._rk8
+        tsai(p) = 0._rk8
+        htop(p) = 0._rk8
+        hbot(p) = 0._rk8
       end if
 
       ! adjust lai and sai for burying by snow.
@@ -290,19 +290,19 @@ module mod_clm_cnvegstructupdate
       ! snow burial fraction for short vegetation (e.g. grasses) as in
       ! Wang and Zeng, 2007.
       if ( ivt(p) > noveg .and. ivt(p) <= nbrdlf_dcd_brl_shrub ) then
-        ol = min( max(snow_depth(c)-hbot(p), 0._rkx), htop(p)-hbot(p))
-        fb = 1._rkx - ol / max(1.e-6_rkx, htop(p)-hbot(p))
+        ol = min( max(snow_depth(c)-hbot(p), 0._rk8), htop(p)-hbot(p))
+        fb = 1._rk8 - ol / max(1.e-6_rk8, htop(p)-hbot(p))
       else
         ! 0.2m is assumed depth of snow required for
         ! complete burial of grasses
-        fb = 1._rkx - max(min(snow_depth(c),0.2_rkx),0._rkx)/0.2_rkx
+        fb = 1._rk8 - max(min(snow_depth(c),0.2_rk8),0._rk8)/0.2_rk8
       end if
 
-      elai(p) = max(tlai(p)*fb, 0.0_rkx)
-      esai(p) = max(tsai(p)*fb, 0.0_rkx)
+      elai(p) = max(tlai(p)*fb, 0.0_rk8)
+      esai(p) = max(tsai(p)*fb, 0.0_rk8)
 
       ! Fraction of vegetation free of snow
-      if ( (elai(p) + esai(p)) > 0._rkx ) then
+      if ( (elai(p) + esai(p)) > 0._rk8 ) then
         frac_veg_nosno_alb(p) = 1
       else
         frac_veg_nosno_alb(p) = 0

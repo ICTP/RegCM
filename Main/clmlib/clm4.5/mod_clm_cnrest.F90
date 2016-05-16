@@ -38,19 +38,19 @@ module mod_clm_cnrest
     type(clm_filetype)  :: ncid   ! netcdf id
     character(len=*) , intent(in) :: flag   !'read' or 'write'
     ! typical del13C for C3 photosynthesis (permil, relative to PDB)
-    real(rkx) :: c3_del13c
+    real(rk8) :: c3_del13c
     ! typical del13C for C4 photosynthesis (permil, relative to PDB)
-    real(rkx) :: c4_del13c
+    real(rk8) :: c4_del13c
     ! isotope ratio (13c/12c) for C3 photosynthesis
-    real(rkx) :: c3_r1
+    real(rk8) :: c3_r1
     ! isotope ratio (13c/12c) for C4 photosynthesis
-    real(rkx) :: c4_r1
+    real(rk8) :: c4_r1
     ! isotope ratio (13c/[12c+13c]) for C3 photosynthesis
-    real(rkx) :: c3_r2
+    real(rk8) :: c3_r2
     ! isotope ratio (13c/[12c+13c]) for C4 photosynthesis
-    real(rkx) :: c4_r2
-!   real(rkx) , pointer :: rc13_annsum_npp(:)
-!   real(rkx) , pointer :: rc13_cannsum_npp(:)
+    real(rk8) :: c4_r2
+!   real(rk8) , pointer :: rc13_annsum_npp(:)
+!   real(rk8) , pointer :: rc13_cannsum_npp(:)
     type(pft_cstate_type) , pointer :: pcisos
     type(pft_cstate_type) , pointer :: pcbulks
     integer(ik4) :: c , j , k , i ! indices
@@ -58,7 +58,7 @@ module mod_clm_cnrest
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg   ! per-proc gridcell ending gridcell indices
-    real(rkx):: m            ! multiplier for the exit_spinup code
+    real(rk8):: m            ! multiplier for the exit_spinup code
     logical :: lstop         ! determine if variable is on initial file
     character(len=128) :: varname         ! temporary
     type(gridcell_type), pointer :: gptr  ! pointer to gridcell derived subtype
@@ -70,7 +70,7 @@ module mod_clm_cnrest
     integer(ik4) :: p , ier! indices
 #endif
     !temporary arrays for slicing larger arrays
-    real(rkx) , pointer :: ptr2d(:,:)
+    real(rk8) , pointer :: ptr2d(:,:)
     ! spinup state as read from restart file, for determining whether
     ! to enter or exit spinup mode.
     integer(ik4) :: restart_file_spinup_state
@@ -95,12 +95,12 @@ module mod_clm_cnrest
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
     if ( use_c13 ) then
-      c3_del13c = -28._rkx
-      c4_del13c = -13._rkx
-      c3_r1 = pdbratio + ((c3_del13c*pdbratio)/1000._rkx)
-      c3_r2 = c3_r1/(1._rkx + c3_r1)
-      c4_r1 = pdbratio + ((c4_del13c*pdbratio)/1000._rkx)
-      c4_r2 = c4_r1/(1._rkx + c4_r1)
+      c3_del13c = -28._rk8
+      c4_del13c = -13._rk8
+      c3_r1 = pdbratio + ((c3_del13c*pdbratio)/1000._rk8)
+      c3_r2 = c3_r1/(1._rk8 + c3_r1)
+      c4_r1 = pdbratio + ((c4_del13c*pdbratio)/1000._rk8)
+      c4_r2 = c4_r1/(1._rk8 + c4_r1)
     end if
 
     !--------------------------------
@@ -1187,7 +1187,7 @@ module mod_clm_cnrest
           if ( ktau == 0 ) then
             write(stdout,*) 'initializing C13 leafc with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%leafc(i) = pcbulks%leafc(i) * c3_r2
               else
                 pcisos%leafc(i) = pcbulks%leafc(i) * c4_r2
@@ -1213,7 +1213,7 @@ module mod_clm_cnrest
             write(stdout,*) &
               'initializing C13 leafc_storage_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%leafc_storage(i) = pcbulks%leafc_storage(i) * c3_r2
               else
                 pcisos%leafc_storage(i) = pcbulks%leafc_storage(i) * c4_r2
@@ -1241,7 +1241,7 @@ module mod_clm_cnrest
             write(stdout,*) &
               'initializing C13 leafc_xfer_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%leafc_xfer(i) = pcbulks%leafc_xfer(i) * c3_r2
               else
                 pcisos%leafc_xfer(i) = pcbulks%leafc_xfer(i) * c4_r2
@@ -1269,7 +1269,7 @@ module mod_clm_cnrest
             write(stdout,*) &
               'initializing C13 frootc_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%frootc(i) = pcbulks%frootc(i) * c3_r2
               else
                 pcisos%frootc(i) = pcbulks%frootc(i) * c4_r2
@@ -1295,7 +1295,7 @@ module mod_clm_cnrest
             write(stdout,*) &
               'initializing C13 frootc_storage_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%frootc_storage(i) = pcbulks%frootc_storage(i) * c3_r2
               else
                 pcisos%frootc_storage(i) = pcbulks%frootc_storage(i) * c4_r2
@@ -1323,7 +1323,7 @@ module mod_clm_cnrest
             write(stdout,*) &
               'initializing C13 frootc_xfer_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%frootc_xfer(i) = pcbulks%frootc_xfer(i) * c3_r2
               else
                 pcisos%frootc_xfer(i) = pcbulks%frootc_xfer(i) * c4_r2
@@ -1351,7 +1351,7 @@ module mod_clm_cnrest
             write(stdout,*) &
               'initializing C13 livestemc_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%livestemc(i) = pcbulks%livestemc(i) * c3_r2
               else
                 pcisos%livestemc(i) = pcbulks%livestemc(i) * c4_r2
@@ -1379,7 +1379,7 @@ module mod_clm_cnrest
             write(stdout,*) &
               'initializing C13 livestemc_storage_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%livestemc_storage(i) = &
                         pcbulks%livestemc_storage(i) * c3_r2
               else
@@ -1409,7 +1409,7 @@ module mod_clm_cnrest
             write(stdout,*) &
               'initializing C13 livestemc_xfer_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%livestemc_xfer(i) = pcbulks%livestemc_xfer(i) * c3_r2
               else
                 pcisos%livestemc_xfer(i) = pcbulks%livestemc_xfer(i) * c4_r2
@@ -1437,7 +1437,7 @@ module mod_clm_cnrest
             write(stdout,*) &
               'initializing C13 deadstemc_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%deadstemc(i) = pcbulks%deadstemc(i) * c3_r2
               else
                 pcisos%deadstemc(i) = pcbulks%deadstemc(i) * c4_r2
@@ -1465,7 +1465,7 @@ module mod_clm_cnrest
             write(stdout,*) &
               'initializing C13 deadstemc_storage_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%deadstemc_storage(i) = &
                         pcbulks%deadstemc_storage(i) * c3_r2
               else
@@ -1495,7 +1495,7 @@ module mod_clm_cnrest
             write(stdout,*) &
               'initializing C13 deadstemc_xfer_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%deadstemc_xfer(i) = pcbulks%deadstemc_xfer(i) * c3_r2
               else
                 pcisos%deadstemc_xfer(i) = pcbulks%deadstemc_xfer(i) * c4_r2
@@ -1523,7 +1523,7 @@ module mod_clm_cnrest
             write(stdout,*) &
               'initializing C13 livecrootc_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%livecrootc(i) = pcbulks%livecrootc(i) * c3_r2
               else
                 pcisos%livecrootc(i) = pcbulks%livecrootc(i) * c4_r2
@@ -1551,7 +1551,7 @@ module mod_clm_cnrest
             write(stdout,*) &
              'initializing C13 livecrootc_storage_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%livecrootc_storage(i) = &
                         pcbulks%livecrootc_storage(i) * c3_r2
               else
@@ -1581,7 +1581,7 @@ module mod_clm_cnrest
             write(stdout,*) &
              'initializing C13 livecrootc_xfer_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%livecrootc_xfer(i) = pcbulks%livecrootc_xfer(i) * c3_r2
               else
                 pcisos%livecrootc_xfer(i) = pcbulks%livecrootc_xfer(i) * c4_r2
@@ -1609,7 +1609,7 @@ module mod_clm_cnrest
             write(stdout,*) &
              'initializing C13 deadcrootc_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%deadcrootc(i) = pcbulks%deadcrootc(i) * c3_r2
               else
                 pcisos%deadcrootc(i) = pcbulks%deadcrootc(i) * c4_r2
@@ -1637,7 +1637,7 @@ module mod_clm_cnrest
             write(stdout,*) &
              'initializing C13 deadcrootc_storage_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%deadcrootc_storage(i) = &
                         pcbulks%deadcrootc_storage(i) * c3_r2
               else
@@ -1667,7 +1667,7 @@ module mod_clm_cnrest
             write(stdout,*) &
              'initializing C13 deadcrootc_xfer_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%deadcrootc_xfer(i) = pcbulks%deadcrootc_xfer(i) * c3_r2
               else
                 pcisos%deadcrootc_xfer(i) = pcbulks%deadcrootc_xfer(i) * c4_r2
@@ -1695,7 +1695,7 @@ module mod_clm_cnrest
             write(stdout,*) &
              'initializing C13 gresp_storage_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%gresp_storage(i) = pcbulks%gresp_storage(i) * c3_r2
               else
                 pcisos%gresp_storage(i) = pcbulks%gresp_storage(i) * c4_r2
@@ -1723,7 +1723,7 @@ module mod_clm_cnrest
             write(stdout,*) &
              'initializing C13 gresp_xfer_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%gresp_xfer(i) = pcbulks%gresp_xfer(i) * c3_r2
               else
                 pcisos%gresp_xfer(i) = pcbulks%gresp_xfer(i) * c4_r2
@@ -1751,7 +1751,7 @@ module mod_clm_cnrest
             write(stdout,*) &
              'initializing C13 cpool_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%cpool(i) = pcbulks%cpool(i) * c3_r2
               else
                 pcisos%cpool(i) = pcbulks%cpool(i) * c4_r2
@@ -1777,7 +1777,7 @@ module mod_clm_cnrest
             write(stdout,*) &
              'initializing C13 xsmrpool_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%xsmrpool(i) = pcbulks%xsmrpool(i) * c3_r2
               else
                 pcisos%xsmrpool(i) = pcbulks%xsmrpool(i) * c4_r2
@@ -1803,7 +1803,7 @@ module mod_clm_cnrest
             write(stdout,*) &
              'initializing C13 pft_ctrunc_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%pft_ctrunc(i) = pcbulks%pft_ctrunc(i) * c3_r2
               else
                 pcisos%pft_ctrunc(i) = pcbulks%pft_ctrunc(i) * c4_r2
@@ -1829,7 +1829,7 @@ module mod_clm_cnrest
             write(stdout,*) &
              'initializing C13 totvegc_13 with atmospheric c13 value'
             do i = begp , endp
-              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
                 pcisos%totvegc(i) = pcbulks%totvegc(i) * c3_r2
               else
                 pcisos%totvegc(i) = pcbulks%totvegc(i) * c4_r2
@@ -3809,7 +3809,7 @@ module mod_clm_cnrest
 
     if ( ktau == 0 ) then
       do i = begp , endp
-        if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rkx) then
+        if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
           pcisos%grainc(i) = pcbulks%grainc(i) * c3_r2
           pcisos%grainc_storage(i) = pcbulks%grainc_storage(i) * c3_r2
           pcisos%grainc_xfer(i) = pcbulks%grainc_xfer(i) * c3_r2
@@ -4045,10 +4045,10 @@ module mod_clm_cnrest
     character(len=*), intent(in) :: longname
     character(len=*), intent(in) :: units
     character(len=*), intent(in) :: flag   !'read' or 'write'
-    real(rkx), optional, pointer :: data_rl(:,:)
+    real(rk8), optional, pointer :: data_rl(:,:)
     logical , intent(inout) , optional :: lstop
     ! true => variable is on initial dataset (read only)
-    real(rkx), pointer :: ptr1d(:)
+    real(rk8), pointer :: ptr1d(:)
     character(len=256) :: name_vr
 
     name_vr = trim(varname)//'_vr'

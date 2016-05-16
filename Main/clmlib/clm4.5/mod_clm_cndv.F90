@@ -54,16 +54,16 @@ module mod_clm_cndv
     integer(ik4) , pointer :: mxy(:)  ! pft m index (for laixy(i,j,m),etc.)
     integer(ik4) , pointer :: pgridcell(:)   ! gridcell of corresponding pft
     ! foliar projective cover on gridcell (fraction)
-    real(rkx), pointer :: fpcgrid(:)
+    real(rk8), pointer :: fpcgrid(:)
     ! accumulated growing degree days above 5
-    real(rkx), pointer :: agdd(:)
+    real(rk8), pointer :: agdd(:)
     ! annual min of t_mo (Kelvin)
-    real(rkx), pointer :: t_mo_min(:)
-    real(rkx), pointer :: temp_tmomin(:)
-    real(rkx), pointer :: temp_agdd(:)
-    real(rkx), pointer :: temp_count(:)
-    real(rkx), pointer :: tmomin20(:) ! 20-yr running mean of tmomin
-    real(rkx), pointer :: agdd20(:)   ! 20-yr running mean of agdd
+    real(rk8), pointer :: t_mo_min(:)
+    real(rk8), pointer :: temp_tmomin(:)
+    real(rk8), pointer :: temp_agdd(:)
+    real(rk8), pointer :: temp_count(:)
+    real(rk8), pointer :: tmomin20(:) ! 20-yr running mean of tmomin
+    real(rk8), pointer :: agdd20(:)   ! 20-yr running mean of agdd
     integer(ik4) :: g , p             ! indices
     integer(ik4) :: ier
 
@@ -92,30 +92,30 @@ module mod_clm_cndv
     if (ier /= 0) call fatal(__FILE__,__LINE__,&
       'DV: allocation error for temp_tmomin,temp_agdd,temp_count')
 
-    temp_tmomin(:) = 0.0_rkx
-    temp_agdd(:) = 0.0_rkx
-    temp_count(:) = 0.0_rkx
+    temp_tmomin(:) = 0.0_rk8
+    temp_agdd(:) = 0.0_rk8
+    temp_count(:) = 0.0_rk8
     do p = lbp , ubp
        g = pgridcell(p)
        temp_tmomin(g) = temp_tmomin(g) + t_mo_min(p)
        temp_agdd(g)   = temp_agdd(g)   + agdd(p)
-       temp_count(g)  = temp_count(g) + 1.0_rkx
+       temp_count(g)  = temp_count(g) + 1.0_rk8
     end do
 
     if ( kyr == 1 ) then
       do g = lbg , ubg
-        if ( temp_count(g) > 0.0_rkx ) then
+        if ( temp_count(g) > 0.0_rk8 ) then
           tmomin20(g) = temp_tmomin(g)/temp_count(g)
           agdd20(g)   = temp_agdd(g)/temp_count(g)
         end if
       end do
     else
       do g = lbg , ubg
-        if ( temp_count(g) > 0.0_rkx ) then
-          tmomin20(g) = (19._rkx * tmomin20(g) + &
-            temp_tmomin(g)/temp_count(g)) / 20._rkx
-          agdd20(g)   = (19._rkx * agdd20(g) +   &
-            temp_agdd(g)/temp_count(g)) / 20._rkx
+        if ( temp_count(g) > 0.0_rk8 ) then
+          tmomin20(g) = (19._rk8 * tmomin20(g) + &
+            temp_tmomin(g)/temp_count(g)) / 20._rk8
+          agdd20(g)   = (19._rk8 * agdd20(g) +   &
+            temp_agdd(g)/temp_count(g)) / 20._rk8
         end if
       end do
     end if
@@ -138,8 +138,8 @@ module mod_clm_cndv
     ! Reset dgvm variables needed in next yr (too few to keep subr. dvreset)
 
     do p = lbp,ubp
-       clm3%g%l%c%p%pcs%leafcmax(p) = 0._rkx
-       clm3%g%l%c%p%pdgvs%t_mo_min(p) = 1.0e+36_rkx
+       clm3%g%l%c%p%pcs%leafcmax(p) = 0._rk8
+       clm3%g%l%c%p%pdgvs%t_mo_min(p) = 1.0e+36_rk8
     end do
   end subroutine dv
   !
@@ -156,9 +156,9 @@ module mod_clm_cndv
     ! pft m index (for laixy(i,j,m),etc.)
     integer(ik4) , pointer :: mxy(:)
     ! foliar projective cover on gridcell (fraction)
-    real(rkx), pointer :: fpcgrid(:)
+    real(rk8), pointer :: fpcgrid(:)
     ! number of individuals (#/m**2)
-    real(rkx), pointer :: nind(:)
+    real(rk8), pointer :: nind(:)
     character(len=256) :: dgvm_fn   ! dgvm history filename
     type(clm_filetype) :: ncid      ! netcdf file id
     integer(ik4) :: p,l,c         ! indices
@@ -173,8 +173,8 @@ module mod_clm_cndv
     integer(ik4) :: yr,mon,day,mcsec        ! outputs from curr_date
     integer(ik4) :: hours,minutes,secs      ! hours,minutes,seconds of hh:mm:ss
     integer(ik4) :: nbsec                   ! seconds components of a date
-    real(rkx):: time                   ! current time
-    real(rkx) , pointer , dimension(:) :: rparr     ! temporary
+    real(rk8):: time                   ! current time
+    real(rk8) , pointer , dimension(:) :: rparr     ! temporary
     integer(ik4) , pointer , dimension(:) :: iparr  ! temporary
     character(len=256) :: str          ! temporary string
     character(len=  8) :: curdate      ! current date
@@ -395,14 +395,14 @@ module mod_clm_cndv
     ! The if .not. ifspecial statment below guarantees that the m index will
     ! always lie between 1 and maxpatch_pft
 
-    rparr(:) = 0._rkx
+    rparr(:) = 0._rk8
     do p = begp , endp
        l = plandunit(p)
-       if (.not. ifspecial(l)) rparr(p) = fpcgrid(p)*100._rkx
+       if (.not. ifspecial(l)) rparr(p) = fpcgrid(p)*100._rk8
     end do
     call clm_writevar(ncid,'FPCGRID',rparr,gcomm_pft,nt=1)
 
-    rparr(:) = 0._rkx
+    rparr(:) = 0._rk8
     do p = begp , endp
        l = plandunit(p)
        if (.not. ifspecial(l)) rparr(p) = nind(p)

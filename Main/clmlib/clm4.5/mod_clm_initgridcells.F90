@@ -138,10 +138,10 @@ module mod_clm_initgridcells
 
       ! Make ice sheet masks
 
-      gptr%gris_mask(gdc) = 0._rkx
-      gptr%gris_area(gdc) = 0._rkx
-      gptr%aais_mask(gdc) = 0._rkx
-      gptr%aais_area(gdc) = 0._rkx
+      gptr%gris_mask(gdc) = 0._rk8
+      gptr%gris_area(gdc) = 0._rk8
+      gptr%aais_mask(gdc) = 0._rk8
+      gptr%aais_area(gdc) = 0._rk8
 
       ! Greenland mask
       if ( (ldomain%latc(gdc) >  58. .and. ldomain%latc(gdc) <= 67.  .and.   &
@@ -154,9 +154,9 @@ module mod_clm_initgridcells
             ldomain%lonc(gdc) > 285. .and. ldomain%lonc(gdc) < 350.) .or.    &
            (ldomain%latc(gdc) >  79. .and. ldomain%latc(gdc) <  85. .and.    &
             ldomain%lonc(gdc) > 290. .and. ldomain%lonc(gdc) < 355.) ) then
-        gptr%gris_mask(gdc) = 1.0_rkx
+        gptr%gris_mask(gdc) = 1.0_rk8
       else if (ldomain%latc(gdc) < -60.) then
-        gptr%aais_mask(gdc) = 1.0_rkx
+        gptr%aais_mask(gdc) = 1.0_rk8
       end if  ! Greenland or Antarctic grid cell
 
       ! Set clm3 lats/lons
@@ -164,8 +164,8 @@ module mod_clm_initgridcells
       if (my_gcell) then
         gptr%latdeg(gdc) = ldomain%latc(gdc)
         gptr%londeg(gdc) = ldomain%lonc(gdc)
-        gptr%lat(gdc)    = gptr%latdeg(gdc) * rpi/180._rkx
-        gptr%lon(gdc)    = gptr%londeg(gdc) * rpi/180._rkx
+        gptr%lat(gdc)    = gptr%latdeg(gdc) * rpi/180._rk8
+        gptr%lon(gdc)    = gptr%londeg(gdc) * rpi/180._rk8
         gptr%area(gdc)   = ldomain%area(gdc)
       end if
 
@@ -493,7 +493,7 @@ module mod_clm_initgridcells
     integer(ik4) :: npfts        ! number of pfts in landunit
     integer(ik4) :: ncols        ! number of columns in landu
     integer(ik4) :: pitype       ! pft itype
-    real(rkx) :: wtlunit2gcell   ! landunit weight in gridcell
+    real(rk8) :: wtlunit2gcell   ! landunit weight in gridcell
     type(landunit_type) , pointer :: lptr  ! pointer to landunit
     type(column_type) , pointer :: cptr    ! pointer to column
     type(pft_type) , pointer :: pptr       ! pointer to pft
@@ -531,7 +531,7 @@ module mod_clm_initgridcells
         cptr%gridcell (ci) = gi
         cptr%wtgcell(ci) = wtlunit2gcell
         cptr%landunit (ci) = li
-        cptr%wtlunit(ci) = 1.0_rkx
+        cptr%wtlunit(ci) = 1.0_rk8
       end if ! setdata
 
       ! Set pft properties for this landunit
@@ -547,10 +547,10 @@ module mod_clm_initgridcells
             pptr%landunit(pi) = li
             pptr%column (pi) = ci
 
-            if (wtlunit2gcell > 0._rkx) then
-              pptr%wtgcell(pi) = 0.0_rkx
-              pptr%wtlunit(pi) = 0.0_rkx
-              pptr%wtcol(pi) = 0.0_rkx
+            if (wtlunit2gcell > 0._rk8) then
+              pptr%wtgcell(pi) = 0.0_rk8
+              pptr%wtlunit(pi) = 0.0_rk8
+              pptr%wtcol(pi) = 0.0_rk8
               do m = 1 , maxpatch_pft
                 if (vegxy(nw,m) == pitype) then
                   pptr%wtgcell(pi) = pptr%wtgcell(pi) + wtxy(nw,m)
@@ -559,14 +559,14 @@ module mod_clm_initgridcells
                   pptr%wtcol(pi) = pptr%wtcol(pi) + wtxy(nw,m) / wtlunit2gcell
                 end if
               end do
-            else  ! wtlunit2gcell == 0._rkx
+            else  ! wtlunit2gcell == 0._rk8
               ! TODO WJS: Temporarily setting this to equal weighting for all
               ! pfts. In the future, we could potentially get some info about
               ! this from the surface dataset, if it is changed to give
               ! pct_pft as % of the pft on the landunit
-              pptr%wtgcell(pi) = 0._rkx
-              pptr%wtlunit(pi) = 1._rkx / (numpft+1-numcft)
-              pptr%wtcol(pi)   = 1._rkx / (numpft+1-numcft)
+              pptr%wtgcell(pi) = 0._rk8
+              pptr%wtlunit(pi) = 1._rk8 / (numpft+1-numcft)
+              pptr%wtcol(pi)   = 1._rk8 / (numpft+1-numcft)
             end if
           end if ! setdata
         end do
@@ -581,10 +581,10 @@ module mod_clm_initgridcells
             pptr%landunit(pi) = li
             pptr%column (pi) = ci
 
-            if (wtlunit2gcell > 0._rkx) then
-              pptr%wtgcell(pi) = 0.0_rkx
-              pptr%wtlunit(pi) = 0.0_rkx
-              pptr%wtcol(pi) = 0.0_rkx
+            if (wtlunit2gcell > 0._rk8) then
+              pptr%wtgcell(pi) = 0.0_rk8
+              pptr%wtlunit(pi) = 0.0_rk8
+              pptr%wtcol(pi) = 0.0_rk8
               do m = 1 , maxpatch_pft
                 if (vegxy(nw,m) == pitype) then
                   pptr%wtgcell(pi) = pptr%wtgcell(pi) + wtxy(nw,m)
@@ -593,14 +593,14 @@ module mod_clm_initgridcells
                   pptr%wtcol(pi) = pptr%wtcol(pi) + wtxy(nw,m) / wtlunit2gcell
                 end if
               end do
-            else  ! wtlunit2gcell == 0._rkx
+            else  ! wtlunit2gcell == 0._rk8
               ! TODO WJS: Temporarily setting this to equal weighting for all
               ! pfts. In the future, we could potentially get some info about
               ! this from the surface dataset, if it is changed to give
               ! pct_pft as % of the pft on the landunit
-              pptr%wtgcell(pi) = 0._rkx
-              pptr%wtlunit(pi) = 1._rkx / (numpft+1)
-              pptr%wtcol(pi)   = 1._rkx / (numpft+1)
+              pptr%wtgcell(pi) = 0._rk8
+              pptr%wtlunit(pi) = 1._rk8 / (numpft+1)
+              pptr%wtcol(pi)   = 1._rk8 / (numpft+1)
             end if
           end if ! setdata
         end do
@@ -632,8 +632,8 @@ module mod_clm_initgridcells
     integer(ik4) :: ctype ! column type
     integer(ik4) :: npfts ! number of pfts in landunit
     integer(ik4) :: ncols ! number of columns in landu
-    real(rkx) :: wtlunit2gcell  ! landunit weight in gridcell
-    real(rkx) :: wtcol2lunit    ! col weight in landunit
+    real(rk8) :: wtlunit2gcell  ! landunit weight in gridcell
+    real(rk8) :: wtcol2lunit    ! col weight in landunit
     type(landunit_type) , pointer :: lptr ! pointer to landunit
     type(column_type) , pointer :: cptr   ! pointer to column
     type(pft_type) , pointer :: pptr      ! pointer to pft
@@ -674,7 +674,7 @@ module mod_clm_initgridcells
       ! Currently assume that each landunit only has only one column
       ! (of type 1) and that each column has its own pft
 
-      wtcol2lunit = 1.0_rkx/ncols
+      wtcol2lunit = 1.0_rk8/ncols
       ctype = 1
 
       li = li + 1
@@ -718,7 +718,7 @@ module mod_clm_initgridcells
         pptr%landunit (pi) = li
         pptr%wtlunit(pi) = wtcol2lunit
         pptr%column (pi) = ci
-        pptr%wtcol(pi) = 1.0_rkx
+        pptr%wtcol(pi) = 1.0_rk8
       end if ! setdata
     end if     ! npfts > 0
   end subroutine set_landunit_wet_ice_lake
@@ -742,7 +742,7 @@ module mod_clm_initgridcells
     integer(ik4) :: m       ! m index in wtxy(nw,m)
     integer(ik4) :: npfts   ! number of pfts in landunit
     integer(ik4) :: ncols   ! number of columns in landu
-    real(rkx) :: wtlunit2gcell ! landunit weight in gridcell
+    real(rk8) :: wtlunit2gcell ! landunit weight in gridcell
     type(landunit_type) , pointer :: lptr  ! pointer to landunit
     type(column_type) , pointer :: cptr    ! pointer to column
     type(pft_type) , pointer :: pptr       ! pointer to pft
@@ -795,7 +795,7 @@ module mod_clm_initgridcells
             pptr%wtgcell(pi) = wtxy(nw,m)
             pptr%landunit (pi) = li
             pptr%column (pi) = ci
-            pptr%wtcol(pi) = 1._rkx
+            pptr%wtcol(pi) = 1._rk8
             if (wtlunit2gcell > 0) then
               cptr%wtlunit(ci) = wtxy(nw,m) / wtlunit2gcell
               pptr%wtlunit(pi) = wtxy(nw,m) / wtlunit2gcell
@@ -804,8 +804,8 @@ module mod_clm_initgridcells
               ! all crop pfts. In the future, we could potentially get some
               ! info about this from the surface dataset, if it is changed
               ! to give pct_cft as % of the cft on the landunit
-              cptr%wtlunit(ci) = 1._rkx / numcft
-              pptr%wtlunit(pi) = 1._rkx / numcft
+              cptr%wtlunit(ci) = 1._rk8 / numcft
+              pptr%wtlunit(pi) = 1._rk8 / numcft
             end if
           end if ! setdata
         end do
@@ -840,11 +840,11 @@ module mod_clm_initgridcells
     integer(ik4) :: npfts      ! number of pfts in landunit
     integer(ik4) :: ncols      ! number of columns in landunit
     integer(ik4) :: npatch     ! npatch for the given urban density class
-    real(rkx) :: wtlunit2gcell ! weight relative to gridcell of landunit
-    real(rkx) :: wtcol2lunit   ! weight of column with respect to landunit
-    real(rkx) :: wtlunit_roof  ! weight of roof with respect to landunit
+    real(rk8) :: wtlunit2gcell ! weight relative to gridcell of landunit
+    real(rk8) :: wtcol2lunit   ! weight of column with respect to landunit
+    real(rk8) :: wtlunit_roof  ! weight of roof with respect to landunit
     ! weight of pervious road column with respect to total road
-    real(rkx) :: wtroad_perv
+    real(rk8) :: wtroad_perv
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype
     type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
@@ -901,7 +901,7 @@ module mod_clm_initgridcells
       ! has its own pft
 
       do m = npatch , npatch + maxpatch_urb - 1
-        if (wtxy(nw,m) > 0._rkx) then
+        if (wtxy(nw,m) > 0._rk8) then
 
           wtlunit_roof = urbinp%wtlunit_roof(nw,n)
           wtroad_perv  = urbinp%wtroad_perv(nw,n)
@@ -942,7 +942,7 @@ module mod_clm_initgridcells
             pptr%landunit(pi)  = li
             pptr%wtlunit (pi)  = wtcol2lunit
             pptr%column  (pi)  = ci
-            pptr%wtcol   (pi)  = 1.0_rkx
+            pptr%wtcol   (pi)  = 1.0_rk8
           end if
         end if
       end do   ! end of loop through urban columns-pfts

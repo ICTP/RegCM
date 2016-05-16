@@ -35,13 +35,13 @@ module mod_clm_activelayer
     !
     ! column level
     ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rkx) , pointer , dimension(:,:) :: t_soisno
+    real(rk8) , pointer , dimension(:,:) :: t_soisno
     ! current depth of thaw
-    real(rkx) , pointer , dimension(:) :: alt
+    real(rk8) , pointer , dimension(:) :: alt
     ! maximum annual depth of thaw
-    real(rkx) , pointer , dimension(:) :: altmax
+    real(rk8) , pointer , dimension(:) :: altmax
     ! prior year maximum annual depth of thaw
-    real(rkx) , pointer , dimension(:) :: altmax_lastyear
+    real(rk8) , pointer , dimension(:) :: altmax_lastyear
     ! current depth of thaw
     integer(ik4) , pointer , dimension(:) :: alt_indx
     ! maximum annual depth of thaw
@@ -49,13 +49,13 @@ module mod_clm_activelayer
     ! prior year maximum annual depth of thaw
     integer(ik4) , pointer , dimension(:) :: altmax_lastyear_indx
     ! gridcell latitude (radians)
-    real(rkx) , pointer , dimension(:) :: lat
+    real(rk8) , pointer , dimension(:) :: lat
     ! gridcell index of column
     integer(ik4) , pointer , dimension(:) :: cgridcell
 
     integer(ik4) :: c , j , fc , g  ! counters
     integer(ik4) :: k_frz           ! index of first nonfrozen soil layer
-    real(rkx) :: t1 , t2 , z1 , z2  ! temporary variables
+    real(rk8) :: t1 , t2 , z1 , z2  ! temporary variables
     ! used to break loop when first unfrozen layer reached
     logical :: found_thawlayer
 
@@ -130,7 +130,7 @@ module mod_clm_activelayer
           alt(c) = z1 + (t1-tzero)*(z2-z1)/(t1-t2)
           alt_indx(c) = k_frz
         else
-          alt(c) = 0.0_rkx
+          alt(c) = 0.0_rk8
           alt_indx(c) = 0
         end if
       end if

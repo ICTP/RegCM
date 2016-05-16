@@ -53,10 +53,10 @@ module mod_clm_megan
     character(len=16) :: name
     integer(ik4) :: index
     ! function of plant-function-type (PFT)
-    real(rkx), pointer :: emis_factors(:)
+    real(rk8), pointer :: emis_factors(:)
     integer(ik4) :: class_number    ! MEGAN class number
     ! molecular weight of the MEGAN compound (g/mole)
-    real(rkx) :: molec_weight
+    real(rk8) :: molec_weight
     ! points to next member in the linked list
     type(shr_megan_megcomp_t) , pointer :: next_megcomp
   endtype shr_megan_megcomp_t

@@ -276,7 +276,7 @@ module mod_clm_reweight
     integer(ik4) :: begl , endl  ! per-proc beginning and ending ldunit indices
     integer(ik4) :: begg , endg  ! per-proc beginning and ending gdcell indices
     integer(ik4) :: g , l , c , p     ! loop counters
-    real(rkx) , allocatable , dimension(:) :: sumwtcol , sumwtlunit , sumwtgcell
+    real(rk8) , allocatable , dimension(:) :: sumwtcol , sumwtlunit , sumwtgcell
     type(gridcell_type) , pointer  :: gptr ! pointer to gridcell derived subtype
     type(landunit_type) , pointer  :: lptr ! pointer to landunit derived subtype
     type(column_type) , pointer  :: cptr   ! pointer to column derived subtype
@@ -298,9 +298,9 @@ module mod_clm_reweight
     error_found = .false.
 
     ! Check PFT-level weights
-    sumwtcol(:) = 0._rkx
-    sumwtlunit(:) = 0._rkx
-    sumwtgcell(:) = 0._rkx
+    sumwtcol(:) = 0._rk8
+    sumwtlunit(:) = 0._rk8
+    sumwtgcell(:) = 0._rk8
 
     do p = begp , endp
       c = pptr%column(p)
@@ -342,8 +342,8 @@ module mod_clm_reweight
     end do
 
     ! Check col-level weights
-    sumwtlunit(:) = 0._rkx
-    sumwtgcell(:) = 0._rkx
+    sumwtlunit(:) = 0._rk8
+    sumwtgcell(:) = 0._rk8
 
     do c = begc , endc
       l = cptr%landunit(c)
@@ -375,7 +375,7 @@ module mod_clm_reweight
     end do
 
     ! Check landunit-level weights
-    sumwtgcell(:) = 0._rkx
+    sumwtgcell(:) = 0._rk8
 
     do l = begl , endl
       g = lptr%gridcell(l)
@@ -418,22 +418,22 @@ module mod_clm_reweight
   logical function weightsOkay(sumwts,active_weights_only,i_am_active)
     implicit none
     ! sum of weights of children, grandchildren or great-grandchildren
-    real(rkx) , intent(in) :: sumwts
+    real(rk8) , intent(in) :: sumwts
     ! true if sumwts just includes active children, etc.
     logical , intent(in) :: active_weights_only
     ! true if the current point is active
     logical , intent(in) :: i_am_active
     logical :: weights_equal_1
     ! tolerance for checking whether weights sum to 1
-    real(rkx) , parameter :: tolerance = 1.e-4_rkx
+    real(rk8) , parameter :: tolerance = 1.e-4_rk8
 
-    weights_equal_1 = (abs(sumwts - 1._rkx) <= tolerance)
+    weights_equal_1 = (abs(sumwts - 1._rk8) <= tolerance)
 
     if ( active_weights_only ) then
       if ( i_am_active ) then        ! condition (2) above
         weightsOkay = weights_equal_1
       else                         ! condition (3) above
-        weightsOkay = (sumwts == 0._rkx .or. weights_equal_1)
+        weightsOkay = (sumwts == 0._rk8 .or. weights_equal_1)
       end if
     else                            ! condition (1) above
       ! (note that i_am_active is irrelevant in this case)

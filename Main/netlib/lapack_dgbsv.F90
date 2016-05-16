@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 module lapack_dgbsv
 
-  use mod_realkinds , only : rkx
+  use mod_realkinds , only : rk8
 
   implicit none
 
@@ -55,7 +55,7 @@ module lapack_dgbsv
 !       ..
 !       .. Array Arguments ..
 !       INTEGER            IPIV( * )
-!       real(rkx)   AB( LDAB, * ), B( LDB, * )
+!       real(rk8)   AB( LDAB, * ), B( LDB, * )
 !       ..
 !
 !
@@ -106,7 +106,7 @@ module lapack_dgbsv
 !>
 !> \param[in,out] AB
 !> \verbatim
-!>          AB is real(rkx) array, dimension (LDAB,N)
+!>          AB is real(rk8) array, dimension (LDAB,N)
 !>          On entry, the matrix A in band storage, in rows KL+1 to
 !>          2*KL+KU+1; rows 1 to KL of the array need not be set.
 !>          The j-th column of A is stored in the j-th column of the
@@ -134,7 +134,7 @@ module lapack_dgbsv
 !>
 !> \param[in,out] B
 !> \verbatim
-!>          B is real(rkx) array, dimension (LDB,NRHS)
+!>          B is real(rk8) array, dimension (LDB,NRHS)
 !>          On entry, the N-by-NRHS right hand side matrix B.
 !>          On exit, if INFO = 0, the N-by-NRHS solution matrix X.
 !> \endverbatim
@@ -203,7 +203,7 @@ module lapack_dgbsv
 !     ..
 !     .. Array Arguments ..
       INTEGER            IPIV( * )
-      real(rkx)   AB( LDAB, * ), B( LDB, * )
+      real(rk8)   AB( LDAB, * ), B( LDB, * )
 !     ..
 !
 !  =====================================================================
@@ -277,7 +277,7 @@ module lapack_dgbsv
 !       ..
 !       .. Array Arguments ..
 !       INTEGER            IPIV( * )
-!       real(rkx)   AB( LDAB, * )
+!       real(rk8)   AB( LDAB, * )
 !       ..
 !
 !
@@ -321,7 +321,7 @@ module lapack_dgbsv
 !>
 !> \param[in,out] AB
 !> \verbatim
-!>          AB is real(rkx) array, dimension (LDAB,N)
+!>          AB is real(rk8) array, dimension (LDAB,N)
 !>          On entry, the matrix A in band storage, in rows KL+1 to
 !>          2*KL+KU+1; rows 1 to KL of the array need not be set.
 !>          The j-th column of A is stored in the j-th column of the
@@ -408,14 +408,14 @@ module lapack_dgbsv
 !     ..
 !     .. Array Arguments ..
       INTEGER            IPIV( * )
-      real(rkx)   AB( LDAB, * )
+      real(rk8)   AB( LDAB, * )
 !     ..
 !
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rkx)   ONE, ZERO
-      PARAMETER          ( ONE = 1.0_rkx, ZERO = 0.0_rkx )
+      real(rk8)   ONE, ZERO
+      PARAMETER          ( ONE = 1.0_rk8, ZERO = 0.0_rk8 )
 !     ..
 !     .. Local Scalars ..
       INTEGER            I, J, JP, JU, KM, KV
@@ -548,7 +548,7 @@ module lapack_dgbsv
 !       ..
 !       .. Array Arguments ..
 !       INTEGER            IPIV( * )
-!       real(rkx)   AB( LDAB, * )
+!       real(rk8)   AB( LDAB, * )
 !       ..
 !
 !
@@ -592,7 +592,7 @@ module lapack_dgbsv
 !>
 !> \param[in,out] AB
 !> \verbatim
-!>          AB is real(rkx) array, dimension (LDAB,N)
+!>          AB is real(rk8) array, dimension (LDAB,N)
 !>          On entry, the matrix A in band storage, in rows KL+1 to
 !>          2*KL+KU+1; rows 1 to KL of the array need not be set.
 !>          The j-th column of A is stored in the j-th column of the
@@ -678,24 +678,24 @@ module lapack_dgbsv
 !     ..
 !     .. Array Arguments ..
       INTEGER            IPIV( * )
-      real(rkx)   AB( LDAB, * )
+      real(rk8)   AB( LDAB, * )
 !     ..
 !
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rkx)   ONE, ZERO
-      PARAMETER          ( ONE = 1.0_rkx, ZERO = 0.0_rkx )
+      real(rk8)   ONE, ZERO
+      PARAMETER          ( ONE = 1.0_rk8, ZERO = 0.0_rk8 )
       INTEGER            NBMAX, LDWORK
       PARAMETER          ( NBMAX = 64, LDWORK = NBMAX+1 )
 !     ..
 !     .. Local Scalars ..
       INTEGER            I, I2, I3, II, IP, J, J2, J3, JB, JJ, JM, JP, &
                          JU, K2, KM, KV, NB, NW
-      real(rkx)   TEMP
+      real(rk8)   TEMP
 !     ..
 !     .. Local Arrays ..
-      real(rkx)   WORK13( LDWORK, NBMAX ), &
+      real(rk8)   WORK13( LDWORK, NBMAX ), &
                          WORK31( LDWORK, NBMAX )
 !     ..
 !     .. Intrinsic Functions ..
@@ -1059,7 +1059,7 @@ module lapack_dgbsv
 !       ..
 !       .. Array Arguments ..
 !       INTEGER            IPIV( * )
-!       real(rkx)   AB( LDAB, * ), B( LDB, * )
+!       real(rk8)   AB( LDAB, * ), B( LDB, * )
 !       ..
 !
 !
@@ -1113,7 +1113,7 @@ module lapack_dgbsv
 !>
 !> \param[in] AB
 !> \verbatim
-!>          AB is real(rkx) array, dimension (LDAB,N)
+!>          AB is real(rk8) array, dimension (LDAB,N)
 !>          Details of the LU factorization of the band matrix A, as
 !>          computed by DGBTRF.  U is stored as an upper triangular band
 !>          matrix with KL+KU superdiagonals in rows 1 to KL+KU+1, and
@@ -1136,7 +1136,7 @@ module lapack_dgbsv
 !>
 !> \param[in,out] B
 !> \verbatim
-!>          B is real(rkx) array, dimension (LDB,NRHS)
+!>          B is real(rk8) array, dimension (LDB,NRHS)
 !>          On entry, the right hand side matrix B.
 !>          On exit, the solution matrix X.
 !> \endverbatim
@@ -1182,14 +1182,14 @@ module lapack_dgbsv
 !     ..
 !     .. Array Arguments ..
       INTEGER            IPIV( * )
-      real(rkx)   AB( LDAB, * ), B( LDB, * )
+      real(rk8)   AB( LDAB, * ), B( LDB, * )
 !     ..
 !
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rkx)   ONE
-      PARAMETER          ( ONE = 1.0_rkx )
+      real(rk8)   ONE
+      PARAMETER          ( ONE = 1.0_rk8 )
 !     ..
 !     .. Local Scalars ..
       LOGICAL            LNOTI, NOTRAN
@@ -1320,7 +1320,7 @@ module lapack_dgbsv
 !       ..
 !       .. Array Arguments ..
 !       INTEGER            IPIV( * )
-!       real(rkx)   A( LDA, * )
+!       real(rk8)   A( LDA, * )
 !       ..
 !
 !
@@ -1344,7 +1344,7 @@ module lapack_dgbsv
 !>
 !> \param[in,out] A
 !> \verbatim
-!>          A is real(rkx) array, dimension (LDA,N)
+!>          A is real(rk8) array, dimension (LDA,N)
 !>          On entry, the matrix of column dimension N to which the row
 !>          interchanges will be applied.
 !>          On exit, the permuted matrix.
@@ -1420,14 +1420,14 @@ module lapack_dgbsv
 !     ..
 !     .. Array Arguments ..
       INTEGER            IPIV( * )
-      real(rkx)   A( LDA, * )
+      real(rk8)   A( LDA, * )
 !     ..
 !
 ! =====================================================================
 !
 !     .. Local Scalars ..
       INTEGER            I, I1, I2, INC, IP, IX, IX0, J, K, N32
-      real(rkx)   TEMP
+      real(rk8)   TEMP
 !     ..
 !     .. Executable Statements ..
 !
@@ -2890,7 +2890,7 @@ module lapack_dgbsv
       INTEGER INCX,N
 !     ..
 !     .. Array Arguments ..
-      real(rkx) DX(*)
+      real(rk8) DX(*)
 !     ..
 !
 !  Purpose
@@ -2908,7 +2908,7 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      real(rkx) DMAX
+      real(rk8) DMAX
       INTEGER I,IX
 !     ..
 !     .. Intrinsic Functions ..
@@ -2953,7 +2953,7 @@ module lapack_dgbsv
       INTEGER INCX,INCY,N
 !     ..
 !     .. Array Arguments ..
-      real(rkx) DX(*),DY(*)
+      real(rk8) DX(*),DY(*)
 !     ..
 !
 !  Purpose
@@ -2971,7 +2971,7 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Local Scalars ..
-      real(rkx) DTEMP
+      real(rk8) DTEMP
       INTEGER I,IX,IY,M,MP1
 !     ..
 !     .. Intrinsic Functions ..
@@ -3029,11 +3029,11 @@ module lapack_dgbsv
     SUBROUTINE DSCAL(N,DA,DX,INCX)
       IMPLICIT NONE
 !     .. Scalar Arguments ..
-      real(rkx) DA
+      real(rk8) DA
       INTEGER INCX,N
 !     ..
 !     .. Array Arguments ..
-      real(rkx) DX(*)
+      real(rk8) DX(*)
 !     ..
 !
 !  Purpose
@@ -3095,11 +3095,11 @@ module lapack_dgbsv
     SUBROUTINE DGER(M,N,ALPHA,X,INCX,Y,INCY,A,LDA)
       IMPLICIT NONE
 !     .. Scalar Arguments ..
-      real(rkx) ALPHA
+      real(rk8) ALPHA
       INTEGER INCX,INCY,LDA,M,N
 !     ..
 !     .. Array Arguments ..
-      real(rkx) A(LDA,*),X(*),Y(*)
+      real(rk8) A(LDA,*),X(*),Y(*)
 !     ..
 !
 !  Purpose
@@ -3125,11 +3125,11 @@ module lapack_dgbsv
 !           N must be at least zero.
 !           Unchanged on exit.
 !
-!  ALPHA  - real(rkx).
+!  ALPHA  - real(rk8).
 !           On entry, ALPHA specifies the scalar alpha.
 !           Unchanged on exit.
 !
-!  X      - real(rkx) array of dimension at least
+!  X      - real(rk8) array of dimension at least
 !           ( 1 + ( m - 1 )*abs( INCX ) ).
 !           Before entry, the incremented array X must contain the m
 !           element vector x.
@@ -3140,7 +3140,7 @@ module lapack_dgbsv
 !           X. INCX must not be zero.
 !           Unchanged on exit.
 !
-!  Y      - real(rkx) array of dimension at least
+!  Y      - real(rk8) array of dimension at least
 !           ( 1 + ( n - 1 )*abs( INCY ) ).
 !           Before entry, the incremented array Y must contain the n
 !           element vector y.
@@ -3151,7 +3151,7 @@ module lapack_dgbsv
 !           Y. INCY must not be zero.
 !           Unchanged on exit.
 !
-!  A      - real(rkx) array of DIMENSION ( LDA, n ).
+!  A      - real(rk8) array of DIMENSION ( LDA, n ).
 !           Before entry, the leading m by n part of the array A must
 !           contain the matrix of coefficients. On exit, A is
 !           overwritten by the updated matrix.
@@ -3176,11 +3176,11 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rkx) ZERO
-      PARAMETER (ZERO=0.0_rkx)
+      real(rk8) ZERO
+      PARAMETER (ZERO=0.0_rk8)
 !     ..
 !     .. Local Scalars ..
-      real(rkx) TEMP
+      real(rk8) TEMP
       INTEGER I,INFO,IX,J,JY,KX
 !     ..
 !     .. Intrinsic Functions ..
@@ -3259,7 +3259,7 @@ module lapack_dgbsv
       INTEGER INCX,INCY,N
 !     ..
 !     .. Array Arguments ..
-      real(rkx) DX(*),DY(*)
+      real(rk8) DX(*),DY(*)
 !     ..
 !
 !  Purpose
@@ -3328,12 +3328,12 @@ module lapack_dgbsv
     SUBROUTINE DGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
       IMPLICIT NONE
 !     .. Scalar Arguments ..
-      real(rkx) ALPHA,BETA
+      real(rk8) ALPHA,BETA
       INTEGER K,LDA,LDB,LDC,M,N
       CHARACTER TRANSA,TRANSB
 !     ..
 !     .. Array Arguments ..
-      real(rkx) A(LDA,*),B(LDB,*),C(LDC,*)
+      real(rk8) A(LDA,*),B(LDB,*),C(LDC,*)
 !     ..
 !
 !  Purpose
@@ -3394,11 +3394,11 @@ module lapack_dgbsv
 !           be at least  zero.
 !           Unchanged on exit.
 !
-!  ALPHA  - real(rkx).
+!  ALPHA  - real(rk8).
 !           On entry, ALPHA specifies the scalar alpha.
 !           Unchanged on exit.
 !
-!  A      - real(rkx) array of DIMENSION ( LDA, ka ), where ka is
+!  A      - real(rk8) array of DIMENSION ( LDA, ka ), where ka is
 !           k  when  TRANSA = 'N' or 'n',  and is  m  otherwise.
 !           Before entry with  TRANSA = 'N' or 'n',  the leading  m by k
 !           part of the array  A  must contain the matrix  A,  otherwise
@@ -3413,7 +3413,7 @@ module lapack_dgbsv
 !           least  max( 1, k ).
 !           Unchanged on exit.
 !
-!  B      - real(rkx) array of DIMENSION ( LDB, kb ), where kb is
+!  B      - real(rk8) array of DIMENSION ( LDB, kb ), where kb is
 !           n  when  TRANSB = 'N' or 'n',  and is  k  otherwise.
 !           Before entry with  TRANSB = 'N' or 'n',  the leading  k by n
 !           part of the array  B  must contain the matrix  B,  otherwise
@@ -3428,12 +3428,12 @@ module lapack_dgbsv
 !           least  max( 1, n ).
 !           Unchanged on exit.
 !
-!  BETA   - real(rkx).
+!  BETA   - real(rk8).
 !           On entry,  BETA  specifies the scalar  beta.  When  BETA  is
 !           supplied as zero then C need not be set on input.
 !           Unchanged on exit.
 !
-!  C      - real(rkx) array of DIMENSION ( LDC, n ).
+!  C      - real(rk8) array of DIMENSION ( LDC, n ).
 !           Before entry, the leading  m by n  part of the array  C must
 !           contain the matrix  C,  except when  beta  is zero, in which
 !           case C need not be set on entry.
@@ -3463,13 +3463,13 @@ module lapack_dgbsv
       INTRINSIC MAX
 !     ..
 !     .. Local Scalars ..
-      real(rkx) TEMP
+      real(rk8) TEMP
       INTEGER I,INFO,J,L,NCOLA,NROWA,NROWB
       LOGICAL NOTA,NOTB
 !     ..
 !     .. Parameters ..
-      real(rkx) ONE,ZERO
-      PARAMETER (ONE=1.0_rkx,ZERO=0.0_rkx)
+      real(rk8) ONE,ZERO
+      PARAMETER (ONE=1.0_rk8,ZERO=0.0_rk8)
 !     ..
 !
 !     Set  NOTA  and  NOTB  as  true if  A  and  B  respectively are not
@@ -3639,12 +3639,12 @@ module lapack_dgbsv
     SUBROUTINE DTRSM(SIDE,UPLO,TRANSA,DIAG,M,N,ALPHA,A,LDA,B,LDB)
       IMPLICIT NONE
 !     .. Scalar Arguments ..
-      real(rkx) ALPHA
+      real(rk8) ALPHA
       INTEGER LDA,LDB,M,N
       CHARACTER DIAG,SIDE,TRANSA,UPLO
 !     ..
 !     .. Array Arguments ..
-      real(rkx) A(LDA,*),B(LDB,*)
+      real(rk8) A(LDA,*),B(LDB,*)
 !     ..
 !
 !  Purpose
@@ -3717,13 +3717,13 @@ module lapack_dgbsv
 !           at least zero.
 !           Unchanged on exit.
 !
-!  ALPHA  - real(rkx).
+!  ALPHA  - real(rk8).
 !           On entry,  ALPHA specifies the scalar  alpha. When  alpha is
 !           zero then  A is not referenced and  B need not be set before
 !           entry.
 !           Unchanged on exit.
 !
-!  A      - real(rkx) array of DIMENSION ( LDA, k ), where k is m
+!  A      - real(rk8) array of DIMENSION ( LDA, k ), where k is m
 !           when  SIDE = 'L' or 'l'  and is  n  when  SIDE = 'R' or 'r'.
 !           Before entry  with  UPLO = 'U' or 'u',  the  leading  k by k
 !           upper triangular part of the array  A must contain the upper
@@ -3744,7 +3744,7 @@ module lapack_dgbsv
 !           then LDA must be at least max( 1, n ).
 !           Unchanged on exit.
 !
-!  B      - real(rkx) array of DIMENSION ( LDB, n ).
+!  B      - real(rk8) array of DIMENSION ( LDB, n ).
 !           Before entry,  the leading  m by n part of the array  B must
 !           contain  the  right-hand  side  matrix  B,  and  on exit  is
 !           overwritten by the solution matrix  X.
@@ -3773,13 +3773,13 @@ module lapack_dgbsv
       INTRINSIC MAX
 !     ..
 !     .. Local Scalars ..
-      real(rkx) TEMP
+      real(rk8) TEMP
       INTEGER I,INFO,J,K,NROWA
       LOGICAL LSIDE,NOUNIT,UPPER
 !     ..
 !     .. Parameters ..
-      real(rkx) ONE,ZERO
-      PARAMETER (ONE=1.0_rkx,ZERO=0.0_rkx)
+      real(rk8) ONE,ZERO
+      PARAMETER (ONE=1.0_rk8,ZERO=0.0_rk8)
 !     ..
 !
 !     Test the input parameters.
@@ -4014,7 +4014,7 @@ module lapack_dgbsv
       CHARACTER DIAG,TRANS,UPLO
 !     ..
 !     .. Array Arguments ..
-      real(rkx) A(LDA,*),X(*)
+      real(rk8) A(LDA,*),X(*)
 !     ..
 !
 !  Purpose
@@ -4080,7 +4080,7 @@ module lapack_dgbsv
 !           K must satisfy  0 .le. K.
 !           Unchanged on exit.
 !
-!  A      - real(rkx) array of DIMENSION ( LDA, n ).
+!  A      - real(rk8) array of DIMENSION ( LDA, n ).
 !           Before entry with UPLO = 'U' or 'u', the leading ( k + 1 )
 !           by n part of the array A must contain the upper triangular
 !           band part of the matrix of coefficients, supplied column by
@@ -4128,7 +4128,7 @@ module lapack_dgbsv
 !           ( k + 1 ).
 !           Unchanged on exit.
 !
-!  X      - real(rkx) array of dimension at least
+!  X      - real(rk8) array of dimension at least
 !           ( 1 + ( n - 1 )*abs( INCX ) ).
 !           Before entry, the incremented array X must contain the n
 !           element right-hand side vector b. On exit, X is overwritten
@@ -4153,11 +4153,11 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rkx) ZERO
-      PARAMETER (ZERO=0.0_rkx)
+      real(rk8) ZERO
+      PARAMETER (ZERO=0.0_rk8)
 !     ..
 !     .. Local Scalars ..
-      real(rkx) TEMP
+      real(rk8) TEMP
       INTEGER I,INFO,IX,J,JX,KPLUS1,KX,L
       LOGICAL NOUNIT
 !     ..
@@ -4344,12 +4344,12 @@ module lapack_dgbsv
     SUBROUTINE DGEMV(TRANS,M,N,ALPHA,A,LDA,X,INCX,BETA,Y,INCY)
       IMPLICIT NONE
 !     .. Scalar Arguments ..
-      real(rkx) ALPHA,BETA
+      real(rk8) ALPHA,BETA
       INTEGER INCX,INCY,LDA,M,N
       CHARACTER TRANS
 !     ..
 !     .. Array Arguments ..
-      real(rkx) A(LDA,*),X(*),Y(*)
+      real(rk8) A(LDA,*),X(*),Y(*)
 !     ..
 !
 !  Purpose
@@ -4387,11 +4387,11 @@ module lapack_dgbsv
 !           N must be at least zero.
 !           Unchanged on exit.
 !
-!  ALPHA  - real(rkx).
+!  ALPHA  - real(rk8).
 !           On entry, ALPHA specifies the scalar alpha.
 !           Unchanged on exit.
 !
-!  A      - real(rkx) array of DIMENSION ( LDA, n ).
+!  A      - real(rk8) array of DIMENSION ( LDA, n ).
 !           Before entry, the leading m by n part of the array A must
 !           contain the matrix of coefficients.
 !           Unchanged on exit.
@@ -4402,7 +4402,7 @@ module lapack_dgbsv
 !           max( 1, m ).
 !           Unchanged on exit.
 !
-!  X      - real(rkx) array of DIMENSION at least
+!  X      - real(rk8) array of DIMENSION at least
 !           ( 1 + ( n - 1 )*abs( INCX ) ) when TRANS = 'N' or 'n'
 !           and at least
 !           ( 1 + ( m - 1 )*abs( INCX ) ) otherwise.
@@ -4415,12 +4415,12 @@ module lapack_dgbsv
 !           X. INCX must not be zero.
 !           Unchanged on exit.
 !
-!  BETA   - real(rkx).
+!  BETA   - real(rk8).
 !           On entry, BETA specifies the scalar beta. When BETA is
 !           supplied as zero then Y need not be set on input.
 !           Unchanged on exit.
 !
-!  Y      - real(rkx) array of DIMENSION at least
+!  Y      - real(rk8) array of DIMENSION at least
 !           ( 1 + ( m - 1 )*abs( INCY ) ) when TRANS = 'N' or 'n'
 !           and at least
 !           ( 1 + ( n - 1 )*abs( INCY ) ) otherwise.
@@ -4448,11 +4448,11 @@ module lapack_dgbsv
 !  =====================================================================
 !
 !     .. Parameters ..
-      real(rkx) ONE,ZERO
-      PARAMETER (ONE=1.0_rkx,ZERO=0.0_rkx)
+      real(rk8) ONE,ZERO
+      PARAMETER (ONE=1.0_rk8,ZERO=0.0_rk8)
 !     ..
 !     .. Local Scalars ..
-      real(rkx) TEMP
+      real(rk8) TEMP
       INTEGER I,INFO,IX,IY,J,JX,JY,KX,KY,LENX,LENY
 !     ..
 !     .. Intrinsic Functions ..

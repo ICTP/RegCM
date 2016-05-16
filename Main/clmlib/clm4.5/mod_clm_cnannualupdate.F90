@@ -40,32 +40,32 @@ module mod_clm_cnannualupdate
     integer(ik4) , pointer :: pcolumn(:) ! index into column level quantities
 
     ! seconds since last annual accumulator turnover
-    real(rkx), pointer :: annsum_counter(:)
+    real(rk8), pointer :: annsum_counter(:)
     ! temporary annual sum of potential GPP
-    real(rkx), pointer :: tempsum_potential_gpp(:)
+    real(rk8), pointer :: tempsum_potential_gpp(:)
     ! annual sum of potential GPP
-    real(rkx), pointer :: annsum_potential_gpp(:)
+    real(rk8), pointer :: annsum_potential_gpp(:)
     ! temporary annual max of retranslocated N pool (gN/m2)
-    real(rkx), pointer :: tempmax_retransn(:)
+    real(rk8), pointer :: tempmax_retransn(:)
     ! annual max of retranslocated N pool (gN/m2)
-    real(rkx), pointer :: annmax_retransn(:)
+    real(rk8), pointer :: annmax_retransn(:)
     ! temporary average 2m air temperature (K)
-    real(rkx), pointer :: tempavg_t2m(:)
+    real(rk8), pointer :: tempavg_t2m(:)
     ! annual average 2m air temperature (K)
-    real(rkx), pointer :: annavg_t2m(:)
+    real(rk8), pointer :: annavg_t2m(:)
     ! temporary sum NPP (gC/m2/yr)
-    real(rkx), pointer :: tempsum_npp(:)
+    real(rk8), pointer :: tempsum_npp(:)
     ! annual sum NPP (gC/m2/yr)
-    real(rkx), pointer :: annsum_npp(:)
+    real(rk8), pointer :: annsum_npp(:)
     ! column annual sum NPP (gC/m2/yr)
-    real(rkx), pointer :: cannsum_npp(:)
+    real(rk8), pointer :: cannsum_npp(:)
     !annual average of 2m air temperature, averaged from pft-level (K)
-    real(rkx), pointer :: cannavg_t2m(:)
+    real(rk8), pointer :: cannavg_t2m(:)
 #if (defined CNDV)
     ! temporary sum litfall (gC/m2/yr)
-    real(rkx), pointer :: tempsum_litfall(:)
+    real(rk8), pointer :: tempsum_litfall(:)
     ! annual sum litfall (gC/m2/yr)
-    real(rkx), pointer :: annsum_litfall(:)
+    real(rk8), pointer :: annsum_litfall(:)
 #endif
 
     integer(ik4) :: c,p     ! indices
@@ -103,24 +103,24 @@ module mod_clm_cnannualupdate
           p = filter_soilp(fp)
           ! update annual plant ndemand accumulator
           annsum_potential_gpp(p)  = tempsum_potential_gpp(p)
-          tempsum_potential_gpp(p) = 0._rkx
+          tempsum_potential_gpp(p) = 0._rk8
 
           ! update annual total N retranslocation accumulator
           annmax_retransn(p)  = tempmax_retransn(p)
-          tempmax_retransn(p) = 0._rkx
+          tempmax_retransn(p) = 0._rk8
 
           ! update annual average 2m air temperature accumulator
           annavg_t2m(p)  = tempavg_t2m(p)
-          tempavg_t2m(p) = 0._rkx
+          tempavg_t2m(p) = 0._rk8
 
           ! update annual NPP accumulator, convert to annual total
           annsum_npp(p) = tempsum_npp(p) * dtsrf
-          tempsum_npp(p) = 0._rkx
+          tempsum_npp(p) = 0._rk8
 
 #if (defined CNDV)
           ! update annual litfall accumulator, convert to annual total
           annsum_litfall(p) = tempsum_litfall(p) * dtsrf
-          tempsum_litfall(p) = 0._rkx
+          tempsum_litfall(p) = 0._rk8
 #endif
         end do
 
@@ -134,7 +134,7 @@ module mod_clm_cnannualupdate
     ! column loop
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
-      if (annsum_counter(c) >= dayspy * secspday) annsum_counter(c) = 0._rkx
+      if (annsum_counter(c) >= dayspy * secspday) annsum_counter(c) = 0._rk8
     end do
   end subroutine CNAnnualUpdate
 

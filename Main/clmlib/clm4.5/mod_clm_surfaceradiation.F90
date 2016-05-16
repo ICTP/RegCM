@@ -49,197 +49,197 @@ module mod_clm_surfaceradiation
     integer(ik4), intent(in) :: num_nourbanp
     ! pft filter for non-urban points
     integer(ik4), intent(in) :: filter_nourbanp(ubp-lbp+1)
-    real(rkx), pointer :: albsod(:,:) ! direct-beam soil albedo (col,bnd) [frc]
-    real(rkx), pointer :: albsoi(:,:) ! diffuse soil albedo (col,bnd) [frc]
+    real(rk8), pointer :: albsod(:,:) ! direct-beam soil albedo (col,bnd) [frc]
+    real(rk8), pointer :: albsoi(:,:) ! diffuse soil albedo (col,bnd) [frc]
     ! solar radiation absorbed by soil (W/m**2)
-    real(rkx), pointer :: sabg_soil(:)
+    real(rk8), pointer :: sabg_soil(:)
     ! solar radiation absorbed by snow (W/m**2)
-    real(rkx), pointer :: sabg_snow(:)
+    real(rk8), pointer :: sabg_snow(:)
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer :: pactive(:)
     integer(ik4) , pointer :: ivt(:)           ! pft vegetation type
     integer(ik4) , pointer :: pcolumn(:)       ! pft's column index
     integer(ik4) , pointer :: pgridcell(:)     ! pft's gridcell index
     ! one-sided leaf area index with burying by snow
-    real(rkx), pointer :: elai(:)
+    real(rk8), pointer :: elai(:)
     ! one-sided stem area index with burying by snow
-    real(rkx), pointer :: esai(:)
-    real(rkx), pointer :: londeg(:)        ! longitude (degrees)
-    real(rkx), pointer :: latdeg(:)        ! latitude (degrees)
-    real(rkx), pointer :: coszen(:)        ! cosine of solar zenith angle
-    real(rkx), pointer :: forc_solad(:,:)  ! direct beam radiation (W/m**2)
-    real(rkx), pointer :: forc_solai(:,:)  ! diffuse radiation (W/m**2)
+    real(rk8), pointer :: esai(:)
+    real(rk8), pointer :: londeg(:)        ! longitude (degrees)
+    real(rk8), pointer :: latdeg(:)        ! latitude (degrees)
+    real(rk8), pointer :: coszen(:)        ! cosine of solar zenith angle
+    real(rk8), pointer :: forc_solad(:,:)  ! direct beam radiation (W/m**2)
+    real(rk8), pointer :: forc_solai(:,:)  ! diffuse radiation (W/m**2)
     ! flux absorbed by canopy per unit direct flux
-    real(rkx), pointer :: fabd(:,:)
+    real(rk8), pointer :: fabd(:,:)
     ! flux absorbed by sunlit canopy per unit direct flux
-    real(rkx), pointer :: fabd_sun(:,:)
+    real(rk8), pointer :: fabd_sun(:,:)
     ! flux absorbed by shaded canopy per unit direct flux
-    real(rkx), pointer :: fabd_sha(:,:)
+    real(rk8), pointer :: fabd_sha(:,:)
     ! flux absorbed by canopy per unit diffuse flux
-    real(rkx), pointer :: fabi(:,:)
+    real(rk8), pointer :: fabi(:,:)
     ! flux absorbed by sunlit canopy per unit diffuse flux
-    real(rkx), pointer :: fabi_sun(:,:)
+    real(rk8), pointer :: fabi_sun(:,:)
     ! flux absorbed by shaded canopy per unit diffuse flux
-    real(rkx), pointer :: fabi_sha(:,:)
+    real(rk8), pointer :: fabi_sha(:,:)
     ! down direct flux below canopy per unit direct flux
-    real(rkx), pointer :: ftdd(:,:)
+    real(rk8), pointer :: ftdd(:,:)
     ! down diffuse flux below canopy per unit direct flux
-    real(rkx), pointer :: ftid(:,:)
+    real(rk8), pointer :: ftid(:,:)
     ! down diffuse flux below canopy per unit diffuse flux
-    real(rkx), pointer :: ftii(:,:)
+    real(rk8), pointer :: ftii(:,:)
     ! number of canopy layers, above snow for radiative transfer
     integer(ik4) , pointer :: nrad(:)
     ! absorbed sunlit leaf direct  PAR (per unit lai+sai) for each canopy layer
-    real(rkx), pointer :: fabd_sun_z(:,:)
+    real(rk8), pointer :: fabd_sun_z(:,:)
     ! absorbed shaded leaf direct  PAR (per unit lai+sai) for each canopy layer
-    real(rkx), pointer :: fabd_sha_z(:,:)
+    real(rk8), pointer :: fabd_sha_z(:,:)
     ! absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
-    real(rkx), pointer :: fabi_sun_z(:,:)
+    real(rk8), pointer :: fabi_sun_z(:,:)
     ! absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
-    real(rkx), pointer :: fabi_sha_z(:,:)
-    real(rkx), pointer :: fsun_z(:,:)  ! sunlit fraction of canopy layer
-    real(rkx), pointer :: tlai_z(:,:)  ! tlai increment for canopy layer
-    real(rkx), pointer :: tsai_z(:,:)  ! tsai increment for canopy layer
-    real(rkx), pointer :: albgrd(:,:)  ! ground albedo (direct)
-    real(rkx), pointer :: albgri(:,:)  ! ground albedo (diffuse)
-    real(rkx), pointer :: albd(:,:)    ! surface albedo (direct)
-    real(rkx), pointer :: albi(:,:)    ! surface albedo (diffuse)
+    real(rk8), pointer :: fabi_sha_z(:,:)
+    real(rk8), pointer :: fsun_z(:,:)  ! sunlit fraction of canopy layer
+    real(rk8), pointer :: tlai_z(:,:)  ! tlai increment for canopy layer
+    real(rk8), pointer :: tsai_z(:,:)  ! tsai increment for canopy layer
+    real(rk8), pointer :: albgrd(:,:)  ! ground albedo (direct)
+    real(rk8), pointer :: albgri(:,:)  ! ground albedo (diffuse)
+    real(rk8), pointer :: albd(:,:)    ! surface albedo (direct)
+    real(rk8), pointer :: albi(:,:)    ! surface albedo (diffuse)
 
-    real(rkx), pointer :: fsun(:)      ! sunlit fraction of canopy
-    real(rkx), pointer :: laisun(:)    ! sunlit leaf area
-    real(rkx), pointer :: laisha(:)    ! shaded leaf area
+    real(rk8), pointer :: fsun(:)      ! sunlit fraction of canopy
+    real(rk8), pointer :: laisun(:)    ! sunlit leaf area
+    real(rk8), pointer :: laisha(:)    ! shaded leaf area
     ! sunlit leaf area for canopy layer
-    real(rkx), pointer :: laisun_z(:,:)
+    real(rk8), pointer :: laisun_z(:,:)
     ! shaded leaf area for canopy layer
-    real(rkx), pointer :: laisha_z(:,:)
+    real(rk8), pointer :: laisha_z(:,:)
     ! absorbed PAR for sunlit leaves in canopy layer
-    real(rkx), pointer :: parsun_z(:,:)
+    real(rk8), pointer :: parsun_z(:,:)
     ! absorbed PAR for shaded leaves in canopy layer
-    real(rkx), pointer :: parsha_z(:,:)
+    real(rk8), pointer :: parsha_z(:,:)
     ! solar radiation absorbed by ground (W/m**2)
-    real(rkx), pointer :: sabg(:)
+    real(rk8), pointer :: sabg(:)
     ! solar radiation absorbed by vegetation (W/m**2)
-    real(rkx), pointer :: sabv(:)
+    real(rk8), pointer :: sabv(:)
     ! solar radiation absorbed (total) (W/m**2)
-    real(rkx), pointer :: fsa(:)
+    real(rk8), pointer :: fsa(:)
     ! rural solar radiation absorbed (total) (W/m**2)
-    real(rkx), pointer :: fsa_r(:)
+    real(rk8), pointer :: fsa_r(:)
     ! landunit type
     integer(ik4) , pointer :: ityplun(:)
     ! index into landunit level quantities
     integer(ik4) , pointer :: plandunit(:)
     ! solar radiation reflected (W/m**2)
-    real(rkx), pointer :: fsr(:)
+    real(rk8), pointer :: fsr(:)
     ! incident direct beam vis solar radiation (W/m**2)
-    real(rkx), pointer :: fsds_vis_d(:)
+    real(rk8), pointer :: fsds_vis_d(:)
     ! incident direct beam nir solar radiation (W/m**2)
-    real(rkx), pointer :: fsds_nir_d(:)
+    real(rk8), pointer :: fsds_nir_d(:)
     ! incident diffuse vis solar radiation (W/m**2)
-    real(rkx), pointer :: fsds_vis_i(:)
+    real(rk8), pointer :: fsds_vis_i(:)
     ! incident diffuse nir solar radiation (W/m**2)
-    real(rkx), pointer :: fsds_nir_i(:)
+    real(rk8), pointer :: fsds_nir_i(:)
     ! reflected direct beam vis solar radiation (W/m**2)
-    real(rkx), pointer :: fsr_vis_d(:)
+    real(rk8), pointer :: fsr_vis_d(:)
     ! reflected direct beam nir solar radiation (W/m**2)
-    real(rkx), pointer :: fsr_nir_d(:)
+    real(rk8), pointer :: fsr_nir_d(:)
     ! reflected diffuse vis solar radiation (W/m**2)
-    real(rkx), pointer :: fsr_vis_i(:)
+    real(rk8), pointer :: fsr_vis_i(:)
     ! reflected diffuse nir solar radiation (W/m**2)
-    real(rkx), pointer :: fsr_nir_i(:)
+    real(rk8), pointer :: fsr_nir_i(:)
     ! incident direct beam vis solar rad at local noon (W/m**2)
-    real(rkx), pointer :: fsds_vis_d_ln(:)
+    real(rk8), pointer :: fsds_vis_d_ln(:)
     ! incident direct beam nir solar rad at local noon (W/m**2)
-    real(rkx), pointer :: fsds_nir_d_ln(:)
+    real(rk8), pointer :: fsds_nir_d_ln(:)
     ! reflected direct beam vis solar rad at local noon (W/m**2)
-    real(rkx), pointer :: fsr_vis_d_ln(:)
+    real(rk8), pointer :: fsr_vis_d_ln(:)
     ! reflected direct beam nir solar rad at local noon (W/m**2)
-    real(rkx), pointer :: fsr_nir_d_ln(:)
+    real(rk8), pointer :: fsr_nir_d_ln(:)
     ! incident diffuse beam vis solar rad at local noon (W/m**2)
-    real(rkx), pointer :: fsds_vis_i_ln(:)
+    real(rk8), pointer :: fsds_vis_i_ln(:)
     ! absorbed par by vegetation at local noon (W/m**2)
-    real(rkx), pointer :: parveg_ln(:)
+    real(rk8), pointer :: parveg_ln(:)
     ! direct flux absorption factor (col,lyr): VIS [frc]
-    real(rkx), pointer :: flx_absdv(:,:)
+    real(rk8), pointer :: flx_absdv(:,:)
     ! direct flux absorption factor (col,lyr): NIR [frc]
-    real(rkx), pointer :: flx_absdn(:,:)
+    real(rk8), pointer :: flx_absdn(:,:)
     ! diffuse flux absorption factor (col,lyr): VIS [frc]
-    real(rkx), pointer :: flx_absiv(:,:)
+    real(rk8), pointer :: flx_absiv(:,:)
     ! diffuse flux absorption factor (col,lyr): NIR [frc]
-    real(rkx), pointer :: flx_absin(:,:)
+    real(rk8), pointer :: flx_absin(:,:)
     ! negative number of snow layers [nbr]
     integer(ik4) , pointer :: snl(:)
     ! pure snow ground albedo (direct)
-    real(rkx), pointer :: albgrd_pur(:,:)
+    real(rk8), pointer :: albgrd_pur(:,:)
     ! pure snow ground albedo (diffuse)
-    real(rkx), pointer :: albgri_pur(:,:)
+    real(rk8), pointer :: albgri_pur(:,:)
     ! ground albedo without BC (direct) (col,bnd)
-    real(rkx), pointer :: albgrd_bc(:,:)
+    real(rk8), pointer :: albgrd_bc(:,:)
     ! ground albedo without BC (diffuse) (col,bnd)
-    real(rkx), pointer :: albgri_bc(:,:)
+    real(rk8), pointer :: albgri_bc(:,:)
     ! ground albedo without OC (direct) (col,bnd)
-    real(rkx), pointer :: albgrd_oc(:,:)
+    real(rk8), pointer :: albgrd_oc(:,:)
     ! ground albedo without OC (diffuse) (col,bnd)
-    real(rkx), pointer :: albgri_oc(:,:)
+    real(rk8), pointer :: albgri_oc(:,:)
     ! ground albedo without dust (direct) (col,bnd)
-    real(rkx), pointer :: albgrd_dst(:,:)
+    real(rk8), pointer :: albgrd_dst(:,:)
     ! ground albedo without dust (diffuse) (col,bnd)
-    real(rkx), pointer :: albgri_dst(:,:)
+    real(rk8), pointer :: albgri_dst(:,:)
     ! snow albedo, direct, for history files (col,bnd) [frc]
-    real(rkx), pointer :: albsnd_hst(:,:)
+    real(rk8), pointer :: albsnd_hst(:,:)
     ! snow ground albedo, diffuse, for history files (col,bnd
-    real(rkx), pointer :: albsni_hst(:,:)
+    real(rk8), pointer :: albsni_hst(:,:)
     ! absorbed radiative flux (pft,lyr) [W/m2]
-    real(rkx), pointer :: sabg_lyr(:,:)
+    real(rk8), pointer :: sabg_lyr(:,:)
     ! (rural) shortwave radiation penetrating top soisno layer [W/m2]
-    real(rkx), pointer :: sabg_pen(:)
+    real(rk8), pointer :: sabg_pen(:)
     ! surface forcing of snow with all aerosols (pft) [W/m2]
-    real(rkx), pointer :: sfc_frc_aer(:)
+    real(rk8), pointer :: sfc_frc_aer(:)
     ! surface forcing of snow with BC (pft) [W/m2]
-    real(rkx), pointer :: sfc_frc_bc(:)
+    real(rk8), pointer :: sfc_frc_bc(:)
     ! surface forcing of snow with OC (pft) [W/m2]
-    real(rkx), pointer :: sfc_frc_oc(:)
+    real(rk8), pointer :: sfc_frc_oc(:)
     ! surface forcing of snow with dust (pft) [W/m2]
-    real(rkx), pointer :: sfc_frc_dst(:)
+    real(rk8), pointer :: sfc_frc_dst(:)
     ! surface forcing of snow with all aerosols, averaged only
     ! when snow is present (pft) [W/m2]
-    real(rkx), pointer :: sfc_frc_aer_sno(:)
+    real(rk8), pointer :: sfc_frc_aer_sno(:)
     ! surface forcing of snow with BC, averaged only when snow
     ! is present (pft) [W/m2]
-    real(rkx), pointer :: sfc_frc_bc_sno(:)
+    real(rk8), pointer :: sfc_frc_bc_sno(:)
     ! surface forcing of snow with OC, averaged only when snow
     ! is present (pft) [W/m2]
-    real(rkx), pointer :: sfc_frc_oc_sno(:)
+    real(rk8), pointer :: sfc_frc_oc_sno(:)
     ! surface forcing of snow with dust, averaged only when snow
     ! is present (pft) [W/m2]
-    real(rkx), pointer :: sfc_frc_dst_sno(:)
+    real(rk8), pointer :: sfc_frc_dst_sno(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rkx), pointer :: frac_sno(:)
+    real(rk8), pointer :: frac_sno(:)
     ! reflected visible, direct radiation from snow
     ! (for history files) (pft) [W/m2]
-    real(rkx), pointer :: fsr_sno_vd(:)
+    real(rk8), pointer :: fsr_sno_vd(:)
     ! reflected near-IR, direct radiation from snow
     ! (for history files) (pft) [W/m2]
-    real(rkx), pointer :: fsr_sno_nd(:)
+    real(rk8), pointer :: fsr_sno_nd(:)
     ! reflected visible, diffuse radiation from snow
     ! (for history files) (pft) [W/m2]
-    real(rkx), pointer :: fsr_sno_vi(:)
+    real(rk8), pointer :: fsr_sno_vi(:)
     ! reflected near-IR, diffuse radiation from snow
     ! (for history files) (pft) [W/m2]
-    real(rkx), pointer :: fsr_sno_ni(:)
+    real(rk8), pointer :: fsr_sno_ni(:)
     ! incident visible, direct radiation on snow
     ! (for history files) (pft) [W/m2]
-    real(rkx), pointer :: fsds_sno_vd(:)
+    real(rk8), pointer :: fsds_sno_vd(:)
     ! incident near-IR, direct radiation on snow
     ! (for history files) (pft) [W/m2]
-    real(rkx), pointer :: fsds_sno_nd(:)
+    real(rk8), pointer :: fsds_sno_nd(:)
     ! incident visible, diffuse radiation on snow
     ! (for history files) (pft) [W/m2]
-    real(rkx), pointer :: fsds_sno_vi(:)
+    real(rk8), pointer :: fsds_sno_vi(:)
     ! incident near-IR, diffuse radiation on snow
     ! (for history files) (pft) [W/m2]
-    real(rkx), pointer :: fsds_sno_ni(:)
+    real(rk8), pointer :: fsds_sno_ni(:)
     ! snow height (m)
-    real(rkx), pointer :: snow_depth(:)
+    real(rk8), pointer :: snow_depth(:)
 
     ! number of solar radiation waveband classes
     integer(ik4) , parameter :: nband = numrad
@@ -251,45 +251,45 @@ module mod_clm_surfaceradiation
     integer(ik4)  :: g          ! grid cell index
     integer(ik4)  :: ib         ! waveband number (1=vis, 2=nir)
     integer(ik4)  :: iv         ! canopy layer
-    real(rkx) :: absrad    ! absorbed solar radiation (W/m**2)
-    real(rkx) :: rnir      ! reflected solar radiation [nir] (W/m**2)
-    real(rkx) :: rvis      ! reflected solar radiation [vis] (W/m**2)
+    real(rk8) :: absrad    ! absorbed solar radiation (W/m**2)
+    real(rk8) :: rnir      ! reflected solar radiation [nir] (W/m**2)
+    real(rk8) :: rvis      ! reflected solar radiation [vis] (W/m**2)
     ! transmitted solar radiation: direct (W/m**2)
-    real(rkx) :: trd(lbp:ubp,numrad)
+    real(rk8) :: trd(lbp:ubp,numrad)
     ! transmitted solar radiation: diffuse (W/m**2)
-    real(rkx) :: tri(lbp:ubp,numrad)
+    real(rk8) :: tri(lbp:ubp,numrad)
     ! direct beam absorbed by canopy (W/m**2)
-    real(rkx) :: cad(lbp:ubp,numrad)
+    real(rk8) :: cad(lbp:ubp,numrad)
     ! diffuse radiation absorbed by canopy (W/m**2)
-    real(rkx) :: cai(lbp:ubp,numrad)
+    real(rk8) :: cai(lbp:ubp,numrad)
     ! seconds into current date in local time
     integer(ik4)  :: local_secp1
     ! land model time step (sec)
-    real(rkx) :: dtime
+    real(rk8) :: dtime
     ! calendar info for current time step
     integer(ik4)  :: year,month,day,secs
     integer(ik4)  :: i   ! layer index [idx]
     ! temporary, absorbed energy in all active snow layers [W/m2]
-    real(rkx) :: sabg_snl_sum
+    real(rk8) :: sabg_snl_sum
 #ifdef SNICAR_FRC
     ! temp: absorbed solar radiation by pure snow [W/m2]
-    real(rkx) :: absrad_pur
+    real(rk8) :: absrad_pur
     ! temp: absorbed solar radiation without BC [W/m2]
-    real(rkx) :: absrad_bc
+    real(rk8) :: absrad_bc
     ! temp: absorbed solar radiation without OC [W/m2]
-    real(rkx) :: absrad_oc
+    real(rk8) :: absrad_oc
     ! temp: absorbed solar radiation without dust [W/m2]
-    real(rkx) :: absrad_dst
+    real(rk8) :: absrad_dst
 #endif
     ! solar radiation absorbed by ground with pure snow [W/m2]
-    real(rkx) :: sabg_pur(lbp:ubp)
+    real(rk8) :: sabg_pur(lbp:ubp)
     ! solar radiation absorbed by ground without BC [W/m2]
-    real(rkx) :: sabg_bc(lbp:ubp)
+    real(rk8) :: sabg_bc(lbp:ubp)
     ! solar radiation absorbed by ground without OC [W/m2]
-    real(rkx) :: sabg_oc(lbp:ubp)
+    real(rk8) :: sabg_oc(lbp:ubp)
     ! solar radiation absorbed by ground without dust [W/m2]
-    real(rkx) :: sabg_dst(lbp:ubp)
-    real(rkx) :: parveg(lbp:ubp)  ! absorbed par by vegetation (W/m**2)
+    real(rk8) :: sabg_dst(lbp:ubp)
+    real(rk8) :: parveg(lbp:ubp)  ! absorbed par by vegetation (W/m**2)
 
     ! Assign local pointers to multi-level derived type members (gridcell level)
     londeg        => clm3%g%londeg
@@ -416,25 +416,25 @@ module mod_clm_surfaceradiation
       ! was redundant b/c filter already included wt>0;
       ! not redundant anymore with chg in filter definition
       if (pactive(p)) then
-        sabg_soil(p)  = 0._rkx
-        sabg_snow(p)  = 0._rkx
-        sabg(p)       = 0._rkx
-        sabv(p)       = 0._rkx
-        fsa(p)        = 0._rkx
+        sabg_soil(p)  = 0._rk8
+        sabg_snow(p)  = 0._rk8
+        sabg(p)       = 0._rk8
+        sabv(p)       = 0._rk8
+        fsa(p)        = 0._rk8
         l = plandunit(p)
         if (ityplun(l)==istsoil .or. ityplun(l)==istcrop) then
-          fsa_r(p)      = 0._rkx
+          fsa_r(p)      = 0._rk8
         end if
-        sabg_lyr(p,:) = 0._rkx
-        sabg_pur(p)   = 0._rkx
-        sabg_bc(p)    = 0._rkx
-        sabg_oc(p)    = 0._rkx
-        sabg_dst(p)   = 0._rkx
+        sabg_lyr(p,:) = 0._rk8
+        sabg_pur(p)   = 0._rk8
+        sabg_bc(p)    = 0._rk8
+        sabg_oc(p)    = 0._rk8
+        sabg_dst(p)   = 0._rk8
         do iv = 1, nrad(p)
-          parsun_z(p,iv) = 0._rkx
-          parsha_z(p,iv) = 0._rkx
-          laisun_z(p,iv) = 0._rkx
-          laisha_z(p,iv) = 0._rkx
+          parsun_z(p,iv) = 0._rk8
+          parsha_z(p,iv) = 0._rk8
+          laisun_z(p,iv) = 0._rk8
+          laisha_z(p,iv) = 0._rk8
         end do
       end if
     end do
@@ -449,18 +449,18 @@ module mod_clm_surfaceradiation
       p = filter_nourbanp(fp)
       if (pactive(p)) then
 
-        laisun(p) = 0._rkx
-        laisha(p) = 0._rkx
+        laisun(p) = 0._rk8
+        laisha(p) = 0._rk8
         do iv = 1, nrad(p)
           laisun_z(p,iv) = tlai_z(p,iv) * fsun_z(p,iv)
-          laisha_z(p,iv) = tlai_z(p,iv) * (1._rkx - fsun_z(p,iv))
+          laisha_z(p,iv) = tlai_z(p,iv) * (1._rk8 - fsun_z(p,iv))
           laisun(p) = laisun(p) + laisun_z(p,iv)
           laisha(p) = laisha(p) + laisha_z(p,iv)
         end do
-        if (elai(p) > 0._rkx) then
+        if (elai(p) > 0._rk8) then
           fsun(p) = laisun(p) / elai(p)
         else
-          fsun(p) = 0._rkx
+          fsun(p) = 0._rk8
         end if
 
       end if
@@ -509,14 +509,14 @@ module mod_clm_surfaceradiation
           ! Solar radiation absorbed by ground surface
 
           ! calculate absorbed solar by soil/snow separately
-          absrad  = trd(p,ib)*(1._rkx-albsod(c,ib)) + &
-                  tri(p,ib)*(1._rkx-albsoi(c,ib))
+          absrad  = trd(p,ib)*(1._rk8-albsod(c,ib)) + &
+                  tri(p,ib)*(1._rk8-albsoi(c,ib))
           sabg_soil(p) = sabg_soil(p) + absrad
-          absrad  = trd(p,ib)*(1._rkx-albsnd_hst(c,ib)) + &
-                  tri(p,ib)*(1._rkx-albsni_hst(c,ib))
+          absrad  = trd(p,ib)*(1._rk8-albsnd_hst(c,ib)) + &
+                  tri(p,ib)*(1._rk8-albsni_hst(c,ib))
           sabg_snow(p) = sabg_snow(p) + absrad
-          absrad  = trd(p,ib)*(1._rkx-albgrd(c,ib)) + &
-                  tri(p,ib)*(1._rkx-albgri(c,ib))
+          absrad  = trd(p,ib)*(1._rk8-albgrd(c,ib)) + &
+                  tri(p,ib)*(1._rk8-albgri(c,ib))
           sabg(p) = sabg(p) + absrad
           fsa(p)  = fsa(p)  + absrad
           if (ityplun(l)==istsoil .or. ityplun(l)==istcrop) then
@@ -535,23 +535,23 @@ module mod_clm_surfaceradiation
 
 #if (defined SNICAR_FRC)
           ! Solar radiation absorbed by ground surface without BC
-          absrad_bc = trd(p,ib)*(1._rkx-albgrd_bc(c,ib)) + &
-                   tri(p,ib)*(1._rkx-albgri_bc(c,ib))
+          absrad_bc = trd(p,ib)*(1._rk8-albgrd_bc(c,ib)) + &
+                   tri(p,ib)*(1._rk8-albgri_bc(c,ib))
           sabg_bc(p) = sabg_bc(p) + absrad_bc
 
           ! Solar radiation absorbed by ground surface without OC
-          absrad_oc = trd(p,ib)*(1._rkx-albgrd_oc(c,ib)) + &
-                   tri(p,ib)*(1._rkx-albgri_oc(c,ib))
+          absrad_oc = trd(p,ib)*(1._rk8-albgrd_oc(c,ib)) + &
+                   tri(p,ib)*(1._rk8-albgri_oc(c,ib))
           sabg_oc(p) = sabg_oc(p) + absrad_oc
 
           ! Solar radiation absorbed by ground surface without dust
-          absrad_dst = trd(p,ib)*(1._rkx-albgrd_dst(c,ib)) + &
-                   tri(p,ib)*(1._rkx-albgri_dst(c,ib))
+          absrad_dst = trd(p,ib)*(1._rk8-albgrd_dst(c,ib)) + &
+                   tri(p,ib)*(1._rk8-albgri_dst(c,ib))
            sabg_dst(p) = sabg_dst(p) + absrad_dst
 
           ! Solar radiation absorbed by ground surface without any aerosols
-          absrad_pur = trd(p,ib)*(1._rkx-albgrd_pur(c,ib)) + &
-                   tri(p,ib)*(1._rkx-albgri_pur(c,ib))
+          absrad_pur = trd(p,ib)*(1._rk8-albgrd_pur(c,ib)) + &
+                   tri(p,ib)*(1._rk8-albgri_pur(c,ib))
           sabg_pur(p) = sabg_pur(p) + absrad_pur
 #endif
 
@@ -568,11 +568,11 @@ module mod_clm_surfaceradiation
       if (pactive(p)) then
         c = pcolumn(p)
         l = plandunit(p)
-        sabg_snl_sum = 0._rkx
+        sabg_snl_sum = 0._rk8
 
         ! CASE1: No snow layers: all energy is absorbed in top soil layer
         if (snl(c) == 0) then
-          sabg_lyr(p,:) = 0._rkx
+          sabg_lyr(p,:) = 0._rk8
           sabg_lyr(p,1) = sabg(p)
           sabg_snl_sum  = sabg_lyr(p,1)
 
@@ -601,43 +601,43 @@ module mod_clm_surfaceradiation
           ! This error handling is implemented to accomodate any value of the
           ! radiation frequency.
           ! change condition to match sabg_snow isntead of sabg
-          if (abs(sabg_snl_sum-sabg_snow(p)) > 0.00001_rkx) then
+          if (abs(sabg_snl_sum-sabg_snow(p)) > 0.00001_rk8) then
             if (snl(c) == 0) then
-              sabg_lyr(p,-4:0) = 0._rkx
+              sabg_lyr(p,-4:0) = 0._rk8
               sabg_lyr(p,1) = sabg(p)
             else if (snl(c) == -1) then
-              sabg_lyr(p,-4:-1) = 0._rkx
-              sabg_lyr(p,0) = sabg_snow(p)*0.6_rkx
-              sabg_lyr(p,1) = sabg_snow(p)*0.4_rkx
+              sabg_lyr(p,-4:-1) = 0._rk8
+              sabg_lyr(p,0) = sabg_snow(p)*0.6_rk8
+              sabg_lyr(p,1) = sabg_snow(p)*0.4_rk8
             else
-              sabg_lyr(p,:) = 0._rkx
-              sabg_lyr(p,snl(c)+1) = sabg_snow(p)*0.75_rkx
-              sabg_lyr(p,snl(c)+2) = sabg_snow(p)*0.25_rkx
+              sabg_lyr(p,:) = 0._rk8
+              sabg_lyr(p,snl(c)+1) = sabg_snow(p)*0.75_rk8
+              sabg_lyr(p,snl(c)+2) = sabg_snow(p)*0.25_rk8
             end if
           end if
 
           ! If shallow snow depth, all solar radiation absorbed in top or
           ! top two snow layers to prevent unrealistic timestep soil warming
           if (subgridflag == 0) then
-            if (snow_depth(c) < 0.10_rkx) then
+            if (snow_depth(c) < 0.10_rk8) then
               if (snl(c) == 0) then
-                sabg_lyr(p,-4:0) = 0._rkx
+                sabg_lyr(p,-4:0) = 0._rk8
                 sabg_lyr(p,1) = sabg(p)
               else if (snl(c) == -1) then
-                sabg_lyr(p,-4:-1) = 0._rkx
+                sabg_lyr(p,-4:-1) = 0._rk8
                 sabg_lyr(p,0) = sabg(p)
-                sabg_lyr(p,1) = 0._rkx
+                sabg_lyr(p,1) = 0._rk8
               else
-                sabg_lyr(p,:) = 0._rkx
-                sabg_lyr(p,snl(c)+1) = sabg(p)*0.75_rkx
-                sabg_lyr(p,snl(c)+2) = sabg(p)*0.25_rkx
+                sabg_lyr(p,:) = 0._rk8
+                sabg_lyr(p,snl(c)+1) = sabg(p)*0.75_rk8
+                sabg_lyr(p,snl(c)+2) = sabg(p)*0.25_rk8
               end if
             end if
           end if
         end if
 
         ! This situation should not happen:
-        if (abs(sum(sabg_lyr(p,:))-sabg_snow(p)) > 0.00001_rkx) then
+        if (abs(sum(sabg_lyr(p,:))-sabg_snow(p)) > 0.00001_rk8) then
           write(stderr,*) "SNICAR ERROR: Absorbed ground radiation "// &
                 "not equal to summed snow layer radiation. pft = ",   &
                 p," Col= ", c, " Diff= ", &
@@ -672,7 +672,7 @@ module mod_clm_surfaceradiation
         if (DO_SNO_OC) then
           sfc_frc_oc(p) = sabg(p) - sabg_oc(p)
         else
-          sfc_frc_oc(p) = 0._rkx
+          sfc_frc_oc(p) = 0._rk8
         end if
 
         ! dust aerosol forcing (pft-level):
@@ -682,7 +682,7 @@ module mod_clm_surfaceradiation
         sfc_frc_aer(p) = sabg(p) - sabg_pur(p)
 
         ! forcings averaged only over snow:
-        if (frac_sno(c) > 0._rkx) then
+        if (frac_sno(c) > 0._rk8) then
           sfc_frc_bc_sno(p)  = sfc_frc_bc(p)/frac_sno(c)
           sfc_frc_oc_sno(p)  = sfc_frc_oc(p)/frac_sno(c)
           sfc_frc_dst_sno(p) = sfc_frc_dst(p)/frac_sno(c)

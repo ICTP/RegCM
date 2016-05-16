@@ -162,7 +162,7 @@ module mod_date
   public :: date_is , time_is
   public :: curr_date , ref_date , curr_time , calendar_str
   public :: date_in_scenario
-  public :: ndaypm
+  public :: ndaypm , yeardays , yearpoint
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
   data calstr /'gregorian','noleap','360_day'/
@@ -833,9 +833,8 @@ module mod_date
     end select
   end function add_interval
 
-  function julianday(iy, im, id)
+  real(rkx) function julianday(iy, im, id)
     implicit none
-    real(rkx) :: julianday
     integer(ik4) , intent(in) :: iy , im , id
     integer(ik4) :: ia , ib , iiy , iim
     iiy = iy
@@ -854,11 +853,10 @@ module mod_date
                 int(30.6001_rkx*real(iim+1,rkx))   + &
                 real(id + ib,rkx) - 1524.5_rkx
     contains
-      function lcaltype(iy, im, id)
+      logical function lcaltype(iy, im, id)
       implicit none
-      logical :: lcaltype
-      integer(ik4) :: icaltype
       integer(ik4) , intent(in) :: iy , im , id
+      integer(ik4) :: icaltype
       ! Standard Julian/Gregorian switch
       ! Return true  if before 1582-10-04
       !        false if after  1582-10-15
@@ -1971,6 +1969,40 @@ module mod_date
         call die('mod_date','Interval unit conversion depend on calendar',1)
     end select
   end function tohours
+
+  real(rkx) function yearpoint(x)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    type (iadate) :: d
+    type (iatime) :: t
+    integer(ik4) :: id , i
+    real(rkx) :: lc
+    call internal_to_date_time(x,d,t)
+    id = d%day
+    select case (x%calendar)
+      case (gregorian)
+        do i = 1 , d%month-1
+          id = id + mdays_leap(d%year, i)
+        end do
+        yearpoint = real(id,rkx)
+        if ( lleap(d%year) ) then
+          lc = -(yearpoint+1095_rkx)/1461_rkx
+        else if ( lleap(d%year+1) ) then
+          lc = -(yearpoint+730_rkx)/1461_rkx
+        else if ( lleap(d%year+2) ) then
+          lc = -(yearpoint+365_rkx)/1461_rkx
+        else
+          lc = -yearpoint/1461_rkx
+        end if
+        yearpoint = yearpoint+lc
+      case (noleap)
+        id = id + sum(mlen(1:d%month-1))
+        yearpoint = real(id,rkx)
+      case (y360)
+        id = id + 30*(d%month-1)
+        yearpoint = real(id,rkx)
+    end select
+  end function yearpoint
 
   real(rkx) function yeardayfrac(x)
     implicit none

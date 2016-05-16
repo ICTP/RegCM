@@ -102,35 +102,35 @@ Module mod_clm_drydepvelocity
     integer(ik4) , pointer :: ivt(:)        !landunit type
     integer(ik4) , pointer :: pgridcell(:)  !pft's gridcell index
     !one-sided leaf area index with burying by snow
-    real(rkx), pointer :: elai(:)
-    real(rkx), pointer :: forc_t(:)  !atmospheric temperature (Kelvin)
-    real(rkx), pointer :: forc_q(:)  !atmospheric specific humidity (kg/kg)
-    real(rkx), pointer :: forc_psrf(:)     !surface pressure (Pa)
-    real(rkx), pointer :: latdeg(:)        !latitude (degrees)
-    real(rkx), pointer :: londeg(:)        !longitude (degrees)
-    real(rkx), pointer :: forc_rain(:)     !rain rate [mm/s]
-    real(rkx), pointer :: forc_solad(:,:)  !direct beam radiation (visible only)
-    real(rkx), pointer :: forc_solai(:,:)  !direct beam radiation (visible only)
-    real(rkx), pointer :: ram1(:)          !aerodynamical resistance
-    real(rkx), pointer :: vds(:)           !aerodynamical resistance
-    real(rkx), pointer :: rssun(:)         !stomatal resistance
-    real(rkx), pointer :: rssha(:)         !shaded stomatal resistance (s/m)
-    real(rkx), pointer :: fsun(:)          !sunlit fraction of canopy
-    real(rkx), pointer :: rb1(:)           !leaf boundary layer resistance [s/m]
+    real(rk8), pointer :: elai(:)
+    real(rk8), pointer :: forc_t(:)  !atmospheric temperature (Kelvin)
+    real(rk8), pointer :: forc_q(:)  !atmospheric specific humidity (kg/kg)
+    real(rk8), pointer :: forc_psrf(:)     !surface pressure (Pa)
+    real(rk8), pointer :: latdeg(:)        !latitude (degrees)
+    real(rk8), pointer :: londeg(:)        !longitude (degrees)
+    real(rk8), pointer :: forc_rain(:)     !rain rate [mm/s]
+    real(rk8), pointer :: forc_solad(:,:)  !direct beam radiation (visible only)
+    real(rk8), pointer :: forc_solai(:,:)  !direct beam radiation (visible only)
+    real(rk8), pointer :: ram1(:)          !aerodynamical resistance
+    real(rk8), pointer :: vds(:)           !aerodynamical resistance
+    real(rk8), pointer :: rssun(:)         !stomatal resistance
+    real(rk8), pointer :: rssha(:)         !shaded stomatal resistance (s/m)
+    real(rk8), pointer :: fsun(:)          !sunlit fraction of canopy
+    real(rk8), pointer :: rb1(:)           !leaf boundary layer resistance [s/m]
     !12 months of monthly lai from input data set
-    real(rkx), pointer :: annlai(:,:)
+    real(rk8), pointer :: annlai(:,:)
     !difference in lai between month one and month two
-    real(rkx), pointer :: mlaidiff(:)
-    real(rkx), pointer :: velocity(:,:)
-    real(rkx), pointer :: snow_depth(:) ! snow height (m)
+    real(rk8), pointer :: mlaidiff(:)
+    real(rk8), pointer :: velocity(:,:)
+    real(rk8), pointer :: snow_depth(:) ! snow height (m)
 
     integer(ik4), pointer :: pcolumn(:) ! column index associated with each pft
     integer(ik4) :: c
     integer(ik4) , pointer :: itypelun(:)  ! landunit type
 
     ! volumetric soil water (0<=h2osoi_vol<=watsat)
-    real(rkx), pointer :: h2osoi_vol(:,:)
-    real(rkx) :: soilw, var_soilw, fact_h2, dv_soil_h2
+    real(rk8), pointer :: h2osoi_vol(:,:)
+    real(rk8) :: soilw, var_soilw, fact_h2, dv_soil_h2
 
     integer(ik4) :: pi,g, l
     integer(ik4) :: ispec
@@ -139,44 +139,44 @@ Module mod_clm_drydepvelocity
     !seasonal index based on LAI.  This indexs wesely data tables
     integer(ik4) :: index_season
 
-    real(rkx) :: pg          ! surface pressure
-    real(rkx) :: tc          ! temperature in celsius
-    real(rkx) :: rs          ! constant for calculating rsmx
-    real(rkx) :: es          ! saturation vapor pressur
-    real(rkx) :: ws          ! saturation mixing ratio
-    real(rkx) :: rmx         ! resistance by vegetation
-    real(rkx) :: qs          ! saturation specific humidity
-    real(rkx) :: dewm        ! multiplier for rs when dew occurs
-    real(rkx) :: crs         ! multiplier to calculate crs
-    real(rkx) :: rdc         ! part of lower canopy resistance
-    real(rkx) :: rain        ! rain fall
-    real(rkx) :: spec_hum    ! specific humidity
-    real(rkx) :: solar_flux  ! solar radiation(direct beam) W/m2
-    real(rkx) :: lat         ! latitude in degrees
-    real(rkx) :: lon         ! longitude in degrees
-    real(rkx) :: sfc_temp    ! surface temp
-    real(rkx) :: minlai      ! minimum of monthly lai
-    real(rkx) :: maxlai      ! maximum of monthly lai
-    real(rkx) :: rds
+    real(rk8) :: pg          ! surface pressure
+    real(rk8) :: tc          ! temperature in celsius
+    real(rk8) :: rs          ! constant for calculating rsmx
+    real(rk8) :: es          ! saturation vapor pressur
+    real(rk8) :: ws          ! saturation mixing ratio
+    real(rk8) :: rmx         ! resistance by vegetation
+    real(rk8) :: qs          ! saturation specific humidity
+    real(rk8) :: dewm        ! multiplier for rs when dew occurs
+    real(rk8) :: crs         ! multiplier to calculate crs
+    real(rk8) :: rdc         ! part of lower canopy resistance
+    real(rk8) :: rain        ! rain fall
+    real(rk8) :: spec_hum    ! specific humidity
+    real(rk8) :: solar_flux  ! solar radiation(direct beam) W/m2
+    real(rk8) :: lat         ! latitude in degrees
+    real(rk8) :: lon         ! longitude in degrees
+    real(rk8) :: sfc_temp    ! surface temp
+    real(rk8) :: minlai      ! minimum of monthly lai
+    real(rk8) :: maxlai      ! maximum of monthly lai
+    real(rk8) :: rds
 
     logical  :: has_dew
     logical  :: has_rain
     ! of the order of 1cm/day expressed in m/s
-    real(rkx), parameter :: rain_threshold  = 1.e-7_rkx
+    real(rk8), parameter :: rain_threshold  = 1.e-7_rk8
 
     !vegetative resistance (plant mesophyll)
-    real(rkx), dimension(n_drydep) :: rsmx
-    real(rkx), dimension(n_drydep) :: rclx !lower canopy resistance
-    real(rkx), dimension(n_drydep) :: rlux !vegetative resistance (upper canopy)
-    real(rkx), dimension(n_drydep) :: rgsx !gournd resistance
-    real(rkx), dimension(n_drydep) :: heff
-    real(rkx) :: rc    !combined surface resistance
-    real(rkx) :: cts   !correction to flu rcl and rgs for frost
-    real(rkx) :: rlux_o3
+    real(rk8), dimension(n_drydep) :: rsmx
+    real(rk8), dimension(n_drydep) :: rclx !lower canopy resistance
+    real(rk8), dimension(n_drydep) :: rlux !vegetative resistance (upper canopy)
+    real(rk8), dimension(n_drydep) :: rgsx !gournd resistance
+    real(rk8), dimension(n_drydep) :: heff
+    real(rk8) :: rc    !combined surface resistance
+    real(rk8) :: cts   !correction to flu rcl and rgs for frost
+    real(rk8) :: rlux_o3
 
     ! constants
     ! Used to calculate  rdc in (lower canopy resistance)
-    real(rkx), parameter :: slope = 0._rkx
+    real(rk8), parameter :: slope = 0._rk8
     integer(ik4), parameter :: wveg_unset = -1  ! Unset Wesley vegetation type
 
     character(len=32), parameter :: subname = "depvel_compute"
@@ -184,13 +184,13 @@ Module mod_clm_drydepvelocity
     !---------------------
     ! jfl : mods for PAN
     !---------------------
-    real(rkx) :: dv_pan
-    real(rkx) :: c0_pan(11) = &
-            (/ 0.000_rkx, 0.006_rkx, 0.002_rkx, 0.009_rkx, 0.015_rkx, &
-               0.006_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, 0.002_rkx, 0.002_rkx /)
-    real(rkx) :: k_pan (11) = &
-            (/ 0.000_rkx, 0.010_rkx, 0.005_rkx, 0.004_rkx, 0.003_rkx, &
-               0.005_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, 0.075_rkx, 0.002_rkx /)
+    real(rk8) :: dv_pan
+    real(rk8) :: c0_pan(11) = &
+            (/ 0.000_rk8, 0.006_rk8, 0.002_rk8, 0.009_rk8, 0.015_rk8, &
+               0.006_rk8, 0.000_rk8, 0.000_rk8, 0.000_rk8, 0.002_rk8, 0.002_rk8 /)
+    real(rk8) :: k_pan (11) = &
+            (/ 0.000_rk8, 0.010_rk8, 0.005_rk8, 0.004_rk8, 0.003_rk8, &
+               0.005_rk8, 0.000_rk8, 0.000_rk8, 0.000_rk8, 0.075_rk8, 0.002_rk8 /)
 
     if ( n_drydep == 0 .or. drydep_method /= DD_XLND ) return
 
@@ -323,7 +323,7 @@ Module mod_clm_drydepvelocity
           end if
         else if ( snow_depth(c) > 0 ) then
           index_season = 4
-        else if ( elai(pi) > 0.5_rkx*maxlai ) then
+        else if ( elai(pi) > 0.5_rk8*maxlai ) then
           index_season = 1
         end if
 
@@ -334,11 +334,11 @@ Module mod_clm_drydepvelocity
         end if
 
         if ( index_season < 0 ) then
-          if ( mlaidiff(pi) > 0.0_rkx ) then
+          if ( mlaidiff(pi) > 0.0_rk8 ) then
             index_season = 2
-          else if ( mlaidiff(pi) < 0.0_rkx ) then
+          else if ( mlaidiff(pi) < 0.0_rk8 ) then
             index_season = 5
-          else if ( mlaidiff(pi) == 0.0_rkx ) then
+          else if ( mlaidiff(pi) == 0.0_rk8 ) then
             index_season = 3
           end if
         end if
@@ -350,9 +350,9 @@ Module mod_clm_drydepvelocity
 
         ! saturation specific humidity
         !
-        es = 611_rkx*exp(5414.77_rkx*((1._rkx/tmelt)-(1._rkx/sfc_temp)))
-        ws = .622_rkx*es/(pg-es)
-        qs = ws/(1._rkx+ws)
+        es = 611_rk8*exp(5414.77_rk8*((1._rk8/tmelt)-(1._rk8/sfc_temp)))
+        ws = .622_rk8*es/(pg-es)
+        qs = ws/(1._rk8+ws)
 
         has_dew = .false.
         if ( qs <= spec_hum ) then
@@ -365,24 +365,24 @@ Module mod_clm_drydepvelocity
         has_rain = rain > rain_threshold
 
         if ( has_dew .or. has_rain ) then
-          dewm = 3._rkx
+          dewm = 3._rk8
         else
-          dewm = 1._rkx
+          dewm = 1._rk8
         end if
 
         !
         ! constant in determining rs
         !
-        crs = 1.e36_rkx
+        crs = 1.e36_rk8
 
         tc = sfc_temp - tmelt
-        if ( sfc_temp > tmelt .and. sfc_temp < 313.15_rkx) then
-          crs = (1._rkx+(200._rkx/(solar_flux+.1_rkx))**2) * (400._rkx/(tc*(40._rkx-tc)))
+        if ( sfc_temp > tmelt .and. sfc_temp < 313.15_rk8) then
+          crs = (1._rk8+(200._rk8/(solar_flux+.1_rk8))**2) * (400._rk8/(tc*(40._rk8-tc)))
         end if
         !
         ! rdc (lower canopy res)
         !
-        rdc = 100._rkx*(1._rkx+1000._rkx/(solar_flux+10._rkx))/(1._rkx+1000._rkx*slope)
+        rdc = 100._rk8*(1._rk8+1000._rk8/(solar_flux+10._rk8))/(1._rk8+1000._rk8*slope)
 
         ! surface resistance : depends on both land type and species
         ! land types are computed seperately, then resistance is computed
@@ -402,15 +402,15 @@ Module mod_clm_drydepvelocity
           if ( ispec == index_o3  .or. &
                ispec == index_o3a .or. &
                ispec == index_so2 ) then
-            rmx = 0._rkx
+            rmx = 0._rk8
           else
-            rmx = 1._rkx/((heff(ispec)/3000._rkx)+(100._rkx*foxd(ispec)))
+            rmx = 1._rk8/((heff(ispec)/3000._rk8)+(100._rk8*foxd(ispec)))
           end if
 
           ! correction for frost
-          cts = 1000._rkx*exp( -tc - 4._rkx ) ! correction for frost
-          rgsx(ispec) = cts + 1._rkx/((heff(ispec) / &
-                  (1.e5_rkx*rgss(index_season,wesveg))) + &
+          cts = 1000._rk8*exp( -tc - 4._rk8 ) ! correction for frost
+          rgsx(ispec) = cts + 1._rk8/((heff(ispec) / &
+                  (1.e5_rk8*rgss(index_season,wesveg))) + &
                   (foxd(ispec)/rgso(index_season,wesveg)))
 
           !----------------------------------------------------------------
@@ -421,11 +421,11 @@ Module mod_clm_drydepvelocity
                ispec == index_ch4 ) then
 
             if ( ispec == index_co ) then
-              fact_h2 = 1.0_rkx
+              fact_h2 = 1.0_rk8
             else if ( ispec == index_h2 ) then
-              fact_h2 = 0.5_rkx
+              fact_h2 = 0.5_rk8
             else if ( ispec == index_ch4 ) then
-              fact_h2 = 50.0_rkx
+              fact_h2 = 50.0_rk8
             end if
             !-----------------------------------------------
             ! no deposition on snow, ice, desert, and water
@@ -434,25 +434,25 @@ Module mod_clm_drydepvelocity
                  wesveg == 7 .or. &
                  wesveg == 8 .or. &
                  index_season == 4 ) then
-              rgsx(ispec) = 1.e36_rkx
+              rgsx(ispec) = 1.e36_rk8
             else
-              var_soilw = max( .1_rkx,min( soilw,.3_rkx ) )
+              var_soilw = max( .1_rk8,min( soilw,.3_rk8 ) )
               if ( wesveg == 3 ) then
                 var_soilw = log( var_soilw )
               end if
               dv_soil_h2 = h2_c(wesveg) + &
                       var_soilw*(h2_b(wesveg) + var_soilw*h2_a(wesveg))
-              if ( dv_soil_h2 > 0._rkx ) then
-                rgsx(ispec) = fact_h2/(dv_soil_h2*1.e-4_rkx)
+              if ( dv_soil_h2 > 0._rk8 ) then
+                rgsx(ispec) = fact_h2/(dv_soil_h2*1.e-4_rk8)
               end if
             end if
           end if
 
           rs = ri(index_season,wesveg)*crs
           if ( wesveg == 7 ) then ! over water
-            rclx(ispec) = 1.e36_rkx
-            rsmx(ispec) = 1.e36_rkx
-            rlux(ispec) = 1.e36_rkx
+            rclx(ispec) = 1.e36_rk8
+            rsmx(ispec) = 1.e36_rk8
+            rlux(ispec) = 1.e36_rk8
           else
             ! ??? fvitt
             !   rs=(fsun(pi)*rssun(pi))+(rssha(pi)*(1.-fsun(pi)))
@@ -465,16 +465,16 @@ Module mod_clm_drydepvelocity
           !----------------------------
           if ( ispec == index_pan .or. ispec == index_xpan ) then
             dv_pan =  c0_pan(wesveg) * &
-                    (1._rkx - exp( -k_pan(wesveg)*(dewm*rs*drat(ispec))*1.e-2_rkx ))
-            if ( dv_pan > 0._rkx .and. index_season /= 4 ) then
-              rsmx(ispec) = ( 1._rkx/dv_pan )
+                    (1._rk8 - exp( -k_pan(wesveg)*(dewm*rs*drat(ispec))*1.e-2_rk8 ))
+            if ( dv_pan > 0._rk8 .and. index_season /= 4 ) then
+              rsmx(ispec) = ( 1._rk8/dv_pan )
             end if
           end if
           rclx(ispec) = cts + &
-                  1._rkx/((heff(ispec)/(1.e5_rkx*rcls(index_season,wesveg))) + &
+                  1._rk8/((heff(ispec)/(1.e5_rk8*rcls(index_season,wesveg))) + &
                   (foxd(ispec)/rclo(index_season,wesveg)))
           rlux(ispec) = cts + &
-                  rlu(index_season,wesveg)/(1.e-5_rkx*heff(ispec)+foxd(ispec))
+                  rlu(index_season,wesveg)/(1.e-5_rk8*heff(ispec)+foxd(ispec))
         end do species_loop1
 
         !
@@ -486,8 +486,8 @@ Module mod_clm_drydepvelocity
           !
           non_freezing: if ( sfc_temp > tmelt ) then
             if ( has_dew ) then
-              rlux_o3 = 1._rkx / &
-                      ((1._rkx/3000._rkx)+(1._rkx/(3._rkx*rlu(index_season,wesveg))))
+              rlux_o3 = 1._rk8 / &
+                      ((1._rk8/3000._rk8)+(1._rk8/(3._rk8*rlu(index_season,wesveg))))
               if ( index_o3 > 0 ) then
                 rlux(index_o3) = rlux_o3
               end if
@@ -496,8 +496,8 @@ Module mod_clm_drydepvelocity
               end if
             end if
             if ( has_rain ) then
-              rlux_o3 = 1._rkx / &
-                      ((1._rkx/1000._rkx)+(1._rkx/(3._rkx*rlu(index_season,wesveg))))
+              rlux_o3 = 1._rk8 / &
+                      ((1._rk8/1000._rk8)+(1._rk8/(3._rk8*rlu(index_season,wesveg))))
               if ( index_o3 > 0 ) then
                 rlux(index_o3) = rlux_o3
               end if
@@ -519,56 +519,56 @@ Module mod_clm_drydepvelocity
                    ispec /= index_o3a .and. &
                    ispec /= index_so2 ) then
                 if ( has_dew ) then
-                  rlux(ispec) = 1._rkx/((1._rkx/(3._rkx*rlux(ispec)))+ &
-                        (1.e-7_rkx*heff(ispec))+(foxd(ispec)/rlux_o3))
+                  rlux(ispec) = 1._rk8/((1._rk8/(3._rk8*rlux(ispec)))+ &
+                        (1.e-7_rk8*heff(ispec))+(foxd(ispec)/rlux_o3))
                 end if
               else if ( ispec == index_so2 ) then
                 if ( has_dew ) then
-                  rlux(ispec) = 100._rkx
+                  rlux(ispec) = 100._rk8
                 end if
                 if ( has_rain ) then
-                  rlux(ispec) = 1._rkx / &
-                         ((1._rkx/5000._rkx)+(1._rkx/(3._rkx*rlu(index_season,wesveg))))
+                  rlux(ispec) = 1._rk8 / &
+                         ((1._rk8/5000._rk8)+(1._rk8/(3._rk8*rlu(index_season,wesveg))))
                 end if
                 rclx(ispec) = cts + rcls(index_season,wesveg)
                 rlux(ispec) = cts + rlux(ispec)
                 if ( has_dew .or. has_rain ) then
-                  rlux(ispec) = 50._rkx
+                  rlux(ispec) = 50._rk8
                 end if
               end if
             end do species_loop2
           end if non_freezing
         end if no_water
 
-        rds = 1._rkx/vds(pi)
+        rds = 1._rk8/vds(pi)
 
         species_loop3: do ispec=1,n_drydep
           if ( mapping(ispec) <= 0 ) cycle
           !
           ! compute rc
           !
-          rc = 1._rkx/((1._rkx/rsmx(ispec))+(1._rkx/rlux(ispec)) + &
-              (1._rkx/(rdc+rclx(ispec)))+ &
-              (1._rkx/(rac(index_season,wesveg)+rgsx(ispec))))
-          rc = max( 10._rkx, rc)
+          rc = 1._rk8/((1._rk8/rsmx(ispec))+(1._rk8/rlux(ispec)) + &
+              (1._rk8/(rdc+rclx(ispec)))+ &
+              (1._rk8/(rac(index_season,wesveg)+rgsx(ispec))))
+          rc = max( 10._rk8, rc)
           !
           ! assume no surface resistance for SO2 over water
           !
           if ( drydep_list(ispec) == 'SO2' .and. wesveg == 7 ) then
-            rc = 0._rkx
+            rc = 0._rk8
           end if
           select case( drydep_list(ispec) )
             case ( 'SO4' )
-              velocity(pi,ispec) = (1._rkx/(ram1(pi)+rds))*100._rkx
+              velocity(pi,ispec) = (1._rk8/(ram1(pi)+rds))*100._rk8
             case ( 'NH4','NH4NO3','XNH4NO3' )
-              velocity(pi,ispec) = (1._rkx/(ram1(pi)+0.5_rkx*rds))*100._rkx
+              velocity(pi,ispec) = (1._rk8/(ram1(pi)+0.5_rk8*rds))*100._rk8
             case ( 'Pb' )
-              velocity(pi,ispec) = 0.2_rkx
+              velocity(pi,ispec) = 0.2_rk8
             case ( 'CB1', 'CB2', 'OC1', 'OC2', 'SOAM', &
                    'SOAI', 'SOAT', 'SOAB', 'SOAX' )
-              velocity(pi,ispec) = 0.10_rkx
+              velocity(pi,ispec) = 0.10_rk8
             case default
-              velocity(pi,ispec) = (1._rkx/(ram1(pi)+rb1(pi)+rc))*100._rkx
+              velocity(pi,ispec) = (1._rk8/(ram1(pi)+rb1(pi)+rc))*100._rk8
           end select
         end do species_loop3
       end if active

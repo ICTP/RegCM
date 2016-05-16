@@ -36,29 +36,29 @@ module mod_clm_driverinit
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer :: pactive(:)
     integer(ik4) , pointer :: snl(:) ! number of snow layers
-    real(rkx) , pointer :: h2osno(:) ! snow water (mm H2O)
+    real(rk8) , pointer :: h2osno(:) ! snow water (mm H2O)
     ! fraction of vegetation not covered by snow (0 OR 1) [-]
     integer(ik4) , pointer :: frac_veg_nosno_alb(:)
     ! fraction of vegetation not covered by snow (0 OR 1 now) [-] (pft-level)
     integer(ik4) , pointer :: frac_veg_nosno(:)
-    real(rkx) , pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
-    real(rkx) , pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
+    real(rk8) , pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
+    real(rk8) , pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
     logical , pointer :: do_capsnow(:)     ! true => do snow capping
     ! snow water (mm H2O) at previous time step
-    real(rkx) , pointer :: h2osno_old(:)
+    real(rk8) , pointer :: h2osno_old(:)
     ! fraction of ice relative to the tot water
-    real(rkx) , pointer :: frac_iceold(:,:)
+    real(rk8) , pointer :: frac_iceold(:,:)
     integer(ik4) :: g , l , c , p , f , j  ! indices
     ! heat flux from beneath soil/ice column (W/m**2)
-    real(rkx) , pointer :: eflx_bot(:)
+    real(rk8) , pointer :: eflx_bot(:)
     ! atmospheric temperature (Kelvin)
-    real(rkx) , pointer :: forc_t(:)
+    real(rk8) , pointer :: forc_t(:)
     ! atmospheric potential temperature (Kelvin)
-    real(rkx) , pointer :: forc_th(:)
+    real(rk8) , pointer :: forc_th(:)
     ! atmospheric specific humidity (kg/kg)
-    real(rkx) , pointer :: forc_q(:)
-    real(rkx) , pointer :: forc_pbot(:)  ! atmospheric pressure (Pa)
-    real(rkx) , pointer :: forc_rho(:)   ! atmospheric density (kg/m**3)
+    real(rk8) , pointer :: forc_q(:)
+    real(rk8) , pointer :: forc_pbot(:)  ! atmospheric pressure (Pa)
+    real(rk8) , pointer :: forc_rho(:)   ! atmospheric density (kg/m**3)
     integer(ik4) , pointer :: cgridcell(:) ! column's gridcell
     integer(ik4) , pointer :: clandunit(:) ! column's landunit
     integer(ik4) , pointer :: plandunit(:) ! pft's landunit
@@ -115,7 +115,7 @@ module mod_clm_driverinit
       else
         do_capsnow(c) = .false.
       end if
-      eflx_bot(c) = 0._rkx
+      eflx_bot(c) = 0._rk8
     end do
 
     ! Initialize fraction of vegetation not covered by snow (pft-level)

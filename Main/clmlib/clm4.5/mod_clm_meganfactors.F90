@@ -18,21 +18,21 @@ module mod_clm_meganfactors
   public :: megan_factors_get
   public :: comp_names
 
-  real(rkx), public, allocatable :: LDF(:)  ! light dependent fraction
-  real(rkx), public, allocatable :: Agro(:) ! growing leaf age factor
-  real(rkx), public, allocatable :: Amat(:) ! mature leaf age factor
-  real(rkx), public, allocatable :: Anew(:) ! new leaf age factor
-  real(rkx), public, allocatable :: Aold(:) ! old leaf age factor
-  real(rkx), public, allocatable :: betaT(:)! temperature factor
-  real(rkx), public, allocatable :: ct1(:)  ! temperature coefficient 1
-  real(rkx), public, allocatable :: ct2(:)  ! temperature coefficient 2
-  real(rkx), public, allocatable :: Ceo(:)  ! Eopt coefficient
+  real(rk8), public, allocatable :: LDF(:)  ! light dependent fraction
+  real(rk8), public, allocatable :: Agro(:) ! growing leaf age factor
+  real(rk8), public, allocatable :: Amat(:) ! mature leaf age factor
+  real(rk8), public, allocatable :: Anew(:) ! new leaf age factor
+  real(rk8), public, allocatable :: Aold(:) ! old leaf age factor
+  real(rk8), public, allocatable :: betaT(:)! temperature factor
+  real(rk8), public, allocatable :: ct1(:)  ! temperature coefficient 1
+  real(rk8), public, allocatable :: ct2(:)  ! temperature coefficient 2
+  real(rk8), public, allocatable :: Ceo(:)  ! Eopt coefficient
 
   integer(ik4) :: npfts ! number of plant function types
 
   type emis_eff_t
-     real(rkx), pointer :: eff(:) ! emissions efficiency factor
-     real(rkx) :: wght            ! molecular weight
+     real(rk8), pointer :: eff(:) ! emissions efficiency factor
+     real(rk8) :: wght            ! molecular weight
      integer(ik4) :: class_num    ! MEGAN class number
   endtype emis_eff_t
 
@@ -46,7 +46,7 @@ module mod_clm_meganfactors
   ! MEGAN compound names
   character(len=32), allocatable :: comp_names(:)
   ! MEGAN compound molecular weights
-  real(rkx) , allocatable :: comp_molecwghts(:)
+  real(rk8) , allocatable :: comp_molecwghts(:)
 
   contains
   !
@@ -56,11 +56,11 @@ module mod_clm_meganfactors
     implicit none
     character(len=*),intent(in)  :: comp_name      ! MEGAN compound name
     ! vegitation type factors for the compound of intrest
-    real(rkx) , intent(out) :: factors(npfts)
+    real(rk8) , intent(out) :: factors(npfts)
     ! MEGAN class number for the compound of intrest
     integer(ik4) , intent(out) :: class_n
     ! molecular weight of the compound of intrest
-    real(rkx) , intent(out) :: molecwght
+    real(rk8) , intent(out) :: molecwght
 
     integer(ik4) :: hashkey, ndx
     character(len=120) :: errmes
@@ -91,9 +91,9 @@ module mod_clm_meganfactors
     integer(ik4) :: n_comps, n_classes, n_pfts
     integer(ik4), allocatable :: class_nums(:)
 
-    real(rkx) , allocatable :: factors(:)
-    real(rkx) , allocatable :: comp_factors(:,:)
-    real(rkx) , allocatable :: class_factors(:,:)
+    real(rk8) , allocatable :: factors(:)
+    real(rk8) , allocatable :: comp_factors(:,:)
+    real(rk8) , allocatable :: class_factors(:,:)
 
     allocate(comp_factors_table(150))
     allocate(hash_table_indices(tbl_hash_sz))
@@ -173,9 +173,9 @@ module mod_clm_meganfactors
   subroutine enter_hash_data( name, data, class_n, molec_wght )
     implicit none
     character(len=*), intent(in) :: name
-    real(rkx), intent(in) :: data(:)
+    real(rk8), intent(in) :: data(:)
     integer(ik4),  intent(in) :: class_n
-    real(rkx), intent(in) :: molec_wght
+    real(rk8), intent(in) :: molec_wght
     integer(ik4) :: hashkey, ndx
     integer(ik4) :: nfactors
 

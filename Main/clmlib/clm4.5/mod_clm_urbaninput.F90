@@ -18,34 +18,34 @@ module mod_clm_urbaninput
   public :: UrbanInput ! Read in urban input data
 
   type urbinp_t
-    real(rkx) , pointer , dimension(:,:) :: canyon_hwr
-    real(rkx) , pointer , dimension(:,:) :: wtlunit_roof
-    real(rkx) , pointer , dimension(:,:) :: wtroad_perv
-    real(rkx) , pointer , dimension(:,:) :: em_roof
-    real(rkx) , pointer , dimension(:,:) :: em_improad
-    real(rkx) , pointer , dimension(:,:) :: em_perroad
-    real(rkx) , pointer , dimension(:,:) :: em_wall
-    real(rkx) , pointer , dimension(:,:,:) :: alb_roof_dir
-    real(rkx) , pointer , dimension(:,:,:) :: alb_roof_dif
-    real(rkx) , pointer , dimension(:,:,:) :: alb_improad_dir
-    real(rkx) , pointer , dimension(:,:,:) :: alb_improad_dif
-    real(rkx) , pointer , dimension(:,:,:) :: alb_perroad_dir
-    real(rkx) , pointer , dimension(:,:,:) :: alb_perroad_dif
-    real(rkx) , pointer , dimension(:,:,:) :: alb_wall_dir
-    real(rkx) , pointer , dimension(:,:,:) :: alb_wall_dif
-    real(rkx) , pointer , dimension(:,:) :: ht_roof
-    real(rkx) , pointer , dimension(:,:) :: wind_hgt_canyon
-    real(rkx) , pointer , dimension(:,:,:) :: tk_wall
-    real(rkx) , pointer , dimension(:,:,:) :: tk_roof
-    real(rkx) , pointer , dimension(:,:,:) :: tk_improad
-    real(rkx) , pointer , dimension(:,:,:) :: cv_wall
-    real(rkx) , pointer , dimension(:,:,:) :: cv_roof
-    real(rkx) , pointer , dimension(:,:,:) :: cv_improad
-    real(rkx) , pointer , dimension(:,:) :: thick_wall
-    real(rkx) , pointer , dimension(:,:) :: thick_roof
+    real(rk8) , pointer , dimension(:,:) :: canyon_hwr
+    real(rk8) , pointer , dimension(:,:) :: wtlunit_roof
+    real(rk8) , pointer , dimension(:,:) :: wtroad_perv
+    real(rk8) , pointer , dimension(:,:) :: em_roof
+    real(rk8) , pointer , dimension(:,:) :: em_improad
+    real(rk8) , pointer , dimension(:,:) :: em_perroad
+    real(rk8) , pointer , dimension(:,:) :: em_wall
+    real(rk8) , pointer , dimension(:,:,:) :: alb_roof_dir
+    real(rk8) , pointer , dimension(:,:,:) :: alb_roof_dif
+    real(rk8) , pointer , dimension(:,:,:) :: alb_improad_dir
+    real(rk8) , pointer , dimension(:,:,:) :: alb_improad_dif
+    real(rk8) , pointer , dimension(:,:,:) :: alb_perroad_dir
+    real(rk8) , pointer , dimension(:,:,:) :: alb_perroad_dif
+    real(rk8) , pointer , dimension(:,:,:) :: alb_wall_dir
+    real(rk8) , pointer , dimension(:,:,:) :: alb_wall_dif
+    real(rk8) , pointer , dimension(:,:) :: ht_roof
+    real(rk8) , pointer , dimension(:,:) :: wind_hgt_canyon
+    real(rk8) , pointer , dimension(:,:,:) :: tk_wall
+    real(rk8) , pointer , dimension(:,:,:) :: tk_roof
+    real(rk8) , pointer , dimension(:,:,:) :: tk_improad
+    real(rk8) , pointer , dimension(:,:,:) :: cv_wall
+    real(rk8) , pointer , dimension(:,:,:) :: cv_roof
+    real(rk8) , pointer , dimension(:,:,:) :: cv_improad
+    real(rk8) , pointer , dimension(:,:) :: thick_wall
+    real(rk8) , pointer , dimension(:,:) :: thick_roof
     integer(ik4) , pointer , dimension(:,:) :: nlev_improad
-    real(rkx) , pointer , dimension(:,:) :: t_building_min
-    real(rkx) , pointer , dimension(:,:) :: t_building_max
+    real(rk8) , pointer , dimension(:,:) :: t_building_min
+    real(rk8) , pointer , dimension(:,:) :: t_building_max
   end type urbinp_t
 
   public urbinp_t

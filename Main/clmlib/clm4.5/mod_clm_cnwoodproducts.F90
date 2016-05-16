@@ -35,10 +35,10 @@ module mod_clm_cnwoodproducts
 
     integer(ik4) :: fc  ! lake filter indices
     integer(ik4) :: c   ! indices
-    real(rkx):: dt      ! time step (seconds)
+    real(rk8):: dt      ! time step (seconds)
     type(column_type), pointer :: cptr  ! pointer to column derived subtype
-    real(rkx) :: kprod10   ! decay constant for 10-year product pool
-    real(rkx) :: kprod100  ! decay constant for 100-year product pool
+    real(rk8) :: kprod10   ! decay constant for 10-year product pool
+    real(rk8) :: kprod100  ! decay constant for 100-year product pool
 
     cptr => clm3%g%l%c
 
@@ -46,8 +46,8 @@ module mod_clm_cnwoodproducts
     ! the following (1/s) rate constants result in ~90% loss of initial
     ! state over 10 and 100 years, respectively, using a discrete-time
     ! fractional decay algorithm.
-    kprod10 = 7.2e-9_rkx
-    kprod100 = 7.2e-10_rkx
+    kprod10 = 7.2e-9_rk8
+    kprod100 = 7.2e-10_rk8
 
     do fc = 1 , num_soilc
       c = filter_soilc(fc)

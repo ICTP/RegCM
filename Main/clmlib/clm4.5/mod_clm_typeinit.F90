@@ -825,20 +825,20 @@ module mod_clm_typeinit
     pps%btran(ibeg:iend) = spval
     pps%btran2(ibeg:iend) = spval       !F. Li and S. Levis
     pps%fsun(ibeg:iend) = spval
-    pps%fsun_z(ibeg:iend,:nlevcan) = 0._rkx
-    pps%tlai(ibeg:iend) = 0._rkx
-    pps%tsai(ibeg:iend) = 0._rkx
-    pps%elai(ibeg:iend) = 0._rkx
-    pps%tlai_z(ibeg:iend,:nlevcan) = 0._rkx
-    pps%tsai_z(ibeg:iend,:nlevcan) = 0._rkx
-    pps%esai(ibeg:iend) = 0._rkx
+    pps%fsun_z(ibeg:iend,:nlevcan) = 0._rk8
+    pps%tlai(ibeg:iend) = 0._rk8
+    pps%tsai(ibeg:iend) = 0._rk8
+    pps%elai(ibeg:iend) = 0._rk8
+    pps%tlai_z(ibeg:iend,:nlevcan) = 0._rk8
+    pps%tsai_z(ibeg:iend,:nlevcan) = 0._rk8
+    pps%esai(ibeg:iend) = 0._rk8
     pps%ncan(ibeg:iend) = 0
     pps%nrad(ibeg:iend) = 0
     pps%fwet(ibeg:iend) = nan
     pps%fdry(ibeg:iend) = nan
     pps%dt_veg(ibeg:iend) = nan
-    pps%htop(ibeg:iend) = 0._rkx
-    pps%hbot(ibeg:iend) = 0._rkx
+    pps%htop(ibeg:iend) = 0._rk8
+    pps%hbot(ibeg:iend) = 0._rk8
     pps%z0m(ibeg:iend) = nan
     pps%displa(ibeg:iend) = nan
     pps%albd(ibeg:iend,:numrad) = nan
@@ -854,10 +854,10 @@ module mod_clm_typeinit
     pps%ftii(ibeg:iend,:numrad) = nan
     pps%vcmaxcintsun(ibeg:iend) = nan
     pps%vcmaxcintsha(ibeg:iend) = nan
-    pps%fabd_sun_z(ibeg:iend,:nlevcan) = 0._rkx
-    pps%fabd_sha_z(ibeg:iend,:nlevcan) = 0._rkx
-    pps%fabi_sun_z(ibeg:iend,:nlevcan) = 0._rkx
-    pps%fabi_sha_z(ibeg:iend,:nlevcan) = 0._rkx
+    pps%fabd_sun_z(ibeg:iend,:nlevcan) = 0._rk8
+    pps%fabd_sha_z(ibeg:iend,:nlevcan) = 0._rk8
+    pps%fabi_sun_z(ibeg:iend,:nlevcan) = 0._rk8
+    pps%fabi_sha_z(ibeg:iend,:nlevcan) = 0._rk8
     pps%u10(ibeg:iend) = nan
     pps%u10_clm(ibeg:iend) = nan
     pps%va(ibeg:iend) = nan
@@ -870,8 +870,8 @@ module mod_clm_typeinit
     if ( crop_prog ) then
       pps%hdidx(ibeg:iend)       = nan
       pps%cumvd(ibeg:iend)       = nan
-      pps%htmx(ibeg:iend)        = 0.0_rkx
-      pps%vf(ibeg:iend)          = 0.0_rkx
+      pps%htmx(ibeg:iend)        = 0.0_rk8
+      pps%vf(ibeg:iend)          = 0.0_rk8
       pps%gddmaturity(ibeg:iend) = spval
       pps%gdd0(ibeg:iend)        = spval
       pps%gdd8(ibeg:iend)        = spval
@@ -1607,10 +1607,10 @@ module mod_clm_typeinit
     pwf%qflx_evap_can(ibeg:iend) = nan
     pwf%qflx_evap_soi(ibeg:iend) = nan
     pwf%qflx_evap_tot(ibeg:iend) = nan
-    pwf%qflx_evap_grnd(ibeg:iend) = 0.0_rkx
-    pwf%qflx_dew_grnd(ibeg:iend) = 0.0_rkx
-    pwf%qflx_sub_snow(ibeg:iend) = 0.0_rkx
-    pwf%qflx_dew_snow(ibeg:iend) = 0.0_rkx
+    pwf%qflx_evap_grnd(ibeg:iend) = 0.0_rk8
+    pwf%qflx_dew_grnd(ibeg:iend) = 0.0_rk8
+    pwf%qflx_sub_snow(ibeg:iend) = 0.0_rk8
+    pwf%qflx_dew_snow(ibeg:iend) = 0.0_rk8
 
     allocate(pwf%qflx_ev_snow(ibeg:iend))
     allocate(pwf%qflx_ev_soil(ibeg:iend))
@@ -1857,7 +1857,7 @@ module mod_clm_typeinit
     pcf%lmrsun_z(ibeg:iend,:nlevcan) = nan
     pcf%lmrsha_z(ibeg:iend,:nlevcan) = nan
     pcf%fpsn(ibeg:iend) = spval
-    pcf%fco2(ibeg:iend) = 0._rkx
+    pcf%fco2(ibeg:iend) = 0._rk8
     pcf%psnsun_wc(ibeg:iend) = nan
     pcf%psnsha_wc(ibeg:iend) = nan
     pcf%fpsn_wc(ibeg:iend) = nan
@@ -2686,7 +2686,7 @@ module mod_clm_typeinit
     cps%rootfr_road_perv(ibeg:iend,1:nlevgrnd) = nan
     cps%rootr_road_perv(ibeg:iend,1:nlevgrnd) = nan
     cps%wf(ibeg:iend) = nan
-!   cps%xirrig(ibeg:iend) = 0._rkx
+!   cps%xirrig(ibeg:iend) = 0._rk8
     cps%soilpsi(ibeg:iend,1:nlevgrnd) = spval
     cps%decl(ibeg:iend) = nan
     cps%coszen(ibeg:iend) = nan
@@ -2712,13 +2712,13 @@ module mod_clm_typeinit
     cps%baf_peatf(ibeg:iend) = nan
     cps%fbac(ibeg:iend) = nan
     cps%fbac1(ibeg:iend) = nan
-    cps%trotr1_col(ibeg:iend) = 0._rkx
-    cps%trotr2_col(ibeg:iend) = 0._rkx
-    cps%dtrotr_col(ibeg:iend) = 0._rkx
+    cps%trotr1_col(ibeg:iend) = 0._rk8
+    cps%trotr2_col(ibeg:iend) = 0._rk8
+    cps%dtrotr_col(ibeg:iend) = 0._rk8
     cps%prec10_col(ibeg:iend) = nan
     cps%prec60_col(ibeg:iend) = nan
     cps%lfc(ibeg:iend) = spval
-    cps%lfc2(ibeg:iend) = 0._rkx
+    cps%lfc2(ibeg:iend) = 0._rk8
 
     cps%albsnd_hst(ibeg:iend,:numrad) = spval
     cps%albsni_hst(ibeg:iend,:numrad) = spval
@@ -2832,7 +2832,7 @@ module mod_clm_typeinit
     cps%frac_h2osfc(ibeg:iend) = spval
     cps%micro_sigma(ibeg:iend) = nan
     cps%h2osfc_thresh(ibeg:iend) = nan
-    cps%frac_h2osfc_temp(ibeg:iend) = 0.0_rkx
+    cps%frac_h2osfc_temp(ibeg:iend) = 0.0_rk8
     cps%n_melt(ibeg:iend) = nan
 #if (defined VICHYDRO)
     ! new variables for VIC hydrology
@@ -3948,8 +3948,8 @@ module mod_clm_typeinit
     allocate(gwf%qflx_liq_dynbal(ibeg:iend))
     allocate(gwf%qflx_ice_dynbal(ibeg:iend))
 
-    gwf%qflx_runoffg(ibeg:iend) = 0._rkx
-    gwf%qflx_snwcp_iceg(ibeg:iend) = 0._rkx
+    gwf%qflx_runoffg(ibeg:iend) = 0._rk8
+    gwf%qflx_snwcp_iceg(ibeg:iend) = 0._rk8
     gwf%qflx_liq_dynbal(ibeg:iend) = nan
     gwf%qflx_ice_dynbal(ibeg:iend) = nan
   end subroutine init_gridcell_wflux_type

@@ -27,33 +27,33 @@ module mod_clm_h2osfc
     integer(ik4) , intent(in) :: num_h2osfc
     integer(ik4) , intent(in) :: filter_h2osfc(ubc-lbc+1)  ! column filter
     ! fractional surface water (mm)
-    real(rkx), intent(inout) :: frac_h2osfc(lbc:ubc)
+    real(rk8), intent(inout) :: frac_h2osfc(lbc:ubc)
     ! flag to make calculation w/o updating variables
     integer(ik4) , intent(in), optional :: no_update
 
-    real(rkx), pointer :: h2osfc(:)         ! surface water (mm)
+    real(rk8), pointer :: h2osfc(:)         ! surface water (mm)
 
     ! microtopography pdf sigma (m)
-    real(rkx), pointer :: micro_sigma(:)
+    real(rk8), pointer :: micro_sigma(:)
     ! fraction of ground covered by snow (0 to 1)
-    real(rkx), pointer :: frac_sno(:)
+    real(rk8), pointer :: frac_sno(:)
     ! eff. fraction of ground covered by snow (0 to 1)
-    real(rkx), pointer :: frac_sno_eff(:)
+    real(rk8), pointer :: frac_sno_eff(:)
     integer(ik4) , pointer :: snl(:)      ! minus number of snow layers
-    real(rkx), pointer :: h2osno(:)       ! snow water (mm H2O)
-    real(rkx), pointer :: h2osoi_liq(:,:) ! liquid water (col,lyr) [kg/m2]
-    real(rkx), pointer :: topo_slope(:)   ! topographic slope
-    real(rkx), pointer :: topo_ndx(:)     ! topographic slope
+    real(rk8), pointer :: h2osno(:)       ! snow water (mm H2O)
+    real(rk8), pointer :: h2osoi_liq(:,:) ! liquid water (col,lyr) [kg/m2]
+    real(rk8), pointer :: topo_slope(:)   ! topographic slope
+    real(rk8), pointer :: topo_ndx(:)     ! topographic slope
     integer(ik4) , pointer :: ltype(:)    ! landunit type
     integer(ik4) , pointer :: clandunit(:)  ! columns's landunit
 
     integer(ik4)  :: c,f,l     ! indices
-    real(rkx):: d,fd,dfdd      ! temporary variable for frac_h2oscs iteration
-    real(rkx):: sigma          ! microtopography pdf sigma in mm
-    real(rkx):: min_h2osfc
+    real(rk8):: d,fd,dfdd      ! temporary variable for frac_h2oscs iteration
+    real(rk8):: sigma          ! microtopography pdf sigma in mm
+    real(rk8):: min_h2osfc
 
 #ifdef __PGI
-    real(rkx) , external :: erf
+    real(rk8) , external :: erf
 #endif
     ! Assign local pointers to derived subtypes components (column-level)
 
@@ -71,7 +71,7 @@ module mod_clm_h2osfc
     h2osno              => clm3%g%l%c%cws%h2osno
 
     ! arbitrary lower limit on h2osfc for safer numerics...
-    min_h2osfc = 1.e-8_rkx
+    min_h2osfc = 1.e-8_rk8
 
     do f = 1 , num_h2osfc
       c = filter_h2osfc(f)
@@ -85,39 +85,39 @@ module mod_clm_h2osfc
         if ( h2osfc(c) > min_h2osfc ) then
           ! a cutoff is needed for numerical reasons...
           ! (nonconvergence after 5 iterations)
-          d = 0.0_rkx
-          sigma = 1.0e3_rkx * micro_sigma(c) ! convert to mm
+          d = 0.0_rk8
+          sigma = 1.0e3_rk8 * micro_sigma(c) ! convert to mm
           do l = 1 , 10
-            fd = 0.5_rkx*d*(1.0_rkx+erf(d/(sigma*sqrt(2.0_rkx)))) + &
-                    sigma/sqrt(2.0_rkx*rpi)*exp(-d**2/(2.0_rkx*sigma**2)) - &
+            fd = 0.5_rk8*d*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8)))) + &
+                    sigma/sqrt(2.0_rk8*rpi)*exp(-d**2/(2.0_rk8*sigma**2)) - &
                     h2osfc(c)
-            dfdd = 0.5_rkx*(1.0_rkx+erf(d/(sigma*sqrt(2.0_rkx))))
+            dfdd = 0.5_rk8*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8))))
             d = d - fd/dfdd
           end do
           !--  update the submerged areal fraction using the new d value
-          frac_h2osfc(c) = 0.5_rkx*(1.0_rkx+erf(d/(sigma*sqrt(2.0_rkx))))
+          frac_h2osfc(c) = 0.5_rk8*(1.0_rk8+erf(d/(sigma*sqrt(2.0_rk8))))
         else
-          frac_h2osfc(c) = 0._rkx
+          frac_h2osfc(c) = 0._rk8
           h2osoi_liq(c,1) = h2osoi_liq(c,1) + h2osfc(c)
-          h2osfc(c) = 0._rkx
+          h2osfc(c) = 0._rk8
         end if
 
         if ( .not. present(no_update) ) then
 
           ! adjust fh2o, fsno when sum is greater than zero
           ! energy balance error when h2osno > 0 and snl = 0
-          if ( frac_sno(c) > (1._rkx - frac_h2osfc(c)) .and. h2osno(c) > 0 ) then
-            if ( frac_h2osfc(c) > 0.01_rkx ) then
-              frac_h2osfc(c) = max(1.0_rkx - frac_sno(c),0.01_rkx)
-              frac_sno(c) = 1.0_rkx - frac_h2osfc(c)
+          if ( frac_sno(c) > (1._rk8 - frac_h2osfc(c)) .and. h2osno(c) > 0 ) then
+            if ( frac_h2osfc(c) > 0.01_rk8 ) then
+              frac_h2osfc(c) = max(1.0_rk8 - frac_sno(c),0.01_rk8)
+              frac_sno(c) = 1.0_rk8 - frac_h2osfc(c)
             else
-              frac_sno(c) = 1.0_rkx - frac_h2osfc(c)
+              frac_sno(c) = 1.0_rk8 - frac_h2osfc(c)
             end if
             frac_sno_eff(c)=frac_sno(c)
           end if
         end if ! end of no_update construct
       else !if landunit not istsoil/istcrop, set frac_h2osfc to zero
-        frac_h2osfc(c) = 0._rkx
+        frac_h2osfc(c) = 0._rk8
       end if
     end do
   end subroutine FracH2oSfc

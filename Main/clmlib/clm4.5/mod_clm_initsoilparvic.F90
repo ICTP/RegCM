@@ -27,77 +27,77 @@ module mod_clm_initsoilparvic
     implicit none
     integer(ik4) , intent(in)  :: c ! column bounds
     ! read in - soil texture: percent sand
-    real(rkx) , pointer :: sandcol(:,:)
+    real(rk8) , pointer :: sandcol(:,:)
     ! read in - soil texture: percent clay
-    real(rkx) , pointer :: claycol(:,:)
+    real(rk8) , pointer :: claycol(:,:)
     ! read in - organic matter: kg/m3
-    real(rkx) , pointer :: om_fraccol(:,:)
+    real(rk8) , pointer :: om_fraccol(:,:)
     ! porosity of organic soil
-    real(rkx) :: om_watsat = 0.9_rkx
+    real(rk8) :: om_watsat = 0.9_rk8
     ! saturated hydraulic conductivity of organic soil [mm/s]
-    real(rkx) :: om_hksat = 0.1_rkx
+    real(rk8) :: om_hksat = 0.1_rk8
     ! thermal conductivity of organic soil (Farouki, 1986) [W/m/K]
-    real(rkx) :: om_tkm = 0.25_rkx
+    real(rk8) :: om_tkm = 0.25_rk8
     ! saturated suction for organic matter (Letts, 2000)
-    real(rkx) :: om_sucsat = 10.3_rkx
+    real(rk8) :: om_sucsat = 10.3_rk8
     ! heat capacity of peat soil *10^6 (J/K m3) (Farouki, 1986)
-    real(rkx) :: om_csol = 2.5_rkx
+    real(rk8) :: om_csol = 2.5_rk8
     ! thermal conductivity of dry organic soil (Farouki, 1981)
-    real(rkx) :: om_tkd = 0.05_rkx
+    real(rk8) :: om_tkd = 0.05_rk8
     ! Clapp Hornberger paramater for oragnic soil (Letts, 2000)
-    real(rkx) :: om_b = 2.7_rkx
+    real(rk8) :: om_b = 2.7_rk8
     ! soil expt for VIC
-    real(rkx) :: om_expt = 3._rkx+2._rkx*2.7_rkx
+    real(rk8) :: om_expt = 3._rk8+2._rk8*2.7_rk8
     ! organic matter (kg/m3) where soil is assumed to act like peat
-    real(rkx) :: organic_max = 130._rkx
+    real(rk8) :: organic_max = 130._rk8
     ! vol. heat capacity of granite/sandstone  J/(m3 K)(Shabbir, 2000)
-    real(rkx) :: csol_bedrock = 2.0e6_rkx
+    real(rk8) :: csol_bedrock = 2.0e6_rk8
     ! percolation threshold
-    real(rkx) :: pc = 0.5_rkx
+    real(rk8) :: pc = 0.5_rk8
     ! percolation exponent
-    real(rkx) :: pcbeta = 0.139_rkx
-    real(rkx) :: xksat       ! maximum hydraulic conductivity of soil [mm/s]
-    real(rkx) :: perc_frac   ! "percolating" fraction of organic soil
-    real(rkx) :: perc_norm   ! normalize to 1 when 100% organic soil
-    real(rkx) :: uncon_hksat ! series conductivity of mineral/organic soil
-    real(rkx) :: uncon_frac  ! fraction of "unconnected" soil
+    real(rk8) :: pcbeta = 0.139_rk8
+    real(rk8) :: xksat       ! maximum hydraulic conductivity of soil [mm/s]
+    real(rk8) :: perc_frac   ! "percolating" fraction of organic soil
+    real(rk8) :: perc_norm   ! normalize to 1 when 100% organic soil
+    real(rk8) :: uncon_hksat ! series conductivity of mineral/organic soil
+    real(rk8) :: uncon_frac  ! fraction of "unconnected" soil
 
-    real(rkx), pointer :: dz(:,:)  !layer depth (m)
-    real(rkx), pointer :: zi(:,:)  !interface level below a "z" level (m)
-    real(rkx), pointer :: z(:,:)   !layer thickness (m)
+    real(rk8), pointer :: dz(:,:)  !layer depth (m)
+    real(rk8), pointer :: zi(:,:)  !interface level below a "z" level (m)
+    real(rk8), pointer :: z(:,:)   !layer thickness (m)
     !fraction of VIC layers in CLM layers
-    real(rkx), pointer :: vic_clm_fract(:,:,:)
+    real(rk8), pointer :: vic_clm_fract(:,:,:)
     ! sum of node fractions in each VIC layer
-    real(rkx) :: temp_sum_frac
+    real(rk8) :: temp_sum_frac
     !temporary, weighted averaged sand% for VIC layers
-    real(rkx) :: sandvic(1:nlayert)
+    real(rk8) :: sandvic(1:nlayert)
     !temporary, weighted averaged clay% for VIC layers
-    real(rkx) :: clayvic(1:nlayert)
+    real(rk8) :: clayvic(1:nlayert)
     !temporary, weighted averaged organic matter fract for VIC layers
-    real(rkx) :: om_fracvic(1:nlayert)
+    real(rk8) :: om_fracvic(1:nlayert)
 
     !b infiltration parameter
-    real(rkx), pointer :: b_infil(:)
+    real(rk8), pointer :: b_infil(:)
     !fracton of Dsmax where non-linear baseflow begins
-    real(rkx), pointer :: ds(:)
+    real(rk8), pointer :: ds(:)
     !max. velocity of baseflow (mm/day)
-    real(rkx), pointer :: dsmax(:)
+    real(rk8), pointer :: dsmax(:)
     !fraction of maximum soil moisutre where non-liear base flow occurs
-    real(rkx), pointer :: Wsvic(:)
+    real(rk8), pointer :: Wsvic(:)
     !baseflow exponent (Qb)
-    real(rkx), pointer :: c_param(:)
+    real(rk8), pointer :: c_param(:)
     !pore-size distribution related paramter(Q12)
-    real(rkx), pointer :: expt(:,:)
+    real(rk8), pointer :: expt(:,:)
     !Saturated hydrologic conductivity (mm/s)
-    real(rkx), pointer :: ksat(:,:)
+    real(rk8), pointer :: ksat(:,:)
     !soil moisture dissusion parameter
-    real(rkx), pointer :: phi_s(:,:)
+    real(rk8), pointer :: phi_s(:,:)
     !layer depth of upper layer(m)
-    real(rkx), pointer :: depth(:,:)
+    real(rk8), pointer :: depth(:,:)
     !soil porosity
-    real(rkx), pointer :: porosity(:,:)
+    real(rk8), pointer :: porosity(:,:)
     !maximum soil moisture (ice + liq)
-    real(rkx), pointer :: max_moist(:,:)
+    real(rk8), pointer :: max_moist(:,:)
 
     ! other local variables
 
@@ -125,15 +125,15 @@ module mod_clm_initsoilparvic
 
     !  map parameters between VIC layers and CLM layers
 
-    c_param(c) = 2._rkx
+    c_param(c) = 2._rk8
     ! map the CLM layers to VIC layers
     ! There might have better way to do this process
 
     do i = 1 , nlayer
-      sandvic(i) = 0._rkx
-      clayvic(i) = 0._rkx
-      om_fracvic(i) = 0._rkx
-      temp_sum_frac = 0._rkx
+      sandvic(i) = 0._rk8
+      clayvic(i) = 0._rk8
+      om_fracvic(i) = 0._rk8
+      temp_sum_frac = 0._rk8
       do j = 1 , nlevsoi
         sandvic(i) = sandvic(i) + sandcol(c,j) * vic_clm_fract(c,i,j)
         clayvic(i) = clayvic(i) + claycol(c,j) * vic_clm_fract(c,i,j)
@@ -145,42 +145,42 @@ module mod_clm_initsoilparvic
       clayvic(i) = clayvic(i)/temp_sum_frac
       om_fracvic(i) = om_fracvic(i)/temp_sum_frac
       !make sure sand, clay and om fractions are between 0 and 100%
-      sandvic(i) = min(100._rkx, sandvic(i))
-      clayvic(i) = min(100._rkx, clayvic(i))
-      om_fracvic(i) = min(100._rkx, om_fracvic(i))
-      sandvic(i) = max(0._rkx, sandvic(i))
-      clayvic(i) = max(0._rkx, clayvic(i))
-      om_fracvic(i) = max(0._rkx, om_fracvic(i))
+      sandvic(i) = min(100._rk8, sandvic(i))
+      clayvic(i) = min(100._rk8, clayvic(i))
+      om_fracvic(i) = min(100._rk8, om_fracvic(i))
+      sandvic(i) = max(0._rk8, sandvic(i))
+      clayvic(i) = max(0._rk8, clayvic(i))
+      om_fracvic(i) = max(0._rk8, om_fracvic(i))
       !calculate other parameters based on teh percentages
-      porosity(c, i) = 0.489_rkx - 0.00126_rkx*sandvic(i)
-      expt(c, i) = 3._rkx+ 2._rkx*(2.91_rkx + 0.159_rkx*clayvic(i))
+      porosity(c, i) = 0.489_rk8 - 0.00126_rk8*sandvic(i)
+      expt(c, i) = 3._rk8+ 2._rk8*(2.91_rk8 + 0.159_rk8*clayvic(i))
       xksat = 0.0070556 *( 10.**(-0.884+0.0153*sandvic(i)) )
       !consider organic matter, M.Huang
-      expt(c, i) = (1._rkx-om_fracvic(i))*expt(c, i) + om_fracvic(i)*om_expt
-      porosity(c,i) = (1._rkx - om_fracvic(i))*porosity(c,i) + &
+      expt(c, i) = (1._rk8-om_fracvic(i))*expt(c, i) + om_fracvic(i)*om_expt
+      porosity(c,i) = (1._rk8 - om_fracvic(i))*porosity(c,i) + &
               om_watsat*om_fracvic(i)
       ! perc_frac is zero unless perf_frac greater than percolation threshold
       if (om_fracvic(i) > pc) then
-        perc_norm = (1._rkx - pc)**(-pcbeta)
+        perc_norm = (1._rk8 - pc)**(-pcbeta)
         perc_frac = perc_norm*(om_fracvic(i) - pc)**pcbeta
       else
-        perc_frac = 0._rkx
+        perc_frac = 0._rk8
       endif
       ! uncon_frac is fraction of mineral soil plus fraction of
       ! "nonpercolating" organic soil
-      uncon_frac=(1._rkx-om_fracvic(i))+(1._rkx-perc_frac)*om_fracvic(i)
+      uncon_frac=(1._rk8-om_fracvic(i))+(1._rk8-perc_frac)*om_fracvic(i)
       ! uncon_hksat is series addition of mineral/organic conductivites
-      if (om_fracvic(i) < 1._rkx) then
-        uncon_hksat=uncon_frac/((1._rkx-om_fracvic(i))/xksat &
-                    +((1._rkx-perc_frac)*om_fracvic(i))/om_hksat)
+      if (om_fracvic(i) < 1._rk8) then
+        uncon_hksat=uncon_frac/((1._rk8-om_fracvic(i))/xksat &
+                    +((1._rk8-perc_frac)*om_fracvic(i))/om_hksat)
       else
-        uncon_hksat = 0._rkx
+        uncon_hksat = 0._rk8
       end if
       ksat(c,i)  = uncon_frac*uncon_hksat + (perc_frac*om_fracvic(i))*om_hksat
-      max_moist(c,i) = porosity(c,i)*depth(c,i)*1000._rkx !in mm!
+      max_moist(c,i) = porosity(c,i)*depth(c,i)*1000._rk8 !in mm!
 
-      phi_s(c,i)=-(exp((1.54_rkx - 0.0095_rkx*sandvic(i) + &
-               0.0063_rkx*(100.0_rkx-sandvic(i)-clayvic(i)))*log(10.0_rkx))*9.8e-5_rkx)
+      phi_s(c,i)=-(exp((1.54_rk8 - 0.0095_rk8*sandvic(i) + &
+               0.0063_rk8*(100.0_rk8-sandvic(i)-clayvic(i)))*log(10.0_rk8))*9.8e-5_rk8)
     end do
   end subroutine initSoilParVIC
 #endif
