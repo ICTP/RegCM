@@ -141,7 +141,8 @@ if [ ! -f "${NAMELIST}" ] ; then
   exit 1
 else
   # set domain name
-  DOMNAME=`cat $NAMELIST | grep domname | cut -d "=" -f 2 | tr "'" " " | \
+  DOMNAME=`cat $NAMELIST | grep domname | grep -v coarse_domname | \
+           cut -d "=" -f 2 | tr "'" " " | \
            cut -d "," -f 1 | sed -e 's/ //g' `
 
   # set model simulation input directory
@@ -334,8 +335,7 @@ function cleanup
       ofile=`basename $file`
       rm -f $out_dir/$ofile 
     done
-    rm -f remapweights.nc  $out_dir/tfile
-
+    rm -f remapweights.nc $out_dir/tfile
 
     if [ ${VERBOSE} -ge 1 ] ; then
 	echo 'Done'
