@@ -44,6 +44,7 @@ module mod_advection
   real(rkx) , parameter :: t_extrema = 5.0_rkx
   real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
   real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
+  real(rkx) , parameter :: t_rel_extrema = 0.20_rkx
 
   interface hadv
     module procedure hadvuv
@@ -843,6 +844,7 @@ module mod_advection
 
       integer(ik4) :: i , j , k , n
       real(rkx) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
+      real(rkx) :: advval
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvtr'
       integer(ik4) , save :: idindx = 0
@@ -860,9 +862,38 @@ module mod_advection
                 fx2 = f(j,i,k,n)  +f(j+1,i,k,n)
                 fy1 = f(j,i-1,k,n)+f(j,i,k,n)
                 fy2 = f(j,i,k,n)  +f(j,i+1,k,n)
-                ften(j,i,k,n) = ften(j,i,k,n) - xmapf(j,i) * &
+                advval = - xmapf(j,i) * &
                     (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                      vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
+                if ( stability_enhance ) then
+                  !
+                  ! Instability correction
+                  !
+                  ! Local extrema exceeding a certain threshold
+                  ! must not grow further due to advection
+                  !
+                  if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - &
+                       d_two*f(j,i,k,n))/max(f(j,i,k,n),dlowval) > t_rel_extrema ) then
+                    if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
+                         (f(j,i,k,n) > f(j,i-1,k,n)) ) then
+                      advval = min(advval,d_zero)
+                    else if ( (f(j,i,k,n) < f(j,i+1,k,n)) .and. &
+                              (f(j,i,k,n) < f(j,i-1,k,n)) ) then
+                      advval = max(advval,d_zero)
+                    end if
+                  end if
+                  if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - &
+                       d_two*f(j,i,k,n))/max(f(j,i,k,n),dlowval) > t_rel_extrema ) then
+                    if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
+                         (f(j,i,k,n) > f(j-1,i,k,n)) ) then
+                      advval = min(advval,d_zero)
+                    else if ( (f(j,i,k,n) < f(j+1,i,k,n)) .and. &
+                              (f(j,i,k,n) < f(j-1,i,k,n)) ) then
+                      advval = max(advval,d_zero)
+                    end if
+                  end if
+                end if
+                ften(j,i,k,n) = ften(j,i,k,n) + advval
               end do
             end do
           end do
@@ -886,9 +917,38 @@ module mod_advection
               f2 = d_one - f1
               fy1 = f1*f(j,i-1,k,n)+f2*f(j,i,k,n)
               fy2 = f1*f(j,i,k,n)  +f2*f(j,i+1,k,n)
-              ften(j,i,k,n) = ften(j,i,k,n) - xmapf(j,i) * &
+              advval = - xmapf(j,i) * &
                   (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                    vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
+              if ( stability_enhance ) then
+                !
+                ! Instability correction
+                !
+                ! Local extrema exceeding a certain threshold
+                ! must not grow further due to advection
+                !
+                if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - &
+                     d_two*f(j,i,k,n))/max(f(j,i,k,n),dlowval) > t_rel_extrema ) then
+                  if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
+                       (f(j,i,k,n) > f(j,i-1,k,n)) ) then
+                    advval = min(advval,d_zero)
+                  else if ( (f(j,i,k,n) < f(j,i+1,k,n)) .and. &
+                            (f(j,i,k,n) < f(j,i-1,k,n)) ) then
+                    advval = max(advval,d_zero)
+                  end if
+                end if
+                if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - &
+                     d_two*f(j,i,k,n))/max(f(j,i,k,n),dlowval) > t_rel_extrema ) then
+                  if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
+                       (f(j,i,k,n) > f(j-1,i,k,n)) ) then
+                    advval = min(advval,d_zero)
+                  else if ( (f(j,i,k,n) < f(j+1,i,k,n)) .and. &
+                            (f(j,i,k,n) < f(j-1,i,k,n)) ) then
+                    advval = max(advval,d_zero)
+                  end if
+                end if
+              end if
+              ften(j,i,k,n) = ften(j,i,k,n) + advval
             end do
           end do
         end do
