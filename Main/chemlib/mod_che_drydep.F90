@@ -681,7 +681,7 @@ module mod_che_drydep
       real(rkx) , dimension(ngasd,ici1:ici2,luc) :: vdg
       real(rkx) , dimension(ici1:ici2) :: icz , ddrem
       real(rkx) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
-      real(rkx) :: kd
+      real(rkx) :: kd , rdz
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_gas'
       integer(ik4) , save :: idindx = 0
@@ -746,6 +746,7 @@ module mod_che_drydep
        ! Finally : gas phase dry dep tendency calculation
        if ( ichdrdepo == 1 ) then
          do i = ici1 , ici2
+           rdz = d_one / cdzq(j,i,kz)
 
            ! If using CLM then use the dry deposition velocities coming directly
            ! from internal CLM calculations
@@ -755,7 +756,7 @@ module mod_che_drydep
            end if
 #endif
            do n = 1 , ntr
-             kd =  drydepvg(i,n) / cdzq(j,i,kz) !Kd removal rate in s-1
+             kd =  drydepvg(i,n) * rdz !Kd removal rate in s-1
              if ( kd*dt < 25.0_rkx ) then
                ! dry dep removal tendency (+)
                ddrem(i) = chib(j,i,kz,n) * (d_one-exp(-kd*dt))/dt
@@ -765,10 +766,10 @@ module mod_che_drydep
              ! update chiten
              chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
              ! diag dry dep tendency
-              if ( ichdiag == 1 ) then
-              cseddpdiag(j,i,kz,n) = cseddpdiag(j,i,kz,n) - &
-                                             ddrem(i) * cfdout
-              end if
+             if ( ichdiag == 1 ) then
+                cseddpdiag(j,i,kz,n) = cseddpdiag(j,i,kz,n) - &
+                                                ddrem(i) * cfdout
+             end if
              ! drydep flux diagnostic (accumulated between two outputs time
              ! step) ! flux is in kg/m2/s-1 so need to normalise by ps here.
              remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i)/cpsb(j,i) * cfdout
@@ -780,17 +781,16 @@ module mod_che_drydep
          end do
        else if ( ichdrdepo == 2 ) then
          do i = ici1 , ici2
-
            ! If using CLM then use the dry deposition velocities coming directly
            ! from internal CLM calculations
 #ifdef CLM
            if ( ivegcov(i) == 0 ) then
-              drydepvg(i,:)  =  cdep_vels(j,i,:)
+             drydepvg(i,:)  =  cdep_vels(j,i,:)
            end if
 #endif
            do n = 1 , ntr
-             chifxuw(j,i,n) = chifxuw(j,i,n) - chib(j,i,kz,n) / &
-                               cpsb(j,i) * drydepvg(i,n)
+             chifxuw(j,i,n) = chifxuw(j,i,n) - (chib(j,i,kz,n) / &
+                                 cpsb(j,i)) * drydepvg(i,n)
              ! dry dep velocity diagnostic in m.s-1
              ! (accumulated between two outputs time step)
              drydepv(j,i,n) =  drydepvg(i,n)
@@ -907,7 +907,8 @@ module mod_che_drydep
               ! * wind speed
               ! **************************************************************
               x = (1.0_rkx-15.0_rkx*zdl)**0.25_rkx
-              psiu = 2.0_rkx*log(0.5_rkx*(1.0_rkx+x))+log(0.5_rkx*(1.0_rkx+x*x)) - &
+              psiu = 2.0_rkx*log(0.5_rkx*(1.0_rkx+x)) + \
+                             log(0.5_rkx*(1.0_rkx+x*x)) - &
                      2.0_rkx*atan(x) + 0.5_rkx*mathpi
               ! **************************************************************
               ! * pot temp
@@ -984,17 +985,15 @@ module mod_che_drydep
 
     subroutine stomtresis(lai_f,laimin,laimax,ivegcov,igas, &
                           ustar,prec,sd,srad,ts,t2,rh,coszen,rc,rb)
-
       implicit none
-
       integer(ik4) , intent(in) :: igas
       integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
-      real(rkx) , dimension(ici1:ici2) , intent(in) :: coszen, srad , ts , rh , &
-                                               prec , sd , t2
+      real(rkx) , dimension(ici1:ici2) , intent(in) :: coszen, srad , &
+                         ts , rh , prec , sd , t2
       real(rkx) , dimension(ici1:ici2) , intent(in) :: lai_f , laimin , laimax
       real(rkx) , intent(in) , dimension(ici1:ici2,luc) :: ustar
       real(rkx) , intent(out) , dimension(igas,ici1:ici2,luc) :: rb , rc
-!
+
       integer(ik4) :: i , j , kcov , ig
       real(rkx) :: rst , wst , rac , rgs_f
       real(rkx) :: rdu , rdv , rgo_f

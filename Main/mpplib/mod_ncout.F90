@@ -2048,23 +2048,28 @@ module mod_ncout
             'wet_deposition_flux_from_washout',.true.,'time: mean')
           che_wdcflx_out => v2dvar_che(che_wdcflx)%rval
         end if
-        if ( enable_che2d_vars(che_ddflx) ) then
-          call setup_var(v2dvar_che,che_ddflx,vsize,'ddflx', &
-            'mg m-2 day-1','Dry deposition flux', &
-            'dry_deposition_flux',.true.,'time: mean')
-          che_ddflx_out => v2dvar_che(che_ddflx)%rval
+        if ( ichdrdepo == 1 ) then
+          if ( enable_che2d_vars(che_ddflx) ) then
+            call setup_var(v2dvar_che,che_ddflx,vsize,'ddflx', &
+              'mg m-2 day-1','Dry deposition flux', &
+              'dry_deposition_flux',.true.,'time: mean')
+            che_ddflx_out => v2dvar_che(che_ddflx)%rval
+          end if
+          if ( enable_che2d_vars(che_ddvel) ) then
+            call setup_var(v2dvar_che,che_ddvel,vsize,'ddvel', &
+              'm s-1','Dry deposition velocity', &
+              'dry_deposition_velocity',.true.,'time: mean')
+            che_ddvel_out => v2dvar_che(che_ddvel)%rval
+          end if
+        else
+          enable_che2d_vars(che_ddflx) = .false.
+          enable_che2d_vars(che_ddvel) = .false.
         end if
         if ( enable_che2d_vars(che_emflx) ) then
           call setup_var(v2dvar_che,che_emflx,vsize,'emflx', &
             'mg m-2 day-1','Surface emission flux', &
             'surface_emission_flux',.true.,'time: mean')
           che_emflx_out => v2dvar_che(che_emflx)%rval
-        end if
-        if ( enable_che2d_vars(che_ddvel) ) then
-          call setup_var(v2dvar_che,che_ddvel,vsize,'ddvel', &
-            'm s-1','Dry deposition velocity', &
-            'dry_deposition_velocity',.true.,'time: mean')
-          che_ddvel_out => v2dvar_che(che_ddvel)%rval
         end if
         if ( enable_che2d_vars(che_burden) ) then
           call setup_var(v2dvar_che,che_burden,vsize,'burden', &

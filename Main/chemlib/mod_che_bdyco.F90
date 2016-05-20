@@ -81,19 +81,21 @@ module mod_che_bdyco
   subroutine allocate_mod_che_bdyco
     implicit none
     call getmem1d(ichbdy2trac,1,max_input_tracers,'che_bdyco:ichbdytrac')
-    call getmem4d(chebdy,jce1,jce2,ice1,ice2,1,kz, &
-                  1,max_input_tracers,'che_bdyco:chebdy')
     call getmem4d(chib0,jde1ga,jde2ga,ide1ga,ide2ga, &
                         1,kz,1,ntr,'mod_che_bdyco:chib0')
-    call getmem4d(chib1,jde1ga,jde2ga,ide1ga,ide2ga, &
-                        1,kz,1,ntr,'mod_che_bdyco:chib1')
-    call getmem4d(chibt,jde1ga,jde2ga,ide1ga,ide2ga, &
-                        1,kz,1,ntr,'mod_che_bdyco:chibt')
-    call getmem2d(cefc,1,nspgx,1,kz,'che_bdyco:fcx')
-    call getmem2d(cegc,1,nspgx,1,kz,'che_bdyco:fcx')
     if ( ioxclim == 1 ) then
       call getmem4d(oxcl,jde1ga,jde2ga,ide1ga,ide2ga, &
                          1,kz,1,noxcl,'che_bdyco:oxcl')
+    end if
+    if ( ichebdy == 1 ) then
+      call getmem4d(chebdy,jce1,jce2,ice1,ice2,1,kz, &
+                    1,max_input_tracers,'che_bdyco:chebdy')
+      call getmem4d(chib1,jde1ga,jde2ga,ide1ga,ide2ga, &
+                          1,kz,1,ntr,'mod_che_bdyco:chib1')
+      call getmem4d(chibt,jde1ga,jde2ga,ide1ga,ide2ga, &
+                          1,kz,1,ntr,'mod_che_bdyco:chibt')
+      call getmem2d(cefc,1,nspgx,1,kz,'che_bdyco:fcx')
+      call getmem2d(cegc,1,nspgx,1,kz,'che_bdyco:fcx')
     end if
   end subroutine allocate_mod_che_bdyco
 
@@ -306,8 +308,6 @@ module mod_che_bdyco
     call time_begin(subroutine_name,idindx)
 #endif
 
-    chib0(:,:,:,:) = chib1(:,:,:,:)
-
     if ( ichsursrc == 1 ) then
       call split_idate(chbdydate1,lyear,lmonth,lday,lhour)
       call chem_emission(lyear,lmonth,lday,lhour)
@@ -316,6 +316,8 @@ module mod_che_bdyco
     chbdydate2 = chbdydate2 + intbdy
 
     if ( ichebdy == 1 ) then
+
+      chib0(:,:,:,:) = chib1(:,:,:,:)
 
       if ( myid == italk ) then
         write (stdout,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
@@ -411,9 +413,14 @@ module mod_che_bdyco
 #endif
   end subroutine chem_bdyin
 
-  subroutine chem_bdyval
+  subroutine chem_bdyval(psa,wue,wui,eue,eui,nve,nvi,sve,svi)
     implicit none
-    real(rkx) :: xt
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: psa
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: wue , wui
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: eue , eui
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: nve , nvi
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: sve , svi
+    real(rkx) :: xt , windavg , trint
     integer(ik4) :: itr , j , k , i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_bdyval'
@@ -469,16 +476,96 @@ module mod_che_bdyco
       end if
     end if  !end if (ktau > 1) test
 
-   !.....time-dependent boundary conditions:
-   ! for chemistry relaxation towrds
-   ! time dependant boundary conditions is considered
-   !    if ( iboudy.eq.0 ) then
-   !.....fixed boundary conditions:
-   !    end if
-   !
-   !.....time-dependent boundary conditions:
-   ! for chemistry relaxation towrds
-   ! time dependant boundary conditions is considered
+    if ( ichebdy == 0 ) then
+      ! flux dependent bdy
+      !
+      ! west boundary:
+      !
+      if ( ma%has_bdyleft ) then
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do i = ice1 , ice2
+              trint = chia(jci1,i,k,itr)/psa(jci1,i)
+              windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
+              if ( windavg >= d_zero ) then
+                chia(jce1,i,k,itr) = d_half*((mintr+trint)*psa(jce1,i))
+              else
+                chia(jce1,i,k,itr) = trint*psa(jce1,i)
+              end if
+            end do
+          end do
+        end do
+      end if
+      !
+      ! east boundary:
+      !
+      if ( ma%has_bdyright ) then
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do i = ice1 , ice2
+              trint = chia(jci2,i,k,itr)/psa(jci2,i)
+              windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
+              if ( windavg <= d_zero ) then
+                chia(jce2,i,k,itr) = d_half*((mintr+trint)*psa(jce2,i))
+              else
+                chia(jce2,i,k,itr) = trint*psa(jce2,i)
+              end if
+            end do
+          end do
+        end do
+      end if
+      !
+      ! south boundary:
+      !
+      if ( ma%has_bdybottom ) then
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do j = jci1 , jci2
+              trint = chia(j,ici1,k,itr)/psa(j,ici1)
+              windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+              if ( windavg >= d_zero ) then
+                chia(j,ice1,k,itr) = d_half*((mintr+trint)*psa(j,ice1))
+              else
+                chia(j,ice1,k,itr) = trint*psa(j,ice1)
+              end if
+            end do
+          end do
+        end do
+      end if
+      !
+      ! north boundary:
+      !
+      if ( ma%has_bdytop ) then
+        do itr = 1 , ntr
+          do k = 1 , kz
+            do j = jci1 , jci2
+              trint = chia(j,ici2,k,itr)/psa(j,ici2)
+              windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+              if ( windavg <= d_zero ) then
+                chia(j,ice2,k,itr) = d_half*((mintr+trint)*psa(j,ice2))
+              else
+                chia(j,ice2,k,itr) = trint*psa(j,ice2)
+              end if
+            end do
+          end do
+        end do
+      end if
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
+
+    !.....time-dependent boundary conditions:
+    ! for chemistry relaxation towrds
+    ! time dependant boundary conditions is considered
+    !    if ( iboudy.eq.0 ) then
+    !.....fixed boundary conditions:
+    !    end if
+    !
+    !.....time-dependent boundary conditions:
+    ! for chemistry relaxation towrds
+    ! time dependant boundary conditions is considered
 
     if ( ma%has_bdyleft ) then
       do k = 1 , kz
@@ -560,6 +647,13 @@ module mod_che_bdyco
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+
+    if ( ichebdy == 0 ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 
     xt = xbctime + dt
     if ( cba%ns /= 0 ) then
@@ -650,23 +744,22 @@ module mod_che_bdyco
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
-    fnudge = 0.1_rkx/dt2
-    gnudge = (dxsq/dt)/50.0_rkx
-    do k = 1 , kz
-      do n = 2 , nspgx-1
-        cefc(n,k) = fnudge*xfune(n,k)
-        cegc(n,k) = gnudge*xfune(n,k)
+    if ( ichebdy == 1 ) then
+      fnudge = 0.1_rkx/dt2
+      gnudge = (dxsq/dt)/50.0_rkx
+      do k = 1 , kz
+        do n = 2 , nspgx-1
+          cefc(n,k) = fnudge*xfune(n,k)
+          cegc(n,k) = gnudge*xfune(n,k)
+        end do
       end do
-    end do
-
+    end if
     contains
-
       pure real(rkx) function xfune(mm,kk)
         implicit none
         integer(ik4) , intent(in) :: mm , kk
         xfune = exp(-real(mm-2,rkx)/anudgh(kk))
       end function xfune
-
   end subroutine setup_che_bdycon
 
 end module mod_che_bdyco

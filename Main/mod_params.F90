@@ -780,8 +780,6 @@ module mod_params
           write(stdout,*) 'Read chemparam OK'
 #endif
         end if
-        ! force option 2 for drydep in the case of UW PBL
-        if ( ibltyp == 2 ) ichdrdepo = 2
       else
         ichem = 0
         ntr = 0

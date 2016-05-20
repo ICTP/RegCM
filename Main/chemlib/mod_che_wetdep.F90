@@ -566,7 +566,7 @@ module mod_che_wetdep
     do k= 1 , kz
       do itr = 1 , ntr
         do i = ici1 , ici2
-          if ( het_rates(i,k,itr) <= 2.e-29_rkx ) cycle
+          if ( het_rates(i,k,itr) <= dlowval ) cycle
 
           ! tendency due to rainout and washout
           temp_dep(i) = (d_one-exp(-het_rates(i,k,itr)*delt))*qin(i,k,itr)
@@ -596,7 +596,7 @@ module mod_che_wetdep
       end do
     end do
 
-    ! diagnostic for durface fluxes
+    ! diagnostic for surface fluxes
     do itr = 1 , ntr
       do i = ici1 , ici2
         wdrout(j,i,itr) = d_zero

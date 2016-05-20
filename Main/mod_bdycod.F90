@@ -1624,7 +1624,7 @@ module mod_bdycod
     end if
 
     if ( ichem == 1 ) then
-      call chem_bdyval
+      call chem_bdyval(sfs%psa,wue,wui,eue,eui,nve,nvi,sve,svi)
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
