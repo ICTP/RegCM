@@ -244,7 +244,11 @@ module mod_sound
       do i = ice1 , ice2
         do j = jce1 , jce2
           aten%w(j,i,k) = aten%w(j,i,k) * dts
-          atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
+          if ( abs(atm2%w(j,i,k)) > minww ) then
+            atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
+          else
+            atmc%w(j,i,k) = sign(minww,atm2%w(j,i,k))
+          end if
           atm2%w(j,i,k) = omuhf*atm1%w(j,i,k) + gnuhf*atm2%w(j,i,k)
         end do
       end do
@@ -744,12 +748,12 @@ module mod_sound
       do i = ici1 , ici2
         do j = jci1 , jci2
           atm1%w(j,i,k) = sfs%psb(j,i) * atmc%w(j,i,k)
-          if ( abs(atm1%w(j,i,k)) < dlowval) then
-            atm1%w(j,i,k) = sign(dlowval,atm1%w(j,i,k))
+          if ( abs(atm1%w(j,i,k)) < minww) then
+            atm1%w(j,i,k) = sign(minww,atm1%w(j,i,k))
           end if
           atm2%w(j,i,k) = atm2%w(j,i,k) + gnuhf*atm1%w(j,i,k)
-          if ( abs(atm2%w(j,i,k)) < dlowval) then
-            atm2%w(j,i,k) = sign(dlowval,atm2%w(j,i,k))
+          if ( abs(atm2%w(j,i,k)) < minww) then
+            atm2%w(j,i,k) = sign(minww,atm2%w(j,i,k))
           end if
         end do
       end do
