@@ -80,7 +80,7 @@ module mod_che_carbonaer
       implicit none
       integer, intent(in) :: j
       integer(ik4) :: i , k
-      real(rkx) :: agingtend1 , agingtend2
+      real(rkx) :: agingtend1 , agingtend2 , kav
       !
       ! aging o carbon species : Conversion from hydrophobic to
       ! hydrophilic: Carbonaceopus species time constant
@@ -89,7 +89,8 @@ module mod_che_carbonaer
       if ( ibchb > 0 .and. ibchl > 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            agingtend1 = -chib(j,i,k,ibchb)*(d_one-exp(-dt/chagct))/dt
+            kav = max(chib(j,i,k,ibchb)-mintr,d_zero)
+            agingtend1 = -kav*(d_one-exp(-dt/chagct))/dt
             agingtend2 = -agingtend1
             chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend1
             chiten(j,i,k,ibchl) = chiten(j,i,k,ibchl) + agingtend2
@@ -99,7 +100,8 @@ module mod_che_carbonaer
       if ( iochb > 0  .and. iochl > 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            agingtend1 = -chib(j,i,k,iochb)*(d_one-exp(-dt/chagct))/dt
+            kav = max(chib(j,i,k,iochb)-mintr,d_zero)
+            agingtend1 = -kav*(d_one-exp(-dt/chagct))/dt
             agingtend2 = -agingtend1
             chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend1
             chiten(j,i,k,iochl) = chiten(j,i,k,iochl) + agingtend2
@@ -110,7 +112,8 @@ module mod_che_carbonaer
       if ( ism1 > 0  .and. ism2 > 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            agingtend1 = -chib(j,i,k,iochb)*(d_one-exp(-dt/chsmct))/dt
+            kav = max(chib(j,i,k,iochb)-mintr,d_zero)
+            agingtend1 = -kav*(d_one-exp(-dt/chsmct))/dt
             agingtend2 = -agingtend1
             chiten(j,i,k,ism1) = chiten(j,i,k,ism1) + agingtend1
             chiten(j,i,k,ism2) = chiten(j,i,k,ism2) + agingtend2

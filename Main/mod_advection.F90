@@ -1160,9 +1160,16 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
+                if ( (svv(j,i,k) > d_zero .and. f(j,i,k,n) > mintr) .or. &
+                     (svv(j,i,k) < d_zero .and. f(j,i,k-1,n) > mintr) ) then
                   ff = (twt(k,1)*f(j,i,k,n) + &
                         twt(k,2)*f(j,i,k-1,n)) * svv(j,i,k)
+                  if ( stability_enhance ) then
+                    if ( abs((f(j,i,k,n) - f(j,i,k-1,n)) / &
+                              f(j,i,k,n)) > t_rel_extrema ) then
+                      ff = d_zero
+                    end if
+                  end if
                   ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
                   ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
                 end if
@@ -1175,10 +1182,16 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n)  /ps(j,i) > minqx .and. &
-                     f(j,i,k-1,n)/ps(j,i) > minqx ) then
+                if ( (svv(j,i,k) > d_zero .and. f(j,i,k,n) > minqx) .or. &
+                     (svv(j,i,k) < d_zero .and. f(j,i,k-1,n) > minqx) ) then
                   ff = (twt(k,1)*f(j,i,k,n) + &
                         twt(k,2)*f(j,i,k-1,n)) * svv(j,i,k)
+                  if ( stability_enhance ) then
+                    if ( abs((f(j,i,k,n) - f(j,i,k-1,n)) / &
+                              f(j,i,k,n)) > c_rel_extrema ) then
+                      ff = d_zero
+                    end if
+                  end if
                   ften(j,i,k-1,n) = ften(j,i,k-1,n) - ff*xds(k-1)
                   ften(j,i,k,n)   = ften(j,i,k,n)   + ff*xds(k)
                 end if

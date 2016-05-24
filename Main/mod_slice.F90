@@ -98,7 +98,8 @@ module mod_slice
       do k = 1 , kz
         do i = ice1gb , ice2gb
           do j = jce1gb , jce2gb
-            atms%qxb3d(j,i,k,n) = max(atm2%qx(j,i,k,n)*rpsb(j,i),minqx*rpsb(j,i))
+            atms%qxb3d(j,i,k,n) =  &
+                      max(atm2%qx(j,i,k,n)*rpsb(j,i),minqx*rpsb(j,i))
           end do
         end do
       end do
@@ -108,7 +109,8 @@ module mod_slice
         do k = 1 , kz
           do i = ice1gb , ice2gb
             do j = jce1gb , jce2gb
-              atms%chib3d(j,i,k,n) = max(chib(j,i,k,n)*rpsb(j,i),mintr*rpsb(j,i))
+              atms%chib3d(j,i,k,n) = &
+                      max(chib(j,i,k,n)*rpsb(j,i),mintr*rpsb(j,i))
             end do
           end do
         end do

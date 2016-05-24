@@ -373,8 +373,8 @@ module mod_che_start
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            chia(j,i,k,:) = chib0(j,i,k,:)
-            chib(j,i,k,:) = chib0(j,i,k,:)
+            chia(j,i,k,:) = max(chib0(j,i,k,:),mintr)
+            chib(j,i,k,:) = max(chib0(j,i,k,:),mintr)
           end do
         end do
       end do

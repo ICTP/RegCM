@@ -681,7 +681,7 @@ module mod_che_drydep
       real(rkx) , dimension(ngasd,ici1:ici2,luc) :: vdg
       real(rkx) , dimension(ici1:ici2) :: icz , ddrem
       real(rkx) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
-      real(rkx) :: kd , rdz
+      real(rkx) :: kd , kav , rdz
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_gas'
       integer(ik4) , save :: idindx = 0
@@ -752,14 +752,15 @@ module mod_che_drydep
            ! from internal CLM calculations
 #ifdef CLM
            if ( ivegcov(i) == 0 ) then
-             drydepvg(i,:)  =  cdep_vels(j,i,:)
+             drydepvg(i,:) = cdep_vels(j,i,:)
            end if
 #endif
            do n = 1 , ntr
-             kd =  drydepvg(i,n) * rdz !Kd removal rate in s-1
+             kd = drydepvg(i,n) * rdz !Kd removal rate in s-1
+             kav = (chib(j,i,kz,n)-mintr)
              if ( kd*dt < 25.0_rkx ) then
                ! dry dep removal tendency (+)
-               ddrem(i) = chib(j,i,kz,n) * (d_one-exp(-kd*dt))/dt
+               ddrem(i) = kav * (d_one-exp(-kd*dt))/dt
              else
                ddrem(i) = d_zero
              end if
@@ -775,8 +776,8 @@ module mod_che_drydep
              remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i)/cpsb(j,i) * cfdout
              ! dry dep velocity diagnostic in m.s-1
              ! (accumulated between two outputs time step)
-             drydepv(j,i,n) =  d_zero
-             ddv_out(j,i,n) =  ddv_out(j,i,n) + drydepvg(i,n)
+             drydepv(j,i,n) = d_zero
+             ddv_out(j,i,n) = ddv_out(j,i,n) + drydepvg(i,n)
            end do
          end do
        else if ( ichdrdepo == 2 ) then

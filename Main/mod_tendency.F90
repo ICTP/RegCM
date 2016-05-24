@@ -193,7 +193,7 @@ module mod_tendency
             mdv%cr(j,i,k) = ((atmx%umc(j+1,i+1,k)+atmx%umc(j+1,i,k)- &
                               atmx%umc(j,i+1,k)  -atmx%umc(j,i,k)) + &
                              (atmx%vmc(j+1,i+1,k)+atmx%vmc(j,i+1,k)- &
-                              atmx%vmc(j+1,i,k)  -atmx%vmc(j,i,k))) * dummy(j,i)
+                              atmx%vmc(j+1,i,k)  -atmx%vmc(j,i,k)))*dummy(j,i)
             pten(j,i) = pten(j,i) - mdv%cr(j,i,k) * dsigma(k)
           end do
         end do
@@ -1003,7 +1003,8 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv)
-          atmc%qx(j,i,k,iqv) = max(atmc%qx(j,i,k,iqv)*rpsb(j,i),minqq)*sfs%psb(j,i)
+          atmc%qx(j,i,k,iqv) =  &
+                   max(atmc%qx(j,i,k,iqv)*rpsb(j,i),minqq)*sfs%psb(j,i)
         end do
       end do
     end do
@@ -1012,7 +1013,8 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
-            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n)*rpsb(j,i),minqx)*sfs%psb(j,i)
+            atmc%qx(j,i,k,n) =  &
+                   max(atmc%qx(j,i,k,n)*rpsb(j,i),minqx)*sfs%psb(j,i)
           end do
         end do
       end do
@@ -1618,7 +1620,7 @@ module mod_tendency
       !
       if ( ktau > 0 .and. mod(ktau+1,ntcum) == 0 .and. &
            ichcumtra == 1 .and. any(icup == 4 .or. icup == 5) ) then
-          call cumtran
+        call cumtran
       end if
     end if
     !

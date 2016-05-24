@@ -392,7 +392,7 @@ module mod_pbl_uwtcm
 
         if ( ichem == 1 ) then
           do itr = 1 , ntr
-            chifxx(itr) = max(m2p%chifxuw(j,i,itr),mintr)
+            chifxx(itr) = max(m2p%chifxuw(j,i,itr),d_zero)
             do k = 1 , kz
               chix(k,itr) = max(m2p%chib(j,i,k,itr),mintr)
             end do
@@ -742,7 +742,7 @@ module mod_pbl_uwtcm
 
             !Get the chi value implied for the next timestep
             do k = 1 , kz
-              chix(k,itr) = uimp1(k)
+              chix(k,itr) = max(uimp1(k),mintr)
             end do
           end do
         end if !End tracer diffusion

@@ -43,7 +43,7 @@ module mod_che_sox
      real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: ttb , wl , rho
      real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
      real(rkx) :: rxs1 , rxs11 , rxs2 , rxs21 , chimol , cldno , &
-                 clmin , remcum , oh1int , so2_rate , krembc
+                 clmin , remcum , oh1int , so2_rate , so2_avail , krembc
      real(rkx) , dimension(ntr) ::  wetrem , wetrem_cvc
      real(rkx) , dimension(ici1:ici2,kz) :: caircell , so2_snk , concmin
      real(rkx) :: rk_com(ici1:ici2,kz,100)
@@ -74,8 +74,6 @@ module mod_che_sox
      ! C[SO2,t] = C[SO2,t0]*exp(-k C[OH] t)
      ! The variable name of the SO2 sink is snk_so2
      !---------------------------------------------
-
-
 
      do k = 1 , kz
        do i = ici1 , ici2
@@ -114,7 +112,8 @@ module mod_che_sox
          !---------------------------------------------
          ! so2_rate = rk_com(i,k,12) * oh1int * d_10
          so2_rate = rk_com(i,k,12) * oh1int
-         so2_snk(i,k) = chib(j,i,k,iso2)*(d_one-exp(-so2_rate*dt))/dt
+         so2_avail = max(chib(j,i,k,iso2)-mintr,d_zero)
+         so2_snk(i,k) = so2_avail*(d_one-exp(-so2_rate*dt))/dt
 
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(i,k) * cldno
          chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5_rkx*so2_snk(i,k)*cldno
