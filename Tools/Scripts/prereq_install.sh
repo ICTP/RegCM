@@ -25,8 +25,8 @@
 #DEST=$PWD
 
 netcdf_c_ver=4.4.0
-netcdf_f_ver=4.4.3
-hdf5_ver=1.8.16
+netcdf_f_ver=4.4.4
+hdf5_ver=1.8.17
 zlib_ver=1.2.8
 ompi_ver=1.10.2
 ompi_major=`echo $ompi_ver | cut -d "." -f 1-2`
