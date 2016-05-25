@@ -117,7 +117,7 @@ module mod_params
       iceflglw , liqflglw , icld , irng , imcica , nradfo
 
     namelist /subexparam/ ncld , qck1land , qck1oce , gulland , guloce ,  &
-      rhmax , rh0oce , rh0land , cevaplnd , cevapoce , caccrlnd ,         &
+      rhmax , rhmin , rh0oce , rh0land , cevaplnd , cevapoce , caccrlnd , &
       caccroce , tc0 , cllwcv , clfrcvmax , cftotmax , conf , lsrfhack ,  &
       rcrit , coef_ccn , abulk
 
@@ -1059,6 +1059,7 @@ module mod_params
       call bcast(gulland)
       call bcast(guloce)
       call bcast(rhmax)
+      call bcast(rhmin)
       call bcast(rh0oce)
       call bcast(rh0land)
       call bcast(tc0)
@@ -1780,6 +1781,8 @@ module mod_params
             ' Ocean = ',guloce
         write(stdout,'(a,f11.6)') &
             '  Maximum relative humidity         : ' , rhmax
+        write(stdout,'(a,f11.6)') &
+            '  Minimum relative humidity         : ' , rhmin
         write(stdout,'(a,f11.6)') &
             '  RH0 temperature threshold         : ' , tc0
         if ( cevaplnd <= d_zero ) then
