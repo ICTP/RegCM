@@ -381,7 +381,12 @@ module mod_intldtr
     integer(ik4) :: nbox , ii , jj
     real(rkx) :: xx , yy , rinc , dd , dd1
 
-    rinc = 60.0_rkx/real(ntypec,rkx)
+    if ( ntypec > 0 ) then
+      rinc = 60.0_rkx/real(ntypec,rkx)
+    else
+      ! Assume maximum allowed resolution of 30 sec.
+      rinc = 120.0_rkx
+    end if
 
     if (itype < 1 .or. itype > 5) then
       write(stderr,*) 'Unknown interpolation type'

@@ -325,8 +325,8 @@ program ncplot
     end if
     minlon = rounder(minval(tmplon),.false.)
   end if
-  rlatinc = rounder(ds/111000.0_rkx/2.0_rkx,.false.)
-  rloninc = rounder(ds/111000.0_rkx/2.0_rkx,.false.)
+  rlatinc = max(rounder(ds/111000.0_rkx/2.0_rkx,.false.),1.0_rkx/120.0_rkx)
+  rloninc = max(rounder(ds/111000.0_rkx/2.0_rkx,.false.),1.0_rkx/120.0_rkx)
   nlat = nint(abs(maxlat-minlat)/rlatinc)
   if (minlon > 0.0_rkx .and. maxlon < 0.0_rkx) then
     nlon = nint(abs((maxlon+360.0_rkx)-minlon)/rloninc) + 1

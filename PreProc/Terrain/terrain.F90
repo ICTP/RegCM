@@ -206,7 +206,12 @@ program terrain
     do while ( mod(3600,ntypec_s*60) /= 0 )
       ntypec_s = ntypec_s -1
     end do
-    write(stdout,*) 'Using resampling at ', ntypec_s, ' minutes.'
+    ntypec_s = max(ntypec_s, 0)
+    if ( ntypec_s > 0 ) then
+      write(stdout,*) 'Using resampling at ', ntypec_s, ' minutes.'
+    else
+      write(stdout,*) 'No resampling used.'
+    end if
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                      pthsep//trim(tersrc)//'_DEM_30s.nc','z',   &
                      30,ntypec_s,.true.,2)
@@ -369,7 +374,12 @@ program terrain
   do while ( mod(3600,ntypec*60) /= 0 .and. ntypec > 1 )
     ntypec = ntypec - 1
   end do
-  write(stdout,*) 'Using resampling at ', ntypec, ' minutes.'
+  ntypec = max(ntypec, 0)
+  if ( ntypec > 0 ) then
+    write(stdout,*) 'Using resampling at ', ntypec, ' minutes.'
+  else
+    write(stdout,*) 'No resampling used.'
+  end if
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                    pthsep//trim(tersrc)//'_DEM_30s.nc','z',   &
                    30,ntypec,.true.,2)
