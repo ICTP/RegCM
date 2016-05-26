@@ -411,7 +411,12 @@ else
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
-    FCFLAGS="-O3 -mtune=native -march=native $FCFLAGS"
+    if test -z "${osname##Linux}"
+      FCFLAGS="-O3 -mtune=native -march=native $FCFLAGS"
+    else
+      # MacOSX may choke on using AVX extensions...
+      FCFLAGS="-O3 $FCFLAGS"
+    fi
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
