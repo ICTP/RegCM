@@ -1058,6 +1058,7 @@ module mod_params
       call bcast(qck1oce)
       call bcast(gulland)
       call bcast(guloce)
+      call bcast(rhmin)
       call bcast(rhmax)
       call bcast(rhmin)
       call bcast(rh0oce)
@@ -1779,6 +1780,8 @@ module mod_params
         write(stdout,'(a,f11.6,a,f11.6)')                      &
             '  Gultepe factors:              Land = ',gulland ,&
             ' Ocean = ',guloce
+        write(stdout,'(a,f11.6)') &
+            '  Minimum relative humidity         : ' , rhmin
         write(stdout,'(a,f11.6)') &
             '  Maximum relative humidity         : ' , rhmax
         write(stdout,'(a,f11.6)') &
