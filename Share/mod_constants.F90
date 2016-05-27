@@ -60,12 +60,12 @@ module mod_constants
   real(rkx) , parameter :: minww   = 1.0e-7_rkx
 
   ! Low/Hi values
-  real(rkx) , parameter :: dlowval = tiny(1.0_rkx)
-  real(rkx) , parameter :: dhival  = huge(1.0_rkx)
-  real(rk4) , parameter :: slowval = 1.0e-30
-  real(rk4) , parameter :: shival  = 1.0e+30
+  real(rkx) , parameter :: dlowval = 1.0e-22_rkx
+  real(rkx) , parameter :: dhival  = 1.0e+22_rkx
+  real(rk4) , parameter :: slowval = 1.0e-22_rk4
+  real(rk4) , parameter :: shival  = 1.0e+22_rk4
   real(rkx) , parameter :: dmissval = 1.0e+20_rkx
-  real(rk4) , parameter :: smissval = 1.0e+20
+  real(rk4) , parameter :: smissval = 1.0e+20_rk4
 
   ! time conversion
   real(rkx) , parameter :: secpm = 60.0_rkx
