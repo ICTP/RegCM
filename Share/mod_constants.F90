@@ -55,8 +55,8 @@ module mod_constants
 
   ! minimum values for uncoupled/coupled variables which require them
   real(rkx) , parameter :: minqq   = 1.0e-8_rkx
-  real(rkx) , parameter :: minqx   = 1000.0_rkx*tiny(1.0_rkx)
-  real(rkx) , parameter :: mintr   = 100.0_rkx*tiny(1.0_rkx)
+  real(rkx) , parameter :: minqx   = 1.0e-14_rkx
+  real(rkx) , parameter :: mintr   = 1.0e-14_rkx
   real(rkx) , parameter :: minww   = 1.0e-7_rkx
 
   ! Low/Hi values
