@@ -543,7 +543,7 @@ program sigma2p
           end do
           if ( i == tvarid ) then
             tmpvar = xvar
-          else if ( i == qvarid ) then
+          else if ( i == qvarid .and. make_rh ) then
             qvar = xvar
             if ( has_sph ) then
               call sph2mxr(qvar,jx,iy,kz)

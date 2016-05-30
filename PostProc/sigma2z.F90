@@ -530,7 +530,7 @@ program sigma2z
             call intlin(zvar,xvar,hzvar,sigma,jx,iy,kz,zlevs,nz)
             azvar((ii-1)*iz3d+1:ii*iz3d) = reshape(zvar,(/iz3d/))
           end do
-          if ( i == qvarid ) then
+          if ( i == qvarid .and. make_rh ) then
             qazvar = xvar
             if ( has_sph ) then
               call sph2mxr(qazvar,jx,iy,kz)
