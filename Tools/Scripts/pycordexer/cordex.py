@@ -10,7 +10,7 @@ import time
 import os
 import uuid
 
-ICTP_Model_id = 'RegCM4-3'
+ICTP_Model_id = 'RegCM4-5'
 ICTP_Model = 'ICTP-'+ICTP_Model_id
 ICTP_Model_Version = 'v4'
 
@@ -733,7 +733,13 @@ else:
 
 newvar = nco.createVariable(variable,'f',tuple(newvardims),
                             shuffle=True,fletcher32=True,
-                            zlib=True,complevel=9)
+                            zlib=True,complevel=9,
+                            fill_value=1.0e+20)
+
+if 'missing_value' in lookup[variable]:
+  newvar.setncattr('missing_value',
+           np.float32(lookup[variable]['missing_value']))
+
 oldunits = ''
 for attr in var.ncattrs():
   if attr in lookup[variable].keys():
@@ -753,10 +759,6 @@ for attr in var.ncattrs():
       newvar.setncattr(attr,'crs')
     else:
       newvar.setncattr(attr,getattr(var,attr))
-
-if '_FillValue' in lookup[variable]:
-  newvar.setncattr('_FillValue',np.float32(lookup[variable]['_FillValue']))
-
 # Search for dimension variables to be added
 
 if lookup[variable].has_key('vertint'):
