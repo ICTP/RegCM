@@ -906,6 +906,14 @@ module mod_params
     call bcast(lakfrq)
     call bcast(subfrq)
     call bcast(chemfrq)
+    call bcast(enable_atm_vars)
+    call bcast(enable_rad_vars)
+    call bcast(enable_srf_vars)
+    call bcast(enable_sub_vars)
+    call bcast(enable_sts_vars)
+    call bcast(enable_lak_vars)
+    call bcast(enable_opt_vars)
+    call bcast(enable_che_vars)
     call bcast(lsync)
     call bcast(idiag)
     call bcast(do_parallel_netcdf_in)
@@ -914,6 +922,17 @@ module mod_params
 #else
     do_parallel_netcdf_out = .false.
 #endif
+
+    ! Reset the NEEDED 2D vars.
+    enable_atm_vars(1:6) = .true.
+    enable_rad_vars(1:6) = .true.
+    enable_opt_vars(1:6) = .true.
+    enable_che_vars(1:6) = .true.
+    ! These do not have p0, no vertical field.
+    enable_srf_vars(1:5) = .true.
+    enable_sub_vars(1:5) = .true.
+    enable_sts_vars(1:5) = .true.
+    enable_lak_vars(1:5) = .true.
 
     call bcast(iboudy)
     call bcast(isladvec)

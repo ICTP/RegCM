@@ -610,9 +610,13 @@ module mod_bats_bndry
     implicit none
 
     real(rkx) :: age1 , age2 , arg , arg2 , dela , dela0 , &
-                 dels , tage , sold
+                 dels , tage , sold , fsnts , tpw
     integer(ik4) :: i
     real(rkx) , parameter :: age3 = 0.3_rkx
+    real(rkx) , parameter :: ax = -48.23_rkx
+    real(rkx) , parameter :: bx = 0.75_rkx
+    real(rkx) , parameter :: cx = 1.16_rkx
+    real(rkx) , parameter :: dx = 1.02_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'snow'
     integer(ik4) , save :: idindx = 0
@@ -627,15 +631,19 @@ module mod_bats_bndry
     do i = ilndbeg , ilndend
       evaps(i) = scvk(i)*fevpg(i)
       evapw(i) = (d_one-scvk(i))*fevpg(i)
-      ! tm is temperature of precipitation : all snow if lower 0C
-       if ( tm(i) >= tzero ) then
-        pw(i) = prcp(i)*(d_one-sigf(i))
-        ps(i) = d_zero
-        ! snowing
-      else
-        pw(i) = d_zero
-        ps(i) = prcp(i)*(d_one-sigf(i))
-      end if
+      ! tm is temperature of precipitation
+      tpw = prcp(i)*(d_one-sigf(i))
+      fsnts = ax * (tanh(bx*(tm(i)-tzero-cx))-dx)
+      pw(i) = tpw*(d_one-fsnts)
+      ps(i) = tpw*fsnts
+      !if ( tm(i) >= tzero ) then
+      !  pw(i) = prcp(i)*(d_one-sigf(i))
+      !  ps(i) = d_zero
+      !  ! snowing
+      !else
+      !  pw(i) = d_zero
+      !  ps(i) = prcp(i)*(d_one-sigf(i))
+      !end if
     end do
     !
     !=======================================================================
