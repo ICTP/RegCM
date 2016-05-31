@@ -633,9 +633,17 @@ module mod_bats_bndry
       evapw(i) = (d_one-scvk(i))*fevpg(i)
       ! tm is temperature of precipitation
       tpw = prcp(i)*(d_one-sigf(i))
-      fsnts = ax * (tanh(bx*(tm(i)-tzero-cx))-dx)
-      pw(i) = tpw*(d_one-fsnts)
+      ! Aiguo Dai
+      ! Temperature and pressure dependence of the rain-snow phase
+      ! transition over land and ocean
+      ! GRL, VOL. 35, L12802, doi:10.1029/2008GL033295, 2008
+      if ( tm(i)-tzero < 6.0_rkx ) then
+        fsnts = ax * (tanh(bx*(tm(i)-tzero-cx))-dx)
+      else
+        fsnts = d_zero
+      end if
       ps(i) = tpw*fsnts
+      pw(i) = tpw-ps(i)
       !if ( tm(i) >= tzero ) then
       !  pw(i) = prcp(i)*(d_one-sigf(i))
       !  ps(i) = d_zero

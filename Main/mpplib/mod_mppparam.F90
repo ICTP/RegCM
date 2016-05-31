@@ -574,7 +574,7 @@ module mod_mppparam
   subroutine bcast_arr_logical(lval)
     implicit none
     logical , dimension(:) , intent(inout) :: lval
-    call mpi_bcast(lval,1,mpi_logical,iocpu,mycomm,mpierr)
+    call mpi_bcast(lval,size(lval),mpi_logical,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if

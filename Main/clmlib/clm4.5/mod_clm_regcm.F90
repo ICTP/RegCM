@@ -219,6 +219,11 @@ module mod_clm_regcm
     type(lm_exchange) , intent(inout) :: lm
     integer(ik4) :: begg , endg , i
     real(rkx) :: satq , satp
+    real(rk8) :: fsnts
+    real(rk8) , parameter :: ax = -48.23_rk8
+    real(rk8) , parameter :: bx = 0.75_rk8
+    real(rk8) , parameter :: cx = 1.16_rk8
+    real(rk8) , parameter :: dx = 1.02_rk8
 
     call get_proc_bounds(begg,endg)
 
@@ -261,15 +266,13 @@ module mod_clm_regcm
                                real(rhmax,rk8))
       clm_a2l%forc_vp(i) = real(satp,rk8) * clm_a2l%forc_rh(i)
       clm_a2l%forc_rh(i) = clm_a2l%forc_rh(i) * 100.0_rk8
-      ! Set upper limit of air temperature for snowfall at 275.65K.
-      ! This cut-off was selected based on Fig. 1, Plate 3-1, of Snow
-      ! Hydrology (1956).
-      if ( clm_a2l%forc_t(i) < tfrz + tcrit ) then
-        clm_a2l%forc_snow(i) = clm_a2l%forc_rain(i)
-        clm_a2l%forc_rain(i) = 0.0_rk8
+      if ( clm_a2l%forc_t(i)-tzero < 6.0_rk8 ) then
+        fsnts = ax * (tanh(bx*(clm_a2l%forc_t(i)-tzero-cx))-dx)
       else
-        clm_a2l%forc_snow(i) = 0.0_rk8
+        fsnts = d_zero
       end if
+      clm_a2l%forc_snow(i) = fsnts*clm_a2l%forc_rain(i)
+      clm_a2l%forc_rain(i) = clm_a2l%forc_rain(i)-clm_a2l%forc_snow(i)
     end do
     ! Specific humidity
     clm_a2l%forc_q = clm_a2l%forc_q/(1.0_rk8+clm_a2l%forc_q)

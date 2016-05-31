@@ -525,8 +525,8 @@ module mod_output
         if ( myid == italk ) &
           write(stdout,*) 'ATM variables written at ' , tochar(idatex)
 
-        atm_tgb_out = d_zero
-        atm_tsw_out = d_zero
+        if ( associated(atm_tgb_out) ) atm_tgb_out = d_zero
+        if ( associated(atm_tsw_out) ) atm_tsw_out = d_zero
       end if
     end if
 

@@ -81,9 +81,9 @@ else
               -I$(CLMLIBPTH)/clm4.5
 endif
 
-LIBS = $(LMPPLIB) $(LCLMLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) \
+LIBS = $(LCLMLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) \
        $(LOCNLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) \
-       $(LCLMLIB45) $(SYSLIBS) $(LNETLIB)
+       $(LCLMLIB45) $(LMPPLIB) $(SYSLIBS) $(LNETLIB)
 
 bin_PROGRAMS = regcm
 
