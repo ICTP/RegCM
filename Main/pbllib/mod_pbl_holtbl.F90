@@ -25,8 +25,8 @@ module mod_pbl_holtbl
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : iqv , iqc , dt , rdt , ichem , ichdrdepo ,    &
-          dsigma , zhnew_fac , ifaholtth10 , ifaholt
+  use mod_runparams , only : iqv , iqfrst , iqlst , dt , rdt , ichem , &
+    ichdrdepo , dsigma , zhnew_fac , ifaholtth10 , ifaholt
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -111,8 +111,8 @@ module mod_pbl_holtbl
     call getmem2d(ustr,jci1,jci2,ici1,ici2,'mod_holtbl:ustr')
     call getmem2d(xhfx,jci1,jci2,ici1,ici2,'mod_holtbl:xhfx')
     call getmem2d(xqfx,jci1,jci2,ici1,ici2,'mod_holtbl:xqfx')
-    call getmem3d(dza,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:dza')
-    call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:rhohf')
+    call getmem3d(dza,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:dza')
+    call getmem3d(rhohf,jci1,jci2,ici1,ici2,1,kzm1,'mod_holtbl:rhohf')
     call getmem2d(uvdrage,jci1-ma%jbl1,jci2, &
                           ici1-ma%ibb1,ici2,'mod_holtbl:uvdrage')
     call getmem3d(akzz1,jci1-ma%jbl1,jci2, &
@@ -130,9 +130,9 @@ module mod_pbl_holtbl
     implicit none
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
-    real(rkx) :: drgdot , kzmax , oblen , xps , ps2 , ri , sf , sh10 , &
+    real(rkx) :: drgdot , kzmax , oblen , ri , sf , sh10 , &
                  ss , uflxsf , uflxsfx , vflxsf , vflxsfx
-    integer(ik4) :: i , j , k , itr
+    integer(ik4) :: i , j , k , nn , itr
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'holtbl'
     integer(ik4) , save :: idindx = 0
@@ -166,9 +166,8 @@ module mod_pbl_holtbl
       do i = ici1 , ici2
         do j = jci1 , jci2
           dza(j,i,k) = m2p%za(j,i,k) - m2p%za(j,i,k+1)
-          xps = m2p%patm(j,i,k)
-          ps2 = m2p%patm(j,i,k+1)
-          rhohf(j,i,k) = (ps2-xps)/(egrav*dza(j,i,k))
+          rhohf(j,i,k) = (m2p%patm(j,i,k+1)-m2p%patm(j,i,k)) / &
+                        (egrav*dza(j,i,k))
         end do
       end do
     end do
@@ -614,64 +613,68 @@ module mod_pbl_holtbl
         end do
       end do
     end do
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-        coef3(j,i,1) = d_zero
-        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-        coeff1(j,i,1) = m2p%qxatm(j,i,1,iqc)/coef2(j,i,1)
-      end do
-    end do
-    do k = 2 , kz - 1
+
+    do nn = iqfrst , iqlst
       do i = ici1 , ici2
         do j = jci1 , jci2
-          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-          coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-          coeff1(j,i,k) = (m2p%qxatm(j,i,k,iqc) + &
-                           coef3(j,i,k)*coeff1(j,i,k-1)) / &
+          coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+          coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+          coef3(j,i,1) = d_zero
+          coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+          coeff1(j,i,1) = m2p%qxatm(j,i,1,nn)/coef2(j,i,1)
+        end do
+      end do
+      do k = 2 , kz - 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+            coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+            coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
+            coefe(j,i,k) = coef1(j,i,k) / &
                            (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+            coeff1(j,i,k) = (m2p%qxatm(j,i,k,nn) + &
+                             coef3(j,i,k)*coeff1(j,i,k-1)) / &
+                             (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+          end do
         end do
       end do
-    end do
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        coef1(j,i,kz) = d_zero
-        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
-        coefe(j,i,kz) = d_zero
-        coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,iqc) + &
-                coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
-                (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-      end do
-    end do
-    !
-    !   all coefficients have been computed, predict field and put it in
-    !   temporary work space tpred
-    !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        tpred1(j,i,kz) = coeff1(j,i,kz)
-      end do
-    end do
-    do k = kz - 1 , 1 , -1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
+          coef1(j,i,kz) = d_zero
+          coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+          coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+          coefe(j,i,kz) = d_zero
+          coeff1(j,i,kz) = (m2p%qxatm(j,i,kz,nn) + &
+                  coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
+                  (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
         end do
       end do
-    end do
-    !
-    !   calculate tendency due to vertical diffusion using temporary
-    !   predicted field
-    !
-    do k = 1 , kz
+      !
+      !   all coefficients have been computed, predict field and put it in
+      !   temporary work space tpred
+      !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p2m%diffqx(j,i,k,iqc) = p2m%diffqx(j,i,k,iqc) + &
-                      (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))*rdt*m2p%psb(j,i)
+          tpred1(j,i,kz) = coeff1(j,i,kz)
+        end do
+      end do
+      do k = kz - 1 , 1 , -1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
+          end do
+        end do
+      end do
+      !
+      !   calculate tendency due to vertical diffusion using temporary
+      !   predicted field
+      !
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            p2m%diffqx(j,i,k,nn) = p2m%diffqx(j,i,k,nn) + &
+                        (tpred1(j,i,k)-m2p%qxatm(j,i,k,nn))*rdt*m2p%psb(j,i)
+          end do
         end do
       end do
     end do

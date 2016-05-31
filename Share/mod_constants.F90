@@ -56,14 +56,14 @@ module mod_constants
   ! minimum values for uncoupled/coupled variables which require them
   real(rkx) , parameter :: minww   = 1.0e-7_rkx
   real(rkx) , parameter :: minqq   = 1.0e-8_rkx
-  real(rkx) , parameter :: minqx   = 1.0e-14_rkx
-  real(rkx) , parameter :: mintr   = 1.0e-16_rkx
+  real(rkx) , parameter :: minqx   = 1.0e-16_rkx
+  real(rkx) , parameter :: mintr   = 1.0e-18_rkx
 
   ! Low/Hi values
-  real(rkx) , parameter :: dlowval = 1.0e-22_rkx
-  real(rkx) , parameter :: dhival  = 1.0e+22_rkx
-  real(rk4) , parameter :: slowval = 1.0e-22_rk4
-  real(rk4) , parameter :: shival  = 1.0e+22_rk4
+  real(rkx) , parameter :: dlowval = 1.0e-24_rkx
+  real(rkx) , parameter :: dhival  = 1.0e+24_rkx
+  real(rk4) , parameter :: slowval = 1.0e-24_rk4
+  real(rk4) , parameter :: shival  = 1.0e+24_rk4
   real(rkx) , parameter :: dmissval = 1.0e+20_rkx
   real(rk4) , parameter :: smissval = 1.0e+20_rk4
 
