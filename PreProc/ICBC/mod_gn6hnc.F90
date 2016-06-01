@@ -881,7 +881,7 @@ module mod_gn6hnc
       tp => b2(:,:,1:npl)
       hp => b2(:,:,npl+1:2*npl)
       qp => b2(:,:,2*npl+1:3*npl)
-      call getmem1d(pplev,1,npl,'mod_gn6hnc:pplev')
+      pplev => fplev
     end if
 
     ! Set up pointers
@@ -936,15 +936,15 @@ module mod_gn6hnc
     end if
 
     if ( dattyp(1:3) == 'EC_' .or. dattyp == 'JRA55') then
-      do k = 1 , klev
-        sigmar(k) = pplev(klev-k+1)/pplev(1)
+      do k = 1 , npl
+        sigmar(k) = pplev(npl-k+1)/pplev(1)
       end do
       pss = pplev(1)/1000.0_rkx ! Pa -> cb
     else
-      do k = 1 , klev
-        sigmar(k) = pplev(k)/pplev(klev)
+      do k = 1 , npl
+        sigmar(k) = pplev(k)/pplev(npl)
       end do
-      pss = pplev(klev)/10.0_rkx ! mb -> cb
+      pss = pplev(npl)/10.0_rkx ! mb -> cb
     end if
 
     write (stdout,*) 'Read in Static fields OK'
