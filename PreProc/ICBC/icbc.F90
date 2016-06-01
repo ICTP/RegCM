@@ -254,6 +254,11 @@ program icbc
             dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
             dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MP_' .or. &
             dattyp(1:3) == 'MI_' .or. dattyp(1:2) == 'E5' ) then
+    if ( dattyp(4:5) == 'RF' ) then
+      write(stderr,*) 'THIS CODE IS NOT SUPPORTED.'
+      write(stderr,*) 'CHOSE ONE SCENARIO CODE ',dattyp(1:3),'(26-45-60-85).'
+      call die('icbc','Unknown dattyp',1)
+    end if
     call headgn6hnc
   else
     call die('icbc','Unknown dattyp',1)

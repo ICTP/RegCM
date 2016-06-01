@@ -881,7 +881,7 @@ module mod_gn6hnc
       tp => b2(:,:,1:npl)
       hp => b2(:,:,npl+1:2*npl)
       qp => b2(:,:,2*npl+1:3*npl)
-      pplev => fplev
+      call getmem1d(pplev,1,npl,'mod_gn6hnc:pplev')
     end if
 
     ! Set up pointers
