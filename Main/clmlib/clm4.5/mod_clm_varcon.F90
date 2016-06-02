@@ -74,8 +74,6 @@ module mod_clm_varcon
   real(rk8) , public , parameter :: tkwat  = 0.57_rk8
   ! Freezing temperature [K]
   real(rk8) , public , parameter :: tfrz   = tzero
-  ! Critical temperature to determine rain or snow
-  real(rk8) , public , parameter :: tcrit  = 2.5_rk8
   ! Constant atmospheric O2 molar ratio (mol/mol)
   real(rk8) , public , parameter :: o2_molar_const = 0.209_rk8
 

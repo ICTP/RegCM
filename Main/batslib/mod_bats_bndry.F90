@@ -638,7 +638,11 @@ module mod_bats_bndry
       ! transition over land and ocean
       ! GRL, VOL. 35, L12802, doi:10.1029/2008GL033295, 2008
       if ( tm(i)-tzero < 6.0_rkx ) then
-        fsnts = ax * (tanh(bx*(tm(i)-tzero-cx))-dx)
+        if ( tm(i)-tzero < -6.0_rkx ) then
+          fsnts = 1.0D0
+        else
+          fsnts = ax * (tanh(bx*(tm(i)-tzero-cx))-dx)
+        end if
       else
         fsnts = d_zero
       end if

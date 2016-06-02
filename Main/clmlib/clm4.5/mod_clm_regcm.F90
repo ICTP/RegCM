@@ -14,10 +14,10 @@ module mod_clm_regcm
   use mod_service
   use mod_clm_initialize
   use mod_clm_driver
-  use mod_clm_varctl , only : use_c13 , co2_ppmv
+  use mod_clm_varctl , only : use_c13 , co2_ppmv , tcrit
   use mod_clm_varpar , only : nlevsoi
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , &
-                              tcrit , denh2o , sb
+                              denh2o , sb
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
   use mod_clm_megan
