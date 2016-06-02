@@ -31,10 +31,10 @@ module mod_nhinterp
   public :: nhsetup , temppres , nhbase , nhinterp , nhpp , nhw
 
   real(rkx) :: ptop = 50.0_rkx  ! Centibars
-  real(rkx) :: piso           ! Pascal
-  real(rkx) :: ptoppa         ! Pascal
-  real(rkx) :: p0 = stdp      ! Pascal
-  real(rkx) :: ts0 = stdt     ! Kelvin
+  real(rkx) :: piso             ! Pascal
+  real(rkx) :: ptoppa           ! Pascal
+  real(rkx) :: p0 = stdp        ! Pascal
+  real(rkx) :: ts0 = stdt       ! Kelvin
   real(rkx) :: tlp = 50.0_rkx
 
   interface nhinterp

@@ -410,6 +410,7 @@ module mod_runparams
 
   ! option for writing tendency diagnostic
   integer(ik4) , public :: idiag
+  integer(ik4) , public :: icosp
 
   data doing_restart /.false./
 

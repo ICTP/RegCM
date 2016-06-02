@@ -675,30 +675,6 @@ module mod_ncout
               'mass_fraction_of_snow_in_air',.true.)
             atm_qs_out => v3dvar_atm(atm_qs)%rval
           end if
-          if ( enable_atm3d_vars(atm_zf) ) then
-            call setup_var(v3dvar_atm,atm_zf,vsize,'zf','m', &
-              'Height at full levels', &
-              'height_full_levels',.true.)
-            atm_zf_out => v3dvar_atm(atm_zf)%rval
-          end if
-          if ( enable_atm3d_vars(atm_zh) ) then
-            call setup_var(v3dvar_atm,atm_zh,vsize,'zh','m', &
-              'Height at half levels', &
-              'height_half_levels',.true.)
-            atm_zh_out => v3dvar_atm(atm_zh)%rval
-          end if
-          if ( enable_atm3d_vars(atm_pf) ) then
-            call setup_var(v3dvar_atm,atm_pf,vsize,'pf','Pa', &
-              'Pressure at full levels', &
-              'pressure_full_levels',.true.)
-            atm_pf_out => v3dvar_atm(atm_pf)%rval
-          end if
-          if ( enable_atm3d_vars(atm_ph) ) then
-            call setup_var(v3dvar_atm,atm_ph,vsize,'ph','Pa', &
-              'Pressure at half levels', &
-              'pressure_half_levels',.true.)
-            atm_ph_out => v3dvar_atm(atm_ph)%rval
-          end if
           if ( idiag > 0) then
             if ( enable_atm3d_vars(atm_rainls) ) then
               call setup_var(v3dvar_atm,atm_rainls,vsize, &
@@ -832,10 +808,6 @@ module mod_ncout
         else
           enable_atm3d_vars(atm_q_detr) = .false.
           enable_atm3d_vars(atm_qr:atm_qs) = .false.
-          enable_atm3d_vars(atm_zf) = .false.
-          enable_atm3d_vars(atm_zh) = .false.
-          enable_atm3d_vars(atm_pf) = .false.
-          enable_atm3d_vars(atm_ph) = .false.
           enable_atm3d_vars(atm_rainls) = .false.
           enable_atm3d_vars(atm_raincc) = .false.
           enable_atm3d_vars(atm_stats_supw:atm_stats_snowev) = .false.
@@ -862,6 +834,39 @@ module mod_ncout
         else
           enable_atm3d_vars(atm_tke:atm_kzm) = .false.
         end if
+
+        if ( icosp > 0 ) then
+          if ( enable_atm3d_vars(atm_zf) ) then
+            call setup_var(v3dvar_atm,atm_zf,vsize,'zf','m', &
+              'Height at full levels', &
+              'height_full_levels',.true.)
+            atm_zf_out => v3dvar_atm(atm_zf)%rval
+          end if
+          if ( enable_atm3d_vars(atm_zh) ) then
+            call setup_var(v3dvar_atm,atm_zh,vsize,'zh','m', &
+              'Height at half levels', &
+              'height_half_levels',.true.)
+            atm_zh_out => v3dvar_atm(atm_zh)%rval
+          end if
+          if ( enable_atm3d_vars(atm_pf) ) then
+            call setup_var(v3dvar_atm,atm_pf,vsize,'pf','Pa', &
+              'Pressure at full levels', &
+              'pressure_full_levels',.true.)
+            atm_pf_out => v3dvar_atm(atm_pf)%rval
+          end if
+          if ( enable_atm3d_vars(atm_ph) ) then
+            call setup_var(v3dvar_atm,atm_ph,vsize,'ph','Pa', &
+              'Pressure at half levels', &
+              'pressure_half_levels',.true.)
+            atm_ph_out => v3dvar_atm(atm_ph)%rval
+          end if
+        else
+          enable_atm3d_vars(atm_zf) = .false.
+          enable_atm3d_vars(atm_zh) = .false.
+          enable_atm3d_vars(atm_pf) = .false.
+          enable_atm3d_vars(atm_ph) = .false.
+        end if
+
         if ( idiag > 0 ) then
           ! FAB : flag properly
           if ( enable_atm3d_vars(atm_tten_adh) ) then
