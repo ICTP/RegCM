@@ -574,6 +574,12 @@ module mod_sound
           abar = real(int(abar*100000.0_rkx),rkx)/100000_rkx
           rhon = real(int(rhon*100000.0_rkx),rkx)/100000_rkx
           xmsf = real(int(xmsf*100000.0_rkx),rkx)/100000_rkx
+          !
+          ! Try to avoid problems coming from computing distributed integrals.
+          !
+          abar = real(int(abar*100000.0_rkx),rkx)/100000_rkx
+          rhon = real(int(rhon*100000.0_rkx),rkx)/100000_rkx
+          xmsf = real(int(xmsf*100000.0_rkx),rkx)/100000_rkx
           dxmsfb = d_two/dx/xmsf
           tmask(:,:) = d_zero
           do kk = 0 , 6
