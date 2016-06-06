@@ -72,7 +72,7 @@ module mod_sound
   real(rkx) , parameter :: xgamma = d_one/(d_one-rovcp)
   real(rkx) :: cs , bp , bm , bpxbm , bpxbp
   real(rkx) :: dtsmax
-  real(rkx) :: npts
+  real(rkx) :: rnpts
 
   contains
 
@@ -145,7 +145,7 @@ module mod_sound
     bm = (d_one-bet)*d_half
     bpxbp = bp*bp
     bpxbm = bp*bm
-    npts = real((nicross-2)*(njcross-2),rkx)
+    rnpts = real((nicross-2)*(njcross-2),rkx)
   end subroutine init_sound
 
   subroutine sound
@@ -297,15 +297,15 @@ module mod_sound
             ! coordinanate: 4th RHS term in Eqs. 2.2.1, 2.2.2, 2.2.9, 2.2.10,
             ! 2.3.3, 2.3.4 in the MM5 manual.
             !
-            atmc%u(j,i,k) = atmc%u(j,i,k) - &
+            atmc%u(j,i,k) = atmc%u(j,i,k) -                          &
                       chh * (atmc%pp(j,i,k)   - atmc%pp(j-1,i,k)   + &
                              atmc%pp(j,i-1,k) - atmc%pp(j-1,i-1,k) - &
-                      ( atm0%pr(j,i,k)   - atm0%pr(j-1,i,k)  + &
+                      ( atm0%pr(j,i,k)   - atm0%pr(j-1,i,k)  +       &
                         atm0%pr(j,i-1,k) - atm0%pr(j-1,i-1,k)) * dppdp0)
-            atmc%v(j,i,k) = atmc%v(j,i,k) - &
+            atmc%v(j,i,k) = atmc%v(j,i,k) -                          &
                       chh * (atmc%pp(j,i,k)   - atmc%pp(j,i-1,k)   + &
                              atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
-                      ( atm0%pr(j,i,k)   - atm0%pr(j,i-1,k)  + &
+                      ( atm0%pr(j,i,k)   - atm0%pr(j,i-1,k)  +       &
                         atm0%pr(j-1,i,k) - atm0%pr(j-1,i-1,k)) * dppdp0)
           end do
         end do
@@ -351,7 +351,7 @@ module mod_sound
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atmc%w(j,i,kzp1) = d_half * d_rfour * regrav * &
+          atmc%w(j,i,kzp1) = d_half * d_rfour * regrav *        &
                      ((atmc%v(j,i+1,kz)   + atmc%v(j,i,kz) +    &
                        atmc%v(j+1,i+1,kz) + atmc%v(j+1,i,kz)) * &
                       ( mddom%ht(j,i+1) - mddom%ht(j,i-1) ) +   &
@@ -369,14 +369,14 @@ module mod_sound
           cdd(j,i,1) = xgamma * atm1%pr(j,i,1) * atm0%rho(j,i,1) * &
                        egrav * dts / (atm0%ps(j,i)*dsigma(1))
           cj(j,i,1)  = d_half * atm0%rho(j,i,1) * egrav * dts
-          pxup(j,i,1) = 0.0625_rkx *                              &
+          pxup(j,i,1) = 0.0625_rkx *                            &
                       ( atm0%pr(j+1,i,1) - atm0%pr(j-1,i,1) ) * &
                       ( atmc%u(j,i,1)   + atmc%u(j+1,i,1)   +   &
                         atmc%u(j,i+1,1) + atmc%u(j+1,i+1,1) -   &
                         atmc%u(j,i,2)   - atmc%u(j+1,i,2)   -   &
                         atmc%u(j,i+1,2) - atmc%u(j+1,i+1,2) ) / &
                       ( atm0%pr(j,i,1) - atm0%pr(j,i,2))
-          pyvp(j,i,1) = 0.0625_rkx *                              &
+          pyvp(j,i,1) = 0.0625_rkx *                            &
                       ( atm0%pr(j,i+1,1) - atm0%pr(j,i-1,1) ) * &
                       ( atmc%v(j,i,1)   + atmc%v(j+1,i,1)   +   &
                         atmc%v(j,i+1,1) + atmc%v(j+1,i+1,1) -   &
@@ -433,16 +433,16 @@ module mod_sound
                        (cdd(j,i,km1) + cj(j,i,km1)) ) * bpxbp
             aa(j,i,k) = -ca(j,i,k) * (cdd(j,i,k)+cj(j,i,k))*g1(j,i,k)*bpxbp
             pyvp(j,i,k) = 0.125_rkx * (atm0%pr(j,i+1,k) - atm0%pr(j,i-1,k)) * &
-                          ( atmc%v(j,i,km1)   + atmc%v(j+1,i,km1)   +       &
-                            atmc%v(j,i+1,km1) + atmc%v(j+1,i+1,km1) -       &
-                            atmc%v(j,i,kp1)   - atmc%v(j+1,i,kp1)   -       &
-                            atmc%v(j,i+1,kp1) - atmc%v(j+1,i+1,kp1) ) /     &
+                          ( atmc%v(j,i,km1)   + atmc%v(j+1,i,km1)   +         &
+                            atmc%v(j,i+1,km1) + atmc%v(j+1,i+1,km1) -         &
+                            atmc%v(j,i,kp1)   - atmc%v(j+1,i,kp1)   -         &
+                            atmc%v(j,i+1,kp1) - atmc%v(j+1,i+1,kp1) ) /       &
                           ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
             pxup(j,i,k) = 0.125_rkx * (atm0%pr(j+1,i,k) - atm0%pr(j-1,i,k)) * &
-                          ( atmc%u(j,i,km1)   + atmc%u(j+1,i,km1)   +       &
-                            atmc%u(j,i+1,km1) + atmc%u(j+1,i+1,km1) -       &
-                            atmc%u(j,i,kp1)   - atmc%u(j+1,i,kp1)   -       &
-                            atmc%u(j,i+1,kp1) - atmc%u(j+1,i+1,kp1) ) /     &
+                          ( atmc%u(j,i,km1)   + atmc%u(j+1,i,km1)   +         &
+                            atmc%u(j,i+1,km1) + atmc%u(j+1,i+1,km1) -         &
+                            atmc%u(j,i,kp1)   - atmc%u(j+1,i,kp1)   -         &
+                            atmc%u(j,i+1,kp1) - atmc%u(j+1,i+1,kp1) ) /       &
                           ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
           end do
         end do
@@ -477,8 +477,8 @@ module mod_sound
                               atmc%u(j,i+1,k)   * mddom%msfd(j,i+1) ) /  &
                           mddom%msfx(j,i) - &
                           d_two*( pyvp(j,i,k) + pxup(j,i,k) ) )
-            rhs(j,i,k) = atmc%w(j,i,k) + &
-                    aten%w(j,i,k) + ca(j,i,k) * ( bpxbm *   &
+            rhs(j,i,k) = atmc%w(j,i,k) +                                    &
+                    aten%w(j,i,k) + ca(j,i,k) * ( bpxbm *                   &
                      ( (cdd(j,i,k-1) - cj(j,i,k-1))*g2(j,i,k)*wo(j,i,k-1) - &
                      ( (cdd(j,i,k-1) + cj(j,i,k-1))*g2(j,i,k) +             &
                        (cdd(j,i,k) - cj(j,i,k))*g1(j,i,k) ) * wo(j,i,k) +   &
@@ -565,9 +565,9 @@ module mod_sound
           call sumall(loc_abar,abar)
           call sumall(loc_rhon,rhon)
           call sumall(loc_xmsf,xmsf)
-          abar = abar/npts
-          rhon = rhon/npts
-          xmsf = xmsf/npts
+          abar = abar/rnpts
+          rhon = rhon/rnpts
+          xmsf = xmsf/rnpts
           !
           ! Try to avoid problems coming from computing distributed integrals.
           !
@@ -587,10 +587,10 @@ module mod_sound
                 ri = real(i,rkx)
                 do j = -6 , 6
                   rj = real(j,rkx)
-                  tmask(j,i) = tmask(j,i) +                          &
+                  tmask(j,i) = tmask(j,i) +                            &
                                (fi(i)*fj(j)*fk(kk)*fl(ll))/144.0_rkx * &
-                               cos(2.0_rkx*mathpi*rkk*ri/12.0_rkx) *     &
-                               cos(2.0_rkx*mathpi*rll*rj/12.0_rkx) *     &
+                               cos(2.0_rkx*mathpi*rkk*ri/12.0_rkx) *   &
+                               cos(2.0_rkx*mathpi*rll*rj/12.0_rkx) *   &
                                xkleff / (rhon-abar*xkleff)
                 end do
               end do

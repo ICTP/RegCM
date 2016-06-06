@@ -178,6 +178,9 @@ module mod_cloud_s1
   real(rkx) , pointer , dimension(:,:,:) :: qsice
   ! diagnostic mixed phase RH
   real(rkx) , pointer , dimension(:,:,:) :: qsmix
+  ! Storage for eeliq , eeice
+  real(rkx) , pointer , dimension(:,:,:) :: st_eeliq
+  real(rkx) , pointer , dimension(:,:,:) :: st_eeice
   ! water saturation mixing ratio
   real(rkx) , pointer , dimension(:,:,:) :: eeliqt
   ! liq+rain sedim flux
@@ -319,6 +322,8 @@ module mod_cloud_s1
     call getmem3d(xqdetr,jci1,jci2,ici1,ici2,1,kz,'cmicro:xqdetr')
     !xqdetr after evaporation
     !call getmem3d(xqdetr2,jci1,jci2,ici1,ici2,1,kz,'cmicro:xqdetr2')
+    call getmem3d(st_eeliq,jci1,jci2,ici1,ici2,1,kz,'cmicro:st_eeliq')
+    call getmem3d(st_eeice,jci1,jci2,ici1,ici2,1,kz,'cmicro:st_eeice')
     call getmem3d(eeliqt,jci1,jci2,ici1,ici2,1,kz,'cmicro:eeliqt')
     call getmem4d(qxtendc,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cmicro:qxtendc')
     call getmem3d(qxn,1,nqx,jci1,jci2,ici1,ici2,'cmicro:qxn')
@@ -530,6 +535,11 @@ module mod_cloud_s1
     cldtopdist(:,:) = d_zero
     pfplsx(:,:,:,:) = d_zero
 
+    ! Compute supersaturations
+
+    call eeliq
+    call eeice
+
     ! Decouple tendencies
     do n = 1 , nqx
       do k = 1 , kz
@@ -648,13 +658,13 @@ module mod_cloud_s1
           ! liquid water saturation for T > 273K
           !--------------------------------------------
           zdelta = delta(t(j,i,k))
-          eew(j,i,k) = min((zdelta*eeliq(t(j,i,k)) + &
-               (d_one-zdelta)*eeice(t(j,i,k)))/phs(j,i,k),d_half)
+          eew(j,i,k) = min((zdelta*st_eeliq(j,i,k) + &
+               (d_one-zdelta)*st_eeice(j,i,k))/phs(j,i,k),d_half)
           eew(j,i,k) = min(d_half,eew(j,i,k))
           !qsi saturation mixing ratio with respect to ice
           !qsice(j,i,k) = eew(j,i,k)/(d_one-ep1*eew(j,i,k))
           !ice water saturation
-          qsice(j,i,k) = min(eeice(t(j,i,k))/phs(j,i,k),d_half)
+          qsice(j,i,k) = min(st_eeice(j,i,k)/phs(j,i,k),d_half)
           qsice(j,i,k) = qsice(j,i,k)/(d_one-ep1*qsice(j,i,k))
           !----------------------------------
           ! liquid water saturation
@@ -662,7 +672,7 @@ module mod_cloud_s1
           !eeliq is the saturation vapor pressure es(T)
           !the saturation mixing ratio is ws = es(T)/p *0.622
           !ws = ws/(-(d_one/eps - d_one)*ws)
-          eeliqt(j,i,k) = min(eeliq(t(j,i,k))/phs(j,i,k),d_half)
+          eeliqt(j,i,k) = min(st_eeliq(j,i,k)/phs(j,i,k),d_half)
           qsliq(j,i,k) = eeliqt(j,i,k)
           qsliq(j,i,k) = qsliq(j,i,k)/(d_one-ep1*qsliq(j,i,k))
         end do
@@ -821,7 +831,7 @@ module mod_cloud_s1
             if ( t(j,i,k) >= tzero ) then
               fac  = d_one
             else
-              koop = fkoop(t(j,i,k),eeliq(t(j,i,k)),eeice(t(j,i,k)))
+              koop = fkoop(t(j,i,k),st_eeliq(j,i,k),st_eeice(j,i,k))
               fac  = fccfg(j,i,k) + koop*(d_one-fccfg(j,i,k))
             end if
           end if
@@ -1275,7 +1285,7 @@ module mod_cloud_s1
                 fac = d_one
               else
                 ! ice supersaturation
-                fac = fkoop(t(j,i,k),eeliq(t(j,i,k)),eeice(t(j,i,k)))
+                fac = fkoop(t(j,i,k),st_eeliq(j,i,k),st_eeice(j,i,k))
               end if
               if ( qexc(j,i) >= rhc*qsmix(j,i,k)*fac .and. &
                    qexc(j,i) < qsmix(j,i,k)*fac ) then
@@ -1377,8 +1387,8 @@ module mod_cloud_s1
             ! sink of cloud liquid and a source of ice cloud.
             !--------------------------------------------------------------
             if ( t(j,i,k) < tzero .and. qxfg(j,i,iqql) > minqq ) then
-              vpice = eeice(t(j,i,k)) !saturation vapor pressure wrt ice
-              vpliq = eeliq(t(j,i,k)) !saturation vapor pressure wrt liq
+              vpice = st_eeice(j,i,k) !saturation vapor pressure wrt ice
+              vpliq = st_eeliq(j,i,k) !saturation vapor pressure wrt liq
               ! Meyers et al 1992
               icenuclei(j,i) = d_1000 * &
                 exp(12.96_rkx*((vpliq-vpice)/vpice)-0.639_rkx)
@@ -1546,14 +1556,12 @@ module mod_cloud_s1
               do j = jci1 , jci2
                 if ( liqcld(j,i) > minqx ) then
                   solqb(j,i,iqql,iqqv) = d_zero
-                  if ( qx0(j,i,k,iqql) > autocrit_kessl ) then
-                    solqa(j,i,iqqr,iqql) = solqa(j,i,iqqr,iqql) - &
-                                  auto_rate_kessl*autocrit_kessl
-                    solqa(j,i,iqql,iqqr) = solqa(j,i,iqql,iqqr) + &
-                                  auto_rate_kessl*autocrit_kessl
-                    solqb(j,i,iqqr,iqql) = solqb(j,i,iqqr,iqql) + &
-                                  dt*auto_rate_kessl
-                  end if
+                  solqa(j,i,iqqr,iqql) = solqa(j,i,iqqr,iqql) - &
+                               auto_rate_kessl*autocrit_kessl
+                  solqa(j,i,iqql,iqqr) = solqa(j,i,iqql,iqqr) + &
+                               auto_rate_kessl*autocrit_kessl
+                  solqb(j,i,iqqr,iqql) = solqb(j,i,iqqr,iqql) + &
+                               dt*auto_rate_kessl
                 end if
               end do
             end do
@@ -2354,22 +2362,38 @@ module mod_cloud_s1
         eldcpm = phase(t)*wlhvocp+(d_one-phase(t))*wlhsocp
       end function eldcpm
 
-      pure real(rkx) function eeliq(t) ! = 0.622*esw  !Teten's formula
+      subroutine eeliq ! = 0.622*esw  !Teten's formula
         implicit none
-        real(rkx) , intent(in):: t
-        eeliq = c2es*exp(c3les*(t-tzero)/(t-c4les))
-      end function eeliq
+        integer(ik4) :: i , j , k
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              st_eeliq(j,i,k) = c2es*exp(c3les*((t(j,i,k)-tzero) / &
+                                                (t(j,i,k)-c4les)))
+            end do
+          end do
+        end do
+      end subroutine eeliq
 
-      pure real(rkx) function eeice(t) ! = 0.622*esi
+      subroutine eeice ! = 0.622*esi
         implicit none
-        real(rkx) , intent(in):: t
-        eeice = c2es*exp(c3ies*((t-tzero)/(t-c4ies)))
-      end function eeice
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              st_eeice(j,i,k) = c2es*exp(c3ies*((t(j,i,k)-tzero) / &
+                                                (t(j,i,k)-c4ies)))
+            end do
+          end do
+        end do
+      end subroutine eeice
 
       pure real(rkx) function eewm(t,phase)
         implicit none
         real(rkx) , intent(in):: t , phase
-        eewm = phase * eeliq(t) + (d_one-phase) * eeice(t)
+        real(rkx) :: eliq , eice
+        eliq = c2es*exp(c3les*((t-tzero)/(t-c4les)))
+        eice = c2es*exp(c3ies*((t-tzero)/(t-c4ies)))
+        eewm = phase * eliq + (d_one-phase) * eice
       end function eewm
 
       pure real(rkx) function fkoop(t,eeliq,eeice)
