@@ -452,7 +452,20 @@ module mod_ncout
     logical , dimension(nche2dvars) :: enable_che2d_vars
     logical , dimension(nche3dvars) :: enable_che3d_vars
 
+    integer(ik4) :: global_out_jstart , global_out_jend
+    integer(ik4) :: global_out_istart , global_out_iend
+
     parallel_out = lparallel
+
+    global_out_jstart = 1
+    global_out_istart = 1
+    if ( ma%bandflag ) then
+      ! No boundary on east-west direction
+      global_out_jend = jx-1
+    else
+      global_out_jend = jx-3
+    end if
+    global_out_iend = iy - 3
 
     nstream = 0
 

@@ -35,10 +35,10 @@ module mod_mppparam
 
   private
 
-  integer(ik4) , public :: ic11g , ic12g , jc11g , jc12g
-  integer(ik4) , public :: ice1g , ice2g , jce1g , jce2g
-  integer(ik4) , public :: ide1g , ide2g , jde1g , jde2g
-  integer(ik4) , public :: idi1g , idi2g , jdi1g , jdi2g
+  integer(ik4) , public :: global_cross_istart , global_cross_iend
+  integer(ik4) , public :: global_cross_jstart , global_cross_jend
+  integer(ik4) , public :: global_dot_istart , global_dot_iend
+  integer(ik4) , public :: global_dot_jstart , global_dot_jend
 
   logical , parameter :: lreorder = .false.
 
@@ -942,16 +942,6 @@ module mod_mppparam
       global_cross_jend = jx-1
       global_cross_iend = iy-1
 
-      global_out_jstart = 1
-      global_out_istart = 1
-      if ( ma%bandflag ) then
-        ! No boundary on east-west direction
-        global_out_jend = jx-1
-      else
-        global_out_jend = jx-3
-      end if
-      global_out_iend = iy - 3
-
       ma%has_bdytop    = .true.
       ma%has_bdybottom = .true.
       if ( ma%bandflag ) then
@@ -1179,26 +1169,6 @@ module mod_mppparam
         global_cross_jend = global_dot_jend
         if ( global_dot_jend == jx ) then
           global_cross_jend = global_cross_jend - 1
-        end if
-      end if
-
-      ! Take away the South boundary point
-      global_out_istart = max(global_cross_istart-1,1)
-      global_out_iend   = global_cross_iend-1
-      ! Take away the North boundary
-      if ( global_dot_iend == iy ) then
-        global_out_iend = global_out_iend-1
-      end if
-      if ( ma%bandflag ) then
-        global_out_jstart = global_cross_jstart
-        global_out_jend = global_cross_jend
-      else
-        ! Take away the West boundary point
-        global_out_jstart = max(global_cross_jstart-1,1)
-        global_out_jend   = global_cross_jend-1
-        ! Take away the East boundary point
-        if ( global_dot_jend == jx ) then
-          global_out_jend = global_out_jend-1
         end if
       end if
     end if

@@ -133,13 +133,11 @@ module mod_bdycod
       call getmem2d(wvi,ide1ga,ide2ga,1,kz,'bdycon:wvi')
     end if
     call getmem2d(psdot,jde1,jde2,ide1,ide2,'bdycon:psdot')
-    if ( idynamic == 2 ) then
-    end if
   end subroutine allocate_mod_bdycon
 
   subroutine setup_bdycon
     implicit none
-    integer(ik4) :: i , j , n , k
+    integer(ik4) :: n , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
     integer(ik4) , save :: idindx = 0
@@ -206,36 +204,6 @@ module mod_bdycod
         end do
       end do
     end if
-    if ( idynamic == 2 .and. ifupr == 1 ) then
-      wtbdy(jci1:jci2,ici1:ici2) = d_one
-      if ( iboudy == 1 ) then
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            if ( .not. ba_cr%bwest(j,i)  .and. .not. ba_cr%beast(j,i) .and. &
-                 .not. ba_cr%bsouth(j,i) .and. .not. ba_cr%bnorth(j,i) ) cycle
-            wtbdy(j,i) = d_one-xfun(ba_cr%ibnd(j,i),.false.)
-          end do
-        end do
-      else if ( iboudy == 4 ) then
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            if ( .not. ba_cr%bwest(j,i)  .and. .not. ba_cr%beast(j,i) .and. &
-                 .not. ba_cr%bsouth(j,i) .and. .not. ba_cr%bnorth(j,i) ) cycle
-            wtbdy(j,i) = wgtx(ba_cr%ibnd(j,i))
-          end do
-        end do
-      else if ( iboudy == 5 ) then
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            if ( .not. ba_cr%bwest(j,i)  .and. .not. ba_cr%beast(j,i) .and. &
-                 .not. ba_cr%bsouth(j,i) .and. .not. ba_cr%bnorth(j,i) ) cycle
-            wtbdy(j,i) = d_one-xfune(ba_cr%ibnd(j,i),1,anudgf)
-          end do
-        end do
-      end if
-      call grid_fill(wtbdy,wtbdy_g,jce1,jce2,ice1,ice2)
-    end if
-
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

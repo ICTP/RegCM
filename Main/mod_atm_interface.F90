@@ -97,7 +97,6 @@ module mod_atm_interface
   ! Dynamic 2
   real(rkx) , pointer , public , dimension(:,:) :: dpsdxm , dpsdym
   real(rkx) , pointer , public , dimension(:,:) :: estore , estore_g
-  real(rkx) , pointer , public , dimension(:,:) :: wtbdy , wtbdy_g
   real(rkx) , public , dimension(-6:6,-6:6) :: tmask
 
   ! Surface
@@ -323,6 +322,11 @@ module mod_atm_interface
       ice2sl = ice2gb + ma%ibt2
       jce1sl = jce1gb - ma%jbl2
       jce2sl = jce2gb + ma%jbr2
+
+      jde1sg = (jde1-1)*nsg+1
+      jde2sg = jde2*nsg
+      ide1sg = (ide1-1)*nsg+1
+      ide2sg = ide2*nsg
 
 #ifdef DEBUG
       write(ndebug+myid,*) 'TOPLEFT     = ', ma%topleft
@@ -945,11 +949,8 @@ module mod_atm_interface
         call getmem2d(dpsdym,jce1,jce2,ice1,ice2,'storage:dpsdym')
         if ( ifupr == 1 ) then
           call getmem2d(estore,jci1,jci2,ici1,ici2,'storage:estore')
-          call getmem2d(wtbdy,jce1,jce2,ice1,ice2,'storage:wtbdy')
           call getmem2d(estore_g,jcross1,jcross2, &
                                  icross1,icross2,'storage:estore_g')
-          call getmem2d(wtbdy_g,jcross1,jcross2, &
-                                icross1,icross2,'storage:wtbdy_g')
         end if
         call getmem2d(hyps0,jce1,jce2,ice1,ice2,'storage:hyps0')
         call getmem2d(hyps1,jce1,jce2,ice1,ice2,'storage:hyps1')

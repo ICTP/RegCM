@@ -26,7 +26,7 @@ module mod_cu_grell
   use mod_cu_common
   use mod_constants
   use mod_mpmessage
-  use mod_runparams , only : iqv , dt , igcc , ichem , clfrcv , gcr0
+  use mod_runparams , only : iqv , dt , dtcum , igcc , ichem , clfrcv , gcr0
   use mod_regcm_types
 
   implicit none
@@ -483,7 +483,7 @@ module mod_cu_grell
     ! pwcev  = total normalized integrated evaoprate (I2)
     ! pwcd   = evaporate at that level
     !
-    mbdt = dt * 5.0e-03_rkx
+    mbdt = dtcum * 5.0e-03_rkx
     !
     ! environmental conditions, first heights
     !
@@ -1064,9 +1064,9 @@ module mod_cu_grell
         f  = -d_one
         xk = -d_one
         if ( igcc == 1 ) then
-          f = (xao(n)-xac(n))/dt ! Arakawa-Schubert closure
+          f = (xao(n)-xac(n))/dtcum ! Arakawa-Schubert closure
         else if ( igcc == 2 ) then
-          f = xac(n)/dtauc(n)    ! Fritsch-Chappell closure
+          f = xac(n)/dtauc(n)       ! Fritsch-Chappell closure
         end if
         xk = (xxac(n)-xac(n))/mbdt
         xmb(n) = -f/xk

@@ -52,7 +52,6 @@ module mod_ncio
   data somrec  / 1/
 
   real(rkx) , dimension(:,:) , pointer :: rspacesom => null()
-  real(rkx) , dimension(:,:) , pointer :: rspacesom_io => null()
   real(rkx) , dimension(:,:) , pointer :: rspace2 => null()
   real(rkx) , dimension(:,:,:) , pointer :: rspace3 => null()
 
@@ -96,10 +95,10 @@ module mod_ncio
     end if
 
     if ( do_parallel_netcdf_in ) then
-      istart(1) = global_dot_jstart
-      istart(2) = global_dot_istart
-      icount(1) = global_dot_jend-global_dot_jstart+1
-      icount(2) = global_dot_iend-global_dot_istart+1
+      istart(1) = jde1
+      istart(2) = ide1
+      icount(1) = jde2-jde1+1
+      icount(2) = ide2-ide1+1
       allocate(rspace(icount(1),icount(2)))
       call openfile_withname(dname,idmin)
       call check_domain(idmin)
@@ -289,10 +288,10 @@ module mod_ncio
     end if
 
     if ( do_parallel_netcdf_in ) then
-      istart(1) = (global_dot_jstart-1)*nsg+1
-      istart(2) = (global_dot_istart-1)*nsg+1
-      icount(1) = (global_dot_jend-global_dot_jstart+1)*nsg
-      icount(2) = (global_dot_iend-global_dot_istart+1)*nsg
+      istart(1) = jde1sg
+      istart(2) = ide1sg
+      icount(1) = jde2sg-jde1sg+1
+      icount(2) = ide2sg-ide1sg+1
       allocate(rspace(icount(1),icount(2)))
       call openfile_withname(dname,idmin)
       call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
@@ -433,7 +432,7 @@ module mod_ncio
   subroutine open_icbc(idate)
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=10) :: ctime
-    integer(ik4) :: idimid , itvar , i , chkdiff , nnj , nni
+    integer(ik4) :: idimid , itvar , i , chkdiff
     real(rkx) , dimension(:) , allocatable :: icbc_nctime
     character(len=64) :: icbc_timeunits , icbc_timecal
     character(len=256) :: icbcname
@@ -513,20 +512,17 @@ module mod_ncio
       end if
     end if
     if ( do_parallel_netcdf_in ) then
-      nnj = global_dot_jend-global_dot_jstart+1
-      nni = global_dot_iend-global_dot_istart+1
+      allocate(rspace2(jde1:jde2,ide1:ide2))
+      allocate(rspace3(jde1:jde2,ide1:ide2,kz))
     else
-      nnj = jx
-      nni = iy
+      allocate(rspace2(jx,iy))
+      allocate(rspace3(jx,iy,kz))
     end if
-    allocate(rspace2(nnj,nni))
-    allocate(rspace3(nnj,nni,kz))
   end subroutine open_icbc
 
   subroutine open_som
     character(len=10) :: ctime
     character(len=256) :: somname
-    integer(ik4) :: nnj , nni
     if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
       return
     end if
@@ -538,14 +534,10 @@ module mod_ncio
     istatus = nf90_inq_varid(somin, 'qflx', som_ivar(1))
     call check_ok(__FILE__,__LINE__,'variable qflx miss', 'SOM FILE')
     if ( do_parallel_netcdf_in ) then
-      nnj = global_out_jend-global_out_jstart+1
-      nni = global_out_iend-global_out_istart+1
+      allocate(rspacesom(jci1:jci2,ici1:ici2))
     else
-      nnj = jx - 3
-      nni = iy - 3
-      allocate(rspacesom(jx,iy))
+      allocate(rspacesom(2:jx-2,2:iy-2))
     end if
-    allocate(rspacesom_io(nnj,nni))
   end subroutine open_som
 
   subroutine read_icbc(ps,ts,u,v,t,qv,pp,ww)
@@ -564,11 +556,11 @@ module mod_ncio
     real(rkx) :: told , pold , rhold , satvp , tnew , pnew
 
     if ( do_parallel_netcdf_in ) then
-      istart(1) = global_dot_jstart
-      istart(2) = global_dot_istart
+      istart(1) = jde1
+      istart(2) = ide1
       istart(3) = ibcrec
-      icount(1) = global_dot_jend-global_dot_jstart+1
-      icount(2) = global_dot_iend-global_dot_istart+1
+      icount(1) = jde2-jde1+1
+      icount(2) = ide2-ide1+1
       icount(3) = 1
       istatus = nf90_get_var(ibcin,icbc_ivar(1),rspace2,istart(1:3),icount(1:3))
       call check_ok(__FILE__,__LINE__,'variable ps read error', 'ICBC FILE')
@@ -595,12 +587,12 @@ module mod_ncio
         end if
       end if
       ts(jce1:jce2,ice1:ice2) = rspace2(jce1:jce2,ice1:ice2)
-      istart(1) = global_dot_jstart
-      istart(2) = global_dot_istart
+      istart(1) = jde1
+      istart(2) = ide1
       istart(3) = 1
       istart(4) = ibcrec
-      icount(1) = global_dot_jend-global_dot_jstart+1
-      icount(2) = global_dot_iend-global_dot_istart+1
+      icount(1) = jde2-jde1+1
+      icount(2) = ide2-ide1+1 
       icount(3) = kz
       icount(4) = 1
       istatus = nf90_get_var(ibcin,icbc_ivar(3),rspace3,istart,icount)
@@ -654,11 +646,11 @@ module mod_ncio
         istatus = nf90_get_var(ibcin,icbc_ivar(8),rspace3,istart,icount)
         call check_ok(__FILE__,__LINE__,'variable w read error', 'ICBC FILE')
         ww(jce1:jce2,ice1:ice2,2:kzp1) = rspace3(jce1:jce2,ice1:ice2,1:kz)
-        istart(1) = global_dot_jstart
-        istart(2) = global_dot_istart
+        istart(1) = jde1
+        istart(2) = ide1
         istart(3) = ibcrec
-        icount(1) = global_dot_jend-global_dot_jstart+1
-        icount(2) = global_dot_iend-global_dot_istart+1
+        icount(1) = jde2-jde1+1
+        icount(2) = ide2-ide1+1
         icount(3) = 1
         istatus = nf90_get_var(ibcin,icbc_ivar(9),rspace2, &
                                istart(1:3),icount(1:3))
@@ -818,16 +810,16 @@ module mod_ncio
       write(stdout,*) 'Reading SOM data for ',cmon(somrec)
     end if
     if ( do_parallel_netcdf_in ) then
-      istart(1) = global_out_jstart
-      istart(2) = global_out_istart
+      istart(1) = jci1-1
+      istart(2) = ici1-1
       istart(3) = somrec
-      icount(1) = global_out_jend-global_out_jstart+1
-      icount(2) = global_out_iend-global_out_istart+1
+      icount(1) = jci2-jci1
+      icount(2) = ici2-ici1
       icount(3) = 1
-      istatus = nf90_get_var(somin,som_ivar(1),rspacesom_io, &
+      istatus = nf90_get_var(somin,som_ivar(1),rspacesom, &
               istart(1:3),icount(1:3))
       call check_ok(__FILE__,__LINE__,'variable qflx read error', 'SOM FILE')
-      qflx(jci1:jci2,ici1:ici2) = rspacesom_io
+      qflx(jci1:jci2,ici1:ici2) = rspacesom
       else
         if ( myid == iocpu ) then
           istart(1) = 1
@@ -837,10 +829,9 @@ module mod_ncio
           icount(2) = iy-3
           icount(3) = 1
           istatus = nf90_get_var(somin,som_ivar(1), &
-                  rspacesom_io,istart(1:3),icount(1:3))
+                  rspacesom,istart(1:3),icount(1:3))
           call check_ok(__FILE__,__LINE__, &
                   'variable qflx read error', 'SOM FILE')
-          rspacesom(2:jx-2,2:iy-2) = rspacesom_io
           call grid_distribute(rspacesom,qflx,jci1,jci2,ici1,ici2)
         else
           call grid_distribute(rspacesom,qflx,jci1,jci2,ici1,ici2)
@@ -867,7 +858,6 @@ module mod_ncio
       call check_ok(__FILE__,__LINE__,'Error Close SOM file','SOM FILE')
       somin = -1
     end if
-    if ( associated(rspacesom_io) ) deallocate(rspacesom_io)
     if ( associated(rspacesom) ) deallocate(rspacesom)
   end subroutine close_som
 

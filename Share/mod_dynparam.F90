@@ -220,7 +220,9 @@ module mod_dynparam
 
   ! D stands for DOT
   integer(ik4) :: ide1 , ide2 ! External i (included bdy) (latitude)
-  integer(ik4) :: jde1 , jde2 ! External j (included bdy) (longitude)
+    integer(ik4) :: jde1 , jde2 ! External j (included bdy) (longitude)
+  integer(ik4) :: ide1sg , ide2sg ! External i SUB (included bdy) (latitude)
+  integer(ik4) :: jde1sg , jde2sg ! External j SUB (included bdy) (longitude)
   integer(ik4) :: idi1 , idi2 ! Internal (excluded first and last line) i
   integer(ik4) :: jdi1 , jdi2 ! Internal (excluded first and last column) j
   integer(ik4) :: idii1 , idii2 ! Internal (excluded 2 lines and cols) i
@@ -257,21 +259,6 @@ module mod_dynparam
 
   ! J index Dot points Full Domain  = jde1 : begin , jde2 : end
   ! I index Cross points Internal Domain = ici1 : begin , ici2 : end
-
-  ! Global reference in global grid jx*iy of dot points
-  ! The CROSS grid is contained within
-  integer(ik4) :: global_dot_jstart
-  integer(ik4) :: global_dot_jend
-  integer(ik4) :: global_dot_istart
-  integer(ik4) :: global_dot_iend
-  integer(ik4) :: global_cross_jstart
-  integer(ik4) :: global_cross_jend
-  integer(ik4) :: global_cross_istart
-  integer(ik4) :: global_cross_iend
-  integer(ik4) :: global_out_jstart
-  integer(ik4) :: global_out_jend
-  integer(ik4) :: global_out_istart
-  integer(ik4) :: global_out_iend
 
   !####################### MPI parameters ################################
 

@@ -435,8 +435,8 @@ module mod_params
     ricr_ocn = 0.25_rkx
     ricr_lnd = 0.25_rkx
     zhnew_fac = 0.25_rkx
-    ifaholtth10 = 3
-    ifaholt = 0
+    ifaholtth10 = 1
+    ifaholt = 1
     !
     ! slabocparam ;
     !
@@ -494,7 +494,8 @@ module mod_params
       if (nsg /= 1 ) then
         write (stderr,*) 'Running SUBGRID with CLM: not implemented'
         write (stderr,*) 'Please set nsg to 1 in regcm.in'
-        call fatal(__FILE__,__LINE__,'CLM & SUBGRID TOGETHER')
+        call fatal(__FILE__,__LINE__, &
+                   'CLM & SUBGRID TOGETHER')
       end if
     end if
 #endif
@@ -504,7 +505,8 @@ module mod_params
                    action='read', iostat=iretval)
       if ( iretval /= 0 ) then
         write(stderr,*) 'Error opening input namelist file ',trim(namelistfile)
-        call fatal(__FILE__,__LINE__,'INPUT NAMELIST OPEN ERROR')
+        call fatal(__FILE__,__LINE__, &
+                   'INPUT NAMELIST OPEN ERROR')
 #ifdef DEBUG
       else
         write(stdout,*) 'Open ',trim(namelistfile),' OK'
@@ -517,7 +519,8 @@ module mod_params
       read (ipunit, nml=restartparam, iostat=iretval, err=100)
       if ( iretval /= 0 ) then
         write(stderr,*) 'Error reading restartparam namelist'
-        call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
+        call fatal(__FILE__,__LINE__, &
+                   'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
       else
         write(stdout,*) 'Read restartparam OK'
@@ -541,7 +544,8 @@ module mod_params
       read (ipunit, nml=timeparam, iostat=iretval, err=101)
       if ( iretval /= 0 ) then
         write(stderr,*) 'Error reading timeparam namelist'
-        call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
+        call fatal(__FILE__,__LINE__, &
+                   'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
       else
         write(stdout,*) 'Read timeparam OK'
@@ -552,7 +556,8 @@ module mod_params
       read (ipunit, nml=outparam, iostat=iretval, err=102)
       if ( iretval /= 0 ) then
         write(stderr,*) 'Error reading outparam namelist'
-        call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
+        call fatal(__FILE__,__LINE__, &
+                   'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
       else
         write(stdout,*) 'Read outparam OK'
@@ -565,7 +570,8 @@ module mod_params
       read (ipunit, nml=physicsparam, iostat=iretval, err=103)
       if ( iretval /= 0 ) then
         write(stderr,*) 'Error reading physicsparam namelist'
-        call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
+        call fatal(__FILE__,__LINE__, &
+                   'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
       else
         write(stdout,*) 'Read physicsparam OK'
@@ -593,13 +599,15 @@ module mod_params
         if ( icup_lnd /= icup_ocn ) then
           write(stderr,*) &
             'ERROR: Kuo scheme MUST be used on both Land and Ocean'
-          call fatal(__FILE__,__LINE__,'INPUT NAMELIST ICUP INCONSISTENT')
+          call fatal(__FILE__,__LINE__, &
+                     'INPUT NAMELIST ICUP INCONSISTENT')
         end if
       end if
       if ( any(icup == 3) ) then
         if ( icup_lnd /= icup_ocn ) then
           write(stderr,*) 'ERROR: BM scheme MUST be used on both Land and Ocean'
-          call fatal(__FILE__,__LINE__,'INPUT NAMELIST ICUP INCONSISTENT')
+          call fatal(__FILE__,__LINE__, &
+                     'INPUT NAMELIST ICUP INCONSISTENT')
         end if
       end if
 
@@ -704,10 +712,12 @@ module mod_params
         end if
       end if
       if ( any(icup < 0) .or. any(icup > 6) ) then
-        call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')
+        call fatal(__FILE__,__LINE__, &
+                   'UNSUPPORTED CUMULUS SCHEME')
       end if
       if ( ibltyp < 0 .or. ibltyp > 2 ) then
-        call fatal(__FILE__,__LINE__,'UNSUPPORTED PBL SCHEME.')
+        call fatal(__FILE__,__LINE__, &
+                   'UNSUPPORTED PBL SCHEME.')
       end if
       if ( ibltyp == 1 ) then
         rewind(ipunit)
@@ -758,7 +768,8 @@ module mod_params
           write (stderr,*) 'do_restore_sst = ' , do_restore_sst
           write (stderr,*) 'THESE OPTION CANNOT BE EQUAL !!'
           write (stderr,*) 'FIRST DO A RESTORE SST RUN AND THEN AN ADJUST RUN!'
-          call fatal(__FILE__,__LINE__,'SLABOCEAN INPUT INCONSISTENCY')
+          call fatal(__FILE__,__LINE__, &
+                     'SLABOCEAN INPUT INCONSISTENCY')
         end if
         if ( idcsst == 1 ) then
           write(stderr,*) 'The SLAB Ocean model disables the diurnal SST'
@@ -775,7 +786,8 @@ module mod_params
         read (ipunit, chemparam, iostat=iretval, err=115)
         if ( iretval /= 0 ) then
           write(stderr,*) 'Error reading chemparam namelist'
-          call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
+          call fatal(__FILE__,__LINE__, &
+                     'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
         else
           write(stdout,*) 'Read chemparam OK'
@@ -1379,7 +1391,8 @@ module mod_params
       if ( ichem == 1 ) then
         if ( chemfrq <= d_zero ) then
           write (stderr,*) 'CHEMFRQ=', chemfrq
-          call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
+          call fatal(__FILE__,__LINE__, &
+                     'CHEMFRQ CANNOT BE ZERO')
         end if
         if ( mod(nint(chemfrq*secph),nint(dtche)) /= 0 ) then
           write (stderr,*) 'CHEMFRQ=' , chemfrq , ' DTCHE=', dtche
@@ -1392,7 +1405,8 @@ module mod_params
           write (stderr,*) 'To use Semi-Lagrangian Advection Scheme reduce'
           write (stderr,*) 'the number of processors !!!!'
           write (stderr,*) 'Minimum number of points is 25 (5x5) per processor'
-          call fatal(__FILE__,__LINE__,'ISLADVEC WITH PPROC < 5x5')
+          call fatal(__FILE__,__LINE__, &
+                     'ISLADVEC WITH PPROC < 5x5')
         end if
       end if
     end if
@@ -1538,12 +1552,14 @@ module mod_params
         write(stderr,*) 'Error in parameter set.'
         write(stderr,*) 'Cannot set idate0 == idate1 on restart run'
         write(stderr,*) 'Correct idate0.'
-        call fatal(__FILE__,__LINE__,'IDATE0==IDATE1 ON RESTART')
+        call fatal(__FILE__,__LINE__, &
+                   'IDATE0==IDATE1 ON RESTART')
       else if ( .not. ifrest .and. idate0 /= idate1 ) then
         write(stderr,*) 'Error in parameter set.'
         write(stderr,*) 'Cannot set idate0 /= idate1 on non restart run'
         write(stderr,*) 'Correct idate1.'
-        call fatal(__FILE__,__LINE__,'IDATE0/=IDATE1 ON NON RESTART')
+        call fatal(__FILE__,__LINE__, &
+                   'IDATE0/=IDATE1 ON NON RESTART')
       end if
     end if
 
@@ -1943,6 +1959,10 @@ module mod_params
         else if ( igcc == 2 ) then
           write(stdout,*) ' Fritsch-Chappell (1980) Closure Assumption'
           write(stdout,'(a,f11.6)') '  ABE removal timescale : ',dtauc
+        else
+          write(stderr,*) 'Unknown Closure Assumption for Grell.'
+          call fatal(__FILE__,__LINE__, &
+                    'PARAMETER ERROR')
         end if
       end if
 
@@ -2099,7 +2119,8 @@ module mod_params
     ptmb = d_10*ptop
     pz = hsigma(1)*(d_1000-ptmb) + ptmb
     if ( pz > chibot ) then
-      call fatal(__FILE__,__LINE__,'VERTICAL INTERPOLATION ERROR')
+      call fatal(__FILE__,__LINE__, &
+                 'VERTICAL INTERPOLATION ERROR')
     end if
 
     do k = 1 , kz
@@ -2178,7 +2199,8 @@ module mod_params
     if ( any(icup == 3) ) call lutbl(ptop)
 
     if ( iboudy < 0 .or. iboudy > 5 ) then
-      call fatal(__FILE__,__LINE__,'UNSUPPORTED BDY SCHEME.')
+      call fatal(__FILE__,__LINE__, &
+                 'UNSUPPORTED BDY SCHEME.')
     end if
 
     if ( myid == italk ) then

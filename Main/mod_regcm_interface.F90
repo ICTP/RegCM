@@ -236,10 +236,6 @@ module mod_regcm_interface
     call time_print(6,'evolution phase')
 #endif
 
-99001 format (6x,'large domain: extime = ',f7.1,' dtsec = ',f7.1,       &
-        & ' dt = ',f7.1,' dt2 = ',f7.1,' dtsec = ',f6.1,' ktau = ', &
-        & i7,' in year ',i4)
-
   end subroutine RCM_run
 
   subroutine RCM_finalize

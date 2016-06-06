@@ -536,7 +536,8 @@ module mod_sound
             astore(j,i) = denom * e(j,i,1) + (cj(j,i,1) - cdd(j,i,1)) * bp
           end do
         end do
-        call grid_fill(estore,estore_g,jci1,jci2,ici1,ici2)
+        call grid_collect(estore,estore_g,jci1,jci2,ici1,ici2)
+        call bcast(estore_g)
         !
         ! If first time through and upper radiation b.c`s are used
         ! Need to calc some coefficients
@@ -567,6 +568,12 @@ module mod_sound
           abar = abar/npts
           rhon = rhon/npts
           xmsf = xmsf/npts
+          !
+          ! Try to avoid problems coming from computing distributed integrals.
+          !
+          abar = real(int(abar*100000.0_rkx),rkx)/100000_rkx
+          rhon = real(int(rhon*100000.0_rkx),rkx)/100000_rkx
+          xmsf = real(int(xmsf*100000.0_rkx),rkx)/100000_rkx
           dxmsfb = d_two/dx/xmsf
           tmask(:,:) = d_zero
           do kk = 0 , 6
@@ -592,24 +599,23 @@ module mod_sound
           ! Finished initial coefficient compute (goes in SAV file)
         end if
         !
-        ! Apply upper rad cond. ! (not in the lateral boundary ?)
+        ! Apply upper rad cond.
         !
-        iloop: &
-        do i = ici1 , ici2
-          !if ( i < nspgx .or. nicross - i < nspgx ) cycle iloop
-          jloop: &
+        iciloop: &
+        do i = ici1 , ici2 
+          if ( i < icross1+8 .or. i > icross2-8 ) cycle iciloop
+          jciloop: &
           do j = jci1 , jci2
-            !if ( j < nspgx .or. njcross - j < nspgx ) cycle jloop
+            if ( j < jcross1+8 .or. j > jcross2-8 ) cycle jciloop
             do nsi = -6 , 6
-              inn = min(max(i,2),nicross-2)
+              inn = i+nsi
               do nsj = -6 , 6
-                jnn = min(max(j,2),njcross-2)
-                wpval(j,i) = wpval(j,i) + &
-                       estore_g(jnn,inn)*tmask(nsj,nsi)*wtbdy_g(jnn,inn)
+                jnn = j+nsj
+                wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do
             end do
-          end do jloop
-        end do iloop
+          end do jciloop
+        end do iciloop
       end if
       !
       ! Finished calc of radiation w, apply whichever
@@ -620,15 +626,24 @@ module mod_sound
         end do
       end do
       !
+      ! Zero-out gradient
+      !
+      if ( ma%has_bdybottom ) then
+        atmc%w(:,ice1,1) = atmc%w(:,ici1,1)
+      end if
+      if ( ma%has_bdytop ) then
+        atmc%w(:,ice2,1) = atmc%w(:,ici2,1)
+      end if
+      if ( ma%has_bdyleft ) then
+        atmc%w(jce1,:,1) = atmc%w(jci1,:,1)
+      end if
+      if ( ma%has_bdyright ) then
+        atmc%w(jce2,:,1) = atmc%w(jci2,:,1)
+      end if
+      !
       ! Downward sweep calculation of w
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atmc%w(j,i,2) = bet * atmc%w(j,i,1) + &
-                (d_one - bet) * (e(j,i,1)*atmc%w(j,i,1)+f(j,i,1))
-        end do
-      end do
-      do k = 2 , kz
+      do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%w(j,i,k+1) = e(j,i,k)*atmc%w(j,i,k) + f(j,i,k)

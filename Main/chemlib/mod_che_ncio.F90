@@ -157,18 +157,19 @@ module mod_che_ncio
 
       if ( do_parallel_netcdf_in ) then
         call openfile_withname(dname,idmin)
-        istart(1) = global_dot_jstart
-        istart(2) = global_dot_istart
+        istart(1) = jde1
+        istart(2) = ide1
         istart(3) = 1
-        icount(1) = global_dot_jend-global_dot_jstart+1
-        icount(2) = global_dot_iend-global_dot_istart+1
+        icount(1) = jde2-jde1+1
+        icount(2) = ide2-ide1+1
         icount(3) = nats
-        allocate(rspace(icount(1),icount(2),icount(3)))
+        allocate(rspace(jde1:jde2,ide1:ide2,nats))
         call read_var3d_static(idmin,'texture_fraction',rspace, &
           istart=istart,icount=icount)
         texture(jci1:jci2,ici1:ici2,:) = &
           max(rspace(jci1:jci2,ici1:ici2,:)*0.01_rkx,d_zero)
         call closefile(idmin)
+        deallocate(rspace)
       else
         if ( myid == iocpu ) then
           call openfile_withname(dname,idmin)
@@ -178,12 +179,13 @@ module mod_che_ncio
           icount(1) = jx
           icount(2) = iy
           icount(3) = nats
-          allocate(rspace(icount(1),icount(2),icount(3)))
+          allocate(rspace(jx,iy,nats))
           call read_var3d_static(idmin,'texture_fraction',rspace, &
             istart=istart,icount=icount)
           rspace = max(rspace*0.01_rkx,d_zero)
           call grid_distribute(rspace,texture,jci1,jci2,ici1,ici2,1,nats)
           call closefile(idmin)
+          deallocate(rspace)
         else
           call grid_distribute(rspace,texture,jci1,jci2,ici1,ici2,1,nats)
         end if
@@ -205,13 +207,11 @@ module mod_che_ncio
 
       if ( do_parallel_netcdf_in ) then
         call openfile_withname(dname,idmin)
-        istart(1) = global_dot_jstart
-        istart(2) = global_dot_istart
-        !istart(3) = 1
-        icount(1) = global_dot_jend-global_dot_jstart+1
-        icount(2) = global_dot_iend-global_dot_istart+1
-        !icount(3) = nats
-        allocate(rspace(icount(1),icount(2)))
+        istart(1) = jde1
+        istart(2) = ide1
+        icount(1) = jde2-jde1+1
+        icount(2) = ide2-ide1+1
+        allocate(rspace(jde1:jde2,ide1:ide2))
         call read_var2d_static(idmin,'nfert',rspace, &
           istart=istart,icount=icount)
         nfert(jci1:jci2,ici1:ici2) = &
@@ -228,16 +228,15 @@ module mod_che_ncio
           max(rspace(jci1:jci2,ici1:ici2),d_zero)
 
         call closefile(idmin)
+        deallocate(rspace)
       else
         if ( myid == iocpu ) then
           call openfile_withname(dname,idmin)
           istart(1) = 1
           istart(2) = 1
-      !    istart(3) = 1
           icount(1) = jx
           icount(2) = iy
-      !    icount(3) = nats
-          allocate(rspace(icount(1),icount(2)))
+          allocate(rspace(jx,iy))
           call read_var2d_static(idmin,'nfert',rspace, &
             istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
@@ -253,6 +252,7 @@ module mod_che_ncio
           rspace = max(rspace,d_zero)
           call grid_distribute(rspace,soilph,jci1,jci2,ici1,ici2)
           call closefile(idmin)
+          deallocate(rspace)
         else
           call grid_distribute(rspace,nfert,jci1,jci2,ici1,ici2)
           call grid_distribute(rspace,nmanure,jci1,jci2,ici1,ici2)
@@ -360,16 +360,18 @@ module mod_che_ncio
         icount = 0
 
         if ( do_parallel_netcdf_in ) then
-          istart(1) = global_dot_jstart
-          istart(2) = global_dot_istart
-          icount(1) = global_dot_jend-global_dot_jstart+1
-          icount(2) = global_dot_iend-global_dot_istart+1
+          istart(1) = jde1
+          istart(2) = ide1
+          icount(1) = jde2-jde1+1
+          icount(2) = ide2-ide1+1
+          allocate(rspace2(jde1:jde2,ide1:ide2))
         else
           istart(1) = 1
           istart(2) = 1
           icount(1) = jx
           icount(2) = iy
           allocate(rspace2_loc(jci1:jci2,ici1:ici2))
+          allocate(rspace2(jx,iy))
         end if
         istatus = nf90_inq_dimid(ncid, 'lev', idimid)
         if ( istatus /= nf90_noerr ) then
@@ -384,7 +386,6 @@ module mod_che_ncio
           icount(4) = 1
           sdim=4
         end if
-        allocate(rspace2(icount(1),icount(2)))
       else
         allocate(rspace2_loc(jci1:jci2,ici1:ici2))
       end if
@@ -832,9 +833,7 @@ module mod_che_ncio
         end do
       end if
       if ( do_parallel_netcdf_in ) then
-        allocate(rspace3(global_dot_jend-global_dot_jstart+1, &
-                         global_dot_iend-global_dot_istart+1, &
-                         kz))
+        allocate(rspace3(jde1:jde2,ide1:ide2,kz))
       else
         allocate(rspace3(jx,iy,kz))
         allocate(rspace3_loc(jce1:jce2,ice1:ice2,kz))
@@ -848,12 +847,12 @@ module mod_che_ncio
       integer(ik4) :: i , j , k, n , iafter
 
       if ( do_parallel_netcdf_in ) then
-        istart(1) = global_dot_jstart
-        istart(2) = global_dot_istart
+        istart(1) = jde1
+        istart(2) = ide1
         istart(3) = 1
         istart(4) = ibcrec
-        icount(1) = global_dot_jend-global_dot_jstart+1
-        icount(2) = global_dot_iend-global_dot_istart+1
+        icount(1) = jde2-jde1+1
+        icount(2) = ide2-ide1+1
         icount(3) = kz
         icount(4) = 1
         iafter = 0
