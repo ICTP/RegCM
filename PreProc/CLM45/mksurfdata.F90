@@ -384,7 +384,8 @@ program mksurfdata
 
   ivdims(1) = idims(7)
   ivdims(2) = idims(8)
-  istatus = nf90_def_var(ncid, 'PCT_URBAN', regcm_vartype, ivdims(1:2), iurbanvar)
+  istatus = nf90_def_var(ncid, 'PCT_URBAN', regcm_vartype, &
+                         ivdims(1:2), iurbanvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var urban')
   istatus = nf90_put_att(ncid, iurbanvar, 'long_name','percent urban')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add urban long_name')
@@ -444,7 +445,8 @@ program mksurfdata
   ivdims(1) = idims(1)
   ivdims(2) = idims(2)
   ivdims(3) = idims(8)
-  istatus = nf90_def_var(ncid, 'urb_2d', regcm_vartype, ivdims(1:3), iurban2dvar)
+  istatus = nf90_def_var(ncid, 'urb_2d', regcm_vartype, &
+                         ivdims(1:3), iurban2dvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var urban')
   istatus = nf90_put_att(ncid, iurban2dvar, 'long_name','percent urban')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add urban long_name')
@@ -456,13 +458,15 @@ program mksurfdata
   ivdims(1) = idims(7)
   ivdims(2) = idims(5)
   ivdims(3) = idims(4)
-  istatus = nf90_def_var(ncid, 'MONTHLY_LAI', regcm_vartype, ivdims(1:3), ilaivar)
+  istatus = nf90_def_var(ncid, 'MONTHLY_LAI', regcm_vartype, &
+                         ivdims(1:3), ilaivar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var monthly_lai')
   istatus = nf90_put_att(ncid, ilaivar, 'long_name','monthly leaf area index')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_lai long_name')
   istatus = nf90_put_att(ncid, ilaivar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_lai units')
-  istatus = nf90_def_var(ncid, 'MONTHLY_SAI', regcm_vartype, ivdims(1:3), isaivar)
+  istatus = nf90_def_var(ncid, 'MONTHLY_SAI', regcm_vartype, &
+                         ivdims(1:3), isaivar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var monthly_sai')
   istatus = nf90_put_att(ncid, isaivar, 'long_name','monthly stem area index')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_sai long_name')
@@ -491,7 +495,8 @@ program mksurfdata
   istatus = nf90_put_att(ncid, ifmaxvar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add fmax units')
 
-  istatus = nf90_def_var(ncid, 'SOIL_COLOR', regcm_vartype, idims(7),isoilcolvar)
+  istatus = nf90_def_var(ncid, 'SOIL_COLOR', regcm_vartype, &
+                         idims(7),isoilcolvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var soilcol')
   istatus = nf90_put_att(ncid, isoilcolvar, 'long_name', &
           'maximum fractional saturated area at 1/8 degree')
@@ -580,7 +585,8 @@ program mksurfdata
   istatus = nf90_put_att(ncid, iclayvar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add clay units')
 
-  istatus = nf90_def_var(ncid, 'ORGANIC', regcm_vartype, ivdims(1:2), iorganicvar)
+  istatus = nf90_def_var(ncid, 'ORGANIC', regcm_vartype, &
+                         ivdims(1:2), iorganicvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var organic')
   istatus = nf90_put_att(ncid, iorganicvar, 'long_name', &
           'organic soil density at soil levels')
@@ -601,7 +607,8 @@ program mksurfdata
   ivdims(1) = idims(7)
   ivdims(2) = idims(8)
   do i = 1 , npu2d
-    istatus = nf90_def_var(ncid, parm2d(i), regcm_vartype, ivdims(1:2), iurb2d(i))
+    istatus = nf90_def_var(ncid, parm2d(i), regcm_vartype, &
+                           ivdims(1:2), iurb2d(i))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error add var')
     istatus = nf90_put_att(ncid, iurb2d(i), 'long_name', lngn2d(i))
     call checkncerr(istatus,__FILE__,__LINE__,'Error add long_name')
@@ -615,7 +622,8 @@ program mksurfdata
   ivdims(2) = idims(8)
   ivdims(3) = idims(9)
   do i = 1 , npu3d
-    istatus = nf90_def_var(ncid, parm3d(i), regcm_vartype, ivdims(1:3), iurb3d(i))
+    istatus = nf90_def_var(ncid, parm3d(i), regcm_vartype, &
+                           ivdims(1:3), iurb3d(i))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error add var')
     istatus = nf90_put_att(ncid, iurb3d(i), 'long_name', lngn3d(i))
     call checkncerr(istatus,__FILE__,__LINE__,'Error add long_name')
@@ -1352,7 +1360,8 @@ program mksurfdata
     ivdims(1) = idims(1)
     ivdims(2) = idims(2)
     ivdims(3) = idims(4)
-    istatus = nf90_def_var(ncid, 'pft_2d', regcm_vartype, ivdims(1:3), ipft2dvar)
+    istatus = nf90_def_var(ncid, 'pft_2d', regcm_vartype, &
+                           ivdims(1:3), ipft2dvar)
     call checkncerr(istatus,__FILE__,__LINE__,  'Error add var pft')
     istatus = nf90_put_att(ncid, ipft2dvar, 'long_name','percent pft')
     call checkncerr(istatus,__FILE__,__LINE__,'Error add pft long_name')
@@ -1397,27 +1406,32 @@ program mksurfdata
     call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
     istatus = nf90_put_att(ncid, ipftvar, '_FillValue',vmisdat)
     call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
-    istatus = nf90_def_var(ncid, 'HARVEST_VH1', regcm_vartype, idims(5), iharvvh1)
+    istatus = nf90_def_var(ncid, 'HARVEST_VH1', regcm_vartype, &
+                           idims(5), iharvvh1)
     call checkncerr(istatus,__FILE__,__LINE__,  'Error add var HARVEST_VH1')
     istatus = nf90_put_att(ncid, iharvvh1, 'long_name', &
             'harvest from primary forest')
     call checkncerr(istatus,__FILE__,__LINE__,'Error add HARVEST_VH1 long_name')
-    istatus = nf90_def_var(ncid, 'HARVEST_VH2', regcm_vartype, idims(5), iharvvh2)
+    istatus = nf90_def_var(ncid, 'HARVEST_VH2', regcm_vartype, &
+                           idims(5), iharvvh2)
     call checkncerr(istatus,__FILE__,__LINE__,  'Error add var HARVEST_VH2')
     istatus = nf90_put_att(ncid, iharvvh2, 'long_name', &
             'harvest from primary non-forest')
     call checkncerr(istatus,__FILE__,__LINE__,'Error add HARVEST_VH2 long_name')
-    istatus = nf90_def_var(ncid, 'HARVEST_SH1', regcm_vartype, idims(5), iharvsh1)
+    istatus = nf90_def_var(ncid, 'HARVEST_SH1', regcm_vartype, &
+                           idims(5), iharvsh1)
     call checkncerr(istatus,__FILE__,__LINE__,  'Error add var HARVEST_SH1')
     istatus = nf90_put_att(ncid, iharvsh1, 'long_name', &
             'harvest from secondary mature-forest')
     call checkncerr(istatus,__FILE__,__LINE__,'Error add HARVEST_SH1 long_name')
-    istatus = nf90_def_var(ncid, 'HARVEST_SH2', regcm_vartype, idims(5), iharvsh2)
+    istatus = nf90_def_var(ncid, 'HARVEST_SH2', regcm_vartype, &
+                           idims(5), iharvsh2)
     call checkncerr(istatus,__FILE__,__LINE__,  'Error add var HARVEST_SH2')
     istatus = nf90_put_att(ncid, iharvsh2, 'long_name', &
             'harvest from secondary young-forest')
     call checkncerr(istatus,__FILE__,__LINE__,'Error add HARVEST_SH2 long_name')
-    istatus = nf90_def_var(ncid, 'HARVEST_SH3', regcm_vartype, idims(5), iharvsh3)
+    istatus = nf90_def_var(ncid, 'HARVEST_SH3', regcm_vartype, &
+                           idims(5), iharvsh3)
     call checkncerr(istatus,__FILE__,__LINE__,  'Error add var HARVEST_SH3')
     istatus = nf90_put_att(ncid, iharvsh3, 'long_name', &
             'harvest from secondary non-forest')

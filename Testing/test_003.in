@@ -82,7 +82,6 @@
  ibltyp  =          1,
  icup_lnd =         4,
  icup_ocn =         4,
-   igcc   =         1,
  ipptls  =          1,
  iocnflx =          2,
  ipgf    =          0,

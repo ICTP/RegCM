@@ -42,7 +42,7 @@ AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix`; NCAUTO="yes"],
 AC_ARG_WITH([netcdf],
   AC_HELP_STRING([--with-netcdf],
             [Path to NetCDF installation (default: NETCDF environment)]),
-  [NC_PREFIX="$withval"; NCAUTO="no"], [FAKE="no"]
+  [NC_PREFIX="$withval"; NFAUTO="no"; NCAUTO="no"], [FAKE="no"]
 )
 
 AC_ARG_WITH([hdf5],

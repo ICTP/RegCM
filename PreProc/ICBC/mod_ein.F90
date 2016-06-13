@@ -293,7 +293,8 @@ module mod_ein
       else if ( kkrec == 2 ) then
         do j = 1 , jlat
           do i = 1 , ilon
-            hvar(i,jlat+1-j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)/9.80616
+            hvar(i,jlat+1-j,:) = real(real(work(i,j,:),rkx) * &
+                      xscale+xadd,rkx)/9.80616_rk4
           end do
         end do
       else if ( kkrec == 3 ) then
@@ -318,9 +319,7 @@ module mod_ein
       end if
     end do
   end subroutine ein6hour
-!
-!-----------------------------------------------------------------------
-!
+
   subroutine headerein
     implicit none
     integer(ik4) :: j , k , kr

@@ -251,9 +251,6 @@
                         !   4 => Emanuel (1991)
                         !   5 => Tiedtke (1996)
                         !   6 => Kain-Fritsch (1990), Kain (2004)
-   igcc  =          2,  ! Grell Scheme (icup == 2) Cumulus closure scheme
-                        !   1 => Arakawa & Schubert (1974)
-                        !   2 => Fritsch & Chappell (1980)
  ipptls  =          1,  ! Moisture scheme
                         !   1 => Explicit moisture (SUBEX; Pal et al 2000)
                         !   2 => Explicit moisture Nogherotto/Tompkins
@@ -386,6 +383,9 @@
 ! Grell Cumulus scheme control
 !
  &grellparam
+ igcc  = 2,          ! Cumulus closure scheme
+                     !   1 => Arakawa & Schubert (1974)
+                     !   2 => Fritsch & Chappell (1980)
  gcr0 = 0.0020,      ! Conversion rate from cloud to rain
  edtmin      = 0.20, ! Minimum Precipitation Efficiency land
  edtmin_ocn  = 0.20, ! Minimum Precipitation Efficiency ocean

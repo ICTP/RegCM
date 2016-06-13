@@ -131,7 +131,8 @@ module mod_runparams
   real(rkx) , public :: nhbet
   ! XKD parameter in sound waves removal
   real(rkx) , public :: nhxkd
-
+  ! vqrang is the range limit on vqflx.
+  real(rkx) , public :: vqrang = 5.0e-4_rkx
   ! Aerosol effects
   real(rkx) , public :: rcrit
   real(rkx) , public :: rcrit1

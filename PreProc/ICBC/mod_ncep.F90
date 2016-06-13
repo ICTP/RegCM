@@ -194,7 +194,8 @@ module mod_ncep
         do k = 1 , klev
           do j = 1 , jlat
             do i = 1 , ilon
-              rhvar(i,j,k) = min((real(work(i,j,k),rkx)*xscale+xadd)*0.01_rkx,1._rkx)
+              rhvar(i,j,k) = min((real(work(i,j,k),rkx) * &
+                        xscale+xadd)*0.01_rkx,1._rkx)
             end do
           end do
         end do

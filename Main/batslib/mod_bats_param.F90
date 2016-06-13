@@ -80,59 +80,66 @@ module mod_bats_param
   ! mfcv is maximum fractional vegetation cover
   ! BATS 1e , Table 2, a, pag 21
   !
-  data mfcv  / 0.85_rkx , 0.80_rkx , 0.80_rkx , 0.80_rkx , 0.80_rkx , 0.90_rkx , &
-               0.80_rkx , 0.00_rkx , 0.60_rkx , 0.80_rkx , 0.10_rkx , 0.00_rkx , &
-               0.80_rkx , 0.00_rkx , 0.00_rkx , 0.80_rkx , 0.80_rkx , 0.80_rkx , &
-               0.80_rkx , 0.80_rkx , 0.05_rkx , 0.40_rkx /
+  data mfcv / 0.85_rkx , 0.80_rkx , 0.80_rkx , 0.80_rkx , 0.80_rkx , &
+              0.90_rkx , 0.80_rkx , 0.00_rkx , 0.60_rkx , 0.80_rkx , &
+              0.10_rkx , 0.00_rkx , 0.80_rkx , 0.00_rkx , 0.00_rkx , &
+              0.80_rkx , 0.80_rkx , 0.80_rkx , 0.80_rkx , 0.80_rkx , &
+              0.05_rkx , 0.40_rkx /
   !
   ! seasf is the difference between mfcv and cover at temperature of 269k
   ! BATS 1e , Table 2, b, pag 21
   !
-  data seasf / 0.60_rkx , 0.10_rkx , 0.10_rkx , 0.30_rkx , 0.30_rkx , 0.50_rkx , &
-               0.30_rkx , 0.00_rkx , 0.20_rkx , 0.60_rkx , 0.10_rkx , 0.00_rkx , &
-               0.40_rkx , 0.00_rkx , 0.00_rkx , 0.20_rkx , 0.30_rkx , 0.20_rkx , &
-               0.40_rkx , 0.40_rkx , 0.05_rkx , 0.15_rkx /
+  data seasf / 0.60_rkx , 0.10_rkx , 0.10_rkx , 0.30_rkx , 0.30_rkx , &
+               0.50_rkx , 0.30_rkx , 0.00_rkx , 0.20_rkx , 0.60_rkx , &
+               0.10_rkx , 0.00_rkx , 0.40_rkx , 0.00_rkx , 0.00_rkx , &
+               0.20_rkx , 0.30_rkx , 0.20_rkx , 0.40_rkx , 0.40_rkx , &
+               0.05_rkx , 0.15_rkx /
   !
   ! rough is an aerodynamic roughness length (m) =approx 0.1*veg
   ! height also used snow masking depth in subrout albedo
   ! BATS 1e , Table 2, c, pag 21
   !
-  !data rough / 0.0600_rkx , 0.0200_rkx , 1.0000_rkx , 1.0000_rkx , 0.8000_rkx , &
-  !             2.0000_rkx , 0.1000_rkx , 0.0500_rkx , 0.0400_rkx , 0.0600_rkx , &
-  !             0.1000_rkx , 0.0100_rkx , 0.0300_rkx , 0.0024_rkx , 0.0024_rkx , &
-  !             0.1000_rkx , 0.1000_rkx , 0.8000_rkx , 0.3000_rkx , 0.3000_rkx , &
+  !data rough / 0.0600_rkx , 0.0200_rkx , 1.0000_rkx , 1.0000_rkx , &
+  !             0.8000_rkx , 2.0000_rkx , 0.1000_rkx , 0.0500_rkx , &
+  !             0.0400_rkx , 0.0600_rkx , 0.1000_rkx , 0.0100_rkx , &
+  !             0.0300_rkx , 0.0024_rkx , 0.0024_rkx , 0.1000_rkx , &
+  !             0.1000_rkx , 0.8000_rkx , 0.3000_rkx , 0.3000_rkx , &
   !             1.5000_rkx , 1.0000_rkx /
   ! Following Stulls "Meteorology for Scientists and Engineers",
   ! Davenport-Wieringa roughness-length classifcations.
-  data rough / 0.1000_rkx , 0.0300_rkx , 1.0000_rkx , 1.0000_rkx , 1.0000_rkx , &
-               1.0000_rkx , 0.3000_rkx , 0.0050_rkx , 0.0300_rkx , 0.1000_rkx , &
-               0.0300_rkx , 0.0050_rkx , 0.1000_rkx , 0.0002_rkx , 0.0004_rkx , &
-               0.2500_rkx , 0.1000_rkx , 1.0000_rkx , 0.5000_rkx , 0.3000_rkx , &
+  data rough / 0.1000_rkx , 0.0300_rkx , 1.0000_rkx , 1.0000_rkx , &
+               1.0000_rkx , 1.0000_rkx , 0.3000_rkx , 0.0050_rkx , &
+               0.0300_rkx , 0.1000_rkx , 0.0300_rkx , 0.0050_rkx , &
+               0.1000_rkx , 0.0002_rkx , 0.0004_rkx , 0.2500_rkx , &
+               0.1000_rkx , 1.0000_rkx , 0.5000_rkx , 0.3000_rkx , &
                2.0000_rkx , 1.0000_rkx /
   !
   ! displacement height (meter)
   ! if great parts of veg. are covered by snow, use displa=0
   ! because then the new displa-theory is not valid
   !
-  data displa / 0.00_rkx , 0.00_rkx , 9.00_rkx , 9.00_rkx , 0.00_rkx ,18.00_rkx , &
-                0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , &
-                0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , &
-                0.00_rkx , 0.00_rkx , 6.00_rkx , 2.50_rkx /
+  data displa / 0.00_rkx , 0.00_rkx , 9.00_rkx , 9.00_rkx , 0.00_rkx , &
+               18.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , &
+                0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , &
+                0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx , &
+                6.00_rkx , 2.50_rkx /
   !
   ! minimum stomatal resistance (s/m)
   ! Model is expecially sensible to this, tune it carefully
   ! increase in rsmin will lead to a decrease in evapotranspration
   ! BATS 1e , Table 2, i, pag 21
   !
-  !data rsmin / 120.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 150.0_rkx ,&
-  !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx ,&
-  !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx ,&
-  !             200.0_rkx , 200.0_rkx , 120.0_rkx , 120.0_rkx /
+  !data rsmin / 120.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+  !             150.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+  !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+  !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+  !             120.0_rkx , 120.0_rkx /
   ! Modified by Laura Mariotti
-  data rsmin /  45.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx ,  50.0_rkx , &
-               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-               200.0_rkx , 200.0_rkx , 120.0_rkx ,  60.0_rkx /
+  data rsmin /  45.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+                50.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+               120.0_rkx ,  60.0_rkx /
   !
   ! maximum leaf area index (ratio unit cover per unit ground)
   ! BATS 1e , Table 2, j, pag 21
@@ -195,23 +202,26 @@ module mod_bats_param
   ! deprv is depth of root zone (mm)
   ! BATS 1e , Table 2, d, pag 21
   !
-  !data deprv / 1000.0_rkx , 1000.0_rkx , 1500.0_rkx , 1500.0_rkx , 2000.0_rkx , &
-  !             1500.0_rkx , 1000.0_rkx , 1000.0_rkx , 1000.0_rkx , 1000.0_rkx , &
-  !             1000.0_rkx , 1000.0_rkx , 1000.0_rkx , 1000.0_rkx , 1000.0_rkx , &
-  !             1000.0_rkx , 1000.0_rkx , 2000.0_rkx , 1000.0_rkx , 1000.0_rkx , &
+  !data deprv / 1000.0_rkx , 1000.0_rkx , 1500.0_rkx , 1500.0_rkx , &
+  !             2000.0_rkx , 1500.0_rkx , 1000.0_rkx , 1000.0_rkx , &
+  !             1000.0_rkx , 1000.0_rkx , 1000.0_rkx , 1000.0_rkx , &
+  !             1000.0_rkx , 1000.0_rkx , 1000.0_rkx , 1000.0_rkx , &
+  !             1000.0_rkx , 2000.0_rkx , 1000.0_rkx , 1000.0_rkx , &
   !             1000.0_rkx , 1000.0_rkx /
-  data deprv / 1000.0_rkx , 1000.0_rkx , 1500.0_rkx , 1500.0_rkx , 2000.0_rkx , &
-               1500.0_rkx , 1000.0_rkx , 1000.0_rkx , 1000.0_rkx , 1000.0_rkx , &
-               1000.0_rkx , 1000.0_rkx , 1000.0_rkx , 1000.0_rkx , 1000.0_rkx , &
-               1000.0_rkx , 1000.0_rkx , 2000.0_rkx , 2000.0_rkx , 2000.0_rkx , &
+  data deprv / 1000.0_rkx , 1000.0_rkx , 1500.0_rkx , 1500.0_rkx , &
+               2000.0_rkx , 1500.0_rkx , 1000.0_rkx , 1000.0_rkx , &
+               1000.0_rkx , 1000.0_rkx , 1000.0_rkx , 1000.0_rkx , &
+               1000.0_rkx , 1000.0_rkx , 1000.0_rkx , 1000.0_rkx , &
+               1000.0_rkx , 2000.0_rkx , 2000.0_rkx , 2000.0_rkx , &
                1000.0_rkx , 1000.0_rkx /
   !
   ! deptv is depth of total soil (mm)
   !
-  data deptv / 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , &
-               3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , &
-               3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , &
-               3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , &
+  data deptv / 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , &
+               3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , &
+               3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , &
+               3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , &
+               3000.0_rkx , 3000.0_rkx , 3000.0_rkx , 3000.0_rkx , &
                3000.0_rkx , 3000.0_rkx /
   !
   ! kolsol is soil color type (see subr. albedo)
@@ -245,25 +255,29 @@ module mod_bats_param
   ! xmopor is fraction of soil that is voids
   ! BATS 1e , Table 3, I , a, pag 27
   !
-  !data xmopor / 0.33_rkx , 0.36_rkx , 0.39_rkx , 0.42_rkx , 0.45_rkx , 0.48_rkx , &
-  !              0.51_rkx , 0.54_rkx , 0.57_rkx , 0.60_rkx , 0.63_rkx , 0.66_rkx /
-  data xmopor / 0.13_rkx , 0.26_rkx , 0.39_rkx , 0.42_rkx , 0.45_rkx , 0.48_rkx , &
-                0.51_rkx , 0.54_rkx , 0.57_rkx , 0.60_rkx , 0.63_rkx , 0.66_rkx /
+  !data xmopor / 0.33_rkx , 0.36_rkx , 0.39_rkx , 0.42_rkx , 0.45_rkx , &
+  !              0.48_rkx , 0.51_rkx , 0.54_rkx , 0.57_rkx , 0.60_rkx , &
+  !              0.63_rkx , 0.66_rkx /
+  data xmopor / 0.13_rkx , 0.26_rkx , 0.39_rkx , 0.42_rkx , 0.45_rkx , &
+                0.48_rkx , 0.51_rkx , 0.54_rkx , 0.57_rkx , 0.60_rkx , &
+                0.63_rkx , 0.66_rkx /
   !
   ! xmosuc is the minimum soil suction (mm)
   ! BATS 1e , Table 3, I , b, pag 27
   !
-  !data xmosuc / 30.0_rkx ,  30.0_rkx ,  30.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx ,&
-  !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx /
-  data xmosuc / 10.0_rkx ,  20.0_rkx ,  30.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx /
+  !data xmosuc / 30.0_rkx ,  30.0_rkx ,  30.0_rkx , 200.0_rkx , &
+  !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+  !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx /
+  data xmosuc / 10.0_rkx ,  20.0_rkx ,  30.0_rkx , 200.0_rkx , &
+               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx /
   !
   ! xmohyd is the saturated hydraulic conductivity (mm/s)
   ! BATS 1e , Table 3, I , c, pag 27
   !
-  data xmohyd / 0.0200_rkx , 0.0800_rkx , 0.0320_rkx , 0.0130_rkx , 0.0089_rkx , &
-                0.0063_rkx , 0.0045_rkx , 0.0032_rkx , 0.0022_rkx , 0.0016_rkx , &
-                0.0011_rkx , 0.0008_rkx /
+  data xmohyd / 0.0200_rkx , 0.0800_rkx , 0.0320_rkx , 0.0130_rkx , &
+                0.0089_rkx , 0.0063_rkx , 0.0045_rkx , 0.0032_rkx , &
+                0.0022_rkx , 0.0016_rkx , 0.0011_rkx , 0.0008_rkx /
   !
   ! xmowilt is fraction of water content at which permanent wilting occurs
   ! (transpiration ceases)
@@ -285,61 +299,70 @@ module mod_bats_param
   ! bee is the clapp and hornbereger "b" parameter
   ! BATS 1e , Table 3, I , e, pag 27
   !
-  data bee / 3.5_rkx , 4.0_rkx , 4.5_rkx , 5.0_rkx , 5.5_rkx , 6.0_rkx , 6.8_rkx ,  &
-             7.6_rkx , 8.4_rkx , 9.2_rkx ,10.0_rkx ,10.8_rkx /
+  data bee / 3.5_rkx , 4.0_rkx , 4.5_rkx , 5.0_rkx , 5.5_rkx , &
+             6.0_rkx , 6.8_rkx , 7.6_rkx , 8.4_rkx , 9.2_rkx , &
+            10.0_rkx ,10.8_rkx /
   !
   ! bskrat is ratio of soil thermal conduc. to that of loam
   ! a function of texture
   ! BATS 1e , Table 3, I , d, pag 27
   !
-  data skrat / 1.70_rkx , 1.50_rkx , 1.30_rkx , 1.20_rkx , 1.10_rkx , 1.00_rkx , &
-               0.95_rkx , 0.90_rkx , 0.85_rkx , 0.80_rkx , 0.75_rkx , 0.70_rkx /
+  data skrat / 1.70_rkx , 1.50_rkx , 1.30_rkx , 1.20_rkx , 1.10_rkx , &
+               1.00_rkx , 0.95_rkx , 0.90_rkx , 0.85_rkx , 0.80_rkx , &
+               0.75_rkx , 0.70_rkx /
   !
   ! albvgs is vegetation albedo for wavelengths < 0.7 microns data
   ! BATS 1e , Table 2, I , g, pag 21
   !
-  !data albvgs / 0.10_rkx , 0.10_rkx , 0.05_rkx , 0.05_rkx , 0.08_rkx , 0.04_rkx , &
-  !              0.08_rkx , 0.20_rkx , 0.10_rkx , 0.08_rkx , 0.17_rkx , 0.80_rkx , &
-  !              0.06_rkx , 0.07_rkx , 0.07_rkx , 0.05_rkx , 0.08_rkx , 0.06_rkx , &
-  !              0.06_rkx , 0.06_rkx , 0.02_rkx , 0.06_rkx /
-  data albvgs / 0.10_rkx , 0.10_rkx , 0.04_rkx , 0.04_rkx , 0.06_rkx , 0.04_rkx , &
-                0.08_rkx , 0.20_rkx , 0.10_rkx , 0.08_rkx , 0.17_rkx , 0.80_rkx , &
-                0.06_rkx , 0.07_rkx , 0.07_rkx , 0.05_rkx , 0.08_rkx , 0.05_rkx , &
-                0.06_rkx , 0.06_rkx , 0.02_rkx , 0.06_rkx /
+  !data albvgs / 0.10_rkx , 0.10_rkx , 0.05_rkx , 0.05_rkx , 0.08_rkx , &
+  !              0.04_rkx , 0.08_rkx , 0.20_rkx , 0.10_rkx , 0.08_rkx , &
+  !              0.17_rkx , 0.80_rkx , 0.06_rkx , 0.07_rkx , 0.07_rkx , &
+  !              0.05_rkx , 0.08_rkx , 0.06_rkx , 0.06_rkx , 0.06_rkx , &
+  !              0.02_rkx , 0.06_rkx /
+  data albvgs / 0.10_rkx , 0.10_rkx , 0.04_rkx , 0.04_rkx , 0.06_rkx , &
+                0.04_rkx , 0.08_rkx , 0.20_rkx , 0.10_rkx , 0.08_rkx , &
+                0.17_rkx , 0.80_rkx , 0.06_rkx , 0.07_rkx , 0.07_rkx , &
+                0.05_rkx , 0.08_rkx , 0.05_rkx , 0.06_rkx , 0.06_rkx , &
+                0.02_rkx , 0.06_rkx /
   !
   ! albvgl is vegetation albedo for wavelengths > 0.7 microns data
   ! BATS 1e , Table 2, I , h, pag 21
   !
-  !data albvgl / 0.30_rkx , 0.30_rkx , 0.23_rkx , 0.23_rkx , 0.28_rkx , 0.20_rkx , &
-  !              0.30_rkx , 0.40_rkx , 0.30_rkx , 0.28_rkx , 0.34_rkx , 0.60_rkx , &
-  !              0.18_rkx , 0.20_rkx , 0.20_rkx , 0.23_rkx , 0.28_rkx , 0.24_rkx , &
-  !              0.18_rkx , 0.18_rkx , 0.15_rkx , 0.18_rkx /
-  data albvgl / 0.30_rkx , 0.30_rkx , 0.20_rkx , 0.20_rkx , 0.26_rkx , 0.20_rkx , &
-                0.30_rkx , 0.40_rkx , 0.30_rkx , 0.28_rkx , 0.34_rkx , 0.60_rkx , &
-                0.18_rkx , 0.20_rkx , 0.20_rkx , 0.23_rkx , 0.28_rkx , 0.23_rkx , &
-                0.18_rkx , 0.18_rkx , 0.15_rkx , 0.18_rkx /
+  !data albvgl / 0.30_rkx , 0.30_rkx , 0.23_rkx , 0.23_rkx , 0.28_rkx , &
+  !              0.20_rkx , 0.30_rkx , 0.40_rkx , 0.30_rkx , 0.28_rkx , &
+  !              0.34_rkx , 0.60_rkx , 0.18_rkx , 0.20_rkx , 0.20_rkx , &
+  !              0.23_rkx , 0.28_rkx , 0.24_rkx , 0.18_rkx , 0.18_rkx , &
+  !              0.15_rkx , 0.18_rkx /
+  data albvgl / 0.30_rkx , 0.30_rkx , 0.20_rkx , 0.20_rkx , 0.26_rkx , &
+                0.20_rkx , 0.30_rkx , 0.40_rkx , 0.30_rkx , 0.28_rkx , &
+                0.34_rkx , 0.60_rkx , 0.18_rkx , 0.20_rkx , 0.20_rkx , &
+                0.23_rkx , 0.28_rkx , 0.23_rkx , 0.18_rkx , 0.18_rkx , &
+                0.15_rkx , 0.18_rkx /
   !
   ! Fraction of water extracted by upper layer roots (saturated)
   ! BATS 1e , Table 2, I , h, pag 21
   !
-  data rootf / 0.30_rkx , 0.80_rkx , 0.67_rkx , 0.67_rkx , 0.50_rkx , 0.80_rkx , &
-               0.80_rkx , 0.90_rkx , 0.90_rkx , 0.30_rkx , 0.80_rkx , 0.50_rkx , &
-               0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
-               0.50_rkx , 0.50_rkx , 0.90_rkx , 0.50_rkx /
+  data rootf / 0.30_rkx , 0.80_rkx , 0.67_rkx , 0.67_rkx , 0.50_rkx , &
+               0.80_rkx , 0.80_rkx , 0.90_rkx , 0.90_rkx , 0.30_rkx , &
+               0.80_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
+               0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
+               0.90_rkx , 0.50_rkx /
   !
   ! Emissivity coefficients (used in iemiss = 1)
   !
-  data lndemiss / 0.983_rkx, 0.983_rkx, 0.983_rkx, 0.987_rkx, 0.981_rkx, 0.981_rkx, &
-                  0.983_rkx, 0.965_rkx, 0.987_rkx, 0.985_rkx, 0.970_rkx, 0.993_rkx, &
-                  0.992_rkx, 0.992_rkx, 0.992_rkx, 0.983_rkx, 0.972_rkx, 0.983_rkx, &
-                  0.981_rkx, 0.991_rkx, 0.970_rkx, 0.972_rkx /
+  data lndemiss / 0.983_rkx, 0.983_rkx, 0.983_rkx, 0.987_rkx, 0.981_rkx, &
+                  0.981_rkx, 0.983_rkx, 0.965_rkx, 0.987_rkx, 0.985_rkx, &
+                  0.970_rkx, 0.993_rkx, 0.992_rkx, 0.992_rkx, 0.992_rkx, &
+                  0.983_rkx, 0.972_rkx, 0.983_rkx, 0.981_rkx, 0.991_rkx, &
+                  0.970_rkx, 0.972_rkx /
   !
   ! Seasonal variations (used in iemiss = 1)
   !
-  data seasemi / 0.005_rkx, 0.002_rkx, 0.000_rkx, 0.004_rkx, 0.004_rkx, 0.000_rkx, &
-                 0.002_rkx, 0.000_rkx, 0.000_rkx, 0.002_rkx, 0.000_rkx, 0.000_rkx, &
-                 0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, 0.004_rkx, 0.002_rkx, &
-                 0.004_rkx, 0.000_rkx, 0.000_rkx, 0.001_rkx /
+  data seasemi / 0.005_rkx, 0.002_rkx, 0.000_rkx, 0.004_rkx, 0.004_rkx, &
+                 0.000_rkx, 0.002_rkx, 0.000_rkx, 0.000_rkx, 0.002_rkx, &
+                 0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, 0.000_rkx, &
+                 0.000_rkx, 0.004_rkx, 0.002_rkx, 0.004_rkx, 0.000_rkx, &
+                 0.000_rkx, 0.001_rkx /
   !
   !      1 = Crop/mixed farming
   !      2 = Short grass

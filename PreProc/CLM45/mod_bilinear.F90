@@ -130,12 +130,16 @@ module mod_bilinear
              (lmsk(ip,  jqp1) > 0.5_rkx .and. mti(ip,jqp1)   >  xming) )  then
           temp2 = mti(ip,jqp1)
           gt2 = .true.
-        else if ( (lmsk(ipp1,jqp1) > 0.5_rkx .and. mti(ipp1,jqp1) > xming) .and. &
-                  (lmsk(ip,jqp1)   < 0.5_rkx .or.  mti(ip,jqp1)  <= xming) )  then
+        else if ( (lmsk(ipp1,jqp1) > 0.5_rkx .and. &
+                     mti(ipp1,jqp1) > xming) .and. &
+                  (lmsk(ip,jqp1)   < 0.5_rkx .or.  &
+                     mti(ip,jqp1)  <= xming) )  then
           temp2 = mti(ipp1,jqp1)
           gt2 = .true.
-        else if ( (lmsk(ipp1,jqp1) > 0.5_rkx .and. mti(ipp1,jqp1) > xming) .and. &
-                  (lmsk(ip,jqp1)   > 0.5_rkx .and. mti(ip,jqp1)   > xming) ) then
+        else if ( (lmsk(ipp1,jqp1) > 0.5_rkx .and. &
+                     mti(ipp1,jqp1) > xming) .and. &
+                  (lmsk(ip,jqp1)   > 0.5_rkx .and. &
+                     mti(ip,jqp1)   > xming) ) then
           temp2 = (1.0_rkx-p)*mti(ip,jqp1) + p*mti(ipp1,jqp1)
           gt2 = .true.
         end if

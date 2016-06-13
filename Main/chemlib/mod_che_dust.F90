@@ -49,10 +49,11 @@ module mod_che_dust
 
 
   ! new option defined from LISA optimized distribution
-  data  dustbsiz2 /0.09_rkx,0.18_rkx, 0.60_rkx, 1.55_rkx, 2.50_rkx, 3.75_rkx,   &
-                   4.70_rkx, 5.70_rkx, 7.50_rkx, 14.50_rkx, 26.0_rkx, 41.0_rkx, &
-                   0.18_rkx,0.60_rkx, 1.55_rkx, 2.50_rkx, 3.75_rkx, 4.70_rkx,   &
-                   5.70_rkx, 7.50_rkx, 14.50_rkx, 26.0_rkx, 41.0_rkx, 63.0_rkx /
+  data  dustbsiz2 / 0.09_rkx,  0.18_rkx,  0.60_rkx,  1.55_rkx,  2.50_rkx, &
+                    3.75_rkx,  4.70_rkx,  5.70_rkx,  7.50_rkx, 14.50_rkx, &
+                   26.00_rkx, 41.00_rkx,  0.18_rkx,  0.60_rkx,  1.55_rkx, &
+                    2.50_rkx,  3.75_rkx,  4.70_rkx,  5.70_rkx,  7.50_rkx, &
+                   14.50_rkx, 26.00_rkx, 41.00_rkx, 63.00_rkx /
 
   ! dust effective diameter
 
@@ -67,10 +68,10 @@ module mod_che_dust
   data dustbed1 /0.658184_rkx, 1.75093_rkx, 3.67936_rkx, 8.46347_rkx /
 
   ! 12 bins option calculated from Kok Distibution
-  data dustbed2 / 0.14062217_rkx, 0.4300415_rkx,  1.10404692_rkx,   &
-                  2.02166018_rkx, 3.10952699_rkx, 4.21185749_rkx,   &
-                  5.18438211_rkx, 6.55182088_rkx, 9.96016755_rkx,   &
-                 16.19150734_rkx, 26.74151275_rkx,  41.32554485_rkx /
+  data dustbed2 / 0.14062217_rkx,  0.43004150_rkx,  1.10404692_rkx,  &
+                  2.02166018_rkx,  3.10952699_rkx,  4.21185749_rkx,  &
+                  5.18438211_rkx,  6.55182088_rkx,  9.96016755_rkx,  &
+                 16.19150734_rkx, 26.74151275_rkx, 41.32554485_rkx /
 
   ! solubility of od dust aer for param of giorgi and chameides
 
@@ -237,97 +238,99 @@ module mod_che_dust
       ! Values are derived from Laurent et al. typical ranged adapted
       ! for our USDA texture types.
       !
-      ! data bcly/0.00_rkx , 0.4e-2_rkx ,0.7e-2_rkx  , 0.7e-2_rkx , 0.4e-2_rkx , &
-      !           1.e-2_rkx , 3.e-2_rkx , 3e-2_rkx , 5.e-2_rkx , 8.e-2_rkx , &
-      !           8.e-2_rkx , 1.e-2_rkx/
-
+      ! data bcly/0.00_rkx , 0.4e-2_rkx ,0.7e-2_rkx  , 0.7e-2_rkx , &
+      !           0.4e-2_rkx , 1.e-2_rkx , 3.e-2_rkx , 3e-2_rkx ,   &
+      !           5.e-2_rkx , 8.e-2_rkx , 8.e-2_rkx , 1.e-2_rkx/
       ! data bcly / 4.3e-2_rkx, 2.3e-2_rkx, 7.3e-2_rkx, 0.0_rkx,0.0_rkx, &
       !             0.0e-2_rkx,0.0_rkx, 0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx/
-      data bcly / 6.e-2_rkx, 2.3e-2_rkx, 7.3e-2_rkx, 0.0_rkx,0.0_rkx, &
-                  0.0e-2_rkx,0.0_rkx, 0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx/
+      data bcly / 6.0e-2_rkx , 2.3e-2_rkx , 7.3e-2_rkx , 0.0e-2_rkx , &
+                  0.0e-2_rkx , 0.0e-2_rkx , 0.0e-2_rkx , 0.0e-2_rkx , &
+                  0.0e-2_rkx , 0.0e-2_rkx , 0.0e-2_rkx , 0.0e-2_rkx /
 
       ! bsnd and bslt are not really used after /
       ! the data here are not consistent with clay.
-      data bsnd/0.90_rkx , 0.85_rkx , 0.80_rkx , 0.50_rkx , 0.45_rkx , 0.35_rkx , &
-                0.30_rkx , 0.30_rkx , 0.20_rkx , 0.65_rkx , 0.60_rkx , 0.50_rkx/
-      data bslt/0.05_rkx , 0.05_rkx , 0.051_rkx , 0.35_rkx , 0.40_rkx , 0.60_rkx , &
-                0.65_rkx , 0.50_rkx , 0.05_rkx , 0.00_rkx , 0.00_rkx , 0.00_rkx/
+      data bsnd / 0.90_rkx , 0.85_rkx , 0.80_rkx , 0.50_rkx , 0.45_rkx , &
+                  0.35_rkx , 0.30_rkx , 0.30_rkx , 0.20_rkx , 0.65_rkx , &
+                  0.60_rkx , 0.50_rkx /
+      data bslt / 0.050_rkx , 0.050_rkx , 0.051_rkx , 0.350_rkx , 0.400_rkx , &
+                  0.600_rkx , 0.650_rkx , 0.500_rkx , 0.050_rkx , 0.000_rkx , &
+                  0.000_rkx , 0.000_rkx/
 
-      data mmdd/690.0_rkx ,  0.0_rkx ,   0.0_rkx , 0.0_rkx ,   0.0_rkx, &
-               690.0_rkx , 210.0_rkx ,   0.0_rkx , 0.0_rkx ,   0.0_rkx, &
-               690.0_rkx , 210.0_rkx ,   0.0_rkx , 0.0_rkx ,   0.0_rkx, &
-               520.0_rkx , 100.0_rkx ,   5.0_rkx , 0.0_rkx ,   0.0_rkx, &
-               520.0_rkx ,  75.0_rkx ,   2.5_rkx , 0.0_rkx ,   0.0_rkx, &
-               520.0_rkx ,  75.0_rkx ,   2.5_rkx , 0.0_rkx ,   0.0_rkx, &
-               210.0_rkx ,  75.0_rkx ,   2.5_rkx , 0.0_rkx ,   0.0_rkx, &
-               210.0_rkx ,  50.0_rkx ,   2.5_rkx , 0.0_rkx ,   0.0_rkx, &
-               125.0_rkx ,  50.0_rkx ,   1.0_rkx , 0.0_rkx ,   0.0_rkx, &
-               100.0_rkx ,  10.0_rkx ,   1.0_rkx , 0.0_rkx ,   0.0_rkx, &
-               100.0_rkx ,  10.0_rkx ,   0.5_rkx , 0.0_rkx ,   0.0_rkx, &
-               100.0_rkx ,  10.0_rkx ,   0.5_rkx, 0.0_rkx ,   0.0_rkx /
+      data mmdd /690.0_rkx ,   0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx, &
+                 690.0_rkx , 210.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx, &
+                 690.0_rkx , 210.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx, &
+                 520.0_rkx , 100.0_rkx , 5.0_rkx , 0.0_rkx , 0.0_rkx, &
+                 520.0_rkx ,  75.0_rkx , 2.5_rkx , 0.0_rkx , 0.0_rkx, &
+                 520.0_rkx ,  75.0_rkx , 2.5_rkx , 0.0_rkx , 0.0_rkx, &
+                 210.0_rkx ,  75.0_rkx , 2.5_rkx , 0.0_rkx , 0.0_rkx, &
+                 210.0_rkx ,  50.0_rkx , 2.5_rkx , 0.0_rkx , 0.0_rkx, &
+                 125.0_rkx ,  50.0_rkx , 1.0_rkx , 0.0_rkx , 0.0_rkx, &
+                 100.0_rkx ,  10.0_rkx , 1.0_rkx , 0.0_rkx , 0.0_rkx, &
+                 100.0_rkx ,  10.0_rkx , 0.5_rkx , 0.0_rkx , 0.0_rkx, &
+                 100.0_rkx ,  10.0_rkx , 0.5_rkx , 0.0_rkx , 0.0_rkx /
 
-      data sigmad/1.6_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,  &
-                 1.6_rkx , 1.8_rkx , 1.8_rkx ,  0.0_rkx ,   0.0_rkx,  &
-                 1.6_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
-                 1.6_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
-                 1.6_rkx , 1.7_rkx , 1.8_rkx ,  0.0_rkx ,   0.0_rkx,  &
-                 1.6_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
-                 1.7_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
-                 1.7_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
-                 1.7_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
-                 1.8_rkx , 1.8_rkx , 1.8_rkx ,  0.0_rkx ,   0.0_rkx,  &
-                 1.8_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx ,   0.0_rkx,   &
-                 1.8_rkx , 1.8_rkx , 1.8_rkx,  0.0_rkx ,   0.0_rkx /
+      data sigmad / 1.6_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
+                    1.6_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
+                    1.6_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
+                    1.6_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
+                    1.6_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
+                    1.6_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
+                    1.7_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
+                    1.7_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
+                    1.7_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
+                    1.8_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
+                    1.8_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
+                    1.8_rkx , 1.8_rkx , 1.8_rkx,  0.0_rkx , 0.0_rkx /
 
-       data pcentd/1.00_rkx , 0.00_rkx , 0.00_rkx ,  0.0_rkx ,   0.0_rkx, &
-                  0.90_rkx , 0.10_rkx , 0.00_rkx ,  0.0_rkx ,   0.0_rkx,  &
-                  0.80_rkx , 0.20_rkx , 0.00_rkx , 0.0_rkx ,   0.0_rkx,   &
-                  0.50_rkx , 0.35_rkx , 0.15_rkx ,  0.0_rkx ,   0.0_rkx,  &
-                  0.45_rkx , 0.40_rkx , 0.15_rkx , 0.0_rkx ,   0.0_rkx,   &
-                  0.35_rkx , 0.50_rkx , 0.15_rkx , 0.0_rkx ,   0.0_rkx,   &
-                  0.30_rkx , 0.50_rkx , 0.20_rkx , 0.0_rkx ,   0.0_rkx,   &
-                  0.30_rkx , 0.50_rkx , 0.20_rkx ,  0.0_rkx ,   0.0_rkx,  &
-                  0.20_rkx , 0.50_rkx , 0.30_rkx , 0.0_rkx ,   0.0_rkx,   &
-                  0.65_rkx , 0.00_rkx , 0.35_rkx ,  0.0_rkx ,   0.0_rkx,  &
-                  0.60_rkx , 0.00_rkx , 0.40_rkx , 0.0_rkx ,   0.0_rkx,   &
-                  0.50_rkx , 0.00_rkx , 0.50_rkx, 0.0_rkx ,   0.0_rkx /
-       !!
-       !! new option
-       !!
-       data   soiltexpc / 0.46_rkx, 0.46_rkx, 0.05_rkx,  0.03_rkx, 0.0_rkx, &
-                          0.41_rkx, 0.41_rkx, 0.18_rkx,  0.00_rkx, 0.0_rkx, &
-                          0.29_rkx, 0.29_rkx, 0.32_rkx,  0.10_rkx, 0.0_rkx, &
-                          0.00_rkx, 0.17_rkx, 0.70_rkx,  0.13_rkx, 0.0_rkx, &
-                          0.00_rkx, 0.10_rkx, 0.85_rkx,  0.05_rkx, 0.0_rkx, &
-                          0.00_rkx, 0.43_rkx, 0.39_rkx,  0.18_rkx, 0.0_rkx, &
-                          0.29_rkx, 0.29_rkx, 0.15_rkx,  0.27_rkx, 0.0_rkx, &
-                          0.00_rkx, 0.10_rkx, 0.56_rkx,  0.34_rkx, 0.0_rkx, &
-                          0.00_rkx, 0.32_rkx, 0.34_rkx,  0.34_rkx, 0.0_rkx, &
-                          0.00_rkx, 0.52_rkx, 0.06_rkx,  0.42_rkx, 0.0_rkx, &
-                          0.00_rkx, 0.06_rkx, 0.47_rkx,  0.47_rkx, 0.0_rkx, &
-                          0.00_rkx, 0.22_rkx, 0.20_rkx,  0.58_rkx, 0.0_rkx/
+      data pcentd / 1.00_rkx , 0.00_rkx , 0.00_rkx , 0.0_rkx , 0.0_rkx, &
+                    0.90_rkx , 0.10_rkx , 0.00_rkx , 0.0_rkx , 0.0_rkx, &
+                    0.80_rkx , 0.20_rkx , 0.00_rkx , 0.0_rkx , 0.0_rkx, &
+                    0.50_rkx , 0.35_rkx , 0.15_rkx , 0.0_rkx , 0.0_rkx, &
+                    0.45_rkx , 0.40_rkx , 0.15_rkx , 0.0_rkx , 0.0_rkx, &
+                    0.35_rkx , 0.50_rkx , 0.15_rkx , 0.0_rkx , 0.0_rkx, &
+                    0.30_rkx , 0.50_rkx , 0.20_rkx , 0.0_rkx , 0.0_rkx, &
+                    0.30_rkx , 0.50_rkx , 0.20_rkx , 0.0_rkx , 0.0_rkx, &
+                    0.20_rkx , 0.50_rkx , 0.30_rkx , 0.0_rkx , 0.0_rkx, &
+                    0.65_rkx , 0.00_rkx , 0.35_rkx , 0.0_rkx , 0.0_rkx, &
+                    0.60_rkx , 0.00_rkx , 0.40_rkx , 0.0_rkx , 0.0_rkx, &
+                    0.50_rkx , 0.00_rkx , 0.50_rkx , 0.0_rkx , 0.0_rkx /
+      !!
+      !! new option
+      !!
+      data   soiltexpc / 0.46_rkx, 0.46_rkx, 0.05_rkx, 0.03_rkx, 0.0_rkx, &
+                         0.41_rkx, 0.41_rkx, 0.18_rkx, 0.00_rkx, 0.0_rkx, &
+                         0.29_rkx, 0.29_rkx, 0.32_rkx, 0.10_rkx, 0.0_rkx, &
+                         0.00_rkx, 0.17_rkx, 0.70_rkx, 0.13_rkx, 0.0_rkx, &
+                         0.00_rkx, 0.10_rkx, 0.85_rkx, 0.05_rkx, 0.0_rkx, &
+                         0.00_rkx, 0.43_rkx, 0.39_rkx, 0.18_rkx, 0.0_rkx, &
+                         0.29_rkx, 0.29_rkx, 0.15_rkx, 0.27_rkx, 0.0_rkx, &
+                         0.00_rkx, 0.10_rkx, 0.56_rkx, 0.34_rkx, 0.0_rkx, &
+                         0.00_rkx, 0.32_rkx, 0.34_rkx, 0.34_rkx, 0.0_rkx, &
+                         0.00_rkx, 0.52_rkx, 0.06_rkx, 0.42_rkx, 0.0_rkx, &
+                         0.00_rkx, 0.06_rkx, 0.47_rkx, 0.47_rkx, 0.0_rkx, &
+                         0.00_rkx, 0.22_rkx, 0.20_rkx, 0.58_rkx, 0.0_rkx/
 
       data  texmmd  / 690.0_rkx, 210.0_rkx, 125.0_rkx,2.0_rkx, 520.0_rkx /
       data  texstd  / 1.6_rkx,   1.6_rkx,   1.8_rkx,  2.0_rkx, 1.50_rkx /
 
-     mmd = d_zero
-     sigma = d_zero
-     pcent = d_zero
-     if ( ichdustemd == 1 ) then
-       mmd = mmdd
-       sigma = sigmad
-       pcent = pcentd
-     else if ( ichdustemd == 2 ) then
-      do nm = 1 , mode
-        mmd(nm,:) = texmmd(nm)
-        sigma(nm,:) = texstd(nm)
-        pcent(nm,:) = soiltexpc(nm,:)
-      end do
-      where ( abs(soiltexpc(:,:)) < dlowval )
-        mmd (:,:) = d_zero
-        sigma(:,:) = d_zero
-      end where
-     end if
+      mmd = d_zero
+      sigma = d_zero
+      pcent = d_zero
+      if ( ichdustemd == 1 ) then
+        mmd = mmdd
+        sigma = sigmad
+        pcent = pcentd
+      else if ( ichdustemd == 2 ) then
+        do nm = 1 , mode
+          mmd(nm,:) = texmmd(nm)
+          sigma(nm,:) = texstd(nm)
+          pcent(nm,:) = soiltexpc(nm,:)
+        end do
+        where ( abs(soiltexpc(:,:)) < dlowval )
+          mmd (:,:) = d_zero
+          sigma(:,:) = d_zero
+        end where
+      end if
 
       rd_tex = .false.
       do itr = 1 , ntr
@@ -510,10 +513,15 @@ module mod_che_dust
     real(rkx) function ustart01(rhodust,dum,rhair)
       implicit none
       real(rkx) , intent(in) :: dum , rhair , rhodust
-      real(rkx) , parameter :: a2 = 0.129_rkx , c1 = 0.006_rkx , c2 = 1.928_rkx , &
-                               c3 = 0.0858_rkx , c4 = -0.0617_rkx , c5 = 2.5_rkx ,&
-                               y1 = 1331.647_rkx , y2 = 1.561228_rkx ,          &
-                               y3 = 0.38194_rkx
+      real(rkx) , parameter :: a2 = 0.129_rkx
+      real(rkx) , parameter :: c1 = 0.006_rkx
+      real(rkx) , parameter :: c2 = 1.928_rkx
+      real(rkx) , parameter :: c3 = 0.0858_rkx
+      real(rkx) , parameter :: c4 = -0.0617_rkx
+      real(rkx) , parameter :: c5 = 2.5_rkx
+      real(rkx) , parameter :: y1 = 1331.647_rkx
+      real(rkx) , parameter :: y2 = 1.561228_rkx
+      real(rkx) , parameter :: y3 = 0.38194_rkx
       real(rkx) :: dm , rep , term , term1 , term2
 
       dm = dum  !* 1.0e-4      ! cm
@@ -657,7 +665,8 @@ module mod_che_dust
 
              if ( ichdiag == 1 ) then
              cemisdiag(jloop,i,idust(n)) = cemisdiag(jloop,i,idust(n)) + &
-                       rsfrow(i,n)/ ( cdzq(jloop,i,kz)*crhob3d(jloop,i,kz)) * cfdout
+                       rsfrow(i,n) / &
+                       (cdzq(jloop,i,kz)*crhob3d(jloop,i,kz)) * cfdout
              end if
           end do
           ieff = ieff + 1
@@ -679,15 +688,19 @@ module mod_che_dust
       intent (in) clayrow , soilw , surfwd , z0 , ustarnd , ftex
 
       real(rkx) , dimension(ilg) :: alamda , hc , rc , srl , wprim
-      real(rkx) :: arc1 , arc2 , br , cly1 , cly2 , sigr , tempd ,   &
-          umin , ustarns , uth , utmin , x , xz , ym , z0s , ustarfw
+      real(rkx) :: arc1 , arc2 , cly1 , cly2 , tempd , &
+          ustarns , uth , utmin , ustarfw
       integer(ik4) :: i
       real(rkx) , dimension(ilg) :: ustar
       real(rkx) , dimension(ilg,nsoil) :: utheff
 
-      data umin/15.0_rkx/
-      data xz/0.25_rkx/ , br/202.0_rkx/ , ym/0.16_rkx/ , sigr/1.45_rkx/
-      data z0s/3.0e-3_rkx/ , x/d_10/
+      real(rkx) , parameter :: umin = 15.0_rkx
+      real(rkx) , parameter :: xz = 0.25_rkx
+      real(rkx) , parameter :: br = 202.0_rkx
+      real(rkx) , parameter :: ym = 0.16_rkx
+      real(rkx) , parameter :: sigr = 1.45_rkx
+      real(rkx) , parameter :: z0s = 3.0e-3_rkx
+      real(rkx) , parameter :: x = d_10
 
       do i = il1 , il2
 
@@ -707,7 +720,8 @@ module mod_che_dust
         else if ( jfs == 1 ) then
           ! Marticorena et al., 1997: correction factor for non
           ! erodible elements
-          rc(i) = d_one - (log(0.5e-2_rkx/z0s)/(log(0.35_rkx*(x/z0s)**0.8_rkx)))
+          rc(i) = d_one - (log(0.50e-2_rkx/z0s) / &
+                          (log(0.35_rkx*(x/z0s)**0.8_rkx)))
         end if
         ! threshold velocity correction for soil humidity hc
         if ( jsoilm == 0 ) then

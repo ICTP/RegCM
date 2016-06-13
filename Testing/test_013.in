@@ -83,7 +83,6 @@
  ibltyp   = 1,
  icup_lnd = 2,
  icup_ocn = 2,
- igcc     = 2,
  ipptls   = 1,
  iocnflx  = 2,
  ipgf     = 0,
@@ -101,6 +100,7 @@
  cftotmax =      0.75,
  /
  &grellparam
+ igcc = 2,
  /
  &holtslagparam
  /

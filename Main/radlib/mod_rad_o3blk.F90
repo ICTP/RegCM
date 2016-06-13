@@ -50,14 +50,15 @@ module mod_rad_o3blk
   real(rkx) , pointer , dimension(:,:,:) :: ozone , pp3d
   real(rkx) , pointer , dimension(:,:,:) :: yozone
 
-  data o3sum/5.297e-8_rkx , 5.852e-8_rkx , 6.579e-8_rkx , 7.505e-8_rkx , 8.577e-8_rkx ,&
-             9.895e-8_rkx , 1.175e-7_rkx , 1.399e-7_rkx , 1.677e-7_rkx , 2.003e-7_rkx ,&
-             2.571e-7_rkx , 3.325e-7_rkx , 4.438e-7_rkx , 6.255e-7_rkx , 8.168e-7_rkx ,&
-             1.036e-6_rkx , 1.366e-6_rkx , 1.855e-6_rkx , 2.514e-6_rkx , 3.240e-6_rkx ,&
-             4.033e-6_rkx , 4.854e-6_rkx , 5.517e-6_rkx , 6.089e-6_rkx , 6.689e-6_rkx ,&
-             1.106e-5_rkx , 1.462e-5_rkx , 1.321e-5_rkx , 9.856e-6_rkx , 5.960e-6_rkx ,&
-             5.960e-6_rkx/
-  data ppsum      /955.890_rkx , 850.532_rkx , 754.599_rkx , 667.742_rkx , &
+  data o3sum/5.297e-8_rkx , 5.852e-8_rkx , 6.579e-8_rkx , 7.505e-8_rkx , &
+             8.577e-8_rkx , 9.895e-8_rkx , 1.175e-7_rkx , 1.399e-7_rkx , &
+             1.677e-7_rkx , 2.003e-7_rkx , 2.571e-7_rkx , 3.325e-7_rkx , &
+             4.438e-7_rkx , 6.255e-7_rkx , 8.168e-7_rkx , 1.036e-6_rkx , &
+             1.366e-6_rkx , 1.855e-6_rkx , 2.514e-6_rkx , 3.240e-6_rkx , &
+             4.033e-6_rkx , 4.854e-6_rkx , 5.517e-6_rkx , 6.089e-6_rkx , &
+             6.689e-6_rkx , 1.106e-5_rkx , 1.462e-5_rkx , 1.321e-5_rkx , &
+             9.856e-6_rkx , 5.960e-6_rkx , 5.960e-6_rkx/
+  data ppsum       / 955.890_rkx , 850.532_rkx , 754.599_rkx , 667.742_rkx , &
        589.841_rkx , 519.421_rkx , 455.480_rkx , 398.085_rkx , 347.171_rkx , &
        301.735_rkx , 261.310_rkx , 225.360_rkx , 193.419_rkx , 165.490_rkx , &
        141.032_rkx , 120.125_rkx , 102.689_rkx ,  87.829_rkx ,  75.123_rkx , &
@@ -65,14 +66,15 @@ module mod_rad_o3blk
         29.865_rkx ,  19.122_rkx ,   9.277_rkx ,   4.660_rkx ,   2.421_rkx , &
          1.294_rkx ,   0.647_rkx/
 
-  data o3win/4.629e-8_rkx , 4.686e-8_rkx , 5.017e-8_rkx , 5.613e-8_rkx , 6.871e-8_rkx ,&
-             8.751e-8_rkx , 1.138e-7_rkx , 1.516e-7_rkx , 2.161e-7_rkx , 3.264e-7_rkx ,&
-             4.968e-7_rkx , 7.338e-7_rkx , 1.017e-6_rkx , 1.308e-6_rkx , 1.625e-6_rkx ,&
-             2.011e-6_rkx , 2.516e-6_rkx , 3.130e-6_rkx , 3.840e-6_rkx , 4.703e-6_rkx ,&
-             5.486e-6_rkx , 6.289e-6_rkx , 6.993e-6_rkx , 7.494e-6_rkx , 8.197e-6_rkx ,&
-             9.632e-6_rkx , 1.113e-5_rkx , 1.146e-5_rkx , 9.389e-6_rkx , 6.135e-6_rkx ,&
-             6.135e-6_rkx/
-  data ppwin      /955.747_rkx , 841.783_rkx , 740.199_rkx , 649.538_rkx , &
+  data o3win/4.629e-8_rkx , 4.686e-8_rkx , 5.017e-8_rkx , 5.613e-8_rkx , &
+             6.871e-8_rkx , 8.751e-8_rkx , 1.138e-7_rkx , 1.516e-7_rkx , &
+             2.161e-7_rkx , 3.264e-7_rkx , 4.968e-7_rkx , 7.338e-7_rkx , &
+             1.017e-6_rkx , 1.308e-6_rkx , 1.625e-6_rkx , 2.011e-6_rkx , &
+             2.516e-6_rkx , 3.130e-6_rkx , 3.840e-6_rkx , 4.703e-6_rkx , &
+             5.486e-6_rkx , 6.289e-6_rkx , 6.993e-6_rkx , 7.494e-6_rkx , &
+             8.197e-6_rkx , 9.632e-6_rkx , 1.113e-5_rkx , 1.146e-5_rkx , &
+             9.389e-6_rkx , 6.135e-6_rkx , 6.135e-6_rkx/
+  data ppwin       / 955.747_rkx , 841.783_rkx , 740.199_rkx , 649.538_rkx , &
        568.404_rkx , 495.815_rkx , 431.069_rkx , 373.464_rkx , 322.354_rkx , &
        277.190_rkx , 237.635_rkx , 203.433_rkx , 174.070_rkx , 148.949_rkx , &
        127.408_rkx , 108.915_rkx ,  93.114_rkx ,  79.551_rkx ,  67.940_rkx , &
@@ -100,9 +102,7 @@ module mod_rad_o3blk
       end if
     end if
   end subroutine allocate_mod_rad_o3blk
-!
-!----------------------------------------------------------------------
-!
+
   subroutine o3data(m2r)
     implicit none
     type(mod_2_rad) , intent(in) :: m2r

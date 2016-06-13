@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_bats_bndry
-!
+
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
@@ -103,52 +103,51 @@ module mod_bats_bndry
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine soilbc
-!
-!=======================================================================
-!l  based on: bats version 1e          copyright 18 august 1989
-!=======================================================================
-!
-!     This is the main routine when interfacing with a
-!     meteorological model
-!
-!                f l o w   d i a g r a m   f o r   b n d r y
-!
-!                bndry ===>    drag ===> dragdn ===> depth
-!                             satur
-!                            vcover
-!                              drip
-!                            lftemp ======================> stomat
-!                               co2 ===> carbon             frawat
-!                            tgrund                           root
-!                              snow                          satur
-!                             water                         lfdrag
-!                                                           condch
-!                                                           condcq
-!                                                            deriv
-!  **  type1  = crop
-!  **  type2  = short grass
-!  **  type3  = evergreen needle leaf tree
-!  **  type4  = deciduous needle leaf tree
-!  **  type5  = deciduous broadleaf tree
-!  **  type6  = evergreen brodaleaf tree
-!  **  type7  = tall grass
-!  **  type8  = desert
-!  **  type9  = tundra
-!  **  type10 = irrig crop
-!  **  type11 = semi-desert
-!  **  type12 = ice
-!  **  type13 = bog or marsh
-!  **  type14 = inland water
-!  **  type15 = sea
-!  **  type16 = evgr shrub
-!  **  type17 = decid shrub
-!  **  type18 = mixed tree
-!
-!  ** note: water and soil parameters are in mm
-!
+  !
+  !=======================================================================
+  !l  based on: bats version 1e          copyright 18 august 1989
+  !=======================================================================
+  !
+  !     This is the main routine when interfacing with a
+  !     meteorological model
+  !
+  !                f l o w   d i a g r a m   f o r   b n d r y
+  !
+  !                bndry ===>    drag ===> dragdn ===> depth
+  !                             satur
+  !                            vcover
+  !                              drip
+  !                            lftemp ======================> stomat
+  !                               co2 ===> carbon             frawat
+  !                            tgrund                           root
+  !                              snow                          satur
+  !                             water                         lfdrag
+  !                                                           condch
+  !                                                           condcq
+  !                                                            deriv
+  !  **  type1  = crop
+  !  **  type2  = short grass
+  !  **  type3  = evergreen needle leaf tree
+  !  **  type4  = deciduous needle leaf tree
+  !  **  type5  = deciduous broadleaf tree
+  !  **  type6  = evergreen brodaleaf tree
+  !  **  type7  = tall grass
+  !  **  type8  = desert
+  !  **  type9  = tundra
+  !  **  type10 = irrig crop
+  !  **  type11 = semi-desert
+  !  **  type12 = ice
+  !  **  type13 = bog or marsh
+  !  **  type14 = inland water
+  !  **  type15 = sea
+  !  **  type16 = evgr shrub
+  !  **  type17 = decid shrub
+  !  **  type18 = mixed tree
+  !
+  !  ** note: water and soil parameters are in mm
+  !
   subroutine bndry
     implicit none
-
     real(rkx) :: qsatd , rai
     integer(ik4) :: i
 #ifdef DEBUG
@@ -284,13 +283,13 @@ module mod_bats_bndry
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine bndry
-!
-!=======================================================================
-! VCOVER
-!     Provides leaf and stem area parameters;
-!     depends on climate through subsoil temperatures.
-!=======================================================================
-!
+  !
+  !=======================================================================
+  ! VCOVER
+  !     Provides leaf and stem area parameters;
+  !     depends on climate through subsoil temperatures.
+  !=======================================================================
+  !
   subroutine vcover
     implicit none
     integer(ik4) :: i
@@ -314,13 +313,13 @@ module mod_bats_bndry
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine vcover
-!
-!=======================================================================
-!  DRIP
-!     Excess leaf water is put into rain or snow;
-!     leaf water is reset to its maximum value.
-!=======================================================================
-!
+  !
+  !=======================================================================
+  !  DRIP
+  !     Excess leaf water is put into rain or snow;
+  !     leaf water is reset to its maximum value.
+  !=======================================================================
+  !
   subroutine drip
     implicit none
     integer(ik4) :: i
@@ -352,40 +351,39 @@ module mod_bats_bndry
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine drip
-!
-!=======================================================================
-! WATER
-!     update soil moisture and runoff
-!
-!     new algorithms for three soil layers (dickinson & kennedy 8-88)
-!     calculate fluxes through air, surface layer, and root layer faces
-!
-!          b = b of clapp and hornberger
-!       est0 = soil water flux, out top
-!      gwatr = net input of water to the soil surface
-!       ircp = leaf interception
-!     wflux1 = soil water flux, 10 cm
-!     wflux2 = soil water flux, 1 m
-!     rsubss = soil water flux by grav. drainage thru 10 cm interface
-!     rsubsr = soil water flux by grav. drainage thru 1 m interface
-!     rsubst = soil water flux by grav. drainage thru 10 m interface
-!       rsur = surface runoff
-!     trnof(i) = total runoff mm
-!     srnof(i) = surface runoff mm
-!
-!     xkmxr and wflux1 determine flow thru upper/root soil interface
-!     evmxt, xkmx1, and xkmx2 determine flow thru lower interfaces
-!
-!     veg type 10 "irrigated crop" is irrigated through reducing
-!          the runoff (rsur), i.e., by adding a negative number
-!          if the land isn't at least 60% saturated.
-!     veg type 13 and 14 are water covered (lake, swamp, rice paddy);
-!          negative runoff keeps this land saturated.
-!=======================================================================
-!
+  !
+  !=======================================================================
+  ! WATER
+  !     update soil moisture and runoff
+  !
+  !     new algorithms for three soil layers (dickinson & kennedy 8-88)
+  !     calculate fluxes through air, surface layer, and root layer faces
+  !
+  !          b = b of clapp and hornberger
+  !       est0 = soil water flux, out top
+  !      gwatr = net input of water to the soil surface
+  !       ircp = leaf interception
+  !     wflux1 = soil water flux, 10 cm
+  !     wflux2 = soil water flux, 1 m
+  !     rsubss = soil water flux by grav. drainage thru 10 cm interface
+  !     rsubsr = soil water flux by grav. drainage thru 1 m interface
+  !     rsubst = soil water flux by grav. drainage thru 10 m interface
+  !       rsur = surface runoff
+  !     trnof(i) = total runoff mm
+  !     srnof(i) = surface runoff mm
+  !
+  !     xkmxr and wflux1 determine flow thru upper/root soil interface
+  !     evmxt, xkmx1, and xkmx2 determine flow thru lower interfaces
+  !
+  !     veg type 10 "irrigated crop" is irrigated through reducing
+  !          the runoff (rsur), i.e., by adding a negative number
+  !          if the land isn't at least 60% saturated.
+  !     veg type 13 and 14 are water covered (lake, swamp, rice paddy);
+  !          negative runoff keeps this land saturated.
+  !=======================================================================
+  !
   subroutine water
     implicit none
-!
     real(rkx) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr , &
                evmxt , rap , vakb , wtg2c , xxkb , gwatr , rsubsr , &
                rsubss , xkmx1 , xkmx2 , xkmxr , wata
@@ -583,32 +581,31 @@ module mod_bats_bndry
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine water
-!
-!=======================================================================
-! SNOW
-!     update snow cover and snow age
-!
-!     three-part if block:
-!       if snow cover < 0, then snow cover and snow age = 0
-!       if antarctica, snow age = 0 (katabatic winds keep snow fresh)
-!       if elsewhere, snow age follows given formulae
-!
-!        ps = snow precipitation rate
-!     evaps = moisture flux from ground to atmosphere
-!        sm = snow melt rate
-!     sdrop = snow fallen from vegetation
-!
-!     aging of snow consists of three factors:
-!           age1: snow crystal growth
-!           age2: surface melting
-!           age3: accumulation  of other particles, soot, etc., which
-!                      is small in southern hemisphere
-!
-!=======================================================================
-!
+  !
+  !=======================================================================
+  ! SNOW
+  !     update snow cover and snow age
+  !
+  !     three-part if block:
+  !       if snow cover < 0, then snow cover and snow age = 0
+  !       if antarctica, snow age = 0 (katabatic winds keep snow fresh)
+  !       if elsewhere, snow age follows given formulae
+  !
+  !        ps = snow precipitation rate
+  !     evaps = moisture flux from ground to atmosphere
+  !        sm = snow melt rate
+  !     sdrop = snow fallen from vegetation
+  !
+  !     aging of snow consists of three factors:
+  !           age1: snow crystal growth
+  !           age2: surface melting
+  !           age3: accumulation  of other particles, soot, etc., which
+  !                      is small in southern hemisphere
+  !
+  !=======================================================================
+  !
   subroutine snow
     implicit none
-
     real(rkx) :: age1 , age2 , arg , arg2 , dela , dela0 , &
                  dels , tage , sold , fsnts , tpw
     integer(ik4) :: i
@@ -693,42 +690,42 @@ module mod_bats_bndry
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine snow
-!
-!=======================================================================
-! TGRUND
-!
-!     Present version of diurnal and seasonal force restore (red 7-88)
-!     based on Dickinson (1988) force restore paper in j. climate.
-!     in particular, shows that a 0.1 m or thicker surface layer will
-!     dominate thermal conductivity for surface temperature over the
-!     diurnal cycle, and the first 1 m gives appropriate conductivity
-!     over annual cycle.
-!
-!     for snow cover, use weighted average of soil and snow properties.
-!     asymptotes to snow values for snow depth large compared to
-!     daily and annual temperature waves, respectively.
-!
-!     the term fct2 provides latent heat for the freezing or
-!     thawing of ground over temperatures between -4 and 0 deg c;
-!     this range may be changed if the 0.25 in the arithmetic fcn
-!     fct1=1/range and the range for subsoil temperature freezing
-!     are correspondingly changed.
-!
-!      secpd = seconds in a day
-!       wlhv = latent heat of vaporization of water
-!       wlhs = latent heat of sublimation of water
-!       wlhf = latent heat of freezing of water
-!       htvp =  wlhv or = wlhs if snow or tg<zero
-!     depsnw = depth of snow
-!     xdtime = nondimensional diurnal time step
-!     dtimea = nondimensional annual time step
-!     fsk(x) = soil conductivity fcn (x = v(h2o)/v(soil+pores))
-!     fsc(x) = soil heat capacity fcn (x = v(h2o)/v(soil+pores))
-!         hs = net energy flux into the surface
-!         sg = solar flux absorbed by bare ground
-!     skd,ska= diurnal and annual thermal diffusivities
-!=======================================================================
-!
+  !
+  !=======================================================================
+  ! TGRUND
+  !
+  !     Present version of diurnal and seasonal force restore (red 7-88)
+  !     based on Dickinson (1988) force restore paper in j. climate.
+  !     in particular, shows that a 0.1 m or thicker surface layer will
+  !     dominate thermal conductivity for surface temperature over the
+  !     diurnal cycle, and the first 1 m gives appropriate conductivity
+  !     over annual cycle.
+  !
+  !     for snow cover, use weighted average of soil and snow properties.
+  !     asymptotes to snow values for snow depth large compared to
+  !     daily and annual temperature waves, respectively.
+  !
+  !     the term fct2 provides latent heat for the freezing or
+  !     thawing of ground over temperatures between -4 and 0 deg c;
+  !     this range may be changed if the 0.25 in the arithmetic fcn
+  !     fct1=1/range and the range for subsoil temperature freezing
+  !     are correspondingly changed.
+  !
+  !      secpd = seconds in a day
+  !       wlhv = latent heat of vaporization of water
+  !       wlhs = latent heat of sublimation of water
+  !       wlhf = latent heat of freezing of water
+  !       htvp =  wlhv or = wlhs if snow or tg<zero
+  !     depsnw = depth of snow
+  !     xdtime = nondimensional diurnal time step
+  !     dtimea = nondimensional annual time step
+  !     fsk(x) = soil conductivity fcn (x = v(h2o)/v(soil+pores))
+  !     fsc(x) = soil heat capacity fcn (x = v(h2o)/v(soil+pores))
+  !         hs = net energy flux into the surface
+  !         sg = solar flux absorbed by bare ground
+  !     skd,ska= diurnal and annual thermal diffusivities
+  !=======================================================================
+  !
   subroutine tgrund
     implicit none
     real(rkx) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr , &
@@ -889,7 +886,8 @@ module mod_bats_bndry
     pure real(rkx) function fsk(x)
       implicit none
       real(rkx) , intent(in) :: x
-      fsk = (2.9e-7_rkx*x+4.0e-9_rkx)/(((d_one-0.6_rkx*x)*x+0.09_rkx)*(0.23_rkx+x))
+      fsk = (2.9e-7_rkx*x+4.0e-9_rkx) / &
+           (((d_one-0.6_rkx*x)*x+0.09_rkx)*(0.23_rkx+x))
     end function fsk
     pure real(rkx) function fsc(x)
       implicit none
@@ -903,6 +901,6 @@ module mod_bats_bndry
     end function fct1
 
   end subroutine tgrund
-!
+
 end module mod_bats_bndry
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

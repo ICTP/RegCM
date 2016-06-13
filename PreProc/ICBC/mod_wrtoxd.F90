@@ -42,13 +42,15 @@ module mod_wrtoxd
   character(len=256) :: ofname
   character(len=8) :: chtype
 
-  integer(ik4) , parameter :: nchsp = 40   !species in Mozart output
-  integer(ik4) , parameter :: ncbmz = 33   !cbmz species in chemistry lateral boundaries
+  ! species in Mozart output
+  integer(ik4) , parameter :: nchsp = 40
+  ! cbmz species in chemistry lateral boundaries
+  integer(ik4) , parameter :: ncbmz = 33
   integer(ik4) , parameter :: noxsp = 5
   integer(ik4) :: naesp = -1
 
-  character(len=8) , dimension(nchsp) :: chspec      !Names of Mozart species
-  character(len=8) , dimension(ncbmz) :: cbmzspec    !Name of CBMZ species
+  character(len=8) , dimension(nchsp) :: chspec   ! Names of Mozart species
+  character(len=8) , dimension(ncbmz) :: cbmzspec ! Name of CBMZ species
   character(len=8) , dimension(noxsp) :: oxspec
   real(rkx) , dimension(nchsp) :: mw
 
@@ -69,24 +71,23 @@ module mod_wrtoxd
 
   data oxspec / 'OH' , 'HO2' , 'O3' , 'NO3' , 'H2O2' /
 
-  data chspec / 'NO      ','NO2     ','N2O5    ','HNO3    ','HO2NO2  ',         &
-                'O3      ','H2O2    ','SO2     ','SO4     ','CH4     ',         &
-                'CH2O    ','CH3OH   ','PAN     ','C2H6    ','C3H8    ',         &
-                'BIGALK  ','C2H4    ','C3H6    ','BIGENE  ','TOLUENE ',         &
-                'ISOP    ','CH3CHO  ','CH3COOH ','GLYALD  ','CH3OOH  ',         &
-                'C2H5OOH ','CH3COCH3','HYAC    ','CH3COCHO','ONIT    ',         &
-                'MEK     ','MVK     ','MACR    ','HYDRALD ','BIGALD  ',         &
+  data chspec / 'NO      ','NO2     ','N2O5    ','HNO3    ','HO2NO2  ',  &
+                'O3      ','H2O2    ','SO2     ','SO4     ','CH4     ',  &
+                'CH2O    ','CH3OH   ','PAN     ','C2H6    ','C3H8    ',  &
+                'BIGALK  ','C2H4    ','C3H6    ','BIGENE  ','TOLUENE ',  &
+                'ISOP    ','CH3CHO  ','CH3COOH ','GLYALD  ','CH3OOH  ',  &
+                'C2H5OOH ','CH3COCH3','HYAC    ','CH3COCHO','ONIT    ',  &
+                'MEK     ','MVK     ','MACR    ','HYDRALD ','BIGALD  ',  &
                 'ISOPNO3 ','ONITR   ','CRESOL  ','CO      ','DMS     ' /
 
 
- data cbmzspec / 'O3      ','NO      ','NO2     ','HNO3    ','HNO4    ','N2O5    ','H2O2    ','CH4     ',  &
-                 'CO      ','SO2     ','H2SO4   ','DMS     ','PAR     ','C2H6    ','ETH     ','OLET    ',  &
-                 'OLEI    ','TOL     ','XYL     ','ISOP    ','CRES    ','OPEN    ','ISOPN   ','ISOPRD  ',  &
-                 'ONIT    ','MGLY    ','AONE    ','PAN     ','CH3OOH  ','ETHOOH  ','ALD2    ','HCHO    ','CH3OH   '/
-
-
-
-
+ data cbmzspec / 'O3      ','NO      ','NO2     ','HNO3    ','HNO4    ', &
+                 'N2O5    ','H2O2    ','CH4     ','CO      ','SO2     ', &
+                 'H2SO4   ','DMS     ','PAR     ','C2H6    ','ETH     ', &
+                 'OLET    ','OLEI    ','TOL     ','XYL     ','ISOP    ', &
+                 'CRES    ','OPEN    ','ISOPN   ','ISOPRD  ','ONIT    ', &
+                 'MGLY    ','AONE    ','PAN     ','CH3OOH  ','ETHOOH  ', &
+                 'ALD2    ','HCHO    ','CH3OH   '/
 
   integer , parameter :: maxaeout = 16
 

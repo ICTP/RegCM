@@ -18,9 +18,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_che_drydep
-!
-! Chemical and aerosol surface emission and dry deposition
-!
+  !
+  ! Chemical and aerosol surface emission and dry deposition
+  !
   use mod_intkinds
   use mod_realkinds
   use mod_constants
@@ -39,61 +39,61 @@ module mod_che_drydep
 
   public :: drydep_aero , drydep_gas , aerodyresis
   public :: a1 , a2 , a3 , c1 , c2 , c3 , c4 , aa1 , aa2 , aa3
-!
-! Dynamic Viscosity Parameters
-!
+  !
+  ! Dynamic Viscosity Parameters
+  !
   real(rkx) , parameter :: a1 = 145.8_rkx
   real(rkx) , parameter :: a2 = 1.5_rkx
   real(rkx) , parameter :: a3 = 110.4_rkx
-!
-! Molecular Free Path calculation parameters
-!
+  !
+  ! Molecular Free Path calculation parameters
+  !
   real(rkx) , parameter :: c1 = 6.54e-8_rkx
   real(rkx) , parameter :: c2 = 1.818e-5_rkx
   real(rkx) , parameter :: c3 = 1.013e5_rkx
   real(rkx) , parameter :: c4 = 293.15_rkx
-!
-! Cunningham slip correction factor parameters
-!
+  !
+  ! Cunningham slip correction factor parameters
+  !
   real(rkx) , parameter :: aa1 = 1.257_rkx
   real(rkx) , parameter :: aa2 = 0.4_rkx
   real(rkx) , parameter :: aa3 = 1.1_rkx
-!
-! Only one cover type per grid cell for now
-!
+  !
+  ! Only one cover type per grid cell for now
+  !
   integer, parameter :: luc = 1
-!
-! Number of gas taken into account by drydep scheme
-!
+  !
+  ! Number of gas taken into account by drydep scheme
+  !
   integer, parameter :: ngasd = 31
-!
-! threshold of rainfall intensity to activate water covered canopy option
-!
+  !
+  ! threshold of rainfall intensity to activate water covered canopy option
+  !
   real(rkx), parameter :: rainthr = 0.1_rkx
-!
-! DATA section for the Zhang drydep scheme
-!
-! The Zhang scheme uses its own LAI. First index is consistent with BATS
-! LU type, 15 is for the number of month 12 + 3 for interp.
-! The tables are supposed to be consistant with BATS types determined by
-! ivegcov (be careffull with ethe ocean option)
-! Rq: It would be better to have intercative directly : LAI and roughness
-! from BATS and CLM
-! Rq2: Since ivegcov is defined even when clm is activated, the dry dep
-! scheme could in principle be used with CLM.
-! BUT , there is also the option of activating CLM PFT level dydep scheme.
-!
-!NOTENOTENOTENOTENOTENOTENOTENOTEONOTENOTENOTENOTENOTENOTENOTENOTENOTENOTENOTE
-!
-! NOTE : Now BATS, albeit not directly in the GLCC dataset but using the
-!        FUDGE, allows for 22 classes: urban and suburban (21 and 22) have
-!        been added. Here the scheme is inconsistent (20 classes only)
-!        Be aware of this.
-!
-!NOTENOTENOTENOTENOTENOTENOTENOTEONOTENOTENOTENOTENOTENOTENOTENOTENOTENOTENOTE
-!
-  real(rkx) lai(20,15)
-  real(rkx) z01(20) , z02(20)
+  !
+  ! DATA section for the Zhang drydep scheme
+  !
+  ! The Zhang scheme uses its own LAI. First index is consistent with BATS
+  ! LU type, 15 is for the number of month 12 + 3 for interp.
+  ! The tables are supposed to be consistant with BATS types determined by
+  ! ivegcov (be careffull with ethe ocean option)
+  ! Rq: It would be better to have intercative directly : LAI and roughness
+  ! from BATS and CLM
+  ! Rq2: Since ivegcov is defined even when clm is activated, the dry dep
+  ! scheme could in principle be used with CLM.
+  ! BUT , there is also the option of activating CLM PFT level dydep scheme.
+  !
+  !NOTENOTENOTENOTENOTENOTENOTENOTEONOTENOTENOTENOTENOTENOTENOTENOTENOTENOTENOTE
+  !
+  ! NOTE : Now BATS, albeit not directly in the GLCC dataset but using the
+  !        FUDGE, allows for 22 classes: urban and suburban (21 and 22) have
+  !        been added. Here the scheme is inconsistent (20 classes only)
+  !        Be aware of this.
+  !
+  !NOTENOTENOTENOTENOTENOTENOTENOTEONOTENOTENOTENOTENOTENOTENOTENOTENOTENOTENOTE
+  !
+  real(rkx) lai(22,15)
+  real(rkx) z01(22) , z02(22)
   integer(ik4) :: kk
 
   data (lai(1,kk), kk = 1, 15)/                    &
@@ -199,119 +199,135 @@ module mod_che_drydep
   data  z01/0.02_rkx, 0.04_rkx, 0.90_rkx, 0.40_rkx, 0.40_rkx, 2.00_rkx,&
             0.02_rkx, 0.04_rkx, 0.03_rkx, 0.05_rkx, 0.04_rkx, 0.01_rkx,&
             0.10_rkx, 0.00_rkx, 0.00_rkx, 0.20_rkx, 0.20_rkx, 0.60_rkx,&
-            0.60_rkx, 0.00_rkx /
+            0.60_rkx, 0.00_rkx, 0.00_rkx, 0.00_rkx/
 
   data  z02/0.10_rkx, 0.04_rkx, 0.90_rkx, 0.90_rkx, 1.00_rkx, 2.00_rkx,&
             0.10_rkx, 0.04_rkx, 0.03_rkx, 0.05_rkx, 0.04_rkx, 0.01_rkx,&
             0.10_rkx, 0.00_rkx, 0.00_rkx, 0.20_rkx, 0.20_rkx, 0.90_rkx,&
-            0.90_rkx, 0.00_rkx /
-!
-! Zhang stomatal resistance parameters
-!
-  real(rkx) :: tmin(20) , tmax(20)
-  real(rkx) :: rsminz(20) , brs(20)
-  real(rkx) :: topt(20) , bvpd(20)
-  real(rkx) :: psi1(20) , psi2(20)
-  real(rkx) :: rac1(20) , rac2(20)
-  real(rkx) :: rgo(20) , rcutdO(20)
-  real(rkx) :: rcutwO(20) , rcutdS(20)
-  real(rkx) :: rgs(20) , sdmax(20)
+            0.90_rkx, 0.00_rkx, 0.00_rkx, 0.00_rkx/
+  !
+  ! Zhang stomatal resistance parameters
+  !
+  real(rkx) :: tmin(22) , tmax(22)
+  real(rkx) :: rsminz(22) , brs(22)
+  real(rkx) :: topt(22) , bvpd(22)
+  real(rkx) :: psi1(22) , psi2(22)
+  real(rkx) :: rac1(22) , rac2(22)
+  real(rkx) :: rgo(22) , rcutdO(22)
+  real(rkx) :: rcutwO(22) , rcutdS(22)
+  real(rkx) :: rgs(22) , sdmax(22)
   real(rkx) :: mw(31) , rm(31)
   real(rkx) :: alphaz(31) , betaz(31)
 
   data tmin /  5.0_rkx,    5.0_rkx,   -5.0_rkx,   -5.0_rkx,    0.0_rkx, &
                0.0_rkx,    5.0_rkx, -999.0_rkx,   -5.0_rkx,    5.0_rkx, &
             -999.0_rkx, -999.0_rkx,    0.0_rkx, -999.0_rkx, -999.0_rkx, &
-               0.0_rkx,    0.0_rkx,   -3.0_rkx,    0.0_rkx, -999.0_rkx /
+               0.0_rkx,    0.0_rkx,   -3.0_rkx,    0.0_rkx, -999.0_rkx, &
+            -999.0_rkx,-999.0_rkx/
 
   data tmax / 45.0_rkx,   40.0_rkx,   40.0_rkx,   40.0_rkx,   45.0_rkx, &
               45.0_rkx,   45.0_rkx, -999.0_rkx,   40.0_rkx,   45.0_rkx, &
             -999.0_rkx, -999.0_rkx,   45.0_rkx, -999.0_rkx, -999.0_rkx, &
-              45.0_rkx,   45.0_rkx,   42.0_rkx,   45.0_rkx, -999.0_rkx /
+              45.0_rkx,   45.0_rkx,   42.0_rkx,   45.0_rkx, -999.0_rkx, &
+            -999.0_rkx,-999.0_rkx/
 
   data rsminz / 120.0_rkx, 150.0_rkx, 250.0_rkx, 250.0_rkx, 150.0_rkx, &
                 150.0_rkx, 100.0_rkx,-999.0_rkx, 150.0_rkx, 150.0_rkx, &
                -999.0_rkx,-999.0_rkx, 150.0_rkx,-999.0_rkx,-999.0_rkx, &
-                150.0_rkx, 250.0_rkx, 150.0_rkx, 150.0_rkx,-999.0_rkx /
+                150.0_rkx, 250.0_rkx, 150.0_rkx, 150.0_rkx,-999.0_rkx, &
+               -999.0_rkx,-999.0_rkx/
 
   data brs / 40.0_rkx,  50.0_rkx,  44.0_rkx,  44.0_rkx,  43.0_rkx, &
              40.0_rkx,  20.0_rkx,-999.0_rkx,  25.0_rkx,  40.0_rkx, &
            -999.0_rkx,-999.0_rkx,  40.0_rkx,-999.0_rkx,-999.0_rkx, &
-             40.0_rkx,  44.0_rkx,  44.0_rkx,  43.0_rkx,-999.0_rkx /
+             40.0_rkx,  44.0_rkx,  44.0_rkx,  43.0_rkx,-999.0_rkx, &
+           -999.0_rkx,-999.0_rkx/
 
   data topt / 27.0_rkx,  30.0_rkx,  15.0_rkx,  15.0_rkx,  27.0_rkx, &
               30.0_rkx,  25.0_rkx,-999.0_rkx,  20.0_rkx,  25.0_rkx, &
             -999.0_rkx,-999.0_rkx,  20.0_rkx,-999.0_rkx,-999.0_rkx, &
-              30.0_rkx,  25.0_rkx,  21.0_rkx,  25.0_rkx,-999.0_rkx /
+              30.0_rkx,  25.0_rkx,  21.0_rkx,  25.0_rkx,-999.0_rkx, &
+            -999.0_rkx,-999.0_rkx/
 
   data bvpd /  0.00_rkx,   0.00_rkx,   0.31_rkx,   0.31_rkx,   0.36_rkx, &
                0.27_rkx,   0.00_rkx,-999.00_rkx,   0.24_rkx,   0.09_rkx, &
             -999.00_rkx,-999.00_rkx,   0.27_rkx,-999.00_rkx,-999.00_rkx, &
-               0.27_rkx,   0.27_rkx,   0.34_rkx,   0.31_rkx,-999.00_rkx /
+               0.27_rkx,   0.27_rkx,   0.34_rkx,   0.31_rkx,-999.00_rkx, &
+            -999.0_rkx,-999.0_rkx/
 
   data psi1 / -1.5_rkx,  -1.5_rkx,  -2.0_rkx,  -2.0_rkx,  -1.9_rkx, &
               -1.0_rkx,  -1.5_rkx,-999.0_rkx,   0.0_rkx,  -1.5_rkx, &
             -999.0_rkx,-999.0_rkx,  -1.5_rkx,-999.0_rkx,-999.0_rkx, &
-              -2.0_rkx,  -2.0_rkx,  -2.0_rkx,  -2.0_rkx,-999.0_rkx /
+              -2.0_rkx,  -2.0_rkx,  -2.0_rkx,  -2.0_rkx,-999.0_rkx, &
+            -999.0_rkx,-999.0_rkx/
 
   data psi2 / -2.5_rkx,  -2.5_rkx,  -2.5_rkx,  -2.5_rkx,  -2.5_rkx, &
               -5.0_rkx,  -2.5_rkx,-999.0_rkx,  -1.5_rkx,  -2.5_rkx, &
             -999.0_rkx,-999.0_rkx,  -2.5_rkx,-999.0_rkx,-999.0_rkx, &
-              -4.0_rkx,  -3.5_rkx,  -2.5_rkx,  -3.0_rkx,-999.0_rkx /
+              -4.0_rkx,  -3.5_rkx,  -2.5_rkx,  -3.0_rkx,-999.0_rkx, &
+            -999.0_rkx,-999.0_rkx/
 
   data rac1 / 10.0_rkx, 20.0_rkx,100.0_rkx, 60.0_rkx, 40.0_rkx, &
              250.0_rkx, 10.0_rkx,  0.0_rkx, 40.0_rkx, 20.0_rkx, &
                0.0_rkx,  0.0_rkx, 20.0_rkx,  0.0_rkx,  0.0_rkx, &
-              60.0_rkx, 40.0_rkx,100.0_rkx,100.0_rkx,  0.0_rkx /
+              60.0_rkx, 40.0_rkx,100.0_rkx,100.0_rkx,  0.0_rkx, &
+               0.0_rkx,  0.0_rkx/
 
   data rac2 / 40.0_rkx, 20.0_rkx,100.0_rkx,100.0_rkx, 40.0_rkx, &
              250.0_rkx, 40.0_rkx,  0.0_rkx, 40.0_rkx, 20.0_rkx, &
                0.0_rkx,  0.0_rkx, 20.0_rkx,  0.0_rkx,  0.0_rkx, &
-              60.0_rkx, 40.0_rkx,100.0_rkx,100.0_rkx,  0.0_rkx /
+              60.0_rkx, 40.0_rkx,100.0_rkx,100.0_rkx,  0.0_rkx, &
+               0.0_rkx,  0.0_rkx/
 
   data rcutdO / 4000.0_rkx, 4000.0_rkx, 4000.0_rkx, 4000.0_rkx, 6000.0_rkx, &
                 6000.0_rkx, 4000.0_rkx, -999.0_rkx, 8000.0_rkx, 4000.0_rkx, &
                 -999.0_rkx, -999.0_rkx, 5000.0_rkx, -999.0_rkx, -999.0_rkx, &
-                6000.0_rkx, 5000.0_rkx, 4000.0_rkx, 4000.0_rkx, -999.0_rkx /
+                6000.0_rkx, 5000.0_rkx, 4000.0_rkx, 4000.0_rkx, -999.0_rkx, &
+                -999.0_rkx, -999.0_rkx/
 
   data rcutwO / 200.0_rkx, 200.0_rkx, 200.0_rkx, 200.0_rkx, 400.0_rkx, &
                 400.0_rkx, 200.0_rkx,-999.0_rkx, 400.0_rkx, 200.0_rkx, &
                -999.0_rkx,-999.0_rkx, 300.0_rkx,-999.0_rkx,-999.0_rkx, &
-                400.0_rkx, 300.0_rkx, 200.0_rkx, 200.0_rkx,-999.0_rkx /
+                400.0_rkx, 300.0_rkx, 200.0_rkx, 200.0_rkx,-999.0_rkx, &
+               -999.0_rkx,-999.0_rkx/
 
   data rgO / 200.0_rkx,  200.0_rkx,  200.0_rkx,  200.0_rkx,  200.0_rkx, &
              200.0_rkx,  200.0_rkx,  500.0_rkx,  500.0_rkx,  500.0_rkx, &
              500.0_rkx, 2000.0_rkx,  500.0_rkx, 2000.0_rkx, 2000.0_rkx, &
-             200.0_rkx,  200.0_rkx,  200.0_rkx,  200.0_rkx, 2000.0_rkx /
+             200.0_rkx,  200.0_rkx,  200.0_rkx,  200.0_rkx, 2000.0_rkx, &
+               0.0_rkx,    0.0_rkx/
 
   data rcutds / 1500.0_rkx, 1000.0_rkx, 2000.0_rkx, 2000.0_rkx, 2500.0_rkx, &
                 2500.0_rkx, 1000.0_rkx, -999.0_rkx, 2000.0_rkx, 2000.0_rkx, &
                 -999.0_rkx, -999.0_rkx, 1500.0_rkx, -999.0_rkx, -999.0_rkx, &
-                2000.0_rkx, 2000.0_rkx, 2500.0_rkx, 2500.0_rkx, -999.0_rkx /
+                2000.0_rkx, 2000.0_rkx, 2500.0_rkx, 2500.0_rkx, -999.0_rkx, &
+                   0.0_rkx,    0.0_rkx/
 
   data rgs / 200.0_rkx, 200.0_rkx, 200.0_rkx, 200.0_rkx, 200.0_rkx, &
              100.0_rkx, 200.0_rkx, 700.0_rkx, 300.0_rkx,  50.0_rkx, &
              700.0_rkx,  70.0_rkx,  50.0_rkx,  20.0_rkx,  20.0_rkx, &
-             200.0_rkx, 200.0_rkx, 200.0_rkx, 200.0_rkx,  20.0_rkx /
+             200.0_rkx, 200.0_rkx, 200.0_rkx, 200.0_rkx,  20.0_rkx, &
+               0.0_rkx,   0.0_rkx/
 
   data sdmax /  10.0_rkx,  5.0_rkx, 200.0_rkx,   1.1_rkx, 200.0_rkx, &
                400.0_rkx, 20.0_rkx,   2.0_rkx,   2.0_rkx,  10.0_rkx, &
                  2.0_rkx,  1.0_rkx,  10.0_rkx,-999.0_rkx,-999.0_rkx, &
-                50.0_rkx, 50.0_rkx, 200.0_rkx, 200.0_rkx,-999.0_rkx /
+                50.0_rkx, 50.0_rkx, 200.0_rkx, 200.0_rkx,-999.0_rkx, &
+                 0.0_rkx,  0.0_rkx/
 
-! *****************************************************************
-! * Gas Properties (Total 31 species)                          ****
-! * Mesophyll resistance RM, scaling factors ALPHAZ and BETAZ, ****
-! * molecular weight.                                          ****
-! *****************************************************************
-! parameters are given for the following species in the zhang scheme
-! SO2    H2SO4   NO2    O3     H2O2   HONO  HNO3   HNO4  NH3
-! PAN    PPN     APAN   MPAN
-! HCHO   MCHO    PALD   C4A
-! C7A    ACHO    MVK    MACR
-! MGLY   MOH     ETOH   POH
-! CRES   FORM    ACAC   ROOH
-! ONIT   INIT
+  ! *****************************************************************
+  ! * Gas Properties (Total 31 species)                          ****
+  ! * Mesophyll resistance RM, scaling factors ALPHAZ and BETAZ, ****
+  ! * molecular weight.                                          ****
+  ! *****************************************************************
+  ! parameters are given for the following species in the zhang scheme
+  ! SO2    H2SO4   NO2    O3     H2O2   HONO  HNO3   HNO4  NH3
+  ! PAN    PPN     APAN   MPAN
+  ! HCHO   MCHO    PALD   C4A
+  ! C7A    ACHO    MVK    MACR
+  ! MGLY   MOH     ETOH   POH
+  ! CRES   FORM    ACAC   ROOH
+  ! ONIT   INIT
 
   data rm / 0.0_rkx ,   0.0_rkx ,   0.0_rkx ,   0.0_rkx ,    0.0_rkx , &
             0.0_rkx ,   0.0_rkx ,   0.0_rkx ,   0.0_rkx ,    0.0_rkx , &
@@ -351,9 +367,7 @@ module mod_che_drydep
     subroutine drydep_aero(j,mbin,indsp,rhop,ivegcov,throw,roarow, &
                            shj,pressg,temp2,sutemp,srad,rh10,      &
                            wind10,zeff,beffdiam,pdepv,ddepv)
-!
       implicit none
-!
       integer(ik4) , intent(in) :: j , mbin
       integer(ik4) , intent(in) , dimension(mbin) :: indsp
       integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
@@ -364,11 +378,11 @@ module mod_che_drydep
       real(rkx) , dimension(mbin) , intent(in) :: beffdiam
       real(rkx) , intent(in) :: rhop
 
-! output table to be passed out. Care dimension is ntr
+      ! output table to be passed out. Care dimension is ntr
 
       real(rkx) , intent(out) , dimension(ici1:ici2,kz,ntr) :: pdepv
       real(rkx) , intent(out) , dimension(ici1:ici2,ntr) :: ddepv
-!
+
       real(rkx) :: amfp , amob , eb , eim , ein , frx1
       real(rkx) :: pre , prii , priiv , r1 , st
       real(rkx) , dimension(ici1:ici2,kz) :: amu
@@ -390,9 +404,6 @@ module mod_che_drydep
       do n = 1 , mbin
         avesize(n) = beffdiam(n)* 1.e-6_rkx * d_half
       end do
-!
-!======================================================================
-!
       ! ********************************************************
       ! *   aerosize - dry radius                    !!     ****
       ! *   rhop  - density for each aerosol type           ****
@@ -544,9 +555,6 @@ module mod_che_drydep
         end do
       end do
 
-!======================================================================
-
-
       ! average settling and deposition velocities on bin
       ! care we use pdepv and ddpv table that are dimensionned to ntr
       ! and not mbin !
@@ -569,7 +577,8 @@ module mod_che_drydep
       ! dust and sea salt
       !
       do ib = 1 , mbin
-        ! deposition, remember chiten must be normalised by psb and consistent with chib
+        ! deposition, remember chiten must be normalised by psb and
+        ! consistent with chib
         do k = 2 , kz
           do i = ici1 , ici2
             wk(i,k) =  twt(k,1)*chib(j,i,k,indsp(ib))+ &
@@ -658,14 +667,9 @@ module mod_che_drydep
       call time_end(subroutine_name,idindx)
 #endif
     end subroutine drydep_aero
-!
-!
-!******************************************************************************
-!******************************************************************************
-!
+
     subroutine drydep_gas(j,lmonth,lday,ivegcov,rh10,srad,tsurf, &
                           prec,temp10,wind10,zeff)
-
       use mod_che_indices
       implicit none
       integer(ik4) , intent(in) :: j
@@ -736,7 +740,7 @@ module mod_che_drydep
          drydepvg(:,io3)   =  vdg(4,:,1)!*0.5
          drydepvg(:,ih2o2) =  vdg(5,:,1)!*0.5
          drydepvg(:,ihno3) =  vdg(6,:,1)!*0.5
-!         drydepvg(:,inh3)  =  vdg(9,:,1)!*0.5
+!        drydepvg(:,inh3)  =  vdg(9,:,1)!*0.5
          drydepvg(:,ipan)  =  vdg(10,:,1)!*0.5
          drydepvg(:,ihcho) =  vdg(14,:,1)!*0.5
          drydepvg(:,iald2) =  vdg(15,:,1)!*0.5
@@ -805,17 +809,12 @@ module mod_che_drydep
 #endif
     end subroutine drydep_gas
 
-!
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
     subroutine aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
       implicit none
       integer(ik4) , dimension(ici1:ici2) , intent(in) :: ivegcov
       real(rkx) , dimension(ici1:ici2) , intent(in) :: temp2 , wind10 , rh10
       real(rkx) , dimension(ici1:ici2) , intent(in) :: sutemp , srad , zeff
       real(rkx) , dimension(ici1:ici2,luc) , intent(out) :: ustar , ra
-!
       integer(ik4) :: i , j
       real(rkx) :: vp , tsv
       real(rkx) :: z , zl , ww
@@ -835,7 +834,6 @@ module mod_che_drydep
       call time_begin(subroutine_name,idindx)
 #endif
 
-      !======================================================================
       ! ****************************************************
       ! * ra : is the aerodynamic resistance above the  ****
       ! *      canopy and it is function in u* and      ****
@@ -981,8 +979,6 @@ module mod_che_drydep
       call time_end(subroutine_name,idindx)
 #endif
     end subroutine aerodyresis
-
-!***********************************************************************
 
     subroutine stomtresis(lai_f,laimin,laimax,ivegcov,igas, &
                           ustar,prec,sd,srad,ts,t2,rh,coszen,rc,rb)
@@ -1260,9 +1256,9 @@ module mod_che_drydep
           fsnow = min(1.0_rkx, fsnow)   !snow cover fraction for leaves
 !         print *, ' fsnow=  ', fsnow
           if ( fsnow > 0.0001_rkx .and. kcov /= 20 .or. &
-                                      kcov /= 15 .or. &
-                                      kcov /= 14 .or. &
-                                      kcov /= 12 ) then
+                                        kcov /= 15 .or. &
+                                        kcov /= 14 .or. &
+                                        kcov /= 12 ) then
             rsnows = min(70.0_rkx*(275.15_rkx-ts(i)), 500._rkx)
             rsnows = max(rsnows, 100._rkx)
             rcuts_f = 1.0_rkx/((1.0_rkx - fsnow)/rcuts_f + fsnow/rsnows)
@@ -1278,9 +1274,11 @@ module mod_che_drydep
           !================================================================
           do ig = 1 , igas
             dgas = 0.369_rkx * mw(ig) + 6.29_rkx
-            di = 0.001_rkx*ts(i)**1.75_rkx*sqrt((29.0_rkx + mw(ig))/mw(ig)/29._rkx)
+            di = 0.001_rkx*ts(i)**1.75_rkx * &
+              sqrt((29.0_rkx + mw(ig))/mw(ig)/29._rkx)
             di = di/1.0_rkx/(dair**0.3333_rkx + dgas**0.3333_rkx)**2
-            vi = 145.8_rkx * 1.e-4_rkx * (ts(i) * 0.5_rkx + t2(i) *0.5_rkx)**1.5_rkx/ &
+            vi = 145.8_rkx * 1.e-4_rkx * &
+                 (ts(i) * 0.5_rkx + t2(i) *0.5_rkx)**1.5_rkx/ &
                  (ts(i) * 0.5_rkx + t2(i) *0.5_rkx + 110.4_rkx)
             !================================================================
             ! Calculate quasi-laminar resistance
@@ -1291,7 +1289,8 @@ module mod_che_drydep
             ! Calculate stomatal resistance for each species from the ratio
             ! of  diffusity of water vapor to the gas species
             !================================================================
-            dvh2o = 0.001_rkx*ts(i)**1.75_rkx*sqrt((29.0_rkx+18.0_rkx)/29.0_rkx/18.0_rkx)
+            dvh2o = 0.001_rkx*ts(i)**1.75_rkx * &
+              sqrt((29.0_rkx+18.0_rkx)/29.0_rkx/18.0_rkx)
             dvh2o = dvh2o/(dair**0.3333_rkx + dh2o**0.3333_rkx)**2
             rstom = rst * dVh2o/di + rm(ig)
             ! (rst <999) for bare surfaces)

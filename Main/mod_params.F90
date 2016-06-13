@@ -64,9 +64,9 @@ module mod_params
   !
   subroutine param
     implicit none
-    real(rkx) :: afracl , afracs , bb , cc , chibot , delsig , &
-               dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk ,       &
-               qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
+    real(rkx) :: afracl , afracs , bb , cc , chibot , delsig ,  &
+               dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk , &
+               qkp1 , sig700 , sigtbl , ssum , vqmax , wk ,     &
                wkp1 , xbot , xtop , xx , yy
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
@@ -82,15 +82,9 @@ module mod_params
     character(len=dbgslen) :: subroutine_name = 'param'
     integer(ik4) , save :: idindx = 0
 #endif
-!
-!----------------------------------------------------------------------
-!-----vqrang is the range limit on vqflx.
-!
-    data vqrang /5.0e-4_rkx/
-!
-!----------------------------------------------------------------------
-!-----namelist:
-!
+    !
+    ! namelist:
+    !
     namelist /restartparam/ ifrest , mdate0 , mdate1 , mdate2
 
     namelist /timeparam/ dtrad , dtsrf , dtcum , dtche , dtabem , dt
@@ -104,7 +98,7 @@ module mod_params
       do_parallel_netcdf_out , idiag , icosp
 
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,          &
-      icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls ,     &
+      icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls ,            &
       iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,         &
       scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldmstrat ,   &
       icldfrac , irrtm , iclimao3 , isolconst , icumcloud , islab_ocean , &
@@ -230,7 +224,6 @@ module mod_params
     iqmsl = 1
     icup_lnd = 4
     icup_ocn = 4
-    igcc = 2
     ipptls = 1
     ipgf = 0
     iemiss = 0
@@ -295,8 +288,8 @@ module mod_params
     rh0land   = 0.80_rkx   ! Relative humidity threshold for land
     rh0oce    = 0.90_rkx   ! Relative humidity threshold for ocean
     tc0       = 238.0_rkx  ! Below this temp, rh0 begins to approach unity
-    cevaplnd  = 1.0e-5_rkx   ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
-    cevapoce  = 1.0e-5_rkx   ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
+    cevaplnd  = 1.0e-5_rkx ! Raindrop ev rate coef land [[(kg m-2 s-1)-1/2]/s]
+    cevapoce  = 1.0e-5_rkx ! Raindrop ev rate coef ocean [[(kg m-2 s-1)-1/2]/s]
     caccrlnd  = 6.0_rkx    ! Raindrop accretion rate land  [m3/kg/s]
     caccroce  = 6.0_rkx    ! Raindrop accretion rate ocean [m3/kg/s]
     cllwcv    = 0.3e-3_rkx   ! Cloud liquid water content for convective precip.
@@ -339,6 +332,7 @@ module mod_params
     ! grellparam ;
     ! Taken from MM5 Grell implementation
     !
+    igcc = 2               ! Closure scheme
     gcr0 = 0.0020_rkx      ! Conversion rate from cloud to rain
     edtmin      = 0.20_rkx ! Minimum Precipitation Efficiency land
     edtmin_ocn  = 0.20_rkx ! Minimum Precipitation Efficiency ocean
@@ -361,12 +355,12 @@ module mod_params
     htmin = -250.0_rkx     ! Min convective heating
     htmax = 500.0_rkx      ! Max convective heating
     skbmax = 0.4_rkx       ! Max cloud base height in sigma
-    dtauc = 30.0_rkx       ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
+    dtauc = 30.0_rkx  ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
     !
     ! emanparam ;
     ! From Kerry Emanuel convect 4.3c original code
     !
-    minsig = 0.950_rkx    ! Lowest sigma level from which convection can originate
+    minsig = 0.950_rkx  ! Lowest sigma level from which convection can originate
     elcrit_ocn = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
     elcrit_lnd = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
     tlcrit = -55.0_rkx    ! Below tlcrit auto-conversion threshold is zero
@@ -379,9 +373,9 @@ module mod_params
     coeffs = 0.8_rkx      ! Coefficient governing the rate of snow evaporation
     cu = 0.7_rkx          ! Coefficient governing convective momentum transport
     betae = 10.0_rkx      ! Controls downdraft velocity scale
-    dtmax = 0.9_rkx       ! Max negative parcel temperature perturbation below LFC
-    alphae = 0.2_rkx      ! Controls the approach rate to quasi-equilibrium
-    damp = 0.1_rkx        ! Controls the approach rate to quasi-equilibrium
+    dtmax = 0.9_rkx    ! Max negative parcel temperature perturbation below LFC
+    alphae = 0.2_rkx   ! Controls the approach rate to quasi-equilibrium
+    damp = 0.1_rkx     ! Controls the approach rate to quasi-equilibrium
     epmax_ocn = 0.999_rkx ! Maximum precipitation efficiency over land
     epmax_lnd = 0.999_rkx ! Maximum precipitation efficiency over ocean
     !
@@ -389,12 +383,12 @@ module mod_params
     ! Taken from MPI Echam settings
     !
     iconv    = 4        ! Selects the actual scheme
-    entrmax  = 1.75e-3_rkx  ! Max entrainment iconv=[1,2,3]
-    entrdd   = 3.0e-4_rkx   ! Entrainment rate for cumulus downdrafts
-    entrpen  = 1.75e-3_rkx  ! Entrainment rate for penetrative convection
-    entrscv  = 3.0e-4_rkx   ! Entrainment rate for shallow convection iconv=[1,2,3]
-    entrmid  = 1.0e-4_rkx   ! Entrainment rate for midlevel convection iconv=[1,2,3]
-    cprcon   = 1.0e-4_rkx   ! Coefficient for determining conversion iconv=[1,2,3]
+    entrmax  = 1.75e-3_rkx ! Max entrainment iconv=[1,2,3]
+    entrdd   = 3.0e-4_rkx  ! Entrainment rate for cumulus downdrafts
+    entrpen  = 1.75e-3_rkx ! Entrainment rate for penetrative convection
+    entrscv  = 3.0e-4_rkx  ! Entrainment rate for shallow convn iconv=[1,2,3]
+    entrmid  = 1.0e-4_rkx  ! Entrainment rate for midlevel convn iconv=[1,2,3]
+    cprcon   = 1.0e-4_rkx   ! Coefficient for determine conversion iconv=[1,2,3]
     detrpen = 0.75e-4_rkx   ! Detrainment rate for penetrative convection
     entshalp = 2.0_rkx    ! shallow entrainment factor for entrpen
     rcuc_lnd = 0.05_rkx   ! Convective cloud cover for rain evporation
@@ -415,7 +409,7 @@ module mod_params
     kf_entrate = 0.03_rkx ! Kain Fritsch entrainment rate
     kf_min_pef = 0.2_rkx  ! Minimum precipitation efficiency
     kf_max_pef = 0.9_rkx  ! Maximum precipitation efficiency
-    kf_dpp = 150.0_rkx    ! Starting height of downdraft above updraft source (mb)
+    kf_dpp = 150.0_rkx    ! Starting height of downdraft above updraft (mb)
     kf_tkemax = 5.0_rkx   ! Maximum turbolent kinetic energy in sub cloud layer
     kf_min_dtcape = 1800.0_rkx ! Consumption time of CAPE low limit
     kf_max_dtcape = 3600.0_rkx ! Consumption time of CAPE high limit
@@ -955,7 +949,6 @@ module mod_params
     call bcast(icup_lnd)
     call bcast(icup_ocn)
     call bcast(icup)
-    call bcast(igcc)
     call bcast(ipptls)
     call bcast(iocnflx)
     call bcast(iocncpl)
@@ -1151,6 +1144,7 @@ module mod_params
     call bcast(cllwcv)
 
     if ( any(icup == 2) ) then
+      call bcast(igcc)
       call bcast(gcr0)
       call bcast(shrmin)
       call bcast(shrmax)
@@ -1602,9 +1596,6 @@ module mod_params
       end if
       write(stdout,'(a,i2)') '  Land cumulus conv. scheme   : ' , icup_lnd
       write(stdout,'(a,i2)') '  Ocean cumulus conv. scheme  : ' , icup_ocn
-      if ( any(icup == 2) ) then
-        write(stdout,'(a,i2)') '  Grell closure scheme        : ' , igcc
-      end if
       write(stdout,'(a,i2)') '  Moisture schem              : ' , ipptls
       write(stdout,'(a,i2)') '  Ocean Flux scheme           : ' , iocnflx
       if ( iocnflx == 2 ) then
