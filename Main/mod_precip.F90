@@ -74,7 +74,7 @@ module mod_precip
   real(rkx) , parameter :: rhobchl = 1600.0_rkx
   real(rkx) , parameter :: qcmin = 1.0e-10_rkx
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
-  real(rkx) , parameter :: verynearzero = epsilon(d_one)
+  real(rkx) , parameter :: verynearzero = 1.0e-20_rkx
 
   contains
 
@@ -183,7 +183,7 @@ module mod_precip
           qcincld = qcw/afc                                  ![kg/kg][cld]
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
-          pptmax = (qcw-qcmin)/dt               ![kg/kg/s][avg]
+          pptmax = max((qcw-qcmin),d_zero)/dt                ![kg/kg/s][avg]
           if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
             pccn(j,i,1) = (calc_ccn(rhobchl,chi3(j,i,1,ibchl)) + &
                            calc_ccn(rhoochl,chi3(j,i,1,iochl)) + &
@@ -303,7 +303,7 @@ module mod_precip
             qcincld = qcw/afc                                ![kg/kg][cld]
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
-            pptmax = (qcw-qcmin)/dt             ![kg/kg/s][avg]
+            pptmax = max((qcw-qcmin),d_zero)/dt              ![kg/kg/s][avg]
             if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
               pccn(j,i,k) = (calc_ccn(rhobchl,chi3(j,i,k,ibchl)) + &
                              calc_ccn(rhoochl,chi3(j,i,k,iochl)) + &
@@ -381,7 +381,8 @@ module mod_precip
               end do
               ! the below cloud precipitation rate is now used
               ! directly in chemistry
-!             prembc(j,i,k) = 6.5_rkx*1.0e-5_rkx*prembc(j,i,k)**0.68_rkx   ![s^-1]
+!             prembc(j,i,k) = 6.5_rkx*1.0e-5_rkx * |
+!                        prembc(j,i,k)**0.68_rkx   ![s^-1]
             end if
           end do
         end do
@@ -408,7 +409,7 @@ module mod_precip
     pure real(rkx) function calc_ccn(denx,mrat) result(res)
       implicit none
       real(rkx) , intent(in) :: denx , mrat
-      res = (1e3_rkx/(denx*1e-3_rkx))*(6.0_rkx/mathpi)*coef_ccn*mrat*1e3_rkx
+      res = (1e6_rkx/(denx*1e-3_rkx))*(6.0_rkx/mathpi)*coef_ccn*mrat*1e3_rkx
     end function calc_ccn
 
     pure real(rkx) function season_factor(lat) result(sf)
@@ -701,8 +702,8 @@ module mod_precip
             write(stderr,*) 'At global K : ',k
           end if
 #endif
-          qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),verynearzero)/psc(j,i)
-          qccs = max((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc)),verynearzero)/psc(j,i)
+          qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),qvmin)/psc(j,i)
+          qccs = max((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc)),qcmin)/psc(j,i)
           !-----------------------------------------------------------
           !     2.  Compute the cloud condensation/evaporation term.
           !-----------------------------------------------------------
@@ -732,7 +733,7 @@ module mod_precip
                           min(d_one,max((qvcs-qvmin),d_zero)/0.003_rkx))
             end if
             fccc = min(max(fccc,d_zero),d_one)
-            qvc_cld = max((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),qvmin)
+            qvc_cld = max((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)
             dqv = fccc * (qvc_cld - qvs*conf)  ! qv diff between predicted qv_c
           end if
 

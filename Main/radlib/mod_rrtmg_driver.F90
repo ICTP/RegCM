@@ -310,7 +310,7 @@ module mod_rrtmg_driver
           aldir(n) = m2r%aldirl(j,i)
           aldif(n) = m2r%aldifl(j,i)
           czen(n)  = m2r%coszrs(j,i)
-          if ( czen(n) < 1.0e-3_rkx ) czen(n) = 0.0_rb
+          if ( czen(n) < 1.0e-3_rkx ) czen(n) = 0.0_rkx
           n = n + 1
         end do
       end do

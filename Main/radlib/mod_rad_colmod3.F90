@@ -665,11 +665,16 @@ module mod_rad_colmod3
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        czen(n) = max(m2r%coszrs(j,i),1.e-3_rkx)
-        if ( m2r%coszrs(j,i) > 1.e-2_rkx ) czengt0(n) = .true.
+        czen(n) = m2r%coszrs(j,i)
+        if ( czen(n) < 1.e-3_rkx ) czen(n) = 0.0_rkx
         n = n + 1
       end do
     end do
+    where ( czen > d_zero )
+      czengt0 = .true.
+    else where
+      czengt0 = .false.
+    end where
     !
     ! Gas concentrations
     !

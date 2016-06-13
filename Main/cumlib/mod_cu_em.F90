@@ -843,7 +843,8 @@ module mod_cu_em
             wt(i) = omtsnow
           end if
           qsm = d_half*(q(n,i)+qp(i+1))
-          afac = coeff*ph(n,i)*(qs(n,i)-qsm)/(1.0e4_rkx+2.0e3_rkx*ph(n,i)*qs(n,i))
+          afac = coeff*ph(n,i)*(qs(n,i)-qsm) / &
+                      (1.0e4_rkx+2.0e3_rkx*ph(n,i)*qs(n,i))
           afac = max(afac,d_zero)
           sigt = sigp(i)
           sigt = max(d_zero,sigt)

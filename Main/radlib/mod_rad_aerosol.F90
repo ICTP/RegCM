@@ -245,7 +245,7 @@ module mod_rad_aerosol
         3.378e+0_rkx , -4.334e-1_rkx , -1.188e+0_rkx , -3.664e+1_rkx , &
         9.786e+0_rkx ,  3.943e+0_rkx , -3.952e-1_rkx , -1.170e+0_rkx , &
        -4.415e+1_rkx ,  1.031e+1_rkx/
- 
+
   data ksbc_hb_stand /20.7830_rkx , 17.2120_rkx , 15.8640_rkx , 15.0530_rkx , &
                       14.3040_rkx , 13.6130_rkx , 11.9660_rkx ,  6.5782_rkx , &
                        4.3961_rkx ,  4.3800_rkx ,  2.1100_rkx ,  2.1100_rkx , &
@@ -265,7 +265,7 @@ module mod_rad_aerosol
        0.026638_rkx , 0.220000_rkx , 0.123000_rkx , 0.123000_rkx , &
        0.123000_rkx , 0.123000_rkx , 0.073000_rkx , 0.073000_rkx , &
        0.073000_rkx , 0.073000_rkx , 0.073000_rkx/
- 
+
   data ksbc_hl_stand /14.8510_rkx , 14.2580_rkx , 13.9430_rkx , 13.7240_rkx , &
                       13.5070_rkx , 13.2950_rkx , 12.7220_rkx ,  9.4434_rkx , &
                        6.9653_rkx ,  4.3800_rkx ,  2.1100_rkx ,  2.1100_rkx , &
@@ -1068,6 +1068,7 @@ module mod_rad_aerosol
       ! op propert lw for rrtm
       call getmem2d(ksdust_lw,1,nbndlw,1,nbin,'aerosol:ksdust_lw')
 
+      call getmem2d(path,1,npoints,1,kz,'aerosol:path')
       call getmem2d(aermmb,1,npoints,1,kz,'aerosol:aermmb')
       call getmem3d(ftota3d,1,npoints,0,kz,1,nband,'aerosol:ftota3d')
       call getmem3d(gtota3d,1,npoints,0,kz,1,nband,'aerosol:gtota3d')
