@@ -41,6 +41,7 @@ module mod_advection
   real(rkx) , parameter :: uchu = upu/umax
 
   logical , parameter :: stability_enhance = .true.
+  logical , parameter :: vert_stability_enhance = .false.
   real(rkx) , parameter :: t_extrema = 5.0_rkx
   real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
   real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
@@ -706,12 +707,12 @@ module mod_advection
                 ul = d_half * uchu / ps(j,i)
                 f1 = d_half + max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
                 f2 = d_one - f1
-                fx1 = max(f1*f(j-1,i,k,n)+f2*f(j,i,k,n),minqx)
-                fx2 = max(f1*f(j,i,k,n)  +f2*f(j+1,i,k,n),minqx)
+                fx1 = f1*f(j-1,i,k,n)+f2*f(j,i,k,n)
+                fx2 = f1*f(j,i,k,n)  +f2*f(j+1,i,k,n)
                 f1 = d_half + max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
                 f2 = d_one - f1
-                fy1 = max(f1*f(j,i-1,k,n)+f2*f(j,i,k,n),minqx)
-                fy2 = max(f1*f(j,i,k,n)  +f2*f(j,i+1,k,n),minqx)
+                fy1 = f1*f(j,i-1,k,n)+f2*f(j,i,k,n)
+                fy2 = f1*f(j,i,k,n)  +f2*f(j,i+1,k,n)
                 fg(j,i,k) = -xmapf(j,i) * &
                            (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                             vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
@@ -1061,7 +1062,7 @@ module mod_advection
                      (svv(j,i,k) < d_zero .and. &
                           f(j,i,k-1,n) / ps(j,i) > minqq) ) then
                   fg(j,i,k) = (f(j,i,k,n) * &
-                    (f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)) * svv(j,i,k)
+                              (f(j,i,k-1,n)/f(j,i,k,n))**qcon(k))
                 end if
               end do
             end do
@@ -1072,8 +1073,12 @@ module mod_advection
               do j = jci1 , jci2
                 if ( (svv(j,i,k) > d_zero .and. f(j,i,k,n) > mintr) .or. &
                      (svv(j,i,k) < d_zero .and. f(j,i,k-1,n) > mintr) ) then
-                  fg(j,i,k) = (twt(k,1)*f(j,i,k,n) + &
-                        twt(k,2)*f(j,i,k-1,n)) * svv(j,i,k)
+                  if ( svv(j,i,k) > d_zero ) then
+                    fg(j,i,k) = upu * f(j,i,k,n) + (d_one-upu) * f(j,i,k-1,n)
+                  else
+                    fg(j,i,k) = upu * f(j,i,k-1,n) + (d_one-upu) * f(j,i,k,n)
+                  end if
+                  fg(j,i,k) = max(fg(j,i,k),mintr)
                 end if
               end do
             end do
@@ -1084,8 +1089,12 @@ module mod_advection
               do j = jci1 , jci2
                 if ( (svv(j,i,k) > d_zero .and. f(j,i,k,n) > minqx) .or. &
                      (svv(j,i,k) < d_zero .and. f(j,i,k-1,n) > minqx) ) then
-                  fg(j,i,k) = (twt(k,1)*f(j,i,k,n) + &
-                        twt(k,2)*f(j,i,k-1,n)) * svv(j,i,k)
+                  if ( svv(j,i,k) > d_zero ) then
+                    fg(j,i,k) = upu * f(j,i,k,n) + (d_one-upu) * f(j,i,k-1,n)
+                  else
+                    fg(j,i,k) = upu * f(j,i,k-1,n) + (d_one-upu) * f(j,i,k,n)
+                  end if
+                  fg(j,i,k) = max(fg(j,i,k),minqx)
                 end if
               end do
             end do
@@ -1134,42 +1143,6 @@ module mod_advection
             end do
           end do
         end if
-        if ( stability_enhance ) then
-          if ( ind == 1 ) then
-            do k = 2 , nk
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  if ( abs((f(j,i,k,n) - f(j,i,k-1,n)) / &
-                            f(j,i,k,n)) > t_rel_extrema ) then
-                    fg(j,i,k) = d_zero
-                  end if
-                end do
-              end do
-            end do
-          else if ( ind == 2 ) then
-            do k = 2 , nk
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  if ( abs((f(j,i,k,n) - f(j,i,k-1,n)) / &
-                            f(j,i,k,n)) > c_rel_extrema ) then
-                    fg(j,i,k) = d_zero
-                  end if
-                end do
-              end do
-            end do
-          else if ( ind == 3 ) then
-            do k = 2 , nk
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  if ( abs((f(j,i,k,n) - f(j,i,k-1,n)) / &
-                            max(f(j,i,k,n),minqx)) > q_rel_extrema ) then
-                    fg(j,i,k) = d_zero
-                  end if
-                end do
-              end do
-            end do
-          end if
-        end if
         if ( ind == 4 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -1187,15 +1160,15 @@ module mod_advection
           do i = ici1 , ici2
             do j = jci1 , jci2
               ften(j,i,nk,n) = ften(j,i,nk,n) + &
-                     svv(j,i,nk)*fg(j,i,nk)*xds(nk)
+                               svv(j,i,nk)*fg(j,i,nk)*xds(nk)
             end do
           end do
         else
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ften(j,i,k-1,n) = ften(j,i,k-1,n) - fg(j,i,k)*xds(k-1)
-                ften(j,i,k,n)   = ften(j,i,k,n)   + fg(j,i,k)*xds(k)
+                ften(j,i,k-1,n) = ften(j,i,k-1,n)-svv(j,i,k)*fg(j,i,k)*xds(k-1)
+                ften(j,i,k,n)   = ften(j,i,k,n)  +svv(j,i,k)*fg(j,i,k)*xds(k)
               end do
             end do
           end do
