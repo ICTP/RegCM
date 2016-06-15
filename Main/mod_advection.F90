@@ -1044,7 +1044,7 @@ module mod_advection
       real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
-      real(rkx) :: slope
+      real(rkx) :: slope , f1 , f2
       integer(ik4) :: i , j , k , n
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv4d'
@@ -1057,9 +1057,9 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( (svv(j,i,k) > d_zero .and. &
+                if ( (svv(j,i,k) < d_zero .and. &
                           f(j,i,k,n)   / ps(j,i) > minqq) .or. &
-                     (svv(j,i,k) < d_zero .and. &
+                     (svv(j,i,k) > d_zero .and. &
                           f(j,i,k-1,n) / ps(j,i) > minqq) ) then
                   fg(j,i,k) = (f(j,i,k,n) * &
                               (f(j,i,k-1,n)/f(j,i,k,n))**qcon(k))
@@ -1071,14 +1071,15 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( (svv(j,i,k) > d_zero .and. f(j,i,k,n) > mintr) .or. &
-                     (svv(j,i,k) < d_zero .and. f(j,i,k-1,n) > mintr) ) then
+                if ( (svv(j,i,k) < d_zero .and. f(j,i,k,n) > mintr) .or. &
+                     (svv(j,i,k) > d_zero .and. f(j,i,k-1,n) > mintr) ) then
+                  f1 = max(f(j,i,k,n),mintr)
+                  f2 = max(f(j,i,k-1,n),mintr)
                   if ( svv(j,i,k) > d_zero ) then
-                    fg(j,i,k) = upu * f(j,i,k,n) + (d_one-upu) * f(j,i,k-1,n)
+                    fg(j,i,k) = 0.40_rkx * f1 + 0.60_rkx * f2
                   else
-                    fg(j,i,k) = upu * f(j,i,k-1,n) + (d_one-upu) * f(j,i,k,n)
+                    fg(j,i,k) = 0.40_rkx * f2 + 0.60_rkx * f1
                   end if
-                  fg(j,i,k) = max(fg(j,i,k),mintr)
                 end if
               end do
             end do
@@ -1089,12 +1090,13 @@ module mod_advection
               do j = jci1 , jci2
                 if ( (svv(j,i,k) > d_zero .and. f(j,i,k,n) > minqx) .or. &
                      (svv(j,i,k) < d_zero .and. f(j,i,k-1,n) > minqx) ) then
+                  f1 = max(f(j,i,k,n),minqx)
+                  f2 = max(f(j,i,k-1,n),minqx)
                   if ( svv(j,i,k) > d_zero ) then
-                    fg(j,i,k) = upu * f(j,i,k,n) + (d_one-upu) * f(j,i,k-1,n)
+                    fg(j,i,k) = 0.40_rkx * f1 + 0.60_rkx * f2
                   else
-                    fg(j,i,k) = upu * f(j,i,k-1,n) + (d_one-upu) * f(j,i,k,n)
+                    fg(j,i,k) = 0.40_rkx * f2 + 0.60_rkx * f1
                   end if
-                  fg(j,i,k) = max(fg(j,i,k),minqx)
                 end if
               end do
             end do
@@ -1143,36 +1145,14 @@ module mod_advection
             end do
           end do
         end if
-        if ( ind == 4 ) then
+        do k = 2 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,1,n) = ften(j,i,1,n) - svv(j,i,2)*fg(j,i,2)*xds(1)
+              ften(j,i,k-1,n) = ften(j,i,k-1,n)-svv(j,i,k)*fg(j,i,k)*xds(k-1)
+              ften(j,i,k,n)   = ften(j,i,k,n)  +svv(j,i,k)*fg(j,i,k)*xds(k)
             end do
           end do
-          do k = 2 , nk-1
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                ften(j,i,k,n) = ften(j,i,k,n) - &
-                    (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))*xds(k)
-              end do
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,nk,n) = ften(j,i,nk,n) + &
-                               svv(j,i,nk)*fg(j,i,nk)*xds(nk)
-            end do
-          end do
-        else
-          do k = 2 , nk
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                ften(j,i,k-1,n) = ften(j,i,k-1,n)-svv(j,i,k)*fg(j,i,k)*xds(k-1)
-                ften(j,i,k,n)   = ften(j,i,k,n)  +svv(j,i,k)*fg(j,i,k)*xds(k)
-              end do
-            end do
-          end do
-        end if
+        end do
       end do
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)

@@ -435,7 +435,7 @@ module mod_che_bdyco
       if ( ma%has_bdyleft ) then
         do itr = 1 , ntr
           do k = 1 , kz
-            do i = ici1 , ici2
+            do i = ice1 , ice2
               chib(jce1,i,k,itr) = chia(jce1,i,k,itr)
             end do
           end do
@@ -447,7 +447,7 @@ module mod_che_bdyco
       if ( ma%has_bdyright ) then
         do itr = 1 , ntr
           do k = 1 , kz
-            do i = ici1 , ici2
+            do i = ice1 , ice2
               chib(jce2,i,k,itr) = chia(jce2,i,k,itr)
             end do
           end do
@@ -459,7 +459,7 @@ module mod_che_bdyco
       if ( ma%has_bdybottom ) then
         do itr = 1 , ntr
           do k = 1 , kz
-            do j = jce1 , jce2
+            do j = jci1 , jci2
               chib(j,ice1,k,itr) = chia(j,ice1,k,itr)
             end do
           end do
@@ -468,7 +468,7 @@ module mod_che_bdyco
       if ( ma%has_bdytop ) then
         do itr = 1 , ntr
           do k = 1 , kz
-            do j = jce1 , jce2
+            do j = jci1 , jci2
               chib(j,ice2,k,itr) = chia(j,ice2,k,itr)
             end do
           end do
@@ -487,10 +487,10 @@ module mod_che_bdyco
             do i = ice1 , ice2
               trint = max(chia(jci1,i,k,itr),mintr)/psa(jci1,i)
               windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-              if ( windavg >= d_zero ) then
-                chia(jce1,i,k,itr) = mintr
-              else
+              if ( windavg < d_zero ) then
                 chia(jce1,i,k,itr) = trint*psa(jce1,i)
+              else
+                chia(jce1,i,k,itr) = mintr
               end if
             end do
           end do
@@ -505,10 +505,10 @@ module mod_che_bdyco
             do i = ice1 , ice2
               trint = max(chia(jci2,i,k,itr),mintr)/psa(jci2,i)
               windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-              if ( windavg <= d_zero ) then
-                chia(jce2,i,k,itr) = mintr
-              else
+              if ( windavg > d_zero ) then
                 chia(jce2,i,k,itr) = trint*psa(jce2,i)
+              else
+                chia(jce2,i,k,itr) = mintr
               end if
             end do
           end do
@@ -523,10 +523,10 @@ module mod_che_bdyco
             do j = jci1 , jci2
               trint = max(chia(j,ici1,k,itr),mintr)/psa(j,ici1)
               windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-              if ( windavg >= d_zero ) then
-                chia(j,ice1,k,itr) = mintr
-              else
+              if ( windavg < d_zero ) then
                 chia(j,ice1,k,itr) = trint*psa(j,ice1)
+              else
+                chia(j,ice1,k,itr) = mintr
               end if
             end do
           end do
@@ -541,10 +541,10 @@ module mod_che_bdyco
             do j = jci1 , jci2
               trint = max(chia(j,ici2,k,itr),mintr)/psa(j,ici2)
               windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-              if ( windavg <= d_zero ) then
-                chia(j,ice2,k,itr) = mintr
-              else
+              if ( windavg > d_zero ) then
                 chia(j,ice2,k,itr) = trint*psa(j,ice2)
+              else
+                chia(j,ice2,k,itr) = mintr
               end if
             end do
           end do

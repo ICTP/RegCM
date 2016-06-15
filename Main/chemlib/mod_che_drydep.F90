@@ -391,7 +391,7 @@ module mod_che_drydep
                   rhsize , taurel
       real(rkx) , dimension(ici1:ici2,luc) :: ra , ustar
       real(rkx) , dimension(ici1:ici2,luc,mbin) :: rs
-      real(rkx), dimension(ici1:ici2,kz) :: wk, settend
+      real(rkx), dimension(ici1:ici2,2:kz) :: wk, settend
       real(rkx) , dimension(mbin) :: avesize
       integer(ik4) :: i , k , kcov , l , n , ib
 #ifdef DEBUG
@@ -581,8 +581,9 @@ module mod_che_drydep
         ! consistent with chib
         do k = 2 , kz
           do i = ici1 , ici2
-            wk(i,k) =  twt(k,1)*chib(j,i,k,indsp(ib))+ &
+            wk(i,k) =  twt(k,1)*chib(j,i,k,indsp(ib)) + &
                        twt(k,2)*chib(j,i,k-1,indsp(ib))
+            if ( wk(i,k) < mintr ) wk(i,k) = d_zero
           end do
         end do
         do i = ici1 , ici2
@@ -595,6 +596,7 @@ module mod_che_drydep
               exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt ))/dt  - &
                             wk(i,k)   * (d_one - &
               exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt ))/dt
+            settend(i,k) = min(settend(i,k),chib(j,i,k,indsp(ib))-mintr)
 
             chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
             if ( ichdiag == 1 ) then
@@ -615,10 +617,11 @@ module mod_che_drydep
 
             ! settend(i,kz) =  (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
             !                   wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
-            settend(i,kz) =  chib(j,i,kz,indsp(ib)) * &
+            settend(i,kz) = chib(j,i,kz,indsp(ib)) * &
               (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt ))/dt -  &
-                             wk(i,kz) * &
-              (d_one - exp(-pdepv(i,kz,indsp(ib))/cdzq(j,i,kz)*dt ))/dt
+                            wk(i,kz) * &
+              (d_one - exp(-pdepv(i,kz,indsp(ib))/cdzq(j,i,k)*dt))/dt
+            settend(i,kz) = min(settend(i,kz),chib(j,i,kz,indsp(ib))-mintr)
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
 
             ! save the dry deposition flux for coupling with
@@ -628,19 +631,18 @@ module mod_che_drydep
             ! care  chib and settend have to be corrected for pressure
             ! cdrydepflux is a time accumulated array set to zero when surface
             ! scheme is called (cf atm to surf interface)
-
             cdrydepflx(j,i,indsp(ib)) = cdrydepflx(j,i,indsp(ib)) + &
-              (chib(j,i,kz,indsp(ib))-settend(i,kz)*dt/d_two) / cpsb(j,i) *  &
-               crhob3d(j,i,kz)* ddepv(i,indsp(ib))
+              (chib(j,i,kz,indsp(ib))  - settend(i,kz)*dt/d_two) / &
+                 cpsb(j,i) * crhob3d(j,i,kz) * ddepv(i,indsp(ib))
 
             !diagnostic for settling and drydeposition removal
             if ( ichdiag == 1 ) then
               cseddpdiag(j,i,kz,indsp(ib)) = cseddpdiag(j,i,kz,indsp(ib)) - &
                                              settend(i,kz) * cfdout
             end if
+
             ! accumulated diagnostic for dry deposition flux
             ! average (in kg .m2.s-1)
-
             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
                                     cdrydepflx(j,i,indsp(ib)) * cfdout
 
