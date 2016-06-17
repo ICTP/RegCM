@@ -581,9 +581,8 @@ module mod_che_drydep
         ! consistent with chib
         do k = 2 , kz
           do i = ici1 , ici2
-            wk(i,k) =  twt(k,1)*chib(j,i,k,indsp(ib)) + &
-                       twt(k,2)*chib(j,i,k-1,indsp(ib))
-            if ( wk(i,k) < mintr ) wk(i,k) = d_zero
+            wk(i,k) =  max(twt(k,1)*chib(j,i,k,indsp(ib)) + &
+                           twt(k,2)*chib(j,i,k-1,indsp(ib)),mintr)
           end do
         end do
         do i = ici1 , ici2
@@ -596,7 +595,6 @@ module mod_che_drydep
               exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt ))/dt  - &
                             wk(i,k)   * (d_one - &
               exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt ))/dt
-            settend(i,k) = min(settend(i,k),chib(j,i,k,indsp(ib))-mintr)
 
             chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
             if ( ichdiag == 1 ) then
@@ -617,11 +615,10 @@ module mod_che_drydep
 
             ! settend(i,kz) =  (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
             !                   wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
-            settend(i,kz) = chib(j,i,kz,indsp(ib)) * &
+            settend(i,kz) = max(chib(j,i,kz,indsp(ib)),mintr) * &
               (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt ))/dt -  &
                             wk(i,kz) * &
               (d_one - exp(-pdepv(i,kz,indsp(ib))/cdzq(j,i,k)*dt))/dt
-            settend(i,kz) = min(settend(i,kz),chib(j,i,kz,indsp(ib))-mintr)
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
 
             ! save the dry deposition flux for coupling with
@@ -763,7 +760,7 @@ module mod_che_drydep
 #endif
            do n = 1 , ntr
              kd = drydepvg(i,n) * rdz !Kd removal rate in s-1
-             kav = (chib(j,i,kz,n)-mintr)
+             kav = max(chib(j,i,kz,n)-mintr,d_zero)
              if ( kd*dt < 25.0_rkx ) then
                ! dry dep removal tendency (+)
                ddrem(i) = kav * (d_one-exp(-kd*dt))/dt

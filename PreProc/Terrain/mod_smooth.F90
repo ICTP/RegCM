@@ -41,25 +41,25 @@ module mod_smooth
     ! TO SMOOTH IN THE BOUNDARIES
     !
     hscr1(:,:) = htgrid(:,:)
-    do i = n , iy - n
-      do j = n , jx - n
+    do i = n , iy - n + 1
+      do j = n , jx - n + 1
         !if ( (htgrid(j,i) <= -d_one) .or. (htgrid(j,i) > d_zero) ) then
-          hscr1(j,i) = d_rfour*(d_two*htgrid(j,i)+htgrid(j+1,i)+htgrid(j-1,i))
+        hscr1(j,i) = d_rfour*(d_two*htgrid(j,i)+htgrid(j+1,i)+htgrid(j-1,i))
         !end if
       end do
     end do
-    do i = n , iy - n
-      do j = n , jx - n
+    do i = n , iy - n + 1
+      do j = n , jx - n + 1
         !if ( (hscr1(j,i) <= -d_one) .or. (hscr1(j,i) > d_zero) ) then
-          htgrid(j,i) = d_rfour*(d_two*hscr1(j,i)+hscr1(j,i+1)+hscr1(j,i-1))
+        htgrid(j,i) = d_rfour*(d_two*hscr1(j,i)+hscr1(j,i+1)+hscr1(j,i-1))
         !end if
       end do
     end do
   end subroutine smth121
 
-  subroutine smther(slab,nj,ni,npass,iflg)
+  subroutine smther(slab,nj,ni,nsp,npass)
     implicit none
-    integer(ik4) , intent(in) :: iflg , ni , nj , npass
+    integer(ik4) , intent(in) :: ni , nj , nsp , npass
     real(rkx) , intent(inout) , dimension(nj,ni) :: slab
     real(rkx) :: aplus , asv , cell
     integer(ik4) :: i , ie , iem , j , je , jem , k , kp
@@ -70,8 +70,8 @@ module mod_smooth
     !
     ie = ni
     je = nj
-    iem = ie - 5
-    jem = je - 5
+    iem = ie - nsp + 1
+    jem = je - nsp + 1
     xnu(1) =  d_half
     xnu(2) = -d_half
     do k = 1 , npass
@@ -80,16 +80,11 @@ module mod_smooth
         do i = 1 , ie - 1
           asv = slab(1,i)
           do j = 2 , je - 1
-            aplus = slab(j,i+1)
-            cell = slab(j,i)
-            slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
-            if ( iflg == 0 ) then
-              if ( (i > 6) .and. (i < iem) .and. &
-                   (j > 6) .and. (j < jem) ) then
-                slab(j,i) = cell
-              end if
-            else if ( iflg == 1 ) then
-              if ( i > 20 ) slab(j,i) = cell
+            if ( (i <= nsp) .and. (i >= iem) .and. &
+                 (j <= nsp) .and. (j >= jem) ) then
+              cell = slab(j,i)
+              aplus = slab(j,i+1)
+              slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
             end if
             asv = cell
           end do
@@ -98,16 +93,11 @@ module mod_smooth
         do j = 1 , je - 1
           asv = slab(j,1)
           do i = 2 , ie - 1
-            aplus = slab(j,i+1)
-            cell = slab(j,i)
-            slab(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
-            if ( iflg == 0 ) then
-              if ( (i > 6) .and. (i < iem) .and. &
-                   (j > 6) .and. (j < jem) ) then
-                slab(j,i) = cell
-              end if
-            else if ( iflg == 1 ) then
-              if ( i > 20 ) slab(j,i) = cell
+            if ( (i <= nsp) .and. (i >= iem) .and. &
+                 (j <= nsp) .and. (j >= jem) ) then
+              cell = slab(j,i)
+              aplus = slab(j,i+1)
+              slab(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
             end if
             asv = cell
           end do
@@ -116,42 +106,47 @@ module mod_smooth
     end do
   end subroutine smther
 
-  subroutine smthtr(slab1,nj,ni)
+  subroutine smthtr(slab1,nj,ni,nsp)
     implicit none
-    integer(ik4) , intent(in) :: nj , ni
+    integer(ik4) , intent(in) :: nj , ni , nsp
     real(rkx) , intent(inout) , dimension(nj,ni) :: slab1
-    integer(ik4) :: i , iflg , j , k , n , n1 , npass
+    integer(ik4) :: i , iflg , j , k , n , npass
     integer(ik4) , allocatable , dimension(:) :: ii , jj
     !
     ! smooth terrain arrays
     !
+    ! Get points with negative elevation
+    !
     allocate(ii(nj*ni))
     allocate(jj(nj*ni))
-    n = 1
+    n = 0
     do i = 1 , ni
       do j = 1 , nj
         if ( slab1(j,i) < d_zero ) then
+          n = n + 1
           ii(n) = i
           jj(n) = j
           slab1(j,i) = d_zero
-          n = n + 1
         end if
       end do
     end do
-    n1 = n - 1
+    !
+    ! Apply filter
+    !
     npass = 10
-    iflg = 0          ! 0 = smoothing only at boundary
-    call smther(slab1,nj,ni,npass,iflg)
-!   npass = 2000
-!   iflg = 0          ! 1 = extensive smoothing over south boundary
-!   call smther(slab1,nj,ni,npass,iflg)
+    call smther(slab1,nj,ni,nsp,npass)
+    !
+    ! Remove negative elevation points
+    !
     do i = 1 , ni
       do j = 1 , nj
-        slab1(j,i) = slab1(j,i)
         if ( slab1(j,i) < d_zero ) slab1(j,i) = d_zero
       end do
     end do
-    do k = 1 , n - 1
+    !
+    ! Put back points with negative elevation
+    !
+    do k = 1 , n
       i = ii(k)
       j = jj(k)
       slab1(j,i) = -0.001_rkx

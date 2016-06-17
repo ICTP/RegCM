@@ -490,7 +490,7 @@ module mod_che_bdyco
               if ( windavg < d_zero ) then
                 chia(jce1,i,k,itr) = trint*psa(jce1,i)
               else
-                chia(jce1,i,k,itr) = mintr
+                chia(jce1,i,k,itr) = mintr/psa(jce1,i)
               end if
             end do
           end do
@@ -508,7 +508,7 @@ module mod_che_bdyco
               if ( windavg > d_zero ) then
                 chia(jce2,i,k,itr) = trint*psa(jce2,i)
               else
-                chia(jce2,i,k,itr) = mintr
+                chia(jce2,i,k,itr) = mintr/psa(jce2,i)
               end if
             end do
           end do
@@ -526,7 +526,7 @@ module mod_che_bdyco
               if ( windavg < d_zero ) then
                 chia(j,ice1,k,itr) = trint*psa(j,ice1)
               else
-                chia(j,ice1,k,itr) = mintr
+                chia(j,ice1,k,itr) = mintr/psa(j,ice1)
               end if
             end do
           end do
@@ -544,7 +544,7 @@ module mod_che_bdyco
               if ( windavg > d_zero ) then
                 chia(j,ice2,k,itr) = trint*psa(j,ice2)
               else
-                chia(j,ice2,k,itr) = mintr
+                chia(j,ice2,k,itr) = mintr/psa(j,ice2)
               end if
             end do
           end do

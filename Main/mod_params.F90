@@ -252,11 +252,7 @@ module mod_params
     ! Non hydrostatic param ;
     !
     ifupr = 1
-    if ( idynamic == 2 ) then
-      diffu_hgtf = 0
-    else
-      diffu_hgtf = 1
-    end if
+    diffu_hgtf = 1
     ckh = d_one
     logp_lrate = 50.0_rkx
     nhbet = 0.4_rkx

@@ -41,7 +41,6 @@ module mod_advection
   real(rkx) , parameter :: uchu = upu/umax
 
   logical , parameter :: stability_enhance = .true.
-  logical , parameter :: vert_stability_enhance = .false.
   real(rkx) , parameter :: t_extrema = 5.0_rkx
   real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
   real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
@@ -1057,13 +1056,9 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( (svv(j,i,k) < d_zero .and. &
-                          f(j,i,k,n)   / ps(j,i) > minqq) .or. &
-                     (svv(j,i,k) > d_zero .and. &
-                          f(j,i,k-1,n) / ps(j,i) > minqq) ) then
-                  fg(j,i,k) = (f(j,i,k,n) * &
-                              (f(j,i,k-1,n)/f(j,i,k,n))**qcon(k))
-                end if
+                f1 = max(f(j,i,k,n),minqq*ps(j,i))
+                f2 = max(f(j,i,k-1,n),minqq*ps(j,i))
+                fg(j,i,k) = f1*(f2/f1)**qcon(k)
               end do
             end do
           end do
@@ -1071,16 +1066,9 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( (svv(j,i,k) < d_zero .and. f(j,i,k,n) > mintr) .or. &
-                     (svv(j,i,k) > d_zero .and. f(j,i,k-1,n) > mintr) ) then
-                  f1 = max(f(j,i,k,n),mintr)
-                  f2 = max(f(j,i,k-1,n),mintr)
-                  if ( svv(j,i,k) > d_zero ) then
-                    fg(j,i,k) = 0.40_rkx * f1 + 0.60_rkx * f2
-                  else
-                    fg(j,i,k) = 0.40_rkx * f2 + 0.60_rkx * f1
-                  end if
-                end if
+                f1 = max(f(j,i,k,n),mintr)
+                f2 = max(f(j,i,k-1,n),mintr)
+                fg(j,i,k) = twt(k,1)*f1 + twt(k,2)*f2
               end do
             end do
           end do
@@ -1088,16 +1076,9 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( (svv(j,i,k) > d_zero .and. f(j,i,k,n) > minqx) .or. &
-                     (svv(j,i,k) < d_zero .and. f(j,i,k-1,n) > minqx) ) then
-                  f1 = max(f(j,i,k,n),minqx)
-                  f2 = max(f(j,i,k-1,n),minqx)
-                  if ( svv(j,i,k) > d_zero ) then
-                    fg(j,i,k) = 0.40_rkx * f1 + 0.60_rkx * f2
-                  else
-                    fg(j,i,k) = 0.40_rkx * f2 + 0.60_rkx * f1
-                  end if
-                end if
+                f1 = max(f(j,i,k,n),minqx)
+                f2 = max(f(j,i,k-1,n),minqx)
+                fg(j,i,k) = twt(k,1)*f1 + twt(k,2)*f2
               end do
             end do
           end do
@@ -1145,12 +1126,20 @@ module mod_advection
             end do
           end do
         end if
-        do k = 2 , nk
+        do k = 2 , nk-1
           do i = ici1 , ici2
             do j = jci1 , jci2
               ften(j,i,k-1,n) = ften(j,i,k-1,n)-svv(j,i,k)*fg(j,i,k)*xds(k-1)
               ften(j,i,k,n)   = ften(j,i,k,n)  +svv(j,i,k)*fg(j,i,k)*xds(k)
             end do
+          end do
+        end do
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ften(j,i,nk-1,n) = ften(j,i,nk-1,n)-svv(j,i,nk)*fg(j,i,nk)*xds(nk-1)
+            if ( svv(j,i,nk) < d_zero ) then
+              ften(j,i,nk,n)   = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)*xds(nk)
+            end if
           end do
         end do
       end do
