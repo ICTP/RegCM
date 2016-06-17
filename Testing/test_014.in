@@ -19,7 +19,6 @@
  /
  &terrainparam
  domname = 'India-small',
- smthbdy = .false.,
  lakedpth = .false.,
  ltexture = .true.
  fudge_lnd   = .false.,

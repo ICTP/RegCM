@@ -18,7 +18,6 @@
  /
  &terrainparam
  domname = 'test_011',
- smthbdy = .false.,
  lakedpth = .false.,
  ltexture = .true.,
  fudge_lnd   = .false.,

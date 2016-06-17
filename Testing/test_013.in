@@ -19,7 +19,6 @@
  /
  &terrainparam
  domname = 'MEGAPOLI2',
- smthbdy = .false.,
  lakedpth = .false.,
  ltexture = .true.,
  fudge_lnd   = .false.,
