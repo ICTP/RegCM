@@ -1467,12 +1467,21 @@ module mod_tendency
         end do
       end do
     end do
-    do n = 1 , nqx
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          atm2%qx(j,i,k,iqv) = omuhf*atm1%qx(j,i,k,iqv) + &
+                             gnuhf*(atm2%qx(j,i,k,iqv) + atmc%qx(j,i,k,iqv))
+          atm1%qx(j,i,k,iqv) = atmc%qx(j,i,k,iqv)
+        end do
+      end do
+    end do
+    do n = iqfrst, iqlst
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            atm2%qx(j,i,k,n) = omuhf*atm1%qx(j,i,k,n) + &
-                               gnuhf*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
+            atm2%qx(j,i,k,n) = omu*atm1%qx(j,i,k,n) + &
+                               gnu*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
             atm1%qx(j,i,k,n) = atmc%qx(j,i,k,n)
           end do
         end do

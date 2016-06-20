@@ -102,7 +102,7 @@ module mod_pbl_uwtcm
   real(rkx) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
                  tke , tkes , rrhoxfl , bbls , nsquar , richnum , &
                  bouyan , rdza , dza , svs , presfl , exnerfl ,   &
-                 shear , rexnerfl , rcldb , epop , sm , sh, xkchi
+                 shear , rexnerfl , rcldb , epop , sm , sh
 
   ! local variables on half levels
   real(rkx) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,   &
@@ -305,7 +305,6 @@ module mod_pbl_uwtcm
     call getmem1d(rimp2,1,kz,'mod_uwtcm:rimp2')
 
     if ( ichem == 1 ) then
-      call getmem1d(xkchi,1,kzp1,'mod_uwtcm:xkchi')
       call getmem2d(chix,1,kz,1,ntr,'mod_uwtcm:chix')
       call getmem2d(chixs,1,kz,1,ntr,'mod_uwtcm:chixs')
       call getmem1d(chifxx,1,ntr,'mod_uwtcm:chifxx')
@@ -394,7 +393,7 @@ module mod_pbl_uwtcm
           do itr = 1 , ntr
             chifxx(itr) = max(m2p%chifxuw(j,i,itr),d_zero)
             do k = 1 , kz
-              chix(k,itr) = max(m2p%chib(j,i,k,itr),mintr)
+              chix(k,itr) = m2p%chib(j,i,k,itr)
             end do
           end do
         end if
@@ -704,7 +703,6 @@ module mod_pbl_uwtcm
         !*************************************************************
 
         if ( ichem == 1 ) then
-          xkchi = kth
 
           !Set the tridiagonal coefficients that apply to all of the tracers
           do k = 1 , kz
@@ -712,13 +710,13 @@ module mod_pbl_uwtcm
               aimp(k) = d_zero
             else
               aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*     &
-                          xkchi(k) * dt *rdzq(k)*rdza(k)
+                          kth(k) * dt *rdzq(k)*rdza(k)
             end if
             if ( k == kz ) then
               cimp(k) = d_zero
             else
               cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*   &
-                          xkchi(k+1) * dt *rdzq(k)*rdza(k+1)
+                          kth(k+1) * dt *rdzq(k)*rdza(k+1)
             end if
             bimp(k) = d_one - aimp(k) - cimp(k)
           end do
@@ -742,7 +740,7 @@ module mod_pbl_uwtcm
 
             !Get the chi value implied for the next timestep
             do k = 1 , kz
-              chix(k,itr) = max(uimp1(k),mintr)
+              chix(k,itr) = max(uimp1(k),mintr/psbx)
             end do
           end do
         end if !End tracer diffusion

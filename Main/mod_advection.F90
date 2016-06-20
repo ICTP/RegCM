@@ -1136,9 +1136,12 @@ module mod_advection
         end do
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ften(j,i,nk-1,n) = ften(j,i,nk-1,n)-svv(j,i,nk)*fg(j,i,nk)*xds(nk-1)
-            if ( svv(j,i,nk) < d_zero ) then
-              ften(j,i,nk,n)   = ften(j,i,nk,n)+svv(j,i,nk)*fg(j,i,nk)*xds(nk)
+            if ( svv(j,i,nk) > d_zero ) then
+              ften(j,i,nk-1,n) = ften(j,i,nk-1,n) - &
+                                  svv(j,i,nk)*fg(j,i,nk)*xds(nk-1)
+            else
+              ften(j,i,nk,n)   = ften(j,i,nk,n) +   &
+                                  svv(j,i,nk)*fg(j,i,nk)*xds(nk)
             end if
           end do
         end do

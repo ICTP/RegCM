@@ -94,9 +94,9 @@ module mod_che_bdyco
                           1,kz,1,ntr,'mod_che_bdyco:chib1')
       call getmem4d(chibt,jde1ga,jde2ga,ide1ga,ide2ga, &
                           1,kz,1,ntr,'mod_che_bdyco:chibt')
-      call getmem2d(cefc,1,nspgx,1,kz,'che_bdyco:fcx')
-      call getmem2d(cegc,1,nspgx,1,kz,'che_bdyco:fcx')
     end if
+    call getmem2d(cefc,1,nspgx,1,kz,'che_bdyco:fcx')
+    call getmem2d(cegc,1,nspgx,1,kz,'che_bdyco:fcx')
   end subroutine allocate_mod_che_bdyco
 
   subroutine che_init_bdy
@@ -639,9 +639,9 @@ module mod_che_bdyco
     real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
 
     real(rkx) :: xt , xf , xg
-    real(rkx), dimension(ntr) :: fls0 , fls1 , fls2 , fls3 , fls4
+    real(rkx) :: fls0 , fls1 , fls2 , fls3 , fls4
 
-    integer(ik4) :: i , j , k , ib
+    integer(ik4) :: i , j , k , n , ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge_chi'
     integer(ik4) , save :: idindx = 0
@@ -649,6 +649,90 @@ module mod_che_bdyco
 #endif
 
     if ( ichebdy == 0 ) then
+      if ( cba%ns /= 0 ) then
+        do n = 1 , ntr
+          do k = 1 , nk
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( .not. cba%bsouth(j,i) ) cycle
+                ib = cba%ibnd(j,i)
+                xf = cefc(ib,k)
+                xg = cegc(ib,k)
+                fls0 = f(j-1,ici1,k,n) - f(j,i,k,n)
+                fls1 = f(j-1,ici1,k,n) - f(j-1,i,k,n)
+                fls2 = f(j+1,ici1,k,n) - f(j+1,i,k,n)
+                fls3 = f(j,ice1,k,n)   - f(j,i-1,k,n)
+                fls4 = f(j,ici1+1,k,n) - f(j,i+1,k,n)
+                ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                        xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( cba%nn /= 0 ) then
+      do n = 1 , ntr
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( .not. cba%bnorth(j,i) ) cycle
+              ib = cba%ibnd(j,i)
+              xf = cefc(ib,k)
+              xg = cegc(ib,k)
+              fls0 = f(j,ici2,k,n) - f(j,i,k,n)
+              fls1 = f(j-1,ici2,k,n) - f(j-1,i,k,n)
+              fls2 = f(j+1,ici2,k,n) - f(j+1,i,k,n)
+              fls3 = f(j,ici2-1,k,n) - f(j,i-1,k,n)
+              fls4 = f(j,ice2,k,n) - f(j,i+1,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                       xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( cba%nw /= 0 ) then
+      do n = 1 , ntr
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( .not. cba%bwest(j,i) ) cycle
+              ib = cba%ibnd(j,i)
+              xf = cefc(ib,k)
+              xg = cegc(ib,k)
+              fls0 = f(jci2,i,k,n) - f(j,i,k,n)
+              fls1 = f(jci2-1,i-1,k,n) - f(j,i-1,k,n)
+              fls2 = f(jci2,i+1,k,n) - f(j,i+1,k,n)
+              fls3 = f(jci2-1,i,k,n) - f(j-1,i,k,n)
+              fls4 = f(jce2,i,k,n) - f(j+1,i,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                       xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( cba%ne /= 0 ) then
+      do n = 1 , ntr
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( .not. cba%beast(j,i) ) cycle
+              ib = cba%ibnd(j,i)
+              xf = cefc(ib,k)
+              xg = cegc(ib,k)
+              fls0 = f(jci1,i,k,n) - f(j,i,k,n)
+              fls1 = f(jci1,i-1,k,n) - f(j,i-1,k,n)
+              fls2 = f(jci1,i+1,k,n) - f(j,i+1,k,n)
+              fls3 = f(jce1,i,k,n) - f(j-1,i,k,n)
+              fls4 = f(jci1+1,i,k,n) - f(j+1,i,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 -  &
+                       xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
+          end do
+        end do
+      end do
+    end if
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
@@ -657,77 +741,85 @@ module mod_che_bdyco
 
     xt = xbctime + dt
     if ( cba%ns /= 0 ) then
-      do k = 1 , nk
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( .not. cba%bsouth(j,i) ) cycle
-            ib = cba%ibnd(j,i)
-            xf = cefc(ib,k)
-            xg = cegc(ib,k)
-            fls0(:) = (chib0(j,i,k,:)  +xt*chibt(j,i,k,:))   - f(j,i,k,:)
-            fls1(:) = (chib0(j-1,i,k,:)+xt*chibt(j-1,i,k,:)) - f(j-1,i,k,:)
-            fls2(:) = (chib0(j+1,i,k,:)+xt*chibt(j+1,i,k,:)) - f(j+1,i,k,:)
-            fls3(:) = (chib0(j,i-1,k,:)+xt*chibt(j,i-1,k,:)) - f(j,i-1,k,:)
-            fls4(:) = (chib0(j,i+1,k,:)+xt*chibt(j,i+1,k,:)) - f(j,i+1,k,:)
-            ften(j,i,k,:) = ften(j,i,k,:) + xf*fls0(:) - &
-                    xg*rdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
+      do n = 1 , ntr
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( .not. cba%bsouth(j,i) ) cycle
+              ib = cba%ibnd(j,i)
+              xf = cefc(ib,k)
+              xg = cegc(ib,k)
+              fls0 = (chib0(j,i,k,n)  +xt*chibt(j,i,k,n))   - f(j,i,k,n)
+              fls1 = (chib0(j-1,i,k,n)+xt*chibt(j-1,i,k,n)) - f(j-1,i,k,n)
+              fls2 = (chib0(j+1,i,k,n)+xt*chibt(j+1,i,k,n)) - f(j+1,i,k,n)
+              fls3 = (chib0(j,i-1,k,n)+xt*chibt(j,i-1,k,n)) - f(j,i-1,k,n)
+              fls4 = (chib0(j,i+1,k,n)+xt*chibt(j,i+1,k,n)) - f(j,i+1,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                      xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
           end do
         end do
       end do
     end if
     if ( cba%nn /= 0 ) then
-      do k = 1 , nk
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( .not. cba%bnorth(j,i) ) cycle
-            ib = cba%ibnd(j,i)
-            xf = cefc(ib,k)
-            xg = cegc(ib,k)
-            fls0(:) = (chib0(j,i,k,:)  +xt*chibt(j,i,k,:))   - f(j,i,k,:)
-            fls1(:) = (chib0(j-1,i,k,:)+xt*chibt(j-1,i,k,:)) - f(j-1,i,k,:)
-            fls2(:) = (chib0(j+1,i,k,:)+xt*chibt(j+1,i,k,:)) - f(j+1,i,k,:)
-            fls3(:) = (chib0(j,i-1,k,:)+xt*chibt(j,i-1,k,:)) - f(j,i-1,k,:)
-            fls4(:) = (chib0(j,i+1,k,:)+xt*chibt(j,i+1,k,:)) - f(j,i+1,k,:)
-            ften(j,i,k,:) = ften(j,i,k,:) + xf*fls0(:) - &
-                     xg*rdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
+      do n = 1 , ntr
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( .not. cba%bnorth(j,i) ) cycle
+              ib = cba%ibnd(j,i)
+              xf = cefc(ib,k)
+              xg = cegc(ib,k)
+              fls0 = (chib0(j,i,k,n)  +xt*chibt(j,i,k,n))   - f(j,i,k,n)
+              fls1 = (chib0(j-1,i,k,n)+xt*chibt(j-1,i,k,n)) - f(j-1,i,k,n)
+              fls2 = (chib0(j+1,i,k,n)+xt*chibt(j+1,i,k,n)) - f(j+1,i,k,n)
+              fls3 = (chib0(j,i-1,k,n)+xt*chibt(j,i-1,k,n)) - f(j,i-1,k,n)
+              fls4 = (chib0(j,i+1,k,n)+xt*chibt(j,i+1,k,n)) - f(j,i+1,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                       xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
           end do
         end do
       end do
     end if
     if ( cba%nw /= 0 ) then
-      do k = 1 , nk
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( .not. cba%bwest(j,i) ) cycle
-            ib = cba%ibnd(j,i)
-            xf = cefc(ib,k)
-            xg = cegc(ib,k)
-            fls0(:) = (chib0(j,i,k,:)  +xt*chibt(j,i,k,:))   - f(j,i,k,:)
-            fls1(:) = (chib0(j,i-1,k,:)+xt*chibt(j,i-1,k,:)) - f(j,i-1,k,:)
-            fls2(:) = (chib0(j,i+1,k,:)+xt*chibt(j,i+1,k,:)) - f(j,i+1,k,:)
-            fls3(:) = (chib0(j-1,i,k,:)+xt*chibt(j-1,i,k,:)) - f(j-1,i,k,:)
-            fls4(:) = (chib0(j+1,i,k,:)+xt*chibt(j+1,i,k,:)) - f(j+1,i,k,:)
-            ften(j,i,k,:) = ften(j,i,k,:) + xf*fls0(:) - &
-                     xg*rdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
+      do n = 1 , ntr
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( .not. cba%bwest(j,i) ) cycle
+              ib = cba%ibnd(j,i)
+              xf = cefc(ib,k)
+              xg = cegc(ib,k)
+              fls0 = (chib0(j,i,k,n)  +xt*chibt(j,i,k,n))   - f(j,i,k,n)
+              fls1 = (chib0(j,i-1,k,n)+xt*chibt(j,i-1,k,n)) - f(j,i-1,k,n)
+              fls2 = (chib0(j,i+1,k,n)+xt*chibt(j,i+1,k,n)) - f(j,i+1,k,n)
+              fls3 = (chib0(j-1,i,k,n)+xt*chibt(j-1,i,k,n)) - f(j-1,i,k,n)
+              fls4 = (chib0(j+1,i,k,n)+xt*chibt(j+1,i,k,n)) - f(j+1,i,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                       xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
           end do
         end do
       end do
     end if
     if ( cba%ne /= 0 ) then
-      do k = 1 , nk
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( .not. cba%beast(j,i) ) cycle
-            ib = cba%ibnd(j,i)
-            xf = cefc(ib,k)
-            xg = cegc(ib,k)
-            fls0(:) = (chib0(j,i,k,:)  +xt*chibt(j,i,k,:))   - f(j,i,k,:)
-            fls1(:) = (chib0(j,i-1,k,:)+xt*chibt(j,i-1,k,:)) - f(j,i-1,k,:)
-            fls2(:) = (chib0(j,i+1,k,:)+xt*chibt(j,i+1,k,:)) - f(j,i+1,k,:)
-            fls3(:) = (chib0(j-1,i,k,:)+xt*chibt(j-1,i,k,:)) - f(j-1,i,k,:)
-            fls4(:) = (chib0(j+1,i,k,:)+xt*chibt(j+1,i,k,:)) - f(j+1,i,k,:)
-            ften(j,i,k,:) = ften(j,i,k,:) + xf*fls0(:) -  &
-                     xg*rdxsq*(fls1(:)+fls2(:)+fls3(:)+fls4(:)-d_four*fls0(:))
+      do n = 1 , ntr
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( .not. cba%beast(j,i) ) cycle
+              ib = cba%ibnd(j,i)
+              xf = cefc(ib,k)
+              xg = cegc(ib,k)
+              fls0 = (chib0(j,i,k,n)  +xt*chibt(j,i,k,n))   - f(j,i,k,n)
+              fls1 = (chib0(j,i-1,k,n)+xt*chibt(j,i-1,k,n)) - f(j,i-1,k,n)
+              fls2 = (chib0(j,i+1,k,n)+xt*chibt(j,i+1,k,n)) - f(j,i+1,k,n)
+              fls3 = (chib0(j-1,i,k,n)+xt*chibt(j-1,i,k,n)) - f(j-1,i,k,n)
+              fls4 = (chib0(j+1,i,k,n)+xt*chibt(j+1,i,k,n)) - f(j+1,i,k,n)
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 -  &
+                       xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+            end do
           end do
         end do
       end do
@@ -744,16 +836,14 @@ module mod_che_bdyco
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
-    if ( ichebdy == 1 ) then
-      fnudge = 0.1_rkx/dt2
-      gnudge = (dxsq/dt)/50.0_rkx
-      do k = 1 , kz
-        do n = 2 , nspgx-1
-          cefc(n,k) = fnudge*xfune(n,k)
-          cegc(n,k) = gnudge*xfune(n,k)
-        end do
+    fnudge = 0.1_rkx/dt2
+    gnudge = (dxsq/dt)/50.0_rkx
+    do k = 1 , kz
+      do n = 2 , nspgx-1
+        cefc(n,k) = fnudge*xfune(n,k)
+        cegc(n,k) = gnudge*xfune(n,k)
       end do
-    end if
+    end do
     contains
       pure real(rkx) function xfune(mm,kk)
         implicit none

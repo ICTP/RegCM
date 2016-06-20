@@ -1344,7 +1344,7 @@ module mod_params
         call fatal(__FILE__,__LINE__, &
                 'DTCUM > DTSRF : INCONSISTENT CUMULUS TIMESTEP SPECIFIED')
       end if
-      if ( ichem == 1 ) then
+      if ( ichem == 1 .and. ichsolver /= 0 ) then
         if ( mod(nint(dtche),nint(dt)) /= 0 ) then
           write (stderr,*) 'DTCHE=' , dtche , ' DT=' , dt
           call fatal(__FILE__,__LINE__, &
@@ -1384,10 +1384,12 @@ module mod_params
           call fatal(__FILE__,__LINE__, &
                      'CHEMFRQ CANNOT BE ZERO')
         end if
-        if ( mod(nint(chemfrq*secph),nint(dtche)) /= 0 ) then
-          write (stderr,*) 'CHEMFRQ=' , chemfrq , ' DTCHE=', dtche
-          call fatal(__FILE__,__LINE__, &
-                     'INCONSISTENT CHEMISTRY OUTPUT FREQUENCY SPECIFIED')
+        if ( ichsolver /= 0 ) then
+          if ( mod(nint(chemfrq*secph),nint(dtche)) /= 0 ) then
+            write (stderr,*) 'CHEMFRQ=' , chemfrq , ' DTCHE=', dtche
+            call fatal(__FILE__,__LINE__, &
+                       'INCONSISTENT CHEMISTRY OUTPUT FREQUENCY SPECIFIED')
+          end if
         end if
       end if
       if ( isladvec == 1 ) then

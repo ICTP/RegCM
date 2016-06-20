@@ -164,10 +164,14 @@ module mod_clm_cnvegstructupdate
         ! update the leaf area index based on leafC and SLA
         ! Eq 3 from Thornton and Zimmerman, 2007, J Clim, 20, 3902-3923.
         if ( dsladlai(ivt(p)) > 0._rk8 ) then
+          !tlai(p) = (slatop(ivt(p)) * &
+          !  (exp(leafc(p)*dsladlai(ivt(p))) - 1._rk8))/dsladlai(ivt(p))
           tlai(p) = (slatop(ivt(p)) * &
-            (exp(leafc(p)*dsladlai(ivt(p))) - 1._rk8))/dsladlai(ivt(p))
+            (exp(0.037_rk8*leafc(p)*dsladlai(ivt(p))) - &
+                     0.2_rk8))/dsladlai(ivt(p))
         else
-          tlai(p) = slatop(ivt(p)) * leafc(p)
+          !tlai(p) = slatop(ivt(p)) * leafc(p)
+          tlai(p) = 0.37_rk8 * slatop(ivt(p)) * leafc(p)
         end if
         tlai(p) = max(0._rk8, tlai(p))
 
