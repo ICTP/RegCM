@@ -41,7 +41,7 @@ module mod_advection
   real(rkx) , parameter :: uchu = upu/umax
 
   logical , parameter :: stability_enhance = .true.
-  logical , parameter :: vert_stability_enhance = .false.
+  logical , parameter :: vert_stability_enhance = .true.
   real(rkx) , parameter :: t_extrema = 5.0_rkx
   real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
   real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
