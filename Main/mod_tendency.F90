@@ -688,7 +688,7 @@ module mod_tendency
       else
         call hadv(aten%qx,atmx%qx,iqfrst,iqlst)
       end if
-      call vadv(aten%qx,atm1%qx,atms%qxb3d,iqfrst,iqlst,iqxvadv)
+      call vadv(aten%qx,atm1%qx,iqfrst,iqlst,iqxvadv)
     end if
     if ( ichem == 1 ) then
       !
@@ -706,7 +706,7 @@ module mod_tendency
         chiten0 = chiten
       end if
       if ( all(icup /= 1) ) then
-        call vadv(chiten,chia,atms%chib3d,1,ntr,itrvadv)
+        call vadv(chiten,chia,1,ntr,itrvadv)
       end if
       if ( ichdiag == 1 ) then
         cadvvdiag = cadvvdiag + (chiten - chiten0) * cfdout
