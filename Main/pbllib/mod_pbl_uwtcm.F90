@@ -204,15 +204,14 @@ module mod_pbl_uwtcm
       end do
     end if
 
-    ! Put the tracer tendencies in chiuwten
+    ! Put the tracer tendencies in chiten
     ! TODO: may want to calcuate rmdr here following holtbl
     if ( ichem == 1 ) then
       do n = 1 , ntr
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) + &
-                 chiuwten(j,i,k,n)
+              p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) + chiuwten(j,i,k,n)
             end do
           end do
         end do
@@ -393,7 +392,7 @@ module mod_pbl_uwtcm
           do itr = 1 , ntr
             chifxx(itr) = max(m2p%chifxuw(j,i,itr),d_zero)
             do k = 1 , kz
-              chix(k,itr) = m2p%chib(j,i,k,itr)
+              chix(k,itr) = m2p%chib(j,i,k,itr) + p2m%chiten(j,i,k,itr) * pfac
             end do
           end do
         end if
@@ -556,7 +555,7 @@ module mod_pbl_uwtcm
               cimp(k) = d_zero
             else
               cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k)) * &
-                kth(k+1)*dt*rdzq(k)*rdza(k+1)
+                    kth(k+1)*dt*rdzq(k)*rdza(k+1)
             end if
             bimp(k) = d_one - aimp(k) - cimp(k)
             ! now find right side for various scalars:
@@ -709,14 +708,13 @@ module mod_pbl_uwtcm
             if ( k == 1 ) then
               aimp(k) = d_zero
             else
-              aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*     &
-                          kth(k) * dt *rdzq(k)*rdza(k)
+              aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
             end if
             if ( k == kz ) then
               cimp(k) = d_zero
             else
               cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*   &
-                          kth(k+1) * dt *rdzq(k)*rdza(k+1)
+                         kth(k+1) * dt*rdzq(k)*rdza(k+1)
             end if
             bimp(k) = d_one - aimp(k) - cimp(k)
           end do
@@ -727,11 +725,11 @@ module mod_pbl_uwtcm
           ! the tracer value implied for the next timestep
           do itr = 1 , ntr
             ! set the right side
-            do k = 1 , kz
+            do k = 2 , kz
               rimp1(k) = chix(k,itr)
             end do
             ! at surface include surface momentum fluxes
-            rimp1(kz) = chix(kz,itr) + dt*chifxx(itr)*rrhoxhl(kz)*rdzq(kz)
+            rimp1(kz) = rimp1(kz) + dt*chifxx(itr)*rrhoxhl(kz)*rdzq(kz)
             ! no flux out top, so no (k == 1)
             rimp1(1) = d_zero
 

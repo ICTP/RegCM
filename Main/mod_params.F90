@@ -139,7 +139,7 @@ module mod_params
 
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
       ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
-      ichdiag , ichsursrc , ichebdy , rdstemfac, ichjphcld, ichbion,       &
+      ichdiag , ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion ,    &
       ismoke
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
@@ -1454,11 +1454,7 @@ module mod_params
     krad  = nradfrq/nint(dtsec)
     kche  = nchefrq/nint(dtsec)
     kdbg  = ndbgfrq/nint(dtsec)
-    if ( nsavfrq > 0 ) then
-      ksav = nsavfrq/nint(dtsec)
-    else
-      ksav = -1
-    end if
+    ksav  = nsavfrq/nint(dtsec)
 
     rnsrf_for_srffrq = d_one/(real(ksrf,rkx)*rtsrf)
     rnsrf_for_lakfrq = d_one/(real(klak,rkx)*rtsrf)
@@ -1571,7 +1567,14 @@ module mod_params
         write(stdout,*) 'Create CHE files : ' , ifchem
         write(stdout,*) 'Create OPT files : ' , ifopt
       end if
-      write(stdout,'(a,f6.1)') ' Frequency in hours to create SAV : ' , savfrq
+      if ( nsavfrq == 0 ) then
+        write(stdout,'(a,f6.1)') ' Monthly SAV files are written'
+      else if ( nsavfrq > 0 ) then
+        write(stdout,'(a,f6.1)') ' Frequency in hours to create SAV : ' , savfrq
+      else
+        write(stdout,'(a,f6.1)') ' Monthly SAV files are written'
+        write(stdout,'(a,f6.1)') ' Frequency in hours to create SAV : ' , savfrq
+      end if
       write(stdout,'(a,f6.1)') ' Frequency in hours to create ATM : ' , atmfrq
       write(stdout,'(a,f6.1)') ' Frequency in hours to create RAD : ' , radfrq
       write(stdout,'(a,f6.1)') ' Frequency in hours to create SRF : ' , srffrq

@@ -118,8 +118,8 @@ module mod_tendency
     ! Select advection scheme
     !
     iqvvadv = 1
-    itrvadv = 2
-    iqxvadv = 3
+    iqxvadv = 2
+    itrvadv = 3
     if ( ibltyp == 2 ) then
       if ( iuwvadv == 1 ) then
         iqvvadv = 4
@@ -677,11 +677,43 @@ module mod_tendency
       qen0 = aten%qx(:,:,:,iqv)
     end if
     if ( all(icup /= 1) ) then
-      call vadv(aten%qx,atm1%qx,kz,iqv,iqv,iqvvadv)
+      call vadv(aten%qx,atm1%qx,atms%qxb3d,kz,iqv,iqv,iqvvadv)
     end if
     if ( idiag > 0 ) then
       qdiag%adv = qdiag%adv + (aten%qx(:,:,:,iqv) - qen0) * afdout
       qen0 = aten%qx(:,:,:,iqv)
+    end if
+    if ( ipptls > 0 ) then
+      if ( isladvec == 1 ) then
+        call slhadv_x(aten%qx,atm2%qx,iqfrst,iqlst)
+        call hdvg_x(aten%qx,atm1%qx,iqfrst,iqlst)
+      else
+        call hadv(aten%qx,atmx%qx,iqfrst,iqlst)
+      end if
+      call vadv(aten%qx,atm1%qx,atms%qxb3d,kz,iqfrst,iqlst,iqxvadv)
+    end if
+    if ( ichem == 1 ) then
+      !
+      ! horizontal and vertical advection + diag
+      !
+      if ( ichdiag == 1 ) chiten0 = chiten
+      if ( isladvec == 1 ) then
+        call slhadv_x(chiten,chib)
+        call hdvg_x(chiten,chia)
+      else
+        call hadv(chiten,chi)
+      end if
+      if ( ichdiag == 1 ) then
+        cadvhdiag = cadvhdiag + (chiten - chiten0) * cfdout
+        chiten0 = chiten
+      end if
+      if ( all(icup /= 1) ) then
+        call vadv(chiten,chia,atms%chib3d,kz,1,ntr,itrvadv)
+      end if
+      if ( ichdiag == 1 ) then
+        cadvvdiag = cadvvdiag + (chiten - chiten0) * cfdout
+        chiten0 = chiten
+      end if
     end if
     !
     ! conv tracer diagnostic
@@ -728,13 +760,6 @@ module mod_tendency
     ! Large scale precipitation
     !
     if ( ipptls > 0 ) then
-      if ( isladvec == 1 ) then
-        call slhadv_x(aten%qx,atm2%qx,iqfrst,iqlst)
-        call hdvg_x(aten%qx,atm1%qx,iqfrst,iqlst)
-      else
-        call hadv(aten%qx,atmx%qx,iqfrst,iqlst)
-      end if
-      call vadv(aten%qx,atm1%qx,kz,iqfrst,iqlst,iqxvadv)
       !
       ! Clouds and large scale precipitation
       !
@@ -777,27 +802,7 @@ module mod_tendency
     ! Tracers tendencies
     !
     if ( ichem == 1 ) then
-      !
-      ! horizontal and vertical advection + diag
-      !
       if ( ichdiag == 1 ) chiten0 = chiten
-      if ( isladvec == 1 ) then
-        call slhadv_x(chiten,chib)
-        call hdvg_x(chiten,chia)
-      else
-        call hadv(chiten,chi)
-      end if
-      if ( ichdiag == 1 ) then
-        cadvhdiag = cadvhdiag + (chiten - chiten0) * cfdout
-        chiten0 = chiten
-      end if
-      if ( all(icup /= 1) ) then
-        call vadv(chiten,chia,kz,1,ntr,itrvadv)
-      end if
-      if ( ichdiag == 1 ) then
-        cadvvdiag = cadvvdiag + (chiten - chiten0) * cfdout
-        chiten0 = chiten
-      end if
       !
       ! horizontal diffusion: initialize scratch vars to 0.
       ! need to compute tracer tendencies due to diffusion

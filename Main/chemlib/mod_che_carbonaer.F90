@@ -68,7 +68,7 @@ module mod_che_carbonaer
   real(rkx) , parameter :: solsm2 = 0.8_rkx
 
 
-  public :: aging_carb , solbc , solbchl , soloc , solochl, solsm1,solsm2
+  public :: aging_carb , solbc , solbchl , soloc , solochl , solsm1 , solsm2
 
   ! bin size for carboneaceous aerosols
   ! ps add one dimension for sulfate too.

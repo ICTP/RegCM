@@ -832,7 +832,7 @@ module mod_advection
               do j = jci1 , jci2
                 if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - &
                      d_two*f(j,i,k,n)) / &
-                        max(f(j,i,k,n),dlowval) > t_rel_extrema ) then
+                        max(f(j,i,k,n),mintr) > t_rel_extrema ) then
                   if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
                        (f(j,i,k,n) > f(j,i-1,k,n)) ) then
                     fg(j,i,k) = min(fg(j,i,k),d_zero)
@@ -843,7 +843,7 @@ module mod_advection
                 end if
                 if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - &
                      d_two*f(j,i,k,n)) / &
-                        max(f(j,i,k,n),dlowval) > t_rel_extrema ) then
+                        max(f(j,i,k,n),mintr) > t_rel_extrema ) then
                   if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
                        (f(j,i,k,n) > f(j-1,i,k,n)) ) then
                     fg(j,i,k) = min(fg(j,i,k),d_zero)
@@ -1018,8 +1018,7 @@ module mod_advection
         end do
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ften(j,i,nk) = ften(j,i,nk) + &
-                   svv(j,i,nk)*fg(j,i,nk)*xds(nk)
+            ften(j,i,nk) = ften(j,i,nk) + svv(j,i,nk)*fg(j,i,nk)*xds(nk)
           end do
         end do
       end if
@@ -1037,10 +1036,10 @@ module mod_advection
     !           3 : for hydometeors
     !           4 : use pbl information
     !
-    subroutine vadv4d(ften,f,nk,n1,n2,ind)
+    subroutine vadv4d(ften,fp,f,nk,n1,n2,ind)
       implicit none
       integer(ik4) , intent(in) :: ind , nk , n1 , n2
-      real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: fp , f
       real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
       real(rkx) :: slope , f1 , f2
@@ -1056,37 +1055,129 @@ module mod_advection
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                f1 = max(f(j,i,k,n),minqq*ps(j,i))
-                f2 = max(f(j,i,k-1,n),minqq*ps(j,i))
-                fg(j,i,k) = f1*(f2/f1)**qcon(k)
+                if ( f(j,i,k,n) > minqq .and. f(j,i,k-1,n) > minqq ) then
+                  f1 = fp(j,i,k,n)
+                  f2 = fp(j,i,k-1,n)
+                  fg(j,i,k) = f1*(f2/f1)**qcon(k)
+                end if
               end do
             end do
           end do
+          if ( stability_enhance ) then
+            do k = 2 , nk-1
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n) - &
+                           d_two*f(j,i,k,n))/f(j,i,k,n) > q_rel_extrema ) then
+                    if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
+                         f(j,i,k,n) > f(j,i,k-1,n) ) then
+                      fg(j,i,k) = min(fg(j,i,k),d_zero)
+                    else if ( f(j,i,k,n) < f(j,i,k+1,n) .and. &
+                              f(j,i,k,n) < f(j,i,k-1,n) ) then
+                      fg(j,i,k) = max(fg(j,i,k),d_zero)
+                    end if
+                  end if
+                end do
+              end do
+            end do
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( d_two*abs(f(j,i,nk-1,n) - &
+                       f(j,i,nk,n))/f(j,i,nk,n) > q_rel_extrema ) then
+                  if ( f(j,i,nk,n) > f(j,i,nk-1,n) ) then
+                    fg(j,i,nk) = min(fg(j,i,nk),d_zero)
+                  else if ( f(j,i,nk,n) < f(j,i,nk-1,n) ) then
+                    fg(j,i,nk) = max(fg(j,i,nk),d_zero)
+                  end if
+                end if
+              end do
+            end do
+          end if
         else if ( ind == 2 ) then
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                f1 = max(f(j,i,k,n),mintr)
-                f2 = max(f(j,i,k-1,n),mintr)
-                fg(j,i,k) = twt(k,1)*f1 + twt(k,2)*f2
+                if ( fp(j,i,k,n) > minqx .and. fp(j,i,k-1,n) > minqx ) then
+                  fg(j,i,k) = twt(k,1)*fp(j,i,k,n) + twt(k,2)*fp(j,i,k-1,n)
+                end if
               end do
             end do
           end do
+          if ( stability_enhance ) then
+            do k = 2 , nk-1
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n) - &
+                           d_two*f(j,i,k,n))/f(j,i,k,n) > c_rel_extrema ) then
+                    if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
+                         f(j,i,k,n) > f(j,i,k-1,n) ) then
+                      fg(j,i,k) = min(fg(j,i,k),d_zero)
+                    else if ( f(j,i,k,n) < f(j,i,k+1,n) .and. &
+                              f(j,i,k,n) < f(j,i,k-1,n) ) then
+                      fg(j,i,k) = max(fg(j,i,k),d_zero)
+                    end if
+                  end if
+                end do
+              end do
+            end do
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( d_two*abs(f(j,i,nk-1,n) - &
+                       f(j,i,nk,n))/f(j,i,nk,n) > c_rel_extrema ) then
+                  if ( f(j,i,nk,n) > f(j,i,nk-1,n) ) then
+                    fg(j,i,nk) = min(fg(j,i,nk),d_zero)
+                  else if ( f(j,i,nk,n) < f(j,i,nk-1,n) ) then
+                    fg(j,i,nk) = max(fg(j,i,nk),d_zero)
+                  end if
+                end if
+              end do
+            end do
+          end if
         else if ( ind == 3 ) then
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                f1 = max(f(j,i,k,n),minqx)
-                f2 = max(f(j,i,k-1,n),minqx)
-                fg(j,i,k) = twt(k,1)*f1 + twt(k,2)*f2
+                if ( fp(j,i,k,n) > mintr .and. fp(j,i,k-1,n) > mintr ) then
+                  fg(j,i,k) = twt(k,1)*fp(j,i,k,n) + twt(k,2)*fp(j,i,k-1,n)
+                end if
               end do
             end do
           end do
+          if ( stability_enhance ) then
+            do k = 2 , nk-1
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n) - &
+                           d_two*f(j,i,k,n))/f(j,i,k,n) > t_rel_extrema ) then
+                    if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
+                         f(j,i,k,n) > f(j,i,k-1,n) ) then
+                      fg(j,i,k) = min(fg(j,i,k),d_zero)
+                    else if ( f(j,i,k,n) < f(j,i,k+1,n) .and. &
+                              f(j,i,k,n) < f(j,i,k-1,n) ) then
+                      fg(j,i,k) = max(fg(j,i,k),d_zero)
+                    end if
+                  end if
+                end do
+              end do
+            end do
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( d_two*abs(f(j,i,nk-1,n) - &
+                       f(j,i,nk,n))/f(j,i,nk,n) > t_rel_extrema ) then
+                  if ( f(j,i,nk,n) > f(j,i,nk-1,n) ) then
+                    fg(j,i,nk) = min(fg(j,i,nk),d_zero)
+                  else if ( f(j,i,nk,n) < f(j,i,nk-1,n) ) then
+                    fg(j,i,nk) = max(fg(j,i,nk),d_zero)
+                  end if
+                end if
+              end do
+            end do
+          end if
         else if ( ind == 4 ) then
           do k = 2 , nk
             do i = ici1 , ici2
               do j = jci1 , jci2
-                fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
+                fg(j,i,k) = twt(k,1)*fp(j,i,k,n) + twt(k,2)*fp(j,i,k-1,n)
               end do
             end do
           end do
@@ -1114,35 +1205,24 @@ module mod_advection
                 ! Replace the values of scalar at top and bottom of ambiguous
                 ! layer as long as inversion is actually in the ambiguous layer
                 k = kpb(j,i)
-                fg(j,i,k-1) = f(j,i,k-2,n) + slope*(sigma(k-1)-hsigma(k-2))
+                fg(j,i,k-1) = fp(j,i,k-2,n) + slope*(sigma(k-1)-hsigma(k-2))
                 if (abs(f(j,i,k-2,n) + &
                         slope*(hsigma(k-1)-hsigma(k-2))-f(j,i,k,n)) > &
                     abs(f(j,i,k-1,n)-f(j,i,k,n)) ) then
-                  fg(j,i,k) = f(j,i,k,n)
+                  fg(j,i,k) = fp(j,i,k,n)
                 else
-                  fg(j,i,k) = f(j,i,k-2,n) + slope*(sigma(k)-hsigma(k-2))
+                  fg(j,i,k) = fp(j,i,k-2,n) + slope*(sigma(k)-hsigma(k-2))
                 end if
               end if
             end do
           end do
         end if
-        do k = 2 , nk-1
+        do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               ften(j,i,k-1,n) = ften(j,i,k-1,n)-svv(j,i,k)*fg(j,i,k)*xds(k-1)
               ften(j,i,k,n)   = ften(j,i,k,n)  +svv(j,i,k)*fg(j,i,k)*xds(k)
             end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( svv(j,i,nk) > d_zero ) then
-              ften(j,i,nk-1,n) = ften(j,i,nk-1,n) - &
-                                  svv(j,i,nk)*fg(j,i,nk)*xds(nk-1)
-            else
-              ften(j,i,nk,n)   = ften(j,i,nk,n) +   &
-                                  svv(j,i,nk)*fg(j,i,nk)*xds(nk)
-            end if
           end do
         end do
       end do

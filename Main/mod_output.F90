@@ -123,9 +123,16 @@ module mod_output
           ldosav = .true.
         end if
       else
-        if ( ( ktau == mtau ) .or. &
-             (lfdomonth(idatex) .and. lmidnight(idatex)) ) then
-          ldosav = .true.
+        if ( ksav == 0 ) then
+          if ( ( ktau == mtau ) .or. &
+               (lfdomonth(idatex) .and. lmidnight(idatex)) ) then
+            ldosav = .true.
+          end if
+        else if ( ksav < 0 ) then
+          if ( ktau == mtau .or. mod(ktau,-ksav) == 0 .or. &
+               (lfdomonth(idatex) .and. lmidnight(idatex)) ) then
+            ldosav = .true.
+          end if
         end if
       end if
       if ( mod(ktau,katm) == 0 ) then

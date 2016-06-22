@@ -27,7 +27,7 @@ module mod_cu_em
   use mod_memutil
   use mod_runparams , only : alphae , betae , coeffr , coeffs , cu ,  &
     damp , dtmax , entp , minorig , omtrain , omtsnow , sigd , sigs , &
-    tlcrit , iqv , ichem , dxsq , clfrcv
+    tlcrit , iqv , ichem , dxsq , clfrcv , rdt
   use mod_cu_common
   use mod_service
   use mod_regcm_types
@@ -51,7 +51,7 @@ module mod_cu_em
   real(rkx) , pointer , dimension(:) :: cbmf , pret , qprime , &
     tprime , wd , elcrit , epmax
   real(rkx) , pointer , dimension(:,:) :: fq , ft , fu , fv , pcup , &
-    qcup , qscup , tcup , ucup , vcup , cldfra , phcup
+    qcup , qscup , tcup , ucup , vcup , cldfra , phcup , ppcp
   real(rkx) , pointer , dimension(:,:,:) :: ftra , tra
   integer(ik4) , pointer , dimension(:) :: iflag , kbase , ktop , &
     imap , jmap
@@ -94,6 +94,7 @@ module mod_cu_em
     call getmem2d(ucup,1,ncp,1,kz,'emanuel:ucup')
     call getmem2d(vcup,1,ncp,1,kz,'emanuel:vcup')
     call getmem2d(cldfra,1,ncp,1,kz,'emanuel:cldfra')
+    call getmem2d(ppcp,1,ncp,1,kz,'emanuel:ppcp')
     if ( ichem == 1 ) then
       call getmem3d(ftra,1,ncp,1,kz,1,ntr,'emanuel:ftra')
       call getmem3d(tra,1,ncp,1,kz,1,ntr,'emanuel:tra')
@@ -151,7 +152,7 @@ module mod_cu_em
         cldfra(n,k) = d_zero
       end do
       if (ichem == 1 ) then
-        do k=1, kz
+        do k = 1 , kz
           kk = kzp1 - k
           tra(n,k,:) = m2c%chias(j,i,kk,:)   ! [kg/kg]
           ftra(n,k,:) = d_zero
@@ -164,6 +165,7 @@ module mod_cu_em
       elcrit(n) = elcrit2d(j,i)
       epmax(n) = epmax2d(j,i)
       pret(n) = d_zero
+      ppcp(n,:) = d_zero
       tprime(n) = d_zero
       qprime(n) = d_zero
       iflag(n) = 0
@@ -174,8 +176,8 @@ module mod_cu_em
     end do
 
     call cupeman(nap,kz,ntr,tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup, &
-                 iflag,ft,fq,fu,fv,ftra,pret,wd,tprime,qprime,cbmf,   &
-                 cldfra,kbase,ktop,elcrit,epmax)
+                 iflag,ft,fq,fu,fv,ftra,pret,ppcp,wd,tprime,qprime,   &
+                 cbmf,cldfra,kbase,ktop,elcrit,epmax)
 
     do n = 1 , nap
       i = imap(n)
@@ -212,12 +214,13 @@ module mod_cu_em
         if (ichem == 1 ) then
           do k = 1 , kz
             kk = kzp1 - k
-            cu_chiten(j,i,k,:) = ftra(n,kk,:)
+            cu_chiten(j,i,kk,:) = ftra(n,k,:)
           end do
           ! Build for chemistry 3d table of constant precipitation rate
           ! from the surface to the top of the convection
           do k = 1 , ktop(n)-1
-            cu_convpr(j,i,kzp1-k) = pret(n)
+            kk = kzp1 - k
+            cu_convpr(j,i,kk) = ppcp(n,k)
           end do
         end if
 
@@ -374,9 +377,9 @@ module mod_cu_em
 !   8. Cloud fraction computation from massflux has been added.
 !   9. Remove dry adiabatic adjustment: regcm has a pbl scheme.
 !
-  subroutine cupeman(np,nd,ntra,t,q,qs,u,v,tra,p,ph,iflag,ft,fq,fu,fv, &
-                     ftra,precip,wd,tprime,qprime,cbmf,cldfra,kcb,kct, &
-                     elcrit,epmax)
+  subroutine cupeman(np,nd,ntra,t,q,qs,u,v,tra,p,ph,iflag,ft,fq,fu,fv,  &
+                     ftra,precip,ppcp,wd,tprime,qprime,cbmf,cldfra,kcb, &
+                     kct,elcrit,epmax)
     implicit none
     integer , intent(in) :: np , nd , ntra
     real(rkx) , pointer , dimension(:) , intent(inout) :: cbmf
@@ -388,7 +391,7 @@ module mod_cu_em
     real(rkx) , pointer , dimension(:) , intent(out) :: qprime , tprime , wd
     integer(ik4) , pointer , dimension(:) , intent(out) :: iflag , kcb , kct
     real(rkx) , pointer , dimension(:,:) , intent(out) :: fq , ft , fu , fv
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: cldfra
+    real(rkx) , pointer , dimension(:,:) , intent(out) :: cldfra , ppcp
     real(rkx) , pointer , dimension(:,:,:) , intent(out) :: ftra
 
     real(rkx) :: ad , afac , ahmax , ahmin , alt , altem , am , amp1 ,   &
@@ -854,6 +857,7 @@ module mod_cu_em
           revap = d_half*(-b6+sqrt(b6*b6+d_four*c6))
           evap(i) = sigt*afac*revap
           water(i) = revap*revap
+          ppcp(n,i) = wt(i)*sigd*water(i)*regrav ! mm/s
           !
           ! Calculate precipitating downdraft mass flux under
           ! hydrostatic approximation

@@ -55,7 +55,6 @@ module mod_cu_common
   integer(ik4) , pointer , dimension(:,:) :: cu_kbot
 
   real(rkx) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
-  real(rkx) :: rdt
 
   integer(ik4) , pointer , dimension(:,:) :: cuscheme ! which scheme to use
   integer(ik4) :: total_precip_points
@@ -74,8 +73,6 @@ module mod_cu_common
     integer(ik4) , dimension(:) , allocatable:: iseed
     integer :: k , nseed
     real(rk4) :: cputime
-
-    rdt = d_one / dt
 
     call getmem3d(cu_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:tten')
     call getmem3d(avg_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_tten')

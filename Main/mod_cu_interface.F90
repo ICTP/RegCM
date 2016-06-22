@@ -366,7 +366,7 @@ module mod_cu_interface
             do i = ici1 , ici2
               do j = jci1 , jci2
                 c2m%chiten(j,i,k,n) = c2m%chiten(j,i,k,n) + &
-                    cu_chiten(j,i,k,n) * m2c%psb(j,i)
+                                 cu_chiten(j,i,k,n) * m2c%psb(j,i)
               end do
             end do
           end do

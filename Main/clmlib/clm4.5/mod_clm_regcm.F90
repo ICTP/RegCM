@@ -160,10 +160,20 @@ module mod_clm_regcm
             end if
           end if
         else
-          ! End of the month
-          if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
-            nlomon = .true.
-            rstwr = .true.
+          if ( ksav == 0 ) then
+            if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
+              ! End of the month
+              nlomon = .true.
+              rstwr = .true.
+            end if
+          else
+            if ( mod(ktau+1,-ksav) == 0 .or. &
+                 (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
+              rstwr = .true.
+              if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
+                nlomon = .true.
+              end if
+            end if
           end if
         end if
       end if
