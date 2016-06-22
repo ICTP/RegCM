@@ -63,7 +63,7 @@ module mod_tendency
   real(rkx) , pointer , dimension(:,:) :: rpsda
 
   integer :: ithadv = 1
-  integer(ik4) :: iqvvadv , iqxvadv , itrvadv
+  integer(ik4) :: iqxvadv , itrvadv
 #ifdef DEBUG
   real(rkx) , pointer , dimension(:,:,:) :: wten
 #endif
@@ -117,14 +117,12 @@ module mod_tendency
     ! Set number of ghost points for advection for the two schemes
     ! Select advection scheme
     !
-    iqvvadv = 1
-    iqxvadv = 2
-    itrvadv = 3
+    iqxvadv = 1
+    itrvadv = 2
     if ( ibltyp == 2 ) then
       if ( iuwvadv == 1 ) then
-        iqvvadv = 4
-        itrvadv = 4
-        iqxvadv = 4
+        itrvadv = 3
+        iqxvadv = 3
       end if
     end if
   end subroutine allocate_mod_tend
@@ -677,7 +675,7 @@ module mod_tendency
       qen0 = aten%qx(:,:,:,iqv)
     end if
     if ( all(icup /= 1) ) then
-      call vadv(aten%qx,atm1%qx,atms%qxb3d,kz,iqv,iqv,iqvvadv)
+      call vadv(aten%qx,atm1%qx,iqv)
     end if
     if ( idiag > 0 ) then
       qdiag%adv = qdiag%adv + (aten%qx(:,:,:,iqv) - qen0) * afdout
@@ -690,7 +688,7 @@ module mod_tendency
       else
         call hadv(aten%qx,atmx%qx,iqfrst,iqlst)
       end if
-      call vadv(aten%qx,atm1%qx,atms%qxb3d,kz,iqfrst,iqlst,iqxvadv)
+      call vadv(aten%qx,atm1%qx,atms%qxb3d,iqfrst,iqlst,iqxvadv)
     end if
     if ( ichem == 1 ) then
       !
@@ -708,7 +706,7 @@ module mod_tendency
         chiten0 = chiten
       end if
       if ( all(icup /= 1) ) then
-        call vadv(chiten,chia,atms%chib3d,kz,1,ntr,itrvadv)
+        call vadv(chiten,chia,atms%chib3d,1,ntr,itrvadv)
       end if
       if ( ichdiag == 1 ) then
         cadvvdiag = cadvvdiag + (chiten - chiten0) * cfdout

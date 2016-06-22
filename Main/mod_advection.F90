@@ -41,6 +41,7 @@ module mod_advection
   real(rkx) , parameter :: uchu = upu/umax
 
   logical , parameter :: stability_enhance = .true.
+  logical , parameter :: vert_stability_enhance = .false.
   real(rkx) , parameter :: t_extrema = 5.0_rkx
   real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
   real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
@@ -58,6 +59,7 @@ module mod_advection
   interface vadv
     module procedure vadvuv
     module procedure vadv3d
+    module procedure vadvqx
     module procedure vadv4d
   end interface vadv
 
@@ -1026,6 +1028,45 @@ module mod_advection
       call time_end(subroutine_name,idindx)
 #endif
     end subroutine vadv3d
+
+    subroutine vadvqx(ften,f,n)
+      implicit none
+      integer , intent(in) :: n
+      real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
+      real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
+
+      real(rkx) :: slope , f1 , f2
+      integer(ik4) :: i , j , k
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'vadvqx'
+      integer(ik4) , save :: idindx = 0
+      call time_begin(subroutine_name,idindx)
+#endif
+      fg(:,:,:) = d_zero
+      do k = 2 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( f(j,i,k,n)/ps(j,i) > minqq .and. &
+                 f(j,i,k-1,n)/ps(j,i) > minqq ) then
+              f1 = f(j,i,k,n)
+              f2 = f(j,i,k-1,n)
+              fg(j,i,k) = f1*(f2/f1)**qcon(k)
+            end if
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ften(j,i,k-1,n) = ften(j,i,k-1,n)-svv(j,i,k)*fg(j,i,k)*xds(k-1)
+            ften(j,i,k,n)   = ften(j,i,k,n)  +svv(j,i,k)*fg(j,i,k)*xds(k)
+          end do
+        end do
+      end do
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+    end subroutine vadvqx
     !
     ! VADV
     !     This subroutine computes the vertical flux-divergence terms.
@@ -1036,9 +1077,9 @@ module mod_advection
     !           3 : for hydometeors
     !           4 : use pbl information
     !
-    subroutine vadv4d(ften,fp,f,nk,n1,n2,ind)
+    subroutine vadv4d(ften,fp,f,n1,n2,ind)
       implicit none
-      integer(ik4) , intent(in) :: ind , nk , n1 , n2
+      integer(ik4) , intent(in) :: ind , n1 , n2
       real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: fp , f
       real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
@@ -1052,49 +1093,7 @@ module mod_advection
       do n = n1 , n2
         fg(:,:,:) = d_zero
         if ( ind == 1 ) then
-          do k = 2 , nk
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( f(j,i,k,n) > minqq .and. f(j,i,k-1,n) > minqq ) then
-                  f1 = fp(j,i,k,n)
-                  f2 = fp(j,i,k-1,n)
-                  fg(j,i,k) = f1*(f2/f1)**qcon(k)
-                end if
-              end do
-            end do
-          end do
-          if ( stability_enhance ) then
-            do k = 2 , nk-1
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n) - &
-                           d_two*f(j,i,k,n))/f(j,i,k,n) > q_rel_extrema ) then
-                    if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
-                         f(j,i,k,n) > f(j,i,k-1,n) ) then
-                      fg(j,i,k) = min(fg(j,i,k),d_zero)
-                    else if ( f(j,i,k,n) < f(j,i,k+1,n) .and. &
-                              f(j,i,k,n) < f(j,i,k-1,n) ) then
-                      fg(j,i,k) = max(fg(j,i,k),d_zero)
-                    end if
-                  end if
-                end do
-              end do
-            end do
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( d_two*abs(f(j,i,nk-1,n) - &
-                       f(j,i,nk,n))/f(j,i,nk,n) > q_rel_extrema ) then
-                  if ( f(j,i,nk,n) > f(j,i,nk-1,n) ) then
-                    fg(j,i,nk) = min(fg(j,i,nk),d_zero)
-                  else if ( f(j,i,nk,n) < f(j,i,nk-1,n) ) then
-                    fg(j,i,nk) = max(fg(j,i,nk),d_zero)
-                  end if
-                end if
-              end do
-            end do
-          end if
-        else if ( ind == 2 ) then
-          do k = 2 , nk
+          do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( fp(j,i,k,n) > minqx .and. fp(j,i,k-1,n) > minqx ) then
@@ -1103,8 +1102,8 @@ module mod_advection
               end do
             end do
           end do
-          if ( stability_enhance ) then
-            do k = 2 , nk-1
+          if ( vert_stability_enhance ) then
+            do k = 2 , kz-1
               do i = ici1 , ici2
                 do j = jci1 , jci2
                   if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n) - &
@@ -1122,19 +1121,19 @@ module mod_advection
             end do
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( d_two*abs(f(j,i,nk-1,n) - &
-                       f(j,i,nk,n))/f(j,i,nk,n) > c_rel_extrema ) then
-                  if ( f(j,i,nk,n) > f(j,i,nk-1,n) ) then
-                    fg(j,i,nk) = min(fg(j,i,nk),d_zero)
-                  else if ( f(j,i,nk,n) < f(j,i,nk-1,n) ) then
-                    fg(j,i,nk) = max(fg(j,i,nk),d_zero)
+                if ( d_two*abs(f(j,i,kz-1,n) - &
+                       f(j,i,kz,n))/f(j,i,kz,n) > c_rel_extrema ) then
+                  if ( f(j,i,kz,n) > f(j,i,kz-1,n) ) then
+                    fg(j,i,kz) = min(fg(j,i,kz),d_zero)
+                  else if ( f(j,i,kz,n) < f(j,i,kz-1,n) ) then
+                    fg(j,i,kz) = max(fg(j,i,kz),d_zero)
                   end if
                 end if
               end do
             end do
           end if
-        else if ( ind == 3 ) then
-          do k = 2 , nk
+        else if ( ind == 2 ) then
+          do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( fp(j,i,k,n) > mintr .and. fp(j,i,k-1,n) > mintr ) then
@@ -1143,8 +1142,8 @@ module mod_advection
               end do
             end do
           end do
-          if ( stability_enhance ) then
-            do k = 2 , nk-1
+          if ( vert_stability_enhance ) then
+            do k = 2 , kz-1
               do i = ici1 , ici2
                 do j = jci1 , jci2
                   if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n) - &
@@ -1162,19 +1161,19 @@ module mod_advection
             end do
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( d_two*abs(f(j,i,nk-1,n) - &
-                       f(j,i,nk,n))/f(j,i,nk,n) > t_rel_extrema ) then
-                  if ( f(j,i,nk,n) > f(j,i,nk-1,n) ) then
-                    fg(j,i,nk) = min(fg(j,i,nk),d_zero)
-                  else if ( f(j,i,nk,n) < f(j,i,nk-1,n) ) then
-                    fg(j,i,nk) = max(fg(j,i,nk),d_zero)
+                if ( d_two*abs(f(j,i,kz-1,n) - &
+                       f(j,i,kz,n))/f(j,i,kz,n) > t_rel_extrema ) then
+                  if ( f(j,i,kz,n) > f(j,i,kz-1,n) ) then
+                    fg(j,i,kz) = min(fg(j,i,kz),d_zero)
+                  else if ( f(j,i,kz,n) < f(j,i,kz-1,n) ) then
+                    fg(j,i,kz) = max(fg(j,i,kz),d_zero)
                   end if
                 end if
               end do
             end do
           end if
-        else if ( ind == 4 ) then
-          do k = 2 , nk
+        else if ( ind == 3 ) then
+          do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
                 fg(j,i,k) = twt(k,1)*fp(j,i,k,n) + twt(k,2)*fp(j,i,k-1,n)
@@ -1183,8 +1182,8 @@ module mod_advection
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              if ( kpb(j,i) > nk ) then
-                call fatal(__FILE__,__LINE__,'kpbl is greater than nk')
+              if ( kpb(j,i) > kz ) then
+                call fatal(__FILE__,__LINE__,'kpbl is greater than kz')
               end if
               if ( kpb(j,i) >= 4 ) then
                 ! Calculate slope of scalar in layer above ambiguous layer
@@ -1217,7 +1216,7 @@ module mod_advection
             end do
           end do
         end if
-        do k = 1 , nk
+        do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
               ften(j,i,k-1,n) = ften(j,i,k-1,n)-svv(j,i,k)*fg(j,i,k)*xds(k-1)
