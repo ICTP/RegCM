@@ -964,65 +964,6 @@ module mod_advection
             end do
           end do
         end if
-      else if ( ind == 2 ) then
-        fg(:,:,1) = d_zero
-        do k = 2 , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              fg(j,i,k)= twt(k,1)*f(j,i,k) + twt(k,2)*f(j,i,k-1)
-            end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( kpb(j,i) > nk ) then
-              call fatal(__FILE__,__LINE__,'kpbl is greater than nk')
-            end if
-            if ( kpb(j,i) >= 4 ) then
-              ! Calculate slope of scalar in layer above ambiguous layer
-              k = kpb(j,i)-2
-              if ( (f(j,i,k+1)-f(j,i,k)) > d_zero .and. &
-                   (f(j,i,k)-f(j,i,k-1)) > d_zero ) then
-                slope = min((f(j,i,k+1)-f(j,i,k))/(hsigma(k+1)-hsigma(k)), &
-                            (f(j,i,k)-f(j,i,k-1))/(hsigma(k)-hsigma(k-1)))
-              else if ( (f(j,i,k+1)-f(j,i,k)) < d_zero .and. &
-                        (f(j,i,k)-f(j,i,k-1)) < d_zero ) then
-                slope = max((f(j,i,k+1)-f(j,i,k))/(hsigma(k+1)-hsigma(k)), &
-                            (f(j,i,k)-f(j,i,k-1))/(hsigma(k)-hsigma(k-1)))
-              else
-                slope = d_zero
-              end if
-              ! Replace the values of scalar at top and bottom of ambiguous
-              ! layer as long as inversion is actually in the ambiguous layer
-              k = kpb(j,i)
-              fg(j,i,k-1) = f(j,i,k-2) + slope*(sigma(k-1)-hsigma(k-2))
-              if (abs(f(j,i,k-2)+slope*(hsigma(k-1)-hsigma(k-2))-f(j,i,k)) > &
-                  abs(f(j,i,k-1)-f(j,i,k)) ) then
-                fg(j,i,k) = f(j,i,k)
-              else
-                fg(j,i,k) = f(j,i,k-2) + slope*(sigma(k)-hsigma(k-2))
-              end if
-            end if
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,1) = ften(j,i,1) - svv(j,i,2)*fg(j,i,2)*xds(1)
-          end do
-        end do
-        do k = 2 , nk-1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,k) = ften(j,i,k) - &
-                  (svv(j,i,k+1)*fg(j,i,k+1)-svv(j,i,k)*fg(j,i,k))*xds(k)
-            end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,nk) = ften(j,i,nk) + svv(j,i,nk)*fg(j,i,nk)*xds(nk)
-          end do
-        end do
       end if
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
