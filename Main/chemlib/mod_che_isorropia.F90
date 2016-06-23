@@ -16877,8 +16877,11 @@ module mod_che_isorropia
     real(rkx) :: a1 , a2 , a3 , coef , d , eps , expon , pi , q , r , &
          root , s , sqd , ssig , t , thet , thet1 , thet2 , tsig , zero
     integer(ik4) :: i , islv , ix
-    parameter (expon = 1._rkx/3._rkx,zero = 0._rkx,thet1 = 120._rkx/180._rkx,       &
-               thet2 = 240._rkx/180._rkx,pi = 3.14159265358932,eps = 1e-50_rkx)
+    parameter (expon = 1._rkx/3._rkx,zero = 0._rkx, &
+               thet1 = 120._rkx/180._rkx,       &
+               thet2 = 240._rkx/180._rkx, &
+               pi = 3.14159265358932, &
+               eps = epsilon(1.0_rkx))
     real(rkx) x(3)
 !
 ! *** special case : quadratic*x equation *****************************
