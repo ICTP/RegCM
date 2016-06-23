@@ -57,7 +57,7 @@ module mod_constants
   real(rkx) , parameter :: minww   = 1.0e-7_rkx
   real(rkx) , parameter :: minqq   = 1.0e-8_rkx
   real(rkx) , parameter :: minqx   = 1.0e-16_rkx
-  real(rkx) , parameter :: mintr   = 1.0e-18_rkx
+  real(rkx) , parameter :: mintr   = 1.0e-16_rkx
 
   ! Low/Hi values
   real(rkx) , parameter :: dlowval = 1.0e-24_rkx

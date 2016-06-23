@@ -90,7 +90,6 @@ module mod_pbl_uwtcm
   real(rkx) , parameter :: xfr = 0.1_rkx
   ! see gb01 regarding the next three lines, atwo and rstbl can be tweaked
   real(rkx) , parameter :: aone = 1.9_rkx*xfr
-  ! b1/2**(3/2) from Mellor and Yamada (1982)
   real(rkx) , parameter :: rcrit = 0.3_rkx
   real(rkx) , parameter :: etal =  0.085_rkx
   real(rkx) , parameter :: minn2 =  1.0e-7_rkx
@@ -395,6 +394,7 @@ module mod_pbl_uwtcm
               chix(k,itr) = m2p%chib(j,i,k,itr) + p2m%chiten(j,i,k,itr) * pfac
             end do
           end do
+          where ( chix < mintr ) chix = mintr
         end if
 
         ! Set all the save variables (used for determining the tendencies)
@@ -533,7 +533,7 @@ module mod_pbl_uwtcm
         ! diffusivity profiles using the updated values, and re-integrate.
         ! Also update N^2 along the way.
         melloryamadaiteration: &
-        do iteration = 0 , 1
+        do iteration = 1 , 2
           !*************************************************************
           !***** Semi-implicit calculation of diffusivity profiles *****
           !*************************************************************
@@ -598,11 +598,7 @@ module mod_pbl_uwtcm
             temps = temps + deltat
             rvls = ep2/(preshl(k)/pfesat(temps)-d_one)
           end do
-          if ( ipptls == 2 ) then
-            qcx(k) = min(1.0e-3_rkx,max(qwx(k)-rvls, minqx))
-          else
-            qcx(k) = max(qwx(k)-rvls, minqx)
-          end if
+          qcx(k) = min(qcxs(k)+d_half*qcxs(k),max(qwx(k)-rvls, minqx))
           qx(k) = max(qwx(k) - qcx(k), minqq)
           qcx(k) = max(qwx(k) - qx(k), d_zero)
           thx(k) = (templ + qcx(k)*wlhvocp) *rexnerhl(k)
@@ -678,7 +674,9 @@ module mod_pbl_uwtcm
             bimp(k) = d_one - aimp(k) - cimp(k)
             rimp1(k) = qix(k)
           end do
+          rimp1(:) = rimp1(:)*d_1000
           call solve_tridiag(aimp,bimp,cimp,rimp1,qix,kz)
+          qix(:) = qix(:)*d_r1000
         end if
 !
 !       !Re-update N^2 at the surface; this requires recalculation
@@ -734,7 +732,9 @@ module mod_pbl_uwtcm
             rimp1(1) = d_zero
 
             !Run the tridiagonal solver
+            rimp1(:) = rimp1(:) * d_1000
             call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
+            uimp1(:) = uimp1(:) * d_r1000
 
             !Get the chi value implied for the next timestep
             do k = 1 , kz
@@ -776,7 +776,7 @@ module mod_pbl_uwtcm
         ! tke at top is fixed
         tke(1) = d_zero
         ! diagnose tke at surface, following my 82, b1 ** (2/3) / 2 = 3.25
-        tke(kzp1) = 3.25_rkx * ustxsq ! normal
+        tke(kzp1) = czero**(d_two/d_three) * ustxsq ! normal
 
         ! now the implicit calculations
         ! first find the coefficients that apply for full levels
@@ -887,22 +887,21 @@ module mod_pbl_uwtcm
       integer(ik4) , intent(in) :: n
       real(rkx) , dimension(n) , intent(in) :: a , b , c , v
       real(rkx) , dimension(n) , intent(out) :: x
-      real(rkx) , dimension(n) :: bp , vp
-      real(rkx) :: m
+      real(rkx) , dimension(2:n) :: gam
+      real(rkx) :: rbet
       integer(ik4) :: i
 
-      bp(1) = b(1)
-      vp(1) = v(1)
+      rbet = d_one/b(1)
+      x(1) = v(1)*rbet
       ! The first pass (setting coefficients):
       do i = 2 , n
-        m = a(i)/bp(i-1)
-        bp(i) = b(i) - m*c(i-1)
-        vp(i) = v(i) - m*vp(i-1)
+        gam(i) = c(i-1)*rbet
+        rbet = d_one/(b(i)-a(i)*gam(i))
+        x(i) = (v(i)-a(i)*x(i-1))*rbet
       end do
-      x(n) = vp(n)/bp(n)
       ! The second pass (back-substition)
       do i = n-1, 1, -1
-        x(i) = (vp(i) - c(i)*x(i+1))/bp(i)
+        x(i) = x(i)-gam(i+1)*x(i+1)
       end do
     end subroutine solve_tridiag
 
@@ -947,12 +946,13 @@ module mod_pbl_uwtcm
     subroutine melloryamada(ktmax,kpbconv)
       implicit none
       integer(ik4) , intent(in) :: ktmax , kpbconv
-      real(rkx) :: gh , a1ob1 , delthvl , elambda , bige , biga
-      real(rkx) , parameter :: a1 = 0.92_rkx , b1 = 16.6_rkx , c1 = 0.08_rkx , &
+      real(rkx) :: b1 , gh , a1ob1 , delthvl , elambda , bige , biga
+      real(rkx) , parameter :: a1 = 0.92_rkx , c1 = 0.08_rkx , &
                                a2 = 0.74_rkx , b2 = 10.1_rkx
       integer(ik4) :: k , ilay
       real(rkx) , parameter :: kthmax = 1.0e3_rkx
 
+      b1 = czero * d_two**(d_three/d_two)
       a1ob1 = a1/b1
 
       ! calculate the diffusivities for momentum, thetal, qw and tke
@@ -971,7 +971,6 @@ module mod_pbl_uwtcm
       kloop: &
       do k = ktmax - 1, 2, -1
         gh = -bbls(k)*bbls(k)*nsquar(k)/(d_two*tke(k)+1.0e-9_rkx)
-        ! gh = min(gh,0.0233_rkx)
         ! TAO: Added the -0.28 minimum for the G function, as stated
         ! in Galperin (1988), eq 30
         gh = max(min(gh,0.0233_rkx),-0.28_rkx)
@@ -1007,12 +1006,12 @@ module mod_pbl_uwtcm
       conv: &
       do ilay = 1 , kpbconv
         k = ktop(ilay)
-        if ( nsquar(k) > minn2 ) then
+        if ( nsquar(k) >= minn2 ) then
           kethl(k) = nuk*kzm(k+1)
           if ( k >= 3 ) then
             kethl(k-1) = 0.0_rkx
             delthvl = (thlx(k-2)+thx(k-2)*ep1*qwx(k-2)) -   &
-                      (thlx(k) + thx(k) * ep1 * qwx(k))
+                      (thlx(k) + thx(k)  *ep1*qwx(k))
             elambda = wlhvocp*rcldb(k)*rexnerhl(k)/max(delthvl,0.1_rkx)
             bige = 0.8_rkx * elambda
             biga = aone * (d_one + atwo * bige)
@@ -1179,7 +1178,7 @@ module mod_pbl_uwtcm
         end do convkloop
       end do setbbls
       ! we should now have tops and bottoms for kpbconv layers
-      if (kpbconv > 0 ) then
+      if ( kpbconv > 0 ) then
         if ( kbot(kpbconv) == ktmax ) then
           kmix2dx = ktop(kpbconv)
           if ( kpbl2dx >= 0 ) then
@@ -1260,26 +1259,26 @@ module mod_pbl_uwtcm
       integer(ik4) , intent(out) :: kpbconv
       real(rkx) , dimension(ktmax) :: ktimesz
       real(rkx) :: lambda
-      logical , dimension(ktmax) :: isSaturated1D , isStable1D , isBelow7001D
+      logical , dimension(ktmax) :: issaturated1d , isstable1d , isbelow7001d
       logical :: foundlayer
       integer(ik4) :: k
-      isSaturated1D = .false.
-      isStable1D = .false.
-      isBelow7001D = .false.
+      issaturated1d = .false.
+      isstable1d = .false.
+      isbelow7001d = .false.
       foundlayer = .false.
       where ( rcldb > d_zero )
-       isSaturated1D = .true.
+       issaturated1d = .true.
       end where
       where ( richnum > rcrit )
-        isStable1D = .true.
+        isstable1d = .true.
       end where
       where ( presfl >= 70000.0_rkx )
-        isBelow7001D = .true.
+        isbelow7001d = .true.
       end where
       ! First see if there is a cloud-topped boundary layer: its top will be
       ! stable, saturated, and below 700 mb
       do k = ktmax-1 , 1 , -1
-        if ( isSaturated1D(k) .and. isStable1D(k) .and. isBelow7001D(k) ) then
+        if ( issaturated1d(k) .and. isstable1d(k) .and. isbelow7001d(k) ) then
           kmix2dx = k
           foundlayer = .true.
           exit
@@ -1289,7 +1288,7 @@ module mod_pbl_uwtcm
       ! layer where the richardson number exceeds its threshold
       if ( .not. foundlayer ) then
         do k = ktmax-1 , 1 , -1
-          if ( isStable1D(k) ) then
+          if ( isstable1d(k) ) then
             kmix2dx = k
             foundlayer = .true.
             exit
@@ -1314,8 +1313,8 @@ module mod_pbl_uwtcm
       if ( (richnum(kmix2dx) >= rcrit) .and. &
            (richnum(kmix2dx+1) < rcrit) ) then
         pblx = zqx(kmix2dx+1) + (zqx(kmix2dx) - zqx(kmix2dx+1)) * &
-               ( (rcrit - richnum(kmix2dx + 1)) /                 &
-                 (richnum(kmix2dx) - richnum(kmix2dx + 1)) )
+                 ( (rcrit - richnum(kmix2dx+1)) /                 &
+                   (richnum(kmix2dx) - richnum(kmix2dx+1)) )
       end if
       ! Set the master length scale
       lambda = etal*pblx
@@ -1325,7 +1324,8 @@ module mod_pbl_uwtcm
       ! Otherwise use a Stability-related length scale
       do k = kmix2dx-1 , 1 , -1
         if ( nsquar(k) > d_zero ) then
-          bbls(k) = max(min(rstbl*sqrt(tke(k)/nsquar(k)),ktimesz(k)),1.0e-8_rkx)
+          bbls(k) = max(min(rstbl*sqrt(tke(k) / &
+                        nsquar(k)),ktimesz(k)),1.0e-8_rkx)
         else
           bbls(k) = ktimesz(k) - ktimesz(k+1)
         end if
