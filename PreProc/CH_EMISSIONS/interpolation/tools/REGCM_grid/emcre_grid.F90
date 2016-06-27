@@ -364,7 +364,7 @@ CONTAINS
 
     ! CREATE NEW FILE
     CALL NFERR(status, &
-         nf90_create(trim(dirter)//pthsep//'REGCM_grid.nc', &
+         nf90_create(trim(dirter)//pthsep//TRIM(DIRTER)//'_grid.nc', &
                      NF90_CLOBBER, ncid) ,51)
 
     ! ADD GLOBALE ATTRIBUTES

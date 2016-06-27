@@ -51,7 +51,7 @@ out_dir="$RCMINPDIR"
 #GENERATE WEIGHTS
 file_list=(`ls ${data_dir}/*.nc`)
 
-$CDO gencon,$REGCM_dir/REGCM_grid.nc -setgrid,$CMIP5_dir/bionit_grid.nc \
+$CDO gencon,$REGCM_dir/${DOMNAME}_grid.nc -setgrid,$CMIP5_dir/bionit_grid.nc \
       ${file_list[0]} remapweights.nc
 
 chfiles=""
@@ -59,7 +59,7 @@ for file in ${file_list[*]}
 do
   ofile=`basename $file`
   echo "Producing $ofile..."
-  $CDO remap,$REGCM_dir/REGCM_grid.nc,remapweights.nc $file $out_dir/$ofile
+  $CDO remap,$REGCM_dir/${DOMNAME}_grid.nc,remapweights.nc $file $out_dir/$ofile
   chfiles="$chfiles $out_dir/$ofile"
 done
 

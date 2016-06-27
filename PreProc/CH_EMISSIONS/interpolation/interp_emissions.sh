@@ -293,7 +293,7 @@ function emissions_interpolate
     set_filelist
 
     # create weights from first specie file
-    $CDO gencon,$REGCM_dir/REGCM_grid.nc -setgrid,${file_list[0]} \
+    $CDO gencon,$REGCM_dir/${DOMNAME}_grid.nc -setgrid,${file_list[0]} \
 	${file_list[0]} remapweights.nc
 
     # interpolate all species onto model grid 
@@ -309,7 +309,7 @@ function emissions_interpolate
 	$CDO $CDOOPTIONS seldate,$START,$END $file $out_dir/tfile
 	
 	# grid interpolation
-	$CDO -O $CDOOPTIONS remap,$REGCM_dir/REGCM_grid.nc,remapweights.nc $out_dir/tfile $out_dir/$ofile
+	$CDO -O $CDOOPTIONS remap,$REGCM_dir/${DOMNAME}_grid.nc,remapweights.nc $out_dir/tfile $out_dir/$ofile
 
 	chfiles+="$out_dir/$ofile "
     done    
