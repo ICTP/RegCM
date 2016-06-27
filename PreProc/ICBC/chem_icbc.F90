@@ -35,6 +35,7 @@ program chem_icbc
   use mod_ch_icbc_clim
   use mod_ox_icbc
   use mod_ae_icbc
+  use mod_ch_fnest
   use mod_memutil
 
   implicit none
@@ -44,6 +45,7 @@ program chem_icbc
   integer(ik4) :: nnn , nsteps
   integer(ik4) :: ierr
   character(len=256) :: namelistfile , prgname
+  character(len=256) :: cdir , cname
   character(len=8)   :: chemsimtype
   integer(ik4) :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
         ichsolver , idirect , ichdustemd , ichdiag , ichsursrc ,  &
@@ -74,6 +76,7 @@ program chem_icbc
     stop
   end if
 
+  ! Read also chemparam
   open(ipunit, file=namelistfile, status='old', &
        action='read', iostat=ierr)
   if ( ierr /= 0 ) then
@@ -88,6 +91,10 @@ program chem_icbc
     stop
   end if
   close(ipunit)
+
+  if ( chemtyp .eq. 'FNEST' ) then
+    call init_fnestparam(namelistfile,cdir,cname)
+  end if
 
   select case (chemsimtype)
     case ( 'CBMZ' )
@@ -134,10 +141,14 @@ program chem_icbc
   if ( dooxcl ) call newfile_ox_icbc(idate)
   if ( doaero ) call newfile_ae_icbc(idate)
 
-  if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call header_ch_icbc(idate)
-  if ( dochem .and. chemtyp .eq. 'MZCLM' ) call header_ch_icbc_clim(idate)
-  if ( dooxcl ) call header_ox_icbc
-  if ( doaero ) call header_ae_icbc(idate)
+  if ( chemtyp .eq. 'FNEST' ) then
+    call header_fnest(idate,cdir,cname)
+  else
+    if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call header_ch_icbc(idate)
+    if ( dochem .and. chemtyp .eq. 'MZCLM' ) call header_ch_icbc_clim(idate)
+    if ( dooxcl ) call header_ox_icbc
+    if ( doaero ) call header_ae_icbc(idate)
+  end if
 
   do nnn = 1 , nsteps
    if (.not. lsamemonth(idate, iodate) ) then
@@ -145,19 +156,27 @@ program chem_icbc
      if ( dooxcl ) call newfile_ox_icbc(monfirst(idate))
      if ( doaero ) call newfile_ae_icbc(monfirst(idate))
    end if
-   if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call get_ch_icbc(idate)
-   if ( dochem .and. chemtyp .eq. 'MZCLM' ) call get_ch_icbc_clim(idate)
-   if ( dooxcl ) call get_ox_icbc(idate)
-   if ( doaero ) call get_ae_icbc(idate)
+   if ( chemtyp .eq. 'FNEST' ) then
+     call get_fnest(idate)
+   else
+     if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call get_ch_icbc(idate)
+     if ( dochem .and. chemtyp .eq. 'MZCLM' ) call get_ch_icbc_clim(idate)
+     if ( dooxcl ) call get_ox_icbc(idate)
+     if ( doaero ) call get_ae_icbc(idate)
+   end if
    iodate = idate
    idate = idate + tbdy
   end do
 
   call close_outoxd
-  if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call close_ch_icbc
-  if ( dochem .and. chemtyp .eq. 'MZCLM' ) call close_ch_icbc_clim
-  if ( dooxcl ) call close_ox_icbc
-  if ( doaero ) call close_ae_icbc
+  if ( chemtyp .eq. 'FNEST' ) then
+    call close_fnest
+  else
+    if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call close_ch_icbc
+    if ( dochem .and. chemtyp .eq. 'MZCLM' ) call close_ch_icbc_clim
+    if ( dooxcl ) call close_ox_icbc
+    if ( doaero ) call close_ae_icbc
+  end if
 
   call memory_destroy
 
