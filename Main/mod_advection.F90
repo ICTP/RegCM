@@ -1078,8 +1078,7 @@ module mod_advection
           do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n)   > mintr .and. &
-                     f(j,i,k-1,n) > mintr ) then
+                if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
                   fg(j,i,k) = svv(j,i,k) * &
                         (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
                 end if

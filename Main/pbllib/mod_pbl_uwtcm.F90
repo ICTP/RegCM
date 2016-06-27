@@ -99,9 +99,10 @@ module mod_pbl_uwtcm
 
   ! local variables on full levels
   real(rkx) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
-                 tke , tkes , rrhoxfl , bbls , nsquar , richnum , &
-                 bouyan , rdza , dza , svs , presfl , exnerfl ,   &
-                 shear , rexnerfl , rcldb , epop , sm , sh
+                 tke , tkes , rrhoxfl , bbls , nsquar , bouyan ,   &
+                 rdza , dza , svs , presfl , exnerfl , shear ,     &
+                 rexnerfl , rcldb , epop , sm , sh
+  !real(rkx) , pointer , dimension(:) :: richnum
 
   ! local variables on half levels
   real(rkx) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,   &
@@ -250,7 +251,7 @@ module mod_pbl_uwtcm
     call getmem1d(tkes,1,kzp1,'mod_uwtcm:tkes')
     call getmem1d(bbls,1,kzp1,'mod_uwtcm:bbls')
     call getmem1d(nsquar,1,kzp1,'mod_uwtcm:nsquar')
-    call getmem1d(richnum,1,kzp1,'mod_uwtcm:richnum')
+    !call getmem1d(richnum,1,kzp1,'mod_uwtcm:richnum')
     call getmem1d(bouyan,1,kzp1,'mod_uwtcm:bouyan')
     call getmem1d(dza,1,kzp1,'mod_uwtcm:dza')
     call getmem1d(rdza,1,kzp1,'mod_uwtcm:rdza')
@@ -516,7 +517,7 @@ module mod_pbl_uwtcm
         nsquar(kzp1) = -egrav/thgb*thvflx/kh0
 
         ! Calculate the bulk richardson number
-        richnum = nsquar/max(svs,1.0e-8_rkx)
+        !richnum = nsquar/max(svs,1.0e-8_rkx)
 
         ! Calculate the boundary layer height
         call pblhgt(kzp1,m2p%ktrop(j,i),kpbconv)
@@ -579,7 +580,9 @@ module mod_pbl_uwtcm
           ! Calculate nsquared Set N^2 based on the updated potential
           ! temperature profile (this is for the semi-implicit integration)
           call n2(uimp1,uimp2,kz)
+          call pblhgt(kzp1,m2p%ktrop(j,i),kpbconv)
         end do melloryamadaiteration
+
 
         !*************************************************************
         !************ Re-calculate thx, qx, and qcx ******************
@@ -1253,84 +1256,84 @@ module mod_pbl_uwtcm
       esati = dum*0.61115_rkx*exp(arg)
     end function esati
 
-    subroutine pblhgt_tao(ktmax,kpbconv)
-      implicit none
-      integer(ik4) , intent(in) :: ktmax
-      integer(ik4) , intent(out) :: kpbconv
-      real(rkx) , dimension(ktmax) :: ktimesz
-      real(rkx) :: lambda
-      logical , dimension(ktmax) :: issaturated1d , isstable1d , isbelow7001d
-      logical :: foundlayer
-      integer(ik4) :: k
-      issaturated1d = .false.
-      isstable1d = .false.
-      isbelow7001d = .false.
-      foundlayer = .false.
-      where ( rcldb > d_zero )
-       issaturated1d = .true.
-      end where
-      where ( richnum > rcrit )
-        isstable1d = .true.
-      end where
-      where ( presfl >= 70000.0_rkx )
-        isbelow7001d = .true.
-      end where
-      ! First see if there is a cloud-topped boundary layer: its top will be
-      ! stable, saturated, and below 700 mb
-      do k = ktmax-1 , 1 , -1
-        if ( issaturated1d(k) .and. isstable1d(k) .and. isbelow7001d(k) ) then
-          kmix2dx = k
-          foundlayer = .true.
-          exit
-        end if
-      end do
-      ! If we didn't find a cloud-topped boundary layer, then find the first
-      ! layer where the richardson number exceeds its threshold
-      if ( .not. foundlayer ) then
-        do k = ktmax-1 , 1 , -1
-          if ( isstable1d(k) ) then
-            kmix2dx = k
-            foundlayer = .true.
-            exit
-          end if
-        end do
-      end if
-      ! If we still didn't find a cloud-topped boundary layer, then
-      ! set the top to be the first interface layer
-      if ( .not. foundlayer ) then
-        kmix2dx = ktmax - 1
-      end if
-      ! Set the boundary layer top and the top of the convective layer
-      kmix2dx = max(kmix2dx,3)
-      kmix2dx = min(kmix2dx,ktmax-1)
-      kpbl2dx = kmix2dx
-      ! Set that there is only one convective layer
-      kpbconv = 1
-      ktop(kpbconv) = kmix2dx
-      ! Set the boundary layer height
-      pblx = zqx(ktop(kpbconv))
-      ! Smoothly interpolate the boundary layer height
-      if ( (richnum(kmix2dx) >= rcrit) .and. &
-           (richnum(kmix2dx+1) < rcrit) ) then
-        pblx = zqx(kmix2dx+1) + (zqx(kmix2dx) - zqx(kmix2dx+1)) * &
-                 ( (rcrit - richnum(kmix2dx+1)) /                 &
-                   (richnum(kmix2dx) - richnum(kmix2dx+1)) )
-      end if
-      ! Set the master length scale
-      lambda = etal*pblx
-      ktimesz = vonkar*zqx(1:ktmax)
-      ! Within the boundary layer, the length scale is propor. to the height
-      bbls = ktimesz/(d_one+ktimesz/lambda)
-      ! Otherwise use a Stability-related length scale
-      do k = kmix2dx-1 , 1 , -1
-        if ( nsquar(k) > d_zero ) then
-          bbls(k) = max(min(rstbl*sqrt(tke(k) / &
-                        nsquar(k)),ktimesz(k)),1.0e-8_rkx)
-        else
-          bbls(k) = ktimesz(k) - ktimesz(k+1)
-        end if
-      end do
-    end subroutine pblhgt_tao
+!    subroutine pblhgt_tao(ktmax,kpbconv)
+!      implicit none
+!      integer(ik4) , intent(in) :: ktmax
+!      integer(ik4) , intent(out) :: kpbconv
+!      real(rkx) , dimension(ktmax) :: ktimesz
+!      real(rkx) :: lambda
+!      logical , dimension(ktmax) :: issaturated1d , isstable1d , isbelow7001d
+!      logical :: foundlayer
+!      integer(ik4) :: k
+!      issaturated1d = .false.
+!      isstable1d = .false.
+!      isbelow7001d = .false.
+!      foundlayer = .false.
+!      where ( rcldb > d_zero )
+!       issaturated1d = .true.
+!      end where
+!      where ( richnum > rcrit )
+!        isstable1d = .true.
+!      end where
+!      where ( presfl >= 70000.0_rkx )
+!        isbelow7001d = .true.
+!      end where
+!      ! First see if there is a cloud-topped boundary layer: its top will be
+!      ! stable, saturated, and below 700 mb
+!      do k = ktmax-1 , 1 , -1
+!        if ( issaturated1d(k) .and. isstable1d(k) .and. isbelow7001d(k) ) then
+!          kmix2dx = k
+!          foundlayer = .true.
+!          exit
+!        end if
+!      end do
+!      ! If we didn't find a cloud-topped boundary layer, then find the first
+!      ! layer where the richardson number exceeds its threshold
+!      if ( .not. foundlayer ) then
+!        do k = ktmax-1 , 1 , -1
+!          if ( isstable1d(k) ) then
+!            kmix2dx = k
+!            foundlayer = .true.
+!            exit
+!          end if
+!        end do
+!      end if
+!      ! If we still didn't find a cloud-topped boundary layer, then
+!      ! set the top to be the first interface layer
+!      if ( .not. foundlayer ) then
+!        kmix2dx = ktmax - 1
+!      end if
+!      ! Set the boundary layer top and the top of the convective layer
+!      kmix2dx = max(kmix2dx,3)
+!      kmix2dx = min(kmix2dx,ktmax-1)
+!      kpbl2dx = kmix2dx
+!      ! Set that there is only one convective layer
+!      kpbconv = 1
+!      ktop(kpbconv) = kmix2dx
+!      ! Set the boundary layer height
+!      pblx = zqx(ktop(kpbconv))
+!      ! Smoothly interpolate the boundary layer height
+!      if ( (richnum(kmix2dx) >= rcrit) .and. &
+!           (richnum(kmix2dx+1) < rcrit) ) then
+!        pblx = zqx(kmix2dx+1) + (zqx(kmix2dx) - zqx(kmix2dx+1)) * &
+!                 ( (rcrit - richnum(kmix2dx+1)) /                 &
+!                   (richnum(kmix2dx) - richnum(kmix2dx+1)) )
+!      end if
+!      ! Set the master length scale
+!      lambda = etal*pblx
+!      ktimesz = vonkar*zqx(1:ktmax)
+!      ! Within the boundary layer, the length scale is propor. to the height
+!      bbls = ktimesz/(d_one+ktimesz/lambda)
+!      ! Otherwise use a Stability-related length scale
+!      do k = kmix2dx-1 , 1 , -1
+!        if ( nsquar(k) > d_zero ) then
+!          bbls(k) = max(min(rstbl*sqrt(tke(k) / &
+!                        nsquar(k)),ktimesz(k)),1.0e-8_rkx)
+!        else
+!          bbls(k) = ktimesz(k) - ktimesz(k+1)
+!        end if
+!      end do
+!    end subroutine pblhgt_tao
 
   end subroutine uwtcm
 
