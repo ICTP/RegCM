@@ -774,7 +774,7 @@ module mod_tendency
       if ( idiag > 0 ) then
         qen0(jci1:jci2,ici1:ici2,:) = adf%qx(jci1:jci2,ici1:ici2,:,iqv)
       end if
-      call diffu_x(adf%qx,atms%qxb3d,1,nqx)
+      call diffu_x(adf%qx,atms%qxb3d,1,nqx,d_one)
       if ( idiag > 0 ) then
         ! save the h diff diag here
         qdiag%dif(jci1:jci2,ici1:ici2,:) = &
@@ -806,7 +806,7 @@ module mod_tendency
       ! need to compute tracer tendencies due to diffusion
       ! Only active if upstream scheme not used.
       !
-      call diffu_x(chiten,atms%chib3d,1,ntr)
+      call diffu_x(chiten,atms%chib3d,1,ntr,d_one)
       if ( ichdiag == 1 ) then
         cdifhdiag = cdifhdiag + (chiten - chiten0) * cfdout
       end if

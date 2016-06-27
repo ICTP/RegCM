@@ -431,23 +431,25 @@ module mod_diffusion
 #endif
   end subroutine diffu_x3d
 
-  subroutine diffu_x4d(ften,f,n1,n2)
+  subroutine diffu_x4d(ften,f,n1,n2,fac)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: f
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
+    real(rkx) , intent(in) :: fac
     integer(ik4) ::  n
     !
     do n = n1 , n2
-      call diffu_x4d3d(ften,f,n)
+      call diffu_x4d3d(ften,f,n,fac)
     end do
   end subroutine diffu_x4d
 
-  subroutine diffu_x4d3d(ften,f,n)
+  subroutine diffu_x4d3d(ften,f,n,fac)
     implicit none
     integer(ik4) , intent(in) :: n
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: f
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
+    real(rkx) , intent(in) :: fac
 
     real(rkx) :: mval
     integer(ik4) :: i , j , k
@@ -468,7 +470,7 @@ module mod_diffusion
                          f(j,i+1,k,n)+f(j,i-1,k,n)) + &
                  d_twelve*f(j,i,k,n)
           mval = max(mval,dlowval)
-          ften(j,i,k,n) = ften(j,i,k,n) - xkc(j,i,k)*pc(j,i)*rdxsq*mval
+          ften(j,i,k,n) = ften(j,i,k,n) - fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
         end do
       end do
     end do
@@ -483,7 +485,7 @@ module mod_diffusion
                  f(j,i+1,k,n)+f(j,i-1,k,n) - &
                  d_four*f(j,i,k,n)
           mval = max(mval,dlowval)
-          ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k)*pc(j,i)*rdxsq*mval
+          ften(j,i,k,n) = ften(j,i,k,n) + fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
         end do
       end do
     end if
@@ -495,7 +497,7 @@ module mod_diffusion
                  f(j,i+1,k,n)+f(j,i-1,k,n) - &
                  d_four*f(j,i,k,n)
           mval = max(mval,dlowval)
-          ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k)*pc(j,i)*rdxsq*mval
+          ften(j,i,k,n) = ften(j,i,k,n) + fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
         end do
       end do
     end if
@@ -510,7 +512,7 @@ module mod_diffusion
                  f(j,i+1,k,n)+f(j,i-1,k,n) - &
                  d_four*f(j,i,k,n)
           mval = max(mval,dlowval)
-          ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k)*pc(j,i)*rdxsq*mval
+          ften(j,i,k,n) = ften(j,i,k,n) + fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
         end do
       end do
     end if
@@ -522,7 +524,7 @@ module mod_diffusion
                  f(j,i+1,k,n)+f(j,i-1,k,n) - &
                  d_four*f(j,i,k,n)
           mval = max(mval,dlowval)
-          ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k)*pc(j,i)*rdxsq*mval
+          ften(j,i,k,n) = ften(j,i,k,n) + fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
         end do
       end do
     end if
