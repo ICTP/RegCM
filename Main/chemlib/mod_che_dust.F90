@@ -142,6 +142,11 @@ module mod_che_dust
   real(rkx) , pointer , dimension(:,:) :: clayrow2 , sandrow2 , dustbsiz
   real(rkx) , pointer , dimension(:,:,:,:) :: srel2d
   real(rkx) , pointer , dimension(:,:,:) :: dustsotex
+  ! 
+  ! Mineralogy fraction of minerals in clay and silt categories
+  real(rkx) , pointer , dimension(:,:,:) :: cminer
+  integer(rk4), parameter :: nsmine = 2
+
   ! Name of variable changed ! SC. 06.10.2010
   real(rkx) , dimension(nsoil) :: dp_array
 
@@ -181,6 +186,9 @@ module mod_che_dust
         call getmem1d(frac2,1,nbin,'che_dust:frac2')
         call getmem1d(frac3,1,nbin,'che_dust:frac3')
         call getmem1d(frac,1,nbin,'che_dust:frac')
+       
+        call getmem3d(cminer,jce1,jce2,ice1,ice2,1,nsmine,'che_dust:cminer')
+
     end if
       ilg = ici2-ici1+1
     end subroutine allocate_mod_che_dust
@@ -347,6 +355,13 @@ module mod_che_dust
         call read_texture(nats,dustsotex)
       end if
 
+! read mineral fractions 
+     if (imine(1,1) > 0) then
+      call read_miner(nsmine,cminer)
+     end if
+!
+
+
       clay2row2 = d_zero
       clayrow2  = d_zero
       sand2row2 = d_zero
@@ -500,6 +515,7 @@ module mod_che_dust
         end do
         frac(:) = frac(:) / totv
       end if
+
     end subroutine inidust
     !
     !   *****************************************************************
@@ -672,6 +688,18 @@ module mod_che_dust
           ieff = ieff + 1
         end if
       end do
+
+!     Mineralogy flux option 
+      ! introduce mineralogy here 
+
+      if (imine (1,1) > 0 ) then    
+      do n=1,nbin
+      do i = ici1 , ici2                             
+         chiten(jloop,i,kz,imine(n,iiron)) = chiten(jloop,i,kz,imine(n,iiron)) + &
+         rsfrow(i,n)*cminer(jloop,i,isciron)    *egrav/(dsigma(kz)*1.D3)
+      end do
+      end do
+      end if 
 
     end subroutine sfflux
 

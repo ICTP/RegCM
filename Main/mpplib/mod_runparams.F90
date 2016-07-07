@@ -154,6 +154,7 @@ module mod_runparams
   integer(ik4) , public :: iaerosol , igaschem , ioxclim , iisoropia
   character(len=6) , pointer , dimension(:) , public :: chtrname
   integer(ik4) , public :: nbin = 1
+  integer(ik4) , public :: nmine = 1
 
   logical , public :: do_parallel_netcdf_in , do_parallel_netcdf_out
   logical , public :: ifrest , doing_restart , lsync

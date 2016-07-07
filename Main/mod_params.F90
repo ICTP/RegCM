@@ -275,6 +275,8 @@ module mod_params
     ! From Pal et al, 2000
     !
     ncld      = 1        ! # of bottom model levels with no clouds (rad only)
+                                          ! Geometric mean Diameter = 0.15 micron (in mass !) 
+                                          ! standard deviation = 1.6 
     qck1land  = 0.0005_rkx ! Autoconversion Rate for Land
     qck1oce   = 0.0005_rkx ! Autoconversion Rate for Ocean
     gulland   = 0.65_rkx   ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
@@ -293,7 +295,7 @@ module mod_params
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
     conf      = 1.00_rkx   ! Condensation efficiency
     rcrit     = 13.5_rkx   ! Mean critical radius
-    coef_ccn  = 2.0_rkx    ! Geometric mean Diameter and standard deviation
+    coef_ccn  = 2.4564013565691311e+20_rkx    ! Geometric mean Diameter and standard deviation
     abulk     = 0.9_rkx    ! Bulk activation ratio
     lsrfhack  = .false.  ! Surface radiation hack
     !
@@ -1464,7 +1466,7 @@ module mod_params
     rnrad_for_chem = real(ntrad,rkx)/real(kche,rkx)
 
     if ( irrtm == 1 ) rnrad_for_chem = real(ntrad*nradfo,rkx)/real(kche,rkx)
-
+    print*, ntrad,kche,rnrad_for_chem
     rsrf_in_atm = real(ntsrf,rkx)/real(katm,rkx)
     rsrffrq_sec = d_one/(srffrq*secph)
 

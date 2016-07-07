@@ -65,12 +65,16 @@ module mod_che_common
   real(rkx) , pointer , dimension(:,:)   :: chtrsize
   real(rkx) , pointer , dimension(:)     :: chtrsol
 
-  real(rkx), pointer , dimension(:,:,:)  :: chifxuw
+  real(rkx), pointer , dimension(:,:,:)  :: chifxuw, cccn
 
   integer(ik4) , pointer , dimension(:) :: isslt , icarb , idust
+  integer(ik4),pointer,dimension(:,:) :: imine
   integer(ik4) , parameter :: nphoto = 56
 
   real(rkx) , pointer , dimension(:,:,:) :: convcldfra , cemtrac , remdrd
+
+   
+
 
   ! diagnostic
   real(rkx) , pointer , dimension(:,:,:,:) :: washout , rainout , &
@@ -176,6 +180,8 @@ module mod_che_common
       call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
       call getmem1d(icarb,1,7,'mod_che_common:icarb')
       call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
+      call getmem2d(imine,1,nbin,1,nmine,'mod_che_common:imine')
+
 
       if ( igaschem == 1 .and. ichsolver > 0 ) then
         call getmem4d(chemall,jci1,jci2,ici1,ici2, &
@@ -249,6 +255,17 @@ module mod_che_common
                                'DUST09','DUST10','DUST11','DUST12' /)
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'DUST 12 bins simulation'
+
+   else if (chemsimtype(1:4) == 'MINE') then 
+      nmine = 2
+      nbin = 4
+      ntr =  nbin *(nmine + 1)
+      allocate(chtrname(ntr))
+      chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04',&
+                               'DMI101', 'DMI102', 'DMI103', 'DMI104',&
+                               'DMI201', 'DMI202', 'DMI203', 'DMI204' /)
+      iaerosol = 1
+      if ( myid == italk ) write(stdout,*) 'MINERALS 4  bins simulation' 
     else if ( chemsimtype(1:4) == 'SSLT' ) then
       ntr = sbin
       allocate(chtrname(ntr))

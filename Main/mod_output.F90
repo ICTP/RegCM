@@ -370,10 +370,11 @@ module mod_output
             atm_kzm_out = uwstateb%kzm(jci1:jci2,ici1:ici2,1:kz)
         end if
 
-        if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+        if ( ichem == 1 .and. iaerosol == 1 .and. iindirect==2 ) then
           if ( associated(atm_ccnnum_out) ) then
             do k = 1 , kz
-              atm_ccnnum_out(:,:,k) = ccn(jce1:jce2,ice1:ice2,k)
+              ! convert to 1/cm3 
+              atm_ccnnum_out(:,:,k) = ccn(jci1:jci2,ici1:ici2,k) * 1.D-06
             end do
           end if
           if ( idiag == 1 ) then

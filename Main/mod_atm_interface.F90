@@ -899,8 +899,9 @@ module mod_atm_interface
           call getmem3d(dep_vels,1,jx,1,iy,1,ntr,'storage:dep_vels')
         end if
 #endif
-        if ( .false. .and. iaerosol == 1 ) then
+        if ( iindirect > 0 .and. iaerosol == 1 ) then
           call getmem3d(ccn,jci1,jci2,ici1,ici2,1,kz,'storage:ccn')
+          print*,'KK', size(ccn)
         end if
       end if
       if ( iocncpl == 1 .or. iwavcpl == 1 ) then

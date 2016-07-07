@@ -55,7 +55,9 @@ module mod_che_start
 
   subroutine start_chem
     implicit none
-    integer(ik4) :: i , j , k , itr , ibin , jbin , kbin,n
+    integer(ik4) :: i , j , k , itr , ibin , jbin , kbin,n, mmin,mbin
+
+    character(len=8)  :: minamesav
 
     ! A : Intialise chemistry tracer indices
 
@@ -71,6 +73,7 @@ module mod_che_start
     iochl = 0
     iochb = 0
     idust = 0
+    imine = 0
     isslt = 0
     icarb = 0
     ianh4 = 0
@@ -138,7 +141,8 @@ module mod_che_start
     ibin = 0
     jbin = 0
     kbin = 0
-
+    mmin = 0
+    mbin = 0
     do itr = 1 , ntr
       if ( chtrname(itr) == 'SO2' ) iso2 = itr
       if ( chtrname(itr) == 'DMS' ) idms = itr
@@ -221,6 +225,17 @@ module mod_che_start
         isslt(jbin) = itr
         chtrsol(itr) = solsslt(jbin)
       end if
+! mineralogical dust tracer
+      if ( chtrname(itr)(1:3) ==  'DMI') then
+        if (chtrname(itr)(1:4) .ne. minamesav(1:4)) then 
+         mbin=0 
+         mmin = mmin+1         
+        end if 
+        mbin = mbin + 1
+        imine(mbin,mmin) = itr
+        minamesav = chtrname(itr)
+      end if
+       
 
       ! gas phas species (CBMZ),
       ! max configuration : number of tracer = number of species

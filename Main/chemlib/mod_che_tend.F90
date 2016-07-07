@@ -42,7 +42,7 @@
   use mod_che_isorropia
   use mod_che_pollen
   use mod_che_bionit
-
+  use mod_che_ccn
   implicit none
 
   private
@@ -89,7 +89,7 @@
 !     real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: checum
       real(rkx) , dimension (1) :: polrftab
       integer(ik4) , dimension (1) :: poltab
-      integer(ik4) :: i , j , ibin , k
+      integer(ik4) :: i , j , ibin , k,n
       !
       !*********************************************************************
       ! A : PRELIMINARY CALCULATIONS
@@ -330,7 +330,21 @@
                            rh10(:,j),wid10(:,j),zeff(:,j),dustbed, &
                            pdepv(:,:,:,j),ddepa(:,:,j))
         end do
+      ! mineralogical tracers 
+        if ( imine(1,1) > 0 ) then
+          do n=1,nmine
+            do j = jci1 , jci2
+               call drydep_aero(j,nbin,imine(:,n),rhodust,ivegcov(:,j),      &
+                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),  &
+                           temp10(:,j),tsurf(:,j),srad(:,j),       &
+                           rh10(:,j),wid10(:,j),zeff(:,j),dustbed, &
+                           pdepv(:,:,:,j),ddepa(:,:,j))
+
+            end do
+           end do
+        end if
       end if
+
       if ( isslt(1) > 0  .and. ichdrdepo > 0 ) then
         do j = jci1 , jci2
           call drydep_aero(j,sbin,isslt,rhosslt,ivegcov(:,j),      &
@@ -384,7 +398,19 @@
                        psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j), &
                        convprec(:,:,j), pdepv(:,:,:,j))
         end do
+       ! mineralogical tracers 
+        if (imine(1,1) >0) then
+         do n = 1, nmine
+          do j = jci1 , jci2
+          call wetdepa(j,nbin,imine(:,n),dustbed,rhodust,ttb(:,:,j),  &
+                       wl(:,:,j),fracloud(:,:,j),fracum(:,:,j),  &
+                       psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j), &
+                       convprec(:,:,j), pdepv(:,:,:,j))
+          end do
+         end do 
+        end if 
       end if
+
       if ( isslt(1) > 0 .and.   ichremlsc == 1 )  then
         do j = jci1 , jci2
           call wetdepa(j,sbin,isslt,ssltbed,rhosslt,ttb(:,:,j),  &
@@ -460,7 +486,8 @@
         end if
       end if
       !
-      ! Finally save tarcer instantaneous burden for diag
+      ! diagnostics
+      ! tarcer instantaneous burden for diag
       !
       dtrace(:,:,:) = d_zero
       do k=1,kz
@@ -471,6 +498,13 @@
           end do
         end do
       end do
+      ! calculate ccn number for use in precip autoconversion calculation ( 2nd indirect effect)
+      do j = jci1 , jci2
+       call ccn(j)
+      end do
+
+
+
 
     end subroutine tractend2
 

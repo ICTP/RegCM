@@ -34,7 +34,7 @@ module mod_che_ncio
 
   private
 
-  public :: read_texture , read_emission , recc
+  public :: read_texture , read_emission , read_miner, recc
   public :: init_mod_che_ncio
   public :: open_chbc , close_chbc , chbc_search , read_chbc , read_bionem
 
@@ -260,6 +260,68 @@ module mod_che_ncio
         end if
       end if
     end subroutine read_bionem
+
+  subroutine read_miner(nsmine,cminer)
+      implicit none
+      integer(ik4), intent(in) :: nsmine  
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cminer
+
+      integer(ik4) :: idmin
+      integer(ik4) , dimension(2) :: istart , icount
+      character(len=256) :: dname
+      real(rkx) , pointer , dimension(:,:) ::  rspace
+      real(rkx), pointer, dimension (:,:,:) :: tmp 
+
+      dname = trim(dirter)//pthsep//trim(domname)//'_MINER.nc'
+
+      if ( do_parallel_netcdf_in ) then
+       ! THIS PART IS NOT TESTED
+        call openfile_withname(dname,idmin)
+        istart(1) = global_dot_jstart
+        istart(2) = global_dot_istart
+        !istart(3) = 1                                                                                                                                                                               
+        icount(1) = global_dot_jend-global_dot_jstart+1
+        icount(2) = global_dot_iend-global_dot_istart+1
+        !icount(3) = nats                                                                                                                                                                            
+        allocate(rspace(icount(1),icount(2)))
+        call read_var2d_static(idmin,'CIRON',rspace, &
+          istart=istart,icount=icount)
+        cminer(jci1:jci2,ici1:ici2,1) = &
+          max(rspace(jci1:jci2,ici1:ici2),d_zero)
+
+        call read_var2d_static(idmin,'CHMT',rspace, &
+          istart=istart,icount=icount)
+           cminer(jci1:jci2,ici1:ici2,2) = &
+          max(rspace(jci1:jci2,ici1:ici2),d_zero)
+
+        call closefile(idmin)
+      else
+        if ( myid == iocpu ) then
+          call openfile_withname(dname,idmin)
+          istart(1) = 1
+          istart(2) = 1
+          icount(1) = jx
+          icount(2) = iy
+          allocate(rspace(icount(1),icount(2)))
+          allocate(tmp(size(rspace,1),size(rspace,2),nmine))
+! read all miner variable in file ( percent converted to fraction)
+          call read_var2d_static(idmin,'CIRON',rspace, &
+            istart=istart,icount=icount)
+          rspace = max(rspace,d_zero)   
+          tmp(:,:,isciron) = rspace(:,:)*0.01 ! replace by the miner index         
+          call read_var2d_static(idmin,'CHMT',rspace, &
+            istart=istart,icount=icount)
+          rspace = max(rspace,d_zero)
+          tmp(:,:,ischmt) = rspace(:,:)*0.01
+
+          call grid_distribute(tmp,cminer,jci1,jci2,ici1,ici2,1,nsmine)
+          call closefile(idmin)
+        else
+          call grid_distribute(tmp,cminer,jci1,jci2,ici1,ici2,1,nsmine)
+        end if
+      end if
+
+    end subroutine read_miner
 
     subroutine read_emission(ifreq,lyear,lmonth,lday,lhour,echemsrc)
       implicit none

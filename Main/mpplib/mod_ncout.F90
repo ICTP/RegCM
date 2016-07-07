@@ -625,7 +625,7 @@ module mod_ncout
             'relative_humidity',.true.)
           atm_rh_out => v3dvar_atm(atm_rh)%rval
         end if
-        if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+        if ( ichem == 1 .and. iaerosol == 1 .and. iindirect==2) then
           if ( enable_atm3d_vars(atm_ccnnum) ) then
             call setup_var(v3dvar_atm,atm_ccnnum,vsize, &
                'ccnnum','1/cm^3','Cloud condensation nuclei', &

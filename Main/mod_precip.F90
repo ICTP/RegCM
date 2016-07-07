@@ -67,11 +67,7 @@ module mod_precip
   logical :: l_lat_hack = .false.
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
 
-  real(rkx) , parameter :: rhos = 1800.0_rkx
   real(rkx) , parameter :: rhow = 1000.0_rkx
-  real(rkx) , parameter :: rhosslt = 1000.0_rkx
-  real(rkx) , parameter :: rhoochl = 1200.0_rkx
-  real(rkx) , parameter :: rhobchl = 1600.0_rkx
   real(rkx) , parameter :: qcmin = 1.0e-10_rkx
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
   real(rkx) , parameter :: verynearzero = 1.0e-20_rkx
@@ -184,13 +180,10 @@ module mod_precip
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
           pptmax = max((qcw-qcmin),d_zero)/dt                ![kg/kg/s][avg]
-          if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
-            pccn(j,i,1) = (calc_ccn(rhobchl,chi3(j,i,1,ibchl)) + &
-                           calc_ccn(rhoochl,chi3(j,i,1,iochl)) + &
-                           calc_ccn(rhos,chi3(j,i,1,6))    + &
-                           calc_ccn(rhosslt,chi3(j,i,1,11))) * abulk
+          if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2) then
+          ! include aerosol second indirect effect on threshold auto-conversion 
             qcth = pccn(j,i,1)*(4.0_rkx/3.0_rkx)*mathpi * &
-                       ((rcrit*1e-4_rkx)**3)*(rhow*1e-3_rkx)*1e3_rkx
+                       ((rcrit*1e-6_rkx)**3)*rhow
             if ( idiag == 1 ) then
               dia_qcr(j,i,1) = qcth
               dia_qcl(j,i,1) = qcincld
@@ -304,13 +297,12 @@ module mod_precip
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
             pptmax = max((qcw-qcmin),d_zero)/dt              ![kg/kg/s][avg]
-            if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
-              pccn(j,i,k) = (calc_ccn(rhobchl,chi3(j,i,k,ibchl)) + &
-                             calc_ccn(rhoochl,chi3(j,i,k,iochl)) + &
-                             calc_ccn(rhos,chi3(j,i,k,6))    + &
-                             calc_ccn(rhosslt,chi3(j,i,k,11))) * abulk
-              qcth = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
-                         ((rcrit*1e-4_rkx)**3)*(rhow*1e-3_rkx)*1e3_rkx
+            if ( ichem == 1 .and. iaerosol == 1 .and. iindirect==2)  then
+            ! FAB: aerosol second indirect effect on autoconversion threshold ,
+            ! rcrit is a critical cloud radius for cloud water undergoing autoconversion
+            ! pccn = number of ccn /m3 
+             qcth = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+                         ((rcrit*1e-6_rkx)**3)*rhow
               if ( idiag == 1 ) then
                 dia_qcr(j,i,k) = qcth
                 dia_qcl(j,i,k) = qcincld
@@ -405,12 +397,6 @@ module mod_precip
     end do
 
   contains
-
-    pure real(rkx) function calc_ccn(denx,mrat) result(res)
-      implicit none
-      real(rkx) , intent(in) :: denx , mrat
-      res = (1e6_rkx/(denx*1e-3_rkx))*(6.0_rkx/mathpi)*coef_ccn*mrat*1e3_rkx
-    end function calc_ccn
 
     pure real(rkx) function season_factor(lat) result(sf)
       implicit none
