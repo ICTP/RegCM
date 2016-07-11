@@ -122,8 +122,8 @@ module mod_sst_gnmnc
              '_r1i1p1_185912-195911.nc'
         end if
       else
-        inpfile = trim(inpglob)//'/SST/tos_Omon_HadGEM2-ES_rcp'// &
-          ssttyp(4:5)//'_r1i1p1_200512-209912.nc'
+        inpfile = trim(inpglob)//'/HadGEM2/SST/tos_Omon_HadGEM2-ES_rcp'// &
+          ssttyp(4:5)//'_r1i1p1_200512-209911.nc'
       end if
       varname(2) = 'tos'
     else if ( ssttyp(1:3) == 'CS_' ) then
@@ -453,8 +453,15 @@ module mod_sst_gnmnc
             lswitch = .true.
             lref = .false.
           else if ( date_in_scenario(idate,5,.false.) ) then
-            inpfile = trim(inpglob)//'/HadGEM2/SST/tos_Omon_HadGEM2-ES_rcp'// &
-              ssttyp(4:5)//'_r1i1p1_200512-209912.nc'
+            if ( idate < 2099110100 ) then
+              inpfile = trim(inpglob)// &
+                '/HadGEM2/SST/tos_Omon_HadGEM2-ES_rcp'// &
+                ssttyp(4:5)//'_r1i1p1_200512-209911.nc'
+            else
+              inpfile = trim(inpglob)// &
+                '/HadGEM2/SST/tos_Omon_HadGEM2-ES_rcp'// &
+                ssttyp(4:5)//'_r1i1p1_209912-219911.nc'
+            end if
             lswitch = .true.
             lref = .false.
           end if

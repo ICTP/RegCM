@@ -53,7 +53,7 @@ module mod_gn6hnc
   ! Pressure levels to interpolate to if dataset is on model sigma levels.
   integer(ik4) , parameter :: nipl = 38
   real(rkx) , target , dimension(nipl) :: fplev = &
-   (/  1.0_rkx,   2.0_rkx,   3.0_rkx,   5.0_rkx,   7.0_rkx,  10.0_rkx, & 
+   (/  1.0_rkx,   2.0_rkx,   3.0_rkx,   5.0_rkx,   7.0_rkx,  10.0_rkx, &
       20.0_rkx,  30.0_rkx,  50.0_rkx,  70.0_rkx, 100.0_rkx, 125.0_rkx, &
      150.0_rkx, 175.0_rkx, 200.0_rkx, 225.0_rkx, 250.0_rkx, 300.0_rkx, &
      350.0_rkx, 400.0_rkx, 425.0_rkx, 450.0_rkx, 500.0_rkx, 550.0_rkx, &
@@ -81,7 +81,7 @@ module mod_gn6hnc
 
   ! Input space
   real(rkx) :: p0
-  real(rkx) , pointer , dimension(:,:) :: psvar , zsvar , pmslvar
+  real(rkx) , pointer , dimension(:,:) :: psvar , zsvar ! , pmslvar
   real(rkx) , pointer , dimension(:) :: ak , bk
   real(rkx) , pointer , dimension(:) :: glat , gltemp , uglon
   real(rkx) , pointer , dimension(:) :: glon , vglat
@@ -113,8 +113,6 @@ module mod_gn6hnc
   character(len=32) :: cambase = 'sococa.ts1.r1.cam2.h1.'
   character(len=64) :: habase1  = '_6hrLev_HadGEM2-ES_historical'
   character(len=64) :: habase2  = '_6hrLev_HadGEM2-ES_rcp'
-  character(len=64) :: hapbase1 = '_6hrPlev_HadGEM2-ES_historical'
-  character(len=64) :: hapbase2 = '_6hrPlev_HadGEM2-ES_rcp'
   character(len=64) :: habase3 = '_r1i1p1_'
   character(len=64) :: cabase1 = '_6hrLev_CanESM2_historical'
   character(len=64) :: cabase2 = '_6hrLev_CanESM2_rcp'
@@ -143,7 +141,7 @@ module mod_gn6hnc
   character(len=3) , target , dimension(nvars) :: ccsmvars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
   character(len=3) , target , dimension(nvars) :: havars = &
-                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'psl'/)
+                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: cavars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: ipvars = &
@@ -198,7 +196,7 @@ module mod_gn6hnc
       ! Vertical info are not stored in the fixed orography file.
       pathaddname = trim(inpglob)// &
             '/HadGEM2/RF/ta/ta_6hrLev_HadGEM2-ES_historical_'// &
-            'r1i1p1_199012010600-199103010000.nc'
+            'r1i1p1_1990120106-1991030100.nc'
     else if ( dattyp(1:3) == 'CA_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.
@@ -285,7 +283,7 @@ module mod_gn6hnc
     if ( dattyp(1:2) == 'HA' ) then
       pathaddname = trim(inpglob)// &
             '/HadGEM2/RF/ua/ua_6hrLev_HadGEM2-ES_historical_'// &
-            'r1i1p1_199012010600-199103010000.nc'
+            'r1i1p1_1990120106-1991030100.nc'
       istatus = nf90_open(pathaddname,nf90_nowrite,inet2)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -297,7 +295,7 @@ module mod_gn6hnc
                       'Error inquire lon dim')
       pathaddname = trim(inpglob)// &
             '/HadGEM2/RF/va/va_6hrLev_HadGEM2-ES_historical_'// &
-            'r1i1p1_199012010600-199103010000.nc'
+            'r1i1p1_1990120106-1991030100.nc'
       istatus = nf90_open(pathaddname,nf90_nowrite,inet3)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -309,7 +307,7 @@ module mod_gn6hnc
                       'Error inquire lat dim')
       pathaddname = trim(inpglob)// &
             '/HadGEM2/RF/ua/ua_6hrLev_HadGEM2-ES_historical_'// &
-            'r1i1p1_199012010600-199103010000.nc'
+            'r1i1p1_1990120106-1991030100.nc'
       istatus = nf90_open(pathaddname,nf90_nowrite,inet2)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -471,7 +469,7 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
-      call getmem2d(pmslvar,1,nlon,1,nlat,'mod_gn6hnc:pmslvar')
+      ! call getmem2d(pmslvar,1,nlon,1,nlat,'mod_gn6hnc:pmslvar')
     else if ( dattyp(1:2) == 'E5' ) then
       npl = klev ! Data are on pressure levels
       call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
@@ -1425,19 +1423,19 @@ module mod_gn6hnc
           end if
           if ( .not. date_in_scenario(idate,5,.false.) ) then
             write (inname,99005) 'RF', pthsep, trim(havars(6)), pthsep, &
-                 trim(havars(6)), trim(hapbase1)//trim(habase3), &
-                 iyear1-1, '12010600-', iyear1, '12010000.nc'
+                 trim(havars(6)), trim(habase1)//trim(habase3), &
+                 iyear1-1, '120106-', iyear1, '120100.nc'
           else
             if (year*1000000+month*10000+day*100+hour == 2005120100) then
               write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
                 trim(havars(6)), pthsep, trim(havars(6)), &
-                trim(hapbase2)//dattyp(4:5)//trim(habase3), &
-                iyear1, '12010000-', iyear1+1, '12010000.nc'
+                trim(habase2)//dattyp(4:5)//trim(habase3), &
+                iyear1, '120100-', iyear1+1, '120100.nc'
             else
               write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
                 trim(havars(6)), pthsep, trim(havars(6)), &
-                trim(hapbase2)//dattyp(4:5)//trim(habase3), &
-                iyear1-1, '12010600-', iyear1, '12010000.nc'
+                trim(habase2)//dattyp(4:5)//trim(habase3), &
+                iyear1-1, '120106-', iyear1, '120100.nc'
             end if
           end if
           pathaddname = trim(inpglob)//'/HadGEM2/'//inname
@@ -1687,44 +1685,68 @@ module mod_gn6hnc
           ! 3 months dataset per file.
           do i = 1 , nfiles-1
             if ( havars(i) /= 'XXX' ) then
-              iyear1 = year
-              imon1 = month
-              imon1 = imon1 / 3 * 3
-              if ( day == 1 .and. hour == 0 ) then
-                if ( mod(month,3) == 0 ) then
-                  imon1 = imon1 - 3
+              if ( dattyp(4:5) == '26' ) then
+                iyear1 = year
+                if ( month == 12 .and. day >= 1 .and. hour > 0 ) then
+                  iyear1 = iyear1 + 1
                 end if
-              end if
-              if ( imon1 == 0 ) then
-                imon1 = 12
-                iyear1 = iyear1 - 1
-              end if
-              if ( imon1 == 12 ) then
-                iyear2 = iyear1 + 1
-                imon2  = 3
-              else
-                iyear2 = iyear1
-                imon2 = imon1 + 3
-              end if
-              if ( .not. date_in_scenario(idate,5,.false.) ) then
-                write (inname,99004) 'RF', pthsep, trim(havars(i)), pthsep, &
-                  trim(havars(i)), trim(habase1)//trim(habase3), &
-                  iyear1, imon1 , '010600-', iyear2, imon2, '010000.nc'
-              else
-                if (iyear1*1000000+imon1*10000 == 2005090000) then
-                  iyear1 = 2005
-                  imon1 = 12
-                  iyear2 = 2006
-                  imon2 = 3
-                  write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
-                    trim(havars(i)), pthsep, trim(havars(i)), &
-                    trim(habase2)//dattyp(4:5)//trim(habase3), &
-                    iyear1, imon1, '010000-', iyear2, imon2, '010000.nc'
+                if ( .not. date_in_scenario(idate,5,.false.) ) then
+                  write (inname,99005) 'RF', pthsep, trim(havars(i)), pthsep, &
+                     trim(havars(i)), trim(habase1)//trim(habase3), &
+                     iyear1-1, '120106-', iyear1, '120100.nc'
                 else
-                  write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
-                    trim(havars(i)), pthsep, trim(havars(i)), &
-                    trim(habase2)//dattyp(4:5)//trim(habase3), &
-                    iyear1, imon1, '010600-', iyear2, imon2, '010000.nc'
+                  if (year*1000000+month*10000+day*100+hour == 2005120100) then
+                    write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
+                      trim(havars(i)), pthsep, trim(havars(i)), &
+                      trim(habase2)//dattyp(4:5)//trim(habase3), &
+                      iyear1, '120100-', iyear1+1, '120100.nc'
+                  else
+                    write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
+                      trim(havars(i)), pthsep, trim(havars(i)), &
+                      trim(habase2)//dattyp(4:5)//trim(habase3), &
+                      iyear1-1, '120106-', iyear1, '120100.nc'
+                  end if
+                end if
+              else
+                iyear1 = year
+                imon1 = month
+                imon1 = imon1 / 3 * 3
+                if ( day == 1 .and. hour == 0 ) then
+                  if ( mod(month,3) == 0 ) then
+                    imon1 = imon1 - 3
+                  end if
+                end if
+                if ( imon1 == 0 ) then
+                  imon1 = 12
+                  iyear1 = iyear1 - 1
+                end if
+                if ( imon1 == 12 ) then
+                  iyear2 = iyear1 + 1
+                  imon2  = 3
+                else
+                  iyear2 = iyear1
+                  imon2 = imon1 + 3
+                end if
+                if ( .not. date_in_scenario(idate,5,.false.) ) then
+                  write (inname,99004) 'RF', pthsep, trim(havars(i)), pthsep, &
+                    trim(havars(i)), trim(habase1)//trim(habase3), &
+                    iyear1, imon1 , '0106-', iyear2, imon2, '0100.nc'
+                else
+                  if (iyear1*1000000+imon1*10000 == 2005090000) then
+                    iyear1 = 2005
+                    imon1 = 12
+                    iyear2 = 2006
+                    imon2 = 3
+                    write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
+                      trim(havars(i)), pthsep, trim(havars(i)), &
+                      trim(habase2)//dattyp(4:5)//trim(habase3), &
+                      iyear1, imon1, '0100-', iyear2, imon2, '0100.nc'
+                  else
+                    write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
+                      trim(havars(i)), pthsep, trim(havars(i)), &
+                      trim(habase2)//dattyp(4:5)//trim(habase3), &
+                      iyear1, imon1, '0106-', iyear2, imon2, '0100.nc'
+                  end if
                 end if
               end if
               pathaddname = trim(inpglob)//'/HadGEM2/'//inname
@@ -2022,10 +2044,14 @@ module mod_gn6hnc
         tdif = idate - ipstimes(1)
         itps = nint(tohours(tdif))/6 + 1
         istart(3) = itps
-        istatus = nf90_get_var(inet(6),ivar(6),pmslvar,istart(1:3),icount(1:3))
+        !istatus = nf90_get_var(inet(6),ivar(6),pmslvar,istart(1:3),icount(1:3))
+        !call checkncerr(istatus,__FILE__,__LINE__, &
+        !                'Error read var '//varname(6))
+        !pmslvar(:,:) = pmslvar(:,:)*0.01_rkx
+        istatus = nf90_get_var(inet(6),ivar(6),psvar,istart(1:3),icount(1:3))
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var '//varname(6))
-        pmslvar(:,:) = pmslvar(:,:)*0.01
+        psvar(:,:) = psvar(:,:)*0.01_rkx
       else if ( dattyp(1:3) == 'CS_' .or. &
                 dattyp(1:3) == 'MI_' ) then
         tdif = idate - ipstimes(1)
@@ -2066,11 +2092,12 @@ module mod_gn6hnc
         psvar(:,:) = psvar(:,:)*0.01
         pp3d(:,:,:) = pp3d(:,:,:)*0.01
       else if ( dattyp(1:3) == 'HA_' ) then
-        ! Data are on sigma Z levels, and we have MSLP instead of PS
+        ! Data are on sigma Z levels
         do k = 1 , klev
           hvar(:,:,k) = ak(k) + bk(k)*zsvar(:,:)
         end do
-        call mslp2ps(hvar,tvar,pmslvar,zsvar,psvar,nlon,nlat,klev)
+        ! If we have MSLP instead of PS
+        ! call mslp2ps(hvar,tvar,pmslvar,zsvar,psvar,nlon,nlat,klev)
         call psig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
       else if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' ) then
         ! Data on sigma P levels, the factor for ak is ipotized.

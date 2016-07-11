@@ -63,7 +63,7 @@ module mod_bats_common
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: i , itex
-    logical , parameter :: snowhack = .true.
+    logical , parameter :: snowhack = .false.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initbats'
     integer(ik4) , save :: idindx = 0
