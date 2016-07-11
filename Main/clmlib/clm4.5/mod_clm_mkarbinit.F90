@@ -982,8 +982,10 @@ module mod_clm_mkarbinit
         if ( h2osno(c) < 0.1_rk8 ) then
           if ( ltype(l) /= isturb ) then
             ! Start with some snow on mountains and on cold regions
-            if ( adomain%tgrd(g) < 263.0_rk8 ) then
-              h2osno(c) = adomain%topo(g)/10.0
+            if ( adomain%tgrd(g) < 263.0_rk8 .and. &
+                 adomain%topo(g) > 500.0_rk8 ) then
+              h2osno(c) = adomain%topo(g)/1000.0_rkx * (1.0_rkx - &
+                (min(1.0_rkx,max((adomain%tgrd(g)-253.0_rkx)/20.0_rkx,0.0_rkx))))
             end if
           end if
         end if

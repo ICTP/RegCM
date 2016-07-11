@@ -63,7 +63,7 @@ module mod_bats_common
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: i , itex
-    logical , parameter :: snowhack = .false.
+    logical , parameter :: snowhack = .true.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initbats'
     integer(ik4) , save :: idindx = 0
@@ -85,8 +85,8 @@ module mod_bats_common
       tlef  = tgrd
       taf   = tgrd
       if ( snowhack ) then
-        where ( tgrd < 273.0_rkx .and. ht > 500.0_rkx )
-          sncv = hts/10.0_rkx*(1.0_rkx - &
+        where ( tgrd < 263.0_rkx .and. hts > 500.0_rkx * egrav )
+          sncv = hts*d_r100*regrav*(1.0_rkx - &
                  (min(1.0_rkx,max((tgrd-253.0_rkx)/20.0_rkx,0.0_rkx))))
         end where
       end if

@@ -153,8 +153,9 @@ module mod_che_interface
     call assignpnt(wetdepflx,cwetdepflx)
     call assignpnt(drydepflx,cdrydepflx)
 
-    call assignpnt(ccn,cccn)
- 
+    if ( iindirect > 0 .and. iaerosol == 1 ) then
+      call assignpnt(ccn,cccn)
+    end if
 
 #if (defined CLM45)
     call assignpnt(voc_em_clm,cvoc_em_clm)

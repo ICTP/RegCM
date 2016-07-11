@@ -180,10 +180,11 @@ module mod_precip
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
           pptmax = max((qcw-qcmin),d_zero)/dt                ![kg/kg/s][avg]
-          if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2) then
-          ! include aerosol second indirect effect on threshold auto-conversion 
+          if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
+            ! include aerosol second indirect effect on threshold
+            ! auto-conversion
             qcth = pccn(j,i,1)*(4.0_rkx/3.0_rkx)*mathpi * &
-                       ((rcrit*1e-6_rkx)**3)*rhow
+                          ((rcrit*1e-6_rkx)**3)*rhow
             if ( idiag == 1 ) then
               dia_qcr(j,i,1) = qcth
               dia_qcl(j,i,1) = qcincld
@@ -297,11 +298,12 @@ module mod_precip
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
             pptmax = max((qcw-qcmin),d_zero)/dt              ![kg/kg/s][avg]
-            if ( ichem == 1 .and. iaerosol == 1 .and. iindirect==2)  then
-            ! FAB: aerosol second indirect effect on autoconversion threshold ,
-            ! rcrit is a critical cloud radius for cloud water undergoing autoconversion
-            ! pccn = number of ccn /m3 
-             qcth = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+            if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
+              ! FAB: aerosol second indirect effect on autoconversion
+              ! threshold, rcrit is a critical cloud radius for cloud
+              ! water undergoing autoconversion
+              ! pccn = number of ccn /m3
+              qcth = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
                          ((rcrit*1e-6_rkx)**3)*rhow
               if ( idiag == 1 ) then
                 dia_qcr(j,i,k) = qcth

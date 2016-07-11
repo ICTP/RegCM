@@ -43,6 +43,7 @@
   use mod_che_pollen
   use mod_che_bionit
   use mod_che_ccn
+
   implicit none
 
   private
@@ -89,7 +90,7 @@
 !     real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: checum
       real(rkx) , dimension (1) :: polrftab
       integer(ik4) , dimension (1) :: poltab
-      integer(ik4) :: i , j , ibin , k,n
+      integer(ik4) :: i , j , k , n , ibin
       !
       !*********************************************************************
       ! A : PRELIMINARY CALCULATIONS
@@ -324,28 +325,27 @@
       ! ddepg(:,:,:)   = d_zero
       if ( idust(1) > 0 .and. ichdrdepo > 0 ) then
         do j = jci1 , jci2
-          call drydep_aero(j,nbin,idust,rhodust,ivegcov(:,j),      &
-                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),  &
-                           temp10(:,j),tsurf(:,j),srad(:,j),       &
-                           rh10(:,j),wid10(:,j),zeff(:,j),dustbed, &
+          call drydep_aero(j,nbin,idust,rhodust,ivegcov(:,j),       &
+                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j), &
+                           temp10(:,j),tsurf(:,j),srad(:,j),        &
+                           rh10(:,j),wid10(:,j),zeff(:,j),dustbed,  &
                            pdepv(:,:,:,j),ddepa(:,:,j))
         end do
-      ! mineralogical tracers 
+        ! mineralogical tracers
         if ( imine(1,1) > 0 ) then
-          do n=1,nmine
+          do n = 1 , nmine
             do j = jci1 , jci2
-               call drydep_aero(j,nbin,imine(:,n),rhodust,ivegcov(:,j),      &
-                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),  &
-                           temp10(:,j),tsurf(:,j),srad(:,j),       &
-                           rh10(:,j),wid10(:,j),zeff(:,j),dustbed, &
+              call drydep_aero(j,nbin,imine(:,n),rhodust,ivegcov(:,j), &
+                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),    &
+                           temp10(:,j),tsurf(:,j),srad(:,j),           &
+                           rh10(:,j),wid10(:,j),zeff(:,j),dustbed,     &
                            pdepv(:,:,:,j),ddepa(:,:,j))
 
             end do
-           end do
+          end do
         end if
       end if
-
-      if ( isslt(1) > 0  .and. ichdrdepo > 0 ) then
+      if ( isslt(1) > 0 .and. ichdrdepo > 0 ) then
         do j = jci1 , jci2
           call drydep_aero(j,sbin,isslt,rhosslt,ivegcov(:,j),      &
                            ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),  &
@@ -354,7 +354,7 @@
                            pdepv(:,:,:,j),ddepa(:,:,j))
         end do
       end if
-      if ( icarb(1) > 0  .and. ichdrdepo > 0 ) then
+      if ( icarb(1) > 0 .and. ichdrdepo > 0 ) then
         ibin = count( icarb > 0 )
         do j = jci1 , jci2
           call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov(:,j), &
@@ -398,20 +398,19 @@
                        psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j), &
                        convprec(:,:,j), pdepv(:,:,:,j))
         end do
-       ! mineralogical tracers 
-        if (imine(1,1) >0) then
-         do n = 1, nmine
-          do j = jci1 , jci2
-          call wetdepa(j,nbin,imine(:,n),dustbed,rhodust,ttb(:,:,j),  &
-                       wl(:,:,j),fracloud(:,:,j),fracum(:,:,j),  &
-                       psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j), &
-                       convprec(:,:,j), pdepv(:,:,:,j))
+        ! mineralogical tracers
+        if ( imine(1,1) > 0 ) then
+          do n = 1 , nmine
+            do j = jci1 , jci2
+              call wetdepa(j,nbin,imine(:,n),dustbed,rhodust,ttb(:,:,j), &
+                           wl(:,:,j),fracloud(:,:,j),fracum(:,:,j),      &
+                           psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j),     &
+                           convprec(:,:,j), pdepv(:,:,:,j))
+            end do
           end do
-         end do 
-        end if 
+        end if
       end if
-
-      if ( isslt(1) > 0 .and.   ichremlsc == 1 )  then
+      if ( isslt(1) > 0 .and. ichremlsc == 1 )  then
         do j = jci1 , jci2
           call wetdepa(j,sbin,isslt,ssltbed,rhosslt,ttb(:,:,j),  &
                        wl(:,:,j),fracloud(:,:,j),fracum(:,:,j),  &
@@ -419,7 +418,7 @@
                        convprec(:,:,j), pdepv(:,:,:,j))
         end do
       end if
-      if ( icarb(1) > 0 .and.  ichremlsc == 1 )  then
+      if ( icarb(1) > 0 .and. ichremlsc == 1 )  then
         ibin = count( icarb > 0 )
         do j = jci1 , jci2
           call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl,        &
@@ -429,7 +428,7 @@
         end do
       end if
       !
-      if ( ipollen > 0 .and.  ichremlsc == 1 )  then
+      if ( ipollen > 0 .and. ichremlsc == 1 )  then
         ibin = 1
         poltab(1) = ipollen
         polrftab(1) = reffpollen
@@ -487,25 +486,24 @@
       end if
       !
       ! diagnostics
-      ! tarcer instantaneous burden for diag
+      ! tracer instantaneous burden for diag
       !
       dtrace(:,:,:) = d_zero
       do k=1,kz
         do i = ici1 , ici2
           do j = jci1 , jci2
            dtrace(j,i,:) = dtrace(j,i,:) +  &
-             chib3d(j,i,k,:)*cdzq(j,i,k)*crhob3d(j,i,k)
+                  chib3d(j,i,k,:)*cdzq(j,i,k)*crhob3d(j,i,k)
           end do
         end do
       end do
-      ! calculate ccn number for use in precip autoconversion calculation ( 2nd indirect effect)
-      do j = jci1 , jci2
-       call ccn(j)
-      end do
-
-
-
-
+      ! calculate ccn number for use in precip autoconversion
+      ! calculation ( 2nd indirect effect)
+      if ( iindirect > 0 .and. iaerosol == 1 ) then
+        do j = jci1 , jci2
+          call ccn(j)
+        end do
+      end if
     end subroutine tractend2
 
 end module mod_che_tend

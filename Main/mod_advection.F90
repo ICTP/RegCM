@@ -1158,7 +1158,7 @@ module mod_advection
               end if
             end do
           end do
-          fg(:,:,:) = fg(:,:,:) * svv(:,:,:)
+          fg(:,:,2:kz) = fg(:,:,2:kz) * svv(jci1:jci2,ici1:ici2,2:kz)
         end if
         do k = 2 , kz
           do i = ici1 , ici2

@@ -21,11 +21,7 @@ module mod_che_ccn
 
   use mod_intkinds
   use mod_realkinds
-  use mod_dynparam
- ! use mod_constants
   use mod_che_common
- ! use mod_che_species
- ! use mod_che_indices
   use mod_che_carbonaer
 
   private
@@ -33,50 +29,56 @@ module mod_che_ccn
   ! Parameters for calculating ccn concentrations form aerosol mass
   ! densities in kg/m3
   ! other aerosol densities are passed by module already
-  real(rkx) , parameter :: rhos = 1800.0D0
-  real(rkx) , parameter :: rhosslt = 1000.0D0
+  real(rkx) , parameter :: rhos = 1800.0_rkx
+  real(rkx) , parameter :: rhosslt = 1000.0_rkx
   ! coef_ccn, abulk are parameter adjustable from the namelist
-  ! now particule to ccn convesrion following Lee et al., 2016 update from Jones et al., 1998
-  real(rkx), parameter :: c1 = 4.34D+08
-  real(rkx), parameter :: c2 = -1.8D-09
- 
+  ! now particule to ccn convesrion following Lee et al.,
+  ! 2016 update from Jones et al., 1998
+  real(rkx), parameter :: c1 = 4.34e8_rkx
+  real(rkx), parameter :: c2 = -1.8e-9_rkx
 
-  public :: ccn,calc_ccn
+  public :: ccn , calc_ccn
 
   contains
 
-   subroutine ccn(j)
+  subroutine ccn(j)
+    implicit none
+    integer, intent(in) :: j
+    integer(ik4) :: i , k
+    cccn(j,:,:) = d_zero
+    do k = 1 , kz
+      do i = ici1 , ici2
+        if ( ibchl > 0 ) then
+          cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhobchl,chib3d(j,i,k,ibchl))
+        end if
+        if ( iochl > 0 ) then
+          cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhoochl,chib3d(j,i,k,iochl))
+        end if
+        if ( iso4 > 0 ) then
+          cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhos,chib3d(j,i,k,iso4))
+        end if
+        if ( isslt(1) > 0 ) then
+          cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhosslt,chib3d(j,i,k,isslt(1)))
+        end if
+        ! now calculate ccn number from particle number
+        ! cccn = cccn * abulk
+        cccn(j,i,k) = c1 * (d_one - exp(c2 * cccn(j,i,k)))
+      end do
+    end do
+  end subroutine ccn
 
-  implicit none
-      integer, intent(in) :: j
-      integer(ik4) :: i , k
-    
-     cccn(j,:,:) = d_zero
-     do k = 1 , kz
-     do i = ici1 , ici2
-      if(ibchl>0) cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhobchl,chib3d(j,i,k,ibchl))
-      if(iochl>0) cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhoochl,chib3d(j,i,k,iochl))
-      if(iso4>0)  cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhos,chib3d(j,i,k,iso4))   
-      if(isslt(1) >0)  cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhosslt,chib3d(j,i,k,isslt(1))) 
-
-!    now calculate ccn number from particle number      
-!     cccn = cccn * abulk
-     cccn(j,i,k) = c1 * (1 - exp(c2 * cccn(j,i,k)))
-     end do
-     end do 
-
-end subroutine ccn
-
- pure real(rkx) function calc_ccn(denx,mrat) result(res)
-      implicit none
-! calculate the particle number from the mass distriubution of hydrophilic particle
-! coef_ccn is a coefficient detremined by assuming a lognormal mass distributionand calculated as (1/Dm**3)/exp(-9(logsigma)**2/2)   
-! passed in nameliste
-
-      real(rkx) , intent(in) :: denx , mrat
-!      res = (1D+6/(denx*1D-3))*(6.0D0/mathpi)*coef_ccn*mrat*1D+03
-      res = 6.D0 / (mathpi *denx ) * mrat * coef_ccn 
-
- end function calc_ccn
+  pure real(rkx) function calc_ccn(denx,mrat) result(res)
+    implicit none
+    ! Calculate the particle number from the mass distriubution of
+    ! hydrophilic particle
+    ! coef_ccn is a coefficient detremined by assuming a lognormal mass
+    ! distributionand calculated as (1/Dm**3)/exp(-9(logsigma)**2/2)
+    ! passed in nameliste
+    real(rkx) , intent(in) :: denx , mrat
+    ! res = (1D+6/(denx*1D-3))*(6.0D0/mathpi)*coef_ccn*mrat*1D+03
+    res = 6.0_rkx / (mathpi * denx ) * mrat * coef_ccn
+  end function calc_ccn
 
 end module mod_che_ccn
+
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

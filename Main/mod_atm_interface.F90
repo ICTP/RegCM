@@ -901,7 +901,6 @@ module mod_atm_interface
 #endif
         if ( iindirect > 0 .and. iaerosol == 1 ) then
           call getmem3d(ccn,jci1,jci2,ici1,ici2,1,kz,'storage:ccn')
-          print*,'KK', size(ccn)
         end if
       end if
       if ( iocncpl == 1 .or. iwavcpl == 1 ) then

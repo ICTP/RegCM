@@ -55,9 +55,8 @@ module mod_che_start
 
   subroutine start_chem
     implicit none
-    integer(ik4) :: i , j , k , itr , ibin , jbin , kbin,n, mmin,mbin
-
-    character(len=8)  :: minamesav
+    integer(ik4) :: i , j , k , n , itr , ibin , jbin , kbin , mmin , mbin
+    character(len=8) :: minamesav
 
     ! A : Intialise chemistry tracer indices
 
@@ -120,7 +119,6 @@ module mod_che_start
     icres   = 0
     ipollen = 0
 
-
     !abt *** For initializing megan tracer biogenic voc mask
     !    *** Mask not equal to zero when any MEGAN species is
     !    *** defined as a tracer within regcm.in
@@ -136,7 +134,6 @@ module mod_che_start
 
     trac%indcbmz(:) = -1
     trac%mw(:) = d_zero
-
 
     ibin = 0
     jbin = 0
@@ -225,17 +222,16 @@ module mod_che_start
         isslt(jbin) = itr
         chtrsol(itr) = solsslt(jbin)
       end if
-! mineralogical dust tracer
-      if ( chtrname(itr)(1:3) ==  'DMI') then
-        if (chtrname(itr)(1:4) .ne. minamesav(1:4)) then 
-         mbin=0 
-         mmin = mmin+1         
-        end if 
+      ! mineralogical dust tracer
+      if ( chtrname(itr)(1:3) == 'DMI' ) then
+        if ( chtrname(itr)(1:4) /= minamesav(1:4) ) then
+          mbin = 0
+          mmin = mmin+1
+        end if
         mbin = mbin + 1
         imine(mbin,mmin) = itr
         minamesav = chtrname(itr)
       end if
-       
 
       ! gas phas species (CBMZ),
       ! max configuration : number of tracer = number of species
