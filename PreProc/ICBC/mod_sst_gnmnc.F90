@@ -34,6 +34,7 @@ module mod_sst_gnmnc
   use mod_miroc_helper
   use mod_ipsl_helper
   use mod_gfdl_helper
+  use mod_cnrm_helper
   use netcdf
 
   private
@@ -130,32 +131,7 @@ module mod_sst_gnmnc
       call find_gfdl_sst(inpfile,imm1)
       varname(2) = 'ts'
     else if ( ssttyp(1:3) == 'CN_' ) then
-      if ( year < 2006 ) then
-        y1 = (year)/10*10
-        if ( y1 == 2000 ) then
-          y2 = 2005
-        else
-          y2 = y1 + 9
-        end if
-      else
-        y1 = (year-6)/10*10+6
-        y2 = y1 + 9
-      end if
-      if ( year /= 2006 .and. month /= 1 .and. day /= 1 .and. hour /= 0 ) then
-        if ( year == y1 .and. month == 1 .and. day == 1 .and. hour == 0 ) then
-          y1 = y1 - 10
-          y2 = y1 + 9
-        end if
-      end if
-      if ( .not. date_in_scenario(imm1,5,.true.) ) then
-        write(inpfile,'(a,i4,a,i4,a)') &
-           trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_historical_r1i1p1_', &
-           y1 , '01-', y2, '12.nc'
-      else
-        write(inpfile,'(a,a,a,i4,a,i4,a)') &
-           trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_rcp',ssttyp(4:5),&
-           '_r1i1p1_', y1 , '01-', y2, '12.nc'
-      end if
+      call find_cnrm_sst(inpfile,imm1)
       varname(2) = 'tos'
     else
       call die('gnmnc_sst','Unknown ssttyp: '//ssttyp,1)
@@ -414,29 +390,8 @@ module mod_sst_gnmnc
         call find_gfdl_sst(inpfile,idate)
         lswitch = .true.
       else if ( ssttyp(1:3) == 'CN_' ) then
-        call split_idate(idate, year, month, day, hour)
-        if ( year < 2006 ) then
-          y1 = (year)/10*10
-          if ( y1 == 2000 ) then
-            y2 = 2005
-          else
-            y2 = y1 + 9
-          end if
-        else
-          y1 = (year-6)/10*10+6
-          y2 = y1 + 9
-        end if
-        if ( .not. date_in_scenario(idate,5,.true.) ) then
-          write(inpfile,'(a,i4,a,i4,a)') &
-            trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_historical_r1i1p1_', &
-           y1 , '01-', y2, '12.nc'
-          lswitch = .true.
-        else
-          write(inpfile,'(a,a,a,i4,a,i4,a)') &
-           trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_rcp',ssttyp(4:5),&
-           '_r1i1p1_', y1 , '01-', y2, '12.nc'
-          lswitch = .true.
-        end if
+        call find_cnrm_sst(inpfile,idate)
+        lswitch = .true.
       end if
       if ( lswitch ) then
         write(stdout,*) 'Switching file...'

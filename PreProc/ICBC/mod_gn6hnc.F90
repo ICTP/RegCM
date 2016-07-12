@@ -50,6 +50,7 @@ module mod_gn6hnc
   use mod_miroc_helper
   use mod_ipsl_helper
   use mod_gfdl_helper
+  use mod_cnrm_helper
 
   private
 
@@ -117,9 +118,6 @@ module mod_gn6hnc
   data inet /nvars*-1/
 
   character(len=32) :: cambase = 'sococa.ts1.r1.cam2.h1.'
-  character(len=64) :: cnrmbase1 = '_6hrLev_CNRM-CM5_historical'
-  character(len=64) :: cnrmbase2 = '_6hrLev_CNRM-CM5_rcp'
-  character(len=64) :: cnrmbase3 = '_r1i1p1_'
   character(len=64) :: mpiebase1 = '_6hrLev_MPI-ESM-MR_historical'
   character(len=64) :: mpiebase2 = '_6hrLev_MPI-ESM-MR_rcp'
   character(len=64) :: mpiebase3 = '_r1i1p1_'
@@ -128,8 +126,6 @@ module mod_gn6hnc
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
   character(len=3) , target , dimension(nvars) :: ccsmvars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
-  character(len=3) , target , dimension(nvars) :: cnrmvars = &
-                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: gfsvars = &
                          (/'ta ' , 'hga' , 'rha' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: echvars = &
@@ -187,9 +183,7 @@ module mod_gn6hnc
     else if ( dattyp(1:3) == 'CN_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.
-      pathaddname = trim(inpglob)// &
-            '/CNRM-CM5/RF/ta/ta_6hrLev_CNRM-CM5_historical_'// &
-            'r1i1p1_195001010600-195002010000.nc'
+      call find_cnrm_dim(pathaddname)
     else if ( dattyp(1:3) == 'CS_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from a T file.
@@ -698,8 +692,7 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file '//trim(pathaddname))
       ! This one contains just orography.
-      pathaddname = trim(inpglob)// &
-            '/CNRM-CM5/fixed/orog_fx_CNRM-CM5_historical_r0i0p0.nc'
+      call find_cnrm_topo(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -1606,43 +1599,13 @@ module mod_gn6hnc
           end do
           varname => gfdlvars
         else if ( dattyp(1:3) == 'CN_' ) then
-          ! monthly files, one for each variable
-          if ( day == 1 .and. hour == 0 ) then
-            m1 = month-1
-            y1 = year
-            if ( m1 < 1 ) then
-              m1 = 12
-              y1 = year-1
-            end if
-            m2 = m1+1
-            y2 = y1
-          else
-            m1 = month
-            y1 = year
-            m2 = m1+1
-            y2 = y1
-          end if
-          if ( m2 > 12 ) then
-            m2 = 1
-            y2 = y2+1
-          end if
           do i = 1 , nfiles
             if ( cnrmvars(i) /= 'XXX' ) then
-              if ( .not. date_in_scenario(idate,5,.true.) ) then
-                write (inname,99007) 'RF',pthsep,trim(cnrmvars(i)), pthsep, &
-                  trim(cnrmvars(i)), trim(cnrmbase1)//trim(cnrmbase3), &
-                  y1, m1, '010600-', y2, m2, '010000.nc'
-              else
-                write (inname,99007) ('RCP'//dattyp(4:4)//'.'//dattyp(5:5)), &
-                  pthsep, trim(cnrmvars(i)), pthsep, trim(cnrmvars(i)), &
-                  trim(cnrmbase2)//dattyp(4:5)//trim(cnrmbase3), &
-                  y1, m1, '0106-', y2, m2, '0100.nc'
-              end if
-              pathaddname = trim(inpglob)//'/CNRM-CM5/'//inname
+              call find_cnrm_file(pathaddname,cnrmvars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error open '//trim(pathaddname))
-              write (stdout,*) inet(i), trim(pathaddname)
+              write (stdout,*) 'Open file ', trim(pathaddname)
             end if
           end do
           varname => cnrmvars
