@@ -110,7 +110,7 @@ module mod_smooth
     implicit none
     integer(ik4) , intent(in) :: nj , ni , nsp
     real(rkx) , intent(inout) , dimension(nj,ni) :: slab1
-    integer(ik4) :: i , iflg , j , k , n , npass
+    integer(ik4) :: i , j , k , n , npass
     integer(ik4) , allocatable , dimension(:) :: ii , jj
     !
     ! smooth terrain arrays

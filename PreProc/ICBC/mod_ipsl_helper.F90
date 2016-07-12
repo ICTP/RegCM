@@ -124,8 +124,8 @@ module mod_ipsl_helper
           y2 = y1 + 9
         end if
     end select
-    write(d1,'(i0.4i0.2i0.2i0.2)') y1, 1, 1, 3
-    write(d2,'(i0.4i0.2i0.2i0.2)') y2, 12, 31, 21
+    write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, 1, 1, 3
+    write(d2,'(i0.4,i0.2,i0.2,i0.2)') y2, 12, 31, 21
     if ( .not. date_in_scenario(idate,5,.true.) ) then
       call assemble_path(ipsl_filename,'RF',var,d1,d2)
     else

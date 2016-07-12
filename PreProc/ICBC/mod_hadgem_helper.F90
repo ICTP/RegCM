@@ -127,14 +127,14 @@ module mod_hadgem_helper
              inow == 2005120100 ) then
           icheck = y*1000000+120200
           if ( inow > icheck ) y = y + 1
-          write(d1,'(i0.4i0.2i0.2i0.2)') y-1, 12, 2, 6
-          write(d2,'(i0.4i0.2i0.2i0.2)') y, 12, 2, 0
+          write(d1,'(i0.4,i0.2,i0.2,i0.2)') y-1, 12, 2, 6
+          write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 12, 2, 0
           call assemble_path(hadgem_filename,'RF',havars(6),d1,d2)
         else
           icheck = y*1000000+120100
           if ( inow > icheck ) y = y + 1
-          write(d1,'(i0.4i0.2i0.2i0.2)') y-1, 12, 1, 6
-          write(d2,'(i0.4i0.2i0.2i0.2)') y, 12, 1, 0
+          write(d1,'(i0.4,i0.2,i0.2,i0.2)') y-1, 12, 1, 6
+          write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 12, 1, 0
           call assemble_path(hadgem_filename,'RCP'//dattyp(4:5), &
                              havars(6),d1,d2)
         end if
@@ -157,19 +157,19 @@ module mod_hadgem_helper
                 mm = 12
               end if
             end if
-            write(d1,'(i0.4i0.2i0.2i0.2)') yy, mm, 1, 6
+            write(d1,'(i0.4,i0.2,i0.2,i0.2)') yy, mm, 1, 6
             mm = mm + 3
             if ( mm > 12 ) then
               mm = 3
               yy = yy + 1
             end if
-            write(d2,'(i0.4i0.2i0.2i0.2)') yy, mm, 1, 0
+            write(d2,'(i0.4,i0.2,i0.2,i0.2)') yy, mm, 1, 0
             call assemble_path(hadgem_filename,'RF',var,d1,d2)
           else
             icheck = y*1000000+120100
             if ( inow > icheck ) y = y + 1
-            write(d1,'(i0.4i0.2i0.2i0.2)') y-1, 12, 1, 6
-            write(d2,'(i0.4i0.2i0.2i0.2)') y, 12, 1, 0
+            write(d1,'(i0.4,i0.2,i0.2,i0.2)') y-1, 12, 1, 6
+            write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 12, 1, 0
             call assemble_path(hadgem_filename,'RCP'//dattyp(4:5),var,d1,d2)
           end if
         else
@@ -190,13 +190,13 @@ module mod_hadgem_helper
                 mm = 12
               end if
             end if
-            write(d1,'(i0.4i0.2i0.2i0.2)') yy, mm, 1, 6
+            write(d1,'(i0.4,i0.2,i0.2,i0.2)') yy, mm, 1, 6
             mm = mm + 3
             if ( mm > 12 ) then
               mm = 3
               yy = yy + 1
             end if
-            write(d2,'(i0.4i0.2i0.2i0.2)') yy, mm, 1, 0
+            write(d2,'(i0.4,i0.2,i0.2,i0.2)') yy, mm, 1, 0
             call assemble_path(hadgem_filename,'RF',var,d1,d2)
           else
             icheck = yy*1000000+mm*10000+106
@@ -207,13 +207,13 @@ module mod_hadgem_helper
                 mm = 12
               end if
             end if
-            write(d1,'(i0.4i0.2i0.2i0.2)') yy, mm, 1, 6
+            write(d1,'(i0.4,i0.2,i0.2,i0.2)') yy, mm, 1, 6
             mm = mm + 3
             if ( mm > 12 ) then
               mm = 3
               yy = yy + 1
             end if
-            write(d2,'(i0.4i0.2i0.2i0.2)') yy, mm, 1, 0
+            write(d2,'(i0.4,i0.2,i0.2,i0.2)') yy, mm, 1, 0
             call assemble_path(hadgem_filename,'RCP'//dattyp(4:5),var,d1,d2)
           end if
         end if

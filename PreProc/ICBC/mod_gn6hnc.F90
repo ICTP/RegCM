@@ -51,6 +51,7 @@ module mod_gn6hnc
   use mod_ipsl_helper
   use mod_gfdl_helper
   use mod_cnrm_helper
+  use mod_mpiesm_helper
 
   private
 
@@ -118,9 +119,6 @@ module mod_gn6hnc
   data inet /nvars*-1/
 
   character(len=32) :: cambase = 'sococa.ts1.r1.cam2.h1.'
-  character(len=64) :: mpiebase1 = '_6hrLev_MPI-ESM-MR_historical'
-  character(len=64) :: mpiebase2 = '_6hrLev_MPI-ESM-MR_rcp'
-  character(len=64) :: mpiebase3 = '_r1i1p1_'
 
   character(len=3) , target , dimension(nvars) :: cam2vars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
@@ -132,8 +130,6 @@ module mod_gn6hnc
                          (/'t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ' , 'XXX'/)
   character(len=3) , target , dimension(nvars) :: ec5vars = &
                          (/'ta ' , 'gpa' , 'rha' , 'ua ' , 'va ' , 'XXX'/)
-  character(len=3) , target , dimension(nvars) :: mpievars = &
-                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'aps'/)
   character(len=5) , target , dimension(nvars) :: jra55vars = &
                (/'var11' , 'var7 ' , 'var52' , 'var33' , 'var34' , 'XXX  '/)
 
@@ -182,7 +178,7 @@ module mod_gn6hnc
       call find_gfdl_dim(pathaddname)
     else if ( dattyp(1:3) == 'CN_' ) then
       ! Vertical info are not stored in the fixed orography file.
-      ! Read part of the info from first T file.
+      ! Read part of the info from a T file.
       call find_cnrm_dim(pathaddname)
     else if ( dattyp(1:3) == 'CS_' ) then
       ! Vertical info are not stored in the fixed orography file.
@@ -190,17 +186,15 @@ module mod_gn6hnc
       call find_csiro_dim(pathaddname)
     else if ( dattyp(1:3) == 'MI_' ) then
       ! Vertical info are not stored in the fixed orography file.
-      ! Read part of the info from first T file.
+      ! Read part of the info from a T file.
       call find_miroc_dim(pathaddname)
     else if ( dattyp(1:2) == 'E5' ) then
       ! Vertical info are stored in the fixed vertinfo file.
       pathaddname = trim(inpglob)//'/ECHAM5/fixed/EH5_OM_1_VERTINFO.nc'
     else if ( dattyp(1:3) == 'MP_' ) then
       ! Vertical info are not stored in the fixed orography file.
-      ! Read part of the info from first T file.
-      pathaddname = trim(inpglob)// &
-            '/MPI-ESM-MR/RF/ta/ta_6hrLev_MPI-ESM-MR_historical_'// &
-            'r1i1p1_197001010000-197002010000.nc'
+      ! Read part of the info from a T file.
+      call find_mpiesm_dim(pathaddname)
     else if ( dattyp == 'GFS11' ) then
       pathaddname = trim(inpglob)//'/GFS11/fixed/fixed_orography.nc'
     else if ( dattyp(1:3) == 'EC_' ) then
@@ -474,8 +468,7 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file '//trim(pathaddname))
       ! This one contains just orography.
-      pathaddname = trim(inpglob)// &
-            '/MPI-ESM-MR/fixed/geosp_fx_MPI-ESM-MR_historical_r1i1p1.nc'
+      call find_mpiesm_topo(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -1011,8 +1004,7 @@ module mod_gn6hnc
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: istatus
-    integer(ik4) :: i , it , itps , j , k , timid , imon1
-    integer(ik4) :: iyear1 , imon2 , iyear2
+    integer(ik4) :: i , it , itps , j , k , timid
     character(len=256) :: inname
 
     integer(ik4) :: kkrec
@@ -1623,42 +1615,23 @@ module mod_gn6hnc
           varname => csirvars
         else if ( dattyp(1:3) == 'MI_' ) then
           do i = 1 , nfiles-1
-            if ( csirvars(i) /= 'XXX' ) then
+            if ( mirocvars(i) /= 'XXX' ) then
               call find_miroc_file(pathaddname,csirvars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
               call checkncerr(istatus,__FILE__,__LINE__, &
                 'Error open '//trim(pathaddname))
-              write (stdout,*) inet(i), trim(pathaddname)
+              write (stdout,*) 'Open file ', trim(pathaddname)
             end if
           end do
           varname => mirocvars
         else if ( dattyp(1:3) == 'MP_' ) then
-          ! monthly files, one for each variable
-          y1 = year
-          m1 = month
-          y2 = y1
-          m2 = m1 + 1
-          if ( m2 > 12 ) then
-            m2 = 1
-            y2 = y2 + 1
-          end if
           do i = 1 , nfiles
             if ( mpievars(i) /= 'XXX' ) then
-              if ( .not. date_in_scenario(idate,5,.true.) ) then
-                write (inname,99008) 'RF',pthsep,trim(mpievars(i)), pthsep, &
-                  trim(mpievars(i)), trim(mpiebase1)//trim(mpiebase3), &
-                  y1, m1, '010000-', y2, m2, '010000.nc'
-              else
-                write (inname,99008) ('RCP'//dattyp(4:4)//'.'//dattyp(5:5)), &
-                  pthsep, trim(mpievars(i)), pthsep, trim(mpievars(i)), &
-                  trim(mpiebase2)//dattyp(4:5)//trim(mpiebase3), &
-                  y1, m1, '010000-', y2, m2, '010000.nc'
-              end if
-              pathaddname = trim(inpglob)//'/MPI-ESM-MR/'//inname
+              call find_mpiesm_file(pathaddname,mpievars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error open '//trim(pathaddname))
-              write (stdout,*) inet(i), trim(pathaddname)
+              write (stdout,*) 'Open file ', trim(pathaddname)
             end if
           end do
           varname => mpievars
@@ -1862,10 +1835,7 @@ module mod_gn6hnc
 99001   format (i0.4,a,a,i0.4,i0.2,i0.2,a,i0.2,a)
 99002   format (a,i0.4,'-',i0.2,'-',i0.2,'-',i0.5,'.nc')
 99003   format (i0.4,'/','ccsm.',a,a,'.',i0.4,'.nc')
-99004   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
-99005   format (a,a,a,a,a,a,i0.4,a,i0.4,a)
 99006   format (a,a,i0.4,a,a,a,i0.4,a)
-99007   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
 99008   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
 99009   format (a,a,a,a,a,i0.4,a,i0.4,a)
 99010   format (a,a,i0.4,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,i0.2,a)

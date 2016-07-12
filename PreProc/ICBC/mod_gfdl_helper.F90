@@ -50,8 +50,8 @@ module mod_gfdl_helper
     call split_idate(idate,y,m,d,h)
     y1 = (y-1)/5*5+1
     y2 = y1+4
-    write(d1,'(i0.4i0.2)') y1, 1
-    write(d2,'(i0.4i0.2)') y2, 12
+    write(d1,'(i0.4,i0.2)') y1, 1
+    write(d2,'(i0.4,i0.2)') y2, 12
     if ( y1 < 2005 ) then
       fname = trim(inpglob)//pthsep//'GFDL-ESM2M'//pthsep//'SST'// &
               pthsep//'ts_Amon_GFDL-ESM2M_historical'// &
@@ -107,8 +107,8 @@ module mod_gfdl_helper
     call split_idate(idate,y,m,d,h)
     y1 = (y-1)/5*5+1
     y2 = y1+4
-    write(d1,'(i0.4i0.2i0.2i0.2)') y1, 1, 1, 0
-    write(d2,'(i0.4i0.2i0.2i0.2)') y2, 12, 31, 23
+    write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, 1, 1, 0
+    write(d2,'(i0.4,i0.2,i0.2,i0.2)') y2, 12, 31, 23
     if ( .not. date_in_scenario(idate,5,.true.) ) then
       call assemble_path(gfdl_filename,'RF',var,d1,d2)
     else

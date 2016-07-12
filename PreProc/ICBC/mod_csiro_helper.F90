@@ -124,8 +124,8 @@ module mod_csiro_helper
           iyear1 = (y-2006)/5*5+2006
           iyear2 = iyear1 + 5
         end if
-        write(d1,'(i0.4i0.2i0.2i0.2)') iyear1, 1, 1, 6
-        write(d2,'(i0.4i0.2i0.2i0.2)') iyear2, 1, 1, 0
+        write(d1,'(i0.4,i0.2,i0.2,i0.2)') iyear1, 1, 1, 6
+        write(d2,'(i0.4,i0.2,i0.2,i0.2)') iyear2, 1, 1, 0
         if ( .not. date_in_scenario(idate,5,.true.) ) then
           call assemble_path(csiro_filename,'RF',csirvars(6),d1,d2)
         else
@@ -138,8 +138,8 @@ module mod_csiro_helper
           iyear1 = y-1
         end if
         iyear2 = iyear1+1
-        write(d1,'(i0.4i0.2i0.2i0.2)') iyear1, 1, 1, 6
-        write(d2,'(i0.4i0.2i0.2i0.2)') iyear2, 1, 1, 0
+        write(d1,'(i0.4,i0.2,i0.2,i0.2)') iyear1, 1, 1, 6
+        write(d2,'(i0.4,i0.2,i0.2,i0.2)') iyear2, 1, 1, 0
         if ( .not. date_in_scenario(idate,5,.true.) ) then
           call assemble_path(csiro_filename,'RF',var,d1,d2)
         else

@@ -29,6 +29,7 @@ module mod_sst_gnhnc
   use mod_message
   use mod_nchelper
   use mod_ccsm3_helper
+  use mod_mpiesm_helper
   use netcdf
 
   private
@@ -75,30 +76,11 @@ module mod_sst_gnhnc
     type(rcm_time_and_date) :: idate , idatef , idateo
     type(rcm_time_interval) :: tdif
     integer(ik4) :: i , j , k , nsteps , latid , lonid
-    integer(ik4) :: year , month , day , hour , y1 , y2 , m1 , m2
+    integer(ik4) :: year , month , day , hour
 
     call split_idate(globidate1, year, month, day, hour)
-    y1 = year
-    m1 = month
-    y2 = year
-    m2 = month+1
-    if ( m2 > 12 ) then
-      m2 = 1
-      y2 = y2 + 1
-    end if
-
     if ( ssttyp(1:3) == 'MP_' ) then
-      if ( .not. date_in_scenario(globidate1,5) ) then
-        write(inpfile,'(a,i9,a,i9,a)') &
-          trim(inpglob)//'/MPI-ESM-MR/SST/'// &
-          'tos_6hrLev_MPI-ESM-MR_historical_r1i1p1_', &
-          y1*100000+m1*1000+10,'000-',y2*100000+m2*1000+10,'000.nc'
-      else
-        write(inpfile,'(a,a,a,i9,a,i9,a)') &
-          trim(inpglob)//'/MPI-ESM-MR/SST/tos_6hrLev_MPI-ESM-MR_rcp',&
-          ssttyp(4:5),'_r1i1p1_', &
-          y1*100000+m1*1000+10,'000-',y2*100000+m2*1000+10,'000.nc'
-      end if
+      call find_mpiesm_sst(inpfile,globidate1)
       varname(2) = 'tos'
     else if ( ssttyp == 'EIXXX' ) then
       write(inpfile,'(a)') trim(inpglob)//'/ERAIN_MEAN/SST/sst_xxxx_xxxx.nc'
@@ -112,7 +94,7 @@ module mod_sst_gnhnc
     else if ( ssttyp(1:2) == 'E5' ) then
       write(inpfile,'(a,i4,a,i4,a)') &
         trim(inpglob)//'/ECHAM5/SST/EH5_OM'//ssttyp(3:5)//'_1_TSW_', &
-        y1,'010100-',y1+1,'010100.nc'
+        year,'010100-',year+1,'010100.nc'
       varname(2) = 'tos'
     else if ( ssttyp == 'CCSM3' ) then
       call find_ccsm3_file(inpfile,year,month,day,hour)
@@ -259,7 +241,7 @@ module mod_sst_gnhnc
     implicit none
     type(rcm_time_and_date) , intent (in) :: idate
     integer(ik4) :: it , i , j
-    integer(ik4) :: year , month , day , hour , y1 , y2 , m1 , m2
+    integer(ik4) :: year , month , day , hour
     type(rcm_time_interval) :: tdif
     integer(ik4) , dimension(12) :: isteps
 
@@ -284,28 +266,9 @@ module mod_sst_gnhnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error Close file')
       call split_idate(idate, year, month, day, hour)
-      y1 = year
-      m1 = month
-      y2 = year
-      m2 = month+1
-      if ( m2 > 12 ) then
-        m2 = 1
-        y2 = y2 + 1
-      end if
       if ( ssttyp(1:3) == 'MP_' ) then
-        if ( .not. date_in_scenario(idate,5) ) then
-          write(inpfile,'(a,i9,a,i9,a)') &
-            trim(inpglob)//'/MPI-ESM-MR/SST/'// &
-            'tos_6hrLev_MPI-ESM-MR_historical_r1i1p1_', &
-            y1*100000+m1*1000+10,'000-',y2*100000+m2*1000+10,'000.nc'
-        else
-          write(inpfile,'(a,a,a,i9,a,i9,a)') &
-            trim(inpglob)//'/MPI-ESM-MR/SST/tos_6hrLev_MPI-ESM-MR_rcp',&
-            ssttyp(4:5),'_r1i1p1_', &
-            y1*100000+m1*1000+10,'000-',y2*100000+m2*1000+10,'000.nc'
-        end if
+        call find_mpiesm_sst(inpfile,idate)
       else if ( ssttyp == 'CCSM3' ) then
-        call split_idate(idate, year, month, day, hour)
         call find_ccsm3_file(inpfile,year,month,day,hour)
       end if
       istatus = nf90_open(inpfile,nf90_nowrite,inet1)

@@ -84,11 +84,9 @@ module mod_sst_gnmnc
     implicit none
     type(rcm_time_and_date) :: idate , idatef , idateo , imm1
     integer(ik4) :: i , j , k , nsteps
-    integer(ik4) :: year , month , day , hour , y1 , y2
     real(rkx) :: ufac
 
     imm1 = prevmon(globidate1)
-    call split_idate(imm1, year, month, day, hour)
 
     ufac = 0.0
     if ( ssttyp == 'CAM4N' ) then
@@ -183,10 +181,7 @@ module mod_sst_gnmnc
     type(rcm_time_and_date) :: prev , next
 
     integer(ik4) :: it , i , j
-    integer(ik4) :: year , month , day , hour
     type(rcm_time_interval) :: tdiff1 , tdiff2
-
-    call split_idate(idate, year, month, day, hour)
 
     icount(1) = ilon
     icount(2) = jlat
@@ -353,7 +348,6 @@ module mod_sst_gnmnc
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) , intent(inout) :: it
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: vv
-    integer(ik4) :: year , month , day , hour , y1 , y2
     logical :: lswitch
     icount(1) = ilon
     icount(2) = jlat

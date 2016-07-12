@@ -99,8 +99,8 @@ module mod_miroc_helper
     call split_idate(idate,y,m,d,h)
     select case (var)
       case ('ps')
-        write(d1,'(i0.4i0.2i0.2i0.2)') y, 1, 1, 0
-        write(d2,'(i0.4i0.2i0.2i0.2)') y, 12, 31, 18
+        write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, 1, 1, 0
+        write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 12, 31, 18
         if ( .not. date_in_scenario(idate,5,.true.) ) then
           call assemble_path(miroc_filename,'RF',var,d1,d2)
         else
@@ -115,8 +115,8 @@ module mod_miroc_helper
           m2 = 1
           y2 = y2 + 1
         end if
-        write(d1,'(i0.4i0.2i0.2i0.2)') y1, m1, 1, 0
-        write(d2,'(i0.4i0.2i0.2i0.2)') y2, m2, 1, 0
+        write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, m1, 1, 0
+        write(d2,'(i0.4,i0.2,i0.2,i0.2)') y2, m2, 1, 0
         if ( .not. date_in_scenario(idate,5,.true.) ) then
           call assemble_path(miroc_filename,'RF',var,d1,d2)
         else

@@ -59,8 +59,8 @@ module mod_cnrm_helper
       y1 = (y-6)/10*10+6
       y2 = y1 + 9
     end if
-    write(d1,'(i0.4i0.2)') y1, 1
-    write(d2,'(i0.4i0.2)') y2, 12
+    write(d1,'(i0.4,i0.2)') y1, 1
+    write(d2,'(i0.4,i0.2)') y2, 12
     if ( y1 < 2005 ) then
       fname = trim(inpglob)//pthsep//'CNRM-CM5'//pthsep//'SST'// &
               pthsep//'tos_Omon_CNRM-CM5_historical'// &
@@ -130,8 +130,8 @@ module mod_cnrm_helper
       m2 = 1
       y2 = y2+1
     end if
-    write(d1,'(i0.4i0.2i0.2i0.2)') y1, m1, 1, 6
-    write(d2,'(i0.4i0.2i0.2i0.2)') y2, m2, 1, 0
+    write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, m1, 1, 6
+    write(d2,'(i0.4,i0.2,i0.2,i0.2)') y2, m2, 1, 0
     if ( .not. date_in_scenario(idate,5,.true.) ) then
       call assemble_path(cnrm_filename,'RF',var,d1,d2)
     else

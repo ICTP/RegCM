@@ -301,7 +301,7 @@ module mod_ein
         do j = 1 , jlat
           do i = 1 , ilon
             rhvar(i,jlat+1-j,:) = &
-                max(real(real(work(i,j,:),rkx)*xscale+xadd,rkx)*0.01,0.0)
+              max(real(real(work(i,j,:),rkx)*xscale+xadd,rkx)*0.01_rkx,0.0_rkx)
           end do
         end do
       else if ( kkrec == 4 ) then
