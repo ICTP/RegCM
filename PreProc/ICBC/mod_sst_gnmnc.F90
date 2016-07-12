@@ -28,6 +28,7 @@ module mod_sst_gnmnc
   use mod_interp
   use mod_message
   use mod_nchelper
+  use mod_hadgem_helper
   use netcdf
 
   private
@@ -111,20 +112,7 @@ module mod_sst_gnmnc
       end if
       varname(2) = 'ts'
     else if ( ssttyp(1:3) == 'HA_' ) then
-      if ( .not. date_in_scenario(imm1,5) ) then
-        if ( imm1 > 1959110100 ) then
-          inpfile = trim(inpglob)// &
-             '/HadGEM2/SST/tos_Omon_HadGEM2-ES_historical'// &
-             '_r1i1p1_195912-200512.nc'
-        else
-          inpfile = trim(inpglob)// &
-             '/HadGEM2/SST/tos_Omon_HadGEM2-ES_historical'// &
-             '_r1i1p1_185912-195911.nc'
-        end if
-      else
-        inpfile = trim(inpglob)//'/HadGEM2/SST/tos_Omon_HadGEM2-ES_rcp'// &
-          ssttyp(4:5)//'_r1i1p1_200512-209911.nc'
-      end if
+      call find_hadgem_sst(inpfile,imm1)
       varname(2) = 'tos'
     else if ( ssttyp(1:3) == 'CS_' ) then
       if ( .not. date_in_scenario(imm1,5,.true.) ) then
@@ -446,25 +434,9 @@ module mod_sst_gnmnc
             lswitch = .true.
           end if
         else if ( ssttyp(1:3) == 'HA_' ) then
-          if ( idate < 2000010100 ) then
-            inpfile = trim(inpglob)// &
-             '/HadGEM2/SST/tos_Omon_HadGEM2-ES_historical'// &
-             '_r1i1p1_195912-200512.nc'
-            lswitch = .true.
-            lref = .false.
-          else if ( date_in_scenario(idate,5,.false.) ) then
-            if ( idate < 2099110100 ) then
-              inpfile = trim(inpglob)// &
-                '/HadGEM2/SST/tos_Omon_HadGEM2-ES_rcp'// &
-                ssttyp(4:5)//'_r1i1p1_200512-209911.nc'
-            else
-              inpfile = trim(inpglob)// &
-                '/HadGEM2/SST/tos_Omon_HadGEM2-ES_rcp'// &
-                ssttyp(4:5)//'_r1i1p1_209912-219911.nc'
-            end if
-            lswitch = .true.
-            lref = .false.
-          end if
+          call find_hadgem_sst(inpfile,idate)
+          lswitch = .true.
+          lref = .false.
         else if ( ssttyp(1:3) == 'CS_' ) then
           if ( date_in_scenario(idate,5,.true.) ) then
             inpfile = trim(inpglob)//'/SST/tos_Omon_CSIRO-Mk3-6-0_rcp'//&

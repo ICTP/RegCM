@@ -44,6 +44,7 @@ module mod_gn6hnc
   use mod_message
   use mod_nchelper
   use mod_ccsm3_helper
+  use mod_hadgem_helper
 
   private
 
@@ -111,9 +112,6 @@ module mod_gn6hnc
   data inet /nvars*-1/
 
   character(len=32) :: cambase = 'sococa.ts1.r1.cam2.h1.'
-  character(len=64) :: habase1  = '_6hrLev_HadGEM2-ES_historical'
-  character(len=64) :: habase2  = '_6hrLev_HadGEM2-ES_rcp'
-  character(len=64) :: habase3 = '_r1i1p1_'
   character(len=64) :: cabase1 = '_6hrLev_CanESM2_historical'
   character(len=64) :: cabase2 = '_6hrLev_CanESM2_rcp'
   character(len=64) :: cabase3 = '_r1i1p1_'
@@ -140,8 +138,6 @@ module mod_gn6hnc
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
   character(len=3) , target , dimension(nvars) :: ccsmvars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
-  character(len=3) , target , dimension(nvars) :: havars = &
-                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: cavars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: ipvars = &
@@ -193,10 +189,7 @@ module mod_gn6hnc
     else if ( dattyp == 'CCSMN' ) then
       pathaddname = trim(inpglob)//'/CCSM/ccsm_ht.nc'
     else if ( dattyp(1:3) == 'HA_' ) then
-      ! Vertical info are not stored in the fixed orography file.
-      pathaddname = trim(inpglob)// &
-            '/HadGEM2/RF/ta/ta_6hrLev_HadGEM2-ES_historical_'// &
-            'r1i1p1_1990120106-1991030100.nc'
+      call find_hadgem_dim(pathaddname)
     else if ( dattyp(1:3) == 'CA_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.
@@ -281,9 +274,7 @@ module mod_gn6hnc
     call getmem1d(glat,1,nlat,'mod_gn6hnc:glat')
     call getmem1d(glon,1,nlon,'mod_gn6hnc:glon')
     if ( dattyp(1:2) == 'HA' ) then
-      pathaddname = trim(inpglob)// &
-            '/HadGEM2/RF/ua/ua_6hrLev_HadGEM2-ES_historical_'// &
-            'r1i1p1_1990120106-1991030100.nc'
+      call find_hadgem_ufile(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet2)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -293,9 +284,7 @@ module mod_gn6hnc
       istatus = nf90_inquire_dimension(inet2,jdim,len=nulon)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error inquire lon dim')
-      pathaddname = trim(inpglob)// &
-            '/HadGEM2/RF/va/va_6hrLev_HadGEM2-ES_historical_'// &
-            'r1i1p1_1990120106-1991030100.nc'
+      call find_hadgem_vfile(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet3)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -305,12 +294,6 @@ module mod_gn6hnc
       istatus = nf90_inquire_dimension(inet3,jdim,len=nvlat)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error inquire lat dim')
-      pathaddname = trim(inpglob)// &
-            '/HadGEM2/RF/ua/ua_6hrLev_HadGEM2-ES_historical_'// &
-            'r1i1p1_1990120106-1991030100.nc'
-      istatus = nf90_open(pathaddname,nf90_nowrite,inet2)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error open '//trim(pathaddname))
       call getmem1d(vglat,1,nvlat,'mod_gn6hnc:vglat')
       call getmem1d(uglon,1,nulon,'mod_gn6hnc:uglon')
     end if
@@ -1417,28 +1400,7 @@ module mod_gn6hnc
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error close file')
           end if
-          iyear1 = year
-          if ( month == 12 .and. day >= 1 .and. hour > 0 ) then
-            iyear1 = iyear1 + 1
-          end if
-          if ( .not. date_in_scenario(idate,5,.false.) ) then
-            write (inname,99005) 'RF', pthsep, trim(havars(6)), pthsep, &
-                 trim(havars(6)), trim(habase1)//trim(habase3), &
-                 iyear1-1, '120106-', iyear1, '120100.nc'
-          else
-            if (year*1000000+month*10000+day*100+hour == 2005120100) then
-              write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-                trim(havars(6)), pthsep, trim(havars(6)), &
-                trim(habase2)//dattyp(4:5)//trim(habase3), &
-                iyear1, '120100-', iyear1+1, '120100.nc'
-            else
-              write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-                trim(havars(6)), pthsep, trim(havars(6)), &
-                trim(habase2)//dattyp(4:5)//trim(habase3), &
-                iyear1-1, '120106-', iyear1, '120100.nc'
-            end if
-          end if
-          pathaddname = trim(inpglob)//'/HadGEM2/'//inname
+          call find_hadgem_file(pathaddname,'ps',idate)
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error open '//trim(pathaddname))
@@ -1468,7 +1430,7 @@ module mod_gn6hnc
           istatus = nf90_inq_varid(inet(6), trim(havars(6)), ivar(6))
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error find var '//trim(havars(6)))
-          write (stdout,*) inet(6), trim(pathaddname)
+          write (stdout,*) 'Open file ', trim(pathaddname)
         end if
       end if
       ! CSIRO dataset has PS files with different times.
@@ -1682,78 +1644,13 @@ module mod_gn6hnc
           end do
           varname => ccsmvars
         else if ( dattyp(1:3) == 'HA_' ) then
-          ! 3 months dataset per file.
           do i = 1 , nfiles-1
             if ( havars(i) /= 'XXX' ) then
-              if ( dattyp(4:5) == '26' ) then
-                iyear1 = year
-                if ( month == 12 .and. day >= 1 .and. hour > 0 ) then
-                  iyear1 = iyear1 + 1
-                end if
-                if ( .not. date_in_scenario(idate,5,.false.) ) then
-                  write (inname,99005) 'RF', pthsep, trim(havars(i)), pthsep, &
-                     trim(havars(i)), trim(habase1)//trim(habase3), &
-                     iyear1-1, '120106-', iyear1, '120100.nc'
-                else
-                  if (year*1000000+month*10000+day*100+hour == 2005120100) then
-                    write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-                      trim(havars(i)), pthsep, trim(havars(i)), &
-                      trim(habase2)//dattyp(4:5)//trim(habase3), &
-                      iyear1, '120100-', iyear1+1, '120100.nc'
-                  else
-                    write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-                      trim(havars(i)), pthsep, trim(havars(i)), &
-                      trim(habase2)//dattyp(4:5)//trim(habase3), &
-                      iyear1-1, '120106-', iyear1, '120100.nc'
-                  end if
-                end if
-              else
-                iyear1 = year
-                imon1 = month
-                imon1 = imon1 / 3 * 3
-                if ( day == 1 .and. hour == 0 ) then
-                  if ( mod(month,3) == 0 ) then
-                    imon1 = imon1 - 3
-                  end if
-                end if
-                if ( imon1 == 0 ) then
-                  imon1 = 12
-                  iyear1 = iyear1 - 1
-                end if
-                if ( imon1 == 12 ) then
-                  iyear2 = iyear1 + 1
-                  imon2  = 3
-                else
-                  iyear2 = iyear1
-                  imon2 = imon1 + 3
-                end if
-                if ( .not. date_in_scenario(idate,5,.false.) ) then
-                  write (inname,99004) 'RF', pthsep, trim(havars(i)), pthsep, &
-                    trim(havars(i)), trim(habase1)//trim(habase3), &
-                    iyear1, imon1 , '0106-', iyear2, imon2, '0100.nc'
-                else
-                  if (iyear1*1000000+imon1*10000 == 2005090000) then
-                    iyear1 = 2005
-                    imon1 = 12
-                    iyear2 = 2006
-                    imon2 = 3
-                    write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
-                      trim(havars(i)), pthsep, trim(havars(i)), &
-                      trim(habase2)//dattyp(4:5)//trim(habase3), &
-                      iyear1, imon1, '0100-', iyear2, imon2, '0100.nc'
-                  else
-                    write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
-                      trim(havars(i)), pthsep, trim(havars(i)), &
-                      trim(habase2)//dattyp(4:5)//trim(habase3), &
-                      iyear1, imon1, '0106-', iyear2, imon2, '0100.nc'
-                  end if
-                end if
-              end if
-              pathaddname = trim(inpglob)//'/HadGEM2/'//inname
+              call find_hadgem_file(pathaddname,havars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error open '//trim(pathaddname))
-              write (stdout,*) inet(i), trim(pathaddname)
+              write (stdout,*) 'Open file ', trim(pathaddname)
             end if
           end do
           varname => havars
