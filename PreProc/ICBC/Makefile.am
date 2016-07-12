@@ -8,12 +8,13 @@ bin_PROGRAMS = sst icbc chem_icbc
 sst_SOURCES = mod_sst_eh5om.F90 mod_sst_ersst.F90 mod_sst_fvgcm.F90 \
               mod_sst_1deg.F90 mod_sst_gnmnc.F90 mod_sst_grid.F90 \
               mod_sst_gnhnc.F90 mod_header.F90 sst.F90 mod_ccsm3_helper.F90 \
-              mod_hadgem_helper.F90
+              mod_hadgem_helper.F90 mod_csiro_helper.F90
 icbc_SOURCES = mod_vectutil.F90 mod_ecwcp.F90 mod_eh5om.F90 mod_ein.F90 \
                mod_era40.F90 mod_erahi.F90 mod_fvgcm.F90 mod_grid.F90  \
                mod_ncep.F90 mod_nest.F90 mod_write.F90 mod_header.F90 \
                mod_mksst.F90 mod_uvrot.F90 mod_ecens.F90 mod_gn6hnc.F90 \
-               mod_ccsm3_helper.F90 mod_hadgem_helper.F90 icbc.F90
+               mod_ccsm3_helper.F90 mod_hadgem_helper.F90 mod_csiro_helper.F90 \
+               icbc.F90
 chem_icbc_SOURCES = mod_ch_param.F90 mod_ch_icbc.F90 mod_ch_icbc_clim.F90 \
                     mod_ox_icbc.F90 mod_ae_icbc.F90 mod_wrtoxd.F90 \
                     mod_ch_fnest.F90 mod_grid.F90 mod_header.F90 chem_icbc.F90
@@ -37,6 +38,7 @@ mod_ox_icbc.o : mod_ox_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mo
 mod_ae_icbc.o : mod_ae_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_interp.o mod_date.o mod_nchelper.o
 mod_ccsm_helper.o : mod_ccsm_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o
 mod_hadgem_helper.o : mod_hadgem_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
+mod_csiro_helper.o : mod_hadgem_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
 mod_ch_fnest.o : mod_ch_fnest.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_interp.o mod_date.o mod_nchelper.o
 mod_ecens.o : mod_ecens.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_nchelper.o
 mod_ecwcp.o : mod_ecwcp.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_stdio.o mod_message.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o

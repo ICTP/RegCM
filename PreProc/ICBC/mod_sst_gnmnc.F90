@@ -29,6 +29,7 @@ module mod_sst_gnmnc
   use mod_message
   use mod_nchelper
   use mod_hadgem_helper
+  use mod_csiro_helper
   use netcdf
 
   private
@@ -115,13 +116,7 @@ module mod_sst_gnmnc
       call find_hadgem_sst(inpfile,imm1)
       varname(2) = 'tos'
     else if ( ssttyp(1:3) == 'CS_' ) then
-      if ( .not. date_in_scenario(imm1,5,.true.) ) then
-        inpfile = trim(inpglob)// &
-           '/SST/tos_Omon_CSIRO-Mk3-6-0_historical_r1i1p1_185001-200512.nc'
-      else
-        inpfile = trim(inpglob)//'/SST/tos_Omon_CSIRO-Mk3-6-0_rcp'//&
-          ssttyp(4:5)//'_r1i1p1_200601-210012.nc'
-      end if
+      call find_csiro_sst(inpfile,imm1)
       varname(2) = 'tos'
     else if ( ssttyp(1:3) == 'MI_' ) then
       if ( .not. date_in_scenario(imm1,5,.true.) ) then
@@ -436,11 +431,12 @@ module mod_sst_gnmnc
         else if ( ssttyp(1:3) == 'HA_' ) then
           call find_hadgem_sst(inpfile,idate)
           lswitch = .true.
-          lref = .false.
+          if ( date_in_scenario(idate,5,.true.) ) then
+            lref = .false.
+          end if
         else if ( ssttyp(1:3) == 'CS_' ) then
           if ( date_in_scenario(idate,5,.true.) ) then
-            inpfile = trim(inpglob)//'/SST/tos_Omon_CSIRO-Mk3-6-0_rcp'//&
-              ssttyp(4:5)//'_r1i1p1_200601-210012.nc'
+            call find_csiro_sst(inpfile,idate)
             lswitch = .true.
           end if
         else if ( ssttyp(1:3) == 'EC_' ) then

@@ -26,12 +26,10 @@ module mod_hadgem_helper
 
   private
 
-  public :: havars , habase1 , habase2 , habase3
+  public :: havars
   public :: find_hadgem_sst
   public :: find_hadgem_dim , find_hadgem_file
   public :: find_hadgem_ufile , find_hadgem_vfile
-
-  character(len=16) :: hadgem_date
 
   integer(ik4) , parameter :: nvars = 6
   character(len=3) , target , dimension(nvars) :: havars = &

@@ -45,6 +45,7 @@ module mod_gn6hnc
   use mod_nchelper
   use mod_ccsm3_helper
   use mod_hadgem_helper
+  use mod_csiro_helper
 
   private
 
@@ -124,9 +125,6 @@ module mod_gn6hnc
   character(len=64) :: cnrmbase1 = '_6hrLev_CNRM-CM5_historical'
   character(len=64) :: cnrmbase2 = '_6hrLev_CNRM-CM5_rcp'
   character(len=64) :: cnrmbase3 = '_r1i1p1_'
-  character(len=64) :: csirbase1 = '_6hrLev_CSIRO-Mk3-6-0_historical'
-  character(len=64) :: csirbase2 = '_6hrLev_CSIRO-Mk3-6-0_rcp'
-  character(len=64) :: csirbase3 = '_r1i1p1_'
   character(len=64) :: mirocbase1 = '_6hrLev_MIROC5_historical'
   character(len=64) :: mirocbase2 = '_6hrLev_MIROC5_rcp'
   character(len=64) :: mirocbase3 = '_r1i1p1_'
@@ -152,8 +150,6 @@ module mod_gn6hnc
                          (/'t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ' , 'XXX'/)
   character(len=3) , target , dimension(nvars) :: ec5vars = &
                          (/'ta ' , 'gpa' , 'rha' , 'ua ' , 'va ' , 'XXX'/)
-  character(len=3) , target , dimension(nvars) :: csirvars = &
-                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: mirocvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: mpievars = &
@@ -189,10 +185,12 @@ module mod_gn6hnc
     else if ( dattyp == 'CCSMN' ) then
       pathaddname = trim(inpglob)//'/CCSM/ccsm_ht.nc'
     else if ( dattyp(1:3) == 'HA_' ) then
+      ! Vertical info are not stored in the fixed orography file.
+      ! Read part of the info from a T file.
       call find_hadgem_dim(pathaddname)
     else if ( dattyp(1:3) == 'CA_' ) then
       ! Vertical info are not stored in the fixed orography file.
-      ! Read part of the info from first T file.
+      ! Read part of the info from a T file.
       pathaddname = trim(inpglob)// &
             '/CanESM2/RF/ta/ta_6hrLev_CanESM2_historical_'// &
             'r1i1p1_195001010000-195012311800.nc'
@@ -216,10 +214,8 @@ module mod_gn6hnc
             'r1i1p1_195001010600-195002010000.nc'
     else if ( dattyp(1:3) == 'CS_' ) then
       ! Vertical info are not stored in the fixed orography file.
-      ! Read part of the info from first T file.
-      pathaddname = trim(inpglob)// &
-            '/CSIRO-MK36/RF/ta/ta_6hrLev_CSIRO-Mk3-6-0_historical_'// &
-            'r1i1p1_195001010600-195101010000.nc'
+      ! Read part of the info from a T file.
+      call find_csiro_dim(pathaddname)
     else if ( dattyp(1:3) == 'MI_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.
@@ -777,8 +773,7 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file '//trim(pathaddname))
       ! This one contains just orography.
-      pathaddname = trim(inpglob)// &
-            '/CSIRO-MK36/fixed/orog_fx_CSIRO-Mk3-6-0_historical_r0i0p0.nc'
+      call find_csiro_topo(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -1441,49 +1436,7 @@ module mod_gn6hnc
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error close file')
           end if
-          if ( .not. date_in_scenario(idate,5,.true.) ) then
-            if ( year == 2005 ) then
-              if ( month == 1 .and. day == 1 .and. hour == 0 ) then
-                iyear1 = year/5*5
-                if ( mod(year,5) == 0 .and. month == 1 .and. &
-                     day == 1 .and. hour == 0 ) then
-                  iyear1 = iyear1 - 5
-                end if
-                iyear2 = iyear1 + 5
-              else
-                iyear1 = 2005
-                iyear2 = 2006
-              end if
-            else
-              iyear1 = year/5*5
-              if ( mod(year,5) == 0 .and. month == 1 .and. &
-                   day == 1 .and. hour == 0 ) then
-                iyear1 = iyear1 - 5
-              end if
-              iyear2 = iyear1 + 5
-            end if
-          else
-            iyear1 = (year-2006)/5*5+2006
-            iyear2 = iyear1 + 5
-          end if
-          if ( .not. date_in_scenario(idate,5,.true.) ) then
-            write (inname,99005) 'RF', pthsep, trim(csirvars(6)), pthsep, &
-                 trim(csirvars(6)), trim(csirbase1)//trim(csirbase3), &
-                 iyear1, '01010600-', iyear2, '01010000.nc'
-          else
-            if (year*1000000+month*10000+day*100+hour == 2005120100) then
-              write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-                trim(csirvars(6)), pthsep, trim(csirvars(6)), &
-                trim(csirbase2)//dattyp(4:5)//trim(csirbase3), &
-                iyear1, '01010600-', iyear2, '01010000.nc'
-            else
-              write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-                trim(csirvars(6)), pthsep, trim(csirvars(6)), &
-                trim(csirbase2)//dattyp(4:5)//trim(csirbase3), &
-                iyear1, '01010600-', iyear2, '01010000.nc'
-            end if
-          end if
-          pathaddname = trim(inpglob)//'/CSIRO-MK36/'//inname
+          call find_csiro_file(pathaddname,csirvars(6),idate)
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error open '//trim(pathaddname))
@@ -1513,7 +1466,7 @@ module mod_gn6hnc
           istatus = nf90_inq_varid(inet(6), trim(csirvars(6)), ivar(6))
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error find var '//trim(csirvars(6)))
-          write (stdout,*) inet(6), trim(pathaddname)
+          write (stdout,*) 'Open file ', trim(pathaddname)
         end if
       end if
       ! MIROC dataset has PS files with different times
@@ -1808,28 +1761,13 @@ module mod_gn6hnc
           varname => cnrmvars
         else if ( dattyp(1:3) == 'CS_' ) then
           ! yearly files, one for each variable
-          y1 = year
-          if ( month == 1 .and. day == 1 .and. hour == 0 ) then
-            y1 = year-1
-          end if
-          y2 = y1+1
           do i = 1 , nfiles-1
             if ( csirvars(i) /= 'XXX' ) then
-              if ( .not. date_in_scenario(idate,5,.true.) ) then
-                write (inname,99005) 'RF',pthsep,trim(csirvars(i)), pthsep, &
-                  trim(csirvars(i)), trim(csirbase1)//trim(csirbase3), &
-                  y1, '01010600-', y2, '01010000.nc'
-              else
-                write (inname,99005) ('RCP'//dattyp(4:4)//'.'//dattyp(5:5)), &
-                  pthsep, trim(csirvars(i)), pthsep, trim(csirvars(i)), &
-                  trim(csirbase2)//dattyp(4:5)//trim(csirbase3), &
-                  y1, '01010600-', y2, '01010000.nc'
-              end if
-              pathaddname = trim(inpglob)//'/CSIRO-MK36/'//inname
+              call find_csiro_file(pathaddname,csirvars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error open '//trim(pathaddname))
-              write (stdout,*) inet(i), trim(pathaddname)
+              write (stdout,*) 'Open file ', trim(pathaddname)
             end if
           end do
           varname => csirvars
