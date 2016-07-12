@@ -1011,7 +1011,7 @@ module mod_gn6hnc
     character(len=64) :: cunit , ccal
     type(rcm_time_interval) :: tdif
     type(rcm_time_and_date) :: pdate
-    integer(ik4) :: year , month , day , hour , y1 , y2 , m1 , m2
+    integer(ik4) :: year , month , day , hour , y1 , y2 , m1
     integer(ik4) :: fyear , fmonth , fday , fhour
 
     call split_idate(idate,year,month,day,hour)
@@ -1090,7 +1090,7 @@ module mod_gn6hnc
           y1 = year
           m1 = month
           if ( jra55vars(i) /= 'XXX' ) then
-            write (inname,99010) dattyp,pthsep,y1,pthsep, &
+            write (inname,99006) dattyp,pthsep,y1,pthsep, &
                'anl_p125.',trim(jra55name(i)), '.', &
                y1, m1,'0100_',y1,m1,ndaypm(y1,m1,gregorian),'18.nc'
             pathaddname = trim(inpglob)//pthsep//inname
@@ -1188,7 +1188,7 @@ module mod_gn6hnc
         y2 = y1+1
         do i = 1 , nfiles
           if ( ec5vars(i) /= 'XXX' ) then
-            write (inname,99009) dattyp(4:5),pthsep, &
+            write (inname,99005) dattyp(4:5),pthsep, &
                'EH5_OM_'//dattyp(4:5)//'_1_', &
                trim(ec5name(i)), '_', y1, '010100-',y1+1,'010100.nc'
             pathaddname = trim(inpglob)//'/ECHAM5/'//inname
@@ -1266,10 +1266,10 @@ module mod_gn6hnc
         varname => echvars
         do kkrec = 1 , 5
           if ( .not. date_in_scenario(idate,5,.true.) ) then
-            write (inname,99006) 'RF', pthsep, year, pthsep, 'ich1_', &
+            write (inname,99004) 'RF', pthsep, year, pthsep, 'ich1_', &
                   trim(varname(kkrec))//'_', year, '.nc'
           else
-            write (inname,99006) ('RCP'//dattyp(4:5)), pthsep, year,  &
+            write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, year,  &
                   pthsep, 'ich1_',                                    &
                   trim(varname(kkrec))//'_', year, '.nc'
           end if
@@ -1835,10 +1835,9 @@ module mod_gn6hnc
 99001   format (i0.4,a,a,i0.4,i0.2,i0.2,a,i0.2,a)
 99002   format (a,i0.4,'-',i0.2,'-',i0.2,'-',i0.5,'.nc')
 99003   format (i0.4,'/','ccsm.',a,a,'.',i0.4,'.nc')
-99006   format (a,a,i0.4,a,a,a,i0.4,a)
-99008   format (a,a,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,a)
-99009   format (a,a,a,a,a,i0.4,a,i0.4,a)
-99010   format (a,a,i0.4,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,i0.2,a)
+99004   format (a,a,i0.4,a,a,a,i0.4,a)
+99005   format (a,a,a,a,a,i0.4,a,i0.4,a)
+99006   format (a,a,i0.4,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,i0.2,a)
 
   end subroutine readgn6hnc
 
