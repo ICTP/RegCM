@@ -47,6 +47,7 @@ module mod_gn6hnc
   use mod_hadgem_helper
   use mod_csiro_helper
   use mod_canesm_helper
+  use mod_miroc_helper
 
   private
 
@@ -123,9 +124,6 @@ module mod_gn6hnc
   character(len=64) :: cnrmbase1 = '_6hrLev_CNRM-CM5_historical'
   character(len=64) :: cnrmbase2 = '_6hrLev_CNRM-CM5_rcp'
   character(len=64) :: cnrmbase3 = '_r1i1p1_'
-  character(len=64) :: mirocbase1 = '_6hrLev_MIROC5_historical'
-  character(len=64) :: mirocbase2 = '_6hrLev_MIROC5_rcp'
-  character(len=64) :: mirocbase3 = '_r1i1p1_'
   character(len=64) :: mpiebase1 = '_6hrLev_MPI-ESM-MR_historical'
   character(len=64) :: mpiebase2 = '_6hrLev_MPI-ESM-MR_rcp'
   character(len=64) :: mpiebase3 = '_r1i1p1_'
@@ -146,8 +144,6 @@ module mod_gn6hnc
                          (/'t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ' , 'XXX'/)
   character(len=3) , target , dimension(nvars) :: ec5vars = &
                          (/'ta ' , 'gpa' , 'rha' , 'ua ' , 'va ' , 'XXX'/)
-  character(len=3) , target , dimension(nvars) :: mirocvars = &
-                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: mpievars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'aps'/)
   character(len=5) , target , dimension(nvars) :: jra55vars = &
@@ -213,9 +209,7 @@ module mod_gn6hnc
     else if ( dattyp(1:3) == 'MI_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.
-      pathaddname = trim(inpglob)// &
-        '/MIROC5/RF/ta/ta_6hrLev_MIROC5_historical_'// &
-        'r1i1p1_1970010100-1970020100.nc'
+      call find_miroc_dim(pathaddname)
     else if ( dattyp(1:2) == 'E5' ) then
       ! Vertical info are stored in the fixed vertinfo file.
       pathaddname = trim(inpglob)//'/ECHAM5/fixed/EH5_OM_1_VERTINFO.nc'
@@ -672,8 +666,7 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file '//trim(pathaddname))
       ! This one contains just orography.
-      pathaddname = trim(inpglob)// &
-        '/MIROC5/fixed/orog_fx_MIROC5_historical_r0i0p0.nc'
+      call find_miroc_topo(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
         'Error open '//trim(pathaddname))
@@ -1470,17 +1463,7 @@ module mod_gn6hnc
             call checkncerr(istatus,__FILE__,__LINE__, &
                             'Error close file')
           end if
-          if ( .not. date_in_scenario(idate,5,.true.) ) then
-            write (inname,99005) 'RF', pthsep, trim(mirocvars(6)), pthsep, &
-              trim(mirocvars(6)), trim(mirocbase1)//trim(mirocbase3), &
-              year, '010100-', year, '123118.nc'
-          else
-            write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-              trim(mirocvars(6)), pthsep, trim(mirocvars(6)), &
-              trim(mirocbase2)//dattyp(4:5)//trim(mirocbase3), &
-              year, '010100-', year, '123118.nc'
-          end if
-          pathaddname = trim(inpglob)//'/MIROC5/'//inname
+          call find_miroc_file(pathaddname,'ps',idate)
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
           call checkncerr(istatus,__FILE__,__LINE__, &
             'Error open '//trim(pathaddname))
@@ -1755,28 +1738,9 @@ module mod_gn6hnc
           end do
           varname => csirvars
         else if ( dattyp(1:3) == 'MI_' ) then
-          ! monthly files, one for each variable
-          y1 = year
-          m1 = month
-          y2 = y1
-          m2 = m1 + 1
-          if ( m2 > 12 ) then
-            m2 = 1
-            y2 = y2 + 1
-          end if
           do i = 1 , nfiles-1
             if ( csirvars(i) /= 'XXX' ) then
-              if ( .not. date_in_scenario(idate,5,.true.) ) then
-                write (inname,99008) 'RF',pthsep,trim(mirocvars(i)), pthsep, &
-                  trim(mirocvars(i)), trim(mirocbase1)//trim(mirocbase3), &
-                  y1, m1, '0100-', y2, m2, '0100.nc'
-              else
-                write (inname,99008) ('RCP'//dattyp(4:4)//'.'//dattyp(5:5)), &
-                  pthsep, trim(mirocvars(i)), pthsep, trim(mirocvars(i)), &
-                  trim(mirocbase2)//dattyp(4:5)//trim(mirocbase3), &
-                  y1, m1, '0100-', y2, m2, '0100.nc'
-              end if
-              pathaddname = trim(inpglob)//'/MIROC5/'//inname
+              call find_miroc_file(pathaddname,csirvars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
               call checkncerr(istatus,__FILE__,__LINE__, &
                 'Error open '//trim(pathaddname))

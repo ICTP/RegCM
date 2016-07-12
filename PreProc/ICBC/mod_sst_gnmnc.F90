@@ -31,6 +31,7 @@ module mod_sst_gnmnc
   use mod_hadgem_helper
   use mod_csiro_helper
   use mod_canesm_helper
+  use mod_miroc_helper
   use netcdf
 
   private
@@ -110,13 +111,7 @@ module mod_sst_gnmnc
       call find_csiro_sst(inpfile,imm1)
       varname(2) = 'tos'
     else if ( ssttyp(1:3) == 'MI_' ) then
-      if ( .not. date_in_scenario(imm1,5,.true.) ) then
-        inpfile = trim(inpglob)// &
-           '/SST/ts_Amon_MIROC5_historical_r1i1p1_185001-201212.nc'
-      else
-        inpfile = trim(inpglob)//'/SST/ts_Amon_MIROC5_rcp'//&
-          ssttyp(4:5)//'_r1i1p1_200601-210012.nc'
-      end if
+      call find_miroc_sst(inpfile,imm1)
       varname(2) = 'ts'
     else if ( ssttyp(1:3) == 'EC_' ) then
       if ( .not. date_in_scenario(imm1,5,.true.) ) then
@@ -419,10 +414,8 @@ module mod_sst_gnmnc
         call find_hadgem_sst(inpfile,idate)
         lswitch = .true.
       else if ( ssttyp(1:3) == 'CS_' ) then
-        if ( date_in_scenario(idate,5,.true.) ) then
-          call find_csiro_sst(inpfile,idate)
-          lswitch = .true.
-        end if
+        call find_csiro_sst(inpfile,idate)
+        lswitch = .true.
       else if ( ssttyp(1:3) == 'EC_' ) then
         if ( date_in_scenario(idate,5,.true.) ) then
           inpfile = trim(inpglob)//'/SST/EC-EARTH/RCP'//ssttyp(4:5)//&
@@ -430,11 +423,8 @@ module mod_sst_gnmnc
           lswitch = .true.
         end if
       else if ( ssttyp(1:3) == 'MI_' ) then
-        if ( date_in_scenario(idate,5,.true.) ) then
-          inpfile = trim(inpglob)//'/SST/ts_Amon_MIROC5_rcp'//&
-            ssttyp(4:5)//'_r1i1p1_200601-210012.nc'
-          lswitch = .true.
-        end if
+        call find_miroc_sst(inpfile,idate)
+        lswitch = .true.
       else if ( ssttyp(1:3) == 'IP_' ) then
         if ( date_in_scenario(idate,5,.true.) ) then
           inpfile = trim(inpglob)//'/SST/tos_Omon_IPSL-CM5A-LR_rcp'//&
