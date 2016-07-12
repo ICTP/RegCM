@@ -48,6 +48,7 @@ module mod_gn6hnc
   use mod_csiro_helper
   use mod_canesm_helper
   use mod_miroc_helper
+  use mod_ipsl_helper
 
   private
 
@@ -115,9 +116,6 @@ module mod_gn6hnc
   data inet /nvars*-1/
 
   character(len=32) :: cambase = 'sococa.ts1.r1.cam2.h1.'
-  character(len=64) :: ipbase1 = '_6hrLev_IPSL-CM5A-LR_historical'
-  character(len=64) :: ipbase2 = '_6hrLev_IPSL-CM5A-LR_rcp'
-  character(len=64) :: ipbase3 = '_r1i1p1_'
   character(len=64) :: gfdlbase1 = '_6hrLev_GFDL-ESM2M_historical'
   character(len=64) :: gfdlbase2 = '_6hrLev_GFDL-ESM2M_rcp'
   character(len=64) :: gfdlbase3 = '_r1i1p1_'
@@ -132,8 +130,6 @@ module mod_gn6hnc
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
   character(len=3) , target , dimension(nvars) :: ccsmvars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
-  character(len=3) , target , dimension(nvars) :: ipvars = &
-                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: gfdlvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: cnrmvars = &
@@ -187,9 +183,7 @@ module mod_gn6hnc
     else if ( dattyp(1:3) == 'IP_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.
-      pathaddname = trim(inpglob)// &
-            '/IPSL-CM5A-LR/RF/ta/ta_6hrLev_IPSL-CM5A-LR_historical_'// &
-            'r1i1p1_195001010300-195912312100.nc'
+      call find_ipsl_dim(pathaddname)
     else if ( dattyp(1:3) == 'GF_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.
@@ -572,8 +566,7 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file '//trim(pathaddname))
       ! This one contains just orography.
-      pathaddname = trim(inpglob)// &
-            '/IPSL-CM5A-LR/fixed/orog_fx_IPSL-CM5A-LR_historical_r0i0p0.nc'
+      call find_ipsl_topo(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -1511,7 +1504,8 @@ module mod_gn6hnc
           else
             if ( dattyp(1:3) == 'HA_' .or. &
                  dattyp(1:3) == 'CS_' .or. &
-                 dattyp(1:3) == 'MI_' ) then
+                 dattyp(1:3) == 'MI_' .or. &
+                 dattyp(1:3) == 'IP_' ) then
               do i = 1 , nfiles-1
                 if ( havars(i) /= 'XXX' ) then
                   istatus = nf90_close(inet(i))
@@ -1596,58 +1590,15 @@ module mod_gn6hnc
           end do
           varname => cavars
         else if ( dattyp(1:3) == 'IP_' ) then
-          ! 10 yearly files, one for each variable
-          do i = 1 , nfiles-1
+          do i = 1 , nfiles
             if ( ipvars(i) /= 'XXX' ) then
-              if ( .not. date_in_scenario(idate,5,.true.) ) then
-                if ( year > 2000 ) then
-                  write (inname,99005) 'RF',pthsep,trim(ipvars(i)), pthsep, &
-                    trim(ipvars(i)), trim(ipbase1)//trim(ipbase3), &
-                    2000, '01010300-', 2005, '12312100.nc'
-                else
-                  write (inname,99005) 'RF',pthsep,trim(ipvars(i)), pthsep, &
-                    trim(ipvars(i)), trim(ipbase1)//trim(ipbase3), &
-                    (year/10*10), '01010300-', (year/10*10+9), '12312100.nc'
-                end if
-              else
-                write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-                  trim(ipvars(i)), pthsep, trim(ipvars(i)), &
-                  trim(ipbase2)//dattyp(4:5)//trim(ipbase3), &
-                  (year/10*10+6), '010103-', (year/10*10+15), '123121.nc'
-              end if
-              pathaddname = trim(inpglob)//'/IPSL-CM5A-LR/'//inname
+              call find_ipsl_file(pathaddname,ipvars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error open '//trim(pathaddname))
-              write (stdout,*) inet(i), trim(pathaddname)
+              write (stdout,*) 'Open file ', trim(pathaddname)
             end if
           end do
-          ! PS is in 50 years file...
-          if ( .not. date_in_scenario(idate,5,.true.) ) then
-            if ( year < 1950 ) then
-              write (inname,99005) 'RF',pthsep,trim(ipvars(6)), pthsep, &
-                    trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
-                    1900, '01010300-', 1949, '12312100.nc'
-            else if ( year < 2000 ) then
-              write (inname,99005) 'RF',pthsep,trim(ipvars(6)), pthsep, &
-                    trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
-                    1950, '01010300-', 1999, '12312100.nc'
-            else
-              write (inname,99005) 'RF',pthsep,trim(ipvars(6)), pthsep, &
-                    trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
-                    2000, '01010300-', 2005, '12312100.nc'
-            end if
-          else
-            write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-               trim(ipvars(6)), pthsep, trim(ipvars(6)), &
-               trim(ipbase2)//dattyp(4:5)//trim(ipbase3), &
-               (year/50*50+6), '01010300-', (year/50*50+55), '12312100.nc'
-          end if
-          pathaddname = trim(inpglob)//'/IPSL-CM5A-LR/'//inname
-          istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error open '//trim(pathaddname))
-          write (stdout,*) inet(6), trim(pathaddname)
           varname => ipvars
         else if ( dattyp(1:3) == 'GF_' ) then
           ! 5 yearly files, one for each variable

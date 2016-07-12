@@ -32,6 +32,7 @@ module mod_sst_gnmnc
   use mod_csiro_helper
   use mod_canesm_helper
   use mod_miroc_helper
+  use mod_ipsl_helper
   use netcdf
 
   private
@@ -122,13 +123,7 @@ module mod_sst_gnmnc
       end if
       varname(2) = 'sst'
     else if ( ssttyp(1:3) == 'IP_' ) then
-      if ( .not. date_in_scenario(imm1,5,.true.) ) then
-        inpfile = trim(inpglob)//'/SST/'//&
-          'tos_Omon_IPSL-CM5A-LR_historical_r1i1p1_185001-200512.nc'
-      else
-        inpfile = trim(inpglob)//'/SST/tos_Omon_IPSL-CM5A-LR_rcp'//&
-          ssttyp(4:5)//'_r1i1p1_200601-230012.nc'
-      end if
+      call find_ipsl_sst(inpfile,imm1)
       varname(2) = 'tos'
     else if ( ssttyp(1:3) == 'GF_' ) then
       y1 = (year-1)/5*5+1
@@ -426,11 +421,8 @@ module mod_sst_gnmnc
         call find_miroc_sst(inpfile,idate)
         lswitch = .true.
       else if ( ssttyp(1:3) == 'IP_' ) then
-        if ( date_in_scenario(idate,5,.true.) ) then
-          inpfile = trim(inpglob)//'/SST/tos_Omon_IPSL-CM5A-LR_rcp'//&
-            ssttyp(4:5)//'_r1i1p1_200601-230012.nc'
-          lswitch = .true.
-        end if
+        call find_ipsl_sst(inpfile,idate)
+        lswitch = .true.
       else if ( ssttyp(1:3) == 'GF_' ) then
         call split_idate(idate, year, month, day, hour)
         y1 = (year-1)/5*5+1

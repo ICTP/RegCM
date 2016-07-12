@@ -44,7 +44,7 @@ module mod_canesm_helper
     implicit none
     character(len=256) , intent(out) :: fname
     type(rcm_time_and_date) , intent(in) :: idate
-    if ( .not. date_in_scenario(idate,5) ) then
+    if ( .not. date_in_scenario(idate,5,.true.) ) then
       fname = trim(inpglob)//pthsep//'CanESM2'//pthsep//'SST'// &
               pthsep//'ts_Amon_CanESM2_historical'// &
               '_r1i1p1_185001-200512.nc'
