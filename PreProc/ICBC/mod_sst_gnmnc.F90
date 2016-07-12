@@ -33,6 +33,7 @@ module mod_sst_gnmnc
   use mod_canesm_helper
   use mod_miroc_helper
   use mod_ipsl_helper
+  use mod_gfdl_helper
   use netcdf
 
   private
@@ -126,21 +127,7 @@ module mod_sst_gnmnc
       call find_ipsl_sst(inpfile,imm1)
       varname(2) = 'tos'
     else if ( ssttyp(1:3) == 'GF_' ) then
-      y1 = (year-1)/5*5+1
-      y2 = y1+4
-      if ( year == y1 .and. month == 1 .and. day == 1 .and. hour == 0 ) then
-        y1 = y1 - 5
-        y2 = y1 + 4
-      end if
-      if ( .not. date_in_scenario(imm1,5,.true.) ) then
-        write(inpfile,'(a,i4,a,i4,a)') &
-           trim(inpglob)//'/SST/ts_Amon_GFDL-ESM2M_historical_r1i1p1_', &
-           y1 , '01-', y2, '12.nc'
-      else
-        write(inpfile,'(a,a,a,i4,a,i4,a)') &
-           trim(inpglob)//'/SST/ts_Amon_GFDL-ESM2M_rcp',ssttyp(4:5),&
-           '_r1i1p1_', y1 , '01-', y2, '12.nc'
-      end if
+      call find_gfdl_sst(inpfile,imm1)
       varname(2) = 'ts'
     else if ( ssttyp(1:3) == 'CN_' ) then
       if ( year < 2006 ) then
@@ -424,20 +411,8 @@ module mod_sst_gnmnc
         call find_ipsl_sst(inpfile,idate)
         lswitch = .true.
       else if ( ssttyp(1:3) == 'GF_' ) then
-        call split_idate(idate, year, month, day, hour)
-        y1 = (year-1)/5*5+1
-        y2 = y1+4
-        if ( .not. date_in_scenario(idate,5,.true.) ) then
-          write(inpfile,'(a,i4,a,i4,a)') &
-            trim(inpglob)//'/SST/ts_Amon_GFDL-ESM2M_historical_r1i1p1_', &
-            y1 , '01-', y2, '12.nc'
-          lswitch = .true.
-        else
-          write(inpfile,'(a,a,a,i4,a,i4,a)') &
-            trim(inpglob)//'/SST/ts_Amon_GFDL-ESM2M_rcp',ssttyp(4:5),&
-            '_r1i1p1_', y1 , '01-', y2, '12.nc'
-          lswitch = .true.
-        end if
+        call find_gfdl_sst(inpfile,idate)
+        lswitch = .true.
       else if ( ssttyp(1:3) == 'CN_' ) then
         call split_idate(idate, year, month, day, hour)
         if ( year < 2006 ) then

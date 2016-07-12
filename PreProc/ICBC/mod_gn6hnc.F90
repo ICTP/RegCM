@@ -49,6 +49,7 @@ module mod_gn6hnc
   use mod_canesm_helper
   use mod_miroc_helper
   use mod_ipsl_helper
+  use mod_gfdl_helper
 
   private
 
@@ -116,9 +117,6 @@ module mod_gn6hnc
   data inet /nvars*-1/
 
   character(len=32) :: cambase = 'sococa.ts1.r1.cam2.h1.'
-  character(len=64) :: gfdlbase1 = '_6hrLev_GFDL-ESM2M_historical'
-  character(len=64) :: gfdlbase2 = '_6hrLev_GFDL-ESM2M_rcp'
-  character(len=64) :: gfdlbase3 = '_r1i1p1_'
   character(len=64) :: cnrmbase1 = '_6hrLev_CNRM-CM5_historical'
   character(len=64) :: cnrmbase2 = '_6hrLev_CNRM-CM5_rcp'
   character(len=64) :: cnrmbase3 = '_r1i1p1_'
@@ -130,8 +128,6 @@ module mod_gn6hnc
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
   character(len=3) , target , dimension(nvars) :: ccsmvars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
-  character(len=3) , target , dimension(nvars) :: gfdlvars = &
-                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: cnrmvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: gfsvars = &
@@ -182,14 +178,12 @@ module mod_gn6hnc
       call find_canesm_dim(pathaddname)
     else if ( dattyp(1:3) == 'IP_' ) then
       ! Vertical info are not stored in the fixed orography file.
-      ! Read part of the info from first T file.
+      ! Read part of the info from a T file.
       call find_ipsl_dim(pathaddname)
     else if ( dattyp(1:3) == 'GF_' ) then
       ! Vertical info are not stored in the fixed orography file.
-      ! Read part of the info from first T file.
-      pathaddname = trim(inpglob)// &
-            '/GFDL-ESM2M/RF/ta/ta_6hrLev_GFDL-ESM2M_historical_'// &
-            'r1i1p1_1951010100-1955123123.nc'
+      ! Read part of the info from a T file.
+      call find_gfdl_dim(pathaddname)
     else if ( dattyp(1:3) == 'CN_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.
@@ -612,8 +606,7 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file '//trim(pathaddname))
       ! This one contains just orography.
-      pathaddname = trim(inpglob)// &
-            '/GFDL-ESM2M/fixed/orog_fx_GFDL-ESM2M_historical_r0i0p0.nc'
+      call find_gfdl_topo(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -1602,36 +1595,13 @@ module mod_gn6hnc
           varname => ipvars
         else if ( dattyp(1:3) == 'GF_' ) then
           ! 5 yearly files, one for each variable
-          y1 = (year-1)/5*5+1
-          y2 = y1+4
-          if ( year == y1 .and. month == 1 .and. &
-               day == 1 .and. hour == 0 ) then
-            y1 = y1-5
-            y2 = y1+4
-          end if
           do i = 1 , nfiles
             if ( gfdlvars(i) /= 'XXX' ) then
-              if ( .not. date_in_scenario(idate,5,.true.) ) then
-                write (inname,99005) 'RF',pthsep,trim(gfdlvars(i)), pthsep, &
-                  trim(gfdlvars(i)), trim(gfdlbase1)//trim(gfdlbase3), &
-                  y1, '010100-', y2, '123123.nc'
-              else
-                if (year*1000000+month*10000+day*100+hour == 2006010100) then
-                  write (inname,99005) 'RF',pthsep,trim(gfdlvars(i)), pthsep, &
-                    trim(gfdlvars(i)), trim(gfdlbase1)//trim(gfdlbase3), &
-                    2001, '010100-', 2005, '123123.nc'
-                else
-                  write (inname,99005) ('RCP'//dattyp(4:5)), &
-                    pthsep, trim(gfdlvars(i)), pthsep, trim(gfdlvars(i)), &
-                    trim(gfdlbase2)//dattyp(4:5)//trim(gfdlbase3), &
-                    y1, '010100-', y2, '123123.nc'
-                end if
-              end if
-              pathaddname = trim(inpglob)//'/GFDL-ESM2M/'//inname
+              call find_gfdl_file(pathaddname,gfdlvars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error open '//trim(pathaddname))
-              write (stdout,*) inet(i), trim(pathaddname)
+              write (stdout,*) 'Open file ', trim(pathaddname)
             end if
           end do
           varname => gfdlvars
