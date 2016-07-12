@@ -1012,23 +1012,26 @@ module mod_params
     !
     if ( myid == iocpu ) then
       if ( dattyp(4:5) == '26' ) then
-        if ( scenario /= 'RCP3PD' .or. scenario /= 'RCP2.6' ) then
+        if ( scenario /= 'RCP3PD' .or. &
+             scenario /= 'RCP2.6' .or. &
+             scenario /= 'RCP26' ) then
           write(stderr,*) 'Forcing scenario from dattyp to RCP2.6'
-          scenario = 'RCP3PD'
+          scenario = 'RCP2.6'
         end if
       else if ( dattyp(4:5) == '45' ) then
-        if ( scenario /= 'RCP4.5') then
+        if ( scenario /= 'RCP4.5' .or. scenario /= 'RCP45' ) then
           write(stderr,*) 'Forcing scenario from dattyp to RCP4.5'
           scenario = 'RCP4.5'
         end if
-      else if ( dattyp(4:5) == '60') then
-        if ( scenario /= 'RCP6' .or.  scenario /= 'RCP60' .or.  &
-             scenario /= 'RCP60') then
+      else if ( dattyp(4:5) == '60' ) then
+        if ( scenario /= 'RCP6' .or.  &
+             scenario /= 'RCP60' .or. &
+             scenario /= 'RCP6.0' ) then
           write(stderr,*) 'Forcing scenario from dattyp to RCP6.0'
-          scenario = 'RCP6'
+          scenario = 'RCP6.0'
         end if
-      else if ( dattyp(4:5) == '85') then
-        if ( scenario /= 'RCP8.5') then
+      else if ( dattyp(4:5) == '85' ) then
+        if ( scenario /= 'RCP8.5' .or. scenario /= 'RCP85' ) then
           write(stderr,*) 'Forcing scenario from dattyp to RCP8.5'
           scenario = 'RCP8.5'
         end if

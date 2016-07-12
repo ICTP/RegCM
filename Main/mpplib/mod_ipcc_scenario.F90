@@ -51,7 +51,8 @@ module mod_ipcc_scenario
 
   ! SRES and RCP Scenarios
 
-  data scenarios /'A1B','RF','A2','B1','B2','RCP3PD','RCP4.5','RCP6','RCP8.5'/
+  data scenarios /'A1B     ','A2      ','B1      ','B2      ', &
+                  'RF      ','RCP2.6  ','RCP4.5  ','RCP6.0  ','RCP8.5  '/
 !
 !-----------------------------------------------------------------------
 !
@@ -743,7 +744,7 @@ module mod_ipcc_scenario
     2099.0_rkx , 594.30_rkx , 2702.90_rkx , 363.09_rkx , 51.529_rkx , 251.48_rkx , &
     2100.0_rkx , 597.17_rkx , 2699.90_rkx , 363.20_rkx , 50.509_rkx , 249.02_rkx /), &
         (/6,50/))
-      case( 'RCP3PD' , 'RCP2.6' )
+      case( 'RCP3PD' , 'RCP2.6' , 'RCP26' )
         cgas(1:6,1850:2100) = reshape((/    &
     1850.0_rkx , 284.725_rkx , 790.979_rkx , 275.425_rkx , 0.00_rkx , 0.00_rkx , &
     1851.0_rkx , 284.875_rkx , 792.250_rkx , 275.500_rkx , 0.00_rkx , 0.00_rkx , &
@@ -997,7 +998,7 @@ module mod_ipcc_scenario
     2099.0_rkx , 421.401_rkx , 1255.067_rkx , 344.057_rkx , 36.90_rkx , 198.44_rkx , &
     2100.0_rkx , 420.895_rkx , 1253.628_rkx , 344.016_rkx , 36.05_rkx , 196.15_rkx /) , &
       (/6,251/))
-      case( 'RCP4.5' )
+      case( 'RCP4.5' , 'RCP45' )
         cgas(1:6,1850:2100) = reshape((/    &
     1850.0_rkx , 284.725_rkx , 790.979_rkx , 275.425_rkx , 0.00_rkx , 0.00_rkx , &
     1851.0_rkx , 284.875_rkx , 792.250_rkx , 275.500_rkx , 0.00_rkx , 0.00_rkx , &
@@ -1505,7 +1506,7 @@ module mod_ipcc_scenario
     2099.0_rkx , 666.423_rkx , 1663.528_rkx , 405.372_rkx , 32.12_rkx , 185.78_rkx , &
     2100.0_rkx , 669.723_rkx , 1649.396_rkx , 406.265_rkx , 31.24_rkx , 183.22_rkx /), &
       (/6,251/))
-      case( 'RCP8.5' )
+      case( 'RCP8.5' , 'RCP85' )
         cgas(1:6,1850:2100) = reshape((/    &
     1850.0_rkx , 284.725_rkx , 790.979_rkx , 275.425_rkx , 0.00_rkx , 0.00_rkx , &
     1851.0_rkx , 284.875_rkx , 792.250_rkx , 275.500_rkx , 0.00_rkx , 0.00_rkx , &
