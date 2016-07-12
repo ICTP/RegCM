@@ -495,10 +495,10 @@
  iuwvadv = 0,   ! 0=standard T/QV/QC advection, 1=GB01-style advection
                 ! 1 is ideal for MSc simulation, but may have stability issues
  atwo = 15.0,   ! Efficiency of enhancement of entrainment by cloud evap.
-                !  see Grenier and Bretherton (2001) Mon. Wea. Rev.
-                !  and Bretherton and Park (2009) J. Clim.
+                ! see Grenier and Bretherton (2001) Mon. Wea. Rev.
+                ! and Bretherton and Park (2009) J. Clim.
  rstbl = 1.5,   ! Scaling parameter for stable boundary layer eddy length
-                ! scale.  Higher values mean stronger mixing in stable 
+                ! scale. Higher values mean stronger mixing in stable
                 ! conditions
  czero = 5.869, ! Czero constant in UW PBL (eqn 44a and pgs 856-857)
  nuk = 5.0D0,   ! Multiplication factor for diffusion coefficients

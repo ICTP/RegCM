@@ -46,6 +46,7 @@ module mod_gn6hnc
   use mod_ccsm3_helper
   use mod_hadgem_helper
   use mod_csiro_helper
+  use mod_canesm_helper
 
   private
 
@@ -113,9 +114,6 @@ module mod_gn6hnc
   data inet /nvars*-1/
 
   character(len=32) :: cambase = 'sococa.ts1.r1.cam2.h1.'
-  character(len=64) :: cabase1 = '_6hrLev_CanESM2_historical'
-  character(len=64) :: cabase2 = '_6hrLev_CanESM2_rcp'
-  character(len=64) :: cabase3 = '_r1i1p1_'
   character(len=64) :: ipbase1 = '_6hrLev_IPSL-CM5A-LR_historical'
   character(len=64) :: ipbase2 = '_6hrLev_IPSL-CM5A-LR_rcp'
   character(len=64) :: ipbase3 = '_r1i1p1_'
@@ -136,8 +134,6 @@ module mod_gn6hnc
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
   character(len=3) , target , dimension(nvars) :: ccsmvars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
-  character(len=3) , target , dimension(nvars) :: cavars = &
-                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: ipvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: gfdlvars = &
@@ -191,9 +187,7 @@ module mod_gn6hnc
     else if ( dattyp(1:3) == 'CA_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from a T file.
-      pathaddname = trim(inpglob)// &
-            '/CanESM2/RF/ta/ta_6hrLev_CanESM2_historical_'// &
-            'r1i1p1_195001010000-195012311800.nc'
+      call find_canesm_dim(pathaddname)
     else if ( dattyp(1:3) == 'IP_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from first T file.
@@ -545,8 +539,7 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file '//trim(pathaddname))
       ! This one contains just orography.
-      pathaddname = trim(inpglob)// &
-            '/CanESM2/fixed/orog_fx_CanESM2_historical_r0i0p0.nc'
+      call find_canesm_topo(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -1611,22 +1604,12 @@ module mod_gn6hnc
           ! yearly files, one for each variable
           do i = 1 , nfiles
             if ( cavars(i) /= 'XXX' ) then
-              if ( .not. date_in_scenario(idate,5,.true.) ) then
-                write (inname,99005) 'RF', pthsep, trim(cavars(i)), pthsep, &
-                  trim(cavars(i)), trim(cabase1)//trim(cabase3), &
-                  year, '01010000-', year, '12311800.nc'
-              else
-                write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
-                  trim(cavars(i)), pthsep, trim(cavars(i)), &
-                  trim(cabase2)//dattyp(4:5)//trim(cabase3), &
-                  year, '01010000-', year, '12311800.nc'
-              end if
-              pathaddname = trim(inpglob)//'/CanESM2/'//inname
+              call find_canesm_file(pathaddname,cavars(i),idate)
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error open '//trim(pathaddname))
             end if
-            write (stdout,*) inet(i), trim(pathaddname)
+            write (stdout,*) 'Open file ', trim(pathaddname)
           end do
           varname => cavars
         else if ( dattyp(1:3) == 'IP_' ) then

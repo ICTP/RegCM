@@ -30,6 +30,7 @@ module mod_sst_gnmnc
   use mod_nchelper
   use mod_hadgem_helper
   use mod_csiro_helper
+  use mod_canesm_helper
   use netcdf
 
   private
@@ -58,8 +59,6 @@ module mod_sst_gnmnc
   real(rkx) , pointer , dimension(:,:) :: glat2
   real(rkx) , pointer , dimension(:,:) :: glon2
 
-  logical :: lref
-
   public :: sst_gnmnc
 
   contains
@@ -87,7 +86,6 @@ module mod_sst_gnmnc
     imm1 = prevmon(globidate1)
     call split_idate(imm1, year, month, day, hour)
 
-    lref = .true.
     ufac = 0.0
     if ( ssttyp == 'CAM4N' ) then
       inpfile = trim(inpglob)// &
@@ -103,14 +101,7 @@ module mod_sst_gnmnc
       varname(2) = 'SST'
       ufac = 273.15
     else if ( ssttyp(1:3) == 'CA_' ) then
-      if ( .not. date_in_scenario(imm1,5,.true.) ) then
-        inpfile = trim(inpglob)// &
-            '/SST/ts_Amon_CanESM2_historical_r1i1p1_185001-200512.nc'
-      else
-        inpfile = trim(inpglob)// &
-            '/SST/ts_Amon_CanESM2_rcp'//ssttyp(4:5)//'_r1i1p1_200601-210012.nc'
-        lref = .false.
-      end if
+      call find_canesm_sst(inpfile,imm1)
       varname(2) = 'ts'
     else if ( ssttyp(1:3) == 'HA_' ) then
       call find_hadgem_sst(inpfile,imm1)
@@ -420,93 +411,83 @@ module mod_sst_gnmnc
       call die('gnmnc_sst','Timestep not in file.',1)
     end if
     if ( it > timlen ) then
-      if ( lref ) then
-        lswitch = .false.
-        if ( ssttyp(1:3) == 'CA_' ) then
-          if ( date_in_scenario(idate,5,.true.) ) then
-            inpfile = trim(inpglob)//'/SST/ts_Amon_CanESM2_rcp'// &
-              ssttyp(4:5)//'_r1i1p1_200601-210012.nc'
-            lswitch = .true.
-          end if
-        else if ( ssttyp(1:3) == 'HA_' ) then
-          call find_hadgem_sst(inpfile,idate)
+      lswitch = .false.
+      if ( ssttyp(1:3) == 'CA_' ) then
+        call find_canesm_sst(inpfile,idate)
+        lswitch = .true.
+      else if ( ssttyp(1:3) == 'HA_' ) then
+        call find_hadgem_sst(inpfile,idate)
+        lswitch = .true.
+      else if ( ssttyp(1:3) == 'CS_' ) then
+        if ( date_in_scenario(idate,5,.true.) ) then
+          call find_csiro_sst(inpfile,idate)
           lswitch = .true.
-          if ( date_in_scenario(idate,5,.true.) ) then
-            lref = .false.
-          end if
-        else if ( ssttyp(1:3) == 'CS_' ) then
-          if ( date_in_scenario(idate,5,.true.) ) then
-            call find_csiro_sst(inpfile,idate)
-            lswitch = .true.
-          end if
-        else if ( ssttyp(1:3) == 'EC_' ) then
-          if ( date_in_scenario(idate,5,.true.) ) then
-            inpfile = trim(inpglob)//'/SST/EC-EARTH/RCP'//ssttyp(4:5)//&
-               '/ic'//ssttyp(4:4)//'1_sst_2006-2100.nc'
-            lswitch = .true.
-            lref = .false.
-          end if
-        else if ( ssttyp(1:3) == 'MI_' ) then
-          if ( date_in_scenario(idate,5,.true.) ) then
-            inpfile = trim(inpglob)//'/SST/ts_Amon_MIROC5_rcp'//&
-              ssttyp(4:5)//'_r1i1p1_200601-210012.nc'
-            lswitch = .true.
-          end if
-        else if ( ssttyp(1:3) == 'IP_' ) then
-          if ( date_in_scenario(idate,5,.true.) ) then
-            inpfile = trim(inpglob)//'/SST/tos_Omon_IPSL-CM5A-LR_rcp'//&
-              ssttyp(4:5)//'_r1i1p1_200601-230012.nc'
-            lswitch = .true.
-            lref = .false.
-          end if
-        else if ( ssttyp(1:3) == 'GF_' ) then
-          call split_idate(idate, year, month, day, hour)
-          y1 = (year-1)/5*5+1
-          y2 = y1+4
-          if ( .not. date_in_scenario(idate,5,.true.) ) then
-            write(inpfile,'(a,i4,a,i4,a)') &
-              trim(inpglob)//'/SST/ts_Amon_GFDL-ESM2M_historical_r1i1p1_', &
-              y1 , '01-', y2, '12.nc'
-            lswitch = .true.
+        end if
+      else if ( ssttyp(1:3) == 'EC_' ) then
+        if ( date_in_scenario(idate,5,.true.) ) then
+          inpfile = trim(inpglob)//'/SST/EC-EARTH/RCP'//ssttyp(4:5)//&
+             '/ic'//ssttyp(4:4)//'1_sst_2006-2100.nc'
+          lswitch = .true.
+        end if
+      else if ( ssttyp(1:3) == 'MI_' ) then
+        if ( date_in_scenario(idate,5,.true.) ) then
+          inpfile = trim(inpglob)//'/SST/ts_Amon_MIROC5_rcp'//&
+            ssttyp(4:5)//'_r1i1p1_200601-210012.nc'
+          lswitch = .true.
+        end if
+      else if ( ssttyp(1:3) == 'IP_' ) then
+        if ( date_in_scenario(idate,5,.true.) ) then
+          inpfile = trim(inpglob)//'/SST/tos_Omon_IPSL-CM5A-LR_rcp'//&
+            ssttyp(4:5)//'_r1i1p1_200601-230012.nc'
+          lswitch = .true.
+        end if
+      else if ( ssttyp(1:3) == 'GF_' ) then
+        call split_idate(idate, year, month, day, hour)
+        y1 = (year-1)/5*5+1
+        y2 = y1+4
+        if ( .not. date_in_scenario(idate,5,.true.) ) then
+          write(inpfile,'(a,i4,a,i4,a)') &
+            trim(inpglob)//'/SST/ts_Amon_GFDL-ESM2M_historical_r1i1p1_', &
+            y1 , '01-', y2, '12.nc'
+          lswitch = .true.
+        else
+          write(inpfile,'(a,a,a,i4,a,i4,a)') &
+            trim(inpglob)//'/SST/ts_Amon_GFDL-ESM2M_rcp',ssttyp(4:5),&
+            '_r1i1p1_', y1 , '01-', y2, '12.nc'
+          lswitch = .true.
+        end if
+      else if ( ssttyp(1:3) == 'CN_' ) then
+        call split_idate(idate, year, month, day, hour)
+        if ( year < 2006 ) then
+          y1 = (year)/10*10
+          if ( y1 == 2000 ) then
+            y2 = 2005
           else
-            write(inpfile,'(a,a,a,i4,a,i4,a)') &
-              trim(inpglob)//'/SST/ts_Amon_GFDL-ESM2M_rcp',ssttyp(4:5),&
-              '_r1i1p1_', y1 , '01-', y2, '12.nc'
-            lswitch = .true.
-          end if
-        else if ( ssttyp(1:3) == 'CN_' ) then
-          call split_idate(idate, year, month, day, hour)
-          if ( year < 2006 ) then
-            y1 = (year)/10*10
-            if ( y1 == 2000 ) then
-              y2 = 2005
-            else
-              y2 = y1 + 9
-            end if
-          else
-            y1 = (year-6)/10*10+6
             y2 = y1 + 9
           end if
-          if ( .not. date_in_scenario(idate,5,.true.) ) then
-            write(inpfile,'(a,i4,a,i4,a)') &
-              trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_historical_r1i1p1_', &
-             y1 , '01-', y2, '12.nc'
-            lswitch = .true.
-          else
-            write(inpfile,'(a,a,a,i4,a,i4,a)') &
-             trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_rcp',ssttyp(4:5),&
-             '_r1i1p1_', y1 , '01-', y2, '12.nc'
-            lswitch = .true.
-          end if
+        else
+          y1 = (year-6)/10*10+6
+          y2 = y1 + 9
         end if
-        if ( lswitch ) then
-          write(stdout,*) 'Switching file...'
-          istatus = nf90_close(inet1)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error Close file')
-          call open_input(inpfile)
-          it = imondiff(idate,fidate1) + 1
+        if ( .not. date_in_scenario(idate,5,.true.) ) then
+          write(inpfile,'(a,i4,a,i4,a)') &
+            trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_historical_r1i1p1_', &
+           y1 , '01-', y2, '12.nc'
+          lswitch = .true.
+        else
+          write(inpfile,'(a,a,a,i4,a,i4,a)') &
+           trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_rcp',ssttyp(4:5),&
+           '_r1i1p1_', y1 , '01-', y2, '12.nc'
+          lswitch = .true.
         end if
+      end if
+      if ( lswitch ) then
+        write(stdout,*) 'Switching file...'
+        istatus = nf90_close(inet1)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error Close file')
+        call open_input(inpfile)
+        it = imondiff(idate,fidate1) + 1
       end if
     end if
     istart(3) = it
