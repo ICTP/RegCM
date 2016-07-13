@@ -56,14 +56,26 @@ module mod_constants
   ! minimum values for uncoupled/coupled variables which require them
   real(rkx) , parameter :: minww   = 1.0e-7_rkx
   real(rkx) , parameter :: minqq   = 1.0e-8_rkx
+#ifdef SINGLE_PRECISION_REAL
+  real(rkx) , parameter :: minqx   = 1.0e-14_rkx
+  real(rkx) , parameter :: mintr   = 1.0e-14_rkx
+#else
   real(rkx) , parameter :: minqx   = 1.0e-16_rkx
   real(rkx) , parameter :: mintr   = 1.0e-16_rkx
+#endif
 
   ! Low/Hi values
-  real(rkx) , parameter :: dlowval = 1.0e-24_rkx
-  real(rkx) , parameter :: dhival  = 1.0e+24_rkx
-  real(rk4) , parameter :: slowval = 1.0e-24_rk4
-  real(rk4) , parameter :: shival  = 1.0e+24_rk4
+#ifdef SINGLE_PRECISION_REAL
+  real(rkx) , parameter :: dlowval = 1.0e-18_rkx
+  real(rkx) , parameter :: dhival  = 1.0e+18_rkx
+  real(rk4) , parameter :: slowval = 1.0e-18_rk4
+  real(rk4) , parameter :: shival  = 1.0e+18_rk4
+#else
+  real(rkx) , parameter :: dlowval = 1.0e-20_rkx
+  real(rkx) , parameter :: dhival  = 1.0e+20_rkx
+  real(rk4) , parameter :: slowval = 1.0e-20_rk4
+  real(rk4) , parameter :: shival  = 1.0e+20_rk4
+#endif
   real(rkx) , parameter :: dmissval = 1.0e+20_rkx
   real(rk4) , parameter :: smissval = 1.0e+20_rk4
 
@@ -122,7 +134,11 @@ module mod_constants
   ! Ratio of 13C/12C in Pee Dee Belemnite (C isotope standard)
   real(rkx) , parameter :: pdbratio = 0.0112372_rkx
 
+#ifdef SINGLE_PRECISION_REAL
+  real(rkx) , parameter :: rgasmol = 8.3145_rkx
+#else
   real(rkx) , parameter :: rgasmol = navgdr*boltzk ! 8.3144717808
+#endif
   ! Gas constant for dry air
   real(rkx) , parameter :: c287 = rgasmol/amd      ! 0.2870569248
   ! Gas constant for dry air in Joules/kg/K
