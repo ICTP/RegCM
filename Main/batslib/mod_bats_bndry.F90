@@ -535,7 +535,7 @@ module mod_bats_bndry
       !
       ! 4.4  check for negative water in top layer
       !
-      if ( ssw(i) <= 1.0e-2_rkx ) ssw(i) = 1.0e-2_rkx
+      if ( ssw(i) < minwrat ) ssw(i) = minwrat
       !
       !=================================================================
       !         5.   accumulate leaf interception

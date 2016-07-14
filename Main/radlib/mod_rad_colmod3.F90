@@ -666,7 +666,11 @@ module mod_rad_colmod3
     do i = ici1 , ici2
       do j = jci1 , jci2
         czen(n) = m2r%coszrs(j,i)
+#ifdef SINGLE_PRECISION_REAL
+        if ( czen(n) < 1.e-2_rkx ) czen(n) = 0.0_rkx
+#else
         if ( czen(n) < 1.e-3_rkx ) czen(n) = 0.0_rkx
+#endif
         n = n + 1
       end do
     end do

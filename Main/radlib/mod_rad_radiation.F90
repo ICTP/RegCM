@@ -495,6 +495,12 @@ module mod_rad_radiation
 
   logical :: luse_max_rnovl = .true.
 
+#ifdef SINGLE_PRECISION_REAL
+  real(rkx) , parameter :: mxarg = 16.0_rkx
+#else
+  real(rkx) , parameter :: mxarg = 25.0_rkx
+#endif
+
   contains
 
   subroutine allocate_mod_rad_radiation
@@ -1503,9 +1509,7 @@ module mod_rad_radiation
         if ( czengt0(n) ) then
           solflx(n) = solin(n)*frcsol(ns)*psf
           fsnt(n) = fsnt(n) + solflx(n)*(fluxdn(n,1)-fluxup(n,1))
-
-          fsns(n) = fsns(n) + solflx(n)*(fluxdn(n,kzp1)-fluxup(n,kz + 1))
-
+          fsns(n) = fsns(n) + solflx(n)*(fluxdn(n,kzp1)-fluxup(n,kzp1))
           sfltot = sfltot + solflx(n)
           fswup(n,0) = fswup(n,0) + solflx(n)*fluxup(n,0)
           fswdn(n,0) = fswdn(n,0) + solflx(n)*fluxdn(n,0)
@@ -1516,22 +1520,18 @@ module mod_rad_radiation
           if ( wavmid < 0.7_rkx ) then
             sols(n) = sols(n) + exptdn(n,kzp1)*solflx(n)*d_r1000
             solsd(n) = solsd(n) + &
-                   (fluxdn(n,kzp1)-exptdn(n,kz + 1))*solflx(n)*d_r1000
-            !KN         added below
+                       (fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n)*d_r1000
             abv(n) = abv(n) + (solflx(n) *            &
-                       (fluxdn(n,kzp1)-fluxup(n,kz + 1)))*  &
+                       (fluxdn(n,kzp1)-fluxup(n,kzp1)))*  &
                        (d_one-asw(n))/(d_one-diralb(n))*d_r1000
-            !KN         added above
           else
             soll(n) = soll(n) + exptdn(n,kzp1)*solflx(n)*d_r1000
             solld(n) = solld(n) + &
-                   (fluxdn(n,kzp1)-exptdn(n,kz + 1))*solflx(n)*d_r1000
+                   (fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n)*d_r1000
             fsnirtsq(n) = fsnirtsq(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
-            !KN         added below
             abv(n) = abv(n) + &
-                       (solflx(n)*(fluxdn(n,kzp1)-fluxup(n,kz + 1)))* &
+                       (solflx(n)*(fluxdn(n,kzp1)-fluxup(n,kzp1)))* &
                         (d_one-alw(n))/(d_one-diralb(n))*d_r1000
-            !KN         added above
           end if
           fsnirt(n) = fsnirt(n) + wgtint*solflx(n) * (fluxdn(n,0)-fluxup(n,0))
         end if
@@ -2296,15 +2296,15 @@ module mod_rad_radiation
 
         taugab(n) = abo3(ns)*uto3(n)
 
-        ! Limit argument of exponential to 25, in case czen is very small:
-        arg = min(taugab(n)/czen(n),25.0_rkx)
-        explay(n,0) = exp(-arg)
+        ! Limit argument of exponential, in case czen is very small:
+        arg = min(taugab(n)/czen(n),mxarg)
+        explay(n,0) = max(exp(-arg),dlowval)
         tdir(n,0) = explay(n,0)
         !
         ! Same limit for diffuse mod_transmission:
         !
-        arg = min(1.66_rkx*taugab(n),25.0_rkx)
-        tdif(n,0) = exp(-arg)
+        arg = min(1.66_rkx*taugab(n),mxarg)
+        tdif(n,0) = max(exp(-arg),dlowval)
 
         rdir(n,0) = d_zero
         rdif(n,0) = d_zero
@@ -2388,18 +2388,18 @@ module mod_rad_radiation
           gam = xgamma(ws,czen(n),gs,lm)
           ue = f_u(ws,gs,lm)
           !
-          ! Limit argument of exponential to 25, in case lm very large:
+          ! Limit argument of exponential, in case lm very large:
           !
-          arg = min(lm*ts,25.0_rkx)
-          extins = exp(-arg)
+          arg = min(lm*ts,mxarg)
+          extins = max(exp(-arg),dlowval)
           ne = f_n(ue,extins)
 
           rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
           tdif(n,k) = d_four*ue/ne
 
-          ! Limit argument of exponential to 25, in case czen is very small:
-          arg = min(ts/czen(n),25.0_rkx)
-          explay(n,k) = exp(-arg)
+          ! Limit argument of exponential, in case czen is very small:
+          arg = min(ts/czen(n),mxarg)
+          explay(n,k) = max(exp(-arg),dlowval)
 
           apg = alp + gam
           amg = alp - gam
@@ -2570,18 +2570,18 @@ module mod_rad_radiation
         gam = xgamma(ws,czen(n),gs,lm)
         ue = f_u(ws,gs,lm)
         !
-        ! Limit argument of exponential to 25, in case lm*ts very large:
+        ! Limit argument of exponential, in case lm*ts very large:
         !
-        arg = min(lm*ts,25.0_rkx)
-        extins = exp(-arg)
+        arg = min(lm*ts,mxarg)
+        extins = max(exp(-arg),dlowval)
         ne = f_n(ue,extins)
 
         rdif(n,0) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
         tdif(n,0) = d_four*ue/ne
 
-        ! Limit argument of exponential to 25, in case czen is very small:
-        arg = min(ts/czen(n),25.0_rkx)
-        explay(n,0) = exp(-arg)
+        ! Limit argument of exponential, in case czen is very small:
+        arg = min(ts/czen(n),mxarg)
+        explay(n,0) = max(exp(-arg),dlowval)
 
         apg = alp + gam
         amg = alp - gam
@@ -2632,6 +2632,7 @@ module mod_rad_radiation
           ! top of the current layer:
           !
           exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
+          if ( exptdn(n,k) < dlowval ) exptdn(n,k) = d_zero
           rdenom = d_one/(d_one-min(rdif(n,k-1)*rdndif(n,k-1),verynearone))
           rdirexp = rdir(n,k-1)*exptdn(n,k-1)
           tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
@@ -2686,18 +2687,18 @@ module mod_rad_radiation
           gam = xgamma(ws,czen(n),gs,lm)
           ue = f_u(ws,gs,lm)
           !
-          ! Limit argument of exponential to 25, in case lm very large:
+          ! Limit argument of exponential, in case lm very large:
           !
-          arg = min(lm*ts,25.0_rkx)
-          extins = exp(-arg)
+          arg = min(lm*ts,mxarg)
+          extins = max(exp(-arg),dlowval)
           ne = f_n(ue,extins)
 
           rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
           tdif(n,k) = d_four*ue/ne
 
-          ! Limit argument of exponential to 25, in case czen is very small:
-          arg = min(ts/czen(n),25.0_rkx)
-          explay(n,k) = exp(-arg)
+          ! Limit argument of exponential, in case czen is very small:
+          arg = min(ts/czen(n),mxarg)
+          explay(n,k) = max(exp(-arg),dlowval)
 
           apg = alp + gam
           amg = alp - gam
@@ -2958,7 +2959,7 @@ module mod_rad_radiation
       end do
     end do
     do n = n1 , n2
-      dbvtit(n,kzp1) = dbvt(tint(n,kz + 1))
+      dbvtit(n,kzp1) = dbvt(tint(n,kzp1))
     end do
 
     r2st(1) = d_one/(d_two*st(1))
@@ -3927,7 +3928,7 @@ module mod_rad_radiation
     !
     do n = n1 , n2
       tint(n,kzp1) = ts(n)
-      tint4(n,kzp1) = tint(n,kz + 1)**4
+      tint4(n,kzp1) = tint(n,kzp1)**4
       tplnka(n,1) = tnm(n,1)
       tint(n,1) = tplnka(n,1)
       tlayr4(n,1) = tplnka(n,1)**4
@@ -4098,20 +4099,37 @@ module mod_rad_radiation
 #endif
   end subroutine radinp
 
-  pure real(rkx) function xalpha(w,uu,g,e)
+  pure real(rkx) function xalpha(wi,uui,gi,ei)
     implicit none
-    real(rkx) , intent(in) :: w , uu , g , e
-    xalpha = 0.75_rkx*w*uu*((d_one+g*(d_one-w))/(d_one-e*e*uu*uu))
+    real(rkx) , intent(in) :: wi , uui , gi , ei
+    real(rk8) :: w , uu , g , e , la
+    w = wi
+    uu = uui
+    g = gi
+    e = ei
+    la = 0.75_rk8*w*uu*((1.0_rk8+g*(1.0_rk8-w))/(1.0_rk8-e*e*uu*uu))
+    xalpha = real(la,rkx)
   end function xalpha
-  pure real(rkx) function xgamma(w,uu,g,e)
+  pure real(rkx) function xgamma(wi,uui,gi,ei)
     implicit none
-    real(rkx) , intent(in) :: w , uu , g , e
-    xgamma = (w*d_half)*((3.0_rkx*g*(d_one-w)*uu*uu+d_one)/(d_one-e*e*uu*uu))
+    real(rkx) , intent(in) :: wi , uui , gi , ei
+    real(rk8) :: w , uu , g , e , lg
+    w = wi
+    uu = uui
+    g = gi
+    e = ei
+    lg = (w*0.5_rk8) * &
+        ((3.0_rk8*g*(1.0_rk8-w)*uu*uu+1.0_rk8)/(1.0_rk8-e*e*uu*uu))
+    xgamma = real(lg,rkx)
   end function xgamma
-  pure real(rkx) function el(w,g)
+  pure real(rkx) function el(wi,gi)
     implicit none
-    real(rkx) , intent(in) :: w , g
-    el = sqrt(3.0_rkx*(d_one-w)*(d_one-w*g))
+    real(rkx) , intent(in) :: wi , gi
+    real(rk8) :: w , g , le
+    w = wi
+    g = gi
+    le = sqrt(3.0_rk8*(1.0_rk8-w)*(1.0_rk8-w*g))
+    el = real(le,rkx)
   end function el
   pure real(rkx) function taus(w,f,t)
     implicit none
@@ -4138,13 +4156,16 @@ module mod_rad_radiation
     real(rkx) , intent(in) :: uu , et
     f_n = ((uu+d_one)*(uu+d_one)/et)-((uu-d_one)*(uu-d_one)*et)
   end function f_n
-  pure real(rkx) function dbvt(t)
+  pure real(rkx) function dbvt(ti)
     ! Derivative of planck function at 9.6 micro-meter wavelength
     implicit none
-    real(rkx) , intent(in) :: t
-    dbvt = (-2.8911366682e-4_rkx + &
-            (2.3771251896e-6_rkx+1.1305188929e-10_rkx*t)*t) /  &
-            (d_one+(-6.1364820707e-3_rkx+1.5550319767e-5_rkx*t)*t)
+    real(rkx) , intent(in) :: ti
+    real(rk8) :: t , ldbvt
+    t = ti
+    ldbvt = (-2.8911366682e-4_rk8 + &
+            (2.3771251896e-6_rk8+1.1305188929e-10_rk8*t)*t) /  &
+            (1.0_rk8+(-6.1364820707e-3_rk8+1.5550319767e-5_rk8*t)*t)
+    dbvt = real(ldbvt,rkx)
   end function dbvt
   pure real(rkx) function fo3(ux,vx)
     ! an absorption function factor
