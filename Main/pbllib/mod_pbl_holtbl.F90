@@ -748,8 +748,8 @@ module mod_pbl_holtbl
           do j = jci1 , jci2
             coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
             coeff1(j,i,1) = m2p%chib(j,i,1,itr)/coef2(j,i,1)
-            if ( abs(coeff1(j,i,1)) < epsilon(d_one) ) coeff1(j,i,1) = d_zero
-            if ( abs(coefe(j,i,1)) < epsilon(d_one) ) coefe(j,i,1) = d_zero
+            if ( abs(coeff1(j,i,1)) < dlowval ) coeff1(j,i,1) = d_zero
+            if ( abs(coefe(j,i,1)) < dlowval ) coefe(j,i,1) = d_zero
           end do
         end do
         do k = 2 , kz - 1
@@ -760,8 +760,8 @@ module mod_pbl_holtbl
               coeff1(j,i,k) = (m2p%chib(j,i,k,itr) + &
                       coef3(j,i,k)*coeff1(j,i,k-1)) / &
                       (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-              if ( abs(coeff1(j,i,k)) < epsilon(d_one) ) coeff1(j,i,k) = d_zero
-              if ( abs(coefe(j,i,k)) < epsilon(d_one) ) coefe(j,i,k) = d_zero
+              if ( abs(coeff1(j,i,k)) < dlowval ) coeff1(j,i,k) = d_zero
+              if ( abs(coefe(j,i,k)) < dlowval ) coefe(j,i,k) = d_zero
             end do
           end do
         end do
@@ -773,7 +773,7 @@ module mod_pbl_holtbl
                   m2p%chib(j,i,kz,itr)*m2p%drydepv(j,i,itr)*m2p%rhox2d(j,i) + &
                   coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                   (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-            if ( abs(coeff1(j,i,kz)) < epsilon(d_one) ) coeff1(j,i,kz) = d_zero
+            if ( abs(coeff1(j,i,kz)) < dlowval ) coeff1(j,i,kz) = d_zero
           end do
         end do
         !
@@ -788,12 +788,7 @@ module mod_pbl_holtbl
         do k = kz - 1 , 1 , -1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              if ( abs(coefe(j,i,k)) > 1.0e-5 .and. &
-                   abs(tpred1(j,i,k+1)) > 1.0e-5 ) then
-                tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
-              else
-                tpred1(j,i,k) = coeff1(j,i,k)
-              end if
+              tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
             end do
           end do
         end do
