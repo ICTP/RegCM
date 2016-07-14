@@ -203,17 +203,17 @@ module mod_rad_radiation
   real(rkx) , pointer , dimension(:) :: solflx , utco2 , uth2o ,   &
          uto2 , uto3 , x0fsnsc ,  x0fsntc , zenfac
   !
-  !   o3mmr    - Ozone mass mixing ratio
-  !   pbr      - Model mid-level pressures (dynes/cm2)
-  !   pnm      - Model interface pressures (dynes/cm2)
-  !   rh       - level relative humidity (fraction)
-  !   plco2    - Prs weighted CO2 path
-  !   plh2o    - Prs weighted H2O path
-  !   tclrsf   - Total clear sky fraction, level to space
-  !   cfc11    - cfc11 mass mixing ratio
-  !   cfc12    - cfc12 mass mixing ratio
-  !   ch4      - methane mass mixing ratio
-  !   n2o      - nitrous oxide mass mixing ratio
+  ! o3mmr    - Ozone mass mixing ratio
+  ! pbr      - Model mid-level pressures (dynes/cm2)
+  ! pnm      - Model interface pressures (dynes/cm2)
+  ! rh       - level relative humidity (fraction)
+  ! plco2    - Prs weighted CO2 path
+  ! plh2o    - Prs weighted H2O path
+  ! tclrsf   - Total clear sky fraction, level to space
+  ! cfc11    - cfc11 mass mixing ratio
+  ! cfc12    - cfc12 mass mixing ratio
+  ! ch4      - methane mass mixing ratio
+  ! n2o      - nitrous oxide mass mixing ratio
   !
   real(rkx) , pointer , dimension(:) :: fslwdcs
   real(rkx) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
@@ -340,8 +340,8 @@ module mod_rad_radiation
   ! nirwgt   - Weight for intervals to simulate satellite filter
   !
   real(rkx) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,   &
-                                 frcsol , nirwgt , pco2 , ph2o , &
-                                 po2 , raytau , wavmax , wavmin
+                                frcsol , nirwgt , pco2 , ph2o , &
+                                po2 , raytau , wavmax , wavmin
   !
   ! H2O DMISSIVITY AND ABSORTIVITY CODFFICIDNTS
   !
@@ -492,12 +492,6 @@ module mod_rad_radiation
            0.000_rkx , 0.000_rkx , 0.000_rkx , 1.000_rkx , 1.000_rkx , &
            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
-
-#ifdef SINGLE_PRECISION_REAL
-  real(rkx) , parameter :: mxarg = 12.0_rkx
-#else
-  real(rkx) , parameter :: mxarg = 25.0_rkx
-#endif
 
   logical :: luse_max_rnovl = .true.
 
@@ -688,19 +682,9 @@ module mod_rad_radiation
       cfc110 = cgas(igh_cfc11,iyear)*1.0e-12_rkx*(amcfc11/amd)
       cfc120 = cgas(igh_cfc12,iyear)*1.0e-12_rkx*(amcfc12/amd)
     else
-      if ( iyear > 2100 ) then
-        write (stderr,*) 'ASSUMING CONSTANT GGH AFTER 2100 AT 2100 VALUE'
-        co2vmr = cgas(igh_co2,2100)*1.0e-6_rkx
-        co2mmr = co2vmr*(amco2/amd)
-        ch40 = cgas(igh_ch4,2100)*1.0e-9_rkx*(amch4/amd)
-        n2o0 = cgas(igh_n2o,2100)*1.0e-9_rkx*(amn2o/amd)
-        cfc110 = cgas(igh_cfc11,2100)*1.0e-12_rkx*(amcfc11/amd)
-        cfc120 = cgas(igh_cfc12,2100)*1.0e-12_rkx*(amcfc12/amd)
-      else
-        write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
-        call fatal(__FILE__,__LINE__, &
+      write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
+      call fatal(__FILE__,__LINE__, &
             'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
-      end if
     end if
     !
     ! Coefficients for h2o emissivity and absorptivity.
@@ -782,33 +766,31 @@ module mod_rad_radiation
     !
     ! Input arguments
     !
-    !   ts      - Surface (skin) temperature
-    !   pmid    - Model level pressures
-    !   pint    - Model interface pressures
-    !   pmln    - Natural log of pmid
-    !   rel     - liquid cloud particle effective radius
-    !   rei     - ice effective drop size (microns)
-    !   fice    - fractional ice content within cloud
-    !   piln    - Natural log of pint
-    !   t       - Model level temperatures
-    !   h2ommr  - Model level specific humidity
-    !   cld     - Fractional cloud cover
-    !   effcld  - Effective fractional cloud cover
-    !   clwp    - Cloud liquid water path
+    ! ts      - Surface (skin) temperature
+    ! pmid    - Model level pressures
+    ! pint    - Model interface pressures
+    ! pmln    - Natural log of pmid
+    ! rel     - liquid cloud particle effective radius
+    ! rei     - ice effective drop size (microns)
+    ! fice    - fractional ice content within cloud
+    ! piln    - Natural log of pint
+    ! t       - Model level temperatures
+    ! h2ommr  - Model level specific humidity
+    ! cld     - Fractional cloud cover
+    ! effcld  - Effective fractional cloud cover
+    ! clwp    - Cloud liquid water path
     !
     ! Output solar arguments
     !
-    !   fsns    - Surface absorbed solar flux
-    !   sols    - Downward solar rad onto surface (sw direct)
-    !   soll    - Downward solar rad onto surface (lw direct)
-    !   solsd   - Downward solar rad onto surface (sw diffuse)
-    !   solld   - Downward solar rad onto surface (lw diffuse)
-    !   qrs     - Solar heating rate
+    ! fsns    - Surface absorbed solar flux
+    ! sols    - Downward solar rad onto surface (sw direct)
+    ! soll    - Downward solar rad onto surface (lw direct)
+    ! solsd   - Downward solar rad onto surface (sw diffuse)
+    ! solld   - Downward solar rad onto surface (lw diffuse)
+    ! qrs     - Solar heating rate
     !
-    ! Output longwave arguments
-    !
-    !   qrl     - Longwave cooling rate
-    !   flwds   - Surface down longwave flux
+    ! qrl     - Longwave cooling rate
+    ! flwds   - Surface down longwave flux
     !
     integer(ik4) , intent(in) :: n1 , n2
     logical , intent(in) :: labsem
@@ -835,21 +817,20 @@ module mod_rad_radiation
                    fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
                    fsntc , solin , totcf , outtaucl , outtauci
     !
-    !
-    !   solin    - Solar incident flux
-    !   fsnt     - Net column abs solar flux at model top
-    !   fsntc    - Clear sky total column abs solar flux
-    !   fsnsc    - Clear sky surface abs solar flux
-    !   fsnirt   - Near-IR flux absorbed at toa
-    !   fsnrtc   - Clear sky near-IR flux absorbed at toa
-    !   fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
-    !   fsds     - Flux Shortwave Downwelling Surface
-    !   flnt     - Net outgoing lw flux at model top
-    !   flns     - Srf longwave cooling (up-down) flux
-    !   flntc    - Clear sky lw flux at model top
-    !   flnsc    - Clear sky lw flux at srf (up-down)
-    !   o3vmr    - Ozone volume mixing ratio
-    !   eccf     - Earth/sun distance factor
+    ! solin    - Solar incident flux
+    ! fsnt     - Net column abs solar flux at model top
+    ! fsntc    - Clear sky total column abs solar flux
+    ! fsnsc    - Clear sky surface abs solar flux
+    ! fsnirt   - Near-IR flux absorbed at toa
+    ! fsnrtc   - Clear sky near-IR flux absorbed at toa
+    ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
+    ! fsds     - Flux Shortwave Downwelling Surface
+    ! flnt     - Net outgoing lw flux at model top
+    ! flns     - Srf longwave cooling (up-down) flux
+    ! flntc    - Clear sky lw flux at model top
+    ! flnsc    - Clear sky lw flux at srf (up-down)
+    ! o3vmr    - Ozone volume mixing ratio
+    ! eccf     - Earth/sun distance factor
     !
     integer(ik4) :: n , k
     real(rkx) :: betafac
@@ -957,7 +938,7 @@ module mod_rad_radiation
       end do
     end if
     !
-    !   Longwave radiation computation
+    ! Longwave radiation computation
     !
     if ( dolw ) then
       !
@@ -979,18 +960,18 @@ module mod_rad_radiation
         flnsc(n) = flnsc(n)*1.0e-3_rkx
         flwds(n) = flwds(n)*1.0e-3_rkx
         fslwdcs(n) = fslwdcs(n)*1.0e-3_rkx
-!
-!       essai clear sky column
-!
-!       flwds(n) = flwds(n) * maxval(cld((n,:))) + &
-!                  flwds(n) * (1-maxval(cld((n,:))))
-!       flwds(n) = flwds(n) * maxval(cld(n,:)) + &
-!                  fslwdcs(n)*(d_one-maxval(cld(n,:)))
-!       flns(n) = flns(n) * maxval(cld(n,:)) + &
-!                 flnsc(n)*(d_one-maxval(cld(n,:)))
-!
-!       totcf(n) has been calculated for the SW, dolw is always true
-!
+        !
+        ! essai clear sky column
+        !
+        ! flwds(n) = flwds(n) * maxval(cld((n,:))) + &
+        !            flwds(n) * (1-maxval(cld((n,:))))
+        ! flwds(n) = flwds(n) * maxval(cld(n,:)) + &
+        !            fslwdcs(n)*(d_one-maxval(cld(n,:)))
+        ! flns(n) = flns(n) * maxval(cld(n,:)) + &
+        !           flnsc(n)*(d_one-maxval(cld(n,:)))
+        !
+        ! totcf(n) has been calculated for the SW, dolw is always true
+        !
         if ( lsrfhack ) then
           flwds(n) = flwds(n) * totcf(n) + fslwdcs(n) * (d_one - totcf(n))
           flns(n)  = flns(n) * totcf(n)  + flnsc(n) * (d_one - totcf(n))
@@ -1029,16 +1010,12 @@ module mod_rad_radiation
   ! assuming scattering between layers to be isotropic, and distinguishes
   ! direct solar beam from scattered radiation.
   !
-  ! Only daylight (i.e. czen > 0) computations are done.
-  !
   ! Note that an extra layer above the model top layer is added.
   !
   ! cgs units are used.
   !
   ! Special diagnostic calculation of the clear sky surface and total column
   ! absorbed flux is also done for cloud forcing diagnostics.
-  !
-  !-----------------------------------------------------------------------
   !
   ! Input arguments
   !
@@ -1162,6 +1139,7 @@ module mod_rad_radiation
     ! rdenom   - Multiple scattering term
     ! psf      - Frac of solar flux in spect interval
     ! aeradfo  - spectrally integrated aerosol radiative forcing ( TOA)
+    !-----------------------------------------------------------------------
     !
     real(rkx) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli ,  &
                dbarii , dbarli , ebarii , ebarli , fbarii , fbarli ,  &
@@ -1336,11 +1314,11 @@ module mod_rad_radiation
       indxsl = 0
       if ( wavmax(ns) <= 0.70_rkx ) then
         indxsl = 1
-      else if ( abs(wavmin(ns)-0.700_rkx) < epsilon(d_one) ) then
+      else if ( abs(wavmin(ns)-0.700_rkx) < dlowval ) then
         indxsl = 2
-      else if ( abs(wavmin(ns)-0.701_rkx) < epsilon(d_one) ) then
+      else if ( abs(wavmin(ns)-0.701_rkx) < dlowval ) then
         indxsl = 3
-      else if ( abs(wavmin(ns)-0.702_rkx) < epsilon(d_one) .or. &
+      else if ( abs(wavmin(ns)-0.702_rkx) < dlowval .or. &
                      wavmin(ns) > 2.38_rkx ) then
         indxsl = 4
       end if
@@ -1477,11 +1455,9 @@ module mod_rad_radiation
           if ( czengt0(n) ) then
             rdenom = d_one/(d_one-rdif(n,k)*rupdif(n,k+1))
             rupdir(n,k) = rdir(n,k) + tdif(n,k) *                    &
-                          (rupdir(n,k+1)*explay(n,k) + &
-                           rupdif(n,k+1)*(tdir(n,k)-explay(n,k))) * rdenom
-            if ( rupdir(n,k) < trmin ) rupdir(n,k) = d_zero
-            rupdif(n,k) = rdif(n,k) + rupdif(n,k+1) * tdif(n,k)**2 * rdenom
-            if ( rupdif(n,k) < trmin ) rupdif(n,k) = d_zero
+                          (rupdir(n,k+1)*explay(n,k)+rupdif(n,k+1) * &
+                          (tdir(n,k)-explay(n,k)))*rdenom
+            rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*tdif(n,k)**2*rdenom
           end if
         end do
       end do
@@ -1492,11 +1468,12 @@ module mod_rad_radiation
       do k = 0 , kzp1
         do n = n1 , n2
           if ( czengt0(n) ) then
-            rdenom = d_one / (d_one-rdndif(n,k)*rupdif(n,k))
-            fluxup(n,k) = (exptdn(n,k) * rupdir(n,k) + (tottrn(n,k) - &
-                           exptdn(n,k)) * rupdif(n,k)) * rdenom
-            fluxdn(n,k) = exptdn(n,k) + (tottrn(n,k) - exptdn(n,k) + &
-                          exptdn(n,k) * rupdir(n,k) * rdndif(n,k)) * rdenom
+            rdenom = d_one/(d_one-rdndif(n,k)*rupdif(n,k))
+            fluxup(n,k) = (exptdn(n,k)*rupdir(n,k)+                   &
+                          (tottrn(n,k)-exptdn(n,k))*rupdif(n,k))*rdenom
+            fluxdn(n,k) = exptdn(n,k) +                          &
+                          (tottrn(n,k)-exptdn(n,k)+exptdn(n,k) * &
+                           rupdir(n,k)*rdndif(n,k))*rdenom
           end if
         end do
       end do
@@ -1518,9 +1495,9 @@ module mod_rad_radiation
       ! possibility of sub-divisions within a particular interval:
       !
       psf = d_one
-      if ( abs(ph2o(ns)) > epsilon(d_one) ) psf = psf*ph2o(ns)
-      if ( abs(pco2(ns)) > epsilon(d_one) ) psf = psf*pco2(ns)
-      if ( abs(po2(ns)) > epsilon(d_one) ) psf = psf*po2(ns)
+      if ( abs(ph2o(ns)) > dlowval ) psf = psf*ph2o(ns)
+      if ( abs(pco2(ns)) > dlowval ) psf = psf*pco2(ns)
+      if ( abs(po2(ns)) > dlowval ) psf = psf*po2(ns)
       sfltot = d_zero
       do n = n1 , n2
         if ( czengt0(n) ) then
@@ -1539,7 +1516,7 @@ module mod_rad_radiation
           if ( wavmid < 0.7_rkx ) then
             sols(n) = sols(n) + exptdn(n,kzp1)*solflx(n)*d_r1000
             solsd(n) = solsd(n) + &
-                   (fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n)*d_r1000
+                   (fluxdn(n,kzp1)-exptdn(n,kz + 1))*solflx(n)*d_r1000
             !KN         added below
             abv(n) = abv(n) + (solflx(n) *            &
                        (fluxdn(n,kzp1)-fluxup(n,kz + 1)))*  &
@@ -1548,7 +1525,7 @@ module mod_rad_radiation
           else
             soll(n) = soll(n) + exptdn(n,kzp1)*solflx(n)*d_r1000
             solld(n) = solld(n) + &
-                   (fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n)*d_r1000
+                   (fluxdn(n,kzp1)-exptdn(n,kz + 1))*solflx(n)*d_r1000
             fsnirtsq(n) = fsnirtsq(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
             !KN         added below
             abv(n) = abv(n) + &
@@ -1640,7 +1617,7 @@ module mod_rad_radiation
         do n = n1 , n2
           if ( czengt0(n) ) then
             ! SAVE the ref net TOA flux
-            !   ( and put back the cumul variables to 0.)
+            ! ( and put back the cumul variables to 0.)
             x0fsntc(n) = x0fsntc(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
             x0fsnsc(n) = x0fsnsc(n) + solflx(n)*(fluxdn(n,2)-fluxup(n,2))
             x0fsnrtc = x0fsnrtc + wgtint*solflx(n)*(fluxdn(n,0)-fluxup(n,0))
@@ -1764,8 +1741,6 @@ module mod_rad_radiation
   ! Note: This subroutine contains vertical indexing which proceeds
   !       from bottom to top rather than the top to bottom indexing
   !       used in the rest of the model.
-  !
-  !-----------------------------------------------------------------------
   !
   ! Input arguments
   !
@@ -2266,7 +2241,9 @@ module mod_rad_radiation
   ! Approximation for Solar Radiation in the NCAR Community Climate Model,
   ! Journal of Geophysical Research, Vol 97, D7, pp7603-7612).
   !
-  !-----------------------------------------------------------------------
+  ! Input arguments
+  !
+  ! trayoslp - Tray/sslp
   !
   subroutine radclr(n1,n2,trayoslp,czen,czengt0,ns,lzero)
     implicit none
@@ -2290,16 +2267,17 @@ module mod_rad_radiation
     ! rdirexp  - Layer direct ref times exp transmission
     ! tdnmexp  - Total transmission minus exp transmission
     !
-    real(rkx) :: alp , amg , apg , extins , ftot , gam , gs , gtot ,  &
-                 lm , ne , rdenom , rdirexp , tautot , tdnmexp , ts , &
-                 ue , ws , wtot
-    integer(ik4) :: n
+    real(rkx) :: alp , amg , apg , arg , extins , ftot ,   &
+               gam , gs , gtot , lm , ne , rdenom , rdirexp , &
+               tautot , tdnmexp , ts , ue , ws , wtot
+    integer(ik4) :: n , k
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radclr'
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
+    !-----------------------------------------------------------------------
     !
     ! Initialize all total transmimission values to 0, so that nighttime
     ! values from previous computations are not used:
@@ -2315,12 +2293,19 @@ module mod_rad_radiation
     !
     do n = n1 , n2
       if ( czengt0(n) ) then
+
         taugab(n) = abo3(ns)*uto3(n)
-        explay(n,0) = exp(-min(taugab(n)/czen(n),mxarg))
-        if ( explay(n,0) < trmin ) explay(n,0) = d_zero
+
+        ! Limit argument of exponential to 25, in case czen is very small:
+        arg = min(taugab(n)/czen(n),25.0_rkx)
+        explay(n,0) = exp(-arg)
         tdir(n,0) = explay(n,0)
-        tdif(n,0) = exp(-min(1.66_rkx*taugab(n),mxarg))
-        if ( tdif(n,0) < trmin ) tdif(n,0) = d_zero
+        !
+        ! Same limit for diffuse mod_transmission:
+        !
+        arg = min(1.66_rkx*taugab(n),25.0_rkx)
+        tdif(n,0) = exp(-arg)
+
         rdir(n,0) = d_zero
         rdif(n,0) = d_zero
         !
@@ -2329,8 +2314,10 @@ module mod_rad_radiation
         exptdn(n,0) = d_one
         rdndif(n,0) = d_zero
         tottrn(n,0) = d_one
+
         rdndif(n,1) = rdif(n,0)
         tottrn(n,1) = tdir(n,0)
+
       end if
     end do
     !
@@ -2338,109 +2325,115 @@ module mod_rad_radiation
     ! through the top ozone layer is less than trmin, then no
     ! delta-Eddington computation for the underlying column is done:
     !
-    ! Initialize current layer properties to zero;only if total
-    ! transmission to the top interface of the current layer exceeds
-    ! the minimum, will these values be computed below:
-    !
-    do n = n1 , n2
-      if ( czengt0(n) ) then
-        !
-        ! Calculates the solar beam transmission, total transmission,
-        ! and reflectivity for diffuse radiation from below at the
-        ! top of the current layer:
-        !
-        exptdn(n,1) = exptdn(n,0)*explay(n,0)
-        if ( exptdn(n,1) < trmin ) exptdn(n,1) = d_zero
-        rdenom = d_one/(d_one-rdif(n,0)*rdndif(n,0))
-        rdirexp = rdir(n,0)*exptdn(n,0)
-        tdnmexp = tottrn(n,0) - exptdn(n,0)
-        tottrn(n,1) = exptdn(n,0)*tdir(n,0) + &
-                      tdif(n,0)*(tdnmexp+rdndif(n,0)*rdirexp)*rdenom
-        rdndif(n,1) = rdif(n,0) + (rdndif(n,0)*tdif(n,0))*(tdif(n,0)*rdenom)
-      end if
-    end do
+    do k = 1 , 1
+      !
+      ! Initialize current layer properties to zero;only if total
+      ! transmission to the top interface of the current layer exceeds
+      ! the minimum, will these values be computed below:
+      !
+      do n = n1 , n2
+        if ( czengt0(n) ) then
 
-    do n = n1 , n2
-      !
-      ! Compute next layer delta-Eddington solution only if total
-      ! transmission of radiation to the interface just above the layer
-      ! exceeds trmin.
-      !
-      if ( tottrn(n,1) > trmin ) then
-        !
-        ! Remember, no ozone absorption in this layer:
-        !
-        tauray(n) = trayoslp*pflx(n,kzp1)
-        taugab(n) = abh2o(ns)*uth2o(n) + abco2(ns)*utco2(n) + abo2(ns)*uto2(n)
-        if ( lzero ) then
-          tautot = tauray(n) + taugab(n)
-          wtot = (wray*tauray(n))/tautot
-          gtot = (gray*wray*tauray(n))/(wtot*tautot)
-          ftot = (fray*wray*tauray(n)/(wtot*tautot))
-        else
-          tautot = tauray(n) + taugab(n) + tauxar(n,ns)
-          wtot = (wray*tauray(n)+tauasc(n,ns))/tautot
-          gtot = (gray*wray*tauray(n)+gtota(n,ns))/(wtot*tautot)
-          ftot = (fray*wray*tauray(n)+ftota(n,ns))/(wtot*tautot)
+          rdir(n,k) = d_zero
+          rdif(n,k) = d_zero
+          tdir(n,k) = d_zero
+          tdif(n,k) = d_zero
+          explay(n,k) = d_zero
+          !
+          ! Calculates the solar beam transmission, total transmission,
+          ! and reflectivity for diffuse radiation from below at the
+          ! top of the current layer:
+          !
+          exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
+          rdenom = d_one/(d_one-rdif(n,k-1)*rdndif(n,k-1))
+          rdirexp = rdir(n,k-1)*exptdn(n,k-1)
+          tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
+          tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + &
+                        tdif(n,k-1)*(tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
+          rdndif(n,k) = rdif(n,k-1) + &
+                        (rdndif(n,k-1)*tdif(n,k-1))*(tdif(n,k-1)*rdenom)
+
         end if
-        ts = taus(wtot,ftot,tautot)
-        ws = omgs(wtot,ftot)
-        gs = asys(gtot,ftot)
-        lm = el(ws,gs)
-        alp = xalpha(ws,czen(n),gs,lm)
-        gam = xgamma(ws,czen(n),gs,lm)
-        ue = f_u(ws,gs,lm)
-        if ( lm*ts > mxarg ) then
-          rdif(n,1) = d_zero
-          tdif(n,1) = d_zero
-        else
-          extins = exp(-lm*ts)
+      end do
+
+      do n = n1 , n2
+        !
+        ! Compute next layer delta-Eddington solution only if total
+        ! transmission of radiation to the interface just above the layer
+        ! exceeds trmin.
+        !
+        if ( tottrn(n,k) > trmin ) then
+          !
+          ! Remember, no ozone absorption in this layer:
+          !
+          tauray(n) = trayoslp*pflx(n,kzp1)
+          taugab(n) = abh2o(ns)*uth2o(n) + abco2(ns)*utco2(n) + abo2(ns)*uto2(n)
+          if ( lzero ) then
+            tautot = tauray(n) + taugab(n)
+            wtot = (wray*tauray(n))/tautot
+            gtot = (gray*wray*tauray(n))/(wtot*tautot)
+            ftot = (fray*wray*tauray(n)/(wtot*tautot))
+          else
+            tautot = tauray(n) + taugab(n) + tauxar(n,ns)
+            wtot = (wray*tauray(n)+tauasc(n,ns))/tautot
+            gtot = (gray*wray*tauray(n)+gtota(n,ns))/(wtot*tautot)
+            ftot = (fray*wray*tauray(n)+ftota(n,ns))/(wtot*tautot)
+          end if
+
+          ts = taus(wtot,ftot,tautot)
+          ws = omgs(wtot,ftot)
+          gs = asys(gtot,ftot)
+          lm = el(ws,gs)
+          alp = xalpha(ws,czen(n),gs,lm)
+          gam = xgamma(ws,czen(n),gs,lm)
+          ue = f_u(ws,gs,lm)
+          !
+          ! Limit argument of exponential to 25, in case lm very large:
+          !
+          arg = min(lm*ts,25.0_rkx)
+          extins = exp(-arg)
           ne = f_n(ue,extins)
-          rdif(n,1) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-          tdif(n,1) = d_four*ue/ne
+
+          rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+          tdif(n,k) = d_four*ue/ne
+
+          ! Limit argument of exponential to 25, in case czen is very small:
+          arg = min(ts/czen(n),25.0_rkx)
+          explay(n,k) = exp(-arg)
+
+          apg = alp + gam
+          amg = alp - gam
+          rdir(n,k) = amg*(tdif(n,k)*explay(n,k)-d_one)+apg*rdif(n,k)
+          tdir(n,k) = apg*tdif(n,k) + (amg*rdif(n,k)-(apg-d_one))*explay(n,k)
+          !
+          ! Under rare conditions, reflectivies and transmissivities
+          ! can be negative; zero out any negative values
+          !
+          rdir(n,k) = max(rdir(n,k),d_zero)
+          tdir(n,k) = max(tdir(n,k),d_zero)
+          rdif(n,k) = max(rdif(n,k),d_zero)
+          tdif(n,k) = max(tdif(n,k),d_zero)
+
         end if
-        apg = alp + gam
-        amg = alp - gam
-        if ( ts/czen(n) > mxarg ) then
-          explay(n,1) = d_zero
-          rdir(n,1) = d_zero
-          tdir(n,1) = d_zero
-        else
-          explay(n,1) = exp(-ts/czen(n))
-          rdir(n,1) = amg*(tdif(n,1)*explay(n,1)-d_one)+apg*rdif(n,1)
-          tdir(n,1) = apg*tdif(n,1) + (amg*rdif(n,1)-(apg-d_one))*explay(n,1)
-        end if
-        !
-        ! Under rare conditions, reflectivies and transmissivities
-        ! can be negative; zero out any negative values
-        !
-        rdir(n,1) = max(rdir(n,1),d_zero)
-        tdir(n,1) = max(tdir(n,1),d_zero)
-        rdif(n,1) = max(rdif(n,1),d_zero)
-        tdif(n,1) = max(tdif(n,1),d_zero)
-      else
-        explay(n,1) = d_zero
-        rdir(n,1) = d_zero
-        tdir(n,1) = d_zero
-        rdif(n,1) = d_zero
-        tdif(n,1) = d_zero
-      end if
+      end do
+
     end do
     !
     ! Compute total direct beam transmission, total transmission, and
     ! reflectivity for diffuse radiation (from below) for both layers
     ! above the surface:
     !
+    k = 2
     do n = n1 , n2
       if ( czengt0(n) ) then
-        exptdn(n,2) = exptdn(n,1)*explay(n,1)
-        if ( exptdn(n,2) < trmin ) exptdn(n,2) = d_zero
-        rdenom = d_one/(d_one-rdif(n,1)*rdndif(n,1))
-        rdirexp = rdir(n,1)*exptdn(n,1)
-        tdnmexp = tottrn(n,1) - exptdn(n,1)
-        tottrn(n,2) = exptdn(n,1)*tdir(n,1) + &
-                      tdif(n,1)*(tdnmexp+rdndif(n,1)*rdirexp)*rdenom
-        rdndif(n,2) = rdif(n,1) + (rdndif(n,1)*tdif(n,1))*(tdif(n,1)*rdenom)
+        exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
+        rdenom = d_one/(d_one-rdif(n,k-1)*rdndif(n,k-1))
+        rdirexp = rdir(n,k-1)*exptdn(n,k-1)
+        tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
+        tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + &
+                      tdif(n,k-1)*(tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
+        rdndif(n,k) = rdif(n,k-1) + &
+                      (rdndif(n,k-1)*tdif(n,k-1))*(tdif(n,k-1)*rdenom)
       end if
     end do
 #ifdef DEBUG
@@ -2491,24 +2484,42 @@ module mod_rad_radiation
     ! rdirexp  - layer direct ref times exp transmission
     ! tdnmexp  - total transmission minus exp transmission
     !
+    !---------------------------Statement functions-------------------------
+    !
+    ! Statement functions and other local variables
+    !
+    ! alpha    - Term in direct reflect and transmissivity
+    ! xgamm    - Term in direct reflect and transmissivity
+    ! el       - Term in alpha,xgamm,n,u
+    ! taus     - Scaled extinction optical depth
+    ! omgs     - Scaled single particle scattering albedo
+    ! asys     - Scaled asymmetry parameter
+    ! u        - Term in diffuse reflect and transmissivity
+    ! n        - Term in diffuse reflect and transmissivity
+    ! lm       - Temporary for el
+    ! ne       - Temporary for n
+    !
     ! Intermediate terms for delta-eddington solution
     !
     ! alp      - Temporary for alpha
     ! gam      - Temporary for xgamm
     ! ue       - Temporary for u
+    ! arg      - Exponential argument
     ! extins   - Extinction
     ! amg      - Alp - gam
     ! apg      - Alp + gam
     !
-    real(rkx) :: alp , amg , apg , extins , ftot , gam , gs , gtot ,    &
-               lm , ne , rdenom , rdirexp , taucsc , tautot , tdnmexp , &
-               ts , ue , ws , wt , wtau , wtot
+    real(rkx) :: alp , amg , apg , arg , extins , ftot ,        &
+               gam , gs , gtot , lm , ne , rdenom , rdirexp , &
+               taucsc , tautot , tdnmexp , ts , ue , ws ,     &
+               wt , wtau , wtot
     integer(ik4) :: n , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radded'
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
+    !-----------------------------------------------------------------------
     !
     ! Initialize all total transmission values to 0, so that nighttime
     ! values from previous computations are not used:
@@ -2522,9 +2533,11 @@ module mod_rad_radiation
     !
     do n = n1 , n2
       if ( czengt0(n) ) then
+
         tauray(n) = trayoslp*(pflx(n,1)-pflx(n,0))
         taugab(n) = abh2o(ns)*uh2o(n,0) + abo3(ns)*uo3(n,0) + &
                     abco2(ns)*uco2(n,0) + abo2(ns)*uo2(n,0)
+
         if ( lzero ) then
           tautot = tauxcl(n,0,ns)+tauxci(n,0,ns)+tauray(n)+taugab(n)
           taucsc = tauxcl(n,0,ns)*wcl(n,0) + tauxci(n,0,ns)*wci(n,0)
@@ -2548,6 +2561,7 @@ module mod_rad_radiation
           ftot = (wtau*fray+fcl(n,0)*tauxcl(n,0,ns)*wcl(n,0)+fci(n,0) * &
                   tauxci(n,0,ns)*wci(n,0)+ftota3d(n,0,ns))/wt
         end if
+
         ts = taus(wtot,ftot,tautot)
         ws = omgs(wtot,ftot)
         gs = asys(gtot,ftot)
@@ -2558,47 +2572,39 @@ module mod_rad_radiation
         !
         ! Limit argument of exponential to 25, in case lm*ts very large:
         !
-        if ( lm*ts > mxarg ) then
-          rdif(n,0) = d_zero
-          tdif(n,0) = d_zero
-        else
-          extins = exp(-lm*ts)
-          ne = f_n(ue,extins)
-          rdif(n,0) = ((ue+d_one)*(ue-d_one))*(d_one/extins-extins)/ne
-          tdif(n,0) = d_four*ue/ne
-        end if
+        arg = min(lm*ts,25.0_rkx)
+        extins = exp(-arg)
+        ne = f_n(ue,extins)
+
+        rdif(n,0) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+        tdif(n,0) = d_four*ue/ne
+
+        ! Limit argument of exponential to 25, in case czen is very small:
+        arg = min(ts/czen(n),25.0_rkx)
+        explay(n,0) = exp(-arg)
+
         apg = alp + gam
         amg = alp - gam
-        if ( ts/czen(n) > mxarg ) then
-          explay(n,0) = d_zero
-        else
-          explay(n,0) = exp(-ts/czen(n))
-          if ( explay(n,0) < trmin ) explay(n,0) = d_zero
-        end if
         rdir(n,0) = amg*(tdif(n,0)*explay(n,0)-d_one) + apg*rdif(n,0)
         tdir(n,0) = apg*tdif(n,0) + (amg*rdif(n,0)-(apg-d_one))*explay(n,0)
         !
         ! Under rare conditions, reflectivies and transmissivities can
         ! be negative; zero out any negative values
         !
-        if ( rdir(n,0) < trmin ) rdir(n,0) = d_zero
-        if ( tdir(n,0) < trmin ) tdir(n,0) = d_zero
-        if ( rdif(n,0) < trmin ) rdif(n,0) = d_zero
-        if ( tdif(n,0) < trmin ) tdif(n,0) = d_zero
+        rdir(n,0) = max(rdir(n,0),d_zero)
+        tdir(n,0) = max(tdir(n,0),d_zero)
+        rdif(n,0) = max(rdif(n,0),d_zero)
+        tdif(n,0) = max(tdif(n,0),d_zero)
         !
         ! Initialize top interface of extra layer:
         !
         exptdn(n,0) = d_one
         rdndif(n,0) = d_zero
         tottrn(n,0) = d_one
+
         rdndif(n,1) = rdif(n,0)
         tottrn(n,1) = tdir(n,0)
-      else
-        explay(n,0) = d_zero
-        rdir(n,0) = d_zero
-        tdir(n,0) = d_zero
-        rdif(n,0) = d_zero
-        tdif(n,0) = d_zero
+
       end if
     end do
     !
@@ -2614,13 +2620,18 @@ module mod_rad_radiation
       !
       do n = n1 , n2
         if ( czengt0(n) ) then
+
+          rdir(n,k) = d_zero
+          rdif(n,k) = d_zero
+          tdir(n,k) = d_zero
+          tdif(n,k) = d_zero
+          explay(n,k) = d_zero
           !
           ! Calculates the solar beam transmission, total transmission,
           ! and reflectivity for diffuse radiation from below at the
           ! top of the current layer:
           !
           exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
-          if ( exptdn(n,k) < trmin ) exptdn(n,k) = d_zero
           rdenom = d_one/(d_one-min(rdif(n,k-1)*rdndif(n,k-1),verynearone))
           rdirexp = rdir(n,k-1)*exptdn(n,k-1)
           tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
@@ -2638,9 +2649,11 @@ module mod_rad_radiation
         ! exceeds trmin.
         !
         if ( tottrn(n,k) > trmin ) then
+
           tauray(n) = trayoslp*(pflx(n,k+1)-pflx(n,k))
           taugab(n) = abh2o(ns)*uh2o(n,k) + abo3(ns)*uo3(n,k) +  &
                       abco2(ns)*uco2(n,k) + abo2(ns)*uo2(n,k)
+
           if ( lzero ) then
             tautot = tauxcl(n,k,ns)+tauxci(n,k,ns)+tauray(n)+taugab(n)
             taucsc = tauxcl(n,k,ns)*wcl(n,k)+tauxci(n,k,ns)*wci(n,k)
@@ -2664,6 +2677,7 @@ module mod_rad_radiation
             ftot = (wtau*fray+fcl(n,k)*wcl(n,k)*tauxcl(n,k,ns)+fci(n,k) *  &
                     wci(n,k)*tauxci(n,k,ns)+ftota3d(n,k,ns))/wt
           end if
+
           ts = taus(wtot,ftot,tautot)
           ws = omgs(wtot,ftot)
           gs = asys(gtot,ftot)
@@ -2674,58 +2688,49 @@ module mod_rad_radiation
           !
           ! Limit argument of exponential to 25, in case lm very large:
           !
-          if ( lm*ts > mxarg ) then
-            rdif(n,k) = d_zero
-            tdif(n,k) = d_zero
-          else
-            extins = exp(-lm*ts)
-            ne = f_n(ue,extins)
-            rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
-            tdif(n,k) = d_four*ue/ne
-          end if
+          arg = min(lm*ts,25.0_rkx)
+          extins = exp(-arg)
+          ne = f_n(ue,extins)
+
+          rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
+          tdif(n,k) = d_four*ue/ne
+
+          ! Limit argument of exponential to 25, in case czen is very small:
+          arg = min(ts/czen(n),25.0_rkx)
+          explay(n,k) = exp(-arg)
+
           apg = alp + gam
           amg = alp - gam
-          if ( ts/czen(n) > mxarg ) then
-            explay(n,k) = d_zero
-          else
-            explay(n,k) = exp(-ts/czen(n))
-            if ( explay(n,k) < trmin ) explay(n,k) = d_zero
-          end if
           rdir(n,k) = amg*(tdif(n,k)*explay(n,k)-d_one)+apg*rdif(n,k)
           tdir(n,k) = apg*tdif(n,k) + (amg*rdif(n,k)-(apg-d_one))*explay(n,k)
           !
           ! Under rare conditions, reflectivies and transmissivities
           ! can be negative; zero out any negative values
           !
-          if ( rdir(n,k) < trmin ) rdir(n,k) = d_zero
-          if ( rdif(n,k) < trmin ) rdif(n,k) = d_zero
-          if ( tdir(n,k) < trmin ) tdir(n,k) = d_zero
-          if ( tdif(n,k) < trmin ) tdif(n,k) = d_zero
-        else
-          explay(n,k) = d_zero
-          rdir(n,k) = d_zero
-          tdir(n,k) = d_zero
-          rdif(n,k) = d_zero
-          tdif(n,k) = d_zero
+          rdir(n,k) = max(rdir(n,k),d_zero)
+          tdir(n,k) = max(tdir(n,k),d_zero)
+          rdif(n,k) = max(rdif(n,k),d_zero)
+          tdif(n,k) = max(tdif(n,k),d_zero)
         end if
       end do
+
     end do
     !
     ! Compute total direct beam transmission, total transmission, and
     ! reflectivity for diffuse radiation (from below) for all layers
     ! above the surface:
     !
+    k = kzp1
     do n = n1 , n2
       if ( czengt0(n) ) then
-        exptdn(n,kzp1) = exptdn(n,kz)*explay(n,kz)
-        if ( exptdn(n,kzp1) < trmin ) exptdn(n,kzp1) = d_zero
-        rdenom = d_one/(d_one-min(rdif(n,kz)*rdndif(n,kz),verynearone))
-        rdirexp = rdir(n,kz)*exptdn(n,kz)
-        tdnmexp = tottrn(n,kz) - exptdn(n,kz)
-        tottrn(n,kzp1) = exptdn(n,kz)*tdir(n,kz) + tdif(n,kz) *       &
-                      (tdnmexp+rdndif(n,kz)*rdirexp)*rdenom
-        rdndif(n,kzp1) = rdif(n,kz) + (rdndif(n,kz)*tdif(n,kz)) *     &
-                      (tdif(n,kz)*rdenom)
+        exptdn(n,k) = exptdn(n,k-1)*explay(n,k-1)
+        rdenom = d_one/(d_one-min(rdif(n,k-1)*rdndif(n,k-1),verynearone))
+        rdirexp = rdir(n,k-1)*exptdn(n,k-1)
+        tdnmexp = tottrn(n,k-1) - exptdn(n,k-1)
+        tottrn(n,k) = exptdn(n,k-1)*tdir(n,k-1) + tdif(n,k-1) *       &
+                      (tdnmexp+rdndif(n,k-1)*rdirexp)*rdenom
+        rdndif(n,k) = rdif(n,k-1) + (rdndif(n,k-1)*tdif(n,k-1)) *     &
+                      (tdif(n,k-1)*rdenom)
       end if
     end do
 #ifdef DEBUG
@@ -2774,8 +2779,6 @@ module mod_rad_radiation
   ! for band overlap, and sums to obtain the total; then, computes the
   ! nearest layer contribution.
   !
-  !-----------------------------------------------------------------------
-  !
   ! Trace gas variables
   !
   ! abstrc    - total trace gas absorptivity
@@ -2795,6 +2798,7 @@ module mod_rad_radiation
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
     !
+    ! kn       - Nearest level index
     ! iband    - Band  index
     ! pnew     - Effective pressure for H2O vapor linewidth
     ! trline   - Transmission due to H2O lines in window
@@ -2851,11 +2855,11 @@ module mod_rad_radiation
     ! term8    - Delta kl_inf(i) in eq(8)
     ! term9    - DB/dT function for 500-800 cm-1 region
     ! tr1      - Eqn(6) in table A2 of R&D for 650-800
-    ! tr10     - Eqn (6) times eq(4) in table A2 of R&D for 500-650 cm-1 region
+    ! tr10     - Eqn(6) times eq(4) in table A2 of R&D for 500-650 cm-1 region
     ! tr2      - Eqn(6) in table A2 of R&D for 500-650
     ! tr5      - Eqn(4) in table A2 of R&D for 650-800
     ! tr6      - Eqn(4) in table A2 of R&D for 500-650
-    ! tr9      - Equation (6) times eq(4) in table A2 of R&D for 650-800 cm-1 region
+    ! tr9      - Equ(6) times eq(4) in table A2 of R&D for 650-800 cm-1 region
     ! uc       - Y + 0.002U in eq(8) of table A2 of R&D
     ! sqrtu    - Sqrt of pressure weighted h20 pathlength
     ! fwk      - Equation(33) in R&D far wing correction
@@ -2938,6 +2942,7 @@ module mod_rad_radiation
                term3 , term4 , term5 , zinpl , temh2o
     real(rkx) , dimension(2) :: r2st , term7 , term8 , trline
     integer(ik4) :: n , iband , k , k1 , k2 , kn , wvl
+
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radabs'
     integer(ik4) :: indx = 0
@@ -2958,16 +2963,16 @@ module mod_rad_radiation
 
     r2st(1) = d_one/(d_two*st(1))
     r2st(2) = d_one/(d_two*st(2))
-!   bndfct  = 2.0*22.18d0/(sqrt(196.d0)*300.)
+    ! bndfct  = 2.0*22.18d0/(sqrt(196.d0)*300.)
     !
     ! Non-adjacent layer absorptivity:
     !
-    !   abso(1)     0 -  800 cm-1   h2o rotation band
-    !   abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-    !   abso(3)   800 - 1200 cm-1   h2o window
-    !   abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-    !   abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
-    !   abso(6)   co2 15  micrometer band system
+    ! abso(1)     0 -  800 cm-1   h2o rotation band
+    ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
+    ! abso(3)   800 - 1200 cm-1   h2o window
+    ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
+    ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
+    ! abso(6)   co2 15  micrometer band system
     !
     do k = 1 , kzp1
       do n = n1 , n2
@@ -2993,7 +2998,8 @@ module mod_rad_radiation
             sqrtu = sqrt(ux(n))
             ds2c = abs(s2c(n,k1)-s2c(n,k2))
             dw(n) = abs(w(n,k1)-w(n,k2))
-            uc1 = (ds2c+1.7e-3_rkx*ux(n))*(d_one+d_two*ds2c)/(d_one+15.0_rkx*ds2c)
+            uc1 = (ds2c+1.7e-3_rkx*ux(n)) * &
+                   (d_one+d_two*ds2c)/(d_one+15.0_rkx*ds2c)
             uc = ds2c + 2.0e-3_rkx*ux(n)
             pnew(n) = ux(n)/dw(n)
             tpatha = (s2t(n,k1)-s2t(n,k2))/dplh2o
@@ -3175,12 +3181,12 @@ module mod_rad_radiation
     !
     ! Non-adjacent layer absorptivity:
     !
-    !   abso(1)     0 -  800 cm-1   h2o rotation band
-    !   abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
-    !   abso(3)   800 - 1200 cm-1   h2o window
-    !   abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
-    !   abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
-    !   abso(6)   co2 15  micrometer band system
+    ! abso(1)     0 -  800 cm-1   h2o rotation band
+    ! abso(2)  1200 - 2200 cm-1   h2o vibration-rotation band
+    ! abso(3)   800 - 1200 cm-1   h2o window
+    ! abso(4)   500 -  800 cm-1   h2o rotation band overlap with co2
+    ! abso(5)   o3  9.6 micrometer band (nu3 and nu1 bands)
+    ! abso(6)   co2 15  micrometer band system
     !
     ! Nearest layer level loop
     !
@@ -3244,7 +3250,6 @@ module mod_rad_radiation
           end do
         end if
         ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
-
         do kn = 1 , 4
           ux(n) = uinpl(n,kn)*abs(plh2o(n,k2)-plh2o(n,k2+1))
           sqrtu = sqrt(ux(n))
@@ -3459,8 +3464,6 @@ module mod_rad_radiation
   ! Computes individual emissivities, accounting for band overlap, and
   ! sums to obtain the total.
   !
-  !-----------------------------------------------------------------------
-  !
   ! Output arguments
   !
   ! emplnk  - emissivity Planck factor
@@ -3488,7 +3491,7 @@ module mod_rad_radiation
     ! rsum    - Eq(1) in table A2 of R&D
     ! term1   - Equation(5) in table A3a of R&D(1986)
     ! term2   - Delta a(Te) in table A3a of R&D(1986)
-    ! term3   - B(T) function for rotation and vibration-rotation band emissivity
+    ! term3   - B(T) function for rotation and vibration-rotation band emiss.
     ! term4   - Equation(6) in table A3a of R&D(1986)
     ! term5   - Delta a(Tp) in table A3a of R&D(1986)
     ! xterm6  - B(T) function for window region
@@ -3499,8 +3502,8 @@ module mod_rad_radiation
     ! tr2     - Equation(6) in table A2 for 500-650
     ! tr3     - Equation(4) in table A2 for 650-800
     ! tr4     - Equation(4),table A2 of R&D for 500-650
-    ! tr7     - Equation (6) times eq(4) in table A2 of R&D for 650-800 cm-1 region
-    ! tr8     - Equation (6) times eq(4) in table A2 of R&D for 500-650 cm-1 region
+    ! tr7     - Equ. (6) times eq(4) in table A2 of R&D for 650-800 cm-1 region
+    ! tr8     - Equ. (6) times eq(4) in table A2 of R&D for 500-650 cm-1 region
     ! uc      - Y + 0.002U in eq(8) of table A2 of R&D
     ! xpnew   - Effective pressure for h2o linewidth
     ! trline  - Transmission due to H2O lines in window
@@ -3649,10 +3652,10 @@ module mod_rad_radiation
         !
         ! H2O emissivity
         !
-        !   emis(1)     0 -  800 cm-1   rotation band
-        !   emis(2)  1200 - 2200 cm-1   vibration-rotation band
-        !   emis(3)   800 - 1200 cm-1   window
-        !   emis(4)   500 -  800 cm-1   rotation band overlap with co2
+        ! emis(1)     0 -  800 cm-1   rotation band
+        ! emis(2)  1200 - 2200 cm-1   vibration-rotation band
+        ! emis(3)   800 - 1200 cm-1   window
+        ! emis(4)   500 -  800 cm-1   rotation band overlap with co2
         !
         ! For the p type continuum
         !
@@ -3850,10 +3853,10 @@ module mod_rad_radiation
   ! Computes the path length integrals to the model interfaces given the
   ! ozone volume mixing ratio
   !
-  !-----------------------------------------------------------------------
-  !
   ! o3vmr   - ozone volume mixing ratio
   ! pint    - Model interface pressures
+  !
+  !-----------------------------------------------------------------------
   !
   subroutine radoz2(n1,n2,o3vmr,pint)
     implicit none
@@ -3901,7 +3904,7 @@ module mod_rad_radiation
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , pointer , dimension(:) , intent(in) :: ts
     real(rkx) , pointer , dimension(:,:) , intent(in) :: tnm , pmln , &
-                                                         qnm , piln , pint
+      qnm , piln , pint
     !
     ! dy     - Thickness of layer for tmp interp
     ! dpnm   - Pressure thickness of layer
@@ -4013,8 +4016,11 @@ module mod_rad_radiation
     intent (in) cld , h2ommr , o3vmr , pint , pmid
     intent (inout) o3mmr , plco2 , pmidrd
     intent (inout) pintrd , plh2o , tclrsf
+
     real(rkx) :: cpwpl , vmmr
     integer(ik4) :: n , k
+    !
+    !------------------------------Arguments--------------------------------
     !
     ! Input arguments
     !
@@ -4032,10 +4038,8 @@ module mod_rad_radiation
     ! plh2o   - Vert. pth lngth h2o vap.(prs-weighted)
     ! tclrsf  - Product of clr-sky fractions from top of atmosphere to level.
     ! o3mmr   - Ozone mass mixing ratio
-    !
     ! cpwpl   - Const in co2 mixing ratio to path length conversn
     ! vmmr    - Ozone volume mixing ratio
-    !
     !
     ! Compute solar distance factor and cosine solar zenith angle usi
     ! day value where a round day (such as 213.0) refers to 0z at
@@ -4078,7 +4082,6 @@ module mod_rad_radiation
                        pintrd(n,k)**2) * h2ommr(n,k)
         plco2(n,k+1) = co2vmr*cpwpl*pintrd(n,k+1)**2
         tclrsf(n,k+1) = tclrsf(n,k)*(d_one-cld(n,k+1))
-        if ( tclrsf(n,k+1) < trmin ) tclrsf(n,k+1) = d_zero
       end do
     end do
     !
@@ -4095,79 +4098,54 @@ module mod_rad_radiation
 #endif
   end subroutine radinp
 
-  pure real(rkx) function safe(x)
-    implicit none
-    real(rkx) , intent(in) :: x
-    safe = x
-    if ( abs(x) < 1.0e-10_rkx ) then
-      safe = sign(1.0e-10_rkx,x)
-    end if
-  end function safe
-
   pure real(rkx) function xalpha(w,uu,g,e)
-    ! Term in direct reflect and transmissivity
     implicit none
     real(rkx) , intent(in) :: w , uu , g , e
-    xalpha = 0.75_rkx*w*uu*((d_one+g*(d_one-w))/safe((d_one-e*e*uu*uu)))
+    xalpha = 0.75_rkx*w*uu*((d_one+g*(d_one-w))/(d_one-e*e*uu*uu))
   end function xalpha
-
   pure real(rkx) function xgamma(w,uu,g,e)
-    ! Term in direct reflect and transmissivity
     implicit none
     real(rkx) , intent(in) :: w , uu , g , e
-    xgamma = (w*d_half)*((3.0_rkx*g*(d_one-w)*uu*uu+d_one)/safe((d_one-e*e*uu*uu)))
+    xgamma = (w*d_half)*((3.0_rkx*g*(d_one-w)*uu*uu+d_one)/(d_one-e*e*uu*uu))
   end function xgamma
-
   pure real(rkx) function el(w,g)
-    ! Term in xalpha,xgamma,f_n,f_u
     implicit none
     real(rkx) , intent(in) :: w , g
     el = sqrt(3.0_rkx*(d_one-w)*(d_one-w*g))
   end function el
-
   pure real(rkx) function taus(w,f,t)
-    ! Scaled extinction optical depth
     implicit none
     real(rkx) , intent(in) :: w , f , t
     taus = (d_one-w*f)*t
   end function taus
-
   pure real(rkx) function omgs(w,f)
-    ! Scaled single particle scattering albedo
     implicit none
     real(rkx) , intent(in) :: w , f
-    omgs = (d_one-f)*w/safe((d_one-w*f))
+    omgs = (d_one-f)*w/(d_one-w*f)
   end function omgs
-
   pure real(rkx) function asys(g,f)
-    ! Scaled asymmetry parameter
     implicit none
     real(rkx) , intent(in) :: g , f
-    asys = (g-f)/safe((d_one-f))
+    asys = (g-f)/(d_one-f)
   end function asys
-
   pure real(rkx) function f_u(w,g,e)
-    ! Term in diffuse reflect and transmissivity
     implicit none
     real(rkx) , intent(in) :: w , g , e
-    f_u = 1.50_rkx*(d_one-w*g)/safe(e)
+    f_u = 1.50_rkx*(d_one-w*g)/e
   end function f_u
-
   pure real(rkx) function f_n(uu,et)
-    ! Term in diffuse reflect and transmissivity
     implicit none
     real(rkx) , intent(in) :: uu , et
-    f_n = ((uu+d_one)*(uu+d_one)/safe(et))-((uu-d_one)*(uu-d_one)*et)
+    f_n = ((uu+d_one)*(uu+d_one)/et)-((uu-d_one)*(uu-d_one)*et)
   end function f_n
-
   pure real(rkx) function dbvt(t)
     ! Derivative of planck function at 9.6 micro-meter wavelength
     implicit none
     real(rkx) , intent(in) :: t
-    dbvt = (-2.8911366682e-4_rkx + (2.3771251896e-6_rkx+1.1305188929e-10_rkx*t)*t) /  &
+    dbvt = (-2.8911366682e-4_rkx + &
+            (2.3771251896e-6_rkx+1.1305188929e-10_rkx*t)*t) /  &
             (d_one+(-6.1364820707e-3_rkx+1.5550319767e-5_rkx*t)*t)
   end function dbvt
-
   pure real(rkx) function fo3(ux,vx)
     ! an absorption function factor
     implicit none
