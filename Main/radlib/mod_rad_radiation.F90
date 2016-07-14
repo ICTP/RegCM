@@ -262,7 +262,7 @@ module mod_rad_radiation
   !
   ! Initialize ozone data.
   !
-  real(rkx) , parameter :: v0 = 22.4136_rkx  ! Volume of a gas at stp (m**3/kmol)
+  real(rkx) , parameter :: v0 = 22.4136_rkx ! Volume of a gas at stp (m**3/kmol)
   real(rkx) , parameter :: p0 = 0.1_rkx*sslp ! Standard pressure (pascals)
   !
   ! Constants for ozone path integrals (multiplication by 100 for unit
@@ -369,8 +369,8 @@ module mod_rad_radiation
              1.62744e-1_rkx ,  2.22847e-3_rkx ,  2.60102e-6_rkx , &
             -4.30133e-8_rkx/
 
-  data coefe/3.93137e-2_rkx , -4.34341e-5_rkx , 3.74545e-7_rkx , &
-             3.67785e-2_rkx , -3.10794e-5_rkx , 2.94436e-7_rkx , &
+  data coefe/3.93137e-2_rkx , -4.34341e-5_rkx , 3.74545e-8_rkx , &
+             3.67785e-2_rkx , -3.10794e-5_rkx , 2.94436e-8_rkx , &
              7.42500e-2_rkx ,  3.97397e-5_rkx , 0.00000e+0_rkx , &
              7.52859e-2_rkx ,  4.18073e-5_rkx , 0.00000e+0_rkx/
 
@@ -411,7 +411,7 @@ module mod_rad_radiation
   data abarl / 2.817e-2_rkx ,  2.682e-2_rkx , 2.264e-2_rkx , 1.281e-2_rkx/
   data bbarl / 1.305e+0_rkx ,  1.346e+0_rkx , 1.454e+0_rkx , 1.641e+0_rkx/
   data cbarl /-5.620e-8_rkx , -6.940e-6_rkx , 4.640e-4_rkx , 0.201e+0_rkx/
-  data dbarl / 1.630e-7_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx/
+  data dbarl / 1.630e-8_rkx ,  2.350e-5_rkx , 1.240e-3_rkx , 7.560e-3_rkx/
   data ebarl / 0.829e+0_rkx ,  0.794e+0_rkx , 0.754e+0_rkx , 0.826e+0_rkx/
   data fbarl / 2.482e-3_rkx ,  4.226e-3_rkx , 6.560e-3_rkx , 4.353e-3_rkx/
 
@@ -492,6 +492,12 @@ module mod_rad_radiation
            0.000_rkx , 0.000_rkx , 0.000_rkx , 1.000_rkx , 1.000_rkx , &
            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
+
+#ifdef SINGLE_PRECISION_REAL
+  real(rkx) , parameter :: mxarg = 12.0_rkx
+#else
+  real(rkx) , parameter :: mxarg = 25.0_rkx
+#endif
 
   logical :: luse_max_rnovl = .true.
 
@@ -682,9 +688,19 @@ module mod_rad_radiation
       cfc110 = cgas(igh_cfc11,iyear)*1.0e-12_rkx*(amcfc11/amd)
       cfc120 = cgas(igh_cfc12,iyear)*1.0e-12_rkx*(amcfc12/amd)
     else
-      write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
-      call fatal(__FILE__,__LINE__, &
+      if ( iyear > 2100 ) then
+        write (stderr,*) 'ASSUMING CONSTANT GGH AFTER 2100 AT 2100 VALUE'
+        co2vmr = cgas(igh_co2,2100)*1.0e-6_rkx
+        co2mmr = co2vmr*(amco2/amd)
+        ch40 = cgas(igh_ch4,2100)*1.0e-9_rkx*(amch4/amd)
+        n2o0 = cgas(igh_n2o,2100)*1.0e-9_rkx*(amn2o/amd)
+        cfc110 = cgas(igh_cfc11,2100)*1.0e-12_rkx*(amcfc11/amd)
+        cfc120 = cgas(igh_cfc12,2100)*1.0e-12_rkx*(amcfc12/amd)
+      else
+        write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
+        call fatal(__FILE__,__LINE__, &
             'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
+      end if
     end if
     !
     ! Coefficients for h2o emissivity and absorptivity.
@@ -2274,9 +2290,9 @@ module mod_rad_radiation
     ! rdirexp  - Layer direct ref times exp transmission
     ! tdnmexp  - Total transmission minus exp transmission
     !
-    real(rkx) :: alp , amg , apg , extins , ftot , mxarg , &
-               gam , gs , gtot , lm , ne , rdenom , rdirexp , &
-               tautot , tdnmexp , ts , ue , ws , wtot
+    real(rkx) :: alp , amg , apg , extins , ftot , gam , gs , gtot ,  &
+                 lm , ne , rdenom , rdirexp , tautot , tdnmexp , ts , &
+                 ue , ws , wtot
     integer(ik4) :: n
 
 #ifdef DEBUG
@@ -2284,7 +2300,6 @@ module mod_rad_radiation
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
-    mxarg = -log(epsilon(d_one))
     !
     ! Initialize all total transmimission values to 0, so that nighttime
     ! values from previous computations are not used:
@@ -2302,8 +2317,10 @@ module mod_rad_radiation
       if ( czengt0(n) ) then
         taugab(n) = abo3(ns)*uto3(n)
         explay(n,0) = exp(-min(taugab(n)/czen(n),mxarg))
+        if ( explay(n,0) < trmin ) explay(n,0) = d_zero
         tdir(n,0) = explay(n,0)
         tdif(n,0) = exp(-min(1.66_rkx*taugab(n),mxarg))
+        if ( tdif(n,0) < trmin ) tdif(n,0) = d_zero
         rdir(n,0) = d_zero
         rdif(n,0) = d_zero
         !
@@ -2483,17 +2500,15 @@ module mod_rad_radiation
     ! amg      - Alp - gam
     ! apg      - Alp + gam
     !
-    real(rkx) :: alp , amg , apg , extins , ftot , mxarg ,    &
-               gam , gs , gtot , lm , ne , rdenom , rdirexp , &
-               taucsc , tautot , tdnmexp , ts , ue , ws ,     &
-               wt , wtau , wtot
+    real(rkx) :: alp , amg , apg , extins , ftot , gam , gs , gtot ,    &
+               lm , ne , rdenom , rdirexp , taucsc , tautot , tdnmexp , &
+               ts , ue , ws , wt , wtau , wtot
     integer(ik4) :: n , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radded'
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
-    mxarg = -log(epsilon(d_one))
     !
     ! Initialize all total transmission values to 0, so that nighttime
     ! values from previous computations are not used:
