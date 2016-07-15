@@ -673,7 +673,7 @@ module mod_bats_bndry
       if ( sncv(i) > d_zero ) then
         arg = 5.0e3_rkx*(d_one/tzero-d_one/tgrd(i))
         age1 = exp(arg)
-        arg2 = max(min(d_zero,d_10*arg),15.0_rkx)
+        arg2 = max(min(d_zero,d_10*arg),-15.0_rkx)
         age2 = exp(arg2)
         tage = age1 + age2 + age3
         dela0 = 1.0e-6_rkx*dtbat
