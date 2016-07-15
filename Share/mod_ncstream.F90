@@ -689,9 +689,9 @@ module mod_ncstream
       implicit none
       type(nc_input_stream) , intent(inout) :: ncin
       type(rcm_time_and_date) , intent(in) :: dtime
-      real(rkx) , intent(out) :: record
+      real(rk8) , intent(out) :: record
       type(ncinstream) , pointer :: stream
-      real(rkx) :: search
+      real(rk8) :: search
       record = -1.0_rkx
       if ( .not. associated(ncin%ncp%xs) ) return
       stream => ncin%ncp%xs
@@ -700,7 +700,7 @@ module mod_ncstream
         if ( search < stream%xtime(1) .or. search > stream%xtime(2) ) then
           return
         end if
-        record = 1.0_rkx+(search-stream%xtime(1))/stream%deltat
+        record = 1.0_rk8+(search-stream%xtime(1))/stream%deltat
       end if
     end subroutine instream_findrec
 
@@ -708,7 +708,7 @@ module mod_ncstream
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
       type(rcm_time_and_date) , intent(in) :: dtime
-      real(rkx) :: val
+      real(rk8) :: val
       val = hourdiff(dtime,reference_date)
       call outstream_addrec_value(ncout,val)
     end subroutine outstream_addrec_date
@@ -716,7 +716,7 @@ module mod_ncstream
     subroutine outstream_addrec_value(ncout,val)
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
-      real(rkx) , intent(in) :: val
+      real(rk8) , intent(in) :: val
       type(ncoutstream) , pointer :: stream
       type(basic_variables) , pointer :: stvar
       type(internal_obuffer) , pointer :: buffer

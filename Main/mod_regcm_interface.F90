@@ -50,9 +50,9 @@ module mod_regcm_interface
   public :: RCM_run
   public :: RCM_finalize
 
-  real(rkx) :: extime
+  real(rk8) :: extime
 
-  data extime /d_zero/
+  data extime /0.0_rk8/
   contains
 
   subroutine RCM_initialize(mpiCommunicator)
@@ -162,8 +162,8 @@ module mod_regcm_interface
   !
   subroutine RCM_run(timestr, timeend)
     implicit none
-    real(rkx) , intent(in) :: timestr   ! starting time-step
-    real(rkx) , intent(in) :: timeend   ! ending   time-step
+    real(rk8) , intent(in) :: timestr   ! starting time-step
+    real(rk8) , intent(in) :: timeend   ! ending   time-step
     character(len=32) :: appdat
 
 #ifdef DEBUG
@@ -220,7 +220,7 @@ module mod_regcm_interface
       !
       ! Increment execution time and boundary time
       !
-      extime = extime + dtsec
+      extime = extime + real(dtsec,rk8)
       if ( debug_level > 3 ) then
         if ( myid == italk ) then
           appdat = tochar(idatex)

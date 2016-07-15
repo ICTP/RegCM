@@ -147,7 +147,7 @@ module mod_rad_o3blk
     real(rkx) , dimension(72,37,24) :: xozone1 , xozone2
     real(rkx) , save , dimension(37) :: lat
     real(rkx) , save , dimension(72) :: lon
-    real(rkx) :: xfac1 , xfac2 , odist
+    real(rk8) :: xfac1 , xfac2 , odist
     type (rcm_time_and_date) :: imonmidd
     integer(ik4) :: iyear , imon , iday , ihour
     integer(ik4) , save :: ncid = -1
@@ -247,7 +247,7 @@ module mod_rad_o3blk
       odist = xfac1 - xfac2
       xfac1 = xfac1/odist
       xfac2 = d_one-xfac1
-      ozone = (ozone1*xfac2+ozone2*xfac1)*1.0e-6_rkx
+      ozone = (ozone1*real(xfac2,rkx)+ozone2*real(xfac1,rkx))*1.0e-6_rkx
     end if
     call grid_distribute(ozone,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
     if ( myid == italk .and. dointerp ) then

@@ -58,8 +58,9 @@ module mod_runparams
   type(rcm_time_interval) , save , public :: intsom
 
   real(rkx) , public :: declin , deltmx
-  real(rkx) , public :: xbctime , xslabtime
+  real(rkx) , public :: xbctime
   real(rkx) , public :: calday , twodt
+  real(rk8) , public :: xslabtime
 
   real(rkx) , public :: solcon , scon
 

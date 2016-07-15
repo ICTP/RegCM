@@ -35,7 +35,6 @@ module mod_bats_bndry
 
   public :: soilbc , bndry
 
-  real(rkx) , parameter :: lowsice = 1.0e-22_rkx
   real(rkx) , parameter :: rainsnowtemp = 2.2_rkx
   real(rkx) , parameter :: xnu = twopi/secpd
 
@@ -535,7 +534,7 @@ module mod_bats_bndry
       !
       ! 4.4  check for negative water in top layer
       !
-      if ( ssw(i) < minwrat ) ssw(i) = minwrat
+      ssw(i) = max(ssw(i),gwmx0(i)*minwrat)
       !
       !=================================================================
       !         5.   accumulate leaf interception
@@ -636,7 +635,7 @@ module mod_bats_bndry
       ! GRL, VOL. 35, L12802, doi:10.1029/2008GL033295, 2008
       if ( tm(i)-tzero < 6.0_rkx ) then
         if ( tm(i)-tzero < -6.0_rkx ) then
-          fsnts = 1.0D0
+          fsnts = 1.0_rkx
         else
           fsnts = ax * (tanh(bx*(tm(i)-tzero-cx))-dx)
         end if
@@ -674,7 +673,7 @@ module mod_bats_bndry
       if ( sncv(i) > d_zero ) then
         arg = 5.0e3_rkx*(d_one/tzero-d_one/tgrd(i))
         age1 = exp(arg)
-        arg2 = min(d_zero,d_10*arg)
+        arg2 = max(min(d_zero,d_10*arg),15.0_rkx)
         age2 = exp(arg2)
         tage = age1 + age2 + age3
         dela0 = 1.0e-6_rkx*dtbat

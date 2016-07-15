@@ -299,7 +299,7 @@ module mod_sun
     !
     ! Update solar constant for today
     !
-    calday = yeardayfrac(idatex)
+    calday = real(yeardayfrac(idatex),rkx)
     if ( ktau == 0 .or. doing_restart .or. mod(ktau,kday) == 0 ) then
       call solar1( )
       solcon = solar_irradiance( )

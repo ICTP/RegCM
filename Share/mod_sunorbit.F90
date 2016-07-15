@@ -490,7 +490,7 @@ module mod_sunorbit
   !
   subroutine orb_decl_r4(calday,eccen,mvelpp,lambm0,obliqr,delta,eccf)
     implicit none
-    real(rk4) , intent(in) :: calday ! Calendar day, including fraction
+    real(rk8) , intent(in) :: calday ! Calendar day, including fraction
     real(rk4) , intent(in) :: eccen  ! Eccentricity
     real(rk4) , intent(in) :: obliqr ! Earths obliquity in radians
     real(rk4) , intent(in) :: lambm0 ! Mean long of perihelion at the
@@ -523,7 +523,7 @@ module mod_sunorbit
     ! days past or before (a negative increment) the vernal equinox divided by
     ! the days in a model year times the 2*mathpi radians in a complete orbit.
 
-    lambm = lambm0 + (calday - vernal_equinox)*d_two*mathpi/dayspy
+    lambm = lambm0 + (real(calday,rk4) - vernal_equinox)*d_two*mathpi/dayspy
     lmm   = lambm  - mvelpp
 
     ! The earths true longitude, in radians, is then found from

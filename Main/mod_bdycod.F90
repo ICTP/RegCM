@@ -329,7 +329,7 @@ module mod_bdycod
       call read_som(qflb1)
       where ( mddom%ldmsk > 0 ) qflb1 = d_zero
       tdif = bdydate2-prevmon(bdydate2)
-      qflbt = (qflb1-qflb0)/(tohours(tdif)*secph)
+      qflbt = (qflb1-qflb0)/(real(tohours(tdif),rkx)*secph)
     end if
 
     if ( myid == italk ) then
@@ -490,7 +490,7 @@ module mod_bdycod
       call read_som(qflb1)
       where ( mddom%ldmsk > 0 ) qflb1 = d_zero
       tdif = bdydate2-prevmon(bdydate2)
-      qflbt = (qflb1-qflb0)/(tohours(tdif)*secph)
+      qflbt = (qflb1-qflb0)/(real(tohours(tdif),rkx)*secph)
     end if
     !
     ! Convert surface pressure to pstar

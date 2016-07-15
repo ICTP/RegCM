@@ -622,7 +622,6 @@ module mod_rad_colmod3
     integer(ik4) :: n , m , i , j , k , k2 , itr , kmincld , kmaxcld
     real(rkx) , parameter :: amd = 28.9644_rkx
     real(rkx) , parameter :: amo = 48.0000_rkx
-    real(rkx) , parameter :: vmmr = amo/amd
     logical , save :: ifirst = .true.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'getdat'

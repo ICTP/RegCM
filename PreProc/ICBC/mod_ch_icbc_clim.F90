@@ -173,7 +173,7 @@ module mod_ch_icbc_clim
     logical :: doread
     type (rcm_time_and_date) :: imonmidd
     type (rcm_time_interval) :: tdif
-    real(rkx) :: xfac1 , xfac2 , odist
+    real(rk8) :: xfac1 , xfac2 , odist
     integer(ik4) :: im1 , im2
 
     call split_idate(idate,nyear,month,nday,nhour)
@@ -205,9 +205,9 @@ module mod_ch_icbc_clim
     xfac2 = tohours(tdif)
     odist = xfac1 + xfac2
     xfac1 = xfac1/odist
-    xfac2 = d_one-xfac1
+    xfac2 = 1.0_rk8-xfac1
     ! rq: pppv(mozart) to pppm
-    chv4_3 = (chv4_1*xfac2+chv4_2*xfac1)
+    chv4_3 = (chv4_1*real(xfac2,rkx)+chv4_2*real(xfac1,rkx))
     chv4(:,:,:,cb_O3)    = chv4_3(:,:,:,mz_O3)*w_o3/amd
     chv4(:,:,:,cb_NO)    = chv4_3(:,:,:,mz_NO)*w_no/amd
     chv4(:,:,:,cb_NO2)   = chv4_3(:,:,:,mz_NO2)*w_no2/amd

@@ -137,10 +137,10 @@ module mod_ncstream_types
     integer(ik4) , dimension(2) :: jparbound
     integer(ik4) , dimension(2) :: iparbound
     integer(ik4) :: global_nj , global_ni , parsize
-    real(rkx) , dimension(2) :: xtime = (/dmissval,dmissval/)
+    real(rk8) , dimension(2) :: xtime = (/dmissval,dmissval/)
     type(rcm_time_and_date) :: refdate
     character(len=maxunit) :: tunit , tcal
-    real(rkx) :: deltat = 1.0_rkx
+    real(rk8) :: deltat = 1.0_rk8
     integer(ik4) , dimension(5) :: istart , icount , istride
     integer(ik4) :: ndims
     integer(ik4) , allocatable , dimension(:) :: len_dims

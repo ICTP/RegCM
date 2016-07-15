@@ -86,7 +86,7 @@ module mod_slabocean
 
     subroutine update_slabocean(xt)
       implicit none
-      real(rkx) , intent(in) :: xt
+      real(rk8) , intent(in) :: xt
       ! mlcp is the heat capacity of the mixed layer [J / m3 / deg C] * m
       integer(ik4) :: i , j
 #ifdef DEBUG
@@ -114,7 +114,7 @@ module mod_slabocean
         ! is handled in an off-line calculation to derive the final qflux
         ! adjustment. These include ice restoring and ice lid contributions.
         !
-        qflux_adj = qflb0 + xt*qflbt
+        qflux_adj = qflb0 + real(xt,rkx)*qflbt
       end if
       !
       ! energy budget in the mixed layer including the q flux therm

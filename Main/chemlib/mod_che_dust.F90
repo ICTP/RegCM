@@ -965,6 +965,7 @@ module mod_che_dust
       ! readius and optical properties
       ! use the same tuning erodibility factor rdstemfac than for
       ! standard scheme
+      cdsfrq = real(ntsrf/kche,rkx)
       allocate(sumdflux(jci1:jci2,ici1:ici2))
       sumdflux = d_zero
 #ifdef CLM45
@@ -983,7 +984,6 @@ module mod_che_dust
             end if
             ! diagnostic source (accumulated)
 
-            cdsfrq = real(ntsrf,rkx) / kche
             cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
                     sumdflux(j,i)*frac(n) * cdsfrq
              if ( ichdiag == 1 ) then
