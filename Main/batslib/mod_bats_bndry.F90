@@ -532,9 +532,11 @@ module mod_bats_bndry
         rsubst(i) = rsubst(i) + delwat/dtbat
       end if
       !
-      ! 4.4  check for negative water in top layer
+      ! 4.4  check for negative water in layers
       !
       ssw(i) = max(ssw(i),gwmx0(i)*minwrat)
+      rsw(i) = max(rsw(i),gwmx1(i)*minwrat)
+      tsw(i) = max(tsw(i),gwmx2(i)*minwrat)
       !
       !=================================================================
       !         5.   accumulate leaf interception
