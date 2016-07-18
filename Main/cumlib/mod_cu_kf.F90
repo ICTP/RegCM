@@ -73,6 +73,7 @@ module mod_cu_kf
 
   integer(ik4) , dimension(:) , pointer :: imap , jmap
   real(rkx) , dimension(:,:) , pointer :: u0 , v0 , z0 , t0 , qv0 , p0
+  real(rkx) , dimension(:,:) , pointer :: ql0 , qi0 , qr0 , qs0
   real(rkx) , dimension(:,:) , pointer :: rho , dzq , w0avg , tke
   real(rkx) , dimension(:) , pointer :: pratec
   real(rkx) , dimension(:,:) , pointer :: qc_kf , qi_kf
@@ -135,6 +136,10 @@ module mod_cu_kf
     call getmem2d(t0,1,kz,1,nipoi,'mod_cu_kf:t0')
     call getmem2d(z0,1,kz,1,nipoi,'mod_cu_kf:z0')
     call getmem2d(qv0,1,kz,1,nipoi,'mod_cu_kf:qv0')
+    call getmem2d(ql0,1,kz,1,nipoi,'mod_cu_kf:ql0')
+    call getmem2d(qi0,1,kz,1,nipoi,'mod_cu_kf:qi0')
+    call getmem2d(qr0,1,kz,1,nipoi,'mod_cu_kf:qr0')
+    call getmem2d(qs0,1,kz,1,nipoi,'mod_cu_kf:qs0')
     call getmem2d(p0,1,kz,1,nipoi,'mod_cu_kf:p0')
     call getmem2d(rho,1,kz,1,nipoi,'mod_cu_kf:rho')
     call getmem2d(tke,1,kz,1,nipoi,'mod_cu_kf:tke')
@@ -188,12 +193,30 @@ module mod_cu_kf
         t0(k,np) = m2c%tas(j,i,kk)
         z0(k,np) = m2c%zas(j,i,kk)
         qv0(k,np) = m2c%qxas(j,i,kk,iqv)
+        ql0(k,np) = m2c%qxas(j,i,kk,iqc)
         p0(k,np) = m2c%pas(j,i,kk)
         rho(k,np) = m2c%rhoas(j,i,kk)
         dzq(k,np) = m2c%dzq(j,i,kk)
         w0avg(k,np) = kfwavg(j,i,kk)
       end do
     end do
+
+    if ( ipptls == 2 ) then
+      do k = 1 , kz
+        kk = kzp1 - k
+        do np = 1 , nipoi
+          i = imap(np)
+          j = jmap(np)
+          qi0(k,np) = m2c%qxas(j,i,kk,iqi)
+          qr0(k,np) = m2c%qxas(j,i,kk,iqr)
+          qs0(k,np) = m2c%qxas(j,i,kk,iqs)
+        end do
+      end do
+    else
+      qi0(:,:) = d_zero
+      qr0(:,:) = d_zero
+      qs0(:,:) = d_zero
+    end if
 
     if ( ibltyp == 2 ) then
       do k = 1 , kz
@@ -253,6 +276,16 @@ module mod_cu_kf
           cu_qten(j,i,kk,iqs) = dqsdt(k,np)
         end do
       end do
+    else
+      do k = 1 , kz
+        kk = kz - k + 1
+        do np = 1 , nipoi
+          i = imap(np)
+          j = jmap(np)
+          cu_qten(j,i,kk,iqc) = cu_qten(j,i,kk,iqc) + &
+            dqrdt(k,np) + dqidt(k,np) + dqsdt(k,np)
+        end do
+      end do
     end if
 
     ! Build for chemistry 3d table of constant precipitation rate
@@ -303,8 +336,7 @@ module mod_cu_kf
             eqfrc , wspd , qdt , fxm , thtag , thpa , thfxout ,      &
             thfxin , qpa , qfxout , qfxin , qlpa , qlfxin , qlfxout ,&
             qipa , qifxin , qifxout , qrpa , qrfxin , qrfxout ,      &
-            qspa , qsfxin , qsfxout , ql0 , qlg , qi0 , qig , qr0 ,  &
-            qrg , qs0 , qsg
+            qspa , qsfxin , qsfxout , qlg , qig , qrg , qsg
 
     real(rkx) , dimension(kts:kte+1) :: omg
     real(rkx) , dimension(kts:kte) :: rainfb , snowfb
@@ -379,10 +411,6 @@ module mod_cu_kf
         qes(k) = ep2 * es/(p0(k,np)-es)
         q0(k) = min(qes(k),qv0(k,np))
         q0(k) = max(0.000001_rkx,q0(k))
-        ql0(k) = d_zero
-        qi0(k) = d_zero
-        qr0(k) = d_zero
-        qs0(k) = d_zero
         rh(k) = q0(k) / qes(k)
         dilfrc(k) = d_one
         tv0(k) = t0(k,np) * (d_one + ep1*q0(k))
@@ -1224,7 +1252,8 @@ module mod_cu_kf
           ! Call tpmix2dd to find wet-bulb temp, qv
           !
           call tpmix2dd(p0(lfs,np),theted(lfs),tz(lfs),qss)
-          thtad(lfs) = tz(lfs)*(p00/p0(lfs,np))**(0.2854_rkx*(d_one-0.28_rkx*qss))
+          thtad(lfs) = tz(lfs) * &
+            (p00/p0(lfs,np))**(0.2854_rkx*(d_one-0.28_rkx*qss))
           !
           ! Take a first guess at the initial downdraft mass flux
           !
@@ -1771,10 +1800,10 @@ module mod_cu_kf
         frc2 = d_zero
       end if
       do nk = 1 , ltop
-        qlpa(nk) = ql0(nk)
-        qipa(nk) = qi0(nk)
-        qrpa(nk) = qr0(nk)
-        qspa(nk) = qs0(nk)
+        qlpa(nk) = ql0(nk,np)
+        qipa(nk) = qi0(nk,np)
+        qrpa(nk) = qr0(nk,np)
+        qspa(nk) = qs0(nk,np)
         rainfb(nk) = pptliq(nk,np)*ainc*fbfrc*frc2   !  ppt fb mods
         snowfb(nk) = pptice(nk,np)*ainc*fbfrc*frc2   !  ppt fb mods
       end do
@@ -1924,7 +1953,8 @@ module mod_cu_kf
       qinit = d_zero
       qfnl = d_zero
       do nk = 1 , ltop
-        qinit = qinit + q0(nk)*ems(nk)/dxsq
+        qinit = qinit + (q0(nk)+ql0(nk,np)+qi0(nk,np)+ &
+                         qr0(nk,np)+qs0(nk,np))*ems(nk)/dxsq
         qfnl = qfnl + (qg(nk)+qlg(nk)+qig(nk)+qrg(nk)+qsg(nk))*ems(nk)/dxsq
       end do
       qfnl = qfnl + pptflx*timec*(d_one-fbfrc)/dxsq  !  ppt fb mods
@@ -1974,9 +2004,9 @@ module mod_cu_kf
         if ( .not. f_qi .and. warm_rain ) then
           cpm = cpd*(d_one + 0.887_rkx*qg(k))
           tg(k) = tg(k) - (qig(k)+qsg(k))*wlhf/cpm
-          dqcdt(k,np) = (qlg(k)+qig(k)-ql0(k)-qi0(k))/timec
+          dqcdt(k,np) = (qlg(k)+qig(k)-ql0(k,np)-qi0(k,np))/timec
           dqidt(k,np) = d_zero
-          dqrdt(k,np) = (qrg(k)+qsg(k)-qr0(k)-qs0(k))/timec
+          dqrdt(k,np) = (qrg(k)+qsg(k)-qr0(k,np)-qs0(k,np))/timec
           dqsdt(k,np) = d_zero
         else if ( .not. f_qi .and. .not. warm_rain ) then
           !
@@ -1990,22 +2020,22 @@ module mod_cu_kf
           else if ( k > ml ) then
             tg(k) = tg(k) + (qlg(k)+qrg(k))*wlhf/cpm
           end if
-          dqcdt(k,np) = (qlg(k)+qig(k)-ql0(k)-qi0(k))/timec
+          dqcdt(k,np) = (qlg(k)+qig(k)-ql0(k,np)-qi0(k,np))/timec
           dqidt(k,np) = d_zero
-          dqrdt(k,np) = (qrg(k)+qsg(k)-qr0(k)-qs0(k))/timec
+          dqrdt(k,np) = (qrg(k)+qsg(k)-qr0(k,np)-qs0(k,np))/timec
           dqsdt(k,np) = d_zero
         else if ( f_qi ) then
           !
           ! If mixed phase hydrometeors are allowed, feed back convective
           ! tendencies of hydrometeors directly.
           !
-          dqcdt(k,np) = (qlg(k)-ql0(k))/timec
-          dqidt(k,np) = (qig(k)-qi0(k))/timec
-          dqrdt(k,np) = (qrg(k)-qr0(k))/timec
+          dqcdt(k,np) = (qlg(k)-ql0(k,np))/timec
+          dqidt(k,np) = (qig(k)-qi0(k,np))/timec
+          dqrdt(k,np) = (qrg(k)-qr0(k,np))/timec
           if ( f_qs ) then
-            dqsdt(k,np) = (qsg(k)-qs0(k))/timec
+            dqsdt(k,np) = (qsg(k)-qs0(k,np))/timec
           else
-            dqidt(k,np) = dqidt(k,np) + (qsg(k)-qs0(k))/timec
+            dqidt(k,np) = dqidt(k,np) + (qsg(k)-qs0(k,np))/timec
           end if
         else
           call fatal(__FILE__,__LINE__, &
