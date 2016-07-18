@@ -255,7 +255,7 @@ module mod_constants
   real(rkx) , parameter :: drain = 4.0e-4_rkx
 
   ! Minimum ratio between potential and actual water content
-  real(rkx) , parameter :: minwrat = 1.0e-2_rkx
+  real(rkx) , parameter :: minwrat = 1.0e-4_rkx
 
   ! Earth radius in meters
   real(rkx) , parameter :: earthrad = 6.371229e6_rkx
