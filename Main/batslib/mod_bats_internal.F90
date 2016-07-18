@@ -114,11 +114,9 @@ module mod_bats_internal
   real(rkx) , pointer , dimension(:) :: ribd
   real(rkx) , pointer , dimension(:) :: rlai
   real(rkx) , pointer , dimension(:) :: rnet
-  real(rkx) , pointer , dimension(:) :: rnof
   real(rkx) , pointer , dimension(:) :: rpp
   real(rkx) , pointer , dimension(:) :: rppq
   real(rkx) , pointer , dimension(:) :: rsubst
-  real(rkx) , pointer , dimension(:) :: rsur
   real(rkx) , pointer , dimension(:) :: rsw
   real(rkx) , pointer , dimension(:) :: scrat
   real(rkx) , pointer , dimension(:) :: scvk
@@ -289,11 +287,9 @@ module mod_bats_internal
     call getmem1d(ribd,1,nlandp,'bats_internal:ribd')
     call getmem1d(rlai,1,nlandp,'bats_internal:rlai')
     call getmem1d(rnet,1,nlandp,'bats_internal:rnet')
-    call getmem1d(rnof,1,nlandp,'bats_internal:rnof')
     call getmem1d(rpp,1,nlandp,'bats_internal:rpp')
     call getmem1d(rppq,1,nlandp,'bats_internal:rppq')
     call getmem1d(rsubst,1,nlandp,'bats_internal:rsubst')
-    call getmem1d(rsur,1,nlandp,'bats_internal:rsur')
     call getmem1d(rsw,1,nlandp,'bats_internal:rsw')
     call getmem1d(scrat,1,nlandp,'bats_internal:scrat')
     call getmem1d(scvk,1,nlandp,'bats_internal:scvk')

@@ -367,7 +367,6 @@ module mod_bats_bndry
   !     rsubss = soil water flux by grav. drainage thru 10 cm interface
   !     rsubsr = soil water flux by grav. drainage thru 1 m interface
   !     rsubst = soil water flux by grav. drainage thru 10 m interface
-  !       rsur = surface runoff
   !     trnof(i) = total runoff mm
   !     srnof(i) = surface runoff mm
   !
@@ -375,7 +374,7 @@ module mod_bats_bndry
   !     evmxt, xkmx1, and xkmx2 determine flow thru lower interfaces
   !
   !     veg type 10 "irrigated crop" is irrigated through reducing
-  !          the runoff (rsur), i.e., by adding a negative number
+  !          the runoff (srnof), i.e., by adding a negative number
   !          if the land isn't at least 60% saturated.
   !     veg type 13 and 14 are water covered (lake, swamp, rice paddy);
   !          negative runoff keeps this land saturated.
@@ -433,7 +432,7 @@ module mod_bats_bndry
       !
       rsubss = xkmxr*watr(i)**(b+d_half) * watu(i)**(b+2.5_rkx)
       rsubsr = xkmx1*watt(i)**(b+d_half) * watr(i)**(b+2.5_rkx)
-      rsubst(i) = xkmx2*watt(i)**(d_two*b+d_three)
+      rsubst(i) = max(d_zero,xkmx2*watt(i)**(d_two*b+d_three))
       !
       ! 1.32 bog
       !
@@ -452,7 +451,7 @@ module mod_bats_bndry
     ! 1.5  net flux at air interface
     !
     do i = ilndbeg , ilndend
-      gwatr = pw(i) - evapw(i) + sm(i) + etrrun(i)/dtbat - efpr(i)*etr(i)
+      gwatr = pw(i) + sm(i) + etrrun(i)/dtbat - evapw(i)
       !
       !=================================================================
       ! 2.   define runoff terms
@@ -465,31 +464,32 @@ module mod_bats_bndry
       ! 2.11 increase surface runoff over frozen ground
       !
       if ( tgrd(i) < tzero ) then
-        rsur(i) = min(d_one,wata**1) * max(d_zero,gwatr)
+        srnof(i) = min(d_one,wata**1) * max(d_zero,gwatr)
       else
-        rsur(i) = min(d_one,wata**4) * max(d_zero,gwatr)
+        srnof(i) = min(d_one,wata**4) * max(d_zero,gwatr)
       end if
       !
       ! 2.12 irrigate cropland
       !
       if ( lveg(i) == 10 .and. watr(i) < relfc(i) ) then
-        rsur(i) = rsur(i) + min(d_zero,(rsw(i)-relfc(i)*gwmx1(i))/dtbat)
+        srnof(i) = srnof(i) + min(d_zero,(rsw(i)-relfc(i)*gwmx1(i))/dtbat)
       end if
       ! Imported Lara Kuepper's Irrigated Crop modification from RegCM3
       ! see Kueppers et al. (2008)
       ! if ( lveg(i) == 10 .and. watr(i) < relaw(i) ) then
-      !   rsur(i) = rsur(i) + (rsw(i)-relaw(i)*gwmx1(i))/dtbat
+      !   srnof(i) = srnof(i) + (rsw(i)-relaw(i)*gwmx1(i))/dtbat
       ! end if
       !
       ! 2.13 saturate swamp or rice paddy
       !
       if ( lveg(i) == 13 ) then
-        rsur(i) = rsur(i) + min(d_zero,(rsw(i)-relfc(i)*gwmx1(i))/dtbat)
+        srnof(i) = srnof(i) + min(d_zero,(rsw(i)-relfc(i)*gwmx1(i))/dtbat)
       end if
       !
       ! 2.2  total runoff
       !
-      rnof(i) = rsur(i) + rsubst(i)
+      srnof(i) = max(d_zero,srnof(i))
+      trnof(i) = max(srnof(i)+rsubst(i),d_zero)
       !
       !=================================================================
       !         3.   increment soil moisture
@@ -497,16 +497,20 @@ module mod_bats_bndry
       !
       ! 3.1  update top layer with implicit treatment of flux from below
       !
-      ssw(i) = ssw(i) + dtbat * (gwatr - rsur(i) + wflux1(i))
+      gwatr = gwatr - efpr(i)*etr(i)
+      ssw(i) = ssw(i) + dtbat * (max(gwatr-srnof(i),d_zero) + wflux1(i))
       ssw(i) = ssw(i) / (d_one + dtbat * wfluxc(i)/gwmx0(i))
+      ssw(i) = max(ssw(i),gwmx0(i)*minwrat)
       !
       ! 3.2  update root zone
       !
-      rsw(i) = rsw(i) + dtbat * (gwatr - rsur(i) + wflux2(i))
+      rsw(i) = rsw(i) + dtbat * (max(gwatr-srnof(i),d_zero) + wflux2(i))
+      rsw(i) = max(rsw(i),gwmx1(i)*minwrat)
       !
       ! 3.3  update total water
       !
-      tsw(i) = tsw(i) + dtbat * (gwatr - rnof(i))
+      tsw(i) = tsw(i) + dtbat * (max(gwatr-srnof(i),d_zero) - rsubst(i))
+      tsw(i) = max(tsw(i),gwmx2(i)*minwrat)
     end do
 
     do i = ilndbeg , ilndend
@@ -518,46 +522,27 @@ module mod_bats_bndry
       !
       ! 4.1  surface water assumed to move downward into soil
       !
-      if ( ssw(i) > gwmx0(i) ) ssw(i) = gwmx0(i)
+      if ( ssw(i) > gwmx0(i) ) then
+        delwat = ssw(i) - gwmx0(i)
+        ssw(i) = gwmx0(i)
+        rsw(i) = rsw(i) + delwat
+      end if
       !
       ! 4.2  excess root layer water assumed to move downward
       !
-      if ( rsw(i) > gwmx1(i) ) rsw(i) = gwmx1(i)
+      if ( rsw(i) > gwmx1(i) ) then
+        delwat = rsw(i) - gwmx1(i)
+        rsw(i) = gwmx1(i)
+        tsw(i) = tsw(i) + delwat
+      end if
       !
       ! 4.3  excess total water assumed to go to subsurface runoff
       !
       if ( tsw(i) > gwmx2(i) ) then
         delwat = tsw(i) - gwmx2(i)
         tsw(i) = gwmx2(i)
-        rsubst(i) = rsubst(i) + delwat/dtbat
+        trnof(i) = trnof(i) + delwat/dtbat
       end if
-      !
-      ! 4.4  check for negative water in layers
-      !
-      ssw(i) = max(ssw(i),gwmx0(i)*minwrat)
-      rsw(i) = max(rsw(i),gwmx1(i)*minwrat)
-      tsw(i) = max(tsw(i),gwmx2(i)*minwrat)
-      !
-      !=================================================================
-      !         5.   accumulate leaf interception
-      !=================================================================
-      !
-      ! Graziano : This is NEVER used elsewhere in the code...
-      ! ircp = ircp + sigf(i) * &
-      !              (dtbat*prcp(i)) - (sdrop(i)+etrrun(i))
-      ! Graziano : This is NEVER used elsewhere in the code...
-      !
-      !=================================================================
-      !         6.   evaluate runoff (incremented in ccm)
-      !=================================================================
-      !
-      ! update total runoff
-      !
-      rnof(i) = rsur(i) + rsubst(i)
-      ! Graziano: Do not go to mm*day here and then back
-      !           to mm in mtrxbats
-      trnof(i) = rnof(i)
-      srnof(i) = rsur(i)
     end do
     !
     !=======================================================================
@@ -675,7 +660,7 @@ module mod_bats_bndry
       if ( sncv(i) > d_zero ) then
         arg = 5.0e3_rkx*(d_one/tzero-d_one/tgrd(i))
         age1 = exp(arg)
-        arg2 = max(min(d_zero,d_10*arg),-15.0_rkx)
+        arg2 = max(min(d_zero,d_10*arg),-25.0_rkx)
         age2 = exp(arg2)
         tage = age1 + age2 + age3
         dela0 = 1.0e-6_rkx*dtbat
