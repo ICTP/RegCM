@@ -136,7 +136,6 @@ module mod_runparams
   real(rkx) , public :: vqrang = 5.0e-4_rkx
   ! Aerosol effects
   real(rkx) , public :: rcrit
-  real(rkx) , public :: rcrit1
   real(rkx) , public :: coef_ccn
   real(rkx) , public :: abulk
 
@@ -241,6 +240,7 @@ module mod_runparams
   real(rkx) , public :: entrmax ! Max entrainment
 
   ! ICONV 4 paramters
+  real(rkx) , public :: cmtcape   ! CAPE removal timestep
   real(rkx) , public :: rcuc_lnd  ! Convective cloud cover for rain evporation
   real(rkx) , public :: rcuc_ocn  ! Convective cloud cover for rain evporation
   real(rkx) , public :: rcpec_lnd ! Coefficient for rain evaporation below cloud

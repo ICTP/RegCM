@@ -2738,10 +2738,8 @@ module mod_ncout
               ncattribute_real8('tiedtke_cloud_water_conv_over_land',rprc_lnd))
             call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('tiedtke_cloud_water_conv_over_ocean',rprc_ocn))
-            if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
-              call outstream_addatt(outstream(i)%ncout(j), &
-                ncattribute_real8('tiedtke_mean_critical_radius',rcrit1))
-            end if
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('tiedtke_cape_adjustment_timescale',cmtcape))
           else
             call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('tiedtke_max_entrainment',entrmax))

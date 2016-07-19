@@ -132,7 +132,7 @@ module mod_params
     namelist /tiedtkeparam/ iconv , entrmax , entrdd , entrpen ,   &
       entrscv , entrmid , cprcon , detrpen , entshalp , rcuc_lnd , &
       rcuc_ocn , rcpec_lnd , rcpec_ocn , rhebc_lnd , rhebc_ocn ,   &
-      rprc_ocn , rprc_lnd , rcrit1
+      rprc_ocn , rprc_lnd
 
     namelist /kfparam/ kf_min_pef , kf_max_pef , kf_entrate , kf_dpp , &
       kf_min_dtcape , kf_max_dtcape , kf_tkemax
@@ -381,26 +381,26 @@ module mod_params
     ! tiedtkeparam ;
     ! Taken from MPI Echam settings
     !
-    iconv    = 4        ! Selects the actual scheme
-    entrmax  = 1.75e-3_rkx ! Max entrainment iconv=[1,2,3]
-    entrdd   = 3.0e-4_rkx  ! Entrainment rate for cumulus downdrafts
-    entrpen  = 1.75e-3_rkx ! Entrainment rate for penetrative convection
-    entrscv  = 3.0e-4_rkx  ! Entrainment rate for shallow convn iconv=[1,2,3]
-    entrmid  = 1.0e-4_rkx  ! Entrainment rate for midlevel convn iconv=[1,2,3]
+    iconv    = 4            ! Selects the actual scheme
+    entrmax  = 1.75e-3_rkx  ! Max entrainment iconv=[1,2,3]
+    entrdd   = 3.0e-4_rkx   ! Entrainment rate for cumulus downdrafts
+    entrpen  = 1.75e-3_rkx  ! Entrainment rate for penetrative convection
+    entrscv  = 3.0e-4_rkx   ! Entrainment rate for shallow convn iconv=[1,2,3]
+    entrmid  = 1.0e-4_rkx   ! Entrainment rate for midlevel convn iconv=[1,2,3]
     cprcon   = 1.0e-4_rkx   ! Coefficient for determine conversion iconv=[1,2,3]
     detrpen = 0.75e-4_rkx   ! Detrainment rate for penetrative convection
-    entshalp = 2.0_rkx    ! shallow entrainment factor for entrpen
-    rcuc_lnd = 0.05_rkx   ! Convective cloud cover for rain evporation
-    rcuc_ocn = 0.05_rkx   ! Convective cloud cover for rain evporation
+    entshalp = 2.0_rkx      ! shallow entrainment factor for entrpen
+    rcuc_lnd = 0.05_rkx     ! Convective cloud cover for rain evporation
+    rcuc_ocn = 0.05_rkx     ! Convective cloud cover for rain evporation
     rcpec_ocn = 5.55e-5_rkx ! Coefficient for rain evaporation below cloud
     rcpec_lnd = 5.55e-5_rkx ! Coefficient for rain evaporation below cloud
-    rhebc_lnd = 0.7_rkx   ! Critical relative humidity below
-                        ! cloud at which evaporation starts for land
-    rhebc_ocn = 0.9_rkx   ! Critical relative humidity below
-                        ! cloud at which evaporation starts for ocean
+    rhebc_lnd = 0.7_rkx     ! Critical relative humidity below
+                            ! cloud at which evaporation starts for land
+    rhebc_ocn = 0.9_rkx     ! Critical relative humidity below
+                            ! cloud at which evaporation starts for ocean
     rprc_lnd = 1.4e-3_rkx   ! coefficient for conversion from cloud water
     rprc_ocn = 1.4e-3_rkx   ! coefficient for conversion from cloud water
-    rcrit1   = 13.5_rkx   ! Mean critical radius for ccn
+    cmtcape = 3600.0_rkx    ! CAPE adjustment timescale
     !
     ! kfparam ;
     ! Taken from WRF KFeta parametrization
@@ -1211,7 +1211,7 @@ module mod_params
       call bcast(rhebc_ocn)
       call bcast(rprc_lnd)
       call bcast(rprc_ocn)
-      call bcast(rcrit1)
+      call bcast(cmtcape)
     end if
 
     if ( any(icup == 6) ) then
@@ -2040,8 +2040,8 @@ module mod_params
       end if
     end if
     if ( any(icup == 5)  ) then
-      if ( myid == italk .and. iconv /= 4 ) then
-        write(stdout,*) 'Tiedtke (1986) Convection Scheme ECHAM 5.4 used.'
+      if ( myid == italk ) then
+        write(stdout,*) 'Tiedtke (1986) Convection Scheme used.'
         write(stdout,'(a,i2)')    &
           '  Used Scheme                       : ',iconv
         write(stdout,'(a,f11.6)') &
@@ -2056,13 +2056,8 @@ module mod_params
           '  CLW to rain conversion factor     : ',cprcon
         write(stdout,'(a,f11.6)') &
           '  Max entrainment                   : ',entrmax
-        if ( .false. .and. ichem == 1 ) then
-          write(stdout,'(a,f11.6)') &
-            '  Mean critical radius              : ',rcrit1
-        end if
-      end if
-      if ( myid == italk .and. iconv == 4 ) then
-        write(stdout,*) 'Tiedtke (1986) Convection Scheme ECMWF 38R2 used.'
+        write(stdout,'(a,f11.6)') &
+          '  CAPE adjustment timescale         : ',cmtcape
       end if
       cevapu = cevaplnd
     end if

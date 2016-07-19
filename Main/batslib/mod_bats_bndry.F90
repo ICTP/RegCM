@@ -593,13 +593,13 @@ module mod_bats_bndry
   subroutine snow
     implicit none
     real(rkx) :: age1 , age2 , arg , arg2 , dela , dela0 , &
-                 dels , tage , sold , fsnts , tpw
+                 dels , tage , sold! , fsnts , tpw
     integer(ik4) :: i
     real(rkx) , parameter :: age3 = 0.3_rkx
-    real(rkx) , parameter :: ax = -48.23_rkx
-    real(rkx) , parameter :: bx = 0.75_rkx
-    real(rkx) , parameter :: cx = 1.16_rkx
-    real(rkx) , parameter :: dx = 1.02_rkx
+    !real(rkx) , parameter :: ax = -48.23_rkx
+    !real(rkx) , parameter :: bx = 0.75_rkx
+    !real(rkx) , parameter :: cx = 1.16_rkx
+    !real(rkx) , parameter :: dx = 1.02_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'snow'
     integer(ik4) , save :: idindx = 0
@@ -615,30 +615,29 @@ module mod_bats_bndry
       evaps(i) = scvk(i)*fevpg(i)
       evapw(i) = (d_one-scvk(i))*fevpg(i)
       ! tm is temperature of precipitation
-      tpw = prcp(i)*(d_one-sigf(i))
       ! Aiguo Dai
       ! Temperature and pressure dependence of the rain-snow phase
       ! transition over land and ocean
       ! GRL, VOL. 35, L12802, doi:10.1029/2008GL033295, 2008
-      if ( tm(i)-tzero < 6.0_rkx ) then
-        if ( tm(i)-tzero < -6.0_rkx ) then
-          fsnts = 1.0_rkx
-        else
-          fsnts = ax * (tanh(bx*(tm(i)-tzero-cx))-dx)
-        end if
-      else
-        fsnts = d_zero
-      end if
-      ps(i) = tpw*fsnts
-      pw(i) = tpw-ps(i)
-      !if ( tm(i) >= tzero ) then
-      !  pw(i) = prcp(i)*(d_one-sigf(i))
-      !  ps(i) = d_zero
-      !  ! snowing
+      !tpw = prcp(i)*(d_one-sigf(i))
+      !if ( tm(i)-tzero < 6.0_rkx ) then
+      !  if ( tm(i)-tzero < -6.0_rkx ) then
+      !    fsnts = 1.0_rkx
+      !  else
+      !    fsnts = ax * (tanh(bx*(tm(i)-tzero-cx))-dx)
+      !  end if
       !else
-      !  pw(i) = d_zero
-      !  ps(i) = prcp(i)*(d_one-sigf(i))
+      !  fsnts = d_zero
       !end if
+      !ps(i) = tpw*fsnts
+      !pw(i) = tpw-ps(i)
+      if ( tm(i) >= tzero ) then
+        pw(i) = prcp(i)*(d_one-sigf(i))
+        ps(i) = d_zero
+      else ! snowing
+        pw(i) = d_zero
+        ps(i) = prcp(i)*(d_one-sigf(i))
+      end if
     end do
     !
     !=======================================================================

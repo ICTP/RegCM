@@ -31,10 +31,10 @@ module mod_cu_tiedtke
          entrdd , entrmid , cprcon , entrpen , entrscv , iconv , &
          ichem , iaerosol , ipptls , hsigma , ktau
   use mod_mpmessage
-  use mod_runparams , only : dt , rcrit1 , rprc_ocn , rprc_lnd
+  use mod_runparams , only : dt , rcrit , rprc_ocn , rprc_lnd
   use mod_runparams , only : detrpen , entrpen , entshalp , entrdd
   use mod_runparams , only : rhebc_ocn , rhebc_lnd , rcuc_lnd , rcuc_ocn
-  use mod_runparams , only : rcpec_ocn , rcpec_lnd
+  use mod_runparams , only : rcpec_ocn , rcpec_lnd , cmtcape
   use mod_regcm_types
 
   implicit none
@@ -114,8 +114,6 @@ module mod_cu_tiedtke
 
   integer(ik4) :: nskmax
 
-  ! CAPE adjustment timescale
-  real(rkx) , parameter :: cmtcape = 453600._rkx
   ! Max massflux value
   real(rkx) , parameter :: cmfcmax = 1.0_rkx
   ! Min massflux value (for safety)
@@ -812,7 +810,7 @@ module mod_cu_tiedtke
     ! (nn wavenumber of a spectral model)
     ! this is translated roughly into horizontal resolution in meters
     !
-    ztau = min(3.0_rkx*3600.0_rkx,cmtcape/nskmax)
+    ztau = cmtcape
     !
     !--------------------------------------------------------
     ! 2. INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -1287,7 +1285,7 @@ module mod_cu_tiedtke
     ! (nn wavenumber of a spectral model)
     ! this is translated roughly into horizontal resolution in meters
     !
-    ztau = min(3.0_rkx*3600.0_rkx,cmtcape/nskmax)
+    ztau = cmtcape
     !
     !--------------------------------------------------------
     ! 2. INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -6077,7 +6075,7 @@ module mod_cu_tiedtke
             if ( llo1(n) ) then
               if ( .false. ) then
                 dnoprc = ccn(n,k)*(4.0_rkx/3.0_rkx)*mathpi * &
-                         ((rcrit1*1e-4_rkx)**3)*(rhow*1e-3_rkx)*1e3_rkx
+                         ((rcrit*1e-4_rkx)**3)*(rhow*1e-3_rkx)*1e3_rkx
               else
                 if ( ldland(n) ) then
                   dnoprc = 5.e-4_rkx
