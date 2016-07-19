@@ -71,9 +71,9 @@ module mod_bats_param
   !
   ! slmo is initial surface moisture availability in fraction of one
   !
-  data slmo / 0.60_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
-              0.50_rkx , 0.50_rkx , 0.10_rkx , 0.50_rkx , 0.75_rkx , &
-              0.10_rkx , 0.50_rkx , 0.90_rkx , 1.00_rkx , 1.00_rkx , &
+  data slmo / 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
+              0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
+              0.50_rkx , 0.50_rkx , 0.50_rkx , 1.00_rkx , 1.00_rkx , &
               0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
               0.50_rkx , 0.50_rkx /
   !
@@ -129,17 +129,17 @@ module mod_bats_param
   ! increase in rsmin will lead to a decrease in evapotranspration
   ! BATS 1e , Table 2, i, pag 21
   !
-  data rsmin / 120.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-               150.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-               120.0_rkx , 120.0_rkx /
+  !data rsmin / 120.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+  !             150.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+  !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+  !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+  !             120.0_rkx , 120.0_rkx /
   ! Modified by Laura Mariotti
-  !data rsmin /  45.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-  !              50.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-  !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-  !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-  !             120.0_rkx ,  60.0_rkx /
+  data rsmin /  45.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+                50.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+               120.0_rkx ,  60.0_rkx /
   !
   ! maximum leaf area index (ratio unit cover per unit ground)
   ! BATS 1e , Table 2, j, pag 21
@@ -255,22 +255,22 @@ module mod_bats_param
   ! xmopor is fraction of soil that is voids
   ! BATS 1e , Table 3, I , a, pag 27
   !
-  data xmopor / 0.33_rkx , 0.36_rkx , 0.39_rkx , 0.42_rkx , 0.45_rkx , &
-                0.48_rkx , 0.51_rkx , 0.54_rkx , 0.57_rkx , 0.60_rkx , &
-                0.63_rkx , 0.66_rkx /
-  !data xmopor / 0.13_rkx , 0.26_rkx , 0.39_rkx , 0.42_rkx , 0.45_rkx , &
+  !data xmopor / 0.33_rkx , 0.36_rkx , 0.39_rkx , 0.42_rkx , 0.45_rkx , &
   !              0.48_rkx , 0.51_rkx , 0.54_rkx , 0.57_rkx , 0.60_rkx , &
   !              0.63_rkx , 0.66_rkx /
+  data xmopor / 0.13_rkx , 0.26_rkx , 0.39_rkx , 0.42_rkx , 0.45_rkx , &
+                0.48_rkx , 0.51_rkx , 0.54_rkx , 0.57_rkx , 0.60_rkx , &
+                0.63_rkx , 0.66_rkx /
   !
   ! xmosuc is the minimum soil suction (mm)
   ! BATS 1e , Table 3, I , b, pag 27
   !
-  data xmosuc / 30.0_rkx ,  30.0_rkx ,  30.0_rkx , 200.0_rkx , &
-               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx /
-  !data xmosuc / 10.0_rkx ,  20.0_rkx ,  30.0_rkx , 200.0_rkx , &
+  !data xmosuc / 30.0_rkx ,  30.0_rkx ,  30.0_rkx , 200.0_rkx , &
   !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
   !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx /
+  data xmosuc / 10.0_rkx ,  20.0_rkx ,  30.0_rkx , 200.0_rkx , &
+               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx /
   !
   ! xmohyd is the saturated hydraulic conductivity (mm/s)
   ! BATS 1e , Table 3, I , c, pag 27
@@ -283,12 +283,12 @@ module mod_bats_param
   ! (transpiration ceases)
   ! BATS 1e , Table 3, I , f, pag 27
   !
-  data xmowil / 0.088_rkx , 0.119_rkx , 0.151_rkx , 0.266_rkx , 0.300_rkx , &
-                0.332_rkx , 0.378_rkx , 0.419_rkx , 0.455_rkx , 0.487_rkx , &
-                0.516_rkx , 0.542_rkx /
-  !data xmowil / 0.095_rkx , 0.128_rkx , 0.161_rkx , 0.266_rkx , 0.300_rkx , &
+  !data xmowil / 0.088_rkx , 0.119_rkx , 0.151_rkx , 0.266_rkx , 0.300_rkx , &
   !              0.332_rkx , 0.378_rkx , 0.419_rkx , 0.455_rkx , 0.487_rkx , &
   !              0.516_rkx , 0.542_rkx /
+  data xmowil / 0.095_rkx , 0.128_rkx , 0.161_rkx , 0.266_rkx , 0.300_rkx , &
+                0.332_rkx , 0.378_rkx , 0.419_rkx , 0.455_rkx , 0.487_rkx , &
+                0.516_rkx , 0.542_rkx /
   !
   ! Field capacity
   !
