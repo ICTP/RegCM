@@ -454,7 +454,7 @@
  rhebc_ocn = 0.9,     ! Critical rh below cloud for evaporation iconv=4
  rprc_lnd = 1.4e-3,   ! conversion coefficient from cloud water iconv=4
  rprc_ocn = 1.4e-3,   ! conversion coefficient from cloud water iconv=4
- rcrit1   = 13.5,     ! Mean critical radius for ccn
+ cmtcape = 3600.0,    ! CAPE adjustment timescale iconv=4
  /
 !
 ! Kain Fritsch cumulus parameters

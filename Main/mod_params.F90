@@ -132,7 +132,7 @@ module mod_params
     namelist /tiedtkeparam/ iconv , entrmax , entrdd , entrpen ,   &
       entrscv , entrmid , cprcon , detrpen , entshalp , rcuc_lnd , &
       rcuc_ocn , rcpec_lnd , rcpec_ocn , rhebc_lnd , rhebc_ocn ,   &
-      rprc_ocn , rprc_lnd
+      rprc_ocn , rprc_lnd , cmtcape
 
     namelist /kfparam/ kf_min_pef , kf_max_pef , kf_entrate , kf_dpp , &
       kf_min_dtcape , kf_max_dtcape , kf_tkemax
