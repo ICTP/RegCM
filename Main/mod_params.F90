@@ -2056,7 +2056,7 @@ module mod_params
           '  CLW to rain conversion factor     : ',cprcon
         write(stdout,'(a,f11.6)') &
           '  Max entrainment                   : ',entrmax
-        write(stdout,'(a,f11.6)') &
+        write(stdout,'(a,f12.6)') &
           '  CAPE adjustment timescale         : ',cmtcape
       end if
       cevapu = cevaplnd
