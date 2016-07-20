@@ -102,7 +102,7 @@ module mod_clm_varctl
   ! atmospheric CO2 molar ratio (by volume) (umol/mol)
   real(rk8) , public :: co2_ppmv = 355._rk8
   ! Critical temperature to determine rain or snow
-  real(rk8) , public :: tcrit  = 2.5_rk8
+  real(rk8) , public :: tcrit  = 1.0_rk8
 #if (defined LCH4 && defined VERTSOILC)
   ! true => anoxia is applied to heterotrophic respiration
   ! also considered in CH4 model

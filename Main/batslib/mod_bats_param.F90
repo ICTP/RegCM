@@ -72,16 +72,16 @@ module mod_bats_param
   ! slmo is initial surface moisture availability in fraction of one
   !
   data slmo / 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
-              0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
-              0.50_rkx , 0.50_rkx , 0.50_rkx , 1.00_rkx , 1.00_rkx , &
-              0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
+              0.60_rkx , 0.50_rkx , 0.10_rkx , 0.50_rkx , 0.60_rkx , &
+              0.20_rkx , 0.50_rkx , 0.90_rkx , 1.00_rkx , 1.00_rkx , &
+              0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.80_rkx , &
               0.50_rkx , 0.50_rkx /
   !
   ! mfcv is maximum fractional vegetation cover
   ! BATS 1e , Table 2, a, pag 21
   !
   data mfcv / 0.85_rkx , 0.80_rkx , 0.80_rkx , 0.80_rkx , 0.80_rkx , &
-              0.90_rkx , 0.80_rkx , 0.00_rkx , 0.60_rkx , 0.80_rkx , &
+              0.99_rkx , 0.80_rkx , 0.00_rkx , 0.60_rkx , 0.80_rkx , &
               0.10_rkx , 0.00_rkx , 0.80_rkx , 0.00_rkx , 0.00_rkx , &
               0.80_rkx , 0.80_rkx , 0.80_rkx , 0.80_rkx , 0.80_rkx , &
               0.05_rkx , 0.40_rkx /
@@ -160,7 +160,7 @@ module mod_bats_param
   !             0.5_rkx , 0.0_rkx , 0.5_rkx , 0.5_rkx , 0.5_rkx , 0.0_rkx , &
   !             0.5_rkx , 0.0_rkx , 0.0_rkx , 5.0_rkx , 1.0_rkx , 3.0_rkx , &
   !             0.5_rkx , 0.5_rkx , 0.5_rkx , 0.5_rkx /
-  data xlai0 / 0.5_rkx , 0.5_rkx , 5.0_rkx , 1.0_rkx , 1.0_rkx , 5.0_rkx , &
+  data xlai0 / 0.5_rkx , 0.5_rkx , 5.0_rkx , 1.0_rkx , 1.0_rkx , 6.0_rkx , &
                1.0_rkx , 0.0_rkx , 0.5_rkx , 2.0_rkx , 0.5_rkx , 0.0_rkx , &
                2.0_rkx , 0.0_rkx , 0.0_rkx , 3.0_rkx , 1.0_rkx , 3.0_rkx , &
                0.5_rkx , 1.0_rkx , 0.5_rkx , 1.0_rkx /
@@ -247,10 +247,10 @@ module mod_bats_param
   ! 1  -> Sand
   ! 12 -> Clay
   !
-  !data iexsol / 6 , 6 , 6 , 6 , 7 , 8 , 6 , 3 , 6 , 6 , 5 , 12 , 6 ,  &
-  !              6 , 6 , 6 , 5 , 6 , 6 , 6 , 12 , 8 /
-  data iexsol / 6 , 4 , 6 , 6 , 7 , 8 , 5 , 1 , 6 , 6 , 2 , 12 , 9 ,  &
-                0 , 0 , 6 , 5 , 6 , 6 , 8 , 12 , 8 /
+  !data iexsol /  6 ,  6 ,  6 ,  6 ,  7 ,  8 ,  6 ,  3 ,  6 ,  6 ,  5 , &
+  !              12 ,  6 ,  6 ,  6 ,  6 ,  5 ,  6 ,  6 ,  6 , 12 ,  8 /
+  data iexsol /  6 ,  4 ,  6 ,  6 ,  7 , 11 ,  5 ,  1 ,  6 ,  6 ,  2 , &
+                12 ,  9 ,  0 ,  0 ,  6 ,  5 ,  6 ,  6 ,  8 , 12 ,  8 /
   !
   ! xmopor is fraction of soil that is voids
   ! BATS 1e , Table 3, I , a, pag 27
@@ -270,7 +270,7 @@ module mod_bats_param
   !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx /
   data xmosuc / 10.0_rkx ,  20.0_rkx ,  30.0_rkx , 200.0_rkx , &
                200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-               200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx /
+               200.0_rkx , 200.0_rkx , 100.0_rkx , 200.0_rkx /
   !
   ! xmohyd is the saturated hydraulic conductivity (mm/s)
   ! BATS 1e , Table 3, I , c, pag 27
