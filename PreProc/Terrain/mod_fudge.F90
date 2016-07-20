@@ -34,17 +34,15 @@ module mod_fudge
 
   subroutine lndfudge(fudge,lndout,htgrid,jx,iy,char_lnd)
     implicit none
-!
     character(len=*) :: char_lnd
     logical :: fudge , there
     integer(ik4) :: iy , jx
     real(rkx) , dimension(jx,iy) :: htgrid , lndout
     intent (in) char_lnd , fudge , iy , jx
     intent (inout) htgrid , lndout
-!
     integer(ik4) :: i , j
     character(len=1) , dimension(jx,iy) :: ch
-!
+
     if ( fudge ) then
       inquire (file=char_lnd,exist=there)
       if ( .not.there ) then
@@ -61,108 +59,106 @@ module mod_fudge
       close (iunit)
       do i = 1 , iy
         do j = 1 , jx
-          if ( ch(j,i)==' ' ) then
+          if ( ch(j,i) == ' ' ) then
             lndout(j,i) = 15.
-          else if ( ch(j,i)=='1' ) then
+          else if ( ch(j,i) == '1' ) then
             lndout(j,i) = 1.
-          else if ( ch(j,i)=='2' ) then
+          else if ( ch(j,i) == '2' ) then
             lndout(j,i) = 2.
-          else if ( ch(j,i)=='3' ) then
+          else if ( ch(j,i) == '3' ) then
             lndout(j,i) = 3.
-          else if ( ch(j,i)=='4' ) then
+          else if ( ch(j,i) == '4' ) then
             lndout(j,i) = 4.
-          else if ( ch(j,i)=='5' ) then
+          else if ( ch(j,i) == '5' ) then
             lndout(j,i) = 5.
-          else if ( ch(j,i)=='6' ) then
+          else if ( ch(j,i) == '6' ) then
             lndout(j,i) = 6.
-          else if ( ch(j,i)=='7' ) then
+          else if ( ch(j,i) == '7' ) then
             lndout(j,i) = 7.
-          else if ( ch(j,i)=='8' ) then
+          else if ( ch(j,i) == '8' ) then
             lndout(j,i) = 8.
-          else if ( ch(j,i)=='9' ) then
+          else if ( ch(j,i) == '9' ) then
             lndout(j,i) = 9.
-          else if ( ch(j,i)=='A' ) then
+          else if ( ch(j,i) == 'A' ) then
             lndout(j,i) = 10.
-          else if ( ch(j,i)=='B' ) then
+          else if ( ch(j,i) == 'B' ) then
             lndout(j,i) = 11.
-          else if ( ch(j,i)=='C' ) then
+          else if ( ch(j,i) == 'C' ) then
             lndout(j,i) = 12.
-          else if ( ch(j,i)=='D' ) then
+          else if ( ch(j,i) == 'D' ) then
             lndout(j,i) = 13.
-          else if ( ch(j,i)=='E' ) then
+          else if ( ch(j,i) == 'E' ) then
             lndout(j,i) = 14.
-          else if ( ch(j,i)=='F' ) then
+          else if ( ch(j,i) == 'F' ) then
             lndout(j,i) = 15.
-          else if ( ch(j,i)=='G' ) then
+          else if ( ch(j,i) == 'G' ) then
             lndout(j,i) = 16.
-          else if ( ch(j,i)=='H' ) then
+          else if ( ch(j,i) == 'H' ) then
             lndout(j,i) = 17.
-          else if ( ch(j,i)=='I' ) then
+          else if ( ch(j,i) == 'I' ) then
             lndout(j,i) = 18.
-          else if ( ch(j,i)=='J' ) then
+          else if ( ch(j,i) == 'J' ) then
             lndout(j,i) = 19.
-          else if ( ch(j,i)=='K' ) then
+          else if ( ch(j,i) == 'K' ) then
             lndout(j,i) = 20.
-          else if ( ch(j,i)=='L' ) then
+          else if ( ch(j,i) == 'L' ) then
             lndout(j,i) = 21.
-          else if ( ch(j,i)=='M' ) then
+          else if ( ch(j,i) == 'M' ) then
             lndout(j,i) = 22.
-          else if ( nint(lndout(j,i))==0 ) then
+          else if ( nint(lndout(j,i)) == 0 ) then
             ch(j,i) = ' '
           else
             write (stderr,*) 'LANDUSE MASK exceed the limit'
             call die('lndfudge')
           end if
-          if ( htgrid(j,i)<0.1 .and. nint(lndout(j,i))==15 )        &
-               htgrid(j,i) = 0.0
         end do
       end do
     else
       do i = 1 , iy
         do j = 1 , jx
-          if ( nint(lndout(j,i))==15 .or. nint(lndout(j,i))==0 ) then
+          if ( nint(lndout(j,i)) == 15 .or. nint(lndout(j,i)) == 0 ) then
             ch(j,i) = ' '
-          else if ( nint(lndout(j,i))==1 ) then
+          else if ( nint(lndout(j,i)) == 1 ) then
             ch(j,i) = '1'
-          else if ( nint(lndout(j,i))==2 ) then
+          else if ( nint(lndout(j,i)) == 2 ) then
             ch(j,i) = '2'
-          else if ( nint(lndout(j,i))==3 ) then
+          else if ( nint(lndout(j,i)) == 3 ) then
             ch(j,i) = '3'
-          else if ( nint(lndout(j,i))==4 ) then
+          else if ( nint(lndout(j,i)) == 4 ) then
             ch(j,i) = '4'
-          else if ( nint(lndout(j,i))==5 ) then
+          else if ( nint(lndout(j,i)) == 5 ) then
             ch(j,i) = '5'
-          else if ( nint(lndout(j,i))==6 ) then
+          else if ( nint(lndout(j,i)) == 6 ) then
             ch(j,i) = '6'
-          else if ( nint(lndout(j,i))==7 ) then
+          else if ( nint(lndout(j,i)) == 7 ) then
             ch(j,i) = '7'
-          else if ( nint(lndout(j,i))==8 ) then
+          else if ( nint(lndout(j,i)) == 8 ) then
             ch(j,i) = '8'
-          else if ( nint(lndout(j,i))==9 ) then
+          else if ( nint(lndout(j,i)) == 9 ) then
             ch(j,i) = '9'
-          else if ( nint(lndout(j,i))==10 ) then
+          else if ( nint(lndout(j,i)) == 10 ) then
             ch(j,i) = 'A'
-          else if ( nint(lndout(j,i))==11 ) then
+          else if ( nint(lndout(j,i)) == 11 ) then
             ch(j,i) = 'B'
-          else if ( nint(lndout(j,i))==12 ) then
+          else if ( nint(lndout(j,i)) == 12 ) then
             ch(j,i) = 'C'
-          else if ( nint(lndout(j,i))==13 ) then
+          else if ( nint(lndout(j,i)) == 13 ) then
             ch(j,i) = 'D'
-          else if ( nint(lndout(j,i))==14 ) then
+          else if ( nint(lndout(j,i)) == 14 ) then
             ch(j,i) = 'E'
-          else if ( nint(lndout(j,i))==16 ) then
+          else if ( nint(lndout(j,i)) == 16 ) then
             ch(j,i) = 'G'
-          else if ( nint(lndout(j,i))==17 ) then
+          else if ( nint(lndout(j,i)) == 17 ) then
             ch(j,i) = 'H'
-          else if ( nint(lndout(j,i))==18 ) then
+          else if ( nint(lndout(j,i)) == 18 ) then
             ch(j,i) = 'I'
-          else if ( nint(lndout(j,i))==19 ) then
+          else if ( nint(lndout(j,i)) == 19 ) then
             ch(j,i) = 'J'
-          else if ( nint(lndout(j,i))==20 ) then
+          else if ( nint(lndout(j,i)) == 20 ) then
             ch(j,i) = 'K'
-          else if ( nint(lndout(j,i))==21 ) then
+          else if ( nint(lndout(j,i)) == 21 ) then
             ch(j,i) = 'L'
-          else if ( nint(lndout(j,i))==22 ) then
+          else if ( nint(lndout(j,i)) == 22 ) then
             ch(j,i) = 'M'
           else
             write (stderr,*) 'LANDUSE MASK' , nint(lndout(j,i)) ,        &
@@ -187,18 +183,16 @@ module mod_fudge
 
   subroutine texfudge(fudge,texout,lnduse,jx,iy,char_tex)
     implicit none
-!
     character(len=*) :: char_tex
     logical :: fudge, there
     integer(ik4) :: iy , jx
     real(rkx) , dimension(jx,iy) :: texout , lnduse
     intent (in) char_tex , fudge , iy , jx
     intent (inout) texout , lnduse
-!
     integer(ik4) :: i , j
     real(rkx) :: oval
     character(len=1) , dimension(jx,iy) :: ch
-!
+
     if ( fudge ) then
       inquire (file=char_tex,exist=there)
       if ( .not.there ) then
