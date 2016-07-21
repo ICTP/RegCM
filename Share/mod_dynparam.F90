@@ -79,10 +79,6 @@ module mod_dynparam
 
   logical :: lakedpth = .false.
 
-  ! Control flag for crating teture dataset for aerosol dust
-
-  logical :: ltexture = .false.
-
   ! Control flag for crating initial soil moisture dataset
 
   logical :: lsmoist = .false.
@@ -334,7 +330,7 @@ module mod_dynparam
   real(rkx) , parameter :: scalez = 0.025_rkx
   integer(ik4) , parameter :: num_soil_layers = 10
 #else
-  integer(ik4) , parameter :: num_soil_layers = 2
+  integer(ik4) , parameter :: num_soil_layers = 3
 #endif
 
   ! Shall we use this to port?
@@ -414,7 +410,7 @@ module mod_dynparam
     namelist /coreparam/ idynamic
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
       plon , truelatl, truelath , i_band
-    namelist /terrainparam/ domname , smthbdy , ltexture , lakedpth,  &
+    namelist /terrainparam/ domname , smthbdy , lakedpth,  &
       lsmoist , fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,   &
       fudge_lak , fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , &
       inpter , moist_filename , tersrc

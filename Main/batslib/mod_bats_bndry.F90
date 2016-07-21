@@ -54,7 +54,7 @@ module mod_bats_bndry
   subroutine soilbc
     implicit none
     real(rkx) :: ck , dmax , dmin , dmnor , phi0 , tweak1
-    integer(ik4) :: itex , i
+    integer(ik4) :: i
     !
     ! ================================================================
     ! new soils data as a fn of texture make porosity, soil suction,
@@ -72,14 +72,13 @@ module mod_bats_bndry
     do i = ilndbeg , ilndend
       freza(lveg(i)) = 0.15_rkx*deprv(lveg(i))
       frezu(lveg(i)) = 0.15_rkx*depuv(lveg(i))
-      itex = iexsol(lveg(i))
-      texrat(i) = skrat(itex)
-      porsl(i) = xmopor(itex)
-      xkmx(i) = xmohyd(itex)
-      bsw(i) = bee(itex)
+      texrat(i) = skrat(ltex(i))
+      porsl(i) = xmopor(ltex(i))
+      xkmx(i) = xmohyd(ltex(i))
+      bsw(i) = bee(ltex(i))
       bfc(i) = 5.8_rkx - bsw(i)*(0.8_rkx+0.12_rkx*(bsw(i)-d_four) * &
                log10(1.0e2_rkx*xkmx(i)))
-      phi0 = xmosuc(itex)
+      phi0 = xmosuc(ltex(i))
       dmax = bsw(i)*phi0*xkmx(i)/porsl(i)
       dmin = 1.0e-3_rkx
       dmnor = 1550.0_rkx*dmin/dmax
@@ -90,13 +89,13 @@ module mod_bats_bndry
       gwmx0(i) = depuv(lveg(i))*porsl(i)
       gwmx1(i) = deprv(lveg(i))*porsl(i)
       gwmx2(i) = deptv(lveg(i))*porsl(i)
-      wiltr(i) = xmowil(itex)
+      wiltr(i) = xmowil(ltex(i))
       ! force irrigated crop to be at field capacity
-      relfc(i) = xmofc(itex)
+      relfc(i) = xmofc(ltex(i))
       ! Imported Lara Kuepper's Irrigated Crop modification from RegCM3
       ! see Kueppers et al. (2008)
       ! relaw is between field capacity and wilting point
-      ! relaw(i) = 0.75_rkx*(xmofc(itex)-xmowil(itex))+xmowil(itex)
+      ! relaw(i) = 0.75_rkx*(xmofc(ltex(i))-xmowil(ltex(i)))+xmowil(ltex(i))
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

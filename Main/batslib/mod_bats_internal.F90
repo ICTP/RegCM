@@ -190,6 +190,7 @@ module mod_bats_internal
   real(rkx) , pointer , dimension(:) :: zlgveg
 
   integer(ik4) , pointer , dimension(:) :: lveg
+  integer(ik4) , pointer , dimension(:) :: ltex
 
   real(rkx) , pointer , dimension(:) :: p0
   real(rkx) , pointer , dimension(:) :: qs0
@@ -362,6 +363,7 @@ module mod_bats_internal
     call getmem1d(zlgsno,1,nlandp,'bats_internal:zlgsno')
     call getmem1d(zlgveg,1,nlandp,'bats_internal:zlgveg')
     call getmem1d(lveg,1,nlandp,'bats_internal:lveg')
+    call getmem1d(ltex,1,nlandp,'bats_internal:ltex')
     call getmem1d(p0,1,nlandp,'bats_internal:p0')
     call getmem1d(qs0,1,nlandp,'bats_internal:qs0')
     call getmem1d(ts0,1,nlandp,'bats_internal:ts0')

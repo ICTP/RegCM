@@ -57,9 +57,9 @@ module mod_bats_param
                              frezu , rough , rsmin , sai , seasf ,  &
                              sqrtdi , mfcv , xla , xlai0 , rootf ,  &
                              slmo , lndemiss , seasemi
-  real(rkx) , dimension(12) :: bee , skrat , xmofc , xmohyd , xmopor ,&
+  real(rkx) , dimension(17) :: bee , skrat , xmofc , xmohyd , xmopor ,&
                              xmosuc , xmowil
-  integer(ik4) , dimension(22) :: iexsol , kolsol
+  integer(ik4) , dimension(22) :: kolsol
   ! 0.005 ccm specific
   ! 0.01  high
   ! 0.04  Antartic
@@ -72,10 +72,10 @@ module mod_bats_param
   ! slmo is initial surface moisture availability in fraction of one
   !
   data slmo / 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , &
-              0.60_rkx , 0.50_rkx , 0.10_rkx , 0.50_rkx , 0.60_rkx , &
-              0.20_rkx , 0.50_rkx , 0.90_rkx , 1.00_rkx , 1.00_rkx , &
-              0.50_rkx , 0.50_rkx , 0.50_rkx , 0.50_rkx , 0.80_rkx , &
-              0.50_rkx , 0.50_rkx /
+              0.50_rkx , 0.50_rkx , 0.01_rkx , 0.50_rkx , 0.50_rkx , &
+              0.10_rkx , 0.50_rkx , 0.90_rkx , 1.00_rkx , 1.00_rkx , &
+              0.50_rkx , 0.30_rkx , 0.50_rkx , 0.50_rkx , 0.80_rkx , &
+              0.10_rkx , 0.50_rkx /
   !
   ! mfcv is maximum fractional vegetation cover
   ! BATS 1e , Table 2, a, pag 21
@@ -136,7 +136,7 @@ module mod_bats_param
   !             120.0_rkx , 120.0_rkx /
   ! Modified by Laura Mariotti
   data rsmin /  45.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-                50.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
+                80.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
                200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
                200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
                120.0_rkx ,  60.0_rkx /
@@ -242,16 +242,6 @@ module mod_bats_param
   data solour / 0.16_rkx , 0.15_rkx , 0.10_rkx , 0.09_rkx , 0.08_rkx , &
                 0.07_rkx , 0.06_rkx , 0.05_rkx /
   !
-  ! iexsol is soil texture type (see subr soilbc)
-  !
-  ! 1  -> Sand
-  ! 12 -> Clay
-  !
-  !data iexsol /  6 ,  6 ,  6 ,  6 ,  7 ,  8 ,  6 ,  3 ,  6 ,  6 ,  5 , &
-  !              12 ,  6 ,  6 ,  6 ,  6 ,  5 ,  6 ,  6 ,  6 , 12 ,  8 /
-  data iexsol /  6 ,  4 ,  6 ,  6 ,  7 , 11 ,  5 ,  1 ,  6 ,  6 ,  2 , &
-                12 ,  9 ,  0 ,  0 ,  6 ,  5 ,  6 ,  6 ,  8 , 12 ,  8 /
-  !
   ! xmopor is fraction of soil that is voids
   ! BATS 1e , Table 3, I , a, pag 27
   !
@@ -260,7 +250,8 @@ module mod_bats_param
   !              0.63_rkx , 0.66_rkx /
   data xmopor / 0.13_rkx , 0.26_rkx , 0.39_rkx , 0.42_rkx , 0.45_rkx , &
                 0.48_rkx , 0.51_rkx , 0.54_rkx , 0.57_rkx , 0.60_rkx , &
-                0.63_rkx , 0.66_rkx /
+                0.63_rkx , 0.66_rkx , 0.66_rkx , 0.00_rkx , 0.10_rkx , &
+                0.45_rkx , 0.45_rkx /
   !
   ! xmosuc is the minimum soil suction (mm)
   ! BATS 1e , Table 3, I , b, pag 27
@@ -270,14 +261,18 @@ module mod_bats_param
   !             200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx /
   data xmosuc / 10.0_rkx ,  20.0_rkx ,  30.0_rkx , 200.0_rkx , &
                200.0_rkx , 200.0_rkx , 200.0_rkx , 200.0_rkx , &
-               200.0_rkx , 200.0_rkx , 100.0_rkx , 200.0_rkx /
+               200.0_rkx , 200.0_rkx , 100.0_rkx , 200.0_rkx , &
+               200.0_rkx ,   0.0_rkx ,  10.0_rkx , 200.0_rkx , &
+               200.0_rkx /
   !
   ! xmohyd is the saturated hydraulic conductivity (mm/s)
   ! BATS 1e , Table 3, I , c, pag 27
   !
   data xmohyd / 0.0200_rkx , 0.0800_rkx , 0.0320_rkx , 0.0130_rkx , &
                 0.0089_rkx , 0.0063_rkx , 0.0045_rkx , 0.0032_rkx , &
-                0.0022_rkx , 0.0016_rkx , 0.0011_rkx , 0.0008_rkx /
+                0.0022_rkx , 0.0016_rkx , 0.0011_rkx , 0.0008_rkx , &
+                0.0200_rkx , 0.0000_rkx , 0.0008_rkx , 0.0063_rkx , &
+                0.0063_rkx /
   !
   ! xmowilt is fraction of water content at which permanent wilting occurs
   ! (transpiration ceases)
@@ -288,20 +283,23 @@ module mod_bats_param
   !              0.516_rkx , 0.542_rkx /
   data xmowil / 0.095_rkx , 0.128_rkx , 0.161_rkx , 0.266_rkx , 0.300_rkx , &
                 0.332_rkx , 0.378_rkx , 0.419_rkx , 0.455_rkx , 0.487_rkx , &
-                0.516_rkx , 0.542_rkx /
+                0.516_rkx , 0.542_rkx , 0.542_rkx , 0.000_rkx , 0.095_rkx , &
+                0.332_rkx , 0.332_rkx /
   !
   ! Field capacity
   !
-  data xmofc / 0.404_rkx , 0.477_rkx , 0.547_rkx , 0.614_rkx , 0.653_rkx ,  &
-               0.688_rkx , 0.728_rkx , 0.763_rkx , 0.794_rkx , 0.820_rkx ,  &
-               0.845_rkx , 0.866_rkx /
+  data xmofc / 0.404_rkx , 0.477_rkx , 0.547_rkx , 0.614_rkx , 0.653_rkx , &
+               0.688_rkx , 0.728_rkx , 0.763_rkx , 0.794_rkx , 0.820_rkx , &
+               0.845_rkx , 0.866_rkx , 0.866_rkx , 0.000_rkx , 0.404_rkx , &
+               0.688_rkx , 0.688_rkx /
   !
   ! bee is the clapp and hornbereger "b" parameter
   ! BATS 1e , Table 3, I , e, pag 27
   !
   data bee / 3.5_rkx , 4.0_rkx , 4.5_rkx , 5.0_rkx , 5.5_rkx , &
              6.0_rkx , 6.8_rkx , 7.6_rkx , 8.4_rkx , 9.2_rkx , &
-            10.0_rkx ,10.8_rkx /
+            10.0_rkx ,10.8_rkx ,10.8_rkx , 0.0_rkx , 3.5_rkx , &
+             6.0_rkx , 6.0_rkx /
   !
   ! bskrat is ratio of soil thermal conduc. to that of loam
   ! a function of texture
@@ -309,7 +307,8 @@ module mod_bats_param
   !
   data skrat / 1.70_rkx , 1.50_rkx , 1.30_rkx , 1.20_rkx , 1.10_rkx , &
                1.00_rkx , 0.95_rkx , 0.90_rkx , 0.85_rkx , 0.80_rkx , &
-               0.75_rkx , 0.70_rkx /
+               0.75_rkx , 0.70_rkx , 0.70_rkx , 0.00_rkx , 1.70_rkx , &
+               1.00_rkx , 1.00_rkx /
   !
   ! albvgs is vegetation albedo for wavelengths < 0.7 microns data
   ! BATS 1e , Table 2, I , g, pag 21

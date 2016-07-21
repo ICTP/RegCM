@@ -1507,7 +1507,7 @@ module mod_params
     call bcast(dirglob,256)
     call bcast(dirout,256)
     call bcast(domname,64)
-    call read_domain_info(mddom%ht,mddom%lndcat,mddom%mask, &
+    call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,mddom%mask, &
                           mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon, &
                           mddom%msfx,mddom%msfd,mddom%coriol, &
                           mddom%snowam,mddom%smoist,mddom%rmoist,mddom%dhlake)
@@ -1649,7 +1649,7 @@ module mod_params
     end if
 
     if ( nsg > 1 ) then
-      call read_subdomain_info(mdsub%ht,mdsub%lndcat,mdsub%mask, &
+      call read_subdomain_info(mdsub%ht,mdsub%lndcat,mdsub%lndtex,mdsub%mask, &
                mdsub%xlat,mdsub%xlon,mdsub%dhlake)
       mdsub%ht = mdsub%ht*egrav
     else
@@ -1657,6 +1657,7 @@ module mod_params
         do j = jci1 , jci2
           mdsub%ht(1,j,i) = mddom%ht(j,i)*egrav
           mdsub%lndcat(1,j,i) = mddom%lndcat(j,i)
+          mdsub%lndtex(1,j,i) = mddom%lndtex(j,i)
           mdsub%xlat(1,j,i) = mddom%xlat(j,i)
           mdsub%xlon(1,j,i) = mddom%xlon(j,i)
           mdsub%mask(1,j,i) = mddom%mask(j,i)

@@ -13,7 +13,6 @@ module clm_varsur
 !
 ! !USES:
   use shr_kind_mod, only : r8 => shr_kind_r8
-  use mod_bats_param , only : slmo , xmopor , iexsol
 !
 ! !PUBLIC TYPES:
   implicit none

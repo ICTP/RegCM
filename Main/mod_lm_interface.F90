@@ -130,9 +130,13 @@ module mod_lm_interface
     call getmem3d(lms%gwet,1,nnsg,jci1,jci2,ici1,ici2,'lm:gwet')
     call getmem3d(lms%ldew,1,nnsg,jci1,jci2,ici1,ici2,'lm:ldew')
     call getmem4d(lms%sw,1,nnsg,jci1,jci2,ici1,ici2,1,num_soil_layers,'lm:sw')
+#ifndef CLM45
     call assignpnt(lms%sw,lms%ssw,1)
     call assignpnt(lms%sw,lms%rsw,2)
+    call assignpnt(lms%sw,lms%tsw,3)
+#else
     call getmem3d(lms%tsw,1,nnsg,jci1,jci2,ici1,ici2,'lm:tsw')
+#endif
     call getmem3d(lms%tgbb,1,nnsg,jci1,jci2,ici1,ici2,'lm:tgbb')
     call getmem3d(lms%tgrd,1,nnsg,jci1,jci2,ici1,ici2,'lm:tgrd')
     call getmem3d(lms%tgbrd,1,nnsg,jci1,jci2,ici1,ici2,'lm:tgbrd')
@@ -287,6 +291,7 @@ module mod_lm_interface
     call assignpnt(mddom%lndcat,lm%lndcat)
     call assignpnt(mddom%ldmsk,lm%ldmsk)
     call assignpnt(mddom%iveg,lm%iveg)
+    call assignpnt(mddom%itex,lm%itex)
     call assignpnt(mddom%ht,lm%ht)
     call assignpnt(mddom%snowam,lm%snowam)
     call assignpnt(mddom%smoist,lm%smoist)
@@ -297,6 +302,7 @@ module mod_lm_interface
     call assignpnt(mdsub%ldmsk,lm%ldmsk1)
     call assignpnt(mdsub%ht,lm%ht1)
     call assignpnt(mdsub%iveg,lm%iveg1)
+    call assignpnt(mdsub%itex,lm%itex1)
     call assignpnt(mdsub%dhlake,lm%dhlake1)
     call assignpnt(cplmsk,lm%icplmsk)
 #ifdef CLM45

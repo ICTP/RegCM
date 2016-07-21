@@ -16,7 +16,7 @@ module mod_clm_mkarbinit
   use mod_clm_varctl , only : pertlim
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_snicar , only : snw_rds_min
-  use mod_bats_param , only : xmopor , iexsol , slmo
+  use mod_bats_param , only : xmopor , slmo
 
   implicit none
 
@@ -1147,8 +1147,7 @@ module mod_clm_mkarbinit
               if ( lsmoist ) then
                 h2osoi_vol(c,j) = adomain%smoist(g)
               else
-                h2osoi_vol(c,j) = slmo(adomain%luse(g)) * &
-                              xmopor(iexsol(adomain%luse(g)))
+                h2osoi_vol(c,j) = slmo(adomain%itex(g))*xmopor(adomain%itex(g))
               end if
             end if
           end do

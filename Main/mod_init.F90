@@ -591,8 +591,10 @@ module mod_init
     do i = ici1 , ici2
       do j = jci1 , jci2
         mddom%iveg(j,i) = nint(mddom%lndcat(j,i))
+        mddom%itex(j,i) = nint(mddom%lndtex(j,i))
         do n = 1 , nnsg
           mdsub%iveg(n,j,i) = nint(mdsub%lndcat(n,j,i))
+          mdsub%itex(n,j,i) = nint(mdsub%lndtex(n,j,i))
         end do
       end do
     end do

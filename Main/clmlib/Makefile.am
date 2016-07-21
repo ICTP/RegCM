@@ -267,7 +267,7 @@ clm_varcon.o:  clm_varcon.F90 shr_kind_mod.o shr_const_mod.o clm_varpar.o misc.h
 clm_varctl.o:  clm_varctl.F90 shr_kind_mod.o misc.h preproc.h
 clm_varorb.o:  clm_varorb.F90 shr_kind_mod.o misc.h preproc.h
 clm_varpar.o:  clm_varpar.F90 shr_kind_mod.o preproc.h misc.h
-clm_varsur.o:  clm_varsur.F90 shr_kind_mod.o misc.h preproc.h mod_bats_param.o
+clm_varsur.o:  clm_varsur.F90 shr_kind_mod.o misc.h preproc.h
 clm_varvoc.o:  clm_varvoc.F90 shr_kind_mod.o clm_varpar.o misc.h preproc.h
 clmtype.o:  clmtype.F90 shr_kind_mod.o clm_varpar.o domainMod.o misc.h preproc.h
 clmtypeInitMod.o:  clmtypeInitMod.F90 shr_kind_mod.o CASAMod.o clm_varcon.o clm_varvoc.o clmtype.o decompMod.o clm_varpar.o nanMod.o misc.h preproc.h
@@ -353,7 +353,7 @@ m_realkinds.o:  m_realkinds.F90
 m_stdio.o:  m_stdio.F90  
 m_zeit.o:  m_zeit.F90 m_SortingTools.o m_ioutil.o m_die.o m_stdio.o m_mpif90.o 
 mct_mod.o:  mct_mod.F90 m_AttrVect.o m_SparseMatrixPlus.o m_String.o m_SparseMatrixComms.o m_List.o shr_sys_mod.o m_AttrVectComms.o m_GlobalToLocal.o m_Router.o m_GeneralGrid.o m_SparseMatrixToMaps.o m_die.o m_Transfer.o shr_kind_mod.o m_stdio.o m_SparseMatrix.o m_Rearranger.o m_GlobalSegMap.o m_inpak90.o shr_const_mod.o m_MatAttrVectMul.o m_GeneralGridComms.o shr_mpi_mod.o m_MCTWorld.o m_Permuter.o m_MergeSorts.o 
-mkarbinitMod.o:  mkarbinitMod.F90 clm_varsur.o spmdMod.o clm_varcon.o clmtype.o clm_varpar.o shr_kind_mod.o shr_const_mod.o decompMod.o pftvarcon.o misc.h preproc.h
+mkarbinitMod.o:  mkarbinitMod.F90 clm_varsur.o spmdMod.o clm_varcon.o clmtype.o clm_varpar.o shr_kind_mod.o shr_const_mod.o decompMod.o pftvarcon.o misc.h preproc.h mod_bats_param.o
 mod_clm.o:  mod_clm.F90 mod_runparams.o mod_dynparam.o
 mod_mtrxclm.o : mod_mtrxclm.F90 atmdrvMod.o clm_comp.o clm_drydep.o clm_time_manager.o clmtype.o clm_varpar.o clm_varsur.o initializeMod.o mod_clm.o mod_date.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o mod_sunorbit.o perf_mod.o program_offMod.o shr_orb_mod.o
 nanMod.o:  nanMod.F90 shr_kind_mod.o 

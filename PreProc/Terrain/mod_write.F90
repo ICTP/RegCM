@@ -36,9 +36,8 @@ module mod_write
   type(ncvariable2d_real) , save, dimension(:), allocatable :: v2dvar_base
   type(ncvariable3d_real) , save, dimension(:), allocatable :: v3dvar_base
   integer(ik4) :: idlnd ! The position of landuse in the v2dvar_base
+  integer(ik4) :: idtxt ! The position of texture in the v2dvar_base
   type(ncvariable2d_real) , save :: v2dvar_lake
-  type(ncvariable2d_real) , save :: v2dvar_texture
-  type(ncvariable3d_real) , save :: v3dvar_texture
 
   character(len=512) :: landuse_legend =                     &
                '1  => Crop/mixed farming'//char(10)//        &
@@ -91,11 +90,11 @@ module mod_write
     lrmoist = .false.
 
     if ( idynamic == 1 ) then
-      nvar2d = 12
-      nvar3d = 1
-    else
       nvar2d = 13
-      nvar3d = 4
+      nvar3d = 2
+    else
+      nvar2d = 14
+      nvar3d = 5
     end if
     allocate(v2dvar_base(nvar2d))
     allocate(v3dvar_base(nvar3d))
@@ -150,22 +149,16 @@ module mod_write
     v2dvar_base(12)%long_name = 'Soil Moisture'
     v2dvar_base(12)%standard_name = 'volume_fraction_of_water_in_soil'
     v2dvar_base(12)%lfillvalue = .true.
+    v2dvar_base(13)%vname = 'texture'
+    v2dvar_base(13)%vunit = '1'
+    v2dvar_base(13)%long_name = 'Texture dominant category'
+    v2dvar_base(13)%standard_name = 'soil_type'
+    idtxt = 13
 
     v2dvar_lake%vname = 'dhlake'
     v2dvar_lake%vunit = 'm'
     v2dvar_lake%long_name = 'Depth below MSL'
     v2dvar_lake%standard_name = 'depth'
-
-    v2dvar_texture%vname = 'texture'
-    v2dvar_texture%vunit = '1'
-    v2dvar_texture%long_name = 'Texture dominant category'
-    v2dvar_texture%standard_name = 'soil_type'
-    v3dvar_texture%vname = 'texture_fraction'
-    v3dvar_texture%vunit = '1'
-    v3dvar_texture%long_name = 'Texture category fraction'
-    v3dvar_texture%standard_name = 'soil_type_fraction'
-    v3dvar_texture%axis = 'xyT'
-    v3dvar_texture%lfillvalue = .true.
 
     v3dvar_base(1)%vname = 'rmoist'
     v3dvar_base(1)%vunit = 'kg m-2'
@@ -173,27 +166,34 @@ module mod_write
     v3dvar_base(1)%standard_name = 'volume_fraction_of_water_in_soil'
     v3dvar_base(1)%lfillvalue = .true.
     v3dvar_base(1)%axis = 'xys'
+    v3dvar_base(2)%vname = 'texture_fraction'
+    v3dvar_base(2)%vunit = '1'
+    v3dvar_base(2)%long_name = 'Texture category fraction'
+    v3dvar_base(2)%standard_name = 'soil_type_fraction'
+    v3dvar_base(2)%axis = 'xyT'
+    v3dvar_base(2)%lfillvalue = .true.
+
 
     if ( idynamic == 2 ) then
-      v2dvar_base(13)%vname = 'ps0'
-      v2dvar_base(13)%vunit = 'Pa'
-      v2dvar_base(13)%long_name = 'Reference State Surface Pressure'
-      v2dvar_base(13)%standard_name = 'air_pressure'
-      v3dvar_base(2)%vname = 'pr0'
-      v3dvar_base(2)%vunit = 'Pa'
-      v3dvar_base(2)%long_name = 'Reference State Pressure'
-      v3dvar_base(2)%standard_name = 'air_pressure'
-      v3dvar_base(2)%axis = 'xyz'
-      v3dvar_base(3)%vname = 't0'
-      v3dvar_base(3)%vunit = 'K'
-      v3dvar_base(3)%long_name = 'Reference State Temperature'
-      v3dvar_base(3)%standard_name = 'air_temperature'
+      v2dvar_base(14)%vname = 'ps0'
+      v2dvar_base(14)%vunit = 'Pa'
+      v2dvar_base(14)%long_name = 'Reference State Surface Pressure'
+      v2dvar_base(14)%standard_name = 'air_pressure'
+      v3dvar_base(3)%vname = 'pr0'
+      v3dvar_base(3)%vunit = 'Pa'
+      v3dvar_base(3)%long_name = 'Reference State Pressure'
+      v3dvar_base(3)%standard_name = 'air_pressure'
       v3dvar_base(3)%axis = 'xyz'
-      v3dvar_base(4)%vname = 'rho0'
-      v3dvar_base(4)%vunit = 'kg m-3'
-      v3dvar_base(4)%long_name = 'Reference State Density'
-      v3dvar_base(4)%standard_name = 'air_density'
+      v3dvar_base(4)%vname = 't0'
+      v3dvar_base(4)%vunit = 'K'
+      v3dvar_base(4)%long_name = 'Reference State Temperature'
+      v3dvar_base(4)%standard_name = 'air_temperature'
       v3dvar_base(4)%axis = 'xyz'
+      v3dvar_base(5)%vname = 'rho0'
+      v3dvar_base(5)%vunit = 'kg m-3'
+      v3dvar_base(5)%long_name = 'Reference State Density'
+      v3dvar_base(5)%standard_name = 'air_density'
+      v3dvar_base(5)%axis = 'xyz'
     end if
   end subroutine setup_outvars
 
@@ -242,17 +242,15 @@ module mod_write
     call outstream_addatt(ncout, &
       ncattribute_logical('h2o_hgt_over_water',h2ohgt))
     call outstream_addatt(ncout, &
+      ncattribute_integer('intermediate_resolution',ntype))
+    call outstream_addatt(ncout, &
       ncattribute_logical('landuse_fudging',lndfudge))
     call outstream_addatt(ncout, &
-      ncattribute_integer('intermediate_resolution',ntype))
+      ncattribute_logical('texture_fudging',texfudge))
 
     if ( lakedpth ) then
       call outstream_addatt(ncout, &
         ncattribute_logical('lake_fudging',lakfudge))
-    end if
-    if ( ltexture ) then
-      call outstream_addatt(ncout, &
-        ncattribute_logical('texture_fudging',texfudge))
     end if
 
     call outstream_addatt(ncout, &
@@ -267,6 +265,8 @@ module mod_write
     end do
     call outstream_addvaratt(ncout,v2dvar_base(idlnd), &
       ncattribute_string('legend',landuse_legend))
+    call outstream_addvaratt(ncout,v2dvar_base(idtxt), &
+      ncattribute_string('legend',texture_legend))
     v2dvar_base(1)%rval => xlon
     v2dvar_base(2)%rval => xlat
     v2dvar_base(3)%rval => dlon
@@ -279,6 +279,7 @@ module mod_write
     v2dvar_base(10)%rval => lndout
     v2dvar_base(11)%rval => snowam
     v2dvar_base(12)%rval => smoist
+    v2dvar_base(13)%rval => texout
 
     do ivar = 1 , nvar3d
       v3dvar_base(ivar)%j1 = -1
@@ -291,6 +292,7 @@ module mod_write
     end do
 
     v3dvar_base(1)%rval => rmoist
+    v3dvar_base(2)%rval => frac_tex
 
     if ( lakedpth ) then
       v2dvar_lake%j1 = -1
@@ -301,28 +303,11 @@ module mod_write
       v2dvar_lake%rval => dpth
     end if
 
-    if ( ltexture ) then
-      v2dvar_texture%j1 = -1
-      v2dvar_texture%j2 = -1
-      v2dvar_texture%i1 = -1
-      v2dvar_texture%i2 = -1
-      v3dvar_texture%j1 = -1
-      v3dvar_texture%j2 = -1
-      v3dvar_texture%i1 = -1
-      v3dvar_texture%i2 = -1
-      call outstream_addvar(ncout,v2dvar_texture)
-      call outstream_addvaratt(ncout,v2dvar_texture, &
-        ncattribute_string('legend',texture_legend))
-      call outstream_addvar(ncout,v3dvar_texture)
-      v2dvar_texture%rval => texout
-      v3dvar_texture%rval => frac_tex
-    end if
-
     if ( idynamic == 2 ) then
-      v2dvar_base(13)%rval => ps0
-      v3dvar_base(2)%rval => pr0
-      v3dvar_base(3)%rval => t0
-      v3dvar_base(4)%rval => rho0
+      v2dvar_base(14)%rval => ps0
+      v3dvar_base(3)%rval => pr0
+      v3dvar_base(4)%rval => t0
+      v3dvar_base(5)%rval => rho0
     end if
 
     call outstream_enable(ncout,sigma)
@@ -337,10 +322,6 @@ module mod_write
 
     if ( lakedpth ) then
       call outstream_writevar(ncout,v2dvar_lake)
-    end if
-    if ( ltexture ) then
-      call outstream_writevar(ncout,v2dvar_texture)
-      call outstream_writevar(ncout,v3dvar_texture)
     end if
     call outstream_dispose(ncout)
   end subroutine write_domain

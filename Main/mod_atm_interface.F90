@@ -704,6 +704,7 @@ module mod_atm_interface
       type(domain) , intent(out) :: dom
       call getmem2d(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
       call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
+      call getmem2d(dom%lndtex,jde1,jde2,ide1,ide2,'storage:lndtex')
       call getmem2d(dom%xlat,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlat')
       call getmem2d(dom%xlon,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlon')
       call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'storage:mask')
@@ -718,6 +719,7 @@ module mod_atm_interface
                     1,num_soil_layers,'storage:rmoist')
       call getmem2d(dom%ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
       call getmem2d(dom%iveg,jci1,jci2,ici1,ici2,'storage:iveg')
+      call getmem2d(dom%itex,jci1,jci2,ici1,ici2,'storage:itex')
       call getmem2d(dom%xmsf,jdi1,jdi2,idi1,idi2,'storage:xmsf')
       call getmem2d(dom%dmsf,jdi1,jdi2,idi1,idi2,'storage:dmsf')
       if ( lakemod == 1 ) then
@@ -740,11 +742,13 @@ module mod_atm_interface
       type(domain_subgrid) , intent(out) :: sub
       call getmem3d(sub%ht,1,nnsg,jde1,jde2,ide1,ide2,'storage:ht')
       call getmem3d(sub%lndcat,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndcat')
+      call getmem3d(sub%lndtex,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndtex')
       call getmem3d(sub%xlat,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlat')
       call getmem3d(sub%xlon,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlon')
       call getmem3d(sub%mask,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlon')
       call getmem3d(sub%ldmsk,1,nnsg,jci1,jci2,ici1,ici2,'storage:ldmsk')
       call getmem3d(sub%iveg,1,nnsg,jci1,jci2,ici1,ici2,'storage:iveg')
+      call getmem3d(sub%itex,1,nnsg,jci1,jci2,ici1,ici2,'storage:itex')
       if ( lakemod == 1 ) then
         call getmem3d(sub%dhlake,1,nnsg,jde1,jde2,ide1,ide2,'storage:dhlake')
       end if

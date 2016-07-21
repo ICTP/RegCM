@@ -62,7 +62,7 @@ module mod_bats_common
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: i , itex
+    integer(ik4) :: i
     logical , parameter :: snowhack = .false.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initbats'
@@ -77,10 +77,14 @@ module mod_bats_common
       call c2l_gs(lndcomm,lm%ht,ht)
       call c2l_ss(lndcomm,lm%ht1,hts)
       call c2l_ss(lndcomm,lm%iveg1,lveg)
+      call c2l_ss(lndcomm,lm%itex1,ltex)
       call c2l_ss(lndcomm,lm%xlat1,lat)
       call c2l_gs(lndcomm,lm%tground2,tgrd)
       call c2l_gs(lndcomm,lm%snowam,sncv)
-
+      ! Remove water -> no-data
+      where( ltex == 14 )
+        ltex = 17
+      end where
       tgbrd = tgrd
       tlef  = tgrd
       taf   = tgrd
@@ -92,21 +96,20 @@ module mod_bats_common
       end if
 
       if ( lsmoist ) then
-        call c2l_gs(lndcomm,lm%smoist,gwet)
+        call c2l_gs(lndcomm,lm%smoist,ssw)
         do i = ilndbeg , ilndend
-          ! Initialize soil moisture in the 3 layers
-          tsw(i) = gwet(i)*deptv(lveg(i))
-          rsw(i) = gwet(i)*deprv(lveg(i))
-          ssw(i) = gwet(i)*depuv(lveg(i))
+          ! Initialize surface soil moisture
+          ssw(i) = depuv(lveg(i))*xmopor(ltex(i))*ssw(i)
+          rsw(i) = deprv(lveg(i))*xmopor(ltex(i))*slmo(lveg(i))
+          tsw(i) = deptv(lveg(i))*xmopor(ltex(i))*slmo(lveg(i))
           gwet(i) = d_half
         end do
       else
         do i = ilndbeg , ilndend
-          itex  = iexsol(lveg(i))
           ! Initialize soil moisture in the 3 layers
-          tsw(i) = deptv(lveg(i))*xmopor(itex)*slmo(lveg(i))
-          rsw(i) = deprv(lveg(i))*xmopor(itex)*slmo(lveg(i))
-          ssw(i) = depuv(lveg(i))*xmopor(itex)*slmo(lveg(i))
+          ssw(i) = depuv(lveg(i))*xmopor(ltex(i))*slmo(lveg(i))
+          rsw(i) = deprv(lveg(i))*xmopor(ltex(i))*slmo(lveg(i))
+          tsw(i) = deptv(lveg(i))*xmopor(ltex(i))*slmo(lveg(i))
           gwet(i) = d_half
         end do
       end if
@@ -114,12 +117,13 @@ module mod_bats_common
         if ( myid == italk ) then
           write(stdout,*) 'Initializing moisture from DOMAIN file'
         end if
-        ! Replace soil moisture
-        lm%smoist = lm%rmoist(:,:,2)
-        call c2l_gs(lndcomm,lm%smoist,rsw)
+        ! Replace surface and root soil moisture
         lm%smoist = lm%rmoist(:,:,1)
         call c2l_gs(lndcomm,lm%smoist,ssw)
-        tsw = rsw + ssw
+        lm%smoist = lm%rmoist(:,:,2)
+        call c2l_gs(lndcomm,lm%smoist,rsw)
+        lm%smoist = lm%rmoist(:,:,3)
+        call c2l_gs(lndcomm,lm%smoist,tsw)
       end if
       !
       ! Calculate emission coefficients

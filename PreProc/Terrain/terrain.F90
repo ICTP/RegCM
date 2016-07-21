@@ -253,24 +253,21 @@ program terrain
       call relmem2d(values)
       write(stdout,*)'Interpolated soil moisture on SUBGRID'
     end if
-
-    if ( ltexture ) then
-      call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                       pthsep//'GLZB_SOIL_30s.nc',       &
-                       'soiltype',30,ntypec_s,.true.,3)
-      write(stdout,*)'Static texture data successfully read in'
-      call interp(jxsg,iysg,xlat_s,xlon_s,texout_s,   &
-                  nlatin,nlonin,grdltmn,grdlnmn,values, &
-                  ntypec_s,4,lonwrap,lcrosstime,      &
-                  ibnty=2,h2opct=h2opct)
-      do i = 1 , ntex
-        call interp(jxsg,iysg,xlat_s,xlon_s,frac_tex_s(:,:,i), &
-                    nlatin,nlonin,grdltmn,grdlnmn,values,      &
-                    ntypec_s,5,lonwrap,lcrosstime,ival=i)
-      end do
-      call relmem2d(values)
-      write(stdout,*)'Interpolated texture on SUBGRID'
-    end if
+    call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                     pthsep//'GLZB_SOIL_30s.nc',       &
+                     'soiltype',30,ntypec_s,.true.,3)
+    write(stdout,*)'Static texture data successfully read in'
+    call interp(jxsg,iysg,xlat_s,xlon_s,texout_s,   &
+                nlatin,nlonin,grdltmn,grdlnmn,values, &
+                ntypec_s,4,lonwrap,lcrosstime,      &
+                ibnty=2,h2opct=h2opct)
+    do i = 1 , ntex
+      call interp(jxsg,iysg,xlat_s,xlon_s,frac_tex_s(:,:,i), &
+                  nlatin,nlonin,grdltmn,grdlnmn,values,      &
+                  ntypec_s,5,lonwrap,lcrosstime,ival=i)
+    end do
+    call relmem2d(values)
+    write(stdout,*)'Interpolated texture on SUBGRID'
 
     if ( lakedpth ) then
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
@@ -300,25 +297,23 @@ program terrain
            '_LANDUSE' , nsg
     call lndfudge(fudge_lnd_s,lndout_s,htgrid_s,jxsg,iysg, &
                   trim(char_lnd))
-    if ( ltexture ) then
-      write (char_tex,99001) trim(dirter), pthsep, trim(domname), &
-             '_TEXTURE' , nsg
-      allocate(tmptex(jxsg,iysg))
-      tmptex(:,:) = texout_s(:,:)
-      call texfudge(fudge_tex_s,texout_s,lndout_s,jxsg,iysg,trim(char_tex))
-      do i = 1 , iysg
-        do j = 1 , jxsg
-          ! Swap percentages of the old class and the new requested
-          if ( texout_s(j,i) /= tmptex(j,i) ) then
-            tswap = frac_tex_s(j,i,int(tmptex(j,i)))
-            frac_tex_s(j,i,int(tmptex(j,i))) = &
-                    frac_tex_s(j,i,int(texout_s(j,i)))
-            frac_tex_s(j,i,int(texout_s(j,i))) = tswap
-          end if
-        end do
+    write (char_tex,99001) trim(dirter), pthsep, trim(domname), &
+           '_TEXTURE' , nsg
+    allocate(tmptex(jxsg,iysg))
+    tmptex(:,:) = texout_s(:,:)
+    call texfudge(fudge_tex_s,texout_s,lndout_s,jxsg,iysg,trim(char_tex))
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        ! Swap percentages of the old class and the new requested
+        if ( texout_s(j,i) /= tmptex(j,i) ) then
+          tswap = frac_tex_s(j,i,int(tmptex(j,i)))
+          frac_tex_s(j,i,int(tmptex(j,i))) = &
+                  frac_tex_s(j,i,int(texout_s(j,i)))
+          frac_tex_s(j,i,int(texout_s(j,i))) = tswap
+        end if
       end do
-      deallocate(tmptex)
-    end if
+    end do
+    deallocate(tmptex)
     write(stdout,*) 'Fudging data (if requested) succeeded'
 
   end if
@@ -421,24 +416,21 @@ program terrain
     call relmem2d(values)
     write(stdout,*)'Interpolated soil moisture on model GRID'
   end if
-
-  if ( ltexture ) then
-    call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                     pthsep//'GLZB_SOIL_30s.nc',       &
-                     'soiltype',30,ntypec,.true.,3)
-    write(stdout,*)'Static texture data successfully read in'
-    call interp(jx,iy,xlat,xlon,texout,             &
+  call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                   pthsep//'GLZB_SOIL_30s.nc',       &
+                   'soiltype',30,ntypec,.true.,3)
+  write(stdout,*)'Static texture data successfully read in'
+  call interp(jx,iy,xlat,xlon,texout,             &
+              nlatin,nlonin,grdltmn,grdlnmn,values, &
+              ntypec,4,lonwrap,lcrosstime,        &
+              ibnty=2,h2opct=h2opct)
+  do i = 1 , ntex
+    call interp(jx,iy,xlat,xlon,frac_tex(:,:,i),   &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
-                ntypec,4,lonwrap,lcrosstime,        &
-                ibnty=2,h2opct=h2opct)
-    do i = 1 , ntex
-      call interp(jx,iy,xlat,xlon,frac_tex(:,:,i),   &
-                  nlatin,nlonin,grdltmn,grdlnmn,values, &
-                  ntypec,5,lonwrap,lcrosstime,ival=i)
-    end do
-    call relmem2d(values)
-    write(stdout,*)'Interpolated texture on model GRID'
-  end if
+                ntypec,5,lonwrap,lcrosstime,ival=i)
+  end do
+  call relmem2d(values)
+  write(stdout,*)'Interpolated texture on model GRID'
 
   if ( lakedpth ) then
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
@@ -469,24 +461,21 @@ program terrain
 
   write (char_lnd,99002) trim(dirter), pthsep, trim(domname),'_LANDUSE'
   call lndfudge(fudge_lnd,lndout,htgrid,jx,iy,trim(char_lnd))
-
-  if ( ltexture ) then
-    write (char_tex,99002) trim(dirter), pthsep, trim(domname),'_TEXTURE'
-    allocate(tmptex(jx,iy))
-    tmptex(:,:) = texout(:,:)
-    call texfudge(fudge_tex,texout,lndout,jx,iy,trim(char_tex))
-    do i = 1 , iy
-      do j = 1 , jx
-        ! Swap percentages of the old class and the new requested
-        if ( texout(j,i) /= tmptex(j,i) ) then
-          tswap = frac_tex(j,i,int(tmptex(j,i)))
-          frac_tex(j,i,int(tmptex(j,i))) = frac_tex(j,i,int(texout(j,i)))
-          frac_tex(j,i,int(texout(j,i))) = tswap
-        end if
-      end do
+  write (char_tex,99002) trim(dirter), pthsep, trim(domname),'_TEXTURE'
+  allocate(tmptex(jx,iy))
+  tmptex(:,:) = texout(:,:)
+  call texfudge(fudge_tex,texout,lndout,jx,iy,trim(char_tex))
+  do i = 1 , iy
+    do j = 1 , jx
+      ! Swap percentages of the old class and the new requested
+      if ( texout(j,i) /= tmptex(j,i) ) then
+        tswap = frac_tex(j,i,int(tmptex(j,i)))
+        frac_tex(j,i,int(tmptex(j,i))) = frac_tex(j,i,int(texout(j,i)))
+        frac_tex(j,i,int(texout(j,i))) = tswap
+      end if
     end do
-    deallocate(tmptex)
-  end if
+  end do
+  deallocate(tmptex)
 
   where ( htgrid < 0.0 )
     htgrid = 0.0
@@ -537,19 +526,15 @@ program terrain
       lndout(j,1) = lndout(j,2)
       lndout(j,iy-1) = lndout(j,iy-2)
       lndout(j,iy) = lndout(j,iy-2)
-    end do
-    if ( ltexture ) then
-      do j = 1 , jx
-        texout(j,1) = texout(j,2)
-        texout(j,iy-1) = texout(j,iy-2)
-        texout(j,iy) = texout(j,iy-2)
-        do k = 1 , ntex
-          frac_tex(j,1,k) = frac_tex(j,2,k)
-          frac_tex(j,iy-1,k) = frac_tex(j,iy-2,k)
-          frac_tex(j,iy,k) = frac_tex(j,iy-2,k)
-        end do
+      texout(j,1) = texout(j,2)
+      texout(j,iy-1) = texout(j,iy-2)
+      texout(j,iy) = texout(j,iy-2)
+      do k = 1 , ntex
+        frac_tex(j,1,k) = frac_tex(j,2,k)
+        frac_tex(j,iy-1,k) = frac_tex(j,iy-2,k)
+        frac_tex(j,iy,k) = frac_tex(j,iy-2,k)
       end do
-    end if
+    end do
     if ( i_band /= 1 ) then
       do i = 2 , iy-1
         htgrid(1,i) = htgrid(2,i)
@@ -558,19 +543,15 @@ program terrain
         lndout(1,i) = lndout(2,i)
         lndout(jx-1,i) = lndout(jx-2,i)
         lndout(jx,i) = lndout(jx-2,i)
-      end do
-      if ( ltexture ) then
-        do i = 2 , iy-1
-          texout(1,i) = texout(2,i)
-          texout(jx-1,i) = texout(jx-2,i)
-          texout(jx,i) = texout(jx-2,i)
-          do k = 1 , ntex
-            frac_tex(1,i,k) = frac_tex(2,i,k)
-            frac_tex(jx-1,i,k) = frac_tex(jx-2,i,k)
-            frac_tex(jx,i,k) = frac_tex(jx-2,i,k)
-          end do
+        texout(1,i) = texout(2,i)
+        texout(jx-1,i) = texout(jx-2,i)
+        texout(jx,i) = texout(jx-2,i)
+        do k = 1 , ntex
+          frac_tex(1,i,k) = frac_tex(2,i,k)
+          frac_tex(jx-1,i,k) = frac_tex(jx-2,i,k)
+          frac_tex(jx,i,k) = frac_tex(jx-2,i,k)
         end do
-      end if
+      end do
     end if
   end if
 
@@ -636,19 +617,15 @@ program terrain
         lndout_s(j,1) = lndout_s(j,2)
         lndout_s(j,iysg-1) = lndout_s(j,iysg-2)
         lndout_s(j,iysg) = lndout_s(j,iysg-2)
-      end do
-      if ( ltexture ) then
-        do j = 1 , jxsg
-          texout_s(j,1) = texout_s(j,2)
-          texout_s(j,iysg-1) = texout_s(j,iysg-2)
-          texout_s(j,iysg) = texout_s(j,iysg-2)
-          do k = 1 , ntex
-            frac_tex_s(j,1,k) = frac_tex_s(j,2,k)
-            frac_tex_s(j,iysg-1,k) = frac_tex_s(j,iysg-2,k)
-            frac_tex_s(j,iysg,k) = frac_tex_s(j,iysg-2,k)
-          end do
+        texout_s(j,1) = texout_s(j,2)
+        texout_s(j,iysg-1) = texout_s(j,iysg-2)
+        texout_s(j,iysg) = texout_s(j,iysg-2)
+        do k = 1 , ntex
+          frac_tex_s(j,1,k) = frac_tex_s(j,2,k)
+          frac_tex_s(j,iysg-1,k) = frac_tex_s(j,iysg-2,k)
+          frac_tex_s(j,iysg,k) = frac_tex_s(j,iysg-2,k)
         end do
-      end if
+      end do
       if ( i_band /= 1 ) then
         do i = 1 , iysg
           htgrid_s(1,i) = htgrid_s(2,i)
@@ -657,19 +634,15 @@ program terrain
           lndout_s(1,i) = lndout_s(2,i)
           lndout_s(jxsg-1,i) = lndout_s(jxsg-2,i)
           lndout_s(jxsg,i) = lndout_s(jxsg-2,i)
-        end do
-        if ( ltexture ) then
-          do i = 1 , iysg
-            texout_s(1,i) = texout_s(2,i)
-            texout_s(jxsg-1,i) = texout_s(jxsg-2,i)
-            texout_s(jxsg,i) = texout_s(jxsg-2,i)
-            do k = 1 , ntex
-              frac_tex_s(1,i,k) = frac_tex_s(2,i,k)
-              frac_tex_s(jxsg-1,i,k) = frac_tex_s(jxsg-2,i,k)
-              frac_tex_s(jxsg,i,k) = frac_tex_s(jxsg-2,i,k)
-            end do
+          texout_s(1,i) = texout_s(2,i)
+          texout_s(jxsg-1,i) = texout_s(jxsg-2,i)
+          texout_s(jxsg,i) = texout_s(jxsg-2,i)
+          do k = 1 , ntex
+            frac_tex_s(1,i,k) = frac_tex_s(2,i,k)
+            frac_tex_s(jxsg-1,i,k) = frac_tex_s(jxsg-2,i,k)
+            frac_tex_s(jxsg,i,k) = frac_tex_s(jxsg-2,i,k)
           end do
-        end if
+        end do
       end if
     end if
 

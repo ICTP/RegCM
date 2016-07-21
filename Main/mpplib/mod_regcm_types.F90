@@ -62,6 +62,7 @@ module mod_regcm_types
   type domain
     real(rkx) , pointer , dimension(:,:) :: ht
     real(rkx) , pointer , dimension(:,:) :: lndcat
+    real(rkx) , pointer , dimension(:,:) :: lndtex
     real(rkx) , pointer , dimension(:,:) :: xlat
     real(rkx) , pointer , dimension(:,:) :: xlon
     real(rkx) , pointer , dimension(:,:) :: mask
@@ -86,17 +87,20 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: dhlake
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
     integer(ik4) , pointer , dimension(:,:) :: iveg
+    integer(ik4) , pointer , dimension(:,:) :: itex
   end type domain
 
   type domain_subgrid
     real(rkx) , pointer , dimension(:,:,:) :: ht
     real(rkx) , pointer , dimension(:,:,:) :: lndcat
+    real(rkx) , pointer , dimension(:,:,:) :: lndtex
     real(rkx) , pointer , dimension(:,:,:) :: xlat
     real(rkx) , pointer , dimension(:,:,:) :: xlon
     real(rkx) , pointer , dimension(:,:,:) :: mask
     real(rkx) , pointer , dimension(:,:,:) :: dhlake
     integer(ik4) , pointer , dimension(:,:,:) :: ldmsk
     integer(ik4) , pointer , dimension(:,:,:) :: iveg
+    integer(ik4) , pointer , dimension(:,:,:) :: itex
   end type domain_subgrid
 
   type mass_divergence
@@ -407,6 +411,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: smoist      ! mddom%smoist
     real(rkx) , pointer , dimension(:,:,:) :: rmoist    ! mddom%rmoist
     integer(ik4) , pointer , dimension(:,:) :: iveg     ! mddom%iveg
+    integer(ik4) , pointer , dimension(:,:) :: itex     ! mddom%itex
     integer(ik4) , pointer , dimension(:,:) :: ldmsk    ! mddom%ldmsk
     real(rkx) , pointer , dimension(:,:,:) :: ht1       ! mdsub%ht
     real(rkx) , pointer , dimension(:,:,:) :: lndcat1   ! mdsub%lndcat
@@ -415,6 +420,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: dhlake1   ! mdsub%dhlake
     integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1 ! mdsub%ldmsk
     integer(ik4) , pointer , dimension(:,:,:) :: iveg1  ! mdsub%iveg
+    integer(ik4) , pointer , dimension(:,:,:) :: itex1  ! mdsub%itex
     integer(ik4) , pointer , dimension(:,:) :: icplmsk  ! cplmsk
     real(rkx) , pointer , dimension(:,:) :: patm        ! atms%pb3d(:,:,kz)
     real(rkx) , pointer , dimension(:,:) :: uatm        ! atms%ubx3d(:,:,kz)

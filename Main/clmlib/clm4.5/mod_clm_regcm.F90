@@ -63,7 +63,7 @@ module mod_clm_regcm
     allocate(adomain%snow(begg:endg))
     allocate(adomain%smoist(begg:endg))
     allocate(adomain%tgrd(begg:endg))
-    allocate(adomain%luse(begg:endg))
+    allocate(adomain%itex(begg:endg))
     allocate(adomain%topo(begg:endg))
     allocate(adomain%xlon(begg:endg))
     allocate(adomain%xlat(begg:endg))
@@ -75,7 +75,7 @@ module mod_clm_regcm
     call glb_c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
     call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
     adomain%topo = adomain%topo*regrav
-    call glb_c2l_ss(lndcomm,lm%iveg1,adomain%luse)
+    call glb_c2l_ss(lndcomm,lm%itex1,adomain%itex)
     if ( replacemoist ) then
       do ilev = 1 , num_soil_layers
         call assignpnt(lm%rmoist,p2,ilev)

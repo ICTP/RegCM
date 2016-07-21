@@ -652,8 +652,11 @@ module mod_ncstream
             (real(nl,rkx)-0.5_rkx))-1._rkx),rk4)
         end do
 #else
+        ! Here is not precise, as the depth of levels is function of the
+        ! landuse class.
         buffer%realbuff(1) = 0.10
         buffer%realbuff(2) = 1.00
+        buffer%realbuff(3) = 3.00
 #endif
         call outstream_writevar(ncout,stvar%levsoil_var,nocopy)
       end if

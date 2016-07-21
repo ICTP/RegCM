@@ -62,11 +62,12 @@ module mod_ncio
 
 #include <pfesat.inc>
 
-  subroutine read_domain_info(ht,lnd,mask,xlat,xlon,dlat,dlon, &
+  subroutine read_domain_info(ht,lnd,tex,mask,xlat,xlon,dlat,dlon, &
                               msfx,msfd,coriol,snowam,smoist,rmoist,hlake)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ht
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: lnd
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: tex
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: mask
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: xlat
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: xlon
@@ -135,6 +136,8 @@ module mod_ncio
       mask(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
       lnd(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'texture',rspace,istart=istart,icount=icount)
+      tex(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
       msfx(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'dmap',rspace,istart=istart,icount=icount)
@@ -143,15 +146,17 @@ module mod_ncio
       coriol(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'smoist',rspace,istart=istart,icount=icount)
       smoist(jde1:jde2,ide1:ide2) = rspace
-      istart3(1:2) = istart
-      icount3(1:2) = icount
-      icount3(3) = 1
-      do ilev = 1 , num_soil_layers
-        istart3(3) = ilev
-        call read_var2d_static(idmin,'rmoist',rspace, &
-                               istart=istart3,icount=icount3)
-        rmoist(jde1:jde2,ide1:ide2,ilev) = rspace
-      end do
+      if ( replacemoist ) then
+        istart3(1:2) = istart
+        icount3(1:2) = icount
+        icount3(3) = 1
+        do ilev = 1 , num_soil_layers
+          istart3(3) = ilev
+          call read_var2d_static(idmin,'rmoist',rspace, &
+                                 istart=istart3,icount=icount3)
+          rmoist(jde1:jde2,ide1:ide2,ilev) = rspace
+        end do
+      end if
       rspace = d_zero
       call read_var2d_static(idmin,'snowam',rspace,has_snow, &
            istart=istart,icount=icount)
@@ -164,7 +169,6 @@ module mod_ncio
       call closefile(idmin)
       deallocate(rspace)
     else
-      allocate(tempmoist(jde1:jde2,ide1:ide2))
       if ( myid == iocpu ) then
         istart(1) = 1
         istart(2) = 1
@@ -179,7 +183,9 @@ module mod_ncio
         else
           replacemoist = .false.
         end if
+        call bcast(replacemoist)
         call read_var1d_static(idmin,'sigma',sigma)
+        call bcast(sigma)
         call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
@@ -203,6 +209,9 @@ module mod_ncio
         call read_var2d_static(idmin,'landuse',rspace, &
                 istart=istart,icount=icount)
         call grid_distribute(rspace,lnd,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'texture',rspace, &
+                istart=istart,icount=icount)
+        call grid_distribute(rspace,tex,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
         call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'dmap',rspace,istart=istart,icount=icount)
@@ -213,16 +222,20 @@ module mod_ncio
         call read_var2d_static(idmin,'smoist',rspace, &
                 istart=istart,icount=icount)
         call grid_distribute(rspace,smoist,jde1,jde2,ide1,ide2)
-        istart3(1:2) = istart
-        icount3(1:2) = icount
-        icount3(3) = 1
-        do ilev = 1 , num_soil_layers
-          istart3(3) = ilev
-          call read_var2d_static(idmin,'rmoist',rspace, &
-                  istart=istart3,icount=icount3)
-          call grid_distribute(rspace,tempmoist,jde1,jde2,ide1,ide2)
-          rmoist(jde1:jde2,ide1:ide2,ilev) = tempmoist
-        end do
+        if ( replacemoist ) then
+          allocate(tempmoist(jde1:jde2,ide1:ide2))
+          istart3(1:2) = istart
+          icount3(1:2) = icount
+          icount3(3) = 1
+          do ilev = 1 , num_soil_layers
+            istart3(3) = ilev
+            call read_var2d_static(idmin,'rmoist',rspace, &
+                    istart=istart3,icount=icount3)
+            call grid_distribute(rspace,tempmoist,jde1,jde2,ide1,ide2)
+            rmoist(jde1:jde2,ide1:ide2,ilev) = tempmoist
+          end do
+          deallocate(tempmoist)
+        end if
         rspace = d_zero
         call read_var2d_static(idmin,'snowam',rspace,has_snow, &
                 istart=istart,icount=icount)
@@ -235,6 +248,8 @@ module mod_ncio
         call closefile(idmin)
         deallocate(rspace)
       else
+        call bcast(replacemoist)
+        call bcast(sigma)
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,xlon,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
@@ -242,22 +257,24 @@ module mod_ncio
         call grid_distribute(rspace,ht,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,mask,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,lnd,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,tex,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,coriol,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,smoist,jde1,jde2,ide1,ide2)
-        do ilev = 1 , num_soil_layers
-          call grid_distribute(rspace,tempmoist,jde1,jde2,ide1,ide2)
-          rmoist(jde1:jde2,ide1:ide2,ilev) = tempmoist
-        end do
+        if ( replacemoist ) then
+          allocate(tempmoist(jde1:jde2,ide1:ide2))
+          do ilev = 1 , num_soil_layers
+            call grid_distribute(rspace,tempmoist,jde1,jde2,ide1,ide2)
+            rmoist(jde1:jde2,ide1:ide2,ilev) = tempmoist
+          end do
+          deallocate(tempmoist)
+        end if
         call grid_distribute(rspace,snowam,jde1,jde2,ide1,ide2)
         if ( lakemod == 1 ) then
           call grid_distribute(rspace,hlake,jde1,jde2,ide1,ide2)
         end if
       end if
-      call bcast(sigma)
-      call bcast(replacemoist)
-      deallocate(tempmoist)
     end if
     if ( idynamic == 2 .and. .not. do_parallel_netcdf_in ) then
       call getmem3d(tempw,jce1,jce2,ice1,ice2,1,kz,'read_domain:tempw')
@@ -265,10 +282,11 @@ module mod_ncio
     end if
   end subroutine read_domain_info
 
-  subroutine read_subdomain_info(ht,lnd,mask,xlat,xlon,hlake)
+  subroutine read_subdomain_info(ht,lnd,tex,mask,xlat,xlon,hlake)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ht
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: lnd
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: tex
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: mask
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xlat
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xlon
@@ -316,6 +334,8 @@ module mod_ncio
       call input_reorder(rspace,mask,jde1,jde2,ide1,ide2)
       call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
       call input_reorder(rspace,lnd,jde1,jde2,ide1,ide2)
+      call read_var2d_static(idmin,'texture',rspace,istart=istart,icount=icount)
+      call input_reorder(rspace,tex,jde1,jde2,ide1,ide2)
       if ( lakemod == 1 ) then
         call read_var2d_static(idmin,'dhlake',rspace,has_dhlake, &
                                istart=istart,icount=icount)
@@ -356,6 +376,10 @@ module mod_ncio
                 rspace,istart=istart,icount=icount)
         call input_reorder(rspace,rspace0,1,jx,1,iy)
         call subgrid_distribute(rspace0,lnd,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'texture', &
+                rspace,istart=istart,icount=icount)
+        call input_reorder(rspace,rspace0,1,jx,1,iy)
+        call subgrid_distribute(rspace0,tex,jde1,jde2,ide1,ide2)
         if ( lakemod == 1 ) then
           call read_var2d_static(idmin,'dhlake',rspace,has_dhlake, &
                                  istart=istart,icount=icount)
@@ -371,6 +395,7 @@ module mod_ncio
         call subgrid_distribute(rspace0,ht,jde1,jde2,ide1,ide2)
         call subgrid_distribute(rspace0,mask,jde1,jde2,ide1,ide2)
         call subgrid_distribute(rspace0,lnd,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,tex,jde1,jde2,ide1,ide2)
         if ( lakemod == 1 ) then
           call subgrid_distribute(rspace0,hlake,jci1,jci2,ici1,ici2)
         end if
@@ -592,7 +617,7 @@ module mod_ncio
       istart(3) = 1
       istart(4) = ibcrec
       icount(1) = jde2-jde1+1
-      icount(2) = ide2-ide1+1 
+      icount(2) = ide2-ide1+1
       icount(3) = kz
       icount(4) = 1
       istatus = nf90_get_var(ibcin,icbc_ivar(3),rspace3,istart,icount)

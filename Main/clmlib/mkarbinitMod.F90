@@ -30,7 +30,7 @@ contains
 !!abt added below rcm
     use clm_varsur   , only : satbrt_clm,init_tgb,init_snow
     use clm_varpar   , only : lsmlon,lsmlat
-    use clm_varsur   , only : slmo,iexsol,xmopor
+    use mod_bats_param , only : slmo , xmopor
     use decompMod    , only : ldecomp
     use pftvarcon    , only : smpsc
 !!abt above
@@ -95,6 +95,9 @@ contains
     real(r8), allocatable :: temp_veg1(:,:) !temporary array for storing BATS landuse type
     integer , pointer :: cgridcell(:)       !gridcell index of corresponding column
     integer , pointer :: ivt(:)             ! vegetation type
+    integer , dimension(22) :: iexsol
+    data iexsol /  6 ,  6 ,  6 ,  6 ,  7 ,  8 ,  6 ,  3 ,  6 ,  6 ,  5 , &
+                  12 ,  6 ,  6 ,  6 ,  6 ,  5 ,  6 ,  6 ,  6 , 12 ,  8 /
 !!abt added above
 !-----------------------------------------------------------------------
 

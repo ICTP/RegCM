@@ -239,8 +239,6 @@ later when the model calculates climatic parameters.
                               !  true -> Perform extra smoothing in boundaries
  lakedpth    = .false.,       ! If using lakemod (see below), produce from
                               ! terrain program the domain bathymetry
- ltexture    = .false.,       ! If using DUST tracers (see below), produce
-                              ! the domain soil texture dataset
  lsmoist     = .false.,       ! Use Satellite Soil Moisture Dataset for
                               ! initialization of soil moisture.
  fudge_lnd   = .false.,       ! Fudging Control flag, for landuse of grid 
@@ -1226,11 +1224,6 @@ We need to perform a couple of operations in the pre-processing stage to prepare
 input datasets for an aerosol/chemistry simulation.
 
 \begin{enumerate}
-  \item In the case of a \verb=DUST=, \verb=AERO= or \verb=DCCB= simulation,
-    we need the model to prepare soil type dataset to be used for dust emission
-    calculation at the \verb=terrain= program stage. The \verb=ltexture=
-    parameter in the \verb=terrainparam= namelist (see above in \ref{terparam})
-    should be set to \verb=.true.=.
   \item After having prepared the static and boundary condition data with the
     \verb=icbc= program for the atmosphere, we need also to define chemical
     emissions and chemical boundary conditions.
