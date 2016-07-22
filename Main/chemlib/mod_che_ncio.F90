@@ -261,10 +261,10 @@ module mod_che_ncio
       end if
     end subroutine read_bionem
 
-    subroutine read_miner(nsmine,cminer)
+    subroutine read_miner(nmine,cminer,sminer)
       implicit none
-      integer(ik4), intent(in) :: nsmine
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cminer
+      integer(ik4), intent(in) :: nmine
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cminer,sminer
 
       integer(ik4) :: idmin
       integer(ik4) , dimension(2) :: istart , icount
@@ -281,16 +281,16 @@ module mod_che_ncio
         istart(2) = ide1
         icount(1) = jde2-jde1+1
         icount(2) = ide2-ide1+1
-        allocate(rspace(icount(1),icount(2)))
-        call read_var2d_static(idmin,'CIRON',rspace, &
-                               istart=istart,icount=icount)
-        cminer(jci1:jci2,ici1:ici2,isciron) = &
-            max(rspace(jci1:jci2,ici1:ici2),d_zero)*0.01_rkx
-        call read_var2d_static(idmin,'CHMT',rspace, &
-                               istart=istart,icount=icount)
-        cminer(jci1:jci2,ici1:ici2,ischmt) = &
-               max(rspace(jci1:jci2,ici1:ici2),d_zero)*0.01_rkx
-        call closefile(idmin)
+!        allocate(rspace(icount(1),icount(2)))
+!        call read_var2d_static(idmin,'CIRON',rspace, &
+!                               istart=istart,icount=icount)
+!        cminer(jci1:jci2,ici1:ici2,isciron) = &
+!            max(rspace(jci1:jci2,ici1:ici2),d_zero)*0.01_rkx
+!        call read_var2d_static(idmin,'CHMT',rspace, &
+!                               istart=istart,icount=icount)
+!        cminer(jci1:jci2,ici1:ici2,ischmt) = &
+!               max(rspace(jci1:jci2,ici1:ici2),d_zero)*0.01_rkx
+!        call closefile(idmin)
       else
         if ( myid == iocpu ) then
           call openfile_withname(dname,idmin)
@@ -305,17 +305,39 @@ module mod_che_ncio
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           ! replace by the miner index
-          tmp(:,:,isciron) = rspace(:,:)*0.01_rkx
+          tmp(:,:,iiron) = rspace(:,:)*0.01_rkx
           call read_var2d_static(idmin,'CHMT',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
-          tmp(:,:,ischmt) = rspace(:,:)*0.01_rkx
-          call grid_distribute(tmp,cminer,jci1,jci2,ici1,ici2,1,nsmine)
+          tmp(:,:,ihmt) = rspace(:,:)*0.01_rkx
+
+          call read_var2d_static(idmin,'CCAL',rspace, &
+                                 istart=istart,icount=icount)
+          rspace = max(rspace,d_zero)
+          tmp(:,:,icalc) = rspace(:,:)*0.01_rkx
+
+          call grid_distribute(tmp,cminer,jci1,jci2,ici1,ici2,1,nmine)
+
+!! now the silt fraction
+          tmp = 0_rkx
+
+          call read_var2d_static(idmin,'SCAL',rspace, &
+                                 istart=istart,icount=icount)
+          rspace = max(rspace,d_zero)
+          tmp(:,:,icalc) = rspace(:,:)*0.01_rkx
+
+          call grid_distribute(tmp,sminer,jci1,jci2,ici1,ici2,1,nmine)
           call closefile(idmin)
+
         else
-          call grid_distribute(tmp,cminer,jci1,jci2,ici1,ici2,1,nsmine)
+          call grid_distribute(tmp,cminer,jci1,jci2,ici1,ici2,1,nmine)
+          call grid_distribute(tmp,sminer,jci1,jci2,ici1,ici2,1,nmine)
         end if
       end if
+
+     print*, 'ARG', maxval(cminer(:,:,icalc) + sminer(:,:,icalc))
+     
+
     end subroutine read_miner
 
     subroutine read_emission(ifreq,lyear,lmonth,lday,lhour,echemsrc)

@@ -62,7 +62,9 @@ module mod_che_emission
     !
     if ( chemsimtype(1:2) == 'DU' .or. &
          chemsimtype(1:4) == 'SSLT' .or. &
-         chemsimtype(1:4) == 'DUSS' ) return
+         chemsimtype(1:4) == 'DUSS' .or. & 
+         chemsimtype(1:4) == 'MINE' ) return
+         
     if ( ifreq == ifrqmon ) then
       if ( curry == lyear .and. currm == lmonth ) then
         if ( myid == italk ) then

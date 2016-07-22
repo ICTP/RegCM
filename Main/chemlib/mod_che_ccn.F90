@@ -37,6 +37,9 @@ module mod_che_ccn
   real(rkx), parameter :: c1 = 4.34e8_rkx
   real(rkx), parameter :: c2 = -1.8e-9_rkx
 
+  ! minimal number concentration of ccn = 30 cm-3
+  real(rkx), parameter :: ccnmin = 30.e6_rkx
+
   public :: ccn , calc_ccn
 
   contains
@@ -63,6 +66,9 @@ module mod_che_ccn
         ! now calculate ccn number from particle number
         ! cccn = cccn * abulk
         cccn(j,i,k) = c1 * (d_one - exp(c2 * cccn(j,i,k)))
+        !
+        ! finally consider a minimal concentration of CCN        
+        cccn(j,i,k) = max (ccnmin, cccn(j,i,k))
       end do
     end do
   end subroutine ccn
@@ -75,7 +81,7 @@ module mod_che_ccn
     ! distributionand calculated as (1/Dm**3)/exp(-9(logsigma)**2/2)
     ! passed in nameliste
     real(rkx) , intent(in) :: denx , mrat
-    ! res = (1D+6/(denx*1D-3))*(6.0D0/mathpi)*coef_ccn*mrat*1D+03
+    !
     res = 6.0_rkx / (mathpi * denx ) * mrat * coef_ccn
   end function calc_ccn
 

@@ -252,13 +252,14 @@ module mod_che_common
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'DUST 12 bins simulation'
     else if (chemsimtype(1:4) == 'MINE') then
-      nmine = 2
+      nmine = 3 
       nbin = 4
       ntr =  nbin * (nmine + 1)
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04',&
-                               'DMI101', 'DMI102', 'DMI103', 'DMI104',&
-                               'DMI201', 'DMI202', 'DMI203', 'DMI204' /)
+                               'IRON01', 'IRON02', 'IRON03', 'IRON04',&
+                               'HEMT01', 'HEMT02', 'HEMT03', 'HEMT04',&
+                               'CALC01', 'CALC02', 'CALC03', 'CALC04' /)
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'MINERALS 4  bins simulation'
     else if ( chemsimtype(1:4) == 'SSLT' ) then

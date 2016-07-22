@@ -58,13 +58,14 @@ module mod_che_indices
 
   !
   !DUST Mineralogy index of species in the soil moineralogy
-  !this indices are NOT tracer indices !!
-  integer(ik4) , parameter :: isciron = 1
-  integer(ik4) , parameter :: ischmt = 2
-
   ! DUST tracer mineral indices
   integer(ik4) , parameter :: iiron = 1
   integer(ik4) , parameter :: ihmt = 2
+  integer(ik4) , parameter :: icalc = 3 
+
+  character(len=4),target, dimension(4 ) :: mine_name 
+  data mine_name / 'IRON', 'HEMT', 'CALC','GOTH' /
+
 
   ! list and name of cbmz species : must be absolutely consistant with
   ! mod_cbmz_Parameters

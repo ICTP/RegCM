@@ -159,6 +159,7 @@ module mod_cu_interface
     call assignpnt(sfs%qfx,m2c%qfx)
     call assignpnt(sfs%hfx,m2c%hfx)
     call assignpnt(ktrop,m2c%ktrop)
+    call assignpnt(ccn,m2c%ccn)
     ! OUTPUT
     call assignpnt(aten%t,c2m%tten)
     call assignpnt(aten%u,c2m%uten)

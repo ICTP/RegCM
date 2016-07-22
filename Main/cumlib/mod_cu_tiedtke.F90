@@ -29,7 +29,7 @@ module mod_cu_tiedtke
   use mod_service
   use mod_runparams , only : iqc , dt , iqv , iqi , entrmax , &
          entrdd , entrmid , cprcon , entrpen , entrscv , iconv , &
-         ichem , iaerosol , ipptls , hsigma , ktau
+         ichem , iaerosol , iindirect,ipptls , hsigma , ktau
   use mod_mpmessage
   use mod_runparams , only : dt , rcrit , rprc_ocn , rprc_lnd
   use mod_runparams , only : detrpen , entrpen , entshalp , entrdd
@@ -188,7 +188,7 @@ module mod_cu_tiedtke
     call getmem2d(zlude,1,nipoi,1,kz,'mod_cu_tiedtke:zlude')
     call getmem2d(pxtec,1,nipoi,1,kz,'mod_cu_tiedtke:pxtec')
     call getmem2d(pqtec,1,nipoi,1,kz,'mod_cu_tiedtke:pqtec')
-    if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+    if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2) then
       call getmem2d(pccn,1,nipoi,1,kz,'mod_cu_tiedtke:pccn')
     end if
     call getmem2d(pmflxr,1,nipoi,1,kz+1,'mod_cu_tiedtke:pmflxr')
@@ -239,7 +239,7 @@ module mod_cu_tiedtke
           end do
         end do
       end do
-      if ( .false. .and. iaerosol == 1 ) then
+      if ( ichem==1 .and. iaerosol == 1 .and. iindirect==2) then
         do k = 1 , kz
           do ii = 1 , nipoi
             i = imap(ii)
@@ -6073,9 +6073,9 @@ module mod_cu_tiedtke
           ! of equation for l
           do n = n1 , n2
             if ( llo1(n) ) then
-              if ( .false. ) then
+              if ( ichem==1 .and. iaerosol ==1 .and. iindirect ==2 ) then
                 dnoprc = ccn(n,k)*(4.0_rkx/3.0_rkx)*mathpi * &
-                         ((rcrit*1e-4_rkx)**3)*(rhow*1e-3_rkx)*1e3_rkx
+                         ((rcrit*1e-6_rkx)**3)*rhow
               else
                 if ( ldland(n) ) then
                   dnoprc = 5.e-4_rkx

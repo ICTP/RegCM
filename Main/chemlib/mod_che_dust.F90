@@ -144,9 +144,10 @@ module mod_che_dust
   real(rkx) , pointer , dimension(:,:,:) :: dustsotex
   !
   ! Mineralogy fraction of minerals in clay and silt categories
-  real(rkx) , pointer , dimension(:,:,:) :: cminer
-  integer(ik4) , parameter :: nsmine = 2
-
+  real(rkx) , pointer , dimension(:,:,:) :: cminer,sminer
+  real(rkx) , dimension (4):: cfrac,sfrac
+  data cfrac  /1._rkx, 0.5_rkx, 0.5_rkx, 0.5_rkx /  
+  data sfrac / 0._rkx, 0.5_rkx, 0.5_rkx,  0.5_rkx /
   ! Name of variable changed ! SC. 06.10.2010
   real(rkx) , dimension(nsoil) :: dp_array
 
@@ -186,7 +187,9 @@ module mod_che_dust
         call getmem1d(frac2,1,nbin,'che_dust:frac2')
         call getmem1d(frac3,1,nbin,'che_dust:frac3')
         call getmem1d(frac,1,nbin,'che_dust:frac')
-        call getmem3d(cminer,jce1,jce2,ice1,ice2,1,nsmine,'che_dust:cminer')
+        call getmem3d(cminer,jce1,jce2,ice1,ice2,1,nmine,'che_dust:cminer')
+        call getmem3d(sminer,jce1,jce2,ice1,ice2,1,nmine,'che_dust:sminer')
+
     end if
       ilg = ici2-ici1+1
     end subroutine allocate_mod_che_dust
@@ -355,7 +358,7 @@ module mod_che_dust
 
       ! read mineral fractions
       if ( imine(1,1) > 0 ) then
-        call read_miner(nsmine,cminer)
+        call read_miner(nmine,cminer, sminer)
       end if
 
       clay2row2 = d_zero
@@ -685,14 +688,22 @@ module mod_che_dust
         end if
       end do
       ! Mineralogy flux option
-      ! introduce mineralogy here
+      ! introduce mineralogy here, implicit loop on mineral types
       if ( imine(1,1) > 0 ) then
-        do n = 1 , nbin
+        do n = 1 , nbin 
           do i = ici1 , ici2
-            chiten(jloop,i,kz,imine(n,iiron)) = &
-                   chiten(jloop,i,kz,imine(n,iiron)) + &
-                   rsfrow(i,n)*cminer(jloop,i,isciron)*egrav / &
-                   (dsigma(kz)*1.e3_rkx)
+            chiten(jloop,i,kz,imine(n,:)) = &
+                   chiten(jloop,i,kz,imine(n,:)) + &
+                   rsfrow(i,n)* ( cminer(jloop,i,:)*cfrac(n) + &
+                                  sminer(jloop,i,:)*sfrac(n) ) &
+                   *egrav / (dsigma(kz)*1.e3_rkx)
+
+
+            cemtrac(jloop,i,imine(n,:)) = cemtrac(jloop,i,imine(n,:)) + &
+                     rsfrow(i,n)* (cminer(jloop,i,:) *cfrac(n)  + &
+                                   sminer(jloop,i,:) *sfrac(n)) &
+                     * cfdout
+
           end do
         end do
       end if

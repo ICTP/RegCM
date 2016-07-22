@@ -654,6 +654,9 @@ module mod_che_drydep
             ! flux
             chifxuw(j,i,indsp(ib)) = chifxuw(j,i,indsp(ib)) - &
                 chib(j,i,kz,indsp(ib))/ cpsb(j,i) * ddepv(i,indsp(ib))
+
+            drydepv(j,i,indsp(ib)) = ddepv(i,indsp(ib))
+
           end if
           !
           ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include
