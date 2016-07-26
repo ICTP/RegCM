@@ -145,9 +145,9 @@ module mod_che_dust
   !
   ! Mineralogy fraction of minerals in clay and silt categories
   real(rkx) , pointer , dimension(:,:,:) :: cminer,sminer
-  real(rkx) , dimension (4):: cfrac,sfrac
-  data cfrac  /1._rkx, 0.5_rkx, 0.5_rkx, 0.5_rkx /  
-  data sfrac / 0._rkx, 0.5_rkx, 0.5_rkx,  0.5_rkx /
+  real(rkx) , dimension (4):: cfrac,sfrac   !************jj -----Scanza et al.,2015
+  data cfrac  /1._rkx, 0.97_rkx, 0.625_rkx, 0.429_rkx /  
+  data sfrac / 0._rkx, 0.03_rkx, 0.375_rkx,  0.571_rkx /
   ! Name of variable changed ! SC. 06.10.2010
   real(rkx) , dimension(nsoil) :: dp_array
 

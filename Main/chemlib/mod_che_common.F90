@@ -252,14 +252,24 @@ module mod_che_common
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'DUST 12 bins simulation'
     else if (chemsimtype(1:4) == 'MINE') then
-      nmine = 3 
+      nmine = 13 !*********************jj****************************** 
       nbin = 4
       ntr =  nbin * (nmine + 1)
       allocate(chtrname(ntr))
-      chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04',&
-                               'IRON01', 'IRON02', 'IRON03', 'IRON04',&
-                               'HEMT01', 'HEMT02', 'HEMT03', 'HEMT04',&
-                               'CALC01', 'CALC02', 'CALC03', 'CALC04' /)
+      chtrname(1:ntr)(1:6) = (/'DUST01', 'DUST02', 'DUST03', 'DUST04' ,&
+                               'IRON01', 'IRON02', 'IRON03', 'IRON04' ,&
+                               'HEMT01', 'HEMT02', 'HEMT03', 'HEMT04' ,&
+                               'CALC01', 'CALC02', 'CALC03', 'CALC04' ,&
+                               'GOTH01', 'GOTH02', 'GOTH03', 'GOTH04' ,& !*************jj******
+                               'CHLR01', 'CHLR02', 'CHLR03', 'CHLR04' ,&
+                               'FLDS01', 'FLDS02', 'FLDS03', 'FLDS04' ,&
+                               'QRTZ01', 'QRTZ02', 'QRTZ03', 'QRTZ04' ,&
+                               'SMEC01', 'SMEC02', 'SMEC03', 'SMEC04' ,&
+                               'VRMC01', 'VRMC02', 'VRMC03', 'VRMC04' ,&
+                               'GYPS01', 'GYPS02', 'GYPS03', 'GYPS04' ,&
+                               'MICA01', 'MICA02', 'MICA03', 'MICA04' ,&
+                               'KALO01', 'KALO02', 'KALO03', 'KALO04' ,&
+                               'ILIT01', 'ILIT02', 'ILIT03', 'ILIT04' /)!**********************
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'MINERALS 4  bins simulation'
     else if ( chemsimtype(1:4) == 'SSLT' ) then
