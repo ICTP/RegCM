@@ -562,8 +562,11 @@ module mod_lm_interface
       lm%sxlai2d = sum(lms%xlai,1)*rdnnsg
       lm%sfracb2d = sum(((d_one-lms%lncl)*(d_one-lms%scvk)),1)*rdnnsg
       lm%sfracs2d = sum((lms%lncl*lms%wt+(d_one-lms%lncl)*lms%scvk),1)*rdnnsg
-      lm%ssw2da = sum(lms%ssw,1)*rdnnsg
+!FAB here take  humidity of first soil layer, sw should be always defined  
+      lm%ssw2da = sum(lms%sw(:,:,:,1),1)*rdnnsg
+      print*, 'humidity in CLM interface', maxval(lm%ssw2da),minval(lm%ssw2da)
 #endif
+
     end if
     call collect_output
 #ifdef DEBUG
