@@ -90,7 +90,7 @@ module mod_che_dust
   integer(ik4) , parameter :: mode = 5
   integer(ik4) , parameter :: jsoilm = 1
   integer(ik4) , parameter :: jfs = 1
-  integer(ik4) , parameter :: ust = 1
+  integer(ik4) , parameter :: ust = 0 
   integer(ik4) , parameter :: ndi = 6500
 
   !choice of emission distribution 1= alfaro/gomes
@@ -994,7 +994,7 @@ module mod_che_dust
                   sumdflux(j,i) * frac(n)
             end if
             ! diagnostic source (accumulated)
-
+!            cdsfrq = cfdout
             cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
                     sumdflux(j,i)*frac(n) * cdsfrq
              if ( ichdiag == 1 ) then

@@ -267,9 +267,9 @@
 
       if ( idust(1) > 0 .and. ichdustemd < 3 .and.  ichsursrc == 1 ) then
         do j = jci1 , jci2
-          where (ivegcov(:,j) == 11)
-            zeff(:,j) = 0.01_rkx ! value set to desert type for semi-arid)
-          end where
+         ! where (ivegcov(:,j) == 11)
+         !   zeff(:,j) = 0.01D0 ! value set to desert type for semi-arid)
+         ! end where
           call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
             rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
           call sfflux(j,ivegcov(:,j),vegfrac(:,j),ustar(:,j),      &
@@ -280,7 +280,8 @@
       ! if flux calculated by clm45 / update the tendency if ichdustemd == 3
 #if defined CLM45
       if (idust(1) > 0 .and.  ichdustemd == 3 .and. ichsursrc == 1 ) then
-        if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) call clm_dust_tend
+!        if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) call clm_dust_tend
+         call clm_dust_tend
       end if
 #endif
       !sea salt

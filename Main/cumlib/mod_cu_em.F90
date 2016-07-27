@@ -27,7 +27,7 @@ module mod_cu_em
   use mod_memutil
   use mod_runparams , only : alphae , betae , coeffr , coeffs , cu ,  &
     damp , dtmax , entp , minorig , omtrain , omtsnow , sigd , sigs , &
-    tlcrit , iqv , ichem , dxsq , clfrcv , rdt
+    tlcrit , iqv , ichem , dxsq , clfrcv , rdt, ichcumtra
   use mod_cu_common
   use mod_service
   use mod_regcm_types
@@ -211,7 +211,7 @@ module mod_cu_em
         end do
 
         ! Tracer tendency
-        if (ichem == 1 ) then
+        if (ichem == 1 .and. ichcumtra ==1 .and. .not.any(icup==2 .or. icup==6)) then
           do k = 1 , kz
             kk = kzp1 - k
             cu_chiten(j,i,kk,:) = ftra(n,k,:)

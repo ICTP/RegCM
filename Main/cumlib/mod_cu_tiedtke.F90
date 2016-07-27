@@ -29,7 +29,7 @@ module mod_cu_tiedtke
   use mod_service
   use mod_runparams , only : iqc , dt , iqv , iqi , entrmax , &
          entrdd , entrmid , cprcon , entrpen , entrscv , iconv , &
-         ichem , iaerosol , iindirect,ipptls , hsigma , ktau
+         ichem , iaerosol , iindirect,ipptls , hsigma , ktau,ichcumtra
   use mod_mpmessage
   use mod_runparams , only : dt , rcrit , rprc_ocn , rprc_lnd
   use mod_runparams , only : detrpen , entrpen , entshalp , entrdd
@@ -404,7 +404,7 @@ module mod_cu_tiedtke
       end do
     end if
 
-    if ( ichem == 1 ) then
+    if ( ichem == 1 .and. ichcumtra ==1 .and. .not. any(icup==2 .or. icup==6)) then
       do k = 1 , kz
         do ii = 1 , nipoi
           if (ktype(ii) > 0) then

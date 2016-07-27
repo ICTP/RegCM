@@ -1628,10 +1628,12 @@ module mod_tendency
         end do
       end do
       !
-      ! do cumulus transport/mixing of tracers for the schemes allowing it
-      !
+      ! do cumulus simple transport/mixing of tracers for the schemes 
+      ! without explicit convective transport (Grell and KF up to now).
+      ! works also in case 2 conv schemes over land and ocean are used, and if one of them is grell
+      ! or kf. in this case trac tendency are not updated in the other convec scheme, cf mod_cu_em and mod_cu_tiedke. 
       if ( ktau > 0 .and. mod(ktau+1,ntcum) == 0 .and. &
-           ichcumtra == 1 .and. any(icup == 4 .or. icup == 5) ) then
+           ichcumtra == 1 .and. any(icup == 2 .or. icup == 6 ) ) then
         call cumtran
       end if
     end if

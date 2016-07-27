@@ -333,6 +333,13 @@ module mod_clm_dust
 
         dst_slt_flx_rat_ttl = 100.0_rk8 * &
                 exp( log(10.0_rk8) * (13.4_rk8 * mss_frc_cly_vld(c) - 6.0_rk8) )
+
+!FAB TEST : this is theoretically the correct formula / differes by exactly of a
+!factor 100 form the clm45 supported forumla
+! the correction is done by adjusting rdstem factor in the regcm namelist /...
+! dst_slt_flx_rat_ttl = 10**((13.4D0 * mss_frc_cly_vld(c) - 6.0D0) )
+
+
         flx_mss_vrt_dst_ttl(p) = flx_mss_hrz_slt_ttl * dst_slt_flx_rat_ttl
 
       end if   ! lnd_frc_mbl > 0.0
