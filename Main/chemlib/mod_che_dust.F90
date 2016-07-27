@@ -819,7 +819,7 @@ module mod_che_dust
       integer(ik4) :: n , i
       do n = 1 , nsoil
         do i = il1 , il2
-          if ( ust == 1 ) utheff(i,n) = ustart0(rhodust,dp_array(n),roarow(i))
+          if ( ust == 0 ) utheff(i,n) = ustart0(rhodust,dp_array(n),roarow(i))
           if ( ust == 1 ) utheff(i,n) = ustart01(rhodust,dp_array(n),roarow(i))
         end do
       end do
