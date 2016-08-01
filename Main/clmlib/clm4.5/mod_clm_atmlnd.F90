@@ -410,9 +410,6 @@ end subroutine init_atm2lnd_type
                cptr%cws%h2osno,clm_l2a%h2osno, &
                c2l_scale_type='urbanf',        &
                l2g_scale_type='unity')
-      do g = begg,endg
-        clm_l2a%h2osno(g) = clm_l2a%h2osno(g)/1000._rk8
-      end do
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                cptr%cps%z(:,1:nlevsoi),clm_l2a%soidpth, &
                c2l_scale_type='unity',                &
@@ -453,9 +450,6 @@ end subroutine init_atm2lnd_type
                cptr%cws%h2osno,clm_l2a%h2osno, &
                c2l_scale_type='urbanf',        &
                l2g_scale_type='unity')
-      do g = begg , endg
-        clm_l2a%h2osno(g) = clm_l2a%h2osno(g)/1000._rk8
-      end do
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi,               &
                cptr%cws%h2osoi_vol(:,1:nlevsoi),clm_l2a%h2osoi_vol, &
                c2l_scale_type='unity',                              &

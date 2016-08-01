@@ -135,6 +135,8 @@ module mod_lm_interface
     call assignpnt(lms%sw,lms%rsw,2)
     call assignpnt(lms%sw,lms%tsw,3)
 #else
+    call assignpnt(lms%sw,lms%ssw,1)
+    call assignpnt(lms%sw,lms%rsw,2)
     call getmem3d(lms%tsw,1,nnsg,jci1,jci2,ici1,ici2,'lm:tsw')
 #endif
     call getmem3d(lms%tgbb,1,nnsg,jci1,jci2,ici1,ici2,'lm:tgbb')

@@ -1247,7 +1247,7 @@ module mod_clm_mkarbinit
             end if
           end do
         end if
-        fsat(c)   = 0.0_rk8
+        fsat(c) = 0.0_rk8
 #endif
       end if
     end do
