@@ -67,8 +67,8 @@ module mod_che_ccn
         ! cccn = cccn * abulk
         cccn(j,i,k) = c1 * (d_one - exp(c2 * cccn(j,i,k)))
         !
-        ! finally consider a minimal concentration of CCN        
-        cccn(j,i,k) = max (ccnmin, cccn(j,i,k))
+        ! finally consider a minimal concentration of CCN
+        cccn(j,i,k) = max(ccnmin, cccn(j,i,k))
       end do
     end do
   end subroutine ccn

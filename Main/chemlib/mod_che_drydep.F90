@@ -613,8 +613,8 @@ module mod_che_drydep
           !
           if ( ichdrdepo == 1 ) then
 
-            ! settend(i,kz) =  (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
-            !                   wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
+            ! settend(i,kz) = (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
+            !                  wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
             settend(i,kz) = max(chib(j,i,kz,indsp(ib)),mintr) * &
               (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt ))/dt -  &
                             wk(i,kz) * &
@@ -640,25 +640,23 @@ module mod_che_drydep
 
             ! accumulated diagnostic for dry deposition flux
             ! average (in kg .m2.s-1)
-!            remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-!                                    cdrydepflx(j,i,indsp(ib)) * cfdout
-! bugfix: remdrd is accumulated and averaged at a different frequency than drydepflx accum !                
-! do not use drydepflx in the formula
-             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-                                   (chib(j,i,kz,indsp(ib))  - settend(i,kz)*dt/d_two) / &
-                                    cpsb(j,i) * crhob3d(j,i,kz) * ddepv(i,indsp(ib))* cfdout
-
-!alternative formulation using tendency/flux relationship
-!            remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-!                                    chib3d(j,i,kz,indsp(ib)) * &
-!                                    (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt ))/dt  &
-!                                     * crhob3d(j,i,kz) / cdzq(j,i,kz) * cfdout
-
+            ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
+            !                         cdrydepflx(j,i,indsp(ib)) * cfdout
+            ! bugfix: remdrd is accumulated and averaged at a different
+            ! frequency than drydepflx accum !
+            ! do not use drydepflx in the formula
+            remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
+                     (chib(j,i,kz,indsp(ib))  - settend(i,kz)*dt/d_two) / &
+                      cpsb(j,i) * crhob3d(j,i,kz) * ddepv(i,indsp(ib))* cfdout
+            ! alternative formulation using tendency/flux relationship
+            ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
+            !            chib3d(j,i,kz,indsp(ib)) * &
+            !         (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt ))/dt  &
+            !           * crhob3d(j,i,kz) / cdzq(j,i,kz) * cfdout
 
             ! no net flux is passed to BL schemes in this case
             chifxuw(j,i,indsp(ib)) = d_zero
             drydepv(j,i,indsp(ib)) = d_zero
-
           else if ( ichdrdepo == 2 ) then
             !
             ! add the dry deposition term to the net emision/deposition flux
@@ -666,9 +664,7 @@ module mod_che_drydep
             ! flux
             chifxuw(j,i,indsp(ib)) = chifxuw(j,i,indsp(ib)) - &
                 chib(j,i,kz,indsp(ib))/ cpsb(j,i) * ddepv(i,indsp(ib))
-
             drydepv(j,i,indsp(ib)) = ddepv(i,indsp(ib))
-
           end if
           !
           ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include

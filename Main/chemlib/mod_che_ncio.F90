@@ -264,7 +264,7 @@ module mod_che_ncio
     subroutine read_miner(nmine,cminer,sminer)
       implicit none
       integer(ik4), intent(in) :: nmine
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cminer,sminer
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cminer , sminer
 
       integer(ik4) :: idmin
       integer(ik4) , dimension(2) :: istart , icount
@@ -281,6 +281,8 @@ module mod_che_ncio
         istart(2) = ide1
         icount(1) = jde2-jde1+1
         icount(2) = ide2-ide1+1
+        call fatal(__FILE__,__LINE__, &
+                       'NOT IMPLEMENTED PARALLEL')
 !        allocate(rspace(icount(1),icount(2)))
 !        call read_var2d_static(idmin,'CIRON',rspace, &
 !                               istart=istart,icount=icount)
@@ -302,7 +304,6 @@ module mod_che_ncio
           allocate(tmp(size(rspace,1),size(rspace,2),nmine))
           ! read all miner variable in file ( percent converted to fraction)
           tmp = 0_rkx   !*****************jj**************
-
           call read_var2d_static(idmin,'CIRON',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
@@ -317,71 +318,52 @@ module mod_che_ncio
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,icalc) = rspace(:,:)*0.01_rkx
-
-!*********************************************added --jj*******************
-
-         call read_var2d_static(idmin,'CGTH',rspace, &
+          !********************************added --jj*******************
+          call read_var2d_static(idmin,'CGTH',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,igth) = rspace(:,:)*0.01_rkx
-
-
-
-
-         call read_var2d_static(idmin,'CCHL',rspace, &
+          call read_var2d_static(idmin,'CCHL',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,ichl) = rspace(:,:)*0.01_rkx
-
-         call read_var2d_static(idmin,'CFLD',rspace, &
+          call read_var2d_static(idmin,'CFLD',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,ifld) = rspace(:,:)*0.01_rkx
-
-         call read_var2d_static(idmin,'CQTZ',rspace, &
+          call read_var2d_static(idmin,'CQTZ',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,iqtz) = rspace(:,:)*0.01_rkx
-
-         call read_var2d_static(idmin,'CSMEC',rspace, &
+          call read_var2d_static(idmin,'CSMEC',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,ismec) = rspace(:,:)*0.01_rkx
-
-         call read_var2d_static(idmin,'CVMC',rspace, &
+          call read_var2d_static(idmin,'CVMC',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,ivmc) = rspace(:,:)*0.01_rkx
-
-
-         call read_var2d_static(idmin,'CKAL',rspace, &
+          call read_var2d_static(idmin,'CKAL',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,ikal) = rspace(:,:)*0.01_rkx
-
-
-         call read_var2d_static(idmin,'CILT',rspace, &
+          call read_var2d_static(idmin,'CILT',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,iilt) = rspace(:,:)*0.01_rkx
-
-
-!**************************************************************************
+          !***********************************************************
           call grid_distribute(tmp,cminer,jci1,jci2,ici1,ici2,1,nmine)
-
-!! now the silt fraction
+          !! now the silt fraction
           tmp = 0_rkx
-
           call read_var2d_static(idmin,'SCAL',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,icalc) = rspace(:,:)*0.01_rkx
-!**********************************8added --jjoshi****************************
+          !****************8added --jjoshi****************************
           call read_var2d_static(idmin,'SGTH',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,igth) = rspace(:,:)*0.01_rkx
-
           call read_var2d_static(idmin,'SCHL',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
@@ -391,40 +373,26 @@ module mod_che_ncio
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,ifld) = rspace(:,:)*0.01_rkx
-
-
-
           call read_var2d_static(idmin,'SQTZ',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,iqtz) = rspace(:,:)*0.01_rkx
-
-
-
           call read_var2d_static(idmin,'SGYP',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,igyp) = rspace(:,:)*0.01_rkx
-
           call read_var2d_static(idmin,'SMICA',rspace, &
                                  istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           tmp(:,:,imica) = rspace(:,:)*0.01_rkx
-
-
-!*************************************************************************
+          !************************************************************
           call grid_distribute(tmp,sminer,jci1,jci2,ici1,ici2,1,nmine)
           call closefile(idmin)
-
         else
           call grid_distribute(tmp,cminer,jci1,jci2,ici1,ici2,1,nmine)
           call grid_distribute(tmp,sminer,jci1,jci2,ici1,ici2,1,nmine)
         end if
       end if
-
-     print*, 'ARG', maxval(cminer(:,:,icalc) + sminer(:,:,icalc))
-     
-
     end subroutine read_miner
 
     subroutine read_emission(ifreq,lyear,lmonth,lday,lhour,echemsrc)

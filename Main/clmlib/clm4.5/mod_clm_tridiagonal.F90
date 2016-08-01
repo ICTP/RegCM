@@ -56,7 +56,7 @@ module mod_clm_tridiagonal
     end do
 
     do j = lbj , ubj
-      do fc = 1,numf
+      do fc = 1 , numf
         ci = filter(fc)
         if ( (ctype(ci) == icol_sunwall .or. &
               ctype(ci) == icol_shadewall .or. &

@@ -90,7 +90,7 @@ module mod_che_dust
   integer(ik4) , parameter :: mode = 5
   integer(ik4) , parameter :: jsoilm = 1
   integer(ik4) , parameter :: jfs = 1
-  integer(ik4) , parameter :: ust = 0 
+  integer(ik4) , parameter :: ust = 0
   integer(ik4) , parameter :: ndi = 6500
 
   !choice of emission distribution 1= alfaro/gomes
@@ -144,9 +144,10 @@ module mod_che_dust
   real(rkx) , pointer , dimension(:,:,:) :: dustsotex
   !
   ! Mineralogy fraction of minerals in clay and silt categories
-  real(rkx) , pointer , dimension(:,:,:) :: cminer,sminer
-  real(rkx) , dimension (4):: cfrac,sfrac   !************jj -----Scanza et al.,2015
-  data cfrac  /1._rkx, 0.97_rkx, 0.625_rkx, 0.429_rkx /  
+  real(rkx) , pointer , dimension(:,:,:) :: cminer , sminer
+  !************jj -----Scanza et al.,2015
+  real(rkx) , dimension (4):: cfrac , sfrac
+  data cfrac  /1._rkx, 0.97_rkx, 0.625_rkx, 0.429_rkx /
   data sfrac / 0._rkx, 0.03_rkx, 0.375_rkx,  0.571_rkx /
   ! Name of variable changed ! SC. 06.10.2010
   real(rkx) , dimension(nsoil) :: dp_array
@@ -189,7 +190,6 @@ module mod_che_dust
         call getmem1d(frac,1,nbin,'che_dust:frac')
         call getmem3d(cminer,jce1,jce2,ice1,ice2,1,nmine,'che_dust:cminer')
         call getmem3d(sminer,jce1,jce2,ice1,ice2,1,nmine,'che_dust:sminer')
-
     end if
       ilg = ici2-ici1+1
     end subroutine allocate_mod_che_dust
@@ -358,7 +358,7 @@ module mod_che_dust
 
       ! read mineral fractions
       if ( imine(1,1) > 0 ) then
-        call read_miner(nmine,cminer, sminer)
+        call read_miner(nmine,cminer,sminer)
       end if
 
       clay2row2 = d_zero
@@ -690,7 +690,7 @@ module mod_che_dust
       ! Mineralogy flux option
       ! introduce mineralogy here, implicit loop on mineral types
       if ( imine(1,1) > 0 ) then
-        do n = 1 , nbin 
+        do n = 1 , nbin
           do i = ici1 , ici2
             chiten(jloop,i,kz,imine(n,:)) = &
                    chiten(jloop,i,kz,imine(n,:)) + &

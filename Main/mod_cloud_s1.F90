@@ -33,7 +33,7 @@ module mod_cloud_s1
   use mod_runparams , only : iqqs => iqs !snow
   use mod_runparams , only : sigma
   use mod_runparams , only : dt
-  use mod_runparams , only : ipptls, ichem, iaerosol, iindirect, rcrit
+  use mod_runparams , only : ipptls , ichem , iaerosol , iindirect , rcrit
   use mod_runparams , only : stats , budget_compute , nssopt , iautoconv
   use mod_runparams , only : auto_rate_khair , auto_rate_kessl , &
                              auto_rate_klepi
@@ -391,6 +391,7 @@ module mod_cloud_s1
     call assignpnt(rain_ls,rainls)
     call assignpnt(mddom%ldmsk,ldmsk)
     call assignpnt(ccn,pccn)
+
     ! Define species phase, 0 = vapour, 1 = liquid, 2 = ice
     iphase(iqqv) = 0
     iphase(iqql) = 1
@@ -1576,21 +1577,22 @@ module mod_cloud_s1
                   ! land (polluted, high ccn, smaller droplets, higher
                   !       threshold)
                   ! sea  (clean, low ccn, larger droplets, lower threshold)
-                    if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 .and. pccn(j,i,k) > 0._rkx ) then
-                     ! aerosol second indirect effect on autoconversion
-                     ! threshold, rcrit is a critical cloud radius for cloud
-                     ! water undergoing autoconversion
-                     ! pccn = number of ccn /m3
-                     xlcrit = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
-                         ((rcrit*1e-6_rkx)**3)*rhoh2o
+                  if ( ichem == 1 .and. iaerosol == 1 .and. &
+                       iindirect == 2 .and. pccn(j,i,k) > 0._rkx ) then
+                    ! aerosol second indirect effect on autoconversion
+                    ! threshold, rcrit is a critical cloud radius for cloud
+                    ! water undergoing autoconversion
+                    ! pccn = number of ccn /m3
+                    xlcrit = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+                             ((rcrit*1e-6_rkx)**3)*rhoh2o
+                  else
+                    if ( ldmsk(j,i) == 0 ) then  ! landmask =0 land, =1 ocean
+                      ! THRESHOLD VALUE FOR RAIN AUTOCONVERSION OVER LAND
+                      xlcrit = rclcrit_land ! landrclcrit_land = 5.e-4
                     else
-                       if ( ldmsk(j,i) == 0 ) then  ! landmask =0 land, =1 ocean
-                         ! THRESHOLD VALUE FOR RAIN AUTOCONVERSION OVER LAND
-                         xlcrit = rclcrit_land ! landrclcrit_land = 5.e-4
-                       else
-                         xlcrit = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
-                       end if
-                   endif
+                      xlcrit = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
+                    end if
+                  endif
                   !-----------------------------------------------------------
                   ! parameters for cloud collection by rain and snow.
                   ! note that with new prognostic variable it is now possible
@@ -1607,7 +1609,7 @@ module mod_cloud_s1
                   else
                     rainaut = alpha1
                   end if
-                 
+
                   !-----------------------
                   ! rain freezes instantly
                   !-----------------------

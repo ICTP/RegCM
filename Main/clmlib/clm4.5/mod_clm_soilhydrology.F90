@@ -1235,6 +1235,18 @@ module mod_clm_soilhydrology
     ! Solve for dwat
 
     jtop(:) = 1
+    where ( abs(amx) < 1.e-20_rk8 )
+      amx = sign(1.0e-20_rk8,amx)
+    end where
+    where ( abs(bmx) < 1.e-20_rk8 )
+      bmx = sign(1.0e-20_rk8,bmx)
+    end where
+    where ( abs(cmx) < 1.e-20_rk8 )
+      cmx = sign(1.0e-20_rk8,cmx)
+    end where
+    where ( abs(rmx) < 1.e-20_rk8 )
+      rmx = sign(1.0e-20_rk8,rmx)
+    end where
     call Tridiagonal(lbc, ubc, 1, nlevsoi+1, jtop,      &
                      num_hydrologyc, filter_hydrologyc, &
                      amx, bmx, cmx, rmx, dwat2 )

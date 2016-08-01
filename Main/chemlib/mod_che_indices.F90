@@ -61,8 +61,8 @@ module mod_che_indices
   ! DUST tracer mineral indices
   integer(ik4) , parameter :: iiron = 1
   integer(ik4) , parameter :: ihmt = 2
-  integer(ik4) , parameter :: icalc = 3 
-!*********************************************** added -jj ****
+  integer(ik4) , parameter :: icalc = 3
+  !*********************************************** added -jj ****
   integer(ik4) , parameter :: igth = 4
   integer(ik4) , parameter :: ichl = 5
   integer(ik4) , parameter :: ifld = 6
@@ -73,13 +73,12 @@ module mod_che_indices
   integer(ik4) , parameter :: imica = 11
   integer(ik4) , parameter :: ikal = 12
   integer(ik4) , parameter :: iilt = 13
+  !**************************************************************
 
-
-!**************************************************************
-
-  character(len=4),target, dimension(13) :: mine_name 
-  data mine_name / 'IRON', 'HEMT', 'CALC','GOTH','CHLR','FLDS','QRTZ','SMEC','VRMC','GYPS','MICA','KALO','ILIT' /  !***jj***
-
+  character(len=4) , target , dimension(13) :: mine_name
+  data mine_name / 'IRON', 'HEMT', 'CALC', 'GOTH', 'CHLR', 'FLDS', &
+                   'QRTZ', 'SMEC', 'VRMC', 'GYPS', 'MICA', 'KALO', &
+                   'ILIT' /  !***jj***
 
   ! list and name of cbmz species : must be absolutely consistant with
   ! mod_cbmz_Parameters

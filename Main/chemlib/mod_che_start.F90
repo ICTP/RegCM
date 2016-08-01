@@ -223,23 +223,15 @@ module mod_che_start
         chtrsol(itr) = solsslt(jbin)
       end if
       ! mineralogical dust tracer
-
-      print*, mine_name, chtrname(itr)(1:4)
-      print* , any ( mine_name == chtrname(itr)(1:4))
-      if (any ( mine_name == chtrname(itr)(1:4) )) then 
+      if ( any(mine_name == chtrname(itr)(1:4)) ) then
         if ( chtrname(itr)(1:4) /= minamesav(1:4) ) then
           mbin = 0
           mmin = mmin+1
         end if
         mbin = mbin + 1
         imine(mbin,mmin) = itr
-        minamesav = chtrname(itr) 
-        print*,mbin,mmin,imine(mbin,mmin)
+        minamesav = chtrname(itr)
       end if
-
-    
-
-
 !      if ( chtrname(itr)(1:3) == 'DMI' ) then
 !        if ( chtrname(itr)(1:4) /= minamesav(1:4) ) then
 !          mbin = 0
