@@ -272,7 +272,7 @@ module mod_precip
             ! 2bcb. Raindrop evaporation [kg/kg/s]
             if ( l_lat_hack ) then
               rdevap = sun_cevap(j,i)*(rhmax-rhcs) * &
-                sqrt(pptsum(j,i))*(d_one-afc)
+                           sqrt(pptsum(j,i))*(d_one-afc)
             else
               rdevap = cevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(d_one-afc)
             end if
