@@ -327,13 +327,13 @@ if test -z "$COMPILER_GNU_TRUE"; then
 #      exit 1
 #    fi
 #  fi
-  FCFLAGS="-fconvert=big-endian -fno-range-check -finline-functions -fPIC"
+  FCFLAGS="-fconvert=big-endian -fno-range-check -fPIC"
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
 fi
 if test -z "$COMPILER_INTEL_TRUE"; then
   FCFLAGS="-convert big_endian -assume byterecl \
-           -heap-arrays -finline-functions -fPIC"
+           -heap-arrays -fPIC"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
   LIBS=`echo $LIBS | sed -e 's/-Wl,--as-needed//g'`
@@ -397,7 +397,7 @@ if eval "test x$DEBUG = x1"; then
   if test -z "$COMPILER_PGI_TRUE"; then
     FCFLAGS="-Mbounds -Mcache_align -Mchkfpstk -Mchkstk -Mdalign -Mdclchk \
              -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=denorm -O0 -g \
-	     -traceback $FCFLAGS"
+             -traceback $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_CRAY_TRUE"; then
@@ -412,7 +412,7 @@ else
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
     if test -z "${osname##Linux}"; then
-      FCFLAGS="-O3 -mtune=native -march=native $FCFLAGS"
+      FCFLAGS="-O3 -finline-functions -mtune=native -march=native $FCFLAGS"
     else
       # MacOSX may choke on using AVX extensions...
       FCFLAGS="-O3 $FCFLAGS"
@@ -514,6 +514,6 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  Main/radlib/RRTMG_SW/Makefile Main/pbllib/Makefile \
                  Tools/Programs/CheckSun/Makefile \
                  Tools/Programs/RegCM_read/Makefile \
-		 Tools/Programs/timeseries/Makefile])
+                 Tools/Programs/timeseries/Makefile])
 
 AC_OUTPUT
