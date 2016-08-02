@@ -101,7 +101,7 @@ module mod_che_emission
 
     real(rkx) , intent(in) ::declin
     integer(ik4)  :: i , itr
-    real(rkx) :: daylen , fact , maxelev , amp,dayhr
+    real(rkx) :: daylen , fact , maxelev , amp , dayhr
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'emis_tend'
     integer(ik4) , save :: idindx = 0
@@ -148,9 +148,9 @@ module mod_che_emission
           ! Maximum sun elevation
           maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
           fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
-          a = 12.0_rkx*mathpi/daylen
+          amp = 12.0_rkx*mathpi/daylen
           tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
-          chemsrc(j,i,iisop) = (amp)*chemsrc(j,i,iisop) * &
+          chemsrc(j,i,iisop) = amp*chemsrc(j,i,iisop) * &
                               sin(mathpi*fact)*egrav/(dsigma(kz)*1.0e3_rkx)
         end if
       end do
