@@ -91,11 +91,9 @@ module mod_che_emission
 #endif
   end subroutine chem_emission
   !
-
-  subroutine emis_tend(ktau,j,lmonth,declin)
-  !
   ! Calculation of emission tendency
   !
+  subroutine emis_tend(ktau,j,lmonth,declin)
     implicit none
 
     integer(ik4) , intent(in) :: j , lmonth
@@ -110,54 +108,53 @@ module mod_che_emission
     call time_begin(subroutine_name,idindx)
 #endif
 
-
     ! gather anthropogenic and biogenic emissions and
     ! calculate the emission tendency from emission fluxes
 
-   
 #ifdef CLM45
-      ! overwrite or add chemsrc for biogenic in case of CLM45/BVOC option
-      ! test if CLM BVOC is activated and add bio component to chemsrc.
+    ! overwrite or add chemsrc for biogenic in case of CLM45/BVOC option
+    ! test if CLM BVOC is activated and add bio component to chemsrc.
 
-      !isoprene ( overwrite biogenic emission from inventory  / rq this way  we  negelect the anthropog isoprene emissions )  
-        if (iisop > 0) then
-        do i = ici1, ici2
-          chemsrc(j,i,iisop) = cvoc_em_clm(j,i,iisop)
-        end do
-        end if
+    ! isoprene ( overwrite biogenic emission from inventory  / rq
+    ! this way  we  negelect the anthropog isoprene emissions )
+    if ( iisop > 0 ) then
+      do i = ici1, ici2
+        chemsrc(j,i,iisop) = cvoc_em_clm(j,i,iisop)
+      end do
+    end if
 
-      ! other BVOC : to do !!
+    ! other BVOC : to do !!
 
-      ! methane : add the biogenic part from CLM to anthropogenic
-      ! nb the CN/LCH4 CLM flag have to be activated                 
-       if (ich4 > 0) then
-        do i = ici1, ici2
-          chemsrc(j,i,ich4) = chemsrc(j,i,ich4) +  cvoc_em_clm(j,i,ich4)
-        end do
-       end if
-
+    ! methane : add the biogenic part from CLM to anthropogenic
+    ! nb the CN/LCH4 CLM flag have to be activated
+    if ( ich4 > 0 ) then
+      do i = ici1, ici2
+        chemsrc(j,i,ich4) = chemsrc(j,i,ich4) +  cvoc_em_clm(j,i,ich4)
+      end do
+    end if
 #else
-      ! Modify chemsrc for isoprene from inventory to account for simplified  dirunal cycle
-      if (iisop >0) then 
+    ! Modify chemsrc for isoprene from inventory to account for
+    ! simplified dirunal cycle
+    if ( iisop > 0 ) then
       do i = ici1 , ici2
-        dayhr=-tan(declin)*tan(cxlat(j,i)*degrad)
-        if(dayhr .lt. -1 .or. dayhr .gt. 1) then
-        tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
-        chemsrc(j,i,iisop) = 0.0
+        dayhr = -tan(declin)*tan(cxlat(j,i)*degrad)
+        if ( dayhr < -1 .or. dayhr > 1 ) then
+          tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
+          chemsrc(j,i,iisop) = 0.0
         else
-        daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
-        daylen = d_two*acos(dayhr)*raddeg
-        daylen = daylen*24.0_rkx/360.0_rkx
-        ! Maximum sun elevation
-        maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
-        fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
-        a= 12.0_rkx*mathpi/daylen
-        tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
-        chemsrc(j,i,iisop) = (amp)*chemsrc(j,i,iisop) * &
-                            sin(mathpi*fact)*egrav/(dsigma(kz)*1.0e3_rkx)
+          daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
+          daylen = d_two*acos(dayhr)*raddeg
+          daylen = daylen*24.0_rkx/360.0_rkx
+          ! Maximum sun elevation
+          maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
+          fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
+          a = 12.0_rkx*mathpi/daylen
+          tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
+          chemsrc(j,i,iisop) = (amp)*chemsrc(j,i,iisop) * &
+                              sin(mathpi*fact)*egrav/(dsigma(kz)*1.0e3_rkx)
         end if
-      end do   
-      end if  
+      end do
+    end if
 #endif
     !
     ! add the source term to tracer tendency
@@ -183,29 +180,29 @@ module mod_che_emission
       do itr = 1 , ntr
         if ( chtrname(itr)(1:2) == 'DU' .or. &
              chtrname(itr)(1:4) == 'SSLT' .or. &
-             chtrname(itr)(1:6) == 'POLLEN'.or. & 
+             chtrname(itr)(1:6) == 'POLLEN'.or. &
              any ( mine_name == chtrname(itr)(1:4) )) cycle
-          do i = ici1 , ici2
-              ! if PBL scheme is not UW then calculate emission tendency
-              if ( ibltyp /= 2 ) then
-                chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
-                   chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0e3_rkx)
-              end if
-              ! otherwise emission is injected in the PBL scheme ( together
-              ! with dry deposition) for tend calculation
-              chifxuw(j,i,itr) = chifxuw(j,i,itr) +  chemsrc(j,i,itr)
-              ! diagnostic for source, cumul
-              cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
-              if ( ichdiag == 1 ) then
-                ! in this case we calculate emission tendency diagnostic, but
-                ! this term will also be included in BL tendency diagnostic
-                ! if UW scheme is used.
-                if ( ibltyp /= 2 ) then
-                  cemisdiag(j,i,itr) = cemisdiag(j,i,itr) + &
-                     chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
-                end if
-              end if
-          end do
+        do i = ici1 , ici2
+          ! if PBL scheme is not UW then calculate emission tendency
+          if ( ibltyp /= 2 ) then
+            chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
+                 chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0e3_rkx)
+          end if
+          ! otherwise emission is injected in the PBL scheme ( together
+          ! with dry deposition) for tend calculation
+          chifxuw(j,i,itr) = chifxuw(j,i,itr) +  chemsrc(j,i,itr)
+          ! diagnostic for source, cumul
+          cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
+          if ( ichdiag == 1 ) then
+            ! in this case we calculate emission tendency diagnostic, but
+            ! this term will also be included in BL tendency diagnostic
+            ! if UW scheme is used.
+            if ( ibltyp /= 2 ) then
+              cemisdiag(j,i,itr) = cemisdiag(j,i,itr) + &
+                 chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+            end if
+          end if
+        end do
       end do
     end if
 

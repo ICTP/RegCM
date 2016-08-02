@@ -193,7 +193,7 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    real(rk4) , dimension(1:nnsg,jci1:jci2,ici1:ici2) :: lastgood
+    real(rkx) , dimension(1:nnsg,jci1:jci2,ici1:ici2) :: lastgood
     ! Just get albedoes from clm_l2a
     clm_l2a%notused = clm_l2a%albd(:,1)
     lastgood = lms%swdiralb
@@ -484,7 +484,7 @@ module mod_clm_regcm
         if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0) then
           clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
           call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-          lms%vocemiss(:,:,:,iisop) = real(emis2d,rk4)
+          lms%vocemiss(:,:,:,iisop) = real(emis2d,rkx)
         end if
         ! add compatibility for other biogenic species !! /
         !
@@ -503,7 +503,7 @@ module mod_clm_regcm
       do k = 1 , 4
         clm_l2a%notused(:) = clm_l2a%flxdst(:,k)
         call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-        lms%dustemiss(:,:,:,k) = real(emis2d,rk4)
+        lms%dustemiss(:,:,:,k) = real(emis2d,rkx)
       end do
       deallocate(emis2d)
     end if
@@ -520,13 +520,13 @@ module mod_clm_regcm
     !clm_l2a%flxdst
     !clm_l2a%ddvel
 #ifdef LCH4
-! factor 1.33 is to convert from kgC to kgCH4  
-    if ( ichem == 1 .and. ich4 > 0) then
+    ! factor 1.33 is to convert from kgC to kgCH4
+    if ( ichem == 1 .and. ich4 > 0 ) then
       allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
       emis2d = 0.0_rk8
-          clm_l2a%notused(:) = clm_l2a%flux_ch4(:) * 1.33_rk4
-          call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-          lms%vocemiss(:,:,:,ich4) = real(emis2d,rk4)
+      clm_l2a%notused(:) = clm_l2a%flux_ch4(:) * 1.33_rk8
+      call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+      lms%vocemiss(:,:,:,ich4) = real(emis2d,rkx)
       deallocate(emis2d)
     end if
   !clm_l2a%flux_ch4

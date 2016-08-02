@@ -167,7 +167,7 @@ module mod_atm_interface
 #endif
 
   contains
-!
+
     subroutine setup_model_indexes
       implicit none
       ma%jbl1 = 1
@@ -509,7 +509,7 @@ module mod_atm_interface
         call getmem3d(xb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,ke,'v3dbound:bt')
       end if
     end subroutine allocate_v3dbound
-!
+
     subroutine allocate_v2dbound(xb,ldot)
       implicit none
       type(v2dbound) , intent(out) :: xb
@@ -729,7 +729,7 @@ module mod_atm_interface
         call getmem2d(dom%dmdx,jdi1,jdi2,idi1,idi2,'storage:dmdx')
       end if
     end subroutine allocate_domain
-!
+
     subroutine allocate_domain_subgrid(sub)
       implicit none
       type(domain_subgrid) , intent(out) :: sub
@@ -770,7 +770,7 @@ module mod_atm_interface
       call getmem2d(sfs%zo,jci1,jci2,ici1,ici2,'surf:zo')
       call getmem2d(sfs%ustar,jci1,jci2,ici1,ici2,'surf:ustar')
     end subroutine allocate_surfstate
-!
+
     subroutine allocate_slice(ax)
       implicit none
       type(slice) , intent(out) :: ax

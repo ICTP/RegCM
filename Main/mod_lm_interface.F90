@@ -546,7 +546,6 @@ module mod_lm_interface
       lm%sfracs2d = sum((lms%lncl*lms%wt+(d_one-lms%lncl)*lms%scvk),1)*rdnnsg
       ! FAB here take humidity of first soil layer, sw should be always defined
       lm%ssw2da = sum(lms%sw(:,:,:,1),1)*rdnnsg
-      print*, 'dans lm interface', maxval(lm%ssw2da), maxval(lm%ustar)
     end if
     call collect_output
 #ifdef DEBUG
