@@ -161,14 +161,7 @@ module mod_che_interface
     call assignpnt(voc_em_clm,cvoc_em_clm)
     call assignpnt(dustflx_clm,cdustflx_clm)
     call assignpnt(idusts,idust)
-#endif
-#if defined CLM
-#if defined VOC
-    call assignpnt(voc_em0,cvoc_em0)
-    call assignpnt(voc_em1,cvoc_em1)
-    call assignpnt(voc_em2,cvoc_em2)
-#endif
-    call assignpnt(dep_vels,cdep_vels)
+    call assignpnt(dep_vels_clm,cdep_vels_clm)
 #endif
 
   end subroutine init_chem

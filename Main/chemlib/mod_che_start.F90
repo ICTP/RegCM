@@ -375,13 +375,7 @@ module mod_che_start
 
     if ( igaschem == 1 ) then
       open(26,file='TUVGRID2', status='old', err=900)
-      ! not used in KPP
-!       open(25,file='REACTION.DAT_CBMZ', status='old', err=901)
-!       open(27,file='cbmz_chemmech.out', status='replace', err=902)
-! 902   continue
-!       call chemread
       call hvread
-!       call cheminit
     end if
 
     call init_mod_che_ncio(chemsimtype)
@@ -404,8 +398,6 @@ module mod_che_start
 
 900 write(stderr,*) 'Cannot open required file TUVGRID2.'
     call fatal(__FILE__,__LINE__,'TUVGRID2 NOT FOUND')
-!901 write(stderr,*) 'Cannot open required file REACTION.DAT_CBMZ.'
-!    call fatal(__FILE__,__LINE__,'REACTION.DAT_CBMZ NOT FOUND')
 
   end subroutine start_chem
 

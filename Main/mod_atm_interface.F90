@@ -147,14 +147,7 @@ module mod_atm_interface
 #ifdef CLM45
   real(rkx) , public , pointer , dimension(:,:,:) :: voc_em_clm
   real(rkx) , public , pointer , dimension(:,:,:) :: dustflx_clm
-#endif
-#ifdef CLM
-  real(rkx) , public , pointer , dimension(:,:,:) :: dep_vels
-#ifdef VOC
-  real(rkx) , public , pointer , dimension(:,:) :: voc_em0
-  real(rkx) , public , pointer , dimension(:,:) :: voc_em1
-  real(rkx) , public , pointer , dimension(:,:) :: voc_em2
-#endif
+  real(rkx) , public , pointer , dimension(:,:,:) :: dep_vels_clm
 #endif
 
   !chemistry for surface
@@ -889,20 +882,13 @@ module mod_atm_interface
 #ifdef CLM45
         call getmem3d(voc_em_clm,jci1,jci2,ici1,ici2,1,ntr,'storage:voc_em_clm')
         call getmem3d(dustflx_clm,jci1,jci2,ici1,ici2,1,4,'storage:dustflx_clm')
+        call getmem3d(dep_vels_clm,jci1,jci2,ici1,ici2,1,ntr,'storage:dep_vels_clm')
+
 #endif
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
         call getmem1d(idusts,1,nbin,'storage:idusts')
-#ifdef CLM
-#ifdef VOC
-        call getmem2d(voc_em0,1,jx,1,iy,'storage:voc_em0')
-        call getmem2d(voc_em1,1,jx,1,iy,'storage:voc_em1')
-        call getmem2d(voc_em2,1,jx,1,iy,'storage:voc_em2')
-#endif
-        if ( igaschem == 1 .or. ioxclim == 1 ) then
-          call getmem3d(dep_vels,1,jx,1,iy,1,ntr,'storage:dep_vels')
-        end if
-#endif
+
         if ( iindirect > 0 .and. iaerosol == 1 ) then
           call getmem3d(ccn,jci1,jci2,ici1,ici2,1,kz,'storage:ccn')
         end if

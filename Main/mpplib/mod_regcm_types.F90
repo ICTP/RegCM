@@ -392,6 +392,7 @@ module mod_regcm_types
 #ifdef CLM45
     real(rkx) , pointer , dimension(:,:,:,:) :: vocemiss
     real(rkx) , pointer , dimension(:,:,:,:) :: dustemiss
+    real(rkx) , pointer , dimension(:,:,:,:) :: drydepvels
 #endif
   end type lm_state
 

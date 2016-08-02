@@ -27,7 +27,7 @@ module mod_che_indices
   public
 ! declarartoin of usefull chemical indices for species
 ! IMPORTANT : "INTERFACE SPECIES" indices
-!    ibchl , ibchb , iochl , iochb , iisop, ianh4, iano3
+!    ibchl , ibchb , iochl , iochb , iisop, ianh4, iano3, ich4
 !    now declared in mod_runparam for surface/chem  interface compatibility !!
   integer(ik4) :: iso2 , iso4 , idms
   integer(ik4) :: imsa
@@ -36,7 +36,7 @@ module mod_che_indices
   integer(ik4) :: isulf , ih2so4 , ihono , in2o5 , ihc , ihcr , ic2h4
   integer(ik4) :: ico , ihcho , iald2 , ieth , ic2h6 , ic3h8,ic3h6
   integer(ik4) :: itol , ixyl , inh3 , ipan , in2o
-  integer(ik4) :: irooh , iaone , ibenz , ich4 , ico2
+  integer(ik4) :: irooh , iaone , ibenz ,  ico2
   integer(ik4) :: inox , ihox , isox , ieoh , ich3oh , iaco2 , ircooh,ihcooh
   integer(ik4) :: ipar , iolet , iolei , imgly , icres , iopen , iisoprd,iisopn
   integer(ik4) :: iethooh , ixo2 , iro2

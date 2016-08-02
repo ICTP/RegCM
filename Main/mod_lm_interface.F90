@@ -161,6 +161,8 @@ module mod_lm_interface
     call getmem2d(zatm,jci1,jci2,ici1,ici2,'lm:zatm')
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
     call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'lm:dustemiss')
+    call getmem4d(lms%drydepvels,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:dustemiss')
+
 #endif
 
 #ifdef CLM
@@ -377,16 +379,6 @@ module mod_lm_interface
     end if
 #ifdef CLM
     allocate(landmask(jx,iy))
-    if ( ichem == 1 ) then
-      if ( igaschem == 1 .or. ioxclim == 1 ) then
-        call assignpnt(dep_vels,lm%dep_vels)
-      end if
-#ifdef VOC
-      call assignpnt(voc_em0,lm%voc_em0)
-      call assignpnt(voc_em1,lm%voc_em1)
-      call assignpnt(voc_em2,lm%voc_em2)
-#endif
-    end if
 #endif
   end subroutine init_surface_model
 
@@ -486,6 +478,7 @@ module mod_lm_interface
         do i = ici1 , ici2
           do j = jci1 , jci2
             cvoc_em_clm(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
+            cdep_vels_clm(j,i,n) = sum(lms%drydepvels(:,j,i,n),1) * rdnnsg
           end do
         end do
       end do
@@ -544,19 +537,6 @@ module mod_lm_interface
       end do
     end if
     if ( ichem == 1 ) then
-#ifdef CLM
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          lm%deltat(j,i) = sum(lms%deltat(:,j,i))*rdnnsg
-          lm%deltaq(j,i) = sum(lms%deltaq(:,j,i))*rdnnsg
-          lm%sfracv2d(j,i) = c2rfvegnosno(j,i)
-          lm%sfracb2d(j,i) = d_one - (c2rfvegnosno(j,i)+c2rfracsno(j,i))
-          lm%sfracs2d(j,i) = c2rfracsno(j,i)
-          lm%ssw2da = sum(lms%ssw,1)*rdnnsg
-          lm%sxlai2d = 0.0_rkx
-        end do
-      end do
-#else
       lm%deltat = sum(lms%deltat,1)*rdnnsg
       lm%deltaq = sum(lms%deltaq,1)*rdnnsg
       lm%sfracv2d = sum(lms%sigf,1)*rdnnsg
@@ -566,7 +546,7 @@ module mod_lm_interface
       lm%sfracs2d = sum((lms%lncl*lms%wt+(d_one-lms%lncl)*lms%scvk),1)*rdnnsg
       ! FAB here take humidity of first soil layer, sw should be always defined
       lm%ssw2da = sum(lms%sw(:,:,:,1),1)*rdnnsg
-#endif
+      print*, 'dans lm interface', maxval(lm%ssw2da), maxval(lm%ustar)
     end if
     call collect_output
 #ifdef DEBUG

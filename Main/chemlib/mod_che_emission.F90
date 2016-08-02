@@ -91,12 +91,11 @@ module mod_che_emission
 #endif
   end subroutine chem_emission
   !
+
+  subroutine emis_tend(ktau,j,lmonth,declin)
   !
   ! Calculation of emission tendency
   !
-  !FAB: no dirunal evol for now:
-  ! subroutine emis_tend(ktau,j,lmonth,xlat,coszrs,declin,dsigma)
-  subroutine emis_tend(ktau,j,lmonth,declin)
     implicit none
 
     integer(ik4) , intent(in) :: j , lmonth
@@ -111,43 +110,35 @@ module mod_che_emission
     call time_begin(subroutine_name,idindx)
 #endif
 
-    ! calculate the tendency linked to emissions from emission fluxes
-    ! In the future split these calculations in corresponding module  ??
-    ! Modify chemsrc for species that need a dirunal cycle
-    if ( iisop > 0 ) then
+
+    ! gather anthropogenic and biogenic emissions and
+    ! calculate the emission tendency from emission fluxes
+
+   
 #ifdef CLM45
-      !overwrite chemsrc for biogenic in case of CLM/BVOC option
-      ! test if CLM BVOC is activated and overwrite chemsrc.
-      ! Below included in order to include CLM-MEGAN biogenic emission
-      ! into the gas phase chemistry scheme
-      ! bvoc_trmask is used to identify which tracer is also a biogenic
-      ! emission species contained in MEGAN.  If it is included then
-      ! then include MEGAN emissions into the source value
-      ! NOTE:  ibvoc=1 means used MEGAN emissions.  ibvoc is forced to
-      ! zero when using BATS
-      if ( bvoc_trmask(iisop) /= 0 ) then
+      ! overwrite or add chemsrc for biogenic in case of CLM45/BVOC option
+      ! test if CLM BVOC is activated and add bio component to chemsrc.
+
+      !isoprene ( overwrite biogenic emission from inventory  / rq this way  we  negelect the anthropog isoprene emissions )  
+        if (iisop > 0) then
         do i = ici1, ici2
           chemsrc(j,i,iisop) = cvoc_em_clm(j,i,iisop)
         end do
-      end if
-#else
-#if (defined VOC && defined CLM)
-      !overwrite chemsrc for biogenic in case of CLM/BVOC option
-      ! test if CLM BVOC is activated and overwrite chemsrc.
-      ! Below included in order to include CLM-MEGAN biogenic
-      ! emission
-      ! NOTE:  ibvoc=1 means used MEGAN emissions.
-      ! ibvoc is forced to
-      ! zero when using BATS
-      if ( bvoc_trmask(iisop) /= 0 ) then
+        end if
+
+      ! other BVOC : to do !!
+
+      ! methane : add the biogenic part from CLM to anthropogenic
+      ! nb the CN/LCH4 CLM flag have to be activated                 
+       if (ich4 > 0) then
         do i = ici1, ici2
-          chemsrc(j,i,iisop) = cvoc_em0(j,i)
-          if ( ktau == 0 ) cvoc_em0(j,i) = d_zero
-          chemsrc(j,i,iisop) = cvoc_em0(j,i)
+          chemsrc(j,i,ich4) = chemsrc(j,i,ich4) +  cvoc_em_clm(j,i,ich4)
         end do
-      end if
+       end if
+
 #else
-      ! Modify chemsrc for species that need a dirunal cycle
+      ! Modify chemsrc for isoprene from inventory to account for simplified  dirunal cycle
+      if (iisop >0) then 
       do i = ici1 , ici2
         dayhr=-tan(declin)*tan(cxlat(j,i)*degrad)
         if(dayhr .lt. -1 .or. dayhr .gt. 1) then
@@ -160,45 +151,23 @@ module mod_che_emission
         ! Maximum sun elevation
         maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
         fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
-        amp = 12.0_rkx*mathpi/daylen
+        a= 12.0_rkx*mathpi/daylen
         tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
         chemsrc(j,i,iisop) = (amp)*chemsrc(j,i,iisop) * &
                             sin(mathpi*fact)*egrav/(dsigma(kz)*1.0e3_rkx)
         end if
-      end do
+      end do   
+      end if  
 #endif
-#endif
-    end if
-
-    if ( iapin > 0 ) then
-#if (defined VOC && defined CLM)
-      if ( bvoc_trmask(iapin) /= 0 ) then
-        do i = ici1, ici2
-          if ( ktau == 0 ) cvoc_em1(j,i) = d_zero
-          chemsrc(j,i,iapin) = cvoc_em1(j,i)
-        end do
-      end if
-#endif
-    end if
-
-    if ( ilimo > 0 ) then
-#if (defined VOC && defined CLM)
-      if ( bvoc_trmask(ilimo) /= 0 ) then
-        do i = ici1, ici2
-          if ( ktau == 0 ) cvoc_em2(j,i) = d_zero
-          chemsrc(j,i,ilimo) = cvoc_em2(j,i)
-        end do
-      end if
-#endif
-    end if
     !
     ! add the source term to tracer tendency
     !
     if ( ichdrdepo /= 2 ) then
       do itr = 1 , ntr
-        if ( chtrname(itr)(1:2) /= 'DU' .or. &
-             chtrname(itr)(1:4) /= 'SSLT' .or. &
-             chtrname(itr)(1:6) /= 'POLLEN' ) then
+         if ( chtrname(itr)(1:2) == 'DU' .or. &
+              chtrname(itr)(1:4) == 'SSLT' .or. &
+              chtrname(itr)(1:6) == 'POLLEN'.or. &
+              any ( mine_name == chtrname(itr)(1:4) )) cycle
           do i = ici1 , ici2
             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
                 chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0e3_rkx)
@@ -209,13 +178,13 @@ module mod_che_emission
                   chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
             end if
           end do
-        end if
       end do
     else if ( ichdrdepo == 2 ) then
       do itr = 1 , ntr
-        if ( chtrname(itr)(1:2) /= 'DU' .or. &
-             chtrname(itr)(1:4) /= 'SSLT' .or. &
-             chtrname(itr)(1:6) /= 'POLLEN' ) then
+        if ( chtrname(itr)(1:2) == 'DU' .or. &
+             chtrname(itr)(1:4) == 'SSLT' .or. &
+             chtrname(itr)(1:6) == 'POLLEN'.or. & 
+             any ( mine_name == chtrname(itr)(1:4) )) cycle
           do i = ici1 , ici2
               ! if PBL scheme is not UW then calculate emission tendency
               if ( ibltyp /= 2 ) then
@@ -237,13 +206,15 @@ module mod_che_emission
                 end if
               end if
           end do
-        end if
       end do
     end if
-    ! put back isop source to its nominal value
+
+#ifndef CLM45
+! put back chemsrc to its mean value after diurnal cycle
     if ( iisop > 0 ) then
       chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
     end if
+#endif
 
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

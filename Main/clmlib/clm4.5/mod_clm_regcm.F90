@@ -520,7 +520,16 @@ module mod_clm_regcm
     !clm_l2a%flxdst
     !clm_l2a%ddvel
 #ifdef LCH4
-    !clm_l2a%flux_ch4
+! factor 1.33 is to convert from kgC to kgCH4  
+    if ( ichem == 1 .and. ich4 > 0) then
+      allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
+      emis2d = 0.0_rk8
+          clm_l2a%notused(:) = clm_l2a%flux_ch4(:) * 1.33_rk4
+          call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+          lms%vocemiss(:,:,:,ich4) = real(emis2d,rk4)
+      deallocate(emis2d)
+    end if
+  !clm_l2a%flux_ch4
 #endif
 
   end subroutine land_to_atmosphere

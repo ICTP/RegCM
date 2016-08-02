@@ -107,6 +107,7 @@ module mod_che_common
   integer(ik4) , pointer , dimension(:) :: bvoc_trmask
   real(rkx) , pointer , dimension(:,:,:) :: cvoc_em_clm
   real(rkx) , pointer , dimension(:,:,:) :: cdustflx_clm
+  real(rkx) , pointer , dimension(:,:,:) :: cdep_vels_clm
 #endif
 #if (defined CLM && defined VOC)
   ! Tracer mask that uses MEGAN indices
