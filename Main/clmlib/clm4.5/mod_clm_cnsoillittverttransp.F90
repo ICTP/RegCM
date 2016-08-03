@@ -124,6 +124,11 @@ module mod_clm_cnsoillittverttransp
 
     dtime = dtsrf
 
+    a_tri = 0.0_rk8
+    b_tri = 0.0_rk8
+    c_tri = 0.0_rk8
+    r_tri = 0.0_rk8
+
     ntype = 2
     if ( use_c13 ) then
       ntype = ntype+1

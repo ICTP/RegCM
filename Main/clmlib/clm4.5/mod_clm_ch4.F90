@@ -1932,6 +1932,11 @@ module mod_clm_ch4
       ch4stress      => clm3%g%l%c%cch4%ch4stress_sat
     end if
 
+    at = 0.0_rk8
+    bt = 0.0_rk8
+    ct = 0.0_rk8
+    rt = 0.0_rk8
+
     ! Perform competition for oxygen and methane in each soil layer
     ! if demands over the course of the timestep exceed that available.
     ! Assign to each process in proportion to the quantity demanded
