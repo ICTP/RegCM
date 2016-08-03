@@ -890,6 +890,11 @@ module mod_clm_soilhydrology
     ! Because the depths in this routine are in mm, use local
     ! variable arrays instead of pointers
 
+    amx = 0.0_rk8
+    bmx = 0.0_rk8
+    cmx = 0.0_rk8
+    rmx = 0.0_rk8
+
     do j = 1, nlevsoi
       do fc = 1, num_hydrologyc
         c = filter_hydrologyc(fc)
