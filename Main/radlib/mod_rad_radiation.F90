@@ -2484,26 +2484,13 @@ module mod_rad_radiation
     ! rdirexp  - layer direct ref times exp transmission
     ! tdnmexp  - total transmission minus exp transmission
     !
-    !---------------------------Statement functions-------------------------
-    !
-    ! Statement functions and other local variables
-    !
-    ! alpha    - Term in direct reflect and transmissivity
-    ! xgamm    - Term in direct reflect and transmissivity
-    ! el       - Term in alpha,xgamm,n,u
-    ! taus     - Scaled extinction optical depth
-    ! omgs     - Scaled single particle scattering albedo
-    ! asys     - Scaled asymmetry parameter
-    ! u        - Term in diffuse reflect and transmissivity
-    ! n        - Term in diffuse reflect and transmissivity
-    ! lm       - Temporary for el
-    ! ne       - Temporary for n
-    !
     ! Intermediate terms for delta-eddington solution
     !
-    ! alp      - Temporary for alpha
-    ! gam      - Temporary for xgamm
-    ! ue       - Temporary for u
+    ! alp      - Temporary for xalpha
+    ! gam      - Temporary for xgamma
+    ! lm       - Temporary for el
+    ! ne       - Temporary for f_n
+    ! ue       - Temporary for f_u
     ! arg      - Exponential argument
     ! extins   - Extinction
     ! amg      - Alp - gam
@@ -2923,7 +2910,6 @@ module mod_rad_radiation
     ! trab6    - Transmission terms for H2o 1000 - 1200 cm-1
     ! absbnd   - Proportional to co2 band absorptance
     ! dbvtit   - Intrfc drvtv plnck fnctn for o3
-    ! dbvt     - Planck fnctn tmp derivative for o3
     !
     real(rkx) :: a , a11 , a21 , a22 , a23 , a31 , a41 , a51 , a61 ,    &
                absbnd , alphat , beta , cf812 , corfac , denom ,      &
@@ -4099,79 +4085,104 @@ module mod_rad_radiation
 #endif
   end subroutine radinp
 
+  ! xalpha - Term in direct reflect and transmissivity
   pure real(rkx) function xalpha(wi,uui,gi,ei)
     implicit none
     real(rkx) , intent(in) :: wi , uui , gi , ei
-    real(rk8) :: w , uu , g , e , la
+    real(rk8) :: w , uu , g , e
     w = wi
     uu = uui
     g = gi
     e = ei
-    la = 0.75_rk8*w*uu*((1.0_rk8+g*(1.0_rk8-w))/(1.0_rk8-e*e*uu*uu))
-    xalpha = real(la,rkx)
+    xalpha = real(0.75_rk8*w*uu*((1.0_rk8+g*(1.0_rk8-w)) / &
+                  (1.0_rk8-e*e*uu*uu)),rkx)
   end function xalpha
+  ! xgamma - Term in direct reflect and transmissivity
   pure real(rkx) function xgamma(wi,uui,gi,ei)
     implicit none
     real(rkx) , intent(in) :: wi , uui , gi , ei
-    real(rk8) :: w , uu , g , e , lg
+    real(rk8) :: w , uu , g , e
     w = wi
     uu = uui
     g = gi
     e = ei
-    lg = (w*0.5_rk8) * &
-        ((3.0_rk8*g*(1.0_rk8-w)*uu*uu+1.0_rk8)/(1.0_rk8-e*e*uu*uu))
-    xgamma = real(lg,rkx)
+    xgamma = real((w*0.5_rk8) * &
+        ((3.0_rk8*g*(1.0_rk8-w)*uu*uu+1.0_rk8)/(1.0_rk8-e*e*uu*uu)),rkx)
   end function xgamma
+  ! el - Term in xalpha,xgamma,f_n,f_u
   pure real(rkx) function el(wi,gi)
     implicit none
     real(rkx) , intent(in) :: wi , gi
-    real(rk8) :: w , g , le
+    real(rk8) :: w , g
     w = wi
     g = gi
-    le = sqrt(3.0_rk8*(1.0_rk8-w)*(1.0_rk8-w*g))
-    el = real(le,rkx)
+    el = real(sqrt(3.0_rk8*(1.0_rk8-w)*(1.0_rk8-w*g)),rkx)
   end function el
-  pure real(rkx) function taus(w,f,t)
+  ! taus - Scaled extinction optical depth
+  pure real(rkx) function taus(wi,fi,ti)
     implicit none
-    real(rkx) , intent(in) :: w , f , t
-    taus = (d_one-w*f)*t
+    real(rkx) , intent(in) :: wi , fi , ti
+    real(rk8) :: w , f , t
+    w = wi
+    f = fi
+    t = ti
+    taus = real((1.0_rk8-w*f)*t,rkx)
   end function taus
-  pure real(rkx) function omgs(w,f)
+  ! omgs - Scaled single particle scattering albedo
+  pure real(rkx) function omgs(wi,fi)
     implicit none
-    real(rkx) , intent(in) :: w , f
-    omgs = (d_one-f)*w/(d_one-w*f)
+    real(rkx) , intent(in) :: wi , fi
+    real(rk8) :: w , f
+    w = wi
+    f = fi
+    omgs = real((1.0_rk8-f)*w/(1.0_rk8-w*f),rkx)
   end function omgs
-  pure real(rkx) function asys(g,f)
+  ! asys - Scaled asymmetry parameter
+  pure real(rkx) function asys(gi,fi)
     implicit none
-    real(rkx) , intent(in) :: g , f
-    asys = (g-f)/(d_one-f)
+    real(rkx) , intent(in) :: gi , fi
+    real(rk8) :: g , f
+    asys = real((g-f)/(1.0_rk8-f),rkx)
   end function asys
-  pure real(rkx) function f_u(w,g,e)
+  ! f_u - Term in diffuse reflect and transmissivity
+  pure real(rkx) function f_u(wi,gi,ei)
     implicit none
-    real(rkx) , intent(in) :: w , g , e
-    f_u = 1.50_rkx*(d_one-w*g)/e
+    real(rkx) , intent(in) :: wi , gi , ei
+    real(rk8) :: w , g , e
+    w = wi
+    g = gi
+    e = ei
+    f_u = real(1.50_rk8*(1.0_rk8-w*g)/e,rkx)
   end function f_u
-  pure real(rkx) function f_n(uu,et)
+  ! f_n - Term in diffuse reflect and transmissivity
+  pure real(rkx) function f_n(uui,eti)
     implicit none
-    real(rkx) , intent(in) :: uu , et
-    f_n = ((uu+d_one)*(uu+d_one)/et)-((uu-d_one)*(uu-d_one)*et)
+    real(rkx) , intent(in) :: uui , eti
+    real(rk8) :: uu , et
+    uu = uui
+    et = eti
+    f_n = real(((uu+1.0_rk8)*(uu+1.0_rk8)/et) - &
+               ((uu-1.0_rk8)*(uu-1.0_rk8)*et),rkx)
   end function f_n
+  ! dbvt - Planck fnctn tmp derivative for o3
   pure real(rkx) function dbvt(ti)
     ! Derivative of planck function at 9.6 micro-meter wavelength
     implicit none
     real(rkx) , intent(in) :: ti
-    real(rk8) :: t , ldbvt
+    real(rk8) :: t
     t = ti
-    ldbvt = (-2.8911366682e-4_rk8 + &
-            (2.3771251896e-6_rk8+1.1305188929e-10_rk8*t)*t) /  &
-            (1.0_rk8+(-6.1364820707e-3_rk8+1.5550319767e-5_rk8*t)*t)
-    dbvt = real(ldbvt,rkx)
+    dbvt = real((-2.8911366682e-4_rk8 + &
+           (2.3771251896e-6_rk8+1.1305188929e-10_rk8*t)*t) /  &
+           (1.0_rk8+(-6.1364820707e-3_rk8+1.5550319767e-5_rk8*t)*t),rkx)
   end function dbvt
-  pure real(rkx) function fo3(ux,vx)
+  pure real(rkx) function fo3(uxi,vxi)
     ! an absorption function factor
     implicit none
-    real(rkx) , intent(in) :: ux , vx
-    fo3 = ux/sqrt(d_four+ux*(d_one+vx))
+    real(rkx) , intent(in) :: uxi , vxi
+    real(rk8) :: ux , vx
+    ux = uxi
+    vx = vxi
+    fo3 = real(ux/sqrt(4.0_rk8+ux*(1.0_rk8+vx)),rkx)
   end function fo3
 
 end module mod_rad_radiation
