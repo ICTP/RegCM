@@ -1221,7 +1221,7 @@ module mod_rad_radiation
         pthco2 = sqrco2*(xptop*regravgts)
         h2ostr = sqrt(d_one/h2ommr(n,1))
         zenfac(n) = sqrt(czen(n))
-        pthh2o = xptop**2*tmp1+(xptop*regravgts)*(h2ostr*zenfac(n)*delta)
+        pthh2o = (xptop**2)*tmp1 + (xptop*regravgts) * (h2ostr*zenfac(n)*delta)
         uh2o(n,0) = h2ommr(n,1)*pthh2o
         uco2(n,0) = zenfac(n)*pthco2
         uo2(n,0) = zenfac(n)*ptho2
@@ -1463,7 +1463,7 @@ module mod_rad_radiation
             rupdir(n,k) = rdir(n,k) + tdif(n,k) *                    &
                           (rupdir(n,k+1)*explay(n,k)+rupdif(n,k+1) * &
                           (tdir(n,k)-explay(n,k)))*rdenom
-            rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*tdif(n,k)**2*rdenom
+            rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*(tdif(n,k)**2)*rdenom
           end if
         end do
       end do
@@ -1518,20 +1518,20 @@ module mod_rad_radiation
           ! conversion factors
           !
           if ( wavmid < 0.7_rkx ) then
-            sols(n) = sols(n) + exptdn(n,kzp1)*solflx(n)*d_r1000
+            sols(n) = sols(n) + (exptdn(n,kzp1)*solflx(n))*d_r1000
             solsd(n) = solsd(n) + &
-                       (fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n)*d_r1000
-            abv(n) = abv(n) + (solflx(n) *            &
+                       ((fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n))*d_r1000
+            abv(n) = abv(n) + ((solflx(n) *               &
                        (fluxdn(n,kzp1)-fluxup(n,kzp1)))*  &
-                       (d_one-asw(n))/(d_one-diralb(n))*d_r1000
+                       (d_one-asw(n))/(d_one-diralb(n)))*d_r1000
           else
-            soll(n) = soll(n) + exptdn(n,kzp1)*solflx(n)*d_r1000
+            soll(n) = soll(n) + (exptdn(n,kzp1)*solflx(n))*d_r1000
             solld(n) = solld(n) + &
-                   (fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n)*d_r1000
+                   ((fluxdn(n,kzp1)-exptdn(n,kzp1))*solflx(n))*d_r1000
             fsnirtsq(n) = fsnirtsq(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
             abv(n) = abv(n) + &
-                       (solflx(n)*(fluxdn(n,kzp1)-fluxup(n,kzp1)))* &
-                        (d_one-alw(n))/(d_one-diralb(n))*d_r1000
+                       ((solflx(n)*(fluxdn(n,kzp1)-fluxup(n,kzp1)))* &
+                        (d_one-alw(n))/(d_one-diralb(n)))*d_r1000
           end if
           fsnirt(n) = fsnirt(n) + wgtint*solflx(n) * (fluxdn(n,0)-fluxup(n,0))
         end if
@@ -1549,7 +1549,7 @@ module mod_rad_radiation
       if ( ns == 8 ) then
         do n = n1 , n2
           if ( czengt0(n) ) then
-            sol(n) = solflx(n)*d_r1000*fluxdn(n,kzp1)
+            sol(n) = (solflx(n)*fluxdn(n,kzp1))*d_r1000
           end if
         end do
       end if
@@ -1593,7 +1593,7 @@ module mod_rad_radiation
               rupdir(n,k) = rdir(n,k) + tdif(n,k) *                    &
                             (rupdir(n,k+1)*explay(n,k)+rupdif(n,k+1) * &
                             (tdir(n,k)-explay(n,k)))*rdenom
-              rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*tdif(n,k)**2*rdenom
+              rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*(tdif(n,k)**2)*rdenom
             end if
           end do
         end do
@@ -1711,7 +1711,7 @@ module mod_rad_radiation
     do k = 1 , kz
       do n = n1 , n2
         if ( czengt0(n) ) then
-          qrs(n,k) = -gocp*totfld(n,k)/(pint(n,k)-pint(n,k+1))
+          qrs(n,k) = -(gocp*totfld(n,k))/(pint(n,k)-pint(n,k+1))
         end if
       end do
     end do
