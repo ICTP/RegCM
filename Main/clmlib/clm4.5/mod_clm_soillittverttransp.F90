@@ -124,12 +124,12 @@ module mod_clm_soillittverttransp
     spinup_term = 1._rk8
     epsilon = 1.e-30
 
+#ifdef VERTSOILC
     a_tri = 0.0_rk8
     b_tri = 0.0_rk8
     c_tri = 0.0_rk8
     r_tri = 0.0_rk8
 
-#ifdef VERTSOILC
     !------ first get diffusivity / advection terms -------!
     ! use different mixing rates for bioturbation and cryoturbation, with
     ! fixed bioturbation and cryoturbation set to a maximum depth

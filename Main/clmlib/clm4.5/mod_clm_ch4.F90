@@ -1807,10 +1807,10 @@ module mod_clm_ch4
     integer(ik4) :: fp    ! soil filter pft index
     integer(ik4)  :: jtop(lbc:ubc) ! top level at each column
     integer(ik4) :: iter           ! iteration counter when dtime_ch4 < dtime
-    real(rk8) :: at (lbc:ubc,0:nlevsoi)  ! "a" vector for tridiagonal matrix
-    real(rk8) :: bt (lbc:ubc,0:nlevsoi)  ! "b" vector for tridiagonal matrix
-    real(rk8) :: ct (lbc:ubc,0:nlevsoi)  ! "c" vector for tridiagonal matrix
-    real(rk8) :: rt (lbc:ubc,0:nlevsoi)  ! "r" vector for tridiagonal solution
+    real(rk8) :: at(lbc:ubc,0:nlevsoi)  ! "a" vector for tridiagonal matrix
+    real(rk8) :: bt(lbc:ubc,0:nlevsoi)  ! "b" vector for tridiagonal matrix
+    real(rk8) :: ct(lbc:ubc,0:nlevsoi)  ! "c" vector for tridiagonal matrix
+    real(rk8) :: rt(lbc:ubc,0:nlevsoi)  ! "r" vector for tridiagonal solution
     real(rk8) :: f_a        ! air-filled fraction of available pore space
     real(rk8) :: diffus (lbc:ubc,0:nlevsoi) !diffusivity (m2/s)
     real(rk8) :: k_h_inv    ! 1/Henry's Law Constant in Latm/mol

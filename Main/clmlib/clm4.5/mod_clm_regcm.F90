@@ -407,8 +407,8 @@ module mod_clm_regcm
     end if ! end test on ichem
 
     if ( .true. ) then
-      clm_a2l%forc_flood = 0.000_rk8
-      clm_a2l%volr = 0.000_rk8
+      clm_a2l%forc_flood = 0.0_rk8
+      clm_a2l%volr = 0.0_rk8
     else
       ! Runoff in input ? Chym ?
       ! clm_a2l%forc_flood  ! flood (mm/s)

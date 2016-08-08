@@ -413,6 +413,11 @@ module mod_clm_slaketemperature
 
     ! Begin calculations
 
+    a = 0.0_rk8
+    b = 0.0_rk8
+    c1 = 0.0_rk8
+    r = 0.0_rk8
+
     do fc = 1, num_lakec
       c = filter_lakec(fc)
 

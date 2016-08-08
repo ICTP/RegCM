@@ -124,10 +124,12 @@ module mod_clm_cnsoillittverttransp
 
     dtime = dtsrf
 
+#ifdef VERTSOILC
     a_tri = 0.0_rk8
     b_tri = 0.0_rk8
     c_tri = 0.0_rk8
     r_tri = 0.0_rk8
+#ifdef
 
     ntype = 2
     if ( use_c13 ) then
