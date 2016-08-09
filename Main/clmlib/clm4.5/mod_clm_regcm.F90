@@ -17,7 +17,7 @@ module mod_clm_regcm
   use mod_clm_varctl , only : use_c13 , co2_ppmv , tcrit
   use mod_clm_varpar , only : nlevsoi
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , &
-                              denh2o , sb
+                              sb
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
   use mod_clm_megan
@@ -248,7 +248,6 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%hgt,clm_a2l%forc_hgt)
     call glb_c2l_gs(lndcomm,lm%patm,clm_a2l%forc_pbot)
     call glb_c2l_gs(lndcomm,lm%thatm,clm_a2l%forc_th)
-    call glb_c2l_gs(lndcomm,lm%rhox,clm_a2l%forc_rho)
     call glb_c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
     call glb_c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
     call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
@@ -272,6 +271,7 @@ module mod_clm_regcm
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
 
     do i = begg , endg
+      clm_a2l%forc_rho(i) = clm_a2l%forc_pbot(i)/(rgas*clm_a2l%forc_t(i))
       satp = pfesat(real(clm_a2l%forc_t(i),rkx))
       satq = pfqsat(real(clm_a2l%forc_t(i),rkx), &
                     real(clm_a2l%forc_pbot(i),rkx),satp)
@@ -453,10 +453,7 @@ module mod_clm_regcm
 
     clm_l2a%notused = 0.0_rk8
     do k = 1 , nlevsoi
-      do g = begg , endg
-        clm_l2a%notused(g) = max(clm_l2a%h2osoi_vol(g,k),0.0_rk8) * &
-             max(clm_l2a%dzsoi(g,k),0.0_rk8)*denh2o
-      end do
+      clm_l2a%notused(:) = clm_l2a%h2osoi(:,k)
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
       lms%sw(:,:,:,k) = lms%tsw(:,:,:)
     end do

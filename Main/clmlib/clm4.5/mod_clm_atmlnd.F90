@@ -145,11 +145,8 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: fv
     !Surface ground emissivity
     real(rk8) , pointer , dimension(:) :: emg
-    ! soil water
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
-    real(rk8) , pointer , dimension(:,:) :: soidpth
-    real(rk8) , pointer , dimension(:,:) :: dzsoi
-    real(rk8) , pointer , dimension(:,:) :: rootfr
+    ! soil water kg/m^2 (water + ice)
+    real(rk8) , pointer , dimension(:,:) :: h2osoi
     ! Surface runoff
     real(rk8) , pointer , dimension(:) :: qflx_surf
     ! Sub-surface runoff
@@ -296,10 +293,7 @@ end subroutine init_atm2lnd_type
     allocate(l2a%ram1(ibeg:iend))
     allocate(l2a%fv(ibeg:iend))
     allocate(l2a%emg(ibeg:iend))
-    allocate(l2a%h2osoi_vol(ibeg:iend,1:nlevsoi))
-    allocate(l2a%soidpth(ibeg:iend,1:nlevsoi))
-    allocate(l2a%dzsoi(ibeg:iend,1:nlevsoi))
-    allocate(l2a%rootfr(ibeg:iend,1:nlevsoi))
+    allocate(l2a%h2osoi(ibeg:iend,nlevsoi))
     allocate(l2a%qflx_surf(ibeg:iend))
     allocate(l2a%qflx_tot(ibeg:iend))
     allocate(l2a%qflx_snomelt(ibeg:iend))
@@ -338,10 +332,7 @@ end subroutine init_atm2lnd_type
     l2a%nee(ibeg:iend) = ival
     l2a%ram1(ibeg:iend) = ival
     l2a%fv(ibeg:iend) = ival
-    l2a%h2osoi_vol(ibeg:iend,1:nlevsoi) = ival
-    l2a%soidpth(ibeg:iend,1:nlevsoi) = ival
-    l2a%dzsoi(ibeg:iend,1:nlevsoi) = ival
-    l2a%rootfr(ibeg:iend,1:nlevsoi) = ival
+    l2a%h2osoi(ibeg:iend,:) = ival
     l2a%qflx_surf(ibeg:iend) = ival
     l2a%qflx_tot(ibeg:iend) = ival
     l2a%qflx_snomelt(ibeg:iend) = ival
@@ -392,6 +383,7 @@ end subroutine init_atm2lnd_type
     real(rk8) , parameter :: amCO2 = amC + 2.0_rk8*amO
     ! The following converts g of C to kg of CO2
     real(rk8) , parameter :: convertgC2kgCO2 = 1.0e-3_rk8 * (amCO2/amC)
+    real(rk8) , allocatable , dimension(:,:) :: tmpc
 
     ! Set pointers into derived type
 
@@ -404,6 +396,8 @@ end subroutine init_atm2lnd_type
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
+    allocate(tmpc(begc:endc,nlevsoi))
+
     ! Compute gridcell averages.
 
     if ( present(init) ) then
@@ -411,22 +405,11 @@ end subroutine init_atm2lnd_type
                cptr%cws%h2osno,clm_l2a%h2osno, &
                c2l_scale_type='urbanf',        &
                l2g_scale_type='unity')
+      tmpc = cptr%cws%h2osoi_liq(:,1:nlevsoi) + &
+             cptr%cws%h2osoi_ice(:,1:nlevsoi)
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
-               cptr%cps%z(:,1:nlevsoi),clm_l2a%soidpth, &
-               c2l_scale_type='unity',                &
-               l2g_scale_type='unity')
-      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
-               cptr%cps%dz(:,1:nlevsoi),clm_l2a%dzsoi,  &
-               c2l_scale_type='unity',                &
-               l2g_scale_type='unity')
-      call p2g(begp,endp,begc,endc,begl,endl,begg,endg,nlevsoi, &
-               pptr%pps%rootfr(:,1:nlevsoi),clm_l2a%rootfr,       &
-               p2c_scale_type='unity',                          &
-               c2l_scale_type='urbanf',                         &
-               l2g_scale_type='unity')
-      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi,               &
-               cptr%cws%h2osoi_vol(:,1:nlevsoi),clm_l2a%h2osoi_vol, &
-               c2l_scale_type='unity',                              &
+               tmpc,clm_l2a%h2osoi, &
+               c2l_scale_type='unity', &
                l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,numrad,  &
                pptr%pps%albd,clm_l2a%albd,                      &
@@ -451,17 +434,11 @@ end subroutine init_atm2lnd_type
                cptr%cws%h2osno,clm_l2a%h2osno, &
                c2l_scale_type='urbanf',        &
                l2g_scale_type='unity')
-      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi,               &
-               cptr%cws%h2osoi_vol(:,1:nlevsoi),clm_l2a%h2osoi_vol, &
-               c2l_scale_type='unity',                              &
-               l2g_scale_type='unity')
-      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi,   &
-               cptr%cps%z(:,1:nlevsoi),clm_l2a%soidpth, &
-               c2l_scale_type='unity',                  &
-               l2g_scale_type='unity')
-      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi,  &
-               cptr%cps%dz(:,1:nlevsoi),clm_l2a%dzsoi, &
-               c2l_scale_type='unity',                 &
+      tmpc = cptr%cws%h2osoi_liq(:,1:nlevsoi) + &
+             cptr%cws%h2osoi_ice(:,1:nlevsoi)
+      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
+               tmpc,clm_l2a%h2osoi, &
+               c2l_scale_type='unity', &
                l2g_scale_type='unity')
       call c2g(begc,endc,begl,endl,begg,endg, &
                cptr%cps%emg,clm_l2a%emg,      &
@@ -612,6 +589,7 @@ end subroutine init_atm2lnd_type
         clm_l2a%t_rad(g) = sqrt(sqrt(clm_l2a%eflx_lwrad_out(g)/sb))
       end do
     end if
+    deallocate(tmpc)
   end subroutine clm_map2gcell
 
 end module mod_clm_atmlnd
