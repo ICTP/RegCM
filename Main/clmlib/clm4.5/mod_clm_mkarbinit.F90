@@ -1145,7 +1145,7 @@ module mod_clm_mkarbinit
               ! h2osoi_vol(c,j) = 0.15_rk8
               ! h2osoi_vol(c,j) = watsat(c,j)*0.10_rk8
               if ( lsmoist ) then
-                h2osoi_vol(c,j) = adomain%smoist(g)*xmopor(adomain%itex(g))
+                h2osoi_vol(c,j) = adomain%smoist(g)
               else
                 h2osoi_vol(c,j) = slmo(adomain%iveg(g))*xmopor(adomain%itex(g))
               end if
