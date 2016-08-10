@@ -1,6 +1,6 @@
 module mod_clm_qsat
   !
-  ! Computes saturation mixing ratio and the change in saturation
+  ! Computes saturation specific humidity and the change in saturation
   !
   implicit none
 

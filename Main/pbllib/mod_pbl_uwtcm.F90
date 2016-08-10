@@ -142,7 +142,6 @@ module mod_pbl_uwtcm
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
 
   subroutine allocate_tcm_state(tcmstate)
     implicit none

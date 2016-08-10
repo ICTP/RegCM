@@ -41,7 +41,6 @@ module mod_bats_bndry
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
 #include <pqderiv.inc>
   !
   !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -206,7 +205,7 @@ module mod_bats_bndry
     do i = ilndbeg , ilndend
       if ( sigf(i) <= minsigf ) then
         qsatd = pfqsdt(tgrd(i),sfcp(i))
-        qsatd = qsatd/(d_one+qsatd) * gwet(i)
+        qsatd = qsatd * gwet(i)
         ! call bats_qsdt(tgrd(i),qgrd(i),qsatd)
         ! qsatd = qsatd * gwet(i)
         rai = cdrx(i)*vspda(i)*rhs(i)

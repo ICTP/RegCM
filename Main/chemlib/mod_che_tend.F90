@@ -53,7 +53,7 @@
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
+#include <pfwsat.inc>
 
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -199,7 +199,7 @@
           shu10 = shu10/(d_one-shu10)
           ! saturation mixing ratio at 10m
           pres10 = psurf(i,j) - 98.0_rkx
-          qsat10 = pfqsat(temp10(i,j),pres10)
+          qsat10 = pfwsat(temp10(i,j),pres10)
           ! relative humidity at 10m
           rh10(i,j) = d_zero
           if ( qsat10 > d_zero ) rh10(i,j) = shu10/qsat10

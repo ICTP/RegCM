@@ -71,7 +71,7 @@ module mod_cu_grell
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
+#include <pfwsat.inc>
 
   subroutine allocate_mod_cu_grell
     implicit none
@@ -489,8 +489,8 @@ module mod_cu_grell
     !
     do k = 1 , kz
       do n = 1 , nap
-        qes(n,k) = pfqsat(t(n,k),p(n,k)*d_100)
-        qeso(n,k) = pfqsat(tn(n,k),po(n,k)*d_100)
+        qes(n,k) = pfwsat(t(n,k),p(n,k)*d_100)
+        qeso(n,k) = pfwsat(tn(n,k),po(n,k)*d_100)
         q(n,k) = min(q(n,k),qes(n,k))
         qo(n,k) = min(qo(n,k),qeso(n,k))
         tv(n,k) = t(n,k) * (d_one + ep1*q(n,k))
@@ -886,7 +886,7 @@ module mod_cu_grell
     do k = 1 , kz
       do n = 1 , nap
         if ( xac(n) > xacact ) then
-          xqes(n,k) = pfqsat(xt(n,k),p(n,k)*d_100)
+          xqes(n,k) = pfwsat(xt(n,k),p(n,k)*d_100)
           if ( xq(n,k) > xqes(n,k) ) xq(n,k) = xqes(n,k)
           xtv(n,k) = xt(n,k) * (d_one + ep1*xq(n,k))
         end if

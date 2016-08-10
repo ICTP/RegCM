@@ -86,7 +86,7 @@ module mod_cu_bm
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
+#include <pfwsat.inc>
 
   subroutine allocate_mod_cu_bm
     implicit none
@@ -384,7 +384,7 @@ module mod_cu_bm
       do i = ici1 , ici2
         do j = jci1 , jci2
           p(j,i) = m2c%pas(j,i,l)
-          qs = pfqsat(t(j,i,l),p(j,i))
+          qs = pfwsat(t(j,i,l),p(j,i))
           ths(j,i) = t(j,i,l)*ape(j,i,l)*exp(elocp*qs/t(j,i,l))
         end do
       end do
@@ -796,7 +796,7 @@ module mod_cu_bm
       end if
       ltp1 = ltpk + 1
       do l = ltpk , lbtk
-        qsatk(l) = pfqsat(tk(l),pk(l))
+        qsatk(l) = pfwsat(tk(l),pk(l))
       end do
       do l = ltp1 , lbm1
         rhl = min(max(qk(l)/qsatk(l),rhmin),rhmax)
@@ -1013,13 +1013,13 @@ module mod_cu_bm
         !
         rl = elocp
         rp = thetae/pi
-        qs = pfqsat(tgs,press)
+        qs = pfwsat(tgs,press)
         fo = tgs*exp(rl*qs/tgs) - rp
         t1 = tgs - d_half*fo
         tguess = tgs
         iloop = 0
         do
-          qs = pfqsat(t1,press)
+          qs = pfwsat(t1,press)
           rl = elocp
           f1 = t1*exp(rl*qs/t1) - rp
           if ( abs(f1) < 0.1_rkx ) then

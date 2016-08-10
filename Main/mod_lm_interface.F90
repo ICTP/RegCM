@@ -91,7 +91,7 @@ module mod_lm_interface
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
+#include <pfwsat.inc>
 
   subroutine allocate_surface_model
     implicit none
@@ -999,7 +999,7 @@ module mod_lm_interface
                 qas = lms%q2m(n,j,i)
                 tas = lms%t2m(n,j,i)
                 ps = lms%sfcp(n,j,i)
-                qs = pfqsat(tas,ps)
+                qs = pfwsat(tas,ps)
                 srf_rh2m_out(j,i,1) = srf_rh2m_out(j,i,1)+(qas/qs)*d_100
               end do
             end do

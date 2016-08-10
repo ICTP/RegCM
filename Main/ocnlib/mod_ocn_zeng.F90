@@ -68,7 +68,7 @@ module mod_ocn_zeng
 
   contains
 #include <pfesat.inc>
-#include <pfqsat.inc>
+#include <pfwsat.inc>
   !
   ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
   ! Account for SST diurnal evoluation warm layer/ skin temperature scheme
@@ -117,7 +117,7 @@ module mod_ocn_zeng
       ! potential T
       th = sts(i)*(1.0e5_rkx/sfps(i))**rovcp
       dth = tatm(i) - tgrd(i)
-      qs = pfqsat(tgrd(i),sfps(i))*0.98_rkx
+      qs = pfwsat(tgrd(i),sfps(i))*0.98_rkx
       ! in kg/kg
       dqh = q995 - qs
       thv = th*(d_one+ep1*q995)

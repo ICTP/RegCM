@@ -140,10 +140,8 @@ module mod_ocn_coare
         qs = pfqsat(tgrd(i),sfps(i))*0.98_rkx
         wetc = pfqsdt(tgrd(i),sfps(i))
 
-        ! Move all to specific humidities
-        qs = qs/(d_one+qs)
+        ! Move to specific humidities
         q995 = q995/(d_one+q995)
-        wetc = wetc/(d_one+wetc)
 
         ! Deltas
         dt = ta - t995 - tzero

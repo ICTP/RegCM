@@ -40,7 +40,7 @@ module mod_slice
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
+#include <pfwsat.inc>
 
   subroutine mkslice
     implicit none
@@ -314,7 +314,7 @@ module mod_slice
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%qsb3d(j,i,k) = pfqsat(atms%tb3d(j,i,k),atms%pb3d(j,i,k))
+          atms%qsb3d(j,i,k) = pfwsat(atms%tb3d(j,i,k),atms%pb3d(j,i,k))
           atms%rhb3d(j,i,k) = atms%qxb3d(j,i,k,iqv)/atms%qsb3d(j,i,k)
           atms%rhb3d(j,i,k) = min(max(atms%rhb3d(j,i,k),rhmin),rhmax)
         end do

@@ -75,7 +75,7 @@ module mod_precip
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
+#include <pfwsat.inc>
 
   subroutine allocate_mod_precip
     implicit none
@@ -250,7 +250,7 @@ module mod_precip
           rho = rho3(j,i,k)                                  ![kg/m3][avg]
           qcw = qx3(j,i,k,iqc)                               ![kg/kg][avg]
           afc = pfcc(j,i,k)                                  ![frac][avg]
-          qs = pfqsat(tk,ppa)                                ![kg/kg][avg]
+          qs = pfwsat(tk,ppa)                                ![kg/kg][avg]
           rh = rh3(j,i,k)                                    ![frac][avg]
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
@@ -697,7 +697,7 @@ module mod_precip
           !-----------------------------------------------------------
           ! 2a. Calculate the saturation mixing ratio and relative humidity
           pres = p2(j,i,k)
-          qvs = pfqsat(tmp3,pres)
+          qvs = pfwsat(tmp3,pres)
           rhc = min(max(qvcs/qvs,rhmin),rhmax)
 
           r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))

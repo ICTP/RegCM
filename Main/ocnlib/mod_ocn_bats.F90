@@ -57,11 +57,11 @@ module mod_ocn_bats
       tgbrd(i) = tgb(i)
 
       ! Compute delt and delq
-      qs = qv(i)
+      qs = qv(i)/(d_one+qv(i))
       qgrd = pfqsat(tgrd(i),sfps(i))
       delt = tatm(i) - tgrd(i)
       ! Specific humidities
-      delq = (qs/(d_one+qs) - qgrd/(d_one+qgrd))
+      delq = qs - qgrd
       ! Comnpute drag coefficient over ocean
       ribd = usw(i)**2 + vsw(i)**2 + wtur**2
       cdrn = (vonkar/log(ht(i)/zoce))**2
@@ -192,11 +192,8 @@ module mod_ocn_bats
       ! Update now the other variables
       ! The ground temperature and heat fluxes for lake are computed
       ! in the lake model
-      qs = qv(i)
+      qs = qv(i)/(d_one+qv(i))
       qgrd = pfqsat(tgrd(i),sfps(i))
-      ! Move to specific humidity
-      qs = qs/(d_one+qs)
-      qgrd = qgrd/(d_one+qgrd)
       tgbrd(i) = -d_two + tzero
       ! shice = specific heat of sea-ice per unit volume
       sficemm = sfice(i)*d_1000

@@ -59,7 +59,7 @@ module mod_cu_em
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
+#include <pfwsat.inc>
 
   subroutine allocate_mod_cu_em
     implicit none
@@ -1154,7 +1154,7 @@ module mod_cu_em
             ahg = cpd*tg + (cl-cpd)*q(n,nk)*t(n,i) + alv*qg + gz(i)
             tg = max(tg + s*(ah0-ahg),35.0_rkx)
             ppa = p(n,i)*100.0_rkx
-            qg = pfqsat(tg,ppa)
+            qg = pfwsat(tg,ppa)
           end do
           tpk(i) = (ah0-(cl-cpd)*q(n,nk)*t(n,i)-gz(i)-alv*qg)*rcpd
           clw(i) = q(n,nk) - qg

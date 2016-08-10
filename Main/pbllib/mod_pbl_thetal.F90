@@ -40,7 +40,6 @@ module mod_pbl_thetal
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
 
   real(rkx) function zerofunc(t,bderiv)
     implicit none

@@ -279,7 +279,7 @@ module mod_bats_leaftemp
                    wtlq0(i)*qsatl(i))+qbare)
         !  5.3  deriv of soil energy flux with respect to soil temp
         qsatdg = pfqsdt(tgrd(i),sfcp(i))
-        qsatdg = (qsatdg/(d_one+qsatdg)) * rgr(i)
+        qsatdg = qsatdg * rgr(i)
         ! call bats_qsdt(tgrd(i),qgrd(i),qsatdg)
         ! qsatdg = qsatdg * rgr(i)
         cgrnds(i) = rhs(i)*cpd*(wtg(i)*(wta0(i)+wtl0(i))+wtg2(i))
@@ -531,8 +531,6 @@ module mod_bats_leaftemp
     do i = ilndbeg , ilndend
       eg(i) = pfesat(t(i))
       qsat(i) = pfqsat(t(i),p(i),eg(i))
-      ! Move to specific humidity
-      qsat(i) = qsat(i)/(d_one+qsat(i))
       ! call bats_satur(t(i),p(i),eg(i),qsat(i))
     end do
 #ifdef DEBUG
@@ -720,7 +718,6 @@ module mod_bats_leaftemp
     do i = ilndbeg , ilndend
       if ( sigf(i) > minsigf ) then
         qsatld = pfqsdt(tlef(i),sfcp(i))
-        qsatld = qsatld/(d_one+qsatld)
         ! call bats_qsdt(tlef(i),qsatl(i),qsatld)
         xkb = cdrd(i)/cdr(i)
         hfl = df(i)*(wtga(i)*tlef(i) - wtg0(i)*tgrd(i) - wta0(i)*sts(i))

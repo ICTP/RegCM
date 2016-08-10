@@ -32,7 +32,7 @@ module mod_clm_regcm
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
+#include <pfwsat.inc>
 
   subroutine initclm45(lm,lms)
     implicit none
@@ -273,7 +273,7 @@ module mod_clm_regcm
     do i = begg , endg
       clm_a2l%forc_rho(i) = clm_a2l%forc_pbot(i)/(rgas*clm_a2l%forc_t(i))
       satp = pfesat(real(clm_a2l%forc_t(i),rkx))
-      satq = pfqsat(real(clm_a2l%forc_t(i),rkx), &
+      satq = pfwsat(real(clm_a2l%forc_t(i),rkx), &
                     real(clm_a2l%forc_pbot(i),rkx),satp)
       clm_a2l%forc_rh(i) = min(max(clm_a2l%forc_q(i)/satq,real(rhmin,rk8)), &
                                real(rhmax,rk8))
