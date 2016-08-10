@@ -5,44 +5,44 @@
     implicit none
     real(rkx), intent(in)  :: t     ! Temperature (K)
 
-    real(rkx) :: td , t_limit
+    real(rk8) :: td , t_limit , esatdt
     !
     ! For derivative:water vapor
     !
-    real(rkx), parameter :: b0 =  0.444017302_rkx
-    real(rkx), parameter :: b1 =  0.286064092e-01_rkx
-    real(rkx), parameter :: b2 =  0.794683137e-03_rkx
-    real(rkx), parameter :: b3 =  0.121211669e-04_rkx
-    real(rkx), parameter :: b4 =  0.103354611e-06_rkx
-    real(rkx), parameter :: b5 =  0.404125005e-09_rkx
-    real(rkx), parameter :: b6 = -0.788037859e-12_rkx
-    real(rkx), parameter :: b7 = -0.114596802e-13_rkx
-    real(rkx), parameter :: b8 =  0.381294516e-16_rkx
+    real(rk8), parameter :: b0 =  0.444017302_rk8
+    real(rk8), parameter :: b1 =  0.286064092e-01_rk8
+    real(rk8), parameter :: b2 =  0.794683137e-03_rk8
+    real(rk8), parameter :: b3 =  0.121211669e-04_rk8
+    real(rk8), parameter :: b4 =  0.103354611e-06_rk8
+    real(rk8), parameter :: b5 =  0.404125005e-09_rk8
+    real(rk8), parameter :: b6 = -0.788037859e-12_rk8
+    real(rk8), parameter :: b7 = -0.114596802e-13_rk8
+    real(rk8), parameter :: b8 =  0.381294516e-16_rk8
     !
     ! For derivative:ice
     !
-    real(rkx), parameter :: d0 =  0.503277922_rkx
-    real(rkx), parameter :: d1 =  0.377289173e-01_rkx
-    real(rkx), parameter :: d2 =  0.126801703e-02_rkx
-    real(rkx), parameter :: d3 =  0.249468427e-04_rkx
-    real(rkx), parameter :: d4 =  0.313703411e-06_rkx
-    real(rkx), parameter :: d5 =  0.257180651e-08_rkx
-    real(rkx), parameter :: d6 =  0.133268878e-10_rkx
-    real(rkx), parameter :: d7 =  0.394116744e-13_rkx
-    real(rkx), parameter :: d8 =  0.498070196e-16_rkx
+    real(rk8), parameter :: d0 =  0.503277922_rk8
+    real(rk8), parameter :: d1 =  0.377289173e-01_rk8
+    real(rk8), parameter :: d2 =  0.126801703e-02_rk8
+    real(rk8), parameter :: d3 =  0.249468427e-04_rk8
+    real(rk8), parameter :: d4 =  0.313703411e-06_rk8
+    real(rk8), parameter :: d5 =  0.257180651e-08_rk8
+    real(rk8), parameter :: d6 =  0.133268878e-10_rk8
+    real(rk8), parameter :: d7 =  0.394116744e-13_rk8
+    real(rk8), parameter :: d8 =  0.498070196e-16_rk8
 
     t_limit = t - tzero
-    if ( t_limit > 100.0_rkx ) t_limit = 100.0_rkx
-    if ( t_limit < -75.0_rkx ) t_limit = -75.0_rkx
+    if ( t_limit > 100.0_rk8 ) t_limit = 100.0_rk8
+    if ( t_limit < -75.0_rk8 ) t_limit = -75.0_rk8
     td = t_limit
-    if ( td >= 0.0_rkx ) then
-      esdt = b0 + td*(b1 + td*(b2 + td*(b3 + td*(b4 &
+    if ( td >= 0.0_rk8 ) then
+      esatdt = b0 + td*(b1 + td*(b2 + td*(b3 + td*(b4 &
            + td*(b5 + td*(b6 + td*(b7 + td*b8)))))))
     else
-      esdt = d0 + td*(d1 + td*(d2 + td*(d3 + td*(d4 &
+      esatdt = d0 + td*(d1 + td*(d2 + td*(d3 + td*(d4 &
            + td*(d5 + td*(d6 + td*(d7 + td*d8)))))))
     end if
-    esdt = esdt * 100.0_rkx ! pa/K
+    esdt = real(esatdt * 100.0_rk8,rkx) ! pa/K
   end function pfesdt
 
   pure real(rkx) function pfqsdt(t,p,e,dedt) result(qsdt)
