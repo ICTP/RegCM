@@ -1428,7 +1428,7 @@ module mod_clm_initimeconst
 
       ! Initialize maximum allowed dew
 
-      dewmx(p) = 1.0_rk8
+      dewmx(p) = 0.1_rk8
 
       ! initialize rresis, for use in ecosystemdyn
       do lev = 1,nlevgrnd

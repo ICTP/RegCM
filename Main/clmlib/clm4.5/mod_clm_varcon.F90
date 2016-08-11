@@ -84,7 +84,7 @@ module mod_clm_varcon
   ! Critical value of elai+esai for which aerodynamic parameters are maximum
   real(rk8) , public , parameter :: tlsai_crit = 2.0_rk8
   ! Minimum soil moisture (mm)
-  real(rk8) , public , parameter :: watmin = 0.01_rk8
+  real(rk8) , public , parameter :: watmin = 0.1_rk8
 
   ! Radius of earth (km)
   real(rk8) , public , parameter :: re = earthrad*0.001_rk8
