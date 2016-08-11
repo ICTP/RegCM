@@ -1761,7 +1761,7 @@ module mod_clm_soilhydrology
         end if !k_frz > k_perch
 
         ! Topographic runoff
-        fff(c)         = 1._rk8/ hkdepth(c)
+        fff(c) = 1._rk8/ hkdepth(c)
         dzsum = 0._rk8
         icefracsum = 0._rk8
         do j = max(jwt(c),1), nlevsoi

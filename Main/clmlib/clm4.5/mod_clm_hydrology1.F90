@@ -368,8 +368,8 @@ module mod_clm_hydrology1
             h2ocanmx = dewmx(p) * (elai(p) + esai(p))
 
             ! Coefficient of interception
-            ! set fraction of potential interception to max 0.25
-            fpi = 0.25_rk8*(1._rk8 - exp(-0.5_rk8*(elai(p) + esai(p))))
+            ! Norman and Campbell (1983)
+            fpi = (1._rk8 - exp(-0.5_rk8*(elai(p) + esai(p))))
 
             ! Direct throughfall
             qflx_through_snow(p) = forc_snow(g) * (1._rk8-fpi)
@@ -380,7 +380,9 @@ module mod_clm_hydrology1
 
             ! Water storage of intercepted precipitation and dew
             h2ocan(p) = max(0._rk8, h2ocan(p) + dtsrf*qflx_prec_intr(p))
-            if ( h2ocan(p) < 1.0e-10_rk8 ) h2ocan(p) = 0.0_rk8
+            if ( h2ocan(p) < 1.0e-10_rk8 ) then
+              h2ocan(p) = 0.0_rk8
+            end if
 
             ! Initialize rate of canopy runoff and snow falling off canopy
             qflx_candrip(p) = 0._rk8

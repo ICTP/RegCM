@@ -234,7 +234,7 @@ module mod_params
     iwavcpl = 0
     lakemod = 0
     ichem = 0
-    scenario = 'RF'
+    scenario = 'RCP4.5'
     idcsst = 0
     iseaice = 0
     idesseas = 0

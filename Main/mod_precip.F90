@@ -68,9 +68,10 @@ module mod_precip
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
 
   real(rkx) , parameter :: rhow = 1000.0_rkx
-  real(rkx) , parameter :: qcmin = 1.0e-10_rkx
+  real(rkx) , parameter :: fcmin = 0.1_rkx
+  real(rkx) , parameter :: qcmin = 1.0e-8_rkx
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
-  real(rkx) , parameter :: verynearzero = 1.0e-20_rkx
+  real(rkx) , parameter :: pptmin = 1.0e-8_rkx
 
   contains
 
@@ -163,12 +164,11 @@ module mod_precip
     !   maximum precipation rate (total cloud water/dt)
     pptsum(:,:) = d_zero ! zero accumulated precip
     if ( ichem == 1 ) premrat(:,:,:) = d_zero
-
     do i = ici1 , ici2
       do j = jci1 , jci2
         afc = pfcc(j,i,1)                                  ![frac][avg]
         qcw = qx3(j,i,1,iqc)                               ![kg/kg][avg]
-        if ( afc > 0.01_rkx .and. qcw > qcmin ) then ! if there is a cloud
+        if ( afc > fcmin .and. qcw > qcmin ) then ! if there is a cloud
           ! 1aa. Compute temperature and humidities with the adjustments
           !      due to convection.
           tk = t3(j,i,1)                                     ![k][avg]
@@ -179,7 +179,7 @@ module mod_precip
           qcincld = qcw/afc                                  ![kg/kg][cld]
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
-          pptmax = max((qcw-qcmin),d_zero)/dt                ![kg/kg/s][avg]
+          pptmax = max(qcw,d_zero)/dt                ![kg/kg/s][avg]
           if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
             ! include aerosol second indirect effect on threshold
             ! auto-conversion
@@ -255,7 +255,7 @@ module mod_precip
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
           dpovg = dsigma(k)*psb(j,i)*thog                    ![kg/m2][avg]
-          if ( pptsum(j,i) > verynearzero ) then
+          if ( pptsum(j,i) > pptmin ) then
             pptkm1 = pptsum(j,i)/dpovg                         ![kg/kg/s][avg]
           else
             pptkm1 = d_zero
@@ -265,7 +265,7 @@ module mod_precip
           !  - It is assumed that raindrops do not evaporate in clouds
           !    and the rainfall from above is evenly distributed in
           !    gridcell (i.e. the gridcell average precipitation is used).
-          if ( pptsum(j,i) > verynearzero .and. afc < 0.99_rkx ) then
+          if ( pptsum(j,i) > pptmin .and. afc < (d_one-fcmin) ) then
             ! 2bca. Compute the clear sky relative humidity
             rhcs = (rh-afc*rhmax)/(d_one-afc)            ![frac][clr]
             rhcs = max(min(rhcs,rhmax),rhmin)            ![frac][clr]
@@ -292,12 +292,12 @@ module mod_precip
             rdevap = d_zero                                  ![kg/kg/s][avg]
           end if
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
-          if ( afc > 0.01_rkx .and. qcw > qcmin ) then ! if there is a cloud
+          if ( afc > fcmin .and. qcw > qcmin ) then ! if there is a cloud
             ! 1bda. Calculate the in cloud mixing ratio [kg/kg]
             qcincld = qcw/afc                                ![kg/kg][cld]
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
-            pptmax = max((qcw-qcmin),d_zero)/dt              ![kg/kg/s][avg]
+            pptmax = max(qcw,d_zero)/dt              ![kg/kg/s][avg]
             if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
               ! FAB: aerosol second indirect effect on autoconversion
               ! threshold, rcrit is a critical cloud radius for cloud
@@ -322,13 +322,13 @@ module mod_precip
               dia_acr(j,i,k) = pptnew
             end if
             ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
-            if ( ichem == 1  .and. pptnew > verynearzero ) then
+            if ( ichem == 1  .and. pptnew > pptmin ) then
               premrat(j,i,k) = pptnew/qcw
             end if
             ! 1bf. Compute the amount of cloud water removed by raindrop
             !      accretion [kg/kg/s].  In the layer where the precipitation
             !      is formed, only half of the precipitation can accrete.
-            if ( pptkm1 > verynearzero .or. pptnew > verynearzero ) then
+            if ( pptkm1 > pptmin .or. pptnew > pptmin ) then
               ! 1bfa. Compute the amount of water remaining in the cloud [kg/kg]
               qcleft = qcw-pptnew*dt                         ![kg/kg][avg]
               ! 1bfb. Add 1/2 of the new precipitation to the accumulated
@@ -475,7 +475,8 @@ module mod_precip
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ptotc(j,i,k) = qx3(j,i,k,iqc) + alphaice*qx3(j,i,k,iqi)
+            ptotc(j,i,k) = (qx3(j,i,k,iqc) + alphaice*qx3(j,i,k,iqi)) / &
+                                (d_one+qx3(j,i,k,iqv))
           end do
         end do
       end do
@@ -483,7 +484,7 @@ module mod_precip
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ptotc(j,i,k) = qx3(j,i,k,iqc)
+            ptotc(j,i,k) = qx3(j,i,k,iqc)/(d_one+qx3(j,i,k,iqv))
           end do
         end do
       end do
@@ -499,21 +500,21 @@ module mod_precip
           do j = jci1 , jci2
             ! To calculate cloud fraction using the semi-empirical formula
             ! of Xu and Randall (1996, JAS)
-            qcld = ptotc(j,i,k)
-            if ( qcld < 1.0e-12_rkx ) then         ! no cloud cover
-              pfcc(j,i,k) = d_zero
+            if ( rh3(j,i,k) > rhmin ) then
+              pfcc(j,i,k) = lowcld
             else
               if ( rh3(j,i,k) >= rhmax ) then  ! full cloud cover
-                pfcc(j,i,k) = d_one
+                pfcc(j,i,k) = hicld
               else if ( rh3(j,i,k) <= rhmin ) then
-                pfcc(j,i,k) = d_zero
+                pfcc(j,i,k) = lowcld
               else                             ! partial cloud cover
+                qcld = ptotc(j,i,k)
                 botm = exp( 0.49_rkx*log((d_one-rh3(j,i,k))*qs3(j,i,k)) )
                 rm = exp(0.25_rkx*log(rh3(j,i,k)))
                 if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
-                  pfcc(j,i,k) = min(0.99_rkx, max(0.01_rkx , rm))
+                  pfcc(j,i,k) = min(hicld, max(lowcld , rm))
                 else
-                  pfcc(j,i,k) = min(0.99_rkx, max(0.01_rkx , &
+                  pfcc(j,i,k) = min(hicld, max(lowcld , &
                           rm*(d_one-exp(-100._rkx*(qcld/botm)))))
                 end if
               end if
@@ -532,16 +533,17 @@ module mod_precip
               rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t3(j,i,k)))
             end if
             if ( rh3(j,i,k) >= rhmax ) then     ! full cloud cover
-              pfcc(j,i,k) = d_one
+              pfcc(j,i,k) = hicld
             else if ( rh3(j,i,k) <= rhmin ) then
-              pfcc(j,i,k) = d_zero
+              pfcc(j,i,k) = lowcld
             else
               if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
-                pfcc(j,i,k) = d_zero
+                pfcc(j,i,k) = lowcld
               else                              ! partial cloud cover
-                pfcc(j,i,k) = d_one-sqrt(d_one-(rh3(j,i,k)-rh0adj) / &
-                             (rhmax-rh0adj))
-                pfcc(j,i,k) = min(max(pfcc(j,i,k),0.01_rkx),0.99_rkx)
+                ! Use Sundqvist (1989) formula
+                pfcc(j,i,k) = d_one-sqrt((d_one-rh3(j,i,k)) / &
+                                         (d_one-rh0adj))
+                pfcc(j,i,k) = min(max(pfcc(j,i,k),lowcld),hicld)
               end if
             end if
           end do
@@ -609,6 +611,7 @@ module mod_precip
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
+          exlwc = d_zero
           ! Cloud Water Volume
           ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
           if ( iconvlwp == 1 ) then
@@ -616,15 +619,12 @@ module mod_precip
             ! the large scale clouds.
             if ( pfcc(j,i,k) > lowcld ) then
               exlwc = clwfromt(t3(j,i,k))
-            else
-              exlwc = d_zero
             end if
           else
             ! NOTE : IN CLOUD HERE IS NEEDED !!!
             if ( pfcc(j,i,k) > lowcld ) then
-              exlwc = (ptotc(j,i,k)*rho3(j,i,k)*d_1000)/pfcc(j,i,k)
-            else
-              exlwc = d_zero
+              ! In g / m^3
+              exlwc = ((ptotc(j,i,k)*d_1000)/pfcc(j,i,k))*rho3(j,i,k)
             end if
           end if
           if ( radcldf(j,i,k) > lowcld .or. pfcc(j,i,k) > lowcld ) then
@@ -637,6 +637,7 @@ module mod_precip
             radcldf(j,i,k) = lowcld
             radlqwc(j,i,k) = d_zero
           end if
+          pfcc(j,i,k) = radcldf(j,i,k)
           radcldf(j,i,k) = min(min(radcldf(j,i,k),hicld),cftotmax)
         end do
       end do
@@ -691,7 +692,7 @@ module mod_precip
           end if
 #endif
           qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),qvmin)/psc(j,i)
-          qccs = max((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc)),qcmin)/psc(j,i)
+          qccs = max((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc)),d_zero)/psc(j,i)
           !-----------------------------------------------------------
           !     2.  Compute the cloud condensation/evaporation term.
           !-----------------------------------------------------------

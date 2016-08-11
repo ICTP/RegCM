@@ -455,7 +455,6 @@ module mod_rad_colmod3
   !
   subroutine cldefr
     implicit none
-
     integer(ik4) :: n , k , nt
     real(rkx) :: pnrml , weight , rhoa , nc , aerc , lwc , kparam
     ! real(rkx) :: tpara
@@ -534,10 +533,13 @@ module mod_rad_colmod3
         end if
         ! Turn off ice radiative properties by setting fice = 0.0
         ! fice(n,k) = d_zero
-        totcl(n) = totcl(n) + clwp(n,k)*(d_one-fice(n,k))*d_r1000
-        totci(n) = totci(n) + clwp(n,k)*fice(n,k)*d_r1000
+        totcl(n) = totcl(n) + clwp(n,k)*cld(n,k)*(d_one-fice(n,k))
+        totci(n) = totci(n) + clwp(n,k)*cld(n,k)*fice(n,k)
       end do
     end do
+
+    totcl = totcl * d_r1000
+    totci = totci * d_r1000
 
     !FAB : reintroduce simple sulfate indirect effect
     ! from Qian  1999
@@ -808,7 +810,7 @@ module mod_rad_colmod3
         do j = jci1 , jci2
           cld(n,k) = m2r%cldfrc(j,i,k)
           ! Convert liquid water content into liquid water path
-          clwp(n,k) = m2r%cldlwc(j,i,k)*deltaz(n,k)
+          clwp(n,k) = m2r%cldlwc(j,i,k)*m2r%deltaz(j,i,k)
           n = n + 1
         end do
       end do

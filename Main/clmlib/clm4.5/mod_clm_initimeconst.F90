@@ -1370,10 +1370,6 @@ module mod_clm_initimeconst
     ! pft level initialization
     do p = begp, endp
 
-      ! Initialize maximum allowed dew
-
-      dewmx(p)  = 0.1_rk8
-
       ! Initialize root fraction (computing from surface, d is depth in meter):
       ! Y = 1 -1/2 (exp(-ad)+exp(-bd) under the constraint that
       ! Y(d =0.1m) = 1-beta^(10 cm) and Y(d=d_obs)=0.99 with
@@ -1429,6 +1425,10 @@ module mod_clm_initimeconst
       else
         rootfr(p,1:nlevsoi) = 0._rk8
       end if
+
+      ! Initialize maximum allowed dew
+
+      dewmx(p) = 1.0_rk8
 
       ! initialize rresis, for use in ecosystemdyn
       do lev = 1,nlevgrnd

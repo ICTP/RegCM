@@ -48,6 +48,7 @@ module mod_init
   use mod_outvars
   use mod_service
   use mod_sound , only : init_sound
+  use mod_humid , only : clwfromt
 
   implicit none
 
@@ -59,6 +60,10 @@ module mod_init
   real(rkx) , parameter :: ts00 = 288.0_rkx
 
   contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !                                                                   c
@@ -69,7 +74,7 @@ module mod_init
   subroutine init
     implicit none
     integer(ik4) :: i , j , k , n
-    real(rkx) :: sfice_temp
+    real(rkx) :: sfice_temp , t , p , qs , rh
     character(len=32) :: appdat
     real(rkx) , dimension(kzp1) :: ozprnt
 #ifdef DEBUG
@@ -99,8 +104,8 @@ module mod_init
         do i = ice1 , ice2
           do j = jce1 , jce2
             atm1%t(j,i,k) = xtb%b0(j,i,k)
-            atm1%qx(j,i,k,iqv) = xqb%b0(j,i,k)
             atm2%t(j,i,k) = xtb%b0(j,i,k)
+            atm1%qx(j,i,k,iqv) = xqb%b0(j,i,k)
             atm2%qx(j,i,k,iqv) = xqb%b0(j,i,k)
           end do
         end do
@@ -557,8 +562,24 @@ module mod_init
         end do
       end do
     end if
-
     if ( .not. ifrest ) then
+      if ( ipptls > 0 ) then
+        ! Initialize cloud liquid water
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              t = atm1%t(j,i,k) / sfs%psa(j,i)
+              p = atm1%pr(j,i,k)
+              qs = pfqsat(t,p)
+              rh = ( (atm1%qx(j,i,k,iqv)/sfs%psa(j,i))/qs )
+              if ( rh > rh0(j,i) ) then
+                atm1%qx(j,i,k,iqc) = clwfromt(t)/d_1000 * sfs%psa(j,i)
+                atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
+              end if
+            end do
+          end do
+        end do
+      end if
       !
       ! Initialize the tbase for BM cumulus scheme
       !

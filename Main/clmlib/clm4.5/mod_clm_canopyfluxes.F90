@@ -1096,9 +1096,9 @@ module mod_clm_canopyfluxes
        ! Sensible heat conductance for air, leaf and ground
        ! Moved the original subroutine in-line...
 
-       wta    = 1._rk8/rah(p,1)             ! air
+       wta    = 1._rk8/rah(p,1)           ! air
        wtl    = (elai(p)+esai(p))/rb(p)   ! leaf
-       wtg(p) = 1._rk8/rah(p,2)             ! ground
+       wtg(p) = 1._rk8/rah(p,2)           ! ground
        wtshi  = 1._rk8/(wta+wtl+wtg(p))
 
        wtl0(p) = wtl*wtshi         ! leaf
