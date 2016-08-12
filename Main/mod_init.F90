@@ -566,8 +566,8 @@ module mod_init
       if ( ipptls > 0 ) then
         ! Initialize cloud liquid water
         do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
+          do i = ici1 , ici2
+            do j = jci1 , jci2
               t = atm1%t(j,i,k) / sfs%psa(j,i)
               p = atm1%pr(j,i,k)
               qs = pfqsat(t,p)
