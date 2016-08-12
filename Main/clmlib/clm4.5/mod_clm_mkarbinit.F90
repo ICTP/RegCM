@@ -1156,7 +1156,7 @@ module mod_clm_mkarbinit
             nlevs = nlevgrnd
             do j = 1 , nlevs
               if ( j <= nlevsoi ) then
-                h2osoi_vol(c,j) = 0.30_rk8*xmopor(adomain%itex(g))
+                h2osoi_vol(c,j) = 0.5_rk8*xmopor(adomain%itex(g))
                 !h2osoi_vol(c,j) = 0.3_rk8
               else
                 h2osoi_vol(c,j) = 0.0_rk8
@@ -1179,13 +1179,13 @@ module mod_clm_mkarbinit
             if ( j > nlevsoi ) then
               h2osoi_vol(c,j) = 0.0_rk8
             else
-              h2osoi_vol(c,j) = xmopor(adomain%itex(g))
+              h2osoi_vol(c,j) = 1.0_rk8
             end if
           end do
         else if ( ltype(l) == istice ) then
           nlevs = nlevgrnd
           do j = 1 , nlevs
-            h2osoi_vol(c,j) = xmopor(adomain%itex(g))
+            h2osoi_vol(c,j) = 1.0_rk8
           end do
         end if
       end if
