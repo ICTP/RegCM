@@ -43,7 +43,8 @@ module mod_precip
   !
   real(rkx) , pointer , dimension(:,:) :: pptsum
   integer(ik4) , pointer , dimension(:,:) :: ldmsk
-  real(rkx) , pointer , dimension(:,:) :: psb , psc , rainnc , lsmrnc , th700
+  real(rkx) , pointer , dimension(:,:) :: psb , psc , rainnc , lsmrnc
+  real(rkx) , pointer , dimension(:,:) :: th700 , sfps
   real(rkx) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten , chi3
   real(rkx) , pointer , dimension(:,:,:) :: t3 , t2 , tten , th3
   real(rkx) , pointer , dimension(:,:,:) :: p3 , p2 , qs3 , rh3 , rho3
@@ -104,6 +105,7 @@ module mod_precip
     call assignpnt(atms%qsb3d,qs3)
     call assignpnt(atms%rhb3d,rh3)
     call assignpnt(atms%rhob3d,rho3)
+    call assignpnt(atms%ps2d,sfps)
     call assignpnt(atm2%t,t2)
     call assignpnt(atm2%qx,qx2)
     call assignpnt(atm2%pr,p2)
@@ -468,7 +470,7 @@ module mod_precip
     implicit none
     real(rkx) :: exlwc , rh0adj
     integer(ik4) :: i , j , k
-    real(rkx) :: botm , rm , qcld
+    real(rkx) :: pres , botm , rm , qcld
 
     if ( ipptls == 2 ) then
       do k = 1 , kz
@@ -522,11 +524,14 @@ module mod_precip
         do i = ici1 , ici2
           do j = jci1 , jci2
             ! Adjusted relative humidity threshold
-            if ( t3(j,i,k) > tc0 ) then
-              rh0adj = rh0(j,i)
-            else ! high cloud (less subgrid variability)
-              rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t3(j,i,k)))
-            end if
+            pres = p3(j,i,k)
+            !if ( t3(j,i,k) > tc0 ) then
+            !  rh0adj = rh0(j,i)
+            !else ! high cloud (less subgrid variability)
+            !  rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t3(j,i,k)))
+            !end if
+            rh0adj = 0.7_rkx+(rh0(j,i)-0.7_rkx)*exp(d_one-(sfps(j,i)/pres)**4)
+            rh0adj = max(rhmin,min(rh0adj,rhmax))
             if ( rh3(j,i,k) >= rhmax ) then     ! full cloud cover
               pfcc(j,i,k) = hicld
             else if ( rh3(j,i,k) <= rhmin ) then
@@ -629,7 +634,7 @@ module mod_precip
             radlqwc(j,i,k) = d_zero
           end if
           pfcc(j,i,k) = radcldf(j,i,k)
-          radcldf(j,i,k) = min(min(radcldf(j,i,k),hicld),cftotmax)
+          radcldf(j,i,k) = min(max(radcldf(j,i,k),lowcld),cftotmax)
         end do
       end do
     end do
@@ -695,22 +700,23 @@ module mod_precip
           r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
 
           ! 2b. Compute the relative humidity threshold at ktau+1
-          if ( tmp3 > tc0 ) then
-            rh0adj = rh0(j,i)
-          else ! high cloud (less subgrid variability)
-            rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
-          end if
+          !if ( tmp3 > tc0 ) then
+          !  rh0adj = rh0(j,i)
+          !else ! high cloud (less subgrid variability)
+          !  rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
+          !end if
+          ! Lohmann and Roeckner, 1996 ECHAM5
+          rh0adj = 0.7_rkx + (rh0(j,i)-0.7_rkx)*exp(d_one-(sfps(j,i)/pres)**4)
           rh0adj = max(rhmin,min(rh0adj,rhmax))
 
           if ( rhc < rh0adj ) then      ! No cloud cover
-            dqv = max((qvcs-qvmin),d_zero) - qvs*conf
+            dqv = qvcs - qvs*conf
           else if ( rhc >= rhmax ) then ! Full or no cloud cover
-            dqv = max((qvcs-qvmin),d_zero) - qvs*conf
+            dqv = qvcs - qvs*conf
           else
             fccc = d_one - sqrt((rhmax-rhc)/(rhmax-rh0adj))
             if ( pres >= 75000.0_rkx .and. qvcs <= 0.003_rkx ) then
-              fccc = fccc * max(0.15_rkx, &
-                          min(d_one,max((qvcs-qvmin),d_zero)/0.003_rkx))
+              fccc = fccc * max(0.15_rkx, min(d_one,qvcs/0.003_rkx))
             end if
             fccc = min(max(fccc,d_zero),d_one)
             qvc_cld = max((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)
