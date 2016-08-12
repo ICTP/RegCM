@@ -68,7 +68,6 @@ module mod_precip
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
 
   real(rkx) , parameter :: rhow = 1000.0_rkx
-  real(rkx) , parameter :: fcmin = 0.1_rkx
   real(rkx) , parameter :: qcmin = 1.0e-8_rkx
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
   real(rkx) , parameter :: pptmin = 1.0e-8_rkx
@@ -168,7 +167,7 @@ module mod_precip
       do j = jci1 , jci2
         afc = pfcc(j,i,1)                                  ![frac][avg]
         qcw = qx3(j,i,1,iqc)                               ![kg/kg][avg]
-        if ( afc > fcmin .and. qcw > qcmin ) then ! if there is a cloud
+        if ( afc > lowcld .and. qcw > qcmin ) then ! if there is a cloud
           ! 1aa. Compute temperature and humidities with the adjustments
           !      due to convection.
           tk = t3(j,i,1)                                     ![k][avg]
@@ -265,16 +264,16 @@ module mod_precip
           !  - It is assumed that raindrops do not evaporate in clouds
           !    and the rainfall from above is evenly distributed in
           !    gridcell (i.e. the gridcell average precipitation is used).
-          if ( pptsum(j,i) > pptmin .and. afc < (d_one-fcmin) ) then
+          if ( pptsum(j,i) > pptmin .and. afc < hicld ) then
             ! 2bca. Compute the clear sky relative humidity
-            rhcs = (rh-afc*rhmax)/(d_one-afc)            ![frac][clr]
+            rhcs = (rh-afc*rhmax)/(hicld-afc)            ![frac][clr]
             rhcs = max(min(rhcs,rhmax),rhmin)            ![frac][clr]
             ! 2bcb. Raindrop evaporation [kg/kg/s]
             if ( l_lat_hack ) then
               rdevap = sun_cevap(j,i)*(rhmax-rhcs) * &
-                           sqrt(pptsum(j,i))*(d_one-afc)
+                           sqrt(pptsum(j,i))*(hicld-afc)
             else
-              rdevap = cevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(d_one-afc)
+              rdevap = cevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(hicld-afc)
             end if
             rdevap = min((qs-qx3(j,i,k,iqv))/dt,rdevap)  ![kg/kg/s][avg]
             rdevap = min(max(rdevap,d_zero),pptkm1)    ![kg/kg/s][avg]
@@ -292,7 +291,7 @@ module mod_precip
             rdevap = d_zero                                  ![kg/kg/s][avg]
           end if
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
-          if ( afc > fcmin .and. qcw > qcmin ) then ! if there is a cloud
+          if ( afc > lowcld .and. qcw > qcmin ) then ! if there is a cloud
             ! 1bda. Calculate the in cloud mixing ratio [kg/kg]
             qcincld = qcw/afc                                ![kg/kg][cld]
             ! 1bdb. Compute the maximum precipation rate
@@ -500,23 +499,19 @@ module mod_precip
           do j = jci1 , jci2
             ! To calculate cloud fraction using the semi-empirical formula
             ! of Xu and Randall (1996, JAS)
-            if ( rh3(j,i,k) > rhmin ) then
+            if ( rh3(j,i,k) >= rhmax ) then  ! full cloud cover
+              pfcc(j,i,k) = hicld
+            else if ( rh3(j,i,k) <= rhmin ) then
               pfcc(j,i,k) = lowcld
             else
-              if ( rh3(j,i,k) >= rhmax ) then  ! full cloud cover
-                pfcc(j,i,k) = hicld
-              else if ( rh3(j,i,k) <= rhmin ) then
-                pfcc(j,i,k) = lowcld
-              else                             ! partial cloud cover
-                qcld = ptotc(j,i,k)
-                botm = exp( 0.49_rkx*log((d_one-rh3(j,i,k))*qs3(j,i,k)) )
-                rm = exp(0.25_rkx*log(rh3(j,i,k)))
-                if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
-                  pfcc(j,i,k) = min(hicld, max(lowcld , rm))
-                else
-                  pfcc(j,i,k) = min(hicld, max(lowcld , &
-                          rm*(d_one-exp(-100._rkx*(qcld/botm)))))
-                end if
+              qcld = ptotc(j,i,k)
+              botm = exp( 0.49_rkx*log((rhmax-rh3(j,i,k))*qs3(j,i,k)) )
+              rm = exp(0.25_rkx*log(rh3(j,i,k)))
+              if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
+                pfcc(j,i,k) = min(hicld, max(lowcld , rm))
+              else
+                pfcc(j,i,k) = min(hicld, max(lowcld , &
+                        rm*(d_one-exp(-100._rkx*(qcld/botm)))))
               end if
             end if
           end do
@@ -537,14 +532,10 @@ module mod_precip
             else if ( rh3(j,i,k) <= rhmin ) then
               pfcc(j,i,k) = lowcld
             else
-              if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
-                pfcc(j,i,k) = lowcld
-              else                              ! partial cloud cover
-                ! Use Sundqvist (1989) formula
-                pfcc(j,i,k) = d_one-sqrt((d_one-rh3(j,i,k)) / &
-                                         (d_one-rh0adj))
-                pfcc(j,i,k) = min(max(pfcc(j,i,k),lowcld),hicld)
-              end if
+              ! Use Sundqvist (1989) formula
+              pfcc(j,i,k) = d_one-sqrt((rhmax-rh3(j,i,k)) / &
+                                       (rhmax-rh0adj))
+              pfcc(j,i,k) = min(max(pfcc(j,i,k),lowcld),hicld)
             end if
           end do
         end do
@@ -572,7 +563,7 @@ module mod_precip
               !
               ! pfcc(j,i,k) = (rh3(j,i,k)**0.25_rkx)* &
               !      (d_one-dexp((-100.0_rkx*qx3(j,i,k,iqc)) / &
-              !     ((d_one-rh3(j,i,k))*qs3(j,i,k))**0.49_rkx))
+              !     ((rhmax-rh3(j,i,k))*qs3(j,i,k))**0.49_rkx))
               !
               !
             end if
@@ -716,7 +707,7 @@ module mod_precip
           else if ( rhc >= rhmax ) then ! Full or no cloud cover
             dqv = max((qvcs-qvmin),d_zero) - qvs*conf
           else
-            fccc = d_one - sqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
+            fccc = d_one - sqrt((rhmax-rhc)/(rhmax-rh0adj))
             if ( pres >= 75000.0_rkx .and. qvcs <= 0.003_rkx ) then
               fccc = fccc * max(0.15_rkx, &
                           min(d_one,max((qvcs-qvmin),d_zero)/0.003_rkx))
