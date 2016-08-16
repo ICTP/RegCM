@@ -469,7 +469,7 @@ module mod_diffusion
                  d_four*(f(j+1,i,k,n)+f(j-1,i,k,n) +  &
                          f(j,i+1,k,n)+f(j,i-1,k,n)) + &
                  d_twelve*f(j,i,k,n)
-          mval = max(mval,dlowval)
+          if ( abs(mval) < dlowval ) mval = sign(dlowval,mval)
           ften(j,i,k,n) = ften(j,i,k,n) - fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
         end do
       end do
@@ -484,7 +484,7 @@ module mod_diffusion
           mval = f(j+1,i,k,n)+f(j-1,i,k,n) + &
                  f(j,i+1,k,n)+f(j,i-1,k,n) - &
                  d_four*f(j,i,k,n)
-          mval = max(mval,dlowval)
+          if ( abs(mval) < dlowval ) mval = sign(dlowval,mval)
           ften(j,i,k,n) = ften(j,i,k,n) + fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
         end do
       end do
@@ -496,7 +496,7 @@ module mod_diffusion
           mval = f(j+1,i,k,n)+f(j-1,i,k,n) + &
                  f(j,i+1,k,n)+f(j,i-1,k,n) - &
                  d_four*f(j,i,k,n)
-          mval = max(mval,dlowval)
+          if ( abs(mval) < dlowval ) mval = sign(dlowval,mval)
           ften(j,i,k,n) = ften(j,i,k,n) + fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
         end do
       end do
@@ -511,7 +511,7 @@ module mod_diffusion
           mval = f(j+1,i,k,n)+f(j-1,i,k,n) + &
                  f(j,i+1,k,n)+f(j,i-1,k,n) - &
                  d_four*f(j,i,k,n)
-          mval = max(mval,dlowval)
+          if ( abs(mval) < dlowval ) mval = sign(dlowval,mval)
           ften(j,i,k,n) = ften(j,i,k,n) + fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
         end do
       end do
@@ -523,7 +523,7 @@ module mod_diffusion
           mval = f(j+1,i,k,n)+f(j-1,i,k,n) + &
                  f(j,i+1,k,n)+f(j,i-1,k,n) - &
                  d_four*f(j,i,k,n)
-          mval = max(mval,dlowval)
+          if ( abs(mval) < dlowval ) mval = sign(dlowval,mval)
           ften(j,i,k,n) = ften(j,i,k,n) + fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
         end do
       end do
