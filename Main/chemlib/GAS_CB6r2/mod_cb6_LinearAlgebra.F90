@@ -50,12 +50,12 @@ SUBROUTINE KppDecomp( JVS, IER )
   USE mod_cb6_JacobianSP
 
       INTEGER  :: IER
-      REAL(kind=dp) :: JVS(LU_NONZERO), W(NVAR), a
+      REAL(kind=dp) :: JVS(LU_NONZERO), W(NVAR_CB6), a
       INTEGER  :: k, kk, j, jj
 
-      a = 0. ! mz_rs_20050606
+      a = 0.0D0 ! mz_rs_20050606
       IER = 0
-      DO k=1,NVAR
+      DO k=1,NVAR_CB6
         ! mz_rs_20050606: don't check if real value == 0
         ! IF ( JVS( LU_DIAG(k) ) .EQ. 0. ) THEN
         IF ( ABS(JVS(LU_DIAG(k))) < TINY(a) ) THEN
@@ -91,12 +91,12 @@ SUBROUTINE KppDecompCmplx( JVS, IER )
   USE mod_cb6_JacobianSP
 
       INTEGER        :: IER
-      DOUBLE COMPLEX :: JVS(LU_NONZERO), W(NVAR), a
+      DOUBLE COMPLEX :: JVS(LU_NONZERO), W(NVAR_CB6), a
       REAL(kind=dp)  :: b = 0.0
       INTEGER        :: k, kk, j, jj
 
       IER = 0
-      DO k=1,NVAR
+      DO k=1,NVAR_CB6
         IF ( ABS(JVS(LU_DIAG(k))) < TINY(b) ) THEN
             IER = k
             RETURN
@@ -132,12 +132,12 @@ SUBROUTINE KppDecompCmplxR( JVSR, JVSI, IER )
 
       INTEGER       :: IER
       REAL(kind=dp) :: JVSR(LU_NONZERO), JVSI(LU_NONZERO) 
-      REAL(kind=dp) :: WR(NVAR), WI(NVAR), ar, ai, den
+      REAL(kind=dp) :: WR(NVAR_CB6), WI(NVAR_CB6), ar, ai, den
       INTEGER       :: k, kk, j, jj
 
       IER = 0
       ar  = 0.0
-      DO k=1,NVAR
+      DO k=1,NVAR_CB6
         IF (  ( ABS(JVSR(LU_DIAG(k))) < TINY(ar) ) .AND. &
               ( ABS(JVSI(LU_DIAG(k))) < TINY(ar) ) )  THEN
             IER = k
@@ -178,15 +178,15 @@ SUBROUTINE KppSolveIndirect( JVS, X )
   USE mod_cb6_JacobianSP
 
       INTEGER  :: i, j
-      REAL(kind=dp) :: JVS(LU_NONZERO), X(NVAR), sum
+      REAL(kind=dp) :: JVS(LU_NONZERO), X(NVAR_CB6), sum
 
-      DO i=1,NVAR
+      DO i=1,NVAR_CB6
          DO j = LU_CROW(i), LU_DIAG(i)-1 
              X(i) = X(i) - JVS(j)*X(LU_ICOL(j));
          END DO  
       END DO
 
-      DO i=NVAR,1,-1
+      DO i=NVAR_CB6,1,-1
         sum = X(i);
         DO j = LU_DIAG(i)+1, LU_CROW(i+1)-1
           sum = sum - JVS(j)*X(LU_ICOL(j));
@@ -207,9 +207,9 @@ SUBROUTINE KppSolveTRIndirect( JVS, X )
   USE mod_cb6_JacobianSP
 
       INTEGER       :: i, j
-      REAL(kind=dp) :: JVS(LU_NONZERO), X(NVAR)
+      REAL(kind=dp) :: JVS(LU_NONZERO), X(NVAR_CB6)
 
-      DO i=1,NVAR
+      DO i=1,NVAR_CB6
         X(i) = X(i)/JVS(LU_DIAG(i))
 	! subtract all nonzero elements in row i of JVS from X
         DO j=LU_DIAG(i)+1,LU_CROW(i+1)-1
@@ -217,7 +217,7 @@ SUBROUTINE KppSolveTRIndirect( JVS, X )
 	END DO
       END DO
 
-      DO i=NVAR, 1, -1
+      DO i=NVAR_CB6, 1, -1
 	! subtract all nonzero elements in row i of JVS from X
         DO j=LU_CROW(i),LU_DIAG(i)-1
 	  X(LU_ICOL(j)) = X(LU_ICOL(j))-JVS(j)*X(i)
@@ -237,15 +237,15 @@ SUBROUTINE KppSolveCmplx( JVS, X )
   USE mod_cb6_JacobianSP
 
       INTEGER        :: i, j
-      DOUBLE COMPLEX :: JVS(LU_NONZERO), X(NVAR), sum
+      DOUBLE COMPLEX :: JVS(LU_NONZERO), X(NVAR_CB6), sum
 
-      DO i=1,NVAR
+      DO i=1,NVAR_CB6
          DO j = LU_CROW(i), LU_DIAG(i)-1 
              X(i) = X(i) - JVS(j)*X(LU_ICOL(j));
          END DO  
       END DO
 
-      DO i=NVAR,1,-1
+      DO i=NVAR_CB6,1,-1
         sum = X(i);
         DO j = LU_DIAG(i)+1, LU_CROW(i+1)-1
           sum = sum - JVS(j)*X(LU_ICOL(j));
@@ -266,16 +266,16 @@ SUBROUTINE KppSolveCmplxR( JVSR, JVSI, XR, XI )
   USE mod_cb6_JacobianSP
 
       INTEGER       ::  i, j
-      REAL(kind=dp) ::  JVSR(LU_NONZERO), JVSI(LU_NONZERO), XR(NVAR), XI(NVAR), sumr, sumi, den
+      REAL(kind=dp) ::  JVSR(LU_NONZERO), JVSI(LU_NONZERO), XR(NVAR_CB6), XI(NVAR_CB6), sumr, sumi, den
 
-      DO i=1,NVAR
+      DO i=1,NVAR_CB6
          DO j = LU_CROW(i), LU_DIAG(i)-1 
              XR(i) = XR(i) - (JVSR(j)*XR(LU_ICOL(j)) - JVSI(j)*XI(LU_ICOL(j)))
              XI(i) = XI(i) - (JVSR(j)*XI(LU_ICOL(j)) + JVSI(j)*XR(LU_ICOL(j)))
          END DO  
       END DO
 
-      DO i=NVAR,1,-1
+      DO i=NVAR_CB6,1,-1
         sumr = XR(i); sumi = XI(i)
         DO j = LU_DIAG(i)+1, LU_CROW(i+1)-1
             sumr = sumr - (JVSR(j)*XR(LU_ICOL(j)) - JVSI(j)*XI(LU_ICOL(j)))
@@ -299,9 +299,9 @@ SUBROUTINE KppSolveTRCmplx( JVS, X )
   USE mod_cb6_JacobianSP
 
       INTEGER        :: i, j
-      DOUBLE COMPLEX :: JVS(LU_NONZERO), X(NVAR)
+      DOUBLE COMPLEX :: JVS(LU_NONZERO), X(NVAR_CB6)
 
-      DO i=1,NVAR
+      DO i=1,NVAR_CB6
         X(i) = X(i)/JVS(LU_DIAG(i))
 	! subtract all nonzero elements in row i of JVS from X
         DO j=LU_DIAG(i)+1,LU_CROW(i+1)-1
@@ -309,7 +309,7 @@ SUBROUTINE KppSolveTRCmplx( JVS, X )
 	END DO
       END DO
 
-      DO i=NVAR, 1, -1
+      DO i=NVAR_CB6, 1, -1
 	! subtract all nonzero elements in row i of JVS from X
         DO j=LU_CROW(i),LU_DIAG(i)-1
 	  X(LU_ICOL(j)) = X(LU_ICOL(j))-JVS(j)*X(i)
@@ -330,9 +330,9 @@ SUBROUTINE KppSolveTRCmplxR( JVSR, JVSI, XR, XI )
   USE mod_cb6_JacobianSP
 
       INTEGER       ::  i, j
-      REAL(kind=dp) ::  JVSR(LU_NONZERO), JVSI(LU_NONZERO), XR(NVAR), XI(NVAR), den
+      REAL(kind=dp) ::  JVSR(LU_NONZERO), JVSI(LU_NONZERO), XR(NVAR_CB6), XI(NVAR_CB6), den
 
-      DO i=1,NVAR
+      DO i=1,NVAR_CB6
         den   = JVSR(LU_DIAG(i))**2 + JVSI(LU_DIAG(i))**2
         XR(i) = (XR(i)*JVSR(LU_DIAG(i)) + XI(i)*JVSI(LU_DIAG(i)))/den
         XI(i) = (XI(i)*JVSR(LU_DIAG(i)) - XR(i)*JVSI(LU_DIAG(i)))/den
@@ -343,7 +343,7 @@ SUBROUTINE KppSolveTRCmplxR( JVSR, JVSI, XR, XI )
 	END DO
       END DO
 
-      DO i=NVAR, 1, -1
+      DO i=NVAR_CB6, 1, -1
 	! subtract all nonzero elements in row i of JVS from X
         DO j=LU_CROW(i),LU_DIAG(i)-1
 	  XR(LU_ICOL(j)) = XR(LU_ICOL(j))-(JVSR(j)*XR(i) - JVSI(j)*XI(i))
@@ -644,7 +644,7 @@ SUBROUTINE KppSolve ( JVS, X )
 ! JVS - sparse Jacobian of variables
   REAL(kind=dp) :: JVS(LU_NONZERO)
 ! X - Vector for variables
-  REAL(kind=dp) :: X(NVAR)
+  REAL(kind=dp) :: X(NVAR_CB6)
 
   X(28) = X(28)-JVS(102)*X(7)
   X(31) = X(31)-JVS(122)*X(25)
@@ -875,9 +875,9 @@ SUBROUTINE KppSolveTR ( JVS, X, XX )
 ! JVS - sparse Jacobian of variables
   REAL(kind=dp) :: JVS(LU_NONZERO)
 ! X - Vector for variables
-  REAL(kind=dp) :: X(NVAR)
+  REAL(kind=dp) :: X(NVAR_CB6)
 ! XX - Vector for output variables
-  REAL(kind=dp) :: XX(NVAR)
+  REAL(kind=dp) :: XX(NVAR_CB6)
 
   XX(1) = X(1)/JVS(1)
   XX(2) = X(2)/JVS(9)

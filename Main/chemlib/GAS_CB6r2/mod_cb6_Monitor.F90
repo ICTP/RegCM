@@ -13,8 +13,8 @@
 !        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany
 ! 
 ! File                 : cb6_Monitor.f90
-! Time                 : Mon Nov 24 11:54:36 2014
-! Working directory    : /home/regcm/Code/kpp-2.2.3/Workspace/GAS_CB6r2
+! Time                 : Mon Jun 20 12:52:55 2016
+! Working directory    : /home/regcm/Code/kpp-2.2.3/Workspace/GAS_CB6r2_new
 ! Equation file        : cb6.kpp
 ! Output root filename : cb6
 ! 
@@ -26,266 +26,267 @@ MODULE mod_cb6_Monitor
 
 
   CHARACTER(LEN=15), PARAMETER, DIMENSION(82) :: SPC_NAMES = (/ &
-     'NTR            ','SULF           ','SO2            ', &
-     'O1D            ','ECH4           ','ETHA           ', &
-     'ETHY           ','N2O5           ','BENZ           ', &
+     'NTR            ','SULF           ','SDIO           ', &
+     'OSNG           ','ECH4           ','ETHA           ', &
+     'ETHY           ','DNPO           ','BENZ           ', &
      'EPOX           ','ETOH           ','PRPA           ', &
-     'KET            ','TOL            ','XYL            ', &
-     'HPLD           ','PAN            ','PACD           ', &
+     'KET            ','TOLN           ','XYLN           ', &
+     'HPLD           ','PACN           ','PACD           ', &
      'NTR2           ','PNA            ','MEOH           ', &
      'HONO           ','MEPX           ','OPAN           ', &
-     'CAT1           ','H2O2           ','ISPX           ', &
+     'CAT1           ','HPOX           ','ISPX           ', &
      'FACD           ','PANX           ','HCO3           ', &
-     'CRO            ','ROOH           ','NTR1           ', &
+     'CRER           ','RPOX           ','NTR1           ', &
      'ACET           ','INTR           ','BZO2           ', &
      'CRON           ','AACD           ','ROR            ', &
-     'TO2            ','ETH            ','CO             ', &
-     'XLO2           ','TERP           ','CRES           ', &
-     'ISOP           ','EPX2           ','HNO3           ', &
+     'TOLR           ','ETHE           ','CMON           ', &
+     'XLO2           ','TERP           ','CRSL           ', &
+     'ISPR           ','EPX2           ','NTRC           ', &
      'GLYD           ','GLY            ','XOPN           ', &
-     'MGLY           ','OPEN           ','IOLE           ', &
-     'FORM           ','OLE            ','ALD2           ', &
-     'XO2            ','OPO3           ','XO2N           ', &
+     'MEGY           ','ROPN           ','IOLE           ', &
+     'FORM           ','OLE            ','AALD           ', &
+     'XYLR           ','OPO3           ','XO2N           ', &
      'ISO2           ','XO2H           ','ISPD           ', &
-     'MEO2           ','ALDX           ','PAR            ', &
-     'O3             ','RO2            ','OH             ', &
-     'HO2            ','CXO3           ','NO3            ', &
-     'C2O3           ','O              ','NO             ', &
-     'NO2            ','H2O            ','H2             ', &
-     'O2             ','CH4            ','M              ', &
-     'DUMMY          ' /)
+     'MEO2           ','ALDX           ','ALKA           ', &
+     'OZN            ','ROO            ','HOX            ', &
+     'POX            ','CXO3           ','NTOX           ', &
+     'ACOO           ','O              ','NMOX           ', &
+     'NDOX           ','WTR            ','DIHY           ', &
+     'O2             ','METH           ','M              ', &
+     'DUMMY2         ' /)
 
-  INTEGER, PARAMETER, DIMENSION(11) :: LOOKAT = (/ &
-       7,  9, 14, 15, 44, 46, 67, 69, 70, 75, 76 /)
+  INTEGER, PARAMETER, DIMENSION(1) :: LOOKAT = (/ &
+      67 /)
 
-  INTEGER, PARAMETER, DIMENSION(7) :: MONITOR = (/ &
-       7,  9, 14, 15, 44, 46, 67 /)
+  INTEGER, PARAMETER, DIMENSION(1) :: MONITOR = (/ &
+      67 /)
 
   CHARACTER(LEN=15), DIMENSION(1) :: SMASS
   CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_0 = (/ &
-     '           NO2 --> O + NO                                                                           ', &
-     '    O + O2 + M --> O3 + M                                                                           ', &
-     '       O3 + NO --> NO2                                                                              ', &
-     '    O + NO + M --> NO2 + M                                                                          ', &
-     '       O + NO2 --> NO                                                                               ', &
-     '       O + NO2 --> NO3                                                                              ', &
-     '        O3 + O --> DUMMY                                                                            ', &
-     '            O3 --> O                                                                                ', &
-     '            O3 --> O1D                                                                              ', &
-     '       O1D + M --> O + M                                                                            ', &
-     '     O1D + H2O --> 2 OH                                                                             ', &
-     '       O3 + OH --> HO2                                                                              ', &
-     '      O3 + HO2 --> OH                                                                               ', &
-     '        OH + O --> HO2                                                                              ', &
-     '       HO2 + O --> OH                                                                               ', &
-     '          2 OH --> O                                                                                ', &
-     '          2 OH --> H2O2                                                                             ', &
-     '      OH + HO2 --> DUMMY                                                                            ', &
-     '         2 HO2 --> H2O2                                                                             ', &
-     '   2 HO2 + H2O --> H2O2                                                                             ', &
-     '          H2O2 --> 2 OH                                                                             ', &
-     '     H2O2 + OH --> HO2                                                                              ', &
-     '      H2O2 + O --> OH + HO2                                                                         ', &
-     '     2 NO + O2 --> 2 NO2                                                                            ', &
-     '      HO2 + NO --> OH + NO2                                                                         ', &
-     '      O3 + NO2 --> NO3                                                                              ', &
-     '           NO3 --> O + NO2                                                                          ', &
-     '           NO3 --> NO                                                                               ', &
-     '      NO3 + NO --> 2 NO2                                                                            ', &
-     '     NO3 + NO2 --> NO + NO2                                                                         ' /)
+     '             NDOX --> O + NMOX                                                                      ', &
+     '       O + O2 + M --> OZN + M                                                                       ', &
+     '       OZN + NMOX --> NDOX                                                                          ', &
+     '     O + NMOX + M --> NDOX + M                                                                      ', &
+     '         O + NDOX --> NMOX                                                                          ', &
+     '         O + NDOX --> NTOX                                                                          ', &
+     '          OZN + O --> DUMMY2                                                                        ', &
+     '              OZN --> O                                                                             ', &
+     '              OZN --> OSNG                                                                          ', &
+     '         OSNG + M --> O + M                                                                         ', &
+     '       OSNG + WTR --> 2 HOX                                                                         ', &
+     '        OZN + HOX --> POX                                                                           ', &
+     '        OZN + POX --> HOX                                                                           ', &
+     '          HOX + O --> POX                                                                           ', &
+     '          POX + O --> HOX                                                                           ', &
+     '            2 HOX --> O                                                                             ', &
+     '            2 HOX --> HPOX                                                                          ', &
+     '        HOX + POX --> DUMMY2                                                                        ', &
+     '            2 POX --> HPOX                                                                          ', &
+     '      2 POX + WTR --> HPOX                                                                          ', &
+     '             HPOX --> 2 HOX                                                                         ', &
+     '       HPOX + HOX --> POX                                                                           ', &
+     '         HPOX + O --> HOX + POX                                                                     ', &
+     '      2 NMOX + O2 --> 2 NDOX                                                                        ', &
+     '       POX + NMOX --> HOX + NDOX                                                                    ', &
+     '       OZN + NDOX --> NTOX                                                                          ', &
+     '             NTOX --> O + NDOX                                                                      ', &
+     '             NTOX --> NMOX                                                                          ', &
+     '      NTOX + NMOX --> 2 NDOX                                                                        ', &
+     '      NTOX + NDOX --> NMOX + NDOX                                                                   ' /)
   CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_1 = (/ &
-     '       NO3 + O --> NO2                                                                              ', &
-     '      OH + NO3 --> HO2 + NO2                                                                        ', &
-     '     HO2 + NO3 --> OH + NO2                                                                         ', &
-     '      O3 + NO3 --> NO2                                                                              ', &
-     '         2 NO3 --> 2 NO2                                                                            ', &
-     '     NO3 + NO2 --> N2O5                                                                             ', &
-     '          N2O5 --> NO3 + NO2                                                                        ', &
-     '    N2O5 + H2O --> 2 HNO3                                                                           ', &
-     '       OH + NO --> HONO                                                                             ', &
-     'NO + NO2 + H2O --> 2 HONO                                                                           ', &
-     '        2 HONO --> NO + NO2                                                                         ', &
-     '          HONO --> OH + NO                                                                          ', &
-     '     HONO + OH --> NO2                                                                              ', &
-     '      OH + NO2 --> HNO3                                                                             ', &
-     '     HNO3 + OH --> NO3                                                                              ', &
-     '          HNO3 --> OH + NO2                                                                         ', &
-     '     HO2 + NO2 --> PNA                                                                              ', &
-     '           PNA --> HO2 + NO2                                                                        ', &
-     '           PNA --> 0.41 OH + 0.59 HO2 + 0.41 NO3 + 0.59 NO2                                         ', &
-     '      PNA + OH --> NO2                                                                              ', &
-     '      SO2 + OH --> SULF + HO2                                                                       ', &
-     '     C2O3 + NO --> MEO2 + RO2 + NO2                                                                 ', &
-     '    C2O3 + NO2 --> PAN                                                                              ', &
-     '           PAN --> C2O3 + NO2                                                                       ', &
-     '           PAN --> 0.4 MEO2 + 0.4 RO2 + 0.4 NO3 + 0.6 C2O3 + 0.6 NO2                                ', &
-     '    HO2 + C2O3 --> 0.41 PACD + 0.15 AACD + 0.44 MEO2 + 0.15 O3 + 0.44 RO2 ... etc.                  ', &
-     '    RO2 + C2O3 --> C2O3                                                                             ', &
-     '        2 C2O3 --> 2 MEO2 + 2 RO2                                                                   ', &
-     '   CXO3 + C2O3 --> ALD2 + XO2H + MEO2 + 2 RO2                                                       ', &
-     '     CXO3 + NO --> ALD2 + XO2H + RO2 + NO2                                                          ' /)
+     '         NTOX + O --> NDOX                                                                          ', &
+     '       HOX + NTOX --> POX + NDOX                                                                    ', &
+     '       POX + NTOX --> HOX + NDOX                                                                    ', &
+     '       OZN + NTOX --> NDOX                                                                          ', &
+     '           2 NTOX --> 2 NDOX                                                                        ', &
+     '      NTOX + NDOX --> DNPO                                                                          ', &
+     '             DNPO --> NTOX + NDOX                                                                   ', &
+     '             DNPO --> NTOX + NDOX                                                                   ', &
+     '       DNPO + WTR --> 2 NTRC                                                                        ', &
+     '       HOX + NMOX --> HONO                                                                          ', &
+     'NMOX + NDOX + WTR --> 2 HONO                                                                        ', &
+     '           2 HONO --> NMOX + NDOX                                                                   ', &
+     '             HONO --> HOX + NMOX                                                                    ', &
+     '       HONO + HOX --> NDOX                                                                          ', &
+     '       HOX + NDOX --> NTRC                                                                          ', &
+     '       NTRC + HOX --> NTOX                                                                          ', &
+     '             NTRC --> HOX + NDOX                                                                    ', &
+     '       POX + NDOX --> PNA                                                                           ', &
+     '              PNA --> POX + NDOX                                                                    ', &
+     '              PNA --> 0.41 HOX + 0.59 POX + 0.41 NTOX + 0.59 NDOX                                   ', &
+     '        PNA + HOX --> NDOX                                                                          ', &
+     '       SDIO + HOX --> SULF + POX                                                                    ', &
+     '      ACOO + NMOX --> MEO2 + ROO + NDOX                                                             ', &
+     '      ACOO + NDOX --> PACN                                                                          ', &
+     '             PACN --> ACOO + NDOX                                                                   ', &
+     '             PACN --> 0.4 MEO2 + 0.4 ROO + 0.4 NTOX + 0.6 ACOO + 0.6 NDOX ... etc.                  ', &
+     '       POX + ACOO --> 0.41 PACD + 0.15 AACD + 0.44 MEO2 + 0.15 OZN + 0.44 ROO ... etc.              ', &
+     '       ROO + ACOO --> ACOO                                                                          ', &
+     '           2 ACOO --> 2 MEO2 + 2 ROO                                                                ', &
+     '      CXO3 + ACOO --> AALD + XO2H + MEO2 + 2 ROO                                                    ' /)
   CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_2 = (/ &
-     '    CXO3 + NO2 --> PANX                                                                             ', &
-     '          PANX --> CXO3 + NO2                                                                       ', &
-     '          PANX --> 0.4 ALD2 + 0.4 XO2H + 0.4 RO2 + 0.6 CXO3 + 0.4 NO3 + 0.6 NO2 ... etc.            ', &
-     '    HO2 + CXO3 --> 0.41 PACD + 0.15 AACD + 0.44 ALD2 + 0.44 XO2H + 0.15 O3 ... etc.                 ', &
-     '    RO2 + CXO3 --> 0.8 ALD2 + 0.8 XO2H + 0.8 RO2                                                    ', &
-     '        2 CXO3 --> 2 ALD2 + 2 XO2H + 2 RO2                                                          ', &
-     '      RO2 + NO --> NO                                                                               ', &
-     '     RO2 + HO2 --> HO2                                                                              ', &
-     '         2 RO2 --> DUMMY                                                                            ', &
-     '     MEO2 + NO --> FORM + HO2 + NO2                                                                 ', &
-     '    MEO2 + HO2 --> 0.9 MEPX + 0.1 FORM                                                              ', &
-     '   MEO2 + C2O3 --> 0.1 AACD + FORM + 0.9 MEO2 + 0.9 RO2 + 0.9 HO2                                   ', &
-     '    MEO2 + RO2 --> 0.315 MEOH + 0.685 FORM + RO2 + 0.37 HO2                                         ', &
-     '     XO2H + NO --> HO2 + NO2                                                                        ', &
-     '    XO2H + HO2 --> ROOH                                                                             ', &
-     '   XO2H + C2O3 --> 0.2 AACD + 0.8 MEO2 + 0.8 RO2 + 0.8 HO2                                          ', &
-     '    XO2H + RO2 --> RO2 + 0.6 HO2                                                                    ', &
-     '      XO2 + NO --> NO2                                                                              ', &
-     '     XO2 + HO2 --> ROOH                                                                             ', &
-     '    XO2 + C2O3 --> 0.2 AACD + 0.8 MEO2 + 0.8 RO2                                                    ', &
-     '     XO2 + RO2 --> RO2                                                                              ', &
-     '     XO2N + NO --> 0.5 NTR2 + 0.5 NTR1                                                              ', &
-     '    XO2N + HO2 --> ROOH                                                                             ', &
-     '   XO2N + C2O3 --> 0.2 AACD + 0.8 MEO2 + 0.8 RO2 + 0.8 HO2                                          ', &
-     '    XO2N + RO2 --> RO2                                                                              ', &
-     '     MEPX + OH --> 0.4 FORM + 0.6 MEO2 + 0.6 RO2 + 0.4 OH                                           ', &
-     '          MEPX --> MEO2 + RO2 + OH                                                                  ', &
-     '     ROOH + OH --> 0.06 XO2N + 0.54 XO2H + 0.6 RO2 + 0.4 OH                                         ', &
-     '          ROOH --> OH + HO2                                                                         ', &
-     '     NTR1 + OH --> NTR2                                                                             ' /)
+     '      CXO3 + NMOX --> AALD + XO2H + ROO + NDOX                                                      ', &
+     '      CXO3 + NDOX --> PANX                                                                          ', &
+     '             PANX --> CXO3 + NDOX                                                                   ', &
+     '             PANX --> 0.4 AALD + 0.4 XO2H + 0.4 ROO + 0.6 CXO3 + 0.4 NTOX ... etc.                  ', &
+     '       POX + CXO3 --> 0.41 PACD + 0.15 AACD + 0.44 AALD + 0.44 XO2H + 0.15 OZN ... etc.             ', &
+     '       ROO + CXO3 --> 0.8 AALD + 0.8 XO2H + 0.8 ROO                                                 ', &
+     '           2 CXO3 --> 2 AALD + 2 XO2H + 2 ROO                                                       ', &
+     '       ROO + NMOX --> NMOX                                                                          ', &
+     '        ROO + POX --> POX                                                                           ', &
+     '            2 ROO --> DUMMY2                                                                        ', &
+     '      MEO2 + NMOX --> FORM + POX + NDOX                                                             ', &
+     '       MEO2 + POX --> 0.9 MEPX + 0.1 FORM                                                           ', &
+     '      MEO2 + ACOO --> 0.1 AACD + FORM + 0.9 MEO2 + 0.9 ROO + 0.9 POX                                ', &
+     '       MEO2 + ROO --> 0.315 MEOH + 0.685 FORM + ROO + 0.37 POX                                      ', &
+     '      XO2H + NMOX --> POX + NDOX                                                                    ', &
+     '       XO2H + POX --> RPOX                                                                          ', &
+     '      XO2H + ACOO --> 0.2 AACD + 0.8 MEO2 + 0.8 ROO + 0.8 POX                                       ', &
+     '       XO2H + ROO --> ROO + 0.6 POX                                                                 ', &
+     '      XYLR + NMOX --> NDOX                                                                          ', &
+     '       XYLR + POX --> RPOX                                                                          ', &
+     '      XYLR + ACOO --> 0.2 AACD + 0.8 MEO2 + 0.8 ROO                                                 ', &
+     '       XYLR + ROO --> ROO                                                                           ', &
+     '      XO2N + NMOX --> 0.5 NTR2 + 0.5 NTR1                                                           ', &
+     '       XO2N + POX --> RPOX                                                                          ', &
+     '      XO2N + ACOO --> 0.2 AACD + 0.8 MEO2 + 0.8 ROO + 0.8 POX                                       ', &
+     '       XO2N + ROO --> ROO                                                                           ', &
+     '       MEPX + HOX --> 0.4 FORM + 0.6 MEO2 + 0.6 ROO + 0.4 HOX                                       ', &
+     '             MEPX --> MEO2 + ROO + HOX                                                              ', &
+     '       RPOX + HOX --> 0.06 XO2N + 0.54 XO2H + 0.6 ROO + 0.4 HOX                                     ', &
+     '             RPOX --> HOX + POX                                                                     ' /)
   CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_3 = (/ &
-     '          NTR1 --> NO2                                                                              ', &
-     '     FACD + OH --> HO2                                                                              ', &
-     '     AACD + OH --> MEO2 + RO2                                                                       ', &
-     '     PACD + OH --> C2O3                                                                             ', &
-     '     FORM + OH --> CO + HO2                                                                         ', &
-     '          FORM --> CO + 2 HO2                                                                       ', &
-     '          FORM --> CO + H2                                                                          ', &
-     '      FORM + O --> CO + OH + HO2                                                                    ', &
-     '    FORM + NO3 --> CO + HNO3 + HO2                                                                  ', &
-     '    FORM + HO2 --> HCO3                                                                             ', &
-     '          HCO3 --> FORM + HO2                                                                       ', &
-     '     HCO3 + NO --> FACD + HO2 + NO2                                                                 ', &
-     '    HCO3 + HO2 --> 0.5 MEPX + 0.5 FACD + 0.2 OH + 0.2 HO2                                           ', &
-     '      ALD2 + O --> OH + C2O3                                                                        ', &
-     '     ALD2 + OH --> C2O3                                                                             ', &
-     '    ALD2 + NO3 --> HNO3 + C2O3                                                                      ', &
-     '          ALD2 --> CO + MEO2 + RO2 + HO2                                                            ', &
-     '      ALDX + O --> OH + CXO3                                                                        ', &
-     '     ALDX + OH --> CXO3                                                                             ', &
-     '    ALDX + NO3 --> HNO3 + CXO3                                                                      ', &
-     '          ALDX --> CO + ALD2 + XO2H + RO2 + HO2                                                     ', &
-     '     GLYD + OH --> 0.2 GLY + 0.2 HO2 + 0.8 C2O3                                                     ', &
-     '          GLYD --> 0.15 MEOH + 0.89 CO + 0.11 GLY + 0.74 FORM + 0.11 XO2H ... etc.                  ', &
-     '    GLYD + NO3 --> HNO3 + C2O3                                                                      ', &
-     '      GLY + OH --> 1.8 CO + 0.2 XO2 + 0.2 RO2 + HO2                                                 ', &
-     '           GLY --> 2 CO + 2 HO2                                                                     ', &
-     '     GLY + NO3 --> 1.5 CO + HNO3 + 0.5 XO2 + 0.5 RO2 + HO2                                          ', &
-     '          MGLY --> CO + HO2 + C2O3                                                                  ', &
-     '    MGLY + NO3 --> HNO3 + XO2 + RO2 + C2O3                                                          ', &
-     '     MGLY + OH --> CO + C2O3                                                                        ' /)
+     '       NTR1 + HOX --> NTR2                                                                          ', &
+     '             NTR1 --> NDOX                                                                          ', &
+     '       FACD + HOX --> POX                                                                           ', &
+     '       AACD + HOX --> MEO2 + ROO                                                                    ', &
+     '       PACD + HOX --> ACOO                                                                          ', &
+     '       FORM + HOX --> CMON + POX                                                                    ', &
+     '             FORM --> CMON + 2 POX                                                                  ', &
+     '             FORM --> CMON + DIHY                                                                   ', &
+     '         FORM + O --> CMON + HOX + POX                                                              ', &
+     '      FORM + NTOX --> CMON + NTRC + POX                                                             ', &
+     '       FORM + POX --> HCO3                                                                          ', &
+     '             HCO3 --> FORM + POX                                                                    ', &
+     '      HCO3 + NMOX --> FACD + POX + NDOX                                                             ', &
+     '       HCO3 + POX --> 0.5 MEPX + 0.5 FACD + 0.2 HOX + 0.2 POX                                       ', &
+     '         AALD + O --> HOX + ACOO                                                                    ', &
+     '       AALD + HOX --> ACOO                                                                          ', &
+     '      AALD + NTOX --> NTRC + ACOO                                                                   ', &
+     '             AALD --> CMON + MEO2 + ROO + POX                                                       ', &
+     '         ALDX + O --> HOX + CXO3                                                                    ', &
+     '       ALDX + HOX --> CXO3                                                                          ', &
+     '      ALDX + NTOX --> NTRC + CXO3                                                                   ', &
+     '             ALDX --> CMON + AALD + XO2H + ROO + POX                                                ', &
+     '       GLYD + HOX --> 0.2 GLY + 0.2 POX + 0.8 ACOO                                                  ', &
+     '             GLYD --> 0.15 MEOH + 0.89 CMON + 0.11 GLY + 0.74 FORM + 0.11 XO2H ... etc.             ', &
+     '      GLYD + NTOX --> NTRC + ACOO                                                                   ', &
+     '        GLY + HOX --> 1.8 CMON + 0.2 XYLR + 0.2 ROO + POX                                           ', &
+     '              GLY --> 2 CMON + 2 POX                                                                ', &
+     '       GLY + NTOX --> 1.5 CMON + NTRC + 0.5 XYLR + 0.5 ROO + POX                                    ', &
+     '             MEGY --> CMON + POX + ACOO                                                             ', &
+     '      MEGY + NTOX --> NTRC + XYLR + ROO + ACOO                                                      ' /)
   CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_4 = (/ &
-     '       OH + H2 --> HO2                                                                              ', &
-     '       CO + OH --> HO2                                                                              ', &
-     '      OH + CH4 --> MEO2 + RO2                                                                       ', &
-     '     ETHA + OH --> 0.991 ALD2 + 0.009 XO2N + 0.991 XO2H + RO2                                       ', &
-     '     MEOH + OH --> FORM + HO2                                                                       ', &
-     '     ETOH + OH --> 0.011 GLYD + 0.078 FORM + 0.95 ALD2 + 0.1 XO2H + 0.1 RO2 ... etc.                ', &
-     '           KET --> 0.5 ALD2 + 0.5 XO2H + 0.5 MEO2 - -2.5 PAR + RO2 + 0.5 CXO3 ... etc.              ', &
-     '          ACET --> 0.38 CO + 1.38 MEO2 + 1.38 RO2 + 0.62 C2O3                                       ', &
-     '     ACET + OH --> FORM + XO2 + RO2 + C2O3                                                          ', &
-     '     PRPA + OH --> 0.71 ACET + 0.03 XO2N + 0.97 XO2H + 0.26 ALDX + 0.26 PAR ... etc.                ', &
-     '      PAR + OH --> 0.76 ROR + 0.76 XO2 + 0.13 XO2N + 0.11 XO2H + 0.11 ALDX ... etc.                 ', &
-     '           ROR --> 0.2 KET + 0.42 ACET + 0.02 ROR + 0.74 ALD2 + 0.04 XO2N ... etc.                  ', &
-     '      ROR + O2 --> KET + HO2                                                                        ', &
-     '     ROR + NO2 --> NTR1                                                                             ', &
-     '     ETHY + OH --> 0.3 FACD + 0.3 CO + 0.7 GLY + 0.7 OH + 0.3 HO2                                   ', &
-     '       ETH + O --> CO + FORM + 0.7 XO2H + 0.7 RO2 + 0.3 OH + HO2                                    ', &
-     '      ETH + OH --> 0.22 GLYD + 1.56 FORM + XO2H + RO2                                               ', &
-     '      ETH + O3 --> 0.37 FACD + 0.51 CO + FORM + 0.16 OH + 0.16 HO2                                  ', &
-     '     ETH + NO3 --> 0.5 NTR1 + 1.125 FORM + 0.5 XO2 + 0.5 XO2H + RO2 + 0.5 NO2 ... etc.              ', &
-     '       OLE + O --> 0.2 CO + 0.2 FORM + 0.2 ALD2 + 0.01 XO2N + 0.2 XO2H ... etc.                     ', &
-     '      OLE + OH --> 0.781 FORM + 0.488 ALD2 + 0.195 XO2 + 0.024 XO2N + 0.976 XO2H ... etc.           ', &
-     '      OLE + O3 --> 0.04 H2O2 + 0.09 FACD + 0.13 AACD + 0.378 CO + 0.075 GLY ... etc.                ', &
-     '     OLE + NO3 --> 0.5 NTR1 + 0.5 FORM + 0.25 ALD2 + 0.48 XO2 + 0.04 XO2N ... etc.                  ', &
-     '      IOLE + O --> 0.1 CO + 1.24 ALD2 + 0.1 XO2H + 0.66 ALDX + 0.1 PAR ... etc.                     ', &
-     '     IOLE + OH --> 1.3 ALD2 + XO2H + 0.7 ALDX + RO2                                                 ', &
-     '     IOLE + O3 --> 0.08 H2O2 + 0.08 AACD + 0.245 CO + 0.24 GLY + 0.06 MGLY ... etc.                 ', &
-     '    IOLE + NO3 --> 0.5 NTR1 + 0.5 ALD2 + 0.48 XO2 + 0.04 XO2N + 0.48 XO2H ... etc.                  ', &
-     '     ISOP + OH --> ISO2 + RO2                                                                       ', &
-     '      ISOP + O --> 0.5 FORM + 0.25 XO2 + 0.75 ISPD + 0.25 PAR + 0.25 RO2 ... etc.                   ', &
-     '     ISO2 + NO --> 0.1 INTR + 0.673 FORM + 0.082 XO2H + 0.9 ISPD + 0.082 RO2 ... etc.               ' /)
+     '       MEGY + HOX --> CMON + ACOO                                                                   ', &
+     '       HOX + DIHY --> POX                                                                           ', &
+     '       CMON + HOX --> POX                                                                           ', &
+     '       HOX + METH --> MEO2 + ROO                                                                    ', &
+     '       ETHA + HOX --> 0.991 AALD + 0.009 XO2N + 0.991 XO2H + ROO                                    ', &
+     '       MEOH + HOX --> FORM + POX                                                                    ', &
+     '       ETOH + HOX --> 0.011 GLYD + 0.078 FORM + 0.95 AALD + 0.1 XO2H + 0.1 ROO ... etc.             ', &
+     '              KET --> 0.5 AALD + 0.5 XO2H + 0.5 MEO2 - -2.5 ALKA + ROO + 0.5 CXO3 ... etc.          ', &
+     '             ACET --> 0.38 CMON + 1.38 MEO2 + 1.38 ROO + 0.62 ACOO                                  ', &
+     '       ACET + HOX --> FORM + XYLR + ROO + ACOO                                                      ', &
+     '       PRPA + HOX --> 0.71 ACET + 0.03 XO2N + 0.97 XO2H + 0.26 ALDX + 0.26 ALKA ... etc.            ', &
+     '       ALKA + HOX --> 0.76 ROR + 0.76 XYLR + 0.13 XO2N + 0.11 XO2H + 0.11 ALDX ... etc.             ', &
+     '              ROR --> 0.2 KET + 0.42 ACET + 0.02 ROR + 0.74 AALD + 0.04 XO2N ... etc.               ', &
+     '         ROR + O2 --> KET + POX                                                                     ', &
+     '       ROR + NDOX --> NTR1                                                                          ', &
+     '       ETHY + HOX --> 0.3 FACD + 0.3 CMON + 0.7 GLY + 0.7 HOX + 0.3 POX                             ', &
+     '         ETHE + O --> CMON + FORM + 0.7 XO2H + 0.7 ROO + 0.3 HOX + POX                              ', &
+     '       ETHE + HOX --> 0.22 GLYD + 1.56 FORM + XO2H + ROO                                            ', &
+     '       ETHE + OZN --> 0.37 FACD + 0.51 CMON + FORM + 0.16 HOX + 0.16 POX                            ', &
+     '      ETHE + NTOX --> 0.5 NTR1 + 1.125 FORM + 0.5 XYLR + 0.5 XO2H + ROO + 0.5 NDOX ... etc.         ', &
+     '          OLE + O --> 0.2 CMON + 0.2 FORM + 0.2 AALD + 0.01 XO2N + 0.2 XO2H ... etc.                ', &
+     '        OLE + HOX --> 0.781 FORM + 0.488 AALD + 0.195 XYLR + 0.024 XO2N + 0.976 XO2H ... etc.       ', &
+     '        OLE + OZN --> 0.04 HPOX + 0.09 FACD + 0.13 AACD + 0.378 CMON + 0.075 GLY ... etc.           ', &
+     '       OLE + NTOX --> 0.5 NTR1 + 0.5 FORM + 0.25 AALD + 0.48 XYLR + 0.04 XO2N ... etc.              ', &
+     '         IOLE + O --> 0.1 CMON + 1.24 AALD + 0.1 XO2H + 0.66 ALDX + 0.1 ALKA ... etc.               ', &
+     '       IOLE + HOX --> 1.3 AALD + XO2H + 0.7 ALDX + ROO                                              ', &
+     '       IOLE + OZN --> 0.08 HPOX + 0.08 AACD + 0.245 CMON + 0.24 GLY + 0.06 MEGY ... etc.            ', &
+     '      IOLE + NTOX --> 0.5 NTR1 + 0.5 AALD + 0.48 XYLR + 0.04 XO2N + 0.48 XO2H ... etc.              ', &
+     '       ISPR + HOX --> ISO2 + ROO                                                                    ', &
+     '         ISPR + O --> 0.5 FORM + 0.25 XYLR + 0.75 ISPD + 0.25 ALKA + 0.25 ROO ... etc.              ' /)
   CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_5 = (/ &
-     '    ISO2 + HO2 --> 0.88 ISPX + 0.12 FORM + 0.12 ISPD + 0.12 OH + 0.12 HO2 ... etc.                  ', &
-     '   ISO2 + C2O3 --> 0.2 AACD + 0.598 FORM + 0.072 XO2H + ISPD + 0.8 MEO2 ... etc.                    ', &
-     '    ISO2 + RO2 --> 0.598 FORM + 0.072 XO2H + ISPD + 0.072 RO2 + 0.728 HO2 ... etc.                  ', &
-     '          ISO2 --> HPLD + HO2                                                                       ', &
-     '     ISOP + O3 --> 0.066 CO + 0.6 FORM + 0.2 XO2 + 0.65 ISPD + 0.15 ALDX ... etc.                   ', &
-     '    ISOP + NO3 --> 0.65 NTR2 + 0.35 FORM + 0.33 XO2 + 0.03 XO2N + 0.64 XO2H ... etc.                ', &
-     '     ISPD + OH --> 0.137 ACET + 0.137 CO + 0.269 GLYD + 0.115 MGLY + 1.042 XO2 ... etc.             ', &
-     '     ISPD + O3 --> 0.15 FACD + 0.17 ACET + 0.543 CO + 0.17 GLY + 0.531 MGLY ... etc.                ', &
-     '    ISPD + NO3 --> 0.142 NTR2 + 0.717 HNO3 + 0.113 GLYD + 0.113 MGLY + 0.142 XO2 ... etc.           ', &
-     '          ISPD --> 0.17 ACET + 0.128 GLYD + 0.26 FORM + 0.24 OLE + 0.16 XO2 ... etc.                ', &
-     '     ISPX + OH --> 0.904 EPOX + 0.029 IOLE + 0.067 ISO2 + 0.029 ALDX + 0.067 RO2 ... etc.           ', &
-     '          HPLD --> ISPD + OH                                                                        ', &
-     '    HPLD + NO3 --> HNO3 + ISPD                                                                      ', &
-     '     EPOX + OH --> EPX2 + RO2                                                                       ', &
-     '    EPX2 + HO2 --> 0.074 FACD + 0.251 CO + 0.275 GLYD + 0.275 GLY + 0.275 MGLY ... etc.             ', &
-     '     EPX2 + NO --> 0.251 CO + 0.275 GLYD + 0.275 GLY + 0.275 MGLY + 0.375 FORM ... etc.             ', &
-     '   EPX2 + C2O3 --> 0.2 AACD + 0.2 CO + 0.22 GLYD + 0.22 GLY + 0.22 MGLY ... etc.                    ', &
-     '    EPX2 + RO2 --> 0.251 CO + 0.275 GLYD + 0.275 GLY + 0.275 MGLY + 0.375 FORM ... etc.             ', &
-     '     INTR + OH --> 0.266 NTR + 0.185 FACD + 0.104 INTR + 0.331 GLYD + 0.592 FORM ... etc.           ', &
-     '      TERP + O --> 0.15 ALDX + 5.12 PAR                                                             ', &
-     '     TERP + OH --> 0.28 FORM + 0.5 XO2 + 0.25 XO2N + 0.75 XO2H + 0.47 ALDX ... etc.                 ', &
-     '     TERP + O3 --> 0.001 CO + 0.24 FORM + 0.69 XO2 + 0.18 XO2N + 0.07 XO2H ... etc.                 ', &
-     '    TERP + NO3 --> 0.53 NTR + 0.75 XO2 + 0.25 XO2N + 0.28 XO2H + 0.47 ALDX ... etc.                 ', &
-     '     BENZ + OH --> 0.352 BZO2 + 0.53 CRES + 0.118 OPEN + 0.352 RO2 + 0.118 OH ... etc.              ', &
-     '     BZO2 + NO --> 0.082 NTR + 0.918 GLY + 0.918 OPEN + 0.918 HO2 + 0.918 NO2 ... etc.              ', &
-     '   BZO2 + C2O3 --> GLY + OPEN + MEO2 + RO2 + HO2                                                    ', &
-     '    BZO2 + HO2 --> DUMMY                                                                            ', &
-     '    BZO2 + RO2 --> GLY + OPEN + RO2 + HO2                                                           ', &
-     '      TOL + OH --> 0.65 TO2 + 0.18 CRES + 0.1 OPEN + 0.07 XO2H + 0.72 RO2 ... etc.                  ', &
-     '      TO2 + NO --> 0.14 NTR + 0.417 GLY + 0.2 XOPN + 0.443 MGLY + 0.66 OPEN ... etc.                ' /)
+     '      ISO2 + NMOX --> 0.1 INTR + 0.673 FORM + 0.082 XO2H + 0.9 ISPD + 0.082 ROO ... etc.            ', &
+     '       ISO2 + POX --> 0.88 ISPX + 0.12 FORM + 0.12 ISPD + 0.12 HOX + 0.12 POX ... etc.              ', &
+     '      ISO2 + ACOO --> 0.2 AACD + 0.598 FORM + 0.072 XO2H + ISPD + 0.8 MEO2 ... etc.                 ', &
+     '       ISO2 + ROO --> 0.598 FORM + 0.072 XO2H + ISPD + 0.072 ROO + 0.728 POX ... etc.               ', &
+     '             ISO2 --> HPLD + POX                                                                    ', &
+     '       ISPR + OZN --> 0.066 CMON + 0.6 FORM + 0.2 XYLR + 0.65 ISPD + 0.15 ALDX ... etc.             ', &
+     '      ISPR + NTOX --> 0.65 NTR2 + 0.35 FORM + 0.33 XYLR + 0.03 XO2N + 0.64 XO2H ... etc.            ', &
+     '       ISPD + HOX --> 0.137 ACET + 0.137 CMON + 0.269 GLYD + 0.115 MEGY + 1.042 XYLR ... etc.       ', &
+     '       ISPD + OZN --> 0.15 FACD + 0.17 ACET + 0.543 CMON + 0.17 GLY + 0.531 MEGY ... etc.           ', &
+     '      ISPD + NTOX --> 0.142 NTR2 + 0.717 NTRC + 0.113 GLYD + 0.113 MEGY + 0.142 XYLR ... etc.       ', &
+     '             ISPD --> 0.17 ACET + 0.128 GLYD + 0.26 FORM + 0.24 OLE + 0.16 XYLR ... etc.            ', &
+     '       ISPX + HOX --> 0.904 EPOX + 0.029 IOLE + 0.067 ISO2 + 0.029 ALDX + 0.067 ROO ... etc.        ', &
+     '             HPLD --> ISPD + HOX                                                                    ', &
+     '      HPLD + NTOX --> NTRC + ISPD                                                                   ', &
+     '       EPOX + HOX --> EPX2 + ROO                                                                    ', &
+     '       EPX2 + POX --> 0.074 FACD + 0.251 CMON + 0.275 GLYD + 0.275 GLY + 0.275 MEGY ... etc.        ', &
+     '      EPX2 + NMOX --> 0.251 CMON + 0.275 GLYD + 0.275 GLY + 0.275 MEGY + 0.375 FORM ... etc.        ', &
+     '      EPX2 + ACOO --> 0.2 AACD + 0.2 CMON + 0.22 GLYD + 0.22 GLY + 0.22 MEGY ... etc.               ', &
+     '       EPX2 + ROO --> 0.251 CMON + 0.275 GLYD + 0.275 GLY + 0.275 MEGY + 0.375 FORM ... etc.        ', &
+     '       INTR + HOX --> 0.266 NTR + 0.185 FACD + 0.104 INTR + 0.331 GLYD + 0.592 FORM ... etc.        ', &
+     '         TERP + O --> 0.15 ALDX + 5.12 ALKA                                                         ', &
+     '       TERP + HOX --> 0.28 FORM + 0.5 XYLR + 0.25 XO2N + 0.75 XO2H + 0.47 ALDX ... etc.             ', &
+     '       TERP + OZN --> 0.001 CMON + 0.24 FORM + 0.69 XYLR + 0.18 XO2N + 0.07 XO2H ... etc.           ', &
+     '      TERP + NTOX --> 0.53 NTR + 0.75 XYLR + 0.25 XO2N + 0.28 XO2H + 0.47 ALDX ... etc.             ', &
+     '       BENZ + HOX --> 0.352 BZO2 + 0.53 CRSL + 0.118 ROPN + 0.352 ROO + 0.118 HOX ... etc.          ', &
+     '      BZO2 + NMOX --> 0.082 NTR + 0.918 GLY + 0.918 ROPN + 0.918 POX + 0.918 NDOX ... etc.          ', &
+     '      BZO2 + ACOO --> GLY + ROPN + MEO2 + ROO + POX                                                 ', &
+     '       BZO2 + POX --> DUMMY2                                                                        ', &
+     '       BZO2 + ROO --> GLY + ROPN + ROO + POX                                                        ', &
+     '       TOLN + HOX --> 0.65 TOLR + 0.18 CRSL + 0.1 ROPN + 0.07 XO2H + 0.72 ROO ... etc.              ' /)
   CHARACTER(LEN=100), PARAMETER, DIMENSION(30) :: EQN_NAMES_6 = (/ &
-     '    TO2 + C2O3 --> 0.48 GLY + 0.23 XOPN + 0.52 MGLY + 0.77 OPEN + MEO2 ... etc.                     ', &
-     '     TO2 + HO2 --> DUMMY                                                                            ', &
-     '     TO2 + RO2 --> 0.48 GLY + 0.23 XOPN + 0.52 MGLY + 0.77 OPEN + RO2 + HO2 ... etc.                ', &
-     '      XYL + OH --> 0.544 XLO2 + 0.155 CRES + 0.244 XOPN + 0.058 XO2H + 0.602 RO2 ... etc.           ', &
-     '     XLO2 + NO --> 0.14 NTR2 + 0.221 GLY + 0.56 XOPN + 0.675 MGLY + 0.3 OPEN ... etc.               ', &
-     '    XLO2 + HO2 --> DUMMY                                                                            ', &
-     '   XLO2 + C2O3 --> 0.26 GLY + 0.65 XOPN + 0.77 MGLY + 0.35 OPEN + MEO2 ... etc.                     ', &
-     '    XLO2 + RO2 --> 0.26 GLY + 0.65 XOPN + 0.77 MGLY + 0.35 OPEN + RO2 + HO2 ... etc.                ', &
-     '     CRES + OH --> 0.732 CAT1 + 0.06 CRO + 0.06 CO + 0.13 OPEN + 0.06 FORM ... etc.                 ', &
-     '    CRES + NO3 --> 0.3 CRO + HNO3 + 0.24 GLY + 0.24 MGLY + 0.48 XO2 + 0.48 OPO3 ... etc.            ', &
-     '     CRO + NO2 --> CRON                                                                             ', &
-     '     CRO + HO2 --> CRES                                                                             ', &
-     '     CRON + OH --> NTR2 + 0.5 CRO                                                                   ', &
-     '    CRON + NO3 --> NTR2 + 0.5 CRO + HNO3                                                            ', &
-     '          CRON --> HONO + OPEN + FORM + HO2                                                         ', &
-     '          XOPN --> 0.7 CO + 0.4 GLY + XO2H + 0.7 HO2 + 0.3 C2O3                                     ', &
-     '     XOPN + OH --> 0.4 GLY + MGLY + 2 XO2H + 2 RO2                                                  ', &
-     '     XOPN + O3 --> 0.5 CO + 1.2 MGLY + 0.1 ALD2 + 0.3 XO2H + 0.3 RO2 + 0.5 OH ... etc.              ', &
-     '    XOPN + NO3 --> 0.5 NTR2 + 0.25 MGLY + 0.25 OPEN + 0.9 XO2 + 0.1 XO2N ... etc.                   ', &
-     '          OPEN --> CO + OPO3 + HO2                                                                  ', &
-     '     OPEN + OH --> 0.4 GLY + 0.6 OPO3 + 0.4 XO2H + 0.4 RO2                                          ', &
-     '     OPEN + O3 --> 1.98 CO + 1.4 GLY + 0.24 MGLY + 0.08 FORM + 0.02 ALD2 ... etc.                   ', &
-     '    OPEN + NO3 --> HNO3 + OPO3                                                                      ', &
-     '     CAT1 + OH --> 0.5 CRO + 0.14 FORM + 0.2 HO2                                                    ', &
-     '    CAT1 + NO3 --> CRO + HNO3                                                                       ', &
-     '     OPO3 + NO --> 0.5 CO + 0.5 GLY + 0.8 HO2 + 0.2 CXO3 + NO2                                      ', &
-     '    OPO3 + NO2 --> OPAN                                                                             ', &
-     '          OPAN --> OPO3 + NO2                                                                       ', &
-     '    OPO3 + HO2 --> 0.41 PACD + 0.15 AACD + 0.44 XO2H + 0.44 ALDX + 0.15 O3 ... etc.                 ', &
-     '   OPO3 + C2O3 --> XO2 + MEO2 + ALDX + 2 RO2                                                        ' /)
-  CHARACTER(LEN=100), PARAMETER, DIMENSION(5) :: EQN_NAMES_7 = (/ &
-     '    OPO3 + RO2 --> 0.2 AACD + 0.8 XO2H + 0.8 ALDX + 1.8 RO2                                         ', &
-     '     OPAN + OH --> 0.5 NTR2 + CO + 0.5 GLY + 0.5 NO2                                                ', &
-     '     PANX + OH --> ALD2 + NO2                                                                       ', &
-     '          NTR2 --> HNO3                                                                             ', &
-     '     ECH4 + OH --> MEO2 + RO2                                                                       ' /)
-  CHARACTER(LEN=100), PARAMETER, DIMENSION(215) :: EQN_NAMES = (/&
+     '      TOLR + NMOX --> 0.14 NTR + 0.417 GLY + 0.2 XOPN + 0.443 MEGY + 0.66 ROPN ... etc.             ', &
+     '      TOLR + ACOO --> 0.48 GLY + 0.23 XOPN + 0.52 MEGY + 0.77 ROPN + MEO2 ... etc.                  ', &
+     '       TOLR + POX --> DUMMY2                                                                        ', &
+     '       TOLR + ROO --> 0.48 GLY + 0.23 XOPN + 0.52 MEGY + 0.77 ROPN + ROO + POX ... etc.             ', &
+     '       XYLN + HOX --> 0.544 XLO2 + 0.155 CRSL + 0.244 XOPN + 0.058 XO2H + 0.602 ROO ... etc.        ', &
+     '      XLO2 + NMOX --> 0.14 NTR2 + 0.221 GLY + 0.56 XOPN + 0.675 MEGY + 0.3 ROPN ... etc.            ', &
+     '       XLO2 + POX --> DUMMY2                                                                        ', &
+     '      XLO2 + ACOO --> 0.26 GLY + 0.65 XOPN + 0.77 MEGY + 0.35 ROPN + MEO2 ... etc.                  ', &
+     '       XLO2 + ROO --> 0.26 GLY + 0.65 XOPN + 0.77 MEGY + 0.35 ROPN + ROO + POX ... etc.             ', &
+     '       CRSL + HOX --> 0.732 CAT1 + 0.06 CRER + 0.06 CMON + 0.13 ROPN + 0.06 FORM ... etc.           ', &
+     '      CRSL + NTOX --> 0.3 CRER + NTRC + 0.24 GLY + 0.24 MEGY + 0.48 XYLR + 0.48 OPO3 ... etc.       ', &
+     '      CRER + NDOX --> CRON                                                                          ', &
+     '       CRER + POX --> CRSL                                                                          ', &
+     '       CRON + HOX --> NTR2 + 0.5 CRER                                                               ', &
+     '      CRON + NTOX --> NTR2 + 0.5 CRER + NTRC                                                        ', &
+     '             CRON --> HONO + ROPN + FORM + POX                                                      ', &
+     '             XOPN --> 0.7 CMON + 0.4 GLY + XO2H + 0.7 POX + 0.3 ACOO                                ', &
+     '       XOPN + HOX --> 0.4 GLY + MEGY + 2 XO2H + 2 ROO                                               ', &
+     '       XOPN + OZN --> 0.5 CMON + 1.2 MEGY + 0.1 AALD + 0.3 XO2H + 0.3 ROO ... etc.                  ', &
+     '      XOPN + NTOX --> 0.5 NTR2 + 0.25 MEGY + 0.25 ROPN + 0.9 XYLR + 0.1 XO2N ... etc.               ', &
+     '             ROPN --> CMON + OPO3 + POX                                                             ', &
+     '       ROPN + HOX --> 0.4 GLY + 0.6 OPO3 + 0.4 XO2H + 0.4 ROO                                       ', &
+     '       ROPN + OZN --> 1.98 CMON + 1.4 GLY + 0.24 MEGY + 0.08 FORM + 0.02 AALD ... etc.              ', &
+     '      ROPN + NTOX --> NTRC + OPO3                                                                   ', &
+     '       CAT1 + HOX --> 0.5 CRER + 0.14 FORM + 0.2 POX                                                ', &
+     '      CAT1 + NTOX --> CRER + NTRC                                                                   ', &
+     '      OPO3 + NMOX --> 0.5 CMON + 0.5 GLY + 0.8 POX + 0.2 CXO3 + NDOX                                ', &
+     '      OPO3 + NDOX --> OPAN                                                                          ', &
+     '             OPAN --> OPO3 + NDOX                                                                   ', &
+     '       OPO3 + POX --> 0.41 PACD + 0.15 AACD + 0.44 XO2H + 0.44 ALDX + 0.15 OZN ... etc.             ' /)
+  CHARACTER(LEN=100), PARAMETER, DIMENSION(6) :: EQN_NAMES_7 = (/ &
+     '      OPO3 + ACOO --> XYLR + MEO2 + ALDX + 2 ROO                                                    ', &
+     '       OPO3 + ROO --> 0.2 AACD + 0.8 XO2H + 0.8 ALDX + 1.8 ROO                                      ', &
+     '       OPAN + HOX --> 0.5 NTR2 + CMON + 0.5 GLY + 0.5 NDOX                                          ', &
+     '       PANX + HOX --> AALD + NDOX                                                                   ', &
+     '             NTR2 --> NTRC                                                                          ', &
+     '       ECH4 + HOX --> MEO2 + ROO                                                                    ' /)
+  CHARACTER(LEN=100), PARAMETER, DIMENSION(216) :: EQN_NAMES = (/&
     EQN_NAMES_0, EQN_NAMES_1, EQN_NAMES_2, EQN_NAMES_3, EQN_NAMES_4, &
     EQN_NAMES_5, EQN_NAMES_6, EQN_NAMES_7 /)
 

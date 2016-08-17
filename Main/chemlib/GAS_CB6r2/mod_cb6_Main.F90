@@ -29,377 +29,208 @@
 ! 
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 module mod_cb6_main1
-  USE mod_cb6_Model
-  USE mod_cb6_Global
-  USE mod_cb6_Parameters
-public :: chemmain
-contains
-  subroutine chemmain
-  USE mod_cb6_Model
-  USE mod_cb6_Global
-  USE mod_cb6_Parameters
-  USE mod_cb6_jval1
-  implicit none
+  use mod_cb6_Model
+  use mod_cb6_Global
+  use mod_cb6_Parameters
 
-!!!!!!  USE cb6_Initialize, ONLY: Initialize
-!!! mod: added TT as REAL
-      REAL(kind=dp) :: T, TT,DVAL(NSPEC)
-      REAL(kind=dp) :: RSTATE(20)
-      INTEGER :: i
-! LOCAL VARIABLES
+  public :: chemmain_cb6
 
-      INTEGER IMN(12)                                                   &
-                     ,IIYEAR, IYEAR, IMTH, IDAY, IIY
-      DATA IMN/31,28,31,30,31,30,31,31,30,31,30,31/
+  contains
+
+  subroutine chemmain_cb6(jday,dtche)
+    use mod_cb6_Model
+    use mod_cb6_Global
+    use mod_cb6_Parameters
+    use mod_cb6_jval2
+    implicit none
+    real(kind=dp) , intent(in) :: jday , dtche
+
+    real(kind=dp) :: t
+    real(kind=dp) :: rstate(20)
+    integer :: i
 
 !------------------Declaration part for jval----------
-!      INTEGER nhv(22), lsin
-!      REAL*8 hvmat(22,40),hvmatb(22)
-!      REAL*8 jarray(80,510,56)
-!      REAL*8 jparam(22)
-!      REAL*8 jval(56)
-!      REAL   lat,long!,hhh,kk
-!      REAL ut
-!      REAL zen,azim
-!      INTEGER idate
-      integer c_hvin
-      integer c_nhv(22)
-      REAL(kind=dp) jparam(       22)
-      REAL(kind=dp) c_hvmat(22,40)
-      REAL(kind=dp) c_hvmatb(22)
-      REAL(kind=dp) c_jarray(80,510,56)
-      common/HVRVARS/c_hvmat, c_hvmatb, c_jarray
-      common/HVINT/ c_hvin,c_nhv
-      REAL(kind=dp)  jval(       56)
 
-     INTEGER, PARAMETER :: jO2=1,jO31D=2,jO33P=3,jNO2=4,jNO3a=5  &
-           ,jNO3b=6,jN2O5a=7,jN2O5b=8,jN2O=9,jHO2=10             &
-           ,jH2O2=11,jHNO2=12,jHNO3=13,jHNO4=14,jCH2Oa=15        &
-           ,jCH2Ob=16,jCH3CHOa=17,jCH3CHOb=18,jCH3CHOc=19        &
-           ,jC2H5CHO=20,jCHOCHO=21,jCH3COCHO=22                  &
-           ,jCH3COCH3=23,jCH3OOH=24,jCH3ONO2=25,jPAN=26          &
-           ,jPNA=27,jPANX=28,jMEPX=29                            &
-           ,jROOH=30,jNTR=31,jFORM=32,jALD2=33,jALDX=34          &
-           ,jGLYD=35,jGLY=36,jMGLY=37,jKET=38,jACET=39,jISPD=40  &
-           ,jHPLD=41,jCRON=42,jXOPN=43,jOPEN=44
-!--------------Reading TUVGRID2 part in jval--------------
-!~~~> Initialization 
+    integer :: c_hvin
+    integer , dimension(22) :: c_nhv(22)
+    real(kind=dp) , dimension(22) :: jparam
+    real(kind=dp) , dimension(22,40) :: c_hvmat
+    real(kind=dp) , dimension(22) :: c_hvmatb
+    real(kind=dp) , dimension(80,510,56) :: c_jarray
 
-      STEPMIN = 0.0d0
-      STEPMAX = 0.0d0
+    common /hvrvars/ c_hvmat , c_hvmatb , c_jarray
+    common /HVINT/ c_hvin , c_nhv
+    real(kind=dp) , dimension(56) :: jval
 
-      DO i=1,NVAR
-        RTOL(i) = 1.0d-4
-        ATOL(i) = 1.0d-3
-      END DO
-  FIX(1) = (3.0E+5)*CFACTOR   !*C_M
-  FIX(3) = (2.573E+4)*CFACTOR !*C_M
-  FIX(4) = (1.813122)*CFACTOR !*C_M
-  FIX(5) = (7.720E+4)*CFACTOR !*C_M
-    
-      CALL loadperoxyparameters
-! constant rate coefficients
-  RCONST(1) = (jval_NO2)
-  RCONST(2) = ((5.78E-34))
-  RCONST(3) = ((1.73E-14))
-  RCONST(4) = ((1.01E-31))
-  RCONST(5) = ((1.03E-11))
-  RCONST(6) = ((2.11E-12))
-  RCONST(7) = ((7.96E-15))
-  RCONST(8) = (jval_O33P)  !! changed from O3
-  RCONST(9) = (jval_O31D)  !! ditto
-  RCONST(10) = ((3.28E-11))
-  RCONST(11) = ((2.14E-10))
-  RCONST(12) = ((7.25E-14))
-  RCONST(13) = ((2.01E-15))
-  RCONST(14) = ((3.47E-11))
-  RCONST(15) = ((5.73E-11))
-  RCONST(16) = ((1.48E-12))
-  RCONST(17) = ((5.25E-12))
-  RCONST(18) = ((1.11E-10))
-  RCONST(19) = ((2.90E-12))
-  RCONST(20) = ((6.53E-30))
-  RCONST(21) = (jval_H2O2)
-  RCONST(22) = ((1.70E-12))
-  RCONST(23) = ((1.70E-15))
-  RCONST(24) = ((1.95E-38))
-  RCONST(25) = ((8.54E-12))
-  RCONST(26) = ((3.52E-17))
-  RCONST(27) = (jval_NO3b)  !! different a from b
-  RCONST(28) = (jval_NO3a)  !!
-  RCONST(29) = ((2.60E-11))
-  RCONST(30) = ((6.56E-16))
-  RCONST(31) = ((1.70E-11))
-  RCONST(32) = ((2.00E-11))
-  RCONST(33) = ((4.00E-12))
-  RCONST(34) = ((1.00E-17))
-  RCONST(35) = ((2.28E-16))
-  RCONST(36) = ((1.24E-12))
-  RCONST(37) = (jval_N2O5b) !!
-  RCONST(38) = ((1.00E-22))
-  RCONST(39) = ((9.77E-12))
-  RCONST(40) = ((5.00E-40))
-  RCONST(41) = ((1.00E-20))
-  RCONST(42) = (jval_HNO2)
-  RCONST(43) = ((5.98E-12))
-  RCONST(44) = ((1.06E-11))
-  RCONST(45) = ((1.54E-13))
-  RCONST(46) = (jval_HNO3)
-  RCONST(47) = ((1.38E-12))
-  RCONST(48) = ((8.31E-02))
-  RCONST(49) = (jval_PNA)
-  RCONST(50) = ((3.24E-12))
-  RCONST(51) = ((8.12E-13))
-  RCONST(52) = ((1.98E-11))
-  RCONST(53) = ((9.40E-12))
-  RCONST(54) = ((2.98E-04))
-  RCONST(55) = (jval_PAN)
-  RCONST(56) = ((1.39E-11))
-  RCONST(57) = ((1.30E-11))
-  RCONST(58) = ((1.55E-11))
-  RCONST(59) = ((1.55E-11))
-  RCONST(60) = ((2.10E-11))
-  RCONST(61) = ((9.40E-12))
-  RCONST(62) = ((2.98E-04))
-  RCONST(63) = (jval_PANX)
-  RCONST(64) = ((1.39E-11))
-  RCONST(65) = ((1.30E-11))
-  RCONST(66) = ((1.71E-11))
-  RCONST(67) = ((8.03E-12))
-  RCONST(68) = ((7.03E-12))
-  RCONST(69) = ((3.48E-13))
-  RCONST(70) = ((7.70E-12))
-  RCONST(71) = ((5.21E-12))
-  RCONST(72) = ((1.07E-11))
-  RCONST(73) = ((3.48E-13))
-  RCONST(74) = ((9.04E-12))
-  RCONST(75) = ((9.96E-12))
-  RCONST(76) = ((1.30E-11))
-  RCONST(77) = ((3.48E-13))
-  RCONST(78) = ((9.04E-12))
-  RCONST(79) = ((9.96E-12))
-  RCONST(80) = ((1.30E-11))
-  RCONST(81) = ((3.48E-13))
-  RCONST(82) = ((9.04E-12))
-  RCONST(83) = ((9.96E-12))
-  RCONST(84) = ((1.30E-11))
-  RCONST(85) = ((3.48E-13))
-  RCONST(86) = ((1.00E-11))
-  RCONST(87) = (jval_MEPX)
-  RCONST(88) = ((1.00E-11))
-  RCONST(89) = (jval_ROOH)
-  RCONST(90) = ((2.00E-12))
-  RCONST(91) = (jval_NTR)
-  RCONST(92) = ((4.50E-13))
-  RCONST(93) = ((6.93E-13))
-  RCONST(94) = ((1.00E-11))
-  RCONST(95) = ((8.49E-12))
-  RCONST(96) = (jval_FORM)
-  RCONST(97) = (jval_FORM)
-  RCONST(98) = ((1.58E-13))
-  RCONST(99) = ((5.50E-16))
-  RCONST(100) = ((7.90E-14))
-  RCONST(101) = ((1.51E+02))
-  RCONST(102) = ((5.60E-12))
-  RCONST(103) = ((1.26E-11))
-  RCONST(104) = ((4.49E-13))
-  RCONST(105) = ((1.50E-11))
-  RCONST(106) = ((2.73E-15))
-  RCONST(107) = (jval_ALD2)
-  RCONST(108) = ((7.02E-13))
-  RCONST(109) = ((1.91E-11))
-  RCONST(110) = ((6.30E-15))
-  RCONST(111) = (jval_ALDX)
-  RCONST(112) = ((8.00E-12))
-  RCONST(113) = (jval_GLYD)
-  RCONST(114) = ((2.73E-15))
-  RCONST(115) = ((9.70E-12))
-  RCONST(116) = (jval_GLY)
-  RCONST(117) = ((2.73E-15))
-  RCONST(118) = (jval_MGLY)
-  RCONST(119) = ((2.73E-15))
-  RCONST(120) = ((1.31E-11))
-  RCONST(121) = ((6.70E-15))
-  RCONST(122) = ((2.28E-13))
-  RCONST(123) = ((6.37E-15))
-  RCONST(124) = ((2.41E-13))
-  RCONST(125) = ((8.95E-13))
-  RCONST(126) = ((3.21E-12))
-  RCONST(127) = (jval_KET)
-  RCONST(128) = (jval_ACET)
-  RCONST(129) = ((1.76E-13))
-  RCONST(130) = ((1.07E-12))
-  RCONST(131) = ((8.10E-13))
-  RCONST(132) = ((2.15E+04))
-  RCONST(133) = ((7.67E-15))
-  RCONST(134) = ((3.29E-11))
-  RCONST(135) = ((7.52E-13))
-  RCONST(136) = ((7.29E-13))
-  RCONST(137) = ((7.84E-12))
-  RCONST(138) = ((1.58E-18))
-  RCONST(139) = ((2.10E-16))
-  RCONST(140) = ((3.91E-12))
-  RCONST(141) = ((2.86E-11))
-  RCONST(142) = ((1.00E-17))
-  RCONST(143) = ((9.54E-15))
-  RCONST(144) = ((2.30E-11))
-  RCONST(145) = ((5.99E-11))
-  RCONST(146) = ((1.57E-16))
-  RCONST(147) = ((3.70E-13))
-  RCONST(148) = ((9.99E-11))
-  RCONST(149) = ((3.00E-11))
-  RCONST(150) = ((8.13E-12))
-  RCONST(151) = ((7.78E-12))
-  RCONST(152) = ((1.30E-11))
-  RCONST(153) = ((3.48E-13))
-  RCONST(154) = ((2.64E-03))
-  RCONST(155) = ((1.27E-17))
-  RCONST(156) = ((6.74E-13))
-  RCONST(157) = ((3.10E-11))
-  RCONST(158) = ((1.02E-17))
-  RCONST(159) = ((7.98E-15))
-  RCONST(160) = (jval_ISPD)
-  RCONST(161) = ((7.77E-11))
-  RCONST(162) = (jval_HPLD)
-  RCONST(163) = ((1.17E-14))
-  RCONST(164) = ((1.51E-11))
-  RCONST(165) = ((7.78E-12))
-  RCONST(166) = ((8.13E-12))
-  RCONST(167) = ((1.30E-11))
-  RCONST(168) = ((3.48E-13))
-  RCONST(169) = ((3.10E-11))
-  RCONST(170) = ((3.60E-11))
-  RCONST(171) = ((6.77E-11))
-  RCONST(172) = ((7.63E-17))
-  RCONST(173) = ((6.66E-12))
-  RCONST(174) = ((1.22E-12))
-  RCONST(175) = ((9.04E-12))
-  RCONST(176) = ((1.30E-11))
-  RCONST(177) = ((1.49E-11))
-  RCONST(178) = ((3.48E-13))
-  RCONST(179) = ((5.63E-12))
-  RCONST(180) = ((9.04E-12))
-  RCONST(181) = ((1.30E-11))
-  RCONST(182) = ((1.49E-11))
-  RCONST(183) = ((3.48E-13))
-  RCONST(184) = ((1.85E-11))
-  RCONST(185) = ((9.04E-12))
-  RCONST(186) = ((1.49E-11))
-  RCONST(187) = ((1.30E-11))
-  RCONST(188) = ((3.48E-13))
-  RCONST(189) = ((4.12E-11))
-  RCONST(190) = ((1.40E-11))
-  RCONST(191) = ((2.10E-12))
-  RCONST(192) = ((5.50E-12))
-  RCONST(193) = ((1.53E-12))
-  RCONST(194) = ((3.80E-12))
-  RCONST(195) = (jval_CRON)
-  RCONST(196) = (jval_XOPN)
-  RCONST(197) = ((9.00E-11))
-  RCONST(198) = ((2.02E-17))
-  RCONST(199) = ((3.00E-12))
-  RCONST(200) = (jval_OPEN)
-  RCONST(201) = ((4.40E-11))
-  RCONST(202) = ((1.01E-17))
-  RCONST(203) = ((3.80E-12))
-  RCONST(204) = ((5.00E-11))
-  RCONST(205) = ((1.70E-10))
-  RCONST(206) = ((1.00E-11))
-  RCONST(207) = ((9.40E-12))
-  RCONST(208) = ((9.92E-05))
-  RCONST(209) = ((1.39E-11))
-  RCONST(210) = ((1.55E-11))
-  RCONST(211) = ((1.30E-11))
-  RCONST(212) = ((3.60E-11))
-  RCONST(213) = ((3.00E-12))
-  RCONST(214) = ((2.30E-05))
-  RCONST(215) = ((6.37E-15))
-! END constant rate coefficients
+    integer , parameter :: jO31D  = 2
+    integer , parameter :: jO33P  = 3
+    integer , parameter :: jNDOX  = 4
+    integer , parameter :: jNTOXa = 5
+    integer , parameter :: jNTOXb = 6
+    integer , parameter :: jDNPOb = 8
+    integer , parameter :: jHPOX  = 11
+    integer , parameter :: jHONO  = 12
+    integer , parameter :: jNTRC  = 13
+    integer , parameter :: jPNA   = 14
+    integer , parameter :: jFORM  = 15
+    integer , parameter :: jAALD  = 17
+    integer , parameter :: jISPD  = 18
+    integer , parameter :: jALDX  = 20
+    integer , parameter :: jGLY   = 21
+    integer , parameter :: jMEGY  = 22
+    integer , parameter :: jACET  = 23
+    integer , parameter :: jMEPX  = 24
+    integer , parameter :: jNTR   = 25
+    integer , parameter :: jPACN  = 26
+    integer , parameter :: jPANX  = 29
+    integer , parameter :: jRPOX  = 30
+    integer , parameter :: jGLYD  = 31
+    integer , parameter :: jKET   = 32
+    integer , parameter :: jHPLD  = 33
+    integer , parameter :: jCRON  = 34
+    integer , parameter :: jXOPN  = 35
+    integer , parameter :: jROPN  = 36
 
-      TSTART = 0.0*3600
-      DT = 900.0
+    !~~~> Initialization 
 
+    var => c_cb6(1:nvar_cb6)
+    fix => c_cb6(nvar_cb6+1:)
 
-      DO i=1,NVAR
-      VAR(i)  = xrin(i)
-      END DO
-      T = TSTART
-      TEND = TSTART+(DT)
+    stepmin = 0.0d0
+    stepmax = 0.0d0
 
-      TIME = T
-      jparam(1) = zenith
-      jparam(2) = altmid
-      jparam(3) = 330._dp
-      jparam(4) = 0.1_dp
-      jparam(5) = 0.1_dp
-      jparam(6) = 0.38_dp
-      jparam(7) = 0.85_dp
-      jparam(8) = 0.1_dp
-      jparam(9) = deptha
-      jparam(10)= depthb
-      jparam(11)= altabove
-      jparam(12)= altbelow
-      jparam(13)= TEMP
-      TEMP      = TEMP
+    do i = 1 , nvar_cb6
+      rtol(i) = 0.1D0
+      atol(i) = 0.1D0
+    end do
+!   fix(1) = (3.0E+5)*C_Mb
+    fix(1) = wtrin
+    fix(2) = (0.00000055D0)*C_Mb !DIHY   -  0.000055 %
+    fix(3) = (0.20946000D0)*C_Mb !O2     - 20.946000 %
+    fix(4) = (0.00000180D0)*C_Mb !METH   -  0.000180 %
+    fix(5) = (0.78084000D0)*C_Mb !M (N2) - 78.084000 %
+!   fix(6) = (0.22D0)*C_Mb !DUMMY2 as O2
 
-      CALL jvalpro(c_nhv,c_hvmat,c_jarray,jparam,jval) !hvmatb ??
-        jval_H2O2    =  jval(jH2O2)
-        jval_PNA     =  jval(jPNA)
-        jval_PANX    =  jval(jPANX)
-        jval_MEPX    =  jval(jMEPX)
-        jval_ROOH    =  jval(jROOH)
-        jval_NTR     =  jval(jNTR)
-        jval_FORM    =  jval(jFORM)
-        jval_ALD2    =  jval(jALD2)
-        jval_ALDX    =  jval(jALDX)
-        jval_GLYD    =  jval(jGLYD)
-        jval_GLY     =  jval(jGLY)
-        jval_MGLY    =  jval(jMGLY)
-        jval_KET     =  jval(jKET)
-        jval_ACET    =  jval(jACET)
-        jval_ISPD    =  jval(jISPD)
-        jval_HPLD    =  jval(jHPLD)
-        jval_CRON    =  jval(jCRON)
-        jval_XOPN    =  jval(jXOPN)
-        jval_OPEN    =  jval(jOPEN)
-        jval_NO2     =  jval(jNO2)
-        jval_O31D    =  jval(jO31D)
-        jval_O33P    =  jval(jO33P)
-        jval_NO2     =  jval(jNO2)
-        jval_H2O2    =  jval(jH2O2)
-        jval_CH2Oa   =  jval(jCH2Oa)
-        jval_CH2Ob   =  jval(jCH2Ob)
-        jval_HNO3    =  jval(jHNO3)
-        jval_HNO2    =  jval(jHNO2)
-        jval_HNO4    =  jval(jHNO4)
-        jval_NO3b    =  jval(jNO3b)
-        jval_NO3a    =  jval(jNO3a)
-        jval_N2O5b   =  jval(jN2O5b)
-        jval_CH3CHOa =  jval(jCH3CHOa)
-        jval_PAN     =  jval(jPAN)
-        jval_C2H5CHO =  jval(jC2H5CHO)
-        jval_CH3COCH3=  jval(jCH3COCH3)
-        jval_CHOCHO  =  jval(jCHOCHO)
-        jval_CH3OOH  =  jval(jCH3OOH)
-        c_jval(1,:)       = jval(:)
+    !call loadperoxyparameters
 
-kron: DO WHILE (T < TEND)
+    ! constant rate coefficients
+    rconst(11) = ((2.14D-10))
+    rconst(31) = ((1.70D-11))
+    rconst(32) = ((2.00D-11))
+    rconst(33) = ((4.00D-12))
+    rconst(34) = ((1.00D-17))
+    rconst(39) = ((1.00D-22))
+    rconst(41) = ((5.00D-40))
+    rconst(42) = ((1.00D-20))
+    rconst(91) = ((2.00D-12))
+    rconst(93) = ((4.50D-13))
+    rconst(100) = ((5.50D-16))
+    rconst(103) = ((5.60D-12))
+    rconst(111) = ((6.30D-15))
+    rconst(113) = ((8.00D-12))
+    rconst(132) = ((8.10D-13))
+    rconst(145) = ((2.30D-11))
+    rconst(148) = ((3.70D-13))
+    rconst(150) = ((3.00D-11))
+    rconst(170) = ((3.10D-11))
+    rconst(171) = ((3.60D-11))
+    rconst(185) = ((1.85D-11))
+    rconst(191) = ((1.40D-11))
+    rconst(192) = ((2.10D-12))
+    rconst(193) = ((5.50D-12))
+    rconst(194) = ((1.53D-12))
+    rconst(195) = ((3.80D-12))
+    rconst(198) = ((9.00D-11))
+    rconst(200) = ((3.00D-12))
+    rconst(202) = ((4.40D-11))
+    rconst(204) = ((3.80D-12))
+    rconst(205) = ((5.00D-11))
+    rconst(206) = ((1.70D-10))
+    rconst(207) = ((1.00D-11))
+    rconst(213) = ((3.60D-11))
+    rconst(214) = ((3.00D-12))
+    rconst(215) = ((2.30D-05))
 
-        CALL Update_RCONST()
-        
-        CALL INTEGRATE( TIN = T, TOUT = T+DT, RSTATUS_U = RSTATE, &
-        ICNTRL_U = (/ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /) )
+    tstart = 0.0D0*3600.0D0
+    dt = dtche
 
-        T = RSTATE(1)
+    do i = 1 , nvar_cb6
+      var(i)  = xrinb(i)
+    end do
+    t = tstart
+    tend = tstart+dtche
 
-      END DO kron
-!~~~> End Time loop
-      DO i=1,NVAR
-      xrout(i) = VAR(i)
-      END DO
+    timeb = t
+    jparam(1) = zenithb
+    jparam(2) = altmidb
+    jparam(3) = 330._dp
+    jparam(4) = 0.1_dp
+    jparam(5) = 0.1_dp
+    jparam(6) = 0.38_dp
+    jparam(7) = 0.85_dp
+    jparam(8) = 0.1_dp
+    jparam(9) = depthab
+    jparam(10)= depthbb
+    jparam(11)= altaboveb
+    jparam(12)= altbelowb
+    jparam(13)= tempb
+    jparam(20)= jday
 
+    call jvalpro(c_nhv,c_hvmat,c_jarray,jparam,jval) 
+    jval_O31D    =  jval(jO31D)
+    jval_O33P    =  jval(jO33P)
+    jval_NDOX    =  jval(jNDOX)
+    jval_NTOXa   =  jval(jNTOXa)
+    jval_NTOXb   =  jval(jNTOXb)
+    jval_DNPOb   =  jval(jDNPOb)
+    jval_HPOX    =  jval(jHPOX)
+    jval_HONO    =  jval(jHONO)
+    jval_NTRC    =  jval(jNTRC)
+    jval_PNA     =  jval(jPNA)
+    jval_FORM    =  jval(jFORM)
+    jval_AALD    =  jval(jAALD)
+    jval_ISPD    =  jval(jISPD)
+    jval_ALDX    =  jval(jALDX)
+    jval_GLY     =  jval(jGLY)
+    jval_MEGY    =  jval(jMEGY)
+    jval_ACET    =  jval(jACET)
+    jval_MEPX    =  jval(jMEPX)
+    jval_NTR     =  jval(jNTR)
+    jval_PACN    =  jval(jPACN)
+    ! list jval values based on proxies
+    jval(jPANX)  = jval(jPACN)
+    jval(jRPOX)  = jval(jMEPX)
+    jval(jGLYD)  = jval(jGLY )
+    jval(jKET )  = jval(jACET)
+    jval(jHPLD)  = jval(jMEPX)
+    jval(jCRON)  = jval(jNTR ) ! should be aromatic
+    jval(jXOPN)  = jval(jMEGY) ! should be unsaturated
+    jval(jROPN)  = jval(jMEGY) ! ring opening product
+    ! continue jval values
+    jval_PANX    =  jval(jPANX)
+    jval_RPOX    =  jval(jRPOX)
+    jval_GLYD    =  jval(jGLYD)
+    jval_KET     =  jval(jKET)
+    jval_HPLD    =  jval(jHPLD)
+    jval_CRON    =  jval(jCRON)
+    jval_XOPN    =  jval(jXOPN)
+    jval_ROPN    =  jval(jROPN)
+    c_jvalb(1,:) = jval(:)
 
-     end subroutine chemmain
+    kron: &
+    do while (t < tend)
+      call update_rconst()
+      call integrate( tin = t, tout = t+dt, rstatus_u = rstate, &
+               icntrl_u = (/ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /))
+      t = rstate(1)
+    end do kron
+
+    do i = 1 , nvar_cb6
+      xroutb(i) = var(i)
+    end do
+    wtrout = fix(1)
+
+    end subroutine chemmain_cb6
 
 end module  mod_cb6_main1
 

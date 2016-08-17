@@ -21,10 +21,10 @@ include $(REGCM_ROOT)/makeinc
 
 vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 
-noinst_LIBRARIES = libcbmz.a
-libcbmz_a_SOURCES = mod_cb6_Precision.F90 mod_cb6_Parameters.F90 \
+noinst_LIBRARIES = libcb6.a
+libcb6_a_SOURCES = mod_cb6_Precision.F90 mod_cb6_Parameters.F90 \
    mod_cb6_Global.F90 mod_cb6_Function.F90 mod_cb6_JacobianSP.F90 \
-   mod_cb6_Jacobian.F90  mod_cb6_jval1.F90 mod_che_hvread.F90 \
+   mod_cb6_Jacobian.F90  mod_cb6_jval2.F90 mod_che_hvread.F90 \
    mod_cb6_Rates.F90 mod_cb6_Util.F90 mod_cb6_Monitor.F90  \
    mod_cb6_LinearAlgebra.F90 mod_cb6_Main.F90  mod_cb6_Integrator.F90 \
    mod_cb6_Model.F90
@@ -72,5 +72,5 @@ mod_cb6_Main.o: mod_cb6_Main.F90   mod_cb6_Global.o mod_cb6_Parameters.o  mod_cb
 mod_cb6_Model.o: mod_cb6_Model.F90   mod_cb6_Integrator.o
 mod_cb6_Integrator.o: mod_cb6_Integrator.F90  
 
-mod_cb6_jval1.o : mod_cb6_jval1.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_mppparam.o mod_stdio.o
-mod_che_hvread.o: mod_che_hvread.F90 mod_cb6_jval1.o 
+mod_cb6_jval2.o : mod_cb6_jval2.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_mppparam.o mod_stdio.o
+mod_che_hvread.o: mod_che_hvread.F90 mod_cb6_jval2.o 

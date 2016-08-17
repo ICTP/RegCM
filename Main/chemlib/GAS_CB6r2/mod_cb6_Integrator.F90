@@ -41,8 +41,8 @@
 MODULE mod_cb6_Integrator
 
   USE mod_cb6_Precision
-  USE mod_cb6_Global, ONLY: FIX, RCONST, TIME, ATOL, RTOL
-  USE mod_cb6_Parameters, ONLY: NVAR, NSPEC, NFIX, LU_NONZERO
+  USE mod_cb6_Global, ONLY: FIX, RCONST, TIMEB, ATOL, RTOL
+  USE mod_cb6_Parameters, ONLY: NVAR_CB6, NFIX_CB6, LU_NONZERO
   USE mod_cb6_JacobianSP, ONLY: LU_DIAG
   USE mod_cb6_LinearAlgebra, ONLY: KppDecomp, KppSolve, &
                Set2zero, WLAMCH
@@ -196,11 +196,11 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       IMPLICIT NONE
-      REAL(kind=dp) :: Y(NVAR), AbsTol(NVAR), RelTol(NVAR), TIN, TOUT
+      REAL(kind=dp) :: Y(NVAR_CB6), AbsTol(NVAR_CB6), RelTol(NVAR_CB6), TIN, TOUT
       REAL(kind=dp) :: RCNTRL(20), RSTATUS(20)
       INTEGER       :: ICNTRL(20), ISTATUS(20)
-      INTEGER, PARAMETER :: LRW = 25 + 9*NVAR+2*NVAR*NVAR, &
-                            LIW = 32 + NVAR
+      INTEGER, PARAMETER :: LRW = 25 + 9*NVAR_CB6+2*NVAR_CB6*NVAR_CB6, &
+                            LIW = 32 + NVAR_CB6
       REAL(kind=dp) :: RWORK(LRW), RPAR(1)
       INTEGER :: IWORK(LIW), IPAR(1), ITOL, ITASK,         &
                  IERR, IOPT, MF
@@ -227,7 +227,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       RWORK(6) = RCNTRL(2)  ! Hmax                    
       RWORK(7) = RCNTRL(1)  ! Hmin                    
 
-      CALL DLSODE ( FUN_CHEM, NVAR, Y, TIN, TOUT, ITOL, RelTol, AbsTol, ITASK,&
+      CALL DLSODE ( FUN_CHEM, NVAR_CB6, Y, TIN, TOUT, ITOL, RelTol, AbsTol, ITASK,&
                     IERR, IOPT, RWORK, LRW, IWORK, LIW, JAC_CHEM, MF)
 
       ISTATUS(1) = IWORK(12) ! Number of function evaluations 
@@ -1768,7 +1768,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         RWORK(LSAVF), RWORK(LACOR), RWORK(LWM), IWORK(LIWM),           &
         F, JAC)                                        
         !F, JAC, DPREPJ, DSOLSY)                                        
-      KGO = 1 - KFLAG 
+      KGO = 1 - KFLAG
       GO TO (300, 530, 540), KGO 
 !-----------------------------------------------------------------------
 ! Block F.                                                              
@@ -2281,7 +2281,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !----------------------- END OF SUBROUTINE DINTDY ----------------------
       END SUBROUTINE DINTDY                                          
 !DECK DPREPJ                                                            
-      SUBROUTINE DPREPJ (NEQ, Y, YH, NYH, EWT, FTEM, SAVF, WM, IWM, F, JAC)
+      SUBROUTINE DPREPJ (NEQ, Y, YH, NYH, EWT, FTEM, SAVF, WM, IWM, F, JAC)                                                        
 !***BEGIN PROLOGUE  DPREPJ                                              
 !***SUBSIDIARY                                                          
 !***PURPOSE  Compute and process Newton iteration matrix.               
@@ -2353,7 +2353,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       INTEGER I, I1, I2, ISING, II, J, J1, JJ, LENP,                     &
               MBA, MBAND, MEB1, MEBAND, ML, ML3, MU, NP1                     
       REAL(kind=dp) CON, DI, FAC, HL0, R, R0, SRUR, YI, YJ, YJJ
-      !REAL(kind=dp)  DVNORM            
+      !REAL(kind=dp)  DVNORM                                                         
 !                                                                       
 !***FIRST EXECUTABLE STATEMENT  DPREPJ                                  
       NJE = NJE + 1 
@@ -2536,7 +2536,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !DECK DSTODE                                                            
       SUBROUTINE DSTODE (NEQ, Y, YH, NYH, YH1, EWT, SAVF, ACOR, &
                          WM, IWM, F, JAC)                                   
-                        !WM, IWM, F, JAC, PJAC, SLVS)       
+                        !WM, IWM, F, JAC, PJAC, SLVS)                                   
 !***BEGIN PROLOGUE  DSTODE                                              
 !***SUBSIDIARY                                                          
 !***PURPOSE  Performs one step of an ODEPACK integration.               
@@ -2883,7 +2883,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! The local error test is made and control passes to statement 500      
 ! if it fails.                                                          
 !-----------------------------------------------------------------------
-  450 JCUR = 0 
+  450 JCUR = 0
       IF (M .EQ. 0) DSM = DEL/TESCO(2,NQ) 
       IF (M .GT. 0) DSM = DVNORM (N, ACOR, EWT)/TESCO(2,NQ) 
       IF (DSM .GT. 1.0D0) GO TO 500 
@@ -3399,14 +3399,14 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       IMPLICIT NONE
 
       INTEGER :: N
-      REAL(kind=dp) :: V(NVAR), FCT(NVAR), T
+      REAL(kind=dp) :: V(NVAR_CB6), FCT(NVAR_CB6), T
       
-!      TOLD = TIME
-!      TIME = T
+!      TOLD = TIMEB
+!      TIMEB = T
 !      CALL Update_SUN()
 !      CALL Update_RCONST()
 !      CALL Update_PHOTO()
-!      TIME = TOLD
+!      TIMEB = TOLD
 
       CALL Fun(V, FIX, RCONST, FCT)
       
@@ -3427,11 +3427,11 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
       IMPLICIT NONE
 
-      REAL(kind=dp) :: V(NVAR), T
+      REAL(kind=dp) :: V(NVAR_CB6), T
       INTEGER :: N
 #ifdef FULL_ALGEBRA    
       INTEGER :: I, J
-      REAL(kind=dp) :: JV(LU_NONZERO), JF(NVAR,NVAR)
+      REAL(kind=dp) :: JV(LU_NONZERO), JF(NVAR_CB6,NVAR_CB6)
 #else
       REAL(kind=dp) :: JF(LU_NONZERO)
 #endif   
@@ -3445,8 +3445,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
     
 #ifdef FULL_ALGEBRA    
       CALL Jac_SP(V, FIX, RCONST, JV)
-      DO j=1,NVAR
-      DO i=1,NVAR
+      DO j=1,NVAR_CB6
+      DO i=1,NVAR_CB6
          JF(i,j) = 0.0d0
       END DO
       END DO

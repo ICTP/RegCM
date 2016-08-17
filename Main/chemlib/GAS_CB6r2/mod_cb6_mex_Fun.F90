@@ -11,13 +11,13 @@
       INTEGER plhs(*), prhs(*)
       INTEGER mxGetPr, mxCreateFull, mxGetM, mxgetN
       INTEGER VPtr, FPtr, RPtr, VdotPtr
-      REAL(kind=dp) V(76), F(6), RCT(215)
+      REAL(kind=dp) V(76), F(6), RCT(216)
       REAL(kind=dp) Vdot(76)
 
 ! Check for the right number of input arguments
       IF ( nrhs .ne. 3 ) THEN
          CALL mexErrMsgTxt('Fun requires 3 input vectors: &
-     &V(76), F(6), RCT(215)')
+     &V(76), F(6), RCT(216)')
       END IF 
 ! Check for the right number of output arguments
       IF ( nlhs .ne. 1 ) THEN
@@ -34,7 +34,7 @@
       CALL mxCopyPtrToReal8(FPtr,F,6)
       
       RPtr = mxGetPr(prhs(3))
-      CALL mxCopyPtrToReal8(RPtr,RCT,215)
+      CALL mxCopyPtrToReal8(RPtr,RCT,216)
 
       VdotPtr = mxGetPr(plhs(1))
 

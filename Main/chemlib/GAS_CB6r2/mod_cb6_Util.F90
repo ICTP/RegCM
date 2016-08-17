@@ -75,8 +75,8 @@ CONTAINS
 
       INTEGER i
 
-      WRITE(10,999) (TIME-TSTART)/3600.D0,  &
-                   (C(LOOKAT(i))/CFACTOR, i=1,NLOOKAT)
+      WRITE(10,999) (TIMEB-TSTART)/3600.D0,  &
+                   (C_CB6(LOOKAT(i))/CFACTOR, i=1,NLOOKAT)
 999   FORMAT(E24.16,100(1X,E24.16))
 
       END SUBROUTINE SaveData
@@ -107,7 +107,7 @@ CONTAINS
 ! GenerateMatlab - Generates MATLAB file to load the data file 
 !   Parameters : 
 !                It will have a character string to prefix each 
-!                species name with.                                                 
+!                species name with.                                            
 !
 ! ****************************************************************
 
@@ -121,19 +121,19 @@ CONTAINS
       CHARACTER(LEN=8) PREFIX 
       INTEGER i
 
-      open(20, file='cb6.m')
-      write(20,*) 'load cb6.dat;'
+      open(20, file='mod_cb6.m')
+      write(20,*) 'load mod_cb6.dat;'
       write(20,990) PREFIX
-990   FORMAT(A1,'c = cb6;')
-      write(20,*) 'clear cb6;'
+990   FORMAT(A1,'c_cb6 = mod_cb6;')
+      write(20,*) 'clear mod_cb6;'
       write(20,991) PREFIX, PREFIX
-991   FORMAT(A1,'t=',A1,'c(:,1);')
+991   FORMAT(A1,'t=',A1,'c_cb6(:,1);')
       write(20,992) PREFIX
-992   FORMAT(A1,'c(:,1)=[];')
+992   FORMAT(A1,'c_cb6(:,1)=[];')
 
       do i=1,NLOOKAT
         write(20,993) PREFIX, SPC_NAMES(LOOKAT(i)), PREFIX, i
-993     FORMAT(A1,A6,' = ',A1,'c(:,',I2,');')
+993     FORMAT(A1,A6,' = ',A1,'c_cb6(:,',I2,');')
       end do
       
       CLOSE(20)
@@ -161,21 +161,21 @@ CONTAINS
 SUBROUTINE Shuffle_user2kpp ( V_USER, V )
 
 ! V_USER - Concentration of variable species in USER's order
-  REAL(kind=dp) :: V_USER(NVAR)
+  REAL(kind=dp) :: V_USER(NVAR_CB6)
 ! V - Concentrations of variable species (local)
-  REAL(kind=dp) :: V(NVAR)
+  REAL(kind=dp) :: V(NVAR_CB6)
 
   V(75) = V_USER(1)
   V(76) = V_USER(2)
   V(72) = V_USER(3)
-  V(8) = V_USER(4)
+  V(8)  = V_USER(4)
   V(22) = V_USER(5)
   V(48) = V_USER(6)
   V(20) = V_USER(7)
-  V(1) = V_USER(8)
-  V(3) = V_USER(9)
-  V(2) = V_USER(10)
-  V(4) = V_USER(11)
+  V(1)  = V_USER(8)
+  V(3)  = V_USER(9)
+  V(2)  = V_USER(10)
+  V(4)  = V_USER(11)
   V(74) = V_USER(12)
   V(69) = V_USER(13)
   V(67) = V_USER(14)
@@ -191,7 +191,7 @@ SUBROUTINE Shuffle_user2kpp ( V_USER, V )
   V(34) = V_USER(24)
   V(57) = V_USER(25)
   V(65) = V_USER(26)
-  V(9) = V_USER(27)
+  V(9)  = V_USER(27)
   V(36) = V_USER(28)
   V(73) = V_USER(29)
   V(71) = V_USER(30)
@@ -200,9 +200,9 @@ SUBROUTINE Shuffle_user2kpp ( V_USER, V )
   V(24) = V_USER(33)
   V(56) = V_USER(34)
   V(54) = V_USER(35)
-  V(6) = V_USER(36)
+  V(6)  = V_USER(36)
   V(41) = V_USER(37)
-  V(7) = V_USER(38)
+  V(7)  = V_USER(38)
   V(11) = V_USER(39)
   V(66) = V_USER(40)
   V(12) = V_USER(41)
@@ -240,7 +240,7 @@ SUBROUTINE Shuffle_user2kpp ( V_USER, V )
   V(16) = V_USER(73)
   V(33) = V_USER(74)
   V(19) = V_USER(75)
-  V(5) = V_USER(76)
+  V(5)  = V_USER(76)
       
 END SUBROUTINE Shuffle_user2kpp
 
@@ -260,19 +260,19 @@ END SUBROUTINE Shuffle_user2kpp
 SUBROUTINE Shuffle_kpp2user ( V, V_USER )
 
 ! V - Concentrations of variable species (local)
-  REAL(kind=dp) :: V(NVAR)
+  REAL(kind=dp) :: V(NVAR_CB6)
 ! V_USER - Concentration of variable species in USER's order
-  REAL(kind=dp) :: V_USER(NVAR)
+  REAL(kind=dp) :: V_USER(NVAR_CB6)
 
-  V_USER(1) = V(75)
-  V_USER(2) = V(76)
-  V_USER(3) = V(72)
-  V_USER(4) = V(8)
-  V_USER(5) = V(22)
-  V_USER(6) = V(48)
-  V_USER(7) = V(20)
-  V_USER(8) = V(1)
-  V_USER(9) = V(3)
+  V_USER(1)  = V(75)
+  V_USER(2)  = V(76)
+  V_USER(3)  = V(72)
+  V_USER(4)  = V(8)
+  V_USER(5)  = V(22)
+  V_USER(6)  = V(48)
+  V_USER(7)  = V(20)
+  V_USER(8)  = V(1)
+  V_USER(9)  = V(3)
   V_USER(10) = V(2)
   V_USER(11) = V(4)
   V_USER(12) = V(74)
@@ -345,31 +345,6 @@ END SUBROUTINE Shuffle_kpp2user
 
 ! End of Shuffle_kpp2user function
 ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-! 
-! GetMass - compute total mass of selected atoms
-!   Arguments :
-!      CL        - Concentration of all species (local)
-!      Mass      - value of mass balance
-! 
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-SUBROUTINE GetMass ( CL, Mass )
-
-! CL - Concentration of all species (local)
-  REAL(kind=dp) :: CL(NSPEC)
-! Mass - value of mass balance
-  REAL(kind=dp) :: Mass(1)
-
-      
-END SUBROUTINE GetMass
-
-! End of GetMass function
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 
 END MODULE mod_cb6_Util
 

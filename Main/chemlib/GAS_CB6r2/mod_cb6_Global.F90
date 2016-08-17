@@ -24,30 +24,31 @@
 
 MODULE mod_cb6_Global
 
-  USE mod_cb6_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT
+  USE mod_cb6_Parameters, ONLY: dp, NVAR_CB6, NREACT
   PUBLIC
   SAVE
 
 
 ! Declaration of global variables
 
-! C - Concentration of all species
-  REAL(kind=dp) :: C(NSPEC)
-! VAR - Concentrations of variable species (global)
-  REAL(kind=dp) :: VAR(NVAR)
-! FIX - Concentrations of fixed species (global)
-  REAL(kind=dp) :: FIX(NFIX)
-! VAR, FIX are chunks of array C
-      EQUIVALENCE( C(1),VAR(1) )
-      EQUIVALENCE( C(77),FIX(1) )
+!! C - Concentration of all species
+!  REAL(kind=dp) :: C_CB6(NSPEC)
+!! VAR - Concentrations of variable species (global)
+!  REAL(kind=dp) :: VAR(NVAR)
+!! FIX - Concentrations of fixed species (global)
+!  REAL(kind=dp) :: FIX(NFIX_CB6)
+!! VAR, FIX are chunks of array C
+!      EQUIVALENCE( C_CB6(1),VAR(1) )
+!      EQUIVALENCE( C_CB6(77),FIX(1) )
 ! RCONST - Rate constants (global)
   REAL(kind=dp) :: RCONST(NREACT)
+  real(kind=dp) :: kmax(nreact)
 ! TIME - Current integration time
-  REAL(kind=dp) :: TIME
+  REAL(kind=dp) :: TIMEB ! Timeb renamed to avoid clashes with CBMZ
 ! SUN - Sunlight intensity between [0,1]
   REAL(kind=dp) :: SUN
 ! TEMP - Temperature
-  REAL(kind=dp) :: TEMP
+  REAL(kind=dp) :: TEMPb ! b to avoid CBMZ conflicts
 ! RTOLS - (scalar) Relative tolerance
   REAL(kind=dp) :: RTOLS
 ! TSTART - Integration start time
@@ -57,9 +58,9 @@ MODULE mod_cb6_Global
 ! DT - Integration step
   REAL(kind=dp) :: DT
 ! ATOL - Absolute tolerance
-  REAL(kind=dp) :: ATOL(NVAR)
+  REAL(kind=dp) :: ATOL(NVAR_CB6)
 ! RTOL - Relative tolerance
-  REAL(kind=dp) :: RTOL(NVAR)
+  REAL(kind=dp) :: RTOL(NVAR_CB6)
 ! STEPMIN - Lower bound for integration step
   REAL(kind=dp) :: STEPMIN
 ! STEPMAX - Upper bound for integration step
@@ -69,48 +70,44 @@ MODULE mod_cb6_Global
 
 ! INLINED global variable declarations
 
-INTEGER, PARAMETER :: nperox=10
-REAL(KIND=4), DIMENSION(nperox,nperox) :: Aperox,Bperox
-REAL(KIND=4), DIMENSION(nperox) :: rk_param
-!The molar Concentration of AIR
- REAL(KIND=dp)::   C_M
- REAL(KIND=dp)::   C_CH3O2
- REAL(KIND=dp)::   C_ETHP
- REAL(KIND=dp)::   C_C2O3
- REAL(KIND=dp)::   C_ANO2
- REAL(KIND=dp)::   C_NAP
- REAL(KIND=dp)::   C_RO2
- REAL(KIND=dp)::   C_ISOPP
- REAL(KIND=dp)::   C_ISOPN
- REAL(KIND=dp)::   C_ISOPO2
- REAL(KIND=dp)::   C_XO2
-!The temperature field
- REAL(KIND=dp)::TEMPNEW
- INTEGER, PARAMETER :: jch3o2=1, jethp=2, jro2=3, &
-                      jc2o3=4, jano2=5, jnap=6, &
-                      jisopp=7, jisopn=8, jisopo2=9,&
-                      jxo2=10
+  INTEGER, PARAMETER :: nperox=10
+  REAL(KIND=4), DIMENSION(nperox,nperox) :: Aperox,Bperox
+  REAL(KIND=4), DIMENSION(nperox) :: rk_param
+! The molar Concentration of AIR
+  REAL(KIND=dp)::   C_Mb ! addition of b due to CBMZ
+  REAL(KIND=dp)::   C_MEO2
+! REAL(KIND=dp)::   C_ETHP
+  REAL(KIND=dp)::   C_ACOO
+! REAL(KIND=dp)::   C_ANO2
+! REAL(KIND=dp)::   C_NAP
+  REAL(KIND=dp)::   C_ROO
+  REAL(KIND=dp)::   C_ISO2
+! REAL(KIND=dp)::   C_ISOPN
+! REAL(KIND=dp)::   C_ISOPO2
+  REAL(KIND=dp)::   C_XYLR
+! The temperature field
+  REAL(KIND=dp)::TEMPNEW
+  INTEGER, PARAMETER :: jmeo2=1, jroo=2, jacoo=3, jiso2=4, jxylr=5
 
- REAL(KIND=dp)::  jval_O31D,jval_O33P,jval_NO2,jval_CH2Oa,jval_CH2Ob,         &
-                  jval_HNO2,jval_HNO4,jval_NO3b,jval_NO3a,jval_HNO3,          &
-                  jval_N2O5b,jval_CH3CHOa,jval_PAN,jval_C2H5CHO,jval_CH3COCH3,&
-                  jval_CHOCHO,jval_CH3OOH,jval_H2O2,                          &
-                  jval_PNA,jval_PANX,jval_MEPX,jval_ROOH,                     &
-                  jval_NTR,jval_FORM,jval_ALD2,jval_ALDX,jval_GLYD,jval_GLY,  &
-                  jval_MGLY,jval_KET,jval_ACET,jval_ISPD,jval_HPLD,jval_CRON, &
-                  jval_XOPN,jval_OPEN
+  REAL(KIND=dp)::  jval_NDOX,jval_O33P,jval_O31D,jval_HPOX,jval_NTOXb,         &
+                   jval_NTOXa,jval_DNPOb,jval_HONO,jval_NTRC,jval_PNA,         &
+                   jval_PACN,jval_PANX,jval_MEPX,jval_RPOX,jval_NTR,           &
+                   jval_FORM,jval_AALD,jval_ALDX,jval_GLYD,jval_GLY,           &
+                   jval_MEGY,jval_KET,jval_ACET,jval_ISPD,jval_HPLD,           &
+                   jval_CRON,jval_XOPN,jval_ROPN
 
-REAL(KIND=dp) :: zenith,PRNEW
-REAL(KIND=dp),DIMENSION(NSPEC) :: xr,xrin,xrout
-REAL(KIND=dp),DIMENSION(1,56)    :: c_jval
+! addition of b due to CBMZ to avoid conflicts
+  REAL(KIND=dp) :: zenithb,PRNEW,wtrin,wtrout ! b 
+  REAL(KIND=dp), POINTER , DIMENSION(:) :: xrb,xrinb,xroutb,c_cb6,var,fix ! b
+  REAL(KIND=dp), POINTER , DIMENSION(:) :: xrin_nu0,xrin_ac0,xrin_nu3,xrin_ac3  
+  REAL(KIND=dp), POINTER , DIMENSION(:) :: chemtmpn,chemtmpa,chemtmpt
+  REAL(KIND=dp),DIMENSION(1,56)    :: c_jvalb ! b 
 
-
-REAL(kind=dp) :: altmid ! altitude at midpoint, km
-REAL(kind=dp) :: dens   ! Density molec cm-3
-REAL(kind=dp) :: deptha,depthb,altabove,altbelow
+  REAL(kind=dp) :: altmidb ! altitude at midpoint, km ! b 
+  REAL(kind=dp) :: densb   ! Density molec cm-3 ! b
+  REAL(kind=dp) :: relhum  ! Relative Humidity, fraction
+  REAL(kind=dp) :: depthab,depthbb,altaboveb,altbelowb ! b 
 
 ! INLINED global variable declarations
 
-
 END MODULE mod_cb6_Global
-

@@ -28,252 +28,74 @@ MODULE mod_cb6_Rates
   USE mod_cb6_Global
   IMPLICIT NONE
 
-CONTAINS
+  CONTAINS
 
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+   ! User-defined Rate Law functions                                           !
+   ! Note: the default argument type for rate laws, as read from the equations !
+   ! file, is single precision but all the internal calculations are performed !
+   ! in double precision                                                       !
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+   ! Rate functions included by J. Ciarlo` (June 2016)
+   ! General Temperature Dependence (no exponent)
+   real(kind=dp) function gtde0(a0,t0,p0)
+     real(kind=dp) a0
+     real t0,p0
+     gtde0 = a0 * (tempb/dble(t0))**dble(p0)
+   end function gtde0 
 
+   ! General Temperature Dependence (no power)
+   real(kind=dp) function gtdp0(a0,ea)
+     real(kind=dp) a0
+     real ea
+     gtdp0 = a0 * exp(dble(ea)/tempb)
+   end function gtdp0
 
-! Begin Rate Law Functions from KPP_HOME/util/UserRateLaws
+   ! General Temperature Dependence 
+   real(kind=dp) function gtd(a0,t0,p0,ea)
+     real(kind=dp) a0
+     real t0,p0,ea
+     gtd = a0 * (tempb/dble(t0))**dble(p0) * exp(dble(ea)/tempb)
+   end function gtd
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!  User-defined Rate Law functions
-!  Note: the default argument type for rate laws, as read from the equations file, is single precision
-!        but all the internal calculations are performed in double precision
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   ! Troe-type temp and pres denendence (falloff)
+   real(kind=dp) function fall(k0,ki,n,f)
+     real(kind=dp) k0,ki,g,cb
+     real n,f
+     real(kind=dp),parameter :: av=6.02214129D23
+     cb = c_mb/av
+     g = log10(k0*cb/ki)/dble(n)
+     g = 1 + g**2
+     g = 1/g
+     fall = (k0*cb/(1+(k0*cb/ki))) * dble(f)**g
+   end function fall
 
-!~~~>  Arrhenius
-   REAL(kind=dp) FUNCTION ARR( A0,B0,C0 )
-      REAL A0,B0,C0      
-      ARR =  DBLE(A0) * EXP(-DBLE(B0)/TEMP) * (TEMP/300.0_dp)**DBLE(C0)
-   END FUNCTION ARR        
+   ! Simple pressure dependence
+   real(kind=dp) function spd(k1,k2)
+     real(kind=dp) k1,k2,cb
+     real(kind=dp),parameter :: av=6.02214129D23
+     cb = c_mb/av
+     spd = k1 + k2*cb
+   end function spd
 
-!~~~> Simplified Arrhenius, with two arguments
-!~~~> Note: The argument B0 has a changed sign when compared to ARR
-   REAL(kind=dp) FUNCTION ARR2( A0,B0 )
-      REAL A0,B0           
-      ARR2 =  DBLE(A0) * EXP( DBLE(B0)/TEMP )              
-   END FUNCTION ARR2          
-!~~~~~~~~~~~~~~>     added by A. shalaby June 2007 --------------------
-   REAL(kind=dp) FUNCTION ARR3FC( A0,B0,A1,B1,FC )
-      REAL A0,B0,A1,B1,FC
-      REAL(kind=dp) k1,k2,ex
-      K1=A0*(300/TEMP)**B0
-      k2=A1*(300/TEMP)**B1
-      ex=(1+(log10(k1*C_M/k2))**2)**(-1)
-      ARR3FC = (K1*C_M/(1+(K1*C_M/K2)))*FC**(ex)
-   END FUNCTION ARR3FC
-!----------------------------------------------------------------------
-!~~~~~~~~~~~~~~>     added by A. shalaby June 2007 --------------------
-   REAL(kind=dp) FUNCTION ARR4( A0,B0,C0,A1,B1,C1,FC )
-      REAL A0,B0,C0,A1,B1,C1,FC
-      REAL(kind=dp) k1,k2,ex
-      K1=A0*((300/TEMP)**B0)*EXP(C0/TEMP)
-      k2=A1*((300/TEMP)**B1)*EXP(C1/TEMP)
-      ex=(1+(log(k1*C_M/k2))**2)**(-1)
-      ARR4 = (k2*k1*C_M)/(k2+k1*C_M)*FC**(ex)
-   END FUNCTION ARR4
-!----------------------------------------------------------------------
+   ! Lindemann - Hinshelwood
+   real(kind=dp) function lihi(k1,k2,k3)
+     real(kind=dp) k1,k2,k3,cb
+     real(kind=dp),parameter :: av=6.02214129D23
+     cb = c_mb/av
+     lihi = k1 + k3*cb/(1 + k3*cb/k2)
+   end function lihi
 
-   REAL(kind=dp) FUNCTION EP2(A0,C0,A2,C2,A3,C3)
-      REAL A0,C0,A2,C2,A3,C3
-      REAL(kind=dp) K0,K2,K3            
-      K0 = DBLE(A0) * EXP(-DBLE(C0)/TEMP)
-      K2 = DBLE(A2) * EXP(-DBLE(C2)/TEMP)
-      K3 = DBLE(A3) * EXP(-DBLE(C3)/TEMP)
-      K3 = K3*CFACTOR*1.0E6_dp
-      EP2 = K0 + K3/(1.0_dp+K3/K2 )
-   END FUNCTION EP2
+  !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  !  End of User-defined Rate Law functions
+  !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   REAL(kind=dp) FUNCTION EP3(A1,C1,A2,C2) 
-      REAL A1, C1, A2, C2
-      REAL(kind=dp) K1, K2      
-      K1 = DBLE(A1) * EXP(-DBLE(C1)/TEMP)
-      K2 = DBLE(A2) * EXP(-DBLE(C2)/TEMP)
-      EP3 = K1 + K2*(1.0E6_dp*CFACTOR)
-   END FUNCTION EP3 
-
-   REAL(kind=dp) FUNCTION FALL ( A0,B0,C0,A1,B1,C1,CF)
-      REAL A0,B0,C0,A1,B1,C1,CF
-      REAL(kind=dp) K0, K1     
-      K0 = DBLE(A0) * EXP(-DBLE(B0)/TEMP)* (TEMP/300.0_dp)**DBLE(C0)
-      K1 = DBLE(A1) * EXP(-DBLE(B1)/TEMP)* (TEMP/300.0_dp)**DBLE(C1)
-      K0 = K0*CFACTOR*1.0E6_dp
-      K1 = K0/K1
-      FALL = (K0/(1.0_dp+K1))*   &
-           DBLE(CF)**(1.0_dp/(1.0_dp+(LOG10(K1))**2))
-   END FUNCTION FALL
-
-  !---------------------------------------------------------------------------
-
-  ELEMENTAL REAL(kind=dp) FUNCTION k_3rd(temp,cair,k0_300K,n,kinf_300K,m,fc)
-
-    INTRINSIC LOG10
-
-    REAL(kind=dp), INTENT(IN) :: temp      ! temperature [K]
-    REAL(kind=dp), INTENT(IN) :: cair      ! air concentration [molecules/cm3]
-    REAL, INTENT(IN) :: k0_300K   ! low pressure limit at 300 K
-    REAL, INTENT(IN) :: n         ! exponent for low pressure limit
-    REAL, INTENT(IN) :: kinf_300K ! high pressure limit at 300 K
-    REAL, INTENT(IN) :: m         ! exponent for high pressure limit
-    REAL, INTENT(IN) :: fc        ! broadening factor (usually fc=0.6)
-    REAL(kind=dp) :: zt_help, k0_T, kinf_T, k_ratio
-
-    zt_help = 300._dp/temp
-    k0_T    = k0_300K   * zt_help**(n) * cair ! k_0   at current T
-    kinf_T  = kinf_300K * zt_help**(m)        ! k_inf at current T
-    k_ratio = k0_T/kinf_T
-    k_3rd   = k0_T/(1._dp+k_ratio)*fc**(1._dp/(1._dp+LOG10(k_ratio)**2))
-
-  END FUNCTION k_3rd
-
-  !---------------------------------------------------------------------------
-
-  ELEMENTAL REAL(kind=dp) FUNCTION k_arr (k_298,tdep,temp)
-    ! Arrhenius function
-
-    REAL,     INTENT(IN) :: k_298 ! k at T = 298.15K
-    REAL,     INTENT(IN) :: tdep  ! temperature dependence
-    REAL(kind=dp), INTENT(IN) :: temp  ! temperature
-
-    INTRINSIC EXP
-
-    k_arr = k_298 * EXP(tdep*(1._dp/temp-3.3540E-3_dp)) ! 1/298.15=3.3540e-3
-
-  END FUNCTION k_arr
-
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!  End of User-defined Rate Law functions
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-! End Rate Law Functions from KPP_HOME/util/UserRateLaws
-
-
-! Begin INLINED Rate Law Functions
-
-   REAL(KIND=dp) FUNCTION ARR3( A0,B0,A1,B1)
-      REAL A0,B0,A1,B1,FC
-      REAL(KIND=dp) k1,k2,ex
-
-      K1=A0*C_M*(300/TEMP)**(B0)
-      k2=A1*(300/TEMP)**(B1)
-      ex=1./(1+(log(k1/k2))**2)
-      ARR3 = (k2*k1*C_M)/(k2+k1*C_M)*0.6**(ex)
-   END FUNCTION ARR3
-
-REAL(KIND=dp) FUNCTION CBZ1( TEMP, C_M )
-    REAL(KIND=dp), INTENT(IN) :: TEMP, C_M
-    REAL(KIND=dp) :: ka, kb, kc
-
-   ka  = 7.2E-15_dp * EXP(785._dp/TEMP)
-   kb  = 1.9E-33_dp * EXP(725._dp/TEMP)
-   kc  = 4.1E-16_dp * EXP(1440._dp/TEMP)
-   CBZ1 = (ka+C_M*kb)/(1+(C_M*kb/kc))
-END FUNCTION CBZ1
-
-REAL(KIND=dp) FUNCTION CBZ2( TEMP, C_M )
-    REAL(KIND=dp), INTENT(IN) :: TEMP, C_M
-    REAL(KIND=dp) :: kd, ke
-    kd = 2.3E-13*EXP(600./TEMP)
-    ke = 1.7E-33*EXP(1000./TEMP)
-    CBZ2 = kd + C_M*ke
-END FUNCTION CBZ2
-SUBROUTINE loadperoxyparameters
-implicit none
- integer i, j
-Aperox(jch3o2,jch3o2)   = 2.5e-13
-Aperox(jethp,jethp)     = 6.8e-14
-Aperox(jc2o3,jc2o3)     = 2.9e-12
-Aperox(jano2,jano2)     = 8.0e-12
-Aperox(jnap,jnap)       = 1.0e-12
-Aperox(jro2,jro2)       = 5.3e-16
-Aperox(jisopp,jisopp)   = 3.1e-14
-Aperox(jisopn,jisopn)   = 3.1e-14
-Aperox(jisopo2,jisopo2) = 3.1e-14
-Aperox(jxo2,jxo2)       = 3.1e-14
-
-Bperox(jch3o2,jch3o2)   = 190.
-Bperox(jethp,jethp)     = 0.0
-Bperox(jc2o3,jc2o3)     = 500.
-Bperox(jano2,jano2)     = 0.0
-Bperox(jnap,jnap)       = 0.0
-Bperox(jro2,jro2)       = 1980.
-Bperox(jisopp,jisopp)   = 1000.
-Bperox(jisopn,jisopn)   = 1000.
-Bperox(jisopo2,jisopo2) = 1000.
-Bperox(jxo2,jxo2)       = 1000.
-
-do i = 1, nperox
-do j = 1, nperox
-if(i.ne.j)then
-Aperox(i,j) = 2.0*sqrt(Aperox(i,i)*Aperox(j,j))
-Bperox(i,j) = 0.5*(Bperox(i,i) + Bperox(j,j))
-end if
-end do
-end do
-Aperox(jc2o3,jch3o2) = 1.3e-12
-Aperox(jch3o2,jc2o3) = 1.3e-12
-return
-END SUBROUTINE loadperoxyparameters
-
-SUBROUTINE peroxyrateconstants
-
-implicit none
-integer i, j
-real sperox(nperox), rk_perox(nperox,nperox)
-sperox(jch3o2)  =  VAR(indv_CH3O2)!C_CH3O2
-sperox(jethp)   =  VAR(indv_ETHP) ! C_ETHP
-sperox(jro2)    =  VAR(indv_RO2)  ! C_RO2
-sperox(jc2o3)   =  VAR(indv_C2O3) ! C_C2O3
-sperox(jano2)   =  VAR(indv_ANO2) ! C_ANO2
-sperox(jnap)    =  VAR(indv_NAP)  ! C_NAP
-sperox(jisopp)  =  VAR(indv_ISOPP)! C_ISOPP
-sperox(jisopn)  =  VAR(indv_ISOPN)! C_ISOPN
-sperox(jisopo2) =  VAR(indv_ISOPO2)! C_ISOPO2
-sperox(jxo2)    =  VAR(indv_XO2)  ! C_XO2
-
-do i = 1, nperox
-rk_param(i) = 0.0
-end do
-
-do i = 1, nperox
-do j = 1, nperox
-rk_perox(i,j) = ARR2( Aperox(i,j), Bperox(i,j))
-rk_param(i) = rk_param(i) + rk_perox(i,j)*sperox(j)
-end do
-end do
-
-return
-END SUBROUTINE peroxyrateconstants
-REAL(KIND=dp) FUNCTION react(k)
- INTEGER :: k
-! CALL loadperoxyparameters
- CALL peroxyrateconstants
- react=rk_param(k)
-
-END FUNCTION react
-REAL(KIND=dp) FUNCTION KDMS( TEMP)
-    REAL(KIND=dp), INTENT(IN) :: TEMP
-    REAL(KIND=dp) :: k0, k1, k2,k3,k4
-
-   k0=TEMP*EXP(-234/TEMP)
-   k1=8.46E-10*EXP(7230/TEMP)
-   k2=2.68E-10*EXP(7810/TEMP)
-   k3=1.04E11*TEMP
-   k4=88.1*EXP(7460/TEMP)
-
-   KDMS=(k0+k1+k2)/(k3+k4)
-
-
-END FUNCTION KDMS
-
-
-! End INLINED Rate Law Functions
-
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-! 
-! Update_SUN - update SUN light using TIME
-!   Arguments :
-! 
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ! 
+  ! Update_SUN - update SUN light using TIME
+  !   Arguments :
+  ! 
+  ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   SUBROUTINE Update_SUN()
       !USE cb6_Parameters
@@ -288,7 +110,7 @@ END FUNCTION KDMS
     
     SunRise = 4.5_dp 
     SunSet  = 19.5_dp 
-    Thour = TIME/3600.0_dp 
+    Thour = TIMEB/3600.0_dp 
     Tlocal = Thour - (INT(Thour)/24)*24
 
     IF ((Tlocal>=SunRise).AND.(Tlocal<=SunSet)) THEN
@@ -303,299 +125,317 @@ END FUNCTION KDMS
        SUN = 0.0_dp 
     END IF
 
- END SUBROUTINE Update_SUN
+  END SUBROUTINE Update_SUN
 
-! End of Update_SUN function
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ! 
+  ! Update_rconst - function to update rate constants
+  !   Arguments :
+  ! 
+  ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  SUBROUTINE Update_rconst ( )
+    real(kind=dp) kk1,kk2,kk3
+    integer i
+    kk1 = 0.0D0
+    kk2 = 0.0D0
+    kk3 = 0.0D0
 
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-! 
-! Update_RCONST - function to update rate constants
-!   Arguments :
-! 
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ! constant rate coefficients commented
+    rconst(1) = (jval_NDOX)
+    rconst(2) = (gtde0(5.68D-34,300.0,-2.6))
+    rconst(3) = (gtdp0(1.40D-12,-1310.0))
+    rconst(4) = (gtde0(1.00D-31,300.0,-1.6))
+    rconst(5) = (gtdp0(5.50D-12,188.0))
+    kk1 = gtde0(1.30D-31,300.0,-1.5)
+    kk2 = gtde0(2.30D-11,300.0,0.24)
+    rconst(6) = (fall(kk1,kk2,1.0,0.6))
+    rconst(7) = (gtdp0(8.00D-12,-2060.0))
+    rconst(8) = (jval_O33P) 
+    rconst(9) = (jval_O31D) 
+    rconst(10) = (gtdp0(2.23D-11,115.0))
+!   rconst(11) = (dble(2.14E-10))
+    rconst(12) = (gtdp0(1.70D-12,-940.0))
+    rconst(13) = (gtd(2.03D-16,300.0,4.57,693.0))
+    rconst(14) = (gtdp0(2.40D-11,110.0))
+    rconst(15) = (gtdp0(2.70D-11,224.0))
+    rconst(16) = (gtd(6.20D-14,298.0,2.6,945.0))
+    kk1 = gtde0(6.90D-31,300.0,-0.8)
+    rconst(17) = (fall(kk1,(2.60D-11),1.13,0.5))
+    rconst(18) = (gtdp0(4.80D-11,250.0))
+    kk1 = gtdp0(2.20D-13,600.0)
+    kk2 = gtdp0(1.90D-33,980.0)
+    rconst(19) = (spd(kk1,kk2))
+    kk1 = gtdp0(3.08D-34,2800.0)
+    kk2 = gtdp0(2.66D-54,3180.0)
+    rconst(20) = (spd(kk1,kk2))
+    rconst(21) = (jval_HPOX)
+    rconst(22) = (gtdp0(2.90D-12,-160.0))
+    rconst(23) = (gtdp0(1.40D-12,-2000.0))
+    rconst(24) = (gtdp0(3.30D-39,530.0))
+    rconst(25) = (gtdp0(3.45D-12,270.0))
+    rconst(26) = (gtdp0(1.40D-13,-2470.0))
+    rconst(27) = (jval_NTOXb)  
+    rconst(28) = (jval_NTOXa)  
+    rconst(29) = (gtdp0(1.80D-11,110.0))
+    rconst(30) = (gtdp0(4.50D-14,-1260.0))
+!   rconst(31) = (dble(1.70E-11))
+!   rconst(32) = (dble(2.00E-11))
+!   rconst(33) = (dble(4.00E-12))
+!   rconst(34) = (dble(1.00E-17))
+    rconst(35) = (gtdp0(8.50D-13,-2450.0))
+    kk1 = gtde0(3.60D-30,300.0,-4.1)
+    kk2 = gtde0(1.90D-12,300.0,0.2)
+    rconst(36) = (fall(kk1,kk2,1.33,0.35))
+    kk1 = gtd(1.30D-3,300.0,-3.5,-11000.0)
+    kk2 = gtd(9.70D+14,300.0,0.1,-11080.0)
+    rconst(37) = (fall(kk1,kk2,1.33,0.35))
+    rconst(38) = (jval_DNPOb)
+!   rconst(39) = (dble(1.00E-22))
+    kk1 = gtde0(7.40D-31,300.0,-2.4)
+    kk2 = gtde0(3.30D-11,300.0,-0.3)
+    rconst(40) = (fall(kk1,kk2,0.87,0.81))
+!   rconst(41) = (dble(5.00E-40))
+!   rconst(42) = (dble(1.00E-20))
+    rconst(43) = (jval_HONO)
+    rconst(44) = (gtdp0(2.50D-12,260.0))
+    kk1 = gtde0(1.80D-30,300.0,-3.0)
+    rconst(45) = (fall(kk1,(2.80D-11),1.0,0.6))
+    kk1 = gtdp0(2.40D-14,460.0)
+    kk2 = gtdp0(2.70D-17,2199.0)
+    kk3 = gtdp0(6.50D-34,1335.0)
+    rconst(46) = (lihi(kk1,kk2,kk3))
+    rconst(47) = (jval_NTRC)
+    kk1 = gtde0(1.80D-31,300.0,-3.2)
+    rconst(48) = (fall(kk1,(4.70D-12),1.0,0.6))
+    kk1 = gtdp0(4.10D-5,-10650.0)
+    kk2 = gtdp0(4.80D+15,-11170.0)
+    rconst(49) = (fall(kk1,kk2,1.0,0.6))
+    rconst(50) = (jval_PNA)
+    rconst(51) = (gtdp0(3.20D-13,690.0))
+    kk1 = gtde0(4.50D-31,300.0,-3.9)
+    kk2 = gtde0(1.30D-12,300.0,-0.7)
+    rconst(52) = (fall(kk1,kk2,1.1,0.53))
+    rconst(53) = (gtdp0(7.50D-12,290.0))
+    kk1 = gtde0(2.70D-28,300.0,-7.1)
+    kk2 = gtde0(1.20D-11,300.0,-0.9)
+    rconst(54) = (fall(kk1,kk2,1.41,0.3))
+    kk1 = gtdp0(4.90D-3,-12100.0)
+    kk2 = gtdp0(5.40D+16,-13830.0)
+    rconst(55) = (fall(kk1,kk2,1.41,0.3))
+    rconst(56) = (jval_PACN)
+    rconst(57) = (gtdp0(5.20D-13,980.0))
+    rconst(58) = (gtdp0(8.90D-13,800.0))
+    rconst(59) = (gtdp0(2.90D-12,500.0))
+    rconst(60) = (gtdp0(2.90D-12,500.0))
+    rconst(61) = (gtdp0(6.70D-12,340.0))
+    rconst(62) = (rconst(54))
+    rconst(63) = (rconst(55))
+    rconst(64) = (jval_PANX)
+    rconst(65) = (gtdp0(5.20D-13,980.0))
+    rconst(66) = (gtdp0(8.90D-13,800.0))
+    rconst(67) = (gtdp0(3.20D-12,500.0))
+    rconst(68) = (gtdp0(2.40D-12,360.0))
+    rconst(69) = (gtdp0(4.80D-13,800.0))
+    rconst(70) = (gtdp0(6.50D-14,500.0))
+    rconst(71) = (gtdp0(2.30D-12,360.0))
+    rconst(72) = (gtdp0(3.80D-13,780.0))
+    rconst(73) = (gtdp0(2.00D-12,500.0))
+    rconst(74) = (rconst(70))
+    rconst(75) = (gtdp0(2.70D-12,360.0))
+    rconst(76) = (gtdp0(6.80D-13,800.0))
+    rconst(77) = (rconst(58))
+    rconst(78) = (rconst(70))
+    rconst(79) = (rconst(75))
+    rconst(80) = (rconst(76))
+    rconst(81) = (rconst(58))
+    rconst(82) = (rconst(70))
+    rconst(83) = (rconst(75))
+    rconst(84) = (rconst(76))
+    rconst(85) = (rconst(58))
+    rconst(86) = (rconst(70))
+    rconst(87) = (gtdp0(5.30D-12,190.0))
+    rconst(88) = (jval_MEPX)
+    rconst(89) = (gtdp0(5.30D-12,190.0))
+    rconst(90) = (jval_RPOX)
+!   rconst(91) = (dble(2.00E-12))
+    rconst(92) = (jval_NTR)
+!   rconst(93) = (dble(4.50E-13))
+    rconst(94) = (gtdp0(4.00D-14,850.0))
+    rconst(95) = (gtdp0(5.30D-12,190.0))
+    rconst(96) = (gtdp0(5.40D-12,135.0))
+    rconst(97) = (jval_FORM)
+    rconst(98) = (jval_FORM)
+    rconst(99) = (gtdp0(3.40D-11,-1600.0))
+!   rconst(100) = (dble(5.50E-16))
+    rconst(101) = (gtdp0(9.70D-15,625.0))
+    rconst(102) = (gtdp0(2.40D+12,-7000.0))
+!   rconst(103) = (dble(5.60E-12))
+    rconst(104) = (gtdp0(5.60D-15,2300.0))
+    rconst(105) = (gtdp0(1.80D-11,-1100.0))
+    rconst(106) = (gtdp0(4.70D-12,345.0))
+    rconst(107) = (gtdp0(1.40D-12,-1860.0))
+    rconst(108) = (jval_AALD)
+    rconst(109) = (gtdp0(1.30D-11,-870.0))
+    rconst(110) = (gtdp0(4.90D-12,405.0))
+!   rconst(111) = (dble(6.30E-15))
+    rconst(112) = (jval_ALDX)
+!   rconst(113) = (dble(8.00E-12))
+    rconst(114) = (jval_GLYD)
+    rconst(115) = (gtdp0(1.40D-12,-1860.0))
+    rconst(116) = (gtdp0(3.10D-12,340.0))
+    rconst(117) = (jval_GLY)
+    rconst(118) = (gtdp0(1.40D-12,-1860.0))
+    rconst(119) = (jval_MEGY)
+    rconst(120) = (gtdp0(1.40D-12,-1860.0))
+    rconst(121) = (gtdp0(1.90D-12,575.0))
+    rconst(122) = (gtdp0(7.70D-12,-2100.0))
+    rconst(123) = (spd((1.44D-13),(3.43D-33)))
+    rconst(124) = (gtdp0(1.85D-12,-1690.0))
+    rconst(125) = (gtdp0(6.90D-12,-1000.0))
+    rconst(126) = (gtdp0(2.85D-12,-345.0))
+    rconst(127) = (gtdp0(3.00D-12,20.0))
+    rconst(128) = (jval_KET)
+    rconst(129) = (jval_ACET)
+    rconst(130) = (gtdp0(1.41D-12,-620.6))
+    rconst(131) = (gtdp0(7.60D-12,-585.0))
+!   rconst(132) = (dble(8.10E-13))
+    rconst(133) = (gtdp0(5.70D+12,-5780.0))
+    rconst(134) = (gtdp0(1.50D-14,-200.0))
+    rconst(135) = (gtdp0(8.60D-12,400.0))
+    kk1 = gtde0(5.00D-30,300.0,-1.5)
+    rconst(136) = (fall(kk1,(1.00D-12),1.3,0.37))
+    rconst(137) = (gtdp0(1.04D-11,-792.0))
+    kk1 = gtde0(8.60D-29,300.0,-3.1)
+    kk2 = gtde0(9.00D-12,300.0,-0.85)
+    rconst(138) = (fall(kk1,kk2,1.15,0.48))
+    rconst(139) = (gtdp0(9.10D-15,-2580.0))
+    rconst(140) = (gtdp0(3.30D-12,-2880.0))
+    rconst(141) = (gtdp0(1.00D-11,-280.0))
+    kk1 = gtde0(8.00D-27,300.0,-3.5)
+    kk2 = gtde0(3.00D-11,300.0,-1.0)
+    rconst(142) = (fall(kk1,kk2,1.13,0.5))
+    rconst(143) = (gtdp0(5.50D-15,-1880.0))
+    rconst(144) = (gtdp0(4.60D-13,-1155.0))
+!   rconst(145) = (dble(2.30E-11))
+    rconst(146) = (gtdp0(1.05D-11,519.0))
+    rconst(147) = (gtdp0(4.70D-15,-1013.0))
+!   rconst(148) = (dble(3.70E-13))
+    rconst(149) = (gtdp0(2.70D-11,390.0))
+!   rconst(150) = (dble(3.00E-11))
+    rconst(151) = (gtdp0(2.39D-12,365.0))
+    rconst(152) = (gtdp0(7.43D-13,700.0))
+    rconst(153) = (rconst(58))
+    rconst(154) = (rconst(70))
+    rconst(155) = (gtdp0(3.30D+9,-8300.0))
+    rconst(156) = (gtdp0(1.03D-14,-1995.0))
+    rconst(157) = (gtdp0(3.03D-12,-448.0))
+    rconst(158) = (gtdp0(5.58D-12,511.0))
+    rconst(159) = (gtdp0(3.88D-15,-1770.0))
+    rconst(160) = (gtdp0(4.10D-12,-1860.0))
+    rconst(161) = (jval_ISPD)
+    rconst(162) = (gtdp0(2.23D-11,372.0))
+    rconst(163) = (jval_HPLD)
+    rconst(164) = (gtdp0(6.00D-12,-1860.0))
+    rconst(165) = (gtdp0(5.78D-11,-400.0))
+    rconst(166) = (gtdp0(7.43D-13,700.0))
+    rconst(167) = (gtdp0(2.39D-12,365.0))
+    rconst(168) = (rconst(58))
+    rconst(169) = (rconst(70))
+!   rconst(170) = (dble(3.10E-11))
+!   rconst(171) = (dble(3.60E-11))
+    rconst(172) = (gtdp0(1.50D-11,449.0))
+    rconst(173) = (gtdp0(1.20D-15,-821.0))
+    rconst(174) = (gtdp0(3.70D-12,175.0))
+    rconst(175) = (gtdp0(2.30D-12,-190.0))
+    rconst(176) = (gtdp0(2.70D-12,360.0))
+    rconst(177) = (rconst(58))
+    rconst(178) = (gtdp0(1.90D-13,1300.0))
+    rconst(179) = (rconst(70))
+    rconst(180) = (gtdp0(1.80D-12,340.0))
+    rconst(181) = (gtdp0(2.70D-12,360.0))
+    rconst(182) = (rconst(58))
+    rconst(183) = (gtdp0(1.90D-13,1300.0))
+    rconst(184) = (rconst(70))
+!   rconst(185) = (dble(1.85E-11))
+    rconst(186) = (gtdp0(2.70D-12,360.0))
+    rconst(187) = (gtdp0(1.90D-13,1300.0))
+    rconst(188) = (rconst(58))
+    rconst(189) = (rconst(70))
+    rconst(190) = (gtdp0(1.70D-12,950.0))
+!   rconst(191) = (dble(1.40E-11))
+!   rconst(192) = (dble(2.10E-12))
+!   rconst(193) = (dble(5.50E-12))
+!   rconst(194) = (dble(1.53E-12))
+!   rconst(195) = (dble(3.80E-12))
+    rconst(196) = (jval_CRON)
+    rconst(197) = (jval_XOPN)
+!   rconst(198) = (dble(9.00E-11))
+    rconst(199) = (gtdp0(1.08D-16,-500.0))
+!   rconst(200) = (dble(3.00E-12))
+    rconst(201) = (jval_ROPN)
+!   rconst(202) = (dble(4.40E-11))
+    rconst(203) = (gtdp0(5.40D-17,-500.0))
+!   rconst(204) = (dble(3.80E-12))
+!   rconst(205) = (dble(5.00E-11))
+!   rconst(206) = (dble(1.70E-10))
+!   rconst(207) = (dble(1.00E-11))
+    rconst(208) = (rconst(54))
+    rconst(209) = (rconst(55))
+    rconst(210) = (rconst(57))
+    rconst(211) = (rconst(59))
+    rconst(212) = (rconst(58))
+!   rconst(213) = (dble(3.60E-11))
+!   rconst(214) = (dble(3.00E-12))
+!   rconst(215) = (dble(2.30E-05))
+    rconst(216) = (gtdp0(1.85D-12,-1690.0))
 
-SUBROUTINE Update_RCONST ( )
+  END SUBROUTINE Update_rconst
 
+  ! End of Update_rconst function
+  ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ! Update_PHOTO - function to update photolytical rate constants
+  ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  SUBROUTINE Update_PHOTO ( )
 
-! Begin INLINED RCONST
+    USE mod_cb6_Global
 
-
-! End INLINED RCONST
-
-  RCONST(1) = (jval_NO2)
-  RCONST(2) = ((5.78E-34))
-  RCONST(3) = ((1.73E-14))
-  RCONST(4) = ((1.01E-31))
-  RCONST(5) = ((1.03E-11))
-  RCONST(6) = ((2.11E-12))
-  RCONST(7) = ((7.96E-15))
-  RCONST(8) = (jval_O33P)  !! changed from O3
-  RCONST(9) = (jval_O31D)  !! ditto
-  RCONST(10) = ((3.28E-11))
-  RCONST(11) = ((2.14E-10))
-  RCONST(12) = ((7.25E-14))
-  RCONST(13) = ((2.01E-15))
-  RCONST(14) = ((3.47E-11))
-  RCONST(15) = ((5.73E-11))
-  RCONST(16) = ((1.48E-12))
-  RCONST(17) = ((5.25E-12))
-  RCONST(18) = ((1.11E-10))
-  RCONST(19) = ((2.90E-12))
-  RCONST(20) = ((6.53E-30))
-  RCONST(21) = (jval_H2O2)
-  RCONST(22) = ((1.70E-12))
-  RCONST(23) = ((1.70E-15))
-  RCONST(24) = ((1.95E-38))
-  RCONST(25) = ((8.54E-12))
-  RCONST(26) = ((3.52E-17))
-  RCONST(27) = (jval_NO3b)  !! different a from b
-  RCONST(28) = (jval_NO3a)  !!
-  RCONST(29) = ((2.60E-11))
-  RCONST(30) = ((6.56E-16))
-  RCONST(31) = ((1.70E-11))
-  RCONST(32) = ((2.00E-11))
-  RCONST(33) = ((4.00E-12))
-  RCONST(34) = ((1.00E-17))
-  RCONST(35) = ((2.28E-16))
-  RCONST(36) = ((1.24E-12))
-  RCONST(37) = (jval_N2O5b) !!
-  RCONST(38) = ((1.00E-22))
-  RCONST(39) = ((9.77E-12))
-  RCONST(40) = ((5.00E-40))
-  RCONST(41) = ((1.00E-20))
-  RCONST(42) = (jval_HNO2)
-  RCONST(43) = ((5.98E-12))
-  RCONST(44) = ((1.06E-11))
-  RCONST(45) = ((1.54E-13))
-  RCONST(46) = (jval_HNO3)
-  RCONST(47) = ((1.38E-12))
-  RCONST(48) = ((8.31E-02))
-  RCONST(49) = (jval_PNA)
-  RCONST(50) = ((3.24E-12))
-  RCONST(51) = ((8.12E-13))
-  RCONST(52) = ((1.98E-11))
-  RCONST(53) = ((9.40E-12))
-  RCONST(54) = ((2.98E-04))
-  RCONST(55) = (jval_PAN)
-  RCONST(56) = ((1.39E-11))
-  RCONST(57) = ((1.30E-11))
-  RCONST(58) = ((1.55E-11))
-  RCONST(59) = ((1.55E-11))
-  RCONST(60) = ((2.10E-11))
-  RCONST(61) = ((9.40E-12))
-  RCONST(62) = ((2.98E-04))
-  RCONST(63) = (jval_PANX)
-  RCONST(64) = ((1.39E-11))
-  RCONST(65) = ((1.30E-11))
-  RCONST(66) = ((1.71E-11))
-  RCONST(67) = ((8.03E-12))
-  RCONST(68) = ((7.03E-12))
-  RCONST(69) = ((3.48E-13))
-  RCONST(70) = ((7.70E-12))
-  RCONST(71) = ((5.21E-12))
-  RCONST(72) = ((1.07E-11))
-  RCONST(73) = ((3.48E-13))
-  RCONST(74) = ((9.04E-12))
-  RCONST(75) = ((9.96E-12))
-  RCONST(76) = ((1.30E-11))
-  RCONST(77) = ((3.48E-13))
-  RCONST(78) = ((9.04E-12))
-  RCONST(79) = ((9.96E-12))
-  RCONST(80) = ((1.30E-11))
-  RCONST(81) = ((3.48E-13))
-  RCONST(82) = ((9.04E-12))
-  RCONST(83) = ((9.96E-12))
-  RCONST(84) = ((1.30E-11))
-  RCONST(85) = ((3.48E-13))
-  RCONST(86) = ((1.00E-11))
-  RCONST(87) = (jval_MEPX)
-  RCONST(88) = ((1.00E-11))
-  RCONST(89) = (jval_ROOH)
-  RCONST(90) = ((2.00E-12))
-  RCONST(91) = (jval_NTR)
-  RCONST(92) = ((4.50E-13))
-  RCONST(93) = ((6.93E-13))
-  RCONST(94) = ((1.00E-11))
-  RCONST(95) = ((8.49E-12))
-  RCONST(96) = (jval_FORM)
-  RCONST(97) = (jval_FORM)
-  RCONST(98) = ((1.58E-13))
-  RCONST(99) = ((5.50E-16))
-  RCONST(100) = ((7.90E-14))
-  RCONST(101) = ((1.51E+02))
-  RCONST(102) = ((5.60E-12))
-  RCONST(103) = ((1.26E-11))
-  RCONST(104) = ((4.49E-13))
-  RCONST(105) = ((1.50E-11))
-  RCONST(106) = ((2.73E-15))
-  RCONST(107) = (jval_ALD2)
-  RCONST(108) = ((7.02E-13))
-  RCONST(109) = ((1.91E-11))
-  RCONST(110) = ((6.30E-15))
-  RCONST(111) = (jval_ALDX)
-  RCONST(112) = ((8.00E-12))
-  RCONST(113) = (jval_GLYD)
-  RCONST(114) = ((2.73E-15))
-  RCONST(115) = ((9.70E-12))
-  RCONST(116) = (jval_GLY)
-  RCONST(117) = ((2.73E-15))
-  RCONST(118) = (jval_MGLY)
-  RCONST(119) = ((2.73E-15))
-  RCONST(120) = ((1.31E-11))
-  RCONST(121) = ((6.70E-15))
-  RCONST(122) = ((2.28E-13))
-  RCONST(123) = ((6.37E-15))
-  RCONST(124) = ((2.41E-13))
-  RCONST(125) = ((8.95E-13))
-  RCONST(126) = ((3.21E-12))
-  RCONST(127) = (jval_KET)
-  RCONST(128) = (jval_ACET)
-  RCONST(129) = ((1.76E-13))
-  RCONST(130) = ((1.07E-12))
-  RCONST(131) = ((8.10E-13))
-  RCONST(132) = ((2.15E+04))
-  RCONST(133) = ((7.67E-15))
-  RCONST(134) = ((3.29E-11))
-  RCONST(135) = ((7.52E-13))
-  RCONST(136) = ((7.29E-13))
-  RCONST(137) = ((7.84E-12))
-  RCONST(138) = ((1.58E-18))
-  RCONST(139) = ((2.10E-16))
-  RCONST(140) = ((3.91E-12))
-  RCONST(141) = ((2.86E-11))
-  RCONST(142) = ((1.00E-17))
-  RCONST(143) = ((9.54E-15))
-  RCONST(144) = ((2.30E-11))
-  RCONST(145) = ((5.99E-11))
-  RCONST(146) = ((1.57E-16))
-  RCONST(147) = ((3.70E-13))
-  RCONST(148) = ((9.99E-11))
-  RCONST(149) = ((3.00E-11))
-  RCONST(150) = ((8.13E-12))
-  RCONST(151) = ((7.78E-12))
-  RCONST(152) = ((1.30E-11))
-  RCONST(153) = ((3.48E-13))
-  RCONST(154) = ((2.64E-03))
-  RCONST(155) = ((1.27E-17))
-  RCONST(156) = ((6.74E-13))
-  RCONST(157) = ((3.10E-11))
-  RCONST(158) = ((1.02E-17))
-  RCONST(159) = ((7.98E-15))
-  RCONST(160) = (jval_ISPD)
-  RCONST(161) = ((7.77E-11))
-  RCONST(162) = (jval_HPLD)
-  RCONST(163) = ((1.17E-14))
-  RCONST(164) = ((1.51E-11))
-  RCONST(165) = ((7.78E-12))
-  RCONST(166) = ((8.13E-12))
-  RCONST(167) = ((1.30E-11))
-  RCONST(168) = ((3.48E-13))
-  RCONST(169) = ((3.10E-11))
-  RCONST(170) = ((3.60E-11))
-  RCONST(171) = ((6.77E-11))
-  RCONST(172) = ((7.63E-17))
-  RCONST(173) = ((6.66E-12))
-  RCONST(174) = ((1.22E-12))
-  RCONST(175) = ((9.04E-12))
-  RCONST(176) = ((1.30E-11))
-  RCONST(177) = ((1.49E-11))
-  RCONST(178) = ((3.48E-13))
-  RCONST(179) = ((5.63E-12))
-  RCONST(180) = ((9.04E-12))
-  RCONST(181) = ((1.30E-11))
-  RCONST(182) = ((1.49E-11))
-  RCONST(183) = ((3.48E-13))
-  RCONST(184) = ((1.85E-11))
-  RCONST(185) = ((9.04E-12))
-  RCONST(186) = ((1.49E-11))
-  RCONST(187) = ((1.30E-11))
-  RCONST(188) = ((3.48E-13))
-  RCONST(189) = ((4.12E-11))
-  RCONST(190) = ((1.40E-11))
-  RCONST(191) = ((2.10E-12))
-  RCONST(192) = ((5.50E-12))
-  RCONST(193) = ((1.53E-12))
-  RCONST(194) = ((3.80E-12))
-  RCONST(195) = (jval_CRON)
-  RCONST(196) = (jval_XOPN)
-  RCONST(197) = ((9.00E-11))
-  RCONST(198) = ((2.02E-17))
-  RCONST(199) = ((3.00E-12))
-  RCONST(200) = (jval_OPEN)
-  RCONST(201) = ((4.40E-11))
-  RCONST(202) = ((1.01E-17))
-  RCONST(203) = ((3.80E-12))
-  RCONST(204) = ((5.00E-11))
-  RCONST(205) = ((1.70E-10))
-  RCONST(206) = ((1.00E-11))
-  RCONST(207) = ((9.40E-12))
-  RCONST(208) = ((9.92E-05))
-  RCONST(209) = ((1.39E-11))
-  RCONST(210) = ((1.55E-11))
-  RCONST(211) = ((1.30E-11))
-  RCONST(212) = ((3.60E-11))
-  RCONST(213) = ((3.00E-12))
-  RCONST(214) = ((2.30E-05))
-  RCONST(215) = ((6.37E-15))
+    rconst(1) = (jval_NDOX)
+    rconst(8) = (jval_O33P)
+    rconst(9) = (jval_O31D)
+    rconst(21) = (jval_HPOX)
+    rconst(27) = (jval_NTOXa)
+    rconst(28) = (jval_NTOXb)
+    rconst(38) = (jval_DNPOb)
+    rconst(43) = (jval_HONO)
+    rconst(47) = (jval_NTRC)
+    rconst(50) = (jval_PNA)
+    rconst(56) = (jval_PACN)
+    rconst(64) = (jval_PANX)
+    rconst(88) = (jval_MEPX)
+    rconst(90) = (jval_RPOX)
+    rconst(92) = (jval_NTR)
+    rconst(97) = (jval_FORM)
+    rconst(98) = (jval_FORM)
+    rconst(108) = (jval_AALD)
+    rconst(112) = (jval_ALDX)
+    rconst(114) = (jval_GLYD)
+    rconst(117) = (jval_GLY)
+    rconst(119) = (jval_MEGY)
+    rconst(128) = (jval_KET)
+    rconst(129) = (jval_ACET)
+    rconst(161) = (jval_ISPD)
+    rconst(163) = (jval_HPLD)
+    rconst(196) = (jval_CRON)
+    rconst(197) = (jval_XOPN)
+    rconst(201) = (jval_ROPN)
       
-END SUBROUTINE Update_RCONST
+  END SUBROUTINE Update_PHOTO
 
-! End of Update_RCONST function
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-! 
-! Update_PHOTO - function to update photolytical rate constants
-!   Arguments :
-! 
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-SUBROUTINE Update_PHOTO ( )
-
-
-   USE mod_cb6_Global
-
-  RCONST(1) = (jval_NO2)
-  RCONST(8) = (jval_O33P) !!
-  RCONST(9) = (jval_O31D) !!
-  RCONST(21) = (jval_H2O2)
-  RCONST(27) = (jval_NO3a) !!
-  RCONST(28) = (jval_NO3b) !!
-  RCONST(37) = (jval_N2O5b) !!
-  RCONST(42) = (jval_HNO2) !!
-  RCONST(46) = (jval_HNO3)
-  RCONST(49) = (jval_PNA)
-  RCONST(55) = (jval_PAN)
-  RCONST(63) = (jval_PANX)
-  RCONST(87) = (jval_MEPX)
-  RCONST(89) = (jval_ROOH)
-  RCONST(91) = (jval_NTR)
-  RCONST(96) = (jval_FORM)
-  RCONST(97) = (jval_FORM)
-  RCONST(107) = (jval_ALD2)
-  RCONST(111) = (jval_ALDX)
-  RCONST(113) = (jval_GLYD)
-  RCONST(116) = (jval_GLY)
-  RCONST(118) = (jval_MGLY)
-  RCONST(127) = (jval_KET)
-  RCONST(128) = (jval_ACET)
-  RCONST(160) = (jval_ISPD)
-  RCONST(162) = (jval_HPLD)
-  RCONST(195) = (jval_CRON)
-  RCONST(196) = (jval_XOPN)
-  RCONST(200) = (jval_OPEN)
-      
-END SUBROUTINE Update_PHOTO
-
-! End of Update_PHOTO function
-! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
+  ! End of Update_PHOTO function
+  ! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 END MODULE mod_cb6_Rates
-
