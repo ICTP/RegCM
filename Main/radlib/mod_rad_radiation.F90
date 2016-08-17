@@ -2298,13 +2298,13 @@ module mod_rad_radiation
 
         ! Limit argument of exponential, in case czen is very small:
         arg = min(taugab(n)/czen(n),mxarg)
-        explay(n,0) = max(exp(-arg),dlowval)
+        explay(n,0) = exp(-arg)
         tdir(n,0) = explay(n,0)
         !
         ! Same limit for diffuse mod_transmission:
         !
         arg = min(1.66_rkx*taugab(n),mxarg)
-        tdif(n,0) = max(exp(-arg),dlowval)
+        tdif(n,0) = exp(-arg)
 
         rdir(n,0) = d_zero
         rdif(n,0) = d_zero
@@ -2391,7 +2391,7 @@ module mod_rad_radiation
           ! Limit argument of exponential, in case lm very large:
           !
           arg = min(lm*ts,mxarg)
-          extins = max(exp(-arg),dlowval)
+          extins = exp(-arg)
           ne = f_n(ue,extins)
 
           rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
@@ -2399,7 +2399,7 @@ module mod_rad_radiation
 
           ! Limit argument of exponential, in case czen is very small:
           arg = min(ts/czen(n),mxarg)
-          explay(n,k) = max(exp(-arg),dlowval)
+          explay(n,k) = exp(-arg)
 
           apg = alp + gam
           amg = alp - gam
@@ -2560,7 +2560,7 @@ module mod_rad_radiation
         ! Limit argument of exponential, in case lm*ts very large:
         !
         arg = min(lm*ts,mxarg)
-        extins = max(exp(-arg),dlowval)
+        extins = exp(-arg)
         ne = f_n(ue,extins)
 
         rdif(n,0) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
@@ -2568,7 +2568,7 @@ module mod_rad_radiation
 
         ! Limit argument of exponential, in case czen is very small:
         arg = min(ts/czen(n),mxarg)
-        explay(n,0) = max(exp(-arg),dlowval)
+        explay(n,0) = exp(-arg)
 
         apg = alp + gam
         amg = alp - gam
@@ -2677,7 +2677,7 @@ module mod_rad_radiation
           ! Limit argument of exponential, in case lm very large:
           !
           arg = min(lm*ts,mxarg)
-          extins = max(exp(-arg),dlowval)
+          extins = exp(-arg)
           ne = f_n(ue,extins)
 
           rdif(n,k) = (ue+d_one)*(ue-d_one)*(d_one/extins-extins)/ne
@@ -2685,7 +2685,7 @@ module mod_rad_radiation
 
           ! Limit argument of exponential, in case czen is very small:
           arg = min(ts/czen(n),mxarg)
-          explay(n,k) = max(exp(-arg),dlowval)
+          explay(n,k) = exp(-arg)
 
           apg = alp + gam
           amg = alp - gam
@@ -4094,8 +4094,8 @@ module mod_rad_radiation
     uu = uui
     g = gi
     e = ei
-    xalpha = real(0.75_rk8*w*uu*((1.0_rk8+g*(1.0_rk8-w)) / &
-                  (1.0_rk8-e*e*uu*uu)),rkx)
+    xalpha = real(0.75_rk8*(w*uu)*((1.0_rk8+(g*(1.0_rk8-w))) / &
+                  (1.0_rk8-((e*e)*(uu*uu)))),rkx)
   end function xalpha
   ! xgamma - Term in direct reflect and transmissivity
   pure real(rkx) function xgamma(wi,uui,gi,ei)
@@ -4106,8 +4106,8 @@ module mod_rad_radiation
     uu = uui
     g = gi
     e = ei
-    xgamma = real((w*0.5_rk8) * &
-        ((3.0_rk8*g*(1.0_rk8-w)*uu*uu+1.0_rk8)/(1.0_rk8-e*e*uu*uu)),rkx)
+    xgamma = real((w*0.5_rk8)*((3.0_rk8*g*(1.0_rk8-w)*(uu*uu)+1.0_rk8) / &
+                               (1.0_rk8-((e*e)*(uu*uu)))),rkx)
   end function xgamma
   ! el - Term in xalpha,xgamma,f_n,f_u
   pure real(rkx) function el(wi,gi)
