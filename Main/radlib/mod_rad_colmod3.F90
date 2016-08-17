@@ -69,159 +69,159 @@ module mod_rad_colmod3
 
   contains
 
-    subroutine allocate_mod_rad_colmod3
-      implicit none
-      npr = (jci2-jci1+1)*(ici2-ici1+1)
-      call getmem1d(alb,1,npr,'colmod3:alb')
-      call getmem1d(albc,1,npr,'colmod3:albc')
-      call getmem1d(flns,1,npr,'colmod3:flns')
-      call getmem1d(flnsc,1,npr,'colmod3:flnsc')
-      call getmem1d(flnt,1,npr,'colmod3:flnt')
-      call getmem1d(flntc,1,npr,'colmod3:flntc')
-      call getmem1d(flwds,1,npr,'colmod3:flwds')
-      call getmem1d(fsds,1,npr,'colmod3:fsds')
-      call getmem1d(fsnirt,1,npr,'colmod3:fsnirt')
-      call getmem1d(fsnirtsq,1,npr,'colmod3:fsnirtsq')
-      call getmem1d(fsnrtc,1,npr,'colmod3:fsnrtc')
-      call getmem1d(fsns,1,npr,'colmod3:fsns')
-      call getmem1d(fsnsc,1,npr,'colmod3:fsnsc')
-      call getmem1d(fsnt,1,npr,'colmod3:fsnt')
-      call getmem1d(fsntc,1,npr,'colmod3:fsntc')
-      call getmem1d(solin,1,npr,'colmod3:solin')
-      call getmem1d(soll,1,npr,'colmod3:soll')
-      call getmem1d(solld,1,npr,'colmod3:solld')
-      call getmem1d(sols,1,npr,'colmod3:sols')
-      call getmem1d(solsd,1,npr,'colmod3:solsd')
-      call getmem1d(totcf,1,npr,'colmod3:totcf')
-      call getmem1d(totcl,1,npr,'colmod3:totcl')
-      call getmem1d(totci,1,npr,'colmod3:totci')
-      call getmem1d(ps,1,npr,'colmod3:ps')
-      call getmem1d(ts,1,npr,'colmod3:ts')
-      call getmem1d(emiss,1,npr,'colmod3:emiss')
-      call getmem1d(xptrop,1,npr,'rad:xptrop')
-      call getmem1d(dlat,1,npr,'rad:dlat')
-      call getmem1d(adirsw,1,npr,'rad:adirsw')
-      call getmem1d(adifsw,1,npr,'rad:adifsw')
-      call getmem1d(adirlw,1,npr,'rad:adirlw')
-      call getmem1d(adiflw,1,npr,'rad:adiflw')
-      call getmem1d(asw,1,npr,'rad:asw')
-      call getmem1d(alw,1,npr,'rad:alw')
-      call getmem1d(abv,1,npr,'rad:abv')
-      call getmem1d(sol,1,npr,'rad:sol')
+  subroutine allocate_mod_rad_colmod3
+    implicit none
+    npr = (jci2-jci1+1)*(ici2-ici1+1)
+    call getmem1d(alb,1,npr,'colmod3:alb')
+    call getmem1d(albc,1,npr,'colmod3:albc')
+    call getmem1d(flns,1,npr,'colmod3:flns')
+    call getmem1d(flnsc,1,npr,'colmod3:flnsc')
+    call getmem1d(flnt,1,npr,'colmod3:flnt')
+    call getmem1d(flntc,1,npr,'colmod3:flntc')
+    call getmem1d(flwds,1,npr,'colmod3:flwds')
+    call getmem1d(fsds,1,npr,'colmod3:fsds')
+    call getmem1d(fsnirt,1,npr,'colmod3:fsnirt')
+    call getmem1d(fsnirtsq,1,npr,'colmod3:fsnirtsq')
+    call getmem1d(fsnrtc,1,npr,'colmod3:fsnrtc')
+    call getmem1d(fsns,1,npr,'colmod3:fsns')
+    call getmem1d(fsnsc,1,npr,'colmod3:fsnsc')
+    call getmem1d(fsnt,1,npr,'colmod3:fsnt')
+    call getmem1d(fsntc,1,npr,'colmod3:fsntc')
+    call getmem1d(solin,1,npr,'colmod3:solin')
+    call getmem1d(soll,1,npr,'colmod3:soll')
+    call getmem1d(solld,1,npr,'colmod3:solld')
+    call getmem1d(sols,1,npr,'colmod3:sols')
+    call getmem1d(solsd,1,npr,'colmod3:solsd')
+    call getmem1d(totcf,1,npr,'colmod3:totcf')
+    call getmem1d(totcl,1,npr,'colmod3:totcl')
+    call getmem1d(totci,1,npr,'colmod3:totci')
+    call getmem1d(ps,1,npr,'colmod3:ps')
+    call getmem1d(ts,1,npr,'colmod3:ts')
+    call getmem1d(emiss,1,npr,'colmod3:emiss')
+    call getmem1d(xptrop,1,npr,'rad:xptrop')
+    call getmem1d(dlat,1,npr,'rad:dlat')
+    call getmem1d(adirsw,1,npr,'rad:adirsw')
+    call getmem1d(adifsw,1,npr,'rad:adifsw')
+    call getmem1d(adirlw,1,npr,'rad:adirlw')
+    call getmem1d(adiflw,1,npr,'rad:adiflw')
+    call getmem1d(asw,1,npr,'rad:asw')
+    call getmem1d(alw,1,npr,'rad:alw')
+    call getmem1d(abv,1,npr,'rad:abv')
+    call getmem1d(sol,1,npr,'rad:sol')
 
-      call getmem2d(cld,1,npr,1,kzp1,'colmod3:cld')
-      call getmem2d(effcld,1,npr,1,kzp1,'colmod3:effcld')
-      call getmem2d(pilnm1,1,npr,1,kzp1,'colmod3:pilnm1')
-      call getmem2d(pintm1,1,npr,1,kzp1,'colmod3:pintm1')
+    call getmem2d(cld,1,npr,1,kzp1,'colmod3:cld')
+    call getmem2d(effcld,1,npr,1,kzp1,'colmod3:effcld')
+    call getmem2d(pilnm1,1,npr,1,kzp1,'colmod3:pilnm1')
+    call getmem2d(pintm1,1,npr,1,kzp1,'colmod3:pintm1')
 
-      call getmem2d(rh1,1,npr,1,kz,'colmod3:rh1')
-      call getmem2d(clwp,1,npr,1,kz,'colmod3:clwp')
-      call getmem2d(fice,1,npr,1,kz,'colmod3:fice')
-      call getmem2d(o3vmr,1,npr,1,kz,'colmod3:o3vmr')
-      call getmem2d(pmidm1,1,npr,1,kz,'colmod3:pmidm1')
-      call getmem2d(pmlnm1,1,npr,1,kz,'colmod3:pmlnm1')
-      call getmem2d(qm1,1,npr,1,kz,'colmod3:qm1')
-      call getmem2d(ql1,1,npr,1,kz,'colmod3:ql1')
-      if ( ipptls == 2 ) call getmem2d(qi1,1,npr,1,kz,'colmod3:qi1')
-      call getmem2d(qrl,1,npr,1,kz,'colmod3:qrl')
-      call getmem2d(qrs,1,npr,1,kz,'colmod3:qrs')
-      call getmem2d(rei,1,npr,1,kz,'colmod3:rei')
-      call getmem2d(rel,1,npr,1,kz,'colmod3:rel')
-      call getmem2d(tm1,1,npr,1,kz,'colmod3:tm1')
-      call getmem2d(deltaz,1,npr,1,kz,'colmod3:deltaz')
-      call getmem1d(aeradfo,1,npr,'colmod3:aeradfo')
-      call getmem1d(aeradfos,1,npr,'colmod3:aeradfos')
-      call getmem1d(aerlwfo,1,npr,'colmod3:aerlwfo')
-      call getmem1d(aerlwfos,1,npr,'colmod3:aerlwfos')
-      call getmem1d(czen,1,npr,'colmod3:czen')
-      call getmem1d(czengt0,1,npr,'colmod3:czengt0')
-      call getmem3d(absgasnxt,1,npr,1,kz,1,4,'colmod3:absgasnxt')
-      call getmem3d(absgastot,1,npr,1,kzp1,1,kzp1,'colmod3:absgastot')
-      call getmem2d(emsgastot,1,npr,1,kzp1,'colmod3:emsgastot')
-      call getmem3d(tauxcl,1,npr,0,kz,1,nspi,'colmod3:tauxcl')
-      call getmem3d(tauxci,1,npr,0,kz,1,nspi,'colmod3:tauxci')
-      call getmem3d(outtaucl,1,npr,1,kzp1,1,4,'colmod3:outtaucl')
-      call getmem3d(outtauci,1,npr,1,kzp1,1,4,'colmod3:outtauci')
+    call getmem2d(rh1,1,npr,1,kz,'colmod3:rh1')
+    call getmem2d(clwp,1,npr,1,kz,'colmod3:clwp')
+    call getmem2d(fice,1,npr,1,kz,'colmod3:fice')
+    call getmem2d(o3vmr,1,npr,1,kz,'colmod3:o3vmr')
+    call getmem2d(pmidm1,1,npr,1,kz,'colmod3:pmidm1')
+    call getmem2d(pmlnm1,1,npr,1,kz,'colmod3:pmlnm1')
+    call getmem2d(qm1,1,npr,1,kz,'colmod3:qm1')
+    call getmem2d(ql1,1,npr,1,kz,'colmod3:ql1')
+    if ( ipptls == 2 ) call getmem2d(qi1,1,npr,1,kz,'colmod3:qi1')
+    call getmem2d(qrl,1,npr,1,kz,'colmod3:qrl')
+    call getmem2d(qrs,1,npr,1,kz,'colmod3:qrs')
+    call getmem2d(rei,1,npr,1,kz,'colmod3:rei')
+    call getmem2d(rel,1,npr,1,kz,'colmod3:rel')
+    call getmem2d(tm1,1,npr,1,kz,'colmod3:tm1')
+    call getmem2d(deltaz,1,npr,1,kz,'colmod3:deltaz')
+    call getmem1d(aeradfo,1,npr,'colmod3:aeradfo')
+    call getmem1d(aeradfos,1,npr,'colmod3:aeradfos')
+    call getmem1d(aerlwfo,1,npr,'colmod3:aerlwfo')
+    call getmem1d(aerlwfos,1,npr,'colmod3:aerlwfos')
+    call getmem1d(czen,1,npr,'colmod3:czen')
+    call getmem1d(czengt0,1,npr,'colmod3:czengt0')
+    call getmem3d(absgasnxt,1,npr,1,kz,1,4,'colmod3:absgasnxt')
+    call getmem3d(absgastot,1,npr,1,kzp1,1,kzp1,'colmod3:absgastot')
+    call getmem2d(emsgastot,1,npr,1,kzp1,'colmod3:emsgastot')
+    call getmem3d(tauxcl,1,npr,0,kz,1,nspi,'colmod3:tauxcl')
+    call getmem3d(tauxci,1,npr,0,kz,1,nspi,'colmod3:tauxci')
+    call getmem3d(outtaucl,1,npr,1,kzp1,1,4,'colmod3:outtaucl')
+    call getmem3d(outtauci,1,npr,1,kzp1,1,4,'colmod3:outtauci')
 
-      call getmem1d(ioro,1,npr,'colmod3:ioro')
+    call getmem1d(ioro,1,npr,'colmod3:ioro')
 
-      if ( ichem == 1 ) then
-        call getmem3d(aermmr,1,npr,1,kz,1,ntr,'colmod3:aermmr')
-      end if
+    if ( ichem == 1 ) then
+      call getmem3d(aermmr,1,npr,1,kz,1,ntr,'colmod3:aermmr')
+    end if
 
-      dosw = .true.
-      dolw = .true.
-      doabsems = .true.
+    dosw = .true.
+    dolw = .true.
+    doabsems = .true.
 
-    end subroutine allocate_mod_rad_colmod3
-!
-!-----------------------------NOTICE------------------------------------
-!
-!            NCAR COMMUNITY CLIMATE MODEL, VERSION 3.0
-!            COPYRIGHT (C) 1996
-!            UNIVERSITY CORPORATION FOR ATMOSPHERIC RESEARCH
-!            ALL RIGHTS RESERVED
-!
-!               ------------ ----- --- ---------- ------
-!  ********** | distribution terms and conditions notice | ************
-!               ------------ ----- --- ---------- ------
-!
-! (c) copyright 1996 university corporation for atmospheric research/
-! national center for atmospheric research/
-! climate and global dynamics division
-!
-! this software, the community climate model (ccm), version ccm3, was
-! developed by the climate and global dynamics division (cgd) climate
-! modeling section (cms) of the national center for atmospheric research
-! (ncar), which is operated by the university corporation for
-! atmospheric research (ucar) and sponsored by the national science
-! foundation (nsf).
-!
-! access and use of this software shall impose the following obligations
-! and understandings on the user.  the user is granted the right,
-! without any fee or cost, to use, copy, modify, alter, enhance and
-! distribute this software, and any derivative works thereof, and its
-! supporting documentation for any purpose whatsoever, except commercial
-! sales, provided that this entire notice appears in all copies of the
-! software, derivative works and supporting documentation.  further, the
-! user agrees to credit ucar/ncar/cgd in any publications that result
-! from the use of this software or in any software package that includes
-! this software.  the names ucar/ncar/cgd, however, may not be used in
-! any advertising or publicity to endorse or promote any products or
-! commercial entity unless specific written permission is obtained from
-! ucar/ncar/cgd.
-!
-! the ccm3 materials are made available with the understanding that
-! ucar/ncar/cgd is not obligated to provide (and will not provide) the
-! user with any support, consulting, training, or assistance of any kind
-! with regard to the use, operation and performance of this software, nor
-! to provide the user with any updates, revisions, new versions, or "bug
-! fixes."
-!
-! this software is provided by ucar/ncar/cgd "as is" and any express or
-! implied warranties, including but not limited to, the implied
-! warranties of merchantability and fitness for a particular purpose are
-! disclaimed.  in no event shall ucar/ncar/cgd be liable for any
-! special, indirect or consequential damages or any damages whatsoever,
-! including but not limited to claims associated with the loss of data
-! or profits, which may result from an action in contract, negligence or
-! other tortious claim that arises out of or in connection with the
-! access, use or performance of this software.
-!
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-!     ccm3 column radiation model (crm)
-!     Jeffrey Kiehl, Bruce Briegleb, and Charlie Zender
-!     May 1996
-!
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
-!     This radiation model has been implemented in regcm3
-!     by Keiichi Nishizawa on leave from CRIEPI (Japan)
-!     in April, 1997
-!
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
+  end subroutine allocate_mod_rad_colmod3
+  !
+  !-----------------------------NOTICE------------------------------------
+  !
+  !            NCAR COMMUNITY CLIMATE MODEL, VERSION 3.0
+  !            COPYRIGHT (C) 1996
+  !            UNIVERSITY CORPORATION FOR ATMOSPHERIC RESEARCH
+  !            ALL RIGHTS RESERVED
+  !
+  !               ------------ ----- --- ---------- ------
+  !  ********** | distribution terms and conditions notice | ************
+  !               ------------ ----- --- ---------- ------
+  !
+  ! (c) copyright 1996 university corporation for atmospheric research/
+  ! national center for atmospheric research/
+  ! climate and global dynamics division
+  !
+  ! this software, the community climate model (ccm), version ccm3, was
+  ! developed by the climate and global dynamics division (cgd) climate
+  ! modeling section (cms) of the national center for atmospheric research
+  ! (ncar), which is operated by the university corporation for
+  ! atmospheric research (ucar) and sponsored by the national science
+  ! foundation (nsf).
+  !
+  ! access and use of this software shall impose the following obligations
+  ! and understandings on the user.  the user is granted the right,
+  ! without any fee or cost, to use, copy, modify, alter, enhance and
+  ! distribute this software, and any derivative works thereof, and its
+  ! supporting documentation for any purpose whatsoever, except commercial
+  ! sales, provided that this entire notice appears in all copies of the
+  ! software, derivative works and supporting documentation.  further, the
+  ! user agrees to credit ucar/ncar/cgd in any publications that result
+  ! from the use of this software or in any software package that includes
+  ! this software.  the names ucar/ncar/cgd, however, may not be used in
+  ! any advertising or publicity to endorse or promote any products or
+  ! commercial entity unless specific written permission is obtained from
+  ! ucar/ncar/cgd.
+  !
+  ! the ccm3 materials are made available with the understanding that
+  ! ucar/ncar/cgd is not obligated to provide (and will not provide) the
+  ! user with any support, consulting, training, or assistance of any kind
+  ! with regard to the use, operation and performance of this software, nor
+  ! to provide the user with any updates, revisions, new versions, or "bug
+  ! fixes."
+  !
+  ! this software is provided by ucar/ncar/cgd "as is" and any express or
+  ! implied warranties, including but not limited to, the implied
+  ! warranties of merchantability and fitness for a particular purpose are
+  ! disclaimed.  in no event shall ucar/ncar/cgd be liable for any
+  ! special, indirect or consequential damages or any damages whatsoever,
+  ! including but not limited to claims associated with the loss of data
+  ! or profits, which may result from an action in contract, negligence or
+  ! other tortious claim that arises out of or in connection with the
+  ! access, use or performance of this software.
+  !
+  !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !
+  !     ccm3 column radiation model (crm)
+  !     Jeffrey Kiehl, Bruce Briegleb, and Charlie Zender
+  !     May 1996
+  !
+  !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !
+  !     This radiation model has been implemented in regcm3
+  !     by Keiichi Nishizawa on leave from CRIEPI (Japan)
+  !     in April, 1997
+  !
+  !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !
   subroutine colmod3(iyear,lout,labsem,m2r,r2m)
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
@@ -235,77 +235,77 @@ module mod_rad_colmod3
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
-!
-!   Fields specified by the user in getdat()
-!
-! land/ocean/sea ice flag
-! Current latitude (radians)
-! fractional cloud cover
-! cloud liquid water path
-!
-!   NB: o3vmr should be dimensioned (iym1,kz) if a
-!   different size radiation grid is used. Clashes between prgrid.h
-!   and ptrrgrid.h (they both define plngbuf) prevent us from
-!   dimensioning anything by kz in this top level crm() routine.
-!
-! cosine latitude
-! water vapor mass mixing ratio
-! Ozone mass mixing ratio
-! Ozone volume mixing ratio
-! natural log of pintm1
-! model interface pressures
-! model level pressures
-! natural log of pmidm1
-! model level specific humidity
-! model level temperatures
-!
-!   Fields computed from user input
-!
-! surface air temperature
-! effective cloud=cld*emis
-! cloud emissivity
-! fractional amount of ice
-! ice particle size
-! liquid effective drop size (microns)
-! earth/sun distance factor
-! local time of solar computation
-! srf radiative heat flux
-! albedo: shortwave, direct
-! albedo: shortwave, diffuse
-! albedo: longwave, direct
-!
-!   Output longwave arguments from radctl()
-!
-! albedo: longwave, diffuse
-! Surface down longwave flux
-!
-!   Output shortwave arguments from radctl()
-!
-! Longwave cooling rate
-! Surface absorbed solar flux
-! Solar heating rate
-! Downward solar rad onto surface (lw direct)
-! Downward solar rad onto surface (lw diffuse)
-! Downward solar rad onto surface (sw direct)
-!
-!   Additional CRM diagnostic output from radctl()
-!
-! Downward solar rad onto surface (sw diffuse)
-! srf longwave cooling (up-dwn) flux
-! clr sky lw flx at srf (up-dwn)
-! net outgoing lw flx at model top
-! clr sky lw flx at model top
-! clr sky surface abs solar flux
-! total column absorbed solar flux
-! clr sky total column abs solar flux
-! solar incident flux
-! Near-IR flux absorbed at toa
-! Clear sky near-IR flux absorbed at toa
-! Near-IR flux absorbed at toa >= 0.7 microns
-! Flux Shortwave Downwelling Surface
-!
-!   Reset all arrays
-!
+    !
+    !   Fields specified by the user in getdat()
+    !
+    ! land/ocean/sea ice flag
+    ! Current latitude (radians)
+    ! fractional cloud cover
+    ! cloud liquid water path
+    !
+    !   NB: o3vmr should be dimensioned (iym1,kz) if a
+    !   different size radiation grid is used. Clashes between prgrid.h
+    !   and ptrrgrid.h (they both define plngbuf) prevent us from
+    !   dimensioning anything by kz in this top level crm() routine.
+    !
+    ! cosine latitude
+    ! water vapor mass mixing ratio
+    ! Ozone mass mixing ratio
+    ! Ozone volume mixing ratio
+    ! natural log of pintm1
+    ! model interface pressures
+    ! model level pressures
+    ! natural log of pmidm1
+    ! model level specific humidity
+    ! model level temperatures
+    !
+    !   Fields computed from user input
+    !
+    ! surface air temperature
+    ! effective cloud=cld*emis
+    ! cloud emissivity
+    ! fractional amount of ice
+    ! ice particle size
+    ! liquid effective drop size (microns)
+    ! earth/sun distance factor
+    ! local time of solar computation
+    ! srf radiative heat flux
+    ! albedo: shortwave, direct
+    ! albedo: shortwave, diffuse
+    ! albedo: longwave, direct
+    !
+    !   Output longwave arguments from radctl()
+    !
+    ! albedo: longwave, diffuse
+    ! Surface down longwave flux
+    !
+    !   Output shortwave arguments from radctl()
+    !
+    ! Longwave cooling rate
+    ! Surface absorbed solar flux
+    ! Solar heating rate
+    ! Downward solar rad onto surface (lw direct)
+    ! Downward solar rad onto surface (lw diffuse)
+    ! Downward solar rad onto surface (sw direct)
+    !
+    !   Additional CRM diagnostic output from radctl()
+    !
+    ! Downward solar rad onto surface (sw diffuse)
+    ! srf longwave cooling (up-dwn) flux
+    ! clr sky lw flx at srf (up-dwn)
+    ! net outgoing lw flx at model top
+    ! clr sky lw flx at model top
+    ! clr sky surface abs solar flux
+    ! total column absorbed solar flux
+    ! clr sky total column abs solar flux
+    ! solar incident flux
+    ! Near-IR flux absorbed at toa
+    ! Clear sky near-IR flux absorbed at toa
+    ! Near-IR flux absorbed at toa >= 0.7 microns
+    ! Flux Shortwave Downwelling Surface
+    !
+    !   Reset all arrays
+    !
     czen(:) = d_zero
     czengt0(:) = .false.
     alb(:) = d_zero
@@ -455,6 +455,7 @@ module mod_rad_colmod3
   !
   subroutine cldefr
     implicit none
+
     integer(ik4) :: n , k , nt
     real(rkx) :: pnrml , weight , rhoa , nc , aerc , lwc , kparam
     ! real(rkx) :: tpara
@@ -533,13 +534,10 @@ module mod_rad_colmod3
         end if
         ! Turn off ice radiative properties by setting fice = 0.0
         ! fice(n,k) = d_zero
-        totcl(n) = totcl(n) + clwp(n,k)*cld(n,k)*(d_one-fice(n,k))
-        totci(n) = totci(n) + clwp(n,k)*cld(n,k)*fice(n,k)
+        totcl(n) = totcl(n) + (clwp(n,k)*cld(n,k)*(d_one-fice(n,k)))*d_r1000
+        totci(n) = totci(n) + (clwp(n,k)*cld(n,k)*fice(n,k))*d_r1000
       end do
     end do
-
-    totcl = totcl * d_r1000
-    totci = totci * d_r1000
 
     !FAB : reintroduce simple sulfate indirect effect
     ! from Qian  1999
@@ -566,9 +564,10 @@ module mod_rad_colmod3
                 kparam = 0.67_rkx
               end if
               !finally modify effective radius
-              !(1.e6_rkx to convert to rel to microm, 1e6_rkx to vonvert nc in m-3)
+              !(1.e6 to convert to rel to microm,
+              ! 1.e6 to convert nc in m-3)
               rel(n,k) = 1.e6_rkx * ( d_three*lwc / &
-                   (d_four*mathpi*rhoh2o*kparam*nc*1.e6_rkx ) )**(d_one/d_three)
+                  (d_four*mathpi*rhoh2o*kparam*nc*1.e6_rkx ) )**(d_one/d_three)
             end if
           end do
         end do
@@ -667,15 +666,19 @@ module mod_rad_colmod3
     do i = ici1 , ici2
       do j = jci1 , jci2
         czen(n) = m2r%coszrs(j,i)
-        if ( czen(n) < 1.e-3_rkx ) czen(n) = 0.0_rkx
         n = n + 1
       end do
     end do
-    where ( czen > d_zero )
-      czengt0 = .true.
-    else where
-      czengt0 = .false.
-    end where
+    do n = 1 , npr
+      if ( czen(n) < 1.e-3_rkx ) czen(n) = 0.0_rkx
+    end do
+    do n = 1 , npr
+      if ( czen(n) > d_zero ) then
+        czengt0(n) = .true.
+      else
+        czengt0(n) = .false.
+      end if
+    end do
     !
     ! Gas concentrations
     !

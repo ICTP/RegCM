@@ -159,8 +159,8 @@ module mod_slice
       end do
     end if
 
-    do i = ice1 , ice2
-      do j = jce1 , jce2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         atms%rhox2d(j,i) = atms%ps2d(j,i) / &
                   (rgas*0.50_rkx*(atms%tb3d(j,i,kz)+sfs%tgbb(j,i)))
       end do

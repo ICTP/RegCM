@@ -69,9 +69,9 @@ module mod_precip
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
 
   real(rkx) , parameter :: rhow = 1000.0_rkx
-  real(rkx) , parameter :: qcmin = 1.0e-8_rkx
+  real(rkx) , parameter :: qcmin = 1.0e-4_rkx
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
-  real(rkx) , parameter :: pptmin = 1.0e-8_rkx
+  real(rkx) , parameter :: pptmin = 1.0e-12_rkx
 
   contains
 
@@ -206,7 +206,7 @@ module mod_precip
                iaerosol == 1 .and. idiag == 1 ) then
             dia_acr(j,i,1) = pptnew
           end if
-          if ( pptnew > d_zero ) then !   New precipitation
+          if ( pptnew > pptmin ) then !   New precipitation
             ! 1af. Compute the cloud removal rate (for chemistry) [1/s]
             if ( ichem == 1 ) premrat(j,i,1) = pptnew/qcw
             ! 1ag. Compute the amount of cloud water removed by raindrop
@@ -468,7 +468,7 @@ module mod_precip
   !
   subroutine cldfrac
     implicit none
-    real(rkx) :: exlwc , rh0adj
+    real(rkx) :: exlwc , rh0adj , pfac
     integer(ik4) :: i , j , k
     real(rkx) :: pres , botm , rm , qcld
 
@@ -530,7 +530,8 @@ module mod_precip
             !else ! high cloud (less subgrid variability)
             !  rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t3(j,i,k)))
             !end if
-            rh0adj = 0.7_rkx+(rh0(j,i)-0.7_rkx)*exp(d_one-(sfps(j,i)/pres)**4)
+            pfac = max(d_one-(sfps(j,i)/pres)**4,-25.0_rkx)
+            rh0adj = 0.7_rkx+(rh0(j,i)-0.7_rkx)*exp(pfac)
             rh0adj = max(rhmin,min(rh0adj,rhmax))
             if ( rh3(j,i,k) >= rhmax ) then     ! full cloud cover
               pfcc(j,i,k) = hicld
@@ -668,7 +669,7 @@ module mod_precip
     !
     real(rkx) :: qccs , qvcs , tmp1 , tmp2 , tmp3
     real(rkx) :: dqv , exces , fccc , pres , qvc_cld , qvs , &
-               r1 , rh0adj , rhc
+               r1 , rh0adj , rhc , pfac
     integer(ik4) :: i , j , k
 
     !---------------------------------------------------------------------
@@ -706,7 +707,8 @@ module mod_precip
           !  rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
           !end if
           ! Lohmann and Roeckner, 1996 ECHAM5
-          rh0adj = 0.7_rkx + (rh0(j,i)-0.7_rkx)*exp(d_one-(sfps(j,i)/pres)**4)
+          pfac = max(d_one-(sfps(j,i)/pres)**4,-25.0_rkx)
+          rh0adj = 0.7_rkx + (rh0(j,i)-0.7_rkx)*exp(pfac)
           rh0adj = max(rhmin,min(rh0adj,rhmax))
 
           if ( rhc < rh0adj ) then      ! No cloud cover

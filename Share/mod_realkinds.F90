@@ -19,14 +19,28 @@
 
 module mod_realkinds
 
+#ifdef F2008
+  use , intrinsic :: iso_fortran_env
+  use , intrinsic :: ieee_arithmetic
+#endif
+
   implicit none
 
   public
 
-  ! Kind helpers
-  integer , parameter :: rk16 = selected_real_kind(P=27,R=2400)
-  integer , parameter :: rk8 = selected_real_kind(P=13,R=300)
-  integer , parameter :: rk4 = selected_real_kind(P= 6,R=37)
+#ifdef F2008
+  integer , parameter :: rk4  = REAL32
+  integer , parameter :: rk8  = REAL64
+  integer , parameter :: rk16 = REAL128
+#else
+  ! Kind helpers as suggested by
+  !   Metcalf, M., J. Reid, and M. Cohen
+  !   Fortran 95/2003 Explained 2004, p. 71
+  integer , parameter :: rk4  = kind(1.0)
+  integer , parameter :: rk8  = selected_real_kind(2*precision(1.0_rk4))
+  integer , parameter :: rk16 = selected_real_kind(2*precision(1.0_rk8))
+#endif
+
 #ifdef SINGLE_PRECISION_REAL
   integer , parameter :: rkx = rk4
 #ifdef __PGI
@@ -63,6 +77,38 @@ module mod_realkinds
 
   contains
 
+#ifdef F2008
+
+  logical elemental function is_nan_double(x)
+    implicit none
+    real(rk8) , intent(in) :: x
+    is_nan_double = (ieee_class(x) == ieee_quiet_nan .or. &
+                     ieee_class(x) == ieee_signaling_nan)
+  end function is_nan_double
+
+  logical elemental function is_inf_double(x)
+    implicit none
+    real(rk8) , intent(in) :: x
+    is_inf_double = (ieee_class(x) == ieee_negative_inf .or. &
+                     ieee_class(x) == ieee_positive_inf)
+  end function is_inf_double
+
+  logical elemental function is_nan_single(x)
+    implicit none
+    real(rk4) , intent(in) :: x
+    is_nan_single = (ieee_class(x) == ieee_quiet_nan .or. &
+                     ieee_class(x) == ieee_signaling_nan)
+  end function is_nan_single
+
+  logical elemental function is_inf_single(x)
+    implicit none
+    real(rk4) , intent(in) :: x
+    is_inf_single = (ieee_class(x) == ieee_negative_inf .or. &
+                     ieee_class(x) == ieee_positive_inf)
+  end function is_inf_single
+
+#else
+
   logical elemental function is_nan_double(x)
     implicit none
     real(rk8) , intent(in) :: x
@@ -86,6 +132,8 @@ module mod_realkinds
     real(rk4) , intent(in) :: x
     is_inf_single = ( x > huge(x) )
   end function is_inf_single
+
+#endif
 
 end module mod_realkinds
 

@@ -45,7 +45,7 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on i.
-parkind.o : parkind.F90 mod_realkinds.o
+parkind.o : parkind.F90 mod_intkinds.o mod_realkinds.o
 parrrsw.o : parrrsw.F90 parkind.o
 parrrtm.o : parrrtm.F90 parkind.o
 rrlw_cld.o : rrlw_cld.F90 parkind.o
