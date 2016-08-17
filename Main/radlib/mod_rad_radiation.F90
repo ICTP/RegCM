@@ -1376,13 +1376,13 @@ module mod_rad_radiation
             !
             !scheme     2
             !
-            tauxcl(n,k,ns) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k) / &
-                          (d_one+(d_one-0.85_rkx)*(d_one-cld(n,k))*      &
-                          clwp(n,k)*tmp1l*(d_one-fice(n,k)))
+            tauxcl(n,k,ns) = ((clwp(n,k)*cld(n,k))*(d_one-fice(n,k))*tmp1l) / &
+                          (d_one+(d_one-0.85_rkx)*((d_one-cld(n,k))*      &
+                          (clwp(n,k)*tmp1l*(d_one-fice(n,k)))))
             outtaucl(n,k,indxsl) = outtaucl(n,k,indxsl) + tauxcl(n,k,ns)
-            tauxci(n,k,ns) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k) /     &
-                          (d_one+(d_one-0.78_rkx)*(d_one-cld(n,k)) * &
-                          clwp(n,k)*tmp1i*fice(n,k))
+            tauxci(n,k,ns) = (clwp(n,k)*cld(n,k)*fice(n,k)*tmp1i) /  &
+                          (d_one+(d_one-0.78_rkx)*((d_one-cld(n,k)) * &
+                          (clwp(n,k)*tmp1i*fice(n,k))))
             outtauci(n,k,indxsl) = outtauci(n,k,indxsl) + tauxci(n,k,ns)
             !
             !scheme     3
@@ -1459,10 +1459,10 @@ module mod_rad_radiation
       do k = kz , 0 , -1
         do n = n1 , n2
           if ( czengt0(n) ) then
-            rdenom = d_one/(d_one-rdif(n,k)*rupdif(n,k+1))
-            rupdir(n,k) = rdir(n,k) + tdif(n,k) *                    &
-                          (rupdir(n,k+1)*explay(n,k)+rupdif(n,k+1) * &
-                          (tdir(n,k)-explay(n,k)))*rdenom
+            rdenom = d_one/(d_one-(rdif(n,k)*rupdif(n,k+1)))
+            rupdir(n,k) = rdir(n,k) + tdif(n,k) *      &
+                          (rupdir(n,k+1)*explay(n,k) + &
+                           rupdif(n,k+1)*(tdir(n,k)-explay(n,k)))*rdenom
             rupdif(n,k) = rdif(n,k) + rupdif(n,k+1)*(tdif(n,k)**2)*rdenom
           end if
         end do
@@ -1474,12 +1474,12 @@ module mod_rad_radiation
       do k = 0 , kzp1
         do n = n1 , n2
           if ( czengt0(n) ) then
-            rdenom = d_one/(d_one-rdndif(n,k)*rupdif(n,k))
-            fluxup(n,k) = (exptdn(n,k)*rupdir(n,k)+                   &
+            rdenom = d_one/(d_one-(rdndif(n,k)*rupdif(n,k)))
+            fluxup(n,k) = (exptdn(n,k)*rupdir(n,k)+   &
                           (tottrn(n,k)-exptdn(n,k))*rupdif(n,k))*rdenom
-            fluxdn(n,k) = exptdn(n,k) +                          &
-                          (tottrn(n,k)-exptdn(n,k)+exptdn(n,k) * &
-                           rupdir(n,k)*rdndif(n,k))*rdenom
+            fluxdn(n,k) = exptdn(n,k) +                              &
+                          (tottrn(n,k) - exptdn(n,k) + exptdn(n,k) * &
+                           (rupdir(n,k)*rdndif(n,k)))*rdenom
           end if
         end do
       end do
@@ -1490,8 +1490,8 @@ module mod_rad_radiation
       do k = 0 , kz
         do n = n1 , n2
           if ( czengt0(n) ) then
-            flxdiv(n,k) = (fluxdn(n,k)-fluxdn(n,k+1)) + &
-                          (fluxup(n,k+1)-fluxup(n,k))
+            flxdiv(n,k) = (fluxdn(n,k) - fluxdn(n,k+1)) + &
+                          (fluxup(n,k+1) - fluxup(n,k))
           end if
         end do
       end do
@@ -1508,8 +1508,8 @@ module mod_rad_radiation
       do n = n1 , n2
         if ( czengt0(n) ) then
           solflx(n) = solin(n)*frcsol(ns)*psf
-          fsnt(n) = fsnt(n) + solflx(n)*(fluxdn(n,1)-fluxup(n,1))
-          fsns(n) = fsns(n) + solflx(n)*(fluxdn(n,kzp1)-fluxup(n,kzp1))
+          fsnt(n) = fsnt(n) + solflx(n)*(fluxdn(n,1)    - fluxup(n,1))
+          fsns(n) = fsns(n) + solflx(n)*(fluxdn(n,kzp1) - fluxup(n,kzp1))
           sfltot = sfltot + solflx(n)
           fswup(n,0) = fswup(n,0) + solflx(n)*fluxup(n,0)
           fswdn(n,0) = fswdn(n,0) + solflx(n)*fluxdn(n,0)
@@ -4142,6 +4142,8 @@ module mod_rad_radiation
     implicit none
     real(rkx) , intent(in) :: gi , fi
     real(rk8) :: g , f
+    g = gi
+    f = fi
     asys = real((g-f)/(1.0_rk8-f),rkx)
   end function asys
   ! f_u - Term in diffuse reflect and transmissivity

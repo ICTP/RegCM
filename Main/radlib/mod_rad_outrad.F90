@@ -42,7 +42,7 @@ module mod_rad_outrad
     implicit none
     npr = (jci2-jci1+1)*(ici2-ici1+1)
   end subroutine allocate_mod_rad_outrad
-!
+
   subroutine radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,firtp,         &
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
                     totcf,totcl,totci,cld,clwp,abv,sol,aeradfo,aeradfos, &
@@ -50,35 +50,35 @@ module mod_rad_outrad
                     outtaucl,outtauci,r2m,asaeradfo,asaeradfos,asaerlwfo,&
                     asaerlwfos)
     implicit none
-!
-! copy radiation output quantities to model buffer
-!
-! change units of the radiative fluxes from cgs to mks
-!
-! compute the total radiative heat flux at the surface for
-! the surface temperature computation
-!
-!     input/output arguments
-!
-! solin  - instantaneous incident solar
-! sabtp  - total column absorbed solar flux
-! frsa   - surface absorbed solar flux
-! clrst  - clear sky total column abs solar flux
-! clrss  - clear sky surface absorbed solar flux
-! qrs    - solar heating rate
-! firtp  - net up flux top of model (up-dwn flx)
-! frla   - longwave cooling of surface (up-dwn flx)
-! clrlt  - clr sky net up flx top of model (up-dwn f
-! clrls  - clr sky lw cooling of srf (up-dwn flx)
-! qrl    - longwave cooling rate
-! slwd   - surface longwave down flux
-! cld    - cloud fractional cover
-! clwp   - cloud liquid water path
-! soll   - Downward solar rad onto surface (lw direct)
-! solld  - Downward solar rad onto surface (lw diffuse)
-! sols   - Downward solar rad onto surface (sw direct)
-! solsd  - Downward solar rad onto surface (sw diffuse)
-!
+    !
+    ! copy radiation output quantities to model buffer
+    !
+    ! change units of the radiative fluxes from cgs to mks
+    !
+    ! compute the total radiative heat flux at the surface for
+    ! the surface temperature computation
+    !
+    !     input/output arguments
+    !
+    ! solin  - instantaneous incident solar
+    ! sabtp  - total column absorbed solar flux
+    ! frsa   - surface absorbed solar flux
+    ! clrst  - clear sky total column abs solar flux
+    ! clrss  - clear sky surface absorbed solar flux
+    ! qrs    - solar heating rate
+    ! firtp  - net up flux top of model (up-dwn flx)
+    ! frla   - longwave cooling of surface (up-dwn flx)
+    ! clrlt  - clr sky net up flx top of model (up-dwn f
+    ! clrls  - clr sky lw cooling of srf (up-dwn flx)
+    ! qrl    - longwave cooling rate
+    ! slwd   - surface longwave down flux
+    ! cld    - cloud fractional cover
+    ! clwp   - cloud liquid water path
+    ! soll   - Downward solar rad onto surface (lw direct)
+    ! solld  - Downward solar rad onto surface (lw diffuse)
+    ! sols   - Downward solar rad onto surface (sw direct)
+    ! solsd  - Downward solar rad onto surface (sw diffuse)
+    !
     logical , intent(in) :: lout ! Preapre data for outfile
     real(rkx) , pointer , dimension(:) :: clrls , clrlt ,  &
                 clrss , clrst , firtp , frla , frsa ,      &
