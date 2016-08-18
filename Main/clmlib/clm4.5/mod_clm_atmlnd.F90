@@ -165,7 +165,7 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:,:) :: ddvel
     ! VOC flux (size bins)
     real(rk8) , pointer , dimension(:,:) :: flxvoc
-    ! soil water in first 10 cm
+    ! Total leaf area index at grid level
     real(rk8) , pointer , dimension(:) :: tlai
 #ifdef LCH4
     !net CH4 flux (kg C/m**2/s) [+ to atm]
