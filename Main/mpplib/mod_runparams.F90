@@ -335,7 +335,7 @@ module mod_runparams
   ! other interface ( e.g CLM4.5)/ other species are delcared in
   ! chemlib/mod_che_indices
   integer(ik4) , public :: ibchb , ibchl , iochl , iochb , ianh4 , &
-                           iano3 , iisop , ich4 , ism1 , ism2
+                           iano3 , iisop , ich4 , ism1 , ism2 , ino
 
   ! Large scale SUBEX parameters
 

@@ -21,6 +21,7 @@ module mod_clm_regcm
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
   use mod_clm_megan
+
   private
 
   save
@@ -57,6 +58,7 @@ module mod_clm_regcm
     call initialize1( )
 
     call get_proc_bounds(begg,endg)
+
     deallocate(adomain%topo)
     deallocate(adomain%xlon)
     deallocate(adomain%xlat)
@@ -401,6 +403,14 @@ module mod_clm_regcm
        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,14) = clm_a2l%notused
       end if
+      if ( ichsursrc == 1 .and. ino > 0 .and. ichbion == 1 ) then
+        temps(:,:) = (lm%drydepflx(jci1:jci2,ici1:ici2,ino) + &
+                      lm%wetdepflx(jci1:jci2,ici1:ici2,ino)) * rtsrf
+        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+        ! to convert NO flux from mg/m2/day to g/m2/sec,
+        ! we multiply by 1.15740741 * 10-8
+        clm_a2l%forc_ndep(:) = clm_a2l%notused * 1.15740741e-8_rk8 
+      end if
       ! FAB to do : treat the 12 bins case ..
       ! b : pass the nitrogen deposition flux
     end if ! end test on ichem
@@ -456,7 +466,9 @@ module mod_clm_regcm
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
       lms%sw(:,:,:,k) = lms%tsw(:,:,:)
     end do
-    lms%tsw(:,:,:) = sum(lms%sw,4)
+
+    ! This is for chem, will fill anyway.
+    call glb_l2c_ss(lndcomm,clm_l2a%h2o10cm,lms%tsw)
 
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)
@@ -475,39 +487,53 @@ module mod_clm_regcm
     ! passed to the chemistry scheme for the right  mechanism tracer index
     ! use temporary table emis2d for calling glb_l2c_ss
 
-    if ( ichem == 1 .and. enable_megan_emission ) then
-      allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
-      emis2d = 0.0_rk8
-      do k = 1 , shr_megan_mechcomps_n
-        if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0) then
-          clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
+    if ( ichem == 1 ) then
+
+      call glb_l2c_ss(lndcomm,clm_l2a%tlai,lms%xlai)
+
+      if ( enable_megan_emission ) then
+        allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
+        emis2d = 0.0_rk8
+        do k = 1 , shr_megan_mechcomps_n
+          if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0) then
+            clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
+            call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
+            lms%vocemiss(:,:,:,iisop) = real(emis2d,rkx)
+          end if
+          ! add compatibility for other biogenic species !! /
+          !
+        end do
+        deallocate(emis2d)
+      end if
+
+      ! pass the CLM dust flux to regcm
+      ! nb: CLM considers 4 emission bins roughly equivalent to the regcm
+      ! 4 bin version.
+      ! if use the regcm 12 bin, the total mass is redistributed
+      ! (chemlib/mod_che_dust)
+      if ( ichdustemd == 3 ) then
+        allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
+        emis2d = 0.0_rk8
+        do k = 1 , 4
+          clm_l2a%notused(:) = clm_l2a%flxdst(:,k)
           call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-          lms%vocemiss(:,:,:,iisop) = real(emis2d,rkx)
-        end if
-        ! add compatibility for other biogenic species !! /
-        !
-      end do
-      deallocate(emis2d)
-    end if
-
-    ! pass the CLM dust flux to regcm
-    ! nb: CLM considers 4 emission bins roughly equivalent to the regcm
-    ! 4 bin version.
-    ! if use the regcm 12 bin, the total mass is redistributed
-    ! (chemlib/mod_che_dust)
-    if ( ichem == 1 .and. ichdustemd == 3 ) then
-      allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
-      emis2d = 0.0_rk8
-      do k = 1 , 4
-        clm_l2a%notused(:) = clm_l2a%flxdst(:,k)
+          lms%dustemiss(:,:,:,k) = real(emis2d,rkx)
+        end do
+        deallocate(emis2d)
+      end if
+#ifdef LCH4
+      ! factor 1.33 is to convert from kgC to kgCH4
+      if ( ich4 > 0 ) then
+        allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
+        emis2d = 0.0_rk8
+        clm_l2a%notused(:) = clm_l2a%flux_ch4(:) * 1.33_rk8
         call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-        lms%dustemiss(:,:,:,k) = real(emis2d,rkx)
-      end do
-      deallocate(emis2d)
+        lms%vocemiss(:,:,:,ich4) = real(emis2d,rkx)
+        deallocate(emis2d)
+      end if
+#endif
     end if
-
     !--------------------------------------------------
-
     ! Will fix
     !clm_l2a%eflx_lwrad_out
     !clm_l2a%fsa
@@ -517,19 +543,6 @@ module mod_clm_regcm
     !clm_l2a%rofice
     !clm_l2a%flxdst
     !clm_l2a%ddvel
-#ifdef LCH4
-    ! factor 1.33 is to convert from kgC to kgCH4
-    if ( ichem == 1 .and. ich4 > 0 ) then
-      allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
-      emis2d = 0.0_rk8
-      clm_l2a%notused(:) = clm_l2a%flux_ch4(:) * 1.33_rk8
-      call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
-      lms%vocemiss(:,:,:,ich4) = real(emis2d,rkx)
-      deallocate(emis2d)
-    end if
-  !clm_l2a%flux_ch4
-#endif
-
   end subroutine land_to_atmosphere
 
 end module mod_clm_regcm

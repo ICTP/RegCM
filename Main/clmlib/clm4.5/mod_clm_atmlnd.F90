@@ -147,6 +147,8 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: emg
     ! soil water kg/m^2 (water + ice)
     real(rk8) , pointer , dimension(:,:) :: h2osoi
+    ! soil water in first 10 cm
+    real(rk8) , pointer , dimension(:) :: h2o10cm
     ! Surface runoff
     real(rk8) , pointer , dimension(:) :: qflx_surf
     ! Sub-surface runoff
@@ -163,6 +165,8 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:,:) :: ddvel
     ! VOC flux (size bins)
     real(rk8) , pointer , dimension(:,:) :: flxvoc
+    ! soil water in first 10 cm
+    real(rk8) , pointer , dimension(:) :: tlai
 #ifdef LCH4
     !net CH4 flux (kg C/m**2/s) [+ to atm]
     real(rk8) , pointer , dimension(:) :: flux_ch4
@@ -294,11 +298,13 @@ end subroutine init_atm2lnd_type
     allocate(l2a%fv(ibeg:iend))
     allocate(l2a%emg(ibeg:iend))
     allocate(l2a%h2osoi(ibeg:iend,nlevsoi))
+    allocate(l2a%h2o10cm(ibeg:iend))
     allocate(l2a%qflx_surf(ibeg:iend))
     allocate(l2a%qflx_tot(ibeg:iend))
     allocate(l2a%qflx_snomelt(ibeg:iend))
     allocate(l2a%rofliq(ibeg:iend))
     allocate(l2a%rofice(ibeg:iend))
+    allocate(l2a%tlai(ibeg:iend))
     allocate(l2a%flxdst(ibeg:iend,1:ndst))
 #if (defined LCH4)
     allocate(l2a%flux_ch4(ibeg:iend))
@@ -333,11 +339,13 @@ end subroutine init_atm2lnd_type
     l2a%ram1(ibeg:iend) = ival
     l2a%fv(ibeg:iend) = ival
     l2a%h2osoi(ibeg:iend,:) = ival
+    l2a%h2o10cm(ibeg:iend) = ival
     l2a%qflx_surf(ibeg:iend) = ival
     l2a%qflx_tot(ibeg:iend) = ival
     l2a%qflx_snomelt(ibeg:iend) = ival
     l2a%rofliq(ibeg:iend) = ival
     l2a%rofice(ibeg:iend) = ival
+    l2a%tlai(ibeg:iend) = ival
     l2a%flxdst(ibeg:iend,1:ndst) = ival
     if ( shr_megan_mechcomps_n > 0 ) then
       l2a%flxvoc(ibeg:iend,1:shr_megan_mechcomps_n) = ival
@@ -411,6 +419,10 @@ end subroutine init_atm2lnd_type
                tmpc,clm_l2a%h2osoi, &
                c2l_scale_type='unity', &
                l2g_scale_type='unity')
+      call c2g(begc,endc,begl,endl,begg,endg, &
+               cptr%cws%h2osoi_liqice_10cm,clm_l2a%h2o10cm, &
+               c2l_scale_type='unity', &
+               l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,numrad,  &
                pptr%pps%albd,clm_l2a%albd,                      &
                p2c_scale_type='unity',                          &
@@ -429,6 +441,11 @@ end subroutine init_atm2lnd_type
       do g = begg , endg
         clm_l2a%t_rad(g) = sqrt(sqrt(clm_l2a%eflx_lwrad_out(g)/sb))
       end do
+      call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
+               pptr%pps%tlai,clm_l2a%tlai,              &
+               p2c_scale_type='unity',                  &
+               c2l_scale_type='urbanf',                 &
+               l2g_scale_type='unity')
     else
       call c2g(begc,endc,begl,endl,begg,endg,  &
                cptr%cws%h2osno,clm_l2a%h2osno, &
@@ -438,6 +455,10 @@ end subroutine init_atm2lnd_type
              cptr%cws%h2osoi_ice(:,1:nlevsoi)
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                tmpc,clm_l2a%h2osoi, &
+               c2l_scale_type='unity', &
+               l2g_scale_type='unity')
+      call c2g(begc,endc,begl,endl,begg,endg, &
+               cptr%cws%h2osoi_liqice_10cm,clm_l2a%h2o10cm, &
                c2l_scale_type='unity', &
                l2g_scale_type='unity')
       call c2g(begc,endc,begl,endl,begg,endg, &
@@ -588,6 +609,11 @@ end subroutine init_atm2lnd_type
       do g = begg,endg
         clm_l2a%t_rad(g) = sqrt(sqrt(clm_l2a%eflx_lwrad_out(g)/sb))
       end do
+      call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
+               pptr%pps%tlai,clm_l2a%tlai,              &
+               p2c_scale_type='unity',                  &
+               c2l_scale_type='urbanf',                 &
+               l2g_scale_type='unity')
     end if
     deallocate(tmpc)
   end subroutine clm_map2gcell
