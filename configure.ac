@@ -421,7 +421,8 @@ else
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
     AR=xiar
-    FCFLAGS="-O3 -finline-functions -fltconsistency -mieee-fp $FCFLAGS"
+    FCFLAGS="-O3 -finline-functions -fltconsistency -mieee-fp -fpe0 \
+             -traceback $FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(AR)
   fi

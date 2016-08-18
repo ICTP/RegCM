@@ -69,9 +69,9 @@ module mod_precip
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
 
   real(rkx) , parameter :: rhow = 1000.0_rkx
-  real(rkx) , parameter :: qcmin = 1.0e-4_rkx
+  real(rkx) , parameter :: qcmin = 1.0e-8_rkx
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
-  real(rkx) , parameter :: pptmin = 1.0e-12_rkx
+  real(rkx) , parameter :: pptmin = 1.0e-8_rkx
 
   contains
 
