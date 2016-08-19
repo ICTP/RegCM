@@ -93,15 +93,21 @@ module mod_che_emission
   !
   ! Calculation of emission tendency
   !
-  subroutine emis_tend(ktau,j,lmonth,declin)
+#ifndef CLM45
+  subroutine emis_tend(j,declin)
     implicit none
+    integer(ik4) , intent(in) :: j
+    real(rkx) , intent(in) :: declin
+#else
+  subroutine emis_tend(j)
+    implicit none
+    integer(ik4) , intent(in) :: j
+#endif
 
-    integer(ik4) , intent(in) :: j , lmonth
-    integer(ik8) , intent(in) :: ktau
-
-    real(rkx) , intent(in) ::declin
     integer(ik4)  :: i , itr
+#ifndef CLM45
     real(rkx) :: daylen , fact , maxelev , amp , dayhr
+#endif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'emis_tend'
     integer(ik4) , save :: idindx = 0

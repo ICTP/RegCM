@@ -313,7 +313,11 @@
       !
       if ( ichsursrc == 1 ) then
         do j = jci1 , jci2
-          call emis_tend(ktau,j,lmonth,declin)
+#ifndef CLM45
+          call emis_tend(j,declin)
+#else
+          call emis_tend(j)
+#endif
         end do
       end if
       !

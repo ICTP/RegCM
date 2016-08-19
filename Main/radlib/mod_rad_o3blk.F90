@@ -242,7 +242,7 @@ module mod_rad_o3blk
       tdif = idatex-iref1
       xfac1 = real(tohours(tdif),rkx)
       tdif = idatex-iref2
-      xfac2 = tohours(tdif)
+      xfac2 = real(tohours(tdif),rkx)
       odist = xfac1 - xfac2
       xfac1 = xfac1/odist
       xfac2 = d_one-xfac1

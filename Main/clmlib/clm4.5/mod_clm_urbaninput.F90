@@ -59,7 +59,6 @@ module mod_clm_urbaninput
   subroutine UrbanInput(mode)
     use mod_clm_varpar , only : numrad , nlevurb , numurbl
     use mod_clm_varctl , only : fsurdat
-    use mod_clm_domain , only : ldomain
     implicit none
     character(len=*) , intent(in) :: mode
     type(clm_filetype) :: ncid    ! netcdf id

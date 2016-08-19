@@ -98,7 +98,7 @@ module mod_clm_varcon
   integer(ik4) , public , parameter :: isecspday = 86400
   ! Special value for real data
   real(rk8) , public , parameter ::  spval = 1.e36_rk8
-  real(rk4) , public , parameter ::  rspval = 1.e36_rk8
+  real(rk4) , public , parameter ::  rspval = 1.e36_rk4
   ! Special value for int data
   integer(ik4) , public , parameter :: ispval = -9999
 
