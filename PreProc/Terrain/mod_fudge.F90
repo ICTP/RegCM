@@ -32,14 +32,14 @@ module mod_fudge
 
   contains
 
-  subroutine lndfudge(fudge,lndout,htgrid,jx,iy,char_lnd)
+  subroutine lndfudge(fudge,lndout,jx,iy,char_lnd)
     implicit none
     character(len=*) :: char_lnd
     logical :: fudge , there
     integer(ik4) :: iy , jx
-    real(rkx) , dimension(jx,iy) :: htgrid , lndout
+    real(rkx) , dimension(jx,iy) :: lndout
     intent (in) char_lnd , fudge , iy , jx
-    intent (inout) htgrid , lndout
+    intent (inout) lndout
     integer(ik4) :: i , j
     character(len=1) , dimension(jx,iy) :: ch
 

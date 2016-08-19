@@ -635,8 +635,8 @@ module mod_che_wetdep
     real(rkx) , dimension(ici1:ici2,kz) :: totppt
     real(rkx) , dimension(ici1:ici2,kz,mbin) :: colef , wetdep , rhsize , rhop
     real(rkx) , dimension(ntr) :: wetrem , wetrem_cvc
-    real(rkx) :: wtend
-    integer(ik4) :: n , k , i, nk,nkh
+    real(rkx) :: wtend , arg
+    integer(ik4) :: n , k , i, nk , nkh
 
     ! rain out parametrisation
     ! clmin = non-precipitating cloud
@@ -676,12 +676,16 @@ module mod_che_wetdep
             if ( wl(i,k) > clmin ) then
               wetrem(indp(n)) = d_zero
               if ( cremrat(j,i,k) > d_zero .and. fracloud(i,k) > d_zero ) then
-                wetrem(indp(n)) = fracloud(i,k)*chtrsol(indp(n)) * &
-                   chib(j,i,k,indp(n))* &
-                   (exp(-cremrat(j,i,k)/fracloud(i,k)*dt)-d_one)
+                arg = cremrat(j,i,k)/fracloud(i,k)*dt
+                if ( arg < 25.0_rkx ) then
+                  wetrem(indp(n)) = fracloud(i,k)*chtrsol(indp(n)) * &
+                     chib(j,i,k,indp(n))*(exp(-arg)-d_one)
+                else
+                  wetrem(indp(n)) = -fracloud(i,k)*chtrsol(indp(n)) * &
+                     chib(j,i,k,indp(n))
+                end if
                 chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
                    wetrem(indp(n))/dt
-
                 ! sum up the flux on the vertical to get instantaneous surface
                 ! deposition flux
                 ! in (Kg/m2/s) passed to CLM surface scheme ( change sign

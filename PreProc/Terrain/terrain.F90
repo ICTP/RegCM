@@ -295,8 +295,7 @@ program terrain
 
     write (char_lnd,99001) trim(dirter), pthsep, trim(domname), &
            '_LANDUSE' , nsg
-    call lndfudge(fudge_lnd_s,lndout_s,htgrid_s,jxsg,iysg, &
-                  trim(char_lnd))
+    call lndfudge(fudge_lnd_s,lndout_s,jxsg,iysg,trim(char_lnd))
     write (char_tex,99001) trim(dirter), pthsep, trim(domname), &
            '_TEXTURE' , nsg
     allocate(tmptex(jxsg,iysg))
@@ -460,7 +459,7 @@ program terrain
   end do
 
   write (char_lnd,99002) trim(dirter), pthsep, trim(domname),'_LANDUSE'
-  call lndfudge(fudge_lnd,lndout,htgrid,jx,iy,trim(char_lnd))
+  call lndfudge(fudge_lnd,lndout,jx,iy,trim(char_lnd))
   write (char_tex,99002) trim(dirter), pthsep, trim(domname),'_TEXTURE'
   allocate(tmptex(jx,iy))
   tmptex(:,:) = texout(:,:)
