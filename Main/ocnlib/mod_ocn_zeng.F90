@@ -311,12 +311,16 @@ module mod_ocn_zeng
         else
           fd = egrav*alphaw*(q+rs-rd)
         end if
-        l = rhoh2o*cpw0*ustarw**3/(vonkar*fd)
-        ! calulation of phidl (stability function)
-        if ( (d/l) >= d_zero ) then
-          phidl = d_one+d_five*(d/l)
+        if ( fd > d_zero ) then
+          l = rhoh2o*cpw0*ustarw**3/(vonkar*fd)
+          ! calulation of phidl (stability function)
+          if ( (d/l) >= d_zero ) then
+            phidl = d_one+d_five*(d/l)
+          else
+            phidl = (d_one-16.0_rkx*(d/l))**(-d_half)
+          end if
         else
-          phidl = (d_one-16.0_rkx*(d/l))**(-d_half)
+           phidl = d_one
         end if
         ! prognostic evolution of dts
         ! we can split the tendencies ddts/dt = a - b * dts
