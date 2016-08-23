@@ -144,20 +144,10 @@ if ntasks < size:
     pprint("Too many processors on job. Maximum required is "+repr(ntasks))
     sys.exit(1)
 
-mytasks = ntasks/size
-pp0tasks = ntasks - mytasks*size + mytasks
-
-if rank == 0:
-    mystart = 0
-    myend = pp0tasks
-else:
-    mystart = pp0tasks + (rank-1)*mytasks
-    myend = mystart + mytasks
-
 basen = os.path.splitext(namelist)[0]
 ofile = open(basen+".icbc.out"+("%04d" % (rank)),'w')
 efile = open(basen+".icbc.err"+("%04d" % (rank)),'w')
-for imon in xrange(mystart,myend):
+for imon in xrange(rank,ntasks,size):
     datest = monthadd(gdate1, imon)
     d1 = datest
     if imon == ntasks-1:
