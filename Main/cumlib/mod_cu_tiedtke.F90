@@ -7667,8 +7667,8 @@ module mod_cu_tiedtke
     pure real(rkx) function fesat(t)
       implicit none
       real(rkx) , intent(in) :: t
-      fesat = c2es*(xalpha(t)*exp(c3les*(t-tzero)/(t-c4les))+ &
-            (d_one-xalpha(t))*exp(c3ies*(t-tzero)/(t-c4ies)))
+      fesat = c2es*(xalpha(t)*exp((c3les*((t-tzero)/(t-c4les)))) + &
+            (d_one-xalpha(t))*exp((c3ies*((t-tzero)/(t-c4ies)))))
     end function fesat
     pure real(rkx) function fdqsat(t)
       implicit none
