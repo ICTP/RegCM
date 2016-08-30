@@ -61,7 +61,7 @@ module mod_date
 
   type rcm_time_and_date
     integer(ik4) :: calendar = gregorian
-    integer(ik4) :: days_from_reference = 0
+    integer(ik8) :: days_from_reference = 0
     integer(ik4) :: second_of_day = 0
   end type rcm_time_and_date
 
@@ -224,9 +224,11 @@ module mod_date
 
   subroutine idayofyear_to_monthdate(j,y,c,m,d)
     implicit none
-    integer(ik4) , intent(in) :: j , y , c
+    integer(ik8) , intent(in) :: j
+    integer(ik4) , intent(in) :: y , c
     integer(ik4) , intent(out) :: m , d
-    integer(ik4) :: id , md
+    integer(ik8) :: id
+    integer(ik4) :: md
     id = j
     m = 1
     d = 1
@@ -272,7 +274,8 @@ module mod_date
   subroutine date_to_days_from_reference(d,x)
     type(iadate) , intent(in) :: d
     type(rcm_time_and_date) , intent(inout) :: x
-    integer(ik4) :: ny , ipm , id , iy , icorrection
+    integer(ik4) :: ny , ipm , iy , icorrection
+    integer(ik8) :: id
     x%calendar = d%calendar
     ny = d%year - reference_year
     ipm = isign(1,ny)
@@ -298,10 +301,11 @@ module mod_date
   subroutine days_from_reference_to_date(x,d)
     type(rcm_time_and_date) , intent(in) :: x
     type(iadate) , intent(out) :: d
-    integer(ik4) :: id , ipm , iy
+    integer(ik4) :: iy
+    integer(ik8) :: ipm , id
     d%calendar = x%calendar
     id = x%days_from_reference
-    ipm = isign(1,id)
+    ipm = sign(1_ik8,id)
     d%year = reference_year
     iy = yeardays(d%year,d%calendar)
     do while ((id*ipm) >= iy)
@@ -774,7 +778,7 @@ module mod_date
           tmp = tmp-i8spd
         end if
         tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference + int(tmp,ik4)
+        z%days_from_reference = z%days_from_reference + tmp
       case (umin)
         tmp = tmp*i8spm+z%second_of_day
         z%second_of_day = int(mod(tmp, i8spd),ik4)
@@ -783,7 +787,7 @@ module mod_date
           tmp = tmp-i8spd
         end if
         tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference + int(tmp,ik4)
+        z%days_from_reference = z%days_from_reference + tmp
       case (uhrs)
         tmp = tmp*i8sph+z%second_of_day
         z%second_of_day = int(mod(tmp, i8spd),ik4)
@@ -792,9 +796,9 @@ module mod_date
           tmp = tmp-i8spd
         end if
         tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference + int(tmp,ik4)
+        z%days_from_reference = z%days_from_reference + tmp
       case (uday)
-        z%days_from_reference = z%days_from_reference + int(tmp,ik4)
+        z%days_from_reference = z%days_from_reference + tmp
       case (umnt)
         call days_from_reference_to_date(x,d)
         ! Adjust date of the month: This is really a trick...
@@ -933,27 +937,27 @@ module mod_date
           tmp = tmp+i8spd
         end if
         tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference - int(tmp,ik4)
+        z%days_from_reference = z%days_from_reference - tmp
       case (umin)
         tmp = tmp*i8spm - z%second_of_day
         z%second_of_day = int(mod(tmp, i8spd),ik4)
-        if ( z%second_of_day < 0 ) then
-          z%second_of_day = int(i8spd,ik4)+z%second_of_day
+        if ( z%second_of_day > 0 ) then
+          z%second_of_day = int(i8spd,ik4)-z%second_of_day
           tmp = tmp+i8spd
         end if
         tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference - int(tmp,ik4)
+        z%days_from_reference = z%days_from_reference - tmp
       case (uhrs)
         tmp = tmp*i8sph - z%second_of_day
         z%second_of_day = int(mod(tmp, i8spd),ik4)
-        if ( z%second_of_day < 0 ) then
-          z%second_of_day = int(i8spd,ik4)+z%second_of_day
+        if ( z%second_of_day > 0 ) then
+          z%second_of_day = int(i8spd,ik4)-z%second_of_day
           tmp = tmp+i8spd
         end if
         tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference - int(tmp,ik4)
+        z%days_from_reference = z%days_from_reference - tmp
       case (uday)
-        z%days_from_reference = z%days_from_reference - int(tmp,ik4)
+        z%days_from_reference = z%days_from_reference - tmp
       case (umnt)
         call days_from_reference_to_date(x,d)
         d%month = d%month-int(mod(tmp,i8mpy),ik4)
