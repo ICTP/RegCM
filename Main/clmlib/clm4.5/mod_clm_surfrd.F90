@@ -319,16 +319,16 @@ module mod_clm_surfrd
       end do
     end do
 
-    where (pctwet < eps_fact*epsilon(1._rk8) )
+    where ( pctwet < 1.0e-4_rk8 )
       pctwet = 0.0_rk8
     end where
-    where (pctlak < eps_fact*epsilon(1._rk8) )
+    where ( pctlak < 1.0e-4_rk8 )
       pctlak = 0.0_rk8
     end where
-    where (pctgla < eps_fact*epsilon(1._rk8) )
+    where ( pctgla < 1.0e-4_rk8 )
       pctgla = 0.0_rk8
     end where
-    where (pcturb_tot < eps_fact*epsilon(1._rk8) )
+    where ( pcturb_tot < 1.0e-4_rk8 )
       pcturb_tot = 0.0_rk8
     end where
 
@@ -338,7 +338,7 @@ module mod_clm_surfrd
 
     found = .false.
     do nl = begg , endg
-      if (pctspec(nl) > 100._rk8+1.e-4_rk8) then
+      if (pctspec(nl) > 100.0001_rk8 ) then
         found = .true.
         nindx = nl
         exit
@@ -346,7 +346,7 @@ module mod_clm_surfrd
       if (found) exit
     end do
     if ( found ) then
-      write(stderr,*) 'surfrd error: SPECIAL classes >100 for nl=',nindx
+      write(stderr,*) 'surfrd error: SPECIAL classes > 100 for nl=',nindx
       write(stderr,*) 'pctwet = ', pctwet(nl)
       write(stderr,*) 'pctlak = ', pctlak(nl)
       write(stderr,*) 'pctgla = ', pctgla(nl)
@@ -517,7 +517,7 @@ module mod_clm_surfrd
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
     do nl = begg , endg
-      if ( pctspec(nl) > 100._rk8 * (1._rk8 - eps_fact*epsilon(1._rk8)) ) then
+      if ( pctspec(nl)-100._rk8 >  1.0e-4_rk8 ) then
         ldomain%pftm(nl) = 0
       end if
     end do
@@ -570,7 +570,7 @@ module mod_clm_surfrd
         ! (convert pctpft from percent with respect to gridcel to percent with
         ! respect to vegetated landunit)
         ! THESE CHECKS NEEDS TO BE THE SAME AS IN pftdynMod.F90!
-        if ( pctspec(nl) < 100._rk8 * (1._rk8 - eps_fact*epsilon(1._rk8)) ) then
+        if ( pctspec(nl)- 100._rk8 > 1.0e-4_rk8 ) then
           ! pctspec not within eps_fact*epsilon of 100
           sumpct = 0._rk8
           do m = 0 , numpft
@@ -642,7 +642,7 @@ module mod_clm_surfrd
 
     do nl = begg , endg
       if ( ldomain%pftm(nl) >= 0 ) then
-        if ( pctspec(nl) < 100._rk8 * (1._rk8 - eps_fact*epsilon(1._rk8)) ) then
+        if ( pctspec(nl) - 100._rk8 >  1.0e-4_rk8 ) then
           ! pctspec not within eps_fact*epsilon of 100
           if ( .not. crop_prog .and. &
                 wtxy(nl,nc3irrig+1) > eps_fact*epsilon(1.0) ) then
