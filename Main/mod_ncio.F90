@@ -407,7 +407,7 @@ module mod_ncio
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     type(rcm_time_interval) :: tdif
-    character(len=32) :: appdat1, appdat2
+    character(len=32) :: appdat1 , appdat2
     if ( .not. do_parallel_netcdf_in ) then
       if ( myid /= iocpu ) then
         icbc_search = 1

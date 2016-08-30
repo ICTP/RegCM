@@ -1577,21 +1577,23 @@ module mod_cloud_s1
                   ! land (polluted, high ccn, smaller droplets, higher
                   !       threshold)
                   ! sea  (clean, low ccn, larger droplets, lower threshold)
-                  if ( ichem == 1 .and. iaerosol == 1 .and. &
-                       iindirect == 2 .and. pccn(j,i,k) > 0._rkx ) then
-                    ! aerosol second indirect effect on autoconversion
-                    ! threshold, rcrit is a critical cloud radius for cloud
-                    ! water undergoing autoconversion
-                    ! pccn = number of ccn /m3
-                    xlcrit = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
-                             ((rcrit*1e-6_rkx)**3)*rhoh2o
+                  if ( ldmsk(j,i) == 0 ) then  ! landmask =0 land, =1 ocean
+                    ! THRESHOLD VALUE FOR RAIN AUTOCONVERSION OVER LAND
+                    xlcrit = rclcrit_land ! landrclcrit_land = 5.e-4
                   else
-                    if ( ldmsk(j,i) == 0 ) then  ! landmask =0 land, =1 ocean
-                      ! THRESHOLD VALUE FOR RAIN AUTOCONVERSION OVER LAND
-                      xlcrit = rclcrit_land ! landrclcrit_land = 5.e-4
-                    else
-                      xlcrit = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
-                    end if
+                    xlcrit = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
+                  end if
+                  if ( ichem == 1 .and. &
+                       iaerosol == 1 .and. &
+                       iindirect == 2 ) then
+                    if ( pccn(j,i,k) > 0._rkx ) then
+                      ! aerosol second indirect effect on autoconversion
+                      ! threshold, rcrit is a critical cloud radius for cloud
+                      ! water undergoing autoconversion
+                      ! pccn = number of ccn /m3
+                      xlcrit = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+                               ((rcrit*1e-6_rkx)**3)*rhoh2o
+                    endif
                   endif
                   !-----------------------------------------------------------
                   ! parameters for cloud collection by rain and snow.

@@ -251,7 +251,7 @@ module mod_date
           md = mdays_leap(y,m)
         end do
     end select
-    d = id
+    d = int(id,ik4)
   end subroutine idayofyear_to_monthdate
 
   integer(ik4) function idayofyear(x) result(id)
@@ -309,7 +309,7 @@ module mod_date
     d%year = reference_year
     iy = yeardays(d%year,d%calendar)
     do while ((id*ipm) >= iy)
-      d%year = d%year + ipm
+      d%year = d%year + int(ipm,ik4)
       id = id - ipm*iy
       iy = yeardays(d%year,d%calendar)
     end do
@@ -2115,7 +2115,7 @@ module mod_date
         call set_caltype(y,x)
       end if
     end if
-    iday = x%days_from_reference - y%days_from_reference
+    iday = int(x%days_from_reference - y%days_from_reference,ik4)
     isec = x%second_of_day
   end subroutine curr_time
 

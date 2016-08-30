@@ -115,9 +115,9 @@ module mod_params
       caccroce , tc0 , cllwcv , clfrcvmax , cftotmax , conf , lsrfhack ,  &
       rcrit , coef_ccn , abulk
 
-    namelist /microparam/ stats , budget_compute , nssopt , iautoconv , &
-      rsemi , vfqr , vfqi , vfqs , auto_rate_khair , auto_rate_kessl ,  &
-      auto_rate_klepi , rkconv , rcovpmin , rpecons
+    namelist /microparam/ lsimply , stats , budget_compute , nssopt , &
+      iautoconv , rsemi , vfqr , vfqi , vfqs , auto_rate_khair ,      &
+      auto_rate_kessl , auto_rate_klepi , rkconv , rcovpmin , rpecons
 
     namelist /grellparam/ gcr0 , shrmin , shrmax , edtmin , edtmax ,  &
       edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
@@ -303,6 +303,7 @@ module mod_params
     ! microparam ;
     ! From original Nogerotto settings
     !
+    lsimply = .false.
     stats = .false.
     budget_compute = .false. ! Verify enthalpy and moisture conservation
     nssopt = 1 ! Supersaturation Computation
@@ -969,16 +970,6 @@ module mod_params
       call bcast(nhxkd)
     end if
 
-    if ( ipptls == 2 ) then
-      nqx = 5
-      iqfrst = iqc
-      iqlst  = iqs
-    else
-      nqx = 2
-      iqfrst = iqc
-      iqlst  = iqc
-    end if
-
     ! Check if really do output
 
 #ifdef CLM
@@ -1103,6 +1094,7 @@ module mod_params
       call bcast(abulk)
       call bcast(lsrfhack)
       if ( ipptls == 2 ) then
+        call bcast(lsimply)
         call bcast(stats)
         call bcast(budget_compute)
         call bcast(nssopt)
@@ -1118,6 +1110,22 @@ module mod_params
         call bcast(rpecons)
         call bcast(rkconv)
       end if
+    end if
+
+    if ( ipptls == 2 ) then
+      if ( lsimply ) then
+        nqx = 3
+        iqfrst = iqc
+        iqlst  = iqi
+      else
+        nqx = 5
+        iqfrst = iqc
+        iqlst  = iqs
+      end if
+    else
+      nqx = 2
+      iqfrst = iqc
+      iqlst  = iqc
     end if
 
     if ( irrtm == 1 ) then

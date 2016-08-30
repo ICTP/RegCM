@@ -162,10 +162,7 @@ module mod_tendency
     call decouple
     !
     if ( ipptls == 2 ) then
-      qcd(:,:,:) = atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqc) + &
-                   atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqi) + &
-                   atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqr) + &
-                   atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqs)
+      qcd(:,:,:) = sum(atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqfrst:iqlst),4)
     end if
     !
     ! compute vertical sigma-velocity (qdot):

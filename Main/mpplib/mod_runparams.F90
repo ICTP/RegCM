@@ -384,6 +384,7 @@ module mod_runparams
   ! New microphys parameters
   !
   ! Total water and enthalpy budget on/off
+  logical , public :: lsimply
   logical , public :: stats
   logical , public :: budget_compute
   ! Super saturation option
