@@ -205,7 +205,9 @@ module mod_precip
     !    - Raindrop Accretion:  Beheng (1994); EQN 6
     !    - Raindrop Evaporation:  Sundqvist (1988); EQN 3.4a
     !--------------------------------------------------------------------
-    ! zero accumulated precip
+    !
+    ! zero all accumulated precip
+    !
     pptsum(:,:) = d_zero
     pptmin = minqx/dt
     if ( ichem == 1 ) then
@@ -220,12 +222,13 @@ module mod_precip
       do j = jci1 , jci2
         afc = pfcc(j,i,1)                     ![frac][avg]
         qcw = sum(qx3(j,i,1,iqfrst:iqlst))    ![kg/kg][avg]
+        pptnew = d_zero
         if ( afc > lowcld .and. qcw > qcmin ) then ! if there is a cloud
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
-          pptmax = max(qcw,d_zero)/dt                ![kg/kg/s][avg]
+          pptmax = max(qcw,d_zero)/dt             ![kg/kg/s][avg]
           ! 1ae. Compute the gridcell average autoconversion [kg/k g/s]
-          pptnew = qck1(j,i)*dqc(j,i,1)*afc   ![kg/kg/s][avg]
+          pptnew = qck1(j,i)*dqc(j,i,1)*afc       ![kg/kg/s][avg]
           pptnew = min(max(pptnew,d_zero),pptmax) ![kg/kg/s][avg]
           if ( pptnew > pptmin ) then !   New precipitation
             ! 1ag. Compute the amount of cloud water removed by raindrop
@@ -235,31 +238,29 @@ module mod_precip
             !      cloud [kg/kg]
             qcleft = qcw - pptnew*dt ![kg/kg][avg]
             ! 1agb. Add 1/2 of the new precipitation can accrete.
-            rho = rho3(j,i,1)                 ![kg/m3][avg]
-            pptkm1 = d_half*pptnew/afc*rho*dt ![kg/m3][cld]
+            rho = rho3(j,i,1)                  ![kg/m3][avg]
+            pptkm1 = d_half*pptnew/afc*rho*dt  ![kg/m3][cld]
             ! 1agc. Accretion [kg/kg/s]=[m3/kg/s]*[kg/kg]*[kg/m3]
-            pptacc = caccr(j,i)*qcleft*pptkm1 ![kg/kg/s][avg]
+            pptacc = caccr(j,i)*qcleft*pptkm1  ![kg/kg/s][avg]
             ! 1agd. Update the precipitation accounting for the
             !       accretion [kg/kg/s]
             pptnew = min(pptmax,pptacc+pptnew) ![kg/kg/s][avg]
-            ! 1ah. Accumulate precipitation and convert to kg/m2/s
-            dpovg = dsigma(1)*psb(j,i)*thog    ![kg/m2]
-            pptsum(j,i) = pptnew*dpovg ![kg/m2/s][avg]
-            ! 1ai. Compute the cloud water tendency [kg/kg/s*cb]
-            ! [kg/kg/s*cb][avg]
-            qxten(j,i,1,iqc) = qxten(j,i,1,iqc) - pptnew*psb(j,i)
-            ! 1af. Compute the cloud removal rate (for chemistry) [1/s]
-            if ( ichem == 1 ) then
-              premrat(j,i,1) = pptnew/qcw
-              if ( lsecind .and. idiag == 1 ) then
-                dia_acr(j,i,1) = pptnew
-              end if
-            end if
-          else  !   Cloud but no new precipitation
-            pptsum(j,i) = d_zero ![kg/m2/s][avg]
           end if
-        else  !   No cloud
-          pptsum(j,i) = d_zero
+        end if
+        ! 1ah. Accumulate precipitation and convert to kg/m2/s
+        if ( pptnew > d_zero ) then
+          dpovg = dsigma(1)*psb(j,i)*thog    ![kg/m2]
+          pptsum(j,i) = pptnew*dpovg         ![kg/m2/s][avg]
+          ! 1ai. Compute the cloud water tendency [kg/kg/s*cb]
+          ! [kg/kg/s*cb][avg]
+          qxten(j,i,1,iqc) = qxten(j,i,1,iqc) - pptnew*psb(j,i)
+          ! 1af. Compute the cloud removal rate (for chemistry) [1/s]
+          if ( ichem == 1 ) then
+            premrat(j,i,1) = pptnew/qcw
+            if ( lsecind .and. idiag == 1 ) then
+              dia_acr(j,i,1) = pptnew
+            end if
+          end if
         end if
       end do
     end do
