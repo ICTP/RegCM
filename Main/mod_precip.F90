@@ -71,7 +71,6 @@ module mod_precip
   real(rkx) , parameter :: rhow = 1000.0_rkx
   real(rkx) , parameter :: qcmin = 1.0e-8_rkx
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
-  real(rkx) , parameter :: pptmin = 1.0e-8_rkx
 
   contains
 
@@ -152,7 +151,7 @@ module mod_precip
     implicit none
     real(rkx) :: dpovg , afc , pptacc , pptkm1 , pptmax ,       &
                 pptnew , qcleft , qcw , qs , rdevap , qcincl ,  &
-                rh , rhcs , rho , tcel , prainx , qcth
+                rh , rhcs , rho , tcel , prainx , qcth , pptmin
     integer(ik4) :: i , j , k , kk
     logical :: lsecind
     !
@@ -208,6 +207,7 @@ module mod_precip
     !--------------------------------------------------------------------
     ! zero accumulated precip
     pptsum(:,:) = d_zero
+    pptmin = minqx/dt
     if ( ichem == 1 ) then
       premrat(:,:,:) = d_zero
       if ( lsecind .and. idiag == 1 ) then
@@ -333,6 +333,8 @@ module mod_precip
               ! 1bfd. Update the precipitation accounting for the
               !       accretion [kg/kg/s]
               pptnew = min(max(pptacc+pptnew,d_zero),pptmax) ![kg/kg/s][avg]
+            end if
+            if ( pptnew > pptmin ) then
               ! 1bg. Accumulate precipitation and convert to kg/m2/s
               pptsum(j,i) = pptsum(j,i) + pptnew*dpovg       ![kg/m2/s][avg]
               ! 1bh. Compute the cloud water tendency [kg/kg/s*cb]
