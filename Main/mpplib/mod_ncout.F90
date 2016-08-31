@@ -548,7 +548,7 @@ module mod_ncout
             'time: mean')
           atm_tpr_out => v2dvar_atm(atm_tpr)%rval
         end if
-        if ( ipptls == 2 .and. .not. lsimply ) then
+        if ( ipptls == 2 ) then
           if ( enable_atm2d_vars(atm_tsn) ) then
             call setup_var(v2dvar_atm,atm_tsn,vsize,'snw','kg m-2 s-1', &
               'Total snow precipitation flux','snow_flux',.true., &
@@ -676,22 +676,17 @@ module mod_ncout
               'mass_fraction_of_ice_in_air',.true.)
             atm_qi_out => v3dvar_atm(atm_qi)%rval
           end if
-          if ( lsimply ) then
-            enable_atm3d_vars(atm_qr) = .false.
-            enable_atm3d_vars(atm_qs) = .false.
-          else
-            if ( enable_atm3d_vars(atm_qr) ) then
-              call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
-                'Mass fraction of rain', &
-                'mass_fraction_of_rain',.true.)
-              atm_qr_out => v3dvar_atm(atm_qr)%rval
-            end if
-            if ( enable_atm3d_vars(atm_qs) ) then
-              call setup_var(v3dvar_atm,atm_qs,vsize,'cls','kg kg-1', &
-                'Mass fraction of snow', &
-                'mass_fraction_of_snow_in_air',.true.)
-              atm_qs_out => v3dvar_atm(atm_qs)%rval
-            end if
+          if ( enable_atm3d_vars(atm_qr) ) then
+            call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
+              'Mass fraction of rain', &
+              'mass_fraction_of_rain',.true.)
+            atm_qr_out => v3dvar_atm(atm_qr)%rval
+          end if
+          if ( enable_atm3d_vars(atm_qs) ) then
+            call setup_var(v3dvar_atm,atm_qs,vsize,'cls','kg kg-1', &
+              'Mass fraction of snow', &
+              'mass_fraction_of_snow_in_air',.true.)
+            atm_qs_out => v3dvar_atm(atm_qs)%rval
           end if
           if ( idiag > 0) then
             if ( enable_atm3d_vars(atm_rainls) ) then
@@ -716,7 +711,7 @@ module mod_ncout
             enable_atm3d_vars(atm_rainls) = .false.
             enable_atm3d_vars(atm_raincc) = .false.
           end if
-          if ( stats .and. .not. lsimply ) then
+          if ( stats ) then
             ! stats variables
             if ( enable_atm3d_vars(atm_stats_supw) ) then
               call setup_var(v3dvar_atm,atm_stats_supw,vsize,'st_supw','', &
@@ -2594,8 +2589,6 @@ module mod_ncout
               ncattribute_real8('bulk_activation_ratio',abulk))
           end if
         else if ( ipptls == 2 ) then
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_logical('micro_simplified',lsimply))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('micro_statistics',stats))
           call outstream_addatt(outstream(i)%ncout(j), &

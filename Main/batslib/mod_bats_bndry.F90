@@ -383,6 +383,8 @@ module mod_bats_bndry
     real(rkx) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr , &
                evmxt , rap , vakb , wtg2c , xxkb , gwatr , rsubsr , &
                rsubss , xkmx1 , xkmx2 , xkmxr , wata
+    real(rk8) :: xk1 , xk2 , xk3 , wwr , wwu , wwt , b1 , b2 , b3
+    real(rk8) :: r1 , r2 , r3 , wwa , gwr
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'water'
@@ -428,9 +430,24 @@ module mod_bats_bndry
       !
       ! 1.3  gravitational drainage
       !
-      rsubss = xkmxr*watr(i)**(b+d_half) * watu(i)**(b+2.5_rkx)
-      rsubsr = xkmx1*watt(i)**(b+d_half) * watr(i)**(b+2.5_rkx)
-      rsubst(i) = max(d_zero,xkmx2*watt(i)**(d_two*b+d_three))
+      wwr = watr(i)
+      wwu = watu(i)
+      wwt = watt(i)
+      b1 = b+d_half
+      b2 = b+2.5_rkx
+      b3 = d_two*b+d_three
+      xk1 = xkmxr
+      xk2 = xkmx1
+      xk3 = xkmx2
+      r1 = xk1*(wwr**b1)*(wwu**b2)
+      r2 = xk2*(wwt**b1)*(wwr**b2)
+      r3 = xk3*(wwt**b3)
+      if ( r1 < tiny(1.0) ) r1 = d_zero
+      if ( r2 < tiny(1.0) ) r2 = d_zero
+      if ( r3 < tiny(1.0) ) r3 = d_zero
+      rsubss = real(r1,rkx)
+      rsubsr = real(r3,rkx)
+      rsubst(i) = max(d_zero,real(r3,rkx))
       !
       ! 1.32 bog
       !
@@ -464,7 +481,11 @@ module mod_bats_bndry
       if ( tgrd(i) < tzero ) then
         srnof(i) = min(d_one,wata**1) * max(d_zero,gwatr)
       else
-        srnof(i) = min(d_one,wata**4) * max(d_zero,gwatr)
+        wwa = wata
+        gwr = gwatr
+        r1 = min(wwa**4,1.0_rk8) * max(0.0_rk8,gwr)
+        if ( r1 < tiny(1.0) ) r1 = 0.0_rk8
+        srnof(i) = real(r1,rkx)
       end if
       !
       ! 2.12 irrigate cropland

@@ -45,6 +45,7 @@ module mod_precip
   integer(ik4) , pointer , dimension(:,:) :: ldmsk
   real(rkx) , pointer , dimension(:,:) :: psb , psc , rainnc , lsmrnc
   real(rkx) , pointer , dimension(:,:) :: th700 , sfps
+  real(rkx) , pointer , dimension(:,:,:) :: xqc , xqi
   real(rkx) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten , chi3
   real(rkx) , pointer , dimension(:,:,:) :: t3 , t2 , tten , th3
   real(rkx) , pointer , dimension(:,:,:) :: p3 , p2 , qs3 , rh3 , rho3
@@ -64,6 +65,7 @@ module mod_precip
   real(rkx) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
     cevap , xcevap , caccr
   real(rkx) , public , pointer , dimension(:,:,:) :: dqc
+  real(rkx) , public , pointer , dimension(:,:,:) :: qvn , qln
 
   logical :: l_lat_hack = .false.
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
@@ -71,6 +73,7 @@ module mod_precip
   real(rkx) , parameter :: rhow = 1000.0_rkx
   real(rkx) , parameter :: qcmin = 1.0e-8_rkx
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
+  real(rkx) , parameter :: pptmin = 1.0e-8_rkx
 
   contains
 
@@ -92,6 +95,9 @@ module mod_precip
     call getmem2d(caccr,jci1,jci2,ici1,ici2,'pcp:caccr')
     call getmem2d(pptsum,jci1,jci2,ici1,ici2,'pcp:pptsum')
     call getmem3d(dqc,jci1,jci2,ici1,ici2,1,kz,'pcp:dqc')
+    if ( ipptls == 2 ) then
+      call getmem3d(qln,jci1,jci2,ici1,ici2,1,kz,'pcp:qln')
+    end if
   end subroutine allocate_mod_precip
 
   subroutine init_precip
@@ -107,6 +113,8 @@ module mod_precip
     call assignpnt(atms%th700,th700)
     call assignpnt(atms%pb3d,p3)
     call assignpnt(atms%qxb3d,qx3)
+    call assignpnt(atms%qxb3d,qvn,iqv)
+    call assignpnt(atms%qxb3d,xqc,iqc)
     call assignpnt(atms%qsb3d,qs3)
     call assignpnt(atms%rhb3d,rh3)
     call assignpnt(atms%rhob3d,rho3)
@@ -135,6 +143,11 @@ module mod_precip
         call assignpnt(qdiag%acr,dia_acr)
       end if
     end if
+    if ( ipptls == 1 ) then
+      call assignpnt(atms%qxb3d,qln,iqc)
+    else if ( ipptls == 2 ) then
+      call assignpnt(atms%qxb3d,xqi,iqi)
+    end if
   end subroutine init_precip
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -156,7 +169,7 @@ module mod_precip
     implicit none
     real(rkx) :: dpovg , afc , pptacc , pptkm1 , pptmax ,       &
                 pptnew , qcleft , qcw , qs , rdevap , qcincl ,  &
-                rh , rhcs , rho , tcel , prainx , qcth , pptmin
+                rh , rhcs , rho , tcel , prainx , qcth
     integer(ik4) :: i , j , k , kk
     logical :: lsecind
     !
@@ -165,6 +178,15 @@ module mod_precip
     lsecind = (ichem == 1 .and. iaerosol == 1 .and. iindirect == 2)
     if ( l_lat_hack ) then
       call sun_cevap
+    end if
+    if ( ipptls == 2 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            qln(j,i,k) = xqc(j,i,k) + xqi(j,i,k)
+          end do
+        end do
+      end do
     end if
     if ( lsecind ) then
       do k = 1 , kz
@@ -176,7 +198,7 @@ module mod_precip
             ! water undergoing autoconversion
             ! pccn = number of ccn /m3
             ! In cloud mixing ratio [kg/kg]
-            qcincl = sum(qx3(j,i,k,iqfrst:iqlst))/pfcc(j,i,k)
+            qcincl = qln(j,i,k)/pfcc(j,i,k)
             qcth = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
                           ((rcrit*1e-6_rkx)**3)*rhow
             if ( idiag == 1 ) then
@@ -199,7 +221,7 @@ module mod_precip
             !     theshhold for auto-conversion.
             tcel = t3(j,i,k) - tzero   ![C][avg]
             ! In cloud mixing ratio [kg/kg]
-            qcincl = sum(qx3(j,i,k,iqfrst:iqlst))/pfcc(j,i,k)
+            qcincl = qln(j,i,k)/pfcc(j,i,k)
             qcth = cgul(j,i)*(d_10**(-0.489_rkx+0.0134_rkx*tcel))*d_r1000
             dqc(j,i,k) = qcincl - qcth
           end do
@@ -217,7 +239,6 @@ module mod_precip
     ! zero all accumulated precip
     !
     pptsum(:,:) = d_zero
-    pptmin = minqx/dt
     if ( ichem == 1 ) then
       premrat(:,:,:) = d_zero
       if ( lsecind .and. idiag == 1 ) then
@@ -228,8 +249,8 @@ module mod_precip
     !   maximum precipation rate (total cloud water/dt)
     do i = ici1 , ici2
       do j = jci1 , jci2
-        afc = pfcc(j,i,1)                     ![frac][avg]
-        qcw = sum(qx3(j,i,1,iqfrst:iqlst))    ![kg/kg][avg]
+        afc = pfcc(j,i,1)   ![frac][avg]
+        qcw = qln(j,i,1)    ![kg/kg][avg]
         pptnew = d_zero
         if ( afc > lowcld .and. qcw > qcmin ) then ! if there is a cloud
           ! 1ac. Compute the maximum precipation rate
@@ -256,7 +277,7 @@ module mod_precip
           end if
         end if
         ! 1ah. Accumulate precipitation and convert to kg/m2/s
-        if ( pptnew > d_zero ) then
+        if ( pptnew > pptmin ) then
           dpovg = dsigma(1)*psb(j,i)*thog    ![kg/m2]
           pptsum(j,i) = pptnew*dpovg         ![kg/m2/s][avg]
           ! 1ai. Compute the cloud water tendency [kg/kg/s*cb]
@@ -302,7 +323,7 @@ module mod_precip
             ! 2bcb. Raindrop evaporation [kg/kg/s]
             rdevap = xcevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(hicld-afc)
             qs = pfwsat(t3(j,i,k),p3(j,i,k))             ![kg/kg][avg]
-            rdevap = min((qs-qx3(j,i,k,iqv))/dt,rdevap)  ![kg/kg/s][avg]
+            rdevap = min((qs-qvn(j,i,k))/dt,rdevap)      ![kg/kg/s][avg]
             rdevap = min(max(rdevap,d_zero),pptkm1)      ![kg/kg/s][avg]
             ! 2bcc. Update the precipitation accounting for the raindrop
             !       evaporation [kg/m2/s]
@@ -314,7 +335,7 @@ module mod_precip
             ![k/s*cb][avg]
             tten(j,i,k) = tten(j,i,k) - wlhvocp*rdevap*psb(j,i)
           end if
-          qcw = sum(qx3(j,i,k,iqfrst:iqlst))              ![kg/kg][avg]
+          qcw = qln(j,i,k)   ![kg/kg][avg]
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
           if ( afc > lowcld .and. qcw > qcmin ) then ! if there is a cloud
             ! 1bdb. Compute the maximum precipation rate
@@ -340,7 +361,7 @@ module mod_precip
               pptnew = min(max(pptacc+pptnew,d_zero),pptmax)
             end if
           end if
-          if ( pptnew > d_zero ) then
+          if ( pptnew > pptmin ) then
             ! 1bg. Accumulate precipitation and convert to kg/m2/s
             pptsum(j,i) = pptsum(j,i) + pptnew*dpovg       ![kg/m2/s][avg]
             ! 1bh. Compute the cloud water tendency [kg/kg/s*cb]
@@ -376,7 +397,7 @@ module mod_precip
             prembc(j,i,k) = d_zero
             if ( premrat(j,i,k) > d_zero ) then
               do kk = 1 , k - 1
-                qcw = sum(qx3(j,i,kk,iqfrst:iqlst))
+                qcw = qln(j,i,k)
                 prembc(j,i,k) = prembc(j,i,k) + & ![mm/hr]
                   premrat(j,i,kk) * qcw * psb(j,i) * dsigma(kk) * uch
               end do
@@ -486,8 +507,8 @@ module mod_precip
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ptotc(j,i,k) = (qx3(j,i,k,iqc) + alphaice*qx3(j,i,k,iqi)) / &
-                                (d_one+qx3(j,i,k,iqv))
+            ptotc(j,i,k) = (xqc(j,i,k) + alphaice*xqi(j,i,k)) / &
+                                (d_one+qvn(j,i,k))
           end do
         end do
       end do
@@ -495,7 +516,7 @@ module mod_precip
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ptotc(j,i,k) = qx3(j,i,k,iqc)/(d_one+qx3(j,i,k,iqv))
+            ptotc(j,i,k) = xqc(j,i,k)/(d_one+qvn(j,i,k))
           end do
         end do
       end do
@@ -571,9 +592,9 @@ module mod_precip
             ! clouds below 750hPa, extremely cold conditions,
             !  when no cld microphy
             if ( p3(j,i,k) >= 75000.0_rkx .and. &
-                 qx3(j,i,k,iqv) <= 0.003_rkx ) then
+                 qvn(j,i,k) <= 0.003_rkx ) then
               pfcc(j,i,k) = pfcc(j,i,k) * &
-                     max(0.15_rkx,min(d_one,qx3(j,i,k,iqv)/0.003_rkx))
+                     max(0.15_rkx,min(d_one,qvn(j,i,k)/0.003_rkx))
               !
               ! Tuğba Öztürk mod for Siberia
               !

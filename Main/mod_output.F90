@@ -573,6 +573,9 @@ module mod_output
           end where
         end if
         if ( associated(srf_srunoff_out) ) then
+          where ( srf_srunoff_out < dlowval )
+            srf_srunoff_out = d_zero
+          end where
           where ( mddom%ldmsk > 0 )
             srf_srunoff_out = srf_srunoff_out*rnsrf_for_srffrq
           elsewhere
@@ -581,6 +584,9 @@ module mod_output
         end if
         if ( associated(srf_trunoff_out) ) then
           where ( mddom%ldmsk > 0 )
+            where ( srf_trunoff_out < dlowval )
+              srf_trunoff_out = d_zero
+            end where
             srf_trunoff_out = srf_trunoff_out*rnsrf_for_srffrq
           elsewhere
             srf_trunoff_out = dmissval
