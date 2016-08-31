@@ -55,7 +55,6 @@ module mod_precip
   real(rkx) , pointer , dimension(:,:,:) :: ptotc , pccn
   real(rkx) , pointer , dimension(:,:,:) :: dia_qcr , dia_qcl , dia_acr
 
-  real(rkx) :: qcth
   real(rkx) :: maxlat
 
   real(rkx) , parameter :: thog = d_1000*regrav
@@ -64,6 +63,7 @@ module mod_precip
 
   real(rkx) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
     cevap , caccr
+  real(rkx) , public , pointer , dimension(:,:,:) :: dqc
 
   logical :: l_lat_hack = .false.
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
@@ -87,6 +87,7 @@ module mod_precip
     call getmem2d(cevap,jci1,jci2,ici1,ici2,'pcp:cevap')
     call getmem2d(caccr,jci1,jci2,ici1,ici2,'pcp:caccr')
     call getmem2d(pptsum,jci1,jci2,ici1,ici2,'pcp:pptsum')
+    call getmem3d(dqc,jci1,jci2,ici1,ici2,1,kz,'pcp:dqc')
   end subroutine allocate_mod_precip
 
   subroutine init_precip
@@ -149,11 +150,55 @@ module mod_precip
   !
   subroutine pcp
     implicit none
-    real(rkx) :: dpovg , afc , ppa , pptacc , pptkm1 , pptmax , &
-                pptnew , qcincld , qcleft , qcw , qs , rdevap , &
-                rh , rhcs , rho , tcel , tk , prainx
+    real(rkx) :: dpovg , afc , pptacc , pptkm1 , pptmax ,       &
+                pptnew , qcleft , qcw , qs , rdevap , qcincl ,  &
+                rh , rhcs , rho , tcel , prainx , qcth
     integer(ik4) :: i , j , k , kk
+    logical :: lsecind
     !
+    ! 0. Compute dqc
+    !
+    lsecind = (ichem == 1 .and. iaerosol == 1 .and. iindirect == 2)
+    if ( lsecind ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ! include aerosol second indirect effect on threshold
+            ! auto-conversion
+            ! rcrit is a critical cloud radius for cloud
+            ! water undergoing autoconversion
+            ! pccn = number of ccn /m3
+            ! In cloud mixing ratio [kg/kg]
+            qcincl = sum(qx3(j,i,k,iqfrst:iqlst))/pfcc(j,i,k)
+            qcth = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+                          ((rcrit*1e-6_rkx)**3)*rhow
+            if ( idiag == 1 ) then
+              dia_qcr(j,i,k) = qcth
+              dia_qcl(j,i,k) = qcincl
+            end if
+            dqc(j,i,k) = qcincl - qcth
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ! 1ad. Implement here the formula for qcth.
+            !   - Gultepe & Isaac, J. Clim, 1997, v10 p446 table 4, eq 5
+            !   - The factor of 1000 converts from g/kg to kg/kg
+            !   - The factor of cgul accounts for the fact that the Gultepe
+            !     and Isaac equation is for mean cloud water while qcth is the
+            !     theshhold for auto-conversion.
+            tcel = t3(j,i,k) - tzero   ![C][avg]
+            ! In cloud mixing ratio [kg/kg]
+            qcincl = sum(qx3(j,i,k,iqfrst:iqlst))/pfcc(j,i,k)
+            qcth = cgul(j,i)*(d_10**(-0.489_rkx+0.0134_rkx*tcel))*d_r1000
+            dqc(j,i,k) = qcincl - qcth
+          end do
+        end do
+      end do
+    end if
     !--------------------------------------------------------------------
     ! 1. Compute the precipitation formed in each layer.
     !    The computations are performed from the top to the surface.
@@ -161,54 +206,28 @@ module mod_precip
     !    - Raindrop Accretion:  Beheng (1994); EQN 6
     !    - Raindrop Evaporation:  Sundqvist (1988); EQN 3.4a
     !--------------------------------------------------------------------
+    ! zero accumulated precip
+    pptsum(:,:) = d_zero
+    if ( ichem == 1 ) then
+      premrat(:,:,:) = d_zero
+      if ( lsecind .and. idiag == 1 ) then
+        dia_acr(:,:,:) = d_zero
+      end if
+    end if
     ! 1a. Perform computations for the top layer (layer 1)
     !   maximum precipation rate (total cloud water/dt)
-    pptsum(:,:) = d_zero ! zero accumulated precip
-    if ( ichem == 1 ) premrat(:,:,:) = d_zero
     do i = ici1 , ici2
       do j = jci1 , jci2
-        afc = pfcc(j,i,1)                                  ![frac][avg]
-        qcw = sum(qx3(j,i,1,iqfrst:iqlst))                 ![kg/kg][avg]
+        afc = pfcc(j,i,1)                     ![frac][avg]
+        qcw = sum(qx3(j,i,1,iqfrst:iqlst))    ![kg/kg][avg]
         if ( afc > lowcld .and. qcw > qcmin ) then ! if there is a cloud
-          ! 1aa. Compute temperature and humidities with the adjustments
-          !      due to convection.
-          tk = t3(j,i,1)                                     ![k][avg]
-          tcel = tk - tzero                                  ![C][avg]
-          ppa = p3(j,i,1)                                    ![Pa][avg]
-          rho = rho3(j,i,1)                                  ![kg/m3][avg]
-          ! 1ab. Calculate the in cloud mixing ratio [kg/kg]
-          qcincld = qcw/afc                                  ![kg/kg][cld]
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
           pptmax = max(qcw,d_zero)/dt                ![kg/kg/s][avg]
-          if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
-            ! include aerosol second indirect effect on threshold
-            ! auto-conversion
-            qcth = pccn(j,i,1)*(4.0_rkx/3.0_rkx)*mathpi * &
-                          ((rcrit*1e-6_rkx)**3)*rhow
-            if ( idiag == 1 ) then
-              dia_qcr(j,i,1) = qcth
-              dia_qcl(j,i,1) = qcincld
-            end if
-          else
-            ! 1ad. Implement here the formula for qcth.
-            !   - Gultepe & Isaac, J. Clim, 1997, v10 p446 table 4, eq 5
-            !   - The factor of 1000 converts from g/kg to kg/kg
-            !   - The factor of cgul accounts for the fact that the Gultepe
-            !     and Isaac equation is for mean cloud water while qcth is the
-            !     theshhold for auto-conversion.
-            qcth = cgul(j,i)*(d_10**(-0.489_rkx+0.0134_rkx*tcel))*d_r1000
-          end if
           ! 1ae. Compute the gridcell average autoconversion [kg/k g/s]
-          pptnew = qck1(j,i)*(qcincld-qcth)*afc   ![kg/kg/s][avg]
+          pptnew = qck1(j,i)*dqc(j,i,1)*afc   ![kg/kg/s][avg]
           pptnew = min(max(pptnew,d_zero),pptmax) ![kg/kg/s][avg]
-          if ( .false. .and. ichem == 1 .and. &
-               iaerosol == 1 .and. idiag == 1 ) then
-            dia_acr(j,i,1) = pptnew
-          end if
           if ( pptnew > pptmin ) then !   New precipitation
-            ! 1af. Compute the cloud removal rate (for chemistry) [1/s]
-            if ( ichem == 1 ) premrat(j,i,1) = pptnew/qcw
             ! 1ag. Compute the amount of cloud water removed by raindrop
             !      accretion [kg/kg/s].  In the layer where the precipitation
             !      is formed, only half of the precipitation is assumed to
@@ -216,6 +235,7 @@ module mod_precip
             !      cloud [kg/kg]
             qcleft = qcw - pptnew*dt ![kg/kg][avg]
             ! 1agb. Add 1/2 of the new precipitation can accrete.
+            rho = rho3(j,i,1)                 ![kg/m3][avg]
             pptkm1 = d_half*pptnew/afc*rho*dt ![kg/m3][cld]
             ! 1agc. Accretion [kg/kg/s]=[m3/kg/s]*[kg/kg]*[kg/m3]
             pptacc = caccr(j,i)*qcleft*pptkm1 ![kg/kg/s][avg]
@@ -228,6 +248,13 @@ module mod_precip
             ! 1ai. Compute the cloud water tendency [kg/kg/s*cb]
             ! [kg/kg/s*cb][avg]
             qxten(j,i,1,iqc) = qxten(j,i,1,iqc) - pptnew*psb(j,i)
+            ! 1af. Compute the cloud removal rate (for chemistry) [1/s]
+            if ( ichem == 1 ) then
+              premrat(j,i,1) = pptnew/qcw
+              if ( lsecind .and. idiag == 1 ) then
+                dia_acr(j,i,1) = pptnew
+              end if
+            end if
           else  !   Cloud but no new precipitation
             pptsum(j,i) = d_zero ![kg/m2/s][avg]
           end if
@@ -243,16 +270,6 @@ module mod_precip
     do k = 2 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          !1ba. Compute temperature and humidities with the adjustments
-          !     due to convection.
-          tk = t3(j,i,k)                                     ![k][avg]
-          tcel = tk - tzero                                  ![C][avg]
-          ppa = p3(j,i,k)                                    ![Pa][avg]
-          rho = rho3(j,i,k)                                  ![kg/m3][avg]
-          qcw = sum(qx3(j,i,k,iqfrst:iqlst))                 ![kg/kg][avg]
-          afc = pfcc(j,i,k)                                  ![frac][avg]
-          qs = pfwsat(tk,ppa)                                ![kg/kg][avg]
-          rh = rh3(j,i,k)                                    ![frac][avg]
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
           dpovg = dsigma(k)*psb(j,i)*thog                    ![kg/m2][avg]
@@ -266,8 +283,10 @@ module mod_precip
           !  - It is assumed that raindrops do not evaporate in clouds
           !    and the rainfall from above is evenly distributed in
           !    gridcell (i.e. the gridcell average precipitation is used).
+          afc = pfcc(j,i,k)                              ![frac][avg]
           if ( pptsum(j,i) > pptmin .and. afc < hicld ) then
             ! 2bca. Compute the clear sky relative humidity
+            rh = rh3(j,i,k)                              ![frac][avg]
             rhcs = (rh-afc*rhmax)/(hicld-afc)            ![frac][clr]
             rhcs = max(min(rhcs,rhmax),rhmin)            ![frac][clr]
             ! 2bcb. Raindrop evaporation [kg/kg/s]
@@ -277,8 +296,9 @@ module mod_precip
             else
               rdevap = cevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(hicld-afc)
             end if
+            qs = pfwsat(t3(j,i,k),p3(j,i,k))             ![kg/kg][avg]
             rdevap = min((qs-qx3(j,i,k,iqv))/dt,rdevap)  ![kg/kg/s][avg]
-            rdevap = min(max(rdevap,d_zero),pptkm1)    ![kg/kg/s][avg]
+            rdevap = min(max(rdevap,d_zero),pptkm1)      ![kg/kg/s][avg]
             ! 2bcc. Update the precipitation accounting for the raindrop
             !       evaporation [kg/m2/s]
             pptsum(j,i) = pptsum(j,i) - rdevap*dpovg       ![kg/m2/s][avg]
@@ -288,44 +308,16 @@ module mod_precip
             ! 2bcf. Compute the temperature tendency [K/s*cb]
             ![k/s*cb][avg]
             tten(j,i,k) = tten(j,i,k) - wlhvocp*rdevap*psb(j,i)
-          else
-            !   no precipitation from above
-            rdevap = d_zero                                  ![kg/kg/s][avg]
           end if
+          qcw = sum(qx3(j,i,k,iqfrst:iqlst))              ![kg/kg][avg]
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
           if ( afc > lowcld .and. qcw > qcmin ) then ! if there is a cloud
-            ! 1bda. Calculate the in cloud mixing ratio [kg/kg]
-            qcincld = qcw/afc                                ![kg/kg][cld]
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
-            pptmax = max(qcw,d_zero)/dt              ![kg/kg/s][avg]
-            if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
-              ! FAB: aerosol second indirect effect on autoconversion
-              ! threshold, rcrit is a critical cloud radius for cloud
-              ! water undergoing autoconversion
-              ! pccn = number of ccn /m3
-              qcth = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
-                         ((rcrit*1e-6_rkx)**3)*rhow
-              if ( idiag == 1 ) then
-                dia_qcr(j,i,k) = qcth
-                dia_qcl(j,i,k) = qcincld
-              end if
-            else
-              ! 1bdc. Implement the Gultepe & Isaac formula for qcth.
-              ![kg/kg][cld]
-              qcth = cgul(j,i)*(d_10**(-0.489_rkx+0.0134_rkx*tcel))*d_r1000
-            end if
+            pptmax = max(qcw,d_zero)/dt                  ![kg/kg/s][avg]
             ! 1bdd. Compute the gridcell average autoconversion [kg/kg/s]
-            pptnew = qck1(j,i)*(qcincld-qcth)*afc            ![kg/kg/s][avg]
+            pptnew = qck1(j,i)*dqc(j,i,k)*afc            ![kg/kg/s][avg]
             pptnew = min(max(pptnew,d_zero),pptmax)      ![kg/kg/s][avg]
-            if ( .false. .and. ichem == 1 .and. &
-                 iaerosol == 1 .and. idiag == 1 ) then
-              dia_acr(j,i,k) = pptnew
-            end if
-            ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
-            if ( ichem == 1  .and. pptnew > pptmin ) then
-              premrat(j,i,k) = pptnew/qcw
-            end if
             ! 1bf. Compute the amount of cloud water removed by raindrop
             !      accretion [kg/kg/s].  In the layer where the precipitation
             !      is formed, only half of the precipitation can accrete.
@@ -334,20 +326,26 @@ module mod_precip
               qcleft = qcw-pptnew*dt                         ![kg/kg][avg]
               ! 1bfb. Add 1/2 of the new precipitation to the accumulated
               !       precipitation [kg/m3]
+              rho = rho3(j,i,k)                              ![kg/m3][avg]
               pptkm1 = (pptkm1+d_half*pptnew/afc)*rho*dt     ![kg/m3][cld]
               ! 1bfc. accretion [kg/kg/s]
               pptacc = caccr(j,i)*qcleft*pptkm1              ![kg/kg/s][avg]
               ! 1bfd. Update the precipitation accounting for the
               !       accretion [kg/kg/s]
-              pptnew = min(pptmax,pptacc+pptnew)           ![kg/kg/s][avg]
+              pptnew = min(max(pptacc+pptnew,d_zero),pptmax) ![kg/kg/s][avg]
+              ! 1bg. Accumulate precipitation and convert to kg/m2/s
+              pptsum(j,i) = pptsum(j,i) + pptnew*dpovg       ![kg/m2/s][avg]
+              ! 1bh. Compute the cloud water tendency [kg/kg/s*cb]
+              ![kg/kg/s*cb][avg]
+              qxten(j,i,k,iqc) = qxten(j,i,k,iqc) - pptnew*psb(j,i)
+              ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
+              if ( ichem == 1 ) then
+                premrat(j,i,k) = pptnew/qcw
+                if (lsecind .and. idiag == 1 ) then
+                  dia_acr(j,i,k) = pptnew
+                end if
+              end if
             end if
-            ! 1bg. Accumulate precipitation and convert to kg/m2/s
-            pptsum(j,i) = pptsum(j,i) + pptnew*dpovg        ![kg/m2/s][avg]
-            ! 1bh. Compute the cloud water tendency [kg/kg/s*cb]
-            ![kg/kg/s*cb][avg]
-            qxten(j,i,k,iqc) = qxten(j,i,k,iqc) - pptnew*psb(j,i)
-          else
-            pptnew = d_zero ![kg/kg/s][avg]
           end if
         end do
       end do
