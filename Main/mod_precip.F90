@@ -270,11 +270,12 @@ module mod_precip
     do k = 2 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
+          pptnew = d_zero
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
           dpovg = dsigma(k)*psb(j,i)*thog                    ![kg/m2][avg]
-          if ( pptsum(j,i) > pptmin ) then
-            pptkm1 = pptsum(j,i)/dpovg                         ![kg/kg/s][avg]
+          if ( pptsum(j,i) > d_zero ) then
+            pptkm1 = pptsum(j,i)/dpovg                       ![kg/kg/s][avg]
           else
             pptkm1 = d_zero
           end if
@@ -284,7 +285,7 @@ module mod_precip
           !    and the rainfall from above is evenly distributed in
           !    gridcell (i.e. the gridcell average precipitation is used).
           afc = pfcc(j,i,k)                              ![frac][avg]
-          if ( pptsum(j,i) > pptmin .and. afc < hicld ) then
+          if ( pptkm1 > pptmin .and. afc < hicld ) then
             ! 2bca. Compute the clear sky relative humidity
             rh = rh3(j,i,k)                              ![frac][avg]
             rhcs = (rh-afc*rhmax)/(hicld-afc)            ![frac][clr]
@@ -301,7 +302,7 @@ module mod_precip
             rdevap = min(max(rdevap,d_zero),pptkm1)      ![kg/kg/s][avg]
             ! 2bcc. Update the precipitation accounting for the raindrop
             !       evaporation [kg/m2/s]
-            pptsum(j,i) = pptsum(j,i) - rdevap*dpovg       ![kg/m2/s][avg]
+            pptsum(j,i) = max(pptsum(j,i)-rdevap*dpovg,d_zero) ![kg/m2/s][avg]
             ! 2bcf. Compute the water vapor tendency [kg/kg/s*cb]
             ![kg/kg/s*cb][avg]
             qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + rdevap*psb(j,i)
@@ -332,20 +333,20 @@ module mod_precip
               pptacc = caccr(j,i)*qcleft*pptkm1              ![kg/kg/s][avg]
               ! 1bfd. Update the precipitation accounting for the
               !       accretion [kg/kg/s]
-              pptnew = min(max(pptacc+pptnew,d_zero),pptmax) ![kg/kg/s][avg]
+              pptnew = min(max(pptacc+pptnew,d_zero),pptmax)
             end if
-            if ( pptnew > pptmin ) then
-              ! 1bg. Accumulate precipitation and convert to kg/m2/s
-              pptsum(j,i) = pptsum(j,i) + pptnew*dpovg       ![kg/m2/s][avg]
-              ! 1bh. Compute the cloud water tendency [kg/kg/s*cb]
-              ![kg/kg/s*cb][avg]
-              qxten(j,i,k,iqc) = qxten(j,i,k,iqc) - pptnew*psb(j,i)
-              ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
-              if ( ichem == 1 ) then
-                premrat(j,i,k) = pptnew/qcw
-                if (lsecind .and. idiag == 1 ) then
-                  dia_acr(j,i,k) = pptnew
-                end if
+          end if
+          if ( pptnew > d_zero ) then
+            ! 1bg. Accumulate precipitation and convert to kg/m2/s
+            pptsum(j,i) = pptsum(j,i) + pptnew*dpovg       ![kg/m2/s][avg]
+            ! 1bh. Compute the cloud water tendency [kg/kg/s*cb]
+            ![kg/kg/s*cb][avg]
+            qxten(j,i,k,iqc) = qxten(j,i,k,iqc) - pptnew*psb(j,i)
+            ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
+            if ( ichem == 1 ) then
+              premrat(j,i,k) = pptnew/qcw
+              if (lsecind .and. idiag == 1 ) then
+                dia_acr(j,i,k) = pptnew
               end if
             end if
           end if
