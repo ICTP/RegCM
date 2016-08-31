@@ -62,7 +62,7 @@ module mod_precip
   real(rkx) , parameter :: alphaice = d_four
 
   real(rkx) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
-    cevap , caccr
+    cevap , xcevap , caccr
   real(rkx) , public , pointer , dimension(:,:,:) :: dqc
 
   logical :: l_lat_hack = .false.
@@ -84,6 +84,11 @@ module mod_precip
     call getmem2d(cgul,jci1,jci2,ici1,ici2,'pcp:cgul')
     call getmem2d(rh0,jci1,jci2,ici1,ici2,'pcp:rh0')
     call getmem2d(cevap,jci1,jci2,ici1,ici2,'pcp:cevap')
+    if ( l_lat_hack ) then
+      call getmem2d(xcevap,jci1,jci2,ici1,ici2,'pcp:xcevap')
+    else
+      call assignpnt(cevap,xcevap)
+    end if
     call getmem2d(caccr,jci1,jci2,ici1,ici2,'pcp:caccr')
     call getmem2d(pptsum,jci1,jci2,ici1,ici2,'pcp:pptsum')
     call getmem3d(dqc,jci1,jci2,ici1,ici2,1,kz,'pcp:dqc')
@@ -158,6 +163,9 @@ module mod_precip
     ! 0. Compute dqc
     !
     lsecind = (ichem == 1 .and. iaerosol == 1 .and. iindirect == 2)
+    if ( l_lat_hack ) then
+      call sun_cevap
+    end if
     if ( lsecind ) then
       do k = 1 , kz
         do i = ici1 , ici2
@@ -292,12 +300,7 @@ module mod_precip
             rhcs = (rh-afc*rhmax)/(hicld-afc)            ![frac][clr]
             rhcs = max(min(rhcs,rhmax),rhmin)            ![frac][clr]
             ! 2bcb. Raindrop evaporation [kg/kg/s]
-            if ( l_lat_hack ) then
-              rdevap = sun_cevap(j,i)*(rhmax-rhcs) * &
-                           sqrt(pptsum(j,i))*(hicld-afc)
-            else
-              rdevap = cevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(hicld-afc)
-            end if
+            rdevap = xcevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(hicld-afc)
             qs = pfwsat(t3(j,i,k),p3(j,i,k))             ![kg/kg][avg]
             rdevap = min((qs-qx3(j,i,k,iqv))/dt,rdevap)  ![kg/kg/s][avg]
             rdevap = min(max(rdevap,d_zero),pptkm1)      ![kg/kg/s][avg]
@@ -425,18 +428,22 @@ module mod_precip
       sf = (d_one + delta/dmax)/d_two
     end function season_factor
 
-    pure real(rkx) function sun_cevap(j,i) result(sc)
+    subroutine sun_cevap
       use mod_atm_interface , only : mddom
       implicit none
-      integer , intent(in) :: i , j
+      integer(ik4) :: i , j
       real(rkx) :: xxlat
       ! cevap minimum seasonal paraneter
       real(rkx) , parameter :: mincevap = 1.0e-5_rkx
-      xxlat = mddom%xlat(j,i)
-      sc = max(cevap(j,i) * (d_one - &
-        (sin(abs(xxlat*90.0_rkx/maxlat)*degrad) * &
-         season_factor(xxlat))), mincevap)
-    end function sun_cevap
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          xxlat = mddom%xlat(j,i)
+          xcevap(j,i) = max(cevap(j,i) * (d_one - &
+                     (sin(abs(xxlat*90.0_rkx/maxlat)*degrad) * &
+                      season_factor(xxlat))), mincevap)
+        end do
+      end do
+    end subroutine sun_cevap
 
   end subroutine pcp
   !

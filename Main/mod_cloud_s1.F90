@@ -1361,6 +1361,7 @@ module mod_cloud_s1
         ! Growth considered as sink of liquid water if present so
         ! Bergeron-Findeisen adjustment in autoconversion term no longer needed
         !----------------------------------------------------------------------
+
         chng(:,:) = d_zero
 
         do i = ici1 , ici2
@@ -1471,6 +1472,7 @@ module mod_cloud_s1
             icecld(j,i) = qxfg(j,i,iqqi)*tmpa
           end do
         end do
+
         !------------------------------------------------------------------
         !  SEDIMENTATION/FALLING OF *ALL* MICROPHYSICAL SPECIES
         !     now that rain and snow species are prognostic
@@ -1495,46 +1497,48 @@ module mod_cloud_s1
           end if  !lfall
         end do ! n
 
-        !---------------------------------------------------------------
-        ! Precip cover overlap using MAX-RAN Overlap
-        ! Since precipitation is now prognostic we must
-        !   1) apply an arbitrary minimum coverage (0.3) if precip>0
-        !   2) abandon the 2-flux clr/cld treatment
-        !   3) Thus, since we have no memory of the clear sky precip
-        !      fraction, we mimic the previous method by reducing
-        !      COVPTOT(JL), which has the memory, proportionally with
-        !      the precip evaporation rate, taking cloud fraction
-        !      into account
-        !   #3 above leads to much smoother vertical profiles of
-        !   precipitation fraction than the Klein-Jakob scheme which
-        !   monotonically increases precip fraction and then resets
-        !   it to zero in a step function once clear-sky precip reaches
-        !   zero.
-        !   Maximum overlap for clouds in adjacent levels and random
-        !   overlap for clouds separated by clear levels.
-        !---------------------------------------------------------------
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( qpretot(j,i) > dlowval ) then
-              covptot(j,i) = d_one - ((d_one-covptot(j,i)) * &
-                              (d_one - max(fccfg(j,i,k),fccfg(j,i,k-1))) / &
-                              (d_one - min(fccfg(j,i,k-1),hicld)))
-              covptot(j,i) = max(covptot(j,i),rcovpmin)   !rcovpmin = 0.1
-              ! clear sky proportion
-              covpclr(j,i) = max(d_zero,covptot(j,i)-fccfg(j,i,k))
-            else
-              covptot(j,i) = d_zero  ! no flux - reset cover
-              covpclr(j,i) = d_zero  ! reset clear sky proportion
-            end if
+        if ( lsimply ) then
+
+          ! The precipitative part is in subroutine pcp
+
+        else
+          !---------------------------------------------------------------
+          ! Precip cover overlap using MAX-RAN Overlap
+          ! Since precipitation is now prognostic we must
+          !   1) apply an arbitrary minimum coverage (0.3) if precip>0
+          !   2) abandon the 2-flux clr/cld treatment
+          !   3) Thus, since we have no memory of the clear sky precip
+          !      fraction, we mimic the previous method by reducing
+          !      COVPTOT(JL), which has the memory, proportionally with
+          !      the precip evaporation rate, taking cloud fraction
+          !      into account
+          !   #3 above leads to much smoother vertical profiles of
+          !   precipitation fraction than the Klein-Jakob scheme which
+          !   monotonically increases precip fraction and then resets
+          !   it to zero in a step function once clear-sky precip reaches
+          !   zero.
+          !   Maximum overlap for clouds in adjacent levels and random
+          !   overlap for clouds separated by clear levels.
+          !---------------------------------------------------------------
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( qpretot(j,i) > dlowval ) then
+                covptot(j,i) = d_one - ((d_one-covptot(j,i)) * &
+                                (d_one - max(fccfg(j,i,k),fccfg(j,i,k-1))) / &
+                                (d_one - min(fccfg(j,i,k-1),hicld)))
+                covptot(j,i) = max(covptot(j,i),rcovpmin)   !rcovpmin = 0.1
+                ! clear sky proportion
+                covpclr(j,i) = max(d_zero,covptot(j,i)-fccfg(j,i,k))
+              else
+                covptot(j,i) = d_zero  ! no flux - reset cover
+                covpclr(j,i) = d_zero  ! reset clear sky proportion
+              end if
+            end do
           end do
-        end do
-        !---------------------------------------------------------------
-        !                         AUTOCONVERSION
-        !---------------------------------------------------------------
-
-        ! Warm clouds
-
-        if ( .not. lsimply ) then
+          !---------------------------------------------------------------
+          !                         AUTOCONVERSION
+          !---------------------------------------------------------------
+          ! Warm clouds
           select case (iautoconv)
             case (1) ! Klein & Pincus (2000)
               do i = ici1 , ici2
@@ -1649,6 +1653,7 @@ module mod_cloud_s1
               end if
             end do
           end do
+
         end if
 
         !---------------------------------------------------------------
@@ -1736,11 +1741,16 @@ module mod_cloud_s1
         !------------------------------------------------------------!
         !                         FREEZING                           !
         !------------------------------------------------------------!
-        !Freezing of rain.
-        !All rain freezes in a timestep if the temperature is below 0 C
-        !calculate sublimation latent heat
 
-        if ( .not. lsimply ) then
+        if ( lsimply ) then
+
+          ! No rain freezing
+
+        else
+          ! Freezing of rain.
+          ! All rain freezes in a timestep if the temperature is below 0 C
+          ! calculate sublimation latent heat
+
           do i = ici1 , ici2
             do j = jci1 , jci2
               chngmax(j,i) = max((tzero-t(j,i,k))*rldcp,d_zero)
@@ -1767,6 +1777,7 @@ module mod_cloud_s1
               end do
             end do
           end if
+
         end if
 
         ! Freezing of liquid
@@ -1799,6 +1810,7 @@ module mod_cloud_s1
             end do
           end do
         end if
+
         !---------------------------------------------------------------
         !                         EVAPORATION
         !---------------------------------------------------------------
@@ -1809,7 +1821,13 @@ module mod_cloud_s1
         ! is done to prevent the gridbox saturating due to the evaporation
         ! of precipitation occuring in a portion of the grid
         !------------------------------------------------------------
-        if ( .not. lsimply ) then
+
+        if ( lsimply ) then
+
+          ! Evaporation treated in pcp subroutine
+
+        else
+
           do i = ici1 , ici2
             do j = jci1 , jci2
              ! if ( iphase(n) == 2 ) then
@@ -1958,13 +1976,11 @@ module mod_cloud_s1
               end do
             end do
           end if
-        else
-
-          ! Precipitation evaporation ....
 
         end if
 
       end if !lmicro
+
       !--------------------------------
       ! solver for the microphysics
       !--------------------------------
@@ -2311,35 +2327,36 @@ module mod_cloud_s1
     ! Copy general precip arrays back into FP arrays
     ! Add rain and liquid fluxes, ice and snow fluxes
     !--------------------------------------------------------------------
-    !Rain+liquid, snow+ice
-    !for each level k = 1 , kz, sum of the same phase elements
-    do n = 1 , nqx
-      if ( iphase(n) == 1 ) then
-        do k = 1 , kz+1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(j,i,k,n)
-              rainls(j,i,k) = pfplsl(j,i,k)
-            end do
-          end do
-        end do
-      else if ( iphase(n) == 2 ) then
-        do k = 1 , kz+1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              pfplsn(j,i,k) = pfplsn(j,i,k)+ pfplsx(j,i,k,n)
-            end do
-          end do
-        end do
-      end if
-    end do
 
-    !--------------------------------------------------------------------
-    !Convert the accumlated precipitation to appropriate units for
-    !the surface physics and the output sum up through the levels
-    !--------------------------------------------------------------------
-    ! sum over the levels
-    if ( .not. lsimply ) then
+    if ( lsimply ) then
+      ! precipitation is computed in pcp subroutine
+    else
+      ! Rain+liquid, snow+ice
+      ! for each level k = 1 , kz, sum of the same phase elements
+      do n = 1 , nqx
+        if ( iphase(n) == 1 ) then
+          do k = 1 , kz+1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(j,i,k,n)
+                rainls(j,i,k) = pfplsl(j,i,k)
+              end do
+            end do
+          end do
+        else if ( iphase(n) == 2 ) then
+          do k = 1 , kz+1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                pfplsn(j,i,k) = pfplsn(j,i,k)+ pfplsx(j,i,k,n)
+              end do
+            end do
+          end do
+        end if
+      end do
+      !--------------------------------------------------------------
+      ! Convert the accumlated precipitation to appropriate units for
+      ! the surface physics and the output sum up through the levels
+      !--------------------------------------------------------------
       do i = ici1 , ici2
         do j = jci1 , jci2
           prainx = pfplsl(j,i,kz+1)*dt
