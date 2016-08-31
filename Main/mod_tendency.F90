@@ -761,6 +761,9 @@ module mod_tendency
       call cldfrac
       if ( ipptls == 2 ) then
         call microphys
+        if ( lsimply ) then
+          call pcp
+        end if
       else
         call pcp
       end if

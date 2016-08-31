@@ -168,7 +168,7 @@ module mod_precip
     do i = ici1 , ici2
       do j = jci1 , jci2
         afc = pfcc(j,i,1)                                  ![frac][avg]
-        qcw = qx3(j,i,1,iqc)                               ![kg/kg][avg]
+        qcw = sum(qx3(j,i,1,iqfrst:iqlst))                 ![kg/kg][avg]
         if ( afc > lowcld .and. qcw > qcmin ) then ! if there is a cloud
           ! 1aa. Compute temperature and humidities with the adjustments
           !      due to convection.
@@ -249,7 +249,7 @@ module mod_precip
           tcel = tk - tzero                                  ![C][avg]
           ppa = p3(j,i,k)                                    ![Pa][avg]
           rho = rho3(j,i,k)                                  ![kg/m3][avg]
-          qcw = qx3(j,i,k,iqc)                               ![kg/kg][avg]
+          qcw = sum(qx3(j,i,k,iqfrst:iqlst))                 ![kg/kg][avg]
           afc = pfcc(j,i,k)                                  ![frac][avg]
           qs = pfwsat(tk,ppa)                                ![kg/kg][avg]
           rh = rh3(j,i,k)                                    ![frac][avg]
@@ -371,8 +371,9 @@ module mod_precip
             prembc(j,i,k) = d_zero
             if ( premrat(j,i,k) > d_zero ) then
               do kk = 1 , k - 1
+                qcw = sum(qx3(j,i,kk,iqfrst:iqlst))
                 prembc(j,i,k) = prembc(j,i,k) + & ![mm/hr]
-                  premrat(j,i,kk)*qx3(j,i,kk,iqc) * psb(j,i)*dsigma(kk)*uch
+                  premrat(j,i,kk) * qcw * psb(j,i) * dsigma(kk) * uch
               end do
               ! the below cloud precipitation rate is now used
               ! directly in chemistry

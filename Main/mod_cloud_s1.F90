@@ -25,7 +25,7 @@ module mod_cloud_s1
   use mod_regcm_types
   use mod_constants
   use mod_service
-  use mod_runparams , only : nqx
+  use mod_runparams , only : lsimply , nqx
   use mod_runparams , only : iqqv => iqv !vapor
   use mod_runparams , only : iqql => iqc !liquid
   use mod_runparams , only : iqqr => iqr !rain
@@ -76,13 +76,13 @@ module mod_cloud_s1
   ! temperature homogeneous freezing
   real(rkx) , parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
   ! Cloud fraction threshold that defines cloud top
-  real(rkx), parameter :: cldtopcf = d_r100
+  real(rkx) , parameter :: cldtopcf = d_r100
   ! Fraction of deposition rate in cloud top layer
-  real(rkx), parameter :: depliqrefrate = d_r10
+  real(rkx) , parameter :: depliqrefrate = d_r10
   ! Depth of supercooled liquid water layer (m)
-  real(rkx), parameter :: depliqrefdepth = 500.0_rkx
+  real(rkx) , parameter :: depliqrefdepth = 500.0_rkx
   ! initial mass of ice particle
-  real(rkx), parameter :: iceinit = 1.e-12_rkx
+  real(rkx) , parameter :: iceinit = 1.e-12_rkx
 
   public :: allocate_mod_cloud_s1 , init_cloud_s1 , microphys
 
@@ -395,25 +395,28 @@ module mod_cloud_s1
     ! Define species phase, 0 = vapour, 1 = liquid, 2 = ice
     iphase(iqqv) = 0
     iphase(iqql) = 1
-    iphase(iqqr) = 1
     iphase(iqqi) = 2
-    iphase(iqqs) = 2
 
     ! Set up melting/freezing index,
     ! if an ice category melts/freezes, where does it go?
 
     imelt(iqqv) = -99
     imelt(iqql) = iqqi
-    imelt(iqqr) = iqqs
     imelt(iqqi) = iqql
-    imelt(iqqs) = iqqr
 
     ! Set the fall velocities
     vqx(iqqv) = d_zero ! * sqrt(QX(JL,JK,IQV))
     vqx(iqql) = d_zero ! * sqrt(QX(JL,JK,IQL))
-    vqx(iqqr) = vfqr   !4.0_rkx  * sqrt(QX(JL,JK,IQR))
     vqx(iqqi) = vfqi   !0.15_rkx * sqrt(QX(JL,JK,IQI))
-    vqx(iqqs) = vfqs   !1.0_rkx  * sqrt(QX(JL,JK,IQS))
+
+    if ( .not. lsimply ) then
+      iphase(iqqr) = 1
+      iphase(iqqs) = 2
+      imelt(iqqr) = iqqs
+      imelt(iqqs) = iqqr
+      vqx(iqqr) = vfqr   !4.0_rkx  * sqrt(QX(JL,JK,IQR))
+      vqx(iqqs) = vfqs   !1.0_rkx  * sqrt(QX(JL,JK,IQS))
+    end if
 
     ! Set lfall
     do n = 1 , nqx
@@ -955,7 +958,7 @@ module mod_cloud_s1
       !------------------------------------------------------------------
       !                 DETRAINMENT FROM CONVECTION
       !------------------------------------------------------------------
-      ! chng(:,:) = d_zero
+      !chng(:,:) = d_zero
       if ( k < kz .and. k >= 1 ) then
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -1531,119 +1534,122 @@ module mod_cloud_s1
 
         ! Warm clouds
 
-        select case (iautoconv)
-          case (1) ! Klein & Pincus (2000)
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( liqcld(j,i) > minqx ) then
-                  solqb(j,i,iqql,iqqv) = d_zero
-                  solqb(j,i,iqqr,iqql) = solqb(j,i,iqqr,iqql) + &
-                    dt*auto_rate_klepi * (qx0(j,i,k,iqql)**(2.3_rkx))
-                  solqa(j,i,iqqr,iqql) = d_zero
-                end if
-              end do
-            end do
-          case (2) ! Khairoutdinov and Kogan (2000)
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( liqcld(j,i) > minqx ) then
-                  solqb(j,i,iqql,iqqv) = d_zero
-                  solqb(j,i,iqqr,iqql) = solqb(j,i,iqqr,iqql) + &
-                    dt*auto_rate_khair*(qx0(j,i,k,iqql)**(auto_expon_khair))
-                end if
-              end do
-            end do
-          case (3) ! Kessler(1969)
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( liqcld(j,i) > minqx ) then
-                  solqb(j,i,iqql,iqqv) = d_zero
-                  solqa(j,i,iqqr,iqql) = solqa(j,i,iqqr,iqql) - &
-                               auto_rate_kessl*autocrit_kessl
-                  solqa(j,i,iqql,iqqr) = solqa(j,i,iqql,iqqr) + &
-                               auto_rate_kessl*autocrit_kessl
-                  solqb(j,i,iqqr,iqql) = solqb(j,i,iqqr,iqql) + &
-                               dt*auto_rate_kessl
-                end if
-              end do
-            end do
-          case (4) ! Sundqvist
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( liqcld(j,i) > minqx ) then
-                  solqb(j,i,iqql,iqqv) = d_zero
-                  alpha1 = rkconv*dt
-                  ! modify autoconversion threshold dependent on:
-                  ! land (polluted, high ccn, smaller droplets, higher
-                  !       threshold)
-                  ! sea  (clean, low ccn, larger droplets, lower threshold)
-                  if ( ldmsk(j,i) == 0 ) then  ! landmask =0 land, =1 ocean
-                    ! THRESHOLD VALUE FOR RAIN AUTOCONVERSION OVER LAND
-                    xlcrit = rclcrit_land ! landrclcrit_land = 5.e-4
-                  else
-                    xlcrit = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
+        if ( .not. lsimply ) then
+          select case (iautoconv)
+            case (1) ! Klein & Pincus (2000)
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  if ( liqcld(j,i) > minqx ) then
+                    solqb(j,i,iqql,iqqv) = d_zero
+                    solqb(j,i,iqqr,iqql) = solqb(j,i,iqqr,iqql) + &
+                      dt*auto_rate_klepi * (qx0(j,i,k,iqql)**(2.3_rkx))
+                    solqa(j,i,iqqr,iqql) = d_zero
                   end if
-                  if ( ichem == 1 .and. &
-                       iaerosol == 1 .and. &
-                       iindirect == 2 ) then
-                    if ( pccn(j,i,k) > 0._rkx ) then
-                      ! aerosol second indirect effect on autoconversion
-                      ! threshold, rcrit is a critical cloud radius for cloud
-                      ! water undergoing autoconversion
-                      ! pccn = number of ccn /m3
-                      xlcrit = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
-                               ((rcrit*1e-6_rkx)**3)*rhoh2o
+                end do
+              end do
+            case (2) ! Khairoutdinov and Kogan (2000)
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  if ( liqcld(j,i) > minqx ) then
+                    solqb(j,i,iqql,iqqv) = d_zero
+                    solqb(j,i,iqqr,iqql) = solqb(j,i,iqqr,iqql) + &
+                      dt*auto_rate_khair*(qx0(j,i,k,iqql)**(auto_expon_khair))
+                  end if
+                end do
+              end do
+            case (3) ! Kessler(1969)
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  if ( liqcld(j,i) > minqx ) then
+                    solqb(j,i,iqql,iqqv) = d_zero
+                    solqa(j,i,iqqr,iqql) = solqa(j,i,iqqr,iqql) - &
+                                 auto_rate_kessl*autocrit_kessl
+                    solqa(j,i,iqql,iqqr) = solqa(j,i,iqql,iqqr) + &
+                                 auto_rate_kessl*autocrit_kessl
+                    solqb(j,i,iqqr,iqql) = solqb(j,i,iqqr,iqql) + &
+                                 dt*auto_rate_kessl
+                  end if
+                end do
+              end do
+            case (4) ! Sundqvist
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  if ( liqcld(j,i) > minqx ) then
+                    solqb(j,i,iqql,iqqv) = d_zero
+                    alpha1 = rkconv*dt
+                    ! modify autoconversion threshold dependent on:
+                    ! land (polluted, high ccn, smaller droplets, higher
+                    !       threshold)
+                    ! sea  (clean, low ccn, larger droplets, lower threshold)
+                    if ( ldmsk(j,i) == 0 ) then  ! landmask =0 land, =1 ocean
+                      ! THRESHOLD VALUE FOR RAIN AUTOCONVERSION OVER LAND
+                      xlcrit = rclcrit_land ! landrclcrit_land = 5.e-4
+                    else
+                      xlcrit = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
+                    end if
+                    if ( ichem == 1 .and. &
+                         iaerosol == 1 .and. &
+                         iindirect == 2 ) then
+                      if ( pccn(j,i,k) > 0._rkx ) then
+                        ! aerosol second indirect effect on autoconversion
+                        ! threshold, rcrit is a critical cloud radius for cloud
+                        ! water undergoing autoconversion
+                        ! pccn = number of ccn /m3
+                        xlcrit = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+                                 ((rcrit*1e-6_rkx)**3)*rhoh2o
+                      endif
                     endif
-                  endif
-                  !-----------------------------------------------------------
-                  ! parameters for cloud collection by rain and snow.
-                  ! note that with new prognostic variable it is now possible
-                  ! to replace this with an explicit collection parametrization
-                  !-----------------------------------------------------------
-                  precip = (pfplsx(j,i,k,iqqs)+pfplsx(j,i,k,iqqr)) / &
-                             max(dlowval,covptot(j,i))
-                  cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
-                  alpha1 = alpha1*cfpr
-                  xlcrit = xlcrit/max(cfpr,dlowval)
-                  ! security for exp for some compilers
-                  if ( (liqcld(j,i)/xlcrit)**2 < 25.0_rkx ) then
-                    rainaut = alpha1*(d_one - exp(-(liqcld(j,i)/xlcrit)**2))
-                  else
-                    rainaut = alpha1
-                  end if
+                    !-----------------------------------------------------------
+                    ! parameters for cloud collection by rain and snow.
+                    ! note that with new prognostic variable it is now possible
+                    ! to replace this with an explicit collection
+                    ! parametrization
+                    !-----------------------------------------------------------
+                    precip = (pfplsx(j,i,k,iqqs)+pfplsx(j,i,k,iqqr)) / &
+                               max(dlowval,covptot(j,i))
+                    cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
+                    alpha1 = alpha1*cfpr
+                    xlcrit = xlcrit/max(cfpr,dlowval)
+                    ! security for exp for some compilers
+                    if ( (liqcld(j,i)/xlcrit)**2 < 25.0_rkx ) then
+                      rainaut = alpha1*(d_one - exp(-(liqcld(j,i)/xlcrit)**2))
+                    else
+                      rainaut = alpha1
+                    end if
 
-                  !-----------------------
-                  ! rain freezes instantly
-                  !-----------------------
-                  if ( t(j,i,k) <= tzero ) then
-                    solqb(j,i,iqqs,iqql) = solqb(j,i,iqqs,iqql)+rainaut
-                  else
-                    solqb(j,i,iqqr,iqql) = solqb(j,i,iqqr,iqql)+rainaut
+                    !-----------------------
+                    ! rain freezes instantly
+                    !-----------------------
+                    if ( t(j,i,k) <= tzero ) then
+                      solqb(j,i,iqqs,iqql) = solqb(j,i,iqqs,iqql)+rainaut
+                    else
+                      solqb(j,i,iqqr,iqql) = solqb(j,i,iqqr,iqql)+rainaut
+                    end if
                   end if
-                end if
+                end do
               end do
-            end do
-        end select
+          end select
 
-        ! Cold clouds
-        ! Snow Autoconversion rate follow Lin et al. 1983
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( t(j,i,k) <= tzero ) then
-              if ( icecld(j,i) > minqx ) then
-                alpha1 = dt*1.0e-3_rkx*exp(0.025*(t(j,i,k)-tzero))
-                xlcrit = rlcritsnow
-                arg = (icecld(j,i)/xlcrit)**2
-                if ( arg < 25.0_rkx ) then
-                  snowaut = alpha1 * (d_one - exp(-arg))
-                else
-                  snowaut = alpha1
+          ! Cold clouds
+          ! Snow Autoconversion rate follow Lin et al. 1983
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( t(j,i,k) <= tzero ) then
+                if ( icecld(j,i) > minqx ) then
+                  alpha1 = dt*1.0e-3_rkx*exp(0.025*(t(j,i,k)-tzero))
+                  xlcrit = rlcritsnow
+                  arg = (icecld(j,i)/xlcrit)**2
+                  if ( arg < 25.0_rkx ) then
+                    snowaut = alpha1 * (d_one - exp(-arg))
+                  else
+                    snowaut = alpha1
+                  end if
+                  solqb(j,i,iqqs,iqqi) = solqb(j,i,iqqs,iqqi) + snowaut
                 end if
-                solqb(j,i,iqqs,iqqi) = solqb(j,i,iqqs,iqqi) + snowaut
               end if
-            end if
+            end do
           end do
-        end do
+        end if
 
         !---------------------------------------------------------------
         !                         MELTING
@@ -1734,31 +1740,33 @@ module mod_cloud_s1
         !All rain freezes in a timestep if the temperature is below 0 C
         !calculate sublimation latent heat
 
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            chngmax(j,i) = max((tzero-t(j,i,k))*rldcp,d_zero)
-          end do
-        end do
-
-        chng(:,:) = d_zero
-
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( chngmax(j,i) > dlowval .and. qxfg(j,i,iqqr) > minqx ) then
-              chng(j,i) = min(qxfg(j,i,iqqr),chngmax(j,i))
-              chng(j,i) = max(chng(j,i),d_zero)
-              solqa(j,i,iqqs,iqqr) = solqa(j,i,iqqs,iqqr) + chng(j,i)
-              solqa(j,i,iqqr,iqqs) = solqa(j,i,iqqr,iqqs) - chng(j,i)
-            end if
-          end do
-        end do
-
-        if ( stats ) then
+        if ( .not. lsimply ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              statsfrz(j,i,k) = chng(j,i)
+              chngmax(j,i) = max((tzero-t(j,i,k))*rldcp,d_zero)
             end do
           end do
+
+          chng(:,:) = d_zero
+
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( chngmax(j,i) > dlowval .and. qxfg(j,i,iqqr) > minqx ) then
+                chng(j,i) = min(qxfg(j,i,iqqr),chngmax(j,i))
+                chng(j,i) = max(chng(j,i),d_zero)
+                solqa(j,i,iqqs,iqqr) = solqa(j,i,iqqs,iqqr) + chng(j,i)
+                solqa(j,i,iqqr,iqqs) = solqa(j,i,iqqr,iqqs) - chng(j,i)
+              end if
+            end do
+          end do
+
+          if ( stats ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                statsfrz(j,i,k) = chng(j,i)
+              end do
+            end do
+          end if
         end if
 
         ! Freezing of liquid
@@ -1801,153 +1809,159 @@ module mod_cloud_s1
         ! is done to prevent the gridbox saturating due to the evaporation
         ! of precipitation occuring in a portion of the grid
         !------------------------------------------------------------
-        !do n = 1 , nqx
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-           ! if ( iphase(n) == 2 ) then
-           !   qpretot(j,i) = qpretot(j,i)+qxfg(j,i,n)
-           qpretot(j,i) = qxfg(j,i,iqqs) + qxfg(j,i,iqqr)
-           ! end if
-          end do
-        end do
-        !end do
-
-        ! rain
-        chng(:,:) = d_zero
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            zrh = rprecrhmax + &
-              (d_one-rprecrhmax)*covpclr(j,i)/(d_one-fccfg(j,i,k))
-            zrh = min(max(zrh,rprecrhmax),d_one)
-            ! This is a critical relative humidity that is used to limit
-            ! moist environment to prevent the gridbox saturating when
-            ! only part of the gridbox has evaporating precipitation
-            qe = (qx0(j,i,k,iqqv)-fccfg(j,i,k)*qsliq(j,i,k)) / &
-                      (d_one-fccfg(j,i,k))
-            !---------------------------------------------
-            ! humidity in moistest covpclr part of domain
-            !---------------------------------------------
-            qe = max(d_zero,min(qe,qsliq(j,i,k)))
-            lactiv = covpclr(j,i) > dlowval .and. &
-            !      qpretot(jl) > dlowval .and. &
-                   qxfg(j,i,iqqr) > minqq .and. qe < zrh*qsliq(j,i,k)
-            if ( lactiv ) then
-              ! note: units of preclr and qpretot differ
-              !       qpretot is a mixing ratio (hence "q" in name)
-              !       preclr is a rain flux
-              preclr = qpretot(j,i)*covpclr(j,i)/(max(dlowval,covptot(j,i))*dtgdp(j,i))
-              !--------------------------------------
-              ! actual microphysics formula in beta
-              !--------------------------------------
-              ! sensitivity test showed multiply rain evap rate by 0.5
-              beta1 = sqrt(phs(j,i,k)/pfs(j,i,kz+1))/5.09e-3_rkx*preclr / &
-                       max(covpclr(j,i),dlowval)
-
-              if ( beta1 >= d_zero ) then
-                 beta = egrav*rpecons*d_half*(beta1)**0.5777_rkx
-                 denom = d_one + beta*dt*corqsliq(j,i)
-                 dpr = covpclr(j,i) * beta * &
-                   (qsliq(j,i,k)-qe)/denom*dp(j,i)*regrav
-                 dpevap = dpr*dtgdp(j,i)
-                !---------------------------------------------------------
-                ! add evaporation term to explicit sink.
-                ! this has to be explicit since if treated in the implicit
-                ! term evaporation can not reduce rain to zero and model
-                ! produces small amounts of rainfall everywhere.
-                !---------------------------------------------------------
-
-                ! evaporate rain
-                chng(j,i) = min(dpevap,qxfg(j,i,iqqr))
-                !-------------------------------------------------------------
-                ! reduce the total precip coverage proportional to evaporation
-                !-------------------------------------------------------------
-                covptot(j,i) = covptot(j,i) - max(d_zero, &
-                           (covptot(j,i)-fccfg(j,i,k))*dpevap/qpretot(j,i))
-              else
-                chng(j,i) = qxfg(j,i,iqqr)
-              end if
-              solqa(j,i,iqqv,iqqr) = solqa(j,i,iqqv,iqqr) + chng(j,i)
-              solqa(j,i,iqqr,iqqv) = solqa(j,i,iqqr,iqqv) - chng(j,i)
-              qxfg(j,i,iqqr)       = qxfg(j,i,iqqr) - chng(j,i)
-            end if
-          end do
-        end do
-
-        if ( stats ) then
+        if ( .not. lsimply ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              statsrainev(j,i,k) = chng(j,i)
+             ! if ( iphase(n) == 2 ) then
+             !   qpretot(j,i) = qpretot(j,i)+qxfg(j,i,n)
+             qpretot(j,i) = qxfg(j,i,iqqs) + qxfg(j,i,iqqr)
+             ! end if
             end do
           end do
-        end if
 
-        ! snow
-
-        chng(:,:) = d_zero
-
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            zrh = rprecrhmax + (d_one-rprecrhmax) * &
-                   covpclr(j,i)/(d_one-fccfg(j,i,k))
-            zrh = min(max(zrh,rprecrhmax),d_one)
-            qe = (qx0(j,i,k,iqqv)-fccfg(j,i,k) * &
-                   qsice(j,i,k))/(d_one-fccfg(j,i,k))
-            !---------------------------------------------
-            ! humidity in moistest covpclr part of domain
-            !---------------------------------------------
-            qe = max(d_zero,min(qe,qsice(j,i,k)))
-            lactiv = covpclr(j,i) > dlowval .and. &
-                   qxfg(j,i,iqqs) > minqq .and. &
-                   qe < zrh*qsice(j,i,k)
-            if ( lactiv ) then
-              ! note: units of preclr and qpretot differ
-              !       qpretot is a mixing ratio (hence "q" in name)
-              !       preclr is a rain flux
-              preclr = qpretot(j,i)*covpclr(j,i)/(max(dlowval,covptot(j,i))*dtgdp(j,i))
-              !--------------------------------------
-              ! actual microphysics formula in beta
-              !--------------------------------------
-               beta1 = sqrt(phs(j,i,k)/pfs(j,i,kz+1)) / &
-                    5.09e-3_rkx*preclr/max(covpclr(j,i),dlowval)
-
-              if ( beta1 >= d_zero ) then
-                beta = egrav*rpecons*(beta1)**0.5777_rkx
-                !rpecons = alpha1
-                denom = d_one + beta*dt*corqsice(j,i)
-                dpr = covpclr(j,i) * beta * &
-                       (qsice(j,i,k)-qe)/denom*dp(j,i)*regrav
-                dpevap = dpr*dtgdp(j,i)
-                !---------------------------------------------------------
-                ! add evaporation term to explicit sink.
-                ! this has to be explicit since if treated in the implicit
-                ! term evaporation can not reduce snow to zero and model
-                ! produces small amounts of snowfall everywhere.
-                !---------------------------------------------------------
-                ! evaporate snow
-                chng(j,i) = min(dpevap,qxfg(j,i,iqqs))
-                chng(j,i) = max(chng(j,i),d_zero)
-                !-------------------------------------------------------------
-                ! reduce the total precip coverage proportional to evaporation
-                !-------------------------------------------------------------
-                covptot(j,i) = covptot(j,i)-max(d_zero, &
-                               (covptot(j,i)-fccfg(j,i,k)) * &
-                                dpevap/qpretot(j,i))
-              else
-                chng(j,i) = qxfg(j,i,iqqs)
-              end if
-              solqa(j,i,iqqv,iqqs) = solqa(j,i,iqqv,iqqs) + chng(j,i)
-              solqa(j,i,iqqs,iqqv) = solqa(j,i,iqqs,iqqv) - chng(j,i)
-              qxfg(j,i,iqqs)       = qxfg(j,i,iqqs) - chng(j,i)
-            end if
-          end do
-        end do
-
-        if ( stats ) then
+          ! rain
+          chng(:,:) = d_zero
           do i = ici1 , ici2
             do j = jci1 , jci2
-              statssnowev(j,i,k) = chng(j,i)
+              zrh = rprecrhmax + &
+                (d_one-rprecrhmax)*covpclr(j,i)/(d_one-fccfg(j,i,k))
+              zrh = min(max(zrh,rprecrhmax),d_one)
+              ! This is a critical relative humidity that is used to limit
+              ! moist environment to prevent the gridbox saturating when
+              ! only part of the gridbox has evaporating precipitation
+              qe = (qx0(j,i,k,iqqv)-fccfg(j,i,k)*qsliq(j,i,k)) / &
+                        (d_one-fccfg(j,i,k))
+              !---------------------------------------------
+              ! humidity in moistest covpclr part of domain
+              !---------------------------------------------
+              qe = max(d_zero,min(qe,qsliq(j,i,k)))
+              lactiv = covpclr(j,i) > dlowval .and. &
+              !      qpretot(jl) > dlowval .and. &
+                     qxfg(j,i,iqqr) > minqq .and. qe < zrh*qsliq(j,i,k)
+              if ( lactiv ) then
+                ! note: units of preclr and qpretot differ
+                !       qpretot is a mixing ratio (hence "q" in name)
+                !       preclr is a rain flux
+                preclr = qpretot(j,i)*covpclr(j,i) / &
+                            (max(dlowval,covptot(j,i))*dtgdp(j,i))
+                !--------------------------------------
+                ! actual microphysics formula in beta
+                !--------------------------------------
+                ! sensitivity test showed multiply rain evap rate by 0.5
+                beta1 = sqrt(phs(j,i,k)/pfs(j,i,kz+1))/5.09e-3_rkx*preclr / &
+                         max(covpclr(j,i),dlowval)
+
+                if ( beta1 >= d_zero ) then
+                   beta = egrav*rpecons*d_half*(beta1)**0.5777_rkx
+                   denom = d_one + beta*dt*corqsliq(j,i)
+                   dpr = covpclr(j,i) * beta * &
+                     (qsliq(j,i,k)-qe)/denom*dp(j,i)*regrav
+                   dpevap = dpr*dtgdp(j,i)
+                  !---------------------------------------------------------
+                  ! add evaporation term to explicit sink.
+                  ! this has to be explicit since if treated in the implicit
+                  ! term evaporation can not reduce rain to zero and model
+                  ! produces small amounts of rainfall everywhere.
+                  !---------------------------------------------------------
+
+                  ! evaporate rain
+                  chng(j,i) = min(dpevap,qxfg(j,i,iqqr))
+                  !-------------------------------------------------------------
+                  ! reduce the total precip coverage proportional to evaporation
+                  !-------------------------------------------------------------
+                  covptot(j,i) = covptot(j,i) - max(d_zero, &
+                             (covptot(j,i)-fccfg(j,i,k))*dpevap/qpretot(j,i))
+                else
+                  chng(j,i) = qxfg(j,i,iqqr)
+                end if
+                solqa(j,i,iqqv,iqqr) = solqa(j,i,iqqv,iqqr) + chng(j,i)
+                solqa(j,i,iqqr,iqqv) = solqa(j,i,iqqr,iqqv) - chng(j,i)
+                qxfg(j,i,iqqr)       = qxfg(j,i,iqqr) - chng(j,i)
+              end if
             end do
           end do
+
+          if ( stats ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                statsrainev(j,i,k) = chng(j,i)
+              end do
+            end do
+          end if
+
+          ! snow
+
+          chng(:,:) = d_zero
+
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              zrh = rprecrhmax + (d_one-rprecrhmax) * &
+                     covpclr(j,i)/(d_one-fccfg(j,i,k))
+              zrh = min(max(zrh,rprecrhmax),d_one)
+              qe = (qx0(j,i,k,iqqv)-fccfg(j,i,k) * &
+                     qsice(j,i,k))/(d_one-fccfg(j,i,k))
+              !---------------------------------------------
+              ! humidity in moistest covpclr part of domain
+              !---------------------------------------------
+              qe = max(d_zero,min(qe,qsice(j,i,k)))
+              lactiv = covpclr(j,i) > dlowval .and. &
+                     qxfg(j,i,iqqs) > minqq .and. &
+                     qe < zrh*qsice(j,i,k)
+              if ( lactiv ) then
+                ! note: units of preclr and qpretot differ
+                !       qpretot is a mixing ratio (hence "q" in name)
+                !       preclr is a rain flux
+                preclr = qpretot(j,i)*covpclr(j,i) / &
+                      (max(dlowval,covptot(j,i))*dtgdp(j,i))
+                !--------------------------------------
+                ! actual microphysics formula in beta
+                !--------------------------------------
+                 beta1 = sqrt(phs(j,i,k)/pfs(j,i,kz+1)) / &
+                      5.09e-3_rkx*preclr/max(covpclr(j,i),dlowval)
+
+                if ( beta1 >= d_zero ) then
+                  beta = egrav*rpecons*(beta1)**0.5777_rkx
+                  !rpecons = alpha1
+                  denom = d_one + beta*dt*corqsice(j,i)
+                  dpr = covpclr(j,i) * beta * &
+                         (qsice(j,i,k)-qe)/denom*dp(j,i)*regrav
+                  dpevap = dpr*dtgdp(j,i)
+                  !---------------------------------------------------------
+                  ! add evaporation term to explicit sink.
+                  ! this has to be explicit since if treated in the implicit
+                  ! term evaporation can not reduce snow to zero and model
+                  ! produces small amounts of snowfall everywhere.
+                  !---------------------------------------------------------
+                  ! evaporate snow
+                  chng(j,i) = min(dpevap,qxfg(j,i,iqqs))
+                  chng(j,i) = max(chng(j,i),d_zero)
+                  !-------------------------------------------------------------
+                  ! reduce the total precip coverage proportional to evaporation
+                  !-------------------------------------------------------------
+                  covptot(j,i) = covptot(j,i)-max(d_zero, &
+                                 (covptot(j,i)-fccfg(j,i,k)) * &
+                                  dpevap/qpretot(j,i))
+                else
+                  chng(j,i) = qxfg(j,i,iqqs)
+                end if
+                solqa(j,i,iqqv,iqqs) = solqa(j,i,iqqv,iqqs) + chng(j,i)
+                solqa(j,i,iqqs,iqqv) = solqa(j,i,iqqs,iqqv) - chng(j,i)
+                qxfg(j,i,iqqs)       = qxfg(j,i,iqqs) - chng(j,i)
+              end if
+            end do
+          end do
+
+          if ( stats ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                statssnowev(j,i,k) = chng(j,i)
+              end do
+            end do
+          end if
+        else
+
+          ! Precipitation evaporation ....
+
         end if
 
       end if !lmicro
@@ -2325,20 +2339,22 @@ module mod_cloud_s1
     !the surface physics and the output sum up through the levels
     !--------------------------------------------------------------------
     ! sum over the levels
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        prainx = pfplsl(j,i,kz+1)*dt
-        psnowx = pfplsn(j,i,kz+1)*dt
-        if ( prainx > dlowval ) then
-          rainnc(j,i) =  rainnc(j,i) + prainx   !mm
-          lsmrnc(j,i) =  lsmrnc(j,i) + pfplsl(j,i,kz+1)
-        end if
-        if ( psnowx > dlowval ) then
-          snownc(j,i) = snownc(j,i) + psnowx
-          lsmrnc(j,i) =  lsmrnc(j,i) + pfplsn(j,i,kz+1)
-        end if
+    if ( .not. lsimply ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          prainx = pfplsl(j,i,kz+1)*dt
+          psnowx = pfplsn(j,i,kz+1)*dt
+          if ( prainx > dlowval ) then
+            rainnc(j,i) =  rainnc(j,i) + prainx   !mm
+            lsmrnc(j,i) =  lsmrnc(j,i) + pfplsl(j,i,kz+1)
+          end if
+          if ( psnowx > dlowval ) then
+            snownc(j,i) = snownc(j,i) + psnowx
+            lsmrnc(j,i) =  lsmrnc(j,i) + pfplsn(j,i,kz+1)
+          end if
+        end do
       end do
-     end do
+    end if
 
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
