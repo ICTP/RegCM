@@ -200,7 +200,7 @@ module mod_cloud_s1
   ! fall speeds of three categories
   real(rkx) , pointer , dimension(:) :: vqx
   ! n x n matrix storing the LHS of implicit solver
-  real(rkx) , pointer , dimension(:,:,:,:) :: qlhs
+  real(rkx) , pointer , dimension(:,:) :: qlhs
   ! explicit sources and sinks
   real(rkx) , pointer , dimension(:,:,:,:) :: solqa
   ! implicit sources and sinks
@@ -211,7 +211,7 @@ module mod_cloud_s1
   real(rkx) , pointer , dimension(:,:,:,:) :: pfplsx
   real(rkx) , public  , pointer, dimension(:,:,:,:) :: qx0
   ! new values for qxx at time+1
-  real(rkx) , public  , pointer, dimension(:,:,:)   :: qxn
+  real(rkx) , public  , pointer, dimension(:)   :: qxn
   ! first guess values including precip
   real(rkx) , public  , pointer, dimension(:,:,:)   :: qxfg
   ! first guess value for cloud fraction
@@ -241,9 +241,8 @@ module mod_cloud_s1
   real(rkx) , public  , pointer, dimension(:,:,:)   :: statsfrz
   real(rkx) , public  , pointer, dimension(:,:,:)   :: statsrainev
   real(rkx) , public  , pointer, dimension(:,:,:)   :: statssnowev
-#ifdef USE_LAPACK
-  integer(ik4) , pointer , dimension(:) :: ipivot
-#endif
+  integer(ik4) , pointer , dimension(:) :: indx
+  real(rkx) , pointer , dimension(:) :: vv
 
 !  interface addpath
 !    module procedure addpath_array
@@ -261,6 +260,8 @@ module mod_cloud_s1
     if ( ipptls /= 2 ) return
 
     call getmem1d(vqx,1,nqx,'cmicro:vqx')
+    call getmem1d(indx,1,nqx,'cmicro:indx')
+    call getmem1d(vv,1,nqx,'cmicro:vv')
     call getmem1d(imelt,1,nqx,'cmicro:imelt')
     call getmem1d(lfall,1,nqx,'cmicro:lfall')
     call getmem1d(iphase,1,nqx,'cmicro:iphase')
@@ -327,15 +328,12 @@ module mod_cloud_s1
     call getmem3d(st_eeice,jci1,jci2,ici1,ici2,1,kz,'cmicro:st_eeice')
     call getmem3d(eeliqt,jci1,jci2,ici1,ici2,1,kz,'cmicro:eeliqt')
     call getmem4d(qxtendc,1,nqx,jci1,jci2,ici1,ici2,1,kz,'cmicro:qxtendc')
-    call getmem3d(qxn,1,nqx,jci1,jci2,ici1,ici2,'cmicro:qxn')
-    call getmem4d(qlhs,1,nqx,1,nqx,jci1,jci2,ici1,ici2,'cmicro:qlhs')
+    call getmem1d(qxn,1,nqx,'cmicro:qxn')
+    call getmem2d(qlhs,1,nqx,1,nqx,'cmicro:qlhs')
     call getmem4d(solqa,1,nqx,1,nqx,jci1,jci2,ici1,ici2,'cmicro:solqa')
     call getmem4d(solqb,1,nqx,1,nqx,jci1,jci2,ici1,ici2,'cmicro:solqb')
     call getmem4d(lind3,1,nqx,1,nqx,jci1,jci2,ici1,ici2,'cmicro:lind3')
     call getmem4d(pfplsx,1,nqx,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:pfplsx')
-#ifdef USE_LAPACK
-    call getmem1d(ipivot,1,nqx,'cmicro:ipivot')
-#endif
     if ( budget_compute ) then
       call getmem3d(sumq0,jci1,jci2,ici1,ici2,1,kz,'cmicro:sumq0')
       call getmem3d(sumh0,jci1,jci2,ici1,ici2,1,kz,'cmicro:sumh0')
@@ -433,11 +431,13 @@ module mod_cloud_s1
   subroutine microphys
     implicit none
     integer(ik4) :: i , j , k , n , m , jn , jo
+    integer(ik4) :: ii , jj , kk , ll , imax
     logical :: lactiv
     real(rkx) :: rexplicit
     real(rkx) :: fac , faci , facw , corr , koop , gdp
     real(rkx) :: alfaw , phases , qice , zdelta , tmpl , &
                  tmpi , tnew , qe , rain , preclr , arg
+    real(rkx) :: aamax , dum , xsum , swap
     ! local real variables for autoconversion rate constants
     real(rkx) :: alpha1 ! coefficient autoconversion cold cloud
     real(rkx) :: tmpa
@@ -465,9 +465,6 @@ module mod_cloud_s1
     ! constants for condensation and turbulent mixing erosion of clouds
     real(rkx) :: dpmxdt , wtot , dtdiab , dtforc , &
                  qp , qsat , cond1 , levap , leros
-#ifdef USE_LAPACK
-    integer :: ires
-#endif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
     integer(ik4) , save :: idindx = 0
@@ -737,8 +734,8 @@ module mod_cloud_s1
       subsat(:,:)     = d_zero
       licld(:,:)      = d_zero
       ldefr(:,:)      = d_zero
-      qxn(:,:,:)      = d_zero
-      qlhs(:,:,:,:)   = d_zero
+      qxn(:)      = d_zero
+      qlhs(:,:)   = d_zero
 
       ! Set j,i arrays to zero
       qpretot(:,:) = d_zero
@@ -2071,32 +2068,28 @@ module mod_cloud_s1
         end do
       end do
 
-      ! Set the LHS of equation
-
       do i = ici1 , ici2
         do j = jci1 , jci2
+
+          ! Set the LHS of equation
           do n = 1 , nqx
             do jn = 1 , nqx
               ! Diagonals: microphysical sink terms+transport
               if ( jn == n ) then
-                qlhs(jn,n,j,i) = d_one + rsemi*fallsink(n,j,i)
+                qlhs(jn,n) = d_one + rsemi*fallsink(n,j,i)
                 do jo = 1 , nqx
-                  qlhs(jn,n,j,i) = qlhs(jn,n,j,i) + rsemi*solqb(jo,jn,j,i)
+                  qlhs(jn,n) = qlhs(jn,n) + rsemi*solqb(jo,jn,j,i)
                 end do
                 ! Non-diagonals: microphysical source terms
               else
                 ! Here is the delta T - missing from doc.
-                qlhs(jn,n,j,i) = -rsemi*solqb(jn,n,j,i)
+                qlhs(jn,n) = -rsemi*solqb(jn,n,j,i)
               end if
             end do
           end do
-        end do
-      end do
 
-      ! Set the RHS of equation
+          ! Set the RHS of equation
 
-      do i = ici1 , ici2
-        do j = jci1 , jci2
           do n = 1 , nqx
             ! Sum the explicit source and sink
             rexplicit = d_zero
@@ -2111,86 +2104,143 @@ module mod_cloud_s1
               rexplicit = rexplicit - &
                     (d_one-rsemi)*qx0(n,j,i,k)*fallsink(n,j,i)
             end do
-            qxn(n,j,i) = qx0(n,j,i,k) + rexplicit
+            qxn(n) = qx0(n,j,i,k) + rexplicit
           end do
-        end do
-      end do
-      ! Solve by LU decomposition: dummy test
-      ! qlhs(:,:,:) = 0.0
-      ! do jm = 1,nqx
-      !   qlhs(1,jm,jm)=1.0
-      ! end do
-      ! qlhs(1,3,3)=qlhs(1,3,3)+0.47
-      ! qlhs(1,5,3)=qlhs(1,5,3)-0.47
-#ifdef USE_LAPACK
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          call dgesv(nqx,1,qlhs(:,:,j,i),nqx,ipivot,qxn(:,j,i),nqx,ires)
-          if ( ires /= 0 ) then
-            write(stderr,*) 'Error from lapack subroutine DGESV'
-            if ( ires < 0 ) then
-              write(stderr,*) 'Argument ',ires,' has illegal value'
-            else if ( ires > 0 ) then
-              write(stderr,*) 'U(',ires,',',ires,') is zero: Singularity'
+          !                                                Ux=y
+          ! solve A x = b-------------> LU x = b---------> Ly=b
+          !
+          ! Loop over rows to get the implicit scaling information.
+          !
+          do m = 1 , nqx
+            aamax = d_zero
+            do n = 1 , nqx
+              if ( abs(qlhs(m,n)) > aamax ) aamax = abs(qlhs(m,n))
+            end do
+            if ( aamax < dlowval ) then
+              call fatal(__FILE__,__LINE__,'SINGULAR MATRIX')
+            end if ! Singular matrix
+            vv(m) = d_one/aamax ! Save the scaling.
+          end do
+          do n = 1 , nqx
+            ! This is the loop over columns of crout s method.
+            if ( n > 1 ) then
+              do m = 1 , n - 1
+                xsum = qlhs(m,n)
+                do kk = 1 , m - 1
+                  xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
+                end do
+                qlhs(m,n) = xsum
+              end do
             end if
-            call fatal(__FILE__,__LINE__,'LAPACK DGESV ERROR')
+            ! Initialize for the search for largest pivot element.
+            aamax = d_zero
+            imax = n
+            do m = n , nqx
+              xsum = qlhs(m,n)
+              if ( n > 1 ) then
+                do kk = 1 , n - 1
+                  xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
+                end do
+                qlhs(m,n) = xsum
+              end if
+              dum = vv(m)*abs(xsum)   ! Figure of merit for the pivot.
+              if ( dum >= aamax ) then
+                ! better than the best so far
+                imax = m
+                aamax = dum
+              end if
+            end do
+            if ( n /= imax ) then
+              ! Do we need to interchange rows? yes, do so...
+              ! D = -D !...and change the parity of D.
+              do ii = 1 , nqx
+                swap = qlhs(imax,ii)
+                qlhs(imax,ii) = qlhs(n,ii)
+                qlhs(n,ii) = swap
+              end do
+              vv(imax) = vv(n) ! Also interchange the scale factor.
+            end if
+            indx(n) = imax
+            if ( abs(qlhs(n,n)) < minqq ) qlhs(n,n) = minqq
+            dum = d_one/qlhs(n,n)
+            if ( n /= nqx ) then
+              do m = n + 1 , nqx
+                qlhs(m,n) = qlhs(m,n)*dum
+              end do
+            end if
+          end do
+          if ( abs(qlhs(nqx,nqx)) < minqq ) then
+            qlhs(nqx,nqx) = minqq
           end if
-        end do
-      end do
-#else
-      ! Internally coded solution
-      call mysolve(qlhs,qxn)
-#endif
-      !------------------------------------------------------------------------
-      !  Precipitation/sedimentation fluxes to next level
-      !     diagnostic precipitation fluxes
-      !     It is this scaled flux that must be used for source to next layer
-      !------------------------------------------------------------------------
-      ! Generalized precipitation flux
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+          !
+          ! Now solve the set of n linear equations A * X = B.
+          ! B(1:N) is input as the right-hand side vector B,
+          ! and is used to store solution after back-substitution.
+          !
+          ii = 0
+          ! When ii is set to a positive value, it will become
+          ! the index of the  first nonvanishing element of B.
+          ! We now do the forward substitution, and the only new
+          ! wrinkle is to unscramble the permutation as we go.
+          do m = 1 , nqx
+            ll = indx(m)
+            xsum = qxn(ll)
+            qxn(ll) = qxn(m)
+            if ( ii == 0 ) then
+              if ( abs(xsum) > minqq ) ii = m
+            else
+              do jj = ii , m - 1
+                xsum = xsum - qlhs(m,jj)*qxn(jj)
+              end do
+            end if
+            qxn(m) = xsum
+          end do
+          ! Now we do the backsubstitution
+          do m = nqx , 1 , -1
+            xsum = qxn(m)
+            do jj = m + 1 , nqx
+              xsum = xsum - qlhs(m,jj)*qxn(jj)
+            end do
+            ! Store a component of the solution vector qxn.
+            qxn(m) = xsum/qlhs(m,m)
+          end do
+          !--------------------------------------------------------------------
+          !  Precipitation/sedimentation fluxes to next level
+          !   diagnostic precipitation fluxes
+          !   It is this scaled flux that must be used for source to next layer
+          !--------------------------------------------------------------------
+          ! Generalized precipitation flux
           do n = 1 , nqx
             ! this will be the source for the k
             pfplsx(n,j,i,k+1) = rsemi*fallsink(n,j,i) * &
-              qxn(n,j,i)*rdtgdp(j,i) + (d_one-rsemi)*fallsink(n,j,i)* &
+              qxn(n)*rdtgdp(j,i) + (d_one-rsemi)*fallsink(n,j,i)* &
               qx0(n,j,i,k)*rdtgdp(j,i) ! kg/m2/s
            end do
-        end do
-      end do
-      ! Calculate fluxes in and out of box for conservation of TL
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+           ! Calculate fluxes in and out of box for conservation of TL
           do n = 1 , nqx
             fluxq(n,j,i) = convsrce(n,j,i)+ fallsrce(n,j,i) - &
-                        (fallsink(n,j,i)+convsink(n,j,i))*qxn(n,j,i)
+                        (fallsink(n,j,i)+convsink(n,j,i))*qxn(n)
           end do
-        end do
-      end do
-      ! Calculate the water variables tendencies
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+          ! Calculate the water variables tendencies
           do n = 1 , nqx
             qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + &
-                               (qxn(n,j,i)-qx0(n,j,i,k))*oneodt
+                               (qxn(n)-qx0(n,j,i,k))*oneodt
           end do
-        end do
-      end do
-     ! Calculate the temperature tendencies
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+          ! Calculate the temperature tendencies
           do n = 1 , nqx
             if ( iphase(n) == 1 ) then
               ttendc(j,i,k) = ttendc(j,i,k) + &
-                              wlhvocp*(qxn(n,j,i)-qx0(n,j,i,k) - &
+                              wlhvocp*(qxn(n)-qx0(n,j,i,k) - &
                                fluxq(n,j,i))*oneodt
             else if ( iphase(n) == 2 ) then
               ttendc(j,i,k) = ttendc(j,i,k) + &
-                              wlhsocp*(qxn(n,j,i)-qx0(n,j,i,k) - &
+                              wlhsocp*(qxn(n)-qx0(n,j,i,k) - &
                               fluxq(n,j,i))*oneodt
             end if
           end do
         end do
       end do
+
       ! Couple tendencies with pressure
       do n = 1 , nqx
         do i = ici1 , ici2
@@ -2239,319 +2289,207 @@ module mod_cloud_s1
             sumh1(j,i,k) = sumh1(j,i,k)+(pfs(j,i,k+1)-pfs(j,i,k))*tnew
             rain = d_zero
             do n = 1 , nqx
-              rain = rain + dt*pfplsx(n,j,i,k+1)
-            end do
-            errorq(j,i,k) = sumq1(j,i,k)+rain-sumq0(j,i,k)
+            rain = rain + dt*pfplsx(n,j,i,k+1)
           end do
+          errorq(j,i,k) = sumq1(j,i,k)+rain-sumq0(j,i,k)
         end do
       end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            dtgdp(j,i) = dt*egrav/(pfs(j,i,k+1)-pfs(j,i,k))
-            rain = d_zero
-            do n = 1 , nqx
-              if ( iphase(n) == 1 ) then
-                rain = rain+wlhvocp*dtgdp(j,i)*pfplsx(n,j,i,k+1)* & !k+1?
-                         (pfs(j,i,k+1)-pfs(j,i,k))
-              else if ( iphase(n) == 2 ) then
-                rain = rain+wlhsocp*dtgdp(j,i)*pfplsx(n,j,i,k+1)* &
-                        (pfs(j,i,k+1)-pfs(j,i,k))
-              end if
-            end do
-            sumh1(j,i,k) = (sumh1(j,i,k)-rain)/(pfs(j,i,k+1)-pfs(j,i,1))
-            errorh(j,i,k) = sumh1(j,i,k)-sumh0(j,i,k)
-          end do
-        end do
-      end do
-
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( abs(errorq(j,i,kz)) > 1.e-12_rkx .or. &
-                 abs(errorh(j,i,kz)) > 1.e-12_rkx) then
-              if ( abs(errorq(j,i,kz)) > 1.e-12_rkx ) then
-                write(stderr,*) 'WATER NON CONSERVED AT '
-                write(stderr,*) 'J = ',j
-                write(stderr,*) 'I = ',i
-                write(stderr,*) 'K = ',k
-                write(stderr,*) 'ERROR IS : ',errorq(j,i,kz)
-              end if
-              if ( abs(errorh(j,i,kz)) > 1.e-12_rkx ) then
-                write(stderr,*) 'ENTHALPY NON CONSERVED AT '
-                write(stderr,*) 'J = ',j
-                write(stderr,*) 'I = ',i
-                write(stderr,*) 'K = ',k
-                write(stderr,*) 'ERROR IS : ',errorh(j,i,kz)
-              end if
-              call fatal(__FILE__,__LINE__, &
-                'TOTAL WATER OR ENTHALPY NOT CONSERVED')
-            end if
-          end do
-        end do
-      end do
-    end if ! budget_compute
-
-    ! Sum fluxes over the levels
-    ! Initialize fluxes
-    prcflxw(:,:) = d_zero
-    prcflxc(:,:) = d_zero
-    pfplsl(:,:,:) = d_zero
-    pfplsn(:,:,:) = d_zero
-    rainls(:,:,:) = d_zero
-
-    !--------------------------------------------------------------------
-    ! Copy general precip arrays back into FP arrays
-    ! Add rain and liquid fluxes, ice and snow fluxes
-    !--------------------------------------------------------------------
-
-    ! Rain+liquid, snow+ice
-    ! for each level k = 1 , kz, sum of the same phase elements
-    do k = 1 , kz+1
+    end do
+    do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
+          dtgdp(j,i) = dt*egrav/(pfs(j,i,k+1)-pfs(j,i,k))
+          rain = d_zero
           do n = 1 , nqx
             if ( iphase(n) == 1 ) then
-              pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
-              rainls(j,i,k) = pfplsl(j,i,k)
+              rain = rain+wlhvocp*dtgdp(j,i)*pfplsx(n,j,i,k+1)* & !k+1?
+                       (pfs(j,i,k+1)-pfs(j,i,k))
             else if ( iphase(n) == 2 ) then
-              pfplsn(j,i,k) = pfplsn(j,i,k)+ pfplsx(n,j,i,k)
+              rain = rain+wlhsocp*dtgdp(j,i)*pfplsx(n,j,i,k+1)* &
+                      (pfs(j,i,k+1)-pfs(j,i,k))
             end if
           end do
+          sumh1(j,i,k) = (sumh1(j,i,k)-rain)/(pfs(j,i,k+1)-pfs(j,i,1))
+          errorh(j,i,k) = sumh1(j,i,k)-sumh0(j,i,k)
         end do
       end do
     end do
-    !--------------------------------------------------------------
-    ! Convert the accumlated precipitation to appropriate units for
-    ! the surface physics and the output sum up through the levels
-    !--------------------------------------------------------------
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( abs(errorq(j,i,kz)) > 1.e-12_rkx .or. &
+               abs(errorh(j,i,kz)) > 1.e-12_rkx) then
+            if ( abs(errorq(j,i,kz)) > 1.e-12_rkx ) then
+              write(stderr,*) 'WATER NON CONSERVED AT '
+              write(stderr,*) 'J = ',j
+              write(stderr,*) 'I = ',i
+              write(stderr,*) 'K = ',k
+              write(stderr,*) 'ERROR IS : ',errorq(j,i,kz)
+            end if
+            if ( abs(errorh(j,i,kz)) > 1.e-12_rkx ) then
+              write(stderr,*) 'ENTHALPY NON CONSERVED AT '
+              write(stderr,*) 'J = ',j
+              write(stderr,*) 'I = ',i
+              write(stderr,*) 'K = ',k
+              write(stderr,*) 'ERROR IS : ',errorh(j,i,kz)
+            end if
+            call fatal(__FILE__,__LINE__, &
+              'TOTAL WATER OR ENTHALPY NOT CONSERVED')
+          end if
+        end do
+      end do
+    end do
+  end if ! budget_compute
+
+  ! Sum fluxes over the levels
+  ! Initialize fluxes
+  prcflxw(:,:) = d_zero
+  prcflxc(:,:) = d_zero
+  pfplsl(:,:,:) = d_zero
+  pfplsn(:,:,:) = d_zero
+  rainls(:,:,:) = d_zero
+
+  !--------------------------------------------------------------------
+  ! Copy general precip arrays back into FP arrays
+  ! Add rain and liquid fluxes, ice and snow fluxes
+  !--------------------------------------------------------------------
+
+  ! Rain+liquid, snow+ice
+  ! for each level k = 1 , kz, sum of the same phase elements
+  do k = 1 , kz+1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        prainx = pfplsl(j,i,kz+1)*dt
-        psnowx = pfplsn(j,i,kz+1)*dt
-        if ( prainx > dlowval ) then
-          rainnc(j,i) =  rainnc(j,i) + prainx   !mm
-          lsmrnc(j,i) =  lsmrnc(j,i) + pfplsl(j,i,kz+1)
-        end if
-        if ( psnowx > dlowval ) then
-          snownc(j,i) = snownc(j,i) + psnowx
-          lsmrnc(j,i) =  lsmrnc(j,i) + pfplsn(j,i,kz+1)
-        end if
+        do n = 1 , nqx
+          if ( iphase(n) == 1 ) then
+            pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
+            rainls(j,i,k) = pfplsl(j,i,k)
+          else if ( iphase(n) == 2 ) then
+            pfplsn(j,i,k) = pfplsn(j,i,k)+ pfplsx(n,j,i,k)
+          end if
+        end do
       end do
     end do
+  end do
+  !--------------------------------------------------------------
+  ! Convert the accumlated precipitation to appropriate units for
+  ! the surface physics and the output sum up through the levels
+  !--------------------------------------------------------------
+  do i = ici1 , ici2
+    do j = jci1 , jci2
+      prainx = pfplsl(j,i,kz+1)*dt
+      psnowx = pfplsn(j,i,kz+1)*dt
+      if ( prainx > dlowval ) then
+        rainnc(j,i) =  rainnc(j,i) + prainx   !mm
+        lsmrnc(j,i) =  lsmrnc(j,i) + pfplsl(j,i,kz+1)
+      end if
+      if ( psnowx > dlowval ) then
+        snownc(j,i) = snownc(j,i) + psnowx
+        lsmrnc(j,i) =  lsmrnc(j,i) + pfplsn(j,i,kz+1)
+      end if
+    end do
+  end do
 
 #ifdef DEBUG
-    call time_end(subroutine_name,idindx)
+  call time_end(subroutine_name,idindx)
 #endif
 
-    contains
+  contains
 
-      pure real(rkx) function delta(t)
-        !delta = 1 if t > tzero
-        !delta = 0 if t < tzero
-        implicit none
-        real(rkx) , intent(in):: t
-        delta = max(d_zero,sign(d_one,t-tzero))
-      end function delta
+    pure real(rkx) function delta(t)
+      !delta = 1 if t > tzero
+      !delta = 0 if t < tzero
+      implicit none
+      real(rkx) , intent(in):: t
+      delta = max(d_zero,sign(d_one,t-tzero))
+    end function delta
 
-      pure real(rkx) function phase(t)
-        !phase = 1      if t > tzero
-        !phase = 0      if t < rtice
-        !0<phase < 1    if rtice < t < tzero
-        implicit none
-        real(rkx) , intent(in):: t
-        phase = max(min(d_one,((max(rtice,min(tzero,t))-rtice)* &
-                                rtwat_rtice_r)**2),d_zero)
-      end function phase
+    pure real(rkx) function phase(t)
+      !phase = 1      if t > tzero
+      !phase = 0      if t < rtice
+      !0<phase < 1    if rtice < t < tzero
+      implicit none
+      real(rkx) , intent(in):: t
+      phase = max(min(d_one,((max(rtice,min(tzero,t))-rtice)* &
+                              rtwat_rtice_r)**2),d_zero)
+    end function phase
 
-      pure real(rkx) function edem(t,phase)
-        implicit none
-        real(rkx) , intent(in):: t , phase
-        edem = phase * c5alvcp * (d_one/(t-c4les)**2) + &
-                 (d_one - phase) * c5alscp * (d_one/(t-c4ies)**2)
-      end function edem
+    pure real(rkx) function edem(t,phase)
+      implicit none
+      real(rkx) , intent(in):: t , phase
+      edem = phase * c5alvcp * (d_one/(t-c4les)**2) + &
+               (d_one - phase) * c5alscp * (d_one/(t-c4ies)**2)
+    end function edem
 
-      pure real(rkx) function eldcpm(t)
-        implicit none
-        real(rkx) , intent(in):: t
-        eldcpm = phase(t)*wlhvocp+(d_one-phase(t))*wlhsocp
-      end function eldcpm
+    pure real(rkx) function eldcpm(t)
+      implicit none
+      real(rkx) , intent(in):: t
+      eldcpm = phase(t)*wlhvocp+(d_one-phase(t))*wlhsocp
+    end function eldcpm
 
-      subroutine eeliq ! = 0.622*esw  !Teten's formula
-        implicit none
-        integer(ik4) :: i , j , k
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              st_eeliq(j,i,k) = c2es*exp(c3les*((t(j,i,k)-tzero) / &
-                                                (t(j,i,k)-c4les)))
-            end do
-          end do
-        end do
-      end subroutine eeliq
-
-      subroutine eeice ! = 0.622*esi
-        implicit none
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              st_eeice(j,i,k) = c2es*exp(c3ies*((t(j,i,k)-tzero) / &
-                                                (t(j,i,k)-c4ies)))
-            end do
-          end do
-        end do
-      end subroutine eeice
-
-      pure real(rkx) function eewm(t,phase)
-        implicit none
-        real(rkx) , intent(in):: t , phase
-        real(rkx) :: eliq , eice
-        eliq = c2es*exp(c3les*((t-tzero)/(t-c4les)))
-        eice = c2es*exp(c3ies*((t-tzero)/(t-c4ies)))
-        eewm = phase * eliq + (d_one-phase) * eice
-      end function eewm
-
-      pure real(rkx) function fkoop(t,eeliq,eeice)
-        implicit none
-        ! se T < 0 la nuvola si forma o quando q e' maggiore della liquid
-        ! water saturation minima, oppure se e' maggiore del mixing ratio
-        ! wrt ice critica a cui inizia l'homogeneaous ice nucleation
-        ! At temperatures below 0◦C new cloud forms in any non-cloudy part
-        ! of the grid box where the humidity exceeds either the minimum of
-        ! the liquid water saturation specific humidity (qsl), or the
-        ! critical vapour saturation mixing ratio with respect to ice at
-        ! which homogeneous ice nucleation initiates
-        ! empirical fit given by Karcher and Lohmann (2002) which is a
-        ! function of temperature and ranges from 45% supersaturation at
-        ! T = 235 K to 67% at T = 190 K.
-        ! At temperatures warmer than -38 degC the cloud formation over a
-        ! timestep results entirely in liquid cloud,
-        ! i.e. fkoop = eeliq/eeice, mentre per T < -38 fkoop = RHhomo
-        ! while below this threshold the liquid water or aqueous sulphate
-        ! solutes are assumed to freeze instantaneously and the process is
-        ! a source for cloud ice.
-        ! fkoop modifies the ice saturation mixing ratio for homogeneous
-        ! nucleation
-        real(rkx) , parameter :: rkoop1 = 2.583_rkx
-        real(rkx) , parameter :: rkoop2 = 0.48116e-2_rkx ! 1/207.8
-        real(rkx) , intent(in) :: t , eeliq , eeice
-        fkoop = min(rkoop1-rkoop2*t,eeliq/eeice)
-      end function fkoop
-
-      subroutine mysolve(aam,bbm)
-        implicit none
-        real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: aam
-        real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: bbm
-        integer(ik4) :: i , j , k , ii , jj , ll , imax , m , n
-        real(rkx) :: aamax , dum , xsum , swap
-        integer(ik4) , dimension(nqx) :: indx
-        real(rkx) , dimension(nqx) :: vv
-
+    subroutine eeliq ! = 0.622*esw  !Teten's formula
+      implicit none
+      integer(ik4) :: i , j , k
+      do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            !                                                Ux=y
-            ! solve A x = b-------------> LU x = b---------> Ly=b
-            !
-            ! Loop over rows to get the implicit scaling information.
-            !
-            do m = 1 , nqx
-              aamax = d_zero
-              do n = 1 , nqx
-                if ( abs(aam(m,n,j,i)) > aamax ) aamax = abs(aam(m,n,j,i))
-              end do
-              if ( aamax < dlowval ) then
-                call fatal(__FILE__,__LINE__,'SINGULAR MATRIX')
-              end if ! Singular matrix
-              vv(m) = d_one/aamax ! Save the scaling.
-            end do
-            do n = 1 , nqx
-              ! This is the loop over columns of crout s method.
-              if ( n > 1 ) then
-                do m = 1 , n - 1
-                  xsum = aam(m,n,j,i)
-                  do k = 1 , m - 1
-                    xsum = xsum - aam(m,k,j,i)*aam(k,n,j,i)
-                  end do
-                  aam(m,n,j,i) = xsum
-                end do
-              end if
-              ! Initialize for the search for largest pivot element.
-              aamax = d_zero
-              imax = n
-              do m = n , nqx
-                xsum = aam(m,n,j,i)
-                if ( n > 1 ) then
-                  do k = 1 , n - 1
-                    xsum = xsum - aam(m,k,j,i)*aam(k,n,j,i)
-                  end do
-                  aam(m,n,j,i) = xsum
-                end if
-                dum = vv(m)*abs(xsum)   ! Figure of merit for the pivot.
-                if ( dum >= aamax ) then
-                  ! better than the best so far
-                  imax = m
-                  aamax = dum
-                end if
-              end do
-              if ( n /= imax ) then
-                ! Do we need to interchange rows? yes, do so...
-                ! D = -D !...and change the parity of D.
-                do ii = 1 , nqx
-                  swap = aam(imax,ii,j,i)
-                  aam(imax,ii,j,i) = aam(n,ii,j,i)
-                  aam(n,ii,j,i) = swap
-                end do
-                vv(imax) = vv(n) ! Also interchange the scale factor.
-              end if
-              indx(n) = imax
-              if ( abs(aam(n,n,j,i)) < minqq ) aam(n,n,j,i) = minqq
-              dum = d_one/aam(n,n,j,i)
-              if ( n /= nqx ) then
-                do m = n + 1 , nqx
-                  aam(m,n,j,i) = aam(m,n,j,i)*dum
-                end do
-              end if
-            end do
-            if ( abs(aam(nqx,nqx,j,i)) < minqq ) then
-              aam(nqx,nqx,j,i) = minqq
-            end if
-            !
-            ! Now solve the set of n linear equations A * X = B.
-            ! B(1:N) is input as the right-hand side vector B,
-            ! and is used to store solution after back-substitution.
-            !
-            ii = 0
-            ! When ii is set to a positive value, it will become
-            ! the index of the  first nonvanishing element of B.
-            ! We now do the forward substitution, and the only new
-            ! wrinkle is to unscramble the permutation as we go.
-            do m = 1 , nqx
-              ll = indx(m)
-              xsum = bbm(ll,j,i)
-              bbm(ll,j,i) = bbm(m,j,i)
-              if ( ii == 0 ) then
-                if ( abs(xsum) > minqq ) ii = m
-              else
-                do jj = ii , m - 1
-                  xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i)
-                end do
-              end if
-              bbm(m,j,i) = xsum
-            end do
-            ! Now we do the backsubstitution
-            do m = nqx , 1 , -1
-              xsum = bbm(m,j,i)
-              do jj = m + 1 , nqx
-                xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i)
-              end do
-              ! Store a component of the solution vector bbm.
-              bbm(m,j,i) = xsum/aam(m,m,j,i)
-            end do
+            st_eeliq(j,i,k) = c2es*exp(c3les*((t(j,i,k)-tzero) / &
+                                              (t(j,i,k)-c4les)))
           end do
         end do
-      end subroutine mysolve
+      end do
+    end subroutine eeliq
 
-  end subroutine microphys
+    subroutine eeice ! = 0.622*esi
+      implicit none
+      integer(ik4) :: i , j , k
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            st_eeice(j,i,k) = c2es*exp(c3ies*((t(j,i,k)-tzero) / &
+                                              (t(j,i,k)-c4ies)))
+          end do
+        end do
+      end do
+    end subroutine eeice
+
+    pure real(rkx) function eewm(t,phase)
+      implicit none
+      real(rkx) , intent(in):: t , phase
+      real(rkx) :: eliq , eice
+      eliq = c2es*exp(c3les*((t-tzero)/(t-c4les)))
+      eice = c2es*exp(c3ies*((t-tzero)/(t-c4ies)))
+      eewm = phase * eliq + (d_one-phase) * eice
+    end function eewm
+
+    pure real(rkx) function fkoop(t,eeliq,eeice)
+      implicit none
+      ! se T < 0 la nuvola si forma o quando q e' maggiore della liquid
+      ! water saturation minima, oppure se e' maggiore del mixing ratio
+      ! wrt ice critica a cui inizia l'homogeneaous ice nucleation
+      ! At temperatures below 0◦C new cloud forms in any non-cloudy part
+      ! of the grid box where the humidity exceeds either the minimum of
+      ! the liquid water saturation specific humidity (qsl), or the
+      ! critical vapour saturation mixing ratio with respect to ice at
+      ! which homogeneous ice nucleation initiates
+      ! empirical fit given by Karcher and Lohmann (2002) which is a
+      ! function of temperature and ranges from 45% supersaturation at
+      ! T = 235 K to 67% at T = 190 K.
+      ! At temperatures warmer than -38 degC the cloud formation over a
+      ! timestep results entirely in liquid cloud,
+      ! i.e. fkoop = eeliq/eeice, mentre per T < -38 fkoop = RHhomo
+      ! while below this threshold the liquid water or aqueous sulphate
+      ! solutes are assumed to freeze instantaneously and the process is
+      ! a source for cloud ice.
+      ! fkoop modifies the ice saturation mixing ratio for homogeneous
+      ! nucleation
+      real(rkx) , parameter :: rkoop1 = 2.583_rkx
+      real(rkx) , parameter :: rkoop2 = 0.48116e-2_rkx ! 1/207.8
+      real(rkx) , intent(in) :: t , eeliq , eeice
+      fkoop = min(rkoop1-rkoop2*t,eeliq/eeice)
+    end function fkoop
+
+end subroutine microphys
 
 !  subroutine addpath_array(src,snk,proc2,zsqa,zsqb,beta,fg,j,i)
 !    implicit none
