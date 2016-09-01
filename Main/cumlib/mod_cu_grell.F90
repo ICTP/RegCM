@@ -43,7 +43,7 @@ module mod_cu_grell
               pwcd , pwcdo , pwco , qc , qco , qes , qeso , qrcd ,  &
               qrcdo , tv , tvo , xdby , xhe , xhes , xpwc , xpwcd , &
               xq , xqc , xqes , xqrcd , xt , xtv , xz , z , zo , cldf
-  real(rkx) , pointer , dimension(:) :: pratec , psur , qcrit , ter11
+  real(rkx) , pointer , dimension(:) :: pratec , psur , ter11
   integer(ik4) , pointer , dimension(:) :: kdet
   integer(ik4) , pointer , dimension(:) :: kmin , k22 , kb , kbcon , &
               kds , ktop , iac , jac
@@ -105,7 +105,6 @@ module mod_cu_grell
 
     call getmem1d(pratec,1,ncp,'cu_grell:pratec')
     call getmem1d(psur,1,ncp,'cu_grell:psur')
-    call getmem1d(qcrit,1,ncp,'cu_grell:qcrit')
     call getmem1d(ter11,1,ncp,'cu_grell:ter11')
 
     call getmem1d(dtauc,1,ncp,'cu_grell:dtauc')
@@ -228,7 +227,6 @@ module mod_cu_grell
 
     pratec(:)  = d_zero
     psur(:)  = d_zero
-    qcrit(:) = d_zero
     ter11(:) = d_zero
     if ( ichem == 1 ) cu_convpr(:,:,:) = d_zero
 
@@ -365,7 +363,6 @@ module mod_cu_grell
         tn(n,k) = t(n,k) + avg_tten(j,i,kk) * dt
         qo(n,k) = q(n,k) + avg_qten(j,i,kk,iqv) * dt
         if ( qo(n,k) < minqq ) qo(n,k) = minqq
-        qcrit(n) = qcrit(n) + avg_qten(j,i,kk,iqv)
       end do
     end do
     !
@@ -499,9 +496,6 @@ module mod_cu_grell
     end do
 
     do n = 1 , nap
-      if ( qcrit(n) <= d_zero ) then
-        xac(n) = -d_one
-      end if
       z(n,1)  = ter11(n) - (log(p(n,1))-log(psur(n)))*rgas*tv(n,1)*regrav
       zo(n,1) = ter11(n) - (log(po(n,1))-log(psur(n)))*rgas*tvo(n,1)*regrav
     end do
