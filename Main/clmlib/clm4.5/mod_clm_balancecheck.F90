@@ -567,7 +567,7 @@ module mod_clm_balancecheck
 
     found = .false.
     do c = lbc , ubc
-      if ( cactive(c) .and. abs(errh2osno(c)) > 1.0e-7_rk8 ) then
+      if ( cactive(c) .and. abs(errh2osno(c)) > 1.0e-5_rk8 ) then
         found = .true.
         indexc = c
       end if
