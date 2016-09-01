@@ -613,6 +613,7 @@ module mod_bats_bndry
     implicit none
     real(rkx) :: age1 , age2 , arg , arg2 , dela , dela0 , &
                  dels , tage , sold! , fsnts , tpw
+    real(rk8) :: r , a , b
     integer(ik4) :: i
     real(rkx) , parameter :: age3 = 0.3_rkx
     !real(rkx) , parameter :: ax = -48.23_rkx
@@ -631,8 +632,12 @@ module mod_bats_bndry
     !=======================================================================
     !
     do i = ilndbeg , ilndend
-      evaps(i) = scvk(i)*fevpg(i)
-      evapw(i) = (d_one-scvk(i))*fevpg(i)
+      a = scvk(i)
+      b = fevpg(i)
+      r = a * b
+      if ( r < 1.0e-20_rk8 ) r = 0.0_rk8
+      evaps(i) = real(r,rkx)
+      evapw(i) = fevpg(i) - evaps(i)
       ! tm is temperature of precipitation
       ! Aiguo Dai
       ! Temperature and pressure dependence of the rain-snow phase
