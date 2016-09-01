@@ -297,7 +297,7 @@ module mod_cloud_s1
     call getmem3d(qicefrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:qicefrac')
     call getmem3d(eewmt,jci1,jci2,ici1,ici2,1,kz,'cmicro:eewmt')
     call getmem3d(qsmix,jci1,jci2,ici1,ici2,1,kz,'cmicro:qsmix')
-    call getmem3d(qlt,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:qlt')
+    call getmem3d(qlt,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:qlt')
     call getmem3d(iorder,1,nqx,jci1,jci2,ici1,ici2,'cmicro:iorder')
     call getmem3d(ttendc,jci1,jci2,ici1,ici2,1,kz,'cmicro:ttendc')
     call getmem3d(convsrce,1,nqx,jci1,jci2,ici1,ici2,'cmicro:convsrce')
@@ -312,11 +312,11 @@ module mod_cloud_s1
     call getmem3d(ratio,1,nqx,jci1,jci2,ici1,ici2,'cmicro:ratio')
     call getmem3d(sinksum,1,nqx,jci1,jci2,ici1,ici2,'cmicro:sinksum')
     call getmem3d(dqsatdt,jci1,jci2,ici1,ici2,1,kz,'cmicro:dqsatdt')
-    call getmem3d(pfplsl,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:pfplsl')
-    call getmem3d(pfplsn,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:pfplsn')
-    call getmem3d(pfsqlf,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:pfsqlf')
-    call getmem3d(pfsqif,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:pfsqif')
-    call getmem3d(qliq,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:qliq')
+    call getmem3d(pfplsl,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsl')
+    call getmem3d(pfplsn,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsn')
+    call getmem3d(pfsqlf,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfsqlf')
+    call getmem3d(pfsqif,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfsqif')
+    call getmem3d(qliq,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:qliq')
     call getmem3d(qxfg,1,nqx,jci1,jci2,ici1,ici2,'cmicro:qxfg')
     call getmem3d(fccfg,jci1,jci2,ici1,ici2,1,kz,'cmicro:fccfg')
     call getmem3d(lind1,1,nqx,jci1,jci2,ici1,ici2,'cmicro:lind1')
@@ -332,7 +332,7 @@ module mod_cloud_s1
     call getmem4d(solqa,1,nqx,1,nqx,jci1,jci2,ici1,ici2,'cmicro:solqa')
     call getmem4d(solqb,1,nqx,1,nqx,jci1,jci2,ici1,ici2,'cmicro:solqb')
     call getmem4d(lind3,1,nqx,1,nqx,jci1,jci2,ici1,ici2,'cmicro:lind3')
-    call getmem4d(pfplsx,1,nqx,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:pfplsx')
+    call getmem4d(pfplsx,1,nqx,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsx')
     if ( budget_compute ) then
       call getmem3d(sumq0,jci1,jci2,ici1,ici2,1,kz,'cmicro:sumq0')
       call getmem3d(sumh0,jci1,jci2,ici1,ici2,1,kz,'cmicro:sumh0')
@@ -1266,7 +1266,7 @@ module mod_cloud_s1
               !                   HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
               !                   CONDENSATION (TIEDTKE, 1993, EQUATION 24)
               rhc = ramid !=0.8
-              zsig = phs(j,i,k)/pfs(j,i,kz+1)
+              zsig = phs(j,i,k)/pfs(j,i,kzp1)
               ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
               if ( zsig > 0.8_rkx ) then
                 rhc = ramid+(d_one-ramid)*((zsig-0.8_rkx)/0.2_rkx)**2
@@ -1835,7 +1835,7 @@ module mod_cloud_s1
               ! actual microphysics formula in beta
               !--------------------------------------
               ! sensitivity test showed multiply rain evap rate by 0.5
-              beta1 = sqrt(phs(j,i,k)/pfs(j,i,kz+1))/5.09e-3_rkx*preclr / &
+              beta1 = sqrt(phs(j,i,k)/pfs(j,i,kzp1))/5.09e-3_rkx*preclr / &
                        max(covpclr(j,i),dlowval)
 
               if ( beta1 >= d_zero ) then
@@ -1903,7 +1903,7 @@ module mod_cloud_s1
               !--------------------------------------
               ! actual microphysics formula in beta
               !--------------------------------------
-               beta1 = sqrt(phs(j,i,k)/pfs(j,i,kz+1)) / &
+               beta1 = sqrt(phs(j,i,k)/pfs(j,i,kzp1)) / &
                     5.09e-3_rkx*preclr/max(covpclr(j,i),dlowval)
 
               if ( beta1 >= d_zero ) then
@@ -2347,7 +2347,7 @@ module mod_cloud_s1
 
   ! Rain+liquid, snow+ice
   ! for each level k = 1 , kz, sum of the same phase elements
-  do k = 1 , kz+1
+  do k = 1 , kzp1
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nqx
@@ -2367,15 +2367,15 @@ module mod_cloud_s1
   !--------------------------------------------------------------
   do i = ici1 , ici2
     do j = jci1 , jci2
-      prainx = pfplsl(j,i,kz+1)*dt
-      psnowx = pfplsn(j,i,kz+1)*dt
+      prainx = pfplsl(j,i,kzp1)*dt
+      psnowx = pfplsn(j,i,kzp1)*dt
       if ( prainx > dlowval ) then
         rainnc(j,i) =  rainnc(j,i) + prainx   !mm
-        lsmrnc(j,i) =  lsmrnc(j,i) + pfplsl(j,i,kz+1)
+        lsmrnc(j,i) =  lsmrnc(j,i) + pfplsl(j,i,kzp1)
       end if
       if ( psnowx > dlowval ) then
         snownc(j,i) = snownc(j,i) + psnowx
-        lsmrnc(j,i) =  lsmrnc(j,i) + pfplsn(j,i,kz+1)
+        lsmrnc(j,i) =  lsmrnc(j,i) + pfplsn(j,i,kzp1)
       end if
     end do
   end do
