@@ -46,7 +46,6 @@ module mod_cloud_s1
   private
 
   logical , parameter :: lmicro = .true.
-  logical , parameter :: fscheme = .true.
 
   ! critical autoconversion
   real(rkx) , parameter :: rcldiff = 3.e-4_rkx
@@ -471,13 +470,6 @@ module mod_cloud_s1
     call time_begin(subroutine_name,idindx)
 #endif
 
-    if ( .not. fscheme ) then
-#ifdef DEBUG
-      call time_end(subroutine_name,idindx)
-#endif
-      return
-    end if
-
     oneodt = d_one/dt
 
     ! Set the default 1.e-14_rkx = d_zero
@@ -697,6 +689,14 @@ module mod_cloud_s1
       end do
     end do
 
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          fccfg(j,i,k) = min(hicld,max(pfcc(j,i,k),lowcld))
+        end do
+      end do
+    end do
+
     !----------------------------------------------------------------------
     !                       START OF VERTICAL LOOP
     !----------------------------------------------------------------------
@@ -713,12 +713,6 @@ module mod_cloud_s1
           do n = 1 , nqx
             qxfg(n,j,i) = qx0(n,j,i,k)
           end do
-        end do
-      end do
-
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          fccfg(j,i,k) = min(hicld,max(pfcc(j,i,k),lowcld))
         end do
       end do
 
@@ -1014,6 +1008,7 @@ module mod_cloud_s1
       !------------------------------------------------------------------
 
       if ( lmicro ) then
+
         !---------------------------------------
         ! EROSION OF CLOUDS BY TURBULENT MIXING
         !--------------------------------------
@@ -1951,7 +1946,7 @@ module mod_cloud_s1
           end do
         end if
 
-      end if !lmicro
+      end if ! lmicro
 
       !--------------------------------
       ! solver for the microphysics
