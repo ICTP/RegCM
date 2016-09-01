@@ -2152,7 +2152,7 @@ module mod_cloud_s1
           do n = 1 , nqx
             ! this will be the source for the k
             pfplsx(n,j,i,k+1) = rsemi*fallsink(n,j,i) * &
-              qxn(n,j,i)*rdtgdp(j,i) + (d_one-rsemi)*fallsink(j,i,n)* &
+              qxn(n,j,i)*rdtgdp(j,i) + (d_one-rsemi)*fallsink(n,j,i)* &
               qx0(n,j,i,k)*rdtgdp(j,i) ! kg/m2/s
            end do
         end do
