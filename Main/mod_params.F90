@@ -119,11 +119,11 @@ module mod_params
       iautoconv , rsemi , vfqr , vfqi , vfqs , auto_rate_khair ,   &
       auto_rate_kessl , auto_rate_klepi , rkconv , rcovpmin , rpecons
 
-    namelist /grellparam/ gcr0 , shrmin , shrmax , edtmin , edtmax ,  &
-      edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
-      htmin , htmax , skbmax , dtauc, shrmin_ocn , shrmax_ocn ,       &
-      edtmin_ocn, edtmax_ocn, edtmino_ocn , edtmaxo_ocn ,             &
-      edtminx_ocn , edtmaxx_ocn
+    namelist /grellparam/ igcc , gcr0 , shrmin , shrmax , edtmin , &
+      edtmax , edtmino , edtmaxo , edtminx , edtmaxx , pbcmax ,    &
+      mincld , htmin , htmax , skbmax , dtauc, shrmin_ocn ,        &
+      shrmax_ocn , edtmin_ocn, edtmax_ocn, edtmino_ocn ,           &
+      edtmaxo_ocn , edtminx_ocn , edtmaxx_ocn
 
     namelist /emanparam/ minsig , elcrit_ocn , elcrit_lnd , tlcrit ,  &
       entp , sigd , sigs , omtrain , omtsnow , coeffr , coeffs , cu , &
