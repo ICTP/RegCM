@@ -734,8 +734,6 @@ module mod_cloud_s1
       subsat(:,:)     = d_zero
       licld(:,:)      = d_zero
       ldefr(:,:)      = d_zero
-      qxn(:)      = d_zero
-      qlhs(:,:)   = d_zero
 
       ! Set j,i arrays to zero
       qpretot(:,:) = d_zero
@@ -2068,11 +2066,14 @@ module mod_cloud_s1
         end do
       end do
 
+      ! FOREACH POINT, SOLVE A LINEAR SYSTEM
+
       do i = ici1 , ici2
         do j = jci1 , jci2
 
           ! Set the LHS of equation
           do n = 1 , nqx
+            aamax = d_zero
             do jn = 1 , nqx
               ! Diagonals: microphysical sink terms+transport
               if ( jn == n ) then
@@ -2086,6 +2087,19 @@ module mod_cloud_s1
                 qlhs(jn,n) = -rsemi*solqb(jn,n,j,i)
               end if
             end do
+          end do
+
+          ! find implicit scaling information
+          do n = 1 , nqx
+            aamax = d_zero
+            do jn = 1 , nqx
+              if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
+            end do
+            if ( aamax < dlowval ) then
+              call fatal(__FILE__,__LINE__, &
+                         'SINGULAR MATRIX')
+            end if ! Singular matrix
+            vv(n) = d_one/aamax ! Save the scaling.
           end do
 
           ! Set the RHS of equation
@@ -2109,20 +2123,8 @@ module mod_cloud_s1
           !                                                Ux=y
           ! solve A x = b-------------> LU x = b---------> Ly=b
           !
-          ! Loop over rows to get the implicit scaling information.
-          !
-          do m = 1 , nqx
-            aamax = d_zero
-            do n = 1 , nqx
-              if ( abs(qlhs(m,n)) > aamax ) aamax = abs(qlhs(m,n))
-            end do
-            if ( aamax < dlowval ) then
-              call fatal(__FILE__,__LINE__,'SINGULAR MATRIX')
-            end if ! Singular matrix
-            vv(m) = d_one/aamax ! Save the scaling.
-          end do
           do n = 1 , nqx
-            ! This is the loop over columns of crout s method.
+            ! This is the loop over columns
             if ( n > 1 ) then
               do m = 1 , n - 1
                 xsum = qlhs(m,n)
@@ -2161,7 +2163,6 @@ module mod_cloud_s1
               vv(imax) = vv(n) ! Also interchange the scale factor.
             end if
             indx(n) = imax
-            if ( abs(qlhs(n,n)) < minqq ) qlhs(n,n) = minqq
             dum = d_one/qlhs(n,n)
             if ( n /= nqx ) then
               do m = n + 1 , nqx
@@ -2169,9 +2170,6 @@ module mod_cloud_s1
               end do
             end if
           end do
-          if ( abs(qlhs(nqx,nqx)) < minqq ) then
-            qlhs(nqx,nqx) = minqq
-          end if
           !
           ! Now solve the set of n linear equations A * X = B.
           ! B(1:N) is input as the right-hand side vector B,
@@ -2204,30 +2202,24 @@ module mod_cloud_s1
             ! Store a component of the solution vector qxn.
             qxn(m) = xsum/qlhs(m,m)
           end do
-          !--------------------------------------------------------------------
+          !-------------------------------------------------------------------
           !  Precipitation/sedimentation fluxes to next level
-          !   diagnostic precipitation fluxes
-          !   It is this scaled flux that must be used for source to next layer
-          !--------------------------------------------------------------------
-          ! Generalized precipitation flux
+          !  diagnostic precipitation fluxes
+          !  It is this scaled flux that must be used for source to next layer
+          !-------------------------------------------------------------------
           do n = 1 , nqx
+            ! Generalized precipitation flux
             ! this will be the source for the k
             pfplsx(n,j,i,k+1) = rsemi*fallsink(n,j,i) * &
               qxn(n)*rdtgdp(j,i) + (d_one-rsemi)*fallsink(n,j,i)* &
               qx0(n,j,i,k)*rdtgdp(j,i) ! kg/m2/s
-           end do
-           ! Calculate fluxes in and out of box for conservation of TL
-          do n = 1 , nqx
+            ! Calculate fluxes in and out of box for conservation of TL
             fluxq(n,j,i) = convsrce(n,j,i)+ fallsrce(n,j,i) - &
-                        (fallsink(n,j,i)+convsink(n,j,i))*qxn(n)
-          end do
-          ! Calculate the water variables tendencies
-          do n = 1 , nqx
+                         (fallsink(n,j,i)+convsink(n,j,i))*qxn(n)
+            ! Calculate the water variables tendencies
             qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + &
-                               (qxn(n)-qx0(n,j,i,k))*oneodt
-          end do
-          ! Calculate the temperature tendencies
-          do n = 1 , nqx
+                                (qxn(n)-qx0(n,j,i,k))*oneodt
+            ! Calculate the temperature tendencies
             if ( iphase(n) == 1 ) then
               ttendc(j,i,k) = ttendc(j,i,k) + &
                               wlhvocp*(qxn(n)-qx0(n,j,i,k) - &
@@ -2238,6 +2230,7 @@ module mod_cloud_s1
                               fluxq(n,j,i))*oneodt
             end if
           end do
+
         end do
       end do
 
