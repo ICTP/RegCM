@@ -523,7 +523,8 @@ module mod_cloud_s1
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          qliq(j,i,k) = phase(t(j,i,k))
+          qliq(j,i,k) = max(min(d_one,((max(rtice,min(tzero, &
+                        t(j,i,k)))-rtice)*rtwat_rtice_r)**2),d_zero)
         end do
       end do
     end do
@@ -1102,7 +1103,8 @@ module mod_cloud_s1
         do i = ici1 , ici2
           do j = jci1 , jci2
             qp = d_one/phs(j,i,k)
-            phases = phase(tcond(j,i,k))
+            phases = max(min(d_one,((max(rtice,min(tzero, &
+                       tcond(j,i,k)))-rtice)*rtwat_rtice_r)**2),d_zero)
             ! saturation mixing ratio ws
             qsat = eewm(tcond(j,i,k),phases)*qp
             qsat = min(d_half,qsat)          ! ws < 0.5        WHY?
@@ -1111,8 +1113,8 @@ module mod_cloud_s1
             cond = (qsmix(j,i,k)-qsat) / &
                     (d_one + qsat*edem(tcond(j,i,k),phases))
             tcond(j,i,k) = tcond(j,i,k)+eldcpm(tcond(j,i,k))*cond
-
-            phases = phase(tcond(j,i,k))
+            phases = max(min(d_one,((max(rtice,min(tzero, &
+                       tcond(j,i,k)))-rtice)*rtwat_rtice_r)**2),d_zero)
             qsmix(j,i,k) = qsmix(j,i,k)-cond
             qsat = eewm(tcond(j,i,k),phases)*qp
             qsat = min(d_half,qsat)
@@ -2397,16 +2399,6 @@ module mod_cloud_s1
       delta = max(d_zero,sign(d_one,t-tzero))
     end function delta
 
-    pure real(rkx) function phase(t)
-      !phase = 1      if t > tzero
-      !phase = 0      if t < rtice
-      !0<phase < 1    if rtice < t < tzero
-      implicit none
-      real(rkx) , intent(in):: t
-      phase = max(min(d_one,((max(rtice,min(tzero,t))-rtice)* &
-                              rtwat_rtice_r)**2),d_zero)
-    end function phase
-
     pure real(rkx) function edem(t,phase)
       implicit none
       real(rkx) , intent(in):: t , phase
@@ -2417,7 +2409,10 @@ module mod_cloud_s1
     pure real(rkx) function eldcpm(t)
       implicit none
       real(rkx) , intent(in):: t
-      eldcpm = phase(t)*wlhvocp+(d_one-phase(t))*wlhsocp
+      real(rkx) :: phase
+      phase = max(min(d_one,((max(rtice,min(tzero,t))-rtice)* &
+                              rtwat_rtice_r)**2),d_zero)
+      eldcpm = phase*wlhvocp+(d_one-phase)*wlhsocp
     end function eldcpm
 
     subroutine eeliq ! = 0.622*esw  !Teten's formula
