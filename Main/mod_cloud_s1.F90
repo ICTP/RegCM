@@ -617,10 +617,10 @@ module mod_cloud_s1
               sumq0(j,i,k) = sumq0(j,i,k) + &
                 (qx0(n,j,i,k)+(qxtendc(n,j,i,k)-tenkeep(n,j,i,k))*dt)* &
                 (pfs(j,i,k+1)-pfs(j,i,k))*regrav
+              tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
+              sumq0(j,i,k) = sumq0(j,i,k) + &
+                (tmpl+tmpi)*(pfs(j,i,k+1)-pfs(j,i,k))*regrav    !(kg/m^2)
             end do
-            tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
-            sumq0(j,i,k) = sumq0(j,i,k) + &
-              (tmpl+tmpi)*(pfs(j,i,k+1)-pfs(j,i,k))*regrav    !(kg/m^2)
             ! Detrained water treated here
             qe = xqdetr(j,i,k)*dt*egrav/(pfs(j,i,k+1)-pfs(j,i,k)) ! 1 ?
             if ( qe > minqq ) then
