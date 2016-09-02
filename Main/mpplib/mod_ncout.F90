@@ -717,6 +717,7 @@ module mod_ncout
             enable_atm3d_vars(atm_rainls) = .false.
             enable_atm3d_vars(atm_raincc) = .false.
           end if
+#ifdef DEBUG
           if ( stats ) then
             ! stats variables
             if ( enable_atm3d_vars(atm_stats_supw) ) then
@@ -821,9 +822,12 @@ module mod_ncout
               '',.true.)
               atm_stats_snowev_out=> v3dvar_atm(atm_stats_snowev)%rval
             end if
-          else!stats
+          else !stats
             enable_atm3d_vars(atm_stats_supw:atm_stats_snowev) = .false.
           end if
+#else
+          enable_atm3d_vars(atm_stats_supw:atm_stats_snowev) = .false.
+#endif
         else
           enable_atm3d_vars(atm_q_detr) = .false.
           enable_atm3d_vars(atm_qi:atm_qs) = .false.
@@ -2595,8 +2599,10 @@ module mod_ncout
               ncattribute_real8('bulk_activation_ratio',abulk))
           end if
         else if ( ipptls == 2 ) then
+#ifdef DEBUG
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('micro_statistics',stats))
+#endif
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('micro_budget_verification',budget_compute))
           call outstream_addatt(outstream(i)%ncout(j), &

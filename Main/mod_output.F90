@@ -273,6 +273,7 @@ module mod_output
           end do
         end if
 
+#ifdef DEBUG
         if ( ipptls == 2 .and. stats ) then
           if ( associated(atm_stats_supw_out) ) then
             do k = 1 , kz
@@ -360,6 +361,7 @@ module mod_output
             end do
           end if
         end if
+#endif
 
         if ( ibltyp == 2 ) then
           if ( associated(atm_tke_out) ) &
