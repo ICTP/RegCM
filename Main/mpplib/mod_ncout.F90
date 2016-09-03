@@ -82,7 +82,7 @@ module mod_ncout
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
   integer(ik4) , parameter :: nopt2dvars = 10 + nbase
-  integer(ik4) , parameter :: nopt3dvars = 4
+  integer(ik4) , parameter :: nopt3dvars = 5
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
   integer(ik4) , parameter :: nche2dvars = 9 + nbase
@@ -375,6 +375,7 @@ module mod_ncout
   integer(ik4) , parameter :: opt_aext8    = 2
   integer(ik4) , parameter :: opt_assa8    = 3
   integer(ik4) , parameter :: opt_agfu8    = 4
+  integer(ik4) , parameter :: opt_deltaz   = 5
 
   integer(ik4) , parameter :: che_xlon     = 1
   integer(ik4) , parameter :: che_xlat     = 2
@@ -1998,7 +1999,7 @@ module mod_ncout
           enable_opt3d_vars(opt_pp) = .false.
         end if
         if ( enable_opt3d_vars(opt_aext8) ) then
-          call setup_var(v3dvar_opt,opt_aext8,vsize,'aext8','1', &
+          call setup_var(v3dvar_opt,opt_aext8,vsize,'aext8','(m^-1)', &
             'Aerosol optical depth', &
             'atmosphere_optical_thickness_due_to_aerosol',.true.)
           opt_aext8_out => v3dvar_opt(opt_aext8)%rval
@@ -2014,6 +2015,13 @@ module mod_ncout
             'Aerosol asymmetry parameter', &
             'aerosol_asymmetry_parameter',.true.)
           opt_agfu8_out => v3dvar_opt(opt_agfu8)%rval
+        end if
+
+        if ( enable_opt3d_vars(opt_deltaz) ) then
+          call setup_var(v3dvar_opt,opt_deltaz,vsize,'deltaz','m', &
+            'Thickness layer in (m). Normal Order: TOA=1, SRF=18', &
+            'thickness_layer',.true.)
+          opt_deltaz_out => v3dvar_opt(opt_deltaz)%rval
         end if
 
         enable_opt_vars(1:nopt2dvars) = enable_opt2d_vars

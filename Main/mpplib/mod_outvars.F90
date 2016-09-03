@@ -216,6 +216,7 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: opt_aext8_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: opt_assa8_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: opt_agfu8_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: opt_deltaz_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: che_wdrflx_out => null()
   real(rkx) , dimension(:,:) , pointer :: che_wdcflx_out => null()

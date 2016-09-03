@@ -161,6 +161,7 @@ module mod_rad_outrad
       call copy4d_div(tauasc3d,opt_assa8_out,visband,deltaz)
       call copy4d_div(gtota3d,opt_agfu8_out,visband,deltaz)
       call copy2d_integrate_from3(tauxar3d,opt_aod_out,visband)
+      call copy4d2(deltaz,opt_deltaz_out)
       if ( idirect > 0 ) then
         call copy2d_add(aeradfo,opt_acstoarf_out)
         call copy2d_add(aeradfos,opt_acstsrrf_out)
@@ -300,6 +301,24 @@ module mod_rad_outrad
       end do
     end if
   end subroutine copy4d1
+
+  subroutine copy4d2(a,b)
+    implicit none
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: a
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
+    integer(ik4) :: i , j , k , n
+    if ( associated(b) ) then
+      do k = 1 , kz
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            b(j,i,k) = a(n,k)
+            n = n + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine copy4d2
 
   subroutine copy4d_mult(a,b,l,c)
     implicit none
