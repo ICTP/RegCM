@@ -79,7 +79,7 @@ module mod_cloud_s1
   ! temperature homogeneous freezing
   real(rkx) , parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
   ! Cloud fraction threshold that defines cloud top
-  real(rkx) , parameter :: cldtopcf = d_r100
+  real(rkx) , parameter :: cldtopcf = 0.1_rkx
   ! Fraction of deposition rate in cloud top layer
   real(rkx) , parameter :: depliqrefrate = d_r10
   ! Depth of supercooled liquid water layer (m)
@@ -139,7 +139,7 @@ module mod_cloud_s1
   ! total rain frac: fractional occurence of precipitation (%)
   ! for condensation
   ! distance from the top of the cloud
-  real(rkx) , pointer , dimension(:,:) :: cldtopdist
+  real(rkx) , pointer , dimension(:,:,:) :: cldtopdist
   ! ice nuclei concentration
   real(rkx) , pointer , dimension(:,:,:) :: eewmt
   real(rkx) , pointer , dimension(:,:,:) :: qliq
@@ -238,7 +238,7 @@ module mod_cloud_s1
     call getmem1d(imelt,1,nqx,'cmicro:imelt')
     call getmem1d(lfall,1,nqx,'cmicro:lfall')
     call getmem1d(iphase,1,nqx,'cmicro:iphase')
-    call getmem2d(cldtopdist,jci1,jci2,ici1,ici2,'cmicro:cldtopdist')
+    call getmem3d(cldtopdist,jci1,jci2,ici1,ici2,1,kz,'cmicro:cldtopdist')
     call getmem3d(qliqfrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:qliqfrac')
     call getmem3d(qicefrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:qicefrac')
     call getmem3d(eewmt,jci1,jci2,ici1,ici2,1,kz,'cmicro:eewmt')
@@ -493,8 +493,33 @@ module mod_cloud_s1
       end do
     end do
 
-    ! Reset variables
-    cldtopdist(:,:) = d_zero
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          fccfg(j,i,k) = min(hicld,max(pfcc(j,i,k),lowcld))
+        end do
+      end do
+    end do
+
+    !--------------------------------------------------------------
+    ! Calculate distance from cloud top
+    ! defined by cloudy layer below a layer with cloud frac <0.01
+    ! DZ = DP(JL)/(RHO(JL)*RG)
+    !--------------------------------------------------------------
+    cldtopdist(:,:,:) = d_zero
+    do k = 2 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( fccfg(j,i,k-1) > cldtopcf .and. &
+               fccfg(j,i,k)  <= cldtopcf ) then
+            cldtopdist(j,i,k) = cldtopdist(j,i,k) + &
+                                dpfs(j,i,k)/(rho(j,i,k)*egrav)
+          end if
+        end do
+      end do
+    end do
+
+    ! Reset total precipitation variables
     pfplsx(:,:,:,:) = d_zero
 
     ! Compute supersaturations
@@ -655,14 +680,6 @@ module mod_cloud_s1
             qliqfrac(j,i,k) = d_zero
             qicefrac(j,i,k) = d_zero
           end if
-        end do
-      end do
-    end do
-
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          fccfg(j,i,k) = min(hicld,max(pfcc(j,i,k),lowcld))
         end do
       end do
     end do
@@ -1241,19 +1258,6 @@ module mod_cloud_s1
             chng = d_zero
 
             !--------------------------------------------------------------
-            ! Calculate distance from cloud top
-            ! defined by cloudy layer below a layer with cloud frac <0.01
-            ! DZ = DP(JL)/(RHO(JL)*RG)
-            !--------------------------------------------------------------
-            if ( k > 1 ) then
-              if ( fccfg(j,i,k-1) < cldtopcf .and. &
-                   fccfg(j,i,k)  >= cldtopcf ) then
-                cldtopdist(j,i) = d_zero
-              else
-                cldtopdist(j,i) = cldtopdist(j,i) + dp/(rho(j,i,k)*egrav)
-              end if
-            end if
-            !--------------------------------------------------------------
             ! only treat depositional growth if liquid present. due to fact
             ! that can not model ice growth from vapour without additional
             ! in-cloud water vapour variable
@@ -1318,7 +1322,7 @@ module mod_cloud_s1
               ! depliqrefdepth = 500.0_rkx
               infactor = min(icenuclei/15000.0_rkx, d_one)
               chng = chng*min(infactor + (d_one-infactor)* &
-                     (depliqrefrate+cldtopdist(j,i)/depliqrefdepth),d_one)
+                     (depliqrefrate+cldtopdist(j,i,k)/depliqrefdepth),d_one)
               !--------------
               ! add to matrix
               !--------------
@@ -1986,15 +1990,21 @@ module mod_cloud_s1
             end if
           end do
 
-          ! Couple tendencies with pressure
+        end do ! jx : end of longitude loop
+      end do   ! iy : end of latitude loop
+    end do     ! kz : end of vertical loop
+
+    ! Couple tendencies with pressure
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           do n = 1 , nqx
-            qxten(j,i,k,n) =  qxtendc(n,j,i,k)*psb(j,i)
+            qxten(j,i,k,n) = qxtendc(n,j,i,k)*psb(j,i)
           end do
           tten(j,i,k) = ttendc(j,i,k)*psb(j,i)
-
-          end do   ! jx : end of longitude loop
-       end do   ! iy : end of latitude loop
-    end do   ! kz : end of vertical loop
+        end do
+      end do
+    end do
 
     !-------------------------------------
     ! Final enthalpy and total water diagnostics
