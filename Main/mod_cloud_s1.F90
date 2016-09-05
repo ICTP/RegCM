@@ -374,6 +374,7 @@ module mod_cloud_s1
     if ( nssopt < 0 .or. nssopt > 3 ) then
       call fatal(__FILE__,__LINE__,'NSSOPT IN CLOUD MUST BE IN RANGE 0-3')
     end if
+
   end subroutine init_cloud_s1
 
   subroutine microphys
@@ -382,16 +383,14 @@ module mod_cloud_s1
     integer(ik4) :: ii , jj , kk , ll , imax
     logical :: lactiv
     real(rkx) :: rexplicit
-    real(rkx) :: fac , faci , facw , corr , koop , gdp
+    real(rkx) :: facl , faci , facw , corr , koop , gdp
     real(rkx) :: alfaw , phases , qice , zdelta , tmpl , &
                  tmpi , tnew , qe , rain , preclr , arg
     real(rkx) :: aamax , dum , xsum , swap
     ! local real variables for autoconversion rate constants
     real(rkx) :: alpha1 ! coefficient autoconversion cold cloud
     real(rkx) :: tmpa
-    real(rkx) :: cfpr
     real(rkx) :: xlcrit
-    real(rkx) :: precip
     ! real(rkx) :: zqadj
     real(rkx) :: zrh
     real(rkx) :: beta , beta1
@@ -421,7 +420,7 @@ module mod_cloud_s1
     ! real(rkx) :: gdph_r
     ! constants for deposition process
     real(rkx) :: vpice , vpliq , xadd , xbdd , cvds , &
-                 qice0 , qinew , infactor , rainaut , snowaut
+                 qice0 , qinew , infactor , snowaut
     ! constants for condensation and turbulent mixing erosion of clouds
     real(rkx) :: dpmxdt , wtot , dtdiab , dtforc , &
                  qp , qsat , cond1 , levap , leros
@@ -431,6 +430,24 @@ module mod_cloud_s1
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+    procedure () , pointer :: selautoconv => null()
+
+    !---------------------------------------------------------------
+    !                         AUTOCONVERSION
+    !---------------------------------------------------------------
+    ! Warm clouds
+    select case (iautoconv)
+      case (1) ! Klein & Pincus (2000)
+        selautoconv => klein_and_pincus
+      case (2) ! Khairoutdinov and Kogan (2000)
+        selautoconv => khairoutdinov_and_kogan
+      case (3) ! Kessler(1969)
+        selautoconv => kessler
+      case (4) ! Sundqvist
+        selautoconv => sundqvist
+      case default
+        call fatal(__FILE__,__LINE__,'UNKNOWN AUTOCONVERSION SCHEME')
+    end select
 
     oneodt = d_one/dt
 
@@ -471,7 +488,6 @@ module mod_cloud_s1
         end do
       end do
     end do
-
 
     !-----------------------------------
     ! initialization for cloud variables
@@ -746,9 +762,9 @@ module mod_cloud_s1
           corqsice = d_one + wlhsocp*dqsicedt
           ! diagnostic mixed
           alfaw    = qliq(j,i,k)
-          fac      = alfaw*facw + (d_one - alfaw)*faci
+          facl     = alfaw*facw + (d_one - alfaw)*faci
           corr     = d_one/(d_one - ep1*eewmt(j,i,k))
-          dqsmixdt = fac*corr*qsmix(j,i,k)
+          dqsmixdt = facl*corr*qsmix(j,i,k)
           corqsmix = d_one/(d_one + eldcpm(t(j,i,k))*dqsmixdt)
           !--------------------------------
           ! evaporation/sublimation limits
@@ -794,13 +810,13 @@ module mod_cloud_s1
           ! Supersaturation limit (from Koop)
           !-----------------------------------
           if ( nssopt == 0 )  then
-            fac  = d_one
+            facl = d_one
           else
             if ( t(j,i,k) >= tzero ) then
-              fac  = d_one
+              facl = d_one
             else
               koop = fkoop(t(j,i,k),st_eeliq(j,i,k),st_eeice(j,i,k))
-              fac  = fccfg(j,i,k) + koop*(d_one-fccfg(j,i,k))
+              facl = fccfg(j,i,k) + koop*(d_one-fccfg(j,i,k))
             end if
           end if
 
@@ -816,9 +832,9 @@ module mod_cloud_s1
           !--------------------------------------------------------------------
           ! qsmix?
           ! corqslsliq? shouldn't it be corqsmix?
-          supsat = max((qvnow-fac*qsmix(j,i,k))/corqsliq,d_zero)
+          supsat = max((qvnow-facl*qsmix(j,i,k))/corqsliq,d_zero)
           ! e < esi, because for e > esi ice still present
-          subsat = min((qvnow-fac*qsmix(j,i,k))/corqsliq,d_zero)
+          subsat = min((qvnow-facl*qsmix(j,i,k))/corqsliq,d_zero)
 
           if ( supsat > dlowval ) then
             if ( t(j,i,k) > thomo ) then
@@ -965,7 +981,6 @@ module mod_cloud_s1
           end if
 #endif
 
-
           !------------------------------------------------------------------
           ! Turn on/off microphysics
           !------------------------------------------------------------------
@@ -985,13 +1000,13 @@ module mod_cloud_s1
                       max(qsmix(j,i,k)-qvnow,d_zero)
               leros = min(leros,evaplimmix)
               leros = min(leros,qlt(j,i,k))
-              fac  = qliqfrac(j,i,k)*leros
+              facl = qliqfrac(j,i,k)*leros
               faci = qicefrac(j,i,k)*leros
-              solqa(iqql,iqqv) = solqa(iqql,iqqv) - fac
-              solqa(iqqv,iqql) = solqa(iqqv,iqql) + fac
+              solqa(iqql,iqqv) = solqa(iqql,iqqv) - facl
+              solqa(iqqv,iqql) = solqa(iqqv,iqql) + facl
               solqa(iqqi,iqqv) = solqa(iqqi,iqqv) - faci
               solqa(iqqv,iqqi) = solqa(iqqv,iqqi) + faci
-              qxfg(iqql) = qxfg(iqql) - fac
+              qxfg(iqql) = qxfg(iqql) - facl
               qxfg(iqqi) = qxfg(iqqi) - faci
             end if
 
@@ -1075,13 +1090,13 @@ module mod_cloud_s1
               levap = fccfg(j,i,k)*min(dqs,licld)
               levap = min(levap,evaplimmix)
               levap = min(levap,max(qsmix(j,i,k)-qvnow,d_zero))
-              fac = qliqfrac(j,i,k)*levap
+              facl = qliqfrac(j,i,k)*levap
               faci = qicefrac(j,i,k)*levap
-              solqa(iqqv,iqql) = solqa(iqqv,iqql) + fac
-              solqa(iqql,iqqv) = solqa(iqql,iqqv) - fac
+              solqa(iqqv,iqql) = solqa(iqqv,iqql) + facl
+              solqa(iqql,iqqv) = solqa(iqql,iqqv) - facl
               solqa(iqqv,iqqi) = solqa(iqqv,iqqi) + faci
               solqa(iqqi,iqqv) = solqa(iqqi,iqqv) - faci
-              qxfg(iqql) = qxfg(iqql) - fac
+              qxfg(iqql) = qxfg(iqql) - facl
               qxfg(iqqi) = qxfg(iqqi) - faci
             end if
 
@@ -1183,36 +1198,36 @@ module mod_cloud_s1
               !---------------------------
               if ( t(j,i,k) >= tzero .or. nssopt == 0 ) then
                 ! no ice supersaturation allowed
-                fac = d_one
+                facl = d_one
               else
                 ! ice supersaturation
-                fac = fkoop(t(j,i,k),st_eeliq(j,i,k),st_eeice(j,i,k))
+                facl = fkoop(t(j,i,k),st_eeliq(j,i,k),st_eeice(j,i,k))
               end if
-              if ( qexc >= rhc*qsmix(j,i,k)*fac .and. &
-                   qexc < qsmix(j,i,k)*fac ) then
+              if ( qexc >= rhc*qsmix(j,i,k)*facl .and. &
+                   qexc < qsmix(j,i,k)*facl ) then
                 ! note: not **2 on 1-a term if qe is used.
                 ! added correction term fac to numerator 15/03/2010
-                acond = -(d_one-fccfg(j,i,k))*fac*dqs / &
-                          max(d_two*(fac*qsmix(j,i,k)-qexc),dlowval)
+                acond = -(d_one-fccfg(j,i,k))*facl*dqs / &
+                          max(d_two*(facl*qsmix(j,i,k)-qexc),dlowval)
                 acond = min(acond,d_one-fccfg(j,i,k)) ! put the limiter back
                 ! linear term:
                 ! added correction term fac 15/03/2010
-                chng = -fac*dqs*d_half*acond !mine linear
+                chng = -facl*dqs*d_half*acond !mine linear
                 ! new limiter formulation
                 ! qsice(j,i,k)-qexc) /
                 tmpa = d_one-fccfg(j,i,k)
-                zdl = d_two*(fac*qsmix(j,i,k)-qexc) / tmpa
+                zdl = d_two*(facl*qsmix(j,i,k)-qexc) / tmpa
                 ! added correction term fac 15/03/2010
-                if ( fac*dqs < -zdl ) then
+                if ( facl*dqs < -zdl ) then
                   ! qsice(j,i,k)+qvnow
-                  xlcondlim = (fccfg(j,i,k)-d_one)*fac*dqs - &
-                               fac*qsmix(j,i,k)+qvnow
+                  xlcondlim = (fccfg(j,i,k)-d_one)*facl*dqs - &
+                               facl*qsmix(j,i,k)+qvnow
                   chng = min(chng,xlcondlim)
                 end if
                 chng = max(chng,d_zero)
                 if ( chng < minqq ) then
                   chng = d_zero
-                  acond     = d_zero
+                  acond = d_zero
                 end if
                 !-------------------------------------------------------------
                 ! all increase goes into liquid unless so cold cloud
@@ -1395,84 +1410,9 @@ module mod_cloud_s1
             !                         AUTOCONVERSION
             !---------------------------------------------------------------
             ! Warm clouds
-            select case (iautoconv)
-              case (1) ! Klein & Pincus (2000)
-                if ( liqcld > minqx ) then
-                  solqb(iqql,iqqv) = d_zero
-                  solqb(iqqr,iqql) = solqb(iqqr,iqql) + &
-                    dt*auto_rate_klepi * (qlnow**(2.3_rkx))
-                  solqa(iqqr,iqql) = d_zero
-                end if
-              case (2) ! Khairoutdinov and Kogan (2000)
-                if ( liqcld > minqx ) then
-                  solqb(iqql,iqqv) = d_zero
-                  solqb(iqqr,iqql) = solqb(iqqr,iqql) + &
-                    dt*auto_rate_khair*(qlnow**(auto_expon_khair))
-                end if
-              case (3) ! Kessler(1969)
-                if ( liqcld > minqx ) then
-                  solqb(iqql,iqqv) = d_zero
-                  solqa(iqqr,iqql) = solqa(iqqr,iqql) - &
-                               auto_rate_kessl*autocrit_kessl
-                  solqa(iqql,iqqr) = solqa(iqql,iqqr) + &
-                               auto_rate_kessl*autocrit_kessl
-                  solqb(iqqr,iqql) = solqb(iqqr,iqql) + &
-                               dt*auto_rate_kessl
-                end if
-              case (4) ! Sundqvist
-                if ( liqcld > minqx ) then
-                  solqb(iqql,iqqv) = d_zero
-                  alpha1 = rkconv*dt
-                  ! modify autoconversion threshold dependent on:
-                  ! land (polluted, high ccn, smaller droplets, higher
-                  !       threshold)
-                  ! sea  (clean, low ccn, larger droplets, lower threshold)
-                  if ( ldmsk(j,i) == 0 ) then  ! landmask =0 land, =1 ocean
-                    ! THRESHOLD VALUE FOR RAIN AUTOCONVERSION OVER LAND
-                    xlcrit = rclcrit_land ! landrclcrit_land = 5.e-4
-                  else
-                    xlcrit = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
-                  end if
-                  if ( ichem == 1 .and. &
-                       iaerosol == 1 .and. &
-                       iindirect == 2 ) then
-                    if ( pccn(j,i,k) > 0._rkx ) then
-                      ! aerosol second indirect effect on autoconversion
-                      ! threshold, rcrit is a critical cloud radius for cloud
-                      ! water undergoing autoconversion
-                      ! pccn = number of ccn /m3
-                      xlcrit = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
-                               ((rcrit*1e-6_rkx)**3)*rhoh2o
-                    endif
-                  endif
-                  !-----------------------------------------------------------
-                  ! parameters for cloud collection by rain and snow.
-                  ! note that with new prognostic variable it is now possible
-                  ! to replace this with an explicit collection
-                  ! parametrization
-                  !-----------------------------------------------------------
-                  precip = (pfplsx(iqqs,j,i,k)+pfplsx(iqqr,j,i,k)) / &
-                             max(dlowval,covptot)
-                  cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
-                  alpha1 = alpha1*cfpr
-                  xlcrit = xlcrit/max(cfpr,dlowval)
-                  ! security for exp for some compilers
-                  if ( (liqcld/xlcrit)**2 < 25.0_rkx ) then
-                    rainaut = alpha1*(d_one - exp(-(liqcld/xlcrit)**2))
-                  else
-                    rainaut = alpha1
-                  end if
-
-                  !-----------------------
-                  ! rain freezes instantly
-                  !-----------------------
-                  if ( t(j,i,k) <= tzero ) then
-                    solqb(iqqs,iqql) = solqb(iqqs,iqql)+rainaut
-                  else
-                    solqb(iqqr,iqql) = solqb(iqqr,iqql)+rainaut
-                  end if
-                end if
-            end select
+            if ( liqcld > minqx ) then
+              call selautoconv
+            end if
 
             ! Cold clouds
             ! Snow Autoconversion rate follow Lin et al. 1983
@@ -2226,6 +2166,85 @@ module mod_cloud_s1
       real(rkx) , intent(in) :: t , eeliq , eeice
       fkoop = min(rkoop1-rkoop2*t,eeliq/eeice)
     end function fkoop
+
+    subroutine klein_and_pincus
+      implicit none
+      solqb(iqql,iqqv) = d_zero
+      solqb(iqqr,iqql) = solqb(iqqr,iqql) + &
+                         dt*auto_rate_klepi * (qlnow**(2.3_rkx))
+      solqa(iqqr,iqql) = d_zero
+    end subroutine klein_and_pincus
+
+    subroutine khairoutdinov_and_kogan
+      implicit none
+      solqb(iqql,iqqv) = d_zero
+      solqb(iqqr,iqql) = solqb(iqqr,iqql) + &
+                         dt*auto_rate_khair*(qlnow**(auto_expon_khair))
+    end subroutine khairoutdinov_and_kogan
+
+    subroutine kessler
+      implicit none
+      solqb(iqql,iqqv) = d_zero
+      solqa(iqqr,iqql) = solqa(iqqr,iqql) - &
+                         auto_rate_kessl*autocrit_kessl
+      solqa(iqql,iqqr) = solqa(iqql,iqqr) + &
+                         auto_rate_kessl*autocrit_kessl
+      solqb(iqqr,iqql) = solqb(iqqr,iqql) + dt*auto_rate_kessl
+    end subroutine kessler
+
+    subroutine sundqvist
+      implicit none
+      real(rkx) :: precip , cfpr , rainaut
+      solqb(iqql,iqqv) = d_zero
+      alpha1 = rkconv*dt
+      ! modify autoconversion threshold dependent on:
+      ! land (polluted, high ccn, smaller droplets, higher
+      !       threshold)
+      ! sea  (clean, low ccn, larger droplets, lower threshold)
+      if ( ldmsk(j,i) == 0 ) then  ! landmask =0 land, =1 ocean
+        ! THRESHOLD VALUE FOR RAIN AUTOCONVERSION OVER LAND
+        xlcrit = rclcrit_land ! landrclcrit_land = 5.e-4
+      else
+        xlcrit = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
+      end if
+      if ( ichem == 1 .and. &
+           iaerosol == 1 .and. &
+           iindirect == 2 ) then
+        if ( pccn(j,i,k) > 0._rkx ) then
+          ! aerosol second indirect effect on autoconversion
+          ! threshold, rcrit is a critical cloud radius for cloud
+          ! water undergoing autoconversion
+          ! pccn = number of ccn /m3
+          xlcrit = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+                   ((rcrit*1e-6_rkx)**3)*rhoh2o
+        endif
+      endif
+      !-----------------------------------------------------------
+      ! parameters for cloud collection by rain and snow.
+      ! note that with new prognostic variable it is now possible
+      ! to replace this with an explicit collection
+      ! parametrization
+      !-----------------------------------------------------------
+      precip = (pfplsx(iqqs,j,i,k)+pfplsx(iqqr,j,i,k)) / &
+               max(dlowval,covptot)
+      cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
+             alpha1 = alpha1*cfpr
+      xlcrit = xlcrit/max(cfpr,dlowval)
+      ! security for exp for some compilers
+      if ( (liqcld/xlcrit)**2 < 25.0_rkx ) then
+        rainaut = alpha1*(d_one - exp(-(liqcld/xlcrit)**2))
+      else
+        rainaut = alpha1
+      end if
+      !-----------------------
+      ! rain freezes instantly
+      !-----------------------
+      if ( t(j,i,k) <= tzero ) then
+        solqb(iqqs,iqql) = solqb(iqqs,iqql)+rainaut
+      else
+        solqb(iqqr,iqql) = solqb(iqqr,iqql)+rainaut
+      end if
+    end subroutine sundqvist
 !
 !  subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)
 !    implicit none
