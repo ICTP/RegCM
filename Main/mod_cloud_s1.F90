@@ -370,11 +370,6 @@ module mod_cloud_s1
       end if
     end do
 
-    ! Sanity check
-    if ( nssopt < 0 .or. nssopt > 3 ) then
-      call fatal(__FILE__,__LINE__,'NSSOPT IN CLOUD MUST BE IN RANGE 0-3')
-    end if
-
   end subroutine init_cloud_s1
 
   subroutine microphys
@@ -431,7 +426,19 @@ module mod_cloud_s1
     call time_begin(subroutine_name,idindx)
 #endif
     procedure () , pointer :: selautoconv => null()
+    procedure () , pointer :: selnss => null()
 
+    select case(nssopt)
+      case(0,1)
+        selnss => nss_tompkins
+      case(2)
+        selnss => nss_lohmann_and_karcher
+      case(3)
+        selnss => nss_gierens
+      case default
+        call fatal(__FILE__,__LINE__, &
+                   'NSSOPT IN CLOUD MUST BE IN RANGE 0-3')
+    end select
     !---------------------------------------------------------------
     !                         AUTOCONVERSION
     !---------------------------------------------------------------
@@ -1163,20 +1170,8 @@ module mod_cloud_s1
             chng = d_zero
             qexc = d_zero
 
-            if ( nssopt == 0 .or. nssopt == 1 ) then ! Tompkins
-              if ( dqs <= -minqq .and. fccfg(j,i,k) < onecf ) then
-                qexc = max((qvnow -  &
-                        fccfg(j,i,k)*qsmix(j,i,k)) / &
-                        (d_one-fccfg(j,i,k)),d_zero)
-              end if
-            else if ( nssopt == 2 ) then ! Lohmann and Karcher
-              if ( dqs <= -minqq .and. fccfg(j,i,k) < onecf ) then
-                qexc = qvnow
-              end if
-            else if ( nssopt == 3 ) then ! Gierens
-              if ( dqs <= -minqq .and. fccfg(j,i,k) < onecf ) then
-                qexc = qvnow/qlt(j,i,k)
-              end if
+            if ( dqs <= -minqq .and. fccfg(j,i,k) < onecf ) then
+              call selnss
             end if
 
             ! (2) generation of new clouds (dc/dt>0)
@@ -2245,6 +2240,23 @@ module mod_cloud_s1
         solqb(iqqr,iqql) = solqb(iqqr,iqql)+rainaut
       end if
     end subroutine sundqvist
+
+    subroutine nss_tompkins
+      implicit none
+      qexc = max((qvnow -  &
+                 fccfg(j,i,k)*qsmix(j,i,k)) / &
+                 (d_one-fccfg(j,i,k)),d_zero)
+    end subroutine nss_tompkins
+
+    subroutine nss_lohmann_and_karcher
+      implicit none
+      qexc = qvnow
+    end subroutine nss_lohmann_and_karcher
+
+    subroutine nss_gierens
+      implicit none
+      qexc = qvnow/qlt(j,i,k)
+    end subroutine nss_gierens
 !
 !  subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)
 !    implicit none
