@@ -2016,7 +2016,6 @@ module mod_ncout
             'aerosol_asymmetry_parameter',.true.)
           opt_agfu8_out => v3dvar_opt(opt_agfu8)%rval
         end if
-
         if ( enable_opt3d_vars(opt_deltaz) ) then
           call setup_var(v3dvar_opt,opt_deltaz,vsize,'deltaz','m', &
             'Thickness layer in (m). Normal Order: TOA=1, SRF=18', &

@@ -128,8 +128,6 @@ module mod_cloud_s1
   real(rkx) , pointer , dimension(:,:,:,:) :: tenkeep
   ! Mass variables
   ! Microphysics
-  real(rkx) , pointer , dimension(:,:) :: prcflxw
-  real(rkx) , pointer , dimension(:,:) :: prcflxc
   real(rkx) , pointer , dimension(:,:,:) :: dqsatdt
   real(rkx) , pointer , dimension(:,:,:) :: pccn
   ! for sedimentation source/sink terms
@@ -198,7 +196,8 @@ module mod_cloud_s1
   real(rkx) , public  , pointer, dimension(:,:,:)   :: relh
   ! saturation mixing ratio with respect to water
   real(rkx) , public  , pointer, dimension(:,:,:)   :: qsliq
-  ! turbulent erosion rate
+  ! Delta pressure
+  real(rkx) , public  , pointer, dimension(:,:,:)   :: dpfs
 
 #ifdef DEBUG
   ! statistic only if stat =.true.
@@ -223,11 +222,6 @@ module mod_cloud_s1
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
-!  interface addpath
-!    module procedure addpath_array
-!    module procedure addpath_real
-!  end interface
-
   real(rkx) , parameter :: clfeps = 1.0e-6_rkx
   real(rkx) , parameter :: zerocf = lowcld - clfeps
   real(rkx) , parameter :: onecf  = hicld + clfeps
@@ -244,8 +238,6 @@ module mod_cloud_s1
     call getmem1d(imelt,1,nqx,'cmicro:imelt')
     call getmem1d(lfall,1,nqx,'cmicro:lfall')
     call getmem1d(iphase,1,nqx,'cmicro:iphase')
-    call getmem2d(prcflxw,jci1,jci2,ici1,ici2,'cmicro:prcflxw')
-    call getmem2d(prcflxc,jci1,jci2,ici1,ici2,'cmicro:prcflxc')
     call getmem2d(cldtopdist,jci1,jci2,ici1,ici2,'cmicro:cldtopdist')
     call getmem3d(qliqfrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:qliqfrac')
     call getmem3d(qicefrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:qicefrac')
@@ -287,6 +279,7 @@ module mod_cloud_s1
     call getmem2d(solqb,1,nqx,1,nqx,'cmicro:solqb')
     call getmem2d(lind3,1,nqx,1,nqx,'cmicro:lind3')
     call getmem4d(pfplsx,1,nqx,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsx')
+    call getmem3d(dpfs,jci1,jci2,ici1,ici2,1,kz,'cmicro:dpfs')
     if ( budget_compute ) then
       call getmem3d(sumq0,jci1,jci2,ici1,ici2,1,kz,'cmicro:sumq0')
       call getmem3d(sumh0,jci1,jci2,ici1,ici2,1,kz,'cmicro:sumh0')
@@ -470,6 +463,16 @@ module mod_cloud_s1
       end do
     end do
 
+    ! Delta pressure
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          dpfs(j,i,k) = pfs(j,i,k+1)-pfs(j,i,k)
+        end do
+      end do
+    end do
+
+
     !-----------------------------------
     ! initialization for cloud variables
     ! -------------------------------------
@@ -573,19 +576,19 @@ module mod_cloud_s1
               end if
               sumq0(j,i,k) = sumq0(j,i,k) + &
                 (qx0(n,j,i,k)+(qxtendc(n,j,i,k)-tenkeep(n,j,i,k))*dt)* &
-                (pfs(j,i,k+1)-pfs(j,i,k))*regrav
+                dpfs(j,i,k)*regrav
               tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
               sumq0(j,i,k) = sumq0(j,i,k) + &
-                (tmpl+tmpi)*(pfs(j,i,k+1)-pfs(j,i,k))*regrav    !(kg/m^2)
+                (tmpl+tmpi)*dpfs(j,i,k)*regrav    !(kg/m^2)
             end do
             ! Detrained water treated here
-            qe = xqdetr(j,i,k)*dt*egrav/(pfs(j,i,k+1)-pfs(j,i,k)) ! 1 ?
+            qe = xqdetr(j,i,k)*dt*egrav/dpfs(j,i,k) ! 1 ?
             if ( qe > minqq ) then
               sumq0(j,i,k) = sumq0(j,i,k)+xqdetr(j,i,k)*dt
               alfaw = qliq(j,i,k)
               tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
             end if
-            sumh0(j,i,k) = sumh0(j,i,k)+(pfs(j,i,k+1)-pfs(j,i,k))*tnew
+            sumh0(j,i,k) = sumh0(j,i,k) + dpfs(j,i,k)*tnew
           end do
         end do
       end do
@@ -707,9 +710,9 @@ module mod_cloud_s1
           end do
 
           ! Derived variables needed
-          dp = pfs(j,i,k+1) - pfs(j,i,k)      ! dp
-          gdp = egrav/dp                      ! g/dp  =(1/m)
-          dtgdp = dt*gdp                      ! (dt*g)/dp =(dt/m)
+          dp = dpfs(j,i,k)      ! dp
+          gdp = egrav/dp        ! g/dp  =(1/m)
+          dtgdp = dt*gdp        ! (dt*g)/dp =(dt/m)
           rdtgdp = dp*(d_one/(dt*egrav)) ! dp/(gdt)=m/dt  [Kg/m2/s]
           !------------------------------------
           ! calculate dqs/dT
@@ -861,8 +864,10 @@ module mod_cloud_s1
             end if
           end if
 #endif
-          ! call addpath_real(iqql,iqqv,supsatl,solqa,solqb,d_zero,qxfg)
-          ! call addpath_real(iqqi,iqqv,supsati,solqa,solqb,d_zero,qxfg)
+          !
+          ! call addpath(iqql,iqqv,supsatl,solqa,solqb,d_zero,qxfg)
+          ! call addpath(iqqi,iqqv,supsati,solqa,solqb,d_zero,qxfg)
+          !
           !-------------------------------------------------------
           ! SOURCE/SINK array for implicit and explicit terms
           !-------------------------------------------------------
@@ -895,7 +900,7 @@ module mod_cloud_s1
           !                 DETRAINMENT FROM CONVECTION
           !------------------------------------------------------------------
           !chng = d_zero
-          if ( k < kz .and. k >= 1 ) then
+          if ( k < kz ) then
             xqdetr(j,i,k) = xqdetr(j,i,k)*dtgdp  !kg/kg
             if ( xqdetr(j,i,k) > minqq ) then
               !qice = 1 if T < 250, qice = 0 if T > 273
@@ -936,7 +941,7 @@ module mod_cloud_s1
 
 #ifdef DEBUG
           if ( stats ) then
-            if ( k < kz .and. k >= 1 ) then
+            if ( k < kz ) then
               statsdetrw(j,i,k) = convsrce(iqql)
               statsdetrc(j,i,k) = convsrce(iqqi)
             end if
@@ -2018,9 +2023,9 @@ module mod_cloud_s1
               end if
               sumq1(j,i,k) = sumq1(j,i,k) + &
                 (qx0(n,j,i,k)+(qxtendc(n,j,i,k)-tenkeep(n,j,i,k))*dt)* &
-                (pfs(j,i,k+1)-pfs(j,i,k))*regrav
+                dpfs(j,i,k)*regrav
             end do
-            sumh1(j,i,k) = sumh1(j,i,k)+(pfs(j,i,k+1)-pfs(j,i,k))*tnew
+            sumh1(j,i,k) = sumh1(j,i,k)+dpfs(j,i,k)*tnew
             rain = d_zero
             do n = 1 , nqx
             rain = rain + dt*pfplsx(n,j,i,k+1)
@@ -2032,15 +2037,13 @@ module mod_cloud_s1
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          dtgdp = dt*egrav/(pfs(j,i,k+1)-pfs(j,i,k))
+          dtgdp = dt*egrav/dpfs(j,i,k)
           rain = d_zero
           do n = 1 , nqx
             if ( iphase(n) == 1 ) then
-              rain = rain+wlhvocp*dtgdp*pfplsx(n,j,i,k+1)* & !k+1?
-                       (pfs(j,i,k+1)-pfs(j,i,k))
+              rain = rain+wlhvocp*dtgdp*pfplsx(n,j,i,k+1)*dpfs(j,i,k)
             else if ( iphase(n) == 2 ) then
-              rain = rain+wlhsocp*dtgdp*pfplsx(n,j,i,k+1)* &
-                      (pfs(j,i,k+1)-pfs(j,i,k))
+              rain = rain+wlhsocp*dtgdp*pfplsx(n,j,i,k+1)*dpfs(j,i,k)
             end if
           end do
           sumh1(j,i,k) = (sumh1(j,i,k)-rain)/(pfs(j,i,k+1)-pfs(j,i,1))
@@ -2078,8 +2081,6 @@ module mod_cloud_s1
 
   ! Sum fluxes over the levels
   ! Initialize fluxes
-  prcflxw(:,:) = d_zero
-  prcflxc(:,:) = d_zero
   pfplsl(:,:,:) = d_zero
   pfplsn(:,:,:) = d_zero
   rainls(:,:,:) = d_zero
@@ -2215,42 +2216,22 @@ module mod_cloud_s1
       real(rkx) , intent(in) :: t , eeliq , eeice
       fkoop = min(rkoop1-rkoop2*t,eeliq/eeice)
     end function fkoop
-
-end subroutine microphys
-
-!  subroutine addpath_array(src,snk,proc2,zsqa,zsqb,beta,fg,j,i)
-!    implicit none
-!    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: zsqa , zsqb
-!    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: fg
-!    real(rkx) , pointer , intent(in) , dimension(:,:)  :: proc2
-!    integer(ik4) , intent(in) :: src, snk
-!    integer(ik4), intent(in)  :: i , j
-!    real(rkx) , intent(in) :: beta
-!    zsqa(j,i,src,snk) = zsqa(j,i,src,snk) + (d_one-beta)*proc2(j,i)
-!    zsqa(j,i,snk,src) = zsqa(j,i,snk,src) - (d_one-beta)*proc2(j,i)
-!    fg(j,i,src) = fg(j,i,src) + (d_one-beta)*proc2(j,i)
-!    fg(j,i,snk) = fg(j,i,snk) - (d_one-beta)*proc2(j,i)
-!    zsqb(j,i,src,snk) = zsqb(j,i,src,snk) + beta*proc2(j,i)
-!  end subroutine addpath_array
 !
-!  subroutine addpath_real(src,snk,proc,zsqa,zsqb,beta,fg)
+!  subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)
 !    implicit none
-!    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: zsqa , zsqb
-!    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: fg
+!    real(rkx) , pointer , intent(inout) , dimension(:,:) :: zsqa , zsqb
+!    real(rkx) , pointer , intent(inout) , dimension(:) :: fg
 !    real(rkx) , intent(in) :: proc
 !    integer(ik4) , intent(in) :: src , snk
-!    integer(ik4) :: i , j
 !    real(rkx) , intent(in) :: beta
-!    do i = ici1 , ici2
-!      do j = jci1 , jci2
-!        zsqa(j,i,src,snk) = zsqa(j,i,src,snk) + (d_one-beta)*proc
-!        zsqa(j,i,snk,src) = zsqa(j,i,snk,src) - (d_one-beta)*proc
-!        fg(j,i,src) = fg(j,i,src) + (d_one-beta)*proc
-!        fg(j,i,snk) = fg(j,i,snk) - (d_one-beta)*proc
-!        zsqb(j,i,src,snk) = zsqb(j,i,src,snk) + beta*proc
-!      end do
-!    end do
-!  end subroutine addpath_real
+!    zsqa(src,snk) = zsqa(src,snk) + (d_one-beta)*proc
+!    zsqa(snk,src) = zsqa(snk,src) - (d_one-beta)*proc
+!    fg(src) = fg(src) + (d_one-beta)*proc
+!    fg(snk) = fg(snk) - (d_one-beta)*proc
+!    zsqb(src,snk) = zsqb(src,snk) + beta*proc
+!  end subroutine addpath
+!
+  end subroutine microphys
 
 end module mod_cloud_s1
 
