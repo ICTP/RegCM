@@ -81,7 +81,7 @@ module mod_cloud_s1
   ! Cloud fraction threshold that defines cloud top
   real(rkx) , parameter :: cldtopcf = 0.1_rkx
   ! Fraction of deposition rate in cloud top layer
-  real(rkx) , parameter :: depliqrefrate = d_r10
+  real(rkx) , parameter :: depliqrefrate = 0.1_rkx
   ! Depth of supercooled liquid water layer (m)
   real(rkx) , parameter :: depliqrefdepth = 500.0_rkx
   ! initial mass of ice particle
@@ -222,6 +222,7 @@ module mod_cloud_s1
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
+  real(rkx) , parameter :: activqx = 1.0e-6_rkx
   real(rkx) , parameter :: clfeps = 1.0e-6_rkx
   real(rkx) , parameter :: zerocf = lowcld - clfeps
   real(rkx) , parameter :: onecf  = hicld + clfeps
@@ -858,7 +859,7 @@ module mod_cloud_s1
           else
             if ( subsat < d_zero .and. &
                  fccfg(j,i,k) < zerocf .and. &
-                 qlt(j,i,k) > minqx ) then
+                 qlt(j,i,k) > activqx ) then
               ! turn subsaturation into vapor, where there is no cloud
               excess = qlt(j,i,k)+subsat
               if ( excess < d_zero ) then
@@ -889,7 +890,7 @@ module mod_cloud_s1
             else
               if ( subsat < d_zero .and. &
                    fccfg(j,i,k) < zerocf .and. &
-                   qlt(j,i,k) > minqx ) then
+                   qlt(j,i,k) > activqx ) then
                 excess = qlt(j,i,k)+subsat
                 if ( excess < d_zero ) then
                   if ( t(j,i,k) > thomo ) then
@@ -1002,7 +1003,7 @@ module mod_cloud_s1
             ldifdt = rcldiff*dt
             if ( xqdetr(j,i,k) > d_zero ) ldifdt = 5.0_rkx*ldifdt
             !Increase by factor of 5 for convective points
-            if ( qlt(j,i,k) > minqx ) then
+            if ( qlt(j,i,k) > activqx ) then
               leros = fccfg(j,i,k) * ldifdt * &
                       max(qsmix(j,i,k)-qvnow,d_zero)
               leros = min(leros,evaplimmix)
@@ -1019,7 +1020,7 @@ module mod_cloud_s1
 
 #ifdef DEBUG
             if ( stats ) then
-              if ( qlt(j,i,k) > minqx ) then
+              if ( qlt(j,i,k) > activqx ) then
                 statserosw(j,i,k) = qliqfrac(j,i,k)*leros
                 statserosc(j,i,k) = qicefrac(j,i,k)*leros
               end if
@@ -1327,7 +1328,7 @@ module mod_cloud_s1
               ! nucleation and ice fallout
               !---------------------------------------------------------------
               ! Fraction of deposition rate in cloud top layer
-              ! depliqrefrate  = d_r10
+              ! depliqrefrate = 0.1_rkx
               ! Depth of supercooled liquid water layer (m)
               ! depliqrefdepth = 500.0_rkx
               infactor = min(icenuclei/15000.0_rkx, d_one)
@@ -1405,14 +1406,14 @@ module mod_cloud_s1
             !                         AUTOCONVERSION
             !---------------------------------------------------------------
             ! Warm clouds
-            if ( liqcld > minqx ) then
+            if ( liqcld > activqx ) then
               call selautoconv
             end if
 
             ! Cold clouds
             ! Snow Autoconversion rate follow Lin et al. 1983
             if ( t(j,i,k) <= tzero ) then
-              if ( icecld > minqx ) then
+              if ( icecld > activqx ) then
                 alpha1 = dt*1.0e-3_rkx*exp(0.025*(t(j,i,k)-tzero))
                 xlcrit = rlcritsnow
                 arg = (icecld/xlcrit)**2
@@ -1443,7 +1444,7 @@ module mod_cloud_s1
 
             chngmax = d_zero
 
-            if ( qicetot > minqx .and. t(j,i,k) > tzero ) then
+            if ( qicetot > activqx .and. t(j,i,k) > tzero ) then
               ! Calculate subsaturation
               ! qsice(j,i,k)-qvnow,d_zero)
               subsat = max(qsmix(j,i,k)-qvnow,d_zero)
@@ -1470,7 +1471,7 @@ module mod_cloud_s1
             ! Loop over frozen hydrometeors (iphase == 2 (ice, snow))
 
             chng = d_zero
-            if ( chngmax > dlowval .and. qicetot > minqx ) then
+            if ( chngmax > dlowval .and. qicetot > activqx ) then
               do n = 1, nqx
                 if ( iphase(n) == 2 ) then
                   m = imelt(n) ! imelt(iqqi)=iqql, imelt(iqqs)=iqqr
@@ -1492,7 +1493,6 @@ module mod_cloud_s1
               statsmelt(j,i,k) = chng
             end if
 #endif
-
             !------------------------------------------------------------!
             !                         FREEZING                           !
             !------------------------------------------------------------!
@@ -1504,7 +1504,7 @@ module mod_cloud_s1
             chngmax = max((tzero-t(j,i,k))*rldcp,d_zero)
             chng = d_zero
 
-            if ( chngmax > dlowval .and. qxfg(iqqr) > minqx ) then
+            if ( chngmax > dlowval .and. qxfg(iqqr) > activqx ) then
               chng = min(qxfg(iqqr),chngmax)
               chng = max(chng,d_zero)
               solqa(iqqs,iqqr) = solqa(iqqs,iqqr) + chng
@@ -1522,7 +1522,7 @@ module mod_cloud_s1
             chngmax = max((thomo-t(j,i,k))*rldcp,d_zero)
             chng = d_zero
 
-            if ( chngmax > dlowval .and. qxfg(iqql) > minqx ) then
+            if ( chngmax > dlowval .and. qxfg(iqql) > activqx ) then
               chng = min(qxfg(iqql),chngmax)
               chng = max(chng,d_zero)
               solqa(iqqi,iqql) = solqa(iqqi,iqql) + chng
@@ -1928,14 +1928,21 @@ module mod_cloud_s1
         end do ! jx : end of longitude loop
       end do   ! iy : end of latitude loop
     end do     ! kz : end of vertical loop
-
+    !
     ! Couple tendencies with pressure
+    !
+    do n = 1 , nqx
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            qxten(j,i,k,n) = qxtendc(n,j,i,k)*psb(j,i)
+          end do
+        end do
+      end do
+    end do
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          do n = 1 , nqx
-            qxten(j,i,k,n) = qxtendc(n,j,i,k)*psb(j,i)
-          end do
           tten(j,i,k) = ttendc(j,i,k)*psb(j,i)
         end do
       end do
