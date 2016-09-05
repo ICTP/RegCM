@@ -304,8 +304,8 @@ module mod_rad_outrad
 
   subroutine copy4d2(a,b)
     implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: a
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
+    real(rkx) , pointer , intent(in) , dimension(:,:) :: a
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
       do k = 1 , kz
