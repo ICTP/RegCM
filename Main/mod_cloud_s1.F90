@@ -223,7 +223,7 @@ module mod_cloud_s1
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
-  real(rkx) , parameter :: activqx = minqq
+  real(rkx) , parameter :: activqx = 1.0e-6_rkx
   real(rkx) , parameter :: clfeps = 1.0e-6_rkx
   real(rkx) , parameter :: zerocf = lowcld + 0.1_rkx
   real(rkx) , parameter :: onecf  = hicld - 0.1_rkx
@@ -1774,7 +1774,7 @@ module mod_cloud_s1
         do n = 1 , nqx
           ! Generalized precipitation flux
           ! this will be the source for the k
-          pfplsx(n,j,i,k+1) = rsemi*fallsink(n) * qxn(n)*rdtgdp + &
+          pfplsx(n,j,i,2) = rsemi*fallsink(n) * qxn(n)*rdtgdp + &
                   (d_one-rsemi)*fallsink(n)*qx0(n)*rdtgdp ! kg/m2/s
           ! Calculate fluxes in and out of box for conservation of TL
           fluxq = convsrce(n) + fallsrce(n) - &
