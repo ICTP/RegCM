@@ -338,7 +338,9 @@ module mod_cloud_s1
     call assignpnt(q_detr,qdetr)
     call assignpnt(rain_ls,rainls)
     call assignpnt(mddom%ldmsk,ldmsk)
-    call assignpnt(ccn,pccn)
+    if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
+      call assignpnt(ccn,pccn)
+    end if
 
     ! Define species phase, 0 = vapour, 1 = liquid, 2 = ice
     iphase(iqqv) = 0
@@ -378,7 +380,7 @@ module mod_cloud_s1
     implicit none
     integer(ik4) :: i , j , k , n , m , jn , jo
     logical :: lactiv , ltkgt0 , ltklt0 , ltkgthomo , lcloud , lnocloud
-    logical :: locast , lnocast , lliq
+    logical :: locast , lnocast , lliq , lccn
     real(rkx) :: rexplicit
     real(rkx) :: facl , faci , facw , corr , koop , gdp
     real(rkx) :: alfaw , phases , qice , zdelta , tmpl , &
@@ -421,7 +423,8 @@ module mod_cloud_s1
     real(rkx) :: dpmxdt , wtot , dtdiab , dtforc , &
                  qp , qsat , cond1 , levap , leros
     real(rkx) :: qvnow , qlnow , qinow , sqmix , ccover , lccover
-    real(rkx) :: tk , tc , dens , pbot , totliq
+    real(rkx) :: tk , tc , dens , pbot , totliq , ccn
+    real(rkx) :: snowp , rainp
 
     procedure () , pointer :: selautoconv => null()
     procedure () , pointer :: selnss => null()
@@ -431,6 +434,8 @@ module mod_cloud_s1
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+
+    lccn = ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 )
 
     select case(nssopt)
       case(0,1)
@@ -482,7 +487,7 @@ module mod_cloud_s1
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qdetr(j,i,k) > minqx ) then
+          if ( qdetr(j,i,k) > 1.0e-8_rkx ) then
             xqdetr(j,i,k) = qdetr(j,i,k)
           else
             xqdetr(j,i,k) = d_zero
@@ -758,6 +763,9 @@ module mod_cloud_s1
         ccover  = fccfg(j,i,1)
         lccover = d_zero
         totliq  = qlt(j,i,1)
+        if ( lccn) ccn = pccn(j,i,1)
+        rainp = d_zero
+        snowp = d_zero
 
         ltkgt0    = ( tk > tzero )
         ltklt0    = ( .not. ltkgt0 )
@@ -1840,6 +1848,9 @@ module mod_cloud_s1
           ccover  = fccfg(j,i,k)
           lccover = fccfg(j,i,k-1)
           totliq  = qlt(j,i,k)
+          if ( lccn) ccn = pccn(j,i,k)
+          rainp = pfplsx(iqqr,j,i,k)
+          snowp = pfplsx(iqqs,j,i,k)
 
           ltkgt0    = ( tk > tzero )
           ltklt0    = ( .not. ltkgt0 )
@@ -3169,13 +3180,13 @@ module mod_cloud_s1
       else
         xlcrit = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
       end if
-      if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
-        if ( pccn(j,i,k) > 0._rkx ) then
+      if ( lccn ) then
+        if ( ccn > 0._rkx ) then
           ! aerosol second indirect effect on autoconversion
           ! threshold, rcrit is a critical cloud radius for cloud
           ! water undergoing autoconversion
-          ! pccn = number of ccn /m3
-          xlcrit = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+          ! ccn = number of ccn /m3
+          xlcrit = ccn*(4.0_rkx/3.0_rkx)*mathpi * &
                    ((rcrit*1e-6_rkx)**3)*rhoh2o
         endif
       endif
@@ -3185,8 +3196,7 @@ module mod_cloud_s1
       ! to replace this with an explicit collection
       ! parametrization
       !-----------------------------------------------------------
-      precip = (pfplsx(iqqs,j,i,k)+pfplsx(iqqr,j,i,k)) / &
-               max(dlowval,covptot)
+      precip = (rainp+snowp)/max(dlowval,covptot)
       cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
       alpha1 = alpha1*cfpr
       xlcrit = xlcrit/max(cfpr,dlowval)
