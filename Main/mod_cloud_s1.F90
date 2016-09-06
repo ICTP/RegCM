@@ -224,8 +224,8 @@ module mod_cloud_s1
 
   real(rkx) , parameter :: activqx = 1.0e-6_rkx
   real(rkx) , parameter :: clfeps = 1.0e-6_rkx
-  real(rkx) , parameter :: zerocf = lowcld - clfeps
-  real(rkx) , parameter :: onecf  = hicld + clfeps
+  real(rkx) , parameter :: zerocf = lowcld + 0.1_rkx
+  real(rkx) , parameter :: onecf  = hicld - 0.1_rkx
 
   contains
 
@@ -316,7 +316,7 @@ module mod_cloud_s1
 
   subroutine init_cloud_s1
     use mod_atm_interface
-    use mod_runparams , only : vfqr , vfqi , vfqs , nssopt
+    use mod_runparams , only : vfqr , vfqi , vfqs
     implicit none
     integer(ik4) :: n
     call assignpnt(atms%pb3d,phs)
@@ -376,13 +376,12 @@ module mod_cloud_s1
   subroutine microphys
     implicit none
     integer(ik4) :: i , j , k , n , m , jn , jo
-    integer(ik4) :: ii , jj , kk , ll , imax
-    logical :: lactiv
+    logical :: lactiv , ltkgt0 , ltkgthomo , lcloud , lnocloud
+    logical :: locast , lnocast , lliq
     real(rkx) :: rexplicit
     real(rkx) :: facl , faci , facw , corr , koop , gdp
     real(rkx) :: alfaw , phases , qice , zdelta , tmpl , &
                  tmpi , tnew , qe , rain , preclr , arg
-    real(rkx) :: aamax , dum , xsum , swap
     ! local real variables for autoconversion rate constants
     real(rkx) :: alpha1 ! coefficient autoconversion cold cloud
     real(rkx) :: tmpa
@@ -420,14 +419,17 @@ module mod_cloud_s1
     ! constants for condensation and turbulent mixing erosion of clouds
     real(rkx) :: dpmxdt , wtot , dtdiab , dtforc , &
                  qp , qsat , cond1 , levap , leros
-    real(rkx) :: qvnow , qlnow , qinow
+    real(rkx) :: qvnow , qlnow , qinow , sqmix , ccover , lccover
+    real(rkx) :: tk , pbot , totliq
+
+    procedure () , pointer :: selautoconv => null()
+    procedure () , pointer :: selnss => null()
+
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    procedure () , pointer :: selautoconv => null()
-    procedure () , pointer :: selnss => null()
 
     select case(nssopt)
       case(0,1)
@@ -715,13 +717,1093 @@ module mod_cloud_s1
     end if
 #endif
 
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+
+        qvnow = qx0(iqqv,j,i,1)
+        qlnow = qx0(iqql,j,i,1)
+        qinow = qx0(iqqi,j,i,1)
+
+        solqa(:,:)  = d_zero
+        solqb(:,:)  = d_zero
+        supsat      = d_zero
+        subsat      = d_zero
+        convsrce(:) = d_zero
+        fallsrce(:) = d_zero
+        fallsink(:) = d_zero
+        convsink(:) = d_zero
+        qpretot     = d_zero
+        covptot     = d_zero
+        covpclr     = d_zero
+        qicetot     = d_zero
+        ldefr       = d_zero
+
+        !---------------------------------
+        ! First guess microphysics
+        !---------------------------------
+        do n = 1 , nqx
+          qxfg(n) = qx0(n,j,i,1)
+        end do
+
+        pbot  = pfs(j,i,kzp1)
+
+        dp      = dpfs(j,i,1)      ! dp Pa
+        tk      = t(j,i,1)         ! Temperature K
+        alfaw   = qliq(j,i,1)
+        sqmix   = qsmix(j,i,1)
+        ccover  = fccfg(j,i,1)
+        lccover = fccfg(j,i,1)
+        totliq  = qlt(j,i,1)
+
+        ltkgt0    = ( tk > tzero )
+        ltkgthomo = ( tk > thomo )
+        lcloud    = ( ccover >= zerocf )
+        lnocloud  = ( .not. lcloud )
+        locast    = ( ccover >= onecf )
+        lnocast   = ( .not. locast )
+        lliq      = ( totliq > activqx )
+
+        ! Derived variables needed
+        gdp = egrav/dp        ! g/dp  =(1/m)
+        dtgdp = dt*gdp        ! (dt*g)/dp =(dt/m)
+        rdtgdp = dp*(d_one/(dt*egrav)) ! dp/(gdt)=m/dt  [Kg/m2/s]
+        !------------------------------------
+        ! calculate dqs/dT
+        !------------------------------------
+        ! liquid
+        facw     = c5les/((tk - c4les)**2)
+        corr     = d_one/(d_one - ep1*eeliqt(j,i,1))
+        dqsliqdt = facw*corr*qsliq(j,i,1)
+        corqsliq = d_one + wlhvocp*dqsliqdt
+        ! ice
+        faci     = c5ies/((tk - c4ies)**2)
+        corr     = d_one/(d_one - ep1*eew(j,i,1))
+        dqsicedt = faci*corr*qsice(j,i,1)
+        corqsice = d_one + wlhsocp*dqsicedt
+        ! diagnostic mixed
+        facl     = alfaw*facw + (d_one - alfaw)*faci
+        corr     = d_one/(d_one - ep1*eewmt(j,i,1))
+        dqsmixdt = facl*corr*sqmix
+        corqsmix = d_one/(d_one + eldcpm(tk)*dqsmixdt)
+        !--------------------------------
+        ! evaporation/sublimation limits
+        !--------------------------------
+        evaplimmix = max((sqmix-qvnow)*corqsmix,d_zero)
+        !--------------------------------
+        ! in-cloud consensate amount
+        !--------------------------------
+        tmpa = d_one/ccover
+        liqcld = qlnow*tmpa
+        icecld = qinow*tmpa
+        licld  = liqcld + icecld
+        !------------------------------------------------
+        ! Evaporate very small amounts of liquid and ice
+        !------------------------------------------------
+        if ( qlnow < minqq ) then
+          solqa(iqqv,iqql) =  qlnow
+          solqa(iqql,iqqv) = -qlnow
+          qxfg(iqql) = qxfg(iqql) - qlnow
+        end if
+        if ( qinow < minqq ) then
+          solqa(iqqv,iqqi) =  qinow
+          solqa(iqqi,iqqv) = -qinow
+          qxfg(iqqi) = qxfg(iqqi) - qinow
+        end if
+
+        !------------------------------------------------------------------
+        !  ICE SUPERSATURATION ADJUSTMENT
+        !------------------------------------------------------------------
+        ! Note that the supersaturation adjustment is made with respect to
+        ! liquid saturation:  when T > 0C
+        ! ice saturation:     when T < 0C
+        !                     with an adjustment made to allow for ice
+        !                     supersaturation in the clear sky
+        ! Note also that the KOOP factor automatically clips the
+        ! supersaturation to a maximum set by the liquid water saturation
+        ! mixing ratio
+        ! important for temperatures near to but below 0C
+        ! qv_max = qs * (fcc + (1-fcc) *RH_homo ) if T < 0C
+        ! qv_max = qs                             if T > 0C
+        !-------------------------------------------------------------------
+        !-----------------------------------
+        ! Supersaturation limit (from Koop)
+        !-----------------------------------
+        if ( nssopt == 0 )  then
+          facl = d_one
+        else
+          if ( tk >= tzero ) then
+            facl = d_one
+          else
+            koop = fkoop(tk,st_eeliq(j,i,1),st_eeice(j,i,1))
+            facl = ccover + koop*(d_one-ccover)
+          end if
+        end if
+
+        !-------------------------------------------------------------------
+        ! Calculate supersaturation wrt Koop including dqs/dT
+        ! correction factor
+        !-------------------------------------------------------------------
+        ! Here the supersaturation is turned into liquid water
+        ! However, if the temperature is below the threshold for homogeneous
+        ! freezing then the supersaturation is turned instantly to ice.
+        ! Moreover the RH is clipped to the limit of
+        ! qv_max = qs * (fcc + (1-fcc) *RH_homo )
+        !--------------------------------------------------------------------
+        ! qsmix?
+        ! corqslsliq? shouldn't it be corqsmix?
+        supsat = max((qvnow-facl*sqmix)/corqsliq,d_zero)
+        ! e < esi, because for e > esi ice still present
+        subsat = min((qvnow-facl*sqmix)/corqsliq,d_zero)
+
+        if ( supsat > dlowval ) then
+          if ( ltkgthomo ) then
+            ! turn supersaturation into liquid water
+            solqa(iqql,iqqv) = solqa(iqql,iqqv)+supsat
+            solqa(iqqv,iqql) = solqa(iqqv,iqql)-supsat
+            qxfg(iqql) = qxfg(iqql)+supsat
+          else
+            ! turn supersaturation into ice water
+            solqa(iqqi,iqqv) = solqa(iqqi,iqqv)+supsat
+            solqa(iqqv,iqqi) = solqa(iqqv,iqqi)-supsat
+            qxfg(iqqi) = qxfg(iqqi)+supsat
+          end if
+        else
+          if ( subsat < d_zero .and. lnocloud .and. lliq ) then
+            ! turn subsaturation into vapor, where there is no cloud
+            excess = totliq+subsat
+            if ( excess < d_zero ) then
+              if ( ltkgthomo ) then
+                evapl = max(-totliq,-evaplimmix)!*oneodt
+                solqa(iqqv,iqql) = solqa(iqqv,iqql)-evapl
+                solqa(iqql,iqqv) = solqa(iqql,iqqv)+evapl
+                qxfg(iqql) = qxfg(iqql)+evapl
+              else
+                evapi = max(-totliq,-evaplimmix)!*oneodt
+                ! turn subsaturation into vapour
+                solqa(iqqv,iqqi) = solqa(iqqv,iqqi)-evapi
+                solqa(iqqi,iqqv) = solqa(iqqi,iqqv)+evapi
+                qxfg(iqqi) = qxfg(iqqi)+evapi
+              end if
+            end if
+          end if
+        end if
+
+#ifdef DEBUG
+        if ( stats ) then
+          if ( supsat > dlowval ) then
+            if ( ltkgthomo ) then
+              statssupw(j,i,1) = supsat
+            else
+              statssupc(j,i,1) = supsat
+            end if
+          else
+            if ( subsat < d_zero .and. lnocloud .and. lliq ) then
+              excess = totliq+subsat
+              if ( excess < d_zero ) then
+                if ( ltkgthomo ) then
+                  evapl = max(-totliq,-evaplimmix)!*oneodt
+                  statssupw(j,i,1) =  statssupw(j,i,1) + evapl
+                else
+                  evapi = max(-totliq,-evaplimmix)!*oneodt
+                  statssupc(j,i,1) =  statssupc(j,i,1) - evapi
+                end if
+              end if
+            end if
+          end if
+        end if
+#endif
+        !
+        ! call addpath(iqql,iqqv,supsatl,solqa,solqb,d_zero,qxfg)
+        ! call addpath(iqqi,iqqv,supsati,solqa,solqb,d_zero,qxfg)
+        !
+        !-------------------------------------------------------
+        ! SOURCE/SINK array for implicit and explicit terms
+        !-------------------------------------------------------
+        !
+        ! a POSITIVE value entered into the arrays is a...
+        !
+        !             Source of this variable
+        !             |
+        !             |   Sink of this variable
+        !             |   |
+        !             V   V
+        ! SOLQA/B:q(IQa,IQb)
+        !
+        ! Thus if SOLQA/B(IQL,IQV) = K where K > 0 then this is
+        ! a source of IQL and a sink of IQV
+        !
+        ! put 'magic' source terms such as LUDE from
+        ! detrainment into explicit source/sink array diagnognal
+        ! SOLQA(IQL,IQL)=LUDE
+        !--------------------------------------------------------
+        ! Define the microphysics
+        ! the matrix will be sparse is this a problem ?
+        ! (X,Y) means a sink of X and a source of Y
+        ! for the implementation I will use flexible pointers
+        ! such that it will be written (IQR,IQG) to indicate graupel to rain
+        ! and the parametrization can have different variables switched on
+        ! and off.
+        ! each of these is a parametrization for a microphysical process.
+        !------------------------------------------------------------------
+        !                 DETRAINMENT FROM CONVECTION
+        !------------------------------------------------------------------
+        !chng = d_zero
+        if ( k < kz ) then
+          xqdetr(j,i,1) = xqdetr(j,i,1)*dtgdp  !kg/kg
+          if ( xqdetr(j,i,1) > minqq ) then
+            !qice = 1 if T < 250, qice = 0 if T > 273
+            qice   = d_one-alfaw
+            convsrce(iqql) = alfaw*xqdetr(j,i,1)
+            convsrce(iqqi) = qice*xqdetr(j,i,1)
+            solqa(iqql,iqql) = solqa(iqql,iqql) + convsrce(iqql)
+            solqa(iqqi,iqqi) = solqa(iqqi,iqqi) + convsrce(iqqi)
+            qxfg(iqql) = qxfg(iqql)+convsrce(iqql)
+            qxfg(iqqi) = qxfg(iqqi)+convsrce(iqqi)
+          end if
+        end if
+
+#ifdef DEBUG
+        if ( stats ) then
+          if ( k < kz ) then
+            statsdetrw(j,i,1) = convsrce(iqql)
+            statsdetrc(j,i,1) = convsrce(iqqi)
+          end if
+        end if
+#endif
+
+        !------------------------------------------------------------------
+        ! Turn on/off microphysics
+        !------------------------------------------------------------------
+
+        if ( lmicro ) then
+
+          !---------------------------------------
+          ! EROSION OF CLOUDS BY TURBULENT MIXING
+          !--------------------------------------
+          ! rcldiff  : Diffusion coefficient for evaporation by turbulent
+          ! mixing (IBID., EQU. 30) rcldiff = 3.0e-6_rkx
+          ldifdt = rcldiff*dt
+          if ( xqdetr(j,i,1) > d_zero ) ldifdt = 5.0_rkx*ldifdt
+          !Increase by factor of 5 for convective points
+          if ( lliq ) then
+            leros = ccover * ldifdt * max(sqmix-qvnow,d_zero)
+            leros = min(leros,evaplimmix)
+            leros = min(leros,totliq)
+            facl = qliqfrac(j,i,1)*leros
+            faci = qicefrac(j,i,1)*leros
+            solqa(iqql,iqqv) = solqa(iqql,iqqv) - facl
+            solqa(iqqv,iqql) = solqa(iqqv,iqql) + facl
+            solqa(iqqi,iqqv) = solqa(iqqi,iqqv) - faci
+            solqa(iqqv,iqqi) = solqa(iqqv,iqqi) + faci
+            qxfg(iqql) = qxfg(iqql) - facl
+            qxfg(iqqi) = qxfg(iqqi) - faci
+          end if
+
+#ifdef DEBUG
+          if ( stats ) then
+            if ( lliq ) then
+              statserosw(j,i,1) = qliqfrac(j,i,1)*leros
+              statserosc(j,i,1) = qicefrac(j,i,1)*leros
+            end if
+          end if
+#endif
+          !------------------------------------------------------------------
+          ! CONDENSATION/EVAPORATION DUE TO DQSAT/DT
+          !------------------------------------------------------------------
+          ! calculate dqs/dt
+          ! Note: For the separate prognostic Qi and Ql, one would ideally use
+          ! Qsat/DT wrt liquid/Koop here, since the physics is that new clouds
+          ! forms by liquid droplets [liq] or when aqueous aerosols [Koop]
+          ! form.
+          ! These would then instant. freeze if T<-38C or lead to ice growth
+          ! by deposition in warmer mixed phase clouds.  However, since we do
+          ! not have a separate prognostic equation for in-cloud humidity or a
+          ! statistical scheme approach in place, the depositional growth of
+          ! ice in the mixed phase can not be modelled and we resort to
+          ! supersaturation
+          ! wrt ice instanteously converting to ice over one timestep
+          ! (see Tompkins et al. QJRMS 2007 for details)
+          ! Thus for the initial implementation the diagnostic mixed phase is
+          ! retained for the moment, and the level of approximation noted.
+          !------------------------------------------------------------------
+          dtdp   = rovcp*tk/phs(j,i,1)
+          dpmxdt = dp*oneodt
+          wtot   = pverv(j,i,1)
+          wtot   = min(dpmxdt,max(-dpmxdt,wtot))
+          dtdiab = min(dpmxdt*dtdp,max(-dpmxdt*dtdp,radheatrt(j,i,1)))*dt + &
+                        wlhfocp*ldefr
+          ! ldefr = 0
+          ! note: ldefr should be set to the difference between the mixed
+          ! phase functions in the convection and cloud scheme, and
+          ! for now we set it to zero and the functions are the same.
+          ! In RegCM not all convection schemes provide such info.
+          dtforc = dtdp*wtot*dt + dtdiab
+          qold   = sqmix
+          told   = tk
+          tcond  = tk+dtforc
+          tcond  = max(tcond,160.0_rkx)
+          ! the goal is to produce dqs = qsmix - qold, where qsmix is
+          ! reduced because of the condensation. so that dqs is negative?
+          qp = d_one/phs(j,i,1)
+          phases = max(min(d_one,((max(rtice,min(tzero, &
+                   tcond))-rtice)*rtwat_rtice_r)**2),d_zero)
+          ! saturation mixing ratio ws
+          qsat = eewm(tcond,phases)*qp
+          qsat = min(d_half,qsat)          ! ws < 0.5        WHY?
+          corr  = d_one/(d_one-ep1*qsat)
+          qsat = qsat*corr
+          cond = (sqmix-qsat)/(d_one + qsat*edem(tcond,phases))
+          tcond = tcond + eldcpm(tcond)*cond
+          phases = max(min(d_one,((max(rtice,min(tzero, &
+                   tcond))-rtice)*rtwat_rtice_r)**2),d_zero)
+          sqmix = sqmix - cond
+          qsat = eewm(tcond,phases) * qp
+          qsat = min(d_half,qsat)
+          corr = d_one/(d_one-ep1*qsat)
+          qsat = qsat*corr
+          cond1 = (sqmix-qsat)/(d_one + qsat*edem(tcond,phases))
+          tcond = tcond+eldcpm(tcond)*cond1
+          sqmix = sqmix - cond1
+          dqs = sqmix - qold
+          sqmix = qold
+          tcond = told
+
+          !----------------------------------------------------------------
+          ! dqs > 0:  evaporation of clouds
+          !----------------------------------------------------------------
+          ! erosion term is linear in l
+          ! changed to be uniform distribution in cloud region
+          ! previous function based on delta distribution in cloud:
+          if ( dqs > d_zero ) then
+            !levap = C*min( dqs/dt , (qi+ql)/C )
+            levap = ccover*min(dqs,licld)
+            levap = min(levap,evaplimmix)
+            levap = min(levap,max(sqmix-qvnow,d_zero))
+            facl = qliqfrac(j,i,1)*levap
+            faci = qicefrac(j,i,1)*levap
+            solqa(iqqv,iqql) = solqa(iqqv,iqql) + facl
+            solqa(iqql,iqqv) = solqa(iqql,iqqv) - facl
+            solqa(iqqv,iqqi) = solqa(iqqv,iqqi) + faci
+            solqa(iqqi,iqqv) = solqa(iqqi,iqqv) - faci
+            qxfg(iqql) = qxfg(iqql) - facl
+            qxfg(iqqi) = qxfg(iqqi) - faci
+          end if
+
+#ifdef DEBUG
+          if ( stats ) then
+            if ( dqs > d_zero ) then
+              statsevapw(j,i,1) = qliqfrac(j,i,1)*levap
+              statsevapc(j,i,1) = qicefrac(j,i,1)*levap
+            end if
+          end if
+#endif
+
+          !-----------------------------------------------------------------
+          ! dqs < 0: formation of clouds
+          !-----------------------------------------------------------------
+          ! (1) increase of cloud water in existing clouds
+          chng = d_zero
+
+          if ( lcloud .and. dqs <= -minqq ) then
+            ! new limiter
+            chng = max(-dqs,d_zero)
+            ! old limiter
+            !  (significantly improves upper tropospheric humidity rms)
+            phases = alfaw
+            if ( locast ) then
+              corr = d_one/(d_one-ep1*sqmix)
+              cdmax = (qvnow-sqmix) / (d_one + corr*sqmix*edem(tk,phases))
+            else
+              cdmax = (qvnow-ccover*sqmix) / ccover
+            end if
+            chng = max(min(chng,cdmax),d_zero)
+            ! end old limiter
+            chng = ccover*chng
+            if ( chng < minqq ) chng = d_zero
+            !----------------------------------------------------------------
+            ! All increase goes into liquid unless so cold cloud
+            ! homogeneously freezes
+            ! include new liquid formation in first guess value, otherwise
+            ! liquid remains at cold temperatures until next timestep.
+            !----------------------------------------------------------------
+            if ( ltkgthomo ) then
+              solqa(iqql,iqqv) = solqa(iqql,iqqv) + chng
+              solqa(iqqv,iqql) = solqa(iqqv,iqql) - chng
+              qxfg(iqql) = qxfg(iqql) + chng
+            else
+              solqa(iqqi,iqqv) = solqa(iqqi,iqqv) + chng
+              solqa(iqqv,iqqi) = solqa(iqqv,iqqi) - chng
+              qxfg(iqqi) = qxfg(iqqi) + chng
+            end if
+          end if
+
+#ifdef DEBUG
+          if ( stats ) then
+            if ( ltkgthomo ) then
+              statscond1w(j,i,1) = chng
+            else
+              statscond1c(j,i,1) = chng
+            end if
+          end if
+#endif
+
+          chng = d_zero
+          qexc = d_zero
+
+          ! (2) generation of new clouds (dc/dt>0)
+          if ( dqs <= -minqq .and. lnocast ) then
+
+            call selnss
+
+            !---------------------------
+            ! critical relative humidity
+            !---------------------------
+            ! *RAMID*   REAL    BASE VALUE FOR CALCULATION OF RELATIVE
+            !                   HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
+            !                   CONDENSATION (TIEDTKE, 1993, EQUATION 24)
+            rhc = ramid !=0.8
+            zsig = phs(j,i,1)/pbot
+            ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
+            if ( zsig > ramid ) then
+              rhc = ramid + (d_one-ramid)*((zsig-ramid)/0.2_rkx)**2
+            end if
+            !---------------------------
+            ! supersaturation options
+            !---------------------------
+            if ( tk >= tzero .or. nssopt == 0 ) then
+              ! no ice supersaturation allowed
+              facl = d_one
+            else
+              ! ice supersaturation
+              facl = fkoop(tk,st_eeliq(j,i,1),st_eeice(j,i,1))
+            end if
+            if ( qexc >= rhc*sqmix*facl .and. qexc < sqmix*facl ) then
+              ! note: not **2 on 1-a term if qe is used.
+              ! added correction term fac to numerator 15/03/2010
+              acond = -(d_one-ccover)*facl*dqs / &
+                        max(d_two*(facl*sqmix-qexc),dlowval)
+              acond = min(acond,d_one-ccover) ! put the limiter back
+              ! linear term:
+              ! added correction term fac 15/03/2010
+              chng = -facl*dqs*d_half*acond !mine linear
+              ! new limiter formulation
+              ! qsice(j,i,1)-qexc) /
+              tmpa = d_one-ccover
+              zdl = d_two*(facl*sqmix-qexc) / tmpa
+              ! added correction term fac 15/03/2010
+              if ( facl*dqs < -zdl ) then
+                ! qsice(j,i,1)+qvnow
+                xlcondlim = (ccover-d_one)*facl*dqs - &
+                             facl*sqmix+qvnow
+                chng = min(chng,xlcondlim)
+              end if
+              chng = max(chng,d_zero)
+              if ( chng < minqq ) then
+                chng = d_zero
+                acond = d_zero
+              end if
+              !-------------------------------------------------------------
+              ! all increase goes into liquid unless so cold cloud
+              ! homogeneously freezes
+              ! include new liquid formation in first guess value, otherwise
+              ! liquid remains at cold temperatures until next timestep.
+              !-------------------------------------------------------------
+              if ( ltkgthomo ) then
+                solqa(iqql,iqqv) = solqa(iqql,iqqv) + chng
+                solqa(iqqv,iqql) = solqa(iqqv,iqql) - chng
+                qxfg(iqql) = qxfg(iqql) + chng
+              else ! homogeneous freezing
+                solqa(iqqi,iqqv) = solqa(iqqi,iqqv) + chng
+                solqa(iqqv,iqqi) = solqa(iqqv,iqqi) - chng
+                qxfg(iqqi) = qxfg(iqqi) + chng
+              end if
+            end if
+          end if
+
+#ifdef DEBUG
+          if ( stats ) then
+            if ( ltkgthomo ) then
+              statscond2w(j,i,1) = chng
+            else
+              statscond2c(j,i,1) = chng
+            end if
+          end if
+#endif
+
+          !------------------------------------------------------------------
+          ! DEPOSITION: Growth of ice by vapour deposition
+          !------------------------------------------------------------------
+          ! Following Rotstayn et al. 2001:
+          ! does not use the ice nuclei number from cloudaer.F90
+          ! but rather a simple Meyers et al. 1992 form based on the
+          ! supersaturation and assuming clouds are saturated with
+          ! respect to liquid water (well mixed), (or Koop adjustment)
+          ! Growth considered as sink of liquid water if present so
+          ! Bergeron-Findeisen adjustment in autoconversion term no
+          ! longer needed
+          !-----------------------------------------------------------------
+
+          chng = d_zero
+
+          !--------------------------------------------------------------
+          ! only treat depositional growth if liquid present. due to fact
+          ! that can not model ice growth from vapour without additional
+          ! in-cloud water vapour variable
+          ! If water droplets are present, the ice crystals are in an
+          ! environment supersaturated with respect to ice and grow by
+          ! deposition, reducing the water vapour and leading to
+          ! subsaturation with respect to water.
+          ! Water droplets then evaporate and the process continues with
+          ! ice growth until the water droplets are completely evaporated.
+          ! Thus in mixed phase clouds, the deposition process acts as a
+          ! sink of cloud liquid and a source of ice cloud.
+          !--------------------------------------------------------------
+          if ( tk < tzero .and. qxfg(iqql) > minqq ) then
+            vpice = st_eeice(j,i,1) !saturation vapor pressure wrt ice
+            vpliq = st_eeliq(j,i,1) !saturation vapor pressure wrt liq
+            ! Meyers et al 1992
+            icenuclei = d_1000*exp(12.96_rkx*((vpliq-vpice)/vpice)-0.639_rkx)
+            !------------------------------------------------
+            !   2.4e-2 is conductivity of air
+            !   8.87 = 700**1/3 = density of ice to the third
+            !------------------------------------------------
+            xadd  = wlhs*(wlhs/(rwat*tk)-d_one)/(2.4e-2_rkx*tk)
+            xbdd  = rwat*tk*phs(j,i,1)/(2.21_rkx*vpice)
+            cvds = 7.8_rkx*(icenuclei/rho(j,i,1))** &
+                   0.666_rkx*(vpliq-vpice)/(8.87_rkx*(xadd+xbdd)*vpice)
+            !-----------------------------------------------------
+            ! iceinit = 1.e-12 is initial mass of ice particle
+            !-----------------------------------------------------
+            qice0 = max(icecld, icenuclei*iceinit/rho(j,i,1))
+            !------------------
+            ! new value of ice condensate amount ( Rotstayn et al. (2000) )
+            !------------------
+            qice0 = max(qice0,d_zero)
+            cvds = max(cvds,d_zero)
+            qinew = (0.666_rkx*cvds*dt+qice0**0.666_rkx)**1.5_rkx
+            !---------------------------
+            ! grid-mean deposition rate:
+            !---------------------------
+            chng = max(ccover*(qinew-qice0),d_zero)*2.0_rkx
+            ! above increased by factor of 2 to retain similar mixed
+            ! phase liq as in diagnostic scheme
+            !---------------------------------------------------------------
+            ! limit deposition to liquid water amount
+            ! if liquid is all frozen, ice would use up reservoir of water
+            ! vapour in excess of ice saturation mixing ratio - however this
+            ! can not be represented without a in-cloud humidity variable.
+            ! using the grid-mean humidity would imply a large artificial
+            ! horizontal flux from the clear sky to the cloudy area.
+            ! we thus rely on the supersaturation check to clean up any
+            ! remaining supersaturation
+            !---------------------------------------------------------------
+            ! limit to liquid water amount
+            chng = min(chng,qxfg(iqql))
+            !---------------------------------------------------------------
+            ! at top of cloud, reduce deposition rate near cloud top to
+            ! account for small scale turbulent processes, limited ice
+            ! nucleation and ice fallout
+            !---------------------------------------------------------------
+            ! Fraction of deposition rate in cloud top layer
+            ! depliqrefrate = 0.1_rkx
+            ! Depth of supercooled liquid water layer (m)
+            ! depliqrefdepth = 500.0_rkx
+            infactor = min(icenuclei/15000.0_rkx, d_one)
+            chng = chng*min(infactor + (d_one-infactor)* &
+                   (depliqrefrate+cldtopdist(j,i,1)/depliqrefdepth),d_one)
+            !--------------
+            ! add to matrix
+            !--------------
+            solqa(iqqi,iqql) = solqa(iqqi,iqql) + chng
+            solqa(iqql,iqqi) = solqa(iqql,iqqi) - chng
+            qxfg(iqql) = qxfg(iqql) - chng
+            qxfg(iqqi) = qxfg(iqqi) + chng
+          end if
+
+#ifdef DEBUG
+          if ( stats ) then
+            statsdepos(j,i,1) = chng
+          end if
+#endif
+
+          tmpa = d_one/ccover
+          liqcld = qxfg(iqql)*tmpa
+          icecld = qxfg(iqqi)*tmpa
+
+          !------------------------------------------------------------------
+          !  SEDIMENTATION/FALLING OF *ALL* MICROPHYSICAL SPECIES
+          !     now that rain and snow species are prognostic
+          !     the precipitation flux can be defined directly level by level
+          !     There is no vertical memory required from the flux variable
+          !------------------------------------------------------------------
+          do n = 1 , nqx
+            if ( lfall(n) ) then
+              ! Sink to next layer, constant fall speed
+              fallsink(n) = dtgdp*vqx(n)*rho(j,i,1)   !Kg/Kg
+            end if  !lfall
+          end do ! n
+
+          !---------------------------------------------------------------
+          ! Precip cover overlap using MAX-RAN Overlap
+          ! Since precipitation is now prognostic we must
+          !   1) apply an arbitrary minimum coverage (0.3) if precip>0
+          !   2) abandon the 2-flux clr/cld treatment
+          !   3) Thus, since we have no memory of the clear sky precip
+          !      fraction, we mimic the previous method by reducing
+          !      COVPTOT(JL), which has the memory, proportionally with
+          !      the precip evaporation rate, taking cloud fraction
+          !      into account
+          !   #3 above leads to much smoother vertical profiles of
+          !   precipitation fraction than the Klein-Jakob scheme which
+          !   monotonically increases precip fraction and then resets
+          !   it to zero in a step function once clear-sky precip reaches
+          !   zero.
+          !   Maximum overlap for clouds in adjacent levels and random
+          !   overlap for clouds separated by clear levels.
+          !---------------------------------------------------------------
+          if ( qpretot > dlowval ) then
+            covptot = d_one - ((d_one-covptot) * &
+                (d_one - max(ccover,lccover))/(d_one - min(lccover,hicld)))
+            covptot = max(covptot,rcovpmin)   !rcovpmin = 0.1
+            ! clear sky proportion
+            covpclr = max(d_zero,covptot-ccover)
+          else
+            covptot = d_zero  ! no flux - reset cover
+            covpclr = d_zero  ! reset clear sky proportion
+          end if
+          !---------------------------------------------------------------
+          !                         AUTOCONVERSION
+          !---------------------------------------------------------------
+          ! Warm clouds
+          if ( liqcld > activqx ) then
+            call selautoconv
+          end if
+
+          ! Cold clouds
+          ! Snow Autoconversion rate follow Lin et al. 1983
+          if ( tk <= tzero ) then
+            if ( icecld > activqx ) then
+              alpha1 = dt*1.0e-3_rkx*exp(0.025*(tk-tzero))
+              xlcrit = rlcritsnow
+              arg = (icecld/xlcrit)**2
+              if ( arg < 25.0_rkx ) then
+                snowaut = alpha1 * (d_one - exp(-arg))
+              else
+                snowaut = alpha1
+              end if
+              solqb(iqqs,iqqi) = solqb(iqqs,iqqi) + snowaut
+            end if
+          end if
+
+          !---------------------------------------------------------------
+          !                         MELTING
+          !---------------------------------------------------------------
+          ! The melting of ice and snow are treated explicitly.
+          ! First water and ice saturation are found
+          !---------------------------------------------
+          ! ice saturation T < 273K
+          ! liquid water saturation for T > 273K
+          !---------------------------------------------
+
+          do n = 1 , nqx
+            if ( iphase(n) == 2 ) then
+              qicetot = qicetot + qxfg(n)
+            end if
+          end do
+
+          chngmax = d_zero
+
+          if ( qicetot > activqx .and. ltkgt0 ) then
+            ! Calculate subsaturation
+            ! qsice(j,i,1)-qvnow,d_zero)
+            subsat = max(sqmix-qvnow,d_zero)
+            ! Calculate difference between dry-bulb (t)  and the temperature
+            ! at which the wet-bulb = 0degC
+            ! Melting only occurs if the wet-bulb temperature >0
+            ! i.e. warming of ice particle due to melting > cooling
+            ! due to evaporation.
+            ! The wet-bulb temperature is used in order to account for the
+            ! thermal (cooling) ect of evaporation on the melting process
+            ! in sub-saturated air. The evaporation counteracts the latent
+            ! heating due to melting and allows snow particles to survive
+            ! to slightly warmer temperatures when the relative
+            ! humidity of the air is low. The wet-bulb temperature is
+            ! approximated as in the scheme described by
+            ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
+            tdiff = tk-tzero ! - subsat * &
+            !    (tw1+tw2*(phs(j,i,1)-tw3)-tw4*(tk-tw5))
+            ! Ensure CONS1 is positive so that MELTMAX = 0 if TDMTW0 < 0
+            cons1 = d_one ! abs(dt*(d_one + d_half*tdiff)/rtaumel)
+            chngmax = max(tdiff*cons1*rldcp,d_zero)
+          end if
+
+          ! Loop over frozen hydrometeors (iphase == 2 (ice, snow))
+
+          chng = d_zero
+          if ( chngmax > dlowval .and. qicetot > activqx ) then
+            do n = 1, nqx
+              if ( iphase(n) == 2 ) then
+                m = imelt(n) ! imelt(iqqi)=iqql, imelt(iqqs)=iqqr
+                if ( m < 0 ) cycle
+                phases = qxfg(n)/qicetot
+                chng = min(qxfg(n),phases*chngmax)
+                chng = max(chng,d_zero)
+                ! n = iqqi,iqqs; m = iqql,iqqr
+                qxfg(n) =  qxfg(n) - chng
+                qxfg(m) =  qxfg(m) + chng
+                solqa(m,n) =  solqa(m,n) + chng
+                solqa(n,m) =  solqa(n,m) - chng
+              end if
+            end do
+          end if
+
+#ifdef DEBUG
+          if ( stats ) then
+            statsmelt(j,i,1) = chng
+          end if
+#endif
+          !------------------------------------------------------------!
+          !                         FREEZING                           !
+          !------------------------------------------------------------!
+
+          ! Freezing of rain.
+          ! All rain freezes in a timestep if the temperature is below 0 C
+          ! calculate sublimation latent heat
+
+          chngmax = max((tzero-tk)*rldcp,d_zero)
+          chng = d_zero
+
+          if ( chngmax > dlowval .and. qxfg(iqqr) > activqx ) then
+            chng = min(qxfg(iqqr),chngmax)
+            chng = max(chng,d_zero)
+            solqa(iqqs,iqqr) = solqa(iqqs,iqqr) + chng
+            solqa(iqqr,iqqs) = solqa(iqqr,iqqs) - chng
+          end if
+
+#ifdef DEBUG
+          if ( stats ) then
+            statsfrz(j,i,1) = chng
+          end if
+#endif
+
+          ! Freezing of liquid
+
+          chngmax = max((thomo-tk)*rldcp,d_zero)
+          chng = d_zero
+
+          if ( chngmax > dlowval .and. qxfg(iqql) > activqx ) then
+            chng = min(qxfg(iqql),chngmax)
+            chng = max(chng,d_zero)
+            solqa(iqqi,iqql) = solqa(iqqi,iqql) + chng
+            solqa(iqql,iqqi) = solqa(iqql,iqqi) - chng
+            qxfg(iqql) = qxfg(iqql) - chng
+            qxfg(iqqi) = qxfg(iqqi) + chng
+          end if
+
+#ifdef DEBUG
+          if ( stats ) then
+            statsfrz(j,i,1) = statsfrz(j,i,1) + chng
+          end if
+#endif
+
+          !---------------------------------------------------------------
+          !                         EVAPORATION
+          !---------------------------------------------------------------
+          !------------------------------------------------------------
+          ! recalculate qpretot since melting term may have changed it
+          ! rprecrhmax = 0.7 is the threshold for the clear-sky RH that
+          ! can be reached by evaporation of precipitation. THis assumption
+          ! is done to prevent the gridbox saturating due to the evaporation
+          ! of precipitation occuring in a portion of the grid
+          !------------------------------------------------------------
+
+          ! if ( iphase(n) == 2 ) then
+          ! qpretot = qpretot+qxfg(n)
+          qpretot = qxfg(iqqs) + qxfg(iqqr)
+          ! end if
+
+          ! rain
+          chng = d_zero
+          zrh = rprecrhmax + (d_one-rprecrhmax)*covpclr/(d_one-ccover)
+          zrh = min(max(zrh,rprecrhmax),d_one)
+          ! This is a critical relative humidity that is used to limit
+          ! moist environment to prevent the gridbox saturating when
+          ! only part of the gridbox has evaporating precipitation
+          qe = (qvnow-ccover*qsliq(j,i,1))/(d_one-ccover)
+          !---------------------------------------------
+          ! humidity in moistest covpclr part of domain
+          !---------------------------------------------
+          qe = max(d_zero,min(qe,qsliq(j,i,1)))
+          lactiv = covpclr > dlowval .and. &
+          !      qpretot > dlowval .and. &
+                 qxfg(iqqr) > minqq .and. qe < zrh*qsliq(j,i,1)
+          if ( lactiv ) then
+            ! note: units of preclr and qpretot differ
+            !       qpretot is a mixing ratio (hence "q" in name)
+            !       preclr is a rain flux
+            preclr = qpretot*covpclr/(max(dlowval,covptot)*dtgdp)
+            !--------------------------------------
+            ! actual microphysics formula in beta
+            !--------------------------------------
+            ! sensitivity test showed multiply rain evap rate by 0.5
+            beta1 = sqrt(phs(j,i,1)/pbot)/5.09e-3_rkx*preclr / &
+                     max(covpclr,dlowval)
+
+            if ( beta1 >= d_zero ) then
+               beta = egrav*rpecons*d_half*(beta1)**0.5777_rkx
+               denom = d_one + beta*dt*corqsliq
+               dpr = covpclr * beta * (qsliq(j,i,1)-qe)/denom*dp*regrav
+               dpevap = dpr*dtgdp
+              !---------------------------------------------------------
+              ! add evaporation term to explicit sink.
+              ! this has to be explicit since if treated in the implicit
+              ! term evaporation can not reduce rain to zero and model
+              ! produces small amounts of rainfall everywhere.
+              !---------------------------------------------------------
+
+              ! evaporate rain
+              chng = min(dpevap,qxfg(iqqr))
+              !-------------------------------------------------------------
+              ! reduce the total precip coverage proportional to evaporation
+              !-------------------------------------------------------------
+              covptot = covptot - max(d_zero,(covptot-ccover)*dpevap/qpretot)
+            else
+              chng = qxfg(iqqr)
+            end if
+            solqa(iqqv,iqqr) = solqa(iqqv,iqqr) + chng
+            solqa(iqqr,iqqv) = solqa(iqqr,iqqv) - chng
+            qxfg(iqqr)       = qxfg(iqqr) - chng
+          end if
+
+#ifdef DEBUG
+          if ( stats ) then
+            statsrainev(j,i,1) = chng
+          end if
+#endif
+
+          ! snow
+
+          chng = d_zero
+          zrh = rprecrhmax + (d_one-rprecrhmax) * covpclr/(d_one-ccover)
+          zrh = min(max(zrh,rprecrhmax),d_one)
+          qe = (qvnow-ccover*qsice(j,i,1))/(d_one-ccover)
+          !---------------------------------------------
+          ! humidity in moistest covpclr part of domain
+          !---------------------------------------------
+          qe = max(d_zero,min(qe,qsice(j,i,1)))
+          lactiv = covpclr > dlowval .and. &
+                 qxfg(iqqs) > minqq .and. &
+                 qe < zrh*qsice(j,i,1)
+          if ( lactiv ) then
+            ! note: units of preclr and qpretot differ
+            !       qpretot is a mixing ratio (hence "q" in name)
+            !       preclr is a rain flux
+            preclr = qpretot*covpclr/(max(dlowval,covptot)*dtgdp)
+            !--------------------------------------
+            ! actual microphysics formula in beta
+            !--------------------------------------
+            beta1 = sqrt(phs(j,i,1)/pbot) / &
+                  5.09e-3_rkx*preclr/max(covpclr,dlowval)
+
+            if ( beta1 >= d_zero ) then
+              beta = egrav*rpecons*(beta1)**0.5777_rkx
+              !rpecons = alpha1
+              denom = d_one + beta*dt*corqsice
+              dpr = covpclr * beta * &
+                     (qsice(j,i,1)-qe)/denom*dp*regrav
+              dpevap = dpr*dtgdp
+              !---------------------------------------------------------
+              ! add evaporation term to explicit sink.
+              ! this has to be explicit since if treated in the implicit
+              ! term evaporation can not reduce snow to zero and model
+              ! produces small amounts of snowfall everywhere.
+              !---------------------------------------------------------
+              ! evaporate snow
+              chng = min(dpevap,qxfg(iqqs))
+              chng = max(chng,d_zero)
+              !-------------------------------------------------------------
+              ! reduce the total precip coverage proportional to evaporation
+              !-------------------------------------------------------------
+              covptot = covptot-max(d_zero,(covptot-ccover) * &
+                              dpevap/qpretot)
+            else
+              chng = qxfg(iqqs)
+            end if
+            solqa(iqqv,iqqs) = solqa(iqqv,iqqs) + chng
+            solqa(iqqs,iqqv) = solqa(iqqs,iqqv) - chng
+            qxfg(iqqs)       = qxfg(iqqs) - chng
+          end if
+
+#ifdef DEBUG
+          if ( stats ) then
+            statssnowev(j,i,1) = chng
+          end if
+#endif
+
+        end if ! lmicro
+
+        !--------------------------------
+        ! solver for the microphysics
+        !--------------------------------
+        ! Truncate sum of explicit sinks to size of bin
+        ! this approach is inaccurate, but conserves -
+        ! prob best can do with explicit (i.e. not implicit!) terms
+        !----------------------------------------------------------
+        sinksum(:) = d_zero
+        lind3(:,:) = .false.
+        !----------------------------
+        ! collect sink terms and mark
+        !----------------------------
+        do jn = 1 , nqx
+          do n = 1 , nqx
+            sinksum(n) = sinksum(n) - solqa(n,jn)
+          end do
+        end do
+        !---------------------------------------
+        ! calculate overshoot and scaling factor
+        !---------------------------------------
+        do n = 1 , nqx
+          ratio(n) = qx0(n,j,i,1)/max(sinksum(n),qx0(n,j,i,1))
+        end do
+        !--------------------------------------------------------
+        ! now sort ratio to find out which species run out first
+        !--------------------------------------------------------
+        do n = 1 , nqx
+          iorder(n) = -999
+          lind1(n) = .true.
+        end do
+        do n = 1 , nqx
+          do jn = 1 , nqx
+            if ( lind1(jn) .and. ratio(jn) > dlowval ) then
+              iorder(n) = jn
+            end if
+          end do
+        end do
+        do n = 1 , nqx
+          if ( iorder(n) > 0 ) then
+            lind1(iorder(n)) = .false.
+          end if
+        end do
+        !--------------------------------------------
+        ! scale the sink terms, in the correct order,
+        ! recalculating the scale factor each time
+        !--------------------------------------------
+        sinksum(:) = d_zero
+        !----------------
+        ! recalculate sum
+        !----------------
+        do n = 1 , nqx
+          do jn = 1 , nqx
+            jo = iorder(n)
+            if ( jo > 0 ) then
+              lind3(jo,jn) = solqa(jo,jn) < d_zero
+              sinksum(jo) = sinksum(jo) - solqa(jo,jn)
+            end if
+          end do
+        end do
+        !---------------------------
+        ! recalculate scaling factor
+        !---------------------------
+        do n = 1 , nqx
+          jo = iorder(n)
+          if ( jo > 0 ) then
+            ratio(jo) = qx0(jo,j,i,1)/max(sinksum(jo),qx0(jo,j,i,1))
+          end if
+        end do
+        !------
+        ! scale
+        !------
+        do n = 1 , nqx
+          do jn = 1 , nqx
+            jo = iorder(n)
+            if ( jo > 0 ) then
+              if ( lind3(jo,jn) ) then
+                solqa(jo,jn) = solqa(jo,jn)*ratio(jo)
+                solqa(jn,jo) = solqa(jn,jo)*ratio(jo)
+              end if
+            end if
+          end do
+        end do
+
+        ! SOLVE THE LINEAR SYSTEM
+
+        ! Set the LHS of equation
+        do n = 1 , nqx
+          do jn = 1 , nqx
+            ! Diagonals: microphysical sink terms+transport
+            if ( jn == n ) then
+              qlhs(jn,n) = d_one + rsemi*fallsink(n)
+              do jo = 1 , nqx
+                qlhs(jn,n) = qlhs(jn,n) + rsemi*solqb(jo,jn)
+              end do
+              ! Non-diagonals: microphysical source terms
+            else
+              ! Here is the delta T - missing from doc.
+              qlhs(jn,n) = -rsemi*solqb(jn,n)
+            end if
+          end do
+        end do
+
+        ! Set the RHS of equation
+
+        do n = 1 , nqx
+          ! Sum the explicit source and sink
+          rexplicit = d_zero
+          do jn = 1 , nqx
+            ! Positive, since summed over 2nd index
+            rexplicit = rexplicit + solqa(n,jn)
+            if ( jn /= n ) then
+              rexplicit =  rexplicit - &
+                      (d_one-rsemi)*qx0(n,j,i,1)*solqb(jn,n) + &
+                      (d_one-rsemi)*qx0(jn,j,i,1)*solqb(n,jn)
+            end if
+            rexplicit = rexplicit - &
+                  (d_one-rsemi)*qx0(n,j,i,1)*fallsink(n)
+          end do
+          qxn(n) = qx0(n,j,i,1) + rexplicit
+        end do
+
+        call mysolve
+
+        !-------------------------------------------------------------------
+        !  Precipitation/sedimentation fluxes to next level
+        !  diagnostic precipitation fluxes
+        !  It is this scaled flux that must be used for source to next layer
+        !-------------------------------------------------------------------
+        do n = 1 , nqx
+          ! Generalized precipitation flux
+          ! this will be the source for the k
+          pfplsx(n,j,i,1+1) = rsemi*fallsink(n) * &
+            qxn(n)*rdtgdp + (d_one-rsemi)*fallsink(n)* &
+            qx0(n,j,i,1)*rdtgdp ! kg/m2/s
+          ! Calculate fluxes in and out of box for conservation of TL
+          fluxq(n,j,i) = convsrce(n)+ fallsrce(n) - &
+                       (fallsink(n)+convsink(n))*qxn(n)
+          ! Calculate the water variables tendencies
+          qxtendc(n,j,i,1) = qxtendc(n,j,i,1) + &
+                             (qxn(n)-qx0(n,j,i,1))*oneodt
+          ! Calculate the temperature tendencies
+          if ( iphase(n) == 1 ) then
+            ttendc(j,i,1) = ttendc(j,i,1) + &
+                            wlhvocp*(qxn(n)-qx0(n,j,i,1) - &
+                             fluxq(n,j,i))*oneodt
+          else if ( iphase(n) == 2 ) then
+            ttendc(j,i,1) = ttendc(j,i,1) + &
+                            wlhsocp*(qxn(n)-qx0(n,j,i,1) - &
+                            fluxq(n,j,i))*oneodt
+          end if
+        end do
+
+      end do ! jx : end of longitude loop
+    end do   ! iy : end of latitude loop
+    !
     !----------------------------------------------------------------------
     !                       START OF VERTICAL LOOP
     !----------------------------------------------------------------------
     !
-    ! Loop over levels an points
+    ! Loop over levels and points
     !
-    do k = 1 , kz
+    do k = 2 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
 
@@ -750,8 +1832,24 @@ module mod_cloud_s1
             qxfg(n) = qx0(n,j,i,k)
           end do
 
+          pbot    = pfs(j,i,kzp1)
+          dp      = dpfs(j,i,k)      ! dpressure Pa
+          tk      = t(j,i,k)         ! Temperature K
+          alfaw   = qliq(j,i,k)
+          sqmix   = qsmix(j,i,k)
+          ccover  = fccfg(j,i,k)
+          lccover = fccfg(j,i,k-1)
+          totliq  = qlt(j,i,k)
+
+          ltkgt0    = ( tk > tzero )
+          ltkgthomo = ( tk > thomo )
+          lcloud    = ( ccover > zerocf )
+          lnocloud  = ( .not. lcloud )
+          locast    = ( ccover >= onecf )
+          lnocast   = ( .not. locast )
+          lliq      = ( totliq > activqx )
+
           ! Derived variables needed
-          dp = dpfs(j,i,k)      ! dp
           gdp = egrav/dp        ! g/dp  =(1/m)
           dtgdp = dt*gdp        ! (dt*g)/dp =(dt/m)
           rdtgdp = dp*(d_one/(dt*egrav)) ! dp/(gdt)=m/dt  [Kg/m2/s]
@@ -759,29 +1857,28 @@ module mod_cloud_s1
           ! calculate dqs/dT
           !------------------------------------
           ! liquid
-          facw     = c5les/((t(j,i,k) - c4les)**2)
+          facw     = c5les/((tk - c4les)**2)
           corr     = d_one/(d_one - ep1*eeliqt(j,i,k))
           dqsliqdt = facw*corr*qsliq(j,i,k)
           corqsliq = d_one + wlhvocp*dqsliqdt
           ! ice
-          faci     = c5ies/((t(j,i,k) - c4ies)**2)
+          faci     = c5ies/((tk - c4ies)**2)
           corr     = d_one/(d_one - ep1*eew(j,i,k))
           dqsicedt = faci*corr*qsice(j,i,k)
           corqsice = d_one + wlhsocp*dqsicedt
           ! diagnostic mixed
-          alfaw    = qliq(j,i,k)
           facl     = alfaw*facw + (d_one - alfaw)*faci
           corr     = d_one/(d_one - ep1*eewmt(j,i,k))
-          dqsmixdt = facl*corr*qsmix(j,i,k)
-          corqsmix = d_one/(d_one + eldcpm(t(j,i,k))*dqsmixdt)
+          dqsmixdt = facl*corr*sqmix
+          corqsmix = d_one/(d_one + eldcpm(tk)*dqsmixdt)
           !--------------------------------
           ! evaporation/sublimation limits
           !--------------------------------
-          evaplimmix = max((qsmix(j,i,k)-qvnow) * corqsmix,d_zero)
+          evaplimmix = max((sqmix-qvnow) * corqsmix,d_zero)
           !--------------------------------
           ! in-cloud consensate amount
           !--------------------------------
-          tmpa = d_one/fccfg(j,i,k)
+          tmpa = d_one/ccover
           liqcld = qlnow*tmpa
           icecld = qinow*tmpa
           licld  = liqcld + icecld
@@ -820,11 +1917,11 @@ module mod_cloud_s1
           if ( nssopt == 0 )  then
             facl = d_one
           else
-            if ( t(j,i,k) >= tzero ) then
+            if ( tk >= tzero ) then
               facl = d_one
             else
-              koop = fkoop(t(j,i,k),st_eeliq(j,i,k),st_eeice(j,i,k))
-              facl = fccfg(j,i,k) + koop*(d_one-fccfg(j,i,k))
+              koop = fkoop(tk,st_eeliq(j,i,k),st_eeice(j,i,k))
+              facl = ccover + koop*(d_one-ccover)
             end if
           end if
 
@@ -840,12 +1937,12 @@ module mod_cloud_s1
           !--------------------------------------------------------------------
           ! qsmix?
           ! corqslsliq? shouldn't it be corqsmix?
-          supsat = max((qvnow-facl*qsmix(j,i,k))/corqsliq,d_zero)
+          supsat = max((qvnow-facl*sqmix)/corqsliq,d_zero)
           ! e < esi, because for e > esi ice still present
-          subsat = min((qvnow-facl*qsmix(j,i,k))/corqsliq,d_zero)
+          subsat = min((qvnow-facl*sqmix)/corqsliq,d_zero)
 
           if ( supsat > dlowval ) then
-            if ( t(j,i,k) > thomo ) then
+            if ( ltkgthomo ) then
               ! turn supersaturation into liquid water
               solqa(iqql,iqqv) = solqa(iqql,iqqv)+supsat
               solqa(iqqv,iqql) = solqa(iqqv,iqql)-supsat
@@ -857,19 +1954,17 @@ module mod_cloud_s1
               qxfg(iqqi) = qxfg(iqqi)+supsat
             end if
           else
-            if ( subsat < d_zero .and. &
-                 fccfg(j,i,k) < zerocf .and. &
-                 qlt(j,i,k) > activqx ) then
+            if ( subsat < d_zero .and. lnocloud .and. lliq ) then
               ! turn subsaturation into vapor, where there is no cloud
-              excess = qlt(j,i,k)+subsat
+              excess = totliq+subsat
               if ( excess < d_zero ) then
-                if ( t(j,i,k) > thomo ) then
-                  evapl = max(-qlt(j,i,k),-evaplimmix)!*oneodt
+                if ( ltkgthomo ) then
+                  evapl = max(-totliq,-evaplimmix)!*oneodt
                   solqa(iqqv,iqql) = solqa(iqqv,iqql)-evapl
                   solqa(iqql,iqqv) = solqa(iqql,iqqv)+evapl
                   qxfg(iqql) = qxfg(iqql)+evapl
                 else
-                  evapi = max(-qlt(j,i,k),-evaplimmix)!*oneodt
+                  evapi = max(-totliq,-evaplimmix)!*oneodt
                   ! turn subsaturation into vapour
                   solqa(iqqv,iqqi) = solqa(iqqv,iqqi)-evapi
                   solqa(iqqi,iqqv) = solqa(iqqi,iqqv)+evapi
@@ -882,22 +1977,20 @@ module mod_cloud_s1
 #ifdef DEBUG
           if ( stats ) then
             if ( supsat > dlowval ) then
-              if ( t(j,i,k) > thomo ) then
+              if ( ltkgthomo ) then
                 statssupw(j,i,k) = supsat
               else
                 statssupc(j,i,k) = supsat
               end if
             else
-              if ( subsat < d_zero .and. &
-                   fccfg(j,i,k) < zerocf .and. &
-                   qlt(j,i,k) > activqx ) then
-                excess = qlt(j,i,k)+subsat
+              if ( subsat < d_zero .and. lnocloud .and. lliq ) then
+                excess = totliq+subsat
                 if ( excess < d_zero ) then
-                  if ( t(j,i,k) > thomo ) then
-                    evapl = max(-qlt(j,i,k),-evaplimmix)!*oneodt
+                  if ( ltkgthomo ) then
+                    evapl = max(-totliq,-evaplimmix)!*oneodt
                     statssupw(j,i,k) =  statssupw(j,i,k) + evapl
                   else
-                    evapi = max(-qlt(j,i,k),-evaplimmix)!*oneodt
+                    evapi = max(-totliq,-evaplimmix)!*oneodt
                     statssupc(j,i,k) =  statssupc(j,i,k) - evapi
                   end if
                 end if
@@ -945,7 +2038,6 @@ module mod_cloud_s1
             xqdetr(j,i,k) = xqdetr(j,i,k)*dtgdp  !kg/kg
             if ( xqdetr(j,i,k) > minqq ) then
               !qice = 1 if T < 250, qice = 0 if T > 273
-              alfaw = qliq(j,i,k)
               qice   = d_one-alfaw
               convsrce(iqql) = alfaw*xqdetr(j,i,k)
               convsrce(iqqi) = qice*xqdetr(j,i,k)
@@ -953,30 +2045,6 @@ module mod_cloud_s1
               solqa(iqqi,iqqi) = solqa(iqqi,iqqi) + convsrce(iqqi)
               qxfg(iqql) = qxfg(iqql)+convsrce(iqql)
               qxfg(iqqi) = qxfg(iqqi)+convsrce(iqqi)
-
-              ! adjustment of the cloud fraction, that increases when qdetr
-              ! adds liquid to the scheme
-              ! qe = (qvnow-fccfg(j,i,k)*qsmix(j,i,k)) / &
-              !        qsice(j,i,k)) / (d_one-fccfg(j,i,k))
-              ! qe = max(d_zero,min(qe,qsmix(j,i,k))) !qsice(j,i,k)))
-              ! define the new cloud
-              ! fccfg(j,i,k) = (relh(j,i,k)**0.25_rkx)* &
-              !                (d_one-dexp((-100.0_rkx*(qxfg(iqql) + &
-              !                 qxfg(iqqi))/qinow
-              !                sqrt((d_one-relh(j,i,k))*qsice(j,i,k)))))
-              ! fccfg(j,i,k) = dmin1(dmax1(fccfg(j,i,k),0.01_rkx),0.99_rkx)
-              ! chng = min(xqdetr(j,i,k),(fccfg(j,i,k) - &
-              !                            fccfg(j,i,k))*(qsice(j,i,k)-qe))
-              ! chng = max(chng,d_zero)
-              ! xqdetr2(j,i,k) = xqdetr2(j,i,k) - chng
-              ! if (xqdetr2(j,i,k) > d_zero) then
-              !   fccfg(j,i,k) = fccfg(j,i,k)
-              ! else
-              !   fccfg(j,i,k) = pfcc(j,i,k)
-              ! end if
-              ! solqa(iqqv,iqql) = solqa(iqqv,iqql) + chng
-              ! solqa(iqql,iqqv) = solqa(iqql,iqqv) - chng
-              ! qxfg(iqql) = qxfg(iqql) - chng
             end if
           end if
 
@@ -1003,11 +2071,10 @@ module mod_cloud_s1
             ldifdt = rcldiff*dt
             if ( xqdetr(j,i,k) > d_zero ) ldifdt = 5.0_rkx*ldifdt
             !Increase by factor of 5 for convective points
-            if ( qlt(j,i,k) > activqx ) then
-              leros = fccfg(j,i,k) * ldifdt * &
-                      max(qsmix(j,i,k)-qvnow,d_zero)
+            if ( lliq ) then
+              leros = ccover * ldifdt * max(sqmix-qvnow,d_zero)
               leros = min(leros,evaplimmix)
-              leros = min(leros,qlt(j,i,k))
+              leros = min(leros,totliq)
               facl = qliqfrac(j,i,k)*leros
               faci = qicefrac(j,i,k)*leros
               solqa(iqql,iqqv) = solqa(iqql,iqqv) - facl
@@ -1020,7 +2087,7 @@ module mod_cloud_s1
 
 #ifdef DEBUG
             if ( stats ) then
-              if ( qlt(j,i,k) > activqx ) then
+              if ( lliq ) then
                 statserosw(j,i,k) = qliqfrac(j,i,k)*leros
                 statserosc(j,i,k) = qicefrac(j,i,k)*leros
               end if
@@ -1045,7 +2112,7 @@ module mod_cloud_s1
             ! Thus for the initial implementation the diagnostic mixed phase is
             ! retained for the moment, and the level of approximation noted.
             !------------------------------------------------------------------
-            dtdp   = rovcp*t(j,i,k)/phs(j,i,k)
+            dtdp   = rovcp*tk/phs(j,i,k)
             dpmxdt = dp*oneodt
             wtot   = pverv(j,i,k)
             wtot   = min(dpmxdt,max(-dpmxdt,wtot))
@@ -1057,9 +2124,9 @@ module mod_cloud_s1
             ! for now we set it to zero and the functions are the same.
             ! In RegCM not all convection schemes provide such info.
             dtforc = dtdp*wtot*dt + dtdiab
-            qold   = qsmix(j,i,k)
-            told   = t(j,i,k)
-            tcond  = t(j,i,k)+dtforc
+            qold   = sqmix
+            told   = tk
+            tcond  = tk+dtforc
             tcond  = max(tcond,160.0_rkx)
             ! the goal is to produce dqs = qsmix - qold, where qsmix is
             ! reduced because of the condensation. so that dqs is negative?
@@ -1071,20 +2138,20 @@ module mod_cloud_s1
             qsat = min(d_half,qsat)          ! ws < 0.5        WHY?
             corr  = d_one/(d_one-ep1*qsat)
             qsat = qsat*corr
-            cond = (qsmix(j,i,k)-qsat)/(d_one + qsat*edem(tcond,phases))
+            cond = (sqmix-qsat)/(d_one + qsat*edem(tcond,phases))
             tcond = tcond + eldcpm(tcond)*cond
             phases = max(min(d_one,((max(rtice,min(tzero, &
                        tcond))-rtice)*rtwat_rtice_r)**2),d_zero)
-            qsmix(j,i,k) = qsmix(j,i,k) - cond
+            sqmix = sqmix - cond
             qsat = eewm(tcond,phases) * qp
             qsat = min(d_half,qsat)
             corr = d_one/(d_one-ep1*qsat)
             qsat = qsat*corr
-            cond1 = (qsmix(j,i,k)-qsat)/(d_one + qsat*edem(tcond,phases))
+            cond1 = (sqmix-qsat)/(d_one + qsat*edem(tcond,phases))
             tcond = tcond+eldcpm(tcond)*cond1
-            qsmix(j,i,k) = qsmix(j,i,k) - cond1
-            dqs = qsmix(j,i,k) - qold
-            qsmix(j,i,k) = qold
+            sqmix = sqmix - cond1
+            dqs = sqmix - qold
+            sqmix = qold
             tcond = told
 
             !----------------------------------------------------------------
@@ -1095,9 +2162,9 @@ module mod_cloud_s1
             ! previous function based on delta distribution in cloud:
             if ( dqs > d_zero ) then
               !levap = C*min( dqs/dt , (qi+ql)/C )
-              levap = fccfg(j,i,k)*min(dqs,licld)
+              levap = ccover*min(dqs,licld)
               levap = min(levap,evaplimmix)
-              levap = min(levap,max(qsmix(j,i,k)-qvnow,d_zero))
+              levap = min(levap,max(sqmix-qvnow,d_zero))
               facl = qliqfrac(j,i,k)*levap
               faci = qicefrac(j,i,k)*levap
               solqa(iqqv,iqql) = solqa(iqqv,iqql) + facl
@@ -1123,23 +2190,21 @@ module mod_cloud_s1
             ! (1) increase of cloud water in existing clouds
             chng = d_zero
 
-            if ( fccfg(j,i,k) > zerocf .and. dqs <= -minqq ) then
+            if ( lcloud .and. dqs <= -minqq ) then
               ! new limiter
               chng = max(-dqs,d_zero)
               ! old limiter
               !  (significantly improves upper tropospheric humidity rms)
-              phases = qliq(j,i,k)
-              if ( fccfg(j,i,k) > onecf ) then
-                corr = d_one/(d_one-ep1*qsmix(j,i,k))
-                cdmax = (qvnow-qsmix(j,i,k)) / &
-                         (d_one + corr*qsmix(j,i,k)*edem(t(j,i,k),phases))
+              phases = alfaw
+              if ( locast ) then
+                corr = d_one/(d_one-ep1*sqmix)
+                cdmax = (qvnow-sqmix)/(d_one + corr*sqmix*edem(tk,phases))
               else
-                cdmax = (qvnow-fccfg(j,i,k)*qsmix(j,i,k)) / &
-                        fccfg(j,i,k)
+                cdmax = (qvnow-ccover*sqmix)/ccover
               end if
               chng = max(min(chng,cdmax),d_zero)
               ! end old limiter
-              chng = fccfg(j,i,k)*chng
+              chng = ccover*chng
               if ( chng < minqq ) chng = d_zero
               !----------------------------------------------------------------
               ! All increase goes into liquid unless so cold cloud
@@ -1147,7 +2212,7 @@ module mod_cloud_s1
               ! include new liquid formation in first guess value, otherwise
               ! liquid remains at cold temperatures until next timestep.
               !----------------------------------------------------------------
-              if ( t(j,i,k) > thomo ) then
+              if ( ltkgthomo ) then
                 solqa(iqql,iqqv) = solqa(iqql,iqqv) + chng
                 solqa(iqqv,iqql) = solqa(iqqv,iqql) - chng
                 qxfg(iqql) = qxfg(iqql) + chng
@@ -1160,7 +2225,7 @@ module mod_cloud_s1
 
 #ifdef DEBUG
             if ( stats ) then
-              if ( t(j,i,k) > thomo ) then
+              if ( ltkgthomo ) then
                 statscond1w(j,i,k) = chng
               else
                 statscond1c(j,i,k) = chng
@@ -1171,12 +2236,11 @@ module mod_cloud_s1
             chng = d_zero
             qexc = d_zero
 
-            if ( dqs <= -minqq .and. fccfg(j,i,k) < onecf ) then
-              call selnss
-            end if
-
             ! (2) generation of new clouds (dc/dt>0)
-            if ( dqs <= -minqq .and. fccfg(j,i,k) < onecf ) then
+            if ( dqs <= -minqq .and. lnocast ) then
+
+              call selnss
+
               !---------------------------
               ! critical relative humidity
               !---------------------------
@@ -1184,40 +2248,39 @@ module mod_cloud_s1
               !                   HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
               !                   CONDENSATION (TIEDTKE, 1993, EQUATION 24)
               rhc = ramid !=0.8
-              zsig = phs(j,i,k)/pfs(j,i,kzp1)
+              zsig = phs(j,i,k)/pbot
               ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
-              if ( zsig > 0.8_rkx ) then
-                rhc = ramid+(d_one-ramid)*((zsig-0.8_rkx)/0.2_rkx)**2
+              if ( zsig > ramid ) then
+                rhc = ramid+(d_one-ramid)*((zsig-ramid)/0.2_rkx)**2
               end if
               !---------------------------
               ! supersaturation options
               !---------------------------
-              if ( t(j,i,k) >= tzero .or. nssopt == 0 ) then
+              if ( tk >= tzero .or. nssopt == 0 ) then
                 ! no ice supersaturation allowed
                 facl = d_one
               else
                 ! ice supersaturation
-                facl = fkoop(t(j,i,k),st_eeliq(j,i,k),st_eeice(j,i,k))
+                facl = fkoop(tk,st_eeliq(j,i,k),st_eeice(j,i,k))
               end if
-              if ( qexc >= rhc*qsmix(j,i,k)*facl .and. &
-                   qexc < qsmix(j,i,k)*facl ) then
+              if ( qexc >= rhc*sqmix*facl .and. qexc < sqmix*facl ) then
                 ! note: not **2 on 1-a term if qe is used.
                 ! added correction term fac to numerator 15/03/2010
-                acond = -(d_one-fccfg(j,i,k))*facl*dqs / &
-                          max(d_two*(facl*qsmix(j,i,k)-qexc),dlowval)
-                acond = min(acond,d_one-fccfg(j,i,k)) ! put the limiter back
+                acond = -(d_one-ccover)*facl*dqs / &
+                          max(d_two*(facl*sqmix-qexc),dlowval)
+                acond = min(acond,d_one-ccover) ! put the limiter back
                 ! linear term:
                 ! added correction term fac 15/03/2010
                 chng = -facl*dqs*d_half*acond !mine linear
                 ! new limiter formulation
                 ! qsice(j,i,k)-qexc) /
-                tmpa = d_one-fccfg(j,i,k)
-                zdl = d_two*(facl*qsmix(j,i,k)-qexc) / tmpa
+                tmpa = d_one-ccover
+                zdl = d_two*(facl*sqmix-qexc) / tmpa
                 ! added correction term fac 15/03/2010
                 if ( facl*dqs < -zdl ) then
                   ! qsice(j,i,k)+qvnow
-                  xlcondlim = (fccfg(j,i,k)-d_one)*facl*dqs - &
-                               facl*qsmix(j,i,k)+qvnow
+                  xlcondlim = (ccover-d_one)*facl*dqs - &
+                               facl*sqmix+qvnow
                   chng = min(chng,xlcondlim)
                 end if
                 chng = max(chng,d_zero)
@@ -1231,7 +2294,7 @@ module mod_cloud_s1
                 ! include new liquid formation in first guess value, otherwise
                 ! liquid remains at cold temperatures until next timestep.
                 !-------------------------------------------------------------
-                if ( t(j,i,k) > thomo ) then
+                if ( ltkgthomo ) then
                   solqa(iqql,iqqv) = solqa(iqql,iqqv) + chng
                   solqa(iqqv,iqql) = solqa(iqqv,iqql) - chng
                   qxfg(iqql) = qxfg(iqql) + chng
@@ -1245,7 +2308,7 @@ module mod_cloud_s1
 
 #ifdef DEBUG
             if ( stats ) then
-              if ( t(j,i,k) > thomo ) then
+              if ( ltkgthomo ) then
                 statscond2w(j,i,k) = chng
               else
                 statscond2c(j,i,k) = chng
@@ -1281,7 +2344,7 @@ module mod_cloud_s1
             ! Thus in mixed phase clouds, the deposition process acts as a
             ! sink of cloud liquid and a source of ice cloud.
             !--------------------------------------------------------------
-            if ( t(j,i,k) < tzero .and. qxfg(iqql) > minqq ) then
+            if ( tk < tzero .and. qxfg(iqql) > minqq ) then
               vpice = st_eeice(j,i,k) !saturation vapor pressure wrt ice
               vpliq = st_eeliq(j,i,k) !saturation vapor pressure wrt liq
               ! Meyers et al 1992
@@ -1290,8 +2353,8 @@ module mod_cloud_s1
               !   2.4e-2 is conductivity of air
               !   8.87 = 700**1/3 = density of ice to the third
               !------------------------------------------------
-              xadd  = wlhs*(wlhs/(rwat*t(j,i,k))-d_one)/(2.4e-2_rkx*t(j,i,k))
-              xbdd  = rwat*t(j,i,k)*phs(j,i,k)/(2.21_rkx*vpice)
+              xadd  = wlhs*(wlhs/(rwat*tk)-d_one)/(2.4e-2_rkx*tk)
+              xbdd  = rwat*tk*phs(j,i,k)/(2.21_rkx*vpice)
               cvds = 7.8_rkx*(icenuclei/rho(j,i,k))** &
                        0.666_rkx*(vpliq-vpice)/(8.87_rkx*(xadd+xbdd)*vpice)
               !-----------------------------------------------------
@@ -1307,7 +2370,7 @@ module mod_cloud_s1
               !---------------------------
               ! grid-mean deposition rate:
               !---------------------------
-              chng = max(fccfg(j,i,k)*(qinew-qice0),d_zero)*2.0_rkx
+              chng = max(ccover*(qinew-qice0),d_zero)*2.0_rkx
               ! above increased by factor of 2 to retain similar mixed
               ! phase liq as in diagnostic scheme
               !---------------------------------------------------------------
@@ -1349,7 +2412,7 @@ module mod_cloud_s1
             end if
 #endif
 
-            tmpa = d_one/fccfg(j,i,k)
+            tmpa = d_one/ccover
             liqcld = qxfg(iqql)*tmpa
             icecld = qxfg(iqqi)*tmpa
 
@@ -1362,12 +2425,10 @@ module mod_cloud_s1
             do n = 1 , nqx
               if ( lfall(n) ) then
                 ! Source from layer above
-                if ( k > 1 ) then
-                  fallsrce(n) = pfplsx(n,j,i,k)*dtgdp
-                  solqa(n,n) = solqa(n,n) + fallsrce(n)
-                  qxfg(n) = qxfg(n) + fallsrce(n)
-                  qpretot = qpretot + qxfg(n)
-                end if
+                fallsrce(n) = pfplsx(n,j,i,k)*dtgdp
+                solqa(n,n) = solqa(n,n) + fallsrce(n)
+                qxfg(n) = qxfg(n) + fallsrce(n)
+                qpretot = qpretot + qxfg(n)
                 ! Sink to next layer, constant fall speed
                 fallsink(n) = dtgdp*vqx(n)*rho(j,i,k)   !Kg/Kg
               end if  !lfall
@@ -1393,11 +2454,11 @@ module mod_cloud_s1
             !---------------------------------------------------------------
             if ( qpretot > dlowval ) then
               covptot = d_one - ((d_one-covptot) * &
-                              (d_one - max(fccfg(j,i,k),fccfg(j,i,k-1))) / &
-                              (d_one - min(fccfg(j,i,k-1),hicld)))
+                              (d_one - max(ccover,lccover)) / &
+                              (d_one - min(lccover,hicld)))
               covptot = max(covptot,rcovpmin)   !rcovpmin = 0.1
               ! clear sky proportion
-              covpclr = max(d_zero,covptot-fccfg(j,i,k))
+              covpclr = max(d_zero,covptot-ccover)
             else
               covptot = d_zero  ! no flux - reset cover
               covpclr = d_zero  ! reset clear sky proportion
@@ -1412,9 +2473,9 @@ module mod_cloud_s1
 
             ! Cold clouds
             ! Snow Autoconversion rate follow Lin et al. 1983
-            if ( t(j,i,k) <= tzero ) then
+            if ( tk <= tzero ) then
               if ( icecld > activqx ) then
-                alpha1 = dt*1.0e-3_rkx*exp(0.025*(t(j,i,k)-tzero))
+                alpha1 = dt*1.0e-3_rkx*exp(0.025*(tk-tzero))
                 xlcrit = rlcritsnow
                 arg = (icecld/xlcrit)**2
                 if ( arg < 25.0_rkx ) then
@@ -1444,10 +2505,10 @@ module mod_cloud_s1
 
             chngmax = d_zero
 
-            if ( qicetot > activqx .and. t(j,i,k) > tzero ) then
+            if ( qicetot > activqx .and. ltkgt0 ) then
               ! Calculate subsaturation
               ! qsice(j,i,k)-qvnow,d_zero)
-              subsat = max(qsmix(j,i,k)-qvnow,d_zero)
+              subsat = max(sqmix-qvnow,d_zero)
               ! Calculate difference between dry-bulb (t)  and the temperature
               ! at which the wet-bulb = 0degC
               ! Melting only occurs if the wet-bulb temperature >0
@@ -1461,8 +2522,8 @@ module mod_cloud_s1
               ! humidity of the air is low. The wet-bulb temperature is
               ! approximated as in the scheme described by
               ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
-              tdiff = t(j,i,k)-tzero ! - subsat * &
-              !    (tw1+tw2*(phs(j,i,k)-tw3)-tw4*(t(j,i,k)-tw5))
+              tdiff = tk-tzero ! - subsat * &
+              !    (tw1+tw2*(phs(j,i,k)-tw3)-tw4*(tk-tw5))
               ! Ensure CONS1 is positive so that MELTMAX = 0 if TDMTW0 < 0
               cons1 = d_one ! abs(dt*(d_one + d_half*tdiff)/rtaumel)
               chngmax = max(tdiff*cons1*rldcp,d_zero)
@@ -1501,7 +2562,7 @@ module mod_cloud_s1
             ! All rain freezes in a timestep if the temperature is below 0 C
             ! calculate sublimation latent heat
 
-            chngmax = max((tzero-t(j,i,k))*rldcp,d_zero)
+            chngmax = max((tzero-tk)*rldcp,d_zero)
             chng = d_zero
 
             if ( chngmax > dlowval .and. qxfg(iqqr) > activqx ) then
@@ -1519,7 +2580,7 @@ module mod_cloud_s1
 
             ! Freezing of liquid
 
-            chngmax = max((thomo-t(j,i,k))*rldcp,d_zero)
+            chngmax = max((thomo-tk)*rldcp,d_zero)
             chng = d_zero
 
             if ( chngmax > dlowval .and. qxfg(iqql) > activqx ) then
@@ -1556,13 +2617,12 @@ module mod_cloud_s1
             ! rain
             chng = d_zero
             zrh = rprecrhmax + &
-              (d_one-rprecrhmax)*covpclr/(d_one-fccfg(j,i,k))
+              (d_one-rprecrhmax)*covpclr/(d_one-ccover)
             zrh = min(max(zrh,rprecrhmax),d_one)
             ! This is a critical relative humidity that is used to limit
             ! moist environment to prevent the gridbox saturating when
             ! only part of the gridbox has evaporating precipitation
-            qe = (qvnow-fccfg(j,i,k)*qsliq(j,i,k)) / &
-                      (d_one-fccfg(j,i,k))
+            qe = (qvnow-ccover*qsliq(j,i,k)) / (d_one-ccover)
             !---------------------------------------------
             ! humidity in moistest covpclr part of domain
             !---------------------------------------------
@@ -1579,7 +2639,7 @@ module mod_cloud_s1
               ! actual microphysics formula in beta
               !--------------------------------------
               ! sensitivity test showed multiply rain evap rate by 0.5
-              beta1 = sqrt(phs(j,i,k)/pfs(j,i,kzp1))/5.09e-3_rkx*preclr / &
+              beta1 = sqrt(phs(j,i,k)/pbot)/5.09e-3_rkx*preclr / &
                        max(covpclr,dlowval)
 
               if ( beta1 >= d_zero ) then
@@ -1600,7 +2660,7 @@ module mod_cloud_s1
                 ! reduce the total precip coverage proportional to evaporation
                 !-------------------------------------------------------------
                 covptot = covptot - max(d_zero, &
-                           (covptot-fccfg(j,i,k))*dpevap/qpretot)
+                           (covptot-ccover)*dpevap/qpretot)
               else
                 chng = qxfg(iqqr)
               end if
@@ -1619,11 +2679,9 @@ module mod_cloud_s1
 
             chng = d_zero
 
-            zrh = rprecrhmax + (d_one-rprecrhmax) * &
-                   covpclr/(d_one-fccfg(j,i,k))
+            zrh = rprecrhmax + (d_one-rprecrhmax) * covpclr/(d_one-ccover)
             zrh = min(max(zrh,rprecrhmax),d_one)
-            qe = (qvnow-fccfg(j,i,k) * &
-                   qsice(j,i,k))/(d_one-fccfg(j,i,k))
+            qe = (qvnow - ccover*qsice(j,i,k))/(d_one-ccover)
             !---------------------------------------------
             ! humidity in moistest covpclr part of domain
             !---------------------------------------------
@@ -1639,7 +2697,7 @@ module mod_cloud_s1
               !--------------------------------------
               ! actual microphysics formula in beta
               !--------------------------------------
-               beta1 = sqrt(phs(j,i,k)/pfs(j,i,kzp1)) / &
+               beta1 = sqrt(phs(j,i,k)/pbot) / &
                     5.09e-3_rkx*preclr/max(covpclr,dlowval)
 
               if ( beta1 >= d_zero ) then
@@ -1661,8 +2719,7 @@ module mod_cloud_s1
                 !-------------------------------------------------------------
                 ! reduce the total precip coverage proportional to evaporation
                 !-------------------------------------------------------------
-                covptot = covptot-max(d_zero, &
-                               (covptot-fccfg(j,i,k)) * &
+                covptot = covptot-max(d_zero,(covptot-ccover) * &
                                 dpevap/qpretot)
               else
                 chng = qxfg(iqqs)
@@ -1767,7 +2824,6 @@ module mod_cloud_s1
 
           ! Set the LHS of equation
           do n = 1 , nqx
-            aamax = d_zero
             do jn = 1 , nqx
               ! Diagonals: microphysical sink terms+transport
               if ( jn == n ) then
@@ -1781,19 +2837,6 @@ module mod_cloud_s1
                 qlhs(jn,n) = -rsemi*solqb(jn,n)
               end if
             end do
-          end do
-
-          ! find implicit scaling information
-          do n = 1 , nqx
-            aamax = d_zero
-            do jn = 1 , nqx
-              if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
-            end do
-            if ( aamax < dlowval ) then
-              call fatal(__FILE__,__LINE__, &
-                         'SINGULAR MATRIX')
-            end if ! Singular matrix
-            vv(n) = d_one/aamax ! Save the scaling.
           end do
 
           ! Set the RHS of equation
@@ -1814,88 +2857,9 @@ module mod_cloud_s1
             end do
             qxn(n) = qx0(n,j,i,k) + rexplicit
           end do
-          !                                                Ux=y
-          ! solve A x = b-------------> LU x = b---------> Ly=b
-          !
-          do n = 1 , nqx
-            ! This is the loop over columns
-            if ( n > 1 ) then
-              do m = 1 , n - 1
-                xsum = qlhs(m,n)
-                do kk = 1 , m - 1
-                  xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
-                end do
-                qlhs(m,n) = xsum
-              end do
-            end if
-            ! Initialize for the search for largest pivot element.
-            aamax = d_zero
-            imax = n
-            do m = n , nqx
-              xsum = qlhs(m,n)
-              if ( n > 1 ) then
-                do kk = 1 , n - 1
-                  xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
-                end do
-                qlhs(m,n) = xsum
-              end if
-              dum = vv(m)*abs(xsum)   ! Figure of merit for the pivot.
-              if ( dum >= aamax ) then
-                ! better than the best so far
-                imax = m
-                aamax = dum
-              end if
-            end do
-            if ( n /= imax ) then
-              ! Do we need to interchange rows? yes, do so...
-              ! D = -D !...and change the parity of D.
-              do ii = 1 , nqx
-                swap = qlhs(imax,ii)
-                qlhs(imax,ii) = qlhs(n,ii)
-                qlhs(n,ii) = swap
-              end do
-              vv(imax) = vv(n) ! Also interchange the scale factor.
-            end if
-            indx(n) = imax
-            dum = d_one/qlhs(n,n)
-            if ( n /= nqx ) then
-              do m = n + 1 , nqx
-                qlhs(m,n) = qlhs(m,n)*dum
-              end do
-            end if
-          end do
-          !
-          ! Now solve the set of n linear equations A * X = B.
-          ! B(1:N) is input as the right-hand side vector B,
-          ! and is used to store solution after back-substitution.
-          !
-          ii = 0
-          ! When ii is set to a positive value, it will become
-          ! the index of the  first nonvanishing element of B.
-          ! We now do the forward substitution, and the only new
-          ! wrinkle is to unscramble the permutation as we go.
-          do m = 1 , nqx
-            ll = indx(m)
-            xsum = qxn(ll)
-            qxn(ll) = qxn(m)
-            if ( ii == 0 ) then
-              if ( abs(xsum) > minqq ) ii = m
-            else
-              do jj = ii , m - 1
-                xsum = xsum - qlhs(m,jj)*qxn(jj)
-              end do
-            end if
-            qxn(m) = xsum
-          end do
-          ! Now we do the backsubstitution
-          do m = nqx , 1 , -1
-            xsum = qxn(m)
-            do jj = m + 1 , nqx
-              xsum = xsum - qlhs(m,jj)*qxn(jj)
-            end do
-            ! Store a component of the solution vector qxn.
-            qxn(m) = xsum/qlhs(m,m)
-          end do
+
+          call mysolve
+
           !-------------------------------------------------------------------
           !  Precipitation/sedimentation fluxes to next level
           !  diagnostic precipitation fluxes
@@ -2209,9 +3173,7 @@ module mod_cloud_s1
       else
         xlcrit = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
       end if
-      if ( ichem == 1 .and. &
-           iaerosol == 1 .and. &
-           iindirect == 2 ) then
+      if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
         if ( pccn(j,i,k) > 0._rkx ) then
           ! aerosol second indirect effect on autoconversion
           ! threshold, rcrit is a critical cloud radius for cloud
@@ -2241,7 +3203,7 @@ module mod_cloud_s1
       !-----------------------
       ! rain freezes instantly
       !-----------------------
-      if ( t(j,i,k) <= tzero ) then
+      if ( tk <= tzero ) then
         solqb(iqqs,iqql) = solqb(iqqs,iqql)+rainaut
       else
         solqb(iqqr,iqql) = solqb(iqqr,iqql)+rainaut
@@ -2250,9 +3212,7 @@ module mod_cloud_s1
 
     subroutine nss_tompkins
       implicit none
-      qexc = max((qvnow -  &
-                 fccfg(j,i,k)*qsmix(j,i,k)) / &
-                 (d_one-fccfg(j,i,k)),d_zero)
+      qexc = max((qvnow-ccover*sqmix)/(d_one-ccover),d_zero)
     end subroutine nss_tompkins
 
     subroutine nss_lohmann_and_karcher
@@ -2262,8 +3222,108 @@ module mod_cloud_s1
 
     subroutine nss_gierens
       implicit none
-      qexc = qvnow/qlt(j,i,k)
+      qexc = qvnow/totliq
     end subroutine nss_gierens
+
+    subroutine mysolve
+      implicit none
+      integer(ik4) :: ii , jj , kk , ll , imax
+      real(rkx) :: aamax , dum , xsum , swap
+      ! find implicit scaling information
+      do n = 1 , nqx
+        aamax = d_zero
+        do jn = 1 , nqx
+          if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
+        end do
+        if ( aamax < dlowval ) then
+          call fatal(__FILE__,__LINE__, &
+                     'SINGULAR MATRIX')
+        end if ! Singular matrix
+        vv(n) = d_one/aamax ! Save the scaling.
+      end do
+      !                                                Ux=y
+      ! solve A x = b-------------> LU x = b---------> Ly=b
+      !
+      do n = 1 , nqx
+        ! This is the loop over columns
+        if ( n > 1 ) then
+          do m = 1 , n - 1
+            xsum = qlhs(m,n)
+            do kk = 1 , m - 1
+              xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
+            end do
+            qlhs(m,n) = xsum
+          end do
+        end if
+        ! Initialize for the search for largest pivot element.
+        aamax = d_zero
+        imax = n
+        do m = n , nqx
+          xsum = qlhs(m,n)
+          if ( n > 1 ) then
+            do kk = 1 , n - 1
+              xsum = xsum - qlhs(m,kk)*qlhs(kk,n)
+            end do
+            qlhs(m,n) = xsum
+          end if
+          dum = vv(m)*abs(xsum)   ! Figure of merit for the pivot.
+          if ( dum >= aamax ) then
+            ! better than the best so far
+            imax = m
+            aamax = dum
+          end if
+        end do
+        if ( n /= imax ) then
+          ! Do we need to interchange rows? yes, do so...
+          ! D = -D !...and change the parity of D.
+          do ii = 1 , nqx
+            swap = qlhs(imax,ii)
+            qlhs(imax,ii) = qlhs(n,ii)
+            qlhs(n,ii) = swap
+          end do
+          vv(imax) = vv(n) ! Also interchange the scale factor.
+        end if
+        indx(n) = imax
+        dum = d_one/qlhs(n,n)
+        if ( n /= nqx ) then
+          do m = n + 1 , nqx
+            qlhs(m,n) = qlhs(m,n)*dum
+          end do
+        end if
+      end do
+      !
+      ! Now solve the set of n linear equations A * X = B.
+      ! B(1:N) is input as the right-hand side vector B,
+      ! and is used to store solution after back-substitution.
+      !
+      ii = 0
+      ! When ii is set to a positive value, it will become
+      ! the index of the  first nonvanishing element of B.
+      ! We now do the forward substitution, and the only new
+      ! wrinkle is to unscramble the permutation as we go.
+      do m = 1 , nqx
+        ll = indx(m)
+        xsum = qxn(ll)
+        qxn(ll) = qxn(m)
+        if ( ii == 0 ) then
+          if ( abs(xsum) > minqq ) ii = m
+        else
+          do jj = ii , m - 1
+            xsum = xsum - qlhs(m,jj)*qxn(jj)
+          end do
+        end if
+        qxn(m) = xsum
+      end do
+      ! Now we do the backsubstitution
+      do m = nqx , 1 , -1
+        xsum = qxn(m)
+        do jj = m + 1 , nqx
+          xsum = xsum - qlhs(m,jj)*qxn(jj)
+        end do
+        ! Store a component of the solution vector qxn.
+        qxn(m) = xsum/qlhs(m,m)
+      end do
+    end subroutine mysolve
 !
 !  subroutine addpath(src,snk,proc,zsqa,zsqb,beta,fg)
 !    implicit none
