@@ -223,7 +223,7 @@ module mod_cloud_s1
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
-  real(rkx) , parameter :: activqx = 1.0e-6_rkx
+  real(rkx) , parameter :: activqx = minqq
   real(rkx) , parameter :: clfeps = 1.0e-6_rkx
   real(rkx) , parameter :: zerocf = lowcld + 0.1_rkx
   real(rkx) , parameter :: onecf  = hicld - 0.1_rkx
@@ -721,9 +721,14 @@ module mod_cloud_s1
     do i = ici1 , ici2
       do j = jci1 , jci2
 
-        qvnow = qx(iqqv,j,i,1)
-        qlnow = qx(iqql,j,i,1)
-        qinow = qx(iqqi,j,i,1)
+        do n = 1 , nqx
+          qxfg(n) = qx(n,j,i,1)
+          qx0(n) = qxfg(n)
+        end do
+
+        qvnow = qx0(iqqv)
+        qlnow = qx0(iqql)
+        qinow = qx0(iqqi)
 
         solqa(:,:)  = d_zero
         solqb(:,:)  = d_zero
@@ -742,10 +747,6 @@ module mod_cloud_s1
         !---------------------------------
         ! First guess microphysics
         !---------------------------------
-        do n = 1 , nqx
-          qxfg(n) = qx(n,j,i,1)
-          qx0(n) = qxfg(n)
-        end do
 
         pbot  = pfs(j,i,kzp1)
         dp      = dpfs(j,i,1)
@@ -1708,7 +1709,7 @@ module mod_cloud_s1
         do n = 1 , nqx
           jo = iorder(n)
           if ( jo > 0 ) then
-            ratio(jo) = qx(jo,j,i,1)/max(sinksum(jo),qx(jo,j,i,1))
+            ratio(jo) = qx0(jo)/max(sinksum(jo),qx0(jo))
           end if
         end do
         !------
@@ -1803,9 +1804,17 @@ module mod_cloud_s1
       do i = ici1 , ici2
         do j = jci1 , jci2
 
-          qvnow = qx(iqqv,j,i,k)
-          qlnow = qx(iqql,j,i,k)
-          qinow = qx(iqqi,j,i,k)
+          !---------------------------------
+          ! First guess microphysics
+          !---------------------------------
+          do n = 1 , nqx
+            qxfg(n) = qx(n,j,i,k)
+            qx0(n) = qxfg(n)
+          end do
+
+          qvnow = qx0(iqqv)
+          qlnow = qx0(iqql)
+          qinow = qx0(iqqi)
 
           solqa(:,:)  = d_zero
           solqb(:,:)  = d_zero
@@ -1820,14 +1829,6 @@ module mod_cloud_s1
           covpclr     = d_zero
           qicetot     = d_zero
           ldefr       = d_zero
-
-          !---------------------------------
-          ! First guess microphysics
-          !---------------------------------
-          do n = 1 , nqx
-            qxfg(n) = qx(n,j,i,k)
-            qx0(n) = qxfg(n)
-          end do
 
           pbot    = pfs(j,i,kzp1)
           dp      = dpfs(j,i,k)
@@ -2802,7 +2803,7 @@ module mod_cloud_s1
           do n = 1 , nqx
             jo = iorder(n)
             if ( jo > 0 ) then
-              ratio(jo) = qx(jo,j,i,k)/max(sinksum(jo),qx(jo,j,i,k))
+              ratio(jo) = qx0(jo)/max(sinksum(jo),qx0(jo))
             end if
           end do
           !------
