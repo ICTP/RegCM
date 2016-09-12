@@ -164,4 +164,5 @@ for imon in xrange(rank,ntasks,size):
     os.unlink(nmlfile.name)
 ofile.close()
 efile.close()
+comm.Barrier()
 pprint("Processing completed. Inspect results.")
