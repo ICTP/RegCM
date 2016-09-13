@@ -58,4 +58,4 @@ mod_scrip_interpolate.o: mod_scrip_interpolate.F90 mod_scrip_remap.o mod_scrip_r
 mod_ncstream.o: mod_ncstream.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_dynparam.o mod_message.o mod_date.o mod_ncstream_types.o mod_dynparam.o
 mod_ncstream_types.o: mod_ncstream_types.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_date.o
 mod_sigma.o : mod_sigma.F90 mod_constants.o mod_intkinds.o mod_memutil.o mod_message.o mod_realkinds.o mod_stdio.o
-mod_sunorbit.o : mod_sunorbit.F90 mod_constants.o mod_message.o mod_intkinds.o mod_realkinds.o mod_stdio.o
+mod_sunorbit.o : mod_sunorbit.F90 mod_constants.o mod_message.o mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o
