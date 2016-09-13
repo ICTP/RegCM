@@ -252,6 +252,12 @@ module mod_cloud_s1
   real(rkx) , parameter :: zerocf = lowcld + 0.1_rkx
   real(rkx) , parameter :: onecf  = hicld - 0.1_rkx
 
+  abstract interface
+    subroutine voidsub
+      implicit none
+    end subroutine voidsub
+  end interface
+
   contains
 
   subroutine allocate_mod_cloud_s1
@@ -345,7 +351,7 @@ module mod_cloud_s1
     use mod_atm_interface
     use mod_runparams , only : vfqr , vfqi , vfqs
     implicit none
-    integer(ik4) :: i , j , k , n
+    integer(ik4) :: i , j , n
     call assignpnt(atms%pb3d,phs)
     call assignpnt(atms%pf3d,pfs)
     call assignpnt(atms%tb3d,t)
@@ -462,8 +468,8 @@ module mod_cloud_s1
     real(rkx) :: tk , tc , dens , pbot , totliq , ccn
     real(rkx) :: snowp , rainp
 
-    procedure () , pointer :: selautoconv => null()
-    procedure () , pointer :: selnss => null()
+    procedure (voidsub) , pointer :: selautoconv => null()
+    procedure (voidsub) , pointer :: selnss => null()
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
