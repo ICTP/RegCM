@@ -701,7 +701,7 @@ module mod_tendency
       else
         call hadv(aten%qx,atmx%qx,iq1,iq2)
       end if
-      call vadv(aten%qx,atm1%qx,iqfrst,iq1,iq2)
+      call vadv(aten%qx,atm1%qx,iq1,iq2,iqxvadv)
     end if
     if ( ichem == 1 ) then
       !
