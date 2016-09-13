@@ -53,7 +53,7 @@ mod_cbmz_parameters.o: mod_cbmz_parameters.F90 mod_cbmz_precision.o
 mod_cbmz_monitor.o: mod_cbmz_monitor.F90 mod_cbmz_precision.o
 mod_cbmz_global.o: mod_cbmz_global.F90 mod_cbmz_parameters.o mod_cbmz_precision.o
 mod_cbmz_Initialize.o: mod_cbmz_Initialize.F90  
-mod_cbmz_function.o: mod_cbmz_function.F90  
+mod_cbmz_function.o: mod_cbmz_function.F90 mod_cbmz_parameters.o 
 mod_cbmz_Stochastic.o: mod_cbmz_Stochastic.F90  
 mod_cbmz_jacobiansp.o: mod_cbmz_jacobiansp.F90 
 mod_cbmz_jacobian.o: mod_cbmz_jacobian.F90   mod_cbmz_jacobiansp.o
