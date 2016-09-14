@@ -22,7 +22,7 @@ module mod_clm_histfile
          nlevdecomp_full , maxpatch_pft
   use mod_clm_varctl , only : caseid , ctitle , fsurdat , finidat , fpftcon , &
          version , hostname , username , conventions , source , inst_suffix , &
-         nsrest , nsrStartup
+         nsrest , nsrStartup , nextdate
   use mod_clm_domain , only : ldomain
   use mod_clm_time_manager , only : getdatetime
 
@@ -502,7 +502,7 @@ module mod_clm_histfile
     ! Set time of beginning of current averaging interval
     ! First etermine elapased time since reference date
 
-    call curr_time(idatex, day, sec)
+    call curr_time(nextdate, day, sec)
     do t = 1 , ntapes
       tape(t)%begtime = day*24.0_rk8 + sec/secph
     end do
@@ -1956,15 +1956,16 @@ module mod_clm_histfile
       call clm_addvar(clmvar_double,ncid=nfid(t), &
                       varname='time',cdims=(/'time'/), &
                       long_name='time', units=str)
-      call clm_addatt(nfid(t),'calendar',trim(calendar_str(idatex)),cvar='time')
+      call clm_addatt(nfid(t),'calendar', &
+                         trim(calendar_str(nextdate)),cvar='time')
       call clm_addatt(nfid(t),'bounds','time_bounds',cvar='time')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
                       varname='time_bounds',      &
                       cdims=(/'hist_interval','time         '/), &
                       long_name='history time interval endpoints')
     else if (mode == 'write') then
-      call curr_time(idatex,mdcur,mscur)
-      time = mdcur*24.0_rk8 + (mscur+dtsec)/secph
+      call curr_time(nextdate,mdcur,mscur)
+      time = mdcur*24.0_rk8 + mscur/secph
       call clm_writevar(nfid(t),'time',time,tape(t)%ntimes)
       timedata(1) = tape(t)%begtime
       timedata(2) = time
@@ -2372,8 +2373,8 @@ module mod_clm_histfile
 
     ! Set calendar for current time step
 
-    call curr_time(idatex, mdcur, mscur)
-    time = mdcur + (mscur-dtsec)/secspday
+    call curr_time(nextdate, mdcur, mscur)
+    time = mdcur + mscur/secspday
 
     ! Loop over active history tapes, create new history files if necessary
     ! and write data to history files if end of history interval.
@@ -2411,7 +2412,7 @@ module mod_clm_histfile
         if ( tape(t)%ntimes == 1 ) then
           locfnh(t) = set_hist_filename(tape(t)%nhtfrq,nlomon,t)
           if ( myid == italk ) then
-            write(stdout,*) 'Creating history file ',t, ' at nstep = ',ktau
+            write(stdout,*) 'Creating history file ',t, ' at ktau = ', ktau+1
           end if
           call htape_create (t)
 
@@ -2471,7 +2472,7 @@ module mod_clm_histfile
         if ( tape(t)%ntimes /= 0 ) then
           if ( myid == italk ) then
             write(stdout,*)  'Closing local history file ',&
-               trim(locfnh(t)),' at nstep = ', ktau
+               trim(locfnh(t)),' at ktau = ', ktau+1
           end if
           call clm_closefile(nfid(t))
           if ( .not. if_stop .and. nlomon ) then
@@ -3634,11 +3635,11 @@ module mod_clm_histfile
     integer(ik4) :: yr  !year (0 -> ...)
     integer(ik4) :: sec !seconds into current day
 
-    call curr_date (idatex, yr, mon, day, sec)
+    call curr_date (nextdate, yr, mon, day, sec)
     if ( hist_freq == 0 .and. nlomon ) then
       write(cdate,'(i4.4,i2.2)') yr,mon
     else
-      write(cdate,'(i4.4,i2.2,i2.2,"_",i5.5)') yr,mon,day,(sec+int(dtsec))
+      write(cdate,'(i4.4,i2.2,i2.2,"_",i5.5)') yr,mon,day,sec
     end if
     write(hist_index,'(i1.1)') hist_file - 1
     set_hist_filename = trim(dirout)//pthsep//trim(caseid)//".clm."// &

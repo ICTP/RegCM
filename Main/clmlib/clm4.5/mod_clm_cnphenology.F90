@@ -12,6 +12,7 @@ module mod_clm_cnphenology
   use mod_clm_type
   use mod_clm_varcon , only : tfrz
   use mod_clm_varpar , only : numpft
+  use mod_clm_varctl , only : nextdate
 
   implicit none
 
@@ -228,7 +229,7 @@ module mod_clm_cnphenology
     has_restarted_crop = .false.
     if ( num_pcropp > 0 ) then
       ! get time-related info
-      call curr_date(idatex,kyr,kmo,kda,mcsec)
+      call curr_date(nextdate,kyr,kmo,kda,mcsec)
       if ( nyrs == -999 ) then
         nyrs = CropRestYear()
       else
@@ -1328,7 +1329,7 @@ module mod_clm_cnphenology
 
     ! get time info
     jday = int(get_curr_calday() , ik4)
-    call curr_date(idatex,kyr,kmo,kda,mcsec)
+    call curr_date(nextdate,kyr,kmo,kda,mcsec)
 
     planted_crop_day = .false.
     ndays_on = 20._rk8 ! number of days to fertilize

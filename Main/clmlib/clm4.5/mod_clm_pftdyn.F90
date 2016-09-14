@@ -17,7 +17,7 @@ module mod_clm_pftdyn
   use mod_clm_decomp , only : get_proc_bounds , gcomm_gridcell
   use mod_clm_varsur , only : pctspec
   use mod_clm_varpar , only : max_pft_per_col
-  use mod_clm_varctl , only : use_c13, use_c14
+  use mod_clm_varctl , only : use_c13, use_c14 , nextdate
 
   implicit none
 
@@ -111,7 +111,7 @@ module mod_clm_pftdyn
       write(stdout,*) 'Attempting to read pft dynamic landuse data .....'
     end if
 
-    call curr_date(idatex, year, mon, day, sec)
+    call curr_date(nextdate, year, mon, day, sec)
     nt = year
     write(cy4,'(i0.4)') year
 
@@ -222,7 +222,7 @@ module mod_clm_pftdyn
 
     ! Get current date
 
-    call curr_date(idatex, year, mon, day, sec)
+    call curr_date(nextdate, year, mon, day, sec)
 
     ! Obtain new time sample if necessary.
     ! The first condition is the regular crossing of a year boundary
@@ -2864,7 +2864,7 @@ module mod_clm_pftdyn
 
     wt1 = ((dayspy + 1._rk8) - cday)/dayspy
 
-    call curr_date(idatex, year, mon, day, sec, offset=int(dtsrf))
+    call curr_date(nextdate, year, mon, day, sec)
 
     do p = begp , endp
       g = pptr%gridcell(p)

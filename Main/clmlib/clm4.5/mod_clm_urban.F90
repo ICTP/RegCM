@@ -7,8 +7,9 @@ module mod_clm_urban
   use mod_realkinds
   use mod_date
   use mod_runparams
-  use mod_clm_varpar  , only : numrad
-  use mod_clm_varcon  , only : isecspday, degpsec
+  use mod_clm_varctl , only : nextdate
+  use mod_clm_varpar , only : numrad
+  use mod_clm_varcon , only : isecspday, degpsec
   use mod_mpmessage
   use mod_stdio
 
@@ -770,7 +771,6 @@ module mod_clm_urban
     integer(ik4)  :: fp,fl,p,c,l,g  ! indices
     integer(ik4)  :: local_secp1    ! seconds into current date in local time
     real(rk8) :: dtime              ! land model time step (sec)
-    integer(ik4)  :: year,month,day ! temporaries (not used)
     integer(ik4)  :: secs           ! seconds into current date
 
     ! snow emissivity (should use value from Biogeophysics1)
@@ -973,7 +973,7 @@ module mod_clm_urban
     end if
 
     dtime = int(dtsrf)
-    call curr_date(idatex,year,month,day,secs)
+    secs = nextdate%second_of_day
 
     ! Determine clmtype variables needed for history output and
     ! communication with atm
@@ -3074,7 +3074,7 @@ module mod_clm_urban
     integer(ik4)  :: local_secp1(lbl:ubl)
     real(rk8) :: dtime  ! land model time step (sec)
     ! calendar info for current time step
-    integer(ik4)  :: year,month,day,secs
+    integer(ik4)  :: secs
     logical  :: found   ! flag in search loop
     ! index of first found in search loop
     integer(ik4)  :: indexl
@@ -3203,7 +3203,7 @@ module mod_clm_urban
 
     ! Get current date
     dtime = int(dtsrf)
-    call curr_date(idatex,year,month,day,secs)
+    secs = nextdate%second_of_day
 
     ! Compute canyontop wind using Masson (2000)
 

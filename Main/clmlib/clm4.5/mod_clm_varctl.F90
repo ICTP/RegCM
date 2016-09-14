@@ -2,6 +2,7 @@ module mod_clm_varctl
   !
   ! Module containing run control variables
   !
+  use mod_date , only : rcm_time_and_date
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
@@ -20,6 +21,7 @@ module mod_clm_varctl
   save
 
   logical , public , parameter :: atm_regcm = .true.
+  type(rcm_time_and_date) , public :: nextdate
 
   integer(ik4) , parameter , private :: iundef = -9999999
   !

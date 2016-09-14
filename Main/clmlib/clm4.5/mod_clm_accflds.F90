@@ -35,7 +35,7 @@ module mod_clm_accflds
   use mod_clm_pftvarcon , only : nwcereal , nwcerealirrig , mxtmp , baset
   use mod_clm_time_manager , only : get_start_date
   use mod_clm_pftvarcon , only : ndllf_dcd_brl_tree
-  use mod_clm_varctl , only : nsrest , nsrStartup
+  use mod_clm_varctl , only : nsrest , nsrStartup , nextdate
 
   implicit none
 
@@ -434,7 +434,7 @@ module mod_clm_accflds
 
     ! Determine calendar information
 
-    call curr_date (idatex, year, month, day, secs)
+    call curr_date (nextdate, year, month, day, secs)
 
     ! Don't do any accumulation if nstep is zero
     ! (only applies to coupled or cam mode)
@@ -619,7 +619,7 @@ module mod_clm_accflds
 
     ! Accumulate and extract AGDDTW (gdd base twmax, which is 23 deg C
     ! for boreal woody pfts)
-    if (month == 1 .and. day == 1 .and. secs <= int(dtsrf)) then
+    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
       do p = begp , endp
         rbufslp(p) = -99999.0_rk8
       end do
@@ -680,7 +680,7 @@ module mod_clm_accflds
 
       ! Accumulate and extract GDD0
 
-      if (month == 1 .and. day == 1 .and. secs <= int(dtsrf)) then
+      if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
         do p = begp , endp
           rbufslp(p) = -99999.0_rk8
         end do
@@ -702,7 +702,7 @@ module mod_clm_accflds
 
       ! Accumulate and extract GDD8
 
-      if (month == 1 .and. day == 1 .and. secs <= int(dtsrf)) then
+      if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
         do p = begp , endp
           rbufslp(p) = -99999.0_rk8
         end do
@@ -724,7 +724,7 @@ module mod_clm_accflds
 
       ! Accumulate and extract GDD10
 
-      if (month == 1 .and. day == 1 .and. secs <= int(dtsrf)) then
+      if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
         do p = begp , endp
           rbufslp(p) = -99999.0_rk8
         end do

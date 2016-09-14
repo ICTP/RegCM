@@ -75,7 +75,7 @@ module mod_clm_driver
   use mod_mppparam , only : italk
   use mod_runparams
   use mod_clm_type
-  use mod_clm_varctl , only : wrtdia
+  use mod_clm_varctl , only : wrtdia , nextdate
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_filter , only : filter
   use mod_clm_reweight , only : reweightWrapup
@@ -163,6 +163,7 @@ module mod_clm_driver
     integer(ik4)  :: begc, endc ! beginning and ending column indices
     integer(ik4)  :: begp, endp ! beginning and ending pft indices
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype
+    type(rcm_time_interval) :: tdif
 #if (defined CNDV)
     integer(ik4)  :: yr       ! year (0, ...)
     integer(ik4)  :: mon      ! month (1, ..., 12)
@@ -170,8 +171,6 @@ module mod_clm_driver
     integer(ik4)  :: ncdate   ! current date
     integer(ik4)  :: nbdate   ! base date (reference date)
     integer(ik4)  :: kyr      ! thousand years, equals 2 at end of first year
-    type(rcm_time_and_date) :: nextdate
-    type(rcm_time_interval) :: tdif
 #endif
     character(len=256) :: filer  ! restart file name
     !FAB
@@ -187,6 +186,13 @@ module mod_clm_driver
     ! Set pointers into derived type
 
     cptr => clm3%g%l%c
+
+    if ( ktau > 0 ) then
+      tdif = int(dtsec)
+    else
+      tdif = 0
+    end if
+    nextdate = idatex + tdif
 
 #ifdef CN
     ! For dry-deposition need to call CLMSP so that mlaidiff is obtained
@@ -647,22 +653,15 @@ module mod_clm_driver
     ! =======================================================================
 
 #if (defined CNDV)
-    if ( ktau > 0 ) then
-      tdif = int(dtsrf + dt/2.0_rk8)
-    else
-      tdif = int(dtsrf)
-    end if
-    nextdate = idatex + tdif
-    if ( date_is(nextdate,1,1) .and. &
-         time_is(nextdate,0,dtsrf) .and. ktau > 0 ) then
-      call split_idate(idatex,yr,mon,day)
+    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) .and. ktau > 0 ) then
+      call split_idate(nextdate,yr,mon,day)
       ncdate = yr*10000 + mon*100 + day
       call split_idate(idate0,yr,mon,day)
       nbdate = yr*10000 + mon*100 + day
-      kyr = ncdate/10000 - nbdate/10000 + 1
+      kyr = ncdate/10000 - nbdate/10000
       if ( myid == italk ) then
         write(stdout,*) 'End of year. CNDV called now: ncdate=', &
-                       ncdate,' nbdate=',nbdate,' kyr=',kyr,' ktau=', ktau
+                       ncdate,' nbdate=',nbdate,' kyr=',kyr,' ktau=', ktau+1
       end if
       call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
       call dv(begg,endg,begp,endp, &
@@ -684,8 +683,7 @@ module mod_clm_driver
     ! =======================================================================
 
 #if (defined CNDV)
-    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0,dtsrf) .and. &
-         ktau > 0 )  then
+    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) .and. ktau > 0 )  then
       call histCNDV()
       if (myid == italk) then
         write(stdout,*) 'Annual CNDV calculations are complete'

@@ -694,7 +694,7 @@ module mod_sound
           write(stdout,'(a,e12.5)') ' $$$ max value of CFL = ',maxcfl
           if ( any(icup > 0) ) then
             write(stdout,'(a,i7)') &
-              ' $$$  no. of points with active convection = ', iconvec
+              ' $$$ no. of points with active convection = ', iconvec
           end if
         end if
       end if

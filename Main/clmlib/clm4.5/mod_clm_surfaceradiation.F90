@@ -40,7 +40,7 @@ module mod_clm_surfaceradiation
     use mod_clm_varpar      , only : numrad
     use mod_clm_varcon      , only : spval, istsoil, degpsec, isecspday
     use mod_clm_varcon      , only : istcrop
-    use mod_clm_varctl      , only : subgridflag
+    use mod_clm_varctl      , only : subgridflag , nextdate
     use mod_clm_varpar      , only : nlevsno
     use mod_clm_snicar      , only : DO_SNO_OC
     implicit none
@@ -267,7 +267,7 @@ module mod_clm_surfaceradiation
     ! land model time step (sec)
     real(rk8) :: dtime
     ! calendar info for current time step
-    integer(ik4)  :: year,month,day,secs
+    integer(ik4)  :: secs
     integer(ik4)  :: i   ! layer index [idx]
     ! temporary, absorbed energy in all active snow layers [W/m2]
     real(rk8) :: sabg_snl_sum
@@ -407,7 +407,7 @@ module mod_clm_surfaceradiation
     ! Determine seconds off current time step
 
     dtime = int(dtsrf)
-    call curr_date(idatex,year,month,day,secs)
+    secs = nextdate%second_of_day
 
     ! Initialize fluxes
 

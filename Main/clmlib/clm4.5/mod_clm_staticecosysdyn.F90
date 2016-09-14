@@ -19,7 +19,7 @@ module mod_clm_staticecosysdyn
   use mod_clm_decomp , only : get_proc_bounds , gcomm_gridcell
   use mod_clm_type
   use mod_clm_pftvarcon , only : noveg , nc3crop , nbrdlf_dcd_brl_shrub
-  use mod_clm_varctl , only : fsurdat
+  use mod_clm_varctl , only : fsurdat , nextdate
   use mod_clm_varpar , only : numpft
   use mod_clm_domain , only : ldomain
 
@@ -214,8 +214,8 @@ module mod_clm_staticecosysdyn
     integer(ik4) , dimension(2) :: it     ! month 1 and month 2 (step 1)
     integer(ik4) , dimension(2) :: months ! months to be interpolated (1 to 12)
 
-    call curr_date(idatex,kyr,kmo,kda,ksec,offset=int(dtsrf))
-    t = (kda-0.5_rk8) / ndaypm(kyr,kmo,idatex%calendar)
+    call curr_date(nextdate,kyr,kmo,kda,ksec)
+    t = (kda-0.5_rk8) / ndaypm(kyr,kmo,nextdate%calendar)
     it(1) = int(t + 0.5_rk8)
     it(2) = it(1) + 1
     months(1) = kmo + it(1) - 1

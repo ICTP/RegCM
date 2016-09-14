@@ -1771,7 +1771,7 @@ module mod_tendency
                 ptntot , pt2tot
           if ( any(icup > 0) ) then
             write(stdout,'(a,i7)') &
-              ' $$$  no. of points with active convection = ', iconvec
+              ' $$$ no. of points with active convection = ', iconvec
           end if
         end if
       end if

@@ -3243,7 +3243,7 @@ module mod_clm_cnrest
     else if (flag == 'write') then
       call clm_writevar(ncid,'totcolc',cptr%ccs%totcolc,gcomm_column)
     end if
- 
+
     ! prod10c
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'prod10c',(/'column'/), &
@@ -3780,7 +3780,7 @@ module mod_clm_cnrest
       if ( ktau >= ntsrf ) then
         call fatal(__FILE__,__LINE__,&
             ' CNRest: error in entering/exiting spinup. this should &
-            &occur only when nstep = 1 ')
+            &occur only when ktau = 1 ')
       end if
       do k = 1 , ndecomp_pools
         if ( exit_spinup ) then

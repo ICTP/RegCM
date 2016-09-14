@@ -9,7 +9,7 @@ module mod_clm_canopyfluxes
   use mod_mpmessage
   use mod_stdio
   use mod_runparams
-  use mod_clm_varctl , only: use_c13 , use_c14
+  use mod_clm_varctl , only: use_c13 , use_c14 , nextdate
   use mod_clm_type
   use mod_clm_atmlnd , only : clm_a2l
   use mod_clm_varpar , only : nlevgrnd, nlevsno, nlevcan
@@ -844,7 +844,7 @@ module mod_clm_canopyfluxes
    ! n_irrig_steps_left(p) > 0 is ok even if irrig_rate(p) ends up = 0
    ! in this case, we'll irrigate by 0 for the given number of time steps
    ! get time as of beginning of time step
-   time = idatex%second_of_day
+   time = nextdate%second_of_day
    do f = 1, fn
      p = filterp(f)
      c = pcolumn(p)

@@ -13,6 +13,7 @@ module mod_clm_cnc14decay
   use mod_mppparam
   use mod_clm_varpar , only : ndecomp_cascade_transitions, &
           nlevdecomp, ndecomp_pools
+  use mod_clm_varctl , only : nextdate
   implicit none
 
   save
@@ -207,7 +208,7 @@ module mod_clm_cnc14decay
 
     if ( use_c14_bombspike ) then
       ! get current date
-      call curr_date(idatex,yr,mon,day,tod)
+      call curr_date(nextdate,yr,mon,day,tod)
       dateyear = real(yr) + real(mon)/12._rk8 + real(day)/dayspy + &
               real(tod)/(secspday*dayspy)
 

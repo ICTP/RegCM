@@ -6,7 +6,8 @@ module mod_clm_time_manager
    use mod_mpmessage
    use mod_constants , only : secpd
    use mod_dynparam , only : dayspy
-   use mod_runparams , only : idate0 , idatex , dtsec , dtsrf
+   use mod_runparams , only : idate0
+   use mod_clm_varctl , only : nextdate
 
    implicit none
 
@@ -66,22 +67,13 @@ module mod_clm_time_manager
     if ( present(tod) ) tod = idate0%second_of_day
   end function get_driver_start_ymd
 
-  real(rk8) function get_curr_calday(offset)
+  real(rk8) function get_curr_calday( )
     implicit none
     ! Return calendar day at end of current timestep with optional offset.
     ! Calendar day 1.0 = 0Z on Jan 1.
     ! Offset from current time in seconds.
     ! Positive for future times, negative for previous times.
-    integer(ik4), optional, intent(in) :: offset
-    type (rcm_time_and_date) :: id
-    type (rcm_time_interval) :: tdif
-
-    id = idatex
-    if ( present(offset) ) then
-      tdif = offset
-      id = id + tdif
-    end if
-    get_curr_calday = yeardayfrac(id)
+    get_curr_calday = yeardayfrac(nextdate)
   end function get_curr_calday
 
   real(rk8) function get_curr_yearpoint(offset)
@@ -94,7 +86,7 @@ module mod_clm_time_manager
     type (rcm_time_and_date) :: id
     type (rcm_time_interval) :: tdif
 
-    id = idatex
+    id = nextdate
     if ( present(offset) ) then
       tdif = offset
       id = id + tdif
@@ -111,23 +103,23 @@ module mod_clm_time_manager
 
     id = ymd
     id%second_of_day = tod
-    call setcal(id,idatex)
+    call setcal(id,nextdate)
     get_calday = yeardayfrac(id)
   end function get_calday
 
   logical function is_end_curr_day()
     implicit none
     ! Return true if current timestep is last timestep in current day.
-    is_end_curr_day = (idatex%second_of_day == int(secpd-dtsec, ik8))
+    is_end_curr_day = (nextdate%second_of_day == int(secpd, ik8))
   end function is_end_curr_day
 
   logical function is_end_curr_month()
     implicit none
     ! Return true if current timestep is last timestep in current month.
     type (rcm_time_and_date) :: id
-    id = monlast(idatex)
+    id = monlast(nextdate)
     is_end_curr_month = ( &
-            id%days_from_reference == idatex%days_from_reference .and. &
+            id%days_from_reference == nextdate%days_from_reference .and. &
             is_end_curr_day() )
   end function is_end_curr_month
 

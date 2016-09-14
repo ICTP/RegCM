@@ -7,6 +7,7 @@ module mod_clm_subgridrest
   use mod_runparams
   use mod_clm_nchelper
   use mod_clm_domain , only : ldomain
+  use mod_clm_varctl , only : nextdate
   use mod_clm_decomp
 
   implicit none
@@ -93,7 +94,7 @@ module mod_clm_subgridrest
       call clm_addvar(clmvar_integer,ncid,'mcsec', &
             long_name='current seconds of current date', units='s')
     else if ( flag == 'write' ) then
-      call curr_date(idatex,yr,mon,day,mcsec)
+      call curr_date(nextdate,yr,mon,day,mcsec)
       mcdate = yr*10000 + mon*100 + day
       call clm_writevar(ncid,'mcdate',mcdate)
       call clm_writevar(ncid,'mcsec',mcsec)

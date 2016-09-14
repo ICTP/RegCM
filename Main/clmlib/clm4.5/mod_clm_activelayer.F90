@@ -10,6 +10,7 @@ module mod_clm_activelayer
   use mod_clm_type , only : clm3
   use mod_clm_varpar , only : nlevgrnd
   use mod_clm_varcon , only : zsoi
+  use mod_clm_varctl , only : nextdate
 
   implicit none
 
@@ -75,7 +76,7 @@ module mod_clm_activelayer
 
     ! on a set annual timestep, update annual maxima
     ! make this 1 January for NH columns, 1 July for SH columns
-    if ( date_is(idatex,1,1) .and. time_is(idatex,0,dtsrf) ) then
+    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
       do fc = 1 , num_soilc
         c = filter_soilc(fc)
         g = cgridcell(c)
@@ -87,7 +88,7 @@ module mod_clm_activelayer
         end if
       end do
     end if
-    if ( date_is(idatex,7,1) .and. time_is(idatex,0,dtsrf) ) then
+    if ( date_is(nextdate,7,1) .and. time_is(nextdate,0) ) then
       do fc = 1 , num_soilc
         c = filter_soilc(fc)
         g = cgridcell(c)

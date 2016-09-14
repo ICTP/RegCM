@@ -409,7 +409,7 @@ module mod_clm_regcm
         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         ! to convert NO flux from mg/m2/day to g/m2/sec,
         ! we multiply by 1.15740741 * 10-8
-        clm_a2l%forc_ndep(:) = clm_a2l%notused * 1.15740741e-8_rk8 
+        clm_a2l%forc_ndep(:) = clm_a2l%notused * 1.15740741e-8_rk8
       end if
       ! FAB to do : treat the 12 bins case ..
       ! b : pass the nitrogen deposition flux

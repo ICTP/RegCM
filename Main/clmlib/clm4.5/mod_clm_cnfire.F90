@@ -14,7 +14,7 @@ module mod_clm_cnfire
   use mod_realkinds
   use mod_mppparam
   use mod_mpmessage
-  use mod_runparams , only : dtsrf , idatex , idate1 , ktau , dtsec
+  use mod_runparams , only : dtsrf , idate1 , ktau , dtsec
   use mod_dynparam
   use mod_stdio
   use mod_date
@@ -27,7 +27,7 @@ module mod_clm_cnfire
   use mod_clm_varcon , only : dzsoi_decomp , rpi , tfrz , secspday
   use mod_clm_domain , only : ldomain
   use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_varctl , only : fsurdat , inst_name
+  use mod_clm_varctl , only : fsurdat , inst_name , nextdate
   use mod_clm_surfrd , only : crop_prog
   use mod_clm_pftvarcon , only : fsr_pft , fd_pft , noveg
   use mod_clm_pftvarcon , only : nc4_grass , nc3crop , ndllf_evr_tmp_tree
@@ -550,11 +550,11 @@ module mod_clm_cnfire
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
       if ( dtrotr_col(c) > 0._rk8 ) then
-        if ( date_is(idatex,1,1) .and. time_is(idatex,0,dtsrf) ) then
+        if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
           lfc(c) = 0._rk8
         end if
-        if ( date_is(idatex,1,1) .and. &
-             time_is(idatex,int(dtsrf+dt/2.0_rk8)) ) then
+        if ( date_is(nextdate,1,1) .and. &
+             time_is(nextdate,int(dtsrf)) ) then
           lfc(c) = dtrotr_col(c)*dayspy*secspday/dt
         end if
       else
@@ -572,12 +572,12 @@ module mod_clm_cnfire
 
     do fp = 1 , num_soilp
       p = filter_soilp(fp)
-      if ( date_is(idatex,1,1) .and. time_is(idatex,0,dtsrf) ) then
+      if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
         burndate(p) = 10000 ! init. value; actual range [0 365]
       end if
     end do
 
-    call split_idate(idatex,kyr,kmo,kda)
+    call split_idate(nextdate,kyr,kmo,kda)
     do pi = 1 , max_pft_per_col
       do fc = 1,num_soilc
         c = filter_soilc(fc)
@@ -687,7 +687,7 @@ module mod_clm_cnfire
         !
 #ifdef DYNPFT
         if ( trotr1_col(c)+trotr2_col(c) > 0.6_rk8 ) then
-          if ( (date_is(idatex,1,1) .and. time_is(idatex,0,dtsrf)) .or. &
+          if ( (date_is(nextdate,1,1) .and. time_is(nextdate,0)) .or. &
                 dtrotr_col(c) <=0._rk8 ) then
             fbac1(c)        = 0._rk8
             farea_burned(c) = baf_crop(c)+baf_peatf(c)
@@ -1549,7 +1549,7 @@ module mod_clm_cnfire
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
       lfc2(c)=0._rk8
-      if ( date_is(idatex,1,1) .and. time_is(idatex,0,dtsrf) ) then
+      if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
         if ( trotr1_col(c)+trotr2_col(c) > 0.6_rk8 .and. &
              dtrotr_col(c) > 0._rk8 .and. &
              lfc(c) > 0._rk8 .and. fbac1(c) == 0._rk8 ) then
@@ -1594,7 +1594,7 @@ module mod_clm_cnfire
     allocate( hdm_p1(begg:endg) )
     allocate( hdm_p2(begg:endg) )
 
-    call split_idate(idatex,yr,mon,day,ih)
+    call split_idate(nextdate,yr,mon,day,ih)
     ipoprec = yr - 1850 + 1
     call clm_openfile(fsurdat,sdat_hdm)
     call clm_readvar(sdat_hdm,'HDM',hdm_p1,gcomm_gridcell,ipoprec)
@@ -1614,14 +1614,14 @@ module mod_clm_cnfire
     integer(ik4) :: yr , mon , day , ih , ip
     real(rk8) :: w1 , w2
 
-    call split_idate(idatex,yr,mon,day,ih)
+    call split_idate(nextdate,yr,mon,day,ih)
     ip = yr - 1850 + 1
     if ( ip /= ipoprec ) then
       ipoprec = ipoprec+1
       call clm_readvar(sdat_hdm,'HDM',hdm_p1,gcomm_gridcell,ipoprec)
       call clm_readvar(sdat_hdm,'HDM',hdm_p2,gcomm_gridcell,ipoprec+1)
     end if
-    w1 = d_one - (yeardayfrac(idatex)/dayspy)
+    w1 = d_one - (yeardayfrac(nextdate)/dayspy)
     w2 = d_one - w1
     forc_hdm(:) = hdm_p1(:)*w1 + hdm_p2(:)*w2
   end subroutine hdm_interp
@@ -1637,7 +1637,7 @@ module mod_clm_cnfire
     allocate( lnfm_p1(begg:endg) )
     allocate( lnfm_p2(begg:endg) )
 
-    call split_idate(idatex,yr,mon,day,ih)
+    call split_idate(nextdate,yr,mon,day,ih)
     ilnfmrec = int(yeardayfrac(idate1)/dayspy*365.0_rk8*8.0_rk8+1.0_rk8)+ih/3
 
     call clm_openfile(fsurdat,sdat_lnfm)
@@ -1663,8 +1663,8 @@ module mod_clm_cnfire
     real(rk8) :: w1 , w2
     integer(ik4) :: yr , mon , day , ih
 
-    call split_idate(idatex,yr,mon,day,ih)
-    ip = int(yeardayfrac(idatex)/dayspy*365.0_rk8*8.0_rk8+1.0_rk8)+ih/3
+    call split_idate(nextdate,yr,mon,day,ih)
+    ip = int(yeardayfrac(nextdate)/dayspy*365.0_rk8*8.0_rk8+1.0_rk8)+ih/3
     if ( ip /= ilnfmrec ) then
       ilnfmrec = ilnfmrec+1
       if ( ilnfmrec > 365*8 ) ilnfmrec = 1
@@ -1675,7 +1675,7 @@ module mod_clm_cnfire
         call clm_readvar(sdat_hdm,'LNFM',lnfm_p2,gcomm_gridcell,ilnfmrec+1)
       end if
     end if
-    w1 = d_one - (yeardayfrac(idatex)-dble(ip/8))
+    w1 = d_one - (yeardayfrac(nextdate)-dble(ip/8))
     w2 = d_one - w1
     forc_lnfm(:) = lnfm_p1(:)*w1 + lnfm_p2(:)*w2
   end subroutine lnfm_interp

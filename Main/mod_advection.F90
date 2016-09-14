@@ -1040,8 +1040,8 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
-                  fg(j,i,k) = rnumfac*(svv(j,i,k) * &
-                        numfac*(twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)))
+                  fg(j,i,k) = rnumfac*((numfac*svv(j,i,k)) * &
+                        (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)))
                 end if
               end do
             end do
@@ -1081,8 +1081,8 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
-                  fg(j,i,k) = rnumfac*(svv(j,i,k) * &
-                        numfac*(twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)))
+                  fg(j,i,k) = rnumfac*((numfac*svv(j,i,k)) * &
+                        (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)))
                 end if
               end do
             end do

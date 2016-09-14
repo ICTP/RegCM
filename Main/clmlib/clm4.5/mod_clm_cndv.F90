@@ -16,7 +16,7 @@ module mod_clm_cndv
   use mod_clm_type
   use mod_clm_nchelper
   use mod_clm_time_manager , only : getdatetime
-  use mod_clm_varctl , only : caseid , inst_suffix
+  use mod_clm_varctl , only : caseid , inst_suffix , nextdate
   use mod_clm_varctl , only : ctitle, finidat, fsurdat, fpftcon
   use mod_clm_cnvegstructupdate , only : CNVegStructUpdate
   use mod_clm_cndvestablishment , only : Establishment
@@ -285,7 +285,7 @@ module mod_clm_cndv
 
     call clm_addvar(clmvar_integer,ncid,'numpft')
 
-    call curr_time(idatex,mdcur, mscur)
+    call curr_time(nextdate,mdcur, mscur)
     call ref_date(yr,mon,day,nbsec)
     hours   = nbsec / 3600
     minutes = (nbsec - hours*3600) / 60
@@ -379,7 +379,7 @@ module mod_clm_cndv
 
     ! Write current date, current seconds, current day, current nstep
 
-    call curr_date(idatex,yr,mon,day,mcsec)
+    call curr_date(nextdate,yr,mon,day,mcsec)
     mcdate = yr*10000 + mon*100 + day
 
     iktau = int(ktau,ik4)
@@ -421,7 +421,7 @@ module mod_clm_cndv
     call clm_closefile(ncid)
 
     if (myid == italk) then
-       write(stdout,*) 'Written CNDV history dataset at nstep = ',ktau
+       write(stdout,*) 'Written CNDV history dataset at ktau = ',ktau+1
     end if
 
   end subroutine histCNDV
@@ -435,7 +435,7 @@ module mod_clm_cndv
     integer(ik4) :: mon        !month (1 -> 12)
     integer(ik4) :: yr         !year (0 -> ...)
     integer(ik4) :: sec        !seconds into current day
-    call curr_date(idatex,yr,mon,day,sec)
+    call curr_date(nextdate,yr,mon,day,sec)
     write(cdate,'(i4.4)') yr+1
     set_dgvm_filename = trim(dirout)//pthsep//trim(caseid)//  &
                               ".clm."//trim(inst_suffix)// &

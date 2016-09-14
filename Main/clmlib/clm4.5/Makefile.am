@@ -103,7 +103,7 @@ clean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 mod_clm_accflds.o : mod_clm_accflds.F90 mod_clm_accumul.o mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_date.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_accumul.o : mod_clm_accumul.F90 mod_clm_decomp.o mod_clm_nchelper.o mod_clm_varcon.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
-mod_clm_activelayer.o : mod_clm_activelayer.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_constants.o mod_date.o mod_intkinds.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
+mod_clm_activelayer.o : mod_clm_activelayer.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_clm_varctl.o mod_constants.o mod_date.o mod_intkinds.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
 mod_clm_atmlnd.o : mod_clm_atmlnd.F90 mod_clm_ch4varcon.o mod_clm_decomp.o mod_clm_drydep.o mod_clm_megan.o mod_clm_subgridave.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_balancecheck.o : mod_clm_balancecheck.F90 mod_clm_atmlnd.o mod_clm_subgridave.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_banddiagonal.o : mod_clm_banddiagonal.F90 lapack_dgbsv.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o $(REGCM_ROOT)/makeinc
@@ -142,7 +142,7 @@ mod_clm_cnnitrifdenitrif.o : mod_clm_cnnitrifdenitrif.F90 mod_clm_ch4varcon.o mo
 mod_clm_cnnstateupdate1.o : mod_clm_cnnstateupdate1.F90 mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
 mod_clm_cnnstateupdate2.o : mod_clm_cnnstateupdate2.F90 mod_clm_type.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
 mod_clm_cnnstateupdate3.o : mod_clm_cnnstateupdate3.F90 mod_clm_type.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
-mod_clm_cnphenology.o : mod_clm_cnphenology.F90 mod_clm_croprest.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_date.o mod_intkinds.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
+mod_clm_cnphenology.o : mod_clm_cnphenology.F90 mod_clm_croprest.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_clm_varctl.o mod_date.o mod_intkinds.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_cnprecisioncontrol.o : mod_clm_cnprecisioncontrol.F90 mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_cnrest.o : mod_clm_cnrest.F90 mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_nchelper.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_clm_surfrd.o mod_constants.o mod_dynparam.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
 mod_clm_cnsetvalue.o : mod_clm_cnsetvalue.F90 mod_clm_surfrd.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
@@ -202,7 +202,7 @@ mod_clm_soiltemperature.o : mod_clm_soiltemperature.F90 mod_clm_atmlnd.o mod_clm
 mod_clm_staticecosysdyn.o : mod_clm_staticecosysdyn.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_nchelper.o mod_clm_pftvarcon.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_date.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_subgridave.o : mod_clm_subgridave.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_subgrid.o : mod_clm_subgrid.F90 mod_clm_varctl.o mod_clm_varpar.o mod_clm_varsur.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
-mod_clm_subgridrest.o : mod_clm_subgridrest.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_nchelper.o mod_clm_type.o mod_date.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
+mod_clm_subgridrest.o : mod_clm_subgridrest.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_nchelper.o mod_clm_type.o mod_clm_varctl.o mod_date.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
 mod_clm_surfacealbedo.o : mod_clm_surfacealbedo.F90 mod_clm_slakecon.o mod_clm_snicar.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o mod_sunorbit.o $(REGCM_ROOT)/makeinc
 mod_clm_surfaceradiation.o : mod_clm_surfaceradiation.F90 mod_clm_atmlnd.o mod_clm_snicar.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_date.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_surfrd.o : mod_clm_surfrd.F90 mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_domain.o mod_clm_nchelper.o mod_clm_pftvarcon.o mod_clm_type.o mod_clm_urbaninput.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_clm_varsur.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_stdio.o $(REGCM_ROOT)/makeinc
@@ -210,11 +210,11 @@ mod_clm_time_manager.o : mod_clm_time_manager.F90 mod_clm_varctl.o mod_constants
 mod_clm_tridiagonal.o : mod_clm_tridiagonal.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_type.o : mod_clm_type.F90 mod_clm_domain.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_typeinit.o : mod_clm_typeinit.F90 mod_clm_decomp.o mod_clm_drydep.o mod_clm_megan.o mod_clm_surfrd.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o $(REGCM_ROOT)/makeinc
-mod_clm_urban.o : mod_clm_urban.F90 mod_clm_atmlnd.o mod_clm_filter.o mod_clm_frictionvelocity.o mod_clm_qsat.o mod_clm_type.o mod_clm_urbaninput.o mod_clm_varcon.o mod_clm_varpar.o mod_date.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
+mod_clm_urban.o : mod_clm_urban.F90 mod_clm_atmlnd.o mod_clm_filter.o mod_clm_frictionvelocity.o mod_clm_qsat.o mod_clm_type.o mod_clm_urbaninput.o mod_clm_varcon.o mod_clm_varpar.o mod_clm_varctl.o mod_date.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_urbaninit.o : mod_clm_urbaninit.F90 mod_clm_decomp.o mod_clm_type.o mod_clm_urbaninput.o mod_clm_urban.o mod_clm_varcon.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_urbaninput.o : mod_clm_urbaninput.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_nchelper.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_varcon.o : mod_clm_varcon.F90 mod_clm_varpar.o mod_constants.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
-mod_clm_varctl.o : mod_clm_varctl.F90 mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
+mod_clm_varctl.o : mod_clm_varctl.F90 mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_date.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_varpar.o : mod_clm_varpar.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o $(REGCM_ROOT)/makeinc
 mod_clm_varsur.o : mod_clm_varsur.F90 mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_vicmap.o : mod_clm_vicmap.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc

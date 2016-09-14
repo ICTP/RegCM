@@ -389,8 +389,7 @@ module mod_clm_cnnitrifdenitrif
                  finundated(c)*1.18_rk8
         end if
 #endif
-
-       ! final ratio expression
+        ! final ratio expression
         n2_n2o_ratio_denit_vr(c,j) = max(0.16*ratio_k1(c,j), ratio_k1(c,j) * &
                exp(-0.8 * ratio_no3_co2(c,j))) * fr_WFPS(c,j)
 
