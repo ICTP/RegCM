@@ -490,13 +490,19 @@ module mod_date
     type (rcm_time_and_date) , intent(inout) :: x
     character (len=*) , intent(in) :: c
     integer(ik4) :: ic
-    if ( c == 'gregorian' ) then
+    if ( c == 'gregorian' .or. &
+         c == 'standard' ) then
       ic = gregorian
-    else if ( c(1:6) == 'noleap' .or.   &
-              c(1:8) == 'days_365' .or. &
-              c(1:7) == '365_day' ) then
+    else if ( c == 'noleap' .or.   &
+              c == 'days_365' .or. &
+              c == 'day_365' .or.  &
+              c == '365_days' .or. &
+              c == '365_day' ) then
       ic = noleap
-    else if ( c(1:7) == 'days_360' ) then
+    else if ( c == 'days_360' .or. &
+              c == 'day_360' .or.  &
+              c == '360_days' .or. &
+              c == '360_day' ) then
       ic = y360
     else
       write (stderr,*) 'Unknown calendar, using Julian/Gregorian'
