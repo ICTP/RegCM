@@ -46,6 +46,8 @@ module mod_advection
   real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
   real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
   real(rkx) , parameter :: t_rel_extrema = 0.20_rkx
+  real(rkx) , parameter :: numfac = 1024.0_rkx
+  real(rkx) , parameter :: rnumfac = 0.0009765625_rkx
 
   interface hadv
     module procedure hadvuv
@@ -908,8 +910,8 @@ module mod_advection
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                qq = d_half * (svv(j,i,k) + svv(j,i,k+1))
-                ff = d_r1000*(qq * d_1000*(f(j,i,k) + f(j,i,k+1)))
+                qq = d_half * numfac * (svv(j,i,k) + svv(j,i,k+1))
+                ff = rnumfac*(qq * ((f(j,i,k) + f(j,i,k+1))))
                 ften(j,i,k+1) = ften(j,i,k+1) + ff*dds(k+1)
                 ften(j,i,k)   = ften(j,i,k)   - ff*dds(k)
               end do
@@ -1038,8 +1040,8 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
-                  fg(j,i,k) = d_r1000*(svv(j,i,k) * &
-                        d_1000*(twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)))
+                  fg(j,i,k) = rnumfac*(svv(j,i,k) * &
+                        numfac*(twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)))
                 end if
               end do
             end do
@@ -1079,8 +1081,8 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
-                  fg(j,i,k) = d_r1000*(svv(j,i,k) * &
-                        d_1000*(twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)))
+                  fg(j,i,k) = rnumfac*(svv(j,i,k) * &
+                        numfac*(twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)))
                 end if
               end do
             end do
