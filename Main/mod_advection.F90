@@ -46,8 +46,6 @@ module mod_advection
   real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
   real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
   real(rkx) , parameter :: t_rel_extrema = 0.20_rkx
-  real(rkx) , parameter :: numfac = 1024.0_rkx
-  real(rkx) , parameter :: rnumfac = 0.0009765625_rkx
 
   interface hadv
     module procedure hadvuv
@@ -887,7 +885,8 @@ module mod_advection
       real(rkx) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rkx) , pointer , intent (inout), dimension(:,:,:) :: ften
 
-      real(rkx) :: rdphf , rdplf , ff , qq
+      real(rkx) :: rdphf , rdplf , fx
+      real(rk8) :: ff , qq
       real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: dotqdot
       integer(ik4) :: i , j , k
 #ifdef DEBUG
@@ -901,8 +900,9 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 ff = (twt(k,1)*f(j,i,k)+twt(k,2)*f(j,i,k-1)) * svv(j,i,k)
-                ften(j,i,k-1) = ften(j,i,k-1) - ff*xds(k-1)
-                ften(j,i,k)   = ften(j,i,k)   + ff*xds(k)
+                fx = real(ff,rkx)
+                ften(j,i,k-1) = ften(j,i,k-1) - fx*xds(k-1)
+                ften(j,i,k)   = ften(j,i,k)   + fx*xds(k)
               end do
             end do
           end do
@@ -910,11 +910,11 @@ module mod_advection
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                qq = d_half * numfac * (svv(j,i,k) + svv(j,i,k+1))
-                ff = rnumfac * rnumfac * &
-                      (qq * numfac * ((f(j,i,k) + f(j,i,k+1))))
-                ften(j,i,k+1) = ften(j,i,k+1) + ff*dds(k+1)
-                ften(j,i,k)   = ften(j,i,k)   - ff*dds(k)
+                qq = d_half * (svv(j,i,k) + svv(j,i,k+1))
+                ff = (qq * ((f(j,i,k) + f(j,i,k+1))))
+                fx = real(ff,rkx)
+                ften(j,i,k+1) = ften(j,i,k+1) + fx*dds(k+1)
+                ften(j,i,k)   = ften(j,i,k)   - fx*dds(k)
               end do
             end do
           end do
@@ -961,8 +961,9 @@ module mod_advection
                 dotqdot(j,i,k) = f(j,i,k)*rdphf
                 ff = rdplf * svv(j,i,k) * ( twt(k,1) * dotqdot(j,i,k) + &
                                             twt(k,2) * dotqdot(j,i,k-1) )
-                ften(j,i,k-1) = ften(j,i,k-1) - ff*xds(k-1)
-                ften(j,i,k)   = ften(j,i,k)   + ff*xds(k)
+                fx = real(ff,rkx)
+                ften(j,i,k-1) = ften(j,i,k-1) - fx*xds(k-1)
+                ften(j,i,k)   = ften(j,i,k)   + fx*xds(k)
               end do
             end do
           end do
@@ -979,7 +980,7 @@ module mod_advection
       real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
-      real(rkx) :: f1 , f2
+      real(rk8) :: f1 , f2
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadvqx'
@@ -994,7 +995,7 @@ module mod_advection
                  f(j,i,k-1,n)/ps(j,i) > minqq ) then
               f1 = f(j,i,k,n)
               f2 = f(j,i,k-1,n)
-              fg(j,i,k) = f1*(f2/f1)**qcon(k)
+              fg(j,i,k) = real(f1*(f2/f1)**qcon(k),rkx)
             end if
           end do
         end do
@@ -1028,6 +1029,7 @@ module mod_advection
       real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
       real(rkx) :: slope
+      real(rk8) :: f1 , f2
       integer(ik4) :: i , j , k , n
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv4d'
@@ -1041,8 +1043,9 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
-                  fg(j,i,k) = rnumfac*((numfac*svv(j,i,k)) * &
-                        (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)))
+                  f1 = svv(j,i,k)
+                  f2 = (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+                  fg(j,i,k) = real((f1 * f2),rkx)
                 end if
               end do
             end do
@@ -1082,8 +1085,9 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
-                  fg(j,i,k) = rnumfac*((numfac*svv(j,i,k)) * &
-                        (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)))
+                  f1 = svv(j,i,k)
+                  f2 = (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+                  fg(j,i,k) = real((f1 * f2),rkx)
                 end if
               end do
             end do
