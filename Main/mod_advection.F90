@@ -911,7 +911,8 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 qq = d_half * numfac * (svv(j,i,k) + svv(j,i,k+1))
-                ff = rnumfac*(qq * ((f(j,i,k) + f(j,i,k+1))))
+                ff = rnumfac * rnumfac * &
+                      (qq * numfac * ((f(j,i,k) + f(j,i,k+1))))
                 ften(j,i,k+1) = ften(j,i,k+1) + ff*dds(k+1)
                 ften(j,i,k)   = ften(j,i,k)   - ff*dds(k)
               end do

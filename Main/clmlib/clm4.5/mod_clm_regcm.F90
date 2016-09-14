@@ -14,7 +14,7 @@ module mod_clm_regcm
   use mod_service
   use mod_clm_initialize
   use mod_clm_driver
-  use mod_clm_varctl , only : use_c13 , co2_ppmv , tcrit
+  use mod_clm_varctl , only : use_c13 , co2_ppmv , tcrit , nextdate
   use mod_clm_varpar , only : nlevsoi
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , &
                               sb
@@ -54,6 +54,8 @@ module mod_clm_regcm
     call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
     call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
     adomain%topo = adomain%topo*regrav
+
+    nextdate = idatex
 
     call initialize1( )
 
