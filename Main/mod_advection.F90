@@ -899,10 +899,13 @@ module mod_advection
           do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ff = (twt(k,1)*f(j,i,k)+twt(k,2)*f(j,i,k-1)) * svv(j,i,k)
-                fx = real(ff,rkx)
-                ften(j,i,k-1) = ften(j,i,k-1) - fx*xds(k-1)
-                ften(j,i,k)   = ften(j,i,k)   + fx*xds(k)
+                qq = svv(j,i,k)
+                ff = qq * (twt(k,1)*f(j,i,k)+twt(k,2)*f(j,i,k-1))
+                if ( abs(ff) > dlowval ) then
+                  fx = real(ff,rkx)
+                  ften(j,i,k-1) = ften(j,i,k-1) - fx*xds(k-1)
+                  ften(j,i,k)   = ften(j,i,k)   + fx*xds(k)
+                end if
               end do
             end do
           end do
@@ -911,10 +914,12 @@ module mod_advection
             do i = ici1 , ici2
               do j = jci1 , jci2
                 qq = d_half * (svv(j,i,k) + svv(j,i,k+1))
-                ff = (qq * ((f(j,i,k) + f(j,i,k+1))))
-                fx = real(ff,rkx)
-                ften(j,i,k+1) = ften(j,i,k+1) + fx*dds(k+1)
-                ften(j,i,k)   = ften(j,i,k)   - fx*dds(k)
+                ff = qq * ((f(j,i,k) + f(j,i,k+1)))
+                if ( abs(ff) > dlowval ) then
+                  fx = real(ff,rkx)
+                  ften(j,i,k+1) = ften(j,i,k+1) + fx*dds(k+1)
+                  ften(j,i,k)   = ften(j,i,k)   - fx*dds(k)
+                end if
               end do
             end do
           end do
