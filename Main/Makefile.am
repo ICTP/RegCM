@@ -118,7 +118,7 @@ clean-local:
 #
 abort.o : abort.F90 mod_dynparam.o mod_intkinds.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
-mod_advection.o : mod_advection.F90 mod_dynparam.o mod_memutil.o mod_mpmessage.o mod_regcm_types.o mod_runparams.o mod_service.o mod_constants.o
+mod_advection.o : mod_advection.F90 mod_dynparam.o mod_memutil.o mod_mpmessage.o mod_regcm_types.o mod_atm_interface.o mod_runparams.o mod_service.o mod_constants.o
 mod_atm_interface.o : mod_atm_interface.F90 mod_constants.o mod_dynparam.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_regcm_types.o mod_runparams.o mod_service.o mod_stdio.o
 mod_bdycod.o : mod_bdycod.F90 mod_atm_interface.o mod_che_interface.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_pbl_interface.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o mod_slabocean.o
 mod_che_interface.o : mod_che_interface.F90 mod_atm_interface.o mod_rad_interface.o mod_che_bdyco.o mod_che_bionit.o mod_che_carbonaer.o mod_che_common.o mod_che_cumtran.o mod_che_drydep.o mod_che_dust.o mod_che_emission.o mod_che_indices.o mod_che_mppio.o mod_che_ncio.o mod_che_param.o mod_che_species.o mod_che_start.o mod_che_tend.o mod_realkinds.o mod_regcm_types.o
