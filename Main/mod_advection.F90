@@ -1029,7 +1029,7 @@ module mod_advection
       real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
       real(rkx) :: slope
-      real(rk8) :: f1 , f2
+      real(rk8) :: f1 , f2 , r
       integer(ik4) :: i , j , k , n
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv4d'
@@ -1045,7 +1045,8 @@ module mod_advection
                 if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
                   f1 = svv(j,i,k)
                   f2 = (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
-                  fg(j,i,k) = real((f1 * f2),rkx)
+                  r = (f1 * f2)
+                  if ( abs(r) > dlowval ) fg(j,i,k) = real(r,rkx)
                 end if
               end do
             end do
@@ -1087,7 +1088,8 @@ module mod_advection
                 if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
                   f1 = svv(j,i,k)
                   f2 = (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
-                  fg(j,i,k) = real((f1 * f2),rkx)
+                  r = (f1 * f2)
+                  if ( abs(r) > dlowval ) fg(j,i,k) = real(r,rkx)
                 end if
               end do
             end do
