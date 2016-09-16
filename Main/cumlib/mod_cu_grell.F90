@@ -1063,8 +1063,11 @@ module mod_cu_grell
           f = xac(n)/dtauc(n)       ! Fritsch-Chappell closure
         end if
         xk = (xxac(n)-xac(n))/mbdt
-        xmb(n) = -f/xk
-        if ( f <= d_zero .or. xk >= d_zero ) xmb(n) = d_zero
+        if ( f <= d_zero .or. xk >= d_zero ) then
+          xmb(n) = d_zero
+        else
+          xmb(n) = -f/xk
+        end if
       end if
     end do
     !
