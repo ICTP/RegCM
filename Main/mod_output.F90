@@ -955,10 +955,8 @@ module mod_output
           call grid_collect(gasemstot,gasemstot_io,jci1,jci2,ici1,ici2,1,kzp1)
         end if
 
+        call subgrid_collect(lms%sw,sw_io,jci1,jci2,ici1,ici2,1,num_soil_layers)
         call subgrid_collect(lms%gwet,gwet_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(lms%ssw,ssw_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(lms%rsw,rsw_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(lms%tsw,tsw_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%ldew,ldew_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%tgrd,tgrd_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%tgbrd,tgbrd_io,jci1,jci2,ici1,ici2)

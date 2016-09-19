@@ -82,6 +82,9 @@ module mod_clm_regcm
     adomain%topo = adomain%topo*regrav
     call glb_c2l_ss(lndcomm,lm%iveg1,adomain%iveg)
     call glb_c2l_ss(lndcomm,lm%itex1,adomain%itex)
+    where ( adomain%itex == 14 )
+      adomain%itex = 17
+    end where
     if ( replacemoist ) then
       do ilev = 1 , num_soil_layers
         call assignpnt(lm%rmoist,p2,ilev)

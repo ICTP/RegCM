@@ -40,7 +40,7 @@ module mod_savefile
   public :: read_savefile
   public :: write_savefile
 
-  integer(ik4) , parameter :: maxdims = 16
+  integer(ik4) , parameter :: maxdims = 17
   integer(ik4) , parameter :: maxvars = 108
   integer(ik4) :: ncstatus
 
@@ -60,6 +60,7 @@ module mod_savefile
   integer(ik4) , parameter :: idtotsp = 14
   integer(ik4) , parameter :: iddpt = 15
   integer(ik4) , parameter :: ikern = 16
+  integer(ik4) , parameter :: indep = 17
 
   integer(ik4) , public , pointer , dimension(:,:,:) :: ldmsk1_io
   integer(ik4) , public , pointer , dimension(:,:) :: ldmsk_io
@@ -96,9 +97,7 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:,:) :: sncv_io
   real(rkx) , public , pointer , dimension(:,:,:) :: sfice_io
   real(rkx) , public , pointer , dimension(:,:,:) :: gwet_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: rsw_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: ssw_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: tsw_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: sw_io
   real(rkx) , public , pointer , dimension(:,:,:) :: taf_io
   real(rkx) , public , pointer , dimension(:,:,:) :: tgrd_io
   real(rkx) , public , pointer , dimension(:,:,:) :: tgbrd_io
@@ -222,9 +221,8 @@ module mod_savefile
       call getmem3d(snag_io,1,nnsg,jcross1,jcross2,icross1,icross2,'snag_io')
       call getmem3d(sncv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sncv_io')
       call getmem3d(sfice_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sfice_io')
-      call getmem3d(rsw_io,1,nnsg,jcross1,jcross2,icross1,icross2,'rsw_io')
-      call getmem3d(ssw_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ssw_io')
-      call getmem3d(tsw_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tsw_io')
+      call getmem4d(sw_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
+                          1,num_soil_layers,'sw_io')
       call getmem3d(tgrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgrd_io')
       call getmem3d(tgbrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgbrd_io')
       call getmem3d(taf_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf_io')
@@ -468,14 +466,10 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read solvld')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'sabveg'),sabveg_io)
       call check_ok(__FILE__,__LINE__,'Cannot read sabveg')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sw'),sw_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read sw')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'tlef'),tlef_io)
       call check_ok(__FILE__,__LINE__,'Cannot read tlef')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ssw'),ssw_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read ssw')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'rsw'),rsw_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read rsw')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tsw'),tsw_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read tsw')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgrd'),tgrd_io)
       call check_ok(__FILE__,__LINE__,'Cannot read tgrd')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgbrd'),tgbrd_io)
@@ -665,6 +659,8 @@ module mod_savefile
         ncstatus = nf90_def_dim(ncid,'ikern',13,dimids(ikern))
         call check_ok(__FILE__,__LINE__,'Cannot create dimension ikern')
       end if
+      ncstatus = nf90_def_dim(ncid,'soil_layers',num_soil_layers,dimids(indep))
+      call check_ok(__FILE__,__LINE__,'Cannot create dimension indep')
 
       ivcc = 0
       wrkdim(1) = dimids(idjdot)
@@ -742,10 +738,9 @@ module mod_savefile
       wrkdim(1) = dimids(idnnsg)
       wrkdim(2) = dimids(idjcross)
       wrkdim(3) = dimids(idicross)
+      wrkdim(4) = dimids(indep)
+      call mydefvar(ncid,'sw',regcm_vartype,wrkdim,1,4,varids,ivcc)
       call mydefvar(ncid,'tlef',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'ssw',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'rsw',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'tsw',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'tgrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'tgbrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'sncv',regcm_vartype,wrkdim,1,3,varids,ivcc)
@@ -919,10 +914,8 @@ module mod_savefile
       call myputvar(ncid,'solvl',solvl_io,varids,ivcc)
       call myputvar(ncid,'solvld',solvld_io,varids,ivcc)
       call myputvar(ncid,'sabveg',sabveg_io,varids,ivcc)
+      call myputvar(ncid,'sw',sw_io,varids,ivcc)
       call myputvar(ncid,'tlef',tlef_io,varids,ivcc)
-      call myputvar(ncid,'ssw',ssw_io,varids,ivcc)
-      call myputvar(ncid,'rsw',rsw_io,varids,ivcc)
-      call myputvar(ncid,'tsw',tsw_io,varids,ivcc)
       call myputvar(ncid,'tgrd',tgrd_io,varids,ivcc)
       call myputvar(ncid,'tgbrd',tgbrd_io,varids,ivcc)
       call myputvar(ncid,'sncv',sncv_io,varids,ivcc)

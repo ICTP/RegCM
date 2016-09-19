@@ -680,7 +680,16 @@ module mod_rad_radiation
     ! Set general radiation consts; convert to cgs units where
     ! appropriate:
     !
-    if ( iyear >= 1750 .and. iyear <= 2100 ) then
+    if ( iyear < 1850 ) then
+      write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
+      write (stderr,*) 'USING year 1850 value for Greenhouse Gases.'
+      co2vmr = cgas(igh_co2,1850)*1.0e-6_rkx
+      co2mmr = co2vmr*(amco2/amd)
+      ch40 = cgas(igh_ch4,1850)*1.0e-9_rkx*(amch4/amd)
+      n2o0 = cgas(igh_n2o,1850)*1.0e-9_rkx*(amn2o/amd)
+      cfc110 = cgas(igh_cfc11,1850)*1.0e-12_rkx*(amcfc11/amd)
+      cfc120 = cgas(igh_cfc12,1850)*1.0e-12_rkx*(amcfc12/amd)
+    else if ( iyear >= 1850 .and. iyear <= 2100 ) then
       co2vmr = cgas(igh_co2,iyear)*1.0e-6_rkx
       co2mmr = co2vmr*(amco2/amd)
       ch40 = cgas(igh_ch4,iyear)*1.0e-9_rkx*(amch4/amd)
@@ -689,8 +698,13 @@ module mod_rad_radiation
       cfc120 = cgas(igh_cfc12,iyear)*1.0e-12_rkx*(amcfc12/amd)
     else
       write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
-      call fatal(__FILE__,__LINE__, &
-            'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
+      write (stderr,*) 'USING year 2100 value for Greenhouse Gases.'
+      co2vmr = cgas(igh_co2,2100)*1.0e-6_rkx
+      co2mmr = co2vmr*(amco2/amd)
+      ch40 = cgas(igh_ch4,2100)*1.0e-9_rkx*(amch4/amd)
+      n2o0 = cgas(igh_n2o,2100)*1.0e-9_rkx*(amn2o/amd)
+      cfc110 = cgas(igh_cfc11,2100)*1.0e-12_rkx*(amcfc11/amd)
+      cfc120 = cgas(igh_cfc12,2100)*1.0e-12_rkx*(amcfc12/amd)
     end if
     !
     ! Coefficients for h2o emissivity and absorptivity.

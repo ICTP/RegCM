@@ -102,7 +102,7 @@ module mod_params
       iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,         &
       scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldmstrat ,   &
       icldfrac , irrtm , iclimao3 , isolconst , icumcloud , islab_ocean , &
-      itweak , temp_tend_maxval , wind_tend_maxval
+      itweak , temp_tend_maxval , wind_tend_maxval , ghg_year_const
 
     namelist /nonhydroparam/ ifupr , logp_lrate , ckh , diffu_hgtf , &
       nhbet , nhxkd
@@ -235,6 +235,7 @@ module mod_params
     lakemod = 0
     ichem = 0
     scenario = 'RCP4.5'
+    ghg_year_const = 1950
     idcsst = 0
     iseaice = 0
     idesseas = 0
@@ -1035,6 +1036,7 @@ module mod_params
     end if
 
     call bcast(scenario,8)
+    call bcast(ghg_year_const)
     call bcast(idcsst)
     call bcast(iseaice)
     call bcast(idesseas)
@@ -1537,7 +1539,13 @@ module mod_params
       call allocate_v3dbound(xwwb,kzp1,cross)
     end if
 
-    if ( myid == italk ) write(stdout,*) 'Setting IPCC scenario to ', scenario
+    if ( myid == italk ) then
+      write(stdout,*) 'Setting IPCC scenario to ', scenario
+      if ( scenario == 'CONST' ) then
+        write(stdout,*) 'Selected value at year ', ghg_year_const
+      end if
+    end if
+
     call set_scenario(scenario)
 
     if ( myid == italk ) then

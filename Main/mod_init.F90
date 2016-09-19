@@ -364,10 +364,9 @@ module mod_init
         call grid_distribute(gasemstot_io,gasemstot,jci1,jci2,ici1,ici2,1,kzp1)
       end if
 
+      call subgrid_distribute(sw_io,lms%sw,jci1,jci2, &
+                                           ici1,ici2,1,num_soil_layers)
       call subgrid_distribute(gwet_io,lms%gwet,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(ssw_io,lms%ssw,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(rsw_io,lms%rsw,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(tsw_io,lms%tsw,jci1,jci2,ici1,ici2)
       call subgrid_distribute(ldew_io,lms%ldew,jci1,jci2,ici1,ici2)
       call subgrid_distribute(tgrd_io,lms%tgrd,jci1,jci2,ici1,ici2)
       call subgrid_distribute(tgbrd_io,lms%tgbrd,jci1,jci2,ici1,ici2)

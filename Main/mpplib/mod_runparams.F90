@@ -140,6 +140,7 @@ module mod_runparams
   real(rkx) , public :: abulk
 
   character(len=8) , public :: scenario
+  integer(ik4) , public :: ghg_year_const
 
   real(rkx) , public :: dt , dt2 , dtsq , dtcb , dtbdys , rdt
   real(rkx) , public :: dx , dx2 , dx4 , dx8 , dx16 , dxsq

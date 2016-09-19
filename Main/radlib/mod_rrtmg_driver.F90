@@ -700,24 +700,36 @@ module mod_rrtmg_driver
     !
     ! cgas is in ppm , ppb , ppt
     !
-    if ( iyear >= 1750 .and. iyear <= 2100 ) then
-      !
-      ! Transform in mass mixing ratios (g/g) for trcmix
-      !
+    ! Transform in mass mixing ratios (g/g) for trcmix
+    !
+    if ( iyear < 1850 ) then
+      write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
+      write (stderr,*) 'USING year 1850 value for Greenhouse Gases.'
+      co2vmr(:,:)   = cgas(2,1850) * 1.0e-6_rkx
+      ch40 = cgas(igh_ch4,1850)*1.0e-9_rkx*(amch4/amd)
+      n2o0 = cgas(igh_n2o,1850)*1.0e-9_rkx*(amn2o/amd)
+      cfc110 = cgas(igh_cfc11,1850)*1.0e-12_rkx*(amcfc11/amd)
+      cfc120 = cgas(igh_cfc12,1850)*1.0e-12_rkx*(amcfc12/amd)
+    else if ( iyear >= 1850 .and. iyear <= 2100 ) then
+      co2vmr(:,:)   = cgas(2,iyear) * 1.0e-6_rkx
       ch40 = cgas(igh_ch4,iyear)*1.0e-9_rkx*(amch4/amd)
       n2o0 = cgas(igh_n2o,iyear)*1.0e-9_rkx*(amn2o/amd)
       cfc110 = cgas(igh_cfc11,iyear)*1.0e-12_rkx*(amcfc11/amd)
       cfc120 = cgas(igh_cfc12,iyear)*1.0e-12_rkx*(amcfc12/amd)
-      call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
     else
       write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
-      call fatal(__FILE__,__LINE__, &
-            'CONCENTRATION VALUES OUTSIDE OF DATE RANGE (1750-2100)')
+      write (stderr,*) 'USING year 2100 value for Greenhouse Gases.'
+      co2vmr(:,:)   = cgas(2,2100) * 1.0e-6_rkx
+      ch40 = cgas(igh_ch4,2100)*1.0e-9_rkx*(amch4/amd)
+      n2o0 = cgas(igh_n2o,2100)*1.0e-9_rkx*(amn2o/amd)
+      cfc110 = cgas(igh_cfc11,2100)*1.0e-12_rkx*(amcfc11/amd)
+      cfc120 = cgas(igh_cfc12,2100)*1.0e-12_rkx*(amcfc12/amd)
     end if
+
+    call trcmix(1,npr,dlat,xptrop,play,n2ommr,ch4mmr,cfc11mmr,cfc12mmr)
 
     do k = 1 , kth
       do n = 1 , npr
-        co2vmr(n,k)   = cgas(2,iyear) * 1.0e-6_rkx ! in ppm
         !
         ! Form mass mixing ratios to vomlume mixing ratios
         !

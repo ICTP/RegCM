@@ -142,6 +142,7 @@ module mod_bats_common
       call c2l_gs(lndcomm,lm%ht,ht)
       call c2l_ss(lndcomm,lm%ht1,hts)
       call c2l_ss(lndcomm,lm%iveg1,lveg)
+      call c2l_ss(lndcomm,lm%itex1,ltex)
       call c2l_ss(lndcomm,lm%xlat1,lat)
       call c2l_ss(lndcomm,lms%tgrd,tgrd)
       call c2l_ss(lndcomm,lms%tgbrd,tgbrd)
@@ -159,6 +160,10 @@ module mod_bats_common
       call c2l_ss(lndcomm,lms%tsw,tsw)
       call c2l_gs(lndcomm,lm%zencos,czenith)
       call fseas(tgbrd,aseas)
+      ! Remove water -> no-data
+      where( ltex == 14 )
+        ltex = 17
+      end where
     end if
     do i = ilndbeg , ilndend
       lncl(i) = mfcv(lveg(i)) - seasf(lveg(i))*aseas(i)

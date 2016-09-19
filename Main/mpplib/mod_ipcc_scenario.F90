@@ -35,7 +35,7 @@ module mod_ipcc_scenario
 
   public :: set_scenario , cgas
 
-  integer(ik4) , parameter :: nsc = 9
+  integer(ik4) , parameter :: nsc = 10
   integer(ik4) , parameter :: n_greenhouse_gases = 5
   character(len=8) , dimension(nsc) :: scenarios
 
@@ -51,7 +51,7 @@ module mod_ipcc_scenario
 
   ! SRES and RCP Scenarios
 
-  data scenarios /'A1B     ','A2      ','B1      ','B2      ', &
+  data scenarios /'CONST   ','A1B     ','A2      ','B1      ','B2      ', &
                   'RF      ','RCP2.6  ','RCP4.5  ','RCP6.0  ','RCP8.5  '/
 !
 !-----------------------------------------------------------------------
@@ -217,6 +217,7 @@ module mod_ipcc_scenario
     implicit none
     character(len=8) , intent(in) :: csc
     integer(ik4) :: ii , jj
+    real(rkx) , dimension(1+n_greenhouse_gases) :: ctemp
 
     select case (csc)
       case ( 'A1B' )
@@ -1760,6 +1761,16 @@ module mod_ipcc_scenario
     2099.0_rkx , 926.665_rkx , 3743.213_rkx , 433.741_rkx , 26.84_rkx , 170.02_rkx , &
     2100.0_rkx , 935.874_rkx , 3750.685_rkx , 435.106_rkx , 25.98_rkx , 167.28_rkx /), &
       (/6,251/))
+      case( 'CONST' )
+        ctemp = cgas(:,ghg_year_const)
+        do jj = 1850 , 2100
+          cgas(1,jj) = jj
+          cgas(2,jj) = ctemp(2)
+          cgas(3,jj) = ctemp(3)
+          cgas(4,jj) = ctemp(4)
+          cgas(5,jj) = ctemp(5)
+          cgas(6,jj) = ctemp(6)
+        end do
       case default
         write (stderr,*) 'Unsupported emission scenario: ', csc
         write (stderr,*) 'Use one in SRES/RCP ', scenarios
