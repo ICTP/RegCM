@@ -192,13 +192,11 @@ module mod_regcm_interface
       ! Boundary code
       !
       if ( ktau /= mtau ) then
-        if ( nbdytime == kbdy ) then
+        if ( mod(ktau,kbdy) == 0 ) then
           !
           ! Read in new boundary conditions
           !
           call bdyin
-        else
-          xbctime = xbctime + dtsec
         end if
         !
         ! fill up the boundary values for xxb and xxa variables:

@@ -123,7 +123,6 @@ module mod_atm_interface
   real(rkx) , pointer , public , dimension(:,:,:) :: fcc
   real(rkx) , pointer , public , dimension(:,:,:) :: remrat
   real(rkx) , pointer , public , dimension(:,:,:) :: rembc
-  real(rkx) , pointer , public , dimension(:,:,:) :: totc
   real(rkx) , pointer , public , dimension(:,:,:) :: ccn
   real(rkx) , pointer , public , dimension(:,:,:) :: rain_ls
 
@@ -868,7 +867,6 @@ module mod_atm_interface
 
       ! This needs to be saved in SAV file
       call getmem3d(fcc,jci1,jci2,ici1,ici2,1,kz,'storage:fcc')
-      call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'storage:totc')
       if ( ichem == 1 ) then
         call getmem3d(rembc,jci1,jci2,ici1,ici2,1,kz,'storage:rembc')
         call getmem3d(remrat,jci1,jci2,ici1,ici2,1,kz,'storage:remrat')

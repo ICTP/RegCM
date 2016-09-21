@@ -317,8 +317,6 @@ module mod_init
       call grid_distribute(qfx_io,sfs%qfx,jci1,jci2,ici1,ici2)
       call grid_distribute(tgbb_io,sfs%tgbb,jci1,jci2,ici1,ici2)
       call grid_distribute(uvdrag_io,sfs%uvdrag,jci1,jci2,ici1,ici2)
-      call grid_distribute(rainc_io,sfs%rainc,jci1,jci2,ici1,ici2)
-      call grid_distribute(rainnc_io,sfs%rainnc,jci1,jci2,ici1,ici2)
 
       call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
       call exchange(sfs%psb,2,jce1,jce2,ice1,ice2)

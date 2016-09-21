@@ -86,8 +86,6 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:) :: tgb_io
   real(rkx) , public , pointer , dimension(:,:) :: hfx_io
   real(rkx) , public , pointer , dimension(:,:) :: qfx_io
-  real(rkx) , public , pointer , dimension(:,:) :: rainc_io
-  real(rkx) , public , pointer , dimension(:,:) :: rainnc_io
   real(rkx) , public , pointer , dimension(:,:) :: snownc_io
   real(rkx) , public , pointer , dimension(:,:) :: tgbb_io
   real(rkx) , public , pointer , dimension(:,:) :: uvdrag_io
@@ -206,8 +204,6 @@ module mod_savefile
       call getmem2d(tgb_io,jcross1,jcross2,icross1,icross2,'tgb_io')
       call getmem2d(hfx_io,jcross1,jcross2,icross1,icross2,'hfx_io')
       call getmem2d(qfx_io,jcross1,jcross2,icross1,icross2,'qfx_io')
-      call getmem2d(rainc_io,jcross1,jcross2,icross1,icross2,'rainc_io')
-      call getmem2d(rainnc_io,jcross1,jcross2,icross1,icross2,'rainnc_io')
       if ( ipptls == 2 ) then
         call getmem2d(snownc_io,jcross1,jcross2,icross1,icross2,'snownc_io')
       end if
@@ -402,10 +398,6 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read hfx')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'qfx'),qfx_io)
       call check_ok(__FILE__,__LINE__,'Cannot read qfx')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'rainc'),rainc_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read rainc')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'rainnc'),rainnc_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read rainnc')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgbb'),tgbb_io)
       call check_ok(__FILE__,__LINE__,'Cannot read tgbb')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'uvdrag'),uvdrag_io)
@@ -692,8 +684,6 @@ module mod_savefile
       call mydefvar(ncid,'tgb',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'hfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'qfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'rainc',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'rainnc',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'tgbb',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'uvdrag',regcm_vartype,wrkdim,1,2,varids,ivcc)
       wrkdim(3) = dimids(idkh)
@@ -875,8 +865,6 @@ module mod_savefile
       call myputvar(ncid,'tgb',tgb_io,varids,ivcc)
       call myputvar(ncid,'hfx',hfx_io,varids,ivcc)
       call myputvar(ncid,'qfx',qfx_io,varids,ivcc)
-      call myputvar(ncid,'rainc',rainc_io,varids,ivcc)
-      call myputvar(ncid,'rainnc',rainnc_io,varids,ivcc)
       call myputvar(ncid,'tgbb',tgbb_io,varids,ivcc)
       call myputvar(ncid,'uvdrag',uvdrag_io,varids,ivcc)
       if ( any(icup == 3) ) then

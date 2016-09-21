@@ -75,8 +75,6 @@ module mod_runparams
   ! Output k values for I/O operations.
   integer(ik8) , public :: katm , krad , kche , ksav , kdbg , kbdy , &
                   ksrf , ksub , klak , krep
-  ! Seconds counter in between boundary conditions read
-  integer(ik8) , public :: nbdytime
   ! Step counters to activate surface and radiation schemes
   integer(ik8) , public :: ntsrf , ntrad , ntcum , ntabem , ntche , ntcpl
   real(rkx) , public :: rtsrf , rtrad , rnsrf_for_srffrq , rnsrf_for_day , &

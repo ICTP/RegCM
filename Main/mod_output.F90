@@ -922,8 +922,6 @@ module mod_output
         call grid_collect(sfs%qfx,qfx_io,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%tgbb,tgbb_io,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%uvdrag,uvdrag_io,jci1,jci2,ici1,ici2)
-        call grid_collect(sfs%rainc,rainc_io,jci1,jci2,ici1,ici2)
-        call grid_collect(sfs%rainnc,rainnc_io,jci1,jci2,ici1,ici2)
 
         if ( ipptls > 0 ) then
           call grid_collect(fcc,fcc_io,jci1,jci2,ici1,ici2,1,kz)

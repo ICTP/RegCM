@@ -53,7 +53,7 @@ module mod_precip
   real(rkx) , pointer , dimension(:,:,:) :: pfcc
   real(rkx) , pointer , dimension(:,:,:) :: premrat
   real(rkx) , pointer , dimension(:,:,:) :: prembc
-  real(rkx) , pointer , dimension(:,:,:) :: ptotc , pccn
+  real(rkx) , pointer , dimension(:,:,:) :: totc , pccn
   real(rkx) , pointer , dimension(:,:,:) :: dia_qcr , dia_qcl , dia_acr
 
   real(rkx) :: maxlat
@@ -95,6 +95,7 @@ module mod_precip
     call getmem2d(caccr,jci1,jci2,ici1,ici2,'pcp:caccr')
     call getmem2d(pptsum,jci1,jci2,ici1,ici2,'pcp:pptsum')
     call getmem3d(dqc,jci1,jci2,ici1,ici2,1,kz,'pcp:dqc')
+    call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'pcp:totc')
     if ( ipptls == 2 ) then
       call getmem3d(qln,jci1,jci2,ici1,ici2,1,kz,'pcp:qln')
     end if
@@ -103,7 +104,7 @@ module mod_precip
   subroutine init_precip
     use mod_atm_interface , only : mddom , atms , atm2 , aten , sfs , &
                                    pptnc , cldfra , cldlwc , fcc ,    &
-                                   remrat , rembc , totc , qdiag , ccn
+                                   remrat , rembc , qdiag , ccn
     use mod_mppparam , only : maxall
     implicit none
     call maxall(maxval(mddom%xlat),maxlat)
@@ -131,7 +132,6 @@ module mod_precip
     call assignpnt(cldfra,radcldf)
     call assignpnt(cldlwc,radlqwc)
     call assignpnt(fcc,pfcc)
-    call assignpnt(totc,ptotc)
     if ( ichem == 1 ) then
       call assignpnt(atms%chib3d,chi3)
       call assignpnt(remrat,premrat)
@@ -507,7 +507,7 @@ module mod_precip
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ptotc(j,i,k) = (xqc(j,i,k) + alphaice*xqi(j,i,k)) / &
+            totc(j,i,k) = (xqc(j,i,k) + alphaice*xqi(j,i,k)) / &
                                 (d_one+qvn(j,i,k))
           end do
         end do
@@ -516,7 +516,7 @@ module mod_precip
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ptotc(j,i,k) = xqc(j,i,k)/(d_one+qvn(j,i,k))
+            totc(j,i,k) = xqc(j,i,k)/(d_one+qvn(j,i,k))
           end do
         end do
       end do
@@ -537,7 +537,7 @@ module mod_precip
             else if ( rh3(j,i,k) <= rhmin ) then
               pfcc(j,i,k) = lowcld
             else
-              qcld = ptotc(j,i,k)
+              qcld = totc(j,i,k)
               botm = exp( 0.49_rkx*log((rhmax-rh3(j,i,k))*qs3(j,i,k)) )
               rm = exp(0.25_rkx*log(rh3(j,i,k)))
               if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
@@ -652,7 +652,7 @@ module mod_precip
             ! NOTE : IN CLOUD HERE IS NEEDED !!!
             if ( pfcc(j,i,k) > lowcld ) then
               ! In g / m^3
-              exlwc = ((ptotc(j,i,k)*d_1000)/pfcc(j,i,k))*rho3(j,i,k)
+              exlwc = ((totc(j,i,k)*d_1000)/pfcc(j,i,k))*rho3(j,i,k)
             end if
           end if
           if ( radcldf(j,i,k) > lowcld .or. pfcc(j,i,k) > lowcld ) then

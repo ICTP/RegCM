@@ -1657,7 +1657,6 @@ module mod_tendency
     !
     ktau = ktau + 1
     if ( islab_ocean == 1 ) xslabtime = xslabtime + dtsec
-    nbdytime = nbdytime + 1
     idatex = idatex + intmdl
     if ( mod(ktau,khour) == 0 ) then
       call split_idate(idatex,xyear,xmonth,xday,xhour)

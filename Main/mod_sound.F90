@@ -546,7 +546,7 @@ module mod_sound
           ! Calculating means for upper radiative boundary conditions
           if ( myid == italk ) then
             write(stdout,'(a,i8)') &
-               ' Updating upper radiative BC coefficients at ktau =',ktau
+               ' Updating upper radiative BC coefficients at ktau = ',ktau
           end if
           atot = d_zero
           rhontot = d_zero

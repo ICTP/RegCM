@@ -243,7 +243,6 @@ module mod_bdycod
 
     bdydate1 = idate1
     bdydate2 = idate1
-    nbdytime = 0
     xbctime = d_zero
 
     if ( bdydate1 == globidate1 ) then
@@ -288,7 +287,7 @@ module mod_bdycod
 
     if ( myid == italk ) then
       appdat = tochar(bdydate1)
-      if ( .not. ifrest ) then
+      if ( ktau == 0 ) then
         write(stdout,*) 'READY IC DATA for ', appdat
       else
         write(stdout,*) 'READY BC DATA for ', appdat
@@ -436,7 +435,6 @@ module mod_bdycod
     update_slabocn = ( islab_ocean == 1 .and. &
       do_qflux_adj .and. som_month /= xmonth )
 
-    nbdytime = 0
     xbctime = d_zero
 
     xub%b0(:,:,:) = xub%b1(:,:,:)
@@ -841,7 +839,7 @@ module mod_bdycod
     ! if this subroutine is called for the first time, this part
     ! shall be skipped.
     !
-    xt = xbctime + dt
+    xt = xbctime + dtsec
     if ( ktau > 1 ) then
       !
       ! West boundary
@@ -1590,6 +1588,8 @@ module mod_bdycod
       end if
     end if
 
+    xbctime = xbctime + dtsec
+
     if ( ichem == 1 ) then
       call chem_bdyval(sfs%psa,wue,wui,eue,eui,nve,nvi,sve,svi)
     end if
@@ -1941,7 +1941,7 @@ module mod_bdycod
       return
     end if
 
-    xt = xbctime + dt
+    xt = xbctime + dtsec
 
     if ( ibdy == 1 ) then
       if ( ba_cr%ns /= 0 ) then
@@ -2123,7 +2123,7 @@ module mod_bdycod
       return
     end if
 
-    xt = xbctime + dt
+    xt = xbctime + dtsec
 
     if ( ibdy == 1 ) then
       if ( ba_dt%ns /= 0 ) then
@@ -2383,7 +2383,7 @@ module mod_bdycod
 #endif
 
     nk = size(f,3)
-    xt = xbctime + dt
+    xt = xbctime + dtsec
     if ( .not. ba_cr%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
@@ -2573,7 +2573,7 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 #endif
 
-    xt = xbctime + dt
+    xt = xbctime + dtsec
     if ( .not. ba_cr%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
