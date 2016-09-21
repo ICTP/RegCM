@@ -104,9 +104,8 @@
  ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
                              !          FV_A2, FV_B2, EH5A2, EH5B1, EHA1B,
-                             !          EIN75, EIN15, ERSST, ERSKT, CCSST,
-                             !          CA_XX, HA_XX, EC_XX, IP_XX, GF_XX,
-                             !          CN_XX, MP_XX
+                             !          EIN75, EIN15, CCSST, CA_XX, HA_XX,
+                             !          EC_XX, IP_XX, GF_XX, CN_XX, MP_XX
  dattyp = 'EIN15',           ! Type of global analysis datasets used
                              !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
                              !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
