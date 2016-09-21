@@ -295,6 +295,33 @@ module mod_bdycod
       end if
     end if
 
+    if ( idynamic == 2 ) then
+      xpsb%b0(:,:) = atm0%ps(:,:) * d_r1000 ! Cb
+      psdot(:,:) = atm0%psdot(jde1:jde2,ide1:ide2) * d_r1000
+    else
+      xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
+      call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
+      call psc2psd(xpsb%b0,psdot)
+    end if
+    !
+    ! Calculate P* on dot points
+    ! Couple pressure u,v,t,q (pp,ww)
+    !
+    call couple(xub%b0,psdot,jde1,jde2,ide1,ide2,1,kz)
+    call couple(xvb%b0,psdot,jde1,jde2,ide1,ide2,1,kz)
+    call couple(xtb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
+    call couple(xqb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(xub%b0,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(xvb%b0,1,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(xtb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(xqb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+    if ( idynamic == 2 ) then
+      call couple(xppb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
+      call couple(xwwb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kzp1)
+      call exchange(xppb%b0,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(xwwb%b0,1,jce1,jce2,ice1,ice2,1,kzp1)
+    end if
+
     bdydate2 = bdydate2 + intbdy
     if ( myid == italk ) then
       write(stdout,'(a,i10,a,i8)') ' SEARCH BC data for ', toint10(bdydate2), &
@@ -338,41 +365,13 @@ module mod_bdycod
     end if
 
     bdydate1 = bdydate2
-
-    if ( idynamic == 2 ) then
-      xpsb%b0(:,:) = atm0%ps(:,:) * d_r1000 ! Cb
-      psdot(:,:) = atm0%psdot(jde1:jde2,ide1:ide2) * d_r1000
-      xpsb%b1(:,:) = xpsb%b0(:,:)
-    else
-      xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
-      xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
-      call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
-      call psc2psd(xpsb%b0,psdot)
-    end if
-    !
-    ! Calculate P* on dot points
-    !
-    !
-    ! Couple pressure u,v,t,q (pp,ww)
-    !
-    call couple(xub%b0,psdot,jde1,jde2,ide1,ide2,1,kz)
-    call couple(xvb%b0,psdot,jde1,jde2,ide1,ide2,1,kz)
-    call couple(xtb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
-    call couple(xqb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(xub%b0,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(xvb%b0,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(xtb%b0,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(xqb%b0,1,jce1,jce2,ice1,ice2,1,kz)
-    if ( idynamic == 2 ) then
-      call couple(xppb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
-      call couple(xwwb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kzp1)
-      call exchange(xppb%b0,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xwwb%b0,1,jce1,jce2,ice1,ice2,1,kzp1)
-    end if
     !
     ! Repeat for T2
     !
-    if ( idynamic == 1 ) then
+    if ( idynamic == 2 ) then
+      xpsb%b1(:,:) = xpsb%b0(:,:)
+    else
+      xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b1,psdot)
     end if

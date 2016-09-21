@@ -301,9 +301,9 @@ module mod_sun
     !
     calday = real(yeardayfrac(idatex),rkx)
     if ( ktau == 0 .or. doing_restart .or. mod(ktau,kday) == 0 ) then
-      call solar1( )
       solcon = solar_irradiance( )
       scon = solcon*d_1000
+      call solar1( )
     end if
     do i = ici1 , ici2
       do j = jci1 , jci2

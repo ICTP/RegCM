@@ -133,12 +133,12 @@ module mod_cu_em
       return
     end if
 
-    do n = 1 , nap
-      i = imap(n)
-      j = jmap(n)
-      do k = 1 , kz
+    do k = 1 , kz
+      do n = 1 , nap
+        i = imap(n)
+        j = jmap(n)
         kk = kzp1 - k
-        tcup(n,k) = m2c%tas(j,i,kk)                                   ! [k]
+        tcup(n,k) = m2c%tas(j,i,kk)                                   ! [K]
         ! Model wants specific humidities and pressures in mb
         qcup(n,k) = m2c%qxas(j,i,kk,iqv)/(d_one+m2c%qxas(j,i,kk,iqv)) ! [kg/kg]
         qscup(n,k) = m2c%qsas(j,i,kk)/(d_one+m2c%qsas(j,i,kk))        ! [kg/kg]
@@ -150,30 +150,48 @@ module mod_cu_em
         ft(n,k) = d_zero
         fq(n,k) = d_zero
         cldfra(n,k) = d_zero
+        ppcp(n,k) = d_zero
       end do
-      if (ichem == 1 ) then
-        do k = 1 , kz
-          kk = kzp1 - k
-          tra(n,k,:) = m2c%chias(j,i,kk,:)   ! [kg/kg]
-          ftra(n,k,:) = d_zero
-        end do
-      end if
-      do k = 1 , kzp1
+    end do
+
+    do k = 1 , kzp1
+      do n = 1 , nap
+        i = imap(n)
+        j = jmap(n)
         kk = kzp1 - k + 1
         phcup(n,k) = m2c%pasf(j,i,kk) * d_r100 ! [hPa]
       end do
+    end do
+
+    do n = 1 , nap
+      i = imap(n)
+      j = jmap(n)
       elcrit(n) = elcrit2d(j,i)
       epmax(n) = epmax2d(j,i)
+      ! Past history
+      cbmf(n) = cbmf2d(j,i) ! [(kg/m**2)/s]
+    end do
+
+    do n = 1 , nap
       pret(n) = d_zero
-      ppcp(n,:) = d_zero
       tprime(n) = d_zero
       qprime(n) = d_zero
       iflag(n) = 0
       ktop(n) = -1
       kbase(n) = -1
-      ! Past history
-      cbmf(n) = cbmf2d(j,i) ! [(kg/m**2)/s]
     end do
+
+    if ( ichem == 1 ) then
+      do n = 1 , nap
+        i = imap(n)
+        j = jmap(n)
+        do k = 1 , kz
+          kk = kzp1 - k
+          tra(n,k,:) = m2c%chias(j,i,kk,:)   ! [kg/kg]
+          ftra(n,k,:) = d_zero
+        end do
+      end do
+    end if
 
     call cupeman(nap,kz,ntr,tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup, &
                  iflag,ft,fq,fu,fv,ftra,pret,ppcp,wd,tprime,qprime,   &
@@ -182,9 +200,10 @@ module mod_cu_em
     do n = 1 , nap
       i = imap(n)
       j = jmap(n)
-
       cbmf2d(j,i) = cbmf(n)
+    end do
 
+    do n = 1 , nap
       ! iflag=0: No moist convection; atmosphere stable or surface
       !          temperature < 250K or surface humidity is negative.
       ! iflag=1: Moist convection occurs.
@@ -193,10 +212,8 @@ module mod_cu_em
       ! iflag=4: Moist convection occurs, but CFL condition on the
       !          subsidence warming is violated. (Does not terminate scheme.)
       if ( iflag(n) == 1 .or. iflag(n) == 4 ) then
-!       if ( iflag(n) == 4 ) then               ! If CFL violation
-!         write(stderr,*) 'EMAN CFL VIOLATION: ',i,j,cbmf
-!       end if
-
+        i = imap(n)
+        j = jmap(n)
         ! Tendencies
         do k = 1 , kz
           kk = kzp1 - k
@@ -209,20 +226,6 @@ module mod_cu_em
           cu_uten(j,i,kk) = fu(n,k)
           cu_vten(j,i,kk) = fv(n,k)
         end do
-
-        ! Tracer tendency
-        if (ichem == 1 .and. ichcumtra ==1 .and. .not.any(icup==2 .or. icup==6)) then
-          do k = 1 , kz
-            kk = kzp1 - k
-            cu_chiten(j,i,kk,:) = ftra(n,k,:)
-          end do
-          ! Build for chemistry 3d table of constant precipitation rate
-          ! from the surface to the top of the convection
-          do k = 1 , ktop(n)-1
-            kk = kzp1 - k
-            cu_convpr(j,i,kk) = ppcp(n,k)
-          end do
-        end if
 
         if ( ktop(n) > 0 .and. kbase(n) > 0 ) then
           cu_ktop(j,i) = kzp1-ktop(n)
@@ -241,6 +244,28 @@ module mod_cu_em
         end if
       end if
     end do
+
+    ! Tracer tendency
+    if ( ichem == 1 .and. ichcumtra == 1 .and. &
+         (.not. any( icup == 2 .or. icup == 6 )) ) then
+      do n = 1 , nap
+        if ( iflag(n) == 1 .or. iflag(n) == 4 ) then
+          i = imap(n)
+          j = jmap(n)
+          do k = 1 , kz
+            kk = kzp1 - k
+            cu_chiten(j,i,kk,:) = ftra(n,k,:)
+          end do
+          ! Build for chemistry 3d table of constant precipitation rate
+          ! from the surface to the top of the convection
+          do k = 1 , ktop(n)-1
+            kk = kzp1 - k
+            cu_convpr(j,i,kk) = ppcp(n,k)
+          end do
+        end if
+      end do
+    end if
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

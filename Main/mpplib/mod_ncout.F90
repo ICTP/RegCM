@@ -2686,7 +2686,7 @@ module mod_ncout
             ncattribute_real8('grell_max_cloud_base_height',skbmax))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('grell_FC_ABE_removal_timescale',dtauc))
-         end if
+        end if
         if ( any(icup == 4) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('mit_lowest_convection_sigma',minsig))

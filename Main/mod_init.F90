@@ -74,7 +74,7 @@ module mod_init
   subroutine init
     implicit none
     integer(ik4) :: i , j , k , n
-    real(rkx) :: sfice_temp , t , p , qs , rh
+    real(rkx) :: rdnnsg , sfice_temp , t , p , qs , rh
     character(len=32) :: appdat
     real(rkx) , dimension(kzp1) :: ozprnt
 #ifdef DEBUG
@@ -379,6 +379,10 @@ module mod_init
       call subgrid_distribute(emisv_io,lms%emisv,jci1,jci2,ici1,ici2)
       call subgrid_distribute(scvk_io,lms%scvk,jci1,jci2,ici1,ici2)
       call subgrid_distribute(um10_io,lms%um10,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(swdiralb_io,lms%swdiralb,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(swdifalb_io,lms%swdifalb,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(lwdiralb_io,lms%lwdiralb,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(lwdifalb_io,lms%lwdifalb,jci1,jci2,ici1,ici2)
       call subgrid_distribute(ldmsk1_io,mdsub%ldmsk,jci1,jci2,ici1,ici2)
 
       call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
@@ -392,6 +396,12 @@ module mod_init
       call grid_distribute(flwd_io,flwd,jci1,jci2,ici1,ici2)
       call grid_distribute(sinc_io,sinc,jci1,jci2,ici1,ici2)
       call grid_distribute(ldmsk_io,mddom%ldmsk,jci1,jci2,ici1,ici2)
+
+      rdnnsg = d_one/real(nnsg,rkx)
+      aldirs = sum(lms%swdiralb,1)*rdnnsg
+      aldirl = sum(lms%lwdiralb,1)*rdnnsg
+      aldifs = sum(lms%swdifalb,1)*rdnnsg
+      aldifl = sum(lms%lwdifalb,1)*rdnnsg
 
 #ifndef CLM
       if ( lakemod == 1 ) then
@@ -410,12 +420,6 @@ module mod_init
                               mddom%lndcat(jci1:jci2,ici1:ici2)
         end do
       end if
-#endif
-#ifdef CLM45
-      call subgrid_distribute(swdiralb_io,lms%swdiralb,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(swdifalb_io,lms%swdifalb,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(lwdiralb_io,lms%lwdiralb,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(lwdifalb_io,lms%lwdifalb,jci1,jci2,ici1,ici2)
 #endif
 
       if ( idcsst == 1 ) then
