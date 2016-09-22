@@ -1647,7 +1647,7 @@ module mod_tendency
       ! and if one of them is grell or kf. in this case trac tendency
       ! are not updated in the other convec scheme,
       ! cf mod_cu_em and mod_cu_tiedke.
-      if ( ktau > 0 .and. mod(ktau+1,ntcum) == 0 .and. &
+      if ( ktau > 0 .and. mod(ktau,ntcum) == 0 .and. &
            ichcumtra == 1 .and. any(icup == 2 .or. icup == 6) ) then
         call cumtran
       end if
@@ -1885,6 +1885,7 @@ module mod_tendency
         call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
         call exchange(sfs%psdotb,2,jde1,jde2,ide1,ide2)
       else
+        ! Non-hydrostatic pstar pressure is constant == ps0
         if ( .not. linit ) then
           do i = ice1ga , ice2ga
             do j = jce1ga , jce2ga

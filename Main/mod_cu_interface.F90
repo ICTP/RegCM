@@ -195,7 +195,7 @@ module mod_cu_interface
         end do
       end if
 
-      if ( mod(ktau+1,ntcum) == 0 ) then
+      if ( mod(ktau,ntcum) == 0 ) then
 
         ! Update cumulus tendencies
 
