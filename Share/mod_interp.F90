@@ -58,6 +58,8 @@ module mod_interp
   logical :: latpole = .false.
 
   type global_domain
+    integer(ik4) :: global_ni
+    integer(ik4) :: global_nj
     integer(ik4) :: ntiles
     integer(ik4) , dimension(2) :: ni
     integer(ik4) , dimension(2) :: igstart
@@ -1064,6 +1066,8 @@ module mod_interp
     gj = size(glat)
     dlat = abs(glat(2) - glat(1))
     dlon = abs(glon(2) - glon(1))
+    domain%global_ni = gi
+    domain%global_nj = gj
 
     if ( i_band == 1 ) then
       domain%ntiles = 1

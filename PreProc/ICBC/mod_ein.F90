@@ -65,6 +65,8 @@ module mod_ein
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   integer(ik4) , pointer , dimension(:) :: xtimes
 
+  type(global_domain) :: gdomain
+
   public :: getein , headerein
 
   contains
@@ -267,11 +269,7 @@ module mod_ein
       it = nint(tohours(tdif))/24 + 1
     end if
 
-    do k = 1 , 4
-      istart(k) = 1
-    end do
-    icount(1) = ilon
-    icount(2) = jlat
+    istart(3) = 1
     icount(3) = klev
     istart(4) = it
     icount(4) = 1
@@ -279,11 +277,9 @@ module mod_ein
     do kkrec = 1 , 5
       inet = inet5(kkrec,k4)
       ivar = ivar5(kkrec,k4)
-      istatus = nf90_get_var(inet,ivar,work,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(kkrec))
       xscale = xscl(kkrec,k4)
       xadd = xoff(kkrec,k4)
+      call getwork(kkrec)
       if ( kkrec == 1 ) then
         do j = 1 , jlat
           do i = 1 , ilon
@@ -318,6 +314,27 @@ module mod_ein
         end do
       end if
     end do
+
+    contains
+
+      subroutine getwork(irec)
+        implicit none
+        integer(ik4) , intent(in) :: irec
+        integer(ik4) :: itile , iti , itf
+        iti = 1
+        do itile = 1 , gdomain%ntiles
+          istart(1) = gdomain%igstart(itile)
+          icount(1) = gdomain%ni(itile)
+          ! Latitudes are reversed in original file
+          istart(2) = (gdomain%global_nj+1)-(gdomain%jgstart+gdomain%nj-1)
+          icount(2) = gdomain%nj
+          itf = iti + gdomain%ni(itile) - 1
+          istatus = nf90_get_var(inet,ivar,work(iti:itf,:,:),istart,icount)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read var '//varname(irec))
+          iti = iti + gdomain%ni(itile)
+        end do
+      end subroutine getwork
   end subroutine ein6hour
 
   subroutine headerein
@@ -372,21 +389,18 @@ module mod_ein
     ! Allocate working space
     !
     call getmem1d(plevs,1,klev,'mod_ein:plevs')
-    call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ein:b2')
-    call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ein:d2')
     call getmem1d(glat,1,jlat,'mod_ein:glat')
-    call getmem1d(grev,1,jlat,'mod_ein:grev')
     call getmem1d(glon,1,ilon,'mod_ein:glon')
+    call getmem1d(grev,1,max(jlat,ilon),'mod_ein:grev')
     call getmem1d(sigma1,1,klev,'mod_ein:sigma1')
     call getmem1d(sigmar,1,klev,'mod_ein:sigmar')
     call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ein:b3')
     call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ein:d3')
-    call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ein:work')
 
     istatus = nf90_inq_varid(ncid,'latitude',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Missing latitude variable in file '//trim(pathaddname))
-    istatus = nf90_get_var(ncid,ivarid,grev)
+    istatus = nf90_get_var(ncid,ivarid,grev(1:jlat))
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error reading latitude variable in file '//trim(pathaddname))
     ! Reverse latitudes
@@ -420,6 +434,25 @@ module mod_ein
       kr = klev - k + 1
       sigma1(k) = sigmar(kr)
     end do
+    !
+    ! Find window to read
+    !
+    call get_window(glat,glon,xlat,xlon,i_band,gdomain)
+    grev(1:jlat) = glat
+    jlat = gdomain%nj
+    call getmem1d(glat,1,jlat,'mod_ein:glat')
+    glat = grev(gdomain%jgstart:gdomain%jgstop)
+    grev(1:ilon) = glon
+    ilon = sum(gdomain%ni)
+    call getmem1d(glon,1,ilon,'mod_ein:glon')
+    glon(1:gdomain%ni(1)) = grev(gdomain%igstart(1):gdomain%igstop(1))
+    if ( gdomain%ntiles == 2 ) then
+      glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
+    end if
+
+    call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ein:b2')
+    call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ein:d2')
+    call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ein:work')
     !
     ! Set up pointers
     !
