@@ -88,11 +88,10 @@ program terrain
   integer(ik4) :: ntypec , ntypec_s
   real(rkx) , allocatable , dimension(:,:) :: tmptex
   real(rkx) :: psig , zsig , pstar , tswap
-  integer(ik4) :: ifupr
   real(rkx) :: logp_lrate = 50.0_rkx
   data ibndry /.true./
 
-  namelist /nonhydroparam/ ifupr , logp_lrate
+  namelist /nonhydroparam/ logp_lrate
 
   call header(1)
   !
@@ -143,8 +142,9 @@ program terrain
          action='read', iostat=ierr)
     rewind(ipunit)
     read(ipunit, nml=nonhydroparam, iostat=ierr)
+    write(stdout, *) 'Using non hydrostatic parameters'
+    write(stdout, *) 'logp_lrate = ', logp_lrate
     if ( ierr /= 0 ) then
-      write(stdout, *) 'Using default non hydrostatic parameters'
       ierr = 0
     end if
     close(ipunit)
