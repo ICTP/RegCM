@@ -85,6 +85,10 @@ module mod_sst_gnhnc
     else if ( ssttyp == 'EIXXX' ) then
       write(inpfile,'(a)') trim(inpglob)//'/ERAIN_MEAN/SST/sst_xxxx_xxxx.nc'
       varname(2) = 'sst'
+    else if ( ssttyp(1:3) == 'EIN' ) then
+      write (inpfile,'(a,i0.4,a)') &
+        trim(inpglob)//pthsep//ssttyp//pthsep//'SST'//pthsep//'sst.',year, '.nc'
+      varname(2) = 'sst'
     else if ( ssttyp(1:3) == 'CFS' ) then
       write(inpfile,'(a,i0.4,i0.2,i0.2,i0.2,a,i0.4,i0.2,i0.2,i0.2,a)') &
         trim(inpglob)//'/CFS/',year,month,day,hour, &
@@ -129,7 +133,7 @@ module mod_sst_gnhnc
 
     istatus = nf90_inq_dimid(inet1,'time',timid)
     call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find dim lon')
+                    'Error find dim time')
     istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire dim time')
@@ -178,7 +182,8 @@ module mod_sst_gnhnc
     call getmem2d(work2,1,ilon,1,jlat,'mod_gnhnc_sst:work2')
     call getmem2d(sst,1,ilon,1,jlat,'mod_gnhnc_sst:sst')
 
-    if ( ssttyp /= 'EIXXX' .and. ssttyp(1:3) /= 'CFS' ) then
+    if ( ssttyp /= 'EIXXX' .and. ssttyp(1:3) /= 'CFS' .and. &
+         ssttyp(1:3) /= 'EIN' ) then
       istart(1) = 1
       icount(1) = timlen
       istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
@@ -189,8 +194,7 @@ module mod_sst_gnhnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(1)//' units')
       istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(1)//' calendar')
+      if ( istatus /= nf90_noerr ) ccal = 'gregorian'
       fidate1 = timeval2date(work1(1),cunit,ccal)
     else
       istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
@@ -297,8 +301,7 @@ module mod_sst_gnhnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(1)//' units')
       istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(1)//' calendar')
+      if ( istatus /= nf90_noerr ) ccal = 'gregorian'
       fidate1 = timeval2date(work1(1),cunit,ccal)
       tdif = idate-fidate1
       it = int(tohours(tdif))/6 + 1
@@ -309,7 +312,8 @@ module mod_sst_gnhnc
     istart(1) = 1
     istart(2) = 1
     istart(3) = it
-    if ( ssttyp == 'EIXXX' .or. ssttyp(1:3) == 'CFS' ) then
+    if ( ssttyp == 'EIXXX' .or. ssttyp(1:3) == 'CFS' .or. &
+         ssttyp(1:3) == 'EIN' ) then
       istatus = nf90_get_var(inet1,ivar2(2),work,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//varname(2))

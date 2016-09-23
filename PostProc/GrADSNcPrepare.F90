@@ -135,7 +135,7 @@ program ncprepare
   if ( lclm ) then
     write(11, '(a)') 'dset ^'//trim(clmfile(iid+1:))
     write(11, '(a)') 'dtype netcdf'
-    write(11, '(a)') 'undef 1e+36_FillValue'
+    write(11, '(a)') 'undef 1e+20_FillValue'
   else
     write(11, '(a)') 'dset ^'//trim(ncfile(iid+1:))
     write(11, '(a)') 'dtype netcdf'

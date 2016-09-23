@@ -54,6 +54,8 @@ module mod_ein
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: grev
   real(rkx) , pointer , dimension(:) :: glon
+  real(rkx) , pointer , dimension(:,:) :: glat2
+  real(rkx) , pointer , dimension(:,:) :: glon2
   integer(ik4) , pointer , dimension(:) :: plevs
   real(rkx) , pointer , dimension(:) :: sigma1 , sigmar
   real(rkx) :: pss
@@ -82,8 +84,8 @@ module mod_ein
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
-    call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
-    call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+    call cressmcr(b3,b2,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat,klev,3)
+    call cressmdt(d3,d2,dlon,dlat,glon2,glat2,jx,iy,ilon,jlat,klev,2)
     !
     ! Rotate u-v fields after horizontal interpolation
     !
@@ -339,7 +341,7 @@ module mod_ein
 
   subroutine headerein
     implicit none
-    integer(ik4) :: j , k , kr
+    integer(ik4) :: i , j , k , kr
     integer(ik4) :: year , month , monthp1 , day , hour
     character(len=256) :: pathaddname
     integer(ik4) :: istatus , ncid , ivarid , idimid
@@ -449,6 +451,16 @@ module mod_ein
     if ( gdomain%ntiles == 2 ) then
       glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
     end if
+
+    call getmem2d(glat2,1,ilon,1,jlat,'mod_ein:glat2')
+    call getmem2d(glon2,1,ilon,1,jlat,'mod_ein:glon2')
+
+    do i = 1 , ilon
+      glat2(i,:) = glat
+    end do
+    do j = 1 , jlat
+      glon2(:,j) = glon
+    end do
 
     call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ein:b2')
     call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ein:d2')

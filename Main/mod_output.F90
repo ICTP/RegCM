@@ -406,8 +406,13 @@ module mod_output
 
         if ( associated(atm_tgb_out) ) &
           atm_tgb_out = atm_tgb_out * rsrf_in_atm
-        if ( associated(atm_tsw_out) ) &
-          atm_tsw_out = atm_tsw_out * rsrf_in_atm
+        if ( associated(atm_tsw_out) ) then
+          where ( mddom%ldmsk > 0 )
+            atm_tsw_out = atm_tsw_out * rsrf_in_atm
+          elsewhere
+            atm_tsw_out = dmissval
+          end where
+        end if
 
         ! FAB add tendency diagnostic here
         if ( idiag == 1 ) then

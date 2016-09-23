@@ -563,6 +563,14 @@ module mod_init
         end do
       end do
     end if
+    !
+    ! pressure of tropopause
+    !
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        ptrop(j,i) = 250.0e2_rkx - 150.0e2_rkx*cos(mddom%xlat(j,i)*degrad)**2
+      end do
+    end do
     if ( .not. ifrest ) then
       if ( ipptls > 0 ) then
         ! Initialize cloud liquid water
@@ -573,7 +581,7 @@ module mod_init
               p = atm1%pr(j,i,k)
               qs = pfqsat(t,p)
               rh = ( (atm1%qx(j,i,k,iqv)/sfs%psa(j,i))/qs )
-              if ( rh > rh0(j,i) ) then
+              if ( rh > rh0(j,i) .and. p > ptrop(j,i) ) then
                 atm1%qx(j,i,k,iqc) = clwfromt(t)/d_1000 * sfs%psa(j,i)
                 atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
               end if
@@ -618,14 +626,6 @@ module mod_init
           mdsub%iveg(n,j,i) = nint(mdsub%lndcat(n,j,i))
           mdsub%itex(n,j,i) = nint(mdsub%lndtex(n,j,i))
         end do
-      end do
-    end do
-    !
-    ! pressure of tropopause
-    !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ptrop(j,i) = 250.0e2_rkx - 150.0e2_rkx*cos(mddom%xlat(j,i)*degrad)**2
       end do
     end do
     !

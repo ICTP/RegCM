@@ -74,8 +74,7 @@ program sst
     call sst_1deg
   else if ( ssttyp(1:2) == 'EH' ) then
     call sst_eh5om
-  else if ( ssttyp == 'ERSST' .or. ssttyp == 'ERSKT' .or. &
-            ssttyp(1:3) == 'EIN' ) then
+  else if ( ssttyp == 'ERSST' .or. ssttyp == 'ERSKT' ) then
     call sst_ersst
   else if ( ssttyp == 'FV_A2' .or.  ssttyp == 'FV_B2' ) then
     call sst_fvgcm
@@ -140,8 +139,14 @@ program sst
     end if
     call sst_gnhnc
   else if ( ssttyp == 'EIXXX' .or. ssttyp == 'CCSM3' ) then
-    if (ical /= noleap) then
+    if ( ical /= noleap ) then
       write(stderr,*) ssttyp//' calendar should be set to noleap'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnhnc
+  else if ( ssttyp(1:3) == 'EIN' ) then
+    if (ical /= gregorian) then
+      write(stderr,*) ssttyp//' calendar should be set to gregorian'
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnhnc

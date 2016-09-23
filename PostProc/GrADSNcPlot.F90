@@ -138,7 +138,7 @@ program ncplot
   end if
   write(11, '(a)') 'dtype netcdf'
   if ( lclm ) then
-    write(11, '(a)') 'undef 1e+36_FillValue'
+    write(11, '(a)') 'undef 1e+20_FillValue'
   else
     write(11, '(a)') 'undef 1e+20_FillValue'
   end if
