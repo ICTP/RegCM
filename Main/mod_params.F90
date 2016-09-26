@@ -104,8 +104,8 @@ module mod_params
       icldfrac , irrtm , iclimao3 , isolconst , icumcloud , islab_ocean , &
       itweak , temp_tend_maxval , wind_tend_maxval , ghg_year_const
 
-    namelist /nonhydroparam/ ifupr , logp_lrate , ckh , diffu_hgtf , &
-      nhbet , nhxkd
+    namelist /nonhydroparam/ base_state_pressure , base_state_temperature , &
+      logp_lrate , ifupr , ckh , diffu_hgtf , nhbet , nhxkd
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -252,10 +252,12 @@ module mod_params
     !
     ! Non hydrostatic param ;
     !
+    base_state_pressure = stdp
+    base_state_temperature = stdt
+    logp_lrate = 50.0_rkx
     ifupr = 1
     diffu_hgtf = 1
     ckh = d_one
-    logp_lrate = 50.0_rkx
     nhbet = 0.4_rkx
     nhxkd = 0.1_rkx
     !
@@ -962,10 +964,12 @@ module mod_params
     call bcast(ntr)
 
     if ( idynamic == 2 ) then
+      call bcast(base_state_pressure)
+      call bcast(base_state_temperature)
+      call bcast(logp_lrate)
       call bcast(ifupr)
       call bcast(ckh)
       call bcast(diffu_hgtf)
-      call bcast(logp_lrate)
       call bcast(nhbet)
       call bcast(nhxkd)
     end if
@@ -2301,7 +2305,7 @@ module mod_params
         use mod_nhinterp
         implicit none
         integer(ik4) :: i , j , k
-        call nhsetup(ptop,stdp,stdt,logp_lrate)
+        call nhsetup(ptop,base_state_pressure,base_state_temperature,logp_lrate)
         mddom%ht = mddom%ht * regrav
         call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,mddom%ht, &
                     atm0%ps,atm0%pr,atm0%t,atm0%rho)

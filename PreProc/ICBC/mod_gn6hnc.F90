@@ -447,9 +447,6 @@ module mod_gn6hnc
       do i = 1 , nlat
         glon2(:,i) = glon(:)
       end do
-      where (glon2 >= 180.0)
-        glon2 = glon2-360.0
-      end where
     else if ( dattyp(1:3) == 'MP_' ) then
       istatus = nf90_inq_varid(inet1,'hyam',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -487,9 +484,6 @@ module mod_gn6hnc
       do i = 1 , nlat
         glon2(:,i) = glon(:)
       end do
-      where (glon2 >= 180.0)
-        glon2 = glon2-360.0
-      end where
     else if ( dattyp(1:3) == 'CA_' ) then
       istatus = nf90_inq_varid(inet1,'ap',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -526,9 +520,6 @@ module mod_gn6hnc
       do i = 1 , nlat
         glon2(:,i) = glon(:)
       end do
-      where (glon2 >= 180.0)
-        glon2 = glon2-360.0
-      end where
     else if ( dattyp(1:3) == 'IP_' ) then
       istatus = nf90_inq_varid(inet1,'ap',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -565,9 +556,6 @@ module mod_gn6hnc
       do i = 1 , nlat
         glon2(:,i) = glon(:)
       end do
-      where (glon2 >= 180.0)
-        glon2 = glon2-360.0
-      end where
     else if ( dattyp(1:3) == 'GF_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -611,9 +599,6 @@ module mod_gn6hnc
       do i = 1 , nlat
         glon2(:,i) = glon(:)
       end do
-      where (glon2 >= 180.0)
-        glon2 = glon2-360.0
-      end where
     else if ( dattyp(1:3) == 'MI_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -657,9 +642,6 @@ module mod_gn6hnc
       do i = 1 , nlat
         glon2(:,i) = glon(:)
       end do
-      where (glon2 >= 180.0)
-        glon2 = glon2-360.0
-      end where
     else if ( dattyp(1:3) == 'CN_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -703,9 +685,6 @@ module mod_gn6hnc
       do i = 1 , nlat
         glon2(:,i) = glon(:)
       end do
-      where (glon2 >= 180.0)
-        glon2 = glon2-360.0
-      end where
     else if ( dattyp(1:3) == 'CS_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -749,9 +728,6 @@ module mod_gn6hnc
       do i = 1 , nlat
         glon2(:,i) = glon(:)
       end do
-      where (glon2 >= 180.0)
-        glon2 = glon2-360.0
-      end where
     else if ( dattyp == 'GFS11' ) then
       npl = klev ! Data are on pressure levels
       call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
@@ -797,9 +773,6 @@ module mod_gn6hnc
       do i = 1 , nlat
         glon2(:,i) = glon(:)
       end do
-      where (glon2 >= 180.0)
-        glon2 = glon2-360.0
-      end where
     end if
 
     istatus = nf90_close(inet1)

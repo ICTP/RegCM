@@ -88,10 +88,13 @@ program terrain
   integer(ik4) :: ntypec , ntypec_s
   real(rkx) , allocatable , dimension(:,:) :: tmptex
   real(rkx) :: psig , zsig , pstar , tswap
+  real(rkx) :: base_state_pressure = stdp
+  real(rkx) :: base_state_temperature = stdt
   real(rkx) :: logp_lrate = 50.0_rkx
   data ibndry /.true./
 
-  namelist /nonhydroparam/ logp_lrate
+  namelist /nonhydroparam/ base_state_pressure , base_state_temperature , &
+                           logp_lrate
 
   call header(1)
   !
@@ -143,7 +146,9 @@ program terrain
     rewind(ipunit)
     read(ipunit, nml=nonhydroparam, iostat=ierr)
     write(stdout, *) 'Using non hydrostatic parameters'
-    write(stdout, *) 'logp_lrate = ', logp_lrate
+    write(stdout, *) 'base_state_pressure    = ', base_state_pressure
+    write(stdout, *) 'base_state_temperature = ', base_state_temperature
+    write(stdout, *) 'logp_lrate             = ', logp_lrate
     if ( ierr /= 0 ) then
       ierr = 0
     end if
@@ -646,7 +651,7 @@ program terrain
     end if
 
     if ( idynamic == 2 ) then
-      call nhsetup(ptop,stdp,stdt,logp_lrate)
+      call nhsetup(ptop,base_state_pressure,base_state_temperature,logp_lrate)
       call nhbase(1,iysg,1,jxsg,kz+1,sigma,htgrid_s,ps0_s,pr0_s,t0_s,rho0_s)
     end if
 
@@ -663,7 +668,7 @@ program terrain
   call read_moist(moist_filename,rmoist,snowam,jx,iy,num_soil_layers,lrmoist)
 
   if ( idynamic == 2 ) then
-    call nhsetup(ptop,stdp,stdt,logp_lrate)
+    call nhsetup(ptop,base_state_pressure,base_state_temperature,logp_lrate)
     call nhbase(1,iy,1,jx,kz+1,sigma,htgrid,ps0,pr0,t0,rho0)
   end if
 

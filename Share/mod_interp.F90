@@ -486,10 +486,11 @@ module mod_interp
     integer(ik4) , dimension(jx,iy) , intent(out) :: i1dl , i1dr , &
       i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
     real(rkx) :: dist , wa , wb , wc , wd , distx
-    real(rkx) , dimension(2) :: dists
     integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
-               ndr , nul , nur , mx , nx , mm , nn
-    logical , dimension(4) :: q
+               ndr , nul , nur , mx , nx
+    logical :: lsouthnorth , l360
+    lsouthnorth = ( glat(1,1) < glat(nlon,nlat) )
+    l360 = ( glon(nlon,nlat) > 180.0_rkx .or. glon(1,1) > 180.0_rkx )
     do i = 1 , iy
       do j = 1 , jx
         ! Find nearest point
@@ -506,138 +507,76 @@ module mod_interp
             end if
           end do
         end do
-        ! Find dists from 4 points around this
-        !        2 | 1
-        !      ---------
-        !        3 | 4
-        q(:) = .true.
-        nn = nx
-        mm = mx + 1
-        if ( lonwrap ) then
-          if ( mm > nlon ) mm = mm - nlon
+        if ( topof(glat(mx,nx),alat(j,i)) ) then
+          if ( rightof(glon(mx,nx),alon(j,i)) ) then
+            ! mx,nx is top right
+            mur = mx
+            nur = nx
+            mul = mx-1
+            nul = nx
+            mdr = mx
+            ndr = nx-1
+            mdl = mx-1
+            ndl = nx-1
+          else
+            ! mx,nx is top left
+            mur = mx+1
+            nur = nx
+            mul = mx
+            nul = nx
+            mdr = mx+1
+            ndr = nx-1
+            mdl = mx
+            ndl = nx-1
+          end if
         else
-          if ( mm > nlon ) then
-            write (stderr,*) 'EXCEEDING NLON'
-            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-            write (stderr,*) i , j , mm , nn
-            write (stderr,*) alon(j,i)
-            write (stderr,*) alat(j,i)
-            call die('compwgt')
+          if ( rightof(glon(mx,nx),alon(j,i)) ) then
+            ! mx,nx is bottom right
+            mur = mx
+            nur = nx+1
+            mul = mx-1
+            nul = nx+1
+            mdr = mx
+            ndr = nx
+            mdl = mx-1
+            ndl = nx
+          else
+            ! mx,nx is bottom left
+            mur = mx+1
+            nur = nx+1
+            mul = mx
+            nul = nx+1
+            mdr = mx+1
+            ndr = nx
+            mdl = mx
+            ndl = nx
           end if
         end if
-        dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-        mm = mx - 1
-        if ( lonwrap ) then
-          if ( mm < 1 ) mm = nlon - mm
-        else
-          if ( mm < 1 ) then
-            write (stderr,*) 'NLON < 1'
-            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-            write (stderr,*) i , j , mm , nn
-            write (stderr,*) alon(j,i)
-            write (stderr,*) alat(j,i)
-            call die('compwgt')
-          end if
+        if ( lonwrap .or. l360 ) then
+          if ( mur > nlon ) mur = mur - nlon
+          if ( mdr > nlon ) mdr = mdr - nlon
+          if ( mul < 1 ) mul = mul + nlon
+          if ( mdl < 1 ) mdl = mdl + nlon
         end if
-        dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-        if ( dists(1) > dists(2) ) then
-          q(1) = .false.
-          q(4) = .false.
-        else
-          q(2) = .false.
-          q(3) = .false.
-        end if
-        mm = mx
-        nn = nx + 1
         if ( latpole ) then
-          if ( nn > nlat ) nn = nlat
-        else
-          if ( nn > nlat ) then
-            write (stderr,*) 'EXCEEDING NLAT'
-            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-            write (stderr,*) i , j , mm , nn
-            write (stderr,*) alon(j,i)
-            write (stderr,*) alat(j,i)
-            call die('compwgt')
-          end if
+          if ( nul > nlat ) nul = nlat
+          if ( nur > nlat ) nur = nlat
+          if ( ndl < 1 ) ndl = 1
+          if ( ndr < 1 ) ndr = 1
         end if
-        dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-        nn = nx - 1
-        if ( latpole ) then
-          if ( nn < 1 ) nn = 1
-        else
-          if ( nn < 1 ) then
-            write (stderr,*) 'NLAT < 1'
-            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-            write (stderr,*) i , j , mm , nn
-            write (stderr,*) alon(j,i)
-            write (stderr,*) alat(j,i)
-            call die('compwgt')
-          end if
-        end if
-        dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-        if ( dists(1) > dists(2) ) then
-          q(1) = .false.
-          q(2) = .false.
-        else
-          q(3) = .false.
-          q(4) = .false.
-        end if
-        if ( q(1) ) then
-          mur = mx+1
-          nur = nx+1
-          mul = mx
-          nul = nx+1
-          mdr = mx+1
-          ndr = nx
-          mdl = mx
-          ndl = nx
-        else if ( q(2) ) then
-          mur = mx
-          nur = nx+1
-          mul = mx-1
-          nul = nx+1
-          mdr = mx
-          ndr = nx
-          mdl = mx-1
-          ndl = nx
-        else if ( q(3) ) then
-          mur = mx
-          nur = nx
-          mul = mx-1
-          nul = nx
-          mdr = mx
-          ndr = nx-1
-          mdl = mx-1
-          ndl = nx-1
-        else if ( q(4) ) then
-          mur = mx+1
-          nur = nx
-          mul = mx
-          nul = nx
-          mdr = mx+1
-          ndr = nx-1
-          mdl = mx
-          ndl = nx-1
-        else
+        if ( mur < 1 .or. mur > nlon .or. &
+             mul < 1 .or. mul > nlon .or. &
+             mdl < 1 .or. mdl > nlon .or. &
+             mdr < 1 .or. mdr > nlon .or. &
+             nur < 1 .or. nur > nlat .or. &
+             nul < 1 .or. nul > nlat .or. &
+             ndl < 1 .or. ndl > nlat .or. &
+             ndr < 1 .or. ndr > nlat ) then
           write (stderr,*) 'LOGIC ERROR in locating point'
-          write (stderr,*) i , j , mx , nx
+          write (stderr,*) i , j , mx , nx , nlon , nlat
           write (stderr,*) alon(j,i)
           write (stderr,*) alat(j,i)
           call die('compwgt')
-        end if
-        ! Check if in a global window again
-        if ( lonwrap ) then
-          if ( mur > nlon ) mur = nlon
-          if ( mdr > nlon ) mdr = nlon
-          if ( mul < 1 ) mul = 1
-          if ( mdl < 1 ) mdl = 1
-        end if
-        if ( latpole ) then
-          if ( nur > nlat ) nur = nlat
-          if ( nul > nlat ) nul = nlat
-          if ( ndr < 1 ) ndr = 1
-          if ( ndr < 1 ) ndr = 1
         end if
         i1ur(j,i) = mur
         j1ur(j,i) = nur
@@ -689,6 +628,37 @@ module mod_interp
         end if
       end do
     end do
+
+    contains
+
+      logical function rightof(a,b)
+        implicit none
+        real(rkx) , intent(in) :: a , b
+        if ( l360 ) then
+          if ( b < 0.0_rkx ) then
+            rightof = ( a > 360.0_rkx + b )
+          else
+            rightof = ( a > b )
+          end if
+        else
+          if ( b > 180.0_rkx ) then
+            rightof = ( a > b - 360.0_rkx )
+          else
+            rightof = ( a > b )
+          end if
+        end if
+      end function rightof
+
+      logical function topof(a,b)
+        implicit none
+        real(rkx) , intent(in) :: a , b
+        if ( lsouthnorth ) then
+          topof = ( a > b )
+        else
+          topof = ( b > a )
+        end if
+      end function topof
+
   end subroutine compwgt
 
   subroutine dwgt(jx,iy,nlon,nlat,b2,b3,d1xa,d1xb,d1xc,d1xd, &
@@ -774,20 +744,20 @@ module mod_interp
     ! Find the Minimum and Maximum of GLON, GLAT, ALON and ALAT
     !
     if ( imxmn == 0 ) then
-      glonmx = maxval(glon)
-      glonmn = minval(glon)
+      glonmn = minval(glon(1,:))
+      glonmx = maxval(glon(nlon,:))
       alonmx = maxval(alon)
       alonmn = minval(alon)
-      glatmx = maxval(glat)
-      glatmn = minval(glat)
+      glatmx = maxval(glat(:,1))
+      glatmn = minval(glat(:,nlat))
       alatmx = maxval(alat)
       alatmn = minval(alat)
-      write (stdout,*) 'GLONMN,ALONMN,ALONMX,GLONMX= '
-      write (stdout,*) glonmn , alonmn , alonmx , glonmx
-      write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX= '
-      write (stdout,*) glatmn , alatmn , alatmx , glatmx
       if ( glonmx - glonmn > 350.0_rkx ) lonwrap = .true.
       if ( glatmx - glatmn > 170.0_rkx ) latpole = .true.
+      write (stdout,*) 'GLONMN,ALONMN,ALONMX,GLONMX = '
+      write (stdout,*) glonmn , alonmn , alonmx , glonmx
+      write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX = '
+      write (stdout,*) glatmn , alatmn , alatmx , glatmx
       imxmn = 1
     end if
     if ( lcross == 0 ) then
@@ -838,12 +808,12 @@ module mod_interp
     ! Find the Minimum and Maximum of GLON, GLAT, ALON and ALAT
     !
     if ( imxmn == 0 ) then
-      glonmx = maxval(glon)
-      glonmn = minval(glon)
+      glonmn = minval(glon(1,:))
+      glonmx = maxval(glon(nlon,:))
       alonmx = maxval(alon)
       alonmn = minval(alon)
-      glatmx = maxval(glat)
-      glatmn = minval(glat)
+      glatmx = maxval(glat(:,1))
+      glatmn = minval(glat(:,nlat))
       alatmx = maxval(alat)
       alatmn = minval(alat)
       write (stdout,*) 'GLONMN,ALONMN,ALONMX,GLONMX= '
@@ -1049,6 +1019,7 @@ module mod_interp
     type(global_domain) , intent(out) :: domain
 
     real(rkx) :: dlat , dlon
+    real(rkx) , allocatable , dimension(:,:) :: xlon360
     real(rkx) :: maxlat
     real(rkx) :: minlat
     real(rkx) :: maxlon
@@ -1075,45 +1046,74 @@ module mod_interp
       domain%igstop(1) = gi
       domain%igstart(2) = 0
       domain%igstop(2) = 0
-    else if ( xlon(1,xj)   <= xlon(xi,xj)   .and. &
-              xlon(1,xj/2) <= xlon(xi,xj/2) .and. &
-              xlon(1,1)    <= xlon(xi,1) ) then
-      ! it is not crossing timeline
-      domain%ntiles = 1
-      domain%igstart(1) = int((minlon-glon(1))/dlon) - 1
-      domain%igstop(1) = int((maxlon-glon(1))/dlon) + 2
-      domain%igstart(2) = 0
-      domain%igstop(2) = 0
+    else if ( glon(gi) > 350.0_rkx ) then
+      ! Input data is     0 : 360 , xlon is -180 : 180
+      allocate(xlon360(xi,xj))
+      xlon360 = xlon
+      where ( xlon < 0.0_rkx )
+        xlon360 = 360.0_rkx + xlon
+      end where
+      if ( minval(xlon360(1,:)) < maxval(xlon360(xi,:)) ) then
+        domain%ntiles = 1
+        minlon = minval(xlon360)
+        maxlon = maxval(xlon360)
+        domain%igstart(1) = int((minlon-glon(1))/dlon) - 2
+        domain%igstop(1) = int((maxlon-glon(1))/dlon) + 3
+        domain%igstart(2) = 0
+        domain%igstop(2) = 0
+      else
+        ! Cross Greenwich line
+        minlon = minval(xlon360(1,:))
+        maxlon = maxval(xlon(xi,:))
+        domain%ntiles = 2
+        domain%igstart(1) = int((minlon-glon(1))/dlon) - 2
+        domain%igstop(1) = gi
+        domain%igstart(2) = 1
+        domain%igstop(2) = int((maxlon-glon(1))/dlon) + 3
+      end if
+      deallocate(xlon360)
     else
-      domain%ntiles = 2
-      minlon = 180.0_rkx
-      do j = 1 , xj
-        if ( xlon(1,j) > 0.0_rkx ) minlon = min(minlon,xlon(1,j))
-      end do
-      maxlon = -180.0_rkx
-      do j = 1 , xj
-        if ( xlon(xi,j) < 0.0_rkx ) maxlon = max(maxlon,xlon(xi,j))
-      end do
-      domain%igstart(1) = int((minlon-glon(1))/dlon) - 1
-      domain%igstop(1) = gi
-      domain%igstart(2) = 1
-      domain%igstop(2) = int((maxlon-glon(1))/dlon) + 2
+      ! iINput Data is -180 : 180 , xlon is -180 : 180
+      if ( xlon(1,xj)   <= xlon(xi,xj)   .and. &
+           xlon(1,xj/2) <= xlon(xi,xj/2) .and. &
+           xlon(1,1)    <= xlon(xi,1) ) then
+        ! it is not crossing timeline
+        domain%ntiles = 1
+        domain%igstart(1) = int((minlon-glon(1))/dlon) - 2
+        domain%igstop(1) = int((maxlon-glon(1))/dlon) + 3
+        domain%igstart(2) = 0
+        domain%igstop(2) = 0
+      else
+        domain%ntiles = 2
+        minlon = 180.0_rkx
+        do j = 1 , xj
+          if ( xlon(1,j) > 0.0_rkx ) minlon = min(minlon,xlon(1,j))
+        end do
+        maxlon = -180.0_rkx
+        do j = 1 , xj
+          if ( xlon(xi,j) < 0.0_rkx ) maxlon = max(maxlon,xlon(xi,j))
+        end do
+        domain%igstart(1) = int((minlon-glon(1))/dlon) - 2
+        domain%igstop(1) = gi
+        domain%igstart(2) = 1
+        domain%igstop(2) = int((maxlon-glon(1))/dlon) + 3
+      end if
     end if
     if ( has_north_pole(xlat,xi/2) ) then
       ! North pole inside
-      l1 = int((minval(xlat(:,1))-glat(1))/dlat) - 1
-      l2 = int((minval(xlat(:,xj))-glat(1))/dlat) - 1
+      l1 = int((minval(xlat(:,1))-glat(1))/dlat) - 2
+      l2 = int((minval(xlat(:,xj))-glat(1))/dlat) - 2
       domain%jgstart = min(l1,l2)
       domain%jgstop = gj
     else if ( has_south_pole(xlat,xi/2) ) then
       ! South Pole inside
-      l1 = int((maxval(xlat(:,1))-glat(1))/dlat) + 2
-      l2 = int((maxval(xlat(:,xj))-glat(1))/dlat) + 2
+      l1 = int((maxval(xlat(:,1))-glat(1))/dlat) + 3
+      l2 = int((maxval(xlat(:,xj))-glat(1))/dlat) + 3
       domain%jgstart = 1
       domain%jgstop = max(l1,l2)
     else
-      domain%jgstart = int((minlat-glat(1))/dlat) - 1
-      domain%jgstop  = int((maxlat-glat(1))/dlat) + 2
+      domain%jgstart = int((minlat-glat(1))/dlat) - 2
+      domain%jgstop  = int((maxlat-glat(1))/dlat) + 3
     end if
 
     domain%ni = 0

@@ -84,6 +84,8 @@ module mod_ein
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
+    !call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+    !call bilinx2(d3,d2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*2)
     call cressmcr(b3,b2,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat,klev,3)
     call cressmdt(d3,d2,dlon,dlat,glon2,glat2,jx,iy,ilon,jlat,klev,2)
     !
@@ -129,7 +131,7 @@ module mod_ein
     implicit none
     character(len=5) , intent(in) :: dattyp
     type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , inet , it , j , k , k4 , kkrec , istatus , ivar
+    integer(ik4) :: i , inet , it , j , k4 , kkrec , istatus , ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
@@ -440,6 +442,7 @@ module mod_ein
     ! Find window to read
     !
     call get_window(glat,glon,xlat,xlon,i_band,gdomain)
+
     grev(1:jlat) = glat
     jlat = gdomain%nj
     call getmem1d(glat,1,jlat,'mod_ein:glat')

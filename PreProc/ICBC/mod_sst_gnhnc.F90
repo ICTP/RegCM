@@ -161,8 +161,6 @@ module mod_sst_gnhnc
 
     call getmem1d(glat,1,jlat,'mod_gnhnc_sst:glat')
     call getmem1d(glon,1,ilon,'mod_gnhnc_sst:glon')
-    call getmem2d(glat2,1,ilon,1,jlat,'mod_gnhnc_sst:glat2')
-    call getmem2d(glon2,1,ilon,1,jlat,'mod_gnhnc_sst:glon2')
 
     istatus = nf90_get_var(inet1,latid,glat)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -170,15 +168,18 @@ module mod_sst_gnhnc
     istatus = nf90_get_var(inet1,lonid,glon)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var lon')
-    do j = 1 , ilon
-      glat2(j,:) = glat(:)
+    !
+    ! Find window to read
+    !
+    call getmem2d(glat2,1,ilon,1,jlat,'mod_gnhnc_sst:glat2')
+    call getmem2d(glon2,1,ilon,1,jlat,'mod_gnhnc_sst:glon2')
+    do i = 1 , ilon
+      glat2(i,:) = glat(:)
     end do
-    do i = 1 , jlat
-      glon2(:,i) = glon(:)
+    do j = 1 , jlat
+      glon2(:,j) = glon(:)
     end do
-    where (glon2 >= 180.0)
-      glon2 = glon2-360.0
-    end where
+
     call getmem2d(work2,1,ilon,1,jlat,'mod_gnhnc_sst:work2')
     call getmem2d(sst,1,ilon,1,jlat,'mod_gnhnc_sst:sst')
 

@@ -306,9 +306,6 @@ module mod_sst_gnmnc
         do i = 1 , jlat
           glon2(:,i) = glon(:)
         end do
-        where (glon2 >= 180.0)
-          glon2 = glon2-360.0
-        end where
       else
         call getmem2d(glat2,1,ilon,1,jlat,'mod_gnmnc_sst:glat2')
         call getmem2d(glon2,1,ilon,1,jlat,'mod_gnmnc_sst:glon2')
@@ -318,9 +315,6 @@ module mod_sst_gnmnc
         istatus = nf90_get_var(inet1,lonid,glon2)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var lon')
-        where (glon2 >= 180.0)
-          glon2 = glon2-360.0
-        end where
       end if
     end if
 

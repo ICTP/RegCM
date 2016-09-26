@@ -150,10 +150,10 @@ program icbc
   type(rcm_time_interval) :: tdiff , tbdy
   integer(ik4) :: nsteps
   integer(ik4) :: ierr
-  integer(ik4) :: ifupr
   character(len=256) :: namelistfile, prgname
 
-  namelist /nonhydroparam/ ifupr , logp_lrate
+  namelist /nonhydroparam/ base_state_pressure , base_state_temperature , &
+       logp_lrate
 
   call header('icbc')
   !
@@ -168,9 +168,12 @@ program icbc
     rewind(ipunit)
     read(ipunit, nml=nonhydroparam, iostat=ierr)
     if ( ierr /= 0 ) then
-      write(stdout, *) 'Using default non hydrostatic parameters'
       ierr = 0
     end if
+    write(stdout, *) 'Using non hydrostatic parameters'
+    write(stdout, *) 'base_state_pressure    = ', base_state_pressure
+    write(stdout, *) 'base_state_temperature = ', base_state_temperature
+    write(stdout, *) 'logp_lrate             = ', logp_lrate
     close(ipunit)
   end if
 

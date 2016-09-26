@@ -58,7 +58,7 @@ mod_era40.o : mod_era40.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_st
 mod_erahi.o : mod_erahi.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_message.o mod_stdio.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o
 mod_fvgcm.o : mod_fvgcm.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_message.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o
 mod_gn6hnc.o : mod_gn6hnc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_constants.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_nchelper.o mod_ccsm3_helper.o mod_hadgem_helper.o mod_canesm_helper.o mod_miroc_helper.o mod_ipsl_helper.o mod_gfdl_helper.o mod_csiro_helper.o mod_cnrm_helper.o mod_mpiesm_helper.o
-mod_grid.o : mod_grid.F90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_stdio.o mod_message.o mod_nchelper.o mod_domain.o mod_dynparam.o mod_nhinterp.o
+mod_grid.o : mod_grid.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_memutil.o mod_stdio.o mod_message.o mod_nchelper.o mod_domain.o mod_dynparam.o mod_nhinterp.o
 mod_header.o : mod_header.F90 mod_intkinds.o mod_stdio.o
 mod_mksst.o : mod_mksst.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_grid.o mod_memutil.o mod_constants.o mod_dynparam.o mod_message.o mod_nchelper.o
 mod_ncep.o : mod_ncep.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_memutil.o mod_nchelper.o mod_grid.o
