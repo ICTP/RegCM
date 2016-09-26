@@ -43,16 +43,17 @@ module mod_sst_gnhnc
   integer(ik4) :: istatus
   integer(ik4) :: itcfs
   integer(ik4) , dimension(3) :: istart , icount
-  integer(ik2) , pointer , dimension (:, :) :: work
+  integer(ik2) , pointer , dimension(:,:) :: work
   integer(ik2) :: fillvalue
   real(rkx) , pointer ::  work1(:)
-  real(rkx) , pointer , dimension (:, :) :: work2
+  real(rkx) , pointer , dimension(:,:) :: work2
   real(rkx) , pointer , dimension(:,:) :: sst
   real(rkx) :: add_offset , scale_factor
   type(rcm_time_and_date) , save :: fidate1
   character(len=64) :: cunit , ccal
   character(len=256) :: inpfile
   character(len=8), dimension(2) :: varname
+  type(global_domain) :: gdomain
 
   data varname/'time', 'TOBESET'/
 
@@ -71,6 +72,7 @@ module mod_sst_gnhnc
     implicit none
     real(rkx) , pointer , dimension(:) :: glat
     real(rkx) , pointer , dimension(:) :: glon
+    real(rkx) , pointer , dimension(:) :: grev
     real(rkx) , pointer , dimension(:,:) :: glat2
     real(rkx) , pointer , dimension(:,:) :: glon2
     type(rcm_time_and_date) :: idate , idatef , idateo
@@ -161,6 +163,7 @@ module mod_sst_gnhnc
 
     call getmem1d(glat,1,jlat,'mod_gnhnc_sst:glat')
     call getmem1d(glon,1,ilon,'mod_gnhnc_sst:glon')
+    call getmem1d(grev,1,max(ilon,jlat),'mod_gnhnc_sst:glon')
 
     istatus = nf90_get_var(inet1,latid,glat)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -171,6 +174,18 @@ module mod_sst_gnhnc
     !
     ! Find window to read
     !
+    call get_window(glat,glon,xlat,xlon,i_band,gdomain)
+    grev(1:jlat) = glat
+    jlat = gdomain%nj
+    call getmem1d(glat,1,jlat,'mod_ein:glat')
+    glat = grev(gdomain%jgstart:gdomain%jgstop)
+    grev(1:ilon) = glon
+    ilon = sum(gdomain%ni)
+    call getmem1d(glon,1,ilon,'mod_ein:glon')
+    glon(1:gdomain%ni(1)) = grev(gdomain%igstart(1):gdomain%igstop(1))
+    if ( gdomain%ntiles == 2 ) then
+      glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
+    end if
     call getmem2d(glat2,1,ilon,1,jlat,'mod_gnhnc_sst:glat2')
     call getmem2d(glon2,1,ilon,1,jlat,'mod_gnhnc_sst:glon2')
     do i = 1 , ilon
@@ -311,25 +326,17 @@ module mod_sst_gnhnc
       tdif = idate-fidate1
       it = int(tohours(tdif))/6 + 1
     end if
-    icount(1) = ilon
-    icount(2) = jlat
     icount(3) = 1
-    istart(1) = 1
-    istart(2) = 1
     istart(3) = it
     if ( ssttyp == 'EIXXX' .or. ssttyp(1:3) == 'CFS' .or. &
          ssttyp(1:3) == 'EIN' ) then
-      istatus = nf90_get_var(inet1,ivar2(2),work,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(2))
+      call getworki(2,work)
       work2 = 1E+20
       where ( work /= fillvalue )
         work2 = work * scale_factor + add_offset
       end where
     else
-      istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(2))
+      call getworkf(2,work2)
       if ( ssttyp(1:2) == 'E5' ) then
         where ( abs(work2-273.15) < 0.001 )
           work2 = 1E+20
@@ -349,6 +356,47 @@ module mod_sst_gnhnc
         end if
       end do
     end do
+
+    contains
+
+      subroutine getworkf(irec,wk)
+        implicit none
+        integer(ik4) , intent(in) :: irec
+        real(rkx) , pointer , dimension(:,:) :: wk
+        integer(ik4) :: itile , iti , itf
+        iti = 1
+        do itile = 1 , gdomain%ntiles
+          istart(1) = gdomain%igstart(itile)
+          icount(1) = gdomain%ni(itile)
+          istart(2) = gdomain%jgstart
+          icount(2) = gdomain%nj
+          itf = iti + gdomain%ni(itile) - 1
+          istatus = nf90_get_var(inet1,ivar2(irec),wk(iti:itf,:),istart,icount)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+            'Error read var '//varname(irec))
+          iti = iti + gdomain%ni(itile)
+        end do
+      end subroutine getworkf
+
+      subroutine getworki(irec,wk)
+        implicit none
+        integer(ik4) , intent(in) :: irec
+        integer(ik2) , pointer , dimension(:,:) :: wk
+        integer(ik4) :: itile , iti , itf
+        iti = 1
+        do itile = 1 , gdomain%ntiles
+          istart(1) = gdomain%igstart(itile)
+          icount(1) = gdomain%ni(itile)
+          istart(2) = gdomain%jgstart
+          icount(2) = gdomain%nj
+          itf = iti + gdomain%ni(itile) - 1
+          istatus = nf90_get_var(inet1,ivar2(irec),wk(iti:itf,:),istart,icount)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+            'Error read var '//varname(irec))
+          iti = iti + gdomain%ni(itile)
+        end do
+      end subroutine getworki
+
   end subroutine gnhnc_sst
 
 end module mod_sst_gnhnc

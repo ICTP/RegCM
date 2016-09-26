@@ -1073,7 +1073,7 @@ module mod_interp
       end if
       deallocate(xlon360)
     else
-      ! iINput Data is -180 : 180 , xlon is -180 : 180
+      ! Input Data is -180 : 180 , xlon is -180 : 180
       if ( xlon(1,xj)   <= xlon(xi,xj)   .and. &
            xlon(1,xj/2) <= xlon(xi,xj/2) .and. &
            xlon(1,1)    <= xlon(xi,1) ) then
@@ -1112,9 +1112,18 @@ module mod_interp
       domain%jgstart = 1
       domain%jgstop = max(l1,l2)
     else
-      domain%jgstart = int((minlat-glat(1))/dlat) - 2
-      domain%jgstop  = int((maxlat-glat(1))/dlat) + 3
+      if ( glat(1) < glat(gj) ) then
+        domain%jgstart = int((minlat-glat(1))/dlat) - 2
+        domain%jgstop  = int((maxlat-glat(1))/dlat) + 3
+      else
+        domain%jgstart = int((minlat-glat(gj))/dlat) - 2
+        domain%jgstop  = int((maxlat-glat(gj))/dlat) + 3
+        domain%nj =  domain%jgstop - domain%jgstart + 1
+        domain%jgstart = (gj+1)-(domain%jgstart+domain%nj-1)
+        domain%jgstop = domain%jgstart + domain%nj - 1
+      end if
     end if
+
 
     domain%ni = 0
     do i = 1 , domain%ntiles
