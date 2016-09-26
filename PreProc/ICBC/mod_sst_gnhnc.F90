@@ -213,7 +213,7 @@ module mod_sst_gnhnc
       call getmem2d(work,1,ilon,1,jlat,'mod_gnhnc_sst:work')
     end if
 
-    if ( ssttyp(1:3) == 'CFS' ) then
+    if ( ssttyp(1:3) == 'CFS' .or. ssttyp(1:3) == 'EIN' ) then
       idateo = globidate1
     else
       idateo = monfirst(globidate1)
@@ -275,6 +275,10 @@ module mod_sst_gnhnc
         call find_mpiesm_sst(inpfile,idate)
       else if ( ssttyp == 'CCSM3' ) then
         call find_ccsm3_file(inpfile,year,month,day,hour)
+      else if ( ssttyp(1:3) == 'EIN' ) then
+        write (inpfile,'(a,i0.4,a)') &
+          trim(inpglob)//pthsep//ssttyp//pthsep//'SST'// &
+          pthsep//'sst.',year, '.nc'
       end if
       istatus = nf90_open(inpfile,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
