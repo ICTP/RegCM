@@ -84,6 +84,7 @@ module mod_ccsm3_helper
       if (icheck-oneyear > inow ) exit
       call getbackoneday(yy,mm,dd)
     end do
+    write(stderr,*) 'Last searched is ',trim(ccsm3_filename)
     call die('gnhnc_sst','ccsm3 file with requested data cannot be found',1)
   end subroutine find_ccsm3_file
 !
@@ -95,11 +96,12 @@ module mod_ccsm3_helper
     d = d - 1
     if ( d == 0 ) then
       m = m - 1
-      d = dpm(m)
       if ( m == 0 ) then
         m = 12
         d = 31
         y = y -1
+      else
+        d = dpm(m)
       end if
     end if
   end subroutine getbackoneday
