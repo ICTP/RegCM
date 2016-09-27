@@ -73,7 +73,7 @@ program sigma2z
   integer(ik4) , dimension(3) :: psdimids
   integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
   integer(ik4) :: tvarid , qvarid , irhvar , imslzvar , ircm_map
-  logical :: has_t , has_q , has_rh , has_sph
+  logical :: has_t , has_q , has_rh , has_sph , is_icbc
   logical :: make_rh , make_mslp
   integer(ik4) :: n3d , iz3d , iodyn
 
@@ -223,6 +223,7 @@ program sigma2z
   ip0varid = -1
 
   has_sph = .false.
+  is_icbc = .false.
 
   do i = 1 , nvars
     lkvarflag(i) = .false.
@@ -260,6 +261,7 @@ program sigma2z
       intscheme(i) = 2
       tvarid = i
       tdimids = dimids(1:4)
+      if ( varname == 't' ) is_icbc = .true.
     else if (varname == 'qas' .or. varname == 'qv') then
       if ( varname == 'qas' ) has_sph = .true.
       has_q = .true.
@@ -483,7 +485,7 @@ program sigma2z
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
     istatus = nf90_put_var(ncout, ipsvarid, ps, istart(1:3), icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__,'Error writing ps.')
-    if ( iodyn == 1 ) then
+    if ( iodyn == 1 .and. .not. is_icbc ) then
       ps = ps / 100.0
     end if
     istart(1) = 1
