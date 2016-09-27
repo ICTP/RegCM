@@ -1124,7 +1124,6 @@ module mod_interp
       end if
     end if
 
-
     domain%ni = 0
     do i = 1 , domain%ntiles
       domain%igstart(i) = min(max(1,domain%igstart(i)),gi)

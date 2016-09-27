@@ -172,6 +172,38 @@ program mksurfdata
   integer(ik4) , pointer , dimension(:) :: landpoint
   logical , pointer , dimension(:) :: pft_gt0
   logical :: subgrid
+  integer(ik4) :: hostnm
+  integer(ik4) :: ihost , idir
+  integer(ik4) :: getcwd
+  integer(ik4) , dimension(8) :: tval
+  character (len=32) :: cdata='?'
+  character (len=5) :: czone='?'
+  character (len=32) :: hostname='?'
+  character (len=32) :: user='?'
+  character (len=128) :: directory='?'
+!
+  write (stdout,  &
+     "(/,2x,'This is mksurfdata part of RegCM package version 4')")
+  write (stdout,100)  SVN_REV, __DATE__ , __TIME__
+100 format(2x,' SVN Revision: ',a,' compiled at: data : ',a,'  time: ',a,/)
+
+#ifdef IBM
+  hostname='ibm platform '
+  user= 'Unknown'
+#else
+  ihost = hostnm(hostname)
+  call getlog(user)
+#endif
+  call date_and_time(zone=czone,values=tval)
+  idir = getcwd(directory)
+
+  write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
+     tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
+  write(stdout,*) ": this run start at  : ",trim(cdata)
+  write(stdout,*) ": it is submitted by : ",trim(user)
+  write(stdout,*) ": it is running on   : ",trim(hostname)
+  write(stdout,*) ": in directory       : ",trim(directory)
+  write(stdout,*) "                     "
 
   smallnum = real(epsilon(1.0_rk4),rkx)/4.0_rkx
 
@@ -812,6 +844,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write stddev')
   deallocate(var3d)
 
+  write(stdout,*) 'Created topographic informations...'
+
   iurbmax = numurbl+3
   allocate(var3d(jxsg,iysg,iurbmax))
   call mkglacier('mksrf_glacier.nc',var3d(:,:,1))
@@ -901,6 +935,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write urb2d')
   deallocate(var3d)
 
+  write(stdout,*) 'Created special categories informations...'
+
   allocate(var3d(jxsg,iysg,npft))
   call mkpft(pftfile,var3d(:,:,:))
   var3d(:,:,:) = int(max(var3d(:,:,:),0.0_rkx))
@@ -987,6 +1023,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft2d')
   deallocate(var3d)
 
+  write(stdout,*) 'Created pft informations...'
+
   allocate(var5d(jxsg,iysg,npft,nmon,4))
   call mklaisai(laifile,var5d(:,:,:,:,1), var5d(:,:,:,:,2), &
                         var5d(:,:,:,:,3), var5d(:,:,:,:,4))
@@ -1026,6 +1064,8 @@ program mksurfdata
     end do
   end do
   deallocate(var5d)
+
+  write(stdout,*) 'Created lai/sai informations...'
 
   allocate(var2d(jxsg,iysg))
   call mkfmax('mksrf_fmax.nc',var2d)
@@ -1075,6 +1115,8 @@ program mksurfdata
   end do
   deallocate(var4d)
 
+  write(stdout,*) 'Created soil texture/color informations...'
+
   allocate(var2d(jxsg,iysg))
   call mkgdp('mksrf_gdp.nc',var2d)
   where ( xmask < 0.5_rkx )
@@ -1110,6 +1152,8 @@ program mksurfdata
   istatus = nf90_put_var(ncid, iabmvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write abm')
   deallocate(var2d)
+
+  write(stdout,*) 'Created human population informations...'
 
   allocate(var3d(jxsg,iysg,6))
   call mkvocef('mksrf_vocef.nc',var3d)
@@ -1169,6 +1213,8 @@ program mksurfdata
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write organic')
   end do
   deallocate(var3d)
+
+  write(stdout,*) 'Created VOC/horganic informations...'
 
   allocate(var2d(jxsg,iysg))
   call mklake('mksrf_lake.nc',var2d)
@@ -1241,6 +1287,8 @@ program mksurfdata
   deallocate(var5d)
   deallocate(var6d)
 
+  write(stdout,*) 'Created LAKE/URBAN informations...'
+
 #ifdef CN
   allocate(var2d(jxsg,iysg))
   istart(1) = 1
@@ -1268,6 +1316,9 @@ program mksurfdata
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write hdm')
   end do
   deallocate(var2d)
+
+  write(stdout,*) 'Created FIRE informations...'
+
 #ifdef LCH4
   allocate(var3d(jxsg,iysg,3))
   call mklch4('mksrf_ch4inversion.nc',var3d)
@@ -1295,6 +1346,8 @@ program mksurfdata
   istatus = nf90_put_var(ncid, izwt0, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ZWt0')
   deallocate(var3d)
+
+  write(stdout,*) 'Created CH4 informations...'
 #endif
 #endif
 
@@ -1331,6 +1384,8 @@ program mksurfdata
   istatus = nf90_put_var(ncid, iws, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ws')
   deallocate(var3d)
+
+  write(stdout,*) 'Created VICHYDRO informations...'
 #endif
 
   istatus = nf90_close(ncid)
@@ -1342,6 +1397,7 @@ program mksurfdata
   call split_idate(globidate1,y1,mon,day,hour)
   call split_idate(globidate2,y2,mon,day,hour)
   do it = y1 - 1 , y2 + 1
+    write(stdout,*) 'Creating year ', it, ' informations...'
     write (cy,'(i0.4)') it
     dynfile = trim(dirglob)//pthsep//trim(domname)//'_CLM45_surface_'//cy//'.nc'
     call createfile_withname(dynfile,ncid)
