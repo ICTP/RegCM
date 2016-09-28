@@ -543,11 +543,15 @@ module mod_ncout
 
         ! The following may be enabled/disabled
 
-        if ( enable_atm2d_vars(atm_tpr) ) then
-          call setup_var(v2dvar_atm,atm_tpr,vsize,'pr','kg m-2 s-1', &
-            'Total rain precipitation flux','precipitation_flux',.true., &
-            'time: mean')
-          atm_tpr_out => v2dvar_atm(atm_tpr)%rval
+        if ( idiag == 1 .or. icosp == 1 ) then
+          if ( enable_atm2d_vars(atm_tpr) ) then
+            call setup_var(v2dvar_atm,atm_tpr,vsize,'pr','kg m-2 s-1', &
+              'Total rain precipitation flux','precipitation_flux',.true., &
+              'time: mean')
+            atm_tpr_out => v2dvar_atm(atm_tpr)%rval
+          end if
+        else
+          enable_atm2d_vars(atm_tpr) = .false.
         end if
         if ( ipptls == 2 .and. icosp == 1 ) then
           if ( enable_atm2d_vars(atm_tsn) ) then
@@ -564,11 +568,15 @@ module mod_ncout
             'Groud surface temperature','soil_temperature',.true.,'time: mean')
           atm_tgb_out => v2dvar_atm(atm_tgb)%rval
         end if
-        if ( enable_atm2d_vars(atm_tsw) ) then
-          call setup_var(v2dvar_atm,atm_tsw,vsize,'mrso','kg m-2', &
-            'Total soil water','soil_moisture_content',.true., &
-            'time: mean',l_fill=.true.)
-          atm_tsw_out => v2dvar_atm(atm_tsw)%rval
+        if ( idiag == 1 ) then
+          if ( enable_atm2d_vars(atm_tsw) ) then
+            call setup_var(v2dvar_atm,atm_tsw,vsize,'mrso','kg m-2', &
+              'Total soil water','soil_moisture_content',.true., &
+              'time: mean',l_fill=.true.)
+            atm_tsw_out => v2dvar_atm(atm_tsw)%rval
+          end if
+        else
+          enable_atm2d_vars(atm_tsw) = .false.
         end if
 
         vsize%k2 = kz
@@ -840,20 +848,26 @@ module mod_ncout
         if ( ibltyp == 2 ) then
           if ( enable_atm3d_vars(atm_tke) ) then
             call setup_var(v3dvar_atm,atm_tke,vsize,'tke','m2 s2', &
-              'Turbulent Kinetic Energy','turbulent_kinetic_energy', .true.)
+              'Turbulent Kinetic Energy', &
+              'turbulent_kinetic_energy', .true.)
             atm_tke_out => v3dvar_atm(atm_tke)%rval
           end if
-          if ( enable_atm3d_vars(atm_kth) ) then
-            call setup_var(v3dvar_atm,atm_kth,vsize,'kth','m2 s-1', &
-              'Vertical Turbulent Viscosity','vertical_momentum_diffusivity', &
-              .true.)
-            atm_kth_out => v3dvar_atm(atm_kth)%rval
-          end if
-          if ( enable_atm3d_vars(atm_kzm) ) then
-            call setup_var(v3dvar_atm,atm_kzm,vsize,'kzm','m2 s-1', &
-              'Vertical Turbulent Diffusivity','vertical_scalar_diffusivity', &
-              .true.)
-            atm_kzm_out => v3dvar_atm(atm_kzm)%rval
+          if ( idiag == 1 ) then
+            if ( enable_atm3d_vars(atm_kth) ) then
+              call setup_var(v3dvar_atm,atm_kth,vsize,'kth','m2 s-1', &
+                'Vertical Turbulent Viscosity', &
+                'vertical_momentum_diffusivity', .true.)
+              atm_kth_out => v3dvar_atm(atm_kth)%rval
+            end if
+            if ( enable_atm3d_vars(atm_kzm) ) then
+              call setup_var(v3dvar_atm,atm_kzm,vsize,'kzm','m2 s-1', &
+                'Vertical Turbulent Diffusivity', &
+                'vertical_scalar_diffusivity', .true.)
+              atm_kzm_out => v3dvar_atm(atm_kzm)%rval
+            end if
+          else
+            enable_atm3d_vars(atm_kth) = .false.
+            enable_atm3d_vars(atm_kzm) = .false.
           end if
         else
           enable_atm3d_vars(atm_tke:atm_kzm) = .false.
@@ -1669,31 +1683,41 @@ module mod_ncout
             'Cloud liquid water path','thickness_of_liquid_water_cloud',.true.)
           rad_clwp_out => v3dvar_rad(rad_clwp)%rval
         end if
-        if ( enable_rad3d_vars(rad_qrs) ) then
-          call setup_var(v3dvar_rad,rad_qrs,vsize,'qrs','K s-1', &
-            'Shortwave radiation heating rate', &
-            'tendency_of_air_temperature_due_to_shortwave_heating',.true.)
-          rad_qrs_out => v3dvar_rad(rad_qrs)%rval
+        if ( idiag == 1 ) then
+          if ( enable_rad3d_vars(rad_qrs) ) then
+            call setup_var(v3dvar_rad,rad_qrs,vsize,'qrs','K s-1', &
+              'Shortwave radiation heating rate', &
+              'tendency_of_air_temperature_due_to_shortwave_heating',.true.)
+            rad_qrs_out => v3dvar_rad(rad_qrs)%rval
+          end if
+          if ( enable_rad3d_vars(rad_qrl) ) then
+            call setup_var(v3dvar_rad,rad_qrl,vsize,'qrl','K s-1', &
+              'Longwave radiation heating rate', &
+              'tendency_of_air_temperature_due_to_longwave_heating',.true.)
+            rad_qrl_out => v3dvar_rad(rad_qrl)%rval
+          end if
+        else
+          enable_rad3d_vars(rad_qrs) = .false.
+          enable_rad3d_vars(rad_qrl) = .false.
         end if
-        if ( enable_rad3d_vars(rad_qrl) ) then
-          call setup_var(v3dvar_rad,rad_qrl,vsize,'qrl','K s-1', &
-            'Longwave radiation heating rate', &
-            'tendency_of_air_temperature_due_to_longwave_heating',.true.)
-          rad_qrl_out => v3dvar_rad(rad_qrl)%rval
-        end if
-        if ( enable_rad4d_vars(rad_taucl) ) then
-          v4dvar_rad(rad_taucl)%axis = 'xyzS'
-          call setup_var(v4dvar_rad,rad_taucl,vsize,'taucl','1', &
-            'Cloud liquid water optical depth', &
-            'atmosphere_optical_thickness_due_to_cloud_liquid_water',.true.)
-          rad_taucl_out => v4dvar_rad(rad_taucl)%rval
-        end if
-        if ( enable_rad4d_vars(rad_tauci) ) then
-          v4dvar_rad(rad_tauci)%axis = 'xyzS'
-          call setup_var(v4dvar_rad,rad_tauci,vsize,'tauci','1', &
-            'Cloud ice optical depth', &
-            'atmosphere_optical_thickness_due_to_cloud_ice',.true.)
-          rad_tauci_out => v4dvar_rad(rad_tauci)%rval
+        if ( icosp == 1 ) then
+          if ( enable_rad4d_vars(rad_taucl) ) then
+            v4dvar_rad(rad_taucl)%axis = 'xyzS'
+            call setup_var(v4dvar_rad,rad_taucl,vsize,'taucl','1', &
+              'Cloud liquid water optical depth', &
+              'atmosphere_optical_thickness_due_to_cloud_liquid_water',.true.)
+            rad_taucl_out => v4dvar_rad(rad_taucl)%rval
+          end if
+          if ( enable_rad4d_vars(rad_tauci) ) then
+            v4dvar_rad(rad_tauci)%axis = 'xyzS'
+            call setup_var(v4dvar_rad,rad_tauci,vsize,'tauci','1', &
+              'Cloud ice optical depth', &
+              'atmosphere_optical_thickness_due_to_cloud_ice',.true.)
+            rad_tauci_out => v4dvar_rad(rad_tauci)%rval
+          end if
+        else
+          enable_rad4d_vars(rad_taucl) = .false.
+          enable_rad4d_vars(rad_tauci) = .false.
         end if
 
         enable_rad_vars(1:nrad2dvars) = enable_rad2d_vars
