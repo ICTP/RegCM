@@ -501,6 +501,8 @@ module mod_rad_radiation
   real(rkx) , parameter :: mxarg = 25.0_rkx
 #endif
 
+  real(rkx) , parameter :: mindplh2o =  1.0e-16_rkx
+
   contains
 
   subroutine allocate_mod_rad_radiation
@@ -2995,6 +2997,9 @@ module mod_rad_radiation
         if ( k1 /= k2 ) then
           do n = n1 , n2
             dplh2o = plh2o(n,k1) - plh2o(n,k2)
+            if ( abs(dplh2o) < mindplh2o ) then
+              dplh2o = sign(dplh2o,mindplh2o)
+            end if
             ux(n) = abs(dplh2o)
             sqrtu = sqrt(ux(n))
             ds2c = abs(s2c(n,k1)-s2c(n,k2))

@@ -262,7 +262,7 @@ module mod_sound
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              atmc%pp(j,i,k) = atmc%pp(j,i,k) + (d_one-xkd)*pi(j,i,k)
+              atmc%pp(j,i,k) = atmc%pp(j,i,k) + xkd*pi(j,i,k)
             end do
           end do
         end do
@@ -324,7 +324,7 @@ module mod_sound
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              atmc%pp(j,i,k) = atmc%pp(j,i,k) - (d_one-xkd)*pi(j,i,k)
+              atmc%pp(j,i,k) = atmc%pp(j,i,k) - xkd*pi(j,i,k)
             end do
           end do
         end do
