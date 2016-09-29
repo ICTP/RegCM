@@ -321,7 +321,7 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay , kpbconv , iteration
-    real(rkx) :: temps , templ , deltat , rvls , pfac
+    real(rkx) :: temps , templ , deltat , rvls , pfac , arg
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
@@ -481,7 +481,11 @@ module mod_pbl_uwtcm
         ! This assumption will tend to cause an over-estimation of the surface
         ! virtual heat flux over land, which should cause an overestimation
         ! of boundary layer height over land.
-        q0s = ep2/(psbx/pfesat(tgbx) - d_one)
+        arg = psbx/pfesat(tgbx) - d_one
+        if ( abs(arg) < dlowval ) then
+          arg = sign(dlowval,arg)
+        end if
+        q0s = ep2/arg
         ! Calculate the virtual temperature right above the surface
         thv0 = thgb * (d_one + ep1*q0s)
         ! Calculate the change in virtual potential temperature from
