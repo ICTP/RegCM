@@ -37,17 +37,17 @@ module mod_smooth
     real(rkx) , dimension(jx,iy) :: hscr1 , hscr2
     !
     ! PURPOSE :  PERFORMS THE 1-2-1 SMOOTHING TO REMOVE PRIMARILY THE
-    ! 2DX WAVES FROM THE FIELDS htgrid. n IS THE NUMBER OF POINTS NOT
-    ! TO SMOOTH IN THE BOUNDARIES
+    ! 2DX WAVES FROM THE FIELDS htgrid.
     !
     hscr1(:,:) = htgrid(:,:)
-    do i = 1 , iy
+    hscr2(:,:) = htgrid(:,:)
+    do i = 2 , iy - 1
       do j = 2 , jx - 1
         hscr2(j,i) = d_rfour*(d_two*hscr1(j,i)+hscr1(j+1,i)+hscr1(j-1,i))
       end do
     end do
     do i = 2 , iy - 1
-      do j = 1 , jx
+      do j = 2 , jx - 1
         hscr1(j,i) = d_rfour*(d_two*hscr2(j,i)+hscr2(j,i+1)+hscr2(j,i-1))
       end do
     end do
