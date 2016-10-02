@@ -123,28 +123,38 @@ module mod_interp
     dlat = abs(min(hlat(2)-hlat(1),hlat(nlat)-hlat(nlat-1)))
     do i = 1 , iy
       do j = 1 , jx
-        i1 = whereislon(alon(j,i),hlon,nlon)
+        i1 = whereislon(nlon,alon(j,i),hlon)
         i2 = i1 + 1
         ! Assume global data here
         if ( i2 > nlon ) i2 = 1
-        j1 = whereislat(alat(j,i),hlat,nlat)
+        j1 = whereislat(nlat,alat(j,i),hlat)
         j2 = j1 + 1
         if ( b2(i1,j1) < missc .or. b2(i2,j1) < missc .or. &
              b2(i1,j2) < missc .or. b2(i2,j2) < missc ) then
           b3(j,i) = missl
         else
           p1 = mod(alon(j,i)-hlon(i1),dlon)
-          if ( p1 < 0 ) p1 = dlon + p1
+          if ( p1 < 0.0_rkx ) p1 = dlon + p1
           p2 = dlon - p1
-          q1 = mod(alat(j,i)-hlat(i1),dlat)
-          if ( q1 < 0 ) q1 = dlat + q1
+          q1 = mod(alat(j,i)-hlat(j1),dlat)
+          if ( q1 < 0.0_rkx ) q1 = dlat + q1
           q2 = dlat - q1
           if ( j2 > j1 ) then
-            b3(j,i) = ((b2(i1,j1)*p2+b2(i2,j1)*p1)*q1+(b2(i1,j2)* &
-                          p2+b2(i2,j2)*p1)*q2)/(dlon*dlat)
+            if ( i2 > i1 ) then
+              b3(j,i) = ((b2(i1,j1)*p2+b2(i2,j1)*p1)*q1 + &
+                         (b2(i1,j2)*p2+b2(i2,j2)*p1)*q2)/(dlon*dlat)
+            else
+              b3(j,i) = ((b2(i1,j1)*p1+b2(i2,j1)*p2)*q1 + &
+                         (b2(i1,j2)*p1+b2(i2,j2)*p2)*q2)/(dlon*dlat)
+            end if
           else
-            b3(j,i) = ((b2(i1,j1)*p2+b2(i2,j1)*p1)*q2+(b2(i1,j2)* &
-                          p2+b2(i2,j2)*p1)*q1)/(dlon*dlat)
+            if ( i2 > i1 ) then
+              b3(j,i) = ((b2(i1,j1)*p2+b2(i2,j1)*p1)*q2 + &
+                         (b2(i1,j2)*p2+b2(i2,j2)*p1)*q1)/(dlon*dlat)
+            else
+              b3(j,i) = ((b2(i1,j1)*p1+b2(i2,j1)*p2)*q2 + &
+                         (b2(i1,j2)*p1+b2(i2,j2)*p2)*q1)/(dlon*dlat)
+            end if
           end if
         end if
       end do
@@ -862,17 +872,18 @@ module mod_interp
 
   end subroutine get_window
 
-  integer(ik4) function whereislon(lon,lonarr,nlon) result(jj)
+  integer(ik4) function whereislon(nlon,lon,lonarr) result(jj)
     implicit none
-    real(rkx) , intent(in) :: lon
-    real(rkx) , dimension(:) , intent(in) :: lonarr
     integer(ik4) , intent(in) :: nlon
+    real(rkx) , intent(in) :: lon
+    real(rkx) , dimension(nlon) , intent(in) :: lonarr
     integer(ik4) :: i
     real(rkx) , dimension(nlon) :: xlonarr
     real(rkx) :: xlon , dlon
 
     xlonarr(:) = lonarr(:)
     xlon = lon
+    if ( xlon < 0.0_rkx ) xlon = xlon + 360.0_rkx
     if ( xlonarr(1) > 0.0_rkx .and. xlonarr(nlon) < 0.0_rkx ) then
       ! window crossing timeline
       xlonarr = mod(xlonarr+360.0_rkx,360.0_rkx)
@@ -895,11 +906,11 @@ module mod_interp
     jj = (xlon-xlonarr(1))/dlon + 1
   end function whereislon
 
-  integer(ik4) function whereislat(lat,latarr,nlat) result(ii)
+  integer(ik4) function whereislat(nlat,lat,latarr) result(ii)
     implicit none
     real(rkx) , intent(in) :: lat
-    real(rkx) , dimension(:) , intent(in) :: latarr
     integer(ik4) , intent(in) :: nlat
+    real(rkx) , dimension(nlat) , intent(in) :: latarr
     integer(ik4) :: i
     real(rkx) , dimension(nlat) :: xlatarr
     real(rkx) :: xlat , dlat

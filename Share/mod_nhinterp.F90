@@ -512,7 +512,7 @@ module mod_nhinterp
             !  W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
             wtmp(j,i,k) = -omegan/rho * regrav
           end do
-          wtmp(j,i,1) = -omega(2)/rho0(j,i,1)*regrav
+          wtmp(j,i,1) = d_zero ! -omega(2)/rho0(j,i,1)*regrav
         end do
       end do
       wtop(j1:j2,i1:i2) = wtmp(j1:j2,i1:i2,1)
@@ -520,31 +520,27 @@ module mod_nhinterp
         smt1(:,:) = wtmp(:,:,k)
         smt2(:,:) = wtmp(:,:,k)
         do i = i1 , i2
-          do j = j1+2 , j2-2
-            smt2(j,i) = 0.10_rkx*(d_four*smt1(j,i)+ &
-                                  d_two*smt1(j+1,i)+d_two*smt1(j-1,i) + &
-                                  smt1(j+2,i)+smt1(j-2,i))
-          end do
-          smt2(2,i) = d_rfour*(d_two*smt1(2,i)+smt1(1,i)+smt1(3,i))
-          smt2(j2-1,i) = d_rfour*(d_two*smt1(j2-1,i)+smt1(j2,i)+smt1(j2-2,i))
-        end do
-        do i = i1+2 , i2-2
           do j = j1 , j2
-            smt1(j,i) = 0.10_rkx*(d_four*smt2(j,i)+ &
-                                  d_two*smt2(j,i+1)+d_two*smt2(j,i-1) * &
-                                  smt2(j,i+2)+smt2(j,i-2))
+            jp = min(j+1,j2)
+            jm = max(j-1,j1)
+            smt2(j,i) = d_rfour*(d_two*smt1(j,i)+smt1(jp,i)+smt1(jm,i))
           end do
         end do
-        do j = j1 , j2
-          smt1(j,2) = d_rfour*(d_two*smt2(j,2)+smt2(j,3)+smt2(j,1))
-          smt1(j,i2-1) = d_rfour*(d_two*smt2(j,i2-1)+smt2(j,i2-2)+smt2(j,i2))
+        do i = i1 , i2
+          do j = j1 , j2
+            ip = min(i+1,i2)
+            im = max(i-1,i1)
+            smt1(j,i) = d_rfour*(d_two*smt2(j,i)+smt2(j,ip)+smt2(j,im))
+          end do
         end do
         w(:,:,k-1) = smt1(:,:)
       end do
+      w(j1,:,:) = w(j1+1,:,:)
+      w(j2-1,:,:) = w(j2-2,:,:)
+      w(:,i1,:) = w(:,i1+1,:)
+      w(:,i2-1,:) = w(:,i2-2,:)
       w(j2,:,:) = d_zero
       w(:,i2,:) = d_zero
-      wtop(j2,:) = d_zero
-      wtop(:,i2) = d_zero
     end subroutine nhw
 
 end module mod_nhinterp
