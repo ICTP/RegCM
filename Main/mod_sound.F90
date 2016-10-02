@@ -183,6 +183,7 @@ module mod_sound
     !   w(BET)=0.5(1+BET)* w(t+1)+0.5(1-BET)* w(t)
     !
     ! DTL LONG TIME-STEP (XXB-XXC)
+    cfl_error = .false.
     if ( ktau == 0 ) then
       istep = 4
     else
@@ -649,7 +650,13 @@ module mod_sound
       !
       ! Downward sweep calculation of w
       !
-      do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          atmc%w(j,i,2) = bet * atmc%w(j,i,1) + &
+                (d_one - bet) * (e(j,i,1)*atmc%w(j,i,1)+f(j,i,1))
+        end do
+      end do
+      do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%w(j,i,k+1) = e(j,i,k)*atmc%w(j,i,k) + f(j,i,k)
