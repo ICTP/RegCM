@@ -244,7 +244,7 @@ module mod_sst_gnhnc
     tdif = 6*3600
     do k = 1 , nsteps
       call gnhnc_sst(idate)
-      if ( ssttyp(1:3) == 'CFS' ) then
+      if ( ssttyp(1:3) == 'CFS' .or. ssttyp(1:3) == 'EIN' ) then
         call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,jx,iy,1)
       else
         call distwgtcr(sstmm,sst,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat)

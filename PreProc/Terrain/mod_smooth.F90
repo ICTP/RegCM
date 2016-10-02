@@ -29,32 +29,29 @@ module mod_smooth
 
   contains
 
-  subroutine smth121(htgrid,jx,iy,n)
+  subroutine smth121(htgrid,jx,iy)
     implicit none
-    integer(ik4) , intent(in) :: jx , iy , n
+    integer(ik4) , intent(in) :: jx , iy
     real(rkx) , intent(inout) , dimension(jx,iy) :: htgrid
     integer(ik4) :: i , j
-    real(rkx) , dimension(jx,iy) :: hscr1
+    real(rkx) , dimension(jx,iy) :: hscr1 , hscr2
     !
     ! PURPOSE :  PERFORMS THE 1-2-1 SMOOTHING TO REMOVE PRIMARILY THE
     ! 2DX WAVES FROM THE FIELDS htgrid. n IS THE NUMBER OF POINTS NOT
     ! TO SMOOTH IN THE BOUNDARIES
     !
     hscr1(:,:) = htgrid(:,:)
-    do i = n , iy - n + 1
-      do j = n , jx - n + 1
-        !if ( (htgrid(j,i) <= -d_one) .or. (htgrid(j,i) > d_zero) ) then
-        hscr1(j,i) = d_rfour*(d_two*htgrid(j,i)+htgrid(j+1,i)+htgrid(j-1,i))
-        !end if
+    do i = 1 , iy
+      do j = 2 , jx - 1
+        hscr2(j,i) = d_rfour*(d_two*hscr1(j,i)+hscr1(j+1,i)+hscr1(j-1,i))
       end do
     end do
-    do i = n , iy - n + 1
-      do j = n , jx - n + 1
-        !if ( (hscr1(j,i) <= -d_one) .or. (hscr1(j,i) > d_zero) ) then
-        htgrid(j,i) = d_rfour*(d_two*hscr1(j,i)+hscr1(j,i+1)+hscr1(j,i-1))
-        !end if
+    do i = 2 , iy - 1
+      do j = 1 , jx
+        hscr1(j,i) = d_rfour*(d_two*hscr2(j,i)+hscr2(j,i+1)+hscr2(j,i-1))
       end do
     end do
+    htgrid(:,:) = hscr1(:,:)
   end subroutine smth121
 
   subroutine smther(slab,nj,ni,nsp,npass)

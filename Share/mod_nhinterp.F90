@@ -376,7 +376,7 @@ module mod_nhinterp
       real(rkx) , dimension(kxs+1) :: z0q , zq
       real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
       real(rkx) , dimension(j1:j2,i1:i2,kxs) :: pr0 , logprp
-      real(rkx) , dimension(j1:j2,i1:i2) :: pspa , rpspa
+      real(rkx) , dimension(j1:j2,i1:i2) :: pspa , rpspa , smt1 , smt2
       real(rkx) , dimension(j1:j2,i1:i2) :: dummy , dummy1
       real(rkx) , dimension(j1:j2,i1:i2) :: psdotpam
 
@@ -515,14 +515,31 @@ module mod_nhinterp
           wtmp(j,i,1) = -omega(2)/rho0(j,i,1)*regrav
         end do
       end do
-      wtmp(j1:j2,i1:i2,:) = real(int(wtmp(j1:j2,i1:i2,:) * d_100),rkx) * d_r100
       wtop(j1:j2,i1:i2) = wtmp(j1:j2,i1:i2,1)
       do k = 2 , kxs + 1
+        smt1(:,:) = wtmp(:,:,k)
+        smt2(:,:) = wtmp(:,:,k)
         do i = i1 , i2
+          do j = j1+2 , j2-2
+            smt2(j,i) = 0.10_rkx*(d_four*smt1(j,i)+ &
+                                  d_two*smt1(j+1,i)+d_two*smt1(j-1,i) + &
+                                  smt1(j+2,i)+smt1(j-2,i))
+          end do
+          smt2(2,i) = d_rfour*(d_two*smt1(2,i)+smt1(1,i)+smt1(3,i))
+          smt2(j2-1,i) = d_rfour*(d_two*smt1(j2-1,i)+smt1(j2,i)+smt1(j2-2,i))
+        end do
+        do i = i1+2 , i2-2
           do j = j1 , j2
-            w(j,i,k-1) = wtmp(j,i,k)
+            smt1(j,i) = 0.10_rkx*(d_four*smt2(j,i)+ &
+                                  d_two*smt2(j,i+1)+d_two*smt2(j,i-1) * &
+                                  smt2(j,i+2)+smt2(j,i-2))
           end do
         end do
+        do j = j1 , j2
+          smt1(j,2) = d_rfour*(d_two*smt2(j,2)+smt2(j,3)+smt2(j,1))
+          smt1(j,i2-1) = d_rfour*(d_two*smt2(j,i2-1)+smt2(j,i2-2)+smt2(j,i2))
+        end do
+        w(:,:,k-1) = smt1(:,:)
       end do
       w(j2,:,:) = d_zero
       w(:,i2,:) = d_zero

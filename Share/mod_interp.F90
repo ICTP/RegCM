@@ -19,6 +19,7 @@
 
 module mod_interp
 
+  use mod_dynparam , only : ds
   use mod_intkinds
   use mod_realkinds
   use mod_constants
@@ -45,8 +46,8 @@ module mod_interp
   real(rkx) , parameter :: deg720 = d_two*deg360
   real(rkx) , parameter :: missl = -9999.0_rkx
   real(rkx) , parameter :: missc = -9990.0_rkx
-  real(rkx) , parameter :: mindist = 0.001_rkx ! 1 meter
-  real(rkx) , parameter :: p_factor = 2.00_rkx
+  real(rkx) , parameter :: mindist = 1.0e-6_rkx
+  integer(ik4) , parameter :: p_factor = 2
 
   real(rkx) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
   real(rkx) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
@@ -196,6 +197,7 @@ module mod_interp
     intent (in) alat , alon , b2 , hlat , hlon , iy , jx , llev , nlat , nlon
     intent (out) b3
     real(rkx) :: ave , p1 , p2 , q1 , q2
+    real(rkx) , dimension(jx,iy) :: smth1 , smth2
     integer(ik4) :: i , i1 , i2 , ii , j , j1 , j2 , jj , l
     !
     ! PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
@@ -218,17 +220,16 @@ module mod_interp
     ! IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
     ! IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID POINT.
     !
-    i1 = 0
-    i2 = 0
-    j1 = 0
-    j2 = 0
-    q1 = d_zero
-    q2 = d_zero
-    p1 = d_zero
-    p2 = d_zero
     do i = 1 , iy
       do j = 1 , jx
-        i1 = 1000
+        i1 = 0
+        i2 = 0
+        j1 = 0
+        j2 = 0
+        q1 = d_zero
+        q2 = d_zero
+        p1 = d_zero
+        p2 = d_zero
         do ii = 1 , nlon - 1
           if ( alon(j,i) >= hlon(ii) .and. alon(j,i) < hlon(ii+1) ) then
             p1 = alon(j,i) - hlon(ii)
@@ -276,10 +277,9 @@ module mod_interp
           i1 = nlon
           i2 = 1
         end if
-        if ( i1 == 1000 ) then
+        if ( i1 == 0 ) then
           call die('bilinx2','Could not find the right longitude',1)
         end if
-        j1 = 1000
         do jj = 1 , nlat - 1
           if ( alat(j,i) >= hlat(jj) .and. alat(j,i) < hlat(jj+1) ) then
             q1 = alat(j,i) - hlat(jj)
@@ -300,7 +300,7 @@ module mod_interp
             j2 = nlat
           end if
         end do
-        if ( j1 == 1000 ) then
+        if ( j1 == 0 ) then
           call die('bilinx2','Could not find the right latitude',1)
         end if
         if ( j1 > 0 .and. j1 < nlat ) then
@@ -332,6 +332,29 @@ module mod_interp
         end if
       end do
     end do
+    ! Smooth the field
+    do l = 1 , llev
+      smth1(:,:) = b3(:,:,l)
+      smth2(:,:) = b3(:,:,l)
+      do i = 1 , iy
+        do j = 2 , jx - 1
+          if ( b3(j,i,l) > missl .and. b3(j+1,i,l) > missl .and. &
+               b3(j-1,i,l) > missl ) then
+            smth2(j,i) = d_rfour*(d_two*smth1(j,i)+smth1(j+1,i)+smth1(j-1,i))
+          end if
+        end do
+      end do
+      do i = 2 , iy - 1
+        do j = 1 , jx
+          if ( b3(j,i,l) > missl .and. b3(j,i+1,l) > missl .and. &
+               b3(j,i-1,l) > missl ) then
+            smth1(j,i) = d_rfour*(d_two*smth2(j,i)+smth2(j,i+1)+smth2(j,i-1))
+          end if
+        end do
+      end do
+      b3(:,:,l) = smth1(:,:)
+    end do
+
   end subroutine bilinx2_3d
 
   subroutine bilinx2_2d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy)
@@ -346,6 +369,7 @@ module mod_interp
     intent (out) b3
     real(rkx) :: ave , p1 , p2 , q1 , q2
     integer(ik4) :: i , i1 , i2 , ii , j , j1 , j2 , jj
+    real(rkx) , dimension(jx,iy) :: smth1 , smth2
     !
     ! PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
     ! BIGGER RECTANGULAR GRID TO A GRID DESCRIBED BY ALON AND ALAT OF
@@ -367,17 +391,16 @@ module mod_interp
     ! IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
     ! IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID POINT.
     !
-    i1 = 0
-    i2 = 0
-    j1 = 0
-    j2 = 0
-    q1 = d_zero
-    q2 = d_zero
-    p1 = d_zero
-    p2 = d_zero
     do i = 1 , iy
       do j = 1 , jx
-        i1 = 1000
+        i1 = 0
+        i2 = 0
+        j1 = 0
+        j2 = 0
+        q1 = d_zero
+        q2 = d_zero
+        p1 = d_zero
+        p2 = d_zero
         do ii = 1 , nlon - 1
           if ( alon(j,i) >= hlon(ii) .and. alon(j,i) < hlon(ii+1) ) then
             p1 = alon(j,i) - hlon(ii)
@@ -425,10 +448,9 @@ module mod_interp
           i1 = nlon
           i2 = 1
         end if
-        if ( i1 == 1000 ) then
+        if ( i1 == 0 ) then
           call die('bilinx2','Could not find the right longitude',1)
         end if
-        j1 = 1000
         do jj = 1 , nlat - 1
           if ( alat(j,i) >= hlat(jj) .and. alat(j,i) < hlat(jj+1) ) then
             q1 = alat(j,i) - hlat(jj)
@@ -449,7 +471,7 @@ module mod_interp
             j2 = nlat
           end if
         end do
-        if ( j1 == 1000 ) then
+        if ( j1 == 0 ) then
           call die('bilinx2','Could not find the right latitude',1)
         end if
         if ( j1 > 0 .and. j1 < nlat ) then
@@ -474,6 +496,26 @@ module mod_interp
         end if
       end do
     end do
+    ! Smooth the field
+    smth1(:,:) = b3(:,:)
+    smth2(:,:) = b3(:,:)
+    do i = 1 , iy
+      do j = 2 , jx - 1
+        if ( b3(j,i) > missl .and. b3(j+1,i) > missl .and. &
+             b3(j-1,i) > missl ) then
+          smth2(j,i) = d_rfour*(d_two*smth1(j,i)+smth1(j+1,i)+smth1(j-1,i))
+        end if
+      end do
+    end do
+    do i = 2 , iy - 1
+      do j = 1 , jx
+        if ( b3(j,i) > missl .and. b3(j,i+1) > missl .and. &
+             b3(j,i-1) > missl ) then
+          smth1(j,i) = d_rfour*(d_two*smth2(j,i)+smth2(j,i+1)+smth2(j,i-1))
+        end if
+      end do
+    end do
+    b3(:,:) = smth1(:,:)
   end subroutine bilinx2_2d
 
   subroutine compwgt(alon,alat,glon,glat,d1xa,d1xb,d1xc,d1xd, &
@@ -489,8 +531,9 @@ module mod_interp
     integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
                ndr , nul , nur , mx , nx
     logical :: lsouthnorth , l360
+
     lsouthnorth = ( glat(1,1) < glat(nlon,nlat) )
-    l360 = ( glon(nlon,nlat) > 180.0_rkx .or. glon(1,1) > 180.0_rkx )
+    l360 = any( abs(glon) > 180.0_rkx )
     do i = 1 , iy
       do j = 1 , jx
         ! Find nearest point
@@ -552,7 +595,7 @@ module mod_interp
             ndl = nx
           end if
         end if
-        if ( lonwrap .or. l360 ) then
+        if ( lonwrap ) then
           if ( mur > nlon ) mur = mur - nlon
           if ( mdr > nlon ) mdr = mdr - nlon
           if ( mul < 1 ) mul = mul + nlon
@@ -587,45 +630,13 @@ module mod_interp
         i1dl(j,i) = mdl
         j1dl(j,i) = ndl
         wa = gcdist(glat(mur,nur),glon(mur,nur),alat(j,i),alon(j,i))
-        if ( wa > mindist ) then
-          d1xa(j,i) = d_one/(wa**p_factor)
-        else
-          d1xa(j,i) = d_one
-          d1xb(j,i) = d_zero
-          d1xc(j,i) = d_zero
-          d1xd(j,i) = d_zero
-          cycle
-        end if
         wb = gcdist(glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
-        if ( wb > mindist ) then
-          d1xb(j,i) = d_one/(wb**p_factor)
-        else
-          d1xa(j,i) = d_zero
-          d1xb(j,i) = d_one
-          d1xc(j,i) = d_zero
-          d1xd(j,i) = d_zero
-          cycle
-        end if
         wc = gcdist(glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
-        if ( wc > mindist ) then
-          d1xc(j,i) = d_one/(wc**p_factor)
-        else
-          d1xa(j,i) = d_zero
-          d1xb(j,i) = d_zero
-          d1xc(j,i) = d_one
-          d1xd(j,i) = d_zero
-          cycle
-        end if
         wd = gcdist(glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
-        if ( wd > mindist ) then
-          d1xd(j,i) = d_one/(wd**p_factor)
-        else
-          d1xa(j,i) = d_zero
-          d1xb(j,i) = d_zero
-          d1xc(j,i) = d_zero
-          d1xd(j,i) = d_one
-          cycle
-        end if
+        d1xa(j,i) = d_one/(wa**p_factor)
+        d1xb(j,i) = d_one/(wb**p_factor)
+        d1xc(j,i) = d_one/(wc**p_factor)
+        d1xd(j,i) = d_one/(wd**p_factor)
       end do
     end do
 
@@ -635,14 +646,14 @@ module mod_interp
         implicit none
         real(rkx) , intent(in) :: a , b
         if ( l360 ) then
-          if ( b < 0.0_rkx ) then
-            rightof = ( a > 360.0_rkx + b )
+          if ( a > 180.0_rkx ) then
+            rightof = ( ( a - 360.0_rkx ) > b )
           else
             rightof = ( a > b )
           end if
         else
           if ( b > 180.0_rkx ) then
-            rightof = ( a > b - 360.0_rkx )
+            rightof = ( a > ( b - 360.0_rkx ) )
           else
             rightof = ( a > b )
           end if
@@ -670,8 +681,8 @@ module mod_interp
     real(rkx) , dimension(jx,iy) , intent(in) :: d1xa , d1xb , d1xc , d1xd
     integer(ik4) , dimension(jx,iy) , intent(in) :: i1dl , i1dr , &
       i1ul , i1ur , j1dl , j1dr , j1ul , j1ur
-    real(rkx) :: wa , wb , wc , wd , wg
-    real(rkx) , dimension(4) :: vv
+    real(rkx) :: wa , wb , wc , wd , wg , vv
+    real(rkx) , dimension(jx,iy) :: smth1 , smth2
     integer(ik4) :: ifound
     integer(ik4) :: i , j , mdl , mdr , mul , mur , ndl , ndr , nul , nur
 
@@ -691,34 +702,54 @@ module mod_interp
         wd = d1xd(j,i)
         ifound = 0
         wg = d_zero
-        vv(:) = d_zero
+        vv = d_zero
         if ( b2(mur,nur) > missc ) then
           ifound = ifound + 1
-          vv(ifound) = b2(mur,nur)*wa
+          vv = vv + b2(mur,nur)*wa
           wg = wg + wa
         end if
         if ( b2(mul,nul) > missc ) then
           ifound = ifound + 1
-          vv(ifound) = b2(mul,nul)*wb
+          vv = vv + b2(mul,nul)*wb
           wg = wg + wb
         end if
         if ( b2(mdr,ndr) > missc ) then
           ifound = ifound + 1
-          vv(ifound) = b2(mdr,ndr)*wc
+          vv = vv + b2(mdr,ndr)*wc
           wg = wg + wc
         end if
         if ( b2(mdl,ndl) > missc ) then
           ifound = ifound + 1
-          vv(ifound) = b2(mdl,ndl)*wd
+          vv = vv + b2(mdl,ndl)*wd
           wg = wg + wd
         end if
         if ( ifound /= 0 ) then
-          b3(j,i) = sum(vv(1:ifound))/wg
+          b3(j,i) = vv/wg
         else
-          b3(j,i) = missl
+         b3(j,i) = missl
         end if
       end do
     end do
+    ! Smooth the field
+    smth1(:,:) = b3(:,:)
+    smth2(:,:) = b3(:,:)
+    do i = 1 , iy
+      do j = 2 , jx - 1
+        if ( b3(j,i) > missl .and. b3(j+1,i) > missl .and. &
+             b3(j-1,i) > missl ) then
+          smth2(j,i) = d_rfour*(d_two*smth1(j,i)+smth1(j+1,i)+smth1(j-1,i))
+        end if
+      end do
+    end do
+    do i = 2 , iy - 1
+      do j = 1 , jx
+        if ( b3(j,i) > missl .and. b3(j,i+1) > missl .and. &
+             b3(j,i-1) > missl ) then
+          smth1(j,i) = d_rfour*(d_two*smth2(j,i)+smth2(j,i+1)+smth2(j,i-1))
+        end if
+      end do
+    end do
+    b3(:,:) = smth1(:,:)
   end subroutine dwgt
 
   subroutine distwgtcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
@@ -913,7 +944,7 @@ module mod_interp
     cdlon = cos((lon1-lon2)*degrad)
     crd   = slat1*slat2+clat1*clat2*cdlon
     ! Have it in km to avoid numerical problems :)
-    gcdist_simple = earthrad*acos(crd)*d_r1000
+    gcdist_simple = erkm*acos(crd)
   end function gcdist_simple
 
   real(rkx) function gcdist(lat1,lon1,lat2,lon2)
@@ -930,7 +961,7 @@ module mod_interp
     y = sqrt((clat2*sdlon)**2+(clat1*slat2-slat1*clat2*cdlon)**2)
     x = slat1*slat2+clat1*clat2*cdlon
     ! Have it in km to avoid numerical problems :)
-    gcdist = earthrad*atan2(y,x)*d_r1000
+    gcdist = max(erkm*atan2(y,x)/ds,mindist)
   end function gcdist
 
   subroutine kernsmooth2(f,nx,ny,npass)

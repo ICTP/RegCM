@@ -261,9 +261,9 @@ module mod_intldtr
     j2 = int(jj2)
     i3 = int(ii3)
     j3 = int(jj3)
-    p12 = dx*grid(i2,j2)+(1-dx)*grid(i1,j1)
-    p03 = dx*grid(i3,j3)+(1-dx)*grid(i0,j0)
-    bilinear = dy*p12+(1-dy)*p03
+    p12 = dx*grid(i2,j2)+(d_one-dx)*grid(i1,j1)
+    p03 = dx*grid(i3,j3)+(d_one-dx)*grid(i0,j0)
+    bilinear = dy*p12+(d_one-dy)*p03
   end function bilinear
 
   real(rkx) function bicubic(x,y,m,n,grid,lwrap)

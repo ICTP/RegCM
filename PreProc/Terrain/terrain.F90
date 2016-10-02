@@ -223,7 +223,7 @@ program terrain
     write(stdout,*)'Static DEM data successfully read in'
     call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s, &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
-                ntypec_s,1,lonwrap,lcrosstime)
+                ntypec_s,2,lonwrap,lcrosstime)
     call relmem2d(values)
     write(stdout,*)'Interpolated DEM on SUBGRID'
 
@@ -288,7 +288,7 @@ program terrain
 
     ! grell smoothing to eliminate 2 delx wave (6/90):
     do ism = 1 , ismthlev
-      call smth121(htgrid_s,jxsg,iysg,2*nsg)
+      call smth121(htgrid_s,jxsg,iysg)
     end do
 
     do i = 1 , iysg
@@ -453,7 +453,7 @@ program terrain
 
   ! grell smoothing to eliminate 2 delx wave (6/90):
   do ism = 1 , ismthlev
-    call smth121(htgrid,jx,iy,2)
+    call smth121(htgrid,jx,iy)
   end do
 
   do i = 1 , iy

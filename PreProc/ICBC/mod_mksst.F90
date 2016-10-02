@@ -247,7 +247,7 @@ module mod_mksst
               nearn = nearn + (max(icetemp,sst(j,i) - lrate * &
                (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))) - distsig * &
                gcdist(xlat(jp,ip),xlon(jp,ip), &
-                      xlat(j,i),xlon(jp,ip))/100000.0_rkx))*wt
+                      xlat(j,i),xlon(jp,ip))/100.0_rkx))*wt
             else
               nearn = nearn + max(icetemp,sst(j,i) - lrate * &
                (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))))*wt
