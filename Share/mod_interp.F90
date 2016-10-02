@@ -807,16 +807,28 @@ module mod_interp
     end if
     if ( has_north_pole(xlat,xi/2) ) then
       ! North pole inside
+      write(stdout,*) 'Correcting North Pole'
       l1 = int((minval(xlat(:,1))-glat(1))/dlat) - 2
       l2 = int((minval(xlat(:,xj))-glat(1))/dlat) - 2
       domain%jgstart = min(l1,l2)
       domain%jgstop = gj
+      domain%ntiles = 1
+      domain%igstart(1) = 1
+      domain%igstop(1) = gi
+      domain%igstart(2) = 0
+      domain%igstop(2) = 0
     else if ( has_south_pole(xlat,xi/2) ) then
       ! South Pole inside
+      write(stdout,*) 'Correcting South Pole'
       l1 = int((maxval(xlat(:,1))-glat(1))/dlat) + 3
       l2 = int((maxval(xlat(:,xj))-glat(1))/dlat) + 3
       domain%jgstart = 1
+      domain%ntiles = 1
       domain%jgstop = max(l1,l2)
+      domain%igstart(1) = 1
+      domain%igstop(1) = gi
+      domain%igstart(2) = 0
+      domain%igstop(2) = 0
     else
       if ( glat(1) < glat(gj) ) then
         domain%jgstart = int((minlat-glat(1))/dlat) - 2
@@ -921,6 +933,8 @@ module mod_interp
     else
       ii = (xlatarr(1)-xlat)/abs(dlat) + 1
     end if
+    if ( ii < 1 ) ii = 1
+    if ( ii > nlat - 1 ) ii = nlat - 1
   end function whereislat
 
 end module mod_interp
