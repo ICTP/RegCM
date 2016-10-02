@@ -106,54 +106,47 @@ module mod_interp
     ! TRAPPED POINT. THE ALGORITHM COMPUTES THE FRACTIONAL DISTANCES IN
     ! BOTH X AND Y DIRECTION OF THE TRAPPED GRID POINT AND USES THE
     ! INFORMATION AS WEIGHTING FACTORS IN THE INTERPOLATION.
-    ! THERE IS ONE LESS ROW AND COLUMN WHEN THE SCALAR FIELDS ARE
-    ! INTERPOLATED BECAUSE ALAT AND ALON ARE NOT DEFINED FOR
-    ! THE CROSS POINTS IN THE RegCM MODEL.
     !
     ! B2(JX,IX,NLEV) IS THE INPUT FIELD ON REGULAR LAT/LON GRID.
-    ! B3(JX,IX,NLEV) IS THE OUTPUT FIELD ON LAMBERT CONFORMAL GRID.
+    ! B3(JX,IX,NLEV) IS THE OUTPUT FIELD ON PROJECTED GRID
     ! HLON......LONGITUDE VALUES IN DEGREES OF THE INTERMEDIATE GRID4.
     ! HLAT......LATITUDE VALUES IN DEGREES OF THE INTERMEDIATE GRID4.
-    ! P.........EAST-WEST WEIGHTING FACTOR.
-    ! Q.........NORTH-SOUTH WEIGHTING FACTOR.
-    ! IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
-    ! IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID POINT.
     !
     dlon = abs(min(hlon(2)-hlon(1),hlon(nlon)-hlon(nlon-1)))
     dlat = abs(min(hlat(2)-hlat(1),hlat(nlat)-hlat(nlat-1)))
     do i = 1 , iy
       do j = 1 , jx
-        i1 = whereislon(nlon,alon(j,i),hlon)
-        i2 = i1 + 1
-        ! Assume global data here
-        if ( i2 > nlon ) i2 = 1
-        j1 = whereislat(nlat,alat(j,i),hlat)
+        j1 = whereislon(nlon,alon(j,i),hlon)
         j2 = j1 + 1
-        if ( b2(i1,j1) < missc .or. b2(i2,j1) < missc .or. &
-             b2(i1,j2) < missc .or. b2(i2,j2) < missc ) then
+        ! Assume global data here
+        if ( j2 > nlon ) j2 = 1
+        i1 = whereislat(nlat,alat(j,i),hlat)
+        i2 = i1 + 1
+        if ( b2(j1,i1) < missc .or. b2(j2,i1) < missc .or. &
+             b2(j1,i2) < missc .or. b2(j2,i2) < missc ) then
           b3(j,i) = missl
         else
-          p1 = mod(alon(j,i)-hlon(i1),dlon)
+          p1 = mod(alon(j,i)-hlon(j1),dlon)
           if ( p1 < 0.0_rkx ) p1 = dlon + p1
           p2 = dlon - p1
-          q1 = mod(alat(j,i)-hlat(j1),dlat)
+          q1 = mod(alat(j,i)-hlat(i1),dlat)
           if ( q1 < 0.0_rkx ) q1 = dlat + q1
           q2 = dlat - q1
-          if ( j2 > j1 ) then
-            if ( i2 > i1 ) then
-              b3(j,i) = ((b2(i1,j1)*p2+b2(i2,j1)*p1)*q1 + &
-                         (b2(i1,j2)*p2+b2(i2,j2)*p1)*q2)/(dlon*dlat)
+          if ( i2 > i1 ) then
+            if ( j2 > j1 ) then
+              b3(j,i) = ((b2(j1,i1)*p2+b2(j2,i1)*p1)*q1 + &
+                         (b2(j1,i2)*p2+b2(j2,i2)*p1)*q2)/(dlon*dlat)
             else
-              b3(j,i) = ((b2(i1,j1)*p1+b2(i2,j1)*p2)*q1 + &
-                         (b2(i1,j2)*p1+b2(i2,j2)*p2)*q2)/(dlon*dlat)
+              b3(j,i) = ((b2(j1,i1)*p1+b2(j2,i1)*p2)*q1 + &
+                         (b2(j1,i2)*p1+b2(j2,i2)*p2)*q2)/(dlon*dlat)
             end if
           else
-            if ( i2 > i1 ) then
-              b3(j,i) = ((b2(i1,j1)*p2+b2(i2,j1)*p1)*q2 + &
-                         (b2(i1,j2)*p2+b2(i2,j2)*p1)*q1)/(dlon*dlat)
+            if ( j2 > j1 ) then
+              b3(j,i) = ((b2(j1,i1)*p2+b2(j2,i1)*p1)*q2 + &
+                         (b2(j1,i2)*p2+b2(j2,i2)*p1)*q1)/(dlon*dlat)
             else
-              b3(j,i) = ((b2(i1,j1)*p1+b2(i2,j1)*p2)*q2 + &
-                         (b2(i1,j2)*p1+b2(i2,j2)*p2)*q1)/(dlon*dlat)
+              b3(j,i) = ((b2(j1,i1)*p1+b2(j2,i1)*p2)*q2 + &
+                         (b2(j1,i2)*p1+b2(j2,i2)*p2)*q1)/(dlon*dlat)
             end if
           end if
         end if
@@ -162,23 +155,28 @@ module mod_interp
     smth1(:,:) = b3(:,:)
     smth2(:,:) = b3(:,:)
     do i = 1 , iy
-      do j = 2 , jx - 1
-        if ( b3(j,i) > missl .and. b3(j+1,i) > missl .and. &
-             b3(j-1,i) > missl ) then
-          smth2(j,i) = d_rfour*(d_two*smth1(j,i)+smth1(j+1,i)+smth1(j-1,i))
+      do j = 1 , jx
+        j1 = min(j+1,jx)
+        j2 = max(j-1,1)
+        if ( b3(j ,i) > missl .and.  &
+             b3(j1,i) > missl .and.  &
+             b3(j2,i) > missl ) then
+          smth2(j,i) = d_rfour*(d_two*smth1(j,i)+smth1(j1,i)+smth1(j2,i))
         end if
       end do
     end do
-    do i = 2 , iy - 1
+    do i = 1 , iy
       do j = 1 , jx
-        if ( b3(j,i) > missl .and. b3(j,i+1) > missl .and. &
-             b3(j,i-1) > missl ) then
-          smth1(j,i) = d_rfour*(d_two*smth2(j,i)+smth2(j,i+1)+smth2(j,i-1))
+        i1 = min(i+1,iy)
+        i2 = max(i-1,1)
+        if ( b3(j,i ) > missl .and.  &
+             b3(j,i1) > missl .and.  &
+             b3(j,i2) > missl ) then
+          smth1(j,i) = d_rfour*(d_two*smth2(j,i)+smth2(j,i1)+smth2(j,i2))
         end if
       end do
     end do
     b3(:,:) = smth1(:,:)
-
   end subroutine bilinx_2d
 
   subroutine bilinx_3d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy,llev)
