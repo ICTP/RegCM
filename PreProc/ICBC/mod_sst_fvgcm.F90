@@ -118,7 +118,7 @@ module mod_sst_fvgcm
           end if
         end do
       end do
-      call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
+      call bilinx(sstmm,sst,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
       write (stdout,*) 'XLON,XLAT,SST = ' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
       do i = 1 , iy
         do j = 1 , jx

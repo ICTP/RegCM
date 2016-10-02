@@ -248,8 +248,8 @@ module mod_fvgcm
     call mxr2rh(t2,q2,pp3d,numx,numy,nlev,-9999.0_rkx)
     call intlin(qp,q2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
 
-    call bilinx2(b3,b2,xlon,xlat,vlon,vlat,numx,numy,jx,iy,nlev*3)
-    call bilinx2(d3,d2,dlon,dlat,vlon,vlat,numx,numy,jx,iy,nlev*2)
+    call bilinx(b3,b2,xlon,xlat,vlon,vlat,numx,numy,jx,iy,nlev*3)
+    call bilinx(d3,d2,dlon,dlat,vlon,vlat,numx,numy,jx,iy,nlev*2)
 
     call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev,plon,plat,iproj)
 

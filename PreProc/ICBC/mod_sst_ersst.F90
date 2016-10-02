@@ -150,7 +150,7 @@ module mod_sst_ersst
         call sst_erain(ierrec,lfirst,1)
       end if
 
-      call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
+      call bilinx(sstmm,sst,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
       call writerec(idate)
       write(stdout,*) 'WRITING OUT SST DATA:' , tochar(idate)
       idate = idate + itbc

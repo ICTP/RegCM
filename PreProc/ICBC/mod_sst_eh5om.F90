@@ -179,7 +179,7 @@ module mod_sst_eh5om
           sst(i,j) = real(dble(ivar(i,jlat+1-j))*xscale + offset)
         end do
       end do
-      call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
+      call bilinx(sstmm,sst,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
       call writerec(idate)
       write (stdout,*) 'WRITING OUT SST DATA:' , tochar(idate)
       close(11)

@@ -77,8 +77,8 @@ module mod_era40
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
-    call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
-    call bilinx2(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+    call bilinx(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+    call bilinx(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
     !
     ! Rotate U-V fields after horizontal interpolation
     !

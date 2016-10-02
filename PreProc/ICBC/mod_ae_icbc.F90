@@ -241,7 +241,7 @@ module mod_ae_icbc
           end do
         end do
       end do
-      call bilinx2(aev3(:,:,:,is),xinp,xlon,xlat,aet42lon,aet42lat, &
+      call bilinx(aev3(:,:,:,is),xinp,xlon,xlat,aet42lon,aet42lat, &
                    aeilon,aejlat,jx,iy,aeilev)
     end do
 
@@ -251,7 +251,7 @@ module mod_ae_icbc
       end do
     end do
 
-    call bilinx2(paeid_3,xps,xlon,xlat,aet42lon,aet42lat, &
+    call bilinx(paeid_3,xps,xlon,xlat,aet42lon,aet42lat, &
                  aeilon,aejlat,jx,iy)
 
     do i = 1 , iy

@@ -84,8 +84,8 @@ module mod_ein
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
-    call bilinx2(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
-    call bilinx2(d3,d2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+    call bilinx(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
+    call bilinx(d3,d2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*2)
     !call cressmcr(b3,b2,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat,klev,3)
     !call cressmdt(d3,d2,dlon,dlat,glon2,glat2,jx,iy,ilon,jlat,klev,2)
     !
@@ -287,33 +287,33 @@ module mod_ein
       if ( kkrec == 1 ) then
         do j = 1 , jlat
           do i = 1 , ilon
-            tvar(i,jlat+1-j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
+            tvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
       else if ( kkrec == 2 ) then
         do j = 1 , jlat
           do i = 1 , ilon
-            hvar(i,jlat+1-j,:) = real(real(work(i,j,:),rkx) * &
+            hvar(i,j,:) = real(real(work(i,j,:),rkx) * &
                       xscale+xadd,rkx)/9.80616_rk4
           end do
         end do
       else if ( kkrec == 3 ) then
         do j = 1 , jlat
           do i = 1 , ilon
-            rhvar(i,jlat+1-j,:) = &
+            rhvar(i,j,:) = &
               max(real(real(work(i,j,:),rkx)*xscale+xadd,rkx)*0.01_rkx,0.0_rkx)
           end do
         end do
       else if ( kkrec == 4 ) then
         do j = 1 , jlat
           do i = 1 , ilon
-            uvar(i,jlat+1-j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
+            uvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
       else if ( kkrec == 5 ) then
         do j = 1 , jlat
           do i = 1 , ilon
-            vvar(i,jlat+1-j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
+            vvar(i,j,:) = real(real(work(i,j,:),rkx)*xscale+xadd,rkx)
           end do
         end do
       end if
@@ -330,7 +330,7 @@ module mod_ein
           istart(1) = gdomain%igstart(itile)
           icount(1) = gdomain%ni(itile)
           ! Latitudes are reversed in original file
-          istart(2) = (gdomain%global_nj+1)-(gdomain%jgstart+gdomain%nj-1)
+          istart(2) = gdomain%jgstart
           icount(2) = gdomain%nj
           itf = iti + gdomain%ni(itile) - 1
           istatus = nf90_get_var(inet,ivar,work(iti:itf,:,:),istart,icount)
@@ -404,13 +404,9 @@ module mod_ein
     istatus = nf90_inq_varid(ncid,'latitude',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Missing latitude variable in file '//trim(pathaddname))
-    istatus = nf90_get_var(ncid,ivarid,grev(1:jlat))
+    istatus = nf90_get_var(ncid,ivarid,glat)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error reading latitude variable in file '//trim(pathaddname))
-    ! Reverse latitudes
-    do j = 1 , jlat
-      glat(jlat+1-j) = grev(j)
-    end do
     istatus = nf90_inq_varid(ncid,'longitude',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Missing longitude variable in file '//trim(pathaddname))

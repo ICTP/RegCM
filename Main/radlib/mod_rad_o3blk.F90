@@ -231,9 +231,9 @@ module mod_rad_o3blk
         write (stdout,*) 'Reading Ozone Data...'
         call readvar3d_pack(ncid,iy1,im1,'ozone',xozone1)
         call readvar3d_pack(ncid,iy2,im2,'ozone',xozone2)
-        call bilinx2(yozone,xozone1,alon,alat,lon,lat,72,37,njcross,nicross,24)
+        call bilinx(yozone,xozone1,alon,alat,lon,lat,72,37,njcross,nicross,24)
         call intlinreg(ozone1,yozone,aps,pp3d,1,njcross,1,nicross,kzp1,plev,24)
-        call bilinx2(yozone,xozone2,alon,alat,lon,lat,72,37,njcross,nicross,24)
+        call bilinx(yozone,xozone2,alon,alat,lon,lat,72,37,njcross,nicross,24)
         call intlinreg(ozone2,yozone,aps,pp3d,1,njcross,1,nicross,kzp1,plev,24)
       end if
     end if

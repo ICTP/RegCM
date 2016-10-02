@@ -930,8 +930,8 @@ module mod_gn6hnc
          dattyp(1:3) /= 'GF_' .and. dattyp(1:3) /= 'IP_' .and. &
          dattyp(1:3) /= 'EC_' .and. dattyp(1:3) /= 'MI_' .and. &
          dattyp(1:2) /= 'E5' ) then
-      call bilinx2(b3,b2,xlon,xlat,glon,glat,nlon,nlat,jx,iy,npl*3)
-      call bilinx2(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
+      call bilinx(b3,b2,xlon,xlat,glon,glat,nlon,nlat,jx,iy,npl*3)
+      call bilinx(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
     else ! Gaussian grid
       call cressmcr(b3,b2,xlon,xlat,glon2,glat2,jx,iy,nlon,nlat,npl,3)
       call cressmdt(d3,d2,dlon,dlat,glon2,glat2,jx,iy,nlon,nlat,npl,2)

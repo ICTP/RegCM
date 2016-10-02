@@ -159,7 +159,7 @@ module mod_sst_gnmnc
            ssttyp(1:3) == 'HA_' .or. ssttyp(1:3) == 'MI_' ) then
         call distwgtcr(sstmm,sst,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat)
       else
-        call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,jx,iy,1)
+        call bilinx(sstmm,sst,xlon,xlat,glon,glat,ilon,jlat,jx,iy)
       end if
       do i = 1 , iy
         do j = 1 , jx

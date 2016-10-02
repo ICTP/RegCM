@@ -187,7 +187,7 @@ module mod_ox_icbc
           end do
         end do
       end do
-      call bilinx2(oxv3(:,:,:,is),xinp,xlon,xlat,oxt42lon,oxt42lat, &
+      call bilinx(oxv3(:,:,:,is),xinp,xlon,xlat,oxt42lon,oxt42lat, &
                    oxilon,oxjlat,jx,iy,oxilev)
     end do
 
@@ -197,7 +197,7 @@ module mod_ox_icbc
       end do
     end do
 
-    call bilinx2(poxid_3,xps,xlon,xlat,oxt42lon,oxt42lat, &
+    call bilinx(poxid_3,xps,xlon,xlat,oxt42lon,oxt42lat, &
                  oxilon,oxjlat,jx,iy)
     do i = 1 , iy
       do j = 1 , jx

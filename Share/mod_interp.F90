@@ -32,7 +32,7 @@ module mod_interp
 
   private
 
-  public :: bilinx , bilinx2 , cressmcr , cressmdt , distwgtcr , distwgtdt
+  public :: bilinx , cressmcr , cressmdt , distwgtcr , distwgtdt
   public :: gcdist , kernsmooth
   public :: global_domain , get_window
 
@@ -75,10 +75,10 @@ module mod_interp
     module procedure cressmcr2d
   end interface cressmcr
 
-  interface bilinx2
-    module procedure bilinx2_2d
-    module procedure bilinx2_3d
-  end interface bilinx2
+  interface bilinx
+    module procedure bilinx_2d
+    module procedure bilinx_3d
+  end interface bilinx
 
   interface kernsmooth
     module procedure kernsmooth2
@@ -87,416 +87,68 @@ module mod_interp
 
   contains
 
-  subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,jx,iy,nflds)
+  subroutine bilinx_2d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy)
     implicit none
-    integer(ik4) :: jx , iy , nflds , nlati , nloni
-    real(rkx) , dimension(nloni,nlati,nflds) :: fin
-    real(rkx) , dimension(nlati) :: lati
-    real(rkx) , dimension(jx,iy) :: lato , lono
-    real(rkx) , dimension(nloni) :: loni
-    real(rkx) , dimension(jx,iy,nflds) :: fout
-    intent (in) fin , jx , iy , lati , lato , loni , lono , nflds ,   &
-                nlati , nloni
-    intent (out) fout
-
-    real(rkx) :: bas , lon360 , p , q , xsum , xind , yind
-    integer(ik4) :: i , ip , ipp1 , j , jq , jqp1 , l
-    logical :: lg
+    integer(ik4) , intent(in) :: iy , jx , nlat , nlon
+    real(rkx) , dimension(jx,iy) , intent(in) :: alat , alon
+    real(rkx) , dimension(nlon,nlat) , intent(in) :: b2
+    real(rkx) , dimension(nlat) , intent(in) :: hlat
+    real(rkx) , dimension(nlon) , intent(in) :: hlon
+    real(rkx) , dimension(jx,iy) , intent(out) :: b3
+    real(rkx) :: ave , p1 , p2 , q1 , q2 , dlon , dlat
+    integer(ik4) :: i , i1 , i2 , j , j1 , j2
+    real(rkx) , dimension(jx,iy) :: smth1 , smth2
     !
     ! PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
-    ! BIGGER RECTANGULAR GRID TO A GRID DESCRIBED BY XLONS AND XLATS OF
+    ! BIGGER RECTANGULAR GRID TO A GRID DESCRIBED BY ALON AND ALAT OF
     ! GRID2. A POINT ON GRID2 IS TRAPPED WITHIN FOUR GRID POINTS ON
     ! GRID4.THE GRID POINTS ARE ALWAYS TO THE NORTH AND EAST OF THE
-    ! TRAPPED POINT.. THE ALGORITHM COMPUTES THE FRACTIONAL DISTANCES
-    ! IN BOTH X AND Y DIRECTION OF THE TRAPPED GRID POINT AND USES THE
+    ! TRAPPED POINT. THE ALGORITHM COMPUTES THE FRACTIONAL DISTANCES IN
+    ! BOTH X AND Y DIRECTION OF THE TRAPPED GRID POINT AND USES THE
     ! INFORMATION AS WEIGHTING FACTORS IN THE INTERPOLATION.
     ! THERE IS ONE LESS ROW AND COLUMN WHEN THE SCALAR FIELDS ARE
-    ! INTERPOLATED BECAUSE XLATS AND XLONS ARE NOT DEFINED FOR
-    ! THE CROSS POINTS IN THE MM4 MODEL.
+    ! INTERPOLATED BECAUSE ALAT AND ALON ARE NOT DEFINED FOR
+    ! THE CROSS POINTS IN THE RegCM MODEL.
     !
-    ! IN(NLONI,NLATI,NFLDS)  IS THE INPUT FIELD ON REGULAR LAT/LON GRID.
-    ! OUT(NLATO,NLONO,NFLDS) IS THE OUTPUT FIELD ON LAMBERT CONFORMAL
-    ! GRID. LONI.....LONGITUDE VALUES IN DEGREES OF THE LAT-LON GRID.
-    ! LATI.....LATITUDE VALUES IN DEGREES OF THE LAT-LON GRID.
+    ! B2(JX,IX,NLEV) IS THE INPUT FIELD ON REGULAR LAT/LON GRID.
+    ! B3(JX,IX,NLEV) IS THE OUTPUT FIELD ON LAMBERT CONFORMAL GRID.
+    ! HLON......LONGITUDE VALUES IN DEGREES OF THE INTERMEDIATE GRID4.
+    ! HLAT......LATITUDE VALUES IN DEGREES OF THE INTERMEDIATE GRID4.
     ! P.........EAST-WEST WEIGHTING FACTOR.
     ! Q.........NORTH-SOUTH WEIGHTING FACTOR.
     ! IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
     ! IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID POINT.
     !
-    ! Global dataset ?
-    !
-    lg = .true.
+    dlon = abs(min(hlon(2)-hlon(1),hlon(nlon)-hlon(nlon-1)))
+    dlat = abs(min(hlat(2)-hlat(1),hlat(nlat)-hlat(nlat-1)))
     do i = 1 , iy
       do j = 1 , jx
-        yind = (((lato(j,i)-lati(1))/(lati(nlati)-lati(1))) * &
-                   real(nlati-1,rkx))+d_one
-        jq = int(yind)
-        jq = max(jq,1)
-        jqp1 = min(jq+1,nlati)
-        q = yind - jq
-        lon360 = lono(j,i)
-        if ( lono(j,i) < deg00 ) lon360 = lono(j,i) + deg360
-        xind = (((lon360-loni(1))/(loni(nloni)-loni(1))) * &
-                    real(nloni-1,rkx))+d_one
-        if ( xind < d_one .and. lg ) then
-          ip = nloni
-          ipp1 = 1
-          p = xind
-        else if ( (xind-nloni) > deg00 .and. lg ) then
-          ip = nloni
-          ipp1 = 1
-          p = xind - nloni
+        i1 = whereislon(alon(j,i),hlon,nlon)
+        i2 = i1 + 1
+        ! Assume global data here
+        if ( i2 > nlon ) i2 = 1
+        j1 = whereislat(alat(j,i),hlat,nlat)
+        j2 = j1 + 1
+        if ( b2(i1,j1) < missc .or. b2(i2,j1) < missc .or. &
+             b2(i1,j2) < missc .or. b2(i2,j2) < missc ) then
+          b3(j,i) = missl
         else
-          ip = int(xind)
-          ip = max(ip,1)
-          ipp1 = min(ip+1,nloni)
-          p = xind - ip
-        end if
-        do l = 1 , nflds
-          xsum = d_zero
-          bas = d_zero
-          if ( fin(ip,jq,l) < missc .and. fin(ipp1,jq,l) < missc .and. &
-               fin(ipp1,jqp1,l) < missc .and. fin(ip,jqp1,l) < missc ) then
-            fout(j,i,l) = missl
+          p1 = mod(alon(j,i)-hlon(i1),dlon)
+          if ( p1 < 0 ) p1 = dlon + p1
+          p2 = dlon - p1
+          q1 = mod(alat(j,i)-hlat(i1),dlat)
+          if ( q1 < 0 ) q1 = dlat + q1
+          q2 = dlat - q1
+          if ( j2 > j1 ) then
+            b3(j,i) = ((b2(i1,j1)*p2+b2(i2,j1)*p1)*q1+(b2(i1,j2)* &
+                          p2+b2(i2,j2)*p1)*q2)/(dlon*dlat)
           else
-            if ( fin(ip,jq,l) > missc ) then
-              xsum = xsum + (d_one-q)*(d_one-p)*fin(ip,jq,l)
-              bas = bas + (d_one-q)*(d_one-p)
-            end if
-            if ( fin(ipp1,jq,l) > missc ) then
-              xsum = xsum + (d_one-q)*p*fin(ipp1,jq,l)
-              bas = bas + (d_one-q)*p
-            end if
-            if ( fin(ipp1,jqp1,l) > missc ) then
-              xsum = xsum + q*p*fin(ipp1,jqp1,l)
-              bas = bas + q*p
-            end if
-            if ( fin(ip,jqp1,l) > missc ) then
-              xsum = xsum + q*(d_one-p)*fin(ip,jqp1,l)
-              bas = bas + q*(d_one-p)
-            end if
-            if ( bas > dlowval ) then
-              fout(j,i,l) = xsum/bas
-            else
-              fout(j,i,l) = missl
-            end if
+            b3(j,i) = ((b2(i1,j1)*p2+b2(i2,j1)*p1)*q2+(b2(i1,j2)* &
+                          p2+b2(i2,j2)*p1)*q1)/(dlon*dlat)
           end if
-        end do
-      end do
-    end do
-  end subroutine bilinx
-
-  subroutine bilinx2_3d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy,llev)
-    implicit none
-    integer(ik4) :: iy , jx , llev , nlat , nlon
-    real(rkx) , dimension(jx,iy) :: alat , alon
-    real(rkx) , dimension(nlon,nlat,llev) :: b2
-    real(rkx) , dimension(jx,iy,llev) :: b3
-    real(rkx) , dimension(nlat) :: hlat
-    real(rkx) , dimension(nlon) :: hlon
-    intent (in) alat , alon , b2 , hlat , hlon , iy , jx , llev , nlat , nlon
-    intent (out) b3
-    real(rkx) :: ave , p1 , p2 , q1 , q2
-    real(rkx) , dimension(jx,iy) :: smth1 , smth2
-    integer(ik4) :: i , i1 , i2 , ii , j , j1 , j2 , jj , l
-    !
-    ! PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
-    ! BIGGER RECTANGULAR GRID TO A GRID DESCRIBED BY ALON AND ALAT OF
-    ! GRID2. A POINT ON GRID2 IS TRAPPED WITHIN FOUR GRID POINTS ON
-    ! GRID4.THE GRID POINTS ARE ALWAYS TO THE NORTH AND EAST OF THE
-    ! TRAPPED POINT. THE ALGORITHM COMPUTES THE FRACTIONAL DISTANCES IN
-    ! BOTH X AND Y DIRECTION OF THE TRAPPED GRID POINT AND USES THE
-    ! INFORMATION AS WEIGHTING FACTORS IN THE INTERPOLATION.
-    ! THERE IS ONE LESS ROW AND COLUMN WHEN THE SCALAR FIELDS ARE
-    ! INTERPOLATED BECAUSE ALAT AND ALON ARE NOT DEFINED FOR
-    ! THE CROSS POINTS IN THE RegCM MODEL.
-    !
-    ! B2(JX,IX,NLEV) IS THE INPUT FIELD ON REGULAR LAT/LON GRID.
-    ! B3(JX,IX,NLEV) IS THE OUTPUT FIELD ON LAMBERT CONFORMAL GRID.
-    ! HLON......LONGITUDE VALUES IN DEGREES OF THE INTERMEDIATE GRID4.
-    ! HLAT......LATITUDE VALUES IN DEGREES OF THE INTERMEDIATE GRID4.
-    ! P.........EAST-WEST WEIGHTING FACTOR.
-    ! Q.........NORTH-SOUTH WEIGHTING FACTOR.
-    ! IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
-    ! IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID POINT.
-    !
-    do i = 1 , iy
-      do j = 1 , jx
-        i1 = 0
-        i2 = 0
-        j1 = 0
-        j2 = 0
-        q1 = d_zero
-        q2 = d_zero
-        p1 = d_zero
-        p2 = d_zero
-        do ii = 1 , nlon - 1
-          if ( alon(j,i) >= hlon(ii) .and. alon(j,i) < hlon(ii+1) ) then
-            p1 = alon(j,i) - hlon(ii)
-            p2 = hlon(ii+1) - alon(j,i)
-            i1 = ii
-            i2 = ii + 1
-            exit
-          else if ( alon(j,i) >= hlon(ii)-deg360 .and. &
-                    alon(j,i) < hlon(ii+1)-deg360 ) then
-            p1 = alon(j,i) - (hlon(ii)-deg360)
-            p2 = (hlon(ii+1)-deg360) - alon(j,i)
-            i1 = ii
-            i2 = ii + 1
-            exit
-          else if ( alon(j,i) >= hlon(ii)+deg360 .and. &
-                    alon(j,i) < hlon(ii+1)+deg360 ) then
-            p1 = alon(j,i) - (hlon(ii)+deg360)
-            p2 = (hlon(ii+1)+deg360) - alon(j,i)
-            i1 = ii
-            i2 = ii + 1
-            exit
-          end if
-        end do
-        if ( alon(j,i) >= hlon(nlon) .and. alon(j,i) < hlon(1)+deg360 ) then
-          p1 = alon(j,i) - hlon(nlon)
-          p2 = (hlon(1)+deg360) - alon(j,i)
-          i1 = nlon
-          i2 = 1
-        else if ( alon(j,i) >= hlon(nlon)+deg360 .and. &
-                  alon(j,i) < hlon(1)+deg720 ) then
-          p1 = alon(j,i) - (hlon(nlon)+deg360)
-          p2 = (hlon(1)+deg720) - alon(j,i)
-          i1 = nlon
-          i2 = 1
-        else if ( alon(j,i) >= hlon(nlon)-deg360 .and. &
-                  alon(j,i) < hlon(1) ) then
-          p1 = alon(j,i) - (hlon(nlon)-deg360)
-          p2 = hlon(1) - alon(j,i)
-          i1 = nlon
-          i2 = 1
-        else if ( alon(j,i) >= hlon(nlon)-deg720 .and. &
-                  alon(j,i) < hlon(1)-deg360 ) then
-          p1 = alon(j,i) - (hlon(nlon)-deg720)
-          p2 = (hlon(1)-deg360) - alon(j,i)
-          i1 = nlon
-          i2 = 1
-        end if
-        if ( i1 == 0 ) then
-          call die('bilinx2','Could not find the right longitude',1)
-        end if
-        do jj = 1 , nlat - 1
-          if ( alat(j,i) >= hlat(jj) .and. alat(j,i) < hlat(jj+1) ) then
-            q1 = alat(j,i) - hlat(jj)
-            q2 = hlat(jj+1) - alat(j,i)
-            j1 = jj
-            j2 = jj + 1
-            exit
-          else if ( alat(j,i) <= hlat(1) ) then
-            q1 = d_one
-            q2 = d_one
-            j1 = 1
-            j2 = 1
-            exit
-          else if ( alat(j,i) >= hlat(nlat) ) then
-            q1 = d_one
-            q2 = d_one
-            j1 = nlat
-            j2 = nlat
-          end if
-        end do
-        if ( j1 == 0 ) then
-          call die('bilinx2','Could not find the right latitude',1)
-        end if
-        if ( j1 > 0 .and. j1 < nlat ) then
-          do l = 1 , llev
-            b3(j,i,l) = ((b2(i1,j1,l)*p2+b2(i2,j1,l)*p1)*q2+(b2(i1,j2,l)* &
-                          p2+b2(i2,j2,l)*p1)*q1)/(p1+p2)/(q1+q2)
-          end do
-        else if ( j1 == 0 ) then
-          do l = 1 , llev
-            ave = d_zero
-            do ii = 1 , nlon
-              ave = ave + b2(ii,1,l)
-            end do
-            ave = ave/real(nlon,rkx)
-            b3(j,i,l) = ((ave*(p1+p2))*q2+(b2(i1,j2,l)*p2+b2(i2,j2,l)* &
-                                       p1)*q1)/(p1+p2)/(q1+q2)
-          end do
-        else if ( j1 == nlat ) then
-          do l = 1 , llev
-            ave = d_zero
-            do ii = 1 , nlon
-              ave = ave + b2(ii,nlat,l)
-            end do
-            ave = ave/real(nlon,rkx)
-            b3(j,i,l) = ((b2(i1,j1,l)*p2+b2(i2,j1,l)*p1)*q2+ &
-                         (ave*(p1+p2))*q1)/(p1+p2)/(q1+q2)
-          end do
-        else
         end if
       end do
     end do
-    ! Smooth the field
-    do l = 1 , llev
-      smth1(:,:) = b3(:,:,l)
-      smth2(:,:) = b3(:,:,l)
-      do i = 1 , iy
-        do j = 2 , jx - 1
-          if ( b3(j,i,l) > missl .and. b3(j+1,i,l) > missl .and. &
-               b3(j-1,i,l) > missl ) then
-            smth2(j,i) = d_rfour*(d_two*smth1(j,i)+smth1(j+1,i)+smth1(j-1,i))
-          end if
-        end do
-      end do
-      do i = 2 , iy - 1
-        do j = 1 , jx
-          if ( b3(j,i,l) > missl .and. b3(j,i+1,l) > missl .and. &
-               b3(j,i-1,l) > missl ) then
-            smth1(j,i) = d_rfour*(d_two*smth2(j,i)+smth2(j,i+1)+smth2(j,i-1))
-          end if
-        end do
-      end do
-      b3(:,:,l) = smth1(:,:)
-    end do
-
-  end subroutine bilinx2_3d
-
-  subroutine bilinx2_2d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy)
-    implicit none
-    integer(ik4) :: iy , jx , nlat , nlon
-    real(rkx) , dimension(jx,iy) :: alat , alon
-    real(rkx) , dimension(nlon,nlat) :: b2
-    real(rkx) , dimension(jx,iy) :: b3
-    real(rkx) , dimension(nlat) :: hlat
-    real(rkx) , dimension(nlon) :: hlon
-    intent (in) alat , alon , b2 , hlat , hlon , iy , jx , nlat , nlon
-    intent (out) b3
-    real(rkx) :: ave , p1 , p2 , q1 , q2
-    integer(ik4) :: i , i1 , i2 , ii , j , j1 , j2 , jj
-    real(rkx) , dimension(jx,iy) :: smth1 , smth2
-    !
-    ! PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
-    ! BIGGER RECTANGULAR GRID TO A GRID DESCRIBED BY ALON AND ALAT OF
-    ! GRID2. A POINT ON GRID2 IS TRAPPED WITHIN FOUR GRID POINTS ON
-    ! GRID4.THE GRID POINTS ARE ALWAYS TO THE NORTH AND EAST OF THE
-    ! TRAPPED POINT. THE ALGORITHM COMPUTES THE FRACTIONAL DISTANCES IN
-    ! BOTH X AND Y DIRECTION OF THE TRAPPED GRID POINT AND USES THE
-    ! INFORMATION AS WEIGHTING FACTORS IN THE INTERPOLATION.
-    ! THERE IS ONE LESS ROW AND COLUMN WHEN THE SCALAR FIELDS ARE
-    ! INTERPOLATED BECAUSE ALAT AND ALON ARE NOT DEFINED FOR
-    ! THE CROSS POINTS IN THE RegCM MODEL.
-    !
-    ! B2(JX,IX,NLEV) IS THE INPUT FIELD ON REGULAR LAT/LON GRID.
-    ! B3(JX,IX,NLEV) IS THE OUTPUT FIELD ON LAMBERT CONFORMAL GRID.
-    ! HLON......LONGITUDE VALUES IN DEGREES OF THE INTERMEDIATE GRID4.
-    ! HLAT......LATITUDE VALUES IN DEGREES OF THE INTERMEDIATE GRID4.
-    ! P.........EAST-WEST WEIGHTING FACTOR.
-    ! Q.........NORTH-SOUTH WEIGHTING FACTOR.
-    ! IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
-    ! IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID POINT.
-    !
-    do i = 1 , iy
-      do j = 1 , jx
-        i1 = 0
-        i2 = 0
-        j1 = 0
-        j2 = 0
-        q1 = d_zero
-        q2 = d_zero
-        p1 = d_zero
-        p2 = d_zero
-        do ii = 1 , nlon - 1
-          if ( alon(j,i) >= hlon(ii) .and. alon(j,i) < hlon(ii+1) ) then
-            p1 = alon(j,i) - hlon(ii)
-            p2 = hlon(ii+1) - alon(j,i)
-            i1 = ii
-            i2 = ii + 1
-            exit
-          else if ( alon(j,i) >= hlon(ii)-deg360 .and. &
-                    alon(j,i) < hlon(ii+1)-deg360 ) then
-            p1 = alon(j,i) - (hlon(ii)-deg360)
-            p2 = (hlon(ii+1)-deg360) - alon(j,i)
-            i1 = ii
-            i2 = ii + 1
-            exit
-          else if ( alon(j,i) >= hlon(ii)+deg360 .and. &
-                    alon(j,i) < hlon(ii+1)+deg360 ) then
-            p1 = alon(j,i) - (hlon(ii)+deg360)
-            p2 = (hlon(ii+1)+deg360) - alon(j,i)
-            i1 = ii
-            i2 = ii + 1
-            exit
-          end if
-        end do
-        if ( alon(j,i) >= hlon(nlon) .and. alon(j,i) < hlon(1)+deg360 ) then
-          p1 = alon(j,i) - hlon(nlon)
-          p2 = (hlon(1)+deg360) - alon(j,i)
-          i1 = nlon
-          i2 = 1
-        else if ( alon(j,i) >= hlon(nlon)+deg360 .and. &
-                  alon(j,i) < hlon(1)+deg720 ) then
-          p1 = alon(j,i) - (hlon(nlon)+deg360)
-          p2 = (hlon(1)+deg720) - alon(j,i)
-          i1 = nlon
-          i2 = 1
-        else if ( alon(j,i) >= hlon(nlon)-deg360 .and. &
-                  alon(j,i) < hlon(1) ) then
-          p1 = alon(j,i) - (hlon(nlon)-deg360)
-          p2 = hlon(1) - alon(j,i)
-          i1 = nlon
-          i2 = 1
-        else if ( alon(j,i) >= hlon(nlon)-deg720 .and. &
-                  alon(j,i) < hlon(1)-deg360 ) then
-          p1 = alon(j,i) - (hlon(nlon)-deg720)
-          p2 = (hlon(1)-deg360) - alon(j,i)
-          i1 = nlon
-          i2 = 1
-        end if
-        if ( i1 == 0 ) then
-          call die('bilinx2','Could not find the right longitude',1)
-        end if
-        do jj = 1 , nlat - 1
-          if ( alat(j,i) >= hlat(jj) .and. alat(j,i) < hlat(jj+1) ) then
-            q1 = alat(j,i) - hlat(jj)
-            q2 = hlat(jj+1) - alat(j,i)
-            j1 = jj
-            j2 = jj + 1
-            exit
-          else if ( alat(j,i) <= hlat(1) ) then
-            q1 = d_one
-            q2 = d_one
-            j1 = 1
-            j2 = 1
-            exit
-          else if ( alat(j,i) >= hlat(nlat) ) then
-            q1 = d_one
-            q2 = d_one
-            j1 = nlat
-            j2 = nlat
-          end if
-        end do
-        if ( j1 == 0 ) then
-          call die('bilinx2','Could not find the right latitude',1)
-        end if
-        if ( j1 > 0 .and. j1 < nlat ) then
-          b3(j,i) = ((b2(i1,j1)*p2+b2(i2,j1)*p1)*q2 + &
-                     (b2(i1,j2)*p2+b2(i2,j2)*p1)*q1)/(p1+p2)/(q1+q2)
-        else if ( j1 == 0 ) then
-          ave = d_zero
-          do ii = 1 , nlon
-            ave = ave + b2(ii,1)
-          end do
-          ave = ave/real(nlon,rkx)
-          b3(j,i) = ((ave*(p1+p2))*q2+(b2(i1,j2)*p2 + &
-                      b2(i2,j2)*p1)*q1)/(p1+p2)/(q1+q2)
-        else if ( j1 == nlat ) then
-          ave = d_zero
-          do ii = 1 , nlon
-            ave = ave + b2(ii,nlat)
-          end do
-          ave = ave/real(nlon,rkx)
-          b3(j,i) = ((b2(i1,j1)*p2+b2(i2,j1)*p1)*q2 + &
-                     (ave*(p1+p2))*q1)/(p1+p2)/(q1+q2)
-        end if
-      end do
-    end do
-    ! Smooth the field
     smth1(:,:) = b3(:,:)
     smth2(:,:) = b3(:,:)
     do i = 1 , iy
@@ -516,7 +168,22 @@ module mod_interp
       end do
     end do
     b3(:,:) = smth1(:,:)
-  end subroutine bilinx2_2d
+
+  end subroutine bilinx_2d
+
+  subroutine bilinx_3d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy,llev)
+    implicit none
+    integer(ik4) , intent(in) :: iy , jx , llev , nlat , nlon
+    real(rkx) , dimension(jx,iy) , intent(in) :: alat , alon
+    real(rkx) , dimension(nlon,nlat,llev) , intent(in) :: b2
+    real(rkx) , dimension(jx,iy,llev) , intent(out) :: b3
+    real(rkx) , dimension(nlat) , intent(in) :: hlat
+    real(rkx) , dimension(nlon) , intent(in) :: hlon
+    integer(ik4) :: l
+    do l = 1 , llev
+      call bilinx_2d(b3(:,:,l),b2(:,:,l),alon,alat,hlon,hlat,nlon,nlat,jx,iy)
+    end do
+  end subroutine bilinx_3d
 
   subroutine compwgt(alon,alat,glon,glat,d1xa,d1xb,d1xc,d1xd, &
                      i1dl,i1dr,i1ul,i1ur,j1dl,j1dr,j1ul,j1ur, &
@@ -1194,6 +861,58 @@ module mod_interp
       end function has_south_pole
 
   end subroutine get_window
+
+  integer(ik4) function whereislon(lon,lonarr,nlon) result(jj)
+    implicit none
+    real(rkx) , intent(in) :: lon
+    real(rkx) , dimension(:) , intent(in) :: lonarr
+    integer(ik4) , intent(in) :: nlon
+    integer(ik4) :: i
+    real(rkx) , dimension(nlon) :: xlonarr
+    real(rkx) :: xlon , dlon
+
+    xlonarr(:) = lonarr(:)
+    xlon = lon
+    if ( xlonarr(1) > 0.0_rkx .and. xlonarr(nlon) < 0.0_rkx ) then
+      ! window crossing timeline
+      xlonarr = mod(xlonarr+360.0_rkx,360.0_rkx)
+      xlon = mod(xlon+360.0_rkx,360.0_rkx)
+    else if ( xlonarr(1) > xlonarr(nlon) ) then
+      ! window crossing greenwich
+      where ( xlonarr > 180.0_rkx )
+        xlonarr = xlonarr - 360.0_rkx
+      end where
+      if ( xlon > 180.0_rkx ) xlon = xlon - 360.0_rkx
+    end if
+    if ( xlonarr(1) > xlon ) then
+       jj = 1
+       return
+    else if ( xlonarr(nlon) < xlon ) then
+      jj = nlon
+      return
+    end if
+    dlon = (xlonarr(nlon)-xlonarr(1))/real(nlon-1,rkx)
+    jj = (xlon-xlonarr(1))/dlon + 1
+  end function whereislon
+
+  integer(ik4) function whereislat(lat,latarr,nlat) result(ii)
+    implicit none
+    real(rkx) , intent(in) :: lat
+    real(rkx) , dimension(:) , intent(in) :: latarr
+    integer(ik4) , intent(in) :: nlat
+    integer(ik4) :: i
+    real(rkx) , dimension(nlat) :: xlatarr
+    real(rkx) :: xlat , dlat
+
+    xlatarr(:) = latarr(:)
+    xlat = lat
+    dlat = (xlatarr(nlat)-xlatarr(1))/real(nlat-1,rkx)
+    if ( dlat > 0 ) then
+      ii = (xlat-xlatarr(1))/dlat
+    else
+      ii = (xlatarr(1)-xlat)/abs(dlat) + 1
+    end if
+  end function whereislat
 
 end module mod_interp
 

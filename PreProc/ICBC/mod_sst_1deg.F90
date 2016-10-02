@@ -166,9 +166,9 @@ module mod_sst_1deg
           end if
         end if
 
-        call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
+        call bilinx(sstmm,sst,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
         if ( ssttyp == 'OI2ST' ) then
-          call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
+          call bilinx(icemm,ice,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
         end if
 
         write (stdout,*) 'XLON,XLAT,SST = ', xlon(1,1), xlat(1,1), sstmm(1,1)
@@ -208,7 +208,7 @@ module mod_sst_1deg
         end if
 
         call sst_wk(idate,iwk,ilon,jlat,sst,inpfile)
-        call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
+        call bilinx(sstmm,sst,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
 
         if ( ssttyp == 'OI2WK') then
           if ( idate < 19891231 ) then
@@ -217,7 +217,7 @@ module mod_sst_1deg
             inpfile=trim(inpglob)//'/SST/icec.wkmean.1990-present.nc'
           end if
           call ice_wk(idate,iwk,ilon,jlat,ice,inpfile)
-          call bilinx(ice,icemm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
+          call bilinx(icemm,ice,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
         end if
 
         do i = 1 , iy

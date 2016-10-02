@@ -54,7 +54,7 @@ module mod_ecwcp
   subroutine getecwcp(idate)
     use mod_grid
     use mod_write
-    use mod_interp , only : bilinx2
+    use mod_interp , only : bilinx
     use mod_vertint
     use mod_hgt
     use mod_humid
@@ -139,8 +139,8 @@ module mod_ecwcp
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
-    call bilinx2(b3,b2,xlon,xlat,hlon,hlat,ilon,jlat,jx,iy,nlev*3)
-    call bilinx2(d3,d2,dlon,dlat,hlon,hlat,ilon,jlat,jx,iy,nlev*2)
+    call bilinx(b3,b2,xlon,xlat,hlon,hlat,ilon,jlat,jx,iy,nlev*3)
+    call bilinx(d3,d2,dlon,dlat,hlon,hlat,ilon,jlat,jx,iy,nlev*2)
     !
     ! Rotate U-V fields after horizontal interpolation
     !

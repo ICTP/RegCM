@@ -230,7 +230,7 @@ module mod_ch_icbc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var PS')
     xps = xps*0.01
-    call bilinx2(pchem_3,xps,xlon,xlat,cht42lon,cht42lat, &
+    call bilinx(pchem_3,xps,xlon,xlat,cht42lon,cht42lat, &
                  chilon,chjlat,jx,iy)
   end subroutine readps
 
@@ -399,7 +399,7 @@ module mod_ch_icbc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
       where ( xinp < mintr ) xinp = d_zero
-      call bilinx2(chv3(:,:,:,is),xinp(:,:,:),xlon,xlat,cht42lon,cht42lat, &
+      call bilinx(chv3(:,:,:,is),xinp(:,:,:),xlon,xlat,cht42lon,cht42lat, &
                    chilon,chjlat,jx,iy,chilev)
     end do
     do i = 1 , iy
