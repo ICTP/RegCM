@@ -153,6 +153,9 @@ module mod_clm_cnnitrifdenitrif
     ! column 3D org (kg/m3 organic matter) (nlevgrnd)
     real(rk8), pointer :: cellorg(:,:)
     character(len=32) :: subname='nitrif_denitrif' ! subroutine name
+#ifdef LCH4
+    real(rk8) :: arg
+#endif
 
     !-- implicit in
 ! #ifdef LCH4
@@ -254,11 +257,15 @@ module mod_clm_cnnitrifdenitrif
         if ( o2_decomp_depth_unsat(c,j) /= spval .and. &
              conc_o2_unsat(c,j) /= spval .and. &
              o2_decomp_depth_unsat(c,j) > 0._rk8 ) then
-          anaerobic_frac(c,j) = exp(-rij_kro_a * &
-              r_psi(c,j)**(-rij_kro_alpha) * &
-              o2_decomp_depth_unsat(c,j)**(-rij_kro_beta) * &
-              conc_o2_unsat(c,j)**rij_kro_gamma * (h2osoi_vol(c,j) + &
-              ratio_diffusivity_water_gas(c,j) * watsat(c,j))**rij_kro_delta)
+          arg = -rij_kro_a * r_psi(c,j)**(-rij_kro_alpha) *        &
+            o2_decomp_depth_unsat(c,j)**(-rij_kro_beta) *          &
+            conc_o2_unsat(c,j)**rij_kro_gamma * (h2osoi_vol(c,j) + &
+            ratio_diffusivity_water_gas(c,j) * watsat(c,j))**rij_kro_delta
+          if ( arg > -25._rk8 ) then
+            anaerobic_frac(c,j) = exp(-arg)
+          else
+            anaerobic_frac(c,j) = 0._rk8
+          end if
         else
           anaerobic_frac(c,j) = 0._rk8
         end if
@@ -390,9 +397,13 @@ module mod_clm_cnnitrifdenitrif
         end if
 #endif
         ! final ratio expression
-        n2_n2o_ratio_denit_vr(c,j) = max(0.16*ratio_k1(c,j), ratio_k1(c,j) * &
-               exp(-0.8 * ratio_no3_co2(c,j))) * fr_WFPS(c,j)
-
+        arg = 0.8 * ratio_no3_co2(c,j)
+        if ( arg < 25.0_rk8 ) then
+          n2_n2o_ratio_denit_vr(c,j) = max(0.16_rk8*ratio_k1(c,j), &
+              ratio_k1(c,j) * exp(-0.8 * ratio_no3_co2(c,j))) * fr_WFPS(c,j)
+        else
+          n2_n2o_ratio_denit_vr(c,j) = 0.16_rk8*ratio_k1(c,j)
+        end if
       end do
     end do
   end subroutine nitrif_denitrif
