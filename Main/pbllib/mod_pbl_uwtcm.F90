@@ -957,6 +957,7 @@ module mod_pbl_uwtcm
                                a2 = 0.74_rkx , b2 = 10.1_rkx
       integer(ik4) :: k , ilay
       real(rkx) , parameter :: kthmax = 1.0e3_rkx
+      real(rkx) , parameter :: kzmmax = 1.0e3_rkx
 
       b1 = czero * d_two**(d_three/d_two)
       a1ob1 = a1/b1
@@ -999,13 +1000,13 @@ module mod_pbl_uwtcm
         ! kthmax = 1.0e4_rkx
 
         ! Calculate the diffusion coefficients
-        kzm(k) = min(bbls(k)*sqrt(d_two*tke(k))*sm(k),kthmax)
+        kzm(k) = min(bbls(k)*sqrt(d_two*tke(k))*sm(k),kzmmax)
         kth(k) = min(bbls(k)*sqrt(d_two*tke(k))*sh(k),kthmax)
         ! Smoothly limit kth to a maximum value
         !kth(k) = d_two/mathpi*kthmax*atan(kth(k)/kthmax)
-        !kzm(k) = d_two/mathpi*kthmax*atan(kzm(k)/kthmax)
+        !kzm(k) = d_two/mathpi*kthmax*atan(kzm(k)/kzmmax)
         kethl(k) = nuk*sqrt(kzm(k)*kzm(k+1))
-        kethl(k) = min(kethl(k),kthmax)
+        kethl(k) = min(kethl(k),kzmmax)
       end do kloop
 
       ! special case for tops of convective layers
