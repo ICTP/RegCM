@@ -95,7 +95,7 @@ module mod_interp
     real(rkx) , dimension(nlat) , intent(in) :: hlat
     real(rkx) , dimension(nlon) , intent(in) :: hlon
     real(rkx) , dimension(jx,iy) , intent(out) :: b3
-    real(rkx) :: ave , p1 , p2 , q1 , q2 , dlon , dlat
+    real(rkx) :: p1 , p2 , q1 , q2 , dlon , dlat
     integer(ik4) :: i , i1 , i2 , j , j1 , j2
     real(rkx) , dimension(jx,iy) :: smth1 , smth2
     !
@@ -887,7 +887,6 @@ module mod_interp
     integer(ik4) , intent(in) :: nlon
     real(rkx) , intent(in) :: lon
     real(rkx) , dimension(nlon) , intent(in) :: lonarr
-    integer(ik4) :: i
     real(rkx) , dimension(nlon) :: xlonarr
     real(rkx) :: xlon , dlon
 
@@ -913,7 +912,7 @@ module mod_interp
       return
     end if
     dlon = (xlonarr(nlon)-xlonarr(1))/real(nlon-1,rkx)
-    jj = (xlon-xlonarr(1))/dlon + 1
+    jj = int((xlon-xlonarr(1))/dlon) + 1
   end function whereislon
 
   integer(ik4) function whereislat(nlat,lat,latarr) result(ii)
@@ -921,7 +920,6 @@ module mod_interp
     real(rkx) , intent(in) :: lat
     integer(ik4) , intent(in) :: nlat
     real(rkx) , dimension(nlat) , intent(in) :: latarr
-    integer(ik4) :: i
     real(rkx) , dimension(nlat) :: xlatarr
     real(rkx) :: xlat , dlat
 
@@ -929,9 +927,9 @@ module mod_interp
     xlat = lat
     dlat = (xlatarr(nlat)-xlatarr(1))/real(nlat-1,rkx)
     if ( dlat > 0 ) then
-      ii = (xlat-xlatarr(1))/dlat
+      ii = int((xlat-xlatarr(1))/dlat)
     else
-      ii = (xlatarr(1)-xlat)/abs(dlat) + 1
+      ii = int((xlatarr(1)-xlat)/abs(dlat)) + 1
     end if
     if ( ii < 1 ) ii = 1
     if ( ii > nlat - 1 ) ii = nlat - 1
