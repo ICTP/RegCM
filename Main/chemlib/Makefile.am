@@ -88,4 +88,4 @@ mod_che_tend.o : mod_che_tend.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_che_wetdep.o : mod_che_wetdep.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_che_common.o mod_che_indices.o mod_che_drydep.o
 mod_che_common_isorropia.o : mod_che_common_isorropia.F90 mod_realkinds.o mod_intkinds.o
 mod_che_isorropia.o : mod_che_isorropia.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_constants.o mod_che_common.o mod_che_indices.o mod_che_species.o mod_che_common_isorropia.o mod_che_molwg.o
-mod_che_molwg.o: mod_che_molwg.F90 mod_intkinds.o mod_realkinds.o
+mod_che_molwg.o: mod_che_molwg.F90 mod_che_indices.o mod_intkinds.o mod_realkinds.o
