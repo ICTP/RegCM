@@ -1065,6 +1065,53 @@ module mod_output
 #endif
   end subroutine output
 
+  subroutine vertint(f3,p3,f2,plev)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: f3
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p3
+    real(rkx) , pointer , dimension(:,:) , intent(out) :: f2
+    real(rkx) , intent(in) :: plev
+    integer(ik4) :: i , j , ik
+    real(rkx) , dimension(kz) :: f1 , p1
+    real(rkx) :: blw , tlw , dp
+
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        f1 = f3(j,i,:)
+        p1 = p3(j,i,:)
+        ik = findlev()
+        if ( ik < 1 ) then
+          ! higher than top
+          f2(j,i) = f3(j,i,1)
+        else if ( ik > kz-1 ) then
+          ! lower than bottom
+          f2(j,i) = f3(j,i,kz)
+        else
+          ! in between two levels
+          dp = p3(j,i,ik+1) - p3(j,i,ik)
+          blw = (plev - p3(j,i,ik)) / dp
+          tlw = d_one - blw
+          f2(j,i) = (f3(j,i,ik+1)*blw+f3(j,i,ik)*tlw)
+        end if
+      end do
+    end do
+
+    contains
+
+    integer(ik4) function findlev() result(kk)
+      implicit none
+      integer(ik4) :: k
+      kk = 0
+      if ( plev < p1(1) ) return
+      do k = 1 , kz
+        if ( plev > p1(k) ) then
+          kk = k
+        end if
+      end do
+    end function findlev
+
+  end subroutine vertint
+
 end module mod_output
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
