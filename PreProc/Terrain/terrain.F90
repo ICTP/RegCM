@@ -385,7 +385,7 @@ program terrain
   write(stdout,*)'Static DEM data successfully read in'
   call interp(jx,iy,xlat,xlon,htgrid,           &
               nlatin,nlonin,grdltmn,grdlnmn,values, &
-              ntypec,1,lonwrap,lcrosstime)
+              ntypec,2,lonwrap,lcrosstime)
   call relmem2d(values)
   write(stdout,*)'Interpolated DEM on model GRID'
 
