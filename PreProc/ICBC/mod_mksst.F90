@@ -234,7 +234,7 @@ module mod_mksst
     np = -1
     nearn = 0.0_rkx
     wtsum = 0.0_rkx
-    do while ( np < 0 )
+    do while ( np < 0 .and. nr < 5 )
       do i = ip - nr , ip + nr
         do j = jp - nr , jp + nr
           if ( j == jp .and. i == ip ) cycle
