@@ -217,6 +217,10 @@ module mod_che_start
         ibin = ibin + 1
         idust(ibin) = itr
       end if
+      if ( chtrname(itr)(1:4) ==  'DU12') then
+        ibin = ibin + 1
+        idust(ibin) = itr
+      end if
       if ( chtrname(itr)(1:4) ==  'SSLT') then
         jbin = jbin + 1
         isslt(jbin) = itr
@@ -340,12 +344,25 @@ module mod_che_start
       end do
     end if
     !
-    ! look also in aerosol bc and pile them after.
+    ! look also in aerosol bc and pile them after. (Expect when using DU12)
     !
-    if ( iaerosol == 1 ) then
+    if ( iaerosol == 1 .and. chemsimtype(1:4) .ne. 'DU12' ) then
       do n = 1 , size(aeaero)
         do i = 1 , ntr
           if ( aeaero(n) == chtrname(i) ) then
+            ichbdy2trac(itr) = i
+            itr = itr + 1
+          end if
+        end do
+      end do
+    end if
+    !
+    ! Only when using DU12
+    !
+    if ( iaerosol == 1 .and. chemsimtype(1:4) == 'DU12' ) then
+      do n = 1 , size(aedu12)
+        do i = 1 , ntr
+          if ( aedu12(n) == chtrname(i) ) then
             ichbdy2trac(itr) = i
             itr = itr + 1
           end if
