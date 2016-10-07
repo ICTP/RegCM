@@ -71,6 +71,8 @@ module mod_tendency
 
   real(rkx) :: rptn ! Total number of internal points
 
+  ! real(rkx) :: maxpten = 0.0078125_rkx
+
   contains
 
 #include <cpmf.inc>
@@ -132,6 +134,9 @@ module mod_tendency
     else
       iq2 = iqc
     end if
+    !if ( idynamic == 1 ) then
+    !  maxpten = 0.01250_rkx
+    !end if
   end subroutine allocate_mod_tend
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -209,6 +214,21 @@ module mod_tendency
           end do
         end do
       end do
+      if ( iboudy == 4 ) then
+        call sponge(xpsb,pten)
+      else if ( iboudy == 1 .or. iboudy == 5 ) then
+        call nudge(iboudy,sfs%psb,xpsb,pten)
+      end if
+      !do i = ice1 , ice2
+      !  do j = jce1 , jce2
+      !    if ( abs(pten(j,i)) > maxpten ) then
+      !      write(stderr, *) 'WARNING : at I,J = ', i , j
+      !      write(stderr, *) 'WARNING : PTEN = ', pten(j,i)
+      !      pten(j,i) = min(max(pten(j,i),-maxpten),maxpten)
+      !      write(stderr, *) 'RESET IT TO PTEN = ', pten(j,i)
+      !    end if
+      !  end do
+      !end do
       do k = 2 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -319,41 +339,12 @@ module mod_tendency
     ! Surface pressure boundary conditions for Hydrostatic
     !
     if ( idynamic == 1 ) then
-      if ( iboudy == 4 ) then
-        call sponge(xpsb,pten)
-      else if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(iboudy,sfs%psb,xpsb,pten)
-      end if
       !
       ! psc : forecast pressure
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
-        end do
-      end do
-      if ( ma%has_bdyleft ) then
-        do i = ici1 , ici2
-          sfs%psc(jce1,i) = sfs%psb(jce1,i) + xpsb%bt(jce1,i)*dt
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do i = ici1 , ici2
-          sfs%psc(jce2,i) = sfs%psb(jce2,i) + xpsb%bt(jce2,i)*dt
-        end do
-      end if
-      if ( ma%has_bdybottom ) then
-        do j = jce1 , jce2
-          sfs%psc(j,ice1) = sfs%psb(j,ice1) + xpsb%bt(j,ice1)*dt
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do j = jce1 , jce2
-          sfs%psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
-        end do
-      end if
       do i = ice1 , ice2
         do j = jce1 , jce2
+          sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
           rpsc(j,i) = d_one/sfs%psc(j,i)
         end do
       end do

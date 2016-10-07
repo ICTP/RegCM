@@ -72,7 +72,8 @@ module mod_diffusion
     use mod_atm_interface , only : mddom , sfs , atms
     implicit none
     integer(ik4) :: i , j
-    real(rkx) :: hg1 , hg2 , hg3 , hg4 , hgmax , xkhz
+    real(rkx) :: hg1 , hg2 , hg3 , hg4
+    real(rkx) :: hgmax , xkhz , maxht
     !
     ! Diffusion coefficients: for non-hydrostatic, follow the MM5
     ! The hydrostatic diffusion is following the RegCM3 formulation
@@ -100,6 +101,7 @@ module mod_diffusion
       end do
     end do
     if ( diffu_hgtf == 1 ) then
+      call maxall(maxval(mddom%ht),maxht)
       do i = ici1ga , ici2ga
         do j = jci1ga , jci2ga
           hg1 = abs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
@@ -107,7 +109,7 @@ module mod_diffusion
           hg3 = abs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
           hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
           hgmax = max(hg1,hg2,hg3,hg4)*regrav
-          hgfact(j,i) = xkhz/(d_one+(hgmax/0.001_rkx)**2)
+          hgfact(j,i) = (xkhz/mddom%msfx(j,i))/(d_one+(hgmax/maxht)**2)
         end do
       end do
     end if

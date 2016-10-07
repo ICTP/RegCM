@@ -556,13 +556,13 @@ module mod_precip
           do j = jci1 , jci2
             ! Adjusted relative humidity threshold
             pres = p3(j,i,k)
-            !if ( t3(j,i,k) > tc0 ) then
-            !  rh0adj = rh0(j,i)
-            !else ! high cloud (less subgrid variability)
-            !  rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t3(j,i,k)))
-            !end if
-            pfac = max(d_one-(sfps(j,i)/pres)**4,-25.0_rkx)
-            rh0adj = 0.7_rkx+(rh0(j,i)-0.7_rkx)*exp(pfac)
+            if ( t3(j,i,k) > tc0 ) then
+              rh0adj = rh0(j,i)
+            else ! high cloud (less subgrid variability)
+              rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t3(j,i,k)))
+            end if
+            !pfac = max(d_one-(sfps(j,i)/pres)**4,-25.0_rkx)
+            !rh0adj = 0.7_rkx+(rh0(j,i)-0.7_rkx)*exp(pfac)
             rh0adj = max(rhmin,min(rh0adj,rhmax))
             if ( rh3(j,i,k) >= rhmax ) then     ! full cloud cover
               pfcc(j,i,k) = hicld
@@ -732,14 +732,14 @@ module mod_precip
           r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
 
           ! 2b. Compute the relative humidity threshold at ktau+1
-          !if ( tmp3 > tc0 ) then
-          !  rh0adj = rh0(j,i)
-          !else ! high cloud (less subgrid variability)
-          !  rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
-          !end if
+          if ( tmp3 > tc0 ) then
+            rh0adj = rh0(j,i)
+          else ! high cloud (less subgrid variability)
+            rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
+          end if
           ! Lohmann and Roeckner, 1996 ECHAM5
-          pfac = max(d_one-(sfps(j,i)/pres)**4,-25.0_rkx)
-          rh0adj = 0.7_rkx + (rh0(j,i)-0.7_rkx)*exp(pfac)
+          !pfac = max(d_one-(sfps(j,i)/pres)**4,-25.0_rkx)
+          !rh0adj = 0.7_rkx + (rh0(j,i)-0.7_rkx)*exp(pfac)
           rh0adj = max(rhmin,min(rh0adj,rhmax))
 
           if ( rhc < rh0adj ) then      ! No cloud cover
