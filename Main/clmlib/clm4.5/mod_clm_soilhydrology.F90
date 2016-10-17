@@ -1082,7 +1082,11 @@ module mod_clm_soilhydrology
           imped(c,j) = 10._rk8**(-e_ice*(0.5_rk8*(icefrac(c,j) + &
                   icefrac(c,min(nlevsoi, j+1)))))
         end if
-        hk(c,j) = imped(c,j)*s1*s2
+        if ( imped(c,j) > dlowval .and. s1 > dlowval .and. s2 > dlowval ) then
+          hk(c,j) = imped(c,j)*s1*s2
+        else
+          hk(c,j) = d_zero
+        end if
         dhkdw(c,j) = imped(c,j)*(2._rk8*bsw(c,j)+3._rk8)*s2* &
                        (1._rk8/(watsat(c,j)+watsat(c,min(nlevsoi, j+1))))
 

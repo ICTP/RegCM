@@ -488,9 +488,9 @@ module mod_clm_baregroundfluxes
 
       t_veg(p) = forc_t(c)
       btran(p) = 0._rk8
-      cf = forc_pbot(c)/(rgas*0.001_rk8*thm(p))*1.e6_rk8
-      rssun(p) = 1._rk8/1.e15_rk8 * cf
-      rssha(p) = 1._rk8/1.e15_rk8 * cf
+      cf = forc_pbot(c)/(rgas*thm(p))
+      rssun(p) = 1.e-6_rk8 * cf
+      rssha(p) = 1.e-6_rk8 * cf
 
       ! Add the following to avoid NaN
 
