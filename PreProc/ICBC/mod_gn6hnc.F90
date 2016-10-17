@@ -275,8 +275,11 @@ module mod_gn6hnc
       call getmem1d(ak,1,klev,'mod_gn6hnc:ak')
       call getmem1d(bk,1,klev,'mod_gn6hnc:bk')
     else
-      if ( dattyp == 'GFS11' .or. dattyp == 'JRA55' ) then
+      if ( dattyp == 'GFS11' ) then
         call getmem1d(gltemp,1,nlat,'mod_gn6hnc:gltemp')
+        call getmem3d(vwork,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vwork')
+      end if
+      if ( dattyp == 'JRA55' ) then
         call getmem3d(vwork,1,nlon,1,nlat,1,klev,'mod_gn6hnc:vwork')
       end if
       call getmem3d(b2,1,nlon,1,nlat,1,klev*3,'mod_gn6hnc:b2')
@@ -388,11 +391,6 @@ module mod_gn6hnc
                       'Error read var6 var')
       zsvar(:,:) = zsvar(:,:)*real(regrav)
       where (zsvar < 0.0) zsvar = 0.0
-      do j = 1 , nlat
-        gltemp(nlat-j+1) = glat(j)
-      end do
-      glat(:) = gltemp(:)
-      call relmem1d(gltemp)
     else if ( dattyp(1:3) == 'HA_' ) then
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -1113,27 +1111,19 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet(1),ivar(1),vwork,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//jra55vars(1))
-      do j = 1 , nlat
-        tvar(:,nlat-j+1,:) = vwork(:,j,:)
-      end do
+      tvar(:,:,:) = vwork(:,:,:)
       istatus = nf90_get_var(inet(2),ivar(2),vwork,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//jra55vars(2))
-      do j = 1 , nlat
-        hvar(:,nlat-j+1,:) = vwork(:,j,:)
-      end do
+      hvar(:,:,:) = vwork(:,:,:)
       istatus = nf90_get_var(inet(4),ivar(4),vwork,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//jra55vars(4))
-      do j = 1 , nlat
-        uvar(:,nlat-j+1,:) = vwork(:,j,:)
-      end do
+      uvar(:,:,:) = vwork(:,:,:)
       istatus = nf90_get_var(inet(5),ivar(5),vwork,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//jra55vars(5))
-      do j = 1 , nlat
-        vvar(:,nlat-j+1,:) = vwork(:,j,:)
-      end do
+      vvar(:,:,:) = vwork(:,:,:)
       do k = 1, klev
         pp3d(:,:,k) = pplev(k)*0.01 ! Get in hPa
       end do
@@ -1143,9 +1133,7 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet(3),ivar(3),vwork,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//jra55vars(3))
-      do j = 1 , nlat
-        qvar(:,nlat-j+1,:) = vwork(:,j,:)*0.01_rkx
-      end do
+      qvar(:,:,:) = vwork(:,:,:)*0.01_rkx
     else if ( dattyp(1:2) == 'E5' ) then
       varname => ec5vars
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then

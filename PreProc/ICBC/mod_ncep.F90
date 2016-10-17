@@ -42,7 +42,7 @@ module mod_ncep
   integer(ik4) :: jlat
   integer(ik4) :: ilon
 
-  real(rkx) , pointer , dimension(:) :: glat , glat1
+  real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: glon
   real(rkx) , pointer , dimension(:) :: sigmar , sigma1
   real(rkx) :: pss
@@ -299,32 +299,32 @@ module mod_ncep
         if ( kkrec == 1 ) then
           do j = 1 , jlat
             do i = 1 , ilon
-              tvar(i,jlat+1-j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
+              tvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
             end do
           end do
         else if ( kkrec == 2 ) then
           do j = 1 , jlat
             do i = 1 , ilon
-              hvar(i,jlat+1-j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
+              hvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
             end do
           end do
         else if ( kkrec == 3 ) then
           do j = 1 , jlat
             do i = 1 , ilon
-              rhvar(i,jlat+1-j,ilev) = min((real(work(i,j,ilev),rkx)* &
+              rhvar(i,j,ilev) = min((real(work(i,j,ilev),rkx)* &
                             xscale+xadd)*0.01_rkx,1._rkx)
             end do
           end do
         else if ( kkrec == 4 ) then
           do j = 1 , jlat
             do i = 1 , ilon
-              uvar(i,jlat+1-j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
+              uvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
             end do
           end do
         else if ( kkrec == 5 ) then
           do j = 1 , jlat
             do i = 1 , ilon
-              vvar(i,jlat+1-j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
+              vvar(i,j,ilev) = real(work(i,j,ilev),rkx)*xscale+xadd
             end do
           end do
         end if
@@ -390,7 +390,6 @@ module mod_ncep
 
     call getmem1d(glon,1,ilon,'mod_ncep:glon')
     call getmem1d(glat,1,jlat,'mod_ncep:glat')
-    call getmem1d(glat1,1,jlat,'mod_ncep:glat')
     call getmem1d(sigmar,1,klev,'mod_ncep:sigmar')
     call getmem1d(sigma1,1,klev,'mod_ncep:sigma1')
 
@@ -423,7 +422,7 @@ module mod_ncep
     end if
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find var lon')
-    istatus = nf90_get_var(inet,idv,glat1)
+    istatus = nf90_get_var(inet,idv,glat)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read lat')
     istatus = nf90_close(inet)
@@ -431,14 +430,6 @@ module mod_ncep
                     'Cannot close file')
 
     write(stdout,*) 'Read static data'
-
-    if ( dattyp(1:3) /= 'CFS' ) then
-      do j = 1 , jlat
-        glat(j) = glat1(jlat-j+1)
-      end do
-    else
-      glat(:) = glat1(:)
-    end if
 
     call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ncep:work')
     call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ncep:b3')

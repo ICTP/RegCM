@@ -21,6 +21,7 @@ module mod_sst_1deg
 
   use mod_intkinds
   use mod_realkinds
+  use mod_memutil
   use mod_stdio
   use mod_dynparam
   use mod_sst_grid
@@ -34,6 +35,13 @@ module mod_sst_1deg
   public :: sst_1deg
 
   integer(ik4) :: year , month , day , hour
+
+  integer(ik4) :: istatus , latid , lonid
+  integer(ik4) :: ilon , jlat
+  real(rkx) , pointer , dimension(:) :: lati
+  real(rkx) , pointer , dimension(:) :: loni
+  real(rkx) , pointer , dimension(:,:) :: sst , ice
+  integer(2) , pointer , dimension(:,:) :: work , work1
 
   contains
   !
@@ -61,24 +69,32 @@ module mod_sst_1deg
   !
   subroutine sst_1deg
     implicit none
-    integer(ik4) , parameter :: ilon = 360 , jlat = 180
-    real(rkx) , dimension(ilon,jlat) :: sst , ice
-    real(rk4) , dimension(ilon,jlat) :: gisst
+    real(rk4) , dimension(360,180) :: gisst
     integer(ik4) :: i , j , k , iwk , nrec
     integer(ik4) :: nsteps
     integer :: gireclen
     type(rcm_time_and_date) :: idate , idateo , idatef , idatem , irefd
-    real(rkx) , dimension(jlat) :: lati
-    real(rkx) , dimension(ilon) :: loni
     character(len=256) :: inpfile
     logical :: there
 
     if ( ssttyp == 'GISST' ) then
+      ilon = 360
+      jlat = 180
+      call getmem1d(lati,1,jlat,'mod_sst_1deg:lati')
+      call getmem1d(loni,1,ilon,'mod_sst_1deg:loni')
+      call getmem2d(sst,1,ilon,1,jlat,'mod_sst_1deg:sst')
       if ( globidate1 < 1947121512 .or. globidate2 > 2002091512 ) then
         write (stderr,*) 'GISST data required are not available'
         write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
         call die('sst_1deg')
       end if
+      ! SET UP LONGITUDES AND LATITUDES FOR SST DATA
+      do i = 1 , ilon
+        loni(i) = .5 + float(i-1)
+      end do
+      do j = 1 , jlat
+        lati(j) = -89.5 + 1.*float(j-1)
+      end do
       inpfile = trim(inpglob)//'/SST/GISST_194712_200209'
       inquire (file=inpfile,exist=there)
       if ( .not. there ) then
@@ -129,17 +145,7 @@ module mod_sst_1deg
       call open_sstfile(idateo)
     end if
 
-    write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
-    write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
     write (stdout,*) 'NSTEPS     : ' , nsteps
-
-    ! SET UP LONGITUDES AND LATITUDES FOR SST DATA
-    do i = 1 , ilon
-      loni(i) = .5 + float(i-1)
-    end do
-    do j = 1 , jlat
-      lati(j) = -89.5 + 1.*float(j-1)
-    end do
 
     ! ****** OISST SST DATA, 1 Deg data, AVAILABLE FROM 12/1981 TO PRESENT
     ! ****** GISST SST DATA, 1 Deg data, AVAILABLE FROM 12/1947 TO 9/2002
@@ -159,10 +165,10 @@ module mod_sst_1deg
         else if ( ssttyp == 'OISST' .or. ssttyp == 'OI_NC' .or. &
                   ssttyp == 'OI2ST') then
           inpfile=trim(inpglob)//'/SST/sst.mnmean.nc'
-          call sst_mn(idate,idateo,ilon,jlat,sst,inpfile)
+          call sst_mn(idate,idateo,inpfile)
           if ( ssttyp == 'OI2ST' ) then
             inpfile=trim(inpglob)//'/SST/icec.mnmean.nc'
-            call ice_mn(idate,idateo,ilon,jlat,ice,inpfile)
+            call ice_mn(idate,idateo,inpfile)
           end if
         end if
 
@@ -207,7 +213,7 @@ module mod_sst_1deg
           iwk = iwkdiff(idate,irefd)
         end if
 
-        call sst_wk(idate,iwk,ilon,jlat,sst,inpfile)
+        call sst_wk(idate,iwk,inpfile)
         call bilinx(sstmm,sst,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
 
         if ( ssttyp == 'OI2WK') then
@@ -216,7 +222,7 @@ module mod_sst_1deg
           else
             inpfile=trim(inpglob)//'/SST/icec.wkmean.1990-present.nc'
           end if
-          call ice_wk(idate,iwk,ilon,jlat,ice,inpfile)
+          call ice_wk(idate,iwk,inpfile)
           call bilinx(icemm,ice,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
         end if
 
@@ -238,17 +244,12 @@ module mod_sst_1deg
     end if
   end subroutine sst_1deg
 
-  subroutine sst_mn(idate,idate0,ilon,jlat,sst,pathaddname)
+  subroutine sst_mn(idate,idate0,pathaddname)
     implicit none
-    integer(ik4) , intent(in) :: ilon , jlat
     type(rcm_time_and_date) :: idate , idate0
     character(len=256) , intent(in) :: pathaddname
-    real(rkx) , dimension(ilon,jlat) :: sst
-    intent (out) :: sst
     integer(ik4) :: i , it , j
     character(len=5) :: varname
-    integer(2) , dimension(ilon,jlat) :: work
-    integer(ik4) :: istatus
     integer(ik4) , dimension(3) , save :: icount , istart
     integer(ik4) , save :: inet , ivar
     real(rkx) , save :: xadd , xscale
@@ -278,6 +279,46 @@ module mod_sst_1deg
       istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error find attribute add_offset')
+      istatus = nf90_inq_dimid(inet,'lat',latid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(inet,'latitude',latid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim lat')
+      end if
+      istatus = nf90_inq_dimid(inet,'lon',lonid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(inet,'longitude',lonid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim lon')
+      end if
+      istatus = nf90_inquire_dimension(inet,latid,len=jlat)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire dim lat')
+      istatus = nf90_inquire_dimension(inet,lonid,len=ilon)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire dim lon')
+      istatus = nf90_inq_varid(inet,'lat',latid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(inet,'latitude',latid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var lat')
+      end if
+      istatus = nf90_inq_varid(inet,'lon',lonid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(inet,'longitude',lonid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var lon')
+      end if
+      call getmem1d(lati,1,jlat,'mod_sst_1deg:lati')
+      call getmem1d(loni,1,ilon,'mod_sst_1deg:loni')
+      call getmem2d(sst,1,ilon,1,jlat,'mod_sst_1deg:sst')
+      call getmem2d(work,1,ilon,1,jlat,'mod_sst_1deg:work')
+      istatus = nf90_get_var(inet,latid,lati)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var lat')
+      istatus = nf90_get_var(inet,lonid,loni)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var lon')
       istart(1) = 1
       istart(2) = 1
       icount(1) = ilon
@@ -296,25 +337,20 @@ module mod_sst_1deg
     do j = 1 , jlat
       do i = 1 , ilon
         if ( work(i,j) == 32767 ) then
-           sst(i,jlat+1-j) = -9999.
+           sst(i,j) = -9999.
         else
-           sst(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
+           sst(i,j) = real(dble(work(i,j))*xscale + xadd)
         end if
       end do
     end do
   end subroutine sst_mn
 
-  subroutine ice_mn(idate,idate0,ilon,jlat,ice,pathaddname)
+  subroutine ice_mn(idate,idate0,pathaddname)
     implicit none
-    integer(ik4) , intent(in) :: ilon , jlat
     type(rcm_time_and_date) :: idate , idate0
     character(len=256) , intent(in) :: pathaddname
-    real(rkx) , dimension(ilon,jlat) :: ice
-    intent (out) :: ice
     integer(ik4) :: i , it , j
     character(len=5) :: varname
-    integer(2) , dimension(ilon,jlat) :: work
-    integer(ik4) :: istatus
     integer(ik4) , dimension(3) , save :: icount , istart
     integer(ik4) , save :: inet , ivar
     real(rkx) , save :: xadd , xscale
@@ -343,6 +379,7 @@ module mod_sst_1deg
       istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find att add_offset')
+      call getmem2d(ice,1,ilon,1,jlat,'mod_sst_1deg:ice')
       istart(1) = 1
       istart(2) = 1
       icount(1) = ilon
@@ -360,24 +397,21 @@ module mod_sst_1deg
     do j = 1 , jlat
       do i = 1 , ilon
         if ( work(i,j) == 32767 ) then
-           ice(i,jlat+1-j) = -9999.
+           ice(i,j) = -9999.
         else
-           ice(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
+           ice(i,j) = real(dble(work(i,j))*xscale + xadd)
         end if
       end do
     end do
   end subroutine ice_mn
 
-  subroutine sst_wk(idate,kkk,ilon,jlat,sst,pathaddname)
+  subroutine sst_wk(idate,kkk,pathaddname)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) , intent(in) :: kkk , ilon , jlat
+    integer(ik4) , intent(in) :: kkk
     character(len=256) , intent(in) :: pathaddname
-    real(rkx) , dimension(ilon,jlat) , intent(out) :: sst
     integer(ik4) :: i , j
     character(len=3) :: varname
-    integer(ik4) :: istatus
-    integer(2) , dimension(ilon,jlat) :: work , work1
     integer(ik4) , dimension(3) , save :: icount , istart
     integer(ik4) , save :: inet , ivar
     real(rkx) , save :: xadd , xscale
@@ -412,6 +446,47 @@ module mod_sst_1deg
       istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find att add_offset')
+      istatus = nf90_inq_dimid(inet,'lat',latid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(inet,'latitude',latid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim lat')
+      end if
+      istatus = nf90_inq_dimid(inet,'lon',lonid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(inet,'longitude',lonid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim lon')
+      end if
+      istatus = nf90_inquire_dimension(inet,latid,len=jlat)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire dim lat')
+      istatus = nf90_inquire_dimension(inet,lonid,len=ilon)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire dim lon')
+      istatus = nf90_inq_varid(inet,'lat',latid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(inet,'latitude',latid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var lat')
+      end if
+      istatus = nf90_inq_varid(inet,'lon',lonid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(inet,'longitude',lonid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var lon')
+      end if
+      call getmem1d(lati,1,jlat,'mod_sst_1deg:lati')
+      call getmem1d(loni,1,ilon,'mod_sst_1deg:loni')
+      call getmem2d(sst,1,ilon,1,jlat,'mod_sst_1deg:sst')
+      call getmem2d(work,1,ilon,1,jlat,'mod_sst_1deg:work')
+      call getmem2d(work1,1,ilon,1,jlat,'mod_sst_1deg:work1')
+      istatus = nf90_get_var(inet,latid,lati)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var lat')
+      istatus = nf90_get_var(inet,lonid,loni)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var lon')
       istart(1) = 1
       istart(2) = 1
       icount(1) = ilon
@@ -435,9 +510,9 @@ module mod_sst_1deg
     do j = 1 , jlat
       do i = 1 , ilon
         if ( work(i,j) == 32767 ) then
-           sst(i,jlat+1-j) = -9999.
+           sst(i,j) = -9999.
         else
-           sst(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
+           sst(i,j) = real(dble(work(i,j))*xscale + xadd)
         end if
       end do
     end do
@@ -446,26 +521,23 @@ module mod_sst_1deg
       do j = 1 , jlat
         do i = 1 , ilon
           if ( work1(i,j) == 32767 ) then
-            sst(i,jlat+1-j) = -9999.
+            sst(i,j) = -9999.
           else
-             sst(i,jlat+1-j) = &
-                (sst(i,jlat+1-j)+real(dble(work1(i,j))*xscale+xadd))*0.5
+             sst(i,j) = (sst(i,j)+real(dble(work1(i,j))*xscale+xadd))*0.5
           end if
         end do
       end do
     end if
   end subroutine sst_wk
 
-  subroutine ice_wk(idate,kkk,ilon,jlat,ice,pathaddname)
+  subroutine ice_wk(idate,kkk,pathaddname)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) , intent(in) :: kkk , ilon , jlat
+    integer(ik4) , intent(in) :: kkk
     character(len=256) , intent(in) :: pathaddname
-    real(rkx) , dimension(ilon,jlat) , intent(out) :: ice
     integer(ik4) :: i , j
     character(len=4) :: varname
     integer(2) , dimension(ilon,jlat) :: work , work1
-    integer(ik4) :: istatus
     integer(ik4) , dimension(3) , save :: icount , istart
     integer(ik4) , save :: inet , ivar
     real(rkx) , save :: xadd , xscale
@@ -501,6 +573,7 @@ module mod_sst_1deg
       istatus = nf90_get_att(inet,ivar,'add_offset',xadd)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find att add_offset')
+      call getmem2d(ice,1,ilon,1,jlat,'mod_sst_1deg:ice')
       istart(1) = 1
       istart(2) = 1
       icount(1) = ilon
@@ -524,9 +597,9 @@ module mod_sst_1deg
     do j = 1 , jlat
       do i = 1 , ilon
         if ( work(i,j) == 32767 ) then
-           ice(i,jlat+1-j) = -9999.
+           ice(i,j) = -9999.
         else
-           ice(i,jlat+1-j) = real(dble(work(i,j))*xscale + xadd)
+           ice(i,j) = real(dble(work(i,j))*xscale + xadd)
         end if
       end do
     end do
@@ -535,10 +608,9 @@ module mod_sst_1deg
       do j = 1 , jlat
         do i = 1 , ilon
           if ( work1(i,j) == 32767 ) then
-             ice(i,jlat+1-j) = -9999.
+             ice(i,j) = -9999.
           else
-             ice(i,jlat+1-j) = &
-                   (ice(i,jlat+1-j)+real(dble(work1(i,j))*xscale+xadd))*0.5
+             ice(i,j) = (ice(i,j)+real(dble(work1(i,j))*xscale+xadd))*0.5
           end if
         end do
       end do

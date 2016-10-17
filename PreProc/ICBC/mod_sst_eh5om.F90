@@ -158,7 +158,7 @@ module mod_sst_eh5om
       loni(i) = float(i-1)*1.875
     end do
     do j = 1 , jlat
-      lati(j) = -89.0625 + 1.875*float(j-1)
+      lati(j) = 89.0625 - 1.875*float(j-1)
     end do
 
     idate = globidate1
@@ -176,7 +176,7 @@ module mod_sst_eh5om
       read (11,rec=ieh5orec-it_base) offset , xscale , ivar
       do j = 1 , jlat
         do i = 1 , ilon
-          sst(i,j) = real(dble(ivar(i,jlat+1-j))*xscale + offset)
+          sst(i,j) = real(dble(ivar(i,j))*xscale + offset)
         end do
       end do
       call bilinx(sstmm,sst,xlon,xlat,loni,lati,ilon,jlat,jx,iy)

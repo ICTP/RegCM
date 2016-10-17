@@ -45,7 +45,6 @@ module mod_ecens
   integer(ik4) , parameter :: nplev = 18
 
   real(rkx) , pointer , dimension(:) :: vlat
-  real(rkx) , pointer , dimension(:) :: rlat
   real(rkx) , pointer , dimension(:) :: vlon
   real(rkx) , pointer , dimension(:) :: ak , bk
   real(rkx) , pointer , dimension(:,:,:) :: work
@@ -250,27 +249,16 @@ module mod_ecens
         call checkncerr(istat,__FILE__,__LINE__, &
                         'Err read var '//vfname(kkrec))
       endif
-
       if ( kkrec == 1 ) then
-        do j = 1 , nlat
-          ps2(:,j) = exp(work(:,nlat-j+1,1))
-        end do
+        ps2(:,:) = exp(work(:,:,1))
       else if ( kkrec==2 ) then
-        do j = 1 , nlat
-          t2(:,j,:) = work(:,nlat-j+1,:)
-        end do
+        t2(:,:,:) = work(:,:,:)
       else if ( kkrec==3 ) then
-        do j = 1 , nlat
-          q2(:,j,:) = work(:,nlat-j+1,:)
-        end do
+        q2(:,:,:) = work(:,:,:)
       else if ( kkrec==4 ) then
-        do j = 1 , nlat
-          u2(:,j,:) = work(:,nlat-j+1,:)
-        end do
+        u2(:,:,:) = work(:,:,:)
       else
-        do j = 1 , nlat
-          v2(:,j,:) = work(:,nlat-j+1,:)
-        end do
+        v2(:,:,:) = work(:,:,:)
       end if
     end do
   end subroutine ecens_6hour
@@ -312,7 +300,6 @@ module mod_ecens
                     'Error read dim mlev')
 
     call getmem1d(vlat,1,nlat,'mod_ecens:vlat')
-    call getmem1d(rlat,1,nlat,'mod_ecens:rlat')
     call getmem1d(vlon,1,nlon,'mod_ecens:vlon')
     call getmem1d(ak,1,mlev,'mod_ecens:ak')
     call getmem1d(bk,1,mlev,'mod_ecens:bk')
@@ -327,12 +314,9 @@ module mod_ecens
     istat = nf90_inq_varid(inet,'lat',ivar)
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error find var lat')
-    istat = nf90_get_var(inet,ivar,rlat)
+    istat = nf90_get_var(inet,ivar,vlat)
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error read var lat')
-    do j = 1 , nlat
-      vlat(j) = rlat(nlat-j+1)
-    end do
     istat = nf90_inq_varid(inet,'hyam',ivar)
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error find var hyam')
@@ -410,9 +394,7 @@ module mod_ecens
     istat = nf90_get_var(inet,ivar,work,istart,icount)
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error read var var129')
-    do j = 1 , nlat
-      zs2(:,j) = work(:,nlat-j+1,1)
-    end do
+    zs2(:,:) = work(:,:,1)
     where ( zs2 > 0.0 )
       zs2 = zs2 / 9.80616
     elsewhere
