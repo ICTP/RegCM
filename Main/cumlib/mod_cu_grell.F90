@@ -43,7 +43,7 @@ module mod_cu_grell
               pwcd , pwcdo , pwco , qc , qco , qes , qeso , qrcd ,  &
               qrcdo , tv , tvo , xdby , xhe , xhes , xpwc , xpwcd , &
               xq , xqc , xqes , xqrcd , xt , xtv , xz , z , zo , cldf
-  real(rkx) , pointer , dimension(:) :: pratec , psur , ter11
+  real(rkx) , pointer , dimension(:) :: pratec , psur , ter11 , qcrit
   integer(ik4) , pointer , dimension(:) :: kdet
   integer(ik4) , pointer , dimension(:) :: kmin , k22 , kb , kbcon , &
               kds , ktop , iac , jac
@@ -187,6 +187,7 @@ module mod_cu_grell
     call getmem1d(pwcevo,1,ncp,'cu_grell:pwcevo')
     call getmem1d(qcd,1,ncp,'cu_grell:qcd')
     call getmem1d(qcdo,1,ncp,'cu_grell:qcdo')
+    call getmem1d(qcrit,1,ncp,'cu_grell:qcrit')
     call getmem1d(qck,1,ncp,'cu_grell:qck')
     call getmem1d(qcko,1,ncp,'cu_grell:qcko')
     call getmem1d(qkb,1,ncp,'cu_grell:qkb')
@@ -306,6 +307,7 @@ module mod_cu_grell
     xqcd(:) = d_zero
     xqck(:) = d_zero
     xqkb(:) = d_zero
+    qcrit(:) = d_zero
 
     nap = 0
     do i = ici1 , ici2
@@ -363,6 +365,7 @@ module mod_cu_grell
         tn(n,k) = t(n,k) + avg_tten(j,i,kk) * dt
         qo(n,k) = q(n,k) + avg_qten(j,i,kk,iqv) * dt
         if ( qo(n,k) < minqq ) qo(n,k) = minqq
+        qcrit(n) = qcrit(n) + avg_qten(j,i,kk,iqv)
       end do
     end do
     !
@@ -533,6 +536,10 @@ module mod_cu_grell
     call maximi2(he,1,kbmax,k22)
 
     do n = 1 , nap
+      if ( qcrit(n) < d_zero ) then
+        xac(n) = -d_one
+        cycle
+      end if
       if ( xac(n) >= d_zero ) then
         if ( k22(n) >= kbmax(n) ) then
           xac(n) = -d_one
