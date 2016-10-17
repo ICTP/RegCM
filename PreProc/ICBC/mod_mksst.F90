@@ -259,7 +259,11 @@ module mod_mksst
       end do
       nr = nr + 1
     end do
-    nearn = (nearn / wtsum)
+    if ( wtsum > 0.0_rkx ) then
+      nearn = (nearn / wtsum)
+    else
+      nearn = -999.0_rkx
+    end if
   end function nearn
 
   subroutine closesst

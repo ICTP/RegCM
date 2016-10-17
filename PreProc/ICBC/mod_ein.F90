@@ -343,7 +343,7 @@ module mod_ein
 
   subroutine headerein
     implicit none
-    integer(ik4) :: i , j , k , kr
+    integer(ik4) :: k , kr
     integer(ik4) :: year , month , monthp1 , day , hour
     character(len=256) :: pathaddname
     integer(ik4) :: istatus , ncid , ivarid , idimid
