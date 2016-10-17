@@ -97,7 +97,6 @@ module mod_interp
     real(rkx) , dimension(jx,iy) , intent(out) :: b3
     real(rkx) :: p1 , p2 , q1 , q2 , dlon , dlat
     integer(ik4) :: i , i1 , i2 , j , j1 , j2
-    real(rkx) , dimension(jx,iy) :: smth1 , smth2
     !
     ! PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A
     ! BIGGER RECTANGULAR GRID TO A GRID DESCRIBED BY ALON AND ALAT OF
@@ -152,31 +151,6 @@ module mod_interp
         end if
       end do
     end do
-    smth1(:,:) = b3(:,:)
-    smth2(:,:) = b3(:,:)
-    do i = 1 , iy
-      do j = 1 , jx
-        j1 = min(j+1,jx)
-        j2 = max(j-1,1)
-        if ( b3(j ,i) > missl .and.  &
-             b3(j1,i) > missl .and.  &
-             b3(j2,i) > missl ) then
-          smth2(j,i) = d_rfour*(d_two*smth1(j,i)+smth1(j1,i)+smth1(j2,i))
-        end if
-      end do
-    end do
-    do i = 1 , iy
-      do j = 1 , jx
-        i1 = min(i+1,iy)
-        i2 = max(i-1,1)
-        if ( b3(j,i ) > missl .and.  &
-             b3(j,i1) > missl .and.  &
-             b3(j,i2) > missl ) then
-          smth1(j,i) = d_rfour*(d_two*smth2(j,i)+smth2(j,i1)+smth2(j,i2))
-        end if
-      end do
-    end do
-    b3(:,:) = smth1(:,:)
   end subroutine bilinx_2d
 
   subroutine bilinx_3d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy,llev)

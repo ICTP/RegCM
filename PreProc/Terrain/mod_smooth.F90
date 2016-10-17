@@ -41,13 +41,13 @@ module mod_smooth
     !
     hscr1(:,:) = htgrid(:,:)
     hscr2(:,:) = htgrid(:,:)
-    do i = 3 , iy - 2
-      do j = 3 , jx - 2
+    do i = 2 , iy - 2
+      do j = 2 , jx - 2
         hscr2(j,i) = d_rfour*(d_two*hscr1(j,i)+hscr1(j+1,i)+hscr1(j-1,i))
       end do
     end do
-    do i = 3 , iy - 2
-      do j = 3 , jx - 2
+    do i = 2 , iy - 2
+      do j = 2 , jx - 2
         hscr1(j,i) = d_rfour*(d_two*hscr2(j,i)+hscr2(j,i+1)+hscr2(j,i-1))
       end do
     end do
