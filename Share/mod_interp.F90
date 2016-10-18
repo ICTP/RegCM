@@ -125,29 +125,12 @@ module mod_interp
              b2(j1,i2) < missc .or. b2(j2,i2) < missc ) then
           b3(j,i) = missl
         else
-          p1 = mod(alon(j,i)-hlon(j1),dlon)
-          if ( p1 < 0.0_rkx ) p1 = dlon + p1
-          p2 = dlon - p1
-          q1 = mod(alat(j,i)-hlat(i1),dlat)
-          if ( q1 < 0.0_rkx ) q1 = dlat + q1
+          p1 = abs(mod(alon(j,i)-hlon(j1),dlon))
+          q1 = abs(mod(alat(j,i)-hlat(i1),dlat))
           q2 = dlat - q1
-          if ( i2 > i1 ) then
-            if ( j2 > j1 ) then
-              b3(j,i) = ((b2(j1,i1)*p2+b2(j2,i1)*p1)*q1 + &
-                         (b2(j1,i2)*p2+b2(j2,i2)*p1)*q2)/(dlon*dlat)
-            else
-              b3(j,i) = ((b2(j1,i1)*p1+b2(j2,i1)*p2)*q1 + &
-                         (b2(j1,i2)*p1+b2(j2,i2)*p2)*q2)/(dlon*dlat)
-            end if
-          else
-            if ( j2 > j1 ) then
-              b3(j,i) = ((b2(j1,i1)*p2+b2(j2,i1)*p1)*q2 + &
-                         (b2(j1,i2)*p2+b2(j2,i2)*p1)*q1)/(dlon*dlat)
-            else
-              b3(j,i) = ((b2(j1,i1)*p1+b2(j2,i1)*p2)*q2 + &
-                         (b2(j1,i2)*p1+b2(j2,i2)*p2)*q1)/(dlon*dlat)
-            end if
-          end if
+          p2 = dlon - p1
+          b3(j,i) = ((b2(j1,i1)*p2+b2(j2,i1)*p1)*q2 + &
+                     (b2(j1,i2)*p2+b2(j2,i2)*p1)*q1)/(dlon*dlat)
         end if
       end do
     end do
@@ -901,7 +884,7 @@ module mod_interp
     xlat = lat
     dlat = (xlatarr(nlat)-xlatarr(1))/real(nlat-1,rkx)
     if ( dlat > 0 ) then
-      ii = int((xlat-xlatarr(1))/dlat)
+      ii = int((xlat-xlatarr(1))/dlat) + 1
     else
       ii = int((xlatarr(1)-xlat)/abs(dlat)) + 1
     end if
