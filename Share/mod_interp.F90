@@ -415,8 +415,8 @@ module mod_interp
       glatmn = minval(glat(:,nlat))
       alatmx = maxval(alat)
       alatmn = minval(alat)
-      if ( glonmx - glonmn > 350.0_rkx ) lonwrap = .true.
-      if ( glatmx - glatmn > 170.0_rkx ) latpole = .true.
+      if ( maxval(glon) - minval(glon) > 350.0_rkx ) lonwrap = .true.
+      if ( maxval(glat) - minval(glat) > 170.0_rkx ) latpole = .true.
       write (stdout,*) 'GLONMN,ALONMN,ALONMX,GLONMX = '
       write (stdout,*) glonmn , alonmn , alonmx , glonmx
       write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX = '
