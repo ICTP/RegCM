@@ -102,6 +102,7 @@ module mod_diffusion
     end do
     if ( diffu_hgtf == 1 ) then
       call maxall(maxval(mddom%ht),maxht)
+      maxht = maxht * regrav
       do i = ici1ga , ici2ga
         do j = jci1ga , jci2ga
           hg1 = abs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
@@ -109,7 +110,7 @@ module mod_diffusion
           hg3 = abs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
           hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
           hgmax = max(hg1,hg2,hg3,hg4)*regrav
-          hgfact(j,i) = (xkhz/mddom%msfx(j,i))/(d_one+(hgmax/maxht)**2)
+          hgfact(j,i) = xkhz/(d_one+(hgmax*maxht)**2)
         end do
       end do
     end if
