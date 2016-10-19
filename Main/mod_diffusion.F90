@@ -83,7 +83,6 @@ module mod_diffusion
     ! (Xu et al., MWR, 2001, 502-516)
     if ( idynamic == 1 ) then
       xkhz = 1.5e-3_rkx*dxsq/dtsec
-      dydc = dydc / (100.0_rkx-ptop)
     else
       xkhz = ckh * dx ! 3.0e-3_rkx*dxsq/dtsec
       xkhmax = d_two*xkhmax
@@ -92,7 +91,7 @@ module mod_diffusion
       write(stdout,'(a,e13.6,a)') &
         ' Constant hor. diff. coef. = ',xkhz,' m^2 s-1'
       write(stdout,'(a,e13.6,a)') &
-        ' Maximumt hor. diff. coef. = ',xkhmax,' m^2 s-1'
+        ' Maximum  hor. diff. coef. = ',xkhmax,' m^2 s-1'
     end if
     !
     ! Calculate topographical correction to diffusion coefficient
