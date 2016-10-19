@@ -78,13 +78,15 @@ module mod_diffusion
     ! Diffusion coefficients: for non-hydrostatic, follow the MM5
     ! The hydrostatic diffusion is following the RegCM3 formulation
     !
-    xkhmax = d_two*dxsq/(64.0_rkx*dtsec)    ! Computation stability
+    xkhmax = dxsq/(64.0_rkx*dtsec)  ! Computation stability
     dydc = aflag*vonkar*vonkar*dx*d_rfour ! Deformation term coefficient
     ! (Xu et al., MWR, 2001, 502-516)
     if ( idynamic == 1 ) then
       xkhz = 1.5e-3_rkx*dxsq/dtsec
+      dydc = dydc / (100.0_rkx-ptop)
     else
-      xkhz = ckh * 3.0e-3_rkx*dxsq/dtsec ! ckh * dx ! 3.0e-3_rkx*dxsq/dtsec
+      xkhz = ckh * dx ! 3.0e-3_rkx*dxsq/dtsec
+      xkhmax = d_two*xkhmax
     end if
     if ( myid == 0 ) then
       write(stdout,'(a,e13.6,a)') &
@@ -101,8 +103,9 @@ module mod_diffusion
       end do
     end do
     if ( diffu_hgtf == 1 ) then
-      call maxall(maxval(mddom%ht),maxht)
-      maxht = maxht * regrav
+      !call maxall(maxval(mddom%ht),maxht)
+      !maxht = maxht * regrav
+      maxht = 1000.0_rkx
       do i = ici1ga , ici2ga
         do j = jci1ga , jci2ga
           hg1 = abs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
