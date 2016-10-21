@@ -155,17 +155,9 @@ module mod_mksst
                 end if
               end if
             else
-              ! If latitude is greater than 70 and month is in winter,
-              ! assume ice coverage if missing
-              if ( xlat(j,i) > 55.0 .and. ( im > 9 .or. im < 4 ) ) then
-                tsccm(j,i) = 271.0
-              else if ( xlat(j,i) < -55.0 .and. ( im > 5 .and. im < 9 ) ) then
-                tsccm(j,i) = 271.0
-              else
-                ! Find nearest water points
-                a = nearn(j,i,work1)
-                if ( a > -900.0 ) tsccm(j,i) = a
-              end if
+              ! Find nearest water points
+              a = nearn(j,i,work1)
+              if ( a > -900.0 ) tsccm(j,i) = a
             end if
           end if
         end do
@@ -201,18 +193,10 @@ module mod_mksst
                 end if
               end if
             else
-              ! If latitude is greater than 70 and month is in winter,
-              ! assume ice coverage if missing
-              if ( xlat(j,i) > 55.0 .and. ( im > 9 .or. im < 4 ) ) then
-                tsccm(j,i) = 271.0
-              else if ( xlat(j,i) < -55.0 .and. ( im > 5 .and. im < 9 ) ) then
-                tsccm(j,i) = 271.0
-              else
-                a = nearn(j,i,work1)
-                b = nearn(j,i,work2)
-                ! Find nearest water points
-                if ( a > -900 .and. b > -900) tsccm(j,i) = a*wt + (1.0-wt)*b
-              end if
+              a = nearn(j,i,work1)
+              b = nearn(j,i,work2)
+              ! Find nearest water points
+              if ( a > -900 .and. b > -900) tsccm(j,i) = a*wt + (1.0-wt)*b
             end if
           end if
         end do

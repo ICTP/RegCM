@@ -255,15 +255,6 @@ module mod_vertint
   real(8) , parameter :: vtc = avt*g4pb/6.0D+00
   real(8) , parameter :: trel = 3000.0D+00
 
-  ! Dynamic parameters
-  ! alpha = .2495 in brown-campana; = 0. in split explicit
-  real(8) , parameter :: alpha = 0.0D+00
-  real(8) , parameter :: beta = d_one - d_two*alpha
-  real(8) , parameter :: gnu = 0.10D+00
-  real(8) , parameter :: omu = d_one - d_two*gnu
-  real(8) , parameter :: gnuhf = d_half*gnu
-  real(8) , parameter :: omuhf = d_one - d_two*gnuhf
-
   ! Cumulous parameters
   real(8) , parameter :: tauht = 7200.0D+00
 

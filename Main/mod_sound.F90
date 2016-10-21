@@ -30,6 +30,7 @@ module mod_sound
   use mod_mppparam
   use mod_cu_interface , only : total_precip_points
   use mod_atm_interface
+  use mod_timefilter
 
   implicit none
 
@@ -218,10 +219,8 @@ module mod_sound
         do j = jde1 , jde2
           aten%u(j,i,k) = aten%u(j,i,k) * dts
           atmc%u(j,i,k) = atm2%u(j,i,k)/sfs%psdotb(j,i)
-          atm2%u(j,i,k) = omuhf*atm1%u(j,i,k) + gnuhf*atm2%u(j,i,k)
           aten%v(j,i,k) = aten%v(j,i,k) * dts
           atmc%v(j,i,k) = atm2%v(j,i,k)/sfs%psdotb(j,i)
-          atm2%v(j,i,k) = omuhf*atm1%v(j,i,k) + gnuhf*atm2%v(j,i,k)
         end do
       end do
     end do
@@ -237,7 +236,6 @@ module mod_sound
         do j = jce1 , jce2
           aten%pp(j,i,k) = aten%pp(j,i,k) * dts
           atmc%pp(j,i,k) = atm2%pp(j,i,k) * rpsb(j,i)
-          atm2%pp(j,i,k) = omuhf*atm1%pp(j,i,k) + gnuhf*atm2%pp(j,i,k)
         end do
       end do
     end do
@@ -250,7 +248,6 @@ module mod_sound
           else
             atmc%w(j,i,k) = sign(dlowval,atm2%w(j,i,k))
           end if
-          atm2%w(j,i,k) = omuhf*atm1%w(j,i,k) + gnuhf*atm2%w(j,i,k)
         end do
       end do
     end do
@@ -650,13 +647,14 @@ module mod_sound
       !
       ! Downward sweep calculation of w
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atmc%w(j,i,2) = bet * atmc%w(j,i,1) + &
-                (d_one - bet) * (e(j,i,1)*atmc%w(j,i,1)+f(j,i,1))
-        end do
-      end do
-      do k = 2 , kz
+      !do i = ici1 , ici2
+      !  do j = jci1 , jci2
+      !    atmc%w(j,i,2) = bet * atmc%w(j,i,1) + &
+      !          (d_one - bet) * (e(j,i,1)*atmc%w(j,i,1)+f(j,i,1))
+      !  end do
+      !end do
+      !do k = 2 , kz
+      do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%w(j,i,k+1) = e(j,i,k)*atmc%w(j,i,k) + f(j,i,k)
@@ -757,35 +755,29 @@ module mod_sound
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          atm1%u(j,i,k) = sfs%psdotb(j,i) * atmc%u(j,i,k)
-          atm1%v(j,i,k) = sfs%psdotb(j,i) * atmc%v(j,i,k)
-          atm2%u(j,i,k) = atm2%u(j,i,k) + gnuhf*atm1%u(j,i,k)
-          atm2%v(j,i,k) = atm2%v(j,i,k) + gnuhf*atm1%v(j,i,k)
+          atmc%u(j,i,k) = sfs%psdotb(j,i) * atmc%u(j,i,k)
+          atmc%v(j,i,k) = sfs%psdotb(j,i) * atmc%v(j,i,k)
         end do
       end do
     end do
+    call timefilter_apply(atm1%u,atm2%u,atmc%u, &
+                          atm1%v,atm2%v,atmc%v,gnuhf)
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atm1%pp(j,i,k) = sfs%psb(j,i) * atmc%pp(j,i,k)
-          atm2%pp(j,i,k) = atm2%pp(j,i,k) + gnuhf*atm1%pp(j,i,k)
+          atmc%pp(j,i,k) = sfs%psb(j,i) * atmc%pp(j,i,k)
         end do
       end do
     end do
+    call timefilter_apply(atm1%pp,atm2%pp,atmc%pp,gnuhf)
     do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atm1%w(j,i,k) = sfs%psb(j,i) * atmc%w(j,i,k)
-          if ( abs(atm1%w(j,i,k)) < dlowval) then
-            atm1%w(j,i,k) = sign(dlowval,atm1%w(j,i,k))
-          end if
-          atm2%w(j,i,k) = atm2%w(j,i,k) + gnuhf*atm1%w(j,i,k)
-          if ( abs(atm2%w(j,i,k)) < dlowval) then
-            atm2%w(j,i,k) = sign(dlowval,atm2%w(j,i,k))
-          end if
+          atmc%w(j,i,k) = sfs%psb(j,i) * atmc%w(j,i,k)
         end do
       end do
     end do
+    call timefilter_apply(atm1%w,atm2%w,atmc%w,gnuhf)
   end subroutine sound
 
 end module mod_sound

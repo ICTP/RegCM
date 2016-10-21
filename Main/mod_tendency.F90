@@ -47,6 +47,7 @@ module mod_tendency
   use mod_slabocean
   use mod_sound
   use mod_split
+  use mod_timefilter
 
   implicit none
 
@@ -219,16 +220,6 @@ module mod_tendency
       else if ( iboudy == 1 .or. iboudy == 5 ) then
         call nudge(iboudy,sfs%psb,xpsb,pten)
       end if
-      !do i = ice1 , ice2
-      !  do j = jce1 , jce2
-      !    if ( abs(pten(j,i)) > maxpten ) then
-      !      write(stderr, *) 'WARNING : at I,J = ', i , j
-      !      write(stderr, *) 'WARNING : PTEN = ', pten(j,i)
-      !      pten(j,i) = min(max(pten(j,i),-maxpten),maxpten)
-      !      write(stderr, *) 'RESET IT TO PTEN = ', pten(j,i)
-      !    end if
-      !  end do
-      !end do
       do k = 2 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -1465,35 +1456,9 @@ module mod_tendency
     !
     ! Compute future values of t and moisture variables at tau+1:
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atm2%t(j,i,k) = omuhf*atm1%t(j,i,k) + &
-                          gnuhf*(atm2%t(j,i,k)+atmc%t(j,i,k))
-          atm1%t(j,i,k) = atmc%t(j,i,k)
-        end do
-      end do
-    end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atm2%qx(j,i,k,iqv) = omuhf*atm1%qx(j,i,k,iqv) + &
-                             gnuhf*(atm2%qx(j,i,k,iqv) + atmc%qx(j,i,k,iqv))
-          atm1%qx(j,i,k,iqv) = atmc%qx(j,i,k,iqv)
-        end do
-      end do
-    end do
-    do n = iqfrst, iqlst
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            atm2%qx(j,i,k,n) = omu*atm1%qx(j,i,k,n) + &
-                               gnu*(atm2%qx(j,i,k,n) + atmc%qx(j,i,k,n))
-            atm1%qx(j,i,k,n) = atmc%qx(j,i,k,n)
-          end do
-        end do
-      end do
-    end do
+    call timefilter_apply(atm1%t,atm2%t,atmc%t,gnuhf)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnuhf)
+    !
     if ( idynamic == 1 ) then
       !
       ! forecast p*u and p*v at tau+1:
@@ -1507,28 +1472,11 @@ module mod_tendency
         end do
       end do
       !
-      ! store the xxa variables in xxb and xxc in xxa:
       ! perform time smoothing operations.
       !
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            atm2%u(j,i,k) = omuhf*atm1%u(j,i,k) + &
-                            gnuhf*(atm2%u(j,i,k)+atmc%u(j,i,k))
-            atm2%v(j,i,k) = omuhf*atm1%v(j,i,k) + &
-                            gnuhf*(atm2%v(j,i,k)+atmc%v(j,i,k))
-            atm1%u(j,i,k) = atmc%u(j,i,k)
-            atm1%v(j,i,k) = atmc%v(j,i,k)
-          end do
-        end do
-      end do
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          sfs%psb(j,i) = omuhf*sfs%psa(j,i) + &
-                         gnuhf*(sfs%psb(j,i)+sfs%psc(j,i))
-          sfs%psa(j,i) = sfs%psc(j,i)
-        end do
-      end do
+      call timefilter_apply(atm1%u,atm2%u,atmc%u, &
+                            atm1%v,atm2%v,atmc%v,gnuhf)
+      call timefilter_apply(sfs%psa,sfs%psb,sfs%psc,gnuhf)
       do i = ice1 , ice2
         do j = jce1 , jce2
           rpsb(j,i) = d_one/sfs%psb(j,i)
@@ -1601,36 +1549,16 @@ module mod_tendency
           do j = jdi1 , jdi2
              aten%tke(j,i,k) = aten%tke(j,i,k) + &
                                uwstatea%advtke(j,i,k)*rpsa(j,i)
-             ! Do a filtered time integration
              atmc%tke(j,i,k) = max(tkemin,atm2%tke(j,i,k) + &
                                dt*aten%tke(j,i,k))
-             atm2%tke(j,i,k) = max(tkemin,omuhf*atm1%tke(j,i,k) + &
-                               gnuhf*(atm2%tke(j,i,k) + atmc%tke(j,i,k)))
-             atm1%tke(j,i,k) = atmc%tke(j,i,k)
           end do
         end do
       end do
+      call timefilter_apply(atm1%tke,atm2%tke,atmc%tke,gnuhf)
     end if ! TKE tendency update
     if ( ichem == 1 ) then
-      do itr = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              chias = chic(j,i,k,itr)
-              if ( chias < mintr ) then
-                chias = mintr
-              end if
-              chibs = (omu * chia(j,i,k,itr) + &
-                       gnu * (chib(j,i,k,itr)+chic(j,i,k,itr)))
-              if ( chibs < mintr ) then
-                chibs = mintr
-              end if
-              chia(j,i,k,itr) = chias
-              chib(j,i,k,itr) = chibs
-            end do
-          end do
-        end do
-      end do
+      where ( chic < mintr ) chic = mintr
+      call timefilter_apply(chia,chib,chic,gnuhf)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
       ! without explicit convective transport (Grell and KF up to now).
@@ -1638,6 +1566,7 @@ module mod_tendency
       ! and if one of them is grell or kf. in this case trac tendency
       ! are not updated in the other convec scheme,
       ! cf mod_cu_em and mod_cu_tiedke.
+      !
       if ( ktau > 0 .and. mod(ktau,ntcum) == 0 .and. &
            ichcumtra == 1 .and. any(icup == 2 .or. icup == 6) ) then
         call cumtran

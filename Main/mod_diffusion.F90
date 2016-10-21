@@ -84,7 +84,7 @@ module mod_diffusion
     if ( idynamic == 1 ) then
       xkhz = 1.5e-3_rkx*dxsq/dtsec
     else
-      xkhz = ckh * dx ! 3.0e-3_rkx*dxsq/dtsec
+      xkhz = ckh * 3.0e-3_rkx*dxsq/dtsec ! ckh * dx 
       xkhmax = d_two*xkhmax
     end if
     if ( myid == 0 ) then

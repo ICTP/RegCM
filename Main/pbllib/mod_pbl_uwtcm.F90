@@ -101,7 +101,7 @@ module mod_pbl_uwtcm
   real(rkx) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
                  tke , tkes , rrhoxfl , bbls , nsquar , bouyan ,   &
                  rdza , dza , svs , presfl , exnerfl , shear ,     &
-                 rexnerfl , rcldb , epop , sm , sh
+                 rexnerfl , rcldb , sm , sh
   !real(rkx) , pointer , dimension(:) :: richnum
 
   ! local variables on half levels
@@ -128,9 +128,9 @@ module mod_pbl_uwtcm
   ! imethod = 1     ! Use the Brent 1973 method to solve for T
   ! imethod = 2     ! Use Bretherton's iterative method to solve for T
   ! imethod = 3     ! Use a finite difference method to solve for T
-  integer(ik4) , parameter :: imethod = 2
+  ! integer(ik4) , parameter :: imethod = 2
   ! Do a maximum of 100 iterations (usually are no more than about 30)
-  integer(ik4) , parameter :: itbound = 100
+  ! integer(ik4) , parameter :: itbound = 100
   ! Modding : Update tendencies only in the PBL
   logical :: update_only_in_pbl = .false.
 
@@ -142,6 +142,7 @@ module mod_pbl_uwtcm
   contains
 
 #include <pfesat.inc>
+#include <pfwsat.inc>
 
   subroutine allocate_tcm_state(tcmstate)
     implicit none
@@ -256,7 +257,6 @@ module mod_pbl_uwtcm
     call getmem1d(rdza,1,kzp1,'mod_uwtcm:rdza')
     call getmem1d(svs,1,kzp1,'mod_uwtcm:svs')
     call getmem1d(presfl,1,kzp1,'mod_uwtcm:presfl')
-    call getmem1d(epop,1,kzp1,'mod_uwtcm:epop')
     call getmem1d(exnerfl,1,kzp1,'mod_uwtcm:exnerfl')
     call getmem1d(rexnerfl,1,kzp1,'mod_uwtcm:rexnerfl')
     call getmem1d(shear,1,kzp1,'mod_uwtcm:shear')
@@ -321,7 +321,7 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay , kpbconv , iteration
-    real(rkx) :: temps , templ , deltat , rvls , pfac , arg
+    real(rkx) :: temps , templ , deltat , rvls , arg
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
@@ -361,14 +361,13 @@ module mod_pbl_uwtcm
           zqx(k) = m2p%zq(j,i,k)
         end do
 
-        pfac = dt / psbx
         tke(kzp1) = m2p%tkests(j,i,kzp1)
         do k = 1 , kz
-          tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k) * pfac
-          qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv) * pfac
-          qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc) * pfac
-          ux(k)  = m2p%uxatm(j,i,k) + p2m%uten(j,i,k) * pfac
-          vx(k)  = m2p%vxatm(j,i,k) + p2m%vten(j,i,k) * pfac
+          tx(k)  = m2p%tatm(j,i,k)
+          qx(k)  = m2p%qxatm(j,i,k,iqv)
+          qcx(k) = m2p%qxatm(j,i,k,iqc)
+          ux(k)  = m2p%uxatm(j,i,k)
+          vx(k)  = m2p%vxatm(j,i,k)
           zax(k) = m2p%za(j,i,k)
           tke(k) = m2p%tkests(j,i,k)
           rttenx(k) = m2p%heatrt(j,i,k)
@@ -378,7 +377,7 @@ module mod_pbl_uwtcm
 
         if ( ipptls == 2 ) then
           do k = 1 , kz
-            qix(k) = m2p%qxatm(j,i,k,iqi) + p2m%qxten(j,i,k,iqi) * pfac
+            qix(k) = m2p%qxatm(j,i,k,iqi)
           end do
           where ( qix < minqx ) qix = minqx
         else
@@ -391,7 +390,7 @@ module mod_pbl_uwtcm
           do itr = 1 , ntr
             chifxx(itr) = max(m2p%chifxuw(j,i,itr),d_zero)
             do k = 1 , kz
-              chix(k,itr) = m2p%chib(j,i,k,itr) + p2m%chiten(j,i,k,itr) * pfac
+              chix(k,itr) = m2p%chib(j,i,k,itr)
             end do
           end do
           where ( chix < mintr ) chix = mintr
@@ -443,8 +442,6 @@ module mod_pbl_uwtcm
         end if
 
         do k = 2 , kz
-          ! pressure at full levels
-          epop(k) = ep2/presfl(k)
           ! Level spacing
           dza(k) = zax(k-1)-zax(k)
           rdza(k) = d_one/dza(k)
@@ -476,16 +473,7 @@ module mod_pbl_uwtcm
         ! more surface variables
         thgb = tgbx * rexnerfl(kzp1)
         ! Calculate the saturation specific humidity just above the surface
-        ! Assume for now that the moisture will be available.
-        ! TODO: This is a bad assumption and needs to be dealt with.
-        ! This assumption will tend to cause an over-estimation of the surface
-        ! virtual heat flux over land, which should cause an overestimation
-        ! of boundary layer height over land.
-        arg = psbx/pfesat(tgbx) - d_one
-        if ( abs(arg) < dlowval ) then
-          arg = sign(dlowval,arg)
-        end if
-        q0s = ep2/arg
+        q0s = pfwsat(tgbx,psbx)
         ! Calculate the virtual temperature right above the surface
         thv0 = thgb * (d_one + ep1*q0s)
         ! Calculate the change in virtual potential temperature from
@@ -515,9 +503,9 @@ module mod_pbl_uwtcm
         ! Calculate nsquared Set N^2 based on the current potential
         ! temperature profile
         call n2(thlx,qwx,kz)
-        ! nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
         ! Estimate the surface N^2 from the surface virtual heat flux
         nsquar(kzp1) = -egrav/thgb*thvflx/kh0
+        ! nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
 
         ! Calculate the bulk richardson number
         !richnum = nsquar/max(svs,1.0e-8_rkx)
@@ -597,12 +585,12 @@ module mod_pbl_uwtcm
           qwx(k) = uimp2(k)
           templ = thlx(k)*exnerhl(k)
           temps = templ
-          rvls = ep2/(preshl(k)/pfesat(temps)-d_one)
+          rvls = pfwsat(temps,preshl(k))
           do iteration = 1 , 3
             deltat = ((templ-temps)*cpowlhv + qwx(k)-rvls)/   &
                       (cpowlhv+ep2*wlhv*rvls/rgas/temps/temps)
             temps = temps + deltat
-            rvls = ep2/(preshl(k)/pfesat(temps)-d_one)
+            rvls = pfwsat(temps,preshl(k))
           end do
           qcx(k) = min(qcxs(k)+d_half*qcxs(k),max(qwx(k)-rvls, minqx))
           qx(k) = max(qwx(k) - qcx(k), minqq)
@@ -923,20 +911,20 @@ module mod_pbl_uwtcm
         ! buoyancy is jump in thetav across flux level/dza
         ! first, layer below, go up and see if anything condenses.
         templ = thlxin(k)*exnerfl(k)
-        rvls = pfesat(templ)*epop(k)
+        rvls = pfwsat(templ,presfl(k))
         temps = templ + (qwxin(k)-rvls)/(cpowlhv +    &
                          ep2*wlhv*rvls/(rgas*templ*templ))
-        rvls = pfesat(temps)*epop(k)
+        rvls = pfwsat(temps,presfl(k))
         rcldb(k) = max(qwxin(k)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcldb(k)) *    &
                 (d_one + ep1*(qwxin(k)-rcldb(k)) - rcldb(k))
         tvbl = tempv*rexnerfl(k)
         ! now do layer above; go down to see how much evaporates
         templ = thlxin(k-1)*exnerfl(k)
-        rvls = pfesat(templ)*epop(k)
+        rvls = pfwsat(templ,presfl(k))
         temps = templ+(qwxin(k-1)-rvls) / &
                        (cpowlhv+ep2*wlhv*rvls/(rgas*templ*templ))
-        rvls = pfesat(temps)*epop(k)
+        rvls = pfwsat(temps,presfl(k))
         rcld = max(qwxin(k-1)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcld) *    &
                 (d_one + ep1*(qwxin(k-1)-rcld) - rcld)

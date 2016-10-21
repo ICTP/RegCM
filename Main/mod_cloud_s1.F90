@@ -3116,9 +3116,10 @@ module mod_cloud_s1
           if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
         end do
         if ( aamax < dlowval ) then
-          call fatal(__FILE__,__LINE__, &
-                     'SINGULAR MATRIX')
-        end if ! Singular matrix
+          ! Assume no change...
+          qxn = max(qxn,minqx)
+          return
+        end if
         vv(n) = d_one/aamax ! Save the scaling.
       end do
       !                                                Ux=y

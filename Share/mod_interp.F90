@@ -116,6 +116,9 @@ module mod_interp
     do i = 1 , iy
       do j = 1 , jx
         j1 = whereislon(nlon,alon(j,i),hlon)
+        ! Assume global data here
+        if ( j1 > nlon ) j1 = 1
+        if ( j1 < 1 ) j1 = nlon
         j2 = j1 + 1
         ! Assume global data here
         if ( j2 > nlon ) j2 = 1
@@ -125,7 +128,8 @@ module mod_interp
              b2(j1,i2) < missc .or. b2(j2,i2) < missc ) then
           b3(j,i) = missl
         else
-          p1 = abs(mod(alon(j,i)-hlon(j1),dlon))
+          p1 = mod(alon(j,i)-hlon(j1),dlon)
+          if ( p1 < 0.0_rkx ) p1 = dlon + p1
           q1 = abs(mod(alat(j,i)-hlat(i1),dlat))
           q2 = dlat - q1
           p2 = dlon - p1
@@ -860,13 +864,6 @@ module mod_interp
         xlonarr = xlonarr - 360.0_rkx
       end where
       if ( xlon > 180.0_rkx ) xlon = xlon - 360.0_rkx
-    end if
-    if ( xlonarr(1) > xlon ) then
-       jj = 1
-       return
-    else if ( xlonarr(nlon) < xlon ) then
-      jj = nlon
-      return
     end if
     dlon = (xlonarr(nlon)-xlonarr(1))/real(nlon-1,rkx)
     jj = int((xlon-xlonarr(1))/dlon) + 1
