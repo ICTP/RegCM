@@ -172,6 +172,10 @@ module mod_runparams
 
   logical , public :: replacemoist = .false.
 
+  ! Asselin filter parameter
+
+  real(rkx) , public :: gnu
+
   ! Non hydrostatic core parameters
 
   real(rkx) , public :: base_state_pressure

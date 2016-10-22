@@ -742,7 +742,7 @@ module mod_sound
             !
             cpm = cpmf(atmc%qx(j,i,k,iqv))
             dpterm = sfs%psb(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm1%rho(j,i,k))
-            atm2%t(j,i,k) = atm2%t(j,i,k) + gnuhf*dpterm
+            atm2%t(j,i,k) = atm2%t(j,i,k) + gnu*dpterm
             atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
           end do
         end do
@@ -761,7 +761,7 @@ module mod_sound
       end do
     end do
     call timefilter_apply(atm1%u,atm2%u,atmc%u, &
-                          atm1%v,atm2%v,atmc%v,gnuhf)
+                          atm1%v,atm2%v,atmc%v,gnu)
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -769,7 +769,7 @@ module mod_sound
         end do
       end do
     end do
-    call timefilter_apply(atm1%pp,atm2%pp,atmc%pp,gnuhf)
+    call timefilter_apply(atm1%pp,atm2%pp,atmc%pp,gnu)
     do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -777,7 +777,7 @@ module mod_sound
         end do
       end do
     end do
-    call timefilter_apply(atm1%w,atm2%w,atmc%w,gnuhf)
+    call timefilter_apply(atm1%w,atm2%w,atmc%w,gnu)
   end subroutine sound
 
 end module mod_sound

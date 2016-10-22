@@ -35,6 +35,8 @@ module mod_timefilter
 
   private
 
+  real(rkx) , public , parameter :: betaraw = 0.53_rkx
+
   public :: timefilter_apply
 
   interface timefilter_apply

@@ -96,6 +96,7 @@ module mod_pbl_uwtcm
 
   ! Variables that hold frequently-done calculations
   real(rkx) :: rczero
+  real(rkx) :: tkefac , b1
 
   ! local variables on full levels
   real(rkx) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
@@ -313,6 +314,8 @@ module mod_pbl_uwtcm
     call getmem1d(kbot,1,kz,'mod_uwtcm:kbot')
 
     rczero = d_one/czero
+    tkefac = czero**(d_two/d_three)
+    b1 = czero*d_two**(d_three/d_two)
   end subroutine init_mod_pbl_uwtcm
 
   subroutine uwtcm(m2p,p2m)
@@ -492,7 +495,7 @@ module mod_pbl_uwtcm
         thvflx = hfxx/rhoxsf*rcpd*(d_one+ep1*q0s) + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
-        kh0 = vonkar*d_one*sqrt(max(tkemin,3.25_rkx * ustxsq))
+        kh0 = vonkar*d_one*sqrt(max(tkemin,tkefac*ustxsq))
 
 !*******************************************************************************
 !*******************************************************************************
@@ -683,7 +686,7 @@ module mod_pbl_uwtcm
 !
 !       !Estimate of surface eddy diffusivity, for estimating the
 !       !surface N^2 from the surface virtual heat flux
-!       kh0 = vonkar*2*sqrt(max(tkemin,3.25 * ustxsq))
+!       kh0 = vonkar*2*sqrt(max(tkemin,tkefac*ustxsq))
 !
 !       !Estimate the surface N^2 from the surface virtual heat flux
 !       nsquar(kzp1) = -egrav/thgb*thvflx/kh0
@@ -770,7 +773,7 @@ module mod_pbl_uwtcm
         ! tke at top is fixed
         tke(1) = d_zero
         ! diagnose tke at surface, following my 82, b1 ** (2/3) / 2 = 3.25
-        tke(kzp1) = czero**(d_two/d_three) * ustxsq ! normal
+        tke(kzp1) = tkefac*ustxsq ! normal
 
         ! now the implicit calculations
         ! first find the coefficients that apply for full levels
@@ -940,14 +943,13 @@ module mod_pbl_uwtcm
     subroutine melloryamada(ktmax,kpbconv)
       implicit none
       integer(ik4) , intent(in) :: ktmax , kpbconv
-      real(rkx) :: b1 , gh , a1ob1 , delthvl , elambda , bige , biga
+      real(rkx) :: gh , a1ob1 , delthvl , elambda , bige , biga
       real(rkx) , parameter :: a1 = 0.92_rkx , c1 = 0.08_rkx , &
                                a2 = 0.74_rkx , b2 = 10.1_rkx
       integer(ik4) :: k , ilay
       real(rkx) , parameter :: kthmax = 1.0e3_rkx
       real(rkx) , parameter :: kzmmax = 1.0e3_rkx
 
-      b1 = czero * d_two**(d_three/d_two)
       a1ob1 = a1/b1
 
       ! calculate the diffusivities for momentum, thetal, qw and tke

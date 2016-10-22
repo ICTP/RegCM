@@ -48,6 +48,7 @@ module mod_params
   use mod_slabocean
   use mod_sldepparam
   use mod_sound
+  use mod_timefilter
 
   implicit none
 
@@ -256,7 +257,7 @@ module mod_params
     base_state_temperature = stdt
     logp_lrate = 50.0_rkx
     ifupr = 1
-    diffu_hgtf = 1
+    diffu_hgtf = 0
     ckh = d_one
     nhbet = 0.4_rkx
     nhxkd = 0.1_rkx
@@ -972,6 +973,10 @@ module mod_params
       call bcast(diffu_hgtf)
       call bcast(nhbet)
       call bcast(nhxkd)
+      gnu = 0.1_rkx
+    else
+      gnu = 0.0625_rkx
+      diffu_hgtf = 1
     end if
 
     ! Check if really do output

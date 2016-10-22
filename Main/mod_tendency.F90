@@ -1456,8 +1456,8 @@ module mod_tendency
     !
     ! Compute future values of t and moisture variables at tau+1:
     !
-    call timefilter_apply(atm1%t,atm2%t,atmc%t,gnuhf)
-    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnuhf)
+    call timefilter_apply(atm1%t,atm2%t,atmc%t,gnu)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu)
     !
     if ( idynamic == 1 ) then
       !
@@ -1475,8 +1475,8 @@ module mod_tendency
       ! perform time smoothing operations.
       !
       call timefilter_apply(atm1%u,atm2%u,atmc%u, &
-                            atm1%v,atm2%v,atmc%v,gnuhf)
-      call timefilter_apply(sfs%psa,sfs%psb,sfs%psc,gnuhf)
+                            atm1%v,atm2%v,atmc%v,gnu)
+      call timefilter_apply(sfs%psa,sfs%psb,sfs%psc,gnu)
       do i = ice1 , ice2
         do j = jce1 , jce2
           rpsb(j,i) = d_one/sfs%psb(j,i)
@@ -1554,11 +1554,11 @@ module mod_tendency
           end do
         end do
       end do
-      call timefilter_apply(atm1%tke,atm2%tke,atmc%tke,gnuhf)
+      call timefilter_apply(atm1%tke,atm2%tke,atmc%tke,gnu)
     end if ! TKE tendency update
     if ( ichem == 1 ) then
       where ( chic < mintr ) chic = mintr
-      call timefilter_apply(chia,chib,chic,gnuhf)
+      call timefilter_apply(chia,chib,chic,gnu)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
       ! without explicit convective transport (Grell and KF up to now).

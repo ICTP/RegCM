@@ -299,10 +299,6 @@ module mod_constants
   real(rkx) , parameter :: alpha_hyd = 0.0_rkx
   real(rkx) , parameter :: beta_hyd = d_one - d_two*alpha_hyd
 
-  real(rkx) , parameter :: gnu = 0.125_rkx
-  real(rkx) , parameter :: gnuhf = d_half*gnu
-  real(rkx) , parameter :: betaraw = 0.53_rkx
-
   ! Constant surface Long Wave emissivity
   real(rkx) , parameter :: lnd_sfcemiss = 0.985_rkx
   real(rkx) , parameter :: ocn_sfcemiss = 0.984_rkx
