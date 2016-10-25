@@ -65,7 +65,7 @@ module mod_diffusion
     call getmem2d(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,'diffusion:hgfact')
     call getmem3d(xkc,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'diffusion:xkc')
     call getmem3d(xkd,jdi1,jdi2,idi1,idi2,1,kz,'diffusion:xkd')
-    call getmem3d(xkcf,jce1,jce2,ice1,ice2,1,kzp1,'diffusion:xkcf')
+    call getmem3d(xkcf,jci1,jci2,ici1,ici2,1,kzp1,'diffusion:xkcf')
   end subroutine allocate_mod_diffusion
 
   subroutine initialize_diffusion
@@ -152,11 +152,11 @@ module mod_diffusion
         end do
       end do
     end do
-    xkcf(:,:,1) = xkc(jce1:jce2,ice1:ice2,1)
-    xkcf(:,:,kzp1) = xkc(jce1:jce2,ice1:ice2,kz)
+    xkcf(:,:,1) = xkc(jci1:jci2,ici1:ici2,1)
+    xkcf(:,:,kzp1) = xkc(jci1:jci2,ici1:ici2,kz)
     do k = 2 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           xkcf(j,i,k) = min((twt(k,1)*xkc(j,i,k) + &
                              twt(k,2)*xkc(j,i,k-1)), xkhmax)
         end do
