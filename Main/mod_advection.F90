@@ -119,7 +119,7 @@ module mod_advection
       end do
       if ( idynamic == 2 ) then
         upstream_mode = .false.
-        stability_enhance = .true.
+        stability_enhance = .false.
         vert_stability_enhance = .false.
       end if
     end subroutine init_advection
