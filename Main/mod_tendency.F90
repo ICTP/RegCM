@@ -72,8 +72,6 @@ module mod_tendency
 
   real(rkx) :: rptn ! Total number of internal points
 
-  ! real(rkx) :: maxpten = 0.0078125_rkx
-
   contains
 
 #include <cpmf.inc>
@@ -135,9 +133,6 @@ module mod_tendency
     else
       iq2 = iqc
     end if
-    !if ( idynamic == 1 ) then
-    !  maxpten = 0.01250_rkx
-    !end if
   end subroutine allocate_mod_tend
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

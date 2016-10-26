@@ -88,6 +88,8 @@ module mod_bdycod
 
   public :: sponge , nudge , setup_bdycon
 
+  logical , parameter :: bdyflow = .false.
+
   contains
 
   subroutine allocate_mod_bdycon
@@ -1420,74 +1422,126 @@ module mod_bdycod
     !
     ! west boundary:
     !
-    if ( ma%has_bdyleft ) then
-      do n = iqfrst , iqlst
-        do k = 1 , kz
-          do i = ice1 , ice2
-            qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
-            windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-            if ( windavg >= d_zero ) then
-              atm1%qx(jce1,i,k,n) = max(minqx,d_r10*qxint*sfs%psa(jce1,i))
-            else
+    if ( bdyflow ) then
+      if ( ma%has_bdyleft ) then
+        do n = iqfrst , iqlst
+          do k = 1 , kz
+            do i = ice1 , ice2
+              qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
+              windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
+              if ( windavg >= d_zero ) then
+                atm1%qx(jce1,i,k,n) = max(minqx,d_r10*qxint*sfs%psa(jce1,i))
+              else
+                atm1%qx(jce1,i,k,n) = qxint*sfs%psa(jce1,i)
+              end if
+            end do
+          end do
+        end do
+      end if
+      !
+      ! east boundary:
+      !
+      if ( ma%has_bdyright ) then
+        do n = iqfrst , iqlst
+          do k = 1 , kz
+            do i = ice1 , ice2
+              qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
+              windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
+              if ( windavg <= d_zero ) then
+                atm1%qx(jce2,i,k,n) = max(minqx,d_r10*qxint*sfs%psa(jce2,i))
+              else
+                atm1%qx(jce2,i,k,n) = qxint*sfs%psa(jce2,i)
+              end if
+            end do
+          end do
+        end do
+      end if
+      !
+      ! south boundary:
+      !
+      if ( ma%has_bdybottom ) then
+        do n = iqfrst , iqlst
+          do k = 1 , kz
+            do j = jci1 , jci2
+              qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
+              windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+              if ( windavg >= d_zero ) then
+                atm1%qx(j,ice1,k,n) = max(minqx,d_r10*qxint*sfs%psa(j,ice1))
+              else
+                atm1%qx(j,ice1,k,n) = qxint*sfs%psa(j,ice1)
+              end if
+            end do
+          end do
+        end do
+      end if
+      !
+      ! north boundary:
+      !
+      if ( ma%has_bdytop ) then
+        do n = iqfrst , iqlst
+          do k = 1 , kz
+            do j = jci1 , jci2
+              qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
+              windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+              if ( windavg <= d_zero ) then
+                atm1%qx(j,ice2,k,n) = max(minqx,d_r10*qxint*sfs%psa(j,ice2))
+              else
+                atm1%qx(j,ice2,k,n) = qxint*sfs%psa(j,ice2)
+              end if
+            end do
+          end do
+        end do
+      end if
+    else
+      if ( ma%has_bdyleft ) then
+        do n = iqfrst , iqlst
+          do k = 1 , kz
+            do i = ice1 , ice2
+              qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
               atm1%qx(jce1,i,k,n) = qxint*sfs%psa(jce1,i)
-            end if
+            end do
           end do
         end do
-      end do
-    end if
-    !
-    ! east boundary:
-    !
-    if ( ma%has_bdyright ) then
-      do n = iqfrst , iqlst
-        do k = 1 , kz
-          do i = ice1 , ice2
-            qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
-            windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-            if ( windavg <= d_zero ) then
-              atm1%qx(jce2,i,k,n) = max(minqx,d_r10*qxint*sfs%psa(jce2,i))
-            else
+      end if
+      !
+      ! east boundary:
+      !
+      if ( ma%has_bdyright ) then
+        do n = iqfrst , iqlst
+          do k = 1 , kz
+            do i = ice1 , ice2
+              qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
               atm1%qx(jce2,i,k,n) = qxint*sfs%psa(jce2,i)
-            end if
+            end do
           end do
         end do
-      end do
-    end if
-    !
-    ! south boundary:
-    !
-    if ( ma%has_bdybottom ) then
-      do n = iqfrst , iqlst
-        do k = 1 , kz
-          do j = jci1 , jci2
-            qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
-            windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-            if ( windavg >= d_zero ) then
-              atm1%qx(j,ice1,k,n) = max(minqx,d_r10*qxint*sfs%psa(j,ice1))
-            else
+      end if
+      !
+      ! south boundary:
+      !
+      if ( ma%has_bdybottom ) then
+        do n = iqfrst , iqlst
+          do k = 1 , kz
+            do j = jci1 , jci2
+              qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
               atm1%qx(j,ice1,k,n) = qxint*sfs%psa(j,ice1)
-            end if
+            end do
           end do
         end do
-      end do
-    end if
-    !
-    ! north boundary:
-    !
-    if ( ma%has_bdytop ) then
-      do n = iqfrst , iqlst
-        do k = 1 , kz
-          do j = jci1 , jci2
-            qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
-            windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-            if ( windavg <= d_zero ) then
-              atm1%qx(j,ice2,k,n) = max(minqx,d_r10*qxint*sfs%psa(j,ice2))
-            else
+      end if
+      !
+      ! north boundary:
+      !
+      if ( ma%has_bdytop ) then
+        do n = iqfrst , iqlst
+          do k = 1 , kz
+            do j = jci1 , jci2
+              qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
               atm1%qx(j,ice2,k,n) = qxint*sfs%psa(j,ice2)
-            end if
+            end do
           end do
         end do
-      end do
+      end if
     end if
 
     if ( ibltyp == 2 ) then
@@ -1516,74 +1570,122 @@ module mod_bdycod
         !
         ! west boundary:
         !
-        if ( ma%has_bdyleft ) then
-          atm1%tke(jce1,:,1) = tkemin ! East boundary
-          atm2%tke(jce1,:,1) = tkemin ! East boundary
-          do k = 1 , kz
-            do i = ice1 , ice2
-              tkeint = atm1%tke(jci1,i,k+1)
-              windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-              if ( windavg >= d_zero ) then
-                atm1%tke(jce1,i,k+1) = tkemin
-              else
-                atm1%tke(jce1,i,k+1) = tkeint
-              end if
+        if ( bdyflow ) then
+          if ( ma%has_bdyleft ) then
+            atm1%tke(jce1,:,1) = tkemin ! West boundary
+            atm2%tke(jce1,:,1) = tkemin ! West boundary
+            do k = 1 , kz
+              do i = ice1 , ice2
+                tkeint = atm1%tke(jci1,i,k+1)
+                windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
+                if ( windavg >= d_zero ) then
+                  atm1%tke(jce1,i,k+1) = tkemin
+                else
+                  atm1%tke(jce1,i,k+1) = tkeint
+                end if
+              end do
             end do
-          end do
-        end if
-        !
-        ! east boundary:
-        !
-        if ( ma%has_bdyright ) then
-          atm1%tke(jce2,:,1) = tkemin ! West boundary
-          atm2%tke(jce2,:,1) = tkemin ! West boundary
-          do k = 1 , kz
-            do i = ice1 , ice2
-              tkeint = atm1%tke(jci2,i,k+1)
-              windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-              if ( windavg <= d_zero ) then
-                atm1%tke(jce2,i,k+1) = tkemin
-              else
-                atm1%tke(jce2,i,k+1) = tkeint
-              end if
+          end if
+          !
+          ! east boundary:
+          !
+          if ( ma%has_bdyright ) then
+            atm1%tke(jce2,:,1) = tkemin ! East boundary
+            atm2%tke(jce2,:,1) = tkemin ! East boundary
+            do k = 1 , kz
+              do i = ice1 , ice2
+                tkeint = atm1%tke(jci2,i,k+1)
+                windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
+                if ( windavg <= d_zero ) then
+                  atm1%tke(jce2,i,k+1) = tkemin
+                else
+                  atm1%tke(jce2,i,k+1) = tkeint
+                end if
+              end do
             end do
-          end do
-        end if
-        !
-        ! south boundary:
-        !
-        if ( ma%has_bdybottom ) then
-          atm1%tke(:,ice1,1) = tkemin  ! South boundary
-          atm2%tke(:,ice1,1) = tkemin  ! South boundary
-          do k = 1 , kz
-            do j = jci1 , jci2
-              tkeint = atm1%tke(j,ici1,k+1)
-              windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-              if ( windavg >= d_zero ) then
-                atm1%tke(j,ice1,k+1) = tkemin
-              else
-                atm1%tke(j,ice1,k+1) = tkeint
-              end if
+          end if
+          !
+          ! south boundary:
+          !
+          if ( ma%has_bdybottom ) then
+            atm1%tke(:,ice1,1) = tkemin  ! South boundary
+            atm2%tke(:,ice1,1) = tkemin  ! South boundary
+            do k = 1 , kz
+              do j = jci1 , jci2
+                tkeint = atm1%tke(j,ici1,k+1)
+                windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+                if ( windavg >= d_zero ) then
+                  atm1%tke(j,ice1,k+1) = tkemin
+                else
+                  atm1%tke(j,ice1,k+1) = tkeint
+                end if
+              end do
             end do
-          end do
-        end if
-        !
-        ! north boundary:
-        !
-        if ( ma%has_bdytop ) then
-          atm1%tke(:,ice2,1) = tkemin  ! South boundary
-          atm2%tke(:,ice2,1) = tkemin  ! South boundary
-          do k = 1 , kz
-            do j = jci1 , jci2
-              tkeint = atm1%tke(j,ici2,k+1)
-              windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-              if ( windavg < d_zero ) then
-                atm1%tke(j,ice2,k+1) = tkemin
-              else
-                atm1%tke(j,ice2,k+1) = tkeint
-              end if
+          end if
+          !
+          ! north boundary:
+          !
+          if ( ma%has_bdytop ) then
+            atm1%tke(:,ice2,1) = tkemin  ! Morth boundary
+            atm2%tke(:,ice2,1) = tkemin  ! Morth boundary
+            do k = 1 , kz
+              do j = jci1 , jci2
+                tkeint = atm1%tke(j,ici2,k+1)
+                windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+                if ( windavg < d_zero ) then
+                  atm1%tke(j,ice2,k+1) = tkemin
+                else
+                  atm1%tke(j,ice2,k+1) = tkeint
+                end if
+              end do
             end do
-          end do
+          end if
+        else
+          if ( ma%has_bdyleft ) then
+            atm1%tke(jce1,:,1) = tkemin ! West boundary
+            atm2%tke(jce1,:,1) = tkemin ! West boundary
+            do k = 2 , kzp1
+              do i = ice1 , ice2
+                atm1%tke(jce1,i,k) = atm1%tke(jci1,i,k)
+              end do
+            end do
+          end if
+          !
+          ! east boundary:
+          !
+          if ( ma%has_bdyright ) then
+            atm1%tke(jce2,:,1) = tkemin ! East boundary
+            atm2%tke(jce2,:,1) = tkemin ! East boundary
+            do k = 2 , kzp1
+              do i = ice1 , ice2
+                atm1%tke(jce2,i,k) = atm1%tke(jci2,i,k)
+              end do
+            end do
+          end if
+          !
+          ! south boundary:
+          !
+          if ( ma%has_bdybottom ) then
+            atm1%tke(:,ice1,1) = tkemin  ! South boundary
+            atm2%tke(:,ice1,1) = tkemin  ! South boundary
+            do k = 2 , kzp1
+              do j = jci1 , jci2
+                atm1%tke(j,ice1,k) = atm1%tke(j,ici1,k)
+              end do
+            end do
+          end if
+          !
+          ! north boundary:
+          !
+          if ( ma%has_bdytop ) then
+            atm1%tke(:,ice2,1) = tkemin  ! North boundary
+            atm2%tke(:,ice2,1) = tkemin  ! North boundary
+            do k = 2 , kzp1
+              do j = jci1 , jci2
+                atm1%tke(j,ice2,k) = atm1%tke(j,ici2,k)
+              end do
+            end do
+          end if
         end if
       end if
     end if

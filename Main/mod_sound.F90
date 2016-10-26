@@ -649,8 +649,8 @@ module mod_sound
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atmc%w(j,i,2) = xkd * atmc%w(j,i,1) + &
-                (d_one - xkd) * (e(j,i,1)*atmc%w(j,i,1)+f(j,i,1))
+          atmc%w(j,i,2) = 0.5_rkx * (atmc%w(j,i,1) + &
+                (e(j,i,1)*atmc%w(j,i,1)+f(j,i,1)))
         end do
       end do
       do k = 2 , kz
@@ -663,13 +663,13 @@ module mod_sound
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ucrs(j,i,k) = atmc%u(j,i,k) * mddom%msfd(j,i) +     &
-                          atmc%u(j,i+1,k) * mddom%msfd(j,i+1) + &
-                          atmc%u(j+1,i,k) * mddom%msfd(j+1,i) + &
+            ucrs(j,i,k) = atmc%u(j,i,k)     * mddom%msfd(j,i) +   &
+                          atmc%u(j,i+1,k)   * mddom%msfd(j,i+1) + &
+                          atmc%u(j+1,i,k)   * mddom%msfd(j+1,i) + &
                           atmc%u(j+1,i+1,k) * mddom%msfd(j+1,i+1)
-            vcrs(j,i,k) = atmc%v(j,i,k) * mddom%msfd(j,i) +     &
-                          atmc%v(j,i+1,k) * mddom%msfd(j,i+1) + &
-                          atmc%v(j+1,i,k) * mddom%msfd(j+1,i) + &
+            vcrs(j,i,k) = atmc%v(j,i,k)     * mddom%msfd(j,i) +   &
+                          atmc%v(j,i+1,k)   * mddom%msfd(j,i+1) + &
+                          atmc%v(j+1,i,k)   * mddom%msfd(j+1,i) + &
                           atmc%v(j+1,i+1,k) * mddom%msfd(j+1,i+1)
           end do
         end do
