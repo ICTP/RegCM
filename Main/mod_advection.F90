@@ -35,13 +35,13 @@ module mod_advection
 
   public :: init_advection, hadv , vadv , start_advect
 
-  logical , parameter :: upstream_mode = .false.
+  logical :: upstream_mode = .false.
   real(rkx) , parameter :: upu = 0.1250_rkx
   real(rkx) , parameter :: umax = 192.0_rkx
   real(rkx) , parameter :: uchu = upu/umax
 
-  logical , parameter :: stability_enhance = .false.
-  logical , parameter :: vert_stability_enhance = .false.
+  logical :: stability_enhance = .false.
+  logical :: vert_stability_enhance = .false.
   real(rkx) , parameter :: t_extrema = 5.0_rkx
   real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
   real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
@@ -117,6 +117,11 @@ module mod_advection
       do k = 2 , kz
         dds(k) = d_one / (dsigma(k) + dsigma(k-1))
       end do
+      if ( idynamic == 2 ) then
+        upstream_mode = .false.
+        stability_enhance = .true.
+        vert_stability_enhance = .false.
+      end if
     end subroutine init_advection
     !
     ! Pre-compute
