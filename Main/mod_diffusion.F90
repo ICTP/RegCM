@@ -35,7 +35,7 @@ module mod_diffusion
   private
 
   real(rkx) , pointer , dimension(:,:,:) :: xkc , xkd , xkcf
-  real(rkx) , public , pointer , dimension(:,:) :: hgfact
+  real(rkx) , public , pointer , dimension(:,:,:) :: hgfact
 
   real(rkx) :: dydc , xkhmax
 
@@ -62,7 +62,7 @@ module mod_diffusion
 
   subroutine allocate_mod_diffusion
     implicit none
-    call getmem2d(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,'diffusion:hgfact')
+    call getmem3d(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'diffusion:hgfact')
     call getmem3d(xkc,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'diffusion:xkc')
     call getmem3d(xkd,jdi1,jdi2,idi1,idi2,1,kz,'diffusion:xkd')
     call getmem3d(xkcf,jci1,jci2,ici1,ici2,1,kzp1,'diffusion:xkcf')
@@ -71,9 +71,9 @@ module mod_diffusion
   subroutine initialize_diffusion
     use mod_atm_interface , only : mddom , sfs , atms
     implicit none
-    integer(ik4) :: i , j
+    integer(ik4) :: i , j , k
     real(rkx) :: hg1 , hg2 , hg3 , hg4
-    real(rkx) :: hgmax , xkhz , maxht
+    real(rkx) :: hgmax , xkhz , minxkh , maxxkh
     !
     ! Diffusion coefficients: for non-hydrostatic, follow the MM5
     ! The hydrostatic diffusion is following the RegCM3 formulation
@@ -84,7 +84,8 @@ module mod_diffusion
     if ( idynamic == 1 ) then
       xkhz = 1.5e-3_rkx*dxsq/dtsec
     else
-      xkhz = ckh * dx ! ckh * 3.0e-3_rkx*dxsq/dtsec
+      xkhz = ckh * dx
+      ! xkhz = ckh * 1.5e-3_rkx*dxsq/dtsec
       xkhmax = d_two*xkhmax
     end if
     if ( myid == 0 ) then
@@ -96,15 +97,14 @@ module mod_diffusion
     !
     ! Calculate topographical correction to diffusion coefficient
     !
-    do i = ice1ga , ice2ga
-      do j = jce1ga , jce2ga
-        hgfact(j,i) = xkhz
+    do k = 1 , kz
+      do i = ice1ga , ice2ga
+        do j = jce1ga , jce2ga
+          hgfact(j,i,k) = xkhz
+        end do
       end do
     end do
     if ( diffu_hgtf == 1 ) then
-      !call maxall(maxval(mddom%ht),maxht)
-      !maxht = maxht * regrav
-      maxht = 1000.0_rkx
       do i = ici1ga , ici2ga
         do j = jci1ga , jci2ga
           hg1 = abs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
@@ -112,9 +112,16 @@ module mod_diffusion
           hg3 = abs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
           hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
           hgmax = max(hg1,hg2,hg3,hg4)*regrav
-          hgfact(j,i) = xkhz/(d_one+(hgmax*maxht)**2)
+          hgfact(j,i,kz) = xkhz/(d_one+1000.0_rkx*hgmax**2)
+          hgfact(j,i,kz-1) = hgfact(j,i,kz)
         end do
       end do
+      call maxall(maxval(hgfact),maxxkh)
+      call minall(minval(hgfact),minxkh)
+      if ( myid == 0 ) then
+        write(stdout,'(a,e13.6,a,e13.6,a)') &
+          ' Computed hor. diff. coef. range = ',minxkh,' -',maxxkh,' m^2 s-1'
+      end if
     end if
     call assignpnt(sfs%psb,pc)
     call assignpnt(sfs%psdotb,pd)
@@ -148,7 +155,7 @@ module mod_diffusion
           dvdy = vd(j,i+1,k) + vd(j+1,i+1,k) - &
                  vd(j,i,k)   - vd(j+1,i,k)
           duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
-          xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
+          xkc(j,i,k) = min((hgfact(j,i,k) + dydc*duv),xkhmax)
         end do
       end do
     end do
@@ -455,7 +462,6 @@ module mod_diffusion
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: f
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
     real(rkx) , intent(in) :: fac
-
     real(rkx) :: mval
     integer(ik4) :: i , j , k
 #ifdef DEBUG

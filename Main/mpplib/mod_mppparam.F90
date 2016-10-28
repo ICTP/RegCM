@@ -438,6 +438,11 @@ module mod_mppparam
     module procedure maxall_real4
   end interface maxall
 
+  interface minall
+    module procedure minall_real8
+    module procedure minall_real4
+  end interface minall
+
   type(model_area) , public :: ma
 
   real(rk8) , pointer , dimension(:) :: r8vector1
@@ -479,7 +484,7 @@ module mod_mppparam
   public :: grid_distribute , grid_collect , grid_fill
   public :: subgrid_distribute , subgrid_collect
   public :: uvcross2dot , uvdot2cross , psc2psd
-  public :: bcast , sumall , maxall
+  public :: bcast , sumall , maxall , minall
   public :: gather_r , gather_i
   public :: allgather_r , allgather_i
   public :: reorder_subgrid , reorder_glb_subgrid , reorder_add_subgrid
@@ -713,6 +718,26 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
   end subroutine maxall_real4
+
+  subroutine minall_real8(rlval,rtval)
+    implicit none
+    real(rk8) , intent(in) :: rlval
+    real(rk8) , intent(out) :: rtval
+    call mpi_allreduce(rlval,rtval,1,mpi_real8,mpi_min,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+  end subroutine minall_real8
+
+  subroutine minall_real4(rlval,rtval)
+    implicit none
+    real(rk4) , intent(in) :: rlval
+    real(rk4) , intent(out) :: rtval
+    call mpi_allreduce(rlval,rtval,1,mpi_real4,mpi_min,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+  end subroutine minall_real4
 
   subroutine sumall_int4(ilval,itval)
     implicit none

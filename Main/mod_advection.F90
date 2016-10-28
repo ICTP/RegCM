@@ -37,7 +37,7 @@ module mod_advection
 
   logical :: upstream_mode = .false.
   real(rkx) , parameter :: upu = 0.1250_rkx
-  real(rkx) , parameter :: umax = 192.0_rkx
+  real(rkx) , parameter :: umax = 300.0_rkx
   real(rkx) , parameter :: uchu = upu/umax
 
   logical :: stability_enhance = .false.
@@ -118,9 +118,9 @@ module mod_advection
         dds(k) = d_one / (dsigma(k) + dsigma(k-1))
       end do
       if ( idynamic == 2 ) then
-        upstream_mode = .false.
-        stability_enhance = .false.
-        vert_stability_enhance = .false.
+        upstream_mode = .true.
+        stability_enhance = .true.
+        vert_stability_enhance = .true.
       end if
     end subroutine init_advection
     !
@@ -591,7 +591,8 @@ module mod_advection
       !
       ! for qv:
       !
-      if ( .not. upstream_mode ) then
+      !if ( .not. upstream_mode ) then
+      if ( .false. ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -1001,8 +1002,7 @@ module mod_advection
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( f(j,i,k,n)/ps(j,i) > minqq .and. &
-                 f(j,i,k-1,n)/ps(j,i) > minqq ) then
+            if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
               f1 = f(j,i,k,n)
               f2 = f(j,i,k-1,n)
               fg(j,i,k) = real(f1*(f2/f1)**qcon(k),rkx)

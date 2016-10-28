@@ -627,16 +627,28 @@ module mod_sound
       ! Zero-out gradient
       !
       if ( ma%has_bdybottom ) then
-        atmc%w(:,ice1,1) = atmc%w(:,ici1,1)
+        atmc%w(jci1:jci2,ice1,1) = atmc%w(jci1:jci2,ici1,1)
+        if ( ma%has_bdyleft ) then
+          atmc%w(jce1,ice1,1) = atmc%w(jci1,ici1,1)
+        end if
+        if ( ma%has_bdyright ) then
+          atmc%w(jce2,ice1,1) = atmc%w(jci2,ici1,1)
+        end if
       end if
       if ( ma%has_bdytop ) then
-        atmc%w(:,ice2,1) = atmc%w(:,ici2,1)
+        atmc%w(jci1:jci2,ice2,1) = atmc%w(jci1:jci2,ici2,1)
+        if ( ma%has_bdyleft ) then
+          atmc%w(jce1,ice2,1) = atmc%w(jci1,ici2,1)
+        end if
+        if ( ma%has_bdyright ) then
+          atmc%w(jce2,ice2,1) = atmc%w(jci2,ici2,1)
+        end if
       end if
       if ( ma%has_bdyleft ) then
-        atmc%w(jce1,:,1) = atmc%w(jci1,:,1)
+        atmc%w(jce1,ici1:ici2,1) = atmc%w(jci1,ici1:ici2,1)
       end if
       if ( ma%has_bdyright ) then
-        atmc%w(jce2,:,1) = atmc%w(jci2,:,1)
+        atmc%w(jce2,ici1:ici2,1) = atmc%w(jci2,ici1:ici2,1)
       end if
       !
       ! Downward sweep calculation of w
