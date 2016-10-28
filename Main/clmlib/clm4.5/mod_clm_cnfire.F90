@@ -1595,7 +1595,7 @@ module mod_clm_cnfire
     allocate( hdm_p2(begg:endg) )
 
     call split_idate(nextdate,yr,mon,day,ih)
-    ipoprec = yr - 1850 + 1
+    ipoprec = max(yr - 1850 + 1,1)
     call clm_openfile(fsurdat,sdat_hdm)
     call clm_readvar(sdat_hdm,'HDM',hdm_p1,gcomm_gridcell,ipoprec)
     call clm_readvar(sdat_hdm,'HDM',hdm_p2,gcomm_gridcell,ipoprec+1)
@@ -1615,7 +1615,7 @@ module mod_clm_cnfire
     real(rk8) :: w1 , w2
 
     call split_idate(nextdate,yr,mon,day,ih)
-    ip = yr - 1850 + 1
+    ip = max(yr - 1850 + 1,1)
     if ( ip /= ipoprec ) then
       ipoprec = ipoprec+1
       call clm_readvar(sdat_hdm,'HDM',hdm_p1,gcomm_gridcell,ipoprec)

@@ -833,11 +833,21 @@ module mod_che_bdyco
     implicit none
     integer(ik4) :: n , k
     real(rkx) :: fnudge , gnudge
+    real(rkx) , dimension(kz) :: anudgh
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
     fnudge = 0.1_rkx/dt2
     gnudge = (dxsq/dt)/50.0_rkx
+    do k = 1 , kz
+      if ( hsigma(k) < 0.4_rkx ) then
+        anudgh(k) = high_nudge
+      else if ( hsigma(k) < 0.8_rkx ) then
+        anudgh(k) = medium_nudge
+      else
+        anudgh(k) = low_nudge
+      end if
+    end do
     do k = 1 , kz
       do n = 2 , nspgx-1
         cefc(n,k) = fnudge*xfune(n,k)

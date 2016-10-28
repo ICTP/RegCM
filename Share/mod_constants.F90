@@ -54,7 +54,6 @@ module mod_constants
   real(rkx) , parameter :: deg360 = 360.0_rkx
 
   ! minimum values for uncoupled/coupled variables which require them
-  real(rkx) , parameter :: minww   = 1.0e-7_rkx
   real(rkx) , parameter :: minqq   = 1.0e-8_rkx
   real(rkx) , parameter :: minqx   = 1.0e-16_rkx
   real(rkx) , parameter :: mintr   = 1.0e-16_rkx

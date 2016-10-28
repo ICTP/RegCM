@@ -139,6 +139,8 @@ module mod_bdycod
 
   subroutine setup_bdycon
     implicit none
+    real(rkx) , dimension(kz) :: anudgh
+    real(rkx) , dimension(kzp1) :: anudgf
     integer(ik4) :: n , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
@@ -187,6 +189,8 @@ module mod_bdycod
         else
           anudgf(k) = low_nudge
         end if
+      end do
+      do k = 1 , kzp1
         do n = 2 , nbdm-1
           fefc(n,k) = fnudge*xfune(n,k,anudgf)
           fegc(n,k) = gnudge*xfune(n,k,anudgf)
@@ -200,6 +204,8 @@ module mod_bdycod
         else
           anudgh(k) = low_nudge
         end if
+      end do
+      do k = 1 , kz
         do n = 2 , nbdm-1
           hefc(n,k) = fnudge*xfune(n,k,anudgh)
           hegc(n,k) = gnudge*xfune(n,k,anudgh)
@@ -2477,7 +2483,7 @@ module mod_bdycod
     type(v3dbound) , intent(in) :: bnd
     real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
     real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
-    integer(ik4) :: i , j , k , ib , nk
+    integer(ik4) :: i , j , k , ib , nk , ks
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge3d'
     integer(ik4) , save :: idindx = 0
@@ -2496,14 +2502,16 @@ module mod_bdycod
     if ( nk == size(hefc) ) then
       efc => hefc
       egc => hegc
+      ks = 1
     else
       efc => fefc
       egc => fegc
+      ks = 2
     end if
 
     if ( ibdy == 1 ) then
       if ( ba_cr%ns /= 0 ) then
-        do k = 1 , nk
+        do k = ks , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bsouth(j,i) ) cycle
@@ -2522,7 +2530,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-        do k = 1 , nk
+        do k = ks , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bnorth(j,i) ) cycle
@@ -2541,7 +2549,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-        do k = 1 , nk
+        do k = ks , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bwest(j,i) ) cycle
@@ -2560,7 +2568,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-        do k = 1 , nk
+        do k = ks , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%beast(j,i) ) cycle
@@ -2580,7 +2588,7 @@ module mod_bdycod
       end if
     else
       if ( ba_cr%ns /= 0 ) then
-        do k = 1 , nk
+        do k = ks , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bsouth(j,i) ) cycle
@@ -2599,7 +2607,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-        do k = 1 , nk
+        do k = ks , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bnorth(j,i) ) cycle
@@ -2618,7 +2626,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-        do k = 1 , nk
+        do k = ks , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bwest(j,i) ) cycle
@@ -2637,7 +2645,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-        do k = 1 , nk
+        do k = ks , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%beast(j,i) ) cycle

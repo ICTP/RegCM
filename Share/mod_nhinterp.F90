@@ -376,7 +376,7 @@ module mod_nhinterp
       real(rkx) , dimension(kxs+1) :: z0q , zq
       real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
       real(rkx) , dimension(j1:j2,i1:i2,kxs) :: pr0 , logprp
-      real(rkx) , dimension(j1:j2,i1:i2) :: pspa , rpspa , smt1 , smt2
+      real(rkx) , dimension(j1:j2,i1:i2) :: pspa , rpspa
       real(rkx) , dimension(j1:j2,i1:i2) :: dummy , dummy1
       real(rkx) , dimension(j1:j2,i1:i2) :: psdotpam
 
@@ -516,31 +516,13 @@ module mod_nhinterp
         end do
       end do
       wtop(j1:j2,i1:i2) = wtmp(j1:j2,i1:i2,1)
-      do k = 2 , kxs + 1
-        smt1(:,:) = wtmp(:,:,k)
-        smt2(:,:) = wtmp(:,:,k)
-        do i = i1 , i2
-          do j = j1 , j2
-            jp = min(j+1,j2)
-            jm = max(j-1,j1)
-            smt2(j,i) = d_rfour*(d_two*smt1(j,i)+smt1(jp,i)+smt1(jm,i))
-          end do
-        end do
-        do i = i1 , i2
-          do j = j1 , j2
-            ip = min(i+1,i2)
-            im = max(i-1,i1)
-            smt1(j,i) = d_rfour*(d_two*smt2(j,i)+smt2(j,ip)+smt2(j,im))
-          end do
-        end do
-        w(:,:,k-1) = smt1(:,:)
-      end do
+      w(j1:j2,i1:i2,:) = wtmp(j1:j2,i1:i2,2:kxs)
       w(j1,:,:) = w(j1+1,:,:)
       w(j2-1,:,:) = w(j2-2,:,:)
+      w(j2,:,:) = w(j2-1,:,:)
       w(:,i1,:) = w(:,i1+1,:)
       w(:,i2-1,:) = w(:,i2-2,:)
-      w(j2,:,:) = d_zero
-      w(:,i2,:) = d_zero
+      w(:,i2,:) = w(:,i2-1,:)
     end subroutine nhw
 
 end module mod_nhinterp

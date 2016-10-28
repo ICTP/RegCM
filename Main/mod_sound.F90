@@ -136,7 +136,7 @@ module mod_sound
     end if
     bet = nhbet
     xkd = nhxkd
-    cs = sqrt(xgamma*rgas*stdt)
+    cs = sqrt(xgamma*rgas*base_state_temperature)
     ! Calculate short time-step
     dtsmax = dx/cs/(d_one+xkd)
     if ( myid == italk ) then
@@ -185,13 +185,9 @@ module mod_sound
     !
     ! DTL LONG TIME-STEP (XXB-XXC)
     cfl_error = .false.
-    if ( ktau == 0 ) then
-      istep = 4
-    else
-      istep = max(int(dt/dtsmax),2)
-      if ( ktau > 1 ) then
-        istep = max(4,istep)
-      end if
+    istep = max(int(dt/dtsmax),2)
+    if ( ktau > 1 ) then
+      istep = max(4,istep)
     end if
     dts = dt/real(istep,rkx)
     !
@@ -243,11 +239,7 @@ module mod_sound
       do i = ice1 , ice2
         do j = jce1 , jce2
           aten%w(j,i,k) = aten%w(j,i,k) * dts
-          if ( abs(atm2%w(j,i,k)) > dlowval ) then
-            atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
-          else
-            atmc%w(j,i,k) = sign(dlowval,atm2%w(j,i,k))
-          end if
+          atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
         end do
       end do
     end do
@@ -607,14 +599,16 @@ module mod_sound
         !
         iciloop: &
         do i = ici1 , ici2
-          if ( i < icross1+8 .or. i > icross2-8 ) cycle iciloop
           jciloop: &
           do j = jci1 , jci2
-            if ( j < jcross1+8 .or. j > jcross2-8 ) cycle jciloop
             do nsi = -6 , 6
               inn = i+nsi
+              if ( inn < icross1+1 ) inn = icross1+1
+              if ( inn > icross2-1 ) inn = icross2-1
               do nsj = -6 , 6
                 jnn = j+nsj
+                if ( jnn < jcross1+1 ) jnn = jcross1+1
+                if ( jnn > jcross2-1 ) jnn = jcross2-1
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do
             end do
@@ -647,13 +641,7 @@ module mod_sound
       !
       ! Downward sweep calculation of w
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atmc%w(j,i,2) = 0.5_rkx * (atmc%w(j,i,1) + &
-                (e(j,i,1)*atmc%w(j,i,1)+f(j,i,1)))
-        end do
-      end do
-      do k = 2 , kz
+      do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%w(j,i,k+1) = e(j,i,k)*atmc%w(j,i,k) + f(j,i,k)
@@ -663,14 +651,10 @@ module mod_sound
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ucrs(j,i,k) = atmc%u(j,i,k)     * mddom%msfd(j,i) +   &
-                          atmc%u(j,i+1,k)   * mddom%msfd(j,i+1) + &
-                          atmc%u(j+1,i,k)   * mddom%msfd(j+1,i) + &
-                          atmc%u(j+1,i+1,k) * mddom%msfd(j+1,i+1)
-            vcrs(j,i,k) = atmc%v(j,i,k)     * mddom%msfd(j,i) +   &
-                          atmc%v(j,i+1,k)   * mddom%msfd(j,i+1) + &
-                          atmc%v(j+1,i,k)   * mddom%msfd(j+1,i) + &
-                          atmc%v(j+1,i+1,k) * mddom%msfd(j+1,i+1)
+            ucrs(j,i,k) = atmc%u(j,i,k) + atmc%u(j,i+1,k) + &
+                          atmc%u(j+1,i,k) + atmc%u(j+1,i+1,k)
+            vcrs(j,i,k) = atmc%v(j,i,k) + atmc%v(j,i+1,k) + &
+                          atmc%v(j+1,i,k) + atmc%v(j+1,i+1,k)
           end do
         end do
       end do
@@ -749,7 +733,7 @@ module mod_sound
       ! End of time loop
     end do timeloop
     !
-    ! Transfer xxa to xxb, new values to xxa and apply time filter
+    ! Apply time filtering technique
     !
     do k = 1 , kz
       do i = idi1 , idi2
@@ -769,11 +753,11 @@ module mod_sound
       end do
     end do
     call timefilter_apply(atm1%pp,atm2%pp,atmc%pp,gnu)
+    where ( abs(atmc%w) < dlowval ) atmc%w = d_zero
     do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
           atmc%w(j,i,k) = sfs%psb(j,i) * atmc%w(j,i,k)
-          if ( abs(atmc%w(j,i,k)) < dlowval ) atmc%w(j,i,k) = d_zero
         end do
       end do
     end do
