@@ -499,7 +499,8 @@ module mod_precip
   !
   subroutine cldfrac
     implicit none
-    real(rkx) :: exlwc , rh0adj , pfac
+    real(rkx) :: exlwc , rh0adj
+    ! real(rkx) :: pfac
     integer(ik4) :: i , j , k
     real(rkx) :: pres , botm , rm , qcld
 
@@ -700,7 +701,8 @@ module mod_precip
     !
     real(rkx) :: qccs , qvcs , tmp1 , tmp2 , tmp3
     real(rkx) :: dqv , exces , fccc , pres , qvc_cld , qvs , &
-               r1 , rh0adj , rhc , pfac
+               r1 , rh0adj , rhc
+    ! real(rkx) :: pfac
     integer(ik4) :: i , j , k
 
     !---------------------------------------------------------------------

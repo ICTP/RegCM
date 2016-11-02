@@ -635,7 +635,7 @@ module mod_bats_bndry
       a = scvk(i)
       b = fevpg(i)
       r = a * b
-      if ( r < 1.0e-20_rk8 ) r = 0.0_rk8
+      if ( r < tiny(1.0) ) r = 0.0_rk8
       evaps(i) = real(r,rkx)
       evapw(i) = fevpg(i) - evaps(i)
       ! tm is temperature of precipitation

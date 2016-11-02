@@ -144,10 +144,10 @@ module mod_tendency
   !
   subroutine tend
     implicit none
-    real(rkx) :: chias , chibs , duv , pt2bar , pt2tot , ptnbar , &
-                 maxv , ptntot , rovcpm , rtbar , tv , tva ,      &
-                 tvavg , tvb , tvc , rho0s , cpm , rofac , uaq ,  &
-                 vaq , wabar , amfac , wadot , wadotp1
+    real(rkx) :: duv , pt2bar , pt2tot , ptnbar , maxv , ptntot ,  &
+                 rovcpm , rtbar , tv , tva , tvavg , tvb , tvc ,   &
+                 rho0s , cpm , rofac , uaq , vaq , wabar , amfac , &
+                 wadot , wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
