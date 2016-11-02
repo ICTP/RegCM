@@ -404,7 +404,7 @@ module mod_params
                             ! cloud at which evaporation starts for ocean
     rprc_lnd = 1.4e-3_rkx   ! coefficient for conversion from cloud water
     rprc_ocn = 1.4e-3_rkx   ! coefficient for conversion from cloud water
-    cmtcape = 3600.0_rkx    ! CAPE adjustment timescale
+    cmtcape =  3600.0_rkx   ! CAPE adjustment timescale
     !
     ! kfparam ;
     ! Taken from WRF KFeta parametrization

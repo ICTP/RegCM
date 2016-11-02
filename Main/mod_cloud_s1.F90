@@ -520,6 +520,7 @@ module mod_cloud_s1
             else
               qx(n,j,i,k) = minqx
             end if
+            qx(iqqv,j,i,k) = max(qx(iqqv,j,i,k),minqq)
           end do
         end do
       end do
@@ -3117,7 +3118,7 @@ module mod_cloud_s1
         end do
         if ( aamax < dlowval ) then
           ! Assume no change...
-          qxn = max(qxn,minqx)
+          qxn(iqqv) = max(qxn(iqqv),minqq)
           return
         end if
         vv(n) = d_one/aamax ! Save the scaling.

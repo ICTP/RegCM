@@ -112,8 +112,9 @@ module mod_diffusion
           hg3 = abs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
           hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
           hgmax = max(hg1,hg2,hg3,hg4)*regrav
-          hgfact(j,i,kz) = xkhz/(d_one+1000.0_rkx*hgmax**2)
+          hgfact(j,i,kz) = max(1.5e3_rkx,xkhz/(d_one+hgmax**2))
           hgfact(j,i,kz-1) = hgfact(j,i,kz)
+          hgfact(j,i,kz-2) = (hgfact(j,i,kz)+xkhz) * d_half
         end do
       end do
       call maxall(maxval(hgfact),maxxkh)

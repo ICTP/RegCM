@@ -27,7 +27,7 @@ module mod_cu_tiedtke
   use mod_cu_common
   use mod_cu_tables
   use mod_service
-  use mod_runparams , only : iqc , dt , iqv , iqi , entrmax , &
+  use mod_runparams , only : iqc , dtcum , iqv , iqi , entrmax , &
          entrdd , entrmid , cprcon , entrpen , entrscv , iconv , &
          ichem , iaerosol , iindirect , ipptls , hsigma , ktau , ichcumtra
   use mod_mpmessage
@@ -131,7 +131,7 @@ module mod_cu_tiedtke
   ! Trigger parameter for the convection 0.0 <-> 1.0
   real(rkx) , parameter :: ctrigger = -1.1_rkx
 
-  real(rkx) , parameter :: almostzero = 1.0e-10_rkx
+  real(rkx) , parameter :: almostzero = dlowval
 
   contains
   !
@@ -645,7 +645,7 @@ module mod_cu_tiedtke
       end do
       pmflxr = d_zero
       pmflxs = d_zero
-      call ntiedtke(1,kproma,kbdim,klev,ldland,dt,ztp1,zqp1,       &
+      call ntiedtke(1,kproma,kbdim,klev,ldland,ztp1,zqp1,          &
                     zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
                     pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &
                     locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &
@@ -803,7 +803,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY CONSTANTS AND PARAMETERS
     ! -----------------------------------
     !
-    zcons2 = d_one/(egrav*dt)
+    zcons2 = d_one/(egrav*dtcum)
 
     ! *AMT* NOTE!
     ! this paramter is the CAPE adjustment timescale which in the global model
@@ -862,7 +862,7 @@ module mod_cu_tiedtke
     do jl = 1 , kproma
       ikb = kcbot(jl)
       qumqe = pqu(jl,ikb) + plu(jl,ikb) - zqenh(jl,ikb)
-      zdqmin = max(0.010_rkx*zqenh(jl,ikb),almostzero)
+      zdqmin = max(0.010_rkx*zqenh(jl,ikb),1.0e-10_rkx)
       llo1 = zdqpbl(jl) > d_zero .and. qumqe > zdqmin .and. ldcum(jl)
       zmfub(jl) = merge(zdqpbl(jl)/(egrav*max(qumqe,zdqmin)),0.010_rkx,llo1)
       zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
@@ -1077,7 +1077,7 @@ module mod_cu_tiedtke
         zeps = merge(cmfdeps,d_zero,llo1)
         qumqe = pqu(jl,ikb) + plu(jl,ikb) - zeps*zqd(jl,ikb) &
                  - (d_one-zeps)*zqenh(jl,ikb)
-        zdqmin = max(0.010_rkx*zqenh(jl,ikb),almostzero)
+        zdqmin = max(0.010_rkx*zqenh(jl,ikb),1.0e-10_rkx)
         zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
         llo1 = zdqpbl(jl) > d_zero .and. qumqe > zdqmin .and. &
                ldcum(jl) .and. zmfub(jl) < zmfmax
@@ -1090,7 +1090,7 @@ module mod_cu_tiedtke
     do jk = 1 , klev
       do jl = 1 , kproma
         if ( ldcum(jl) ) then
-          zfac = zmfub1(jl)/max(zmfub(jl),almostzero)
+          zfac = zmfub1(jl)/max(zmfub(jl),1.0e-10_rkx)
           pmfd(jl,jk) = pmfd(jl,jk)*zfac
           zmfds(jl,jk) = zmfds(jl,jk)*zfac
           zmfdq(jl,jk) = zmfdq(jl,jk)*zfac
@@ -1101,7 +1101,7 @@ module mod_cu_tiedtke
       do jt = 1 , ktrac
         do jl = 1 , kproma
           if ( ldcum(jl) ) then
-            zfac = zmfub1(jl)/max(zmfub(jl),almostzero)
+            zfac = zmfub1(jl)/max(zmfub(jl),1.0e-10_rkx)
             zmfdxt(jl,jk,jt) = zmfdxt(jl,jk,jt)*zfac
           end if
         end do
@@ -1278,7 +1278,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY CONSTANTS AND PARAMETERS
     ! -----------------------------------
     !
-    zcons2 = d_one/(egrav*dt)
+    zcons2 = d_one/(egrav*dtcum)
 
     ! *AMT* NOTE!
     ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1337,7 +1337,7 @@ module mod_cu_tiedtke
     do jl = 1 , kproma
       ikb = kcbot(jl)
       zqumqe = pqu(jl,ikb) + plu(jl,ikb) - zqenh(jl,ikb)
-      zdqmin = max(0.010_rkx*zqenh(jl,ikb),almostzero)
+      zdqmin = max(0.010_rkx*zqenh(jl,ikb),1.0e-10_rkx)
       llo1 = zdqpbl(jl) > d_zero .and. zqumqe > zdqmin .and. ldcum(jl)
       zmfub(jl) = merge(zdqpbl(jl)/(egrav*max(zqumqe,zdqmin)),0.010_rkx,llo1)
       zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
@@ -1509,7 +1509,7 @@ module mod_cu_tiedtke
         zeps = merge(cmfdeps,d_zero,llo1)
         zqumqe = pqu(jl,ikb) + plu(jl,ikb) - zeps*zqd(jl,ikb)  &
                  - (d_one-zeps)*zqenh(jl,ikb)
-        zdqmin = max(0.010_rkx*zqenh(jl,ikb),almostzero)
+        zdqmin = max(0.010_rkx*zqenh(jl,ikb),1.0e-10_rkx)
         zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
         llo1 = zdqpbl(jl) > d_zero .and. zqumqe > zdqmin .and. &
                ldcum(jl) .and. zmfub(jl) < zmfmax
@@ -1522,7 +1522,7 @@ module mod_cu_tiedtke
     do jk = 1 , klev
       do jl = 1 , kproma
         if ( ldcum(jl) ) then
-          zfac = zmfub1(jl)/max(zmfub(jl),almostzero)
+          zfac = zmfub1(jl)/max(zmfub(jl),1.0e-10_rkx)
           pmfd(jl,jk) = pmfd(jl,jk)*zfac
           zmfds(jl,jk) = zmfds(jl,jk)*zfac
           zmfdq(jl,jk) = zmfdq(jl,jk)*zfac
@@ -1533,7 +1533,7 @@ module mod_cu_tiedtke
       do jt = 1 , ktrac
         do jl = 1 , kproma
           if ( ldcum(jl) ) then
-            zfac = zmfub1(jl)/max(zmfub(jl),almostzero)
+            zfac = zmfub1(jl)/max(zmfub(jl),1.0e-10_rkx)
             zmfdxt(jl,jk,jt) = zmfdxt(jl,jk,jt)*zfac
           end if
         end do
@@ -1703,7 +1703,7 @@ module mod_cu_tiedtke
     ! -----------------------------------
     !
     !
-    zcons2 = d_one/(egrav*dt)
+    zcons2 = d_one/(egrav*dtcum)
     !
     !--------------------------------------------------------
     ! 2. INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -1754,7 +1754,7 @@ module mod_cu_tiedtke
     do jl = 1 , kproma
       ikb = kcbot(jl)
       zqumqe = pqu(jl,ikb) + plu(jl,ikb) - zqenh(jl,ikb)
-      zdqmin = max(0.010_rkx*zqenh(jl,ikb),almostzero)
+      zdqmin = max(0.010_rkx*zqenh(jl,ikb),1.0e-10_rkx)
       llo1 = zdqpbl(jl) > d_zero .and. zqumqe > zdqmin .and. ldcum(jl)
       zmfub(jl) = merge(zdqpbl(jl)/(egrav*max(zqumqe,zdqmin)),0.010_rkx,llo1)
       zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
@@ -1883,7 +1883,7 @@ module mod_cu_tiedtke
           zeps = merge(cmfdeps,d_zero,llo1)
           zqumqe = pqu(jl,ikb) + plu(jl,ikb) - zeps*zqd(jl,ikb)       &
                    - (d_one-zeps)*zqenh(jl,ikb)
-          zdqmin = max(0.010_rkx*zqenh(jl,ikb),almostzero)
+          zdqmin = max(0.010_rkx*zqenh(jl,ikb),1.0e-10_rkx)
           zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
           llo1 = zdqpbl(jl) > d_zero .and. zqumqe > zdqmin .and. ldcum(jl) &
                  .and. zmfub(jl) < zmfmax
@@ -1897,7 +1897,7 @@ module mod_cu_tiedtke
       do jk = 1 , klev
         do jl = 1 , kproma
           if ( loddraf(jl) ) then
-            zfac = zmfub1(jl)/max(zmfub(jl),almostzero)
+            zfac = zmfub1(jl)/max(zmfub(jl),1.0e-10_rkx)
             pmfd(jl,jk) = pmfd(jl,jk)*zfac
             zmfds(jl,jk) = zmfds(jl,jk)*zfac
             zmfdq(jl,jk) = zmfdq(jl,jk)*zfac
@@ -1907,7 +1907,7 @@ module mod_cu_tiedtke
         do jt = 1 , ktrac
           do jl = 1 , kproma
             if ( loddraf(jl) ) then
-              zfac = zmfub1(jl)/max(zmfub(jl),almostzero)
+              zfac = zmfub1(jl)/max(zmfub(jl),1.0e-10_rkx)
               zmfdxt(jl,jk,jt) = zmfdxt(jl,jk,jt)*zfac
             end if
           end do
@@ -2707,7 +2707,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY PARAMETERS
     ! ---------------------
     !
-    zcons2 = d_one/(egrav*dt)
+    zcons2 = d_one/(egrav*dtcum)
     ztglace = tzero - 13.0_rkx
     !
     ! AMT NOTE!!! in the original scheme, this level which restricts rainfall
@@ -3971,8 +3971,8 @@ module mod_cu_tiedtke
     !
     ! SPECIFY CONSTANTS
     !
-    zcons1 = cpd/(wlhf*egrav*dt)
-    zcons2 = d_one/(egrav*dt)
+    zcons1 = cpd/(wlhf*egrav*dtcum)
+    zcons2 = d_one/(egrav*dtcum)
     zcucov = 0.050_rkx
     ztmelp2 = tzero + 2.0_rkx
     !
@@ -4440,7 +4440,7 @@ module mod_cu_tiedtke
   !  (8) Calculate increments of t and q
   !  (9) Calculate increments of u and v
   !
-  subroutine ntiedtke(n1,n2,np,nk,ldland,dtcum,                     &
+  subroutine ntiedtke(n1,n2,np,nk,ldland,                           &
                       t,q,u,v,qctot,omega,qhfl,ahfs,ph,pf,geo,geof, &
                       tent,tenq,tenu,tenv,tenl,teni,                &
                       ldcum,ktype,kcbot,kctop,kbotsc,ldsc,          &
@@ -4455,8 +4455,6 @@ module mod_cu_tiedtke
     integer(ik4) , intent(in) :: ntrac ! number of tracers
     ! Land/sea mask flag
     logical , dimension(np) , intent(in) :: ldland
-    ! Timestep s
-    real(rkx) , intent(in) :: dtcum
     !-----------------------------------------------------
     ! ::::::::::: Input atmospheric condition ::::::::::::
     !-----------------------------------------------------
@@ -4720,7 +4718,7 @@ module mod_cu_tiedtke
         else if ( ktype(n) == 2 ) then
           !       shallow convection
           qumqe = qu(n,ikb) + lu(n,ikb) - qf(n,ikb)
-          dqmin = max(0.01_rkx*qf(n,ikb),almostzero)
+          dqmin = max(0.01_rkx*qf(n,ikb),1.0e-10_rkx)
           dh = cpd*(tu(n,ikb)-tf(n,ikb)) + wlhv*qumqe
           dh = egrav*max(dh,1.e5_rkx*dqmin)
           if ( dhpbl(n) > d_zero ) then
@@ -4847,12 +4845,12 @@ module mod_cu_tiedtke
       if ( ldcum(n) .and. (ktype(n) == 2 .or. ktype(n) == 3) ) then
         ikb = kcbot(n)
         if ( mfd(n,ikb) < d_zero ) then
-          eps = -mfd(n,ikb)/max(mfub(n),almostzero)
+          eps = -mfd(n,ikb)/max(mfub(n),1.0e-10_rkx)
         else
           eps = 0.0_rkx
         end if
         qumqe = qu(n,ikb) + lu(n,ikb) - eps*qd(n,ikb) - (d_one-eps)*qf(n,ikb)
-        dqmin = max(0.01_rkx*qf(n,ikb),almostzero)
+        dqmin = max(0.01_rkx*qf(n,ikb),1.0e-10_rkx)
         ! Maximum permisable value of ud base mass flux
         mfmax = (pf(n,ikb)-pf(n,ikb-1))*cons2*rmflic + rmflia
         ! Shallow convection
@@ -4884,12 +4882,12 @@ module mod_cu_tiedtke
     do k = 1 , nk
       do n = n1 , n2
         if ( lddraf(n) .and. (ktype(n) == 1 .or. ktype(n) == 2) ) then
-          fac = mfub1(n)/max(mfub(n),almostzero)
+          fac = mfub1(n)/max(mfub(n),1.0e-10_rkx)
           mfd(n,k) = mfd(n,k)*fac
           mfds(n,k) = mfds(n,k)*fac
           mfdq(n,k) = mfdq(n,k)*fac
           dmfdp(n,k) = dmfdp(n,k)*fac
-          !       also rescale detrainment flux for ERA pp
+          ! also rescale detrainment flux for ERA pp
           mfdde_rate(n,k) = mfdde_rate(n,k)*fac
         end if
       end do
@@ -6027,7 +6025,7 @@ module mod_cu_tiedtke
                 end if
                 kineu(n,k) = (kineu(n,k+1)*(d_one-dken)+dkbuo) / (d_one+dken)
                 if ( buo(n,k) < d_zero .and. ilab(n,k+1) == 2 ) then
-                  kedke = kineu(n,k)/max(almostzero,kineu(n,k+1))
+                  kedke = kineu(n,k)/max(1.0e-10_rkx,kineu(n,k+1))
                   kedke = max(d_zero,min(d_one,kedke))
                   mfun = sqrt(kedke)*mfu(n,k+1)
                   ndmfde(n) = max(ndmfde(n),mfu(n,k+1)-mfun)
