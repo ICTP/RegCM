@@ -526,24 +526,24 @@ module mod_cloud_s1
       end do
     end do
 
-    ! Detrainment : [xqdetr] = kg/(m^2*s)
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( qdetr(j,i,k) > 1.0e-8_rkx ) then
-            xqdetr(j,i,k) = qdetr(j,i,k)
-          else
-            xqdetr(j,i,k) = d_zero
-          end if
-        end do
-      end do
-    end do
-
     ! Delta pressure
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
           dpfs(j,i,k) = pfs(j,i,k+1)-pfs(j,i,k)
+        end do
+      end do
+    end do
+
+    ! Detrainment : [qdetr] = kg/(m^2*s)
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( abs(qdetr(j,i,k)) > dlowval ) then
+            xqdetr(j,i,k) = -qdetr(j,i,k)*dt*egrav/dpfs(j,i,k)
+          else
+            xqdetr(j,i,k) = d_zero
+          end if
         end do
       end do
     end do
@@ -690,9 +690,9 @@ module mod_cloud_s1
                 (tmpl+tmpi)*dpfs(j,i,k)*regrav    !(kg/m^2)
             end do
             ! Detrained water treated here
-            qe = xqdetr(j,i,k)*dt*egrav/dpfs(j,i,k) ! 1 ?
+            qe = xqdetr(j,i,k)
             if ( qe > activqx ) then
-              sumq0(j,i,k) = sumq0(j,i,k)+xqdetr(j,i,k)*dt
+              sumq0(j,i,k) = sumq0(j,i,k)+qe
               alfaw = qliq(j,i,k)
               tnew = tnew-(wlhvocp*alfaw+wlhsocp*(d_one-alfaw))*qe
             end if
@@ -1001,7 +1001,6 @@ module mod_cloud_s1
         !------------------------------------------------------------------
         !                 DETRAINMENT FROM CONVECTION
         !------------------------------------------------------------------
-        xqdetr(j,i,1) = xqdetr(j,i,1)*dtgdp  !kg/kg
         if ( xqdetr(j,i,1) > activqx ) then
           !qice = 1 if T < 250, qice = 0 if T > 273
           qice   = d_one-alfaw
@@ -2031,8 +2030,7 @@ module mod_cloud_s1
           !------------------------------------------------------------------
           !                 DETRAINMENT FROM CONVECTION
           !------------------------------------------------------------------
-          if ( k < kz ) then
-            xqdetr(j,i,k) = xqdetr(j,i,k)*dtgdp  !kg/kg
+          !if ( k < kz ) then
             if ( xqdetr(j,i,k) > activqx ) then
               !qice = 1 if T < 250, qice = 0 if T > 273
               qice   = d_one-alfaw
@@ -2049,7 +2047,7 @@ module mod_cloud_s1
               end if
 #endif
             end if
-          end if
+          !end if
 
           !------------------------------------------------------------------
           ! Turn on/off microphysics

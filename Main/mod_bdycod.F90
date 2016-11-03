@@ -1343,7 +1343,7 @@ module mod_bdycod
             qext = atm1%qx(jce1,i,k,iqv)/sfs%psa(jce1,i)
             qint = atm1%qx(jci1,i,k,iqv)/sfs%psa(jci1,i)
             windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-            if ( windavg >= d_zero ) then
+            if ( windavg > d_zero ) then
               atm1%qx(jce1,i,k,iqv) = qext*sfs%psa(jce1,i)
             else
               atm1%qx(jce1,i,k,iqv) = qint*sfs%psa(jce1,i)
@@ -1360,7 +1360,7 @@ module mod_bdycod
             qext = atm1%qx(jce2,i,k,iqv)/sfs%psa(jce2,i)
             qint = atm1%qx(jci2,i,k,iqv)/sfs%psa(jci2,i)
             windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-            if ( windavg <= d_zero ) then
+            if ( windavg < d_zero ) then
               atm1%qx(jce2,i,k,iqv) = qext*sfs%psa(jce2,i)
             else
               atm1%qx(jce2,i,k,iqv) = qint*sfs%psa(jce2,i)
@@ -1377,7 +1377,7 @@ module mod_bdycod
             qext = atm1%qx(j,ice1,k,iqv)/sfs%psa(j,ice1)
             qint = atm1%qx(j,ici1,k,iqv)/sfs%psa(j,ici1)
             windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-            if ( windavg >= d_zero ) then
+            if ( windavg > d_zero ) then
               atm1%qx(j,ice1,k,iqv) = qext*sfs%psa(j,ice1)
             else
               atm1%qx(j,ice1,k,iqv) = qint*sfs%psa(j,ice1)
@@ -1394,7 +1394,7 @@ module mod_bdycod
             qext = atm1%qx(j,ice2,k,iqv)/sfs%psa(j,ice2)
             qint = atm1%qx(j,ici2,k,iqv)/sfs%psa(j,ici2)
             windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-            if ( windavg <= d_zero ) then
+            if ( windavg < d_zero ) then
               atm1%qx(j,ice2,k,iqv) = qext*sfs%psa(j,ice2)
             else
               atm1%qx(j,ice2,k,iqv) = qint*sfs%psa(j,ice2)
@@ -1422,7 +1422,7 @@ module mod_bdycod
             do i = ice1 , ice2
               qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
               windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-              if ( windavg >= d_zero ) then
+              if ( windavg > d_zero ) then
                 atm1%qx(jce1,i,k,n) = max(minqx,d_r10*qxint*sfs%psa(jce1,i))
               else
                 atm1%qx(jce1,i,k,n) = qxint*sfs%psa(jce1,i)
@@ -1440,7 +1440,7 @@ module mod_bdycod
             do i = ice1 , ice2
               qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
               windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-              if ( windavg <= d_zero ) then
+              if ( windavg < d_zero ) then
                 atm1%qx(jce2,i,k,n) = max(minqx,d_r10*qxint*sfs%psa(jce2,i))
               else
                 atm1%qx(jce2,i,k,n) = qxint*sfs%psa(jce2,i)
@@ -1458,7 +1458,7 @@ module mod_bdycod
             do j = jci1 , jci2
               qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
               windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-              if ( windavg >= d_zero ) then
+              if ( windavg > d_zero ) then
                 atm1%qx(j,ice1,k,n) = max(minqx,d_r10*qxint*sfs%psa(j,ice1))
               else
                 atm1%qx(j,ice1,k,n) = qxint*sfs%psa(j,ice1)
@@ -1476,7 +1476,7 @@ module mod_bdycod
             do j = jci1 , jci2
               qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
               windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-              if ( windavg <= d_zero ) then
+              if ( windavg < d_zero ) then
                 atm1%qx(j,ice2,k,n) = max(minqx,d_r10*qxint*sfs%psa(j,ice2))
               else
                 atm1%qx(j,ice2,k,n) = qxint*sfs%psa(j,ice2)
@@ -1571,7 +1571,7 @@ module mod_bdycod
               do i = ice1 , ice2
                 tkeint = atm1%tke(jci1,i,k+1)
                 windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-                if ( windavg >= d_zero ) then
+                if ( windavg > d_zero ) then
                   atm1%tke(jce1,i,k+1) = tkemin
                 else
                   atm1%tke(jce1,i,k+1) = tkeint
@@ -1589,7 +1589,7 @@ module mod_bdycod
               do i = ice1 , ice2
                 tkeint = atm1%tke(jci2,i,k+1)
                 windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-                if ( windavg <= d_zero ) then
+                if ( windavg < d_zero ) then
                   atm1%tke(jce2,i,k+1) = tkemin
                 else
                   atm1%tke(jce2,i,k+1) = tkeint
@@ -1607,7 +1607,7 @@ module mod_bdycod
               do j = jci1 , jci2
                 tkeint = atm1%tke(j,ici1,k+1)
                 windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-                if ( windavg >= d_zero ) then
+                if ( windavg > d_zero ) then
                   atm1%tke(j,ice1,k+1) = tkemin
                 else
                   atm1%tke(j,ice1,k+1) = tkeint
@@ -2493,7 +2493,7 @@ module mod_bdycod
     else
       efc => fefc
       egc => fegc
-      ks = 2
+      ks = 1
     end if
 
     if ( ibdy == 1 ) then
