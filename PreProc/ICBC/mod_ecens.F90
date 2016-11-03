@@ -162,7 +162,7 @@ module mod_ecens
 
     type(rcm_time_and_date) :: fmon
     type(rcm_time_interval) :: tdif
-    integer(ik4) :: i , inet , it , j , kkrec , istat , ivar , jdim
+    integer(ik4) :: i , inet , it , kkrec , istat , ivar , jdim
     logical :: lfirst
     character(len=6) , dimension(5) :: varname
     character(len=6) , dimension(5) :: vfname
@@ -265,8 +265,7 @@ module mod_ecens
 
   subroutine headerecens
     implicit none
-    integer(ik4) :: j , k
-    integer(ik4) :: istat , inet , jdim , ivar
+    integer(ik4) :: k , istat , inet , jdim , ivar
 
     read (dattyp(4:4),'(i1)') mdlver
     read (dattyp(5:5),'(i1)') ensnum

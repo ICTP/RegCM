@@ -261,7 +261,7 @@ module mod_humid
         do i = 1 , ni
           p = (ptop + sigma(k)*ps(i,j))*d_1000
           qs = pfwsat(t(i,j,k),p)
-          q(i,j,k) = max(max(q(i,j,k),1.01)*qs,d_zero)
+          q(i,j,k) = max(max(q(i,j,k),1.01_rkx)*qs,d_zero)
         end do
       end do
     end do

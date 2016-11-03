@@ -347,7 +347,7 @@ module mod_ncep
     use netcdf
     implicit none
 
-    integer(ik4) :: j , k , year , month , day , hour
+    integer(ik4) :: k , year , month , day , hour
     integer(ik4) :: istatus , inet , iddim , idv
     character(len=256) :: inpfile
 
