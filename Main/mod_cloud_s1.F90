@@ -172,9 +172,6 @@ module mod_cloud_s1
   ! decoupled temperature tendency
   real(rkx) , pointer , dimension(:,:,:) :: ttendc
   ! detrainment from tiedtke scheme
-  real(rkx) , pointer , dimension(:,:,:) :: xqdetr
-  ! real(rkx) , pointer , dimension(:,:,:) :: xqdetr2
-  ! Autoconversion threshold
   real(rkx) , pointer , dimension(:,:) :: xlcrit
   ! fall speeds of three categories
   real(rkx) , pointer , dimension(:) :: vqx
@@ -298,11 +295,8 @@ module mod_cloud_s1
     call getmem1d(qxfg,1,nqx,'cmicro:qxfg')
     call getmem3d(fccfg,jci1,jci2,ici1,ici2,1,kz,'cmicro:fccfg')
     call getmem1d(lind1,1,nqx,'cmicro:lind1')
-    call getmem3d(xqdetr,jci1,jci2,ici1,ici2,1,kz,'cmicro:xqdetr')
     call getmem3d(koop,jci1,jci2,ici1,ici2,1,kz,'cmicro:koop')
     call getmem2d(xlcrit,jci1,jci2,ici1,ici2,'cmicro:xlcrit')
-    !xqdetr after evaporation
-    !call getmem3d(xqdetr2,jci1,jci2,ici1,ici2,1,kz,'cmicro:xqdetr2')
     call getmem3d(eeliq,jci1,jci2,ici1,ici2,1,kz,'cmicro:eeliq')
     call getmem3d(eeice,jci1,jci2,ici1,ici2,1,kz,'cmicro:eeice')
     call getmem3d(eeliqt,jci1,jci2,ici1,ici2,1,kz,'cmicro:eeliqt')
@@ -536,15 +530,6 @@ module mod_cloud_s1
       end do
     end do
 
-    ! Detrainment : [qdetr] = kg/(m^2*s) if not already added to tendencies.
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          xqdetr(j,i,k) = qdetr(j,i,k)*dt*egrav/dpfs(j,i,k)
-        end do
-      end do
-    end do
-
     !-----------------------------------
     ! initialization for cloud variables
     ! -------------------------------------
@@ -687,7 +672,7 @@ module mod_cloud_s1
                 (tmpl+tmpi)*dpfs(j,i,k)*regrav    !(kg/m^2)
             end do
             ! Detrained water treated here
-            qe = xqdetr(j,i,k)
+            qe = qdetr(j,i,k)
             if ( qe > activqx ) then
               sumq0(j,i,k) = sumq0(j,i,k)+qe
               alfaw = qliq(j,i,k)
@@ -998,11 +983,11 @@ module mod_cloud_s1
         !------------------------------------------------------------------
         !                 DETRAINMENT FROM CONVECTION
         !------------------------------------------------------------------
-        if ( xqdetr(j,i,1) > activqx ) then
+        if ( qdetr(j,i,1) > activqx ) then
           !qice = 1 if T < 250, qice = 0 if T > 273
           qice   = d_one-alfaw
-          convsrce(iqql) = alfaw*xqdetr(j,i,1)
-          convsrce(iqqi) = qice*xqdetr(j,i,1)
+          convsrce(iqql) = alfaw*qdetr(j,i,1)
+          convsrce(iqqi) = qice*qdetr(j,i,1)
           solqa(iqql,iqql) = solqa(iqql,iqql) + convsrce(iqql)
           solqa(iqqi,iqqi) = solqa(iqqi,iqqi) + convsrce(iqqi)
           qxfg(iqql) = qxfg(iqql)+convsrce(iqql)
@@ -1027,7 +1012,7 @@ module mod_cloud_s1
           ! rcldiff  : Diffusion coefficient for evaporation by turbulent
           ! mixing (IBID., EQU. 30) rcldiff = 1.0e-6_rkx
           ldifdt = rcldiff*dt
-          if ( xqdetr(j,i,1) > d_zero ) ldifdt = convfac*ldifdt
+          if ( qdetr(j,i,1) > d_zero ) ldifdt = convfac*ldifdt
           !Increase by factor of 5 for convective points
           if ( lliq ) then
             leros = ccover * ldifdt * max(sqmix-qvnow,d_zero)
@@ -2028,11 +2013,11 @@ module mod_cloud_s1
           !                 DETRAINMENT FROM CONVECTION
           !------------------------------------------------------------------
           !if ( k < kz ) then
-            if ( xqdetr(j,i,k) > activqx ) then
+            if ( qdetr(j,i,k) > activqx ) then
               !qice = 1 if T < 250, qice = 0 if T > 273
               qice   = d_one-alfaw
-              convsrce(iqql) = alfaw*xqdetr(j,i,k)
-              convsrce(iqqi) = qice*xqdetr(j,i,k)
+              convsrce(iqql) = alfaw*qdetr(j,i,k)
+              convsrce(iqqi) = qice*qdetr(j,i,k)
               solqa(iqql,iqql) = solqa(iqql,iqql) + convsrce(iqql)
               solqa(iqqi,iqqi) = solqa(iqqi,iqqi) + convsrce(iqqi)
               qxfg(iqql) = qxfg(iqql) + convsrce(iqql)
@@ -2058,7 +2043,7 @@ module mod_cloud_s1
             ! rcldiff  : Diffusion coefficient for evaporation by turbulent
             ! mixing (IBID., EQU. 30) rcldiff = 1.0e-6_rkx
             ldifdt = rcldiff*dt
-            if ( xqdetr(j,i,k) > d_zero ) ldifdt = convfac*ldifdt
+            if ( qdetr(j,i,k) > d_zero ) ldifdt = convfac*ldifdt
             !Increase by factor of 5 for convective points
             if ( lliq ) then
               leros = ccover * ldifdt * max(sqmix-qvnow,d_zero)
