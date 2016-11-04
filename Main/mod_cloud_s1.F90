@@ -245,7 +245,7 @@ module mod_cloud_s1
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
-  real(rkx) , parameter :: activqx = 1.0e-6_rkx
+  real(rkx) , parameter :: activqx = 1.0e-8_rkx
   real(rkx) , parameter :: clfeps = 1.0e-6_rkx
   real(rkx) , parameter :: zerocf = lowcld + 0.1_rkx
   real(rkx) , parameter :: onecf  = hicld - 0.1_rkx

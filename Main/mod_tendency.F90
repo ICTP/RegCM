@@ -974,9 +974,7 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv)
-          if ( atmc%qx(j,i,k,iqv) < minqq*sfs%psb(j,i) ) then
-            atmc%qx(j,i,k,iqv) = minqq*sfs%psb(j,i)
-          end if
+          atmc%qx(j,i,k,iqv) = max(atmc%qx(j,i,k,iqv),minqv)
         end do
       end do
     end do
@@ -986,7 +984,8 @@ module mod_tendency
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
             if ( atmc%qx(j,i,k,n) < minqx ) then
-              atmc%qx(j,i,k,n) = minqx
+              atmc%qx(j,i,k,iqv) = atmc%qx(j,i,k,iqv) + atmc%qx(j,i,k,n)
+              atmc%qx(j,i,k,n) = d_zero
             end if
           end do
         end do
@@ -1001,6 +1000,7 @@ module mod_tendency
           do i = ici1 , ici2
             do j = jci1 , jci2
               chic(j,i,k,itr) = chib(j,i,k,itr) + dt*chiten(j,i,k,itr)
+              chic = max(chic,mintr)
             end do
           end do
         end do
@@ -1532,7 +1532,6 @@ module mod_tendency
       call timefilter_apply(atm1%tke,atm2%tke,atmc%tke,gnu)
     end if ! TKE tendency update
     if ( ichem == 1 ) then
-      where ( chic < mintr ) chic = mintr
       call timefilter_apply(chia,chib,chic,gnu)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
@@ -1989,7 +1988,7 @@ module mod_tendency
         do k = 1 , kz
           do i = ice1ga , ice2ga
             do j = jce1ga , jce2ga
-              atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)*rpsa(j,i)
+              atmx%qx(j,i,k,n) = max(atm1%qx(j,i,k,n)*rpsa(j,i),minqx)
             end do
           end do
         end do

@@ -84,14 +84,23 @@ module mod_slice
       do i = ice1gb , ice2gb
         do j = jce1gb , jce2gb
           atms%tb3d(j,i,k) = atm2%t(j,i,k)*rpsb(j,i)
+          if ( atm2%qx(j,i,k,iqv) > minqv ) then
+            atms%qxb3d(j,i,k,iqv) = atm2%qx(j,i,k,iqv)*rpsb(j,i)
+          else
+            atms%qxb3d(j,i,k,iqv) = minqq
+          end if
         end do
       end do
     end do
-    do n = 1 , nqx
+    do n = iqfrst , iqlst
       do k = 1 , kz
         do i = ice1gb , ice2gb
           do j = jce1gb , jce2gb
-            atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)*rpsb(j,i)
+            if ( atm2%qx(j,i,k,iqv) > minqx ) then
+              atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)*rpsb(j,i)
+            else
+              atms%qxb3d(j,i,k,n) = minqx
+            end if
           end do
         end do
       end do
@@ -101,7 +110,11 @@ module mod_slice
         do k = 1 , kz
           do i = ice1gb , ice2gb
             do j = jce1gb , jce2gb
-              atms%chib3d(j,i,k,n) = chib(j,i,k,n)*rpsb(j,i)
+              if ( atm2%qx(j,i,k,n) > mintr ) then
+                atms%chib3d(j,i,k,n) = chib(j,i,k,n)*rpsb(j,i)
+              else
+                atms%chib3d(j,i,k,n) = d_zero
+              end if
             end do
           end do
         end do
