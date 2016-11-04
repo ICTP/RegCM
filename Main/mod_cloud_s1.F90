@@ -540,7 +540,7 @@ module mod_cloud_s1
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( abs(qdetr(j,i,k)) > dlowval ) then
-            xqdetr(j,i,k) = -qdetr(j,i,k)*dt*egrav/dpfs(j,i,k)
+            xqdetr(j,i,k) = qdetr(j,i,k)*dt*egrav/dpfs(j,i,k)
           else
             xqdetr(j,i,k) = d_zero
           end if

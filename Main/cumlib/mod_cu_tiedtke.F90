@@ -5452,6 +5452,7 @@ module mod_cu_tiedtke
         tenl(n,k) = tenl(n,k) - teni(n,k)
         mflxr(n,k) = mflxr(n,k)*1.e-3_rkx
         mflxs(n,k) = mflxs(n,k)*1.e-3_rkx
+        lude(n,k) = 0.0_rkx
       end do
     end do
     do n = n1 , n2

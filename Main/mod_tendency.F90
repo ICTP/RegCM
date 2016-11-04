@@ -711,20 +711,6 @@ module mod_tendency
     ! Call cumulus parametrization
     !
     call cumulus
-    !if ( any(icup == 5) ) then
-    !  ! Put back detrained water
-    !  do k = 1 , kz
-    !    do i = ici1 , ici2
-    !      do j = jci1 , jci2
-    !        aten%qx(j,i,k,iqc) = aten%qx(j,i,k,iqc) + &
-    !          q_detr(j,i,k)*sfs%psb(j,i)*egrav / &
-    !          ((atms%pf3d(j,i,k+1)-atms%pf3d(j,i,k))) ! [kg/kg]
-    !        q_detr(j,i,k) = d_zero
-    !      end do
-    !    end do
-    !  end do
-    !end if
-
     if ( idiag > 0 ) then
       tdiag%con = tdiag%con + (aten%t - ten0) * afdout
       ten0 = aten%t
