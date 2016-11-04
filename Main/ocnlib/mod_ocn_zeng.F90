@@ -433,8 +433,9 @@ module mod_ocn_zeng
           else if ( um10 > 18.0_rkx .and. um10 < 25.0_rkx ) then
             alph = 0.018_rkx
           else
-            alph = max(2.e-3_rkx,0.018_rkx/(d_one+0.050_rkx*(ustar-0.02_rkx)**2 - &
-                                            0.018_rkx*(ustar-0.02_rkx)**1.6_rkx))
+            alph = max(2.e-3_rkx,0.018_rkx / &
+                 (d_one+0.050_rkx*(ustar-0.02_rkx)**2 - &
+                  0.018_rkx*(ustar-0.02_rkx)**1.6_rkx))
           end if
           zo = alph*regrav*ustar*ustar + 0.11_rkx*visa/ustar
         else

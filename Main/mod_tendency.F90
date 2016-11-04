@@ -64,7 +64,6 @@ module mod_tendency
   real(rkx) , pointer , dimension(:,:) :: rpsda
 
   integer :: ithadv = 1
-  integer :: iq1 , iq2
   integer(ik4) :: iqxvadv , itrvadv
 #ifdef DEBUG
   real(rkx) , pointer , dimension(:,:,:) :: wten
@@ -126,12 +125,6 @@ module mod_tendency
         itrvadv = 3
         iqxvadv = 3
       end if
-    end if
-    iq1 = iqc
-    if ( ipptls == 2 ) then
-      iq2 = iqi
-    else
-      iq2 = iqc
     end if
   end subroutine allocate_mod_tend
   !
@@ -673,12 +666,12 @@ module mod_tendency
     end if
     if ( ipptls > 0 ) then
       if ( isladvec == 1 ) then
-        call slhadv_x(aten%qx,atm2%qx,iq1,iq2)
-        call hdvg_x(aten%qx,atm1%qx,iq1,iq2)
+        call slhadv_x(aten%qx,atm2%qx,iqfrst,iqlst)
+        call hdvg_x(aten%qx,atm1%qx,iqfrst,iqlst)
       else
-        call hadv(aten%qx,atmx%qx,iq1,iq2)
+        call hadv(aten%qx,atmx%qx,iqfrst,iqlst)
       end if
-      call vadv(aten%qx,atm1%qx,iq1,iq2,iqxvadv)
+      call vadv(aten%qx,atm1%qx,iqfrst,iqlst,iqxvadv)
     end if
     if ( ichem == 1 ) then
       !
@@ -749,7 +742,7 @@ module mod_tendency
       if ( idiag > 0 ) then
         qen0(jci1:jci2,ici1:ici2,:) = adf%qx(jci1:jci2,ici1:ici2,:,iqv)
       end if
-      call diffu_x(adf%qx,atms%qxb3d,1,iq2,d_one)
+      call diffu_x(adf%qx,atms%qxb3d,1,nqx,d_one)
       if ( idiag > 0 ) then
         ! save the h diff diag here
         qdiag%dif(jci1:jci2,ici1:ici2,:) = &

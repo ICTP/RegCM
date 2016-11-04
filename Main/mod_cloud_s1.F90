@@ -52,8 +52,8 @@ module mod_cloud_s1
   logical , parameter :: lmicro = .true.
 
   ! critical autoconversion
-  real(rkx) , parameter :: rcldiff = 3.e-6_rkx
-  real(rkx) , parameter :: convfac = 1.5_rkx
+  real(rkx) , parameter :: rcldiff = 1.e-6_rkx ! 3.e-6_rkx , 3.e-4_rkx
+  real(rkx) , parameter :: convfac = 1.0_rkx   ! 5.0_rkx
   real(rkx) , parameter :: rlcritsnow = 3.e-5_rkx
 
   real(rkx) , parameter :: auto_expon_khair = 1.47_rkx
@@ -1025,7 +1025,7 @@ module mod_cloud_s1
           ! EROSION OF CLOUDS BY TURBULENT MIXING
           !--------------------------------------
           ! rcldiff  : Diffusion coefficient for evaporation by turbulent
-          ! mixing (IBID., EQU. 30) rcldiff = 3.0e-6_rkx
+          ! mixing (IBID., EQU. 30) rcldiff = 1.0e-6_rkx
           ldifdt = rcldiff*dt
           if ( xqdetr(j,i,1) > d_zero ) ldifdt = convfac*ldifdt
           !Increase by factor of 5 for convective points
@@ -2056,7 +2056,7 @@ module mod_cloud_s1
             ! EROSION OF CLOUDS BY TURBULENT MIXING
             !--------------------------------------
             ! rcldiff  : Diffusion coefficient for evaporation by turbulent
-            ! mixing (IBID., EQU. 30) rcldiff = 3.0e-6_rkx
+            ! mixing (IBID., EQU. 30) rcldiff = 1.0e-6_rkx
             ldifdt = rcldiff*dt
             if ( xqdetr(j,i,k) > d_zero ) ldifdt = convfac*ldifdt
             !Increase by factor of 5 for convective points

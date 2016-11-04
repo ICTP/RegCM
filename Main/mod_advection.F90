@@ -43,9 +43,9 @@ module mod_advection
   logical :: stability_enhance = .true.
   logical :: vert_stability_enhance = .true.
   real(rkx) , parameter :: t_extrema = 5.0_rkx
-  real(rkx) , parameter :: c_rel_extrema = 0.50_rkx
-  real(rkx) , parameter :: q_rel_extrema = 0.50_rkx
-  real(rkx) , parameter :: t_rel_extrema = 0.50_rkx
+  real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
+  real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
+  real(rkx) , parameter :: t_rel_extrema = 0.20_rkx
 
   interface hadv
     module procedure hadvuv
@@ -360,7 +360,7 @@ module mod_advection
               fx2 = (d_one+f1)*f(j,i,k)   + (d_one-f1)*f(j+1,i,k)
               fy1 = (d_one+f2)*f(j,i-1,k) + (d_one-f2)*f(j,i,k)
               fy2 = (d_one+f2)*f(j,i,k)   + (d_one-f2)*f(j,i+1,k)
-              fg(j,i,k) = -xmapf(j,i) * &
+              fg(j,i,k) = - xmapf(j,i) * &
                      (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                       vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
             end do
@@ -660,7 +660,7 @@ module mod_advection
                 fx2 = f(j,i,k,n)   + f(j+1,i,k,n)
                 fy1 = f(j,i-1,k,n) + f(j,i,k,n)
                 fy2 = f(j,i,k,n)   + f(j,i+1,k,n)
-                fg(j,i,k) = -xmapf(j,i) * &
+                fg(j,i,k) = - xmapf(j,i) * &
                      (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                       vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
               end do
@@ -677,7 +677,7 @@ module mod_advection
                 fx2 = (d_one+f1)*f(j,i,k,n)   + (d_one-f1)*f(j+1,i,k,n)
                 fy1 = (d_one+f2)*f(j,i-1,k,n) + (d_one-f2)*f(j,i,k,n)
                 fy2 = (d_one+f2)*f(j,i,k,n)   + (d_one-f2)*f(j,i+1,k,n)
-                fg(j,i,k) = -xmapf(j,i) * &
+                fg(j,i,k) = - xmapf(j,i) * &
                            (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                             vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
               end do
@@ -946,9 +946,7 @@ module mod_advection
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
-              fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
-            end if
+            fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
           end do
         end do
       end do
@@ -992,10 +990,8 @@ module mod_advection
           do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
-                  fg(j,i,k) = svv(j,i,k) * &
+                fg(j,i,k) = svv(j,i,k) * &
                     (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
-                end if
               end do
             end do
           end do

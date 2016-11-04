@@ -256,7 +256,7 @@ module mod_init
       do n = 1 , nnsg
         do i = ici1 , ici2
           do j = jci1 , jci2
-            lms%um10(n,j,i) = 0.5_rkx
+            lms%um10(n,j,i) = 1.0_rkx
           end do
         end do
       end do
