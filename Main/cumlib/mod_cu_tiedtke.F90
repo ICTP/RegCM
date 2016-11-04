@@ -376,7 +376,7 @@ module mod_cu_tiedtke
           cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqte(ii,k)) - &
                                avg_qten(j,i,k,iqv)
           cu_qten(j,i,k,iqc) = pxlte(ii,k) - avg_qten(j,i,k,iqc)
-          cu_qdetr(j,i,k) = zlude(ii,k) * dt * egrav / &
+          cu_qdetr(j,i,k) = (zlude(ii,k)/(d_one-zlude(ii,k))) * dt * egrav / &
                          (paphp1(ii,k+1)-paphp1(ii,k))
           cu_raincc(j,i,k) = pmflxr(ii,k)
         end if
