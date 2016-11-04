@@ -990,8 +990,10 @@ module mod_advection
           do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                fg(j,i,k) = svv(j,i,k) * &
-                    (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+                if ( f(j,i,k,n)   > minqv .and. f(j,i,k-1,n) > minqv ) then
+                  fg(j,i,k) = svv(j,i,k) * &
+                      (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+                end if
               end do
             end do
           end do
@@ -1070,7 +1072,10 @@ module mod_advection
           do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
+                if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
+                  fg(j,i,k) = svv(j,i,k) * &
+                         twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
+                end if
               end do
             end do
           end do
