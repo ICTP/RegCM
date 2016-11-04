@@ -368,7 +368,8 @@ module mod_pbl_uwtcm
         do k = 1 , kz
           tx(k)  = m2p%tatm(j,i,k)
           qx(k)  = m2p%qxatm(j,i,k,iqv)
-          qcx(k) = m2p%qxatm(j,i,k,iqc)
+          qcx(k) = m2p%qxatm(j,i,k,iqc) + m2p%qdetr(j,i,k) * dt * egrav / &
+                              (m2p%patmf(j,i,k)-m2p%patmf(j,i,k+1))
           ux(k)  = m2p%uxatm(j,i,k)
           vx(k)  = m2p%vxatm(j,i,k)
           zax(k) = m2p%za(j,i,k)
