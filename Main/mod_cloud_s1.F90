@@ -52,7 +52,8 @@ module mod_cloud_s1
   logical , parameter :: lmicro = .true.
 
   ! critical autoconversion
-  real(rkx) , parameter :: rcldiff = 3.e-4_rkx
+  real(rkx) , parameter :: rcldiff = 3.e-6_rkx
+  real(rkx) , parameter :: convfac = 1.5_rkx
   real(rkx) , parameter :: rlcritsnow = 3.e-5_rkx
 
   real(rkx) , parameter :: auto_expon_khair = 1.47_rkx
@@ -535,15 +536,11 @@ module mod_cloud_s1
       end do
     end do
 
-    ! Detrainment : [qdetr] = kg/(m^2*s)
+    ! Detrainment : [qdetr] = kg/(m^2*s) if not already added to tendencies.
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( abs(qdetr(j,i,k)) > dlowval ) then
-            xqdetr(j,i,k) = qdetr(j,i,k)*dt*egrav/dpfs(j,i,k)
-          else
-            xqdetr(j,i,k) = d_zero
-          end if
+          xqdetr(j,i,k) = qdetr(j,i,k)*dt*egrav/dpfs(j,i,k)
         end do
       end do
     end do
@@ -1030,7 +1027,7 @@ module mod_cloud_s1
           ! rcldiff  : Diffusion coefficient for evaporation by turbulent
           ! mixing (IBID., EQU. 30) rcldiff = 3.0e-6_rkx
           ldifdt = rcldiff*dt
-          if ( xqdetr(j,i,1) > d_zero ) ldifdt = 5.0_rkx*ldifdt
+          if ( xqdetr(j,i,1) > d_zero ) ldifdt = convfac*ldifdt
           !Increase by factor of 5 for convective points
           if ( lliq ) then
             leros = ccover * ldifdt * max(sqmix-qvnow,d_zero)
@@ -2061,7 +2058,7 @@ module mod_cloud_s1
             ! rcldiff  : Diffusion coefficient for evaporation by turbulent
             ! mixing (IBID., EQU. 30) rcldiff = 3.0e-6_rkx
             ldifdt = rcldiff*dt
-            if ( xqdetr(j,i,k) > d_zero ) ldifdt = 5.0_rkx*ldifdt
+            if ( xqdetr(j,i,k) > d_zero ) ldifdt = convfac*ldifdt
             !Increase by factor of 5 for convective points
             if ( lliq ) then
               leros = ccover * ldifdt * max(sqmix-qvnow,d_zero)

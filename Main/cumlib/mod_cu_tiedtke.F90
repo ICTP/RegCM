@@ -376,7 +376,7 @@ module mod_cu_tiedtke
           cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqte(ii,k)) - &
                                avg_qten(j,i,k,iqv)
           cu_qten(j,i,k,iqc) = pxlte(ii,k) - avg_qten(j,i,k,iqc)
-          cu_qdetr(j,i,k) = max(zlude(ii,k),almostzero)
+          cu_qdetr(j,i,k) = zlude(ii,k)
           cu_raincc(j,i,k) = pmflxr(ii,k)
         end if
       end do
@@ -5452,7 +5452,6 @@ module mod_cu_tiedtke
         tenl(n,k) = tenl(n,k) - teni(n,k)
         mflxr(n,k) = mflxr(n,k)*1.e-3_rkx
         mflxs(n,k) = mflxs(n,k)*1.e-3_rkx
-        lude(n,k) = 0.0_rkx
       end do
     end do
     do n = n1 , n2
