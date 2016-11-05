@@ -850,15 +850,16 @@ module mod_che_bdyco
     end do
     do k = 1 , kz
       do n = 2 , nspgx-1
-        cefc(n,k) = fnudge*xfune(n,k)
-        cegc(n,k) = gnudge*xfune(n,k)
+        cefc(n,k) = fnudge*xfune(n,anudgh(k))
+        cegc(n,k) = gnudge*xfune(n,anudgh(k))
       end do
     end do
     contains
-      pure real(rkx) function xfune(mm,kk)
+      pure real(rkx) function xfune(mm,an)
         implicit none
-        integer(ik4) , intent(in) :: mm , kk
-        xfune = exp(-real(mm-2,rkx)/anudgh(kk))
+        integer(ik4) , intent(in) :: mm
+        real(rkx) , intent(in) :: an
+        xfune = exp(-real(mm-2,rkx)/an)
       end function xfune
   end subroutine setup_che_bdycon
 

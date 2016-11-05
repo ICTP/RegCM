@@ -192,8 +192,8 @@ module mod_bdycod
       end do
       do k = 1 , kzp1
         do n = 2 , nbdm-1
-          fefc(n,k) = fnudge*xfune(n,k,anudgf)
-          fegc(n,k) = gnudge*xfune(n,k,anudgf)
+          fefc(n,k) = fnudge*xfune(n,anudgf(k))
+          fegc(n,k) = gnudge*xfune(n,anudgf(k))
         end do
       end do
       do k = 1 , kz
@@ -207,8 +207,8 @@ module mod_bdycod
       end do
       do k = 1 , kz
         do n = 2 , nbdm-1
-          hefc(n,k) = fnudge*xfune(n,k,anudgh)
-          hegc(n,k) = gnudge*xfune(n,k,anudgh)
+          hefc(n,k) = fnudge*xfune(n,anudgh(k))
+          hegc(n,k) = gnudge*xfune(n,anudgh(k))
         end do
       end do
     end if
@@ -228,11 +228,11 @@ module mod_bdycod
         end if
       end function xfun
 
-      pure real(rkx) function xfune(mm,kk,an)
+      pure real(rkx) function xfune(mm,an)
         implicit none
-        integer(ik4) , intent(in) :: mm , kk
-        real(rkx) , dimension(:) , intent(in) :: an
-        xfune = exp(-real(mm-2,rkx)/an(kk))
+        integer(ik4) , intent(in) :: mm
+        real(rkx) , intent(in) :: an
+        xfune = exp(-real(mm-2,rkx)/an)
       end function xfune
 
   end subroutine setup_bdycon

@@ -385,8 +385,8 @@ if eval "test x$DEBUG = x1"; then
   if test -z "$COMPILER_INTEL_TRUE"; then
     FCFLAGS="-O0 -g \
              -check arg_temp_created,bounds,format,output_conversion,uninit \
-             -traceback -warn all -fp-model source -ftz \
-             -fimf-arch-consistency=true $FCFLAGS"
+             -traceback -warn all -fp-model precise -fp-model source -ftz \
+             -fimf-arch-consistency=true -fltconsistency -mieee-fp $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_IBM_TRUE"; then
@@ -421,8 +421,7 @@ else
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
     AR=xiar
-    FCFLAGS="-O3 -finline-functions -fltconsistency -mieee-fp \
-             -traceback $FCFLAGS"
+    FCFLAGS="-ftz -ip -O3 -finline-functions -fp-model source $FCFLAGS"
     AC_SUBST(FCFLAGS)
     AC_SUBST(AR)
   fi
