@@ -41,7 +41,7 @@ module mod_humid
     module procedure sph2mxr_single
   end interface sph2mxr
 
-  public :: mxr2rh , rh2mxr , clwfromt
+  public :: mxr2rh , ecmwf_rh2mxr , rh2mxr , clwfromt
   public :: sph2mxr , mxr2sph
 
   contains
@@ -261,11 +261,39 @@ module mod_humid
         do i = 1 , ni
           p = (ptop + sigma(k)*ps(i,j))*d_1000
           qs = pfwsat(t(i,j,k),p)
-          q(i,j,k) = max(max(q(i,j,k),1.01_rkx)*qs,d_zero)
+          q(i,j,k) = max(q(i,j,k)*qs,d_zero)
         end do
       end do
     end do
   end subroutine rh2mxr
+
+  subroutine ecmwf_rh2mxr(t,q,ps,ptop,sigma,ni,nj,nk)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj , nk
+    real(rkx) , intent(in) :: ptop
+    real(rkx) , intent(in) , dimension(ni,nj) :: ps
+    real(rkx) , intent(in) , dimension(ni,nj,nk) :: t
+    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
+    real(rkx) , intent(in) , dimension(nk) :: sigma
+
+    real(rkx) :: p , qs , hl , satvp
+    integer(ik4) :: i , j , k
+    !
+    ! THIS ROUTINE REPLACES ECMWF RELATIVE HUMIDITY BY MIXING RATIO
+    !
+    do k = 1 , nk
+      do j = 1 , nj
+        do i = 1 , ni
+          p = (ptop + sigma(k)*ps(i,j))*d_10
+          hl = 597.3_rkx - 0.566_rkx * (t(i,j,k) - tzero)
+          satvp = 6.11_rkx * exp(9.045_rkx*hl*(rtzero - d_one/t(i,j,k)))
+          qs = ep2 * satvp/(p-satvp)
+          qs = qs/(d_one+qs)
+          q(i,j,k) = max(q(i,j,k)*qs,d_zero)
+        end do
+      end do
+    end do
+  end subroutine ecmwf_rh2mxr
 
   real(rkx) function clwfromt(t) result(clw)
     implicit none

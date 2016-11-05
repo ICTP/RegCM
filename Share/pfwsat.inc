@@ -13,6 +13,6 @@
     vp  = 1.0_rkx / (p - 0.378_rkx*es)
     vp1 = ep2 * vp
     vp2 = vp1 * vp
-    qs = max(es * vp1, minqq)  ! kg/kg
-    ws = qs/(d_one - qs)
+    qs = es * vp1  ! kg/kg
+    ws = max(qs/(d_one - qs),minqq)
   end function pfwsat

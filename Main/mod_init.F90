@@ -62,7 +62,7 @@ module mod_init
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
+#include <pfwsat.inc>
 
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -579,7 +579,7 @@ module mod_init
             do j = jci1 , jci2
               t = atm1%t(j,i,k) / sfs%psa(j,i)
               p = atm1%pr(j,i,k)
-              qs = pfqsat(t,p)
+              qs = pfwsat(t,p)
               rh = ( (atm1%qx(j,i,k,iqv)/sfs%psa(j,i))/qs )
               if ( rh > rh0(j,i) .and. p > ptrop(j,i) ) then
                 atm1%qx(j,i,k,iqc) = clwfromt(t)/d_1000 * sfs%psa(j,i)
