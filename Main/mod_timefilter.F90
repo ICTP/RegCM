@@ -37,6 +37,9 @@ module mod_timefilter
 
   real(rkx) , public , parameter :: betaraw = 0.53_rkx
 
+  ! For tracers, do not allow zero values.
+  real(rkx) , public , parameter :: notzero = dlowval
+
   public :: timefilter_apply
 
   interface timefilter_apply
@@ -194,7 +197,7 @@ module mod_timefilter
           do j = jci1 , jci2
             d = alpha * (phinp1(j,i,k,n) + phinm1(j,i,k,n) - &
                 d_two * phin(j,i,k,n))
-            phinm1(j,i,k,n) = phin(j,i,k,n) + d
+            phinm1(j,i,k,n) = max(phin(j,i,k,n) + d, notzero)
             phin(j,i,k,n) = phinp1(j,i,k,n)
           end do
         end do
@@ -218,8 +221,9 @@ module mod_timefilter
           do j = jci1 , jci2
             d = alpha * (phinp1(j,i,k,n) + phinm1(j,i,k,n) - &
                 d_two * phin(j,i,k,n))
-            phinm1(j,i,k,n) = phin(j,i,k,n) + beta * d
-            phin(j,i,k,n) = phinp1(j,i,k,n) + (beta - d_one) * d
+            phinm1(j,i,k,n) = max(phin(j,i,k,n) + beta * d, notzero)
+            phin(j,i,k,n) = max(phinp1(j,i,k,n) + &
+                                  (beta - d_one) * d, notzero)
           end do
         end do
       end do

@@ -1754,7 +1754,7 @@ module mod_cloud_s1
             end if
             rexplicit = rexplicit - (d_one-rsemi)*qx0(n)*fallsink(n)
           end do
-          qxn(n) = qx0(n) + rexplicit
+          qxn(n) = max(qx0(n) + rexplicit,d_zero)
         end do
 
         call mysolve
@@ -2790,7 +2790,7 @@ module mod_cloud_s1
               end if
               rexplicit = rexplicit - (d_one-rsemi)*qx0(n)*fallsink(n)
             end do
-            qxn(n) = qx0(n) + rexplicit
+            qxn(n) = max(qx0(n) + rexplicit,d_zero)
           end do
 
           call mysolve
