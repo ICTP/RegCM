@@ -71,7 +71,6 @@ module mod_precip
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
 
   real(rkx) , parameter :: rhow = 1000.0_rkx
-  real(rkx) , parameter :: qcmin = 1.0e-12_rkx
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
   real(rkx) , parameter :: pptmin = 1.0e-20_rkx
 
@@ -252,7 +251,7 @@ module mod_precip
         afc = pfcc(j,i,1)   ![frac][avg]
         qcw = qln(j,i,1)    ![kg/kg][avg]
         pptnew = d_zero
-        if ( afc > lowcld .and. qcw > qcmin ) then ! if there is a cloud
+        if ( afc > lowcld ) then ! if there is a cloud
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
           pptmax = max(qcw,d_zero)/dt             ![kg/kg/s][avg]
@@ -337,7 +336,7 @@ module mod_precip
           end if
           qcw = qln(j,i,k)   ![kg/kg][avg]
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
-          if ( afc > lowcld .and. qcw > qcmin ) then ! if there is a cloud
+          if ( afc > lowcld ) then ! if there is a cloud
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
             pptmax = max(qcw,d_zero)/dt                  ![kg/kg/s][avg]
@@ -666,7 +665,6 @@ module mod_precip
             radcldf(j,i,k) = lowcld
             radlqwc(j,i,k) = d_zero
           end if
-          pfcc(j,i,k) = radcldf(j,i,k)
           radcldf(j,i,k) = min(max(radcldf(j,i,k),lowcld),cftotmax)
         end do
       end do
