@@ -533,9 +533,9 @@ module mod_cu_tiedtke
     do jk = 1 , klev
       do jl = 1 , kproma
         ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
-        zqp1(jl,jk) = max(d_zero,pqm1(jl,jk)+pqte(jl,jk)*dt)
-        zxlp1 = pxlm1(jl,jk) + pxlte(jl,jk)*dt
-        zxip1 = pxim1(jl,jk) + pxite(jl,jk)*dt
+        zqp1(jl,jk) = max(minqq,pqm1(jl,jk) + pqte(jl,jk)*dt)
+        zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
+        zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
         zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
         ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
         zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
@@ -561,7 +561,7 @@ module mod_cu_tiedtke
 
       do jt = 1 , ktrac
         do jl = 1 , kproma
-          zxtp1(jl,jk,jt) = pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dt
+          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dt)
         end do
       end do
 
@@ -636,14 +636,16 @@ module mod_cu_tiedtke
       ! I presume REGCM's turbulence scheme already or can easily provide these
       ! quantities...
       ! Will only set for now fluxes at surface
-      pqhfl(:,klev+1) = pqhfla(:)
-      pahfs(:,klev+1) = pshfla(:)
+      !pqhfl(:,klev+1) = pqhfla(:)
+      !pahfs(:,klev+1) = pshfla(:)
       ! ### for this test case we just specify an arbitrary decrease of
       ! turb. fluxes with height ###
-      do jk = klev , 1 , -1
-        pqhfl(:,jk) = 0.9_rkx*pqhfl(:,jk+1)
-        pahfs(:,jk) = 0.9_rkx*pahfs(:,jk+1)
-      end do
+      !do jk = klev , 1 , -1
+      !  pqhfl(:,jk) = 0.9_rkx*pqhfl(:,jk+1)
+      !  pahfs(:,jk) = 0.9_rkx*pahfs(:,jk+1)
+      !end do
+      pqhfl = d_zero
+      pahfs = d_zero
       pmflxr = d_zero
       pmflxs = d_zero
       call ntiedtke(1,kproma,kbdim,klev,ldland,ztp1,zqp1,          &

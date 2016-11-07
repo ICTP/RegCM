@@ -570,8 +570,15 @@ module mod_pbl_uwtcm
             ! include surface latent heat flux
             rimp2(kz) = rimp2(kz) + dt*qfxx*rrhoxhl(kz)*rdzq(kz)
           else
-            rimp1 = uimp1
-            rimp2 = uimp2
+            do k = 1 , kz
+              rimp1(k) = uimp1(k)
+              rimp2(k) = uimp2(k)
+            end do
+            ! include surface sensible heat flux
+            rimp1(kz) = rimp1(kz) + &
+                     dt*hfxx*rrhoxhl(kz)*rcpd*rdzq(kz)*rexnerhl(kz)
+            ! include surface latent heat flux
+            rimp2(kz) = rimp2(kz) + dt*qfxx*rrhoxhl(kz)*rdzq(kz)
           end if
           ! Solve total water
           call solve_tridiag(aimp,bimp,cimp,rimp2,uimp2,kz)
@@ -593,13 +600,15 @@ module mod_pbl_uwtcm
           templ = thlx(k)*exnerhl(k)
           temps = templ
           rvls = pfwsat(temps,preshl(k))
+          rvls = max(qwx(k)-minqq,rvls)
           do iteration = 1 , 3
             deltat = ((templ-temps)*cpowlhv + qwx(k)-rvls)/   &
                       (cpowlhv+ep2*wlhv*rvls/rgas/temps/temps)
             temps = temps + deltat
             rvls = pfwsat(temps,preshl(k))
+            rvls = max(qwx(k)-minqq,rvls)
           end do
-          qcx(k) = max(qwx(k)-rvls, d_zero)
+          qcx(k) = min(max(qwx(k)-rvls, d_zero),qwx(k)-minqq)
           qx(k) = qwx(k)-qcx(k)
           thx(k) = (templ + qcx(k)*wlhvocp) * rexnerhl(k)
           uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
