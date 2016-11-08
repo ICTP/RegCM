@@ -456,6 +456,16 @@
  rprc_lnd = 1.4e-3,   ! conversion coefficient from cloud water iconv=4
  rprc_ocn = 1.4e-3,   ! conversion coefficient from cloud water iconv=4
  cmtcape = 3600.0,    ! CAPE adjustment timescale iconv=4
+ lmfpen    = .true.,  ! penetrative conv is switched on
+ lmfmid    = .true.,  ! midlevel conv is switched on
+ lmfdd     = .true.,  ! cumulus downdraft is switched on
+ lepcld    = .true.,  ! prognostic cloud scheme is on
+ lmfdudv   = .true.,  ! cumulus friction is switched on
+ lmfscv    = .true.,  ! shallow convection is switched on
+ lmfuvdis  = .true.,  ! use kinetic energy dissipation
+ lmftrac   = .true.,  ! chemical tracer transport is on
+ lmfsmooth = .false., ! smoot of mass fluxes for tracers
+ lmfwstar  = .false., ! Grant w* closure for shallow conv
  /
 !
 ! Kain Fritsch cumulus parameters

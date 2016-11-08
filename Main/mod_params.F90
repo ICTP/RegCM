@@ -133,7 +133,9 @@ module mod_params
     namelist /tiedtkeparam/ iconv , entrmax , entrdd , entrpen ,   &
       entrscv , entrmid , cprcon , detrpen , entshalp , rcuc_lnd , &
       rcuc_ocn , rcpec_lnd , rcpec_ocn , rhebc_lnd , rhebc_ocn ,   &
-      rprc_ocn , rprc_lnd , cmtcape
+      rprc_ocn , rprc_lnd , cmtcape , lmfpen , lmfmid , lmfdd ,    &
+      lepcld , lmfdudv , lmfscv , lmfuvdis , lmftrac , lmfsmooth , &
+      lmfwstar
 
     namelist /kfparam/ kf_min_pef , kf_max_pef , kf_entrate , kf_dpp , &
       kf_min_dtcape , kf_max_dtcape , kf_tkemax
@@ -405,6 +407,16 @@ module mod_params
     rprc_lnd = 1.4e-3_rkx   ! coefficient for conversion from cloud water
     rprc_ocn = 1.4e-3_rkx   ! coefficient for conversion from cloud water
     cmtcape =  3600.0_rkx   ! CAPE adjustment timescale
+    lmfpen    = .true.  ! penetrative conv is switched on
+    lmfmid    = .true.  ! midlevel conv is switched on
+    lmfdd     = .true.  ! cumulus downdraft is switched on
+    lepcld    = .true.  ! prognostic cloud scheme is on
+    lmfdudv   = .true.  ! cumulus friction is switched on
+    lmfscv    = .true.  ! shallow convection is switched on
+    lmfuvdis  = .true.  ! use kinetic energy dissipation
+    lmftrac   = .true.  ! chemical tracer transport is on
+    lmfsmooth = .false. ! smoot of mass fluxes for tracers
+    lmfwstar  = .false. ! Grant w* closure for shallow conv
     !
     ! kfparam ;
     ! Taken from WRF KFeta parametrization
@@ -973,7 +985,7 @@ module mod_params
       call bcast(diffu_hgtf)
       call bcast(nhbet)
       call bcast(nhxkd)
-      gnu = 0.1250_rkx
+      gnu = 0.1000_rkx
     else
       gnu = 0.0625_rkx
       diffu_hgtf = 1
@@ -1223,6 +1235,16 @@ module mod_params
       call bcast(rprc_lnd)
       call bcast(rprc_ocn)
       call bcast(cmtcape)
+      call bcast(lmfpen)
+      call bcast(lmfmid)
+      call bcast(lmfdd)
+      call bcast(lepcld)
+      call bcast(lmfdudv)
+      call bcast(lmfscv)
+      call bcast(lmfuvdis)
+      call bcast(lmftrac)
+      call bcast(lmfsmooth)
+      call bcast(lmfwstar)
     end if
 
     if ( any(icup == 6) ) then

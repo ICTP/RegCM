@@ -231,6 +231,17 @@ module mod_runparams
 
   ! Tiedtke cumulus scheme parameters
 
+  logical , public :: lmfpen    = .true.  ! penetrative conv is switched on
+  logical , public :: lmfmid    = .true.  ! midlevel conv is switched on
+  logical , public :: lmfdd     = .true.  ! cumulus downdraft is switched on
+  logical , public :: lepcld    = .true.  ! prognostic cloud scheme is on
+  logical , public :: lmfdudv   = .true.  ! cumulus friction is switched on
+  logical , public :: lmfscv    = .true.  ! shallow convection is switched on
+  logical , public :: lmfuvdis  = .true.  ! use kinetic energy dissipation
+  logical , public :: lmftrac   = .true.  ! chemical tracer transport is on
+  logical , public :: lmfsmooth = .false. ! smoot of mass fluxes for tracers
+  logical , public :: lmfwstar  = .false. ! Grant w* closure for shallow conv
+
   integer(ik4) , public :: iconv
 
   real(rkx) , public :: entrdd  ! entrainment rate for cumulus downdrafts

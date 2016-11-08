@@ -2760,6 +2760,26 @@ module mod_ncout
             ncattribute_real8('tiedtke_entrainment_rate_downdraft',entrdd))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('tiedtke_entrainment_rate_deep',entrpen))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_penetrative',lmfpen))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_midlevel',lmfmid))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_shallow',lmfscv))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_cumulus_downdraft',lmfdd))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_prognostic_cloud',lepcld))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_cumulus_friction',lmfdudv))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_ke_dissipation',lmfuvdis))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_tracer_transport',lmftrac))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_tracer_smooth_massflux',lmfsmooth))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('tiedtke_shallow_wstar_closure',lmfwstar))
           if ( iconv == 4 ) then
             call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('tiedtke_detrainment_rate_deep',detrpen))

@@ -35,6 +35,8 @@ module mod_cu_tiedtke
   use mod_runparams , only : detrpen , entrpen , entshalp , entrdd
   use mod_runparams , only : rhebc_ocn , rhebc_lnd , rcuc_lnd , rcuc_ocn
   use mod_runparams , only : rcpec_ocn , rcpec_lnd , cmtcape
+  use mod_runparams , only : lmfpen , lmfmid , lmfdd , lepcld , lmfdudv , &
+          lmfscv , lmfuvdis , lmftrac , lmfsmooth , lmfwstar
   use mod_regcm_types
 
   implicit none
@@ -52,17 +54,6 @@ module mod_cu_tiedtke
   real(rkx) :: rtau
   real(rkx) :: rmfcfl ! Massflux multiple of cfl stability criterium
   integer(ik4) :: nk350 , nk060 , nk950
-
-  logical , parameter :: lmfpen    = .true.  ! penetrative conv is switched on
-  logical , parameter :: lmfmid    = .true.  ! midlevel conv is switched on
-  logical , parameter :: lmfdd     = .true.  ! cumulus downdraft is switched on
-  logical , parameter :: lepcld    = .true.  ! prognostic cloud scheme is on
-  logical , parameter :: lmfdudv   = .true.  ! cumulus friction is switched on
-  logical , parameter :: lmfscv    = .true.  ! shallow convection is switched on
-  logical , parameter :: lmfuvdis  = .true.  ! use kinetic energy dissipation
-  logical , parameter :: lmftrac   = .true.  ! chemical tracer transport is on
-  logical , parameter :: lmfsmooth = .false. ! smoot of mass fluxes for tracers
-  logical , parameter :: lmfwstar  = .false. ! Grant w* closure for shallow conv
 
   real(rkx) , parameter :: rlpal1 = 0.15_rkx  ! Smoothing coefficient
   real(rkx) , parameter :: rlpal2 = 20.0_rkx  ! Smoothing coefficient

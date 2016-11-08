@@ -46,10 +46,12 @@ module mod_timefilter
     module procedure filter_raw_2d
     module procedure filter_raw_3d
     module procedure filter_raw_4d
+    module procedure filter_raw_qv
     module procedure filter_raw_uv
     module procedure filter_ra_2d
     module procedure filter_ra_3d
     module procedure filter_ra_4d
+    module procedure filter_ra_qv
     module procedure filter_ra_uv
   end interface timefilter_apply
 
@@ -181,17 +183,17 @@ module mod_timefilter
     end do
   end subroutine filter_raw_uv
 
-  subroutine filter_ra_4d(phin,phinm1,phinp1,alpha)
+  subroutine filter_ra_4d(phin,phinm1,phinp1,alpha,n1,n2)
     implicit none
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
     real(rkx) , intent(in) :: alpha
+    integer(ik4) , intent(in) :: n1 , n2
     real(rkx) :: d
     integer(ik4) :: i , j , k , n , nk , nn
     nk = size(phin,3)
-    nn = size(phin,4)
-    do n = 1 , nn
+    do n = n1 , n2
       do k = 1 , nk
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -205,17 +207,39 @@ module mod_timefilter
     end do
   end subroutine filter_ra_4d
 
-  subroutine filter_raw_4d(phin,phinm1,phinp1,alpha,beta)
+  subroutine filter_ra_qv(phin,phinm1,phinp1,alpha,iv)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
+    real(rkx) , intent(in) :: alpha
+    integer(ik4) , intent(in) :: iv
+    real(rkx) :: d
+    integer(ik4) :: i , j , k , nk
+    nk = size(phin,3)
+    do k = 1 , nk
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          d = alpha * (phinp1(j,i,k,iv) + phinm1(j,i,k,iv) - &
+              d_two * phin(j,i,k,iv))
+          phinm1(j,i,k,iv) = max(phin(j,i,k,iv) + d, minqv)
+          phin(j,i,k,iv) = phinp1(j,i,k,iv)
+        end do
+      end do
+    end do
+  end subroutine filter_ra_qv
+
+  subroutine filter_raw_4d(phin,phinm1,phinp1,alpha,beta,n1,n2)
     implicit none
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
     real(rkx) , intent(in) :: alpha , beta
+    integer(ik4) , intent(in) :: n1 , n2
     real(rkx) :: d
-    integer(ik4) :: i , j , k , n , nk , nn
+    integer(ik4) :: i , j , k , n , nk
     nk = size(phin,3)
-    nn = size(phin,4)
-    do n = 1 , nn
+    do n = n1 , n2
       do k = 1 , nk
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -229,6 +253,29 @@ module mod_timefilter
       end do
     end do
   end subroutine filter_raw_4d
+
+  subroutine filter_raw_qv(phin,phinm1,phinp1,alpha,beta,iv)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
+    real(rkx) , intent(in) :: alpha , beta
+    integer(ik4) , intent(in) :: iv
+    real(rkx) :: d
+    integer(ik4) :: i , j , k , nk
+    nk = size(phin,3)
+    do k = 1 , nk
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          d = alpha * (phinp1(j,i,k,iv) + phinm1(j,i,k,iv) - &
+              d_two * phin(j,i,k,iv))
+          phinm1(j,i,k,iv) = max(phin(j,i,k,iv) + beta * d, minqv)
+          phin(j,i,k,iv) = max(phinp1(j,i,k,iv) + &
+                                (beta - d_one) * d, minqv)
+        end do
+      end do
+    end do
+  end subroutine filter_raw_qv
 
 end module mod_timefilter
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

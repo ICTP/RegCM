@@ -203,11 +203,6 @@ module mod_tendency
           end do
         end do
       end do
-      if ( iboudy == 4 ) then
-        call sponge(xpsb,pten)
-      else if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(iboudy,sfs%psb,xpsb,pten)
-      end if
       do k = 2 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -318,6 +313,11 @@ module mod_tendency
     ! Surface pressure boundary conditions for Hydrostatic
     !
     if ( idynamic == 1 ) then
+      if ( iboudy == 4 ) then
+        call sponge(xpsb,pten)
+      else if ( iboudy == 1 .or. iboudy == 5 ) then
+        call nudge(iboudy,sfs%psb,xpsb,pten)
+      end if
       !
       ! psc : forecast pressure
       !
@@ -1431,7 +1431,9 @@ module mod_tendency
     ! Compute future values of t and moisture variables at tau+1:
     !
     call timefilter_apply(atm1%t,atm2%t,atmc%t,gnu)
-    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu,iqv)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx, &
+                          gnu*d_half,betaraw,iqfrst,iqlst)
     !
     if ( idynamic == 1 ) then
       !
@@ -1531,7 +1533,7 @@ module mod_tendency
       call timefilter_apply(atm1%tke,atm2%tke,atmc%tke,gnu)
     end if ! TKE tendency update
     if ( ichem == 1 ) then
-      call timefilter_apply(chia,chib,chic,gnu)
+      call timefilter_apply(chia,chib,chic,gnu*d_half,betaraw,1,ntr)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
       ! without explicit convective transport (Grell and KF up to now).
