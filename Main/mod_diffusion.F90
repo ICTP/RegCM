@@ -105,16 +105,19 @@ module mod_diffusion
       end do
     end do
     if ( diffu_hgtf == 1 ) then
-      do i = ici1ga , ici2ga
-        do j = jci1ga , jci2ga
-          hg1 = abs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
-          hg2 = abs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
-          hg3 = abs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
-          hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
-          hgmax = max(hg1,hg2,hg3,hg4)*regrav
-          hgfact(j,i,kz) = max(1.5e3_rkx,xkhz/(d_one+hgmax**2))
-          hgfact(j,i,kz-1) = hgfact(j,i,kz)
-          hgfact(j,i,kz-2) = (hgfact(j,i,kz)+xkhz) * d_half
+      ! Should we have a vertical profile for this?
+      do k = 1 , kz
+        do i = ici1ga , ici2ga
+          do j = jci1ga , jci2ga
+            hg1 = abs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
+            hg2 = abs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
+            hg3 = abs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
+            hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
+            hgmax = max(hg1,hg2,hg3,hg4)*regrav*1.0e3_rkx
+            hgfact(j,i,kz) = max(1.5e3_rkx,xkhz/(d_one+hgmax**2))
+            !hgfact(j,i,kz-1) = hgfact(j,i,kz)
+            !hgfact(j,i,kz-2) = (hgfact(j,i,kz)+xkhz) * d_half
+          end do
         end do
       end do
       call maxall(maxval(hgfact),maxxkh)
