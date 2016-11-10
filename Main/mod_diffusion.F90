@@ -69,7 +69,7 @@ module mod_diffusion
   end subroutine allocate_mod_diffusion
 
   subroutine initialize_diffusion
-    use mod_atm_interface , only : mddom , sfs , atms
+    use mod_atm_interface , only : mddom , sfs , atms , atm2
     implicit none
     integer(ik4) :: i , j , k
     real(rkx) :: hg1 , hg2 , hg3 , hg4
@@ -83,6 +83,7 @@ module mod_diffusion
     ! (Xu et al., MWR, 2001, 502-516)
     if ( idynamic == 1 ) then
       xkhz = 1.5e-3_rkx*dxsq/dtsec
+      dydc = dydc / (100.0_rkx - ptop)
     else
       xkhz = ckh * dx
       ! xkhz = ckh * 1.5e-3_rkx*dxsq/dtsec
@@ -129,8 +130,13 @@ module mod_diffusion
     end if
     call assignpnt(sfs%psb,pc)
     call assignpnt(sfs%psdotb,pd)
-    call assignpnt(atms%ubd3d,ud)
-    call assignpnt(atms%vbd3d,vd)
+    if ( idynamic == 1 ) then
+      call assignpnt(atm2%u,ud)
+      call assignpnt(atm2%v,vd)
+    else
+      call assignpnt(atms%ubd3d,ud)
+      call assignpnt(atms%vbd3d,vd)
+    end if
   end subroutine initialize_diffusion
 
   subroutine calc_coeff
