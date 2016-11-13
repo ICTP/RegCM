@@ -37,9 +37,6 @@ module mod_timefilter
 
   real(rkx) , public , parameter :: betaraw = 0.53_rkx
 
-  ! For tracers, do not allow zero values.
-  real(rkx) , public , parameter :: notzero = dlowval
-
   public :: timefilter_apply
 
   interface timefilter_apply
@@ -183,12 +180,12 @@ module mod_timefilter
     end do
   end subroutine filter_raw_uv
 
-  subroutine filter_ra_4d(phin,phinm1,phinp1,alpha,n1,n2)
+  subroutine filter_ra_4d(phin,phinm1,phinp1,alpha,n1,n2,low)
     implicit none
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
-    real(rkx) , intent(in) :: alpha
+    real(rkx) , intent(in) :: alpha , low
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) :: d
     integer(ik4) :: i , j , k , n , nk , nn
@@ -199,7 +196,7 @@ module mod_timefilter
           do j = jci1 , jci2
             d = alpha * (phinp1(j,i,k,n) + phinm1(j,i,k,n) - &
                 d_two * phin(j,i,k,n))
-            phinm1(j,i,k,n) = max(phin(j,i,k,n) + d, notzero)
+            phinm1(j,i,k,n) = max(phin(j,i,k,n) + d, low)
             phin(j,i,k,n) = phinp1(j,i,k,n)
           end do
         end do
@@ -229,12 +226,12 @@ module mod_timefilter
     end do
   end subroutine filter_ra_qv
 
-  subroutine filter_raw_4d(phin,phinm1,phinp1,alpha,beta,n1,n2)
+  subroutine filter_raw_4d(phin,phinm1,phinp1,alpha,beta,n1,n2,low)
     implicit none
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
-    real(rkx) , intent(in) :: alpha , beta
+    real(rkx) , intent(in) :: alpha , beta , low
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) :: d
     integer(ik4) :: i , j , k , n , nk
@@ -245,9 +242,9 @@ module mod_timefilter
           do j = jci1 , jci2
             d = alpha * (phinp1(j,i,k,n) + phinm1(j,i,k,n) - &
                 d_two * phin(j,i,k,n))
-            phinm1(j,i,k,n) = max(phin(j,i,k,n) + beta * d, notzero)
+            phinm1(j,i,k,n) = max(phin(j,i,k,n) + beta * d, low)
             phin(j,i,k,n) = max(phinp1(j,i,k,n) + &
-                                  (beta - d_one) * d, notzero)
+                                  (beta - d_one) * d, low)
           end do
         end do
       end do

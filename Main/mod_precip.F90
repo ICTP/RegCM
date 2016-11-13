@@ -65,7 +65,7 @@ module mod_precip
   real(rkx) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
     cevap , xcevap , caccr
   real(rkx) , public , pointer , dimension(:,:,:) :: dqc
-  real(rkx) , public , pointer , dimension(:,:,:) :: qvn , qln
+  real(rkx) , public , pointer , dimension(:,:,:) :: qvn
 
   logical :: l_lat_hack = .false.
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
@@ -73,6 +73,7 @@ module mod_precip
   real(rkx) , parameter :: rhow = 1000.0_rkx
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
   real(rkx) , parameter :: pptmin = 1.0e-20_rkx
+  real(rkx) , parameter :: eps = 1.0e-7_rkx
 
   contains
 
@@ -95,9 +96,6 @@ module mod_precip
     call getmem2d(pptsum,jci1,jci2,ici1,ici2,'pcp:pptsum')
     call getmem3d(dqc,jci1,jci2,ici1,ici2,1,kz,'pcp:dqc')
     call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'pcp:totc')
-    if ( ipptls == 2 ) then
-      call getmem3d(qln,jci1,jci2,ici1,ici2,1,kz,'pcp:qln')
-    end if
   end subroutine allocate_mod_precip
 
   subroutine init_precip
@@ -143,7 +141,6 @@ module mod_precip
       end if
     end if
     if ( ipptls == 1 ) then
-      call assignpnt(atms%qxb3d,qln,iqc)
     else if ( ipptls == 2 ) then
       call assignpnt(atms%qxb3d,xqi,iqi)
     end if
@@ -178,15 +175,6 @@ module mod_precip
     if ( l_lat_hack ) then
       call sun_cevap
     end if
-    if ( ipptls == 2 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            qln(j,i,k) = xqc(j,i,k) + xqi(j,i,k)
-          end do
-        end do
-      end do
-    end if
     if ( lsecind ) then
       do k = 1 , kz
         do i = ici1 , ici2
@@ -197,7 +185,7 @@ module mod_precip
             ! water undergoing autoconversion
             ! pccn = number of ccn /m3
             ! In cloud mixing ratio [kg/kg]
-            qcincl = qln(j,i,k)/pfcc(j,i,k)
+            qcincl = xqc(j,i,k)/pfcc(j,i,k)
             qcth = pccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
                           ((rcrit*1e-6_rkx)**3)*rhow
             if ( idiag == 1 ) then
@@ -220,7 +208,7 @@ module mod_precip
             !     theshhold for auto-conversion.
             tcel = t3(j,i,k) - tzero   ![C][avg]
             ! In cloud mixing ratio [kg/kg]
-            qcincl = qln(j,i,k)/pfcc(j,i,k)
+            qcincl = xqc(j,i,k)/pfcc(j,i,k)
             qcth = cgul(j,i)*(d_10**(-0.489_rkx+0.0134_rkx*tcel))*d_r1000
             dqc(j,i,k) = qcincl - qcth
           end do
@@ -249,9 +237,9 @@ module mod_precip
     do i = ici1 , ici2
       do j = jci1 , jci2
         afc = pfcc(j,i,1)   ![frac][avg]
-        qcw = qln(j,i,1)    ![kg/kg][avg]
+        qcw = xqc(j,i,1)    ![kg/kg][avg]
         pptnew = d_zero
-        if ( afc > lowcld ) then ! if there is a cloud
+        if ( afc > lowcld+eps ) then ! if there is a cloud
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
           pptmax = max(qcw,d_zero)/dt             ![kg/kg/s][avg]
@@ -334,9 +322,9 @@ module mod_precip
             ![k/s*cb][avg]
             tten(j,i,k) = tten(j,i,k) - wlhvocp*rdevap*psb(j,i)
           end if
-          qcw = qln(j,i,k)   ![kg/kg][avg]
+          qcw = xqc(j,i,k)   ![kg/kg][avg]
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
-          if ( afc > lowcld ) then ! if there is a cloud
+          if ( afc > lowcld+eps ) then ! if there is a cloud
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
             pptmax = max(qcw,d_zero)/dt                  ![kg/kg/s][avg]
@@ -396,7 +384,7 @@ module mod_precip
             prembc(j,i,k) = d_zero
             if ( premrat(j,i,k) > d_zero ) then
               do kk = 1 , k - 1
-                qcw = qln(j,i,k)
+                qcw = xqc(j,i,k)
                 prembc(j,i,k) = prembc(j,i,k) + & ![mm/hr]
                   premrat(j,i,kk) * qcw * psb(j,i) * dsigma(kk) * uch
               end do
@@ -500,7 +488,7 @@ module mod_precip
     implicit none
     real(rkx) :: exlwc , rh0adj
     integer(ik4) :: i , j , k
-    real(rkx) :: pres , botm , rm , qcld
+    real(rkx) :: botm , rm , qcld
 
     if ( ipptls == 2 ) then
       do k = 1 , kz
@@ -540,10 +528,9 @@ module mod_precip
               botm = exp( 0.49_rkx*log((rhmax-rh3(j,i,k))*qs3(j,i,k)) )
               rm = exp(0.25_rkx*log(rh3(j,i,k)))
               if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
-                pfcc(j,i,k) = min(hicld, max(lowcld , rm))
+                pfcc(j,i,k) = rm
               else
-                pfcc(j,i,k) = min(hicld, max(lowcld , &
-                        rm*(d_one-exp(-100._rkx*(qcld/botm)))))
+                pfcc(j,i,k) = rm*(d_one-exp(-100._rkx*(qcld/botm)))
               end if
             end if
           end do
@@ -554,7 +541,6 @@ module mod_precip
         do i = ici1 , ici2
           do j = jci1 , jci2
             ! Adjusted relative humidity threshold
-            pres = p3(j,i,k)
             if ( t3(j,i,k) > tc0 ) then
               rh0adj = rh0(j,i)
             else ! high cloud (less subgrid variability)
@@ -569,7 +555,6 @@ module mod_precip
               ! Use Sundqvist (1989) formula
               pfcc(j,i,k) = d_one-sqrt((rhmax-rh3(j,i,k)) / &
                                        (rhmax-rh0adj))
-              pfcc(j,i,k) = min(max(pfcc(j,i,k),lowcld),hicld)
             end if
           end do
         end do
@@ -619,8 +604,8 @@ module mod_precip
                 ! Klein, S. A., and D. L. Hartmann,
                 ! The seasonal cycle of low stratiform clouds,
                 ! J. Climate, 6, 1587-1606, 1993
-                pfcc(j,i,k) = min(hicld,max(pfcc(j,i,k), &
-                      (th700(j,i)-th3(j,i,k)) * 0.057_rkx - 0.5573_rkx))
+                pfcc(j,i,k) = max(pfcc(j,i,k), &
+                      (th700(j,i)-th3(j,i,k)) * 0.057_rkx - 0.5573_rkx)
               end if
             end if
           end do
@@ -628,6 +613,13 @@ module mod_precip
       end do
     end if
 
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          pfcc(j,i,k) = min(max(pfcc(j,i,k),lowcld),hicld)
+        end do
+      end do
+    end do
     !-----------------------------------------------------------------
     ! 2.  Combine large-scale and convective fraction and liquid water
     !     to be passed into radiation.
@@ -636,23 +628,24 @@ module mod_precip
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          exlwc = d_zero
+          exlwc = dlowval
           ! Cloud Water Volume
           ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
           if ( iconvlwp == 1 ) then
             ! Apply the parameterisation based on temperature to the
             ! the large scale clouds.
-            if ( pfcc(j,i,k) > lowcld ) then
+            if ( pfcc(j,i,k) > lowcld+eps ) then
               exlwc = clwfromt(t3(j,i,k))
             end if
           else
             ! NOTE : IN CLOUD HERE IS NEEDED !!!
-            if ( pfcc(j,i,k) > lowcld ) then
+            if ( pfcc(j,i,k) > lowcld+eps ) then
               ! In g / m^3
               exlwc = ((totc(j,i,k)*d_1000)/pfcc(j,i,k))*rho3(j,i,k)
             end if
           end if
-          if ( radcldf(j,i,k) > lowcld .or. pfcc(j,i,k) > lowcld ) then
+          if ( radcldf(j,i,k) > lowcld+eps .or. &
+               pfcc(j,i,k) > lowcld+eps ) then
             ! get maximum cloud fraction between cumulus and large scale
             radlqwc(j,i,k) = (exlwc * pfcc(j,i,k) + &
                               radlqwc(j,i,k) * radcldf(j,i,k)) / &
@@ -660,7 +653,7 @@ module mod_precip
             radcldf(j,i,k) = max(radcldf(j,i,k),pfcc(j,i,k))
           else
             radcldf(j,i,k) = lowcld
-            radlqwc(j,i,k) = d_zero
+            radlqwc(j,i,k) = dlowval
           end if
           radcldf(j,i,k) = min(max(radcldf(j,i,k),lowcld),cftotmax)
         end do

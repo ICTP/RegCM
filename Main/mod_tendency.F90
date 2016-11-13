@@ -742,7 +742,8 @@ module mod_tendency
       if ( idiag > 0 ) then
         qen0(jci1:jci2,ici1:ici2,:) = adf%qx(jci1:jci2,ici1:ici2,:,iqv)
       end if
-      call diffu_x(adf%qx,atms%qxb3d,1,iqc,d_one)
+      !call diffu_x(adf%qx,atms%qxb3d,iqv,d_one)
+      call diffu_x(adf%qx,atms%qxb3d,iqv,iqlst,d_one)
       if ( idiag > 0 ) then
         ! save the h diff diag here
         qdiag%dif(jci1:jci2,ici1:ici2,:) = &
@@ -983,9 +984,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
-            if ( atmc%qx(j,i,k,n) < dlowval ) then
-              atmc%qx(j,i,k,n) = d_zero
-            end if
+            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),minqx)
           end do
         end do
       end do
@@ -1434,9 +1433,9 @@ module mod_tendency
     call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu,iqv)
     if ( idynamic == 1 ) then
       call timefilter_apply(atm1%qx,atm2%qx,atmc%qx, &
-                            gnu*d_half,betaraw,iqfrst,iqlst)
+                            gnu*d_two,iqfrst,iqlst,minqx)
     else
-      call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu,iqfrst,iqlst)
+      call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu,iqfrst,iqlst,minqx)
     end if
     !
     if ( idynamic == 1 ) then
@@ -1537,7 +1536,7 @@ module mod_tendency
       call timefilter_apply(atm1%tke,atm2%tke,atmc%tke,gnu)
     end if ! TKE tendency update
     if ( ichem == 1 ) then
-      call timefilter_apply(chia,chib,chic,gnu*d_half,betaraw,1,ntr)
+      call timefilter_apply(chia,chib,chic,gnu*d_half,1,ntr,mintr)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
       ! without explicit convective transport (Grell and KF up to now).
@@ -1989,7 +1988,14 @@ module mod_tendency
           end do
         end do
       end do
-      do n = 1 , nqx
+      do k = 1 , kz
+        do i = ice1ga , ice2ga
+          do j = jce1ga , jce2ga
+            atmx%qx(j,i,k,iqv) = max(atm1%qx(j,i,k,iqv)*rpsa(j,i),minqq)
+          end do
+        end do
+      end do
+      do n = iqfrst , iqlst
         do k = 1 , kz
           do i = ice1ga , ice2ga
             do j = jce1ga , jce2ga

@@ -31,7 +31,7 @@ module mod_cu_tiedtke
          entrdd , entrmid , cprcon , entrpen , entrscv , iconv , &
          ichem , iaerosol , iindirect , ipptls , hsigma , ktau , ichcumtra
   use mod_mpmessage
-  use mod_runparams , only : dt , rcrit , rprc_ocn , rprc_lnd
+  use mod_runparams , only : rcrit , rprc_ocn , rprc_lnd
   use mod_runparams , only : detrpen , entrpen , entshalp , entrdd
   use mod_runparams , only : rhebc_ocn , rhebc_lnd , rcuc_lnd , rcuc_ocn
   use mod_runparams , only : rcpec_ocn , rcpec_lnd , cmtcape
@@ -523,14 +523,14 @@ module mod_cu_tiedtke
     !
     do jk = 1 , klev
       do jl = 1 , kproma
-        ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
-        zqp1(jl,jk) = max(minqq,pqm1(jl,jk) + pqte(jl,jk)*dt)
-        zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
-        zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
+        ztp1(jl,jk) = ptm1(jl,jk) !+ ptte(jl,jk)*dtcum
+        zqp1(jl,jk) = max(minqq,pqm1(jl,jk)) ! + pqte(jl,jk)*dtcum)
+        zxlp1 = max(d_zero,pxlm1(jl,jk)) ! + pxlte(jl,jk)*dtcum)
+        zxip1 = max(d_zero,pxim1(jl,jk)) ! + pxite(jl,jk)*dtcum)
         zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
         ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
-        zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
-        zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
+        zup1(jl,jk) = pum1(jl,jk) ! + pvom(jl,jk)*dtcum
+        zvp1(jl,jk) = pvm1(jl,jk) ! + pvol(jl,jk)*dtcum
         if ( iconv /= 4 ) then
           it = int(ztp1(jl,jk)*d_1000)
           if ( it < jptlucu1 .or. it > jptlucu2 ) then
@@ -552,7 +552,7 @@ module mod_cu_tiedtke
 
       do jt = 1 , ktrac
         do jl = 1 , kproma
-          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dt)
+          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt))! + pxtte(jl,jk,jt)*dtcum)
         end do
       end do
 
@@ -805,7 +805,7 @@ module mod_cu_tiedtke
     ! (nn wavenumber of a spectral model)
     ! this is translated roughly into horizontal resolution in meters
     !
-    ztau = cmtcape
+    ztau = min(cmtcape,453600._rkx/nskmax)
     !
     !--------------------------------------------------------
     ! 2. INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -1280,7 +1280,7 @@ module mod_cu_tiedtke
     ! (nn wavenumber of a spectral model)
     ! this is translated roughly into horizontal resolution in meters
     !
-    ztau = cmtcape
+    ztau = min(cmtcape,453600._rkx/nskmax)
     !
     !--------------------------------------------------------
     ! 2. INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -2214,7 +2214,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY PARAMETERS
     ! ---------------------
     !
-    zcons2 = d_one/(egrav*dt)
+    zcons2 = d_one/(egrav*dtcum)
     ztglace = tzero - 13.0_rkx
     zqold(1:kproma) = d_zero
     !

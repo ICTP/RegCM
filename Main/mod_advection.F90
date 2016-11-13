@@ -35,7 +35,7 @@ module mod_advection
 
   public :: init_advection, hadv , vadv , start_advect
 
-  logical :: upstream_mode = .false.
+  logical , parameter :: upstream_mode = .true.
   real(rkx) , parameter :: upu = 0.200_rkx
   real(rkx) , parameter :: umax = 200.0_rkx
   real(rkx) , parameter :: uchu = upu/umax
@@ -118,7 +118,6 @@ module mod_advection
         dds(k) = d_one / (dsigma(k) + dsigma(k-1))
       end do
       if ( idynamic == 2 ) then
-        upstream_mode = .true.
         stability_enhance = .true.
         vert_stability_enhance = .true.
       end if
@@ -240,14 +239,16 @@ module mod_advection
               ucmonc = (d_one+ff2)*ucmonc + (d_one-ff2)*ucmona
               vcmonb = (d_one+ff3)*vcmona + (d_one-ff3)*vcmonb
               vcmonc = (d_one+ff4)*vcmonc + (d_one-ff4)*vcmona
-              diag = - dmapf(j,i) * ( ( ucmonb - ucmonc ) + &
-                                      ( vcmonb - vcmonc ) )
-              uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag - dmapf(j,i) * &
-                          (u(j+1,i,k) * ucmonb - u(j-1,i,k) * ucmonc + &
-                           u(j,i+1,k) * vcmonb - u(j,i-1,k) * vcmonc)
-              vten(j,i,k) = vten(j,i,k) + v(j,i,k) * diag - dmapf(j,i) * &
-                          (v(j+1,i,k) * ucmonb - v(j-1,i,k) * ucmonc + &
-                           v(j,i+1,k) * vcmonb - v(j,i-1,k) * vcmonc)
+              uten(j,i,k) = uten(j,i,k) - dmapf(j,i) * &
+                          ((u(j+1,i,k)+u(j,  i,k)) * ucmonb - &
+                           (u(j,  i,k)+u(j-1,i,k)) * ucmonc + &
+                           (u(j,i+1,k)+u(j,  i,k)) * vcmonb - &
+                           (u(j,  i,k)+u(j,i-1,k)) * vcmonc)
+              vten(j,i,k) = vten(j,i,k) - dmapf(j,i) * &
+                          ((v(j+1,i,k)+v(j,  i,k)) * ucmonb - &
+                           (v(j,  i,k)+v(j-1,i,k)) * ucmonc + &
+                           (v(j,i+1,k)+v(j,  i,k)) * vcmonb - &
+                           (v(j,  i,k)+v(j,i-1,k)) * vcmonc)
             end do
           end do
         end do
@@ -557,8 +558,7 @@ module mod_advection
       !
       ! for qv:
       !
-      !if ( .not. upstream_mode ) then
-      if ( .false. ) then
+      if ( .not. upstream_mode ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -951,9 +951,7 @@ module mod_advection
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( f(j,i,k,n) > minqv .and. f(j,i,k-1,n) > minqv ) then
-              fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
-            end if
+            fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
           end do
         end do
       end do
