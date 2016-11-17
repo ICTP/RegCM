@@ -32,8 +32,8 @@ memory space to store the model internal variables.
  iy     = 34,   ! This is number of points in the N/S direction
  jx     = 48,   ! This is number of points in the E/W direction
  kz     = 23,   ! Number of vertical levels
- dsmin  = 0.01, ! Minimum sigma spacing (only used if kz is not 14, 18, or 23)
- dsmax  = 0.05, ! Maximum sigma spacing (only used if kz is not 14, 18, or 23)
+ dsmin  = 0.01, ! Minimum sigma spacing (only used if kz is not 14, 18, 23, 41)
+ dsmax  = 0.05, ! Maximum sigma spacing (only used if kz is not 14, 18, 23, 41)
  nsg    = 1,    ! For subgridding, number of points to decompose. If nsg=1,
                 ! no subgridding is performed. CLM3.5 does NOT work with
                 ! subgridding enabled.
@@ -56,8 +56,8 @@ points or a box $3\times3$, so the maximum theorical number of processors which
 can be used in a parallel run for the above configuration is roughly $150$,
 but for the communication overhead the optimal would be around $12$ or a
 $10\times10$ patch per processor.
-\item If a custom number of sigma level is chosen (not 14, 18 or 23), the actual
-sigma values are calculated mimimizing the $a,b$ coefficients for the 
+\item If a custom number of sigma level is chosen (not 14, 18, 23 or 41), the
+actual sigma values are calculated mimimizing the $a,b$ coefficients for the 
 equation:
 
 \begin{equation}

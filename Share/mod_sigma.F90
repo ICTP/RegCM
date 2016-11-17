@@ -150,39 +150,7 @@ module mod_sigma
         sigma_coordinate(22) = 0.98_rkx
         sigma_coordinate(23) = 0.99_rkx
         sigma_coordinate(24) = 1.0_rkx
-      else if ( nk == 30 ) then ! RegCM HR
-        sigma_coordinate(1) = 0.000_rkx
-        sigma_coordinate(2) = 0.025_rkx
-        sigma_coordinate(3) = 0.050_rkx
-        sigma_coordinate(4) = 0.075_rkx
-        sigma_coordinate(5) = 0.100_rkx
-        sigma_coordinate(6) = 0.125_rkx
-        sigma_coordinate(7) = 0.150_rkx
-        sigma_coordinate(8) = 0.175_rkx
-        sigma_coordinate(9) = 0.200_rkx
-        sigma_coordinate(10) = 0.250_rkx
-        sigma_coordinate(11) = 0.300_rkx
-        sigma_coordinate(12) = 0.350_rkx
-        sigma_coordinate(13) = 0.400_rkx
-        sigma_coordinate(14) = 0.450_rkx
-        sigma_coordinate(15) = 0.500_rkx
-        sigma_coordinate(16) = 0.550_rkx
-        sigma_coordinate(17) = 0.600_rkx
-        sigma_coordinate(18) = 0.650_rkx
-        sigma_coordinate(19) = 0.700_rkx
-        sigma_coordinate(20) = 0.750_rkx
-        sigma_coordinate(21) = 0.800_rkx
-        sigma_coordinate(22) = 0.850_rkx
-        sigma_coordinate(23) = 0.875_rkx
-        sigma_coordinate(24) = 0.900_rkx
-        sigma_coordinate(25) = 0.925_rkx
-        sigma_coordinate(26) = 0.950_rkx
-        sigma_coordinate(27) = 0.970_rkx
-        sigma_coordinate(28) = 0.980_rkx
-        sigma_coordinate(29) = 0.990_rkx
-        sigma_coordinate(30) = 0.995_rkx
-        sigma_coordinate(31) = 1.000_rkx
-      else if ( nk == 42 ) then ! RegCM VHR
+      else if ( nk == 41 ) then ! RegCM VHR
         sigma_coordinate(1) = 0.0000_rkx
         sigma_coordinate(2) = 0.0500_rkx
         sigma_coordinate(3) = 0.0978_rkx
