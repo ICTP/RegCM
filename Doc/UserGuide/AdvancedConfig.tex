@@ -746,13 +746,13 @@ sensitivity experiments to select the best scheme for your application.
    iocnrough =      1,  ! Zeng Ocean model roughness formula to use.
                         !   1 => (0.0065*ustar*ustar)/egrav
                         !   2 => (0.013*ustar*ustar)/egrav + 0.11*visa/ustar
-			!   3 => (0.017*ustar*ustar)/egrav
-			!   4 => Huang 2012 free convection and swell effects
-			!   5 => four regime formulation
+                        !   3 => (0.017*ustar*ustar)/egrav
+                        !   4 => Huang 2012 free convection and swell effects
+                        !   5 => four regime formulation
    iocnzoq =        1,  ! Zeng Ocean model factors for t,q roughness
                         !   1 => 2.67*(re**d_rfour) - 2.57
-			!   2 => min(4.0e-4, 2.0e-4*re**(-3.3))
-			!   3 => COARE formulation as in bulk flux above
+                        !   2 => min(4.0e-4, 2.0e-4*re**(-3.3))
+                        !   3 => COARE formulation as in bulk flux above
  ipgf    =          0,  ! Pressure gradient force scheme
                         !   0 => Use full fields
                         !   1 => Hydrostatic deduction with pert. temperature
@@ -774,12 +774,12 @@ sensitivity experiments to select the best scheme for your application.
  icldmstrat =        1, ! Simulate stratocumulus clouds
  icumcloud =         1, ! Formulas to use for cumulus clouds (cf and lwc)
                         ! Cloud fractions, only if mass fluxes are not
-			! available (Kuo and BM):
-			!   0,1 => cf = 1-(1-clfrcv)**(1/kdepth)
-			!   2   => cf = cloud profile
-			! Liquid water content:
-			!   0   => constant in cloud
-			!   1,2 => function of temperature
+                        ! available (Kuo and BM):
+                        !   0,1 => cf = 1-(1-clfrcv)**(1/kdepth)
+                        !   2   => cf = cloud profile
+                        ! Liquid water content:
+                        !   0   => constant in cloud
+                        !   1,2 => function of temperature
  irrtm    =          0, ! Use RRTM radiation scheme instead of CCSM
  iclimao3 =          0, ! Use O3 climatic dataset from SPARC CMIP5
  isolconst =         0, ! Use a constant 1367 W/m^2 instead of the prescribed
