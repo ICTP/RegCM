@@ -171,7 +171,8 @@
  dtrad  =     0.,   ! time interval solar radiation calculated (minutes)
  dtabem =     0.,   ! time interval absorption-emission calculated (hours)
  dtsrf  =     0.,   ! time interval at which land model is called (seconds)
- dtcum  =     0.,   ! time interval at which cumuls is called (seconds)
+ dtcum  =   -1.0,   ! time interval at which cumuls is called (seconds)
+                    ! By default use same timestep as dynamical core.
  dtche  =   900.,   ! time interval at which chem model is called (seconds)
  /
 !

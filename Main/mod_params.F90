@@ -182,7 +182,7 @@ module mod_params
     dt = 100.0_rkx  ! time step in seconds
     dtrad = 0.0_rkx ! time interval in min solar rad caluclated
     dtsrf = 0.0_rkx ! time interval at which bats is called (secs)
-    dtcum = 0.0_rkx ! time interval at which cumulus is called (secs)
+    dtcum = -1.0_rkx ! time interval at which cumulus is called (secs)
     dtabem = 0.0_rkx ! time interval absorption-emission calculated (hours)
     dtche = 900.0_rkx ! time interval at which bats is called (secs)
     !
@@ -445,7 +445,7 @@ module mod_params
     ricr_lnd = 0.25_rkx
     zhnew_fac = 0.25_rkx
     ifaholtth10 = 1
-    ifaholt = 0
+    ifaholt = 1
     !
     ! slabocparam ;
     !

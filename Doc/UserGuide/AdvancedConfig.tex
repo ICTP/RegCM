@@ -572,7 +572,8 @@ integration timestep and triggers for calling internal parametric schemes.
  dt     =   150., ! time step in seconds
  dtrad  =     0., ! time interval solar radiation calculated (minutes)
  dtsrf  =     0., ! time interval at which land model is called (seconds)
- dtcum  =     0., ! time interval at which cumuls is called (seconds)
+ dtcum  =   -1.0, ! time interval at which cumuls is called (seconds)
+                  ! By default use same timestep as dynamical core.
  dtabem =     0., ! time interval absorption-emission calculated (hours)
  dtchem =   900., ! time interval for chemistry reactions (seconds)
  /
@@ -605,9 +606,12 @@ different timestep at different times.
 \item The surface model timestep should be of the order of $10 minutes$ to
 keep computational cost low: lower values may be used only in the case of
 very strong surface gradients.
-\item A negative value for $dtcum$ (the default) actually sets $dtcum = dt$,
-calling the cumulus convection scheme every model timestep. For small $dt$,
-this value should be set to $~5minute$.
+\item A negative value for $dtcum$ (the default), sets $dtcum = dt$,
+calling the cumulus convection scheme every model timestep. The user selected
+value can be reasonably be any multiple of the $dt$ value up to the
+maximum value of $~5minute$ to reduce computational load.
+In case of very fast and intense convection, safest option is to use the
+dynamical core timestep.
 \item The absorption-emission computations are the most expensive in
 computational time in the radiation scheme, which accounts overall for
 around $30\%$ of the total execution time. The $18 hours$ default
