@@ -35,7 +35,7 @@ module mod_advection
 
   public :: init_advection, hadv , vadv , start_advect
 
-  logical , parameter :: upstream_mode = .true.
+  logical :: upstream_mode = .false.
   real(rkx) , parameter :: upu = 0.200_rkx
   real(rkx) , parameter :: umax = 200.0_rkx
   real(rkx) , parameter :: uchu = upu/umax
@@ -118,6 +118,7 @@ module mod_advection
         dds(k) = d_one / (dsigma(k) + dsigma(k-1))
       end do
       if ( idynamic == 2 ) then
+        upstream_mode = .true.
         stability_enhance = .true.
         vert_stability_enhance = .true.
       end if
