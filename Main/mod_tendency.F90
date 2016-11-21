@@ -998,7 +998,7 @@ module mod_tendency
           do i = ici1 , ici2
             do j = jci1 , jci2
               chic(j,i,k,itr) = chib(j,i,k,itr) + dt*chiten(j,i,k,itr)
-              chic = max(chic,mintr)
+              chic(j,i,k,itr) = max(chic(j,i,k,itr),mintr)
             end do
           end do
         end do
