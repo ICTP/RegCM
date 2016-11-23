@@ -35,13 +35,13 @@ module mod_advection
 
   public :: init_advection, hadv , vadv , start_advect
 
-  logical :: upstream_mode = .false.
+  logical , parameter :: upstream_mode = .false.
   real(rkx) , parameter :: upu = 0.200_rkx
   real(rkx) , parameter :: umax = 200.0_rkx
   real(rkx) , parameter :: uchu = upu/umax
 
-  logical :: stability_enhance = .false.
-  logical :: vert_stability_enhance = .false.
+  logical , parameter :: stability_enhance = .false.
+  logical , parameter :: vert_stability_enhance = .false.
   real(rkx) , parameter :: t_extrema = 5.0_rkx
   real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
   real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
@@ -59,7 +59,7 @@ module mod_advection
   interface vadv
     module procedure vadvuv
     module procedure vadv3d
-    module procedure vadvqx
+    module procedure vadvqv
     module procedure vadv4d
   end interface vadv
 
@@ -117,11 +117,6 @@ module mod_advection
       do k = 2 , kz
         dds(k) = d_one / (dsigma(k) + dsigma(k-1))
       end do
-      if ( idynamic == 2 ) then
-        upstream_mode = .true.
-        stability_enhance = .true.
-        vert_stability_enhance = .true.
-      end if
     end subroutine init_advection
     !
     ! Pre-compute
@@ -937,14 +932,14 @@ module mod_advection
 #endif
     end subroutine vadv3d
 
-    subroutine vadvqx(ften,f,n)
+    subroutine vadvqv(ften,f,n)
       implicit none
       integer , intent(in) :: n
       real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
       integer(ik4) :: i , j , k
 #ifdef DEBUG
-      character(len=dbgslen) :: subroutine_name = 'vadvqx'
+      character(len=dbgslen) :: subroutine_name = 'vadvqv'
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
@@ -952,7 +947,9 @@ module mod_advection
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
+            if ( f(j,i,k,n) > minqv .and. f(j,i,k-1,n) > minqv ) then
+              fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
+            end if
           end do
         end do
       end do
@@ -967,7 +964,7 @@ module mod_advection
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
-    end subroutine vadvqx
+    end subroutine vadvqv
     !
     ! VADV
     !     This subroutine computes the vertical flux-divergence terms.
@@ -1037,8 +1034,10 @@ module mod_advection
           do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                fg(j,i,k) = svv(j,i,k) * &
-                      (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+                if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
+                  fg(j,i,k) = svv(j,i,k) * &
+                        (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+                end if
               end do
             end do
           end do

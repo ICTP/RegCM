@@ -76,6 +76,7 @@ module mod_pbl_holtbl
   real(rkx) , parameter :: binh = betah*sffrac
   ! power in formula for k and critical ri for judging stability
   real(rkx) , parameter :: pink = d_two
+  real(rkx) , parameter :: kzfrac = 0.8_rkx
 
   contains
 
@@ -193,7 +194,7 @@ module mod_pbl_holtbl
     do k = 2 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          kzmax = 0.8_rkx*dza(j,i,k-1)*m2p%dzq(j,i,k)*rdt
+          kzmax = kzfrac*dza(j,i,k-1)*m2p%dzq(j,i,k)*rdt
           vv(j,i,k) = m2p%uxatm(j,i,k)*m2p%uxatm(j,i,k) + &
                       m2p%vxatm(j,i,k)*m2p%vxatm(j,i,k)
           ss = ((m2p%uxatm(j,i,k-1)-m2p%uxatm(j,i,k))*   &

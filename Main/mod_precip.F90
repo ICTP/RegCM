@@ -242,7 +242,7 @@ module mod_precip
         if ( afc > lowcld+eps ) then ! if there is a cloud
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
-          pptmax = max(qcw,d_zero)/dt             ![kg/kg/s][avg]
+          pptmax = max(qcw,d_zero)/dt      ![kg/kg/s][avg]
           ! 1ae. Compute the gridcell average autoconversion [kg/k g/s]
           pptnew = qck1(j,i)*dqc(j,i,1)*afc       ![kg/kg/s][avg]
           pptnew = min(max(pptnew,d_zero),pptmax) ![kg/kg/s][avg]
@@ -252,7 +252,7 @@ module mod_precip
             !      is formed, only half of the precipitation is assumed to
             !      accrete. 1aga. Compute the amount of water remaining in the
             !      cloud [kg/kg]
-            qcleft = qcw - pptnew*dt ![kg/kg][avg]
+            qcleft = max(qcw - pptnew*dt,d_zero) ![kg/kg][avg]
             ! 1agb. Add 1/2 of the new precipitation can accrete.
             rho = rho3(j,i,1)                  ![kg/m3][avg]
             pptkm1 = d_half*pptnew/afc*rho*dt  ![kg/m3][cld]
@@ -327,7 +327,7 @@ module mod_precip
           if ( afc > lowcld+eps ) then ! if there is a cloud
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
-            pptmax = max(qcw,d_zero)/dt                  ![kg/kg/s][avg]
+            pptmax = max(qcw,d_zero)/dt           ![kg/kg/s][avg]
             ! 1bdd. Compute the gridcell average autoconversion [kg/kg/s]
             pptnew = qck1(j,i)*dqc(j,i,k)*afc            ![kg/kg/s][avg]
             pptnew = min(max(pptnew,d_zero),pptmax)      ![kg/kg/s][avg]
@@ -336,7 +336,7 @@ module mod_precip
             !      is formed, only half of the precipitation can accrete.
             if ( pptkm1 > pptmin .or. pptnew > pptmin ) then
               ! 1bfa. Compute the amount of water remaining in the cloud [kg/kg]
-              qcleft = qcw-pptnew*dt                         ![kg/kg][avg]
+              qcleft = max(qcw-pptnew*dt,d_zero)             ![kg/kg][avg]
               ! 1bfb. Add 1/2 of the new precipitation to the accumulated
               !       precipitation [kg/m3]
               rho = rho3(j,i,k)                              ![kg/m3][avg]
@@ -546,15 +546,15 @@ module mod_precip
             else ! high cloud (less subgrid variability)
               rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t3(j,i,k)))
             end if
-            rh0adj = max(rhmin,min(rh0adj,rhmax))
+            rh0adj = max(rhmin+eps,min(rh0adj,rhmax-eps))
             if ( rh3(j,i,k) >= rhmax ) then     ! full cloud cover
               pfcc(j,i,k) = hicld
             else if ( rh3(j,i,k) <= rhmin ) then
               pfcc(j,i,k) = lowcld
             else
               ! Use Sundqvist (1989) formula
-              pfcc(j,i,k) = d_one-sqrt((rhmax-rh3(j,i,k)) / &
-                                       (rhmax-rh0adj))
+              pfcc(j,i,k) = d_one-sqrt(d_one-(rh3(j,i,k)-rh0adj) / &
+                                             (rhmax-rh0adj))
             end if
           end do
         end do
@@ -710,9 +710,9 @@ module mod_precip
 #endif
           qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),qvmin)/psc(j,i)
           qccs = max((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc)),d_zero)/psc(j,i)
-          !-----------------------------------------------------------
-          !     2.  Compute the cloud condensation/evaporation term.
-          !-----------------------------------------------------------
+          !
+          ! 2.  Compute the cloud condensation/evaporation term.
+          !
           ! 2a. Calculate the saturation mixing ratio and relative humidity
           pres = p2(j,i,k)
           qvs = pfwsat(tmp3,pres)
@@ -732,7 +732,7 @@ module mod_precip
           else if ( rhc >= rhmax ) then ! Full or no cloud cover
             dqv = qvcs - qvs*conf
           else
-            fccc = d_one - sqrt((rhmax-rhc)/(rhmax-rh0adj))
+            fccc = d_one-sqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
             if ( pres >= 75000.0_rkx .and. qvcs <= 0.003_rkx ) then
               fccc = fccc * max(0.15_rkx, min(d_one,qvcs/0.003_rkx))
             end if
@@ -751,9 +751,9 @@ module mod_precip
           else                        ! The cloud evaporates
             tmp2 = -(qccs*conf)/dt
           end if
-          !-----------------------------------------------------------
-          !     3.  Compute the tendencies.
-          !-----------------------------------------------------------
+          !
+          ! 3. Compute the tendencies.
+          !
           if ( abs(tmp2) > dlowval ) then
             qxten(j,i,k,iqv) = qxten(j,i,k,iqv) - psc(j,i)*tmp2
             qxten(j,i,k,iqc) = qxten(j,i,k,iqc) + psc(j,i)*tmp2
