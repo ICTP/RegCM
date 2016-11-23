@@ -472,7 +472,6 @@ module mod_diffusion
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: f
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
     real(rkx) , intent(in) :: fac
-    real(rkx) :: mval
     integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_x4d3d'
@@ -485,12 +484,13 @@ module mod_diffusion
     do k = 1 , kz
       do i = icii1 , icii2
         do j = jcii1 , jcii2
-          mval = f(j+2,i,k,n)+f(j-2,i,k,n) +          &
-                 f(j,i+2,k,n)+f(j,i-2,k,n) -          &
-                 d_four*(f(j+1,i,k,n)+f(j-1,i,k,n) +  &
-                         f(j,i+1,k,n)+f(j,i-1,k,n)) + &
-                 d_twelve*f(j,i,k,n)
-          ften(j,i,k,n) = ften(j,i,k,n) - fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
+          ften(j,i,k,n) = ften(j,i,k,n) - &
+                          fac * xkc(j,i,k) * pc(j,i) * rdxsq * &
+                        ( f(j+2,i,k,n)+f(j-2,i,k,n) +          &
+                          f(j,i+2,k,n)+f(j,i-2,k,n) -          &
+                          d_four*(f(j+1,i,k,n)+f(j-1,i,k,n) +  &
+                                  f(j,i+1,k,n)+f(j,i-1,k,n)) + &
+                          d_twelve*f(j,i,k,n) )
         end do
       end do
     end do
@@ -501,10 +501,11 @@ module mod_diffusion
       j = jci1
       do k = 1 , kz
         do i = ici1 , ici2
-          mval = f(j+1,i,k,n)+f(j-1,i,k,n) + &
-                 f(j,i+1,k,n)+f(j,i-1,k,n) - &
-                 d_four*f(j,i,k,n)
-          ften(j,i,k,n) = ften(j,i,k,n) + fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
+          ften(j,i,k,n) = ften(j,i,k,n) + &
+                          fac * xkc(j,i,k) * pc(j,i) * rdxsq * &
+                                  (f(j+1,i,k,n)+f(j-1,i,k,n) + &
+                                   f(j,i+1,k,n)+f(j,i-1,k,n) - &
+                                   d_four*f(j,i,k,n))
         end do
       end do
     end if
@@ -512,10 +513,11 @@ module mod_diffusion
       j = jci2
       do k = 1 , kz
         do i = ici1 , ici2
-          mval = f(j+1,i,k,n)+f(j-1,i,k,n) + &
-                 f(j,i+1,k,n)+f(j,i-1,k,n) - &
-                 d_four*f(j,i,k,n)
-          ften(j,i,k,n) = ften(j,i,k,n) + fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
+          ften(j,i,k,n) = ften(j,i,k,n) + &
+                          fac * xkc(j,i,k) * pc(j,i) * rdxsq * &
+                                  (f(j+1,i,k,n)+f(j-1,i,k,n) + &
+                                   f(j,i+1,k,n)+f(j,i-1,k,n) - &
+                                   d_four*f(j,i,k,n))
         end do
       end do
     end if
@@ -526,10 +528,11 @@ module mod_diffusion
       i = ici1
       do k = 1 , kz
         do j = jci1 , jci2
-          mval = f(j+1,i,k,n)+f(j-1,i,k,n) + &
-                 f(j,i+1,k,n)+f(j,i-1,k,n) - &
-                 d_four*f(j,i,k,n)
-          ften(j,i,k,n) = ften(j,i,k,n) + fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
+          ften(j,i,k,n) = ften(j,i,k,n) + &
+                          fac * xkc(j,i,k) * pc(j,i) * rdxsq * &
+                                  (f(j+1,i,k,n)+f(j-1,i,k,n) + &
+                                   f(j,i+1,k,n)+f(j,i-1,k,n) - &
+                                   d_four*f(j,i,k,n))
         end do
       end do
     end if
@@ -537,10 +540,11 @@ module mod_diffusion
       i = ici2
       do k = 1 , kz
         do j = jci1 , jci2
-          mval = f(j+1,i,k,n)+f(j-1,i,k,n) + &
-                 f(j,i+1,k,n)+f(j,i-1,k,n) - &
-                 d_four*f(j,i,k,n)
-          ften(j,i,k,n) = ften(j,i,k,n) + fac*xkc(j,i,k)*pc(j,i)*rdxsq*mval
+          ften(j,i,k,n) = ften(j,i,k,n) + &
+                          fac * xkc(j,i,k) * pc(j,i) * rdxsq * &
+                                  (f(j+1,i,k,n)+f(j-1,i,k,n) + &
+                                   f(j,i+1,k,n)+f(j,i-1,k,n) - &
+                                   d_four*f(j,i,k,n))
         end do
       end do
     end if
