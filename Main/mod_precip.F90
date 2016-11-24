@@ -393,10 +393,6 @@ module mod_precip
                 prembc(j,i,k) = prembc(j,i,k) + & ![mm/hr]
                   premrat(j,i,kk) * qcw * psb(j,i) * dsigma(kk) * uch
               end do
-              ! the below cloud precipitation rate is now used
-              ! directly in chemistry
-!             prembc(j,i,k) = 6.5_rkx*1.0e-5_rkx * |
-!                        prembc(j,i,k)**0.68_rkx   ![s^-1]
             end if
           end do
         end do
@@ -736,10 +732,10 @@ module mod_precip
             rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
           end if
           rh0adj = max(rhmin,min(rh0adj,rhmax))
-          if ( rhc < rh0adj ) then      ! No cloud cover
-            dqv = qvcs - qvs*conf
-          else if ( rhc >= rhmax ) then ! Full or no cloud cover
-            dqv = qvcs - qvs*conf
+          if ( rhc < rh0adj ) then      ! Low cloud cover
+            dqv = conf * (qvcs - qvs)
+          else if ( rhc >= rhmax ) then ! Full cloud cover
+            dqv = conf * (qvcs - qvs)
           else
             fccc = d_one-sqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
             if ( pres >= 75000.0_rkx .and. qvcs <= 0.003_rkx ) then
@@ -747,7 +743,7 @@ module mod_precip
             end if
             fccc = min(max(fccc,d_zero),d_one)
             qvc_cld = max((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)
-            dqv = fccc * (qvc_cld - qvs*conf)  ! qv diff between predicted qv_c
+            dqv = conf * fccc * (qvc_cld - qvs) ! qv diff between predicted qv_c
           end if
 
           ! 2c. Compute the water vapor in excess of saturation
@@ -758,7 +754,7 @@ module mod_precip
           if ( exces >= d_zero ) then ! Some cloud is left
             tmp2 = tmp1/dt
           else                        ! The cloud evaporates
-            tmp2 = -(qccs*conf)/dt
+            tmp2 = -qccs/dt
           end if
           !
           ! 3. Compute the tendencies.

@@ -582,7 +582,7 @@ module mod_init
               qs = pfwsat(t,p)
               rh = ( (atm1%qx(j,i,k,iqv)/sfs%psa(j,i))/qs )
               if ( rh > rh0(j,i) .and. p > ptrop(j,i) ) then
-                atm1%qx(j,i,k,iqc) = clwfromt(t)/d_1000 * sfs%psa(j,i)
+                atm1%qx(j,i,k,iqc) = d_half * clwfromt(t)/d_1000 * sfs%psa(j,i)
                 atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
               end if
             end do

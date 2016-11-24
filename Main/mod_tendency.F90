@@ -321,9 +321,33 @@ module mod_tendency
       !
       ! psc : forecast pressure
       !
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
+        end do
+      end do
+      if ( ma%has_bdyleft ) then
+        do i = ici1 , ici2
+          sfs%psc(jce1,i) = sfs%psb(jce1,i) + xpsb%bt(jce1,i)*dt
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do i = ici1 , ici2
+          sfs%psc(jce2,i) = sfs%psb(jce2,i) + xpsb%bt(jce2,i)*dt
+        end do
+      end if
+      if ( ma%has_bdybottom ) then
+        do j = jce1 , jce2
+          sfs%psc(j,ice1) = sfs%psb(j,ice1) + xpsb%bt(j,ice1)*dt
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do j = jce1 , jce2
+          sfs%psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
+        end do
+      end if
       do i = ice1 , ice2
         do j = jce1 , jce2
-          sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
           rpsc(j,i) = d_one/sfs%psc(j,i)
         end do
       end do
@@ -729,12 +753,12 @@ module mod_tendency
       !
       ! Clouds and large scale precipitation
       !
-      call cldfrac
       if ( ipptls == 2 ) then
         call microphys
       else
         call pcp
       end if
+      call cldfrac
       !
       ! compute the diffusion terms:
       ! the diffusion term for qx is stored in diffqx.
