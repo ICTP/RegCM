@@ -61,19 +61,19 @@ actual sigma values are calculated mimimizing the $a,b$ coefficients for the
 equation:
 
 \begin{equation}
-  dsig(i) = dsmax*a^{i-1}*b^{0.5*(i-2)*(i-1)}
+	d\sigma(i) = max(dsmax*a^{i-1}*b^{0.5*(i-2)*(i-1)},dsmin)
 \end{equation}
 
 derived from the recursive relation:
 
 \begin{equation}
-  dsig(i) = a(i)*dsig(i-1)
+  d\sigma(i) = a(i)*d\sigma(i-1)
 \end{equation}
 
 where $a(i) = b*a(i-1)$. We at ICTP normally use 23 levels for the
 non-hydrostatic core and 18 for the hydrostatic core.
-\item Specifying an nsg number greater than one triggers the subgrid BATS/CLM45
-model on. There is no plan to extend this feature to CLM3.5 model.
+\item Specifying an $nsg$ number greater than one triggers the subgrid
+BATS/CLM45 model on. There is no plan to extend this feature to CLM3.5 model.
 This affects only surface variable calculations. All dynamical
 variables are calculated still on the coarser grid.
 Rain in the current implementation is also calculated on the coarser
@@ -96,6 +96,13 @@ core is used in the model.
  idynamic = 1,  ! Choice of dynamical core
                 ! 1 = MM4 hydrostatic core
                 ! 2 = MM5 NON hydrostatic core
+ gnu = 0.0625,  ! Timefilter for Asselin filter in leapfrog step.
+                ! MM5 manual , equation 2.4.6
+ /
+ &dynparam
+ gnu = 0.0625,  ! $\nu$ factor for Asselin filter in leapfrog step.
+                ! MM5 manual , equation 2.4.6
+                ! Default 0.0625 for hydro, 0.1 for nonhydro
  /
 \end{Verbatim}
 }
@@ -107,6 +114,8 @@ The things you need to know here:
 \item The hydrostatic core is cheaper computationally, but physically it should
 be limited to resolution greater than $15 km$. For higher resolution, the non
 hydrostatic core is to be used.
+\item The Asselin filter parameter is default to $0.0625$ for hydrostatic and
+to $0.1$ for the non-hydrostatic core.
 \item The output variables of the two dynamical cores differ in the ATM files
 because of the different state variables used. Vertical levels also differ.
 \item The ICBC for the non-hydrostatic cannot be used for the hydrostatic run

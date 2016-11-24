@@ -2510,6 +2510,8 @@ module mod_ncout
 
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('dynamical_core',idynamic))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('asselin_filter_nu',gnu))
         if ( idynamic == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('logp_lapse_rate',logp_lrate))
