@@ -146,7 +146,7 @@ module mod_sladvection
                    (dtcb*uadvx_x(j,i,k))*(ux*ux+uadvx_x(j,i,k)*uxx)/6.0_rkx
           xn = xdis/ddx
           xnp = int(xn)
-          if ( abs(xnp) > 2 ) then
+          if ( abs(xnp) > 1 ) then
             write(stderr,*) 'SL Advection problem in WE direction !'
             write(stderr,*) 'Cannot compute DP at J = ',j
             write(stderr,*) '                     I = ',i
@@ -181,7 +181,7 @@ module mod_sladvection
           ! GTD ydis = - vadvy_x(j,i,k)*dt
           yn = ydis/ddy
           ynp = int(yn)
-          if ( abs(ynp) > 2 ) then
+          if ( abs(ynp) > 1 ) then
             write(stderr,*) 'SL Advection problem in SN direction !'
             write(stderr,*) 'Cannot compute DP at J = ',j
             write(stderr,*) '                     I = ',i
@@ -256,7 +256,7 @@ module mod_sladvection
                    (dtcb*uadvx_d(j,i,k))*(ux*ux+uadvx_d(j,i,k)*uxx)/6.0_rkx
           xn = xdis/ddx
           xnp = int(xn)
-          if ( abs(xnp) > 2 ) then
+          if ( abs(xnp) > 1 ) then
             write(stderr,*) 'SL Advection problem in WE direction.'
             call fatal(__FILE__,__LINE__,'SLADVECTION')
           end if
@@ -288,12 +288,12 @@ module mod_sladvection
                  (dtcb*vadvy_d(j,i,k))*(vy*vy +vadvy_d(j,i,k)*vyy)/6.0_rkx
           yn = ydis/ddy
           ynp = int(yn)
-          if ( abs(ynp) > 2 ) then
+          if ( abs(ynp) > 1 ) then
             write(stderr,*) 'SL Advection problem in SN direction.'
             call fatal(__FILE__,__LINE__,'SLADVECTION')
           end if
           betay = abs((ynp*ddy - ydis)/ddy)
-          ysn = int(sign(1.0_rkx,yn))
+          ysn = int(sign(d_one,yn))
           yndp_d(j,i,k) = i + ynp
           ynnm1dp_d(j,i,k) = yndp_d(j,i,k) + ysn
           ynnm2dp_d(j,i,k) = ynnm1dp_d(j,i,k) + ysn
