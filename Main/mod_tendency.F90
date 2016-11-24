@@ -934,32 +934,6 @@ module mod_tendency
       qen0 = aten%qx(:,:,:,iqv) ! important since aten%qx have been updated
     end if
     !
-    ! compute the condensation and precipitation terms for explicit
-    ! moisture schemes
-    !
-    if ( ipptls > 0 ) then
-      do n = iqfrst , iqlst
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%qx(j,i,k,n)
-            end do
-          end do
-        end do
-      end do
-      if ( ipptls == 1 ) then
-        call condtq
-      end if
-      if ( idiag > 0 ) then
-        ! rq : temp condensation tend is added the evap temp tend
-        ! calculated in pcp
-        tdiag%lsc = tdiag%lsc + (aten%t - ten0) * afdout
-        ten0 = aten%t
-        qdiag%lsc = qdiag%lsc + (aten%qx(:,:,:,iqv) - qen0) * afdout
-        qen0 = aten%qx(:,:,:,iqv)
-      end if
-    end if
-    !
     ! apply the nudging boundary conditions:
     !
     if ( idynamic == 1 ) then
@@ -985,6 +959,32 @@ module mod_tendency
 #ifdef DEBUG
     call check_temperature_tendency('BDYC')
 #endif
+    !
+    ! compute the condensation and precipitation terms for explicit
+    ! moisture schemes
+    !
+    if ( ipptls > 0 ) then
+      do n = iqfrst , iqlst
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%qx(j,i,k,n)
+            end do
+          end do
+        end do
+      end do
+      if ( ipptls == 1 ) then
+        call condtq
+      end if
+      if ( idiag > 0 ) then
+        ! rq : temp condensation tend is added the evap temp tend
+        ! calculated in pcp
+        tdiag%lsc = tdiag%lsc + (aten%t - ten0) * afdout
+        ten0 = aten%t
+        qdiag%lsc = qdiag%lsc + (aten%qx(:,:,:,iqv) - qen0) * afdout
+        qen0 = aten%qx(:,:,:,iqv)
+      end if
+    end if
     !
     ! forecast t, qv, and qc at tau+1:
     !
