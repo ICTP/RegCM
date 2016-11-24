@@ -48,7 +48,8 @@ module mod_precip
   real(rkx) , pointer , dimension(:,:,:) :: xqc , xqi
   real(rkx) , pointer , dimension(:,:,:,:) :: qx3 , qx2 , qxten , chi3
   real(rkx) , pointer , dimension(:,:,:) :: t3 , t2 , tten , th3
-  real(rkx) , pointer , dimension(:,:,:) :: p3 , p2 , qs3 , rh3 , rho3
+  real(rkx) , pointer , dimension(:,:,:) :: p3 , qs3 , rh3 , rho3
+  real(rkx) , pointer , dimension(:,:,:) :: p0 , pp2 , ppten
   real(rkx) , pointer , dimension(:,:,:) :: radcldf , radlqwc
   real(rkx) , pointer , dimension(:,:,:) :: pfcc
   real(rkx) , pointer , dimension(:,:,:) :: premrat
@@ -101,7 +102,7 @@ module mod_precip
   subroutine init_precip
     use mod_atm_interface , only : mddom , atms , atm2 , aten , sfs , &
                                    pptnc , cldfra , cldlwc , fcc ,    &
-                                   remrat , rembc , qdiag , ccn
+                                   remrat , rembc , qdiag , ccn , atm0
     use mod_mppparam , only : maxall
     implicit none
     call maxall(maxval(mddom%xlat),maxlat)
@@ -119,7 +120,6 @@ module mod_precip
     call assignpnt(atms%ps2d,sfps)
     call assignpnt(atm2%t,t2)
     call assignpnt(atm2%qx,qx2)
-    call assignpnt(atm2%pr,p2)
     call assignpnt(aten%t,tten)
     call assignpnt(aten%qx,qxten)
     call assignpnt(sfs%psb,psb)
@@ -143,6 +143,11 @@ module mod_precip
     if ( ipptls == 1 ) then
     else if ( ipptls == 2 ) then
       call assignpnt(atms%qxb3d,xqi,iqi)
+    end if
+    if ( idynamic == 2 ) then
+      call assignpnt(atm2%pp,pp2)
+      call assignpnt(aten%pp,ppten)
+      call assignpnt(atm0%pr,p0)
     end if
   end subroutine init_precip
   !
@@ -708,13 +713,17 @@ module mod_precip
             write(stderr,*) 'At global K : ',k
           end if
 #endif
-          qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),qvmin)/psc(j,i)
+          qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),d_zero)/psc(j,i)
           qccs = max((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc)),d_zero)/psc(j,i)
           !
           ! 2.  Compute the cloud condensation/evaporation term.
           !
           ! 2a. Calculate the saturation mixing ratio and relative humidity
-          pres = p2(j,i,k)
+          if ( idynamic == 1 ) then
+            pres = (hsigma(k)*psc(j,i)+ptop)*d_1000
+          else
+            pres = p0(j,i,k)+(pp2(j,i,k)+dt*ppten(j,i,k))/psc(j,i)
+          end if
           qvs = pfwsat(tmp3,pres)
           rhc = min(max(qvcs/qvs,rhmin),rhmax)
 

@@ -1433,7 +1433,7 @@ module mod_tendency
     call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu,iqv)
     if ( idynamic == 1 ) then
       call timefilter_apply(atm1%qx,atm2%qx,atmc%qx, &
-                            gnu*d_two,iqfrst,iqlst,minqx)
+                            d_two*gnu,iqfrst,iqlst,minqx)
     else
       call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu,iqfrst,iqlst,minqx)
     end if
@@ -1536,7 +1536,7 @@ module mod_tendency
       call timefilter_apply(atm1%tke,atm2%tke,atmc%tke,gnu)
     end if ! TKE tendency update
     if ( ichem == 1 ) then
-      call timefilter_apply(chia,chib,chic,gnu*d_half,1,ntr,mintr)
+      call timefilter_apply(chia,chib,chic,d_two*gnu,1,ntr,mintr)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
       ! without explicit convective transport (Grell and KF up to now).
