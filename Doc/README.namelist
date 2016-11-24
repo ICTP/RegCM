@@ -34,9 +34,10 @@
 ! Dynamical core parameters
 !
  &dynparam
- gnu = 0.0625,  ! nu factor for Asselin filter in leapfrog step.
-                ! MM5 manual , equation 2.4.6
-                ! Default 0.0625 for hydro, 0.1 for nonhydro
+ gnu = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
+                 ! MM5 manual , equation 2.4.6
+                 ! Default 0.0625 for hydro, 0.1 for nonhydro
+ diffu_hgtf = 1, ! Add topographic effect to diffusion
  /
 !
 ! DOMAIN geolocation Stanza
@@ -322,7 +323,6 @@
  ifupr = 0,         ! Upper radiative boundary condition (Klemp and Durran,
                     ! Bougeault, 1983)
  ckh = 1.0,         ! Background diffusion multiplication factor
- diffu_hgtf = 1,    ! Add topographic effect to diffusion
  nhbet = 0.4,       ! Ikawa beta parameter (0.=centered, 1.=backward)
                     ! determines the time-weighting, where zero gives a
                     ! time-centered average and positive values give a bias

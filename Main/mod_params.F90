@@ -105,10 +105,10 @@ module mod_params
       icldfrac , irrtm , iclimao3 , isolconst , icumcloud , islab_ocean , &
       itweak , temp_tend_maxval , wind_tend_maxval , ghg_year_const
 
-    namelist /dynparam/ gnu
+    namelist /dynparam/ gnu , diffu_hgtf
 
     namelist /nonhydroparam/ base_state_pressure , base_state_temperature , &
-      logp_lrate , ifupr , ckh , diffu_hgtf , nhbet , nhxkd
+      logp_lrate , ifupr , ckh , nhbet , nhxkd
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -261,7 +261,6 @@ module mod_params
     base_state_temperature = stdt
     logp_lrate = 50.0_rkx
     ifupr = 1
-    diffu_hgtf = 0
     ckh = d_one
     nhbet = 0.4_rkx
     nhxkd = 0.1_rkx
@@ -591,8 +590,10 @@ module mod_params
 
       if ( idynamic == 2 ) then
         gnu = 0.1000_rkx
+        diffu_hgtf = 0
       else
         gnu = 0.0625_rkx
+        diffu_hgtf = 1
       end if
       rewind(ipunit)
       read (ipunit, nml=dynparam, iostat=iretval, err=104)
@@ -975,6 +976,7 @@ module mod_params
     enable_lak_vars(1:5) = .true.
 
     call bcast(gnu)
+    call bcast(diffu_hgtf)
 
     call bcast(iboudy)
     call bcast(isladvec)
@@ -1001,11 +1003,8 @@ module mod_params
       call bcast(logp_lrate)
       call bcast(ifupr)
       call bcast(ckh)
-      call bcast(diffu_hgtf)
       call bcast(nhbet)
       call bcast(nhxkd)
-    else
-      diffu_hgtf = 1
     end if
 
     ! Check if really do output

@@ -2512,6 +2512,8 @@ module mod_ncout
           ncattribute_integer('dynamical_core',idynamic))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('asselin_filter_nu',gnu))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('diffusion_hgt_factor',diffu_hgtf))
         if ( idynamic == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('logp_lapse_rate',logp_lrate))
@@ -2519,8 +2521,6 @@ module mod_ncout
                   ncattribute_real8('background_diffusion_coefficient',ckh))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('upper_radiative_bc',ifupr))
-          call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_integer('diffusion_hgt_factor',diffu_hgtf))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('sound_bet_param',nhbet))
           call outstream_addatt(outstream(i)%ncout(j), &
