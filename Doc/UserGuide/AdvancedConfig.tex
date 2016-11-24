@@ -96,11 +96,9 @@ core is used in the model.
  idynamic = 1,  ! Choice of dynamical core
                 ! 1 = MM4 hydrostatic core
                 ! 2 = MM5 NON hydrostatic core
- gnu = 0.0625,  ! Timefilter for Asselin filter in leapfrog step.
-                ! MM5 manual , equation 2.4.6
  /
  &dynparam
- gnu = 0.0625,  ! $\nu$ factor for Asselin filter in leapfrog step.
+ gnu = 0.0625,  ! nu factor for Asselin filter in leapfrog step.
                 ! MM5 manual , equation 2.4.6
                 ! Default 0.0625 for hydro, 0.1 for nonhydro
  /
