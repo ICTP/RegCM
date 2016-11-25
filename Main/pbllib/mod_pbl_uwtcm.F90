@@ -369,8 +369,7 @@ module mod_pbl_uwtcm
         do k = 1 , kz
           tx(k)  = m2p%tatm(j,i,k) !+ p2m%tten(j,i,k) * pfac
           qx(k)  = m2p%qxatm(j,i,k,iqv) !+ p2m%qxten(j,i,k,iqv) * pfac
-          qcx(k) = m2p%qxatm(j,i,k,iqc) !+ p2m%qxten(j,i,k,iqc) * pfac + &
-                      !m2p%qdetr(j,i,k)
+          qcx(k) = m2p%qxatm(j,i,k,iqc) !+ p2m%qxten(j,i,k,iqc) * pfac
           ux(k)  = m2p%uxatm(j,i,k) !+ &
             !d_rfour * (p2m%uten(j,i,k) + p2m%uten(j+1,i,k) + &
             !           p2m%uten(j+1,i+1,k) + p2m%uten(j,i+1,k)) * pfac

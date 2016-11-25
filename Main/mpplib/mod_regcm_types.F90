@@ -589,7 +589,6 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: dzq       ! atms%dzq
     real(rkx) , pointer , dimension(:,:) :: rhox2d      ! atms%rhox2d
     real(rkx) , pointer , dimension(:,:,:) :: heatrt    ! heatrt
-    real(rkx) , pointer , dimension(:,:,:) :: qdetr     ! q_detr
     real(rkx) , pointer , dimension(:,:,:,:) :: chib    ! chib
     real(rkx) , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
     real(rkx) , pointer , dimension(:,:,:) :: drydepv   ! drydepv

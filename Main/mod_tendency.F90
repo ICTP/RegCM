@@ -910,6 +910,38 @@ module mod_tendency
       qen0 = aten%qx(:,:,:,iqv) ! important since aten%qx have been updated
     end if
     !
+    ! apply the nudging boundary conditions:
+    !
+    if ( idynamic == 1 ) then
+      if ( iboudy == 1 .or. iboudy == 5 ) then
+        call nudge(iboudy,atm2%t,xtb,aten%t)
+        call nudge(iboudy,atm2%qx,xqb,aten%qx,iqv)
+      end if
+    end if
+    if ( ichem == 1 ) then
+      if ( ichdiag == 1 ) chiten0 = chiten
+      ! keep nudge_chi for now
+      if ( iboudy == 1 .or. iboudy == 5 ) then
+        call nudge_chi(kz,chib,chiten)
+      end if
+      if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
+    end if
+    if ( idiag > 0 ) then
+      tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
+      ten0 = aten%t
+      qdiag%bdy = qdiag%bdy + (aten%qx(:,:,:,iqv) - qen0) * afdout
+      qen0 = aten%qx(:,:,:,iqv)
+    end if
+#ifdef DEBUG
+    call check_temperature_tendency('BDYC')
+#endif
+    ! Rq: the temp tendency diagnostics have been already
+    !     saved for tbl and hor. diff but :
+    if ( idiag > 0 ) then
+      ten0 = aten%t ! important since aten%t have been updated
+      qen0 = aten%qx(:,:,:,iqv) ! important since aten%qx have been updated
+    end if
+    !
     ! compute the condensation and precipitation terms for explicit
     ! moisture schemes
     !
@@ -936,32 +968,6 @@ module mod_tendency
       end if
     end if
     !
-    ! apply the nudging boundary conditions:
-    !
-    if ( idynamic == 1 ) then
-      if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(iboudy,atm2%t,xtb,aten%t)
-        call nudge(iboudy,atm2%qx,xqb,aten%qx,iqv)
-      end if
-    end if
-    if ( ichem == 1 ) then
-      if ( ichdiag == 1 ) chiten0 = chiten
-      ! keep nudge_chi for now
-      if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge_chi(kz,chib,chiten)
-      end if
-      if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
-    end if
-    if ( idiag > 0 ) then
-      tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
-      ten0 = aten%t
-      qdiag%bdy = qdiag%bdy + (aten%qx(:,:,:,iqv) - qen0) * afdout
-      qen0 = aten%qx(:,:,:,iqv)
-    end if
-#ifdef DEBUG
-    call check_temperature_tendency('BDYC')
-#endif
-    !
     ! forecast t, qv, and qc at tau+1:
     !
     do k = 1 , kz
@@ -974,9 +980,8 @@ module mod_tendency
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv)
-          atmc%qx(j,i,k,iqv) =  &
-                   max(atmc%qx(j,i,k,iqv)*rpsb(j,i),minqq)*sfs%psb(j,i)
+          atmc%qx(j,i,k,iqv) = &
+                  max(atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv),minqv)
         end do
       end do
     end do
@@ -984,8 +989,8 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n)
-            atmc%qx(j,i,k,n) = max(atmc%qx(j,i,k,n),minqx)
+            atmc%qx(j,i,k,n) = &
+                    max(atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n),minqx)
           end do
         end do
       end do

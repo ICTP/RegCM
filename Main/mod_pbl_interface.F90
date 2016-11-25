@@ -101,7 +101,6 @@ module mod_pbl_interface
     call assignpnt(atms%rhox2d,m2p%rhox2d)
     call assignpnt(atm2%tke,m2p%tkests)
     call assignpnt(heatrt,m2p%heatrt)
-    call assignpnt(q_detr,m2p%qdetr)
     call assignpnt(drydepv,m2p%drydepv)
     call assignpnt(chifxuw,m2p%chifxuw)
     call assignpnt(ktrop,m2p%ktrop)
