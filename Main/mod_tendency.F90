@@ -999,7 +999,8 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv)
-          atmc%qx(j,i,k,iqv) = max(atmc%qx(j,i,k,iqv),minqv)
+          atmc%qx(j,i,k,iqv) =  &
+                   max(atmc%qx(j,i,k,iqv)*rpsb(j,i),minqq)*sfs%psb(j,i)
         end do
       end do
     end do

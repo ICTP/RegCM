@@ -35,7 +35,7 @@ module mod_diffusion
   private
 
   real(rkx) , pointer , dimension(:,:,:) :: xkc , xkd , xkcf
-  real(rkx) , public , pointer , dimension(:,:,:) :: hgfact
+  real(rkx) , public , pointer , dimension(:,:) :: hgfact
 
   real(rkx) :: dydc , xkhmax
 
@@ -62,7 +62,7 @@ module mod_diffusion
 
   subroutine allocate_mod_diffusion
     implicit none
-    call getmem3d(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'diffusion:hgfact')
+    call getmem2d(hgfact,jce1ga,jce2ga,ice1ga,ice2ga,'diffusion:hgfact')
     call getmem3d(xkc,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'diffusion:xkc')
     call getmem3d(xkd,jdi1,jdi2,idi1,idi2,1,kz,'diffusion:xkd')
     call getmem3d(xkcf,jci1,jci2,ici1,ici2,1,kzp1,'diffusion:xkcf')
@@ -82,7 +82,6 @@ module mod_diffusion
     dydc = aflag*vonkar*vonkar*dx*d_rfour ! Deformation term coefficient
     if ( idynamic == 1 ) then
       xkhz = 1.5e-3_rkx*dxsq/dtsec
-      dydc = dydc / (100.0_rkx - ptop)
     else
       ! (Xu et al., MWR, 2001, 502-516)
       xkhz = ckh * dx
@@ -98,27 +97,21 @@ module mod_diffusion
     !
     ! Calculate topographical correction to diffusion coefficient
     !
-    do k = 1 , kz
-      do i = ice1ga , ice2ga
-        do j = jce1ga , jce2ga
-          hgfact(j,i,k) = xkhz
-        end do
+    do i = ice1ga , ice2ga
+      do j = jce1ga , jce2ga
+        hgfact(j,i) = xkhz
       end do
     end do
     if ( diffu_hgtf == 1 ) then
       ! Should we have a vertical profile for this?
-      do k = 1 , kz
-        do i = ici1ga , ici2ga
-          do j = jci1ga , jci2ga
-            hg1 = abs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
-            hg2 = abs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
-            hg3 = abs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
-            hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
-            hgmax = max(hg1,hg2,hg3,hg4)*regrav*1.0e3_rkx
-            hgfact(j,i,k) = max(1.e2_rkx,xkhz/(d_one+hgmax**2))
-            !hgfact(j,i,kz-1) = hgfact(j,i,kz)
-            !hgfact(j,i,kz-2) = (hgfact(j,i,kz)+xkhz) * d_half
-          end do
+      do i = ici1ga , ici2ga
+        do j = jci1ga , jci2ga
+          hg1 = abs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
+          hg2 = abs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
+          hg3 = abs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
+          hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
+          hgmax = max(hg1,hg2,hg3,hg4)*regrav*1.0e3_rkx
+          hgfact(j,i) = max(1.e2_rkx,xkhz/(d_one+hgmax**2))
         end do
       end do
       call maxall(maxval(hgfact),maxxkh)
@@ -130,13 +123,8 @@ module mod_diffusion
     end if
     call assignpnt(sfs%psb,pc)
     call assignpnt(sfs%psdotb,pd)
-    if ( idynamic == 1 ) then
-      call assignpnt(atm2%u,ud)
-      call assignpnt(atm2%v,vd)
-    else
-      call assignpnt(atms%ubd3d,ud)
-      call assignpnt(atms%vbd3d,vd)
-    end if
+    call assignpnt(atms%ubd3d,ud)
+    call assignpnt(atms%vbd3d,vd)
   end subroutine initialize_diffusion
 
   subroutine calc_coeff
@@ -165,7 +153,7 @@ module mod_diffusion
           dvdy = vd(j,i+1,k) + vd(j+1,i+1,k) - &
                  vd(j,i,k)   - vd(j+1,i,k)
           duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
-          xkc(j,i,k) = min((hgfact(j,i,k) + dydc*duv),xkhmax)
+          xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
         end do
       end do
     end do
