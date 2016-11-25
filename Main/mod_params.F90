@@ -1871,8 +1871,6 @@ module mod_params
             '  Gultepe factors:              Land = ',gulland ,&
             ' Ocean = ',guloce
         write(stdout,'(a,f11.6)') &
-            '  Minimum relative humidity         : ' , rhmin
-        write(stdout,'(a,f11.6)') &
             '  Maximum relative humidity         : ' , rhmax
         write(stdout,'(a,f11.6)') &
             '  Minimum relative humidity         : ' , rhmin

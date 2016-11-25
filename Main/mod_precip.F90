@@ -709,7 +709,7 @@ module mod_precip
             write(stderr,*) 'At global K : ',k
           end if
 #endif
-          qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),d_zero)/psc(j,i)
+          qvcs = max((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv)),qvmin)/psc(j,i)
           qccs = max((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc)),d_zero)/psc(j,i)
           !
           ! 2.  Compute the cloud condensation/evaporation term.

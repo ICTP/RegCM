@@ -35,13 +35,13 @@ module mod_advection
 
   public :: init_advection, hadv , vadv , start_advect
 
-  logical , parameter :: upstream_mode = .false.
+  logical , parameter :: upstream_mode = .true.
   real(rkx) , parameter :: upu = 0.200_rkx
   real(rkx) , parameter :: umax = 200.0_rkx
   real(rkx) , parameter :: uchu = upu/umax
 
-  logical , parameter :: stability_enhance = .false.
-  logical , parameter :: vert_stability_enhance = .false.
+  logical , parameter :: stability_enhance = .true.
+  logical , parameter :: vert_stability_enhance = .true.
   real(rkx) , parameter :: t_extrema = 5.0_rkx
   real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
   real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
