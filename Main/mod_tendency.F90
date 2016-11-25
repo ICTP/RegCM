@@ -321,33 +321,9 @@ module mod_tendency
       !
       ! psc : forecast pressure
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
-        end do
-      end do
-      if ( ma%has_bdyleft ) then
-        do i = ici1 , ici2
-          sfs%psc(jce1,i) = sfs%psb(jce1,i) + xpsb%bt(jce1,i)*dt
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do i = ici1 , ici2
-          sfs%psc(jce2,i) = sfs%psb(jce2,i) + xpsb%bt(jce2,i)*dt
-        end do
-      end if
-      if ( ma%has_bdybottom ) then
-        do j = jce1 , jce2
-          sfs%psc(j,ice1) = sfs%psb(j,ice1) + xpsb%bt(j,ice1)*dt
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do j = jce1 , jce2
-          sfs%psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
-        end do
-      end if
       do i = ice1 , ice2
         do j = jce1 , jce2
+          sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
           rpsc(j,i) = d_one/sfs%psc(j,i)
         end do
       end do
@@ -753,12 +729,12 @@ module mod_tendency
       !
       ! Clouds and large scale precipitation
       !
+      call cldfrac
       if ( ipptls == 2 ) then
         call microphys
       else
         call pcp
       end if
-      call cldfrac
       !
       ! compute the diffusion terms:
       ! the diffusion term for qx is stored in diffqx.
@@ -934,32 +910,6 @@ module mod_tendency
       qen0 = aten%qx(:,:,:,iqv) ! important since aten%qx have been updated
     end if
     !
-    ! apply the nudging boundary conditions:
-    !
-    if ( idynamic == 1 ) then
-      if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(iboudy,atm2%t,xtb,aten%t)
-        call nudge(iboudy,atm2%qx,xqb,aten%qx,iqv)
-      end if
-    end if
-    if ( ichem == 1 ) then
-      if ( ichdiag == 1 ) chiten0 = chiten
-      ! keep nudge_chi for now
-      if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge_chi(kz,chib,chiten)
-      end if
-      if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
-    end if
-    if ( idiag > 0 ) then
-      tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
-      ten0 = aten%t
-      qdiag%bdy = qdiag%bdy + (aten%qx(:,:,:,iqv) - qen0) * afdout
-      qen0 = aten%qx(:,:,:,iqv)
-    end if
-#ifdef DEBUG
-    call check_temperature_tendency('BDYC')
-#endif
-    !
     ! compute the condensation and precipitation terms for explicit
     ! moisture schemes
     !
@@ -985,6 +935,32 @@ module mod_tendency
         qen0 = aten%qx(:,:,:,iqv)
       end if
     end if
+    !
+    ! apply the nudging boundary conditions:
+    !
+    if ( idynamic == 1 ) then
+      if ( iboudy == 1 .or. iboudy == 5 ) then
+        call nudge(iboudy,atm2%t,xtb,aten%t)
+        call nudge(iboudy,atm2%qx,xqb,aten%qx,iqv)
+      end if
+    end if
+    if ( ichem == 1 ) then
+      if ( ichdiag == 1 ) chiten0 = chiten
+      ! keep nudge_chi for now
+      if ( iboudy == 1 .or. iboudy == 5 ) then
+        call nudge_chi(kz,chib,chiten)
+      end if
+      if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
+    end if
+    if ( idiag > 0 ) then
+      tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
+      ten0 = aten%t
+      qdiag%bdy = qdiag%bdy + (aten%qx(:,:,:,iqv) - qen0) * afdout
+      qen0 = aten%qx(:,:,:,iqv)
+    end if
+#ifdef DEBUG
+    call check_temperature_tendency('BDYC')
+#endif
     !
     ! forecast t, qv, and qc at tau+1:
     !
@@ -1454,8 +1430,11 @@ module mod_tendency
     !
     ! Compute future values of t and moisture variables at tau+1:
     !
+    if ( idynamic == 1 ) then
+      call timefilter_apply(sfs%psa,sfs%psb,sfs%psc,gnu)
+    end if
     call timefilter_apply(atm1%t,atm2%t,atmc%t,gnu)
-    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu,iqv)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu,sfs%psb)
     if ( idynamic == 1 ) then
       call timefilter_apply(atm1%qx,atm2%qx,atmc%qx, &
                             d_two*gnu,iqfrst,iqlst,minqx)
@@ -1480,7 +1459,6 @@ module mod_tendency
       !
       call timefilter_apply(atm1%u,atm2%u,atmc%u, &
                             atm1%v,atm2%v,atmc%v,gnu)
-      call timefilter_apply(sfs%psa,sfs%psb,sfs%psc,gnu)
       do i = ice1 , ice2
         do j = jce1 , jce2
           rpsb(j,i) = d_one/sfs%psb(j,i)

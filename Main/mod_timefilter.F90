@@ -30,6 +30,7 @@ module mod_timefilter
   use mod_realkinds
   use mod_constants
   use mod_dynparam
+  use mod_runparams , only : iqv
 
   implicit none
 
@@ -204,23 +205,23 @@ module mod_timefilter
     end do
   end subroutine filter_ra_4d
 
-  subroutine filter_ra_qv(phin,phinm1,phinp1,alpha,iv)
+  subroutine filter_ra_qv(phin,phinm1,phinp1,alpha,ps)
     implicit none
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
     real(rkx) , intent(in) :: alpha
-    integer(ik4) , intent(in) :: iv
     real(rkx) :: d
     integer(ik4) :: i , j , k , nk
     nk = size(phin,3)
     do k = 1 , nk
       do i = ici1 , ici2
         do j = jci1 , jci2
-          d = alpha * (phinp1(j,i,k,iv) + phinm1(j,i,k,iv) - &
-              d_two * phin(j,i,k,iv))
-          phinm1(j,i,k,iv) = max(phin(j,i,k,iv) + d, minqv)
-          phin(j,i,k,iv) = phinp1(j,i,k,iv)
+          d = alpha * (phinp1(j,i,k,iqv) + phinm1(j,i,k,iqv) - &
+              d_two * phin(j,i,k,iqv))
+          phinm1(j,i,k,iqv) = max(phin(j,i,k,iqv) + d, minqq*ps(j,i))
+          phin(j,i,k,iqv) = phinp1(j,i,k,iqv)
         end do
       end do
     end do
@@ -251,24 +252,24 @@ module mod_timefilter
     end do
   end subroutine filter_raw_4d
 
-  subroutine filter_raw_qv(phin,phinm1,phinp1,alpha,beta,iv)
+  subroutine filter_raw_qv(phin,phinm1,phinp1,alpha,beta,ps)
     implicit none
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
     real(rkx) , intent(in) :: alpha , beta
-    integer(ik4) , intent(in) :: iv
     real(rkx) :: d
     integer(ik4) :: i , j , k , nk
     nk = size(phin,3)
     do k = 1 , nk
       do i = ici1 , ici2
         do j = jci1 , jci2
-          d = alpha * (phinp1(j,i,k,iv) + phinm1(j,i,k,iv) - &
-              d_two * phin(j,i,k,iv))
-          phinm1(j,i,k,iv) = max(phin(j,i,k,iv) + beta * d, minqv)
-          phin(j,i,k,iv) = max(phinp1(j,i,k,iv) + &
-                                (beta - d_one) * d, minqv)
+          d = alpha * (phinp1(j,i,k,iqv) + phinm1(j,i,k,iqv) - &
+              d_two * phin(j,i,k,iqv))
+          phinm1(j,i,k,iqv) = max(phin(j,i,k,iqv) + beta * d, minqq*ps(j,i))
+          phin(j,i,k,iqv) = max(phinp1(j,i,k,iqv) + &
+                                (beta - d_one) * d, minqq*ps(j,i))
         end do
       end do
     end do
