@@ -1,9 +1,9 @@
-  pure real(rkx) function pfwsat(t,p,e) result(ws)
+  pure real(rkx) function pfwsat(t,p,e) result(qs)
     implicit none
     real(rkx) , intent(in) :: t             ! Temperature (K)
     real(rkx) , intent(in) :: p             ! Pressure (Pa)
     real(rkx) , intent(in) , optional :: e  ! Saturated vapor pressure (Pa)
-    real(rkx) :: es , vp , vp1 , vp2 , qs
+    real(rkx) :: es , vp , vp1 , vp2
     if ( present(e) ) then
       es = e
     else
@@ -14,5 +14,4 @@
     vp1 = ep2 * vp
     vp2 = vp1 * vp
     qs = es * vp1  ! kg/kg
-    ws = max(qs/(d_one - qs),minqq)
   end function pfwsat
