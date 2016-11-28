@@ -41,7 +41,7 @@ module mod_humid
     module procedure sph2mxr_single
   end interface sph2mxr
 
-  public :: mxr2rh , ecmwf_rh2mxr , rh2mxr , clwfromt
+  public :: mxr2rh , ecmwf_rh2mxr , rh2mxr
   public :: sph2mxr , mxr2sph
 
   contains
@@ -294,23 +294,6 @@ module mod_humid
       end do
     end do
   end subroutine ecmwf_rh2mxr
-
-  real(rkx) function clwfromt(t) result(clw)
-    implicit none
-    real(rkx) , intent(in) :: t
-    real(rkx) :: tcel
-    ! Temperature dependency for cloud water content
-    ! in g/m3 (Lemus et al., 1997)
-    ! NOTE : THIS IS IN-CLOUD VARIABLE.
-    tcel = t - tzero
-    if ( tcel < -50.0_rkx ) then
-      clw = 0.001_rkx
-    else
-      clw = 0.127_rkx + 6.78e-03_rkx * tcel +    &
-                        1.29e-04_rkx * tcel**2 + &
-                        8.36e-07_rkx * tcel**3
-    end if
-  end function clwfromt
 
 end module mod_humid
 

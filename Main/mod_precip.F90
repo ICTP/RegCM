@@ -33,7 +33,6 @@ module mod_precip
   use mod_memutil
   use mod_mpmessage
   use mod_regcm_types
-  use mod_humid , only : clwfromt
 
   implicit none
 
@@ -59,8 +58,6 @@ module mod_precip
 
   real(rkx) :: maxlat
 
-  real(rkx) , parameter :: thog = d_1000*regrav
-  real(rkx) , parameter :: uch = thog*secph
   real(rkx) , parameter :: alphaice = d_four
 
   real(rkx) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
@@ -72,14 +69,20 @@ module mod_precip
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
 
   real(rkx) , parameter :: rhow = 1000.0_rkx
+  real(rkx) , parameter :: thog = d_1000*regrav
+  real(rkx) , parameter :: uch = thog*secph
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
   real(rkx) , parameter :: pptmin = 1.0e-20_rkx
   real(rkx) , parameter :: eps = 1.0e-7_rkx
+  real(rkx) , parameter :: actcld = 0.1_rkx
+  integer(ik4) , parameter :: nchi = 256
+  real(rkx) , dimension(0:nchi-1) :: chis
 
   contains
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+#include <clwfromt.inc>
 
   subroutine allocate_mod_precip
     implicit none
@@ -105,6 +108,8 @@ module mod_precip
                                    remrat , rembc , qdiag , ccn , atm0
     use mod_mppparam , only : maxall
     implicit none
+    integer(ik4) :: i
+    real(rkx) :: cf
     call maxall(maxval(mddom%xlat),maxlat)
     call assignpnt(mddom%ldmsk,ldmsk)
     call assignpnt(atms%tb3d,t3)
@@ -149,6 +154,10 @@ module mod_precip
       call assignpnt(aten%pp,ppten)
       call assignpnt(atm0%pr,p0)
     end if
+    do i = 1 , nchi
+      cf = real(i-1)/real(nchi-1)
+      chis(i-1) = 0.97_rkx*exp(-((cf-0.098_rkx)**2)/0.0365_rkx)+0.255_rkx
+    end do
   end subroutine init_precip
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -170,7 +179,7 @@ module mod_precip
     implicit none
     real(rkx) :: dpovg , afc , pptacc , pptkm1 , pptmax ,       &
                 pptnew , qcleft , qcw , qs , rdevap , qcincl ,  &
-                rh , rhcs , rho , tcel , prainx , qcth
+                rhcs , tcel , prainx , qcth
     integer(ik4) :: i , j , k , kk
     logical :: lsecind
     !
@@ -214,8 +223,10 @@ module mod_precip
             tcel = t3(j,i,k) - tzero   ![C][avg]
             ! In cloud mixing ratio [kg/kg]
             qcincl = xqc(j,i,k)/pfcc(j,i,k)
-            qcth = cgul(j,i)*(d_10**(-0.489_rkx+0.0134_rkx*tcel))*d_r1000
-            dqc(j,i,k) = qcincl - qcth
+            !qcth = cgul(j,i)*(d_10**(-0.489_rkx+0.0134_rkx*tcel))*d_r1000
+            ! Use same function of Lemus et al., 1997 as in lwc computation
+            qcth = cgul(j,i)*clwfromt(t3(j,i,k))/rho3(j,i,k)*d_r1000
+            dqc(j,i,k) = max(qcincl - qcth,d_zero)
           end do
         end do
       end do
@@ -242,31 +253,27 @@ module mod_precip
     do i = ici1 , ici2
       do j = jci1 , jci2
         afc = pfcc(j,i,1)   ![frac][avg]
-        qcw = xqc(j,i,1)    ![kg/kg][avg]
+        qcw = max(xqc(j,i,1)-qvmin,d_zero)       ![kg/kg][avg]
         pptnew = d_zero
-        if ( afc > lowcld+eps ) then ! if there is a cloud
+        if ( afc > actcld ) then ! if there is a cloud
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
           pptmax = max(qcw,d_zero)/dt      ![kg/kg/s][avg]
           ! 1ae. Compute the gridcell average autoconversion [kg/k g/s]
-          pptnew = qck1(j,i)*dqc(j,i,1)*afc       ![kg/kg/s][avg]
-          pptnew = min(max(pptnew,d_zero),pptmax) ![kg/kg/s][avg]
-          if ( pptnew > pptmin ) then !   New precipitation
-            ! 1ag. Compute the amount of cloud water removed by raindrop
-            !      accretion [kg/kg/s].  In the layer where the precipitation
-            !      is formed, only half of the precipitation is assumed to
-            !      accrete. 1aga. Compute the amount of water remaining in the
-            !      cloud [kg/kg]
-            qcleft = max(qcw - pptnew*dt,d_zero) ![kg/kg][avg]
-            ! 1agb. Add 1/2 of the new precipitation can accrete.
-            rho = rho3(j,i,1)                  ![kg/m3][avg]
-            pptkm1 = d_half*pptnew/afc*rho*dt  ![kg/m3][cld]
-            ! 1agc. Accretion [kg/kg/s]=[m3/kg/s]*[kg/kg]*[kg/m3]
-            pptacc = caccr(j,i)*qcleft*pptkm1  ![kg/kg/s][avg]
-            ! 1agd. Update the precipitation accounting for the
-            !       accretion [kg/kg/s]
-            pptnew = min(pptmax,pptacc+pptnew) ![kg/kg/s][avg]
-          end if
+          pptnew = min(pptmax,qck1(j,i)*dqc(j,i,1)*afc)     ![kg/kg/s][avg]
+          ! 1ag. Compute the amount of cloud water removed by raindrop
+          !      accretion [kg/kg/s].  In the layer where the precipitation
+          !      is formed, only half of the precipitation is assumed to
+          !      accrete. 1aga. Compute the amount of water remaining in the
+          !      cloud [kg/kg]
+          qcleft = max(qcw - pptnew*dt,d_zero) ![kg/kg][avg]
+          ! 1agb. Add 1/2 of the new precipitation can accrete.
+          pptkm1 = d_half*pptnew/afc*rho3(j,i,1)*dt  ![kg/m3][cld]
+          ! 1agc. Accretion [kg/kg/s]=[m3/kg/s]*[kg/kg]*[kg/m3]
+          pptacc = caccr(j,i)*qcleft*pptkm1  ![kg/kg/s][avg]
+          ! 1agd. Update the precipitation accounting for the
+          !       accretion [kg/kg/s]
+          pptnew = min(pptmax,pptacc+pptnew) ![kg/kg/s][avg]
         end if
         ! 1ah. Accumulate precipitation and convert to kg/m2/s
         if ( pptnew > pptmin ) then
@@ -295,9 +302,11 @@ module mod_precip
           pptnew = d_zero
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
-          dpovg = dsigma(k)*psb(j,i)*thog                    ![kg/m2][avg]
+          dpovg = dsigma(k)*psb(j,i)*thog          ![kg/m2][avg]
+          qcw = max(xqc(j,i,k)-qvmin,d_zero)       ![kg/kg][avg]
+          afc = pfcc(j,i,k)                        ![frac][avg]
           if ( pptsum(j,i) > d_zero ) then
-            pptkm1 = pptsum(j,i)/dpovg                       ![kg/kg/s][avg]
+            pptkm1 = pptsum(j,i)/dpovg             ![kg/kg/s][avg]
           else
             pptkm1 = d_zero
           end if
@@ -306,11 +315,9 @@ module mod_precip
           !  - It is assumed that raindrops do not evaporate in clouds
           !    and the rainfall from above is evenly distributed in
           !    gridcell (i.e. the gridcell average precipitation is used).
-          afc = pfcc(j,i,k)                              ![frac][avg]
-          if ( pptkm1 > pptmin .and. afc < hicld ) then
+          if ( pptkm1 > pptmin ) then
             ! 2bca. Compute the clear sky relative humidity
-            rh = rh3(j,i,k)                              ![frac][avg]
-            rhcs = (rh-afc*rhmax)/(hicld-afc)            ![frac][clr]
+            rhcs = (rh3(j,i,k)-afc*rhmax)/(hicld-afc)    ![frac][clr]
             rhcs = max(min(rhcs,rhmax),rhmin)            ![frac][clr]
             ! 2bcb. Raindrop evaporation [kg/kg/s]
             rdevap = xcevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(hicld-afc)
@@ -320,6 +327,7 @@ module mod_precip
             ! 2bcc. Update the precipitation accounting for the raindrop
             !       evaporation [kg/m2/s]
             pptsum(j,i) = max(pptsum(j,i)-rdevap*dpovg,d_zero) ![kg/m2/s][avg]
+            pptkm1 = pptkm1 - rdevap
             ! 2bcf. Compute the water vapor tendency [kg/kg/s*cb]
             ![kg/kg/s*cb][avg]
             qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + rdevap*psb(j,i)
@@ -327,31 +335,26 @@ module mod_precip
             ![k/s*cb][avg]
             tten(j,i,k) = tten(j,i,k) - wlhvocp*rdevap*psb(j,i)
           end if
-          qcw = xqc(j,i,k)   ![kg/kg][avg]
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
-          if ( afc > lowcld+eps ) then ! if there is a cloud
+          if ( afc > actcld ) then ! if there is a cloud
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
             pptmax = max(qcw,d_zero)/dt           ![kg/kg/s][avg]
             ! 1bdd. Compute the gridcell average autoconversion [kg/kg/s]
-            pptnew = qck1(j,i)*dqc(j,i,k)*afc            ![kg/kg/s][avg]
-            pptnew = min(max(pptnew,d_zero),pptmax)      ![kg/kg/s][avg]
+            pptnew = min(pptmax,qck1(j,i)*dqc(j,i,k)*afc) ![kg/kg/s][avg]
             ! 1bf. Compute the amount of cloud water removed by raindrop
             !      accretion [kg/kg/s].  In the layer where the precipitation
             !      is formed, only half of the precipitation can accrete.
-            if ( pptkm1 > pptmin .or. pptnew > pptmin ) then
-              ! 1bfa. Compute the amount of water remaining in the cloud [kg/kg]
-              qcleft = max(qcw-pptnew*dt,d_zero)             ![kg/kg][avg]
-              ! 1bfb. Add 1/2 of the new precipitation to the accumulated
-              !       precipitation [kg/m3]
-              rho = rho3(j,i,k)                              ![kg/m3][avg]
-              pptkm1 = (pptkm1+d_half*pptnew/afc)*rho*dt     ![kg/m3][cld]
-              ! 1bfc. accretion [kg/kg/s]
-              pptacc = caccr(j,i)*qcleft*pptkm1              ![kg/kg/s][avg]
-              ! 1bfd. Update the precipitation accounting for the
-              !       accretion [kg/kg/s]
-              pptnew = min(max(pptacc+pptnew,d_zero),pptmax)
-            end if
+            ! 1bfa. Compute the amount of water remaining in the cloud [kg/kg]
+            qcleft = max(qcw-pptnew*dt,d_zero)             ![kg/kg][avg]
+            ! 1bfb. Add 1/2 of the new precipitation to the accumulated
+            !       precipitation [kg/m3]
+            pptkm1 = pptkm1 + d_half*pptnew/afc*rho3(j,i,k)*dt  ![kg/m3][cld]
+            ! 1bfc. accretion [kg/kg/s]
+            pptacc = caccr(j,i)*qcleft*pptkm1              ![kg/kg/s][avg]
+            ! 1bfd. Update the precipitation accounting for the
+            !       accretion [kg/kg/s]
+            pptnew = min(pptmax,pptacc+pptnew)
           end if
           if ( pptnew > pptmin ) then
             ! 1bg. Accumulate precipitation and convert to kg/m2/s
@@ -635,8 +638,12 @@ module mod_precip
           if ( iconvlwp == 1 ) then
             ! Apply the parameterisation based on temperature to the
             ! the large scale clouds.
+            ! Scaling for CF
+            ! Implements CF scaling as in Liang GRL 32, 2005
+            ! doi: 10.1029/2004GL022301
             if ( pfcc(j,i,k) > lowcld+eps ) then
-              exlwc = clwfromt(t3(j,i,k))
+              exlwc = clwfromt(t3(j,i,k)) * &
+                              chis(int(pfcc(j,i,k)*real(nchi-1,rkx)))
             end if
           else
             ! NOTE : IN CLOUD HERE IS NEEDED !!!

@@ -48,7 +48,6 @@ module mod_init
   use mod_outvars
   use mod_service
   use mod_sound , only : init_sound
-  use mod_humid , only : clwfromt
 
   implicit none
 
@@ -63,6 +62,7 @@ module mod_init
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+#include <clwfromt.inc>
 
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

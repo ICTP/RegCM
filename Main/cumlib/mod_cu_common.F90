@@ -25,7 +25,6 @@ module mod_cu_common
   use mod_dynparam
   use mod_runparams , only : clfrcv , icumcloud , icup , ichem , dt , nqx
   use mod_mppparam , only : ma
-  use mod_humid , only : clwfromt
   use mod_memutil
   use mod_regcm_types
 
@@ -67,6 +66,8 @@ module mod_cu_common
   logical , parameter :: addnoise = .false.
 
   contains
+
+#include <clwfromt.inc>
 
   subroutine init_mod_cumulus
     implicit none
