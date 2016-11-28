@@ -74,7 +74,7 @@ module mod_init
   subroutine init
     implicit none
     integer(ik4) :: i , j , k , n
-    real(rkx) :: rdnnsg , sfice_temp , t , p , qs , rh
+    real(rkx) :: rdnnsg , sfice_temp , t , p , qs , rh , pfcc , dens
     character(len=32) :: appdat
     real(rkx) , dimension(kzp1) :: ozprnt
 #ifdef DEBUG
@@ -581,8 +581,11 @@ module mod_init
               p = atm1%pr(j,i,k)
               qs = pfwsat(t,p)
               rh = ( (atm1%qx(j,i,k,iqv)/sfs%psa(j,i))/qs )
-              if ( rh > rh0(j,i) .and. p > ptrop(j,i) ) then
-                atm1%qx(j,i,k,iqc) = d_r10 * clwfromt(t)/d_1000 * sfs%psa(j,i)
+              if ( rh > rh0(j,i) ) then
+                pfcc = d_one-sqrt(d_one-(rh-rh0(j,i))/(rhmax-rh0(j,i)))
+                dens = p / (rgas*t)
+                atm1%qx(j,i,k,iqc) = d_r10 * pfcc * dens * &
+                             clwfromt(t)/d_1000 * sfs%psa(j,i)
                 atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
               end if
             end do
