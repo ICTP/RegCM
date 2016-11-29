@@ -299,8 +299,8 @@ module mod_tendency
             !
             ! omega in the non-hydrostatic model: compute from w
             !
-            omega(j,i,k) = d_half*egrav*atm0%rho(j,i,k)*rpsa(j,i) * &
-                         (atm1%w(j,i,k)+atm1%w(j,i,k+1))
+            omega(j,i,k) = d_half*egrav*atm0%rho(j,i,k)*rpsb(j,i) * &
+                         (atm2%w(j,i,k)+atm2%w(j,i,k+1))
           end do
         end do
       end do
@@ -544,7 +544,7 @@ module mod_tendency
           do i = ici1 , ici2
             do j = jci1 , jci2
               aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + &
-                        atmx%qx(j,i,k,n)*mdv%cr(j,i,k)
+                                 atmx%qx(j,i,k,n)*mdv%cr(j,i,k)
             end do
           end do
         end do
@@ -742,8 +742,11 @@ module mod_tendency
       if ( idiag > 0 ) then
         qen0(jci1:jci2,ici1:ici2,:) = adf%qx(jci1:jci2,ici1:ici2,:,iqv)
       end if
-      !call diffu_x(adf%qx,atms%qxb3d,iqv,d_one)
-      call diffu_x(adf%qx,atms%qxb3d,iqv,iqlst,d_one)
+      if ( ipptls == 1 ) then
+        call diffu_x(adf%qx,atms%qxb3d,iqfrst,iqlst,d_one)
+      else
+        call diffu_x(adf%qx,atms%qxb3d,iqv,d_one)
+      end if
       if ( idiag > 0 ) then
         ! save the h diff diag here
         qdiag%dif(jci1:jci2,ici1:ici2,:) = &
@@ -1444,7 +1447,8 @@ module mod_tendency
       call timefilter_apply(atm1%qx,atm2%qx,atmc%qx, &
                             d_two*gnu,iqfrst,iqlst,minqx)
     else
-      call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu,iqfrst,iqlst,minqx)
+      call timefilter_apply(atm1%qx,atm2%qx,atmc%qx, &
+                            gnu,iqfrst,iqlst,minqx)
     end if
     !
     if ( idynamic == 1 ) then

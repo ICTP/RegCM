@@ -120,7 +120,8 @@ module mod_pbl_uwtcm
   real(rkx) :: uflxp , vflxp , rhoxsf , tgbx , tvcon , fracz , dudz , &
             dvdz , rvls , psbx , templ , temps , cell , thgb , pblx , &
             ustxsq , qfxx , hfxx , uvdragx , thvflx , kh0 , q0s
-  ! real(rkx) :: thv0 , dth , dthv
+  real(rkx) :: thv0 , thx_t , thvx_t , dthv , dthv_t
+  ! real(rkx) :: dth , dthv
   real(rkx) , pointer , dimension(:) :: chifxx
 
   integer(ik4) :: kpbl2dx  ! Top of PBL
@@ -324,7 +325,7 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay , kpbconv , iteration
-    real(rkx) :: temps , templ , deltat , rvls , pfac
+    real(rkx) :: temps , templ , deltat , rvls ! , pfac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
@@ -356,7 +357,7 @@ module mod_pbl_uwtcm
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
         uvdragx = m2p%uvdrag(j,i)
-        pfac = dt / psbx
+        ! pfac = dt / psbx
 
         ! Integrate the hydrostatic equation to calculate the level height
         ! Set variables that are on full levels
@@ -380,14 +381,14 @@ module mod_pbl_uwtcm
           tke(k) = m2p%tkests(j,i,k)
           rttenx(k) = m2p%heatrt(j,i,k)
         end do
-        where ( qx < minqq ) qx = minqq
-        where ( qcx < minqx ) qcx = d_zero
+        !where ( qx < minqq ) qx = minqq
+        !where ( qcx < minqx ) qcx = d_zero
 
         if ( ipptls == 2 ) then
           do k = 1 , kz
             qix(k) = m2p%qxatm(j,i,k,iqi) !+ p2m%qxten(j,i,k,iqi) * pfac
           end do
-          where ( qix < minqx ) qix = d_zero
+          !where ( qix < minqx ) qix = d_zero
         else
           do k = 1 , kz
             qix(k) = d_zero
@@ -401,7 +402,7 @@ module mod_pbl_uwtcm
               chix(k,itr) = m2p%chib(j,i,k,itr) !+ chiuwten(j,i,k,itr) * pfac
             end do
           end do
-          where ( chix < mintr ) chix = d_zero
+          !where ( chix < mintr ) chix = d_zero
         end if
 
         ! Set all the save variables (used for determining the tendencies)
@@ -482,10 +483,10 @@ module mod_pbl_uwtcm
         ! density at the surface
         rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
         ! Calculate the virtual temperature right above the surface
-        ! thv0 = thgb * (d_one + ep1*q0s)
+        thv0 = thgb * (d_one + ep1*q0s)
         ! Calculate the change in virtual potential temperature from
         ! the surface to the first interface
-        ! dthv = uthvx(kz) - thv0
+        dthv = uthvx(kz) - thv0
         ! Calculate the change in potential temperature from the surface
         ! to the first interface
         ! dth = thx(kz) - thgb
@@ -512,8 +513,8 @@ module mod_pbl_uwtcm
         ! temperature profile
         call n2(thlx,qwx,kz)
         ! Estimate the surface N^2 from the surface virtual heat flux
-        nsquar(kzp1) = -egrav/thgb*thvflx/kh0
-        ! nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
+        ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
+        nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
 
         ! Calculate the bulk richardson number
         !richnum = nsquar/max(svs,1.0e-8_rkx)
@@ -533,15 +534,11 @@ module mod_pbl_uwtcm
         ! diffusivity profiles using the updated values, and re-integrate.
         ! Also update N^2 along the way.
         melloryamadaiteration: &
-        do iteration = 1 , 2
+        do iteration = 1 , 3
           !*************************************************************
           !***** Semi-implicit calculation of diffusivity profiles *****
           !*************************************************************
-          if ( iteration == 1 ) then
-            call melloryamada(thlx,qwx,kz,kpbconv)
-          else
-            call melloryamada(uimp1,uimp2,kz,kpbconv)
-          end if
+          call melloryamada(thlx,qwx,kz,kpbconv)
           !*************************************************************
           !****** Implicit Diffusion of Thetal and Qtot ****************
           !*************************************************************
@@ -558,27 +555,15 @@ module mod_pbl_uwtcm
           do k = 1 , kz
             bimp(k) = d_one - aimp(k) - cimp(k)
           end do
-          if ( iteration == 1 ) then
-            do k = 1 , kz
-              rimp1(k) = thlx(k)
-              rimp2(k) = qwx(k)
-            end do
-            ! include surface sensible heat flux
-            rimp1(kz) = rimp1(kz) + &
-                     dt*hfxx*rrhoxhl(kz)*rcpd*rdzq(kz)*rexnerhl(kz)
-            ! include surface latent heat flux
-            rimp2(kz) = rimp2(kz) + dt*qfxx*rrhoxhl(kz)*rdzq(kz)
-          else
-            do k = 1 , kz
-              rimp1(k) = uimp1(k)
-              rimp2(k) = uimp2(k)
-            end do
-            ! include surface sensible heat flux
-            rimp1(kz) = rimp1(kz) + &
-                     dt*hfxx*rrhoxhl(kz)*rcpd*rdzq(kz)*rexnerhl(kz)
-            ! include surface latent heat flux
-            rimp2(kz) = rimp2(kz) + dt*qfxx*rrhoxhl(kz)*rdzq(kz)
-          end if
+          do k = 1 , kz
+            rimp1(k) = thlx(k)
+            rimp2(k) = qwx(k)
+          end do
+          ! include surface sensible heat flux
+          rimp1(kz) = rimp1(kz) + &
+                   dt*hfxx*rrhoxhl(kz)*rcpd*rdzq(kz)*rexnerhl(kz)
+          ! include surface latent heat flux
+          rimp2(kz) = rimp2(kz) + dt*qfxx*rrhoxhl(kz)*rdzq(kz)
           ! Solve total water
           call solve_tridiag(aimp,bimp,cimp,rimp2,uimp2,kz)
           ! Solve liquid water potential temperature
@@ -586,7 +571,12 @@ module mod_pbl_uwtcm
           ! Calculate nsquared Set N^2 based on the updated potential
           ! temperature profile (this is for the semi-implicit integration)
           call n2(uimp1,uimp2,kz)
-          call pblhgt(uimp1,uimp2,kz,m2p%ktrop(j,i),kpbconv)
+          !call pblhgt(uimp1,uimp2,kz,m2p%ktrop(j,i),kpbconv)
+          thx_t = uimp1(kz) + wlhvocp * rexnerhl(kz) * qcx(kz)
+          tvcon = (d_one + ep1*qx(kz)-qcx(kz))
+          thvx_t = thx_t*tvcon
+          dthv_t = (thvx_t-thv0)
+          nsquar(kzp1) = -egrav/thgb * dthv_t/zax(kz)
         end do melloryamadaiteration
 
         !*************************************************************
@@ -1167,17 +1157,15 @@ module mod_pbl_uwtcm
           end do convlayerloop
           exit bigloop
         end do bigloop
-      end if
-      setbbls: &
-      do ilay = 1 , kpbconv
-        blinf = xfr*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
-        convkloop: &
-        do k = ktop(ilay) , kbot(ilay)
-          bbls(k) = min(vonkar * zqx(k),blinf)
-        end do convkloop
-      end do setbbls
-      ! we should now have tops and bottoms for kpbconv layers
-      if ( kpbconv > 0 ) then
+        setbbls: &
+        do ilay = 1 , kpbconv
+          blinf = xfr*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
+          convkloop: &
+          do k = ktop(ilay) , kbot(ilay)
+            bbls(k) = min(vonkar * zqx(k),blinf)
+          end do convkloop
+        end do setbbls
+        ! we should now have tops and bottoms for kpbconv layers
         if ( kbot(kpbconv) == ktmax ) then
           kmix2dx = ktop(kpbconv)
           if ( kpbl2dx >= 0 ) then

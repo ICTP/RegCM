@@ -572,7 +572,7 @@ module mod_init
       end do
     end do
     if ( .not. ifrest ) then
-      if ( ipptls > 0 ) then
+      if ( idynamic == 1 .and. ipptls > 0 ) then
         ! Initialize cloud liquid water
         do k = 1 , kz
           do i = ici1 , ici2

@@ -504,18 +504,30 @@ module mod_cloud_s1
 
     oneodt = d_one/dt
 
-    ! Set the default 1.e-14_rkx = d_zero
-    ! Define the inizial array qx
+    ! Decouple tendencies
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nqx
-            if ( qxx(j,i,k,n) > minqx ) then
-              qx(n,j,i,k) = qxx(j,i,k,n)
-            else
-              qx(n,j,i,k) = minqx
-            end if
-            qx(iqqv,j,i,k) = max(qx(iqqv,j,i,k),minqq)
+            qxtendc(n,j,i,k) = qxten(j,i,k,n)/psb(j,i)
+          end do
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ttendc(j,i,k) = tten(j,i,k)/psb(j,i)
+        end do
+      end do
+    end do
+
+    ! Define the initial array qx
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nqx
+            qx(n,j,i,k) = qxx(j,i,k,n)
           end do
         end do
       end do
@@ -588,24 +600,6 @@ module mod_cloud_s1
           eeice(j,i,k) = c2es*exp(c3ies*((t(j,i,k)-tzero) / &
                                          (t(j,i,k)-c4ies)))
           koop(j,i,k) = min(rkoop1-rkoop2*t(j,i,k),eeliq(j,i,k)/eeice(j,i,k))
-        end do
-      end do
-    end do
-
-    ! Decouple tendencies
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nqx
-            qxtendc(n,j,i,k) = qxten(j,i,k,n)/psb(j,i)
-          end do
-        end do
-      end do
-    end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ttendc(j,i,k) = tten(j,i,k)/psb(j,i)
         end do
       end do
     end do
