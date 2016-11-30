@@ -954,9 +954,7 @@ module mod_tendency
           end do
         end do
       end do
-      if ( ipptls == 1 ) then
-        call condtq
-      end if
+      call condtq
       if ( idiag > 0 ) then
         ! rq : temp condensation tend is added the evap temp tend
         ! calculated in pcp
@@ -1002,8 +1000,8 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              chic(j,i,k,itr) = chib(j,i,k,itr) + dt*chiten(j,i,k,itr)
-              chic(j,i,k,itr) = max(chic(j,i,k,itr),mintr)
+              chic(j,i,k,itr) = &
+                   max(chib(j,i,k,itr) + dt*chiten(j,i,k,itr),mintr)
             end do
           end do
         end do
