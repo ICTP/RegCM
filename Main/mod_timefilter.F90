@@ -189,7 +189,7 @@ module mod_timefilter
     real(rkx) , intent(in) :: alpha , low
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) :: d
-    integer(ik4) :: i , j , k , n , nk , nn
+    integer(ik4) :: i , j , k , n , nk
     nk = size(phin,3)
     do n = n1 , n2
       do k = 1 , nk

@@ -69,9 +69,9 @@ module mod_diffusion
   end subroutine allocate_mod_diffusion
 
   subroutine initialize_diffusion
-    use mod_atm_interface , only : mddom , sfs , atms , atm2
+    use mod_atm_interface , only : mddom , sfs , atms
     implicit none
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i , j
     real(rkx) :: hg1 , hg2 , hg3 , hg4
     real(rkx) :: hgmax , xkhz , minxkh , maxxkh
     !

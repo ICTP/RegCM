@@ -544,7 +544,7 @@ module mod_advection
       integer , intent(in) :: iv
       real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
-      real(rkx) :: ul , f1 , f2 , ff , fx1 , fx2 , fy1 , fy2
+      real(rkx) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
       integer(ik4) :: i , j , k
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv_qv'
@@ -742,7 +742,7 @@ module mod_advection
       real(rkx) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 
       integer(ik4) :: i , j , k , n
-      real(rkx) :: ul , f1 , f2 , ff , fx1 , fx2 , fy1 , fy2
+      real(rkx) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadvtr'
       integer(ik4) , save :: idindx = 0
