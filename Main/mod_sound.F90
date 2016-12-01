@@ -663,10 +663,14 @@ module mod_sound
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ucrs(j,i,k) = atmc%u(j,i,k) + atmc%u(j,i+1,k) + &
-                          atmc%u(j+1,i,k) + atmc%u(j+1,i+1,k)
-            vcrs(j,i,k) = atmc%v(j,i,k) + atmc%v(j,i+1,k) + &
-                          atmc%v(j+1,i,k) + atmc%v(j+1,i+1,k)
+            ucrs(j,i,k) = atmc%u(j,i,k)     * mddom%msfd(j,i) +   &
+                          atmc%u(j,i+1,k)   * mddom%msfd(j,i+1) + &
+                          atmc%u(j+1,i,k)   * mddom%msfd(j+1,i) + &
+                          atmc%u(j+1,i+1,k) * mddom%msfd(j+1,i+1)
+            vcrs(j,i,k) = atmc%v(j,i,k)     * mddom%msfd(j,i) +   &
+                          atmc%v(j,i+1,k)   * mddom%msfd(j,i+1) + &
+                          atmc%v(j+1,i,k)   * mddom%msfd(j+1,i) + &
+                          atmc%v(j+1,i+1,k) * mddom%msfd(j+1,i+1)
           end do
         end do
       end do
@@ -698,6 +702,12 @@ module mod_sound
           end if
         end if
       end if
+      if ( cfl < d_one ) then
+        cfl_error = .false.
+      end if
+      if ( cfl_error ) then
+        call fatal(__FILE__,__LINE__,'CFL violation')
+      end if
       if ( cfl > d_one ) then
         do k = kz , 2 , -1
           do i = ici1 , ici2
@@ -707,16 +717,11 @@ module mod_sound
                 write(stderr,99003) cfl , atmc%w(j,i,k) , i , j , k
     99003       format ('CFL>1: CFL = ',f12.4,' W = ',f12.4,'  I = ',i5, &
                         '  J = ',i5,'  K = ',i5 )
-                if ( cfl_error ) then
-                  call fatal(__FILE__,__LINE__,'CFL violation')
-                end if
-                cfl_error = .true.
               end if
             end do
           end do
         end do
-      else
-        cfl_error = .false.
+        cfl_error = .true.
       end if
       !
       ! Now compute the new pressure

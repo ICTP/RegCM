@@ -351,7 +351,7 @@ module mod_precip
             qcleft = max(qcw-pptnew*dt,d_zero)             ![kg/kg][avg]
             ! 1bfb. Add fraction of the new precipitation to the accumulated
             !       precipitation [kg/m3]
-            pptkm1 = pptkm1 + accrfrc*pptnew/afc*rho3(j,i,k)*dt  ![kg/m3][cld]
+            pptkm1 = (pptkm1 + accrfrc*pptnew/afc)*rho3(j,i,k)*dt ![kg/m3][cld]
             ! 1bfc. accretion [kg/kg/s]
             pptacc = caccr(j,i)*qcleft*pptkm1              ![kg/kg/s][avg]
             ! 1bfd. Update the precipitation accounting for the

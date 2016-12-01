@@ -52,7 +52,7 @@ module mod_cloud_s1
   logical , parameter :: lmicro = .true.
 
   ! critical autoconversion
-  real(rkx) , parameter :: rcldiff = 1.e-6_rkx ! 3.e-6_rkx , 3.e-4_rkx
+  real(rkx) , parameter :: rcldiff = 1.e-6_rkx ! 3.e-6_rkx ! 3.e-4_rkx
   real(rkx) , parameter :: convfac = 1.0_rkx   ! 5.0_rkx
   real(rkx) , parameter :: rlcritsnow = 3.e-5_rkx
 
@@ -78,7 +78,8 @@ module mod_cloud_s1
   ! real(rkx) , parameter :: tw5 = 275.0_rkx
   ! real(rkx) , parameter :: rtaumel = 1.1880e4_rkx
   ! temperature homogeneous freezing
-  real(rkx) , parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
+  !real(rkx) , parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
+  real(rkx) , parameter :: thomo = 253.16_rkx  ! -20.00 Celsius
   ! Cloud fraction threshold that defines cloud top
   real(rkx) , parameter :: cldtopcf = 0.1_rkx
   ! Fraction of deposition rate in cloud top layer
