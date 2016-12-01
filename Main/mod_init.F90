@@ -580,11 +580,11 @@ module mod_init
               t = atm1%t(j,i,k) / sfs%psa(j,i)
               p = atm1%pr(j,i,k)
               qs = pfwsat(t,p)
-              rh = ( (atm1%qx(j,i,k,iqv)/sfs%psa(j,i))/qs )
+              rh = min(max(((atm1%qx(j,i,k,iqv)/sfs%psa(j,i))/qs),rhmax),rhmin)
               if ( rh > rh0(j,i) ) then
                 pfcc = d_one-sqrt(d_one-(rh-rh0(j,i))/(rhmax-rh0(j,i)))
                 dens = p / (rgas*t)
-                atm1%qx(j,i,k,iqc) = d_r10 * pfcc * dens * &
+                atm1%qx(j,i,k,iqc) = d_r100 * pfcc * dens * &
                              clwfromt(t)/d_1000 * sfs%psa(j,i)
                 atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
               end if
