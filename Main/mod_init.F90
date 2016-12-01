@@ -572,7 +572,7 @@ module mod_init
       end do
     end do
     if ( .not. ifrest ) then
-      if ( .false. .and. idynamic == 1 .and. ipptls > 0 ) then
+      if ( ipptls > 0 ) then
         ! Initialize cloud liquid water
         do k = 1 , kz
           do i = ici1 , ici2
@@ -584,7 +584,7 @@ module mod_init
               if ( rh > rh0(j,i) ) then
                 pfcc = d_one-sqrt(d_one-(rh-rh0(j,i))/(rhmax-rh0(j,i)))
                 dens = p / (rgas*t)
-                atm1%qx(j,i,k,iqc) = d_r10 * pfcc * dens * &
+                atm1%qx(j,i,k,iqc) = pfcc * dens * &
                              clwfromt(t)/d_1000 * sfs%psa(j,i)
                 atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
               end if
