@@ -989,7 +989,19 @@ module mod_advection
 #endif
       do n = n1 , n2
         fg(:,:,:) = d_zero
-        if ( ind == 1 ) then
+        if ( ind == 0 ) then
+          do k = 2 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( svv(j,i,k) > d_zero ) then
+                  fg(j,i,k) = svv(j,i,k)*f(j,i,k-1,n)
+                else
+                  fg(j,i,k) = svv(j,i,k)*f(j,i,k,n)
+                end if
+              end do
+            end do
+          end do
+        else if ( ind == 1 ) then
           do k = 2 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
