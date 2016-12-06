@@ -497,10 +497,10 @@ module mod_ncout
     if ( ifchem ) then
       nstream = nstream+1
       che_stream = nstream
-      if ( iaerosol == 1 .and. ifopt ) then
-        nstream = nstream+1
-        opt_stream = nstream
-      end if
+    end if
+    if ( ifopt .and. ichem == 1 .and. iaerosol == 1 ) then
+      nstream = nstream+1
+      opt_stream = nstream
     end if
     if ( ifslaboc ) then
       nstream = nstream+1
