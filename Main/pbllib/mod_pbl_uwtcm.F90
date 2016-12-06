@@ -134,7 +134,8 @@ module mod_pbl_uwtcm
   ! Do a maximum of 100 iterations (usually are no more than about 30)
   ! integer(ik4) , parameter :: itbound = 100
   ! Modding : Update tendencies only in the PBL
-  logical :: update_only_in_pbl = .false.
+  logical , parameter :: update_only_in_pbl = .false.
+  logical , parameter :: implicit_ice = .true.
 
   public :: allocate_tcm_state
   public :: init_mod_pbl_uwtcm
@@ -195,7 +196,7 @@ module mod_pbl_uwtcm
         end do
       end do
     end do
-    if ( ipptls == 2 ) then
+    if ( implicit_ice .and. ipptls == 2 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -384,7 +385,7 @@ module mod_pbl_uwtcm
         !where ( qx < minqq ) qx = minqq
         !where ( qcx < minqx ) qcx = d_zero
 
-        if ( ipptls == 2 ) then
+        if ( implicit_ice .and. ipptls == 2 ) then
           do k = 1 , kz
             qix(k) = m2p%qxatm(j,i,k,iqi) !+ p2m%qxten(j,i,k,iqi) * pfac
           end do
@@ -534,7 +535,7 @@ module mod_pbl_uwtcm
         ! diffusivity profiles using the updated values, and re-integrate.
         ! Also update N^2 along the way.
         melloryamadaiteration: &
-        do iteration = 1 , 3
+        do iteration = 1 , 2
           !*************************************************************
           !***** Semi-implicit calculation of diffusivity profiles *****
           !*************************************************************
@@ -576,7 +577,7 @@ module mod_pbl_uwtcm
           tvcon = (d_one + ep1*qx(kz)-qcx(kz))
           thvx_t = thx_t*tvcon
           dthv_t = (thvx_t-thv0)
-          nsquar(kzp1) = -egrav/thgb * dthv_t/zax(kz)
+          nsquar(kzp1) = egrav/thgb * dthv_t/zax(kz)
         end do melloryamadaiteration
 
         !*************************************************************
@@ -647,7 +648,7 @@ module mod_pbl_uwtcm
           end if
         end do updatewind
 
-        if ( ipptls == 2 ) then
+        if ( implicit_ice .and. ipptls == 2 ) then
           !
           ! Implicit diffusion of cloud ice
           !
@@ -656,17 +657,19 @@ module mod_pbl_uwtcm
             aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
           end do
           do  k = 1 , kz-1
-            cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))* &
-                         kth(k+1) * dt*rdzq(k)*rdza(k+1)
+            cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*kth(k+1)*dt*rdzq(k)*rdza(k+1)
           end do
           cimp(kz) = d_zero
           do  k = 1 , kz
             bimp(k) = d_one - aimp(k) - cimp(k)
+          end do
+          do  k = 1 , kz
             rimp1(k) = qix(k)
           end do
-          rimp1(:) = rimp1(:)*d_1000
-          call solve_tridiag(aimp,bimp,cimp,rimp1,qix,kz)
-          qix(:) = qix(:)*d_r1000
+          call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
+          do  k = 1 , kz
+            qix(k) = uimp1(k)
+          end do
         end if
 !
 !       !Re-update N^2 at the surface; this requires recalculation
@@ -830,7 +833,7 @@ module mod_pbl_uwtcm
           uwstateb%kth(j,i,k) = kth(k)
         end do
 
-        if ( ipptls == 2 ) then
+        if ( implicit_ice .and. ipptls == 2 ) then
           do k = ibnd , kz
             p2m%qxuwten(j,i,k,iqi) = psbx*(qix(k)-qixs(k))*rdt
           end do
