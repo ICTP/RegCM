@@ -319,10 +319,10 @@ module mod_precip
           !    gridcell (i.e. the gridcell average precipitation is used).
           if ( pptkm1 > pptmin ) then
             ! 2bca. Compute the clear sky relative humidity
-            rhcs = (rh3(j,i,k)-afc*rhmax)/(hicld-afc)    ![frac][clr]
+            rhcs = (rh3(j,i,k)-afc*rhmax)/(d_one-afc)    ![frac][clr]
             rhcs = max(min(rhcs,rhmax),rhmin)            ![frac][clr]
             ! 2bcb. Raindrop evaporation [kg/kg/s]
-            rdevap = xcevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(hicld-afc)
+            rdevap = xcevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(d_one-afc)
             qs = pfwsat(t3(j,i,k),p3(j,i,k))             ![kg/kg][avg]
             rdevap = min((qs-qvn(j,i,k))/dt,rdevap)      ![kg/kg/s][avg]
             rdevap = min(max(rdevap,d_zero),pptkm1)      ![kg/kg/s][avg]
