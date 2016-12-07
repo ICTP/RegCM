@@ -83,6 +83,10 @@ module mod_cnrm_helper
       fname = trim(inpglob)//pthsep//'CNRM-CM5'//pthsep//trim(scen)// &
               pthsep//trim(var)//pthsep//trim(var)//trim(cnrmbase1)//  &
               trim(cnrmbase3)//trim(d1)//'00-'//trim(d2)//'00.nc'
+    else if ( scen == 'RCP85' ) then
+      fname = trim(inpglob)//pthsep//'CNRM-CM5'//pthsep//trim(scen)// &
+              pthsep//trim(var)//pthsep//trim(var)//trim(cnrmbase2)//  &
+              scen(4:5)//trim(cnrmbase3)//trim(d1)//'-'//trim(d2)//'.nc'
     else
       fname = trim(inpglob)//pthsep//'CNRM-CM5'//pthsep//trim(scen)// &
               pthsep//trim(var)//pthsep//trim(var)//trim(cnrmbase2)//  &
@@ -128,7 +132,7 @@ module mod_cnrm_helper
     m2 = m1+1
     if ( m2 > 12 ) then
       m2 = 1
-      y2 = y2+1
+      y2 = y1+1
     end if
     write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, m1, 1, 6
     write(d2,'(i0.4,i0.2,i0.2,i0.2)') y2, m2, 1, 0
