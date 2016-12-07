@@ -56,8 +56,16 @@ module mod_cnrm_helper
         y2 = y1 + 9
       end if
     else
-      y1 = (y-6)/10*10+6
-      y2 = y1 + 9
+      if ( y >= 2100 ) then
+        y1 = (y)/10*10+1
+      else
+        y1 = (y-6)/10*10+6
+      end if
+      if ( y1 == 2096 ) then
+        y2 = 2100
+      else
+        y2 = y1 + 9
+      end if
     end if
     write(d1,'(i0.4,i0.2)') y1, 1
     write(d2,'(i0.4,i0.2)') y2, 12
