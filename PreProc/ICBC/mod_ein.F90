@@ -47,7 +47,7 @@ module mod_ein
   real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
   real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rkx) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
+  real(rkx) , pointer :: hvar(:,:,:) , qvar(:,:,:) , tvar(:,:,:)
 
   real(rkx) , pointer , dimension(:,:,:) :: b2
   real(rkx) , pointer , dimension(:,:,:) :: d2
@@ -66,6 +66,7 @@ module mod_ein
   real(rkx) , dimension(5,4) :: xoff , xscl
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   integer(ik4) , pointer , dimension(:) :: xtimes
+  logical :: lqas = .false.
 
   type(global_domain) :: gdomain
 
@@ -120,9 +121,10 @@ module mod_ein
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     !
-    ! Get back to mixing ratio
-    !
-    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+    if ( .not. lqas ) then
+      ! Get from RHUM to mixing ratio
+      call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+    end if
   end subroutine getein
 !
 !-----------------------------------------------------------------------
@@ -135,8 +137,8 @@ module mod_ein
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
-    character(len=1) , dimension(5) :: varname
-    character(len=4) , dimension(5) :: fname
+    character(len=1) , dimension(6) :: varname
+    character(len=4) , dimension(6) :: fname
     character(len=4) , dimension(4) :: hname
     character(len=64) :: cunit , ccal
     real(rkx) :: xadd , xscale
@@ -153,8 +155,8 @@ module mod_ein
     ! work will be used to hold the packed integers.  The array 'x'
     ! will contain the unpacked data.
     !
-    data varname /'t' , 'z' , 'r' , 'u' , 'v'/
-    data fname   /'air','hgt','rhum','uwnd','vwnd'/
+    data varname /'t' , 'z' , 'r' , 'u' , 'v' , 'q'/
+    data fname   /'air','hgt','rhum','uwnd','vwnd', 'qas'/
     data hname   /'.00.','.06.','.12.','.18.'/
 
     k4 = 1
@@ -222,14 +224,34 @@ module mod_ein
         lastyear = year
         do k4 = 1 , 4
           do kkrec = 1 , 5
-            write(inname,'(i4,a,a,i4,a)') &
-              year, pthsep, trim(fname(kkrec))//'.', year, hname(k4)//'nc'
-            pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
-            istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
+            if ( kkrec == 3 ) then
+              write(inname,'(i4,a,a,i4,a)') &
+                year, pthsep, trim(fname(6))//'.', year, hname(k4)//'nc'
+              pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
+              istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
+              if ( istatus == nf90_noerr ) then
+                lqas = .true.
+              else
+                write(inname,'(i4,a,a,i4,a)') &
+                  year, pthsep, trim(fname(kkrec))//'.', year, hname(k4)//'nc'
+                pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
+                istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
+              end if
+            else
+              write(inname,'(i4,a,a,i4,a)') &
+                  year, pthsep, trim(fname(kkrec))//'.', year, hname(k4)//'nc'
+              pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
+              istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
+            end if
             call checkncerr(istatus,__FILE__,__LINE__, &
               'Error open file '//trim(pathaddname))
-            istatus = nf90_inq_varid(inet5(kkrec,k4),varname(kkrec), &
-                                     ivar5(kkrec,k4))
+            if ( kkrec == 3 .and. lqas ) then
+              istatus = nf90_inq_varid(inet5(kkrec,k4),varname(6), &
+                                       ivar5(kkrec,k4))
+            else
+              istatus = nf90_inq_varid(inet5(kkrec,k4),varname(kkrec), &
+                                       ivar5(kkrec,k4))
+            end if
             call checkncerr(istatus,__FILE__,__LINE__, &
               'Error find var '//varname(kkrec))
             istatus = nf90_get_att(inet5(kkrec,k4),ivar5(kkrec,k4), &
@@ -300,10 +322,15 @@ module mod_ein
       else if ( kkrec == 3 ) then
         do j = 1 , jlat
           do i = 1 , ilon
-            rhvar(i,j,:) = &
-              max(real(real(work(i,j,:),rkx)*xscale+xadd,rkx)*0.01_rkx,0.0_rkx)
+            qvar(i,j,:) = &
+              max(real(real(work(i,j,:),rkx)*xscale+xadd,rkx),0.0_rkx)
           end do
         end do
+        if ( lqas ) then
+          call sph2mxr(qvar,ilon,jlat,klev)
+        else
+          qvar = qvar * 0.01_rkx
+        end if
       else if ( kkrec == 4 ) then
         do j = 1 , jlat
           do i = 1 , ilon
@@ -476,7 +503,7 @@ module mod_ein
     vvar => d2(:,:,klev+1:2*klev)
     tvar => b2(:,:,1:klev)
     hvar => b2(:,:,klev+1:2*klev)
-    rhvar => b2(:,:,2*klev+1:3*klev)
+    qvar => b2(:,:,2*klev+1:3*klev)
   end subroutine headerein
 
 end module mod_ein
