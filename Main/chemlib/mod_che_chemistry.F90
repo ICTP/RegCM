@@ -88,7 +88,7 @@ module mod_che_chemistry
           xrout(:) = d_zero
           ! 1 : initialise xrin with the concentrations from
           !     previous chemsolv step
-!  FAB: this fix a stability bug , but the solver might slower since
+!  FAB: this fix a stability bug , but the solver might slower 
 !  other option is to transport all the species.
           !if ( ktau > 0 ) then
           !  do ic = 1 , totsp
@@ -130,7 +130,7 @@ module mod_che_chemistry
           do n = 1 , ntr
             if ( trac%indcbmz(n) > 0 ) then
               change = xrout(trac%indcbmz(n)) - xrin(trac%indcbmz(n))
-              if ( change > 1.e-20_rkx ) then
+              if ( abs(change) > 1.e-20_rkx ) then
                 chemten(j,i,k,n) = real(change,rkx) * pfact * trac%mw(n)
               else
                 chemten(j,i,k,n) = d_zero
