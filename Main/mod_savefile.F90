@@ -802,8 +802,9 @@ module mod_savefile
       if ( islab_ocean == 1 .and. do_restore_sst ) then
         wrkdim(1) = dimids(idjcross)
         wrkdim(2) = dimids(idicross)
+        wrkdim(3) = dimids(idmonth)
         call mydefvar(ncid,'qflux_restore_sst',regcm_vartype, &
-                      wrkdim,1,2,varids,ivcc)
+                      wrkdim,1,3,varids,ivcc)
         wrkdim(1) = dimids(idmonth)
         call mydefvar(ncid,'stepcount',nf90_int,wrkdim,1,1,varids,ivcc)
       end if
