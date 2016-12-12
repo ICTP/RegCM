@@ -215,35 +215,65 @@ module mod_ncstream
       allocate(ncout%svp%xv)
       stream => ncout%ncp%xs
       stream%filename = params%fname
+      if ( params%l_keep ) then
+        stream%l_keep = params%l_keep
 #ifdef NETCDF4_HDF5
-      if ( params%mpi_comm /= -1 ) then
-        if ( params%mpi_iotype /= -1 ) then
-          imode = ior(params%mpi_iotype,iomode)
+        if ( params%mpi_comm /= -1 ) then
+          if ( params%mpi_iotype /= -1 ) then
+            imode = ior(params%mpi_iotype,nf90_write)
+          else
+            imode = ior(nf90_mpiio,nf90_write)
+          end if
+          ncstat = nf90_open(stream%filename,imode, &
+             stream%id,comm=params%mpi_comm,info=params%mpi_info)
+          stream%l_parallel = .true.
         else
-          imode = ior(nf90_mpiio,iomode)
+          ncstat = nf90_open(stream%filename,nf90_write,stream%id)
         end if
-        ncstat = nf90_create(stream%filename,imode, &
-          stream%id,comm=params%mpi_comm,info=params%mpi_info)
-        stream%l_parallel = .true.
-      else
-        ncstat = nf90_create(stream%filename,iomode,stream%id)
-      end if
 #else
-      if ( params%mpi_comm /= -1 ) then
-        !imode = ior(nf90_pnetcdf,iomode)
-        !ncstat = nf90_create(stream%filename,imode, &
-        !  params%mpi_comm,params%mpi_info,stream%id)
-        !stream%l_parallel = .true.
-        write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-        call die('nc_stream','Parallel netcdf with Pnetcdf crash',1)
-      else
-        ncstat = nf90_create(stream%filename,iomode,stream%id)
-      end if
+        if ( params%mpi_comm /= -1 ) then
+          !imode = ior(nf90_pnetcdf,nf90_write)
+          !ncstat = nf90_open(stream%filename,imode, &
+          !  params%mpi_comm,params%mpi_info,stream%id)
+          !stream%l_parallel = .true.
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+          call die('nc_stream','Parallel netcdf with Pnetcdf crash',1)
+        else
+          ncstat = nf90_open(stream%filename,nf90_write,stream%id)
+        end if
 #endif
+      else
+#ifdef NETCDF4_HDF5
+        if ( params%mpi_comm /= -1 ) then
+          if ( params%mpi_iotype /= -1 ) then
+            imode = ior(params%mpi_iotype,iomode)
+          else
+            imode = ior(nf90_mpiio,iomode)
+          end if
+          ncstat = nf90_create(stream%filename,imode, &
+            stream%id,comm=params%mpi_comm,info=params%mpi_info)
+          stream%l_parallel = .true.
+        else
+          ncstat = nf90_create(stream%filename,iomode,stream%id)
+        end if
+#else
+        if ( params%mpi_comm /= -1 ) then
+          !imode = ior(nf90_pnetcdf,iomode)
+          !ncstat = nf90_create(stream%filename,imode, &
+          !  params%mpi_comm,params%mpi_info,stream%id)
+          !stream%l_parallel = .true.
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+          call die('nc_stream','Parallel netcdf with Pnetcdf crash',1)
+        else
+          ncstat = nf90_create(stream%filename,iomode,stream%id)
+        end if
+#endif
+      end if
       if ( ncstat /= nf90_noerr ) then
         write(stderr,*) nf90_strerror(ncstat)
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-        call die('nc_stream','Cannot create file '//trim(stream%filename),1)
+        call die('nc_stream', &
+                 'Cannot create or open file '//trim(stream%filename),1)
       end if
       if ( stream%l_parallel ) then
         stream%jparbound(1) = params%global_jstart
@@ -571,11 +601,13 @@ module mod_ncstream
         stvar%spectral_var%lrecords = .false.
         call outstream_addvar(ncout,stvar%spectral_var)
       end if
-      ncstat = nf90_enddef(stream%id)
-      if ( ncstat /= nf90_noerr ) then
-        write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-        write(stderr,*) nf90_strerror(ncstat)
-        call die('nc_stream','Cannot enable file '//trim(stream%filename),1)
+      if ( .not. stream%l_keep ) then
+        ncstat = nf90_enddef(stream%id)
+        if ( ncstat /= nf90_noerr ) then
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+          write(stderr,*) nf90_strerror(ncstat)
+          call die('nc_stream','Cannot enable file '//trim(stream%filename),1)
+        end if
       end if
       !
       ! Allocate buffer space shared by all vars
@@ -833,12 +865,16 @@ module mod_ncstream
           call die('nc_stream', 'Cannot add dimension to file '// &
             trim(stream%filename)//': Undefined in add_dimension', 1)
       end select
-      ncstat = nf90_def_dim(stream%id,the_name,num,stream%id_dims(pdim))
+      if ( stream%l_keep ) then
+        ncstat = nf90_inq_dimid(stream%id,the_name,stream%id_dims(pdim))
+      else
+        ncstat = nf90_def_dim(stream%id,the_name,num,stream%id_dims(pdim))
+      end if
       if ( ncstat /= nf90_noerr ) then
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
         write(stderr,*) nf90_strerror(ncstat)
         call die('nc_stream', &
-          'Cannot add dimension '//trim(the_name)//' to file '// &
+          'Cannot add or find dimension '//trim(the_name)//' to file '// &
           trim(stream%filename), 1)
       end if
       stream%len_dims(pdim) = num
@@ -880,22 +916,50 @@ module mod_ncstream
       the_name = vname
       select type(att)
         class is (ncattribute_string)
-          ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+          if ( stream%l_keep ) then
+            ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+          else
+            ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+          end if
         class is (ncattribute_logical)
-          call cdumlogical(cdum,att%theval)
-          ncstat = nf90_put_att(stream%id,iv,att%aname,cdum)
+          if ( stream%l_keep ) then
+            ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+          else
+            call cdumlogical(cdum,att%theval)
+            ncstat = nf90_put_att(stream%id,iv,att%aname,cdum)
+          end if
         class is (ncattribute_integer)
-          ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+          if ( stream%l_keep ) then
+            ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+          else
+            ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+          end if
         class is (ncattribute_real4)
-          ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+          if ( stream%l_keep ) then
+            ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+          else
+            ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+          end if
         class is (ncattribute_real8)
-          ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+          if ( stream%l_keep ) then
+            ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+          else
+            ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+          end if
         class is (ncattribute_real4_array)
-          ncstat = nf90_put_att(stream%id,iv, &
-            att%aname,att%theval(1:att%numval))
+          if ( stream%l_keep ) then
+            ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+          else
+            ncstat = nf90_put_att(stream%id,iv, &
+                      att%aname,att%theval(1:att%numval))
+          end if
         class is (ncattribute_real8_array)
-          ncstat = nf90_put_att(stream%id,iv, &
-            att%aname,att%theval(1:att%numval))
+          if ( stream%l_keep ) then
+            ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+          else
+            ncstat = nf90_put_att(stream%id,iv, &
+                       att%aname,att%theval(1:att%numval))
+          end if
         class default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', 'Cannot add attribute of unknow type',1)
@@ -965,7 +1029,6 @@ module mod_ncstream
           call add_attribute(stream, &
             ncattribute_real4('_FillValue',var%imissval),var%id,var%vname)
         end if
-
       end if
     end subroutine add_varatts
 
@@ -979,7 +1042,11 @@ module mod_ncstream
       stream => ncout%ncp%xs
       if ( stream%l_enabled ) return
       if ( ndims == 0 ) then
-        ncstat = nf90_def_var(stream%id,var%vname,var%nctype,var%id)
+        if ( stream%l_keep ) then
+          ncstat = nf90_inq_varid(stream%id,var%vname,var%id)
+        else
+          ncstat = nf90_def_var(stream%id,var%vname,var%nctype,var%id)
+        end if
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           write(stderr,*) nf90_strerror(ncstat)
@@ -988,8 +1055,12 @@ module mod_ncstream
             trim(stream%filename), 1)
         end if
       else
-        ncstat = nf90_def_var(stream%id,var%vname,var%nctype, &
-                              id_dim(1:ndims),var%id)
+        if ( stream%l_keep ) then
+          ncstat = nf90_inq_varid(stream%id,var%vname,var%id)
+        else
+          ncstat = nf90_def_var(stream%id,var%vname,var%nctype, &
+                                id_dim(1:ndims),var%id)
+        end if
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           write(stderr,*) nf90_strerror(ncstat)
@@ -999,7 +1070,11 @@ module mod_ncstream
         end if
 #if ! defined(NETCDF4_HDF5) && defined (NETCDF4_COMPRESS)
         if ( ndims > 3 ) then
-          ncstat = nf90_def_var_deflate(stream%id,var%id,1,1,9)
+          if ( stream%l_keep ) then
+            ncstat = nf90_inq_varid(stream%id,var%vname,var%id)
+          else
+            ncstat = nf90_def_var_deflate(stream%id,var%id,1,1,9)
+          end if
           if ( ncstat /= nf90_noerr ) then
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
             write(stderr,*) nf90_strerror(ncstat)

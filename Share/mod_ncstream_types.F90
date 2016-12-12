@@ -69,6 +69,7 @@ module mod_ncstream_types
     integer(ik4) :: mpi_comm = -1
     integer(ik4) :: mpi_info = -1
     integer(ik4) :: mpi_iotype = -1
+    logical :: l_keep = .false.
     ! If boundary values are part of the grids
     ! Note that in the model configuration as of now, the output is on
     ! CROSS points INTERNAL
@@ -157,6 +158,7 @@ module mod_ncstream_types
     !   -) no boundary on cross points
     !   -) half sigma level on vertical
     !
+    logical :: l_keep = .false.
     logical :: l_bound = .false.
     logical :: l_band  = .false.
     logical :: l_subgrid = .false.
