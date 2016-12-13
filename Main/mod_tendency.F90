@@ -1429,9 +1429,7 @@ module mod_tendency
       ! Calculate the vertical advective tendency for TKE
       call vadv(uwstatea%advtke,uwstatea%tkeps,kzp1,0)
       ! Calculate the horizontal, diffusive tendency for TKE
-      ! The multiplication factor was causing instabilities
-      ! in the non-hydrostatic model and has been removed.
-      call diffu_x(uwstatea%advtke,atm2%tke,d_one)
+      call diffu_x(uwstatea%advtke,atm2%tke,nuk)
     end if
     !
     ! Compute future values of t and moisture variables at tau+1:
