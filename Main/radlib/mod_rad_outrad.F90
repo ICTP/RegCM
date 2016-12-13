@@ -151,7 +151,7 @@ module mod_rad_outrad
 
     if ( ktau == 0 ) return
 
-    if ( ifchem .and. iaerosol == 1 ) then
+    if ( ifopt .and. iaerosol == 1 ) then
       if ( irrtm == 1 ) then
         visband = 9
       else
