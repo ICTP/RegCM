@@ -50,6 +50,6 @@ install-exec-hook:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 GrADSNcPlot.o : GrADSNcPlot.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_projections.o mod_stdio.o mod_message.o mod_date.o mod_space.o mod_memutil.o mod_dynparam.o mod_nchelper.o
 GrADSNcPrepare.o : GrADSNcPrepare.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_projections.o mod_stdio.o mod_message.o mod_date.o mod_space.o mod_memutil.o mod_dynparam.o mod_nchelper.o
-sigma2p.o : sigma2p.F90 mod_realkinds.o mod_constants.o mod_stdio.o mod_message.o mod_vertint.o mod_date.o mod_space.o mod_memutil.o mod_dynparam.o mod_nchelper.o mod_hgt.o mod_humid.o mod_dynparam.o
-sigma2z.o : sigma2z.F90 mod_realkinds.o mod_constants.o mod_stdio.o mod_message.o mod_vertint.o mod_date.o mod_space.o mod_memutil.o mod_dynparam.o mod_nchelper.o mod_humid.o mod_dynparam.o
+sigma2p.o : sigma2p.F90 mod_realkinds.o mod_constants.o mod_stdio.o mod_message.o mod_vertint.o mod_date.o mod_space.o mod_memutil.o mod_dynparam.o mod_nchelper.o mod_hgt.o mod_humid.o mod_dynparam.o mod_memutil.o mod_sigma.o
+sigma2z.o : sigma2z.F90 mod_realkinds.o mod_constants.o mod_stdio.o mod_message.o mod_vertint.o mod_date.o mod_space.o mod_memutil.o mod_dynparam.o mod_nchelper.o mod_humid.o mod_dynparam.o mod_memutil.o mod_sigma.o
 clm45_1dto2d.o : clm45_1dto2d.F90 mod_dynparam.o mod_intkinds.o mod_nchelper.o mod_realkinds.o mod_stdio.o

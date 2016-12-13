@@ -36,6 +36,8 @@ program sigma2z
   use mod_hgt
   use mod_humid
   use mod_stdio
+  use mod_memutil
+  use mod_sigma , only : init_sigma , half_sigma_coordinate
   use netcdf
 
   implicit none
@@ -221,6 +223,7 @@ program sigma2z
 
   ippvarid = -1
   ip0varid = -1
+  ircm_map = -1
 
   has_sph = .false.
   is_icbc = .false.
@@ -373,25 +376,22 @@ program sigma2z
   istatus = nf90_inq_varid(ncid, "sigma", ivarid)
   if ( istatus /= nf90_noerr ) then
     istatus = nf90_inq_varid(ncid, "lev", ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable sigma.')
-  end if
-  istatus = nf90_get_var(ncid, ivarid, sigma)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable sigma.')
-  if ( sigma(1) < dlowval ) then
-    ! Fix for a buggy RegCM 4.3.x revision
-    allocate(sigfix(kz+1))
-    sigfix(1:kz) = sigma
-    sigfix(kz+1) = d_one
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error reading variable sigma or lev.')
+    call memory_init
+    call init_sigma(kz,0.05_rkx,0.01_rkx)
     do k = 1 , kz
-      sigma(k) = 0.5*real(sigfix(k)+sigfix(k+1))
+      sigma(k) = half_sigma_coordinate(k)
     end do
-    deallocate(sigfix)
+    call memory_destroy
   else
-    if ( any(sigma > 1.0) ) then
-      ! cdo screws things...
-      write(stdout,*) 'Trying to rebuild sigma levels...'
+    istatus = nf90_get_var(ncid, ivarid, sigma)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable sigma.')
+    if ( sigma(1) < dlowval ) then
+      ! Fix for a buggy RegCM 4.3.x revision
       allocate(sigfix(kz+1))
-      call getsigma(sigfix)
+      sigfix(1:kz) = sigma
+      sigfix(kz+1) = d_one
       do k = 1 , kz
         sigma(k) = 0.5*real(sigfix(k)+sigfix(k+1))
       end do
@@ -666,80 +666,6 @@ program sigma2z
   istatus = nf90_close(ncout)
   call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close output file '//trim(ncpfile))
-
-  contains
-
-    subroutine getsigma(sig)
-      implicit none
-      real(rkx) , dimension(kz+1) , intent(out) :: sig
-      if ( kz==14 ) then                      ! RegCM2
-        sig(1) = 0.0_rkx
-        sig(2) = 0.04_rkx
-        sig(3) = 0.10_rkx
-        sig(4) = 0.17_rkx
-        sig(5) = 0.25_rkx
-        sig(6) = 0.35_rkx
-        sig(7) = 0.46_rkx
-        sig(8) = 0.56_rkx
-        sig(9) = 0.67_rkx
-        sig(10) = 0.77_rkx
-        sig(11) = 0.86_rkx
-        sig(12) = 0.93_rkx
-        sig(13) = 0.97_rkx
-        sig(14) = 0.99_rkx
-        sig(15) = 1.0_rkx
-      else if ( kz==18 ) then                 ! RegCM3, default
-        sig(1) = 0.0_rkx
-        sig(2) = 0.05_rkx
-        sig(3) = 0.10_rkx
-        sig(4) = 0.16_rkx
-        sig(5) = 0.23_rkx
-        sig(6) = 0.31_rkx
-        sig(7) = 0.39_rkx
-        sig(8) = 0.47_rkx
-        sig(9) = 0.55_rkx
-        sig(10) = 0.63_rkx
-        sig(11) = 0.71_rkx
-        sig(12) = 0.78_rkx
-        sig(13) = 0.84_rkx
-        sig(14) = 0.89_rkx
-        sig(15) = 0.93_rkx
-        sig(16) = 0.96_rkx
-        sig(17) = 0.98_rkx
-        sig(18) = 0.99_rkx
-        sig(19) = 1.0_rkx
-      else if ( kz==23 ) then                 ! MM5V3
-        sig(1) = 0.0_rkx
-        sig(2) = 0.05_rkx
-        sig(3) = 0.1_rkx
-        sig(4) = 0.15_rkx
-        sig(5) = 0.2_rkx
-        sig(6) = 0.25_rkx
-        sig(7) = 0.3_rkx
-        sig(8) = 0.35_rkx
-        sig(9) = 0.4_rkx
-        sig(10) = 0.45_rkx
-        sig(11) = 0.5_rkx
-        sig(12) = 0.55_rkx
-        sig(13) = 0.6_rkx
-        sig(14) = 0.65_rkx
-        sig(15) = 0.7_rkx
-        sig(16) = 0.75_rkx
-        sig(17) = 0.8_rkx
-        sig(18) = 0.85_rkx
-        sig(19) = 0.89_rkx
-        sig(20) = 0.93_rkx
-        sig(21) = 0.96_rkx
-        sig(22) = 0.98_rkx
-        sig(23) = 0.99_rkx
-        sig(24) = 1.0_rkx
-      else
-        write(stderr,*) 'CDO has screwed up sigma levels.'
-        write(stderr,*) 'Not an hardcoded number of levels, so no help here.'
-        write(stderr,*) 'Add sigma variable to the file from an ATM file.'
-        stop
-      end if
-    end subroutine getsigma
 
 end program sigma2z
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -41,6 +41,11 @@ module mod_humid
     module procedure sph2mxr_single
   end interface sph2mxr
 
+  interface rh2mxr
+    module procedure rh2mxr_p3d
+    module procedure rh2mxr_p1d
+  end interface rh2mxr
+
   public :: mxr2rh , ecmwf_rh2mxr , rh2mxr
   public :: sph2mxr , mxr2sph
 
@@ -242,7 +247,29 @@ module mod_humid
     end do
   end subroutine mxr2rh_o_single_nonhydro
 
-  subroutine rh2mxr(t,q,ps,ptop,sigma,ni,nj,nk)
+  subroutine rh2mxr_p1d(t,q,p,ni,nj,nk)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj , nk
+    real(rkx) , intent(in) , dimension(nk) :: p ! Pressure in cb !
+    real(rkx) , intent(in) , dimension(ni,nj,nk) :: t
+    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
+
+    real(rkx) :: qs
+    integer(ik4) :: i , j , k
+    !
+    ! THIS ROUTINE REPLACES RELATIVE HUMIDITY BY MIXING RATIO
+    !
+    do k = 1 , nk
+      do j = 1 , nj
+        do i = 1 , ni
+          qs = pfwsat(t(i,j,k),p(k)*d_1000)
+          q(i,j,k) = max(q(i,j,k)*qs,d_zero)
+        end do
+      end do
+    end do
+  end subroutine rh2mxr_p1d
+
+  subroutine rh2mxr_p3d(t,q,ps,ptop,sigma,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
     real(rkx) , intent(in) :: ptop
@@ -265,7 +292,7 @@ module mod_humid
         end do
       end do
     end do
-  end subroutine rh2mxr
+  end subroutine rh2mxr_p3d
 
   subroutine ecmwf_rh2mxr(t,q,ps,ptop,sigma,ni,nj,nk)
     implicit none

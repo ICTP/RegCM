@@ -27,12 +27,14 @@ program sigma2p
   use mod_intkinds
   use mod_realkinds
   use mod_constants
-  use mod_dynparam , only : iomode
+  use mod_dynparam , only : iomode , dsmax , dsmin
 #ifdef NETCDF4_HDF5
   use mod_dynparam , only : deflate_level
 #endif
   use mod_message
   use mod_vertint
+  use mod_memutil
+  use mod_sigma , only : init_sigma , half_sigma_coordinate
   use mod_hgt
   use mod_humid
   use mod_nchelper
@@ -219,6 +221,7 @@ program sigma2p
 
   has_sph = .false.
   is_icbc = .false.
+  ircm_map = -1
 
   do i = 1 , nvars
     lkvarflag(i) = .false.
@@ -393,19 +396,27 @@ program sigma2p
   istatus = nf90_inq_varid(ncid, "sigma", ivarid)
   if ( istatus /= nf90_noerr ) then
     istatus = nf90_inq_varid(ncid, "lev", ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable sigma.')
-  end if
-  istatus = nf90_get_var(ncid, ivarid, sigma)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable sigma.')
-  if ( sigma(1) < dlowval ) then
-    ! Fix for a buggy RegCM 4.3.x revision
-    allocate(sigfix(kz+1))
-    sigfix(1:kz) = sigma
-    sigfix(kz+1) = d_one
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error reading variable sigma or lev.')
+    call memory_init
+    call init_sigma(kz,0.05_rkx,0.01_rkx)
     do k = 1 , kz
-      sigma(k) = 0.5*real(sigfix(k)+sigfix(k+1))
+      sigma(k) = half_sigma_coordinate(k)
     end do
-    deallocate(sigfix)
+    call memory_destroy
+  else
+    istatus = nf90_get_var(ncid, ivarid, sigma)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable sigma.')
+    if ( sigma(1) < dlowval ) then
+      ! Fix for a buggy RegCM 4.3.x revision
+      allocate(sigfix(kz+1))
+      sigfix(1:kz) = sigma
+      sigfix(kz+1) = d_one
+      do k = 1 , kz
+        sigma(k) = 0.5*real(sigfix(k)+sigfix(k+1))
+      end do
+      deallocate(sigfix)
+    end if
   end if
 
   if ( iodyn == 2 ) then
