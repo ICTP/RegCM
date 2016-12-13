@@ -250,9 +250,9 @@ module mod_humid
   subroutine rh2mxr_p1d(t,q,p,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
-    real(rkx) , intent(in) , dimension(nk) :: p ! Pressure in cb !
-    real(rkx) , intent(in) , dimension(ni,nj,nk) :: t
-    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
+    real(rkx) , intent(in) , dimension(nk) :: p ! Pa
+    real(rkx) , intent(in) , dimension(ni,nj,nk) :: t ! K
+    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q ! 0-1
 
     real(rkx) :: qs
     integer(ik4) :: i , j , k
@@ -262,7 +262,7 @@ module mod_humid
     do k = 1 , nk
       do j = 1 , nj
         do i = 1 , ni
-          qs = pfwsat(t(i,j,k),p(k)*d_1000)
+          qs = pfwsat(t(i,j,k),p(k))
           q(i,j,k) = max(q(i,j,k)*qs,d_zero)
         end do
       end do

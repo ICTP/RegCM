@@ -124,10 +124,11 @@ module mod_gn6hnc
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
   character(len=3) , target , dimension(nvars) :: ccsmvars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
-  character(len=3) , target , dimension(nvars) :: gfsvars = &
-                         (/'ta ' , 'hga' , 'rha' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: echvars = &
                          (/'t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ' , 'XXX'/)
+
+  character(len=3) , target , dimension(nvars) :: gfsvars = &
+                         (/'ta ' , 'hga' , 'rha' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: ec5vars = &
                          (/'ta ' , 'gpa' , 'rha' , 'ua ' , 'va ' , 'XXX'/)
   character(len=5) , target , dimension(nvars) :: jra55vars = &
@@ -135,6 +136,7 @@ module mod_gn6hnc
 
   character(len=4) , dimension(nvars) :: ccsmfname = &
                (/'air ' , 'hgt ' , 'shum' , 'uwnd' , 'vwnd' , 'pres'/)
+
   character(len=6) , target , dimension(nvars) :: ec5name = &
     (/'STP   ' , 'GPH   ' , 'RELHUM' , 'U     ' , 'V     ' , 'XXX   '/)
   character(len=8) , target , dimension(nvars) :: jra55name = &
@@ -962,10 +964,6 @@ module mod_gn6hnc
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
-
-    ! Get back to specific humidity
-    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
-
   end subroutine get_gn6hnc
   !
   !-----------------------------------------------------------------------
@@ -1046,6 +1044,7 @@ module mod_gn6hnc
       do j = 1 , nlat
         vvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
+      call rh2mxr(tvar,qvar,pplev,nlon,nlat,klev)
     else if ( dattyp == 'JRA55' ) then
       varname => ec5vars
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
@@ -1134,6 +1133,7 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//jra55vars(3))
       qvar(:,:,:) = vwork(:,:,:)*0.01_rkx
+      call rh2mxr(tvar,qvar,pplev,nlon,nlat,klev)
     else if ( dattyp(1:2) == 'E5' ) then
       varname => ec5vars
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
@@ -1214,6 +1214,7 @@ module mod_gn6hnc
       do k = 1, klev
         pp3d(:,:,k) = pplev(k)*0.01 ! Get in hPa
       end do
+      call rh2mxr(tvar,qvar,pplev,nlon,nlat,klev)
     ! More difficult. Multiple files per variable and per year
     else if ( dattyp(1:3) == 'EC_' ) then
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
@@ -1300,8 +1301,6 @@ module mod_gn6hnc
       do k = 1, klev
         pp3d(:,:,k) = pplev(k)*0.01 ! Get in hPa
       end do
-      ! Replace with relative humidity for internal calculation
-      call mxr2rh(tvar,qvar,pp3d,nlon,nlat,klev,-9999.0_rkx)
     else
       ! Even more difficult. Each data type has its own quirks.
       tdif = rcm_time_interval(180,uhrs)
@@ -1733,9 +1732,6 @@ module mod_gn6hnc
            dattyp(1:3) == 'MI_' .or. dattyp(1:3) == 'MP' ) then
         call sph2mxr(qvar,nlon,nlat,klev)
       end if
-
-      ! Replace with relative humidity for internal calculation
-      call mxr2rh(tvar,qvar,pp3d,nlon,nlat,klev,-9999.0_rkx)
 
       if ( dattyp(1:3) == 'HA_' ) then
         icount(1) = nulon
