@@ -305,6 +305,21 @@ module mod_sst_gnhnc
       istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find var '//varname(2))
+      if ( ssttyp == 'EIXXX' .or. ssttyp(1:3) == 'CFS' .or. &
+           ssttyp(1:3) == 'EIN' ) then
+        istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(2)//' _FillValue')
+        istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(2)//' add_offset')
+        istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(2)//' scale_factor')
+        write(stdout,*) 'Add offset   = ',add_offset
+        write(stdout,*) 'Scale factor = ',scale_factor
+        write(stdout,*) 'Fill Value   = ',fillvalue
+      end if
       istatus = nf90_inq_dimid(inet1,'time',timid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find dim time')
