@@ -305,7 +305,7 @@ module mod_sst_gnhnc
       istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find var '//varname(2))
-      if ( sttyp(1:3) == 'CFS' .or. ssttyp(1:3) == 'EIN' ) then
+      if ( ssttyp(1:3) == 'CFS' .or. ssttyp(1:3) == 'EIN' ) then
         istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var '//varname(2)//' _FillValue')
