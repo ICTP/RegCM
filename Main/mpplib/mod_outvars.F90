@@ -105,6 +105,8 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_frz_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_rainev_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_snowev_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: atm_stats_autocw_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: atm_stats_autocc_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: srf_uvdrag_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_ustar_out => null()

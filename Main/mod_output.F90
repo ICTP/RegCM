@@ -360,6 +360,16 @@ module mod_output
               atm_stats_snowev_out(:,:,k) = statssnowev(jci1:jci2,ici1:ici2,k)
             end do
           end if
+          if ( associated(atm_stats_autocw_out) ) then
+            do k = 1 , kz
+              atm_stats_autocw_out(:,:,k) = statsautocvw(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_autocc_out) ) then
+            do k = 1 , kz
+              atm_stats_autocc_out(:,:,k) = statsautocvc(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
         end if
 #endif
 

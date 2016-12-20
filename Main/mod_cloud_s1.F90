@@ -31,7 +31,7 @@ module mod_cloud_s1
   use mod_runparams , only : iqqr => iqr !rain
   use mod_runparams , only : iqqi => iqi !ice
   use mod_runparams , only : iqqs => iqs !snow
-  use mod_runparams , only : sigma
+  use mod_runparams , only : sigma ! , twt
   use mod_runparams , only : dt
   use mod_runparams , only : ipptls , ichem , iaerosol , iindirect , rcrit
   use mod_runparams , only : budget_compute , nssopt , iautoconv
@@ -54,7 +54,7 @@ module mod_cloud_s1
   ! critical autoconversion
   real(rkx) , parameter :: rcldiff = 1.e-6_rkx ! 3.e-6_rkx ! 3.e-4_rkx
   real(rkx) , parameter :: convfac = 1.0_rkx   ! 5.0_rkx
-  real(rkx) , parameter :: rlcritsnow = 3.e-5_rkx
+  real(rkx) , parameter :: rlcritsnow = 4.e-5_rkx
 
   real(rkx) , parameter :: auto_expon_khair = 1.47_rkx
   real(rkx) , parameter :: rldcp = d_one/(wlhsocp-wlhvocp)  ! Cp/Lf
@@ -104,6 +104,7 @@ module mod_cloud_s1
   real(rkx) , pointer , dimension(:,:,:) :: t         ! from atms
   real(rkx) , pointer , dimension(:,:,:) :: rho       ! from atms
   real(rkx) , pointer , dimension(:,:,:) :: pverv     ! from atms
+  real(rkx) , pointer , dimension(:,:,:) :: verv      ! from atms
   real(rkx) , pointer , dimension(:,:,:,:) :: qxx     ! from atms
   real(rkx) , pointer , dimension(:,:,:) :: radheatrt ! radiation heat rate
   real(rkx) , pointer , dimension(:,:,:) :: tten      ! tendency of temperature
@@ -174,6 +175,8 @@ module mod_cloud_s1
   real(rkx) , pointer , dimension(:,:,:) :: ttendc
   ! detrainment from tiedtke scheme
   real(rkx) , pointer , dimension(:,:) :: xlcrit
+  ! Cloud coverage and clearsky portion
+  real(rkx) , pointer , dimension(:,:) :: covptot , covpclr
   ! fall speeds of three categories
   real(rkx) , pointer , dimension(:) :: vqx
   ! n x n matrix storing the LHS of implicit solver
@@ -242,6 +245,8 @@ module mod_cloud_s1
   real(rkx) , public  , pointer, dimension(:,:,:) :: statsfrz
   real(rkx) , public  , pointer, dimension(:,:,:) :: statsrainev
   real(rkx) , public  , pointer, dimension(:,:,:) :: statssnowev
+  real(rkx) , public  , pointer, dimension(:,:,:) :: statsautocvw
+  real(rkx) , public  , pointer, dimension(:,:,:) :: statsautocvc
 #endif
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
@@ -298,6 +303,8 @@ module mod_cloud_s1
     call getmem1d(lind1,1,nqx,'cmicro:lind1')
     call getmem3d(koop,jci1,jci2,ici1,ici2,1,kz,'cmicro:koop')
     call getmem2d(xlcrit,jci1,jci2,ici1,ici2,'cmicro:xlcrit')
+    call getmem2d(covptot,jci1,jci2,ici1,ici2,'cmicro:covptot')
+    call getmem2d(covpclr,jci1,jci2,ici1,ici2,'cmicro:covpclr')
     call getmem3d(eeliq,jci1,jci2,ici1,ici2,1,kz,'cmicro:eeliq')
     call getmem3d(eeice,jci1,jci2,ici1,ici2,1,kz,'cmicro:eeice')
     call getmem3d(eeliqt,jci1,jci2,ici1,ici2,1,kz,'cmicro:eeliqt')
@@ -339,6 +346,8 @@ module mod_cloud_s1
       call getmem3d(statsfrz,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsfrz')
       call getmem3d(statsrainev,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsrainev')
       call getmem3d(statssnowev,jci1,jci2,ici1,ici2,1,kz,'cmicro:statssnowev')
+      call getmem3d(statsautocvw,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsautocvw')
+      call getmem3d(statsautocvc,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsautocvc')
     end if
 #endif
   end subroutine allocate_mod_cloud_s1
@@ -352,6 +361,7 @@ module mod_cloud_s1
     call assignpnt(atms%pf3d,pfs)
     call assignpnt(atms%tb3d,t)
     call assignpnt(atms%wpx3d,pverv)
+    call assignpnt(atms%wb3d,verv)
     call assignpnt(atms%qxb3d,qxx)
     call assignpnt(atms%rhob3d,rho)
     call assignpnt(atms%rhb3d,relh)
@@ -450,19 +460,20 @@ module mod_cloud_s1
     real(rkx) :: chng , chngmax
     real(rkx) :: qexc
     real(rkx) :: icenuclei
-    real(rkx) :: qpretot , covptot , covpclr
+    real(rkx) :: qpretot
     real(rkx) :: qicetot , fluxq
     real(rkx) :: ldefr
+    real(rkx) :: critauto
     ! real(rkx) :: gdph_r
     ! constants for deposition process
     real(rkx) :: vpice , vpliq , xadd , xbdd , cvds , &
-                 qice0 , qinew , infactor , snowaut
+                 qice0 , qinew , infactor , rainaut , snowaut
     ! constants for condensation and turbulent mixing erosion of clouds
     real(rkx) :: dpmxdt , wtot , dtdiab , dtforc , &
                  qp , qsat , cond1 , levap , leros
     real(rkx) :: qvnow , qlnow , qinow , sqmix , ccover , lccover
     real(rkx) :: tk , tc , dens , pbot , totliq , ccn
-    real(rkx) :: snowp , rainp
+    real(rkx) :: snowp , rainp ! , totspd
 
     procedure (voidsub) , pointer :: selautoconv => null()
     procedure (voidsub) , pointer :: selnss => null()
@@ -751,6 +762,23 @@ module mod_cloud_s1
     if ( stats ) then
       statssupw(:,:,:) = d_zero
       statssupc(:,:,:) = d_zero
+      statserosw(:,:,:) = d_zero
+      statserosc(:,:,:) = d_zero
+      statsdetrw(:,:,:) = d_zero
+      statsdetrc(:,:,:) = d_zero
+      statsevapw(:,:,:) = d_zero
+      statsevapc(:,:,:) = d_zero
+      statscond1w(:,:,:) = d_zero
+      statscond1c(:,:,:) = d_zero
+      statscond2w(:,:,:) = d_zero
+      statscond2c(:,:,:) = d_zero
+      statsdepos(:,:,:) = d_zero
+      statsmelt(:,:,:) = d_zero
+      statsfrz(:,:,:) = d_zero
+      statsrainev(:,:,:) = d_zero
+      statssnowev(:,:,:) = d_zero
+      statsautocvw(:,:,:) = d_zero
+      statsautocvc(:,:,:) = d_zero
     end if
 #endif
     !
@@ -758,6 +786,9 @@ module mod_cloud_s1
     !                       TOP ATMOSPHERIC LEVEL
     !----------------------------------------------------------------------
     !
+    covptot(:,:) = d_zero
+    covpclr(:,:) = d_zero
+
     do i = ici1 , ici2
       do j = jci1 , jci2
 
@@ -778,11 +809,19 @@ module mod_cloud_s1
         fallsrce(:) = d_zero
         fallsink(:) = d_zero
         convsink(:) = d_zero
-        qpretot     = d_zero
-        covptot     = d_zero
-        covpclr     = d_zero
-        qicetot     = d_zero
         ldefr       = d_zero
+        qpretot = d_zero
+        do n = 1 , nqx
+          if ( lfall(n) ) then
+            qpretot = qpretot + qxfg(n)
+          end if
+        end do
+        qicetot = d_zero
+        do n = 1 , nqx
+          if ( iphase(n) == 2 ) then
+            qicetot = qicetot + qxfg(n)
+          end if
+        end do
 
         !---------------------------------
         ! First guess microphysics
@@ -801,6 +840,7 @@ module mod_cloud_s1
         if ( lccn) ccn = pccn(j,i,1)
         rainp = d_zero
         snowp = d_zero
+        critauto = xlcrit(j,i)
 
         ltkgt0    = ( tk > tzero )
         ltklt0    = ( .not. ltkgt0 )
@@ -1120,7 +1160,7 @@ module mod_cloud_s1
           ! dqs < 0: formation of clouds
           !-----------------------------------------------------------------
           ! (1) increase of cloud water in existing clouds
-          if ( lcloud .and. dqs <= -activqx ) then
+          if ( lcloud .and. .not. locast .and. dqs <= -activqx ) then
             ! new limiter
             chng = max(-dqs,d_zero)
             ! old limiter
@@ -1345,7 +1385,7 @@ module mod_cloud_s1
           do n = 1 , nqx
             if ( lfall(n) ) then
               ! Sink to next layer, constant fall speed
-              fallsink(n) = dtgdp*vqx(n)*dens   !Kg/Kg
+              fallsink(n) = dtgdp * vqx(n) * dens ! Kg/Kg
             end if  !lfall
           end do ! n
 
@@ -1368,15 +1408,14 @@ module mod_cloud_s1
           !   overlap for clouds separated by clear levels.
           !---------------------------------------------------------------
           if ( qpretot > dlowval ) then
-            covptot = d_one - ((d_one-covptot) * &
+            covptot(j,i) = d_one - ((d_one-covptot(j,i)) * &
                 (d_one - max(ccover,lccover))/(d_one - min(lccover,hicld)))
-            covptot = max(covptot,rcovpmin)   !rcovpmin = 0.1
-            ! clear sky proportion
-            covpclr = max(d_zero,covptot-ccover)
+            covptot(j,i) = max(covptot(j,i),rcovpmin)
           else
-            covptot = d_zero  ! no flux - reset cover
-            covpclr = d_zero  ! reset clear sky proportion
+            covptot(j,i) = d_zero ! no flux - reset cover
           end if
+          ! clear sky proportion
+          covpclr(j,i) = max(d_zero,covptot(j,i)-ccover)
 
           !---------------------------------------------------------------
           !                         AUTOCONVERSION
@@ -1384,13 +1423,20 @@ module mod_cloud_s1
           ! Warm clouds
           if ( liqcld > activqx ) then
             call selautoconv
+#ifdef DEBUG
+            if ( ltkgt0 ) then
+              statsautocvw(j,i,1) = statsautocvw(j,i,1) + rainaut
+            else
+              statsautocvc(j,i,1) = statsautocvc(j,i,1) + rainaut
+            end if
+#endif
           end if
 
           ! Cold clouds
           if ( ltklt0 ) then
             ! Snow Autoconversion rate follow Lin et al. 1983
             if ( icecld > activqx ) then
-              alpha1 = dt*1.0e-3_rkx*exp(0.025*tc)
+              alpha1 = dt*1.0e-3_rkx*exp(0.025_rkx*tc)
               arg = (icecld/rlcritsnow)**2
               if ( arg < 25.0_rkx ) then
                 snowaut = alpha1 * (d_one - exp(-arg))
@@ -1398,6 +1444,11 @@ module mod_cloud_s1
                 snowaut = alpha1
               end if
               solqb(iqqs,iqqi) = solqb(iqqs,iqqi) + snowaut
+#ifdef DEBUG
+              if ( stats ) then
+                statsautocvc(j,i,1) = statsautocvc(j,i,1) + snowaut
+              end if
+#endif
             end if
           else
             !---------------------------------------------------------------
@@ -1409,12 +1460,6 @@ module mod_cloud_s1
             ! ice saturation T < 273K
             ! liquid water saturation for T > 273K
             !---------------------------------------------
-            do n = 1 , nqx
-              if ( iphase(n) == 2 ) then
-                qicetot = qicetot + qxfg(n)
-              end if
-            end do
-
             if ( qicetot > activqx ) then
               ! Calculate subsaturation
               ! qsice(j,i,1)-qvnow,d_zero)
@@ -1510,14 +1555,14 @@ module mod_cloud_s1
           ! is done to prevent the gridbox saturating due to the evaporation
           ! of precipitation occuring in a portion of the grid
           !------------------------------------------------------------
-
-          ! if ( iphase(n) == 2 ) then
-          ! qpretot = qpretot+qxfg(n)
-          qpretot = qxfg(iqqs) + qxfg(iqqr)
-          ! end if
-
+          qpretot = d_zero
+          do n = 1 , nqx
+            if ( lfall(n) ) then
+              qpretot = qpretot + qxfg(n)
+            end if
+          end do
           ! rain
-          zrh = rprecrhmax + (d_one-rprecrhmax)*covpclr/(d_one-ccover)
+          zrh = rprecrhmax + (d_one-rprecrhmax)*covpclr(j,i)/(d_one-ccover)
           zrh = min(max(zrh,rprecrhmax),d_one)
           ! This is a critical relative humidity that is used to limit
           ! moist environment to prevent the gridbox saturating when
@@ -1527,25 +1572,25 @@ module mod_cloud_s1
           ! humidity in moistest covpclr part of domain
           !---------------------------------------------
           qe = max(d_zero,min(qe,qsliq(j,i,1)))
-          lactiv = covpclr > dlowval .and. &
-          !      qpretot > dlowval .and. &
-                 qxfg(iqqr) > activqx .and. qe < zrh*qsliq(j,i,1)
+          lactiv = covpclr(j,i) > dlowval .and. &
+                   covptot(j,i) > dlowval .and. &
+                   qpretot > dlowval .and. &
+                   qxfg(iqqr) > activqx .and. qe < zrh*qsliq(j,i,1)
           if ( lactiv ) then
             ! note: units of preclr and qpretot differ
             !       qpretot is a mixing ratio (hence "q" in name)
             !       preclr is a rain flux
-            preclr = qpretot*covpclr/(max(dlowval,covptot)*dtgdp)
+            preclr = qpretot*covpclr(j,i)/(covptot(j,i)*dtgdp)
             !--------------------------------------
             ! actual microphysics formula in beta
             !--------------------------------------
             ! sensitivity test showed multiply rain evap rate by 0.5
-            beta1 = sqrt(phs(j,i,1)/pbot)/5.09e-3_rkx*preclr / &
-                     max(covpclr,dlowval)
+            beta1 = sqrt(phs(j,i,1)/pbot)/5.09e-3_rkx*preclr/covpclr(j,i)
 
             if ( beta1 >= d_zero ) then
                beta = egrav*rpecons*d_half*(beta1)**0.5777_rkx
                denom = d_one + beta*dt*corqsliq
-               dpr = covpclr * beta * (qsliq(j,i,1)-qe)/denom*dp*regrav
+               dpr = covpclr(j,i) * beta * (qsliq(j,i,1)-qe)/denom*dp*regrav
                dpevap = dpr*dtgdp
               !---------------------------------------------------------
               ! add evaporation term to explicit sink.
@@ -1559,7 +1604,9 @@ module mod_cloud_s1
               !-------------------------------------------------------------
               ! reduce the total precip coverage proportional to evaporation
               !-------------------------------------------------------------
-              covptot = covptot - max(d_zero,(covptot-ccover)*dpevap/qpretot)
+              covptot(j,i) = covptot(j,i) - &
+                        max(d_zero,(covptot(j,i)-ccover)*dpevap/qpretot)
+              covptot(j,i) = max(covptot(j,i),rcovpmin)
             else
               chng = qxfg(iqqr)
             end if
@@ -1575,32 +1622,33 @@ module mod_cloud_s1
 
           ! snow
 
-          zrh = rprecrhmax + (d_one-rprecrhmax) * covpclr/(d_one-ccover)
+          zrh = rprecrhmax + (d_one-rprecrhmax) * covpclr(j,i)/(d_one-ccover)
           zrh = min(max(zrh,rprecrhmax),d_one)
           qe = (qvnow-ccover*qsice(j,i,1))/(d_one-ccover)
           !---------------------------------------------
           ! humidity in moistest covpclr part of domain
           !---------------------------------------------
           qe = max(d_zero,min(qe,qsice(j,i,1)))
-          lactiv = covpclr > dlowval .and. &
-                 qxfg(iqqs) > activqx .and. &
-                 qe < zrh*qsice(j,i,1)
+          lactiv = covpclr(j,i) > dlowval .and. &
+                   covptot(j,i) > dlowval .and. &
+                   qpretot > dlowval .and.      &
+                   qxfg(iqqs) > activqx .and.   &
+                   qe < zrh*qsice(j,i,1)
           if ( lactiv ) then
             ! note: units of preclr and qpretot differ
             !       qpretot is a mixing ratio (hence "q" in name)
             !       preclr is a rain flux
-            preclr = qpretot*covpclr/(max(dlowval,covptot)*dtgdp)
+            preclr = qpretot*covpclr(j,i)/(covptot(j,i)*dtgdp)
             !--------------------------------------
             ! actual microphysics formula in beta
             !--------------------------------------
-            beta1 = sqrt(phs(j,i,1)/pbot) / &
-                  5.09e-3_rkx*preclr/max(covpclr,dlowval)
+            beta1 = sqrt(phs(j,i,1)/pbot)/5.09e-3_rkx*preclr/covpclr(j,i)
 
             if ( beta1 >= d_zero ) then
               beta = egrav*rpecons*(beta1)**0.5777_rkx
               !rpecons = alpha1
               denom = d_one + beta*dt*corqsice
-              dpr = covpclr * beta * &
+              dpr = covpclr(j,i) * beta * &
                      (qsice(j,i,1)-qe)/denom*dp*regrav
               dpevap = dpr*dtgdp
               !---------------------------------------------------------
@@ -1615,8 +1663,9 @@ module mod_cloud_s1
               !-------------------------------------------------------------
               ! reduce the total precip coverage proportional to evaporation
               !-------------------------------------------------------------
-              covptot = covptot-max(d_zero,(covptot-ccover) * &
-                              dpevap/qpretot)
+              covptot(j,i) = covptot(j,i) - &
+                    max(d_zero,(covptot(j,i)-ccover)*dpevap/qpretot)
+              covptot(j,i) = max(covptot(j,i),rcovpmin)
             else
               chng = qxfg(iqqs)
             end if
@@ -1812,12 +1861,21 @@ module mod_cloud_s1
           fallsrce(:) = d_zero
           fallsink(:) = d_zero
           convsink(:) = d_zero
-          qpretot     = d_zero
-          covptot     = d_zero
-          covpclr     = d_zero
-          qicetot     = d_zero
           ldefr       = d_zero
+          qpretot = d_zero
+          do n = 1 , nqx
+            if ( lfall(n) ) then
+              qpretot = qpretot + qxfg(n)
+            end if
+          end do
+          qicetot = d_zero
+          do n = 1 , nqx
+            if ( iphase(n) == 2 ) then
+              qicetot = qicetot + qxfg(n)
+            end if
+          end do
 
+          critauto = xlcrit(j,i)
           pbot    = pfs(j,i,kzp1)
           dp      = dpfs(j,i,k)
           tk      = t(j,i,k)
@@ -2007,24 +2065,22 @@ module mod_cloud_s1
           !------------------------------------------------------------------
           !                 DETRAINMENT FROM CONVECTION
           !------------------------------------------------------------------
-          !if ( k < kz ) then
-            if ( qdetr(j,i,k) > activqx ) then
-              !qice = 1 if T < 250, qice = 0 if T > 273
-              qice   = d_one-alfaw
-              convsrce(iqql) = alfaw*qdetr(j,i,k)
-              convsrce(iqqi) = qice*qdetr(j,i,k)
-              solqa(iqql,iqql) = solqa(iqql,iqql) + convsrce(iqql)
-              solqa(iqqi,iqqi) = solqa(iqqi,iqqi) + convsrce(iqqi)
-              qxfg(iqql) = qxfg(iqql) + convsrce(iqql)
-              qxfg(iqqi) = qxfg(iqqi) + convsrce(iqqi)
+          if ( qdetr(j,i,k) > activqx ) then
+            !qice = 1 if T < 250, qice = 0 if T > 273
+            qice   = d_one-alfaw
+            convsrce(iqql) = alfaw*qdetr(j,i,k)
+            convsrce(iqqi) = qice*qdetr(j,i,k)
+            solqa(iqql,iqql) = solqa(iqql,iqql) + convsrce(iqql)
+            solqa(iqqi,iqqi) = solqa(iqqi,iqqi) + convsrce(iqqi)
+            qxfg(iqql) = qxfg(iqql) + convsrce(iqql)
+            qxfg(iqqi) = qxfg(iqqi) + convsrce(iqqi)
 #ifdef DEBUG
-              if ( stats ) then
-                statsdetrw(j,i,k) = convsrce(iqql)
-                statsdetrc(j,i,k) = convsrce(iqqi)
-              end if
-#endif
+            if ( stats ) then
+              statsdetrw(j,i,k) = convsrce(iqql)
+              statsdetrc(j,i,k) = convsrce(iqqi)
             end if
-          !end if
+#endif
+          end if
 
           !------------------------------------------------------------------
           ! Turn on/off microphysics
@@ -2152,7 +2208,7 @@ module mod_cloud_s1
             ! dqs < 0: formation of clouds
             !-----------------------------------------------------------------
             ! (1) increase of cloud water in existing clouds
-            if ( lcloud .and. dqs <= -activqx ) then
+            if ( lcloud .and. .not. locast .and. dqs <= -activqx ) then
               ! new limiter
               chng = max(-dqs,d_zero)
               ! old limiter
@@ -2380,8 +2436,10 @@ module mod_cloud_s1
                 solqa(n,n) = solqa(n,n) + fallsrce(n)
                 qxfg(n) = qxfg(n) + fallsrce(n)
                 qpretot = qpretot + qxfg(n)
+                !totspd = max(vqx(n) - &
+                !         (twt(k,2)*verv(j,i,k)+twt(k,1)*verv(j,i,k+1)),d_zero)
                 ! Sink to next layer, constant fall speed
-                fallsink(n) = dtgdp*vqx(n)*dens   !Kg/Kg
+                fallsink(n) = dtgdp * vqx(n) * dens ! Kg/Kg
               end if  !lfall
             end do ! n
 
@@ -2404,16 +2462,15 @@ module mod_cloud_s1
             !   overlap for clouds separated by clear levels.
             !---------------------------------------------------------------
             if ( qpretot > dlowval ) then
-              covptot = d_one - ((d_one-covptot) * &
+              covptot(j,i) = d_one - ((d_one-covptot(j,i)) * &
                               (d_one - max(ccover,lccover)) / &
                               (d_one - min(lccover,hicld)))
-              covptot = max(covptot,rcovpmin)   !rcovpmin = 0.1
-              ! clear sky proportion
-              covpclr = max(d_zero,covptot-ccover)
+              covptot(j,i) = max(covptot(j,i),rcovpmin)
             else
-              covptot = d_zero  ! no flux - reset cover
-              covpclr = d_zero  ! reset clear sky proportion
+              covptot(j,i) = d_zero ! no flux - reset cover
             end if
+            ! clear sky proportion
+            covpclr(j,i) = max(d_zero,covptot(j,i)-ccover)
 
             !---------------------------------------------------------------
             !                         AUTOCONVERSION
@@ -2421,13 +2478,22 @@ module mod_cloud_s1
             ! Warm clouds
             if ( liqcld > activqx ) then
               call selautoconv
+#ifdef DEBUG
+              if ( stats ) then
+                if ( ltkgt0 ) then
+                  statsautocvw(j,i,k) = statsautocvw(j,i,k) + rainaut
+                else
+                  statsautocvc(j,i,k) = statsautocvc(j,i,k) + rainaut
+                end if
+              end if
+#endif
             end if
 
             ! Cold clouds
             if ( ltklt0 ) then
               ! Snow Autoconversion rate follow Lin et al. 1983
               if ( icecld > activqx ) then
-                alpha1 = dt*1.0e-3_rkx*exp(0.025*tc)
+                alpha1 = dt*1.0e-3_rkx*exp(0.025_rkx*tc)
                 arg = (icecld/rlcritsnow)**2
                 if ( arg < 25.0_rkx ) then
                   snowaut = alpha1 * (d_one - exp(-arg))
@@ -2435,6 +2501,11 @@ module mod_cloud_s1
                   snowaut = alpha1
                 end if
                 solqb(iqqs,iqqi) = solqb(iqqs,iqqi) + snowaut
+#ifdef DEBUG
+                if ( stats ) then
+                  statsautocvc(j,i,k) = statsautocvc(j,i,k) + snowaut
+                end if
+#endif
               end if
             else
               !---------------------------------------------------------------
@@ -2446,11 +2517,6 @@ module mod_cloud_s1
               ! ice saturation T < 273K
               ! liquid water saturation for T > 273K
               !---------------------------------------------
-              do n = 1 , nqx
-                if ( iphase(n) == 2 ) then
-                  qicetot = qicetot + qxfg(n)
-                end if
-              end do
               if ( qicetot > activqx ) then
                 ! Calculate subsaturation
                 ! qsice(j,i,k)-qvnow,d_zero)
@@ -2546,14 +2612,14 @@ module mod_cloud_s1
             ! is done to prevent the gridbox saturating due to the evaporation
             ! of precipitation occuring in a portion of the grid
             !------------------------------------------------------------
-
-            ! if ( iphase(n) == 2 ) then
-            ! qpretot = qpretot+qxfg(n)
-            qpretot = qxfg(iqqs) + qxfg(iqqr)
-            ! end if
-
+            qpretot = d_zero
+            do n = 1 , nqx
+              if ( lfall(n) ) then
+                qpretot = qpretot + qxfg(n)
+              end if
+            end do
             ! rain
-            zrh = rprecrhmax + (d_one-rprecrhmax)*covpclr/(d_one-ccover)
+            zrh = rprecrhmax + (d_one-rprecrhmax)*covpclr(j,i)/(d_one-ccover)
             zrh = min(max(zrh,rprecrhmax),d_one)
             ! This is a critical relative humidity that is used to limit
             ! moist environment to prevent the gridbox saturating when
@@ -2563,25 +2629,26 @@ module mod_cloud_s1
             ! humidity in moistest covpclr part of domain
             !---------------------------------------------
             qe = max(d_zero,min(qe,qsliq(j,i,k)))
-            lactiv = covpclr > dlowval .and. &
-            !      qpretot > dlowval .and. &
-                   qxfg(iqqr) > activqx .and. qe < zrh*qsliq(j,i,k)
+            lactiv = covpclr(j,i) > dlowval .and. &
+                     covptot(j,i) > dlowval .and. &
+                     qpretot > dlowval .and.      &
+                     qxfg(iqqr) > activqx .and.   &
+                     qe < zrh*qsliq(j,i,k)
             if ( lactiv ) then
               ! note: units of preclr and qpretot differ
               !       qpretot is a mixing ratio (hence "q" in name)
               !       preclr is a rain flux
-              preclr = qpretot*covpclr/(max(dlowval,covptot)*dtgdp)
+              preclr = qpretot*covpclr(j,i)/(covptot(j,i)*dtgdp)
               !--------------------------------------
               ! actual microphysics formula in beta
               !--------------------------------------
               ! sensitivity test showed multiply rain evap rate by 0.5
-              beta1 = sqrt(phs(j,i,k)/pbot)/5.09e-3_rkx*preclr / &
-                       max(covpclr,dlowval)
+              beta1 = sqrt(phs(j,i,k)/pbot)/5.09e-3_rkx*preclr/covpclr(j,i)
 
               if ( beta1 >= d_zero ) then
                  beta = egrav*rpecons*d_half*(beta1)**0.5777_rkx
                  denom = d_one + beta*dt*corqsliq
-                 dpr = covpclr * beta * (qsliq(j,i,k)-qe)/denom*dp*regrav
+                 dpr = covpclr(j,i) * beta * (qsliq(j,i,k)-qe)/denom*dp*regrav
                  dpevap = dpr*dtgdp
                 !---------------------------------------------------------
                 ! add evaporation term to explicit sink.
@@ -2595,8 +2662,9 @@ module mod_cloud_s1
                 !-------------------------------------------------------------
                 ! reduce the total precip coverage proportional to evaporation
                 !-------------------------------------------------------------
-                covptot = covptot - max(d_zero, &
-                           (covptot-ccover)*dpevap/qpretot)
+                covptot(j,i) = covptot(j,i) - max(d_zero, &
+                           (covptot(j,i)-ccover)*dpevap/qpretot)
+                covptot(j,i) = max(covptot(j,i),rcovpmin)
               else
                 chng = qxfg(iqqr)
               end if
@@ -2612,32 +2680,33 @@ module mod_cloud_s1
 
             ! snow
 
-            zrh = rprecrhmax + (d_one-rprecrhmax) * covpclr/(d_one-ccover)
+            zrh = rprecrhmax + (d_one-rprecrhmax) * covpclr(j,i)/(d_one-ccover)
             zrh = min(max(zrh,rprecrhmax),d_one)
             qe = (qvnow - ccover*qsice(j,i,k))/(d_one-ccover)
             !---------------------------------------------
             ! humidity in moistest covpclr part of domain
             !---------------------------------------------
             qe = max(d_zero,min(qe,qsice(j,i,k)))
-            lactiv = covpclr > dlowval .and. &
-                   qxfg(iqqs) > activqx .and. &
-                   qe < zrh*qsice(j,i,k)
+            lactiv = covpclr(j,i) > dlowval .and. &
+                     covptot(j,i) > dlowval .and. &
+                     qpretot > dlowval .and.      &
+                     qxfg(iqqs) > activqx .and.   &
+                     qe < zrh*qsice(j,i,k)
             if ( lactiv ) then
               ! note: units of preclr and qpretot differ
               !       qpretot is a mixing ratio (hence "q" in name)
               !       preclr is a rain flux
-              preclr = qpretot*covpclr/(max(dlowval,covptot)*dtgdp)
+              preclr = qpretot*covpclr(j,i)/(covptot(j,i)*dtgdp)
               !--------------------------------------
               ! actual microphysics formula in beta
               !--------------------------------------
-               beta1 = sqrt(phs(j,i,k)/pbot) / &
-                    5.09e-3_rkx*preclr/max(covpclr,dlowval)
+               beta1 = sqrt(phs(j,i,k)/pbot)/5.09e-3_rkx*preclr/covpclr(j,i)
 
               if ( beta1 >= d_zero ) then
                 beta = egrav*rpecons*(beta1)**0.5777_rkx
                 !rpecons = alpha1
                 denom = d_one + beta*dt*corqsice
-                dpr = covpclr * beta * &
+                dpr = covpclr(j,i) * beta * &
                        (qsice(j,i,k)-qe)/denom*dp*regrav
                 dpevap = dpr*dtgdp
                 !---------------------------------------------------------
@@ -2652,8 +2721,9 @@ module mod_cloud_s1
                 !-------------------------------------------------------------
                 ! reduce the total precip coverage proportional to evaporation
                 !-------------------------------------------------------------
-                covptot = covptot-max(d_zero,(covptot-ccover) * &
-                                dpevap/qpretot)
+                covptot(j,i) = covptot(j,i) - &
+                     max(d_zero,(covptot(j,i)-ccover)*dpevap/qpretot)
+                covptot(j,i) = max(covptot(j,i),rcovpmin)
               else
                 chng = qxfg(iqqs)
               end if
@@ -3024,12 +3094,9 @@ module mod_cloud_s1
 
     subroutine sundqvist
       implicit none
-      real(rkx) :: precip , cfpr , rainaut , arg
-      real(rkx) :: critauto
+      real(rkx) :: precip , cfpr , arg
       real(rkx) , parameter :: spherefac = (4.0_rkx/3.0_rkx)*mathpi
-      solqb(iqql,iqqv) = d_zero
       alpha1 = rkconv*dt
-      critauto = xlcrit(j,i)
       if ( lccn ) then
         if ( ccn > 0._rkx ) then
           ! aerosol second indirect effect on autoconversion
@@ -3045,10 +3112,12 @@ module mod_cloud_s1
       ! to replace this with an explicit collection
       ! parametrization
       !-----------------------------------------------------------
-      precip = (rainp+snowp)/max(dlowval,covptot)
-      cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
-      alpha1 = alpha1*cfpr
-      critauto = critauto/max(cfpr,dlowval)
+      if ( covptot(j,i) > dlowval ) then
+        precip = (rainp+snowp)/covptot(j,i)
+        cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
+        alpha1 = alpha1*cfpr
+        critauto = critauto/max(cfpr,dlowval)
+      end if
       arg = (liqcld/critauto)**2
       ! security for exp for some compilers
       if ( arg < 25.0_rkx ) then
@@ -3056,10 +3125,11 @@ module mod_cloud_s1
       else
         rainaut = alpha1
       end if
-      !-----------------------
-      ! rain freezes instantly
-      !-----------------------
+      solqb(iqql,iqqv) = d_zero
       if ( ltklt0 ) then
+        !-----------------------
+        ! rain freezes instantly
+        !-----------------------
         solqb(iqqs,iqql) = solqb(iqqs,iqql)+rainaut
       else
         solqb(iqqr,iqql) = solqb(iqqr,iqql)+rainaut

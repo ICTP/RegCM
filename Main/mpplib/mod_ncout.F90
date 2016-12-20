@@ -57,7 +57,7 @@ module mod_ncout
   integer(ik4) , parameter :: nbase = 5
 
   integer(ik4) , parameter :: natm2dvars = 5 + nbase
-  integer(ik4) , parameter :: natm3dvars = 61
+  integer(ik4) , parameter :: natm3dvars = 63
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 24 + nbase
@@ -225,10 +225,12 @@ module mod_ncout
   integer(ik4) , parameter :: atm_stats_frz    = 55
   integer(ik4) , parameter :: atm_stats_rainev = 56
   integer(ik4) , parameter :: atm_stats_snowev = 57
-  integer(ik4) , parameter :: atm_qcrit        = 58
-  integer(ik4) , parameter :: atm_ccnnum       = 59
-  integer(ik4) , parameter :: atm_qincl        = 60
-  integer(ik4) , parameter :: atm_autoconvr    = 61
+  integer(ik4) , parameter :: atm_stats_autocw = 58
+  integer(ik4) , parameter :: atm_stats_autocc = 59
+  integer(ik4) , parameter :: atm_qcrit        = 60
+  integer(ik4) , parameter :: atm_ccnnum       = 61
+  integer(ik4) , parameter :: atm_qincl        = 62
+  integer(ik4) , parameter :: atm_autoconvr    = 63
 
   integer(ik4) , parameter :: srf_xlon     = 1
   integer(ik4) , parameter :: srf_xlat     = 2
@@ -831,11 +833,23 @@ module mod_ncout
               '',.true.)
               atm_stats_snowev_out=> v3dvar_atm(atm_stats_snowev)%rval
             end if
+            if ( enable_atm3d_vars(atm_stats_autocw) ) then
+              call setup_var(v3dvar_atm,atm_stats_autocw,vsize,'st_au_rn','', &
+              '',&
+              '',.true.)
+              atm_stats_autocw_out=> v3dvar_atm(atm_stats_autocw)%rval
+            end if
+            if ( enable_atm3d_vars(atm_stats_autocc) ) then
+              call setup_var(v3dvar_atm,atm_stats_autocc,vsize,'st_au_sn','', &
+              '',&
+              '',.true.)
+              atm_stats_autocc_out=> v3dvar_atm(atm_stats_autocc)%rval
+            end if
           else !stats
-            enable_atm3d_vars(atm_stats_supw:atm_stats_snowev) = .false.
+            enable_atm3d_vars(atm_stats_supw:atm_stats_autocc) = .false.
           end if
 #else
-          enable_atm3d_vars(atm_stats_supw:atm_stats_snowev) = .false.
+          enable_atm3d_vars(atm_stats_supw:atm_stats_autocc) = .false.
 #endif
         else
           enable_atm3d_vars(atm_q_detr) = .false.

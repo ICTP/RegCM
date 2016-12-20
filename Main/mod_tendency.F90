@@ -430,6 +430,8 @@ module mod_tendency
         !      calculated in pcp
         tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
         ten0 = aten%t
+        qdiag%bdy = qdiag%bdy + (aten%qx(:,:,:,iqv) - qen0) * afdout
+        qen0 = aten%qx(:,:,:,iqv)
       end if
     end if
     !
@@ -620,6 +622,8 @@ module mod_tendency
     if ( idiag > 0 ) then
       tdiag%adi = tdiag%adi + (aten%t - ten0) * afdout
       ten0 = aten%t
+      qdiag%adi = qdiag%adi + (aten%qx(:,:,:,iqv) - qen0) * afdout
+      qen0 = aten%qx(:,:,:,iqv)
     end if
 #ifdef DEBUG
     call check_temperature_tendency('DIAB')
@@ -920,6 +924,12 @@ module mod_tendency
         call nudge(iboudy,atm2%t,xtb,aten%t)
         call nudge(iboudy,atm2%qx,xqb,aten%qx,iqv)
       end if
+      if ( idiag > 0 ) then
+        tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
+        ten0 = aten%t
+        qdiag%bdy = qdiag%bdy + (aten%qx(:,:,:,iqv) - qen0) * afdout
+        qen0 = aten%qx(:,:,:,iqv)
+      end if
     end if
     if ( ichem == 1 ) then
       if ( ichdiag == 1 ) chiten0 = chiten
@@ -928,12 +938,6 @@ module mod_tendency
         call nudge_chi(kz,chib,chiten)
       end if
       if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
-    end if
-    if ( idiag > 0 ) then
-      tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
-      ten0 = aten%t
-      qdiag%bdy = qdiag%bdy + (aten%qx(:,:,:,iqv) - qen0) * afdout
-      qen0 = aten%qx(:,:,:,iqv)
     end if
 #ifdef DEBUG
     call check_temperature_tendency('BDYC')
