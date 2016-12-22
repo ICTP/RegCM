@@ -31,7 +31,7 @@ module mod_cloud_s1
   use mod_runparams , only : iqqr => iqr !rain
   use mod_runparams , only : iqqi => iqi !ice
   use mod_runparams , only : iqqs => iqs !snow
-  use mod_runparams , only : sigma , twt
+  use mod_runparams , only : sigma
   use mod_runparams , only : dt
   use mod_runparams , only : ipptls , ichem , iaerosol , iindirect , rcrit
   use mod_runparams , only : budget_compute , nssopt , iautoconv
@@ -473,7 +473,7 @@ module mod_cloud_s1
                  qp , qsat , cond1 , levap , leros
     real(rkx) :: qvnow , qlnow , qinow , sqmix , ccover , lccover
     real(rkx) :: tk , tc , dens , pbot , totliq , ccn
-    real(rkx) :: snowp , rainp , totspd
+    real(rkx) :: snowp , rainp
 
     procedure (voidsub) , pointer :: selautoconv => null()
     procedure (voidsub) , pointer :: selnss => null()
@@ -2437,10 +2437,8 @@ module mod_cloud_s1
                 solqa(n,n) = solqa(n,n) + fallsrce(n)
                 qxfg(n) = qxfg(n) + fallsrce(n)
                 qpretot = qpretot + qxfg(n)
-                totspd = max(vqx(n) - &
-                         (twt(k,2)*verv(j,i,k)+twt(k,1)*verv(j,i,k+1)),d_zero)
                 ! Sink to next layer, constant fall speed
-                fallsink(n) = dtgdp * totspd * dens ! Kg/Kg
+                fallsink(n) = dtgdp * vqx(n) * dens ! Kg/Kg
               end if  !lfall
             end do ! n
 
@@ -3127,13 +3125,13 @@ module mod_cloud_s1
         rainaut = alpha1
       end if
       solqb(iqql,iqqv) = d_zero
-      if ( ltklt0 ) then
+      if ( ltkgthomo ) then
         !-----------------------
         ! rain freezes instantly
         !-----------------------
-        solqb(iqqs,iqql) = solqb(iqqs,iqql)+rainaut
-      else
         solqb(iqqr,iqql) = solqb(iqqr,iqql)+rainaut
+      else
+        solqb(iqqs,iqql) = solqb(iqqs,iqql)+rainaut
       end if
     end subroutine sundqvist
 
