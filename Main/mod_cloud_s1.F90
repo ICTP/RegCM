@@ -3125,12 +3125,12 @@ module mod_cloud_s1
         rainaut = alpha1
       end if
       solqb(iqql,iqqv) = d_zero
-      if ( ltkgthomo ) then
+      if ( ltkgt0 ) then
+        solqb(iqqr,iqql) = solqb(iqqr,iqql)+rainaut
+      else
         !-----------------------
         ! rain freezes instantly
         !-----------------------
-        solqb(iqqr,iqql) = solqb(iqqr,iqql)+rainaut
-      else
         solqb(iqqs,iqql) = solqb(iqqs,iqql)+rainaut
       end if
     end subroutine sundqvist
