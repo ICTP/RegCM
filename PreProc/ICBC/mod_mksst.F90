@@ -47,9 +47,7 @@ module mod_mksst
   public :: readsst , closesst
 
   contains
-!
-!-----------------------------------------------------------------------
-!
+
   subroutine readsst(tsccm, idate)
     implicit none
     real(rkx) , dimension(jx,iy) , intent(inout) :: tsccm
@@ -144,7 +142,7 @@ module mod_mksst
     if (idate == itime(irec)) then
       do i = 1 , iy
         do j = 1 , jx
-          if ( (landuse(j,i) > 13.9 .and. landuse(j,i) < 15.1) ) then
+          if ( (landuse(j,i) > 14.9 .and. landuse(j,i) < 15.1) ) then
             if ( work1(j,i) > -900.0 ) then
               tsccm(j,i) = work1(j,i)
               if (lhasice) then
@@ -182,7 +180,7 @@ module mod_mksst
       wt = real(tohours(ks1)/tohours(ks2),rkx)
       do i = 1 , iy
         do j = 1 , jx
-          if ( (landuse(j,i) > 13.9 .and. landuse(j,i) < 15.1) ) then
+          if ( (landuse(j,i) > 14.9 .and. landuse(j,i) < 15.1) ) then
             if ( (work1(j,i) > -900.0 .and. work2(j,i) > -900.0) ) then
               tsccm(j,i) = wt*work1(j,i) + (1.0-wt)*work2(j,i)
               if (lhasice) then
@@ -209,16 +207,17 @@ module mod_mksst
     integer(ik4) , intent(in) :: jp , ip
     real(rkx) , dimension(:,:) , intent(in) :: sst
     real(rkx) :: wt , wtsum , distsig
-    integer(ik4) :: i , j , nr , np
+    integer(ik4) :: i , j , nr , np , maxn
     if ( all(sst < -900_rkx) ) then
       nearn = -999.0_rkx
       return
     end if
+    maxn = min(size(sst,1),size(sst,2))/4
     nr = 1
     np = -1
     nearn = 0.0_rkx
     wtsum = 0.0_rkx
-    do while ( np < 0 .and. nr < 5 )
+    do while ( np < 0 .and. nr < maxn )
       do i = ip - nr , ip + nr
         do j = jp - nr , jp + nr
           if ( j == jp .and. i == ip ) cycle
@@ -255,6 +254,6 @@ module mod_mksst
     integer(ik4) :: istatus
     istatus = nf90_close(ncst)
   end subroutine closesst
-!
+
 end module mod_mksst
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
