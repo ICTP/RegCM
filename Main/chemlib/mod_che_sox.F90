@@ -128,8 +128,13 @@ module mod_che_sox
        end do
      end do
 
-     ! AQUEOUS CONVERSION IN CLOUDS AND WET REMOVAL
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     ! AQUEOUS CONVERSION IN CLOUDS 
+     ! works also when full chestry igaschem == 1
      ! Aqueous conversion from so2 to so4 : control by h2o2
+     ! either from climatology / or from gas phase chem
+     if (igaschem==0) then
+     isulf = iso4
      do k = 1 , kz
        do i = ici1 , ici2
          chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
@@ -142,6 +147,17 @@ module mod_che_sox
          end if
        end do
      end do
+     elseif (igaschem==1 .and. ih2o2 > 0) then 
+     isulf = ih2so4
+      do k = 1 , kz
+       do i = ici1 , ici2
+         chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
+         h2o2mol= 28.9_rkx/34.0_rkx*chib(j,i,k,ih2o2)/cpsb(j,i)
+         concmin(i,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx*cpsb(j,i)
+       end do
+      end do
+     end if
+
      ! conversion in   Large scale clouds
 
      do k = 1 , kz
@@ -150,7 +166,7 @@ module mod_che_sox
          rxs11 = d_zero      ! fraction of conversion, not removed, as SO4 src
          wetrem(iso2) = d_zero
          ! scavenging for SO2, below lsc
-         wetrem(iso4) = d_zero
+         wetrem(isulf) = d_zero
          if ( wl(i,k) > clmin ) then
            ! conversion from so2 to so4
            rxs1 = fracloud(i,k)*chtrsol(iso2)*concmin(i,k) * &
@@ -159,16 +175,7 @@ module mod_che_sox
            ! SO4 src term and the ratio of molar
            ! mass of SO4 to SO2 is 96/64 = 1.5
 
-           ! if removal occurs, a fraction of SO4 src term is also
-           ! removed and accounted for in the term  wetrem(iso4)
-           ! FAB:
-           ! Care , remrat and rembc as calculated in precip are
-           ! already grid level average removal rates.
-           ! here remart is divided by fracloud
-           ! ( large scale cloud fraction) to get the incloud removal rate
-           !
 ! FAB TEST : REMOVE WET DEP AS IT IS CALCULATED IN WETDEPA
-
 !!$           if ( cremrat(j,i,k) > d_zero ) then
 !!$             wetrem(iso4) = (fracloud(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
 !!$                      rxs11)*(exp(-cremrat(j,i,k)/fracloud(i,k)*dt)-d_one)
@@ -177,13 +184,14 @@ module mod_che_sox
 
          end if
            ! Below cloud scavenging only for SO2 only stratiform precip !
+           ! and isthet isnot called
            ! rembc is in calculated in prec, [mm/hr] and converted to
            ! below cloud scavenging rate for SO2 rate, s^-1)
            !     - Levin & Schwatz
            ! s^-1, it is already a grid scale removal rate!
            krembc = 6.5_rkx*1.0e-5_rkx*crembc(j,i,k)**0.68_rkx
 
-         if ( crembc(j,i,k) > d_zero ) then
+         if ( crembc(j,i,k) > d_zero .and. igaschem == 0) then
              wetrem(iso2) =  chtrsol(iso2)*concmin(i,k) * &
                              (exp(-krembc*dt)-d_one)
          end if
@@ -192,8 +200,8 @@ module mod_che_sox
          ! Tendancies large scale cloud
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + rxs1/dt + &
                               wetrem(iso2)/dt ! zero here
-         chiten(j,i,k,iso4) = chiten(j,i,k,iso4) - rxs11/dt + &
-                              wetrem(iso4)/dt
+         chiten(j,i,k,isulf) = chiten(j,i,k,isulf) - rxs11/dt + &
+                              wetrem(isulf)/dt
 
          ! and wetdep diagnostics
          ! just for iso2 washout (washout) here.
@@ -205,7 +213,7 @@ module mod_che_sox
 
          if ( ichdiag > 0 ) then
            chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) + rxs1/dt * cfdout
-           chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) - rxs11/dt * cfdout
+           chemdiag(j,i,k,isulf) = chemdiag(j,i,k,isulf) - rxs11/dt * cfdout
          end if
        end do
      end do
@@ -218,7 +226,7 @@ module mod_che_sox
            rxs2 = d_zero
            rxs21 = d_zero    ! fraction of conversion, not removed, as SO4 src
            wetrem_cvc(iso2) = d_zero ! scavenging for SO2, below lsc
-           wetrem_cvc(iso4) = d_zero
+           wetrem_cvc(isulf) = d_zero
 
            ! conversion from so2 to so4
            rxs2 = fracum(i,k)*chtrsol(iso2)*concmin(i,k) * &
@@ -234,8 +242,8 @@ module mod_che_sox
            ! tendancies due to convective cloud processes
            chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + rxs2/dt
 
-           chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + &
-                                wetrem_cvc(iso4)/dt - rxs21/dt
+           chiten(j,i,k,isulf) = chiten(j,i,k,isulf) + &
+                                wetrem_cvc(isulf)/dt - rxs21/dt
 
            ! diagnostic of wet deposition: NOT relevant here
            ! only SO2 below large scale cloud washout is considered above
@@ -246,7 +254,7 @@ module mod_che_sox
            ! ( add the contribution of gas + wet lsc + wet cum conversions)
            if ( ichdiag > 0 ) then
              chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) + rxs2/dt * cfdout
-             chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) - rxs21/dt  * cfdout
+             chemdiag(j,i,k,isulf) = chemdiag(j,i,k,isulf) - rxs21/dt  * cfdout
            end if
          end do
        end if

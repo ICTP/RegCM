@@ -280,14 +280,12 @@
       !
       ! SOX CHEMSITRY ( from offline oxidant)
       !
-      if ( igaschem == 0 ) then
-        if ( iso2 > 0 .and. iso4 > 0 ) then
+        if ( iso2 > 0 .and.(iso4 >0 .or. ih2so4>0)) then
           do j = jci1 , jci2
             call chemsox(j,wl(:,:,j),fracloud(:,:,j), &
                          fracum(:,:,j),rho(:,:,j),ttb(:,:,j))
           end do
         end if
-      end if
       !
       ! aging of carboneaceous aerosols
       !

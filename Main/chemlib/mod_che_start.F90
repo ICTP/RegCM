@@ -65,6 +65,7 @@ module mod_che_start
 
     iso2  = 0
     iso4  = 0
+    isulf = 0
     idms  = 0
     imsa  = 0
     ibchl = 0
