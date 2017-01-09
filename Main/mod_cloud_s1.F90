@@ -3125,7 +3125,7 @@ module mod_cloud_s1
         rainaut = alpha1
       end if
       solqb(iqql,iqqv) = d_zero
-      if ( ltkgt0 ) then
+      if ( ltkgthomo ) then
         solqb(iqqr,iqql) = solqb(iqqr,iqql)+rainaut
       else
         !-----------------------

@@ -2413,7 +2413,7 @@ module mod_params
             dlat = mddom%dlat(j,i)
             dlatdy = d_half * (mddom%xlat(j-1,i)   + mddom%xlat(j,i) - &
                                mddom%xlat(j-1,i-1) - mddom%xlat(j,i-1))
-            if ( abs(dlatdy) < 1.0e-5_rkx ) dlatdy = 1.0e-5_rkx
+            if ( abs(dlatdy) < 1.0e-8_rkx ) dlatdy = sign(1.0e-8_rkx,dlatdy)
             dlondy = d_half * (mddom%xlon(j-1,i)   + mddom%xlon(j,i) - &
                                mddom%xlon(j-1,i-1) - mddom%xlon(j,i-1))
             if ( dlondy >  180.0_rkx ) dlondy = dlondy - 360.0_rkx
