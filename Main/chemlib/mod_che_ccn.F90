@@ -52,16 +52,16 @@ module mod_che_ccn
     do k = 1 , kz
       do i = ici1 , ici2
         if ( ibchl > 0 ) then
-          cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhobchl,chib3d(j,i,k,ibchl))
+          cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhobchl,chib3d(j,i,k,ibchl)*crhob3d (j,i,k))
         end if
         if ( iochl > 0 ) then
-          cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhoochl,chib3d(j,i,k,iochl))
+          cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhoochl,chib3d(j,i,k,iochl)*crhob3d (j,i,k))
         end if
         if ( iso4 > 0 ) then
-          cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhos,chib3d(j,i,k,iso4))
+          cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhos,chib3d(j,i,k,iso4)*crhob3d (j,i,k))
         end if
         if ( isslt(1) > 0 ) then
-          cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhosslt,chib3d(j,i,k,isslt(1)))
+          cccn(j,i,k) = cccn(j,i,k) + calc_ccn(rhosslt,chib3d(j,i,k,isslt(1))*crhob3d (j,i,k))
         end if
         ! now calculate ccn number from particle number
         ! cccn = cccn * abulk

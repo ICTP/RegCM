@@ -104,6 +104,7 @@ module mod_lm_interface
     call getmem3d(lms%deltaq,1,nnsg,jci1,jci2,ici1,ici2,'lm:deltaq')
     call getmem3d(lms%drag,1,nnsg,jci1,jci2,ici1,ici2,'lm:drag')
     call getmem3d(lms%ustar,1,nnsg,jci1,jci2,ici1,ici2,'lm:ustar')
+    call getmem3d(lms%w10m,1,nnsg,jci1,jci2,ici1,ici2,'lm:w10m')
     call getmem3d(lms%zo,1,nnsg,jci1,jci2,ici1,ici2,'lm:zo')
     call getmem3d(lms%rhoa,1,nnsg,jci1,jci2,ici1,ici2,'lm:rho')
     call getmem3d(lms%lncl,1,nnsg,jci1,jci2,ici1,ici2,'lm:lncl')
@@ -130,6 +131,7 @@ module mod_lm_interface
     call getmem3d(lms%gwet,1,nnsg,jci1,jci2,ici1,ici2,'lm:gwet')
     call getmem3d(lms%ldew,1,nnsg,jci1,jci2,ici1,ici2,'lm:ldew')
     call getmem4d(lms%sw,1,nnsg,jci1,jci2,ici1,ici2,1,num_soil_layers,'lm:sw')
+
 #ifndef CLM45
     call assignpnt(lms%sw,lms%ssw,1)
     call assignpnt(lms%sw,lms%rsw,2)
@@ -162,6 +164,7 @@ module mod_lm_interface
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
     call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'lm:dustemiss')
     call getmem4d(lms%drydepvels,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:dustemiss')
+    call getmem4d(lms%sw_vol,1,nnsg,jci1,jci2,ici1,ici2,1,num_soil_layers,'lm:sw_vol')
 
 #endif
 
@@ -333,6 +336,7 @@ module mod_lm_interface
     call assignpnt(sfs%qfx,lm%qfx)
     call assignpnt(sfs%uvdrag,lm%uvdrag)
     call assignpnt(sfs%ustar,lm%ustar)
+    call assignpnt(sfs%w10m,lm%w10m)
     call assignpnt(sfs%zo,lm%zo)
     call assignpnt(sfs%rhoa,lm%rhoa)
     call assignpnt(sfs%tgbb,lm%tgbb)
@@ -373,6 +377,8 @@ module mod_lm_interface
       call assignpnt(wetdepflx,lm%wetdepflx)
       call assignpnt(drydepflx,lm%drydepflx)
       call assignpnt(idusts,lm%idust)
+      call assignpnt(sw_vol,lm%sw_vol)
+
     end if
     if ( iocncpl == 1 .or. iwavcpl == 1) then
       call assignpnt(dailyrnf,lm%dailyrnf)
@@ -506,6 +512,9 @@ module mod_lm_interface
                                   (lms%u10m(n,j,i)*lms%drag(n,j,i))**2 + &
                                   (lms%v10m(n,j,i)*lms%drag(n,j,i))**2) / &
                                   lms%rhoa(n,j,i))
+
+            lms%w10m(n,j,i)  = sqrt(lms%u10m(n,j,i)**2 + lms%v10m(n,j,i)**2)
+
           end if
         end do
       end do
@@ -515,6 +524,7 @@ module mod_lm_interface
     lm%qfx = sum(lms%evpr,1)*rdnnsg
     lm%uvdrag = sum(lms%drag,1)*rdnnsg
     lm%ustar = sum(lms%ustar,1)*rdnnsg
+    lm%w10m = sum(lms%w10m,1)*rdnnsg
     lm%zo = sum(lms%zo,1)*rdnnsg
     lm%rhoa = sum(lms%rhoa,1)*rdnnsg
     lm%tgbb = sum(lms%tgbb,1)*rdnnsg
@@ -546,6 +556,9 @@ module mod_lm_interface
       lm%sfracs2d = sum((lms%lncl*lms%wt+(d_one-lms%lncl)*lms%scvk),1)*rdnnsg
       ! FAB here take humidity of first soil layer, sw should be always defined
       lm%ssw2da = sum(lms%tsw(:,:,:),1)*rdnnsg
+#ifdef CLM45
+      lm%sw_vol = sum(lms%sw_vol(:,:,:,:),1)*rdnnsg
+#endif     
     end if
     call collect_output
 #ifdef DEBUG

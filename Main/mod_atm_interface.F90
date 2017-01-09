@@ -143,10 +143,17 @@ module mod_atm_interface
   real(rkx) , public , pointer , dimension(:,:) :: sfracs2d
   real(rkx) , public , pointer , dimension(:,:) :: svegfrac2d
   real(rkx) , public , pointer , dimension(:,:) :: sxlai2d
+
 #ifdef CLM45
+ ! real(rkx) , public , pointer , dimension(:,:) :: ustar
+ ! real(rkx) , public , pointer , dimension(:,:) :: u10m
+ ! real(rkx) , public , pointer , dimension(:,:) :: v10m
+
   real(rkx) , public , pointer , dimension(:,:,:) :: voc_em_clm
   real(rkx) , public , pointer , dimension(:,:,:) :: dustflx_clm
   real(rkx) , public , pointer , dimension(:,:,:) :: dep_vels_clm
+  real(rkx) , public , pointer , dimension(:,:,:) :: sw_vol
+
 #endif
 
   !chemistry for surface
@@ -768,6 +775,8 @@ module mod_atm_interface
       call getmem2d(sfs%rhoa,jci1,jci2,ici1,ici2,'surf:rhoa')
       call getmem2d(sfs%zo,jci1,jci2,ici1,ici2,'surf:zo')
       call getmem2d(sfs%ustar,jci1,jci2,ici1,ici2,'surf:ustar')
+      call getmem2d(sfs%w10m,jci1,jci2,ici1,ici2,'surf:w10m')
+
     end subroutine allocate_surfstate
 
     subroutine allocate_slice(ax)
@@ -881,7 +890,7 @@ module mod_atm_interface
         call getmem3d(voc_em_clm,jci1,jci2,ici1,ici2,1,ntr,'storage:voc_em_clm')
         call getmem3d(dustflx_clm,jci1,jci2,ici1,ici2,1,4,'storage:dustflx_clm')
         call getmem3d(dep_vels_clm,jci1,jci2,ici1,ici2,1,ntr,'storage:dep_vels_clm')
-
+        call getmem3d(sw_vol,jci1,jci2,ici1,ici2,1,num_soil_layers,'storage:sw_vol')
 #endif
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')

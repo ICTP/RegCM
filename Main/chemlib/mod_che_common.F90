@@ -97,8 +97,8 @@ module mod_che_common
          crembc , cremrat ,  cconvpr , crhb3d , cdrydepflx , cwetdepflx , tvirt
   real(rkx) , pointer , dimension(:,:) :: cpsb , ctg , ctga , clndcat , cht , &
          cssw2da , cvegfrac , cxlai2d , csol2d , csdeltk2d , csdelqk2d , &
-         cuvdrag , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc ,  &
-         cps2d , cps0 , cptrop
+         custar , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc ,  &
+         cps2d , cps0 , cptrop, cw10m
   real(rkx) , pointer , dimension(:,:) :: psbb0 , psbb1
   real(rkx) , pointer , dimension(:,:) :: czen
   real(rkx) , pointer , dimension(:,:,:,:) :: ctaucld
@@ -108,6 +108,8 @@ module mod_che_common
   real(rkx) , pointer , dimension(:,:,:) :: cvoc_em_clm
   real(rkx) , pointer , dimension(:,:,:) :: cdustflx_clm
   real(rkx) , pointer , dimension(:,:,:) :: cdep_vels_clm
+  real(rkx) , pointer , dimension(:,:,:) :: csw_vol 
+
 #endif
 #if (defined CLM && defined VOC)
   ! Tracer mask that uses MEGAN indices

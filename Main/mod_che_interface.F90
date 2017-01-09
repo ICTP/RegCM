@@ -88,6 +88,7 @@ module mod_che_interface
     call assignpnt(atms%pb3d,cpb3d)
     call assignpnt(atms%pf3d,cpf3d)
     call assignpnt(atms%ps2d,cps2d)
+    call assignpnt(atms%rhb3d,crhb3d)
     if ( idynamic == 2 ) then
       call assignpnt(atm0%ps,cps0)
       call assignpnt(xtb%b0,bndt0)
@@ -101,7 +102,6 @@ module mod_che_interface
     call assignpnt(atms%ubx3d,cubx3d)
     call assignpnt(atms%vbx3d,cvbx3d)
     call assignpnt(atms%chib3d,chib3d)
-    call assignpnt(atms%rhb3d,crhb3d)
 
     call assignpnt(mddom%lndcat,clndcat)
     call assignpnt(mddom%xlat,cxlat)
@@ -112,13 +112,19 @@ module mod_che_interface
     call assignpnt(xpsb%b1,psbb1)
     call assignpnt(sfs%tgb,ctg)
     call assignpnt(sfs%tga,ctga)
-    call assignpnt(sfs%uvdrag,cuvdrag)
+
+
+    call assignpnt(sfs%ustar,custar)
+    call assignpnt(sfs%w10m,cw10m)
+
+
     call assignpnt(convpr,cconvpr)
     call assignpnt(fcc,cfcc)
     call assignpnt(cldfra,ccldfra)
     call assignpnt(rembc,crembc)
     call assignpnt(remrat,cremrat)
     call assignpnt(solis,csol2d)
+
     call assignpnt(svegfrac2d,cvegfrac)
     call assignpnt(sfracv2d,csfracv2d)
     call assignpnt(sfracb2d,csfracb2d)
@@ -162,6 +168,7 @@ module mod_che_interface
     call assignpnt(dustflx_clm,cdustflx_clm)
     call assignpnt(idusts,idust)
     call assignpnt(dep_vels_clm,cdep_vels_clm)
+    call assignpnt(sw_vol,csw_vol)
 #endif
 
   end subroutine init_chem

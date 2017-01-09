@@ -466,13 +466,23 @@ module mod_clm_regcm
     lms%tgbrd = lms%tgbb
 
     clm_l2a%notused = 0.0_rk8
+
     do k = 1 , nlevsoi
       clm_l2a%notused(:) = clm_l2a%h2osoi(:,k)
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
       lms%sw(:,:,:,k) = lms%tsw(:,:,:)
     end do
 
-    ! This is for chem, will fill anyway.
+! volumetric soil water profile (m3/m3) is saved for chem 
+    clm_l2a%notused = 0.0_rk8
+    do k = 1 , nlevsoi
+      clm_l2a%notused(:) = clm_l2a%h2osoi_vol(:,k)
+      call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
+      lms%sw_vol(:,:,:,k) = lms%tsw(:,:,:)
+    end do
+    ! tsw is passed as the soil water in Kg/m2 in the first 10 cm of soil
+    ! a bit obsolete since volumetric water profile is passed , 
+    ! but still could be potentuially usefull
     call glb_l2c_ss(lndcomm,clm_l2a%h2o10cm,lms%tsw)
 
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)

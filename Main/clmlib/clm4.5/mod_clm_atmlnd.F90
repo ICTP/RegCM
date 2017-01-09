@@ -149,6 +149,8 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:,:) :: h2osoi
     ! soil water in first 10 cm
     real(rk8) , pointer , dimension(:) :: h2o10cm
+    ! FAB  soil volumetric water content (m3/m3) 
+    real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
     ! Surface runoff
     real(rk8) , pointer , dimension(:) :: qflx_surf
     ! Sub-surface runoff
@@ -298,6 +300,7 @@ end subroutine init_atm2lnd_type
     allocate(l2a%fv(ibeg:iend))
     allocate(l2a%emg(ibeg:iend))
     allocate(l2a%h2osoi(ibeg:iend,nlevsoi))
+    allocate(l2a%h2osoi_vol(ibeg:iend,nlevsoi))
     allocate(l2a%h2o10cm(ibeg:iend))
     allocate(l2a%qflx_surf(ibeg:iend))
     allocate(l2a%qflx_tot(ibeg:iend))
@@ -457,6 +460,12 @@ end subroutine init_atm2lnd_type
                tmpc,clm_l2a%h2osoi, &
                c2l_scale_type='unity', &
                l2g_scale_type='unity')
+!FAB
+      call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
+               cptr%cws%h2osoi_vol(:,1:nlevsoi),clm_l2a%h2osoi_vol, &
+               c2l_scale_type='unity', &
+               l2g_scale_type='unity')
+
       call c2g(begc,endc,begl,endl,begg,endg, &
                cptr%cws%h2osoi_liqice_10cm,clm_l2a%h2o10cm, &
                c2l_scale_type='unity', &

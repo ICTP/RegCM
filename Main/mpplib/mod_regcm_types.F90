@@ -236,6 +236,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: tgbb
     real(rkx) , pointer , dimension(:,:) :: uvdrag
     real(rkx) , pointer , dimension(:,:) :: ustar
+    real(rkx) , pointer , dimension(:,:) :: w10m
     real(rkx) , pointer , dimension(:,:) :: zo
     real(rkx) , pointer , dimension(:,:) :: rhoa
   end type surfstate
@@ -388,11 +389,14 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: sst
     real(rkx) , pointer , dimension(:,:,:) :: zo
     real(rkx) , pointer , dimension(:,:,:) :: ustar
+    real(rkx) , pointer , dimension(:,:,:) :: w10m
     real(rkx) , pointer , dimension(:,:,:) :: rhoa
 #ifdef CLM45
     real(rkx) , pointer , dimension(:,:,:,:) :: vocemiss
     real(rkx) , pointer , dimension(:,:,:,:) :: dustemiss
     real(rkx) , pointer , dimension(:,:,:,:) :: drydepvels
+    real(rkx) , pointer , dimension(:,:,:,:) :: sw_vol
+
 #endif
   end type lm_state
 
@@ -402,7 +406,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: sfracb2d
     real(rkx) , pointer , dimension(:,:) :: sfracs2d
     real(rkx) , pointer , dimension(:,:) :: svegfrac2d
-    real(rkx) , pointer , dimension(:,:) :: sxlai2d
+    real(rkx) , pointer , dimension(:,:) :: sxlai2d    
+    real(rkx) , pointer , dimension(:,:,:) :: sw_vol
     real(rkx) , pointer , dimension(:,:,:) :: dailyrnf
     real(rkx) , pointer , dimension(:,:) :: xlat        ! mddom%xlat
     real(rkx) , pointer , dimension(:,:) :: xlon        ! mddom%xlon
@@ -467,12 +472,10 @@ module mod_regcm_types
     integer(ik4) , pointer , dimension(:) :: idust        ! dust indices
     real(rkx) , pointer , dimension(:,:) :: zo          ! zo
     real(rkx) , pointer , dimension(:,:) :: ustar       ! ustar
+     real(rkx) , pointer , dimension(:,:) :: w10m       !w10m
     real(rkx) , pointer , dimension(:,:) :: rhoa        ! xdens
 #ifdef CLM
     real(rkx) , pointer , dimension(:,:,:) :: dep_vels
-    real(rkx) , pointer , dimension(:,:) :: voc_em0
-    real(rkx) , pointer , dimension(:,:) :: voc_em1
-    real(rkx) , pointer , dimension(:,:) :: voc_em2
 #endif
   end type lm_exchange
 

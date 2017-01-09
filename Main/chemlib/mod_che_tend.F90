@@ -91,6 +91,8 @@
       real(rkx) , dimension (1) :: polrftab
       integer(ik4) , dimension (1) :: poltab
       integer(ik4) :: i , j , k , n , ibin
+      logical, save :: lfcall=.true.
+
       !
       !*********************************************************************
       ! A : PRELIMINARY CALCULATIONS
@@ -160,16 +162,30 @@
         do j = jci1 , jci2
           !
           ! care ocean-lake in veg2d is now back type 14-15 !!
-          !
+          ! ivegcov mask is also defined when CLM45 is used
           if ( cveg2d(j,i) == 14 .or. cveg2d(j,i) == 15 ) then
             ivegcov(i,j) = 0
           else
             ivegcov(i,j) = cveg2d(j,i)
           end if
+
           psurf(i,j) = cps2d(j,i)
-          !
-          ! method based on bats diagnostic in routine interf.
-          !
+          ! incoming solar radiation (for stb criteria used to calculate
+          ! aerodynamic resistance)
+          srad(i,j) = csol2d(j,i)
+          hsurf(i,j) = cht(j,i)
+          bchi(i,:,:,j) = chib(j,i,:,:)
+          
+          ! fraction of vegetation
+          vegfrac(i,j) = cvegfrac(j,i)
+ 
+        end do 
+       end do
+
+          ! Roughness lenght, 10 m wind           !
+#ifndef CLM45
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( ivegcov(i,j) /= 0 ) then
             facv = log(cza(j,i,kz)/d_10) / &
                    log(cza(j,i,kz)/crough(ivegcov(i,j)))
@@ -204,11 +220,11 @@
           rh10(i,j) = d_zero
           if ( qsat10 > d_zero ) rh10(i,j) = shu10/qsat10
           !
-          ! soil wetness
-          soilw(i,j) = cssw2da(j,i)/cdepuv(nint(clndcat(j,i)))/(2650.0_rkx * &
+          ! cssw2da is the soil water amount in kg/m2 of the 10 cm superficial layer   
+          ! depuv converted from mm to m. soil density assumed tp be 2650 kg/m3
+          ! Fecan parametrisation for dust is expecting gravimetric soil water content in kg/kg
+          soilw(i,j) = cssw2da(j,i)/cdepuv(nint(clndcat(j,i)))/1.E-3/(2650.0_rkx * &
                        (d_one-cxmopor(ciexsol(nint(clndcat(j,i))))))
-          ! fraction of vegetation
-          vegfrac(i,j) = cvegfrac(j,i)
           ! surface temperature
           ! over land recalculated from the BATS as deltk air/ surface
           ! temperature account for a composite temperature between
@@ -220,20 +236,46 @@
             tsurf(i,j) = ctg(j,i)
           end if
           !
-          ! aborbed solar radiation (for stb criteria used to calculate
-          ! aerodynamic resistance)
-          !
-          srad(i,j) = csol2d(j,i)
-          hsurf(i,j) = cht(j,i)
-          bchi(i,:,:,j) = chib(j,i,:,:)
-        end do
+         end do
       end do
+# endif
+#ifdef CLM45
+! FAB note rather than passing directly cw10m and custar which vary at the CLM45 frequency to the dust emisison code
+! we recalculate here an effective roughness lenght zeff from  custar and cw10m
+! this roughness lenght is then used as input for the dust module and 10 m wind is recalculated 
+! from it  at the dynamical time step ( instead of CLM45 frequency) - similarly to bats case.
+! if we want dust emssion fully consistent with CLM45 , consider using ichdstem = 3
+
+     do i = ici1 , ici2
+       do j = jci1 , jci2
+         
+         if ( ivegcov(i,j) /= 0 .and. custar(j,i) > 0_rkx ) then
+          zeff(i,j) = d_10 * exp(-vonkar * cw10m (j,i) /custar (j,i))
+         else
+          zeff(i,j) = zoce
+         end if
+         fact = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zeff(i,j))
+         u10 = (cubx3d(j,i,kz))*(d_one-fact)
+         v10 = (cvbx3d(j,i,kz))*(d_one-fact)
+         wid10(i,j) = sqrt(u10**2+v10**2)
+         tsurf(i,j) = ctg(j,i)
+! use simplifcations to approximate t and hr at 10 m from first model level 
+         temp10(i,j) =  ctb3d(j,i,kz) + lrate * (cza(j,i,kz) - 10._rkx)
+         rh10(i,j) = crhb3d(j,i,kz)
+! when CLM45 we use directly the volumetic soil water of the first CLM layer 
+! converted to gravimetric water conrtent using a sandy soil bulk density ratio to water density of 0.45
+! consistent with bionox data  
+         soilw(i,j) = csw_vol(j,i,1)*0.45_rkx        
+
+       end do
+     end do         
+#endif
       !
-      ! END of preliminary calculations)
+      ! END of preliminary calculations
       !
       !*****************************************************************
       ! CALCULATION OF TRACER TENDENCY
-      !       (except full gas phase chemistry solver)
+      ! (except advection and convection transport)     
       !*****************************************************************
       !
       ! SOX CHEMSITRY ( from offline oxidant)
@@ -263,20 +305,17 @@
       !
       ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)
       !
-
-
       if ( idust(1) > 0 .and. ichdustemd < 3 .and.  ichsursrc == 1 ) then
         do j = jci1 , jci2
-         ! where (ivegcov(:,j) == 11)
-         !   zeff(:,j) = 0.01D0 ! value set to desert type for semi-arid)
-         ! end where
+
           call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
             rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
-          call sfflux(j,ivegcov(:,j),vegfrac(:,j),ustar(:,j),      &
-                      zeff(:,j),soilw(:,j),wid10(:,j),rho(:,kz,j), &
+          call sfflux(j,ivegcov(:,j),vegfrac(:,j),ustar(:,j),zeff(:,j),      &
+                      soilw(:,j),wid10(:,j),rho(:,kz,j), &
                       dustbsiz,dust_flx(:,:,j))
         end do
       end if
+      ! OPTION for using CLM45 dust emission scheme 
       ! if flux calculated by clm45 / update the tendency if ichdustemd == 3
 #if defined CLM45
       if (idust(1) > 0 .and.  ichdustemd == 3 .and. ichsursrc == 1 ) then
@@ -309,8 +348,8 @@
        end do
       end if
       !
-      ! update emission tendencies from inventories
-      !
+      ! update emission tendencies from external inventories
+      ! handle biogenic emission fluxes coming from CLM45
       if ( ichsursrc == 1 ) then
         do j = jci1 , jci2
 #ifndef CLM45
@@ -512,4 +551,4 @@
     end subroutine tractend2
 
 end module mod_che_tend
-! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop1=2
