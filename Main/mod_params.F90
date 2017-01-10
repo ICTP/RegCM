@@ -589,7 +589,7 @@ module mod_params
       end if
 
       if ( idynamic == 2 ) then
-        gnu = 0.0625_rkx
+        gnu = 0.1000_rkx
         diffu_hgtf = 0
       else
         gnu = 0.0625_rkx
