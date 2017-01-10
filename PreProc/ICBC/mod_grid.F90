@@ -105,7 +105,7 @@ module mod_grid
       dsigma(k) = (sigmaf(k+1)-sigmaf(k))
     end do
     if ( idynamic == 2 ) then
-      call nhbase(1,iy,1,jx,kz,sigmah,topogm,ps0,pr0,t0,rho0)
+      call nhbase(1,iy,1,jx,kz,sigmah,xlat,topogm,ps0,pr0,t0,rho0)
     end if
   end subroutine read_domain_info
 

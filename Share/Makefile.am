@@ -14,7 +14,8 @@ librcmlib_a_SOURCES = mod_constants.F90 mod_date.F90 mod_space.F90 mod_hgt.F90 \
                       mod_scrip_remap_bicubic.F90 mod_scrip_remap_bilinear.F90 \
                       mod_scrip_remap_conserv.F90 mod_scrip_remap_distwgt.F90 \
                       mod_scrip_interpolate.F90 mod_scrip_remap_vars.F90 \
-                      mod_sunorbit.F90 mod_nhinterp.F90 mod_sigma.F90
+                      mod_sunorbit.F90 mod_nhinterp.F90 mod_sigma.F90 \
+		      mod_stdatm.F90
 
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
@@ -39,7 +40,7 @@ mod_interp.o: mod_interp.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_
 mod_memutil.o: mod_memutil.F90 mod_intkinds.o mod_realkinds.o mod_space.o mod_message.o mod_constants.o mod_date.o
 mod_message.o: mod_message.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o
 mod_nchelper.o: mod_nchelper.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_memutil.o mod_dynparam.o mod_message.o
-mod_nhinterp.o : mod_nhinterp.F90 mod_constants.o mod_intkinds.o mod_realkinds.o mod_stdio.o
+mod_nhinterp.o : mod_nhinterp.F90 mod_constants.o mod_intkinds.o mod_realkinds.o mod_stdio.o mod_stdatm.o
 mod_projections.o: mod_projections.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_realkinds.o: mod_realkinds.F90
 mod_intkinds.o: mod_intkinds.F90
@@ -59,3 +60,4 @@ mod_ncstream.o: mod_ncstream.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_
 mod_ncstream_types.o: mod_ncstream_types.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_date.o
 mod_sigma.o : mod_sigma.F90 mod_constants.o mod_intkinds.o mod_memutil.o mod_message.o mod_realkinds.o mod_stdio.o
 mod_sunorbit.o : mod_sunorbit.F90 mod_constants.o mod_message.o mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o
+mod_stdatm.o : mod_stdatm.F90 mod_intkinds.o mod_realkinds.o mod_constants.o

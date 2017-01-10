@@ -90,7 +90,7 @@ program terrain
   real(rkx) :: psig , zsig , pstar , tswap
   real(rkx) :: base_state_pressure = stdp
   real(rkx) :: base_state_temperature = stdt
-  real(rkx) :: logp_lrate = 50.0_rkx
+  real(rkx) :: logp_lrate = 47.70_rkx
   data ibndry /.true./
 
   namelist /nonhydroparam/ base_state_pressure , base_state_temperature , &
@@ -664,7 +664,8 @@ program terrain
 
     if ( idynamic == 2 ) then
       call nhsetup(ptop,base_state_pressure,base_state_temperature,logp_lrate)
-      call nhbase(1,iysg,1,jxsg,kz+1,sigma,htgrid_s,ps0_s,pr0_s,t0_s,rho0_s)
+      call nhbase(1,iysg,1,jxsg,kz+1,sigma,xlat_s, &
+                  htgrid_s,ps0_s,pr0_s,t0_s,rho0_s)
     end if
 
     write (outname,'(a,i0.3,a)') &
@@ -681,7 +682,7 @@ program terrain
 
   if ( idynamic == 2 ) then
     call nhsetup(ptop,base_state_pressure,base_state_temperature,logp_lrate)
-    call nhbase(1,iy,1,jx,kz+1,sigma,htgrid,ps0,pr0,t0,rho0)
+    call nhbase(1,iy,1,jx,kz+1,sigma,xlat,htgrid,ps0,pr0,t0,rho0)
   end if
 
   write (outname,'(a,i0.3,a)') &

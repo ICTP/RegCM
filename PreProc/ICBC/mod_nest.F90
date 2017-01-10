@@ -29,7 +29,7 @@ module mod_nest
   use mod_write
   use mod_interp
   use mod_vertint
-  use mod_nhinterp
+  use mod_stdatm
   use mod_hgt
   use mod_humid
   use mod_uvrot
@@ -566,7 +566,7 @@ module mod_nest
         do i = 1 , iy_in
           do j = 1 , jx_in
             pr0_in = pstar0(j,i) * sigma_in(k) + ptop_in * d_100
-            t0_in(j,i,k) = temppres(pr0_in)
+            t0_in(j,i,k) = stdatm_val(xlat_in(j,i),pr0_in*d_r100,istdatm_tempk)
           end do
         end do
       end do

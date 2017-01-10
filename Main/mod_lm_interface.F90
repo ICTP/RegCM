@@ -163,9 +163,10 @@ module mod_lm_interface
     call getmem2d(zatm,jci1,jci2,ici1,ici2,'lm:zatm')
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
     call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'lm:dustemiss')
-    call getmem4d(lms%drydepvels,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:dustemiss')
-    call getmem4d(lms%sw_vol,1,nnsg,jci1,jci2,ici1,ici2,1,num_soil_layers,'lm:sw_vol')
-
+    call getmem4d(lms%drydepvels,1,nnsg,jci1,jci2, &
+                  ici1,ici2,1,ntr,'lm:dustemiss')
+    call getmem4d(lms%sw_vol,1,nnsg,jci1,jci2, &
+                  ici1,ici2,1,num_soil_layers,'lm:sw_vol')
 #endif
 
 #ifdef CLM
@@ -377,8 +378,9 @@ module mod_lm_interface
       call assignpnt(wetdepflx,lm%wetdepflx)
       call assignpnt(drydepflx,lm%drydepflx)
       call assignpnt(idusts,lm%idust)
+#ifdef CLM45
       call assignpnt(sw_vol,lm%sw_vol)
-
+#endif
     end if
     if ( iocncpl == 1 .or. iwavcpl == 1) then
       call assignpnt(dailyrnf,lm%dailyrnf)
@@ -558,7 +560,7 @@ module mod_lm_interface
       lm%ssw2da = sum(lms%tsw(:,:,:),1)*rdnnsg
 #ifdef CLM45
       lm%sw_vol = sum(lms%sw_vol(:,:,:,:),1)*rdnnsg
-#endif     
+#endif
     end if
     call collect_output
 #ifdef DEBUG

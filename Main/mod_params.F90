@@ -259,7 +259,7 @@ module mod_params
     !
     base_state_pressure = stdp
     base_state_temperature = stdt
-    logp_lrate = 50.0_rkx
+    logp_lrate = 47.70_rkx
     ifupr = 1
     ckh = d_one
     nhbet = 0.4_rkx
@@ -589,7 +589,7 @@ module mod_params
       end if
 
       if ( idynamic == 2 ) then
-        gnu = 0.1000_rkx
+        gnu = 0.0625_rkx
         diffu_hgtf = 0
       else
         gnu = 0.0625_rkx
@@ -2349,7 +2349,7 @@ module mod_params
         integer(ik4) :: i , j , k
         call nhsetup(ptop,base_state_pressure,base_state_temperature,logp_lrate)
         mddom%ht = mddom%ht * regrav
-        call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,mddom%ht, &
+        call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,mddom%xlat,mddom%ht, &
                     atm0%ps,atm0%pr,atm0%t,atm0%rho)
         mddom%ht = mddom%ht * egrav
         call exchange(atm0%ps,1,jce1,jce2,ice1,ice2)

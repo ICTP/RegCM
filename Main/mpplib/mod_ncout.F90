@@ -856,7 +856,7 @@ module mod_ncout
           enable_atm3d_vars(atm_qi:atm_qs) = .false.
           enable_atm3d_vars(atm_rainls) = .false.
           enable_atm3d_vars(atm_raincc) = .false.
-          enable_atm3d_vars(atm_stats_supw:atm_stats_snowev) = .false.
+          enable_atm3d_vars(atm_stats_supw:atm_stats_autocc) = .false.
         end if
 
         if ( ibltyp == 2 ) then

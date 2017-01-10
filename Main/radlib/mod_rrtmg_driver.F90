@@ -31,7 +31,7 @@ module mod_rrtmg_driver
   use mod_rad_common
   use mod_rad_tracer
   use mod_rad_aerosol
-  use mod_rad_atmosphere
+  use mod_stdatm
   use rrtmg_sw_rad
   use mcica_subcol_gen_sw
   use parrrsw

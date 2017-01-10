@@ -152,7 +152,7 @@ module mod_che_bdyco
           end do
         end do
         call nhinterp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
-                      hsigma,sigma,cht,chebdy,tvirt,bndp0,cps0)
+                      hsigma,sigma,cxlat,cht,chebdy,tvirt,bndp0,cps0)
       end if
 
       chib0 = d_zero
@@ -221,7 +221,7 @@ module mod_che_bdyco
           end do
         end do
         call nhinterp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
-                      hsigma,sigma,cht,chebdy,tvirt,bndp1,cps0)
+                      hsigma,sigma,cxlat,cht,chebdy,tvirt,bndp1,cps0)
       end if
 
       chib1 = d_zero
@@ -346,7 +346,7 @@ module mod_che_bdyco
           end do
         end do
         call nhinterp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
-                      hsigma,sigma,cht,chebdy,tvirt,bndp1,cps0)
+                      hsigma,sigma,cxlat,cht,chebdy,tvirt,bndp1,cps0)
       end if
 
       chib1 = d_zero

@@ -125,6 +125,7 @@ module mod_ncep
     integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) , dimension(5) , save :: inet5 , ivar5
     real(rkx) , dimension(5) , save :: xoff , xscl
+    integer(2) , dimension(5) , save :: xfil
     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd'/
     !
     if ( itcfs == 0 ) then
@@ -149,6 +150,13 @@ module mod_ncep
         call checkncerr(istatus,__FILE__,__LINE__, &
               'Variable '//varname(kkrec)// &
               ':add_offset in file'//trim(pathaddname))
+        write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
+                         xscl(kkrec) , xoff(kkrec)
+        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
+                               '_FillValue',xfil(kkrec))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+              'Variable '//varname(kkrec)// &
+              ':_FillValue in file'//trim(pathaddname))
         write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
                          xscl(kkrec) , xoff(kkrec)
         itcfs = 1
@@ -194,8 +202,11 @@ module mod_ncep
         do k = 1 , klev
           do j = 1 , jlat
             do i = 1 , ilon
-              rhvar(i,j,k) = min((real(work(i,j,k),rkx) * &
-                        xscale+xadd)*0.01_rkx,1._rkx)
+              if ( work(i,j,k) /= xfil(kkrec) ) then
+                rhvar(i,j,k) = (real(work(i,j,k),rkx)*xscale+xadd)*0.01_rkx
+              else
+                rhvar(i,j,k) = 0.01_rkx
+              end if
             end do
           end do
         end do

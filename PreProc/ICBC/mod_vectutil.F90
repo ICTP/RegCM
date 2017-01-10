@@ -290,13 +290,13 @@ module mod_vectutil
     !
     do j = 2 , jmxm
       do i = 2 , imxm
-         udiverg(i,j) = (chi(i,j) - chi(i,j-1) + &
+         vdiverg(i,j) = (chi(i,j) - chi(i,j-1) + &
                          chi(i-1,j) - chi(i-1,j-1)) * oneov2ds
       end do
     end do
     do j = 2 , jmxm
       do i = 2 , imxm
-        vdiverg(i,j) = (chi(i,j) - chi(i-1,j) + &
+        udiverg(i,j) = (chi(i,j) - chi(i-1,j) + &
                         chi(i,j-1) - chi(i-1,j-1)) * oneov2ds
       end do
     end do

@@ -62,7 +62,7 @@ mod_grid.o : mod_grid.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_mem
 mod_header.o : mod_header.F90 mod_intkinds.o mod_stdio.o
 mod_mksst.o : mod_mksst.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_grid.o mod_memutil.o mod_constants.o mod_dynparam.o mod_message.o mod_nchelper.o
 mod_ncep.o : mod_ncep.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_memutil.o mod_nchelper.o mod_grid.o
-mod_nest.o : mod_nest.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_constants.o mod_date.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_uvrot.o mod_vectutil.o mod_message.o mod_memutil.o mod_nchelper.o mod_nhinterp.o
+mod_nest.o : mod_nest.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_constants.o mod_date.o mod_grid.o mod_write.o mod_interp.o mod_vertint.o mod_hgt.o mod_humid.o mod_uvrot.o mod_vectutil.o mod_message.o mod_memutil.o mod_nchelper.o mod_stdatm.o
 mod_sst_1deg.o : mod_sst_1deg.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_sst_grid.o mod_interp.o mod_nchelper.o mod_message.o
 mod_sst_eh5om.o : mod_sst_eh5om.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_message.o mod_dynparam.o mod_sst_grid.o mod_interp.o
 mod_sst_ersst.o : mod_sst_ersst.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_sst_grid.o mod_interp.o mod_message.o mod_memutil.o mod_nchelper.o
