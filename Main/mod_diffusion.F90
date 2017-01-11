@@ -157,13 +157,14 @@ module mod_diffusion
         end do
       end do
     end do
-    xkcf(:,:,1) = xkc(jci1:jci2,ici1:ici2,1)
-    xkcf(:,:,kzp1) = xkc(jci1:jci2,ici1:ici2,kz)
-    do k = 2 , kz
+    !
+    ! Do the same as MM5. Do not diffuse at surface.
+    !
+    xkcf(:,:,kzp1) = d_zero
+    do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          xkcf(j,i,k) = min((twt(k,1)*xkc(j,i,k) + &
-                             twt(k,2)*xkc(j,i,k-1)), xkhmax)
+          xkcf(j,i,k) = xkc(j,i,k)
         end do
       end do
     end do
@@ -294,7 +295,7 @@ module mod_diffusion
     !
     ! fourth-order scheme for interior:
     !
-    do k = 1 , kzp1
+    do k = 1 , kz
       do i = icii1 , icii2
         do j = jcii1 , jcii2
           ften(j,i,k) = ften(j,i,k) - fac * xkcf(j,i,k) * pc(j,i) * &
@@ -311,7 +312,7 @@ module mod_diffusion
     !
     if ( ma%has_bdyleft ) then
       j = jci1
-      do k = 1 , kzp1
+      do k = 1 , kz
         do i = ici1 , ici2
           ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * pc(j,i) * &
                                      rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
@@ -322,7 +323,7 @@ module mod_diffusion
     end if
     if ( ma%has_bdyright ) then
       j = jci2
-      do k = 1 , kzp1
+      do k = 1 , kz
         do i = ici1 , ici2
           ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * pc(j,i) * &
                                      rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
@@ -336,7 +337,7 @@ module mod_diffusion
     !
     if ( ma%has_bdybottom ) then
       i = ici1
-      do k = 1 , kzp1
+      do k = 1 , kz
         do j = jci1 , jci2
           ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * pc(j,i) * &
                                      rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &
@@ -347,7 +348,7 @@ module mod_diffusion
     end if
     if ( ma%has_bdytop ) then
       i = ici2
-      do k = 1 , kzp1
+      do k = 1 , kz
         do j = jci1 , jci2
           ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * pc(j,i) * &
                                      rdxsq*(f(j+1,i,k)+f(j-1,i,k) + &

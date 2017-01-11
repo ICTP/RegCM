@@ -1178,7 +1178,7 @@ module mod_bdycod
               atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do i = ici1 , ici2
               atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k)
             end do
@@ -1198,7 +1198,7 @@ module mod_bdycod
               atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do i = ici1 , ici2
               atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k)
             end do
@@ -1218,7 +1218,7 @@ module mod_bdycod
               atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k)
             end do
@@ -1238,7 +1238,7 @@ module mod_bdycod
               atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k)
             end do
@@ -1262,7 +1262,7 @@ module mod_bdycod
               atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k) + xt*xppb%bt(jce1,i,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do i = ici1 , ici2
               atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k) + xt*xwwb%bt(jce1,i,k)
             end do
@@ -1282,7 +1282,7 @@ module mod_bdycod
               atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k) + xt*xppb%bt(jce2,i,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do i = ici1 , ici2
               atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k) + xt*xwwb%bt(jce2,i,k)
             end do
@@ -1302,7 +1302,7 @@ module mod_bdycod
               atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k) + xt*xppb%bt(j,ice1,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k) + xt*xwwb%bt(j,ice1,k)
             end do
@@ -1322,7 +1322,7 @@ module mod_bdycod
               atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k) + xt*xppb%bt(j,ice2,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k) + xt*xwwb%bt(j,ice2,k)
             end do
