@@ -191,7 +191,7 @@ contains
     noxflux       = d_zero
 
     totn1d = man1d + fert1d
-
+#ifndef CLM45
     do i = ici1 , ici2
       ! cycle on sea points
       if ( ivegcov(i) == 0 ) cycle
@@ -218,6 +218,41 @@ contains
       if ( soiltemp_surf(i) /= 0 ) then
         soiltemp_surf(i) = soiltemp_surf(i) - tzero
       end if
+    end do
+#endif
+#ifdef CLM45
+    do i = ici1 , ici2
+      ! cycle on sea points
+      if ( ivegcov(i) == 0 ) cycle
+      ! getting the soil sand percentage, pH and fert rate values
+      sandper(i) = sandrow2(i,j)
+      ! calculating water-filled pore space from soil moisture
+      ! csw_vol voluletric soil moist (m3/m3)
+      ! here consider second soil level / to be perhaps tested
+      porewater(i) = csw_vol(j,i,2) 
+
+      ! calculating water-filled pore space (%) 
+      ! coefficient of 0.45 derived from obs at Grignon(0.536),
+      ! Hombori(0.4) and Escompte(0.43) = avg. 0.45
+      ! in regcm/bats  this parameter would be cxmopor : consider replacing ?
+      porewater(i) = (porewater(i) * 0.45_rkx) * d_100
+
+      ! temperature profile
+      ! converting temperature from Kelvin to Celsius
+      soiltemp_deep(i) = ctsoi(j,i,3)
+      soiltemp_surf(i) = ctsoi(j,i,1)
+
+      if ( soiltemp_deep(i) /= 0 ) then
+        soiltemp_deep(i) = soiltemp_deep(i) - tzero
+      end if
+      if ( soiltemp_surf(i) /= 0 ) then
+        soiltemp_surf(i) = soiltemp_surf(i) - tzero
+      end if
+    end do
+
+#endif
+
+    do i = ici1 , ici2
 
       ! calculating what percentage volatilised N gets incorporated
       ! into NH3 and NOx
@@ -288,7 +323,6 @@ contains
       end if
 
       noxflux(i) = noxflux(i)*canred(i)
-
     end do
 
     !if ( j == 25 ) write(stdout,*) maxval(noxflux)

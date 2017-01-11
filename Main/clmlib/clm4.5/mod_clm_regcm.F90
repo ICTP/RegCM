@@ -465,10 +465,21 @@ module mod_clm_regcm
     lms%tgrd = lms%tgbb
     lms%tgbrd = lms%tgbb
 
+
+! soil temperature profile 
+!note tsw is used as a temporary table
+    clm_l2a%notused = 0.0_rk8
+    do k = 1 , nlevsoi
+      clm_l2a%notused(:) = clm_l2a%tsoi(:,k)
+      call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
+      lms%tsoi(:,:,:,k) = lms%tsw(:,:,:)
+    end do
+
     clm_l2a%notused = 0.0_rk8
 
     do k = 1 , nlevsoi
       clm_l2a%notused(:) = clm_l2a%h2osoi(:,k)
+
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
       lms%sw(:,:,:,k) = lms%tsw(:,:,:)
     end do
@@ -480,10 +491,11 @@ module mod_clm_regcm
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
       lms%sw_vol(:,:,:,k) = lms%tsw(:,:,:)
     end do
-    ! tsw is passed as the soil water in Kg/m2 in the first 10 cm of soil
+    ! tsw is finally passed as the soil water in Kg/m2 in the first 10 cm of soil
     ! a bit obsolete since volumetric water profile is passed , 
     ! but still could be potentuially usefull
     call glb_l2c_ss(lndcomm,clm_l2a%h2o10cm,lms%tsw)
+
 
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)

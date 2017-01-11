@@ -396,7 +396,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:,:) :: dustemiss
     real(rkx) , pointer , dimension(:,:,:,:) :: drydepvels
     real(rkx) , pointer , dimension(:,:,:,:) :: sw_vol
-
+    real(rkx) , pointer , dimension(:,:,:,:) :: tsoi 
 #endif
   end type lm_state
 
@@ -408,6 +408,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: svegfrac2d
     real(rkx) , pointer , dimension(:,:) :: sxlai2d    
     real(rkx) , pointer , dimension(:,:,:) :: sw_vol
+    real(rkx) , pointer , dimension(:,:,:) ::tsoi 
     real(rkx) , pointer , dimension(:,:,:) :: dailyrnf
     real(rkx) , pointer , dimension(:,:) :: xlat        ! mddom%xlat
     real(rkx) , pointer , dimension(:,:) :: xlon        ! mddom%xlon

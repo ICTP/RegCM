@@ -169,6 +169,8 @@ module mod_che_interface
     call assignpnt(idusts,idust)
     call assignpnt(dep_vels_clm,cdep_vels_clm)
     call assignpnt(sw_vol,csw_vol)
+    call assignpnt(tsoi,ctsoi)
+
 #endif
 
   end subroutine init_chem

@@ -109,17 +109,7 @@ module mod_che_common
   real(rkx) , pointer , dimension(:,:,:) :: cdustflx_clm
   real(rkx) , pointer , dimension(:,:,:) :: cdep_vels_clm
   real(rkx) , pointer , dimension(:,:,:) :: csw_vol 
-
-#endif
-#if (defined CLM && defined VOC)
-  ! Tracer mask that uses MEGAN indices
-  integer(ik4) , pointer , dimension(:) :: bvoc_trmask
-  real(rkx) , pointer , dimension(:,:) :: cvoc_em0
-  real(rkx) , pointer , dimension(:,:) :: cvoc_em1
-  real(rkx) , pointer , dimension(:,:) :: cvoc_em2
-#endif
-#if defined CLM
-  real(rkx) , pointer , dimension(:,:,:) :: cdep_vels
+  real(rkx) , pointer , dimension(:,:,:) :: ctsoi
 #endif
 
   contains
