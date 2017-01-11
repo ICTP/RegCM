@@ -381,12 +381,17 @@ more freedom to the model in the lower troposphere where local high resolution
 forcings (e.g. complex topography) are more important.
 
 For nspgx of $15-20$, for example, $anudge$ values could be increased to
-$2,3,4$. As a rule of thumb, the choice of the maximum $anudge$ value should
-follow the conditions:
+$2,3,4$ or even $2,4,6$. As a rule of thumb, the choice of the number of
+$nspgx$ points and the maximum $anudge$ value should follow the conditions:
 
-\begin{equation}
-\frac{(nspgx-1)}{anudge(k)} \ge 3
-\end{equation}
+\begin{align}
+	2\ nspgx &< 0.25\ min(IY,JX) \\
+	anudge &\le \frac{(nspgx-1)}{3}
+\end{align}
+
+Most notably to have roughly the same buffer zone in doubling the resolution,
+you should double the number of $nspgx$ points and increase up to double the
+value of $anudge$.
 
 {\footnotesize
 \begin{Verbatim}
