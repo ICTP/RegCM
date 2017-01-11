@@ -473,11 +473,7 @@ module mod_nhinterp
       end do
       wtop(j1:j2,i1:i2) = wtmp(j1:j2,i1:i2,1)
       w(j1:j2,i1:i2,1:kxs) = wtmp(j1:j2,i1:i2,2:kxs+1)
-      w(j1,:,:) = w(j1+1,:,:)
-      w(j2-1,:,:) = w(j2-2,:,:)
       w(j2,:,:) = w(j2-1,:,:)
-      w(:,i1,:) = w(:,i1+1,:)
-      w(:,i2-1,:) = w(:,i2-2,:)
       w(:,i2,:) = w(:,i2-1,:)
     end subroutine nhw
 
