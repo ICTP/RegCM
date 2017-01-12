@@ -178,7 +178,6 @@ module mod_runparams
   ! Non hydrostatic core parameters
 
   real(rkx) , public :: base_state_pressure
-  real(rkx) , public :: base_state_temperature
   real(rkx) , public :: logp_lrate
 
   ! Grell cumulus scheme parameters

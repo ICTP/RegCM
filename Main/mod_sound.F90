@@ -112,6 +112,7 @@ module mod_sound
   subroutine init_sound
     implicit none
     integer(ik4) :: i
+    real(rkx) :: maxt , loc_maxt
 
     if ( ifupr == 1 ) then
       !
@@ -136,7 +137,9 @@ module mod_sound
     end if
     bet = nhbet
     xkd = nhxkd
-    cs = sqrt(xgamma*rgas*base_state_temperature)
+    loc_maxt = maxval(atm0%t)
+    call maxall(loc_maxt,maxt)
+    cs = sqrt(xgamma*rgas*maxt)
     ! Calculate short time-step
     dtsmax = dx/cs/(d_one+xkd)
     if ( myid == italk ) then
@@ -146,7 +149,7 @@ module mod_sound
     bm = (d_one-bet)*d_half
     bpxbp = bp*bp
     bpxbm = bp*bm
-    rnpts = real((nicross-2)*(njcross-2),rkx)
+    rnpts = d_one/real((nicross-2)*(njcross-2),rkx)
   end subroutine init_sound
 
   subroutine sound
@@ -530,7 +533,7 @@ module mod_sound
         call bcast(estore_g)
         !
         ! If first time through and upper radiation b.c`s are used
-        ! Need to calc some coefficients
+        ! Need to calc some coefficients. RegCM updates every day.
         !
         if ( ( ktau == 0 .or. mod(ktau,kday) == 0 ) .and. it == 1 ) then
           ! Calculating means for upper radiative boundary conditions
@@ -555,21 +558,16 @@ module mod_sound
           call sumall(loc_abar,abar)
           call sumall(loc_rhon,rhon)
           call sumall(loc_xmsf,xmsf)
-          abar = abar/rnpts
-          rhon = rhon/rnpts
-          xmsf = xmsf/rnpts
+          abar = abar*rnpts
+          rhon = rhon*rnpts
+          xmsf = xmsf*rnpts
           !
           ! Try to avoid problems coming from computing distributed integrals.
           !
-          abar = real(int(abar*100000.0_rkx),rkx)/100000_rkx
-          rhon = real(int(rhon*100000.0_rkx),rkx)/100000_rkx
-          xmsf = real(int(xmsf*100000.0_rkx),rkx)/100000_rkx
+          abar = real(int(abar*100000.0_rkx),rkx)/100000.0_rkx
+          rhon = real(int(rhon*100000.0_rkx),rkx)/100000.0_rkx
+          xmsf = real(int(xmsf*100000.0_rkx),rkx)/100000.0_rkx
           !
-          ! Try to avoid problems coming from computing distributed integrals.
-          !
-          abar = real(int(abar*100000.0_rkx),rkx)/100000_rkx
-          rhon = real(int(rhon*100000.0_rkx),rkx)/100000_rkx
-          xmsf = real(int(xmsf*100000.0_rkx),rkx)/100000_rkx
           dxmsfb = d_two/dx/xmsf
           tmask(:,:) = d_zero
           do kk = 0 , 6
@@ -599,10 +597,10 @@ module mod_sound
         !
         iciloop: &
         do i = ici1 , ici2
-          if ( i < 4 .or. i > icross2 - 3 ) cycle
+          if ( i < 4 .or. i > icross2 - 3 ) cycle iciloop
           jciloop: &
           do j = jci1 , jci2
-            if ( j < 4 .or. j > jcross2 - 3 ) cycle
+            if ( j < 4 .or. j > jcross2 - 3 ) cycle jciloop
             do nsi = -6 , 6
               inn = i+nsi
               if ( inn < icross1+1 ) inn = icross1+1
@@ -626,33 +624,6 @@ module mod_sound
         end do
       end do
       !
-      ! Zero-out gradient
-      !
-      if ( ma%has_bdybottom ) then
-        atmc%w(jci1:jci2,ice1,1) = atmc%w(jci1:jci2,ici1,1)
-        if ( ma%has_bdyleft ) then
-          atmc%w(jce1,ice1,1) = atmc%w(jci1,ici1,1)
-        end if
-        if ( ma%has_bdyright ) then
-          atmc%w(jce2,ice1,1) = atmc%w(jci2,ici1,1)
-        end if
-      end if
-      if ( ma%has_bdytop ) then
-        atmc%w(jci1:jci2,ice2,1) = atmc%w(jci1:jci2,ici2,1)
-        if ( ma%has_bdyleft ) then
-          atmc%w(jce1,ice2,1) = atmc%w(jci1,ici2,1)
-        end if
-        if ( ma%has_bdyright ) then
-          atmc%w(jce2,ice2,1) = atmc%w(jci2,ici2,1)
-        end if
-      end if
-      if ( ma%has_bdyleft ) then
-        atmc%w(jce1,ici1:ici2,1) = atmc%w(jci1,ici1:ici2,1)
-      end if
-      if ( ma%has_bdyright ) then
-        atmc%w(jce2,ici1:ici2,1) = atmc%w(jci2,ici1:ici2,1)
-      end if
-      !
       ! Downward sweep calculation of w
       !
       do k = 1 , kz
@@ -662,6 +633,9 @@ module mod_sound
           end do
         end do
       end do
+      !
+      ! Check CFL
+      !
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -749,6 +723,89 @@ module mod_sound
           end do
         end do
       end do
+      !
+      ! Zero-out gradient for W, specified on PP
+      !
+      if ( ma%has_bdybottom ) then
+        do k = 1 , kzp1
+          do j = jci1 , jci2
+            atmc%w(j,ice1,k) = atmc%w(j,ici1,k)
+          end do
+        end do
+        do k = 1 , kz
+          do j = jci1 , jci2
+            atmc%pp(j,ice1,k) = atmc%pp(j,ice1,k) + aten%pp(j,ice1,k)
+          end do
+        end do
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kzp1
+            atmc%w(jce1,ice1,k) = atmc%w(jci1,ici1,k)
+          end do
+          do k = 1 , kz
+            atmc%pp(jce1,ice1,k) = atmc%pp(jce1,ice1,k) + aten%pp(jce1,ice1,k)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kzp1
+            atmc%w(jce2,ice1,k) = atmc%w(jci2,ici1,k)
+          end do
+          do k = 1 , kz
+            atmc%pp(jce2,ice1,k) = atmc%pp(jce2,ice1,k) + aten%pp(jce2,ice1,k)
+          end do
+        end if
+      end if
+      if ( ma%has_bdytop ) then
+        do k = 1 , kzp1
+          do j = jci1 , jci2
+            atmc%w(j,ice2,k) = atmc%w(j,ici2,k)
+          end do
+        end do
+        do k = 1 , kz
+          do j = jci1 , jci2
+            atmc%pp(j,ice2,k) = atmc%pp(j,ice2,k) + aten%pp(j,ice2,k)
+          end do
+        end do
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kzp1
+            atmc%w(jce1,ice2,k) = atmc%w(jci1,ici2,k)
+          end do
+          do k = 1 , kz
+            atmc%pp(jce1,ice2,k) = atmc%pp(jce1,ice2,k) + aten%pp(jce1,ice2,k)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kzp1
+            atmc%w(jce2,ice2,k) = atmc%w(jci2,ici2,k)
+          end do
+          do k = 1 , kz
+            atmc%pp(jce2,ice2,k) = atmc%pp(jce2,ice2,k) + aten%pp(jce2,ice2,k)
+          end do
+        end if
+      end if
+      if ( ma%has_bdyleft ) then
+        do k = 1 , kzp1
+          do i = ici1 , ici2
+            atmc%w(jce1,i,k) = atmc%w(jci1,i,k)
+          end do
+        end do
+        do k = 1 , kz
+          do i = ici1 , ici2
+            atmc%pp(jce1,i,k) = atmc%pp(jce1,i,k) + aten%pp(jce1,i,k)
+          end do
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do k = 1 , kzp1
+          do i = ici1 , ici2
+            atmc%w(jce2,i,k) = atmc%w(jci2,i,k)
+          end do
+        end do
+        do k = 1 , kz
+          do i = ici1 , ici2
+            atmc%pp(jce2,i,k) = atmc%pp(jce2,i,k) + aten%pp(jce2,i,k)
+          end do
+        end do
+      end if
       ! End of time loop
     end do timeloop
     !

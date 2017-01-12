@@ -34,7 +34,6 @@ module mod_nhinterp
   real(rkx) :: ptop = 50.0_rkx  ! Centibars
   real(rkx) :: ptoppa           ! Pascal
   real(rkx) :: p0 = stdp        ! Pascal
-  real(rkx) :: ts0 = stdt       ! Kelvin
   real(rkx) :: tlp = 47.70_rkx  ! [K/ln(Pa)]
 
   interface nhinterp
@@ -44,12 +43,11 @@ module mod_nhinterp
 
   contains
 
-    subroutine nhsetup(ptp,p,ts,lp)
+    subroutine nhsetup(ptp,pbase,lp)
       implicit none
-      real(rkx) , intent(in) :: ptp , p , ts , lp
+      real(rkx) , intent(in) :: ptp , pbase , lp
       ptop = ptp
-      p0 = p
-      ts0 = ts
+      p0 = pbase
       tlp = lp
       ptoppa = ptop * d_1000
     end subroutine nhsetup

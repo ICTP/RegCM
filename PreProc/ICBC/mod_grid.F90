@@ -47,7 +47,6 @@ module mod_grid
   real(rkx) , public :: lat0 , lat1 , lon0 , lon1
 
   real(rkx) , public :: base_state_pressure = stdp
-  real(rkx) , public :: base_state_temperature = stdt
   real(rkx) , public :: logp_lrate = 50.0_rkx
 
   public :: init_grid
@@ -94,7 +93,7 @@ module mod_grid
     if ( idynamic == 2 ) then
       call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm, &
                        mask,landuse,msfx,msfd)
-      call nhsetup(ptop,base_state_pressure,base_state_temperature,logp_lrate)
+      call nhsetup(ptop,base_state_pressure,logp_lrate)
     else
       call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm, &
                        mask,landuse)

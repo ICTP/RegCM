@@ -152,8 +152,7 @@ program icbc
   integer(ik4) :: ierr
   character(len=256) :: namelistfile, prgname
 
-  namelist /nonhydroparam/ base_state_pressure , base_state_temperature , &
-       logp_lrate
+  namelist /nonhydroparam/ base_state_pressure , logp_lrate
 
   call header('icbc')
   !
@@ -172,7 +171,6 @@ program icbc
     end if
     write(stdout, *) 'Using non hydrostatic parameters'
     write(stdout, *) 'base_state_pressure    = ', base_state_pressure
-    write(stdout, *) 'base_state_temperature = ', base_state_temperature
     write(stdout, *) 'logp_lrate             = ', logp_lrate
     close(ipunit)
   end if
