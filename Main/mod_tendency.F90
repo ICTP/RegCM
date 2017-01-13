@@ -226,10 +226,10 @@ module mod_tendency
             !
             ! Calculate wind components at cross points
             !
-            ucc(j,i,k) = (atmx%umd(j,i,k)  + atmx%umd(j,i+1,k) + &
-                          atmx%umd(j+1,i,k)+ atmx%umd(j+1,i+1,k))
-            vcc(j,i,k) = (atmx%vmd(j,i,k)  + atmx%vmd(j,i+1,k) + &
-                          atmx%vmd(j+1,i,k)+ atmx%vmd(j+1,i+1,k))
+            ucc(j,i,k) = (atmx%ud(j,i,k)  + atmx%ud(j,i+1,k) + &
+                          atmx%ud(j+1,i,k)+ atmx%ud(j+1,i+1,k))
+            vcc(j,i,k) = (atmx%vd(j,i,k)  + atmx%vd(j,i+1,k) + &
+                          atmx%vd(j+1,i,k)+ atmx%vd(j+1,i+1,k))
           end do
         end do
       end do

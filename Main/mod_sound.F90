@@ -639,14 +639,10 @@ module mod_sound
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ucrs(j,i,k) = atmc%u(j,i,k)     * mddom%msfd(j,i) +   &
-                          atmc%u(j,i+1,k)   * mddom%msfd(j,i+1) + &
-                          atmc%u(j+1,i,k)   * mddom%msfd(j+1,i) + &
-                          atmc%u(j+1,i+1,k) * mddom%msfd(j+1,i+1)
-            vcrs(j,i,k) = atmc%v(j,i,k)     * mddom%msfd(j,i) +   &
-                          atmc%v(j,i+1,k)   * mddom%msfd(j,i+1) + &
-                          atmc%v(j+1,i,k)   * mddom%msfd(j+1,i) + &
-                          atmc%v(j+1,i+1,k) * mddom%msfd(j+1,i+1)
+            ucrs(j,i,k) = atmc%u(j,i,k) + atmc%u(j,i+1,k) + &
+                          atmc%u(j+1,i,k) + atmc%u(j+1,i+1,k)
+            vcrs(j,i,k) = atmc%v(j,i,k) + atmc%v(j,i+1,k) + &
+                          atmc%v(j+1,i,k) + atmc%v(j+1,i+1,k)
           end do
         end do
       end do
