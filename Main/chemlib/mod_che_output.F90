@@ -114,13 +114,13 @@ module mod_che_output
           end do
         end if
         ctbldiag(:,:,:,itr) = d_zero
-        if ( associated(che_raiten_out) ) then
+        if ( associated(che_wasten_out) ) then
           do k = 1 , kz
             che_wasten_out(:,:,k) = washout(jci1:jci2,ici1:ici2,k,itr) / &
                              cpsb(jci1:jci2,ici1:ici2)
           end do
         end if
-        if ( associated(che_wasten_out) ) then
+        if ( associated(che_raiten_out) ) then
           do k = 1 , kz
             che_raiten_out(:,:,k) = rainout(jci1:jci2,ici1:ici2,k,itr) / &
                              cpsb(jci1:jci2,ici1:ici2)
