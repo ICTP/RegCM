@@ -45,8 +45,6 @@ module mod_che_start
 
   private
 
-  real(rkx) , parameter :: solso4 = 0.9_rkx
-
   public  :: start_chem
 
   contains
@@ -142,7 +140,10 @@ module mod_che_start
     mmin = 0
     mbin = 0
     do itr = 1 , ntr
-      if ( chtrname(itr) == 'SO2' ) iso2 = itr
+      if ( chtrname(itr) == 'SO2' ) then
+        iso2 = itr
+        chtrsol(iso2) = solso2
+      end if
       if ( chtrname(itr) == 'DMS' ) idms = itr
 !
 ! for sulfuric acid and sulfate aer, we define here the same tracer index for compatibility with gas-phase

@@ -32,7 +32,11 @@ module mod_che_sox
 
   private
 
-  public :: chemsox
+
+  real(rkx) , parameter :: solso4 = 1._rkx
+  real(rkx) , parameter :: solso2 = 0.6_rkx
+
+  public :: chemsox, solso4, solso2
 
   contains
 
@@ -180,7 +184,6 @@ module mod_che_sox
 !!$             wetrem(iso4) = (fracloud(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
 !!$                      rxs11)*(exp(-cremrat(j,i,k)/fracloud(i,k)*dt)-d_one)
 !!$           end if
-
 
          end if
            ! Below cloud scavenging only for SO2 only stratiform precip !
