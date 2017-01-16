@@ -83,6 +83,8 @@ program mksurfdata
 #endif
 #ifdef LCH4
   use mod_mklch4
+! samy
+  use mod_mksoilph
 #endif
 #endif
 #ifdef VICHYDRO
@@ -135,6 +137,8 @@ program mksurfdata
 #endif
 #ifdef LCH4
   integer(ik4) :: if0 , ip3 , izwt0
+! samy 
+  integer(ik4) :: isoilphvar
 #endif
 #endif
 #ifdef VICHYDRO
@@ -717,6 +721,16 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var P3')
   istatus = nf90_def_var(ncid, 'ZWT0',regcm_vartype,idims(7),izwt0)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ZWT0')
+! samy : for soil ph for CH4 emission
+  istatus = nf90_def_var(ncid, 'PH', nf90_double, idims(7),isoilphvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var PH')
+  istatus = nf90_put_att(ncid, isoilphvar, 'long_name', &
+          'Global soil pH')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add PH long_name')
+  istatus = nf90_put_att(ncid, isoilphvar, 'units','unitless')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add PH units')
+! samy
+
 #endif
 #endif
 
@@ -1346,6 +1360,21 @@ program mksurfdata
   istatus = nf90_put_var(ncid, izwt0, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ZWt0')
   deallocate(var3d)
+
+! soil ph
+  allocate(var2d(jxsg,iysg))
+  call mksoilph('mksrf_soilph.nc',var2d)
+  where ( var2d < 4.5 )
+   var2d = 4.5
+  end where
+  where ( xmask < 0.5D0 )
+    var2d = vmisdat
+  end where
+  call mypack(var2d,gcvar)
+  if ( any(gcvar < 4.5D0) ) call fillvar(gcvar)
+  istatus = nf90_put_var(ncid, isoilphvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write PH')
+  deallocate(var2d)
 
   write(stdout,*) 'Created CH4 informations...'
 #endif

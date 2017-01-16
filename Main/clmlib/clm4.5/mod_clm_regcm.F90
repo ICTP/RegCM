@@ -4,7 +4,7 @@ module mod_clm_regcm
   use mod_realkinds
   use mod_dynparam
   use mod_runparams
-  use mod_ipcc_scenario , only : cgas , igh_co2
+  use mod_ipcc_scenario , only : cgas , igh_co2, igh_ch4 ! samy
   use mod_memutil
   use mod_mppparam
   use mod_mpmessage
@@ -304,7 +304,11 @@ module mod_clm_regcm
 
     if ( ichem /= 1 ) then
       clm_a2l%forc_pco2 = cgas(igh_co2,xyear)*1.e-6_rk8*clm_a2l%forc_psrf
-      clm_a2l%forc_ndep = 6.34e-5_rk8
+! samy
+#ifdef LCH4
+      clm_a2l%forc_pch4 = cgas(igh_ch4,xyear)*1.e-6_rk8*clm_a2l%forc_psrf
+#endif
+      !clm_a2l%forc_ndep = 6.34e-5_rk8
       if ( use_c13 ) then
         clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
       end if
@@ -316,6 +320,10 @@ module mod_clm_regcm
       ! interface with atmospheric chemistry
       ! CO2 partial pressure (Pa)
       clm_a2l%forc_pco2 = cgas(igh_co2,xyear)*1.e-6_rk8*clm_a2l%forc_psrf
+! samy
+#ifdef LCH4
+      clm_a2l%forc_pch4 = cgas(igh_ch4,xyear)*1.e-6_rk8*clm_a2l%forc_psrf
+#endif
       if ( use_c13 ) then
        ! C13O2 partial pressure (Pa)
        clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2

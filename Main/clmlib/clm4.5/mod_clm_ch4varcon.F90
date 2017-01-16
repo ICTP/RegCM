@@ -234,7 +234,7 @@ module mod_clm_ch4varcon
     ! Production
     namelist /ch4par_in/ &
         q10ch4base, q10ch4, rootlitfrac, f_ch4, cnscalefactor, &
-        redoxlag, &
+        redoxlag, usephfact, &
         mino2lim, lake_decomp_fact, ch4rmcnlim, anoxicmicrosites,redoxlag_vertical
 
     ! Oxidation

@@ -129,7 +129,7 @@ contains
 !!$ real, dimension(iy,jx), intent(in) :: manrate
     ! fertiliser application rate (kg/m2/s)
 !!$ real, dimension(iy,jx), intent(in) :: fertrate
-    ! soilpH
+    ! soilpH/
 !!$ real, dimension(iy,jx), intent(in) :: soilph
 
     real(rkx), dimension(ici1:ici2) :: &
@@ -166,6 +166,10 @@ contains
     man1d = nmanure(j,ici1:ici2)
     fert1d = nfert(j,ici1:ici2)
     ph1d = soilph(j,ici1:ici2)
+    
+    totn1d = (man1d + fert1d)/(24._rkx * 365._rkx)
+    ! convert from kg/ha/year to kg/ha/hr needed by the neural network
+    
 
     ! iFAB  ! put interactive LAI
     lai_int = cxlai2d(j,ici1:ici2)
@@ -207,7 +211,7 @@ contains
       ! coefficient of 0.45 derived from obs at Grignon(0.536),
       ! Hombori(0.4) and Escompte(0.43) = avg. 0.45
       ! in regcm/bats  this parameter would be cxmopor : consider replacing ?
-      porewater(i) = (porewater(i) * 0.45_rkx) * d_100
+      porewater(i) = (porewater(i) / 0.45_rkx) * d_100
 
       ! converting temperature from Kelvin to Celsius
       soiltemp_deep(i) = ctg(j,i)
@@ -235,7 +239,7 @@ contains
       ! coefficient of 0.45 derived from obs at Grignon(0.536),
       ! Hombori(0.4) and Escompte(0.43) = avg. 0.45
       ! in regcm/bats  this parameter would be cxmopor : consider replacing ?
-      porewater(i) = (porewater(i) * 0.45_rkx) * d_100
+      porewater(i) = (porewater(i) / 0.45_rkx) * d_100
 
       ! temperature profile
       ! converting temperature from Kelvin to Celsius
@@ -248,6 +252,7 @@ contains
       if ( soiltemp_surf(i) /= 0 ) then
         soiltemp_surf(i) = soiltemp_surf(i) - tzero
       end if
+
     end do
 
 #endif
@@ -296,10 +301,12 @@ contains
       ! If sand < 50%, amplitude coefficient is reduced
       !                to avoid strong emissions
       ! Sand conditions are correlated to pH values.
-      if ( ph1d(i) >= d_six ) then
+      if ( ph1d(i) >= 6._rkx ) then
+
         noxflux(i) = xcoef15 + xcoef16s*norm_no(i)
-      else if (ph1d(i) <= d_six) then
+      else
         noxflux(i) = xcoef15 + xcoef16l*norm_no(i)
+
       end if
 
       !avoiding negative fluxes
