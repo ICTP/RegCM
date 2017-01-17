@@ -468,12 +468,12 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: emissivity  ! emiss
     real(rkx) , pointer , dimension(:,:) :: deltaq      ! sdelq
     real(rkx) , pointer , dimension(:,:) :: deltat      ! sdelt
-    real(rkx) , pointer , dimension(:,:,:) :: drydepflx   ! drydepflx
-    real(rkx) , pointer , dimension(:,:,:) :: wetdepflx   ! wetdepflx
-    integer(ik4) , pointer , dimension(:) :: idust        ! dust indices
+    real(rkx) , pointer , dimension(:,:,:) :: drydepflx ! drydepflx
+    real(rkx) , pointer , dimension(:,:,:) :: wetdepflx ! wetdepflx
+    integer(ik4) , pointer , dimension(:) :: idust      ! dust indices
     real(rkx) , pointer , dimension(:,:) :: zo          ! zo
     real(rkx) , pointer , dimension(:,:) :: ustar       ! ustar
-     real(rkx) , pointer , dimension(:,:) :: w10m       !w10m
+    real(rkx) , pointer , dimension(:,:) :: w10m        ! w10m
     real(rkx) , pointer , dimension(:,:) :: rhoa        ! xdens
 #ifdef CLM
     real(rkx) , pointer , dimension(:,:,:) :: dep_vels

@@ -46,6 +46,7 @@ module mod_che_common
     integer(ik4) , pointer , dimension(:) :: indchbdy
     real(rkx)    , pointer , dimension(:) :: mw
   end type tracer
+
   type(tracer) trac
 
   ! tracer variables
@@ -81,11 +82,10 @@ module mod_che_common
           cseddpdiag
   real(rkx) , pointer , dimension(:,:,:) :: cemisdiag
 
-
-!*****************************************************************************
-! INTERFACE VARIABLES  for chemistry / regcm
-!   the pointer targets are defined in mod_che_interface
-!*****************************************************************************
+  !*****************************************************************************
+  ! INTERFACE VARIABLES  for chemistry / regcm
+  !   the pointer targets are defined in mod_che_interface
+  !*****************************************************************************
 
   real(rkx) , pointer , dimension(:,:,:,:) ::chib3d
   real(rkx) , pointer , dimension(:,:,:,:) :: cqxb3d

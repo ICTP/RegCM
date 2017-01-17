@@ -4,7 +4,7 @@ module mod_clm_regcm
   use mod_realkinds
   use mod_dynparam
   use mod_runparams
-  use mod_ipcc_scenario , only : cgas , igh_co2, igh_ch4 ! samy
+  use mod_ipcc_scenario , only : cgas , igh_co2 , igh_ch4
   use mod_memutil
   use mod_mppparam
   use mod_mpmessage
@@ -16,8 +16,7 @@ module mod_clm_regcm
   use mod_clm_driver
   use mod_clm_varctl , only : use_c13 , co2_ppmv , tcrit , nextdate
   use mod_clm_varpar , only : nlevsoi
-  use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , &
-                              sb
+  use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , sb
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
   use mod_clm_megan
@@ -473,9 +472,8 @@ module mod_clm_regcm
     lms%tgrd = lms%tgbb
     lms%tgbrd = lms%tgbb
 
-
-! soil temperature profile 
-!note tsw is used as a temporary table
+    ! soil temperature profile 
+    ! note tsw is used as a temporary table
     clm_l2a%notused = 0.0_rk8
     do k = 1 , nlevsoi
       clm_l2a%notused(:) = clm_l2a%tsoi(:,k)
@@ -492,18 +490,18 @@ module mod_clm_regcm
       lms%sw(:,:,:,k) = lms%tsw(:,:,:)
     end do
 
-! volumetric soil water profile (m3/m3) is saved for chem 
+    ! volumetric soil water profile (m3/m3) is saved for chem 
     clm_l2a%notused = 0.0_rk8
     do k = 1 , nlevsoi
       clm_l2a%notused(:) = clm_l2a%h2osoi_vol(:,k)
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
       lms%sw_vol(:,:,:,k) = lms%tsw(:,:,:)
     end do
-    ! tsw is finally passed as the soil water in Kg/m2 in the first 10 cm of soil
+    ! tsw is finally passed as the soil water in Kg/m2 in the first
+    ! 10 cm of soil
     ! a bit obsolete since volumetric water profile is passed , 
     ! but still could be potentuially usefull
     call glb_l2c_ss(lndcomm,clm_l2a%h2o10cm,lms%tsw)
-
 
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)

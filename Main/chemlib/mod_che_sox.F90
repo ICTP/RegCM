@@ -32,7 +32,6 @@ module mod_che_sox
 
   private
 
-
   real(rkx) , parameter :: solso4 = 1._rkx
   real(rkx) , parameter :: solso2 = 0.6_rkx
 
@@ -42,7 +41,7 @@ module mod_che_sox
 
     subroutine chemsox(j,wl,fracloud,fracum,rho,ttb)
      implicit none
-!
+
      integer(ik4) , intent(in) :: j
      real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: ttb , wl , rho
      real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
@@ -55,7 +54,7 @@ module mod_che_sox
 
      integer(ik4) :: i , k
 
-!FAB
+     !FAB
      caircell(:,:) = 1.e-6_rkx * rho(:,:)/amdk * navgdr
 
      call chemrate(caircell,ttb,rk_com)
@@ -132,34 +131,34 @@ module mod_che_sox
        end do
      end do
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      ! AQUEOUS CONVERSION IN CLOUDS 
      ! works also when full chestry igaschem == 1
      ! Aqueous conversion from so2 to so4 : control by h2o2
      ! either from climatology / or from gas phase chem
-     if (igaschem==0) then
-     isulf = iso4
-     do k = 1 , kz
-       do i = ici1 , ici2
-         chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
-         if ( ioxclim == 1 ) then
-           h2o2mol =  oxcl(j,i,k,iox_h2o2)
+     if ( igaschem == 0 ) then
+       isulf = iso4
+       do k = 1 , kz
+         do i = ici1 , ici2
+           chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
+           if ( ioxclim == 1 ) then
+             h2o2mol =  oxcl(j,i,k,iox_h2o2)
+             concmin(i,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx*cpsb(j,i)
+           else
+             ! cb*kg/kg do tests, suppose h2o2 always enough
+             concmin(i,k) = chimol*64._rkx/28.9_rkx*cpsb(j,i)     ! cb*kg/kg
+           end if
+         end do
+       end do
+     elseif ( igaschem == 1 .and. ih2o2 > 0 ) then 
+       isulf = ih2so4
+       do k = 1 , kz
+         do i = ici1 , ici2
+           chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
+           h2o2mol= 28.9_rkx/34.0_rkx*chib(j,i,k,ih2o2)/cpsb(j,i)
            concmin(i,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx*cpsb(j,i)
-         else
-           ! cb*kg/kg do tests, suppose h2o2 always enough
-           concmin(i,k) = chimol*64._rkx/28.9_rkx*cpsb(j,i)     ! cb*kg/kg
-         end if
+         end do
        end do
-     end do
-     elseif (igaschem==1 .and. ih2o2 > 0) then 
-     isulf = ih2so4
-      do k = 1 , kz
-       do i = ici1 , ici2
-         chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
-         h2o2mol= 28.9_rkx/34.0_rkx*chib(j,i,k,ih2o2)/cpsb(j,i)
-         concmin(i,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx*cpsb(j,i)
-       end do
-      end do
      end if
 
      ! conversion in   Large scale clouds

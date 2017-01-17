@@ -169,7 +169,6 @@ contains
     
     totn1d = (man1d + fert1d)/(24._rkx * 365._rkx)
     ! convert from kg/ha/year to kg/ha/hr needed by the neural network
-    
 
     ! iFAB  ! put interactive LAI
     lai_int = cxlai2d(j,ici1:ici2)

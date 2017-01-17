@@ -464,18 +464,15 @@ end subroutine init_atm2lnd_type
                tmpc,clm_l2a%h2osoi, &
                c2l_scale_type='unity', &
                l2g_scale_type='unity')
-!FAB
+      !FAB
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                cptr%cws%h2osoi_vol(:,1:nlevsoi),clm_l2a%h2osoi_vol, &
                c2l_scale_type='unity', &
                l2g_scale_type='unity')
- 
       call c2g(begc,endc,begl,endl,begg,endg,nlevsoi, &
                cptr%ces%t_soisno(:,1:nlevsoi),clm_l2a%tsoi, &
                c2l_scale_type='unity', &
                l2g_scale_type='unity')
-
-
       call c2g(begc,endc,begl,endl,begg,endg, &
                cptr%cws%h2osoi_liqice_10cm,clm_l2a%h2o10cm, &
                c2l_scale_type='unity', &

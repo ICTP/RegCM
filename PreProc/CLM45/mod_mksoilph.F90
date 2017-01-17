@@ -45,6 +45,7 @@ module mod_mksoilph
   real(rk8) :: vmisdat = 0.D0
 
   contains
+
   subroutine mksoilph(soilphfile,soilph)
     implicit none
     character(len=*) , intent(in) :: soilphfile
@@ -89,7 +90,6 @@ module mod_mksoilph
 
     allocate(glon(nlon))
 
-
     istatus = nf90_inq_varid(ncid,lonvar,ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
       'Cannot find variable longitude in file '//trim(inpfile))
@@ -116,9 +116,9 @@ module mod_mksoilph
       'Cannot find variable soilph in file '//trim(inpfile))
     !istatus = nf90_inq_varid(ncid,maskname,ivarmask)
     !call checkncerr(istatus,__FILE__,__LINE__, &
-     ! 'Cannot find variable landmask in file '//trim(inpfile))
+    ! 'Cannot find variable landmask in file '//trim(inpfile))
     
-   rmask(:,:) = 1.0D0
+    rmask(:,:) = 1.0D0
   
     li = 1
     do i = 1 , domain%ntiles
@@ -144,4 +144,3 @@ module mod_mksoilph
 
 end module mod_mksoilph
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
-

@@ -145,10 +145,13 @@ module mod_che_start
         chtrsol(iso2) = solso2
       end if
       if ( chtrname(itr) == 'DMS' ) idms = itr
-!
-! for sulfuric acid and sulfate aer, we define here the same tracer index for compatibility with gas-phase
-! chemistry options, and simple sulfate aer option. this might change with adding explicit sulfate aq chemistry.
-! we consider here that all h2so4 partition in aerosol phase
+      !
+      ! For sulfuric acid and sulfate aer, we define here the same tracer
+      ! index for compatibility with gas-phase chemistry options, and simple
+      ! sulfate aer option. This might change with adding explicit sulfate
+      ! aq chemistry.
+      ! We consider here that all h2so4 partition in aerosol phase
+      !
       if ( chtrname(itr) == 'SO4' .or. chtrname(itr) == 'H2SO4'    ) then
         ! sulfate index is added to carb vector for treatment in drydep
         ! and wetdep sulfate effective diameter and bin is taken equal to ochl

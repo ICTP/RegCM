@@ -92,7 +92,6 @@
       integer(ik4) , dimension (1) :: poltab
       integer(ik4) :: i , j , k , n , ibin
       logical, save :: lfcall=.true.
-
       !
       !*********************************************************************
       ! A : PRELIMINARY CALCULATIONS
@@ -134,9 +133,12 @@
       end do
       !
       ! cloud fractionnal cover for wet deposition
-      ! large scale : fracloud, calculated from fcc coming from pcp.f = large scale fraction
-      ! cumulus scale : fracum, now directly saved (== cloudfra right after call to convection scheme)
-      ! N.B : the difference with 'radiative cldfra' is that cldfra has an upper threshold of 0.8 and accound
+      ! large scale : fracloud, calculated from fcc coming from
+      ! pcp.f = large scale fraction
+      ! cumulus scale : fracum, now directly saved (== cloudfra right after
+      ! call to convection scheme)
+      ! N.B : the difference with 'radiative cldfra' is that cldfra has an
+      ! upper threshold of 0.8 and accound
       ! both large scale and cumulus cloud)
       ! here cfcc + convcldfra can be > 1  !! Overestimation of removal ?
       do k = 1 , kz
@@ -168,21 +170,17 @@
           else
             ivegcov(i,j) = cveg2d(j,i)
           end if
-
           psurf(i,j) = cps2d(j,i)
           ! incoming solar radiation (for stb criteria used to calculate
           ! aerodynamic resistance)
           srad(i,j) = csol2d(j,i)
           hsurf(i,j) = cht(j,i)
           bchi(i,:,:,j) = chib(j,i,:,:)
-          
           ! fraction of vegetation
           vegfrac(i,j) = cvegfrac(j,i)
- 
         end do 
-       end do
-
-          ! Roughness lenght, 10 m wind           !
+      end do
+      ! Roughness lenght, 10 m wind           !
 #ifndef CLM45
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -220,10 +218,13 @@
           rh10(i,j) = d_zero
           if ( qsat10 > d_zero ) rh10(i,j) = shu10/qsat10
           !
-          ! cssw2da is the soil water amount in kg/m2 of the 10 cm superficial layer   
+          ! cssw2da is the soil water amount in kg/m2 of the 10 cm
+          ! superficial layer
           ! depuv converted from mm to m. soil density assumed tp be 2650 kg/m3
-          ! Fecan parametrisation for dust is expecting gravimetric soil water content in kg/kg
-          soilw(i,j) = cssw2da(j,i)/cdepuv(nint(clndcat(j,i)))/1.E-3/(2650.0_rkx * &
+          ! Fecan parametrisation for dust is expecting gravimetric
+          ! soil water content in kg/kg
+          soilw(i,j) = cssw2da(j,i)/cdepuv(nint(clndcat(j,i))) / &
+                       1.e-3_rkx/(2650.0_rkx * &
                        (d_one-cxmopor(ciexsol(nint(clndcat(j,i))))))
           ! surface temperature
           ! over land recalculated from the BATS as deltk air/ surface
@@ -235,40 +236,43 @@
             ! ocean temperature in this case
             tsurf(i,j) = ctg(j,i)
           end if
-          !
-         end do
+        end do
       end do
 # endif
 #ifdef CLM45
-! FAB note rather than passing directly cw10m and custar which vary at the CLM45 frequency to the dust emisison code
-! we recalculate here an effective roughness lenght zeff from  custar and cw10m
-! this roughness lenght is then used as input for the dust module and 10 m wind is recalculated 
-! from it  at the dynamical time step ( instead of CLM45 frequency) - similarly to bats case.
-! if we want dust emssion fully consistent with CLM45 , consider using ichdstem = 3
-
-     do i = ici1 , ici2
-       do j = jci1 , jci2
-         
-         if ( ivegcov(i,j) /= 0 .and. custar(j,i) > 0_rkx ) then
-          zeff(i,j) = d_10 * exp(-vonkar * cw10m (j,i) /custar (j,i))
-         else
-          zeff(i,j) = zoce
-         end if
-         fact = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zeff(i,j))
-         u10 = (cubx3d(j,i,kz))*(d_one-fact)
-         v10 = (cvbx3d(j,i,kz))*(d_one-fact)
-         wid10(i,j) = sqrt(u10**2+v10**2)
-         tsurf(i,j) = ctg(j,i)
-! use simplifcations to approximate t and hr at 10 m from first model level 
-         temp10(i,j) =  ctb3d(j,i,kz) + lrate * (cza(j,i,kz) - 10._rkx)
-         rh10(i,j) = crhb3d(j,i,kz)
-! when CLM45 we use directly the volumetic soil water of the first CLM layer 
-! converted to gravimetric water conrtent using a sandy soil bulk density ratio to water density of 0.45
-! consistent with bionox data  
-         soilw(i,j) = csw_vol(j,i,1)*0.45_rkx        
-
-       end do
-     end do         
+      ! FAB note rather than passing directly cw10m and custar which vary
+      ! at the CLM45 frequency to the dust emisison code
+      ! We recalculate here an effective roughness lenght zeff from custar
+      ! and cw10m
+      ! This roughness lenght is then used as input for the dust module and
+      ! 10 m wind is recalculated from it  at the dynamical time step
+      ! ( instead of CLM45 frequency) - similarly to bats case.
+      ! if we want dust emssion fully consistent with CLM45 , consider using
+      ! ichdstem = 3
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( ivegcov(i,j) /= 0 .and. custar(j,i) > 0_rkx ) then
+            zeff(i,j) = d_10 * exp(-vonkar * cw10m (j,i) /custar (j,i))
+          else
+            zeff(i,j) = zoce
+          end if
+          fact = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zeff(i,j))
+          u10 = (cubx3d(j,i,kz))*(d_one-fact)
+          v10 = (cvbx3d(j,i,kz))*(d_one-fact)
+          wid10(i,j) = sqrt(u10**2+v10**2)
+          tsurf(i,j) = ctg(j,i)
+          ! use simplifcations to approximate t and hr at 10 m from
+          ! first model level 
+          temp10(i,j) =  ctb3d(j,i,kz) + lrate * (cza(j,i,kz) - 10._rkx)
+          rh10(i,j) = crhb3d(j,i,kz)
+          ! when CLM45 we use directly the volumetic soil water of the
+          ! first CLM layer 
+          ! converted to gravimetric water conrtent using a sandy soil
+          ! bulk density ratio to water density of 0.45
+          ! consistent with bionox data  
+          soilw(i,j) = csw_vol(j,i,1)*0.45_rkx        
+        end do
+      end do         
 #endif
       !
       ! END of preliminary calculations
@@ -280,12 +284,12 @@
       !
       ! SOX CHEMSITRY ( from offline oxidant)
       !
-        if ( iso2 > 0 .and.(iso4 >0 .or. ih2so4>0)) then
-          do j = jci1 , jci2
-            call chemsox(j,wl(:,:,j),fracloud(:,:,j), &
-                         fracum(:,:,j),rho(:,:,j),ttb(:,:,j))
-          end do
-        end if
+      if ( iso2 > 0 .and.(iso4 >0 .or. ih2so4>0)) then
+        do j = jci1 , jci2
+          call chemsox(j,wl(:,:,j),fracloud(:,:,j), &
+                       fracum(:,:,j),rho(:,:,j),ttb(:,:,j))
+        end do
+      end if
       !
       ! aging of carboneaceous aerosols
       !
@@ -549,4 +553,4 @@
     end subroutine tractend2
 
 end module mod_che_tend
-! vim: tabstop=8 expandtab shiftwidth=2 softtabstop1=2
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

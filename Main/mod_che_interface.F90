@@ -113,10 +113,8 @@ module mod_che_interface
     call assignpnt(sfs%tgb,ctg)
     call assignpnt(sfs%tga,ctga)
 
-
     call assignpnt(sfs%ustar,custar)
     call assignpnt(sfs%w10m,cw10m)
-
 
     call assignpnt(convpr,cconvpr)
     call assignpnt(fcc,cfcc)
@@ -170,7 +168,6 @@ module mod_che_interface
     call assignpnt(dep_vels_clm,cdep_vels_clm)
     call assignpnt(sw_vol,csw_vol)
     call assignpnt(tsoi,ctsoi)
-
 #endif
 
   end subroutine init_chem

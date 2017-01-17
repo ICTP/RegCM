@@ -145,16 +145,14 @@ module mod_atm_interface
   real(rkx) , public , pointer , dimension(:,:) :: sxlai2d
 
 #ifdef CLM45
- ! real(rkx) , public , pointer , dimension(:,:) :: ustar
- ! real(rkx) , public , pointer , dimension(:,:) :: u10m
- ! real(rkx) , public , pointer , dimension(:,:) :: v10m
-
+  ! real(rkx) , public , pointer , dimension(:,:) :: ustar
+  ! real(rkx) , public , pointer , dimension(:,:) :: u10m
+  ! real(rkx) , public , pointer , dimension(:,:) :: v10m
   real(rkx) , public , pointer , dimension(:,:,:) :: voc_em_clm
   real(rkx) , public , pointer , dimension(:,:,:) :: dustflx_clm
   real(rkx) , public , pointer , dimension(:,:,:) :: dep_vels_clm
   real(rkx) , public , pointer , dimension(:,:,:) :: sw_vol
   real(rkx) , public , pointer , dimension(:,:,:) :: tsoi
-
 #endif
 
   !chemistry for surface
@@ -888,17 +886,20 @@ module mod_atm_interface
         call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'storage:svegfrac2d')
         call getmem2d(sxlai2d,jci1,jci2,ici1,ici2,'storage:sxlai2d')
 #ifdef CLM45
-        call getmem3d(voc_em_clm,jci1,jci2,ici1,ici2,1,ntr,'storage:voc_em_clm')
-        call getmem3d(dustflx_clm,jci1,jci2,ici1,ici2,1,4,'storage:dustflx_clm')
-        call getmem3d(dep_vels_clm,jci1,jci2,ici1,ici2,1,ntr,'storage:dep_vels_clm')
-        call getmem3d(sw_vol,jci1,jci2,ici1,ici2,1,num_soil_layers,'storage:sw_vol')
-        call getmem3d(tsoi,jci1,jci2,ici1,ici2,1,num_soil_layers,'storage:tsoi')
-
+        call getmem3d(voc_em_clm,jci1,jci2, &
+                                 ici1,ici2,1,ntr,'storage:voc_em_clm')
+        call getmem3d(dustflx_clm,jci1,jci2, &
+                                  ici1,ici2,1,4,'storage:dustflx_clm')
+        call getmem3d(dep_vels_clm,jci1,jci2, &
+                                   ici1,ici2,1,ntr,'storage:dep_vels_clm')
+        call getmem3d(sw_vol,jci1,jci2, &
+                             ici1,ici2,1,num_soil_layers,'storage:sw_vol')
+        call getmem3d(tsoi,jci1,jci2, &
+                           ici1,ici2,1,num_soil_layers,'storage:tsoi')
 #endif
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
         call getmem1d(idusts,1,nbin,'storage:idusts')
-
         if ( iindirect > 0 .and. iaerosol == 1 ) then
           call getmem3d(ccn,jci1,jci2,ici1,ici2,1,kz,'storage:ccn')
         end if
