@@ -53,9 +53,9 @@ module mod_diffusion
   public :: diffu_x
 
   ! Set this to zero to remove dynamical dependency of diffusion
-  real(rkx) , parameter :: aflag = d_one
+  real(rkx) , parameter :: aflag = d_four
 
-  real(rkx) , pointer , dimension(:,:,:) :: ud , vd
+  real(rkx) , pointer , dimension(:,:,:) :: ud , vd , wx
   real(rkx) , pointer , dimension(:,:) :: pc , pd
 
   contains
@@ -125,11 +125,12 @@ module mod_diffusion
     call assignpnt(sfs%psdotb,pd)
     call assignpnt(atms%ubd3d,ud)
     call assignpnt(atms%vbd3d,vd)
+    call assignpnt(atms%wb3d,wx)
   end subroutine initialize_diffusion
 
   subroutine calc_coeff
     implicit none
-    real(rkx) :: dudx , dvdx , dudy , dvdy , duv
+    real(rkx) :: dudx , dvdx , dudy , dvdy , dwdz , duv
     integer(ik4) :: i , j , k
 
     xkc(:,:,:)  = d_zero
@@ -140,23 +141,45 @@ module mod_diffusion
     ! the values are calculated at cross points, but they also used
     ! for dot-point variables.
     !
-    do k = 1 , kz
-      do i = ice1ga , ice2ga
-        do j = jce1ga , jce2ga
-          ! Following Smagorinsky et al, 1965 for eddy viscosity
-          dudx = ud(j+1,i,k) + ud(j+1,i+1,k) - &
-                 ud(j,i,k)   - ud(j,i+1,k)
-          dvdx = vd(j+1,i,k) + vd(j+1,i+1,k) - &
-                 vd(j,i,k)   - vd(j,i+1,k)
-          dudy = ud(j,i+1,k) + ud(j+1,i+1,k) - &
-                 ud(j,i,k)   - ud(j+1,i,k)
-          dvdy = vd(j,i+1,k) + vd(j+1,i+1,k) - &
-                 vd(j,i,k)   - vd(j+1,i,k)
-          duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
-          xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
+    if ( idynamic == 1 ) then
+      do k = 1 , kz
+        do i = ice1ga , ice2ga
+          do j = jce1ga , jce2ga
+            ! Following Smagorinsky et al, 1965 for eddy viscosity
+            dudx = ud(j+1,i,k) + ud(j+1,i+1,k) - &
+                   ud(j,i,k)   - ud(j,i+1,k)
+            dvdx = vd(j+1,i,k) + vd(j+1,i+1,k) - &
+                   vd(j,i,k)   - vd(j,i+1,k)
+            dudy = ud(j,i+1,k) + ud(j+1,i+1,k) - &
+                   ud(j,i,k)   - ud(j+1,i,k)
+            dvdy = vd(j,i+1,k) + vd(j+1,i+1,k) - &
+                   vd(j,i,k)   - vd(j+1,i,k)
+            duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
+            xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1 , kz
+        do i = ice1ga , ice2ga
+          do j = jce1ga , jce2ga
+            ! Following Smagorinsky et al, 1965 for eddy viscosity
+            dudx = ud(j+1,i,k) + ud(j+1,i+1,k) - &
+                   ud(j,i,k)   - ud(j,i+1,k)
+            dvdx = vd(j+1,i,k) + vd(j+1,i+1,k) - &
+                   vd(j,i,k)   - vd(j,i+1,k)
+            dudy = ud(j,i+1,k) + ud(j+1,i+1,k) - &
+                   ud(j,i,k)   - ud(j+1,i,k)
+            dvdy = vd(j,i+1,k) + vd(j+1,i+1,k) - &
+                   vd(j,i,k)   - vd(j+1,i,k)
+            dwdz = wx(j,i,k) - wx(j,i,k+1)
+            duv = sqrt((dudx-dvdy)*(dudx-dvdy) + &
+                       (dvdx+dudy)*(dvdx+dudy) + dwdz*dwdz)
+            xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
+          end do
+        end do
+      end do
+    end if
     !
     ! Do the same as MM5. Do not diffuse at surface.
     !
@@ -209,11 +232,13 @@ module mod_diffusion
         do j = jdii1 , jdii2
           uten(j,i,k) = uten(j,i,k) - xkd(j,i,k) * pd(j,i) * &
                 rdxsq*(u(j+2,i,k)+u(j-2,i,k)+u(j,i+2,k)+u(j,i-2,k)  - &
-               d_four*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k)) + &
+               d_two*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k) +   &
+                      u(j+1,i+1,k)+u(j-1,i-1,k)+u(j-1,i+1,k)+u(j+1,i-1,k)) + &
               d_twelve*u(j,i,k))
           vten(j,i,k) = vten(j,i,k) - xkd(j,i,k) * pd(j,i) * &
                 rdxsq*(v(j+2,i,k)+v(j-2,i,k)+v(j,i+2,k)+v(j,i-2,k)  - &
-               d_four*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k)) + &
+               d_two*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k) +   &
+                      v(j+1,i+1,k)+v(j-1,i-1,k)+v(j-1,i+1,k)+v(j+1,i-1,k)) + &
               d_twelve*v(j,i,k))
         end do
       end do
@@ -293,7 +318,7 @@ module mod_diffusion
     call time_begin(subroutine_name,idindx)
 #endif
     !
-    ! fourth-order scheme for interior:
+    ! fourth-order (modified) scheme for interior:
     !
     do k = 1 , kz
       do i = icii1 , icii2
@@ -301,8 +326,10 @@ module mod_diffusion
           ften(j,i,k) = ften(j,i,k) - fac * xkcf(j,i,k) * pc(j,i) * &
                       rdxsq*(f(j+2,i,k)+f(j-2,i,k) +                &
                              f(j,i+2,k)+f(j,i-2,k) -                &
-                             d_four*(f(j+1,i,k)+f(j-1,i,k) +        &
-                                     f(j,i+1,k)+f(j,i-1,k)) +       &
+                             d_two*(f(j+1,i,k)+f(j-1,i,k) +         &
+                                    f(j,i+1,k)+f(j,i-1,k) +         &
+                                    f(j+1,i+1,k)+f(j-1,i-1,k) +     &
+                                    f(j+1,i-1,k)+f(j-1,i+1,k)) +    &
                              d_twelve*f(j,i,k))
         end do
       end do
@@ -378,11 +405,13 @@ module mod_diffusion
     do k = 1 , kz
       do i = icii1 , icii2
         do j = jcii1 , jcii2
-          ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) * pc(j,i) *  &
-                      rdxsq*(f(j+2,i,k)+f(j-2,i,k) +          &
-                             f(j,i+2,k)+f(j,i-2,k) -          &
-                             d_four*(f(j+1,i,k)+f(j-1,i,k) +  &
-                                     f(j,i+1,k)+f(j,i-1,k)) + &
+          ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) * pc(j,i) *     &
+                      rdxsq*(f(j+2,i,k)+f(j-2,i,k) +             &
+                             f(j,i+2,k)+f(j,i-2,k) -             &
+                             d_two*(f(j+1,i,k)+f(j-1,i,k) +      &
+                                    f(j,i+1,k)+f(j,i-1,k) +      &
+                                    f(j+1,i+1,k)+f(j-1,i-1,k) +  &
+                                    f(j+1,i-1,k)+f(j-1,i+1,k)) + &
                              d_twelve*f(j,i,k))
         end do
       end do
@@ -474,11 +503,13 @@ module mod_diffusion
       do i = icii1 , icii2
         do j = jcii1 , jcii2
           ften(j,i,k,n) = ften(j,i,k,n) - &
-                          fac * xkc(j,i,k) * pc(j,i) * rdxsq * &
-                        ( f(j+2,i,k,n)+f(j-2,i,k,n) +          &
-                          f(j,i+2,k,n)+f(j,i-2,k,n) -          &
-                          d_four*(f(j+1,i,k,n)+f(j-1,i,k,n) +  &
-                                  f(j,i+1,k,n)+f(j,i-1,k,n)) + &
+                          fac * xkc(j,i,k) * pc(j,i) * rdxsq *    &
+                        ( f(j+2,i,k,n)+f(j-2,i,k,n) +             &
+                          f(j,i+2,k,n)+f(j,i-2,k,n) -             &
+                          d_two*(f(j+1,i,k,n)+f(j-1,i,k,n) +      &
+                                 f(j,i+1,k,n)+f(j,i-1,k,n) +      &
+                                 f(j+1,i+1,k,n)+f(j-1,i-1,k,n) +  &
+                                 f(j+1,i-1,k,n)+f(j-1,i+1,k,n)) + &
                           d_twelve*f(j,i,k,n) )
         end do
       end do

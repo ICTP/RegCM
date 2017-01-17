@@ -597,10 +597,10 @@ module mod_sound
         !
         iciloop: &
         do i = ici1 , ici2
-          if ( i < 4 .or. i > icross2 - 3 ) cycle iciloop
+          if ( i < 8 .or. i > icross2 - 7 ) cycle iciloop
           jciloop: &
           do j = jci1 , jci2
-            if ( j < 4 .or. j > jcross2 - 3 ) cycle jciloop
+            if ( j < 8 .or. j > jcross2 - 7 ) cycle jciloop
             do nsi = -6 , 6
               inn = i+nsi
               if ( inn < icross1+1 ) inn = icross1+1
