@@ -710,7 +710,6 @@ module mod_che_wetdep
         do i = ici1 , ici2
           if ( kcumtop(j,i) >  0 ) then            
             do k = kcumtop(j,i) , kz
-              print*, 'vindieu', fracum(i,k), fracloud(i,k) 
               wetrem_cvc(indp(n)) = fracum(i,k)*chtrsol(indp(n)) * &
                    chib(j,i,k,indp(n))*(exp(-remcum*dt)-d_one)
               chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
