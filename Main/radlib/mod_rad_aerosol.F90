@@ -1343,9 +1343,10 @@ module mod_rad_aerosol
                 fa(n,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
               end do
             end do
-          else if ( chtrname(itr) == 'SO4' .or.     &
-                    chtrname(itr) == 'ANO3' .or.    &
-                    chtrname(itr) == 'ANH4' ) then
+          else if ( chtrname(itr)(1:3) == 'SO4' .or.    & 
+                    chtrname(itr)(1:5) == 'H2SO4'.or.    &
+                    chtrname(itr)(1:4) == 'ANO3' .or.   &
+                    chtrname(itr)(1:4) == 'ANH4' ) then
             do k = 1 , kz
               do n = n1 , n2
                 rh0 = min(0.97_rkx,max(d_zero,rh(n,k)))
@@ -1386,7 +1387,7 @@ module mod_rad_aerosol
                 fa(n,k,itr) = gssslt(ns,jbin)*gssslt(ns,jbin)
               end do
             end do
-          else if ( chtrname(itr) == 'OC_HL' ) then
+          else if ( chtrname(itr)(1:5) == 'OC_HL' ) then
             do k = 1 , kz
               do n = n1 , n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
@@ -1398,7 +1399,7 @@ module mod_rad_aerosol
                 fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
               end do
             end do
-          else if ( chtrname(itr) == 'BC_HL' ) then
+          else if ( chtrname(itr)(1:5) == 'BC_HL' ) then
             do k = 1 , kz
               do n = n1 , n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
@@ -1410,7 +1411,7 @@ module mod_rad_aerosol
                 fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
               end do
             end do
-          else if ( chtrname(itr) == 'OC_HB' ) then
+          else if ( chtrname(itr)(1:5) == 'OC_HB' ) then
             do k = 1 , kz
               do n = n1 , n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
@@ -1420,7 +1421,7 @@ module mod_rad_aerosol
                 fa(n,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
               end do
             end do
-          else if ( chtrname(itr) == 'BC_HB' ) then
+          else if ( chtrname(itr)(1:5) == 'BC_HB' ) then
             do k = 1 , kz
               do n = n1 , n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
@@ -1431,7 +1432,7 @@ module mod_rad_aerosol
                 fa(n,k,itr) = gsbc_hb(ns)*gsbc_hb(ns)
               end do
             end do
-          else if ( chtrname(itr) == 'SM1' ) then
+          else if ( chtrname(itr)(1:3) == 'SM1' ) then
             do k = 1 , kz
               do n = n1 , n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
@@ -1442,7 +1443,7 @@ module mod_rad_aerosol
                 fa(n,k,itr) = gssm1(ns)*gssm1(ns)
               end do
             end do
-          else if ( chtrname(itr) == 'SM2' ) then
+          else if ( chtrname(itr)(1:3) == 'SM2' ) then
             do k = 1 , kz
               do n = n1 , n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)

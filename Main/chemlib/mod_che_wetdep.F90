@@ -684,6 +684,7 @@ module mod_che_wetdep
                   wetrem(indp(n)) = -fracloud(i,k)*chtrsol(indp(n)) * &
                      chib(j,i,k,indp(n))
                 end if
+
                 chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
                    wetrem(indp(n))/dt
                 ! sum up the flux on the vertical to get instantaneous surface
@@ -707,8 +708,9 @@ module mod_che_wetdep
         ! remcum = in cloud removal rate for cumulus cloud scavenging (s-1)
         ! remcum = 1.e-3
         do i = ici1 , ici2
-          if ( kcumtop(j,i) >  0 ) then
+          if ( kcumtop(j,i) >  0 ) then            
             do k = kcumtop(j,i) , kz
+              print*, 'vindieu', fracum(i,k), fracloud(i,k) 
               wetrem_cvc(indp(n)) = fracum(i,k)*chtrsol(indp(n)) * &
                    chib(j,i,k,indp(n))*(exp(-remcum*dt)-d_one)
               chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
@@ -766,7 +768,12 @@ module mod_che_wetdep
       end if
     end do
     ! add the contribution of strat prec
+    if (ichremcvc == 1 .and. ichremlsc == 1) then
     totppt(:,:) = strappt(:,:) + totppt(:,:)
+    elseif ( ichremcvc == 0 .and. ichremlsc == 1) then
+    totppt(:,:) = strappt(:,:)
+    end if     
+
     call blcld(mbin,indp,rhsize,t,pressg,shj,rho,totppt,pdepv,rhop,wetdep,colef)
 
     ! calculate the tendency due to wahsout dep here.

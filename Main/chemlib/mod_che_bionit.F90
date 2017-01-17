@@ -194,7 +194,6 @@ contains
     nsum3         = d_zero
     noxflux       = d_zero
 
-    totn1d = man1d + fert1d
 #ifndef CLM45
     do i = ici1 , ici2
       ! cycle on sea points
