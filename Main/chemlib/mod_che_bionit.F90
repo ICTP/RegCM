@@ -166,9 +166,10 @@ contains
     man1d = nmanure(j,ici1:ici2)
     fert1d = nfert(j,ici1:ici2)
     ph1d = soilph(j,ici1:ici2)
-    
+
     totn1d = (man1d + fert1d)/(24._rkx * 365._rkx)
     ! convert from kg/ha/year to kg/ha/hr needed by the neural network
+
 
     ! iFAB  ! put interactive LAI
     lai_int = cxlai2d(j,ici1:ici2)
@@ -232,9 +233,9 @@ contains
       ! calculating water-filled pore space from soil moisture
       ! csw_vol voluletric soil moist (m3/m3)
       ! here consider second soil level / to be perhaps tested
-      porewater(i) = csw_vol(j,i,2) 
+      porewater(i) = csw_vol(j,i,2)
 
-      ! calculating water-filled pore space (%) 
+      ! calculating water-filled pore space (%)
       ! coefficient of 0.45 derived from obs at Grignon(0.536),
       ! Hombori(0.4) and Escompte(0.43) = avg. 0.45
       ! in regcm/bats  this parameter would be cxmopor : consider replacing ?

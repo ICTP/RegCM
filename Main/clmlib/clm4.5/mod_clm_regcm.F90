@@ -472,7 +472,7 @@ module mod_clm_regcm
     lms%tgrd = lms%tgbb
     lms%tgbrd = lms%tgbb
 
-    ! soil temperature profile 
+    ! soil temperature profile
     ! note tsw is used as a temporary table
     clm_l2a%notused = 0.0_rk8
     do k = 1 , nlevsoi
@@ -490,7 +490,7 @@ module mod_clm_regcm
       lms%sw(:,:,:,k) = lms%tsw(:,:,:)
     end do
 
-    ! volumetric soil water profile (m3/m3) is saved for chem 
+    ! volumetric soil water profile (m3/m3) is saved for chem
     clm_l2a%notused = 0.0_rk8
     do k = 1 , nlevsoi
       clm_l2a%notused(:) = clm_l2a%h2osoi_vol(:,k)
@@ -499,7 +499,7 @@ module mod_clm_regcm
     end do
     ! tsw is finally passed as the soil water in Kg/m2 in the first
     ! 10 cm of soil
-    ! a bit obsolete since volumetric water profile is passed , 
+    ! a bit obsolete since volumetric water profile is passed ,
     ! but still could be potentuially usefull
     call glb_l2c_ss(lndcomm,clm_l2a%h2o10cm,lms%tsw)
 

@@ -132,7 +132,7 @@ module mod_che_sox
      end do
 
      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-     ! AQUEOUS CONVERSION IN CLOUDS 
+     ! AQUEOUS CONVERSION IN CLOUDS
      ! works also when full chestry igaschem == 1
      ! Aqueous conversion from so2 to so4 : control by h2o2
      ! either from climatology / or from gas phase chem
@@ -150,7 +150,7 @@ module mod_che_sox
            end if
          end do
        end do
-     elseif ( igaschem == 1 .and. ih2o2 > 0 ) then 
+     elseif ( igaschem == 1 .and. ih2o2 > 0 ) then
        isulf = ih2so4
        do k = 1 , kz
          do i = ici1 , ici2

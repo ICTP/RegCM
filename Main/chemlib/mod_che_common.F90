@@ -108,7 +108,7 @@ module mod_che_common
   real(rkx) , pointer , dimension(:,:,:) :: cvoc_em_clm
   real(rkx) , pointer , dimension(:,:,:) :: cdustflx_clm
   real(rkx) , pointer , dimension(:,:,:) :: cdep_vels_clm
-  real(rkx) , pointer , dimension(:,:,:) :: csw_vol 
+  real(rkx) , pointer , dimension(:,:,:) :: csw_vol
   real(rkx) , pointer , dimension(:,:,:) :: ctsoi
 #endif
 

@@ -149,7 +149,7 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:,:) :: h2osoi
     ! soil water in first 10 cm
     real(rk8) , pointer , dimension(:) :: h2o10cm
-    ! FAB  soil volumetric water content (m3/m3) 
+    ! FAB  soil volumetric water content (m3/m3)
     real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
     ! soil/snow temperaure profils
     real(rk8) , pointer , dimension(:,:) :: tsoi

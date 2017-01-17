@@ -178,7 +178,7 @@
           bchi(i,:,:,j) = chib(j,i,:,:)
           ! fraction of vegetation
           vegfrac(i,j) = cvegfrac(j,i)
-        end do 
+        end do
       end do
       ! Roughness lenght, 10 m wind           !
 #ifndef CLM45
@@ -262,24 +262,24 @@
           wid10(i,j) = sqrt(u10**2+v10**2)
           tsurf(i,j) = ctg(j,i)
           ! use simplifcations to approximate t and hr at 10 m from
-          ! first model level 
+          ! first model level
           temp10(i,j) =  ctb3d(j,i,kz) + lrate * (cza(j,i,kz) - 10._rkx)
           rh10(i,j) = crhb3d(j,i,kz)
           ! when CLM45 we use directly the volumetic soil water of the
-          ! first CLM layer 
+          ! first CLM layer
           ! converted to gravimetric water conrtent using a sandy soil
           ! bulk density ratio to water density of 0.45
-          ! consistent with bionox data  
-          soilw(i,j) = csw_vol(j,i,1)*0.45_rkx        
+          ! consistent with bionox data
+          soilw(i,j) = csw_vol(j,i,1)*0.45_rkx
         end do
-      end do         
+      end do
 #endif
       !
       ! END of preliminary calculations
       !
       !*****************************************************************
       ! CALCULATION OF TRACER TENDENCY
-      ! (except advection and convection transport)     
+      ! (except advection and convection transport)
       !*****************************************************************
       !
       ! SOX CHEMSITRY ( from offline oxidant)
@@ -317,7 +317,7 @@
                       dustbsiz,dust_flx(:,:,j))
         end do
       end if
-      ! OPTION for using CLM45 dust emission scheme 
+      ! OPTION for using CLM45 dust emission scheme
       ! if flux calculated by clm45 / update the tendency if ichdustemd == 3
 #if defined CLM45
       if (idust(1) > 0 .and.  ichdustemd == 3 .and. ichsursrc == 1 ) then

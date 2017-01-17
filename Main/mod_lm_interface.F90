@@ -564,7 +564,7 @@ module mod_lm_interface
 #ifdef CLM45
       lm%sw_vol = sum(lms%sw_vol(:,:,:,:),1)*rdnnsg
       lm%tsoi = sum(lms%tsoi(:,:,:,:),1)*rdnnsg
-#endif     
+#endif
     end if
     call collect_output
 #ifdef DEBUG

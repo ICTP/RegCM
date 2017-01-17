@@ -117,9 +117,9 @@ module mod_mksoilph
     !istatus = nf90_inq_varid(ncid,maskname,ivarmask)
     !call checkncerr(istatus,__FILE__,__LINE__, &
     ! 'Cannot find variable landmask in file '//trim(inpfile))
-    
+
     rmask(:,:) = 1.0D0
-  
+
     li = 1
     do i = 1 , domain%ntiles
       istart(1) = domain%igstart(i)
@@ -134,7 +134,7 @@ module mod_mksoilph
        li = li + domain%ni(i)
     end do
     rlat = glat(domain%jgstart:domain%jgstop)
-    
+
     !write(*,*) soilph(:,:)
     call bilinear(rvar,rmask,rlon,rlat,soilph,xlon,xlat,vmin,vmisdat)
     deallocate(glat,glon,rlat,rlon,rvar,rmask)
