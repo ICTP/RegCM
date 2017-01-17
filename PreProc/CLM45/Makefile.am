@@ -51,4 +51,4 @@ mod_mkharvest.o : mod_mkharvest.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.
 mod_mkdynpft.o : mod_mkdynpft.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.o mod_grid.o mod_intkinds.o mod_memutil.o mod_nchelper.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_mkvic.o : mod_mkvic.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.o mod_grid.o mod_intkinds.o mod_memutil.o mod_nchelper.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_mklch4.o : mod_mklch4.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.o mod_grid.o mod_intkinds.o mod_memutil.o mod_nchelper.o mod_realkinds.o $(REGCM_ROOT)/makeinc
-mod_mklch4.o : mod_mksoilph.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.o mod_grid.o mod_intkinds.o mod_memutil.o mod_nchelper.o mod_realkinds.o $(REGCM_ROOT)/makeinc
+mod_mksoilph.o : mod_mksoilph.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.o mod_grid.o mod_intkinds.o mod_memutil.o mod_nchelper.o mod_realkinds.o $(REGCM_ROOT)/makeinc
