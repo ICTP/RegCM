@@ -343,7 +343,7 @@ module mod_dynparam
   character(len=256) :: dirglob , inpglob
   character(len=256) :: dirout
   character(len=256) :: moist_filename
-  character(len=8)   :: tersrc
+  character(len=8)   :: tersrc , smsrc
 #ifdef NETCDF4_HDF5
   integer(ik4) :: iomode = ior(nf90_clobber, &
                                ior(nf90_netcdf4,nf90_classic_model))
@@ -413,7 +413,7 @@ module mod_dynparam
     namelist /terrainparam/ domname , smthbdy , lakedpth,  &
       lsmoist , fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,   &
       fudge_lak , fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , &
-      inpter , moist_filename , tersrc
+      inpter , moist_filename , tersrc , smsrc
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
       medium_nudge , low_nudge
@@ -538,6 +538,7 @@ module mod_dynparam
     dirglob = '../../Input'
     moist_filename = 'moist.nc'
     tersrc = 'GMTED'
+    smsrc = 'ESACCI'
 
     smthbdy = .false.
     h2ohgt = .true.

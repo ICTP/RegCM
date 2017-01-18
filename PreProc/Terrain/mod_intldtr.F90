@@ -365,13 +365,14 @@ module mod_intldtr
   !
   ! Interpolates input regolar lat/lon grid on output model grid
   !
-  subroutine interp(jx,iy,xlat,xlon,omt,iniy,injx,milat,milon,imt, &
-                    ntypec,itype,lwrap,lcross,ival,ibnty,h2opct)
+  subroutine interp(jx,iy,xlat,xlon,omt,iniy,injx,milat,milon, &
+                    malat,malon,imt,itype,lwrap,lcross, &
+                    ival,ibnty,h2opct)
     implicit none
-    integer(ik4) , intent(in) :: iy , jx , iniy , injx , ntypec , itype
+    integer(ik4) , intent(in) :: iy , jx , iniy , injx , itype
     real(rkx) , intent(in) , dimension(jx,iy) :: xlat , xlon
     real(rkx) , intent(in) , dimension(injx,iniy) :: imt
-    real(rkx) , intent(in) :: milat , milon
+    real(rkx) , intent(in) :: milat , milon , malat , malon
     logical , intent(in) :: lwrap , lcross
     integer(ik4) , intent(in) , optional :: ival
     integer(ik4) , intent(in) , optional :: ibnty
@@ -379,44 +380,69 @@ module mod_intldtr
     real(rkx) , intent(out) , dimension(jx,iy) :: omt
 
     integer(ik4) :: nbox , ii , jj
-    real(rkx) :: xx , yy , rinc , dd , dd1
+    real(rkx) :: xx , yy , rincx , rincy , dd , dd1
 
-    if ( ntypec > 0 ) then
-      rinc = 60.0_rkx/real(ntypec,rkx)
+    rincy = d_one/((malat-milat)/dble(iniy-1))
+    if ( lcross ) then
+      rincx = d_one/(((360.0_rkx+malon)-milon)/dble(injx))
     else
-      ! Assume maximum allowed resolution of 30 sec.
-      rinc = 120.0_rkx
+      rincx = d_one/((malon-milon)/dble(injx-1))
     end if
 
-    if (itype < 1 .or. itype > 5) then
-      write(stderr,*) 'Unknown interpolation type'
-      call die('interp')
-    end if
+    ! yy and xx are the exact index values of a point j,i of the
+    ! mesoscale mesh when projected onto an earth-grid of lat
+    ! and lon for which terrain observations are available.
 
-    do ii = 1 , iy
-      do jj = 1 , jx
-        yy = (xlat(jj,ii)-milat)*rinc + d_one
-        if (lcross) then
-          xx = (mod((xlon(jj,ii)+deg360),deg360)-milon) * &
-                rinc + d_one
-        else
-          xx = (xlon(jj,ii)-milon)*rinc + d_one
-        end if
-
-        ! yy and xx are the exact index values of a point j,i of the
-        ! mesoscale mesh when projected onto an earth-grid of lat_s
-        ! and lon_s for which terrain observations are available.  it
-        ! is assumed that the earth grid has equal spacing in both
-        ! latitude and longitude.
-
-        select case (itype)
-          case(1)
+    select case (itype)
+      case(1)
+        do ii = 1 , iy
+          do jj = 1 , jx
+            yy = (xlat(jj,ii)-milat)*rincy + d_one
+            if (lcross) then
+              xx = (mod((xlon(jj,ii)+deg360),deg360)-milon) * &
+                    rincx + d_one
+            else
+              xx = (xlon(jj,ii)-milon)*rincx + d_one
+            end if
             omt(jj,ii) = bilinear(xx,yy,injx,iniy,imt,lwrap)
-          case(2)
+          end do
+        end do
+      case(2)
+        do ii = 1 , iy
+          do jj = 1 , jx
+            yy = (xlat(jj,ii)-milat)*rincy + d_one
+            if (lcross) then
+              xx = (mod((xlon(jj,ii)+deg360),deg360)-milon) * &
+                    rincx + d_one
+            else
+              xx = (xlon(jj,ii)-milon)*rincx + d_one
+            end if
             omt(jj,ii) = bicubic(xx,yy,injx,iniy,imt,lwrap)
-          case(3)
+          end do
+        end do
+      case(3)
+        do ii = 1 , iy
+          do jj = 1 , jx
+            yy = (xlat(jj,ii)-milat)*rincy + d_one
+            if (lcross) then
+              xx = (mod((xlon(jj,ii)+deg360),deg360)-milon) * &
+                    rincx + d_one
+            else
+              xx = (xlon(jj,ii)-milon)*rincx + d_one
+            end if
             omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
-          case(4,5)
+          end do
+        end do
+      case(4,5)
+        do ii = 1 , iy
+          do jj = 1 , jx
+            yy = (xlat(jj,ii)-milat)*rincy + d_one
+            if (lcross) then
+              xx = (mod((xlon(jj,ii)+deg360),deg360)-milon) * &
+                    rincx + d_one
+            else
+              xx = (xlon(jj,ii)-milon)*rincx + d_one
+            end if
             if (ii == 1 .or. ii == iy ) then
               omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
               cycle
@@ -425,18 +451,18 @@ module mod_intldtr
                 if ( jj == 1 ) then
                   dd = gcdist(xlat(jx,ii-1),xlon(jx,ii-1), &
                               xlat(jj+1,ii+1),xlon(jj+1,ii+1))
-                  dd1 = gcdist(milat+rinc*(yy-1),milon+rinc*(xx-1), &
-                               milat+rinc*(yy+1),milon+rinc*(xx+1))
+                  dd1 = gcdist(milat+rincy*(yy-1),milon+rincx*(xx-1), &
+                               milat+rincy*(yy+1),milon+rincx*(xx+1))
                 else if ( jj == jx ) then
                   dd = gcdist(xlat(jj-1,ii-1),xlon(jj-1,ii-1), &
                               xlat(1,ii+1),xlon(1,ii+1))
-                  dd1 = gcdist(milat+rinc*(yy-1),milon+rinc*(xx-1), &
-                               milat+rinc*(yy+1),milon+rinc*(xx+1))
+                  dd1 = gcdist(milat+rincy*(yy-1),milon+rincx*(xx-1), &
+                               milat+rincy*(yy+1),milon+rincx*(xx+1))
                 else
                   dd = gcdist(xlat(jj-1,ii-1),xlon(jj-1,ii-1), &
                               xlat(jj+1,ii+1),xlon(jj+1,ii+1))
-                  dd1 = gcdist(milat+rinc*(yy-1),milon+rinc*(xx-1), &
-                               milat+rinc*(yy+1),milon+rinc*(xx+1))
+                  dd1 = gcdist(milat+rincy*(yy-1),milon+rincx*(xx-1), &
+                               milat+rincy*(yy+1),milon+rincx*(xx+1))
                 end if
                 nbox = min(max(nint(dd/dd1),2),8)
               else
@@ -446,8 +472,8 @@ module mod_intldtr
                 end if
                 dd = gcdist(xlat(jj-1,ii-1),xlon(jj-1,ii-1), &
                             xlat(jj+1,ii+1),xlon(jj+1,ii+1))
-                dd1 = gcdist(milat+rinc*(yy-1),milon+rinc*(xx-1), &
-                             milat+rinc*(yy+1),milon+rinc*(xx+1))
+                dd1 = gcdist(milat+rincy*(yy-1),milon+rincx*(xx-1), &
+                             milat+rincy*(yy+1),milon+rincx*(xx+1))
                 nbox = min(max(nint(dd/dd1),2),8)
               end if
             end if
@@ -458,9 +484,12 @@ module mod_intldtr
             else
               omt(jj,ii) = pctaround(xx,yy,injx,iniy,imt,nbox,ival,lwrap)
             end if
-        end select
-      end do
-    end do
+          end do
+        end do
+      case default
+        write(stderr,*) 'Unknown interpolation type'
+        call die('interp')
+    end select
   end subroutine interp
 
   subroutine filter1plakes(jx,iy,omt)

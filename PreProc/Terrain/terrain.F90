@@ -215,31 +215,35 @@ program terrain
       write(stdout,*) 'No resampling used.'
     end if
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                     pthsep//trim(tersrc)//'_DEM_30s.nc','z',   &
-                     30,ntypec_s,.true.,2)
+                     pthsep//trim(tersrc)//'_DEM_30s.nc','z',ntypec_s,i_band,2)
     write(stdout,*)'Static DEM data successfully read in'
     call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s, &
-                nlatin,nlonin,grdltmn,grdlnmn,values, &
-                ntypec_s,2,lonwrap,lcrosstime)
+                nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
+                2,lonwrap,lcrosstime)
     call relmem2d(values)
     write(stdout,*)'Interpolated DEM on SUBGRID'
 
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                     pthsep//'GLCC_BATS_30s.nc',       &
-                     'landcover',30,ntypec_s,.true.,3)
+                     pthsep//'GLCC_BATS_30s.nc','landcover',ntypec_s,i_band,3)
     write(stdout,*)'Static landcover BATS data successfully read in'
     call interp(jxsg,iysg,xlat_s,xlon_s,lndout_s,  &
-                nlatin,nlonin,grdltmn,grdlnmn,values, &
-                ntypec_s,4,lonwrap,lcrosstime,     &
+                nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
+                4,lonwrap,lcrosstime,     &
                 ibnty=1,h2opct=h2opct)
     call filter1plakes(jxsg,iysg,lndout_s)
     call relmem2d(values)
     write(stdout,*)'Interpolated landcover on SUBGRID'
 
     if ( lsmoist ) then
-      call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                       pthsep//'ESACCI-SOILMOISTURE.nc', &
-                       'sm',900,15,.true.,2,month)
+      if ( smsrc(1:3) == 'CPC' ) then
+        call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                         pthsep//trim(smsrc)//'-SOILMOISTURE.nc', &
+                         'soilw',30,i_band,2,month)
+      else
+        call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                         pthsep//trim(smsrc)//'-SOILMOISTURE.nc', &
+                         'sm',15,i_band,2,month)
+      end if
       write(stdout,*)'Satellite soil moisture data successfully read in'
       mmx = (2*minval(shape(values))/2+1)**2
       do i = 1 , nlatin
@@ -250,35 +254,33 @@ program terrain
         end do
       end do
       call interp(jxsg,iysg,xlat_s,xlon_s,smoist_s,  &
-                  nlatin,nlonin,grdltmn,grdlnmn,values, &
-                  15,1,lonwrap,lcrosstime)
+                  nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
+                  1,lonwrap,lcrosstime)
       call relmem2d(values)
       write(stdout,*)'Interpolated soil moisture on SUBGRID'
     end if
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                     pthsep//'GLZB_SOIL_30s.nc',       &
-                     'soiltype',30,ntypec_s,.true.,3)
+                     pthsep//'GLZB_SOIL_30s.nc','soiltype',ntypec_s,i_band,3)
     write(stdout,*)'Static texture data successfully read in'
     call interp(jxsg,iysg,xlat_s,xlon_s,texout_s,   &
-                nlatin,nlonin,grdltmn,grdlnmn,values, &
-                ntypec_s,4,lonwrap,lcrosstime,      &
+                nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
+                4,lonwrap,lcrosstime,      &
                 ibnty=2,h2opct=h2opct)
     do i = 1 , ntex
       call interp(jxsg,iysg,xlat_s,xlon_s,frac_tex_s(:,:,i), &
-                  nlatin,nlonin,grdltmn,grdlnmn,values,      &
-                  ntypec_s,5,lonwrap,lcrosstime,ival=i)
+                  nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
+                  5,lonwrap,lcrosstime,ival=i)
     end do
     call relmem2d(values)
     write(stdout,*)'Interpolated texture on SUBGRID'
 
     if ( lakedpth ) then
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                       pthsep//'ETOPO_BTM_30s.nc',       &
-                       'z',30,ntypec_s,.true.,2)
+                       pthsep//'ETOPO_BTM_30s.nc','z',ntypec_s,i_band,2)
       write(stdout,*)'Static bathymetry data successfully read in'
       call interp(jxsg,iysg,xlat_s,xlon_s,dpth_s,    &
-                  nlatin,nlonin,grdltmn,grdlnmn,values, &
-                  ntypec_s,1,lonwrap,lcrosstime)
+                  nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
+                  1,lonwrap,lcrosstime)
       call relmem2d(values)
       write(stdout,*)'Interpolated bathymetry on SUBGRID'
     end if
@@ -377,31 +379,35 @@ program terrain
     write(stdout,*) 'No resampling used.'
   end if
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                   pthsep//trim(tersrc)//'_DEM_30s.nc','z',   &
-                   30,ntypec,.true.,2)
+                   pthsep//trim(tersrc)//'_DEM_30s.nc','z',ntypec,i_band,2)
   write(stdout,*)'Static DEM data successfully read in'
   call interp(jx,iy,xlat,xlon,htgrid,           &
-              nlatin,nlonin,grdltmn,grdlnmn,values, &
-              ntypec,2,lonwrap,lcrosstime)
+              nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
+              2,lonwrap,lcrosstime)
   call relmem2d(values)
   write(stdout,*)'Interpolated DEM on model GRID'
 
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                   pthsep//'GLCC_BATS_30s.nc',       &
-                   'landcover',30,ntypec,.true.,3)
+                   pthsep//'GLCC_BATS_30s.nc','landcover',ntypec,i_band,3)
   write(stdout,*)'Static landcover BATS data successfully read in'
   call interp(jx,iy,xlat,xlon,lndout,            &
-              nlatin,nlonin,grdltmn,grdlnmn,values, &
-              ntypec,4,lonwrap,lcrosstime,       &
+              nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
+              4,lonwrap,lcrosstime,       &
               ibnty=1,h2opct=h2opct)
   call filter1plakes(jx,iy,lndout)
   call relmem2d(values)
   write(stdout,*)'Interpolated landcover on model GRID'
 
   if ( lsmoist ) then
-    call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                     pthsep//'ESACCI-SOILMOISTURE.nc', &
-                     'sm',900,15,.true.,2,month)
+    if ( smsrc(1:3) == 'CPC' ) then
+      call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                       pthsep//trim(smsrc)//'-SOILMOISTURE.nc', &
+                       'soilw',30,i_band,2,month)
+    else
+      call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
+                       pthsep//trim(smsrc)//'-SOILMOISTURE.nc', &
+                       'sm',15,i_band,2,month)
+    end if
     write(stdout,*)'Satellite soil moisture data successfully read in'
     mmx = (2*minval(shape(values))/2+1)**2
     do i = 1 , nlatin
@@ -412,35 +418,33 @@ program terrain
       end do
     end do
     call interp(jx,iy,xlat,xlon,smoist,               &
-                nlatin,nlonin,grdltmn,grdlnmn,values, &
-                15,1,lonwrap,lcrosstime)
+                nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
+                1,lonwrap,lcrosstime)
     call relmem2d(values)
     write(stdout,*)'Interpolated soil moisture on model GRID'
   end if
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                   pthsep//'GLZB_SOIL_30s.nc',       &
-                   'soiltype',30,ntypec,.true.,3)
+                   pthsep//'GLZB_SOIL_30s.nc','soiltype',ntypec,i_band,3)
   write(stdout,*)'Static texture data successfully read in'
   call interp(jx,iy,xlat,xlon,texout,             &
-              nlatin,nlonin,grdltmn,grdlnmn,values, &
-              ntypec,4,lonwrap,lcrosstime,        &
+              nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
+              4,lonwrap,lcrosstime,        &
               ibnty=2,h2opct=h2opct)
   do i = 1 , ntex
     call interp(jx,iy,xlat,xlon,frac_tex(:,:,i),   &
-                nlatin,nlonin,grdltmn,grdlnmn,values, &
-                ntypec,5,lonwrap,lcrosstime,ival=i)
+                nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
+                5,lonwrap,lcrosstime,ival=i)
   end do
   call relmem2d(values)
   write(stdout,*)'Interpolated texture on model GRID'
 
   if ( lakedpth ) then
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                     pthsep//'ETOPO_BTM_30s.nc',       &
-                     'z',30,ntypec,.true.,2)
+                     pthsep//'ETOPO_BTM_30s.nc','z',ntypec,i_band,2)
     write(stdout,*)'Static bathymetry data successfully read in'
     call interp(jx,iy,xlat,xlon,dpth,              &
-                nlatin,nlonin,grdltmn,grdlnmn,values, &
-                ntypec,1,lonwrap,lcrosstime)
+                nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
+                1,lonwrap,lcrosstime)
     call relmem2d(values)
     write(stdout,*)'Interpolated bathymetry on model GRID'
   end if

@@ -768,11 +768,17 @@ module mod_interp
     end if
     if ( has_north_pole(xlat,xi/2) ) then
       ! North pole inside
-      write(stdout,*) 'Correcting North Pole'
-      l1 = int((minval(xlat(:,1))-glat(1))/dlat) - 2
-      l2 = int((minval(xlat(:,xj))-glat(1))/dlat) - 2
-      domain%jgstart = min(l1,l2)
-      domain%jgstop = gj
+      if ( glat(1) < glat(gj) ) then
+        l1 = int((minval(xlat(:,1))-glat(1))/dlat) - 2
+        l2 = int((minval(xlat(:,xj))-glat(1))/dlat) - 2
+        domain%jgstart = min(l1,l2)
+        domain%jgstop = gj
+      else
+        l1 = int((maxval(glat(1)-xlat(:,1)))/dlat) + 3
+        l2 = int((maxval(glat(1)-xlat(:,xj)))/dlat) + 3
+        domain%jgstart = 1
+        domain%jgstop = max(l1,l2)
+      end if
       domain%ntiles = 1
       domain%igstart(1) = 1
       domain%igstop(1) = gi
@@ -780,12 +786,18 @@ module mod_interp
       domain%igstop(2) = 0
     else if ( has_south_pole(xlat,xi/2) ) then
       ! South Pole inside
-      write(stdout,*) 'Correcting South Pole'
-      l1 = int((maxval(xlat(:,1))-glat(1))/dlat) + 3
-      l2 = int((maxval(xlat(:,xj))-glat(1))/dlat) + 3
-      domain%jgstart = 1
+      if ( glat(1) < glat(gj) ) then
+        l1 = int((maxval(xlat(:,1))-glat(1))/dlat) + 3
+        l2 = int((maxval(xlat(:,xj))-glat(1))/dlat) + 3
+        domain%jgstart = 1
+        domain%jgstop = max(l1,l2)
+      else
+        l1 = int((maxval(glat(1)-xlat(:,1)))/dlat) - 2
+        l2 = int((maxval(glat(1)-xlat(:,xj)))/dlat) - 2
+        domain%jgstart = min(l1,l2)
+        domain%jgstop = gj
+      end if
       domain%ntiles = 1
-      domain%jgstop = max(l1,l2)
       domain%igstart(1) = 1
       domain%igstop(1) = gi
       domain%igstart(2) = 0
@@ -820,6 +832,7 @@ module mod_interp
         integer(ik4) , intent(in) :: i
         integer(ik4) :: j
         has_north_pole = .false.
+        if ( all(l(i,:) < 0.0) ) return
         do j = 2 , size(l,2)
           if ( l(i,j) < l(i,j-1) ) then
             has_north_pole = .true.
@@ -833,6 +846,7 @@ module mod_interp
         integer(ik4) , intent(in) :: i
         integer(ik4) :: j
         has_south_pole = .false.
+        if ( all(l(i,:) > 0.0) ) return
         do j = 2 , size(l,2)
           if ( l(i,j) < l(i,j-1) ) then
             has_south_pole = .true.
