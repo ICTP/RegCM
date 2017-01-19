@@ -239,16 +239,24 @@ program terrain
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//trim(smsrc)//'-SOILMOISTURE.nc', &
                          'soilw',30,i_band,2,month)
+        where ( values > d_zero )
+          ! The data are mm content in a column of 1.6 m
+          values = values * 0.0016_rkx
+        end where
       else
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//trim(smsrc)//'-SOILMOISTURE.nc', &
                          'sm',15,i_band,2,month)
+        where ( values > d_zero )
+          ! This is the scale factor from original data in the file
+          values = values * 0.0001_rkx
+        end where
       end if
       write(stdout,*)'Satellite soil moisture data successfully read in'
       mmx = (2*minval(shape(values))/2+1)**2
       do i = 1 , nlatin
         do j = 1 , nlonin
-          if ( values(j,i) < 0 ) then
+          if ( values(j,i) < d_zero ) then
             call findaround(values,i,j,nlatin,nlonin,mmx)
           end if
         end do
@@ -403,16 +411,24 @@ program terrain
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//trim(smsrc)//'-SOILMOISTURE.nc', &
                        'soilw',30,i_band,2,month)
+      where ( values > d_zero )
+        ! The data are mm content in a column of 1.6 m
+        values = values * 0.0016_rkx
+      end where
     else
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//trim(smsrc)//'-SOILMOISTURE.nc', &
                        'sm',15,i_band,2,month)
+      where ( values > d_zero )
+        ! This is the scale factor from original data in the file
+        values = values * 0.0001_rkx
+      end where
     end if
     write(stdout,*)'Satellite soil moisture data successfully read in'
     mmx = (2*minval(shape(values))/2+1)**2
     do i = 1 , nlatin
       do j = 1 , nlonin
-        if ( values(j,i) < 0 ) then
+        if ( values(j,i) < d_zero ) then
           call findaround(values,i,j,nlatin,nlonin,mmx)
         end if
       end do
@@ -516,8 +532,6 @@ program terrain
   if ( lsmoist ) then
     where ( mask == 0 )
       smoist = smissval
-    else where
-      smoist = smoist * 0.0001
     end where
   else
     smoist = smissval
@@ -614,8 +628,6 @@ program terrain
     if ( lsmoist ) then
       where ( mask_s == 0 )
         smoist_s = smissval
-      else where
-        smoist_s = smoist_s * 0.0001
       end where
     else
       smoist_s = smissval
