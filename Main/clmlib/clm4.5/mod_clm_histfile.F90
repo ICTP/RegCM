@@ -2556,6 +2556,8 @@ module mod_clm_histfile
     integer(ik4) , pointer :: nacs1d(:)            ! 1d accumulation counter
     character(len=*) , parameter :: subname = 'hist_restart_ncd'
     type(subgrid_type) , pointer :: gcomm
+    character(len=256) :: fnc
+    logical :: lex
 
     if ( flag == 'read' ) then
       ! If startup run just return
@@ -2857,9 +2859,28 @@ module mod_clm_histfile
       if ( ktau > 0 .and. ntapes > 0 ) then
         call clm_readvar(ncid,'locfnh',locfnh(1:ntapes))
         call clm_readvar(ncid,'locfnhr',locrest(1:ntapes))
-        do t = 1,ntapes
+        do t = 1 , ntapes
           call strip_null(locrest(t))
           call strip_null(locfnh(t))
+        end do
+        !
+        ! Check if history restart are present, otherwise check if
+        ! file is in same directory as the restart file.
+        !
+        do t = 1 , ntapes
+          inquire(file=locrest(t),exist=lex)
+          if ( .not. lex ) then
+            write(hnum,'(i1.1)') t-1
+            fnc = trim(dirout)//pthsep//trim(caseid)//".clm."// &
+                  trim(inst_suffix)// ".rh"// hnum//"."//trim(rdate)//".nc"
+            inquire(file=fnc,exist=lex)
+            if ( .not. lex ) then
+              call fatal(__FILE__,__LINE__, &
+              trim(subname)//' ERROR: history restart file does not exist '// &
+                 'neither as '//trim(locrest(t))//' or '//trim(fnc))
+            end if
+            locrest(t) = fnc
+          end if
         end do
       end if
 
