@@ -108,7 +108,7 @@ module mod_params
     namelist /dynparam/ gnu , diffu_hgtf
 
     namelist /nonhydroparam/ base_state_pressure , logp_lrate , ifupr , &
-      ckh , nhbet , nhxkd
+      ifrayd , ckh , nhbet , nhxkd , nhgammr , nhzetad
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -260,9 +260,12 @@ module mod_params
     base_state_pressure = stdp
     logp_lrate = 47.70_rkx
     ifupr = 1
+    ifrayd = 1
     ckh = d_one
     nhbet = 0.4_rkx
     nhxkd = 0.1_rkx
+    nhgammr = 0.2_rkx
+    nhzetad = 5000.0_rkx
     !
     ! Rrtm radiation param ;
     !
@@ -1000,9 +1003,12 @@ module mod_params
       call bcast(base_state_pressure)
       call bcast(logp_lrate)
       call bcast(ifupr)
+      call bcast(ifrayd)
       call bcast(ckh)
       call bcast(nhbet)
       call bcast(nhxkd)
+      call bcast(nhgammr)
+      call bcast(nhzetad)
     end if
 
     ! Check if really do output

@@ -53,7 +53,7 @@ module mod_diffusion
   public :: diffu_x
 
   ! Set this to zero to remove dynamical dependency of diffusion
-  real(rkx) , parameter :: aflag = d_four
+  real(rkx) , parameter :: aflag = d_one
 
   real(rkx) , pointer , dimension(:,:,:) :: ud , vd , wx
   real(rkx) , pointer , dimension(:,:) :: pc , pd

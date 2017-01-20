@@ -322,8 +322,9 @@
  &nonhydroparam
  base_state_pressure = 101325.0, ! Base state reference pressure
  logp_lrate = 47.70,             ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
- ifupr = 0,         ! Upper radiative boundary condition (Klemp and Durran,
+ ifupr = 1,         ! Upper radiative boundary condition (Klemp and Durran,
                     ! Bougeault, 1983)
+ ifrayd = 1,        ! Upper levels Rayleigh damper (Durran and Klemp, 1983)
  ckh = 1.0,         ! Background diffusion multiplication factor
  nhbet = 0.4,       ! Ikawa beta parameter (0.=centered, 1.=backward)
                     ! determines the time-weighting, where zero gives a
@@ -332,6 +333,8 @@
                     ! acoustic damping. In practice, values of
                     ! nhbet = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1)
  nhxkd = 0.1,       ! Time weighting for weighting old/new pp
+ nhgammr = 0.2,     ! Gammar value in Rayleigh damper
+ nhzetad = 5000.0,  ! Distance from top up to where damper active
  /
 !
 ! Moisture scheme comtrol (ipptls = 1)

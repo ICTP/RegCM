@@ -1703,7 +1703,11 @@ module mod_cloud_s1
         ! calculate overshoot and scaling factor
         !---------------------------------------
         do n = 1 , nqx
-          ratio(n) = qx0(n)/max(sinksum(n),qx0(n))
+          if ( qx0(n) > dlowval ) then
+            ratio(n) = qx0(n)/max(sinksum(n),qx0(n))
+          else
+            ratio(n) = d_one
+          end if
         end do
         !--------------------------------------------------------
         ! now sort ratio to find out which species run out first
@@ -1747,7 +1751,11 @@ module mod_cloud_s1
         do n = 1 , nqx
           jo = iorder(n)
           if ( jo > 0 ) then
-            ratio(jo) = qx0(jo)/max(sinksum(jo),qx0(jo))
+            if ( qx0(jo) > dlowval ) then
+              ratio(jo) = qx0(jo)/max(sinksum(jo),qx0(jo))
+            else
+              ratio(jo) = d_one
+            end if
           end if
         end do
         !------
@@ -2758,7 +2766,11 @@ module mod_cloud_s1
           ! calculate overshoot and scaling factor
           !---------------------------------------
           do n = 1 , nqx
-            ratio(n) = qx0(n)/max(sinksum(n),qx0(n))
+            if ( qx0(n) > dlowval ) then
+              ratio(n) = qx0(n)/max(sinksum(n),qx0(n))
+            else
+              ratio(n) = d_one
+            end if
           end do
           !--------------------------------------------------------
           ! now sort ratio to find out which species run out first
@@ -2802,7 +2814,11 @@ module mod_cloud_s1
           do n = 1 , nqx
             jo = iorder(n)
             if ( jo > 0 ) then
-              ratio(jo) = qx0(jo)/max(sinksum(jo),qx0(jo))
+              if ( qx0(jo) > dlowval ) then
+                ratio(jo) = qx0(jo)/max(sinksum(jo),qx0(jo))
+              else
+                ratio(jo) = d_one
+              end if
             end if
           end do
           !------

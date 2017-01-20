@@ -124,12 +124,6 @@ module mod_runparams
   integer(ik4) , public :: icldfrac
   ! Marine stratocumulus considered
   integer(ik4) , public :: icldmstrat
-  ! Upper radiative BC for non-hydrostatic core
-  integer(ik4) , public :: ifupr
-  ! BET parameter in sound waves removal
-  real(rkx) , public :: nhbet
-  ! XKD parameter in sound waves removal
-  real(rkx) , public :: nhxkd
   ! vqrang is the range limit on vqflx.
   real(rkx) , public :: vqrang = 5.0e-4_rkx
   ! Aerosol effects
@@ -179,6 +173,18 @@ module mod_runparams
 
   real(rkx) , public :: base_state_pressure
   real(rkx) , public :: logp_lrate
+  ! Upper radiative BC for non-hydrostatic core
+  integer(ik4) , public :: ifupr
+  ! Top Raleigh dumping activation
+  integer(ik4) , public :: ifrayd
+  ! BET parameter in sound waves removal
+  real(rkx) , public :: nhbet
+  ! XKD parameter in sound waves removal
+  real(rkx) , public :: nhxkd
+  ! Raleygh dumping gammar
+  real(rkx) , public :: nhgammr
+  ! Raleygh dumping zdepth
+  real(rkx) , public :: nhzetad
 
   ! Grell cumulus scheme parameters
 

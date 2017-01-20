@@ -38,6 +38,7 @@ module mod_sound
 
   public :: allocate_mod_sound , init_sound , sound
 
+  real(rkx) , pointer , dimension(:,:,:) :: tau
   real(rkx) , pointer , dimension(:,:,:) :: aa
   real(rkx) , pointer , dimension(:,:,:) :: b
   real(rkx) , pointer , dimension(:,:,:) :: c
@@ -70,6 +71,8 @@ module mod_sound
   !
   real(rkx) :: bet = 0.4_rkx
   real(rkx) :: xkd = 0.1_rkx
+  real(rkx) :: gammr = 0.2_rkx
+  real(rkx) :: zetad = 5000.0_rkx
   real(rkx) , parameter :: xgamma = d_one/(d_one-rovcp)
   real(rkx) :: cs , bp , bm , bpxbm , bpxbp
   real(rkx) :: dtsmax
@@ -81,6 +84,9 @@ module mod_sound
 
   subroutine allocate_mod_sound
     implicit none
+    if ( ifrayd == 1 ) then
+      call getmem3d(tau,jce1,jce2,ice1,ice2,2,kzp1,'sound:tau')
+    end if
     call getmem3d(aa,jci1,jci2,ici1,ici2,2,kz,'sound:aa')
     call getmem3d(b,jci1,jci2,ici1,ici2,2,kz,'sound:b')
     call getmem3d(c,jci1,jci2,ici1,ici2,2,kz,'sound:c')
@@ -137,6 +143,8 @@ module mod_sound
     end if
     bet = nhbet
     xkd = nhxkd
+    gammr = nhgammr
+    zetad = nhzetad
     loc_maxt = maxval(atm0%t)
     call maxall(loc_maxt,maxt)
     cs = sqrt(xgamma*rgas*maxt)
@@ -164,7 +172,7 @@ module mod_sound
     ! Variables to implement upper radiative bc
     !
     real(rkx) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
-                 xkleff , xleff , xmsftot , xmsf
+                 xkleff , xleff , xmsftot , xmsf , ztop , z
     real(rkx) :: loc_abar , loc_rhon , loc_xmsf
     integer(ik4) :: inn , jnn , ll , kk , nsi , nsj
     !
@@ -238,14 +246,40 @@ module mod_sound
         end do
       end do
     end do
-    do k = 1 , kzp1
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          aten%w(j,i,k) = aten%w(j,i,k) * dts
-          atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
+    !
+    ! Raleygh filtering
+    !
+    if ( ifrayd == 1 ) then
+      tau(:,:,:) = d_zero
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ztop = (atm0%pr(j,i,1) + atmc%pp(j,i,1)) * egrav
+          do k = 1 , kz
+            z = (atm0%pr(j,i,k) + atmc%pp(j,i,k)) * egrav
+            if ( z >= (ztop - zetad) ) then
+              tau(j,i,k) = gammr * ((sin(halfpi*(d_one-(ztop-z)/zetad)))**2)
+            end if
+          end do
         end do
       end do
-    end do
+      do k = 1 , kzp1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            aten%w(j,i,k) = (d_one - tau(j,i,k)) * aten%w(j,i,k) * dts
+            atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kzp1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            aten%w(j,i,k) = aten%w(j,i,k) * dts
+            atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
+          end do
+        end do
+      end do
+    end if
     !
     ! Time Step loop
     !
@@ -596,11 +630,11 @@ module mod_sound
         ! Apply upper rad cond.
         !
         iciloop: &
-        do i = ici1 , ici2
-          if ( i < 8 .or. i > icross2 - 7 ) cycle iciloop
+        do i = icii1 , icii2
+          !if ( i < 8 .or. i > icross2 - 7 ) cycle iciloop
           jciloop: &
-          do j = jci1 , jci2
-            if ( j < 8 .or. j > jcross2 - 7 ) cycle jciloop
+          do j = jcii1 , jcii2
+            !if ( j < 8 .or. j > jcross2 - 7 ) cycle jciloop
             do nsi = -6 , 6
               inn = i+nsi
               if ( inn < icross1+1 ) inn = icross1+1

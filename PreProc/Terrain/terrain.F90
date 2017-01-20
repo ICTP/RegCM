@@ -205,10 +205,12 @@ program terrain
     write(stdout,*) 'Determined Subgrid coordinate range'
 
     ntypec_s = nint((ds/real(nsg,rkx)/d_two)*60.0_rkx/110.0_rkx)
-    do while ( mod(3600,ntypec_s*60) /= 0 )
-      ntypec_s = ntypec_s -1
-    end do
-    ntypec_s = max(ntypec_s, 0)
+    if ( ntypec_s > 0 ) then
+      do while ( mod(3600,ntypec_s*60) /= 0 .and. ntypec_s > 1 )
+        ntypec_s = ntypec_s - 1
+      end do
+      ntypec_s = max(ntypec_s, 0)
+    end if
     if ( ntypec_s > 0 ) then
       write(stdout,*) 'Using resampling at ', ntypec_s, ' minutes.'
     else
@@ -377,10 +379,12 @@ program terrain
   write(stdout,*)'Determined Grid coordinate range'
 
   ntypec = nint((ds/d_two)*60.0_rkx/110.0_rkx)
-  do while ( mod(3600,ntypec*60) /= 0 .and. ntypec > 1 )
-    ntypec = ntypec - 1
-  end do
-  ntypec = max(ntypec, 0)
+  if ( ntypec > 0 ) then
+    do while ( mod(3600,ntypec*60) /= 0 .and. ntypec > 1 )
+      ntypec = ntypec - 1
+    end do
+    ntypec = max(ntypec, 0)
+  end if
   if ( ntypec > 0 ) then
     write(stdout,*) 'Using resampling at ', ntypec, ' minutes.'
   else
