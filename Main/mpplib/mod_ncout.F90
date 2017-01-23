@@ -2536,9 +2536,17 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('upper_radiative_bc',ifupr))
           call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_integer('rayleigh_damping',ifrayd))
+          call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('sound_bet_param',nhbet))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('sound_xkd_param',nhxkd))
+          if ( ifrayd == 1 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_real8('rayleigh_gammar',nhgammr))
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_real8('rayleigh_zetad',nhzetad))
+          end if
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('lateral_boundary_condition_scheme',iboudy))

@@ -262,9 +262,9 @@ module mod_params
     ifupr = 1
     ifrayd = 1
     ckh = d_one
-    nhbet = 0.4_rkx
+    nhbet = 0.4_rkx  ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
-    nhgammr = 0.2_rkx
+    nhgammr = 0.2_rkx     ! Klemp e Lily 1978, Klemp et al. 2008
     nhzetad = 5000.0_rkx
     !
     ! Rrtm radiation param ;
