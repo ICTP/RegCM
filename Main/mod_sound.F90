@@ -868,6 +868,8 @@ module mod_sound
       end do
     end do
     call timefilter_apply(atm1%w,atm2%w,atmc%w,gnu)
+    where ( abs(atm2%w) < dlowval ) atm2%w = d_zero
+    where ( abs(atm1%w) < dlowval ) atm1%w = d_zero
   end subroutine sound
 
 end module mod_sound
