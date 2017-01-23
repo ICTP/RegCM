@@ -85,7 +85,7 @@ module mod_sound
   subroutine allocate_mod_sound
     implicit none
     if ( ifrayd == 1 ) then
-      call getmem3d(tau,jce1,jce2,ice1,ice2,2,kzp1,'sound:tau')
+      call getmem3d(tau,jce1,jce2,ice1,ice2,1,kzp1,'sound:tau')
     end if
     call getmem3d(aa,jci1,jci2,ici1,ici2,2,kz,'sound:aa')
     call getmem3d(b,jci1,jci2,ici1,ici2,2,kz,'sound:b')
@@ -254,7 +254,7 @@ module mod_sound
       do i = ici1 , ici2
         do j = jci1 , jci2
           ztop = (atm0%pr(j,i,1) + atmc%pp(j,i,1)) * egrav
-          do k = 1 , kz
+          do k = 2 , kz
             z = (atm0%pr(j,i,k) + atmc%pp(j,i,k)) * egrav
             if ( z >= (ztop - zetad) ) then
               tau(j,i,k) = gammr * ((sin(halfpi*(d_one-(ztop-z)/zetad)))**2)
