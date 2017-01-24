@@ -52,9 +52,6 @@ module mod_diffusion
   public :: diffu_d
   public :: diffu_x
 
-  ! Set this to zero to remove dynamical dependency of diffusion
-  real(rkx) , parameter :: aflag = d_one
-
   real(rkx) , pointer , dimension(:,:,:) :: ud , vd , wx
   real(rkx) , pointer , dimension(:,:) :: pc , pd
 
@@ -79,7 +76,7 @@ module mod_diffusion
     ! The hydrostatic diffusion is following the RegCM3 formulation
     !
     xkhmax = dxsq/(64.0_rkx*dtsec)  ! Computation stability
-    dydc = aflag*vonkar*vonkar*dx*d_rfour ! Deformation term coefficient
+    dydc = adyndif*vonkar*vonkar*dx*d_rfour ! Deformation term coefficient
     if ( idynamic == 1 ) then
       xkhz = 1.5e-3_rkx*dxsq/dtsec
     else

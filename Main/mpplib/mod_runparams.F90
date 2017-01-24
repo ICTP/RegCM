@@ -142,6 +142,9 @@ module mod_runparams
   real(rkx) , public :: ckh
   integer(ik4) , public :: diffu_hgtf
 
+  ! Set this to zero to remove dynamical dependency of diffusion
+  real(rkx) , public :: adyndif = d_one
+
   integer(ik4) , public :: iboudy , ichem , ipgf , ipptls
   ! usefull flags for chemistry
   integer(ik4) , public :: iaerosol , igaschem , ioxclim , iisoropia

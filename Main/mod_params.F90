@@ -108,7 +108,7 @@ module mod_params
     namelist /dynparam/ gnu , diffu_hgtf
 
     namelist /nonhydroparam/ base_state_pressure , logp_lrate , ifupr , &
-      ifrayd , ckh , nhbet , nhxkd , nhgammr , nhzetad
+      ifrayd , ckh , adyndif , nhbet , nhxkd , nhgammr , nhzetad
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -261,7 +261,8 @@ module mod_params
     logp_lrate = 47.70_rkx
     ifupr = 1
     ifrayd = 1
-    ckh = d_one
+    ckh = d_one      ! Environmental diffusion tunable parameter
+    adyndif = d_one  ! Dynamical diffusion tunable parameter
     nhbet = 0.4_rkx  ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
     nhgammr = 0.2_rkx     ! Klemp e Lily 1978, Klemp et al. 2008
@@ -1005,6 +1006,7 @@ module mod_params
       call bcast(ifupr)
       call bcast(ifrayd)
       call bcast(ckh)
+      call bcast(adyndif)
       call bcast(nhbet)
       call bcast(nhxkd)
       call bcast(nhgammr)

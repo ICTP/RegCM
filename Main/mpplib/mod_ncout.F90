@@ -2534,6 +2534,8 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('background_diffusion_coefficient',ckh))
           call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_real8('dynamical_diffusion_coefficient',adyndif))
+          call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('upper_radiative_bc',ifupr))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('rayleigh_damping',ifrayd))
