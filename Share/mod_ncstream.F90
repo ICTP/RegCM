@@ -1085,8 +1085,9 @@ module mod_ncstream
         end if
 #endif
 #if defined(NETCDF4_HDF5)
+        ! This forces collective I/O on time dependent variables.
         if ( stream%l_parallel .and. var%lrecords ) then
-          ncstat = nf90_var_par_access(stream%id,var%id,NF90_COLLECTIVE)
+          ncstat = nf90_var_par_access(stream%id,var%id,nf90_collective)
           if ( ncstat /= nf90_noerr ) then
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
             write(stderr,*) nf90_strerror(ncstat)

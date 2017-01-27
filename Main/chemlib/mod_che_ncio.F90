@@ -34,15 +34,15 @@ module mod_che_ncio
 
   private
 
-  public :: read_texture , read_emission , read_miner , recc, reccbb
-  public :: read_bioburn_emission 
+  public :: read_texture , read_emission , read_miner , recc , reccbb
+  public :: read_bioburn_emission
   public :: init_mod_che_ncio
   public :: open_chbc , close_chbc , chbc_search , read_chbc , read_bionem
 
   public :: chbc_ivar , n_chbcvar , n_aebcvar, chbcname, aeaero, aedu12
 
   integer(ik4) :: istatus
-  integer(ik4) :: recc,reccbb
+  integer(ik4) :: recc , reccbb
 
   integer(ik4) , parameter :: n_chevar = 20
   integer(ik4) , parameter :: n_oxbcvar = 5
@@ -699,8 +699,6 @@ module mod_che_ncio
         call check_ok(__FILE__,__LINE__, &
                       'variable time read error', 'chemiss FILE')
 
-
-
         reccbb = 0
         looprec: &
         do n = 1 , chmnrec
@@ -727,7 +725,8 @@ module mod_che_ncio
         end do looprec
 
         if ( reccbb == 0 ) then
-          write(stderr,*) 'chem BB emission : time record not found emission file'
+          write(stderr,*) &
+             'chem BB emission : time record not found emission file'
           call fatal(__FILE__,__LINE__, &
                         'IO ERROR in CHEM BB EMISSION')
         else
@@ -780,7 +779,6 @@ module mod_che_ncio
       if ( iaone /= 0 ) then
         call rvar(ncid,istart,icount,iaone,echemsrc,'AONE_flux',.false.,sdim)
       end if
-
 !C2H6
       if ( ic2h6 /= 0 ) then
         call rvar(ncid,istart,icount,ic2h6,echemsrc,'C2H6_flux',.false.,sdim)
@@ -813,13 +811,10 @@ module mod_che_ncio
       if ( ino /= 0 ) then
         call rvar(ncid,istart,icount,ino,echemsrc,'NOx_flux',.false.,sdim)
       end if
-
 !SMOKE
 !      if ( ism1 /= 0 ) then
 !        call rvar(ncid,istart,icount,ism1,echemsrc,'SM_flux',.false.,sdim)
 !      end if
-
-
 !OLET
       if ( iolet /= 0 ) then
         call rvar(ncid,istart,icount,iolet,echemsrc,'OLET_flux',.false.,sdim)
@@ -849,15 +844,14 @@ module mod_che_ncio
         call rvar(ncid,istart,icount,ixyl,echemsrc,'XYL_flux',.false.,sdim)
       end if
 
-      
-! Carbonaceous species / will be lumped to smoke tracers       
+      ! Carbonaceous species / will be lumped to smoke tracers
       if ( ibchb/= 0 .and. ism1/=0) then
         call rvar(ncid,istart,icount,ibchb,echemsrc,'BC_flux',.false.,sdim)
       end if
       if ( iochb/= 0 .and. ism1/=0) then
         call rvar(ncid,istart,icount,iochb,echemsrc,'OC_flux',.false.,sdim)
       end if
-      
+
       where (echemsrc(:,:,:) < d_zero ) echemsrc(:,:,:) = d_zero
 
       if ( do_parallel_netcdf_in ) then

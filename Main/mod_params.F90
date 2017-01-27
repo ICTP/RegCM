@@ -147,7 +147,7 @@ module mod_params
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
       ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
       ichdiag , ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion ,    &
-      ismoke,rocemfac
+      ismoke , rocemfac
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
@@ -489,7 +489,7 @@ module mod_params
     ichebdy = 1
     rdstemfac = d_one
     ichbion = 0
-    rocemfac = 1.33
+    rocemfac = 1.33_rkx
 
 #ifdef CLM
     !
