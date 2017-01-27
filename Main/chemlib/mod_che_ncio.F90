@@ -34,14 +34,15 @@ module mod_che_ncio
 
   private
 
-  public :: read_texture , read_emission , read_miner , recc
+  public :: read_texture , read_emission , read_miner , recc, reccbb
+  public :: read_bioburn_emission 
   public :: init_mod_che_ncio
   public :: open_chbc , close_chbc , chbc_search , read_chbc , read_bionem
 
   public :: chbc_ivar , n_chbcvar , n_aebcvar, chbcname, aeaero, aedu12
 
   integer(ik4) :: istatus
-  integer(ik4) :: recc
+  integer(ik4) :: recc,reccbb
 
   integer(ik4) , parameter :: n_chevar = 20
   integer(ik4) , parameter :: n_oxbcvar = 5
@@ -574,9 +575,9 @@ module mod_che_ncio
         call rvar(ncid,istart,icount,iochb,echemsrc,'OC_flux',.false.,sdim)
       end if
 !SMOKE
-      if ( ism1 /= 0 ) then
-        call rvar(ncid,istart,icount,ism1,echemsrc,'SM_flux',.false.,sdim)
-      end if
+!      if ( ism1 /= 0 ) then
+!        call rvar(ncid,istart,icount,ism1,echemsrc,'SM_flux',.false.,sdim)
+!      end if
 !OLET
       if ( iolet /= 0 ) then
         call rvar(ncid,istart,icount,iolet,echemsrc,'OLET_flux',.false.,sdim)
@@ -644,6 +645,240 @@ module mod_che_ncio
         write(stdout,*) 'Emission read in success.'
       end if
     end subroutine read_emission
+
+    subroutine read_bioburn_emission(ifreq,lyear,lmonth,lday,lhour,echemsrc)
+      implicit none
+      integer(ik4) , intent(in) :: lyear , lmonth , lday , lhour
+      integer(ik4) , intent(out) :: ifreq
+      real(rkx) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
+      character(256) :: aername
+      integer(ik4) :: n,ncid , itvar, idimid, chmnrec,sdim
+      character(64) ::chemi_timeunits , chemi_timecal
+      real(rkx) , dimension(:) , allocatable :: emtimeval
+      integer(ik4) , dimension(4) :: istart , icount
+      integer(ik4) :: year , month , day , hour
+      type(rcm_time_and_date) :: tchdate
+
+
+      aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS_BB.nc'
+      if ( myid == italk ) then
+        write(stdout,*) 'Opening ch. biomass burning emission file ', trim(aername)
+      end if
+
+      if ( do_parallel_netcdf_in .or. myid == iocpu ) then
+        call openfile_withname(aername,ncid)
+        istatus = nf90_inq_dimid(ncid, 'time', idimid)
+        call check_ok(__FILE__,__LINE__, &
+                      'Dimension time miss', 'CHEMI BB FILE')
+        istatus = nf90_inquire_dimension(ncid, idimid, len=chmnrec)
+        call check_ok(__FILE__,__LINE__, &
+                'Dimension time read error', 'CHEMI BB FILE')
+        allocate (emtimeval(chmnrec))
+        istatus = nf90_inq_varid(ncid, 'time', itvar)
+        call check_ok(__FILE__,__LINE__, &
+                      'variable time miss', 'CHEMISS BB FILE')
+        istatus = nf90_get_att(ncid, itvar, 'units', chemi_timeunits)
+        call check_ok(__FILE__,__LINE__, &
+                      'variable time units miss', &
+                      'CHEMISS BB FILE')
+        if ( chemi_timeunits(1:6) == 'months' ) then
+          ifreq = ifrqmon
+        else if ( chemi_timeunits(1:4) == 'days' ) then
+          ifreq = ifrqday
+        else if ( chemi_timeunits(1:5) == 'hours' ) then
+          ifreq = ifrqhrs
+        else
+          call fatal(__FILE__,__LINE__, &
+                        'NO CODED FREQUENCY IN CHEMISS FILE')
+        end if
+        istatus = nf90_get_att(ncid, itvar, 'calendar', chemi_timecal)
+        if ( istatus /= nf90_noerr ) then
+          chemi_timecal = 'gregorian'
+        end if
+        istatus = nf90_get_var(ncid, itvar, emtimeval)
+        call check_ok(__FILE__,__LINE__, &
+                      'variable time read error', 'chemiss FILE')
+
+
+
+        reccbb = 0
+        looprec: &
+        do n = 1 , chmnrec
+          tchdate = timeval2date(emtimeval(n),chemi_timeunits,chemi_timecal)
+          call split_idate(tchdate,year,month,day,hour)
+          select case (ifreq)
+            case (ifrqmon)
+              if ( year == lyear .and. month == lmonth ) then
+                reccbb = n
+                exit looprec
+              end if
+            case (ifrqday)
+              if ( year == lyear .and. month == lmonth .and. day == lday ) then
+                reccbb = n
+                exit looprec
+              end if
+            case (ifrqhrs)
+              if ( year == lyear .and. month == lmonth .and. &
+                    day == lday  .and. hour  == lhour ) then
+                reccbb = n
+                exit looprec
+              end if
+          end select
+        end do looprec
+
+        if ( reccbb == 0 ) then
+          write(stderr,*) 'chem BB emission : time record not found emission file'
+          call fatal(__FILE__,__LINE__, &
+                        'IO ERROR in CHEM BB EMISSION')
+        else
+          if ( myid == italk ) then
+            write(stdout,*) 'CHE_EMISS BB: Reading record ', reccbb
+          end if
+        end if
+
+        !*** intialized in start_chem
+        !*** Advice record counter
+        istart = 0
+        icount = 0
+
+        if ( do_parallel_netcdf_in ) then
+          istart(1) = jde1
+          istart(2) = ide1
+          icount(1) = jde2-jde1+1
+          icount(2) = ide2-ide1+1
+          allocate(rspace2(jde1:jde2,ide1:ide2))
+        else
+          istart(1) = 1
+          istart(2) = 1
+          icount(1) = jx
+          icount(2) = iy
+          allocate(rspace2_loc(jci1:jci2,ici1:ici2))
+          allocate(rspace2(jx,iy))
+        end if
+        istatus = nf90_inq_dimid(ncid, 'lev', idimid)
+        if ( istatus /= nf90_noerr ) then
+          ! no lev diemsion in emission variables
+          istart(3) = reccbb
+          icount(3) = 1
+          sdim = 3
+        else
+          istart(3) = 1
+          istart(4) = reccbb
+          icount(3) = 1
+          icount(4) = 1
+          sdim=4
+        end if
+      else
+        allocate(rspace2_loc(jci1:jci2,ici1:ici2))
+      end if
+
+! ALD2
+      if ( iald2 /= 0 ) then
+        call rvar(ncid,istart,icount,iald2,echemsrc,'ALD2_flux',.false.,sdim)
+      end if
+! AONE
+      if ( iaone /= 0 ) then
+        call rvar(ncid,istart,icount,iaone,echemsrc,'AONE_flux',.false.,sdim)
+      end if
+
+!C2H6
+      if ( ic2h6 /= 0 ) then
+        call rvar(ncid,istart,icount,ic2h6,echemsrc,'C2H6_flux',.false.,sdim)
+      end if
+!CH3OH
+      if ( ich3oh /= 0 ) then
+        call rvar(ncid,istart,icount,ich3oh,echemsrc,'CH3OH_flux',.false.,sdim)
+      end if
+!CH4
+      if ( ich4 /= 0 ) then
+        call rvar(ncid,istart,icount,ich4,echemsrc,'CH4_flux',.false.,sdim)
+      end if
+!CO
+      if ( ico /= 0 ) then
+        call rvar(ncid,istart,icount,ico,echemsrc,'CO_flux',.false.,sdim)
+      end if
+!ETH
+      if ( ieth /= 0 ) then
+        call rvar(ncid,istart,icount,ieth,echemsrc,'ETH_flux',.false.,sdim)
+      end if
+!HCHO
+      if ( ihcho /= 0 ) then
+        call rvar(ncid,istart,icount,ihcho,echemsrc,'HCHO_flux',.false.,sdim)
+      end if
+!NH3
+      if ( inh3 /= 0 ) then
+        call rvar(ncid,istart,icount,inh3,echemsrc,'NH3_flux',.false.,sdim)
+      end if
+!NO
+      if ( ino /= 0 ) then
+        call rvar(ncid,istart,icount,ino,echemsrc,'NOx_flux',.false.,sdim)
+      end if
+
+!SMOKE
+!      if ( ism1 /= 0 ) then
+!        call rvar(ncid,istart,icount,ism1,echemsrc,'SM_flux',.false.,sdim)
+!      end if
+
+
+!OLET
+      if ( iolet /= 0 ) then
+        call rvar(ncid,istart,icount,iolet,echemsrc,'OLET_flux',.false.,sdim)
+      end if
+!OLEI
+      if ( iolei /= 0 ) then
+        call rvar(ncid,istart,icount,iolei,echemsrc,'OLEI_flux',.false.,sdim)
+      end if
+!PAR
+      if ( ipar/= 0 ) then
+        call rvar(ncid,istart,icount,ipar,echemsrc,'PAR_flux',.false.,sdim)
+      end if
+!RCOOH
+      if ( ircooh/= 0 ) then
+        call rvar(ncid,istart,icount,ircooh,echemsrc,'RCOOH_flux',.false.,sdim)
+      end if
+!SO2
+      if ( iso2/= 0 ) then
+        call rvar(ncid,istart,icount,iso2,echemsrc,'SO2_flux',.false.,sdim)
+      end if
+!TOL
+      if ( itol/= 0 ) then
+        call rvar(ncid,istart,icount,itol,echemsrc,'TOL_flux',.false.,sdim)
+      end if
+!XYL
+      if ( ixyl/= 0 ) then
+        call rvar(ncid,istart,icount,ixyl,echemsrc,'XYL_flux',.false.,sdim)
+      end if
+
+      
+! Carbonaceous species / will be lumped to smoke tracers       
+      if ( ibchb/= 0 .and. ism1/=0) then
+        call rvar(ncid,istart,icount,ibchb,echemsrc,'BC_flux',.false.,sdim)
+      end if
+      if ( iochb/= 0 .and. ism1/=0) then
+        call rvar(ncid,istart,icount,iochb,echemsrc,'OC_flux',.false.,sdim)
+      end if
+      
+      where (echemsrc(:,:,:) < d_zero ) echemsrc(:,:,:) = d_zero
+
+      if ( do_parallel_netcdf_in ) then
+        call closefile(ncid)
+        deallocate (emtimeval)
+        deallocate(rspace2)
+      else
+        if ( myid == iocpu ) then
+          call closefile(ncid)
+          deallocate (emtimeval)
+          deallocate(rspace2)
+          deallocate(rspace2_loc)
+        else
+          deallocate(rspace2_loc)
+        end if
+        call bcast(ifreq)
+      end if
+      if ( myid == italk ) then
+        write(stdout,*) 'Emission read in success.'
+      end if
+    end subroutine read_bioburn_emission
 
     subroutine rvar(ncid,istart,icount,ind,echemsrc,cna,lh,sdim,cnb,cnc,cnd)
       implicit none

@@ -52,6 +52,12 @@ module mod_che_emission
     integer(ik4) , save :: currm = -1
     integer(ik4) , save :: currd = -1
     integer(ik4) , save :: ifreq = -1
+    integer(ik4) , save :: currybb = -1
+    integer(ik4) , save :: currmbb = -1
+    integer(ik4) , save :: currdbb = -1
+    integer(ik4) , save :: ifreqbb = -1
+
+
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_emission'
     integer(ik4) , save :: idindx = 0
@@ -72,10 +78,12 @@ module mod_che_emission
             'EMISSION for  ',lyear*1000000+lmonth*10000+100*lday,' ready', &
             ' from ',curry*1000000+currm*10000+100*currd
         end if
-        return
+!       return
+! FAB use eceptionally a goto here to allow reading of BB emission 
+        goto 99        
       end if
     else if ( ifreq == ifrqday ) then
-      if ( curry == lyear .and. currm == lmonth .and. currd == lday ) return
+      if ( curry == lyear .and. currm == lmonth .and. currd == lday ) goto 99
     end if
     curry = lyear
     currm = lmonth
@@ -86,6 +94,45 @@ module mod_che_emission
     ! Also lmonth is not really necessary here, but KEEP THIS DIMENSION
     ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES
     call read_emission(ifreq,lyear,lmonth,lday,lhour,chemsrc)
+
+    ! allow to increase OC emission to account for SOA via namelist
+    chemsrc(:,:,iochb)= rocemfac * chemsrc(:,:,iochb)
+
+    ! Handle biomass burning emissions , possibly at a different frequency
+    !
+    99 continue
+
+    if (ismoke==1) then 
+
+    if ( ifreqbb == ifrqmon ) then
+      if ( currybb == lyear .and. currmbb == lmonth ) then
+        if ( myid == italk ) then
+          write(stdout,*) &
+            'BB EMISSION for  ',lyear*1000000+lmonth*10000+100*lday,' ready', &
+            ' from ',currybb*1000000+currmbb*10000+100*currdbb
+        end if
+        return
+      end if
+    else if ( ifreqbb == ifrqday ) then
+      if ( currybb == lyear .and. currmbb == lmonth .and. currdbb == lday ) return
+    end if
+    currybb = lyear
+    currmbb = lmonth
+    currdbb = lday
+    if ( myid == italk ) then
+      write(stdout,*)'READ CHEM BIO. BURN. EMISSION for ',lyear*1000000+lmonth*10000+lday
+    end if
+    call read_bioburn_emission(ifreqbb,lyear,lmonth,lday,lhour,tmpsrc)
+    ! define the smoke tracer emission
+    if (ism1 > 0 ) then 
+      chemsrc(:,:,ism1) = tmpsrc(:,:,ibchb) + rocemfac * tmpsrc(:,:,iochb)
+      tmpsrc(:,:,iochb) =d_zero
+      tmpsrc(:,:,ibchb) =d_zero
+    end if 
+    ! finally add biomass burning emissions to anthropogenic emissions
+      chemsrc(:,:,:) = chemsrc(:,:,:) + tmpsrc(:,:,:)
+    end if
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

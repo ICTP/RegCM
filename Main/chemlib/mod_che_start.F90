@@ -213,7 +213,7 @@ module mod_che_start
       end if
       if ( chtrname(itr) == 'SM2' ) then
         kbin = kbin + 1
-        iochb = itr
+        ism2 = itr
         icarb(kbin) = itr
         carbed(kbin) = reffsm2
         chtrsol(itr) = solsm2

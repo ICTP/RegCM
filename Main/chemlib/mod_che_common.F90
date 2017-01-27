@@ -325,7 +325,7 @@ module mod_che_common
       if ( myid == italk ) write(stdout,*) 'AERO simulation'
     else if ( chemsimtype(1:4) == 'DCCB' ) then
       nbin = 4
-      ntr = 50
+      ntr = 52
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = (/'NO    ','NO2   ','N2O5  ','HNO2  ',&
                                'HNO3  ','HNO4  ','O3    ','H2O2  ',&
@@ -339,7 +339,7 @@ module mod_che_common
                                'CRES  ','NH3   ','DUST01','DUST02',&
                                'DUST03','DUST04','BC_HL ','BC_HB ',&
                                'OC_HL ','OC_HB ','SSLT01','SSLT02',&
-                               'ANO3  ','ANH4  ' /)
+                               'ANO3  ','ANH4  ','SM1   ','SM2   ' /)
       iaerosol = 1
       igaschem = 1
       iisoropia = 1

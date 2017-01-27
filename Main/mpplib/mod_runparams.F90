@@ -353,6 +353,7 @@ module mod_runparams
   integer(ik4) , public :: ichjphcld
   integer(ik4) , public :: ichbion
   real(rkx) , public :: rdstemfac
+  real(rkx) , public :: rocemfac
 
   ! chemistry species indices that are used not only in chemlib but also in
   ! other interface ( e.g CLM4.5)/ other species are delcared in

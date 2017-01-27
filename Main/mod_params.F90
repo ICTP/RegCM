@@ -145,7 +145,7 @@ module mod_params
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
       ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
       ichdiag , ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion ,    &
-      ismoke
+      ismoke,rocemfac
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
@@ -487,6 +487,8 @@ module mod_params
     ichebdy = 1
     rdstemfac = d_one
     ichbion = 0
+    rocemfac = 1.33
+
 #ifdef CLM
     !
     ! clmparam ; (read in case clm surface model compiled in)
@@ -1326,6 +1328,7 @@ module mod_params
       call bcast(ichjphcld)
       call bcast(ichdustemd)
       call bcast(rdstemfac)
+      call bcast(rocemfac)
       call bcast(ichdiag)
       call bcast(ichsursrc)
       call bcast(ichebdy)
