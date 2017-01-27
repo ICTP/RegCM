@@ -165,7 +165,7 @@ module mod_sound
     real(rkx) :: cddtmp ,  cfl , check , chh , cjtmp , cpm , denom , &
       dppdp0 , dpterm , dts , ppold , rho , rho0s , rofac , maxcfl , &
       rll , rkk , ri , rj
-    integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
+    integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec , iapp
     logical , save :: cfl_error = .false.
     character (len=32) :: appdat
     !
@@ -629,12 +629,13 @@ module mod_sound
         !
         ! Apply upper rad cond.
         !
+        iapp = 1 ! max(nspgx,6)
         iciloop: &
         do i = icii1 , icii2
-          !if ( i < 8 .or. i > icross2 - 7 ) cycle iciloop
+          if ( i < iapp + 1 .or. i > icross2 - iapp) cycle iciloop
           jciloop: &
           do j = jcii1 , jcii2
-            !if ( j < 8 .or. j > jcross2 - 7 ) cycle jciloop
+            if ( j < iapp + 1 .or. j > jcross2 - iapp) cycle jciloop
             do nsi = -6 , 6
               inn = i+nsi
               if ( inn < icross1+1 ) inn = icross1+1

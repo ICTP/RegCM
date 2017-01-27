@@ -35,17 +35,7 @@ module mod_advection
 
   public :: init_advection, hadv , vadv , start_advect
 
-  logical , parameter :: upstream_mode = .true.
-  real(rkx) , parameter :: upu = 0.200_rkx
-  real(rkx) , parameter :: umax = 200.0_rkx
-  real(rkx) , parameter :: uchu = upu/umax
-
-  logical , parameter :: stability_enhance = .true.
-  logical , parameter :: vert_stability_enhance = .true.
-  real(rkx) , parameter :: t_extrema = 5.0_rkx
-  real(rkx) , parameter :: c_rel_extrema = 0.20_rkx
-  real(rkx) , parameter :: q_rel_extrema = 0.20_rkx
-  real(rkx) , parameter :: t_rel_extrema = 0.20_rkx
+  real(rkx) :: uchu
 
   interface hadv
     module procedure hadvuv
@@ -117,6 +107,7 @@ module mod_advection
       do k = 2 , kz
         dds(k) = d_one / (dsigma(k) + dsigma(k-1))
       end do
+      uchu = upu/umax
     end subroutine init_advection
     !
     ! Pre-compute

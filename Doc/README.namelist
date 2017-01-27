@@ -38,6 +38,16 @@
                  ! MM5 manual , equation 2.4.6
                  ! Default 0.0625 for hydro, 0.1 for nonhydro
  diffu_hgtf = 1, ! Add topographic effect to diffusion
+ upstream_mode = .true., ! Add off centering to advection
+ upu = 0.2,              ! Maximum off-centering factor to use
+ umax = 200.0,           ! Value of P*U for maximum off centering
+ stability_enhance = .true., ! Do not allow horizontal advection to increase
+                             ! tendencies if strong gradients are present
+ vert_stability_enhance = .true., ! Same for vertical advection
+ t_extrema = 5.0, ! Maximum gradient of T in K for advection to stop
+ c_rel_extrema = 0.2, ! Maximum gradient fraction for QC for advection to stop
+ q_rel_extrema = 0.2, ! Maximum gradient fraction for QV for advection to stop
+ t_rel_extrema = 0.2, ! Maximum gradient fraction for tracer advection to stop
  /
 !
 ! DOMAIN geolocation Stanza
@@ -324,7 +334,7 @@
  logp_lrate = 47.70,             ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
  ifupr = 1,         ! Upper radiative boundary condition (Klemp and Durran,
                     ! Bougeault, 1983)
- ifrayd = 1,        ! Upper levels Rayleigh damper (Klemp 2008, AMS)
+ ifrayd = 0,        ! Upper levels Rayleigh damper (Klemp 2008, AMS)
  ckh = 1.0,         ! Background diffusion multiplication factor
  adyndif = 1.0,     ! Dynamical diffusion multiplication factor
  nhbet = 0.4,       ! Ikawa beta parameter (0.=centered, 1.=backward)

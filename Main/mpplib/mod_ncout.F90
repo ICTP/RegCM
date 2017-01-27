@@ -2303,10 +2303,10 @@ module mod_ncout
         ! CROSS grid, i.e. for processor 0 this is (2,2) => (1,1) so we must
         ! subtract 1 line/column to rebase on pixel (2,2) of the internal model
         ! cross points grid to point (1,1).
-        outstream(nstream)%opar%global_jstart = global_out_jstart
-        outstream(nstream)%opar%global_jend   = global_out_jend
-        outstream(nstream)%opar%global_istart = global_out_istart
-        outstream(nstream)%opar%global_iend   = global_out_iend
+        outstream(nstream)%opar%global_jstart = vsize%j1 - 1
+        outstream(nstream)%opar%global_jend   = vsize%j2 - 1
+        outstream(nstream)%opar%global_istart = vsize%i1 - 1
+        outstream(nstream)%opar%global_iend   = vsize%i2 - 1
         if ( nstream == sub_stream ) then
           outstream(nstream)%opar%global_jstart = &
             (outstream(nstream)%opar%global_jstart-1)*nsg+1
@@ -2528,6 +2528,22 @@ module mod_ncout
           ncattribute_real8('asselin_filter_nu',gnu))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('diffusion_hgt_factor',diffu_hgtf))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_logical('upstream_mode',upstream_mode))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('off_centering_max',upu))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('wind_intensity_for_off_max',umax))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_logical('stability_enhance',stability_enhance))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('temperature_extreme_gradient',t_extrema))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('cloud_extreme_gradient_fraction',c_rel_extrema))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('vapor_extreme_gradient_fraction',q_rel_extrema))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('tracer_extreme_gradient_fraction',t_rel_extrema))
         if ( idynamic == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('logp_lapse_rate',logp_lrate))

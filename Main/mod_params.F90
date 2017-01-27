@@ -105,7 +105,9 @@ module mod_params
       icldfrac , irrtm , iclimao3 , isolconst , icumcloud , islab_ocean , &
       itweak , temp_tend_maxval , wind_tend_maxval , ghg_year_const
 
-    namelist /dynparam/ gnu , diffu_hgtf
+    namelist /dynparam/ gnu , diffu_hgtf , upstream_mode , upu , umax , &
+      stability_enhance , vert_stability_enhance , t_extrema ,          &
+      c_rel_extrema , q_rel_extrema , t_rel_extrema
 
     namelist /nonhydroparam/ base_state_pressure , logp_lrate , ifupr , &
       ifrayd , ckh , adyndif , nhbet , nhxkd , nhgammr , nhzetad
@@ -260,7 +262,7 @@ module mod_params
     base_state_pressure = stdp
     logp_lrate = 47.70_rkx
     ifupr = 1
-    ifrayd = 1
+    ifrayd = 0
     ckh = d_one      ! Environmental diffusion tunable parameter
     adyndif = d_one  ! Dynamical diffusion tunable parameter
     nhbet = 0.4_rkx  ! Arakawa beta (MM5 manual, Sec. 2.5.1)
@@ -600,6 +602,15 @@ module mod_params
         gnu = 0.0625_rkx
         diffu_hgtf = 1
       end if
+      upstream_mode = .true.
+      stability_enhance = .true.
+      vert_stability_enhance = .true.
+      upu = 0.200_rkx
+      umax = 200.0_rkx
+      t_extrema = 5.0_rkx
+      c_rel_extrema = 0.20_rkx
+      q_rel_extrema = 0.20_rkx
+      t_rel_extrema = 0.20_rkx
       rewind(ipunit)
       read (ipunit, nml=dynparam, iostat=iretval, err=104)
       if ( iretval /= 0 ) then
@@ -982,6 +993,15 @@ module mod_params
 
     call bcast(gnu)
     call bcast(diffu_hgtf)
+    call bcast(upstream_mode)
+    call bcast(upu)
+    call bcast(umax)
+    call bcast(stability_enhance)
+    call bcast(vert_stability_enhance)
+    call bcast(t_extrema)
+    call bcast(c_rel_extrema)
+    call bcast(q_rel_extrema)
+    call bcast(t_rel_extrema)
 
     call bcast(iboudy)
     call bcast(isladvec)

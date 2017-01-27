@@ -2449,7 +2449,7 @@ module mod_bdycod
     else
       efc => fefc
       egc => fegc
-      ks = 1
+      ks = 2
     end if
 
     if ( ibdy == 1 ) then

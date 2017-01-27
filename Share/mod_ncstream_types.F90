@@ -241,10 +241,10 @@ module mod_ncstream_types
     integer(ik4) :: imissval = -9999
     integer(ik4) :: ndims = 0
     integer(ik4) , dimension(5) :: idims = -1
+    logical :: lrecords = .false.
   end type ncvariable_standard
 
   type, extends(ncvariable_standard) :: ncvariable_0d
-    logical :: lrecords = .false.
   end type ncvariable_0d
 
   type, extends(ncvariable_0d) :: ncvariable0d_real
@@ -260,7 +260,6 @@ module mod_ncstream_types
   end type ncvariable0d_char
 
   type, extends(ncvariable_standard) :: ncvariable_1d
-    logical :: lrecords = .false.
     character(len=1) :: axis = 'x'
     integer(ik4) , dimension(1) :: nval = 0
   end type ncvariable_1d
@@ -274,7 +273,6 @@ module mod_ncstream_types
   end type ncvariable1d_integer
 
   type, extends(ncvariable_standard) :: ncvariable_2d
-    logical :: lrecords = .false.
     character(len=2) :: axis = 'xy'
     integer(ik4) , dimension(2) :: nval = 0
     integer(ik4) :: i1 = -1 , i2 = -1
@@ -294,7 +292,6 @@ module mod_ncstream_types
   end type ncvariable2d_integer
 
   type, extends(ncvariable_standard) :: ncvariable_3d
-    logical :: lrecords = .false.
     character(len=3) :: axis = 'xyz'
     integer(ik4) , dimension(3) :: nval = 0
     integer(ik4) :: i1 = -1 , i2 = -1
@@ -317,7 +314,6 @@ module mod_ncstream_types
   end type ncvariable3d_integer
 
   type, extends(ncvariable_standard) :: ncvariable_4d
-    logical :: lrecords = .false.
     character(len=4) :: axis = 'xyzd'
     integer(ik4) , dimension(4) :: nval = 0
     integer(ik4) :: i1 = -1 , i2 = -1

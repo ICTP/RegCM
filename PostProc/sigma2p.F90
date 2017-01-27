@@ -509,7 +509,7 @@ program sigma2p
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
     istatus = nf90_put_var(ncout, ipsvarid, ps, istart(1:3), icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__,'Error writing ps.')
-    if ( iodyn == 1 .and. .not. is_icbc ) then
+    if ( iodyn == 1 .and. .not. is_icbc .and. maxval(ps) > 2000.0 ) then
       ps = ps / 100.0
     end if
     do i = 1 , nvars

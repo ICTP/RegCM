@@ -172,6 +172,19 @@ module mod_runparams
 
   real(rkx) , public :: gnu
 
+  ! Advection tuning
+
+  logical , public :: upstream_mode
+  real(rkx) , public :: upu
+  real(rkx) , public :: umax
+
+  logical , public :: stability_enhance
+  logical , public :: vert_stability_enhance
+  real(rkx) , public :: t_extrema
+  real(rkx) , public :: c_rel_extrema
+  real(rkx) , public :: q_rel_extrema
+  real(rkx) , public :: t_rel_extrema
+
   ! Non hydrostatic core parameters
 
   real(rkx) , public :: base_state_pressure

@@ -250,8 +250,8 @@ module mod_ncstream
           else
             imode = ior(nf90_mpiio,iomode)
           end if
-          ncstat = nf90_create(stream%filename,imode, &
-            stream%id,comm=params%mpi_comm,info=params%mpi_info)
+          ncstat = nf90_create_par(stream%filename,imode, &
+            comm=params%mpi_comm,info=params%mpi_info,ncid=stream%id)
           stream%l_parallel = .true.
         else
           ncstat = nf90_create(stream%filename,iomode,stream%id)
@@ -1084,6 +1084,19 @@ module mod_ncstream
           end if
         end if
 #endif
+#if defined(NETCDF4_HDF5)
+        if ( stream%l_parallel .and. var%lrecords ) then
+          ncstat = nf90_var_par_access(stream%id,var%id,NF90_COLLECTIVE)
+          if ( ncstat /= nf90_noerr ) then
+            write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+            write(stderr,*) nf90_strerror(ncstat)
+            call die('nc_stream', &
+              'Cannot set correct mode (collective) for variable I/O'// &
+              'on var'//trim(var%vname)//' in file '// &
+              trim(stream%filename), 1)
+          end if
+        end if
+#endif
       end if
       call add_varatts(stream,var)
     end subroutine add_variable
@@ -1509,7 +1522,7 @@ module mod_ncstream
             stream%istart(2) = stream%iparbound(1)
             stream%icount(1) = stream%global_nj
             stream%icount(2) = stream%global_ni
-            totsize = stream%parsize
+            totsize = stream%parsize*var%nval(3)
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1591,7 +1604,7 @@ module mod_ncstream
             stream%istart(2) = stream%iparbound(1)
             stream%icount(1) = stream%global_nj
             stream%icount(2) = stream%global_ni
-            totsize = stream%parsize
+            totsize = stream%parsize*var%nval(3)*var%nval(4)
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1774,7 +1787,7 @@ module mod_ncstream
             stream%istart(2) = stream%iparbound(1)
             stream%icount(1) = stream%global_nj
             stream%icount(2) = stream%global_ni
-            totsize = stream%parsize
+            totsize = stream%parsize*var%nval(3)
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
@@ -1856,7 +1869,7 @@ module mod_ncstream
             stream%istart(2) = stream%iparbound(1)
             stream%icount(1) = stream%global_nj
             stream%icount(2) = stream%global_ni
-            totsize = stream%parsize
+            totsize = stream%parsize*var%nval(3)*var%nval(4)
           else
             stream%istart(1) = 1
             stream%icount(1) = var%nval(1)
