@@ -229,11 +229,13 @@ module mod_diffusion
         do j = jdii1 , jdii2
           uten(j,i,k) = uten(j,i,k) - xkd(j,i,k) * pd(j,i) * &
                 rdxsq*(u(j+2,i,k)+u(j-2,i,k)+u(j,i+2,k)+u(j,i-2,k)  - &
-               d_four*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k)) +   &
+               d_two*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k) +   &
+                      u(j+1,i+1,k)+u(j-1,i-1,k)+u(j-1,i+1,k)+u(j+1,i-1,k)) + &
               d_twelve*u(j,i,k))
           vten(j,i,k) = vten(j,i,k) - xkd(j,i,k) * pd(j,i) * &
                 rdxsq*(v(j+2,i,k)+v(j-2,i,k)+v(j,i+2,k)+v(j,i-2,k)  - &
-               d_four*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k)) +   &
+               d_two*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k) +   &
+                      v(j+1,i+1,k)+v(j-1,i-1,k)+v(j-1,i+1,k)+v(j+1,i-1,k)) + &
               d_twelve*v(j,i,k))
         end do
       end do
@@ -321,8 +323,10 @@ module mod_diffusion
           ften(j,i,k) = ften(j,i,k) - fac * xkcf(j,i,k) * pc(j,i) * &
                       rdxsq*(f(j+2,i,k)+f(j-2,i,k) +                &
                              f(j,i+2,k)+f(j,i-2,k) -                &
-                             d_four*(f(j+1,i,k)+f(j-1,i,k) +         &
-                                    f(j,i+1,k)+f(j,i-1,k)) +         &
+                             d_two*(f(j+1,i,k)+f(j-1,i,k) +         &
+                                    f(j,i+1,k)+f(j,i-1,k) +         &
+                                    f(j+1,i+1,k)+f(j-1,i-1,k) +     &
+                                    f(j+1,i-1,k)+f(j-1,i+1,k)) +    &
                              d_twelve*f(j,i,k))
         end do
       end do
@@ -401,8 +405,10 @@ module mod_diffusion
           ften(j,i,k) = ften(j,i,k) - xkc(j,i,k) * pc(j,i) *     &
                       rdxsq*(f(j+2,i,k)+f(j-2,i,k) +             &
                              f(j,i+2,k)+f(j,i-2,k) -             &
-                             d_four*(f(j+1,i,k)+f(j-1,i,k) +      &
-                                    f(j,i+1,k)+f(j,i-1,k)) +      &
+                             d_two*(f(j+1,i,k)+f(j-1,i,k) +      &
+                                    f(j,i+1,k)+f(j,i-1,k) +      &
+                                    f(j+1,i+1,k)+f(j-1,i-1,k) +  &
+                                    f(j+1,i-1,k)+f(j-1,i+1,k)) + &
                              d_twelve*f(j,i,k))
         end do
       end do
@@ -497,8 +503,10 @@ module mod_diffusion
                           fac * xkc(j,i,k) * pc(j,i) * rdxsq *    &
                         ( f(j+2,i,k,n)+f(j-2,i,k,n) +             &
                           f(j,i+2,k,n)+f(j,i-2,k,n) -             &
-                          d_four*(f(j+1,i,k,n)+f(j-1,i,k,n) +      &
-                                 f(j,i+1,k,n)+f(j,i-1,k,n)) +      &
+                          d_two*(f(j+1,i,k,n)+f(j-1,i,k,n) +      &
+                                 f(j,i+1,k,n)+f(j,i-1,k,n) +      &
+                                 f(j+1,i+1,k,n)+f(j-1,i-1,k,n) +  &
+                                 f(j+1,i-1,k,n)+f(j-1,i+1,k,n)) + &
                           d_twelve*f(j,i,k,n) )
         end do
       end do
