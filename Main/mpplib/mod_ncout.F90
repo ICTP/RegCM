@@ -2455,6 +2455,10 @@ module mod_ncout
           ncattribute_real8('boundary_medium_nudge',medium_nudge))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('boundary_low_nudge',low_nudge))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('boundary_nm',bdy_nm))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('boundary_dm',bdy_dm))
 
         ! Perturbation control for ensembles
 

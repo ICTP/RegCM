@@ -1710,6 +1710,8 @@ module mod_params
       write(stdout,'(a,f9.6)') '  Nudge value high range     : ', high_nudge
       write(stdout,'(a,f9.6)') '  Nudge value medium range   : ', medium_nudge
       write(stdout,'(a,f9.6)') '  Nudge value low range      : ', low_nudge
+      write(stdout,'(a,f9.6)') '  Nm paramter                : ', bdy_nm
+      write(stdout,'(a,f9.6)') '  Dm paramter                : ', bdy_dm
 #ifdef CLM
       write(stdout,*) 'CLM Pameterizations'
       write(stdout,'(a,i2)' ) '  CLM imask                       : ' , imask

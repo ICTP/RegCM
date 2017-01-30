@@ -139,6 +139,9 @@ module mod_dynparam
   integer(ik4) :: nspgx = 12
   integer(ik4) :: nspgd = 12
 
+  real(rkx) :: bdy_nm = 0.1_rkx
+  real(rkx) :: bdy_dm = 50.0_rkx
+
   ! Nudge control coefficients
 
   real(rkx) :: high_nudge   = 3.0_rkx
@@ -416,7 +419,7 @@ module mod_dynparam
       inpter , moist_filename , tersrc , smsrc
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
-      medium_nudge , low_nudge
+      medium_nudge , low_nudge , bdy_nm , bdy_dm
     namelist /globdatparam/ dattyp , chemtyp, ssttyp , gdate1 , gdate2 , &
       dirglob , inpglob , calendar , ibdyfrq , ensemble_run
     namelist /perturbparam/ lperturb_ts , perturb_frac_ts ,         &

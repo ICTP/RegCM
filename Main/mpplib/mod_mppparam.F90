@@ -1266,6 +1266,8 @@ module mod_mppparam
     call bcast(high_nudge)
     call bcast(medium_nudge)
     call bcast(low_nudge)
+    call bcast(bdy_nm)
+    call bcast(bdy_dm)
 
     call bcast(calendar,12)
     call bcast(ical)
