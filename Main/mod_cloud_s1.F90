@@ -852,9 +852,9 @@ module mod_cloud_s1
         lliq      = ( totliq > activqx )
 
         ! Derived variables needed
-        gdp    = egrav/dp              ! g/dp  =(1/m)
-        dtgdp  = dt*gdp                ! (dt*g)/dp =(dt/mass)
-        rdtgdp = dp*(d_one/(dt*egrav)) ! dp/(gdt)=m/dt  [Kg/m2/s]
+        gdp    = egrav/dp      ! g/dp  =(1/m)
+        dtgdp  = dt*gdp        ! (dt*g)/dp =(dt/mass)
+        rdtgdp = d_one/dtgdp   ! dp/(gdt)=m/dt  [Kg/m2/s]
         !------------------------------------
         ! calculate dqs/dT
         !------------------------------------
@@ -1909,9 +1909,9 @@ module mod_cloud_s1
           lliq      = ( totliq > activqx )
 
           ! Derived variables needed
-          gdp = egrav/dp        ! g/dp  =(1/m)
-          dtgdp = dt*gdp        ! (dt*g)/dp =(dt/m)
-          rdtgdp = dp*(d_one/(dt*egrav)) ! dp/(gdt)=m/dt  [Kg/m2/s]
+          gdp = egrav/dp       ! g/dp  =(1/m)
+          dtgdp = dt*gdp       ! (dt*g)/dp =(dt/m)
+          rdtgdp = d_one/dtgdp ! dp/(gdt)=m/dt  [Kg/m2/s]
           !------------------------------------
           ! calculate dqs/dT
           !------------------------------------

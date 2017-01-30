@@ -65,13 +65,12 @@ module mod_bdycod
   real(rkx) , pointer , dimension(:,:) :: psdot
   real(rkx) , pointer , dimension(:) :: fcx , gcx
   real(rkx) , pointer , dimension(:) :: fcd , gcd
-  real(rkx) , pointer , dimension(:,:) :: hefc , hegc
+  real(rkx) , pointer , dimension(:,:) :: hefc , hegc , hefd , hegd
   real(rkx) , pointer , dimension(:,:) :: fefc , fegc
   real(rkx) , pointer , dimension(:,:) :: efc , egc
   real(rkx) , pointer , dimension(:) :: wgtd
   real(rkx) , pointer , dimension(:) :: wgtx
   real(rkx) :: fnudge , gnudge , rdtbdy
-  integer(ik4) :: nbdm
   integer(ik4) :: som_month
 
   interface timeint
@@ -103,11 +102,12 @@ module mod_bdycod
       call getmem1d(wgtd,1,nspgd,'bdycon:wgtd')
       call getmem1d(wgtx,1,nspgx,'bdycon:wgtx')
     else if ( iboudy == 5 ) then
-      nbdm = max(nspgx,nspgd)
-      call getmem2d(fefc,1,nbdm,1,kzp1,'bdycon:fefc')
-      call getmem2d(fegc,1,nbdm,1,kzp1,'bdycon:fegc')
-      call getmem2d(hefc,1,nbdm,1,kz,'bdycon:hefc')
-      call getmem2d(hegc,1,nbdm,1,kz,'bdycon:hegc')
+      call getmem2d(fefc,1,nspgx,1,kzp1,'bdycon:fefc')
+      call getmem2d(fegc,1,nspgx,1,kzp1,'bdycon:fegc')
+      call getmem2d(hefc,1,nspgx,1,kz,'bdycon:hefc')
+      call getmem2d(hegc,1,nspgx,1,kz,'bdycon:hegc')
+      call getmem2d(hefd,1,nspgd,1,kz,'bdycon:hefd')
+      call getmem2d(hegd,1,nspgd,1,kz,'bdycon:hegd')
     end if
 
     if ( ma%has_bdytop ) then
@@ -152,8 +152,8 @@ module mod_bdycod
     !
     rdtbdy = d_one / dtbdys
     if ( iboudy == 1 .or. iboudy == 5 ) then
-      fnudge = 0.1_rkx/dt2
-      gnudge = (dxsq/dt)/50.0_rkx
+      fnudge = bdy_nm ! / dt
+      gnudge = dxsq * bdy_dm ! /dt
     end if
     if ( iboudy == 1 ) then
       do n = 2 , nspgx-1
@@ -191,7 +191,7 @@ module mod_bdycod
         end if
       end do
       do k = 1 , kzp1
-        do n = 2 , nbdm-1
+        do n = 2 , nspgx-1
           fefc(n,k) = fnudge*xfune(n,anudgf(k))
           fegc(n,k) = gnudge*xfune(n,anudgf(k))
         end do
@@ -206,9 +206,13 @@ module mod_bdycod
         end if
       end do
       do k = 1 , kz
-        do n = 2 , nbdm-1
+        do n = 2 , nspgx-1
           hefc(n,k) = fnudge*xfune(n,anudgh(k))
           hegc(n,k) = gnudge*xfune(n,anudgh(k))
+        end do
+        do n = 2 , nspgd-1
+          hefd(n,k) = fnudge*xfune(n,anudgh(k))
+          hegd(n,k) = gnudge*xfune(n,anudgh(k))
         end do
       end do
     end if
@@ -232,7 +236,7 @@ module mod_bdycod
         implicit none
         integer(ik4) , intent(in) :: mm
         real(rkx) , intent(in) :: an
-        xfune = exp(-real(mm-2,rkx)/an)
+        xfune = exp(-real(mm-1,rkx)/an)
       end function xfune
 
   end subroutine setup_bdycon
@@ -847,7 +851,7 @@ module mod_bdycod
     ! if this subroutine is called for the first time, this part
     ! shall be skipped.
     !
-    xt = xbctime + dtsec
+    xt = xbctime + dt
     if ( ktau > 1 ) then
       !
       ! West boundary
@@ -1992,7 +1996,7 @@ module mod_bdycod
       return
     end if
 
-    xt = xbctime + dtsec
+    xt = xbctime + dt
 
     if ( ibdy == 1 ) then
       if ( ba_cr%ns /= 0 ) then
@@ -2174,7 +2178,7 @@ module mod_bdycod
       return
     end if
 
-    xt = xbctime + dtsec
+    xt = xbctime + dt
 
     if ( ibdy == 1 ) then
       if ( ba_dt%ns /= 0 ) then
@@ -2314,8 +2318,8 @@ module mod_bdycod
             do j = jdi1 , jdi2
               if ( .not. ba_dt%bnorth(j,i) ) cycle
               ib = ba_dt%ibnd(j,i)
-              xf = hefc(ib,k)
-              xg = hegc(ib,k)
+              xf = hefd(ib,k)
+              xg = hegd(ib,k)
               fls0 = (bndu%b0(j,i,k)  +xt*bndu%bt(j,i,k))   - fu(j,i,k)
               fls1 = (bndu%b0(j-1,i,k)+xt*bndu%bt(j-1,i,k)) - fu(j-1,i,k)
               fls2 = (bndu%b0(j+1,i,k)+xt*bndu%bt(j+1,i,k)) - fu(j+1,i,k)
@@ -2340,8 +2344,8 @@ module mod_bdycod
             do j = jdi1 , jdi2
               if ( .not. ba_dt%bwest(j,i) ) cycle
               ib = ba_dt%ibnd(j,i)
-              xf = hefc(ib,k)
-              xg = hegc(ib,k)
+              xf = hefd(ib,k)
+              xg = hegd(ib,k)
               fls0 = (bndu%b0(j,i,k)  +xt*bndu%bt(j,i,k))   - fu(j,i,k)
               fls1 = (bndu%b0(j,i-1,k)+xt*bndu%bt(j,i-1,k)) - fu(j,i-1,k)
               fls2 = (bndu%b0(j,i+1,k)+xt*bndu%bt(j,i+1,k)) - fu(j,i+1,k)
@@ -2366,8 +2370,8 @@ module mod_bdycod
             do j = jdi1 , jdi2
               if ( .not. ba_dt%beast(j,i) ) cycle
               ib = ba_dt%ibnd(j,i)
-              xf = hefc(ib,k)
-              xg = hegc(ib,k)
+              xf = hefd(ib,k)
+              xg = hegd(ib,k)
               fls0 = (bndu%b0(j,i,k)  +xt*bndu%bt(j,i,k))   - fu(j,i,k)
               fls1 = (bndu%b0(j,i-1,k)+xt*bndu%bt(j,i-1,k)) - fu(j,i-1,k)
               fls2 = (bndu%b0(j,i+1,k)+xt*bndu%bt(j,i+1,k)) - fu(j,i+1,k)
@@ -2434,7 +2438,7 @@ module mod_bdycod
 #endif
 
     nk = size(f,3)
-    xt = xbctime + dtsec
+    xt = xbctime + dt
     if ( .not. ba_cr%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
@@ -2449,7 +2453,7 @@ module mod_bdycod
     else
       efc => fefc
       egc => fegc
-      ks = 2
+      ks = 1
     end if
 
     if ( ibdy == 1 ) then
@@ -2626,7 +2630,7 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 #endif
 
-    xt = xbctime + dtsec
+    xt = xbctime + dt
     if ( .not. ba_cr%havebound ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)

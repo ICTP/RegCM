@@ -103,8 +103,8 @@ core is used in the model.
                  ! Default 0.0625 for hydro, 0.1 for nonhydro
  diffu_hgtf = 1, ! Add topographic effect to diffusion
  upstream_mode = .true., ! Add off centering to advection
- upu = 0.2,              ! Maximum off-centering factor to use
- umax = 200.0,           ! Value of P*U for maximum off centering
+ upu = 0.1,              ! Maximum off-centering factor to use
+ umax = 200.0,           ! Value of U for maximum off centering
  stability_enhance = .true., ! Do not allow horizontal advection to increase
                              ! tendencies if strong gradients are present
  vert_stability_enhance = .true., ! Same for vertical advection
@@ -416,8 +416,8 @@ value of $anudge$.
  high_nudge   =     3.0, ! Nudge value high range
  medium_nudge =     2.0, ! Nudge value medium range
  low_nudge    =     1.0  ! Nudge value low range
- bdy_nm = 0.1,  ! Newtonian term, Eq. 7 Giorgi et al, 1993
- bdy_dm = 50.0, ! Diffusion term, Eq. 8 Giorgi et al, 1993 
+ bdy_nm = 0.00067,  ! Newtonian term, Eq. 7 Giorgi et al, 1993 (fix dt to 150)
+ bdy_dm = 0.00013, ! Reverse of diffusion term, Eq. 8 Giorgi et al, 1993 
  /
 \end{Verbatim}
 }

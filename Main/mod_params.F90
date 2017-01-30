@@ -605,7 +605,7 @@ module mod_params
       upstream_mode = .true.
       stability_enhance = .true.
       vert_stability_enhance = .true.
-      upu = 0.200_rkx
+      upu = 0.100_rkx
       umax = 200.0_rkx
       t_extrema = 5.0_rkx
       c_rel_extrema = 0.20_rkx
@@ -1707,6 +1707,8 @@ module mod_params
       write(stdout,'(a,i2)') '  Cloud fraction scheme       : ' , icldfrac
       write(stdout,'(a,i2)') '  Marine stratocumulus fraction ' , icldmstrat
       write(stdout,*) 'Boundary Pameterizations'
+      write(stdout,'(a,i2)') '  Num. of bndy points cross  : ', nspgx
+      write(stdout,'(a,i2)') '  Num. of bndy points dot    : ', nspgd
       write(stdout,'(a,f9.6)') '  Nudge value high range     : ', high_nudge
       write(stdout,'(a,f9.6)') '  Nudge value medium range   : ', medium_nudge
       write(stdout,'(a,f9.6)') '  Nudge value low range      : ', low_nudge

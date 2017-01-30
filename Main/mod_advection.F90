@@ -107,7 +107,7 @@ module mod_advection
       do k = 2 , kz
         dds(k) = d_one / (dsigma(k) + dsigma(k-1))
       end do
-      uchu = upu/umax
+      uchu = upu/(d_two * umax)
     end subroutine init_advection
     !
     ! Pre-compute
@@ -346,7 +346,7 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ul = d_half * uchu / ps(j,i)
+              ul = uchu / ps(j,i)
               f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
               f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
               fx1 = (d_one+f1)*f(j-1,i,k) + (d_one-f1)*f(j,i,k)
@@ -480,7 +480,7 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ul = d_half * uchu / ps(j,i)
+              ul = uchu / ps(j,i)
               f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
               f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
               fx1 = (d_one+f1)*f(j-1,i,k) + (d_one-f1)*f(j,i,k)
@@ -501,7 +501,7 @@ module mod_advection
         do k = 2 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ul = d_half * uchu / ps(j,i)
+              ul = uchu / ps(j,i)
               uaz1 = ( twt(k,1) * uavg1(j,i,k) + &
                        twt(k,2) * uavg1(j,i,k-1) )
               uaz2 = ( twt(k,1) * uavg2(j,i,k) + &
@@ -563,7 +563,7 @@ module mod_advection
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ul = d_half * uchu / ps(j,i)
+              ul = uchu / ps(j,i)
               f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
               f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
               fx1 = (d_one+f1)*f(j-1,i,k,iv) + (d_one-f1)*f(j,i,k,iv)
@@ -662,7 +662,7 @@ module mod_advection
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ul = d_half * uchu / ps(j,i)
+                ul = uchu / ps(j,i)
                 f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
                 f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
                 fx1 = (d_one+f1)*f(j-1,i,k,n) + (d_one-f1)*f(j,i,k,n)
@@ -761,7 +761,7 @@ module mod_advection
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ul = d_half * uchu / ps(j,i)
+                ul = uchu / ps(j,i)
                 f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
                 f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
                 fx1 = (d_one+f1)*f(j-1,i,k,n) + (d_one-f1)*f(j,i,k,n)

@@ -629,13 +629,13 @@ module mod_sound
         !
         ! Apply upper rad cond.
         !
-        iapp = 1 ! max(nspgx,6)
+        iapp = max(nspgx-1,7)
         iciloop: &
         do i = icii1 , icii2
-          if ( i < iapp + 1 .or. i > icross2 - iapp) cycle iciloop
+          if ( i < icross1 + iapp .or. i > icross2 - iapp) cycle iciloop
           jciloop: &
           do j = jcii1 , jcii2
-            if ( j < iapp + 1 .or. j > jcross2 - iapp) cycle jciloop
+            if ( j < jcross1 + iapp .or. j > jcross2 - iapp) cycle jciloop
             do nsi = -6 , 6
               inn = i+nsi
               if ( inn < icross1+1 ) inn = icross1+1
