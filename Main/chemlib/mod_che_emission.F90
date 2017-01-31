@@ -93,10 +93,10 @@ module mod_che_emission
     end if
     ! Also lmonth is not really necessary here, but KEEP THIS DIMENSION
     ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES
-    call read_emission(ifreq,lyear,lmonth,lday,lhour,chemsrc)
+    call read_emission(ifreq,lyear,lmonth,lday,lhour,chemsrcan)
 
     ! allow to increase OC emission to account for SOA via namelist
-    chemsrc(:,:,iochb)= rocemfac * chemsrc(:,:,iochb)
+    chemsrcan(:,:,iochb)= rocemfac * chemsrcan(:,:,iochb)
 
     ! Handle biomass burning emissions , possibly at a different frequency
     !
@@ -124,15 +124,15 @@ module mod_che_emission
         write(stdout,*) 'READ CHEM BIO. BURN. EMISSION for ', &
                  lyear*1000000+lmonth*10000+lday
       end if
-      call read_bioburn_emission(ifreqbb,lyear,lmonth,lday,lhour,tmpsrc)
+      call read_bioburn_emission(ifreqbb,lyear,lmonth,lday,lhour,chemsrcbb)
       ! define the smoke tracer emission
       if ( ism1 > 0 ) then
-        chemsrc(:,:,ism1) = tmpsrc(:,:,ibchb) + rocemfac * tmpsrc(:,:,iochb)
-        tmpsrc(:,:,iochb) = d_zero
-        tmpsrc(:,:,ibchb) = d_zero
+        chemsrcbb(:,:,ism1) = chemsrcbb(:,:,ibchb) + rocemfac * chemsrcbb(:,:,iochb)
+        chemsrcbb(:,:,iochb) = d_zero
+        chemsrcbb(:,:,ibchb) = d_zero
       end if
       ! finally add biomass burning emissions to anthropogenic emissions
-      chemsrc(:,:,:) = chemsrc(:,:,:) + tmpsrc(:,:,:)
+      chemsrc(:,:,:) = chemsrcbb(:,:,:) + chemsrcan(:,:,:)
     end if
 
 #ifdef DEBUG

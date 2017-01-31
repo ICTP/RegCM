@@ -54,7 +54,7 @@ module mod_che_common
   real(rkx) , pointer , dimension(:,:,:,:) :: chi
   real(rkx) , pointer , dimension(:,:,:,:) :: chic , chiten , chiten0 , chemten
 
-  real(rkx) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
+  real(rkx) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc,chemsrcbb,chemsrcan
   real(rkx) , pointer , dimension(:,:,:,:) :: chia , chib
   real(rkx) , pointer , dimension(:,:,:) :: dtrace , wdwout , &
                                            wdrout , wxaq , wxsg , ddv_out
@@ -147,6 +147,10 @@ module mod_che_common
                     ice1,ice2,1,kz,1,ntr,'che_common:chemten')
       call getmem3d(chemsrc,jce1,jce2,ice1,ice2, &
                     1,ntr,'mod_che_common:chemsrc')
+      call getmem3d(chemsrcbb,jce1,jce2,ice1,ice2, &
+                    1,ntr,'mod_che_common:chemsrcbb')
+      call getmem3d(chemsrcan,jce1,jce2,ice1,ice2, &
+                    1,ntr,'mod_che_common:chemsrcan')
       call getmem3d(tmpsrc,jce1,jce2,ice1,ice2, &
                     1,ntr,'mod_che_common:tmpsrc')
       call getmem3d(chifxuw,jci1,jci2,ici1,ici2, &
