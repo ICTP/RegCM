@@ -25,8 +25,7 @@ install-exec-hook:
 	cp interp_emissions.sh $(DESTDIR)$(bindir)/interp_emissions
 	cp interp_pollen.sh $(DESTDIR)$(bindir)/interp_pollen
 	cp interp_bionox.sh $(DESTDIR)$(bindir)/interp_bionox
-        cp interp_emissions_bioburn.sh $(DESTDIR)$(bindir)/interp_emissions_bioburn.sh
-        
+	cp interp_emissions_bioburn.sh $(DESTDIR)$(bindir)/interp_emissions_bioburn.sh
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

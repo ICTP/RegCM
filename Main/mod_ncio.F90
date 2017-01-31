@@ -679,7 +679,8 @@ module mod_ncio
         icount(3) = 1
         istatus = nf90_get_var(ibcin,icbc_ivar(9),rspace2, &
                                istart(1:3),icount(1:3))
-        call check_ok(__FILE__,__LINE__,'variable wtop read error', 'ICBC FILE')
+        call check_ok(__FILE__,__LINE__, &
+                      'variable wtop read error', 'ICBC FILE')
         ww(jce1:jce2,ice1:ice2,1) = rspace2(jce1:jce2,ice1:ice2)
       end if
     else

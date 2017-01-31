@@ -66,8 +66,6 @@ module mod_bdycod
   real(rkx) , pointer , dimension(:) :: fcx , gcx
   real(rkx) , pointer , dimension(:) :: fcd , gcd
   real(rkx) , pointer , dimension(:,:) :: hefc , hegc , hefd , hegd
-  real(rkx) , pointer , dimension(:,:) :: fefc , fegc
-  real(rkx) , pointer , dimension(:,:) :: efc , egc
   real(rkx) , pointer , dimension(:) :: wgtd
   real(rkx) , pointer , dimension(:) :: wgtx
   real(rkx) :: fnudge , gnudge , rdtbdy
@@ -93,17 +91,17 @@ module mod_bdycod
 
   subroutine allocate_mod_bdycon
     implicit none
-    if ( iboudy == 1 ) then
+    if ( iboudy == 1 .or. idynamic == 2 ) then
       call getmem1d(fcx,1,nspgx,'bdycon:fcx')
       call getmem1d(gcx,1,nspgx,'bdycon:gcx')
       call getmem1d(fcd,1,nspgd,'bdycon:fcd')
       call getmem1d(gcd,1,nspgd,'bdycon:gcd')
-    else if ( iboudy == 4 ) then
+    end if
+    if ( iboudy == 4 ) then
       call getmem1d(wgtd,1,nspgd,'bdycon:wgtd')
       call getmem1d(wgtx,1,nspgx,'bdycon:wgtx')
-    else if ( iboudy == 5 ) then
-      call getmem2d(fefc,1,nspgx,1,kzp1,'bdycon:fefc')
-      call getmem2d(fegc,1,nspgx,1,kzp1,'bdycon:fegc')
+    end if
+    if ( iboudy == 5 ) then
       call getmem2d(hefc,1,nspgx,1,kz,'bdycon:hefc')
       call getmem2d(hegc,1,nspgx,1,kz,'bdycon:hegc')
       call getmem2d(hefd,1,nspgd,1,kz,'bdycon:hefd')
@@ -155,7 +153,7 @@ module mod_bdycod
       fnudge = bdy_nm ! / dt
       gnudge = dxsq * bdy_dm ! /dt
     end if
-    if ( iboudy == 1 ) then
+    if ( iboudy == 1 .or. idynamic == 2 ) then
       do n = 2 , nspgx-1
         fcx(n) = fnudge*xfun(n,.false.)
         gcx(n) = gnudge*xfun(n,.false.)
@@ -164,7 +162,8 @@ module mod_bdycod
         fcd(n) = fnudge*xfun(n,.true.)
         gcd(n) = gnudge*xfun(n,.true.)
       end do
-    else if ( iboudy == 4 ) then
+    end if
+    if ( iboudy == 4 ) then
       wgtd(1) = 0.00_rkx
       wgtd(2) = 0.20_rkx
       wgtd(3) = 0.55_rkx
@@ -180,22 +179,8 @@ module mod_bdycod
       do k = 5 , nspgx
         wgtx(k) = 1.0_rkx
       end do
-    else if ( iboudy == 5 ) then
-      do k = 1 , kzp1
-        if ( sigma(k) < 0.4_rkx ) then
-          anudgf(k) = high_nudge
-        else if ( sigma(k) < 0.8_rkx ) then
-          anudgf(k) = medium_nudge
-        else
-          anudgf(k) = low_nudge
-        end if
-      end do
-      do k = 1 , kzp1
-        do n = 2 , nspgx-1
-          fefc(n,k) = fnudge*xfune(n,anudgf(k))
-          fegc(n,k) = gnudge*xfune(n,anudgf(k))
-        end do
-      end do
+    end if
+    if ( iboudy == 5 ) then
       do k = 1 , kz
         if ( hsigma(k) < 0.4_rkx ) then
           anudgh(k) = high_nudge
@@ -2430,7 +2415,7 @@ module mod_bdycod
     type(v3dbound) , intent(in) :: bnd
     real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
     real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
-    integer(ik4) :: i , j , k , ib , nk , ks
+    integer(ik4) :: i , j , k , ib , nk
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge3d'
     integer(ik4) , save :: idindx = 0
@@ -2446,19 +2431,165 @@ module mod_bdycod
       return
     end if
 
-    if ( nk == size(hefc) ) then
-      efc => hefc
-      egc => hegc
-      ks = 1
+    if ( nk == kz ) then
+      if ( ibdy == 1 ) then
+        if ( ba_cr%ns /= 0 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( .not. ba_cr%bsouth(j,i) ) cycle
+                ib = ba_cr%ibnd(j,i)
+                xf = fcx(ib)
+                xg = gcx(ib)
+                fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
+                fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
+                fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
+                fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
+                fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
+                ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
+                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+              end do
+            end do
+          end do
+        end if
+        if ( ba_cr%nn /= 0 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( .not. ba_cr%bnorth(j,i) ) cycle
+                ib = ba_cr%ibnd(j,i)
+                xf = fcx(ib)
+                xg = gcx(ib)
+                fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
+                fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
+                fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
+                fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
+                fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
+                ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
+                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+              end do
+            end do
+          end do
+        end if
+        if ( ba_cr%nw /= 0 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( .not. ba_cr%bwest(j,i) ) cycle
+                ib = ba_cr%ibnd(j,i)
+                xf = fcx(ib)
+                xg = gcx(ib)
+                fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
+                fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
+                fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
+                fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
+                fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
+                ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
+                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+              end do
+            end do
+          end do
+        end if
+        if ( ba_cr%ne /= 0 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( .not. ba_cr%beast(j,i) ) cycle
+                ib = ba_cr%ibnd(j,i)
+                xf = fcx(ib)
+                xg = gcx(ib)
+                fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
+                fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
+                fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
+                fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
+                fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
+                ften(j,i,k) = ften(j,i,k) + xf*fls0 -  &
+                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+              end do
+            end do
+          end do
+        end if
+      else
+        if ( ba_cr%ns /= 0 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( .not. ba_cr%bsouth(j,i) ) cycle
+                ib = ba_cr%ibnd(j,i)
+                xf = hefc(ib,k)
+                xg = hegc(ib,k)
+                fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
+                fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
+                fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
+                fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
+                fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
+                ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
+                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+              end do
+            end do
+          end do
+        end if
+        if ( ba_cr%nn /= 0 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( .not. ba_cr%bnorth(j,i) ) cycle
+                ib = ba_cr%ibnd(j,i)
+                xf = hefc(ib,k)
+                xg = hegc(ib,k)
+                fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
+                fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
+                fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
+                fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
+                fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
+                ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
+                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+              end do
+            end do
+          end do
+        end if
+        if ( ba_cr%nw /= 0 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( .not. ba_cr%bwest(j,i) ) cycle
+                ib = ba_cr%ibnd(j,i)
+                xf = hefc(ib,k)
+                xg = hegc(ib,k)
+                fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
+                fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
+                fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
+                fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
+                fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
+                ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
+                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+              end do
+            end do
+          end do
+        end if
+        if ( ba_cr%ne /= 0 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( .not. ba_cr%beast(j,i) ) cycle
+                ib = ba_cr%ibnd(j,i)
+                xf = hefc(ib,k)
+                xg = hegc(ib,k)
+                fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
+                fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
+                fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
+                fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
+                fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
+                ften(j,i,k) = ften(j,i,k) + xf*fls0 -  &
+                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+              end do
+            end do
+          end do
+        end if
+      end if
     else
-      efc => fefc
-      egc => fegc
-      ks = 1
-    end if
-
-    if ( ibdy == 1 ) then
       if ( ba_cr%ns /= 0 ) then
-        do k = ks , nk
+        do k = 1 , kzp1
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bsouth(j,i) ) cycle
@@ -2474,10 +2605,10 @@ module mod_bdycod
                             xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
-        end do
+       end do
       end if
       if ( ba_cr%nn /= 0 ) then
-        do k = ks , nk
+        do k = 1 , kzp1
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bnorth(j,i) ) cycle
@@ -2496,7 +2627,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-        do k = ks , nk
+        do k = 1 , kzp1
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bwest(j,i) ) cycle
@@ -2515,7 +2646,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-        do k = ks , nk
+        do k = 1 , kzp1
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%beast(j,i) ) cycle
@@ -2529,83 +2660,6 @@ module mod_bdycod
               fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 -  &
                           xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
-        end do
-      end if
-    else
-      if ( ba_cr%ns /= 0 ) then
-        do k = ks , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              if ( .not. ba_cr%bsouth(j,i) ) cycle
-              ib = ba_cr%ibnd(j,i)
-              xf = efc(ib,k)
-              xg = egc(ib,k)
-              fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
-              fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
-              fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
-              fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
-              fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
-              ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
-        end do
-      end if
-      if ( ba_cr%nn /= 0 ) then
-        do k = ks , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              if ( .not. ba_cr%bnorth(j,i) ) cycle
-              ib = ba_cr%ibnd(j,i)
-              xf = efc(ib,k)
-              xg = egc(ib,k)
-              fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
-              fls1 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
-              fls2 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
-              fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
-              fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
-              ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
-        end do
-      end if
-      if ( ba_cr%nw /= 0 ) then
-        do k = ks , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              if ( .not. ba_cr%bwest(j,i) ) cycle
-              ib = ba_cr%ibnd(j,i)
-              xf = efc(ib,k)
-              xg = egc(ib,k)
-              fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
-              fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
-              fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
-              fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
-              fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
-              ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
-            end do
-          end do
-        end do
-      end if
-      if ( ba_cr%ne /= 0 ) then
-        do k = ks , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              if ( .not. ba_cr%beast(j,i) ) cycle
-              ib = ba_cr%ibnd(j,i)
-              xf = efc(ib,k)
-              xg = egc(ib,k)
-              fls0 = (bnd%b0(j,i,k)  +xt*bnd%bt(j,i,k))   - f(j,i,k)
-              fls1 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
-              fls2 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
-              fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
-              fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
-              ften(j,i,k) = ften(j,i,k) + xf*fls0 -  &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
