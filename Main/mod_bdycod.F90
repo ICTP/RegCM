@@ -151,7 +151,7 @@ module mod_bdycod
     !
     rdtbdy = d_one / dtbdys
     if ( iboudy == 1 .or. iboudy == 5 ) then
-      fnudge = bdy_nm ! / dt
+      fnudge = bdy_nm ! /dt
       gnudge = bdy_dm ! /dt ! The dx**2 is eliminated with the 1/dx**2
     end if
     if ( iboudy == 1 .or. idynamic == 2 ) then
@@ -1236,10 +1236,13 @@ module mod_bdycod
               atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k) + xt*xppb%bt(jce1,i,k)
             end do
           end do
-          do k = 1 , kzp1
+          do k = 2 , kzp1
             do i = ici1 , ici2
               atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k) + xt*xwwb%bt(jce1,i,k)
             end do
+          end do
+          do i = ici1 , ici2
+            atm1%w(jce1,i,1) = atm1%w(jci1,i,1)
           end do
         end if
       end if
@@ -1256,10 +1259,13 @@ module mod_bdycod
               atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k) + xt*xppb%bt(jce2,i,k)
             end do
           end do
-          do k = 1 , kzp1
+          do k = 2 , kzp1
             do i = ici1 , ici2
               atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k) + xt*xwwb%bt(jce2,i,k)
             end do
+          end do
+          do i = ici1 , ici2
+            atm1%w(jce2,i,1) = atm1%w(jci2,i,1)
           end do
         end if
       end if
@@ -1276,10 +1282,13 @@ module mod_bdycod
               atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k) + xt*xppb%bt(j,ice1,k)
             end do
           end do
-          do k = 1 , kzp1
+          do k = 2 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k) + xt*xwwb%bt(j,ice1,k)
             end do
+          end do
+          do j = jce1 , jce2
+            atm1%w(j,ice1,1) = atm1%w(j,ici1,1)
           end do
         end if
       end if
@@ -1296,10 +1305,13 @@ module mod_bdycod
               atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k) + xt*xppb%bt(j,ice2,k)
             end do
           end do
-          do k = 1 , kzp1
+          do k = 2 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k) + xt*xwwb%bt(j,ice2,k)
             end do
+          end do
+          do j = jce1 , jce2
+            atm1%w(j,ice2,1) = atm1%w(j,ici2,1)
           end do
         end if
       end if
@@ -2574,7 +2586,7 @@ module mod_bdycod
       end if
     else
       if ( ba_cr%ns /= 0 ) then
-        do k = 1 , kzp1
+        do k = 2 , kzp1
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bsouth(j,i) ) cycle
@@ -2593,7 +2605,7 @@ module mod_bdycod
        end do
       end if
       if ( ba_cr%nn /= 0 ) then
-        do k = 1 , kzp1
+        do k = 2 , kzp1
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bnorth(j,i) ) cycle
@@ -2612,7 +2624,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-        do k = 1 , kzp1
+        do k = 2 , kzp1
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bwest(j,i) ) cycle
@@ -2631,7 +2643,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-        do k = 1 , kzp1
+        do k = 2 , kzp1
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%beast(j,i) ) cycle

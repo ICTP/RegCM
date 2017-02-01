@@ -626,12 +626,12 @@ module mod_sound
             if ( j < jcross1 + 1 .or. j > jcross2 - 1) cycle jciloop
             do nsi = -6 , 6
               inn = i+nsi
-              if ( inn < icross1+1 ) inn = icross1+1
-              if ( inn > icross2-1 ) inn = icross2-1
+              if ( inn < icross1+1 ) inn = icross1 + 6 + inn
+              if ( inn > icross2-1 ) inn = inn - 7
               do nsj = -6 , 6
                 jnn = j+nsj
-                if ( jnn < jcross1+1 ) jnn = jcross1+1
-                if ( jnn > jcross2-1 ) jnn = jcross2-1
+                if ( jnn < jcross1+1 ) jnn = jcross1 + 6 + jnn
+                if ( jnn > jcross2-1 ) jnn = jnn - 7
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do
             end do
