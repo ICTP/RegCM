@@ -112,6 +112,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: psdot
     real(rkx) , pointer , dimension(:,:,:) :: t
     real(rkx) , pointer , dimension(:,:,:) :: pr
+    real(rkx) , pointer , dimension(:,:,:) :: dprddx
+    real(rkx) , pointer , dimension(:,:,:) :: dprddy
     real(rkx) , pointer , dimension(:,:,:) :: pf
     real(rkx) , pointer , dimension(:,:,:) :: rho
   end type reference_atmosphere

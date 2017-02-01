@@ -285,98 +285,6 @@ module mod_sound
     !
     timeloop: &
     do it = 1 , istep
-      !
-      ! Zero-out gradient for W, specified on PP
-      !
-      if ( ma%has_bdybottom ) then
-        do k = 1 , kzp1
-          do j = jci1 , jci2
-            atmc%w(j,ice1,k) = atmc%w(j,ici1,k)
-          end do
-        end do
-        do k = 1 , kz
-          do j = jci1 , jci2
-            atmc%pp(j,ice1,k) = atmc%pp(j,ice1,k) + aten%pp(j,ice1,k)
-          end do
-        end do
-        if ( ma%has_bdyleft ) then
-          do k = 1 , kzp1
-            atmc%w(jce1,ice1,k) = atmc%w(jci1,ici1,k)
-          end do
-          do k = 1 , kz
-            atmc%pp(jce1,ice1,k) = atmc%pp(jce1,ice1,k) + aten%pp(jce1,ice1,k)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do k = 1 , kzp1
-            atmc%w(jce2,ice1,k) = atmc%w(jci2,ici1,k)
-          end do
-          do k = 1 , kz
-            atmc%pp(jce2,ice1,k) = atmc%pp(jce2,ice1,k) + aten%pp(jce2,ice1,k)
-          end do
-        end if
-      end if
-      if ( ma%has_bdytop ) then
-        do k = 1 , kzp1
-          do j = jci1 , jci2
-            atmc%w(j,ice2,k) = atmc%w(j,ici2,k)
-          end do
-        end do
-        do k = 1 , kz
-          do j = jci1 , jci2
-            atmc%pp(j,ice2,k) = atmc%pp(j,ice2,k) + aten%pp(j,ice2,k)
-          end do
-        end do
-        if ( ma%has_bdyleft ) then
-          do k = 1 , kzp1
-            atmc%w(jce1,ice2,k) = atmc%w(jci1,ici2,k)
-          end do
-          do k = 1 , kz
-            atmc%pp(jce1,ice2,k) = atmc%pp(jce1,ice2,k) + aten%pp(jce1,ice2,k)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do k = 1 , kzp1
-            atmc%w(jce2,ice2,k) = atmc%w(jci2,ici2,k)
-          end do
-          do k = 1 , kz
-            atmc%pp(jce2,ice2,k) = atmc%pp(jce2,ice2,k) + aten%pp(jce2,ice2,k)
-          end do
-        end if
-      end if
-      if ( ma%has_bdyleft ) then
-        do k = 1 , kzp1
-          do i = ici1 , ici2
-            atmc%w(jce1,i,k) = atmc%w(jci1,i,k)
-          end do
-        end do
-        do k = 1 , kz
-          do i = ici1 , ici2
-            atmc%pp(jce1,i,k) = atmc%pp(jce1,i,k) + aten%pp(jce1,i,k)
-          end do
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do k = 1 , kzp1
-          do i = ici1 , ici2
-            atmc%w(jce2,i,k) = atmc%w(jci2,i,k)
-          end do
-        end do
-        do k = 1 , kz
-          do i = ici1 , ici2
-            atmc%pp(jce2,i,k) = atmc%pp(jce2,i,k) + aten%pp(jce2,i,k)
-          end do
-        end do
-      end if
-      if ( it > 1 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              atmc%pp(j,i,k) = atmc%pp(j,i,k) + xkd*pi(j,i,k)
-            end do
-          end do
-        end do
-      end if
       do k = 1 , kz
         kp1 = min(kz,k+1)
         km1 = max(1,k-1)
@@ -410,13 +318,11 @@ module mod_sound
             atmc%u(j,i,k) = atmc%u(j,i,k) -                          &
                       chh * (atmc%pp(j,i,k)   - atmc%pp(j-1,i,k)   + &
                              atmc%pp(j,i-1,k) - atmc%pp(j-1,i-1,k) - &
-                      ( atm0%pr(j,i,k)   - atm0%pr(j-1,i,k)  +       &
-                        atm0%pr(j,i-1,k) - atm0%pr(j-1,i-1,k)) * dppdp0)
+                             atm0%dprddx(j,i,k) * dppdp0)
             atmc%v(j,i,k) = atmc%v(j,i,k) -                          &
                       chh * (atmc%pp(j,i,k)   - atmc%pp(j,i-1,k)   + &
                              atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
-                      ( atm0%pr(j,i,k)   - atm0%pr(j,i-1,k)  +       &
-                        atm0%pr(j-1,i,k) - atm0%pr(j-1,i-1,k)) * dppdp0)
+                             atm0%dprddy(j,i,k) * dppdp0)
           end do
         end do
       end do
@@ -836,6 +742,98 @@ module mod_sound
           end do
         end do
       end do
+      !
+      ! Zero-out gradient for W, specified on PP
+      !
+      if ( ma%has_bdybottom ) then
+        do k = 1 , kzp1
+          do j = jci1 , jci2
+            atmc%w(j,ice1,k) = atmc%w(j,ici1,k)
+          end do
+        end do
+        do k = 1 , kz
+          do j = jci1 , jci2
+            atmc%pp(j,ice1,k) = atmc%pp(j,ice1,k) + aten%pp(j,ice1,k)
+          end do
+        end do
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kzp1
+            atmc%w(jce1,ice1,k) = atmc%w(jci1,ici1,k)
+          end do
+          do k = 1 , kz
+            atmc%pp(jce1,ice1,k) = atmc%pp(jce1,ice1,k) + aten%pp(jce1,ice1,k)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kzp1
+            atmc%w(jce2,ice1,k) = atmc%w(jci2,ici1,k)
+          end do
+          do k = 1 , kz
+            atmc%pp(jce2,ice1,k) = atmc%pp(jce2,ice1,k) + aten%pp(jce2,ice1,k)
+          end do
+        end if
+      end if
+      if ( ma%has_bdytop ) then
+        do k = 1 , kzp1
+          do j = jci1 , jci2
+            atmc%w(j,ice2,k) = atmc%w(j,ici2,k)
+          end do
+        end do
+        do k = 1 , kz
+          do j = jci1 , jci2
+            atmc%pp(j,ice2,k) = atmc%pp(j,ice2,k) + aten%pp(j,ice2,k)
+          end do
+        end do
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kzp1
+            atmc%w(jce1,ice2,k) = atmc%w(jci1,ici2,k)
+          end do
+          do k = 1 , kz
+            atmc%pp(jce1,ice2,k) = atmc%pp(jce1,ice2,k) + aten%pp(jce1,ice2,k)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kzp1
+            atmc%w(jce2,ice2,k) = atmc%w(jci2,ici2,k)
+          end do
+          do k = 1 , kz
+            atmc%pp(jce2,ice2,k) = atmc%pp(jce2,ice2,k) + aten%pp(jce2,ice2,k)
+          end do
+        end if
+      end if
+      if ( ma%has_bdyleft ) then
+        do k = 1 , kzp1
+          do i = ici1 , ici2
+            atmc%w(jce1,i,k) = atmc%w(jci1,i,k)
+          end do
+        end do
+        do k = 1 , kz
+          do i = ici1 , ici2
+            atmc%pp(jce1,i,k) = atmc%pp(jce1,i,k) + aten%pp(jce1,i,k)
+          end do
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do k = 1 , kzp1
+          do i = ici1 , ici2
+            atmc%w(jce2,i,k) = atmc%w(jci2,i,k)
+          end do
+        end do
+        do k = 1 , kz
+          do i = ici1 , ici2
+            atmc%pp(jce2,i,k) = atmc%pp(jce2,i,k) + aten%pp(jce2,i,k)
+          end do
+        end do
+      end if
+      if ( it > 1 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              atmc%pp(j,i,k) = atmc%pp(j,i,k) + xkd*pi(j,i,k)
+            end do
+          end do
+        end do
+      end if
       ! End of time loop
     end do timeloop
     !

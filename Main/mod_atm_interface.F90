@@ -653,6 +653,8 @@ module mod_atm_interface
       call getmem2d(atm%ps,jce1ga,jce2ga,ice1ga,ice2ga,'reference:ps')
       call getmem2d(atm%psdot,jde1ga,jde2ga,ide1ga,ide2ga,'reference:psdot')
       call getmem3d(atm%pr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:pr')
+      call getmem3d(atm%dprddx,jdi1,jdi2,idi1,idi2,1,kz,'reference:dprddx')
+      call getmem3d(atm%dprddy,jdi1,jdi2,idi1,idi2,1,kz,'reference:dprddy')
       call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'reference:t')
       call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'reference:pf')
       call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'reference:rho')

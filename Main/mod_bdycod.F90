@@ -139,6 +139,7 @@ module mod_bdycod
     implicit none
     real(rkx) , dimension(kz) :: anudgh
     real(rkx) , dimension(kzp1) :: anudgf
+    real(rkx) :: xfun
     integer(ik4) :: n , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
@@ -151,16 +152,18 @@ module mod_bdycod
     rdtbdy = d_one / dtbdys
     if ( iboudy == 1 .or. iboudy == 5 ) then
       fnudge = bdy_nm ! / dt
-      gnudge = dxsq * bdy_dm ! /dt
+      gnudge = bdy_dm ! /dt ! The dx**2 is eliminated with the 1/dx**2
     end if
     if ( iboudy == 1 .or. idynamic == 2 ) then
       do n = 2 , nspgx-1
-        fcx(n) = fnudge*xfun(n,.false.)
-        gcx(n) = gnudge*xfun(n,.false.)
+        xfun = real(nspgx-n,rkx)/real(nspgx-2,rkx)
+        fcx(n) = fnudge*xfun
+        gcx(n) = gnudge*xfun
       end do
       do n = 2 , nspgd-1
-        fcd(n) = fnudge*xfun(n,.true.)
-        gcd(n) = gnudge*xfun(n,.true.)
+        xfun = real(nspgd-n,rkx)/real(nspgd-2,rkx)
+        fcd(n) = fnudge*xfun
+        gcd(n) = gnudge*xfun
       end do
     end if
     if ( iboudy == 4 ) then
@@ -192,38 +195,20 @@ module mod_bdycod
       end do
       do k = 1 , kz
         do n = 2 , nspgx-1
-          hefc(n,k) = fnudge*xfune(n,anudgh(k))
-          hegc(n,k) = gnudge*xfune(n,anudgh(k))
+          xfun = exp(-(real(n-2,rkx)/anudgh(k)))
+          hefc(n,k) = fnudge*xfun
+          hegc(n,k) = gnudge*xfun
         end do
         do n = 2 , nspgd-1
-          hefd(n,k) = fnudge*xfune(n,anudgh(k))
-          hegd(n,k) = gnudge*xfune(n,anudgh(k))
+          xfun = exp(-(real(n-2,rkx)/anudgh(k)))
+          hefd(n,k) = fnudge*xfun
+          hegd(n,k) = gnudge*xfun
         end do
       end do
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-    contains
-
-      pure real(rkx) function xfun(mm,ldot)
-        implicit none
-        integer(ik4) , intent(in) :: mm
-        logical , intent(in) :: ldot
-        if ( ldot ) then
-          xfun = real(nspgd-mm,rkx)/real(nspgd-2,rkx)
-        else
-          xfun = real(nspgx-mm,rkx)/real(nspgx-2,rkx)
-        end if
-      end function xfun
-
-      pure real(rkx) function xfune(mm,an)
-        implicit none
-        integer(ik4) , intent(in) :: mm
-        real(rkx) , intent(in) :: an
-        xfune = exp(-real(mm-1,rkx)/an)
-      end function xfune
-
   end subroutine setup_bdycon
 
   subroutine init_bdy
@@ -1998,7 +1983,7 @@ module mod_bdycod
               fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,n)
               fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2017,7 +2002,7 @@ module mod_bdycod
               fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,n)
               fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2036,7 +2021,7 @@ module mod_bdycod
               fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,n)
               fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2055,7 +2040,7 @@ module mod_bdycod
               fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,n)
               fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 -  &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2075,7 +2060,7 @@ module mod_bdycod
               fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,n)
               fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2094,7 +2079,7 @@ module mod_bdycod
               fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k,n)
               fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2113,7 +2098,7 @@ module mod_bdycod
               fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,n)
               fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2132,7 +2117,7 @@ module mod_bdycod
               fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k,n)
               fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 -  &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2180,14 +2165,14 @@ module mod_bdycod
               fls3 = (bndu%b0(j,i-1,k)+xt*bndu%bt(j,i-1,k)) - fu(j,i-1,k)
               fls4 = (bndu%b0(j,i+1,k)+xt*bndu%bt(j,i+1,k)) - fu(j,i+1,k)
               ftenu(j,i,k) = ftenu(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               fls0 = (bndv%b0(j,i,k)  +xt*bndv%bt(j,i,k))   - fv(j,i,k)
               fls1 = (bndv%b0(j-1,i,k)+xt*bndv%bt(j-1,i,k)) - fv(j-1,i,k)
               fls2 = (bndv%b0(j+1,i,k)+xt*bndv%bt(j+1,i,k)) - fv(j+1,i,k)
               fls3 = (bndv%b0(j,i-1,k)+xt*bndv%bt(j,i-1,k)) - fv(j,i-1,k)
               fls4 = (bndv%b0(j,i+1,k)+xt*bndv%bt(j,i+1,k)) - fv(j,i+1,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2206,14 +2191,14 @@ module mod_bdycod
               fls3 = (bndu%b0(j,i-1,k)+xt*bndu%bt(j,i-1,k)) - fu(j,i-1,k)
               fls4 = (bndu%b0(j,i+1,k)+xt*bndu%bt(j,i+1,k)) - fu(j,i+1,k)
               ftenu(j,i,k) = ftenu(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               fls0 = (bndv%b0(j,i,k)  +xt*bndv%bt(j,i,k))   - fv(j,i,k)
               fls1 = (bndv%b0(j-1,i,k)+xt*bndv%bt(j-1,i,k)) - fv(j-1,i,k)
               fls2 = (bndv%b0(j+1,i,k)+xt*bndv%bt(j+1,i,k)) - fv(j+1,i,k)
               fls3 = (bndv%b0(j,i-1,k)+xt*bndv%bt(j,i-1,k)) - fv(j,i-1,k)
               fls4 = (bndv%b0(j,i+1,k)+xt*bndv%bt(j,i+1,k)) - fv(j,i+1,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2232,14 +2217,14 @@ module mod_bdycod
               fls3 = (bndu%b0(j-1,i,k)+xt*bndu%bt(j-1,i,k)) - fu(j-1,i,k)
               fls4 = (bndu%b0(j+1,i,k)+xt*bndu%bt(j+1,i,k)) - fu(j+1,i,k)
               ftenu(j,i,k) = ftenu(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               fls0 = (bndv%b0(j,i,k)  +xt*bndv%bt(j,i,k))   - fv(j,i,k)
               fls1 = (bndv%b0(j,i-1,k)+xt*bndv%bt(j,i-1,k)) - fv(j,i-1,k)
               fls2 = (bndv%b0(j,i+1,k)+xt*bndv%bt(j,i+1,k)) - fv(j,i+1,k)
               fls3 = (bndv%b0(j-1,i,k)+xt*bndv%bt(j-1,i,k)) - fv(j-1,i,k)
               fls4 = (bndv%b0(j+1,i,k)+xt*bndv%bt(j+1,i,k)) - fv(j+1,i,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2258,14 +2243,14 @@ module mod_bdycod
               fls3 = (bndu%b0(j-1,i,k)+xt*bndu%bt(j-1,i,k)) - fu(j-1,i,k)
               fls4 = (bndu%b0(j+1,i,k)+xt*bndu%bt(j+1,i,k)) - fu(j+1,i,k)
               ftenu(j,i,k) = ftenu(j,i,k) + xf*fls0 -  &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               fls0 = (bndv%b0(j,i,k)  +xt*bndv%bt(j,i,k))   - fv(j,i,k)
               fls1 = (bndv%b0(j,i-1,k)+xt*bndv%bt(j,i-1,k)) - fv(j,i-1,k)
               fls2 = (bndv%b0(j,i+1,k)+xt*bndv%bt(j,i+1,k)) - fv(j,i+1,k)
               fls3 = (bndv%b0(j-1,i,k)+xt*bndv%bt(j-1,i,k)) - fv(j-1,i,k)
               fls4 = (bndv%b0(j+1,i,k)+xt*bndv%bt(j+1,i,k)) - fv(j+1,i,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 -  &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2285,14 +2270,14 @@ module mod_bdycod
               fls3 = (bndu%b0(j,i-1,k)+xt*bndu%bt(j,i-1,k)) - fu(j,i-1,k)
               fls4 = (bndu%b0(j,i+1,k)+xt*bndu%bt(j,i+1,k)) - fu(j,i+1,k)
               ftenu(j,i,k) = ftenu(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               fls0 = (bndv%b0(j,i,k)  +xt*bndv%bt(j,i,k))   - fv(j,i,k)
               fls1 = (bndv%b0(j-1,i,k)+xt*bndv%bt(j-1,i,k)) - fv(j-1,i,k)
               fls2 = (bndv%b0(j+1,i,k)+xt*bndv%bt(j+1,i,k)) - fv(j+1,i,k)
               fls3 = (bndv%b0(j,i-1,k)+xt*bndv%bt(j,i-1,k)) - fv(j,i-1,k)
               fls4 = (bndv%b0(j,i+1,k)+xt*bndv%bt(j,i+1,k)) - fv(j,i+1,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2311,14 +2296,14 @@ module mod_bdycod
               fls3 = (bndu%b0(j,i-1,k)+xt*bndu%bt(j,i-1,k)) - fu(j,i-1,k)
               fls4 = (bndu%b0(j,i+1,k)+xt*bndu%bt(j,i+1,k)) - fu(j,i+1,k)
               ftenu(j,i,k) = ftenu(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               fls0 = (bndv%b0(j,i,k)  +xt*bndv%bt(j,i,k))   - fv(j,i,k)
               fls1 = (bndv%b0(j-1,i,k)+xt*bndv%bt(j-1,i,k)) - fv(j-1,i,k)
               fls2 = (bndv%b0(j+1,i,k)+xt*bndv%bt(j+1,i,k)) - fv(j+1,i,k)
               fls3 = (bndv%b0(j,i-1,k)+xt*bndv%bt(j,i-1,k)) - fv(j,i-1,k)
               fls4 = (bndv%b0(j,i+1,k)+xt*bndv%bt(j,i+1,k)) - fv(j,i+1,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2337,14 +2322,14 @@ module mod_bdycod
               fls3 = (bndu%b0(j-1,i,k)+xt*bndu%bt(j-1,i,k)) - fu(j-1,i,k)
               fls4 = (bndu%b0(j+1,i,k)+xt*bndu%bt(j+1,i,k)) - fu(j+1,i,k)
               ftenu(j,i,k) = ftenu(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               fls0 = (bndv%b0(j,i,k)  +xt*bndv%bt(j,i,k))   - fv(j,i,k)
               fls1 = (bndv%b0(j,i-1,k)+xt*bndv%bt(j,i-1,k)) - fv(j,i-1,k)
               fls2 = (bndv%b0(j,i+1,k)+xt*bndv%bt(j,i+1,k)) - fv(j,i+1,k)
               fls3 = (bndv%b0(j-1,i,k)+xt*bndv%bt(j-1,i,k)) - fv(j-1,i,k)
               fls4 = (bndv%b0(j+1,i,k)+xt*bndv%bt(j+1,i,k)) - fv(j+1,i,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2363,14 +2348,14 @@ module mod_bdycod
               fls3 = (bndu%b0(j-1,i,k)+xt*bndu%bt(j-1,i,k)) - fu(j-1,i,k)
               fls4 = (bndu%b0(j+1,i,k)+xt*bndu%bt(j+1,i,k)) - fu(j+1,i,k)
               ftenu(j,i,k) = ftenu(j,i,k) + xf*fls0 -  &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               fls0 = (bndv%b0(j,i,k)  +xt*bndv%bt(j,i,k))   - fv(j,i,k)
               fls1 = (bndv%b0(j,i-1,k)+xt*bndv%bt(j,i-1,k)) - fv(j,i-1,k)
               fls2 = (bndv%b0(j,i+1,k)+xt*bndv%bt(j,i+1,k)) - fv(j,i+1,k)
               fls3 = (bndv%b0(j-1,i,k)+xt*bndv%bt(j-1,i,k)) - fv(j-1,i,k)
               fls4 = (bndv%b0(j+1,i,k)+xt*bndv%bt(j+1,i,k)) - fv(j+1,i,k)
               ftenv(j,i,k) = ftenv(j,i,k) + xf*fls0 -  &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2447,7 +2432,7 @@ module mod_bdycod
                 fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
                 fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
                 ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
-                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               end do
             end do
           end do
@@ -2466,7 +2451,7 @@ module mod_bdycod
                 fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
                 fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
                 ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
-                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               end do
             end do
           end do
@@ -2485,7 +2470,7 @@ module mod_bdycod
                 fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
                 fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
                 ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
-                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               end do
             end do
           end do
@@ -2504,7 +2489,7 @@ module mod_bdycod
                 fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
                 fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
                 ften(j,i,k) = ften(j,i,k) + xf*fls0 -  &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               end do
             end do
           end do
@@ -2524,7 +2509,7 @@ module mod_bdycod
                 fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
                 fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
                 ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
-                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               end do
             end do
           end do
@@ -2543,7 +2528,7 @@ module mod_bdycod
                 fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
                 fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
                 ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
-                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               end do
             end do
           end do
@@ -2562,7 +2547,7 @@ module mod_bdycod
                 fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
                 fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
                 ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
-                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               end do
             end do
           end do
@@ -2581,7 +2566,7 @@ module mod_bdycod
                 fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
                 fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
                 ften(j,i,k) = ften(j,i,k) + xf*fls0 -  &
-                              xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                              xg*(fls1+fls2+fls3+fls4-d_four*fls0)
               end do
             end do
           end do
@@ -2602,7 +2587,7 @@ module mod_bdycod
               fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
               fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
        end do
@@ -2621,7 +2606,7 @@ module mod_bdycod
               fls3 = (bnd%b0(j,i-1,k)+xt*bnd%bt(j,i-1,k)) - f(j,i-1,k)
               fls4 = (bnd%b0(j,i+1,k)+xt*bnd%bt(j,i+1,k)) - f(j,i+1,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2640,7 +2625,7 @@ module mod_bdycod
               fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
               fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 - &
-                            xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2659,7 +2644,7 @@ module mod_bdycod
               fls3 = (bnd%b0(j-1,i,k)+xt*bnd%bt(j-1,i,k)) - f(j-1,i,k)
               fls4 = (bnd%b0(j+1,i,k)+xt*bnd%bt(j+1,i,k)) - f(j+1,i,k)
               ften(j,i,k) = ften(j,i,k) + xf*fls0 -  &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -2706,7 +2691,7 @@ module mod_bdycod
             fls3 = (bnd%b0(j,i-1)+xt*bnd%bt(j,i-1)) - f(j,i-1)
             fls4 = (bnd%b0(j,i+1)+xt*bnd%bt(j,i+1)) - f(j,i+1)
             ften(j,i) = ften(j,i) + xf*fls0 - &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         end do
       end if
@@ -2723,7 +2708,7 @@ module mod_bdycod
             fls3 = (bnd%b0(j,i-1)+xt*bnd%bt(j,i-1)) - f(j,i-1)
             fls4 = (bnd%b0(j,i+1)+xt*bnd%bt(j,i+1)) - f(j,i+1)
             ften(j,i) = ften(j,i) + xf*fls0 - &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         end do
       end if
@@ -2740,7 +2725,7 @@ module mod_bdycod
             fls3 = (bnd%b0(j-1,i)+xt*bnd%bt(j-1,i)) - f(j-1,i)
             fls4 = (bnd%b0(j+1,i)+xt*bnd%bt(j+1,i)) - f(j+1,i)
             ften(j,i) = ften(j,i) + xf*fls0 - &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         end do
       end if
@@ -2757,7 +2742,7 @@ module mod_bdycod
             fls3 = (bnd%b0(j-1,i)+xt*bnd%bt(j-1,i)) - f(j-1,i)
             fls4 = (bnd%b0(j+1,i)+xt*bnd%bt(j+1,i)) - f(j+1,i)
             ften(j,i) = ften(j,i) + xf*fls0 -  &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         end do
       end if
@@ -2775,7 +2760,7 @@ module mod_bdycod
             fls3 = (bnd%b0(j,i-1)+xt*bnd%bt(j,i-1)) - f(j,i-1)
             fls4 = (bnd%b0(j,i+1)+xt*bnd%bt(j,i+1)) - f(j,i+1)
             ften(j,i) = ften(j,i) + xf*fls0 - &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         end do
       end if
@@ -2792,7 +2777,7 @@ module mod_bdycod
             fls3 = (bnd%b0(j,i-1)+xt*bnd%bt(j,i-1)) - f(j,i-1)
             fls4 = (bnd%b0(j,i+1)+xt*bnd%bt(j,i+1)) - f(j,i+1)
             ften(j,i) = ften(j,i) + xf*fls0 - &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         end do
       end if
@@ -2809,7 +2794,7 @@ module mod_bdycod
             fls3 = (bnd%b0(j-1,i)+xt*bnd%bt(j-1,i)) - f(j-1,i)
             fls4 = (bnd%b0(j+1,i)+xt*bnd%bt(j+1,i)) - f(j+1,i)
             ften(j,i) = ften(j,i) + xf*fls0 - &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         end do
       end if
@@ -2826,7 +2811,7 @@ module mod_bdycod
             fls3 = (bnd%b0(j-1,i)+xt*bnd%bt(j-1,i)) - f(j-1,i)
             fls4 = (bnd%b0(j+1,i)+xt*bnd%bt(j+1,i)) - f(j+1,i)
             ften(j,i) = ften(j,i) + xf*fls0 -  &
-                          xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                          xg*(fls1+fls2+fls3+fls4-d_four*fls0)
           end do
         end do
       end if

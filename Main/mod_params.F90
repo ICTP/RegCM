@@ -2408,6 +2408,16 @@ module mod_params
                           (atm0%ps(j,i)*dx4*mddom%msfx(j,i))
           end do
         end do
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              atm0%dprddx(j,i,k) = atm0%pr(j,i,k)   - atm0%pr(j-1,i,k) + &
+                                   atm0%pr(j,i-1,k) - atm0%pr(j-1,i-1,k)
+              atm0%dprddy(j,i,k) = atm0%pr(j,i,k)   - atm0%pr(j,i-1,k) + &
+                                   atm0%pr(j-1,i,k) - atm0%pr(j-1,i-1,k)
+            end do
+          end do
+        end do
         if ( myid == italk ) then
           write(stdout,*) 'Reference atmosphere calculated.'
         end if
