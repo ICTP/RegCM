@@ -102,17 +102,17 @@ module mod_tendency
       call getmem3d(ucc,jce1,jce2,ice1,ice2,1,kz,'tendency:ucc')
       call getmem3d(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
       if ( ithadv == 1 ) then
-        call getmem3d(thten,jce1,jce2,ice1,ice2,1,kz,'tendency:thten')
+        call getmem3d(thten,jci1,jci2,ici1,ici2,1,kz,'tendency:thten')
         call getmem3d(th,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'tendency:th')
         call getmem3d(tha,jce1,jce2,ice1,ice2,1,kz,'tendency:tha')
       end if
     end if
     if ( idiag > 0 ) then
-      call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
-      call getmem3d(qen0,jce1,jce2,ice1,ice2,1,kz,'tendency:qen0')
+      call getmem3d(ten0,jci1,jci2,ici1,ici2,1,kz,'tendency:ten0')
+      call getmem3d(qen0,jci1,jci2,ici1,ici2,1,kz,'tendency:qen0')
     end if
 #ifdef DEBUG
-    call getmem3d(wten,jde1,jde2,ide1,ide2,1,kz,'tendency:wten')
+    call getmem3d(wten,jdi1,jdi2,idi1,idi2,1,kz,'tendency:wten')
 #endif
     !
     ! Set number of ghost points for advection for the two schemes
@@ -143,8 +143,8 @@ module mod_tendency
     implicit none
     real(rkx) :: duv , pt2bar , pt2tot , ptnbar , maxv , ptntot ,  &
                  rovcpm , rtbar , tv , tva , tvavg , tvb , tvc ,   &
-                 rho0s , cpm , rofac , uaq , vaq , wabar , amfac , &
-                 wadot , wadotp1
+                 cpm , rofac , uaq , vaq , wabar , amfac , wadot , &
+                 wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -240,8 +240,7 @@ module mod_tendency
             ! The coordinate vertical velocity in the nonhydrostatic model:
             ! Eq. 2.2.7 & Eq. 2.3.6 in the MM5 manual
             !
-            rho0s = twt(k,1)*atm0%rho(j,i,k)+twt(k,2)*atm0%rho(j,i,k-1)
-            qdot(j,i,k) = -rho0s*egrav*atmx%w(j,i,k)/atm0%ps(j,i) -  &
+            qdot(j,i,k) = -atm0%rhof(j,i,k)*egrav*atmx%w(j,i,k)/atm0%ps(j,i) - &
               sigma(k) * (dpsdxm(j,i) * (twt(k,1)*ucc(j,i,k) +       &
                                          twt(k,2)*ucc(j,i,k-1)) +    &
                           dpsdym(j,i) * (twt(k,1)*vcc(j,i,k) +       &
@@ -1489,23 +1488,23 @@ module mod_tendency
       ! Decouple before calling sound
       !
       do k = 1 , kz
-        do i = ide1 , ide2
-          do j = jde1 , jde2
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
             aten%u(j,i,k) = aten%u(j,i,k) * rpsda(j,i)
             aten%v(j,i,k) = aten%v(j,i,k) * rpsda(j,i)
           end do
         end do
       end do
       do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             aten%pp(j,i,k) = aten%pp(j,i,k) * rpsa(j,i)
           end do
         end do
       end do
       do k = 1 , kzp1
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             aten%w(j,i,k) = aten%w(j,i,k) * rpsa(j,i)
           end do
         end do
@@ -1536,8 +1535,8 @@ module mod_tendency
       ! Add the advective tendency to the TKE tendency calculated
       ! by the UW TKE routine
       do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
              aten%tke(j,i,k) = aten%tke(j,i,k) + &
                                uwstatea%advtke(j,i,k)*rpsa(j,i)
              atmc%tke(j,i,k) = max(tkemin,atm2%tke(j,i,k) + &
@@ -1738,8 +1737,8 @@ module mod_tendency
       integer(ik4) :: i , j , k , kk , ierr
       real(rkx) :: check_ww , mean_ww
       ierr = 0
-      wten = sqrt(max(aten%u(jde1:jde2,ide1:ide2,:),epsilon(d_one))**2 + &
-                  max(aten%v(jde1:jde2,ide1:ide2,:),epsilon(d_one))**2)
+      wten = sqrt(max(aten%u(jdi1:jdi2,idi1:idi2,:),epsilon(d_one))**2 + &
+                  max(aten%v(jdi1:jdi2,idi1:idi2,:),epsilon(d_one))**2)
       mean_ww = (maxval(wten)+minval(wten))/d_two
       do k = 1 , kz
         do i = ici1, ici2

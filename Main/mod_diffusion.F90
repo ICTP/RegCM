@@ -254,11 +254,11 @@ module mod_diffusion
           uten(j,i,k) = uten(j,i,k) + xkd(j,i,k) * &
              (o4_c1*(u(j+1,i,k)+u(j-1,i,k)+u(j,i+1,k)+u(j,i-1,k)) + &
               o4_c2*(u(j+1,i+1,k)+u(j-1,i-1,k)+u(j-1,i+1,k)+u(j+1,i-1,k)) + &
-              o4_c3*u(j,i,k))
+              o4_c3*(u(j,i,k)))
           vten(j,i,k) = vten(j,i,k) + xkd(j,i,k) * &
               (o4_c1*(v(j+1,i,k)+v(j-1,i,k)+v(j,i+1,k)+v(j,i-1,k)) + &
                o4_c2*(v(j+1,i+1,k)+v(j-1,i-1,k)+v(j-1,i+1,k)+v(j+1,i-1,k)) + &
-               o4_c3*v(j,i,k))
+               o4_c3*(v(j,i,k)))
         end do
       end do
     end do
@@ -287,7 +287,7 @@ module mod_diffusion
           ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * &
            (o4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) +   &
             o4_c2*(f(j+1,i+1,k)+f(j-1,i-1,k)+f(j-1,i+1,k)+f(j+1,i-1,k)) + &
-            o4_c3*f(j,i,k))
+            o4_c3*(f(j,i,k)))
         end do
       end do
     end do
@@ -315,7 +315,7 @@ module mod_diffusion
           ften(j,i,k) = ften(j,i,k) + xkc(j,i,k) * &
            (o4_c1*(f(j+1,i,k)+f(j-1,i,k)+f(j,i+1,k)+f(j,i-1,k)) +   &
             o4_c2*(f(j+1,i+1,k)+f(j-1,i-1,k)+f(j-1,i+1,k)+f(j+1,i-1,k)) + &
-            o4_c3*f(j,i,k))
+            o4_c3*(f(j,i,k)))
         end do
       end do
     end do

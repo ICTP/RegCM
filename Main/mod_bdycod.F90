@@ -137,8 +137,7 @@ module mod_bdycod
 
   subroutine setup_bdycon
     implicit none
-    real(rkx) , dimension(kz) :: anudgh
-    real(rkx) , dimension(kzp1) :: anudgf
+    real(rkx) , dimension(kz) :: anudge
     real(rkx) :: xfun
     integer(ik4) :: n , k
 #ifdef DEBUG
@@ -186,21 +185,21 @@ module mod_bdycod
     if ( iboudy == 5 ) then
       do k = 1 , kz
         if ( hsigma(k) < 0.4_rkx ) then
-          anudgh(k) = high_nudge
+          anudge(k) = high_nudge
         else if ( hsigma(k) < 0.8_rkx ) then
-          anudgh(k) = medium_nudge
+          anudge(k) = medium_nudge
         else
-          anudgh(k) = low_nudge
+          anudge(k) = low_nudge
         end if
       end do
       do k = 1 , kz
         do n = 2 , nspgx-1
-          xfun = exp(-(real(n-2,rkx)/anudgh(k)))
+          xfun = exp(-(real(n-2,rkx)/anudge(k)))
           hefc(n,k) = fnudge*xfun
           hegc(n,k) = gnudge*xfun
         end do
         do n = 2 , nspgd-1
-          xfun = exp(-(real(n-2,rkx)/anudgh(k)))
+          xfun = exp(-(real(n-2,rkx)/anudge(k)))
           hefd(n,k) = fnudge*xfun
           hegd(n,k) = gnudge*xfun
         end do

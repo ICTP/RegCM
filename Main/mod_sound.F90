@@ -163,8 +163,8 @@ module mod_sound
   subroutine sound
     implicit none
     real(rkx) :: cddtmp ,  cfl , check , chh , cjtmp , cpm , denom , &
-      dppdp0 , dpterm , dts , ppold , rho , rho0s , rofac , maxcfl , &
-      rll , rkk , ri , rj
+      dppdp0 , dpterm , dts , ppold , rho , rofac , maxcfl , rll ,   &
+      rkk , ri , rj
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
     logical , save :: cfl_error = .false.
     character (len=32) :: appdat
@@ -224,10 +224,16 @@ module mod_sound
     do k = 1 , kz
       do i = ide1 , ide2
         do j = jde1 , jde2
-          aten%u(j,i,k) = aten%u(j,i,k) * dts
           atmc%u(j,i,k) = atm2%u(j,i,k)/sfs%psdotb(j,i)
-          aten%v(j,i,k) = aten%v(j,i,k) * dts
           atmc%v(j,i,k) = atm2%v(j,i,k)/sfs%psdotb(j,i)
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          aten%u(j,i,k) = aten%u(j,i,k) * dts
+          aten%v(j,i,k) = aten%v(j,i,k) * dts
         end do
       end do
     end do
@@ -241,14 +247,27 @@ module mod_sound
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          aten%pp(j,i,k) = aten%pp(j,i,k) * dts
           atmc%pp(j,i,k) = atm2%pp(j,i,k) * rpsb(j,i)
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          aten%pp(j,i,k) = aten%pp(j,i,k) * dts
         end do
       end do
     end do
     !
     ! Raleygh filtering
     !
+    do k = 1 , kzp1
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
+        end do
+      end do
+    end do
     if ( ifrayd == 1 ) then
       tau(:,:,:) = d_zero
       do i = ici1 , ici2
@@ -263,19 +282,17 @@ module mod_sound
         end do
       end do
       do k = 1 , kzp1
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             aten%w(j,i,k) = (d_one - tau(j,i,k)) * aten%w(j,i,k) * dts
-            atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
           end do
         end do
       end do
     else
       do k = 1 , kzp1
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             aten%w(j,i,k) = aten%w(j,i,k) * dts
-            atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
           end do
         end do
       end do
@@ -327,8 +344,8 @@ module mod_sound
         end do
       end do
       do k = 1 , kz
-        do i = ide1 , ide2
-          do j = jde1 , jde2
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
             atmc%u(j,i,k) = atmc%u(j,i,k) + aten%u(j,i,k)
             atmc%v(j,i,k) = atmc%v(j,i,k) + aten%v(j,i,k)
           end do
@@ -673,8 +690,8 @@ module mod_sound
       do k = kz , 2 , -1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rho0s = twt(k,1)*atm0%rho(j,i,k) + twt(k,2)*atm0%rho(j,i,k-1)
-            sigdot(j,i,k) = -rho0s*egrav*atmc%w(j,i,k)/atm0%ps(j,i) -  &
+            sigdot(j,i,k) = -atm0%rhof(j,i,k)*egrav * &
+                             atmc%w(j,i,k)/atm0%ps(j,i) - &
                sigma(k) * ( dpsdxm(j,i) * ( twt(k,1)*ucrs(j,i,k) +     &
                                             twt(k,2)*ucrs(j,i,k-1) ) + &
                             dpsdym(j,i) * ( twt(k,1)*vcrs(j,i,k) +     &
@@ -743,7 +760,7 @@ module mod_sound
         end do
       end do
       !
-      ! Zero-out gradient for W, specified on PP
+      ! Zero-out gradient for W
       !
       if ( ma%has_bdybottom ) then
         do k = 1 , kzp1
@@ -751,25 +768,14 @@ module mod_sound
             atmc%w(j,ice1,k) = atmc%w(j,ici1,k)
           end do
         end do
-        do k = 1 , kz
-          do j = jci1 , jci2
-            atmc%pp(j,ice1,k) = atmc%pp(j,ice1,k) + aten%pp(j,ice1,k)
-          end do
-        end do
         if ( ma%has_bdyleft ) then
           do k = 1 , kzp1
             atmc%w(jce1,ice1,k) = atmc%w(jci1,ici1,k)
-          end do
-          do k = 1 , kz
-            atmc%pp(jce1,ice1,k) = atmc%pp(jce1,ice1,k) + aten%pp(jce1,ice1,k)
           end do
         end if
         if ( ma%has_bdyright ) then
           do k = 1 , kzp1
             atmc%w(jce2,ice1,k) = atmc%w(jci2,ici1,k)
-          end do
-          do k = 1 , kz
-            atmc%pp(jce2,ice1,k) = atmc%pp(jce2,ice1,k) + aten%pp(jce2,ice1,k)
           end do
         end if
       end if
@@ -779,25 +785,14 @@ module mod_sound
             atmc%w(j,ice2,k) = atmc%w(j,ici2,k)
           end do
         end do
-        do k = 1 , kz
-          do j = jci1 , jci2
-            atmc%pp(j,ice2,k) = atmc%pp(j,ice2,k) + aten%pp(j,ice2,k)
-          end do
-        end do
         if ( ma%has_bdyleft ) then
           do k = 1 , kzp1
             atmc%w(jce1,ice2,k) = atmc%w(jci1,ici2,k)
-          end do
-          do k = 1 , kz
-            atmc%pp(jce1,ice2,k) = atmc%pp(jce1,ice2,k) + aten%pp(jce1,ice2,k)
           end do
         end if
         if ( ma%has_bdyright ) then
           do k = 1 , kzp1
             atmc%w(jce2,ice2,k) = atmc%w(jci2,ici2,k)
-          end do
-          do k = 1 , kz
-            atmc%pp(jce2,ice2,k) = atmc%pp(jce2,ice2,k) + aten%pp(jce2,ice2,k)
           end do
         end if
       end if
@@ -807,21 +802,11 @@ module mod_sound
             atmc%w(jce1,i,k) = atmc%w(jci1,i,k)
           end do
         end do
-        do k = 1 , kz
-          do i = ici1 , ici2
-            atmc%pp(jce1,i,k) = atmc%pp(jce1,i,k) + aten%pp(jce1,i,k)
-          end do
-        end do
       end if
       if ( ma%has_bdyright ) then
         do k = 1 , kzp1
           do i = ici1 , ici2
             atmc%w(jce2,i,k) = atmc%w(jci2,i,k)
-          end do
-        end do
-        do k = 1 , kz
-          do i = ici1 , ici2
-            atmc%pp(jce2,i,k) = atmc%pp(jce2,i,k) + aten%pp(jce2,i,k)
           end do
         end do
       end if

@@ -208,12 +208,11 @@ module mod_cu_interface
         end do
 
         if ( any(icup == 5) ) then
-          call exchange(c2m%uten,1,jde1,jde2,ide1,ide2,1,kz)
-          call exchange(c2m%vten,1,jde1,jde2,ide1,ide2,1,kz)
-
+          call exchange(c2m%uten,1,jdi1,jdi2,idi1,idi2,1,kz)
+          call exchange(c2m%vten,1,jdi1,jdi2,idi1,idi2,1,kz)
           do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = icii1 , icii2
+              do j = jcii1 , jcii2
                 avg_uten(j,i,k) = d_rfour*(c2m%uten(j,i,k) +   &
                                            c2m%uten(j+1,i,k) + &
                                            c2m%uten(j,i+1,k) + &

@@ -2384,18 +2384,13 @@ module mod_params
         mddom%ht = mddom%ht * regrav
         call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,mddom%xlat,mddom%ht, &
                     atm0%ps,atm0%pr,atm0%t,atm0%rho)
+        call nhbase(ice1,ice2,jce1,jce2,kzp1,sigma,mddom%xlat,mddom%ht, &
+                    atm0%ps,atm0%pf,atm0%tf,atm0%rhof)
         mddom%ht = mddom%ht * egrav
         call exchange(atm0%ps,1,jce1,jce2,ice1,ice2)
         call exchange(atm0%pr,1,jce1,jce2,ice1,ice2,1,kz)
         call psc2psd(atm0%ps,atm0%psdot)
         call exchange(atm0%psdot,1,jde1,jde2,ide1,ide2)
-        do k = 1 , kz+1
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              atm0%pf(j,i,k) = sigma(k) * atm0%ps(j,i) + ptop*d_1000
-            end do
-          end do
-        end do
         do i = ice1 , ice2
           do j = jci1 , jci2
             dpsdxm(j,i) = (atm0%psdot(j+1,i) - atm0%psdot(j,i)) / &

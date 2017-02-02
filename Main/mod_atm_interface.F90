@@ -624,16 +624,21 @@ module mod_atm_interface
     subroutine allocate_atmstate_tendency(atm)
       implicit none
       type(atmstate_tendency) , intent(out) :: atm
-      call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
-      call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
-      call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'atmstate:t')
-      call getmem4d(atm%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atmstate:qx')
+      if ( any(icup == 5 ) ) then
+        call getmem3d(atm%u,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'atmstate:u')
+        call getmem3d(atm%v,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'atmstate:v')
+      else
+        call getmem3d(atm%u,jdi1,jdi2,idi1,idi2,1,kz,'atmstate:u')
+        call getmem3d(atm%v,jdi1,jdi2,idi1,idi2,1,kz,'atmstate:v')
+      end if
+      call getmem3d(atm%t,jci1,jci2,ici1,ici2,1,kz,'atmstate:t')
+      call getmem4d(atm%qx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'atmstate:qx')
       if ( ibltyp == 2 ) then
-        call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
+        call getmem3d(atm%tke,jci1,jci2,ici1,ici2,1,kzp1,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
-        call getmem3d(atm%pp,jce1,jce2,ice1,ice2,1,kz,'atmstate:pp')
-        call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
+        call getmem3d(atm%pp,jci1,jci2,ici1,ici2,1,kz,'atmstate:pp')
+        call getmem3d(atm%w,jci1,jci2,ici1,ici2,1,kzp1,'atmstate:w')
       end if
     end subroutine allocate_atmstate_tendency
 
@@ -652,12 +657,14 @@ module mod_atm_interface
       type(reference_atmosphere) , intent(out) :: atm
       call getmem2d(atm%ps,jce1ga,jce2ga,ice1ga,ice2ga,'reference:ps')
       call getmem2d(atm%psdot,jde1ga,jde2ga,ide1ga,ide2ga,'reference:psdot')
+      call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'reference:t')
       call getmem3d(atm%pr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:pr')
+      call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'reference:rho')
+      call getmem3d(atm%tf,jce1,jce2,ice1,ice2,1,kzp1,'reference:tf')
+      call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'reference:pf')
+      call getmem3d(atm%rhof,jce1,jce2,ice1,ice2,1,kzp1,'reference:rhof')
       call getmem3d(atm%dprddx,jdi1,jdi2,idi1,idi2,1,kz,'reference:dprddx')
       call getmem3d(atm%dprddy,jdi1,jdi2,idi1,idi2,1,kz,'reference:dprddy')
-      call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'reference:t')
-      call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'reference:pf')
-      call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'reference:rho')
     end subroutine allocate_reference_atmosphere
 
     subroutine allocate_mass_divergence(div)
@@ -669,33 +676,33 @@ module mod_atm_interface
     subroutine allocate_tendiag(dia)
       implicit none
       type(tendiag) , intent(out) :: dia
-      call getmem3d(dia%adh,jce1,jce2,ice1,ice2,1,kz,'tendiag:adh')
-      call getmem3d(dia%adv,jce1,jce2,ice1,ice2,1,kz,'tendiag:adv')
-      call getmem3d(dia%tbl,jce1,jce2,ice1,ice2,1,kz,'tendiag:tbl')
-      call getmem3d(dia%con,jce1,jce2,ice1,ice2,1,kz,'tendiag:con')
-      call getmem3d(dia%bdy,jce1,jce2,ice1,ice2,1,kz,'tendiag:bdy')
-      call getmem3d(dia%adi,jce1,jce2,ice1,ice2,1,kz,'tendiag:adi')
-      call getmem3d(dia%dif,jce1,jce2,ice1,ice2,1,kz,'tendiag:dif')
-      call getmem3d(dia%rad,jce1,jce2,ice1,ice2,1,kz,'tendiag:rad')
-      call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc')
+      call getmem3d(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
+      call getmem3d(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
+      call getmem3d(dia%tbl,jci1,jci2,ici1,ici2,1,kz,'tendiag:tbl')
+      call getmem3d(dia%con,jci1,jci2,ici1,ici2,1,kz,'tendiag:con')
+      call getmem3d(dia%bdy,jci1,jci2,ici1,ici2,1,kz,'tendiag:bdy')
+      call getmem3d(dia%adi,jci1,jci2,ici1,ici2,1,kz,'tendiag:adi')
+      call getmem3d(dia%dif,jci1,jci2,ici1,ici2,1,kz,'tendiag:dif')
+      call getmem3d(dia%rad,jci1,jci2,ici1,ici2,1,kz,'tendiag:rad')
+      call getmem3d(dia%lsc,jci1,jci2,ici1,ici2,1,kz,'tendiag:lsc')
     end subroutine allocate_tendiag
 
     subroutine allocate_qendiag(dia)
       implicit none
       type(qendiag) , intent(out) :: dia
-      call getmem3d(dia%adh,jce1,jce2,ice1,ice2,1,kz,'tendiag:adh')
-      call getmem3d(dia%adv,jce1,jce2,ice1,ice2,1,kz,'tendiag:adv')
-      call getmem3d(dia%tbl,jce1,jce2,ice1,ice2,1,kz,'tendiag:tbl')
-      call getmem3d(dia%con,jce1,jce2,ice1,ice2,1,kz,'tendiag:con')
-      call getmem3d(dia%bdy,jce1,jce2,ice1,ice2,1,kz,'tendiag:bdy')
-      call getmem3d(dia%adi,jce1,jce2,ice1,ice2,1,kz,'tendiag:adi')
-      call getmem3d(dia%dif,jce1,jce2,ice1,ice2,1,kz,'tendiag:dif')
-      call getmem3d(dia%rad,jce1,jce2,ice1,ice2,1,kz,'tendiag:rad')
-      call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc')
+      call getmem3d(dia%adh,jci1,jci2,ici1,ici2,1,kz,'tendiag:adh')
+      call getmem3d(dia%adv,jci1,jci2,ici1,ici2,1,kz,'tendiag:adv')
+      call getmem3d(dia%tbl,jci1,jci2,ici1,ici2,1,kz,'tendiag:tbl')
+      call getmem3d(dia%con,jci1,jci2,ici1,ici2,1,kz,'tendiag:con')
+      call getmem3d(dia%bdy,jci1,jci2,ici1,ici2,1,kz,'tendiag:bdy')
+      call getmem3d(dia%adi,jci1,jci2,ici1,ici2,1,kz,'tendiag:adi')
+      call getmem3d(dia%dif,jci1,jci2,ici1,ici2,1,kz,'tendiag:dif')
+      call getmem3d(dia%rad,jci1,jci2,ici1,ici2,1,kz,'tendiag:rad')
+      call getmem3d(dia%lsc,jci1,jci2,ici1,ici2,1,kz,'tendiag:lsc')
       if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
-        call getmem3d(dia%qcl,jce1,jce2,ice1,ice2,1,kz,'tendiag:qcl')
-        call getmem3d(dia%qcr,jce1,jce2,ice1,ice2,1,kz,'tendiag:qcr')
-        call getmem3d(dia%acr,jce1,jce2,ice1,ice2,1,kz,'tendiag:acr')
+        call getmem3d(dia%qcl,jci1,jci2,ici1,ici2,1,kz,'tendiag:qcl')
+        call getmem3d(dia%qcr,jci1,jci2,ici1,ici2,1,kz,'tendiag:qcr')
+        call getmem3d(dia%acr,jci1,jci2,ici1,ici2,1,kz,'tendiag:acr')
       end if
     end subroutine allocate_qendiag
 
